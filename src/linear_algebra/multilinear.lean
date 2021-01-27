@@ -848,8 +848,8 @@ We also register linear equiv versions of these correspondences, in
 open multilinear_map
 
 variables {R M M₂}
-[comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M'] [add_comm_group M₂]
-[∀i, module R (M i)] [module R M'] [module R M₂]
+[comm_semiring R] [∀i, add_comm_monoid (M i)] [add_comm_monoid M'] [add_comm_monoid M₂]
+[∀i, semimodule R (M i)] [semimodule R M'] [semimodule R M₂]
 
 /-! #### Left currying -/
 

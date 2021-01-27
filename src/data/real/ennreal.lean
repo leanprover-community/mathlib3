@@ -1046,6 +1046,9 @@ begin
   exact h r hr
 end
 
+lemma eq_top_of_forall_nnreal_le {x : ennreal} (h : ∀ r : ℝ≥0, ↑r ≤ x) : x = ∞ :=
+top_unique $ le_of_forall_nnreal_lt $ λ r hr, h r
+
 lemma div_add_div_same {a b c : ennreal} : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
 

@@ -2004,6 +2004,12 @@ subspaces. -/
 lemma submodule.orthogonal_le {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) : K₂ᗮ ≤ K₁ᗮ :=
 (submodule.orthogonal_gc 𝕜 E).monotone_l h
 
+/-- `submodule.orthogonal.orthogonal` preserves the `≤` ordering of two
+subspaces. -/
+lemma submodule.orthogonal_orthogonal_monotone {K₁ K₂ : submodule 𝕜 E} (h : K₁ ≤ K₂) :
+  K₁ᗮᗮ ≤ K₂ᗮᗮ :=
+submodule.orthogonal_le (submodule.orthogonal_le h)
+
 /-- `K` is contained in `Kᗮᗮ`. -/
 lemma submodule.le_orthogonal_orthogonal : K ≤ Kᗮᗮ := (submodule.orthogonal_gc 𝕜 E).le_u_l _
 
@@ -2074,6 +2080,17 @@ begin
   { intros hv w hw,
     rw inner_eq_zero_sym,
     exact hw v hv }
+end
+
+lemma submodule.orthogonal_orthogonal_eq_closure [complete_space E] :
+  Kᗮᗮ = K.topological_closure :=
+begin
+  refine le_antisymm _ _,
+  { convert submodule.orthogonal_orthogonal_monotone K.submodule_topological_closure,
+    haveI : complete_space K.topological_closure :=
+      K.is_closed_topological_closure.complete_space_coe,
+    rw K.topological_closure.orthogonal_orthogonal },
+  { exact K.topological_closure_minimal K.le_orthogonal_orthogonal Kᗮ.is_closed_orthogonal }
 end
 
 variables {K}

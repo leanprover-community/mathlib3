@@ -170,10 +170,10 @@ open formal_multilinear_series
 /-- Given a formal multilinear series `p`, a composition `c` of `n` and a continuous multilinear
 map `f` in `c.length` variables, one may form a multilinear map in `n` variables by applying
 the right coefficient of `p` to each block of the composition, and then applying `f` to the
-resulting vector. It is called `f.comp_along_composition_multilinear p c`.
+resulting vector. It is called `f.comp_along_composition_aux p c`.
 This function admits a version as a continuous multilinear map, called
 `f.comp_along_composition p c` below. -/
-def comp_along_composition_multilinear {n : ℕ}
+def comp_along_composition_aux {n : ℕ}
   (p : formal_multilinear_series 𝕜 E F) (c : composition n)
   (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) :
   multilinear_map 𝕜 (λ i : fin n, E) G :=
@@ -183,14 +183,14 @@ def comp_along_composition_multilinear {n : ℕ}
   map_smul' := λ v i c x, by simp only [apply_composition_update,
     continuous_multilinear_map.map_smul] }
 
-/-- The norm of `f.comp_along_composition_multilinear p c` is controlled by the product of
+/-- The norm of `f.comp_along_composition_aux p c` is controlled by the product of
 the norms of the relevant bits of `f` and `p`. -/
-lemma comp_along_composition_multilinear_bound {n : ℕ}
+lemma comp_along_composition_aux_bound {n : ℕ}
   (p : formal_multilinear_series 𝕜 E F) (c : composition n)
   (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) (v : fin n → E) :
-  ∥f.comp_along_composition_multilinear p c v∥ ≤
+  ∥f.comp_along_composition_aux p c v∥ ≤
     ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
-calc ∥f.comp_along_composition_multilinear p c v∥ = ∥f (p.apply_composition c v)∥ : rfl
+calc ∥f.comp_along_composition_aux p c v∥ = ∥f (p.apply_composition c v)∥ : rfl
 ... ≤ ∥f∥ * ∏ i, ∥p.apply_composition c v i∥ : continuous_multilinear_map.le_op_norm _ _
 ... ≤ ∥f∥ * ∏ i, ∥p (c.blocks_fun i)∥ *
         ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
@@ -210,14 +210,14 @@ calc ∥f.comp_along_composition_multilinear p c v∥ = ∥f (p.apply_compositio
 map `f` in `c.length` variables, one may form a continuous multilinear map in `n` variables by
 applying the right coefficient of `p` to each block of the composition, and then applying `f` to
 the resulting vector. It is called `f.comp_along_composition p c`. It is constructed from the
-analogous multilinear function `f.comp_along_composition_multilinear p c`, together with a norm
+analogous multilinear function `f.comp_along_composition_aux p c`, together with a norm
 control to get the continuity. -/
 def comp_along_composition {n : ℕ}
   (p : formal_multilinear_series 𝕜 E F) (c : composition n)
   (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) :
   continuous_multilinear_map 𝕜 (λ i : fin n, E) G :=
-(f.comp_along_composition_multilinear p c).mk_continuous _
-  (f.comp_along_composition_multilinear_bound p c)
+(f.comp_along_composition_aux p c).mk_continuous _
+  (f.comp_along_composition_aux_bound p c)
 
 @[simp] lemma comp_along_composition_apply {n : ℕ}
   (p : formal_multilinear_series 𝕜 E F) (c : composition n)
@@ -232,7 +232,7 @@ namespace formal_multilinear_series
 form a continuous multilinear map in `n` variables by applying the right coefficient of `p` to each
 block of the composition, and then applying `q c.length` to the resulting vector. It is
 called `q.comp_along_composition p c`. It is constructed from the analogous multilinear
-function `q.comp_along_composition_multilinear p c`, together with a norm control to get
+function `q.comp_along_composition_aux p c`, together with a norm control to get
 the continuity. -/
 def comp_along_composition {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
@@ -517,6 +517,7 @@ the source of the change of variables (`comp_partial_source`), its target
 (`comp_partial_target`) and the change of variables itself (`comp_change_of_variables`) before
 giving the main statement in `comp_partial_sum`. -/
 
+
 /-- Source set in the change of variables to compute the composition of partial sums of formal
 power series.
 See also `comp_partial_sum`. -/
@@ -607,7 +608,7 @@ begin
   apply finset.sum_bij (comp_change_of_variables m M N),
   -- We should show that the correspondance we have set up is indeed a bijection
   -- between the index sets of the two sums.
-  -- 1 - show that the image belongs to `comp_partial_sum_target N N`
+  -- 1 - show that the image belongs to `comp_partial_sum_target m N N`
   { rintros ⟨k, blocks_fun⟩ H,
     rw mem_comp_partial_sum_source_iff at H,
     simp only [mem_comp_partial_sum_target_iff, composition.length, composition.blocks, H.left,
@@ -658,8 +659,8 @@ begin
 end
 
 /-- Composing the partial sums of two multilinear series coincides with the sum over all
-compositions in `comp_partial_sum_target N`. This is precisely the motivation for the definition of
-`comp_partial_sum_target N`. -/
+compositions in `comp_partial_sum_target 0 N N`. This is precisely the motivation for the
+definition of `comp_partial_sum_target`. -/
 lemma comp_partial_sum
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (N : ℕ) (z : E) :
   q.partial_sum N (∑ i in finset.Ico 1 N, p i (λ j, z)) =
@@ -672,7 +673,7 @@ begin
     by simpa only [formal_multilinear_series.partial_sum,
                    continuous_multilinear_map.map_sum_finset] using H,
   -- rewrite the first sum as a big sum over a sigma type, in the finset
-  -- `comp_partial_sum_target M N`
+  -- `comp_partial_sum_target 0 N N`
   rw [finset.range_eq_Ico, finset.sum_sigma'],
   -- use `comp_change_of_variables_sum`, saying that this change of variables respects sums
   apply comp_change_of_variables_sum 0 N N,
@@ -730,7 +731,7 @@ begin
   /- Now the proof starts. To show that the sum of `q.comp p` at `y` is `g (f (x + y))`, we will
   write `q.comp p` applied to `y` as a big sum over all compositions. Since the sum is
   summable, to get its convergence it suffices to get the convergence along some increasing sequence
-  of sets. We will use the sequence of sets `comp_partial_sum_target n`, along which the sum is
+  of sets. We will use the sequence of sets `comp_partial_sum_target 0 n n`, along which the sum is
   exactly the composition of the partial sums of `q` and `p`, by design. To show that it converges
   to `g (f (x + y))`, pointwise convergence would not be enough, but we have uniform convergence
   to save the day. -/
@@ -760,7 +761,7 @@ begin
     rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,
     convert Hg.tendsto_locally_uniformly_on.tendsto_comp B₁.continuous_within_at B₂ A,
     simp only [add_sub_cancel'_right] },
-  -- Third step: the sum over all compositions in `comp_partial_sum_target n` converges to
+  -- Third step: the sum over all compositions in `comp_partial_sum_target 0 n n` converges to
   -- `g (f (x + y))`. As this sum is exactly the composition of the partial sum, this is a direct
   -- consequence of the second step
   have C : tendsto (λ n,

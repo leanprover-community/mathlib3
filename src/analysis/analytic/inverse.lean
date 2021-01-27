@@ -62,7 +62,7 @@ noncomputable def left_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[
 @[simp] lemma left_inv_coeff_one (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
   p.left_inv i 1 = (continuous_multilinear_curry_fin1 𝕜 F E).symm i.symm := rfl
 
-/-- The left inverse does not depend on the zeroth coefficient of of a formal multilinear
+/-- The left inverse does not depend on the zeroth coefficient of a formal multilinear
 series. -/
 lemma left_inv_remove_zero (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
   p.remove_zero.left_inv i = p.left_inv i :=
@@ -152,7 +152,7 @@ noncomputable def right_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L
 @[simp] lemma right_inv_coeff_one (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
   p.right_inv i 1 = (continuous_multilinear_curry_fin1 𝕜 F E).symm i.symm := rfl
 
-/-- The right inverse does not depend on the zeroth coefficient of of a formal multilinear
+/-- The right inverse does not depend on the zeroth coefficient of a formal multilinear
 series. -/
 lemma right_inv_remove_zero (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
   p.remove_zero.right_inv i = p.right_inv i :=

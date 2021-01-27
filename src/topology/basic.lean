@@ -810,6 +810,11 @@ lemma dense.inter_of_open_right {s t : set α} (hs : dense s) (ht : dense t) (ht
   dense (s ∩ t) :=
 inter_comm t s ▸ ht.inter_of_open_left hs hto
 
+lemma dense.inter_nhds_nonempty {s t : set α} (hs : dense s) {x : α} (ht : t ∈ 𝓝 x) :
+  (s ∩ t).nonempty :=
+let ⟨U, hsub, ho, hx⟩ := mem_nhds_sets_iff.1 ht in
+  (hs.inter_open_nonempty U ho ⟨x, hx⟩).mono $ λ y hy, ⟨hy.2, hsub hy.1⟩
+
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
 calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]
   ... ⊆ closure ((closure t)ᶜ ∩ s) : closure_inter_open $ is_open_compl_iff.mpr $ is_closed_closure

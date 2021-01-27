@@ -478,9 +478,8 @@ begin
   split,
   { rintro rfl,
     exact ones_length n },
-  { assume H,
-    contrapose H,
-    assume length_n,
+  { contrapose,
+    assume H length_n,
     apply lt_irrefl n,
     calc
       n = ∑ (i : fin c.length), 1 : by simp [length_n]
@@ -543,17 +542,15 @@ begin
   { rintros ⟨i, hi⟩,
     rw eq_single_iff_length,
     have : ∀ j : fin c.length, j = i,
-    { by_contradiction h,
-      push_neg at h,
-      rcases h with ⟨j, ji⟩,
-      apply lt_irrefl n,
-      calc n ≤ ∑ k in {i}, c.blocks_fun k : by simp [hi]
+    { intros j,
+      by_contradiction ji,
+      apply lt_irrefl ∑ k, c.blocks_fun k,
+      calc ∑ k, c.blocks_fun k ≤ ∑ k in {i}, c.blocks_fun k : by simp [c.sum_blocks_fun, hi]
       ... < ∑ k, c.blocks_fun k : begin
         have : j ∈ finset.univ \ {i}, by { rw [finset.mem_sdiff, finset.mem_singleton], simp [ji] },
         refine finset.sum_lt_sum_of_subset (finset.subset_univ _) this (c.one_le_blocks_fun j) _,
         exact λ k hk, zero_le_one.trans (c.one_le_blocks_fun k)
-      end
-      ... = n : c.sum_blocks_fun },
+      end },
     simpa using fintype.card_eq_one_of_forall_eq this }
 end
 

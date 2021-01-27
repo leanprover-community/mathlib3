@@ -162,9 +162,23 @@ to_real_hom.map_multiset_prod s
   ↑(∑ a in s, f a) = ∑ a in s, (f a : ℝ) :=
 to_real_hom.map_sum _ _
 
+lemma of_real_sum_of_nonneg {α} {s : finset α} {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
+  nnreal.of_real (∑ a in s, f a) = ∑ a in s, nnreal.of_real (f a) :=
+begin
+  rw [←nnreal.coe_eq, nnreal.coe_sum, nnreal.coe_of_real _ (finset.sum_nonneg hf)],
+  exact finset.sum_congr rfl (λ x hxs, by rw nnreal.coe_of_real _ (hf x hxs)),
+end
+
 @[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(∏ a in s, f a) = ∏ a in s, (f a : ℝ) :=
 to_real_hom.map_prod _ _
+
+lemma of_real_prod_of_nonneg {α} {s : finset α} {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) :
+  nnreal.of_real (∏ a in s, f a) = ∏ a in s, nnreal.of_real (f a) :=
+begin
+  rw [←nnreal.coe_eq, nnreal.coe_prod, nnreal.coe_of_real _ (finset.prod_nonneg hf)],
+  exact finset.prod_congr rfl (λ x hxs, by rw nnreal.coe_of_real _ (hf x hxs)),
+end
 
 @[norm_cast] lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n •ℕ r) = n •ℕ (r:ℝ) :=
 to_real_hom.to_add_monoid_hom.map_nsmul _ _

@@ -63,7 +63,7 @@ end
 
 section normal_tower
 
-variables (E : Type w) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
+variables (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
 lemma normal.tower_top_of_normal [h : normal F E] : normal K E :=
 begin
@@ -76,7 +76,7 @@ begin
     (minpoly.dvd_map_of_is_scalar_tower F K x)⟩,
 end
 
-variables {F} {E} {E' : Type v} [field E'] [algebra F E']
+variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
 lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
 begin

@@ -33,9 +33,6 @@ iff.intro
 
 end finset
 
-lemma conj_injective [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
-λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
-
 lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
   (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ subgroup.set_normalizer s :=
 by haveI := classical.prop_decidable;
@@ -161,7 +158,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
-    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
+    = _ : (finset.card_bUnion (by { intros, apply finset.disjoint_filter.2, cc })).symm
 ... = _ : congr_arg finset.card (finset.ext (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,

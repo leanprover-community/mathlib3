@@ -202,7 +202,7 @@ begin
 end
 
 theorem is_sheaf_iff_is_sheaf' (P : Cᵒᵖ ⥤ A) :
-is_sheaf J P ↔ is_sheaf' J P :=
+  is_sheaf J P ↔ is_sheaf' J P :=
 begin
   split,
   { intros h U R hR,

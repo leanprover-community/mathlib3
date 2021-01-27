@@ -88,10 +88,9 @@ begin
     apply ih }
 end
 
-variable [fintype σ]
-
-lemma pumping_lemma (x : list α) (hx : x ∈ M.accepts) (hlen : (fintype.card σ + 1) ≤ list.length x)
-: ∃ a b c,  x = a ++ b ++ c ∧ b ≠ [] ∧ (a ++ b).length ≤ (fintype.card σ + 1) ∧
+lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
+(hlen : (fintype.card σ + 1) ≤ list.length x) :
+  ∃ a b c,  x = a ++ b ++ c ∧ b ≠ [] ∧ (a ++ b).length ≤ (fintype.card σ + 1) ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
   -- By pidgeon hole principal the DFA passes though the same state twice in the first p+1 states we

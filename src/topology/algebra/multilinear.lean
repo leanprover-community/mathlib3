@@ -107,6 +107,10 @@ instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
+@[simp] lemma to_multilinear_map_add (f g : continuous_multilinear_map R M₁ M₂) :
+  (f + g).to_multilinear_map = f.to_multilinear_map + g.to_multilinear_map :=
+rfl
+
 instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), ..}; intros; ext; simp [add_comm, add_left_comm]
 
@@ -277,6 +281,10 @@ instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
 @[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
   (c • f) m = c • f m := rfl
 
+@[simp] lemma to_multilinear_map_smul (c : R') (f : continuous_multilinear_map A M₁ M₂) :
+  (c • f).to_multilinear_map = c • f.to_multilinear_map :=
+rfl
+
 instance {R''} [comm_semiring R''] [has_scalar R' R''] [algebra R'' A]
   [semimodule R'' M₂] [is_scalar_tower R'' A M₂] [is_scalar_tower R' R'' M₂]
   [topological_space R''] [topological_semimodule R'' M₂]:
@@ -298,7 +306,7 @@ instance : semimodule R' (continuous_multilinear_map A M₁ M₂) :=
 
 /-- Linear map version of the map `to_multilinear_map` associating to a continuous multilinear map
 the corresponding multilinear map. -/
-def to_multilinear_map_linear :
+@[simps] def to_multilinear_map_linear :
   (continuous_multilinear_map A M₁ M₂) →ₗ[R'] (multilinear_map A M₁ M₂) :=
 { to_fun    := λ f, f.to_multilinear_map,
   map_add'  := λ f g, rfl,

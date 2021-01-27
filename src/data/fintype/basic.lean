@@ -279,7 +279,7 @@ variables (f : α ↪ β) (b : set.range f)
 
 /--
 The inverse of an embedding `f : α ↪ β`, of the type `↥(set.range f) → α`.
-his is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`.
+This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`.
 This function should not usually be used for actual computation because for most cases,
 an explicit inverse can be stated that has better computational properties.
 This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where

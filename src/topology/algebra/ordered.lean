@@ -38,8 +38,9 @@ We prove many basic properties of such topologies.
 
 ## Main statements
 
-This file contains the proofs of the following facts. For exact requirements (`order_closed_topology`
-vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see their statements.
+This file contains the proofs of the following facts. For exact requirements
+(`order_closed_topology` vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc)
+see their statements.
 
 ### Open / closed sets
 
@@ -427,11 +428,11 @@ by simpa only [dual_Ioc] using @nhds_within_Ioc_eq_nhds_within_Ioi (order_dual �
   𝓝[Ioo a b] b = 𝓝[Iio b] b :=
 by simpa only [dual_Ioo] using @nhds_within_Ioo_eq_nhds_within_Ioi (order_dual α) _ _ _ _ _ h
 
-@[simp] lemma continuous_within_at_Ico_iff_Iio [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+@[simp] lemma continuous_within_at_Ico_iff_Iio {a b : α} {f : α → γ} (h : a < b) :
   continuous_within_at f (Ico a b) b ↔ continuous_within_at f (Iio b) b :=
 by simp only [continuous_within_at, nhds_within_Ico_eq_nhds_within_Iio h]
 
-@[simp] lemma continuous_within_at_Ioo_iff_Iio [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+@[simp] lemma continuous_within_at_Ioo_iff_Iio {a b : α} {f : α → γ} (h : a < b) :
   continuous_within_at f (Ioo a b) b ↔ continuous_within_at f (Iio b) b :=
 by simp only [continuous_within_at, nhds_within_Ioo_eq_nhds_within_Iio h]
 
@@ -645,11 +646,6 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 instance tendsto_Ioo_class_nhds (a : α) : tendsto_Ixx_class Ioo (𝓝 a) (𝓝 a) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-instance tendsto_Ixx_nhds_within (a : α) {s t : set α} {Ixx}
-  [tendsto_Ixx_class Ixx (𝓝 a) (𝓝 a)] [tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t)]:
-  tendsto_Ixx_class Ixx (𝓝[s] a) (𝓝[t] a) :=
-filter.tendsto_Ixx_class_inf
-
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 eventually for the filter. -/
 lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter β} {a : α}
@@ -685,6 +681,27 @@ from (tendsto_infi.2 $ assume l, tendsto_infi.2 $ assume hl,
   tendsto_infi.2 $ assume u, tendsto_infi.2 $ assume hu, tendsto_principal.2 $ h l u hl hu)
 
 end partial_order
+
+instance tendsto_Ixx_nhds_within {α : Type*} [preorder α] [topological_space α]
+  (a : α) {s t : set α} {Ixx}
+  [tendsto_Ixx_class Ixx (𝓝 a) (𝓝 a)] [tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t)]:
+  tendsto_Ixx_class Ixx (𝓝[s] a) (𝓝[t] a) :=
+filter.tendsto_Ixx_class_inf
+
+instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*} [nonempty ι]
+  [Π i, partial_order (α i)] [Π i, topological_space (α i)] [∀ i, order_topology (α i)]
+  (f : Π i, α i) :
+  tendsto_Ixx_class Icc (𝓝 f) (𝓝 f) :=
+begin
+  constructor,
+  conv in ((𝓝 f).lift' powerset) { rw [nhds_pi] },
+  simp only [lift'_infi_powerset, comap_lift'_eq2 monotone_powerset, tendsto_infi, tendsto_lift',
+    mem_powerset_iff, subset_def, mem_preimage],
+  intros i s hs,
+  have : tendsto (λ g : Π i, α i, g i) (𝓝 f) (𝓝 (f i)) := ((continuous_apply i).tendsto f),
+  refine (tendsto_lift'.1 ((this.comp tendsto_fst).Icc (this.comp tendsto_snd)) s hs).mono _,
+  exact λ p hp g hg, hp ⟨hg.1 _, hg.2 _⟩
+end
 
 theorem induced_order_topology' {α : Type u} {β : Type v}
   [partial_order α] [ta : topological_space β] [partial_order β] [order_topology β]
@@ -1763,7 +1780,8 @@ begin
     { rw h, exact mem_closure_of_is_glb (is_glb_Ioo hab) hab' },
     by_cases h' : x = b,
     { rw h', refine mem_closure_of_is_lub (is_lub_Ioo hab) hab' },
-    exact subset_closure ⟨lt_of_le_of_ne hx.1 (ne.symm h), by simpa [h'] using lt_or_eq_of_le hx.2⟩ }
+    exact subset_closure ⟨lt_of_le_of_ne hx.1 (ne.symm h),
+      by simpa [h'] using lt_or_eq_of_le hx.2⟩ }
 end
 
 /-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/
@@ -3130,57 +3148,3 @@ def to_homeomorph (e : α ≃o β) : α ≃ₜ β :=
 @[simp] lemma coe_to_homeomorph_symm (e : α ≃o β) : ⇑e.to_homeomorph.symm = e.symm := rfl
 
 end order_iso
-
-section conditionally_complete_linear_order
-variables
-  [conditionally_complete_linear_order α] [densely_ordered α] [topological_space α]
-  [order_topology α] [conditionally_complete_linear_order β] [topological_space β]
-  [order_topology β]
-
-/-- If `f : α → β` is strictly monotone and continuous, and tendsto `at_top` `at_top` and to
-`at_bot` `at_bot`, then it is a homeomorphism. -/
-noncomputable def homeomorph_of_strict_mono_continuous
-  (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
-  (h_bot : tendsto f at_bot at_bot) :
-  homeomorph α β :=
-(h_mono.order_iso_of_surjective f (h_cont.surjective h_top h_bot)).to_homeomorph
-
-@[simp] lemma coe_homeomorph_of_strict_mono_continuous
-  (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
-  (h_bot : tendsto f at_bot at_bot) :
-  (homeomorph_of_strict_mono_continuous f h_mono h_cont h_top h_bot : α → β) = f := rfl
-
-/- Now we prove a relative version of the above result.  This (`Ioo` to `univ`) is provided as a
-sample; there are at least 16 possible variations with open intervals (`univ` to `Ioo`, `Ioi` to
-`univ`, ...), not to mention the possibilities with closed or half-closed intervals. -/
-variables {a b : α}
-
-/-- If `f : α → β` is strictly monotone and continuous on the interval `Ioo a b` of `α`, and tends
-to `at_top` within `𝓝[Iio b] b` and to `at_bot` within `𝓝[Ioi a] a`, then it restricts to a
-homeomorphism from `Ioo a b` to `β`. -/
-noncomputable def homeomorph_of_strict_mono_continuous_Ioo
-  (f : α → β) (h : a < b)
-  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
-  (h_cont : continuous_on f (Ioo a b))
-  (h_top : tendsto f (𝓝[Iio b] b) at_top)
-  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
-  homeomorph (Ioo a b) β :=
-by haveI : inhabited (Ioo a b) := inhabited_of_nonempty (nonempty_Ioo_subtype h); exact
-homeomorph_of_strict_mono_continuous
-(restrict f (Ioo a b))
-(λ x y, h_mono x.2.1 y.2.2)
-(continuous_on_iff_continuous_restrict.mp h_cont)
-(by rwa [restrict_eq f (Ioo a b), ← tendsto_map'_iff, map_coe_Ioo_at_top h])
-(by rwa [restrict_eq f (Ioo a b), ← tendsto_map'_iff, map_coe_Ioo_at_bot h])
-
-@[simp] lemma coe_homeomorph_of_strict_mono_continuous_Ioo
-  (f : α → β) (h : a < b)
-  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
-  (h_cont : continuous_on f (Ioo a b))
-  (h_top : tendsto f (𝓝[Iio b] b) at_top)
-  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
-  (homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
-  = restrict f (Ioo a b) :=
-rfl
-
-end conditionally_complete_linear_order

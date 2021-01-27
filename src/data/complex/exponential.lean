@@ -434,7 +434,7 @@ have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
       have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
-        (nat.pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
+        (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
       have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
       simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
@@ -667,6 +667,20 @@ lemma cosh_mul_I : cosh (x * I) = cos x :=
 by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
        two_cos, neg_mul_eq_neg_mul]
 
+lemma tanh_mul_I : tanh (x * I) = tan x * I :=
+by rw [tanh_eq_sinh_div_cosh, cosh_mul_I, sinh_mul_I, mul_div_right_comm, tan]
+
+lemma cos_mul_I : cos (x * I) = cosh x :=
+by rw ← cosh_mul_I; ring; simp
+
+lemma sin_mul_I : sin (x * I) = sinh x * I :=
+have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
+by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
+  using cancel_factors.cancel_factors_eq_div h I_ne_zero
+
+lemma tan_mul_I : tan (x * I) = tanh x * I :=
+by rw [tan, sin_mul_I, cos_mul_I, mul_div_right_comm, tanh_eq_sinh_div_cosh]
+
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        add_mul, add_mul, mul_right_comm, ← sinh_mul_I,
@@ -691,6 +705,18 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
+
+lemma sin_add_mul_I (x y : ℂ) : sin (x + y*I) = sin x * cosh y + cos x * sinh y * I :=
+by rw [sin_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma sin_eq (z : ℂ) : sin z = sin z.re * cosh z.im + cos z.re * sinh z.im * I :=
+by convert sin_add_mul_I z.re z.im; exact (re_add_im z).symm
+
+lemma cos_add_mul_I (x y : ℂ) : cos (x + y*I) = cos x * cosh y - sin x * sinh y * I :=
+by rw [cos_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma cos_eq (z : ℂ) : cos z = cos z.re * cosh z.im - sin z.re * sinh z.im * I :=
+by convert cos_add_mul_I z.re z.im; exact (re_add_im z).symm
 
 theorem sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
 begin
@@ -944,10 +970,7 @@ begin
 end
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
-if h : complex.cos x = 0 then by simp [sin, cos, tan, *, complex.tan, div_eq_mul_inv] at *
-else
-  by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
-  simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
+by rw [← of_real_inj, of_real_tan, tan_eq_sin_div_cos, of_real_div, of_real_sin, of_real_cos]
 
 lemma tan_mul_cos {x : ℝ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
 by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
@@ -1188,11 +1211,11 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
   by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.factorial_succ, mul_comm, inv_pow']
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n! * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
-        (mt nat.succ.inj (nat.pos_iff_ne_zero.1 hn)),
+        (mt nat.succ.inj (pos_iff_ne_zero.1 hn)),
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
   have h₃ : (n! * n : α) ≠ 0,
-    from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.factorial_pos _)))
-    (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
+    from mul_ne_zero (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 (nat.factorial_pos _)))
+    (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
   by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
       mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev', h₄,

@@ -103,6 +103,17 @@ def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
 lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) :
   (monoid_hom.apply f i) g = g i := rfl
 
+/-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
+
+See also `monoid_hom.eval`. -/
+@[simps, to_additive "Coercion of an `add_monoid_hom` into a function is itself a `add_monoid_hom`.
+
+See also `add_monoid_hom.eval`. "]
+def monoid_hom.coe_fn (α β : Type*) [monoid α] [comm_monoid β] : (α →* β) →* (α → β) :=
+{ to_fun := λ g, g,
+  map_one' := rfl,
+  map_mul' := λ x y, rfl, }
+
 end monoid_hom
 
 section add_monoid_single

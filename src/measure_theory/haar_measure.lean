@@ -299,8 +299,10 @@ end
   neighborhood of `(1 : G)`. More precisely, it is defined to be an arbitrary element
   in the intersection of all the sets `cl_prehaar K₀ V` in `haar_product K₀`.
   This is roughly equal to the Haar measure on compact sets,
-  but it can differ slightly. According to [Halmos, §53, Th. C, pg 234] we have
-  `haar_measure K₀ (interior K.1) ≤ chaar K₀ K ≤ haar_measure K₀ K.1`. -/
+  but it can differ slightly. We do know that
+  `haar_measure K₀ (interior K.1) ≤ chaar K₀ K ≤ haar_measure K₀ K.1`.
+  These inequalities are given by `measure_theory.measure.haar_outer_measure_le_echaar` and
+  `measure_theory.measure.echaar_le_haar_outer_measure`. -/
 def chaar (K₀ : positive_compacts G) (K : compacts G) : ℝ :=
 classical.some (nonempty_Inter_cl_prehaar K₀) K
 

@@ -149,10 +149,7 @@ noncomputable def chebyshev₂ : ℕ → polynomial R
 @[simp] lemma chebyshev₂_zero : chebyshev₂ R 0 = 1 := rfl
 @[simp] lemma chebyshev₂_one : chebyshev₂ R 1 = 2 * X := rfl
 lemma chebyshev₂_two : chebyshev₂ R 2 = 4 * X ^ 2 - 1 :=
-begin
-  simp only [chebyshev₂],
-  ring,
-end
+by { simp only [chebyshev₂], ring, }
 
 @[simp] lemma chebyshev₂_add_two (n : ℕ) :
   chebyshev₂ R (n + 2) = 2 * X * chebyshev₂ R (n + 1) - chebyshev₂ R n :=
@@ -167,9 +164,9 @@ begin
 end
 
 lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
-∀ (n : ℕ), chebyshev₂ R (n+1) = X * chebyshev₂ R n + chebyshev₁ R (n+1)
-| 0        := by {simp only [chebyshev₂_zero, chebyshev₂_one, chebyshev₁_one], ring}
-| 1        := by {simp only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two], ring}
+  ∀ (n : ℕ), chebyshev₂ R (n+1) = X * chebyshev₂ R n + chebyshev₁ R (n+1)
+| 0        := by { simp only [chebyshev₂_zero, chebyshev₂_one, chebyshev₁_one], ring }
+| 1        := by { simp only [chebyshev₂_one, chebyshev₁_two, chebyshev₂_two], ring }
 | (n + 2)  :=
   calc chebyshev₂ R (n + 2 + 1) = 2 * X * (X * chebyshev₂ R (n + 1) + chebyshev₁ R (n + 2))
                                           - (X * chebyshev₂ R n + chebyshev₁ R (n + 1)) :
@@ -182,14 +179,14 @@ lemma chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁ :
             by simp only [chebyshev₂_add_two, chebyshev₁_add_two]
 
 lemma chebyshev₁_eq_chebyshev₂_sub_X_mul_chebyshev₂ (n : ℕ) :
-chebyshev₁ R (n+1) = chebyshev₂ R (n+1) - X * chebyshev₂ R n :=
+  chebyshev₁ R (n+1) = chebyshev₂ R (n+1) - X * chebyshev₂ R n :=
 by rw [chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁, add_comm (X * chebyshev₂ R n), add_sub_cancel]
 
 
 lemma chebyshev₁_eq_X_mul_chebyshev₁_sub_pol_chebyshev₂ :
-∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
-| 0        := by {simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero], ring}
-| 1        := by {simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
+  ∀ (n : ℕ), chebyshev₁ R (n+2) = X * chebyshev₁ R (n+1) - (1 - X ^ 2) * chebyshev₂ R n
+| 0        := by { simp only [chebyshev₁_one, chebyshev₁_two, chebyshev₂_zero], ring}
+| 1        := by { simp only [chebyshev₁_add_two, chebyshev₁_zero, chebyshev₁_add_two,
                               chebyshev₂_one, chebyshev₁_one], ring }
 | (n + 2)  :=
 calc chebyshev₁ R (n + 2 + 2)
@@ -225,7 +222,7 @@ begin
 end
 
 lemma chebyshev₁_derivative_eq_chebyshev₂ :
-∀ (n : ℕ), derivative (chebyshev₁ R (n + 1)) = (n + 1) * chebyshev₂ R n
+  ∀ (n : ℕ), derivative (chebyshev₁ R (n + 1)) = (n + 1) * chebyshev₂ R n
 | 0        := by simp only [chebyshev₁_one, chebyshev₂_zero, derivative_X, nat.cast_zero, zero_add,
                            mul_one]
 | 1        := by { simp only [chebyshev₁_two, chebyshev₂_one, derivative_sub, derivative_one,

@@ -2560,7 +2560,7 @@ section chebyshev₁
 
 open polynomial complex
 
-/-- the `n`-th Chebyshev polynomial of the first kind evaluates on `cos θ` to the
+/-- The `n`-th Chebyshev polynomial of the first kind evaluates on `cos θ` to the
 value `cos (n * θ)`. -/
 lemma chebyshev₁_complex_cos (θ : ℂ) :
   ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
@@ -2588,19 +2588,18 @@ section chebyshev₂
 
 open polynomial complex
 
-/-- the `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
+/-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
 value `sin ((n+1) * θ) / sin θ`. -/
-lemma chebyshev₂_complex_cos (θ : ℂ) :
-  ∀ n, (chebyshev₂ ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
+lemma chebyshev₂_complex_cos (n : ℕ) (θ : ℂ) :
+  (chebyshev₂ ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
 begin
-  intro n,
   induction n with d hd,
   { simp only [chebyshev₂_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
   { rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁,
-  simp only [eval_add, eval_mul, eval_X, chebyshev₁_complex_cos, add_mul, mul_assoc, hd, one_mul],
-  conv_rhs { rw [sin_add, mul_comm] },
-  push_cast,
-  simp only [add_mul, one_mul] }
+    simp only [eval_add, eval_mul, eval_X, chebyshev₁_complex_cos, add_mul, mul_assoc, hd, one_mul],
+    conv_rhs { rw [sin_add, mul_comm] },
+    push_cast,
+    simp only [add_mul, one_mul] }
 end
 
 /-- `sin ((n + 1) * θ)` is equal to `sin θ` multiplied with the `n`-th Chebyshev polynomial of the

@@ -44,6 +44,9 @@ use that `i = p₁`, but proofs that the definition is well-behaved do.
 The `n`-th term in `q ∘ p` is `∑ qₖ (p_{j₁}, ..., p_{jₖ})` over `j₁ + ... + jₖ = n`. In this
 expression, `qₙ` appears only once, in `qₙ (p₁, ..., p₁)`. We adjust the definition so that this
 term compensates the rest of the sum, using `i⁻¹` as an inverse to `p₁`.
+
+These formulas only make sense when the constant term `p₀` vanishes. The definition we give is
+general, but it ignores the value of `p₀`.
 -/
 noncomputable def left_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
   formal_multilinear_series 𝕜 F E
@@ -135,6 +138,9 @@ use that `i = p₁`, but proofs that the definition is well-behaved do.
 The `n`-th term in `p ∘ q` is `∑ pₖ (q_{j₁}, ..., q_{jₖ})` over `j₁ + ... + jₖ = n`. In this
 expression, `qₙ` appears only once, in `p₁ (qₙ)`. We adjust the definition of `qₙ` so that this
 term compensates the rest of the sum, using `i⁻¹` as an inverse to `p₁`.
+
+These formulas only make sense when the constant term `p₀` vanishes. The definition we give is
+general, but it ignores the value of `p₀`.
 -/
 noncomputable def right_inv (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F) :
   formal_multilinear_series 𝕜 F E

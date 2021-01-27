@@ -68,8 +68,21 @@ begin
     { rw [ε_NFA.derived_NFA_input, list.foldl, language.mem_star] at hy₁,
       rcases hy₁ with ⟨ S, hy, hS ⟩,
       cases S with a S,
-      { finish },
-      {  } } }
+      -- { finish },
+      sorry,
+      { have : M.to_ε_NFA.derived_NFA.accepts = 0,
+        { induction S with b S ih,
+          { simp only [list.join, list.append_nil] at hy,
+            specialize hS a _,
+            rw set.mem_singleton_iff at hS,
+            rw [hy, hS, accepts, eval, eval_from] at hy₂,
+            rcases hy₂ with ⟨ s, hs, h ⟩,
+            simp only [list.foldl, step_set, exists_prop, set.mem_Union, set.bind_def] at h,
+             } } }
+          },
+
+        },
+
 end
 
 end NFA

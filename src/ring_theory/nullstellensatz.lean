@@ -91,8 +91,8 @@ begin
   have : (vanishing_ideal {x} : ideal (mv_polynomial σ k)).quotient ≃+* k := ring_equiv.of_bijective
     (ideal.quotient.lift _ (eval x) (λ p h, (mem_vanishing_ideal_singleton_iff x p).mp h))
     begin
-      refine ⟨_, λ z, ⟨(ideal.quotient.mk (vanishing_ideal {x})) (C z), by simp⟩⟩,
-      refine (ring_hom.injective_iff _).mpr (λ p hp, _),
+      refine ⟨(ring_hom.injective_iff _).mpr (λ p hp, _),
+        λ z, ⟨(ideal.quotient.mk (vanishing_ideal {x} : ideal (mv_polynomial σ k))) (C z), by simp⟩⟩,
       obtain ⟨q, rfl⟩ := quotient.mk_surjective p,
       rwa [quotient.lift_mk, ← mem_vanishing_ideal_singleton_iff, ← quotient.eq_zero_iff_mem] at hp,
     end,
@@ -112,7 +112,7 @@ end
 
 /-- The point in the prime spectrum assosiated to a given point -/
 def point_to_point (x : σ → k) : prime_spectrum (mv_polynomial σ k) :=
-⟨vanishing_ideal {x}, mv_polynomial.vanishing_ideal_singleton_is_maximal.is_prime⟩
+⟨(vanishing_ideal {x} : ideal (mv_polynomial σ k)), by apply_instance⟩
 
 @[simp] lemma vanishing_ideal_point_to_point (V : set (σ → k)) :
   prime_spectrum.vanishing_ideal (point_to_point '' V) = mv_polynomial.vanishing_ideal V :=
@@ -143,13 +143,12 @@ begin
   obtain ⟨φ, hφ⟩ := function.surjective.has_right_inverse hϕ.2,
   let x : σ → k := λ s, φ ((ideal.quotient.mk I) (X s)),
   have hx : ∀ s : σ, ϕ (x s) = (ideal.quotient.mk I) (X s) := λ s, hφ ((ideal.quotient.mk I) (X s)),
-  have : vanishing_ideal {x} ≤ I,
-  { intros p hp,
-    rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
-    rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,
-    convert (trans (congr_arg ϕ hp) ϕ.map_zero),
-    simp only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, hx] },
-  refine ⟨x, ((mv_polynomial.vanishing_ideal_singleton_is_maximal).eq_of_le hI.1 this).symm⟩,
+  refine ⟨x, (is_maximal.eq_of_le (by apply_instance) hI.1 _).symm⟩,
+  intros p hp,
+  rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
+  rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,
+  convert (trans (congr_arg ϕ hp) ϕ.map_zero),
+  simp only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, hx],
 end
 
 /-- Main statement of the Nullstellensatz -/

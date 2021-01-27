@@ -418,7 +418,8 @@ by { dsimp [integrate_away], rcongr, exact h _ ‹_› }
 lemma integrate_away_union (f : (Π i, π i) → E) (s t : finset δ) (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
 begin
-  let e : { j // j ∈ s ∪ t} ≃ { j // j ∈ s} × { j // j ∈ t} := equiv.subtype_univ_equiv finset.mem_univ,
+  let e : { j // j ∈ s ∪ t} ≃ { j // j ∈ s} × { j // j ∈ t} :=
+  equiv.subtype_univ_equiv finset.mem_univ,
   ext x,
   simp_rw [integrate_away, ← measure.pi_map_left μ e.symm],
   rw [integral_map], congr' with y, congr' with i, simp [e], dsimp [e], refl,

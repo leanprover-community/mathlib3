@@ -369,7 +369,7 @@ end add
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=
-⟨linear_map.comp g.to_linear_map f.to_linear_map, g.2.comp f.2⟩
+⟨(g : M₂ →ₗ[R] M₃).comp f, g.2.comp f.2⟩
 
 @[simp, norm_cast] lemma coe_comp : ((h.comp f) : (M →ₗ[R] M₃)) = (h : M₂ →ₗ[R] M₃).comp f := rfl
 @[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (M → M₃)) = (h : M₂ → M₃) ∘ f := rfl
@@ -509,6 +509,14 @@ variables {R M M₂}
 @[simp, norm_cast] lemma coe_snd' : (snd R M M₂ : M × M₂ → M₂) = prod.snd := rfl
 
 @[simp] lemma fst_prod_snd : (fst R M M₂).prod (snd R M M₂) = id R (M × M₂) := ext $ λ ⟨x, y⟩, rfl
+
+@[simp] lemma fst_comp_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  (fst R M₂ M₃).comp (f.prod g) = f :=
+ext $ λ x, rfl
+
+@[simp] lemma snd_comp_prod (f : M →L[R] M₂) (g : M →L[R] M₃) :
+  (snd R M₂ M₃).comp (f.prod g) = g :=
+ext $ λ x, rfl
 
 /-- `prod.map` of two continuous linear maps. -/
 def prod_map (f₁ : M →L[R] M₂) (f₂ : M₃ →L[R] M₄) : (M × M₃) →L[R] (M₂ × M₄) :=

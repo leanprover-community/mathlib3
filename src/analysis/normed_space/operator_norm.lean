@@ -412,6 +412,16 @@ le_antisymm
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_right _ _).trans ((f.prod g).le_op_norm x))
 
+/-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
+def prodL : (E →L[𝕜] F) × (E →L[𝕜] G) ≃ₗᵢ[𝕜] (E →L[𝕜] F × G) :=
+{ to_fun := λ f, f.1.prod f.2,
+  inv_fun := λ f, ⟨(fst _ _ _).comp f, (snd _ _ _).comp f⟩,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by ext; refl,
+  norm_map' := λ ⟨f, g⟩, op_norm_prod f g }
+
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
@@ -726,14 +736,42 @@ by simp [continuous_linear_map.smul_rightL, continuous_linear_map.smul_rightₗ]
   ∥smul_rightL 𝕜 E F c∥ = ∥c∥ :=
 continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
+/-- Flip the order of arguments of a continuous bilinear map. This is an auxiliary definition,
+the public API is `continuous_linear_map.flip`. -/
+def flip_aux (f : E →L[𝕜] F →L[𝕜] G) : F →L[𝕜] E →L[𝕜] G :=
+linear_map.mk_continuous₂
+  (linear_map.mk₂ 𝕜 (λ y x, f x y) (λ x y z, (f z).map_add x y) (λ c y x, (f x).map_smul c y)
+    (λ z x y, by rw [f.map_add, add_apply]) (λ c y x, by rw [map_smul, smul_apply]))
+  ∥f∥ (λ y x, (f.le_op_norm₂ x y).trans_eq $ by rw mul_right_comm)
+
+private lemma le_norm_flip_aux (f : E →L[𝕜] F →L[𝕜] G) : ∥f∥ ≤ ∥flip_aux f∥ :=
+f.op_norm_le_bound₂ (norm_nonneg _) $ λ x y,
+  by { rw mul_right_comm, exact (flip_aux f).le_op_norm₂ y x }
+
+variables (𝕜 E F G)
+
+/-- Flip the order of arguments of a continuous bilinear map. -/
+def flip : (E →L[𝕜] F →L[𝕜] G) ≃ₗᵢ[𝕜] (F →L[𝕜] E →L[𝕜] G) :=
+{ to_fun := flip_aux,
+  inv_fun := flip_aux,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  left_inv := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl },
+  norm_map' := λ f, le_antisymm (le_norm_flip_aux $ flip_aux f) (le_norm_flip_aux f) }
+
+variables {𝕜 E F G}
+
+@[simp] lemma flip_symm : (flip 𝕜 E F G).symm = flip 𝕜 F E G := rfl
+
+@[simp] lemma flip_apply (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
+  flip 𝕜 E F G f y x = f x y := rfl
+
 variables (𝕜 F)
 
 /-- Evaluation of a `continuous_linear_map` at a point as a continuous bilinear map. -/
 def apply : E →L[𝕜] (E →L[𝕜] F) →L[𝕜] F :=
-linear_map.mk_continuous₂
-  (linear_map.mk₂ 𝕜 (λ x f, f x) (λ x y f, f.map_add x y) (λ c x f, f.map_smul c x)
-    (λ x f g, rfl) (λ c x f, rfl)) 
-  1 $ λ x f, by simpa [mul_comm] using f.le_op_norm x
+flip 𝕜 (E →L[𝕜] F) E F (id _ _)
 
 variables {𝕜 F}
 
@@ -754,48 +792,69 @@ variables {𝕜 E F G}
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
+/-- Multiplication in normed algebra as a linear isometry to the space of
+continuous linear maps. -/
+def lmulᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+{ to_linear_map := (algebra.lmul 𝕜 𝕜').to_linear_map.mk_continuous₂ 1 $
+    λ x y, by simpa using norm_mul_le x y,
+  norm_map' := λ x, le_antisymm
+    (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
+    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] }) }
+
 /-- Multiplication in normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
-(algebra.lmul 𝕜 𝕜').to_linear_map.mk_continuous₂ 1 $
-  λ x y, by simpa using norm_mul_le x y
+(lmulᵢ 𝕜 𝕜').to_continuous_linear_map
 
 @[simp] lemma lmul_apply (x y : 𝕜') : lmul 𝕜 𝕜' x y = x * y := rfl
 
+@[simp] lemma coe_lmulᵢ : ⇑(lmulᵢ 𝕜 𝕜') = lmul 𝕜 𝕜' := rfl
+
 @[simp] lemma op_norm_lmul_apply (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ = ∥x∥ :=
-le_antisymm
-  (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
-  (by simpa [normed_algebra.norm_one 𝕜 𝕜'] using (lmul 𝕜 𝕜' x).le_op_norm 1)
+(lmulᵢ 𝕜 𝕜').norm_map x
 
 @[simp] lemma op_norm_lmul : ∥lmul 𝕜 𝕜'∥ = 1 :=
-le_antisymm (linear_map.mk_continuous₂_norm_le _ zero_le_one _)
-  (by simpa [normed_algebra.norm_one 𝕜 𝕜'] using (lmul 𝕜 𝕜').le_op_norm 1)
-
-/-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_left (x : 𝕜') : (𝕜' →L[𝕜] 𝕜') :=
-lmul 𝕜 𝕜' x
-
-@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
-@[simp] lemma op_norm_lmul_left (x : 𝕜') : ∥lmul_left 𝕜 𝕜' x∥ = ∥x∥ :=
-op_norm_lmul_apply _ _ _
+by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_right 𝕜 x).mk_continuous ∥x∥
-(λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
+def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := flip 𝕜 𝕜' 𝕜' 𝕜' $ lmul 𝕜 𝕜'
 
 @[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
 
-@[simp] lemma op_norm_lmul_right (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
-le_antisymm (linear_map.mk_continuous_norm_le _ (norm_nonneg _) _)
-  (by simpa [normed_algebra.norm_one 𝕜 𝕜'] using (lmul_right 𝕜 𝕜' x).le_op_norm 1)
+@[simp] lemma op_norm_lmul_right_apply (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
+le_antisymm
+  (op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _)))
+  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
+
+@[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
+((flip 𝕜 𝕜' 𝕜' 𝕜').norm_map _).trans $ op_norm_lmul _ _
+
+/-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
+continuous linear maps. -/
+def lmul_rightᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+{ to_linear_map := lmul_right 𝕜 𝕜',
+  norm_map' := op_norm_lmul_right_apply 𝕜 𝕜' }
+
+@[simp] lemma coe_lmul_rightᵢ : ⇑(lmul_rightᵢ 𝕜 𝕜') = lmul_right 𝕜 𝕜' := rfl
 
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
-linear map. -/
-def lmul_left_right (vw : 𝕜' × 𝕜') : 𝕜' →L[𝕜] 𝕜' :=
-(lmul_right 𝕜 𝕜' vw.2).comp (lmul_left 𝕜 𝕜' vw.1)
+trilinear map. -/
+def lmul_left_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+(flip 𝕜 𝕜' (𝕜' →L[𝕜] 𝕜') (𝕜' →L[𝕜] 𝕜') ((compL 𝕜 𝕜' 𝕜' 𝕜').comp (lmul_right 𝕜 𝕜'))).comp (lmul 𝕜 𝕜')
 
-@[simp] lemma lmul_left_right_apply (vw : 𝕜' × 𝕜') (x : 𝕜') :
-  lmul_left_right 𝕜 𝕜' vw x = vw.1 * x * vw.2 := rfl
+@[simp] lemma lmul_left_right_apply (x y z : 𝕜') :
+  lmul_left_right 𝕜 𝕜' x y z = x * z * y := rfl
+
+lemma op_norm_lmul_left_right_apply_apply_le (x y : 𝕜') :
+  ∥lmul_left_right 𝕜 𝕜' x y∥ ≤ ∥x∥ * ∥y∥ :=
+(op_norm_comp_le _ _).trans_eq $ by simp [mul_comm]
+
+lemma op_norm_lmul_left_right_apply_le (x : 𝕜') :
+  ∥lmul_left_right 𝕜 𝕜' x∥ ≤ ∥x∥ :=
+op_norm_le_bound _ (norm_nonneg x) (op_norm_lmul_left_right_apply_apply_le 𝕜 𝕜' x)
+
+lemma op_norm_lmul_left_right_le :
+  ∥lmul_left_right 𝕜 𝕜'∥ ≤ 1 :=
+op_norm_le_bound _ zero_le_one (λ x, (one_mul ∥x∥).symm ▸ op_norm_lmul_left_right_apply_le 𝕜 𝕜' x)
 
 end multiplication_linear
 
@@ -804,6 +863,7 @@ section smul_linear
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 
+/-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
   λ c x, by simpa only [one_mul] using (norm_smul c x).le
@@ -1011,13 +1071,6 @@ def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f 
   continuous_inv_fun := f.symm.to_linear_map.continuous_of_bound a⁻¹
     (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
 
-def of_linear_isometry (f : E ≃ₗ[𝕜] F) (h : ∀ x, ∥f x∥ = ∥x∥) : E ≃L[𝕜] F :=
-of_homothety f 1 zero_lt_one $ λ x, by simpa only [one_mul] using h x
-
-lemma of_linear_isometry_isometry (f : E ≃ₗ[𝕜] F) (h) :
-  isometry (of_linear_isometry f h) :=
-add_monoid_hom.isometry_of_norm ⟨f, f.map_zero, f.map_add⟩ h
-
 variable (𝕜)
 
 lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
@@ -1070,76 +1123,13 @@ def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₗ[𝕜] F) (C_
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-@[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 𝕜' v∥ = ∥v∥ :=
-begin
-  refine le_antisymm _ _,
-  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_right 𝕜 𝕜' v) (1:𝕜') }
-end
-
-lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') :
-  ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
-by simpa [mul_comm] using op_norm_comp_le (lmul_right 𝕜 𝕜' vw.2) (lmul_left 𝕜 𝕜' vw.1)
-
 variables {𝕜}
 
-
-/-- Flip the order of arguments of a continuous bilinear map. This is an auxiliary definition,
-the public API is `continuous_linear_map.flip`. -/
-def flip_aux (f : E →L[𝕜] F →L[𝕜] G) : F →L[𝕜] E →L[𝕜] G :=
-linear_map.mk_continuous₂
-  (linear_map.mk₂ 𝕜 (λ y x, f x y) (λ x y z, (f z).map_add x y) (λ c y x, (f x).map_smul c y)
-    (λ z x y, by rw [f.map_add, add_apply]) (λ c y x, by rw [map_smul, smul_apply]))
-  ∥f∥ (λ y x, (f.le_op_norm₂ x y).trans_eq $ by rw mul_right_comm)
-
-private lemma le_norm_flip_aux (f : E →L[𝕜] F →L[𝕜] G) : ∥f∥ ≤ ∥flip_aux f∥ :=
-f.op_norm_le_bound₂ (norm_nonneg _) $ λ x y,
-  by { rw mul_right_comm, exact (flip_aux f).le_op_norm₂ y x }
-
-lemma norm_flip_aux (f : E →L[𝕜] F →L[𝕜] G) : ∥flip_aux f∥ = ∥f∥ :=
-le_antisymm (le_norm_flip_aux $ flip_aux f) (le_norm_flip_aux f)
-
-lemma flip_aux_add (f g : E →L[𝕜] F →L[𝕜] G) : flip_aux (f + g) = flip_aux f + flip_aux g := rfl
-
-lemma flip_aux_smul (c : 𝕜) (f : E →L[𝕜] F →L[𝕜] G) : flip_aux (c • f) = c • flip_aux f := rfl
-
-variables (𝕜 E F G)
-
-/-- Flip the order of arguments of a continuous bilinear map. -/
-def flip : (E →L[𝕜] F →L[𝕜] G) ≃L[𝕜] (F →L[𝕜] E →L[𝕜] G) :=
-continuous_linear_equiv.of_linear_isometry
-  { to_fun := flip_aux,
-    inv_fun := flip_aux,
-    map_add' := λ f g, rfl,
-    map_smul' := λ c f, rfl,
-    left_inv := λ f, by { ext, refl },
-    right_inv := λ f, by { ext, refl } }
-  norm_flip_aux
-
-variables {𝕜 E F G}
-
-@[simp] lemma flip_symm : (flip 𝕜 E F G).symm = flip 𝕜 F E G := rfl
-
-@[simp] lemma flip_apply (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
-  flip 𝕜 E F G f y x = f x y := rfl
-
-@[simp] lemma norm_flip (f : E →L[𝕜] F →L[𝕜] G) : ∥flip 𝕜 E F G f∥ = ∥f∥ := norm_flip_aux f
-
-/-
-def arrow_prod_equiv_prod_arrow : (E →L[𝕜] (F × G)) ≃L[𝕜] ((E →L[𝕜] F) × (E →L[𝕜] G)) :=
-continuous_linear_equiv.symm $ continuous_linear_equiv.of_linear_isometry
-  (linear_equiv.symm
-    { inv_fun := λ f, f.1.prod f.2,
-      left_inv := λ f, by ext x; dsimp; refl,
-      right_inv := λ ⟨f, g⟩, by { ext1; ext1 x; refl },
-      .. (compL 𝕜 E (F × G) F (fst 𝕜 F G)).prod (compL 𝕜 E (F × G) G (snd 𝕜 F G)) }) $
-  λ ⟨f, g⟩, op_norm_prod f g
--/
-
 /-- Derivative of a continuous bilinear map `f : E →L[𝕜] F →L[𝕜] G` interpreted as a map `E × F → G`
-at point `p : E × F` evaluated at `q : E × F`, as a continuous trilinear map. -/
-def deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) : E × F →L[𝕜] G :=
-(f p.1).comp (snd 𝕜 E F) + (flip 𝕜 E F G f p.2).comp (fst 𝕜 E F)
+at point `p : E × F` evaluated at `q : E × F`, as a continuous bilinear map. -/
+def deriv₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
+flip 𝕜 (E × F) (E × F) G ((flip 𝕜 (E × F) F G (f.comp $ fst 𝕜 E F)).comp (snd 𝕜 E F)) +
+  (flip 𝕜 (E × F) F G (f.comp $ fst 𝕜 E F)).comp (snd 𝕜 E F)
 
 @[simp] lemma coe_deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) :
   ⇑(f.deriv₂ p) = λ q : E × F, f p.1 q.2 + f q.1 p.2 := rfl

@@ -7,7 +7,6 @@ Authors: Fox Thomson
 import data.fintype.basic
 import computability.language
 import tactic.norm_num
-import tactic.omega.main
 
 /-!
 # Deterministic Finite Automata

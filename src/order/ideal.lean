@@ -163,6 +163,10 @@ instance : lattice (ideal P) :=
   le_inf       := λ I J K, set.subset_inter,
   .. ideal.partial_order }
 
+@[simp] lemma mem_inf {x : P} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff_of_eq rfl
+
+@[simp] lemma mem_sup {x : P} : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
+
 end semilattice_sup_bot
 
 end ideal

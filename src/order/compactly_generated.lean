@@ -123,8 +123,10 @@ begin
     use t, exact ⟨htS, by rwa ←htsup⟩, },
 end
 
-lemma Sup_lt_of_directed_set_lt_compact {α : Type*} [complete_lattice α] (k : α) (hk : is_compact_element k)
-  (hbot : k ≠ ⊥) : ∀ s : set α, directed_on (≤) s → (∀ x ∈ s, x < k) → Sup s < k :=
+/-- A compact element has the property that any directed set lying strictly below k has
+its Sup strictly below k -/
+lemma Sup_lt_of_directed_set_lt_compact (k : α) (hk : is_compact_element k) (hbot : k ≠ ⊥) :
+  ∀ s : set α, directed_on (≤) s → (∀ x ∈ s, x < k) → Sup s < k :=
 begin
   intros s hdir hbelow,
   rw is_compact_element_iff_le_of_directed_Sup_le at hk,
@@ -251,55 +253,42 @@ begin
   exact λ x, ⟨{x}, ⟨λ x _, h x, Sup_singleton⟩⟩,
 end
 
-instance (α : Type) [lattice α] (a b : α) (h : a ≤ b) : bounded_lattice (set.Icc a b) :=
-  set.Icc.bounded_lattice h
-
-lemma directed_on_coe_image {α : Type*} [partial_order α] (p : set α) (s : set ↥p) (h : directed_on (≤) s) :
-  directed_on (≤) (coe '' s : set α) :=
+/-- A compact element k has the property that any b < k lies below a "maximal element below k",
+which is to say [⊥, k] is coatomic. -/
+theorem Iic_coatomic_of_compact_element (k : α) (hk : k ≠ ⊥) (h : is_compact_element k) :
+  is_coatomic (set.Iic k) :=
 begin
-  rintros x' ⟨x, ⟨hxs, rfl⟩⟩ y' ⟨y, ⟨hys, rfl⟩⟩,
-  obtain ⟨z, hzs, hz⟩ := h x hxs y hys,
-  exact ⟨z, ⟨set.mem_image_of_mem coe hzs, ⟨subtype.mono_coe _ hz.left, subtype.mono_coe _ hz.right⟩⟩⟩,
-end
-
-theorem compact_iff_interval_coatomic (k : α) (hk : k ≠ ⊥) :
-  is_compact_element k ↔ is_coatomic (set.Iic k) :=
-begin
-  split,
-  { intros h,
-    refine_struct { .. }, rintros ⟨b, hbk⟩,
-    by_cases hb : b = k, { apply or.inl, simp only [hb], refl, },
-    replace hb : b < k := lt_of_le_of_ne hbk hb, right,
-    -- A coatom lying above b in [⊥, k] is precisely a maximal element of [b, k)
-    suffices : ∃ (m : set.Ico b k), ∀ (x : set.Ico b k), m ≤ x → x = m,
-    { obtain ⟨⟨m, hm₁⟩, hmax⟩ := this,
-      let hm₂ := le_of_lt hm₁.right, use ⟨m, hm₂⟩,
-      refine ⟨⟨ne_of_lt hm₁.right, _⟩, hm₁.left⟩,
-      rintros ⟨y, hy₂⟩ hmy,
-      by_contradiction n,
-      have hy₁ : y ∈ set.Ico b k,
-      from ⟨_root_.le_trans hm₁.left (le_of_lt hmy), lt_top_iff_ne_top.mpr n⟩,
-      specialize hmax ⟨y, hy₁⟩ (le_of_lt hmy),
-      exact absurd (eq.symm hmax) (ne_of_lt hmy), },
-    apply zorn.zorn_partial_order,
-    intros c hc,
-    by_cases cne : c.nonempty, swap,
-    { rw set.not_nonempty_iff_eq_empty at cne,
-      use ⟨b, ⟨le_refl b, hb⟩⟩,
-      simp only [cne, set.mem_empty_eq, forall_prop_of_false, not_false_iff, forall_true_iff], },
-    have stc : coe '' c ⊆ set.Ico b k, by apply subtype.coe_image_subset,
-    let ub : α := Sup (coe '' c),
-    have ub_proper : ub ∈ set.Ico b k,
-    { split,
-      { have : b ≤ Inf (coe '' c), from le_Inf _ _ (λ x hx, (stc hx).left),
-        exact _root_.le_trans this (Inf_le_Sup $ set.nonempty_image_iff.mpr cne), },
-      { have : directed_on (≤) (coe '' c), from directed_on_coe_image _ _ (hc.directed_on),
-        exact Sup_lt_of_directed_set_lt_compact k h hk _ this (λ s hs, (stc hs).right), }, },
-    -- This is what we need for Zorn's lemma.
-    use ⟨ub, ub_proper⟩,
-    rintros ⟨x, hx⟩ hxc,
-    exact _root_.le_Sup (set.mem_image_of_mem coe hxc), },
-  admit,
+  refine_struct { .. }, rintros ⟨b, hbk⟩,
+  -- The case b = k is exactly the trivial case b = ⊤ in Iic k.
+  by_cases hb : b = k, { apply or.inl, simp only [hb], refl, },
+  -- Otherwise, note b < k and handle the non-trivial case.
+  replace hb : b < k := lt_of_le_of_ne hbk hb, right,
+  -- A coatom lying above b in [⊥, k] is precisely a maximal element of [b, k).
+  suffices : ∃ (m : set.Ico b k), ∀ (x : set.Ico b k), m ≤ x → x = m,
+  { obtain ⟨⟨m, hm₁⟩, hmax⟩ := this,
+    let hm₂ := le_of_lt hm₁.right, use ⟨m, hm₂⟩,
+    refine ⟨⟨ne_of_lt hm₁.right, _⟩, hm₁.left⟩,
+    rintros ⟨y, hy₂⟩ hmy,
+    by_contradiction n,
+    have hy₁ : y ∈ set.Ico b k,
+    from ⟨_root_.le_trans hm₁.left (le_of_lt hmy), lt_top_iff_ne_top.mpr n⟩,
+    specialize hmax ⟨y, hy₁⟩ (le_of_lt hmy),
+    exact absurd (eq.symm hmax) (ne_of_lt hmy), },
+  apply zorn.zorn_partial_order,
+  intros c hc,
+  by_cases cne : c.nonempty, swap,
+  { rw set.not_nonempty_iff_eq_empty at cne,
+    use ⟨b, ⟨le_refl b, hb⟩⟩,
+    simp only [cne, set.mem_empty_eq, forall_prop_of_false, not_false_iff, forall_true_iff], },
+  have stc : coe '' c ⊆ set.Ico b k, by apply subtype.coe_image_subset,
+  let ub : α := Sup (coe '' c),
+  have ub_proper : ub ∈ set.Ico b k, split,
+  { exact _root_.le_trans (stc $ set.mem_image_of_mem coe cne.some_mem).left
+    (_root_.le_Sup $ set.mem_image_of_mem coe cne.some_mem), },
+  { have : directed_on (≤) (coe '' c), by { rw directed_on_image, apply hc.directed_on, },
+    exact Sup_lt_of_directed_set_lt_compact _ k h hk _ this (λ s hs, (stc hs).right), },
+  use ⟨ub, ub_proper⟩,
+  exact λ _ hxc, _root_.le_Sup (set.mem_image_of_mem coe hxc),
 end
 
 end complete_lattice

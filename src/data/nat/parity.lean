@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad
+Authors: Jeremy Avigad, Benjamin Davidson
 
 The `even` and `odd` predicates on the natural numbers.
 -/
@@ -89,6 +89,12 @@ end
 theorem even.add {m n : ℕ} (hm : even m) (hn : even n) : even (m + n) :=
 even_add.2 $ by simp only [*]
 
+theorem even_add' {m n : ℕ} : even (m + n) ↔ (odd m ↔ odd n) :=
+by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
+
+theorem even.add' {m n : ℕ} (hm : odd m) (hn : odd n) : even (m + n) :=
+even_add'.2 $ by simp only [*]
+
 @[simp] theorem not_even_bit1 (n : ℕ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
@@ -112,6 +118,14 @@ theorem even.sub {m n : ℕ} (hm : even m) (hn : even n) : even (m - n) :=
   (λ h, by simp only [even_sub h, *])
   (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
 
+theorem even_sub' {m n : ℕ} (h : n ≤ m) : even (m - n) ↔ (odd m ↔ odd n) :=
+by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
+
+theorem even.sub' {m n : ℕ} (hm : odd m) (hn : odd n) : even (m - n) :=
+(le_total n m).elim
+  (λ h, by simp only [even_sub' h, *])
+  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
+
 @[parity_simps] theorem even_succ {n : ℕ} : even (succ n) ↔ ¬ even n :=
 by rw [succ_eq_add_one, even_add]; simp [not_even_one]
 
@@ -132,6 +146,43 @@ by { induction n with n ih; simp [*, pow_succ', even_mul], tauto }
 
 lemma even_div {a b : ℕ} : even (a / b) ↔ a % (2 * b) / b = 0 :=
 by rw [even_iff_two_dvd, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
+
+@[parity_simps] theorem odd_add {m n : ℕ} : odd (m + n) ↔ (odd m ↔ even n) :=
+begin
+  by_contra hnot,
+  rw [not_iff, ← even_iff_not_odd, even_add, odd_iff_not_even, ← not_iff] at hnot,
+  exact (iff_not_self _).mp hnot,
+end
+
+theorem odd.add {m n : ℕ} (hm : odd m) (hn : even n) : odd (m + n) :=
+odd_add.2 $ by simp only [*]
+
+theorem odd_add' {m n : ℕ} : odd (m + n) ↔ (odd n ↔ even m) :=
+by rw [add_comm, odd_add]
+
+theorem odd.add' {m n : ℕ} (hm : even m) (hn : odd n) : odd (m + n) :=
+odd_add'.2 $ by simp only [*]
+
+@[parity_simps] theorem odd_sub {m n : ℕ} (h : n ≤ m) : odd (m - n) ↔ (odd m ↔ even n) :=
+begin
+  by_contra hnot,
+  rw [not_iff, ← even_iff_not_odd, even_sub h, odd_iff_not_even, ← not_iff] at hnot,
+  exact (iff_not_self _).mp hnot,
+end
+
+theorem odd.sub {m n : ℕ} (h : n ≤ m) (hm : odd m) (hn : even n) : odd (m - n) :=
+(odd_sub h).mpr (iff_of_true hm hn)
+
+theorem odd_sub' {m n : ℕ} (h : n ≤ m) : odd (m - n) ↔ (odd n ↔ even m) :=
+begin
+  by_contra hnot,
+  rw [not_iff, ← even_iff_not_odd, even_sub h, odd_iff_not_even, ← not_iff,
+      @iff.comm _ (even n)] at hnot,
+  exact (iff_not_self _).mp hnot,
+end
+
+theorem odd.sub' {m n : ℕ} (h : n ≤ m) (hm : even m) (hn : odd n) : odd (m - n) :=
+(odd_sub' h).mpr (iff_of_true hn hm)
 
 theorem neg_one_pow_eq_one_iff_even {α : Type*} [ring α] {n : ℕ} (h1 : (-1 : α) ≠ 1):
   (-1 : α) ^ n = 1 ↔ even n :=

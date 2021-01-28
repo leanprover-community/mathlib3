@@ -428,8 +428,7 @@ lemma nat_degree_eq_support_max' (h : p ≠ 0) :
 begin
   apply le_antisymm,
   { apply finset.le_max',
-    rw mem_support_iff_coeff_ne_zero,
-    exact (not_congr leading_coeff_eq_zero).mpr h, },
+    exact nat_degree_mem_support_of_nonzero h, },
   { apply max'_le,
     refine le_nat_degree_of_mem_supp, },
 end

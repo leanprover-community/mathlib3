@@ -790,6 +790,18 @@ lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
 h.map_prod _ _
 
+@[to_additive]
+lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) :
+  ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
+monoid_hom.coe_prod _ _
+
+@[simp, to_additive]
+lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) (x : N) :
+  f.prod g x = f.prod (λ i fi, g i fi x) :=
+monoid_hom.finset_prod_apply _ _ _
+
 namespace finsupp
 
 section nat_sub
@@ -893,12 +905,12 @@ finset.subset.antisymm
 
 lemma support_sum [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
-  (f.sum g).support ⊆ f.support.bind (λa, (g a (f a)).support) :=
+  (f.sum g).support ⊆ f.support.bUnion (λa, (g a (f a)).support) :=
 have ∀ c, f.sum (λ a b, g a b c) ≠ 0 → (∃ a, f a ≠ 0 ∧ ¬ (g a (f a)) c = 0),
   from assume a₁ h,
   let ⟨a, ha, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
   ⟨a, mem_support_iff.mp ha, ne⟩,
-by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bind, sum_apply, exists_prop]
+by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply, exists_prop]
 
 @[simp] lemma sum_zero [has_zero M] [add_comm_monoid N] {f : α →₀ M} :
   f.sum (λa b, (0 : N)) = 0 :=
@@ -1125,8 +1137,8 @@ eq.symm $ sum_finset_sum_index (λ _, single_zero) (λ _ _ _, single_add)
 lemma map_domain_support {f : α → β} {s : α →₀ M} :
   (s.map_domain f).support ⊆ s.support.image f :=
 finset.subset.trans support_sum $
-  finset.subset.trans (finset.bind_mono $ assume a ha, support_single_subset) $
-  by rw [finset.bind_singleton]; exact subset.refl _
+  finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
+  by rw [finset.bUnion_singleton]; exact subset.refl _
 
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
@@ -1552,9 +1564,9 @@ end
 
 lemma support_curry (f : α × β →₀ M) : f.curry.support ⊆ f.support.image prod.fst :=
 begin
-  rw ← finset.bind_singleton,
+  rw ← finset.bUnion_singleton,
   refine finset.subset.trans support_sum _,
-  refine finset.bind_mono (assume a _, support_single_subset)
+  refine finset.bUnion_mono (assume a _, support_single_subset)
 end
 
 end curry_uncurry

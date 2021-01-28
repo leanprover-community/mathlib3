@@ -292,7 +292,7 @@ meta def squeeze_simp
   (cfg : parse struct_inst?) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    squeeze_simp_core slow_and_accurate.is_some no_dflt hs
-     (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg')
+     (λ l_no_dft l_args, simp use_iota_eqn none l_no_dft l_args attr_names locat cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
             attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
@@ -312,7 +312,7 @@ do (cfg',c) ← parse_config cfg,
    tgt' ← traverse (λ t, do t ← to_expr t >>= pp,
                             pure format!" using {t}") tgt,
    squeeze_simp_core slow_and_accurate.is_some no_dflt hs
-     (λ l_no_dft l_args, simpa use_iota_eqn l_no_dft l_args attr_names tgt cfg')
+     (λ l_no_dft l_args, simpa use_iota_eqn none l_no_dft l_args attr_names tgt cfg')
      (λ args,
         let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
             attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),

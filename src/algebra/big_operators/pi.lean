@@ -40,12 +40,6 @@ lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype 
   [∀a, comm_monoid (β a)] (a : α) (g : γ → Πa, β a) : (∏ c, g c) a = ∏ c, g c a :=
 finset.prod_apply a finset.univ g
 
-@[simp, to_additive]
-lemma monoid_hom.finset_prod_apply {ι M N : Type*} [monoid M] [comm_monoid N] (f : ι → M →* N)
-  (s : finset ι) (a : M) :
-  (∏ i in s, f i) a = ∏ i in s, f i a :=
-(monoid_hom.eval a).map_prod _ _
-
 @[to_additive prod_mk_sum]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
   (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=

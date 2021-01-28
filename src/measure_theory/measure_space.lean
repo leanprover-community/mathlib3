@@ -1340,8 +1340,11 @@ lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔
 add_eq_zero_iff
 
 lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : measurable f)
-  (h : g =ᵐ[ν] g') (h2f : ∀ s, ν s = 0 → μ (f ⁻¹' s) = 0) : g ∘ f =ᵐ[μ] g' ∘ f :=
-h2f _ h
+  (h : g =ᵐ[ν] g') (h2f : ∀ s, is_measurable s → ν s = 0 → μ (f ⁻¹' s) = 0) : g ∘ f =ᵐ[μ] g' ∘ f :=
+begin
+  rcases exists_is_measurable_superset_of_null h with ⟨t, h1t, h2t, h3t⟩,
+  exact measure_mono_null (preimage_mono h1t : _) (h2f t h2t h3t)
+end
 
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
   (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
@@ -2253,13 +2256,15 @@ lemma smul_measure (h : ae_measurable f μ) (c : ennreal) :
 ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
 lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
-  (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
-⟨(hg.mk g) ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
+  (hg : ae_measurable g (map f μ)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
+⟨hg.mk g ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
 
+/- a generalization of `ae_measurable.comp_measurable` when the left map is `ae_measurable` with
+  respect that a measure different from `map f μ` -/
 lemma comp_measurable' {δ} [measurable_space δ] {ν : measure δ} {f : α → δ} {g : δ → β}
-  (hg : ae_measurable g ν) (hf : measurable f) (h2f : ∀ s, ν s = 0 → μ (f ⁻¹' s) = 0) :
-    ae_measurable (g ∘ f) μ :=
-⟨(hg.mk g) ∘ f, hg.measurable_mk.comp hf, ae_eq_comp' hf hg.ae_eq_mk h2f⟩
+  (hg : ae_measurable g ν) (hf : measurable f)
+  (h2f : ∀ s, is_measurable s → ν s = 0 → μ (f ⁻¹' s) = 0) : ae_measurable (g ∘ f) μ :=
+⟨hg.mk g ∘ f, hg.measurable_mk.comp hf, ae_eq_comp' hf hg.ae_eq_mk h2f⟩
 
 lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ x, (f x, g x)) μ :=

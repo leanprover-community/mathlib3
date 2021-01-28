@@ -529,13 +529,15 @@ lemma ae_measurable.prod_swap [sigma_finite μ] [sigma_finite ν] {f : β × α 
   (hf : ae_measurable f (ν.prod μ)) : ae_measurable (λ (z : α × β), f z.swap) (μ.prod ν) :=
 by { rw ← prod_swap at hf, exact hf.comp_measurable measurable_swap }
 
-lemma ae_measurable.fst [sigma_finite μ] [sigma_finite ν] {f : α → γ}
+lemma ae_measurable.fst [sigma_finite ν] {f : α → γ}
   (hf : ae_measurable f μ) : ae_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
-hf.comp_measurable' measurable_fst _
+hf.comp_measurable' measurable_fst $
+  by { intros s h1s h2s, simp_rw [← prod_univ, prod_prod h1s is_measurable.univ, h2s, zero_mul] }
 
-lemma ae_measurable.snd [sigma_finite μ] [sigma_finite ν] {f : β → γ}
+lemma ae_measurable.snd [sigma_finite ν] {f : β → γ}
   (hf : ae_measurable f ν) : ae_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
-hf.comp_measurable' measurable_snd _
+hf.comp_measurable' measurable_snd $
+  by { intros s h1s h2s, simp_rw [← univ_prod, prod_prod is_measurable.univ h1s, h2s, mul_zero] }
 
 /-- The Bochner integral is a.e.-measurable.
   This shows that the integrand of (the right-hand-side of) Fubini's theorem is a.e.-measurable. -/
@@ -640,8 +642,7 @@ lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ennreal⦄
 lemma lintegral_prod_mul [sigma_finite μ] {f : α → ennreal} {g : β → ennreal}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
-by simp [lintegral_prod _ ((hf.fst).ennreal_mul hg.snd),
-  lintegral_lintegral_mul'' hf hg]
+by simp [lintegral_prod _ (hf.fst.ennreal_mul hg.snd), lintegral_lintegral_mul hf hg]
 
 /-! ### Integrability on a product -/
 section
@@ -661,7 +662,7 @@ lemma has_finite_integral_prod_iff ⦃f : α × β → E⦄ (h1f : measurable f)
   has_finite_integral f (μ.prod ν) ↔ (∀ᵐ x ∂ μ, has_finite_integral (λ y, f (x, y)) ν) ∧
     has_finite_integral (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
 begin
-  simp only [has_finite_integral, lintegral_prod _ h1f.ennnorm],
+  simp only [has_finite_integral, lintegral_prod_of_measurable _ h1f.ennnorm],
   have : ∀ x, ∀ᵐ y ∂ν, 0 ≤ ∥f (x, y)∥ := λ x, eventually_of_forall (λ y, norm_nonneg _),
   simp_rw [integral_eq_lintegral_of_nonneg_ae (this _)
     (h1f.norm.comp measurable_prod_mk_left).ae_measurable,
@@ -833,7 +834,8 @@ begin
     ∫⁻ x, ∫⁻ (y : β), nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ) (𝓝 g) (𝓝 0),
   have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (nnnorm (i z - g z) : ennreal)) :=
   λ i, (i.measurable.sub g.measurable).ennnorm,
-  simp_rw [← lintegral_prod _ (this _), ← l1.of_real_norm_sub_eq_lintegral, ← of_real_zero],
+  simp_rw [← lintegral_prod_of_measurable _ (this _), ← l1.of_real_norm_sub_eq_lintegral,
+    ← of_real_zero],
   refine (continuous_of_real.tendsto 0).comp _,
   rw [← tendsto_iff_norm_tendsto_zero], exact tendsto_id
 end

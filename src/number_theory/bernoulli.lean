@@ -5,6 +5,9 @@ Authors: Johan Commelin, Kevin Buzzard
 -/
 import data.rat
 import data.fintype.card
+import data.nat.choose.basic
+import algebra.big_operators.nat_antidiagonal
+import ring_theory.power_series.well_known
 
 /-!
 # Bernoulli numbers
@@ -143,4 +146,38 @@ begin
   norm_cast,
   rw [mul_comm, nat.sub_add_eq_add_sub hk],
   exact choose_mul_succ_eq n k,
+end
+
+open power_series
+
+theorem bernoulli_power_series :
+(power_series.mk (λ n, ((bernoulli n) / n!) : (power_series ℚ))) * (power_series.exp ℚ - 1) =
+  (X : power_series ℚ) * exp ℚ :=
+begin
+  ext n,
+  -- constant coefficient is a special case
+  cases n, simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X, coeff_zero_eq_constant_coeff,
+  mul_zero, sub_self, ring_hom.map_mul],
+  rw coeff_mul,
+  rw mul_comm X,
+  rw coeff_succ_mul_X,
+  simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial, thing],
+  rw nat.sum_antidiagonal_succ',
+  simp, --squeeze_simp hangs
+  apply eq_inv_of_mul_left_eq_one,
+  rw sum_mul,
+  convert bernoulli_spec' n using 1,
+  apply sum_congr rfl,
+  rintro ⟨i, j⟩ hn, rw nat.mem_antidiagonal at hn, subst hn, dsimp only,
+  have hj : (j : ℚ) + 1 ≠ 0, by norm_cast; linarith,
+  have hj' : j.succ ≠ 0, by {show j + 1 ≠ 0, by linarith},
+  have haargh : ((j : ℚ) + 1) * j! * i! ≠ 0 := by norm_cast; exact
+    mul_ne_zero (mul_ne_zero hj' (factorial_ne_zero j)) (factorial_ne_zero _),
+  field_simp [hj, haargh],
+  norm_cast,
+  rw [mul_comm _ (bernoulli i), mul_assoc, mul_assoc],
+  apply congr_arg,
+  norm_cast,
+  rw ← binomial_spec,
+  ring,
 end

@@ -31,6 +31,11 @@ We define both the real and complex cases at the same time using the `is_R_or_C`
   Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
   Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
   The point `v` is usually called the orthogonal projection of `u` onto `K`.
+- We define `orthonormal`, a predicate on a function `v : ι → E`.  We prove the existence of a
+  maximal orthonormal set, `exists_maximal_orthonormal`, and also prove that a maximal orthonormal
+  set is a basis (`maximal_orthonormal_iff_is_basis_of_finite_dimensional`), if `E` is finite-
+  dimensional, or in general (`maximal_orthonormal_iff_dense_span`) a set whose span is dense
+  (i.e., a Hilbert basis, although we do not make that definition).
 
 ## Notation
 
@@ -449,6 +454,17 @@ lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
 sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
 
+/-- An inner product with a sum on the left, `finsupp` version. -/
+lemma finsupp.sum_inner {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
+  ⟪l.sum (λ (i : ι) (a : 𝕜), a • v i), x⟫
+  = l.sum (λ (i : ι) (a : 𝕜), (is_R_or_C.conj a) • ⟪v i, x⟫) :=
+by { convert sum_inner l.support (λ a, l a • v a) x, simp [inner_smul_left, finsupp.sum] }
+
+/-- An inner product with a sum on the right, `finsupp` version. -/
+lemma finsupp.inner_sum {ι : Type*} (l : ι →₀ 𝕜) (v : ι → E) (x : E) :
+  ⟪x, l.sum (λ (i : ι) (a : 𝕜), a • v i)⟫ = l.sum (λ (i : ι) (a : 𝕜), a • ⟪x, v i⟫) :=
+by { convert inner_sum l.support (λ a, l a • v a) x, simp [inner_smul_right, finsupp.sum] }
+
 @[simp] lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul 𝕜 (0:E), inner_smul_left, ring_hom.map_zero, zero_mul]
 
@@ -495,6 +511,13 @@ by { have h := @inner_self_nonpos ℝ F _ _ x, simpa using h }
 
 @[simp] lemma inner_self_re_to_K {x : E} : (re ⟪x, x⟫ : 𝕜) = ⟪x, x⟫ :=
 by rw is_R_or_C.ext_iff; exact ⟨by simp, by simp [inner_self_nonneg_im]⟩
+
+lemma inner_self_eq_norm_sq_to_K (x : E) : ⟪x, x⟫ = (∥x∥ ^ 2 : 𝕜) :=
+begin
+  suffices : (is_R_or_C.re ⟪x, x⟫ : 𝕜) = ∥x∥ ^ 2,
+  { simpa [inner_self_re_to_K] using this },
+  exact_mod_cast (norm_sq_eq_inner x).symm
+end
 
 lemma inner_self_re_abs {x : E} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
@@ -642,6 +665,147 @@ begin
 end
 
 end basic_properties
+
+section orthonormal_sets
+variables {ι : Type*} (𝕜)
+
+include 𝕜
+
+/-- An orthonormal set of vectors in an `inner_product_space` -/
+def orthonormal (v : ι → E) : Prop :=
+(∀ i, ∥v i∥ = 1) ∧ (∀ {i j}, i ≠ j → ⟪v i, v j⟫ = 0)
+
+omit 𝕜
+
+variables {𝕜}
+
+/-- `if ... then ... else` characterization of an indexed set of vectors being orthonormal.  (Inner
+product equals Kronecker delta.) -/
+lemma orthonormal_iff_ite {v : ι → E} :
+  orthonormal 𝕜 v ↔ ∀ i j, ⟪v i, v j⟫ = if i = j then (1:𝕜) else (0:𝕜) :=
+begin
+  split,
+  { intros hv i j,
+    split_ifs,
+    { simp [h, inner_self_eq_norm_sq_to_K, hv.1] },
+    { exact hv.2 h } },
+  { intros h,
+    split,
+    { intros i,
+      have h' : ∥v i∥ ^ 2 = 1 ^ 2 := by simp [norm_sq_eq_inner, h i i],
+      have h₁ : 0 ≤ ∥v i∥ := norm_nonneg _,
+      have h₂ : (0:ℝ) ≤ 1 := by norm_num,
+      rwa eq_of_pow_two_eq_pow_two h₁ h₂ at h' },
+    { intros i j hij,
+      simpa [hij] using h i j } }
+end
+
+/-- `if ... then ... else` characterization of a set of vectors being orthonormal.  (Inner product
+equals Kronecker delta.) -/
+theorem orthonormal_subtype_iff_ite {s : set E} :
+  orthonormal 𝕜 (coe : s → E) ↔
+  (∀ v ∈ s, ∀ w ∈ s, ⟪v, w⟫ = if v = w then 1 else 0) :=
+begin
+  rw orthonormal_iff_ite,
+  split,
+  { intros h v hv w hw,
+    convert h ⟨v, hv⟩ ⟨w, hw⟩ using 1,
+    simp },
+  { rintros h ⟨v, hv⟩ ⟨w, hw⟩,
+    convert h v hv w hw using 1,
+    simp }
+end
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_right_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
+  ⟪v i, finsupp.total ι E 𝕜 v l⟫ = l i :=
+by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp hv]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_left_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
+  ⟪finsupp.total ι E 𝕜 v l, v i⟫ = conj (l i) :=
+by rw [← inner_conj_sym, hv.inner_right_finsupp]
+
+/-- An orthonormal set is linearly independent. -/
+lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
+  linear_independent 𝕜 v :=
+begin
+  rw linear_independent_iff,
+  intros l hl,
+  ext i,
+  have key : ⟪v i, finsupp.total ι E 𝕜 v l⟫ = ⟪v i, 0⟫ := by rw hl,
+  simpa [hv.inner_right_finsupp] using key
+end
+
+/-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
+set. -/
+lemma orthonormal.inner_finsupp_eq_zero
+  {v : ι → E} (hv : orthonormal 𝕜 v) {s : set ι} {i : ι} (hi : i ∉ s) {l : ι →₀ 𝕜}
+  (hl : l ∈ finsupp.supported 𝕜 𝕜 s) :
+  ⟪finsupp.total ι E 𝕜 v l, v i⟫ = 0 :=
+begin
+  rw finsupp.mem_supported' at hl,
+  simp [hv.inner_left_finsupp, hl i hi],
+end
+
+/- The material that follows, culminating in the existence of a maximal orthonormal subset, is
+adapted from the corresponding development of the theory of linearly independents sets.  See
+`exists_linear_independent` in particular. -/
+
+variables (𝕜 E)
+lemma orthonormal_empty : orthonormal 𝕜 (λ x, x : (∅ : set E) → E) :=
+by simp [orthonormal_subtype_iff_ite]
+variables {𝕜 E}
+
+lemma orthonormal_Union_of_directed
+  {η : Type*} {s : η → set E} (hs : directed (⊆) s) (h : ∀ i, orthonormal 𝕜 (λ x, x : s i → E)) :
+  orthonormal 𝕜 (λ x, x : (⋃ i, s i) → E) :=
+begin
+  rw orthonormal_subtype_iff_ite,
+  rintros x ⟨_, ⟨i, rfl⟩, hxi⟩ y ⟨_, ⟨j, rfl⟩, hyj⟩,
+  obtain ⟨k, hik, hjk⟩ := hs i j,
+  have h_orth : orthonormal 𝕜 (λ x, x : (s k) → E) := h k,
+  rw orthonormal_subtype_iff_ite at h_orth,
+  exact h_orth x (hik hxi) y (hjk hyj)
+end
+
+lemma orthonormal_sUnion_of_directed
+  {s : set (set E)} (hs : directed_on (⊆) s)
+  (h : ∀ a ∈ s, orthonormal 𝕜 (λ x, x : (a : set E) → E)) :
+  orthonormal 𝕜 (λ x, x : (⋃₀ s) → E) :=
+by rw set.sUnion_eq_Union; exact orthonormal_Union_of_directed hs.directed_coe (by simpa using h)
+
+/-- Given an orthonormal set `v` of vectors in `E`, there exists a maximal orthonormal set
+containing it. -/
+lemma exists_maximal_orthonormal {s : set E} (hs : orthonormal 𝕜 (coe : s → E)) :
+  ∃ w ⊇ s, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ⊇ w, orthonormal 𝕜 (coe : u → E) → u = w :=
+begin
+  rcases zorn.zorn_subset₀ {b | orthonormal 𝕜 (coe : b → E)} _ _ hs  with ⟨b, bi, sb, h⟩,
+  { refine ⟨b, sb, bi, _⟩,
+    exact λ u hus hu, h u hu hus },
+  { refine λ c hc cc c0, ⟨⋃₀ c, _, _⟩,
+    { exact orthonormal_sUnion_of_directed cc.directed_on (λ x xc, hc xc) },
+    { exact λ _, set.subset_sUnion_of_mem } }
+end
+
+lemma orthonormal.ne_zero {v : ι → E} (hv : orthonormal 𝕜 v) (i : ι) : v i ≠ 0 :=
+begin
+  have : ∥v i∥ ≠ 0,
+  { rw hv.1 i,
+    norm_num },
+  simpa using this
+end
+
+open finite_dimensional
+
+lemma is_basis_of_orthonormal_of_card_eq_findim [fintype ι] [nonempty ι] {v : ι → E}
+  (hv : orthonormal 𝕜 v) (card_eq : fintype.card ι = findim 𝕜 E) :
+  is_basis 𝕜 v :=
+is_basis_of_linear_independent_of_card_eq_findim hv.linear_independent card_eq
+
+end orthonormal_sets
 
 section norm
 
@@ -1241,6 +1405,21 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
+/-! ### Inner product space structure on subspaces -/
+
+/-- Induced inner product on a submodule. -/
+instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_space 𝕜 W :=
+{ inner             := λ x y, ⟪(x:E), (y:E)⟫,
+  conj_sym          := λ _ _, inner_conj_sym _ _ ,
+  nonneg_im         := λ _, inner_self_nonneg_im,
+  norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
+  add_left          := λ _ _ _ , inner_add_left,
+  smul_left         := λ _ _ _, inner_smul_left,
+  ..submodule.normed_space W }
+
+/-- The inner product on submodules is the same as on the ambient space. -/
+@[simp] lemma submodule.coe_inner (W : submodule 𝕜 E) (x y : W) : ⟪x, y⟫ = ⟪(x:E), ↑y⟫ := rfl
+
 section is_R_or_C_to_real
 
 variables {G : Type*}
@@ -1495,6 +1674,13 @@ instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instanc
 
 lemma findim_euclidean_space_fin {n : ℕ} :
   finite_dimensional.findim 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
+
+/-- A basis on `ι` for a finite-dimensional space induces a continuous linear equivalence
+with `euclidean_space 𝕜 ι`.  If the basis is orthonormal in an inner product space, this continuous
+linear equivalence is an isometry, but we don't prove that here. -/
+def is_basis.equiv_fun_euclidean [finite_dimensional 𝕜 E] {v : ι → E} (h : is_basis 𝕜 v) :
+  E ≃L[𝕜] (euclidean_space 𝕜 ι) :=
+h.equiv_fun.to_continuous_linear_equiv
 
 end pi_Lp
 
@@ -2025,11 +2211,17 @@ submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
 variables (K)
 
 /-- `K` and `Kᗮ` have trivial intersection. -/
-lemma submodule.orthogonal_disjoint : disjoint K Kᗮ :=
+lemma submodule.inf_orthogonal_eq_bot : K ⊓ Kᗮ = ⊥ :=
 begin
-  simp_rw [submodule.disjoint_def, submodule.mem_orthogonal],
-  exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
+  rw submodule.eq_bot_iff,
+  intros x,
+  rw submodule.mem_inf,
+  exact λ ⟨hx, ho⟩, inner_self_eq_zero.1 (ho x hx)
 end
+
+/-- `K` and `Kᗮ` have trivial intersection. -/
+lemma submodule.orthogonal_disjoint : disjoint K Kᗮ :=
+by simp [disjoint_iff, K.inf_orthogonal_eq_bot]
 
 /-- `Kᗮ` can be characterized as the intersection of the kernels of the operations of
 inner product with each of the elements of `K`. -/
@@ -2308,3 +2500,139 @@ begin
   exact nat.add_sub_cancel' (nat.succ_le_iff.mpr findim_pos)
 end
 end orthogonal
+
+section orthonormal_basis
+
+/-! ### Existence of Hilbert basis, orthonormal basis, etc. -/
+
+variables {𝕜 E} {v : set E}
+
+open finite_dimensional submodule set
+
+/-- An orthonormal set in an `inner_product_space` is maximal, if and only if the orthogonal
+complement of its span is empty. -/
+lemma maximal_orthonormal_iff_orthogonal_complement_eq_bot (hv : orthonormal 𝕜 (coe : v → E)) :
+  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ (span 𝕜 v)ᗮ = ⊥ :=
+begin
+  rw submodule.eq_bot_iff,
+  split,
+  { contrapose!,
+    -- ** direction 1: nonempty orthogonal complement implies nonmaximal
+    rintros ⟨x, hx', hx⟩,
+    -- take a nonzero vector and normalize it
+    let e := (∥x∥⁻¹ : 𝕜) • x,
+    have he : ∥e∥ = 1 := by simp [e, norm_smul_inv_norm hx],
+    have he' : e ∈ (span 𝕜 v)ᗮ := smul_mem' _ _ hx',
+    have he'' : e ∉ v,
+    { intros hev,
+      have : e = 0,
+      { have : e ∈ (span 𝕜 v) ⊓ (span 𝕜 v)ᗮ := ⟨subset_span hev, he'⟩,
+        simpa [(span 𝕜 v).inf_orthogonal_eq_bot] using this },
+      have : e ≠ 0 := hv.ne_zero ⟨e, hev⟩,
+      contradiction },
+    -- put this together with `v` to provide a candidate orthonormal basis for the whole space
+    refine ⟨v.insert e, v.subset_insert e, ⟨_, _⟩, (v.ne_insert_of_not_mem he'').symm⟩,
+    { -- show that the elements of `v.insert e` have unit length
+      rintros ⟨a, ha'⟩,
+      cases eq_or_mem_of_mem_insert ha' with ha ha,
+      { simp [ha, he] },
+      { exact hv.1 ⟨a, ha⟩ } },
+    { -- show that the elements of `v.insert e` are orthogonal
+      have h_end : ∀ a ∈ v, ⟪a, e⟫ = 0,
+      { intros a ha,
+        exact he' a (submodule.subset_span ha) },
+      rintros ⟨a, ha'⟩,
+      cases eq_or_mem_of_mem_insert ha' with ha ha,
+      { rintros ⟨b, hb'⟩ hab',
+        have hb : b ∈ v,
+        { refine mem_of_mem_insert_of_ne hb' _,
+          intros hbe',
+          apply hab',
+          simp [ha, hbe'] },
+        rw inner_eq_zero_sym,
+        simpa [ha] using h_end b hb },
+      rintros ⟨b, hb'⟩ hab',
+      cases eq_or_mem_of_mem_insert hb' with hb hb,
+      { simpa [hb] using h_end a ha },
+      have : (⟨a, ha⟩ : v) ≠ ⟨b, hb⟩,
+      { intros hab'',
+        apply hab',
+        simpa using hab'' },
+      convert hv.2 this } },
+    { -- ** direction 2: empty orthogonal complement implies maximal
+      simp only [subset.antisymm_iff],
+      rintros h u (huv : v ⊆ u) hu,
+      refine ⟨_, huv⟩,
+      intros x hxu,
+      refine ((mt (h x)) (hu.ne_zero ⟨x, hxu⟩)).imp_symm _,
+      intros hxv y hy,
+      have hxv' : (⟨x, hxu⟩ : u) ∉ (coe ⁻¹' v : set u) := by simp [huv, hxv],
+      obtain ⟨l, hl, rfl⟩ :
+        ∃ l ∈ finsupp.supported 𝕜 𝕜 (coe ⁻¹' v : set u), (finsupp.total ↥u E 𝕜 coe) l = y,
+      { rw ← finsupp.mem_span_iff_total,
+        simp [huv, inter_eq_self_of_subset_left, hy] },
+      exact hu.inner_finsupp_eq_zero hxv' hl }
+end
+
+/-- An orthonormal set in an `inner_product_space` is maximal, if and only if the closure of its
+span is the whole space. -/
+lemma maximal_orthonormal_iff_dense_span [complete_space E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ (span 𝕜 v).topological_closure = ⊤ :=
+by rw [maximal_orthonormal_iff_orthogonal_complement_eq_bot hv, ← submodule.orthogonal_eq_top_iff,
+  (span 𝕜 v).orthogonal_orthogonal_eq_closure]
+
+/-- Any orthonormal subset can be extended to an orthonormal set whose span is dense. -/
+lemma exists_subset_is_orthonormal_dense_span
+  [complete_space E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  ∃ u ⊇ v, orthonormal 𝕜 (coe : u → E) ∧ (span 𝕜 u).topological_closure = ⊤ :=
+begin
+  obtain ⟨u, hus, hu, hu_max⟩ := exists_maximal_orthonormal hv,
+  rw maximal_orthonormal_iff_dense_span hu at hu_max,
+  exact ⟨u, hus, hu, hu_max⟩
+end
+
+variables (𝕜 E)
+/-- An inner product space admits an orthonormal set whose span is dense. -/
+lemma exists_is_orthonormal_dense_span [complete_space E] :
+  ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ (span 𝕜 u).topological_closure = ⊤ :=
+let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_dense_span (orthonormal_empty 𝕜 E) in
+⟨u, hu, hu_max⟩
+variables {𝕜 E}
+
+/-- An orthonormal set in a finite-dimensional `inner_product_space` is maximal, if and only if it
+is a basis. -/
+lemma maximal_orthonormal_iff_is_basis_of_finite_dimensional
+  [finite_dimensional 𝕜 E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ is_basis 𝕜 (coe : v → E) :=
+begin
+  rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
+  have hv_compl : is_complete (span 𝕜 v : set E) := (span 𝕜 v).complete_of_finite_dimensional,
+  rw submodule.orthogonal_eq_bot_iff hv_compl,
+  have hv_coe : range (coe : v → E) = v := by simp,
+  split,
+  { refine λ h, ⟨hv.linear_independent, _⟩,
+    convert h },
+  { intros h,
+    convert ← h.2 }
+end
+
+/-- In a finite-dimensional `inner_product_space`, any orthonormal subset can be extended to an
+orthonormal basis. -/
+lemma exists_subset_is_orthonormal_basis
+  [finite_dimensional 𝕜 E] (hv : orthonormal 𝕜 (coe : v → E)) :
+  ∃ u ⊇ v, orthonormal 𝕜 (coe : u → E) ∧ is_basis 𝕜 (coe : u → E) :=
+begin
+  obtain ⟨u, hus, hu, hu_max⟩ := exists_maximal_orthonormal hv,
+  rw maximal_orthonormal_iff_is_basis_of_finite_dimensional hu at hu_max,
+  exact ⟨u, hus, hu, hu_max⟩
+end
+
+variables (𝕜 E)
+/-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
+lemma exists_is_orthonormal_basis [finite_dimensional 𝕜 E] :
+  ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ is_basis 𝕜 (coe : u → E) :=
+let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E) in
+⟨u, hu, hu_max⟩
+variables {𝕜 E}
+
+end orthonormal_basis

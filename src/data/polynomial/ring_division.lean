@@ -488,6 +488,13 @@ begin
   rw [eval_sub, sub_eq_zero, ext],
 end
 
+/-- The set of roots of `p` in `E`.
+
+If you have a non-separable polynomial, use `polynomial.roots` for the multiset
+where multiple roots have the appropriate multiplicity. -/
+def root_set (p : polynomial R) (S) [integral_domain S] [algebra R S] : set S :=
+(p.map (algebra_map R S)).roots.to_finset
+
 end roots
 
 theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=

@@ -641,6 +641,9 @@ theorem adjoin_roots : algebra.adjoin α
     (↑(f.map (algebra_map α $ splitting_field f)).roots.to_finset : set (splitting_field f)) = ⊤ :=
 splitting_field_aux.adjoin_roots _ _ _
 
+theorem adjoin_root_set : algebra.adjoin α (f.root_set f.splitting_field) = ⊤ :=
+adjoin_roots f
+
 end splitting_field
 
 variables (α β) [algebra α β]

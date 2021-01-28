@@ -138,7 +138,7 @@ lemma lintegral_lintegral_mul_inv (hμ : is_mul_left_invariant μ) (hν : is_mul
 begin
   have h2f : measurable (uncurry $ λ x y, f (y * x) x⁻¹) :=
   hf.comp ((measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv),
-  simp_rw [lintegral_lintegral h2f, lintegral_lintegral hf],
+  simp_rw [lintegral_lintegral h2f.ae_measurable, lintegral_lintegral hf.ae_measurable],
   conv_rhs { rw [← map_prod_mul_inv_eq hμ hν] },
   symmetry, exact lintegral_map hf ((measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv)
 end
@@ -175,7 +175,7 @@ begin
   have hg : measurable g := (hf.comp measurable_inv).ennreal_div
     ((measurable_measure_mul_right Em).comp measurable_inv),
   rw [← set_lintegral_one, ← lintegral_indicator _ Em,
-    ← lintegral_lintegral_mul (measurable_const.indicator Em) hg,
+    ← lintegral_lintegral_mul (measurable_const.indicator Em).ae_measurable hg.ae_measurable,
     ← lintegral_lintegral_mul_inv hμ hν],
   swap, { exact ((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
       (hg.comp measurable_snd) },

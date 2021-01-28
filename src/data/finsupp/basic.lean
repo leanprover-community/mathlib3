@@ -595,12 +595,8 @@ lemma prod_ite_eq [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M →
   f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 
-<<<<<<< HEAD
-@[simp] lemma sum_ite_self_eq {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
-=======
 @[simp] lemma sum_ite_self_eq
   [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
->>>>>>> origin/master
   f.sum (λ x v, ite (a = x) v 0) = f a :=
 by { convert f.sum_ite_eq a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
 
@@ -610,12 +606,8 @@ lemma prod_ite_eq' [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M �
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
 
-<<<<<<< HEAD
-@[simp] lemma sum_ite_self_eq' {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
-=======
 @[simp] lemma sum_ite_self_eq'
   [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
->>>>>>> origin/master
   f.sum (λ x v, ite (x = a) v 0) = f a :=
 by { convert f.sum_ite_eq' a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
 

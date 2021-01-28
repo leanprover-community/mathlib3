@@ -123,6 +123,23 @@ begin
     use t, exact ⟨htS, by rwa ←htsup⟩, },
 end
 
+lemma Sup_lt_of_directed_set_lt_compact {α : Type*} [complete_lattice α] (k : α) (hk : is_compact_element k)
+  (hbot : k ≠ ⊥) : ∀ s : set α, directed_on (≤) s → (∀ x ∈ s, x < k) → Sup s < k :=
+begin
+  intros s hdir hbelow,
+  rw is_compact_element_iff_le_of_directed_Sup_le at hk,
+  by_contradiction,
+  have sSup : Sup s ≤ k, from Sup_le _ _ (λ s hs, le_of_lt $ hbelow s hs),
+  replace sSup : Sup s = k := eq_iff_le_not_lt.mpr ⟨sSup, h⟩,
+  have hemp : s.nonempty,
+  { by_contradiction n, rw [set.not_nonempty_iff_eq_empty] at n,
+    change has_Sup.Sup s = k at sSup, rw [n, Sup_empty] at sSup,
+    exact absurd (eq.symm sSup) hbot, },
+  obtain ⟨x, ⟨hxs, hkx⟩⟩ := hk s hemp hdir (le_of_eq $ eq.symm sSup),
+  obtain hxk := hbelow x hxs,
+  exact absurd (_root_.le_antisymm (le_of_lt hxk) hkx) (ne_of_lt hxk),
+end
+
 lemma finset_sup_compact_of_compact {α β : Type*} [complete_lattice α] {f : β → α}
   (s : finset β) (h : ∀ x ∈ s, is_compact_element (f x)) : is_compact_element (s.sup f) :=
 begin
@@ -240,33 +257,9 @@ instance (α : Type) [lattice α] (a b : α) (h : a ≤ b) : bounded_lattice (se
 lemma directed_on_coe_image {α : Type*} [partial_order α] (p : set α) (s : set ↥p) (h : directed_on (≤) s) :
   directed_on (≤) (coe '' s : set α) :=
 begin
-  rintros x' ⟨x, ⟨hxs, hxc⟩⟩ y' ⟨y, ⟨hys, hyc⟩⟩,
+  rintros x' ⟨x, ⟨hxs, rfl⟩⟩ y' ⟨y, ⟨hys, rfl⟩⟩,
   obtain ⟨z, hzs, hz⟩ := h x hxs y hys,
-  use z,
-  split,
-  { exact set.mem_image_of_mem coe hzs },
-  { split,
-    { subst hxc, exact (subtype.mono_coe _) (hz.left), },
-    { subst hyc, exact (subtype.mono_coe _) (hz.right), }, },
-end
-
-lemma Sup_lt_of_directed_set_lt_compact {α : Type*} [complete_lattice α] (k : α) (hk : is_compact_element k)
-  (hbot : k ≠ ⊥) : ∀ s : set α, directed_on (≤) s → (∀ x ∈ s, x < k) → Sup s < k :=
-begin
-  intros s hdir hbelow,
-  by_contradiction,
-  have : Sup s ≤ k,
-  { apply Sup_le, exact λ s hs, le_of_lt (hbelow s hs) },
-  have sup_eq : Sup s = k, from eq_iff_le_not_lt.mpr ⟨this, h⟩,
-  have hemp : s.nonempty,
-  { by_contradiction n,
-    rw [set.not_nonempty_iff_eq_empty] at n,
-    change has_Sup.Sup s = k at sup_eq, rw [n, Sup_empty] at sup_eq,
-    exact absurd (eq.symm sup_eq) hbot, },
-  rw is_compact_element_iff_le_of_directed_Sup_le at hk,
-  obtain ⟨x, ⟨hxs, hxk⟩⟩ := hk s hemp hdir (le_of_eq $ eq.symm sup_eq),
-  specialize hbelow x hxs,
-  exact absurd (_root_.le_antisymm (le_of_lt hbelow) hxk) (ne_of_lt hbelow),
+  exact ⟨z, ⟨set.mem_image_of_mem coe hzs, ⟨subtype.mono_coe _ hz.left, subtype.mono_coe _ hz.right⟩⟩⟩,
 end
 
 theorem compact_iff_interval_coatomic (k : α) (hk : k ≠ ⊥) :
@@ -292,13 +285,13 @@ begin
     intros c hc,
     by_cases cne : c.nonempty, swap,
     { rw set.not_nonempty_iff_eq_empty at cne,
-      use b, exact ⟨le_refl b, hb⟩,
+      use ⟨b, ⟨le_refl b, hb⟩⟩,
       simp only [cne, set.mem_empty_eq, forall_prop_of_false, not_false_iff, forall_true_iff], },
     have stc : coe '' c ⊆ set.Ico b k, by apply subtype.coe_image_subset,
     let ub : α := Sup (coe '' c),
     have ub_proper : ub ∈ set.Ico b k,
     { split,
-      { have : b ≤ Inf (coe '' c), by { apply le_Inf, exact λ x hx, (stc hx).left, },
+      { have : b ≤ Inf (coe '' c), from le_Inf _ _ (λ x hx, (stc hx).left),
         exact _root_.le_trans this (Inf_le_Sup $ set.nonempty_image_iff.mpr cne), },
       { have : directed_on (≤) (coe '' c), from directed_on_coe_image _ _ (hc.directed_on),
         exact Sup_lt_of_directed_set_lt_compact k h hk _ this (λ s hs, (stc hs).right), }, },

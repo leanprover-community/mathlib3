@@ -130,15 +130,53 @@ begin
   rw nat.cast_sub (finset.mem_range_succ_iff.mp hk),
 end
 
+/-- If (i,j) is contained in the antidiagonal of `n` then `i ≤ n`. -/
+@[simp] lemma fst_le_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
+  x ∈ nat.antidiagonal n → x.1 ≤ n :=
+by { rw nat.mem_antidiagonal, exact nat.le.intro }
+
+/-- If (i,j) is contained in the antidiagonal of `n` then `j ≤ n`. -/
+@[simp] lemma snd_le_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
+  x ∈ nat.antidiagonal n → x.2 ≤ n :=
+by { rw [nat.mem_antidiagonal, add_comm], exact nat.le.intro }
+
+lemma range_succ_mem_le (n x : ℕ) (h : x ∈ finset.range (n+1)) : x ≤ n :=
+begin
+  rw finset.mem_range at h,
+  exact lt_succ_iff.1 h,
+end
+
+lemma sum_antidiagonal {M : Type*} [add_comm_monoid M]
+  (n : ℕ) (f : ℕ × ℕ → M) :
+  ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p = ∑ (i : ℕ) in finset.range (n + 1), f (i,(n - i)) :=
+begin
+  have : ∀ {a}, a ∈ finset.nat.antidiagonal n → ((a : ℕ × ℕ).fst, n - a.fst) = a,
+  { rintros ⟨a1, a2⟩ ha,
+    rw finset.nat.mem_antidiagonal at ha,
+    subst ha,
+    congr',
+    simp,
+  },
+  apply finset.sum_bij' (λ (a : ℕ × ℕ) _, a.1) _ _ (λ (i : ℕ) _, (i, n - i)),
+  { intros, apply this ha },
+  { intros, simp },
+  { intros, simp only [finset.nat.mem_antidiagonal],
+    apply nat.add_sub_cancel', apply range_succ_mem_le _ _ ha },
+  { intros, simp only [finset.mem_range],
+    exact lt_succ_of_le (fst_le_of_mem_antidiagonal ha) },
+  { intros, simp [this ha] },
+end
+
 lemma bernoulli_spec' (n : ℕ) :
   ∑ k in finset.nat.antidiagonal n,
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 1 :=
 begin
-  convert bernoulli_spec n using 1,
-  rw this_is_so_stupid,
-  symmetry,
-  convert sum_range_succ_eq_sum_antidiagonal (λ i j, (n.choose j : ℚ) / (j + 1) * bernoulli i) n,
-  sorry
+  rw sum_antidiagonal, simp,
+  conv_lhs
+  {apply_congr, skip, rw [nat.add_sub_cancel' _, cast_sub], skip,
+  apply_congr lt_succ_iff.1 (finset.mem_range.1 H),
+  apply_congr lt_succ_iff.1 (finset.mem_range.1 H), },
+  rw bernoulli_spec,
 end
 
 /-!

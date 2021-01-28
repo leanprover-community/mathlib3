@@ -26,6 +26,7 @@ When `a=0` they are just the family of monomials `x ^ n`.
 
 ## TODO
 
+* Redefine `dickson₁` and `dickson₂` in terms of `linear_recurrence`.
 * Move the definition of `lambdashev` from `chebyshev.defs` into this file
   (or even remove it because it is a special case of the polynomials defined here?).
 * Show that `lambdashev` is equal to the characteristic polynomial of the adjacency matrix of a
@@ -36,84 +37,25 @@ noncomputable theory
 
 namespace polynomial
 
-variables {R S : Type*} [comm_ring R] [comm_ring S]
-
-/-- `dickson'` is an auxiliary non-standard function that lets us unify some proofs for `dickson₁`
-and `dickson₂`.
--/
-noncomputable def dickson' (p₀ : polynomial R) (a : R) : ℕ → polynomial R
-| 0       := p₀
-| 1       := X
-| (n + 2) := X * dickson' (n + 1) - (monomial 0 a) * dickson' n
-
-abbreviation dickson₁ : R → ℕ → polynomial R := dickson' 2
-abbreviation dickson₂ : R → ℕ → polynomial R := dickson' 1
-
-variables (p₀ : polynomial R) (a : R)
-
-@[simp] lemma dickson'_zero : dickson' p₀ a 0 = p₀ := rfl
-@[simp] lemma dickson'_one : dickson' p₀ a 1 = X := rfl
-lemma dickson'_two : dickson' p₀ a 2 = X ^ 2 - monomial 0 a * p₀ :=
-by simp only [dickson', mul_one, pow_two]
-@[simp] lemma dickson'_add_two (n : ℕ) :
-  dickson' p₀ a (n + 2) = X * dickson' p₀ a (n + 1) - (monomial 0 a) * dickson' p₀ a n :=
-by rw dickson'
-
-lemma dickson'_of_two_le (n : ℕ) (h : 2 ≤ n) :
-  dickson' p₀ a n = X * dickson' p₀ a (n - 1) - (monomial 0 a) * dickson' p₀ a (n - 2) :=
-begin
-  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
-  rw add_comm,
-  exact dickson'_add_two p₀ a n
-end
-
-variables {R S a}
-
-lemma map_dickson' (f : R →+* S) :
-  ∀ (n : ℕ), map f (dickson' p₀ a n) = dickson' (map f p₀) (f a) n
-| 0       := by simp only [dickson'_zero, map_nat_cast]
-| 1       := by simp only [dickson'_one, map_X]
-| (n + 2) :=
-begin
-  simp only [dickson'_add_two, map_sub, map_mul, map_X, map_monomial],
-  rw [map_dickson' (n + 1), map_dickson' n]
-end
-
-lemma lambdashev_eq_dickson'_two_one_apply :
-∀ (n : ℕ), lambdashev R n = dickson' 2 1 n
-| 0       := by simp only [lambdashev_zero, dickson'_zero]
-| 1       := by simp only [lambdashev_one, dickson'_one]
-| (n + 2) :=
-begin
-  simp only [lambdashev_add_two, dickson'_add_two],
-  rw [lambdashev_eq_dickson'_two_one_apply, lambdashev_eq_dickson'_two_one_apply],
-  change X * dickson₁ (1 : R) (n + 1) - dickson₁ 1 n = X * dickson₁ 1 (n + 1) - 1 * dickson₁ 1 n,
-  rw one_mul
-end
-
-lemma lambdashev_eq_dickson₁_one : lambdashev R = dickson₁ 1 :=
-funext lambdashev_eq_dickson'_two_one_apply
-
-/-
-
+variables {R S : Type*} [comm_ring R] [comm_ring S] (a : R)
 
 /-- `dickson₁` is the `n`-th Dickson polynomial of the first kind associated to the element `a∈R`.
 -/
 noncomputable def dickson₁ : ℕ → polynomial R
 | 0       := 2
 | 1       := X
-| (n + 2) := X * dickson₁ (n + 1) - (monomial 0 a) * dickson₁ n
+| (n + 2) := X * dickson₁ (n + 1) - (C a) * dickson₁ n
 
 @[simp] lemma dickson₁_zero : dickson₁ a 0 = 2 := rfl
 @[simp] lemma dickson₁_one : dickson₁ a 1 = X := rfl
-lemma dickson₁_two : dickson₁ a 2 = X ^ 2 - monomial 0 a * 2 :=
-by simp only [dickson₁, mul_one, pow_two]
+lemma dickson₁_two : dickson₁ a 2 = X ^ 2 - C a * 2 :=
+by simp only [dickson₁, pow_two]
 @[simp] lemma dickson₁_add_two (n : ℕ) :
-  dickson₁ a (n + 2) = X * dickson₁ a (n + 1) - (monomial 0 a) * dickson₁ a n :=
+  dickson₁ a (n + 2) = X * dickson₁ a (n + 1) - C a * dickson₁ a n :=
 by rw dickson₁
 
 lemma dickson₁_of_two_le (n : ℕ) (h : 2 ≤ n) :
-  dickson₁ a n = X * dickson₁ a (n - 1) - (monomial 0 a) * dickson₁ a (n - 2) :=
+  dickson₁ a n = X * dickson₁ a (n - 1) - C a * dickson₁ a (n - 2) :=
 begin
   obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
   rw add_comm,
@@ -128,7 +70,7 @@ lemma map_dickson₁ (f : R →+* S) :
 | 1       := by simp only [dickson₁_one, map_X]
 | (n + 2) :=
 begin
-  simp only [dickson₁_add_two, map_sub, map_mul, map_X, map_monomial],
+  simp only [dickson₁_add_two, map_sub, map_mul, map_X, map_C],
   rw [map_dickson₁ (n + 1), map_dickson₁ n]
 end
 
@@ -140,10 +82,8 @@ lemma lambdashev_eq_dickson₁_of_eq_one :
 | 1       := by simp only [lambdashev_one, dickson₁_one]
 | (n + 2) :=
 begin
-  simp only [lambdashev_add_two, dickson₁_add_two],
-  rw [lambdashev_eq_dickson₁_of_eq_one, lambdashev_eq_dickson₁_of_eq_one],
-  change X * dickson₁ (1 : R) (n + 1) - dickson₁ 1 n = X * dickson₁ 1 (n + 1) - 1 * dickson₁ 1 n,
-  rw one_mul
+  simp only [lambdashev_add_two, dickson₁_add_two, one_mul, ring_hom.map_one],
+  rw [lambdashev_eq_dickson₁_of_eq_one (n + 1), lambdashev_eq_dickson₁_of_eq_one n]
 end
 
 variables {R S} (a)
@@ -153,18 +93,18 @@ variables {R S} (a)
 noncomputable def dickson₂ : ℕ → polynomial R
 | 0       := 1
 | 1       := X
-| (n + 2) := X * dickson₂ (n + 1) - (monomial 0 a) * dickson₂ n
+| (n + 2) := X * dickson₂ (n + 1) - C a * dickson₂ n
 
 @[simp] lemma dickson₂_zero : dickson₂ a 0 = 1 := rfl
 @[simp] lemma dickson₂_one : dickson₂ a 1 = X := rfl
-lemma dickson₂_two : dickson₂ a 2 = X ^ 2 - monomial 0 a :=
-by simp only [dickson₂, mul_one, pow_two]
+lemma dickson₂_two : dickson₂ a 2 = X ^ 2 - C a :=
+by simp only [dickson₂, pow_two, mul_one]
 @[simp] lemma dickson₂_add_two (n : ℕ) :
-  dickson₂ a (n + 2) = X * dickson₂ a (n + 1) - (monomial 0 a) * dickson₂ a n :=
+  dickson₂ a (n + 2) = X * dickson₂ a (n + 1) - C a * dickson₂ a n :=
 by rw dickson₂
 
 lemma dickson₂_of_two_le (n : ℕ) (h : 2 ≤ n) :
-  dickson₂ a n = X * dickson₂ a (n - 1) - (monomial 0 a) * dickson₂ a (n - 2) :=
+  dickson₂ a n = X * dickson₂ a (n - 1) - C a * dickson₂ a (n - 2) :=
 begin
   obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
   rw add_comm,
@@ -179,9 +119,8 @@ lemma map_dickson₂ (f : R →+* S) :
 | 1       := by simp only [dickson₂_one, map_X]
 | (n + 2) :=
 begin
-  simp only [dickson₂_add_two, map_sub, map_mul, map_X, map_monomial],
+  simp only [dickson₂_add_two, map_sub, map_mul, map_X, map_C],
   rw [map_dickson₂ (n + 1), map_dickson₂ n]
 end
--/
 
 end polynomial

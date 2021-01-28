@@ -123,67 +123,24 @@ end
 
 lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
 (hlen : (fintype.card σ + 1) ≤ list.length x) :
-  ∃ a b c,  x = a ++ b ++ c ∧ b ≠ [] ∧ (a ++ b).length ≤ (fintype.card σ + 1) ∧
+  ∃ a b c,  x = a ++ b ++ c ∧ a.length + b.length ≤ (fintype.card σ + 1) ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
-  -- By pidgeon hole principal the DFA passes though the same state twice in the first p+1 states we
-  -- pass through. Let these be the `n`th and `m`th states with `n < m`
-  have h := fintype.exists_ne_map_eq_of_card_lt
-    (λ n : fin (fintype.card σ + 1), M.eval_from M.start (x.take n)) (by norm_num),
-  rcases h with ⟨ n, m, hneq, heq ⟩,
-  cases m with m hm, cases n with n hn,
-  wlog hle : n ≤ m using [n m, m n],
-  { exact le_total n m },
-
-  -- Now let `a` be the first `n` characters of `x`, `b` be the next `m-n` characters and `c` the
-  -- rest
-  use [(x.take m).take n, (x.take m).drop n, x.drop m],
-  split,
-  { rw [list.take_append_drop, list.take_append_drop] },
-
-  split,
-  { -- We shall show that `b` is not nil by showing it's length is not zero
-    intro h,
-    have hlen := congr_arg list.length h,
-    simp only [list.length_drop, list.length, list.length_take] at hlen,
-    rw [min_eq_left_of_lt, nat.sub_eq_zero_iff_le] at hlen,
-    { apply hneq,
-      apply le_antisymm,
-      assumption' },
-    apply lt_of_lt_of_le hm,
-    assumption },
-  split,
-  { -- `(a ++ b).length ≤ p` follows easily
-    simp only [list.length_take, min_le_iff, list.take_append_drop],
-    left,
-    apply le_of_lt,
-    assumption },
-
-  -- We now show `M` accepts `y := a ++ i*b ++ c` by induction on `i` and showing `a ++ i*b`
-  -- always finishes on the same state
-  rw [language.star_eq_supr_pow, language.mul_supr, language.supr_mul],
+  have h := M.eval_from_split x M.start (M.eval x) hlen _,
+  swap,
+  { refl },
+  rcases h with ⟨ _, a, b, c, hx, hlen, hnil, rfl, hb, hc ⟩,
+  use [a, b, c, hx, hlen, hnil],
   intros y hy,
-  rw set.mem_Union at hy,
-  cases hy with i hy,
   rw language.mem_mul at hy,
-  rcases hy with ⟨ a, c, ha, hc, hy ⟩,
-  have h : M.eval_from M.start a = M.eval_from M.start (x.take n),
-  { induction i with i ih generalizing a y,
-    { rw [pow_zero, mul_one, set.mem_singleton_iff] at ha,
-      rw [ha, list.take_take, min_eq_left hle] },
-    { rw [pow_succ', ←mul_assoc, language.mem_mul] at ha,
-      rcases ha with ⟨ a', b, ha', hb, ha ⟩,
-      specialize ih a' ha' rfl,
-      rw set.mem_singleton_iff at hb,
-      rw [←ha, eval_from_of_append, ih, hb, ←eval_from_of_append, ←min_eq_left hle, ←list.take_take,
-          min_eq_left hle, list.take_append_drop, list.take_take, min_eq_left hle],
-      exact heq.symm } },
-
-  rw set.mem_singleton_iff at hc,
-  simp only [fin.coe_mk] at heq,
-  rw [←hy, mem_accepts, eval_from_of_append, h, heq, ←eval_from_of_append, hc,
-      list.take_append_drop],
-  exact hx
+  rcases hy with ⟨ ab, c', hab, hc', hy ⟩,
+  rw language.mem_mul at hab,
+  rcases hab with ⟨ a', b', ha', hb', hab ⟩,
+  rw set.mem_singleton_iff at ha' hc',
+  substs hy hab ha' hc',
+  have h := M.eval_from_of_pow _ _ hb b' hb',
+  rw [mem_accepts, eval_from_of_append, eval_from_of_append, h, hc],
+  assumption
 end
 
 end DFA

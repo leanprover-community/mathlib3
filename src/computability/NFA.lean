@@ -72,8 +72,8 @@ begin
 end
 
 lemma pumping_lemma [fintype σ] : ∃ (p : ℕ), ∀ (x ∈ M.accepts) (hlen : p ≤ list.length x),
-  ∃ a b c, x = a ++ b ++ c ∧ b ≠ [] ∧
-  (a ++ b).length ≤ p ∧ {a} * language.star {b} * {c} ≤ M.accepts :=
+  ∃ a b c,  x = a ++ b ++ c ∧ a.length + b.length ≤ p ∧ b ≠ [] ∧
+  {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
   rw ←to_DFA_correct,
   exact ⟨ _, M.to_DFA.pumping_lemma ⟩

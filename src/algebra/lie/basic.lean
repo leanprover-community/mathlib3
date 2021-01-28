@@ -480,14 +480,14 @@ lie_module.is_trivial.trivial x m
 abbreviation is_lie_abelian (L : Type v) [has_bracket L L] [has_zero L] : Prop :=
 lie_module.is_trivial L L
 
-lemma lie_abelian_of_injection {R : Type u} {L₁ : Type v} {L₂ : Type w}
+lemma function.injective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Type w}
   [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
   {f : L₁ →ₗ⁅R⁆ L₂} (h₁ : function.injective f) (h₂ : is_lie_abelian L₂) :
   is_lie_abelian L₁ :=
 { trivial := λ x y,
     by { apply h₁, rw [lie_algebra.map_lie, trivial_lie_zero, lie_algebra.map_zero], } }
 
-lemma lie_abelian_of_surjection {R : Type u} {L₁ : Type v} {L₂ : Type w}
+lemma function.surjective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Type w}
   [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
   {f : L₁ →ₗ⁅R⁆ L₂} (h₁ : function.surjective f) (h₂ : is_lie_abelian L₁) :
   is_lie_abelian L₂ :=
@@ -503,8 +503,8 @@ lemma lie_abelian_iff_equiv_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Typ
   (e : L₁ ≃ₗ⁅R⁆ L₂) : is_lie_abelian L₁ ↔ is_lie_abelian L₂ :=
 begin
   split; intros h,
-  { exact lie_abelian_of_injection e.symm.injective h, },
-  { exact @lie_abelian_of_injection R L₁ L₂ _ _ _ _ _ e e.injective h, },
+  { exact e.symm.injective.is_lie_abelian h, },
+  { exact @function.injective.is_lie_abelian R L₁ L₂ _ _ _ _ _ e e.injective h, },
 end
 
 lemma commutative_ring_iff_abelian_lie_ring : is_commutative A (*) ↔ is_lie_abelian A :=

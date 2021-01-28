@@ -62,35 +62,28 @@ lemma eval_from_split [fintype σ] (x : list α) (s t : σ) :
         M.eval_from q c = t :=
 begin
   intros hlen hx,
-  have h := fintype.exists_ne_map_eq_of_card_lt
+  obtain ⟨⟨n, hn⟩, ⟨m, hm⟩, hneq, heq⟩ := fintype.exists_ne_map_eq_of_card_lt
     (λ n : fin (fintype.card σ + 1), M.eval_from s (x.take n)) (by norm_num),
-  rcases h with ⟨ n, m, hneq, heq ⟩,
-  cases m with m hm, cases n with n hn,
-  wlog hle : n ≤ m using [n m, m n],
-  { exact le_total n m },
+  wlog hle : n ≤ m := le_total n m using [n m, m n],
 
-  use [M.eval_from s ((x.take m).take n), (x.take m).take n, (x.take m).drop n, x.drop m],
-  split,
+  refine ⟨M.eval_from s ((x.take m).take n), (x.take m).take n, (x.take m).drop n, x.drop m,
+    _, _, _, by refl, _⟩,
+
   { rw [list.take_append_drop, list.take_append_drop] },
 
-  split,
   { simp only [list.length_drop, list.length_take],
     rw [min_eq_left (le_of_lt (lt_of_lt_of_le hm hlen)), min_eq_left hle, nat.add_sub_cancel' hle],
     exact le_of_lt hm },
 
-  split,
   { intro h,
-    have hlen := congr_arg list.length h,
-    simp only [list.length_drop, list.length, list.length_take] at hlen,
-    rw [min_eq_left_of_lt, nat.sub_eq_zero_iff_le] at hlen,
+    have hlen' := congr_arg list.length h,
+    simp only [list.length_drop, list.length, list.length_take] at hlen',
+    rw [min_eq_left_of_lt, nat.sub_eq_zero_iff_le] at hlen',
     { apply hneq,
       apply le_antisymm,
       assumption' },
     apply lt_of_lt_of_le hm,
     assumption },
-
-  split,
-  { refl },
 
   have hq :
     M.eval_from (M.eval_from s (list.take n (list.take m x))) (list.drop n (list.take m x))

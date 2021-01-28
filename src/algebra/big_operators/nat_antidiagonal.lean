@@ -62,6 +62,31 @@ begin
   refl,
 end
 
+@[to_additive]
+lemma prod_range_succ_eq_prod_antidiagonal {M : Type*} [comm_monoid M]
+  (f : ℕ → ℕ → M) (n : ℕ) : ∏ x in range n.succ, f x (n - x) =
+    ∏ k in finset.nat.antidiagonal n, f k.1 k.2 :=
+begin
+  refine finset.prod_bij'
+  (λ a _, (a, n - a) : Π (a : ℕ), a ∈ finset.range n.succ → ℕ × ℕ)
+  _ (by simp)
+  (λ (ij : ℕ × ℕ) _, ij.1)
+  _ (by simp) _,
+  { intros a ha, simp [nat.add_sub_cancel' (mem_range_succ_iff.1 ha)], },
+  { intros _ ha, simp [mem_range_succ_iff.2 (nat.le.intro (nat.mem_antidiagonal.1 ha))], },
+  { rintro ⟨i, j⟩ ha, ext, refl, rw ← (nat.mem_antidiagonal.1 ha), exact nat.add_sub_cancel_left _ _ },
+end
+
+@[to_additive]
+lemma prod_antidiagonal {M : Type*} [comm_monoid M]
+  (n : ℕ) (f : ℕ × ℕ → M) :
+  ∏ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p =
+  ∏ (i : ℕ) in finset.range (n.succ), f (i,(n - i)) :=
+begin
+  conv_rhs {apply_congr, skip, rw <-function.curry_apply f x (n-x), },
+  rw [prod_range_succ_eq_prod_antidiagonal], simp only [prod.mk.eta, function.curry_apply],
+end
+
 end nat
 
 end finset

@@ -1290,6 +1290,9 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 theorem range_succ : range (succ n) = insert n (range n) :=
 eq_of_veq $ (range_succ n).trans $ (ndinsert_of_not_mem not_mem_range_self).symm
 
+lemma range_succ_mem_le (n x : ℕ) (h : x ∈ finset.range (n+1)) : x ≤ n :=
+by {rw finset.mem_range at h, exact lt_succ_iff.1 h,}
+
 theorem range_add_one : range (n + 1) = insert n (range n) :=
 range_succ
 

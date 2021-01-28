@@ -93,56 +93,6 @@ lemma bernoulli_def (n : ℕ) :
   bernoulli n = 1 - ∑ k in finset.range n, (n.choose k) / (n - k + 1) * bernoulli k :=
 by { rw [bernoulli_def', ← fin.sum_univ_eq_sum_range], refl }
 
-namespace nat
-
-lemma sum_range_succ_eq_sum_antidiagonal {M : Type*} [add_comm_monoid M]
-  (f : ℕ → ℕ → M) (n : ℕ) : ∑ x in range n.succ, f x (n - x) =
-    ∑ k in finset.nat.antidiagonal n, f k.1 k.2 :=
-begin
-  refine finset.sum_bij'
-  (λ a _, (a, n - a) : Π (a : ℕ), a ∈ finset.range n.succ → ℕ × ℕ)
-  _ (by simp)
-  (λ (ij : ℕ × ℕ) _, ij.1)
-  _ (by simp) _,
-  { intros a ha, simp [nat.add_sub_cancel' (mem_range_succ_iff.1 ha)], },
-  { intros _ ha, simp [mem_range_succ_iff.2 (nat.le.intro (nat.mem_antidiagonal.1 ha))], },
-  { rintro ⟨i, j⟩ ha, ext, refl, rw ← (nat.mem_antidiagonal.1 ha), exact nat.add_sub_cancel_left _ _ },
-end
-
-/-- If (i,j) is contained in the antidiagonal of `n` then `i ≤ n`. -/
-@[simp] lemma fst_le_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
-  x ∈ nat.antidiagonal n → x.1 ≤ n :=
-by { rw nat.mem_antidiagonal, exact nat.le.intro }
-
-/-- If (i,j) is contained in the antidiagonal of `n` then `j ≤ n`. -/
-@[simp] lemma snd_le_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
-  x ∈ nat.antidiagonal n → x.2 ≤ n :=
-by { rw [nat.mem_antidiagonal, add_comm], exact nat.le.intro }
-
-lemma range_succ_mem_le (n x : ℕ) (h : x ∈ finset.range (n+1)) : x ≤ n :=
-by {rw finset.mem_range at h, exact lt_succ_iff.1 h,}
-
-lemma sum_antidiagonal {M : Type*} [add_comm_monoid M]
-  (n : ℕ) (f : ℕ × ℕ → M) :
-  ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p =
-  ∑ (i : ℕ) in finset.range (n + 1), f (i,(n - i)) :=
-begin
-  conv_rhs {apply_congr, skip, rw <-function.curry_apply f x (n-x), },
-  rw [sum_range_succ_eq_sum_antidiagonal], simp only [prod.mk.eta, function.curry_apply],
-end
-
-lemma sum_choose (i j : ℕ) : (i+j).choose j = factorial (i + j) / (factorial i * factorial j) :=
-by {rw [choose_eq_factorial_div_factorial, nat.add_sub_cancel, mul_comm], exact le_add_left j i}
-
-lemma factorial_mul_factorial_dvd_factorial_sum (i j : ℕ) :
-  factorial i * factorial j ∣ factorial (i + j) :=
-begin
-  conv {congr, rw [<-nat.add_sub_cancel j i, add_comm]},
-  apply factorial_mul_factorial_dvd_factorial (le.intro rfl),
-end
-
-end nat
-
 lemma bernoulli_spec (n : ℕ) :
   ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli k = 1 :=
 begin
@@ -155,10 +105,9 @@ lemma bernoulli_spec' (n : ℕ) :
   ∑ k in finset.nat.antidiagonal n,
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 1 :=
 begin
-  rw nat.sum_antidiagonal, simp,
+  rw finset.nat.sum_antidiagonal, simp,
   conv_lhs {apply_congr, skip, rw [nat.add_sub_cancel' _, cast_sub], skip,
-  apply_congr lt_succ_iff.1 (finset.mem_range.1 H),
-  apply_congr lt_succ_iff.1 (finset.mem_range.1 H), },
+  apply_congr finset.range_succ_mem_le n x H, apply_congr finset.range_succ_mem_le n x H,},
   rw bernoulli_spec,
 end
 

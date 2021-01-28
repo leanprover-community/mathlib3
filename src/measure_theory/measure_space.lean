@@ -739,6 +739,11 @@ begin
   exact map_apply hf ht
 end
 
+/-- Even if `s` is not measurable, `map f μ s = 0` implies that `μ (f ⁻¹' s) = 0`. -/
+lemma preimage_null_of_map_null {f : α → β} (hf : measurable f) {s : set β}
+  (hs : map f μ s = 0) : μ (f ⁻¹' s) = 0 :=
+nonpos_iff_eq_zero.mp $ (le_map_apply hf s).trans_eq hs
+
 /-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
 measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
 def comap (f : α → β) : measure β →ₗ[ennreal] measure α :=
@@ -1334,14 +1339,13 @@ by simp [ae_iff, hc]
 lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
 add_eq_zero_iff
 
+lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : measurable f)
+  (h : g =ᵐ[ν] g') (h2f : ∀ s, ν s = 0 → μ (f ⁻¹' s) = 0) : g ∘ f =ᵐ[μ] g' ∘ f :=
+h2f _ h
+
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
   (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
-begin
-  rcases exists_is_measurable_superset_of_null h with ⟨t, ht, tmeas, tzero⟩,
-  refine le_antisymm _ bot_le,
-  calc μ {x | g (f x) ≠ g' (f x)} ≤ μ (f⁻¹' t) : measure_mono (λ x hx, ht hx)
-  ... = 0 : by rwa ← measure.map_apply hf tmeas
-end
+preimage_null_of_map_null hf h
 
 lemma le_ae_restrict : μ.ae ⊓ 𝓟 s ≤ (μ.restrict s).ae :=
 λ s hs, eventually_inf_principal.2 (ae_imp_of_ae_restrict hs)
@@ -2251,6 +2255,11 @@ lemma smul_measure (h : ae_measurable f μ) (c : ennreal) :
 lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 ⟨(hg.mk g) ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
+
+lemma comp_measurable' {δ} [measurable_space δ] {ν : measure δ} {f : α → δ} {g : δ → β}
+  (hg : ae_measurable g ν) (hf : measurable f) (h2f : ∀ s, ν s = 0 → μ (f ⁻¹' s) = 0) :
+    ae_measurable (g ∘ f) μ :=
+⟨(hg.mk g) ∘ f, hg.measurable_mk.comp hf, ae_eq_comp' hf hg.ae_eq_mk h2f⟩
 
 lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ x, (f x, g x)) μ :=

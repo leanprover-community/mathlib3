@@ -280,8 +280,7 @@ begin
         (λ n, (s' n x).ae_measurable) hf.of_uncurry_left.ae_measurable (hfx.norm.add hfx.norm) _ _,
       { exact λ n, eventually_of_forall (λ y, simple_func.norm_approx_on_zero_le _ _ (x, y) n) },
       { exact eventually_of_forall (λ y, simple_func.tendsto_approx_on _ _ (by simp)) } },
-    { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, }
-     },
+    { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, } },
   exact measurable_of_tendsto_metric hf' h2f'
 end
 
@@ -527,15 +526,20 @@ open measure_theory.measure
 
 section
 
-lemma ae_measurable.prod_swap [sigma_finite ν] [sigma_finite μ] {f : α × β → γ}
-  (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ (z : β × α), f z.swap) (ν.prod μ) :=
-begin
-  rw ← prod_swap at hf,
-  exact hf.comp_measurable measurable_swap,
-end
+lemma ae_measurable.prod_swap [sigma_finite μ] [sigma_finite ν] {f : β × α → γ}
+  (hf : ae_measurable f (ν.prod μ)) : ae_measurable (λ (z : α × β), f z.swap) (μ.prod ν) :=
+by { rw ← prod_swap at hf, exact hf.comp_measurable measurable_swap }
 
-/-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
-  Fubini's theorem is measurable. -/
+lemma ae_measurable.fst [sigma_finite μ] [sigma_finite ν] {f : α → γ}
+  (hf : ae_measurable f μ) : ae_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
+hf.comp_measurable' measurable_fst _
+
+lemma ae_measurable.snd [sigma_finite μ] [sigma_finite ν] {f : β → γ}
+  (hf : ae_measurable f ν) : ae_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
+hf.comp_measurable' measurable_snd _
+
+/-- The Bochner integral is a.e.-measurable.
+  This shows that the integrand of (the right-hand-side of) Fubini's theorem is a.e.-measurable. -/
 lemma ae_measurable.integral_prod_right' [sigma_finite ν]
   [second_countable_topology E] [normed_space ℝ E] [borel_space E] [complete_space E]
   ⦃f : α × β → E⦄ (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ x, ∫ y, f (x, y) ∂ν) μ :=
@@ -549,7 +553,7 @@ lemma ae_measurable.prod_mk_left [sigma_finite ν] {f : α × β → γ}
   (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν :=
 begin
   filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
-  assume x hx,
+  intros x hx,
   exact ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩
 end
 
@@ -563,14 +567,11 @@ variables [sigma_finite ν]
 
 lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ennreal)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
-begin
-  rw ← prod_swap at hf,
-  rw [← lintegral_map' hf measurable_swap, prod_swap],
-end
+by { rw ← prod_swap at hf, rw [← lintegral_map' hf measurable_swap, prod_swap] }
 
 /-- Tonelli's Theorem: For `ennreal`-valued measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
-lemma lintegral_prod :
+lemma lintegral_prod_of_measurable :
   ∀ (f : α × β → ennreal) (hf : measurable f), ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
 begin
   have m := @measurable_prod_mk_left,
@@ -591,7 +592,7 @@ end
 
 /-- Tonelli's Theorem: For `ennreal`-valued almost everywhere measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
-lemma lintegral_prod' (f : α × β → ennreal) (hf : ae_measurable f (μ.prod ν)) :
+lemma lintegral_prod (f : α × β → ennreal) (hf : ae_measurable f (μ.prod ν)) :
   ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
 begin
   have A : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ z, hf.mk f z ∂(μ.prod ν) :=
@@ -601,7 +602,7 @@ begin
     filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
     assume a ha,
     exact lintegral_congr_ae ha },
-  rw [A, B, lintegral_prod _ hf.measurable_mk],
+  rw [A, B, lintegral_prod_of_measurable _ hf.measurable_mk],
   apply_instance
 end
 
@@ -609,39 +610,39 @@ end
 functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
 lemma lintegral_prod_symm' [sigma_finite μ] (f : α × β → ennreal)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
-by { simp_rw [← lintegral_prod_swap f hf],
-     exact lintegral_prod' _ hf.prod_swap }
+by { simp_rw [← lintegral_prod_swap f hf], exact lintegral_prod _ hf.prod_swap }
 
 /-- The symmetric verion of Tonelli's Theorem: For `ennreal`-valued measurable
 functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
 lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ennreal)
-  (hf : measurable f) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
-lintegral_prod_symm' f hf.ae_measurable
+  (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
+lintegral_prod_symm' f hf
 
 /-- The reversed version of Tonelli's Theorem. In this version `f` is in curried form, which makes
   it easier for the elaborator to figure out `f` automatically. -/
 lemma lintegral_lintegral ⦃f : α → β → ennreal⦄
-  (hf : measurable (uncurry f)) :
+  (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.1 z.2 ∂(μ.prod ν) :=
 (lintegral_prod _ hf).symm
 
 /-- The reversed version of Tonelli's Theorem (symmetric version). In this version `f` is in curried
   form, which makes it easier for the elaborator to figure out `f` automatically. -/
 lemma lintegral_lintegral_symm [sigma_finite μ] ⦃f : α → β → ennreal⦄
-  (hf : measurable (uncurry f)) :
+  (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.2 z.1 ∂(ν.prod μ) :=
-(lintegral_prod_symm _ (hf.comp measurable_swap)).symm
+(lintegral_prod_symm _ hf.prod_swap).symm
 
 /-- Change the order of Lebesgue integration. -/
 lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ennreal⦄
-  (hf : measurable (uncurry f)) :
+  (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ y, ∫⁻ x, f x y ∂μ ∂ν :=
 (lintegral_lintegral hf).trans (lintegral_prod_symm _ hf)
 
-lemma lintegral_prod_mul {f : α → ennreal} {g : β → ennreal} (hf : measurable f)
-  (hg : measurable g) : ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
-by simp [lintegral_prod _ ((hf.comp measurable_fst).ennreal_mul $ hg.comp measurable_snd),
-  lintegral_lintegral_mul hf hg]
+lemma lintegral_prod_mul [sigma_finite μ] {f : α → ennreal} {g : β → ennreal}
+  (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
+  ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
+by simp [lintegral_prod _ ((hf.fst).ennreal_mul hg.snd),
+  lintegral_lintegral_mul'' hf hg]
 
 /-! ### Integrability on a product -/
 section

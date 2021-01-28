@@ -1,4 +1,30 @@
 #!/usr/bin/env python3
+"""
+Lint a file or files from mathlib for style.
+
+Sample usage:
+
+    $ ./scripts/lint-style.py $(find src archive -name '*.lean')
+
+which will lint all of the Lean files in the specified directories.
+
+The resulting error output will contain one line for each style error
+encountered.
+
+Paths with no errors will not appear in the output, and the script will
+exit with successful return code if there are no errors encountered in
+any provided paths.
+
+Paths emitted in the output will match the paths provided on the
+command line for any files containing errors -- in particular, linting
+a relative path (like ``src/foo/bar.lean``) will produce errors
+that contain the relative path, whilst linting absolute paths (like
+``/root/mathlib/src/foo/bar.lean``) will produce errors with the
+absolute path.
+
+This script may also be used (with no arguments) to update the list of
+allowed / ignored style exceptions, normally found alongside this file.
+"""
 
 from pathlib import Path
 import sys

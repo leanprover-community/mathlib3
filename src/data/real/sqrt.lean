@@ -157,6 +157,21 @@ by rw [← abs_mul_abs_self x, sqrt_mul_self (abs_nonneg _)]
 theorem sqrt_sqr_eq_abs (x : ℝ) : sqrt (x ^ 2) = abs x :=
 by rw [pow_two, sqrt_mul_self_eq_abs]
 
+theorem sqr_abs : (abs x) ^ 2 = x ^ 2 :=
+by rw [← sqrt_sqr_eq_abs, sqr_sqrt (pow_two_nonneg x)]
+
+theorem sqr_lt_sqr (h : abs x < y) : x ^ 2 < y ^ 2 :=
+by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) zero_lt_two
+
+theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
+sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
+
+theorem sqr_le_sqr (h : abs x ≤  y) : x ^ 2 ≤ y ^ 2 :=
+by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
+
+theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
+sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
+
 @[simp] theorem sqrt_zero : sqrt 0 = 0 := by simp [sqrt]
 
 @[simp] theorem sqrt_one : sqrt 1 = 1 := by simp [sqrt]
@@ -196,6 +211,38 @@ begin
   { exact le_trans hx (sqrt_nonneg y) }
 end
 
+lemma lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
+
+lemma lt_sqrt_of_sqr_lt (h : x^2 < y) : x < sqrt y :=
+begin
+  by_contra hnot,
+  rw [le_antisymm (le_sqrt_of_sqr_le _) (not_lt.mp hnot), sqr_sqrt] at h,
+  exacts [h.false, (lt_of_le_of_lt (pow_two_nonneg _) h).le, h.le],
+end
+
+lemma sqr_le (h : x^2 ≤ y) : -sqrt x ≤ y ∧ x ≤ sqrt y :=
+abs_le.mp (by simpa [← sqrt_sqr_eq_abs] using sqrt_le_sqrt h)
+
+lemma sqr_le_of_nonneg (h : 0 ≤ y) : x^2 ≤ y ↔ -sqrt x ≤ y ∧ x ≤ sqrt y :=
+⟨sqr_le, (by rw [← abs_le, ← sqr_abs]; exact (le_sqrt (abs_nonneg x) h).mp)⟩
+
+lemma sqr_le_left (h : x^2 ≤ y) : -sqrt y ≤ x := (sqr_le h).1
+
+lemma sqr_le_right (h : x^2 ≤ y) : x ≤ sqrt y := (sqr_le h).2
+
+theorem sqr_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
+begin
+  split,
+  { simpa only [← sqrt_lt (pow_two_nonneg x), sqrt_sqr_eq_abs] using abs_lt.mp },
+  { rw [← abs_lt, ← sqr_abs],
+    exact λ h, (lt_sqrt (abs_nonneg x) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg a) h)).le).mp h },
+end
+
+lemma sqr_lt_left (h : x^2 < y) : -sqrt y < x := (sqr_lt.mp h).1
+
+lemma sqr_lt_right (h : x^2 < y) : x < sqrt y := (sqr_lt.mp h).2
+
 @[simp] theorem sqrt_inj (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
 by simp [le_antisymm_iff, hx, hy]
 
@@ -205,9 +252,15 @@ by simpa using sqrt_inj h (le_refl _)
 theorem sqrt_eq_zero' : sqrt x = 0 ↔ x ≤ 0 :=
 by rw [sqrt, nnreal.coe_eq_zero, nnreal.sqrt_eq_zero, nnreal.of_real_eq_zero]
 
+lemma sqrt_ne_zero_iff (hle : 0 ≤ x) : sqrt x ≠ 0 ↔ x ≠ 0 :=
+by rw [not_iff_not, sqrt_eq_zero hle]
+
 @[simp] theorem sqrt_pos : 0 < sqrt x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le (iff.trans
   (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
+
+lemma sqrt_ne_zero (hlt : 0 < x) : sqrt x ≠ 0 :=
+(sqrt_pos.mpr hlt).ne.symm
 
 @[simp] theorem sqrt_mul (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
 by simp_rw [sqrt, ← nnreal.coe_mul, nnreal.coe_eq, nnreal.of_real_mul hx, nnreal.sqrt_mul]
@@ -220,6 +273,13 @@ by rw [sqrt, nnreal.of_real_inv, nnreal.sqrt_inv, nnreal.coe_inv, sqrt]
 
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv, division_def]
+
+lemma div_sqrt : x / sqrt x = sqrt x :=
+begin
+  cases le_or_lt x 0,
+  { rw [sqrt_eq_zero'.mpr h, div_zero] },
+  { rw [div_eq_iff (sqrt_ne_zero h), mul_self_sqrt h.le] },
+end
 
 end real
 

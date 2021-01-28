@@ -129,10 +129,8 @@ variables [semilattice_sup_bot P] (I J K : ideal P)
 def inf (I J : ideal P) : ideal P :=
 { carrier   := I ∩ J,
   nonempty  := ⟨⊥, bot_mem, bot_mem⟩,
-  directed  := begin
-    rintro x ⟨_, _⟩ y ⟨_, _⟩,
-    refine ⟨x ⊔ y, ⟨_, _⟩, by simp⟩; apply sup_mem; assumption,
-  end,
+  directed  := λ x ⟨_, _⟩ y ⟨_, _⟩,
+    ⟨x ⊔ y, ⟨sup_mem _ _ ‹_› ‹_›, sup_mem _ _ ‹_› ‹_›⟩, by simp⟩,
   mem_of_le := begin
     rintro x y h ⟨_, _⟩,
     split; refine mem_of_le _ h _; assumption,
@@ -176,17 +174,8 @@ lemma le_sup_right : J ≤ sup I J :=
 λ j (h : j ∈ J), ⟨⊥, bot_mem, j, h, by simp⟩
 
 lemma sup_le : I ≤ K → J ≤ K → sup I J ≤ K :=
-begin
-  rintro _ _ x ⟨i, _, j, _, _⟩,
-  refine K.mem_of_le _ (sup_mem i j _ _),
-  show i ∈ K,
-  calc i ∈ I : _
-  ...    ≤ K : _,
-  show j ∈ K,
-  calc j ∈ J : _
-  ...    ≤ K : _,
-  all_goals {assumption},
-end
+λ hIK hJK x ⟨i, hiI, j, hjJ, hxij⟩,
+K.mem_of_le hxij $ sup_mem i j (mem_of_mem_of_le hiI hIK) (mem_of_mem_of_le hjJ hJK)
 
 instance : lattice (ideal P) :=
 { sup          := sup,

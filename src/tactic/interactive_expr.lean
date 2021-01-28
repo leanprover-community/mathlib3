@@ -128,7 +128,7 @@ meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
   should_collapse ← sf.collapse_restricted_quantifiers_pred py,
   if ¬ should_collapse then pure s else do
   a1 ← pure $ [app_arg, lam_body, app_arg, lam_var_type],
-  a2 ← pure $ [app_arg, lam_var_type],
+  a2 ← pure $ [app_arg, lam_body, app_arg, lam_body],
   (e1, s1) ← sf.follow a1 a,
   (e2, s2) ← sf.follow a2 a,
   pure (sf.tag_expr addr e $ "∃ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
@@ -581,14 +581,3 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
-
-example (N : ℕ) : ∀ k : ℕ, ∃ n ≥ N, true :=
-begin
-
-  sorry
-end
-
-example : true :=
-begin
-  trivial,
-end

@@ -70,12 +70,10 @@ def map_roots_aux [h : fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
 λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
   have key := subtype.mem x,
-  simp only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
   by_cases p = 0,
-  { simp only [h, map_zero] at key,
+  { simp only [h, root_set_zero] at key,
     exact false.rec _ key },
-  { simp only [mem_roots (map_ne_zero h), is_root, eval_map] at *,
-    rw [←alg_hom_eval₂_algebra_map, key, alg_hom.map_zero] } end⟩
+  { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
 
 lemma map_roots_aux_bijective [h : fact (p.splits (algebra_map F E))] :
   function.bijective (map_roots_aux p E) :=
@@ -104,13 +102,13 @@ equiv.of_bijective (map_roots_aux p E) (map_roots_aux_bijective p E)
 instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
 { smul := λ ϕ x, ⟨ϕ x, begin
     have key := subtype.mem x,
-    simp only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
+    --simp only [root_set, finset.mem_coe, multiset.mem_to_finset] at *,
     by_cases p = 0,
-    { simp only [h, map_zero] at key,
+    { simp only [h, root_set_zero] at key,
       exact false.rec _ key },
-    { simp only [mem_roots (map_ne_zero h), is_root, eval_map] at *,
-      change eval₂ (algebra_map F p.splitting_field) (ϕ.to_alg_hom x) p = 0,
-      rw [←alg_hom_eval₂_algebra_map, key, alg_hom.map_zero] } end⟩,
+    { rw mem_root_set h,
+      change aeval (ϕ.to_alg_hom x) p = 0,
+      rw [aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩,
   one_smul := λ _, by { ext, refl },
   mul_smul := λ _ _ _, by { ext, refl } }
 

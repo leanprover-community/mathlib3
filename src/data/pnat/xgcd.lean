@@ -270,12 +270,12 @@ def gcd_a' : ℕ+ := succ_pnat ((xgcd a b).wp + (xgcd a b).x)
 def gcd_b' : ℕ+ := succ_pnat ((xgcd a b).y + (xgcd a b).zp)
 
 theorem gcd_a'_coe : ((gcd_a' a b) : ℕ) = (gcd_w a b) + (gcd_x a b) :=
-by { dsimp [gcd_a', gcd_w, xgcd_type.w],
-     rw [nat.succ_eq_add_one, nat.succ_eq_add_one], ring }
+by { dsimp [gcd_a', gcd_x, gcd_w, xgcd_type.w],
+     rw [nat.succ_eq_add_one, nat.succ_eq_add_one, add_right_comm] }
 
 theorem gcd_b'_coe : ((gcd_b' a b) : ℕ) = (gcd_y a b) + (gcd_z a b) :=
-by { dsimp [gcd_b', gcd_z, xgcd_type.z],
-     rw [nat.succ_eq_add_one, nat.succ_eq_add_one], ring }
+by { dsimp [gcd_b', gcd_y, gcd_z, xgcd_type.z],
+     rw [nat.succ_eq_add_one, nat.succ_eq_add_one, add_assoc] }
 
 theorem gcd_props :
  let d := gcd_d a b,

@@ -52,7 +52,7 @@ Linear algebra:
     row-reduced matrices: ''
   Endomorphism polynomials:
     annihilating polynomials: ''
-    minimal polynomial: 'minimal_polynomial'
+    minimal polynomial: 'minpoly'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -166,7 +166,7 @@ Ring Theory:
     Newton's identities:
     polynomial derivative: 'polynomial.derivative'
     decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'
-    symmetric polynomials:
+    symmetric polynomials: 'mv_polynomial.is_symmetric'
   Field Theory:
     fields: 'field'
     characteristic of a ring: 'ring_char'
@@ -212,12 +212,12 @@ Bilinear and Quadratic Forms Over a Vector Space:
     Gram-Schmidt orthogonalisation:
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
-    Hermitian vector spaces:
-    dual isomorphism in the euclidean case:
+    Hermitian vector spaces: 'inner_product_space'
+    dual isomorphism in the euclidean case: 'inner_product_space.isometric.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'
-    orthonormal bases:
+    orthonormal bases: 'maximal_orthonormal_iff_is_basis_of_finite_dimensional'
   Endomorphisms:
     orthogonal group:
     unitary group:
@@ -340,13 +340,12 @@ Single Variable Real Analysis:
     integral over a segment of piecewise continuous functions:
     antiderivatives:
     Riemann sums:
-    antiderivative of a continuous function:
+    antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
     change of variable:
-    integration by parts:
-    generalized integrals:
-    absolutely convergent integrals:
-    integration of asymptotic comparison relationships:
-    semi-convergent integrals:
+    integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
+    improper integrals:
+    absolute vs conditional convergence of improper integrals:
+    comparison test for improper integrals:
   Sequences and series of functions:
     pointwise convergence:
     uniform convergence: 'tendsto_uniformly'
@@ -433,7 +432,7 @@ Topology:
     dual space: 'normed_space.dual.inst'
     Riesz representation theorem: 'inner_product_space.to_dual'
     $l^2$ and $L^2$ cases:
-    Hilbert (orthonormal) bases (in the separable case):
+    Hilbert (orthonormal) bases (in the separable case): 'exists_is_orthonormal_dense_span'
     Hilbert basis of trigonometric polynomials:
     Hilbert bases of orthogonal polynomials:
     Lax-Milgram theorem:
@@ -506,16 +505,15 @@ Measures and integral Calculus:
     integrable functions: 'measure_theory.integrable'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     finite dimensional vector-valued integrable functions: 'measure_theory.integrable'
-    continuity of integrals with respect to parameters: 'interval_integral.continuous_on_integral_of_continuous'
-    differentiability of integrals with respect to parameters: 'interval_integral.differentiable_on_integral_of_continuous'
-    fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
-    fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
-    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
+    continuity of integrals with respect to parameters:
+    differentiability of integrals with respect to parameters:
+    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
     Completeness of $\mathrm{L}^p$ spaces:
-    Holder's inequality:
+    Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
-    integration by parts:
+    change of variables to polar co-ordinates:
+    change of variables to spherical co-ordinates:
     convolution:
     regularization and approximation by convolution:
   Fourier Analysis:
@@ -533,9 +531,9 @@ Probability Theory:
   Definitions of a probability space:
     probability measure: 'measure_theory.probability_measure'
     events:
-    independent events:
+    independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'
-    independent sigma-algebra:
+    independent sigma-algebra: 'probability_theory.Indep'
     $0$-$1$ law:
     Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
     Borel-Cantelli lemma (difficult direction):
@@ -546,7 +544,7 @@ Probability Theory:
     absolute continuity of probability laws:
     probability density function:
     law of joint probability:
-    independence of random variables:
+    independence of random variables: 'probability_theory.Indep_fun'
     mean and variance of a real-valued random variable:
     transfer theorem:
     moments:

@@ -276,6 +276,23 @@ lemma monoid_with_zero_hom.ext_iff [monoid_with_zero M] [monoid_with_zero N]
   {f g : monoid_with_zero_hom M N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, monoid_with_zero_hom.ext h⟩
 
+@[simp, to_additive]
+lemma one_hom.mk_coe [has_one M] [has_one N]
+  (f : one_hom M N) (h1) : one_hom.mk f h1 = f :=
+one_hom.ext $ λ _, rfl
+@[simp, to_additive]
+lemma mul_hom.mk_coe [has_mul M] [has_mul N]
+  (f : mul_hom M N) (hmul) : mul_hom.mk f hmul = f :=
+mul_hom.ext $ λ _, rfl
+@[simp, to_additive]
+lemma monoid_hom.mk_coe [monoid M] [monoid N]
+  (f : M →* N) (h1 hmul) : monoid_hom.mk f h1 hmul = f :=
+monoid_hom.ext $ λ _, rfl
+@[simp]
+lemma monoid_with_zero_hom.mk_coe [monoid_with_zero M] [monoid_with_zero N]
+  (f : monoid_with_zero_hom M N) (h0 h1 hmul) : monoid_with_zero_hom.mk f h0 h1 hmul = f :=
+monoid_with_zero_hom.ext $ λ _, rfl
+
 end coes
 
 @[simp, to_additive]
@@ -702,15 +719,13 @@ lemma injective_iff {G H} [group G] [monoid H] (f : G →* H) :
  λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [f.map_mul, hxy, ← f.map_mul, mul_inv_self, f.map_one]⟩
 
 include mM
-/-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/
-@[to_additive]
+/-- Makes a group homomorphism from a proof that the map preserves multiplication. -/
+@[to_additive "Makes an additive group homomorphism from a proof that the map preserves addition."]
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
   map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
 
-/-- Makes an additive group homomomorphism from a proof that the map preserves multiplication. -/
-add_decl_doc add_monoid_hom.mk'
 
 @[simp, to_additive]
 lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :

@@ -742,3 +742,24 @@ by simp [is_R_or_C.abs, complex.abs]
 end cleanup_lemmas
 
 end is_R_or_C
+
+section normalization
+variables {K : Type*} [is_R_or_C K]
+variables {E : Type*} [normed_group E] [normed_space K E]
+
+open is_R_or_C
+
+/- Note: one might think the following lemma belongs in `analysis.normed_space.basic`.  But it
+can't be placed there, because that file is an import of `data.complex.is_R_or_C`! -/
+
+/-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
+@[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : K) • x∥ = 1 :=
+begin
+  have h : ∥(∥x∥ : K)∥ = ∥x∥,
+  { rw norm_eq_abs,
+    exact abs_of_nonneg (norm_nonneg _) },
+  have : ∥x∥ ≠ 0 := by simp [hx],
+  field_simp [norm_smul, h]
+end
+
+end normalization

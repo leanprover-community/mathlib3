@@ -297,6 +297,13 @@ imp.swap
 
 /-! ### Declarations about `and` -/
 
+theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
+and.comm.trans $ (and_congr_right h).trans and.comm
+
+theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h iff.rfl
+
+theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr iff.rfl h
+
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
 mt and.left
 
@@ -346,6 +353,10 @@ by simp only [and.comm, ← and.congr_right_iff]
 ⟨λ h, ⟨h.1.1, h.2⟩, λ h, ⟨⟨h.1, h.2⟩, h.2⟩⟩
 
 /-! ### Declarations about `or` -/
+
+theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := or_congr h iff.rfl
+
+theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := or_congr iff.rfl h
 
 theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, or_assoc, or_comm b]
 
@@ -1021,6 +1032,9 @@ theorem bex_congr (H : ∀ x h, P x h ↔ Q x h) :
   (∃ x h, P x h) ↔ (∃ x h, Q x h) :=
 exists_congr $ λ x, exists_congr (H x)
 
+theorem bex_eq_left {a : α} : (∃ x (_ : x = a), p x) ↔ p a :=
+by simp only [exists_prop, exists_eq_left]
+
 theorem ball.imp_right (H : ∀ x h, (P x h → Q x h))
   (h₁ : ∀ x h, P x h) (x h) : Q x h :=
 H _ _ $ h₁ _ _
@@ -1074,6 +1088,14 @@ iff.trans (forall_congr $ λ x, forall_and_distrib) forall_and_distrib
 
 theorem bex_or_distrib : (∃ x h, P x h ∨ Q x h) ↔ (∃ x h, P x h) ∨ (∃ x h, Q x h) :=
 iff.trans (exists_congr $ λ x, exists_or_distrib) exists_or_distrib
+
+theorem ball_or_left_distrib : (∀ x, p x ∨ q x → r x) ↔ (∀ x, p x → r x) ∧ (∀ x, q x → r x) :=
+iff.trans (forall_congr $ λ x, or_imp_distrib) forall_and_distrib
+
+theorem bex_or_left_distrib :
+  (∃ x (_ : p x ∨ q x), r x) ↔ (∃ x (_ : p x), r x) ∨ (∃ x (_ : q x), r x) :=
+by simp only [exists_prop]; exact
+iff.trans (exists_congr $ λ x, or_and_distrib_right) exists_or_distrib
 
 end bounded_quantifiers
 

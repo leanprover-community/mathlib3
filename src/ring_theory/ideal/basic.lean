@@ -598,6 +598,17 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
 
+/-- When a ring is not a field, the maximal ideals are nontrivial. -/
+lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)
+  (not_field : ¬ is_field R) : M ≠ ⊥ :=
+begin
+  rintros h,
+  rw h at max,
+  cases max with h1 h2,
+  obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
+  exact ne_of_lt hItop (h2 I hIbot),
+end
+
 end ring
 
 namespace ideal

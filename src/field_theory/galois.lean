@@ -321,8 +321,9 @@ begin
   have p : 0 < findim (intermediate_field.fixed_field (⊤ : subgroup (E ≃ₐ[F] E))) E := findim_pos,
   rw [←intermediate_field.findim_eq_one_iff, ←mul_left_inj' (ne_of_lt p).symm, findim_mul_findim,
       ←h, one_mul, intermediate_field.findim_fixed_field_eq_card],
-  exact fintype.card_congr { to_fun := λ g, ⟨g, subgroup.mem_top g⟩, inv_fun := coe,
-    left_inv := λ g, rfl, right_inv := λ _, by { ext, refl } },
+  apply fintype.card_congr,
+  exact { to_fun := λ g, ⟨g, subgroup.mem_top g⟩, inv_fun := coe,
+          left_inv := λ g, rfl, right_inv := λ _, by { ext, refl } },
 end
 
 variables {F} {E} {p : polynomial F}

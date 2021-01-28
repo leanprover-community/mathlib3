@@ -9,6 +9,39 @@ import data.nat.totient
 import data.int.gcd
 import data.set.finite
 
+/-!
+# Order of an element
+
+This file defines the order of an element of a finite group. For a finite group `G` the order of
+`g ∈ G` is the minimal `n ≥ 1` such that `g ^ n = 1`.
+
+## Main definitions
+
+* `order_of` defines the order of an element `a` of a group `G`.
+* `is_cyclic` is a predicate on a group stating that the group is cyclic.
+
+## Main statements
+
+`is_cyclic_of_prime_card` proves that a finite group of prime order is cyclic.
+
+## Implementation notes
+
+`order_of` is currently only defined for finite multiplicatively written groups.
+
+## Tags
+
+order of an element, cyclic group
+
+## TODO
+
+* Move the first declarations until the definition of order to other files.
+* Add the attribute `@[to_additive]` to the declarations in that file so that they also works with
+  additive groups.
+* Modify the definition to work with infinite groups. (Defining `order_of` to have value `0` for
+elements of infinite order would make more statements true with fewer assumptions.)
+* Potentially expand the definition to work with monoids.
+-/
+
 open function
 open_locale big_operators
 
@@ -296,6 +329,7 @@ lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
 
+/-- A finite group of prime order is cyclic. -/
 lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin

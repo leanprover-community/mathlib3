@@ -275,7 +275,7 @@ lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} :
-  lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s),  ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+  lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s), ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C f s)

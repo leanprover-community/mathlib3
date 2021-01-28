@@ -533,7 +533,7 @@ lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 
 @[simp, mfld_simps] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
-by ext x; simp [prod_coe_symm]
+rfl
 
 @[simp, mfld_simps] lemma prod_trans
   {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]

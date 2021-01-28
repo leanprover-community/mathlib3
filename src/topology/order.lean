@@ -93,7 +93,8 @@ protected def mk_of_nhds (n : α → filter α) : topological_space α :=
 { is_open        := λs, ∀a∈s, s ∈ n a,
   is_open_univ   := assume x h, univ_mem_sets,
   is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem_sets (hs x hxs) (ht x hxt),
-  is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩, mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
+  is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩,
+    mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
 lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
   (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ n a → ∃ t ∈ n a, t ⊆ s ∧ ∀a' ∈ t, s ∈ n a') :
@@ -293,7 +294,8 @@ lemma continuous.coinduced_le (h : @continuous α β t t' f) :
   t.coinduced f ≤ t' :=
 λ s hs, (continuous_def.1 h s hs : _)
 
-lemma coinduced_le_iff_le_induced {f : α → β} {tα : topological_space α} {tβ : topological_space β} :
+lemma coinduced_le_iff_le_induced {f : α → β} {tα : topological_space α}
+  {tβ : topological_space β} :
   tα.coinduced f ≤ tβ ↔ tα ≤ tβ.induced f :=
 iff.intro
   (assume h s ⟨t, ht, hst⟩, hst ▸ h _ ht)
@@ -406,7 +408,8 @@ protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topologi
 { is_open        := λs, a ∈ s → s ∈ f,
   is_open_univ   := assume s, univ_mem_sets,
   is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem_sets (hs has) (ht hat),
-  is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_sets_of_superset (hk u hu hau) (subset_sUnion_of_mem hu) }
+  is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_sets_of_superset (hk u hu hau)
+    (subset_sUnion_of_mem hu) }
 
 lemma gc_nhds (a : α) :
   galois_connection  (topological_space.nhds_adjoint a) (λt, @nhds α t a) :=

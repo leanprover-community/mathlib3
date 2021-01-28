@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 -/
 import linear_algebra.finite_dimensional
+import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
 import analysis.asymptotics
 
@@ -157,19 +158,6 @@ begin
 end
 
 end normed_field
-
-section add_monoid_hom
-
-lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
-begin
-  intros x y,
-  simp_rw [edist_dist],
-  congr',
-  simp_rw [dist_eq_norm, ←add_monoid_hom.map_sub],
-  exact hf (x - y),
-end
-
-end add_monoid_hom
 
 variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_space 𝕜 G]
 (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
@@ -409,36 +397,20 @@ instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E)
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
 
-variable {f}
 /-- A continuous linear map is an isometry if and only if it preserves the norm. -/
-lemma isometry_iff_norm_image_eq_norm :
-  isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
-begin
-  rw isometry_emetric_iff_metric,
-  split,
-  { assume H x,
-    have := H x 0,
-    rwa [dist_eq_norm, dist_eq_norm, f.map_zero, sub_zero, sub_zero] at this },
-  { assume H x y,
-    rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
-end
+lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
+f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
+
+variable {f}
 
 lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
   ∥f∥ = a :=
 begin
   obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
-  have ha : 0 ≤ a,
-  { apply nonneg_of_mul_nonneg_right,
-    rw ← hf x,
-    apply norm_nonneg,
-    exact norm_pos_iff.mpr hx },
-  refine le_antisymm_iff.mpr ⟨_, _⟩,
-  { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
-  { rw continuous_linear_map.norm_def,
-    apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    intros c h, rw mem_set_of_eq at h,
-    apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
-    rw ← hf x, exact h.2 x }
+  rw ← norm_pos_iff at hx,
+  have ha : 0 ≤ a, by simpa only [hf, hx, zero_le_mul_right] using norm_nonneg (f x),
+  apply le_antisymm (f.op_norm_le_bound ha (λ y, le_of_eq (hf y))),
+  simpa only [hf, hx, mul_le_mul_right] using f.le_op_norm x,
 end
 
 lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
@@ -639,6 +611,10 @@ end uniformly_extend
 end op_norm
 
 end continuous_linear_map
+
+lemma linear_isometry.norm_to_continuous_linear_map [nontrivial E] (f : E →ₗᵢ[𝕜] F) :
+  ∥f.to_continuous_linear_map∥ = 1 :=
+f.to_continuous_linear_map.homothety_norm $ by simp
 
 /-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
 then its norm is bounded by the bound given to the constructor if it is nonnegative. -/

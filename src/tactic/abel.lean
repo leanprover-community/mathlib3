@@ -282,7 +282,8 @@ lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
     c ← mk_cache e,
     (new_e, pr) ← match mode with
     | normalize_mode.raw := eval' c
-    | normalize_mode.term := trans_conv (eval' c) (simplify lemmas [])
+    | normalize_mode.term := trans_conv (eval' c)
+                               (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf))
     end e,
     guard (¬ new_e =ₐ e),
     return ((), new_e, some pr, ff))

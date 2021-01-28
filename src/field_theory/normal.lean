@@ -25,9 +25,7 @@ noncomputable theory
 open_locale classical
 open polynomial is_scalar_tower
 
-universes u v
-
-variables (F : Type u) (K : Type v) [field F] [field K] [algebra F K]
+variables (F K : Type*) [field F] [field K] [algebra F K]
 
 --TODO(Commelin): refactor normal to extend `is_algebraic`??
 
@@ -137,8 +135,8 @@ begin
   haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
   suffices : nonempty (D →ₐ[C] E),
   { exact nonempty.map (restrict_base F) this },
-  let S : finset D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
-  suffices : ⊤ ≤ intermediate_field.adjoin C ↑S,
+  let S : set D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
+  suffices : ⊤ ≤ intermediate_field.adjoin C S,
   { refine intermediate_field.alg_hom_mk_adjoin_splits' (top_le_iff.mp this) (λ y hy, _),
     rcases multiset.mem_map.mp (multiset.mem_to_finset.mp hy) with ⟨z, hz1, hz2⟩,
     have Hz : is_integral F z := is_integral_of_noetherian hFE z,
@@ -151,8 +149,8 @@ begin
       rw [←hz2, aeval_def, eval₂_map, ←algebra_map_eq F C D, algebra_map_eq F E D, ←hom_eval₂,
           ←aeval_def, minpoly.aeval F z, ring_hom.map_zero] } },
   rw [←intermediate_field.to_subalgebra_le_to_subalgebra, intermediate_field.top_to_subalgebra],
-  apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C ↑S),
-  suffices : (algebra.adjoin C (S : set D)).res F = (algebra.adjoin E {adjoin_root.root q}).res F,
+  apply ge_trans (intermediate_field.algebra_adjoin_le_adjoin C S),
+  suffices : (algebra.adjoin C S).res F = (algebra.adjoin E {adjoin_root.root q}).res F,
   { rw [adjoin_root.adjoin_root_eq_top, subalgebra.res_top, ←@subalgebra.res_top F C] at this,
     exact top_le_iff.mpr (subalgebra.res_inj F this) },
   dsimp only [S],
@@ -163,3 +161,66 @@ begin
 end
 
 end normal_tower
+
+variables {F} {K} (ϕ ψ : K →ₐ[F] K) (χ ω : K ≃ₐ[F] K)
+  (E : Type*) [field E] [algebra F E] [algebra E K] [is_scalar_tower F E K]
+
+/-- Restrict algebra homomorphism to image of normal subfield -/
+def alg_hom.restrict_normal_aux [h : normal F E] :
+  (to_alg_hom F E K).range →ₐ[F] (to_alg_hom F E K).range :=
+{ to_fun := λ x, ⟨ϕ x, by
+  { suffices : (to_alg_hom F E K).range.map ϕ ≤ _,
+    { exact this ⟨x, subtype.mem x, rfl⟩ },
+    rintros x ⟨y, ⟨z, -, hy⟩, hx⟩,
+    rw [←hx, ←hy],
+    exact minpoly.mem_range_of_degree_eq_one E _ (or.resolve_left (h z).2 (minpoly.ne_zero (h z).1)
+      (minpoly.irreducible (is_integral_of_is_scalar_tower _
+        (is_integral_alg_hom ϕ (is_integral_alg_hom _ (h z).1))))
+      (minpoly.dvd E _ (by rw [aeval_map, aeval_alg_hom, aeval_alg_hom, alg_hom.comp_apply,
+        alg_hom.comp_apply, minpoly.aeval, alg_hom.map_zero, alg_hom.map_zero]))) }⟩,
+  map_zero' := subtype.ext ϕ.map_zero,
+  map_one' := subtype.ext ϕ.map_one,
+  map_add' := λ x y, subtype.ext (ϕ.map_add x y),
+  map_mul' := λ x y, subtype.ext (ϕ.map_mul x y),
+  commutes' := λ x, subtype.ext (ϕ.commutes x) }
+
+/-- Restrict algebra homomorphism to normal subfield -/
+def alg_hom.restrict_normal [normal F E] : E →ₐ[F] E :=
+((alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).symm.to_alg_hom.comp
+  (ϕ.restrict_normal_aux E)).comp
+    (alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).to_alg_hom
+
+lemma alg_hom.restrict_normal_commutes [normal F E] (x : E) :
+  algebra_map E K (ϕ.restrict_normal E x) = ϕ (algebra_map E K x) :=
+subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_hom.alg_equiv.of_injective_field
+  (is_scalar_tower.to_alg_hom F E K)) (ϕ.restrict_normal_aux E
+    ⟨is_scalar_tower.to_alg_hom F E K x, ⟨x, ⟨subsemiring.mem_top x, rfl⟩⟩⟩))
+
+lemma alg_hom.restrict_normal_comp [normal F E] :
+  (ϕ.restrict_normal E).comp (ψ.restrict_normal E) = (ϕ.comp ψ).restrict_normal E :=
+alg_hom.ext (λ _, (algebra_map E K).injective
+  (by simp only [alg_hom.comp_apply, alg_hom.restrict_normal_commutes]))
+
+/-- Restrict algebra isomorphism to a normal subfield -/
+def alg_equiv.restrict_normal [h : normal F E] : E ≃ₐ[F] E :=
+alg_equiv.of_alg_hom (χ.to_alg_hom.restrict_normal E)
+  (χ.symm.to_alg_hom.restrict_normal E)
+  (alg_hom.ext $ λ _, (algebra_map E K).injective
+    (by simp only [alg_hom.comp_apply, alg_hom.restrict_normal_commutes,
+      alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_hom.id_apply, χ.apply_symm_apply]))
+  (alg_hom.ext $ λ _, (algebra_map E K).injective
+    (by simp only [alg_hom.comp_apply, alg_hom.restrict_normal_commutes,
+      alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_hom.id_apply, χ.symm_apply_apply]))
+
+lemma alg_equiv.restrict_normal_commutes [normal F E] (x : E) :
+  algebra_map E K (χ.restrict_normal E x) = χ (algebra_map E K x) :=
+χ.to_alg_hom.restrict_normal_commutes E x
+
+lemma alg_equiv.restrict_normal_trans [normal F E] :
+  (χ.trans ω).restrict_normal E = (χ.restrict_normal E).trans (ω.restrict_normal E) :=
+alg_equiv.ext (λ _, (algebra_map E K).injective
+(by simp only [alg_equiv.trans_apply, alg_equiv.restrict_normal_commutes]))
+
+/-- Restriction to an normal subfield as a group homomorphism -/
+def alg_equiv.restrict_normal_hom [normal F E] : (K ≃ₐ[F] K) →* (E ≃ₐ[F] E) :=
+monoid_hom.mk' (λ χ, χ.restrict_normal E) (λ ω χ, (χ.restrict_normal_trans ω E))

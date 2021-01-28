@@ -782,6 +782,13 @@ lemma to_real_sum {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ∞
   ennreal.to_real (∑ a in s, f a) = ∑ a in s, ennreal.to_real (f a) :=
 by { rw [ennreal.to_real, to_nnreal_sum hf, nnreal.coe_sum], refl }
 
+lemma of_real_sum_of_nonneg {s : finset α} {f : α → ℝ} (hf : ∀ i, i ∈ s → 0 ≤ f i) :
+  ennreal.of_real (∑ i in s, f i) = ∑ i in s, ennreal.of_real (f i) :=
+begin
+  simp_rw [ennreal.of_real, ←coe_finset_sum, coe_eq_coe],
+  exact nnreal.of_real_sum_of_nonneg hf,
+end
+
 end sum
 
 section interval
@@ -1333,6 +1340,13 @@ to_real_hom.map_pow a n
 lemma to_real_prod {ι : Type*} {s : finset ι} {f : ι → ennreal} :
   (∏ i in s, f i).to_real = ∏ i in s, (f i).to_real :=
 to_real_hom.map_prod _ _
+
+lemma of_real_prod_of_nonneg {s : finset α} {f : α → ℝ} (hf : ∀ i, i ∈ s → 0 ≤ f i) :
+  ennreal.of_real (∏ i in s, f i) = ∏ i in s, ennreal.of_real (f i) :=
+begin
+  simp_rw [ennreal.of_real, ←coe_finset_prod, coe_eq_coe],
+  exact nnreal.of_real_prod_of_nonneg hf,
+end
 
 end real
 

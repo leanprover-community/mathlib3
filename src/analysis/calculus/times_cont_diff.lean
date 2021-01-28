@@ -522,7 +522,7 @@ begin
       exact nhds_within_mono _ (subset_insert x u) hv },
     { rw has_ftaylor_series_up_to_on_succ_iff_right,
       refine ⟨λ y hy, rfl, λ y hy, _, _⟩,
-      { change has_fderiv_within_at (λ (z : E), (continuous_multilinear_curry_fin0 𝕜 E F).symm (f z))
+      { change has_fderiv_within_at (λ z, (continuous_multilinear_curry_fin0 𝕜 E F).symm (f z))
           ((formal_multilinear_series.unshift (p' y) (f y) 1).curry_left) (v ∩ u) y,
         rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
         convert (f'_eq_deriv y hy.2).mono (inter_subset_right v u),

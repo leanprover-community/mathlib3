@@ -73,7 +73,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-open_locale topological_space classical big_operators nnreal
+open_locale topological_space classical big_operators nnreal filter
 open set filter asymptotics
 
 /-! ### The radius of a formal multilinear series -/
@@ -171,6 +171,12 @@ let ⟨a, ha, C, hC, h⟩ := p.norm_mul_pow_le_mul_pow_of_lt_radius h
 in ⟨C, hC, λ n, (h n).trans $ mul_le_of_le_one_right hC.lt.le (pow_le_one _ ha.1.le ha.2.le)⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
+lemma norm_le_div_pow_of_pos_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
+  (h0 : 0 < r) (h : (r : ennreal) < p.radius) : ∃ C > 0, ∀ n, ∥p n∥ ≤ C / r ^ n :=
+let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h in
+⟨C, hC, λ n, iff.mpr (le_div_iff (pow_pos h0 _)) (hp n)⟩
+
+/-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
 lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
   (h : (r : ennreal) < p.radius) : ∃ C > 0, ∀ n, nnnorm (p n) * r^n ≤ C :=
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
@@ -244,6 +250,12 @@ lemma has_fpower_series_on_ball.analytic_at (hf : has_fpower_series_on_ball f p 
   analytic_at 𝕜 f x :=
 hf.has_fpower_series_at.analytic_at
 
+lemma has_fpower_series_on_ball.has_sum_sub (hf : has_fpower_series_on_ball f p x r) {y : E}
+  (hy : y ∈ emetric.ball x r) :
+  has_sum (λ n : ℕ, p n (λ i, y - x)) (f y) :=
+have y - x ∈ emetric.ball (0 : E) r, by simpa [edist_eq_coe_nnnorm_sub] using hy,
+by simpa only [add_sub_cancel'_right] using hf.has_sum this
+
 lemma has_fpower_series_on_ball.radius_pos (hf : has_fpower_series_on_ball f p x r) :
   0 < p.radius :=
 lt_of_lt_of_le hf.r_pos hf.r_le
@@ -257,6 +269,12 @@ lemma has_fpower_series_on_ball.mono
   has_fpower_series_on_ball f p x r' :=
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
+protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
+  ∀ᶠ r : ennreal in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
+let ⟨r, hr⟩ := hf in
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
+  λ r' hr', hr.mono hr'.1 hr'.2.le
+
 lemma has_fpower_series_on_ball.add
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
   has_fpower_series_on_ball (f + g) (pf + pg) x r :=
@@ -268,10 +286,8 @@ lemma has_fpower_series_at.add
   (hf : has_fpower_series_at f pf x) (hg : has_fpower_series_at g pg x) :
   has_fpower_series_at (f + g) (pf + pg) x :=
 begin
-  rcases hf with ⟨rf, hrf⟩,
-  rcases hg with ⟨rg, hrg⟩,
-  have P : 0 < min rf rg, by simp [hrf.r_pos, hrg.r_pos],
-  exact ⟨min rf rg, (hrf.mono P (min_le_left _ _)).add (hrg.mono P (min_le_right _ _))⟩
+  rcases (hf.eventually.and hg.eventually).exists with ⟨r, hr⟩,
+  exact ⟨r, hr.1.add hr.2⟩
 end
 
 lemma analytic_at.add (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
@@ -387,6 +403,93 @@ begin
   replace r'0 : 0 < (r' : ℝ), by exact_mod_cast r'0,
   filter_upwards [metric.ball_mem_nhds (0 : E) r'0], intros y hy,
   simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n
+end
+
+-- hack to speed up simp when dealing with complicated types
+local attribute [-instance] unique.subsingleton pi.subsingleton
+
+/-- If `f` has formal power series `∑ n, pₙ` on a ball of radius `r`, then for `y, z` in any smaller
+ball, the norm of the difference `f y - f z - p 1 (λ _, y - z)` is bounded above by
+`C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥`. This lemma formulates this property using `is_O` and
+`filter.principal` on `E × E`. -/
+lemma has_fpower_series_on_ball.is_O_image_sub_image_sub_deriv_principal
+  (hf : has_fpower_series_on_ball f p x r) (hr : r' < r) :
+  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
+    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 $ emetric.ball (x, x) r') :=
+begin
+  lift r' to ℝ≥0 using ne_top_of_lt hr,
+  rcases (zero_le r').eq_or_lt with rfl|hr'0, { simp },
+  obtain ⟨a, ha, C, hC : 0 < C, hp⟩ :
+    ∃ (a ∈ Ioo (0 : ℝ) 1) (C > 0), ∀ (n : ℕ), ∥p n∥ * ↑r' ^ n ≤ C * a ^ n,
+    from p.norm_mul_pow_le_mul_pow_of_lt_radius (hr.trans_le hf.r_le),
+  simp only [← le_div_iff (pow_pos (nnreal.coe_pos.2 hr'0) _)] at hp,
+  set L : E × E → ℝ := λ y,
+    (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * (a / (1 - a) ^ 2 + 2 / (1 - a)),
+  have hL : ∀ y ∈ emetric.ball (x, x) r',
+    ∥f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))∥ ≤ L y,
+  { intros y hy',
+    have hy : y ∈ (emetric.ball x r).prod (emetric.ball x r),
+    { rw [emetric.ball_prod_same], exact emetric.ball_subset_ball hr.le hy' },
+    set A : ℕ → F := λ n, p n (λ _, y.1 - x) - p n (λ _, y.2 - x),
+    have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
+    { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)),
+      rw [finset.sum_range_succ, finset.sum_range_one, hf.coeff_zero, hf.coeff_zero, sub_self,
+        add_zero, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
+        ← subsingleton.pi_single_eq (0 : fin 1) (y.2 - x), pi.single, ← (p 1).map_sub, ← pi.single,
+        subsingleton.pi_single_eq, sub_sub_sub_cancel_right] },
+    rw [emetric.mem_ball, edist_eq_coe_nnnorm_sub, ennreal.coe_lt_coe] at hy',
+    set B : ℕ → ℝ := λ n,
+      (C * (a / r') ^ 2) * (∥y - (x, x)∥ * ∥y.1 - y.2∥) * ((n + 2) * a ^ n),
+    have hAB : ∀ n, ∥A (n + 2)∥ ≤ B n := λ n,
+    calc ∥A (n + 2)∥ ≤ ∥p (n + 2)∥ * ↑(n + 2) * ∥y - (x, x)∥ ^ (n + 1) * ∥y.1 - y.2∥ :
+      by simpa [fintype.card_fin, pi_norm_const, prod.norm_def, pi.sub_def, prod.fst_sub,
+        prod.snd_sub, sub_sub_sub_cancel_right]
+        using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
+    ... = ∥p (n + 2)∥ * ∥y - (x, x)∥ ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
+      by { rw [pow_succ ∥y - (x, x)∥], ac_refl }
+    ... ≤ (C * a ^ (n + 2) / r' ^ (n + 2)) * r' ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
+      by apply_rules [mul_le_mul_of_nonneg_right, mul_le_mul, hp, pow_le_pow_of_le_left,
+        hy'.le, norm_nonneg, pow_nonneg, div_nonneg, mul_nonneg, nat.cast_nonneg,
+        hC.le, r'.coe_nonneg, ha.1.le]
+    ... = B n :
+      by { field_simp [B, pow_succ, hr'0.ne'], simp [mul_assoc, mul_comm, mul_left_comm] },
+    have hBL : has_sum B (L y),
+    { apply has_sum.mul_left,
+      simp only [add_mul],
+      have : ∥a∥ < 1, by simp only [real.norm_eq_abs, abs_of_pos ha.1, ha.2],
+      convert (has_sum_coe_mul_geometric_of_norm_lt_1 this).add
+        ((has_sum_geometric_of_norm_lt_1 this).mul_left 2) },
+    exact hA.norm_le_of_bounded hBL hAB },
+  suffices : is_O L (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 (emetric.ball (x, x) r')),
+  { refine (is_O.of_bound 1 (eventually_principal.2 $ λ y hy, _)).trans this,
+    rw one_mul,
+    exact (hL y hy).trans (le_abs_self _) },
+  simp_rw [L, mul_right_comm _ (_ * _)],
+  exact (is_O_refl _ _).const_mul_left _,
+end
+
+/-- If `f` has formal power series `∑ n, pₙ` on a ball of radius `r`, then for `y, z` in any smaller
+ball, the norm of the difference `f y - f z - p 1 (λ _, y - z)` is bounded above by
+`C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥`. -/
+lemma has_fpower_series_on_ball.image_sub_sub_deriv_le
+  (hf : has_fpower_series_on_ball f p x r) (hr : r' < r) :
+  ∃ C, ∀ (y z ∈ emetric.ball x r'),
+    ∥f y - f z - (p 1 (λ _, y - z))∥ ≤ C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥ :=
+by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
+  emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp]
+  using hf.is_O_image_sub_image_sub_deriv_principal hr
+
+/-- If `f` has formal power series `∑ n, pₙ` at `x`, then
+`f y - f z - p 1 (λ _, y - z) = O(∥(y, z) - (x, x)∥ * ∥y - z∥)` as `(y, z) → (x, x)`.
+In particular, `f` is strictly differentiable at `x`. -/
+lemma has_fpower_series_at.is_O_image_sub_norm_mul_norm_sub (hf : has_fpower_series_at f p x) :
+  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
+    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓝 (x, x)) :=
+begin
+  rcases hf with ⟨r, hf⟩,
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
+  refine (hf.is_O_image_sub_image_sub_deriv_principal h).mono _,
+  exact le_principal_iff.2 (emetric.ball_mem_nhds _ r'0)
 end
 
 /-- If a function admits a power series expansion at `x`, then it is the uniform limit of the

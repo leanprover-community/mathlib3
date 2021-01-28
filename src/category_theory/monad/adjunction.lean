@@ -25,9 +25,10 @@ def to_monad {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : monad C :=
   right_unit' := λ X, by { dsimp, rw [←R.map_comp], simp } }
 
 @[simps]
-instance comonad (L : C ⥤ D) [is_left_adjoint L] : comonad (right_adjoint L ⋙ L) :=
-{ ε := (of_left_adjoint L).counit,
-  δ := whisker_right (whisker_left (right_adjoint L) (of_left_adjoint L).unit) L,
+def to_comonad {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : comonad D :=
+{ to_functor := R ⋙ L,
+  ε' := h.counit,
+  δ' := whisker_right (whisker_left R h.unit) L,
   coassoc' := λ X, by { dsimp, rw ← L.map_comp, simp },
   right_counit' := λ X, by { dsimp, rw ← L.map_comp, simp } }
 
@@ -59,20 +60,16 @@ def monad.comparison_forget {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
 { hom := { app := λ X, 𝟙 _, },
   inv := { app := λ X, 𝟙 _, } }
 
-end monad
-
-namespace comonad
-
 /--
 Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.comonad.comparison L`
 sending objects `X : C` to Eilenberg-Moore coalgebras for `L ⋙ R` with underlying object
 `L.obj X`.
 -/
 @[simps]
-def comparison [is_left_adjoint L] : C ⥤ coalgebra (right_adjoint L ⋙ L) :=
+def comonad.comparison {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : C ⥤ h.to_comonad.coalgebra :=
 { obj := λ X,
   { A := L.obj X,
-    a := L.map ((adjunction.of_left_adjoint L).unit.app X),
+    a := L.map (h.unit.app X),
     coassoc' := by { dsimp, rw [← L.map_comp, ← adjunction.unit_naturality, L.map_comp], refl } },
   map := λ X Y f,
   { f := L.map f,
@@ -82,11 +79,10 @@ def comparison [is_left_adjoint L] : C ⥤ coalgebra (right_adjoint L ⋙ L) :=
 The underlying object of `(comonad.comparison L).obj X` is just `L.obj X`.
 -/
 @[simps]
-def comparison_forget [is_left_adjoint L] : comparison L ⋙ forget (right_adjoint L ⋙ L) ≅ L :=
+def comparison_forget {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
+  comonad.comparison h ⋙ h.to_comonad.forget ≅ L :=
 { hom := { app := λ X, 𝟙 _, },
   inv := { app := λ X, 𝟙 _, } }
-
-end comonad
 
 /--
 A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison functor `monad.comparison R`
@@ -100,7 +96,7 @@ A left adjoint functor `L : C ⥤ D` is *comonadic* if the comparison functor `c
 from `C` to the category of Eilenberg-Moore algebras for the adjunction is an equivalence.
 -/
 class comonadic_left_adjoint (L : C ⥤ D) extends is_left_adjoint L :=
-(eqv : is_equivalence (comonad.comparison L))
+(eqv : is_equivalence (comonad.comparison (adjunction.of_left_adjoint L)))
 
 -- TODO: This holds more generally for idempotent adjunctions, not just reflective adjunctions.
 instance μ_iso_of_reflective [reflective R] : is_iso (adjunction.of_right_adjoint R).to_monad.μ :=

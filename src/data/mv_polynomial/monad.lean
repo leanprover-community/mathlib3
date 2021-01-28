@@ -194,7 +194,8 @@ lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_poly
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
 by { ext1; simp }
 
-lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) (φ : mv_polynomial σ R) :
+lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T)
+  (φ : mv_polynomial σ R) :
   (bind₂ g) (bind₂ f φ) = bind₂ ((bind₂ g).comp f) φ :=
 ring_hom.congr_fun (bind₂_comp_bind₂ f g) φ
 
@@ -244,7 +245,8 @@ lemma eval₂_hom_comp_C (f : R →+* S) (g : σ → S) :
   (eval₂_hom f g).comp C = f :=
 by { ext1 r, exact eval₂_C f g r }
 
-lemma eval₂_hom_bind₁ (f : R →+* S) (g : τ → S) (h : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+lemma eval₂_hom_bind₁ (f : R →+* S) (g : τ → S) (h : σ → mv_polynomial τ R)
+  (φ : mv_polynomial σ R) :
   eval₂_hom f g (bind₁ h φ) = eval₂_hom f (λ i, eval₂_hom f g (h i)) φ :=
 by rw [hom_bind₁, eval₂_hom_comp_C]
 
@@ -260,7 +262,8 @@ lemma eval₂_hom_comp_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_po
   (eval₂_hom f g).comp (bind₂ h) = eval₂_hom ((eval₂_hom f g).comp h) g :=
 by { ext1; simp }
 
-lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
+lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S)
+  (φ : mv_polynomial σ R) :
   eval₂_hom f g (bind₂ h φ) = eval₂_hom ((eval₂_hom f g).comp h) g φ :=
 ring_hom.congr_fun (eval₂_hom_comp_bind₂ f g h) φ
 

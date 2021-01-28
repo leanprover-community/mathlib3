@@ -221,27 +221,15 @@ begin
   exacts [h.false, (lt_of_le_of_lt (pow_two_nonneg _) h).le, h.le],
 end
 
-lemma sqr_le (h : x^2 ≤ y) : -sqrt x ≤ y ∧ x ≤ sqrt y :=
+lemma sqr_le (h : x^2 ≤ y) : -sqrt y ≤ x ∧ x ≤ sqrt y :=
 abs_le.mp (by simpa [← sqrt_sqr_eq_abs] using sqrt_le_sqrt h)
 
-lemma sqr_le_of_nonneg (h : 0 ≤ y) : x^2 ≤ y ↔ -sqrt x ≤ y ∧ x ≤ sqrt y :=
+lemma sqr_le_of_nonneg (h : 0 ≤ y) : x^2 ≤ y ↔ -sqrt y ≤ x ∧ x ≤ sqrt y :=
 ⟨sqr_le, (by rw [← abs_le, ← sqr_abs]; exact (le_sqrt (abs_nonneg x) h).mp)⟩
 
 lemma sqr_le_left (h : x^2 ≤ y) : -sqrt y ≤ x := (sqr_le h).1
 
 lemma sqr_le_right (h : x^2 ≤ y) : x ≤ sqrt y := (sqr_le h).2
-
-theorem sqr_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
-begin
-  split,
-  { simpa only [← sqrt_lt (pow_two_nonneg x), sqrt_sqr_eq_abs] using abs_lt.mp },
-  { rw [← abs_lt, ← sqr_abs],
-    exact λ h, (lt_sqrt (abs_nonneg x) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg a) h)).le).mp h },
-end
-
-lemma sqr_lt_left (h : x^2 < y) : -sqrt y < x := (sqr_lt.mp h).1
-
-lemma sqr_lt_right (h : x^2 < y) : x < sqrt y := (sqr_lt.mp h).2
 
 @[simp] theorem sqrt_inj (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
 by simp [le_antisymm_iff, hx, hy]
@@ -280,6 +268,18 @@ begin
   { rw [sqrt_eq_zero'.mpr h, div_zero] },
   { rw [div_eq_iff (sqrt_ne_zero h), mul_self_sqrt h.le] },
 end
+
+theorem sqr_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
+begin
+  split,
+  { simpa only [← sqrt_lt (pow_two_nonneg x), sqrt_sqr_eq_abs] using abs_lt.mp },
+  { rw [← abs_lt, ← sqr_abs],
+    exact λ h, (lt_sqrt (abs_nonneg x) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg x) h)).le).mp h },
+end
+
+lemma sqr_lt_left (h : x^2 < y) : -sqrt y < x := (sqr_lt.mp h).1
+
+lemma sqr_lt_right (h : x^2 < y) : x < sqrt y := (sqr_lt.mp h).2
 
 end real
 

@@ -1016,6 +1016,10 @@ def hom_of_le : N →ₗ⁅R,L⁆ N' :=
 
 lemma hom_of_le_apply (m : N) : hom_of_le h m = ⟨m.1, h m.2⟩ := rfl
 
+lemma hom_of_le_injective : function.injective (hom_of_le h) :=
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+  subtype.val_eq_coe]
+
 end inclusion_maps
 
 section lie_span
@@ -1857,7 +1861,7 @@ lie_algebra.is_solvable_of_injective (lie_ideal.hom_of_le_injective h₁)
 variables (R L)
 
 /-- Given a solvable Lie ideal `I` with derived series `I = D₀ ≥ D₁ ≥ ⋯ ≥ Dₖ = ⊥`, this is the
-`k` (the number of inclusions).
+natural number `k` (the number of inclusions).
 
 For a non-solvable ideal, the value is 0. -/
 noncomputable def derived_length_of_ideal (I : lie_ideal R L) : ℕ :=
@@ -1912,7 +1916,7 @@ end⟩
 variables {R L}
 
 /-- Given a solvable Lie ideal `I` with derived series `I = D₀ ≥ D₁ ≥ ⋯ ≥ Dₖ = ⊥`, this is the
-`k-1`th term in the solvable series (and is therefore an Abelian ideal contained in `I`).
+`k-1`th term in the derived series (and is therefore an Abelian ideal contained in `I`).
 
 For a non-solvable ideal, this is the zero ideal, `⊥`. -/
 noncomputable def derived_abelian_of_ideal (I : lie_ideal R L) : lie_ideal R L :=
@@ -1974,8 +1978,7 @@ begin
   { apply le_solvable_ideal_solvable h, apply_instance, },
 end
 
-/-- Link to https://mathoverflow.net/questions/149391/on-radicals-of-a-lie-algebra#comment383669_149391
-in PR. -/
+/-- A semisimple Lie algebra is one with trivial radical. -/
 class is_semisimple : Prop :=
 (semisimple : radical R L = ⊥)
 

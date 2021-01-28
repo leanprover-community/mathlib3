@@ -4,11 +4,12 @@ import analysis.calculus.deriv
 import data.matrix.notation
 import group_theory.group_action.defs
 
-namespace tactic.interactive
+
 noncomputable theory
 
--- set_option profiler true
+--set_option profiler true
 
+namespace tactic.interactive
 meta def show_nonzero := `[
   apply_rules [
     mul_ne_zero,
@@ -60,7 +61,6 @@ open matrix.special_linear_group
 open_locale classical
 open_locale big_operators
 
-
 def H : set ℂ := { z | 0 < z.im }
 
 local notation `|` x `|` := _root_.abs x
@@ -95,9 +95,13 @@ begin
 end
 
 lemma det2 {F : Type*} [comm_ring F] (g: matrix (fin 2) (fin 2) F) :
-g.det = (g 0 0 )*(g 1 1)- (g 1 0 ) * (g  0 1 ) := sorry
+g.det = g 0 0 * g 1 1 - g 1 0 * g 0 1 :=
+begin
+calc g.det = ((0 + 1) * (g 0 0 * (g 1 1 * 1))) + ((_ * (g 1 0 * (g 0 1 * 1))) + 0) : refl g.det
+  ... = g 0 0 * g 1 1 - g 1 0 * g 0 1 : by {simp, ring}
+end
 
-lemma im_mat_smul_complex (g : SL(2, ℝ)) (z: ℂ) :
+lemma im_smul_mat_complex (g : SL(2, ℝ)) (z: ℂ) :
 (smul_aux g z).im = z.im / (complex.norm_sq (bottom g z)) :=
 begin
   by_cases bot_zero : bottom g z = 0,
@@ -165,11 +169,9 @@ end
 lemma czPd_nonZ_CP {z : ℂ} {g : SL(2, ℝ)} :
  z.im ≠  0 →  bottom g z ≠  0 :=
 begin
-  intros h1,
-  by_contra,
-  simp at h,
-  have h2 := czPd_nonZ h,
-  exact h1 h2,
+  contrapose,
+  push_neg,
+  exact czPd_nonZ,
 end
 
 lemma bottom_nonzero  {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
@@ -195,7 +197,7 @@ lemma GactsHtoH {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
 smul_aux g z ∈ H :=
 begin
   simp at h ⊢,
-  rw [←smul_aux_def, im_mat_smul_complex],
+  rw [←smul_aux_def, im_smul_mat_complex],
   by_cases bot_zero : bottom g z = 0,
   { linarith [czPd_nonZ bot_zero] },
   have norm2NonNeg : 0 ≤  norm_sq (bottom g z),
@@ -213,18 +215,16 @@ begin
   exact div_pos h norm2Pos
 end
 
-@[simp] lemma sumIs01 (f : fin 2 → ℂ ) :
+@[simp] lemma expand_sum_01 (f : fin 2 → ℂ ) :
 (∑ (x : fin 2), f x) = f 0 + f 1 :=
-begin
---  library_search,
-  sorry,
-end
+calc (∑ (x : fin 2), f x) = _ + _ : by {refl}
+  ... = f 0 + f 1 : by {simp}
 
 lemma bot_cocycle {x y : SL(2,ℝ)} {z : ℂ} (h : z ∈ H) :
   bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
 begin
   rw smul_aux_def,
-  have d1 : bottom y z ≠ 0 := by show_nonzero,
+  have d1 : bottom y z ≠ 0 := bottom_nonzero h,
   simp [top, bottom],
   field_simp,
   simp [matrix.mul, dot_product],
@@ -239,8 +239,8 @@ begin
   rw smul_aux,
   simp,
   rw bot_cocycle,
-  have d1 : bottom ( x * y) z ≠ 0, by show_nonzero,
-  have d2 : bottom y z ≠ 0, by show_nonzero,
+  have d1 : bottom ( x * y) z ≠ 0 := bottom_nonzero h,
+  have d2 : bottom y z ≠ 0 := bottom_nonzero h,
   have hyz : top y z / bottom y z ∈ H,
   {
     rw ←smul_aux_def,
@@ -274,6 +274,23 @@ mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
 instance has_coe_SL : has_coe SL(2,ℤ) SL(2,ℝ) := ⟨λ x, SL_n_insertion (int.cast_ring_hom ℝ) x⟩
 
+
+
+lemma bottom_def' {g : SL(2,ℝ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by refl
+
+lemma bottom_def {g : SL(2,ℤ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 :=
+begin
+  rw bottom_def',
+  sorry
+end
+
+
+lemma im_smul_SL (g : SL(2, ℝ)) (z : H) :
+(g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
+begin
+  sorry
+end
+
 lemma mat_coe { g : SL(2,ℤ) } : (g : SL(2,ℝ)) =
   { val := ![![g.1 0 0, g.1 0 1], ![g.1 1 0, g.1 1 1]], property :=
   by {simp [det2], norm_cast, simpa [det2] using g.2 }} :=
@@ -284,12 +301,12 @@ begin
   all_goals {fin_cases j, simp, try{ refl }, try{ simp, refl }},
 end
 
-lemma mat_coe' { g : SL(2,ℤ) } : (g : SL(2,ℝ)) =
-  { val := ![![g 0 0, g 0 1], ![g 1 0, g 1 1]], property :=
-  by {simp [det2], norm_cast, simpa [det2] using g.2 }} :=
+lemma im_smul_SL' (g : SL(2, ℤ)) (z : H) :
+(g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
 begin
   sorry
 end
+
 
 @[simp]
 lemma mat_compatibility {g : SL(2,ℤ)} {z : H} : ((g:SL(2,ℝ)) • z).1 = smul_aux g z :=
@@ -322,29 +339,44 @@ example { R : SL(2,ℤ) } : R * T = 1 → R = T⁻¹ := eq_inv_of_mul_eq_one
 
 example { R : SL(2,ℤ) } : T * R = 1 → T⁻¹ = R := inv_eq_of_mul_eq_one
 
-lemma mul_congr { x y : SL(2,ℤ)} : x.1 * y.1 = 1 ↔ x * y = 1 :=
+example { x y : SL(2,ℤ)} (h : x.1 = y.1) : x = y := subtype.eq h
+
+@[simp]
+lemma mat_congr_SL { x y : SL(2,ℤ) } : x = y ↔ x.val = y.val := subtype.ext_iff_val
+
+@[simp]
+lemma mat_congr  {F : Type*} [comm_ring F] (x y : matrix (fin 2) (fin 2) F) :
+  x = y ↔ x 0 0 = y 0 0 ∧ x 0 1 = y 0 1 ∧ x 1 0 = y 1 0 ∧ x 1 1 = y 1 1 :=
 begin
-  sorry
+  split,
+  { intro h,
+    rw h,
+    tauto },
+  {
+    rintro ⟨h1, h2, h3, h4⟩,
+    ext,
+    fin_cases i,
+    all_goals {fin_cases j},
+    all_goals {assumption},
+  }
 end
+
+
+@[simp]
+lemma mat_one {F : Type*} [comm_ring F] : (![![1,0], ![0,1]] : matrix (fin 2) (fin 2) F)
+  = (1 : matrix (fin 2) (fin 2) F) := by {simp}
+
+@[simp]
+lemma mul_congr { x y : SL(2,ℤ)} : x * y = 1 ↔ x.1 * y.1 = 1 := by {simp at *, tauto}
 
 lemma T_inv : T⁻¹ = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
 begin
   suffices : T * { val := ![![1, -1], ![0, 1]], property := by simp [det2] } = 1,
   { exact inv_eq_of_mul_eq_one this},
-  have hh : matrix.mul T.1  ![![1, -1], ![0, 1]] = ![![1, 0], ![0, 1]], by simp [T],
   simp [T],
-  rw ← mul_congr,
-  dsimp,
-  simp [hh],
-  ext,
-  fin_cases i,
-  all_goals {fin_cases j, try { simp }, tauto },
 end
 
-lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n:=
-begin
-  simp [inv_gpow, gpow_neg],
-end
+lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n := by {simp [inv_gpow, gpow_neg]}
 
 lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
 begin
@@ -509,9 +541,25 @@ begin
   apply norm_sq_ge_one_of_act_S,
   replace hw : w = S•z',
   {rw [hw, z'df, smul_smul, mul_assoc]},
-  rw imz',
-  rw ← hw,
+  rw [imz', ← hw],
   exact hg2,
+end
+
+@[simp]
+lemma fundom_aux_1 {z : H} (hz : z ∈ 𝒟) (h' : T • z ∈ 𝒟) : z.val.re = -1/2 := sorry
+
+@[simp]
+lemma fundom_aux_2 {z : H} (hz : z ∈ 𝒟) (h' : T⁻¹ • z ∈ 𝒟) : z.val.re = 1/2 := sorry
+
+@[simp]
+lemma fundom_aux_3 {z : H} (hz : z ∈ 𝒟) (h' : S • z ∈ 𝒟) : z.val.abs = 1 := sorry
+
+/- Why is this not doable by linarith directly? -/
+example {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (h : a ≤ a / b) : b ≤ 1 :=
+begin
+  suffices: a * b ≤ a, nlinarith,
+  rw le_div_iff hb at h,
+  exact h,
 end
 
 lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :
@@ -528,11 +576,21 @@ begin
     obtain ⟨g, hcpos, hac, hg⟩ := h,
     set a := g.1 0 0,
     set b := g.1 0 1,
-    set c := g.1 1 0,
-    set d := g.1 1 1,
+    set c := g.1 1 0 with ←cdf,
+    set d := g.1 1 1 with ←ddf,
     have hcd : complex.norm_sq (c * z + d) ≤ 1,
     {
-      sorry
+      have himzpos : 0 < z.val.im := im_pos_of_in_H',
+      have hnz : 0 < complex.norm_sq (c * z + d),
+      {
+        rw norm_sq_pos,
+        intro hcontra,
+        rw [← cdf, ← ddf, ← bottom_def] at hcontra,
+        exact czPd_nonZ_CP (ne.symm (ne_of_lt himzpos)) hcontra,
+      },
+      suffices: z.val.im * complex.norm_sq (c * z + d) ≤ z.val.im, nlinarith,
+      rw [hg, im_smul_SL',cdf,ddf, le_div_iff hnz] at hwlog,
+      exact hwlog,
     },
     have hc : _root_.abs c ≤ 1,
     {
@@ -546,7 +604,37 @@ begin
     { -- case c = 0
       have ha : a = 1 := (hac hc).2,
       have hd : d = 1 := (hac hc).1,
-      sorry
+      have hgT : g = T^b,
+      {
+        rw T_pow,
+        apply subtype.eq,
+        simp,
+        tauto,
+      },
+      have hb : _root_.abs c ≤ 1,
+      {
+        sorry
+      },
+      replace hb : b = -1 ∨ b = 0 ∨ b = 1,
+      {
+        sorry
+      },
+      rcases hb with hb | hb | hb,
+      all_goals {rw hb at hgT, rw hgT at hg, clear hb, clear hgT, simp at hg},
+      {
+        right, left,
+        rw ←inv_smul_eq_iff at hg,
+        rw ←hg at hz,
+        rw fundom_aux_1 hz' hz,
+        tauto,
+      },
+      { tauto },
+      {
+        left,
+        rw hg at hz',
+        rw fundom_aux_1 hz hz',
+        tauto,
+      }
     },
     { -- case c = 1
       sorry

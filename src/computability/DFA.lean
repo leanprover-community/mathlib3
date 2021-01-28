@@ -104,6 +104,23 @@ begin
         list.take_append_drop] }
 end
 
+lemma eval_from_of_pow (x : list α) (s : σ) (hx : M.eval_from s x = s) :
+  ∀ y ∈ @language.star α {x}, M.eval_from s y = s :=
+begin
+  intros y hy,
+  rw language.mem_star at hy,
+  rcases hy with ⟨ S, hy, hS ⟩,
+  subst hy,
+  induction S with a S ih,
+  { refl },
+  { have ha := hS a (list.mem_cons_self _ _),
+    rw set.mem_singleton_iff at ha,
+    rw [list.join, eval_from_of_append, ha, hx],
+    apply ih,
+    intros z hz,
+    exact hS z (list.mem_cons_of_mem a hz) }
+end
+
 lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
 (hlen : (fintype.card σ + 1) ≤ list.length x) :
   ∃ a b c,  x = a ++ b ++ c ∧ b ≠ [] ∧ (a ++ b).length ≤ (fintype.card σ + 1) ∧

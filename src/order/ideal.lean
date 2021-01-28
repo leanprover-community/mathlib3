@@ -122,6 +122,85 @@ I.mem_of_le (sup_le hx hy) h_mem
 
 end semilattice_sup
 
+section semilattice_sup_bot
+variables [semilattice_sup_bot P] (I J K : ideal P)
+
+/-- The intersection of two ideals is an ideal, when `P` has joins and a bottom. -/
+def inf (I J : ideal P) : ideal P :=
+{ carrier   := I ∩ J,
+  nonempty  := ⟨⊥, bot_mem, bot_mem⟩,
+  directed  := begin
+    rintro x ⟨_, _⟩ y ⟨_, _⟩,
+    refine ⟨x ⊔ y, ⟨_, _⟩, by simp⟩; apply sup_mem; assumption,
+  end,
+  mem_of_le := begin
+    rintro x y h ⟨_, _⟩,
+    split; refine mem_of_le _ h _; assumption,
+  end }
+
+lemma inf_le_left : inf I J ≤ I := set.inter_subset_left I J
+
+lemma inf_le_right : inf I J ≤ J := set.inter_subset_right I J
+
+lemma le_inf : I ≤ J → I ≤ K → I ≤ inf J K := set.subset_inter
+
+/-- There is a smallest ideal containing two ideals, when `P` has joins and a bottom. -/
+def sup (I J : ideal P) : ideal P :=
+{ carrier   := {x | ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j},
+  nonempty  := ⟨⊥, ⊥, bot_mem, ⊥, bot_mem, bot_le⟩,
+  directed  := begin
+    rintro x ⟨xi, _, xj, _, _⟩ y ⟨yi, _, yj, _, _⟩,
+    refine ⟨x ⊔ y, ⟨xi ⊔ yi, _, xj ⊔ yj, _, _⟩, by simp⟩,
+    any_goals {apply sup_mem <|> apply sup_le},
+    show x ≤ (xi ⊔ yi) ⊔ (xj ⊔ yj),
+    calc x ≤ xi ⊔ xj               : _
+    ...    ≤ (xi ⊔ yi) ⊔ (xj ⊔ yj) : by simp [sup_le_sup],
+    show y ≤ (xi ⊔ yi) ⊔ (xj ⊔ yj),
+    calc y ≤ yi ⊔ yj               : _
+    ...    ≤ (xi ⊔ yi) ⊔ (xj ⊔ yj) : by simp [sup_le_sup],
+    all_goals {assumption},
+  end,
+  mem_of_le := begin
+    rintro x y _ ⟨yi, _, yj, _, _⟩,
+    refine ⟨yi, _, yj, _, _⟩,
+    show x ≤ yi ⊔ yj,
+    calc x ≤ y       : _
+    ...    ≤ yi ⊔ yj : _,
+    all_goals {assumption},
+  end }
+
+lemma le_sup_left : I ≤ sup I J :=
+λ i (h : i ∈ I), ⟨i, h, ⊥, bot_mem, by simp⟩
+
+lemma le_sup_right : J ≤ sup I J :=
+λ j (h : j ∈ J), ⟨⊥, bot_mem, j, h, by simp⟩
+
+lemma sup_le : I ≤ K → J ≤ K → sup I J ≤ K :=
+begin
+  rintro _ _ x ⟨i, _, j, _, _⟩,
+  refine K.mem_of_le _ (sup_mem i j _ _),
+  show i ∈ K,
+  calc i ∈ I : _
+  ...    ≤ K : _,
+  show j ∈ K,
+  calc j ∈ J : _
+  ...    ≤ K : _,
+  all_goals {assumption},
+end
+
+instance : lattice (ideal P) :=
+{ sup          := sup,
+  le_sup_left  := le_sup_left,
+  le_sup_right := le_sup_right,
+  sup_le       := sup_le,
+  inf          := inf,
+  inf_le_left  := inf_le_left,
+  inf_le_right := inf_le_right,
+  le_inf       := le_inf,
+  .. ideal.partial_order }
+
+end semilattice_sup_bot
+
 end ideal
 
 /-- For a preorder `P`, `cofinal P` is the type of subsets of `P`

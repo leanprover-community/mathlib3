@@ -46,38 +46,6 @@ def accepts : language α :=
 
 lemma mem_accepts (x : list α) : x ∈ M.accepts ↔ M.eval_from M.start x ∈ M.accept := by refl
 
-/-- `M.state_path s x` is the states the DFA passes through when evalulating `M.eval_from s x` -/
-def state_path : σ → list α → list σ
-| start [] := [start]
-| start (a :: x) := start :: state_path (M.step start a) x
-
-@[simp] lemma length_state_path (start : σ) (x : list α) :
-  (M.state_path start x).length = x.length + 1 :=
-begin
-  induction x generalizing start,
-  refl,
-  tauto
-end
-
-lemma nth_le_state_path_eq_eval_from_take (start : σ) (x : list α) (n : ℕ)
-(h : n < (M.state_path start x).length) :
-  (M.state_path start x).nth_le n h = M.eval_from start (x.take n) :=
-begin
-  induction n with n ih generalizing start x,
-  { rw [list.take_zero, eval_from, list.foldl],
-    cases x,
-    all_goals
-    { unfold state_path,
-      rw list.nth_le } },
-  { cases x,
-    { unfold state_path at h,
-      rw [list.length_singleton, nat.lt_succ_iff, nat.le_zero_iff] at h,
-      contradiction },
-    unfold state_path,
-    rw [list.take, list.nth_le, eval_from, list.foldl],
-    apply ih }
-end
-
 lemma eval_from_of_append (start : σ) (x y : list α) :
   M.eval_from start (x ++ y) = M.eval_from (M.eval_from start x) y :=
 begin
@@ -95,22 +63,12 @@ lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
 begin
   -- By pidgeon hole principal the DFA passes though the same state twice in the first p+1 states we
   -- pass through. Let these be the `n`th and `m`th states with `n < m`
-  have hnfintype : ∀ n : fin (fintype.card σ + 1), ↑n < (M.state_path M.start x).length,
-  { intro n,
-    cases n with n h,
-    rw [length_state_path, fin.coe_mk],
-    apply lt_of_lt_of_le h,
-    rw nat.le_add_one_iff,
-    left,
-    assumption },
   have h := fintype.exists_ne_map_eq_of_card_lt
-    (λ n : fin (fintype.card σ + 1), (M.state_path M.start x).nth_le n (hnfintype n)) (by norm_num),
+    (λ n : fin (fintype.card σ + 1), M.eval_from M.start (x.take n)) (by norm_num),
   rcases h with ⟨ n, m, hneq, heq ⟩,
   cases m with m hm, cases n with n hn,
   wlog hle : n ≤ m using [n m, m n],
   { exact le_total n m },
-  change list.nth_le _ n _ = list.nth_le _ m _ at heq,
-  rw [nth_le_state_path_eq_eval_from_take, nth_le_state_path_eq_eval_from_take] at heq,
 
   -- Now let `a` be the first `n` characters of `x`, `b` be the next `m-n` characters and `c` the
   -- rest
@@ -144,28 +102,22 @@ begin
   cases hy with i hy,
   rw language.mem_mul at hy,
   rcases hy with ⟨ a, c, ha, hc, hy ⟩,
-  have hnstate_path : n < (M.state_path M.start x).length,
-  { rw length_state_path,
-    apply lt_of_lt_of_le hn,
-    rw nat.le_add_one_iff,
-    left,
-    assumption },
-  have h : M.eval_from M.start a = (M.state_path M.start x).nth_le n hnstate_path,
+  have h : M.eval_from M.start a = M.eval_from M.start (x.take n),
   { induction i with i ih generalizing a y,
     { rw [pow_zero, mul_one, set.mem_singleton_iff] at ha,
-      rw [ha, list.take_take, min_eq_left hle, ←nth_le_state_path_eq_eval_from_take] },
+      rw [ha, list.take_take, min_eq_left hle] },
     { rw [pow_succ', ←mul_assoc, language.mem_mul] at ha,
       rcases ha with ⟨ a', b, ha', hb, ha ⟩,
       specialize ih a' ha' rfl,
       rw set.mem_singleton_iff at hb,
-      rw [←ha, eval_from_of_append, ih, nth_le_state_path_eq_eval_from_take, hb,
-          ←eval_from_of_append, ←min_eq_left hle, ←list.take_take, min_eq_left hle,
-          list.take_append_drop, list.take_take, min_eq_left hle],
+      rw [←ha, eval_from_of_append, ih, hb, ←eval_from_of_append, ←min_eq_left hle, ←list.take_take,
+          min_eq_left hle, list.take_append_drop, list.take_take, min_eq_left hle],
       exact heq.symm } },
 
   rw set.mem_singleton_iff at hc,
-  rw [←hy, mem_accepts, eval_from_of_append, h, nth_le_state_path_eq_eval_from_take, heq,
-    ←eval_from_of_append, hc, list.take_append_drop],
+  simp only [fin.coe_mk] at heq,
+  rw [←hy, mem_accepts, eval_from_of_append, h, heq, ←eval_from_of_append, hc,
+      list.take_append_drop],
   exact hx
 end
 

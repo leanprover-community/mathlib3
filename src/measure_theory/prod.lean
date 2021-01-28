@@ -257,8 +257,7 @@ begin
     (λ x, (s' n x).integral ν),
   have hf' : ∀ n, measurable (f' n),
   { intro n, refine measurable.indicator _ (is_measurable_integrable hf),
-    have : ∀ x, (s' n x).range.filter (λ x, x ≠ 0) ⊆
-      (s n).range,
+    have : ∀ x, (s' n x).range.filter (λ x, x ≠ 0) ⊆ (s n).range,
     { intros x, refine finset.subset.trans (finset.filter_subset _ _) _, intro y,
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
     simp only [simple_func.integral_eq_sum_of_subset (this _)],
@@ -860,7 +859,7 @@ begin
   { intros f g hfg i_f hf, convert hf using 1,
     { exact integral_congr_ae hfg.symm },
     { refine integral_congr_ae _,
-      rw [eventually_eq] at hfg, refine (ae_ae_of_ae_prod hfg).mp _,
+      refine (ae_ae_of_ae_prod hfg).mp _,
       apply eventually_of_forall, intros x hfgx,
       exact integral_congr_ae (ae_eq_symm hfgx) } }
 end

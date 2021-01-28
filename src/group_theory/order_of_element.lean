@@ -35,7 +35,7 @@ order of an element, cyclic group
 ## TODO
 
 * Move the first declarations until the definition of order to other files.
-* Add the attribute `@[to_additive]` to the declarations in that file so that they also works with
+* Add the attribute `@[to_additive]` to the declarations in that file so that they also work with
   additive groups.
 * Modify the definition to work with infinite groups. (Defining `order_of` to have value `0` for
   elements of infinite order would make more statements true with fewer assumptions.)

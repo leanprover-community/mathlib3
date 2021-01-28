@@ -48,13 +48,7 @@ lemma mem_accepts (x : list α) : x ∈ M.accepts ↔ M.eval_from M.start x ∈ 
 
 lemma eval_from_of_append (start : σ) (x y : list α) :
   M.eval_from start (x ++ y) = M.eval_from (M.eval_from start x) y :=
-begin
-  induction x with a x ih generalizing start,
-  { repeat {rw eval_from},
-    rw [list.nil_append, list.foldl] },
-  { rw [list.cons_append, eval_from, list.foldl],
-    apply ih }
-end
+list.foldl_append _ _ x y
 
 lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
 (hlen : (fintype.card σ + 1) ≤ list.length x) :

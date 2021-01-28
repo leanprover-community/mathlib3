@@ -336,7 +336,6 @@ end
 
 /-- Equality of sigma types is sufficient (but not necessary) to show equality of `dfinsupp`s. -/
 lemma single_eq_of_sigma_eq
-  [Π (i : ι), has_zero (β i)]
   {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : sigma β) = ⟨j, xj⟩) :
   dfinsupp.single i xi = dfinsupp.single j xj :=
 by { cases h, refl }

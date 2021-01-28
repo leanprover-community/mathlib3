@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.finite_dimension
 import data.complex.module
+import data.complex.is_R_or_C
 
 /-!
 # Normed space structure on `ℂ`.
@@ -23,6 +24,8 @@ it defines functions:
 
 They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
 as continuous `ℝ`-linear maps.
+
+We also register the fact that `ℂ` is an `is_R_or_C` field.
 -/
 noncomputable theory
 
@@ -133,4 +136,49 @@ lemma continuous_of_real : continuous (coe : ℝ → ℂ) := isometry_of_real.co
   ∥continuous_linear_map.of_real∥ = 1 :=
 linear_isometry.of_real.norm_to_continuous_linear_map
 
+noncomputable instance : is_R_or_C ℂ :=
+{ re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
+  im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
+  conj := complex.conj,
+  I := complex.I,
+  I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
+  I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
+  re_add_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, complex.re_add_im,
+                                     complex.coe_algebra_map, complex.of_real_eq_coe],
+  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re,
+                                      complex.coe_algebra_map, complex.of_real_eq_coe],
+  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im,
+                                      complex.coe_algebra_map, complex.of_real_eq_coe],
+  mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
+  mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
+  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
+  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
+  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
+  norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
+    add_monoid_hom.coe_mk, complex.norm_eq_abs],
+  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
+  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
+    complex.of_real_eq_coe, complex.norm_eq_abs],
+  div_I_ax := complex.div_I }
+
 end complex
+
+namespace is_R_or_C
+
+local notation `reC` := @is_R_or_C.re ℂ _
+local notation `imC` := @is_R_or_C.im ℂ _
+local notation `conjC` := @is_R_or_C.conj ℂ _
+local notation `IC` := @is_R_or_C.I ℂ _
+local notation `absC` := @is_R_or_C.abs ℂ _
+local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
+
+@[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
+@[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
+@[simp] lemma conj_to_complex {x : ℂ} : conjC x = x.conj := rfl
+@[simp] lemma I_to_complex : IC = complex.I := rfl
+@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
+by simp [is_R_or_C.norm_sq, complex.norm_sq]
+@[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
+by simp [is_R_or_C.abs, complex.abs]
+
+end is_R_or_C

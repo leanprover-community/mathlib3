@@ -93,19 +93,11 @@ lemma bernoulli_def (n : ℕ) :
   bernoulli n = 1 - ∑ k in finset.range n, (n.choose k) / (n - k + 1) * bernoulli k :=
 by { rw [bernoulli_def', ← fin.sum_univ_eq_sum_range], refl }
 
-lemma bernoulli_spec (n : ℕ) :
-  ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli k = 1 :=
-begin
-  simp [finset.sum_range_succ, bernoulli_def n],
-  conv_lhs
-  {congr, skip, apply_congr, skip,
-  rw choose_symm (le_of_lt (finset.mem_range.1 H))},
-  simp,
-end
+namespace nat
 
 lemma sum_range_succ_eq_sum_antidiagonal {M : Type*} [add_comm_monoid M]
-  (f : ℕ → ℕ → M) (n : ℕ) : ∑ k in range n.succ, f k (n - k) =
-    ∑ ij in finset.nat.antidiagonal n, f ij.1 ij.2 :=
+  (f : ℕ → ℕ → M) (n : ℕ) : ∑ x in range n.succ, f x (n - x) =
+    ∑ k in finset.nat.antidiagonal n, f k.1 k.2 :=
 begin
   refine finset.sum_bij'
   (λ a _, (a, n - a) : Π (a : ℕ), a ∈ finset.range n.succ → ℕ × ℕ)
@@ -115,19 +107,6 @@ begin
   { intros a ha, simp [nat.add_sub_cancel' (mem_range_succ_iff.1 ha)], },
   { intros _ ha, simp [mem_range_succ_iff.2 (nat.le.intro (nat.mem_antidiagonal.1 ha))], },
   { rintro ⟨i, j⟩ ha, ext, refl, rw ← (nat.mem_antidiagonal.1 ha), exact nat.add_sub_cancel_left _ _ },
-end
-
-lemma this_is_so_stupid (n : ℕ) :
-∑ (k : ℕ) in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli k
-=
-∑ (k : ℕ) in finset.range n.succ, n.choose (n - k) / ((n - k : ℕ) + 1) * bernoulli k
-:=
-begin
-  apply finset.sum_congr rfl,
-  intros k hk,
--- next line was written with
---  congr', symmetry, apply nat.cast_sub, library_search,
-  rw nat.cast_sub (finset.mem_range_succ_iff.mp hk),
 end
 
 /-- If (i,j) is contained in the antidiagonal of `n` then `i ≤ n`. -/
@@ -141,39 +120,43 @@ by { rw nat.mem_antidiagonal, exact nat.le.intro }
 by { rw [nat.mem_antidiagonal, add_comm], exact nat.le.intro }
 
 lemma range_succ_mem_le (n x : ℕ) (h : x ∈ finset.range (n+1)) : x ≤ n :=
-begin
-  rw finset.mem_range at h,
-  exact lt_succ_iff.1 h,
-end
+by {rw finset.mem_range at h, exact lt_succ_iff.1 h,}
 
 lemma sum_antidiagonal {M : Type*} [add_comm_monoid M]
   (n : ℕ) (f : ℕ × ℕ → M) :
-  ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p = ∑ (i : ℕ) in finset.range (n + 1), f (i,(n - i)) :=
+  ∑ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p =
+  ∑ (i : ℕ) in finset.range (n + 1), f (i,(n - i)) :=
 begin
-  have : ∀ {a}, a ∈ finset.nat.antidiagonal n → ((a : ℕ × ℕ).fst, n - a.fst) = a,
-  { rintros ⟨a1, a2⟩ ha,
-    rw finset.nat.mem_antidiagonal at ha,
-    subst ha,
-    congr',
-    simp,
-  },
-  apply finset.sum_bij' (λ (a : ℕ × ℕ) _, a.1) _ _ (λ (i : ℕ) _, (i, n - i)),
-  { intros, apply this ha },
-  { intros, simp },
-  { intros, simp only [finset.nat.mem_antidiagonal],
-    apply nat.add_sub_cancel', apply range_succ_mem_le _ _ ha },
-  { intros, simp only [finset.mem_range],
-    exact lt_succ_of_le (fst_le_of_mem_antidiagonal ha) },
-  { intros, simp [this ha] },
+  conv_rhs {apply_congr, skip, rw <-function.curry_apply f x (n-x), },
+  rw [sum_range_succ_eq_sum_antidiagonal], simp only [prod.mk.eta, function.curry_apply],
+end
+
+lemma sum_choose (i j : ℕ) : (i+j).choose j = factorial (i + j) / (factorial i * factorial j) :=
+by {rw [choose_eq_factorial_div_factorial, nat.add_sub_cancel, mul_comm], exact le_add_left j i}
+
+lemma factorial_mul_factorial_dvd_factorial_sum (i j : ℕ) :
+  factorial i * factorial j ∣ factorial (i + j) :=
+begin
+  conv {congr, rw [<-nat.add_sub_cancel j i, add_comm]},
+  apply factorial_mul_factorial_dvd_factorial (le.intro rfl),
+end
+
+end nat
+
+lemma bernoulli_spec (n : ℕ) :
+  ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli k = 1 :=
+begin
+  simp [finset.sum_range_succ, bernoulli_def n],
+  conv_lhs  {congr, skip, apply_congr, skip, rw choose_symm (le_of_lt (finset.mem_range.1 H))},
+  simp only [sub_add_cancel],
 end
 
 lemma bernoulli_spec' (n : ℕ) :
   ∑ k in finset.nat.antidiagonal n,
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 1 :=
 begin
-  rw sum_antidiagonal, simp,
-  conv_lhs
-  {apply_congr, skip, rw [nat.add_sub_cancel' _, cast_sub], skip,
+  rw nat.sum_antidiagonal, simp,
+  conv_lhs {apply_congr, skip, rw [nat.add_sub_cancel' _, cast_sub], skip,
   apply_congr lt_succ_iff.1 (finset.mem_range.1 H),
   apply_congr lt_succ_iff.1 (finset.mem_range.1 H), },
   rw bernoulli_spec,
@@ -231,25 +214,9 @@ begin
   rw ← cast_sub hk,
   congr',
   field_simp [show ((n - k : ℕ) : ℚ) + 1 ≠ 0, by {norm_cast, simp}],
-  -- down to nat
   norm_cast,
   rw [mul_comm, nat.sub_add_eq_add_sub hk],
   exact choose_mul_succ_eq n k,
-end
-
-lemma sum_choose (i j : ℕ) : (i+j).choose j = factorial (i + j) / (factorial i * factorial j) :=
-begin
-  rw choose_eq_factorial_div_factorial, simp only [nat.add_sub_cancel], rw mul_comm, exact le_add_left j i,
-end
-
-lemma factorial_mul_factorial_dvd_factorial_sum (i j : ℕ) :
-  factorial i * factorial j ∣ factorial (i + j) :=
-begin
-  conv
-  {congr, rw <-nat.add_sub_cancel j i,},
-  rw add_comm,
-  apply factorial_mul_factorial_dvd_factorial,
-  exact le.intro rfl,
 end
 
 open power_series
@@ -257,12 +224,10 @@ open nat
 
 @[simp] lemma constant_coeff_exp : constant_coeff ℚ (exp ℚ) = 1 := rfl
 
-def f : ℚ →+* ℚ := by refine_struct { to_fun := id}; tidy
-
-theorem thing (q : ℚ) : algebra_map ℚ ℚ q = q :=
+theorem algebra_map_id (q : ℚ) : algebra_map ℚ ℚ q = q :=
 begin
-  rw show algebra_map ℚ ℚ = f, by simp,
-  refl,
+  rw show algebra_map ℚ ℚ = (by refine_struct { to_fun := id}; tidy),
+  by simp only [eq_iff_true_of_subsingleton], refl,
 end
 
 theorem bernoulli_power_series :
@@ -272,12 +237,10 @@ begin
   ext n,
   -- constant coefficient is a special case
   cases n,
-  simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X, coeff_zero_eq_constant_coeff,
-  mul_zero, sub_self, ring_hom.map_mul],
-  rw coeff_mul,
-  rw mul_comm X,
-  rw coeff_succ_mul_X,
-  simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial, thing],
+  simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X,
+  coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul],
+  rw [coeff_mul, mul_comm X, coeff_succ_mul_X],
+  simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial, algebra_map_id],
   rw nat.sum_antidiagonal_succ',
   simp, --squeeze_simp hangs
   apply eq_inv_of_mul_left_eq_one,
@@ -287,12 +250,12 @@ begin
   rintro ⟨i, j⟩ hn, rw nat.mem_antidiagonal at hn, subst hn, dsimp only,
   have hj : (j : ℚ) + 1 ≠ 0, by norm_cast; linarith,
   have hj' : j.succ ≠ 0, by {show j + 1 ≠ 0, by linarith},
-  have haargh : ((j : ℚ) + 1) * (nat.factorial j) * (nat.factorial i) ≠ 0,
-  {norm_cast at *; exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
-  field_simp [hj, haargh],
-  rw [mul_comm _ (bernoulli i), mul_assoc],
-  norm_cast, rw mul_comm (j + 1) _, rw [mul_div_assoc, <- mul_assoc],
-  rw [cast_mul, cast_mul, mul_div_mul_right _, sum_choose], norm_cast, rw cast_dvd_char_zero,
+  have hnz : ((j : ℚ) + 1) * (nat.factorial j) * (nat.factorial i) ≠ 0,
+  {norm_cast at *; exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _),},
+  field_simp [hj, hnz],
+  rw [mul_comm _ (bernoulli i), mul_assoc], norm_cast,
+  rw [mul_comm (j + 1) _, mul_div_assoc, <- mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,
+  sum_choose, cast_dvd_char_zero],
   {apply factorial_mul_factorial_dvd_factorial_sum, },
   {exact cast_ne_zero.mpr hj', },
 end

@@ -380,17 +380,19 @@ end
 
 section region_between
 
-variables {α : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
-{f g : α → ℝ} {s : set α}
-
 open_locale classical
+
+variable {α : Type*}
 
 /-- The region between two real-valued functions on an arbitrary set. -/
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 { p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1) }
 
+variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}
+
 /-- The region between two measurable functions on a measurable set is measurable. -/
-lemma is_measurable_region_between (hf : measurable f) (hg: measurable g) (hs : is_measurable s) :
+lemma is_measurable_region_between
+  (hf : measurable f) (hg: measurable g) (hs : is_measurable s) :
   is_measurable (region_between f g s) :=
 begin
   dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],

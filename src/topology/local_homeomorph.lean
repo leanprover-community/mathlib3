@@ -541,7 +541,7 @@ by ext x; simp [prod_coe_symm]
   (e' : local_homeomorph δ η) (f' : local_homeomorph η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
 local_homeomorph.eq_of_local_equiv_eq $
-  by simp only [trans_to_local_equiv, local_equiv.prod_trans, prod_to_local_equiv]
+  by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
 
 end prod
 

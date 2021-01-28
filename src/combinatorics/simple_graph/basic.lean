@@ -101,6 +101,9 @@ variables {V : Type u} (G : simple_graph V)
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
+instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
+  decidable_pred (∈ G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
+
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
 
@@ -360,6 +363,11 @@ The maximum degree of all vertices
 def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
+/-! The following lemmas about `fintype.card` use noncomputable decidable instances to get fintype
+assumptions. -/
+section
+open_locale classical
+
 lemma degree_lt_card_verts (G : simple_graph V) (v : V) : G.degree v < fintype.card V :=
 begin
   classical,
@@ -406,6 +414,8 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       apply common_neighbors_subset_neighbor_set } },
+end
+
 end
 
 end finite

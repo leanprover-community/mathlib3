@@ -52,10 +52,7 @@ local attribute [-instance] complex.field -- Avoid making things noncomputable u
 
 /-- The embedding of the Gaussian integers into the complex numbers, as a ring homomorphism. -/
 def to_complex : ℤ[i] →+* ℂ :=
-begin
-  refine_struct { to_fun := λ x : ℤ[i], (x.re + x.im * I : ℂ), .. };
-  intros; apply complex.ext; dsimp; norm_cast; simp; abel
-end
+zsqrtd.lift ⟨I, by simp⟩
 end
 
 instance : has_coe (ℤ[i]) ℂ := ⟨to_complex⟩

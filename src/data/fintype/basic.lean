@@ -243,6 +243,12 @@ def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.s
   fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
+instance subtype_of_fintype {α : Sort*} [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype (subtype p) :=
+{ elems := ⟨((finset.univ : finset α).filter p).1.pmap subtype.mk (by simp),
+  multiset.nodup_pmap (λ _ _ _ _, subtype.mk.inj) (multiset.nodup_filter p finset.univ.nodup)⟩,
+  complete := λ ⟨x, h⟩, by simp [h] }
+
 /-- Given an injective function to a fintype, the domain is also a
 fintype. This is noncomputable because injectivity alone cannot be
 used to construct preimages. -/
@@ -251,9 +257,6 @@ by letI := classical.dec; exact
 if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
   exact of_surjective (inv_fun f) (inv_fun_surjective H)
 else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
-
-noncomputable instance subtype_of_fintype [fintype α] (p : α → Prop) : fintype (subtype p) :=
-fintype.of_injective coe subtype.coe_injective
 
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective

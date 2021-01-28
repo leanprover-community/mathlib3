@@ -830,7 +830,7 @@ def sum_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] (φ : Π i, β i 
 (add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
 from dif_pos $ finset.mem_singleton_self i
 
-@[simp] lemma sum_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+@[simp] lemma sum_add_hom_comp_single [Π i, add_monoid (β i)] [add_comm_monoid γ]
   (f : Π i, β i →+ γ) (i : ι) :
   (sum_add_hom f).comp (single_add_hom β i) = f i :=
 add_monoid_hom.ext $ λ x, sum_add_hom_single f i x
@@ -866,26 +866,26 @@ def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
 lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom_apply_single`,-/
-lemma lift_add_hom_apply_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+lemma lift_add_hom_apply_single [Π i, add_monoid (β i)] [add_comm_monoid γ]
   (f : Π i, β i →+ γ) (i : ι) (x : β i) :
   lift_add_hom f (single i x) = f i x :=
 by simp
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom_comp_single`,-/
-lemma lift_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+lemma lift_add_hom_comp_single [Π i, add_monoid (β i)] [add_comm_monoid γ]
   (f : Π i, β i →+ γ) (i : ι) :
   (lift_add_hom f).comp (single_add_hom β i) = f i :=
 by simp
 
 /-- The `dfinsupp` version of `finsupp.comp_lift_add_hom`,-/
-lemma comp_lift_add_hom {δ : Type*} [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+lemma comp_lift_add_hom {δ : Type*} [Π i, add_monoid (β i)] [add_comm_monoid γ]
   [add_comm_monoid δ]
   (g : γ →+ δ) (f : Π i, β i →+ γ) :
   g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
 lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
   by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
 
-lemma sum_sub_index [Π i, add_comm_group (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+lemma sum_sub_index [Π i, add_group (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [add_comm_group γ] {f g : Π₀ i, β i}
   {h : Π i, β i → γ} (h_sub : ∀i b₁ b₂, h i (b₁ - b₂) = h i b₁ - h i b₂) :
   (f - g).sum h = f.sum h - g.sum h :=
@@ -963,6 +963,8 @@ variables [decidable_eq ι]
 
 namespace monoid_hom
 variables {R S : Type*}
+
+section
 variables [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
 
 @[simp, to_additive]
@@ -979,6 +981,36 @@ lemma coe_dfinsupp_prod [monoid R] [comm_monoid S]
 lemma dfinsupp_prod_apply [monoid R] [comm_monoid S]
   (f : Π₀ i, β i) (g : Π i, β i → R →* S) (r : R) :
   (f.prod g) r = f.prod (λ a b, (g a b) r) := finset_prod_apply _ _ _
+end
+
+/-! The above lemmas, repeated for `dfinsupp.sum_add_hom`. -/
+@[simp]
+lemma add_monoid_hom.map_dfinsupp_sum_add_hom
+  [add_comm_monoid R] [add_comm_monoid S]
+  [Π (i : ι), add_comm_monoid (β i)]
+   (h : R →+ S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
+  h (dfinsupp.sum_add_hom g f)
+    = dfinsupp.sum_add_hom (λ i, h.comp (g i)) f :=
+add_monoid_hom.congr_fun (dfinsupp.comp_lift_add_hom h g) f
+
+@[simp]
+lemma add_monoid_hom.dfinsupp_sum_add_hom_apply
+  [add_monoid R] [add_comm_monoid S]
+  [Π (i : ι), add_comm_monoid (β i)]
+  (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) (r : R) :
+  (dfinsupp.sum_add_hom g f) r
+    = dfinsupp.sum_add_hom (λ i, (add_monoid_hom.eval r).comp (g i)) f :=
+add_monoid_hom.map_dfinsupp_sum_add_hom (add_monoid_hom.eval r) f g
+
+lemma add_monoid_hom.coe_dfinsupp_sum_add_hom
+  [add_monoid R] [add_comm_monoid S]
+  [Π (i : ι), add_comm_monoid (β i)]
+  (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) :
+  ⇑(dfinsupp.sum_add_hom g f)
+    = dfinsupp.sum_add_hom (λ i, (add_monoid_hom.coe_fn R S).comp (g i)) f :=
+add_monoid_hom.map_dfinsupp_sum_add_hom (add_monoid_hom.coe_fn R S) f g
+
+#lint
 
 end monoid_hom
 

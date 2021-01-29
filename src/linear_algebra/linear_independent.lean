@@ -735,7 +735,7 @@ end module
 /-!
 ### Properties which require `division_ring K`
 
-These can be considered generalizations of properties of of linear independence in `vector_space`s
+These can be considered generalizations of properties of linear independence in `vector_space`s.
 -/
 
 section vector_space

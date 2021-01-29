@@ -1589,7 +1589,7 @@ let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
 
 @[simp]
 lemma nonempty.image_iff (f : α → β) : (s.image f).nonempty ↔ s.nonempty :=
-⟨λ ⟨y, hy⟩, by { rcases mem_image.mp hy with ⟨x, hx, _⟩, exact ⟨x, hx⟩, }, λ h, h.image f⟩
+⟨λ ⟨y, hy⟩, let ⟨x, hx, _⟩ := mem_image.mp hy in ⟨x, hx⟩, λ h, h.image f⟩
 
 theorem image_to_finset [decidable_eq α] {s : multiset α} :
   s.to_finset.image f = (s.map f).to_finset :=
@@ -2123,7 +2123,7 @@ lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=
 bUnion_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
 
-lemma erase_bUnion {α β : Type*} [decidable_eq β] (f : α → finset β) (s : finset α) (b : β) :
+lemma erase_bUnion [decidable_eq β] (f : α → finset β) (s : finset α) (b : β) :
   (s.bUnion f).erase b = s.bUnion (λ x, (f x).erase b) :=
 begin
   ext y,

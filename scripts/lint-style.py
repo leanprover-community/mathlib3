@@ -196,27 +196,35 @@ def regular_check(lines, path):
                 errors += [(ERR_IMP, line_nr, path)]
     return errors
 
+def output_message(path, line_nr, code, msg):
+    if len(exceptions) == 0:
+        # we are generating a new exceptions file
+        # filename first, then line so that we can call "sort" on the output
+        print(f"{path} : line {line_nr} : {code} : {msg}")
+    else:
+        # We are outputting for github. It doesn't appear to surface code, so show it in the message too
+        print(f"::error file={path},line={line_nr},code={code}::{code}: {msg}")
+
 def format_errors(errors):
     global new_exceptions
-    for (errno, line_nr, path) in errors:
+    for errno, line_nr, path in errors:
         if (errno, path.resolve()) in exceptions:
             continue
         new_exceptions = True
-        # filename first, then line so that we can call "sort" on the output
         if errno == ERR_COP:
-            print("{} : line {} : ERR_COP : Malformed or missing copyright header".format(path, line_nr))
+            output_message(path, line_nr, "ERR_COP", "Malformed or missing copyright header")
         if errno == ERR_IMP:
-            print("{} : line {} : ERR_IMP : More than one file imported per line".format(path, line_nr))
+            output_message(path, line_nr, "ERR_IMP", "More than one file imported per line")
         if errno == ERR_MOD:
-            print("{} : line {} : ERR_MOD : Module docstring missing, or too late".format(path, line_nr))
+            output_message(path, line_nr, "ERR_MOD", "Module docstring missing, or too late")
         if errno == ERR_LIN:
-            print("{} : line {} : ERR_LIN : Line has more than 100 characters".format(path, line_nr))
+            output_message(path, line_nr, "ERR_LIN", "Line has more than 100 characters")
         if errno == ERR_SAV:
-            print("{} : line {} : ERR_SAV : File contains the character ᾰ".format(path, line_nr))
+            output_message(path, line_nr, "ERR_SAV", "File contains the character ᾰ")
         if errno == ERR_RNT:
-            print("{} : line {} : ERR_RNT : Reserved notation outside tactic.reserved_notation".format(path, line_nr))
+            output_message(path, line_nr, "ERR_RNT", "Reserved notation outside tactic.reserved_notation")
         if errno == ERR_OPT:
-            print("{} : line {} : ERR_OPT : Forbidden set_option command".format(path, line_nr))
+            output_message(path, line_nr, "ERR_OPT", "Forbidden set_option command")
 
 def lint(path):
     with path.open() as f:

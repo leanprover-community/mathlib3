@@ -292,7 +292,7 @@ begin
 end
 
 /-!
-### chaar
+### Lemmas about `chaar`
 -/
 
 /-- This is the "limit" of `prehaar K₀.1 U K` as `U` becomes a smaller and smaller open

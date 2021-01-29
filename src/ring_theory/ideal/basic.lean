@@ -299,7 +299,6 @@ variables [comm_ring α] (I : ideal α) {a b : α}
 lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
 
 lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
---λ bi, ⟨λ h, sorry, λ h, ideal.add_mem I h bi⟩
 
 lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
 

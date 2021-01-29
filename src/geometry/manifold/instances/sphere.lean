@@ -259,8 +259,8 @@ by simp [stereographic']
 modelled on the Euclidean space of dimension `n`. -/
 instance {n : ℕ} [_i : fact (findim ℝ E = n + 1)] :
   charted_space (euclidean_space ℝ (fin n)) (sphere (0:E) 1) :=
-{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' (fact.elim _i) v},
-  chart_at         := λ v, stereographic' (fact.elim _i) (-v),
+{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' _i.elim v},
+  chart_at         := λ v, stereographic' _i.elim (-v),
   mem_chart_source := λ v, by simpa using ne_neg_of_mem_unit_sphere ℝ v,
   chart_mem_atlas  := λ v, ⟨-v, rfl⟩ }
 

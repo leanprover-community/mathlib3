@@ -101,7 +101,7 @@ src/analysis/special_functions/pow.lean : line 1399 : ERR_LIN : Line has more th
 src/analysis/special_functions/pow.lean : line 295 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/pow.lean : line 296 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/pow.lean : line 548 : ERR_LIN : Line has more than 100 characters
-src/analysis/special_functions/trigonometric.lean : line 1466 : ERR_LIN : Line has more than 100 characters
+src/analysis/special_functions/trigonometric.lean : line 1467 : ERR_LIN : Line has more than 100 characters
 src/analysis/specific_limits.lean : line 210 : ERR_LIN : Line has more than 100 characters
 src/analysis/specific_limits.lean : line 84 : ERR_LIN : Line has more than 100 characters
 src/category_theory/abelian/exact.lean : line 70 : ERR_LIN : Line has more than 100 characters
@@ -400,7 +400,7 @@ src/data/complex/exponential.lean : line 1244 : ERR_LIN : Line has more than 100
 src/data/complex/exponential.lean : line 166 : ERR_LIN : Line has more than 100 characters
 src/data/complex/exponential.lean : line 545 : ERR_LIN : Line has more than 100 characters
 src/data/complex/exponential.lean : line 878 : ERR_LIN : Line has more than 100 characters
-src/data/complex/is_R_or_C.lean : line 672 : ERR_LIN : Line has more than 100 characters
+src/data/complex/is_R_or_C.lean : line 675 : ERR_LIN : Line has more than 100 characters
 src/data/dlist/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/equiv/denumerable.lean : line 14 : ERR_MOD : Module docstring missing, or too late

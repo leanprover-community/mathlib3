@@ -2692,7 +2692,7 @@ end
 /-- Given a natural number `n` equal to the `findim` of a finite-dimensional inner product space,
 there exists an isometry from the space to `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.of_inner_product_space
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n)  :
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n) :
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
 hv.2.isometry_euclidean_of_orthonormal hv.1

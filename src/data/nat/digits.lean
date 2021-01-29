@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import list.indexes
 import tactic.interval_cases
 import tactic.linarith
 
@@ -146,6 +147,30 @@ begin
   induction L with d L ih,
   { refl, },
   { dsimp [of_digits], rw ih, },
+end
+
+-- should I bury it in the main proof with a `have` ?
+lemma of_digits_eq_sum_map_with_index_aux (b : ℕ) (l : list ℕ) :
+  (list.zip_with ((λ (i a : ℕ), a * b ^ i) ∘ nat.succ) (list.range l.length) l).sum =
+  b * (list.zip_with (λ i a, a * b ^ i) (list.range l.length) l).sum :=
+begin
+  suffices : list.zip_with (((λ (i a : ℕ), a * b ^ i) ∘ nat.succ)) (list.range l.length) l =
+      list.zip_with (λ i a, b * (a * b ^ i)) (list.range l.length) l,
+    { simp [this] },
+  congr,
+  ext,
+  simp [pow_succ],
+  ring
+end
+
+lemma of_digits_eq_sum_map_with_index (b: ℕ) (L: list ℕ):
+  of_digits b L = list.sum (L.map_with_index (λ i a, a * b ^ i)) :=
+begin
+  rw [list.map_with_index_eq_enum_map_uncurry, list.enum_eq_zip_range,
+    list.map_uncurry_zip_eq_zip_with, nat.of_digits_eq_foldr b],
+  induction L with hd tl hl,
+    { simp },
+    { simp [list.range_succ_eq_map, list.zip_with_map_left, of_digits_eq_sum_map_with_index_aux, hl] }
 end
 
 @[simp] lemma of_digits_singleton {b n : ℕ} : of_digits b [n] = n := by simp [of_digits]

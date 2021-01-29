@@ -133,6 +133,16 @@ lemma ring_hom.map_sum [semiring β] [semiring γ]
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
 
+@[to_additive]
+lemma monoid_hom.coe_prod [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
+  ⇑(∏ x in s, f x) = ∏ x in s, f x :=
+(monoid_hom.coe_fn β γ).map_prod _ _
+
+@[simp, to_additive]
+lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α)
+  (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
+(monoid_hom.eval b).map_prod _ _
+
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
@@ -218,15 +228,14 @@ by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 @[simp, to_additive]
 lemma prod_sum_elim [decidable_eq (α ⊕ γ)]
   (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
-  ∏ x in s.image sum.inl ∪ t.image sum.inr, sum.elim f g x = (∏ x in s, f x) * (∏ x in t, g x) :=
+  ∏ x in s.map function.embedding.inl ∪ t.map function.embedding.inr, sum.elim f g x =
+    (∏ x in s, f x) * (∏ x in t, g x) :=
 begin
-  rw [prod_union, prod_image, prod_image],
-  { simp only [sum.elim_inl, sum.elim_inr] },
-  { exact λ _ _ _ _, sum.inr.inj },
-  { exact λ _ _ _ _, sum.inl.inj },
-  { rintros i hi,
-    erw [finset.mem_inter, finset.mem_image, finset.mem_image] at hi,
-    rcases hi with ⟨⟨i, hi, rfl⟩, ⟨j, hj, H⟩⟩,
+  rw [prod_union, prod_map, prod_map],
+  { simp only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,
+      sum.elim_inr] },
+  { simp only [disjoint_left, finset.mem_map, finset.mem_map],
+    rintros _ ⟨i, hi, rfl⟩ ⟨j, hj, H⟩,
     cases H }
 end
 

@@ -108,6 +108,17 @@ begin
   simp,
 end
 
+@[simp] lemma univ_filter_exists (f : α → β) [fintype β]
+  [decidable_pred (λ y, ∃ x, f x = y)] [decidable_eq β] :
+  finset.univ.filter (λ y, ∃ x, f x = y) = finset.univ.image f :=
+by { ext, simp }
+
+/-- Note this is a special case of `(finset.image_preimage f univ _).symm`. -/
+lemma univ_filter_mem_range (f : α → β) [fintype β]
+  [decidable_pred (λ y, y ∈ set.range f)] [decidable_eq β] :
+  finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
+univ_filter_exists f
+
 end finset
 
 open finset function
@@ -240,9 +251,6 @@ by letI := classical.dec; exact
 if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
   exact of_surjective (inv_fun f) (inv_fun_surjective H)
 else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
-
-noncomputable instance subtype_of_fintype [fintype α] (p : α → Prop) : fintype (subtype p) :=
-fintype.of_injective coe subtype.coe_injective
 
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
@@ -489,6 +497,13 @@ fintype.of_equiv _ equiv.ulift.symm
 @[simp] theorem fintype.card_ulift (α : Type*) [fintype α] :
   fintype.card (ulift α) = fintype.card α :=
 fintype.of_equiv_card _
+
+lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
+  (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
+begin
+  rw [eq_comm, eq_univ_iff_forall], simp only [mem_union, mem_map, exists_prop, mem_univ, true_and],
+  rintro (x|y), exacts [or.inl ⟨x, rfl⟩, or.inr ⟨y, rfl⟩]
+end
 
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
 @fintype.of_equiv _ _ (@sigma.fintype _

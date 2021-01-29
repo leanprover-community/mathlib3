@@ -7,8 +7,8 @@ Authors: Jujian Zhang
 import data.real.irrational
 import data.polynomial.denoms_clearable
 import ring_theory.algebraic
-import topology.algebra.polynomial --needed for the proof of exists_with_metr_max
-import analysis.calculus.mean_value --needed for the proof of exists_with_metr_max
+import topology.algebra.polynomial
+import analysis.calculus.mean_value
 
 /-!
 # Liouville's theorem

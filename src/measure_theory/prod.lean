@@ -651,7 +651,7 @@ lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ennreal⦄
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ y, ∫⁻ x, f x y ∂μ ∂ν :=
 (lintegral_lintegral hf).trans (lintegral_prod_symm _ hf)
 
-lemma lintegral_prod_mul [sigma_finite μ] {f : α → ennreal} {g : β → ennreal}
+lemma lintegral_prod_mul {f : α → ennreal} {g : β → ennreal}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
 by simp [lintegral_prod _ (hf.fst.ennreal_mul hg.snd), lintegral_lintegral_mul hf hg]

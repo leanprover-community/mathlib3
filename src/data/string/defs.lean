@@ -45,4 +45,8 @@ def popn (s : string) (n : nat) : string :=
 def is_nat (s : string) : bool :=
 ¬ s.is_empty ∧ s.to_list.all (λ c, to_bool c.is_digit)
 
+/-- Produce the head character from the string `s`, if `s` is not empty, otherwise 'A'. -/
+def head (s : string) : char :=
+(s.mk_iterator).curr
+
 end string

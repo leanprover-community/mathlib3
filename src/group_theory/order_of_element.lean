@@ -33,9 +33,6 @@ iff.intro
 
 end finset
 
-lemma conj_injective [group α] {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
-λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
-
 lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
   (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ subgroup.set_normalizer s :=
 by haveI := classical.prop_decidable;
@@ -161,7 +158,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
-    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
+    = _ : (finset.card_bUnion (by { intros, apply finset.disjoint_filter.2, cc })).symm
 ... = _ : congr_arg finset.card (finset.ext (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
@@ -304,6 +301,7 @@ lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.pri
 ⟨begin
   obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
   from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  classical, -- for fintype (subgroup.gpowers g)
   have : fintype.card (subgroup.gpowers g) ∣ p,
   { rw ←h,
     apply card_subgroup_dvd_card },
@@ -491,7 +489,7 @@ lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 by_contradiction $ λ h,
 have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
-  not_not.1 (mt nat.pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
+  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
 let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
@@ -513,7 +511,7 @@ lt_irrefl c $
         (λ h, by rw h))
   ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
-      (λ h, nat.pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
+      (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
   ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m : eq.symm (sum_insert (by simp))
   ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
       (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩)) (λ _ _, rfl)

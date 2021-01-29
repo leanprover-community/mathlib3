@@ -159,11 +159,6 @@ noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
-lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
-le_of_forall_le_of_dense $ assume x hxb,
-calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
-    ... = x : by rw [add_comm]; simp
-
 open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=

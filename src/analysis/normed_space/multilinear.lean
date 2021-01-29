@@ -26,7 +26,7 @@ Let `f` be a continuous multilinear map in finitely many variables.
 * `∥f∥` is its norm, i.e., the smallest number such that `∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥` for
   all `m`.
 * `le_op_norm f m` asserts the fundamental inequality `∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥`.
-* `norm_image_sub_le_of_bound f m₁ m₂` gives a control of the difference `f m₁ - f m₂` in terms of
+* `norm_image_sub_le f m₁ m₂` gives a control of the difference `f m₁ - f m₂` in terms of
   `∥f∥` and `∥m₁ - m₂∥`.
 
 We also register isomorphisms corresponding to currying or uncurrying variables, transforming a
@@ -55,7 +55,7 @@ approach, it turns out that direct proofs are easier and more efficient.
 
 noncomputable theory
 open_locale classical big_operators
-open finset
+open finset metric
 
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
@@ -77,70 +77,49 @@ namespace multilinear_map
 
 variable (f : multilinear_map 𝕜 E₁ E₂)
 
+/-- If a multilinear map in finitely many variables on normed spaces satisfies the inequality
+`∥f m∥ ≤ C * ∏ i, ∥m i∥` on a shell `ε i / ∥c i∥ < ∥m i∥ < ε i` for some positive numbers `ε i`
+and elements `c i : 𝕜`, `1 < ∥c i∥`, then it satisfies this inequality for all `m`. -/
+lemma bound_of_shell {ε : ι → ℝ} {C : ℝ} (hε : ∀ i, 0 < ε i) {c : ι → 𝕜} (hc : ∀ i, 1 < ∥c i∥)
+  (hf : ∀ m : Π i, E₁ i, (∀ i, ε i / ∥c i∥ ≤ ∥m i∥) → (∀ i, ∥m i∥ < ε i) → ∥f m∥ ≤ C * ∏ i, ∥m i∥)
+  (m : Π i, E₁ i) : ∥f m∥ ≤ C * ∏ i, ∥m i∥ :=
+begin
+  rcases em (∃ i, m i = 0) with ⟨i, hi⟩|hm; [skip, push_neg at hm],
+  { simp [f.map_coord_zero i hi, prod_eq_zero (mem_univ i), hi] },
+  choose δ hδ0 hδm_lt hle_δm hδinv using λ i, rescale_to_shell (hc i) (hε i) (hm i),
+  have hδ0 : 0 < ∏ i, ∥δ i∥, from prod_pos (λ i _, norm_pos_iff.2 (hδ0 i)),
+  simpa [map_smul_univ, norm_smul, prod_mul_distrib, mul_left_comm C, mul_le_mul_left hδ0]
+    using hf (λ i, δ i • m i) hle_δm hδm_lt,
+end
+
 /-- If a multilinear map in finitely many variables on normed spaces is continuous, then it
 satisfies the inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, for some `C` which can be chosen to be
 positive. -/
 theorem exists_bound_of_continuous (hf : continuous f) :
   ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
 begin
-  /- The proof only uses the continuity at `0`. Then, given a general point `m`, rescale each of
-  its coordinates to bring them to a shell of fixed width around `0`, on which one knows that `f` is
-  bounded, and then use the multiplicativity of `f` along each coordinate to deduce the desired
-  bound.-/
-  obtain ⟨ε, ε_pos, hε⟩ : ∃ ε > 0, ∀{m}, dist m 0 < ε → dist (f m) (f 0) < 1 :=
-    metric.tendsto_nhds_nhds.1 hf.continuous_at 1 zero_lt_one,
-  let δ := ε/2,
-  have δ_pos : δ > 0 := half_pos ε_pos,
-  /- On points of size at most `δ`, `f` is bounded (by `1 + ∥f 0∥`). -/
-  have H : ∀{a}, ∥a∥ ≤ δ → ∥f a∥ ≤ 1 + ∥f 0∥,
-  { assume a ha,
-    have : dist (f a) (f 0) ≤ 1,
-    { apply le_of_lt (hε _),
-      rw [dist_eq_norm, sub_zero],
-      exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
-    calc ∥f a∥ = dist (f a) 0 : (dist_zero_right _).symm
-      ... ≤ dist (f a) (f 0) + dist (f 0) 0 : dist_triangle _ _ _
-      ... ≤ 1 + ∥f 0∥ : by { rw dist_zero_right, exact add_le_add_right this _ } },
-  obtain ⟨c, hc⟩ : ∃c : 𝕜, 1 < ∥c∥ := normed_field.exists_one_lt_norm 𝕜,
-  set C := (1 + ∥f 0∥) * ∏ i : ι, (δ⁻¹ * ∥c∥),
-  have C_pos : 0 < C :=
-    mul_pos (lt_of_lt_of_le zero_lt_one (by simp))
-      (prod_pos (λi hi, mul_pos (inv_pos.2 δ_pos) (lt_of_le_of_lt zero_le_one hc))),
-  refine ⟨C, C_pos, λm, _⟩,
-  /- Given a general point `m`, rescale each coordinate to bring it to `[δ/∥c∥, δ]` by multiplication
-  by a power of a scalar `c` with norm `∥c∥ > 1`.-/
-  by_cases h : ∃i, m i = 0,
-  { rcases h with ⟨i, hi⟩,
-    rw [f.map_coord_zero i hi, norm_zero],
-    exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
-  { push_neg at h,
-    have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ < δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
-      λi, rescale_to_shell hc δ_pos (h i),
-    choose d hd using this,
-    have A : 0 ≤ 1 + ∥f 0∥ := add_nonneg zero_le_one (norm_nonneg _),
-    have B : ∀ (i : ι), i ∈ univ → 0 ≤ ∥d i∥⁻¹ := λi hi, by simp,
-    -- use the bound on `f` on the ball of size `δ` to conclude.
-    calc
-      ∥f m∥ = ∥f (λi, (d i)⁻¹ • (d i • m i))∥ :
-        by { unfold_coes, congr' with i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
-      ... = ∥(∏ i, (d i)⁻¹) • f (λi, d i • m i)∥ : by rw f.map_smul_univ
-      ... = (∏ i, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
-        by { rw [norm_smul, normed_field.norm_prod], congr' with i, rw normed_field.norm_inv }
-      ... ≤ (∏ i, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
-        mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1.le)))
-          (prod_nonneg B)
-      ... ≤ (∏ i, δ⁻¹ * ∥c∥ * ∥m i∥) * (1 + ∥f 0∥) :
-        mul_le_mul_of_nonneg_right (prod_le_prod B (λi hi, (hd i).2.2.2)) A
-      ... = (∏ i : ι, δ⁻¹ * ∥c∥) * (∏ i, ∥m i∥) * (1 + ∥f 0∥) :
-        by rw prod_mul_distrib
-      ... = C * (∏ i, ∥m i∥) :
-        by rw [mul_comm, ← mul_assoc] }
+  by_cases hι : nonempty ι, swap,
+  { refine ⟨∥f 0∥ + 1, add_pos_of_nonneg_of_pos (norm_nonneg _) zero_lt_one, λ m, _⟩,
+    obtain rfl : m = 0, from funext (λ i, (hι ⟨i⟩).elim),
+    simp [univ_eq_empty.2 hι, zero_le_one] },
+  resetI,
+  obtain ⟨ε : ℝ, ε0 : 0 < ε, hε : ∀ m : Π i, E₁ i, ∥m - 0∥ < ε → ∥f m - f 0∥ < 1⟩ :=
+    normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one,
+  simp only [sub_zero, f.map_zero] at hε,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  have : 0 < (∥c∥ / ε) ^ fintype.card ι, from pow_pos (div_pos (zero_lt_one.trans hc) ε0) _,
+  refine ⟨_, this, _⟩,
+  refine f.bound_of_shell (λ _, ε0) (λ _, hc) (λ m hcm hm, _),
+  refine (hε m ((pi_norm_lt_iff ε0).2 hm)).le.trans _,
+  rw [← div_le_iff' this, one_div, ← inv_pow', inv_div, fintype.card, ← prod_const],
+  exact prod_le_prod (λ _ _, div_nonneg ε0.le (norm_nonneg _)) (λ i _, hcm i)
 end
 
 /-- If `f` satisfies a boundedness property around `0`, one can deduce a bound on `f m₁ - f m₂`
 using the multilinearity. Here, we give a precise but hard to use version. See
 `norm_image_sub_le_of_bound` for a less precise but more usable version. The bound reads
-`∥f m - f m'∥ ≤ C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
+`∥f m - f m'∥ ≤
+  C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`. -/
 lemma norm_image_sub_le_of_bound' {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E₁ i) :
@@ -245,6 +224,10 @@ def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
   continuous_multilinear_map 𝕜 E₁ E₂ :=
 { cont := f.continuous_of_bound C H, ..f }
 
+@[simp] lemma coe_mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
+  ⇑(f.mk_continuous C H) = f :=
+rfl
+
 /-- Given a multilinear map in `n` variables, if one restricts it to `k` variables putting `z` on
 the other coordinates, then the resulting restricted function satisfies an inequality
 `∥f.restr v∥ ≤ C * ∥z∥^(n-k) * Π ∥v i∥` if the original function satisfies `∥f v∥ ≤ C * Π ∥v i∥`. -/
@@ -253,12 +236,12 @@ lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E�
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → G) :
   ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ :=
 begin
-  rw mul_assoc,
+  rw [mul_right_comm, mul_assoc],
   convert H _ using 2,
   simp only [apply_dite norm, fintype.prod_dite, prod_const (∥z∥), finset.card_univ,
     fintype.card_of_subtype sᶜ (λ x, mem_compl), card_compl, fintype.card_fin, hk, mk_coe,
-    (s.mono_equiv_of_fin hk).symm.prod_comp (λ x, ∥v x∥)],
-  apply mul_comm
+    ← (s.order_iso_of_fin hk).symm.bijective.prod_comp (λ x, ∥v x∥)],
+  refl
 end
 
 end multilinear_map
@@ -329,8 +312,8 @@ lemma unit_le_op_norm (h : ∥m∥ ≤ 1) : ∥f m∥ ≤ ∥f∥ :=
 calc
   ∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥ : f.le_op_norm m
   ... ≤ ∥f∥ * ∏ i : ι, 1 :
-    mul_le_mul_of_nonneg_left (prod_le_prod (λi hi, norm_nonneg _) (λi hi, le_trans (norm_le_pi_norm _ _) h))
-      (op_norm_nonneg f)
+    mul_le_mul_of_nonneg_left (prod_le_prod (λi hi, norm_nonneg _)
+      (λi hi, le_trans (norm_le_pi_norm _ _) h)) (op_norm_nonneg f)
   ... = ∥f∥ : by simp
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `f`. -/
@@ -405,18 +388,19 @@ lemma continuous_restrict_scalars :
 end restrict_scalars
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, precise version.
-For a less precise but more usable version, see `norm_image_sub_le_of_bound`. The bound reads
-`∥f m - f m'∥ ≤ ∥f∥ * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
+For a less precise but more usable version, see `norm_image_sub_le`. The bound reads
+`∥f m - f m'∥ ≤
+  ∥f∥ * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`.-/
-lemma norm_image_sub_le_of_bound' (m₁ m₂ : Πi, E₁ i) :
+lemma norm_image_sub_le' (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
   ∥f∥ * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound' (norm_nonneg _) f.le_op_norm _ _
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, less precise
-version. For a more precise but less usable version, see `norm_image_sub_le_of_bound'`.
+version. For a more precise but less usable version, see `norm_image_sub_le'`.
 The bound is `∥f m - f m'∥ ≤ ∥f∥ * card ι * ∥m - m'∥ * (max ∥m∥ ∥m'∥) ^ (card ι - 1)`.-/
-lemma norm_image_sub_le_of_bound (m₁ m₂ : Πi, E₁ i) :
+lemma norm_image_sub_le (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤ ∥f∥ * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound (norm_nonneg _) f.le_op_norm _ _
 
@@ -439,7 +423,7 @@ begin
     ... = ∥q.1 q.2 - q.1 p.2∥ + ∥q.1 p.2 - p.1 p.2∥ : by rw [dist_eq_norm, dist_eq_norm]
     ... ≤ ∥q.1∥ * (fintype.card ι) * (max ∥q.2∥ ∥p.2∥) ^ (fintype.card ι - 1) * ∥q.2 - p.2∥
           + ∥q.1 - p.1∥ * ∏ i, ∥p.2 i∥ :
-      add_le_add (norm_image_sub_le_of_bound _ _ _) ((q.1 - p.1).le_op_norm p.2)
+      add_le_add (norm_image_sub_le _ _ _) ((q.1 - p.1).le_op_norm p.2)
     ... ≤ (∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1) * ∥q - p∥
           + ∥q - p∥ * ∏ i, ∥p.2 i∥ :
       by apply_rules [add_le_add, mul_le_mul, le_refl, le_trans (norm_fst_le q) A, nat.cast_nonneg,
@@ -681,7 +665,8 @@ variables (𝕜 ι)
 protected def mk_pi_field (z : E₂) : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂ :=
 @multilinear_map.mk_continuous 𝕜 ι (λ(i : ι), 𝕜) E₂ _ _ _ _ _ _ _
   (multilinear_map.mk_pi_ring 𝕜 ι z) (∥z∥)
-  (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, normed_field.norm_prod, mul_comm])
+  (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, normed_field.norm_prod,
+    mul_comm])
 
 variables {𝕜 ι}
 
@@ -758,7 +743,8 @@ calc
   ... = ∥f∥ * ∏ i, ∥m i∥ : by { rw prod_univ_succ, refl }
 
 lemma continuous_multilinear_map.norm_map_init_le
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂))
+  (m : Πi, E i) :
   ∥f (init m) (m (last n))∥ ≤ ∥f∥ * ∏ i, ∥m i∥ :=
 calc
   ∥f (init m) (m (last n))∥ ≤ ∥f (init m)∥ * ∥m (last n)∥ : (f (init m)).le_op_norm _
@@ -924,7 +910,8 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →ₗ[
   (∥f∥) (λm, f.norm_map_init_le m)
 
 @[simp] lemma continuous_multilinear_map.uncurry_right_apply
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂))
+  (m : Πi, E i) :
   f.uncurry_right m = f (init m) (m (last n)) := rfl
 
 /-- Given a continuous multilinear map `f` in `n+1` variables, split the last variable to obtain

@@ -290,7 +290,7 @@ lemma dvd_val {as : list int} {i : int} :
 | (m+1) :=
   begin
     unfold val_between,
-    rw [@val_between_map_div m, int.add_div_of_dvd (dvd_val_between h1)],
+    rw [@val_between_map_div m, int.add_div_of_dvd_right],
     apply fun_mono_2 rfl,
     { apply calc get (l + m) (list.map (λ (x : ℤ), x / i) as) * v (l + m)
           = ((get (l + m) as) / i) * v (l + m) :

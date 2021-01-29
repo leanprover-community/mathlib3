@@ -145,6 +145,15 @@ lemma mul_one_div (x y : G) :
   x * (1 / y) = x / y :=
 by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
 
+lemma mul_div_assoc {a b c : G} : a * b / c = a * (b / c) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
+
+lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
+mul_div_assoc.symm
+
+@[simp, to_additive] lemma one_div (a : G) : 1 / a = a⁻¹ :=
+(inv_eq_one_div a).symm
+
 end div_inv_monoid
 
 section group
@@ -336,9 +345,6 @@ by rw [h, sub_self]
 
 lemma sub_eq_zero_iff_eq : a - b = 0 ↔ a = b :=
 ⟨eq_of_sub_eq_zero, sub_eq_zero_of_eq⟩
-
-@[simp] lemma zero_sub (a : G) : 0 - a = -a :=
-by rw [sub_eq_add_neg, zero_add (-a)]
 
 @[simp] lemma sub_zero (a : G) : a - 0 = a :=
 by rw [sub_eq_add_neg, neg_zero, add_zero]
@@ -538,6 +544,6 @@ begin
 end
 
 lemma sub_eq_sub_iff_sub_eq_sub : a - b = c - d ↔ a - c = b - d :=
-by simp [-sub_eq_add_neg, sub_eq_sub_iff_add_eq_add, add_comm]
+by rw [sub_eq_iff_eq_add, sub_add_eq_add_sub, sub_eq_iff_eq_add', add_sub_assoc]
 
 end add_comm_group

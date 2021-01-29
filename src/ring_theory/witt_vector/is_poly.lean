@@ -101,7 +101,7 @@ setup_tactic_parser
 /-- A macro for a common simplification when rewriting with ghost component equations. -/
 meta def ghost_simp (lems : parse simp_arg_list) : tactic unit :=
 do tactic.try tactic.intro1,
-   simp none tt
+   simp none none tt
      (lems ++ [simp_arg_type.symm_expr ``(sub_eq_add_neg)])
      [`ghost_simps] (loc.ns [none])
 

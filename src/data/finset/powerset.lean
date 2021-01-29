@@ -92,6 +92,13 @@ by cases s; simp [powerset_len, val_le_iff.symm]; refl
   card (powerset_len n s) = nat.choose (card s) n :=
 (card_pmap _ _ _).trans (card_powerset_len n s.1)
 
+@[simp]
+lemma powerset_len_zero (s : finset α) : finset.powerset_len 0 s = {∅} :=
+begin
+  ext, rw [mem_powerset_len, mem_singleton, card_eq_zero],
+  refine ⟨λ h, h.2, λ h, by { rw h, exact ⟨empty_subset s, rfl⟩ }⟩,
+end
+
 theorem powerset_len_eq_filter {n} {s : finset α} :
   powerset_len n s = (powerset s).filter (λ x, x.card = n) :=
 by { ext, simp [mem_powerset_len] }

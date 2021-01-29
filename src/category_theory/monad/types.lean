@@ -23,6 +23,9 @@ universes u
 
 variables (m : Type u → Type u) [_root_.monad m] [is_lawful_monad m]
 
+/--
+A lawful `control.monad` gives a category theory `monad` on the category of types.
+-/
 @[simps]
 def of_type_monad : monad (Type u) :=
 { to_functor  := of_type_functor m,

@@ -2287,11 +2287,9 @@ lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (map f μ)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 ⟨hg.mk g ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
 
-/- a generalization of `ae_measurable.comp_measurable` when the left map is `ae_measurable` with
-  respect that a measure different from `map f μ` -/
 lemma comp_measurable' {δ} [measurable_space δ] {ν : measure δ} {f : α → δ} {g : δ → β}
   (hg : ae_measurable g ν) (hf : measurable f) (h : map f μ ≪ ν) : ae_measurable (g ∘ f) μ :=
-⟨hg.mk g ∘ f, hg.measurable_mk.comp hf, ae_eq_comp' hf hg.ae_eq_mk h⟩
+(hg.mono' h).comp_measurable hf
 
 lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ x, (f x, g x)) μ :=

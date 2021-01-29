@@ -253,11 +253,8 @@ end
 lemma equiv_fin_of_dim_eq {ι : Type*} [finite_dimensional K V] {n : ℕ} (hn : findim K V = n)
   {v : ι → V} (hv : is_basis K v) :
   ∃ g : fin n ≃ ι, is_basis K (v ∘ g) :=
-begin
-  obtain ⟨g₁, hg₁⟩ := equiv_fin hv,
-  let g₂ := classical.choice (fin.equiv_iff_eq.mpr hn),
-  exact ⟨g₂.symm.trans g₁, hv.comp _ (g₂.symm.trans g₁).bijective⟩,
-end
+let ⟨g₁, hg₁⟩ := equiv_fin hv, ⟨g₂⟩ := fin.equiv_iff_eq.mpr hn in
+⟨g₂.symm.trans g₁, hv.comp _ (g₂.symm.trans g₁).bijective⟩
 
 variables (K V)
 

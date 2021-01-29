@@ -5,6 +5,7 @@ Authors: Johan Commelin, Kevin Buzzard
 -/
 import data.rat
 import data.fintype.card
+import ring_theory.power_series.well_known
 
 /-!
 # Bernoulli numbers
@@ -143,4 +144,16 @@ begin
   norm_cast,
   rw [mul_comm, nat.sub_add_eq_add_sub hk],
   exact choose_mul_succ_eq n k,
+end
+
+open power_series
+open nat
+
+theorem bernoulli_power_series :
+(power_series.mk (λ n, ((bernoulli n) / (nat.factorial n) : ℚ))) * (power_series.exp ℚ - 1) =
+  (X : power_series ℚ) * (exp ℚ) := sorry
+
+theorem bernoulli_odd_eq_zero : ∀ n : ℕ, (n % 2 = 1 ∧ 1 < n) → bernoulli n = 0 :=
+begin
+  sorry
 end

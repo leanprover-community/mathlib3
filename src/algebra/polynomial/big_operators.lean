@@ -6,7 +6,9 @@ Authors: Aaron Anderson, Jalex Stark.
 import data.polynomial.monic
 import tactic.linarith
 /-!
-# Lemmas for the interaction between polynomials and ∑ and ∏.
+# Lemmas for the interaction between polynomials and `∑` and `∏`.
+
+Recall that `∑` and `∏` are notation for `finset.sum` and `finset.prod` respectively.
 
 ## Main results
 

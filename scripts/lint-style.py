@@ -176,19 +176,19 @@ def format_errors(errors):
         new_exceptions = True
         # filename first, then line so that we can call "sort" on the output
         if errno == ERR_COP:
-            print("{} : line {} : ERR_COP : Malformed or missing copyright header".format(fn, line_nr))
+            print("::error file={},line={},code=ERR_COP::Malformed or missing copyright header".format(fn, line_nr))
         if errno == ERR_IMP:
-            print("{} : line {} : ERR_IMP : More than one file imported per line".format(fn, line_nr))
+            print("::error file={},line={},code=ERR_IMP::More than one file imported per line".format(fn, line_nr))
         if errno == ERR_MOD:
-            print("{} : line {} : ERR_MOD : Module docstring missing, or too late".format(fn, line_nr))
+            print("::error file={},line={},code=ERR_MOD::Module docstring missing, or too late".format(fn, line_nr))
         if errno == ERR_LIN:
-            print("{} : line {} : ERR_LIN : Line has more than 100 characters".format(fn, line_nr))
+            print("::error file={},line={},code=ERR_LIN::Line has more than 100 characters".format(fn, line_nr))
         if errno == ERR_SAV:
-            print("{} : line {} : ERR_SAV : File contains the character ᾰ".format(fn, line_nr))
+            print("::error file={},line={},code=ERR_SAV::File contains the character ᾰ".format(fn, line_nr))
         if errno == ERR_RNT:
-            print("{} : line {} : ERR_RNT : Reserved notation outside tactic.reserved_notation".format(fn, line_nr))
+            print("::error file={},line={},code=ERR_RNT::Reserved notation outside tactic.reserved_notation".format(fn, line_nr))
         if errno == ERR_OPT:
-            print("{} : line {} : ERR_OPT : Forbidden set_option command".format(fn, line_nr))
+            print("::error file={},line={},code=ERR_OPT::Forbidden set_option command".format(fn, line_nr))
 
 def lint(fn):
     with fn.open() as f:

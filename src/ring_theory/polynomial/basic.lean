@@ -53,7 +53,7 @@ by simp only [degree_le, submodule.mem_infi, degree_le_iff_coeff_zero, linear_ma
 λ f hf, mem_degree_le.2 (le_trans (mem_degree_le.1 hf) H)
 
 theorem degree_le_eq_span_X_pow {n : ℕ} :
-  degree_le R n = submodule.span R ↑((finset.range (n+1)).image (λ n, X^n) : finset (polynomial R)) :=
+  degree_le R n = submodule.span R ↑((finset.range (n+1)).image (λ n, (X : polynomial R)^n)) :=
 begin
   apply le_antisymm,
   { intros p hp, replace hp := mem_degree_le.1 hp,

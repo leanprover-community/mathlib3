@@ -63,7 +63,7 @@ begin
   split,
   { intro h,
     let t := n % 3,
-    rw [(show n = t + 3 * (n / 3), from (nat.mod_add_div n 3).symm), add_comm] at h,
+    rw [(show n = t + 3 * (n / 3), from (nat.div_add_mod n 3).symm)] at h,
     have ht : t < 3 := nat.mod_lt _ dec_trivial,
     interval_cases t with hr; rw hr at h,
     { exact nat.dvd_of_mod_eq_zero hr },
@@ -82,7 +82,7 @@ end
 theorem imo1964_q1b (n : ℕ) : ¬ (7 ∣ 2 ^ n + 1) :=
 begin
   let t := n % 3,
-  rw [← modeq_zero_iff, (show n = t + 3 * (n / 3), from (nat.mod_add_div n 3).symm), add_comm],
+  rw [← modeq_zero_iff, (show n = t + 3 * (n / 3), from (nat.div_add_mod n 3).symm)],
   have ht : t < 3 := nat.mod_lt _ dec_trivial,
   interval_cases t with hr; rw hr,
   { rw zero_add,

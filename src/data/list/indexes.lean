@@ -6,6 +6,7 @@ Authors: Jannis Limperg
 
 import data.list.basic
 import data.list.defs
+import data.list.zip
 import logic.basic
 
 universes u v
@@ -16,6 +17,27 @@ namespace list
 
 variables {α : Type u} {β : Type v}
 
+section map_with_index
+
+lemma map_with_index_core_eq (l : list α) (f : ℕ → α → β) (n : ℕ) :
+  l.map_with_index_core f n = l.map_with_index (λ i a, f (i + n) a) :=
+begin
+  induction l with hd tl hl generalizing f n,
+  { simp [list.map_with_index, list.map_with_index_core] },
+  { rw [list.map_with_index],
+    simp [list.map_with_index_core, hl, add_left_comm, add_assoc, add_comm] }
+end
+
+lemma map_with_index_eq_enum_map_uncurry (l : list α) (f : ℕ → α → β) :
+  l.map_with_index f = l.enum.map (function.uncurry f) :=
+begin
+  induction l with hd tl hl generalizing f,
+  { simp [list.map_with_index, list.map_with_index_core, list.enum_eq_zip_range] },
+  { rw [list.map_with_index, list.map_with_index_core, list.map_with_index_core_eq, hl],
+    simp [list.enum_eq_zip_range, list.range_succ_eq_map, list.zip_with_map_left] }
+end
+
+end map_with_index
 
 section foldr_with_index
 

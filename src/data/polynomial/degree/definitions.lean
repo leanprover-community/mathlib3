@@ -425,7 +425,7 @@ lemma nat_degree_mem_support_of_nonzero (H : p ≠ 0) : p.nat_degree ∈ p.suppo
 
 lemma nat_degree_eq_support_max' (h : p ≠ 0) :
   p.nat_degree = p.support.max' (nonempty_support_iff.mpr h) :=
-le_antisymm (finset.le_max' _ _ $ nat_degree_mem_support_of_nonzero h) $
+(le_max' _ _ $ nat_degree_mem_support_of_nonzero h).antisymm $
   max'_le _ _ _ le_nat_degree_of_mem_supp
 
 lemma nat_degree_C_mul_X_pow_le (a : R) (n : ℕ) : nat_degree (C a * X ^ n) ≤ n :=

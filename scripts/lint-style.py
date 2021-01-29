@@ -168,27 +168,35 @@ def regular_check(lines, fn):
                 errors += [(ERR_IMP, line_nr, fn)]
     return errors
 
+def output_message(fn, line_nr, code, msg):
+    if len(exceptions) == 0:
+        # we are generating a new exceptions file
+        # filename first, then line so that we can call "sort" on the output
+        print(f"{fn} : line {line_nr} : {code} : {msg}")
+    else:
+        # We are outputting for github. It doesn't appear to surface code, so show it in the message too
+        print(f"::error file={fn},line={line_nr},code={code}::{code}: {msg}")
+
 def format_errors(errors):
     global new_exceptions
     for (errno, line_nr, fn) in errors:
         if (errno, Path(fn).relative_to(ROOT_DIR)) in exceptions:
             continue
         new_exceptions = True
-        # filename first, then line so that we can call "sort" on the output
         if errno == ERR_COP:
-            print("::error file={},line={},code=ERR_COP::Malformed or missing copyright header".format(fn, line_nr))
+            output_message(fn, line_nr, "ERR_COP", "Malformed or missing copyright header")
         if errno == ERR_IMP:
-            print("::error file={},line={},code=ERR_IMP::More than one file imported per line".format(fn, line_nr))
+            output_message(fn, line_nr, "ERR_IMP", "More than one file imported per line")
         if errno == ERR_MOD:
-            print("::error file={},line={},code=ERR_MOD::Module docstring missing, or too late".format(fn, line_nr))
+            output_message(fn, line_nr, "ERR_MOD", "Module docstring missing, or too late")
         if errno == ERR_LIN:
-            print("::error file={},line={},code=ERR_LIN::Line has more than 100 characters".format(fn, line_nr))
+            output_message(fn, line_nr, "ERR_LIN", "Line has more than 100 characters")
         if errno == ERR_SAV:
-            print("::error file={},line={},code=ERR_SAV::File contains the character ᾰ".format(fn, line_nr))
+            output_message(fn, line_nr, "ERR_SAV", "File contains the character ᾰ")
         if errno == ERR_RNT:
-            print("::error file={},line={},code=ERR_RNT::Reserved notation outside tactic.reserved_notation".format(fn, line_nr))
+            output_message(fn, line_nr, "ERR_RNT", "Reserved notation outside tactic.reserved_notation")
         if errno == ERR_OPT:
-            print("::error file={},line={},code=ERR_OPT::Forbidden set_option command".format(fn, line_nr))
+            output_message(fn, line_nr, "ERR_OPT", "Forbidden set_option command")
 
 def lint(fn):
     with fn.open() as f:

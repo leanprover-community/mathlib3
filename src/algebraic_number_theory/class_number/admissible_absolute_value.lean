@@ -418,7 +418,7 @@ begin
   exact ⟨t, λ i₀ i₁ hi, (ht i₀ i₁).mp hi⟩
 end
 
-noncomputable def admissible_degree : admissible_absolute_value (polynomial K) :=
+noncomputable def admissible_char_pow_degree : admissible_absolute_value (polynomial K) :=
 { map_lt_map_iff' := λ p q, begin
     by_cases hp : p = 0; by_cases hq : q = 0,
     { simp [hp, hq, euclidean_domain.r] },

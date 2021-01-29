@@ -1017,22 +1017,20 @@ variables {R S : Type*}
 @[simp]
 lemma map_dfinsupp_sum_add_hom
   [add_comm_monoid R] [add_comm_monoid S] [Π (i : ι), add_comm_monoid (β i)]
-   (h : R →+ S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
+  (h : R →+ S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
   h (dfinsupp.sum_add_hom g f) = dfinsupp.sum_add_hom (λ i, h.comp (g i)) f :=
 congr_fun (dfinsupp.comp_lift_add_hom h g) f
 
 @[simp]
 lemma dfinsupp_sum_add_hom_apply
-  [add_monoid R] [add_comm_monoid S]
-  [Π (i : ι), add_comm_monoid (β i)]
+  [add_monoid R] [add_comm_monoid S] [Π (i : ι), add_comm_monoid (β i)]
   (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) (r : R) :
   (dfinsupp.sum_add_hom g f) r
     = dfinsupp.sum_add_hom (λ i, (eval r).comp (g i)) f :=
 map_dfinsupp_sum_add_hom (eval r) f g
 
 lemma coe_dfinsupp_sum_add_hom
-  [add_monoid R] [add_comm_monoid S]
-  [Π (i : ι), add_comm_monoid (β i)]
+  [add_monoid R] [add_comm_monoid S] [Π (i : ι), add_comm_monoid (β i)]
   (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) :
   ⇑(dfinsupp.sum_add_hom g f)
     = dfinsupp.sum_add_hom (λ i, (coe_fn R S).comp (g i)) f :=

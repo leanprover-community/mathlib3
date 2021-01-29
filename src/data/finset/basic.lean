@@ -2112,7 +2112,7 @@ lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
 bind_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
 
-lemma bind_erase {α β : Type*} [decidable_eq β] (f : α → finset β) (s : finset α) (b : β) :
+lemma bind_erase [decidable_eq β] (f : α → finset β) (s : finset α) (b : β) :
   s.bind (λ x, (f x).erase b) = (s.bind f).erase b :=
 begin
   ext y,

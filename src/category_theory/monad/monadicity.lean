@@ -211,6 +211,7 @@ end
 end
 end monadicity_internal
 
+open category_theory.adjunction
 open monadicity_internal
 variables {C : Type u₁} {D : Type u₂}
 variables [category.{v₁} C] [category.{v₁} D]
@@ -249,13 +250,13 @@ def monadic_of_has_preserves_reflects_G_split_coequalizers
   monadic_right_adjoint G :=
 begin
   let L : (adjunction.of_right_adjoint G).to_monad.algebra ⥤ D := left_adjoint_comparison,
-  letI i : is_right_adjoint (comparison (adjunction.of_right_adjoint G)) :=
+  letI i : is_right_adjoint (comparison (of_right_adjoint G)) :=
     ⟨_, comparison_adjunction⟩,
   constructor,
-  let : Π (X : (adjunction.of_right_adjoint G).to_monad.algebra),
-    is_iso ((adjunction.of_right_adjoint (comparison (adjunction.of_right_adjoint G))).unit.app X),
+  let : Π (X : (of_right_adjoint G).to_monad.algebra),
+    is_iso ((of_right_adjoint (comparison (of_right_adjoint G))).unit.app X),
   { intro X,
-    apply is_iso_of_reflects_iso _ (monad.forget (adjunction.of_right_adjoint G).to_monad),
+    apply is_iso_of_reflects_iso _ (monad.forget (of_right_adjoint G).to_monad),
     { change is_iso (comparison_adjunction.unit.app X).f,
       rw comparison_adjunction_unit_f,
       change
@@ -265,7 +266,7 @@ begin
             (unit_colimit_of_preserves_coequalizer X)).hom,
       refine is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) } },
   let : Π (Y : D),
-    is_iso ((adjunction.of_right_adjoint (comparison (adjunction.of_right_adjoint G))).counit.app Y),
+    is_iso ((of_right_adjoint (comparison (of_right_adjoint G))).counit.app Y),
   { intro Y,
     change is_iso (comparison_adjunction.counit.app Y),
     rw comparison_adjunction_counit_app,
@@ -353,7 +354,7 @@ begin
             (unit_colimit_of_preserves_coequalizer X)).hom,
       apply is_iso.of_iso (is_colimit.cocone_point_unique_up_to_iso _ _) } },
   let : Π (Y : D),
-    is_iso ((adjunction.of_right_adjoint (comparison (adjunction.of_right_adjoint G))).counit.app Y),
+    is_iso ((of_right_adjoint (comparison (adjunction.of_right_adjoint G))).counit.app Y),
   { intro Y,
     change is_iso (comparison_adjunction.counit.app Y),
     rw comparison_adjunction_counit_app,

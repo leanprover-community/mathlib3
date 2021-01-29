@@ -1016,11 +1016,9 @@ variables {R S : Type*}
 /-! The above lemmas, repeated for `dfinsupp.sum_add_hom`. -/
 @[simp]
 lemma map_dfinsupp_sum_add_hom
-  [add_comm_monoid R] [add_comm_monoid S]
-  [Π (i : ι), add_comm_monoid (β i)]
+  [add_comm_monoid R] [add_comm_monoid S] [Π (i : ι), add_comm_monoid (β i)]
    (h : R →+ S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
-  h (dfinsupp.sum_add_hom g f)
-    = dfinsupp.sum_add_hom (λ i, h.comp (g i)) f :=
+  h (dfinsupp.sum_add_hom g f) = dfinsupp.sum_add_hom (λ i, h.comp (g i)) f :=
 congr_fun (dfinsupp.comp_lift_add_hom h g) f
 
 @[simp]

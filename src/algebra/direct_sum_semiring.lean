@@ -100,13 +100,10 @@ instance : has_mul (⨁ i, carriers i) :=
     -- the elaborator struggles here, so use tactics to assemble the expression
     refine direct_sum.to_add_monoid (λ j,
       direct_sum.to_add_monoid (λ i,
-        _
+        (add_monoid_hom.comp_hom (direct_sum.of (λ k, carriers k) $ i + j)).comp _
       ) a
     ) b,
-    exact { to_fun := λ a,
-      add_monoid_hom.comp_hom (direct_sum.of (λ i, carriers i) $ i + j) (hmul carriers a),
-      map_add' := λ a b, by simp only [add_monoid_hom.map_add],
-      map_zero' := by simp only [add_monoid_hom.map_zero] },
+    exact hmul carriers,
   end }
 
 /-! The various semiring fields are proved separately because the proofs are slow. -/
@@ -135,7 +132,6 @@ end
 private lemma mul_assoc (a b c : ⨁ i, carriers i) : a * b * c = a * (b * c) :=
 begin
   unfold has_one.one has_mul.mul,
-  simp only [add_monoid_hom.coe_mk, to_add_monoid_of, add_monoid_hom.comp_hom_apply_apply],
   simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
   simp only [←add_monoid_hom.comp_apply],
   simp only [dfinsupp.comp_sum_add_hom],
@@ -158,7 +154,7 @@ begin
   erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
   erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
   simp only [add_monoid_hom.map_dfinsupp_sum_add_hom, dfinsupp.single_add_hom_apply,
-    dfinsupp.sum_add_hom_single],
+    dfinsupp.sum_add_hom_single, add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply],
   erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
 
   -- unpack `a`

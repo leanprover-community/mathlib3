@@ -119,10 +119,8 @@ lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
   ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ (fintype.card σ + 1) ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
-  have h := M.eval_from_split x M.start (M.eval x) hlen _,
-  swap,
-  { refl },
-  rcases h with ⟨ _, a, b, c, hx, hlen, hnil, rfl, hb, hc ⟩,
+  obtain ⟨_, a, b, c, hx, hlen, hnil, rfl, hb, hc⟩ :=
+    M.eval_from_split x M.start (M.eval x) hlen rfl,
   use [a, b, c, hx, hlen, hnil],
   intros y hy,
   rw language.mem_mul at hy,

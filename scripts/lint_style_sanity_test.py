@@ -80,7 +80,7 @@ class TestLinterIntegration(unittest.TestCase):
                 [SCRIPTS_DIR / "lint-style.py", file.name],
                 capture_output=True,
             )
-        self.assertIn(b"ERR_COP :", result.stdout)
+        self.assertIn(b"ERR_COP", result.stdout)
 
     def test_reserved_notation_is_allowed_in_reserved_notation(self):
         """

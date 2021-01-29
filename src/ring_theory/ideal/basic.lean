@@ -211,9 +211,7 @@ eq_iff_le_not_lt.2 ⟨IJ, λ h, hJ (hI.2 _ h)⟩
 theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   let J : ideal α := submodule.span α (insert x ↑I),
-  have IJ : I ≤ J,
-  { rw ← span_eq I,
-    exact (span_mono (subset_insert x ↑I)) },
+  have IJ : I ≤ J  := (set.subset.trans (subset_insert _ _) subset_span),
   have oJ : (1 : α) ∈ J,
   { have H1 := H,
     cases H1 with Ht Hm,

@@ -174,7 +174,7 @@ open nat
 
 @[simp] lemma constant_coeff_exp : constant_coeff ℚ (exp ℚ) = 1 := rfl
 
-theorem algebra_map_id (q : ℚ) : algebra_map ℚ ℚ q = q :=
+@[simp] theorem rat.rat_algebra_map_rat (q : ℚ) : algebra_map ℚ ℚ q = q :=
 begin
   rw [show algebra_map ℚ ℚ = (by refine_struct { to_fun := id}; tidy),
     by simp only [eq_iff_true_of_subsingleton]], refl,
@@ -190,7 +190,7 @@ begin
   simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X,
   coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul],
   rw [coeff_mul, mul_comm X, coeff_succ_mul_X],
-  simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial, algebra_map_id],
+  simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial, rat.rat_algebra_map_rat],
   rw nat.sum_antidiagonal_succ',
   simp, --squeeze_simp hangs
   apply eq_inv_of_mul_left_eq_one,
@@ -205,7 +205,7 @@ begin
   field_simp [hj, hnz],
   rw [mul_comm _ (bernoulli i), mul_assoc], norm_cast,
   rw [mul_comm (j + 1) _, mul_div_assoc, <- mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,
-  sum_choose, cast_dvd_char_zero],
-  {apply factorial_mul_factorial_dvd_factorial_sum, },
+  add_choose, cast_dvd_char_zero],
+  {apply factorial_mul_factorial_dvd_factorial_add, },
   {exact cast_ne_zero.mpr hj', },
 end

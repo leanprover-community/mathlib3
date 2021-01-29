@@ -112,13 +112,13 @@ begin
   exact (nat.div_eq_of_eq_mul_left (mul_pos (factorial_pos _) (factorial_pos _)) this).symm
 end
 
-lemma sum_choose (i j : ℕ) : (i+j).choose j = factorial (i + j) / (factorial i * factorial j) :=
+lemma add_choose (i j : ℕ) : (i + j).choose j = factorial (i + j) / (factorial i * factorial j) :=
 by {rw [choose_eq_factorial_div_factorial, nat.add_sub_cancel, mul_comm], exact le_add_left j i}
 
 theorem factorial_mul_factorial_dvd_factorial {n k : ℕ} (hk : k ≤ n) : k! * (n - k)! ∣ n! :=
 by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left _ _
 
-lemma factorial_mul_factorial_dvd_factorial_sum (i j : ℕ) :
+lemma factorial_mul_factorial_dvd_factorial_add (i j : ℕ) :
   i! * j! ∣ (i + j)! :=
 begin
   conv {congr, rw [<-nat.add_sub_cancel j i, add_comm]},

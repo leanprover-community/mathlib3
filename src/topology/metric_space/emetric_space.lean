@@ -18,7 +18,7 @@ called `edist`, and takes values in `ennreal`.
 
 Many definitions and theorems expected on emetric spaces are already introduced on uniform spaces
 and topological spaces. For example: open and closed sets, compactness, completeness, continuity and
-uniform continuity
+uniform continuity.
 
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/

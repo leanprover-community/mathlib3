@@ -202,7 +202,7 @@ private lemma candidates_b_nonempty : (candidates_b α β).nonempty :=
 ⟨_,  candidates_b_dist_mem_candidates_b⟩
 
 /-- To apply Arzela-Ascoli, we need to check that the set of candidates is closed and
-equicontinuous. Equicontinuity follows from the Lipschitz control, we check closedness -/
+equicontinuous. Equicontinuity follows from the Lipschitz control, we check closedness. -/
 private lemma closed_candidates_b : is_closed (candidates_b α β) :=
 begin
   have I1 : ∀x y, is_closed {f : Cb α β | f (inl x, inl y) = dist x y} :=
@@ -236,7 +236,7 @@ begin
        <|> assume x },
 end
 
-/-- Compactness of candidates (in bounded_continuous_functions) follows -/
+/-- Compactness of candidates (in bounded_continuous_functions) follows. -/
 private lemma compact_candidates_b : is_compact (candidates_b α β) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var α β)) compact_Icc (candidates_b α β)

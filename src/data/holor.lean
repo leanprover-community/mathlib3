@@ -36,8 +36,8 @@ open list
 
 open_locale big_operators
 
-/-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor
-of dimensions `ds` -/
+/-- `holor_index ds` is the type of valid index tuples used to identify an entry of a holor
+of dimensions `ds`. -/
 def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index

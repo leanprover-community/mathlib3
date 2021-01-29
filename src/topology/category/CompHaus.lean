@@ -85,7 +85,10 @@ noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
   end }
 
 noncomputable def Top_to_CompHaus : Top ⥤ CompHaus :=
-adjunction.left_adjoint_of_equiv stone_cech_equivalence (by tidy)
+adjunction.left_adjoint_of_equiv stone_cech_equivalence (λ _ _ _ _ _, rfl)
+
+lemma Top_to_CompHaus_obj (X : Top) : ↥(Top_to_CompHaus.obj X) = stone_cech X :=
+rfl
 
 noncomputable instance : reflective CompHaus_to_Top :=
 { to_is_right_adjoint := ⟨Top_to_CompHaus, adjunction.adjunction_of_equiv_left _ _⟩ }

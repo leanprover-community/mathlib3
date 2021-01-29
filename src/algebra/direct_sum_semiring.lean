@@ -25,9 +25,11 @@ If the `M i` are disjoint, this is a gradation of `⨆ i, M i : subsemiring S`. 
 graded ring, filtered ring, direct sum, add_submonoid
 -/
 
-variables {S : Type*} [semiring S] {ι : Type*} [add_monoid ι] [decidable_eq ι]
 
 namespace direct_sum
+
+variables {S : Type*} [semiring S] {ι : Type*} [add_monoid ι] [decidable_eq ι]
+variables {S' : Type*} [comm_semiring S'] {ι' : Type*} [add_comm_monoid ι'] [decidable_eq ι']
 
 /-- A type class to indicate that multiplication is closed within `carriers` under addition of the
 indices. -/
@@ -38,6 +40,7 @@ class semiring_add_gradation (carriers : ι → add_submonoid S) :=
 namespace semiring_add_gradation
 
 variables (carriers : ι → add_submonoid S) [semiring_add_gradation carriers]
+variables (carriers' : ι' → add_submonoid S') [semiring_add_gradation carriers']
 
 open_locale direct_sum
 
@@ -92,6 +95,17 @@ begin
   exact λ x, h.symm ▸ iff.rfl,
 end
 
+private lemma hmul_comm {i j} (a : carriers' i) (b : carriers' j) :
+  (⟨_, (hmul carriers' a b)⟩ : Σ i, carriers' i) = ⟨_, hmul carriers' b a⟩ :=
+begin
+  have h := add_comm i j,
+  congr,
+  exact h,
+  rw subtype.heq_iff_coe_eq,
+  exact mul_comm _ _,
+  exact λ x, h.symm ▸ iff.rfl,
+end
+
 /-! Embed the heterogenous definitions above into `direct_sum`  -/
 
 instance : has_one (⨁ i, carriers i) :=
@@ -129,6 +143,34 @@ begin
   convert add_monoid_hom.congr_fun (dfinsupp.sum_add_hom_single_add_hom ) x,
   ext1 i, ext1 xi,
   simp [dfinsupp.single_eq_of_sigma_eq (hmul_hone _ xi)],
+end
+
+private lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}
+  [decidable_eq ι₁] [decidable_eq ι₂] [Π i, add_monoid (β₁ i)] [Π i, add_monoid (β₂ i)]
+  [add_comm_monoid γ]
+  (f₁ : Π₀ i, β₁ i) (f₂ : Π₀ i, β₂ i) (h : Π i j, β₁ i →+ β₂ j →+ γ) :
+  dfinsupp.sum_add_hom (λ i₂, dfinsupp.sum_add_hom (λ i₁, h i₁ i₂) f₁) f₂ =
+  dfinsupp.sum_add_hom (λ i₁, dfinsupp.sum_add_hom (λ i₂, (h i₁ i₂).flip) f₂) f₁ :=
+quotient.induction_on f₁ $ λ x₁,
+quotient.induction_on f₂ $ λ x₂,
+begin
+  simp only [dfinsupp.sum_add_hom, add_monoid_hom.finset_sum_apply, quotient.lift_on_beta,
+    add_monoid_hom.coe_mk, add_monoid_hom.flip_apply],
+  exact finset.sum_comm,
+end
+
+private lemma mul_comm (a b : ⨁ i, carriers' i) : a * b = b * a :=
+begin
+  unfold has_one.one has_mul.mul,
+  simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
+  rw sum_add_hom_comm,
+  refine add_monoid_hom.congr_fun _ a,
+  congr' 1, ext1 ai, ext1 ax,
+  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
+  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
+  refine add_monoid_hom.congr_fun _ b,
+  congr' 1, ext1 bi, ext1 bx,
+  simp [dfinsupp.single_eq_of_sigma_eq (hmul_comm _ ax bx)],
 end
 
 private lemma mul_assoc (a b c : ⨁ i, carriers i) : a * b * c = a * (b * c) :=
@@ -178,8 +220,7 @@ by { unfold has_mul.mul, simp, }
 private lemma right_distrib (a b c : ⨁ i, carriers i) : (a + b) * c = a * c + b * c :=
 by { unfold has_mul.mul, simp [direct_sum.to_add_monoid, direct_sum.of], }
 
-/-- The ring structure on `⨁ i, carriers i` in the presence of `semiring_add_gradation carriers`.
--/
+/-- The `semiring` structure derived from `semiring_add_gradation carriers`. -/
 instance semiring : semiring (⨁ i, carriers i) := {
   one := 1,
   mul := (*),
@@ -193,6 +234,15 @@ instance semiring : semiring (⨁ i, carriers i) := {
   left_distrib := left_distrib carriers,
   right_distrib := right_distrib carriers,
   ..direct_sum.add_comm_monoid _ _, }
+
+/-- The `comm_semiring` structure derived from `semiring_add_gradation carriers`. -/
+instance comm_semiring : comm_semiring (⨁ i, carriers' i) := {
+  one := 1,
+  mul := (*),
+  zero := 0,
+  add := (+),
+  mul_comm := mul_comm carriers',
+  ..direct_sum.semiring_add_gradation.semiring _, }
 
 end semiring_add_gradation
 

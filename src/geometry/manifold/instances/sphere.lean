@@ -260,8 +260,8 @@ by simp [stereographic']
 modelled on the Euclidean space of dimension `n`. -/
 instance {n : ℕ} [_i : fact (findim ℝ E = n + 1)] :
   charted_space (euclidean_space ℝ (fin n)) (sphere (0:E) 1) :=
-{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' (fact.elim _i) v},
-  chart_at         := λ v, stereographic' (fact.elim _i) (-v),
+{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' _i.elim v},
+  chart_at         := λ v, stereographic' _i.elim (-v),
   mem_chart_source := λ v, by simpa using ne_neg_of_mem_unit_sphere ℝ v,
   chart_mem_atlas  := λ v, ⟨-v, rfl⟩ }
 
@@ -275,26 +275,22 @@ variables [finite_dimensional ℝ E]
 
 /-- The unit sphere in a finite-dimensional inner product space `E` is a smooth manifold, modelled
 on the Euclidean space of dimension `findim ℝ E - 1`. -/
-instance : smooth_manifold_with_corners (𝓡 (findim ℝ E - 1)) (sphere (0:E) 1) :=
+instance {n : ℕ} [_i : fact (findim ℝ E = n + 1)] :
+  smooth_manifold_with_corners (𝓡 n) (sphere (0:E) 1) :=
 smooth_manifold_with_corners_of_times_cont_diff_on
-(𝓡 (findim ℝ E - 1))
+(𝓡 n)
 (sphere (0:E) 1)
 begin
-  set n : ℕ := findim ℝ E - 1,
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
-  have hv_perp : findim ℝ (ℝ ∙ (v:E))ᗮ = findim ℝ (euclidean_space ℝ (fin n)),
-  { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere v),
-    simp },
-  have hv'_perp : findim ℝ (ℝ ∙ (v':E))ᗮ = findim ℝ (euclidean_space ℝ (fin n)),
-  { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere v'),
-    simp },
   let U : (ℝ ∙ (v:E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    continuous_linear_equiv.of_findim_eq hv_perp,
+    (linear_isometry_equiv.of_orthogonal _i.elim
+    (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv,
   let U' : (ℝ ∙ (v':E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    continuous_linear_equiv.of_findim_eq hv'_perp,
-  have hUv : stereographic' v = (stereographic (norm_eq_of_mem_sphere v)).trans
+    (linear_isometry_equiv.of_orthogonal _i.elim
+    (nonzero_of_mem_unit_sphere v')).to_continuous_linear_equiv,
+  have hUv : stereographic' _i.elim v = (stereographic (norm_eq_of_mem_sphere v)).trans
       U.to_homeomorph.to_local_homeomorph := rfl,
-  have hU'v' : stereographic' v' = (stereographic (norm_eq_of_mem_sphere v')).trans
+  have hU'v' : stereographic' _i.elim v' = (stereographic (norm_eq_of_mem_sphere v')).trans
       U'.to_homeomorph.to_local_homeomorph := rfl,
   have H₁ := U'.to_continuous_linear_map.times_cont_diff.comp_times_cont_diff_on
       times_cont_diff_on_stereo_to_fun,
@@ -309,19 +305,16 @@ begin
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
-lemma times_cont_mdiff_coe_sphere :
-  times_cont_mdiff (𝓡 (findim ℝ E - 1)) (model_with_corners_self ℝ E) ⊤
-  (coe : (sphere (0:E) 1) → E) :=
+lemma times_cont_mdiff_coe_sphere {n : ℕ} [_i : fact (findim ℝ E = n + 1)] :
+  times_cont_mdiff (𝓡 n) (model_with_corners_self ℝ E) ⊤ (coe : (sphere (0:E) 1) → E) :=
 begin
   rw times_cont_mdiff_iff,
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    have hv_perp : findim ℝ (ℝ ∙ ↑(-v))ᗮ = findim ℝ (euclidean_space ℝ (fin (findim ℝ E - 1))),
-    { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere (-v)),
-      simp },
-    let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin (findim ℝ E - 1)) :=
-      continuous_linear_equiv.of_findim_eq hv_perp,
+    let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+      (linear_isometry_equiv.of_orthogonal _i.elim
+      (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
     exact ((times_cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ ((-v):E))ᗮ.subtype_continuous.times_cont_diff).comp
       U.symm.to_continuous_linear_map.times_cont_diff).times_cont_diff_on }
@@ -333,19 +326,17 @@ variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold
 
 /-- If a `times_cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
 sphere, then it restricts to a `times_cont_mdiff` function from `M` to the sphere. -/
-lemma times_cont_mdiff.cod_restrict_sphere
-  {n : with_top ℕ} {f : M → E} (hf : times_cont_mdiff I (model_with_corners_self ℝ E) n f)
+lemma times_cont_mdiff.cod_restrict_sphere {n : ℕ} [_i : fact (findim ℝ E = n + 1)]
+  {m : with_top ℕ} {f : M → E} (hf : times_cont_mdiff I (model_with_corners_self ℝ E) m f)
   (hf' : ∀ x, f x ∈ sphere (0:E) 1) :
-  times_cont_mdiff I (𝓡 (findim ℝ E - 1)) n (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
+  times_cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
 begin
   rw times_cont_mdiff_iff_target,
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
-  have hv_perp : findim ℝ (ℝ ∙ ↑(-v))ᗮ = findim ℝ (euclidean_space ℝ (fin (findim ℝ E - 1))),
-  { rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere (-v)),
-    simp },
-  let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin (findim ℝ E - 1)) :=
-    continuous_linear_equiv.of_findim_eq hv_perp,
+  let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+    (linear_isometry_equiv.of_orthogonal _i.elim
+    (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
   have h : times_cont_diff_on _ _ _ set.univ :=
     U.to_continuous_linear_map.times_cont_diff.times_cont_diff_on,
   have H₁ := (h.comp' times_cont_diff_on_stereo_to_fun).times_cont_mdiff_on,
@@ -361,8 +352,8 @@ begin
 end
 
 /-- The antipodal map is smooth. -/
-lemma times_cont_mdiff_neg_sphere :
-  times_cont_mdiff (𝓡 (findim ℝ E - 1)) (𝓡 (findim ℝ E - 1)) ⊤ (λ x : sphere (0:E) 1, -x) :=
+lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (findim ℝ E = n + 1)] :
+  times_cont_mdiff (𝓡 n) (𝓡 n) ⊤ (λ x : sphere (0:E) 1, -x) :=
 (times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
 
 end smooth_manifold

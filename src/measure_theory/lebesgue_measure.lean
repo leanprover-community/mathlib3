@@ -386,7 +386,7 @@ variable {α : Type*}
 
 /-- The region between two real-valued functions on an arbitrary set. -/
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
-{ p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1) }
+{p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
 
 variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}
 

@@ -304,6 +304,7 @@ end
 lemma im_smul_SL' (g : SL(2, ℤ)) (z : H) :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
 begin
+
   sorry
 end
 
@@ -416,21 +417,114 @@ notation `𝒟°` := interior 𝒟
 lemma finite_integers {M : ℝ} :
   set.finite {c : ℤ | |(c : ℝ)| ≤ M } :=
 begin
-  sorry
+    let s:= finset.Ico_ℤ (⌊-M⌋) (⌊M⌋+1),
+    suffices : {c : ℤ | |↑c| ≤ M} ⊆  s,
+    {
+      refine set.finite.subset s.finite_to_set this,
+    },
+    intros c,
+    simp [s],
+    intros h,
+    rw abs_le at h,
+    have h1 := h.1,
+    have h2 := h.2,
+    split,
+    {
+      have : (⌊-M⌋ :ℝ ) ≤ -M :=  floor_le (-M),
+      have := le_trans this h1,
+      exact_mod_cast this,
+    },
+    {
+      --- AK homework
+      sorry,
+    },
 end
 
-lemma finite_pairs {M : ℝ} {z : ℂ} :
-  set.finite {cd : ℤ × ℤ | ((cd.1 : ℂ) * z + (cd.2 : ℂ)).abs ≤ M} :=
+def coprime_ints := { cd :  ℤ × ℤ //  euclidean_domain.gcd cd.1 cd.2 = 1 }
+
+instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
+
+lemma finite_pairs (M : ℝ) (z : ℂ) :
+  set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} :=
 begin
+    -- AK homework!!!
+  -- prove that |cz+d| < max |c|,|d| * (|z|+1), so
+  -- max |c|,|d| < M / |z|+1
+  -- contained in a finite set -> finite...???
+  -- set.finite.subset
+
+
   sorry
 end
 
 variables {g : SL(2,ℤ)} {z : H}
 
+lemma exists_g_with_min_bottom (z : H) :
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
+begin
+  let f : coprime_ints → ℝ := λ cd,  (((cd : ℤ×ℤ).1:ℂ) * z + (cd : ℤ×ℤ).2).norm_sq,
+  let s : finset coprime_ints := set.finite.to_finset (finite_pairs (1) z),
+  have in_s_then_ge_1 : ∀ x, x ∈ s ↔ f x ≤ 1 := by simp [s],
+  have : s.nonempty,
+  {
+    use (0,1),
+    simp,
+    simp,
+  },
+  obtain ⟨⟨ cd, hhcd⟩ , cdInS, hcd⟩ := finset.exists_min_image s f this,
+  let a := euclidean_domain.gcd_b cd.1 cd.2,
+  let b := -euclidean_domain.gcd_a cd.1 cd.2,
+  let g := ![![a,b],![cd.1,cd.2]],
+  have : 1 = det g,
+  {
+    rw det2,
+    suffices : 1 = a * cd.2 - cd.1 * b ,
+    convert this,
+    simp [g],
+    rw ←  hhcd,
+    convert euclidean_domain.gcd_eq_gcd_ab cd.1 cd.2 using 1,
+    ring,
+  },
+  use ⟨ g, this.symm⟩ ,
+  intros,
+  have hcd' : ∀ (x' : coprime_ints), f ⟨cd,hhcd⟩ ≤ f x',
+  {
+    intros ,
+    by_cases hx' : x' ∈ s,
+    {
+      exact hcd x' hx',
+    },
+    {
+      rw in_s_then_ge_1  at hx',
+      rw in_s_then_ge_1  at cdInS,
+      linarith,
+    },
+  },
+  have : euclidean_domain.gcd  (g'.val 1 0) (g'.val 1 1) = 1,
+  {
+    --- Zulip homework??? :)
+    sorry,
+  },
+  convert hcd' ⟨ (g'.val 1 0 , g'.val 1 1) , this ⟩ ,
+  {
+    rw bottom,
+    simp [g],
+    --refl,
+    --- Heather homework
+    sorry,
+  },
+  rw bottom,
+  simp,
+  --norm_cast,
+    --- Heather homework
+  sorry,
+end
+
 lemma exists_g_with_max_Im (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).val.im ≤ (g • z).val.im :=
 begin
-  sorry
+  -- Alex homework
+  sorry,
 end
 
 def G' : subgroup SL(2,ℤ) := subgroup.closure {S, T}

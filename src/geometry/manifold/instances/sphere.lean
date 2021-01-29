@@ -238,7 +238,7 @@ fixed normed space.  This could be proved in general by a simple case of Gram-Sc
 orthogonalization, but in the finite-dimensional case it follows more easily by dimension-counting.
 -/
 
-/-- Variant of the stereographic projection (see `stereographic`), for the sphere in a finite-
+/-- Variant of the stereographic projection (see `stereographic`), for the sphere in an `n + 1`-
 dimensional inner product space `E`.  This version has codomain the Euclidean space of dimension
 `n`. -/
 def stereographic' {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :

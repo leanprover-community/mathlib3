@@ -905,23 +905,22 @@ lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
   by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
 
 @[simp]
-lemma sum_add_hom_zero [Π (i : ι), add_monoid (β i)] [add_comm_monoid γ] :
+lemma sum_add_hom_zero [Π i, add_monoid (β i)] [add_comm_monoid γ] :
   sum_add_hom (λ i, (0 : β i →+ γ)) = 0 :=
 (lift_add_hom : (Π i, β i →+ γ) ≃+ _).map_zero
 
 @[simp]
-lemma sum_add_hom_add [Π (i : ι), add_monoid (β i)] [add_comm_monoid γ]
+lemma sum_add_hom_add [Π i, add_monoid (β i)] [add_comm_monoid γ]
   (g : Π i, β i →+ γ) (h : Π i, β i →+ γ) :
   sum_add_hom (λ i, g i + h i) = sum_add_hom g + sum_add_hom h :=
 lift_add_hom.map_add _ _
 
 @[simp]
-lemma sum_add_hom_single_add_hom [Π (i : ι), add_comm_monoid (β i)] :
-  dfinsupp.sum_add_hom (dfinsupp.single_add_hom β) = add_monoid_hom.id _ :=
+lemma sum_add_hom_single_add_hom [Π i, add_comm_monoid (β i)] :
+  sum_add_hom (single_add_hom β) = add_monoid_hom.id _ :=
 lift_add_hom_single_add_hom
 
-lemma comp_sum_add_hom {δ : Type*} [Π i, add_monoid (β i)] [add_comm_monoid γ]
-  [add_comm_monoid δ]
+lemma comp_sum_add_hom {δ : Type*} [Π i, add_monoid (β i)] [add_comm_monoid γ] [add_comm_monoid δ]
   (g : γ →+ δ) (f : Π i, β i →+ γ) :
   g.comp (sum_add_hom f) = sum_add_hom (λ a, g.comp (f a)) :=
 comp_lift_add_hom _ _

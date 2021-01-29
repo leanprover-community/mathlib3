@@ -80,9 +80,11 @@ end
 
 /--
 The identity in this lemma asserts that the "obvious" square
-`    R    → (R / (P ∩ R))`
-`    ↓          ↓`
-`R[x] / P → (R / (P ∩ R))[x] / (P / (P ∩ R))`
+```
+    R    → (R / (P ∩ R))
+    ↓          ↓
+R[x] / P → (R / (P ∩ R))[x] / (P / (P ∩ R))
+```
 commutes.  It is used, for instance, in the proof of `quotient_mk_comp_C_is_integral_of_jacobson`,
 in the file `ring_theory/jacobson`.
 -/

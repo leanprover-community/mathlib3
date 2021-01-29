@@ -416,6 +416,10 @@ lemma real_inner_smul_left {x y : F} {r : ℝ} : ⟪r • x, y⟫_ℝ = r * ⟪x
 lemma inner_smul_real_left {x y : E} {r : ℝ} : ⟪(r : 𝕜) • x, y⟫ = r • ⟪x, y⟫ :=
 by { rw [inner_smul_left, conj_of_real, algebra.smul_def], refl }
 
+lemma inner_smul_real_left' [semimodule ℝ E] [is_scalar_tower ℝ 𝕜 E] {x y : E} {r : ℝ} :
+  ⟪r • x, y⟫ = r • ⟪x, y⟫ :=
+by rw [← inner_smul_real_left, ← algebra_map_eq_of_real, algebra_map_smul]
+
 lemma inner_smul_right {x y : E} {r : 𝕜} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_smul_left, ring_hom.map_mul, conj_conj, inner_conj_sym]
 lemma real_inner_smul_right {x y : F} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_right
@@ -1170,6 +1174,9 @@ linear_map.mk_continuous
 
 @[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
 
+lemma op_norm_inner_right_le (v : E) : ∥(inner_right v : E →L[𝕜] 𝕜)∥ ≤ ∥v∥ :=
+linear_map.mk_continuous_norm_le _ (norm_nonneg v) _
+
 end norm
 
 /-! ### Inner product space structure on product spaces -/
@@ -1296,33 +1303,30 @@ not definitionally equal to some other “natural” instance. So, we assume `[n
 
 -/
 
-variables [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables (𝕜 E) [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
-lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
-{ add_left := λ _ _ _, inner_add_left,
-  smul_left := λ r x y,
-    by simp only [← algebra_map_smul 𝕜 r x, algebra_map_eq_of_real, inner_smul_real_left],
-  add_right := λ _ _ _, inner_add_right,
-  smul_right := λ r x y,
-    by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
-  bound := ⟨1, zero_lt_one, λ x y,
-    by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
+/-- Inner product as an `ℝ`-bilinear map. -/
+def inner_bilinear : E →L[ℝ] E →L[ℝ] 𝕜 :=
+linear_map.mk_continuous
+  { to_fun := λ v, (inner_right v).restrict_scalars ℝ,
+    map_add' := λ x y, by { ext, simp [inner_add_left] },
+    map_smul' := λ c x, by { ext, dsimp, rw inner_smul_real_left' } }
+  1 $ λ v, by simpa using op_norm_inner_right_le v
 
-/-- Derivative of the inner product. -/
-def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p
+variables {𝕜 E}
 
-@[simp] lemma fderiv_inner_clm_apply (p x : E × E) :
-  fderiv_inner_clm  p x = ⟪p.1, x.2⟫ + ⟪x.1, p.2⟫ := rfl
+@[simp] lemma inner_bilinear_deriv₂_apply (p x : E × E) :
+  (inner_bilinear 𝕜 E).deriv₂  p x = ⟪p.1, x.2⟫ + ⟪x.1, p.2⟫ := rfl
 
 lemma times_cont_diff_inner {n} : times_cont_diff ℝ n (λ p : E × E, ⟪p.1, p.2⟫) :=
-is_bounded_bilinear_map_inner.times_cont_diff
+(inner_bilinear 𝕜 E).times_cont_diff_bilinear
 
 lemma times_cont_diff_at_inner {p : E × E} {n} :
   times_cont_diff_at ℝ n (λ p : E × E, ⟪p.1, p.2⟫) p :=
 times_cont_diff_inner.times_cont_diff_at
 
 lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) :=
-is_bounded_bilinear_map_inner.differentiable_at
+times_cont_diff_inner.differentiable le_rfl
 
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
   {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
@@ -1349,17 +1353,20 @@ times_cont_diff_inner.comp (hf.prod hg)
 
 lemma has_fderiv_within_at.inner (hf : has_fderiv_within_at f f' s x)
   (hg : has_fderiv_within_at g g' s x) :
-  has_fderiv_within_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') s x :=
-(is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp_has_fderiv_within_at x (hf.prod hg)
+  has_fderiv_within_at (λ t, ⟪f t, g t⟫)
+    ((inner_bilinear 𝕜 E (f x)).comp g' + ((inner_bilinear 𝕜 E).flip (g x)).comp f') s x :=
+hf.bilinear_op (inner_bilinear 𝕜 E) hg
 
 lemma has_fderiv_at.inner (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x) :
-  has_fderiv_at (λ t, ⟪f t, g t⟫) ((fderiv_inner_clm (f x, g x)).comp $ f'.prod g') x :=
-(is_bounded_bilinear_map_inner.has_fderiv_at (f x, g x)).comp x (hf.prod hg)
+  has_fderiv_at (λ t, ⟪f t, g t⟫)
+    ((inner_bilinear 𝕜 E (f x)).comp g' + ((inner_bilinear 𝕜 E).flip (g x)).comp f') x :=
+hf.bilinear_op (inner_bilinear 𝕜 E) hg
 
 lemma has_deriv_within_at.inner {f g : ℝ → E} {f' g' : E} {s : set ℝ} {x : ℝ}
   (hf : has_deriv_within_at f f' s x) (hg : has_deriv_within_at g g' s x) :
   has_deriv_within_at (λ t, ⟪f t, g t⟫) (⟪f x, g'⟫ + ⟪f', g x⟫) s x :=
-by simpa using (hf.has_fderiv_within_at.inner hg.has_fderiv_within_at).has_deriv_within_at
+by simpa
+  using (hf.has_fderiv_within_at.inner hg.has_fderiv_within_at).has_deriv_within_at
 
 lemma has_deriv_at.inner {f g : ℝ → E} {f' g' : E} {x : ℝ} :
   has_deriv_at f f' x →  has_deriv_at g g' x →

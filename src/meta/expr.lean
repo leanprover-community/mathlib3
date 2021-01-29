@@ -551,7 +551,7 @@ pure $ do
 meta def simp (t : expr)
   (cfg : simp_config := {}) (discharger : tactic unit := failed)
   (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :
-  tactic (expr × expr) :=
+  tactic (expr × expr × name_set) :=
 do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
    simplify s to_unfold t cfg `eq discharger
 

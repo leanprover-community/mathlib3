@@ -248,7 +248,8 @@ theorem pairwise_sublists' {R} : ∀ {l : list α}, pairwise R l →
 | _ pairwise.nil := pairwise_singleton _ _
 | _ (@pairwise.cons _ _ a l H₁ H₂) :=
   begin
-    simp only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map, exists_imp_distrib, and_imp],
+    simp only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map,
+      exists_imp_distrib, and_imp],
     have IH := pairwise_sublists' H₂,
     refine ⟨IH, IH.imp (λ l₁ l₂, lex.cons), _⟩,
     intros l₁ sl₁ x l₂ sl₂ e, subst e,
@@ -273,7 +274,8 @@ variable [decidable_rel R]
 @[simp] theorem pw_filter_cons_of_neg {a : α} {l : list α} (h : ¬ ∀ b ∈ pw_filter R l, R a b) :
   pw_filter R (a::l) = pw_filter R l := if_neg h
 
-theorem pw_filter_map (f : β → α) : Π (l : list β), pw_filter R (map f l) = map f (pw_filter (λ x y, R (f x) (f y)) l)
+theorem pw_filter_map (f : β → α) :
+  Π (l : list β), pw_filter R (map f l) = map f (pw_filter (λ x y, R (f x) (f y)) l)
 | [] := rfl
 | (x :: xs) :=
   if h : ∀ b ∈ pw_filter R (map f xs), R (f x) b

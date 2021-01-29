@@ -1865,6 +1865,10 @@ by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 @[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
 multiset.card_map _ _
 
+@[simp] lemma card_subtype (p : α → Prop) [decidable_pred p] (s : finset α) :
+  (s.subtype p).card = (s.filter p).card :=
+by simp [finset.subtype]
+
 lemma card_eq_of_bijective {s : finset α} {n : ℕ}
   (f : ∀i, i < n → α)
   (hf : ∀a∈s, ∃i, ∃h:i<n, f i h = a) (hf' : ∀i (h : i < n), f i h ∈ s)
@@ -2020,95 +2024,102 @@ subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha�
 
 end card
 
-/-! ### bind -/
-section bind
+section bUnion
+/-!
+### bUnion
+
+This section is about the bounded union of an indexed family `t : α → finset β` of finite sets
+over a finite set `s : finset α`.
+-/
+
 variables [decidable_eq β] {s : finset α} {t : α → finset β}
 
-/-- `bind s t` is the union of `t x` over `x ∈ s` -/
-protected def bind (s : finset α) (t : α → finset β) : finset β :=
+/-- `bUnion s t` is the union of `t x` over `x ∈ s`.
+(This was formerly `bind` due to the monad structure on types with `decidable_eq`.) -/
+protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 (s.1.bind (λ a, (t a).1)).to_finset
 
-@[simp] theorem bind_val (s : finset α) (t : α → finset β) :
-  (s.bind t).1 = (s.1.bind (λ a, (t a).1)).erase_dup := rfl
+@[simp] theorem bUnion_val (s : finset α) (t : α → finset β) :
+  (s.bUnion t).1 = (s.1.bind (λ a, (t a).1)).erase_dup := rfl
 
-@[simp] theorem bind_empty : finset.bind ∅ t = ∅ := rfl
+@[simp] theorem bUnion_empty : finset.bUnion ∅ t = ∅ := rfl
 
-@[simp] theorem mem_bind {b : β} : b ∈ s.bind t ↔ ∃a∈s, b ∈ t a :=
-by simp only [mem_def, bind_val, mem_erase_dup, mem_bind, exists_prop]
+@[simp] theorem mem_bUnion {b : β} : b ∈ s.bUnion t ↔ ∃a∈s, b ∈ t a :=
+by simp only [mem_def, bUnion_val, mem_erase_dup, mem_bind, exists_prop]
 
-@[simp] theorem bind_insert [decidable_eq α] {a : α} : (insert a s).bind t = t a ∪ s.bind t :=
-ext $ λ x, by simp only [mem_bind, exists_prop, mem_union, mem_insert,
+@[simp] theorem bUnion_insert [decidable_eq α] {a : α} : (insert a s).bUnion t = t a ∪ s.bUnion t :=
+ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,
   or_and_distrib_right, exists_or_distrib, exists_eq_left]
 -- ext $ λ x, by simp [or_and_distrib_right, exists_or_distrib]
 
-@[simp] lemma singleton_bind {a : α} : finset.bind {a} t = t a :=
+@[simp] lemma singleton_bUnion {a : α} : finset.bUnion {a} t = t a :=
 begin
   classical,
-  rw [← insert_emptyc_eq, bind_insert, bind_empty, union_empty]
+  rw [← insert_emptyc_eq, bUnion_insert, bUnion_empty, union_empty]
 end
 
-theorem bind_inter (s : finset α) (f : α → finset β) (t : finset β) :
-  s.bind f ∩ t = s.bind (λ x, f x ∩ t) :=
+theorem bUnion_inter (s : finset α) (f : α → finset β) (t : finset β) :
+  s.bUnion f ∩ t = s.bUnion (λ x, f x ∩ t) :=
 begin
   ext x,
-  simp only [mem_bind, mem_inter],
+  simp only [mem_bUnion, mem_inter],
   tauto
 end
 
-theorem inter_bind (t : finset β) (s : finset α) (f : α → finset β) :
-  t ∩ s.bind f = s.bind (λ x, t ∩ f x) :=
-by rw [inter_comm, bind_inter]; simp [inter_comm]
+theorem inter_bUnion (t : finset β) (s : finset α) (f : α → finset β) :
+  t ∩ s.bUnion f = s.bUnion (λ x, t ∩ f x) :=
+by rw [inter_comm, bUnion_inter]; simp [inter_comm]
 
-theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
-  (s.image f).bind t = s.bind (λa, t (f a)) :=
+theorem image_bUnion [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
+  (s.image f).bUnion t = s.bUnion (λa, t (f a)) :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
-  by simp only [image_insert, bind_insert, ih])
+  by simp only [image_insert, bUnion_insert, ih])
 
-theorem bind_image [decidable_eq γ] {s : finset α} {t : α → finset β} {f : β → γ} :
-  (s.bind t).image f = s.bind (λa, (t a).image f) :=
+theorem bUnion_image [decidable_eq γ] {s : finset α} {t : α → finset β} {f : β → γ} :
+  (s.bUnion t).image f = s.bUnion (λa, (t a).image f) :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
-  by simp only [bind_insert, image_union, ih])
+  by simp only [bUnion_insert, image_union, ih])
 
 theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
-  (s.bind t).to_finset = s.to_finset.bind (λa, (t a).to_finset) :=
-ext $ λ x, by simp only [multiset.mem_to_finset, mem_bind, multiset.mem_bind, exists_prop]
+  (s.bind t).to_finset = s.to_finset.bUnion (λa, (t a).to_finset) :=
+ext $ λ x, by simp only [multiset.mem_to_finset, mem_bUnion, multiset.mem_bind, exists_prop]
 
-lemma bind_mono {t₁ t₂ : α → finset β} (h : ∀a∈s, t₁ a ⊆ t₂ a) : s.bind t₁ ⊆ s.bind t₂ :=
+lemma bUnion_mono {t₁ t₂ : α → finset β} (h : ∀a∈s, t₁ a ⊆ t₂ a) : s.bUnion t₁ ⊆ s.bUnion t₂ :=
 have ∀b a, a ∈ s → b ∈ t₁ a → (∃ (a : α), a ∈ s ∧ b ∈ t₂ a),
   from assume b a ha hb, ⟨a, ha, finset.mem_of_subset (h a ha) hb⟩,
-by simpa only [subset_iff, mem_bind, exists_imp_distrib, and_imp, exists_prop]
+by simpa only [subset_iff, mem_bUnion, exists_imp_distrib, and_imp, exists_prop]
 
-lemma bind_subset_bind_of_subset_left {α : Type*} {s₁ s₂ : finset α}
-  (t : α → finset β) (h : s₁ ⊆ s₂) : s₁.bind t ⊆ s₂.bind t :=
+lemma bUnion_subset_bUnion_of_subset_left {α : Type*} {s₁ s₂ : finset α}
+  (t : α → finset β) (h : s₁ ⊆ s₂) : s₁.bUnion t ⊆ s₂.bUnion t :=
 begin
   intro x,
-  simp only [and_imp, mem_bind, exists_prop],
+  simp only [and_imp, mem_bUnion, exists_prop],
   exact Exists.imp (λ a ha, ⟨h ha.1, ha.2⟩)
 end
 
-lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
-ext $ λ x, by simp only [mem_bind, mem_image, mem_singleton, eq_comm]
+lemma bUnion_singleton {f : α → β} : s.bUnion (λa, {f a}) = s.image f :=
+ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]
 
-@[simp] lemma bind_singleton_eq_self [decidable_eq α] :
-  s.bind (singleton : α → finset α) = s :=
-by { rw bind_singleton, exact image_id }
+@[simp] lemma bUnion_singleton_eq_self [decidable_eq α] :
+  s.bUnion (singleton : α → finset α) = s :=
+by { rw bUnion_singleton, exact image_id }
 
-lemma bind_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
+lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
-  t.bind (λa, s.filter $ (λc, f c = a)) = s :=
+  t.bUnion (λa, s.filter $ (λc, f c = a)) = s :=
 begin
   ext b,
   suffices : (∃ a ∈ t, b ∈ s ∧ f b = a) ↔ b ∈ s, by simpa,
   exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨f b, h b hb, hb, rfl⟩⟩
 end
 
-lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
-  (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
-bind_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
+lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
+  (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=
+bUnion_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
 
-end bind
+end bUnion
 
 /-! ### prod -/
 section prod
@@ -2125,9 +2136,9 @@ theorem subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β
   s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
 λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
 
-theorem product_eq_bind [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
- s.product t = s.bind (λa, t.image $ λb, (a, b)) :=
-ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bind, mem_image, exists_prop, prod.mk.inj_iff,
+theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+ s.product t = s.bUnion (λa, t.image $ λb, (a, b)) :=
+ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
 @[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
@@ -2165,9 +2176,9 @@ theorem sigma_mono {s₁ s₂ : finset α} {t₁ t₂ : Πa, finset (σ a)}
   (H1 : s₁ ⊆ s₂) (H2 : ∀a, t₁ a ⊆ t₂ a) : s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
 λ ⟨x, sx⟩ H, let ⟨H3, H4⟩ := mem_sigma.1 H in mem_sigma.2 ⟨H1 H3, H2 x H4⟩
 
-theorem sigma_eq_bind [decidable_eq (Σ a, σ a)] (s : finset α)
+theorem sigma_eq_bUnion [decidable_eq (Σ a, σ a)] (s : finset α)
   (t : Πa, finset (σ a)) :
-  s.sigma t = s.bind (λa, (t a).map $ embedding.sigma_mk a) :=
+  s.sigma t = s.bUnion (λa, (t a).map $ embedding.sigma_mk a) :=
 by { ext ⟨x, y⟩, simp [and.left_comm] }
 
 end sigma
@@ -2245,21 +2256,21 @@ sdiff_eq_self_iff_disjoint.2 h
 lemma disjoint_self_iff_empty (s : finset α) : disjoint s s ↔ s = ∅ :=
 disjoint_self
 
-lemma disjoint_bind_left {ι : Type*}
+lemma disjoint_bUnion_left {ι : Type*}
   (s : finset ι) (f : ι → finset α) (t : finset α) :
-  disjoint (s.bind f) t ↔ (∀i∈s, disjoint (f i) t) :=
+  disjoint (s.bUnion f) t ↔ (∀i∈s, disjoint (f i) t) :=
 begin
   classical,
   refine s.induction _ _,
-  { simp only [forall_mem_empty_iff, bind_empty, disjoint_empty_left] },
+  { simp only [forall_mem_empty_iff, bUnion_empty, disjoint_empty_left] },
   { assume i s his ih,
-    simp only [disjoint_union_left, bind_insert, his, forall_mem_insert, ih] }
+    simp only [disjoint_union_left, bUnion_insert, his, forall_mem_insert, ih] }
 end
 
-lemma disjoint_bind_right {ι : Type*}
+lemma disjoint_bUnion_right {ι : Type*}
   (s : finset α) (t : finset ι) (f : ι → finset α) :
-  disjoint s (t.bind f) ↔ (∀i∈t, disjoint s (f i)) :=
-by simpa only [disjoint.comm] using disjoint_bind_left t f s
+  disjoint s (t.bUnion f) ↔ (∀i∈t, disjoint s (f i)) :=
+by simpa only [disjoint.comm] using disjoint_bUnion_left t f s
 
 @[simp] theorem card_disjoint_union {s t : finset α} (h : disjoint s t) :
   card (s ∪ t) = card s + card t :=

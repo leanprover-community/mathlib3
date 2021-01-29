@@ -414,6 +414,20 @@ begin
   { simp_rw [Union_unpair_prod, hμ.spanning, hν.spanning, univ_prod_univ] }
 end
 
+lemma prod_fst_absolutely_continuous : map prod.fst (μ.prod ν) ≪ μ :=
+begin
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [map_apply measurable_fst hs, ← prod_univ, prod_prod hs is_measurable.univ],
+  rw [h2s, zero_mul] -- for some reason `simp_rw [h2s]` doesn't work
+end
+
+lemma prod_snd_absolutely_continuous : map prod.snd (μ.prod ν) ≪ ν :=
+begin
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [map_apply measurable_snd hs, ← univ_prod, prod_prod is_measurable.univ hs],
+  rw [h2s, mul_zero] -- for some reason `simp_rw [h2s]` doesn't work
+end
+
 variables [sigma_finite μ]
 
 instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
@@ -531,13 +545,11 @@ by { rw ← prod_swap at hf, exact hf.comp_measurable measurable_swap }
 
 lemma ae_measurable.fst [sigma_finite ν] {f : α → γ}
   (hf : ae_measurable f μ) : ae_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
-hf.comp_measurable' measurable_fst $
-  by { intros s h1s h2s, simp_rw [← prod_univ, prod_prod h1s is_measurable.univ, h2s, zero_mul] }
+hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
 
 lemma ae_measurable.snd [sigma_finite ν] {f : β → γ}
   (hf : ae_measurable f ν) : ae_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
-hf.comp_measurable' measurable_snd $
-  by { intros s h1s h2s, simp_rw [← univ_prod, prod_prod is_measurable.univ h1s, h2s, mul_zero] }
+hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 
 /-- The Bochner integral is a.e.-measurable.
   This shows that the integrand of (the right-hand-side of) Fubini's theorem is a.e.-measurable. -/

@@ -82,7 +82,7 @@ end
 lemma prod_antidiagonal {M : Type*} [comm_monoid M]
   (n : ℕ) (f : ℕ × ℕ → M) :
   ∏ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p =
-  ∏ (i : ℕ) in finset.range (n.succ), f (i,(n - i)) :=
+  ∏ (i : ℕ) in finset.range n.succ, f (i, n - i) :=
 begin
   conv_rhs {apply_congr, skip, rw <-function.curry_apply f x (n-x), },
   rw [prod_range_succ_eq_prod_antidiagonal], simp only [prod.mk.eta, function.curry_apply],

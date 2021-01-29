@@ -96,9 +96,10 @@ by { rw [bernoulli_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli_spec (n : ℕ) :
   ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli k = 1 :=
 begin
-  simp [finset.sum_range_succ, bernoulli_def n],
+  rw [finset.sum_range_succ, bernoulli_def n],
   conv_lhs  {congr, skip, apply_congr, skip, rw choose_symm (le_of_lt (finset.mem_range.1 H))},
-  simp only [sub_add_cancel],
+  simp only [one_mul, cast_one, nat.sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one,
+  sub_self],
 end
 
 lemma bernoulli_spec' (n : ℕ) :
@@ -107,7 +108,7 @@ lemma bernoulli_spec' (n : ℕ) :
 begin
   rw finset.nat.sum_antidiagonal, simp,
   conv_lhs {apply_congr, skip, rw [nat.add_sub_cancel' _, cast_sub], skip,
-  apply_congr finset.range_succ_mem_le n x H, apply_congr finset.range_succ_mem_le n x H,},
+  apply_congr finset.mem_range_succ_iff.1 H, apply_congr finset.mem_range_succ_iff.1 H,},
   rw bernoulli_spec,
 end
 
@@ -175,8 +176,8 @@ open nat
 
 theorem algebra_map_id (q : ℚ) : algebra_map ℚ ℚ q = q :=
 begin
-  rw show algebra_map ℚ ℚ = (by refine_struct { to_fun := id}; tidy),
-  by simp only [eq_iff_true_of_subsingleton], refl,
+  rw [show algebra_map ℚ ℚ = (by refine_struct { to_fun := id}; tidy),
+    by simp only [eq_iff_true_of_subsingleton]], refl,
 end
 
 theorem bernoulli_power_series :

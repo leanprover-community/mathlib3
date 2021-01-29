@@ -240,29 +240,27 @@ orthogonalization, but in the finite-dimensional case it follows more easily by 
 
 /-- Variant of the stereographic projection (see `stereographic`), for the sphere in a finite-
 dimensional inner product space `E`.  This version has codomain the Euclidean space of dimension
-`findim ℝ E - 1`. -/
-def stereographic' (v : sphere (0:E) 1) :
-  local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin (findim ℝ E - 1))) :=
+`n`. -/
+def stereographic' {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
+  local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)).trans
-(continuous_linear_equiv.of_findim_eq
-( begin
-    rw findim_orthogonal_span_singleton (nonzero_of_mem_unit_sphere v),
-    simp
-  end )).to_homeomorph.to_local_homeomorph
+(linear_isometry_equiv.of_orthogonal hn
+  (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv.to_homeomorph.to_local_homeomorph
 
-@[simp] lemma stereographic'_source (v : sphere (0:E) 1) :
-  (stereographic' v).source = {v}ᶜ :=
+@[simp] lemma stereographic'_source {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
+  (stereographic' hn v).source = {v}ᶜ :=
 by simp [stereographic']
 
-@[simp] lemma stereographic'_target (v : sphere (0:E) 1) :
-  (stereographic' v).target = set.univ :=
+@[simp] lemma stereographic'_target {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
+  (stereographic' hn v).target = set.univ :=
 by simp [stereographic']
 
-/-- The unit sphere in a finite-dimensional inner product space `E` is a charted space modelled on
-the Euclidean space of dimension `findim ℝ E - 1`. -/
-instance : charted_space (euclidean_space ℝ (fin (findim ℝ E - 1))) (sphere (0:E) 1) :=
-{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' v},
-  chart_at         := λ v, stereographic' (-v),
+/-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a charted space
+modelled on the Euclidean space of dimension `n`. -/
+instance {n : ℕ} [_i : fact (findim ℝ E = n + 1)] :
+  charted_space (euclidean_space ℝ (fin n)) (sphere (0:E) 1) :=
+{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' (fact.elim _i) v},
+  chart_at         := λ v, stereographic' (fact.elim _i) (-v),
   mem_chart_source := λ v, by simpa using ne_neg_of_mem_unit_sphere ℝ v,
   chart_mem_atlas  := λ v, ⟨-v, rfl⟩ }
 

@@ -392,7 +392,7 @@ variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α
 
 /-- The region between two measurable functions on a measurable set is measurable. -/
 lemma is_measurable_region_between
-  (hf : measurable f) (hg: measurable g) (hs : is_measurable s) :
+  (hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
   is_measurable (region_between f g s) :=
 begin
   dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],

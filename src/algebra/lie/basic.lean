@@ -38,7 +38,7 @@ Lie algebras are defined as modules with a compatible Lie ring structure and thu
 are partially unbundled.
 
 ## References
-* [N. Bourbaki, *Lie Groups and Lie Algebras, Chapters 1--3*][bourbaki1975]
+* [N. Bourbaki, *Lie Groups and Lie Algebras, Chapters 1--3*](bourbaki1975)
 
 ## Tags
 
@@ -1604,7 +1604,7 @@ begin
   rw eq_bot_iff, exact h₂,
 end
 
-/-- Given two nested Lie ideals `I₁ ⊆ I₂`, the inclusion `I₁ ↪ I₂'` is a morphism of Lie algebras.-/
+/-- Given two nested Lie ideals `I₁ ⊆ I₂`, the inclusion `I₁ ↪ I₂` is a morphism of Lie algebras.-/
 def hom_of_le {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) : I₁ →ₗ⁅R⁆ I₂ :=
 { map_lie := λ x y, rfl,
   ..submodule.of_le h, }
@@ -1978,7 +1978,13 @@ begin
   { apply le_solvable_ideal_solvable h, apply_instance, },
 end
 
-/-- A semisimple Lie algebra is one with trivial radical. -/
+/-- A semisimple Lie algebra is one with trivial radical.
+
+Note that the label 'semisimple' is apparently not universally agreed
+[upon](https://mathoverflow.net/questions/149391/on-radicals-of-a-lie-algebra#comment383669_149391)
+for general coefficients. We are following [Seligman, page 15](seligman1967) and using the label
+for the weakest of the various properties which are all equivalent over a field of characteristic
+zero. -/
 class is_semisimple : Prop :=
 (semisimple : radical R L = ⊥)
 

@@ -79,7 +79,7 @@ by rw [degrees, finsupp.support_neg]; refl
 
 lemma degrees_sub (p q : mv_polynomial σ R) :
   (p - q).degrees ≤ p.degrees ⊔ q.degrees :=
-le_trans (degrees_add p (-q)) $ by rw [degrees_neg]
+by simpa only [sub_eq_add_neg] using le_trans (degrees_add p (-q)) (by rw degrees_neg)
 
 end degrees
 
@@ -91,7 +91,7 @@ variables (p q)
 by simp [vars, degrees_neg]
 
 lemma vars_sub_subset : (p - q).vars ⊆ p.vars ∪ q.vars :=
-by convert vars_add_subset p (-q) using 2; simp
+by convert vars_add_subset p (-q) using 2; simp [sub_eq_add_neg]
 
 variables {p q}
 
@@ -99,8 +99,8 @@ variables {p q}
 lemma vars_sub_of_disjoint (hpq : disjoint p.vars q.vars) : (p - q).vars = p.vars ∪ q.vars :=
 begin
   rw ←vars_neg q at hpq,
-  convert vars_add_of_disjoint hpq using 2,
-  simp
+  convert vars_add_of_disjoint hpq using 2;
+    simp [sub_eq_add_neg]
 end
 
 end vars

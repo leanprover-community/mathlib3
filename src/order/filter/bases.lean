@@ -467,7 +467,7 @@ lemma has_basis_infi_principal_finite (s : ι → set α) :
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
   simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
-    exists_finite_iff_finset, finset.bInter_coe]
+    exists_finite_iff_finset, finset.set_bInter_coe]
 end
 
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
@@ -640,10 +640,10 @@ lemma antimono_seq_of_seq (s : ℕ → set α) :
   ∃ t : ℕ → set α, (∀ i j, i ≤ j → t j ⊆ t i) ∧ (⨅ i, 𝓟 $ s i) = ⨅ i, 𝓟 (t i) :=
 begin
   use λ n, ⋂ m ≤ n, s m, split,
-  { intros i j hij a, simp, intros h i' hi'i, apply h, transitivity; assumption },
-    apply le_antisymm; rw le_infi_iff; intro i,
-  { rw le_principal_iff, apply Inter_mem_sets (finite_le_nat _),
-    intros j hji, rw ← le_principal_iff, apply infi_le_of_le j _, apply le_refl _ },
+  { exact λ i j hij, bInter_mono' (Iic_subset_Iic.2 hij) (λ n hn, subset.refl _) },
+  apply le_antisymm; rw le_infi_iff; intro i,
+  { rw le_principal_iff, refine (bInter_mem_sets (finite_le_nat _)).2 (λ j hji, _),
+    rw ← le_principal_iff, apply infi_le_of_le j _, apply le_refl _ },
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 

@@ -66,7 +66,7 @@ f.to_fun.map_smul c x
 @[simp] lemma mk_apply (p : submodule R E) (f : p →ₗ[R] F) (x : p) :
   mk p f x = f x := rfl
 
-/-- The unique `linear_pmap` on `span R {x}` that sends `x` to `y`. This version works for modules
+/-- The unique `linear_pmap` on `R ∙ x` that sends `x` to `y`. This version works for modules
 over rings, and requires a proof of `∀ c, c • x = 0 → c • y = 0`. -/
 noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   linear_pmap R E F :=
@@ -75,7 +75,7 @@ begin
   { intros c₁ c₂ h,
     rw [← sub_eq_zero, ← sub_smul] at h ⊢,
     exact H _ h },
-  refine ⟨span R {x}, λ z, _, _, _⟩,
+  refine ⟨R ∙ x, λ z, _, _, _⟩,
   { exact (classical.some (mem_span_singleton.1 z.prop) • y) },
   { intros z₁ z₂,
     rw [← add_smul],
@@ -90,7 +90,7 @@ begin
 end
 
 @[simp] lemma domain_mk_span_singleton (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
-  (mk_span_singleton' x y H).domain = span R {x} := rfl
+  (mk_span_singleton' x y H).domain = R ∙ x := rfl
 
 @[simp] lemma mk_span_singleton_apply (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
   (c : R) (h) :

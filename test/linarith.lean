@@ -392,3 +392,6 @@ by linarith {split_ne := tt}
 example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x * x := by nlinarith
 
 example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x ^ 2 := by nlinarith
+
+axiom foo {x : int} : 1 ≤ x → 1 ≤ x*x
+lemma bar (x y: int)(h : 0 ≤ y ∧ 1 ≤ x) : 1 ≤ y + x*x := by linarith [foo h.2]

@@ -7,6 +7,7 @@ import data.nat.choose.sum
 import data.equiv.ring
 import algebra.algebra.operations
 import ring_theory.ideal.basic
+import algebra.algebra.tower
 /-!
 # More operations on modules and ideals
 -/
@@ -90,10 +91,10 @@ theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
   x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=
 ⟨λ hx, smul_induction_on hx
-  (λ r hri n hnm, let ⟨s, hs⟩ := mem_span_singleton.1 hnm in ⟨r * s, I.mul_mem_right hri, hs ▸ mul_smul r s m⟩)
+  (λ r hri n hnm, let ⟨s, hs⟩ := mem_span_singleton.1 hnm in ⟨r * s, I.mul_mem_right _ hri, hs ▸ mul_smul r s m⟩)
   ⟨0, I.zero_mem, by rw [zero_smul]⟩
   (λ m1 m2 ⟨y1, hyi1, hy1⟩ ⟨y2, hyi2, hy2⟩, ⟨y1 + y2, I.add_mem hyi1 hyi2, by rw [add_smul, hy1, hy2]⟩)
-  (λ c r ⟨y, hyi, hy⟩, ⟨c * y, I.mul_mem_left hyi, by rw [mul_smul, hy]⟩),
+  (λ c r ⟨y, hyi, hy⟩, ⟨c * y, I.mul_mem_left _ hyi, by rw [mul_smul, hy]⟩),
 λ ⟨y, hyi, hy⟩, hy ▸ smul_mem_smul hyi (subset_span $ set.mem_singleton m)⟩
 
 theorem smul_le_right : I • N ≤ N :=
@@ -212,7 +213,7 @@ begin
   intros i,
   rw [← quotient.eq, ring_hom.map_sum],
   refine eq.trans (finset.sum_eq_single i _ _) _,
-  { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left (hφ2 j i hji) },
+  { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left _ (hφ2 j i hji) },
   { intros hi, exact (hi $ finset.mem_univ i).elim },
   specialize hφ1 i, rw [← quotient.eq, ring_hom.map_one] at hφ1,
   rw [ring_hom.map_mul, hφ1, mul_one]
@@ -266,10 +267,10 @@ theorem mul_le : I * J ≤ K ↔ ∀ (r ∈ I) (s ∈ J), r * s ∈ K :=
 submodule.smul_le
 
 lemma mul_le_left : I * J ≤ J :=
-ideal.mul_le.2 (λ r hr s, ideal.mul_mem_left _)
+ideal.mul_le.2 (λ r hr s, J.mul_mem_left _)
 
 lemma mul_le_right : I * J ≤ I :=
-ideal.mul_le.2 (λ r hr s hs, ideal.mul_mem_right _ hr)
+ideal.mul_le.2 (λ r hr s hs, I.mul_mem_right _ hr)
 
 @[simp] lemma sup_mul_right_self : I ⊔ (I * J) = I :=
 sup_eq_left.2 ideal.mul_le_right
@@ -303,7 +304,7 @@ lemma span_singleton_mul_span_singleton (r s : R) : span {r} * span {s} = (span 
 by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton],}
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
-mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right hri, J.mul_mem_left hsj⟩
+mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
 
 theorem prod_le_inf {s : finset ι} {f : ι → ideal R} : s.prod f ≤ s.inf f :=
 begin
@@ -373,12 +374,12 @@ def radical (I : ideal R) : ideal R :=
     (add_pow x y (m + n)).symm ▸ I.sum_mem $
     show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
-      (λ hcm, I.mul_mem_right $ I.mul_mem_left $ nat.add_comm n m ▸ (nat.add_sub_assoc hcm n).symm ▸
-        (pow_add y n (m-c)).symm ▸ I.mul_mem_right hyni)
-      (λ hmc, I.mul_mem_right $ I.mul_mem_right $ nat.add_sub_cancel' hmc ▸
-        (pow_add x m (c-m)).symm ▸ I.mul_mem_right hxmi)⟩,
-  smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, show (r * s)^n ∈ I,
-    from (mul_pow r s n).symm ▸ I.mul_mem_left hsni⟩ }
+      (λ hcm, I.mul_mem_right _ $ I.mul_mem_left _ $ nat.add_comm n m ▸
+        (nat.add_sub_assoc hcm n).symm ▸
+        (pow_add y n (m-c)).symm ▸ I.mul_mem_right _ hyni)
+      (λ hmc, I.mul_mem_right _ $ I.mul_mem_right _ $ nat.add_sub_cancel' hmc ▸
+        (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
+  smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, (mul_pow r s n).symm ▸ I.mul_mem_left (r^n) hsni⟩ }
 
 theorem le_radical : I ≤ radical I :=
 λ r hri, ⟨1, (pow_one r).symm ▸ hri⟩
@@ -392,7 +393,7 @@ theorem radical_mono (H : I ≤ J) : radical I ≤ radical J :=
 λ r ⟨n, hrni⟩, ⟨n, H hrni⟩
 
 variables (I)
-theorem radical_idem : radical (radical I) = radical I :=
+@[simp] theorem radical_idem : radical (radical I) = radical I :=
 le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
 variables {I}
 
@@ -412,8 +413,8 @@ le_antisymm (radical_mono $ sup_le_sup le_radical le_radical) $
 
 theorem radical_inf : radical (I ⊓ J) = radical I ⊓ radical J :=
 le_antisymm (le_inf (radical_mono inf_le_left) (radical_mono inf_le_right))
-(λ r ⟨⟨m, hrm⟩, ⟨n, hrn⟩⟩, ⟨m + n, (pow_add r m n).symm ▸ I.mul_mem_right hrm,
-(pow_add r m n).symm ▸ J.mul_mem_left hrn⟩)
+(λ r ⟨⟨m, hrm⟩, ⟨n, hrn⟩⟩, ⟨m + n, (pow_add r m n).symm ▸ I.mul_mem_right _ hrm,
+(pow_add r m n).symm ▸ J.mul_mem_left _ hrn⟩)
 
 theorem radical_mul : radical (I * J) = radical I ⊓ radical J :=
 le_antisymm (radical_inf I J ▸ radical_mono $ @mul_le_inf _ _ I J)
@@ -439,8 +440,12 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
   let ⟨n, hrn⟩ := this _ hxm, ⟨p, hpm, q, hq, hpqrn⟩ := submodule.mem_sup.1 hrn, ⟨c, hcxq⟩ := mem_span_singleton'.1 hq in
   let ⟨k, hrk⟩ := this _ hym, ⟨f, hfm, g, hg, hfgrk⟩ := submodule.mem_sup.1 hrk, ⟨d, hdyg⟩ := mem_span_singleton'.1 hg in
   hrm ⟨n + k, by rw [pow_add, ← hpqrn, ← hcxq, ← hfgrk, ← hdyg, add_mul, mul_add (c*x), mul_assoc c x (d*y), mul_left_comm x, ← mul_assoc];
-    refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
+    refine m.add_mem (m.mul_mem_right _ hpm) (m.add_mem (m.mul_mem_left _ hfm) (m.mul_mem_left _ hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
+
+@[simp] lemma radical_bot_of_integral_domain {R : Type u} [integral_domain R] :
+  radical (⊥ : ideal R) = ⊥ :=
+eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
 
 instance : comm_semiring (ideal R) := submodule.comm_semiring
 
@@ -671,7 +676,7 @@ span (f '' I)
 /-- `I.comap f` is the preimage of `I` under `f`. -/
 def comap (I : ideal S) : ideal R :=
 { carrier := f ⁻¹' I,
-  smul_mem' := λ c x hx, show f (c * x) ∈ I, by { rw f.map_mul, exact I.mul_mem_left hx },
+  smul_mem' := λ c x hx, show f (c * x) ∈ I, by { rw f.map_mul, exact I.mul_mem_left _ hx },
   .. I.to_add_submonoid.comap (f : R →+ S) }
 
 variables {f}
@@ -885,8 +890,8 @@ def rel_iso_of_surjective :
   right_inv := λ I, subtype.eq $ show comap f (map f I.1) = I.1,
     from (comap_map_of_surjective f hf I).symm ▸ le_antisymm
       (sup_le (le_refl _) I.2) le_sup_left,
-  map_rel_iff' := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
-    map_comap_of_surjective f hf I2 ▸ map_mono H⟩ }
+  map_rel_iff' := λ I1 I2, ⟨λ H, map_comap_of_surjective f hf I1 ▸
+    map_comap_of_surjective f hf I2 ▸ map_mono H, comap_mono⟩ }
 
 /-- The map on ideals induced by a surjective map preserves inclusion. -/
 def order_embedding_of_surjective : ideal S ↪o ideal R :=
@@ -971,6 +976,11 @@ calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm
    ... = ⊤ : by rw comap_top
 
 end bijective
+
+lemma ring_equiv.bot_maximal_iff (e : R ≃+* S) :
+  (⊥ : ideal R).is_maximal ↔ (⊥ : ideal S).is_maximal :=
+⟨λ h, (@map_bot _ _ _ _ e.to_ring_hom) ▸ map.is_maximal e.to_ring_hom e.bijective h,
+  λ h, (@map_bot _ _ _ _ e.symm.to_ring_hom) ▸ map.is_maximal e.symm.to_ring_hom e.symm.bijective h⟩
 
 end map_and_comap
 
@@ -1075,15 +1085,14 @@ begin
   { intros y hy,
     cases hf y with x hx,
     refine hx ▸ (mem_map_of_mem _),
-    rw Inf_eq_infi at ⊢ hy,
-    simp at ⊢ hy,
+    have : ∀ I ∈ A, y ∈ map f I, by simpa using hy,
+    rw [submodule.mem_Inf],
     intros J hJ,
-    cases (mem_map_iff_of_surjective f hf).1 (hy (map f J) J hJ rfl) with x' hx',
+    rcases (mem_map_iff_of_surjective f hf).1 (this J hJ) with ⟨x', hx', rfl⟩,
     have : x - x' ∈ J,
     { apply h J hJ,
-      rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right, sub_self y], },
-    convert J.add_mem this hx'.left,
-    ring, }
+      rw [ring_hom.mem_ker, ring_hom.map_sub, hx, sub_self] },
+    simpa only [sub_add_cancel] using J.add_mem this hx' }
 end
 
 theorem map_is_prime_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
@@ -1123,13 +1132,96 @@ begin
     refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
 
+@[simp] lemma bot_quotient_is_maximal_iff (I : ideal R) :
+  (⊥ : ideal I.quotient).is_maximal ↔ I.is_maximal :=
+⟨λ hI, (@mk_ker _ _ I) ▸
+  @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) ⊥ quotient.mk_surjective hI,
+ λ hI, @bot_is_maximal _ (@quotient.field _ _ I hI) ⟩
+
 section quotient_algebra
 
-/-- The ring hom `R/f⁻¹(I) →+* S/I` induced by a ring hom `f : R →+* S` -/
+variables (R) {A : Type*} [comm_ring A] [algebra R A]
+
+/-- The `R`-algebra structure on `A/I` for an `R`-algebra `A` -/
+instance {I : ideal A} : algebra R (ideal.quotient I) :=
+(ring_hom.comp (ideal.quotient.mk I) (algebra_map R A)).to_algebra
+
+/-- The canonical morphism `A →ₐ[R] I.quotient` as morphism of `R`-algebras, for `I` an ideal of
+`A`, where `A` is an `R`-algebra. -/
+def quotient.mkₐ (I : ideal A) : A →ₐ[R] I.quotient :=
+⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
+
+lemma quotient.alg_map_eq (I : ideal A) :
+  algebra_map R I.quotient = (algebra_map A I.quotient).comp (algebra_map R A) :=
+by simp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_id]
+
+instance {I : ideal A} : is_scalar_tower R A (ideal.quotient I) :=
+is_scalar_tower.of_algebra_map_eq' (quotient.alg_map_eq R I)
+
+lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
+  (quotient.mkₐ R I).to_ring_hom = ideal.quotient.mk I := rfl
+
+@[simp] lemma quotient.mkₐ_eq_mk (I : ideal A) :
+  ⇑(quotient.mkₐ R I) = ideal.quotient.mk I := rfl
+
+/-- The canonical morphism `A →ₐ[R] I.quotient` is surjective. -/
+lemma quotient.mkₐ_surjective (I : ideal A) : function.surjective (quotient.mkₐ R I) :=
+surjective_quot_mk _
+
+/-- The kernel of `A →ₐ[R] I.quotient` is `I`. -/
+@[simp]
+lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
+ideal.mk_ker
+
+variable {R}
+
+/-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
   I.quotient →+* J.quotient :=
 (quotient.lift I ((quotient.mk J).comp f) (λ _ ha,
   by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using hIJ ha))
+
+@[simp]
+lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
+  {x : R} : quotient_map I f H (quotient.mk J x) = quotient.mk I (f x) :=
+quotient.lift_mk J _ _
+
+lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J ≤ I.comap f) :
+  (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
+ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
+
+/-- `H` and `h` are kept as seperate hypothesis since H is used in constructing the quotient map -/
+lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
+  (h : I.comap f ≤ J) : function.injective (quotient_map I f H) :=
+begin
+  refine (quotient_map I f H).injective_iff.2 (λ a ha, _),
+  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
+  rw [quotient_map_mk, quotient.eq_zero_iff_mem] at ha,
+  exact (quotient.eq_zero_iff_mem).mpr (h ha),
+end
+
+/-- If we take `J = I.comap f` then `quotient_map` is injective automatically. -/
+lemma quotient_map_injective {I : ideal S} {f : R →+* S} :
+  function.injective (quotient_map I f le_rfl) :=
+quotient_map_injective' le_rfl
+
+lemma quotient_map_surjective {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
+  (hf : function.surjective f) : function.surjective (quotient_map I f H) :=
+λ x, let ⟨x, hx⟩ := quotient.mk_surjective x in
+  let ⟨y, hy⟩ := hf x in ⟨(quotient.mk J) y, by simp [hx, hy]⟩
+
+/-- Commutativity of a square is preserved when taking quotients by an ideal. -/
+lemma comp_quotient_map_eq_of_comp_eq {R' S' : Type*} [comm_ring R'] [comm_ring S']
+  {f : R →+* S} {f' : R' →+* S'} {g : R →+* R'} {g' : S →+* S'} (hfg : f'.comp g = g'.comp f)
+  (I : ideal S') : (quotient_map I g' le_rfl).comp (quotient_map (I.comap g') f le_rfl) =
+    (quotient_map I f' le_rfl).comp (quotient_map (I.comap f') g
+      (le_of_eq (trans (comap_comap f g') (hfg ▸ (comap_comap g f'))))) :=
+begin
+  refine ring_hom.ext (λ a, _),
+  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
+  simp only [ring_hom.comp_apply, quotient_map_mk],
+  exact congr_arg (quotient.mk I) (trans (g'.comp_apply f r).symm (hfg ▸ (f'.comp_apply g r))),
+end
 
 variables {I : ideal R} {J: ideal S} [algebra R S]
 

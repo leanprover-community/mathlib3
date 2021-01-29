@@ -19,18 +19,6 @@ begin
 end :=
 rfl
 
--- And why not Lie rings while we're at it?
-def lie_ring.map {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) : lie_ring β :=
-by transport using e
-
--- Verify definitional equality of the new structure data.
-example {α : Type} [lie_ring α] {β : Type} (e : α ≃ β) (x y : β) :
-begin
-  haveI := lie_ring.map e,
-  exact ⁅x, y⁆ = e ⁅e.symm x, e.symm y⁆
-end :=
-rfl
-
 -- Below we verify in more detail that the transported structure for `semiring`
 -- is definitionally what you would hope for.
 

@@ -97,7 +97,7 @@ end
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
-lemma normal.of_is_splitting_field {p : polynomial F} [hFEp : is_splitting_field F E p] :
+lemma normal.of_is_splitting_field (p : polynomial F) [hFEp : is_splitting_field F E p] :
   normal F E :=
 begin
   by_cases hp : p = 0,
@@ -159,6 +159,8 @@ begin
     hFEp.adjoin_roots adjoin_root.adjoin_root_eq_top),
   rw [set.image_singleton, ring_hom.algebra_map_to_algebra, adjoin_root.lift_root]
 end
+
+instance (p : polynomial F) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal_tower
 

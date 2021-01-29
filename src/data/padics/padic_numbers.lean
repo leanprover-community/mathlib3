@@ -239,7 +239,7 @@ do [v1, v2, v3] ← [hh, hf, hg].mmap
    e2 ← tactic.mk_app ``lift_index_left [hf, v1, v3] <|> return `(true),
    e3 ← tactic.mk_app ``lift_index_right [hg, v1, v2] <|> return `(true),
    sl ← [e1, e2, e3].mfoldl (λ s e, simp_lemmas.add s e) simp_lemmas.mk,
-   when at_.include_goal (tactic.simp_target sl),
+   when at_.include_goal (tactic.simp_target sl >> tactic.skip),
    hs ← at_.get_locals, hs.mmap' (tactic.simp_hyp sl [])
 
 /--

@@ -287,7 +287,7 @@ section cancel_monoid_with_zero
 variables [cancel_monoid_with_zero M₀] {a b c : M₀}
 
 @[priority 10] -- see Note [lower instance priority]
-instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
+instance cancel_monoid_with_zero.to_no_zero_divisors : no_zero_divisors M₀ :=
 ⟨λ a b ab0, by { by_cases a = 0, { left, exact h }, right,
   apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
 

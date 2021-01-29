@@ -169,7 +169,8 @@ tgt ← match tgt with
   | some e := tactic.i_to_expr_strict e
   end,
 tactic.choose nondep.is_some tgt (first :: names),
-try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
+try (interactive.simp none none tt [simp_arg_type.expr
+  ``(exists_prop)] [] (loc.ns $ some <$> names)),
 try (tactic.clear tgt)
 
 add_tactic_doc

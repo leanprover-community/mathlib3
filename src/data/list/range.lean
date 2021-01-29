@@ -141,7 +141,8 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl
-| (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n, reverse_append, add_comm]; refl
+| (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n,
+             reverse_append, add_comm]; refl
 
 @[simp] theorem length_iota (n : ℕ) : length (iota n) = n :=
 by simp only [iota_eq_reverse_range', length_reverse, length_range']

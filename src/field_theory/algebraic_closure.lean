@@ -81,6 +81,10 @@ begin
   exact (ring_hom.map_neg (algebra_map k K) ((minpoly k x).coeff 0)).symm ▸ this.symm,
 end
 
+lemma algebra_map_surjective_of_is_integral' {k K : Type*} [field k] [integral_domain K]
+  [hk : is_alg_closed k] (f : k →+* K) (hf : f.is_integral) : function.surjective f :=
+@algebra_map_surjective_of_is_integral k K _ _ _ f.to_algebra hf
+
 lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=

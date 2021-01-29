@@ -191,7 +191,7 @@ begin
   refine λ x h, submodule.span_induction h _ _ _ _,
   { rintro y ⟨a, b, h, su⟩,
     symmetry' at su,
-    rw ← ((sub_eq_iff_eq_add)) at su,
+    rw ←sub_eq_iff_eq_add at su,
     rw [ ← su, ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
   { simp, },
   { intros a b ha hb, simp [ha, hb], },

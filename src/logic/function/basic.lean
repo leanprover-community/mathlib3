@@ -79,7 +79,7 @@ def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
 
-lemma injective.dite_injective (p : α → Prop) [decidable_pred p]
+lemma injective.dite (p : α → Prop) [decidable_pred p]
   {f : {a : α // p a} → β} {f' : {a : α // ¬ p a} → β}
   (hf : injective f) (hf' : injective f')
   (im_disj : ∀ {x x' : α} {hx : p x} {hx' : ¬ p x'}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :

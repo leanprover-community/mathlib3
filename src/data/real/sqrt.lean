@@ -204,23 +204,6 @@ lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
 by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
   nnreal.le_of_real_iff_coe_le', pow_two, nnreal.coe_mul], exact mul_pos hx hx }
 
-lemma le_sqrt_of_sqr_le (h : x ^ 2 ≤ y) : x ≤ sqrt y :=
-begin
-  cases lt_or_ge 0 x with hx hx,
-  { rwa [le_sqrt' hx] },
-  { exact le_trans hx (sqrt_nonneg y) }
-end
-
-lemma lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
-by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
-
-lemma lt_sqrt_of_sqr_lt (h : x^2 < y) : x < sqrt y :=
-begin
-  by_contra hnot,
-  rw [le_antisymm (le_sqrt_of_sqr_le _) (not_lt.mp hnot), sqr_sqrt] at h,
-  exacts [h.false, (lt_of_le_of_lt (pow_two_nonneg _) h).le, h.le],
-end
-
 lemma sqr_le' (h : x^2 ≤ y) : -sqrt y ≤ x ∧ x ≤ sqrt y :=
 abs_le.mp (by simpa [← sqrt_sqr_eq_abs] using sqrt_le_sqrt h)
 
@@ -266,8 +249,11 @@ lemma div_sqrt : x / sqrt x = sqrt x :=
 begin
   cases le_or_lt x 0,
   { rw [sqrt_eq_zero'.mpr h, div_zero] },
-  { rw [div_eq_iff (sqrt_ne_zero' h), mul_self_sqrt h.le] },
+  { rw [div_eq_iff (sqrt_ne_zero'.mpr h), mul_self_sqrt h.le] },
 end
+
+lemma lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
 
 theorem sqr_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
 begin

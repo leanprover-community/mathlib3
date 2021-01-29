@@ -856,6 +856,7 @@ begin
   rw [(not_not.mp h), add_monoid_hom.map_zero],
 end
 
+omit dec
 lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}
   [decidable_eq ι₁] [decidable_eq ι₂] [Π i, add_monoid (β₁ i)] [Π i, add_monoid (β₂ i)]
   [add_comm_monoid γ]
@@ -869,6 +870,7 @@ begin
   exact finset.sum_comm,
 end
 
+include dec
 /-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/
 @[simps apply symm_apply]
 def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :

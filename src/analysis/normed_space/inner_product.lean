@@ -724,9 +724,23 @@ by simp [finsupp.total_apply, finsupp.inner_sum, orthonormal_iff_ite.mp hv]
 
 /-- The inner product of a linear combination of a set of orthonormal vectors with one of those
 vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_right_fintype [fintype ι]
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
+  ⟪v i, ∑ i : ι, (l i) • (v i)⟫ = l i :=
+by simp [inner_sum, inner_smul_right, orthonormal_iff_ite.mp hv]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
 lemma orthonormal.inner_left_finsupp {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι →₀ 𝕜) (i : ι) :
   ⟪finsupp.total ι E 𝕜 v l, v i⟫ = conj (l i) :=
 by rw [← inner_conj_sym, hv.inner_right_finsupp]
+
+/-- The inner product of a linear combination of a set of orthonormal vectors with one of those
+vectors picks out the coefficient of that vector. -/
+lemma orthonormal.inner_left_fintype [fintype ι]
+  {v : ι → E} (hv : orthonormal 𝕜 v) (l : ι → 𝕜) (i : ι) :
+  ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
+by simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
 
 /-- An orthonormal set is linearly independent. -/
 lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
@@ -737,6 +751,18 @@ begin
   ext i,
   have key : ⟪v i, finsupp.total ι E 𝕜 v l⟫ = ⟪v i, 0⟫ := by rw hl,
   simpa [hv.inner_right_finsupp] using key
+end
+
+/-- A subfamily of an orthonormal family (i.e., a composition with an injective map) is an
+orthonormal family. -/
+lemma orthonormal.comp
+  {ι' : Type*} {v : ι → E} (hv : orthonormal 𝕜 v) (f : ι' → ι) (hf : function.injective f) :
+  orthonormal 𝕜 (v ∘ f) :=
+begin
+  rw orthonormal_iff_ite at ⊢ hv,
+  intros i j,
+  convert hv (f i) (f j) using 1,
+  simp [hf]
 end
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
@@ -1389,6 +1415,11 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     by simp only [finset.mul_sum, inner_smul_left]
 }
 
+@[simp] lemma pi_Lp.inner_apply {ι : Type*} [fintype ι] {f : ι → Type*}
+  [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 one_le_two f) :
+  ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
+rfl
+
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
@@ -1398,6 +1429,8 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   nonneg_im := λ x, by rw [mul_im, conj_re, conj_im]; ring,
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
+
+@[simp] lemma is_R_or_C.inner_apply (x y : 𝕜) : ⟪x, y⟫ = (conj x) * y := rfl
 
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
 space use `euclidean_space 𝕜 (fin n)`. -/
@@ -1668,6 +1701,7 @@ local attribute [reducible] pi_Lp
 variables {ι : Type*} [fintype ι]
 
 instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
+instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 
 @[simp] lemma findim_euclidean_space :
   finite_dimensional.findim 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp
@@ -1675,12 +1709,22 @@ instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instanc
 lemma findim_euclidean_space_fin {n : ℕ} :
   finite_dimensional.findim 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
-/-- A basis on `ι` for a finite-dimensional space induces a continuous linear equivalence
-with `euclidean_space 𝕜 ι`.  If the basis is orthonormal in an inner product space, this continuous
-linear equivalence is an isometry, but we don't prove that here. -/
-def is_basis.equiv_fun_euclidean [finite_dimensional 𝕜 E] {v : ι → E} (h : is_basis 𝕜 v) :
-  E ≃L[𝕜] (euclidean_space 𝕜 ι) :=
-h.equiv_fun.to_continuous_linear_equiv
+/-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
+`euclidean_space 𝕜 ι`. -/
+def is_basis.isometry_euclidean_of_orthonormal
+  {v : ι → E} (h : is_basis 𝕜 v) (hv : orthonormal 𝕜 v) :
+  E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 ι) :=
+h.equiv_fun.isometry_of_inner
+begin
+  intros x y,
+  let p : euclidean_space 𝕜 ι := h.equiv_fun x,
+  let q : euclidean_space 𝕜 ι := h.equiv_fun y,
+  have key : ⟪p, q⟫ = ⟪∑ i, p i • v i, ∑ i, q i • v i⟫,
+  { simp [sum_inner, inner_smul_left, hv.inner_right_fintype] },
+  convert key,
+  { rw [← h.equiv_fun.symm_apply_apply x, h.equiv_fun_symm_apply] },
+  { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
+end
 
 end pi_Lp
 
@@ -2634,5 +2678,23 @@ lemma exists_is_orthonormal_basis [finite_dimensional 𝕜 E] :
 let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E) in
 ⟨u, hu, hu_max⟩
 variables {𝕜 E}
+
+/-- Given a natural number `n` equal to the `findim` of a finite-dimensional inner product space,
+there exists an orthonormal basis for the space indexed by `fin n`. -/
+lemma exists_is_orthonormal_basis' [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n) :
+  ∃ v : fin n → E, orthonormal 𝕜 v ∧ is_basis 𝕜 v :=
+begin
+  obtain ⟨u, hu, hu_basis⟩ := exists_is_orthonormal_basis 𝕜 E,
+  obtain ⟨g, hg⟩ := finite_dimensional.equiv_fin_of_dim_eq hn hu_basis,
+  exact ⟨coe ∘ g, hu.comp _ g.injective, hg⟩
+end
+
+/-- Given a natural number `n` equal to the `findim` of a finite-dimensional inner product space,
+there exists an isometry from the space to `euclidean_space 𝕜 (fin n)`. -/
+def linear_isometry_equiv.of_inner_product_space
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n) :
+  E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
+let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
+hv.2.isometry_euclidean_of_orthonormal hv.1
 
 end orthonormal_basis

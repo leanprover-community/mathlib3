@@ -38,167 +38,6 @@ namespace ideal
 
 open polynomial
 
-section technical_lemmas
-/-!
-The following two lemmas are independent of Jacobson.  I extracted them from the
-original proof of `quotient_mk_comp_C_is_integral_of_jacobson` to speed up processing.
-Honestly, I did not spend time to unwind their "meaning", hence the names are likely inappropriate.
-
-TODO: clean up, move elsewhere
--/
-/-- Let `P` be an ideal in `R[x]`.  The map
-`R[x]/P → (R / (P ∩ R))[x] / (P / (P ∩ R))`
-is injective.
--/
-lemma injective_quotient_le_comap_map {R : Type*} [comm_ring R] (P : ideal (polynomial R)) :
-  function.injective ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
-    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map) :=
-begin
-  refine quotient_map_injective' (le_of_eq _),
-  rw comap_map_of_surjective
-    (map_ring_hom (quotient.mk (P.comap C))) (map_surjective _ quotient.mk_surjective),
-  refine le_antisymm (sup_le le_rfl _) (le_sup_left_of_le le_rfl),
-  refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
-  simpa only [coeff_map, coe_map_ring_hom] using ext_iff.mp (ideal.mem_bot.mp (mem_comap.mp hp)) n,
-end
-
-/--
-The identity in this lemma asserts that the "obvious" square
-`    R    → (R / (P ∩ R))`
-`    ↓          ↓`
-`R[x] / P → (R / (P ∩ R))[x] / (P / (P ∩ R))`
-commutes.  It is used in the proof of `quotient_mk_comp_C_is_integral_of_jacobson`.
-
-It is isolated, since it speeds up the processing, avoiding a deterministic timeout.
--/
-lemma quotient_mk_maps_eq {R : Type*} [comm_ring R] (P : ideal (polynomial R)) :
-  ((quotient.mk (map (map_ring_hom (quotient.mk (P.comap C))) P)).comp C).comp
-    (quotient.mk (P.comap C)) =
-  ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
-    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map).comp ((quotient.mk P).comp C) :=
-begin
-  refine ring_hom.ext (λ x, _),
-  repeat { rw [ring_hom.coe_comp, function.comp_app] },
-  rw [quotient_map_mk, coe_map_ring_hom, map_C],
-end
-
-/-
-lemma semimodule.carrier_bot {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] :
-  (⊥ : submodule R M).carrier = {0} := rfl
-
-lemma semimodule.eq_bot_iff {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
-  (P : submodule R M) :
-  P = ⊥ ↔ P.carrier = {0} :=
-begin
-  rw ← @semimodule.carrier_bot R,
-  refine ⟨λ h, congr_arg submodule.carrier h, λ h, submodule.ext (λ x, ⟨λ xP, _, λ xb, _⟩)⟩,
-  { rcases P with ⟨P_carrier, P0, P_add, P_smul⟩,
-    refine (λ (h : P_carrier = (⊥ : submodule R M).carrier), _) h,
-    simp_rw [h] at xP,
-    exact xP },
-  { rw [(submodule.mem_bot R).mp xb],
-    exact submodule.zero_mem _ }
-end
-
-lemma exists_mem_of_ne_bot {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
-  {P : submodule R M} (Pb : P ≠ ⊥) :
-  ∃ (m : M), m ∈ P ∧ m ≠ 0 :=
-begin
-  obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
-  exact ⟨m, submodule.coe_mem m, λ f, hm (submodule.coe_eq_zero.mp f)⟩,
-end
-
---does not work
-lemma exists_nonzero_1 {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S) {P : ideal S}
-  (Pb : P ≠ ⊥) (hP : ∀ (x : R), f x ∈ P → x = 0) :
-  ∃ p : S, p ∈ P ∧ (polynomial.map (quotient.mk (P.comap f)) p) ≠ 0 :=
-begin
-  obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
-  refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
-  apply (is_add_group_hom.injective_iff (polynomial.map (quotient.mk (P.comap C)))).mp _ _ pp0,
-  refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
-  rw [mk_ker],
-  exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
-end
-
-lemma exists_nonzero_alone {R : Type*} [comm_ring R] {P : ideal (polynomial R)}
-  (Pb : P ≠ ⊥) :
-  ∃ p : polynomial R, p ∈ P ∧ p ≠ 0 :=
-begin
-  obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
-  exact ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp pp0)⟩,
-end
-
-lemma exists_nonzero {R : Type*} [comm_ring R] {P : ideal (polynomial R)}
-  (Pb : P ≠ ⊥) (hP : ∀ (x : R), C x ∈ P → x = 0) :
-  ∃ p : polynomial R, p ∈ P ∧ (polynomial.map (quotient.mk (P.comap C)) p) ≠ 0 :=
-begin
-  obtain ⟨m, hm, m0⟩ := exists_nonzero_alone Pb,
-  refine ⟨m, hm, λ h, m0 _⟩,
-  refine (is_add_group_hom.injective_iff (polynomial.map (quotient.mk (P.comap C)))).mp _ _ h,
-  refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
-  rw [mk_ker],
-  exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
-end
--/
-
-lemma exists_nonzero {R : Type*} [comm_ring R] {P : ideal (polynomial R)}
-  (Pb : P ≠ ⊥) (hP : ∀ (x : R), C x ∈ P → x = 0) :
-  ∃ p : polynomial R, p ∈ P ∧ (polynomial.map (quotient.mk (P.comap C)) p) ≠ 0 :=
-begin
-  obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
-  refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
-  refine (is_add_group_hom.injective_iff (polynomial.map (quotient.mk (P.comap C)))).mp _ _ pp0,
-  refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
-  rw [mk_ker],
-  exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
-end
-
-/- unproven
-lemma quotient.mk_bot_injective_of {R : Type*} [comm_ring R] :
-  function.injective (quotient.mk (⊥ : ideal R)) :=
-begin
-  rw is_add_group_hom.injective_iff,
-  intros r hr,
-  admit,
-end
--/
-
-/- these lemmas have their proofs, but do not seem to be needed
-lemma submodule.eq_bot_iff {R : Type*} [semiring R] (P : submodule R R) :
-  P = ⊥ ↔ P.carrier = {0} :=
-semimodule.eq_bot_iff P
-
-lemma exists_mem_of_not_subset {R : Type*} {s t : set R} (st : ¬ s ⊆ t) :
-  ∃ a ∈ s, a ∉ t :=
-set.not_subset.mp st
-
-lemma ideal.carrier_bot {R : Type*} [comm_semiring R] : (⊥ : ideal R).carrier = {0} := rfl
-
-lemma ideal.eq_bot_iff {R : Type*} [comm_semiring R] (P : ideal R) :
-  P = ⊥ ↔ P.carrier = {0} :=
-semimodule.eq_bot_iff P
-
-lemma ideal.exists_mem_of_ne_bot {R : Type*} [comm_semiring R] {P : ideal R} (Pb : P ≠ ⊥) :
-  ∃ (r : R), r ∈ P ∧ r ≠ 0 :=
-exists_mem_of_ne_bot Pb
-
-lemma ideal_v.exists_mem_of_ne_bot {R : Type*} [comm_ring R] {P : ideal R} (Pb : P ≠ ⊥) :
-  ∃ (r : R), r ∈ P ∧ r ≠ 0 :=
-exists_mem_of_ne_bot Pb
-
-lemma submodule.exists_mem_of_ne_bot {R : Type*} [semiring R] {P : submodule R R} (Pb : P ≠ ⊥) :
-  ∃ (r : R), r ∈ P ∧ r ≠ 0 :=
-exists_mem_of_ne_bot Pb
-
-lemma semimodule.ne_bot_iff {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
-  (P : submodule R M) :
-  P ≠ ⊥ ↔ P.carrier ≠ {0} :=
-not_congr (semimodule.eq_bot_iff P)
--/
-
-end technical_lemmas
-
 section is_jacobson
 variables {R S : Type*} [comm_ring R] [comm_ring S] {I : ideal R}
 
@@ -510,7 +349,7 @@ begin
   { exact Pb.symm ▸ jacobson_bot_polynomial_of_jacobson_bot (hR ⊥ radical_bot_of_integral_domain) },
   { refine jacobson_eq_iff_jacobson_quotient_eq_bot.mpr _,
     haveI : (P.comap (C : R →+* polynomial R)).is_prime := comap_is_prime C P,
-    obtain ⟨p, pP, p0⟩ := exists_nonzero Pb hP,
+    obtain ⟨p, pP, p0⟩ := exists_nonzero_mem_of_ne_bot Pb hP,
     refine jacobson_bot_of_integral_localization (quotient_map P C le_rfl) quotient_map_injective
       _ _ (localization.of (submonoid.powers (p.map (quotient.mk (P.comap C))).leading_coeff))
       (localization.of _) (is_integral_localization_map_polynomial_quotient P _ pP _ _),
@@ -611,7 +450,7 @@ begin
   refine (is_integral_quotient_map_iff _).mp _,
   let P' : ideal R := P.comap C,
   obtain ⟨pX, hpX, hp0⟩ :=
-    exists_nonzero (ne_of_lt (bot_lt_of_maximal P polynomial_not_is_field)).symm hP',
+    exists_nonzero_mem_of_ne_bot (ne_of_lt (bot_lt_of_maximal P polynomial_not_is_field)).symm hP',
   let M : submonoid P'.quotient := submonoid.powers (pX.map (quotient.mk P')).leading_coeff,
   let φ : P'.quotient →+* P.quotient := quotient_map P C le_rfl,
   let ϕ' : localization_map (M.map ↑φ) (localization (M.map ↑φ)) := localization.of (M.map ↑φ),

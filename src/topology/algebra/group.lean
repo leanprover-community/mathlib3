@@ -535,8 +535,8 @@ variables [topological_space G] [group G] [topological_group G]
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `KV ⊆ U`. -/
-@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `0`
-  such that `K + V ⊆ U`."]
+@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
+`0` such that `K + V ⊆ U`."]
 lemma compact_open_separated_mul {K U : set G} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ K * V ⊆ U :=
 begin

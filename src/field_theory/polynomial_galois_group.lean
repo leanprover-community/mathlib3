@@ -91,7 +91,7 @@ begin
     exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
 end
 
-/-- The bijection between `roots p p.splitting_field` and `roots p E` -/
+/-- The bijection between `root_set p p.splitting_field` and `root_set p E` -/
 def roots_equiv_roots [h : fact (p.splits (algebra_map F E))] :
   (root_set p p.splitting_field) ≃ (root_set p E) :=
 equiv.of_bijective (map_roots p E) (map_roots_bijective p E)

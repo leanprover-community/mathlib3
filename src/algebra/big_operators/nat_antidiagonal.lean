@@ -74,7 +74,8 @@ begin
   _ (by simp) _,
   { intros a ha, simp [nat.add_sub_cancel' (mem_range_succ_iff.1 ha)], },
   { intros _ ha, simp [mem_range_succ_iff.2 (nat.le.intro (nat.mem_antidiagonal.1 ha))], },
-  { rintro ⟨i, j⟩ ha, ext, refl, rw ← (nat.mem_antidiagonal.1 ha), exact nat.add_sub_cancel_left _ _ },
+  { rintro ⟨i, j⟩ ha, ext, refl, rw ← (nat.mem_antidiagonal.1 ha),
+  exact nat.add_sub_cancel_left _ _ },
 end
 
 @[to_additive]

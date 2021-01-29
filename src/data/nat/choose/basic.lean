@@ -119,7 +119,7 @@ theorem factorial_mul_factorial_dvd_factorial {n k : ℕ} (hk : k ≤ n) : k! * 
 by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left _ _
 
 lemma factorial_mul_factorial_dvd_factorial_sum (i j : ℕ) :
-  factorial i * factorial j ∣ factorial (i + j) :=
+  i! * j! ∣ (i + j)! :=
 begin
   conv {congr, rw [<-nat.add_sub_cancel j i, add_comm]},
   apply factorial_mul_factorial_dvd_factorial (le.intro rfl),

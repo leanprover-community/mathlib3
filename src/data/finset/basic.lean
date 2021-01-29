@@ -1589,7 +1589,7 @@ let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
 
 @[simp]
 lemma nonempty.image_iff (f : α → β) : (s.image f).nonempty ↔ s.nonempty :=
-⟨λ ⟨y, hy⟩, by { rcases mem_image.mp hy with ⟨x, hx, _⟩, exact ⟨x, hx⟩, }, λ h, h.image f⟩
+⟨λ ⟨y, hy⟩, let ⟨x, hx, _⟩ := mem_image.mp hy in ⟨x, hx⟩, λ h, h.image f⟩
 
 theorem image_to_finset [decidable_eq α] {s : multiset α} :
   s.to_finset.image f = (s.map f).to_finset :=

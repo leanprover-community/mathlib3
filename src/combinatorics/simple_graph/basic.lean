@@ -80,7 +80,7 @@ by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
   (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
-by refl
+iff.rfl
 
 /--
 The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
@@ -93,13 +93,16 @@ instance (V : Type u) : inhabited (simple_graph V) :=
 
 instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
   decidable_rel (complete_graph V).adj :=
-by { dsimp [complete_graph], apply_instance }
+λ v w, not.decidable
 
 namespace simple_graph
 variables {V : Type u} (G : simple_graph V)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
+
+instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
+  decidable_pred (∈ G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -146,14 +149,14 @@ begin
   exact G.ne_of_adj he,
 end
 
+instance edge_set_decidable_pred [decidable_rel G.adj] :
+  decidable_pred G.edge_set := sym2.from_rel.decidable_pred _
+
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
-  fintype G.edge_set := by { dunfold edge_set, exact subtype.fintype _ }
+  fintype G.edge_set := subtype.fintype _
 
-instance mem_edge_set_decidable [decidable_rel G.adj] (e : sym2 V) :
-  decidable (e ∈ G.edge_set) := by { dunfold edge_set, apply_instance }
-
-instance mem_incidence_set_decidable [decidable_eq V] [decidable_rel G.adj] (v : V) (e : sym2 V) :
-  decidable (e ∈ G.incidence_set v) := by { dsimp [incidence_set], apply_instance }
+instance incidence_set_decidable_pred [decidable_eq V] [decidable_rel G.adj] (v : V) :
+  decidable_pred (G.incidence_set v) := λ e, and.decidable
 
 /--
 The `edge_set` of the graph as a `finset`.
@@ -163,7 +166,7 @@ set.to_finset G.edge_set
 
 @[simp] lemma mem_edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] (e : sym2 V) :
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
-by { dunfold edge_finset, simp }
+set.mem_to_finset
 
 @[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
@@ -174,7 +177,7 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 @[symm] lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
-by tauto
+iff.rfl
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
 by simp [incidence_set]
@@ -272,7 +275,7 @@ def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
-by simp [neighbor_finset]
+set.mem_to_finset
 
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
@@ -281,7 +284,7 @@ def degree : ℕ := (G.neighbor_finset v).card
 
 @[simp]
 lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v :=
-by simp [degree, neighbor_finset]
+(set.to_finset_card _).symm
 
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
 by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
@@ -360,6 +363,11 @@ The maximum degree of all vertices
 def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
+/-! The following lemmas about `fintype.card` use noncomputable decidable instances to get fintype
+assumptions. -/
+section
+open_locale classical
+
 lemma degree_lt_card_verts (G : simple_graph V) (v : V) : G.degree v < fintype.card V :=
 begin
   classical,
@@ -406,6 +414,8 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       apply common_neighbors_subset_neighbor_set } },
+end
+
 end
 
 end finite

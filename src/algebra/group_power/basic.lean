@@ -624,6 +624,18 @@ pow_bit0_pos h 1
 
 end linear_ordered_ring
 
+@[simp] lemma eq_of_pow_two_eq_pow_two [linear_ordered_comm_ring R]
+  {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  a ^ 2 = b ^ 2 ↔ a = b :=
+begin
+  refine ⟨_, congr_arg _⟩,
+  intros h,
+  refine (eq_or_eq_neg_of_pow_two_eq_pow_two _ _ h).elim id _,
+  rintros rfl,
+  rw le_antisymm (neg_nonneg.mp ha) hb,
+  exact neg_zero
+end
+
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]
 

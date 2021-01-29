@@ -301,6 +301,7 @@ lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.pri
 ⟨begin
   obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
   from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  classical, -- for fintype (subgroup.gpowers g)
   have : fintype.card (subgroup.gpowers g) ∣ p,
   { rw ←h,
     apply card_subgroup_dvd_card },

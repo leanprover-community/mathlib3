@@ -1030,6 +1030,33 @@ begin
   simp only [span_singleton_le_iff_mem],
 end
 
+section
+
+open_locale classical
+
+/-- For every element in the span of a set, there exists a finite subset of the set
+such that the element is contained in the span of the subset. -/
+lemma mem_span_finite_of_mem_span {S : set M} {x : M} (hx : x ∈ span R S) :
+  ∃ T : finset M, ↑T ⊆ S ∧ x ∈ span R (T : set M) :=
+begin
+  refine span_induction hx (λ x hx, _) _ _ _,
+  { refine ⟨{x}, _, _⟩,
+    { rwa [finset.coe_singleton, set.singleton_subset_iff] },
+    { rw finset.coe_singleton,
+      exact submodule.mem_span_singleton_self x } },
+  { use ∅, simp },
+  { rintros x y ⟨X, hX, hxX⟩ ⟨Y, hY, hyY⟩,
+    refine ⟨X ∪ Y, _, _⟩,
+    { rw finset.coe_union,
+      exact set.union_subset hX hY },
+    rw [finset.coe_union, span_union, mem_sup],
+    exact ⟨x, hxX, y, hyY, rfl⟩, },
+  { rintros a x ⟨T, hT, h2⟩,
+    exact ⟨T, hT, smul_mem _ _ h2⟩ }
+end
+
+end
+
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M₂) :=
 { carrier   := set.prod p q,

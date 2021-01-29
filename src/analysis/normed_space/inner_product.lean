@@ -756,7 +756,7 @@ end
 /-- A subfamily of an orthonormal family (i.e., a composition with an injective map) is an
 orthonormal family. -/
 lemma orthonormal.comp
-  {ι' : Type*} {v : ι → E}  (hv : orthonormal 𝕜 v) (f : ι' → ι) (hf : function.injective f) :
+  {ι' : Type*} {v : ι → E} (hv : orthonormal 𝕜 v) (f : ι' → ι) (hf : function.injective f) :
   orthonormal 𝕜 (v ∘ f) :=
 begin
   rw orthonormal_iff_ite at ⊢ hv,

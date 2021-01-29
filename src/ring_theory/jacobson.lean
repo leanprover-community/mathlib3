@@ -91,48 +91,27 @@ lemma semimodule.eq_bot_iff {R M : Type*} [semiring R] [add_comm_monoid M] [semi
 begin
   rw ← @semimodule.carrier_bot R,
   refine ⟨λ h, congr_arg submodule.carrier h, λ h, submodule.ext (λ x, ⟨λ xP, _, λ xb, _⟩)⟩,
-  { rcases P with ⟨P.carrier, P0, P_add, P_smul⟩,
-    dsimp at h,
+  { rcases P with ⟨P_carrier, P0, P_add, P_smul⟩,
+    refine (λ (h : P_carrier = (⊥ : submodule R M).carrier), _) h,
     simp_rw [h] at xP,
     exact xP },
   { rw [(submodule.mem_bot R).mp xb],
     exact submodule.zero_mem _ }
 end
-
+/-
 lemma submodule.eq_bot_iff {R : Type*} [semiring R] (P : submodule R R) :
   P = ⊥ ↔ P.carrier = {0} :=
 semimodule.eq_bot_iff P
-
---lemma ideal.carrier_bot {R : Type*} [comm_semiring R] : (⊥ : ideal R).carrier = {0} := rfl
-
---lemma ideal.eq_bot_iff {R : Type*} [comm_semiring R] (P : ideal R) :
---  P = ⊥ ↔ P.carrier = {0} :=
---semimodule.eq_bot_iff P
-
-lemma semimodule.ne_bot_iff {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
-  (P : submodule R M) :
-  P ≠ ⊥ ↔ P.carrier ≠ {0} :=
-not_congr (semimodule.eq_bot_iff P)
 
 lemma exists_mem_of_not_subset {R : Type*} {s t : set R} (st : ¬ s ⊆ t) :
   ∃ a ∈ s, a ∉ t :=
 set.not_subset.mp st
 
-lemma exists_mem_of_ne_bot {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
-  {P : submodule R M} (Pb : P ≠ ⊥) :
-  ∃ (m : M), m ∈ P ∧ m ≠ 0 :=
-begin
-  have : ¬ P.carrier ⊆ {0},
-  { rw semimodule.ne_bot_iff at Pb,
-    refine λ h, Pb (set.ext (λ x, ⟨λ xP, h xP, _⟩)),
-    rw set.mem_singleton_iff,
-    rintros rfl,
-    exact submodule.zero_mem P },
-  obtain ⟨r, rP, r0⟩ := set.not_subset.mp this,
-  refine ⟨r, rP, _⟩,
-  rintro rfl,
-  exact r0 (set.mem_singleton 0),
-end
+lemma ideal.carrier_bot {R : Type*} [comm_semiring R] : (⊥ : ideal R).carrier = {0} := rfl
+
+lemma ideal.eq_bot_iff {R : Type*} [comm_semiring R] (P : ideal R) :
+  P = ⊥ ↔ P.carrier = {0} :=
+semimodule.eq_bot_iff P
 
 lemma ideal.exists_mem_of_ne_bot {R : Type*} [comm_semiring R] {P : ideal R} (Pb : P ≠ ⊥) :
   ∃ (r : R), r ∈ P ∧ r ≠ 0 :=
@@ -145,17 +124,35 @@ exists_mem_of_ne_bot Pb
 lemma submodule.exists_mem_of_ne_bot {R : Type*} [semiring R] {P : submodule R R} (Pb : P ≠ ⊥) :
   ∃ (r : R), r ∈ P ∧ r ≠ 0 :=
 exists_mem_of_ne_bot Pb
+-/
+
+lemma semimodule.ne_bot_iff {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+  (P : submodule R M) :
+  P ≠ ⊥ ↔ P.carrier ≠ {0} :=
+not_congr (semimodule.eq_bot_iff P)
+
+lemma exists_mem_of_ne_bot {R M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+  {P : submodule R M} (Pb : P ≠ ⊥) :
+  ∃ (m : M), m ∈ P ∧ m ≠ 0 :=
+begin
+  have : ¬ P.carrier ⊆ {0},
+  { refine λ h, ((semimodule.ne_bot_iff _).mp Pb) (set.ext (λ x, ⟨λ xP, h xP, λ hx, _⟩)),
+    rw set.mem_singleton_iff.mp hx,
+    exact submodule.zero_mem P },
+  obtain ⟨r, rP, r0⟩ := set.not_subset.mp this,
+  refine ⟨r, rP, _⟩,
+  rwa [set.mem_singleton_iff] at r0,
+end
 
 lemma exists_nonzero {R : Type*} [comm_ring R] {P : ideal (polynomial R)}
   (Pb : P ≠ ⊥) (hP : ∀ (x : R), C x ∈ P → x = 0) :
   ∃ p : polynomial R, p ∈ P ∧ (polynomial.map (quotient.mk (P.comap C)) p) ≠ 0 :=
 begin
   obtain ⟨p, hp, p0⟩ := exists_mem_of_ne_bot Pb,
-  refine ⟨p, hp, λ pp0, p0 _⟩,
-  refine (is_add_group_hom.injective_iff (polynomial.map (quotient.mk (P.comap C)))).mp _ p pp0,
+  refine ⟨p, hp, λ pp0, p0 ((is_add_group_hom.injective_iff _).mp _ p pp0)⟩,
   refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
-  rw [mk_ker, semimodule.eq_bot_iff],
-  refine set.ext (λ (r : R), ⟨λ h, hP _ h, λ h, _⟩),
+  rw [mk_ker],
+  refine (semimodule.eq_bot_iff _).mpr (set.ext (λ (r : R), ⟨λ h, hP _ h, λ h, _⟩)),
   rw [set.mem_singleton_iff.mp h],
   exact (P.comap (C : R →+* polynomial R)).zero_mem',
 end

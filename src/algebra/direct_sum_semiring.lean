@@ -22,7 +22,7 @@ If the `M i` are disjoint, this is a gradation of `⨆ i, M i : subsemiring S`. 
 
 ## tags
 
-graded ring, filtered ring, direct sum, submonoid
+graded ring, filtered ring, direct sum, add_submonoid
 -/
 
 variables {S : Type*} [semiring S] {ι : Type*} [add_monoid ι] [decidable_eq ι]
@@ -34,6 +34,8 @@ indices. -/
 class semiring_add_gradation (carriers : ι → add_submonoid S) :=
 (one_mem : (1 : S) ∈ carriers 0)
 (mul_mem : ∀ {i j} (gi : carriers i) (gj : carriers j), (gi * gj : S) ∈ carriers (i + j))
+
+namespace semiring_add_gradation
 
 variables (carriers : ι → add_submonoid S) [semiring_add_gradation carriers]
 
@@ -178,7 +180,7 @@ by { unfold has_mul.mul, simp [direct_sum.to_add_monoid, direct_sum.of], }
 
 /-- The ring structure on `⨁ i, carriers i` in the presence of `semiring_add_gradation carriers`.
 -/
-instance : semiring (⨁ i, carriers i) := {
+instance semiring : semiring (⨁ i, carriers i) := {
   one := 1,
   mul := (*),
   zero := 0,
@@ -191,5 +193,7 @@ instance : semiring (⨁ i, carriers i) := {
   left_distrib := left_distrib carriers,
   right_distrib := right_distrib carriers,
   ..direct_sum.add_comm_monoid _ _, }
+
+end semiring_add_gradation
 
 end direct_sum

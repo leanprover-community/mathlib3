@@ -115,8 +115,8 @@ begin
 end
 
 lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
-(hlen : (fintype.card σ + 1) ≤ list.length x) :
-  ∃ a b c,  x = a ++ b ++ c ∧ a.length + b.length ≤ (fintype.card σ + 1) ∧ b ≠ [] ∧
+  (hlen : (fintype.card σ + 1) ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ (fintype.card σ + 1) ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
   have h := M.eval_from_split x M.start (M.eval x) hlen _,

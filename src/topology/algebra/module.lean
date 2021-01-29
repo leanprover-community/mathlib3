@@ -281,6 +281,13 @@ injective_coe_fn $ funext h
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
 
+@[simp] lemma update_apply {ι : Type*} {R M M' : ι → Type*} [decidable_eq ι] [Π i, semiring (R i)]
+  [Π i, add_comm_monoid (M i)] [Π i, semimodule (R i) (M i)] [Π i, topological_space (M i)]
+  [Π i, add_comm_monoid (M' i)] [Π i, semimodule (R i) (M' i)] [Π i, topological_space (M' i)]
+  (f : Π i, M i →L[R i] M' i) (i : ι) (g : M i →L[R i] M' i) (j : ι) (v : Π k, M k) :
+  function.update f i g j (v j) = function.update (λ k, f k (v k)) i (g $ v i) j :=
+by by_cases h : j = i; [subst j, skip]; simp *
+
 variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 
 -- make some straightforward lemmas available to `simp`.
@@ -951,6 +958,9 @@ e.to_linear_equiv.symm_apply_eq
 
 lemma eq_symm_apply (e : M ≃L[R] M₂) {x y} : y = e.symm x ↔ e y = x :=
 e.to_linear_equiv.eq_symm_apply
+
+protected lemma image_eq_preimage (e : M ≃L[R] M₂) (s : set M) : e '' s = e.symm ⁻¹' s :=
+e.to_linear_equiv.to_equiv.image_eq_preimage s
 
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
 inverse of each other. -/

@@ -116,3 +116,22 @@ normed algebra over `𝕜`. -/
 λ n, (p n).restrict_scalars 𝕜
 
 end formal_multilinear_series
+
+namespace power_series
+
+variables {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] (p : power_series 𝕜)
+
+open continuous_multilinear_map
+
+/-- The `formal_multilinear_series` corresponding to a `power_series`. -/
+@[simps] def to_formal_multilinear_series :
+  power_series 𝕜 →ₗ[𝕜] formal_multilinear_series 𝕜 R R :=
+{ to_fun := λ p, λ n, coeff 𝕜 n p • continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n R,
+  map_add' := λ p q, funext $ λ n, by simp [add_smul],
+  map_smul' := λ c p, funext $ λ n, by simp [mul_smul] }
+
+@[simp] lemma norm_to_formal_multilinear_series (n : ℕ) :
+  ∥(p.to_formal_multilinear_series : formal_multilinear_series 𝕜 R R) n∥ = ∥coeff 𝕜 n p∥ :=
+by haveI : norm_one_class R := normed_algebra.norm_one_class 𝕜 R; simp [norm_smul]
+
+end power_series

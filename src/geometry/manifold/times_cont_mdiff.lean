@@ -987,7 +987,8 @@ begin
   suffices h : continuous_on (fderiv_within 𝕜 (I' ∘ f ∘ I.symm)
                      (I.symm ⁻¹' s ∩ range I)) (I '' s),
   { have C := continuous_on.comp h I.continuous_to_fun.continuous_on (subset.refl _),
-    have A : continuous (λq : (E →L[𝕜] E') × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
+    have A : continuous (λq : (E →L[𝕜] E') × E, q.1 q.2) :=
+      (continuous_linear_map.id 𝕜 (E →L[𝕜] E')).continuous_bilinear,
     have B : continuous_on (λp : H × E,
       (fderiv_within 𝕜 (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I)
                        (I p.1), p.2)) (prod.fst ⁻¹' s),
@@ -1066,8 +1067,8 @@ begin
       by simpa only with mfld_simps using (hf'.2 (I.symm 0) (I'.symm 0)),
     simpa only [inter_comm] using this.fderiv_within U' hmn },
   have := D.comp (times_cont_diff_fst.times_cont_diff_on) (prod_subset_preimage_fst _ _),
-  have := times_cont_diff_on.prod this (times_cont_diff_snd.times_cont_diff_on),
-  exact is_bounded_bilinear_map_apply.times_cont_diff.comp_times_cont_diff_on this,
+  exact (continuous_linear_map.id 𝕜 (_ →L[𝕜] _)).times_cont_diff_bilinear.comp_times_cont_diff_on
+    (this.prod (times_cont_diff_snd.times_cont_diff_on))
 end
 
 include Is I's

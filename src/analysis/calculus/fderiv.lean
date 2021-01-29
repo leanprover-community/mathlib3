@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 import analysis.calculus.tangent_cone
 import analysis.normed_space.units
 import analysis.asymptotic_equivalent
-import analysis.analytic.basic
+import analysis.analytic.linear
 
 /-!
 # The Fréchet derivative
@@ -27,9 +27,7 @@ Finally,
 
 means that `f : E → F` has derivative `f' : E →L[𝕜] F` in the sense of strict differentiability,
 i.e., `f y - f z - f'(y - z) = o(y - z)` as `y, z → x`. This notion is used in the inverse
-function theorem, and is defined here only to avoid proving theorems like
-`is_bounded_bilinear_map.has_fderiv_at` twice: first for `has_fderiv_at`, then for
-`has_strict_fderiv_at`.
+function theorem.
 
 ## Main results
 
@@ -829,10 +827,7 @@ end const
 section continuous_linear_map
 /-!
 ### Continuous linear maps
-
-There are currently two variants of these in mathlib, the bundled version
-(named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
-predicate `is_bounded_linear_map`). We give statements for both versions. -/
+-/
 
 protected theorem continuous_linear_map.has_strict_fderiv_at {x : E} :
   has_strict_fderiv_at e e x :=
@@ -869,45 +864,6 @@ end
 
 protected lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
 e.differentiable.differentiable_on
-
-lemma is_bounded_linear_map.has_fderiv_at_filter (h : is_bounded_linear_map 𝕜 f) :
-  has_fderiv_at_filter f h.to_continuous_linear_map x L :=
-h.to_continuous_linear_map.has_fderiv_at_filter
-
-lemma is_bounded_linear_map.has_fderiv_within_at (h : is_bounded_linear_map 𝕜 f) :
-  has_fderiv_within_at f h.to_continuous_linear_map s x :=
-h.has_fderiv_at_filter
-
-lemma is_bounded_linear_map.has_fderiv_at (h : is_bounded_linear_map 𝕜 f) :
-  has_fderiv_at f h.to_continuous_linear_map x  :=
-h.has_fderiv_at_filter
-
-lemma is_bounded_linear_map.differentiable_at (h : is_bounded_linear_map 𝕜 f) :
-  differentiable_at 𝕜 f x :=
-h.has_fderiv_at.differentiable_at
-
-lemma is_bounded_linear_map.differentiable_within_at (h : is_bounded_linear_map 𝕜 f) :
-  differentiable_within_at 𝕜 f s x :=
-h.differentiable_at.differentiable_within_at
-
-lemma is_bounded_linear_map.fderiv (h : is_bounded_linear_map 𝕜 f) :
-  fderiv 𝕜 f x = h.to_continuous_linear_map :=
-has_fderiv_at.fderiv (h.has_fderiv_at)
-
-lemma is_bounded_linear_map.fderiv_within (h : is_bounded_linear_map 𝕜 f)
-  (hxs : unique_diff_within_at 𝕜 s x) : fderiv_within 𝕜 f s x = h.to_continuous_linear_map :=
-begin
-  rw differentiable_at.fderiv_within h.differentiable_at hxs,
-  exact h.fderiv
-end
-
-lemma is_bounded_linear_map.differentiable (h : is_bounded_linear_map 𝕜 f) :
-  differentiable 𝕜 f :=
-λx, h.differentiable_at
-
-lemma is_bounded_linear_map.differentiable_on (h : is_bounded_linear_map 𝕜 f) :
-  differentiable_on 𝕜 f s :=
-h.differentiable.differentiable_on
 
 end continuous_linear_map
 
@@ -1921,83 +1877,89 @@ end sub
 section bilinear_map
 /-! ### Derivative of a bounded bilinear map -/
 
-variables {b : E × F → G} {u : set (E × F) }
+variables (b : F →L[𝕜] G →L[𝕜] G') {u : set (F × G)} {gG : E → G} {gG' : E →L[𝕜] G}
 
 open normed_field
 
-lemma is_bounded_bilinear_map.has_strict_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
-  has_strict_fderiv_at b (h.deriv p) p :=
-begin
-  rw has_strict_fderiv_at,
-  set T := (E × F) × (E × F),
-  have : is_o (λ q : T, b (q.1 - q.2)) (λ q : T, ∥q.1 - q.2∥ * 1) (𝓝 (p, p)),
-  { refine (h.is_O'.comp_tendsto le_top).trans_is_o _,
-    simp only [(∘)],
-    refine (is_O_refl (λ q : T, ∥q.1 - q.2∥) _).mul_is_o (is_o.norm_left $ (is_o_one_iff _).2 _),
-    rw [← sub_self p],
-    exact continuous_at_fst.sub continuous_at_snd },
-  simp only [mul_one, is_o_norm_right] at this,
-  refine (is_o.congr_of_sub _).1 this, clear this,
-  convert_to is_o (λ q : T, h.deriv (p - q.2) (q.1 - q.2)) (λ q : T, q.1 - q.2) (𝓝 (p, p)),
-  { ext ⟨⟨x₁, y₁⟩, ⟨x₂, y₂⟩⟩, rcases p with ⟨x, y⟩,
-    simp only [is_bounded_bilinear_map_deriv_coe, prod.mk_sub_mk, h.map_sub_left, h.map_sub_right],
-    abel },
-  have : is_o (λ q : T, p - q.2) (λ q, (1:ℝ)) (𝓝 (p, p)),
-    from (is_o_one_iff _).2 (sub_self p ▸ tendsto_const_nhds.sub continuous_at_snd),
-  apply is_bounded_bilinear_map_apply.is_O_comp.trans_is_o,
-  refine is_o.trans_is_O _ (is_O_const_mul_self 1 _ _).of_norm_right,
-  refine is_o.mul_is_O _ (is_O_refl _ _),
-  exact (((h.is_bounded_linear_map_deriv.is_O_id ⊤).comp_tendsto le_top : _).trans_is_o
-    this).norm_left
-end
+lemma continuous_linear_map.has_strict_fderiv_at_bilinear (p : F × G) :
+  has_strict_fderiv_at (λ x : F × G, b x.1 x.2) (b.deriv₂ p) p :=
+(b.has_fpower_series_at_bilinear p).has_strict_fderiv_at
 
-lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
-  has_fderiv_at b (h.deriv p) p :=
-(h.has_strict_fderiv_at p).has_fderiv_at
+lemma has_strict_fderiv_at.bilinear_op (hf : has_strict_fderiv_at f f' x)
+  (hg : has_strict_fderiv_at gG gG' x) :
+  has_strict_fderiv_at (λ y, b (f y) (gG y))
+    ((b (f x)).comp gG' + (b.flip (gG x)).comp f') x :=
+(b.has_strict_fderiv_at_bilinear (f x, gG x)).comp x (hf.prod hg)
 
-lemma is_bounded_bilinear_map.has_fderiv_within_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
-  has_fderiv_within_at b (h.deriv p) u p :=
-(h.has_fderiv_at p).has_fderiv_within_at
+lemma has_fderiv_at.bilinear_op (hf : has_fderiv_at f f' x) (hg : has_fderiv_at gG gG' x) :
+  has_fderiv_at (λ y, b (f y) (gG y))
+    ((b (f x)).comp gG' + (b.flip (gG x)).comp f') x :=
+(b.has_strict_fderiv_at_bilinear (f x, gG x)).has_fderiv_at.comp x (hf.prod hg)
 
-lemma is_bounded_bilinear_map.differentiable_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
-  differentiable_at 𝕜 b p :=
-(h.has_fderiv_at p).differentiable_at
+lemma has_fderiv_within_at.bilinear_op (hf : has_fderiv_within_at f f' s x)
+  (hg : has_fderiv_within_at gG gG' s x) :
+  has_fderiv_within_at (λ y, b (f y) (gG y))
+    ((b (f x)).comp gG' + (b.flip (gG x)).comp f') s x :=
+(b.has_strict_fderiv_at_bilinear (f x, gG x)).has_fderiv_at.comp_has_fderiv_within_at x (hf.prod hg)
 
-lemma is_bounded_bilinear_map.differentiable_within_at (h : is_bounded_bilinear_map 𝕜 b)
-  (p : E × F) :
-  differentiable_within_at 𝕜 b u p :=
-(h.differentiable_at p).differentiable_within_at
+lemma differentiable_at.bilinear_op (hf : differentiable_at 𝕜 f x) (hg : differentiable_at 𝕜 gG x) :
+  differentiable_at 𝕜 (λ y, b (f y) (gG y)) x :=
+(hf.has_fderiv_at.bilinear_op b hg.has_fderiv_at).differentiable_at
 
-lemma is_bounded_bilinear_map.fderiv (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
-  fderiv 𝕜 b p = h.deriv p :=
-has_fderiv_at.fderiv (h.has_fderiv_at p)
+lemma differentiable.bilinear_op (hf : differentiable 𝕜 f) (hg : differentiable 𝕜 gG) :
+  differentiable 𝕜 (λ y, b (f y) (gG y)) :=
+λ x, (hf x).bilinear_op b (hg x)
 
-lemma is_bounded_bilinear_map.fderiv_within (h : is_bounded_bilinear_map 𝕜 b) (p : E × F)
-  (hxs : unique_diff_within_at 𝕜 u p) : fderiv_within 𝕜 b u p = h.deriv p :=
-begin
-  rw differentiable_at.fderiv_within (h.differentiable_at p) hxs,
-  exact h.fderiv p
-end
+lemma differentiable_within_at.bilinear_op (hf : differentiable_within_at 𝕜 f s x)
+  (hg : differentiable_within_at 𝕜 gG s x) :
+  differentiable_within_at 𝕜 (λ y, b (f y) (gG y)) s x :=
+(hf.has_fderiv_within_at.bilinear_op b hg.has_fderiv_within_at).differentiable_within_at
 
-lemma is_bounded_bilinear_map.differentiable (h : is_bounded_bilinear_map 𝕜 b) :
-  differentiable 𝕜 b :=
-λx, h.differentiable_at x
+lemma differentiable_on.bilinear_op (hf : differentiable_on 𝕜 f s) (hg : differentiable_on 𝕜 gG s) :
+  differentiable_on 𝕜 (λ y, b (f y) (gG y)) s :=
+λ x hx, (hf x hx).bilinear_op b (hg x hx)
 
-lemma is_bounded_bilinear_map.differentiable_on (h : is_bounded_bilinear_map 𝕜 b) :
-  differentiable_on 𝕜 b u :=
-h.differentiable.differentiable_on
+lemma fderiv_bilinear_op (hf : differentiable_at 𝕜 f x) (hg : differentiable_at 𝕜 gG x) :
+  fderiv 𝕜 (λ y, b (f y) (gG y)) x = (b (f x)).comp (fderiv 𝕜 gG x) +
+    (b.flip (gG x)).comp (fderiv 𝕜 f x) :=
+(hf.has_fderiv_at.bilinear_op b hg.has_fderiv_at).fderiv
 
-lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 b) :
-  continuous b :=
-h.differentiable.continuous
+lemma fderiv_within_bilinear_op (hf : differentiable_within_at 𝕜 f s x)
+  (hg : differentiable_within_at 𝕜 gG s x) (hx : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λ y, b (f y) (gG y)) s x = (b (f x)).comp (fderiv_within 𝕜 gG s x) +
+    (b.flip (gG x)).comp (fderiv_within 𝕜 f s x) :=
+(hf.has_fderiv_within_at.bilinear_op b hg.has_fderiv_within_at).fderiv_within hx
 
-lemma is_bounded_bilinear_map.continuous_left (h : is_bounded_bilinear_map 𝕜 b) {f : F} :
-  continuous (λe, b (e, f)) :=
-h.continuous.comp (continuous_id.prod_mk continuous_const)
+lemma continuous_linear_map.continuous_bilinear : continuous (λ x : F × G, b x.1 x.2) :=
+differentiable.continuous $ λ x, (b.has_strict_fderiv_at_bilinear x).has_fderiv_at.differentiable_at
 
-lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 b) {e : E} :
-  continuous (λf, b (e, f)) :=
-h.continuous.comp (continuous_const.prod_mk continuous_id)
+variables {α : Type*}
+
+lemma filter.tendsto.bilinear_op {f : α → F} {g : α → G} {l : filter α} {x : F} {y : G}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ y, b (f y) (g y)) l (𝓝 $ b x y) :=
+(b.continuous_bilinear.tendsto (x, y)).comp (hf.prod_mk_nhds hg)
+
+variables [topological_space α]
+
+lemma continuous_within_at.bilinear_op {f : α → F} {g : α → G} {s : set α} {x : α}
+  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
+  continuous_within_at (λ y, b (f y) (g y)) s x :=
+hf.bilinear_op b hg
+
+lemma continuous_at.bilinear_op {f : α → F} {g : α → G} {x : α}
+  (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (λ y, b (f y) (g y)) x :=
+hf.bilinear_op b hg
+
+lemma continuous_on.bilinear_op {f : α → F} {g : α → G} {s : set α}
+  (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λ y, b (f y) (g y)) s :=
+λ x hx, (hf x hx).bilinear_op b (hg x hx)
+
+lemma continuous.bilinear_op {f : α → F} {g : α → G} (hf : continuous f) (hg : continuous g) :
+  continuous (λ y, b (f y) (g y)) :=
+b.continuous_bilinear.comp (hf.prod_mk hg)
 
 end bilinear_map
 
@@ -2007,19 +1969,17 @@ namespace continuous_linear_equiv
 ### The set of continuous linear equivalences between two Banach spaces is open
 
 In this section we establish that the set of continuous linear equivalences between two Banach
-spaces is an open subset of the space of linear maps between them.  These facts are placed here
-because the proof uses `is_bounded_bilinear_map.continuous_left`, proved just above as a consequence
-of its differentiability.
+spaces is an open subset of the space of linear maps between them.
 -/
+
 
 protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
 begin
-  nontriviality E,
-  rw [is_open_iff_mem_nhds, forall_range_iff],
-  refine λ e, mem_nhds_sets _ (mem_range_self _),
-  let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
-  have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_left,
-  convert units.is_open.preimage h_O using 1,
+  rcases eq_empty_or_nonempty (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) with h|⟨_, e, rfl⟩,
+  { simp only [h, is_open_empty] },
+  have h : continuous (λ f : E →L[𝕜] F, (e.symm : F →L[𝕜] E).comp f),
+    from (compL 𝕜 E F E (e.symm : F →L[𝕜] E)).continuous,
+  convert units.is_open.preimage h using 1,
   ext f',
   split,
   { rintros ⟨e', rfl⟩,
@@ -2044,28 +2004,25 @@ variables {c : E → 𝕜} {c' : E →L[𝕜] 𝕜}
 theorem has_strict_fderiv_at.smul (hc : has_strict_fderiv_at c c' x)
   (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ y, c y • f y) (c x • f' + c'.smul_right (f x)) x :=
-(is_bounded_bilinear_map_smul.has_strict_fderiv_at (c x, f x)).comp x $
-  hc.prod hf
+hc.bilinear_op (lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F) hf
 
 theorem has_fderiv_within_at.smul
   (hc : has_fderiv_within_at c c' s x) (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (λ y, c y • f y) (c x • f' + c'.smul_right (f x)) s x :=
-(is_bounded_bilinear_map_smul.has_fderiv_at (c x, f x)).comp_has_fderiv_within_at x $
-  hc.prod hf
+hc.bilinear_op (lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F) hf
 
 theorem has_fderiv_at.smul (hc : has_fderiv_at c c' x) (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ y, c y • f y) (c x • f' + c'.smul_right (f x)) x :=
-(is_bounded_bilinear_map_smul.has_fderiv_at (c x, f x)).comp x $
-  hc.prod hf
+hc.bilinear_op (lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F) hf
 
 lemma differentiable_within_at.smul
   (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :
   differentiable_within_at 𝕜 (λ y, c y • f y) s x :=
-(hc.has_fderiv_within_at.smul hf.has_fderiv_within_at).differentiable_within_at
+hc.bilinear_op (lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F) hf
 
 @[simp] lemma differentiable_at.smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
   differentiable_at 𝕜 (λ y, c y • f y) x :=
-(hc.has_fderiv_at.smul hf.has_fderiv_at).differentiable_at
+hc.bilinear_op (lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F) hf
 
 lemma differentiable_on.smul (hc : differentiable_on 𝕜 c s) (hf : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (λ y, c y • f y) s :=
@@ -2088,15 +2045,15 @@ lemma fderiv_smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜
 
 theorem has_strict_fderiv_at.smul_const (hc : has_strict_fderiv_at c c' x) (f : F) :
   has_strict_fderiv_at (λ y, c y • f) (c'.smul_right f) x :=
-by simpa only [smul_zero, zero_add] using hc.smul (has_strict_fderiv_at_const f x)
+((lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F).flip f).has_strict_fderiv_at.comp x hc
 
 theorem has_fderiv_within_at.smul_const (hc : has_fderiv_within_at c c' s x) (f : F) :
   has_fderiv_within_at (λ y, c y • f) (c'.smul_right f) s x :=
-by simpa only [smul_zero, zero_add] using hc.smul (has_fderiv_within_at_const f x s)
+((lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F).flip f).has_fderiv_at.comp_has_fderiv_within_at x hc
 
 theorem has_fderiv_at.smul_const (hc : has_fderiv_at c c' x) (f : F) :
   has_fderiv_at (λ y, c y • f) (c'.smul_right f) x :=
-by simpa only [smul_zero, zero_add] using hc.smul (has_fderiv_at_const f x)
+((lsmul 𝕜 𝕜 : 𝕜 →L[𝕜] F →L[𝕜] F).flip f).has_fderiv_at.comp x hc
 
 lemma differentiable_within_at.smul_const
   (hc : differentiable_within_at 𝕜 c s x) (f : F) :
@@ -2272,7 +2229,7 @@ open normed_ring continuous_linear_map ring
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
 lemma has_fderiv_at_ring_inverse (x : units R) :
-  has_fderiv_at ring.inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
+  has_fderiv_at ring.inverse (-lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹) x :=
 begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
@@ -2287,16 +2244,15 @@ begin
   simp only [has_fderiv_at, has_fderiv_at_filter],
   convert h_is_o.comp_tendsto h_lim,
   ext y,
-  simp only [coe_comp', function.comp_app, lmul_right_apply, lmul_left_apply, neg_apply,
-    inverse_unit x, units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul],
-  abel
+  simp only [coe_comp', function.comp_app, lmul_left_right_apply, neg_apply, inverse_unit x,
+    units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul, sub_neg_eq_add]
 end
 
 lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@ring.inverse R _) x :=
 (has_fderiv_at_ring_inverse x).differentiable_at
 
 lemma fderiv_inverse (x : units R) :
-  fderiv 𝕜 (@ring.inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
+  fderiv 𝕜 (@ring.inverse R _) x = - lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹ :=
 (has_fderiv_at_ring_inverse x).fderiv
 
 end algebra_inverse
@@ -2519,7 +2475,6 @@ section
   of the Fréchet derivative.
 -/
 
-
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 variables {F : Type*} [normed_group F] [normed_space ℝ F]
 variables {f : E → F} {f' : E →L[ℝ] F} {x : E}
@@ -2530,8 +2485,7 @@ theorem has_fderiv_at_filter_real_equiv {L : filter E} :
 begin
   symmetry,
   rw [tendsto_iff_norm_tendsto_zero], refine tendsto_congr (λ x', _),
-  have : ∥x' - x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
-  simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
+  simp [norm_smul]
 end
 
 lemma has_fderiv_at.lim_real (hf : has_fderiv_at f f' x) (v : E) :
@@ -2588,18 +2542,11 @@ lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
 begin
   split,
   { assume hs x hx,
-    have A : s = e '' (e.symm '' s) :=
-      (equiv.symm_image_image (e.symm.to_linear_equiv.to_equiv) s).symm,
-    have B : e.symm '' s = e⁻¹' s :=
-      equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s,
-    rw [A, B, (e.apply_symm_apply x).symm],
-    refine has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e
-      e.has_fderiv_within_at (hs _ _),
+    rw [← e.surjective.image_preimage s, ← e.apply_symm_apply x],
+    refine e.has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e (hs _ _),
     rwa [mem_preimage, e.apply_symm_apply x] },
   { assume hs x hx,
-    have : e ⁻¹' s = e.symm '' s :=
-      (equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s).symm,
-    rw [this, (e.symm_apply_apply x).symm],
+    rw [← e.symm_symm, ← e.symm.image_eq_preimage, ← e.symm_apply_apply x],
     exact has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e.symm
       e.symm.has_fderiv_within_at (hs _ hx) },
 end
@@ -2671,19 +2618,16 @@ variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'} {L : filter E}
 theorem has_strict_fderiv_at.smul_algebra (hc : has_strict_fderiv_at c c' x)
   (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ y, c y • f y) (c x • f' + c'.smul_algebra_right (f x)) x :=
-(is_bounded_bilinear_map_smul_algebra.has_strict_fderiv_at (c x, f x)).comp x $
-  hc.prod hf
+hc.bilinear_op (lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F) hf
 
 theorem has_fderiv_within_at.smul_algebra
   (hc : has_fderiv_within_at c c' s x) (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (λ y, c y • f y) (c x • f' + c'.smul_algebra_right (f x)) s x :=
-(is_bounded_bilinear_map_smul_algebra.has_fderiv_at (c x, f x)).comp_has_fderiv_within_at x $
-  hc.prod hf
+hc.bilinear_op (lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F) hf
 
 theorem has_fderiv_at.smul_algebra (hc : has_fderiv_at c c' x) (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ y, c y • f y) (c x • f' + c'.smul_algebra_right (f x)) x :=
-(is_bounded_bilinear_map_smul_algebra.has_fderiv_at (c x, f x)).comp x $
-  hc.prod hf
+hc.bilinear_op (lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F) hf
 
 lemma differentiable_within_at.smul_algebra
   (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :

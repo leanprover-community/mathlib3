@@ -15,6 +15,7 @@ the formal power series `f x = f a + f (x - a)`.
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
+{G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 open_locale topological_space classical big_operators nnreal ennreal
 open set filter asymptotics
@@ -29,9 +30,6 @@ namespace continuous_linear_map
 | 0 := continuous_multilinear_map.curry0 𝕜 _ (f x)
 | 1 := (continuous_multilinear_curry_fin1 𝕜 _ _).symm f
 | _ := 0
-
-@[simp] lemma fpower_series_apply_add_two (f : E →L[𝕜] F) (x : E) (n : ℕ) :
-  f.fpower_series x (n + 2) = 0 := rfl
 
 @[simp] lemma fpower_series_radius (f : E →L[𝕜] F) (x : E) : (f.fpower_series x).radius = ∞ :=
 (f.fpower_series x).radius_eq_top_of_forall_image_add_eq_zero 2 $ λ n, rfl
@@ -49,5 +47,44 @@ protected theorem has_fpower_series_at (f : E →L[𝕜] F) (x : E) :
 
 protected theorem analytic_at (f : E →L[𝕜] F) (x : E) : analytic_at 𝕜 f x :=
 (f.has_fpower_series_at x).analytic_at
+
+def uncurry_bilinear (f : E →L[𝕜] F →L[𝕜] G) : (E × F) [×2]→L[𝕜] G :=
+@continuous_linear_map.uncurry_left 𝕜 1 (λ _, E × F) G _ _ _ _ _ $
+  (continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm.to_continuous_linear_map.comp $
+  f.on_prod₂
+
+@[simp] lemma uncurry_bilinear_apply (f : E →L[𝕜] F →L[𝕜] G) (m : fin 2 → E × F) :
+  f.uncurry_bilinear m = f (m 0).1 (m 1).2 :=
+rfl
+
+@[simp] def fpower_series_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
+  formal_multilinear_series 𝕜 (E × F) G
+| 0 := continuous_multilinear_map.curry0 𝕜 _ (f x.1 x.2)
+| 1 := (continuous_multilinear_curry_fin1 𝕜 _ _).symm (f.deriv₂ x)
+| 2 := f.uncurry_bilinear
+| _ := 0
+
+@[simp] lemma fpower_series_bilinear_radius (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
+  (f.fpower_series_bilinear x).radius = ∞ :=
+(f.fpower_series_bilinear x).radius_eq_top_of_forall_image_add_eq_zero 3 $ λ n, rfl
+
+protected theorem has_fpower_series_on_ball_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
+  has_fpower_series_on_ball (λ x : E × F, f x.1 x.2) (f.fpower_series_bilinear x) x ∞ :=
+{ r_le := by simp,
+  r_pos := ennreal.coe_lt_top,
+  has_sum := λ y _, (has_sum_nat_add_iff' 3).1 $
+    begin
+      simp only [finset.sum_range_succ, finset.sum_range_one, prod.fst_add, prod.snd_add,
+        f.map_add₂],
+      dsimp, simp only [add_comm, add_left_comm, sub_self, has_sum_zero]
+    end }
+
+protected theorem has_fpower_series_at_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
+  has_fpower_series_at (λ x : E × F, f x.1 x.2) (f.fpower_series_bilinear x) x :=
+⟨∞, f.has_fpower_series_on_ball_bilinear x⟩
+
+protected theorem analytic_at_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
+  analytic_at 𝕜 (λ x : E × F, f x.1 x.2) x :=
+(f.has_fpower_series_at_bilinear x).analytic_at
 
 end continuous_linear_map

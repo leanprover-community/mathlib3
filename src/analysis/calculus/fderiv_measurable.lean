@@ -95,7 +95,7 @@ lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
   [second_countable_topology E] [second_countable_topology (E →L[𝕜] F)]
   [measurable_space F] [borel_space F] :
   measurable (λ p : (E →L[𝕜] F) × E, p.1 p.2) :=
-is_bounded_bilinear_map_apply.continuous.measurable
+(continuous_linear_map.id 𝕜 (E →L[𝕜] F)).continuous_bilinear.measurable
 
 lemma measurable_coe [measurable_space F] [borel_space F] :
   measurable (λ (f : E →L[𝕜] F) (x : E), f x) :=

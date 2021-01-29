@@ -305,16 +305,6 @@ variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [d
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
-/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
-lemma update_apply {β : Sort*} (f : α → β) (a' : α) (b : β) (a : α) :
-  update f a' b a = if a = a' then b else f a :=
-begin
-  dunfold update,
-  congr,
-  funext,
-  rw eq_rec_constant,
-end
-
 @[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
@@ -338,6 +328,11 @@ funext_iff.trans $ forall_update_iff _ (λ x y, y = g x)
 lemma eq_update_iff {a : α} {b : β a} {f g : Π a, β a} :
   g = update f a b ↔ g a = b ∧ ∀ x ≠ a, g x = f x :=
 funext_iff.trans $ forall_update_iff _ (λ x y, g x = y)
+
+/-- On non-dependent functions, `function.update` can be expressed as an `ite` -/
+lemma update_apply {β : Sort*} (f : α → β) (a' : α) (b : β) (a : α) :
+  update f a' b a = if a = a' then b else f a :=
+congr_fun (update_eq_iff.2 ⟨(if_pos rfl).symm, λ x hx, (if_neg hx).symm⟩) a
 
 @[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
 update_eq_iff.2 ⟨rfl, λ _ _, rfl⟩
@@ -376,6 +371,11 @@ end
 lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
   f ∘ (update g i v) = update (f ∘ g) i (f v) :=
 funext $ apply_update _ _ _ _
+
+@[simp] lemma update_apply' {γ : α → Sort*} (f : Π i, β i → γ i) (i : α) (v : β i → γ i)
+  (j : α) (x : Π j, β j) :
+  (update f i v) j (x j) = update (λ j, f j (x j)) i (v (x i)) j :=
+by { by_cases h : j = i, { subst j, simp }, { simp [h] } }
 
 theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
   {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :

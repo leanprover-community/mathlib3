@@ -2177,7 +2177,8 @@ lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext_iff_val.2 ∘ subtype.ext_iff_val.1
 
-lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
+@[simp] lemma range_inclusion {s t : set α} (h : s ⊆ t) :
+  range (inclusion h) = {x : t | (x:α) ∈ s} :=
 by { ext ⟨x, hx⟩, simp [inclusion] }
 
 lemma eq_of_inclusion_surjective {s t : set α} {h : s ⊆ t}

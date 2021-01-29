@@ -87,6 +87,28 @@ theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
    zip l₁ (l₂.map f) = (zip l₁ l₂).map (prod.map id f) :=
 by rw [← zip_map, map_id]
 
+lemma list.zip_with_map_left
+  (f : α → β → γ) (g : δ → α) (l : list δ) (l' : list β) :
+  list.zip_with f (l.map g) l' = list.zip_with (f ∘ g) l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp [hl] } }
+end
+
+lemma list.zip_with_map_right
+  (f : α → β → γ) (l : list α) (g : δ → β) (l' : list δ) :
+  list.zip_with f l (l'.map g) = list.zip_with (λ x, f x ∘ g) l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp [hl] } }
+end
+
 theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
    zip (l.map f) (l.map g) = l.map (λ a, (f a, g a))
 | []     := rfl
@@ -240,6 +262,17 @@ begin
         right,
         use [init_tl, tail],
         simp * at *, }, }, },
+end
+
+@[simp] lemma list.map_uncurry_zip_eq_zip_with
+  (f : α → β → γ) (l : list α) (l' : list β) :
+  list.map (function.uncurry f) (l.zip l') = list.zip_with f l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp [hl] } }
 end
 
 end list

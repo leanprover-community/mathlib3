@@ -92,7 +92,7 @@ even_add.2 $ by simp only [*]
 theorem even_add' {m n : ℕ} : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 
-theorem even.add' {m n : ℕ} (hm : odd m) (hn : odd n) : even (m + n) :=
+theorem odd.add_odd {m n : ℕ} (hm : odd m) (hn : odd n) : even (m + n) :=
 even_add'.2 $ by simp only [*]
 
 @[simp] theorem not_even_bit1 (n : ℕ) : ¬ even (bit1 n) :=
@@ -121,7 +121,7 @@ theorem even.sub {m n : ℕ} (hm : even m) (hn : even n) : even (m - n) :=
 theorem even_sub' {m n : ℕ} (h : n ≤ m) : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 
-theorem even.sub' {m n : ℕ} (hm : odd m) (hn : odd n) : even (m - n) :=
+theorem odd.sub_odd {m n : ℕ} (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
   (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
@@ -154,13 +154,13 @@ begin
   exact (iff_not_self _).mp hnot,
 end
 
-theorem odd.add {m n : ℕ} (hm : odd m) (hn : even n) : odd (m + n) :=
+theorem odd.add_even {m n : ℕ} (hm : odd m) (hn : even n) : odd (m + n) :=
 odd_add.2 $ by simp only [*]
 
 theorem odd_add' {m n : ℕ} : odd (m + n) ↔ (odd n ↔ even m) :=
 by rw [add_comm, odd_add]
 
-theorem odd.add' {m n : ℕ} (hm : even m) (hn : odd n) : odd (m + n) :=
+theorem even.add_odd {m n : ℕ} (hm : even m) (hn : odd n) : odd (m + n) :=
 odd_add'.2 $ by simp only [*]
 
 @[parity_simps] theorem odd_sub {m n : ℕ} (h : n ≤ m) : odd (m - n) ↔ (odd m ↔ even n) :=
@@ -170,7 +170,7 @@ begin
   exact (iff_not_self _).mp hnot,
 end
 
-theorem odd.sub {m n : ℕ} (h : n ≤ m) (hm : odd m) (hn : even n) : odd (m - n) :=
+theorem odd.sub_even {m n : ℕ} (h : n ≤ m) (hm : odd m) (hn : even n) : odd (m - n) :=
 (odd_sub h).mpr (iff_of_true hm hn)
 
 theorem odd_sub' {m n : ℕ} (h : n ≤ m) : odd (m - n) ↔ (odd n ↔ even m) :=
@@ -181,7 +181,7 @@ begin
   exact (iff_not_self _).mp hnot,
 end
 
-theorem odd.sub' {m n : ℕ} (h : n ≤ m) (hm : even m) (hn : odd n) : odd (m - n) :=
+theorem even.sub_odd {m n : ℕ} (h : n ≤ m) (hm : even m) (hn : odd n) : odd (m - n) :=
 (odd_sub' h).mpr (iff_of_true hn hm)
 
 theorem neg_one_pow_eq_one_iff_even {α : Type*} [ring α] {n : ℕ} (h1 : (-1 : α) ≠ 1):

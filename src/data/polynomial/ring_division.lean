@@ -488,7 +488,7 @@ begin
   rw [eval_sub, sub_eq_zero, ext],
 end
 
-/-- The set of roots of `p` in `E`.
+/-- The set of distinct roots of `p` in `E`.
 
 If you have a non-separable polynomial, use `polynomial.roots` for the multiset
 where multiple roots have the appropriate multiplicity. -/

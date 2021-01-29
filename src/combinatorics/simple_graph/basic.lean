@@ -220,6 +220,9 @@ by simp [common_neighbors]
 lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
 by simp [common_neighbors]
 
+instance [decidable_rel G.adj] (v w : V) : decidable_pred (G.common_neighbors v w) :=
+λ a, and.decidable
+
 section incidence
 variable [decidable_eq V]
 
@@ -363,12 +366,7 @@ The maximum degree of all vertices
 def max_degree (G : simple_graph V) [nonempty V] [decidable_rel G.adj] : ℕ :=
 finset.max' (univ.image (λ (v : V), G.degree v)) (nonempty.image univ_nonempty _)
 
-/-! The following lemmas about `fintype.card` use noncomputable decidable instances to get fintype
-assumptions. -/
-section
-open_locale classical
-
-lemma degree_lt_card_verts (G : simple_graph V) (v : V) : G.degree v < fintype.card V :=
+lemma degree_lt_card_verts [decidable_rel G.adj] (v : V) : G.degree v < fintype.card V :=
 begin
   classical,
   apply finset.card_lt_card,
@@ -376,21 +374,21 @@ begin
   exact ⟨v, by simp, finset.subset_univ _⟩,
 end
 
-lemma card_common_neighbors_le_degree_left (v w : V) :
+lemma card_common_neighbors_le_degree_left [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree v :=
 begin
   rw [←card_neighbor_set_eq_degree],
   exact set.card_le_of_subset (set.inter_subset_left _ _),
 end
 
-lemma card_common_neighbors_le_degree_right (v w : V) :
+lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
 begin
-  rw common_neighbors_symm,
-  exact G.card_common_neighbors_le_degree_left w v,
+  convert G.card_common_neighbors_le_degree_left w v using 3,
+  apply common_neighbors_symm,
 end
 
-lemma card_common_neighbors_lt_card_verts (v w : V) :
+lemma card_common_neighbors_lt_card_verts [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=
 nat.lt_of_le_of_lt (G.card_common_neighbors_le_degree_left _ _) (G.degree_lt_card_verts v)
 
@@ -398,11 +396,12 @@ nat.lt_of_le_of_lt (G.card_common_neighbors_le_degree_left _ _) (G.degree_lt_car
 If the condition `G.adj v w` fails, then `card_common_neighbors_le_degree` is
 the best we can do in general.
 -/
-lemma adj.card_common_neighbors_lt_degree {G : simple_graph V} {v w : V} (h : G.adj v w) :
+lemma adj.card_common_neighbors_lt_degree {G : simple_graph V} [decidable_rel G.adj]
+  {v w : V} (h : G.adj v w) :
   fintype.card (G.common_neighbors v w) < G.degree v :=
 begin
   classical,
-  rw [degree, common_neighbors, ←set.to_finset_card],
+  erw [←set.to_finset_card],
   apply finset.card_lt_card,
   rw finset.ssubset_iff,
   use w,
@@ -414,7 +413,6 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       apply common_neighbors_subset_neighbor_set } },
-end
 
 end
 

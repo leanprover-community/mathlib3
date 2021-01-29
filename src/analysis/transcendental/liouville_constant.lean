@@ -149,10 +149,6 @@ begin
   ... = (∑' i, (1 / m : ℝ) ^ i) * (1 / m ^ (n + 1)!) :
       begin
         rw tsum_mul_right,
-        apply summable_geometric_of_abs_lt_1,
-        rw [abs_of_nonneg (show 0 ≤ 1/(m:ℝ), by {rw one_div_nonneg, norm_num}),
-            one_div_lt, one_div_one];
-        norm_num; linarith
       end
   ... = m / (m-1) * (1 / m ^ (n + 1)!) :
       begin
@@ -187,6 +183,6 @@ end
 
 lemma is_transcendental_liouville_constant (hm : 2 < m) :
   is_transcendental ℤ (liouville_constant m) :=
-  real.is_liouville.transcendental_of_is_liouville (is_liouville_liouville_constant _ hm)
+transcendental_of_is_liouville (is_liouville_liouville_constant _ hm)
 
 end is_liouville

@@ -31,6 +31,7 @@ begin
   exact_mod_cast nat.lt_two_pow n,
 end
 
+namespace real
 /--
 A Liouville number `x` is a number such that for every natural number `n`, there exists `a, b ∈ ℤ`
 with `b > 1` such that `0 < |x - a/b| < 1/bⁿ`.
@@ -67,6 +68,8 @@ begin
   norm_cast at a1 a0,
   exact not_le.mpr a1 (le_of_lt (int.mul_lt_mul_pow_succ a0 q1)),
 end
+
+end real
 
 lemma pow_mul_lt_c {ab A b c : ℝ} {r d : ℕ} (A0 : 0 < A)
   (c0 : 0 < c) (b2 : c ≤ b) (hl : (b : ℝ) ^ (r + d) * ab < 1) (A2 : 1 ≤ c ^ r * A) :
@@ -180,6 +183,8 @@ begin
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,
     exact (mem_roots (fR0)).mpr (is_root.def.mpr hy) },
 end
+
+open real
 
 theorem transcendental_of_is_liouville {x : ℝ} (liouville_x : is_liouville x) :
   is_transcendental ℤ x :=

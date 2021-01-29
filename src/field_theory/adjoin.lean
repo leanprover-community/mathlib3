@@ -536,35 +536,160 @@ end induction
 
 section alg_hom_mk_adjoin_splits
 
-variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K] {S : finset E}
+variables (F E K : Type*) [field F] [field E] [field K] [algebra F E] [algebra F K] {S : set E}
 
-lemma alg_hom_mk_adjoin_splits
-  (hK : ∀ x ∈ S, is_integral F (x : E) ∧ (minpoly F x).splits (algebra_map F K)) :
-  nonempty ((adjoin F (S : set E)) →ₐ[F] K) :=
+/-- Lifts `L → K` of `F → K` -/
+def lifts := Σ (L : intermediate_field F E), (L →ₐ[F] K)
+
+variables {F E K}
+
+noncomputable instance : order_bot (lifts F E K) :=
+{ le := λ x y, x.1 ≤ y.1 ∧ (∀ (s : x.1) (t : y.1), (s : E) = t → x.2 s = y.2 t),
+  le_refl := λ x, ⟨le_refl x.1, λ s t hst, congr_arg x.2 (subtype.ext hst)⟩,
+  le_trans := λ x y z hxy hyz, ⟨le_trans hxy.1 hyz.1, λ s u hsu, eq.trans
+    (hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl) (hyz.2 ⟨s, hxy.1 s.mem⟩ u hsu)⟩,
+  le_antisymm :=
+  begin
+    rintros ⟨x1, x2⟩ ⟨y1, y2⟩ ⟨hxy1, hxy2⟩ ⟨hyx1, hyx2⟩,
+    have : x1 = y1 := le_antisymm hxy1 hyx1,
+    subst this,
+    congr,
+    exact alg_hom.ext (λ s, hxy2 s s rfl),
+  end,
+  bot := ⟨⊥, (algebra.of_id F K).comp bot_equiv.to_alg_hom⟩,
+  bot_le := λ x, ⟨bot_le, λ s t hst,
+  begin
+    cases intermediate_field.mem_bot.mp s.mem with u hu,
+    rw [show s = (algebra_map F _) u, from subtype.ext hu.symm, alg_hom.commutes],
+    rw [show t = (algebra_map F _) u, from subtype.ext (eq.trans hu hst).symm, alg_hom.commutes],
+  end⟩ }
+
+noncomputable instance : inhabited (lifts F E K) := ⟨⊥⟩
+
+lemma lifts.eq_of_le {x y : lifts F E K} (hxy : x ≤ y) (s : x.1) :
+  x.2 s = y.2 ⟨s, hxy.1 s.mem⟩ := hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl
+
+lemma lifts.exists_max_two {c : set (lifts F E K)} {x y : lifts F E K} (hc : zorn.chain (≤) c)
+  (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) :
+  ∃ z : lifts F E K, z ∈ set.insert ⊥ c ∧ x ≤ z ∧ y ≤ z :=
 begin
-  let P : intermediate_field F E → Prop := λ L, nonempty (L →ₐ[F] K),
-  change P (adjoin F ↑S),
-  apply induction_on_adjoin_finset,
-  { exact ⟨(algebra.of_id F K).comp bot_equiv.to_alg_hom⟩ },
-  { rintros L x hx ⟨f⟩,
-    cases hK x hx with H hH,
-    have H' : is_integral L x := is_integral_of_is_scalar_tower x H,
-    letI : algebra L K := f.to_ring_hom.to_algebra,
-    have key : (minpoly L x).splits (algebra_map L K),
-    { refine splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero H)) _
-        (minpoly.dvd_map_of_is_scalar_tower _ _ _),
-      rwa [splits_map_iff, ←is_scalar_tower.algebra_map_eq F L K] },
-    apply nonempty.intro,
-    apply alg_hom_equiv_sigma.inv_fun,
-    use f,
-    apply (alg_hom_adjoin_integral_equiv L H').inv_fun,
-    use root_of_splits (algebra_map L K) key (ne_of_gt (minpoly.degree_pos H')),
-    simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero H')), is_root, ←eval₂_eq_eval_map],
-    exact map_root_of_splits (algebra_map L K) key (ne_of_gt (minpoly.degree_pos H')),
-    exact is_scalar_tower.of_algebra_map_eq (λ x, rfl) },
+  cases (zorn.chain_insert hc (λ _ _ _, or.inl bot_le)).total_of_refl hx hy with hxy hyx,
+  { exact ⟨y, hy, hxy, le_refl y⟩ },
+  { exact ⟨x, hx, le_refl x, hyx⟩ },
 end
 
-lemma alg_hom_mk_adjoin_splits' (hS : adjoin F (S : set E) = ⊤)
+lemma lifts.exists_max_three {c : set (lifts F E K)} {x y z : lifts F E K} (hc : zorn.chain (≤) c)
+  (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) (hz : z ∈ set.insert ⊥ c) :
+  ∃ w  : lifts F E K, w ∈ set.insert ⊥ c ∧ x ≤ w ∧ y ≤ w ∧ z ≤ w :=
+begin
+  obtain ⟨v, hv, hxv, hyv⟩ := lifts.exists_max_two hc hx hy,
+  obtain ⟨w, hw, hzw, hvw⟩ := lifts.exists_max_two hc hz hv,
+  exact ⟨w, hw, le_trans hxv hvw, le_trans hyv hvw, hzw⟩,
+end
+
+/-- An upper bound on a chain of lifts -/
+def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
+  intermediate_field F E :=
+{ carrier := λ s, ∃ x : (lifts F E K), x ∈ set.insert ⊥ c ∧ (s ∈ x.1 : Prop),
+  zero_mem' := ⟨⊥, set.mem_insert ⊥ c, zero_mem ⊥⟩,
+  one_mem' := ⟨⊥, set.mem_insert ⊥ c, one_mem ⊥⟩,
+  neg_mem' := by { rintros _ ⟨x, y, h⟩, exact ⟨x, ⟨y, x.1.neg_mem h⟩⟩ },
+  inv_mem' := by { rintros _ ⟨x, y, h⟩, exact ⟨x, ⟨y, x.1.inv_mem h⟩⟩ },
+  add_mem' := by
+  { rintros _ _ ⟨x, hx, ha⟩ ⟨y, hy, hb⟩,
+    obtain ⟨z, hz, hxz, hyz⟩ := lifts.exists_max_two hc hx hy,
+    exact ⟨z, hz, z.1.add_mem (hxz.1 ha) (hyz.1 hb)⟩ },
+  mul_mem' := by
+  { rintros _ _ ⟨x, hx, ha⟩ ⟨y, hy, hb⟩,
+    obtain ⟨z, hz, hxz, hyz⟩ := lifts.exists_max_two hc hx hy,
+    exact ⟨z, hz, z.1.mul_mem (hxz.1 ha) (hyz.1 hb)⟩ },
+  algebra_map_mem' := λ s, ⟨⊥, set.mem_insert ⊥ c, algebra_map_mem ⊥ s⟩ }
+
+/-- The lift on the upper bound on a chain of lifts -/
+noncomputable def lifts.upper_bound_alg_hom {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
+  lifts.upper_bound_intermediate_field hc →ₐ[F] K :=
+{ to_fun := λ s, (classical.some s.mem).2 ⟨s, (classical.some_spec s.mem).2⟩,
+  map_zero' := alg_hom.map_zero _,
+  map_one' := alg_hom.map_one _,
+  map_add' := λ s t, begin
+    obtain ⟨w, hw, hxw, hyw, hzw⟩ := lifts.exists_max_three hc
+      (classical.some_spec s.mem).1 (classical.some_spec t.mem).1
+      (classical.some_spec (s + t).mem).1,
+    rw [lifts.eq_of_le hxw, lifts.eq_of_le hyw, lifts.eq_of_le hzw, ←w.2.map_add],
+    refl,
+  end,
+  map_mul' := λ s t, begin
+    obtain ⟨w, hw, hxw, hyw, hzw⟩ := lifts.exists_max_three hc
+      (classical.some_spec s.mem).1 (classical.some_spec t.mem).1
+      (classical.some_spec (s * t).mem).1,
+    rw [lifts.eq_of_le hxw, lifts.eq_of_le hyw, lifts.eq_of_le hzw, ←w.2.map_mul],
+    refl,
+  end,
+  commutes' := λ _, alg_hom.commutes _ _ }
+
+/-- An upper bound on a chain of lifts -/
+noncomputable def lifts.upper_bound {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
+  lifts F E K :=
+⟨lifts.upper_bound_intermediate_field hc, lifts.upper_bound_alg_hom hc⟩
+
+lemma lifts.exists_upper_bound (c : set (lifts F E K)) (hc : zorn.chain (≤) c) :
+  ∃ ub, ∀ a ∈ c, a ≤ ub :=
+⟨lifts.upper_bound hc,
+begin
+  intros x hx,
+  split,
+  { exact λ s hs, ⟨x, set.mem_insert_of_mem ⊥ hx, hs⟩ },
+  { intros s t hst,
+    change x.2 s = (classical.some t.mem).2 ⟨t, (classical.some_spec t.mem).2⟩,
+    obtain ⟨z, hz, hxz, hyz⟩ := lifts.exists_max_two hc (set.mem_insert_of_mem ⊥ hx)
+      (classical.some_spec t.mem).1,
+    rw [lifts.eq_of_le hxz, lifts.eq_of_le hyz],
+    exact congr_arg z.2 (subtype.ext hst) },
+end⟩
+
+/-- Extend a lift `x : lifts F E K` to an element `s : E` whose conjugates are all in `K` -/
+noncomputable def lifts.lift_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
+  (h2 : (minpoly F s).splits (algebra_map F K)) : lifts F E K :=
+let h3 : is_integral x.1 s := is_integral_of_is_scalar_tower s h1 in
+let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
+  splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero h1))
+  ((splits_map_iff _ _).mpr (by {convert h2, exact ring_hom.ext (λ y, x.2.commutes y)}))
+  (minpoly.dvd_map_of_is_scalar_tower _ _ _) in
+⟨↑x.1⟮s⟯, (@alg_hom_equiv_sigma F x.1 (↑x.1⟮s⟯ : intermediate_field F E) K _ _ _ _ _ _ _
+  (intermediate_field.algebra x.1⟮s⟯) (is_scalar_tower.of_algebra_map_eq (λ _, rfl))).inv_fun
+  ⟨x.2, (@alg_hom_adjoin_integral_equiv x.1 _ E _ _ s K _ x.2.to_ring_hom.to_algebra
+  h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by {
+  simp_rw [mem_roots (map_ne_zero (minpoly.ne_zero h3)), is_root, ←eval₂_eq_eval_map],
+  exact map_root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)) }⟩⟩⟩
+
+lemma lifts.le_lifts_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
+  (h2 : (minpoly F s).splits (algebra_map F K)) : x ≤ x.lift_of_splits h1 h2 :=
+⟨λ z hz, algebra_map_mem x.1⟮s⟯ ⟨z, hz⟩, λ t u htu, eq.symm begin
+  rw [←(show algebra_map x.1 x.1⟮s⟯ t = u, from subtype.ext htu)],
+  letI : algebra x.1 K := x.2.to_ring_hom.to_algebra,
+  exact (alg_hom.commutes _ t),
+end⟩
+
+lemma lifts.mem_lifts_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
+  (h2 : (minpoly F s).splits (algebra_map F K)) : s ∈ (x.lift_of_splits h1 h2).1 :=
+mem_adjoin_simple_self x.1 s
+
+lemma lifts.exists_lift_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
+  (h2 : (minpoly F s).splits (algebra_map F K)) : ∃ y, x ≤ y ∧ s ∈ y.1 :=
+⟨x.lift_of_splits h1 h2, x.le_lifts_of_splits h1 h2, x.mem_lifts_of_splits h1 h2⟩
+
+lemma alg_hom_mk_adjoin_splits
+  (hK : ∀ s ∈ S, is_integral F (s : E) ∧ (minpoly F s).splits (algebra_map F K)) :
+  nonempty (adjoin F S →ₐ[F] K) :=
+begin
+  obtain ⟨x : lifts F E K, hx⟩ := zorn.zorn_partial_order lifts.exists_upper_bound,
+  refine ⟨alg_hom.mk (λ s, x.2 ⟨s, adjoin_le_iff.mpr (λ s hs, _) s.mem⟩) x.2.map_one (λ s t,
+    x.2.map_mul ⟨s, _⟩ ⟨t, _⟩) x.2.map_zero (λ s t, x.2.map_add ⟨s, _⟩ ⟨t, _⟩) x.2.commutes⟩,
+  rcases (x.exists_lift_of_splits (hK s hs).1 (hK s hs).2) with ⟨y, h1, h2⟩,
+  rwa hx y h1 at h2
+end
+
+lemma alg_hom_mk_adjoin_splits' (hS : adjoin F S = ⊤)
   (hK : ∀ x ∈ S, is_integral F (x : E) ∧ (minpoly F x).splits (algebra_map F K)) :
   nonempty (E →ₐ[F] K) :=
 begin

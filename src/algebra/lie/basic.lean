@@ -8,7 +8,7 @@ import algebra.algebra.basic
 import linear_algebra.bilinear_form
 import linear_algebra.matrix
 import order.preorder_hom
-import order.complete_well_founded
+import order.compactly_generated
 import tactic.noncomm_ring
 
 /-!

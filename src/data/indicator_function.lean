@@ -272,7 +272,7 @@ begin
   assume a I haI ih hI,
   funext,
   simp only [haI, finset.sum_insert, not_false_iff],
-  rw [finset.bUnion_insert, indicator_union_of_not_mem_inter, ih _],
+  rw [finset.set_bUnion_insert, indicator_union_of_not_mem_inter, ih _],
   { assume i hi j hj hij,
     exact hI i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj) hij },
   simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and],

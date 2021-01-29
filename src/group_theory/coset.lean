@@ -256,7 +256,8 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
   equiv.sigma_congr_right (λ L,
     begin
       rw ← eq_class_eq_left_coset,
-      show _root_.subtype (λ x : α, quotient.mk' x = L) ≃ _root_.subtype (λ x : α, quotient.mk' x = quotient.mk' _),
+      show _root_.subtype (λ x : α, quotient.mk' x = L) ≃
+        _root_.subtype (λ x : α, quotient.mk' x = quotient.mk' _),
       simp [-quotient.eq'],
     end)
     ... ≃ Σ L : quotient s, s :

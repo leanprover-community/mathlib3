@@ -1688,7 +1688,8 @@ lemma reverse_take {α} {xs : list α} (n : ℕ)
   (h : n ≤ xs.length) :
   xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
 begin
-  induction xs generalizing n; simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
+  induction xs generalizing n;
+    simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
   cases decidable.lt_or_eq_of_le h with h' h',
   { replace h' := le_of_succ_le_succ h',
     rwa [take_append_of_le_length, xs_ih _ h'],
@@ -1696,7 +1697,8 @@ begin
     { rwa [succ_eq_add_one, nat.sub_add_comm] },
     { rwa length_reverse } },
   { subst h', rw [length, nat.sub_self, drop],
-    rw [show xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length, from _, take_length, reverse_cons],
+    suffices : xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length,
+      by rw [this, take_length, reverse_cons],
     rw [length_append, length_reverse], refl }
 end
 

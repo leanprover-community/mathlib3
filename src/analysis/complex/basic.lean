@@ -117,10 +117,15 @@ le_antisymm (op_norm_le_bound _ zero_le_one $ λ z, by simp [real.norm_eq_abs, a
 calc 1 = ∥continuous_linear_map.im I∥ : by simp
    ... ≤ ∥continuous_linear_map.im∥ : unit_le_op_norm _ _ (by simp)
 
-/-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ := linear_map.of_real.to_continuous_linear_map
+/-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
+def linear_isometry.of_real : ℝ →ₗᵢ[ℝ] ℂ := ⟨linear_map.of_real, λ x, by simp⟩
 
-lemma continuous_of_real : continuous (coe : ℝ → ℂ) := continuous_linear_map.of_real.continuous
+/-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
+def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ := linear_isometry.of_real.to_continuous_linear_map
+
+lemma isometry_of_real : isometry (coe : ℝ → ℂ) := linear_isometry.of_real.isometry
+
+lemma continuous_of_real : continuous (coe : ℝ → ℂ) := isometry_of_real.continuous
 
 @[simp] lemma continuous_linear_map.of_real_coe :
   (coe (continuous_linear_map.of_real) : ℝ →ₗ[ℝ] ℂ) = linear_map.of_real := rfl
@@ -130,13 +135,7 @@ lemma continuous_of_real : continuous (coe : ℝ → ℂ) := continuous_linear_m
 
 @[simp] lemma continuous_linear_map.of_real_norm :
   ∥continuous_linear_map.of_real∥ = 1 :=
-le_antisymm (op_norm_le_bound _ zero_le_one $ λ z, by simp) $
-calc 1 = ∥continuous_linear_map.of_real 1∥ : by simp
-   ... ≤ ∥continuous_linear_map.of_real∥ : unit_le_op_norm _ _ (by simp)
-
-lemma continuous_linear_map.of_real_isometry :
-  isometry continuous_linear_map.of_real :=
-continuous_linear_map.isometry_iff_norm_image_eq_norm.2 (λx, by simp)
+linear_isometry.of_real.norm_to_continuous_linear_map
 
 end complex
 

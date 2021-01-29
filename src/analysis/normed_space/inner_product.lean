@@ -1709,10 +1709,10 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 lemma findim_euclidean_space_fin {n : ℕ} :
   finite_dimensional.findim 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
-/-- An orthonormal basis on `ι` for a finite-dimensional space induces an isometry with
+/-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
 `euclidean_space 𝕜 ι`. -/
 def is_basis.isometry_euclidean_of_orthonormal
-  [finite_dimensional 𝕜 E] {v : ι → E} (h : is_basis 𝕜 v) (hv : orthonormal 𝕜 v) :
+  {v : ι → E} (h : is_basis 𝕜 v) (hv : orthonormal 𝕜 v) :
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 ι) :=
 h.equiv_fun.isometry_of_inner
 begin

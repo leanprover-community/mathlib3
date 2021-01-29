@@ -9,7 +9,7 @@ Sample usage:
 which will lint all of the Lean files in the specified directories.
 
 The resulting error output will contain one line for each style error
-encountered.
+encountered that isn't in the list of allowed / ignored style exceptions.
 
 Paths with no errors will not appear in the output, and the script will
 exit with successful return code if there are no errors encountered in
@@ -22,8 +22,10 @@ that contain the relative path, whilst linting absolute paths (like
 ``/root/mathlib/src/foo/bar.lean``) will produce errors with the
 absolute path.
 
-This script may also be used (with no arguments) to update the list of
-allowed / ignored style exceptions, normally found alongside this file.
+This script can also be used to regenerate the list of allowed / ignored style
+exceptions by redirecting the output to ``style-exceptions.txt``:
+
+    $ ./scripts/lint-style.py $(find src archive -name '*.lean') > scripts/style-exceptions.txt
 """
 
 from pathlib import Path

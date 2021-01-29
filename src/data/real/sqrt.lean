@@ -157,21 +157,6 @@ by rw [← abs_mul_abs_self x, sqrt_mul_self (abs_nonneg _)]
 theorem sqrt_sqr_eq_abs (x : ℝ) : sqrt (x ^ 2) = abs x :=
 by rw [pow_two, sqrt_mul_self_eq_abs]
 
-theorem sqr_abs : (abs x) ^ 2 = x ^ 2 :=
-by rw [← sqrt_sqr_eq_abs, sqr_sqrt (pow_two_nonneg x)]
-
-theorem sqr_lt_sqr (h : abs x < y) : x ^ 2 < y ^ 2 :=
-by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) zero_lt_two
-
-theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
-sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
-
-theorem sqr_le_sqr (h : abs x ≤  y) : x ^ 2 ≤ y ^ 2 :=
-by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
-
-theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
-sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
-
 @[simp] theorem sqrt_zero : sqrt 0 = 0 := by simp [sqrt]
 
 @[simp] theorem sqrt_one : sqrt 1 = 1 := by simp [sqrt]
@@ -204,15 +189,22 @@ lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
 by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
   nnreal.le_of_real_iff_coe_le', pow_two, nnreal.coe_mul], exact mul_pos hx hx }
 
-lemma sqr_le' (h : x^2 ≤ y) : -sqrt y ≤ x ∧ x ≤ sqrt y :=
-abs_le.mp (by simpa [← sqrt_sqr_eq_abs] using sqrt_le_sqrt h)
+lemma abs_le_sqrt (h : x^2 ≤ y) : abs x ≤ sqrt y :=
+by rw ← sqrt_sqr_eq_abs; exact sqrt_le_sqrt h
 
 lemma sqr_le (h : 0 ≤ y) : x^2 ≤ y ↔ -sqrt y ≤ x ∧ x ≤ sqrt y :=
-⟨sqr_le', (by rw [← abs_le, ← sqr_abs]; exact (le_sqrt (abs_nonneg x) h).mp)⟩
+begin
+  split,
+  { simpa only [abs_le] using abs_le_sqrt },
+  { rw [← abs_le, ← sqr_abs],
+    exact (le_sqrt (abs_nonneg x) h).mp },
+end
 
-lemma neg_sqrt_le_of_sqr_le (h : x^2 ≤ y) : -sqrt y ≤ x := (sqr_le' h).1
+lemma neg_sqrt_le_of_sqr_le (h : x^2 ≤ y) : -sqrt y ≤ x :=
+((sqr_le ((pow_two_nonneg x).trans h)).mp h).1
 
-lemma le_sqrt_of_sqr_le (h : x^2 ≤ y) : x ≤ sqrt y := (sqr_le' h).2
+lemma le_sqrt_of_sqr_le (h : x^2 ≤ y) : x ≤ sqrt y :=
+((sqr_le ((pow_two_nonneg x).trans h)).mp h).2
 
 @[simp] theorem sqrt_inj (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
 by simp [le_antisymm_iff, hx, hy]

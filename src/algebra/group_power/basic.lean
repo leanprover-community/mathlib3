@@ -612,6 +612,26 @@ theorem pow_bit0_pos {a : R} (h : a ≠ 0) (n : ℕ) : 0 < a ^ bit0 n :=
 theorem pow_two_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
 pow_bit0_pos h 1
 
+variables {x y : R}
+
+@[simp] theorem sqr_abs : abs x ^ 2 = x ^ 2 :=
+by simpa only [pow_two] using abs_mul_abs_self x
+
+@[simp] theorem abs_sqr : abs (x ^ 2) = x ^ 2 :=
+by simpa only [pow_two] using abs_mul_self x
+
+theorem sqr_lt_sqr (h : abs x < y) : x ^ 2 < y ^ 2 :=
+by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
+
+theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
+sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
+
+theorem sqr_le_sqr (h : abs x ≤  y) : x ^ 2 ≤ y ^ 2 :=
+by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
+
+theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
+sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
+
 end linear_ordered_ring
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=

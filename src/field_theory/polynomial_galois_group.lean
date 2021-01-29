@@ -65,8 +65,8 @@ alg_equiv.restrict_normal_hom p.splitting_field
 
 section roots_action
 
-/-- The function from `roots_aux p` to `roots p E` -/
-def map_roots_aux [h : fact (p.splits (algebra_map F E))] :
+/-- The function from `roots p p.splitting_field` to `roots p E` -/
+def map_roots [h : fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
 λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
   have key := subtype.mem x,
@@ -75,29 +75,26 @@ def map_roots_aux [h : fact (p.splits (algebra_map F E))] :
     exact false.rec _ key },
   { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
 
-lemma map_roots_aux_bijective [h : fact (p.splits (algebra_map F E))] :
-  function.bijective (map_roots_aux p E) :=
+lemma map_roots_bijective [h : fact (p.splits (algebra_map F E))] :
+  function.bijective (map_roots p E) :=
 begin
   split,
   { exact λ _ _ h, subtype.ext (ring_hom.injective _ (subtype.ext_iff.mp h)) },
   { intro y,
     have key := roots_map
       (is_scalar_tower.to_alg_hom F p.splitting_field E : p.splitting_field →+* E)
-      ((splits_id_iff_splits (algebra_map F p.splitting_field)).mpr
-        (is_splitting_field.splits p.splitting_field p)),
-    rw [map_map,
-        alg_hom.comp_algebra_map (is_scalar_tower.to_alg_hom F p.splitting_field E)] at key,
+      ((splits_id_iff_splits _).mpr (is_splitting_field.splits p.splitting_field p)),
+    rw [map_map, alg_hom.comp_algebra_map] at key,
     have hy := subtype.mem y,
     simp only [root_set, finset.mem_coe, multiset.mem_to_finset, key, multiset.mem_map] at hy,
     rcases hy with ⟨x, hx1, hx2⟩,
-    rw [←multiset.mem_to_finset, ←finset.mem_coe] at hx1,
-    exact ⟨⟨x, hx1⟩, subtype.ext hx2⟩ }
+    exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
 end
 
-/-- The bijection between `roots_aux p` and `roots p E` -/
-def roots_aux_equiv_roots [h : fact (p.splits (algebra_map F E))] :
+/-- The bijection between `roots p p.splitting_field` and `roots p E` -/
+def roots_equiv_roots [h : fact (p.splits (algebra_map F E))] :
   (root_set p p.splitting_field) ≃ (root_set p E) :=
-equiv.of_bijective (map_roots_aux p E) (map_roots_aux_bijective p E)
+equiv.of_bijective (map_roots p E) (map_roots_bijective p E)
 
 instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
 { smul := λ ϕ x, ⟨ϕ x, begin
@@ -113,7 +110,7 @@ instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
   mul_smul := λ _ _ _, by { ext, refl } }
 
 instance gal_action [h : fact (p.splits (algebra_map F E))] : mul_action p.gal (root_set p E) :=
-{ smul := λ ϕ x, roots_aux_equiv_roots p E (ϕ • ((roots_aux_equiv_roots p E).symm x)),
+{ smul := λ ϕ x, roots_equiv_roots p E (ϕ • ((roots_equiv_roots p E).symm x)),
   one_smul := λ _, by simp only [equiv.apply_symm_apply, one_smul],
   mul_smul := λ _ _ _, by simp only [equiv.apply_symm_apply, equiv.symm_apply_apply, mul_smul] }
 
@@ -125,8 +122,8 @@ begin
   let ψ := alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F p.splitting_field E),
   change ↑(ψ (ψ.symm _)) = ϕ x,
   rw alg_equiv.apply_symm_apply ψ,
-  change ϕ (roots_aux_equiv_roots p E ((roots_aux_equiv_roots p E).symm x)) = ϕ x,
-  rw equiv.apply_symm_apply (roots_aux_equiv_roots p E),
+  change ϕ (roots_equiv_roots p E ((roots_equiv_roots p E).symm x)) = ϕ x,
+  rw equiv.apply_symm_apply (roots_equiv_roots p E),
 end
 
 variables (p E)
@@ -148,11 +145,11 @@ begin
   { exact alg_equiv.ext (λ x, (subalgebra.ext_iff.mp this x).mpr algebra.mem_top) },
   rw [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
   intros x hx,
-  have key := equiv.perm.ext_iff.mp hϕ (roots_aux_equiv_roots p E ⟨x, hx⟩),
-  change roots_aux_equiv_roots p E (ϕ • (roots_aux_equiv_roots p E).symm
-    (roots_aux_equiv_roots p E ⟨x, hx⟩)) = roots_aux_equiv_roots p E ⟨x, hx⟩ at key,
+  have key := equiv.perm.ext_iff.mp hϕ (roots_equiv_roots p E ⟨x, hx⟩),
+  change roots_equiv_roots p E (ϕ • (roots_equiv_roots p E).symm
+    (roots_equiv_roots p E ⟨x, hx⟩)) = roots_equiv_roots p E ⟨x, hx⟩ at key,
   rw equiv.symm_apply_apply at key,
-  exact subtype.ext_iff.mp (equiv.injective (roots_aux_equiv_roots p E) key),
+  exact subtype.ext_iff.mp (equiv.injective (roots_equiv_roots p E) key),
 end
 
 end roots_action
@@ -188,16 +185,16 @@ begin
     haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q),
     have key : x = algebra_map (p.splitting_field) (p * q).splitting_field
-      ((roots_aux_equiv_roots p _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
-      subtype.ext_iff.mp (equiv.apply_symm_apply (roots_aux_equiv_roots p _) ⟨x, _⟩).symm,
+      ((roots_equiv_roots p _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots p _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.1 _) },
   { change f x = g x,
     haveI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
       splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_left q p),
     have key : x = algebra_map (q.splitting_field) (p * q).splitting_field
-      ((roots_aux_equiv_roots q _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
-      subtype.ext_iff.mp (equiv.apply_symm_apply (roots_aux_equiv_roots q _) ⟨x, _⟩).symm,
+      ((roots_equiv_roots q _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
+      subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots q _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.2 _) },
   { rwa [ne.def, mul_eq_zero, map_eq_zero, map_eq_zero, ←mul_eq_zero] }

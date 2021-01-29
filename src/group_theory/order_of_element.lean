@@ -421,7 +421,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
       begin
         rw [gpow_coe_nat, ← pow_mul, nat.mul_div_cancel_left', hm],
         refine dvd_of_mul_dvd_mul_right (gcd_pos_of_pos_left (fintype.card α) hn0) _,
-        conv {to_lhs, rw [nat.div_mul_cancel (gcd_dvd_right _ _), ← order_of_eq_card_of_forall_mem_gpowers hg]},
+        conv {to_lhs,
+          rw [nat.div_mul_cancel (gcd_dvd_right _ _), ← order_of_eq_card_of_forall_mem_gpowers hg]},
         exact order_of_dvd_of_pow_eq_one hgmn
       end⟩)
 ... ≤ n :
@@ -461,7 +462,9 @@ end
 
 section totient
 
-variables [group α] [decidable_eq α] [fintype α] (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
+variables [group α] [decidable_eq α] [fintype α]
+(hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
+
 include hn
 
 lemma card_pow_eq_one_eq_order_of_aux (a : α) :
@@ -471,7 +474,8 @@ le_antisymm
   (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
     ... ≤ @fintype.card (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
     (fintype.of_finset _ (λ _, iff.rfl)) :
-      @fintype.card_le_of_injective (gpowers a) (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
+      @fintype.card_le_of_injective (gpowers a)
+        (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
         (id _) (id _) (λ b, ⟨b.1, mem_filter.2 ⟨mem_univ _,
           let ⟨i, hi⟩ := b.2 in
           by rw [← hi, ← gpow_coe_nat, ← gpow_mul, mul_comm, gpow_mul, gpow_coe_nat,
@@ -501,7 +505,8 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
-    (by clear _let_match; simp [range_succ]; tauto), by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
+    (by clear _let_match; simp [range_succ]; tauto),
+     by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
 have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   by simp [mem_range, zero_le_one, le_succ],
 (add_left_inj (∑ m in (range d.succ).filter (∣ d.succ),
@@ -546,9 +551,11 @@ lt_irrefl c $
   ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
       (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
-  ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m : eq.symm (sum_insert (by simp))
+  ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m :
+    eq.symm (sum_insert (by simp))
   ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
-      (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩)) (λ _ _, rfl)
+      (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
+                           (λ _ _, rfl)
   ... = c : sum_totient _
 
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=

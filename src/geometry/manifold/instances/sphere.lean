@@ -28,9 +28,9 @@ The model space for the charted space instance is `euclidean_space ℝ (fin n)`,
 natural number satisfying the typeclass assumption `[fact (findim ℝ E = n + 1)]`.  This may seem a
 little awkward, but it is designed to circumvent the problem that the literal expression for the
 dimension of the model space (up to definitional equality) determines the type.  If one used the
-naive expression `euclidean_space ℝ (findim ℝ E - 1)` for the model space, then the sphere in `ℂ`
-would be a manifold with model space `euclidean_space ℝ (2 - 1)` but not with model space
-`euclidean_space ℝ 1`.
+naive expression `euclidean_space ℝ (fin (findim ℝ E - 1))` for the model space, then the sphere in
+`ℂ` would be a manifold with model space `euclidean_space ℝ (fin (2 - 1))` but not with model space
+`euclidean_space ℝ (fin 1)`.
 -/
 
 variables {E : Type*} [inner_product_space ℝ E]

@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
@@ -8,7 +8,19 @@ import category_theory.monad.limits
 import category_theory.adjunction.fully_faithful
 import category_theory.adjunction.reflective
 import category_theory.closed.cartesian
+import category_theory.subterminal
 
+/-!
+# Exponential ideals
+
+An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` if for any `B : D`
+and `A : C`, the exponential `B^A` is in `D` - resembling ring theoretic ideals. We define the
+notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories.
+
+We give alternate conditions for an exponential ideal, particularly when the subcategory is
+reflective.
+
+-/
 universes v₁ v₂ u₁ u₂
 
 noncomputable theory
@@ -70,20 +82,6 @@ section ideal
 
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D] {i : D ⥤ C}
 
-/--
-The category of subterminals in `C` is the subcategory of objects for which the unique morphism to
-the terminal object is a monomorphism.
-TODO: If `C` is the category of sheaves on a topological space `X`, this category is equivalent
-to the lattice of open subsets of `X`.
--/
-@[derive category]
-def subterminals (C : Type u₁) [category.{v₁} C] :=
-{A : C // ∀ {Z : C} (f g : Z ⟶ A), f = g}
-
-/-- The inclusion of the subterminal objects into the original category. -/
-@[derive [full, faithful]]
-def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
-
 variables (i) [has_finite_products C] [cartesian_closed C]
 
 /--
@@ -106,7 +104,7 @@ begin
 end⟩
 
 /-- The subcategory of subterminal objects is an exponential ideal. -/
-instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
+instance : exponential_ideal (subterminal_inclusion C) :=
 begin
   apply exponential_ideal.mk',
   intros B A,
@@ -162,7 +160,7 @@ variables [cartesian_closed C]
 If the reflector preserves binary products, the subcategory is an exponential ideal.
 This is the converse of `preserves_binary_products_of_exponential_ideal`.
 -/
-lemma exponential_ideal_of_preserves_binary_products
+instance exponential_ideal_of_preserves_binary_products
   [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
   exponential_ideal i :=
 begin

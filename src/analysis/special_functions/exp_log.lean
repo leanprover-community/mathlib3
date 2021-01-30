@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import data.complex.exponential
-import analysis.complex.basic
 import analysis.calculus.mean_value
 import measure_theory.borel_space
+import analysis.complex.real_deriv
 
 /-!
 # Complex and real exponential, real logarithm

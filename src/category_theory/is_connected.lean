@@ -121,7 +121,8 @@ This can be thought of as a local-to-global property.
 The converse of `constant_of_preserves_morphisms`.
 -/
 lemma is_connected.of_constant_of_preserves_morphisms [nonempty J]
-  (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
+  (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) →
+    (∀ j j' : J, F j = F j')) :
   is_connected J :=
 is_connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
 
@@ -147,8 +148,8 @@ If any maximal connected component containing some element j₀ of J is all of J
 
 The converse of `induct_on_objects`.
 -/
-lemma is_connected.of_induct [nonempty J]
-  {j₀ : J} (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
+lemma is_connected.of_induct [nonempty J] {j₀ : J}
+  (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
   is_connected J :=
 is_connected.of_constant_of_preserves_morphisms (λ α F a,
 begin
@@ -247,7 +248,7 @@ lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equiva
 begin
   have z : ∀ (j : J), r (classical.arbitrary J) j :=
     induct_on_objects (λ k, r (classical.arbitrary J) k)
-        (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
+      (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
   intros, apply hr.2.2 (hr.2.1 (z _)) (z _)
 end
 

@@ -641,6 +641,9 @@ theorem adjoin_roots : algebra.adjoin α
     (↑(f.map (algebra_map α $ splitting_field f)).roots.to_finset : set (splitting_field f)) = ⊤ :=
 splitting_field_aux.adjoin_roots _ _ _
 
+theorem adjoin_root_set : algebra.adjoin α (f.root_set f.splitting_field) = ⊤ :=
+adjoin_roots f
+
 end splitting_field
 
 variables (α β) [algebra α β]
@@ -715,6 +718,9 @@ finite_dimensional.iff_fg.2 $ @algebra.coe_top α β _ _ _ ▸ adjoin_roots β f
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
   else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
     (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)
+
+instance (f : polynomial α) : _root_.finite_dimensional α f.splitting_field :=
+finite_dimensional f.splitting_field f
 
 /-- Any splitting field is isomorphic to `splitting_field f`. -/
 def alg_equiv (f : polynomial α) [is_splitting_field α β f] : β ≃ₐ[α] splitting_field f :=

@@ -2538,11 +2538,7 @@ span of a nonzero vector is one less than the dimension of the space. -/
 lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1)
   {v : E} (hv : v ≠ 0) :
   findim 𝕜 (𝕜 ∙ v)ᗮ = n :=
-begin
-  haveI : nontrivial E := ⟨⟨v, 0, hv⟩⟩,
-  apply submodule.findim_add_findim_orthogonal',
-  simp [findim_span_singleton hv, hn, add_comm]
-end
+submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, hn, add_comm]
 
 end orthogonal
 

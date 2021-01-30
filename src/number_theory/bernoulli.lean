@@ -105,7 +105,7 @@ lemma bernoulli_spec' (n : ℕ) :
   ∑ k in finset.nat.antidiagonal n,
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 1 :=
 begin
-  rw finset.nat.sum_antidiagonal, simp,
+  rw finset.nat.sum_antidiagonal_eq_sum_range_succ_mk, simp,
   conv_lhs {apply_congr, skip, rw [nat.add_sub_cancel' _, cast_sub], skip,
   apply_congr finset.mem_range_succ_iff.1 H, apply_congr finset.mem_range_succ_iff.1 H,},
   rw bernoulli_spec,
@@ -200,7 +200,7 @@ begin
   have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
   have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
   have hnz : ((j : ℚ) + 1) * (nat.factorial j) * (nat.factorial i) ≠ 0,
-  { norm_cast at *; 
+  { norm_cast at *;
   exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
   field_simp [hj, hnz],
   rw [mul_comm _ (bernoulli i), mul_assoc], norm_cast,

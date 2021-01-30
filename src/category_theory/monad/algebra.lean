@@ -91,7 +91,7 @@ To construct an isomorphism of algebras, it suffices to give an isomorphism of t
 commutes with the structure morphisms.
 -/
 @[simps]
-def mk_iso {A B : algebra T} (h : A.A ≅ B.A) (w : T.map h.hom ≫ B.a = A.a ≫ h.hom) : A ≅ B :=
+def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : T.map h.hom ≫ B.a = A.a ≫ h.hom) : A ≅ B :=
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
@@ -222,7 +222,7 @@ To construct an isomorphism of coalgebras, it suffices to give an isomorphism of
 commutes with the structure morphisms.
 -/
 @[simps]
-def mk_iso {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.hom ≫ B.a) : A ≅ B :=
+def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.hom ≫ B.a) : A ≅ B :=
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,

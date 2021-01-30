@@ -370,14 +370,7 @@ begin
   rw sum_apply,
   exact finset.sum_involution
     (λ σ _, swap i j * σ)
-    (λ σ _, begin
-      convert add_right_neg (↑σ.sign • m.dom_dom_congr σ v),
-      rw [perm.sign_mul, perm.sign_swap i_ne_j, ←neg_smul, smul_apply,
-        dom_dom_congr_apply, dom_dom_congr_apply],
-      congr' 2,
-      { simp },
-      { ext, simp [apply_swap_eq_self hv] },
-    end)
+    (λ σ _, by simp [perm.sign_swap i_ne_j, apply_swap_eq_self hv])
     (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
     (λ σ _, finset.mem_univ _)
     (λ σ _, swap_mul_involutive i j σ)

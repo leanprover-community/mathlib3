@@ -64,7 +64,7 @@ noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_nor
 { dist := λ x y, ∥x - y∥,
   dist_eq := assume x y, by refl,
   dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
-  eq_of_dist_eq_zero := assume x y h, show (x = y), from sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
+  eq_of_dist_eq_zero := assume x y h, sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
   dist_triangle := assume x y z,
     calc ∥x - z∥ = ∥x - y + (y - z)∥ : by rw sub_add_sub_cancel
             ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
@@ -163,6 +163,9 @@ dist_zero_right g ▸ dist_pos
 
 @[simp] lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_le_zero }
+
+lemma eq_of_norm_sub_le_zero {g h : α} (a : ∥g - h∥ ≤ 0) : g = h :=
+by rwa [← sub_eq_zero, ← norm_le_zero_iff]
 
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 h
@@ -272,7 +275,7 @@ lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} :
-  lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s),  ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+  lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s), ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C f s)
@@ -330,7 +333,8 @@ lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
 
-lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α), nnnorm (∑ a in s, f a) ≤ ∑ a in s, nnnorm (f a) :=
+lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α),
+  nnnorm (∑ a in s, f a) ≤ ∑ a in s, nnnorm (f a) :=
 finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
 
 end nnnorm
@@ -410,11 +414,24 @@ instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (�
 component is. -/
 lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
   {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
-by { simp only [(dist_zero_right _).symm, dist_pi_le_iff hr], refl }
+by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
+
+/-- The norm of an element in a product space is `< r` if and only if the norm of each
+component is. -/
+lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 < r)
+  {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
+by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
 lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] (x : Πi, π i) (i : ι) :
   ∥x i∥ ≤ ∥x∥ :=
 (pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
+
+@[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : α) : ∥(λ i : ι, a)∥ = ∥a∥ :=
+by simpa only [← dist_zero_right] using dist_pi_const a 0
+
+@[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : α) :
+  nnnorm (λ i : ι, a) = nnnorm a :=
+nnreal.eq $ pi_norm_const a
 
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
@@ -522,9 +539,16 @@ instance normed_uniform_group : uniform_add_group α :=
 ⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : has_continuous_add α := by apply_instance -- short-circuit type class inference
+instance normed_top_monoid : has_continuous_add α :=
+by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
-instance normed_top_group : topological_add_group α := by apply_instance -- short-circuit type class inference
+instance normed_top_group : topological_add_group α :=
+by apply_instance -- short-circuit type class inference
+
+lemma nat.norm_cast_le [has_one α] : ∀ n : ℕ, ∥(n : α)∥ ≤ n * ∥(1 : α)∥
+| 0 := by simp
+| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
+                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
 
 end normed_group
 
@@ -637,8 +661,9 @@ instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
         ... ≤ (max (∥x.1∥*∥y.1∥) (∥x.2∥*∥y.2∥)) :
           max_le_max (norm_mul_le (x.1) (y.1)) (norm_mul_le (x.2) (y.2))
         ... = (max (∥x.1∥*∥y.1∥) (∥y.2∥*∥x.2∥)) : by simp[mul_comm]
-        ... ≤ (max (∥x.1∥) (∥x.2∥)) * (max (∥y.2∥) (∥y.1∥)) : by { apply max_mul_mul_le_max_mul_max; simp [norm_nonneg] }
-        ... = (max (∥x.1∥) (∥x.2∥)) * (max (∥y.1∥) (∥y.2∥)) : by simp[max_comm]
+        ... ≤ (max (∥x.1∥) (∥x.2∥)) * (max (∥y.2∥) (∥y.1∥)) :
+          by apply max_mul_mul_le_max_mul_max; simp [norm_nonneg]
+        ... = (max (∥x.1∥) (∥x.2∥)) * (max (∥y.1∥) (∥y.2∥)) : by simp [max_comm]
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.normed_group }
 end normed_ring
@@ -1200,21 +1225,6 @@ lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a�
   has_sum f a :=
 tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hs ha
 
-/-- If `∑' i, ∥f i∥` is summable, then `∥(∑' i, f i)∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
-that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
-lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) :
-  ∥(∑'i, f i)∥ ≤ (∑' i, ∥f i∥) :=
-begin
-  by_cases h : summable f,
-  { have h₁ : tendsto (λs:finset ι, ∥∑ i in s, f i∥) at_top (𝓝 ∥(∑' i, f i)∥) :=
-      (continuous_norm.tendsto _).comp h.has_sum,
-    have h₂ : tendsto (λs:finset ι, ∑ i in s, ∥f i∥) at_top (𝓝 (∑' i, ∥f i∥)) :=
-      hf.has_sum,
-    exact le_of_tendsto_of_tendsto' h₁ h₂ (assume s, norm_sum_le _ _) },
-  { rw tsum_eq_zero_of_not_summable h,
-    simp [tsum_nonneg] }
-end
-
 lemma has_sum_iff_tendsto_nat_of_summable_norm {f : ℕ → α} {a : α} (hf : summable (λi, ∥f i∥)) :
   has_sum f a ↔ tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
 ⟨λ h, h.tendsto_sum_nat,
@@ -1227,24 +1237,29 @@ lemma summable_of_norm_bounded
   summable f :=
 by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
 
+lemma has_sum.norm_le_of_bounded {f : ι → α} {g : ι → ℝ} {a : α} {b : ℝ}
+  (hf : has_sum f a) (hg : has_sum g b) (h : ∀ i, ∥f i∥ ≤ g i) :
+  ∥a∥ ≤ b :=
+le_of_tendsto_of_tendsto' hf.norm hg $ λ s, norm_sum_le_of_le _ $ λ i hi, h i
+
 /-- Quantitative result associated to the direct comparison test for series:  If `∑' i, g i` is
-summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥(∑' i, f i)∥ ≤ (∑' i, g i)`. Note that we do not
+summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥∑' i, f i∥ ≤ ∑' i, g i`. Note that we do not
 assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
-lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a) (h : ∀i, ∥f i∥ ≤ g i) :
-  ∥(∑' (i:ι), f i)∥ ≤ a :=
+lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a)
+  (h : ∀ i, ∥f i∥ ≤ g i) :
+  ∥∑' i : ι, f i∥ ≤ a :=
 begin
-  have h' : summable (λ (i : ι), ∥f i∥),
-  { let f' : ι → ℝ := λ i, ∥f i∥,
-    have h'' : ∀ i, ∥f' i∥ ≤ g i,
-    { intros i,
-      convert h i,
-      simp },
-    simpa [f'] using summable_of_norm_bounded g hg.summable h'' },
-  have h1 : ∥(∑' (i:ι), f i)∥ ≤ ∑' (i:ι), ∥f i∥ := by simpa using norm_tsum_le_tsum_norm h',
-  have h2 := tsum_le_tsum h h' hg.summable,
-  have h3 : a = ∑' (i:ι), g i := (has_sum.tsum_eq hg).symm,
-  linarith
+  by_cases hf : summable f,
+  { exact hf.has_sum.norm_le_of_bounded hg h },
+  { rw [tsum_eq_zero_of_not_summable hf, norm_zero],
+    exact ge_of_tendsto' hg (λ s, sum_nonneg $ λ i hi, (norm_nonneg _).trans (h i)) }
 end
+
+/-- If `∑' i, ∥f i∥` is summable, then `∥∑' i, f i∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
+that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
+lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) :
+  ∥∑'i, f i∥ ≤ ∑' i, ∥f i∥ :=
+tsum_of_norm_bounded hf.has_sum $ λ i, le_rfl
 
 variable [complete_space α]
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.ordered_ring
+import tactic.monotonicity.basic
 import deprecated.group
 
 /-!
@@ -411,7 +412,8 @@ by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
 theorem sq_sub_sq [comm_ring R] (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by rw [pow_two, pow_two, mul_self_sub_mul_self]
 
-theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) : x = 0 :=
+theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) :
+  x = 0 :=
 begin
   induction n with n ih,
   { rw pow_zero at H,
@@ -493,16 +495,26 @@ end
 
 end cancel_add_monoid
 
-section comm_semiring
+section semiring
 
-variables [comm_semiring R]
+variables [semiring R]
 
-lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) : c ^ (min n m) ∣ a + b :=
+lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) :
+  c ^ (min n m) ∣ a + b :=
 begin
   replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
   replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
   exact dvd_add ha hb
 end
+
+end semiring
+
+section comm_semiring
+
+variables [comm_semiring R]
+
+lemma add_pow_two (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
+by simp only [pow_two, add_mul_self_eq]
 
 end comm_semiring
 
@@ -513,7 +525,7 @@ theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
 | 0     := by { nontriviality, exact canonically_ordered_semiring.zero_lt_one }
 | (n+1) := canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩
 
-lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
+@[mono] lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := canonically_ordered_semiring.mul_le_mul hab (pow_le_pow_of_le_left k)
 
@@ -573,7 +585,7 @@ strict_mono_pow h h2
 lemma pow_lt_pow_iff {a : R} {n m : ℕ} (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
 (strict_mono_pow h).lt_iff_lt
 
-lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
+@[mono] lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab)
 
@@ -611,6 +623,18 @@ theorem pow_two_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
 pow_bit0_pos h 1
 
 end linear_ordered_ring
+
+@[simp] lemma eq_of_pow_two_eq_pow_two [linear_ordered_comm_ring R]
+  {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  a ^ 2 = b ^ 2 ↔ a = b :=
+begin
+  refine ⟨_, congr_arg _⟩,
+  intros h,
+  refine (eq_or_eq_neg_of_pow_two_eq_pow_two _ _ h).elim id _,
+  rintros rfl,
+  rw le_antisymm (neg_nonneg.mp ha) hb,
+  exact neg_zero
+end
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

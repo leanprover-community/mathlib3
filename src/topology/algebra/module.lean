@@ -135,6 +135,59 @@ end
 
 end
 
+section closure
+variables {R : Type u} {M : Type v}
+[semiring R] [topological_space R]
+[topological_space M] [add_comm_monoid M]
+[semimodule R M] [topological_semimodule R M]
+
+lemma submodule.closure_smul_self_subset (s : submodule R M) :
+  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod (closure (s : set M)))
+  ⊆ closure (s : set M) :=
+calc
+(λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod (closure (s : set M)))
+    = (λ p : R × M, p.1 • p.2) '' (closure ((set.univ : set R).prod s)) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod s)) :
+  image_closure_subset_closure_image continuous_smul
+... = closure s : begin
+  congr,
+  ext x,
+  refine ⟨_, λ hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩⟩,
+  rintros ⟨⟨c, y⟩, ⟨hc, hy⟩, rfl⟩,
+  simp [s.smul_mem c hy]
+end
+
+lemma submodule.closure_smul_self_eq (s : submodule R M) :
+  (λ p : R × M, p.1 • p.2) '' ((set.univ : set R).prod (closure (s : set M)))
+  = closure (s : set M) :=
+set.subset.antisymm s.closure_smul_self_subset
+  (λ x hx, ⟨⟨1, x⟩, ⟨set.mem_univ _, hx⟩, one_smul R _⟩)
+
+variables [has_continuous_add M]
+
+/-- The (topological-space) closure of a submodle of a topological `R`-semimodule `M` is itself
+a submodule. -/
+def submodule.topological_closure (s : submodule R M) : submodule R M :=
+{ carrier := closure (s : set M),
+  zero_mem' := subset_closure s.zero_mem,
+  add_mem' := λ a b ha hb, s.to_add_submonoid.top_closure_add_self_subset ⟨a, b, ha, hb, rfl⟩,
+  smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩ }
+
+lemma submodule.submodule_topological_closure (s : submodule R M) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma submodule.is_closed_topological_closure (s : submodule R M) :
+  is_closed (s.topological_closure : set M) :=
+by convert is_closed_closure
+
+lemma submodule.topological_closure_minimal
+  (s : submodule R M) {t : submodule R M} (h : s ≤ t) (ht : is_closed (t : set M)) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
+
+end closure
+
 section
 
 variables {R : Type*} {M : Type*} {a : R}
@@ -297,7 +350,7 @@ instance : has_add (M →L[R] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp, norm_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) + g := rfl
+@[simp, norm_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = f + g := rfl
 @[norm_cast] lemma coe_add' : (((f + g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) + g := rfl
 
 instance : add_comm_monoid (M →L[R] M₂) :=
@@ -519,7 +572,8 @@ variables
   {R : Type*} [semiring R]
   {M : Type*} [topological_space M] [add_comm_monoid M] [semimodule R M]
   {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [semimodule R M₂]
-  {ι : Type*} {φ : ι → Type*} [∀i, topological_space (φ i)] [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+  {ι : Type*} {φ : ι → Type*} [∀i, topological_space (φ i)] [∀i, add_comm_monoid (φ i)]
+  [∀i, semimodule R (φ i)]
 
 /-- `pi` construction for continuous linear functions. From a family of continuous linear functions
 it produces a continuous linear function into a family of topological modules. -/
@@ -551,8 +605,8 @@ linear_map.infi_ker_proj
 
 variables (R φ)
 
-/-- If `I` and `J` are complementary index sets, the product of the kernels of the `J`th projections of
-`φ` is linearly equivalent to the product over `I`. -/
+/-- If `I` and `J` are complementary index sets, the product of the kernels of the `J`th projections
+of `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
   (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
@@ -605,7 +659,7 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq
   intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
 lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
-@[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
+@[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = f - g := rfl
 @[simp, norm_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
 end
@@ -1077,7 +1131,8 @@ variables [add_comm_monoid M] [semimodule R M]
 but one needs a fully (rather than partially) defined inverse function for some purposes, including
 for calculus. -/
 noncomputable def inverse : (M →L[R] M₂) → (M₂ →L[R] M) :=
-λ f, if h : ∃ (e : M ≃L[R] M₂), (e : M →L[R] M₂) = f then ((classical.some h).symm : M₂ →L[R] M) else 0
+λ f, if h : ∃ (e : M ≃L[R] M₂), (e : M →L[R] M₂) = f then ((classical.some h).symm : M₂ →L[R] M)
+else 0
 
 /-- By definition, if `f` is invertible then `inverse f = f.symm`. -/
 @[simp] lemma inverse_equiv (e : M ≃L[R] M₂) : inverse (e : M →L[R] M₂) = e.symm :=

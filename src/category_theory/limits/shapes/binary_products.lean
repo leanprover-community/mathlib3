@@ -723,7 +723,7 @@ def coprod.functor : C ⥤ C ⥤ C :=
 { obj := λ X, { obj := λ Y, X ⨿ Y, map := λ Y Z, coprod.map (𝟙 X) },
   map := λ Y Z f, { app := λ T, coprod.map f (𝟙 T) }}
 
-/-- The product functor can be decomposed. -/
+/-- The coproduct functor can be decomposed. -/
 def coprod.functor_left_comp (X Y : C) :
   coprod.functor.obj (X ⨿ Y) ≅ coprod.functor.obj Y ⋙ coprod.functor.obj X :=
 nat_iso.of_components (coprod.associator _ _) (by tidy)
@@ -746,12 +746,12 @@ def prod_comparison (F : C ⥤ D) (A B : C)
   F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
 prod.lift (F.map prod.fst) (F.map prod.snd)
 
-@[simp]
+@[simp, reassoc]
 lemma prod_comparison_fst :
   prod_comparison F A B ≫ prod.fst = F.map prod.fst :=
 prod.lift_fst _ _
 
-@[simp]
+@[simp, reassoc]
 lemma prod_comparison_snd :
   prod_comparison F A B ≫ prod.snd = F.map prod.snd :=
 prod.lift_snd _ _

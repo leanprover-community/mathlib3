@@ -163,7 +163,8 @@ lemma series_ratio_test {f : ℕ → β} (n : ℕ) (r : α)
   is_cau_seq abv (λ m, ∑ n in range m, f n) :=
 have har1 : abs r < 1, by rwa abs_of_nonneg hr0,
 begin
-  refine is_cau_series_of_abv_le_cau n.succ _ (is_cau_geo_series_const (abv (f n.succ) * r⁻¹ ^ n.succ) har1),
+  refine is_cau_series_of_abv_le_cau n.succ _
+    (is_cau_geo_series_const (abv (f n.succ) * r⁻¹ ^ n.succ) har1),
   assume m hmn,
   cases classical.em (r = 0) with r_zero r_ne_zero,
   { have m_pos := lt_of_lt_of_le (nat.succ_pos n) hmn,
@@ -542,7 +543,8 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.map_div, conj_bit0, conj.map_one]
+by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.map_div, conj_bit0,
+  conj.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -667,6 +669,20 @@ lemma cosh_mul_I : cosh (x * I) = cos x :=
 by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
        two_cos, neg_mul_eq_neg_mul]
 
+lemma tanh_mul_I : tanh (x * I) = tan x * I :=
+by rw [tanh_eq_sinh_div_cosh, cosh_mul_I, sinh_mul_I, mul_div_right_comm, tan]
+
+lemma cos_mul_I : cos (x * I) = cosh x :=
+by rw ← cosh_mul_I; ring; simp
+
+lemma sin_mul_I : sin (x * I) = sinh x * I :=
+have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring, simp },
+by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
+  using cancel_factors.cancel_factors_eq_div h I_ne_zero
+
+lemma tan_mul_I : tan (x * I) = tanh x * I :=
+by rw [tan, sin_mul_I, cos_mul_I, mul_div_right_comm, tanh_eq_sinh_div_cosh]
+
 lemma sin_add : sin (x + y) = sin x * cos y + cos x * sin y :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        add_mul, add_mul, mul_right_comm, ← sinh_mul_I,
@@ -691,6 +707,18 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
+
+lemma sin_add_mul_I (x y : ℂ) : sin (x + y*I) = sin x * cosh y + cos x * sinh y * I :=
+by rw [sin_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma sin_eq (z : ℂ) : sin z = sin z.re * cosh z.im + cos z.re * sinh z.im * I :=
+by convert sin_add_mul_I z.re z.im; exact (re_add_im z).symm
+
+lemma cos_add_mul_I (x y : ℂ) : cos (x + y*I) = cos x * cosh y - sin x * sinh y * I :=
+by rw [cos_add, cos_mul_I, sin_mul_I, mul_assoc]
+
+lemma cos_eq (z : ℂ) : cos z = cos z.re * cosh z.im - sin z.re * sinh z.im * I :=
+by convert cos_add_mul_I z.re z.im; exact (re_add_im z).symm
 
 theorem sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
 begin
@@ -849,7 +877,8 @@ lemma exp_eq_exp_re_mul_sin_add_cos : exp x = exp x.re * (cos x.im + sin x.im * 
 by rw [← exp_add_mul_I, re_add_im]
 
 /-- De Moivre's formula -/
-theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) : (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
+theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
+  (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
 begin
   rw [← exp_mul_I, ← exp_mul_I],
   induction n with n ih,
@@ -944,10 +973,7 @@ begin
 end
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
-if h : complex.cos x = 0 then by simp [sin, cos, tan, *, complex.tan, div_eq_mul_inv] at *
-else
-  by rw [sin, cos, tan, complex.tan, ← of_real_inj, div_eq_mul_inv, mul_re];
-  simp [norm_sq, (div_div_eq_div_mul _ _ _).symm, div_self h]; refl
+by rw [← of_real_inj, of_real_tan, tan_eq_sin_div_cos, of_real_div, of_real_sin, of_real_cos]
 
 lemma tan_mul_cos {x : ℝ} (hx : cos x ≠ 0) : tan x * cos x = sin x :=
 by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]

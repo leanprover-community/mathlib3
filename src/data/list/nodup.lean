@@ -9,7 +9,8 @@ import data.list.forall2
 /-!
 # Lists with no duplicates
 
-`list.nodup` is defined in `data/list/defs`. In this file we prove various properties of this predicate.
+`list.nodup` is defined in `data/list/defs`. In this file we prove various properties of this
+predicate.
 -/
 
 universes u v

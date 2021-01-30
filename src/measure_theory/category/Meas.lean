@@ -65,12 +65,13 @@ def Measure : Meas ⥤ Meas :=
     assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ, (measure.map_map hg hf).symm }
 
 /-- The Giry monad, i.e. the monadic structure associated with `Measure`. -/
-instance : category_theory.monad Measure.{u} :=
-{ η :=
+def Giry : category_theory.monad Meas :=
+{ to_functor := Measure,
+  η' :=
   { app         := λX, ⟨@measure.dirac X.1 X.2, measure.measurable_dirac⟩,
     naturality' :=
       assume X Y ⟨f, hf⟩, subtype.eq $ funext $ assume a, (measure.map_dirac hf a).symm },
-  μ :=
+  μ' :=
   { app         := λX, ⟨@measure.join X.1 X.2, measure.measurable_join⟩,
     naturality' :=
       assume X Y ⟨f, hf⟩, subtype.eq $ funext $ assume μ, measure.join_map_map hf μ },
@@ -80,7 +81,7 @@ instance : category_theory.monad Measure.{u} :=
 
 /-- An example for an algebra on `Measure`: the nonnegative Lebesgue integral is a hom, behaving
 nicely under the monad operations. -/
-def Integral : monad.algebra Measure :=
+def Integral : Giry.algebra :=
 { A      := Meas.of ennreal ,
   a      := ⟨λm:measure ennreal, ∫⁻ x, x ∂m, measure.measurable_lintegral measurable_id ⟩,
   unit'  := subtype.eq $ funext $ assume r:ennreal, lintegral_dirac' _ measurable_id,

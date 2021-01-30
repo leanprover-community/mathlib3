@@ -50,18 +50,28 @@ instance coe_comonad : has_coe (comonad C) (C ⥤ C) := ⟨λ G, G.to_functor⟩
 @[simp] lemma monad_to_functor_eq_coe : T.to_functor = T := rfl
 @[simp] lemma comonad_to_functor_eq_coe : G.to_functor = G := rfl
 
+/-- The unit for the monad `T`. -/
 def monad.η : 𝟭 _ ⟶ (T : C ⥤ C) := T.η'
+/-- The multiplication for the monad `T`. -/
 def monad.μ : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ T := T.μ'
 
+/-- The counit for the comonad `G`. -/
 def comonad.ε : (G : C ⥤ C) ⟶ 𝟭 _  := G.ε'
+/-- The comultiplication for the comonad `G`. -/
 def comonad.δ : (G : C ⥤ C) ⟶ (G : C ⥤ C) ⋙ G := G.δ'
 
+/-- A custom simps projection for the functor part of a monad, as a coercion. -/
 def monad.simps.to_functor := (T : C ⥤ C)
+/-- A custom simps projection for the unit of a monad, in simp normal form. -/
 def monad.simps.η' : 𝟭 _ ⟶ (T : C ⥤ C) := T.η
+/-- A custom simps projection for the multiplication of a monad, in simp normal form. -/
 def monad.simps.μ' : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ (T : C ⥤ C) := T.μ
 
+/-- A custom simps projection for the functor part of a comonad, as a coercion. -/
 def comonad.simps.to_functor := (G : C ⥤ C)
+/-- A custom simps projection for the counit of a comonad, in simp normal form. -/
 def comonad.simps.ε' : (G : C ⥤ C) ⟶ 𝟭 _ := G.ε
+/-- A custom simps projection for the comultiplication of a comonad, in simp normal form. -/
 def comonad.simps.δ' : (G : C ⥤ C) ⟶ (G : C ⥤ C) ⋙ (G : C ⥤ C) := G.δ
 
 initialize_simps_projections category_theory.monad (to_functor → coe, η' → η, μ' → μ)
@@ -147,6 +157,9 @@ rfl
 
 variable (C)
 
+/--
+The forgetful functor from the category of monads to the category of endofunctors.
+-/
 @[simps]
 def monad_to_functor : monad C ⥤ (C ⥤ C) :=
 { obj := λ T, T,
@@ -171,6 +184,9 @@ instance : reflects_isomorphisms (monad_to_functor C) :=
         simp
       end } } }
 
+/--
+The forgetful functor from the category of comonads to the category of endofunctors.
+-/
 @[simps]
 def comonad_to_functor : comonad C ⥤ (C ⥤ C) :=
 { obj := λ G, G,
@@ -180,6 +196,9 @@ instance : faithful (comonad_to_functor C) := {}.
 
 variable {C}
 
+/--
+An isomorphism of monads gives a natural isomorphism of the underlying functors.
+-/
 @[simps {rhs_md := semireducible}]
 def monad_iso.to_nat_iso {M N : monad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (monad_to_functor C).map_iso h
@@ -212,61 +231,38 @@ rfl
   monad_iso.to_nat_iso (monad_iso_mk h app_η app_μ) = h :=
 by { ext, refl }
 
+/--
+An isomorphism of comonads gives a natural isomorphism of the underlying functors.
+-/
 @[simps {rhs_md := semireducible}]
 def comonad_iso.to_nat_iso {M N : comonad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (comonad_to_functor C).map_iso h
 
--- namespace comonad_hom
--- variables {M N L K : C ⥤ C} [comonad M] [comonad N] [comonad L] [comonad K]
-
--- @[ext]
--- theorem ext (f g : comonad_hom M N) :
---   f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
-
--- restate_axiom comonad_hom.app_ε'
--- restate_axiom comonad_hom.app_δ'
--- attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
-
--- variable (M)
--- /-- The identity natural transformations is a morphism of comonads. -/
--- def id : comonad_hom M M := { ..𝟙 M }
--- variable {M}
-
--- instance : inhabited (comonad_hom M M) := ⟨id _⟩
-
--- /-- The composition of two morphisms of comonads. -/
--- def comp (f : comonad_hom M N) (g : comonad_hom N L) : comonad_hom M L :=
--- { app := λ X, f.app X ≫ g.app X }
-
--- @[simp] lemma id_comp (f : comonad_hom M N) : (comonad_hom.id M).comp f = f :=
--- by {ext, apply id_comp}
--- @[simp] lemma comp_id (f : comonad_hom M N) : f.comp (comonad_hom.id N) = f :=
--- by {ext, apply comp_id}
--- /-- Note: `category_theory.monad.bundled` provides a category instance for bundled comonads.-/
--- @[simp] lemma assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
---   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
-
--- end comonad_hom
+variable (C)
 
 namespace monad
 
-variable (C)
-
+/-- The identity monad. -/
 @[simps]
 def id : monad C :=
 { to_functor := 𝟭 C,
   η' := 𝟙 (𝟭 C),
   μ' := 𝟙 (𝟭 C) }
 
+instance : inhabited (monad C) := ⟨monad.id C⟩
+
 end monad
 
 namespace comonad
 
+/-- The identity comonad. -/
 @[simps]
 def id : comonad C :=
 { to_functor := 𝟭 _,
   ε' := 𝟙 (𝟭 C),
   δ' := 𝟙 (𝟭 C) }
+
+instance : inhabited (comonad C) := ⟨comonad.id C⟩
 
 end comonad
 

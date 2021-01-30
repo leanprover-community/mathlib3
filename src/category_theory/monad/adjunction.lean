@@ -16,6 +16,10 @@ variables (L : C ⥤ D) (R : D ⥤ C)
 
 namespace adjunction
 
+/--
+For a pair of functors `L : C ⥤ D`, `R : D ⥤ C`, an adjunction `h : L ⊣ R` induces a monad on
+the category `C`.
+-/
 @[simps]
 def to_monad {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : monad C :=
 { to_functor := L ⋙ R,
@@ -24,6 +28,10 @@ def to_monad {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : monad C :=
   assoc' := λ X, by { dsimp, rw [←R.map_comp], simp },
   right_unit' := λ X, by { dsimp, rw [←R.map_comp], simp } }
 
+/--
+For a pair of functors `L : C ⥤ D`, `R : D ⥤ C`, an adjunction `h : L ⊣ R` induces a comonad on
+the category `D`.
+-/
 @[simps]
 def to_comonad {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) : comonad D :=
 { to_functor := R ⋙ L,

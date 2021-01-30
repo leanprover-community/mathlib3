@@ -166,6 +166,9 @@ def algebra_functor_of_monad_hom {T₁ T₂ : monad C} (h : T₂ ⟶ T₁) :
   map := λ A₁ A₂ f,
   { f := f.f } }
 
+/--
+The identity monad morphism induces the identity functor from the category of algebras to itself.
+-/
 @[simps {rhs_md := semireducible}]
 def algebra_functor_of_monad_hom_id {T₁ : monad C} :
   algebra_functor_of_monad_hom (𝟙 T₁) ≅ 𝟭 _ :=
@@ -173,6 +176,9 @@ nat_iso.of_components
   (λ X, algebra.iso_mk (iso.refl _) (by { dsimp, simp, }))
   (λ X Y f, by { ext, dsimp, simp })
 
+/--
+A composition of monad morphisms gives the composition of corresponding functors.
+-/
 @[simps {rhs_md := semireducible}]
 def algebra_functor_of_monad_hom_comp {T₁ T₂ T₃ : monad C} (f : T₁ ⟶ T₂) (g : T₂ ⟶ T₃) :
   algebra_functor_of_monad_hom (f ≫ g) ≅

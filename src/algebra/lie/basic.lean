@@ -285,11 +285,14 @@ def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L�
 @[simp] lemma symm_trans_apply (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) (x : L₃) :
   (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) := rfl
 
-lemma bijective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.bijective e := e.to_linear_equiv.bijective
+lemma bijective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.bijective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+e.to_linear_equiv.bijective
 
-lemma injective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.injective e := e.to_linear_equiv.injective
+lemma injective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.injective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+e.to_linear_equiv.injective
 
-lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective e := e.to_linear_equiv.surjective
+lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+e.to_linear_equiv.surjective
 
 end equiv
 
@@ -504,7 +507,7 @@ lemma lie_abelian_iff_equiv_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Typ
 begin
   split; intros h,
   { exact e.symm.injective.is_lie_abelian h, },
-  { exact @function.injective.is_lie_abelian R L₁ L₂ _ _ _ _ _ e e.injective h, },
+  { exact e.injective.is_lie_abelian h, },
 end
 
 lemma commutative_ring_iff_abelian_lie_ring : is_commutative A (*) ↔ is_lie_abelian A :=

@@ -504,11 +504,7 @@ lemma function.surjective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Ty
 lemma lie_abelian_iff_equiv_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Type w}
   [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
   (e : L₁ ≃ₗ⁅R⁆ L₂) : is_lie_abelian L₁ ↔ is_lie_abelian L₂ :=
-begin
-  split; intros h,
-  { exact e.symm.injective.is_lie_abelian h, },
-  { exact e.injective.is_lie_abelian h, },
-end
+⟨e.symm.injective.is_lie_abelian, e.injective.is_lie_abelian⟩
 
 lemma commutative_ring_iff_abelian_lie_ring : is_commutative A (*) ↔ is_lie_abelian A :=
 begin

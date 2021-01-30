@@ -81,9 +81,6 @@ end unitary_submonoid
 
 namespace unitary_group
 
-@[simp]
-lemma star_mul_self (A : unitary_group n α) : star A.1 ⬝ A.1 = 1 := A.2
-
 instance coe_matrix : has_coe (unitary_group n α) (matrix n n α) := ⟨subtype.val⟩
 
 instance coe_fun : has_coe_to_fun (unitary_group n α) :=
@@ -111,6 +108,9 @@ instance : star_monoid (unitary_group n α) :=
 { star := λ A, ⟨star A.1, unitary_submonoid.star_mem A.2⟩,
   star_involutive := λ A, subtype.ext $ star_star A.1,
   star_mul := λ A B, subtype.ext $ star_mul A.1 B.1 }
+
+@[simp]
+lemma star_mul_self (A : unitary_group n α) : star A ⬝ A = 1 := A.2
 
 instance : inhabited (unitary_group n α) := ⟨1⟩
 

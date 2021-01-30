@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import linear_algebra.basis
 import algebra.free_algebra
-
 import linear_algebra.finsupp_vector_space
 /-!
 # Linear algebra properties of `free_algebra R X`

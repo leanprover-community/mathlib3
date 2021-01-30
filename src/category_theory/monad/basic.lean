@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta, Adam Topaz
 -/
 import category_theory.functor_category
 import category_theory.fully_faithful
+import category_theory.reflects_isomorphisms
 
 namespace category_theory
 open category
@@ -153,6 +154,23 @@ def monad_to_functor : monad C ⥤ (C ⥤ C) :=
 
 instance : faithful (monad_to_functor C) := {}.
 
+instance : reflects_isomorphisms (monad_to_functor C) :=
+{ reflects := λ M N f i,
+  { inv :=
+    { to_nat_trans := by exactI inv ((monad_to_functor C).map f),
+      app_η' := λ X, by { rw [←f.app_η, assoc, ←nat_trans.comp_app], simp },
+      app_μ' := λ X,
+      begin
+        resetI,
+        rw ←is_iso.eq_comp_inv,
+        dsimp,
+        rw [assoc, f.app_μ, assoc, assoc],
+        simp only [nat_trans.naturality_assoc],
+        rw [←(N : C ⥤ C).map_comp_assoc, ←nat_trans.comp_app, is_iso.inv_hom_id, ←assoc,
+          ←nat_trans.comp_app, is_iso.inv_hom_id],
+        simp
+      end } } }
+
 @[simps]
 def comonad_to_functor : comonad C ⥤ (C ⥤ C) :=
 { obj := λ G, G,
@@ -165,6 +183,34 @@ variable {C}
 @[simps {rhs_md := semireducible}]
 def monad_iso.to_nat_iso {M N : monad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (monad_to_functor C).map_iso h
+
+@[simps hom_to_nat_trans {rhs_md := semireducible}]
+def monad_iso_mk {M N : monad C} (h : (M : C ⥤ C) ≅ N)
+  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
+  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
+                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
+M ≅ N :=
+begin
+  apply as_iso _,
+  { apply monad_hom.mk },
+  { apply is_iso_of_reflects_iso _ (monad_to_functor C),
+    dsimp,
+    apply_instance },
+end
+
+@[simp] lemma monad_iso_mk_inv_to_nat_trans {M N : monad C} (h : (M : C ⥤ C) ≅ N)
+  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
+  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
+                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
+  (monad_iso_mk h app_η app_μ).inv.to_nat_trans = h.inv :=
+rfl
+
+@[simp] lemma monad_iso_mk_to_nat_iso {M N : monad C} (h : (M : C ⥤ C) ≅ N)
+  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
+  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
+                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
+  monad_iso.to_nat_iso (monad_iso_mk h app_η app_μ) = h :=
+by { ext, refl }
 
 @[simps {rhs_md := semireducible}]
 def comonad_iso.to_nat_iso {M N : comonad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=

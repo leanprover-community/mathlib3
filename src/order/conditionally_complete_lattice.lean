@@ -490,20 +490,24 @@ begin
   rw nat.Inf_eq_zero, right, assumption,
 end
 
+lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
+nonempty_of_pos_Inf (h.symm ▸ (succ_pos k) : Inf s > 0)
+
+lemma eq_Ici_of_nonempty_of_upward_closed {s : set ℕ} (hs : s.nonempty)
+  (hs' : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) : s = Ici (Inf s) :=
+ext (λ n, ⟨λ H, nat.Inf_le H, λ H, hs' (Inf s) n H (Inf_mem hs)⟩)
+
 lemma Inf_interval_above_eq_succ_iff {s : set ℕ}
   (hs : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) (k : ℕ) :
   Inf s = k + 1 ↔ k + 1 ∈ s ∧ k ∉ s :=
 begin
   split,
-  { intros h, rw ← h,
-    have hne : s.nonempty, { apply nonempty_of_pos_Inf, rw h, exact nat.succ_pos', },
-    have hlt : k < Inf s, { rw [h, lt_add_iff_pos_right], exact nat.one_pos, },
-    exact ⟨nat.Inf_mem hne, nat.not_mem_of_lt_Inf hlt⟩, },
-  { rintros ⟨h₁, h₂⟩,
-    refine le_antisymm (nat.Inf_le h₁) _,
-    by_contradiction h, rw [not_le, nat.lt_succ_iff] at h,
-    have hne : s.nonempty, { exact ⟨k+1, h₁⟩, },
-    apply h₂, exact hs (Inf s) k h (nat.Inf_mem hne), },
+  { intro H,
+    rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
+    exact ⟨le_refl _, k.not_succ_le_self⟩, },
+  { rintro ⟨H, H'⟩,
+    rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
+    exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
 end
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via

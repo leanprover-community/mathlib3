@@ -200,7 +200,8 @@ begin
   have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
   have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
   have hnz : ((j : ℚ) + 1) * (nat.factorial j) * (nat.factorial i) ≠ 0,
-  { norm_cast at *; exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
+  { norm_cast at *; 
+  exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
   field_simp [hj, hnz],
   rw [mul_comm _ (bernoulli i), mul_assoc], norm_cast,
   rw [mul_comm (j + 1) _, mul_div_assoc, ← mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,

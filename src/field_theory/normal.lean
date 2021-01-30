@@ -263,7 +263,7 @@ alg_hom.ext (λ x, (algebra_map K E).injective
   (eq.trans (alg_hom.restrict_normal_commutes _ K x) (ϕ.lift_normal_commutes E x)))
 
 /-- If `E/K/F` is a tower of fields with `E/F` normal then we can lift
-  an algebra isomorphism `ϕ : K ≃ₐ[F] K` to `ϕ.lift_normal E : E ≃ₐ[F] E` -/
+  an algebra isomorphism `ϕ : K ≃ₐ[F] K` to `ϕ.lift_normal E : E ≃ₐ[F] E`. -/
 noncomputable def alg_equiv.lift_normal [normal F E] : E ≃ₐ[F] E :=
 alg_equiv.of_bijective (χ.to_alg_hom.lift_normal E) (alg_hom.normal_bijective F E E _)
 

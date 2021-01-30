@@ -255,14 +255,21 @@ end
 
 /-- A compact element k has the property that any b < k lies below a "maximal element below k",
 which is to say [⊥, k] is coatomic. -/
-theorem Iic_coatomic_of_compact_element (k : α) (hk : k ≠ ⊥) (h : is_compact_element k) :
+theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   is_coatomic (set.Iic k) :=
 begin
   refine_struct { .. }, rintros ⟨b, hbk⟩,
-  -- The case b = k is exactly the trivial case b = ⊤ in Iic k.
-  by_cases hb : b = k, { apply or.inl, simp only [hb], refl, },
-  -- Otherwise, note b < k and handle the non-trivial case.
-  replace hb : b < k := lt_of_le_of_ne hbk hb, right,
+  -- The cases b = k or k = ⊥ are both the trivial case b = ⊤ in Iic k.
+  by_cases htriv : b = k ∨ k = ⊥,
+  { apply or.inl, apply or.elim htriv,
+    { intro g, simp only [g], refl },
+    { intro g,
+      have : b = ⊥, by { rw g at hbk, rwa eq_bot_iff, },
+      rw ←g at this, simp only [this], refl, }, },
+  -- Otherwise, we have b < k ≠ ⊥ and show the nontrivial case
+  push_neg at htriv, obtain ⟨hb, hk⟩ := htriv,
+  replace hb : b < k := lt_of_le_of_ne hbk hb,
+  right,
   -- A coatom lying above b in [⊥, k] is precisely a maximal element of [b, k).
   suffices : ∃ (m : set.Ico b k), ∀ (x : set.Ico b k), m ≤ x → x = m,
   { obtain ⟨⟨m, hm⟩, hmax⟩ := this,

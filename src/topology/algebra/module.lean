@@ -295,6 +295,13 @@ variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 @[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
 
+@[simp, priority 900]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
+  [semimodule S M] [has_scalar R M₂] [semimodule S M₂]
+  [linear_map.compatible_smul M M₂ R S] (f : M →L[S] M₂) (c : R) (x : M) :
+  f (c • x) = c • f x :=
+linear_map.compatible_smul.map_smul f c x
+
 lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
   f (∑ i in s, g i) = ∑ i in s, f (g i) := f.to_linear_map.map_sum
 
@@ -721,6 +728,42 @@ subtype.ext_iff_val.2 $ by simp [h y]
 
 end ring
 
+section smul
+
+variables {R S : Type*} [ring R] [ring S] [topological_space S]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_group M₃] [module R M₃]
+  [module S M₃] [smul_comm_class R S M₃] [topological_module S M₃]
+
+instance : has_scalar S (M →L[R] M₃) :=
+⟨λ c f, ⟨c • f, continuous_const.smul f.2⟩⟩
+
+variables (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
+
+@[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
+
+variables [module S M₂] [topological_module S M₂] [smul_comm_class R S M₂]
+
+lemma smul_apply : (c • f) x = c • (f x) := rfl
+@[simp, norm_cast] lemma coe_smul : (((c • f) : M →L[R] M₂) : M →ₗ[R] M₂) = c • f := rfl
+@[simp, norm_cast] lemma coe_smul' : (((c • f) : M →L[R] M₂) : M → M₂) = c • f := rfl
+
+@[simp] lemma comp_smul [linear_map.compatible_smul M₂ M₃ S R] : h.comp (c • f) = c • (h.comp f) :=
+by { ext x, exact h.map_smul_of_tower c (f x) }
+
+variable [topological_add_group M₂]
+
+instance : module S (M →L[R] M₂) :=
+{ smul_zero := λ _, ext $ λ _, smul_zero _,
+  zero_smul := λ _, ext $ λ _, zero_smul _ _,
+  one_smul  := λ _, ext $ λ _, one_smul _ _,
+  mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
+  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
+  smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
+
+end smul
+
 section comm_ring
 
 variables
@@ -730,33 +773,10 @@ variables
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
 [module R M] [module R M₂] [module R M₃] [topological_module R M₃]
 
-instance : has_scalar R (M →L[R] M₃) :=
-⟨λ c f, ⟨c • f, continuous_const.smul f.2⟩⟩
-
-variables (c : R) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
-
-@[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
-
-variable [topological_module R M₂]
-
-@[simp] lemma smul_apply : (c • f) x = c • (f x) := rfl
-@[simp, norm_cast] lemma coe_apply : (((c • f) : M →L[R] M₂) : M →ₗ[R] M₂) = c • (f : M →ₗ[R] M₂) := rfl
-@[norm_cast] lemma coe_apply' : (((c • f) : M →L[R] M₂) : M → M₂) = c • (f : M → M₂) := rfl
-
-@[simp] lemma comp_smul : h.comp (c • f) = c • (h.comp f) := by { ext, simp }
-
-variable [topological_add_group M₂]
-
-instance : module R (M →L[R] M₂) :=
-{ smul_zero := λ _, ext $ λ _, smul_zero _,
-  zero_smul := λ _, ext $ λ _, zero_smul _ _,
-  one_smul  := λ _, ext $ λ _, one_smul _ _,
-  mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
-  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
-  smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
+variables [topological_add_group M₂] [topological_module R M₂]
 
 instance : algebra R (M₂ →L[R] M₂) :=
-algebra.of_semimodule' (λ c f, ext $ λ x, rfl) (λ c f, ext $ λ x, f.map_smul c x)
+algebra.of_semimodule smul_comp (λ _ _ _, comp_smul _ _ _)
 
 /-- Given `c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `E →L[𝕜] F`
 sending `f` to `λ e, c e • f`. See also `continuous_linear_map.smul_rightL`. -/

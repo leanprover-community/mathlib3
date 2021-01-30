@@ -128,48 +128,13 @@ variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 
-/--
-Given some `x` in an inner product space, we can define its dual as the continuous linear map
-`λ y, ⟪x, y⟫`. Consider using `to_dual` or `to_dual_map` instead in the real case.
--/
-def to_dual' : E →+ normed_space.dual 𝕜 E :=
-{ to_fun := λ x, linear_map.mk_continuous
-  { to_fun := λ y, ⟪x, y⟫,
-    map_add' := λ _ _, inner_add_right,
-    map_smul' := λ _ _, inner_smul_right }
-  ∥x∥
-  (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ }),
-  map_zero' := by { ext z, simp },
-  map_add' := λ x y, by { ext z, simp [inner_add_left] } }
-
-@[simp] lemma to_dual'_apply {x y : E} : to_dual' 𝕜 x y = ⟪x, y⟫ := rfl
-
-/-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma norm_to_dual'_apply (x : E) : ∥to_dual' 𝕜 x∥ = ∥x∥ :=
-begin
-  refine le_antisymm _ _,
-  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
-  { cases eq_or_lt_of_le (norm_nonneg x) with h h,
-    { have : x = 0 := norm_eq_zero.mp (eq.symm h),
-      simp [this] },
-    { refine (mul_le_mul_right h).mp _,
-      calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
-      ... = re ⟪x, x⟫ : norm_sq_eq_inner _
-      ... ≤ abs ⟪x, x⟫ : re_le_abs _
-      ... = ∥to_dual' 𝕜 x x∥ : by simp [norm_eq_abs]
-      ... ≤ ∥to_dual' 𝕜 x∥ * ∥x∥ : le_op_norm (to_dual' 𝕜 x) x } }
-end
-
 variables (E)
-
-lemma to_dual'_isometry : isometry (@to_dual' 𝕜 E _ _) :=
-add_monoid_hom.isometry_of_norm _ (norm_to_dual'_apply 𝕜)
 
 /--
 Fréchet-Riesz representation: any `ℓ` in the dual of a Hilbert space `E` is of the form
 `λ u, ⟪y, u⟫` for some `y : E`, i.e. `to_dual'` is surjective.
 -/
-lemma to_dual'_surjective [complete_space E] : function.surjective (@to_dual' 𝕜 E _ _) :=
+lemma inner_right_surjective [complete_space E] : function.surjective (@inner_right 𝕜 E _ _) :=
 begin
   intros ℓ,
   set Y := ker ℓ with hY,
@@ -226,7 +191,7 @@ consider using `to_dual` instead. -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
 def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
 linear_map.mk_continuous
-  { to_fun := to_dual' ℝ,
+  { to_fun := inner_right ℝ,
     map_add' := λ x y, by { ext, simp [inner_add_left] },
     map_smul' := λ c x, by { ext, simp [inner_smul_left] } }
   1

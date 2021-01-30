@@ -1159,23 +1159,41 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
             h₁, h₂, zero_mul, mul_zero, finset.sum_const_zero, zero_add, zero_sub, finset.mul_sum,
             neg_div, finset.sum_div, mul_div_assoc, mul_assoc]
 
+variable (𝕜)
+
 /-- The inner product with a fixed left element, as a continuous linear map.  This can be upgraded
 to a continuous map which is jointly conjugate-linear in the left argument and linear in the right
 argument, once (TODO) conjugate-linear maps have been defined. -/
-def inner_right (v : E) : E →L[𝕜] 𝕜 :=
-linear_map.mk_continuous
-  { to_fun := λ w, ⟪v, w⟫,
-    map_add' := λ x y, inner_add_right,
-    map_smul' := λ c x, inner_smul_right }
-  ∥v∥
-  (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v)
+def inner_right : E →+ E →L[𝕜] 𝕜 :=
+add_monoid_hom.mk'
+  (λ v, linear_map.mk_continuous
+    { to_fun := λ w, ⟪v, w⟫,
+      map_add' := λ x y, inner_add_right,
+      map_smul' := λ c x, inner_smul_right }
+    ∥v∥
+    (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v))
+  (λ x y, by { ext, simp [inner_add_left] })
 
-@[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
+variable {𝕜}
 
-@[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
+@[simp] lemma inner_right_coe (v : E) : ⇑(inner_right 𝕜 v) = λ w, ⟪v, w⟫ := rfl
 
-lemma op_norm_inner_right_le (v : E) : ∥(inner_right v : E →L[𝕜] 𝕜)∥ ≤ ∥v∥ :=
-linear_map.mk_continuous_norm_le _ (norm_nonneg v) _
+lemma inner_right_apply (v w : E) : inner_right 𝕜 v w = ⟪v, w⟫ := rfl
+
+/-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
+@[simp] lemma norm_inner_right_apply (x : E) : ∥inner_right 𝕜 x∥ = ∥x∥ :=
+begin
+  refine le_antisymm _ _,
+  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
+  { rcases em (x = 0) with rfl | h, { simp only [add_monoid_hom.map_zero, norm_zero] },
+    { replace h := norm_pos_iff.2 h,
+      refine (mul_le_mul_right h).mp _,
+      calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : (pow_two _).symm
+      ... = re ⟪x, x⟫ : norm_sq_eq_inner _
+      ... ≤ abs ⟪x, x⟫ : re_le_abs _
+      ... = ∥inner_right 𝕜 x x∥ : (is_R_or_C.norm_eq_abs _).symm
+      ... ≤ ∥inner_right 𝕜 x∥ * ∥x∥ : (inner_right 𝕜 x).le_op_norm x } }
+end
 
 end norm
 
@@ -1307,13 +1325,16 @@ variables (𝕜 E) [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 /-- Inner product as an `ℝ`-bilinear map. -/
 def inner_bilinear : E →L[ℝ] E →L[ℝ] 𝕜 :=
-linear_map.mk_continuous
-  { to_fun := λ v, (inner_right v).restrict_scalars ℝ,
-    map_add' := λ x y, by { ext, simp [inner_add_left] },
-    map_smul' := λ c x, by { ext, dsimp, rw inner_smul_real_left' } }
-  1 $ λ v, by simpa using op_norm_inner_right_le v
+linear_isometry.to_continuous_linear_map
+  { to_fun := λ v, (inner_right 𝕜 v).restrict_scalars ℝ,
+    map_add' := λ x y, by simp,
+    map_smul' := λ c x, by { ext, dsimp, rw inner_smul_real_left' },
+    norm_map' := λ x, by simp }
 
 variables {𝕜 E}
+
+@[simp] lemma norm_inner_bilinear (x : E) : ∥inner_bilinear 𝕜 E x∥ = ∥x∥ :=
+linear_isometry.norm_map _ _
 
 @[simp] lemma inner_bilinear_deriv₂_apply (p x : E × E) :
   (inner_bilinear 𝕜 E).deriv₂  p x = ⟪p.1, x.2⟫ + ⟪x.1, p.2⟫ := rfl

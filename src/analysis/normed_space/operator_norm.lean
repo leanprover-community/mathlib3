@@ -357,7 +357,8 @@ norm_id
 @[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
 norm_id_field
 
-lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
+lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F] [smul_comm_class 𝕜 𝕜' F]
+  (c : 𝕜') (f : E →L[𝕜] F) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 ((c • f).op_norm_le_bound
   (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
   begin
@@ -365,14 +366,15 @@ lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
     exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
   end))
 
-lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext, simp }
+lemma op_norm_neg : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, norm_neg]
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
 instance to_normed_group : normed_group (E →L[𝕜] F) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
+instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
+  [smul_comm_class 𝕜 𝕜' F] : normed_space 𝕜' (E →L[𝕜] F) :=
 ⟨op_norm_smul_le⟩
 
 /-- The operator norm is submultiplicative. -/
@@ -910,6 +912,14 @@ def restrict_scalars (f : E' →L[𝕜'] F') :
 @[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' → F') = f := rfl
 
+@[simp] lemma restrict_scalars_add (f g : E' →L[𝕜'] F') :
+  (f + g).restrict_scalars 𝕜 = f.restrict_scalars 𝕜 + g.restrict_scalars 𝕜 :=
+rfl
+
+@[simp] lemma restrict_scalars_smul (c : 𝕜) (f : E' →L[𝕜'] F') :
+  (c • f).restrict_scalars 𝕜 = c • f.restrict_scalars 𝕜 :=
+rfl
+
 end restrict_scalars
 
 section extend_scalars
@@ -939,6 +949,10 @@ instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] F') :=
 { norm_smul_le := λ c f,
     linear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _ }
 
+@[simp] lemma restrict_scalars_smul' (c : 𝕜') (f : E →L[𝕜] F') :
+  (c • f).restrict_scalars 𝕜 = c • f.restrict_scalars 𝕜 :=
+rfl
+
 /-- When `f` is a continuous linear map taking values in `S`, then `λb, f b • x` is a
 continuous linear map. -/
 def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : F') : E →L[𝕜] F' :=
@@ -948,6 +962,22 @@ def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : F') : E →L[𝕜] F' :=
   smul_algebra_right f x c = f c • x := rfl
 
 end extend_scalars
+
+section norm_restrict_scalars
+
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] [normed_space 𝕜' E']
+variables [is_scalar_tower 𝕜 𝕜' E']
+variables {F' : Type*} [normed_group F'] [normed_space 𝕜 F'] [normed_space 𝕜' F']
+variables [is_scalar_tower 𝕜 𝕜' F']
+
+@[simp] lemma norm_restrict_scalars (f : E' →L[𝕜'] F') : ∥f.restrict_scalars 𝕜∥ = ∥f∥ :=
+le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
+  (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
+
+def restrict_scalars_isometry : (E' →L[𝕜'] F')
+
+end norm_restrict_scalars
 
 end continuous_linear_map
 

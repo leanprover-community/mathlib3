@@ -169,14 +169,13 @@ begin
       end
   ... < 2 * (1 / m ^ (n + 1)!) :
       begin
-        refine mul_lt_mul _ le_rfl _ zero_le_two,
+        refine mul_lt_mul _ le_rfl
+          (one_div_pos.mpr (pow_pos (by exact_mod_cast lt_trans zero_lt_two hm) _)) zero_le_two,
         rw [div_lt_iff, mul_sub, mul_one, lt_sub_iff_add_lt, two_mul, real.add_lt_add_iff_left],
-        exact_mod_cast hm,
-        apply lt_sub.mp,
-        rw sub_zero,
-        exact_mod_cast lt_trans one_lt_two hm,--finish
-        repeat { rw one_div_le_one_div <|> rw one_div_pos <|>
-          apply pow_pos <|> apply pow_nonneg <|> norm_num <|> linarith }
+        { exact_mod_cast hm },
+        { apply lt_sub.mp,
+          rw sub_zero,
+          exact_mod_cast lt_trans one_lt_two hm }
       end
   ... = 2 / m ^ (n + 1)! : by field_simp
   ... = 2 / m ^ (n! * (n + 1)) : by rw [nat.factorial_succ, mul_comm]

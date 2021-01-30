@@ -15,7 +15,7 @@ parsers are `valid`. There are also lemmas on the composability of parsers.
 
 ## Main definitions
 
-* 'parse_result.pos` : The position of a `char_buffer` at which a `parser α` has finished.
+* `parse_result.pos` : The position of a `char_buffer` at which a `parser α` has finished.
 * `parser.valid` : The property that a parser only moves forward within a buffer,
   in both cases of success or failure.
 

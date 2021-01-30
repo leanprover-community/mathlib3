@@ -160,7 +160,12 @@ instance to_semiring : semiring s :=
   .. s.to_submonoid.to_monoid, .. s.to_add_submonoid.to_add_comm_monoid }
 
 instance nontrivial [nontrivial R] : nontrivial s :=
-@nontrivial_of_ne s 0 1 (λ H, zero_ne_one (congr_arg subtype.val H : _))
+nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
+
+instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y h,
+  or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
+    (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
 
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl

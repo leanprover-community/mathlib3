@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
+import measure_theory.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta
@@ -674,6 +675,51 @@ begin
   exact is_measurable.Union (λ i, hf i (is_open_lt' _).is_measurable)
 end
 
+private lemma ae_measurable.is_lub_of_nonempty {ι} (hι : nonempty ι)
+  {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+  (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
+  ae_measurable g μ :=
+begin
+  let p : δ → (ι → α) → Prop := λ x f', is_lub {a | ∃ i, f' i = a} (g x),
+  let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
+  have hg_seq : ∀ b, is_lub {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
+  { intro b,
+    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
+    simp only [ae_seq, g_seq],
+    split_ifs,
+    { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
+      { ext x,
+        simp_rw [set.mem_set_of_eq, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h], },
+      rw h_set_eq,
+      exact ae_seq.fun_prop_of_mem_ae_seq_set hf h, },
+    { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
+      { ext1 x,
+        exact ⟨λ hx, hx.some_spec.symm, λ hx, ⟨hι.some, hx.symm⟩⟩, },
+      rw h_singleton,
+      exact is_lub_singleton, }, },
+  refine ⟨g_seq, measurable.is_lub (ae_seq.measurable hf p) hg_seq, _⟩,
+  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some) (ae_seq_set hf p)
+    (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
+end
+
+lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+  (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_lub {a | ∃ i, f i b = a} (g b)) :
+  ae_measurable g μ :=
+begin
+  by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_of_zero_measure },
+  haveI : μ.ae.ne_bot := by simpa [ne_bot],
+  by_cases hι : nonempty ι, { exact ae_measurable.is_lub_of_nonempty hι hf hg, },
+  suffices : ∃ x, g =ᵐ[μ] λ y, g x,
+  by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
+  have h_empty : ∀ x, {a : α | ∃ (i : ι), f i x = a} = ∅,
+  { intro x,
+    ext1 y,
+    rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    exact λ hi, hι (nonempty_of_exists hi), },
+  simp_rw h_empty at hg,
+  exact ⟨hg.exists.some, hg.mono (λ y hy, is_lub.unique hy hg.exists.some_spec)⟩,
+end
+
 lemma measurable.is_glb {ι} [encodable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_glb {a | ∃ i, f i b = a} (g b)) :
   measurable g :=
@@ -684,6 +730,51 @@ begin
   rintro _ ⟨a, rfl⟩,
   simp only [set.preimage, mem_Iio, is_glb_lt_iff (hg _), exists_range_iff, set_of_exists],
   exact is_measurable.Union (λ i, hf i (is_open_gt' _).is_measurable)
+end
+
+private lemma ae_measurable.is_glb_of_nonempty {ι} (hι : nonempty ι)
+  {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+  (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
+  ae_measurable g μ :=
+begin
+  let p : δ → (ι → α) → Prop := λ x f', is_glb {a | ∃ i, f' i = a} (g x),
+  let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
+  have hg_seq : ∀ b, is_glb {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
+  { intro b,
+    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
+    simp only [ae_seq, g_seq],
+    split_ifs,
+    { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
+      { ext x,
+        simp_rw [set.mem_set_of_eq, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h], },
+      rw h_set_eq,
+      exact ae_seq.fun_prop_of_mem_ae_seq_set hf h, },
+    { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
+      { ext1 x,
+        exact ⟨λ hx, hx.some_spec.symm, λ hx, ⟨hι.some, hx.symm⟩⟩, },
+      rw h_singleton,
+      exact is_glb_singleton, }, },
+  refine ⟨g_seq, measurable.is_glb (ae_seq.measurable hf p) hg_seq, _⟩,
+  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some) (ae_seq_set hf p)
+    (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
+end
+
+lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α} {g : δ → α}
+  (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
+  ae_measurable g μ :=
+begin
+  by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_of_zero_measure },
+  haveI : μ.ae.ne_bot := by simpa [ne_bot],
+  by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hι hf hg, },
+  suffices : ∃ x, g =ᵐ[μ] λ y, g x,
+  by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
+  have h_empty : ∀ x, {a : α | ∃ (i : ι), f i x = a} = ∅,
+  { intro x,
+    ext1 y,
+    rw [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    exact λ hi, hι (nonempty_of_exists hi), },
+  simp_rw h_empty at hg,
+  exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
 end linear_order
@@ -710,19 +801,45 @@ lemma measurable_supr {ι} [encodable ι] {f : ι → δ → α} (hf : ∀ i, me
   measurable (λ b, ⨆ i, f i b) :=
 measurable.is_lub hf $ λ b, is_lub_supr
 
+lemma ae_measurable_supr {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α}
+  (hf : ∀ i, ae_measurable (f i) μ) :
+  ae_measurable (λ b, ⨆ i, f i b) μ :=
+ae_measurable.is_lub hf $ (ae_of_all μ (λ b, is_lub_supr))
+
 lemma measurable_infi {ι} [encodable ι] {f : ι → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ b, ⨅ i, f i b) :=
 measurable.is_glb hf $ λ b, is_glb_infi
+
+lemma ae_measurable_infi {ι} {μ : measure δ} [encodable ι] {f : ι → δ → α}
+  (hf : ∀ i, ae_measurable (f i) μ) :
+  ae_measurable (λ b, ⨅ i, f i b) μ :=
+ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))
 
 lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨆ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [supr_subtype'],
      exact measurable_supr (λ i, hf i) }
 
+lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+  (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨆ i ∈ s, f i b) μ :=
+begin
+  haveI : encodable s := hs.to_encodable,
+  simp only [supr_subtype'],
+  exact ae_measurable_supr (λ i, hf i),
+end
+
 lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨅ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [infi_subtype'],
      exact measurable_infi (λ i, hf i) }
+
+lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+  (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨅ i ∈ s, f i b) μ :=
+begin
+  haveI : encodable s := hs.to_encodable,
+  simp only [infi_subtype'],
+  exact ae_measurable_infi (λ i, hf i),
+end
 
 /-- `liminf` over a general filter is measurable. See `measurable_liminf` for the version over `ℕ`.
 -/
@@ -1167,6 +1284,64 @@ lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
   measurable g :=
 measurable_of_tendsto_metric' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
 
+lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, ae_measurable (f n) μ)
+  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
+  ae_measurable g μ :=
+begin
+  let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (𝓝 (g x)),
+  let hp : ∀ᵐ x ∂μ, p x (λ n, f n x), from h_ae_tendsto,
+  let ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f 0 x⟩ : nonempty β).some,
+  refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f 0 x⟩ : nonempty β).some)
+    (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
+  refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hf p) _,
+  refine tendsto_pi.mpr (λ x, _),
+  simp_rw [ae_seq, ae_seq_lim],
+  split_ifs with hx,
+  { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
+    exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
+  { exact tendsto_const_nhds, },
+end
+
+lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, measurable (f n))
+  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
+  measurable g :=
+ae_measurable_iff_measurable.mp
+  (ae_measurable_of_tendsto_metric_ae (λ i, (hf i).ae_measurable) h_ae_tendsto)
+
+lemma measurable_limit_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β}
+  (hf : ∀ n, ae_measurable (f n) μ)
+  (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, filter.at_top.tendsto (λ n, f n x) (𝓝 l)) :
+  ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),
+    ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)) :=
+begin
+  let p : α → (ℕ → β) → Prop := λ x f', ∃ l : β, filter.at_top.tendsto (λ n, f' n) (𝓝 l),
+  have hp_mem : ∀ x, x ∈ ae_seq_set hf p → p x (λ n, f n x),
+    from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,
+  have hμ_compl : μ (ae_seq_set hf p)ᶜ = 0,
+    from ae_seq.measure_compl_ae_seq_set_eq_zero hf h_ae_tendsto,
+  let f_lim : α → β := λ x, dite (x ∈ ae_seq_set hf p) (λ h, (hp_mem x h).some)
+    (λ h, (⟨f 0 x⟩ : nonempty β).some),
+  have hf_lim_conv : ∀ x, x ∈ ae_seq_set hf p → filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),
+  { intros x hx_conv,
+    simp only [f_lim, hx_conv, dif_pos],
+    exact (hp_mem x hx_conv).some_spec, },
+  have hf_lim : ∀ x, filter.at_top.tendsto (λ n, ae_seq hf p n x) (𝓝 (f_lim x)),
+  { intros x,
+    simp only [f_lim, ae_seq],
+    split_ifs,
+    { rw funext (λ n, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h n),
+      exact (hp_mem x h).some_spec, },
+    { exact tendsto_const_nhds, }, },
+  have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),
+  { refine le_antisymm (le_of_eq (measure_mono_null _ hμ_compl)) (zero_le _),
+    exact set.compl_subset_compl.mpr (λ x hx, hf_lim_conv x hx), },
+  have h_f_lim_meas : measurable f_lim,
+    from measurable_of_tendsto_metric (ae_seq.measurable hf p) (tendsto_pi.mpr (λ x, hf_lim x)),
+  exact ⟨f_lim, h_f_lim_meas, h_ae_tendsto_f_lim⟩,
+end
+
 end limits
 
 namespace continuous_linear_map
@@ -1203,7 +1378,7 @@ end normed_space
 namespace measure_theory
 namespace measure
 
-variables [topological_space α]
+variables [topological_space α] {μ : measure α}
 
 /-- A measure `μ` is regular if
   - it is finite on all compact sets;
@@ -1218,16 +1393,20 @@ structure regular (μ : measure α) : Prop :=
 
 namespace regular
 
-lemma outer_regular_eq {μ : measure α} (hμ : μ.regular) {{A : set α}}
+lemma outer_regular_eq (hμ : μ.regular) {{A : set α}}
   (hA : is_measurable A) : (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) = μ A :=
 le_antisymm (hμ.outer_regular hA) $ le_infi $ λ s, le_infi $ λ hs, le_infi $ λ h2s, μ.mono h2s
 
-lemma inner_regular_eq {μ : measure α} (hμ : μ.regular) {{U : set α}}
+lemma inner_regular_eq (hμ : μ.regular) {{U : set α}}
   (hU : is_open U) : (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K) = μ U :=
 le_antisymm (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s) (hμ.inner_regular hU)
 
+lemma exists_compact_not_null (hμ : regular μ) : (∃ K, is_compact K ∧ μ K ≠ 0) ↔ μ ≠ 0 :=
+by simp_rw [ne.def, ← measure_univ_eq_zero, ← hμ.inner_regular_eq is_open_univ,
+    ennreal.supr_eq_zero, not_forall, exists_prop, subset_univ, true_and]
+
 protected lemma map [opens_measurable_space α] [measurable_space β] [topological_space β]
-  [t2_space β] [borel_space β] {μ : measure α} (hμ : μ.regular) (f : α ≃ₜ β) :
+  [t2_space β] [borel_space β] (hμ : μ.regular) (f : α ≃ₜ β) :
   (measure.map f μ).regular :=
 begin
   have hf := f.continuous.measurable,
@@ -1249,7 +1428,7 @@ begin
     rw [map_apply hf hK.is_measurable] }
 end
 
-protected lemma smul {μ : measure α} (hμ : μ.regular) {x : ennreal} (hx : x < ⊤) :
+protected lemma smul (hμ : μ.regular) {x : ennreal} (hx : x < ⊤) :
   (x • μ).regular :=
 begin
   split,
@@ -1263,6 +1442,15 @@ begin
     simp only [supr_and'], simp only [supr_subtype'],
     rw [ennreal.mul_supr], refl' }
 end
+
+/-- A regular measure in a σ-compact space is σ-finite. -/
+protected lemma sigma_finite [opens_measurable_space α] [t2_space α] [sigma_compact_space α]
+  (hμ : regular μ) : sigma_finite μ :=
+⟨{ set := compact_covering α,
+  set_mem := λ n, (is_compact_compact_covering α n).is_measurable,
+  finite := λ n, hμ.lt_top_of_is_compact $ is_compact_compact_covering α n,
+  spanning := Union_compact_covering α }⟩
+
 
 end regular
 

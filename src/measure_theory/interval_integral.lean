@@ -6,7 +6,7 @@ Author: Yury G. Kudryashov
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
 import analysis.calculus.fderiv_measurable
-import analysis.calculus.mean_value
+import analysis.calculus.extend_deriv
 
 /-!
 # Integral over an interval
@@ -408,6 +408,12 @@ section order_closed_topology
 
 variables [order_closed_topology α]
 
+/-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
+lemma integral_congr {a b : α} {f g : α → E} (h : eq_on f g (interval a b)) :
+  ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
+by cases le_total a b with hab hab; simpa [hab, integral_of_le, integral_of_ge]
+  using set_integral_congr is_measurable_Ioc (h.mono Ioc_subset_Icc_self)
+
 lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
@@ -770,7 +776,7 @@ begin
   refine
     ((measure_integral_sub_linear_is_o_of_tendsto_ae hmeas_a ha_lim hua hva).neg_left.add_add
     (measure_integral_sub_linear_is_o_of_tendsto_ae hmeas_b hb_lim hub hvb)).congr'
-      _ (eventually_eq.refl _ _),
+      _ eventually_eq.rfl,
   have A : ∀ᶠ t in lt, interval_integrable f μ (ua t) (va t) :=
     ha_lim.eventually_interval_integrable_ae hmeas_a (FTC_filter.finite_at_inner la) hua hva,
   have A' : ∀ᶠ t in lt, interval_integrable f μ a (ua t) :=
@@ -1273,7 +1279,7 @@ lemma deriv_within_integral_left
 
 This section contains theorems pertaining to FTC-2 for interval integrals. -/
 
-variables {f' : ℝ → E}
+variable {f' : ℝ → E}
 
 /-- The integral of a continuous function is differentiable on a real set `s`. -/
 theorem differentiable_on_integral_of_continuous {s : set ℝ}
@@ -1291,8 +1297,8 @@ theorem continuous_on_integral_of_continuous {s : set ℝ}
 (differentiable_on_integral_of_continuous hintg hcont).continuous_on
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` and has a right
-  derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and measurable,
-  then `∫ y in a..b, f' y` equals `f b - f a`. -/
+  derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]`, then
+  `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on f (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   (hcont' : continuous_on f' (Icc a b)) :
@@ -1321,8 +1327,8 @@ begin
 end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
-  has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and
-  measurable, then `∫ y in a..b, f' y` equals `f b - f a`. -/
+  has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` then
+  `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ico (min a b) (max a b), has_deriv_within_at f (f' x) (Ici x) x)
   (hcont' : continuous_on f' (interval a b)) :
@@ -1336,22 +1342,37 @@ begin
 end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` and has a derivative
-  at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` and measurable, then
-  `∫ y in a..b, f' y` equals `f b - f a`. -/
+  at `f' x` for all `x` in `(a, b)`, and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y`
+  equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at' (hcont : continuous_on f (interval a b))
-  (hderiv : ∀ x ∈ Ico (min a b) (max a b), has_deriv_at f (f' x) x)
+  (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
-integral_eq_sub_of_has_deriv_right hcont (λ x hx, (hderiv x hx).has_deriv_within_at) hcont'
+begin
+  refine integral_eq_sub_of_has_deriv_right hcont _ hcont',
+  intros y hy',
+  obtain (hy | hy) : y ∈ Ioo (min a b) (max a b) ∨ min a b = y ∧ y < max a b,
+  { simpa only [le_iff_lt_or_eq, or_and_distrib_right, mem_Ioo, mem_Ico] using hy' },
+  { exact (hderiv y hy).has_deriv_within_at },
+  { refine has_deriv_at_interval_left_endpoint_of_tendsto_deriv
+      (λ x hx, (hderiv x hx).has_deriv_within_at.differentiable_within_at) _ _ _,
+    { exact (hcont y (Ico_subset_Icc_self hy')).mono Ioo_subset_Icc_self },
+    { exact Ioo_mem_nhds_within_Ioi hy' },
+    { have : tendsto f' (𝓝[Ioi y] y) (𝓝 (f' y)),
+      { refine tendsto.mono_left _ (nhds_within_mono y Ioi_subset_Ici_self),
+        have h := hcont'.continuous_within_at (left_mem_Icc.mpr min_le_max),
+        simpa only [← nhds_within_Icc_eq_nhds_within_Ici hy.2, interval, hy.1] using h },
+      have h := eventually_of_mem (Ioo_mem_nhds_within_Ioi hy') (λ x hx, (hderiv x hx).deriv),
+      rwa tendsto_congr' h } },
+  end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in
-  `[a, b]` and `f'` is continuous on `[a, b]` and measurable, then `∫ y in a..b, f' y` equals
-  `f b - f a`. -/
+  `[a, b]` and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 integral_eq_sub_of_has_deriv_at' (λ x hx, (hderiv x hx).continuous_at.continuous_within_at)
-  (λ x hx, hderiv _ (mem_Icc_of_Ico hx)) hcont'
+  (λ x hx, hderiv _ (mem_Icc_of_Ioo hx)) hcont'
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
   its derivative is continuous on `[a, b]`, then `∫ y in a..b, deriv f y` equals `f b - f a`. -/
@@ -1359,5 +1380,38 @@ theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_a
   (hcont' : continuous_on (deriv f) (interval a b)) :
   ∫ y in a..b, deriv f y = f b - f a :=
 integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
+
+/-!
+### Integration by parts
+-/
+
+lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
+  (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
+  (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
+  (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
+  ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
+begin
+  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
+  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  rw integral_eq_sub_of_has_deriv_at,
+  intros x hx;
+  { exact (hu x hx).mul (hv x hx) },
+  { exact (hcu'.mul hcv).add (hcu.mul hcv') }
+end
+
+theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
+  (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
+  (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
+  (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
+  ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
+begin
+  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
+  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
+  { apply integral_congr,
+    exact λ x hx, by simp [mul_comm] },
+  { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
+  { exact (hcv.mul hcu').interval_integrable },
+end
 
 end interval_integral

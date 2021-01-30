@@ -522,7 +522,7 @@ begin
       exact nhds_within_mono _ (subset_insert x u) hv },
     { rw has_ftaylor_series_up_to_on_succ_iff_right,
       refine ⟨λ y hy, rfl, λ y hy, _, _⟩,
-      { change has_fderiv_within_at (λ (z : E), (continuous_multilinear_curry_fin0 𝕜 E F).symm (f z))
+      { change has_fderiv_within_at (λ z, (continuous_multilinear_curry_fin0 𝕜 E F).symm (f z))
           ((formal_multilinear_series.unshift (p' y) (f y) 1).curry_left) (v ∩ u) y,
         rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
         convert (f'_eq_deriv y hy.2).mono (inter_subset_right v u),
@@ -2523,35 +2523,36 @@ end function_inverse
 
 section real
 /-!
-### Results over `ℝ`
+### Results over `ℝ` or `ℂ`
   The results in this section rely on the Mean Value Theorem, and therefore hold only over `ℝ` (and
   its extension fields such as `ℂ`).
 -/
 
 variables
-{E' : Type*} [normed_group E'] [normed_space ℝ E']
-{F' : Type*} [normed_group F'] [normed_space ℝ F']
+{𝕂 : Type*} [is_R_or_C 𝕂]
+{E' : Type*} [normed_group E'] [normed_space 𝕂 E']
+{F' : Type*} [normed_group F'] [normed_space 𝕂 F']
 
 /-- If a function has a Taylor series at order at least 1, then at points in the interior of the
     domain of definition, the term of order 1 of this series is a strict derivative of `f`. -/
 lemma has_ftaylor_series_up_to_on.has_strict_fderiv_at
-  {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series ℝ E' F'} {n : with_top ℕ}
+  {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series 𝕂 E' F'} {n : with_top ℕ}
   (hf : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hs : s ∈ 𝓝 x) :
-  has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 ℝ E' F') (p x 1)) x :=
+  has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 𝕂 E' F') (p x 1)) x :=
 begin
-  let f' := λ x, (continuous_multilinear_curry_fin1 ℝ E' F') (p x 1),
+  let f' := λ x, (continuous_multilinear_curry_fin1 𝕂 E' F') (p x 1),
   have hf' : ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
     λ x, has_ftaylor_series_up_to_on.has_fderiv_within_at hf hn,
   have hcont : continuous_on f' s :=
-    (continuous_multilinear_curry_fin1 ℝ E' F').continuous.comp_continuous_on (hf.cont 1 hn),
+    (continuous_multilinear_curry_fin1 𝕂 E' F').continuous.comp_continuous_on (hf.cont 1 hn),
   exact strict_fderiv_of_cont_diff hf' hcont hs,
 end
 
 /-- If a function is `C^n` with `1 ≤ n` around a point, then the derivative of `f` at this point
 is also a strict derivative. -/
 lemma times_cont_diff_at.has_strict_fderiv_at {f : E' → F'} {x : E'} {n : with_top ℕ}
-  (hf : times_cont_diff_at ℝ n f x) (hn : 1 ≤ n) :
-  has_strict_fderiv_at f (fderiv ℝ f x) x :=
+  (hf : times_cont_diff_at 𝕂 n f x) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f (fderiv 𝕂 f x) x :=
 begin
   rcases hf 1 hn with ⟨u, H, p, hp⟩,
   simp only [nhds_within_univ, mem_univ, insert_eq_of_mem] at H,
@@ -2563,15 +2564,15 @@ end
 /-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative at that point is given to
 us as `f'`, then `f'` is also a strict derivative. -/
 lemma times_cont_diff_at.has_strict_fderiv_at'
-  {f : E' → F'} {f' : E' →L[ℝ] F'} {x : E'}
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :
+  {f : E' → F'} {f' : E' →L[𝕂] F'} {x : E'}
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :
   has_strict_fderiv_at f f' x :=
 by simpa only [hf'.fderiv] using hf.has_strict_fderiv_at hn
 
 /-- If a function is `C^n` with `1 ≤ n`, then the derivative of `f` is also a strict derivative. -/
 lemma times_cont_diff.has_strict_fderiv_at
-  {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff ℝ n f) (hn : 1 ≤ n) :
-  has_strict_fderiv_at f (fderiv ℝ f x) x :=
+  {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff 𝕂 n f) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f (fderiv 𝕂 f x) x :=
 hf.times_cont_diff_at.has_strict_fderiv_at hn
 
 end real

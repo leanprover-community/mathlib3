@@ -467,7 +467,7 @@ lemma has_basis_infi_principal_finite (s : ι → set α) :
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
   simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
-    exists_finite_iff_finset, finset.bInter_coe]
+    exists_finite_iff_finset, finset.set_bInter_coe]
 end
 
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)

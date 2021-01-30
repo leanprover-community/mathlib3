@@ -241,7 +241,7 @@ section lift
 variables {F} {K} (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
 /-- If `E/K/F` is a tower of fields with `E/F` normal then we can lift
-  an algebra homomorphism `ϕ : K →ₐ[F] K` to `ϕ.lift_normal E : E →ₐ[F] E` -/
+  an algebra homomorphism `ϕ : K →ₐ[F] K` to `ϕ.lift_normal E : E →ₐ[F] E`. -/
 noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
 @restrict_base F K E E _ _ _ _ _ _
   ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _

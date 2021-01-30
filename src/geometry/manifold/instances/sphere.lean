@@ -12,6 +12,25 @@ import analysis.normed_space.inner_product
 This file defines stereographic projection from the sphere in an inner product space `E`, and uses
 it to put a charted space structure on the sphere.
 
+## Main results
+
+For a unit vector `v` in `E`, the definition `stereographic` gives the stereographic projection
+centred at `v`, a local homeomorphism from the sphere to `(ℝ ∙ v)ᗮ` (the orthogonal complement of
+`v`).
+
+For finite-dimensional `E`, we then construct a charted space instance on the sphere; the charts
+here are obtained by composing the local homeomorphisms `stereographic` with arbitrary isometries
+from `(ℝ ∙ v)ᗮ` to Euclidean space.
+
+## Implementation notes
+
+The model space for the charted space instance is `euclidean_space ℝ (fin n)`, where `n` is a
+natural number satisfying the typeclass assumption `[fact (findim ℝ E = n + 1)]`.  This may seem a
+little awkward, but it is designed to circumvent the problem that the literal expression for the
+dimension of the model space (up to definitional equality) determines the type.  If one used the
+naive expression `euclidean_space ℝ (findim ℝ E - 1)` for the model space, then the sphere in `ℂ`
+would be a manifold with model space `euclidean_space ℝ (2 - 1)` but not with model space
+`euclidean_space ℝ 1`.
 -/
 
 variables {E : Type*} [inner_product_space ℝ E]
@@ -238,9 +257,10 @@ fixed normed space.  This could be proved in general by a simple case of Gram-Sc
 orthogonalization, but in the finite-dimensional case it follows more easily by dimension-counting.
 -/
 
-/-- Variant of the stereographic projection (see `stereographic`), for the sphere in an `n + 1`-
-dimensional inner product space `E`.  This version has codomain the Euclidean space of dimension
-`n`. -/
+/-- Variant of the stereographic projection, for the sphere in an `n + 1`-dimensional inner product
+space `E`.  This version has codomain the Euclidean space of dimension `n`, and is obtained by
+composing the original sterographic projection (`stereographic`) with an arbitrary linear isometry
+from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
 def stereographic' {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)).trans

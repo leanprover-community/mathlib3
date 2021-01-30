@@ -156,6 +156,9 @@ rfl
 
 variable (C)
 
+/--
+The forgetful functor from the category of monads to the category of endofunctors.
+-/
 @[simps]
 def monad_to_functor : monad C ⥤ (C ⥤ C) :=
 { obj := λ T, T,
@@ -163,6 +166,9 @@ def monad_to_functor : monad C ⥤ (C ⥤ C) :=
 
 instance : faithful (monad_to_functor C) := {}.
 
+/--
+The forgetful functor from the category of comonads to the category of endofunctors.
+-/
 @[simps]
 def comonad_to_functor : comonad C ⥤ (C ⥤ C) :=
 { obj := λ G, G,
@@ -172,10 +178,16 @@ instance : faithful (comonad_to_functor C) := {}.
 
 variable {C}
 
+/--
+An isomorphism of monads gives a natural isomorphism of the underlying functors.
+-/
 @[simps {rhs_md := semireducible}]
 def monad_iso.to_nat_iso {M N : monad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (monad_to_functor C).map_iso h
 
+/--
+An isomorphism of comonads gives a natural isomorphism of the underlying functors.
+-/
 @[simps {rhs_md := semireducible}]
 def comonad_iso.to_nat_iso {M N : comonad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (comonad_to_functor C).map_iso h

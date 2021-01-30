@@ -55,23 +55,19 @@ lemma prod_antidiagonal_subst {n : ℕ} {f : ℕ × ℕ → ℕ → M} :
 prod_congr rfl $ λ p hp, by rw [nat.mem_antidiagonal.1 hp]
 
 @[to_additive]
-lemma prod_antidiagonal_eq_prod_range_succ {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) (n : ℕ) :
-  ∏ ij in finset.nat.antidiagonal n, f ij.1 ij.2 = ∏ k in range n.succ, f k (n - k) :=
+lemma prod_antidiagonal_eq_prod_range_succ_mk {M : Type*} [comm_monoid M] (f : ℕ × ℕ → M) (n : ℕ) :
+  ∏ ij in finset.nat.antidiagonal n, f ij = ∏ k in range n.succ, f (k, n - k) :=
 begin
   convert prod_map _ ⟨λ i, (i, n - i), λ x y h, (prod.mk.inj h).1⟩ _,
   refl,
 end
 
+/-- This lemma matches more generally than `finset.nat.prod_antidiagonal_eq_prod_range_succ_mk` when
+using `rw ←`. -/
 @[to_additive]
-lemma prod_antidiagonal {M : Type*} [comm_monoid M]
-  (n : ℕ) (f : ℕ × ℕ → M) :
-  ∏ (p : ℕ × ℕ) in finset.nat.antidiagonal n, f p =
-  ∏ (i : ℕ) in finset.range n.succ, f (i, n - i) :=
-begin
-  conv_rhs { apply_congr, skip, rw ←function.curry_apply f x (n-x), },
-  rw [(prod_antidiagonal_eq_prod_range_succ _ _).symm],
-  simp only [prod.mk.eta, function.curry_apply],
-end
+lemma prod_antidiagonal_eq_prod_range_succ {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) (n : ℕ) :
+  ∏ ij in finset.nat.antidiagonal n, f ij.1 ij.2 = ∏ k in range n.succ, f k (n - k) :=
+prod_antidiagonal_eq_prod_range_succ_mk _ _
 
 end nat
 

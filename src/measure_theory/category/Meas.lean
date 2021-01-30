@@ -75,9 +75,9 @@ def Giry : category_theory.monad Meas :=
   { app         := λX, ⟨@measure.join X.1 X.2, measure.measurable_join⟩,
     naturality' :=
       assume X Y ⟨f, hf⟩, subtype.eq $ funext $ assume μ, measure.join_map_map hf μ },
-  assoc' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_map_join α I μ,
-  left_unit' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_dirac α I μ,
-  right_unit' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_map_dirac α I μ }
+  assoc' := assume α, subtype.eq $ funext $ assume μ, @measure.join_map_join _ _ _,
+  left_unit' := assume α, subtype.eq $ funext $ assume μ, @measure.join_dirac _ _ _,
+  right_unit' := assume α, subtype.eq $ funext $ assume μ, @measure.join_map_dirac _ _ _ }
 
 /-- An example for an algebra on `Measure`: the nonnegative Lebesgue integral is a hom, behaving
 nicely under the monad operations. -/

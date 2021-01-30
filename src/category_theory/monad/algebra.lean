@@ -345,7 +345,6 @@ adjunction.mk_of_hom_equiv
 
 instance forget_faithful : faithful (forget G) := {}
 
-#lint
 end comonad
 
 end category_theory

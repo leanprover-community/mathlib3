@@ -17,18 +17,24 @@ This file contains the proof of Liouville's theorem stating that all Liouville n
 transcendental.
 -/
 
-lemma int.mul_lt_mul_pow_succ {n : ℕ} {a q : ℤ}
- (a0 : 0 < a)
- (q1 : 1 < q) :
- (n : ℤ) * q < a * q ^ (n + 1) :=
+lemma nat.mul_lt_mul_pow_succ {n : ℕ} {a q : ℕ}
+  (a0 : 0 < a)
+  (q1 : 1 < q) :
+  n * q < a * q ^ (n + 1) :=
 begin
-  have q2 : a * 2 ^ n ≤ a * q ^ n := (mul_le_mul_left a0).mpr
-    (pow_le_pow_of_le_left zero_le_two ((int.lt_iff_add_one_le 1 q).mp q1) n),
-  have a2 : 2 ^n ≤ a * 2 ^ n :=
-    (le_mul_iff_one_le_left (pow_pos zero_lt_two n)).mpr ((int.lt_iff_add_one_le 0 a).mp a0),
-  rw [pow_succ', ← mul_assoc],
-  refine (mul_lt_mul_right (lt_trans zero_lt_one q1)).mpr (lt_of_lt_of_le (lt_of_lt_of_le _ a2) q2),
-  exact_mod_cast nat.lt_two_pow n,
+  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (lt_trans zero_lt_one q1)],
+  apply lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+end
+
+lemma int.mul_lt_mul_pow_succ {n : ℕ} {a q : ℤ}
+  (a0 : 0 < a)
+  (q1 : 1 < q) :
+  (n : ℤ) * q < a * q ^ (n + 1) :=
+begin
+  lift a to ℕ using le_of_lt a0,
+  lift q to ℕ using le_trans (zero_le_one) (le_of_lt q1),
+  norm_cast at *,
+  exact nat.mul_lt_mul_pow_succ a0 q1,
 end
 
 namespace real
@@ -42,13 +48,13 @@ def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
 lemma not_liouville_zero : ¬ is_liouville 0 :=
 begin
   intro h,
-  rcases h 1 with ⟨a, b, h_b_gt_1, ab0, ald⟩,
+  rcases h 1 with ⟨a, b, b1, ab0, ald⟩,
   rw [zero_sub, abs_neg, abs_pos, ne.def, div_eq_zero_iff, not_or_distrib] at ab0,
   rw [pow_one, zero_sub, abs_neg, abs_div, @abs_of_pos _ _ (b : ℝ), div_lt_div_iff,
     mul_lt_mul_right] at ald,
-  cases ab0 with a0 b0,
+  any_goals { exact_mod_cast lt_trans zero_lt_one b1 },
+  rcases ab0 with ⟨a0, -⟩,
   refine a0 _,
-  any_goals { exact_mod_cast lt_trans zero_lt_one h_b_gt_1 },
   norm_cast at ald ⊢,
   exact abs_eq_zero.mp ((int.sub_one_lt_iff.mp (sub_lt_zero.mpr ald)).antisymm (abs_nonneg _)),
 end

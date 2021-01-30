@@ -1202,7 +1202,7 @@ calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
 /-! ### Absolute continuity -/
 
 /-- We say that `μ` is absolutely continuous with respect to `ν`, or that `μ` is dominated by `ν`,
-  if `ν(A) = 0` implies that `μ(A) = 0` for -/
+  if `ν(A) = 0` implies that `μ(A) = 0`. -/
 def absolutely_continuous (μ ν : measure α) : Prop :=
 ∀ ⦃s : set α⦄, ν s = 0 → μ s = 0
 

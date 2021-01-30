@@ -192,9 +192,9 @@ An isomorphism of comonads gives a natural isomorphism of the underlying functor
 def comonad_iso.to_nat_iso {M N : comonad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (comonad_to_functor C).map_iso h
 
-namespace monad
-
 variable (C)
+
+namespace monad
 
 /-- The identity monad. -/
 @[simps]
@@ -202,6 +202,8 @@ def id : monad C :=
 { to_functor := 𝟭 C,
   η' := 𝟙 (𝟭 C),
   μ' := 𝟙 (𝟭 C) }
+
+instance : inhabited (monad C) := ⟨monad.id C⟩
 
 end monad
 
@@ -213,6 +215,8 @@ def id : comonad C :=
 { to_functor := 𝟭 _,
   ε' := 𝟙 (𝟭 C),
   δ' := 𝟙 (𝟭 C) }
+
+instance : inhabited (comonad C) := ⟨comonad.id C⟩
 
 end comonad
 

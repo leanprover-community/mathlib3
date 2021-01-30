@@ -3,7 +3,10 @@ import data.complex.basic
 import analysis.calculus.deriv
 import data.matrix.notation
 import group_theory.group_action.defs
-
+import data.int.basic
+import data.int.parity
+import data.nat.gcd
+import ring_theory.int.basic
 
 noncomputable theory
 
@@ -414,6 +417,13 @@ notation `𝒟` := fundamental_domain
 
 notation `𝒟°` := interior 𝒟
 
+lemma M_lt_Mp1 : ∀ M,  M < (⌊M⌋ :ℝ ) +1 :=
+begin
+  intros,
+  exact lt_floor_add_one M,
+end
+
+
 lemma finite_integers {M : ℝ} :
   set.finite {c : ℤ | |(c : ℝ)| ≤ M } :=
 begin
@@ -435,8 +445,15 @@ begin
       exact_mod_cast this,
     },
     {
-      --- AK homework
-      sorry,
+      have : (c:ℝ ) < (⌊M⌋:ℝ) + 1,
+      {
+        calc
+        (c:ℝ) ≤ M           : h2
+        ...   < (⌊M⌋:ℝ) + 1 : M_lt_Mp1 M,
+      },
+
+      norm_cast at this,
+      exact this,
     },
 end
 
@@ -447,17 +464,49 @@ instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
 lemma finite_pairs (M : ℝ) (z : ℂ) :
   set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} :=
 begin
+  by_cases M_nonneg : M < 0,
+  {
+    have : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} ⊆ ∅ ,
+    {
+      intros cd,
+      intros h,
+      simp at h,
+      exfalso,
+      have : 0 ≤  (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ,
+      {
+        refine norm_sq_nonneg _,
+      },
+      linarith,
+    },
+    have : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} = ∅,
+    {
+      refine set.eq_empty_of_subset_empty  this,
+    },
+    rw this,
+    simp,
+  },
+  {
+    simp at M_nonneg,
+--    let s:= (finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1)) × (finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1)),
+
+--   making a product set not working????
+
+    sorry,
+  },
+--
     -- AK homework!!!
   -- prove that |cz+d| < max |c|,|d| * (|z|+1), so
   -- max |c|,|d| < M / |z|+1
   -- contained in a finite set -> finite...???
   -- set.finite.subset
-
-
-  sorry
 end
 
 variables {g : SL(2,ℤ)} {z : H}
+
+lemma gcd_eq_one_iff_coprime' (a b : ℤ) : gcd a b = 1 ↔ is_coprime a b :=
+begin
+  rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
+end
 
 lemma exists_g_with_min_bottom (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
@@ -502,7 +551,16 @@ begin
   },
   have : euclidean_domain.gcd  (g'.val 1 0) (g'.val 1 1) = 1,
   {
-    --- Zulip homework??? :)
+    simp,
+    let cc : ℤ  := (g'.val 1 0),
+    let dd : ℤ  := (g'.val 1 1),
+    have : euclidean_domain.gcd (g'.val 1 0) (g'.val 1 1) = euclidean_domain.gcd cc dd,
+    {
+      sorry,
+    },
+--    rw this,
+
+--    refine gcd_eq_one_iff_coprime'.2 _,
     sorry,
   },
   convert hcd' ⟨ (g'.val 1 0 , g'.val 1 1) , this ⟩ ,

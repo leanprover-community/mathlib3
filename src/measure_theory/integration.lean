@@ -1298,9 +1298,9 @@ by simp_rw [mul_comm, lintegral_const_mul' r f hr]
 /- A double integral of a product where each factor contains only one variable
   is a product of integrals -/
 lemma lintegral_lintegral_mul {β} [measurable_space β] {ν : measure β}
-  {f : α → ennreal} {g : β → ennreal} (hf : measurable f) (hg : measurable g) :
+  {f : α → ennreal} {g : β → ennreal} (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ x, ∫⁻ y, f x * g y ∂ν ∂μ = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
-by simp [lintegral_const_mul _ hg, lintegral_mul_const _ hf]
+by simp [lintegral_const_mul'' _ hg, lintegral_mul_const'' _ hf]
 
 -- TODO: Need a better way of rewriting inside of a integral
 lemma lintegral_rw₁ {f f' : α → β} (h : f =ᵐ[μ] f') (g : β → ennreal) :

@@ -60,6 +60,18 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
+/-!
+### Type variables
+
+We use the following type variables in this file:
+
+* `𝕜` : a `nondiscrete_normed_field`;
+* `ι` : a finite index type with decidable equality;
+* `E`, `E₁` : families of normed vector spaces over `𝕜` indexed by `i : ι`;
+* `E'` : a family of normed vector spaces over `𝕜` indexed by `i : fin (nat.succ n)`;
+* `G`, `G'` : normed vector spaces over `𝕜`.
+-/
+
 universes u v wE wE₁ wE' wG wG'
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
   {E : ι → Type wE} {E₁ : ι → Type wE₁} {E' : fin n.succ → Type wE'}

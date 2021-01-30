@@ -4048,6 +4048,16 @@ variable [decidable_eq α]
 if h : a ∈ l₁ then by simp only [list.diff, if_pos h]
 else by simp only [list.diff, if_neg h, erase_of_not_mem h]
 
+lemma diff_cons_right (l₁ l₂ : list α) (a : α) : l₁.diff (a::l₂) = (l₁.diff l₂).erase a :=
+begin
+  induction l₂ with b l₂ ih generalizing l₁ a,
+  { simp_rw [diff_cons, diff_nil] },
+  { rw [diff_cons, diff_cons, erase_comm, ← diff_cons, ih, ← diff_cons] }
+end
+
+lemma diff_erase (l₁ l₂ : list α) (a : α) : (l₁.diff l₂).erase a = (l₁.erase a).diff l₂ :=
+by rw [← diff_cons_right, diff_cons]
+
 @[simp] theorem nil_diff (l : list α) : [].diff l = [] :=
 by induction l; [refl, simp only [*, diff_cons, erase_of_not_mem (not_mem_nil _)]]
 

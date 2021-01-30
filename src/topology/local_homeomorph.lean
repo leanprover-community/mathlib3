@@ -540,7 +540,8 @@ rfl
   (e : local_homeomorph α β) (f : local_homeomorph β γ)
   (e' : local_homeomorph δ η) (f' : local_homeomorph η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
-by ext x; simp [ext_iff]; tauto
+local_homeomorph.eq_of_local_equiv_eq $
+  by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
 
 end prod
 

@@ -160,6 +160,10 @@ lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
 attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
 
+@[to_additive]
+instance (K : subgroup G) [d : decidable_pred K.carrier] [fintype G] : fintype K :=
+show fintype {g : G // g ∈ K.carrier}, from infer_instance
+
 end subgroup
 
 @[to_additive]
@@ -362,10 +366,13 @@ begin
     exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
 end
 
-@[to_additive] lemma eq_top_of_card_eq [fintype G] (h : fintype.card H = fintype.card G) : H = ⊤ :=
+@[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
+  (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
+  classical,
+  rw fintype.card_congr (equiv.refl _) at h, -- this swaps the fintype instance to classical
   change fintype.card H.carrier = _ at h,
-  cases H with S hS1 hS2 hS3,
+  unfreezingI { cases H with S hS1 hS2 hS3, },
   have : S = set.univ,
   { suffices : S.to_finset = finset.univ,
     { rwa [←set.to_finset_univ, set.to_finset_inj] at this, },

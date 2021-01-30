@@ -386,7 +386,7 @@ norm in `E`.
 
 See note [implicit instance arguments]. -/
 @[simp] lemma coe_norm {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) (x : s) :
+  {E : Type*} [normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
   ∥x∥ = ∥(x:E)∥ :=
 rfl
 

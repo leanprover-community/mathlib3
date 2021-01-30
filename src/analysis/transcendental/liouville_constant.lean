@@ -25,38 +25,90 @@ section m_is_real
 
 variable {m : ℝ}
 
-section lemmas_about_summability
+section lemmas_about_summability_and_sums
 
 variable (hm : 1 < m)
 
 include hm
 
-/-- This lemma proves an inequality that is used often in this file. -/
-lemma abs_one_div_le :
-  abs (1 / m) < 1 :=
-begin
-  rw abs_of_nonneg (one_div_nonneg.mpr (zero_le_one.trans hm.le)),
-  exact (div_lt_one (lt_trans zero_lt_one hm : 0 < (m : ℝ))).mpr hm,
-end
-
+/-- An easy criterion for convergence of a series. -/
 lemma summable_inv_pow_ge {ex : ℕ → ℕ} (exi : ∀ i, i ≤ ex i) :
   summable (λ i, 1 / (m : ℝ) ^ ex i) :=
 begin
-  refine summable_of_nonneg_of_le (λ b, one_div_nonneg.mpr (pow_nonneg (by linarith) _))
-    (λ b, _) (summable_geometric_of_abs_lt_1 (abs_one_div_le hm)),
-  rw [div_pow, one_pow, one_div_le_one_div],
-  any_goals { exact_mod_cast pow_pos (lt_trans zero_lt_one hm) _ },
-  exact pow_le_pow (by exact_mod_cast hm.le) (exi _),
+  refine summable_of_nonneg_of_le
+    (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
+    (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
+      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (by rwa one_div_one))),
+  rw [div_pow, one_pow],
+  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (exi a)),
+  repeat { exact pow_pos (zero_lt_one.trans hm) _ },
 end
 
-lemma summable_inv_pow_fact : summable (λ i, 1 / (m : ℝ) ^ i!) :=
-summable_inv_pow_ge hm (λ i, nat.self_le_factorial i)
-
+/-- This series is explicitly proven, since it is used twice in the remaining lemmas. -/
 lemma summable_inv_pow_n_add_fact (n : ℕ) :
   summable (λ i, 1 / (m : ℝ) ^ (i + (n + 1))!) :=
 summable_inv_pow_ge hm (λ i, (nat.self_le_factorial _).trans (nat.factorial_le (nat.le.intro rfl)))
 
-end lemmas_about_summability
+omit hm
+
+/--  Partial inequality, works with `m ∈ ℝ` and satisfying `1 < m`. -/
+lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
+∑' (i : ℕ), 1 / m ^ (i + (n + 1))! ≤ m / (m - 1) * (1 / m ^ (n + 1)!) :=
+have m0 : 0 < m := (lt_trans zero_lt_one m1),
+have mi : abs (1 / m) < 1,
+{ rw abs_of_pos (one_div_pos.mpr m0),
+  exact (div_lt_one m0).mpr m1 },
+calc (∑' i, 1 / (m : ℝ) ^ (i + (n + 1))!)
+    ≤ ∑' i, 1 / (m : ℝ) ^ (i + (n + 1)!) :
+    begin
+      refine tsum_le_tsum (λ b, _) (summable_inv_pow_n_add_fact m1 _)
+        (summable_of_nonneg_of_le (λ b, one_div_nonneg.mpr (pow_nonneg m0.le _))
+        (λ b, _) (summable_geometric_of_abs_lt_1 mi)),
+      { refine (one_div_le_one_div (pow_pos m0 _) (pow_pos m0 _)).mpr _,
+        exact pow_le_pow m1.le (nat.add_factorial_le_factorial_add _ _ (nat.succ_ne_zero _)) },
+      { rw [div_pow, one_pow, one_div_le_one_div],
+        refine pow_le_pow m1.le (nat.le.intro rfl),
+        repeat { exact pow_pos m0 _ } },
+    end
+... = ∑' i, (1 / m : ℝ) ^ i * (1 / m ^ (n + 1)!) :
+    by { congr, ext i, rw [pow_add, div_pow, one_pow, ←div_div_eq_div_mul, div_eq_mul_one_div] }
+... = (∑' i, (1 / m : ℝ) ^ i) * (1 / m ^ (n + 1)!) :
+    begin
+      rw tsum_mul_right,
+    end
+... = m / (m - 1) * (1 / m ^ (n + 1)!) :
+    begin
+      congr,
+      rw [tsum_geometric_of_abs_lt_1 mi, show (m / (m - 1) : ℝ) = ((m - 1) / (m : ℝ))⁻¹,
+        by rw inv_div, sub_div, div_self (ne_of_gt m0)]
+    end
+
+lemma calc_liou_two (n : ℕ) (hm : 2 < m) :
+  m / (m - 1) * (1 / m ^ (n + 1)!) < 1 / (↑m ^ n!) ^ n :=
+begin
+  calc m / (m - 1) * (1 / m ^ (n + 1)!) < 2 * (1 / m ^ (n + 1)!) :
+    begin
+      refine mul_lt_mul _ le_rfl (one_div_pos.mpr (pow_pos (zero_lt_two.trans hm) _)) zero_le_two,
+      rwa [div_lt_iff, mul_sub, mul_one, lt_sub_iff_add_lt, two_mul, real.add_lt_add_iff_left],
+      exact lt_sub_iff_add_lt.mpr (by { rw zero_add, exact (one_lt_two.trans hm) })
+    end
+  ... = 2 / m ^ (n + 1)! : mul_one_div 2 _
+  ... = 2 / m ^ (n! * (n + 1)) : by rw [nat.factorial_succ, mul_comm]
+  ... < 1 / m ^ (n! * n) :
+    begin
+      rw [div_lt_div_iff, one_mul],
+      conv_rhs { rw [mul_add, pow_add, mul_one, pow_mul, mul_comm] },
+      apply mul_lt_mul,
+      { refine lt_of_lt_of_le hm _,
+        conv_lhs { rw ← pow_one m },
+        exact pow_le_pow (one_le_two.trans hm.le) (nat.factorial_pos _) },
+      { rw pow_mul },
+      any_goals { try {refine le_of_lt _}, exact pow_pos (zero_lt_two.trans hm) _ }
+    end
+  ... = 1 / (m ^ n!) ^ n : by rw pow_mul
+end
+
+end lemmas_about_summability_and_sums
 
 /--
 liouville constant is
@@ -94,7 +146,7 @@ calc 0 < 1 / (m : ℝ) ^ (n + 1)! : one_div_pos.mpr (pow_pos (lt_trans zero_lt_o
 lemma liouville_constant_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
   liouville_constant m = liouville_constant_first_k_terms m k +
   liouville_constant_terms_after_k m k :=
-(sum_add_tsum_nat_add _ (summable_inv_pow_fact hm)).symm
+(sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, nat.self_le_factorial i))).symm
 
 end m_is_real
 
@@ -120,73 +172,6 @@ begin
     all_goals { refine pow_ne_zero _ _, exact_mod_cast ne_of_gt (lt_trans zero_lt_one hm), } }
 end
 
-lemma calc_liou {m : ℕ} (n p : ℕ)
-  (hm : 2 < m)
-  (h_truncation_wd : liouville_constant ↑m =
-                       liouville_constant_first_k_terms ↑m n +
-                         liouville_constant_terms_after_k ↑m n)
-  (hp : liouville_constant_first_k_terms ↑m n = ↑p / ↑m ^ n!) :
-  liouville_constant_terms_after_k ↑m n < 1 / (↑m ^ n!) ^ n :=
-calc (∑' i, 1 / (m : ℝ) ^ (i + (n + 1))!)
-      ≤ ∑' i, 1 / (m : ℝ) ^ (i + (n + 1)!) :
-      begin
-        refine tsum_le_tsum (λ b, _) (summable_inv_pow_n_add_fact _ _)
-          (summable_of_nonneg_of_le (λ b, _) (λ b, _) (@summable_geometric_of_abs_lt_1 (1 / m : ℝ)
-            (show abs (1 / m : ℝ) < 1,
-             by { rw [abs_of_pos (show 0 < 1/(m:ℝ), by {rw one_div_pos, norm_num, linarith}),
-                      one_div_lt, one_div_one]; norm_num; linarith }))),
-        { rw one_div_le_one_div,
-          { apply pow_le_pow,
-            { norm_num, linarith },
-            { exact nat.add_factorial_le_factorial_add _ _ (nat.succ_ne_zero _) }},
-          repeat { apply pow_pos, norm_num, linarith }},
-        { exact_mod_cast (lt_trans one_lt_two hm) },
-        { rw one_div_nonneg, apply pow_nonneg, norm_num },
-        { rw [div_pow, one_pow, one_div_le_one_div],
-          apply pow_le_pow,
-          repeat { exact nat.le.intro rfl <|> linarith <|> apply pow_pos <|>
-            apply pow_nonneg <|> norm_num <|> linarith <|> rw le_add_iff_nonneg_right }}
-      end
-  ... = ∑' i, (1 / m : ℝ) ^ i * (1 / m ^ (n + 1)!) :
-      by { congr, ext i, rw [pow_add, div_pow, one_pow, ←div_div_eq_div_mul, div_eq_mul_one_div] }
-  ... = (∑' i, (1 / m : ℝ) ^ i) * (1 / m ^ (n + 1)!) :
-      begin
-        rw tsum_mul_right,
-      end
-  ... = m / (m - 1) * (1 / m ^ (n + 1)!) :
-      begin
-        congr,
-        rw [tsum_geometric_of_abs_lt_1, show (m/(m-1):ℝ) = ((m-1)/(m:ℝ))⁻¹,
-          by rw inv_div, sub_div, div_self],
-        repeat { rw [abs_of_nonneg] <|> norm_num <|> linarith  <|>
-          rw one_div_nonneg <|> rw one_div_lt},
-      end
-  ... < 2 * (1 / m ^ (n + 1)!) :
-      begin
-        refine mul_lt_mul _ le_rfl
-          (one_div_pos.mpr (pow_pos (by exact_mod_cast lt_trans zero_lt_two hm) _)) zero_le_two,
-        rw [div_lt_iff, mul_sub, mul_one, lt_sub_iff_add_lt, two_mul, real.add_lt_add_iff_left],
-        { exact_mod_cast hm },
-        { apply lt_sub.mp,
-          rw sub_zero,
-          exact_mod_cast lt_trans one_lt_two hm }
-      end
-  ... = 2 / m ^ (n + 1)! : by field_simp
-  ... = 2 / m ^ (n! * (n + 1)) : by rw [nat.factorial_succ, mul_comm]
-  ... < 1 / m ^ (n! * n) :
-      begin
-        rw [div_lt_div_iff, one_mul],
-        conv_rhs { rw [mul_add, pow_add, mul_one, pow_mul, mul_comm] },
-        apply mul_lt_mul;
-        norm_cast,
-        { refine lt_of_lt_of_le hm _,
-          conv_lhs { rw ← pow_one m },
-          exact pow_le_pow (le_trans one_le_two hm.le) (nat.factorial_pos _) },
-        { rw pow_mul },
-        any_goals { try {refine le_of_lt _}, exact_mod_cast pow_pos (zero_lt_two.trans hm) _ },
-      end
-  ... = 1 / (m ^ n!) ^ n : by rw pow_mul
-
 theorem is_liouville_liouville_constant (hm : 2 < m) :
   is_liouville (liouville_constant m) :=
 begin
@@ -199,8 +184,9 @@ begin
   rw [← hp, h_truncation_wd, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos
     (by exact_mod_cast lt_trans one_lt_two hm : 1 < (m : ℝ)) _)],
   refine ⟨one_lt_pow (by exact_mod_cast (lt_trans one_lt_two hm)) (nat.factorial_pos _),
-    liouville_constant_terms_after_pos (by exact_mod_cast lt_trans one_lt_two hm) _, _⟩,extract_goal,
-  exact calc_liou n p hm h_truncation_wd hp,
+    liouville_constant_terms_after_pos (by exact_mod_cast lt_trans one_lt_two hm) _, _⟩,
+  refine lt_of_le_of_lt (calc_liou_one (by exact_mod_cast (lt_trans one_lt_two hm)) n) _,
+  exact calc_liou_two _ (by assumption_mod_cast),
 end
 
 lemma is_transcendental_liouville_constant (hm : 2 < m) :

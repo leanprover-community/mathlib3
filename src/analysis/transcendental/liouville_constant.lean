@@ -120,20 +120,14 @@ begin
     all_goals { refine pow_ne_zero _ _, exact_mod_cast ne_of_gt (lt_trans zero_lt_one hm), } }
 end
 
-theorem is_liouville_liouville_constant (hm : 2 < m) :
-  is_liouville (liouville_constant m) :=
-begin
-  intro n,
-  have h_truncation_wd := liouville_constant_eq_first_k_terms_add_rest
-    (by exact_mod_cast lt_trans one_lt_two hm : 1 < (m : ℝ)) n,
-  rcases rat_of_liouville_constant_first_k_terms (lt_trans one_lt_two hm) n with ⟨p, hp⟩,
-  use [p, m ^ n!],
-  push_cast,
-  rw [← hp, h_truncation_wd, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos
-    (by exact_mod_cast lt_trans one_lt_two hm : 1 < (m : ℝ)) _)],
-  refine ⟨one_lt_pow (by exact_mod_cast (lt_trans one_lt_two hm)) (nat.factorial_pos _),
-    liouville_constant_terms_after_pos (by exact_mod_cast lt_trans one_lt_two hm) _, _⟩,
-  exact calc (∑' i, 1 / (m : ℝ) ^ (i + (n + 1))!)
+lemma calc_liou {m : ℕ} (n p : ℕ)
+  (hm : 2 < m)
+  (h_truncation_wd : liouville_constant ↑m =
+                       liouville_constant_first_k_terms ↑m n +
+                         liouville_constant_terms_after_k ↑m n)
+  (hp : liouville_constant_first_k_terms ↑m n = ↑p / ↑m ^ n!) :
+  liouville_constant_terms_after_k ↑m n < 1 / (↑m ^ n!) ^ n :=
+calc (∑' i, 1 / (m : ℝ) ^ (i + (n + 1))!)
       ≤ ∑' i, 1 / (m : ℝ) ^ (i + (n + 1)!) :
       begin
         refine tsum_le_tsum (λ b, _) (summable_inv_pow_n_add_fact _ _)
@@ -191,7 +185,22 @@ begin
         { rw pow_mul },
         any_goals { try {refine le_of_lt _}, exact_mod_cast pow_pos (zero_lt_two.trans hm) _ },
       end
-  ... = 1 / (m ^ n!) ^ n : by rw pow_mul,
+  ... = 1 / (m ^ n!) ^ n : by rw pow_mul
+
+theorem is_liouville_liouville_constant (hm : 2 < m) :
+  is_liouville (liouville_constant m) :=
+begin
+  intro n,
+  have h_truncation_wd := liouville_constant_eq_first_k_terms_add_rest
+    (by exact_mod_cast lt_trans one_lt_two hm : 1 < (m : ℝ)) n,
+  rcases rat_of_liouville_constant_first_k_terms (lt_trans one_lt_two hm) n with ⟨p, hp⟩,
+  use [p, m ^ n!],
+  push_cast,
+  rw [← hp, h_truncation_wd, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos
+    (by exact_mod_cast lt_trans one_lt_two hm : 1 < (m : ℝ)) _)],
+  refine ⟨one_lt_pow (by exact_mod_cast (lt_trans one_lt_two hm)) (nat.factorial_pos _),
+    liouville_constant_terms_after_pos (by exact_mod_cast lt_trans one_lt_two hm) _, _⟩,extract_goal,
+  exact calc_liou n p hm h_truncation_wd hp,
 end
 
 lemma is_transcendental_liouville_constant (hm : 2 < m) :

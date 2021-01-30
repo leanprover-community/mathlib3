@@ -114,9 +114,9 @@ structure comonad_hom (M N : comonad C) extends nat_trans (M : C ⥤ C) N :=
 (app_ε' : ∀ {X}, app X ≫ N.ε.app X = M.ε.app X . obviously)
 (app_δ' : ∀ {X}, app X ≫ N.δ.app X = M.δ.app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
 
-restate_axiom is_monad_hom.app_η'
-restate_axiom is_monad_hom.app_μ'
-attribute [simp, reassoc] is_monad_hom.app_η is_monad_hom.app_μ
+restate_axiom monad_hom.app_η'
+restate_axiom monad_hom.app_μ'
+attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
 
 restate_axiom comonad_hom.app_ε'
 restate_axiom comonad_hom.app_δ'

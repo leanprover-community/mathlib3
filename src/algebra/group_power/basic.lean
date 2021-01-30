@@ -617,7 +617,7 @@ variables {x y : R}
 @[simp] theorem sqr_abs : abs x ^ 2 = x ^ 2 :=
 by simpa only [pow_two] using abs_mul_abs_self x
 
-@[simp] theorem abs_sqr : abs (x ^ 2) = x ^ 2 :=
+theorem abs_sqr : abs (x ^ 2) = x ^ 2 :=
 by simpa only [pow_two] using abs_mul_self x
 
 theorem sqr_lt_sqr (h : abs x < y) : x ^ 2 < y ^ 2 :=

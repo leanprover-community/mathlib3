@@ -1883,7 +1883,7 @@ begin
     suffices : derived_series_of_ideal R L k₂ I ≤ ⊥, { exact eq_bot_iff.mpr this, },
     change derived_series_of_ideal R L k₁ I = ⊥ at h₁, rw ← h₁,
     exact derived_series_of_ideal_antimono I h₁₂, },
-  exact nat.Inf_interval_above_eq_succ_iff hs k,
+  exact nat.Inf_upward_closed_eq_succ_iff hs k,
 end
 
 lemma derived_length_zero (I : lie_ideal R L) [hI : is_solvable R I] :

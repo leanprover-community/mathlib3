@@ -497,7 +497,7 @@ lemma eq_Ici_of_nonempty_of_upward_closed {s : set ℕ} (hs : s.nonempty)
   (hs' : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) : s = Ici (Inf s) :=
 ext (λ n, ⟨λ H, nat.Inf_le H, λ H, hs' (Inf s) n H (Inf_mem hs)⟩)
 
-lemma Inf_interval_above_eq_succ_iff {s : set ℕ}
+lemma Inf_upward_closed_eq_succ_iff {s : set ℕ}
   (hs : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) (k : ℕ) :
   Inf s = k + 1 ↔ k + 1 ∈ s ∧ k ∉ s :=
 begin

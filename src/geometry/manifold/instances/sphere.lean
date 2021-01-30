@@ -264,7 +264,7 @@ from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
 def stereographic' {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)).trans
-(linear_isometry_equiv.of_orthogonal hn
+(linear_isometry_equiv.from_orthogonal_span_singleton hn
   (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv.to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :

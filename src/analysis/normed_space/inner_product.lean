@@ -2697,7 +2697,7 @@ hv.2.isometry_euclidean_of_orthonormal hv.1
 /-- Given a natural number `n` one less than the `findim` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
-def linear_isometry_equiv.of_orthogonal
+def linear_isometry_equiv.from_orthogonal_span_singleton
   [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1) {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hn hv)

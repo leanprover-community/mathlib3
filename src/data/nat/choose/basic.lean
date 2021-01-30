@@ -121,8 +121,8 @@ by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left 
 lemma factorial_mul_factorial_dvd_factorial_add (i j : ℕ) :
   i! * j! ∣ (i + j)! :=
 begin
-  conv { congr, rw [<-nat.add_sub_cancel j i, add_comm] },
-  apply factorial_mul_factorial_dvd_factorial (le.intro rfl),
+  convert factorial_mul_factorial_dvd_factorial (le.intro rfl),
+  rw nat.add_sub_cancel_left
 end
 
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=

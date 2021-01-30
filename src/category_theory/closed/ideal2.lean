@@ -126,7 +126,7 @@ begin
   symmetry,
   apply nat_iso.of_components _ _,
   { intro X,
-    haveI := (exponential_ideal.exp_closed (i.obj_mem_ess_image X) A).unit_iso,
+    haveI := (exponential_ideal.exp_closed (i.obj_mem_ess_image X) A).unit_is_iso,
     apply as_iso ((adjunction.of_right_adjoint i).unit.app (i.obj X ^^ A)) },
   { simp }
 end

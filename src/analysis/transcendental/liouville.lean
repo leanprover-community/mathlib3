@@ -46,21 +46,9 @@ with `b > 1` such that `0 < |x - a/b| < 1/bⁿ`.
 def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
   1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
 
-lemma not_liouville_zero : ¬ is_liouville 0 :=
-begin
-  intro h,
-  rcases h 1 with ⟨a, b, b1, ab0, ald⟩,
-  have b0 : 0 < (b : ℝ), { exact_mod_cast lt_trans zero_lt_one b1 },
-  rw [pow_one, zero_sub, abs_neg, abs_div, abs_of_pos b0, div_lt_div_iff b0 b0,
-    mul_lt_mul_right b0] at ald,
-  refine ab0 (div_eq_zero_iff.mpr (or.inl _)).symm,
-  exact_mod_cast int.eq_zero_iff_abs_lt_one.mp (by exact_mod_cast ald),
-end
-
 lemma irrational_of_is_liouville {x : ℝ} (h : is_liouville x) : irrational x :=
 begin
-  rintros ⟨r, rfl⟩,
-  cases r with a b bN0 cop,
+  rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
   change (is_liouville (a / b)) at h,
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
   have qR0 : (0 : ℝ) < q := int.cast_pos.mpr (zero_lt_one.trans q1),
@@ -74,6 +62,9 @@ begin
   rw [← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul, ← int.cast_sub, int.cast_eq_zero] at a0,
   exact not_le.mpr a1 (le_of_lt (int.mul_lt_mul_pow_succ (abs_pos.mpr a0) q1)),
 end
+
+lemma not_liouville_zero : ¬ is_liouville 0 :=
+λ h, irrational_of_is_liouville h ⟨0, rat.cast_zero⟩
 
 end real
 

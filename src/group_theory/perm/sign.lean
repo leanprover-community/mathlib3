@@ -51,13 +51,10 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
 lemma perm_inv_on_of_perm_on_finset {s : finset α} {f : perm α}
   (h : ∀ x ∈ s, f x ∈ s) {y : α} (hy : y ∈ s) : f⁻¹ y ∈ s :=
 begin
-  have h0 : ∀ y ∈ s, ∃ x (hx : x ∈ s), y = (λ i (hi : i ∈ s), f i) x hx :=
+  obtain ⟨x, hx, rfl⟩ : ∃ x ∈ s, y = f x :=
     finset.surj_on_of_inj_on_of_card_le (λ x hx, (λ i hi, f i) x hx)
-    (λ a ha, h a ha) (λ a₁ a₂ ha₁ ha₂ heq, (equiv.apply_eq_iff_eq f).mp heq) rfl.ge,
-  obtain ⟨y2, hy2, heq⟩ := h0 y hy,
-  convert hy2,
-  rw heq,
-  simp only [inv_apply_self]
+    (λ a ha, h a ha) (λ a₁ a₂ ha₁ ha₂ heq, (equiv.apply_eq_iff_eq f).mp heq) rfl.ge y hy,
+  rwa inv_apply_self
 end
 
 lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [fintype s]

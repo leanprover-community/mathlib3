@@ -1016,6 +1016,10 @@ instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _
 
+instance algebra_rat_subsingleton {α} [division_ring α] [char_zero α] :
+  subsingleton (algebra ℚ α) :=
+⟨λ x y, algebra.algebra_ext x y $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
+
 end rat
 
 namespace algebra

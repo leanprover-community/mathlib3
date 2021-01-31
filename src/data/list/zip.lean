@@ -87,9 +87,9 @@ theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
    zip l₁ (l₂.map f) = (zip l₁ l₂).map (prod.map id f) :=
 by rw [← zip_map, map_id]
 
-lemma list.zip_with_map_left
+lemma zip_with_map_left
   (f : α → β → γ) (g : δ → α) (l : list δ) (l' : list β) :
-  list.zip_with f (l.map g) l' = list.zip_with (f ∘ g) l l' :=
+  zip_with f (l.map g) l' = zip_with (f ∘ g) l l' :=
 begin
   induction l with hd tl hl generalizing l',
   { simp },
@@ -98,9 +98,9 @@ begin
     { simp [hl] } }
 end
 
-lemma list.zip_with_map_right
+lemma zip_with_map_right
   (f : α → β → γ) (l : list α) (g : δ → β) (l' : list δ) :
-  list.zip_with f l (l'.map g) = list.zip_with (λ x, f x ∘ g) l l' :=
+  zip_with f l (l'.map g) = zip_with (λ x, f x ∘ g) l l' :=
 begin
   induction l with hd tl hl generalizing l',
   { simp },
@@ -264,9 +264,9 @@ begin
         simp * at *, }, }, },
 end
 
-@[simp] lemma list.map_uncurry_zip_eq_zip_with
+@[simp] lemma map_uncurry_zip_eq_zip_with
   (f : α → β → γ) (l : list α) (l' : list β) :
-  list.map (function.uncurry f) (l.zip l') = list.zip_with f l l' :=
+  map (function.uncurry f) (l.zip l') = zip_with f l l' :=
 begin
   induction l with hd tl hl generalizing l',
   { simp },
@@ -275,8 +275,8 @@ begin
     { simp [hl] } }
 end
 
-@[simp] lemma list.sum_zip_with_distrib_left (f : α → β → ℕ) (n : ℕ) (l : list α) (l' : list β) :
-  (list.zip_with (λ x y, n * f x y) l l').sum = n * (l.zip_with f l').sum :=
+@[simp] lemma sum_zip_with_distrib_left (f : α → β → ℕ) (n : ℕ) (l : list α) (l' : list β) :
+  (zip_with (λ x y, n * f x y) l l').sum = n * (l.zip_with f l').sum :=
 begin
   induction l with hd tl hl generalizing f n l',
   { simp },

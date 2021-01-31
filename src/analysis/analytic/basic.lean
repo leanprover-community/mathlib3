@@ -188,14 +188,10 @@ lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 <
 begin
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨r, r0, rlt⟩,
   have rpos : 0 < (r : ℝ), by simp [ennreal.coe_pos.1 r0],
-  obtain ⟨C, Cpos, hCp⟩ : ∃ (C : ℝ) (H : C > 0), ∀ (n : ℕ), ∥p n∥ * ↑r ^ n ≤ C :=
-    norm_mul_pow_le_of_lt_radius p rlt,
-  refine ⟨C, 1/r, Cpos, by simp [rpos], λ n, _⟩,
-  have := hCp n,
-  rw ← le_div_iff (pow_pos rpos n) at this,
-  convert this,
-  rw inv_eq_one_div,
-  field_simp [ne_of_gt rpos]
+  rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
+  refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
+  convert hCp n,
+  exact inv_pow' _ _,
 end
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/

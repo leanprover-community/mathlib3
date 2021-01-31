@@ -733,7 +733,7 @@ end continuous_multilinear_map
 open continuous_multilinear_map
 
 lemma continuous_linear_map.norm_comp_continuous_multilinear_map_le
-  (g : E₂ →L[𝕜] G) (f : continuous_multilinear_map 𝕜 E₁ E₂) :
+  (g : G →L[𝕜] G') (f : continuous_multilinear_map 𝕜 E G) :
   ∥g.comp_continuous_multilinear_map f∥ ≤ ∥g∥ * ∥f∥ :=
 begin
   refine op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (λ m, _),
@@ -1075,13 +1075,13 @@ variables {n 𝕜 G E' G'}
   (continuous_multilinear_curry_right_equiv' 𝕜 n G G').symm f v x = f (snoc v x) := rfl
 
 @[simp] lemma continuous_multilinear_curry_right_equiv_apply_norm
-  (f : (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂))) :
-  ∥(continuous_multilinear_curry_right_equiv 𝕜 E E₂) f∥ = ∥f∥ :=
+  (f : (continuous_multilinear_map 𝕜 (λ(i : fin n), E' i.cast_succ) (E' (last n) →L[𝕜] G))) :
+  ∥(continuous_multilinear_curry_right_equiv 𝕜 E' G) f∥ = ∥f∥ :=
 continuous_multilinear_map.uncurry_right_norm _
 
 @[simp] lemma continuous_multilinear_curry_right_equiv_symm_apply_norm
-  (f : continuous_multilinear_map 𝕜 E E₂) :
-  ∥(continuous_multilinear_curry_right_equiv 𝕜 E E₂).symm f∥ = ∥f∥ :=
+  (f : continuous_multilinear_map 𝕜 E' G) :
+  ∥(continuous_multilinear_curry_right_equiv 𝕜 E' G).symm f∥ = ∥f∥ :=
 continuous_multilinear_map.curry_right_norm _
 
 /-!
@@ -1140,7 +1140,6 @@ variables {𝕜 G}
 @[simp] lemma continuous_multilinear_map.fin0_apply_norm (f : G [×0]→L[𝕜] G') {x : fin 0 → G} :
   ∥f x∥ = ∥f∥ :=
 begin
-
   have : x = 0 := subsingleton.elim _ _, subst this,
   refine le_antisymm (by simpa using f.le_op_norm 0) _,
   have : ∥continuous_multilinear_map.curry0 𝕜 G (f.uncurry0)∥ ≤ ∥f.uncurry0∥ :=
@@ -1195,12 +1194,12 @@ variables {𝕜 G G'}
   (continuous_multilinear_curry_fin0 𝕜 G G').symm x v = x := rfl
 
 lemma continuous_multilinear_curry_fin0_apply_norm
-  (f : (continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂)) :
-  ∥continuous_multilinear_curry_fin0 𝕜 G E₂ f∥ = ∥f∥ :=
+  (f : (continuous_multilinear_map 𝕜 (λ (i : fin 0), G) G')) :
+  ∥continuous_multilinear_curry_fin0 𝕜 G G' f∥ = ∥f∥ :=
 by simp
 
-@[simp] lemma continuous_multilinear_curry_fin0_symm_apply_norm (x : E₂) :
-  ∥(continuous_multilinear_curry_fin0 𝕜 G E₂).symm x∥ = ∥x∥ :=
+@[simp] lemma continuous_multilinear_curry_fin0_symm_apply_norm (x : G') :
+  ∥(continuous_multilinear_curry_fin0 𝕜 G G').symm x∥ = ∥x∥ :=
 continuous_multilinear_map.uncurry0_norm _ _ _
 
 /-! #### With 1 variable -/
@@ -1223,13 +1222,13 @@ variables {𝕜 G G'}
   (continuous_multilinear_curry_fin1 𝕜 G G').symm f v = f (v 0) := rfl
 
 @[simp] lemma continuous_multilinear_curry_fin1_apply_norm
-  (f : (continuous_multilinear_map 𝕜 (λ (i : fin 1), G) E₂)) :
-  ∥continuous_multilinear_curry_fin1 𝕜 G E₂ f∥ = ∥f∥ :=
+  (f : (continuous_multilinear_map 𝕜 (λ (i : fin 1), G) G')) :
+  ∥continuous_multilinear_curry_fin1 𝕜 G G' f∥ = ∥f∥ :=
 by simp only [continuous_multilinear_curry_fin1, continuous_multilinear_curry_fin0_apply_norm,
   continuous_linear_equiv.trans_apply, continuous_multilinear_curry_right_equiv_symm_apply_norm]
 
-@[simp] lemma continuous_multilinear_curry_fin1_symm_apply_norm (f : G →L[𝕜] E₂) :
-  ∥(continuous_multilinear_curry_fin1 𝕜 G E₂).symm f∥ = ∥f∥ :=
+@[simp] lemma continuous_multilinear_curry_fin1_symm_apply_norm (f : G →L[𝕜] G') :
+  ∥(continuous_multilinear_curry_fin1 𝕜 G G').symm f∥ = ∥f∥ :=
 by simp [continuous_multilinear_curry_fin1]
 
 end currying

@@ -482,7 +482,7 @@ begin
     rcases (C.and ((A.and B).filter_mono inf_le_left)).exists with ⟨a, ha⟩,
     exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },
   -- check by induction that the partial sums are suitably bounded, using the choice of `a` and the
-  -- inductive control from Lemma `radius_right_inv_pos_of_radius_pos_aux1`.
+  -- inductive control from Lemma `radius_right_inv_pos_of_radius_pos_aux2`.
   let S := λ n, ∑ k in Ico 1 n, a ^ k * ∥p.right_inv i k∥,
   have IRec : ∀ n, 1 ≤ n → S n ≤ (I + 1) * a,
   { apply nat.le_induction,

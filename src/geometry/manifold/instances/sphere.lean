@@ -48,6 +48,8 @@ noncomputable theory
 open metric finite_dimensional
 open_locale manifold
 
+local attribute [instance] finite_dimensional_of_findim_eq_succ
+
 section stereographic_projection
 variables (v : E)
 

@@ -161,6 +161,13 @@ instance unique_of_left [subsingleton M] : unique (M →ₗ[R] M₂) :=
 instance unique_of_right [subsingleton M₂] : unique (M →ₗ[R] M₂) :=
 coe_injective.unique
 
+lemma eq_zero_iff (f : M →ₗ[R] M₂) : f = 0 ↔ ∀ m, f m = 0 :=
+begin
+  split,
+  { intros h x, rw h, refl, },
+  { intros h, ext, apply h, },
+end
+
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₗ[R] M₂) :=
 ⟨λ f g, ⟨λ b, f b + g b, by simp [add_comm, add_left_comm], by simp [smul_add]⟩⟩

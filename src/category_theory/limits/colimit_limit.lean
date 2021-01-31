@@ -21,14 +21,14 @@ is that when `C = Type`, filtered colimits commute with finite limits.
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes v u
+universes v₁ v₂ u₁ u₂
 
 open category_theory
 
 namespace category_theory.limits
 
-variables {J K : Type v} [small_category J] [small_category K]
-variables {C : Type u} [category.{v} C]
+variables {J K : Type u₁} [category.{v₁} J] [category.{v₁} K]
+variables {C : Type u₂} [category.{v₂} C]
 
 variables (F : J × K ⥤ C)
 
@@ -86,7 +86,7 @@ this lemma characterises it.
     limit.π ((curry.obj (swap K J ⋙ F)).obj k) j ≫ colimit.ι ((curry.obj F).obj j) k :=
 by { dsimp [colimit_limit_to_limit_colimit], simp, }
 
-@[simp] lemma ι_colimit_limit_to_limit_colimit_π_apply (F : J × K ⥤ Type v) (j) (k) (f) :
+@[simp] lemma ι_colimit_limit_to_limit_colimit_π_apply (F : J × K ⥤ Type u₁) (j) (k) (f) :
    limit.π ((curry.obj F) ⋙ colim) j
      (colimit_limit_to_limit_colimit F (colimit.ι ((curry.obj (swap K J ⋙ F)) ⋙ lim) k f)) =
      colimit.ι ((curry.obj F).obj j) k (limit.π ((curry.obj (swap K J ⋙ F)).obj k) j f) :=

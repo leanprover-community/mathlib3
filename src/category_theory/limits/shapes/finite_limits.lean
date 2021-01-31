@@ -32,7 +32,7 @@ This is often called 'finitely complete'.
 -- We can't just made this an `abbreviation`
 -- because of https://github.com/leanprover-community/lean/issues/429
 def has_finite_limits : Prop :=
-Π (J : Type v) [𝒥 : category.{v} J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
+Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_limits
 
@@ -55,13 +55,13 @@ has a colimit.
 This is often called 'finitely cocomplete'.
 -/
 def has_finite_colimits : Prop :=
-Π (J : Type v) [𝒥 : category.{v} J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
+Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_colimits
 
 @[priority 100]
 instance has_colimits_of_shape_of_has_finite_colimits
-  (J : Type v) [category.{v} J] [fin_category J] [has_finite_colimits C] :
+  (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C :=
 ‹has_finite_colimits C› J
 

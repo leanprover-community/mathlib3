@@ -371,7 +371,6 @@ begin
   exact pnat.ne_zero n (eq_zero_of_zero_dvd h)
 end
 
-
 end pnat
 
 section can_lift

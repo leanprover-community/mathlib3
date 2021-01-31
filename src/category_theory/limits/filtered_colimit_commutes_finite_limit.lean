@@ -20,7 +20,7 @@ colimit (over `K`) of the limits (over `J`) with the limit of the colimits is an
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes w v u
+universes w₁ w₂ v u
 
 open category_theory
 open category_theory.category
@@ -29,7 +29,7 @@ open category_theory.limits.types.filtered_colimit
 
 namespace category_theory.limits
 
-variables {J K : Type v} [category.{w} J] [category.{w} K]
+variables {J K : Type v} [category.{w₁} J] [category.{w₂} K]
 variables (F : J × K ⥤ Type v)
 
 open category_theory.prod

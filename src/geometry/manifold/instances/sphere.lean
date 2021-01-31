@@ -17,9 +17,18 @@ For a unit vector `v` in `E`, the definition `stereographic` gives the stereogra
 centred at `v`, a local homeomorphism from the sphere to `(ℝ ∙ v)ᗮ` (the orthogonal complement of
 `v`).
 
-For finite-dimensional `E`, we then construct a charted space instance on the sphere; the charts
+For finite-dimensional `E`, we then construct a smooth manifold instance on the sphere; the charts
 here are obtained by composing the local homeomorphisms `stereographic` with arbitrary isometries
 from `(ℝ ∙ v)ᗮ` to Euclidean space.
+
+Finally, two lemmas about smooth maps:
+* `times_cont_mdiff_coe_sphere` states that the coercion map from the sphere into `E` is smooth;
+  this is a useful tool for constructing smooth maps *from* the sphere.
+* `times_cont_mdiff.cod_restrict_sphere` states that a map from a manifold into the sphere is
+  smooth if its lift to a map to `E` is smooth; this is a useful tool for constructing smooth maps
+  *to* the sphere.
+
+As an application we prove `times_cont_mdiff_neg_sphere`, that the antipodal map is smooth.
 
 ## Implementation notes
 
@@ -240,7 +249,8 @@ section charted_space
 
 variables [finite_dimensional ℝ E]
 
-/-! ### Charted space structure on the sphere
+/-!
+### Charted space structure on the sphere
 
 In this section we construct a charted space structure on the unit sphere in a finite-dimensional
 real inner product space `E`; that is, we show that it is locally homeomorphic to the Euclidean
@@ -292,18 +302,18 @@ variables [finite_dimensional ℝ E]
 
 /-! ### Smooth manifold structure on the sphere -/
 
-/-- The unit sphere in a finite-dimensional inner product space `E` is a smooth manifold, modelled
-on the Euclidean space of dimension `findim ℝ E - 1`. -/
+/-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a smooth manifold,
+modelled on the Euclidean space of dimension `n`. -/
 instance {n : ℕ} [_i : fact (findim ℝ E = n + 1)] :
   smooth_manifold_with_corners (𝓡 n) (sphere (0:E) 1) :=
 smooth_manifold_with_corners_of_times_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
   let U : (ℝ ∙ (v:E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.of_orthogonal _i.elim
+    (linear_isometry_equiv.from_orthogonal_span_singleton _i.elim
     (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv,
   let U' : (ℝ ∙ (v':E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.of_orthogonal _i.elim
+    (linear_isometry_equiv.from_orthogonal_span_singleton _i.elim
     (nonzero_of_mem_unit_sphere v')).to_continuous_linear_equiv,
   have hUv : stereographic' _i.elim v = (stereographic (norm_eq_of_mem_sphere v)).trans
       U.to_homeomorph.to_local_homeomorph := rfl,
@@ -330,7 +340,7 @@ begin
   { exact continuous_subtype_coe },
   { intros v _,
     let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-      (linear_isometry_equiv.of_orthogonal _i.elim
+      (linear_isometry_equiv.from_orthogonal_span_singleton _i.elim
       (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
     exact ((times_cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ ((-v):E))ᗮ.subtype_continuous.times_cont_diff).comp
@@ -352,7 +362,7 @@ begin
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
   let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.of_orthogonal _i.elim
+    (linear_isometry_equiv.from_orthogonal_span_singleton _i.elim
     (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
   have h : times_cont_diff_on _ _ _ set.univ :=
     U.to_continuous_linear_map.times_cont_diff.times_cont_diff_on,

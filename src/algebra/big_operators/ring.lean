@@ -168,10 +168,12 @@ begin
     exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
 end
 
-
-lemma powerset_prod [comm_monoid β] (s : finset α) [decidable_eq (finset α)] (f : finset α → β) :
+/-- A product over `powerset s` is equal to the double product over
+sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
 begin
+  classical,
   rw [powerset_card_bind, prod_bind],
   intros i hi j hj hij,
   rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
@@ -180,9 +182,12 @@ begin
   rwa ← hc,
 end
 
-lemma powerset_sum [add_comm_monoid β] (s : finset α) [decidable_eq (finset α)] (f : finset α → β) :
+/-- A sum over `powerset s` is equal to the double sum over
+sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+lemma sum_powerset [add_comm_monoid β] (s : finset α) (f : finset α → β) :
   ∑ t in powerset s, f t = ∑ j in range (card s + 1), ∑ t in powerset_len j s, f t :=
 begin
+  classical,
   rw [powerset_card_bind, sum_bind],
   intros i hi j hj hij,
   rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],

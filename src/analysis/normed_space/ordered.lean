@@ -17,6 +17,10 @@ These are mostly useful to avoid diamonds during type class inference.
 open filter asymptotics set
 open_locale topological_space
 
+section wip
+
+end wip
+
 /-- A `normed_linear_ordered_group` is an additive group that is both a `normed_group` and
     a `linear_ordered_add_comm_group`. This class is necessary to avoid diamonds. -/
 class normed_linear_ordered_group (α : Type*)
@@ -52,60 +56,6 @@ instance : normed_linear_ordered_field ℝ :=
 ⟨dist_eq_norm, normed_field.norm_mul⟩
 
 variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜]
-
-lemma pow_div_pow_eventually_eq_at_top {p q : ℕ} :
-  (λ x : 𝕜, x^p / x^q) =ᶠ[at_top] (λ x, x^((p : ℤ) -q)) :=
-begin
-  apply ((eventually_gt_at_top (0 : 𝕜)).mono (λ x hx, _)),
-  simp [fpow_sub hx.ne'],
-end
-
-lemma pow_div_pow_eventually_eq_at_bot {p q : ℕ} :
-  (λ x : 𝕜, x^p / x^q) =ᶠ[at_bot] (λ x, x^((p : ℤ) -q)) :=
-begin
-  apply ((eventually_lt_at_bot (0 : 𝕜)).mono (λ x hx, _)),
-  simp [fpow_sub hx.ne'.symm],
-end
-
-lemma tendsto_fpow_at_top_at_top {n : ℤ} (hn : 0 < n) : tendsto (λ x : 𝕜, x^n) at_top at_top :=
-begin
-  lift n to ℕ using hn.le,
-  exact tendsto_pow_at_top (nat.succ_le_iff.mpr $int.coe_nat_pos.mp hn)
-end
-
-lemma tendsto_fpow_at_top_zero [order_topology 𝕜] {n : ℤ} (hn : n < 0) :
-  tendsto (λ x : 𝕜, x^n) at_top (𝓝 0) :=
-begin
-  have : 1 ≤ -n, by linarith,
-  apply tendsto.congr (show ∀ x : 𝕜, x^-(-n) = x^n, by simp),
-  lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
-  exact tendsto_pow_neg_at_top (by exact_mod_cast this)
-end
-
-lemma tendsto_pow_div_pow_at_top_at_top {p q : ℕ} (hpq : q < p) :
-  tendsto (λ x : 𝕜, x^p / x^q) at_top at_top :=
-begin
-  rw tendsto_congr' pow_div_pow_eventually_eq_at_top,
-  apply tendsto_fpow_at_top_at_top,
-  linarith
-end
-
-lemma tendsto_pow_div_pow_at_top_zero
-  [order_topology 𝕜] {p q : ℕ} (hpq : p < q) :
-  tendsto (λ x : 𝕜, x^p / x^q) at_top (𝓝 0) :=
-begin
-  rw tendsto_congr' pow_div_pow_eventually_eq_at_top,
-  apply tendsto_fpow_at_top_zero,
-  linarith
-end
-
-lemma tendsto_const_mul_pow_at_top {c : 𝕜} {n : ℕ} (hn : 1 ≤ n) (hc : 0 < c) :
-  tendsto (λ x, c * x^n) at_top at_top :=
-tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
-
-lemma tendsto_neg_const_mul_pow_at_top {c : 𝕜} {n : ℕ} (hn : 1 ≤ n) (hc : c < 0) :
-  tendsto (λ x, c * x^n) at_top at_bot :=
-tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
 
 lemma asymptotics.is_o_pow_pow_at_top_of_lt
   [order_topology 𝕜] {p q : ℕ} (hpq : p < q) :

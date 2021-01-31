@@ -3,7 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
+import tactic.linarith
 import order.filter.bases
+import algebra.group_with_zero.power
 import data.finset.preimage
 
 /-!
@@ -697,6 +699,44 @@ a negative constant (on the right) tends to positive infinity. -/
 lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x * r) l at_top :=
 by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
+
+lemma pow_div_pow_eventually_eq_at_top {p q : ℕ} :
+  (λ x : α, x^p / x^q) =ᶠ[at_top] (λ x, x^((p : ℤ) -q)) :=
+begin
+  apply ((eventually_gt_at_top (0 : α)).mono (λ x hx, _)),
+  simp [fpow_sub hx.ne'],
+end
+
+lemma pow_div_pow_eventually_eq_at_bot {p q : ℕ} :
+  (λ x : α, x^p / x^q) =ᶠ[at_bot] (λ x, x^((p : ℤ) -q)) :=
+begin
+  apply ((eventually_lt_at_bot (0 : α)).mono (λ x hx, _)),
+  simp [fpow_sub hx.ne'.symm],
+end
+
+lemma tendsto_fpow_at_top_at_top {n : ℤ}
+  (hn : 0 < n) : tendsto (λ x : α, x^n) at_top at_top :=
+begin
+  lift n to ℕ using hn.le,
+  exact tendsto_pow_at_top (nat.succ_le_iff.mpr $int.coe_nat_pos.mp hn)
+end
+
+lemma tendsto_pow_div_pow_at_top_at_top {p q : ℕ}
+  (hpq : q < p) : tendsto (λ x : α, x^p / x^q) at_top at_top :=
+begin
+  rw tendsto_congr' pow_div_pow_eventually_eq_at_top,
+  apply tendsto_fpow_at_top_at_top,
+  linarith
+end
+
+lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
+tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
+tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
+
 
 end linear_ordered_field
 

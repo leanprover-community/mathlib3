@@ -429,6 +429,7 @@ lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r 
 by { rw [inner_smul_right, algebra.smul_def], refl }
 
 /-- The inner product as a sesquilinear form. -/
+@[simps]
 def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
 { sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
   sesq_add_left := λ x y z, inner_add_right,
@@ -437,6 +438,7 @@ def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
   sesq_smul_right := λ r x y, inner_smul_left }
 
 /-- The real inner product as a bilinear form. -/
+@[simps]
 def bilin_form_of_real_inner : bilin_form ℝ F :=
 { bilin := inner,
   bilin_add_left := λ x y z, inner_add_left,

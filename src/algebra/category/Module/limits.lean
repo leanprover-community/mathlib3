@@ -120,7 +120,7 @@ AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ (Module R) AddCommGroup)
 The forgetful functor from R-modules to abelian groups preserves all limits.
 -/
 instance forget₂_AddCommGroup_preserves_limits :
-preserves_limits (forget₂ (Module R) AddCommGroup.{v}) :=
+  preserves_limits (forget₂ (Module R) AddCommGroup.{v}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
       (limit_cone_is_limit F) (forget₂_AddCommGroup_preserves_limits_aux F) } }

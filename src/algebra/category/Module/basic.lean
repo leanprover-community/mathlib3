@@ -10,7 +10,7 @@ import category_theory.preadditive
 import linear_algebra.basic
 
 /-!
-# Category instance for modules over a ring.
+# Category instance for modules over a ring
 
 We introduce the bundled category `Module` along with relevant forgetful functor to `AddCommGroup`.
 We furthermore show that `Module` is a preadditive category.

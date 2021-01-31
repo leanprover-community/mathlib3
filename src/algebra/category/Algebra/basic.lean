@@ -10,7 +10,7 @@ import algebra.category.CommRing.basic
 import algebra.category.Module.basic
 
 /-!
-# Category instance for algebras over a commutative ring.
+# Category instance for algebras over a commutative ring
 
 We introduce the bundled category `Algebra` of algebras over a fixed commutative ring `R ` along
 with the forgetful functors to `Ring` and `Module`. We furthermore show that the functor associating

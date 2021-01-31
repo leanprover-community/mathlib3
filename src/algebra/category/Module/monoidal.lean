@@ -37,7 +37,7 @@ open_locale tensor_product
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
 /-- (implementation) tensor product of morphisms R-modules -/
 def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
-tensor_obj M M' ⟶ tensor_obj N N' :=
+  tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
 lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (↥M ⊗ ↥N)) :=

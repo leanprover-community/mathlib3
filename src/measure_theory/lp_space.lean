@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Rémy Degenne.
 -/
 import measure_theory.ess_sup
-import measure_theory.l1_space
+import measure_theory.ae_eq_fun
 import analysis.mean_inequalities
 
 /-!
@@ -78,11 +78,6 @@ begin
 end
 
 end ℒp_space_definition
-
-lemma mem_ℒp_one_iff_integrable {f : α → E} : mem_ℒp f 1 μ ↔ integrable f μ :=
-by simp_rw [integrable, has_finite_integral, mem_ℒp,
-    snorm_eq_snorm' one_ne_zero ennreal.one_ne_top, ennreal.one_to_real, snorm', one_div_one,
-    ennreal.rpow_one]
 
 section top
 
@@ -481,9 +476,11 @@ begin
   exact snorm'_lt_top_of_snorm'_lt_top_of_exponent_le hfq_m hfq_lt_top (le_of_lt hp_pos) hpq_real,
 end
 
+/-
 lemma mem_ℒp.integrable (hq1 : 1 ≤ q) {f : α → E} [finite_measure μ] (hfq : mem_ℒp f q μ) :
   integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
+-/
 
 lemma snorm'_add_le {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) (hp1 : 1 ≤ p) :
   snorm' (f + g) p μ ≤ snorm' f p μ + snorm' g p μ :=
@@ -668,16 +665,23 @@ def Lp {α} (E : Type*) [measurable_space α] [measurable_space E] [normed_group
   neg_mem' := λ f hf,
     by rwa [set.mem_set_of_eq, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
 
+namespace mem_ℒp
+
+variables {α E : Type*} [measurable_space α] [measurable_space E] [normed_group E]
+  [borel_space E] [topological_space.second_countable_topology E] {p : ennreal} {μ : measure α}
+
 /-- make an element of Lp from a function verifying `mem_ℒp` -/
-def mem_ℒp.to_Lp {α E} [measurable_space α] [measurable_space E] [normed_group E]
-  [borel_space E] [topological_space.second_countable_topology E]
-  (f : α → E) {p : ennreal} {μ : measure α} (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
+def to_Lp (f : α → E) (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
 ⟨ae_eq_fun.mk f h_mem_ℒp.1, h_mem_ℒp.snorm_mk_lt_top⟩
 
-lemma mem_ℒp.coe_fn_to_Lp {α E} [measurable_space α] [measurable_space E] [normed_group E]
-  [borel_space E] [topological_space.second_countable_topology E] {μ : measure α} {p : ennreal}
-  {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp f =ᵐ[μ] f :=
+lemma coe_fn_to_Lp {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp f =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk _ _
+
+@[simp] lemma to_Lp_eq_to_Lp {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+  hf.to_Lp f = hg.to_Lp g ↔ f =ᵐ[μ] g :=
+by simp [to_Lp]
+
+end mem_ℒp
 
 namespace Lp
 
@@ -749,6 +753,20 @@ normed_group.of_core _
   end,
   norm_neg := by simp }
 
+
+lemma fact_one_le_one : fact ((1 : ennreal) ≤ 1) := le_refl _
+
+lemma fact_one_le_two : fact ((1 : ennreal) ≤ 2) :=
+ennreal.coe_le_coe.2 (show (1 : nnreal) ≤ 2, by norm_num)
+
+lemma fact_one_le_top : fact ((1 : ennreal) ≤ ⊤) := le_top
+
+local attribute [instance] fact_one_le_one fact_one_le_two fact_one_le_top
+
+instance normed_group_L1 : normed_group (Lp E 1 μ) := by apply_instance
+instance normed_group_L2 : normed_group (Lp E 2 μ) := by apply_instance
+instance normed_group_Ltop : normed_group (Lp E ⊤ μ) := by apply_instance
+
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
@@ -778,6 +796,10 @@ by rw [norm_def, snorm_congr_ae coe_fn_smul, snorm_const_smul c,
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) :=
 { norm_smul_le := λ _ _, by simp [norm_const_smul] }
+
+instance normed_space_L1 : normed_space 𝕜 (Lp E 1 μ) := by apply_instance
+instance normed_space_L2 : normed_space 𝕜 (Lp E 2 μ) := by apply_instance
+instance normed_space_Ltop : normed_space 𝕜 (Lp E ⊤ μ) := by apply_instance
 
 end normed_space
 

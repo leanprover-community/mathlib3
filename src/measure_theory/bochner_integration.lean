@@ -5,6 +5,7 @@ Authors: Zhouhang Zhou, Yury Kudryashov
 -/
 import measure_theory.simple_func_dense
 import analysis.normed_space.bounded_linear_maps
+import measure_theory.l1_space
 import topology.sequences
 
 /-!
@@ -394,16 +395,15 @@ variables
 
 variables (α E μ)
 
--- We use `Type*` instead of `add_subgroup` because otherwise we loose dot notation.
 /-- `l1.simple_func` is a subspace of L1 consisting of equivalence classes of an integrable simple
     function. -/
-def simple_func : Type* :=
-↥({ carrier := {f : α →₁[μ] E | ∃ (s : α →ₛ E), (ae_eq_fun.mk s s.ae_measurable : α →ₘ[μ] E) = f},
+def simple_func : add_subgroup (Lp E 1 μ) :=
+{ carrier := {f : α →₁[μ] E | ∃ (s : α →ₛ E), (ae_eq_fun.mk s s.ae_measurable : α →ₘ[μ] E) = f},
   zero_mem' := ⟨0, rfl⟩,
-  add_mem' := λ f g ⟨s, hs⟩ ⟨t, ht⟩,
-    ⟨s + t, by simp only [coe_add, ← hs, ← ht, mk_add_mk, ← simple_func.coe_add]⟩,
-  neg_mem' := λ f ⟨s, hs⟩, ⟨-s, by simp only [coe_neg, ← hs, neg_mk, ← simple_func.coe_neg]⟩ } :
-  add_subgroup (α →₁[μ] E))
+  add_mem' := λ f g ⟨s, hs⟩ ⟨t, ht⟩, ⟨s + t,
+      by simp only [←hs, ←ht, mk_add_mk, add_subgroup.coe_add, mk_eq_mk, simple_func.coe_add]⟩,
+  neg_mem' := λ f ⟨s, hs⟩, ⟨-s,
+      by simp only [←hs, neg_mk, simple_func.coe_neg, mk_eq_mk, add_subgroup.coe_neg]⟩ }
 
 variables {α E μ}
 
@@ -428,24 +428,18 @@ subtype.ext_iff.symm
 @[norm_cast] protected lemma eq_iff' {f g : α →₁ₛ[μ] E} : (f : α →ₘ[μ] E) = g ↔ f = g :=
 iff.intro (simple_func.eq') (congr_arg _)
 
-/-- L1 simple functions forms a `emetric_space`, with the emetric being inherited from L1 space,
-  i.e., `edist f g = ∫⁻ a, edist (f a) (g a)`.
-  Not declared as an instance as `α →₁ₛ[μ] β` will only be useful in the construction of the Bochner
-  integral. -/
-protected def emetric_space  : emetric_space (α →₁ₛ[μ] E) := subtype.emetric_space
+local attribute [instance, priority 10000]
+local attribute [reducible] simple_func
 
-/-- L1 simple functions forms a `metric_space`, with the metric being inherited from L1 space,
+/-- L1 simple functions forms a `normed_group`, with the metric being inherited from L1 space,
   i.e., `dist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a)`).
   Not declared as an instance as `α →₁ₛ[μ] β` will only be useful in the construction of the Bochner
   integral. -/
-protected def metric_space : metric_space (α →₁ₛ[μ] E) := subtype.metric_space
+protected def normed_group : normed_group (α →₁ₛ[μ] E) := by apply_instance
 
-local attribute [instance] simple_func.metric_space simple_func.emetric_space
+local attribute [instance] simple_func.normed_group
 
 /-- Functions `α →₁ₛ[μ] E` form an additive commutative group. -/
-local attribute [instance, priority 10000]
-protected def add_comm_group : add_comm_group (α →₁ₛ[μ] E) := add_subgroup.to_add_comm_group _
-
 instance : inhabited (α →₁ₛ[μ] E) := ⟨0⟩
 
 @[simp, norm_cast]
@@ -460,21 +454,13 @@ lemma coe_sub (f g : α →₁ₛ[μ] E) : ((f - g : α →₁ₛ[μ] E) : α �
 @[simp] lemma edist_eq (f g : α →₁ₛ[μ] E) : edist f g = edist (f : α →₁[μ] E) (g : α →₁[μ] E) := rfl
 @[simp] lemma dist_eq (f g : α →₁ₛ[μ] E) : dist f g = dist (f : α →₁[μ] E) (g : α →₁[μ] E) := rfl
 
-/-- The norm on `α →₁ₛ[μ] E` is inherited from L1 space. That is, `∥f∥ = ∫⁻ a, edist (f a) 0`.
-  Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the Bochner
-  integral. -/
-protected def has_norm : has_norm (α →₁ₛ[μ] E) := ⟨λf, ∥(f : α →₁[μ] E)∥⟩
-
-local attribute [instance] simple_func.has_norm
-
 lemma norm_eq (f : α →₁ₛ[μ] E) : ∥f∥ = ∥(f : α →₁[μ] E)∥ := rfl
-lemma norm_eq' (f : α →₁ₛ[μ] E) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ[μ] E) 0) := rfl
-
-/-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
-Bochner integral. -/
-protected def normed_group : normed_group (α →₁ₛ[μ] E) :=
-normed_group.of_add_dist (λ x, rfl) $ by
-  { intros, simp only [dist_eq, coe_add, l1.dist_eq, l1.coe_add], rw edist_add_right }
+/-
+lemma norm_eq' (f : α →₁ₛ[μ] E) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ[μ] E) 0) :=
+begin
+  refl,
+end
+-/
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
@@ -484,7 +470,9 @@ protected def has_scalar : has_scalar 𝕜 (α →₁ₛ[μ] E) := ⟨λk f, ⟨
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
   use k • s,
-  rw [coe_smul, subtype.coe_mk, ← hs], refl
+  apply eq.trans (smul_mk k s s.ae_measurable).symm _,
+  rw hs,
+  refl,
 end ⟩⟩
 
 local attribute [instance, priority 10000] simple_func.has_scalar
@@ -513,40 +501,40 @@ end instances
 
 local attribute [instance] simple_func.normed_group simple_func.normed_space
 
-section of_simple_func
+section to_L1
 
 /-- Construct the equivalence class `[f]` of an integrable simple function `f`. -/
-@[reducible] def of_simple_func (f : α →ₛ E) (hf : integrable f μ) : (α →₁ₛ[μ] E) :=
-⟨l1.of_fun f hf, ⟨f, rfl⟩⟩
+@[reducible] def to_L1 (f : α →ₛ E) (hf : integrable f μ) : (α →₁ₛ[μ] E) :=
+⟨hf.to_L1 f, ⟨f, rfl⟩⟩
 
-lemma of_simple_func_eq_of_fun (f : α →ₛ E) (hf : integrable f μ) :
-  (of_simple_func f hf : α →₁[μ] E) = l1.of_fun f hf := rfl
+lemma to_L1_eq_to_L1 (f : α →ₛ E) (hf : integrable f μ) :
+  (to_L1 f hf : α →₁[μ] E) = hf.to_L1 f := rfl
 
-lemma of_simple_func_eq_mk (f : α →ₛ E) (hf : integrable f μ) :
-  (of_simple_func f hf : α →ₘ[μ] E) = ae_eq_fun.mk f f.ae_measurable := rfl
+lemma to_L1_eq_mk (f : α →ₛ E) (hf : integrable f μ) :
+  (to_L1 f hf : α →ₘ[μ] E) = ae_eq_fun.mk f f.ae_measurable := rfl
 
-lemma of_simple_func_zero : of_simple_func (0 : α →ₛ E) (integrable_zero α E μ) = 0 := rfl
+lemma to_L1_zero : to_L1 (0 : α →ₛ E) (integrable_zero α E μ) = 0 := rfl
 
-lemma of_simple_func_add (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ) :
-  of_simple_func (f + g) (hf.add hg) = of_simple_func f hf + of_simple_func g hg := rfl
+lemma to_L1_add (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ) :
+  to_L1 (f + g) (hf.add hg) = to_L1 f hf + to_L1 g hg := rfl
 
-lemma of_simple_func_neg (f : α →ₛ E) (hf : integrable f μ) :
-  of_simple_func (-f) hf.neg = -of_simple_func f hf := rfl
+lemma to_L1_neg (f : α →ₛ E) (hf : integrable f μ) :
+  to_L1 (-f) hf.neg = -to_L1 f hf := rfl
 
-lemma of_simple_func_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ) :
-  of_simple_func (f - g) (hf.sub hg) = of_simple_func f hf - of_simple_func g hg :=
-by { simp only [sub_eq_add_neg, ← of_simple_func_neg, ← of_simple_func_add], refl }
+lemma to_L1_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ) :
+  to_L1 (f - g) (hf.sub hg) = to_L1 f hf - to_L1 g hg :=
+by { simp only [sub_eq_add_neg, ← to_L1_neg, ← to_L1_add], refl }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
-lemma of_simple_func_smul (f : α →ₛ E) (hf : integrable f μ) (c : 𝕜) :
-  of_simple_func (c • f) (hf.smul c) = c • of_simple_func f hf := rfl
+lemma to_L1_smul (f : α →ₛ E) (hf : integrable f μ) (c : 𝕜) :
+  to_L1 (c • f) (hf.smul c) = c • to_L1 f hf := rfl
 
-lemma norm_of_simple_func (f : α →ₛ E) (hf : integrable f μ) :
-  ∥of_simple_func f hf∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
+lemma norm_to_L1 (f : α →ₛ E) (hf : integrable f μ) :
+  ∥to_L1 f hf∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
 rfl
 
-end of_simple_func
+end to_L1
 
 section to_simple_func
 
@@ -564,13 +552,13 @@ f.measurable.ae_measurable
 protected lemma integrable (f : α →₁ₛ[μ] E) : integrable f.to_simple_func μ :=
 let h := classical.some_spec f.2 in (integrable_mk f.ae_measurable).1 $ h.symm ▸ (f : α →₁[μ] E).2
 
-lemma of_simple_func_to_simple_func (f : α →₁ₛ[μ] E) :
-  of_simple_func (f.to_simple_func) f.integrable = f :=
+lemma to_L1_to_simple_func (f : α →₁ₛ[μ] E) :
+  to_L1 (f.to_simple_func) f.integrable = f :=
 by { rw ← simple_func.eq_iff', exact classical.some_spec f.2 }
 
-lemma to_simple_func_of_simple_func (f : α →ₛ E) (hfi : integrable f μ) :
-  (of_simple_func f hfi).to_simple_func =ᵐ[μ] f :=
-by { rw ← mk_eq_mk, exact classical.some_spec (of_simple_func f hfi).2 }
+lemma to_simple_func_to_L1 (f : α →ₛ E) (hfi : integrable f μ) :
+  (to_L1 f hfi).to_simple_func =ᵐ[μ] f :=
+by { rw ← mk_eq_mk, exact classical.some_spec (to_L1 f hfi).2 }
 
 lemma to_simple_func_eq_to_fun (f : α →₁ₛ[μ] E) : f.to_simple_func =ᵐ[μ] f :=
 begin
@@ -696,7 +684,7 @@ begin
   have A : ae_eq_fun.mk f f.ae_measurable = f := mk_coe_fn _,
   rw mem_closure_iff_seq_limit,
   have hfi' := integrable_coe_fn.2 hfi,
-  refine ⟨λ n, ↑(of_simple_func (simple_func.approx_on f f.measurable univ 0 trivial n)
+  refine ⟨λ n, ↑(to_L1 (simple_func.approx_on f f.measurable univ 0 trivial n)
     (simple_func.integrable_approx_on_univ f.measurable hfi' n)), λ n, mem_range_self _, _⟩,
   simp only [tendsto_iff_edist_tendsto_0, of_fun_eq_mk, subtype.coe_mk, edist_eq],
   dsimp,
@@ -1371,9 +1359,9 @@ end
 lemma simple_func.integral_eq_integral (f : α →ₛ E) (hfi : integrable f μ) :
   f.integral μ = ∫ x, f x ∂μ :=
 begin
-  rw [integral_eq f hfi, ← l1.simple_func.of_simple_func_eq_of_fun,
+  rw [integral_eq f hfi, ← l1.simple_func.to_L1_eq_of_fun,
     l1.simple_func.integral_l1_eq_integral, l1.simple_func.integral_eq_integral],
-  exact simple_func.integral_congr hfi (l1.simple_func.to_simple_func_of_simple_func _ _).symm
+  exact simple_func.integral_congr hfi (l1.simple_func.to_simple_func_to_L1 _ _).symm
 end
 
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=

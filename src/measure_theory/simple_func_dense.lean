@@ -219,8 +219,8 @@ integrable_approx_on fmeas hf _ (integrable_zero _ _ _) n
 
 lemma tendsto_approx_on_univ_l1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
-  tendsto (λ n, l1.of_fun (approx_on f fmeas univ 0 trivial n)
-    (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ l1.of_fun f hf) :=
+  tendsto (λ n, integrable.to_L1 (approx_on f fmeas univ 0 trivial n)
+    (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ hf.to_L1 f) :=
 tendsto_iff_edist_tendsto_0.2 $ tendsto_approx_on_univ_l1_edist fmeas hf
 
 end simple_func

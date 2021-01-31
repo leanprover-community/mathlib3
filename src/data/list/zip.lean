@@ -275,7 +275,7 @@ begin
     { simp [hl] } }
 end
 
-@[simp] lemma sum_zip_with_distrib_left (f : α → β → ℕ) (n : ℕ) (l : list α) (l' : list β) :
+@[simp] lemma sum_zip_with_distrib_left [semiring γ] (f : α → β → γ) (n : γ) (l : list α) (l' : list β) :
   (zip_with (λ x y, n * f x y) l l').sum = n * (l.zip_with f l').sum :=
 begin
   induction l with hd tl hl generalizing f n l',
@@ -283,6 +283,16 @@ begin
   { cases l' with hd' tl',
     { simp, },
     { simp [hl, mul_add] } }
+end
+
+@[simp] lemma sum_zip_with_distrib_right [semiring γ] (f : α → β → γ) (n : γ) (l : list α) (l' : list β) :
+  (zip_with (λ x y, f x y * n) l l').sum = (l.zip_with f l').sum * n :=
+begin
+  induction l with hd tl hl generalizing f n l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp, },
+    { simp [hl, add_mul] } }
 end
 
 end list

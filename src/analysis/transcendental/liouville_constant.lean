@@ -183,10 +183,11 @@ begin
   push_cast,
   rw [← hp, h_truncation_wd, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos
     (by exact_mod_cast lt_trans one_lt_two hm : 1 < (m : ℝ)) _)],
-  refine ⟨one_lt_pow (by exact_mod_cast (lt_trans one_lt_two hm)) (nat.factorial_pos _),
-    liouville_constant_terms_after_pos (by exact_mod_cast lt_trans one_lt_two hm) _, _⟩,
-  refine lt_of_le_of_lt (calc_liou_one (by exact_mod_cast (lt_trans one_lt_two hm)) n) _,
-  exact calc_liou_two _ (by assumption_mod_cast),
+  refine ⟨one_lt_pow (by exact_mod_cast (lt_trans one_lt_two hm)) (nat.factorial_pos _), _, _⟩,
+  { rw [ne.def, add_right_eq_self],
+    exact ne_of_gt (liouville_constant_terms_after_pos (by exact_mod_cast one_lt_two.trans hm) n) },
+  { refine lt_of_le_of_lt (calc_liou_one (by exact_mod_cast (lt_trans one_lt_two hm)) n) _,
+    exact calc_liou_two _ (by assumption_mod_cast) }
 end
 
 lemma is_transcendental_liouville_constant (hm : 2 < m) :

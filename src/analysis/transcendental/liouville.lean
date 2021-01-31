@@ -17,25 +17,26 @@ This file contains the proof of Liouville's theorem stating that all Liouville n
 transcendental.
 -/
 
-lemma nat.mul_lt_mul_pow_succ {n : ℕ} {a q : ℕ}
-  (a0 : 0 < a)
-  (q1 : 1 < q) :
+lemma nat.mul_lt_mul_pow_succ {n : ℕ} {a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
   n * q < a * q ^ (n + 1) :=
 begin
-  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (lt_trans zero_lt_one q1)],
-  apply lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
+  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
 end
 
-lemma int.mul_lt_mul_pow_succ {n : ℕ} {a q : ℤ}
-  (a0 : 0 < a)
-  (q1 : 1 < q) :
+lemma int.mul_lt_mul_pow_succ {n : ℕ} {a q : ℤ} (a0 : 0 < a) (q1 : 1 < q) :
   (n : ℤ) * q < a * q ^ (n + 1) :=
 begin
-  lift a to ℕ using le_of_lt a0,
-  lift q to ℕ using le_trans (zero_le_one) (le_of_lt q1),
-  norm_cast at *,
-  exact nat.mul_lt_mul_pow_succ a0 q1,
+  lift a to ℕ using a0.le,
+  lift q to ℕ using zero_le_one.trans q1.le,
+  rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt],
+  exact nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp a0) (int.coe_nat_lt.mp q1),
 end
+
+lemma int.eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
+⟨λ a0, le_antisymm (int.le_of_lt_add_one (by { rw zero_add, exact (abs_lt.mp a0).2 }))
+  (by { rw ← add_left_neg (0 : ℤ), exact int.add_one_le_iff.mpr (abs_lt.mp a0).1 }),
+  λ a0, by { rw [a0, abs_zero], exact zero_lt_one }⟩
 
 namespace real
 /--
@@ -43,20 +44,17 @@ A Liouville number `x` is a number such that for every natural number `n`, there
 with `b > 1` such that `0 < |x - a/b| < 1/bⁿ`.
 -/
 def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
-  1 < b ∧ 0 < abs (x - a / b) ∧ abs (x - a / b) < 1 / b ^ n
+  1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
 
 lemma not_liouville_zero : ¬ is_liouville 0 :=
 begin
   intro h,
   rcases h 1 with ⟨a, b, b1, ab0, ald⟩,
-  rw [zero_sub, abs_neg, abs_pos, ne.def, div_eq_zero_iff, not_or_distrib] at ab0,
-  rw [pow_one, zero_sub, abs_neg, abs_div, @abs_of_pos _ _ (b : ℝ), div_lt_div_iff,
-    mul_lt_mul_right] at ald,
-  any_goals { exact_mod_cast lt_trans zero_lt_one b1 },
-  rcases ab0 with ⟨a0, -⟩,
-  refine a0 _,
-  norm_cast at ald ⊢,
-  exact abs_eq_zero.mp ((int.sub_one_lt_iff.mp (sub_lt_zero.mpr ald)).antisymm (abs_nonneg _)),
+  have b0 : 0 < (b : ℝ), { exact_mod_cast lt_trans zero_lt_one b1 },
+  rw [pow_one, zero_sub, abs_neg, abs_div, abs_of_pos b0, div_lt_div_iff b0 b0,
+    mul_lt_mul_right b0] at ald,
+  refine ab0 (div_eq_zero_iff.mpr (or.inl _)).symm,
+  exact_mod_cast int.eq_zero_iff_abs_lt_one.mp (by exact_mod_cast ald),
 end
 
 lemma irrational_of_is_liouville {x : ℝ} (h : is_liouville x) : irrational x :=
@@ -65,14 +63,16 @@ begin
   cases r with a b bN0 cop,
   change (is_liouville (a / b)) at h,
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
-  have qR0 : (0 : ℝ) < q, exact_mod_cast (lt_trans zero_lt_one q1),
-  have b0 : (b : ℝ) ≠ 0 := ne_of_gt (by exact_mod_cast bN0),
-  have bq0 : (0 : ℝ) < b * q := mul_pos (by exact_mod_cast bN0) qR0,
-  rw [div_sub_div (a : ℝ) (p : ℝ) b0 (ne_of_gt qR0), abs_div] at a0 a1,
-  rw [lt_div_iff (abs_pos.mpr (mul_ne_zero b0 (ne_of_gt qR0))), zero_mul] at a0,
-  rw [div_lt_div_iff (abs_pos.mpr (ne_of_gt bq0)) (pow_pos qR0 _), abs_of_pos bq0, one_mul] at a1,
-  norm_cast at a1 a0,
-  exact not_le.mpr a1 (le_of_lt (int.mul_lt_mul_pow_succ a0 q1)),
+  have qR0 : (0 : ℝ) < q := int.cast_pos.mpr (zero_lt_one.trans q1),
+  have b0 : (b : ℝ) ≠ 0 := ne_of_gt (nat.cast_pos.mpr bN0),
+  have bq0 : (0 : ℝ) < b * q := mul_pos (nat.cast_pos.mpr bN0) qR0,
+  rw [div_sub_div _ _ b0 (ne_of_gt qR0), abs_div, div_lt_div_iff (abs_pos.mpr (ne_of_gt bq0))
+    (pow_pos qR0 _), abs_of_pos bq0, one_mul] at a1,
+  rw [← int.cast_pow, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul,
+    ← int.cast_sub, ← int.cast_abs, ← int.cast_mul, int.cast_lt] at a1,
+  rw [ne.def, div_eq_div_iff b0 (ne_of_gt qR0), mul_comm ↑p, ← sub_eq_zero_iff_eq] at a0,
+  rw [← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul, ← int.cast_sub, int.cast_eq_zero] at a0,
+  exact not_le.mpr a1 (le_of_lt (int.mul_lt_mul_pow_succ (abs_pos.mpr a0) q1)),
 end
 
 end real
@@ -201,7 +201,7 @@ begin
     exists_pos_real_of_irrational_root (irrational_of_is_liouville liouville_x) f0 ef0,
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
   obtain ⟨a, b, b1, -, a1⟩ := liouville_x (r + f.nat_degree),
-  have b0 : (0 : ℝ) < b := lt_trans zero_lt_one (by exact_mod_cast b1),
+  have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
   have : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A,
   { refine pow_mul_lt_c (one_div_pos.mpr hA) (zero_lt_two) _ ((lt_div_iff' (pow_pos b0 _)).mp a1) _,
     { exact_mod_cast int.add_one_le_iff.mpr b1 },

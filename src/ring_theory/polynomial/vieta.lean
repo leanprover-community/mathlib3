@@ -61,15 +61,13 @@ begin
   apply_fun (polynomial.map (eval r)) at h,
   rw [map_prod, map_sum] at h,
   convert h,
+  simp only [eval_X, map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
   funext,
-  simp only [eval_X, map_add, polynomial.map_C, polynomial.map_X],
-  funext,
-  simp only [esymm, polynomial.map_C, map_sum, polynomial.C.map_sum,
+  simp only [function.funext_iff, esymm, polynomial.map_C, map_sum, polynomial.C.map_sum,
     polynomial.map_C, map_pow, polynomial.map_X, map_mul],
   congr,
   funext,
-  simp only [eval_prod, eval_X],
-  rw (polynomial.C : R →+* polynomial R).map_prod,
+  simp only [eval_prod, eval_X, (polynomial.C : R →+* polynomial R).map_prod],
 end
 
 lemma esymm_to_sum (r : σ → R) (j : ℕ) : polynomial.C (eval r (esymm σ R j)) =

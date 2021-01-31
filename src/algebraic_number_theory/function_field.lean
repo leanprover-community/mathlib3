@@ -13,10 +13,10 @@ in one variable over a finite field.
 The map `f` witnesses that `L` is isomorphic to the rational polynomials over a finite field;
 `f` is uniquely determined, thus it's marked as an `out_param`.
 -/
-class function_field_over {K : Type*} {L : Type*} [field K] [fintype K] [field L]
-  (f : out_param (fraction_map (polynomial K) L)) (F : Type*) [field F] :=
-[alg : algebra f.codomain F]
-[fd : finite_dimensional f.codomain F]
+class function_field_over {K L : Type*} [field K] [fintype K] [field L]
+  (f : out_param (fraction_map (polynomial K) L)) (F : Type*) [field F]
+  [algebra f.codomain F] : Prop :=
+(fd : finite_dimensional f.codomain F)
 
 /-- `F` is a function field if it is a finite extension of the field of rational polynomials
 in one variable over a finite field.
@@ -26,17 +26,18 @@ class function_field (F : Type*) [field F] :=
 (fin_field : Type*) [field_fin_field : field fin_field] [fintype_fin_field : fintype fin_field]
 (rat_poly : Type*) [field_rat_poly : field rat_poly]
 (rat_poly_map' : fraction_map (polynomial fin_field) rat_poly)
-(ff_over' : function_field_over rat_poly_map' F)
+[alg' : algebra rat_poly_map'.codomain F]
+(ff_over' : @function_field_over _ _ _ _ _ rat_poly_map' F _ alg')
 
 namespace function_field_over
 
 variables {K L : Type*} [field K] [fintype K] [field L]
 variables (f : fraction_map (polynomial K) L)
-variables (F : Type*) [field F] [function_field_over f F]
+variables (F : Type*) [field F] [algebra f.codomain F] [function_field_over f F]
 
 include f
 
-attribute [instance] function_field_over.alg function_field_over.fd
+attribute [instance] function_field_over.fd
 
 @[nolint dangerous_instance] -- Since `f` is an out_param
 instance : algebra (polynomial K) F :=
@@ -58,40 +59,53 @@ rational polynomials over `fin_field F`. -/
 def rat_poly_map : fraction_map (polynomial (fin_field F)) (rat_poly F) :=
 rat_poly_map'
 
+instance alg : algebra (rat_poly_map F).codomain F :=
+alg'
+
 instance ff_over : function_field_over (rat_poly_map F) F :=
 ff_over'
 
+end function_field
+
+namespace function_field_over
+
+variables {K L : Type*} [field K] [fintype K] [field L]
+variables (f : fraction_map (polynomial K) L)
+variables (F : Type*) [field F] [algebra f.codomain F] [function_field_over f F]
+
+include f
+
 /-- The function field analogue of `number_field.ring_of_integers`. -/
-def ring_of_integers := integral_closure (polynomial (fin_field F)) F
+def ring_of_integers := integral_closure (polynomial K) F
 
 namespace ring_of_integers
 
 open fraction_map
 
 /-- `ring_of_integers.fraction_map K` is the map `O_F → F`, as a `fraction_map`. -/
-def fraction_map : fraction_map (ring_of_integers F) F :=
-integral_closure.fraction_map_of_finite_extension _ (rat_poly_map F)
+def fraction_map : fraction_map (ring_of_integers f F) F :=
+integral_closure.fraction_map_of_finite_extension _ f
 
-instance : integral_domain (ring_of_integers F) :=
-(ring_of_integers F).integral_domain
+instance : integral_domain (ring_of_integers f F) :=
+(ring_of_integers f F).integral_domain
 
-variables [is_separable (rat_poly_map F).codomain F]
+variables [is_separable f.codomain F]
 
 instance is_dedekind_domain_integral_closure :
-  is_dedekind_domain (integral_closure (polynomial (fin_field F)) F) :=
-is_dedekind_domain.integral_closure (rat_poly_map F) (principal_ideal_ring.is_dedekind_domain _)
+  is_dedekind_domain (integral_closure (polynomial K) F) :=
+is_dedekind_domain.integral_closure f (principal_ideal_ring.is_dedekind_domain _)
 
-instance : is_dedekind_domain (ring_of_integers F) :=
-ring_of_integers.is_dedekind_domain_integral_closure F
+instance : is_dedekind_domain (ring_of_integers f F) :=
+ring_of_integers.is_dedekind_domain_integral_closure f F
 
-variables [decidable_eq (fin_field F)]
+variables [decidable_eq K]
 
-noncomputable instance : fintype (class_group (ring_of_integers.fraction_map F)) :=
+noncomputable instance : fintype (class_group (ring_of_integers.fraction_map f F)) :=
 class_group.finite_of_admissible _ _ polynomial.admissible_char_pow_degree
 
 /-- The class number in a function field is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map F))
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map f F))
 
 end ring_of_integers
 
-end function_field
+end function_field_over

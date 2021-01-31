@@ -1186,7 +1186,7 @@ lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.c
   {x : R} : quotient_map I f H (quotient.mk J x) = quotient.mk I (f x) :=
 quotient.lift_mk J _ _
 
-lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f} :
+lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J ≤ I.comap f) :
   (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
 

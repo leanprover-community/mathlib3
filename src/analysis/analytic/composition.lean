@@ -257,14 +257,17 @@ lemma comp_along_composition_nnnorm {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) :
   nnnorm (q.comp_along_composition p c) ≤ nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i)) :=
-by simpa only [← nnreal.coe_le_coe, coe_nnnorm, nnreal.coe_mul, coe_nnnorm, nnreal.coe_prod, coe_nnnorm]
-  using q.comp_along_composition_norm p c
+by { rw ← nnreal.coe_le_coe, push_cast, exact q.comp_along_composition_norm p c }
 
 /-- Formal composition of two formal multilinear series. The `n`-th coefficient in the composition
 is defined to be the sum of `q.comp_along_composition p c` over all compositions of
 `n`. In other words, this term (as a multilinear function applied to `v_0, ..., v_{n-1}`) is
 `∑'_{k} ∑'_{i₁ + ... + iₖ = n} pₖ (q_{i_1} (...), ..., q_{i_k} (...))`, where one puts all variables
-`v_0, ..., v_{n-1}` in increasing order in the dots.-/
+`v_0, ..., v_{n-1}` in increasing order in the dots.
+
+In general, the composition `q ∘ p` only makes sense when the constant coefficient of `p` vanishes.
+We give a general formula but which ignores the value of `p 0` instead.
+-/
 protected def comp (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) :
   formal_multilinear_series 𝕜 E G :=
 λ n, ∑ c : composition n, q.comp_along_composition p c

@@ -342,10 +342,10 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     rhs' ← rhs.dsimp {fail_if_unchanged := ff},
     when_tracing `simps.debug $ when (rhs ≠ rhs') trace!
       "[simps] > `dsimp` simplified rhs to\n        > {rhs'}",
-    rhsprf ← rhs'.simp {fail_if_unchanged := ff},
-    when_tracing `simps.debug $ when (rhs' ≠ rhsprf.1) trace!
-      "[simps] > `simp` simplified rhs to\n        > {rhsprf.1}",
-    return rhsprf }
+    (rhsprf1, rhsprf2, ns) ← rhs'.simp {fail_if_unchanged := ff},
+    when_tracing `simps.debug $ when (rhs' ≠ rhsprf1) trace!
+      "[simps] > `simp` simplified rhs to\n        > {rhsprf1}",
+    return (prod.mk rhsprf1 rhsprf2) }
     <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
   eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
   decl_name ← get_unused_decl_name nm,

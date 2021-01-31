@@ -725,6 +725,14 @@ begin
     (eventually_nhds_within_iff.2 $ eventually_of_forall $ λ c hc, h hc x)
 end
 
+@[simp] lemma is_O_with_principal {s : set α} :
+  is_O_with c f g (𝓟 s) ↔ ∀ x ∈ s, ∥f x∥ ≤ c * ∥g x∥ :=
+iff.rfl
+
+lemma is_O_principal {s : set α} :
+  is_O f g (𝓟 s) ↔ ∃ c, ∀ x ∈ s, ∥f x∥ ≤ c * ∥g x∥ :=
+iff.rfl
+
 theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ (λ x : α, c) (λ x, (1 : 𝕜)) l :=
 begin
   refine (is_O_with_const_const c _ l).congr_const _,

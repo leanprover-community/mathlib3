@@ -247,10 +247,7 @@ def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
 @[simp]
 lemma kernel_iso_ker_hom_comp_subtype {G H : AddCommGroup} (f : G ⟶ H) :
   (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f :=
-begin
-  ext,
-  simp [kernel_iso_ker],
-end
+by ext; refl
 
 @[simp]
 lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :

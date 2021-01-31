@@ -2535,10 +2535,10 @@ by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_ort
 
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/
-lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1)
+lemma findim_orthogonal_span_singleton {n : ℕ} [_i : fact (findim 𝕜 E = n + 1)]
   {v : E} (hv : v ≠ 0) :
   findim 𝕜 (𝕜 ∙ v)ᗮ = n :=
-submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, hn, add_comm]
+submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, _i.elim, add_comm]
 
 end orthogonal
 
@@ -2698,8 +2698,8 @@ hv.2.isometry_euclidean_of_orthonormal hv.1
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.from_orthogonal_span_singleton
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1) {v : E} (hv : v ≠ 0) :
+  {n : ℕ} [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hn hv)
+linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hv)
 
 end orthonormal_basis

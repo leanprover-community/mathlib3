@@ -5,7 +5,7 @@ Author: Ashvni Narayanan, Anne Baanen
 -/
 
 import algebra.field
-import algebraic_number_theory.class_number
+--import algebraic_number_theory.class_number
 import data.rat.basic
 import ring_theory.algebraic
 import ring_theory.dedekind_domain
@@ -90,7 +90,6 @@ def ring_of_integers := @integral_closure ℤ K _
 namespace ring_of_integers
 
 open fraction_map
-
 local attribute [class] algebra.is_algebraic
 
 -- TODO: we should make `fraction_map` extend `algebra`, so we don't need to add these instances.
@@ -101,30 +100,12 @@ is_scalar_tower.of_algebra_map_eq (λ x, by simp)
 instance : char_zero int.fraction_map.codomain := show char_zero ℚ, by apply_instance
 instance : finite_dimensional int.fraction_map.codomain K := ‹is_number_field K›.fd
 instance : algebra.is_algebraic int.fraction_map.codomain K := is_algebraic_of_number_field K
-instance : is_separable int.fraction_map.codomain K := is_separable_of_char_zero ℚ K
-
-lemma algebra_map_eq_coe : (algebra_map ℤ ℚ : ℤ → ℚ) = coe := rfl
-
-/-- `ring_of_integers.fraction_map K` is the map `O_K → K`, as a `fraction_map`. -/
-def fraction_map : fraction_map (ring_of_integers K) K :=
-integral_closure.fraction_map_of_finite_extension K int.fraction_map
-
-instance : integral_domain (ring_of_integers K) :=
-(ring_of_integers K).integral_domain
-
-example (K : Type) [field K] (x : K) (h : x ≠ 0): x * (field.inv x) = 1 := field.mul_inv_cancel h
 
 instance integral_closure_int.is_dedekind_domain : is_dedekind_domain (integral_closure ℤ K) :=
 is_dedekind_domain.integral_closure int.fraction_map (principal_ideal_ring.is_dedekind_domain _)
 
 instance is_dedekind_domain_of_ring_of_integers : is_dedekind_domain (ring_of_integers K) :=
 integral_closure_int.is_dedekind_domain K
-
-noncomputable instance : fintype (class_group (ring_of_integers.fraction_map K)) :=
-class_group.finite_of_admissible K int.fraction_map int.admissible_abs
-
-/-- The class number of a number ring is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map K))
 
 end ring_of_integers
 

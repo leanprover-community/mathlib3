@@ -184,27 +184,21 @@ let ⟨u, hu₁, hu₂⟩ := exists_unique_add_of_is_compl_prod hc x in
 /-- Given linear maps `φ` and `ψ` from complement submodules, `of_is_compl` is
 the induced linear map over the entire module. -/
 def of_is_compl (h : is_compl p q) (φ : p →ₗ[R] F) (ψ : q →ₗ[R] F) : E →ₗ[R] F :=
-φ.comp (linear_proj_of_is_compl p q h) + ψ.comp (linear_proj_of_is_compl q p h.symm)
+(linear_map.coprod φ ψ).comp (submodule.prod_equiv_of_is_compl _ _ h).symm
 
 @[simp] lemma of_is_compl_left_apply
   (h : is_compl p q) {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} (u : p) :
-  of_is_compl h φ ψ (u : E) = φ u :=
-by erw [of_is_compl, linear_map.add_apply, linear_map.comp_apply,
-        linear_proj_of_is_compl_apply_left, linear_map.comp_apply,
-        linear_proj_of_is_compl_apply_right, linear_map.map_zero, add_zero]
+  of_is_compl h φ ψ (u : E) = φ u := by simp [of_is_compl]
 
 @[simp] lemma of_is_compl_right_apply
   (h : is_compl p q) {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} (v : q) :
-  of_is_compl h φ ψ (v : E) = ψ v :=
-by erw [of_is_compl, linear_map.add_apply, linear_map.comp_apply,
-        linear_proj_of_is_compl_apply_right, linear_map.comp_apply,
-        linear_proj_of_is_compl_apply_left, linear_map.map_zero, zero_add]
+  of_is_compl h φ ψ (v : E) = ψ v := by simp [of_is_compl]
 
 @[simp] lemma of_is_compl_zero (h : is_compl p q) :
   (of_is_compl h 0 0 : E →ₗ[R] F) = 0 :=
 begin
   ext, obtain ⟨_, _, rfl, _⟩ := exists_unique_add_of_is_compl h x,
-  erw [linear_map.map_add, of_is_compl_left_apply, add_zero, linear_map.zero_apply]
+  simp [of_is_compl]
 end
 
 @[simp] lemma of_is_compl_add (h : is_compl p q)
@@ -212,8 +206,7 @@ end
   of_is_compl h (φ₁ + φ₂) (ψ₁ + ψ₂) = of_is_compl h φ₁ ψ₁ + of_is_compl h φ₂ ψ₂ :=
 begin
   ext, obtain ⟨_, _, rfl, _⟩ := exists_unique_add_of_is_compl h x,
-  simp only [of_is_compl_left_apply, of_is_compl_right_apply,
-    linear_map.add_apply, linear_map.map_add, subtype.val_eq_coe],
+  simp [linear_map.map_add]
 end
 
 @[simp] lemma of_is_compl_smul
@@ -223,8 +216,7 @@ end
   of_is_compl h (c • φ) (c • ψ) = c • of_is_compl h φ ψ :=
 begin
   ext, obtain ⟨_, _, rfl, _⟩ := exists_unique_add_of_is_compl h x,
-  simp only [of_is_compl_left_apply, of_is_compl_right_apply, linear_map.smul_apply,
-    eq_self_iff_true, linear_map.map_add, subtype.val_eq_coe],
+  simp,
 end
 
 section
@@ -255,9 +247,7 @@ def of_is_compl_prod_equiv {p q : submodule R₁ E} (h : is_compl p q) :
     begin
       intro φ, ext,
       obtain ⟨a, b, hab, _⟩ := exists_unique_add_of_is_compl h x,
-      change (of_is_compl h (φ.dom_restrict p) (φ.dom_restrict q)) x = φ x,
-      rw [← hab, linear_map.map_add, of_is_compl_left_apply, of_is_compl_right_apply,
-        dom_restrict_apply, dom_restrict_apply, linear_map.map_add],
+      rw [← hab], simp,
     end, .. of_is_compl_prod h }
 
 end

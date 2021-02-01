@@ -88,15 +88,13 @@ theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
 by rw [← zip_map, map_id]
 
 @[simp] lemma zip_with_map {μ}
-  (f: γ → δ → μ) (g: α → γ) (h: β → δ) (as: list α) (bs: list β):
-  list.zip_with f (as.map g) (bs.map h) = list.zip_with (λ a b, f (g a) (h b)) as bs
-  :=
+  (f : γ → δ → μ) (g : α → γ) (h : β → δ) (as : list α) (bs : list β) :
+  list.zip_with f (as.map g) (bs.map h) =
+  list.zip_with (λ a b, f (g a) (h b)) as bs :=
 begin
-  induction as with hd tl hl generalizing bs,
+  induction as generalizing bs,
   { simp },
-  { cases bs,
-    { simp },
-    { simp [hl] } }
+  { cases bs; simp * }
 end
 
 lemma zip_with_map_left

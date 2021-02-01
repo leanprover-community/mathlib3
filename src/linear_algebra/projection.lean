@@ -168,8 +168,8 @@ lemma linear_proj_of_is_compl_idempotent (h : is_compl p q) (x : E) :
 linear_proj_of_is_compl_apply_left h _
 
 lemma exists_unique_add_of_is_compl (hc : is_compl p q) (x : E) :
-  ∃ (u : p) (v : q), (u.1 + v.1 = x ∧ ∀ (r : p) (s : q),
-    r.1 + s.1 = x → r = u ∧ s = v) :=
+  ∃ (u : p) (v : q), ((u : E) + v = x ∧ ∀ (r : p) (s : q),
+    (r : E) + s = x → r = u ∧ s = v) :=
 begin
   obtain ⟨u, v, h⟩ :=
     submodule.mem_sup'.1 ((eq_top_iff.2 hc.2).symm ▸ mem_top : x ∈ p ⊔ q),
@@ -191,11 +191,37 @@ begin
     exact p.sub_mem r.2 u.2 }
 end .
 
+lemma exists_unique_add_of_is_compl_prod (hc : is_compl p q) (x : E) :
+  ∃! (u : p × q), (u.fst : E) + u.snd = x :=
+begin
+  sorry
+  -- obtain ⟨u, v, h⟩ :=
+  --   submodule.mem_sup'.1 ((eq_top_iff.2 hc.2).symm ▸ mem_top : x ∈ p ⊔ q),
+  -- refine ⟨u, v, h, λ r s hrs, _⟩,
+  -- erw [← h, ← @add_right_cancel_iff _ _ (-s : E) (r + s) (u + v),
+  --      add_assoc, add_neg_self, add_zero,
+  --      ← @add_left_cancel_iff _ _ (-u : E) r (u + v + -s),
+  --      ← add_assoc, ← add_assoc, add_left_neg, zero_add, add_comm,
+  --      ← sub_eq_add_neg, ← sub_eq_add_neg] at hrs,
+  -- split; rw [← sub_eq_zero],
+  -- { suffices : r.1 - u.1 ∈ q,
+  --   { rw [← coe_eq_coe, coe_sub],
+  --     exact (submodule.mem_bot _).1 (hc.1 ⟨p.sub_mem r.2 u.2, this⟩) },
+  --   erw hrs, exact q.sub_mem v.2 s.2 },
+  -- { suffices : s.1 - v.1 ∈ p,
+  --   { rw [← coe_eq_coe, coe_sub],
+  --     exact (submodule.mem_bot _).1 (hc.1 ⟨this, q.sub_mem s.2 v.2⟩) },
+  --   erw [← neg_mem_iff, neg_sub, ← hrs],
+  --   exact p.sub_mem r.2 u.2 }
+end .
+
 /-- Given linear maps `φ` and `ψ` from complement submodules, `of_is_compl` is
 the induced linear map over the entire module. -/
-noncomputable def of_is_compl
-  (h : is_compl p q) (φ : p →ₗ[R] F) (ψ : q →ₗ[R] F) : E →ₗ[R] F :=
- φ.comp (linear_proj_of_is_compl p q h) + ψ.comp (linear_proj_of_is_compl q p h.symm)
+def of_is_compl (h : is_compl p q) (φ : p →ₗ[R] F) (ψ : q →ₗ[R] F) : E →ₗ[R] F :=
+φ.comp (linear_proj_of_is_compl p q h) + ψ.comp (linear_proj_of_is_compl q p h.symm)
+
+def of_is_compl_prod (h : is_compl p q) (φ : (p →ₗ[R] F) × (q →ₗ[R] F)) : E →ₗ[R] F :=
+of_is_compl h φ.1 φ.2
 
 @[simp] lemma of_is_compl_left_apply
   (h : is_compl p q) {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} (u : p) :
@@ -236,6 +262,44 @@ begin
   ext, obtain ⟨_, _, rfl, _⟩ := exists_unique_add_of_is_compl h x,
   simp only [of_is_compl_left_apply, of_is_compl_right_apply, linear_map.smul_apply,
     eq_self_iff_true, linear_map.map_add, subtype.val_eq_coe],
+end
+
+section
+
+variables {R₁ : Type*} [comm_ring R₁] [module R₁ E] [module R₁ F]
+
+def of_is_compl_prod' {p q : submodule R₁ E} (h : is_compl p q) :
+  ((p →ₗ[R₁] F) × (q →ₗ[R₁] F)) →ₗ[R₁] (E →ₗ[R₁] F) :=
+{ to_fun := of_is_compl_prod h,
+  map_add' :=
+    begin
+      intros φ ψ,
+      rw [of_is_compl_prod, prod.snd_add, prod.fst_add, of_is_compl_add], refl,
+    end,
+  map_smul' :=
+    begin
+      intros c φ,
+      rw [of_is_compl_prod, prod.smul_snd, prod.smul_fst, of_is_compl_smul], refl,
+    end }
+
+def of_is_compl_prod_equiv {p q : submodule R₁ E} (h : is_compl p q) :
+  ((p →ₗ[R₁] F) × (q →ₗ[R₁] F)) ≃ₗ[R₁] (E →ₗ[R₁] F) :=
+{ inv_fun := λ φ, ⟨φ.dom_restrict p, φ.dom_restrict q⟩,
+  left_inv :=
+    begin
+      intros φ, ext,
+      { exact of_is_compl_left_apply h x },
+      { exact of_is_compl_right_apply h x }
+    end,
+  right_inv :=
+    begin
+      intro φ, ext,
+      obtain ⟨a, b, hab, _⟩ := exists_unique_add_of_is_compl h x,
+      change (of_is_compl h (φ.dom_restrict p) (φ.dom_restrict q)) x = φ x,
+      rw [← hab, linear_map.map_add, of_is_compl_left_apply, of_is_compl_right_apply,
+        dom_restrict_apply, dom_restrict_apply, linear_map.map_add],
+    end, .. of_is_compl_prod' h }
+
 end
 
 end submodule

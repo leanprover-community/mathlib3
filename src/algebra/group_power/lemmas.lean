@@ -384,22 +384,22 @@ by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero
 @[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
 
-theorem even_pow_nonneg (a : R) (hn : even n) : 0 ≤ a ^ n :=
+theorem pow_even_nonneg (a : R) (hn : even n) : 0 ≤ a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
 
-theorem even_pow_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
+theorem pow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
 
-theorem odd_pow_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
+theorem pow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonneg_iff.mpr ha
 
-theorem odd_pow_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
+theorem pow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_pos_iff.mpr ha
 
-theorem odd_pow_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
+theorem pow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
 
-theorem odd_pow_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
+theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
 
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=

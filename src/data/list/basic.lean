@@ -1289,6 +1289,9 @@ by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
 
 @[simp] lemma update_nth_nil (n : ℕ) (a : α) : [].update_nth n a = [] := rfl
 
+@[simp] lemma update_nth_succ (x : α) (xs : list α) (n : ℕ) (a : α) :
+  (x :: xs).update_nth n.succ a = x :: xs.update_nth n a := rfl
+
 lemma update_nth_comm (a b : α) : Π {n m : ℕ} (h : n ≠ m) (l : list α),
   (l.update_nth n a).update_nth m b = (l.update_nth m b).update_nth n a
 | _ _ _ [] := by simp

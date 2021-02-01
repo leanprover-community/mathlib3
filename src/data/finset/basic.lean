@@ -2123,7 +2123,7 @@ lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=
 bUnion_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
 
-lemma erase_bUnion [decidable_eq β] (f : α → finset β) (s : finset α) (b : β) :
+lemma erase_bUnion (f : α → finset β) (s : finset α) (b : β) :
   (s.bUnion f).erase b = s.bUnion (λ x, (f x).erase b) :=
 begin
   ext y,

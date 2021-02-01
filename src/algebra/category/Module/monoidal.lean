@@ -100,7 +100,8 @@ lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
 by convert associator_naturality_aux f₁ f₂ f₃ using 1
 
 lemma pentagon (W X Y Z : Module R) :
-  tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
+  tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom ≫
+    tensor_hom (𝟙 W) (associator X Y Z).hom =
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
 by convert pentagon_aux R W X Y Z using 1
 
@@ -164,7 +165,8 @@ instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
   triangle'                := λ M N, triangle M N, }
 
 /-- Remind ourselves that the monoidal unit, being just `R`, is still a commutative ring. -/
-instance : comm_ring ((𝟙_ (Module.{u} R) : Module.{u} R) : Type u) := (by apply_instance : comm_ring R)
+instance : comm_ring ((𝟙_ (Module.{u} R) : Module.{u} R) : Type u) :=
+(by apply_instance : comm_ring R)
 
 namespace monoidal_category
 

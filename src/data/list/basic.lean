@@ -1299,7 +1299,7 @@ lemma update_nth_comm (a b : α) : Π {n m : ℕ} (l : list α) (h : n ≠ m),
 | (n + 1) 0 (x :: t) h := by simp [list.update_nth]
 | 0 (m + 1) (x :: t) h := by simp [list.update_nth]
 | (n + 1) (m + 1) (x :: t) h := by { simp only [update_nth, true_and, eq_self_iff_true],
-  exact update_nth_comm (λ h', h $ nat.succ_inj'.mpr h') t, }
+  exact update_nth_comm t (λ h', h $ nat.succ_inj'.mpr h'), }
 
 @[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
   (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=

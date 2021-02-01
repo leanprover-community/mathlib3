@@ -2125,11 +2125,7 @@ bUnion_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
 
 lemma erase_bUnion (f : α → finset β) (s : finset α) (b : β) :
   (s.bUnion f).erase b = s.bUnion (λ x, (f x).erase b) :=
-begin
-  ext y,
-  simp only [exists_prop, finset.mem_bUnion, ne.def, finset.mem_erase],
-  tauto,
-end
+by { ext, simp only [finset.mem_bUnion, iff_self, exists_and_distrib_left, finset.mem_erase] }
 
 end bUnion
 

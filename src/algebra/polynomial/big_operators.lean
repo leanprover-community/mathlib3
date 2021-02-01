@@ -150,9 +150,11 @@ the sum of the degrees, where the degree of the zero polynomial is ⊥.
 lemma degree_prod [nontrivial R] : (∏ i in s, f i).degree = ∑ i in s, (f i).degree :=
 begin
   classical,
-  induction s using finset.induction with a s ha hs, { simp },
-  rw [prod_insert ha, sum_insert ha],
-  rw polynomial.degree_mul, rw hs,
+  induction s using finset.induction with a s ha hs,
+  { simp },
+  { rw [prod_insert ha, sum_insert ha],
+    rw degree_mul,
+    rw hs },
 end
 
 /--

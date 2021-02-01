@@ -402,9 +402,19 @@ begin
   simp only [and_true, mem_univ],
 end
 
+lemma region_between_subset (f g : α → ℝ) : region_between f g s ⊆ s.prod univ :=
+begin
+  rw prod_univ,
+  unfold region_between,
+  unfold set.preimage,
+  rw set_of_subset_set_of,
+  intros a ha,
+  exact ha.1,
+end
+
 /-- The volume of the region between two measurable functions on a measurable set can be
     respresented as a Lebesgue integral. -/
-theorem volume_region_between_eq_lintegral
+theorem volume_region_between_eq_lintegral'
   (hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
   μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
 begin
@@ -424,6 +434,7 @@ begin
   { exact is_measurable_region_between hf hg hs },
 end
 
+/-
 /-- If two functions are integrable (and measurable) on a measurable set, and one function is less
     than or equal to the other everywhere on that set, then the volume of the region between the
     two functions can be respresented as an integral. -/
@@ -443,6 +454,8 @@ begin
       lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))];
   simpa only,
 end
+
+-/
 
 end region_between
 

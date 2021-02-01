@@ -499,8 +499,8 @@ lemma restrict_prod_eq_prod_univ {s : set α} (hs : is_measurable s) :
   (μ.restrict s).prod ν = (μ.prod ν).restrict (s.prod univ) :=
 begin
   have : ν = ν.restrict set.univ := measure.restrict_univ.symm,
-  rw [this, measure.prod_restrict hs is_measurable.univ, ← this],
-  apply_instance, apply_instance,
+  rwa [this, measure.prod_restrict, ← this],
+  exact is_measurable.univ,
 end
 
 lemma prod_dirac (y : β) : μ.prod (dirac y) = map (λ x, (x, y)) μ :=

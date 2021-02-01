@@ -1000,11 +1000,11 @@ begin
     outer_measure.restrict_apply]
 end
 
-/-- Alterate version of `measure.restrict_apply`,
-requires that `s` is measurable instead of `t`. -/
+/-- Alternate version of `measure.restrict_apply`.
+  Requires that `s` is measurable instead of `t`. -/
 lemma restrict_apply' (hs : is_measurable s) : μ.restrict s t = μ (t ∩ s) :=
 by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
-  outer_measure.restrict_apply s t _, coe_to_outer_measure]
+      outer_measure.restrict_apply s t _, coe_to_outer_measure]
 
 lemma eq_restrict_of_subset_of_measurable (hs : is_measurable s) (t_subset : t ⊆ s) :
   μ t = μ.restrict s t :=

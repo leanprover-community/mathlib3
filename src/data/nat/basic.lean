@@ -1268,14 +1268,17 @@ theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
   nat.find hp ≤ nat.find hq :=
 nat.find_min' _ ((h _) (nat.find_spec hq))
 
-@[simp] lemma find_le_iff (h : ∃ n : ℕ, p n) (n : ℕ) : nat.find h ≤ n ↔ ∃ m ≤ n, p m :=
-⟨λ h2, ⟨nat.find h, h2, nat.find_spec h⟩, λ ⟨m, hmn, hm⟩, (nat.find_min' h hm).trans hmn⟩
+@[simp] lemma find_lt_iff (h : ∃ n : ℕ, p n) (n : ℕ) : nat.find h < n ↔ ∃ m < n, p m :=
+⟨λ h2, ⟨nat.find h, h2, nat.find_spec h⟩, λ ⟨m, hmn, hm⟩, (nat.find_min' h hm).trans_lt hmn⟩
 
-@[simp] lemma lt_find_iff (h : ∃ n : ℕ, p n) (n : ℕ) : n < nat.find h ↔ ∀ m ≤ n, ¬ p m :=
-by simp_rw [← not_le, not_iff_comm, not_forall, not_not, find_le_iff]
+@[simp] lemma find_le_iff (h : ∃ n : ℕ, p n) (n : ℕ) : nat.find h ≤ n ↔ ∃ m ≤ n, p m :=
+by simp only [exists_prop, ← lt_succ_iff, find_lt_iff]
 
 @[simp] lemma le_find_iff (h : ∃ (n : ℕ), p n) (n : ℕ) : n ≤ nat.find h ↔ ∀ m < n, ¬ p m :=
-by { cases n, { simp }, simp_rw [succ_le_iff, lt_find_iff, lt_succ_iff] }
+by simp_rw [← not_lt, not_iff_comm, not_forall, not_not, find_lt_iff]
+
+@[simp] lemma lt_find_iff (h : ∃ n : ℕ, p n) (n : ℕ) : n < nat.find h ↔ ∀ m ≤ n, ¬ p m :=
+by simp only [← succ_le_iff, le_find_iff, succ_le_succ_iff]
 
 end find
 

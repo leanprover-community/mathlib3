@@ -44,8 +44,9 @@ theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
 (ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
 
 theorem annihilator_eq_top_iff : N.annihilator = ⊤ ↔ N = ⊥ :=
-⟨λ H, eq_bot_iff.2 $ λ (n:M) hn, (mem_bot R).2 $ one_smul R n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
-λ H, H.symm ▸ annihilator_bot⟩
+⟨λ H, eq_bot_iff.2 $ λ (n:M) hn, (mem_bot R).2 $
+  one_smul R n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
+  λ H, H.symm ▸ annihilator_bot⟩
 
 theorem annihilator_mono (h : N ≤ P) : P.annihilator ≤ N.annihilator :=
 λ r hrp, mem_annihilator.2 $ λ n hn, mem_annihilator.1 hrp n $ h hn

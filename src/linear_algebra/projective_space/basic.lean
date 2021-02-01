@@ -53,11 +53,6 @@ instance : mul_action (units K) (nonzero V) :=
     simp [mul_smul],
   end }
 
-example (a b : Prop) : a = b → b = a :=
-begin
-  library_search,
-end
-
 lemma is_unit_of_smul_eq {v : V} {w : nonzero V} {a : K} : a • v = w → is_unit a :=
 begin
   unfold is_unit,

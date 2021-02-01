@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.local_extr
 import analysis.convex.topology
+import data.complex.is_R_or_C
 
 /-!
 # The mean value inequality and equalities
@@ -498,8 +499,9 @@ begin
   exact bound (g t) (segm $ Ico_subset_Icc_self ht)
 end
 
-/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
-then the function is `C`-Lipschitz on `s`. Version with `has_fderiv_within` and `lipschitz_on_with`. -/
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on
+`s`, then the function is `C`-Lipschitz on `s`. Version with `has_fderiv_within` and
+`lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_has_fderiv_within_le
   {f : E → F} {C : ℝ} {s : set E} {f' : E → (E →L[ℝ] F)}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
@@ -519,8 +521,9 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
 bound xs ys
 
-/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
-then the function is `C`-Lipschitz on `s`. Version with `fderiv_within` and `lipschitz_on_with`. -/
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on
+`s`, then the function is `C`-Lipschitz on `s`. Version with `fderiv_within` and
+`lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E}
   (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
   (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s:=
@@ -534,8 +537,8 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : 
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le
 (λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound xs ys
 
-/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
-then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on
+`s`, then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥fderiv ℝ f x∥ ≤ C)
   (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
@@ -725,7 +728,8 @@ lemma exists_ratio_deriv_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * (deriv f c) = (f b - f a) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
-  g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+  g (deriv g) hgc $
+    λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at
 
 omit hfc
 
@@ -973,8 +977,8 @@ theorem concave_on_univ_of_deriv_antimono {f : ℝ → ℝ} (hf : differentiable
 concave_on_of_deriv_antimono convex_univ hf.continuous.continuous_on hf.differentiable_on
   (λ x y _ _ h, hf'_antimono h)
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its interior,
-and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
+interior, and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
 theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
@@ -985,8 +989,8 @@ assume x y hx hy hxy,
 hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
   (by rwa [interior_interior]) _ _ hx hy hxy
 
-/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its interior,
-and `f''` is nonpositive on the interior, then `f` is concave on `D`. -/
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its
+interior, and `f''` is nonpositive on the interior, then `f` is concave on `D`. -/
 theorem concave_on_of_deriv2_nonpos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
@@ -1072,11 +1076,45 @@ begin
   simp [g, hMVT'],
 end
 
-/-! ### Vector-valued functions `f : E → F`.  Strict differentiability. -/
 
-/-- Over the reals, a continuously differentiable function is strictly differentiable. -/
+section is_R_or_C
+
+/-!
+### Vector-valued functions `f : E → F`.  Strict differentiability.
+
+A `C^1` function is strictly differentiable, when the field is `ℝ` or `ℂ`. This follows from the
+mean value inequality on balls, which is a particular case of the above results after restricting
+the scalars to `ℝ`. Note that it does not make sense to talk of a convex set over `ℂ`, but balls
+make sense and are enough. Many formulations of the mean value inequality could be generalized to
+balls over `ℝ` or `ℂ`. For now, we only include the ones that we need.
+-/
+
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
+{G : Type*} [normed_group G] [normed_space 𝕜 G]
+{H : Type*} [normed_group H] [normed_space 𝕜 H]
+
+/-- Variant of the mean value inequality over `ℝ` or `ℂ`, on a ball, using a bound on the difference
+between the derivative and a fixed linear map, rather than a bound on the derivative itself.
+Version with `has_fderiv_within`. -/
+theorem is_R_or_C.norm_image_sub_le_of_norm_has_fderiv_within_le'
+  {f : G → H} {C : ℝ} {x y z : G} {r : ℝ} {f' : G → (G →L[𝕜] H)} {φ : G →L[𝕜] H}
+  (hf : ∀ x ∈ ball z r, has_fderiv_within_at f (f' x) (ball z r) x)
+  (bound : ∀ x ∈ ball z r, ∥f' x - φ∥ ≤ C) (xs : x ∈ ball z r) (ys : y ∈ ball z r) :
+  ∥f y - f x - φ (y - x)∥ ≤ C * ∥y - x∥ :=
+begin
+  letI : normed_space ℝ G := restrict_scalars.normed_space ℝ 𝕜 G,
+  letI : is_scalar_tower ℝ 𝕜 G := restrict_scalars.is_scalar_tower _ _ _,
+  letI : normed_space ℝ H := restrict_scalars.normed_space ℝ 𝕜 H,
+  letI : is_scalar_tower ℝ 𝕜 H := restrict_scalars.is_scalar_tower _ _ _,
+  change ∥f y - f x - (φ.restrict_scalars ℝ) (y - x)∥ ≤ C * ∥y - x∥,
+  have : ∀ x ∈ ball z r, has_fderiv_within_at f ((f' x).restrict_scalars ℝ) (ball z r) x := hf,
+  exact convex.norm_image_sub_le_of_norm_has_fderiv_within_le' this bound (convex_ball _ _) xs ys,
+end
+
+/-- Over the reals or the complexes, a continuously differentiable function is strictly
+differentiable. -/
 lemma strict_fderiv_of_cont_diff
-  {f : E → F} {s : set E}  {x : E} {f' : E → (E →L[ℝ] F)}
+  {f : G → H} {s : set G}  {x : G} {f' : G → (G →L[𝕜] H)}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hcont : continuous_on f' s) (hs : s ∈ 𝓝 x) :
   has_strict_fderiv_at f (f' x) x :=
 begin
@@ -1093,7 +1131,6 @@ begin
   have hts : t ⊆ s := λ _ hy, hε₂ (ball_subset_ball (min_le_right ε₁ ε₂) hy),
   have Hf : ∀ y ∈ t, has_fderiv_within_at f (f' y) t y :=
     λ y yt, has_fderiv_within_at.mono (hf y (hts yt)) hts,
-  have hconv := convex_ball x (min ε₁ ε₂),
 -- simplify formulas involving the product E × E
   rintros ⟨a, b⟩ h,
   simp only [mem_set_of_eq, map_sub],
@@ -1104,5 +1141,7 @@ begin
     refine le_of_lt (hcont' x' (hts H') _),
     exact ball_subset_ball (min_le_left ε₁ ε₂) H' },
 -- apply mean value theorem
-  simpa using convex.norm_image_sub_le_of_norm_has_fderiv_within_le' Hf hf' hconv hab.2 hab.1,
+  simpa using is_R_or_C.norm_image_sub_le_of_norm_has_fderiv_within_le' Hf hf' hab.2 hab.1,
 end
+
+end is_R_or_C

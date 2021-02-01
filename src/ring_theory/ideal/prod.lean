@@ -68,8 +68,8 @@ end
 @[simp] lemma map_prod_comm_prod :
   map ↑(ring_equiv.prod_comm : R × S ≃+* S × R) (prod I J) = prod J I :=
 begin
-  rw [ideal_prod_eq (map _ _)],
-  simp [map_map]
+  refine trans (ideal_prod_eq _) _,
+  simp [map_map],
 end
 
 /-- Ideals of `R × S` are in one-to-one correspondence with pairs of ideals of `R` and ideals of

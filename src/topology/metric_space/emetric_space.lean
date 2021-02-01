@@ -16,9 +16,9 @@ This file is devoted to the definition and study of `emetric_spaces`, i.e., metr
 spaces in which the distance is allowed to take the value ∞. This extended distance is
 called `edist`, and takes values in `ennreal`.
 
-Many definitions and theorems expected on emetric spaces are already introduced on uniform spaces and
-topological spaces. For example:
-  open and closed sets, compactness, completeness, continuity and uniform continuity
+Many definitions and theorems expected on emetric spaces are already introduced on uniform spaces
+and topological spaces. For example: open and closed sets, compactness, completeness, continuity and
+uniform continuity.
 
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
@@ -33,8 +33,8 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- Characterizing uniformities associated to a (generalized) distance function `D`
 in terms of the elements of the uniformity. -/
-theorem uniformity_dist_of_mem_uniformity [linear_order β] {U : filter (α × α)} (z : β) (D : α → α → β)
-  (H : ∀ s, s ∈ U ↔ ∃ε>z, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
+theorem uniformity_dist_of_mem_uniformity [linear_order β] {U : filter (α × α)} (z : β)
+  (D : α → α → β) (H : ∀ s, s ∈ U ↔ ∃ε>z, ∀{a b:α}, D a b < ε → (a, b) ∈ s) :
   U = ⨅ ε>z, 𝓟 {p:α×α | D p.1 p.2 < ε} :=
 le_antisymm
   (le_infi $ λ ε, le_infi $ λ ε0, le_principal_iff.2 $ (H _).2 ⟨ε, ε0, λ a b, id⟩)
@@ -90,7 +90,8 @@ class emetric_space (α : Type u) extends has_edist α : Type u :=
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
 (edist_comm : ∀ x y : α, edist x y = edist y x)
 (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z)
-(to_uniform_space : uniform_space α := uniform_space_of_edist edist edist_self edist_comm edist_triangle)
+(to_uniform_space : uniform_space α :=
+  uniform_space_of_edist edist edist_self edist_comm edist_triangle)
 (uniformity_edist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 
 /- emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
@@ -315,7 +316,8 @@ converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast con
 `0`, which makes it possible to use arguments of converging series, while this is impossible
 to do in general for arbitrary Cauchy sequences. -/
 theorem complete_of_convergent_controlled_sequences (B : ℕ → ennreal) (hB : ∀n, 0 < B n)
-  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → edist (u n) (u m) < B N) → ∃x, tendsto u at_top (𝓝 x)) :
+  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → edist (u n) (u m) < B N) →
+    ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
 uniform_space.complete_of_convergent_controlled_sequences
   uniformity_has_countable_basis
@@ -484,6 +486,9 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
 lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
+@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
+finset.sup_const univ_nonempty (edist a b)
+
 end pi
 
 namespace emetric
@@ -581,6 +586,14 @@ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2
 
 theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
+
+theorem ball_prod_same [emetric_space β] (x : α) (y : β) (r : ennreal) :
+  (ball x r).prod (ball y r) = ball (x, y) r :=
+ext $ λ z, max_lt_iff.symm
+
+theorem closed_ball_prod_same [emetric_space β] (x : α) (y : β) (r : ennreal) :
+  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+ext $ λ z, max_le_iff.symm
 
 /-- ε-characterization of the closure in emetric spaces -/
 theorem mem_closure_iff :
@@ -754,7 +767,8 @@ diam_le_of_forall_edist_le $ λ x hx y hy, edist_le_diam_of_mem (h hx) (h hy)
 
 /-- The diameter of a union is controlled by the diameter of the sets, and the edistance
 between two points in the sets. -/
-lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) : diam (s ∪ t) ≤ diam s + edist x y + diam t :=
+lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) :
+  diam (s ∪ t) ≤ diam s + edist x y + diam t :=
 begin
   have A : ∀a ∈ s, ∀b ∈ t, edist a b ≤ diam s + edist x y + diam t := λa ha b hb, calc
     edist a b ≤ edist a x + edist x y + edist y b : edist_triangle4 _ _ _ _
@@ -764,7 +778,8 @@ begin
   cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
   { calc edist a b ≤ diam s : edist_le_diam_of_mem h'a h'b
         ... ≤ diam s + (edist x y + diam t) : le_add_right (le_refl _)
-        ... = diam s + edist x y + diam t : by simp only [add_comm, eq_self_iff_true, add_left_comm] },
+        ... = diam s + edist x y + diam t :
+          by simp only [add_comm, eq_self_iff_true, add_left_comm] },
   { exact A a h'a b h'b },
   { have Z := A b h'b a h'a, rwa [edist_comm] at Z },
   { calc edist a b ≤ diam t : edist_le_diam_of_mem h'a h'b

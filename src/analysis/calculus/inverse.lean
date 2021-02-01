@@ -36,7 +36,7 @@ In the one-dimensional case we reformulate these theorems in terms of `has_stric
 We also reformulate the theorems in terms of `times_cont_diff`, to give that `C^k` (respectively,
 smooth) inputs give `C^k` (smooth) inverses.  These versions require that continuous
 differentiability implies strict differentiability; this is false over a general field, true over
-`ℝ` (the setting in which it is implemented here), and true but (TODO) not yet implemented over `ℂ`.
+`ℝ` or `ℂ` and implemented here assuming `is_R_or_C 𝕂`.
 
 Some related theorems, providing the derivative and higher regularity assuming that we already know
 the inverse function, are formulated in `fderiv.lean`, `deriv.lean`, and `times_cont_diff.lean`.
@@ -415,6 +415,9 @@ lemma image_mem_to_local_homeomorph_target (hf : has_strict_fderiv_at f (f' : E 
   f a ∈ (hf.to_local_homeomorph f).target :=
 (hf.to_local_homeomorph f).map_source hf.mem_to_local_homeomorph_source
 
+lemma map_nhds_eq (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) : map f (𝓝 a) = 𝓝 (f a) :=
+(hf.to_local_homeomorph f).map_nhds_eq hf.mem_to_local_homeomorph_source
+
 variables (f f' a)
 
 /-- Given a function `f` with an invertible derivative, returns a function that is locally inverse
@@ -473,6 +476,12 @@ hf.to_local_inverse.congr_of_eventually_eq $ (hf.local_inverse_unique hg).mono $
 
 end has_strict_fderiv_at
 
+/-- If a function has an invertible strict derivative at all points, then it is an open map. -/
+lemma open_map_of_strict_fderiv [complete_space E] {f : E → F} {f' : E → E ≃L[𝕜] F}
+  (hf : ∀ x, has_strict_fderiv_at f (f' x : E →L[𝕜] F) x) :
+  is_open_map f :=
+is_open_map_iff_nhds_le.2 $ λ x, (hf x).map_nhds_eq.ge
+
 /-!
 ### Inverse function theorem, 1D case
 
@@ -496,6 +505,9 @@ variables (f f' a)
 
 variables {f f' a}
 
+lemma map_nhds_eq : map f (𝓝 a) = 𝓝 (f a) :=
+(hf.has_strict_fderiv_at_equiv hf').map_nhds_eq
+
 theorem to_local_inverse : has_strict_deriv_at (hf.local_inverse f f' a hf') f'⁻¹ (f a) :=
 (hf.has_strict_fderiv_at_equiv hf').to_local_inverse
 
@@ -505,20 +517,27 @@ theorem to_local_left_inverse {g : 𝕜 → 𝕜} (hg : ∀ᶠ x in 𝓝 a, g (f
 
 end has_strict_deriv_at
 
+/-- If a function has a non-zero strict derivative at all points, then it is an open map. -/
+lemma open_map_of_strict_deriv [complete_space 𝕜] {f f' : 𝕜 → 𝕜}
+  (hf : ∀ x, has_strict_deriv_at f (f' x) x) (h0 : ∀ x, f' x ≠ 0) :
+  is_open_map f :=
+is_open_map_iff_nhds_le.2 $ λ x, ((hf x).map_nhds_eq (h0 x)).ge
+
 /-!
 ### Inverse function theorem, smooth case
 
 -/
 
 namespace times_cont_diff_at
-variables {E' : Type*} [normed_group E'] [normed_space ℝ E']
-variables {F' : Type*} [normed_group F'] [normed_space ℝ F']
-variables [complete_space E'] (f : E' → F') {f' : E' ≃L[ℝ] F'} {a : E'}
+variables {𝕂 : Type*} [is_R_or_C 𝕂]
+variables {E' : Type*} [normed_group E'] [normed_space 𝕂 E']
+variables {F' : Type*} [normed_group F'] [normed_space 𝕂 F']
+variables [complete_space E'] (f : E' → F') {f' : E' ≃L[𝕂] F'} {a : E'}
 
-/-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, returns a
-`local_homeomorph` with `to_fun = f` and `a ∈ source`. -/
+/-- Given a `times_cont_diff` function over `𝕂` (which is `ℝ` or `ℂ`) with an invertible
+derivative at `a`, returns a `local_homeomorph` with `to_fun = f` and `a ∈ source`. -/
 def to_local_homeomorph
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   local_homeomorph E' F' :=
 (hf.has_strict_fderiv_at' hf' hn).to_local_homeomorph f
@@ -526,42 +545,43 @@ def to_local_homeomorph
 variable {f}
 
 @[simp] lemma to_local_homeomorph_coe
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   (hf.to_local_homeomorph f hf' hn : E' → F') = f := rfl
 
 lemma mem_to_local_homeomorph_source
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   a ∈ (hf.to_local_homeomorph f hf' hn).source :=
 (hf.has_strict_fderiv_at' hf' hn).mem_to_local_homeomorph_source
 
 lemma image_mem_to_local_homeomorph_target
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   f a ∈ (hf.to_local_homeomorph f hf' hn).target :=
 (hf.has_strict_fderiv_at' hf' hn).image_mem_to_local_homeomorph_target
 
-/-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, returns a
-function that is locally inverse to `f`. -/
+/-- Given a `times_cont_diff` function over `𝕂` (which is `ℝ` or `ℂ`) with an invertible derivative
+at `a`, returns a function that is locally inverse to `f`. -/
 def local_inverse
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   F' → E' :=
 (hf.has_strict_fderiv_at' hf' hn).local_inverse f f' a
 
 lemma local_inverse_apply_image
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   hf.local_inverse hf' hn (f a) = a :=
 (hf.has_strict_fderiv_at' hf' hn).local_inverse_apply_image
 
-/-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, the inverse
-function (produced by `times_cont_diff.to_local_homeomorph`) is also `times_cont_diff`. -/
+/-- Given a `times_cont_diff` function over `𝕂` (which is `ℝ` or `ℂ`) with an invertible derivative
+at `a`, the inverse function (produced by `times_cont_diff.to_local_homeomorph`) is
+also `times_cont_diff`. -/
 lemma to_local_inverse
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
-  times_cont_diff_at ℝ n (hf.local_inverse hf' hn) (f a) :=
+  times_cont_diff_at 𝕂 n (hf.local_inverse hf' hn) (f a) :=
 begin
   have := hf.local_inverse_apply_image hf' hn,
   apply (hf.to_local_homeomorph f hf' hn).times_cont_diff_at_symm

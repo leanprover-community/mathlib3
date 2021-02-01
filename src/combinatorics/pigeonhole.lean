@@ -84,7 +84,8 @@ some `y ∈ t`, the sum of the weights of all `x ∈ s` such that `f x = y` is g
 There are a few bits we can change in this theorem:
 
 * reverse all inequalities, with obvious adjustments to the name;
-* replace the assumption `∀ a ∈ s, f a ∈ t` with `∀ y ∉ t, (∑ x in s.filter (λ x, f x = y), w x) ≤ 0`,
+* replace the assumption `∀ a ∈ s, f a ∈ t` with
+  `∀ y ∉ t, (∑ x in s.filter (λ x, f x = y), w x) ≤ 0`,
   and replace `of_maps_to` with `of_sum_fiber_nonpos` in the name;
 * use non-strict inequalities assuming `t` is nonempty.
 

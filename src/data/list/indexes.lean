@@ -35,7 +35,8 @@ begin
   induction l with hd tl hl generalizing f,
   { simp [list.map_with_index, list.map_with_index_core, list.enum_eq_zip_range] },
   { rw [list.map_with_index, list.map_with_index_core, list.map_with_index_core_eq, hl],
-    simp [list.enum_eq_zip_range, list.range_succ_eq_map, list.zip_with_map_left] }
+    simp [list.enum_eq_zip_range, list.range_succ_eq_map, list.zip_with_map_left,
+    list.map_uncurry_zip_eq_zip_with] }
 end
 
 end map_with_index

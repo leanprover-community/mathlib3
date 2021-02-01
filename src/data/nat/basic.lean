@@ -1265,6 +1265,23 @@ by simp [find_eq_iff]
   0 < nat.find h ↔ ¬ p 0 :=
 by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
+theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
+  (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+  nat.find hp ≤ nat.find hq :=
+nat.find_min' _ ((h _) (nat.find_spec hq))
+
+@[simp] lemma find_le_iff {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) (n : ℕ) :
+  nat.find h ≤ n ↔ ∃ m ≤ n, p m :=
+⟨λ h2, ⟨nat.find h, h2, nat.find_spec h⟩, λ ⟨m, hmn, hm⟩, (nat.find_min' h hm).trans hmn⟩
+
+@[simp] lemma lt_find_iff {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) (n : ℕ) :
+  n < nat.find h ↔ ∀ m ≤ n, ¬ p m :=
+by simp_rw [← not_le, not_iff_comm, not_forall, not_not, find_le_iff]
+
+@[simp] lemma le_find_iff {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) (n : ℕ) :
+  n ≤ nat.find h ↔ ∀ m < n, ¬ p m :=
+by { cases n, { simp }, simp_rw [succ_le_iff, lt_find_iff, lt_succ_iff] }
+
 end find
 
 /-! ### `find_greatest` -/
@@ -1595,12 +1612,5 @@ instance decidable_exists_lt {P : ℕ → Prop} [h : decidable_pred P] :
 | 0 := is_false (by simp)
 | (n + 1) := decidable_of_decidable_of_iff (@or.decidable _ _ (decidable_exists_lt n) (h n))
   (by simp only [lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, exists_eq_left])
-
-/-! ### find -/
-
-theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
-  (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
-  nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
 
 end nat

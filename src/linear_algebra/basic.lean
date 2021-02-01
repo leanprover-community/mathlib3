@@ -243,11 +243,32 @@ end
 @[simp] theorem fst_apply (x : M × M₂) : fst R M M₂ x = x.1 := rfl
 @[simp] theorem snd_apply (x : M × M₂) : snd R M M₂ x = x.2 := rfl
 
+/-- Taking the product of two maps with the same domain is equivalent to taking the product of
+their codomains. -/
+@[simps symm_apply]
+def prod_equiv : (M →ₗ[R] M₂) × (M →ₗ[R] M₃) ≃+ (M →ₗ[R] M₂ × M₃) :=
+{ to_fun := λ f,
+  { to_fun    := λ x, (f.1 x, f.2 x),
+    map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
+    map_smul' := λ c x, by simp only [prod.smul_mk, map_smul] },
+  inv_fun := λ f, ((fst _ _ _).comp f, (snd _ _ _).comp f),
+  left_inv := λ f, by {
+    ext,
+    cases f,
+    { simp only [comp_apply, coe_mk, fst_apply] },
+    { simp only [comp_apply, coe_mk, snd_apply] }, },
+  right_inv := λ f, by {
+    ext1,
+    simp only [fst_apply, snd_apply, prod.mk.eta, comp_apply, mk_coe] },
+  map_add' := λ a b, by {
+    ext1,
+    simp only [prod.mk_add_mk, coe_mk, add_apply, prod.fst_add, prod.snd_add] } }
+
 /-- The prod of two linear maps is a linear map. -/
-def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : M →ₗ[R] M₂ × M₃ :=
-{ to_fun    := λ x, (f x, g x),
-  map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
-  map_smul' := λ c x, by simp only [prod.smul_mk, map_smul] }
+def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) := prod_equiv (f, g)
+
+@[simp] theorem prod_equiv_apply (f : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)) :
+  prod_equiv f = prod f.1 f.2 := rfl
 
 @[simp] theorem prod_apply (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) (x : M) :
   prod f g x = (f x, g x) := rfl
@@ -281,22 +302,34 @@ theorem inl_injective : function.injective (inl R M M₂) :=
 theorem inr_injective : function.injective (inr R M M₂) :=
 λ _, by simp
 
-/-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
-def coprod' : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃+ (M × M₂ →ₗ[R] M₃) :=
+/-- Taking the product of two maps with the same codomain is equivalent to taking the product of
+their domains. -/
+@[simps symm_apply]
+def coprod_equiv : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃+ (M × M₂ →ₗ[R] M₃) :=
 { to_fun := λ f,
   { to_fun    := λ x, f.1 x.1 + f.2 x.2,
     map_add'  := λ x y, by simp only [map_add, prod.snd_add, prod.fst_add]; cc,
     map_smul' := λ x y, by simp only [smul_add, prod.smul_snd, prod.smul_fst, map_smul] },
   inv_fun := λ f, (f.comp (inl _ _ _), f.comp (inr _ _ _)),
-  left_inv := λ f, by { ext, cases f, simp, simp },
-  right_inv := λ f, by { ext x, simp [←f.map_add] },
-  map_add' := λ a b, _ }
+  left_inv := λ f, by {
+    ext,
+    cases f,
+    { simp only [add_zero, comp_apply, coe_mk, inl_apply, map_zero] },
+    { simp only [zero_add, comp_apply, coe_mk, inr_apply, map_zero] }, },
+  right_inv := λ f, by {
+    ext x,
+    simp only [←f.map_add, prod.mk.eta, prod.mk_add_mk, add_zero, comp_apply, mk_coe, zero_add,
+      inl_apply, inr_apply]},
+  map_add' := λ a b, by {
+    ext,
+    simp only [prod.snd_add, coe_mk, add_apply, prod.fst_add], ac_refl } }
 
-/-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
-def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
-{ to_fun    := λ x, f x.1 + g x.2,
-  map_add'  := λ x y, by simp only [map_add, prod.snd_add, prod.fst_add]; cc,
-  map_smul' := λ x y, by simp only [smul_add, prod.smul_snd, prod.smul_fst, map_smul] }
+
+/-- The coprod function `λ x : M × M₂, f.1 x.1 + f.2 x.2` is a linear map. -/
+def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ := coprod_equiv (f, g)
+
+@[simp] theorem coprod_equiv_apply (f : (M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) :
+  coprod_equiv f = coprod f.1 f.2 := rfl
 
 @[simp] theorem coprod_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (x : M) (y : M₂) :
   coprod f g (x, y) = f x + g y := rfl

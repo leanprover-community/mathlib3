@@ -663,7 +663,7 @@ lemma to_L1_sub (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) 
 by simp only [sub_eq_add_neg, to_L1_add _ _ hf hg.neg, to_L1_neg]
 
 lemma norm_to_L1 (f : α → β) (hf : integrable f μ) :
-  ∥to_L1 f hf∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
+  ∥hf.to_L1 f∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
 begin
   simp only [snorm, snorm', ennreal.one_to_real, ennreal.rpow_one, Lp.norm_def, coe_fn_coe_base,
     to_L1_eq_mk, if_false, ennreal.one_ne_top, one_ne_zero, _root_.div_one],
@@ -675,7 +675,7 @@ begin
 end
 
 lemma norm_to_L1_eq_lintegral_norm (f : α → β) (hf : integrable f μ) :
-  ∥ to_L1 f hf ∥ = ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
+  ∥hf.to_L1 f∥ = ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 by { rw [norm_to_L1, lintegral_norm_eq_lintegral_edist] }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]

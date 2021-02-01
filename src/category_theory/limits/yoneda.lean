@@ -74,18 +74,22 @@ instance yoneda_preserves_limits (X : C) : preserves_limits (yoneda.obj X) :=
         end } } } }
 
 /-- The coyoneda embedding `coyoneda.obj X : C ⥤ Type v` for `X : Cᵒᵖ` preserves limits. -/
+instance coyoneda_preserves_limits_of_shape (X : Cᵒᵖ) (J) [category J] :
+  preserves_limits_of_shape J (coyoneda.obj X) :=
+{ preserves_limit := λ K,
+  { preserves := λ c t,
+    { lift := λ s x, t.lift ⟨unop X, λ j, s.π.app j x, λ j₁ j₂ α, by { dsimp, simp [← s.w α]}⟩,
+        -- See library note [dsimp, simp]
+      fac' := λ s j, funext $ λ x, t.fac _ _,
+      uniq' := λ s m w, funext $ λ x,
+      begin
+        refine (t.uniq ⟨unop X, _⟩ _ (λ j, _)),
+        exact congr_fun (w j) x,
+      end } } }
+
+/-- The coyoneda embedding `coyoneda.obj X : C ⥤ Type v` for `X : Cᵒᵖ` preserves limits. -/
 instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.obj X) :=
-{ preserves_limits_of_shape := λ J 𝒥, by exactI
-  { preserves_limit := λ K,
-    { preserves := λ c t,
-      { lift := λ s x, t.lift ⟨unop X, λ j, s.π.app j x, λ j₁ j₂ α, by { dsimp, simp [← s.w α]}⟩,
-          -- See library note [dsimp, simp]
-        fac' := λ s j, funext $ λ x, t.fac _ _,
-        uniq' := λ s m w, funext $ λ x,
-        begin
-          refine (t.uniq ⟨unop X, _⟩ _ (λ j, _)),
-          exact congr_fun (w j) x,
-        end } } } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI infer_instance }
 
 /-- The yoneda embeddings jointly reflect limits. -/
 def yoneda_jointly_reflects_limits (J : Type v) [small_category J] (K : J ⥤ Cᵒᵖ) (c : cone K)

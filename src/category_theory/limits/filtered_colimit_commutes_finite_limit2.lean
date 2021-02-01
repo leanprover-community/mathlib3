@@ -40,8 +40,8 @@ variables (tk : Π (k : K), is_colimit (ck k))
 variables {c₁ : cocone (cones_to_functor tj)} (t₁ : is_colimit c₁)
 variables {c₂ : cone (cocones_to_functor tk)} (t₂ : is_limit c₂)
 
-variables [fin_category J]
-variables [is_filtered K]
+variables [is_filtered J]
+variables [fin_category K]
 
 section
 

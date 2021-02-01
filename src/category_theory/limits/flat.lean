@@ -1,13 +1,14 @@
 import category_theory.limits.filtered_colimit_commutes_finite_limit2
 import category_theory.elements
 import category_theory.limits.preserves.limits
+import category_theory.limits.yoneda
 
 namespace category_theory
 open limits opposite
 
 universes w₁ w₂ v₁ v₂ u₁ u₂
 
-variables (J : Type v₁) [small_category J]
+variables (J : Type v₂) [small_category J]
 variables {C : Type u₁} [category.{v₂} C]
 variables (F : C ⥤ Type v₂) (hF : is_filtered F.elementsᵒᵖ)
 
@@ -77,7 +78,7 @@ def alt_colimit (F : C ⥤ Type v₂) :
     simp,
   end }
 
-def my_thm (hF : is_filtered F.elementsᵒᵖ) :
+def my_thm (hF : is_filtered F.elementsᵒᵖ) [fin_category J] :
   preserves_limits_of_shape J F :=
 begin
   split,
@@ -89,12 +90,99 @@ begin
     λ j, ((my_functor F).obj j).map_cone c,
   let ck : Π (k : J), cocone (Γ.flip.obj k) :=
     λ j, ((evaluation C (Type v₂)).obj (K.obj j)).map_cocone (alt_cocone F),
-  let tj : Π j, is_limit (cj j),
+  have tj : Π j, is_limit (cj j),
   { intro j,
-    apply is_limit_of_preserves _ t,
-    dsimp [my_functor],
+    apply is_limit_of_preserves (coyoneda.obj (op (unop j).fst)) t },
+  have tk : Π k, is_colimit (ck k),
+  { intro k,
+    refine ⟨λ s q, s.ι.app (op ⟨_, q⟩) (𝟙 _), _, _⟩,
+    { intros s j,
+      op_induction j,
+      cases j with X x,
+      ext q,
+      let X' : F.elementsᵒᵖ := op ⟨X, x⟩,
+      let Y' : F.elementsᵒᵖ := (op ⟨K.obj k, F.map q x⟩),
+      let α : Y' ⟶ X' := has_hom.hom.op ⟨q, rfl⟩,
+      have := s.w α,
+      dsimp at this,
+      change s.ι.app Y' _ = _,
+      rw ← this,
+      dsimp,
+      simp },
+    { intros s m w,
+      ext X,
+      dsimp,
+      rw ← w,
+      dsimp,
+      simp } },
+  let c₁ : cocone (cones_to_functor tj),
+  { refine ⟨F.obj c.X, λ j q, F.map q j.unop.2, _⟩,
+    { intros j₁ j₂ α,
+      ext,
+      dsimp at x,
+      dsimp,
+      rw ← α.unop.2,
+      rw ← functor_to_types.map_comp_apply,
+      congr' 1,
+      let m : (cj j₁).X ⟶ (cj j₂).X := λ z, α.unop.1 ≫ z,
+      have : is_limit.map (cj j₁) (tj j₂) (whisker_left K ((my_functor F).map α)) = m,
+      { refine (tj j₂).hom_ext _,
+        intro j,
+        rw is_limit.map_π,
+        ext,
+        change _ ≫ _ ≫ _ = (_ ≫ _) ≫ _,
+        rw category.assoc,
+        refl },
+      rw this } },
+  let c₂ : cone (cocones_to_functor tk),
+  { apply limit.cone (cocones_to_functor tk) },
+  let t₁ : is_colimit c₁,
+  { refine ⟨λ s q, _, _, _⟩,
+    { apply s.ι.app (op ⟨_, q⟩) (𝟙 _) },
+    { intros s j,
+      op_induction j,
+      cases j with X x,
+      ext q,
+      dsimp,
+      let X' : F.elementsᵒᵖ := op ⟨X, x⟩,
+      let Y' : F.elementsᵒᵖ := (op ⟨_, F.map q x⟩),
+      let α : Y' ⟶ X' := has_hom.hom.op ⟨q, rfl⟩,
+      rw ← s.w α,
+      dsimp,
+      congr' 1,
+      have : is_limit.map (cj Y') (tj X') (whisker_left K ((my_functor F).map α)) = (λ z, q ≫ z),
+      { apply (tj X').hom_ext,
+        intro j,
+        rw is_limit.map_π,
+        ext z,
+        dsimp [my_functor],
+        simp },
+      rw this,
+      simp },
+    { intros s m w,
+      ext q,
+      rw ← w,
+      dsimp,
+      simp,
+
+    }
   },
-  -- have := filtered_colimit_finite_limit_iso Γ,
+  let t₂ : is_limit c₂ := limit.is_limit _,
+  let q : cocones_to_functor tk ≅ K ⋙ F,
+  { refine nat_iso.of_components (λ X, iso.refl _) _,
+    intros X Y f,
+    dsimp,
+    rw [category.id_comp, category.comp_id],
+    apply (tk X).hom_ext,
+    intro j,
+    rw is_colimit.ι_map,
+    ext q,
+    dsimp [alt_cocone, my_functor],
+    simp,
+  },
+  let i₁ : F.obj c.X ≅ limit _ := filtered_colimit_finite_limit_iso Γ tj tk t₁ t₂,
+  let i₂ := has_limit.iso_of_nat_iso q,
+
   -- have := limits.colimit_limit_to_limit_colimit_is_iso θ,
 end
 

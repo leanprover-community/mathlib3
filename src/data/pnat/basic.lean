@@ -293,16 +293,10 @@ theorem div_add_mod (m k : ℕ+) : (k * (div m k) + mod m k : ℕ) = m :=
 (add_comm _ _).trans (mod_add_div _ _)
 
 lemma mod_add_div' (m k : ℕ+) : ((mod m k) + (div m k) * k : ℕ) = m :=
-begin
- rw mul_comm,
- exact mod_add_div _ _
-end
+by { rw mul_comm, exact mod_add_div _ _ }
 
 lemma div_add_mod' (m k : ℕ+) : ((div m k) * k + mod m k : ℕ) = m :=
-begin
-  rw mul_comm,
-  exact div_add_mod _ _
-end
+by { rw mul_comm, exact div_add_mod _ _ }
 
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=

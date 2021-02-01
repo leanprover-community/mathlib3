@@ -837,16 +837,10 @@ lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=
 (nat.add_comm _ _).trans (mod_add_div _ _)
 
 lemma mod_add_div' (m k : ℕ) : m % k + (m / k) * k = m :=
-begin
- rw mul_comm,
- exact mod_add_div _ _
-end
+by { rw mul_comm, exact mod_add_div _ _ }
 
 lemma div_add_mod' (m k : ℕ) : (m / k) * k + m % k = m :=
-begin
-  rw mul_comm,
-  exact div_add_mod _ _
-end
+by { rw mul_comm, exact div_add_mod _ _ }
 
 protected theorem div_mod_unique {n k m d : ℕ} (h : 0 < k) :
   n / k = d ∧ n % k = m ↔ m + k * d = n ∧ m < k :=

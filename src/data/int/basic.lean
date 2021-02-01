@@ -480,16 +480,10 @@ theorem div_add_mod (a b : ℤ) : b * (a / b) + a % b = a :=
 (add_comm _ _).trans (mod_add_div _ _)
 
 lemma mod_add_div' (m k : ℤ) : m % k + (m / k) * k = m :=
-begin
- rw mul_comm,
- exact mod_add_div _ _
-end
+by { rw mul_comm, exact mod_add_div _ _ }
 
 lemma div_add_mod' (m k : ℤ) : (m / k) * k + m % k = m :=
-begin
-  rw mul_comm,
-  exact div_add_mod _ _
-end
+by { rw mul_comm, exact div_add_mod _ _ }
 
 theorem mod_def (a b : ℤ) : a % b = a - b * (a / b) :=
 eq_sub_of_add_eq (mod_add_div _ _)

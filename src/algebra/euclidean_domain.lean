@@ -49,16 +49,10 @@ lemma mod_add_div (a b : R) : a % b + b * (a / b) = a :=
 (add_comm _ _).trans (div_add_mod _ _)
 
 lemma mod_add_div' (m k : R) : m % k + (m / k) * k = m :=
-begin
- rw mul_comm,
- exact mod_add_div _ _
-end
+by { rw mul_comm, exact mod_add_div _ _ }
 
 lemma div_add_mod' (m k : R) : (m / k) * k + m % k = m :=
-begin
-  rw mul_comm,
-  exact div_add_mod _ _
-end
+by { rw mul_comm, exact div_add_mod _ _ }
 
 lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain R] (a b : R) :
   a % b = a - b * (a / b) :=

@@ -274,7 +274,7 @@ begin
   linarith,
 end
 
-lemma append_add (ho : o = m + n) (f : fin m → M) (g : fin n → M) (i : fin n) (x y : M) :
+lemma append_update_add (ho : o = m + n) (f : fin m → M) (g : fin n → M) (i : fin n) (x y : M) :
   append ho f (function.update g i (x + y)) (cast ho.symm (nat_add m i)) =
     append ho f (function.update g i x) (cast ho.symm (nat_add m i)) +
       append ho f (function.update g i y) (cast ho.symm (nat_add m i)) :=
@@ -286,6 +286,24 @@ begin
     simp only [append_apply_snd', function.update_same],
     simp only [append_apply_snd', function.update_same],
     }
+end
+
+lemma append_add (ho : o = m + n) (f1 f2 : fin m → M) (g1 g2 : fin n → M) :
+  append ho (f1 + f2) (g1 + g2) = append ho f1 g1 + append ho f2 g2 :=
+begin
+  ext,
+  cases classical.em ((x : ℕ) < m),
+  { simp only [pi.add_apply, append_apply_fst, h] },
+  { simp only [pi.add_apply, append_apply_snd, h, not_false_iff] },
+end
+
+lemma append_smul (ho : o = m + n) (f : fin m → M) (g : fin n → M) (r : R) :
+  r • append ho f g = append ho (r • f) (r • g) :=
+begin
+  ext,
+  cases classical.em ((x : ℕ) < m),
+  { simp only [pi.smul_apply, append_apply_fst, h] },
+  { simp only [pi.smul_apply, append_apply_snd, h, not_false_iff] },
 end
 
 lemma append_update (ho : o = m + n) (i : fin n) (x : α) :

@@ -306,23 +306,19 @@ theorem inr_injective : function.injective (inr R M M₂) :=
 their domains. -/
 @[simps symm_apply]
 def coprod_equiv : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃+ (M × M₂ →ₗ[R] M₃) :=
-{ to_fun := λ f,
-  { to_fun    := λ x, f.1 x.1 + f.2 x.2,
-    map_add'  := λ x y, by simp only [map_add, prod.snd_add, prod.fst_add]; cc,
-    map_smul' := λ x y, by simp only [smul_add, prod.smul_snd, prod.smul_fst, map_smul] },
+{ to_fun := λ f, f.1.comp (fst _ _ _) + f.2.comp (snd _ _ _),
   inv_fun := λ f, (f.comp (inl _ _ _), f.comp (inr _ _ _)),
   left_inv := λ f, by {
     ext,
     cases f,
-    { simp only [add_zero, comp_apply, coe_mk, inl_apply, map_zero] },
-    { simp only [zero_add, comp_apply, coe_mk, inr_apply, map_zero] }, },
+    { simp only [fst_apply, snd_apply, comp_apply, add_apply, add_zero, inl_apply, map_zero] },
+    { simp only [fst_apply, snd_apply, comp_apply, add_apply, zero_add, inr_apply, map_zero] }, },
   right_inv := λ f, by {
     ext x,
-    simp only [←f.map_add, prod.mk.eta, prod.mk_add_mk, add_zero, comp_apply, mk_coe, zero_add,
-      inl_apply, inr_apply]},
+    simp [←f.map_add], },
   map_add' := λ a b, by {
     ext,
-    simp only [prod.snd_add, coe_mk, add_apply, prod.fst_add], ac_refl } }
+    simp only [prod.snd_add, coe_mk, add_apply, prod.fst_add, comp_apply], ac_refl } }
 
 
 /-- The coprod function `λ x : M × M₂, f.1 x.1 + f.2 x.2` is a linear map. -/

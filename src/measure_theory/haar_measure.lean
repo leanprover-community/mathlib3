@@ -190,7 +190,7 @@ begin
   refine le_trans (add_le_add (this K₁.1 $ subset.trans (subset_union_left _ _) h1s)
     (this K₂.1 $ subset.trans (subset_union_right _ _) h1s)) _,
   rw [← finset.card_union_eq, finset.filter_union_right],
-  { apply finset.card_le_of_subset, apply finset.filter_subset },
+  exact s.card_filter_le _,
   apply finset.disjoint_filter.mpr,
   rintro g₁ h1g₁ ⟨g₂, h1g₂, h2g₂⟩ ⟨g₃, h1g₃, h2g₃⟩,
   simp only [mem_preimage] at h1g₃ h1g₂,

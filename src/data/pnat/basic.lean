@@ -292,6 +292,12 @@ end
 theorem div_add_mod (m k : ℕ+) : (k * (div m k) + mod m k : ℕ) = m :=
 (add_comm _ _).trans (mod_add_div _ _)
 
+lemma mod_add_div' (m k : ℕ+) : ((mod m k) + (div m k) * k : ℕ) = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : ℕ+) : ((div m k) * k + mod m k : ℕ) = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
+
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
 begin
@@ -354,7 +360,7 @@ theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact m k) = m :=
 begin
  apply eq, rw [mul_coe],
  change (k : ℕ) * (div m k).succ = m,
- rw [← mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
+ rw [← div_add_mod m k, dvd_iff'.mp h, nat.mul_succ]
 end
 
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=

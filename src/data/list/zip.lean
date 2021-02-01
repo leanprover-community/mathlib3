@@ -87,7 +87,7 @@ theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
    zip l₁ (l₂.map f) = (zip l₁ l₂).map (prod.map id f) :=
 by rw [← zip_map, map_id]
 
-lemma zip_with_map {μ}
+@[simp] lemma zip_with_map {μ}
   (f: γ → δ → μ) (g: α → γ) (h: β → δ) (as: list α) (bs: list β):
   list.zip_with f (as.map g) (bs.map h) = list.zip_with (λ a b, f (g a) (h b)) as bs
   :=

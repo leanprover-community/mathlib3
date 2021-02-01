@@ -208,6 +208,22 @@ instance : has_neg (quadratic_form R M) :=
 
 @[simp] lemma neg_apply (Q : quadratic_form R M) (x : M) : (-Q) x = -Q x := rfl
 
+instance : add_comm_group (quadratic_form R M) :=
+{ add := (+),
+  zero := 0,
+  neg := has_neg.neg,
+  add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
+  add_assoc := λ Q Q' Q'', by { ext, simp only [add_apply, add_assoc] },
+  add_left_neg := λ Q, by { ext, simp only [add_apply, neg_apply, zero_apply, add_left_neg] },
+  add_zero := λ Q, by { ext, simp only [zero_apply, add_apply, add_zero] },
+  zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] } }
+
+@[simp] lemma coe_fn_sub (Q Q' : quadratic_form R M) : ⇑(Q - Q') = Q - Q' :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
+by simp [sub_eq_add_neg]
+
 instance : has_scalar R₁ (quadratic_form R₁ M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
@@ -222,16 +238,6 @@ instance : has_scalar R₁ (quadratic_form R₁ M) :=
 @[simp] lemma coe_fn_smul (a : R₁) (Q : quadratic_form R₁ M) : ⇑(a • Q) = a • Q := rfl
 
 @[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = a * Q x := rfl
-
-instance : add_comm_group (quadratic_form R M) :=
-{ add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
-  add_assoc := λ Q Q' Q'', by { ext, simp only [add_apply, add_assoc] },
-  add_left_neg := λ Q, by { ext, simp only [add_apply, neg_apply, zero_apply, add_left_neg] },
-  add_zero := λ Q, by { ext, simp only [zero_apply, add_apply, add_zero] },
-  zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] },
-  ..quadratic_form.has_add,
-  ..quadratic_form.has_neg,
-  ..quadratic_form.has_zero }
 
 instance : module R₁ (quadratic_form R₁ M) :=
 { mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_left_comm, mul_assoc]),

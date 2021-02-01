@@ -313,6 +313,7 @@ Geometry:
     Zariski topology: 'prime_spectrum.zariski_topology'
     locally ringed space: 'algebraic_geometry.LocallyRingedSpace'
     scheme: 'algebraic_geometry.Scheme'
+    Nullstellensatz : 'mv_polynomial.vanishing_ideal_zero_locus_eq_radical'
 
 Combinatorics:
   Graph theory:

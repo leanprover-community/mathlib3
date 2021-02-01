@@ -161,7 +161,7 @@ lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
 is_compact.induction_on hs ⟨∅, empty_subset _⟩ (λ s₁ s₂ hs ⟨t, hs₂⟩, ⟨t, subset.trans hs hs₂⟩)
   (λ s₁ s₂ ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
-    ⟨t₁ ∪ t₂, by { rw [finset.bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
+    ⟨t₁ ∪ t₂, by { rw [finset.set_bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
   (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
     ⟨U i, mem_nhds_within.2 ⟨U i, hUo i, hi, inter_subset_left _ _⟩, {i}, by simp⟩)
 
@@ -333,12 +333,12 @@ compact_of_finite_subcover $ assume ι U hUo hsU,
             ... ⊆ ⋃j, U j     : hsU),
   let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
   by haveI : fintype (subtype s) := hs.fintype; exact
-  let t := finset.bind finset.univ finite_subcovers in
+  let t := finset.bUnion finset.univ finite_subcovers in
   have (⋃i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from bUnion_subset $
     assume i hi, calc
     f i ⊆ (⋃ j ∈ finite_subcovers ⟨i, hi⟩, U j) : (h ⟨i, hi⟩)
     ... ⊆ (⋃ j ∈ t, U j) : bUnion_subset_bUnion_left $
-      assume j hj, finset.mem_bind.mpr ⟨_, finset.mem_univ _, hj⟩,
+      assume j hj, finset.mem_bUnion.mpr ⟨_, finset.mem_univ _, hj⟩,
   ⟨t, this⟩
 
 lemma compact_Union {f : β → set α} [fintype β]
@@ -457,7 +457,7 @@ by simpa using compact_univ (show f ≤ 𝓟 univ, by simp)
 
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
-    (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
+    (⋂ i, Z i) = ∅ → ∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅) :
   compact_space α :=
 { compact_univ :=
   begin
@@ -583,11 +583,11 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
 end⟩
 
 section tychonoff
-variables {ι : Type*} {π : ι → Type*} [∀i, topological_space (π i)]
+variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
 
 /-- Tychonoff's theorem -/
-lemma compact_pi_infinite {s : Πi:ι, set (π i)} :
-  (∀i, is_compact (s i)) → is_compact {x : Πi:ι, π i | ∀i, x i ∈ s i} :=
+lemma compact_pi_infinite {s : Π i, set (π i)} :
+  (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
   simp only [compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff,
     le_principal_iff],
@@ -600,17 +600,12 @@ begin
 end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
-lemma compact_univ_pi {s : Πi:ι, set (π i)} (h : ∀i, is_compact (s i)) :
+lemma compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
 by { convert compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
 
-instance pi.compact [∀i:ι, compact_space (π i)] : compact_space (Πi, π i) :=
-⟨begin
-  have A : is_compact {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} :=
-    compact_pi_infinite (λi, compact_univ),
-  have : {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} = univ := by ext; simp,
-  rwa this at A,
-end⟩
+instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
+⟨by { rw [← pi_univ univ], exact compact_univ_pi (λ i, compact_univ) }⟩
 
 end tychonoff
 

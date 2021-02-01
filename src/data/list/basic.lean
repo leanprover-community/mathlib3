@@ -1688,7 +1688,8 @@ lemma reverse_take {α} {xs : list α} (n : ℕ)
   (h : n ≤ xs.length) :
   xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
 begin
-  induction xs generalizing n; simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
+  induction xs generalizing n;
+    simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
   cases decidable.lt_or_eq_of_le h with h' h',
   { replace h' := le_of_succ_le_succ h',
     rwa [take_append_of_le_length, xs_ih _ h'],
@@ -1696,7 +1697,8 @@ begin
     { rwa [succ_eq_add_one, nat.sub_add_comm] },
     { rwa length_reverse } },
   { subst h', rw [length, nat.sub_self, drop],
-    rw [show xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length, from _, take_length, reverse_cons],
+    suffices : xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length,
+      by rw [this, take_length, reverse_cons],
     rw [length_append, length_reverse], refl }
 end
 
@@ -4045,6 +4047,16 @@ variable [decidable_eq α]
 @[simp] theorem diff_cons (l₁ l₂ : list α) (a : α) : l₁.diff (a::l₂) = (l₁.erase a).diff l₂ :=
 if h : a ∈ l₁ then by simp only [list.diff, if_pos h]
 else by simp only [list.diff, if_neg h, erase_of_not_mem h]
+
+lemma diff_cons_right (l₁ l₂ : list α) (a : α) : l₁.diff (a::l₂) = (l₁.diff l₂).erase a :=
+begin
+  induction l₂ with b l₂ ih generalizing l₁ a,
+  { simp_rw [diff_cons, diff_nil] },
+  { rw [diff_cons, diff_cons, erase_comm, ← diff_cons, ih, ← diff_cons] }
+end
+
+lemma diff_erase (l₁ l₂ : list α) (a : α) : (l₁.diff l₂).erase a = (l₁.erase a).diff l₂ :=
+by rw [← diff_cons_right, diff_cons]
 
 @[simp] theorem nil_diff (l : list α) : [].diff l = [] :=
 by induction l; [refl, simp only [*, diff_cons, erase_of_not_mem (not_mem_nil _)]]

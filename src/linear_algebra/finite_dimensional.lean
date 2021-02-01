@@ -250,6 +250,12 @@ begin
   exact ⟨g, hv.comp _ g.bijective⟩
 end
 
+lemma equiv_fin_of_dim_eq {ι : Type*} [finite_dimensional K V] {n : ℕ} (hn : findim K V = n)
+  {v : ι → V} (hv : is_basis K v) :
+  ∃ g : fin n ≃ ι, is_basis K (v ∘ g) :=
+let ⟨g₁, hg₁⟩ := equiv_fin hv, ⟨g₂⟩ := fin.equiv_iff_eq.mpr hn in
+⟨g₂.symm.trans g₁, hv.comp _ (g₂.symm.trans g₁).bijective⟩
+
 variables (K V)
 
 lemma fin_basis [finite_dimensional K V] : ∃ v : fin (findim K V) → V, is_basis K v :=
@@ -764,30 +770,19 @@ variables [finite_dimensional K V]
 
 /-- The linear equivalence corresponging to an injective endomorphism. -/
 noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) : V ≃ₗ[K] V :=
-(linear_equiv.of_injective f h_inj).trans (linear_equiv.of_top _ (linear_map.ker_eq_bot_iff_range_eq_top.1 h_inj))
+(linear_equiv.of_injective f h_inj).trans
+  (linear_equiv.of_top _ (linear_map.ker_eq_bot_iff_range_eq_top.1 h_inj))
 
-lemma of_injective_endo_to_fun (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
-  (of_injective_endo f h_inj).to_fun = f := rfl
+@[simp] lemma coe_of_injective_endo (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+  ⇑(of_injective_endo f h_inj) = f := rfl
 
-lemma of_injective_endo_right_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma of_injective_endo_right_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
   f * (of_injective_endo f h_inj).symm = 1 :=
-begin
-  ext,
-  simp only [linear_map.one_app, linear_map.mul_app],
-  change f ((of_injective_endo f h_inj).symm x) = x,
-  rw ← linear_equiv.inv_fun_apply (of_injective_endo f h_inj),
-  apply (of_injective_endo f h_inj).right_inv,
-end
+linear_map.ext $ (of_injective_endo f h_inj).apply_symm_apply
 
-lemma of_injective_endo_left_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+@[simp] lemma of_injective_endo_left_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
   ((of_injective_endo f h_inj).symm : V →ₗ[K] V) * f = 1 :=
-begin
-  ext,
-  simp only [linear_map.one_app, linear_map.mul_app],
-  change (of_injective_endo f h_inj).symm (f x) = x,
-  rw ← linear_equiv.inv_fun_apply (of_injective_endo f h_inj),
-  apply (of_injective_endo f h_inj).left_inv,
-end
+linear_map.ext $ (of_injective_endo f h_inj).symm_apply_apply
 
 end linear_equiv
 
@@ -796,18 +791,12 @@ namespace linear_map
 lemma is_unit_iff [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
 begin
   split,
-  { intro h_is_unit,
-    rcases h_is_unit with ⟨u, hu⟩,
-    rw [←hu, linear_map.ker_eq_bot'],
-    intros x hx,
-    change (1 : V →ₗ[K] V) x = 0,
-    rw ← u.inv_val,
-    change u.inv (u x) = 0,
-    simp [hx] },
+  { rintro ⟨u, rfl⟩,
+    exact linear_map.ker_eq_bot_of_inverse u.inv_mul },
   { intro h_inj,
-    use ⟨f, (linear_equiv.of_injective_endo f h_inj).symm.to_linear_map,
-      linear_equiv.of_injective_endo_right_inv f h_inj, linear_equiv.of_injective_endo_left_inv f h_inj⟩,
-    refl }
+    exact ⟨⟨f, (linear_equiv.of_injective_endo f h_inj).symm.to_linear_map,
+      linear_equiv.of_injective_endo_right_inv f h_inj,
+      linear_equiv.of_injective_endo_left_inv f h_inj⟩, rfl⟩ }
 end
 
 end linear_map
@@ -892,14 +881,8 @@ lt_of_le_of_ne le (λ h, ne_of_lt lt (by rw h))
 lemma lt_top_of_findim_lt_findim {s : submodule K V}
   (lt : findim K s < findim K V) : s < ⊤ :=
 begin
-  by_cases fin : (finite_dimensional K V),
-  { haveI := fin,
-    rw ← @findim_top K V at lt,
-    exact lt_of_le_of_findim_lt_findim le_top lt },
-  { exfalso,
-    have : findim K V = 0 := dif_neg (mt finite_dimensional_iff_dim_lt_omega.mpr fin),
-    rw this at lt,
-    exact nat.not_lt_zero _ lt }
+  rw ← @findim_top K V at lt,
+  exact lt_of_le_of_findim_lt_findim le_top lt
 end
 
 lemma findim_lt_findim_of_lt [finite_dimensional K V] {s t : submodule K V} (hst : s < t) :

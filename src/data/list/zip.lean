@@ -93,8 +93,8 @@ lemma zip_with_map {μ}
   :=
 begin
   induction as with hd tl hl generalizing bs,
-  { simp [list.map] },
-  { cases bs with hd' tl',
+  { simp },
+  { cases bs,
     { simp },
     { simp [hl] } }
 end

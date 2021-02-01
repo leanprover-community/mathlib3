@@ -412,8 +412,6 @@ begin
   exact ha.1,
 end
 
-/-- The volume of the region between two measurable functions on a measurable set can be
-    respresented as a Lebesgue integral. -/
 theorem volume_region_between_eq_lintegral'
   (hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
   μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
@@ -434,14 +432,52 @@ begin
   { exact is_measurable_region_between hf hg hs },
 end
 
-/-
-/-- If two functions are integrable (and measurable) on a measurable set, and one function is less
+variable [sigma_finite μ]
+
+/-- The volume of the region between two ae_measurable functions on a measurable set can be
+    respresented as a Lebesgue integral. -/
+theorem volume_region_between_eq_lintegral
+  (hf : ae_measurable f (μ.restrict s)) (hg : ae_measurable g (μ.restrict s))
+  (hs : is_measurable s) :
+  μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
+begin
+  have h₁ : (λ y, ennreal.of_real ((g - f) y))
+          =ᵐ[μ.restrict s]
+          (λ y, ennreal.of_real ((ae_measurable.mk g hg - ae_measurable.mk f hf) y)),
+  { refine eventually_eq.fun_comp _ _,
+    exact eventually_eq.sub hg.ae_eq_mk hf.ae_eq_mk },
+  have h₂ : ((μ.restrict s).prod volume) (region_between f g s) =
+    ((μ.restrict s).prod volume) (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
+  { apply measure_congr,
+    apply eventually_eq.inter, refl,
+    apply eventually_eq.inter,
+    { refine eventually_eq.comp₂ _ _ eventually_eq.rfl,
+      refine ae_eq_comp' _ _ measure.prod_fst_absolutely_continuous,
+      { exact measurable_fst },
+      { exact hf.ae_eq_mk } },
+    { refine eventually_eq.comp₂ eventually_eq.rfl _ _,
+      refine ae_eq_comp' _ _ measure.prod_fst_absolutely_continuous,
+      { exact measurable_fst },
+      { exact hg.ae_eq_mk }, }, },
+  rw [lintegral_congr_ae h₁,
+    ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
+  convert h₂ using 1,
+  { rw measure.restrict_prod_eq_prod_univ hs,
+    refine measure.eq_restrict_of_subset_of_measurable (hs.prod is_measurable.univ) _,
+    exact region_between_subset f g,
+    apply_instance, apply_instance, },
+  { rw measure.restrict_prod_eq_prod_univ hs,
+    refine measure.eq_restrict_of_subset_of_measurable (hs.prod is_measurable.univ) _,
+    exact region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg),
+    apply_instance, apply_instance, },
+end
+
+/-- If two functions are integrable on a measurable set, and one function is less
     than or equal to the other everywhere on that set, then the volume of the region between the
     two functions can be respresented as an integral. -/
 theorem volume_region_between_eq_integral
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
-  (f_meas : measurable f) (g_meas : measurable g) (hs : is_measurable s)
-  (hfg : ∀ x ∈ s, f x ≤ g x) :
+  (hs : is_measurable s) (hfg : ∀ x ∈ s, f x ≤ g x) :
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
   have h : g - f =ᵐ[μ.restrict s] λ y, (λ x, nnreal.of_real (g x - f x)) y,
@@ -450,12 +486,11 @@ begin
     simpa only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
                 measure_empty, compl_inter_self, eq_self_iff_true, true_and] using
       λ x hx, (nnreal.coe_of_real _ (sub_nonneg.mpr (hfg x hx))).symm },
-  rw [volume_region_between_eq_lintegral, integral_congr_ae h, lintegral_congr_ae,
-      lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))];
+  rw [volume_region_between_eq_lintegral f_int.ae_measurable g_int.ae_measurable hs,
+      integral_congr_ae h, lintegral_congr_ae,
+      lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))],
   simpa only,
 end
-
--/
 
 end region_between
 

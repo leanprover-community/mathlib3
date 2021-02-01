@@ -442,6 +442,9 @@ instance has_compl : has_compl (simple_graph V) :=
 @[simp]
 lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
+instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
+  [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
+
 @[simp]
 lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
 begin

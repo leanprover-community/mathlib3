@@ -802,51 +802,55 @@ algebra.of_semimodule smul_comp (λ _ _ _, comp_smul _ _ _)
 
 end comm_ring
 
-section restrict_scalar
+section restrict_scalars
 
-variables {R M M₂ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂]
-  [module R M] [module R M₂] [topological_space M] [topological_space M₂]
-  (S : Type*) [ring S] [module S M] [module S M₂] [linear_map.compatible_smul M M₂ S R]
+variables {A M M₂ : Type*} [ring A] [add_comm_group M] [add_comm_group M₂]
+  [module A M] [module A M₂] [topological_space M] [topological_space M₂]
+  (R : Type*) [ring R] [module R M] [module R M₂] [linear_map.compatible_smul M M₂ R A]
 
-def restrict_scalars (f : M →L[R] M₂) : M →L[S] M₂ :=
-⟨(f : M →ₗ[R] M₂).restrict_scalars S, f.continuous⟩
+/-- If `A` is an `R`-algebra, then a continuous `A`-linear map can be interpreted as a continuous
+`R`-linear map. We assume `linear_map.compatible_smul M M₂ R A` to match assumptions of
+`linear_map.map_smul_of_tower`. -/
+def restrict_scalars (f : M →L[A] M₂) : M →L[R] M₂ :=
+⟨(f : M →ₗ[A] M₂).restrict_scalars R, f.continuous⟩
 
-variable {S}
+variable {R}
 
+@[simp, norm_cast] lemma coe_restrict_scalars (f : M →L[A] M₂) :
+  (f.restrict_scalars R : M →ₗ[R] M₂) = (f : M →ₗ[A] M₂).restrict_scalars R := rfl
 
-@[simp, norm_cast] lemma coe_restrict_scalars (f : M →L[R] M₂) :
-  (f.restrict_scalars S : M →ₗ[S] M₂) = (f : M →ₗ[R] M₂).restrict_scalars S := rfl
+@[simp] lemma coe_restrict_scalars' (f : M →L[A] M₂) : ⇑(f.restrict_scalars R) = f := rfl
 
-@[simp] lemma coe_restrict_scalars' (f : M →L[R] M₂) : ⇑(f.restrict_scalars S) = f := rfl
+@[simp] lemma restrict_scalars_zero : (0 : M →L[A] M₂).restrict_scalars R = 0 := rfl
 
-@[simp] lemma restrict_scalars_zero : (0 : M →L[R] M₂).restrict_scalars S = 0 := rfl
-
+section
 variable [topological_add_group M₂]
 
-@[simp] lemma restrict_scalars_add (f g : M →L[R] M₂) :
-  (f + g).restrict_scalars S = f.restrict_scalars S + g.restrict_scalars S := rfl
+@[simp] lemma restrict_scalars_add (f g : M →L[A] M₂) :
+  (f + g).restrict_scalars R = f.restrict_scalars R + g.restrict_scalars R := rfl
 
-@[simp] lemma restrict_scalars_neg (f : M →L[R] M₂) :
-  (-f).restrict_scalars S = -f.restrict_scalars S := rfl
+@[simp] lemma restrict_scalars_neg (f : M →L[A] M₂) :
+  (-f).restrict_scalars R = -f.restrict_scalars R := rfl
+end
 
-variables {T : Type*} [ring T] [topological_space T] [semimodule T M₂] [topological_module T M₂]
-  [smul_comm_class R T M₂] [smul_comm_class S T M₂]
+variables {S : Type*} [ring S] [topological_space S] [semimodule S M₂] [topological_module S M₂]
+  [smul_comm_class A S M₂] [smul_comm_class R S M₂]
 
-@[simp] lemma restrict_scalars_smul (c : T) (f : M →L[R] M₂) :
-  (c • f).restrict_scalars S = c • f.restrict_scalars S := rfl
+@[simp] lemma restrict_scalars_smul (c : S) (f : M →L[A] M₂) :
+  (c • f).restrict_scalars R = c • f.restrict_scalars R := rfl
 
-variables (R M M₂ S T)
+variables (A M M₂ R S) [topological_add_group M₂]
 
 /-- `continuous_linear_map.restrict_scalars` as a `linear_map`. See also
 `continuous_linear_map.restrict_scalarsL`. -/
-def restrict_scalarsₗ : (M →L[R] M₂) →ₗ[T] (M →L[S] M₂) :=
-⟨restrict_scalars S, λ _ _, rfl, λ _ _, rfl⟩
+def restrict_scalarsₗ : (M →L[A] M₂) →ₗ[S] (M →L[R] M₂) :=
+⟨restrict_scalars R, λ _ _, rfl, λ _ _, rfl⟩
 
-variables {R M M₂ S T}
+variables {A M M₂ R S}
 
-@[simp] lemma coe_restrict_scalarsₗ : ⇑(restrict_scalarsₗ R M M₂ S T) = restrict_scalars S := rfl
+@[simp] lemma coe_restrict_scalarsₗ : ⇑(restrict_scalarsₗ A M M₂ R S) = restrict_scalars R := rfl
 
-end restrict_scalar
+end restrict_scalars
 
 end continuous_linear_map
 

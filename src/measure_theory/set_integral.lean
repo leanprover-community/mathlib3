@@ -477,8 +477,8 @@ lemma set_integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[
   (hfi : integrable_on f s μ) :
   0 < ∫ x in s, f x ∂μ ↔ 0 < μ (support f ∩ s) :=
 begin
-  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_is_null_measurable],
-  exact hfi.ae_measurable.is_null_measurable (is_measurable_singleton 0).compl
+  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_null_measurable_set],
+  exact hfi.ae_measurable.null_measurable_set (is_measurable_singleton 0).compl
 end
 
 end normed_group

@@ -397,7 +397,7 @@ Exists.snd (classical.some_spec (vitali_aux_h x h):_)
 
 def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
 
-theorem vitali_nonmeasurable : ¬ is_null_measurable measure_space.μ vitali :=
+theorem vitali_nonmeasurable : ¬ null_measurable_set measure_space.μ vitali :=
 sorry
 
 end vitali

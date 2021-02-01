@@ -282,6 +282,17 @@ theorem inr_injective : function.injective (inr R M M₂) :=
 λ _, by simp
 
 /-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
+def coprod' : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃+ (M × M₂ →ₗ[R] M₃) :=
+{ to_fun := λ f,
+  { to_fun    := λ x, f.1 x.1 + f.2 x.2,
+    map_add'  := λ x y, by simp only [map_add, prod.snd_add, prod.fst_add]; cc,
+    map_smul' := λ x y, by simp only [smul_add, prod.smul_snd, prod.smul_fst, map_smul] },
+  inv_fun := λ f, (f.comp (inl _ _ _), f.comp (inr _ _ _)),
+  left_inv := λ f, by { ext, cases f, simp, simp },
+  right_inv := λ f, by { ext x, simp [←f.map_add] },
+  map_add' := λ a b, _ }
+
+/-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
 { to_fun    := λ x, f x.1 + g x.2,
   map_add'  := λ x y, by simp only [map_add, prod.snd_add, prod.fst_add]; cc,

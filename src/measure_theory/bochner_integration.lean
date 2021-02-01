@@ -551,7 +551,12 @@ protected lemma ae_measurable (f : α →₁ₛ[μ] E) : ae_measurable (to_simpl
 /-- `(to_simple_func f)` is integrable. -/
 protected lemma integrable (f : α →₁ₛ[μ] E) : integrable (to_simple_func f) μ :=
 let h := classical.some_spec f.2 in
-  (integrable_mk (simple_func.ae_measurable f)).1 $ h.symm ▸ (f : α →₁[μ] E).2
+begin
+  apply (integrable_mk (simple_func.ae_measurable f)).1,
+  let Z := (f : α →₁[μ] E),
+  sorry,
+end
+
 
 lemma to_L1_to_simple_func (f : α →₁ₛ[μ] E) :
   to_L1 ((to_simple_func f)) (simple_func.integrable f) = f :=
@@ -561,15 +566,19 @@ lemma to_simple_func_to_L1 (f : α →ₛ E) (hfi : integrable f μ) :
   to_simple_func (to_L1 f hfi) =ᵐ[μ] f :=
 by { rw ← mk_eq_mk, exact classical.some_spec (to_L1 f hfi).2 }
 
-lemma to_simple_func_eq_to_fun (f : α →₁ₛ[μ] E) : (to_simple_func f) =ᵐ[μ] f :=
+lemma to_simple_func_eq_to_fun (f : α →₁ₛ[μ] E) : to_simple_func f =ᵐ[μ] f :=
 begin
-  rw [← of_fun_eq_of_fun (to_simple_func f) f f.integrable (f : α →₁[μ] E).integrable, ← l1.eq_iff],
+  have Z := to_L1_eq_to_L1 (to_simple_func f) (simple_func.integrable f),
+  simp at Z,
+  rw Z,
+
+  rw [← to_L1_eq_to_L1 (to_simple_func f) (simple_func.integrable f), ← l1.eq_iff],
   simp only [of_fun_eq_mk, ← coe_coe, mk_to_fun],
   exact classical.some_spec f.coe_prop
 end
 
 variables (α E)
-lemma zero_to_simple_func : (0 : α →₁ₛ[μ] E).to_simple_func =ᵐ[μ] 0 :=
+lemma zero_to_simple_func : to_simple_func (0 : α →₁ₛ[μ] E) =ᵐ[μ] 0 :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ[μ] E), l1.zero_to_fun α E],
   assume a h₁ h₂,
@@ -578,7 +587,7 @@ end
 variables {α E}
 
 lemma add_to_simple_func (f g : α →₁ₛ[μ] E) :
-  (f + g).to_simple_func =ᵐ[μ] (to_simple_func f) + g.to_simple_func :=
+  to_simple_func (f + g) =ᵐ[μ] to_simple_func f + to_simple_func g :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.add_to_fun (f : α →₁[μ] E) g],
@@ -587,7 +596,7 @@ begin
   iterate 4 { assume h, rw h }
 end
 
-lemma neg_to_simple_func (f : α →₁ₛ[μ] E) : (-f).to_simple_func =ᵐ[μ] - (to_simple_func f) :=
+lemma neg_to_simple_func (f : α →₁ₛ[μ] E) : to_simple_func (-f) =ᵐ[μ] - to_simple_func f :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
     l1.neg_to_fun (f : α →₁[μ] E)],
@@ -597,7 +606,7 @@ begin
 end
 
 lemma sub_to_simple_func (f g : α →₁ₛ[μ] E) :
-  (f - g).to_simple_func =ᵐ[μ] (to_simple_func f) - g.to_simple_func :=
+  to_simple_func (f - g) =ᵐ[μ] to_simple_func f - to_simple_func g :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.sub_to_fun (f : α →₁[μ] E) g],
@@ -609,7 +618,7 @@ end
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma smul_to_simple_func (k : 𝕜) (f : α →₁ₛ[μ] E) :
-  (k • f).to_simple_func =ᵐ[μ] k • (to_simple_func f) :=
+  to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (k • f), to_simple_func_eq_to_fun f,
     l1.smul_to_fun k (f : α →₁[μ] E)],
@@ -619,14 +628,17 @@ begin
 end
 
 lemma lintegral_edist_to_simple_func_lt_top (f g : α →₁ₛ[μ] E) :
-  ∫⁻ (x : α), edist ((to_simple_func f) x) ((to_simple_func g) x) ∂μ < ⊤ :=
+  ∫⁻ (x : α), edist (to_simple_func f x) (to_simple_func g x) ∂μ < ⊤ :=
 begin
   rw lintegral_rw₂ (to_simple_func_eq_to_fun f) (to_simple_func_eq_to_fun g),
-  exact lintegral_edist_to_fun_lt_top _ _
+  refine lintegral_edist_lt_top _ _,
+  sorry,
+  sorry,
+  -- exact simple_func.integrable _,
 end
 
 lemma dist_to_simple_func (f g : α →₁ₛ[μ] E) : dist f g =
-  ennreal.to_real (∫⁻ x, edist ((to_simple_func f) x) (g.to_simple_func x) ∂μ) :=
+  ennreal.to_real (∫⁻ x, edist (to_simple_func f x) (to_simple_func g x) ∂μ) :=
 begin
   rw [dist_eq, l1.dist_to_fun, ennreal.to_real_eq_to_real],
   { rw lintegral_rw₂, repeat { exact ae_eq_symm (to_simple_func_eq_to_fun _) } },
@@ -637,7 +649,7 @@ end
 lemma norm_to_simple_func (f : α →₁ₛ[μ] E) :
   ∥f∥ = ennreal.to_real (∫⁻ (a : α), nnnorm ((to_simple_func f) a) ∂μ) :=
 calc ∥f∥ =
-  ennreal.to_real (∫⁻x, edist ((to_simple_func f) x) ((0 : α →₁ₛ[μ] E).to_simple_func x) ∂μ) :
+  ennreal.to_real (∫⁻x, edist ((to_simple_func f) x) (to_simple_func (0 : α →₁ₛ[μ] E) x) ∂μ) :
 begin
   rw [← dist_zero_right, dist_to_simple_func]
 end
@@ -661,7 +673,7 @@ lemma norm_eq_integral (f : α →₁ₛ[μ] E) : ∥f∥ = ((to_simple_func f).
 begin
   rw [norm_to_simple_func, simple_func.integral_eq_lintegral],
   { simp only [simple_func.map_apply, of_real_norm_eq_coe_nnnorm] },
-  { exact f.integrable.norm },
+  { exact (simple_func.integrable f).norm },
   { exact eventually_of_forall (λ x, norm_nonneg _) }
 end
 
@@ -684,7 +696,7 @@ begin
   rintros ⟨f, hfi⟩,
   have A : ae_eq_fun.mk f f.ae_measurable = f := mk_coe_fn _,
   rw mem_closure_iff_seq_limit,
-  have hfi' := integrable_coe_fn.2 hfi,
+  have hfi' : integrable f μ := sorry, -- integrable_coe_fn.2 hfi,
   refine ⟨λ n, ↑(to_L1 (simple_func.approx_on f f.measurable univ 0 trivial n)
     (simple_func.integrable_approx_on_univ f.measurable hfi' n)), λ n, mem_range_self _, _⟩,
   simp only [tendsto_iff_edist_tendsto_0, of_fun_eq_mk, subtype.coe_mk, edist_eq],
@@ -714,6 +726,7 @@ variables {α E 𝕜}
 
 end coe_to_l1
 
+/-
 section pos_part
 
 /-- Positive part of a simple function in L1 space.  -/
@@ -735,6 +748,7 @@ lemma coe_pos_part (f : α →₁ₛ[μ] ℝ) : (f.pos_part : α →₁[μ] ℝ)
 lemma coe_neg_part (f : α →₁ₛ[μ] ℝ) : (f.neg_part : α →₁[μ] ℝ) = (f : α →₁[μ] ℝ).neg_part := rfl
 
 end pos_part
+-/
 
 section simple_func_integral
 /-! Define the Bochner integral on `α →₁ₛ[μ] E` and prove basic properties of this integral. -/
@@ -748,46 +762,50 @@ lemma integral_eq_integral (f : α →₁ₛ[μ] E) : integral f = ((to_simple_f
 
 lemma integral_eq_lintegral {f : α →₁ₛ[μ] ℝ} (h_pos : 0 ≤ᵐ[μ] (to_simple_func f)) :
   integral f = ennreal.to_real (∫⁻ a, ennreal.of_real ((to_simple_func f) a) ∂μ) :=
-by rw [integral, simple_func.integral_eq_lintegral f.integrable h_pos]
+by rw [integral, simple_func.integral_eq_lintegral (simple_func.integrable f) h_pos]
 
-lemma integral_congr {f g : α →₁ₛ[μ] E} (h : (to_simple_func f) =ᵐ[μ] g.to_simple_func) :
+lemma integral_congr {f g : α →₁ₛ[μ] E} (h : to_simple_func f =ᵐ[μ] to_simple_func g) :
   integral f = integral g :=
-simple_func.integral_congr f.integrable h
+simple_func.integral_congr (simple_func.integrable f) h
 
 lemma integral_add (f g : α →₁ₛ[μ] E) : integral (f + g) = integral f + integral g :=
 begin
   simp only [integral],
-  rw ← simple_func.integral_add f.integrable g.integrable,
-  apply measure_theory.simple_func.integral_congr (f + g).integrable,
+  rw ← simple_func.integral_add (simple_func.integrable f) (simple_func.integrable g),
+  apply measure_theory.simple_func.integral_congr (simple_func.integrable (f + g)),
   apply add_to_simple_func
 end
 
 lemma integral_smul (r : ℝ) (f : α →₁ₛ[μ] E) : integral (r • f) = r • integral f :=
 begin
   simp only [integral],
-  rw ← simple_func.integral_smul _ f.integrable,
-  apply measure_theory.simple_func.integral_congr (r • f).integrable,
+  rw ← simple_func.integral_smul _ (simple_func.integrable f),
+  apply measure_theory.simple_func.integral_congr (simple_func.integrable (r • f)),
   apply smul_to_simple_func
 end
 
-lemma norm_integral_le_norm (f : α →₁ₛ[μ] E) : ∥ integral f ∥ ≤ ∥f∥ :=
+lemma norm_integral_le_norm (f : α →₁ₛ[μ] E) : ∥integral f∥ ≤ ∥f∥ :=
 begin
   rw [integral, norm_eq_integral],
-  exact (to_simple_func f).norm_integral_le_integral_norm f.integrable
+  exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
+variables (α E μ)
 /-- The Bochner integral over simple functions in l1 space as a continuous linear map. -/
 def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
   1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
-local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
+variables {α E μ}
+
+local notation `Integral` := integral_clm α E μ
 
 open continuous_linear_map
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
 linear_map.mk_continuous_norm_le _ (zero_le_one) _
 
+/-
 section pos_part
 
 lemma pos_part_to_simple_func (f : α →₁ₛ[μ] ℝ) :
@@ -850,12 +868,15 @@ begin
 end
 
 end pos_part
+-/
 
 end simple_func_integral
 
 end simple_func
 
 open simple_func
+local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
+
 
 variables [normed_space ℝ E] [normed_space ℝ F] [complete_space E]
 
@@ -868,7 +889,8 @@ open continuous_linear_map
 
 /-- The Bochner integral in l1 space as a continuous linear map. -/
 def integral_clm : (α →₁[μ] E) →L[ℝ] E :=
-  integral_clm.extend to_l1 simple_func.dense_range simple_func.uniform_inducing
+(integral_clm α E μ).extend
+  to_l1 simple_func.dense_range simple_func.uniform_inducing
 
 /-- The Bochner integral in l1 space -/
 def integral (f : α →₁[μ] E) : E := integral_clm f
@@ -876,9 +898,9 @@ def integral (f : α →₁[μ] E) : E := integral_clm f
 lemma integral_eq (f : α →₁[μ] E) : integral f = integral_clm f := rfl
 
 @[norm_cast] lemma simple_func.integral_l1_eq_integral (f : α →₁ₛ[μ] E) :
-  integral (f : α →₁[μ] E) = f.integral :=
+  integral (f : α →₁[μ] E) = (simple_func.integral f) :=
 uniformly_extend_of_ind simple_func.uniform_inducing simple_func.dense_range
-  simple_func.integral_clm.uniform_continuous _
+  (simple_func.integral_clm α E μ).uniform_continuous _
 
 variables (α E)
 @[simp] lemma integral_zero : integral (0 : α →₁[μ] E) = 0 :=
@@ -913,9 +935,10 @@ calc ∥integral f∥ = ∥Integral f∥ : rfl
   ... = ∥f∥ : one_mul _
 
 @[continuity]
-lemma continuous_integral : continuous (λ (f : α →₁[μ] E), f.integral) :=
+lemma continuous_integral : continuous (λ (f : α →₁[μ] E), integral f) :=
 by simp [l1.integral, l1.integral_clm.continuous]
 
+/-
 section pos_part
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁[μ] ℝ) : integral f = ∥pos_part f∥ - ∥neg_part f∥ :=
@@ -935,6 +958,7 @@ begin
 end
 
 end pos_part
+-/
 
 end integration_in_l1
 
@@ -947,7 +971,7 @@ variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [c
 
 /-- The Bochner integral -/
 def integral (μ : measure α) (f : α → E) : E :=
-if hf : integrable f μ then (l1.of_fun f hf).integral else 0
+if hf : integrable f μ then l1.integral (hf.to_L1 f) else 0
 
 /-! In the notation for integrals, an expression like `∫ x, g ∥x∥ ∂μ` will not be parsed correctly,
   and needs parentheses. We do not set the binding power of `r` to `0`, because then
@@ -964,11 +988,18 @@ open continuous_linear_map measure_theory.simple_func
 variables {f g : α → E} {μ : measure α}
 
 lemma integral_eq (f : α → E) (hf : integrable f μ) :
-  ∫ a, f a ∂μ = (l1.of_fun f hf).integral :=
+  ∫ a, f a ∂μ = l1.integral (hf.to_L1 f) :=
 dif_pos hf
 
-lemma l1.integral_eq_integral (f : α →₁[μ] E) : f.integral = ∫ a, f a ∂μ :=
-by rw [integral_eq, l1.of_fun_to_fun]
+lemma l1.integral_eq_integral (f : α →₁[μ] E) : l1.integral f = ∫ a, f a ∂μ :=
+begin
+  rw [integral_eq],
+  simp,
+  congr,
+  -- library_search!,
+end
+
+#exit
 
 lemma integral_undef (h : ¬ integrable f μ) : ∫ a, f a ∂μ = 0 :=
 dif_neg h

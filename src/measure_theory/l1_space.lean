@@ -569,7 +569,6 @@ end
 end normed_space_over_complete_field
 
 
-variables [second_countable_topology β]
 
 /-! ### The predicate `integrable` on measurable functions modulo a.e.-equality -/
 
@@ -577,27 +576,38 @@ namespace ae_eq_fun
 
 section
 
-variable [opens_measurable_space β]
-
-/-- A class of almost everywhere equal functions is `integrable` if it has a finite distance to
-  the origin. It means the same thing as the predicate `integrable` over functions. -/
-def integrable (f : α →ₘ[μ] β) : Prop := f ∈ ball (0 : α →ₘ[μ] β) ⊤
+/-- A class of almost everywhere equal functions is `integrable` if its function representative
+is integrable. -/
+def integrable (f : α →ₘ[μ] β) : Prop := integrable f μ
 
 lemma integrable_mk {f : α → β} (hf : ae_measurable f μ ) :
   (integrable (mk f hf : α →ₘ[μ] β)) ↔ measure_theory.integrable f μ :=
-by simp [integrable, zero_def, edist_mk_mk', measure_theory.integrable, nndist_eq_nnnorm,
-         has_finite_integral, hf]
+begin
+  simp [integrable],
+  apply integrable_congr,
+  exact coe_fn_mk f hf
+end
 
 lemma integrable_coe_fn {f : α →ₘ[μ] β} : (measure_theory.integrable f μ) ↔ integrable f :=
 by rw [← integrable_mk, mk_coe_fn]
 
-lemma integrable_zero : integrable (0 : α →ₘ[μ] β) := mem_ball_self coe_lt_top
+lemma integrable_zero : integrable (0 : α →ₘ[μ] β) :=
+(integrable_zero α β μ).congr (coe_fn_mk _ _).symm
 
 end
 
 section
 
-variable [borel_space β]
+variables [borel_space β]
+
+lemma integrable.neg {f : α →ₘ[μ] β} : integrable f → integrable (-f) :=
+induction_on f $ λ f hfm hfi, (integrable_mk _).2 ((integrable_mk hfm).1 hfi).neg
+
+section
+variable [second_countable_topology β]
+
+lemma integrable_iff_mem_L1 {f : α →ₘ[μ] β} : integrable f ↔ f ∈ (α →₁[μ] β) :=
+by rw [← integrable_coe_fn, ← mem_ℒp_one_iff_integrable, Lp.mem_Lp_iff_mem_ℒp]
 
 lemma integrable.add {f g : α →ₘ[μ] β} : integrable f → integrable g → integrable (f + g) :=
 begin
@@ -606,17 +616,11 @@ begin
   exact hfi.add hgi
 end
 
-lemma integrable.neg {f : α →ₘ[μ] β} : integrable f → integrable (-f) :=
-induction_on f $ λ f hfm hfi, (integrable_mk _).2 ((integrable_mk hfm).1 hfi).neg
-
 lemma integrable.sub {f g : α →ₘ[μ] β} (hf : integrable f) (hg : integrable g) :
   integrable (f - g) :=
 hf.add hg.neg
 
-protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ[μ] β) ⊤) :=
-{ zero_mem := integrable_zero,
-  add_mem := λ _ _, integrable.add,
-  neg_mem := λ _, integrable.neg }
+end
 
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
@@ -630,11 +634,13 @@ end
 
 end ae_eq_fun
 
-notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ
+lemma L1.integrable [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+  integrable f μ :=
+by { rw ← mem_ℒp_one_iff_integrable, exact Lp.mem_ℒp f }
 
 namespace integrable
 
-variable [borel_space β]
+variables [second_countable_topology β] [borel_space β]
 
 /-- Construct the equivalence class `[f]` of an integrable function `f`, as a member of the
 space `L1 β 1 μ`. -/

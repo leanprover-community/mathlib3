@@ -665,6 +665,8 @@ def Lp {α} (E : Type*) [measurable_space α] [measurable_space E] [normed_group
   neg_mem' := λ f hf,
     by rwa [set.mem_set_of_eq, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
 
+notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ
+
 namespace mem_ℒp
 
 variables {α E : Type*} [measurable_space α] [measurable_space E] [normed_group E]
@@ -689,6 +691,9 @@ variables {α E F : Type*} [measurable_space α] {μ : measure α} [measurable_s
   [borel_space E] [topological_space.second_countable_topology E] {p : ennreal}
 
 lemma mem_Lp_iff_snorm_lt_top {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ snorm f p μ < ⊤ := iff.refl _
+
+lemma mem_Lp_iff_mem_ℒp {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ mem_ℒp f p μ :=
+by simp [mem_Lp_iff_snorm_lt_top, mem_ℒp, f.measurable.ae_measurable]
 
 lemma antimono [finite_measure μ] {p q : ennreal} (hpq : p ≤ q) : Lp E q μ ≤ Lp E p μ :=
 λ f hf, (mem_ℒp.mem_ℒp_of_exponent_le ⟨f.ae_measurable, hf⟩ hpq).2

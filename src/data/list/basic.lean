@@ -1287,6 +1287,17 @@ theorem nth_update_nth_ne (a : α) {m n} (l : list α) (h : m ≠ n) :
   nth (update_nth l m a) n = nth l n :=
 by simp only [update_nth_eq_modify_nth, nth_modify_nth_ne _ _ h]
 
+@[simp] lemma update_nth_nil (n : ℕ) (a : α) : [].update_nth n a = [] := rfl
+
+lemma update_nth_comm (a b : α) : Π {n m : ℕ} (h : n ≠ m) (l : list α),
+  (l.update_nth n a).update_nth m b = (l.update_nth m b).update_nth n a
+| _ _ _ [] := by simp
+| 0 0 h (x :: t) := absurd rfl h
+| (n + 1) 0 h (x :: t) := by simp [list.update_nth]
+| 0 (m + 1) h (x :: t) := by simp [list.update_nth]
+| (n + 1) (m + 1) h (x :: t) := by { simp only [update_nth, true_and, eq_self_iff_true],
+  exact update_nth_comm (λ h', h $ nat.succ_inj'.mpr h') t, }
+
 @[simp] lemma nth_le_update_nth_eq (l : list α) (i : ℕ) (a : α)
   (h : i < (l.update_nth i a).length) : (l.update_nth i a).nth_le i h = a :=
 by rw [← option.some_inj, ← nth_le_nth, nth_update_nth_eq, nth_le_nth]; simp * at *

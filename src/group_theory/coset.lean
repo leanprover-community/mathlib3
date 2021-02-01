@@ -129,11 +129,11 @@ set.ext $ by simp [mem_left_coset_iff, mul_mem_cancel_left s (s.inv_mem ha)]
 lemma right_coset_mem_right_coset {a : α} (ha : a ∈ s) : (s : set α) *r a = s :=
 set.ext $ assume b, by simp [mem_right_coset_iff, mul_mem_cancel_right s (s.inv_mem ha)]
 
-@[to_additive normal_of_eq_add_cosets]
+@[to_additive eq_add_cosets_of_normal]
 theorem eq_cosets_of_normal (N : s.normal) (g : α) : g *l s = s *r g :=
 set.ext $ assume a, by simp [mem_left_coset_iff, mem_right_coset_iff]; rw [N.mem_comm_iff]
 
-@[to_additive eq_add_cosets_of_normal]
+@[to_additive normal_of_eq_add_cosets]
 theorem normal_of_eq_cosets (h : ∀ g : α, g *l s = s *r g) : s.normal :=
 ⟨assume a ha g, show g * a * g⁻¹ ∈ (s : set α),
   by rw [← mem_right_coset_iff, ← h]; exact mem_left_coset g ha⟩

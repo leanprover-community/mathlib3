@@ -376,7 +376,7 @@ lemma is_integral_domain_iff_prime (I : ideal α) : is_integral_domain I.quotien
   λ h, by exactI integral_domain.to_is_integral_domain I.quotient⟩
 
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
- ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
+  ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
 begin
   rintro ⟨a⟩ h,
   rcases hI.exists_inv (mt eq_zero_iff_mem.2 h) with ⟨b, c, hc, abc⟩,

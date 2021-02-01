@@ -412,8 +412,6 @@ begin
   let φ : (P.comap C : ideal R).quotient →+* P.quotient := quotient_map P C le_rfl,
   let M : submonoid (P.comap C : ideal R).quotient :=
     submonoid.powers ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff,
---  let M : submonoid (P.comap C : ideal R).quotient :=
---    submonoid.powers (pX.map (quotient.mk (P.comap C : ideal R))).leading_coeff,
   rw ← bot_quotient_is_maximal_iff at hP ⊢,
   have hp0 : ((m : polynomial R).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))

@@ -30,9 +30,9 @@ open set function
 
 open_locale classical big_operators
 
-/-- Ideal in a commutative ring is an additive subgroup `s` such that
-`a * b ∈ s` whenever `b ∈ s`. -/
-@[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
+/-- An ideal in a commutative semiring `R` is an additive submonoid `s` such that
+`a * b ∈ s` whenever `b ∈ s`. If `R` is a ring, then `s` is an additive subgroup.  -/
+@[reducible] def ideal (R : Type u) [comm_semiring R] := submodule R R
 
 namespace ideal
 variables [comm_ring α] (I : ideal α) {a b : α}
@@ -305,11 +305,12 @@ instance (I : ideal α) : has_one I.quotient := ⟨submodule.quotient.mk 1⟩
 
 instance (I : ideal α) : has_mul I.quotient :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
- λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
-  refine calc a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ : _
+λ a₁ a₂ b₁ b₂ h₁ h₂, begin
+  apply @quot.sound _ I.quotient_rel.r,
+  calc a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁ : _
   ... ∈ I : I.add_mem (I.mul_mem_left _ h₁) (I.mul_mem_right _ h₂),
   rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁]
- end⟩
+end⟩
 
 instance (I : ideal α) : comm_ring I.quotient :=
 { mul := (*),
@@ -596,6 +597,17 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
   ⟨λ ⟨I, bot_lt, lt_top⟩, let ⟨p, hp, le_p⟩ := I.exists_le_maximal (lt_top_iff_ne_top.mp lt_top) in
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
+
+/-- When a ring is not a field, the maximal ideals are nontrivial. -/
+lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)
+  (not_field : ¬ is_field R) : M ≠ ⊥ :=
+begin
+  rintros h,
+  rw h at max,
+  cases max with h1 h2,
+  obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
+  exact ne_of_lt hItop (h2 I hIbot),
+end
 
 end ring
 

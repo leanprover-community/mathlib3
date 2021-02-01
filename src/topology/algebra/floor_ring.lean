@@ -180,11 +180,12 @@ begin
     { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
       refine (h _ ⟨true.intro, by exact_mod_cast left_mem_Icc.mpr zero_le_one⟩).tendsto.comp _,
-      rw [nhds_within_prod_eq, nhds_within_univ, nhds_within_Icc_eq_nhds_within_Ici (@zero_lt_one α _ _)],
+      rw [nhds_within_prod_eq, nhds_within_univ,
+        nhds_within_Icc_eq_nhds_within_Ici (@zero_lt_one α _ _)],
       exact tendsto_id.prod_map (tendsto_fract_right _) } },
   { have : t ∈ Ioo (floor t : α) ((floor t : α) + 1),
       from ⟨lt_of_le_of_ne (floor_le t) (ne.symm ht), lt_floor_add_one _⟩,
-    refine (h ((prod.map _ fract) _) ⟨trivial, ⟨fract_nonneg _, (fract_lt_one _).le⟩⟩).tendsto.comp _,
+    apply (h ((prod.map _ fract) _) ⟨trivial, ⟨fract_nonneg _, (fract_lt_one _).le⟩⟩).tendsto.comp,
     simp only [nhds_prod_eq, nhds_within_prod_eq, nhds_within_univ, id.def, prod.map_mk],
     exact continuous_at_id.tendsto.prod_map
             (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _

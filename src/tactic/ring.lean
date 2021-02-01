@@ -568,10 +568,11 @@ lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
   simp_lemmas.mk (λ _, failed) (λ _ _ _ _ e, do
     (new_e, pr) ← match mode with
     | normalize_mode.raw := eval' red atoms
-    | normalize_mode.horner := trans_conv (eval' red atoms) (simplify lemmas [])
+    | normalize_mode.horner := trans_conv (eval' red atoms)
+                                 (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf))
     | normalize_mode.SOP :=
       trans_conv (eval' red atoms) $
-      trans_conv (simplify lemmas []) $
+      trans_conv (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf)) $
       simp_bottom_up' (λ e, norm_num.derive e <|> pow_lemma.rewrite e)
     end e,
     guard (¬ new_e =ₐ e),

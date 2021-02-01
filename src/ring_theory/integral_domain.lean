@@ -125,7 +125,7 @@ begin
     sum_comp (coe : units R → R) f.to_hom_units
   ... = ∑ u : units R in univ.image f.to_hom_units, c • u :
     sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
-  ... = ∑ b : set.range f.to_hom_units, c • ↑b : finset.sum_subtype
+  ... = ∑ b : set.range f.to_hom_units, c • ↑b : finset.sum_subtype _
       (by simp only [mem_image, set.mem_range, forall_const, iff_self, mem_univ, exists_prop_of_true]) _
   ... = c • ∑ b : set.range f.to_hom_units, (b : R) : smul_sum.symm
   ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below

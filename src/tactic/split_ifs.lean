@@ -37,7 +37,7 @@ sls ← get_user_simp_lemmas `split_if_reduction,
 let cfg : simp_config := { fail_if_unchanged := ff },
 let discharger := assumption <|> (applyc `not_not_intro >> assumption),
 hs ← at_.get_locals, hs.mmap' (λ h, simp_hyp sls [] h cfg discharger >> skip),
-when at_.include_goal (simp_target sls [] cfg discharger)
+when at_.include_goal (simp_target sls [] cfg discharger >> skip)
 
 meta def split_if1 (c : expr) (n : name) (at_ : loc) : tactic unit :=
 by_cases c n; reduce_ifs_at at_

@@ -89,8 +89,8 @@ by rw [← zip_map, map_id]
 
 @[simp] lemma zip_with_map {μ}
   (f : γ → δ → μ) (g : α → γ) (h : β → δ) (as : list α) (bs : list β) :
-  list.zip_with f (as.map g) (bs.map h) =
-  list.zip_with (λ a b, f (g a) (h b)) as bs :=
+  zip_with f (as.map g) (bs.map h) =
+  zip_with (λ a b, f (g a) (h b)) as bs :=
 begin
   induction as generalizing bs,
   { simp },

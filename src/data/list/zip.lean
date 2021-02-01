@@ -87,27 +87,27 @@ theorem zip_map_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
    zip l₁ (l₂.map f) = (zip l₁ l₂).map (prod.map id f) :=
 by rw [← zip_map, map_id]
 
-lemma zip_with_map_left
-  (f : α → β → γ) (g : δ → α) (l : list δ) (l' : list β) :
-  zip_with f (l.map g) l' = zip_with (f ∘ g) l l' :=
+lemma zip_with_map {μ}
+  (f: γ → δ → μ) (g: α → γ) (h: β → δ) (as: list α) (bs: list β):
+  list.zip_with f (as.map g) (bs.map h) = list.zip_with (λ a b, f (g a) (h b)) as bs
+  :=
 begin
-  induction l with hd tl hl generalizing l',
-  { simp },
-  { cases l' with hd' tl',
+  induction as with hd tl hl generalizing bs,
+  { simp [list.map] },
+  { cases bs with hd' tl',
     { simp },
     { simp [hl] } }
 end
 
+lemma zip_with_map_left
+  (f : α → β → γ) (g : δ → α) (l : list δ) (l' : list β) :
+  zip_with f (l.map g) l' = zip_with (f ∘ g) l l' :=
+by { convert (zip_with_map f g id l l'), exact eq.symm (list.map_id _) }
+
 lemma zip_with_map_right
   (f : α → β → γ) (l : list α) (g : δ → β) (l' : list δ) :
   zip_with f l (l'.map g) = zip_with (λ x, f x ∘ g) l l' :=
-begin
-  induction l with hd tl hl generalizing l',
-  { simp },
-  { cases l' with hd' tl',
-    { simp },
-    { simp [hl] } }
-end
+by { convert (list.zip_with_map f id g l l'), exact eq.symm (list.map_id _) }
 
 theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
    zip (l.map f) (l.map g) = l.map (λ a, (f a, g a))
@@ -264,7 +264,7 @@ begin
         simp * at *, }, }, },
 end
 
-@[simp] lemma map_uncurry_zip_eq_zip_with
+lemma map_uncurry_zip_eq_zip_with
   (f : α → β → γ) (l : list α) (l' : list β) :
   map (function.uncurry f) (l.zip l') = zip_with f l l' :=
 begin
@@ -273,28 +273,6 @@ begin
   { cases l' with hd' tl',
     { simp },
     { simp [hl] } }
-end
-
-@[simp] lemma sum_zip_with_distrib_left [semiring γ]
-  (f : α → β → γ) (n : γ) (l : list α) (l' : list β) :
-  (zip_with (λ x y, n * f x y) l l').sum = n * (l.zip_with f l').sum :=
-begin
-  induction l with hd tl hl generalizing f n l',
-  { simp },
-  { cases l' with hd' tl',
-    { simp, },
-    { simp [hl, mul_add] } }
-end
-
-@[simp] lemma sum_zip_with_distrib_right [semiring γ]
-  (f : α → β → γ) (n : γ) (l : list α) (l' : list β) :
-  (zip_with (λ x y, f x y * n) l l').sum = (l.zip_with f l').sum * n :=
-begin
-  induction l with hd tl hl generalizing f n l',
-  { simp },
-  { cases l' with hd' tl',
-    { simp, },
-    { simp [hl, add_mul] } }
 end
 
 end list

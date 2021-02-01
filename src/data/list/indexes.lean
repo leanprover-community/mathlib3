@@ -29,7 +29,7 @@ begin
     simp [list.map_with_index_core, hl, add_left_comm, add_assoc, add_comm] }
 end
 
-lemma map_with_index_eq_enum_map_uncurry (l : list α) (f : ℕ → α → β) :
+lemma map_with_index_eq_enum_map (l : list α) (f : ℕ → α → β) :
   l.map_with_index f = l.enum.map (function.uncurry f) :=
 begin
   induction l with hd tl hl generalizing f,

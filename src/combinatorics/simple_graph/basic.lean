@@ -491,8 +491,8 @@ begin
   simp,
 end
 
-lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [nonempty V] (k : ℕ)
-  (h : G.is_regular_of_degree k) : Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
+lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj] [nonempty V]
+(k : ℕ) (h : G.is_regular_of_degree k) : Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
 begin
   rw is_regular_of_degree,
   intros v,

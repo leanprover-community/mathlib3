@@ -97,14 +97,14 @@ begin
     exact this },
 end
 
-lemma det2 {F : Type*} [comm_ring F] (g: matrix (fin 2) (fin 2) F) :
+lemma det2 {F : Type*} [comm_ring F] {g: matrix (fin 2) (fin 2) F} :
 g.det = g 0 0 * g 1 1 - g 1 0 * g 0 1 :=
 begin
 calc g.det = ((0 + 1) * (g 0 0 * (g 1 1 * 1))) + ((_ * (g 1 0 * (g 0 1 * 1))) + 0) : refl g.det
   ... = g 0 0 * g 1 1 - g 1 0 * g 0 1 : by {simp, ring}
 end
 
-lemma im_smul_mat_complex (g : SL(2, ℝ)) (z: ℂ) :
+lemma im_smul_mat_complex {g : SL(2, ℝ)} {z: ℂ} :
 (smul_aux g z).im = z.im / (complex.norm_sq (bottom g z)) :=
 begin
   by_cases bot_zero : bottom g z = 0,
@@ -125,7 +125,7 @@ begin
   field_simp [top, bottom],
   ring,
   have := matrix.special_linear_group.det_coe_matrix g,
-  rw det2 g at this,
+  rw det2 at this,
   ring,
   calc
   -(g 0 1 * z.im * g 1 0) + z.im * g 0 0 * g 1 1
@@ -133,7 +133,7 @@ begin
   ... = z.im : by {rw this, simp}
 end
 
-lemma isZThenReIm (z:ℂ ) : z=0 → z.im=0:=
+lemma isZThenReIm {z : ℂ} : z = 0 → z.im = 0 :=
 begin
   intros h,
   rw h,
@@ -157,7 +157,7 @@ begin
   intros h,
   rw bottom at h,
   simp at h,
-  have hIm := isZThenReIm ((g.1 1 0) * z + (g.1 1 1)) h,
+  have hIm := isZThenReIm h,
   simp at hIm,
   cases hIm,
   {
@@ -170,29 +170,19 @@ begin
 end
 
 lemma czPd_nonZ_CP {z : ℂ} {g : SL(2, ℝ)} :
- z.im ≠  0 →  bottom g z ≠  0 :=
+ z.im ≠ 0 → bottom g z ≠  0 :=
 begin
   contrapose,
   push_neg,
   exact czPd_nonZ,
 end
 
-lemma bottom_nonzero  {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
+lemma bottom_nonzero {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
   bottom g z ≠  0 := czPd_nonZ_CP (ne_of_gt h)
-
-lemma geNotEge {x : ℝ} : 0 ≤ x → x ≠ 0 → 0 <x :=
-begin
-  intros h1 h2,
-  exact (ne.symm h2).le_iff_lt.mp h1,
-end
 
 @[simp] lemma im_pos_of_in_H {z : ℂ} : z ∈ H ↔ 0 < z.im := by refl
 
-lemma im_pos_of_in_H' {z : H} : 0 < z.val.im :=
-begin
-  have h : z.val ∈ H := z.2,
-  exact im_pos_of_in_H.mp h,
-end
+lemma im_pos_of_in_H' {z : H} : 0 < z.val.im := im_pos_of_in_H.mp z.2
 
 @[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℂ} : smul_aux g z = top g z / bottom g z := by refl
 
@@ -201,21 +191,7 @@ smul_aux g z ∈ H :=
 begin
   simp at h ⊢,
   rw [←smul_aux_def, im_smul_mat_complex],
-  by_cases bot_zero : bottom g z = 0,
-  { linarith [czPd_nonZ bot_zero] },
-  have norm2NonNeg : 0 ≤  norm_sq (bottom g z),
-  { apply complex.norm_sq_nonneg },
-  have norm2Pos : 0 < norm_sq (bottom g z),
-  {
-    by_cases norm2Z : norm_sq (bottom g z) =0,
-    {
-      exfalso,
-      rw complex.norm_sq_eq_zero at norm2Z,
-      exact bot_zero norm2Z,
-    },
-    exact (ne.symm norm2Z).le_iff_lt.mp norm2NonNeg,
-  },
-  exact div_pos h norm2Pos
+  exact div_pos h (norm_sq_pos.mpr (bottom_nonzero h)),
 end
 
 @[simp] lemma expand_sum_01 (f : fin 2 → ℂ ) :
@@ -277,22 +253,34 @@ mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
 instance has_coe_SL : has_coe SL(2,ℤ) SL(2,ℝ) := ⟨λ x, SL_n_insertion (int.cast_ring_hom ℝ) x⟩
 
+instance has_neg_SL : has_neg SL(2,ℤ) := ⟨λ g, ⟨(-1 : ℤ) • (g.1), by simpa [det2] using g.2⟩⟩
 
-
+@[simp]
 lemma bottom_def' {g : SL(2,ℝ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by refl
 
-lemma bottom_def {g : SL(2,ℤ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 :=
+@[simp]
+lemma top_def' {g : SL(2,ℝ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by refl
+
+@[simp]
+lemma coeff_coe {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)).val i j = ((g.val i j) : ℝ) := by refl
+
+@[simp]
+lemma coeff_coe' {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)) i j = ((g i j) : ℝ) := by refl
+
+@[simp]
+lemma bottom_def {g : SL(2,ℤ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by simp
+
+@[simp]
+lemma top_def {g : SL(2,ℤ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by simp
+
+lemma div_eq_mul_conj_div_norm_sq {z w : ℂ} : z / w = (z * (w.conj)) / complex.norm_sq w :=
 begin
-  rw bottom_def',
-  sorry
+  rw [div_eq_mul_inv, inv_def, div_eq_mul_inv, mul_assoc],
+  norm_num,
 end
 
-
-lemma im_smul_SL (g : SL(2, ℝ)) (z : H) :
-(g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
-begin
-  sorry
-end
+lemma im_smul_SL {g : SL(2, ℝ)} {z : H} :
+(g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) := im_smul_mat_complex
 
 lemma mat_coe { g : SL(2,ℤ) } : (g : SL(2,ℝ)) =
   { val := ![![g.1 0 0, g.1 0 1], ![g.1 1 0, g.1 1 1]], property :=
@@ -304,18 +292,15 @@ begin
   all_goals {fin_cases j, simp, try{ refl }, try{ simp, refl }},
 end
 
-lemma im_smul_SL' (g : SL(2, ℤ)) (z : H) :
+lemma im_smul_SL' {g : SL(2, ℤ)} {z : H} :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
-begin
-
-  sorry
-end
+by simpa [mat_coe] using @im_smul_SL g z
 
 
 @[simp]
-lemma mat_compatibility {g : SL(2,ℤ)} {z : H} : ((g:SL(2,ℝ)) • z).1 = smul_aux g z :=
+lemma smul_sound {g : SL(2,ℤ)} {z : H} : ((g:SL(2,ℝ)) • z).1 = smul_aux g z :=
 begin
-  simp [mat_coe],
+  simp only [mat_coe],
   unfold_coes,
   simp [top, bottom],
   norm_cast,
@@ -390,7 +375,7 @@ end
 lemma T_action {z : H} : (T • z).1 = z + 1 :=
 begin
   change ((T:SL(2,ℝ)) • z).1 = z + 1,
-  simp only [mat_compatibility],
+  simp only [smul_sound],
   simp [smul_aux_def, T_real, top, bottom],
   field_simp *,
 end
@@ -404,7 +389,7 @@ end
 lemma S_action (z : H) : (S • z).1 = -z⁻¹ :=
 begin
   change ((S:SL(2,ℝ)) • z).1 = -z⁻¹,
-  simp only [mat_compatibility],
+  simp only [smul_sound],
   simp [smul_aux_def, S_real, top, bottom],
   field_simp *,
 end
@@ -567,15 +552,9 @@ begin
   {
     rw bottom,
     simp [g],
-    --refl,
-    --- Heather homework
-    sorry,
   },
   rw bottom,
   simp,
-  --norm_cast,
-    --- Heather homework
-  sorry,
 end
 
 lemma exists_g_with_max_Im (z : H) :
@@ -586,6 +565,14 @@ begin
 end
 
 def G' : subgroup SL(2,ℤ) := subgroup.closure {S, T}
+
+lemma exists_g_with_max_Im' (z : H) :
+  ∃ g : SL(2,ℤ), (g ∈ G') ∧  ∀ g' : SL(2,ℤ), g' ∈ G' → ((g' : SL(2,ℤ)) • z).val.im ≤ ((g : SL(2,ℤ)) • z).val.im :=
+begin
+  -- Alex, can you do this one as well?
+  sorry
+end
+
 
 example : T ∈ (subgroup.closure ({S, T} : set SL(2,ℤ))) :=
 begin
@@ -616,11 +603,6 @@ begin
   exact eq_inv_smul_iff.symm,
 end
 
-lemma exists_g_with_max_Im' (z : H) :
-  ∃ g : SL(2,ℤ), (g ∈ G') ∧  ∀ g' : SL(2,ℤ), g' ∈ G' → ((g' : SL(2,ℤ)) • z).val.im ≤ ((g : SL(2,ℤ)) • z).val.im :=
-begin
-  sorry
-end
 
 lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
 begin
@@ -655,7 +637,7 @@ begin
   exact (lt_div_iff hnz).mpr this,
 end
 
-/- TODO : prove directly instead of by contraadiction
+/- TODO : prove directly instead of by contradiction
 -/
 lemma norm_sq_ge_one_of_act_S {z : H} (h : (S • z).val.im ≤ z.val.im) : 1 ≤ norm_sq z.val :=
 begin
@@ -665,11 +647,61 @@ begin
   linarith,
 end
 
+example {a b : ℤ} (ha : 0 ≤ a) (hp : a * b = 1) : a = 1 :=
+begin
+  exact int.eq_one_of_mul_eq_one_right ha hp,
+end
 /- By choosing from g or -g, we can impose conditions on the coefficients of g -/
 lemma sign_coef { z z' : H } (h : ∃ g : SL(2, ℤ), z' = g • z) :
   ∃ g : SL(2, ℤ), 0 ≤ g.1 1 0 ∧ (g.1 1 0 = 0 → g.1 1 1 = 1 ∧ g.1 0 0 = 1) ∧ z' = g • z :=
 begin
-  sorry
+  obtain ⟨g, hg⟩ := h,
+  by_cases hc : g.val 1 0 = 0,
+  {
+    have hdet := g.2,
+    rw det2 at hdet,
+    simp [hc] at hdet,
+    by_cases hdsgn : 0 ≤ g.val 1 1,
+    {
+      use g,
+      have hd := int.eq_one_of_mul_eq_one_left hdsgn hdet,
+      have ha : g.val 0 0 = 1,
+      {
+        replace hdet : g.val 0 0 * g.val 1 1 = 1, by tauto,
+        simpa [hd] using hdet,
+      },
+      exact ⟨eq.ge hc, λ _, ⟨hd, ha⟩, hg⟩,
+    },
+    {
+      use -g,
+      have hd : (-g).val 1 1 = 1,
+      {
+        sorry
+      },
+      sorry
+    },
+  },
+  {
+    by_cases hcpos : 0 < g.val 1 0,
+    {
+      use g,
+      repeat{split},
+      { linarith }, { tauto }, { exact hg }
+    },
+    {
+      use -g,
+      repeat {split},
+      {
+        sorry
+      },
+      {
+        sorry
+      },
+      {
+        sorry
+      },
+    }
+  }
 end
 
 lemma is_fundom {z : H} : ∃ g : SL(2,ℤ), g ∈ G' ∧ g • z ∈ 𝒟 :=

@@ -9,6 +9,7 @@ import algebra.module.prod
 import algebra.module.submodule
 import algebra.group.prod
 import data.finsupp.basic
+import data.dfinsupp
 import algebra.pointwise
 
 /-!
@@ -787,6 +788,11 @@ lemma map_span (f : M →ₗ[R] M₂) (s : set M) :
 eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
 map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
+/- See also `span_preimage_eq` below. -/
+lemma span_preimage_le (f : M →ₗ[R] M₂) (s : set M₂) :
+  span R (f ⁻¹' s) ≤ (span R s).comap f :=
+by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
+
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
 `s`. -/
@@ -819,6 +825,9 @@ lemma span_union (s t : set M) : span R (s ∪ t) = span R s ⊔ span R t :=
 
 lemma span_Union {ι} (s : ι → set M) : span R (⋃ i, s i) = ⨆ i, span R (s i) :=
 (submodule.gi R M).gc.l_supr
+
+lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
+by simp only [←span_Union, set.bUnion_of_singleton s]
 
 @[simp] theorem coe_supr_of_directed {ι} [hι : nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) :
@@ -1019,6 +1028,33 @@ lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
 begin
   rw [← span_singleton_le_iff_mem, le_supr_iff],
   simp only [span_singleton_le_iff_mem],
+end
+
+section
+
+open_locale classical
+
+/-- For every element in the span of a set, there exists a finite subset of the set
+such that the element is contained in the span of the subset. -/
+lemma mem_span_finite_of_mem_span {S : set M} {x : M} (hx : x ∈ span R S) :
+  ∃ T : finset M, ↑T ⊆ S ∧ x ∈ span R (T : set M) :=
+begin
+  refine span_induction hx (λ x hx, _) _ _ _,
+  { refine ⟨{x}, _, _⟩,
+    { rwa [finset.coe_singleton, set.singleton_subset_iff] },
+    { rw finset.coe_singleton,
+      exact submodule.mem_span_singleton_self x } },
+  { use ∅, simp },
+  { rintros x y ⟨X, hX, hxX⟩ ⟨Y, hY, hyY⟩,
+    refine ⟨X ∪ Y, _, _⟩,
+    { rw finset.coe_union,
+      exact set.union_subset hX hY },
+    rw [finset.coe_union, span_union, mem_sup],
+    exact ⟨x, hxX, y, hyY, rfl⟩, },
+  { rintros a x ⟨T, hT, h2⟩,
+    exact ⟨T, hT, smul_mem _ _ h2⟩ }
+end
+
 end
 
 /-- The product of two submodules is a submodule. -/
@@ -1235,9 +1271,33 @@ lemma ext_on_range {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (set.ran
   (h : ∀i, f (v i) = g (v i)) : f = g :=
 ext_on hv (set.forall_range_iff.2 h)
 
-@[simp] lemma finsupp_sum {γ} [has_zero γ]
-  (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
-  f (t.sum g) = t.sum (λi d, f (g i d)) := f.map_sum
+section finsupp
+variables {γ : Type*} [has_zero γ]
+
+@[simp] lemma map_finsupp_sum (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
+
+lemma coe_finsupp_sum (t : ι →₀ γ) (g : ι → γ → M →ₗ[R] M₂) :
+  ⇑(t.sum g) = t.sum (λ i d, g i d) := coe_fn_sum _ _
+
+@[simp] lemma finsupp_sum_apply (t : ι →₀ γ) (g : ι → γ → M →ₗ[R] M₂) (b : M) :
+  (t.sum g) b = t.sum (λ i d, g i d b) := sum_apply _ _ _
+
+end finsupp
+
+section dfinsupp
+variables {γ : ι → Type*} [decidable_eq ι] [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
+
+@[simp] lemma map_dfinsupp_sum (f : M →ₗ[R] M₂) {t : Π₀ i, γ i} {g : Π i, γ i → M} :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
+
+lemma coe_dfinsupp_sum (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂) :
+  ⇑(t.sum g) = t.sum (λ i d, g i d) := coe_fn_sum _ _
+
+@[simp] lemma dfinsupp_sum_apply (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂) (b : M) :
+  (t.sum g) b = t.sum (λ i d, g i d b) := sum_apply _ _ _
+
+end dfinsupp
 
 theorem map_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (h p') :
   submodule.map (cod_restrict p f h) p' = comap p.subtype (p'.map f) :=
@@ -1340,6 +1400,10 @@ by simp [disjoint_def, @eq_comm M 0, @eq_comm M₂ 0] {contextual := tt}; intros
 theorem ker_eq_bot' {f : M →ₗ[R] M₂} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
 by simpa [disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ f ⊤
+
+theorem ker_eq_bot_of_inverse {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M} (h : g.comp f = id) :
+  ker f = ⊥ :=
+ker_eq_bot'.2 $ λ m hm, by rw [← id_apply m, ← h, comp_apply, hm, g.map_zero]
 
 lemma le_ker_iff_map {f : M →ₗ[R] M₂} {p : submodule R M} : p ≤ ker f ↔ map f p = ⊥ :=
 by rw [ker, eq_bot_iff, map_le_iff_le_comap]
@@ -1478,29 +1542,43 @@ section ring
 
 variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+variables {f : M →ₗ[R] M₂}
 include R
 open submodule
 
-theorem sub_mem_ker_iff {f : M →ₗ[R] M₂} {x y} : x - y ∈ f.ker ↔ f x = f y :=
+theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]
 
-theorem disjoint_ker' {f : M →ₗ[R] M₂} {p : submodule R M} :
+theorem disjoint_ker' {p : submodule R M} :
   disjoint p (ker f) ↔ ∀ x y ∈ p, f x = f y → x = y :=
 disjoint_ker.trans
 ⟨λ H x y hx hy h, eq_of_sub_eq_zero $ H _ (sub_mem _ hx hy) (by simp [h]),
  λ H x h₁ h₂, H x 0 h₁ (zero_mem _) (by simpa using h₂)⟩
 
-theorem inj_of_disjoint_ker {f : M →ₗ[R] M₂} {p : submodule R M}
+theorem inj_of_disjoint_ker {p : submodule R M}
   {s : set M} (h : s ⊆ p) (hd : disjoint p (ker f)) :
   ∀ x y ∈ s, f x = f y → x = y :=
 λ x y hx hy, disjoint_ker'.1 hd _ _ (h hx) (h hy)
 
-theorem ker_eq_bot {f : M →ₗ[R] M₂} : ker f = ⊥ ↔ injective f :=
+theorem ker_eq_bot : ker f = ⊥ ↔ injective f :=
 by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ f ⊤
+
+lemma ker_le_iff {p : submodule R M} : ker f ≤ p ↔ ∃ (y ∈ range f), f ⁻¹' {y} ⊆ p :=
+begin
+  split,
+  { intros h, use 0, rw [← mem_coe, f.range_coe], exact ⟨⟨0, map_zero f⟩, h⟩, },
+  { rintros ⟨y, h₁, h₂⟩,
+    rw le_def, intros z hz, simp only [mem_ker, mem_coe] at hz,
+    rw [← mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
+    have hx' : x ∈ p, { exact h₂ hx, },
+    have hxz : z + x ∈ p, { apply h₂, simp [hx, hz], },
+    suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel],  },
+    exact p.sub_mem hxz hx', },
+end
 
 /-- If the union of the kernels `ker f` and `ker g` spans the domain, then the range of
 `prod f g` is equal to the product of `range f` and `range g`. -/
-lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔ ker g = ⊤) :
+lemma range_prod_eq {g : M →ₗ[R] M₃} (h : ker f ⊔ ker g = ⊤) :
   range (prod f g) = (range f).prod (range g) :=
 begin
   refine le_antisymm (f.range_prod_le g) _,
@@ -1763,6 +1841,20 @@ def comap_mkq.order_embedding :
 
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
   comap_mkq.order_embedding p p' = comap p.mkq p' := rfl
+
+lemma span_preimage_eq {f : M →ₗ[R] M₂} {s : set M₂} (h₀ : s.nonempty) (h₁ : s ⊆ range f) :
+  span R (f ⁻¹' s) = (span R s).comap f :=
+begin
+  suffices : (span R s).comap f ≤ span R (f ⁻¹' s),
+  { exact le_antisymm (span_preimage_le f s) this, },
+  have hk : ker f ≤ span R (f ⁻¹' s),
+  { let y := classical.some h₀, have hy : y ∈ s, { exact classical.some_spec h₀, },
+    rw ker_le_iff, use [y, h₁ hy], rw ← set.singleton_subset_iff at hy,
+    exact set.subset.trans subset_span (span_mono (set.preimage_mono hy)), },
+  rw ← left_eq_sup at hk, rw f.range_coe at h₁,
+  rw [hk, ← map_le_map_iff, map_span, map_comap_eq, set.image_preimage_eq_of_subset h₁],
+  exact inf_le_right,
+end
 
 end ring
 
@@ -2682,3 +2774,18 @@ by {ext, refl}
 end general_linear_group
 
 end linear_map
+
+namespace submodule
+variables [ring R] [add_comm_group M] [module R M]
+
+instance : is_modular_lattice (submodule R M) :=
+⟨λ x y z xz a ha, begin
+  rw [mem_inf, mem_sup] at ha,
+  rcases ha with ⟨⟨b, hb, c, hc, rfl⟩, haz⟩,
+  rw mem_sup,
+  refine ⟨b, hb, c, mem_inf.2 ⟨hc, _⟩, rfl⟩,
+  rw [← add_sub_cancel c b, add_comm],
+  apply z.sub_mem haz (xz hb),
+end⟩
+
+end submodule

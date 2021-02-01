@@ -98,9 +98,11 @@ def is_colimit_of_preserves (F : C ⥤ D) {c : cocone K} (t : is_colimit c)
   is_colimit (F.map_cocone c) :=
 preserves_colimit.preserves t
 
-instance preserves_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_limit K F) :=
+instance preserves_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) :
+  subsingleton (preserves_limit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
-instance preserves_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_colimit K F) :=
+instance preserves_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) :
+  subsingleton (preserves_colimit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
 
 instance preserves_limits_of_shape_subsingleton (J : Type v₁) [small_category J] (F : C ⥤ D) :
@@ -120,14 +122,16 @@ instance id_preserves_limits : preserves_limits (𝟭 C) :=
   { preserves_limit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.lift ⟨s.X, λ j, s.π.app j, λ j j' f, s.π.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 instance id_preserves_colimits : preserves_colimits (𝟭 C) :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 section
 variables (F : C ⥤ D) (G : D ⥤ E)
@@ -324,7 +328,8 @@ reflects_colimit.reflects t
 
 instance reflects_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_limit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
-instance reflects_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_colimit K F) :=
+instance reflects_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) :
+  subsingleton (reflects_colimit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
 
 instance reflects_limits_of_shape_subsingleton (J : Type u₃) [category.{v₃} J] (F : C ⥤ D) :
@@ -357,14 +362,16 @@ instance id_reflects_limits : reflects_limits (𝟭 C) :=
   { reflects_limit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.lift ⟨s.X, λ j, s.π.app j, λ j j' f, s.π.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 instance id_reflects_colimits : reflects_colimits (𝟭 C) :=
 { reflects_colimits_of_shape := λ J 𝒥,
   { reflects_colimit := λ K, by exactI ⟨λ c h,
   ⟨λ s, h.desc ⟨s.X, λ j, s.ι.app j, λ j j' f, s.ι.naturality f⟩,
    by cases K; rcases c with ⟨_, _, _⟩; intros s j; cases s; exact h.fac _ j,
-   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩; exact h.uniq _ m w⟩⟩ } }
+   by cases K; rcases c with ⟨_, _, _⟩; intros s m w; rcases s with ⟨_, _, _⟩;
+     exact h.uniq _ m w⟩⟩ } }
 
 section
 variables (F : C ⥤ D) (G : D ⥤ E)
@@ -564,7 +571,8 @@ def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F
 { reflects_colimits_of_shape := λ J 𝒥₁, by exactI
   { reflects_colimit := λ K,
     { reflects := λ c t,
-      is_colimit.mk_cocone_morphism (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
+      is_colimit.mk_cocone_morphism
+        (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
       begin
         apply (λ s m, (cocones.functoriality K F).map_injective _),
         rw [functor.image_preimage],

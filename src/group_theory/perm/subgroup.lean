@@ -21,13 +21,13 @@ universes u
 
 @[simp]
 lemma sum_congr_hom.card_range {α β : Type*}
-  [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
+  [fintype (sum_congr_hom α β).range] [fintype (perm α × perm β)] :
   fintype.card (sum_congr_hom α β).range = fintype.card (perm α × perm β) :=
 fintype.card_eq.mpr ⟨(set.range (sum_congr_hom α β) sum_congr_hom_injective).symm⟩
 
 @[simp]
 lemma sigma_congr_right_hom.card_range {α : Type*} {β : α → Type*}
-  [decidable_eq α] [∀ a, decidable_eq (β a)] [fintype α] [∀ a, fintype (β a)] :
+  [fintype (sigma_congr_right_hom β).range] [fintype (Π a, perm (β a))] :
   fintype.card (sigma_congr_right_hom β).range = fintype.card (Π a, perm (β a)) :=
 fintype.card_eq.mpr ⟨(set.range (sigma_congr_right_hom β) sigma_congr_right_hom_injective).symm⟩
 

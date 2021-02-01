@@ -102,7 +102,9 @@ def symm (h : M ≃* N) : N ≃* M :=
   .. h.to_equiv.symm}
 
 /-- See Note [custom simps projection] -/
-@[to_additive add_equiv.simps.inv_fun "See Note [custom simps projection]"]
+-- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
+-- in the whole file.
+@[to_additive add_equiv.simps.inv_fun "See Note custom simps projection"]
 def simps.inv_fun (e : M ≃* N) : N → M := e.symm
 
 initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
@@ -337,6 +339,10 @@ protected def mul_left (a : G) : perm G := (to_units a).mul_left
 @[simp, to_additive]
 lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
 
+/-- extra simp lemma that `dsimp` can use. `simp` will never use this. -/
+@[simp, nolint simp_nf, to_additive]
+lemma mul_left_symm_apply (a : G) : ((equiv.mul_left a).symm : G → G) = (*) a⁻¹ := rfl
+
 @[simp, to_additive]
 lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
@@ -351,6 +357,12 @@ lemma coe_mul_right (a : G) : ⇑(equiv.mul_right a) = λ x, x * a := rfl
 @[simp, to_additive]
 lemma mul_right_symm (a : G) : (equiv.mul_right a).symm = equiv.mul_right a⁻¹ :=
 ext $ λ x, rfl
+
+/-- extra simp lemma that `dsimp` can use. `simp` will never use this.  -/
+@[simp, nolint simp_nf, to_additive]
+lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
+
+attribute [nolint simp_nf] add_left_symm_apply add_right_symm_apply
 
 variable (G)
 
@@ -379,7 +391,8 @@ section type_tags
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
 def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] :
   (G ≃+ H) ≃ (multiplicative G ≃* multiplicative H) :=
-{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative, f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative,
+                  f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
   left_inv := λ x, by { ext, refl, },
   right_inv := λ x, by { ext, refl, }, }
@@ -395,7 +408,8 @@ def mul_equiv.to_additive [monoid G] [monoid H] :
 /-- Reinterpret `additive G ≃+ H` as `G ≃* multiplicative H`. -/
 def add_equiv.to_multiplicative' [monoid G] [add_monoid H] :
   (additive G ≃+ H) ≃ (G ≃* multiplicative H) :=
-{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative', f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative',
+                  f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
   left_inv := λ x, by { ext, refl, },
   right_inv := λ x, by { ext, refl, }, }
@@ -408,7 +422,8 @@ add_equiv.to_multiplicative'.symm
 /-- Reinterpret `G ≃+ additive H` as `multiplicative G ≃* H`. -/
 def add_equiv.to_multiplicative'' [add_monoid G] [monoid H] :
   (G ≃+ additive H) ≃ (multiplicative G ≃* H) :=
-{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'', f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'',
+                  f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
   left_inv := λ x, by { ext, refl, },
   right_inv := λ x, by { ext, refl, }, }

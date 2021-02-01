@@ -31,7 +31,8 @@ def of (x : α) : free_abelian_group α :=
 abelianization.of $ free_group.of x
 
 def lift {β : Type v} [add_comm_group β] (f : α → β) : free_abelian_group α →+ β :=
-(@abelianization.lift _ _ (multiplicative β) _ (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f))).to_additive
+(@abelianization.lift _ _ (multiplicative β) _
+  (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f))).to_additive
 
 namespace lift
 variables {β : Type v} [add_comm_group β] (f : α → β)
@@ -172,13 +173,15 @@ lift.of _ _
 @[simp] lemma map_zero (f : α → β) : f <$> (0 : free_abelian_group α) = 0 :=
 lift.zero (of ∘ f)
 
-@[simp] lemma map_add (f : α → β) (x y : free_abelian_group α) : f <$> (x + y) = f <$> x + f <$> y :=
+@[simp] lemma map_add (f : α → β) (x y : free_abelian_group α) :
+  f <$> (x + y) = f <$> x + f <$> y :=
 lift.add _ _ _
 
 @[simp] lemma map_neg (f : α → β) (x : free_abelian_group α) : f <$> (-x) = -(f <$> x) :=
 lift.neg _ _
 
-@[simp] lemma map_sub (f : α → β) (x y : free_abelian_group α) : f <$> (x - y) = f <$> x - f <$> y :=
+@[simp] lemma map_sub (f : α → β) (x y : free_abelian_group α) :
+  f <$> (x - y) = f <$> x - f <$> y :=
 lift.sub _ _ _
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
@@ -205,13 +208,16 @@ lift.of _ _
 @[simp] lemma zero_bind (f : α → free_abelian_group β) : 0 >>= f = 0 :=
 lift.zero f
 
-@[simp] lemma add_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) : x + y >>= f = (x >>= f) + (y >>= f) :=
+@[simp] lemma add_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) :
+  x + y >>= f = (x >>= f) + (y >>= f) :=
 lift.add _ _ _
 
-@[simp] lemma neg_bind (f : α → free_abelian_group β) (x : free_abelian_group α) : -x >>= f = -(x >>= f) :=
+@[simp] lemma neg_bind (f : α → free_abelian_group β) (x : free_abelian_group α) :
+  -x >>= f = -(x >>= f) :=
 lift.neg _ _
 
-@[simp] lemma sub_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) : x - y >>= f = (x >>= f) - (y >>= f) :=
+@[simp] lemma sub_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) :
+  x - y >>= f = (x >>= f) - (y >>= f) :=
 lift.sub _ _ _
 
 @[simp] lemma pure_seq (f : α → β) (x : free_abelian_group α) : pure f <*> x = f <$> x :=
@@ -220,29 +226,36 @@ pure_bind _ _
 @[simp] lemma zero_seq (x : free_abelian_group α) : (0 : free_abelian_group (α → β)) <*> x = 0 :=
 zero_bind _
 
-@[simp] lemma add_seq (f g : free_abelian_group (α → β)) (x : free_abelian_group α) : f + g <*> x = (f <*> x) + (g <*> x) :=
+@[simp] lemma add_seq (f g : free_abelian_group (α → β)) (x : free_abelian_group α) :
+  f + g <*> x = (f <*> x) + (g <*> x) :=
 add_bind _ _ _
 
-@[simp] lemma neg_seq (f : free_abelian_group (α → β)) (x : free_abelian_group α) : -f <*> x = -(f <*> x) :=
+@[simp] lemma neg_seq (f : free_abelian_group (α → β)) (x : free_abelian_group α) :
+  -f <*> x = -(f <*> x) :=
 neg_bind _ _
 
-@[simp] lemma sub_seq (f g : free_abelian_group (α → β)) (x : free_abelian_group α) : f - g <*> x = (f <*> x) - (g <*> x) :=
+@[simp] lemma sub_seq (f g : free_abelian_group (α → β)) (x : free_abelian_group α) :
+  f - g <*> x = (f <*> x) - (g <*> x) :=
 sub_bind _ _ _
 
 instance is_add_group_hom_seq (f : free_abelian_group (α → β)) : is_add_group_hom ((<*>) f) :=
 { map_add := λ x y, show lift (<$> (x+y)) _ = _, by simp only [map_add]; exact
-@@is_add_hom.map_add _ _ _ (@@free_abelian_group.is_add_group_hom_lift' (free_abelian_group β) _ _).to_is_add_hom _ _ }
+@@is_add_hom.map_add _ _ _
+  (@@free_abelian_group.is_add_group_hom_lift' (free_abelian_group β) _ _).to_is_add_hom _ _ }
 
 @[simp] lemma seq_zero (f : free_abelian_group (α → β)) : f <*> 0 = 0 :=
 is_add_group_hom.map_zero _
 
-@[simp] lemma seq_add (f : free_abelian_group (α → β)) (x y : free_abelian_group α) : f <*> (x + y) = (f <*> x) + (f <*> y) :=
+@[simp] lemma seq_add (f : free_abelian_group (α → β)) (x y : free_abelian_group α) :
+  f <*> (x + y) = (f <*> x) + (f <*> y) :=
 is_add_hom.map_add _ _ _
 
-@[simp] lemma seq_neg (f : free_abelian_group (α → β)) (x : free_abelian_group α) : f <*> (-x) = -(f <*> x) :=
+@[simp] lemma seq_neg (f : free_abelian_group (α → β)) (x : free_abelian_group α) :
+  f <*> (-x) = -(f <*> x) :=
 is_add_group_hom.map_neg _ _
 
-@[simp] lemma seq_sub (f : free_abelian_group (α → β)) (x y : free_abelian_group α) : f <*> (x - y) = (f <*> x) - (f <*> y) :=
+@[simp] lemma seq_sub (f : free_abelian_group (α → β)) (x y : free_abelian_group α) :
+  f <*> (x - y) = (f <*> x) - (f <*> y) :=
 is_add_group_hom.map_sub _ _ _
 
 instance : is_lawful_monad free_abelian_group.{u} :=

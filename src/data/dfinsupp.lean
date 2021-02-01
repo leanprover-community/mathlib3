@@ -962,19 +962,22 @@ section
 variables [decidable_eq ι]
 
 namespace monoid_hom
-variables {R S : Type*} [comm_monoid R] [comm_monoid S]
-variables [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+variables {R S : Type*}
+variables [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
 
 @[simp, to_additive]
-lemma map_dfinsupp_prod (h : R →* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
+lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
+ (h : R →* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
   h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _
 
 @[to_additive]
-lemma coe_dfinsupp_prod (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
+lemma coe_dfinsupp_prod [monoid R] [comm_monoid S]
+  (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
   ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_prod _ _
 
 @[simp, to_additive]
-lemma dfinsupp_prod_apply (f : Π₀ i, β i) (g : Π i, β i → R →* S) (r : R) :
+lemma dfinsupp_prod_apply [monoid R] [comm_monoid S]
+  (f : Π₀ i, β i) (g : Π i, β i → R →* S) (r : R) :
   (f.prod g) r = f.prod (λ a b, (g a b) r) := finset_prod_apply _ _ _
 
 end monoid_hom

@@ -285,7 +285,8 @@ end
 
 @[to_additive]
 lemma finset.prod_to_finset_eq_subtype {M : Type*} [comm_monoid M] [fintype α]
-  (p : α → Prop) (f : α → M) : ∏ a in {x | p x}.to_finset, f a = ∏ a : subtype p, f a :=
+  (p : α → Prop) [decidable_pred p] (f : α → M) :
+    ∏ a in {x | p x}.to_finset, f a = ∏ a : subtype p, f a :=
 by { rw ← finset.prod_subtype, simp }
 
 @[to_additive] lemma finset.prod_fiberwise [decidable_eq β] [fintype β] [comm_monoid γ]

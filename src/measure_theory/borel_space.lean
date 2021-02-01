@@ -671,7 +671,7 @@ begin
   rw [‹borel_space α›.measurable_eq, borel_eq_generate_Ioi α],
   apply measurable_generate_from,
   rintro _ ⟨a, rfl⟩,
-  simp only [set.preimage, mem_Ioi, lt_is_lub_iff (hg _), exists_range_iff, set_of_exists],
+  simp_rw [set.preimage, mem_Ioi, lt_is_lub_iff (hg _), exists_range_iff, set_of_exists],
   exact is_measurable.Union (λ i, hf i (is_open_lt' _).is_measurable)
 end
 
@@ -728,7 +728,7 @@ begin
   rw [‹borel_space α›.measurable_eq, borel_eq_generate_Iio α],
   apply measurable_generate_from,
   rintro _ ⟨a, rfl⟩,
-  simp only [set.preimage, mem_Iio, is_glb_lt_iff (hg _), exists_range_iff, set_of_exists],
+  simp_rw [set.preimage, mem_Iio, is_glb_lt_iff (hg _), exists_range_iff, set_of_exists],
   exact is_measurable.Union (λ i, hf i (is_open_gt' _).is_measurable)
 end
 
@@ -1273,9 +1273,9 @@ begin
   { refine measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) _ hu hs, swap,
     rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
-    have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
-    { ext x, simp [h1s, ← mem_iff_inf_dist_zero_of_closed h1s h2s, ← nnreal.coe_eq_zero] },
-    rw [h4s], exact this (is_measurable_singleton 0),
+  have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
+  { ext x, simp [h1s, ← mem_iff_inf_dist_zero_of_closed h1s h2s, ← nnreal.coe_eq_zero] },
+  rw [h4s], exact this (is_measurable_singleton 0),
 end
 
 /-- A sequential limit of measurable functions valued in a metric space is measurable. -/

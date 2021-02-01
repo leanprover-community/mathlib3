@@ -610,14 +610,8 @@ by induction n; simp [pow_succ', -_root_.add_comm, power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
-⟨λ ⟨⟨f, hf⟩⟩, begin
-  have : _ = fintype.card _ := finset.card_image_of_injective finset.univ hf,
-  simp at this,
-  rw [← fintype.card_fin n, ← this],
-  exact finset.card_le_of_subset (finset.subset_univ _)
-end,
-λ h, ⟨⟨λ i, ⟨i.1, lt_of_lt_of_le i.2 h⟩, λ a b h,
-  have _, from fin.veq_of_eq h, fin.eq_of_veq this⟩⟩⟩
+⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
+  λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
 
 @[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, -not_le]

@@ -1903,6 +1903,10 @@ iff.intro
 theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
 multiset.card_le_of_le ∘ val_le_iff.mpr
 
+theorem card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
+  card (s.filter p) ≤ card s :=
+card_le_of_subset $ filter_subset _ _
+
 theorem eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : card t ≤ card s) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
@@ -1915,8 +1919,7 @@ lemma card_le_card_of_inj_on {s : finset α} {t : finset β}
 begin
   classical,
   calc card s = card (s.image f) : by rw [card_image_of_inj_on f_inj]
-    ... ≤ card t : card_le_of_subset $
-      assume x hx, match x, finset.mem_image.1 hx with _, ⟨a, ha, rfl⟩ := hf a ha end
+    ... ≤ card t : card_le_of_subset $ image_subset_iff.2 hf
 end
 
 /--
@@ -1932,12 +1935,10 @@ begin
   intros x hx y hy, contrapose, exact hz x hx y hy,
 end
 
-lemma card_le_of_inj_on {n} {s : finset α}
-  (f : ℕ → α) (hf : ∀i<n, f i ∈ s) (f_inj : ∀i j, i<n → j<n → f i = f j → i = j) : n ≤ card s :=
+lemma le_card_of_inj_on_range {n} {s : finset α}
+  (f : ℕ → α) (hf : ∀i<n, f i ∈ s) (f_inj : ∀ (i<n) (j<n), f i = f j → i = j) : n ≤ card s :=
 calc n = card (range n) : (card_range n).symm
-  ... ≤ card s : card_le_card_of_inj_on f
-    (by simpa only [mem_range])
-    (by simp only [mem_range]; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
+  ... ≤ card s : card_le_card_of_inj_on f (by simpa only [mem_range]) (by simpa only [mem_range])
 
 /-- Suppose that, given objects defined on all strict subsets of any finset `s`, one knows how to
 define an object on `s`. Then one can inductively define an object on all finsets, starting from

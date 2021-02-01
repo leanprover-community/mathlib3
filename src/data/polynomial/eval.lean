@@ -85,8 +85,6 @@ by rw [bit1, eval₂_add, eval₂_bit0, eval₂_one, bit1]
 begin
   simp only [eval₂, sum_smul_index, forall_const, zero_mul, g.map_zero, g.map_mul, mul_assoc],
   rw [←finsupp.mul_sum],
-  -- Why doesn't `rw [←finsupp.mul_sum]` work?
-  -- convert (@finsupp.mul_sum _ _ _ _ _ (g s) p (λ i a, (g a * x ^ i))).symm,
 end
 
 @[simp] lemma eval₂_C_X : eval₂ C X p = p :=

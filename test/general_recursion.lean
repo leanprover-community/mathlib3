@@ -52,8 +52,10 @@ pi.omega_complete_partial_order.flip₂_continuous' div.intl
        (λ (x_1 : ℕ),
             (continuous_hom.ite_continuous' (λ (x_2 : ℕ → ℕ → roption ℕ), x_2 (x - x_1) x_1)
                (λ (x_1 : ℕ → ℕ → roption ℕ), pure x)
-               (pi.omega_complete_partial_order.flip₁_continuous' (λ (v_1 : ℕ) (x_2 : ℕ → ℕ → roption ℕ), x_2 (x - x_1) v_1) _
-                 $ pi.omega_complete_partial_order.flip₁_continuous' (λ (v : ℕ) (g : ℕ → ℕ → roption ℕ) (x : ℕ), g v x) _ id_continuous')
+               (pi.omega_complete_partial_order.flip₁_continuous'
+                 (λ (v_1 : ℕ) (x_2 : ℕ → ℕ → roption ℕ), x_2 (x - x_1) v_1) _ $
+                 pi.omega_complete_partial_order.flip₁_continuous'
+                   (λ (v : ℕ) (g : ℕ → ℕ → roption ℕ) (x : ℕ), g v x) _ id_continuous')
                (const_continuous' (pure x)))))
 
 -- automation coming soon
@@ -67,7 +69,8 @@ inductive tree (α : Type*)
 open roption.examples.tree
 
 /-! `map` on a `tree` using monadic notation -/
-def tree_map.intl {α β : Type*} (f : α → β) (tree_map : tree α → roption (tree β)) : tree α → roption (tree β)
+def tree_map.intl {α β : Type*} (f : α → β) (tree_map : tree α → roption (tree β)) :
+  tree α → roption (tree β)
 | nil := pure nil
 | (node x t₀ t₁) :=
 do tt₀ ← tree_map t₀,
@@ -79,7 +82,8 @@ def tree_map {α : Type u_1} {β : Type u_2} (f : α → β) : tree α → ropti
 fix (tree_map.intl f)
 
 -- automation coming soon
-theorem tree_map.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), continuous' (tree_map.intl f) :=
+theorem tree_map.cont :
+  ∀ {α : Type u_1} {β : Type u_2} (f : α → β), continuous' (tree_map.intl f) :=
 λ {α : Type u_1} {β : Type u_2} (f : α → β),
   pi.omega_complete_partial_order.flip₂_continuous' (tree_map.intl f)
     (λ (x : tree α),
@@ -102,17 +106,21 @@ theorem tree_map.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), con
                             (λ (x_1 : tree β), const_continuous' (pure (node (f x_x) x x_1)))))))))
 
 -- automation coming soon
-theorem tree_map.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) : tree_map f nil = pure nil :=
+theorem tree_map.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) :
+  tree_map f nil = pure nil :=
 by rw [tree_map,lawful_fix.fix_eq' (tree_map.cont f)]; refl
 
 -- automation coming soon
-theorem tree_map.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t₁ : tree α) :
-  tree_map f (node x t₀ t₁) = tree_map f t₀ >>= λ (tt₀ : tree β), tree_map f t₁ >>= λ (tt₁ : tree β), pure (node (f x) tt₀ tt₁) :=
+theorem tree_map.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α)
+  (t₀ t₁ : tree α) :
+  tree_map f (node x t₀ t₁) = tree_map f t₀ >>= λ (tt₀ : tree β), tree_map f t₁ >>=
+    λ (tt₁ : tree β), pure (node (f x) tt₀ tt₁) :=
 by conv_lhs { rw [tree_map,lawful_fix.fix_eq' (tree_map.cont f)] }; refl
 
 /-! `map` on a `tree` using applicative notation -/
 
-def tree_map'.intl {α β} (f : α → β) (tree_map : tree α → roption (tree β)) : tree α → roption (tree β)
+def tree_map'.intl {α β} (f : α → β) (tree_map : tree α → roption (tree β)) :
+  tree α → roption (tree β)
 | nil := pure nil
 | (node x t₀ t₁) :=
 node (f x) <$> tree_map t₀ <*> tree_map t₁
@@ -122,7 +130,8 @@ def tree_map' {α : Type u_1} {β : Type u_2} (f : α → β) : tree α → ropt
 fix (tree_map'.intl f)
 
 -- automation coming soon
-theorem tree_map'.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), continuous' (tree_map'.intl f) :=
+theorem tree_map'.cont :
+  ∀ {α : Type u_1} {β : Type u_2} (f : α → β), continuous' (tree_map'.intl f) :=
 λ {α : Type u_1} {β : Type u_2} (f : α → β),
   pi.omega_complete_partial_order.flip₂_continuous' (tree_map'.intl f)
     (λ (x : tree α),

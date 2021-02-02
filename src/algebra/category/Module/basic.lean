@@ -9,6 +9,13 @@ import category_theory.limits.shapes.kernels
 import category_theory.preadditive
 import linear_algebra.basic
 
+/-!
+# Category instance for modules over a ring
+
+We introduce the bundled category `Module` along with relevant forgetful functor to `AddCommGroup`.
+We furthermore show that `Module` is a preadditive category.
+-/
+
 open category_theory
 open category_theory.limits
 open category_theory.limits.walking_parallel_pair

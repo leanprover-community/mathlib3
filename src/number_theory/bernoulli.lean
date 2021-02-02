@@ -173,12 +173,6 @@ open nat
 
 @[simp] lemma constant_coeff_exp : constant_coeff ℚ (exp ℚ) = 1 := rfl
 
-@[simp] theorem rat.rat_algebra_map_rat (q : ℚ) : algebra_map ℚ ℚ q = q :=
-begin
-  rw [show algebra_map ℚ ℚ = (by refine_struct { to_fun := id}; tidy),
-    by simp only [eq_iff_true_of_subsingleton]], refl,
-end
-
 theorem bernoulli_power_series :
 (power_series.mk (λ n, ((bernoulli n) / (nat.factorial n) : ℚ))) * (power_series.exp ℚ - 1) =
   (X : power_series ℚ) * (exp ℚ) :=
@@ -190,7 +184,7 @@ begin
   coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul],
   rw [coeff_mul, mul_comm X, coeff_succ_mul_X],
   simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial,
-  rat.rat_algebra_map_rat], rw nat.sum_antidiagonal_succ',
+  rat.algebra_map_rat_rat], rw nat.sum_antidiagonal_succ',
   simp, --squeeze_simp hangs
   apply eq_inv_of_mul_left_eq_one,
   rw sum_mul,

@@ -167,13 +167,9 @@ lemma linear_proj_of_is_compl_idempotent (h : is_compl p q) (x : E) :
     linear_proj_of_is_compl p q h x :=
 linear_proj_of_is_compl_apply_left h _
 
--- ↓ Remove after Eric's PR
-lemma equiv.exists_unique {α β : Type*} (e : α ≃ β) (b : β) : ∃! (a : α), e a = b :=
-⟨e.symm b, e.apply_symm_apply _, λ a h, (equiv.eq_symm_apply e).mpr h⟩
-
 lemma exists_unique_add_of_is_compl_prod (hc : is_compl p q) (x : E) :
   ∃! (u : p × q), (u.fst : E) + u.snd = x :=
-equiv.exists_unique (prod_equiv_of_is_compl _ _ hc).to_equiv _
+(prod_equiv_of_is_compl _ _ hc).to_equiv.bijective.exists_unique _
 
 lemma exists_unique_add_of_is_compl (hc : is_compl p q) (x : E) :
   ∃ (u : p) (v : q), ((u : E) + v = x ∧ ∀ (r : p) (s : q),

@@ -182,8 +182,10 @@ begin
       coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul] },
   rw [coeff_mul, mul_comm X, coeff_succ_mul_X],
   simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial,
-    rat.algebra_map_rat_rat], rw nat.sum_antidiagonal_succ',
-  simp, --squeeze_simp hangs
+    rat.algebra_map_rat_rat, nat.sum_antidiagonal_succ', if_pos],
+  simp only [factorial, prod.snd, one_div, cast_succ, cast_one, cast_mul, ring_hom.id_apply,
+    sub_zero, add_eq_zero_iff, if_false, zero_add, one_ne_zero,
+    factorial, div_one, mul_zero, and_false, sub_self],
   apply eq_inv_of_mul_left_eq_one,
   rw sum_mul,
   convert bernoulli_spec' n using 1,

@@ -127,7 +127,7 @@ lemma measurable_measure_mul_right {E : set G} (hE : is_measurable E) :
 begin
   suffices :
     measurable (λ y, μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, (1, z.1 * z.2)) ⁻¹' set.prod univ E))),
-  { convert this, ext1 x, congr' 1 with y : 1, simp },
+  { convert this, simp_rw [preimage_preimage, mk_preimage_prod, preimage_univ, univ_inter] },
   apply measurable_measure_prod_mk_right,
   exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (is_measurable.univ.prod hE)
 end
@@ -148,11 +148,8 @@ end
 
 lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_measurable E)
   (y : G) : μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
-begin
-  rw [← measure_inv_null hμ hE, ← hμ y⁻¹ (measurable_inv hE),
-    ← measure_inv_null hμ (measurable_mul_right y hE)],
-  convert iff.rfl using 3, ext x, simp,
-end
+by simp_rw [← measure_inv_null hμ hE, ← hμ y⁻¹ (measurable_inv hE),
+    ← measure_inv_null hμ (measurable_mul_right y hE), preimage_preimage, mul_inv_rev, inv_inv]
 
 lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_measurable E)
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=

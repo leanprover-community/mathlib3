@@ -152,9 +152,7 @@ begin
   classical,
   induction s using finset.induction with a s ha hs,
   { simp },
-  { rw [prod_insert ha, sum_insert ha],
-    rw degree_mul,
-    rw hs },
+  { rw [prod_insert ha, sum_insert ha, degree_mul, hs] },
 end
 
 /--

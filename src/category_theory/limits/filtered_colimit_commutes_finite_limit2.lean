@@ -153,7 +153,9 @@ begin
   -- As a first step, we use that `J` is filtered to pick some point `j' : J` above all the `j k`
   let j' : J := is_filtered.sup (finset.univ.image j) ∅,
   -- and name the morphisms as `g k : j k ⟶ j'`.
-  have g : Π k, j k ⟶ j' := λ k, is_filtered.to_sup (finset.univ.image j) ∅ (by simp),
+  have g : Π k, j k ⟶ j' :=
+    λ k, is_filtered.to_sup (finset.univ.image j) ∅
+     (by simp only [finset.mem_univ, exists_prop_of_true, finset.mem_image, exists_apply_eq_apply]),
   clear_value j',
 
   -- Recalling that the components of `x`, which are indexed by `k : K`, are "coherent",
@@ -219,9 +221,7 @@ begin
   let i : Π {k k'} (f : k ⟶ k'), jf _ _ f ⟶ j'' := λ k k' f, i' (jfO f),
   have s : ∀ {k₁ k₂ k₃ k₄} (f : k₁ ⟶ k₂) (f' : k₃ ⟶ k₄), gf _ _ f ≫ i f = hf _ _ f' ≫ i f',
   { intros,
-    rw [s', s'],
-    swap 2,
-    exact j'O,
+    rw [s' j'O, s'],
     swap 2,
     { rw [finset.mem_bUnion],
       refine ⟨k₁, finset.mem_univ _, _⟩,
@@ -229,15 +229,15 @@ begin
       refine ⟨k₂, finset.mem_univ _, _⟩,
       rw [finset.mem_bUnion],
       refine ⟨f, finset.mem_univ _, _⟩,
-      simp only [true_or, eq_self_iff_true, and_self, finset.mem_insert, heq_iff_eq], },
+      simp only [true_or, eq_self_iff_true, and_self, finset.mem_insert, heq_iff_eq] },
     { rw [finset.mem_bUnion],
       refine ⟨k₃, finset.mem_univ _, _⟩,
       rw [finset.mem_bUnion],
       refine ⟨k₄, finset.mem_univ _, _⟩,
       rw [finset.mem_bUnion],
       refine ⟨f', finset.mem_univ _, _⟩,
-      simp only [eq_self_iff_true, or_true, and_self, finset.mem_insert, finset.mem_singleton,
-        heq_iff_eq], } },
+      apply finset.mem_insert_of_mem,
+      apply finset.mem_singleton_self } },
   clear_value i,
   clear s' i' H jfO j'O O,
 

@@ -96,9 +96,11 @@ theorem mem_jacobson_iff {x : R} : x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z 
 λ hx, mem_Inf.2 $ λ M ⟨him, hm⟩, classical.by_contradiction $ λ hxm,
   let ⟨y, hy⟩ := hm.exists_inv hxm, ⟨z, hz⟩ := hx (-y) in
   hm.1 $ (eq_top_iff_one _).2 $ sub_sub_cancel (x * -y * z + z) 1 ▸ M.sub_mem
-    (by rw [← one_mul z, ← mul_assoc, ← add_mul, mul_one, mul_neg_eq_neg_mul_symm, neg_add_eq_sub, ← neg_sub,
-        neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right _ hy)
-    (him hz)⟩
+    (by { rw [← one_mul z, ← mul_assoc, ← add_mul, mul_one, mul_neg_eq_neg_mul_symm, neg_add_eq_sub,
+        ← neg_sub, neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y, mul_comm _ (- z)],
+      rcases hy with ⟨i, hi, df⟩,
+      rw [← (sub_eq_iff_eq_add.mpr df.symm), sub_sub, add_comm, ← sub_sub, sub_self, zero_sub],
+      refine M.mul_mem_left (-z) ((neg_mem_iff _).mpr hi) }) (him hz)⟩
 
 /-- An ideal equals its Jacobson radical iff it is the intersection of a set of maximal ideals.
 Allowing the set to include ⊤ is equivalent, and is included only to simplify some proofs. -/

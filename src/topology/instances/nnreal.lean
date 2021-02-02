@@ -2,12 +2,46 @@
 Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
-
-Nonnegative real numbers.
 -/
 import topology.algebra.infinite_sum
 import topology.algebra.group_with_zero
 
+/-!
+# Topology on `ℝ≥0`
+
+The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
+
+## Main definitions
+
+Instances for the following typeclasses are defined:
+
+* `topological_space ℝ≥0`
+* `topological_semiring ℝ≥0`
+* `second_countable_topology ℝ≥0`
+* `order_topology ℝ≥0`
+* `has_continuous_sub ℝ≥0`
+* `has_continuous_inv' ℝ≥0` (continuity of `x⁻¹` away from `0`)
+
+Everything is inherited from the corresponding structures on the reals.
+
+## Main statements
+
+Various mathematically trivial lemmas are proved about the compatibility
+of limits and sums in `ℝ≥0` and `ℝ`. For example
+
+* `tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
+  tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x)`
+
+says that the limit of a filter along a map to `ℝ≥0` is the same in `ℝ` and `ℝ≥0`, and
+
+* `coe_tsum {f : α → ℝ≥0} : ((∑'a, f a) : ℝ) = (∑'a, (f a : ℝ))`
+
+says that says that a sum of elements in `ℝ≥0` is the same in `ℝ` and `ℝ≥0`.
+
+Similarly, some mathematically trivial lemmas about infinite sums are proved,
+a few of which rely on the fact that subtraction is continuous.
+
+-/
 noncomputable theory
 open set topological_space metric
 open_locale topological_space
@@ -116,6 +150,10 @@ begin
   rw [← summable_coe, ← summable_coe],
   exact @summable_nat_add_iff ℝ _ _ _ (λ i, (f i : ℝ)) k,
 end
+
+lemma has_sum_nat_add_iff {f : ℕ → ℝ≥0} (k : ℕ) {a : ℝ≥0} :
+  has_sum (λ n, f (n + k)) a ↔ has_sum f (a + ∑ i in range k, f i) :=
+by simp [← has_sum_coe, coe_sum, nnreal.coe_add, ← has_sum_nat_add_iff k]
 
 lemma sum_add_tsum_nat_add {f : ℕ → ℝ≥0} (k : ℕ) (hf : summable f) :
   ∑' i, f i = (∑ i in range k, f i) + ∑' i, f (i + k) :=

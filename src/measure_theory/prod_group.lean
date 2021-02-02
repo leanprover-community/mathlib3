@@ -133,14 +133,17 @@ begin
 end
 
 lemma lintegral_lintegral_mul_inv (hμ : is_mul_left_invariant μ) (hν : is_mul_left_invariant ν)
-  (f : G → G → ennreal) (hf : measurable (uncurry f)) :
+  (f : G → G → ennreal) (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f (y * x) x⁻¹ ∂ν ∂μ = ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ :=
 begin
-  have h2f : measurable (uncurry $ λ x y, f (y * x) x⁻¹) :=
-  hf.comp ((measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv),
+  have h : measurable (λ z : G × G, (z.2 * z.1, z.1⁻¹)) :=
+  (measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv,
+  have h2f : ae_measurable (uncurry $ λ x y, f (y * x) x⁻¹) (μ.prod ν),
+  { apply hf.comp_measurable' h (map_prod_mul_inv_eq hμ hν).absolutely_continuous },
   simp_rw [lintegral_lintegral h2f, lintegral_lintegral hf],
   conv_rhs { rw [← map_prod_mul_inv_eq hμ hν] },
-  symmetry, exact lintegral_map hf ((measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv)
+  symmetry,
+  exact lintegral_map' (hf.mono' (map_prod_mul_inv_eq hμ hν).absolutely_continuous) h,
 end
 
 lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_measurable E)
@@ -175,10 +178,10 @@ begin
   have hg : measurable g := (hf.comp measurable_inv).ennreal_div
     ((measurable_measure_mul_right Em).comp measurable_inv),
   rw [← set_lintegral_one, ← lintegral_indicator _ Em,
-    ← lintegral_lintegral_mul (measurable_const.indicator Em) hg,
+    ← lintegral_lintegral_mul (measurable_const.indicator Em).ae_measurable hg.ae_measurable,
     ← lintegral_lintegral_mul_inv hμ hν],
-  swap, { exact ((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
-      (hg.comp measurable_snd) },
+  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
+      (hg.comp measurable_snd)).ae_measurable },
   have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ennreal)) y) :=
   λ x, measurable_const.indicator (measurable_mul_right _ Em),
   have : ∀ x y, E.indicator (λ (z : G), (1 : ennreal)) (y * x) =

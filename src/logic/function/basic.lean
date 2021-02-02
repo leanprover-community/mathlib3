@@ -110,6 +110,20 @@ theorem surjective.exists₃ {f : α → β} (hf : surjective f) {p : β → β 
   (∃ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∃ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
 hf.exists.trans $ exists_congr $ λ x, hf.exists₂
 
+protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
+protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
+
+lemma bijective_iff_exists_unique (f : α → β) : bijective f ↔
+  ∀ b : β, ∃! (a : α), f a = b :=
+⟨ λ hf b, let ⟨a, ha⟩ := hf.surjective b in ⟨a, ha, λ a' ha', hf.injective (ha'.trans ha.symm)⟩,
+  λ he, ⟨
+    λ a a' h, unique_of_exists_unique (he (f a')) h rfl,
+    λ b, exists_of_exists_unique (he b) ⟩⟩
+
+/-- Shorthand for using projection notation with `function.bijective_iff_exists_unique`. -/
+lemma bijective.exists_unique {f : α → β} (hf : bijective f) (b : β) : ∃! (a : α), f a = b :=
+(bijective_iff_exists_unique f).mp hf b
+
 /-- Cantor's diagonal argument implies that there are no surjective functions from `α`
 to `set α`. -/
 theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=

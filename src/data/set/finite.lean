@@ -516,18 +516,12 @@ lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pre
 
 lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
   fintype.card s < fintype.card t :=
-begin
-  rw [← s.coe_to_finset, ← t.coe_to_finset, finset.coe_ssubset] at h,
-  rw [fintype.card_of_finset' _ (λ x, mem_to_finset),
-      fintype.card_of_finset' _ (λ x, mem_to_finset)],
-  exact finset.card_lt_card h,
-end
+fintype.card_lt_of_injective_not_surjective (set.inclusion h.1) (set.inclusion_injective h.1) $
+  λ hst, (ssubset_iff_subset_ne.1 h).2 (eq_of_inclusion_surjective hst)
 
 lemma card_le_of_subset {s t : set α} [fintype s] [fintype t] (hsub : s ⊆ t) :
   fintype.card s ≤ fintype.card t :=
-calc fintype.card s = s.to_finset.card : fintype.card_of_finset' _ (by simp)
-... ≤ t.to_finset.card : finset.card_le_of_subset (λ x hx, by simp [set.subset_def, *] at *)
-... = fintype.card t : eq.symm (fintype.card_of_finset' _ (by simp))
+fintype.card_le_of_injective (set.inclusion hsub) (set.inclusion_injective hsub)
 
 lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
    (hsub : s ⊆ t) (hcard : fintype.card t ≤ fintype.card s) : s = t :=

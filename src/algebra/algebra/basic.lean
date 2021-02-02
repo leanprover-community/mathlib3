@@ -1013,6 +1013,9 @@ namespace rat
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 (rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
 
+@[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
+subsingleton.elim _ _
+
 end rat
 
 namespace algebra

@@ -63,7 +63,8 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0) (hp : irreducible p) :
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0)
+  (hp : irreducible p) :
   p.degree = 1 :=
 degree_eq_one_of_irreducible_of_splits h_nz hp (polynomial.splits' _)
 
@@ -111,7 +112,8 @@ open mv_polynomial
 def eval_X_self (f : monic_irreducible k) : mv_polynomial (monic_irreducible k) k :=
 polynomial.eval₂ mv_polynomial.C (X f) f
 
-/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an indeterminate. -/
+/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an
+indeterminate. -/
 def span_eval : ideal (mv_polynomial (monic_irreducible k) k) :=
 ideal.span $ set.range $ eval_X_self k
 
@@ -259,7 +261,8 @@ instance to_step_of_le.directed_system :
 
 end algebraic_closure
 
-/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for each polynomial over the field. -/
+/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for
+each polynomial over the field. -/
 def algebraic_closure : Type u :=
 ring.direct_limit (algebraic_closure.step k) (λ i j h, algebraic_closure.to_step_of_le k i j h)
 

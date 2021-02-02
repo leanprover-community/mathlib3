@@ -1090,7 +1090,7 @@ variables {R' : Type*} [comm_ring R']
 lemma integer_normalization_eval₂_eq_zero (g : f.codomain →+* R') (p : polynomial f.codomain)
   {x : R'} (hx : eval₂ g x p = 0) : eval₂ (g.comp f.to_map) x (f.integer_normalization p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map p in
-trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
+trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, mul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra f.codomain R']
   [is_scalar_tower R f.codomain R'] (p : polynomial f.codomain)

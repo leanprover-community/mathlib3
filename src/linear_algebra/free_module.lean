@@ -916,5 +916,3 @@ lemma submodule.exists_is_basis_of_le_span
 submodule.exists_is_basis_of_le le (is_basis_span hb)
 
 end principal_ideal_domain
-
-#lint

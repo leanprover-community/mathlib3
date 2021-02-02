@@ -180,8 +180,8 @@ begin
   ext n,
   -- constant coefficient is a special case
   cases n,
-  simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X,
-  coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul],
+  { simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X,
+      coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul] },
   rw [coeff_mul, mul_comm X, coeff_succ_mul_X],
   simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial,
   rat.algebra_map_rat_rat], rw nat.sum_antidiagonal_succ',

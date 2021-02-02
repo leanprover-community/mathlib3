@@ -8,7 +8,11 @@ import analysis.special_functions.trigonometric
 import analysis.mean_inequalities
 
 /-!
-Freek № 9: The area of the unit disc is `π`.
+# Freek № 9: The Area of a Circle
+
+The area of a disc with radius `r` is `π * r^2`.
+
+Skip to line 107.
 -/
 
 open set interval_integral real measure_theory
@@ -17,9 +21,8 @@ variables {α : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
   {f g : α → ℝ} {s : set α}
 
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
-{ p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1) }
+{p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
 
-/-- The region between two measurable functions on a measurable set is measurable. -/
 lemma is_measurable_region_between (hf : measurable f) (hg: measurable g) (hs : is_measurable s) :
   is_measurable (region_between f g s) :=
 begin
@@ -30,8 +33,6 @@ begin
   simp only [and_true, mem_univ],
 end
 
-/-- The volume of the region between two measurable functions on a measurable set can be
-    respresented as a Lesbesgue integral. -/
 theorem volume_region_between_eq_lintegral
   (hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
   μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
@@ -52,9 +53,6 @@ begin
   { exact is_measurable_region_between hf hg hs },
 end
 
-/-- If two functions are integrable (and measurable) on a measurable set, and one function is less
-    than or equal to the other everywhere on that set, then the volume of the region between the
-    two functions can be respresented as an integral. -/
 theorem volume_region_between_eq_integral
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
   (f_meas : measurable f) (g_meas : measurable g) (hs : is_measurable s)
@@ -96,9 +94,9 @@ begin
     exact λ h, (lt_sqrt (abs_nonneg a) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg a) h)).le).mp h },
 end
 
-lemma sqr_lt_left {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
+lemma neg_sqrt_lt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
 
-lemma sqr_lt_right {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
+lemma lt_sqrt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
 
 lemma sqr_lt_sqr {x y : ℝ} (h : abs x < y) : x ^ 2 < y ^ 2 :=
 by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) zero_lt_two
@@ -106,11 +104,8 @@ by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) zero_lt_two
 lemma sqr_lt_sqr' {x y : ℝ} (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
 sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
 
-
--- **Freek № 9**
-
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
-    `p.1 ^ 2 + p.2 ^ 2 < r ^ 2` -/
+    `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`. -/
 def disc {r : ℝ} (h : 0 < r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
 /-- The area of a disc with radius `r`, which can be represented as the region between the two
@@ -126,7 +121,7 @@ begin
     { split,
       { rw ← sqrt_sqr hr.le,
         have h' : p.1^2 < r^2 := by linarith [pow_two_nonneg p.2],
-        exact ⟨sqr_lt_left h', (sqr_lt_right h').le⟩ },
+        exact ⟨neg_sqrt_lt_of_sqr_lt h', (lt_sqrt_of_sqr_lt h').le⟩ },
       { rw [add_comm, ← lt_sub_iff_add_lt] at h,
         exact sqr_lt.mp h} },
     { rw [add_comm, ← lt_sub_iff_add_lt],
@@ -168,7 +163,3 @@ begin
     { simpa only [sub_ne_zero] using (sqr_lt_sqr' hx1 hx2).ne.symm } },
   { exact neg_le_self hr.le },
 end
-
-/-- The area of the unit disc is `π`. -/
-theorem volume_unit_disc : volume.prod volume (disc zero_lt_one) = ennreal.of_real pi :=
-by simpa only [one_pow, mul_one] using volume_disc zero_lt_one

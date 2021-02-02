@@ -126,10 +126,9 @@ end
 /-- A compact element has the property that any directed set lying strictly below k has
 its Sup strictly below k -/
 lemma is_compact_element.directed_Sup_lt_of_lt {α : Type*} [complete_lattice α] {k : α}
-  (hk : is_compact_element k) :
-  ∀ s : set α, s.nonempty → directed_on (≤) s → (∀ x ∈ s, x < k) → Sup s < k :=
+  (hk : is_compact_element k) (s : set α) (hemp : s.nonempty) (hdir : directed_on (≤) s)
+  (hbelow : ∀ x ∈ s, x < k) : Sup s < k :=
 begin
-  intros s hemp hdir hbelow,
   rw is_compact_element_iff_le_of_directed_Sup_le at hk,
   by_contradiction,
   have sSup : Sup s ≤ k, from Sup_le _ _ (λ s hs, le_of_lt $ hbelow s hs),
@@ -266,7 +265,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
     by_cases hS : S.nonempty,
     exact ⟨Sup S, h.directed_Sup_lt_of_lt S hS cC.directed_on SC, le_Sup _⟩,
     exact ⟨b, lt_of_le_of_ne hbk htriv, by simp only [set.not_nonempty_iff_eq_empty.mp hS,
-      set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff], ⟩, },
+      set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩, },
 end⟩
 
 end complete_lattice

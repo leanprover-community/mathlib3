@@ -598,10 +598,6 @@ lemma cycle_range_succ_left {n : ℕ} (i : fin n) (j : fin (n + 1)) :
   cycle_range i.succ j = if h : j = i.cast_succ then 0 else (fin.pred_above i.cast_succ j h).succ :=
 by simp only [cycle_range_apply, fin.cons_succ]
 
-@[simp] lemma pred_above_zero {n : ℕ} (i : fin (n + 1)) (h : i ≠ 0) :
-  fin.pred_above 0 i h = i.pred h :=
-rfl
-
 lemma fin.zero_lt_succ {n : ℕ} (i : fin n) : 0 < i.succ :=
 by { rw [fin.lt_iff_coe_lt_coe, fin.coe_zero, fin.coe_succ], exact nat.zero_lt_succ _ }
 

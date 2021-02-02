@@ -240,40 +240,11 @@ variables {b' : ι' → M} (hb' : is_basis R b')
 variables {c : κ → M'} {c' : κ' → M'} (hc : is_basis R c) (hc' : is_basis R c')
 variables (f : M →ₗ[R] M')
 
-@[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix' :
-  hc.to_matrix c' ⬝ linear_map.to_matrix hb' hc' f = linear_map.to_matrix hb' hc f :=
-(matrix.to_lin hb' hc).injective
-  (by haveI := classical.dec_eq κ';
-      rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
-
-@[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix'
-  {b : ι → M} (hb : is_basis R b) :
-  linear_map.to_matrix hb' hc' f ⬝ hb'.to_matrix b = linear_map.to_matrix hb hc' f :=
-(matrix.to_lin hb hc').injective
-  (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])
-
 lemma to_matrix_basis_change
   {b : ι → M} (hb : is_basis R b) :
   to_matrix hb hc f = hc.to_matrix c' ⬝ to_matrix hb' hc' f ⬝ hb'.to_matrix b :=
 by rw [is_basis_to_matrix_mul_linear_map_to_matrix', linear_map_to_matrix_mul_is_basis_to_matrix']
 
-end
-
-@[simp] lemma to_matrix_id' [decidable_eq ι] {ι' : Type*} [fintype ι']
-  {b : ι → M} {b' : ι' → M} (hb : is_basis R b) (hb' : is_basis R b') :
-  to_matrix hb hb' id = hb'.to_matrix b :=
-by { haveI := classical.dec_eq ι',
-  rw [← is_basis_to_matrix_mul_linear_map_to_matrix' hb hb', to_matrix_id, matrix.mul_one] }
-
-@[simp] lemma is_basis.to_matrix_mul_to_matrix {ι' ι'' : Type*}
-  [fintype ι'] [fintype ι'']
-  {b' : ι' → S} (hb' : is_basis R b') {b'' : ι'' → S} (hb'' : is_basis R b'') :
-  hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=
-begin
-  haveI := classical.dec_eq ι,
-  haveI := classical.dec_eq ι',
-  haveI := classical.dec_eq ι'',
-  rw [← to_matrix_id' hb' hb, ← to_matrix_id' hb'' hb', ← to_matrix_comp, id_comp, to_matrix_id'],
 end
 
 lemma char_poly_lmul_matrix_basis_invariant [decidable_eq ι]
@@ -577,14 +548,9 @@ begin
 end
 
 @[simp, to_additive]
-lemma multiset.prod_coe {α : Type*} [comm_monoid α] (l : list α) :
-  (l : multiset α).prod = l.prod :=
-by { induction l; simp }
-
-@[simp, to_additive]
 lemma multiset.prod_to_list {α : Type*} [comm_monoid α] (m : multiset α) :
   m.to_list.prod = m.prod :=
-by rw [← multiset.prod_coe m.to_list, m.coe_to_list]
+by rw [← multiset.coe_prod m.to_list, m.coe_to_list]
 
 include hF
 /-- `power_basis.conjugates hF` is the vector of all conjugates to the generator of `L / K`,
@@ -648,9 +614,6 @@ by classical; exact
 fintype.of_injective
   (λ x, (⟨x.1, finset.mem_coe.mpr (multiset.mem_to_finset.mpr x.2)⟩ : (m.to_finset : set α)))
   (λ ⟨x, hx⟩ ⟨y, hy⟩ h, by { ext, simpa using h })
-
-@[simp] lemma multiset.mem_zero {α : Type*} {x : α} : x ∈ (0 : multiset α) ↔ false :=
-iff.rfl
 
 @[simp] lemma multiset.univ_mem_zero {α : Type*} :
   (finset.univ : finset {x // x ∈ (0 : multiset α)}) = ∅ :=
@@ -797,10 +760,6 @@ lemma adjoin_root.nontrivial {R : Type*} [integral_domain R]
     apply not_le_of_gt (nat_degree_pos_iff_degree_pos.mpr hf),
     simpa using nat_degree_le_of_dvd ((adjoin_root.mk_eq_mk _ _ _).mp h) (by simp),
   end ⟩⟩
-
-@[simp] lemma adjoin_root.gen_power_basis_eq {f : polynomial K} (hf : f ≠ 0) :
-  (adjoin_root.power_basis hf).gen = adjoin_root.root f :=
-rfl
 
 /-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
 of `minimal_polynomial α` in `K`. -/

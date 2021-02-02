@@ -23,6 +23,7 @@ section comm_ring
 variables {R A : Type*} [comm_ring R] [ring A] [algebra R A]
 variables {ι : Type*} [fintype ι] [decidable_eq ι] {b : ι → A} (hb : is_basis R b)
 
+/-- `algebra.norm hb x` is the determinant of `matrix.lmul hb x`. -/
 noncomputable def algebra.norm : A →* R :=
 { to_fun := λ x, matrix.det (linear_map.to_matrix hb hb (algebra.lmul R A x)),
   map_one' := by rw [alg_hom.map_one, show (1 : A →ₗ[R] A) = linear_map.id, from rfl,
@@ -36,26 +37,29 @@ section integral_domain
 open_locale matrix
 
 variables {R A : Type*} [integral_domain R] [integral_domain A] [algebra R A]
-variables {ι : Type*} [fintype ι] [decidable_eq ι] {b : ι → A} (hb : is_basis R b)
+variables {ι : Type*} [fintype ι] {b : ι → A} (hb : is_basis R b)
 
-lemma matrix.det_ne_zero_of_left_inverse {R : Type*} [comm_ring R] [nontrivial R]
+lemma matrix.det_ne_zero_of_left_inverse [decidable_eq ι]
+  {R : Type*} [comm_ring R] [nontrivial R]
   {M N : matrix ι ι R} (h : N ⬝ M = 1) :
   M.det ≠ 0 :=
 is_unit.ne_zero (matrix.is_unit_det_of_left_inverse _ _ h)
 
-lemma matrix.det_ne_zero_of_right_inverse {R : Type*} [comm_ring R] [nontrivial R]
+lemma matrix.det_ne_zero_of_right_inverse [decidable_eq ι]
+  {R : Type*} [comm_ring R] [nontrivial R]
   {M N : matrix ι ι R} (h : M ⬝ N = 1) :
   M.det ≠ 0 :=
 is_unit.ne_zero (matrix.is_unit_det_of_right_inverse _ _ h)
 
-lemma matrix.ker_to_lin_eq_bot_iff {R : Type*} [comm_ring R] [nontrivial R]
+lemma matrix.ker_to_lin_eq_bot_iff [decidable_eq ι]
+  {R : Type*} [comm_ring R]
   {M : matrix ι ι R} : M.to_lin'.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
 by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
 
 /-- This holds for all integral domains, not just fields,
 but we need to prove it for the field of fractions first. -/
-lemma matrix.det_eq_zero_iff_exists_mul_vec_eq_zero_aux {K : Type*} [field K]
-  {M : matrix ι ι K} :
+lemma matrix.det_eq_zero_iff_exists_mul_vec_eq_zero_aux [decidable_eq ι]
+  {K : Type*} [field K] {M : matrix ι ι K} :
   M.det = 0 ↔ ∃ (v ≠ 0), M.mul_vec v = 0 :=
 begin
   split,
@@ -98,7 +102,7 @@ lemma matrix.mul_vec_smul {R S : Type*} [comm_semiring R] [semiring S] [algebra 
 by { ext i, simp only [matrix.mul_vec, matrix.dot_product, finset.smul_sum, pi.smul_apply,
                        algebra.mul_smul_comm] }
 
-lemma matrix.det_eq_zero_iff_exists_mul_vec_eq_zero {M : matrix ι ι R} :
+lemma matrix.det_eq_zero_iff_exists_mul_vec_eq_zero [decidable_eq ι] {M : matrix ι ι R} :
   M.det = 0 ↔ ∃ (v ≠ 0), M.mul_vec v = 0 :=
 begin
   have : (M.map (fraction_ring.of R).to_map).det = 0 ↔ _ :=
@@ -136,7 +140,7 @@ begin
       simp [← ring_hom.comp_mul_vec, mul_eq], } },
 end
 
-lemma linear_map.to_matrix_mul_vec {l : A →ₗ[R] A} (v : ι → R) :
+lemma linear_map.to_matrix_mul_vec [decidable_eq ι] {l : A →ₗ[R] A} (v : ι → R) :
   (linear_map.to_matrix hb hb l).mul_vec v = hb.repr (l (∑ i, v i • b i)) :=
 begin
   show matrix.to_lin' (linear_map.to_matrix' (hb.equiv_fun.arrow_congr hb.equiv_fun l)) v = _,
@@ -147,9 +151,7 @@ end
 
 section
 
-include hb
-
-lemma algebra.nonempty_basis : nonempty ι :=
+lemma algebra.nonempty_basis {ι : Type*} {b : ι → A} (hb : is_basis R b) : nonempty ι :=
 begin
   have : hb.repr 1 ≠ 0,
   { refine mt _ (@zero_ne_one A _ _),
@@ -163,7 +165,7 @@ end
 
 end
 
-lemma algebra.norm_eq_zero_iff {x : A} : algebra.norm hb x = 0 ↔ x = 0 :=
+lemma algebra.norm_eq_zero_iff [decidable_eq ι] {x : A} : algebra.norm hb x = 0 ↔ x = 0 :=
 begin
   split,
   { intro h,
@@ -181,7 +183,7 @@ begin
     simp [algebra.norm, matrix.det_zero (algebra.nonempty_basis hb)] }
 end
 
-lemma algebra.norm_ne_zero {x : A} : algebra.norm hb x ≠ 0 ↔ x ≠ 0 :=
+lemma algebra.norm_ne_zero [decidable_eq ι] {x : A} : algebra.norm hb x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff hb)
 
 end integral_domain

@@ -235,8 +235,8 @@ by rw [matrix.to_lin'_apply, hv₂.equiv_fun_symm_apply]
 by simp only [matrix.to_lin_apply, matrix.mul_vec, dot_product, hv₁.equiv_fun_self, mul_boole,
   finset.sum_ite_eq, finset.mem_univ, if_true]
 
-@[simp]
-lemma linear_map.to_matrix_id : linear_map.to_matrix hv₁ hv₁ id = 1 :=
+/-- This will be a special case of `linear_map.to_matrix_id`. -/
+lemma linear_map.to_matrix_id_aux : linear_map.to_matrix hv₁ hv₁ id = 1 :=
 begin
   ext i j,
   simp [linear_map.to_matrix_apply, is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
@@ -244,7 +244,7 @@ end
 
 @[simp]
 lemma matrix.to_lin_one : matrix.to_lin hv₁ hv₁ 1 = id :=
-by rw [← linear_map.to_matrix_id hv₁, matrix.to_lin_to_matrix]
+by rw [← linear_map.to_matrix_id_aux hv₁, matrix.to_lin_to_matrix]
 
 theorem linear_map.to_matrix_range [decidable_eq M₁] [decidable_eq M₂]
   (f : M₁ →ₗ[R] M₂) (k : m) (i : n) :
@@ -366,19 +366,41 @@ end is_basis
 section mul_linear_map_to_matrix
 
 variables {N : Type*} [add_comm_group N] [module R N]
-variables {b : ι → M} {b' : ι' → M} {c : ι → N} {c' : ι' → N}
+variables {κ κ' : Type*} [fintype κ] [fintype κ']
+variables {b : ι → M} {b' : ι' → M} {c : κ → N} {c' : κ' → N}
 variables (hb : is_basis R b) (hb' : is_basis R b') (hc : is_basis R c) (hc' : is_basis R c')
 variables (f : M →ₗ[R] N)
+
+open linear_map
 
 @[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix [decidable_eq ι'] :
   hc.to_matrix c' ⬝ linear_map.to_matrix hb' hc' f = linear_map.to_matrix hb' hc f :=
 (matrix.to_lin hb' hc).injective
-  (by rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
+  (by haveI := classical.dec_eq κ';
+      rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
 
 @[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix [decidable_eq ι] [decidable_eq ι'] :
   linear_map.to_matrix hb' hc' f ⬝ hb'.to_matrix b = linear_map.to_matrix hb hc' f :=
 (matrix.to_lin hb hc').injective
   (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])
+
+/-- A generalization of `linear_map.to_matrix_id_aux`. -/
+@[simp] lemma linear_map.to_matrix_id [decidable_eq ι] {ι' : Type*} [fintype ι']
+{b : ι → M} {b' : ι' → M} (hb : is_basis R b) (hb' : is_basis R b') :
+  linear_map.to_matrix hb hb' id = hb'.to_matrix b :=
+by { haveI := classical.dec_eq ι',
+      rw [← is_basis_to_matrix_mul_linear_map_to_matrix hb hb', to_matrix_id_aux, matrix.mul_one] }
+
+@[simp] lemma is_basis.to_matrix_mul_to_matrix
+  {ι'' : Type*} [fintype ι''] {b'' : ι'' → M} (hb'' : is_basis R b'') :
+  hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=
+begin
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq ι',
+  haveI := classical.dec_eq ι'',
+  rw [← linear_map.to_matrix_id hb' hb, ← linear_map.to_matrix_id hb'' hb',
+      ← to_matrix_comp, id_comp, linear_map.to_matrix_id],
+end
 
 end mul_linear_map_to_matrix
 
@@ -783,7 +805,7 @@ rfl
   (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
 
-@[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m] [decidable_eq n]
+@[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m]
   (A : matrix m m R) : (reindex_alg_equiv (equiv.refl m) A) = A :=
 reindex_linear_equiv_refl_refl A
 
@@ -860,7 +882,7 @@ open algebra
   lmul R S (algebra_map R S x) = algebra.lsmul R S x :=
 linear_map.ext (λ s, by simp [smul_def''])
 
-@[simp] lemma to_matrix_lmul (x : S) (i j) :
+lemma to_matrix_lmul' (x : S) (i j) :
   linear_map.to_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
 by rw [linear_map.to_matrix_apply', lmul_apply]
 
@@ -874,7 +896,7 @@ by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_map.map_smul, fi
 protected noncomputable def lmul : S →ₐ[R] matrix m m R :=
 { to_fun := λ x, linear_map.to_matrix hb hb (algebra.lmul R S x),
   map_zero' := by rw [alg_hom.map_zero, linear_equiv.map_zero],
-  map_one' := by rw [alg_hom.map_one, linear_map.one_eq_id, linear_map.to_matrix_id],
+  map_one' := by rw [alg_hom.map_one, linear_map.one_eq_id, linear_map.to_matrix_id_aux],
   map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
   map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.mul_eq_mul],
   commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul,
@@ -926,7 +948,7 @@ def trace_aux (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module
   (M →ₗ[R] M) →ₗ[R] R :=
 (matrix.trace ι R R).comp $ linear_map.to_matrix hb hb
 
-@[simp] lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace_aux R hb f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 rfl

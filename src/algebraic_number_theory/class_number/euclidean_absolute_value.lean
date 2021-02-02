@@ -45,11 +45,6 @@ lemma map_zero : f 0 = 0 := f.eq_zero_iff.mpr rfl
 lemma map_ne_zero {x : R} : f x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr f.eq_zero_iff
 
-/-- `simp`-normal form version of `f.map_ne_zero` -/
-@[simp]
-lemma map_ne_zero' {x : R} : ¬ (f x = 0) ↔ ¬ (x = 0) :=
-f.map_ne_zero
-
 lemma pos {x : R} (hx : x ≠ 0) : 0 < f x :=
 lt_of_le_of_ne (f.nonneg x) (f.map_ne_zero.mpr hx).symm
 
@@ -135,3 +130,17 @@ begin
 end
 
 end fraction_map
+
+section int
+
+open int
+
+/-- `abs : ℤ → ℤ` is a Euclidean absolute value -/
+def euclidean_absolute_value.abs : euclidean_absolute_value ℤ ℤ :=
+{ map_lt_map_iff' := λ x y, show abs x < abs y ↔ nat_abs x < nat_abs y,
+    by rw [abs_eq_nat_abs, abs_eq_nat_abs, coe_nat_lt],
+  .. absolute_value.abs }
+
+instance : inhabited (euclidean_absolute_value ℤ ℤ) := ⟨euclidean_absolute_value.abs⟩
+
+end int

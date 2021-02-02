@@ -179,11 +179,11 @@ end
 
 /-- `abs : ℤ → ℤ` is an admissible absolute value -/
 noncomputable def admissible_abs : admissible_absolute_value ℤ :=
-{ map_lt_map_iff' := λ x y, show abs x < abs y ↔ nat_abs x < nat_abs y,
-    by rw [abs_eq_nat_abs, abs_eq_nat_abs, coe_nat_lt],
-  card := partition_card,
+{ card := partition_card,
   exists_partition' := λ n ε hε b hb, exists_partition n hε hb,
-  .. absolute_value.abs }
+  .. euclidean_absolute_value.abs }
+
+noncomputable instance : inhabited (admissible_absolute_value ℤ) := ⟨admissible_abs⟩
 
 end int
 
@@ -191,13 +191,13 @@ namespace polynomial
 
 open absolute_value real
 
-variables {K : Type*} [field K] [fintype K] [decidable_eq K] {c : ℤ} (hc : 1 < c)
+variables {K : Type*} [field K] {c : ℤ} (hc : 1 < c)
 
 section
 
 variables (K)
 
-lemma one_lt_card : 1 < fintype.card K :=
+lemma one_lt_card [fintype K] : 1 < fintype.card K :=
 begin
   obtain ⟨p, n, hp, hpn⟩ : ∃ p n, _ ∧ fintype.card K = _ := finite_field.card',
   rw hpn,
@@ -205,18 +205,25 @@ begin
 end
 
 /-- `card_pow_degree` is the absolute value on `𝔽_q[t]` sending `f` to `q ^ deg f`. -/
-noncomputable def card_pow_degree : absolute_value (polynomial K) ℤ :=
+noncomputable def card_pow_degree [fintype K] [decidable_eq K] :
+  absolute_value (polynomial K) ℤ :=
 pow_degree (nat.cast_lt.mpr (one_lt_card K))
 
 end
 
-lemma card_pow_degree_apply {f : polynomial K} (hf : f ≠ 0) :
+lemma card_pow_degree_apply [fintype K] [decidable_eq K] {f : polynomial K} (hf : f ≠ 0) :
   card_pow_degree K f = fintype.card K ^ nat_degree f :=
 by { simp only [card_pow_degree, pow_degree, int.nat_cast_eq_coe_nat], exact if_neg hf }
 
 lemma lt_nat_degree_of_lt_degree {f : polynomial K} {n : ℕ} (h : (n : with_bot ℕ) < degree f) :
   n < nat_degree f :=
 with_bot.coe_lt_coe.mp (lt_of_lt_of_le h degree_le_nat_degree)
+
+lemma nat_degree_lt_of_degree_lt {f : polynomial K} (hf : f ≠ 0) {n : ℕ} (h : degree f < n) :
+  nat_degree f < n :=
+by rwa [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hf]
+
+variables [fintype K]
 
 /-- If `A` is a family of enough elements, there is a pair of equal elements in `A`. -/
 lemma exists_eq {d : ℕ} {m : ℕ} (hm : fintype.card K ^ d ≤ m) (b : polynomial K)
@@ -285,13 +292,9 @@ begin
   convert congr_fun i_eq.symm ⟨nat_degree b - j.succ, hj⟩
 end
 
-lemma nat_degree_lt_of_degree_lt {f : polynomial K} (hf : f ≠ 0) {n : ℕ} (h : degree f < n) :
-  nat_degree f < n :=
-by rwa [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hf]
-
 /-- If `A` is a family of enough elements, there is a pair of elements in `A`
 (not necessarily distinct), such that their difference has small degree. -/
-lemma exists_approx {b : polynomial K} (hb : b ≠ 0) {ε : ℝ} (hε : 0 < ε)
+lemma exists_approx [decidable_eq K] {b : polynomial K} (hb : b ≠ 0) {ε : ℝ} (hε : 0 < ε)
   (A : fin (fintype.card K ^ (nat_ceil (- log ε / log (fintype.card K)))).succ → polynomial K) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ (card_pow_degree K (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree K b • ε :=
 begin
@@ -332,9 +335,8 @@ begin
   rw [← nat.cast_one, nat.cast_lt],
   exact one_lt_card K
 end
-.
 
-lemma card_pow_degree_anti_archimedean {x y z : polynomial K} {a : ℝ}
+lemma card_pow_degree_anti_archimedean [decidable_eq K] {x y z : polynomial K} {a : ℝ}
   (hxy : (card_pow_degree K (x - y) : ℝ) < a) (hyz : (card_pow_degree K (y - z) : ℝ) < a) :
   (card_pow_degree K (x - z) : ℝ) < a :=
 begin
@@ -358,8 +360,8 @@ begin
 end
 
 /-- A slightly stronger version of `exists_partition` on which we perform induction on `n`. -/
-lemma exists_partition_aux (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : polynomial K} (hb : b ≠ 0)
-  (A : fin n → polynomial K) :
+lemma exists_partition_aux [decidable_eq K] (n : ℕ) {ε : ℝ} (hε : 0 < ε)
+  {b : polynomial K} (hb : b ≠ 0) (A : fin n → polynomial K) :
   ∃ (t : fin n → fin (fintype.card K ^ nat_ceil (-log ε / log ↑(fintype.card K)))),
   ∀ (i₀ i₁ : fin n),
   t i₀ = t i₁ ↔ (card_pow_degree K (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree K b • ε :=
@@ -422,8 +424,8 @@ begin
   contradiction
 end
 
-lemma exists_partition (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : polynomial K} (hb : b ≠ 0)
-  (A : fin n → polynomial K) :
+lemma exists_partition [decidable_eq K] (n : ℕ) {ε : ℝ} (hε : 0 < ε)
+  {b : polynomial K} (hb : b ≠ 0) (A : fin n → polynomial K) :
   ∃ (t : fin n → fin (fintype.card K ^ nat_ceil (-log ε / log ↑(fintype.card K)))),
     ∀ (i₀ i₁ : fin n), t i₀ = t i₁ →
       (card_pow_degree K (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree K b • ε :=
@@ -432,7 +434,11 @@ begin
   exact ⟨t, λ i₀ i₁ hi, (ht i₀ i₁).mp hi⟩
 end
 
-noncomputable def admissible_char_pow_degree : admissible_absolute_value (polynomial K) :=
+/-- `λ p, fintype.card K ^ degree p` is an admissible absolute value.
+
+We set `admissible_card_pow_degree 0 = 0`. -/
+noncomputable def admissible_card_pow_degree [decidable_eq K] :
+  admissible_absolute_value (polynomial K) :=
 { map_lt_map_iff' := λ p q, begin
     by_cases hp : p = 0; by_cases hq : q = 0,
     { simp [hp, hq, euclidean_domain.r] },

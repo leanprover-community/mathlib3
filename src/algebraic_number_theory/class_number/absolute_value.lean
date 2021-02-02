@@ -14,6 +14,8 @@ mirroring the unbundled `is_absolute_value` definition in `data.real.cau_seq`.
 
 open_locale big_operators
 
+/-- `absolute_value R S` is the type of absolute values on `R`,
+a `mul_hom` that is nonnegative, positive definite and satisfies the triangle equality. -/
 structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S] extends mul_hom R S :=
 (zero_le_map' : ∀ x, 0 ≤ to_fun x)
 (map_eq_zero_iff' : ∀ x, to_fun x = 0 ↔ x = 0)
@@ -44,11 +46,6 @@ lemma map_zero (f : absolute_value R S) : f 0 = 0 := f.eq_zero_iff.mpr rfl
 lemma map_ne_zero (f : absolute_value R S) {x : R} : f x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr f.eq_zero_iff
 
-/-- `simp`-normal form version of `f.map_ne_zero` -/
-@[simp]
-lemma map_ne_zero' (f : absolute_value R S) {x : R} : ¬ (f x = 0) ↔ ¬ (x = 0) :=
-f.map_ne_zero
-
 lemma pos (f : absolute_value R S) {x : R} (hx : x ≠ 0) : 0 < f x :=
 lt_of_le_of_ne (f.nonneg x) (f.map_ne_zero.mpr hx).symm
 
@@ -72,6 +69,7 @@ lemma map_one [nontrivial R] (f : absolute_value R S) : f 1 = 1 :=
 (mul_right_inj' $ show f 1 ≠ 0, from f.map_ne_zero.mpr one_ne_zero).mp $
 show f 1 * f 1 = f 1 * 1, by rw [← f.map_mul, mul_one, mul_one]
 
+/-- An absolute value mapping to a linear ordered ring preserves `1`. -/
 def to_monoid_hom [nontrivial R] (f : absolute_value R S) : R →* S :=
 { map_one' := f.map_one,
   .. f }
@@ -120,6 +118,8 @@ lemma map_units [nontrivial R] (f : absolute_value R S) (x : units ℤ) :
   f ((x : ℤ) : R) = 1 :=
 by rcases int.units_eq_one_or x with (rfl | rfl); simp
 
+/-- `abs.to_frac_aux g` is an absolute value on the fraction field `g.codomain`,
+which we bundle in `abs.to_frac g`. -/
 noncomputable def to_frac_aux {R K : Type*} [nontrivial R] [comm_ring R] [field K]
   (f : absolute_value R ℤ) (g : fraction_map R K) :=
 @submonoid.localization_map.lift _ _ _ _ _ _ _ g.to_localization_map
@@ -136,15 +136,15 @@ lemma to_frac_aux_mk' {R K : Type*} [nontrivial R] [comm_ring R] [field K]
   f.to_frac_aux g (g.mk' a b) = f a / f b :=
 (submonoid.localization_map.lift_mk' _ _ _ _).trans
   (by simp [is_unit.coe_lift_right, div_eq_mul_inv])
-.
 
 @[simp]
-lemma fraction_map.mk'_eq_zero_iff {R K : Type*} [nontrivial R] [comm_ring R] [field K]
+lemma fraction_map.mk'_eq_zero_iff {R K : Type*} [comm_ring R] [field K]
   (g : fraction_map R K) {n d : R} {hd : d ∈ non_zero_divisors R} :
   g.mk' n ⟨d, hd⟩ = 0 ↔ n = 0 :=
 by rw [g.mk'_eq_iff_eq_mul, zero_mul, g.to_map_eq_zero_iff]
 
--- TODO: this could be generalized to extending the codomain from any S to S's fraction field
+/-- `abs.to_frac_aux g` is an absolute value on the fraction field `g.codomain`. -/
+-- TODO: this could be generalized by extending the codomain from any S to S's fraction field
 noncomputable def to_frac {R K : Type*} [nontrivial R] [comm_ring R] [field K]
   (f : absolute_value R ℤ) (g : fraction_map R K) :
   absolute_value g.codomain ℚ :=
@@ -198,12 +198,15 @@ lemma to_frac_to_map {R K : Type*} [nontrivial R] [comm_ring R] [field K]
   f.to_frac g (g.to_map a) = f a :=
 by { rw ← g.mk'_one, simp }
 
+/-- `abs : R → R` is an absolute value. -/
 def abs {R : Type*} [linear_ordered_ring R] : absolute_value R R :=
 { to_fun := λ x, abs x,
   map_add_le' := λ x y, abs_add x y,
   map_eq_zero_iff' := λ x, abs_eq_zero,
   map_mul' := λ x y, abs_mul x y,
   zero_le_map' := λ x, abs_nonneg x }
+
+instance {R : Type*} [linear_ordered_ring R] : inhabited (absolute_value R R) := ⟨abs⟩
 
 open polynomial
 
@@ -213,6 +216,9 @@ le_max_iff.mpr
   ((le_max_iff.mp (polynomial.degree_add_le p q)).imp
     nat_degree_le_nat_degree nat_degree_le_nat_degree)
 
+/-- For `c > 1`, `λ p, c ^ degree p` is an absolute value.
+
+We define `pow_degree hc 0 = 0`. -/
 noncomputable def pow_degree {R : Type*} [integral_domain R] [decidable_eq R]
   {c : ℤ} (hc : 1 < c) :
   absolute_value (polynomial R) ℤ :=

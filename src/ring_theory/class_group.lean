@@ -72,6 +72,8 @@ is the group of invertible fractional ideals modulo the principal ideals. -/
 @[derive(comm_group)]
 def class_group := quotient_group.quotient (to_principal_ideal f).range
 
+instance : inhabited (class_group f) := ⟨1⟩
+
 @[simp] lemma fractional_ideal.coe_to_fractional_ideal_top :
   ((⊤ : ideal R) : fractional_ideal f) = 1 :=
 by { rw [← ideal.one_eq_top], refl }
@@ -241,7 +243,6 @@ begin
       rw [← mul_assoc, localization_map.mk'_spec', ← ring_hom.map_mul, ← ring_hom.map_mul,
           x_mul_eq_y_mul, subtype.coe_mk] } },
 end
-.
 
 lemma class_group.mk0_surjective [is_dedekind_domain R] : function.surjective (class_group.mk0 f) :=
 begin

@@ -384,7 +384,7 @@ end finite_dimensional
 
 section algebraic
 
-lemma intermediate_field.is_algebraic (S : intermediate_field K L)
+lemma is_algebraic (S : intermediate_field K L)
   {x : S} (hx : is_algebraic K (x : L)) :
   is_algebraic K x :=
 is_scalar_tower.is_algebraic (algebra_map S L).injective hx

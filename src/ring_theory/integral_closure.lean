@@ -369,7 +369,7 @@ lemma is_integral_of_mem_closure'' {S : Type*} [comm_ring S] {f : R →+* S} (G 
   (hG : ∀ x ∈ G, f.is_integral_elem x) : ∀ x ∈ (subring.closure G), f.is_integral_elem x :=
 λ x hx, @is_integral_of_mem_closure' R S _ _ f.to_algebra G hG x hx
 
-lemma algebra_map_injective [algebra R A] (h : function.injective (algebra_map R A)) :
+lemma algebra_map_injective (h : function.injective (algebra_map R A)) :
   function.injective (algebra_map R (integral_closure R A)) :=
 λ x y hxy, h $
   show algebra_map (integral_closure R A) A (algebra_map R _ x) = _,

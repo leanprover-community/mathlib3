@@ -79,7 +79,7 @@ include f
 
 attribute [instance] function_field_over.fd
 
-@[nolint dangerous_instance] -- Since `f` is an out_param
+@[nolint dangerous_instance unused_arguments] -- Ensures this works, since `f` is an out_param
 instance : algebra (polynomial K) F :=
 ring_hom.to_algebra ((algebra_map f.codomain F).comp (algebra_map (polynomial K) f.codomain))
 

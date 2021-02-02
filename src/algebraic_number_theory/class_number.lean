@@ -496,7 +496,7 @@ namespace ring_of_integers
 open function_field_over
 
 noncomputable instance : fintype (class_group (ring_of_integers.fraction_map f F)) :=
-class_group.finite_of_admissible F f polynomial.admissible_char_pow_degree
+class_group.finite_of_admissible F f polynomial.admissible_card_pow_degree
 
 end ring_of_integers
 

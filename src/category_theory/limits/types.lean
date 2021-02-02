@@ -430,6 +430,22 @@ begin
     dsimp,
     rw q },
 end
+lemma is_colimit_eq_iff' (ht : is_colimit t) {i : J} {xi₁ xi₂ : F.obj i} :
+  t.ι.app i xi₁ = t.ι.app i xi₂ ↔ ∃ k (f : i ⟶ k), F.map f xi₁ = F.map f xi₂ :=
+begin
+  split,
+  { intro q,
+    rw is_colimit_eq_iff _ ht at q,
+    rcases q with ⟨j, f, g, z⟩,
+    rcases is_filtered_or_empty.cocone_maps f g with ⟨k, n, m⟩,
+    refine ⟨k, f ≫ n, _⟩,
+    rw [functor_to_types.map_comp_apply, z, m, functor_to_types.map_comp_apply] },
+  { rintro ⟨k, f, q⟩,
+    rw ← t.w f,
+    rw types_comp_apply,
+    rw types_comp_apply,
+    rw q }
+end
 
 lemma colimit_eq_iff (F : J ⥤ Type u) {i j : J} {xi : F.obj i} {xj : F.obj j} :
   colimit.ι F i xi = colimit.ι F j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=

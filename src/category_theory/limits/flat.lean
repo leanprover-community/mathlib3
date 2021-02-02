@@ -291,8 +291,8 @@ def six_three_six {C : Type v₂} [small_category C] {D : Type v₂} [small_cate
     let b : c.X.obj B := Bb.unop.2,
     let u : A ⟶ B := u'.unop.1,
     let v : A ⟶ B := v'.unop.1,
-    have : c.X.map u a = b := u'.unop.2,
-    have : c.X.map v a = b := v'.unop.2,
+    have hu : c.X.map u a = b := u'.unop.2,
+    have hv : c.X.map v a = b := v'.unop.2,
 
     let t' : is_colimit (((evaluation C _).obj A).map_cocone c) := is_colimit_of_preserves _ t,
     rcases types.jointly_surjective _ t' a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
@@ -309,11 +309,26 @@ def six_three_six {C : Type v₂} [small_category C] {D : Type v₂} [small_cate
       apply hb' },
     clear_value a'' b'',
     clear' a' b' ha' hb' t' f g d d',
-    rename [d'' d, a'' a', b'' b', ha'' ha, hb'' hb],
-    have := ((H.obj d).map u ≫ (c.ι.app _).app _) a',
-
+    rename [d'' d, a'' a', b'' b', ha'' ha', hb'' hb'],
+    have q : ((H.obj d).map u ≫ (c.ι.app d).app B) a' = ((H.obj d).map v ≫ (c.ι.app d).app B) a',
+    { rw [(c.ι.app d).naturality, (c.ι.app d).naturality, types_comp_apply, types_comp_apply, ha'],
+      change c.X.map u a = c.X.map v a,
+      rw [hu, hv] },
+    rw [types_comp_apply, types_comp_apply] at q,
     -- have : (c.ι.app d).app _ = _,
-    -- have := types.filtered_colimit.is_colimit_eq_iff _ t'',
+    have : (c.ι.app d).app B ((H.obj d).map u a') = (c.ι.app d).app B ((H.obj d).map v a') ↔ _ :=
+      types.filtered_colimit.is_colimit_eq_iff' _ t'',
+    dsimp at this,
+    rw this at q,
+    rcases q with ⟨d', dh, q⟩,
+    let b'' := (H.map dh).app B ((H.obj d).map u a'),
+    have : (H.obj d').map u ((H.map dh).app _ a') = b'',
+    { rw ←functor_to_types.naturality },
+    have : (H.obj d').map v ((H.map dh).app _ a') = b'',
+    { rw ←functor_to_types.naturality, rw ←q },
+    let A' : (H.obj d').elementsᵒᵖ := op ⟨A, _⟩,
+    let B' : (H.obj d').elementsᵒᵖ := op ⟨B, _⟩,
+
   end
 
 }

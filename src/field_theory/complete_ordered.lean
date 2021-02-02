@@ -473,7 +473,7 @@ end
 def induced_ordered_ring_hom (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] : F →+*o K :=
 { map_rel' := λ x y, induced_map_le _ _,
-  ..ring_hom.mk_mul_self_of_two_ne_zero (induced_add_hom F K) -- reduce to the case of x = y
+  ..(induced_add_hom F K).mk_ring_hom_of_mul_self_of_two_ne_zero  -- reduce to the case of x = y
     begin
       intro x,
       -- reduce to the case of 0 < x
@@ -536,8 +536,8 @@ def cut_ordered_ring_equiv (F K : Type*)
   right_inv := induced_map_inv_self K F,
   map_rel_iff' := λ x y, begin
     refine ⟨λ h, _, induced_map_le _ _⟩,
-    simpa [induced_ordered_ring_hom, ring_hom.mk_mul_self_of_two_ne_zero, induced_add_hom]
-      using induced_map_le K F h,
+    simpa [induced_ordered_ring_hom, add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero,
+      induced_add_hom] using induced_map_le K F h,
   end,
   ..induced_ordered_ring_hom F K }
 
@@ -611,7 +611,7 @@ begin
 end
 
 instance {F K : Type*} [linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
-  subsingleton (F →+*o K) := ⟨λ f g, ordered_ring_hom_unique f g⟩
+  subsingleton (F →+*o K) := ⟨ordered_ring_hom_unique⟩
 
 instance {F K : Type*} [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] : unique (F →+*o K) :=

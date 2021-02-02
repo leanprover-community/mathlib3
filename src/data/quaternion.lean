@@ -96,6 +96,13 @@ rfl
 @[simp] lemma neg_mk (a₁ a₂ a₃ a₄ : R) : -(mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨-a₁, -a₂, -a₃, -a₄⟩ :=
 rfl
 
+@[simps] instance : has_sub ℍ[R, c₁, c₂] :=
+⟨λ a b, ⟨a.1 - b.1, a.2 - b.2, a.3 - b.3, a.4 - b.4⟩⟩
+
+@[simp] lemma mk_sub_mk (a₁ a₂ a₃ a₄ b₁ b₂ b₃ b₄ : R) :
+  (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) - mk b₁ b₂ b₃ b₄ = mk (a₁ - b₁) (a₂ - b₂) (a₃ - b₃) (a₄ - b₄) :=
+rfl
+
 /-- Multiplication is given by
 
 * `1 * x = x * 1 = x`;
@@ -120,12 +127,13 @@ rfl
 
 instance : ring ℍ[R, c₁, c₂] :=
 by refine_struct
-  { add := (+), zero := (0 : ℍ[R, c₁, c₂]), neg := has_neg.neg, mul := (*), one := 1 };
-    intros; ext; simp; ring_exp
-
-@[simp] lemma mk_sub_mk (a₁ a₂ a₃ a₄ b₁ b₂ b₃ b₄ : R) :
-  (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) - mk b₁ b₂ b₃ b₄ = mk (a₁ - b₁) (a₂ - b₂) (a₃ - b₃) (a₄ - b₄) :=
-rfl
+  { add := (+),
+    zero := (0 : ℍ[R, c₁, c₂]),
+    neg := has_neg.neg,
+    sub := has_sub.sub,
+    mul := (*),
+    one := 1 };
+  intros; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
 { smul := λ r a, ⟨r * a.1, r * a.2, r * a.3, r * a.4⟩,
@@ -231,7 +239,8 @@ lemma eq_re_iff_mem_range_coe {a : ℍ[R, c₁, c₂]} :
 ⟨λ h, ⟨a.re, h.symm⟩, λ ⟨x, h⟩, eq_re_of_eq_coe h.symm⟩
 
 @[simp]
-lemma conj_fixed {R : Type*} [integral_domain R] [char_zero R] {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
+lemma conj_fixed {R : Type*} [comm_ring R] [no_zero_divisors R] [char_zero R]
+  {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
   conj a = a ↔ a = a.re :=
 by simp [ext_iff, neg_eq_iff_add_eq_zero, add_self_eq_zero]
 
@@ -247,6 +256,14 @@ lemma conj_zero : conj (0 : ℍ[R, c₁, c₂]) = 0 := conj.map_zero
 lemma conj_neg : (-a).conj = -a.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).map_neg a
 
 lemma conj_sub : (a - b).conj = a.conj - b.conj := (conj : ℍ[R, c₁, c₂] ≃ₗ[R] _).map_sub a b
+
+instance : star_ring ℍ[R, c₁, c₂] :=
+{ star := conj,
+  star_involutive := conj_conj,
+  star_add := conj_add,
+  star_mul := conj_mul }
+
+@[simp] lemma star_def (a : ℍ[R, c₁, c₂]) : star a = conj a := rfl
 
 open opposite
 
@@ -278,6 +295,7 @@ instance : has_coe_t R ℍ[R] := quaternion_algebra.has_coe_t
 instance : ring ℍ[R] := quaternion_algebra.ring
 instance : inhabited ℍ[R] := quaternion_algebra.inhabited
 instance : algebra R ℍ[R] := quaternion_algebra.algebra
+instance : star_ring ℍ[R] := quaternion_algebra.star_ring
 
 @[ext] lemma ext : a.re = b.re → a.im_i = b.im_i → a.im_j = b.im_j → a.im_k = b.im_k → a = b :=
 quaternion_algebra.ext a b
@@ -413,7 +431,7 @@ quaternion_algebra.eq_re_of_eq_coe h
 lemma eq_re_iff_mem_range_coe {a : ℍ[R]} : a = a.re ↔ a ∈ set.range (coe : R → ℍ[R]) :=
 quaternion_algebra.eq_re_iff_mem_range_coe
 
-@[simp] lemma conj_fixed {R : Type*} [integral_domain R] [char_zero R] {a : ℍ[R]} :
+@[simp] lemma conj_fixed {R : Type*} [comm_ring R] [no_zero_divisors R] [char_zero R] {a : ℍ[R]} :
   conj a = a ↔ a = a.re :=
 quaternion_algebra.conj_fixed
 
@@ -435,8 +453,9 @@ def conj_alg_equiv : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_
 @[simp] lemma coe_conj_alg_equiv : ⇑(conj_alg_equiv : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
 
 /-- Square of the norm. -/
-def norm_sq : ℍ[R] →* R :=
+def norm_sq : monoid_with_zero_hom ℍ[R] R :=
 { to_fun := λ a, (a * a.conj).re,
+  map_zero' := by rw [conj_zero, zero_mul, zero_re],
   map_one' := by rw [conj_one, one_mul, one_re],
   map_mul' := λ x y, coe_injective $ by conv_lhs { rw [← mul_conj_eq_coe, conj_mul, mul_assoc,
     ← mul_assoc y, y.mul_conj_eq_coe, coe_commutes, ← mul_assoc, x.mul_conj_eq_coe, ← coe_mul] } }
@@ -449,9 +468,6 @@ by simp only [norm_sq_def, pow_two, ← neg_mul_eq_mul_neg, sub_neg_eq_add,
 
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
 by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, pow_two]
-
-lemma norm_sq_zero : norm_sq (0 : ℍ[R]) = 0 :=
-by simp [norm_sq_def', pow_two, mul_zero, add_zero]
 
 @[simp] lemma norm_sq_neg : norm_sq (-a) = norm_sq a :=
 by simp only [norm_sq_def, conj_neg, neg_mul_neg]
@@ -476,7 +492,7 @@ variables [linear_ordered_comm_ring R] {a : ℍ[R]}
 
 @[simp] lemma norm_sq_eq_zero : norm_sq a = 0 ↔ a = 0 :=
 begin
-  refine ⟨λ h, _, λ h, h.symm ▸ norm_sq_zero⟩,
+  refine ⟨λ h, _, λ h, h.symm ▸ norm_sq.map_zero⟩,
   rw [norm_sq_def', add_eq_zero_iff_eq_zero_of_nonneg, add_eq_zero_iff_eq_zero_of_nonneg,
     add_eq_zero_iff_eq_zero_of_nonneg] at h,
   exact ext a 0 (pow_eq_zero h.1.1.1) (pow_eq_zero h.1.1.2) (pow_eq_zero h.1.2) (pow_eq_zero h.2),
@@ -509,17 +525,15 @@ variables [linear_ordered_field R] (a b : ℍ[R])
 instance : division_ring ℍ[R] :=
 { inv := has_inv.inv,
   inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
-  inv_mul_cancel := λ a ha, by rw [has_inv_inv, algebra.smul_mul_assoc, conj_mul_self, smul_coe,
-    inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   .. quaternion.domain }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
-(norm_sq : ℍ[R] →* R).map_inv' norm_sq_zero _
+monoid_with_zero_hom.map_inv' norm_sq _
 
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
-(norm_sq : ℍ[R] →* R).map_div norm_sq_zero a b
+monoid_with_zero_hom.map_div norm_sq a b
 
 end field
 

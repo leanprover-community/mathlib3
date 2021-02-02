@@ -32,7 +32,7 @@ theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
   λ a ac, begin
     induction ac with a _ IH, intros n h, subst a,
-    exact IH (f (n+1)) (o.1 (nat.lt_succ_self _)) _ rfl
+    exact IH (f (n+1)) (o.2 (nat.lt_succ_self _)) _ rfl
   end,
 λ N, ⟨λ a, classical.by_contradiction $ λ na,
   let ⟨f, h⟩ := classical.axiom_of_choice $

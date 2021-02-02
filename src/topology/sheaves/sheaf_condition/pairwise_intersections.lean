@@ -239,7 +239,7 @@ def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → ope
     end }}
 
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def cone_equiv_unit_iso (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
   𝟭 (limits.cone ((diagram U).op ⋙ F)) ≅
     cone_equiv_functor F U ⋙ cone_equiv_inverse F U :=
@@ -248,7 +248,7 @@ by { intros, dsimp at *, ext1, dsimp at *, simp only [category.id_comp, category
 
 -- this is crazy crazy slow
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def cone_equiv_counit_iso (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
   cone_equiv_inverse F U ⋙ cone_equiv_functor F U ≅
     𝟭 (limits.cone (sheaf_condition_equalizer_products.diagram F U)) :=

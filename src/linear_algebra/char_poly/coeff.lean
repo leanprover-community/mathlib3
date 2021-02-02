@@ -5,7 +5,7 @@ Author: Aaron Anderson, Jalex Stark.
 -/
 
 import data.matrix.char_p
-import linear_algebra.char_poly
+import linear_algebra.char_poly.basic
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
 import algebra.polynomial.big_operators
@@ -92,7 +92,7 @@ begin
   { rw degree_eq_iff_nat_degree_eq_of_pos, swap, apply nat.pos_of_ne_zero h,
     rw nat_degree_prod', simp_rw nat_degree_X_sub_C, unfold fintype.card, simp,
     simp_rw (monic_X_sub_C _).leading_coeff, simp, },
-  rw degree_add_eq_of_degree_lt, exact h1, rw h1,
+  rw degree_add_eq_right_of_degree_lt, exact h1, rw h1,
   apply lt_trans (char_poly_sub_diagonal_degree_lt M), rw with_bot.coe_lt_coe,
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
 end
@@ -201,7 +201,7 @@ namespace matrix
 theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
 
 theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
-  (minimal_polynomial M.is_integral) ∣ char_poly M :=
-minimal_polynomial.dvd M.is_integral (aeval_self_char_poly M)
+  (minpoly K M) ∣ char_poly M :=
+minpoly.dvd _ _ (aeval_self_char_poly M)
 
 end matrix

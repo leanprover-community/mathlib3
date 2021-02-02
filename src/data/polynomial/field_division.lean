@@ -175,8 +175,8 @@ lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
 have degree (p % q) < degree (q * (p / q)) :=
   calc degree (p % q) < degree q : euclidean_domain.mod_lt _ hq0
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
-by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
-    degree_add_eq_of_degree_lt this, degree_mul]}
+by conv_rhs { rw [← euclidean_domain.div_add_mod p q,
+    degree_add_eq_left_of_degree_lt this, degree_mul] }
 
 lemma degree_div_le (p q : polynomial R) : degree (p / q) ≤ degree p :=
 if hq : q = 0 then by simp [hq]
@@ -275,6 +275,10 @@ begin
   dsimp only [is_root],
   rw polynomial.eval_map,
 end
+
+lemma mem_root_set [field k] [algebra R k] {x : k} (hp : p ≠ 0) :
+  x ∈ p.root_set k ↔ aeval x p = 0 :=
+iff.trans multiset.mem_to_finset (mem_roots_map hp)
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
@@ -398,6 +402,16 @@ begin
   have mulzero : root_multiplicity b (C a) = 0,
   { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
   simp only [mulzero, zero_add]
+end
+
+lemma roots_normalize : (normalize p).roots = p.roots :=
+begin
+  by_cases hzero : p = 0,
+  { rw [hzero, normalize_zero], },
+  { have hcoeff : p.leading_coeff ≠ 0,
+    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+    rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
+      roots_C_mul _ (inv_ne_zero hcoeff)], },
 end
 
 end field

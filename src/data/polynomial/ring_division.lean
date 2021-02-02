@@ -40,6 +40,11 @@ lemma degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
   0 < p.degree :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 
+lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
+  {p q : polynomial R} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
+  aeval x (p %ₘ q) = aeval x p :=
+eval₂_mod_by_monic_eq_self_of_root hq hx
+
 end comm_ring
 
 section integral_domain
@@ -483,6 +488,21 @@ begin
   rw [eval_sub, sub_eq_zero, ext],
 end
 
+/-- The set of distinct roots of `p` in `E`.
+
+If you have a non-separable polynomial, use `polynomial.roots` for the multiset
+where multiple roots have the appropriate multiplicity. -/
+def root_set (p : polynomial R) (S) [integral_domain S] [algebra R S] : set S :=
+(p.map (algebra_map R S)).roots.to_finset
+
+lemma root_set_def (p : polynomial R) (S) [integral_domain S] [algebra R S] :
+  p.root_set S = (p.map (algebra_map R S)).roots.to_finset :=
+rfl
+
+@[simp] lemma root_set_zero (S) [integral_domain S] [algebra R S] :
+  (0 : polynomial R).root_set S = ∅ :=
+by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
+
 end roots
 
 theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=
@@ -533,6 +553,29 @@ begin
   exact hrew.symm
 end
 
+lemma eq_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
+  (hdeg : q.nat_degree ≤ p.nat_degree) : q = p :=
+begin
+  obtain ⟨r, hr⟩ := hdiv,
+  have rzero : r ≠ 0,
+  { intro h,
+    simpa [h, monic.ne_zero hq] using hr },
+  rw [hr, nat_degree_mul (monic.ne_zero hp) rzero] at hdeg,
+  have hdegeq : p.nat_degree + r.nat_degree = p.nat_degree,
+  { suffices hdegle : p.nat_degree ≤ p.nat_degree + r.nat_degree,
+    { exact le_antisymm hdeg hdegle },
+    exact nat.le.intro rfl },
+  replace hdegeq := eq_C_of_nat_degree_eq_zero (((@add_right_inj _ _ p.nat_degree) _ 0).1 hdegeq),
+  suffices hlead : 1 = r.leading_coeff,
+  { have hcoeff := leading_coeff_C (r.coeff 0),
+    rw [← hdegeq, ← hlead] at hcoeff,
+    rw [← hcoeff, C_1] at hdegeq,
+    rwa [hdegeq, mul_one] at hr },
+  have hprod : q.leading_coeff = p.leading_coeff * r.leading_coeff,
+  { simp only [hr, leading_coeff_mul] },
+  rwa [monic.leading_coeff hp, monic.leading_coeff hq, one_mul] at hprod
+end
+
 end integral_domain
 
 section
@@ -568,7 +611,7 @@ A polynomial over an integral domain `R` is irreducible if it is monic and
 A special case of this lemma is that a polynomial over `ℤ` is irreducible if
   it is monic and irreducible over `ℤ/pℤ` for some prime `p`.
 -/
-lemma irreducible_of_irreducible_map (f : polynomial R)
+lemma monic.irreducible_of_irreducible_map (f : polynomial R)
   (h_mon : monic f) (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin

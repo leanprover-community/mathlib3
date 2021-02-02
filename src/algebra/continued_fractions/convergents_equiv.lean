@@ -6,6 +6,8 @@ Authors: Kevin Kappelmann
 import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
 import tactic.linarith
+import tactic.field_simp
+
 /-!
 # Equivalence of Recursive and Direct Computations of `gcf` Convergents
 
@@ -319,7 +321,7 @@ begin
             (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm] },
         symmetry,
         simpa only [eq1, eq2, eq3, eq4, mul_div_cancel _  b_ne_zero] },
-      field_simp [b_ne_zero],
+      field_simp,
       congr' 1; ring } }
 end
 

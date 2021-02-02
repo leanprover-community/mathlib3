@@ -141,7 +141,7 @@ lemma polar_sub_left (x x' y : M) :
 by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_left, polar_neg_left]
 
 @[simp]
-lemma polar_zero_right (y : M) : polar Q 0 y = 0 :=
+lemma polar_zero_right (y : M) : polar Q y 0 = 0 :=
 by simp [polar]
 
 @[simp]

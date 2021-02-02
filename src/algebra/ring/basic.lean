@@ -860,7 +860,7 @@ lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
 
 /--
-Makes a ring homomorphism from a additive group homomorphism from a commutative ring to an integral
+Makes a ring homomorphism from an additive group homomorphism from a commutative ring to an integral
 domain that commutes with self multiplication, assumes that two is nonzero and one is sent to one.
 -/
 def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
@@ -881,8 +881,13 @@ def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β
 
 @[simp]
 lemma add_monoid_hom.coe_fn_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
-  (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) :
+  (h h_two h_one) :
   (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β → α) = f := rfl
+
+@[simp]
+lemma add_monoid_hom.coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β]
+  (f : β →+ α) (h h_two h_one) :
+  (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β →+ α) = f := by {ext, simp}
 
 end integral_domain
 

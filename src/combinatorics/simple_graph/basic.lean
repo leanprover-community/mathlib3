@@ -480,17 +480,19 @@ end
   sᶜ.to_finset = (s.to_finset)ᶜ :=
 by ext; simp-/
 
-lemma neighbor_set_union_compl_neighbor_set_card [fintype V] (G : simple_graph V)
+lemma neighbor_set_union_compl_neighbor_set_card [fintype V] [decidable_eq V] (G : simple_graph V)
   [decidable_rel G.adj] [decidable_rel Gᶜ.adj] (v : V) :
-  fintype.card (G.neighbor_set v ∪ Gᶜ.neighbor_set v) = fintype.card V - 1 :=
+  fintype.card ((G.neighbor_set v ∪ Gᶜ.neighbor_set v) : set V) = fintype.card V - 1 :=
 begin
   -- i don't love the `fintype.subtype_of_fintype situation` i have here
   classical,
-  rw neighbor_set_union_compl_neighbor_set_eq,
-  rw finset.compl_to_finset,
-  rw card_compl,
+  simp_rw neighbor_set_union_compl_neighbor_set_eq,
+  rw ← set.to_finset_card,
   simp,
-  rw fintype.card_of_finset' {v},
+  erw set.to_finset_compl ({v} : set V),
+ -- rw card_compl,
+  simp,
+  rw fintype.card_of_finset' {v}ᶜ,
   rw ← card_singleton v,
   simp,
 end

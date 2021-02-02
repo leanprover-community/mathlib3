@@ -133,14 +133,14 @@ by rw [← hC, ← hD, generate_from_prod_eq h2C h2D]
 /-- The product σ-algebra is generated from boxes, i.e. `s.prod t` for sets `s : set α` and
   `t : set β`. -/
 lemma generate_from_prod :
-  generate_from (image2 set.prod { s : set α | measurable_set s } { t : set β | measurable_set t }) =
+  generate_from (image2 set.prod {s : set α | measurable_set s} {t : set β | measurable_set t}) =
   prod.measurable_space :=
 generate_from_eq_prod generate_from_measurable_set generate_from_measurable_set
   is_countably_spanning_measurable_set is_countably_spanning_measurable_set
 
 /-- Rectangles form a π-system. -/
 lemma is_pi_system_prod :
-  is_pi_system (image2 set.prod { s : set α | measurable_set s } { t : set β | measurable_set t }) :=
+  is_pi_system (image2 set.prod {s : set α | measurable_set s} {t : set β | measurable_set t}) :=
 is_pi_system_measurable_set.prod is_pi_system_measurable_set
 
 /-- If `ν` is a finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is

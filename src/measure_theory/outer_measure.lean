@@ -823,7 +823,8 @@ lemma extend_mono {s₁ s₂ : set α} (h₁ : measurable_set s₁) (hs : s₁ �
   extend m s₁ ≤ extend m s₂ :=
 begin
   refine le_infi _, intro h₂,
-  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_diff h₁ (h₂.diff h₁),
+  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_diff
+    h₁ (h₂.diff h₁),
   rw union_diff_cancel hs at this,
   rw ← extend_eq m,
   exact le_iff_exists_add.2 ⟨_, this⟩,
@@ -871,7 +872,8 @@ by { unfold trim, congr, funext s hs, exact H hs }
 theorem trim_le_trim {m₁ m₂ : outer_measure α} (H : m₁ ≤ m₂) : m₁.trim ≤ m₂.trim :=
 λ s, binfi_le_binfi $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
 
-theorem le_trim_iff {m₁ m₂ : outer_measure α} : m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
+theorem le_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : measurable_set t), m t :=

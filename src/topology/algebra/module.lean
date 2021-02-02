@@ -59,6 +59,10 @@ lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
 continuous_smul.comp (hf.prod_mk hg)
 
+lemma continuous_on.smul {α : Type*} [topological_space α] {s : set α} {f : α → R} {g : α → M}
+  (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λp, f p • g p) s :=
+continuous_smul.comp_continuous_on (hf.prod hg)
+
 lemma tendsto_smul {c : R} {x : M} : tendsto (λp:R×M, p.fst • p.snd) (𝓝 (c, x)) (𝓝 (c • x)) :=
 continuous_smul.tendsto _
 
@@ -357,7 +361,7 @@ instance : has_add (M →L[R] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp, norm_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) + g := rfl
+@[simp, norm_cast] lemma coe_add : (((f + g) : M →L[R] M₂) : M →ₗ[R] M₂) = f + g := rfl
 @[norm_cast] lemma coe_add' : (((f + g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) + g := rfl
 
 instance : add_comm_monoid (M →L[R] M₂) :=
@@ -595,7 +599,8 @@ variables
   {R : Type*} [semiring R]
   {M : Type*} [topological_space M] [add_comm_monoid M] [semimodule R M]
   {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [semimodule R M₂]
-  {ι : Type*} {φ : ι → Type*} [∀i, topological_space (φ i)] [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+  {ι : Type*} {φ : ι → Type*} [∀i, topological_space (φ i)] [∀i, add_comm_monoid (φ i)]
+  [∀i, semimodule R (φ i)]
 
 /-- `pi` construction for continuous linear functions. From a family of continuous linear functions
 it produces a continuous linear function into a family of topological modules. -/
@@ -627,8 +632,8 @@ linear_map.infi_ker_proj
 
 variables (R φ)
 
-/-- If `I` and `J` are complementary index sets, the product of the kernels of the `J`th projections of
-`φ` is linearly equivalent to the product over `I`. -/
+/-- If `I` and `J` are complementary index sets, the product of the kernels of the `J`th projections
+of `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
   (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
@@ -681,7 +686,7 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, sub_eq
   intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
 lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
-@[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
+@[simp, norm_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = f - g := rfl
 @[simp, norm_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
 end
@@ -1233,7 +1238,8 @@ variables [add_comm_monoid M] [semimodule R M]
 but one needs a fully (rather than partially) defined inverse function for some purposes, including
 for calculus. -/
 noncomputable def inverse : (M →L[R] M₂) → (M₂ →L[R] M) :=
-λ f, if h : ∃ (e : M ≃L[R] M₂), (e : M →L[R] M₂) = f then ((classical.some h).symm : M₂ →L[R] M) else 0
+λ f, if h : ∃ (e : M ≃L[R] M₂), (e : M →L[R] M₂) = f then ((classical.some h).symm : M₂ →L[R] M)
+else 0
 
 /-- By definition, if `f` is invertible then `inverse f = f.symm`. -/
 @[simp] lemma inverse_equiv (e : M ≃L[R] M₂) : inverse (e : M →L[R] M₂) = e.symm :=

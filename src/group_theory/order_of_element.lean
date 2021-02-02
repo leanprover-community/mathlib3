@@ -148,9 +148,9 @@ lemma pow_injective_of_lt_order_of {n m : ℕ} (a : α)
   (assume h, (pow_injective_aux a h hm hn eq.symm).symm)
 
 lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
-finset.card_le_of_inj_on ((^) a)
-  (assume n _, fintype.complete _)
-  (assume i j, pow_injective_of_lt_order_of a)
+finset.le_card_of_inj_on_range ((^) a)
+  (assume n _, finset.mem_univ _)
+  (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
 
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
 calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) :

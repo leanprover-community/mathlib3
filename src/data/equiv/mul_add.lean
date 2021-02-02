@@ -391,7 +391,8 @@ section type_tags
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
 def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] :
   (G ≃+ H) ≃ (multiplicative G ≃* multiplicative H) :=
-{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative, f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative,
+                  f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
   left_inv := λ x, by { ext, refl, },
   right_inv := λ x, by { ext, refl, }, }
@@ -407,7 +408,8 @@ def mul_equiv.to_additive [monoid G] [monoid H] :
 /-- Reinterpret `additive G ≃+ H` as `G ≃* multiplicative H`. -/
 def add_equiv.to_multiplicative' [monoid G] [add_monoid H] :
   (additive G ≃+ H) ≃ (G ≃* multiplicative H) :=
-{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative', f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative',
+                  f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
   left_inv := λ x, by { ext, refl, },
   right_inv := λ x, by { ext, refl, }, }
@@ -420,7 +422,8 @@ add_equiv.to_multiplicative'.symm
 /-- Reinterpret `G ≃+ additive H` as `multiplicative G ≃* H`. -/
 def add_equiv.to_multiplicative'' [add_monoid G] [monoid H] :
   (G ≃+ additive H) ≃ (multiplicative G ≃* H) :=
-{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'', f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'',
+                  f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
   left_inv := λ x, by { ext, refl, },
   right_inv := λ x, by { ext, refl, }, }

@@ -165,6 +165,15 @@ noncomputable def eval_neg_hom (A : Type*) [comm_ring A] : power_series A →+* 
             rw mul_comm ((-1 : A)^b) _, rw mul_assoc _ ((-1 : A)^b) _, ring, },
 }
 
+theorem exp_mul_neg_eq_one (A : Type*) [comm_ring A] [algebra ℚ A] :
+  (exp A) * (eval_neg_hom A (exp A)) = 1 :=
+begin
+  ext,
+  rw coeff_mul, rw exp, simp, split_ifs, {rw h, simp, rw eval_neg_hom, simp,
+  rw ←coeff_zero_eq_constant_coeff, rw coeff_mk, simp,},
+  { rw eval_neg_hom, simp, sorry, },
+end
+
 theorem bernoulli_odd_eq_zero : ∀ n : ℕ, (n % 2 = 1 ∧ 1 < n) → bernoulli n = 0 :=
 begin
   sorry

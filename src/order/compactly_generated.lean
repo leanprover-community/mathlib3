@@ -262,8 +262,11 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   { refine ⟨⟨a, le_of_lt a₀⟩, ⟨ne_of_lt a₀, λ c hck, by_contradiction $ λ c₀, _⟩, ba⟩,
     cases h c.1 (lt_of_le_of_ne c.2 (λ con, c₀ (subtype.ext con))) (le_of_lt hck),
     exact lt_irrefl _ hck, },
-  { exact λ S SC cC I IS, ⟨Sup S, Sup_lt_of_directed_set_lt_compact _ _ h
-      (ne_bot_of_gt (lt_of_le_of_ne hbk htriv)) _ cC.directed_on SC, le_Sup _⟩, },
+  { intros S SC cC I IS,
+    by_cases hS : S.nonempty,
+    exact ⟨Sup S, h.directed_Sup_lt_of_lt S hS cC.directed_on SC, le_Sup _⟩,
+    exact ⟨b, lt_of_le_of_ne hbk htriv, by simp only [set.not_nonempty_iff_eq_empty.mp hS,
+      set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff], ⟩, },
 end⟩
 
 end complete_lattice

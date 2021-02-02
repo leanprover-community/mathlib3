@@ -29,7 +29,7 @@ def is_topological_basis (s : set (set α)) : Prop :=
 (⋃₀ s) = univ ∧
 t = generate_from s
 
-/-- If a family of sets `s` genrates the topology, then nonempty intersections of finite
+/-- If a family of sets `s` generates the topology, then nonempty intersections of finite
 subcollections of `s` form a topological basis. -/
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
   is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ f).nonempty}) :=
@@ -40,14 +40,14 @@ begin
     exact ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b, this.symm ▸ ⟨x, h⟩⟩, this⟩, h,
       subset.rfl⟩ },
   { rw [sUnion_image, bUnion_eq_univ_iff],
-    intro x, have : x ∈ ⋂₀ ∅, by { rw sInter_empty, exact mem_univ x },
+    intro x, have : x ∈ ⋂₀ ∅, { rw sInter_empty, exact mem_univ x },
     exact ⟨∅, ⟨finite_empty, empty_subset _, x, this⟩, this⟩ },
   { rw hs,
     apply le_antisymm; apply le_generate_from,
     { rintro _ ⟨t, ⟨hft, htb, ht⟩, rfl⟩,
       exact @is_open_sInter _ (generate_from s) _ hft (λ s hs, generate_open.basic _ $ htb hs) },
     { intros t ht,
-      rcases t.eq_empty_or_nonempty with rfl|hne, apply @is_open_empty _ _,
+      rcases t.eq_empty_or_nonempty with rfl|hne, { apply @is_open_empty _ _ },
       rw ← sInter_singleton t at hne ⊢,
       exact generate_open.basic _ ⟨{t}, ⟨finite_singleton t, singleton_subset_iff.2 ht, hne⟩,
         rfl⟩ } }
@@ -62,7 +62,7 @@ begin
   { refine sUnion_eq_univ_iff.2 (λ a, _),
     rcases h_nhds a univ trivial is_open_univ with ⟨u, h₁, h₂, -⟩,
     exact ⟨u, h₁, h₂⟩ },
-  { refine le_antisymm (le_generate_from h_open) (λ u hu, _),
+  { refine (le_generate_from h_open).antisymm (λ u hu, _),
     refine (@is_open_iff_nhds α (generate_from s) u).mpr (λ a ha, _),
     rcases h_nhds a u ha hu with ⟨v, hvs, hav, hvu⟩,
     rw nhds_generate_from,

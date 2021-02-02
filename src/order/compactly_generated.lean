@@ -6,9 +6,7 @@ Authors: Oliver Nash
 import order.well_founded
 import order.order_iso_nat
 import order.atoms
-import order.lattice_intervals
 import order.zorn
-import data.set.finite
 import tactic.tfae
 
 /-!

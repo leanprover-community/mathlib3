@@ -81,7 +81,7 @@ variables {α : Type*} {β : Type*}
 def ennreal := with_top ℝ≥0
 
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
-localized "notation `[0..∞]` := ennreal" in ennreal
+notation `[0..∞]` := ennreal
 
 namespace ennreal
 variables {a b c d : [0..∞]} {r p q : ℝ≥0}

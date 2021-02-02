@@ -78,7 +78,10 @@ def alt_colimit (F : C ⥤ Type v₂) :
     simp,
   end }
 
-def my_thm (hF : is_filtered F.elementsᵒᵖ) [fin_category J] :
+noncomputable def my_thm
+  (J : Type v₂) [small_category J] [fin_category J]
+  {C : Type u₁} [category.{v₂} C]
+  (F : C ⥤ Type v₂) (hF : is_filtered F.elementsᵒᵖ) :
   preserves_limits_of_shape J F :=
 begin
   split,
@@ -163,10 +166,7 @@ begin
       ext q,
       rw ← w,
       dsimp,
-      simp,
-
-    }
-  },
+      simp, } },
   let t₂ : is_limit c₂ := limit.is_limit _,
   let q : cocones_to_functor tk ≅ K ⋙ F,
   { refine nat_iso.of_components (λ X, iso.refl _) _,
@@ -178,12 +178,29 @@ begin
     rw is_colimit.ι_map,
     ext q,
     dsimp [alt_cocone, my_functor],
-    simp,
-  },
-  let i₁ : F.obj c.X ≅ limit _ := filtered_colimit_finite_limit_iso Γ tj tk t₁ t₂,
+    simp, },
   let i₂ := has_limit.iso_of_nat_iso q,
-
-  -- have := limits.colimit_limit_to_limit_colimit_is_iso θ,
+  let i₃ : F.obj c.X ≅ limit (K ⋙ F) := filtered_colimit_finite_limit_iso Γ tj tk t₁ t₂ ≪≫ i₂,
+  apply is_limit.of_point_iso (limit.is_limit (K ⋙ F)),
+  dsimp,
+  have : limit.lift (K ⋙ F) (F.map_cone c) = i₃.hom,
+  { apply limit.hom_ext,
+    intro j,
+    rw limit.lift_π,
+    dsimp,
+    change _ = (_ ≫ _) ≫ _,
+    rw category.assoc,
+    simp only [iso.refl_hom, category.comp_id, nat_iso.of_components.hom_app,
+      has_limit.iso_of_nat_iso_hom_π],
+    apply t₁.hom_ext,
+    intro k,
+    change _ = _ ≫ _ ≫ c₂.π.app j,
+    rw ι_colimit_to_limit_π,
+    ext q,
+    dsimp,
+    simp, },
+  rw this,
+  apply is_iso.of_iso,
 end
 
 end category_theory

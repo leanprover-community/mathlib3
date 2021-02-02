@@ -127,21 +127,26 @@ begin
 end
 
 /-- If `M i j = N i j + c i * M 0 j`, then the determinant of `M` and `N` are the same. -/
-lemma det_eq_of_row_eq_add_zero {n : ℕ} (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
+lemma det_eq_of_row_eq_add_zero {n : ℕ}
+  (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
   (h0 : M 0 = N 0) (hsucc : ∀ (i : fin n), M i.succ = N i.succ + c i • M 0) :
   det M = det N :=
 det_eq_of_row_eq_add_zero_aux h0 (λ i _, hsucc i)
   (λ i (hi : fin.last n < i), false.elim (not_lt_of_ge (fin.le_last i) hi))
 
 /-- If `M i j = N i j + c i * M i 0`, then the determinant of `M` and `N` are the same. -/
-lemma det_eq_of_column_eq_add_zero {n : ℕ} (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
+lemma det_eq_of_column_eq_add_zero {n : ℕ}
+  (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
   (h0 : ∀ i, M i 0 = N i 0)
   (hsucc : ∀ (i : fin n.succ) (j : fin n), M i j.succ = N i j.succ + c j * M i 0) :
   det M = det N :=
 begin
   rw [← det_transpose M, ← det_transpose N, det_eq_of_row_eq_add_zero],
   { ext i, exact h0 i },
-  { intro j, ext i, rw [transpose_apply, hsucc i j, pi.add_apply, pi.smul_apply, smul_eq_mul], refl },
+  { intro j,
+    ext i,
+    rw [transpose_apply, hsucc i j, pi.add_apply, pi.smul_apply, smul_eq_mul],
+    refl }
 end
 
 lemma det_eq_of_row_eq_add_pred_aux {n : ℕ} {k : fin n.succ} :
@@ -193,14 +198,18 @@ det_eq_of_row_eq_add_pred_aux h0 (λ i _, hsucc i)
   (λ i (hi : fin.last n < i), false.elim (not_lt_of_ge (fin.le_last i) hi))
 
 /-- If `M i j = N i j + c i * M i (j - 1)`, then the determinant of `M` and `N` are the same. -/
-lemma det_eq_of_column_eq_add_pred {n : ℕ} (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
+lemma det_eq_of_column_eq_add_pred {n : ℕ}
+  (M N : matrix (fin n.succ) (fin n.succ) R) (c : fin n → R)
   (h0 : ∀ i, M i 0 = N i 0)
   (hsucc : ∀ (i : fin n.succ) (j : fin n), M i j.succ = N i j.succ + c j * M i j.cast_succ) :
   det M = det N :=
 begin
   rw [← det_transpose M, ← det_transpose N, det_eq_of_row_eq_add_pred],
   { ext i, exact h0 i },
-  { intro j, ext i, rw [transpose_apply, hsucc i j, pi.add_apply, pi.smul_apply, smul_eq_mul], refl },
+  { intro j,
+    ext i,
+    rw [transpose_apply, hsucc i j, pi.add_apply, pi.smul_apply, smul_eq_mul],
+    refl }
 end
 
 lemma sub_mul_sum_pow (a b : R) (n : ℕ) :
@@ -224,7 +233,7 @@ begin
   { exact det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
 
   calc det (λ (i j : fin n.succ), v j ^ (i : ℕ))
-      = det (λ (i : fin n.succ), fin.cons (v 0 ^ (i : ℕ)) (λ j, v j.succ ^ (i : ℕ) - v 0 ^ (i : ℕ))) :
+      = det (λ i, fin.cons (v 0 ^ (i : ℕ)) (λ j, v j.succ ^ (i : ℕ) - v 0 ^ (i : ℕ))) :
         det_eq_of_column_eq_add_zero _ _ (λ _, 1) _ _
   ... = det (λ (i j : fin n), @fin.cons _ (λ _, R)
               (v 0 ^ (i.succ : ℕ))

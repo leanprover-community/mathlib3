@@ -1,8 +1,49 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anne Baanen, Ashvni Narayanan
+-/
 import algebra.field
 import data.rat.basic
 import ring_theory.algebraic
 import ring_theory.dedekind_domain
 import ring_theory.integral_closure
+
+/-!
+# Function fields
+
+This file defines a function field and the ring of integers corresponding to it.
+
+## Main definitions
+
+ - `function_field_over` defines a function field over `Fq(t)`,
+    a finite dimensional extension of a fraction field of the polynomials over a finite field.
+ - `function_field` bundles the finite field and its fraction field into the
+   structure of `function_field_over`.
+ - `ring_of_integers` defines the ring of integers corresponding to a function field
+    as the integral closure of `polynomial K` in the function field.
+
+## Main results
+
+ - `ring_of_integers.is_dedekind_domain`: Shows that the ring of integers of a function field is a
+    Dedekind domain.
+
+## Implementation notes
+
+The definitions that involve a field of fractions choose a canonical field of fractions,
+but are independent of that choice.
+
+## References
+
+* [D. Marcus, *Number Fields*][marcus1977number]
+* [J.W.S. Cassels, A. Frölich, *Algebraic Number Theory*][cassels1967algebraic]
+* [P. Samuel, *Algebraic Theory of Numbers*][samuel1970algebraic]
+
+## Tags
+
+number field, ring of integers
+-/
+
 
 noncomputable theory
 

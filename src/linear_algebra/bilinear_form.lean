@@ -297,7 +297,8 @@ end
 variables {M₂' : Type*} [add_comm_monoid M₂'] [semimodule R₂ M₂']
 
 /-- Composition with linear maps is linear in all arguments. -/
-def comp_lin : (M₂ →ₗ[R₂] M₂') →ₗ[R₂] (M₂ →ₗ[R₂] M₂') →ₗ[R₂] bilin_form R₂ M₂' →ₗ[R₂] bilin_form R₂ M₂ :=
+def comp_lin : (M₂ →ₗ[R₂] M₂') →ₗ[R₂] (M₂ →ₗ[R₂] M₂') →ₗ[R₂]
+  bilin_form R₂ M₂' →ₗ[R₂] bilin_form R₂ M₂ :=
 { to_fun := λ l,
   { to_fun := λ r,
     { to_fun := λ B, B.comp l r,

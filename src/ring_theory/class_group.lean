@@ -1,5 +1,27 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
+
 import group_theory.quotient_group
 import ring_theory.dedekind_domain
+
+/-!
+# The ideal class group
+
+This file defines the ideal class group `class_group f` of fractional ideals
+with respect to the fraction map `f`.
+
+## Main definitions
+ - `to_principal_ideal` sends an invertible `x : f.codomain` to an invertible fractional ideal
+ - `class_group` is the quotient of invertible fractional ideals modulo `to_principal_ideal.range`
+ - `class_group.mk0` sends a nonzero integral ideal in a Dedekind domain to its class
+
+## Main results
+ - `class_group.mk0_eq_mk0_iff` shows the equivalence with the "classical" definition,
+   where `I ~ J` iff `x I = y J` for `x y ≠ (0 : R)`
+-/
 
 open ring
 open ring.fractional_ideal
@@ -23,7 +45,8 @@ def to_principal_ideal : units f.codomain →* units (fractional_ideal f) :=
     span_singleton x⁻¹,
     by simp only [span_singleton_one, units.mul_inv', span_singleton_mul_span_singleton],
     by simp only [span_singleton_one, units.inv_mul', span_singleton_mul_span_singleton]⟩,
-  map_mul' := λ x y, ext (by simp only [units.coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
+  map_mul' := λ x y, ext
+    (by simp only [units.coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
   map_one' := ext (by simp only [span_singleton_one, units.coe_mk, units.coe_one]) }
 
 local attribute [semireducible] to_principal_ideal
@@ -236,8 +259,9 @@ begin
     exact λ c _ hb, submodule.smul_mem I c hb },
   { apply (submodule.ne_bot_iff _).mpr,
     obtain ⟨x, x_ne, x_mem⟩ := exists_ne_zero_mem_is_integer I.ne_zero,
-    refine ⟨a * x, show (f.to_map a)⁻¹ * f.to_map (a * x) ∈ I.1, from _, mul_ne_zero a_ne_zero x_ne⟩,
-    { rwa [ring_hom.map_mul, ← mul_assoc, inv_mul_cancel fa_ne_zero, one_mul] } },
+    refine ⟨a * x, _, mul_ne_zero a_ne_zero x_ne⟩,
+    change (f.to_map a)⁻¹ * f.to_map (a * x) ∈ I.1,
+    rwa [ring_hom.map_mul, ← mul_assoc, inv_mul_cancel fa_ne_zero, one_mul] },
   { symmetry,
     apply quotient.sound,
     refine ⟨units.mk0 (f.to_map a) fa_ne_zero, _⟩,
@@ -245,10 +269,12 @@ begin
     rw [← mul_assoc, mul_right_inv, one_mul, eq_comm, mul_comm I],
     simp only [monoid_hom.coe_mk, subtype.coe_mk, ring_hom.map_mul, coe_coe],
     apply units.ext,
-    simp only [units.coe_mul, coe_to_principal_ideal, coe_mk0, fractional_ideal.eq_span_singleton_mul],
+    simp only [units.coe_mul, coe_to_principal_ideal, coe_mk0,
+               fractional_ideal.eq_span_singleton_mul],
     split,
     { intros zJ' hzJ',
-      obtain ⟨zJ, hzJ : (f.to_map a)⁻¹ * f.to_map zJ ∈ (I : fractional_ideal f), rfl⟩ := mem_coe_ideal.mp hzJ',
+      obtain ⟨zJ, hzJ : (f.to_map a)⁻¹ * f.to_map zJ ∈ (I : fractional_ideal f), rfl⟩ :=
+        mem_coe_ideal.mp hzJ',
       refine ⟨_, hzJ, _⟩,
       rw [← mul_assoc, mul_inv_cancel fa_ne_zero, one_mul] },
     { intros zI' hzI',

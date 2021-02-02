@@ -404,8 +404,8 @@ begin
   { simp only [multiset.map_cons, multiset.map_zero, multiset.prod_cons, multiset.prod_zero,
         mul_one, multiset.sum_cons, multiset.sum_zero, add_zero, multiset.card_zero,
         coeff_sub, coeff_X_zero, coeff_C_zero, zero_sub] },
-  rw [multiset.cons_swap a b s, multiset.map_cons, multiset.prod_cons, multiset.sum_cons,  multiset.card_cons,
-      coeff_mul, finset.nat.antidiagonal_succ, finset.sum_insert, neg_add],
+  rw [multiset.cons_swap a b s, multiset.map_cons, multiset.prod_cons, multiset.sum_cons,
+      multiset.card_cons, coeff_mul, finset.nat.antidiagonal_succ, finset.sum_insert, neg_add],
   congr,
   { simp only [coeff_sub, coeff_X_zero, coeff_C_zero, zero_sub],
     rw [← multiset.card_cons a s, coeff_prod_X_sub_C (a ::ₘ s), mul_one] },
@@ -535,7 +535,8 @@ begin
   { rw [list.map_nil, list.sum_nil, ← finset.sum_empty, finset.sum_congr _ (λ _ _, rfl)],
     ext i,
     cases i.2 },
-  { rw [list.map_cons, list.sum_cons, ← ih rfl, finset.sum_fin_eq_sum_range, finset.sum_fin_eq_sum_range],
+  { rw [list.map_cons, list.sum_cons, ← ih rfl, finset.sum_fin_eq_sum_range,
+        finset.sum_fin_eq_sum_range],
     conv in (finset.range (a :: l).length)
     { rw list.length_cons a l},
     rw [finset.sum_range_succ', add_comm],
@@ -788,7 +789,8 @@ calc ∑ x in s, gf x = ∑ x in s, g (f x) : finset.sum_congr rfl hgf
 ... = ∑ y in t, n • g y : finset.sum_congr rfl (λ y hy, by rw hcard y hy)
 ... = n • ∑ y in t, g y : finset.smul_sum.symm
 
-lemma adjoin_root.nontrivial {R : Type*} [integral_domain R] {f : polynomial R} (hf : 0 < degree f) :
+lemma adjoin_root.nontrivial {R : Type*} [integral_domain R]
+  {f : polynomial R} (hf : 0 < degree f) :
   nontrivial (adjoin_root f) :=
 ⟨⟨0, 1, λ h,
   begin
@@ -965,7 +967,8 @@ begin
   letI : fintype (K⟮x⟯ →ₐ[K] F) := fintype_of_alg_hom_adjoin_integral _ hx,
   apply finset.sum_eq_card_smul (λ σ : L →ₐ[K] F, σ.comp (is_scalar_tower.to_alg_hom K K⟮x⟯ L)),
   { intros, apply finset.mem_univ },
-  { intros σ hσ, simp only [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, algebra_map_gen] },
+  { intros σ hσ,
+    simp only [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, algebra_map_gen] },
   intros σ' _,
   rw ← card_filter_apply_eq x hx (σ' (adjoin_simple.gen K x)),
   apply finset.card_congr (λ σ _, σ),
@@ -1065,7 +1068,8 @@ end
 
 @[simp] lemma det_conjugate_matrix :
   (pb.conjugate_matrix hF).det = ∏ (i : fin pb.dim),
-    ∏ j in finset.univ.filter (λ (j : fin pb.dim), i < j), (pb.conjugates hF j - pb.conjugates hF i) :=
+    ∏ j in finset.univ.filter (λ (j : fin pb.dim), i < j),
+      (pb.conjugates hF j - pb.conjugates hF i) :=
 matrix.det_vandermonde _
 
 lemma sum_repr (x : S) : ∑ i, hb.repr x i • b i = x :=
@@ -1124,8 +1128,8 @@ begin
   let pb : power_basis K L := field.power_basis_of_finite_of_separable,
   have hph : pb.is_basis.to_matrix b ⬝ hb.to_matrix (λ i : fin pb.dim, pb.gen ^ (i : ℕ)) = 1,
   { apply (matrix.to_lin pb.is_basis pb.is_basis).injective,
-    rw [matrix.to_lin_mul pb.is_basis hb pb.is_basis, is_basis.to_lin_to_matrix, is_basis.to_lin_to_matrix,
-        id_comp, to_lin_one] },
+    rw [matrix.to_lin_mul pb.is_basis hb pb.is_basis, is_basis.to_lin_to_matrix,
+        is_basis.to_lin_to_matrix, id_comp, to_lin_one] },
   have hhp : hb.to_matrix (λ i : fin pb.dim, pb.gen ^ (i : ℕ)) ⬝ pb.is_basis.to_matrix b = 1,
   { apply (matrix.to_lin hb hb).injective,
     rw [matrix.to_lin_mul hb pb.is_basis hb, is_basis.to_lin_to_matrix, is_basis.to_lin_to_matrix,
@@ -1190,9 +1194,12 @@ rfl
 lemma trace_form_dual_basis_power_basis [is_separable K L] (i j : ι) :
   trace_form K L (b i) (dual_basis hb j) = (1 : matrix _ _ K) i j :=
 calc trace_form K L (b i) (dual_basis hb j)
-    = ((bilin_form.to_matrix hb (trace_form K L)) ⬝ (bilin_form.to_matrix hb (trace_form K L))⁻¹) i j :
-      by simp_rw [dual_basis, ← bilin_form.comp_right_apply, bilin_form.to_matrix_mul hb, bilin_form.to_matrix_apply]
-... = (1 : matrix _ _ K) i j : by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero hb))
+    = ((bilin_form.to_matrix hb (trace_form K L)) ⬝
+       (bilin_form.to_matrix hb (trace_form K L))⁻¹) i j :
+  by simp_rw [dual_basis, ← bilin_form.comp_right_apply,
+              bilin_form.to_matrix_mul hb, bilin_form.to_matrix_apply]
+... = (1 : matrix _ _ K) i j :
+  by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero hb))
 
 lemma trace_dual_basis_mul_power_basis [is_separable K L] (i j : ι) :
   algebra.trace K L (b i * dual_basis hb j) = if i = j then 1 else 0 :=
@@ -1219,7 +1226,9 @@ begin
     by simp_rw [linear_map.map_sum, linear_map.map_smul]
   ... = (is_basis_dual_basis hb).repr x i * algebra.trace K L (b i * dual_basis hb i) :
     finset.sum_eq_single _ _ _
-  ... = (is_basis_dual_basis hb).repr x i : by rw [trace_dual_basis_mul_power_basis, if_pos rfl, mul_one],
+  ... = (is_basis_dual_basis hb).repr x i :
+    by rw [trace_dual_basis_mul_power_basis, if_pos rfl, mul_one],
+
   { intros j _ ne,
     rw [trace_dual_basis_mul_power_basis, if_neg ne.symm, smul_zero] },
   { intro not_mem_univ,

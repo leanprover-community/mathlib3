@@ -5,7 +5,6 @@ Author: Ashvni Narayanan, Anne Baanen
 -/
 
 import algebra.field
---import algebraic_number_theory.class_number
 import data.rat.basic
 import ring_theory.algebraic
 import ring_theory.dedekind_domain
@@ -72,15 +71,18 @@ instance infinite_of_number_field : infinite K := begin
   apply infinite.of_injective f,
   intros x y hxy,
   have hxy2 : (x : ℚ) • (1 : K) = (y : ℚ) • (1 : K) := hxy,
-  have h : 0 = ((x : ℚ) - (y : ℚ)) • (1 : K), calc 0 = (x : ℚ) • (1 : K) - (y : ℚ) • (1 : K) : by rw sub_eq_zero.mpr hxy
+  have h : 0 = ((x : ℚ) - (y : ℚ)) • (1 : K), calc 0 = (x : ℚ) • (1 : K) - (y : ℚ) • (1 : K) :
+    by rw sub_eq_zero.mpr hxy
   ... = (x : ℚ) • (1 : K) + (-((y : ℚ) • (1 : K))) : sub_eq_add_neg (↑x • 1) (↑y • 1)
   ... = (x : ℚ) • (1 : K) + ((-(y : ℚ)) • (1 : K)) : by rw neg_smul
   ... = ((x : ℚ) + (-(y : ℚ))) • (1 : K) : by rw add_smul
   ... = ((x : ℚ) - (y : ℚ)) • (1 : K) : by rw sub_eq_add_neg,
-  have h2 : ((x : ℚ) - (y : ℚ)) = 0 ∨ (1 : K) = 0, {exact (@smul_eq_zero ℚ K _ _ _ ((x : ℚ) - (y : ℚ)) (1 : K)).1 (eq.symm h)},
-  cases h2, {have h3 : (x : ℚ) = (y : ℚ), exact sub_eq_zero.mp h2,
-    exact (rat.coe_int_inj (x : ℤ) (y : ℤ)).1 h3},
-  {exfalso, revert h2, simp}
+  have h2 : ((x : ℚ) - (y : ℚ)) = 0 ∨ (1 : K) = 0 :=
+    (@smul_eq_zero ℚ K _ _ _ ((x : ℚ) - (y : ℚ)) (1 : K)).1 (eq.symm h),
+  cases h2,
+  { have h3 : (x : ℚ) = (y : ℚ), exact sub_eq_zero.mp h2,
+    exact (rat.coe_int_inj (x : ℤ) (y : ℤ)).1 h3 },
+  { exfalso, revert h2, simp }
 end
 
 /-- The ring of integers (or number ring) corresponding to a number field

@@ -1,4 +1,16 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import algebraic_number_theory.class_number.absolute_value
+
+/-!
+# Euclidean absolute values
+
+This file defines `euclidean_absolute_value`, an absolute value that
+agrees with the `euclidean_domain` structure on its domain.
+-/
 
 local infix ` ≺ `:50 := euclidean_domain.r
 

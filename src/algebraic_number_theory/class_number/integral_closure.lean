@@ -1,8 +1,23 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import algebra.big_operators.finsupp
 import linear_algebra.free_module
 import ring_theory.dedekind_domain
 import algebraic_number_theory.class_number.euclidean_absolute_value
 import algebraic_number_theory.class_number.norm
+
+/-!
+# Integral bases for the integral closure
+
+In this file, we define `integral_closure.basis`, a finite-dimensional
+basis for an integral closure of a principal ideal domain.
+
+TODO: the results in this file should be merged in appropriate files in the
+`ring_theory` folder.
+-/
 
 open_locale big_operators
 

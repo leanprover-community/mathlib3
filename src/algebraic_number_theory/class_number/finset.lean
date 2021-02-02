@@ -1,5 +1,18 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import algebra.big_operators.basic
 import tactic.linarith
+
+/-!
+# Finset lemmas
+
+This file defines a few useful lemmas we need to develop the class number.
+TODO: merge thes into appropriate files in `data/finset/`.
+
+-/
 
 open_locale big_operators
 

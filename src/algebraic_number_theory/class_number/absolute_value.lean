@@ -1,8 +1,19 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import ring_theory.localization
+
+/-!
+# Absolute values
+
+This file defines a bundled type of absolute values,
+mirroring the unbundled `is_absolute_value` definition in `data.real.cau_seq`.
+-/
 
 open_locale big_operators
 
--- TODO: unify this with `is_absolute_value` in `data.real.cau_seq`?
 structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S] extends mul_hom R S :=
 (zero_le_map' : ∀ x, 0 ≤ to_fun x)
 (map_eq_zero_iff' : ∀ x, to_fun x = 0 ↔ x = 0)
@@ -149,14 +160,16 @@ noncomputable def to_frac {R K : Type*} [nontrivial R] [comm_ring R] [field K]
     obtain ⟨x_n, ⟨x_d, hx_d⟩, rfl⟩ := g.mk'_surjective x,
     obtain ⟨y_n, ⟨y_d, hy_d⟩, rfl⟩ := g.mk'_surjective y,
     rw ← g.mk'_add,
-    show f.to_frac_aux g (localization_map.mk' g (x_n * y_d + y_n * x_d) (⟨x_d, hx_d⟩ * ⟨y_d, hy_d⟩)) ≤
+    show f.to_frac_aux g
+        (localization_map.mk' g (x_n * y_d + y_n * x_d) (⟨x_d, hx_d⟩ * ⟨y_d, hy_d⟩)) ≤
       f.to_frac_aux g (localization_map.mk' g x_n ⟨x_d, hx_d⟩) +
       f.to_frac_aux g (localization_map.mk' g y_n ⟨y_d, hy_d⟩),
     have cast_fx_ne : ∀ {x} (hx : x ∈ non_zero_divisors R), (f x : ℚ) ≠ 0 :=
       λ x hx, int.cast_ne_zero.mpr (f.map_ne_zero.mpr (non_zero_divisors.ne_zero_of_mem hx)),
     have : x_d * y_d ≠ 0 := non_zero_divisors.ne_zero_of_mem (submonoid.mul_mem _ hx_d hy_d),
     rw ← mul_le_mul_right ((@int.cast_pos ℚ _ _ _).mpr (f.pos this)),
-    simp only [f.to_frac_aux_mk', subtype.coe_mk, submonoid.coe_mul, int.cast_mul, f.map_mul, add_mul],
+    simp only [f.to_frac_aux_mk', subtype.coe_mk, submonoid.coe_mul,
+               int.cast_mul, f.map_mul, add_mul],
     convert (@int.cast_le ℚ _ _ _ _).mpr (f.le_add (x_n * y_d) (y_n * x_d)),
     { apply div_mul_cancel,
       rwa [← int.cast_mul, int.cast_ne_zero, ← f.map_mul, f.map_ne_zero] },

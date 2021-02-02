@@ -1,7 +1,18 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import linear_algebra.free_module
 import linear_algebra.matrix
 import ring_theory.localization
 import ring_theory.trace
+
+/-!
+# A `norm` operator for algebras
+
+This file defines `algebra.norm`, sending `x : A` to the determinant of `matrix.lmul R x`.
+-/
 
 open_locale big_operators
 

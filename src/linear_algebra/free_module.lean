@@ -33,8 +33,6 @@ lemma not_nonempty_fin_zero : ¬ (nonempty (fin 0)) :=
 
 open submodule.is_principal
 
--- `n` is the rank of `M` and `m` is the rank of `N`; I copied this unfortunate notation from Dummit and Foote.
-
 section
 
 open finset submodule
@@ -67,7 +65,8 @@ section
 
 open_locale classical
 
-/-- `s.preimage' f` contains for each `y ∈ s ∩ set.range f` exactly one `x : α` such that `f x = y`. -/
+/-- `s.preimage' f` contains for each `y ∈ s ∩ set.range f`
+exactly one `x : α` such that `f x = y`. -/
 noncomputable def finset.preimage' {α β : Type*} (f : α → β) (s : finset β) : finset α :=
 (s.image (function.partial_inv f)).preimage option.some
   (set.inj_on_of_injective (option.some_injective _) _)
@@ -184,7 +183,8 @@ begin
     apply trans (@finset.sum_attach _ _ _ _ (λ i, if i ∈ t then g i • i else 0)) _,
     rw sum_ite_mem_of_ge ht },
   { rintros hs g hg ⟨x, hx⟩,
-    refine trans (if_pos hx).symm (hs (λ x, if h : x ∈ s then g ⟨x, h⟩ else 0) _ (subset.refl _) _ x hx),
+    refine trans _ (hs (λ x, if h : x ∈ s then g ⟨x, h⟩ else 0) _ (subset.refl _) _ x hx),
+    { apply (dif_pos hx).symm },
     rw [← hg, finset.sum_coe],
     simp only [dite_smul, zero_smul],
     rw [sum_dite_mem_of_le (le_refl s), finset.sum_congr rfl],
@@ -249,7 +249,8 @@ begin
 end
 
 lemma eq_bot_of_rank_eq_zero [no_zero_divisors R] (hb : is_basis R b) (N : submodule R M)
-  (rank_le : ∀ (s : finset M) (hs : ∀ x ∈ s, x ∈ N), linear_independent R (coe : (↑s : set M) → M) → s.card ≤ 0) :
+  (rank_le : ∀ (s : finset M) (hs : ∀ x ∈ s, x ∈ N),
+    linear_independent R (coe : (↑s : set M) → M) → s.card ≤ 0) :
   N = ⊥ :=
 begin
   rw submodule.eq_bot_iff,
@@ -309,9 +310,11 @@ begin
       { refine trans _ total_eq,
         conv_rhs { rw ← finset.insert_erase hy },
         rw finset.sum_insert (finset.not_mem_erase _ _) } },
-    { apply hli g (t.erase x) (finset.subset_insert_iff.mp t_le) _ _ (finset.mem_erase.mpr ⟨hxy, hy⟩),
+    { apply hli g (t.erase x)
+        (finset.subset_insert_iff.mp t_le) _ _
+        (finset.mem_erase.mpr ⟨hxy, hy⟩),
       rw [finset.sum_erase, total_eq],
-      rw [this, zero_smul ]} },
+      rw [this, zero_smul] } },
   { refine hli g t _ total_eq _ hy,
     rwa [finset.subset_insert_iff, finset.erase_eq_of_not_mem hxt] at t_le }
 end
@@ -327,7 +330,8 @@ section principal_ideal_domain
 
 open submodule.is_principal
 
-variables {ι : Type*} {R : Type*} {M : Type*} [integral_domain R] [is_principal_ideal_ring R] [add_comm_group M] [module R M] {b : ι → M}
+variables {ι : Type*} {R : Type*} [integral_domain R] [is_principal_ideal_ring R]
+variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 lemma not_mem_of_ortho {x : M} {N : submodule R M}
   (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
@@ -554,7 +558,7 @@ begin
   { simp only [sub_smul, mul_smul, finset.sum_sub_distrib, ← finset.smul_sum],
     ext j,
     rw [pi.zero_apply, @pi.sub_apply (fin n.succ) (λ _, R) _ _ _ _],
-    simp only [@finset.sum_apply (fin n.succ) (λ _, R) _ _ _, pi.smul_apply, smul_eq_mul, sub_eq_zero],
+    simp only [finset.sum_apply, pi.smul_apply, smul_eq_mul, sub_eq_zero],
     symmetry,
     rw [finset.sum_fin_succ_above i, fin.insert_nth_apply_same, zero_mul, zero_add, mul_comm],
     simp only [fin.insert_nth_apply_succ_above],
@@ -598,7 +602,9 @@ begin
 end
 
 lemma induction_on_rank [fintype ι] (hb : is_basis R b) (P : submodule R M → Sort*)
-  (ih : ∀ (N : submodule R M), (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
+  (ih : ∀ (N : submodule R M),
+    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') →
+    P N)
   (N : submodule R M) : P N :=
 induction_on_rank_aux hb P ih (fintype.card ι) N (λ s hs hli,
   by simpa using hb.card_le_card_of_linear_independent hli)
@@ -866,7 +872,7 @@ begin
   -- TODO: this should be easier!
   simp_rw [finset.smul_sum, ← smul_assoc, smul_eq_mul, ← c_spec, π_apply],
   refine trans _ (hb.total_repr (maximal_gen N)),
-  simp only [finsupp.total_apply, finsupp.sum_fintype, eq_self_iff_true, zero_smul, forall_true_iff],
+  simp only [finsupp.total_apply, finsupp.sum_fintype, eq_self_iff_true, zero_smul, forall_true_iff]
 end
 
 lemma finset.linear_independent_image
@@ -917,16 +923,18 @@ lemma linear_independent_maximal_gen_cons {N : submodule R M} (hN : N ≠ ⊥) {
   {b : ι → M} (hb : is_basis R b)
   {bN : fin n → (maximal_projection N).ker ⊓ N} (hbN : is_basis R bN) :
   linear_independent R (fin.cons
-    ⟨maximal_gen N, maximal_gen_mem N⟩
-    (submodule.of_le (inf_le_right : ((maximal_projection N).ker ⊓ N) ≤ N) ∘ bN) : fin n.succ → N) :=
+      ⟨maximal_gen N, maximal_gen_mem N⟩
+      (submodule.of_le (inf_le_right : ((maximal_projection N).ker ⊓ N) ≤ N) ∘ bN) :
+    fin n.succ → N) :=
 begin
   refine fin.linear_independent_cons (hbN.1.map' _ (submodule.ker_of_le _ _ _)) _,
   intros c y hy hc,
   rw mem_span_basis_iff hbN at hy,
   have := congr_arg (maximal_projection N ∘ (coe : N → M)) hc,
-  simp only [hy, function.comp_app, add_zero, smul_eq_mul, mul_eq_zero, maximal_projection_maximal_gen,
-             submodule.coe_zero, submodule.coe_add, submodule.coe_smul, submodule.coe_mk,
-             linear_map.map_zero, linear_map.map_add, linear_map.map_smul]
+  simp only [hy, function.comp_app, add_zero, smul_eq_mul, mul_eq_zero,
+             maximal_projection_maximal_gen, submodule.coe_zero, submodule.coe_add,
+             submodule.coe_smul, submodule.coe_mk, linear_map.map_zero, linear_map.map_add,
+             linear_map.map_smul]
     at this,
   exact this.resolve_right (maximal_gen_ne_zero hb hN),
 end
@@ -948,7 +956,7 @@ begin
     refine ⟨0, λ _, 0, is_basis_empty_bot _⟩,
     rintro ⟨i, ⟨⟩⟩ },
 
-  -- We claim the following `y` can be a basis element of `M` such that `a • y` is a basis element of `N`.
+  -- We claim that `y` is a basis element of `M` such that `a • y` is a basis element of `N`.
   obtain ⟨y, y'_eq⟩ := exists_generator_smul_eq_maximal_gen hb hN,
 
   have ay_mem_N : generator (N.map (maximal_projection N)) • y ∈ N,

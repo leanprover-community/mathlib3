@@ -1,9 +1,20 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import analysis.special_functions.pow
 import algebraic_number_theory.class_number.euclidean_absolute_value
+import algebraic_number_theory.class_number.finset
 import combinatorics.pigeonhole
 import field_theory.finite.basic
 
-import algebraic_number_theory.class_number.finset
+/-!
+# Admissible absolute values
+
+This file defines a structure `admissible_absolute_value` which we use to show the class number
+of the ring of integers of a global field is finite.
+-/
 
 section admissible
 
@@ -302,7 +313,8 @@ begin
   have h' : A i₁ % b - A i₀ % b ≠ 0 := mt sub_eq_zero.mp h,
   rw [card_pow_degree_apply h', int.cast_pow, int.cast_coe_nat, card_pow_degree_apply hb,
       algebra.smul_def, ring_hom.eq_int_cast, int.cast_pow, int.cast_coe_nat],
-  have deg_lt' : (nat_degree (A i₁ % b - A i₀ % b) : ℝ) < b.nat_degree + log ε / log (fintype.card K),
+  have deg_lt' : (nat_degree (A i₁ % b - A i₀ % b) : ℝ) <
+    b.nat_degree + log ε / log (fintype.card K),
   { refine lt_of_lt_of_le (nat.cast_lt.mpr (nat_degree_lt_of_degree_lt h' deg_lt)) _,
     rw [← sub_neg_eq_add, neg_div],
     refine le_trans _ (sub_le_sub_left (le_nat_ceil _) (b.nat_degree : ℝ)),
@@ -349,7 +361,8 @@ end
 lemma exists_partition_aux (n : ℕ) {ε : ℝ} (hε : 0 < ε) {b : polynomial K} (hb : b ≠ 0)
   (A : fin n → polynomial K) :
   ∃ (t : fin n → fin (fintype.card K ^ nat_ceil (-log ε / log ↑(fintype.card K)))),
-  ∀ (i₀ i₁ : fin n), t i₀ = t i₁ ↔ (card_pow_degree K (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree K b • ε :=
+  ∀ (i₀ i₁ : fin n),
+  t i₀ = t i₁ ↔ (card_pow_degree K (A i₁ % b - A i₀ % b) : ℝ) < card_pow_degree K b • ε :=
 begin
   have hbε : 0 < card_pow_degree K b • ε,
   { rw [algebra.smul_def, ring_hom.eq_int_cast],
@@ -371,7 +384,8 @@ begin
       exact ht' i₀ i₁ } },
   have approx_of_approx : ∀ (i : fin n),
     (card_pow_degree K (A 0 % b - A i.succ % b) : ℝ) < card_pow_degree K b • ε →
-    ∀ i', t' i' = t' i → (card_pow_degree K (A 0 % b - A i'.succ % b) : ℝ) < card_pow_degree K b • ε,
+    ∀ i', t' i' = t' i →
+    (card_pow_degree K (A 0 % b - A i'.succ % b) : ℝ) < card_pow_degree K b • ε,
   { intros i hi i' hi',
     exact card_pow_degree_anti_archimedean hi ((ht' _ _).mp hi') },
   by_cases exists_nonempty_j : ∃ j, (∃ i, t' i = j) ∧

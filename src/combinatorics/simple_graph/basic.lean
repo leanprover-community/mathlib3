@@ -442,6 +442,9 @@ instance has_compl : has_compl (simple_graph V) :=
 @[simp]
 lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
+instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
+[decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
+
 @[simp]
 lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
 begin
@@ -473,12 +476,13 @@ begin
   tauto,
 end
 
-lemma finset.compl_to_finset (α : Type u) [decidable_eq α] [fintype α] (s : set α) :
+/-lemma finset.compl_to_finset (α : Type u) [decidable_eq α] [fintype α] (s : set α) :
   sᶜ.to_finset = (s.to_finset)ᶜ :=
-by ext; simp
+by ext; simp-/
 
-lemma neighbor_set_union_compl_neighbor_set_card [fintype V] (G : simple_graph V) (v : V) :
-  (G.neighbor_set v ∪ Gᶜ.neighbor_set v).to_finset.card = fintype.card V - 1 :=
+lemma neighbor_set_union_compl_neighbor_set_card [fintype V] (G : simple_graph V)
+  [decidable_rel G.adj] [decidable_rel Gᶜ.adj] (v : V) :
+  fintype.card (G.neighbor_set v ∪ Gᶜ.neighbor_set v) = fintype.card V - 1 :=
 begin
   -- i don't love the `fintype.subtype_of_fintype situation` i have here
   classical,
@@ -491,7 +495,19 @@ begin
   simp,
 end
 
-lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj] [nonempty V]
+lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj] [decidable_rel Gᶜ.adj] (v : V) [nonempty V] :
+  Gᶜ.degree v = fintype.card V - G.degree v - 1 :=
+begin
+  rw nat.sub_sub,
+  rw add_comm,
+  rw ← nat.sub_sub,
+  rw ← neighbor_set_union_compl_neighbor_set_card G v,
+  have h2 : (G.neighbor_set v ∪ Gᶜ.neighbor_set v).to_finset.card = G.degree v + Gᶜ.degree v,
+  rw set.finite.to_finset_union ((G.neighbor_set v) : set V) ((Gᶜ.neighbor_set v) : set V),
+  sorry,
+end
+
+lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj] [decidable_rel Gᶜ.adj] [nonempty V]
 (k : ℕ) (h : G.is_regular_of_degree k) : Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
 begin
   rw is_regular_of_degree,

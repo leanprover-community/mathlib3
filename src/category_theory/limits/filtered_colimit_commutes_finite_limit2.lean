@@ -286,6 +286,7 @@ begin
     refine ⟨j'', 𝟙 _, g k ≫ gf _ _ (𝟙 k) ≫ i (𝟙 k), _⟩,
     simp only [functor.flip_obj_map, F.map_id, F.map_comp, nat_trans.comp_app, nat_trans.id_app,
       types_comp_apply, types_id_apply] },
+  sorry
 end
 
 noncomputable def filtered_colimit_finite_limit_iso : c₁.X ≅ c₂.X :=

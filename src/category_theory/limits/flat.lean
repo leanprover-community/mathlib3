@@ -1,7 +1,9 @@
 import category_theory.limits.filtered_colimit_commutes_finite_limit2
 import category_theory.elements
+import category_theory.functor_category
 import category_theory.limits.preserves.limits
 import category_theory.limits.yoneda
+import category_theory.limits.creates
 
 namespace category_theory
 open limits opposite
@@ -202,5 +204,118 @@ begin
   rw this,
   apply is_iso.of_iso,
 end
+
+def is_set_flat (F : C ⥤ Type v₂) := is_filtered F.elementsᵒᵖ
+
+variable (C)
+
+@[derive category]
+def flat := {F : C ⥤ Type v₂ // is_set_flat F}
+
+def flat_to_functors : flat C ⥤ (C ⥤ Type v₂) := full_subcategory_inclusion _
+
+-- example {C : Type v₂} [small_category C] : has_limits (C ⥤ Type v₂) := infer_instance
+
+def six_three_six {C : Type v₂} [small_category C] {D : Type v₂} [small_category D] [is_filtered D]
+  (H : D ⥤ C ⥤ Type v₂)
+  {c : cocone H} (t : is_colimit c)
+  (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
+{ nonempty :=
+  begin
+    haveI : nonempty D := is_filtered.nonempty,
+    inhabit D,
+    obtain ⟨t⟩ := (hD (default D)).nonempty,
+    refine ⟨op ⟨(unop t).1, (c.ι.app (default D)).app _ (unop t).2⟩⟩,
+  end,
+  cocone_objs :=
+  begin
+    intros Aa Bb,
+    op_induction Aa,
+    op_induction Bb,
+    cases Aa with A a,
+    cases Bb with B b,
+    let t' : is_colimit (((evaluation C _).obj A).map_cocone c) := is_colimit_of_preserves _ t,
+    rcases types.jointly_surjective _ t' a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
+    let t'' : is_colimit (((evaluation C _).obj B).map_cocone c) := is_colimit_of_preserves _ t,
+    rcases types.jointly_surjective _ t'' b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
+    rcases is_filtered_or_empty.cocone_objs d d' with ⟨d'', f, g, ⟨⟩⟩,
+    let a'' := (H.map f).app A a',
+    have ha'' : (c.ι.app d'').app A a'' = a,
+    { rw ←c.w f at ha',
+      apply ha' },
+    let b'' := (H.map g).app B b',
+    have hb'' : (c.ι.app d'').app B b'' = b,
+    { rw ←c.w g at hb',
+      apply hb' },
+    clear_value a'' b'',
+    clear ha' hb' a' b' f g d d' t' t'',
+    subst ha'',
+    subst hb'',
+    rename d'' d,
+    rename a'' a',
+    rename b'' b',
+    have cof := (hD d).cocone_objs,
+    rcases cof (op ⟨_, a'⟩) (op ⟨_, b'⟩) with ⟨Cc, u, v, ⟨⟩⟩,
+
+    -- Manually do the op_induction/cases on Cc
+    let C' := Cc.unop.1,
+    let c' : (H.obj _).obj C' := Cc.unop.2,
+    have : Cc = op ⟨C', c'⟩,
+    { simp },
+    clear_value C' c',
+    subst this,
+
+    have ha' : (H.obj _).map u.unop.1 c' = a' := u.unop.2,
+    have hb' : (H.obj _).map v.unop.1 c' = b' := v.unop.2,
+    have : c.X.obj C' := (c.ι.app d).app C' c',
+    refine ⟨op ⟨_, (c.ι.app d).app C' c'⟩,
+            has_hom.hom.op ⟨u.unop.1, _⟩,
+            has_hom.hom.op ⟨v.unop.1, _⟩, ⟨⟩⟩,
+    { change ((c.ι.app d).app C' ≫ c.X.map u.unop.1) c' = (c.ι.app d).app A a',
+      have : _ = (c.ι.app d).app C' ≫ c.X.map u.unop.val := (c.ι.app d).naturality u.unop.1,
+      rw ← this,
+      change (c.ι.app d).app A ((H.obj d).map u.unop.1 c') = (c.ι.app d).app A a',
+      apply congr_arg _ ha' },
+    { change ((c.ι.app d).app C' ≫ c.X.map v.unop.1) c' = (c.ι.app d).app B b',
+      have : _ = (c.ι.app d).app C' ≫ c.X.map v.unop.val := (c.ι.app d).naturality v.unop.1,
+      rw ← this,
+      change (c.ι.app d).app B ((H.obj d).map v.unop.1 c') = (c.ι.app d).app B b',
+      apply congr_arg _ hb' },
+  end,
+  cocone_maps :=
+  begin
+    intros Bb Aa u' v',
+    let A := Aa.unop.1,
+    let a : c.X.obj A := Aa.unop.2,
+    let B := Bb.unop.1,
+    let b : c.X.obj B := Bb.unop.2,
+    let u : A ⟶ B := u'.unop.1,
+    let v : A ⟶ B := v'.unop.1,
+    have : c.X.map u a = b := u'.unop.2,
+    have : c.X.map v a = b := v'.unop.2,
+
+    let t' : is_colimit (((evaluation C _).obj A).map_cocone c) := is_colimit_of_preserves _ t,
+    rcases types.jointly_surjective _ t' a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
+    let t'' : is_colimit (((evaluation C _).obj B).map_cocone c) := is_colimit_of_preserves _ t,
+    rcases types.jointly_surjective _ t'' b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
+    rcases is_filtered_or_empty.cocone_objs d d' with ⟨d'', f, g, ⟨⟩⟩,
+    let a'' := (H.map f).app A a',
+    have ha'' : (c.ι.app d'').app A a'' = a,
+    { rw ←c.w f at ha',
+      apply ha' },
+    let b'' := (H.map g).app B b',
+    have hb'' : (c.ι.app d'').app B b'' = b,
+    { rw ←c.w g at hb',
+      apply hb' },
+    clear_value a'' b'',
+    clear' a' b' ha' hb' t' f g d d',
+    rename [d'' d, a'' a', b'' b', ha'' ha, hb'' hb],
+    have := ((H.obj d).map u ≫ (c.ι.app _).app _) a',
+
+    -- have : (c.ι.app d).app _ = _,
+    -- have := types.filtered_colimit.is_colimit_eq_iff _ t'',
+  end
+
+}
 
 end category_theory

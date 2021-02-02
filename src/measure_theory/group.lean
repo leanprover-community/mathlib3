@@ -81,7 +81,7 @@ variables [group G] [topological_space G] [topological_group G] [borel_space G]
 @[to_additive]
 lemma inv_apply (μ : measure G) {s : set G} (hs : is_measurable s) :
   μ.inv s = μ s⁻¹ :=
-by { unfold measure.inv, rw [measure.map_apply measurable_inv hs, inv_preimage] }
+measure.map_apply measurable_inv hs
 
 @[simp, to_additive] protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
 begin

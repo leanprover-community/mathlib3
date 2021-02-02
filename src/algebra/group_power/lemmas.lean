@@ -407,7 +407,8 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 end linear_ordered_ring
 
 /-- Bernoulli's inequality reformulated to estimate `(n : K)`. -/
-theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a) (n : ℕ) :
+theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a)
+  (n : ℕ) :
   (n : K) ≤ (a ^ n - 1) / (a - 1) :=
 (le_div_iff (sub_pos.2 H)).2 $ le_sub_left_of_add_le $
   one_add_mul_sub_le_pow ((neg_le_self $ @zero_le_one K _).trans H.le) _
@@ -584,7 +585,8 @@ section
 
 variables [semiring R] {a x y : R}
 
-@[simp] lemma cast_nat_mul_right (h : semiconj_by a x y) (n : ℕ) : semiconj_by a ((n : R) * x) (n * y) :=
+@[simp] lemma cast_nat_mul_right (h : semiconj_by a x y) (n : ℕ) :
+  semiconj_by a ((n : R) * x) (n * y) :=
 semiconj_by.mul_right (nat.commute_cast _ _) h
 
 @[simp] lemma cast_nat_mul_left (h : semiconj_by a x y) (n : ℕ) : semiconj_by ((n : R) * a) x y :=

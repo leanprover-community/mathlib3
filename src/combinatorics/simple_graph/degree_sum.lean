@@ -177,7 +177,7 @@ G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 end degree_sum
 
 /-- The handshaking lemma.  See also `simple_graph.sum_degrees_eq_twice_card_edges`. -/
-theorem even_card_odd_degree_vertices [fintype V] :
+theorem even_card_odd_degree_vertices [fintype V] [decidable_rel G.adj] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
 begin
   classical,
@@ -197,7 +197,7 @@ begin
     trivial }
 end
 
-lemma odd_card_odd_degree_vertices_ne [fintype V] [decidable_eq V]
+lemma odd_card_odd_degree_vertices_ne [fintype V] [decidable_eq V] [decidable_rel G.adj]
   (v : V) (h : odd (G.degree v)) :
   odd (univ.filter (λ w, w ≠ v ∧ odd (G.degree w))).card :=
 begin
@@ -220,7 +220,7 @@ begin
   { simpa only [true_and, mem_filter, mem_univ] },
 end
 
-lemma exists_ne_odd_degree_of_exists_odd_degree [fintype V]
+lemma exists_ne_odd_degree_of_exists_odd_degree [fintype V] [decidable_rel G.adj]
   (v : V) (h : odd (G.degree v)) :
   ∃ (w : V), w ≠ v ∧ odd (G.degree w) :=
 begin

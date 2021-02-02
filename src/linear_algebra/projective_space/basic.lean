@@ -1,12 +1,25 @@
+/-
+Copyright (c) 2021 Adam Topaz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Colter MacDonald, Adam Topaz
+-/
 import tactic
 import group_theory.group_action.basic
 import algebra.invertible
 import linear_algebra
 
+/-!
+# Projective spaces
+
+TODO : Add docs
+
+-/
+
 variables (K : Type*) [field K]
 variables (V : Type*) [add_comm_group V] [vector_space K V]
 variables {W : Type*} [add_comm_group W] [vector_space K W]
 
+/-- The nonzero elements of a vector space. -/
 def nonzero := {v : V // v ≠ 0}
 
 variables {K V}
@@ -15,18 +28,15 @@ namespace nonzero
 
 instance : has_coe (nonzero V) V := ⟨λ v, v.1⟩
 
+noncomputable instance [nontrivial V] : inhabited (nonzero V) := inhabited.mk $
+⟨classical.some $ exists_ne 0, classical.some_spec $ exists_ne 0⟩
+
 lemma coe_nonzero (v : nonzero V) : (v : V) ≠ 0 := v.2
 
+/-- Map a nonzero vector with respect to an injective map. -/
 def map {f : V →ₗ[K] W} (inj : function.injective f) : nonzero V → nonzero W := λ v,
 { val := f v,
-  property := begin
-    rw ← linear_map.ker_eq_bot at inj,
-    intro c,
-    apply coe_nonzero v,
-    have : ↑v ∈ f.ker := c,
-    rw inj at this,
-    simpa,
-  end }
+  property := by { rw ← f.map_zero, exact λ c, coe_nonzero v (inj c) } }
 
 @[simp] lemma coe_map {f : V →ₗ[K] W} {inj : function.injective f} {v : nonzero V} :
   (nonzero.map inj v : W) = f v := rfl
@@ -36,38 +46,19 @@ by {cases v, cases w, simp}
 
 @[simps]
 instance : has_scalar (units K) (nonzero V) :=
-{ smul := λ u v, ⟨(u : K) • v,
-  begin
-    intro c,
-    apply_fun (λ t, (u⁻¹ : K) • t) at c,
-    apply v.2,
-    simpa using c,
-  end⟩ }
+{ smul := λ u v, ⟨(u : K) • v, λ c, coe_nonzero v $ by simpa using c⟩ }
 
 instance : mul_action (units K) (nonzero V) :=
 { one_smul := λ x, by tidy,
-  mul_smul :=
-  begin
-    intros x y v,
-    ext,
-    simp [mul_smul],
-  end }
+  mul_smul := λ x y v, nonzero.ext $ by simp [mul_smul] }
 
 lemma is_unit_of_smul_eq {v : V} {w : nonzero V} {a : K} : a • v = w → is_unit a :=
-begin
-  unfold is_unit,
-  simp,
-  intros he ha,
-  cases w with w hw,
-  rw ha at he,
-  repeat {simp at he},
-  replace he := eq.symm he,
-  exact hw he,
-end
+λ h, is_unit_iff_ne_zero.mpr $ λ c, coe_nonzero w $ by simp [← h, c]
 
 end nonzero
 
 variables (K V)
+/-- The Projectivization of `V` as a `K` vector space. -/
 def proj_space := quotient (mul_action.orbit_rel (units K) (nonzero V))
 variables {K V}
 
@@ -75,7 +66,10 @@ namespace proj_space
 
 local attribute [instance] mul_action.orbit_rel
 
+/-- Given a nonzero vector, construct an element in the projectivization of `V`. -/
 def mk : nonzero V → proj_space K V := quotient.mk
+
+noncomputable instance [nontrivial V] : inhabited (proj_space K V) := ⟨mk $ default _⟩
 
 lemma mk_eq_mk {v w : nonzero V} : (mk v : proj_space K V) = mk w ↔
   ∃ (u : units K), u • w = v :=
@@ -98,15 +92,9 @@ begin
     simp [← hu, is_unit.unit_spec] }
 end
 
+/-- Map an element in the projecivization of a vector space with respect to an injective linear map. -/
 def map {f : V →ₗ[K] W} (inj : function.injective f) : proj_space K V → proj_space K W :=
-quotient.lift (λ v, quotient.mk $ nonzero.map inj v)
-begin
-  rintros v w ⟨a,rfl⟩,
-  dsimp,
-  apply quotient.sound,
-  refine ⟨a,_⟩,
-  ext,
-  simp,
-end
+quotient.lift (λ v, quotient.mk $ nonzero.map inj v) $
+by {rintros v w ⟨a,rfl⟩, refine quotient.sound ⟨a,nonzero.ext $ by simp⟩}
 
 end proj_space

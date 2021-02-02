@@ -966,14 +966,14 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 begin
   refine le_antisymm _ _,
   { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_left 𝕜 𝕜' v) (1:𝕜') }
+  { simpa [normed_algebra.norm_one 𝕜 𝕜'] using le_op_norm (lmul_left 𝕜 𝕜' v) (1:𝕜') }
 end
 
 @[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 𝕜' v∥ = ∥v∥ :=
 begin
   refine le_antisymm _ _,
   { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_right 𝕜 𝕜' v) (1:𝕜') }
+  { simpa [normed_algebra.norm_one 𝕜 𝕜'] using le_op_norm (lmul_right 𝕜 𝕜' v) (1:𝕜') }
 end
 
 lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') :

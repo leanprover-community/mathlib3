@@ -618,22 +618,21 @@ begin
     tauto },
 end
 
-lemma coe_ideal_mul_one_div [hR : is_dedekind_domain R] -- (hNF : ¬ is_field R)
-  (I : ideal R) (hne : I ≠ ⊥) :
+lemma coe_ideal_mul_one_div [hR : is_dedekind_domain R] (I : ideal R) (hne : I ≠ ⊥) :
   ↑I * ((1 : fractional_ideal f) / ↑I) = (1 : fractional_ideal f) :=
 begin
   by_cases hNF : is_field R,
-  { rw [← not_iff_comm.mp not_is_field_iff_exists_ideal_bot_lt_and_lt_top, not_exists] at hNF,
+  { rw [← not_iff_comm.mp not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+    not_exists] at hNF,
     specialize hNF I,
     rw [not_and_distrib, or_eq_of_eq_false_left, lt_top_iff_ne_top, ne.def, not_not,
        ← ideal.one_eq_top] at hNF,
     rw hNF,
     show (1 * (1 / 1) : fractional_ideal f) = 1,
-    rw one_mul,
-    rw ring.fractional_ideal.div_one,
-    rw bot_lt_iff_ne_bot,
-    simp [hne],
-    tauto, },
+    rw [one_mul, ring.fractional_ideal.div_one],
+    simp only [bot_lt_iff_ne_bot, hne, not_true, ne.def, not_false_iff],
+    apply is_integral_domain.to_nontrivial,
+    apply integral_domain.to_is_integral_domain, },
    { let h_RalgK := ring_hom.to_algebra f.to_map,
     by_cases hntop : I = ⊤,
     { rw [hntop, ← ideal.one_eq_top],
@@ -746,8 +745,8 @@ begin
     exact ⟨fractional_ideal.span_singleton (f.to_map a) * (1 / J), h₂⟩ },
   { rw mul_comm at h₁,
     rw [← mul_assoc, h₁],
-    exact coe_ideal_mul_one_div _ hNF _
-      ((coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mp hne_J) }
+    exact coe_ideal_mul_one_div _ _
+      ((coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors R))).mp hne_J) },
 end
 
 lemma fractional_ideal.is_unit {hR : is_dedekind_domain R}

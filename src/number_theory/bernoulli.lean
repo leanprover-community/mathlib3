@@ -105,10 +105,10 @@ lemma bernoulli_spec' (n : ℕ) :
   ∑ k in finset.nat.antidiagonal n,
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 1 :=
 begin
-  rw finset.nat.sum_antidiagonal_eq_sum_range_succ_mk, simp,
-  conv_lhs {apply_congr, skip, rw [nat.add_sub_cancel' _, cast_sub], skip,
-  apply_congr finset.mem_range_succ_iff.1 H, apply_congr finset.mem_range_succ_iff.1 H,},
-  rw bernoulli_spec,
+  refine ((nat.sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli_spec n),
+  refine sum_congr rfl (λ x hx, _),
+  rw mem_range_succ_iff at hx,
+  simp [nat.add_sub_cancel' hx, cast_sub hx],
 end
 
 /-!

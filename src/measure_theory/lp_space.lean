@@ -83,7 +83,7 @@ begin
     exact ennreal.rpow_le_rpow (ennreal.coe_le_coe.2 hx) (by simp) }
 end
 
-/-- The property that `f:α→E` is ae_measurable and `(∫ ∥f a∥^p ∂μ)^(1/p)` is finite if `p < ∞`, and
+/-- The property that `f:α→E` is ae_measurable and `(∫ ∥f a∥^p ∂μ)^(1/p)` is finite if `p < ∞`, or
 `ess_sup f < ∞` if `p = ∞`. -/
 def mem_ℒp (f : α → E) (p : ennreal) (μ : measure α) : Prop :=
 ae_measurable f μ ∧ snorm f p μ < ⊤

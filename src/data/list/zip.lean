@@ -274,7 +274,7 @@ begin
 end
 
 @[simp] lemma sum_zip_with_distrib_left (f : α → β → ℕ) (n : ℕ) (l : list α) (l' : list β) :
-  (zip_with (λ x y, n * f x y) l l').sum = n * (l.zip_with f l').sum :=
+  (l.zip_with (λ x y, n * f x y) l').sum = n * (l.zip_with f l').sum :=
 begin
   induction l with hd tl hl generalizing f n l',
   { simp },

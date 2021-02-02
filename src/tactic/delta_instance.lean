@@ -38,6 +38,7 @@ good name. -/
 meta def delta_instance_name : pexpr → string
 | (expr.app f _) := delta_instance_name f
 | (expr.pi _ _ _ body) := delta_instance_name body
+| (expr.lam _ _ _ body) := delta_instance_name body
 | (expr.const nm _) := nm.last
 | _ := "inst"
 

@@ -764,7 +764,7 @@ instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] F') :=
 /-- When `f` is a continuous linear map taking values in `S`, then `λb, f b • x` is a
 continuous linear map. -/
 def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : F') : E →L[𝕜] F' :=
-{ cont := by continuity!, .. f.to_linear_map.smul_algebra_right x }
+{ cont := by continuity!, .. f.to_linear_map.smul_right x }
 
 @[simp] theorem smul_algebra_right_apply (f : E →L[𝕜] 𝕜') (x : F') (c : E) :
   smul_algebra_right f x c = f c • x := rfl

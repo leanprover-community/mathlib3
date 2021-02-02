@@ -179,7 +179,7 @@ def ring_quot_to_ideal_quotient (r : B → B → Prop) :
   ring_quot r →+* (ideal.of_rel r).quotient :=
 lift
   ⟨ideal.quotient.mk (ideal.of_rel r),
-   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, rfl⟩))⟩
+   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩))⟩
 
 @[simp] lemma ring_quot_to_ideal_quotient_apply (r : B → B → Prop) (x : B) :
   ring_quot_to_ideal_quotient r (mk_ring_hom r x) = ideal.quotient.mk _ x := rfl
@@ -189,10 +189,11 @@ def ideal_quotient_to_ring_quot (r : B → B → Prop) :
   (ideal.of_rel r).quotient →+* ring_quot r :=
 ideal.quotient.lift (ideal.of_rel r) (mk_ring_hom r)
 begin
-  intros x h,
-  apply submodule.span_induction h,
-  { rintros - ⟨a,b,h,rfl⟩,
-    rw [ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
+  refine λ x h, submodule.span_induction h _ _ _ _,
+  { rintro y ⟨a, b, h, su⟩,
+    symmetry' at su,
+    rw ←sub_eq_iff_eq_add at su,
+    rw [ ← su, ring_hom.map_sub, mk_ring_hom_rel h, sub_self], },
   { simp, },
   { intros a b ha hb, simp [ha, hb], },
   { intros a x hx, simp [hx], },

@@ -199,7 +199,7 @@ begin
   field_simp [hj, hnz],
   rw [mul_comm _ (bernoulli i), mul_assoc], norm_cast,
   rw [mul_comm (j + 1) _, mul_div_assoc, ← mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,
-  add_choose, cast_dvd_char_zero],
+    add_choose, cast_dvd_char_zero],
   { apply factorial_mul_factorial_dvd_factorial_add, },
   { exact cast_ne_zero.mpr hj', },
 end

@@ -125,18 +125,15 @@ end
 
 /-- A compact element has the property that any directed set lying strictly below k has
 its Sup strictly below k -/
-lemma Sup_lt_of_directed_set_lt_compact (k : α) (hk : is_compact_element k) (hbot : k ≠ ⊥) :
-  ∀ s : set α, directed_on (≤) s → (∀ x ∈ s, x < k) → Sup s < k :=
+lemma is_compact_element.directed_Sup_lt_of_lt {α : Type*} [complete_lattice α] {k : α}
+  (hk : is_compact_element k) :
+  ∀ s : set α, s.nonempty → directed_on (≤) s → (∀ x ∈ s, x < k) → Sup s < k :=
 begin
-  intros s hdir hbelow,
+  intros s hemp hdir hbelow,
   rw is_compact_element_iff_le_of_directed_Sup_le at hk,
   by_contradiction,
   have sSup : Sup s ≤ k, from Sup_le _ _ (λ s hs, le_of_lt $ hbelow s hs),
   replace sSup : Sup s = k := eq_iff_le_not_lt.mpr ⟨sSup, h⟩,
-  have hemp : s.nonempty,
-  { by_contradiction n, rw [set.not_nonempty_iff_eq_empty] at n,
-    change has_Sup.Sup s = k at sSup, rw [n, Sup_empty] at sSup,
-    exact absurd (eq.symm sSup) hbot, },
   obtain ⟨x, ⟨hxs, hkx⟩⟩ := hk s hemp hdir (le_of_eq $ eq.symm sSup),
   obtain hxk := hbelow x hxs,
   exact absurd (_root_.le_antisymm (le_of_lt hxk) hkx) (ne_of_lt hxk),

@@ -200,6 +200,17 @@ lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] 
   (h : ¬finite_dimensional K V) : findim K V = 0 :=
 dif_neg $ mt finite_dimensional_iff_dim_lt_omega.2 h
 
+lemma finite_dimensional_of_findim {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+  (h : 0 < findim K V) : finite_dimensional K V :=
+by { contrapose h, simp [findim_of_infinite_dimensional h] }
+
+/-- We can infer `finite_dimensional K V` in the presence of `[fact (findim K V = n + 1)]`. Declare
+this as a local instance where needed. -/
+lemma finite_dimensional_of_findim_eq_succ {K V : Type*} [field K] [add_comm_group V]
+  [vector_space K V] (n : ℕ) [fact (findim K V = n + 1)] :
+  finite_dimensional K V :=
+finite_dimensional_of_findim $ by convert nat.succ_pos n
+
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :

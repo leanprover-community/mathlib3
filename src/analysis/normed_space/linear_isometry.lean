@@ -130,6 +130,26 @@ instance : monoid (E →ₗᵢ[R] E) :=
 
 end linear_isometry
 
+namespace submodule
+
+variables {R' : Type*} [ring R'] [module R' E] (p : submodule R' E)
+
+/-- `submodule.subtype` as a `linear_isometry`. -/
+def subtype_isometry : p →ₗᵢ[R'] E := ⟨p.subtype, λ x, rfl⟩
+
+@[simp] lemma coe_subtype_isometry : ⇑p.subtype_isometry = p.subtype := rfl
+
+@[simp] lemma subtype_isometry_to_linear_map : p.subtype_isometry.to_linear_map = p.subtype := rfl
+
+/-- `submodule.subtype` as a `continuous_linear_map`. -/
+def subtype_continuous : p →L[R'] E := p.subtype_isometry.to_continuous_linear_map
+
+@[simp] lemma coe_subtype_continuous : (p.subtype_continuous : p →ₗ[R'] E) = p.subtype := rfl
+
+@[simp] lemma coe_subtype_continuous' : ⇑p.subtype_continuous = p.subtype := rfl
+
+end submodule
+
 /-- A linear isometric equivalence between two normed vector spaces. -/
 structure linear_isometry_equiv (R E F : Type*) [semiring R] [normed_group E] [normed_group F]
   [semimodule R E] [semimodule R F] extends E ≃ₗ[R] F :=

@@ -570,7 +570,7 @@ begin
         exact multiset.prod_zero },
       rw [this, top_le_iff] at hZ_M,
       exact absurd hZ_M hM.1.1 },
-  obtain ⟨P, h_PZ, h_PM⟩ := is_prime.multiset.prod_le (ideal.is_maximal.is_prime hM.1) hZ_nz hZ_M,
+  obtain ⟨P, h_PZ, h_PM⟩ := is_prime.multiset.prod_le (ideal.is_maximal.is_prime hM.1) hZ_M,
   have hZP_nz : P.1 ≠ ⊥ ∧ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≠ ⊥,
     { suffices this : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥,
       rw [← (multiset.cons_erase h_PZ), multiset.map_cons, multiset.prod_cons, ne.def,

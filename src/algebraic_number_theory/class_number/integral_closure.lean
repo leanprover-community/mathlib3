@@ -192,8 +192,9 @@ lemma abs_norm_algebra_map (x : R) :
   abs_norm f abs (algebra_map R (integral_closure R L) x) = (abs x) ^ (integral_closure.dim L f) :=
 begin
   rw [← abs.map_pow, abs_norm, algebra.norm, monoid_hom.coe_mk, ← mul_one (algebra_map _ _ x),
-     ← algebra.smul_def, alg_hom.map_smul, linear_equiv.map_smul, matrix.det_smul,
-     lmul_one, linear_map.to_matrix_id, matrix.det_one, mul_one, fintype.card_fin]
+      ← algebra.smul_def, alg_hom.map_smul, linear_equiv.map_smul, matrix.det_smul,
+      lmul_one, linear_map.to_matrix_id, is_basis.to_matrix_self, matrix.det_one,
+      mul_one, fintype.card_fin]
 end
 
 end is_principal_ideal_ring

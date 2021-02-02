@@ -27,7 +27,7 @@ variables {ι : Type*} [fintype ι] [decidable_eq ι] {b : ι → A} (hb : is_ba
 noncomputable def algebra.norm : A →* R :=
 { to_fun := λ x, matrix.det (linear_map.to_matrix hb hb (algebra.lmul R A x)),
   map_one' := by rw [alg_hom.map_one, show (1 : A →ₗ[R] A) = linear_map.id, from rfl,
-                     linear_map.to_matrix_id, matrix.det_one],
+                     linear_map.to_matrix_id, is_basis.to_matrix_self, matrix.det_one],
   map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.det_mul]}
 
 end comm_ring

@@ -243,7 +243,7 @@ variables (f : M →ₗ[R] M')
 lemma to_matrix_basis_change
   {b : ι → M} (hb : is_basis R b) :
   to_matrix hb hc f = hc.to_matrix c' ⬝ to_matrix hb' hc' f ⬝ hb'.to_matrix b :=
-by rw [is_basis_to_matrix_mul_linear_map_to_matrix', linear_map_to_matrix_mul_is_basis_to_matrix']
+by rw [is_basis_to_matrix_mul_linear_map_to_matrix, linear_map_to_matrix_mul_is_basis_to_matrix]
 
 end
 
@@ -583,7 +583,7 @@ lemma sum_conjugates (f : F → R) :
 begin
   refine trans (list.sum_nth_le _ _ _) _,
   { rw [pb.dim_eq_card_roots hF, multiset.length_to_list] },
-  rw [← multiset.sum_coe, ← multiset.coe_map, multiset.coe_to_list]
+  rw [← multiset.coe_sum, ← multiset.coe_map, multiset.coe_to_list]
 end
 
 omit hF

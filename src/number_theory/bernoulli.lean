@@ -5,8 +5,6 @@ Authors: Johan Commelin, Kevin Buzzard
 -/
 import data.rat
 import data.fintype.card
-import data.nat.factorial
-import data.nat.choose.basic
 import algebra.big_operators.nat_antidiagonal
 import ring_theory.power_series.well_known
 

@@ -1,5 +1,8 @@
 import algebra.big_operators.finsupp
 import algebra.floor
+import algebraic_number_theory.class_number.admissible_absolute_value
+import algebraic_number_theory.function_field
+import algebraic_number_theory.number_field
 import data.polynomial.field_division
 import group_theory.quotient_group
 import linear_algebra.determinant
@@ -8,11 +11,9 @@ import linear_algebra.matrix
 import ring_theory.class_group
 import ring_theory.dedekind_domain
 import ring_theory.fractional_ideal
-import algebraic_number_theory.number_field
 
 -- These results are in separate files for faster re-compiling.
 -- They should be merged with the appropriate lower-level file when development is finished.
-import algebraic_number_theory.class_number.admissible_absolute_value
 import algebraic_number_theory.class_number.det
 import algebraic_number_theory.class_number.integral_closure
 
@@ -452,31 +453,41 @@ by { haveI := classical.dec_eq (class_group (integral_closure.fraction_map_of_fi
 
 end euclidean_domain
 
-namespace number_field.ring_of_integers
-open number_field
-open number_field.ring_of_integers
-open fraction_map
-local attribute [class] algebra.is_algebraic
+namespace number_field
 
 variables (K : Type*) [field K] [is_number_field K]
 
-instance is_sep : is_separable int.fraction_map.codomain K := is_separable_of_char_zero ℚ K
+namespace ring_of_integers
 
-lemma algebra_map_eq_coe : (algebra_map ℤ ℚ : ℤ → ℚ) = coe := rfl
+open fraction_map
+local attribute [class] algebra.is_algebraic
 
-/-- `ring_of_integers.fraction_map K` is the map `O_K → K`, as a `fraction_map`. -/
-def fraction_map : fraction_map (ring_of_integers K) K :=
-integral_closure.fraction_map_of_finite_extension K int.fraction_map
-
-instance : integral_domain (ring_of_integers K) :=
-(ring_of_integers K).integral_domain
-
-example (K : Type) [field K] (x : K) (h : x ≠ 0): x * (field.inv x) = 1 := field.mul_inv_cancel h
-
-noncomputable instance : fintype (class_group (fraction_map K)) :=
+noncomputable instance : fintype (class_group (ring_of_integers.fraction_map K)) :=
 class_group.finite_of_admissible K int.fraction_map int.admissible_abs
 
-/-- The class number of a number ring is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (fraction_map K))
+end ring_of_integers
 
-end number_field.ring_of_integers
+/-- The class number of a number field is the (finite) cardinality of the class group. -/
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map K))
+
+end number_field
+
+namespace function_field_over
+
+variables {K L : Type*} [field K] [fintype K] [field L] (f : fraction_map (polynomial K) L)
+variables (F : Type*) [field F] [algebra f.codomain F] [function_field_over f F]
+variables [decidable_eq K] [is_separable f.codomain F]
+
+namespace ring_of_integers
+
+open function_field_over
+
+noncomputable instance : fintype (class_group (ring_of_integers.fraction_map f F)) :=
+class_group.finite_of_admissible F f polynomial.admissible_char_pow_degree
+
+end ring_of_integers
+
+/-- The class number in a function field is the (finite) cardinality of the class group. -/
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map f F))
+
+end function_field_over

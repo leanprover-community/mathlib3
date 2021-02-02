@@ -1,5 +1,4 @@
 import algebra.field
-import algebraic_number_theory.class_number
 import data.rat.basic
 import ring_theory.algebraic
 import ring_theory.dedekind_domain
@@ -83,7 +82,7 @@ namespace ring_of_integers
 open fraction_map
 
 /-- `ring_of_integers.fraction_map K` is the map `O_F → F`, as a `fraction_map`. -/
-def fraction_map : fraction_map (ring_of_integers f F) F :=
+protected def fraction_map : fraction_map (ring_of_integers f F) F :=
 integral_closure.fraction_map_of_finite_extension _ f
 
 instance : integral_domain (ring_of_integers f F) :=
@@ -97,14 +96,6 @@ is_dedekind_domain.integral_closure f (principal_ideal_ring.is_dedekind_domain _
 
 instance : is_dedekind_domain (ring_of_integers f F) :=
 ring_of_integers.is_dedekind_domain_integral_closure f F
-
-variables [decidable_eq K]
-
-noncomputable instance : fintype (class_group (ring_of_integers.fraction_map f F)) :=
-class_group.finite_of_admissible _ _ polynomial.admissible_char_pow_degree
-
-/-- The class number in a function field is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map f F))
 
 end ring_of_integers
 

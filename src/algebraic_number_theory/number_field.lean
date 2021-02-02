@@ -107,6 +107,10 @@ is_dedekind_domain.integral_closure int.fraction_map (principal_ideal_ring.is_de
 instance is_dedekind_domain_of_ring_of_integers : is_dedekind_domain (ring_of_integers K) :=
 integral_closure_int.is_dedekind_domain K
 
+/-- `ring_of_integers.fraction_map K` is the map `O_K → K`, as a `fraction_map`. -/
+protected def fraction_map : fraction_map (ring_of_integers K) K :=
+integral_closure.fraction_map_of_finite_extension K int.fraction_map
+
 end ring_of_integers
 
 end number_field

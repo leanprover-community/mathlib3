@@ -90,14 +90,14 @@ for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
 def Indep {α ι} (m : ι → measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-Indep_sets (λ x, (m x).is_measurable') μ
+Indep_sets (λ x, (m x).measurable_set') μ
 
 /-- Two measurable space structures (or σ-algebras) `m₁, m₂` are independent with respect to a
 measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-indep_sets (m₁.is_measurable') (m₂.is_measurable') μ
+indep_sets (m₁.measurable_set') (m₂.measurable_set') μ
 
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
@@ -229,7 +229,7 @@ lemma Indep.indep {α ι} {m : ι → measurable_space α} [measurable_space α]
   (h_indep : Indep m μ) {i j : ι} (hij : i ≠ j) :
   indep (m i) (m j) μ :=
 begin
-  change indep_sets ((λ x, (m x).is_measurable') i) ((λ x, (m x).is_measurable') j) μ,
+  change indep_sets ((λ x, (m x).measurable_set') i) ((λ x, (m x).measurable_set') j) μ,
   exact Indep_sets.indep_sets h_indep hij,
 end
 
@@ -251,13 +251,13 @@ lemma Indep.Indep_sets {α ι} [measurable_space α] {μ : measure α} {m : ι �
 begin
   refine (λ S f hfs, h_indep S (λ x hxS, _)),
   simp_rw hms x,
-  exact is_measurable_generate_from (hfs x hxS),
+  exact measurable_set_generate_from (hfs x hxS),
 end
 
 lemma indep.indep_sets {α} [measurable_space α] {μ : measure α} {s1 s2 : set (set α)}
   (h_indep : indep (generate_from s1) (generate_from s2) μ) :
   indep_sets s1 s2 μ :=
-λ t1 t2 ht1 ht2, h_indep t1 t2 (is_measurable_generate_from ht1) (is_measurable_generate_from ht2)
+λ t1 t2 ht1 ht2, h_indep t1 t2 (measurable_set_generate_from ht1) (measurable_set_generate_from ht2)
 
 end from_measurable_spaces_to_sets_of_sets
 
@@ -267,7 +267,7 @@ section from_pi_systems_to_measurable_spaces
 private lemma indep_sets.indep_aux {α} {m2 : measurable_space α}
   {m : measurable_space α} {μ : measure α} [probability_measure μ] {p1 p2 : set (set α)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
-  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.is_measurable' t2) :
+  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.measurable_set' t2) :
   μ (t1 ∩ t2) = μ t1 * μ t2 :=
 begin
   let μ_inter := μ.restrict t1,
@@ -277,10 +277,10 @@ begin
   haveI : finite_measure μ_inter := @restrict.finite_measure α _ t1 μ (measure_lt_top μ t1),
   rw [set.inter_comm, ←@measure.restrict_apply α _ μ t1 t2 (h2 t2 ht2m)],
   refine ext_on_measurable_space_of_generate_finite m p2 (λ t ht, _) h2 hpm2 hp2 h_univ ht2m,
-  have ht2 : m.is_measurable' t,
+  have ht2 : m.measurable_set' t,
   { refine h2 _ _,
     rw hpm2,
-    exact is_measurable_generate_from ht, },
+    exact measurable_set_generate_from ht, },
   rw [measure.restrict_apply ht2, measure.smul_apply, set.inter_comm],
   exact hyp t1 t ht1 ht,
 end
@@ -299,10 +299,10 @@ begin
   haveI : finite_measure μ_inter := @restrict.finite_measure α _ t2 μ (measure_lt_top μ t2),
   rw [mul_comm, ←@measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
-  have ht1 : m.is_measurable' t,
+  have ht1 : m.measurable_set' t,
   { refine h1 _ _,
     rw hpm1,
-    exact is_measurable_generate_from ht, },
+    exact measurable_set_generate_from ht, },
   rw [measure.restrict_apply ht1, measure.smul_apply, mul_comm],
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end

@@ -92,7 +92,9 @@ begin
     simp [← hu, is_unit.unit_spec] }
 end
 
-/-- Map an element in the projecivization of a vector space with respect to an injective linear map. -/
+/--
+Map an element in the projecivization of a vector space with respect to an injective linear map.
+-/
 def map {f : V →ₗ[K] W} (inj : function.injective f) : proj_space K V → proj_space K W :=
 quotient.lift (λ v, quotient.mk $ nonzero.map inj v) $
 by {rintros v w ⟨a,rfl⟩, refine quotient.sound ⟨a,nonzero.ext $ by simp⟩}

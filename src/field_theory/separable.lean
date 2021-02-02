@@ -579,7 +579,10 @@ let ⟨_, s⟩ := (h x) in s
 
 end
 
+attribute [class] algebra.is_algebraic
+
 /-- An algebraic field extension of characteristic zero is separable. -/
+@[priority 100] -- See note [lower instance priority]
 instance is_separable_of_char_zero [char_zero F] [alg : algebra.is_algebraic F K] :
   is_separable F K :=
 λ x, have int : is_integral F x := (is_algebraic_iff_is_integral _).mp (alg x),

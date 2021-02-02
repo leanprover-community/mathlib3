@@ -1,8 +1,23 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import algebra.big_operators.finsupp
 import linear_algebra.free_module
 import ring_theory.dedekind_domain
 import algebraic_number_theory.class_number.euclidean_absolute_value
 import algebraic_number_theory.class_number.norm
+
+/-!
+# Integral bases for the integral closure
+
+In this file, we define `integral_closure.basis`, a finite-dimensional
+basis for an integral closure of a principal ideal domain.
+
+TODO: the results in this file should be merged in appropriate files in the
+`ring_theory` folder.
+-/
 
 open_locale big_operators
 
@@ -85,11 +100,17 @@ begin
   exact (is_basis_dual_basis hb).1
 end
 
+/-- `integral_closure.dim` is the (finite) dimension of `integral_closure R L` over `R`,
+where `R` is a principal ideal domain and `L` is a finite separable extension of
+the fraction field of `R`. -/
 noncomputable def integral_closure.dim
-  [is_separable (localization_map.codomain f) L] [is_principal_ideal_ring R] :
+  [is_separable f.codomain L] [is_principal_ideal_ring R] :
   ℕ :=
 classical.some (integral_closure.exists_is_basis L f)
 
+/-- `integral_closure.dim` is an `R`-basis `integral_closure R L`,
+where `R` is a principal ideal domain and `L` is a finite separable extension of
+the fraction field of `R`. -/
 noncomputable def integral_closure.basis
   [is_separable (localization_map.codomain f) L] [is_principal_ideal_ring R] :
   fin (integral_closure.dim L f) → integral_closure R L :=
@@ -139,9 +160,13 @@ section is_principal_ideal_ring
 
 variables [is_principal_ideal_ring R] [is_separable f.codomain L] (abs : absolute_value R ℤ)
 
+/-- An absolute value `abs` on `R` induces a norm `abs_norm f abs`
+on the integral closure in `L`, a finite separable extension of `f.codomain`. -/
 noncomputable def abs_norm (x : integral_closure R L) : ℤ :=
 abs (@algebra.norm R (integral_closure R L) _ _ _ _ _ _ _ (integral_closure.is_basis L f) x)
 
+/-- An absolute value `abs` on `R` induces a norm `abs_norm f abs`
+on `L`, a finite separable extension of `f.codomain`. -/
 noncomputable def abs_frac_norm (x : L) : ℚ :=
 abs.to_frac f (algebra.norm (is_basis_coe f (integral_closure.is_basis L f)) x)
 

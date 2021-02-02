@@ -297,7 +297,8 @@ end
 variables {M₂' : Type*} [add_comm_monoid M₂'] [semimodule R₂ M₂']
 
 /-- Composition with linear maps is linear in all arguments. -/
-def comp_lin : (M₂ →ₗ[R₂] M₂') →ₗ[R₂] (M₂ →ₗ[R₂] M₂') →ₗ[R₂] bilin_form R₂ M₂' →ₗ[R₂] bilin_form R₂ M₂ :=
+def comp_lin : (M₂ →ₗ[R₂] M₂') →ₗ[R₂] (M₂ →ₗ[R₂] M₂') →ₗ[R₂]
+  bilin_form R₂ M₂' →ₗ[R₂] bilin_form R₂ M₂ :=
 { to_fun := λ l,
   { to_fun := λ r,
     { to_fun := λ B, B.comp l r,
@@ -715,11 +716,11 @@ end
 
 lemma bilin_form.to_matrix_comp_left (B : bilin_form R₃ M₃) (f : M₃ →ₗ[R₃] M₃) :
   bilin_form.to_matrix hb (B.comp_left f) = (to_matrix hb hb f)ᵀ ⬝ bilin_form.to_matrix hb B :=
-by simp only [comp_left, bilin_form.to_matrix_comp hb hb, to_matrix_id, matrix.mul_one]
+by simp only [comp_left, bilin_form.to_matrix_comp hb hb, to_matrix_id_aux, matrix.mul_one]
 
 lemma bilin_form.to_matrix_comp_right (B : bilin_form R₃ M₃) (f : M₃ →ₗ[R₃] M₃) :
   bilin_form.to_matrix hb (B.comp_right f) = bilin_form.to_matrix hb B ⬝ (to_matrix hb hb f) :=
-by simp only [bilin_form.comp_right, bilin_form.to_matrix_comp hb hb, to_matrix_id,
+by simp only [bilin_form.comp_right, bilin_form.to_matrix_comp hb hb, to_matrix_id_aux,
               transpose_one, matrix.one_mul]
 
 lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₃ M₃)

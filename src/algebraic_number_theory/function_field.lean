@@ -1,9 +1,49 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anne Baanen, Ashvni Narayanan
+-/
 import algebra.field
-import algebraic_number_theory.class_number
 import data.rat.basic
 import ring_theory.algebraic
 import ring_theory.dedekind_domain
 import ring_theory.integral_closure
+
+/-!
+# Function fields
+
+This file defines a function field and the ring of integers corresponding to it.
+
+## Main definitions
+
+ - `function_field_over` defines a function field over `Fq(t)`,
+    a finite dimensional extension of a fraction field of the polynomials over a finite field.
+ - `function_field` bundles the finite field and its fraction field into the
+   structure of `function_field_over`.
+ - `ring_of_integers` defines the ring of integers corresponding to a function field
+    as the integral closure of `polynomial K` in the function field.
+
+## Main results
+
+ - `ring_of_integers.is_dedekind_domain`: Shows that the ring of integers of a function field is a
+    Dedekind domain.
+
+## Implementation notes
+
+The definitions that involve a field of fractions choose a canonical field of fractions,
+but are independent of that choice.
+
+## References
+
+* [D. Marcus, *Number Fields*][marcus1977number]
+* [J.W.S. Cassels, A. Frölich, *Algebraic Number Theory*][cassels1967algebraic]
+* [P. Samuel, *Algebraic Theory of Numbers*][samuel1970algebraic]
+
+## Tags
+
+number field, ring of integers
+-/
+
 
 noncomputable theory
 
@@ -39,7 +79,7 @@ include f
 
 attribute [instance] function_field_over.fd
 
-@[nolint dangerous_instance] -- Since `f` is an out_param
+@[nolint dangerous_instance unused_arguments] -- Ensures this works, since `f` is an out_param
 instance : algebra (polynomial K) F :=
 ring_hom.to_algebra ((algebra_map f.codomain F).comp (algebra_map (polynomial K) f.codomain))
 
@@ -83,7 +123,7 @@ namespace ring_of_integers
 open fraction_map
 
 /-- `ring_of_integers.fraction_map K` is the map `O_F → F`, as a `fraction_map`. -/
-def fraction_map : fraction_map (ring_of_integers f F) F :=
+protected def fraction_map : fraction_map (ring_of_integers f F) F :=
 integral_closure.fraction_map_of_finite_extension _ f
 
 instance : integral_domain (ring_of_integers f F) :=
@@ -97,14 +137,6 @@ is_dedekind_domain.integral_closure f (principal_ideal_ring.is_dedekind_domain _
 
 instance : is_dedekind_domain (ring_of_integers f F) :=
 ring_of_integers.is_dedekind_domain_integral_closure f F
-
-variables [decidable_eq K]
-
-noncomputable instance : fintype (class_group (ring_of_integers.fraction_map f F)) :=
-class_group.finite_of_admissible _ _ polynomial.admissible_char_pow_degree
-
-/-- The class number in a function field is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map f F))
 
 end ring_of_integers
 

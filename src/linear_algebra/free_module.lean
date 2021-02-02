@@ -11,6 +11,9 @@ import ring_theory.principal_ideal_domain
 
 A free `R`-module `M` is a module with a basis over `R`,
 equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `ι`.
+
+This file proves a submodule of a free `R`-module of finite rank is also
+a free `R`-module of finite rank, if `R` is a principal ideal domain.
 -/
 
 open_locale big_operators
@@ -32,8 +35,6 @@ lemma not_nonempty_fin_zero : ¬ (nonempty (fin 0)) :=
 λ ⟨i⟩, fin_zero_elim i
 
 open submodule.is_principal
-
--- `n` is the rank of `M` and `m` is the rank of `N`; I copied this unfortunate notation from Dummit and Foote.
 
 section
 
@@ -67,7 +68,8 @@ section
 
 open_locale classical
 
-/-- `s.preimage' f` contains for each `y ∈ s ∩ set.range f` exactly one `x : α` such that `f x = y`. -/
+/-- `s.preimage' f` contains for each `y ∈ s ∩ set.range f`
+exactly one `x : α` such that `f x = y`. -/
 noncomputable def finset.preimage' {α β : Type*} (f : α → β) (s : finset β) : finset α :=
 (s.image (function.partial_inv f)).preimage option.some
   (set.inj_on_of_injective (option.some_injective _) _)
@@ -184,7 +186,8 @@ begin
     apply trans (@finset.sum_attach _ _ _ _ (λ i, if i ∈ t then g i • i else 0)) _,
     rw sum_ite_mem_of_ge ht },
   { rintros hs g hg ⟨x, hx⟩,
-    refine trans (if_pos hx).symm (hs (λ x, if h : x ∈ s then g ⟨x, h⟩ else 0) _ (subset.refl _) _ x hx),
+    refine trans _ (hs (λ x, if h : x ∈ s then g ⟨x, h⟩ else 0) _ (subset.refl _) _ x hx),
+    { apply (dif_pos hx).symm },
     rw [← hg, finset.sum_coe],
     simp only [dite_smul, zero_smul],
     rw [sum_dite_mem_of_le (le_refl s), finset.sum_congr rfl],
@@ -249,7 +252,8 @@ begin
 end
 
 lemma eq_bot_of_rank_eq_zero [no_zero_divisors R] (hb : is_basis R b) (N : submodule R M)
-  (rank_le : ∀ (s : finset M) (hs : ∀ x ∈ s, x ∈ N), linear_independent R (coe : (↑s : set M) → M) → s.card ≤ 0) :
+  (rank_le : ∀ (s : finset M) (hs : ∀ x ∈ s, x ∈ N),
+    linear_independent R (coe : (↑s : set M) → M) → s.card ≤ 0) :
   N = ⊥ :=
 begin
   rw submodule.eq_bot_iff,
@@ -309,9 +313,11 @@ begin
       { refine trans _ total_eq,
         conv_rhs { rw ← finset.insert_erase hy },
         rw finset.sum_insert (finset.not_mem_erase _ _) } },
-    { apply hli g (t.erase x) (finset.subset_insert_iff.mp t_le) _ _ (finset.mem_erase.mpr ⟨hxy, hy⟩),
+    { apply hli g (t.erase x)
+        (finset.subset_insert_iff.mp t_le) _ _
+        (finset.mem_erase.mpr ⟨hxy, hy⟩),
       rw [finset.sum_erase, total_eq],
-      rw [this, zero_smul ]} },
+      rw [this, zero_smul] } },
   { refine hli g t _ total_eq _ hy,
     rwa [finset.subset_insert_iff, finset.erase_eq_of_not_mem hxt] at t_le }
 end
@@ -323,11 +329,10 @@ by rw [finset.coe_insert, submodule.mem_span_insert]
 
 end comm_ring
 
-section principal_ideal_domain
+section integral_domain
 
-open submodule.is_principal
-
-variables {ι : Type*} {R : Type*} {M : Type*} [integral_domain R] [is_principal_ideal_ring R] [add_comm_group M] [module R M] {b : ι → M}
+variables {ι : Type*} {R : Type*} [integral_domain R]
+variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 lemma not_mem_of_ortho {x : M} {N : submodule R M}
   (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
@@ -339,8 +344,9 @@ lemma ne_zero_of_ortho {x : M} {N : submodule R M}
   x ≠ 0 :=
 mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
 
-
-lemma induction_on_rank_aux (hb : is_basis R b) (P : submodule R M → Sort*)
+/-- If `N` is a submodule with finite rank, do induction on adjoining a linear independent
+element to a submodule. -/
+def induction_on_rank_aux (hb : is_basis R b) (P : submodule R M → Sort*)
   (ih : ∀ (N : submodule R M),
     (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
   (n : ℕ) (N : submodule R M)
@@ -378,8 +384,6 @@ begin
     exact λ x hx, hs x hx }
 end
 
-open_locale matrix
-
 lemma linear_independent.eq_zero_of_smul_eq_zero (hb : linear_independent R b) {c : R} {i}
   (h : c • b i = 0) : c = 0 :=
 have finsupp.single i c = 0 := linear_independent_iff.mp hb _ (by rw [finsupp.total_single, h]),
@@ -404,61 +408,6 @@ begin
     rw one_smul,
     exact submodule.subset_span ⟨i, mem_s, rfl⟩ }
 end
-
-def finset.insert.map {α β : Type*} [decidable_eq α] (x : α) (s : finset α)
-  (f : (↑s : set α) → β) (y : β) (x' : (↑(insert x s) : set α)) : β :=
-if hx : (x' : α) ∈ s then f ⟨x', hx⟩ else y
-
-lemma finset.insert.map_self {α β : Type*} [decidable_eq α] {x : α} {s : finset α} (hxs : x ∉ s)
-  (f : (↑s : set α) → β) (y : β) (hx) : finset.insert.map x s f y ⟨x, hx⟩ = y :=
-dif_neg hxs
-
-lemma finset.insert.map_subset {α β : Type*} [decidable_eq α] {x : α} {s : finset α} (hxs : x ∉ s)
-  (f : (↑s : set α) → β) (y : β) {x' : α} (hx' : x' ∈ s) :
-  finset.insert.map x s f y ⟨x', finset.subset_insert x s hx'⟩ = f ⟨x', hx'⟩ :=
-dif_pos hx'
-
-lemma finset.insert.map_injective {α β : Type*} [decidable_eq α] (x : α) {s : finset α}
-  {f : (↑s : set α) → β} (y : β) (hf : function.injective f) (hy : y ∉ set.range f) :
-  function.injective (finset.insert.map x s f y) :=
-begin
-  intros x1 x2 h,
-  unfold finset.insert.map at h,
-  split_ifs at h,
-  { exact subtype.coe_injective (subtype.mk_eq_mk.mp (hf h)) },
-  { exfalso,
-    rw [set.mem_range, not_exists] at hy,
-    exact hy _ h },
-  { exfalso,
-    rw [set.mem_range, not_exists] at hy,
-    exact hy _ h.symm },
-  { cases x1 with x1 hx1,
-    cases x2 with x2 hx2,
-    congr,
-    have hx1' : x1 = x := or.resolve_right (finset.mem_insert.mp hx1) h_1,
-    have hx2' : x2 = x := or.resolve_right (finset.mem_insert.mp hx2) h_2,
-    exact hx1'.trans hx2'.symm }
-end
-
-lemma finset.insert.range_map {α β : Type*} [decidable_eq α] {x : α} {s : finset α} (hxs : x ∉ s)
-  {f : (↑s : set α) → β} (y : β) :
-  set.range (finset.insert.map x s f y) = insert y (set.range f) :=
-begin
-  ext y',
-  rw [set.mem_range, set.mem_insert_iff],
-  split,
-  { rintros ⟨⟨x', hx'⟩, rfl⟩,
-    rcases finset.mem_insert.mp hx' with rfl | hx',
-    { rw finset.insert.map_self hxs,
-      exact or.inl rfl },
-    { exact or.inr (set.mem_range.mpr ⟨⟨x', hx'⟩, (finset.insert.map_subset hxs _ _ _).symm⟩) } },
-  { rintros (rfl | hy'),
-    { exact ⟨⟨x, finset.mem_insert_self _ _⟩, finset.insert.map_self hxs _ _ _⟩ },
-    { obtain ⟨⟨x', hx'⟩, rfl⟩ := set.mem_range.mp hy',
-      exact ⟨⟨x', finset.subset_insert _ _ hx'⟩, finset.insert.map_subset hxs _ _ _⟩, } }
-end
-
-def finset.coe {α : Type*} (s : finset α) : (↑s : set α) → α := coe
 
 lemma finset.prod_fin_succ {α : Type*} [comm_monoid α] {n : ℕ}
   (f : fin n.succ → α) : ∏ i, f i = (∏ (i : fin n), f i.succ) * f 0 :=
@@ -554,7 +503,7 @@ begin
   { simp only [sub_smul, mul_smul, finset.sum_sub_distrib, ← finset.smul_sum],
     ext j,
     rw [pi.zero_apply, @pi.sub_apply (fin n.succ) (λ _, R) _ _ _ _],
-    simp only [@finset.sum_apply (fin n.succ) (λ _, R) _ _ _, pi.smul_apply, smul_eq_mul, sub_eq_zero],
+    simp only [finset.sum_apply, pi.smul_apply, smul_eq_mul, sub_eq_zero],
     symmetry,
     rw [finset.sum_fin_succ_above i, fin.insert_nth_apply_same, zero_mul, zero_add, mul_comm],
     simp only [fin.insert_nth_apply_succ_above],
@@ -597,8 +546,12 @@ begin
   exact is_basis.card_le_card_of_linear_independent_aux (fintype.card ι) _ hv,
 end
 
-lemma induction_on_rank [fintype ι] (hb : is_basis R b) (P : submodule R M → Sort*)
-  (ih : ∀ (N : submodule R M), (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') → P N)
+/-- If `N` is a submodule with finite rank, do induction on adjoining a linear independent
+element to a submodule. -/
+def induction_on_rank [fintype ι] (hb : is_basis R b) (P : submodule R M → Sort*)
+  (ih : ∀ (N : submodule R M),
+    (∀ (N' ≤ N) (x ∈ N), (∀ (c : R) (y ∈ N'), c • x + y = (0 : M) → c = 0) → P N') →
+    P N)
   (N : submodule R M) : P N :=
 induction_on_rank_aux hb P ih (fintype.card ι) N (λ s hs hli,
   by simpa using hb.card_le_card_of_linear_independent hli)
@@ -624,6 +577,109 @@ end
 lemma nonempty_range_map (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] R) → ideal R)).nonempty :=
 ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
+
+lemma is_basis.ext_elem (hb : is_basis R b) {x y : M}
+  (h : ∀ i, hb.repr x i = hb.repr y i) : x = y :=
+by { rw [← hb.total_repr x, ← hb.total_repr y], congr' 1, ext i, exact h i }
+
+open submodule.is_principal
+
+lemma submodule.generator_mem_iff_le {N P : submodule R M} [hN : submodule.is_principal N] :
+  generator N ∈ P ↔ N ≤ P :=
+begin
+  refine ⟨λ h x hx, _, λ h, h (generator_mem N)⟩,
+  obtain ⟨a, rfl⟩ := (mem_iff_eq_smul_generator N).mp hx,
+  exact P.smul_mem a h
+end
+
+@[simp] lemma finset.sum_fin_zero (s : finset (fin 0)) (f : fin 0 → M) :
+  ∑ x in s, f x = 0 :=
+begin
+  refine trans (finset.sum_congr _ (λ _ _, rfl)) finset.sum_empty,
+  ext i,
+  apply fin_zero_elim i
+end
+
+lemma submodule.is_basis_fin_zero_iff {P : submodule R M} {bP : fin 0 → P} :
+  is_basis R bP ↔ P = ⊥ :=
+begin
+  split,
+    { intro h,
+    rw submodule.eq_bot_iff,
+    intros x hx,
+    suffices : (⟨x, hx⟩ : P) = 0,
+    { exact congr_arg coe this },
+    rw [← h.total_repr ⟨x, hx⟩, finsupp.total_apply, finsupp.sum, finset.sum_fin_zero] },
+  { rintro rfl,
+    split,
+    { rw linear_independent_iff',
+      intros _ _ _ i,
+      exact fin_zero_elim i },
+    { rw eq_top_iff,
+      rintros ⟨x, hx⟩ -,
+      simpa only [(submodule.mem_bot _).mp hx] using submodule.zero_mem _ } }
+end
+
+lemma fin.linear_independent_cons {n : ℕ} {x : M} {b : fin n → M}
+  (hli : linear_independent R b)
+  (x_ortho : (∀ (c : R) (y ∈ submodule.span R (set.range b)), c • x + y = (0 : M) → c = 0)) :
+  linear_independent R (fin.cons x b : fin n.succ → M) :=
+begin
+  rw fintype.linear_independent_iff at hli ⊢,
+  rintros g total_eq i,
+  have : g 0 = 0,
+  { apply x_ortho (g 0) (∑ j : fin n, g j.succ • b j),
+    { refine submodule.sum_mem _ (λ x hx, submodule.smul_mem _ _ (submodule.subset_span _)),
+      exact set.mem_range.mpr ⟨x, rfl⟩ },
+    simpa only [finset.sum_fin_succ, add_comm, fin.cons_zero, fin.cons_succ] using total_eq },
+  refine fin.cases _ _ i,
+  { exact this },
+  { intro i,
+    apply hli (g ∘ fin.succ),
+    simpa only [finset.sum_fin_succ, this, zero_smul, add_zero, fin.cons_succ] using total_eq }
+end
+
+/-- The canonical isomorphism between `⊤ : submodule R M` and `M` itself. -/
+def submodule.top_equiv : (⊤ : submodule R M) ≃ₗ[R] M :=
+{ to_fun := λ x, x.1,
+  inv_fun := λ x, ⟨x, submodule.mem_top⟩,
+  left_inv := λ x, by simp,
+  right_inv := λ x, by simp,
+  map_add' := λ x y, by simp,
+  map_smul' := λ c x, by simp }
+
+lemma finset.linear_independent_image
+  {M' : Type*} [decidable_eq M'] [add_comm_group M'] [module R M']
+  {s : finset M} (f : M →ₗ[R] M') (hf : function.injective f)
+  (hs : linear_independent R (coe : (↑s : set M) → M)) :
+  linear_independent R (coe : (↑(s.image f) : set M') → M') :=
+begin
+  rw finset.linear_independent_iff at hs ⊢,
+  intros g t ht total_eq x hx,
+  obtain ⟨x, x_mem, rfl⟩ := finset.mem_image.mp (ht hx),
+  apply hs (g ∘ f) (t.preimage f (set.inj_on_of_injective hf _)),
+  { intros x hx, obtain ⟨y, hy, y_eq⟩ := finset.mem_image.mp (ht (finset.mem_preimage.mp hx)),
+    rwa hf y_eq at hy },
+  { apply hf,
+    simp only [f.map_sum, f.map_zero, f.map_smul, function.comp_apply],
+    rw [finset.sum_preimage f t _ (λ x, g x • x), total_eq],
+    intros y hy hy',
+    obtain ⟨x, hx, rfl⟩ := finset.mem_image.mp (ht hy),
+    have : f x ∈ set.range f := set.mem_range.mpr ⟨x, rfl⟩,
+    contradiction },
+  { exact finset.mem_preimage.mpr hx }
+end
+
+end integral_domain
+
+section principal_ideal_domain
+
+open submodule.is_principal
+
+variables {ι : Type*} {R : Type*} [integral_domain R] [is_principal_ideal_ring R]
+variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
+
+open_locale matrix
 
 /-- The (non-unique) map `ϕ` such that `N.map ϕ` is maximal along the set of `N.map _`. -/
 noncomputable def maximal_projection (N : submodule R M) : M →ₗ[R] R :=
@@ -665,10 +721,6 @@ have _ := generator_mem (N.map (maximal_projection N)),
 have _ := generator_mem (N.map (maximal_projection N)),
 (classical.some_spec (submodule.mem_map.mp this)).2
 
-lemma is_basis.ext_elem (hb : is_basis R b) {x y : M}
-  (h : ∀ i, hb.repr x i = hb.repr y i) : x = y :=
-by { rw [← hb.total_repr x, ← hb.total_repr y], congr' 1, ext i, exact h i }
-
 lemma maximal_gen_ne_zero {b : ι → M} (hb : is_basis R b)
   {N : submodule R M} (hN : N ≠ ⊥) :
   generator (N.map (maximal_projection N)) ≠ 0 :=
@@ -681,14 +733,6 @@ begin
   rw (eq_bot_iff_generator_eq_zero _).mpr ha at this,
   rw [linear_map.map_zero, finsupp.zero_apply],
   exact (submodule.eq_bot_iff _).mp (this bot_le) (hb.repr x i) ⟨x, hx, rfl⟩
-end
-
-lemma submodule.generator_mem_iff_le {N P : submodule R M} [hN : submodule.is_principal N]:
-  generator N ∈ P ↔ N ≤ P :=
-begin
-  refine ⟨λ h x hx, _, λ h, h (generator_mem N)⟩,
-  obtain ⟨a, rfl⟩ := (mem_iff_eq_smul_generator N).mp hx,
-  exact P.smul_mem a h
 end
 
 lemma generator_dvd_maximal_projection {N : submodule R M} {x : M} (hx : x ∈ N) :
@@ -724,37 +768,9 @@ begin
   exact le_antisymm le_S S_le
 end
 
-@[simp] lemma finset.sum_fin_zero (s : finset (fin 0)) (f : fin 0 → M) :
-  ∑ x in s, f x = 0 :=
-begin
-  refine trans (finset.sum_congr _ (λ _ _, rfl)) finset.sum_empty,
-  ext i,
-  apply fin_zero_elim i
-end
-
-lemma submodule.is_basis_fin_zero_iff {P : submodule R M} {bP : fin 0 → P} :
-  is_basis R bP ↔ P = ⊥ :=
-begin
-  split,
-  { intro h,
-    rw submodule.eq_bot_iff,
-    intros x hx,
-    suffices : (⟨x, hx⟩ : P) = 0,
-    { exact congr_arg coe this },
-    rw [← h.total_repr ⟨x, hx⟩, finsupp.total_apply, finsupp.sum, finset.sum_fin_zero] },
-  { rintro rfl,
-    split,
-    { rw linear_independent_iff',
-      intros _ _ _ i,
-      exact fin_zero_elim i },
-    { rw eq_top_iff,
-      rintros ⟨x, hx⟩ -,
-      simpa only [(submodule.mem_bot _).mp hx] using submodule.zero_mem _ } }
-end
-
 @[simp]
-lemma set.range_cons {n : ℕ} (x : M) (b : fin n → M) :
-  set.range (fin.cons x b : fin n.succ → M) = insert x (set.range b) :=
+lemma set.range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
+  set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
 begin
   ext y,
   simp only [set.mem_range, set.mem_insert_iff],
@@ -768,84 +784,8 @@ begin
       rw [fin.cons_succ, hi] } }
 end
 
-lemma fin.linear_independent_cons {n : ℕ} {x : M} {b : fin n → M}
-  (hli : linear_independent R b)
-  (x_ortho : (∀ (c : R) (y ∈ submodule.span R (set.range b)), c • x + y = (0 : M) → c = 0)) :
-  linear_independent R (fin.cons x b : fin n.succ → M) :=
-begin
-  rw fintype.linear_independent_iff at hli ⊢,
-  rintros g total_eq i,
-  have : g 0 = 0,
-  { apply x_ortho (g 0) (∑ j : fin n, g j.succ • b j),
-    { refine submodule.sum_mem _ (λ x hx, submodule.smul_mem _ _ (submodule.subset_span _)),
-      exact set.mem_range.mpr ⟨x, rfl⟩ },
-    simpa only [finset.sum_fin_succ, add_comm, fin.cons_zero, fin.cons_succ] using total_eq },
-  refine fin.cases _ _ i,
-  { exact this },
-  { intro i,
-    apply hli (g ∘ fin.succ),
-    simpa only [finset.sum_fin_succ, this, zero_smul, add_zero, fin.cons_succ] using total_eq }
-end
-
-/-
-
-/-- If `M` has a basis, and each submodule of `M` can be decomposed as xR ⊕ another submodule,
-then each submodule has a basis. -/
-lemma exists_is_basis_induction_aux {n : ℕ} :
-  ∀ (P : submodule R M) (b : fin n → P) (hb : is_basis R b)
-  (hsub : ∀ N ≤ P, N = ⊥ ∨ ∃ (a : R) (y ∈ P) (P' ≤ P) (N' ≤ N),
-    N' ≤ P' ∧ a • y ∈ N ∧ a • y ∉ N' ∧
-    (∀ z ∈ P, ∃ (c : R) (y' ∈ P'), c • y + y' = z) ∧
-    (∀ z ∈ N, ∃ (c : R) (y' ∈ N'), c • a • y + y' = z))
-  (N ≤ P), ∃ (m : ℕ) (bN : fin m → N), is_basis R bN :=
-begin
-  induction n with n ih; intros P bP hbP hsub N hNP,
-  { use 0,
-    cases show P = ⊥, from submodule.is_basis_fin_zero_iff.mp hbP,
-    cases le_bot_iff.mp hNP,
-    exact ⟨bP, hbP⟩ },
-  rcases hsub N hNP with (rfl | ⟨a, y, hy, P', hP', N', hN', hN'P', hyN, hyN', hy, hay⟩),
-  { exact ⟨0, _, is_basis_empty_bot not_nonempty_fin_zero⟩ },
-
-  obtain ⟨m', bN', hbN'⟩ := ih P' _ _ _ N' hN'P',
-  let bN : fin m'.succ → N := fin.cons ⟨a • y, hyN⟩ (λ i, ⟨(bN' i).1, hN' (bN' i).2⟩),
-  use [m'.succ, bN],
-end
-
--/
-
-def top_equiv : (⊤ : submodule R M) ≃ₗ[R] M :=
-{ to_fun := λ x, x.1,
-  inv_fun := λ x, ⟨x, submodule.mem_top⟩,
-  left_inv := λ x, by simp,
-  right_inv := λ x, by simp,
-  map_add' := λ x y, by simp,
-  map_smul' := λ c x, by simp }
-
-/-
-/-- If `M` has a basis, and each submodule of `M` can be decomposed as xR ⊕ another submodule,
-then each submodule has a basis. -/
-lemma exists_is_basis_induction {n : ℕ} {b : fin n → M} (hb : is_basis R b)
-    (hsub : ∀ (N : submodule R M), N = ⊥ ∨ ∃ (a : R) (y : M) (P : submodule R M) (N' ≤ N),
-      N' ≤ P ∧ a • y ∈ N ∧ a • y ∉ N' ∧
-      (∀ z, ∃ (c : R) (y' ∈ P), c • y + y' = z) ∧
-      (∀ z ∈ N, ∃ (c : R) (y' ∈ N'), c • a • y + y' = z))
-    (N : submodule R M) :
-    ∃ (m : ℕ) (bN : fin m → N), is_basis R bN :=
-begin
-  refine exists_is_basis_induction_aux ⊤ _ (top_equiv.symm.is_basis hb) _ _ le_top,
-  intros N _,
-  rcases hsub N with (hN | ⟨a, y, P, N', hN, hNP, hyN, hyN', hy, hay⟩),
-  { exact or.inl hN },
-  right,
-  refine ⟨a, y, submodule.mem_top, P, le_top, N', hN, hNP, hyN, hyN', _, hay⟩,
-  intros z _,
-  apply hy
-end
--/
-
 lemma exists_generator_smul_eq_maximal_gen [fintype ι] (hb : is_basis R b)
-  {N : submodule R M} (hN : N ≠ ⊥):
+  {N : submodule R M} :
   ∃ y, generator (N.map (maximal_projection N)) • y = maximal_gen N :=
 begin
   let π : ι → (M →ₗ[R] R) :=
@@ -853,8 +793,6 @@ begin
   λ x y, by rw [linear_map.map_add, finsupp.add_apply],
   λ x y, by rw [linear_map.map_smul, finsupp.smul_apply]⟩,
   have π_apply : ∀ i x, π i x = hb.repr x i := λ x i, rfl,
-
-  have ha := maximal_gen_ne_zero hb hN,
 
   have : ∀ ϕ : M →ₗ[R] R, generator (N.map (maximal_projection N)) ∣ ϕ (maximal_gen N) :=
   generator_dvd_maximal_gen N,
@@ -866,29 +804,7 @@ begin
   -- TODO: this should be easier!
   simp_rw [finset.smul_sum, ← smul_assoc, smul_eq_mul, ← c_spec, π_apply],
   refine trans _ (hb.total_repr (maximal_gen N)),
-  simp only [finsupp.total_apply, finsupp.sum_fintype, eq_self_iff_true, zero_smul, forall_true_iff],
-end
-
-lemma finset.linear_independent_image
-  {M' : Type*} [decidable_eq M'] [add_comm_group M'] [module R M']
-  {s : finset M} (f : M →ₗ[R] M') (hf : function.injective f)
-  (hs : linear_independent R (coe : (↑s : set M) → M)) :
-  linear_independent R (coe : (↑(s.image f) : set M') → M') :=
-begin
-  rw finset.linear_independent_iff at hs ⊢,
-  intros g t ht total_eq x hx,
-  obtain ⟨x, x_mem, rfl⟩ := finset.mem_image.mp (ht hx),
-  apply hs (g ∘ f) (t.preimage f (set.inj_on_of_injective hf _)),
-  { intros x hx, obtain ⟨y, hy, y_eq⟩ := finset.mem_image.mp (ht (finset.mem_preimage.mp hx)),
-    rwa hf y_eq at hy },
-  { apply hf,
-    simp only [f.map_sum, f.map_zero, f.map_smul, function.comp_apply],
-    rw [finset.sum_preimage f t _ (λ x, g x • x), total_eq],
-    intros y hy hy',
-    obtain ⟨x, hx, rfl⟩ := finset.mem_image.mp (ht hy),
-    have : f x ∈ set.range f := set.mem_range.mpr ⟨x, rfl⟩,
-    contradiction },
-  { exact finset.mem_preimage.mpr hx }
+  simp only [finsupp.total_apply, finsupp.sum_fintype, eq_self_iff_true, zero_smul, forall_true_iff]
 end
 
 lemma mem_span_basis_iff {N : submodule R M} {n : ℕ}
@@ -917,16 +833,18 @@ lemma linear_independent_maximal_gen_cons {N : submodule R M} (hN : N ≠ ⊥) {
   {b : ι → M} (hb : is_basis R b)
   {bN : fin n → (maximal_projection N).ker ⊓ N} (hbN : is_basis R bN) :
   linear_independent R (fin.cons
-    ⟨maximal_gen N, maximal_gen_mem N⟩
-    (submodule.of_le (inf_le_right : ((maximal_projection N).ker ⊓ N) ≤ N) ∘ bN) : fin n.succ → N) :=
+      ⟨maximal_gen N, maximal_gen_mem N⟩
+      (submodule.of_le (inf_le_right : ((maximal_projection N).ker ⊓ N) ≤ N) ∘ bN) :
+    fin n.succ → N) :=
 begin
   refine fin.linear_independent_cons (hbN.1.map' _ (submodule.ker_of_le _ _ _)) _,
   intros c y hy hc,
   rw mem_span_basis_iff hbN at hy,
   have := congr_arg (maximal_projection N ∘ (coe : N → M)) hc,
-  simp only [hy, function.comp_app, add_zero, smul_eq_mul, mul_eq_zero, maximal_projection_maximal_gen,
-             submodule.coe_zero, submodule.coe_add, submodule.coe_smul, submodule.coe_mk,
-             linear_map.map_zero, linear_map.map_add, linear_map.map_smul]
+  simp only [hy, function.comp_app, add_zero, smul_eq_mul, mul_eq_zero,
+             maximal_projection_maximal_gen, submodule.coe_zero, submodule.coe_add,
+             submodule.coe_smul, submodule.coe_mk, linear_map.map_zero, linear_map.map_add,
+             linear_map.map_smul]
     at this,
   exact this.resolve_right (maximal_gen_ne_zero hb hN),
 end
@@ -948,8 +866,8 @@ begin
     refine ⟨0, λ _, 0, is_basis_empty_bot _⟩,
     rintro ⟨i, ⟨⟩⟩ },
 
-  -- We claim the following `y` can be a basis element of `M` such that `a • y` is a basis element of `N`.
-  obtain ⟨y, y'_eq⟩ := exists_generator_smul_eq_maximal_gen hb hN,
+  -- We claim that `y` is a basis element of `M` such that `a • y` is a basis element of `N`.
+  obtain ⟨y, y'_eq⟩ := exists_generator_smul_eq_maximal_gen hb,
 
   have ay_mem_N : generator (N.map (maximal_projection N)) • y ∈ N,
   { have : maximal_gen N ∈ N := maximal_gen_mem N,
@@ -998,3 +916,5 @@ lemma submodule.exists_is_basis_of_le_span
 submodule.exists_is_basis_of_le le (is_basis_span hb)
 
 end principal_ideal_domain
+
+#lint

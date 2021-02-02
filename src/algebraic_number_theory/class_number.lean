@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2021 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
 import algebra.big_operators.finsupp
 import algebra.floor
+import algebraic_number_theory.class_number.admissible_absolute_value
+import algebraic_number_theory.function_field
+import algebraic_number_theory.number_field
 import data.polynomial.field_division
 import group_theory.quotient_group
 import linear_algebra.determinant
@@ -8,13 +16,27 @@ import linear_algebra.matrix
 import ring_theory.class_group
 import ring_theory.dedekind_domain
 import ring_theory.fractional_ideal
-import algebraic_number_theory.number_field
-
--- These results are in separate files for faster re-compiling.
--- They should be merged with the appropriate lower-level file when development is finished.
-import algebraic_number_theory.class_number.admissible_absolute_value
 import algebraic_number_theory.class_number.det
 import algebraic_number_theory.class_number.integral_closure
+
+/-!
+# Class numbers of global fields
+
+In this file, we use the notion of "admissible absolute value" to prove
+finiteness of the class group for number fields and function fields,
+and define `class_number` as the order of this group.
+
+## Main definitions
+
+ - `class_group.fintype_of_admissible`: if `R` has an admissible absolute value,
+   its integral closure has a finite class group
+ - `number_field.class_number`: the class number of a number field is the (finite)
+   cardinality of the class group of its ring of integers
+ - `function_field.class_number`: the class number of a number field is the (finite)
+   cardinality of the class group of its ring of integers
+-/
+
+namespace class_group
 
 open ring
 
@@ -29,23 +51,6 @@ variables [algebra R L] [is_scalar_tower R f.codomain L]
 
 variables (L)
 
-lemma is_basis.repr_injective {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
-  {ι : Type*} {b : ι → M} (hb : is_basis R b) :
-  function.injective hb.repr :=
-function.left_inverse.injective hb.total_repr
-
-lemma is_basis.nonempty_of_nontrivial {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
-  {ι : Type*} {b : ι → M} (hb : is_basis R b) [hM : nontrivial M] :
-  nonempty ι :=
-begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨x, y, hxy⟩ := hM,
-  have := hb.repr_injective.ne hxy,
-  contrapose! this,
-  ext i,
-  cases this ⟨i⟩
-end
-
 lemma integral_closure.dim_pos : 0 < integral_closure.dim L f :=
 by { rw [← fintype.card_fin (integral_closure.dim L f), fintype.card_pos_iff],
      exact is_basis.nonempty_of_nontrivial (integral_closure.is_basis L f) }
@@ -55,7 +60,11 @@ noncomputable def norm_bound (abs : absolute_value R ℤ) : ℤ :=
 let n := integral_closure.dim L f,
     h : 0 < integral_closure.dim L f := integral_closure.dim_pos L f,
     m : ℤ := finset.max' (finset.univ.image (λ (ijk : fin _ × fin _ × fin _),
-        abs (matrix.lmul (integral_closure.is_basis L f) (integral_closure.basis L f ijk.1) ijk.2.1 ijk.2.2)))
+        abs (matrix.lmul
+               (integral_closure.is_basis L f)
+               (integral_closure.basis L f ijk.1)
+               ijk.2.1
+               ijk.2.2)))
         ⟨_, finset.mem_image.mpr ⟨⟨⟨0, h⟩, ⟨0, h⟩, ⟨0, h⟩⟩, finset.mem_univ _, rfl⟩⟩
 in nat.factorial n • (n • m) ^ n
 
@@ -124,7 +133,6 @@ begin
   { apply_instance }
 end
 
-
 section
 
 variables (L)
@@ -179,7 +187,7 @@ open real
 
 local attribute [-instance] real.decidable_eq
 
--- Theorem 5.4
+/-- We can approximate `a / b : L` with `q / r`, where `r` has finitely many options for `L`. -/
 theorem exists_mem_finset_approx [decidable_eq R]
   (a : integral_closure R L) {b} (hb : b ≠ (0 : R)) :
   ∃ (q : integral_closure R L) (r ∈ finset_approx L f abs),
@@ -217,7 +225,8 @@ begin
     refine finset.sum_congr rfl (λ i _, _),
     rw [← c_eq, ← s_eq, ← mul_smul, μ_eq, add_smul, mul_smul] },
 
-  obtain ⟨j, k, j_ne_k, hjk⟩ := abs.exists_approx (integral_closure.dim L f) hε hb (λ j i, μ j * s i),
+  obtain ⟨j, k, j_ne_k, hjk⟩ :=
+    abs.exists_approx (integral_closure.dim L f) hε hb (λ j i, μ j * s i),
   have hjk' : ∀ i, (abs (rs k i - rs j i) : ℝ) < abs b • ε,
   { simpa only [r_eq] using hjk },
   set q := ∑ i, (qs k i - qs j i) • c i with q_eq,
@@ -241,7 +250,7 @@ begin
   { exact_mod_cast ε_le },
 end
 
--- Theorem 5.4
+/-- We can approximate `a / b : L` with `q / r`, where `r` has finitely many options for `L`. -/
 theorem exists_mem_finset_approx' [decidable_eq R]
   (a : integral_closure R L) {b} (hb : b ≠ (0 : integral_closure R L)) :
   ∃ (q : integral_closure R L) (r ∈ finset_approx L f abs),
@@ -278,7 +287,7 @@ variables [algebra f.codomain L]
 variables [algebra R L] [is_scalar_tower R f.codomain L]
 variables (abs : admissible_absolute_value R)
 
--- Lemma 6.1
+/-- A nonzero ideal has an element of minimal norm. -/
 lemma exists_min [finite_dimensional f.codomain L] [is_separable f.codomain L]
   (I : nonzero_ideal (integral_closure R L)) :
   ∃ b ∈ I.1, b ≠ 0 ∧ ∀ c ∈ I.1, abs_norm f abs c < abs_norm f abs b → c = 0 :=
@@ -372,7 +381,8 @@ begin
   apply prod_finset_approx_ne_zero
 end
 
--- Theorem 6.2
+/-- Each class in the class group contains an ideal `J`
+such that the product of `finset_approx.prod` is in `J`. -/
 theorem exists_mk0_eq_mk0 [finite_dimensional f.codomain L] [is_separable f.codomain L]
   [infinite R] [decidable_eq R] (I : nonzero_ideal (integral_closure R L))
   [is_dedekind_domain (integral_closure R L)] :
@@ -412,14 +422,14 @@ variables (L)
 
 /-- `class_group.mk_dvd` is a specialization of `class_group.mk0` to (the finite set of)
 ideals that contain `∏ m in finset_approx L f abs, m` -/
-noncomputable def class_group.mk_dvd [finite_dimensional f.codomain L] [is_separable f.codomain L]
+noncomputable def mk_dvd [finite_dimensional f.codomain L] [is_separable f.codomain L]
   [infinite R] [decidable_eq R] [is_dedekind_domain (integral_closure R L)]
   (J : {J : ideal (integral_closure R L) // J ∣
     ideal.span {algebra_map _ _ (∏ m in finset_approx L f abs, m)}}) :
   class_group (integral_closure.fraction_map_of_finite_extension L f) :=
 class_group.mk0 _ ⟨J.1, ne_zero_of_dvd_prod_finset_approx f abs J.1 J.2⟩
 
-lemma class_group.mk_dvd_surjective
+lemma mk_dvd_surjective
   [finite_dimensional f.codomain L] [is_separable f.codomain L]
   [infinite R] [decidable_eq R] [is_dedekind_domain (integral_closure R L)] :
   function.surjective (class_group.mk_dvd L f abs) :=
@@ -437,46 +447,60 @@ include abs
 Requires you to provide an "admissible absolute value", see `admissible_absolute_value.lean`
 for a few constructions of those.
 -/
-noncomputable def class_group.finite_of_admissible [infinite R]
+noncomputable def finite_of_admissible [infinite R]
   [finite_dimensional f.codomain L] [is_separable f.codomain L]
   [is_dedekind_domain (integral_closure R L)] :
   fintype (class_group (integral_closure.fraction_map_of_finite_extension L f)) :=
-by { haveI := classical.dec_eq (class_group (integral_closure.fraction_map_of_finite_extension L f)),
-     haveI := classical.dec_eq R,
-     refine @fintype.of_surjective _ _ _
+begin
+  haveI := classical.dec_eq (class_group (integral_closure.fraction_map_of_finite_extension L f)),
+  haveI := classical.dec_eq R,
+  refine @fintype.of_surjective _ _ _
        (ideal.finite_divisors _ _)
        (class_group.mk_dvd L f abs)
        (class_group.mk_dvd_surjective L f abs),
-     rw [ne.def, ideal.span_singleton_eq_bot],
-     exact prod_finset_approx_ne_zero f abs }
+  rw [ne.def, ideal.span_singleton_eq_bot],
+  exact prod_finset_approx_ne_zero f abs
+end
 
 end euclidean_domain
 
-namespace number_field.ring_of_integers
-open number_field
-open number_field.ring_of_integers
-open fraction_map
-local attribute [class] algebra.is_algebraic
+end class_group
+
+namespace number_field
 
 variables (K : Type*) [field K] [is_number_field K]
 
-instance is_sep : is_separable int.fraction_map.codomain K := is_separable_of_char_zero ℚ K
+namespace ring_of_integers
 
-lemma algebra_map_eq_coe : (algebra_map ℤ ℚ : ℤ → ℚ) = coe := rfl
+open fraction_map
+local attribute [class] algebra.is_algebraic
 
-/-- `ring_of_integers.fraction_map K` is the map `O_K → K`, as a `fraction_map`. -/
-def fraction_map : fraction_map (ring_of_integers K) K :=
-integral_closure.fraction_map_of_finite_extension K int.fraction_map
-
-instance : integral_domain (ring_of_integers K) :=
-(ring_of_integers K).integral_domain
-
-example (K : Type) [field K] (x : K) (h : x ≠ 0): x * (field.inv x) = 1 := field.mul_inv_cancel h
-
-noncomputable instance : fintype (class_group (fraction_map K)) :=
+noncomputable instance : fintype (class_group (ring_of_integers.fraction_map K)) :=
 class_group.finite_of_admissible K int.fraction_map int.admissible_abs
 
-/-- The class number of a number ring is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (fraction_map K))
+end ring_of_integers
 
-end number_field.ring_of_integers
+/-- The class number of a number field is the (finite) cardinality of the class group. -/
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map K))
+
+end number_field
+
+namespace function_field_over
+
+variables {K L : Type*} [field K] [fintype K] [field L] (f : fraction_map (polynomial K) L)
+variables (F : Type*) [field F] [algebra f.codomain F] [function_field_over f F]
+variables [decidable_eq K] [is_separable f.codomain F]
+
+namespace ring_of_integers
+
+open function_field_over
+
+noncomputable instance : fintype (class_group (ring_of_integers.fraction_map f F)) :=
+class_group.finite_of_admissible F f polynomial.admissible_card_pow_degree
+
+end ring_of_integers
+
+/-- The class number in a function field is the (finite) cardinality of the class group. -/
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers.fraction_map f F))
+
+end function_field_over

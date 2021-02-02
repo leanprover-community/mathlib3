@@ -183,6 +183,22 @@ begin
     simp [hv.range_repr_self, finsupp.single_apply, hv.injective] }
 end
 
+lemma is_basis.repr_injective : function.injective hv.repr :=
+function.left_inverse.injective hv.total_repr
+
+section
+include hv
+lemma is_basis.nonempty_of_nontrivial [hM : nontrivial M] : nonempty ι :=
+begin
+  tactic.unfreeze_local_instances,
+  obtain ⟨x, y, hxy⟩ := hM,
+  have := hv.repr_injective.ne hxy,
+  contrapose! this,
+  ext i,
+  cases this ⟨i⟩
+end
+end
+
 /-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (f : ι → M') : M →ₗ[R] M' :=
 (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp hv.repr

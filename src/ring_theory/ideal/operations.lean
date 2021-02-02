@@ -365,7 +365,7 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
-lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
+lemma prod_eq_bot {R : Type*} [integral_domain R]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 begin
   refine multiset.induction _ (λ J s ih, _) s,
@@ -535,7 +535,7 @@ begin
 end
 
 theorem is_prime.multiset.prod_le {s : multiset ι} {f : ι → ideal R} {P : ideal R}
-  (hp : is_prime P) (hne: s ≠ 0) :
+  (hp : is_prime P) :
   multiset.prod (s.map f) ≤ P → ∃ i ∈ s, f i ≤ P :=
 begin
   classical,

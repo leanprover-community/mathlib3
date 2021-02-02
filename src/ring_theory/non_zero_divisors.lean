@@ -73,7 +73,8 @@ lemma map_le_non_zero_divisors_of_injective {B : Type*} [integral_domain B]
 le_non_zero_divisors_of_domain (λ h, let ⟨x, hx, hx0⟩ := h in
   zero_ne_one (hM (hf (trans hx0 (f.map_zero.symm)) ▸ hx : 0 ∈ M) 1 (mul_zero 1)).symm)
 
-lemma non_zero_divisors.ne_zero_of_mem [nontrivial R] {y : R} (hy : y ∈ non_zero_divisors R) : y ≠ 0 :=
+lemma non_zero_divisors.ne_zero_of_mem [nontrivial R] {y : R}
+  (hy : y ∈ non_zero_divisors R) : y ≠ 0 :=
 λ h, one_ne_zero (show (1 : R) = 0, from hy _ (by rw [h, one_mul]))
 
 lemma non_zero_divisors.ne_zero [nontrivial R] (y : non_zero_divisors R) : (y : R) ≠ 0 :=

@@ -199,7 +199,9 @@ begin
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
   -- This turns the problem into one for square matrices, which is easy.
   let e : m ≃ n := matrix.equiv_of_inv hMM' hM'M,
-  have : det (reindex_linear_equiv e (equiv.refl _) M ⬝ N ⬝ reindex_linear_equiv (equiv.refl _) e M') = det N,
+  have :
+    det (reindex_linear_equiv e (equiv.refl _) M ⬝ N ⬝ reindex_linear_equiv (equiv.refl _) e M')
+    = det N,
   { rw [det_mul, det_mul, mul_comm, ← mul_assoc, ← det_mul, reindex_mul,
         reindex_linear_equiv_refl_refl, hM'M, det_one, one_mul] },
   convert this,
@@ -238,41 +240,11 @@ variables {b' : ι' → M} (hb' : is_basis R b')
 variables {c : κ → M'} {c' : κ' → M'} (hc : is_basis R c) (hc' : is_basis R c')
 variables (f : M →ₗ[R] M')
 
-@[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix' [decidable_eq ι'] :
-  hc.to_matrix c' ⬝ linear_map.to_matrix hb' hc' f = linear_map.to_matrix hb' hc f :=
-(matrix.to_lin hb' hc).injective
-  (by haveI := classical.dec_eq κ';
-      rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
-
-@[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix' [decidable_eq ι] [decidable_eq ι']
-  {b : ι → M} (hb : is_basis R b) :
-  linear_map.to_matrix hb' hc' f ⬝ hb'.to_matrix b = linear_map.to_matrix hb hc' f :=
-(matrix.to_lin hb hc').injective
-  (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])
-
 lemma to_matrix_basis_change
   {b : ι → M} (hb : is_basis R b) :
   to_matrix hb hc f = hc.to_matrix c' ⬝ to_matrix hb' hc' f ⬝ hb'.to_matrix b :=
 by rw [is_basis_to_matrix_mul_linear_map_to_matrix', linear_map_to_matrix_mul_is_basis_to_matrix']
 
-end
-
-@[simp] lemma to_matrix_id' [decidable_eq ι] {ι' : Type*} [fintype ι']
-  {b : ι → M} {b' : ι' → M} (hb : is_basis R b) (hb' : is_basis R b') :
-  to_matrix hb hb' id = hb'.to_matrix b :=
-by { haveI := classical.dec_eq ι',
-  rw [← is_basis_to_matrix_mul_linear_map_to_matrix' hb hb', to_matrix_id, matrix.mul_one] }
-
-
-@[simp] lemma is_basis.to_matrix_mul_to_matrix {ι' ι'' : Type*}
-  [fintype ι'] [fintype ι'']
-  {b' : ι' → S} (hb' : is_basis R b') {b'' : ι'' → S} (hb'' : is_basis R b'') :
-  hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=
-begin
-  haveI := classical.dec_eq ι,
-  haveI := classical.dec_eq ι',
-  haveI := classical.dec_eq ι'',
-  rw [← to_matrix_id' hb' hb, ← to_matrix_id' hb'' hb', ← to_matrix_comp, id_comp, to_matrix_id'],
 end
 
 lemma char_poly_lmul_matrix_basis_invariant [decidable_eq ι]
@@ -288,7 +260,9 @@ end
 
 section
 
-def linear_map.restrict_base (R : Type*) {S M M' : Type*} [comm_semiring R] [semiring S] [algebra R S]
+/-- `(l : M →ₗ[S] M').restrict_base R` is `l` as an `R`-linear map. -/
+def linear_map.restrict_base (R : Type*) [comm_semiring R]
+  {S M M' : Type*} [semiring S] [algebra R S]
   [add_comm_monoid M] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
   [add_comm_monoid M'] [semimodule R M'] [semimodule S M'] [is_scalar_tower R S M']
   (l : M →ₗ[S] M') : M →ₗ[R] M' :=
@@ -304,15 +278,17 @@ def linear_map.restrict_base (R : Type*) {S M M' : Type*} [comm_semiring R] [sem
   (l : M →ₗ[S] M') (x : M) : l.restrict_base R x = l x := rfl
 
 instance is_scalar_tower.finsupp {α : Type*} : is_scalar_tower R S (α →₀ S) :=
-⟨λ r s t, finsupp.ext (λ x, show ((r • s) • t x) = (r • s • t x), by { rw [smul_assoc] })⟩
+⟨λ r s t, finsupp.ext (λ x, show ((r • s) • t x) = (r • s • t x), by rw smul_assoc)⟩
 
 end
 
 lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
+  {ι κ : Type*} [fintype ι] [fintype κ] {b : ι → S} {c : κ → T}
   (hb : is_basis R b) (hc : is_basis S c) (x : T) :
   algebra.trace R T x = trace R S (trace S T x) :=
 begin
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq κ,
   rw [trace_eq_matrix_trace (hb.smul hc), trace_eq_matrix_trace hb, trace_eq_matrix_trace hc,
       matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
       ← finset.univ_product_univ, finset.sum_product],
@@ -326,7 +302,6 @@ lemma trace_comp (L : Type*) [field L]
   [algebra K L] [algebra K T] [algebra L T] [is_scalar_tower K L T]
   [finite_dimensional K L] [finite_dimensional L T] (x : T) :
   algebra.trace K T x = trace K L (trace L T x) :=
-by classical; exact
 trace_comp_of_basis
   (classical.some_spec (exists_is_basis_finset K L))
   (classical.some_spec (exists_is_basis_finset L T))
@@ -341,7 +316,7 @@ lemma linear_map.injective_iff {V V' : Type*} [add_comm_group V] [add_comm_monoi
   (f : V →ₗ[R] V') : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
 f.to_add_monoid_hom.injective_iff
 
-lemma char_poly_lmul_matrix_power_basis [algebra K S] (h : power_basis K S) :
+lemma char_poly_lmul_power_basis [algebra K S] (h : power_basis K S) :
   char_poly (matrix.lmul h.is_basis h.gen) = minimal_polynomial h.is_integral_gen :=
 begin
   apply minimal_polynomial.unique,
@@ -354,62 +329,6 @@ begin
         polynomial.degree_eq_nat_degree q_monic.ne_zero],
     apply with_bot.some_le_some.mpr,
     exact h.dim_le_nat_degree_of_root q_monic.ne_zero root_q }
-end
-
-example {α : Type*} {a b c : set α} : c ∩ (a ∩ b) = a ∩ (b ∩ c) := by finish
-
-lemma char_matrix_lmul_matrix_smul [decidable_eq ι] {κ : Type*} [fintype κ] [decidable_eq κ]
-  [algebra S T] [is_scalar_tower R S T]
-  {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) :
-  char_matrix (matrix.lmul (hb.smul hc) (algebra_map _ _ x)) =
-    block_diagonal (λ _, char_matrix (matrix.lmul hb x)) :=
-begin
-  ext ⟨i, k⟩ ⟨j, k'⟩,
-  rw block_diagonal_apply,
-  split_ifs with hk,
-  { rw (show k = k', from hk),
-    by_cases hij : i = j,
-    { rw [hij, char_matrix_apply_eq, char_matrix_apply_eq, smul_lmul_algebra_map_eq] },
-    { have : (i, k') ≠ (j, k') := mt prod.fst_eq_iff.mpr hij,
-      rw [char_matrix_apply_ne _ this, char_matrix_apply_ne _ hij,
-          smul_lmul_algebra_map_eq] } },
-  { have : (i, k) ≠ (j, k') := mt prod.mk.inj_iff.mp (not_and.mpr (λ _, hk)),
-    rw [char_matrix_apply_ne _ this, smul_lmul_algebra_map_ne hb hc _ _ _ hk,
-        polynomial.C.map_zero, neg_zero] },
-end
-
-lemma char_poly_lmul_matrix_smul [decidable_eq ι] [algebra K R] [algebra L R] [is_scalar_tower K L R]
-  (h : power_basis K L) {c : ι → R} (hc : is_basis L c) :
-  char_poly (matrix.lmul (h.is_basis.smul hc) (algebra_map L R h.gen)) =
-    (minimal_polynomial h.is_integral_gen)^(fintype.card ι) :=
-begin
-  rw [← char_poly_lmul_matrix_power_basis h, char_poly, char_poly,
-      char_matrix_lmul_matrix_smul, det_block_diagonal, finset.prod_const, finset.card_univ],
-end
-
-lemma finite.is_integral (K : Type*) [field K] [algebra K L] [finite_dimensional K L]
-  (x : L) : is_integral K x :=
-((is_algebraic_iff_is_integral K).mp (is_algebraic_of_finite x))
-
-noncomputable abbreviation finite.minpoly [finite_dimensional K L] (x : L) : polynomial K :=
-minimal_polynomial (finite.is_integral K x)
-
-lemma char_poly_eq_minimal_polynomial_pow [decidable_eq ι] (x : L) [finite_dimensional K L]
-  {b : ι → L} (hb : is_basis K b) :
-  char_poly (matrix.lmul hb x) = finite.minpoly x ^ findim K⟮x⟯ L :=
-begin
-  haveI := finite_dimensional.right K K⟮x⟯ L,
-  obtain ⟨c, hc⟩ := exists_is_basis_finset K⟮x⟯ L,
-  rw findim_eq_card_basis hc,
-  let h := intermediate_field.adjoin.power_basis (finite.is_integral K x),
-  haveI : decidable_eq ↥(↑c : set L) := λ _ _, classical.prop_decidable _,
-  rw char_poly_lmul_matrix_basis_invariant hb (h.is_basis.smul hc),
-  show char_poly (matrix.lmul (h.is_basis.smul hc) (algebra_map _ L h.gen)) =
-    minimal_polynomial _ ^ fintype.card (↑c : set _),
-  rw [char_poly_lmul_matrix_smul h hc,
-      minimal_polynomial.eq_of_algebra_map_eq (algebra_map K⟮x⟯ L).injective
-        h.is_integral_gen (finite.is_integral K x)],
-  { exact (algebra_map_gen K x).symm },
 end
 
 section
@@ -456,8 +375,8 @@ begin
   { simp only [multiset.map_cons, multiset.map_zero, multiset.prod_cons, multiset.prod_zero,
         mul_one, multiset.sum_cons, multiset.sum_zero, add_zero, multiset.card_zero,
         coeff_sub, coeff_X_zero, coeff_C_zero, zero_sub] },
-  rw [multiset.cons_swap a b s, multiset.map_cons, multiset.prod_cons, multiset.sum_cons,  multiset.card_cons,
-      coeff_mul, finset.nat.antidiagonal_succ, finset.sum_insert, neg_add],
+  rw [multiset.cons_swap a b s, multiset.map_cons, multiset.prod_cons, multiset.sum_cons,
+      multiset.card_cons, coeff_mul, finset.nat.antidiagonal_succ, finset.sum_insert, neg_add],
   congr,
   { simp only [coeff_sub, coeff_X_zero, coeff_C_zero, zero_sub],
     rw [← multiset.card_cons a s, coeff_prod_X_sub_C (a ::ₘ s), mul_one] },
@@ -518,7 +437,7 @@ lemma power_basis.trace_gen_eq_sum_roots {F : Type*} [field F] [algebra K F]
 begin
   rw [trace_eq_matrix_trace pb.is_basis,
       trace_eq_neg_char_poly_coeff (matrix.lmul _ (power_basis.gen _)),
-      char_poly_lmul_matrix_power_basis, ← pb.minpoly_gen_eq,
+      char_poly_lmul_power_basis, ← pb.minpoly_gen_eq,
       fintype.card_fin, ← pb.nat_degree_minpoly_gen,
       ring_hom.map_neg, coeff_sub_one_eq h,
       show pb.minpoly_gen.leading_coeff = 1, from pb.minpoly_gen_monic,
@@ -533,13 +452,13 @@ section
 
 open intermediate_field
 
-lemma trace_gen_eq_sum_roots {F : Type*} [field F] [algebra K F] [finite_dimensional K L]
+lemma trace_gen_eq_sum_roots {F : Type*} [field F] [algebra K F]
   {x : L} (hx : is_integral K x) (h : polynomial.splits (algebra_map K F) (minimal_polynomial hx)) :
   algebra_map _ F (algebra.trace K K⟮x⟯ (gen K x)) =
     ((minimal_polynomial hx).map (algebra_map K F)).roots.sum :=
 begin
   rw ← adjoin.power_basis.minpoly_gen_eq hx at ⊢ h,
-  exact (intermediate_field.adjoin.power_basis (finite.is_integral K x)).trace_gen_eq_sum_roots h
+  exact power_basis.trace_gen_eq_sum_roots _ h
 end
 
 @[simp] lemma multiset.length_to_list {α : Type*} (m : multiset α) :
@@ -580,24 +499,25 @@ by rw [← multiset.coe_nodup, m.coe_to_list]
 @[simp]
 lemma list.sum_nth_le {α β : Type*} [add_comm_monoid β] (l : list α) (f : α → β)
   {n : ℕ} (hn : n = l.length) :
-  ∑ i : fin n, f (l.nth_le i.1 (lt_of_lt_of_le i.2 (le_of_eq hn))) = (l.map f).sum :=
+  ∑ i : fin n, f (l.nth_le i (lt_of_lt_of_le i.2 (le_of_eq hn))) = (l.map f).sum :=
 begin
   cases hn,
   induction l with a l ih,
   { rw [list.map_nil, list.sum_nil, ← finset.sum_empty, finset.sum_congr _ (λ _ _, rfl)],
     ext i,
     cases i.2 },
-  { rw [list.map_cons, list.sum_cons, ← ih rfl, finset.sum_fin_eq_sum_range, finset.sum_fin_eq_sum_range],
+  { rw [list.map_cons, list.sum_cons, ← ih rfl, finset.sum_fin_eq_sum_range,
+        finset.sum_fin_eq_sum_range],
     conv in (finset.range (a :: l).length)
     { rw list.length_cons a l},
     rw [finset.sum_range_succ', add_comm],
     dsimp only [list.length_cons],
     refine congr (congr_arg (+) _) _,
-    { rw [dif_pos (nat.zero_lt_succ _), list.nth_le] },
+    { simp [dif_pos (nat.zero_lt_succ _)] },
     { refine finset.sum_congr rfl _,
       intros i hi,
       rw finset.mem_range at hi,
-      rw [dif_pos hi, dif_pos (nat.succ_lt_succ hi), list.nth_le],
+      rw [dif_pos hi, dif_pos (nat.succ_lt_succ hi)],
       refl } },
 end
 
@@ -605,7 +525,7 @@ end
 @[simp]
 lemma list.prod_nth_le {α β : Type*} [comm_monoid β] (l : list α) (f : α → β)
   {n : ℕ} (hn : n = l.length) :
-  ∏ i : fin n, f (l.nth_le i.1 (lt_of_lt_of_le i.2 (le_of_eq hn))) = (l.map f).prod :=
+  ∏ i : fin n, f (l.nth_le i (lt_of_lt_of_le i.2 (le_of_eq hn))) = (l.map f).prod :=
 begin
   cases hn,
   induction l with a l ih,
@@ -619,26 +539,21 @@ begin
     rw [finset.prod_range_succ', mul_comm],
     dsimp only [list.length_cons],
     refine congr (congr_arg (*) _) _,
-    { rw [dif_pos (nat.zero_lt_succ _), list.nth_le] },
+    { simp [dif_pos (nat.zero_lt_succ _)] },
     { refine finset.prod_congr rfl _,
       intros i hi,
       rw finset.mem_range at hi,
-      rw [dif_pos hi, dif_pos (nat.succ_lt_succ hi), list.nth_le],
+      simp only [dif_pos hi, dif_pos (nat.succ_lt_succ hi)],
       refl } },
 end
 
 @[simp, to_additive]
-lemma multiset.prod_coe {α : Type*} [comm_monoid α] (l : list α) :
-  (l : multiset α).prod = l.prod :=
-by { induction l; simp }
-
-@[simp, to_additive]
 lemma multiset.prod_to_list {α : Type*} [comm_monoid α] (m : multiset α) :
   m.to_list.prod = m.prod :=
-by rw [← multiset.prod_coe m.to_list, m.coe_to_list]
+by rw [← multiset.coe_prod m.to_list, m.coe_to_list]
 
 include hF
-/-- `power_basis.conjugates hF` is the vector of all conjugates to the generator of `L : K`,
+/-- `power_basis.conjugates hF` is the vector of all conjugates to the generator of `L / K`,
 in a field `F` where `hF` shows the appropriate minimal polynomial splits.
 
 The order of the conjugates is arbitrary.
@@ -648,6 +563,11 @@ noncomputable def power_basis.conjugates :
 λ i, (pb.minpoly_gen.map (algebra_map K F)).roots.to_list.nth_le i
   (by simpa [pb.dim_eq_card_roots hF] using i.2)
 
+/-- `power_basis.conjugate_matrix hF` is a Vandermonde matrix of conjugates to
+the generator of `L / K`, in a field `F` where `hF` shows the appropriate minimal polynomial splits.
+
+The order of the conjugates is arbitrary.
+-/
 noncomputable def power_basis.conjugate_matrix :
   matrix (fin pb.dim) (fin pb.dim) F
 | i j := pb.conjugates hF j ^ (i : ℕ)
@@ -668,6 +588,8 @@ end
 
 omit hF
 
+/-- A `S`-algebra structure on `T` given by a map fixing `R` gives a tower of algebras. -/
+@[priority(100)] -- See note [lower instance priority]
 instance algebra_tower_alg_hom (f : S →ₐ[R] T) :
   @is_scalar_tower R S T _ f.to_ring_hom.to_algebra.to_has_scalar _ :=
 { smul_assoc := λ x y z, show f (x • y) • z = x • (f y • z), by rw [f.map_smul, smul_assoc] }
@@ -692,9 +614,6 @@ by classical; exact
 fintype.of_injective
   (λ x, (⟨x.1, finset.mem_coe.mpr (multiset.mem_to_finset.mpr x.2)⟩ : (m.to_finset : set α)))
   (λ ⟨x, hx⟩ ⟨y, hy⟩ h, by { ext, simpa using h })
-
-@[simp] lemma multiset.mem_zero {α : Type*} {x : α} : x ∈ (0 : multiset α) ↔ false :=
-iff.rfl
 
 @[simp] lemma multiset.univ_mem_zero {α : Type*} :
   (finset.univ : finset {x // x ∈ (0 : multiset α)}) = ∅ :=
@@ -737,9 +656,9 @@ by simp only [alg_hom_adjoin_integral_equiv, equiv.symm_trans_apply,
   adjoin_root_equiv_adjoin_symm_gen, alg_equiv.coe_alg_hom, equiv.coe_fn_symm_mk,
   alg_equiv.to_alg_hom_eq_coe, adjoin_root_equiv_symm_apply_root, alg_hom.comp_apply]
 
-lemma sum_embeddings_gen {M : Type*} [add_comm_monoid M] [finite_dimensional K L]
+lemma sum_embeddings_gen {M : Type*} [add_comm_monoid M]
   {x : L} (hx : is_integral K x) (hfx : (minimal_polynomial hx).separable)
-  (hF : (minimal_polynomial hx).splits (algebra_map K F)) (f : F → M) :
+  (f : F → M) :
   @finset.sum _ _ _ (@finset.univ _ (fintype_of_alg_hom_adjoin_integral _ hx))
       (λ σ : ↥K⟮x⟯ →ₐ[K] F, f (σ (adjoin_simple.gen K x)))
     = (((minimal_polynomial hx).map (algebra_map K F)).roots.map f).sum :=
@@ -759,15 +678,18 @@ lemma trace_eq_sum_embeddings_gen [finite_dimensional K L]
   algebra_map K F (algebra.trace K L x) =
     findim ↥K⟮x⟯ L • @finset.sum _ _ _ (@finset.univ _ (fintype_of_alg_hom_adjoin_integral _ hx))
       (λ σ : ↥K⟮x⟯ →ₐ[K] F, σ (adjoin_simple.gen K x)) :=
-by simp_rw [trace_eq_sum_roots hx hF, sum_embeddings_gen hx hfx hF (λ x, x), multiset.map_id']
+by simp_rw [trace_eq_sum_roots hx hF, sum_embeddings_gen hx hfx (λ x, x), multiset.map_id']
 
+/-- Apply an `alg_equiv` to the left side of an `alg_hom`. -/
 def alg_hom_congr_left {S' : Type*} (T : Type*) [comm_semiring S'] [algebra R S']
   [comm_semiring T] [algebra R T]
   (e : S ≃ₐ[R] S') : (S →ₐ[R] T) ≃ (S' →ₐ[R] T) :=
 { to_fun := λ f, f.comp e.symm,
   inv_fun := λ f, f.comp e,
-  left_inv := λ x, by { ext, simp only [alg_equiv.symm_apply_apply, alg_equiv.coe_alg_hom, alg_hom.comp_apply] },
-  right_inv := λ x, by { ext, simp only [alg_equiv.apply_symm_apply, alg_equiv.coe_alg_hom, alg_hom.comp_apply] } }
+  left_inv := λ x,
+    by { ext, simp only [alg_equiv.symm_apply_apply, alg_equiv.coe_alg_hom, alg_hom.comp_apply] },
+  right_inv := λ x,
+    by { ext, simp only [alg_equiv.apply_symm_apply, alg_equiv.coe_alg_hom, alg_hom.comp_apply] } }
 
 @[simp] lemma alg_hom_congr_left_apply {S' T : Type*} [comm_semiring S'] [algebra R S']
   [comm_semiring T] [algebra R T]
@@ -779,30 +701,38 @@ rfl
   (e : S ≃ₐ[R] S') (f : S' →ₐ[R] T) (x : S) : (alg_hom_congr_left T e).symm f x = f (e x) :=
 rfl
 
+/-- A rephrasing of the primitive element theorem:
+in a finite separable field extension, there is an `x` such that `L ≃ K⟮x⟯`. -/
 noncomputable def field.equiv_primitive_element
   (hsep : is_separable K L) [finite_dimensional K L] :
-  Σ x : L, K⟮x⟯ ≃ₐ[K] L :=
-let f := @intermediate_field.top_equiv K _ L _ _ in
+  Σ x : L, L ≃ₐ[K] K⟮x⟯ :=
+let f := (@intermediate_field.top_equiv K _ L _ _).symm in
 ⟨classical.some (field.exists_primitive_element hsep),
  by rwa ← classical.some_spec (field.exists_primitive_element hsep) at f⟩
 
+/-- If `L` has a power basis over `K`, there are finitely many maps `L → F` fixing `K`. -/
 noncomputable def power_basis.fintype_alg_hom (pb : power_basis K L) :
   fintype (L →ₐ[K] F) :=
 @fintype.of_equiv _ (K⟮pb.gen⟯ →ₐ[K] F)
   (fintype_of_alg_hom_adjoin_integral _ pb.is_integral_gen)
   (alg_hom_congr_left F pb.equiv_adjoin_simple)
 
+lemma finite_dimensional.is_integral (K : Type*) [field K] [algebra K L] [finite_dimensional K L]
+  (x : L) : is_integral K x :=
+((is_algebraic_iff_is_integral K).mp (is_algebraic_of_finite x))
+
 noncomputable instance alg_hom.fintype_of_separable
   [hsep : is_separable K L] [finite_dimensional K L] :
   fintype (L →ₐ[K] F) :=
 @fintype.of_equiv _ (K⟮(field.equiv_primitive_element hsep).1⟯ →ₐ[K] F)
-  (fintype_of_alg_hom_adjoin_integral _ (finite.is_integral _ _))
-  (alg_hom_congr_left F (field.equiv_primitive_element hsep).2)
+  (fintype_of_alg_hom_adjoin_integral _ (finite_dimensional.is_integral _ _))
+  (alg_hom_congr_left F (field.equiv_primitive_element hsep).2.symm)
 
 noncomputable instance adjoin.fintype_alg_hom_of_finite_dimensional (x : L)
   [finite_dimensional K L] :
   fintype (K⟮x⟯ →ₐ[K] F) :=
-power_basis.fintype_alg_hom (intermediate_field.adjoin.power_basis (finite.is_integral _ _))
+power_basis.fintype_alg_hom
+  (intermediate_field.adjoin.power_basis (finite_dimensional.is_integral _ _))
 
 -- TODO: to_additive this from prod_surj
 lemma finset.sum_eq_card_smul {α β : Type*} [decidable_eq β]
@@ -822,7 +752,8 @@ calc ∑ x in s, gf x = ∑ x in s, g (f x) : finset.sum_congr rfl hgf
 ... = ∑ y in t, n • g y : finset.sum_congr rfl (λ y hy, by rw hcard y hy)
 ... = n • ∑ y in t, g y : finset.smul_sum.symm
 
-lemma adjoin_root.nontrivial {R : Type*} [integral_domain R] {f : polynomial R} (hf : 0 < degree f) :
+lemma adjoin_root.nontrivial {R : Type*} [integral_domain R]
+  {f : polynomial R} (hf : 0 < degree f) :
   nontrivial (adjoin_root f) :=
 ⟨⟨0, 1, λ h,
   begin
@@ -830,33 +761,25 @@ lemma adjoin_root.nontrivial {R : Type*} [integral_domain R] {f : polynomial R} 
     simpa using nat_degree_le_of_dvd ((adjoin_root.mk_eq_mk _ _ _).mp h) (by simp),
   end ⟩⟩
 
-@[simp] lemma adjoin_root.gen_power_basis_eq {f : polynomial K} (hf : f ≠ 0) :
-  (adjoin_root.power_basis hf).gen = adjoin_root.root f :=
-rfl
-
 /-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
 of `minimal_polynomial α` in `K`. -/
 noncomputable def power_basis.alg_hom_adjoin_equiv (pb : power_basis K L) :
   (L →ₐ[K] F) ≃ {x // x ∈ (pb.minpoly_gen.map (algebra_map K F)).roots} :=
 begin
-  haveI : nontrivial (adjoin_root pb.minpoly_gen) := adjoin_root.nontrivial pb.degree_minpoly_gen_pos,
+  haveI : nontrivial (adjoin_root pb.minpoly_gen) :=
+    adjoin_root.nontrivial pb.degree_minpoly_gen_pos,
   let ϕ := (adjoin_root.power_basis pb.minpoly_gen_ne_zero).equiv pb _,
-  let swap1 : (L →ₐ[K] F) ≃ (adjoin_root pb.minpoly_gen →ₐ[K] F) :=
-    { to_fun := λ f, f.comp ϕ.to_alg_hom,
-      inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
-      left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
-      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
-      right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
-      alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
-  let swap2 := adjoin_root.equiv K F pb.minpoly_gen pb.minpoly_gen_ne_zero,
-  exact swap1.trans swap2,
-  symmetry,
-  apply minimal_polynomial.unique',
-  { apply minimal_polynomial.irreducible },
-  { simp only [adjoin_root.gen_power_basis_eq, adjoin_root.aeval_eq],
-    apply (adjoin_root.mk_eq_mk _ _ _).mpr,
-    rw [sub_zero, pb.minpoly_gen_eq] },
-  { apply minimal_polynomial.monic },
+  { let swap1 : (L →ₐ[K] F) ≃ (adjoin_root pb.minpoly_gen →ₐ[K] F) :=
+      { to_fun := λ f, f.comp ϕ.to_alg_hom,
+        inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
+        left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
+        alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
+        right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
+        alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
+    let swap2 := adjoin_root.equiv K F pb.minpoly_gen pb.minpoly_gen_ne_zero,
+    exact swap1.trans swap2 },
+  rw [adjoin_root.minpoly_gen_eq _ pb.minpoly_gen_monic],
+  { rw pb.minpoly_gen_eq, exact minimal_polynomial.irreducible _ }
 end
 
 -- generalizes card_alg_hom_adjoin_integral
@@ -895,7 +818,7 @@ alg_hom.to_linear_map_injective (pb.is_basis.ext (λ i,
 lemma is_scalar_tower.restrict_base_injective {A B : Type*}
   [semiring A] [semiring B]
   [algebra R A] [algebra S A] [algebra R B] [algebra S B]
-  [is_scalar_tower R S A] [is_scalar_tower R S B]:
+  [is_scalar_tower R S A] [is_scalar_tower R S B] :
   function.injective (is_scalar_tower.restrict_base R : (A →ₐ[S] B) → (A →ₐ[R] B)) :=
 λ f g h, alg_hom.ext (λ x,
   by rw [← is_scalar_tower.restrict_base_apply R f x, h, is_scalar_tower.restrict_base_apply])
@@ -908,6 +831,7 @@ lemma is_scalar_tower.restrict_base_injective {A B : Type*}
   algebra_map S F ⟨algebra_map K L x, S.algebra_map_mem x⟩ = algebra_map K F x :=
 by { rw [is_scalar_tower.algebra_map_apply K S F], refl }
 
+/-- If `f` fixes `K` and `x`, then `f` fixes `K⟮x⟯`. -/
 def intermediate_field.adjoin.extend_base (x : L) [algebra K⟮x⟯ F] [is_scalar_tower K K⟮x⟯ F]
   (f : L →ₐ[K] F) (hf : f x = algebra_map _ _ (gen K x)) :
   L →ₐ[K⟮x⟯] F :=
@@ -952,7 +876,7 @@ by { ext, refl }
 lemma card_filter_apply_eq [decidable_eq F] [is_alg_closed F]
   [is_separable K L] [finite_dimensional K L]
   (x : L) (hx : is_integral K x) (y : F)
-  (hy : aeval y (minimal_polynomial (intermediate_field.adjoin.power_basis hx).is_integral_gen) = 0) :
+  (hy : aeval y ((intermediate_field.adjoin.power_basis hx).minpoly_gen) = 0) :
   (finset.univ.filter (λ (σ : L →ₐ[K] F), σ x = y)).card = findim K⟮x⟯ L :=
 begin
   let pb : power_basis K L := field.power_basis_of_finite_of_separable,
@@ -965,12 +889,14 @@ begin
   { rw [← adjoin.power_basis.gen_eq hx, (intermediate_field.adjoin.power_basis hx).lift_gen] },
   have algebra_map_gen : algebra_map _ F (adjoin_simple.gen K x) = y := emb_y_gen,
 
-  haveI sep_x : is_separable K⟮x⟯ L := is_separable_tower_top_of_is_separable K⟮x⟯ ‹is_separable K L›,
+  haveI sep_x : is_separable K⟮x⟯ L :=
+    is_separable_tower_top_of_is_separable K⟮x⟯ ‹is_separable K L›,
   let pb_x : power_basis K⟮x⟯ L := field.power_basis_of_finite_of_separable,
   letI : fintype (L →ₐ[K⟮x⟯] F) := pb_x.fintype_alg_hom,
 
   calc (finset.univ.filter (λ (σ : L →ₐ[K] F), σ x = y)).card
-      = fintype.card (L →ₐ[K⟮x⟯] F) : (finset.card_congr (λ f _, is_scalar_tower.restrict_base K f) _ _ _).symm
+      = fintype.card (L →ₐ[K⟮x⟯] F) :
+        (finset.card_congr (λ f _, is_scalar_tower.restrict_base K f) _ _ _).symm
   ... = pb_x.dim : pb_x.card_alg_hom _ _
   ... = findim ↥K⟮x⟯ L : pb_x.findim.symm,
   { intros f _,
@@ -1000,7 +926,8 @@ begin
   letI : fintype (K⟮x⟯ →ₐ[K] F) := fintype_of_alg_hom_adjoin_integral _ hx,
   apply finset.sum_eq_card_smul (λ σ : L →ₐ[K] F, σ.comp (is_scalar_tower.to_alg_hom K K⟮x⟯ L)),
   { intros, apply finset.mem_univ },
-  { intros σ hσ, simp only [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, algebra_map_gen] },
+  { intros σ hσ,
+    simp only [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, algebra_map_gen] },
   intros σ' _,
   rw ← card_filter_apply_eq x hx (σ' (adjoin_simple.gen K x)),
   apply finset.card_congr (λ σ _, σ),
@@ -1015,12 +942,11 @@ begin
     apply (intermediate_field.adjoin.power_basis hx).alg_hom_ext,
     simp only [← hσ, alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply,
                intermediate_field.adjoin.power_basis.gen_eq, algebra_map_gen] },
-  { rw [aeval_alg_hom, alg_hom.comp_apply], simp }
+  { rw [aeval_alg_hom, alg_hom.comp_apply, ← intermediate_field.adjoin.power_basis.gen_eq,
+        (intermediate_field.adjoin.power_basis hx).aeval_minpoly_gen, σ'.map_zero] }
 end
 
 section
-
-include hF
 
 lemma power_basis.sum_embeddings_gen [is_separable K L] (f : F → R) :
   ∑ σ in (@finset.univ _ (@alg_hom.fintype_of_separable _ _ _ _ _ _ _ _ _
@@ -1031,8 +957,7 @@ begin
   haveI := pb.finite_dimensional,
   haveI : fintype (↥K⟮pb.gen⟯ →ₐ[K] F) :=
     fintype_of_alg_hom_adjoin_integral _ pb.is_integral_gen,
-  rw pb.minpoly_gen_eq at hF,
-  convert sum_embeddings_gen pb.is_integral_gen _ hF f using 1,
+  convert sum_embeddings_gen pb.is_integral_gen _ f using 1,
   { rw finset.sum_equiv (alg_hom_congr_left F pb.equiv_adjoin_simple.symm),
     convert finset.sum_congr rfl (λ x _, _),
     rw [alg_hom_congr_left_symm_apply, power_basis.equiv_adjoin_simple_symm_gen] },
@@ -1046,7 +971,7 @@ lemma power_basis.trace_gen_eq_sum_embeddings [is_separable K L]
     ∑ σ in (@finset.univ _
         (@alg_hom.fintype_of_separable _ _ _ _ _ F _ _ _ pb.finite_dimensional)),
       σ pb.gen :=
-by simp only [pb.trace_gen_eq_sum_roots hF, pb.sum_embeddings_gen hF (λ x, x), multiset.map_id']
+by simp only [pb.trace_gen_eq_sum_roots hF, pb.sum_embeddings_gen (λ x, x), multiset.map_id']
 
 end
 
@@ -1079,7 +1004,7 @@ calc algebra_map K F (trace_form K L (pb.gen ^ i) (pb.gen ^ j))
 ... = ∑ (σ : L →ₐ[K] F), (σ pb.gen) ^ i * (σ pb.gen) ^ j :
   by simp only [pow_add, alg_hom.map_mul, alg_hom.map_pow]
 ... = ((pb.minpoly_gen.map (algebra_map K F)).roots.map (λ x, x ^ i * x ^ j)).sum :
-  pb.sum_embeddings_gen (polynomial.splits_of_is_alg_closed F _) (λ x, x ^ i * x ^ j)
+  by rw ← pb.sum_embeddings_gen (λ x, x ^ i * x ^ j)
 
 lemma conjugate_matrix_mul_conjugate_matrix [is_separable K L] :
   (pb.conjugate_matrix (algebraic_closure.splits _)) ⬝
@@ -1096,13 +1021,14 @@ begin
   rw trace_eq_sum_embeddings K (is_integral_pow (i + k) pb.is_integral_gen),
   { simp only [← pow_add, alg_hom.map_pow],
     refine trans (sum_conjugates pb (algebraic_closure.splits _) (λ x, x ^ (i + k : ℕ))) _,
-    exact (pb.sum_embeddings_gen (algebraic_closure.splits _) (λ x, x ^ (i + k : ℕ))).symm },
+    exact (pb.sum_embeddings_gen (λ x, x ^ (i + k : ℕ))).symm },
   { apply algebraic_closure.is_alg_closed }
 end
 
 @[simp] lemma det_conjugate_matrix :
   (pb.conjugate_matrix hF).det = ∏ (i : fin pb.dim),
-    ∏ j in finset.univ.filter (λ (j : fin pb.dim), i < j), (pb.conjugates hF j - pb.conjugates hF i) :=
+    ∏ j in finset.univ.filter (λ (j : fin pb.dim), i < j),
+      (pb.conjugates hF j - pb.conjugates hF i) :=
 matrix.det_vandermonde _
 
 lemma sum_repr (x : S) : ∑ i, hb.repr x i • b i = x :=
@@ -1116,7 +1042,8 @@ end
 lemma lmul_one : lmul R S 1 = linear_map.id :=
 by { ext, simp }
 
-@[simp] lemma det_map {n : Type*} [fintype n] [decidable_eq n] (f : R →+* S) (M : matrix n n R) :
+@[simp] lemma det_map {R S : Type*} [comm_ring R] [comm_ring S]
+  {n : Type*} [fintype n] [decidable_eq n] (f : R →+* S) (M : matrix n n R) :
   (M.map f).det = f M.det :=
 by { unfold det, simp only [f.map_sum, f.map_mul, f.map_prod, f.map_int_cast, map_apply] }
 
@@ -1160,8 +1087,8 @@ begin
   let pb : power_basis K L := field.power_basis_of_finite_of_separable,
   have hph : pb.is_basis.to_matrix b ⬝ hb.to_matrix (λ i : fin pb.dim, pb.gen ^ (i : ℕ)) = 1,
   { apply (matrix.to_lin pb.is_basis pb.is_basis).injective,
-    rw [matrix.to_lin_mul pb.is_basis hb pb.is_basis, is_basis.to_lin_to_matrix, is_basis.to_lin_to_matrix,
-        id_comp, to_lin_one] },
+    rw [matrix.to_lin_mul pb.is_basis hb pb.is_basis, is_basis.to_lin_to_matrix,
+        is_basis.to_lin_to_matrix, id_comp, to_lin_one] },
   have hhp : hb.to_matrix (λ i : fin pb.dim, pb.gen ^ (i : ℕ)) ⬝ pb.is_basis.to_matrix b = 1,
   { apply (matrix.to_lin hb hb).injective,
     rw [matrix.to_lin_mul hb pb.is_basis hb, is_basis.to_lin_to_matrix, is_basis.to_lin_to_matrix,
@@ -1226,9 +1153,12 @@ rfl
 lemma trace_form_dual_basis_power_basis [is_separable K L] (i j : ι) :
   trace_form K L (b i) (dual_basis hb j) = (1 : matrix _ _ K) i j :=
 calc trace_form K L (b i) (dual_basis hb j)
-    = ((bilin_form.to_matrix hb (trace_form K L)) ⬝ (bilin_form.to_matrix hb (trace_form K L))⁻¹) i j :
-      by simp_rw [dual_basis, ← bilin_form.comp_right_apply, bilin_form.to_matrix_mul hb, bilin_form.to_matrix_apply]
-... = (1 : matrix _ _ K) i j : by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero hb))
+    = ((bilin_form.to_matrix hb (trace_form K L)) ⬝
+       (bilin_form.to_matrix hb (trace_form K L))⁻¹) i j :
+  by simp_rw [dual_basis, ← bilin_form.comp_right_apply,
+              bilin_form.to_matrix_mul hb, bilin_form.to_matrix_apply]
+... = (1 : matrix _ _ K) i j :
+  by rw matrix.mul_nonsing_inv _ (is_unit.mk0 _ (det_trace_form_ne_zero hb))
 
 lemma trace_dual_basis_mul_power_basis [is_separable K L] (i j : ι) :
   algebra.trace K L (b i * dual_basis hb j) = if i = j then 1 else 0 :=
@@ -1255,7 +1185,9 @@ begin
     by simp_rw [linear_map.map_sum, linear_map.map_smul]
   ... = (is_basis_dual_basis hb).repr x i * algebra.trace K L (b i * dual_basis hb i) :
     finset.sum_eq_single _ _ _
-  ... = (is_basis_dual_basis hb).repr x i : by rw [trace_dual_basis_mul_power_basis, if_pos rfl, mul_one],
+  ... = (is_basis_dual_basis hb).repr x i :
+    by rw [trace_dual_basis_mul_power_basis, if_pos rfl, mul_one],
+
   { intros j _ ne,
     rw [trace_dual_basis_mul_power_basis, if_neg ne.symm, smul_zero] },
   { intro not_mem_univ,

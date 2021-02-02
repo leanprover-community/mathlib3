@@ -265,20 +265,20 @@ begin
 end
 
 lemma constr_pow_aeval (pb : power_basis A S) {y : S'}
-  (hy : aeval y (minimal_polynomial pb.is_integral_gen) = 0) (f : polynomial A) :
+  (hy : aeval y pb.minpoly_gen = 0) (f : polynomial A) :
   pb.is_basis.constr (λ i, y ^ (i : ℕ)) (aeval pb.gen f) = aeval y f :=
 begin
   rw [← aeval_mod_by_monic_eq_self_of_root
-          (minimal_polynomial.monic pb.is_integral_gen)
-          (minimal_polynomial.aeval _),
+          pb.minpoly_gen_monic
+          pb.aeval_minpoly_gen,
       ← @aeval_mod_by_monic_eq_self_of_root _ _ _ _ _ f _
-          (minimal_polynomial.monic pb.is_integral_gen) y hy],
-  by_cases hf : f %ₘ minimal_polynomial (pb.is_integral_gen) = 0,
+          pb.minpoly_gen_monic y hy],
+  by_cases hf : f %ₘ pb.minpoly_gen = 0,
   { simp only [hf, alg_hom.map_zero, linear_map.map_zero] },
-  have : (f %ₘ minimal_polynomial _).nat_degree < pb.dim,
-  { rw ← pb.nat_degree_minimal_polynomial,
+  have : (f %ₘ pb.minpoly_gen).nat_degree < pb.dim,
+  { rw ← pb.nat_degree_minpoly_gen,
     apply nat_degree_lt_nat_degree hf,
-    exact degree_mod_by_monic_lt _ (minimal_polynomial.monic _) (minimal_polynomial.ne_zero _) },
+    exact degree_mod_by_monic_lt _ pb.minpoly_gen_monic pb.minpoly_gen_ne_zero },
   rw [aeval_eq_sum_range' this, aeval_eq_sum_range' this, linear_map.map_sum],
   refine finset.sum_congr rfl (λ i (hi : i ∈ finset.range pb.dim), _),
   rw finset.mem_range at hi,
@@ -288,17 +288,17 @@ begin
 end
 
 lemma constr_pow_gen (pb : power_basis A S) {y : S'}
-  (hy : aeval y (minimal_polynomial pb.is_integral_gen) = 0) :
+  (hy : aeval y pb.minpoly_gen = 0) :
   pb.is_basis.constr (λ i, y ^ (i : ℕ)) pb.gen = y :=
 by { convert pb.constr_pow_aeval hy X; rw aeval_X }
 
 lemma constr_pow_algebra_map (pb : power_basis A S) {y : S'}
-  (hy : aeval y (minimal_polynomial pb.is_integral_gen) = 0) (x : A) :
+  (hy : aeval y pb.minpoly_gen = 0) (x : A) :
   pb.is_basis.constr (λ i, y ^ (i : ℕ)) (algebra_map A S x) = algebra_map A S' x :=
 by { convert pb.constr_pow_aeval hy (C x); rw aeval_C }
 
 lemma constr_pow_mul [nontrivial S] (pb : power_basis A S) {y : S'}
-  (hy : aeval y (minimal_polynomial pb.is_integral_gen) = 0) (x x' : S) :
+  (hy : aeval y pb.minpoly_gen = 0) (x x' : S) :
   pb.is_basis.constr (λ i, y ^ (i : ℕ)) (x * x') =
     pb.is_basis.constr (λ i, y ^ (i : ℕ)) x * pb.is_basis.constr (λ i, y ^ (i : ℕ)) x' :=
 begin
@@ -310,7 +310,7 @@ end
 /-- `pb.lift y hy` is the algebra map sending `pb.gen` to `y`,
 where `hy` states the higher powers of `y` are the same as the higher powers of `pb.gen`. -/
 noncomputable def lift [nontrivial S] (pb : power_basis A S) (y : S')
-  (hy : aeval y (minimal_polynomial pb.is_integral_gen) = 0) :
+  (hy : aeval y pb.minpoly_gen = 0) :
   S →ₐ[A] S' :=
 { map_one' := by { convert pb.constr_pow_algebra_map hy 1 using 2; rw ring_hom.map_one },
   map_zero' := by { convert pb.constr_pow_algebra_map hy 0 using 2; rw ring_hom.map_zero },
@@ -319,47 +319,47 @@ noncomputable def lift [nontrivial S] (pb : power_basis A S) (y : S')
   .. pb.is_basis.constr (λ i, y ^ (i : ℕ)) }
 
 @[simp] lemma lift_gen [nontrivial S] (pb : power_basis A S) (y : S')
-  (hy : aeval y (minimal_polynomial pb.is_integral_gen) = 0) :
+  (hy : aeval y pb.minpoly_gen = 0) :
   pb.lift y hy pb.gen = y :=
 pb.constr_pow_gen hy
 
 @[simp] lemma lift_aeval [nontrivial S] (pb : power_basis A S) (y : S')
-  (hy : aeval y (minimal_polynomial pb.is_integral_gen) = 0) (f : polynomial A) :
+  (hy : aeval y pb.minpoly_gen = 0) (f : polynomial A) :
   pb.lift y hy (aeval pb.gen f) = aeval y f :=
 pb.constr_pow_aeval hy f
 
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
 noncomputable def equiv [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
-  (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
+  (h : pb.minpoly_gen = pb'.minpoly_gen) :
   S ≃ₐ[A] S' :=
 alg_equiv.of_alg_hom
-  (pb.lift pb'.gen (h.symm ▸ minimal_polynomial.aeval pb'.is_integral_gen))
-  (pb'.lift pb.gen (h ▸ minimal_polynomial.aeval pb.is_integral_gen))
+  (pb.lift pb'.gen (h.symm ▸ pb'.aeval_minpoly_gen))
+  (pb'.lift pb.gen (h ▸ pb.aeval_minpoly_gen))
   (by { ext x, obtain ⟨f, hf, rfl⟩ := pb'.exists_eq_aeval x, simp })
   (by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x, simp })
 
 @[simp]
 lemma equiv_aeval [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
-  (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen)
+  (h : pb.minpoly_gen = pb'.minpoly_gen)
   (f : polynomial A) :
   pb.equiv pb' h (aeval pb.gen f) = aeval pb'.gen f :=
-pb.lift_aeval _ (h.symm ▸ minimal_polynomial.aeval _) _
+pb.lift_aeval _ (h.symm ▸ pb'.aeval_minpoly_gen) _
 
 @[simp]
 lemma equiv_gen [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
-  (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
+  (h : pb.minpoly_gen = pb'.minpoly_gen) :
   pb.equiv pb' h pb.gen = pb'.gen :=
-pb.lift_gen _ (h.symm ▸ minimal_polynomial.aeval _)
+pb.lift_gen _ (h.symm ▸ pb'.aeval_minpoly_gen)
 
 local attribute [irreducible] power_basis.lift
 
 @[simp]
 lemma equiv_symm [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
-  (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
+  (h : pb.minpoly_gen = pb'.minpoly_gen) :
   (pb.equiv pb' h).symm = pb'.equiv pb h.symm :=
 rfl
 
@@ -578,12 +578,27 @@ begin
 end
 
 /-- The power basis `1, root f, ..., root f ^ (d - 1)` for `adjoin_root f`,
-where `f` is an irreducible polynomial over a field of degree `d`. -/
+where `f : polynomial K` of degree `d ≥ 0`. -/
 noncomputable def power_basis (hf : f ≠ 0) :
   power_basis K (adjoin_root f) :=
 { gen := root f,
   dim := f.nat_degree,
   is_basis := power_basis_is_basis hf }
+
+@[simp] lemma gen_eq (hf : f ≠ 0) : (adjoin_root.power_basis hf).gen = root f := rfl
+
+lemma minpoly_gen_dvd (hf : f ≠ 0) :
+  (adjoin_root.power_basis hf).minpoly_gen ∣ f :=
+by { rw power_basis.minpoly_gen_eq, exact minimal_polynomial.dvd _ (adjoin_root.eval₂_root f) }
+
+@[simp]
+lemma minpoly_gen_eq (hf : irreducible f) (hfm : monic f) :
+  (adjoin_root.power_basis hf.ne_zero).minpoly_gen = f :=
+begin
+  rw [(power_basis hf.ne_zero).minpoly_gen_eq, ← minimal_polynomial.unique' _ hf _ hfm],
+  { exact field.to_nontrivial _ },
+  { exact adjoin_root.eval₂_root f }
+end
 
 end adjoin_root
 
@@ -643,8 +658,7 @@ open intermediate_field
 noncomputable def equiv_adjoin_simple (pb : power_basis K L) :
   K⟮pb.gen⟯ ≃ₐ[K] L :=
 (adjoin.power_basis pb.is_integral_gen).equiv pb
-  (minimal_polynomial.eq_of_algebra_map_eq (algebra_map K⟮pb.gen⟯ L).injective _ _
-    (by rw [adjoin.power_basis.gen_eq, adjoin_simple.algebra_map_gen]))
+  (by rw [adjoin.power_basis.minpoly_gen_eq, pb.minpoly_gen_eq])
 
 @[simp]
 lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : polynomial K) :

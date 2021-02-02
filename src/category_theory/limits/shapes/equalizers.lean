@@ -126,8 +126,8 @@ end
 /-- Every functor indexing a (co)equalizer is naturally isomorphic (actually, equal) to a
     `parallel_pair` -/
 @[simps]
-def diagram_iso_parallel_pair (F : walking_parallel_pair ⥤ C) :
-  F ≅ parallel_pair (F.map left) (F.map right) :=
+def diagram_iso_parallel_pair (F : walking_parallel_pair.{v} ⥤ C) :
+  F ≅ parallel_pair.{v} (F.map left) (F.map right) :=
 nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
 
 /-- A fork on `f` and `g` is just a `cone (parallel_pair f g)`. -/

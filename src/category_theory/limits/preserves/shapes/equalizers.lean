@@ -31,6 +31,7 @@ namespace category_theory.limits
 section equalizers
 variables {X Y Z : C} {f g : X ⟶ Y} {h : Z ⟶ X} (w : h ≫ f = h ≫ g)
 
+set_option pp.universes true
 /--
 The map of a fork is a limit iff the fork consisting of the mapped morphisms is a limit. This
 essentially lets us commute `fork.of_ι` with `functor.map_cone`.
@@ -38,8 +39,9 @@ essentially lets us commute `fork.of_ι` with `functor.map_cone`.
 def is_limit_map_cone_fork_equiv :
   is_limit (G.map_cone (fork.of_ι h w)) ≃
   is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g)) :=
-(is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair _) _).symm.trans
-  (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp)))
+(is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair.{v} _) _).symm.trans
+    (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp)))
+-- I don't understand why the `.{v}` here is needed
 
 /-- The property of preserving equalizers expressed in terms of forks. -/
 def is_limit_fork_map_of_is_limit [preserves_limit (parallel_pair f g) G]
@@ -115,7 +117,7 @@ This essentially lets us commute `cofork.of_π` with `functor.map_cocone`.
 def is_colimit_map_cocone_cofork_equiv :
   is_colimit (G.map_cocone (cofork.of_π h w)) ≃
   is_colimit (cofork.of_π (G.map h) (by simp only [←G.map_comp, w]) : cofork (G.map f) (G.map g)) :=
-(is_colimit.precompose_inv_equiv (diagram_iso_parallel_pair _) _).symm.trans
+(is_colimit.precompose_inv_equiv (diagram_iso_parallel_pair.{v} _) _).symm.trans
   (is_colimit.equiv_iso_colimit (cofork.ext (iso.refl _) (by { dsimp, simp })))
 
 /-- The property of preserving coequalizers expressed in terms of coforks. -/

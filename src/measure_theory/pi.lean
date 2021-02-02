@@ -237,7 +237,7 @@ lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
 begin
   /- WLOG, `s` is measurable -/
-  rcases exists_measurable_set_superset_of_null hs with ⟨t, hst, htm, hμt⟩,
+  rcases exists_measurable_superset_of_null hs with ⟨t, hst, htm, hμt⟩,
   suffices : measure.pi μ (eval i ⁻¹' t) = 0,
     from measure_mono_null (preimage_mono hst) this,
   clear_dependent s,

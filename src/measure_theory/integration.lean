@@ -966,7 +966,7 @@ by { convert (monotone_lintegral μ).map_infi2_le f, ext1 a, simp only [infi_app
 lemma lintegral_mono_ae {f g : α → ennreal} (h : ∀ᵐ a ∂μ, f a ≤ g a) :
   (∫⁻ a, f a ∂μ) ≤ (∫⁻ a, g a ∂μ) :=
 begin
-  rcases exists_measurable_set_superset_of_null h with ⟨t, hts, ht, ht0⟩,
+  rcases exists_measurable_superset_of_null h with ⟨t, hts, ht, ht0⟩,
   have : ∀ᵐ x ∂μ, x ∉ t := measure_zero_iff_ae_nmem.1 ht0,
   refine (supr_le $ assume s, supr_le $ assume hfs,
     le_supr_of_le (s.restrict tᶜ) $ le_supr_of_le _ _),
@@ -1382,7 +1382,7 @@ by simp [pos_iff_ne_zero, hf, filter.eventually_eq, ae_iff, function.support]
 lemma lintegral_supr_ae {f : ℕ → α → ennreal} (hf : ∀n, measurable (f n))
   (h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a) :
   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
-let ⟨s, hs⟩ := exists_measurable_set_superset_of_null
+let ⟨s, hs⟩ := exists_measurable_superset_of_null
                        (ae_iff.1 (ae_all_iff.2 h_mono)) in
 let g := λ n a, if a ∈ s then 0 else f n a in
 have g_eq_f : ∀ᵐ a ∂μ, ∀n, g n a = f n a,

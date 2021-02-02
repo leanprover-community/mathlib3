@@ -908,7 +908,7 @@ theorem trim_sum_ge {ι} (m : ι → outer_measure α) : sum (λ i, (m i).trim) 
 λ t st ht, ennreal.tsum_le_tsum (λ i,
   infi_le_of_le t $ infi_le_of_le st $ infi_le _ ht)
 
-lemma exists_measurable_set_superset_eq_trim (m : outer_measure α) (s : set α) :
+lemma exists_measurable_superset_eq_trim (m : outer_measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ m t = m.trim s :=
 begin
   simp only [trim_eq_infi], set ms := ⨅ (t : set α) (st : s ⊆ t) (ht : measurable_set t), m t,
@@ -935,11 +935,11 @@ begin
       refine infi_le _ (measurable_set.Inter hm) } }
 end
 
-lemma exists_measurable_set_superset_of_trim_eq_zero
+lemma exists_measurable_superset_of_trim_eq_zero
   {m : outer_measure α} {s : set α} (h : m.trim s = 0) :
   ∃t, s ⊆ t ∧ measurable_set t ∧ m t = 0 :=
 begin
-  rcases exists_measurable_set_superset_eq_trim m s with ⟨t, hst, ht, hm⟩,
+  rcases exists_measurable_superset_eq_trim m s with ⟨t, hst, ht, hm⟩,
   exact ⟨t, hst, ht, h ▸ hm⟩
 end
 
@@ -951,7 +951,7 @@ begin
   haveI : nonempty {t // s ⊆ t ∧ measurable_set t} := ⟨⟨univ, subset_univ _, measurable_set.univ⟩⟩,
   refine ennreal.infi_mul_left (assume hc hs, _),
   rw ← trim_eq_infi' at hs,
-  simpa [and_assoc] using exists_measurable_set_superset_of_trim_eq_zero hs
+  simpa [and_assoc] using exists_measurable_superset_of_trim_eq_zero hs
 end
 
 /-- The trimmed property of a measure μ states that `μ.to_outer_measure.trim = μ.to_outer_measure`.

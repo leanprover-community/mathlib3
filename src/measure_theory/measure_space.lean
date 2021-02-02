@@ -197,31 +197,31 @@ nonpos_iff_eq_zero.1 $ h₂ ▸ measure_mono h
 lemma measure_mono_top (h : s₁ ⊆ s₂) (h₁ : μ s₁ = ⊤) : μ s₂ = ⊤ :=
 top_unique $ h₁ ▸ measure_mono h
 
-lemma exists_measurable_set_superset (μ : measure α) (s : set α) :
+lemma exists_measurable_superset (μ : measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = μ s :=
-by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_measurable_set_superset_eq_trim s
+by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_measurable_superset_eq_trim s
 
 /-- A measurable set `t ⊇ s` such that `μ t = μ s`. -/
 def to_measurable (μ : measure α) (s : set α) : set α :=
-classical.some (exists_measurable_set_superset μ s)
+classical.some (exists_measurable_superset μ s)
 
 lemma subset_to_measurable (μ : measure α) (s : set α) : s ⊆ to_measurable μ s :=
-(classical.some_spec (exists_measurable_set_superset μ s)).1
+(classical.some_spec (exists_measurable_superset μ s)).1
 
 @[simp] lemma measurable_set_to_measurable (μ : measure α) (s : set α) :
   measurable_set (to_measurable μ s) :=
-(classical.some_spec (exists_measurable_set_superset μ s)).2.1
+(classical.some_spec (exists_measurable_superset μ s)).2.1
 
 @[simp] lemma measure_to_measurable (s : set α) : μ (to_measurable μ s) = μ s :=
-(classical.some_spec (exists_measurable_set_superset μ s)).2.2
+(classical.some_spec (exists_measurable_superset μ s)).2.2
 
-lemma exists_measurable_set_superset_of_null (h : μ s = 0) :
+lemma exists_measurable_superset_of_null (h : μ s = 0) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0 :=
-outer_measure.exists_measurable_set_superset_of_trim_eq_zero (by rw [← measure_eq_trim, h])
+outer_measure.exists_measurable_superset_of_trim_eq_zero (by rw [← measure_eq_trim, h])
 
-lemma exists_measurable_set_superset_iff_measure_eq_zero :
+lemma exists_measurable_superset_iff_measure_eq_zero :
   (∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0) ↔ μ s = 0 :=
-⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_measurable_set_superset_of_null⟩
+⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_measurable_superset_of_null⟩
 
 theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
 μ.to_outer_measure.Union _
@@ -818,7 +818,7 @@ nonpos_iff_eq_zero.1 (h ▸ le_restrict_apply _ _)
 lemma restrict_apply_eq_zero' (hs : measurable_set s) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 begin
   refine ⟨measure_inter_eq_zero_of_restrict, λ h, _⟩,
-  rcases exists_measurable_set_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
+  rcases exists_measurable_superset_of_null h with ⟨t', htt', ht', ht'0⟩,
   apply measure_mono_null ((inter_subset _ _ _).1 htt'),
   rw [restrict_apply (hs.compl.union ht'), union_inter_distrib_right, compl_inter_self,
     set.empty_union],
@@ -1212,7 +1212,7 @@ infix ` ≪ `:50 := absolutely_continuous
 lemma absolutely_continuous.mk (h : ∀ ⦃s : set α⦄, measurable_set s → ν s = 0 → μ s = 0) : μ ≪ ν :=
 begin
   intros s hs,
-  rcases exists_measurable_set_superset_of_null hs with ⟨t, h1t, h2t, h3t⟩,
+  rcases exists_measurable_superset_of_null hs with ⟨t, h1t, h2t, h3t⟩,
   exact measure_mono_null h1t (h h2t h3t),
 end
 
@@ -1290,7 +1290,7 @@ instance : countable_Inter_filter μ.ae :=
 end⟩
 
 instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
-⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_set_superset_of_null hs in
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
   ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
 lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
@@ -1618,7 +1618,7 @@ lemma monotone_spanning_sets (μ : measure α) [sigma_finite μ] :
   monotone (spanning_sets μ) :=
 monotone_accumulate
 
-lemma measurable_set_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
+lemma measurable_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
   measurable_set (spanning_sets μ i) :=
 measurable_set.Union $ λ j, measurable_set.Union_Prop $
   λ hij, μ.to_finite_spanning_sets_in.set_mem j
@@ -1640,7 +1640,7 @@ namespace measure
 lemma supr_restrict_spanning_sets [sigma_finite μ] (hs : measurable_set s) :
   (⨆ i, μ.restrict (spanning_sets μ i) s) = μ s :=
 begin
-  convert (restrict_Union_apply_eq_supr (measurable_set_spanning_sets μ) _ hs).symm,
+  convert (restrict_Union_apply_eq_supr (measurable_spanning_sets μ) _ hs).symm,
   { simp [Union_spanning_sets] },
   { exact directed_of_sup (monotone_spanning_sets μ) }
 end
@@ -1693,8 +1693,8 @@ instance finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] : 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
   sigma_finite (μ.restrict s) :=
 begin
-  refine ⟨⟨spanning_sets μ, measurable_set_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩,
-  rw [restrict_apply (measurable_set_spanning_sets μ i)],
+  refine ⟨⟨spanning_sets μ, measurable_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩,
+  rw [restrict_apply (measurable_spanning_sets μ i)],
   exact (measure_mono $ inter_subset_left _ _).trans_lt (measure_spanning_sets_lt_top μ i)
 end
 
@@ -1703,7 +1703,7 @@ instance sum.sigma_finite {ι} [fintype ι] (μ : ι → measure α) [∀ i, sig
 begin
   haveI : encodable ι := (encodable.trunc_encodable_of_fintype ι).out,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
-  λ n, measurable_set.Inter (λ i, measurable_set_spanning_sets (μ i) n),
+  λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
   refine ⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩,
   { rw [sum_apply _ (this n), tsum_fintype, ennreal.sum_lt_top_iff],
     rintro i -,
@@ -2289,7 +2289,7 @@ begin
   let s := {x | f x ≠ hμ.mk f x},
   have : μ s = 0 := hμ.ae_eq_mk,
   obtain ⟨t, st, t_meas, μt⟩ : ∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0 :=
-    exists_measurable_set_superset_of_null this,
+    exists_measurable_superset_of_null this,
   let g : α → β := t.piecewise (hν.mk f) (hμ.mk f),
   refine ⟨g, measurable.piecewise t_meas hν.measurable_mk hμ.measurable_mk, _⟩,
   change μ {x | f x ≠ g x} + ν {x | f x ≠ g x} = 0,

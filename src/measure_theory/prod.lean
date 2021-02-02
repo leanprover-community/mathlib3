@@ -336,7 +336,7 @@ local attribute [instance] nonempty_measurable_superset
 lemma prod_prod_le (s : set α) (t : set β) : μ.prod ν (s.prod t) ≤ μ s * ν t :=
 begin
   by_cases hs0 : μ s = 0,
-  { rcases (exists_measurable_set_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
+  { rcases (exists_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
     convert measure_mono (prod_mono hs' (subset_univ _)),
     simp_rw [hs0, prod_prod h2s' measurable_set.univ, h3s', zero_mul] },
   by_cases hti : ν t = ⊤,
@@ -347,7 +347,7 @@ begin
   rintro ⟨s', h1s', h2s'⟩,
   rw [subtype.coe_mk],
   by_cases ht0 : ν t = 0,
-  { rcases (exists_measurable_set_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
+  { rcases (exists_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
     convert measure_mono (prod_mono (subset_univ _) ht'),
     simp_rw [ht0, prod_prod measurable_set.univ h2t', h3t', mul_zero] },
   by_cases hsi : μ s' = ⊤,
@@ -386,7 +386,7 @@ by simp_rw [prod_apply hs, lintegral_eq_zero_iff (measurable_measure_prod_mk_lef
 lemma measure_ae_null_of_prod_null {s : set (α × β)}
   (h : μ.prod ν s = 0) : (λ x, ν (prod.mk x ⁻¹' s)) =ᵐ[μ] 0 :=
 begin
-  obtain ⟨t, hst, mt, ht⟩ := exists_measurable_set_superset_of_null h,
+  obtain ⟨t, hst, mt, ht⟩ := exists_measurable_superset_of_null h,
   simp_rw [measure_prod_null mt] at ht,
   rw [eventually_le_antisymm_iff],
   exact ⟨eventually_le.trans_eq

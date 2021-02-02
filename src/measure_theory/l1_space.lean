@@ -634,9 +634,21 @@ end
 
 end ae_eq_fun
 
-lemma L1.integrable [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+lemma L1.integrable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
   integrable f μ :=
 by { rw ← mem_ℒp_one_iff_integrable, exact Lp.mem_ℒp f }
+
+lemma L1.edist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
+  edist f g = ∫⁻ a, edist (f a) (g a) ∂μ :=
+by { simp [Lp.edist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
+
+lemma L1.dist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
+  dist f g = (∫⁻ a, edist (f a) (g a) ∂μ).to_real :=
+by { simp [Lp.dist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
+
+lemma L1.norm_def [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+  ∥f∥ = (∫⁻ a, nnnorm (f a) ∂μ).to_real :=
+by { simp [Lp.norm_def, snorm, snorm'] }
 
 namespace integrable
 
@@ -647,19 +659,24 @@ space `L1 β 1 μ`. -/
 def to_L1 (f : α → β) (hf : integrable f μ) : α →₁[μ] β :=
 (mem_ℒp_one_iff_integrable.2 hf).to_Lp f
 
+@[simp] lemma to_L1_coe_fn (f : α →₁[μ] β) (hf : integrable f μ) : hf.to_L1 f = f :=
+by simp [integrable.to_L1]
+
+lemma coe_fn_to_L1 {f : α → β} (hf : integrable f μ) : hf.to_L1 f =ᵐ[μ] f :=
+ae_eq_fun.coe_fn_mk _ _
+
+@[simp] lemma to_L1_zero (h : integrable (0 : α → β) μ) : h.to_L1 0 = 0 := rfl
+
 @[simp] lemma to_L1_eq_mk (f : α → β) (hf : integrable f μ) :
-  (to_L1 f hf : α →ₘ[μ] β) = ae_eq_fun.mk f hf.ae_measurable :=
+  (hf.to_L1 f : α →ₘ[μ] β) = ae_eq_fun.mk f hf.ae_measurable :=
 rfl
 
 @[simp] lemma to_L1_eq_to_L1 (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
   to_L1 f hf = to_L1 g hg ↔ f =ᵐ[μ] g :=
 mem_ℒp.to_Lp_eq_to_Lp _ _
 
-lemma to_L1_zero : to_L1 (λ _, (0 : β)) (integrable_zero α β μ) = 0 := rfl
-
 lemma to_L1_add (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
-  to_L1 (f + g) (hf.add hg) = to_L1 f hf + to_L1 g hg :=
-rfl
+  to_L1 (f + g) (hf.add hg) = to_L1 f hf + to_L1 g hg := rfl
 
 lemma to_L1_neg (f : α → β) (hf : integrable f μ) :
   to_L1 (- f) (integrable.neg hf) = - to_L1 f hf := rfl
@@ -670,19 +687,19 @@ by simp only [sub_eq_add_neg, to_L1_add _ _ hf hg.neg, to_L1_neg]
 
 lemma norm_to_L1 (f : α → β) (hf : integrable f μ) :
   ∥hf.to_L1 f∥ = ennreal.to_real (∫⁻ a, edist (f a) 0 ∂μ) :=
-begin
-  simp only [snorm, snorm', ennreal.one_to_real, ennreal.rpow_one, Lp.norm_def, coe_fn_coe_base,
-    to_L1_eq_mk, if_false, ennreal.one_ne_top, one_ne_zero, _root_.div_one],
-  congr' 1,
-  apply lintegral_congr_ae,
-  filter_upwards [ae_eq_fun.coe_fn_mk f hf.ae_measurable],
-  assume x hx,
-  rw [hx, edist_eq_coe_nnnorm],
-end
+by { simp [to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
 lemma norm_to_L1_eq_lintegral_norm (f : α → β) (hf : integrable f μ) :
   ∥hf.to_L1 f∥ = ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 by { rw [norm_to_L1, lintegral_norm_eq_lintegral_edist] }
+
+@[simp] lemma edist_to_L1_to_L1 (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
+  edist (hf.to_L1 f) (hg.to_L1 g) = ∫⁻ a, edist (f a) (g a) ∂μ :=
+by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
+
+@[simp] lemma edist_to_L1_zero (f : α → β) (hf : integrable f μ) :
+  edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
+by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
@@ -690,71 +707,6 @@ lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
   to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
 
 end integrable
-
-
-/-
-section pos_part
-
-/-- Positive part of a function in `L¹` space. -/
-def pos_part (f : α →₁[μ] ℝ) : α →₁[μ] ℝ :=
-⟨ae_eq_fun.pos_part f,
-  begin
-    rw [← ae_eq_fun.integrable_coe_fn],
-    exact f.integrable.max_zero.congr (coe_fn_pos_part _).symm,
-  end ⟩
-
-/-- Negative part of a function in `L¹` space. -/
-def neg_part (f : α →₁[μ] ℝ) : α →₁[μ] ℝ := pos_part (-f)
-
-@[norm_cast]
-lemma coe_pos_part (f : α →₁[μ] ℝ) : (f.pos_part : α →ₘ[μ] ℝ) = (f : α →ₘ[μ] ℝ).pos_part := rfl
-
-lemma pos_part_to_fun (f : α →₁[μ] ℝ) : ⇑(pos_part f) =ᵐ[μ] λ a, max (f a) 0 :=
-ae_eq_fun.coe_fn_pos_part _
-
-lemma neg_part_to_fun_eq_max (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part f a = max (- f a) 0 :=
-begin
-  rw neg_part,
-  filter_upwards [pos_part_to_fun (-f), neg_to_fun f],
-  assume a h₁ h₂,
-  rw [h₁, h₂, pi.neg_apply]
-end
-
-lemma neg_part_to_fun_eq_min (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part f a = - min (f a) 0 :=
-(neg_part_to_fun_eq_max f).mono $ assume a h,
-by rw [h, ← max_neg_neg, neg_zero]
-
-lemma norm_le_norm_of_ae_le {f g : α →₁[μ] β} (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : ∥f∥ ≤ ∥g∥ :=
-begin
-  simp only [l1.norm_eq_norm_to_fun],
-  rw to_real_le_to_real,
-  { apply lintegral_mono_ae,
-    exact h.mono (λ a h, of_real_le_of_real h) },
-  { rw [← lt_top_iff_ne_top, ← has_finite_integral_iff_norm], exact f.has_finite_integral },
-  { rw [← lt_top_iff_ne_top, ← has_finite_integral_iff_norm], exact g.has_finite_integral }
-end
-
-lemma continuous_pos_part : continuous $ λf : α →₁[μ] ℝ, pos_part f :=
-begin
-  simp only [metric.continuous_iff],
-  assume g ε hε,
-  use ε, use hε,
-  simp only [dist_eq_norm],
-  assume f hfg,
-  refine lt_of_le_of_lt (norm_le_norm_of_ae_le _) hfg,
-  filter_upwards [l1.sub_to_fun f g, l1.sub_to_fun (pos_part f) (pos_part g),
-    pos_part_to_fun f, pos_part_to_fun g],
-  assume a h₁ h₂ h₃ h₄,
-  simp only [real.norm_eq_abs, h₁, h₂, h₃, h₄, pi.sub_apply],
-  exact abs_max_sub_max_le_abs _ _ _
-end
-
-lemma continuous_neg_part : continuous $ λf : α →₁[μ] ℝ, neg_part f :=
-have eq : (λf : α →₁[μ] ℝ, neg_part f) = (λf : α →₁[μ] ℝ, pos_part (-f)) := rfl,
-by { rw eq, exact continuous_pos_part.comp continuous_neg }
-
-end pos_part
--/
 
 end measure_theory
 open measure_theory

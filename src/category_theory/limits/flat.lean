@@ -216,7 +216,7 @@ def flat_to_functors : flat C ⥤ (C ⥤ Type v₂) := full_subcategory_inclusio
 
 -- example {C : Type v₂} [small_category C] : has_limits (C ⥤ Type v₂) := infer_instance
 
-def six_three_six {C : Type v₂} [small_category C] {D : Type v₂} [small_category D] [is_filtered D]
+def six_three_six {C : Type u₁} [category.{v₂} C] {D : Type v₂} [small_category D] [is_filtered D]
   (H : D ⥤ C ⥤ Type v₂)
   {c : cocone H} (t : is_colimit c)
   (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=

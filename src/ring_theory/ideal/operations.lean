@@ -44,8 +44,9 @@ theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
 (ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
 
 theorem annihilator_eq_top_iff : N.annihilator = ⊤ ↔ N = ⊥ :=
-⟨λ H, eq_bot_iff.2 $ λ (n:M) hn, (mem_bot R).2 $ one_smul R n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
-λ H, H.symm ▸ annihilator_bot⟩
+⟨λ H, eq_bot_iff.2 $ λ (n:M) hn, (mem_bot R).2 $
+  one_smul R n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
+  λ H, H.symm ▸ annihilator_bot⟩
 
 theorem annihilator_mono (h : N ≤ P) : P.annihilator ≤ N.annihilator :=
 λ r hrp, mem_annihilator.2 $ λ n hn, mem_annihilator.1 hrp n $ h hn
@@ -1186,11 +1187,11 @@ lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.c
   {x : R} : quotient_map I f H (quotient.mk J x) = quotient.mk I (f x) :=
 quotient.lift_mk J _ _
 
-lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f} :
+lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J ≤ I.comap f) :
   (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
 
-/-- `H` and `h` are kept as seperate hypothesis since H is used in constructing the quotient map -/
+/-- `H` and `h` are kept as separate hypothesis since H is used in constructing the quotient map -/
 lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
   (h : I.comap f ≤ J) : function.injective (quotient_map I f H) :=
 begin

@@ -275,7 +275,7 @@ lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} :
-  lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s),  ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+  lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s), ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C f s)
@@ -374,12 +374,21 @@ begin
 end
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
-As all instances can be inferred from the submodule `s`, they are put as implicit instead of
-typeclasses. -/
+
+See note [implicit instance arguments]. -/
 instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
   {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : normed_group s :=
 { norm := λx, norm (x : E),
   dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
+norm in `E`.
+
+See note [implicit instance arguments]. -/
+@[simp] lemma coe_norm {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
+  ∥x∥ = ∥(x:E)∥ :=
+rfl
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
 instance prod.normed_group : normed_group (α × β) :=
@@ -544,6 +553,11 @@ by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α :=
 by apply_instance -- short-circuit type class inference
+
+lemma nat.norm_cast_le [has_one α] : ∀ n : ℕ, ∥(n : α)∥ ≤ n * ∥(1 : α)∥
+| 0 := by simp
+| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
+                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
 
 end normed_group
 

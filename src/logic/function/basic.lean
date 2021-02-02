@@ -342,9 +342,27 @@ funext_iff.trans $ forall_update_iff _ (λ x y, g x = y)
 @[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
 update_eq_iff.2 ⟨rfl, λ _ _, rfl⟩
 
-lemma update_comp {β : Sort v} (f : α → β) {g : α' → α} (hg : injective g) (a : α') (v : β) :
-  (update f (g a) v) ∘ g = update (f ∘ g) a v :=
-eq_update_iff.2 ⟨update_same _ _ _, λ x hx, update_noteq (hg.ne hx) _ _⟩
+lemma update_comp_eq_of_forall_ne' {α'} (g : Π a, β a) {f : α' → α} {i : α} (a : β i)
+  (h : ∀ x, f x ≠ i) :
+  (λ j, (update g i a) (f j)) = (λ j, g (f j)) :=
+funext $ λ x, update_noteq (h _) _ _
+
+/-- Non-dependent version of `function.update_comp_eq_of_forall_ne'` -/
+lemma update_comp_eq_of_forall_ne {α β : Sort*} (g : α' → β) {f : α → α'} {i : α'} (a : β)
+  (h : ∀ x, f x ≠ i) :
+  (update g i a) ∘ f = g ∘ f :=
+update_comp_eq_of_forall_ne' g a h
+
+lemma update_comp_eq_of_injective' (g : Π a, β a) {f : α' → α} (hf : function.injective f)
+  (i : α') (a : β (f i)) :
+  (λ j, update g (f i) a (f j)) = update (λ i, g (f i)) i a :=
+eq_update_iff.2 ⟨update_same _ _ _, λ j hj, update_noteq (hf.ne hj) _ _⟩
+
+/-- Non-dependent version of `function.update_comp_eq_of_injective'` -/
+lemma update_comp_eq_of_injective {β : Sort*} (g : α' → β) {f : α → α'}
+  (hf : function.injective f) (i : α) (a : β) :
+  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+update_comp_eq_of_injective' g hf i a
 
 lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
   (f : Π i, α i → β i) (g : Π i, α i) (i : ι) (v : α i) (j : ι) :

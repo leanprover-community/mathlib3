@@ -38,8 +38,9 @@ We prove many basic properties of such topologies.
 
 ## Main statements
 
-This file contains the proofs of the following facts. For exact requirements (`order_closed_topology`
-vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see their statements.
+This file contains the proofs of the following facts. For exact requirements
+(`order_closed_topology` vs `order_topology`, `preorder` vs `partial_order` vs `linear_order` etc)
+see their statements.
 
 ### Open / closed sets
 
@@ -427,11 +428,11 @@ by simpa only [dual_Ioc] using @nhds_within_Ioc_eq_nhds_within_Ioi (order_dual �
   𝓝[Ioo a b] b = 𝓝[Iio b] b :=
 by simpa only [dual_Ioo] using @nhds_within_Ioo_eq_nhds_within_Ioi (order_dual α) _ _ _ _ _ h
 
-@[simp] lemma continuous_within_at_Ico_iff_Iio [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+@[simp] lemma continuous_within_at_Ico_iff_Iio {a b : α} {f : α → γ} (h : a < b) :
   continuous_within_at f (Ico a b) b ↔ continuous_within_at f (Iio b) b :=
 by simp only [continuous_within_at, nhds_within_Ico_eq_nhds_within_Iio h]
 
-@[simp] lemma continuous_within_at_Ioo_iff_Iio [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+@[simp] lemma continuous_within_at_Ioo_iff_Iio {a b : α} {f : α → γ} (h : a < b) :
   continuous_within_at f (Ioo a b) b ↔ continuous_within_at f (Iio b) b :=
 by simp only [continuous_within_at, nhds_within_Ioo_eq_nhds_within_Iio h]
 
@@ -1779,7 +1780,8 @@ begin
     { rw h, exact mem_closure_of_is_glb (is_glb_Ioo hab) hab' },
     by_cases h' : x = b,
     { rw h', refine mem_closure_of_is_lub (is_lub_Ioo hab) hab' },
-    exact subset_closure ⟨lt_of_le_of_ne hx.1 (ne.symm h), by simpa [h'] using lt_or_eq_of_le hx.2⟩ }
+    exact subset_closure ⟨lt_of_le_of_ne hx.1 (ne.symm h),
+      by simpa [h'] using lt_or_eq_of_le hx.2⟩ }
 end
 
 /-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/

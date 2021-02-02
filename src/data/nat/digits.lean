@@ -165,7 +165,7 @@ end
 lemma of_digits_eq_sum_map_with_index (b : ℕ) (L : list ℕ):
   of_digits b L = (L.map_with_index (λ i a, a * b ^ i)).sum :=
 begin
-  rw [list.map_with_index_eq_enum_map_uncurry, list.enum_eq_zip_range,
+  rw [list.map_with_index_eq_enum_map, list.enum_eq_zip_range,
     list.map_uncurry_zip_eq_zip_with, b.of_digits_eq_foldr],
   induction L with hd tl hl,
   { simp },

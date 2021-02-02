@@ -881,8 +881,13 @@ def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β
 
 @[simp]
 lemma add_monoid_hom.coe_fn_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
-  (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) :
+  (h h_two h_one) :
   (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β → α) = f := rfl
+
+@[simp]
+lemma add_monoid_hom.coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β]
+  (f : β →+ α) (h h_two h_one) :
+  (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β →+ α) = f := rfl
 
 end integral_domain
 

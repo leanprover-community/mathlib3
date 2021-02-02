@@ -185,7 +185,7 @@ begin
   exact measurable_set.sInter hSc (λ t ht, (hSo t ht).measurable_set)
 end
 
-lemma measurable_set_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
+lemma measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
   measurable_set {x | continuous_at f x} :=
 (is_Gδ_set_of_continuous_at f).measurable_set
 

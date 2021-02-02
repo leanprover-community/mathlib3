@@ -433,6 +433,7 @@ lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r 
 by { rw [inner_smul_right, algebra.smul_def], refl }
 
 /-- The inner product as a sesquilinear form. -/
+@[simps]
 def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
 { sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
   sesq_add_left := λ x y z, inner_add_right,
@@ -441,6 +442,7 @@ def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
   sesq_smul_right := λ r x y, inner_smul_left }
 
 /-- The real inner product as a bilinear form. -/
+@[simps]
 def bilin_form_of_real_inner : bilin_form ℝ F :=
 { bilin := inner,
   bilin_add_left := λ x y z, inner_add_left,
@@ -2563,14 +2565,11 @@ by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_ort
 
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/
-lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {v : E} (hv : v ≠ 0) :
-  findim 𝕜 (𝕜 ∙ v)ᗮ = findim 𝕜 E - 1 :=
-begin
-  haveI : nontrivial E := ⟨⟨v, 0, hv⟩⟩,
-  apply submodule.findim_add_findim_orthogonal',
-  simp only [findim_span_singleton hv, findim_euclidean_space, fintype.card_fin],
-  exact nat.add_sub_cancel' (nat.succ_le_iff.mpr findim_pos)
-end
+lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1)
+  {v : E} (hv : v ≠ 0) :
+  findim 𝕜 (𝕜 ∙ v)ᗮ = n :=
+submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, hn, add_comm]
+
 end orthogonal
 
 section orthonormal_basis
@@ -2724,5 +2723,13 @@ def linear_isometry_equiv.of_inner_product_space
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
 hv.2.isometry_euclidean_of_orthonormal hv.1
+
+/-- Given a natural number `n` one less than the `findim` of a finite-dimensional inner product
+space, there exists an isometry from the orthogonal complement of a nonzero singleton to
+`euclidean_space 𝕜 (fin n)`. -/
+def linear_isometry_equiv.from_orthogonal_span_singleton
+  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1) {v : E} (hv : v ≠ 0) :
+  (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
+linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hn hv)
 
 end orthonormal_basis

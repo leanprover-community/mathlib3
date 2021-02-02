@@ -43,7 +43,8 @@ inductive rel (r : R → R → Prop) : R → R → Prop
 theorem rel.add_right {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r b c) : rel r (a + b) (a + c) :=
 by { rw [add_comm a b, add_comm a c], exact rel.add_left h }
 
-theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) : rel r (-a) (-b) :=
+theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) :
+  rel r (-a) (-b) :=
 by simp only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]
 
 theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
@@ -290,7 +291,8 @@ def lift_alg_hom {s : A → A → Prop} :
   right_inv := λ F, by { ext, simp, refl } }
 
 @[simp]
-lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) :
+lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop}
+  (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) :
   (lift_alg_hom S ⟨f, w⟩) ((mk_alg_hom S s) x) = f x :=
 rfl
 

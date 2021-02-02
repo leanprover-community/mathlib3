@@ -374,12 +374,21 @@ begin
 end
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
-As all instances can be inferred from the submodule `s`, they are put as implicit instead of
-typeclasses. -/
+
+See note [implicit instance arguments]. -/
 instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
   {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : normed_group s :=
 { norm := λx, norm (x : E),
   dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
+norm in `E`.
+
+See note [implicit instance arguments]. -/
+@[simp] lemma coe_norm {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
+  ∥x∥ = ∥(x:E)∥ :=
+rfl
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
 instance prod.normed_group : normed_group (α × β) :=

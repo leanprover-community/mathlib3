@@ -187,12 +187,20 @@ lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
 (t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
 
-/-- `λb, f b • x` is a linear map. -/
-def smul_right (f : M₂ →ₗ[R] R) (x : M) : M₂ →ₗ[R] M :=
-⟨λb, f b • x, by simp [add_smul], by simp [smul_smul]⟩.
+section smul_right
 
-@[simp] theorem smul_right_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
-  (smul_right f x : M₂ → M) c = f c • x := rfl
+variables {S : Type*} [semiring S] [semimodule R S] [semimodule S M] [is_scalar_tower R S M]
+
+/-- When `f` is an `R`-linear map taking values in `S`, then `λb, f b • x` is an `R`-linear map. -/
+def smul_right (f : M₂ →ₗ[R] S) (x : M) : M₂ →ₗ[R] M :=
+{ to_fun := λb, f b • x,
+  map_add' := λ x y, by rw [f.map_add, add_smul],
+  map_smul' := λ b y, by rw [f.map_smul, smul_assoc] }
+
+@[simp] theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
+  smul_right f x c = f c • x := rfl
+
+end smul_right
 
 instance : has_one (M →ₗ[R] M) := ⟨linear_map.id⟩
 instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
@@ -372,6 +380,11 @@ instance : has_scalar S (M →ₗ[R] M₂) :=
   λ c x, by simp only [f.map_smul, smul_comm c]⟩⟩
 
 @[simp] lemma smul_apply (a : S) (x : M) : (a • f) x = a • f x := rfl
+
+instance {T : Type*} [monoid T] [distrib_mul_action T M₂] [smul_comm_class R T M₂]
+  [smul_comm_class S T M₂] :
+  smul_comm_class S T (M →ₗ[R] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
 instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,

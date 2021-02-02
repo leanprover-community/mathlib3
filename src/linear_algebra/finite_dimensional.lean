@@ -201,7 +201,7 @@ dif_neg $ mt finite_dimensional_iff_dim_lt_omega.2 h
 
 lemma finite_dimensional_of_findim {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
   (h : 0 < findim K V) : finite_dimensional K V :=
-by contrapose h; simp [findim_of_infinite_dimensional h]
+by { contrapose h, simp [findim_of_infinite_dimensional h] }
 
 /-- We can infer `finite_dimensional K V` in the presence of `[fact (findim K V = n + 1)]`. Declare
 this as a local instance where needed. -/

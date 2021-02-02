@@ -148,10 +148,22 @@ end
 
 open power_series
 open nat
+open ring_hom
 
 theorem bernoulli_power_series :
 (power_series.mk (λ n, ((bernoulli n) / (nat.factorial n) : ℚ))) * (power_series.exp ℚ - 1) =
   (X : power_series ℚ) * (exp ℚ) := sorry
+
+noncomputable def eval_neg_hom (A : Type*) [comm_ring A] : power_series A →+* power_series A :=
+{
+  to_fun :=   λ f, mk $ λ n, (-1)^n * (coeff A n f),
+  map_zero' := by {simp, ext, simp, },
+  map_one' := by { simp, ext1, simp, split_ifs, rw [h, pow_zero], refl, },
+  map_add' := by {intros, ext, norm_num, rw mul_add, },
+  map_mul' := by {intros, ext, rw coeff_mul, simp, rw coeff_mul, rw mul_sum, apply sum_congr rfl,
+            norm_num, intros a b H, rw <-H, rw pow_add, rw mul_assoc, rw ←mul_assoc ((-1 : A)^b) _ _,
+            rw mul_comm ((-1 : A)^b) _, rw mul_assoc _ ((-1 : A)^b) _, ring, },
+}
 
 theorem bernoulli_odd_eq_zero : ∀ n : ℕ, (n % 2 = 1 ∧ 1 < n) → bernoulli n = 0 :=
 begin

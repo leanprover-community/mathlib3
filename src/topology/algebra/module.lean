@@ -276,6 +276,10 @@ protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
 by { intros f g H, cases f, cases g, congr' 1, exact H }
 
+@[simp, norm_cast] lemma coe_inj {f g : M →L[R] M₂} :
+  (f : M →ₗ[R] M₂) = g ↔ f = g :=
+coe_injective.eq_iff
+
 theorem injective_coe_fn : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
 linear_map.coe_injective.comp coe_injective
 
@@ -351,6 +355,10 @@ lemma one_def : (1 : M →L[R] M) = id R M := rfl
 lemma id_apply : id R M x = x := rfl
 @[simp, norm_cast] lemma coe_id : (id R M : M →ₗ[R] M) = linear_map.id := rfl
 @[simp, norm_cast] lemma coe_id' : (id R M : M → M) = _root_.id := rfl
+
+@[simp, norm_cast] lemma coe_eq_id {f : M →L[R] M} :
+  (f : M →ₗ[R] M) = linear_map.id ↔ f = id _ _ :=
+by rw [← coe_id, coe_inj]
 
 @[simp] lemma one_apply : (1 : M →L[R] M) x = x := rfl
 

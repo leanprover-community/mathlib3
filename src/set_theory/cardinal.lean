@@ -93,6 +93,9 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
+protected lemma eq_congr : α ≃ β → # α = # β :=
+λ h, quot.sound ⟨h⟩
+
 noncomputable instance : linear_order cardinal.{u} :=
 { le          := (≤),
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
@@ -1081,3 +1084,6 @@ lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
 by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
 
 end cardinal
+
+lemma equiv.cardinal_eq {α β} : α ≃ β → cardinal.mk α = cardinal.mk β :=
+cardinal.eq_congr

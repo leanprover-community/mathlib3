@@ -12,13 +12,13 @@ import analysis.mean_inequalities
 
 The area of a disc with radius `r` is `π * r^2`.
 
-Skip to line 151.
+Skip to line 160.
 -/
 
 open set interval_integral real measure_theory filter
 open_locale classical
-variables {α : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
-  {f g : α → ℝ} {s t : set α}
+variables {α β : Type*} [measurable_space α] [measurable_space β] {μ : measure α} {ν : measure β}
+  [sigma_finite μ] [sigma_finite ν] {f g : α → ℝ} {s t : set α}
 
 lemma measure.eq_restrict_of_measurable_subset (ht : is_measurable t) (t_subset : t ⊆ s) :
   μ t = μ.restrict s t :=
@@ -31,6 +31,14 @@ by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_m
 lemma measure.eq_restrict_of_subset_of_measurable (hs : is_measurable s) (t_subset : t ⊆ s) :
   μ t = μ.restrict s t :=
 by rwa [measure.restrict_apply', set.inter_eq_self_of_subset_left t_subset]
+
+lemma measure.restrict_prod_eq_prod_univ {s : set α} (hs : is_measurable s) :
+  (μ.restrict s).prod ν = (μ.prod ν).restrict (s.prod univ) :=
+begin
+  have : ν = ν.restrict set.univ := measure.restrict_univ.symm,
+  rwa [this, measure.prod_restrict, ← this],
+  exact is_measurable.univ,
+end
 
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
@@ -59,7 +67,7 @@ begin
       rw indicator_apply,
       split_ifs,
       { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = Ioo (f x) (g x) := by simp [h, Ioo],
-        simp only [hx, volume_Ioo, sub_zero] },
+        simp only [hx, real.volume_Ioo, sub_zero] },
       { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = ∅ := by simp [h],
         simp only [hx, measure_empty] } },
     dsimp only [region_between, preimage_set_of_eq],
@@ -95,6 +103,7 @@ begin
   { rw measure.restrict_prod_eq_prod_univ,
     exacts [measure.eq_restrict_of_subset_of_measurable (hs.prod is_measurable.univ)
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s), hs] },
+  { apply_instance },
 end
 
 theorem volume_region_between_eq_integral
@@ -117,7 +126,7 @@ end
 lemma sqrt_ne_zero {x : ℝ} (hlt : 0 < x) : sqrt x ≠ 0 :=
 (sqrt_pos.mpr hlt).ne.symm
 
-lemma div_sqrt {x : ℝ} : x / sqrt x = sqrt x :=
+@[simp] lemma div_sqrt {x : ℝ} : x / sqrt x = sqrt x :=
 begin
   cases le_or_lt x 0,
   { rw [sqrt_eq_zero'.mpr h, div_zero] },
@@ -173,7 +182,7 @@ begin
   have H : ∀ {f : ℝ → ℝ}, continuous f → integrable_on f (Ioc (-r) r) :=
     λ f hc, (hc.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
-  convert volume_region_between_eq_integral (H hc1.neg) (H hc1) (hc1.neg).measurable hc1.measurable
+  convert volume_region_between_eq_integral (H hc1.neg) (H hc1)
     is_measurable_Ioc (λ x hx, le_trans (neg_nonpos.mpr (sqrt_nonneg _)) (sqrt_nonneg _)),
   simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul],
   rw [← integral_of_le, integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr.le)

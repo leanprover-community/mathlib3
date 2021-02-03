@@ -26,7 +26,8 @@
   title  : The Impossibility of Trisecting the Angle and Doubling the Cube
 9:
   title  : The Area of a Circle
-  decl   : volume_disc
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/9_area_of_a_circle.lean
   author : Benjamin Davidson, Andrew Souther, and James Arthur
 10:
   title  : Euler’s Generalization of Fermat’s Little Theorem

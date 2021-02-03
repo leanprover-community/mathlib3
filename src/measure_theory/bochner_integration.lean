@@ -235,7 +235,7 @@ begin
   refine finset.sum_image' _ (assume b hb, _),
   rcases mem_range.1 hb with ⟨a, rfl⟩,
   rw [map_preimage_singleton, ← sum_measure_preimage_singleton _
-    (λ _ _, f.is_measurable_preimage _)],
+    (λ _ _, f.measurable_set_preimage _)],
   -- Now we use `hf : integrable f μ` to show that `ennreal.to_real` is additive.
   by_cases ha : g (f a) = 0,
   { simp only [ha, smul_zero],
@@ -1079,6 +1079,28 @@ lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂
 if hfm : ae_measurable f μ then by simp [integral_congr_ae hf, integral_zero]
 else integral_non_ae_measurable hfm
 
+/-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma has_finite_integral.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : has_finite_integral f μ) {l : filter ι} {s : ι → set α}
+  (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+begin
+  rw [tendsto_zero_iff_norm_tendsto_zero],
+  simp_rw [← coe_nnnorm, ← nnreal.coe_zero, nnreal.tendsto_coe, ← ennreal.tendsto_coe,
+    ennreal.coe_zero],
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (tendsto_set_lintegral_zero hf hs) (λ i, zero_le _)
+    (λ i, ennnorm_integral_le_lintegral_ennnorm _)
+end
+
+/-- If `f` is integrable, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma integrable.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : integrable f μ) {l : filter ι} {s : ι → set α} (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+hf.2.tendsto_set_integral_nhds_zero hs
+
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
 lemma tendsto_integral_of_l1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
@@ -1487,7 +1509,7 @@ begin
     ((integrable_map_measure hfm.ae_measurable hφ).1 hfi),
   ext1 i,
   simp only [simple_func.approx_on_comp, simple_func.integral, measure.map_apply, hφ,
-    simple_func.is_measurable_preimage, ← preimage_comp, simple_func.coe_comp],
+    simple_func.measurable_set_preimage, ← preimage_comp, simple_func.coe_comp],
   refine (finset.sum_subset (simple_func.range_comp_subset_range _ hφ) (λ y _ hy, _)).symm,
   rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty, simple_func.coe_comp] at hy,
   simp [hy]
@@ -1501,10 +1523,16 @@ let g := hfm.mk f in calc
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
-lemma integral_dirac (f : α → E) (a : α) (hfm : measurable f) :
+lemma integral_dirac' (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
-  integral_congr_ae $ eventually_eq_dirac hfm
+  integral_congr_ae $ ae_eq_dirac' hfm
+... = f a : by simp [measure.dirac_apply_of_mem]
+
+lemma integral_dirac [measurable_singleton_class α] (f : α → E) (a : α) :
+  ∫ x, f x ∂(measure.dirac a) = f a :=
+calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
+  integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties

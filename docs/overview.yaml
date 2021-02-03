@@ -153,7 +153,7 @@ Linear algebra:
     determinant: 'matrix.det'
     invertibility: 'matrix.nonsing_inv'
   Endomorphism polynomials:
-    minimal polynomial: 'minimal_polynomial'
+    minimal polynomial: 'minpoly'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -307,12 +307,14 @@ Geometry:
     tangent bundle: 'tangent_bundle'
     tangent map: 'tangent_map'
     Lie group: 'lie_group'
+    sphere: 'metric.sphere.smooth_manifold_with_corners'
 
   Algebraic geometry:
     prime spectrum: 'prime_spectrum'
     Zariski topology: 'prime_spectrum.zariski_topology'
     locally ringed space: 'algebraic_geometry.LocallyRingedSpace'
     scheme: 'algebraic_geometry.Scheme'
+    Nullstellensatz : 'mv_polynomial.vanishing_ideal_zero_locus_eq_radical'
 
 Combinatorics:
   Graph theory:

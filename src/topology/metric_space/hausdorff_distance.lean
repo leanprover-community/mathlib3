@@ -99,7 +99,7 @@ continuous_of_le_add_edist 1 (by simp) $
 lemma inf_edist_closure : inf_edist x (closure s) = inf_edist x s :=
 begin
   refine le_antisymm (inf_edist_le_inf_edist_of_subset subset_closure) _,
-  refine ennreal.le_of_forall_epsilon_le (λε εpos h, _),
+  refine ennreal.le_of_forall_pos_le_add (λε εpos h, _),
   have εpos' : (0 : ennreal) < ε := by simpa,
   have : inf_edist x (closure s) < inf_edist x (closure s) + ε/2 :=
     ennreal.lt_add_right h (ennreal.half_pos εpos'),
@@ -221,7 +221,7 @@ exists_edist_lt_of_inf_edist_lt $ calc
 between `s` and `t` -/
 lemma inf_edist_le_inf_edist_add_Hausdorff_edist :
   inf_edist x t ≤ inf_edist x s + Hausdorff_edist s t :=
-ennreal.le_of_forall_epsilon_le $ λε εpos h, begin
+ennreal.le_of_forall_pos_le_add $ λε εpos h, begin
   have εpos' : (0 : ennreal) < ε := by simpa,
   have : inf_edist x s < inf_edist x s + ε/2 :=
     ennreal.lt_add_right (ennreal.add_lt_top.1 h).1 (ennreal.half_pos εpos'),

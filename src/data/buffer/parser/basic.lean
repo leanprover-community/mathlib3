@@ -15,7 +15,7 @@ parsers are `valid`. There are also lemmas on the composability of parsers.
 
 ## Main definitions
 
-* 'parse_result.pos` : The position of a `char_buffer` at which a `parser α` has finished.
+* `parse_result.pos` : The position of a `char_buffer` at which a `parser α` has finished.
 * `parser.valid` : The property that a parser only moves forward within a buffer,
   in both cases of success or failure.
 
@@ -35,32 +35,6 @@ For some `parse_result α`, give the position at which the result was provided, 
 @[simp] def parse_result.pos {α} : parse_result α → ℕ
 | (done n _) := n
 | (fail n _) := n
-
-section lemmas
-
--- TODO: place in relevant files
-
-variables {α : Type*} {P Q : α → Prop} {Q' : Prop} {x : α}
-
-@[simp] lemma ne_iff_lt_iff_le {n m : ℕ} : (n ≠ m ↔ n < m) ↔ n ≤ m :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { by_cases H : n = m,
-    { exact le_of_eq H },
-    { exact le_of_lt (h.mp H) } },
-  { rcases eq_or_lt_of_le h with rfl|H,
-    { simp },
-    { simp [H, ne_of_lt] } }
-end
-
-lemma nat.le_of_sub_eq_pos {m n k : ℕ} (h : m - n = k) (hk : 0 < k) : n ≤ m :=
-begin
-  contrapose! hk,
-  rw nat.sub_eq_zero_of_le (le_of_lt hk) at h,
-  rw h
-end
-
-end lemmas
 
 namespace parser
 

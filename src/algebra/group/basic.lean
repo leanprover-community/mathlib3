@@ -544,6 +544,6 @@ begin
 end
 
 lemma sub_eq_sub_iff_sub_eq_sub : a - b = c - d ↔ a - c = b - d :=
-by simp [-sub_eq_add_neg, sub_eq_sub_iff_add_eq_add, add_comm]
+by rw [sub_eq_iff_eq_add, sub_add_eq_add_sub, sub_eq_iff_eq_add', add_sub_assoc]
 
 end add_comm_group

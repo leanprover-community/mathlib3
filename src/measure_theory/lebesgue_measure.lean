@@ -49,7 +49,7 @@ begin
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
       ⟨subset.trans h Ioo_subset_Ico_self, le_refl _⟩) _,
   refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
+  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
   refine infi_le_of_le (a - ε) (infi_le_of_le b $ infi_le_of_le
     (subset.trans h $ Ico_subset_Ioo_left $ (sub_lt_self_iff _).2 ε0) _),
   rw ← sub_add,
@@ -77,7 +77,7 @@ begin
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
       ⟨subset.trans h Ico_subset_Icc_self, le_refl _⟩),
   refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_epsilon_le (λ ε ε0 _, _),
+  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
   refine infi_le_of_le a (infi_le_of_le (b + ε) $ infi_le_of_le
     (subset.trans h $ Icc_subset_Ico_right $ (lt_add_iff_pos_right _).2 ε0) _),
   rw [← sub_add_eq_add_sub],
@@ -137,7 +137,7 @@ end
   lebesgue_outer (Icc a b) = of_real (b - a) :=
 begin
   refine le_antisymm (by rw ← lebesgue_length_Icc; apply lebesgue_outer_le_length)
-    (le_binfi $ λ f hf, ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
+    (le_binfi $ λ f hf, ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
@@ -172,7 +172,7 @@ by rw [← Ico_diff_left, lebesgue_outer.diff_null _ (lebesgue_outer_singleton _
 by rw [← Icc_diff_left, lebesgue_outer.diff_null _ (lebesgue_outer_singleton _), lebesgue_outer_Icc]
 
 lemma is_lebesgue_measurable_Iio {c : ℝ} :
-  lebesgue_outer.caratheodory.is_measurable' (Iio c) :=
+  lebesgue_outer.caratheodory.measurable_set' (Iio c) :=
 outer_measure.of_function_caratheodory $ λ t,
 le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
   refine le_trans (add_le_add
@@ -189,13 +189,14 @@ begin
   refine le_antisymm (λ s, _) (outer_measure.le_trim _),
   rw outer_measure.trim_eq_infi,
   refine le_infi (λ f, le_infi $ λ hf,
-    ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),
+    ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
-    ∀ i, ∃ s, f i ⊆ s ∧ is_measurable s ∧ lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
+    ∀ i, ∃ s, f i ⊆ s ∧ measurable_set s ∧
+      lebesgue_outer s ≤ lebesgue_length (f i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
@@ -203,11 +204,11 @@ begin
     simp only [infi_lt_iff] at this,
     rcases this with ⟨a, b, h₁, h₂⟩,
     rw ← lebesgue_outer_Ico at h₂,
-    exact ⟨_, h₁, is_measurable_Ico, le_of_lt $ by simpa using h₂⟩ },
+    exact ⟨_, h₁, measurable_set_Ico, le_of_lt $ by simpa using h₂⟩ },
   simp at hg,
   apply infi_le_of_le (Union g) _,
   apply infi_le_of_le (subset.trans hf $ Union_subset_Union (λ i, (hg i).1)) _,
-  apply infi_le_of_le (is_measurable.Union (λ i, (hg i).2.1)) _,
+  apply infi_le_of_le (measurable_set.Union (λ i, (hg i).2.1)) _,
   exact le_trans (lebesgue_outer.Union _) (ennreal.tsum_le_tsum $ λ i, (hg i).2.2)
 end
 
@@ -292,7 +293,7 @@ lemma volume_Icc_pi {a b : ι → ℝ} : volume (Icc a b) = ∏ i, ennreal.of_re
 begin
   rw [← pi_univ_Icc, volume_pi_pi],
   { simp only [real.volume_Icc] },
-  { exact λ i, is_measurable_Icc }
+  { exact λ i, measurable_set_Icc }
 end
 
 @[simp] lemma volume_Icc_pi_to_real {a b : ι → ℝ} (h : a ≤ b) :
@@ -329,7 +330,7 @@ by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_
 
 lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_add_left a) is_measurable_Ioo, sub_sub_sub_cancel_right]
+  by simp [measure.map_apply (measurable_add_left a) measurable_set_Ioo, sub_sub_sub_cancel_right]
 
 lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
 by simpa only [add_comm] using real.map_volume_add_left a
@@ -340,11 +341,11 @@ begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
   cases lt_or_gt_of_ne h with h h,
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
-      measure.map_apply (measurable_mul_left a) is_measurable_Ioo, neg_sub_neg,
+      measure.map_apply (measurable_mul_left a) measurable_set_Ioo, neg_sub_neg,
       ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
       mul_div_cancel' _ (ne_of_lt h)] },
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
-      measure.map_apply (measurable_mul_left a) is_measurable_Ioo, preimage_const_mul_Ioo _ _ h,
+      measure.map_apply (measurable_mul_left a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
       abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
 end
 
@@ -364,7 +365,7 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 
 @[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply measurable_neg is_measurable_Ioo]
+  by simp [measure.map_apply measurable_neg measurable_set_Ioo]
 
 end real
 
@@ -397,7 +398,7 @@ Exists.snd (classical.some_spec (vitali_aux_h x h):_)
 
 def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
 
-theorem vitali_nonmeasurable : ¬ is_null_measurable measure_space.μ vitali :=
+theorem vitali_nonmeasurable : ¬ null_measurable_set measure_space.μ vitali :=
 sorry
 
 end vitali

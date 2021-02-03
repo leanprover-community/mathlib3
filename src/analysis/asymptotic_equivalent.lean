@@ -191,7 +191,7 @@ begin
   { convert (habφ.comp₂ (•) $ eventually_eq.refl _ u).sub (eventually_eq.refl _ (λ x, b x • v x)),
     ext,
     rw [pi.mul_apply, mul_comm, mul_smul, ← smul_sub] },
-  refine (is_o_congr this.symm $ eventually_eq.refl _ _).mp ((is_O_refl b l).smul_is_o _),
+  refine (is_o_congr this.symm $ eventually_eq.rfl).mp ((is_O_refl b l).smul_is_o _),
 
   rcases huv.is_O.exists_pos with ⟨C, hC, hCuv⟩,
   rw is_equivalent at *,

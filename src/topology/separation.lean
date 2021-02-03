@@ -496,7 +496,7 @@ begin
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
   { refine ⟨λ _, ∅, λ i, compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
       finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
-  simp only [finset.bUnion_insert] at hsC,
+  simp only [finset.set_bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
   have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
   rcases hs.binary_compact_cover (hU x (or.inl rfl)) (is_open_bUnion hU') hsC
@@ -509,7 +509,7 @@ begin
   { intros i, by_cases hi : i = x,
     { simp only [update_same, hi, h2K₁] },
     { rw [← ne.def] at hi, simp only [update_noteq hi, h2K] }},
-  { simp only [bUnion_insert_update _ hx, hK, h3K] }
+  { simp only [set_bUnion_insert_update _ hx, hK, h3K] }
 end
 end
 
@@ -722,7 +722,7 @@ begin
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
-  rw [←set.compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
+  rw [← compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
   cases H1 huv_union with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
   { exact is_clopen_bInter (λ Z hZ, Z.2.1) },

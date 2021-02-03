@@ -71,7 +71,8 @@ lemma lipschitz_on_with_iff_dist_le_mul [metric_space α] [metric_space β] {K :
   {f : α → β} : lipschitz_on_with K f s ↔ ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y :=
 by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
 
-alias lipschitz_on_with_iff_dist_le_mul ↔ lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
+alias lipschitz_on_with_iff_dist_le_mul ↔
+  lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
 
 @[simp] lemma lipschitz_on_univ [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β} :
   lipschitz_on_with K f univ ↔ lipschitz_with K f :=
@@ -99,7 +100,7 @@ begin
   have := h x y,
   rw [mul_comm] at this,
   replace := ennreal.div_le_of_le_mul this,
-  rwa [ennreal.div_def, mul_comm] at this
+  rwa [div_eq_mul_inv, mul_comm] at this
 end
 
 protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :

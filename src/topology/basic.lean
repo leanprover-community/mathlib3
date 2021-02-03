@@ -713,6 +713,11 @@ lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
 by rw [interior_eq_nhds', mem_set_of_eq]
 
+@[simp] lemma interior_mem_nhds {s : set α} {a : α} :
+  interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
+⟨λ h, mem_sets_of_superset h interior_subset,
+  λ h, mem_nhds_sets is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
+
 lemma interior_set_of_eq {p : α → Prop} :
   interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=
 interior_eq_nhds'
@@ -809,6 +814,11 @@ lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso
 lemma dense.inter_of_open_right {s t : set α} (hs : dense s) (ht : dense t) (hto : is_open t) :
   dense (s ∩ t) :=
 inter_comm t s ▸ ht.inter_of_open_left hs hto
+
+lemma dense.inter_nhds_nonempty {s t : set α} (hs : dense s) {x : α} (ht : t ∈ 𝓝 x) :
+  (s ∩ t).nonempty :=
+let ⟨U, hsub, ho, hx⟩ := mem_nhds_sets_iff.1 ht in
+  (hs.inter_open_nonempty U ho ⟨x, hx⟩).mono $ λ y hy, ⟨hy.2, hsub hy.1⟩
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
 calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]

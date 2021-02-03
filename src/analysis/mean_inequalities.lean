@@ -538,7 +538,7 @@ theorem young_inequality (a b : ennreal) {p q : ℝ} (hpq : p.is_conjugate_expon
 begin
   by_cases h : a = ⊤ ∨ b = ⊤,
   { refine le_trans le_top (le_of_eq _),
-    repeat {rw ennreal.div_def},
+    repeat { rw div_eq_mul_inv },
     cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
   push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
   rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
@@ -600,6 +600,71 @@ begin
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }
 end
 
+private lemma add_rpow_le_one_of_add_le_one {p : ℝ} (a b : ennreal) (hab : a + b ≤ 1)
+  (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ 1 :=
+begin
+  have h_le_one : ∀ x : ennreal, x ≤ 1 → x ^ p ≤ x, from λ x hx, rpow_le_self_of_le_one hx hp1,
+  have ha : a ≤ 1, from (self_le_add_right a b).trans hab,
+  have hb : b ≤ 1, from (self_le_add_left b a).trans hab,
+  exact (add_le_add (h_le_one a ha) (h_le_one b hb)).trans hab,
+end
+
+lemma add_rpow_le_rpow_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
+  a ^ p + b ^ p ≤ (a + b) ^ p :=
+begin
+  have hp_pos : 0 < p := lt_of_lt_of_le zero_lt_one hp1,
+  by_cases h_top : a + b = ⊤,
+  { rw ←@ennreal.rpow_eq_top_iff_of_pos (a + b) p hp_pos at h_top,
+    rw h_top,
+    exact le_top, },
+  obtain ⟨ha_top, hb_top⟩ := add_ne_top.mp h_top,
+  by_cases h_zero : a + b = 0,
+  { simp [add_eq_zero_iff.mp h_zero, ennreal.zero_rpow_of_pos hp_pos], },
+  have h_nonzero : ¬(a = 0 ∧ b = 0), by rwa add_eq_zero_iff at h_zero,
+  have h_add : a/(a+b) + b/(a+b) = 1, by rw [div_add_div_same, div_self h_zero h_top],
+  have h := add_rpow_le_one_of_add_le_one (a/(a+b)) (b/(a+b)) h_add.le hp1,
+  rw [div_rpow_of_nonneg a (a+b) hp_pos.le, div_rpow_of_nonneg b (a+b) hp_pos.le] at h,
+  have hab_0 : (a + b)^p ≠ 0, by simp [ha_top, hb_top, hp_pos, h_nonzero],
+  have hab_top : (a + b)^p ≠ ⊤, by simp [ha_top, hb_top, hp_pos, h_nonzero],
+  have h_mul : (a + b)^p * (a ^ p / (a + b) ^ p + b ^ p / (a + b) ^ p) ≤ (a + b)^p,
+  { nth_rewrite 3 ←mul_one ((a + b)^p),
+    exact (mul_le_mul_left hab_0 hab_top).mpr h, },
+  rwa [div_eq_mul_inv, div_eq_mul_inv, mul_add, mul_comm (a^p), mul_comm (b^p), ←mul_assoc,
+    ←mul_assoc, mul_inv_cancel hab_0 hab_top, one_mul, one_mul] at h_mul,
+end
+
+lemma rpow_add_rpow_le_add {p : ℝ} (a b : ennreal) (hp1 : 1 ≤ p) :
+  (a ^ p + b ^ p) ^ (1/p) ≤ a + b :=
+begin
+  rw ←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [lt_of_lt_of_le zero_lt_one hp1]),
+  rw one_div_one_div,
+  exact add_rpow_le_rpow_add _ _ hp1,
+end
+
+theorem rpow_add_rpow_le {p q : ℝ} (a b : ennreal) (hp_pos : 0 < p) (hpq : p ≤ q) :
+  (a ^ q + b ^ q) ^ (1/q) ≤ (a ^ p + b ^ p) ^ (1/p) :=
+begin
+  have h_rpow : ∀ a : ennreal, a^q = (a^p)^(q/p),
+    from λ a, by rw [←ennreal.rpow_mul, div_eq_inv_mul, ←mul_assoc,
+      _root_.mul_inv_cancel hp_pos.ne.symm, one_mul],
+  have h_rpow_add_rpow_le_add : ((a^p)^(q/p) + (b^p)^(q/p)) ^ (1/(q/p)) ≤ a^p + b^p,
+  { refine rpow_add_rpow_le_add (a^p) (b^p) _,
+    rwa one_le_div hp_pos, },
+  rw [h_rpow a, h_rpow b, ennreal.le_rpow_one_div_iff hp_pos, ←ennreal.rpow_mul, mul_comm,
+    mul_one_div],
+  rwa one_div_div at h_rpow_add_rpow_le_add,
+end
+
+lemma rpow_add_le_add_rpow {p : ℝ} (a b : ennreal) (hp_pos : 0 < p) (hp1 : p ≤ 1) :
+  (a + b) ^ p ≤ a ^ p + b ^ p :=
+begin
+  have h := rpow_add_rpow_le a b hp_pos hp1,
+  rw one_div_one at h,
+  repeat { rw ennreal.rpow_one at h },
+  exact (ennreal.le_rpow_one_div_iff hp_pos).mp h,
+end
+
 end ennreal
 
 section lintegral
@@ -632,11 +697,11 @@ begin
     lintegral_mono (λ a, young_inequality (f a) (g a) hpq)
   ... = 1 :
   begin
-    simp_rw [div_def],
+    simp only [div_eq_mul_inv],
     rw lintegral_add',
     { rw [lintegral_mul_const'' _ hf.ennreal_rpow_const,
-        lintegral_mul_const'' _ hg.ennreal_rpow_const, hf_norm, hg_norm, ← ennreal.div_def,
-        ← ennreal.div_def, hpq.inv_add_inv_conj_ennreal], },
+        lintegral_mul_const'' _ hg.ennreal_rpow_const, hf_norm, hg_norm, ← div_eq_mul_inv,
+        ← div_eq_mul_inv, hpq.inv_add_inv_conj_ennreal], },
     { exact hf.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
     { exact hg.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
   end
@@ -776,7 +841,7 @@ begin
       exact ennreal.rpow_lt_rpow (by simp [zero_lt_one]) hp0_lt, },
     have h_rw : (1 / 2) ^ p * (2:ennreal) ^ (p - 1) = 1 / 2,
     { rw [sub_eq_add_neg, ennreal.rpow_add _ _ ennreal.two_ne_zero ennreal.coe_ne_top,
-        ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, ennreal.div_def, one_mul,
+        ←mul_assoc, ←ennreal.mul_rpow_of_nonneg _ _ hp0, one_div,
         ennreal.inv_mul_cancel ennreal.two_ne_zero ennreal.coe_ne_top, ennreal.one_rpow,
         one_mul, ennreal.rpow_neg_one], },
     rw ←ennreal.mul_le_mul_left (ne_of_lt h_zero_lt_half_rpow).symm _,
@@ -787,7 +852,7 @@ begin
         ennreal.div_self ennreal.two_ne_zero ennreal.coe_ne_top], },
     { rw ←ennreal.lt_top_iff_ne_top,
       refine ennreal.rpow_lt_top_of_nonneg hp0 _,
-      rw [ennreal.div_def, one_mul, ennreal.inv_ne_top],
+      rw [one_div, ennreal.inv_ne_top],
       exact ennreal.two_ne_zero, },
   end
   ... < ⊤ :

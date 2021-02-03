@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 import analysis.calculus.tangent_cone
 import analysis.normed_space.units
 import analysis.asymptotic_equivalent
+import analysis.analytic.basic
 
 /-!
 # The Fréchet derivative
@@ -285,19 +286,8 @@ has_fderiv_at_filter_iff_tendsto
 theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
   is_o (λh, f (x + h) - f x - f' h) (λh, h) (𝓝 0) :=
 begin
-  split,
-  { assume H,
-    have : tendsto (λ (z : E), z + x) (𝓝 0) (𝓝 (0 + x)),
-      from tendsto_id.add tendsto_const_nhds,
-    rw [zero_add] at this,
-    refine (H.comp_tendsto this).congr _ _;
-      intro z; simp only [function.comp, add_sub_cancel', add_comm z] },
-  { assume H,
-    have : tendsto (λ (z : E), z - x) (𝓝 x) (𝓝 (x - x)),
-      from tendsto_id.sub tendsto_const_nhds,
-    rw [sub_self] at this,
-    refine (H.comp_tendsto this).congr _ _;
-      intro z; simp only [function.comp, add_sub_cancel'_right] }
+  rw [has_fderiv_at, has_fderiv_at_filter, ← map_add_left_nhds_zero x, is_o_map],
+  simp [(∘)]
 end
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
@@ -305,28 +295,14 @@ on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by
 lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf : has_fderiv_at f f' x₀)
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
-  replace hf : ∀ ε > 0, ∃ δ > 0, ∀ x',
-    ∥x' - x₀∥ < δ → ∥x' - x₀∥⁻¹ * ∥f x' - f x₀ - f' (x' - x₀)∥ < ε,
-    by simpa [has_fderiv_at_iff_tendsto, normed_group.tendsto_nhds_nhds] using hf,
-  obtain ⟨ε, ε_pos, hε⟩ : ∃ ε > 0, ball x₀ ε ⊆ s := mem_nhds_iff.mp hs,
-  apply real.le_of_forall_epsilon_le,
-  intros η η_pos,
-  rcases hf η η_pos with ⟨δ, δ_pos, h⟩, clear hf,
-  apply op_norm_le_of_ball (lt_min ε_pos δ_pos) (by linarith [C.coe_nonneg]: (0 : ℝ) ≤ C + η),
-  intros u u_in,
-  let x := x₀ + u,
-  rw show u = x - x₀, by rw [add_sub_cancel'],
-  have xε : x ∈ ball x₀ ε,
-    by simpa [dist_eq_norm] using ball_subset_ball (min_le_left ε δ) u_in,
-  have xδ : ∥x - x₀∥ < δ,
-    by simpa [dist_eq_norm] using ball_subset_ball (min_le_right ε δ) u_in,
-  replace h : ∥f x - f x₀ - f' (x - x₀)∥ ≤ η*∥x - x₀∥,
-  { by_cases H : x - x₀ = 0,
-    { simp [eq_of_sub_eq_zero H] },
-    { exact (inv_mul_le_iff' $ norm_pos_iff.mpr H).mp (le_of_lt $ h x xδ) } },
-  have := hlip.norm_sub_le (hε xε) (hε $ mem_ball_self ε_pos),
-  calc ∥f' (x - x₀)∥ ≤ ∥f x - f x₀∥ + ∥f x - f x₀ - f' (x - x₀)∥ : norm_le_insert _ _
-  ... ≤ (C + η) * ∥x - x₀∥ : by linarith,
+  refine le_of_forall_pos_le_add (λ ε ε0, op_norm_le_of_nhds_zero _ _),
+  exact add_nonneg C.coe_nonneg ε0.le,
+  have hs' := hs, rw [← map_add_left_nhds_zero x₀, mem_map] at hs',
+  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hs'], intros y hy hys,
+  have := hlip.norm_sub_le hys (mem_of_nhds hs), rw add_sub_cancel' at this,
+  calc ∥f' y∥ ≤ ∥f (x₀ + y) - f x₀∥ + ∥f (x₀ + y) - f x₀ - f' y∥ : norm_le_insert _ _
+          ... ≤ C * ∥y∥ + ε * ∥y∥                                : add_le_add this hy
+          ... = (C + ε) * ∥y∥                                    : (add_mul _ _ _).symm
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -388,7 +364,7 @@ begin
   rw [← mul_smul, mul_inv_cancel hy, one_smul]
 end
 
-theorem has_fderiv_at_unique
+theorem has_fderiv_at.unique
   (h₀ : has_fderiv_at f f₀' x) (h₁ : has_fderiv_at f f₁' x) : f₀' = f₁' :=
 begin
   rw ← has_fderiv_within_at_univ at h₀ h₁,
@@ -438,7 +414,7 @@ begin
 end
 
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
-by { ext, rw has_fderiv_at_unique h h.differentiable_at.has_fderiv_at }
+by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
 on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.
@@ -934,6 +910,45 @@ lemma is_bounded_linear_map.differentiable_on (h : is_bounded_linear_map 𝕜 f)
 h.differentiable.differentiable_on
 
 end continuous_linear_map
+
+section analytic
+
+variables {p : formal_multilinear_series 𝕜 E F} {r : ennreal}
+
+lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x) :
+  has_strict_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=
+begin
+  refine h.is_O_image_sub_norm_mul_norm_sub.trans_is_o (is_o.of_norm_right _),
+  refine is_o_iff_exists_eq_mul.2 ⟨λ y, ∥y - (x, x)∥, _, eventually_eq.rfl⟩,
+  refine (continuous_id.sub continuous_const).norm.tendsto' _ _ _,
+  rw [_root_.id, sub_self, norm_zero]
+end
+
+lemma has_fpower_series_at.has_fderiv_at (h : has_fpower_series_at f p x) :
+  has_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=
+h.has_strict_fderiv_at.has_fderiv_at
+
+lemma has_fpower_series_at.differentiable_at (h : has_fpower_series_at f p x) :
+  differentiable_at 𝕜 f x :=
+h.has_fderiv_at.differentiable_at
+
+lemma analytic_at.differentiable_at : analytic_at 𝕜 f x → differentiable_at 𝕜 f x
+| ⟨p, hp⟩ := hp.differentiable_at
+
+lemma analytic_at.differentiable_within_at (h : analytic_at 𝕜 f x) :
+  differentiable_within_at 𝕜 f s x :=
+h.differentiable_at.differentiable_within_at
+
+lemma has_fpower_series_at.fderiv (h : has_fpower_series_at f p x) :
+  fderiv 𝕜 f x = continuous_multilinear_curry_fin1 𝕜 E F (p 1) :=
+h.has_fderiv_at.fderiv
+
+lemma has_fpower_series_on_ball.differentiable_on [complete_space F]
+  (h : has_fpower_series_on_ball f p x r) :
+  differentiable_on 𝕜 f (emetric.ball x r) :=
+λ y hy, (h.analytic_at_of_mem hy).differentiable_within_at
+
+end analytic
 
 section composition
 /-!

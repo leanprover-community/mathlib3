@@ -136,6 +136,12 @@ lemma le_mul_of_one_le_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
+lemma add_le_mul_two_add [nontrivial α] {a b : α}
+  (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
+(((add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a).trans
+  (le_of_eq (add_assoc a a _).symm)).trans (add_le_add_right (le_of_eq (mul_two a).symm) _)).trans
+  (le_of_eq (mul_add a 2 b).symm)
+
 section
 variable [nontrivial α]
 

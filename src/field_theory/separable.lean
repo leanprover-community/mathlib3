@@ -551,8 +551,12 @@ end
 
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable. -/
-@[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
-∀ x : K, is_integral F x ∧ (minpoly F x).separable
+class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+(out : ∀ x : K, is_integral F x ∧ (minpoly F x).separable)
+
+theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
+  ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩

@@ -101,8 +101,11 @@ lemma separated_equiv : equivalence (λx y, (x, y) ∈ 𝓢 α) :=
 
 /-- A uniform space is separated if its separation relation is trivial (each point
 is related only to itself). -/
-@[class] def separated_space (α : Type u) [uniform_space α] :=
-𝓢 α = id_rel
+class separated_space (α : Type u) [uniform_space α] : Prop := (out : 𝓢 α = id_rel)
+
+theorem separated_space_iff {α : Type u} [uniform_space α] :
+  separated_space α ↔ 𝓢 α = id_rel :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 theorem separated_def {α : Type u} [uniform_space α] :
   separated_space α ↔ ∀ x y, (∀ r ∈ 𝓤 α, (x, y) ∈ r) → x = y :=

@@ -274,8 +274,10 @@ end polynomial
 section is_local
 
 /-- An ideal `I` is local iff its Jacobson radical is maximal. -/
-@[class] def is_local (I : ideal R) : Prop :=
-is_maximal (jacobson I)
+class is_local (I : ideal R) : Prop := (local' : is_maximal (jacobson I))
+
+theorem is_local_iff {I : ideal R} : is_local I ↔ is_maximal (jacobson I) :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 theorem is_local_of_is_maximal_radical {I : ideal R} (hi : is_maximal (radical I)) : is_local I :=
 have radical I = jacobson I,

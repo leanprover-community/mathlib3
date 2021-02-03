@@ -442,10 +442,7 @@ well_founded.recursion (well_founded_submodule_gt R M) I hgt
 A ring is Noetherian if it is Noetherian as a module over itself,
 i.e. all its ideals are finitely generated.
 -/
-@[class] def is_noetherian_ring (R) [ring R] : Prop := is_noetherian R R
-
-instance is_noetherian_ring.to_is_noetherian {R : Type*} [ring R] :
-  ∀ [is_noetherian_ring R], is_noetherian R R := id
+class is_noetherian_ring (R) [ring R] extends is_noetherian R R : Prop
 
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :

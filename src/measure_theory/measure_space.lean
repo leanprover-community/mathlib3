@@ -1567,8 +1567,12 @@ open measure
 
 /-- A measure `μ` is called σ-finite if there is a countable collection of sets
   `{ A i | i ∈ ℕ }` such that `μ (A i) < ⊤` and `⋃ i, A i = s`. -/
-@[class] def sigma_finite (μ : measure α) : Prop :=
-nonempty (μ.finite_spanning_sets_in {s | is_measurable s})
+class sigma_finite (μ : measure α) : Prop :=
+(out : nonempty (μ.finite_spanning_sets_in {s | is_measurable s}))
+
+theorem sigma_finite_iff {μ : measure α} : sigma_finite μ ↔
+  nonempty (μ.finite_spanning_sets_in {s | is_measurable s}) :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 /-- If `μ` is σ-finite it has finite spanning sets in the collection of all measurable sets. -/
 def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
@@ -1926,9 +1930,8 @@ section is_complete
   A null set is a subset of a measurable set with measure `0`.
   Since every measure is defined as a special case of an outer measure, we can more simply state
   that a set `s` is null if `μ s = 0`. -/
-@[class] def measure_theory.measure.is_complete {_ : measurable_space α} (μ : measure α) :
-  Prop :=
-∀ s, μ s = 0 → is_measurable s
+class measure_theory.measure.is_complete {_ : measurable_space α} (μ : measure α) : Prop :=
+(complete : ∀ s, μ s = 0 → is_measurable s)
 
 variables [measurable_space α] {μ : measure α} {s t z : set α}
 

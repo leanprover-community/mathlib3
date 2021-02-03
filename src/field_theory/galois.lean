@@ -43,7 +43,16 @@ section
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
 /-- A field extension E/F is galois if it is both separable and normal -/
-@[class] def is_galois : Prop := is_separable F E ∧ normal F E
+class is_galois : Prop :=
+(separable' : is_separable F E)
+(normal' : normal F E)
+
+variables {F E}
+
+theorem is_galois_iff {F} : is_galois F E ↔ is_separable F E ∧ normal F E :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+variables (F E)
 
 namespace is_galois
 
@@ -65,7 +74,7 @@ lemma separable [h : is_galois F E] (x : E) : (minpoly F x).separable := (h.1 x)
 -- TODO(Commelin, Browning): rename this to `splits`
 lemma normal [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) := normal.splits F x
 
-variables (F) (E)
+variables (F E)
 
 instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
   is_galois (mul_action.fixed_points G E) E :=

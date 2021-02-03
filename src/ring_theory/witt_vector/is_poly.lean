@@ -217,13 +217,13 @@ and the `@[is_poly]` attribute derives certain specialized composition instances
 for declarations of type `is_poly f`.
 For the most part, users are not expected to treat `is_poly` as a class.
 -/
-@[class] def is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) : Prop :=
-∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R),
-  by exactI (f x).coeff = λ n, aeval x.coeff (φ n)
+class is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) : Prop :=
+(poly : ∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R),
+  by exactI (f x).coeff = λ n, aeval x.coeff (φ n))
 
 /-- The identity function on Witt vectors is a polynomial function. -/
 instance id_is_poly : is_poly p (λ _ _, id) :=
-⟨X, by { introsI, simp only [aeval_X, id] }⟩
+⟨⟨X, by { introsI, simp only [aeval_X, id] }⟩⟩
 
 instance id_is_poly_i' : is_poly p (λ _ _ a, a) :=
 witt_vector.id_is_poly _
@@ -293,9 +293,9 @@ and the `@[is_poly]` attribute derives certain specialized composition instances
 for declarations of type `is_poly₂ f`.
 For the most part, users are not expected to treat `is_poly₂` as a class.
 -/
-@[class] def is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
-∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
-  by exactI (f x y).coeff = λ n, peval (φ n) ![x.coeff, y.coeff]
+class is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
+(poly : ∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
+  by exactI (f x y).coeff = λ n, peval (φ n) ![x.coeff, y.coeff])
 
 
 variable {p}

@@ -394,9 +394,9 @@ end complete_lattice
 does not belong to the filter. Bourbaki include this assumption in the definition
 of a filter but we prefer to have a `complete_lattice` structure on filter, so
 we use a typeclass argument in lemmas instead. -/
-@[class] def ne_bot (f : filter α) := f ≠ ⊥
+class ne_bot (f : filter α) := (ne' : f ≠ ⊥)
 
-lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := hf
+lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := ne_bot.ne' f
 
 @[simp] lemma not_ne_bot {α : Type*} {f : filter α} : ¬ f.ne_bot ↔ f = ⊥ :=
 not_not

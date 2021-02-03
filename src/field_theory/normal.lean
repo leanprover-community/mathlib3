@@ -31,8 +31,16 @@ variables (F K : Type*) [field F] [field K] [algebra F K]
 
 /-- Typeclass for normal field extension: `K` is a normal extension of `F` iff the minimal
 polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x` is in `K`. -/
-@[class] def normal : Prop :=
-∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x)
+class normal : Prop :=
+(out : ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x))
+
+variables {F K}
+
+theorem normal_iff : normal F K ↔
+  ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x) :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+variables (F K)
 
 instance normal_self : normal F F :=
 λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C', exact splits_X_sub_C _ }⟩

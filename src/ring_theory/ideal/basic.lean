@@ -175,8 +175,13 @@ def of_rel (r : α → α → Prop) : ideal α :=
 submodule.span α { x | ∃ (a b) (h : r a b), x = a - b }
 
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
-@[class] def is_prime (I : ideal α) : Prop :=
-I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I
+class is_prime (I : ideal α) : Prop :=
+(ne_top : I ≠ ⊤)
+(mem_or_mem' : ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I)
+
+theorem is_prime_iff {I : ideal α} :
+  is_prime I ↔ I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
   ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
@@ -212,7 +217,9 @@ lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
-@[class] def is_maximal (I : ideal α) : Prop := is_coatom I
+class is_maximal (I : ideal α) : Prop := (out : is_coatom I)
+
+theorem is_maximal_def {I : ideal α} : I.is_maximal ↔ is_coatom I := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 theorem is_maximal_iff {I : ideal α} : I.is_maximal ↔
   (1:α) ∉ I ∧ ∀ (J : ideal α) x, I ≤ J → x ∉ I → x ∈ J → (1:α) ∈ J :=

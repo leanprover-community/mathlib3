@@ -32,17 +32,17 @@ variables (M : Type*) [add_comm_group M] [module R M]
 variables {N : Type*} [add_comm_group N] [module R N]
 
 /-- A module `M` is Hausdorff with respect to an ideal `I` if `⋂ I^n M = 0`. -/
-@[class] def is_Hausdorff : Prop :=
-∀ x : M, (∀ n : ℕ, x ≡ 0 [SMOD (I ^ n • ⊤ : submodule R M)]) → x = 0
+class is_Hausdorff : Prop :=
+(haus : ∀ x : M, (∀ n : ℕ, x ≡ 0 [SMOD (I ^ n • ⊤ : submodule R M)]) → x = 0)
 
 /-- A module `M` is precomplete with respect to an ideal `I` if every Cauchy sequence converges. -/
-@[class] def is_precomplete : Prop :=
-∀ f : ℕ → M, (∀ {m n}, m ≤ n → f m ≡ f n [SMOD (I ^ m • ⊤ : submodule R M)]) →
-∃ L : M, ∀ n, f n ≡ L [SMOD (I ^ n • ⊤ : submodule R M)]
+class is_precomplete : Prop :=
+(prec : ∀ f : ℕ → M,
+  (∀ {m n}, m ≤ n → f m ≡ f n [SMOD (I ^ m • ⊤ : submodule R M)]) →
+  ∃ L : M, ∀ n, f n ≡ L [SMOD (I ^ n • ⊤ : submodule R M)])
 
 /-- A module `M` is `I`-adically complete if it is Hausdorff and precomplete. -/
-@[class] def is_adic_complete : Prop :=
-is_Hausdorff I M ∧ is_precomplete I M
+class is_adic_complete extends is_Hausdorff I M, is_precomplete I M : Prop
 
 /-- The Hausdorffification of a module with respect to an ideal. -/
 @[reducible] def Hausdorffification : Type* :=

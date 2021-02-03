@@ -79,8 +79,12 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] {I : ideal R}
 /-- A ring is a Jacobson ring if for every radical ideal `I`,
  the Jacobson radical of `I` is equal to `I`.
  See `is_jacobson_iff_prime_eq` and `is_jacobson_iff_Inf_maximal` for equivalent definitions. -/
-@[class] def is_jacobson (R : Type*) [comm_ring R] :=
-  ∀ (I : ideal R), I.radical = I → I.jacobson = I
+class is_jacobson (R : Type*) [comm_ring R] : Prop :=
+(out : ∀ (I : ideal R), I.radical = I → I.jacobson = I)
+
+theorem is_jacobson_iff {R} [comm_ring R] :
+  is_jacobson R ↔ ∀ (I : ideal R), I.radical = I → I.jacobson = I :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 /--  A ring is a Jacobson ring if and only if for all prime ideals `P`,
  the Jacobson radical of `P` is equal to `P`. -/

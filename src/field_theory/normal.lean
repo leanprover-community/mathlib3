@@ -89,7 +89,7 @@ end⟩
 lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.bijective ϕ :=
 ⟨ϕ.to_ring_hom.injective, λ x, by
 { letI : algebra E K := ϕ.to_ring_hom.to_algebra,
-  obtain ⟨h1, h2⟩ := h (algebra_map K E x),
+  obtain ⟨h1, h2⟩ := h.out (algebra_map K E x),
   cases minpoly.mem_range_of_degree_eq_one E x (or.resolve_left h2 (minpoly.ne_zero h1)
     (minpoly.irreducible (is_integral_of_is_scalar_tower x
       ((is_integral_algebra_map_iff (algebra_map K E).injective).mp h1)))
@@ -259,9 +259,9 @@ noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
   ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _
   (nonempty.some (@intermediate_field.alg_hom_mk_adjoin_splits' K E E _ _ _ _
   ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra ⊤ rfl
-  (λ x hx, ⟨is_integral_of_is_scalar_tower x (h x).1,
-  splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h x).1))
-  (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h x).2 })
+  (λ x hx, ⟨is_integral_of_is_scalar_tower x (h.out x).1,
+  splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
+  (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
   (minpoly.dvd_map_of_is_scalar_tower F K x)⟩)))
 
 @[simp] lemma alg_hom.lift_normal_commutes [normal F E] (x : K) :

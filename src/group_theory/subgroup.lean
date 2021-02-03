@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import group_theory.submonoid
 import algebra.group.conj
+import order.modular_lattice
 
 /-!
 # Subgroups
@@ -158,6 +159,10 @@ lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
 -- note that `to_additive` transfers the `simp` attribute over but not the `norm_cast` attribute
 attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
+
+@[to_additive]
+instance (K : subgroup G) [d : decidable_pred K.carrier] [fintype G] : fintype K :=
+show fintype {g : G // g ∈ K.carrier}, from infer_instance
 
 end subgroup
 
@@ -361,10 +366,13 @@ begin
     exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
 end
 
-@[to_additive] lemma eq_top_of_card_eq [fintype G] (h : fintype.card H = fintype.card G) : H = ⊤ :=
+@[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
+  (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
+  classical,
+  rw fintype.card_congr (equiv.refl _) at h, -- this swaps the fintype instance to classical
   change fintype.card H.carrier = _ at h,
-  cases H with S hS1 hS2 hS3,
+  unfreezingI { cases H with S hS1 hS2 hS3, },
   have : S = set.univ,
   { suffices : S.to_finset = finset.univ,
     { rwa [←set.to_finset_univ, set.to_finset_inj] at this, },
@@ -1328,3 +1336,42 @@ def subgroup_congr (h : H = K) : H ≃* K :=
 end mul_equiv
 
 -- TODO : ↥(⊤ : subgroup H) ≃* H ?
+
+namespace subgroup
+
+variables {C : Type*} [comm_group C] {s t : subgroup C} {x : C}
+
+@[to_additive]
+lemma mem_sup : x ∈ s ⊔ t ↔ ∃ (y ∈ s) (z ∈ t), y * z = x :=
+⟨λ h, begin
+  rw [← closure_eq s, ← closure_eq t, ← closure_union] at h,
+  apply closure_induction h,
+  { rintro y (h | h),
+    { exact ⟨y, h, 1, t.one_mem, by simp⟩ },
+    { exact ⟨1, s.one_mem, y, h, by simp⟩ } },
+  { exact ⟨1, s.one_mem, 1, ⟨t.one_mem, mul_one 1⟩⟩ },
+  { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
+    exact ⟨_, mul_mem _ hy₁ hy₂, _, mul_mem _ hz₁ hz₂, by simp [mul_assoc]; cc⟩ },
+  { rintro _ ⟨y, hy, z, hz, rfl⟩,
+    exact ⟨_, inv_mem _ hy, _, inv_mem _ hz, mul_comm z y ▸ (mul_inv_rev z y).symm⟩ }
+end,
+by rintro ⟨y, hy, z, hz, rfl⟩; exact mul_mem _
+  ((le_sup_left : s ≤ s ⊔ t) hy)
+  ((le_sup_right : t ≤ s ⊔ t) hz)⟩
+
+@[to_additive]
+lemma mem_sup' : x ∈ s ⊔ t ↔ ∃ (y : s) (z : t), (y:C) * z = x :=
+mem_sup.trans $ by simp only [subgroup.exists, coe_mk]
+
+@[to_additive]
+instance : is_modular_lattice (subgroup C) :=
+⟨λ x y z xz a ha, begin
+  rw [mem_inf, mem_sup] at ha,
+  rcases ha with ⟨⟨b, hb, c, hc, rfl⟩, haz⟩,
+  rw mem_sup,
+  refine ⟨b, hb, c, mem_inf.2 ⟨hc, _⟩, rfl⟩,
+  rw ← inv_mul_cancel_left b c,
+  apply z.mul_mem (z.inv_mem (xz hb)) haz,
+end⟩
+
+end subgroup

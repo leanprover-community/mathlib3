@@ -2,12 +2,36 @@
 Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Natural homomorphism from the natural numbers into a monoid with one.
 -/
+
 import data.nat.cast
 import data.fintype.basic
 import tactic.wlog
+
+/-!
+# Characteristic zero
+
+A ring `R` is called of characteristic zero if every natural number `n` is non-zero when considered
+as an element of `R`. Since this definition doesn't mention the multiplicative structure of `R`
+except for the existence of `1` in this file characteristic zero is defined for additive monoids
+with `1`.
+
+## Main definition
+
+`char_zero` is the typeclass of an additive monoid with one such that the natural homomorphism
+from the natural numbers into it is injective.
+
+## Main statements
+
+* A linearly ordered semiring has characteristic zero.
+* Characteristic zero implies that the additive monoid is infinite.
+
+## TODO
+
+* Once order of a group is defined for infinite additive monoids redefine or at least connect to
+  order of `1` in the additive monoid with one.
+* Unify with `char_p` (possibly using an out-parameter)
+-/
 
 /-- Typeclass for monoids with characteristic zero.
   (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/

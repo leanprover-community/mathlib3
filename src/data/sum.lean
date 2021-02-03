@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury G. Kudryashov
 -/
+import logic.function.basic
 
 /-!
 # More theorems about the sum type
@@ -95,10 +96,10 @@ protected def elim {α β γ : Sort*} (f : α → γ) (g : β → γ) : α ⊕ �
 
 @[simp] lemma elim_comp_inl {α β γ : Sort*} (f : α → γ) (g : β → γ) :
   sum.elim f g ∘ inl = f := rfl
-  
+
 @[simp] lemma elim_comp_inr {α β γ : Sort*} (f : α → γ) (g : β → γ) :
   sum.elim f g ∘ inr = g := rfl
-  
+
 @[simp] lemma elim_inl_inr {α β : Sort*} :
   @sum.elim α β _ inl inr = id :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
@@ -111,12 +112,57 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
   sum.elim (f ∘ inl) (f ∘ inr) = f :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
-lemma elim_injective {α β γ : Sort*} {f : α → γ} {g : β → γ}
-  (hf : function.injective f) (hg : function.injective g)
- (hfg : ∀ a b, f a ≠ g b) : function.injective (sum.elim f g) :=
-λ x y, sum.rec_on x
-  (sum.rec_on y (λ x y hxy, by rw hf hxy) (λ x y hxy, false.elim $ hfg _ _ hxy))
-  (sum.rec_on y (λ x y hxy, false.elim $ hfg x y hxy.symm) (λ x y hxy, by rw hg hxy))
+open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
+
+@[simp] lemma update_elim_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
+  {f : α → γ} {g : β → γ} {i : α} {x : γ} :
+  update (sum.elim f g) (inl i) x = sum.elim (update f i x) g :=
+update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
+
+@[simp] lemma update_elim_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
+  {f : α → γ} {g : β → γ} {i : β} {x : γ} :
+  update (sum.elim f g) (inr i) x = sum.elim f (update g i x) :=
+update_eq_iff.2 ⟨by simp, by simp { contextual := tt }⟩
+
+@[simp] lemma update_inl_comp_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : α} {x : γ} :
+  update f (inl i) x ∘ inl = update (f ∘ inl) i x :=
+update_comp_eq_of_injective _ injective_inl _ _
+
+@[simp] lemma update_inl_apply_inl {α β γ} [decidable_eq α] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i j : α} {x : γ} :
+  update f (inl i) x (inl j) = update (f ∘ inl) i x j :=
+by rw ← update_inl_comp_inl
+
+@[simp] lemma update_inl_comp_inr {α β γ} [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : α} {x : γ} :
+  update f (inl i) x ∘ inr = f ∘ inr :=
+update_comp_eq_of_forall_ne _ _ $ λ _, inr_ne_inl
+
+@[simp] lemma update_inl_apply_inr {α β γ} [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
+  update f (inl i) x (inr j) = f (inr j) :=
+function.update_noteq inr_ne_inl _ _
+
+@[simp] lemma update_inr_comp_inl {α β γ} [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : β} {x : γ} :
+  update f (inr i) x ∘ inl = f ∘ inl :=
+update_comp_eq_of_forall_ne _ _ $ λ _, inl_ne_inr
+
+@[simp] lemma update_inr_apply_inl {α β γ} [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : α} {j : β} {x : γ} :
+  update f (inr j) x (inl i) = f (inl i) :=
+function.update_noteq inl_ne_inr _ _
+
+@[simp] lemma update_inr_comp_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i : β} {x : γ} :
+  update f (inr i) x ∘ inr = update (f ∘ inr) i x :=
+update_comp_eq_of_injective _ injective_inr _ _
+
+@[simp] lemma update_inr_apply_inr {α β γ} [decidable_eq β] [decidable_eq (α ⊕ β)]
+  {f : α ⊕ β → γ} {i j : β} {x : γ} :
+  update f (inr i) x (inr j) = update (f ∘ inr) i x j :=
+by rw ← update_inr_comp_inr
 
 section
   variables (ra : α → α → Prop) (rb : β → β → Prop)
@@ -186,6 +232,14 @@ end sum
 namespace function
 
 open sum
+
+lemma injective.sum_elim {γ} {f : α → γ} {g : β → γ}
+  (hf : injective f) (hg : injective g) (hfg : ∀ a b, f a ≠ g b) :
+  injective (sum.elim f g)
+| (inl x) (inl y) h := congr_arg inl $ hf h
+| (inl x) (inr y) h := (hfg x y h).elim
+| (inr x) (inl y) h := (hfg y x h.symm).elim
+| (inr x) (inr y) h := congr_arg inr $ hg h
 
 lemma injective.sum_map {f : α → β} {g : α' → β'} (hf : injective f) (hg : injective g) :
   injective (sum.map f g)

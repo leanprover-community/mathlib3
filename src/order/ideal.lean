@@ -11,7 +11,8 @@ import data.equiv.encodable.basic
 
 ## Main definitions
 
-We work with a preorder `P` throughout.
+Throughout this file, `P` is at least a preorder, but some sections require more
+structure, such as a bottom element, a top element, or a join-semilattice structure.
 
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
@@ -37,7 +38,7 @@ ideal, cofinal, dense, countable, generic
 
 namespace order
 
-variables {P : Type*} [preorder P]
+variables {P : Type*}
 
 /-- An ideal on a preorder `P` is a subset of `P` that is
   - nonempty
@@ -51,6 +52,9 @@ structure ideal (P) [preorder P] :=
 
 namespace ideal
 
+section preorder
+variables [preorder P] {x : P} {I J : ideal P}
+
 /-- The smallest ideal containing a given element. -/
 def principal (p : P) : ideal P :=
 { carrier   := { x | x ≤ p },
@@ -61,7 +65,62 @@ def principal (p : P) : ideal P :=
 instance [inhabited P] : inhabited (ideal P) :=
 ⟨ideal.principal $ default P⟩
 
-instance : has_mem P (ideal P) := ⟨λ x I, x ∈ I.carrier⟩
+/-- An ideal of `P` can be viewed as a subset of `P`. -/
+instance : has_coe (ideal P) (set P) := ⟨carrier⟩
+
+/-- For the notation `x ∈ I`. -/
+instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
+
+/-- Two ideals are equal when their underlying sets are equal. -/
+@[ext] lemma ext : ∀ (I J : ideal P), (I : set P) = J → I = J
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ rfl := rfl
+
+/-- The partial ordering by subset inclusion, inherited from `set P`. -/
+instance : partial_order (ideal P) := partial_order.lift coe ext
+
+@[trans] lemma mem_of_mem_of_le : x ∈ I → I ≤ J → x ∈ J :=
+@set.mem_of_mem_of_subset P x I J
+
+@[simp] lemma principal_le_iff : principal x ≤ I ↔ x ∈ I :=
+⟨λ (h : ∀ {y}, y ≤ x → y ∈ I), h (le_refl x),
+ λ h_mem y (h_le : y ≤ x), I.mem_of_le h_le h_mem⟩
+
+end preorder
+
+section order_bot
+variables [order_bot P] {I : ideal P}
+
+/-- A specific witness of `I.nonempty` when `P` has a bottom element. -/
+@[simp] lemma bot_mem : ⊥ ∈ I :=
+I.mem_of_le bot_le I.nonempty.some_mem
+
+/-- There is a bottom ideal when `P` has a bottom element. -/
+instance : order_bot (ideal P) :=
+{ bot := principal ⊥,
+  bot_le := by simp,
+  .. ideal.partial_order }
+
+end order_bot
+
+/-- There is a top ideal when `P` has a top element. -/
+instance {P} [order_top P] : order_top (ideal P) :=
+{ top := principal ⊤,
+  le_top := λ I x h, le_top,
+  .. ideal.partial_order }
+
+section semilattice_sup
+variables [semilattice_sup P] {x y : P} {I : ideal P}
+
+/-- A specific witness of `I.directed` when `P` has joins. -/
+lemma sup_mem (x y ∈ I) : x ⊔ y ∈ I :=
+let ⟨z, h_mem, hx, hy⟩ := I.directed x (by assumption) y (by assumption) in
+I.mem_of_le (sup_le hx hy) h_mem
+
+@[simp] lemma sup_mem_iff : x ⊔ y ∈ I ↔ x ∈ I ∧ y ∈ I :=
+⟨λ h, ⟨I.mem_of_le le_sup_left h, I.mem_of_le le_sup_right h⟩,
+ λ h, sup_mem x y h.left h.right⟩
+
+end semilattice_sup
 
 end ideal
 
@@ -72,12 +131,14 @@ structure cofinal (P) [preorder P] :=
 (carrier : set P)
 (mem_gt  : ∀ x : P, ∃ y ∈ carrier, x ≤ y)
 
+namespace cofinal
+
+variables [preorder P]
+
 instance : inhabited (cofinal P) :=
 ⟨{ carrier := set.univ, mem_gt := λ x, ⟨x, trivial, le_refl _⟩}⟩
 
 instance : has_mem P (cofinal P) := ⟨λ x D, x ∈ D.carrier⟩
-
-namespace cofinal
 
 variables (D : cofinal P) (x : P)
 /-- A (noncomputable) element of a cofinal set lying above a given element. -/
@@ -93,7 +154,7 @@ end cofinal
 
 section ideal_of_cofinals
 
-variables (p : P) {ι : Type*} [encodable ι] (𝒟 : ι → cofinal P)
+variables [preorder P] (p : P) {ι : Type*} [encodable ι] (𝒟 : ι → cofinal P)
 
 /-- Given a starting point, and a countable family of cofinal sets,
   this is an increasing sequence that intersects each cofinal set. -/

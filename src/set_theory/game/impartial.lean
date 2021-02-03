@@ -23,33 +23,30 @@ namespace pgame
 local infix ` ≈ ` := equiv
 
 /-- The definition for a impartial game, defined using Conway induction -/
-def impartial_core : pgame → Prop
-| G := G ≈ -G ∧ (∀ i, impartial_core (G.move_left i)) ∧ (∀ j, impartial_core (G.move_right j))
+def impartial_aux : pgame → Prop
+| G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ (∀ j, impartial_aux (G.move_right j))
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma impartial_core_def {G : pgame} :
-  G.impartial ↔ G ≈ -G ∧ (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j)) :=
+lemma impartial_aux_def {G : pgame} : G.impartial_aux ↔ G ≈ -G ∧
+  (∀ i, impartial_aux (G.move_left i)) ∧ (∀ j, impartial_aux (G.move_right j)) :=
 begin
   split,
   { intro hi,
-    unfold1 impartial at hi,
+    unfold1 impartial_aux at hi,
     exact hi },
   { intro hi,
-    unfold1 impartial,
+    unfold1 impartial_aux,
     exact hi }
 end
 
-class impartial (G : pgame) : Prop := (out : impartial_core G)
+class impartial (G : pgame) : Prop := (out : impartial_aux G)
 
-lemma impartial_iff_core {G : pgame} : G.impartial ↔ G.impartial_core :=
+lemma impartial_iff_aux {G : pgame} : G.impartial ↔ G.impartial_aux :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
-lemma impartial_def {G : pgame} :
-  G.impartial ↔ G ≈ -G ∧ (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j)) :=
-begin
-  simp only [impartial_iff_core],
-  exact impartial_core_def
-end
+lemma impartial_def {G : pgame} : G.impartial ↔ G ≈ -G ∧
+  (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j)) :=
+by simpa only [impartial_iff_aux] using impartial_aux_def
 
 namespace impartial
 

@@ -188,7 +188,7 @@ theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
 
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
-hI.2 (h.symm ▸ I.zero_mem)
+hI.mem_or_mem (h.symm ▸ I.zero_mem)
 
 theorem is_prime.mem_of_pow_mem {I : ideal α} (hI : I.is_prime)
   {r : α} (n : ℕ) (H : r^n ∈ I) : r ∈ I :=
@@ -200,7 +200,7 @@ end
 
 lemma not_is_prime_iff {I : ideal α} : ¬ I.is_prime ↔ I = ⊤ ∨ ∃ (x ∉ I) (y ∉ I), x * y ∈ I :=
 begin
-  simp_rw [ideal.is_prime, not_and_distrib, ne.def, not_not, not_forall, not_or_distrib],
+  simp_rw [ideal.is_prime_iff, not_and_distrib, ne.def, not_not, not_forall, not_or_distrib],
   exact or_congr iff.rfl
     ⟨λ ⟨x, y, hxy, hx, hy⟩, ⟨x, hx, y, hy, hxy⟩, λ ⟨x, hx, y, hy, hxy⟩, ⟨x, y, hxy, hx, hy⟩⟩
 end
@@ -210,7 +210,7 @@ theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 
 theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
-by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
+by simp [is_prime_iff, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
 lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
 ⟨λ h, one_ne_zero (by rwa [ideal.eq_top_iff_one, submodule.mem_bot] at h),
@@ -223,7 +223,7 @@ theorem is_maximal_def {I : ideal α} : I.is_maximal ↔ is_coatom I := ⟨λ h,
 
 theorem is_maximal_iff {I : ideal α} : I.is_maximal ↔
   (1:α) ∉ I ∧ ∀ (J : ideal α) x, I ≤ J → x ∉ I → x ∈ J → (1:α) ∈ J :=
-and_congr I.ne_top_iff_one $ forall_congr $ λ J,
+is_maximal_def.trans $ and_congr I.ne_top_iff_one $ forall_congr $ λ J,
 by rw [lt_iff_le_not_le]; exact
  ⟨λ H x h hx₁ hx₂, J.eq_top_iff_one.1 $
     H ⟨h, not_subset.2 ⟨_, hx₂, hx₁⟩⟩,
@@ -232,7 +232,7 @@ by rw [lt_iff_le_not_le]; exact
 
 theorem is_maximal.eq_of_le {I J : ideal α}
   (hI : I.is_maximal) (hJ : J ≠ ⊤) (IJ : I ≤ J) : I = J :=
-eq_iff_le_not_lt.2 ⟨IJ, λ h, hJ (hI.2 _ h)⟩
+eq_iff_le_not_lt.2 ⟨IJ, λ h, hJ (hI.1.2 _ h)⟩
 
 theorem is_maximal.exists_inv {I : ideal α}
   (hI : I.is_maximal) {x} (hx : x ∉ I) : ∃ y, y * x - 1 ∈ I :=
@@ -246,7 +246,7 @@ begin
 end
 
 theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
-⟨H.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
+⟨H.1.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   cases H.exists_inv hx with z hz,
   have := I.mul_mem_left _ hz,
   rw [mul_sub, mul_one, mul_comm, mul_assoc, sub_eq_add_neg] at this,
@@ -263,7 +263,7 @@ theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 begin
   rcases zorn.zorn_partial_order₀ { J : ideal α | J ≠ ⊤ } _ I hI with ⟨M, M0, IM, h⟩,
-  { refine ⟨M, ⟨M0, λ J hJ, by_contradiction $ λ J0, _⟩, IM⟩,
+  { refine ⟨M, ⟨⟨M0, λ J hJ, by_contradiction $ λ J0, _⟩⟩, IM⟩,
     cases h J J0 (le_of_lt hJ), exact lt_irrefl _ hJ },
   { intros S SC cC I IS,
     refine ⟨Sup S, λ H, _, λ _, le_Sup⟩,
@@ -490,8 +490,8 @@ lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
 lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
-⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
-λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
+⟨⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
+λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩⟩
 
 section pi
 variables (ι : Type v)
@@ -611,7 +611,7 @@ lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M
 begin
   rintros h,
   rw h at max,
-  cases max with h1 h2,
+  rcases max with ⟨⟨h1, h2⟩⟩,
   obtain ⟨I, hIbot, hItop⟩ := not_is_field_iff_exists_ideal_bot_lt_and_lt_top.mp not_field,
   exact ne_of_lt hItop (h2 I hIbot),
 end
@@ -631,7 +631,7 @@ begin
   apply @irrefl _ (<) _ (⊤ : ideal R),
   have : M = ⊥ := eq_bot_iff.mpr mle,
   rw this at *,
-  rwa hm.2 I Ibot at Itop,
+  rwa hm.1.2 I Ibot at Itop,
 end
 
 end ideal
@@ -730,8 +730,8 @@ end
 lemma maximal_ideal_unique :
   ∃! I : ideal α, I.is_maximal :=
 ⟨maximal_ideal α, maximal_ideal.is_maximal α,
-  λ I hI, hI.eq_of_le (maximal_ideal.is_maximal α).1 $
-  λ x hx, hI.1 ∘ I.eq_top_of_is_unit_mem hx⟩
+  λ I hI, hI.eq_of_le (maximal_ideal.is_maximal α).1.1 $
+  λ x hx, hI.1.1 ∘ I.eq_top_of_is_unit_mem hx⟩
 
 variable {α}
 
@@ -762,24 +762,24 @@ lemma local_of_nonunits_ideal [comm_ring α] (hnze : (0:α) ≠ 1)
 lemma local_of_unique_max_ideal [comm_ring α] (h : ∃! I : ideal α, I.is_maximal) :
   local_ring α :=
 local_of_nonunits_ideal
-(let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
+(let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
 $ λ x y hx hy H,
 let ⟨I, Imax, Iuniq⟩ := h in
 let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
 let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
 have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
-Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
+Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
 lemma local_of_unique_nonzero_prime (R : Type u) [comm_ring R]
   (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prime P) : local_ring R :=
 local_of_unique_max_ideal begin
   rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
-  refine ⟨P, ⟨hPnot_top, _⟩, λ M hM, hPunique _ ⟨_, ideal.is_maximal.is_prime hM⟩⟩,
+  refine ⟨P, ⟨⟨hPnot_top, _⟩⟩, λ M hM, hPunique _ ⟨_, ideal.is_maximal.is_prime hM⟩⟩,
   { refine ideal.maximal_of_no_maximal (λ M hPM hM, ne_of_lt hPM _),
     exact (hPunique _ ⟨ne_bot_of_gt hPM, ideal.is_maximal.is_prime hM⟩).symm },
   { rintro rfl,
-    exact hPnot_top (hM.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
+    exact hPnot_top (hM.1.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
 end
 
 lemma local_of_surjective {A B : Type*} [comm_ring A] [local_ring A] [comm_ring B] [nontrivial B]
@@ -820,8 +820,8 @@ is_local_ring_hom.map_nonunit a h
 
 theorem of_irreducible_map [semiring α] [semiring β] (f : α →+* β) [h : is_local_ring_hom f] {x : α}
   (hfx : irreducible (f x)) : irreducible x :=
-⟨λ h, hfx.1 $ is_unit.map f.to_monoid_hom h, λ p q hx, let ⟨H⟩ := h in
-or.imp (H p) (H q) $ hfx.2 _ _ $ f.map_mul p q ▸ congr_arg f hx⟩
+⟨λ h, hfx.not_unit $ is_unit.map f.to_monoid_hom h, λ p q hx, let ⟨H⟩ := h in
+or.imp (H p) (H q) $ hfx.is_unit_or_is_unit $ f.map_mul p q ▸ congr_arg f hx⟩
 
 section
 open local_ring

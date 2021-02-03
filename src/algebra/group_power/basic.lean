@@ -626,7 +626,7 @@ by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).suc
 theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
 sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
 
-theorem sqr_le_sqr (h : abs x ≤  y) : x ^ 2 ≤ y ^ 2 :=
+theorem sqr_le_sqr (h : abs x ≤ y) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
 theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=

@@ -253,7 +253,7 @@ le_antisymm (begin
     rw le_inf_iff at hcinf,
     rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le at hc,
     rcases hc s hs h hcinf.2 with ⟨d, ds, cd⟩,
-    exact le_trans (le_inf hcinf.1 cd) (le_bsupr d ds) },
+    exact (le_inf hcinf.1 cd).trans (le_bsupr d ds) },
   { rw set.not_nonempty_iff_eq_empty at hs,
     simp [hs] }
 end) supr_inf_le_inf_Sup
@@ -266,7 +266,7 @@ le_antisymm (begin
   intros c hc hcinf,
   rw le_inf_iff at hcinf,
   rcases hc s hcinf.2 with ⟨t, ht1, ht2⟩,
-  exact le_trans (le_inf hcinf.1 ht2) (le_bsupr t ht1),
+  exact (le_inf hcinf.1 ht2).trans (le_bsupr t ht1),
 end) (supr_le $ λ t, supr_le $ λ h, inf_le_inf_left _ ((finset.sup_eq_Sup t).symm ▸ (Sup_le_Sup h)))
 
 theorem complete_lattice.independent_iff_finite {s : set α} :

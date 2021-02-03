@@ -903,11 +903,17 @@ lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (functio
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
+/-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
+Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
+remaining terms. -/
 lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
   ∑' n, f n = f i + ∑' n, ite (n ≠ i) (f n) 0 :=
 by rw [← tsum_ite_eq_add (hf.summable_of_eq_zero_or_self (λ j, _)) i, tsum_congr (λ j, _)];
   by_cases ji : j = i; simp [ji]
 
+/-- Let `f, g : ℕ → ℝ` be two sequences with summable series.  If `f` is dominated by `g` and
+at least one term of `f` is strictly smaller than the corresponding term in `g`, then the series
+of `f` is strictly smaller than the series of `g`. -/
 lemma tsum_lt {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b)
   (hf: summable f) (hg: summable g) {i : ℕ} (hi : f i < g i) :
   ∑' n, f n < ∑' n, g n :=

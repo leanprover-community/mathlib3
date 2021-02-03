@@ -762,6 +762,10 @@ lemma tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n
 le_of_tendsto' ((has_sum_iff_tendsto_nat_of_nonneg hf _).1
   (summable_of_sum_range_le hf h).has_sum) h
 
+/-- Lemma `tsum_lt_of_nonneg` shows that if a sequence `f` with non-negative terms is
+dominated by a sequence `g` with summable series and at least one term of `f` is strictly
+smaller than the corresponding term in `g`, then the series of `f` is strictly smaller
+than the series of `g`. -/
 lemma tsum_lt_of_nonneg {f g : ℕ → ℝ} (h0 : ∀ (b : ℕ), 0 ≤ f b) (h : ∀ (b : ℕ), f b ≤ g b)
   (hg: summable g) {i : ℕ} (hi : f i < g i) :
   ∑' n, f n < ∑' n, g n :=

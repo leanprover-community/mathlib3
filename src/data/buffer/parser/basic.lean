@@ -332,7 +332,7 @@ instance mmap : Π {l : list α} {f : α → parser β} [∀ a ∈ l, (f a).mono
     exact (λ _ ha, h _ (list.mem_cons_of_mem _ ha)) }
 end
 
-instance mmap' : Π {l : list α} {f : α → parser β} [h : ∀ a ∈ l, (f a).mono],
+instance mmap' : Π {l : list α} {f : α → parser β} [∀ a ∈ l, (f a).mono],
   (l.mmap' f).mono
 | []       _ _ := mono.pure
 | (a :: l) f h := begin

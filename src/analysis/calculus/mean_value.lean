@@ -1126,10 +1126,8 @@ differentiable. -/
 lemma has_strict_deriv_at_of_has_deriv_at_of_continuous {f f' : 𝕜 → G} {x : 𝕜}
   (hder : ∀ᶠ y in 𝓝 x, has_deriv_at f (f' y) y) (hcont : continuous_at f' x) :
   has_strict_deriv_at f (f' x) x :=
-begin
-  have : 
-
-end
+has_strict_fderiv_at_of_has_fderiv_at_of_continuous (hder.mono (λ y hy, hy.has_fderiv_at)) $
+  (smul_rightL 1).continuous.continuous_at.comp hcont
 
 lemma has_strict_fderiv_at_of_has_fderiv_within_at_of_continuous_of_mem_nhds {s : set G}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hcont : continuous_at f' x) (hs : s ∈ 𝓝 x) :

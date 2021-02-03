@@ -757,10 +757,6 @@ begin
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
-@[simp] lemma tsum_ite_eq' (i : ℕ) (a : ℝ) :
-  ∑' n, (ite (n = i) a 0) = a :=
-tsum_ite_eq i a
-
 lemma tsum_ite_eq_add {f : ℕ → ℝ} (hf : summable f) (i : ℕ) (a : ℝ) :
   ∑' n, ((ite (n = i) a 0) + f n) = a + ∑' n, f n :=
 begin

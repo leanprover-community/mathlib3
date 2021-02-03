@@ -11,14 +11,14 @@ noncomputable theory
 
 namespace category_theory
 
-universes v u₁ u₂ u₃
+universes v₁ v₂ u₁ u₂ u₃ u₄
 
-variables {C : Type u₁} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C]
 
 section creates
-variables {D : Type u₂} [category.{v} D]
+variables {D : Type u₂} [category.{v₁} D]
 
-variables {J : Type v} [small_category J] {K : J ⥤ C}
+variables {J : Type u₄} [category.{v₂} J] {K : J ⥤ C}
 
 /--
 Define the lift of a cone: For a cone `c` for `K ⋙ F`, give a cone for `K`
@@ -62,12 +62,12 @@ class creates_limit (K : J ⥤ C) (F : C ⥤ D) extends reflects_limit K F :=
 `F` creates limits of shape `J` if `F` creates the limit of any diagram
 `K : J ⥤ C`.
 -/
-class creates_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+class creates_limits_of_shape (J : Type u₄) [category.{v₂} J] (F : C ⥤ D) :=
 (creates_limit : Π {K : J ⥤ C}, creates_limit K F)
 
 /-- `F` creates limits if it creates limits of shape `J` for any small `J`. -/
 class creates_limits (F : C ⥤ D) :=
-(creates_limits_of_shape : Π {J : Type v} {𝒥 : small_category J},
+(creates_limits_of_shape : Π {J : Type v₁} {𝒥 : small_category J},
   by exactI creates_limits_of_shape J F)
 
 /--
@@ -86,12 +86,12 @@ class creates_colimit (K : J ⥤ C) (F : C ⥤ D) extends reflects_colimit K F :
 `F` creates colimits of shape `J` if `F` creates the colimit of any diagram
 `K : J ⥤ C`.
 -/
-class creates_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
+class creates_colimits_of_shape (J : Type u₄) [category.{v₂} J] (F : C ⥤ D) :=
 (creates_colimit : Π {K : J ⥤ C}, creates_colimit K F)
 
 /-- `F` creates colimits if it creates colimits of shape `J` for any small `J`. -/
 class creates_colimits (F : C ⥤ D) :=
-(creates_colimits_of_shape : Π {J : Type v} {𝒥 : small_category J},
+(creates_colimits_of_shape : Π {J : Type v₁} {𝒥 : small_category J},
   by exactI creates_colimits_of_shape J F)
 
 attribute [instance, priority 100] -- see Note [lower instance priority]
@@ -132,8 +132,8 @@ lemma has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape (F : C 
 ⟨λ G, has_limit_of_created G F⟩
 
 /-- If `F` creates limits, and `D` has all limits, then `C` has all limits. -/
-lemma has_limits_of_has_limits_creates_limits (F : C ⥤ D) [has_limits.{v} D] [creates_limits F] :
-  has_limits.{v} C :=
+lemma has_limits_of_has_limits_creates_limits (F : C ⥤ D) [has_limits D] [creates_limits F] :
+  has_limits C :=
 ⟨λ J I, by exactI has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape F⟩
 
 /- Interface to the `creates_colimit` class. -/
@@ -170,8 +170,8 @@ lemma has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (
 ⟨λ G, has_colimit_of_created G F⟩
 
 /-- If `F` creates colimits, and `D` has all colimits, then `C` has all colimits. -/
-lemma has_colimits_of_has_colimits_creates_colimits (F : C ⥤ D) [has_colimits.{v} D]
-  [creates_colimits F] : has_colimits.{v} C :=
+lemma has_colimits_of_has_colimits_creates_colimits (F : C ⥤ D) [has_colimits D]
+  [creates_colimits F] : has_colimits C :=
 ⟨λ J I, by exactI has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape F⟩
 
 /--
@@ -269,7 +269,7 @@ instance preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_s
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
-instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits.{v} D] :
+instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits D] :
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
@@ -314,7 +314,7 @@ instance preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimit
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
-instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits.{v} D] :
+instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits D] :
   preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }
@@ -427,7 +427,7 @@ instance inhabited_lifts_to_colimit (K : J ⥤ C) (F : C ⥤ D)
 
 section comp
 
-variables {E : Type u₃} [ℰ : category.{v} E]
+variables {E : Type u₃} [ℰ : category.{v₁} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 instance comp_creates_limit [creates_limit K F] [creates_limit (K ⋙ F) G] :

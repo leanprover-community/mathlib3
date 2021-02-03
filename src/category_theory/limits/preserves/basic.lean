@@ -566,17 +566,21 @@ def fully_faithful_reflects_limits [full F] [faithful F] : reflects_limits F :=
         apply t.uniq_cone_morphism,
       end } } }
 
+/-- A fully faithful functor reflects colimits of any shape. -/
+def fully_faithful_reflects_colimits_of_shape [full F] [faithful F] :
+  reflects_colimits_of_shape J F :=
+{ reflects_colimit := λ K,
+  { reflects := λ c t,
+    is_colimit.mk_cocone_morphism
+      (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
+    begin
+      apply (λ s m, (cocones.functoriality K F).map_injective _),
+      rw [functor.image_preimage],
+      apply t.uniq_cocone_morphism,
+    end } }
+
 /-- A fully faithful functor reflects colimits. -/
 def fully_faithful_reflects_colimits [full F] [faithful F] : reflects_colimits F :=
-{ reflects_colimits_of_shape := λ J 𝒥₁, by exactI
-  { reflects_colimit := λ K,
-    { reflects := λ c t,
-      is_colimit.mk_cocone_morphism
-        (λ s, (cocones.functoriality K F).preimage (t.desc_cocone_morphism _)) $
-      begin
-        apply (λ s m, (cocones.functoriality K F).map_injective _),
-        rw [functor.image_preimage],
-        apply t.uniq_cocone_morphism,
-      end } } }
+{ reflects_colimits_of_shape := λ J 𝒥₁, by exactI fully_faithful_reflects_colimits_of_shape F }
 
 end category_theory.limits

@@ -17,7 +17,7 @@ The duals of these are also given. For functors which preserve (co)limits of spe
 `preserves/shapes.lean`.
 -/
 
-universes w v u₁ u₂
+universes w v₁ v₂ v₃ u₁ u₂ u₃
 
 noncomputable theory
 
@@ -25,10 +25,10 @@ namespace category_theory
 
 open category limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₁} D]
 variables (G : C ⥤ D)
-variables {J : Type v} [category.{w} J]
+variables {J : Type u₃} [category.{v₃} J]
 variables (F : J ⥤ C)
 
 section

@@ -104,9 +104,9 @@ begin
 end
 
 lemma add_factorial_lt_factorial_add {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
-  i + n.succ! < (i + n.succ)! :=
+  i + (n + 1)! < (i + n + 1)! :=
 begin
-  rw [succ_eq_add_one, ← add_assoc, factorial_succ (i + _), succ_eq_add_one, add_mul, one_mul],
+  rw [factorial_succ (i + _), succ_eq_add_one, add_mul, one_mul],
   have : i ≤ i + n := le.intro rfl,
   exact add_lt_add_of_lt_of_le (this.trans_lt ((lt_mul_iff_one_lt_right (zero_lt_two.trans_le
     (hi.trans this))).mpr (lt_iff_le_and_ne.mpr ⟨(i + n).factorial_pos, λ g,

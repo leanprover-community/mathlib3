@@ -766,10 +766,10 @@ le_of_tendsto' ((has_sum_iff_tendsto_nat_of_nonneg hf _).1
 dominated by a sequence `g` with summable series and at least one term of `f` is strictly
 smaller than the corresponding term in `g`, then the series of `f` is strictly smaller
 than the series of `g`. -/
-lemma tsum_lt_of_nonneg {f g : ℕ → ℝ} (h0 : ∀ (b : ℕ), 0 ≤ f b) (h : ∀ (b : ℕ), f b ≤ g b)
-  (hg: summable g) {i : ℕ} (hi : f i < g i) :
+lemma tsum_lt_of_nonneg {i : ℕ} {f g : ℕ → ℝ}
+  (h0 : ∀ (b : ℕ), 0 ≤ f b) (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i) (hg : summable g) :
   ∑' n, f n < ∑' n, g n :=
-tsum_lt h (summable_of_nonneg_of_le h0 h hg) hg hi
+tsum_lt h hi (summable_of_nonneg_of_le h0 h hg) hg
 
 section
 variables [emetric_space β]

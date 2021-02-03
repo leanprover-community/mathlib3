@@ -895,27 +895,24 @@ tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
 remaining terms. -/
 lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
-  ∑' n, f n = f i + ∑' n, ite (n ≠ i) (f n) 0 :=
+  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
 begin
-  rw [← tsum_ite_eq i (f i), ← tsum_add (hf.summable_of_eq_zero_or_self (λ j, _))
-    ((hf.summable_of_eq_zero_or_self (λ j, _))), tsum_congr (λ j, _)];
-  by_cases ji : j = i; simp [ji],
+  refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
+    hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
+  exact λ j, by { by_cases ji : j = i; simp [ji] }
 end
 
 /-- Let `f, g : ℕ → ℝ` be two sequences with summable series.  If `f` is dominated by `g` and
 at least one term of `f` is strictly smaller than the corresponding term in `g`, then the series
 of `f` is strictly smaller than the series of `g`. -/
-lemma tsum_lt {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b)
-  (hf : summable f) (hg : summable g) {i : ℕ} (hi : f i < g i) :
+lemma tsum_lt {i : ℕ} {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i)
+  (hf : summable f) (hg : summable g) :
   ∑' n, f n < ∑' n, g n :=
 begin
-  rw [tsum_ite_eq_extract hf i, tsum_ite_eq_extract hg i],
-  refine add_lt_add_of_lt_of_le hi (tsum_le_tsum (λ j, _) _ _),
-  by_cases ji : j = i; simp [ji]; exact h j,
-  { refine hf.summable_of_eq_zero_or_self (λ j, _),
-    by_cases ji : j = i; simp [ji] },
-  { refine hg.summable_of_eq_zero_or_self (λ j, _),
-    by_cases ji : j = i; simp [ji] }
+  refine lt_of_le_of_lt (le_of_eq (tsum_ite_eq_extract hf i)) (lt_of_lt_of_le
+    (add_lt_add_of_lt_of_le hi (tsum_le_tsum _ (hf.summable_of_eq_zero_or_self _)
+    (hg.summable_of_eq_zero_or_self _))) (le_of_eq (tsum_ite_eq_extract hg i).symm));
+  exact λ j, by { by_cases ji : j = i; simp [ji, h j] }
 end
 
 end uniform_group

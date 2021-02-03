@@ -1576,9 +1576,12 @@ begin
     { simp only [hl, cons_append, nth, eq_self_iff_true, and_self, take] } }
 end
 
-@[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
-| 0     := rfl
-| (n+1) := rfl
+@[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
+  l.drop k = [] :=
+by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
+
+theorem drop_nil : ∀ n, drop n [] = ([] : list α) :=
+λ _, drop_eq_nil_of_le (nat.zero_le _)
 
 lemma mem_of_mem_drop {α} {n : ℕ} {l : list α} {x : α}
   (h : x ∈ l.drop n) :
@@ -1618,10 +1621,6 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 @[simp] lemma drop_length (l : list α) : l.drop l.length = [] :=
 calc l.drop l.length = (l ++ []).drop l.length : by simp
                  ... = [] : drop_left _ _
-
-@[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
-  l.drop k = [] :=
-by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
 
 lemma drop_append_of_le_length : ∀ {l₁ l₂ : list α} {n : ℕ}, n ≤ l₁.length →
   (l₁ ++ l₂).drop n = l₁.drop n ++ l₂

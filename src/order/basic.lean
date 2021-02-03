@@ -393,6 +393,12 @@ lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y 
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl
 
+lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y : Π i, α i} :
+  x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
+lt_iff_le_not_le.trans ⟨
+  λ ⟨h, hi⟩, let ⟨i, hi⟩ := not_forall.mp hi in ⟨h, i, (h i).lt_of_not_le hi⟩,
+  λ ⟨h, i, hi⟩, ⟨h, not_forall.mpr ⟨i, hi.not_le⟩⟩ ⟩
+
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=

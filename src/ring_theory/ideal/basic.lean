@@ -176,12 +176,14 @@ submodule.span α { x | ∃ (a b) (h : r a b), x = a - b }
 
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
 class is_prime (I : ideal α) : Prop :=
-(ne_top : I ≠ ⊤)
+(ne_top' : I ≠ ⊤)
 (mem_or_mem' : ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I)
 
 theorem is_prime_iff {I : ideal α} :
   is_prime I ↔ I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+theorem is_prime.ne_top {I : ideal α} (hI : I.is_prime) : I ≠ ⊤ := hI.1
 
 theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
   ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2

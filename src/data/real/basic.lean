@@ -39,30 +39,27 @@ def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
 @[irreducible] private def one : ℝ := ⟨1⟩
 @[irreducible] private def add : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
 @[irreducible] private def neg : ℝ → ℝ | ⟨a⟩ := ⟨-a⟩
-@[irreducible] private def sub : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a - b⟩
 @[irreducible] private def mul : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
 
 instance : has_zero ℝ := ⟨zero⟩
 instance : has_one ℝ := ⟨one⟩
 instance : has_add ℝ := ⟨add⟩
-instance : has_sub ℝ := ⟨sub⟩
 instance : has_neg ℝ := ⟨neg⟩
 instance : has_mul ℝ := ⟨mul⟩
 
 lemma zero_cauchy : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
 lemma one_cauchy : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
 lemma add_cauchy {a b} : (⟨a⟩ + ⟨b⟩ : ℝ) = ⟨a + b⟩ := show add _ _ = _, by rw add
-lemma sub_cauchy {a b} : (⟨a⟩ - ⟨b⟩ : ℝ) = ⟨a - b⟩ := show sub _ _ = _, by rw sub
 lemma neg_cauchy {a} : (-⟨a⟩ : ℝ) = ⟨-a⟩ := show neg _ = _, by rw neg
 lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
 
 instance : comm_ring ℝ :=
 begin
   refine_struct { zero := 0, one := 1, mul := (*),
-    add := (+), sub := @has_sub.sub ℝ _, neg := @has_neg.neg ℝ _ },
+    add := (+), neg := @has_neg.neg ℝ _, sub := λ a b, a + (-b) },
   all_goals {
     repeat { rintro ⟨_⟩, },
-    simp [← zero_cauchy, ← one_cauchy, add_cauchy, sub_cauchy, neg_cauchy, mul_cauchy],
+    simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy],
     apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
       apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
   },
@@ -84,6 +81,7 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
+instance : has_sub ℝ := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
 
 /-- The real numbers are a *-ring, with the trivial *-structure. -/

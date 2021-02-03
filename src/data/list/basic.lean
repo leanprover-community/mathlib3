@@ -1619,6 +1619,10 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 calc l.drop l.length = (l ++ []).drop l.length : by simp
                  ... = [] : drop_left _ _
 
+@[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
+  l.drop k = [] :=
+by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
+
 lemma drop_append_of_le_length : ∀ {l₁ l₂ : list α} {n : ℕ}, n ≤ l₁.length →
   (l₁ ++ l₂).drop n = l₁.drop n ++ l₂
 | l₁      l₂ 0     hn := by simp

@@ -895,7 +895,7 @@ tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
 remaining terms. -/
 lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
-  ∑' n, f n = f i + ∑' n, ite (n ≠ i) (f n) 0 :=
+  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
 begin
   rw [← tsum_ite_eq i (f i), ← tsum_add (hf.summable_of_eq_zero_or_self (λ j, _))
     ((hf.summable_of_eq_zero_or_self (λ j, _))), tsum_congr (λ j, _)];

@@ -1815,7 +1815,8 @@ protected def ker : lie_ideal R L := (to_endo_morphism R L M).ker
 @[simp] protected lemma mem_ker (x : L) : x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
 begin
   dunfold lie_module.ker,
-  simp only [lie_algebra.morphism.mem_ker, linear_map.eq_zero_iff, to_endo_morphism_to_fun_apply],
+  simp only [lie_algebra.morphism.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
+    to_endo_morphism_to_fun_apply],
 end
 
 /-- The largest submodule of a Lie module `M` on which the Lie algebra `L` acts trivially. -/

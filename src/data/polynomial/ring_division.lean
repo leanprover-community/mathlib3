@@ -525,7 +525,7 @@ let ⟨u, hu⟩ := h in by simp [hu.symm]
 lemma degree_eq_one_of_irreducible_of_root (hi : irreducible p) {x : R} (hx : is_root p x) :
   degree p = 1 :=
 let ⟨g, hg⟩ := dvd_iff_is_root.2 hx in
-have is_unit (X - C x) ∨ is_unit g, from hi.2 _ _ hg,
+have is_unit (X - C x) ∨ is_unit g, from hi.is_unit_or_is_unit hg,
 this.elim
   (λ h, have h₁ : degree (X - C x) = 1, from degree_X_sub_C x,
     have h₂ : degree (X - C x) = 0, from degree_eq_zero_of_is_unit h,
@@ -617,7 +617,7 @@ lemma monic.irreducible_of_irreducible_map (f : polynomial R)
 begin
   fsplit,
   { intro h,
-    exact h_irr.1 (is_unit.map (monoid_hom.of (map φ)) h), },
+    exact h_irr.not_unit (is_unit.map (monoid_hom.of (map φ)) h), },
   { intros a b h,
 
     have q := (leading_coeff_mul a b).symm,
@@ -631,7 +631,7 @@ begin
 
     have h' := congr_arg (map φ) h,
     simp only [map_mul] at h',
-    cases h_irr.2 _ _ h' with w w,
+    cases h_irr.is_unit_or_is_unit h' with w w,
     { left,
       exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },
     { right,

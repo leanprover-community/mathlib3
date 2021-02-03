@@ -444,6 +444,9 @@ i.e. all its ideals are finitely generated.
 -/
 class is_noetherian_ring (R) [ring R] extends is_noetherian R R : Prop
 
+theorem is_noetherian_ring_iff {R} [ring R] : is_noetherian_ring R ↔ is_noetherian R R :=
+⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
+
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M :=
@@ -453,7 +456,7 @@ by letI := classical.dec; exact
 theorem ring.is_noetherian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_noetherian_ring R :=
 by haveI := subsingleton_of_zero_eq_one h01;
    haveI := fintype.of_subsingleton (0:R);
-   exact ring.is_noetherian_of_fintype _ _
+   exact is_noetherian_ring_iff.2 (ring.is_noetherian_of_fintype R R)
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
@@ -515,7 +518,7 @@ theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
   (f : R →+* S) (hf : function.surjective f)
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
-  rw [is_noetherian_ring, is_noetherian_iff_well_founded] at H ⊢,
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H ⊢,
   exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
 end
 

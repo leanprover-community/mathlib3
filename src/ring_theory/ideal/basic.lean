@@ -223,6 +223,8 @@ class is_maximal (I : ideal α) : Prop := (out : is_coatom I)
 
 theorem is_maximal_def {I : ideal α} : I.is_maximal ↔ is_coatom I := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
+theorem is_maximal.ne_top {I : ideal α} (h : I.is_maximal) : I ≠ ⊤ := (is_maximal_def.1 h).1
+
 theorem is_maximal_iff {I : ideal α} : I.is_maximal ↔
   (1:α) ∉ I ∧ ∀ (J : ideal α) x, I ≤ J → x ∉ I → x ∈ J → (1:α) ∈ J :=
 is_maximal_def.trans $ and_congr I.ne_top_iff_one $ forall_congr $ λ J,

@@ -99,4 +99,35 @@ def map {f : V →ₗ[K] W} (inj : function.injective f) : proj_space K V → pr
 quotient.lift (λ v, quotient.mk $ nonzero.map inj v) $
 by {rintros v w ⟨a,rfl⟩, refine quotient.sound ⟨a,nonzero.ext $ by simp⟩}
 
+instance : has_mem V (proj_space K V) := has_mem.mk $
+λ v w, ∃ (u : nonzero V) (a : K), a • v = u ∧ w = mk u
+
+lemma mem_def {v : V} {w : proj_space K V} : v ∈ w ↔ ∃ (u : nonzero V) (a : K), a • v = u ∧ w = mk u := iff.rfl
+
+lemma ne_zero_of_mem {v : V} {w : proj_space K V} : v ∈ w → v ≠ 0 :=
+begin
+  intros h c,
+  obtain ⟨u,a,h⟩ := mem_def.mp h,
+  simp only [c, smul_zero] at h,
+  exact u.coe_nonzero h.1.symm,
+end
+
+lemma smul_mem {v : V} {w : proj_space K V} {a : K} : a ≠ 0 → v ∈ w → a • v ∈ w :=
+begin
+  intros ha hv,
+  rw mem_def at *,
+  rcases hv with ⟨u, b, h1, rfl⟩,
+  refine ⟨u, b * a⁻¹, _, rfl⟩,
+  simpa [mul_smul b, ← mul_smul a⁻¹, inv_mul_cancel ha],
+end
+
+variables (K V)
+structure linear_subspace :=
+(carrier : set (proj_space K V))
+(add_mem {u v : V} {a b c : proj_space K V} :
+  u ∈ a → v ∈ b → (u + v) ∈ c → a ∈ carrier → b ∈ carrier → c ∈ carrier)
+variables {K V}
+
+instance : has_coe (linear_subspace K V) (set (proj_space K V)) := ⟨linear_subspace.carrier⟩
+
 end proj_space

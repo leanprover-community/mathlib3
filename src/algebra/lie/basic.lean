@@ -157,6 +157,8 @@ instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨morphis
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
 
+initialize_simps_projections lie_algebra.morphism (to_fun → apply)
+
 @[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
   ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
 
@@ -987,15 +989,12 @@ by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
-lemma of_bot_eq_bot (N : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = ⊥ :=
+lemma subsingleton_of_bot : subsingleton (lie_submodule R L ↥(⊥ : lie_submodule R L M)) :=
 begin
+  apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
-  rw [mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
-  exact N.zero_mem,
+  simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, lie_submodule.mem_bot],
 end
-
-lemma unique_of_bot (N N' : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = N' :=
-by rw [N.of_bot_eq_bot, N'.of_bot_eq_bot]
 
 section inclusion_maps
 
@@ -1516,21 +1515,18 @@ begin
   { rw [lie_submodule.le_def, ← h], exact lie_submodule.subset_lie_span, },
 end
 
-/-- Note that this is not a special case of `lie_submodule.of_bot_eq_bot`. Indeed, given
+/-- Note that this is not a special case of `lie_submodule.subsingleton_of_bot`. Indeed, given
 `I : lie_ideal R L`, in general the two lattices `lie_ideal R I` and `lie_submodule R L I` are
 different (though the latter does naturally inject into the former).
 
 In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
 same as ideals of `L` contained in `I`. -/
-lemma of_bot_eq_bot (I : lie_ideal R ↥(⊥ : lie_ideal R L)) : I = ⊥ :=
+lemma subsingleton_of_bot : subsingleton (lie_ideal R ↥(⊥ : lie_ideal R L)) :=
 begin
+  apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
-  rw [lie_submodule.mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
-  exact I.zero_mem,
+  simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, lie_submodule.mem_bot],
 end
-
-lemma unique_of_bot (I J : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : I = J :=
-by rw [I.of_bot_eq_bot, J.of_bot_eq_bot]
 
 end lie_ideal
 
@@ -1816,7 +1812,7 @@ protected def ker : lie_ideal R L := (to_endo_morphism R L M).ker
 begin
   dunfold lie_module.ker,
   simp only [lie_algebra.morphism.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
-    to_endo_morphism_to_fun_apply],
+    to_endo_morphism_apply_apply],
 end
 
 /-- The largest submodule of a Lie module `M` on which the Lie algebra `L` acts trivially. -/
@@ -1901,7 +1897,8 @@ class is_simple extends lie_module.is_irreducible R L L : Prop :=
 class is_solvable : Prop :=
 (solvable : ∃ k, derived_series R L k = ⊥)
 
-instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) := ⟨⟨0, lie_ideal.of_bot_eq_bot ⊤⟩⟩
+instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
+⟨⟨0, @subsingleton.elim _ lie_ideal.subsingleton_of_bot _ ⊥⟩⟩
 
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=
@@ -2089,9 +2086,12 @@ begin
   exact h₂ hI,
 end
 
-lemma semisimple_lie_abelian_trivial [is_semisimple R L] [h : is_lie_abelian L] :
-  (⊤ : lie_ideal R L) = ⊥ :=
-by { rw [is_lie_abelian_iff_center_eq_top R L, center_eq_bot_of_semisimple] at h, exact h.symm, }
+lemma subsingleton_of_semisimple_lie_abelian [is_semisimple R L] [h : is_lie_abelian L] :
+  subsingleton (lie_ideal R L) :=
+begin
+  apply subsingleton_of_bot_eq_top,
+  rwa [is_lie_abelian_iff_center_eq_top R L, center_eq_bot_of_semisimple] at h,
+end
 
 @[priority 100]
 instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] : is_solvable R L :=

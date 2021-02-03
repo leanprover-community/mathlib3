@@ -5,7 +5,8 @@ Authors: Oliver Nash
 -/
 import order.well_founded
 import order.order_iso_nat
-import data.set.finite
+import order.atoms
+import order.zorn
 import tactic.tfae
 
 /-!
@@ -113,6 +114,21 @@ begin
     obtain ⟨j, ⟨hjS, hjk⟩⟩ := hk S Sne dir_US (le_trans k (Sup s) (Sup S) hsup sup_S),
     obtain ⟨t, ⟨htS, htsup⟩⟩ := hjS,
     use t, exact ⟨htS, by rwa ←htsup⟩, },
+end
+
+/-- A compact element `k` has the property that any directed set lying strictly below `k` has
+its Sup strictly below `k`. -/
+lemma is_compact_element.directed_Sup_lt_of_lt {α : Type*} [complete_lattice α] {k : α}
+  (hk : is_compact_element k) {s : set α} (hemp : s.nonempty) (hdir : directed_on (≤) s)
+  (hbelow : ∀ x ∈ s, x < k) : Sup s < k :=
+begin
+  rw is_compact_element_iff_le_of_directed_Sup_le at hk,
+  by_contradiction,
+  have sSup : Sup s ≤ k, from Sup_le _ _ (λ s hs, (hbelow s hs).le),
+  replace sSup : Sup s = k := eq_iff_le_not_lt.mpr ⟨sSup, h⟩,
+  obtain ⟨x, hxs, hkx⟩ := hk s hemp hdir sSup.symm.le,
+  obtain hxk := hbelow x hxs,
+  exact hxk.ne (hxk.le.antisymm hkx),
 end
 
 lemma finset_sup_compact_of_compact {α β : Type*} [complete_lattice α] {f : β → α}
@@ -236,5 +252,24 @@ begin
   -- x is the join of the set of compact elements {x}
   exact ⟨λ x, ⟨{x}, ⟨λ x _, h x, Sup_singleton⟩⟩⟩,
 end
+
+/-- A compact element `k` has the property that any `b < `k lies below a "maximal element below
+`k`", which is to say `[⊥, k]` is coatomic. -/
+theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
+  is_coatomic (set.Iic k) :=
+⟨λ ⟨b, hbk⟩, begin
+  by_cases htriv : b = k,
+  { left, ext, simp only [htriv, set.Iic.coe_top, subtype.coe_mk], },
+  right,
+  rcases zorn.zorn_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv) with ⟨a, a₀, ba, h⟩,
+  { refine ⟨⟨a, le_of_lt a₀⟩, ⟨ne_of_lt a₀, λ c hck, by_contradiction $ λ c₀, _⟩, ba⟩,
+    cases h c.1 (lt_of_le_of_ne c.2 (λ con, c₀ (subtype.ext con))) hck.le,
+    exact lt_irrefl _ hck, },
+  { intros S SC cC I IS,
+    by_cases hS : S.nonempty,
+    { exact ⟨Sup S, h.directed_Sup_lt_of_lt hS cC.directed_on SC, le_Sup _⟩, },
+    exact ⟨b, lt_of_le_of_ne hbk htriv, by simp only [set.not_nonempty_iff_eq_empty.mp hS,
+      set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩, },
+end⟩
 
 end complete_lattice

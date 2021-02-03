@@ -24,7 +24,7 @@ variables [decidable_eq α] [fintype α] [linear_order α] {m n : ℕ}
 /-- If `α` is a linearly ordered type, `s : finset α` has cardinality `m` and its complement has
 cardinality `n`, then `fin m ⊕ fin n ≃ α`. The equivalence sends elements of `fin m` to
 elements of `s` and elements of `fin n` to elements of `sᶜ` while preserving order on each
-"half" of `fin m ⊕ fin n`. -/
+"half" of `fin m ⊕ fin n` (using `set.order_iso_of_fin`). -/
 def fin_sum_equiv_of_finset (hm : s.card = m) (hn : sᶜ.card = n) : fin m ⊕ fin n ≃ α :=
 calc fin m ⊕ fin n ≃ (s : set α) ⊕ (sᶜ : set α) :
   equiv.sum_congr (s.order_iso_of_fin hm).to_equiv $

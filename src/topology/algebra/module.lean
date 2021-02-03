@@ -802,6 +802,8 @@ end
 /-- A continuous linear equivalence induces a homeomorphism. -/
 def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 
+@[simp] lemma coe_to_homeomorph (e : M ≃L[R] M₂) : ⇑e.to_homeomorph = e := rfl
+
 -- Make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
 @[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
@@ -866,6 +868,9 @@ end
 @[simp] lemma symm_to_linear_equiv (e : M ≃L[R] M₂) :
   e.symm.to_linear_equiv = e.to_linear_equiv.symm :=
 by { ext, refl }
+
+@[simp] lemma symm_to_homeomorph (e : M ≃L[R] M₂) : e.to_homeomorph.symm = e.symm.to_homeomorph :=
+rfl
 
 /-- The composition of two continuous linear equivalences as a continuous linear equivalence. -/
 @[trans] protected def trans (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) : M ≃L[R] M₃ :=

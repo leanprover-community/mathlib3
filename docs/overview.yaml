@@ -307,6 +307,7 @@ Geometry:
     tangent bundle: 'tangent_bundle'
     tangent map: 'tangent_map'
     Lie group: 'lie_group'
+    sphere: 'metric.sphere.smooth_manifold_with_corners'
 
   Algebraic geometry:
     prime spectrum: 'prime_spectrum'

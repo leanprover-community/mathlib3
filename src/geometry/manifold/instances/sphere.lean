@@ -3,14 +3,13 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import geometry.manifold.charted_space
-import analysis.normed_space.inner_product
+import geometry.manifold.instances.real
 
 /-!
 # Manifold structure on the sphere
 
 This file defines stereographic projection from the sphere in an inner product space `E`, and uses
-it to put a charted space structure on the sphere.
+it to put a smooth manifold structure on the sphere.
 
 ## Main results
 
@@ -18,9 +17,18 @@ For a unit vector `v` in `E`, the definition `stereographic` gives the stereogra
 centred at `v`, a local homeomorphism from the sphere to `(ℝ ∙ v)ᗮ` (the orthogonal complement of
 `v`).
 
-For finite-dimensional `E`, we then construct a charted space instance on the sphere; the charts
+For finite-dimensional `E`, we then construct a smooth manifold instance on the sphere; the charts
 here are obtained by composing the local homeomorphisms `stereographic` with arbitrary isometries
 from `(ℝ ∙ v)ᗮ` to Euclidean space.
+
+Finally, two lemmas about smooth maps:
+* `times_cont_mdiff_coe_sphere` states that the coercion map from the sphere into `E` is smooth;
+  this is a useful tool for constructing smooth maps *from* the sphere.
+* `times_cont_mdiff.cod_restrict_sphere` states that a map from a manifold into the sphere is
+  smooth if its lift to a map to `E` is smooth; this is a useful tool for constructing smooth maps
+  *to* the sphere.
+
+As an application we prove `times_cont_mdiff_neg_sphere`, that the antipodal map is smooth.
 
 ## Implementation notes
 
@@ -38,6 +46,9 @@ variables {E : Type*} [inner_product_space ℝ E]
 noncomputable theory
 
 open metric finite_dimensional
+open_locale manifold
+
+local attribute [instance] finite_dimensional_of_findim_eq_succ
 
 section stereographic_projection
 variables (v : E)
@@ -238,9 +249,8 @@ end stereographic_projection
 
 section charted_space
 
-variables [finite_dimensional ℝ E]
-
-/-! ### Charted space structure on the sphere
+/-!
+### Charted space structure on the sphere
 
 In this section we construct a charted space structure on the unit sphere in a finite-dimensional
 real inner product space `E`; that is, we show that it is locally homeomorphic to the Euclidean
@@ -261,27 +271,114 @@ orthogonalization, but in the finite-dimensional case it follows more easily by 
 space `E`.  This version has codomain the Euclidean space of dimension `n`, and is obtained by
 composing the original sterographic projection (`stereographic`) with an arbitrary linear isometry
 from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
-def stereographic' {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
+def stereographic' (n : ℕ) [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)).trans
-(linear_isometry_equiv.from_orthogonal_span_singleton hn
+(linear_isometry_equiv.from_orthogonal_span_singleton
   (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv.to_homeomorph.to_local_homeomorph
 
-@[simp] lemma stereographic'_source {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
-  (stereographic' hn v).source = {v}ᶜ :=
+@[simp] lemma stereographic'_source {n : ℕ} [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
+  (stereographic' n v).source = {v}ᶜ :=
 by simp [stereographic']
 
-@[simp] lemma stereographic'_target {n : ℕ} (hn : findim ℝ E = n + 1) (v : sphere (0:E) 1) :
-  (stereographic' hn v).target = set.univ :=
+@[simp] lemma stereographic'_target {n : ℕ} [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
+  (stereographic' n v).target = set.univ :=
 by simp [stereographic']
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a charted space
 modelled on the Euclidean space of dimension `n`. -/
-instance {n : ℕ} [_i : fact (findim ℝ E = n + 1)] :
+instance {n : ℕ} [fact (findim ℝ E = n + 1)] :
   charted_space (euclidean_space ℝ (fin n)) (sphere (0:E) 1) :=
-{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' _i.elim v},
-  chart_at         := λ v, stereographic' _i.elim (-v),
+{ atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' n v},
+  chart_at         := λ v, stereographic' n (-v),
   mem_chart_source := λ v, by simpa using ne_neg_of_mem_unit_sphere ℝ v,
   chart_mem_atlas  := λ v, ⟨-v, rfl⟩ }
 
 end charted_space
+
+section smooth_manifold
+
+/-! ### Smooth manifold structure on the sphere -/
+
+/-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a smooth manifold,
+modelled on the Euclidean space of dimension `n`. -/
+instance {n : ℕ} [fact (findim ℝ E = n + 1)] :
+  smooth_manifold_with_corners (𝓡 n) (sphere (0:E) 1) :=
+smooth_manifold_with_corners_of_times_cont_diff_on (𝓡 n) (sphere (0:E) 1)
+begin
+  rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
+  let U : (ℝ ∙ (v:E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+    (linear_isometry_equiv.from_orthogonal_span_singleton
+    (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv,
+  let U' : (ℝ ∙ (v':E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+    (linear_isometry_equiv.from_orthogonal_span_singleton
+    (nonzero_of_mem_unit_sphere v')).to_continuous_linear_equiv,
+  have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)).trans
+      U.to_homeomorph.to_local_homeomorph := rfl,
+  have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
+      U'.to_homeomorph.to_local_homeomorph := rfl,
+  have H₁ := U'.to_continuous_linear_map.times_cont_diff.comp_times_cont_diff_on
+      times_cont_diff_on_stereo_to_fun,
+  have H₂ := (times_cont_diff_stereo_inv_fun_aux.comp
+      (ℝ ∙ (v:E))ᗮ.subtype_continuous.times_cont_diff).comp
+      U.symm.to_continuous_linear_map.times_cont_diff,
+  convert H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ) using 1,
+  have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
+  { simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one] },
+  ext,
+  simp [h_set, hUv, hU'v', stereographic, real_inner_comm]
+end
+
+/-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
+lemma times_cont_mdiff_coe_sphere {n : ℕ} [fact (findim ℝ E = n + 1)] :
+  times_cont_mdiff (𝓡 n) 𝓘(ℝ, E) ∞ (coe : (sphere (0:E) 1) → E) :=
+begin
+  rw times_cont_mdiff_iff,
+  split,
+  { exact continuous_subtype_coe },
+  { intros v _,
+    let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+      (linear_isometry_equiv.from_orthogonal_span_singleton
+      (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
+    exact ((times_cont_diff_stereo_inv_fun_aux.comp
+      (ℝ ∙ ((-v):E))ᗮ.subtype_continuous.times_cont_diff).comp
+      U.symm.to_continuous_linear_map.times_cont_diff).times_cont_diff_on }
+end
+
+variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {H : Type*} [topological_space H] {I : model_with_corners ℝ F H}
+variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+
+/-- If a `times_cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
+sphere, then it restricts to a `times_cont_mdiff` function from `M` to the sphere. -/
+lemma times_cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (findim ℝ E = n + 1)]
+  {m : with_top ℕ} {f : M → E} (hf : times_cont_mdiff I 𝓘(ℝ, E) m f)
+  (hf' : ∀ x, f x ∈ sphere (0:E) 1) :
+  times_cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
+begin
+  rw times_cont_mdiff_iff_target,
+  refine ⟨continuous_induced_rng hf.continuous, _⟩,
+  intros v,
+  let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
+    (linear_isometry_equiv.from_orthogonal_span_singleton
+    (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
+  have h : times_cont_diff_on _ _ _ set.univ :=
+    U.to_continuous_linear_map.times_cont_diff.times_cont_diff_on,
+  have H₁ := (h.comp' times_cont_diff_on_stereo_to_fun).times_cont_mdiff_on,
+  have H₂ : times_cont_mdiff_on _ _ _ _ set.univ := hf.times_cont_mdiff_on,
+  convert (H₁.of_le le_top).comp' H₂ using 1,
+  ext x,
+  have hfxv : f x = -↑v ↔ ⟪f x, -↑v⟫_ℝ = 1,
+  { have hfx : ∥f x∥ = 1 := by simpa using hf' x,
+    rw inner_eq_norm_mul_iff_of_norm_one hfx,
+    exact norm_eq_of_mem_sphere (-v) },
+  dsimp [chart_at],
+  simp [not_iff_not, subtype.ext_iff, hfxv, real_inner_comm]
+end
+
+/-- The antipodal map is smooth. -/
+lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (findim ℝ E = n + 1)] :
+  times_cont_mdiff (𝓡 n) (𝓡 n) ∞ (λ x : sphere (0:E) 1, -x) :=
+(times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
+
+end smooth_manifold

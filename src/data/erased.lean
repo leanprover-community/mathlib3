@@ -48,6 +48,9 @@ begin
   exact cast (congr_fun this a).symm rfl
 end
 
+@[simp] theorem out_psum_mk_eq {α} (a : α) {h} : erased.out ⟨eq a, h⟩ = a :=
+out_mk _
+
 @[simp] theorem mk_out {α} : ∀ (a : erased α), mk (out a) = a
 | ⟨s, h⟩ := by simp [mk]; congr; exact classical.some_spec h
 
@@ -100,6 +103,9 @@ def map {α β} (f : α → β) (a : erased α) : erased β :=
 bind a (mk ∘ f)
 
 @[simp] theorem map_out {α β} {f : α → β} (a : erased α) : (a.map f).out = f a.out :=
+by simp [map]
+
+@[simp] theorem map_mk {α β} {f : α → β} (a : α) : (mk a).map f = mk (f a) :=
 by simp [map]
 
 instance : monad erased := { pure := @mk, bind := @bind, map := @map }

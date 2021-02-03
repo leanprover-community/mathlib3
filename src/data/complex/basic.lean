@@ -270,7 +270,7 @@ by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub
 
 /-! ### Inversion -/
 
-noncomputable instance : has_inv ℂ := ⟨λ z, conj z * ((norm_sq z)⁻¹:ℝ)⟩
+instance : has_inv ℂ := ⟨λ z, conj z * ((norm_sq z)⁻¹:ℝ)⟩
 
 theorem inv_def (z : ℂ) : z⁻¹ = conj z * ((norm_sq z)⁻¹:ℝ) := rfl
 @[simp] lemma inv_re (z : ℂ) : (z⁻¹).re = z.re / norm_sq z := by simp [inv_def, division_def]
@@ -288,7 +288,7 @@ by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
 
 /-! ### Field instance and lemmas -/
 
-noncomputable instance : field ℂ :=
+instance : field ℂ :=
 { inv := has_inv.inv,
   exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩,
   mul_inv_cancel := @complex.mul_inv_cancel,
@@ -361,12 +361,12 @@ by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 /-- A complex number `z` plus its conjugate `conj z` is `2` times its real part. -/
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
-by simp only [add_conj, of_real_mul, of_real_one, of_real_bit0, 
+by simp only [add_conj, of_real_mul, of_real_one, of_real_bit0,
      mul_div_cancel_left (z.re:ℂ) two_ne_zero']
 
 /-- A complex number `z` minus its conjugate `conj z` is `2i` times its imaginary part. -/
 theorem im_eq_sub_conj (z : ℂ) : (z.im : ℂ) = (z - conj(z))/(2 * I) :=
-by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm, 
+by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm,
      mul_div_cancel_left _ (mul_ne_zero two_ne_zero' I_ne_zero : 2 * I ≠ 0)]
 
 /-! ### Absolute value -/

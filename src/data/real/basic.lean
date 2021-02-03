@@ -10,11 +10,13 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 import algebra.star.basic
+import data.erased
+
+local notation `Cauchy` := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
-structure real := of_cauchy ::
-(cauchy : @cau_seq.completion.Cauchy ℚ _ _ _ abs _)
+structure real := mk'' :: (erased_cauchy : erased Cauchy)
 notation `ℝ` := real
 
 attribute [pp_using_anonymous_constructor] real
@@ -24,19 +26,49 @@ open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
 
-lemma ext_cauchy_iff : ∀ {x y : real}, x = y ↔ x.cauchy = y.cauchy
-| ⟨a⟩ ⟨b⟩ := by split; cc
+def of_cauchy (x) : ℝ := ⟨erased.mk x⟩
+noncomputable def cauchy (x : ℝ) : Cauchy := x.erased_cauchy.out
+
+@[simp] lemma of_cauchy_cauchy (x : Cauchy) : (of_cauchy x).cauchy = x := erased.out_mk x
+@[simp] lemma cauchy_of_cauchy (x : ℝ) : of_cauchy x.cauchy = x :=
+by cases x; simp [cauchy, of_cauchy]
+
+@[simp] lemma erased_cauchy_mk'' (x : ℝ) : mk'' x.erased_cauchy = x := by cases x; refl
+
+def map_cauchy (x : ℝ) (f : Cauchy → Cauchy) : ℝ :=
+mk'' (x.erased_cauchy.map f)
+
+@[simp] lemma bind_cauchy_of_cauchy (x : Cauchy) (f : Cauchy → Cauchy) :
+  (of_cauchy x).map_cauchy f = of_cauchy (f x) :=
+by simp [map_cauchy, of_cauchy]
+
+def map_cauchy₂ (x y : ℝ) (f : Cauchy → Cauchy → Cauchy) : ℝ :=
+mk'' $ x.erased_cauchy.bind $ λ x, y.erased_cauchy.bind $ λ y, erased.mk (f x y)
+
+@[simp] lemma map_cauchy₂_of_cauchy (x y : Cauchy) (f : Cauchy → Cauchy → Cauchy) :
+  (of_cauchy x).map_cauchy₂ (of_cauchy y) f = of_cauchy (f x y) :=
+by simp [map_cauchy₂, of_cauchy]
+
+@[simp] lemma of_cauchy_eq {x y} : of_cauchy x = of_cauchy y ↔ x = y :=
+⟨λ h, by simpa using congr_arg cauchy h, by cc⟩
+
+lemma ext_cauchy_iff {x y : real} : x = y ↔ x.cauchy = y.cauchy :=
+⟨by cc, λ h, by simpa using congr_arg of_cauchy h⟩
 
 lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
+@[elab_as_eliminator]
+protected lemma ind_of_cauchy {C : real → Prop} (x : real) (h : ∀ y, C (of_cauchy y)) : C x :=
+begin rw ← cauchy_of_cauchy x, apply h end
+
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
-@[irreducible] private def zero : ℝ := ⟨0⟩
-@[irreducible] private def one : ℝ := ⟨1⟩
-@[irreducible] private def add : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
-@[irreducible] private def neg : ℝ → ℝ | ⟨a⟩ := ⟨-a⟩
-@[irreducible] private def sub : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a - b⟩
-@[irreducible] private def mul : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
+@[irreducible] private def zero : ℝ := of_cauchy 0
+@[irreducible] private def one : ℝ := of_cauchy 1
+@[irreducible] private def add (a b : ℝ) : ℝ := a.map_cauchy₂ b (+)
+@[irreducible] private def neg (a : ℝ) : ℝ := a.map_cauchy has_neg.neg
+@[irreducible] private def sub (a b : ℝ) : ℝ := a.map_cauchy₂ b has_sub.sub
+@[irreducible] private def mul (a b : ℝ) : ℝ := a.map_cauchy₂ b (*)
 
 instance : has_zero ℝ := ⟨zero⟩
 instance : has_one ℝ := ⟨one⟩
@@ -45,19 +77,19 @@ instance : has_sub ℝ := ⟨sub⟩
 instance : has_neg ℝ := ⟨neg⟩
 instance : has_mul ℝ := ⟨mul⟩
 
-lemma zero_cauchy : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
-lemma one_cauchy : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
-lemma add_cauchy {a b} : (⟨a⟩ + ⟨b⟩ : ℝ) = ⟨a + b⟩ := show add _ _ = _, by rw add
-lemma sub_cauchy {a b} : (⟨a⟩ - ⟨b⟩ : ℝ) = ⟨a - b⟩ := show sub _ _ = _, by rw sub
-lemma neg_cauchy {a} : (-⟨a⟩ : ℝ) = ⟨-a⟩ := show neg _ = _, by rw neg
-lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
+lemma zero_cauchy : (of_cauchy 0 : ℝ) = 0 := show _ = zero, by rw zero
+lemma one_cauchy : (of_cauchy 1 : ℝ) = 1 := show _ = one, by rw one
+lemma add_cauchy {a b} : (of_cauchy a + of_cauchy b) = of_cauchy (a + b) := show add _ _ = _, by simp [add]
+lemma sub_cauchy {a b} : (of_cauchy a - of_cauchy b) = of_cauchy (a - b) := show sub _ _ = _, by simp [sub]
+lemma neg_cauchy {a} : (-of_cauchy a) = of_cauchy (-a) := show neg _ = _, by simp [neg]
+lemma mul_cauchy {a b} : (of_cauchy a * of_cauchy b) = of_cauchy (a * b) := show mul _ _ = _, by simp [mul]
 
 instance : comm_ring ℝ :=
 begin
   refine_struct { zero := 0, one := 1, mul := (*),
     add := (+), sub := @has_sub.sub ℝ _, neg := @has_neg.neg ℝ _ },
   all_goals {
-    repeat { rintro ⟨_⟩, },
+    repeat { rintro x, induction x using real.ind_of_cauchy with y },
     simp [← zero_cauchy, ← one_cauchy, add_cauchy, sub_cauchy, neg_cauchy, mul_cauchy],
     apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
       apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
@@ -95,21 +127,22 @@ by refine_struct { to_fun := of_cauchy ∘ of_rat };
 lemma of_rat_apply (x : ℚ) : of_rat x = of_cauchy (cau_seq.completion.of_rat x) := rfl
 
 /-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
-def mk (x : cau_seq ℚ abs) : ℝ := ⟨cau_seq.completion.mk x⟩
+def mk (x : cau_seq ℚ abs) : ℝ := of_cauchy $ cau_seq.completion.mk x
 
 theorem mk_eq {f g : cau_seq ℚ abs} : mk f = mk g ↔ f ≈ g :=
-ext_cauchy_iff.trans mk_eq
+by rw ← mk_eq; simp [mk]
 
 @[irreducible]
-private def lt : ℝ → ℝ → Prop | ⟨x⟩ ⟨y⟩ :=
-quotient.lift_on₂ x y (<) $
+private def lt (x y : ℝ) : Prop :=
+quotient.lift_on₂ x.cauchy y.cauchy (<) $
   λ f₁ g₁ f₂ g₂ hf hg, propext $
   ⟨λ h, lt_of_eq_of_lt (setoid.symm hf) (lt_of_lt_of_eq h hg),
    λ h, lt_of_eq_of_lt hf (lt_of_lt_of_eq h (setoid.symm hg))⟩
 
 instance : has_lt ℝ := ⟨lt⟩
 
-lemma lt_cauchy {f g} : (⟨⟦f⟧⟩ : ℝ) < ⟨⟦g⟧⟩ ↔ f < g := show lt _ _ ↔ _, by rw lt; refl
+lemma lt_cauchy {f g} : of_cauchy ⟦f⟧ < of_cauchy ⟦g⟧ ↔ f < g :=
+show lt _ _ ↔ _, by simp [lt]; refl
 
 @[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g :=
 lt_cauchy
@@ -133,7 +166,7 @@ by simp [le_def, mk_eq]; refl
 @[elab_as_eliminator]
 protected lemma ind_mk {C : real → Prop} (x : real) (h : ∀ y, C (mk y)) : C x :=
 begin
-  cases x with x,
+  induction x using real.ind_of_cauchy with x,
   induction x using quot.induction_on with x,
   exact h x
 end
@@ -213,31 +246,34 @@ noncomputable instance : linear_ordered_comm_ring ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
-instance : domain ℝ                     :=
-{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
+instance : domain ℝ := { ..real.nontrivial, ..real.comm_ring, ..linear_ordered_ring.to_domain }
 
-@[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
-noncomputable instance : has_inv ℝ := ⟨inv'⟩
-lemma inv_cauchy {f} : (⟨f⟩ : ℝ)⁻¹ = ⟨f⁻¹⟩ := show inv' _ = _, by rw inv'
+@[irreducible] private def inv' (a : ℝ) : ℝ := ⟨⟨eq a.cauchy⁻¹, _, rfl⟩⟩
+instance : has_inv ℝ := ⟨inv'⟩
+lemma inv_cauchy {f} : (of_cauchy f : ℝ)⁻¹ = of_cauchy f⁻¹ :=
+show inv' _ = _, by simp [inv', of_cauchy, erased.mk, cauchy]
 
-noncomputable instance : linear_ordered_field ℝ :=
+instance field : field ℝ :=
 { inv := has_inv.inv,
   mul_inv_cancel := begin
-    rintros ⟨a⟩ h,
+    intros a h,
+    induction a using real.ind_of_cauchy with a,
     rw mul_comm,
-    simp only [inv_cauchy, mul_cauchy, ← one_cauchy, ← zero_cauchy, ne.def] at *,
+    simp only [inv_cauchy, mul_cauchy, ← one_cauchy, ← zero_cauchy, ne.def, of_cauchy_eq] at *,
     exact cau_seq.completion.inv_mul_cancel h,
   end,
+  mul_comm := mul_comm,
   inv_zero := by simp [← zero_cauchy, inv_cauchy],
-  ..real.linear_ordered_comm_ring,
   ..real.domain }
+
+noncomputable instance : linear_ordered_field ℝ :=
+{ ..real.field, ..real.linear_ordered_comm_ring }
 
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
-noncomputable instance field : field ℝ := by apply_instance
-noncomputable instance : division_ring ℝ           := by apply_instance
-noncomputable instance : integral_domain ℝ         := by apply_instance
+instance : division_ring ℝ := by apply_instance
+instance : integral_domain ℝ := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
 noncomputable instance : semilattice_inf ℝ := by apply_instance

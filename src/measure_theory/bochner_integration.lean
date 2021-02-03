@@ -566,7 +566,7 @@ by { rw ← mk_eq_mk, exact classical.some_spec (to_L1 f hfi).2 }
 
 lemma to_simple_func_eq_to_fun (f : α →₁ₛ[μ] E) : to_simple_func f =ᵐ[μ] f :=
 begin
-  simp_rw [← integrable.to_L1_eq_to_L1 (to_simple_func f) f (simple_func.integrable f)
+  simp_rw [← integrable.to_L1_eq_to_L1_iff (to_simple_func f) f (simple_func.integrable f)
     (integrable_coe_fn ↑f), subtype.ext_iff],
   convert classical.some_spec f.coe_prop,
   exact integrable.to_L1_coe_fn _ _,
@@ -1052,7 +1052,7 @@ lemma integral_congr_ae (h : f =ᵐ[μ] g) : ∫ a, f a ∂μ = ∫ a, g a ∂μ
 begin
   by_cases hfi : integrable f μ,
   { have hgi : integrable g μ := hfi.congr h,
-    rw [integral_eq f hfi, integral_eq g hgi, (integrable.to_L1_eq_to_L1 f g hfi hgi).2 h] },
+    rw [integral_eq f hfi, integral_eq g hgi, (integrable.to_L1_eq_to_L1_iff f g hfi hgi).2 h] },
   { have hgi : ¬ integrable g μ, { rw integrable_congr h at hfi, exact hfi },
     rw [integral_undef hfi, integral_undef hgi] },
 end

@@ -36,14 +36,15 @@ TODO: prove that Lp is complete.
 -/
 
 noncomputable theory
+open topological_space
 
 namespace measure_theory
 
 section ℒp
 
-variables {α E F : Type*} [measurable_space α] {μ : measure α}
+variables {α E F G : Type*} [measurable_space α] {μ : measure α}
   [measurable_space E] [normed_group E]
-  [normed_group F]
+  [normed_group F] [normed_group G]
   {p : ℝ} {q : ennreal}
 
 section ℒp_space_definition
@@ -66,7 +67,8 @@ by simp [snorm, hq_ne_zero, hq_ne_top]
 
 @[simp] lemma snorm_exponent_top {f : α → F} : snorm f ⊤ μ = snorm_ess_sup f μ := by simp [snorm]
 
-lemma snorm_mono_ae {f g : α → F} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : snorm f q μ ≤ snorm g q μ :=
+lemma snorm_mono_ae {f : α → F} {g: α → G} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) :
+  snorm f q μ ≤ snorm g q μ :=
 begin
   simp [snorm],
   split_ifs,
@@ -87,6 +89,9 @@ end
 `ess_sup f < ∞` if `p = ∞`. -/
 def mem_ℒp (f : α → E) (p : ennreal) (μ : measure α) : Prop :=
 ae_measurable f μ ∧ snorm f p μ < ⊤
+
+lemma mem_ℒp.ae_measurable {f : α → E} {p : ennreal} {μ : measure α} (h : mem_ℒp f p μ) :
+  ae_measurable f μ := h.1
 
 lemma lintegral_rpow_nnnorm_eq_rpow_snorm' {f : α → F} (hp0_lt : 0 < p) :
   ∫⁻ a, (nnnorm (f a)) ^ p ∂μ = (snorm' f p μ) ^ p :=
@@ -255,16 +260,21 @@ lemma snorm_ess_sup_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) :
   snorm_ess_sup f μ = snorm_ess_sup g μ :=
 ess_sup_congr_ae (hfg.mono (λ x hx, by rw hx))
 
-lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f q μ = snorm g q μ :=
+lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, ∥f x∥ = ∥g x∥) :
+  snorm f q μ = snorm g q μ :=
 begin
   by_cases h0 : q = 0,
   { simp [h0], },
   by_cases h_top : q = ⊤,
   { rw [h_top, snorm_exponent_top],
-    exact snorm_ess_sup_congr_ae hfg, },
-  repeat { rw snorm_eq_snorm' h0 h_top, },
-  exact snorm'_congr_ae hfg,
+    exact ess_sup_congr_ae (hfg.mono (λ x hx, by simp [nnnorm, hx])) },
+  { simp only [snorm_eq_snorm' h0 h_top, snorm'],
+    congr' 1,
+    exact lintegral_congr_ae (hfg.mono (λ x hx, by simp [nnnorm, hx])) }
 end
+
+lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f q μ = snorm g q μ :=
+snorm_congr_norm_ae $ hfg.mono (λ x hx, by simp [hx])
 
 lemma mem_ℒp.ae_eq {f g : α → E} (hfg : f =ᵐ[μ] g) (hf_Lp : mem_ℒp f q μ) : mem_ℒp g q μ :=
 begin
@@ -275,8 +285,8 @@ begin
     exact hf_Lp.2, },
 end
 
-lemma mem_ℒp.of_le {f g : α → E} (hg : mem_ℒp g q μ) (hf : ae_measurable f μ)
-  (hfg : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : mem_ℒp f q μ :=
+lemma mem_ℒp.of_le [measurable_space F] {f : α → E} {g : α → F}
+  (hg : mem_ℒp g q μ) (hf : ae_measurable f μ) (hfg : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : mem_ℒp f q μ :=
 begin
   simp only [mem_ℒp, hf, true_and],
   exact lt_of_le_of_lt (snorm_mono_ae hfg) hg.snorm_lt_top,
@@ -287,6 +297,10 @@ lemma mem_ℒp_congr_ae {f g : α → E} (hfg : f =ᵐ[μ] g) : mem_ℒp f q μ 
 
 section opens_measurable_space
 variable [opens_measurable_space E]
+
+lemma mem_ℒp.norm {f : α → E} (h : mem_ℒp f q μ) :
+  mem_ℒp (λ x, ∥f x∥) q μ :=
+h.of_le h.ae_measurable.norm (filter.eventually_of_forall (λ x, by simp))
 
 lemma snorm'_eq_zero_of_ae_zero {f : α → F} (hp0_lt : 0 < p) (hf_zero : f =ᵐ[μ] 0) :
   snorm' f p μ = 0 :=
@@ -340,6 +354,7 @@ begin
   exact snorm'_eq_zero_iff
     (ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩) hf,
 end
+
 
 end opens_measurable_space
 
@@ -501,12 +516,6 @@ begin
   exact snorm'_lt_top_of_snorm'_lt_top_of_exponent_le hfq_m hfq_lt_top (le_of_lt hp_pos) hpq_real,
 end
 
-/-
-lemma mem_ℒp.integrable (hq1 : 1 ≤ q) {f : α → E} [finite_measure μ] (hfq : mem_ℒp f q μ) :
-  integrable f μ :=
-mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
--/
-
 lemma snorm'_add_le {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) (hp1 : 1 ≤ p) :
   snorm' (f + g) p μ ≤ snorm' f p μ + snorm' g p μ :=
 calc (∫⁻ a, ↑(nnnorm ((f + g) a)) ^ p ∂μ) ^ (1 / p)
@@ -593,7 +602,7 @@ begin
 end
 
 section second_countable_topology
-variable [topological_space.second_countable_topology E]
+variable [second_countable_topology E]
 
 lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f q μ) (hg : mem_ℒp g q μ) : mem_ℒp (f + g) q μ :=
 ⟨ae_measurable.add hf.1 hg.1, snorm_add_lt_top hf hg⟩
@@ -648,6 +657,65 @@ lemma mem_ℒp.const_smul [borel_space E] {f : α → E} (hf : mem_ℒp f q μ) 
   mem_ℒp (c • f) q μ :=
 ⟨ae_measurable.const_smul hf.1 c,
   lt_of_le_of_lt (le_of_eq (snorm_const_smul c)) (ennreal.mul_lt_top ennreal.coe_lt_top hf.2)⟩
+
+lemma mem_ℒp.const_mul [measurable_space 𝕜] [borel_space 𝕜]
+  {f : α → 𝕜} (hf : mem_ℒp f q μ) (c : 𝕜) : mem_ℒp (λ x, c * f x) q μ :=
+hf.const_smul c
+
+lemma snorm_le_mul_snorm_aux_of_nonneg {f : α → F} {g : α → G} {c : ℝ}
+  (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) (hc : 0 ≤ c) (q : ennreal) :
+  snorm f q μ ≤ (ennreal.of_real c) * snorm g q μ :=
+begin
+  set G : α → ℝ := c • (λ x, ∥g x∥) with hG,
+  have : snorm G q μ = (ennreal.of_real c) * snorm g q μ,
+  { rw [hG, snorm_const_smul],
+    congr' 1,
+    { simp [nnnorm, real.norm_of_nonneg hc], exact (ennreal.of_real_eq_coe_nnreal _).symm },
+    { exact snorm_congr_norm_ae (filter.eventually_of_forall (λ x, by simp)) } },
+  rw ← this,
+  refine snorm_mono_ae (h.mono (λ x hx, _)),
+  convert hx,
+  simp [hG, real.norm_of_nonneg hc]
+end
+
+lemma snorm_le_mul_snorm_aux_of_neg {f : α → F} {g : α → G} {c : ℝ}
+  (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) (hc : c < 0) (q : ennreal) :
+  snorm f q μ = 0 ∧ snorm g q μ = 0 :=
+begin
+  by_cases qzero : q = 0,
+  { simp [qzero, snorm] },
+  have qpos : 0 < q := bot_lt_iff_ne_bot.2 qzero,
+  by_cases gzero : ∀ᵐ x ∂μ, g x = 0,
+  { have fzero : ∀ᵐ x ∂μ, f x = 0,
+    { filter_upwards [h, gzero],
+      assume x hx h'x,
+      simpa [h'x] using hx },
+    have sg : snorm g q μ = snorm (0 : α → G) q μ := snorm_congr_ae gzero,
+    have sf : snorm f q μ = snorm (0 : α → F) q μ := snorm_congr_ae fzero,
+    simp [sg, sf] },
+  have cnonneg : 0 ≤ c,
+  { rcases ((filter.not_eventually.1 gzero).and_eventually h).exists with ⟨x, gx, hx⟩,
+    have : 0 < ∥g x∥, by simp [gx, le_iff_eq_or_lt.1 (norm_nonneg (g x))],
+    rw ← div_le_iff this at hx,
+    exact le_trans (div_nonneg (norm_nonneg _) (norm_nonneg _)) hx },
+  linarith
+end
+
+lemma snorm_le_mul_snorm_of_ae_le_mul {f : α → F} {g: α → G} {c : ℝ}
+  (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) : snorm f q μ ≤ (ennreal.of_real c) * snorm g q μ :=
+begin
+  cases le_or_lt 0 c with hc hc,
+  { exact snorm_le_mul_snorm_aux_of_nonneg h hc q },
+  { simp [snorm_le_mul_snorm_aux_of_neg h hc q] }
+end
+
+lemma mem_ℒp.of_le_mul [measurable_space F] {f : α → E} {g : α → F} {c : ℝ}
+  (hg : mem_ℒp g q μ) (hf : ae_measurable f μ) (hfg : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) : mem_ℒp f q μ :=
+begin
+  simp only [mem_ℒp, hf, true_and],
+  apply lt_of_le_of_lt (snorm_le_mul_snorm_of_ae_le_mul hfg),
+  simp [lt_top_iff_ne_top, hg.snorm_ne_top],
+end
 
 lemma snorm'_smul_le_mul_snorm' [opens_measurable_space E] [measurable_space 𝕜]
   [opens_measurable_space 𝕜] {q r : ℝ}
@@ -704,7 +772,7 @@ def to_Lp (f : α → E) (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
 lemma coe_fn_to_Lp {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp f =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk _ _
 
-@[simp] lemma to_Lp_eq_to_Lp {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+@[simp] lemma to_Lp_eq_to_Lp_iff {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
   hf.to_Lp f = hg.to_Lp g ↔ f =ᵐ[μ] g :=
 by simp [to_Lp]
 
@@ -728,6 +796,17 @@ variables {α E F : Type*} [measurable_space α] {μ : measure α} [measurable_s
 
 instance : has_coe_to_fun (Lp E p μ) := ⟨λ _, α → E, λ f, ((f : α  →ₘ[μ] E) : α → E)⟩
 
+@[ext] lemma ext {f g : Lp E p μ} (h : f =ᵐ[μ] g) : f = g :=
+begin
+  cases f,
+  cases g,
+  simp only [subtype.mk_eq_mk],
+  exact ae_eq_fun.ext h
+end
+
+lemma ext_iff {f g : Lp E p μ} : f = g ↔ f =ᵐ[μ] g :=
+⟨λ h, by rw h, λ h, ext h⟩
+
 lemma mem_Lp_iff_snorm_lt_top {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ snorm f p μ < ⊤ := iff.refl _
 
 lemma mem_Lp_iff_mem_ℒp {f : α →ₘ[μ] E} : f ∈ Lp E p μ ↔ mem_ℒp f p μ :=
@@ -749,11 +828,11 @@ lemma snorm_lt_top (f : Lp E p μ) : snorm f p μ < ⊤ := f.prop
 
 lemma snorm_ne_top (f : Lp E p μ) : snorm f p μ ≠ ⊤ := (snorm_lt_top f).ne
 
-lemma measurable (f : Lp E p μ) : measurable f := f.val.measurable
+protected lemma measurable (f : Lp E p μ) : measurable f := f.val.measurable
 
-lemma ae_measurable (f : Lp E p μ) : ae_measurable f μ := f.val.ae_measurable
+protected lemma ae_measurable (f : Lp E p μ) : ae_measurable f μ := f.val.ae_measurable
 
-protected lemma mem_ℒp (f : Lp E p μ) : mem_ℒp f p μ := ⟨ae_measurable f, f.prop⟩
+protected lemma mem_ℒp (f : Lp E p μ) : mem_ℒp f p μ := ⟨Lp.ae_measurable f, f.prop⟩
 
 variables (E p μ)
 lemma coe_fn_zero : ⇑(0 : Lp E p μ) =ᵐ[μ] 0 := ae_eq_fun.coe_fn_zero
@@ -813,13 +892,62 @@ begin
   refine ⟨λ hf, _, λ hf, by simp [hf]⟩,
   rw [norm_def, ennreal.to_real_eq_zero_iff] at hf,
   cases hf,
-  { rw snorm_eq_zero_iff (ae_measurable f) hp.ne.symm at hf,
+  { rw snorm_eq_zero_iff (Lp.ae_measurable f) hp.ne.symm at hf,
     exact subtype.eq (ae_eq_fun.ext (hf.trans ae_eq_fun.coe_fn_zero.symm)), },
   { exact absurd hf (snorm_ne_top f), },
 end
 
+lemma eq_zero_iff_ae_eq_zero {f : Lp E p μ} : f = 0 ↔ f =ᵐ[μ] 0 :=
+begin
+  split,
+  { assume h,
+    rw h,
+    exact ae_eq_fun.coe_fn_const _ _ },
+  { assume h,
+    ext1,
+    filter_upwards [h, ae_eq_fun.coe_fn_const α (0 : E)],
+    assume a ha h'a,
+    rw ha,
+    exact h'a.symm }
+end
+
 @[simp] lemma norm_neg {f : Lp E p μ} : ∥-f∥ = ∥f∥ :=
 by rw [norm_def, norm_def, snorm_congr_ae (coe_fn_neg _), snorm_neg]
+
+lemma norm_le_mul_norm_of_ae_mul_le
+  [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
+  {c : ℝ} {f : Lp E p μ} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) : ∥f∥ ≤ c * ∥g∥ :=
+begin
+  by_cases pzero : p = 0,
+  { simp [pzero, norm_def] },
+  cases le_or_lt 0 c with hc hc,
+  { have := snorm_le_mul_snorm_aux_of_nonneg h hc p,
+    rw [← ennreal.to_real_le_to_real, ennreal.to_real_mul, ennreal.to_real_of_real hc] at this,
+    { exact this },
+    { exact (Lp.mem_ℒp _).snorm_ne_top },
+    { simp [(Lp.mem_ℒp _).snorm_ne_top] } },
+  { have := snorm_le_mul_snorm_aux_of_neg h hc p,
+    simp only [snorm_eq_zero_iff (Lp.ae_measurable _) pzero, ← eq_zero_iff_ae_eq_zero] at this,
+    simp [this] }
+end
+
+lemma norm_le_norm_of_ae_le
+  [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
+  {f : Lp E p μ} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : ∥f∥ ≤ ∥g∥ :=
+begin
+  rw [norm_def, norm_def, ennreal.to_real_le_to_real (snorm_ne_top _) (snorm_ne_top _)],
+  exact snorm_mono_ae h
+end
+
+lemma mem_Lp_of_ae_le_mul
+  [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
+  {c : ℝ} {f : α →ₘ[μ] E} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) : f ∈ Lp E p μ :=
+mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le_mul (Lp.mem_ℒp g) (ae_eq_fun.ae_measurable f) h
+
+lemma mem_Lp_of_ae_le
+  [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
+  {f : α →ₘ[μ] E} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : f ∈ Lp E p μ :=
+mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le (Lp.mem_ℒp g) (ae_eq_fun.ae_measurable f) h
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
 normed_group.of_core _
@@ -832,7 +960,7 @@ normed_group.of_core _
     { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
       exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
     rw [snorm_congr_ae (coe_fn_add _ _)],
-    exact snorm_add_le (ae_measurable f) (ae_measurable g) hp,
+    exact snorm_add_le (Lp.ae_measurable f) (Lp.ae_measurable g) hp,
   end,
   norm_neg := by simp }
 
@@ -884,6 +1012,56 @@ instance normed_space_L2 : normed_space 𝕜 (Lp E 2 μ) := by apply_instance
 instance normed_space_Ltop : normed_space 𝕜 (Lp E ⊤ μ) := by apply_instance
 
 end normed_space
+
+end Lp
+
+end measure_theory
+
+namespace lipschitz_with
+open measure_theory
+
+variables {α E F : Type*}
+  [measurable_space α] {μ : measure α}
+  [normed_group E] [second_countable_topology E] [measurable_space E] [borel_space E]
+  [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
+  {p : ennreal} {g : E → F} {c : nnreal}
+
+/-- When `g` is a Lipschitz function sending `0` to `0` and `f` is in `Lp`, then `g ∘ f` is well
+defined as an element of `Lp`. -/
+def comp_Lp (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) : Lp F p μ :=
+⟨ae_eq_fun.comp g hg.continuous.measurable (f : α →ₘ[μ] E),
+begin
+  suffices : ∀ᵐ x ∂μ, ∥ae_eq_fun.comp g hg.continuous.measurable (f : α →ₘ[μ] E) x∥ ≤ c * ∥f x∥,
+    { exact Lp.mem_Lp_of_ae_le_mul this },
+  filter_upwards [ae_eq_fun.coe_fn_comp g hg.continuous.measurable (f : α →ₘ[μ] E)],
+  assume a ha,
+  simp only [ha],
+  rw [← dist_zero_right, ← dist_zero_right, ← g0],
+  exact hg.dist_le_mul (f a) 0,
+end⟩
+
+lemma coe_fn_comp_Lp (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) :
+  hg.comp_Lp g0 f =ᵐ[μ] g ∘ f :=
+ae_eq_fun.coe_fn_comp _ _ _
+
+lemma norm_comp_Lp_sub_le (hg : lipschitz_with c g) (g0 : g 0 = 0) (f f' : Lp E p μ) :
+  ∥hg.comp_Lp g0 f - hg.comp_Lp g0 f'∥ ≤ c * ∥f - f'∥ :=
+begin
+  apply Lp.norm_le_mul_norm_of_ae_mul_le,
+  filter_upwards [hg.coe_fn_comp_Lp g0 f, hg.coe_fn_comp_Lp g0 f',
+    Lp.coe_fn_sub (hg.comp_Lp g0 f) (hg.comp_Lp g0 f'), Lp.coe_fn_sub f f'],
+  assume a ha1 ha2 ha3 ha4,
+  simp [ha1, ha2, ha3, ha4, ← dist_eq_norm],
+  exact hg.dist_le_mul (f a) (f' a)
+end
+
+lemma norm_comp_Lp_le (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) :
+  ∥hg.comp_Lp g0 f∥ ≤ c * ∥f∥ :=
+begin
+  have Z := hg.norm_comp_Lp_sub_le g0 f 0,
+end
+
+end lipschitz_with
 
 section pos_part
 

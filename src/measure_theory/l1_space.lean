@@ -522,6 +522,11 @@ by simp_rw [integrable, has_finite_integral, mem_ℒp,
     snorm_eq_snorm' one_ne_zero ennreal.one_ne_top, ennreal.one_to_real, snorm', one_div_one,
     ennreal.rpow_one]
 
+lemma mem_ℒp.integrable [borel_space β] {q : ennreal} (hq1 : 1 ≤ q) {f : α → β} [finite_measure μ]
+  (hfq : mem_ℒp f q μ) : integrable f μ :=
+mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
+
+
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
 
@@ -638,6 +643,12 @@ lemma L1.integrable_coe_fn [second_countable_topology β] [borel_space β] (f : 
   integrable f μ :=
 by { rw ← mem_ℒp_one_iff_integrable, exact Lp.mem_ℒp f }
 
+lemma L1.measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+  measurable f := Lp.measurable f
+
+lemma L1.ae_measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+  ae_measurable f μ := Lp.ae_measurable f
+
 lemma L1.edist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
   edist f g = ∫⁻ a, edist (f a) (g a) ∂μ :=
 by { simp [Lp.edist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
@@ -671,9 +682,9 @@ ae_eq_fun.coe_fn_mk _ _
   (hf.to_L1 f : α →ₘ[μ] β) = ae_eq_fun.mk f hf.ae_measurable :=
 rfl
 
-@[simp] lemma to_L1_eq_to_L1 (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
+@[simp] lemma to_L1_eq_to_L1_iff (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
   to_L1 f hf = to_L1 g hg ↔ f =ᵐ[μ] g :=
-mem_ℒp.to_Lp_eq_to_Lp _ _
+mem_ℒp.to_Lp_eq_to_Lp_iff _ _
 
 lemma to_L1_add (f g : α → β) (hf : integrable f μ) (hg : integrable g μ) :
   to_L1 (f + g) (hf.add hg) = to_L1 f hf + to_L1 g hg := rfl

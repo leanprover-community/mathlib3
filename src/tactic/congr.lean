@@ -70,9 +70,10 @@ the depth of recursive applications.
 -/
 meta def congr' : option ℕ → tactic unit
 | o := focus1 $
-  assumption <|> reflexivity <|> by_proof_irrel <|>
+  assumption <|> reflexivity transparency.none <|> by_proof_irrel <|>
   (guard (o ≠ some 0) >> congr_core' >>
-    all_goals' (try (congr' (nat.pred <$> o))))
+    all_goals' (try (congr' (nat.pred <$> o)))) <|>
+  reflexivity
 
 namespace interactive
 

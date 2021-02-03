@@ -553,7 +553,7 @@ variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [modul
 variables [lie_ring_module L M] [lie_module R L M]
 
 /-- A Lie module yields a Lie algebra morphism into the linear endomorphisms of the module. -/
-def lie_module.to_endo_morphism : L →ₗ⁅R⁆ module.End R M :=
+@[simps] def lie_module.to_endo_morphism : L →ₗ⁅R⁆ module.End R M :=
 { to_fun    := λ x,
   { to_fun    := λ m, ⁅x, m⁆,
     map_add'  := lie_add x,
@@ -561,9 +561,6 @@ def lie_module.to_endo_morphism : L →ₗ⁅R⁆ module.End R M :=
   map_add'  := λ x y, by { ext m, apply add_lie, },
   map_smul' := λ t x, by { ext m, apply smul_lie, },
   map_lie   := λ x y, by { ext m, apply lie_lie, }, }
-
-@[simp] lemma lie_module.to_endo_morphism_apply (x : L) (m : M) :
-  lie_module.to_endo_morphism R L M x m = ⁅x, m⁆ := rfl
 
 /-- The adjoint action of a Lie algebra on itself. -/
 def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endo_morphism R L L
@@ -1818,7 +1815,7 @@ protected def ker : lie_ideal R L := (to_endo_morphism R L M).ker
 @[simp] protected lemma mem_ker (x : L) : x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
 begin
   dunfold lie_module.ker,
-  simp only [lie_algebra.morphism.mem_ker, linear_map.eq_zero_iff, to_endo_morphism_apply],
+  simp only [lie_algebra.morphism.mem_ker, linear_map.eq_zero_iff, to_endo_morphism_to_fun_apply],
 end
 
 /-- The largest submodule of a Lie module `M` on which the Lie algebra `L` acts trivially. -/

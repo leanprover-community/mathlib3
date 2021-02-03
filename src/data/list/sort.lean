@@ -82,6 +82,22 @@ begin
   { exact list.pairwise_iff_nth_le.1 h a b hb H }
 end
 
+lemma sorted.rel_of_mem_take_of_mem_drop {l : list α} (h : list.sorted r l)
+  (k : ℕ) {x y : α} (hx : x ∈ list.take k l) (hy : y ∈ list.drop k l) :
+  r x y :=
+begin
+  induction l with lh lt generalizing k,
+  { simpa using hy },
+  cases k,
+  { simpa using hx, },
+  rw [list.take, list.mem_cons_iff] at hx,
+  rw [list.drop] at hy,
+  obtain ⟨hh, ht⟩ := list.sorted_cons.mp h,
+  obtain (rfl | hx) := hx,
+  { exact hh _ (list.mem_of_mem_drop hy) },
+  { exact l_ih ht _ hx hy },
+end
+
 end sorted
 
 section sort

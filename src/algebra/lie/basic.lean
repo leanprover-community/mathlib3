@@ -1522,6 +1522,7 @@ different (though the latter does naturally inject into the former).
 
 In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
 same as ideals of `L` contained in `I`. -/
+-- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_bot : subsingleton (lie_ideal R ↥(⊥ : lie_ideal R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,

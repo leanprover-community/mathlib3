@@ -45,6 +45,12 @@ variables {α : Type u₁} {β : Type u₂} (R : α → β → Prop)
 class left_unique : Prop := (left : ∀{a b c}, R a b → R c b → a = c)
 class right_unique : Prop := (right : ∀{a b c}, R a b → R a c → b = c)
 
+lemma left_unique.unique {R : α → β → Prop} (h : left_unique R) {a b c} :
+  R a b → R c b → a = c := left_unique.left β
+
+lemma right_unique.unique {R : α → β → Prop} (h : right_unique R) {a b c} :
+  R a b → R a c → b = c := right_unique.right α
+
 lemma rel_forall_of_right_total [right_total R] :
   ((R ⇒ implies) ⇒ implies) (λp, ∀i, p i) (λq, ∀i, q i) :=
 assume p q Hrel H b, exists.elim (right_total.right b) (assume a Rab, Hrel Rab (H _))

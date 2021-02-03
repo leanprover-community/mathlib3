@@ -409,6 +409,16 @@ lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [
   function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, z ≤ y j)
 
+lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
+  {x y : Π i, α i} {i : ι} {a b : α i} :
+  function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
+begin
+  simp only [update_le_iff, ne.def, update_same, and.congr_right_iff],
+  intro _,
+  refine forall_congr (λ a, forall_congr (λ h, _)),
+  rw update_noteq h,
+end
+
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
   partial_order (Πi, α i) :=
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),

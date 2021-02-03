@@ -148,6 +148,20 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
 ⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
 
+/-- Given a fintype type `α` and a function `f : α → ℝ≥0` not identically 0,
+  we get a `pmf` by normalizing `f` -/
+def of_fintype' [fintype α] (f : α → ℝ≥0) (h : ∃ a, f a ≠ 0) : pmf α :=
+⟨λ a, f a / ∑ x, f x,
+  have 1 = ∑ a, f a / ∑ x, f x,
+    by simp only [div_eq_mul_inv, ← finset.sum_mul,
+      mul_inv_cancel (finset.sum_ne_zero_iff.2 (let ⟨a, ha⟩ := h in ⟨a, finset.mem_univ a, ha⟩))],
+  this.symm ▸ has_sum_fintype (λ (a : α), f a / ∑ x, f x)⟩
+
+/-- Given a `pmf` on a fintype `α`, create new `pmf` by filtering on a predicate and normalizing -/
+def filter [fintype α] (p : pmf α) (pred : α → Prop) (h : ∃ a, pred a ∧ p a ≠ 0) : pmf α :=
+pmf.of_fintype' (λ a, if pred a then p a else 0) $
+    let ⟨a, ha, hpa⟩ := h in ⟨a, by simp only [ha, hpa, if_true, ne.def, not_false_iff]⟩
+
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])

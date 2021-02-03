@@ -2559,7 +2559,7 @@ begin
     λ x, has_ftaylor_series_up_to_on.has_fderiv_within_at hf hn,
   have hcont : continuous_on f' s :=
     (continuous_multilinear_curry_fin1 𝕂 E' F').continuous.comp_continuous_on (hf.cont 1 hn),
-  exact strict_fderiv_of_cont_diff hf' hcont hs,
+  exact strict_fderiv_of_cont_diff hf' (hcont.continuous_at hs) hs,
 end
 
 /-- If a function is `C^n` with `1 ≤ n` around a point, then the derivative of `f` at this point

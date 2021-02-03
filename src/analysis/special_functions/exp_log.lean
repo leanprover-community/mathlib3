@@ -67,6 +67,13 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
+lemma has_strict_deriv_at_(x : ℂ) : has_strict_deriv_at exp (exp x) x :=
+begin
+  rw has_strict_deriv_at,
+  convert strict_fderiv_of_cont_diff (λ y hy, (has_deriv_at_exp x).has_fderiv_at.has_fderiv_within_at) _ univ_mem_sets,
+-- strict_fderiv_of_cont_diff _ _ _
+end
+
 lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
 begin
   refine times_cont_diff_all_iff_nat.2 (λ n, _),

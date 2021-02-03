@@ -90,12 +90,9 @@ begin
   { simpa using hy },
   cases k,
   { simpa using hx, },
-  rw [list.take, list.mem_cons_iff] at hx,
-  rw [list.drop] at hy,
-  obtain ⟨hh, ht⟩ := list.sorted_cons.mp h,
-  obtain (rfl | hx) := hx,
-  { exact hh _ (list.mem_of_mem_drop hy) },
-  { exact l_ih ht _ hx hy },
+  rcases hx with (rfl | hx),
+  { exact rel_of_sorted_cons h _ (mem_of_mem_drop hy) },
+  { exact l_ih (sorted_of_sorted_cons h) _ hx hy },
 end
 
 end sorted

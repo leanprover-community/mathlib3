@@ -93,8 +93,8 @@ variables [algebra F E]
 lemma primitive_element_inf_aux (F_sep : is_separable F E) :
   ∃ γ : E, F⟮α, β⟯ = F⟮γ⟯ :=
 begin
-  obtain ⟨hα, hf⟩ := F_sep α,
-  obtain ⟨hβ, hg⟩ := F_sep β,
+  obtain ⟨hα, hf⟩ := F_sep.out α,
+  obtain ⟨hβ, hg⟩ := F_sep.out β,
   let f := minpoly F α,
   let g := minpoly F β,
   let ιFE := algebra_map F E,

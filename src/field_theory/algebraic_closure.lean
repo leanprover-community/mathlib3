@@ -101,7 +101,7 @@ class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
 (algebraic : algebra.is_algebraic k K)
 
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
-  is_alg_closure K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
+  is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 namespace algebraic_closure

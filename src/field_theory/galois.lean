@@ -49,8 +49,11 @@ class is_galois : Prop :=
 
 variables {F E}
 
-theorem is_galois_iff {F} : is_galois F E ↔ is_separable F E ∧ normal F E :=
+theorem is_galois_iff : is_galois F E ↔ is_separable F E ∧ normal F E :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+theorem is_galois.sep (h : is_galois F E) : is_separable F E := h.1
+theorem is_galois.norm (h : is_galois F E) : normal F E := h.2
 
 variables (F E)
 
@@ -69,7 +72,7 @@ variables (F) {E}
 
 lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral F x
 
-lemma separable [h : is_galois F E] (x : E) : (minpoly F x).separable := (h.1 x).2
+lemma separable [h : is_galois F E] (x : E) : (minpoly F x).separable := (h.sep.out x).2
 
 -- TODO(Commelin, Browning): rename this to `splits`
 lemma normal [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) := normal.splits F x

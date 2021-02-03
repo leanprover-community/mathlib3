@@ -32,24 +32,27 @@ variables (F K : Type*) [field F] [field K] [algebra F K]
 /-- Typeclass for normal field extension: `K` is a normal extension of `F` iff the minimal
 polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x` is in `K`. -/
 class normal : Prop :=
-(out : ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x))
+(out' : ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x))
 
 variables {F K}
 
 theorem normal_iff : normal F K ↔
   ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x) :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
+theorem normal.out : normal F K →
+  ∀ x : K, is_integral F x ∧ splits (algebra_map F K) (minpoly F x) := normal_iff.1
 
 variables (F K)
 
 instance normal_self : normal F F :=
-λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C', exact splits_X_sub_C _ }⟩
+⟨λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C', exact splits_X_sub_C _ }⟩⟩
 
 variables {K}
 
-theorem normal.is_integral [h : normal F K] (x : K) : is_integral F x := (h x).1
+theorem normal.is_integral [h : normal F K] (x : K) : is_integral F x := (h.out x).1
 
-theorem normal.splits [h : normal F K] (x : K) : splits (algebra_map F K) (minpoly F x) := (h x).2
+theorem normal.splits [h : normal F K] (x : K) :
+  splits (algebra_map F K) (minpoly F x) := (h.out x).2
 
 variables (K)
 
@@ -74,22 +77,20 @@ section normal_tower
 variables (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
 lemma normal.tower_top_of_normal [h : normal F E] : normal K E :=
-begin
-  intros x,
-  cases h x with hx hhx,
+⟨λ x, begin
+  cases h.out x with hx hhx,
   rw algebra_map_eq F K E at hhx,
   exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
     (polynomial.map_ne_zero (minpoly.ne_zero hx))
     ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
     (minpoly.dvd_map_of_is_scalar_tower F K x)⟩,
-end
+end⟩
 
 variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
 lemma normal.of_alg_equiv [h : normal F E] (f : E ≃ₐ[F] E') : normal F E' :=
-begin
-  intro x,
-  cases h (f.symm x) with hx hhx,
+⟨λ x, begin
+  cases h.out (f.symm x) with hx hhx,
   have H := is_integral_alg_hom f.to_alg_hom hx,
   rw [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, alg_equiv.apply_symm_apply] at H,
   use H,
@@ -100,7 +101,7 @@ begin
     rw ← add_equiv.map_eq_zero_iff f.symm.to_add_equiv,
     exact eq.trans (polynomial.aeval_alg_hom_apply f.symm.to_alg_hom x
       (minpoly F (f.symm x))).symm (minpoly.aeval _ _) },
-end
+end⟩
 
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
@@ -112,7 +113,7 @@ begin
   { haveI : is_splitting_field F F p := by { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
     exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F p).trans
       (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
-  intro x,
+  refine ⟨λ x, _⟩,
   haveI hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
   have Hx : is_integral F x := is_integral_of_noetherian hFE x,
   refine ⟨Hx, or.inr _⟩,
@@ -183,6 +184,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
     { exact this ⟨x, subtype.mem x, rfl⟩ },
     rintros x ⟨y, ⟨z, -, hy⟩, hx⟩,
     rw [←hx, ←hy],
+    casesI h,
     exact minpoly.mem_range_of_degree_eq_one E _ (or.resolve_left (h z).2 (minpoly.ne_zero (h z).1)
       (minpoly.irreducible (is_integral_of_is_scalar_tower _
         (is_integral_alg_hom ϕ (is_integral_alg_hom _ (h z).1))))

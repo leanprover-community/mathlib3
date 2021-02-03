@@ -757,14 +757,6 @@ begin
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
-lemma tsum_ite_eq_add {f : ℕ → ℝ} (hf : summable f) (i : ℕ) (a : ℝ) :
-  ∑' n, ((ite (n = i) a 0) + f n) = a + ∑' n, f n :=
-begin
-  rw [tsum_add ⟨a, has_sum_ite_eq i a⟩ hf, @tsum_eq_single ℝ _ _ _ _ _ i],
-  { simp_rw if_pos rfl },
-  { exact λ j ji, if_neg ji }
-end
-
 lemma tsum_congr {f g : ℕ → ℝ} (hfg : ∀ n, f n = g n) :
   ∑' n, f n = ∑' n, g n :=
 congr_arg tsum (funext hfg)
@@ -904,14 +896,17 @@ Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series 
 remaining terms. -/
 lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
   ∑' n, f n = f i + ∑' n, ite (n ≠ i) (f n) 0 :=
-by rw [← tsum_ite_eq_add (hf.summable_of_eq_zero_or_self (λ j, _)) i, tsum_congr (λ j, _)];
-  by_cases ji : j = i; simp [ji]
+begin
+  rw [← tsum_ite_eq i (f i), ← tsum_add (hf.summable_of_eq_zero_or_self (λ j, _))
+    ((hf.summable_of_eq_zero_or_self (λ j, _))), tsum_congr (λ j, _)];
+  by_cases ji : j = i; simp [ji],
+end
 
 /-- Let `f, g : ℕ → ℝ` be two sequences with summable series.  If `f` is dominated by `g` and
 at least one term of `f` is strictly smaller than the corresponding term in `g`, then the series
 of `f` is strictly smaller than the series of `g`. -/
 lemma tsum_lt {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b)
-  (hf: summable f) (hg: summable g) {i : ℕ} (hi : f i < g i) :
+  (hf : summable f) (hg : summable g) {i : ℕ} (hi : f i < g i) :
   ∑' n, f n < ∑' n, g n :=
 begin
   rw [tsum_ite_eq_extract hf i, tsum_ite_eq_extract hg i],

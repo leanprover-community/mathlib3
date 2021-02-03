@@ -356,10 +356,9 @@ begin
   exact ⟨_, hb, assume x,
     begin
       change e x ∈ (closure (e '' s)) → x ∈ range subtype.val,
-      rw [←closure_induced, mem_closure_iff_cluster_pt, cluster_pt, ne_bot,
-          (≠), nhds_induced, ← de.to_dense_inducing.nhds_eq_comap],
-      change x ∈ {y | cluster_pt y (𝓟 s)} → x ∈ range subtype.val,
-      rw [←closure_eq_cluster_pts, hs.closure_eq],
+      rw [← closure_induced, mem_closure_iff_cluster_pt, cluster_pt, ne_bot_iff,
+          nhds_induced, ← de.to_dense_inducing.nhds_eq_comap,
+          ← mem_closure_iff_nhds_ne_bot, hs.closure_eq],
       exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
       exact de.inj
     end⟩

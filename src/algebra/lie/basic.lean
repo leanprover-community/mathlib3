@@ -2087,6 +2087,7 @@ begin
   exact h₂ hI,
 end
 
+-- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_semisimple_lie_abelian [is_semisimple R L] [h : is_lie_abelian L] :
   subsingleton (lie_ideal R L) :=
 begin

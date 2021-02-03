@@ -1099,7 +1099,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [normed_group G] [normed_s
 
 /-- Over the reals or the complexes, a continuously differentiable function is strictly
 differentiable. -/
-lemma has_strict_fderiv_at_of_has_fderiv_at_of_continuous
+lemma has_strict_fderiv_at_of_has_fderiv_at_of_continuous_at
   (hder : ∀ᶠ y in 𝓝 x, has_fderiv_at f (f' y) y) (hcont : continuous_at f' x) :
   has_strict_fderiv_at f (f' x) x :=
 begin
@@ -1123,19 +1123,10 @@ end
 
 /-- Over the reals or the complexes, a continuously differentiable function is strictly
 differentiable. -/
-lemma has_strict_deriv_at_of_has_deriv_at_of_continuous {f f' : 𝕜 → G} {x : 𝕜}
+lemma has_strict_deriv_at_of_has_deriv_at_of_continuous_at {f f' : 𝕜 → G} {x : 𝕜}
   (hder : ∀ᶠ y in 𝓝 x, has_deriv_at f (f' y) y) (hcont : continuous_at f' x) :
   has_strict_deriv_at f (f' x) x :=
-has_strict_fderiv_at_of_has_fderiv_at_of_continuous (hder.mono (λ y hy, hy.has_fderiv_at)) $
+has_strict_fderiv_at_of_has_fderiv_at_of_continuous_at (hder.mono (λ y hy, hy.has_fderiv_at)) $
   (smul_rightL 1).continuous.continuous_at.comp hcont
-
-lemma has_strict_fderiv_at_of_has_fderiv_within_at_of_continuous_of_mem_nhds {s : set G}
-  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hcont : continuous_at f' x) (hs : s ∈ 𝓝 x) :
-  has_strict_fderiv_at f (f' x) x :=
-begin
-  refine has_strict_fderiv_at_of_has_fderiv_at_of_continuous _ hcont,
-  filter_upwards [interior_mem_nhds.2 hs], intros y hy,
-  exact (hf y $ interior_subset hy).has_fderiv_at (mem_interior_iff_mem_nhds.1 hy)
-end
 
 end is_R_or_C

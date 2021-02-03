@@ -2574,7 +2574,7 @@ lemma has_ftaylor_series_up_to_on.has_strict_fderiv_at
   {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series 𝕂 E' F'} {n : with_top ℕ}
   (hf : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hs : s ∈ 𝓝 x) :
   has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 𝕂 E' F') (p x 1)) x :=
-has_strict_fderiv_at_of_has_fderiv_at_of_continuous (hf.eventually_has_fderiv_at hn hs) $
+has_strict_fderiv_at_of_has_fderiv_at_of_continuous_at (hf.eventually_has_fderiv_at hn hs) $
   (continuous_multilinear_curry_fin1 𝕂 E' F').continuous_at.comp $
     (hf.cont 1 hn).continuous_at hs
 

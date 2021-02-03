@@ -8,8 +8,6 @@ import algebra.group.basic
 import algebra.group.hom
 import algebra.group.pi
 import algebra.group.prod
-import data.fintype.basic
-import data.finset.sort
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -174,46 +172,6 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) :
   @subtype_perm α 1 p h = 1 :=
-equiv.ext $ λ ⟨_, _⟩, rfl
-
-lemma perm_inv_on_of_perm_on_finset {s : finset α} {f : perm α}
-  (h : ∀ x ∈ s, f x ∈ s) {y : α} (hy : y ∈ s) : f⁻¹ y ∈ s :=
-begin
-  obtain ⟨x, hx, rfl⟩ : ∃ x ∈ s, y = f x :=
-    finset.surj_on_of_inj_on_of_card_le (λ x hx, (λ i hi, f i) x hx)
-    (λ a ha, h a ha) (λ a₁ a₂ ha₁ ha₂ heq, (equiv.apply_eq_iff_eq f).mp heq) rfl.ge y hy,
-  rwa inv_apply_self
-end
-
-lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [fintype s]
-  (h : set.maps_to f s s) : set.maps_to (f⁻¹ : _) s s :=
-λ x hx, set.mem_to_finset.mp $
-  perm_inv_on_of_perm_on_finset
-   (λ a ha, set.mem_to_finset.mpr (h (set.mem_to_finset.mp ha)))
-   (set.mem_to_finset.mpr hx)
-
-lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [fintype s] :
-  set.maps_to (f⁻¹ : _) s s ↔ set.maps_to f s s :=
-  ⟨perm_inv_maps_to_of_maps_to f⁻¹, perm_inv_maps_to_of_maps_to f⟩
-
-lemma perm_inv_on_of_perm_on_fintype {f : perm α} {p : α → Prop} [fintype {x // p x}]
-  (h : ∀ x, p x → p (f x)) {x : α} (hx : p x) : p (f⁻¹ x) :=
-begin
-  letI : fintype ↥(show set α, from p) := ‹fintype {x // p x}›,
-  exact perm_inv_maps_to_of_maps_to f h hx
-end
-
-/-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation
-  on `{x // p x}` induced by `f`. -/
-abbreviation subtype_perm_of_fintype (f : perm α) {p : α → Prop} [fintype {x // p x}]
-  (h : ∀ x, p x → p (f x)) : perm {x // p x} :=
-f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype h h₂⟩)
-
-@[simp] lemma subtype_perm_of_fintype_apply (f : perm α) {p : α → Prop} [fintype {x // p x}]
-  (h : ∀ x, p x → p (f x)) (x : {x // p x}) : subtype_perm_of_fintype f h x = ⟨f x, h x x.2⟩ := rfl
-
-@[simp] lemma subtype_perm_of_fintype_one (p : α → Prop) [fintype {x // p x}]
-  (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
 /-- The inclusion map of permutations on a subtype of `α` into permutations of `α`,

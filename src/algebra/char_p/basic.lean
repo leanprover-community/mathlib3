@@ -275,7 +275,8 @@ end comm_ring
 
 end frobenius
 
-theorem frobenius_inj (α : Type u) [integral_domain α] (p : ℕ) [fact p.prime] [char_p α p] :
+theorem frobenius_inj (α : Type u) [comm_ring α] [no_zero_divisors α]
+  (p : ℕ) [fact p.prime] [char_p α p] :
   function.injective (frobenius α p) :=
 λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
 

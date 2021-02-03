@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import data.fintype.card
 import data.finset.sort
 import tactic.omega
+import algebra.big_operators.order
 
 /-!
 # Compositions
@@ -43,6 +44,9 @@ Let `c : composition n` be a composition of `n`. Then
 * `c.embedding i : fin (c.blocks_fun i) → fin n` is the increasing embedding of the `i`-th block in
   `fin n`;
 * `c.index j`, for `j : fin n`, is the index of the block containing `j`.
+
+* `composition.ones n` is the composition of `n` made of ones, i.e., `[1, ..., 1]`.
+* `composition.single n (hn : 0 < n)` is the composition of `n` made of a single block of size `n`.
 
 Compositions can also be used to split lists. Let `l` be a list of length `n` and `c` a composition
 of `n`.
@@ -84,7 +88,7 @@ Composition, partition
 -/
 
 open list
-open_locale classical big_operators
+open_locale big_operators
 
 variable {n : ℕ}
 
@@ -102,7 +106,7 @@ get a finset of `{0, ..., n}` containing `0` and `n`. This is the data in the st
 @[ext] structure composition_as_set (n : ℕ) :=
 (boundaries : finset (fin n.succ))
 (zero_mem   : (0 : fin n.succ) ∈ boundaries)
-(last_mem   : (fin.last n ∈ boundaries))
+(last_mem   : fin.last n ∈ boundaries)
 
 instance {n : ℕ} : inhabited (composition_as_set n) :=
 ⟨⟨finset.univ, finset.mem_univ _, finset.mem_univ _⟩⟩
@@ -128,13 +132,16 @@ lemma blocks_length : c.blocks.length = c.length := rfl
 
 /-- The blocks of a composition, seen as a function on `fin c.length`. When composing analytic
 functions using compositions, this is the main player. -/
-def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
+def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i i.2
 
 lemma of_fn_blocks_fun : of_fn c.blocks_fun = c.blocks :=
 of_fn_nth_le _
 
 lemma sum_blocks_fun : ∑ i, c.blocks_fun i = n :=
 by conv_rhs { rw [← c.blocks_sum, ← of_fn_blocks_fun, sum_of_fn] }
+
+lemma blocks_fun_mem_blocks (i : fin c.length) : c.blocks_fun i ∈ c.blocks :=
+nth_le_mem _ _ _
 
 @[simp] lemma one_le_blocks {i : ℕ} (h : i ∈ c.blocks) : 1 ≤ i :=
 c.blocks_pos h
@@ -144,6 +151,9 @@ c.one_le_blocks (nth_le_mem (blocks c) i h)
 
 @[simp] lemma blocks_pos' (i : ℕ) (h : i < c.length) : 0 < nth_le c.blocks i h:=
 c.one_le_blocks' h
+
+lemma one_le_blocks_fun (i : fin c.length) : 1 ≤ c.blocks_fun i :=
+c.one_le_blocks (c.blocks_fun_mem_blocks i)
 
 lemma length_le : c.length ≤ n :=
 begin
@@ -250,8 +260,8 @@ calc c.size_up_to i + c.blocks_fun i = c.size_up_to (i + 1) : (c.size_up_to_succ
   (c.embedding i j : ℕ) = c.size_up_to i + j := rfl
 
 /--
-`index_exists` asserts there is some `i` so `j < c.size_up_to (i+1)`.
-In the next definition we use `nat.find` to produce the minimal such index.
+`index_exists` asserts there is some `i` with `j < c.size_up_to (i+1)`.
+In the next definition `index` we use `nat.find` to produce the minimal such index.
 -/
 lemma index_exists {j : ℕ} (h : j < n) :
   ∃ i : ℕ, j < c.size_up_to i.succ ∧ i < c.length :=
@@ -416,6 +426,8 @@ begin
   exact H
 end
 
+/-! ### The composition `composition.ones` -/
+
 /-- The composition made of blocks all of size `1`. -/
 def ones (n : ℕ) : composition n :=
 ⟨repeat (1 : ℕ) n, λ i hi, by simp [list.eq_of_mem_repeat hi], by simp⟩
@@ -460,6 +472,34 @@ begin
   simp [this] {contextual := tt}
 end
 
+lemma eq_ones_iff_length {c : composition n} :
+  c = ones n ↔ c.length = n :=
+begin
+  split,
+  { rintro rfl,
+    exact ones_length n },
+  { contrapose,
+    assume H length_n,
+    apply lt_irrefl n,
+    calc
+      n = ∑ (i : fin c.length), 1 : by simp [length_n]
+      ... < ∑ (i : fin c.length), c.blocks_fun i :
+      begin
+        obtain ⟨i, hi, i_blocks⟩ : ∃ i ∈ c.blocks, 1 < i := ne_ones_iff.1 H,
+        rw [← of_fn_blocks_fun, mem_of_fn c.blocks_fun, set.mem_range] at hi,
+        obtain ⟨j : fin c.length, hj : c.blocks_fun j = i⟩ := hi,
+        rw ← hj at i_blocks,
+        exact finset.sum_lt_sum (λ i hi, by simp [blocks_fun]) ⟨j, finset.mem_univ _, i_blocks⟩,
+      end
+      ... = n : c.sum_blocks_fun }
+end
+
+lemma eq_ones_iff_le_length {c : composition n} :
+  c = ones n ↔ n ≤ c.length :=
+by simp [eq_ones_iff_length, le_antisymm_iff, c.length_le]
+
+/-! ### The composition `composition.single` -/
+
 /-- The composition made of a single block of size `n`. -/
 def single (n : ℕ) (h : 0 < n) : composition n :=
 ⟨[n], by simp [h], by simp⟩
@@ -476,7 +516,7 @@ by simp [blocks_fun, single, blocks, i.2]
   (single n h).embedding ⟨0, single_length h ▸ zero_lt_one⟩ i = i :=
 by { ext, simp }
 
-lemma eq_single_iff {n : ℕ} {h : 0 < n} {c : composition n } :
+lemma eq_single_iff_length {n : ℕ} (h : 0 < n) {c : composition n} :
   c = single n h ↔ c.length = 1 :=
 begin
   split,
@@ -489,6 +529,29 @@ begin
     have B : c.blocks.sum = n := c.blocks_sum,
     rw eq_cons_of_length_one A at B ⊢,
     simpa [single_blocks] using B }
+end
+
+lemma ne_single_iff {n : ℕ} (hn : 0 < n) {c : composition n} :
+  c ≠ single n hn ↔ ∀ i, c.blocks_fun i < n :=
+begin
+  rw ← not_iff_not,
+  push_neg,
+  split,
+  { rintros rfl,
+    exact ⟨⟨0, by simp⟩, by simp⟩ },
+  { rintros ⟨i, hi⟩,
+    rw eq_single_iff_length,
+    have : ∀ j : fin c.length, j = i,
+    { intros j,
+      by_contradiction ji,
+      apply lt_irrefl ∑ k, c.blocks_fun k,
+      calc ∑ k, c.blocks_fun k ≤ ∑ k in {i}, c.blocks_fun k : by simp [c.sum_blocks_fun, hi]
+      ... < ∑ k, c.blocks_fun k : begin
+        have : j ∈ finset.univ \ {i}, by { rw [finset.mem_sdiff, finset.mem_singleton], simp [ji] },
+        refine finset.sum_lt_sum_of_subset (finset.subset_univ _) this (c.one_le_blocks_fun j) _,
+        exact λ k hk, zero_le_one.trans (c.one_le_blocks_fun k)
+      end },
+    simpa using fintype.card_eq_one_of_forall_eq this }
 end
 
 end composition
@@ -623,8 +686,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
   left_inv := begin
     assume c,
     ext i,
-    simp only [exists_prop, add_comm, set.mem_to_finset, true_or, or_true, set.mem_set_of_eq,
-               fin.last_val],
+    simp only [exists_prop, add_comm, set.mem_to_finset, true_or, or_true, set.mem_set_of_eq],
     split,
     { rintro (rfl | rfl | ⟨j, hj1, hj2⟩),
       { exact c.zero_mem },
@@ -728,7 +790,7 @@ begin
     simp [blocks, nat.lt_of_succ_lt_succ h] },
   have B : i < c.boundaries.card := lt_of_lt_of_le A (by simp [blocks, length, nat.sub_le]),
   rw [sum_take_succ _ _ A, IH B],
-  simp only [blocks, blocks_fun, fin.coe_eq_val, nth_le_of_fn'],
+  simp only [blocks, blocks_fun, nth_le_of_fn'],
   apply nat.add_sub_cancel',
   simp
 end

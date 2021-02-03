@@ -212,7 +212,7 @@ have hf : continuous_at f (x, y).fst, from hf,
 have hg : continuous_at g (x, y).snd, from hg,
 hf.prod_map hg
 
-lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (set α)} {t : set (set β)}
+lemma prod_generate_from_generate_from_eq {α β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
   @prod.topological_space α β (generate_from s) (generate_from t) =
   generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} :=

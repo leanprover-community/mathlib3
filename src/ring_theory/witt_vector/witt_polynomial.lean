@@ -160,7 +160,7 @@ begin
       apply ne_of_gt,
       apply pow_pos hp.pos i } },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, int.nat_cast_eq_coe_nat, bind_singleton_eq_self], },
+  { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
   { simp only [this, int.nat_cast_eq_coe_nat],
     intros a b h,
     apply singleton_disjoint.mpr,
@@ -241,7 +241,7 @@ begin
   all_goals {
     intro H,
     replace H := vars_sum_subset _ _ H,
-    rw mem_bind at H,
+    rw mem_bUnion at H,
     rcases H with ⟨j, hj, H⟩,
     rw vars_C_mul at H,
     swap,

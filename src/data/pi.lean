@@ -45,6 +45,7 @@ instance has_mul [∀ i, has_mul $ f i] :
   has_div (Π i : I, f i) :=
 ⟨λ f g i, f i / g i⟩
 @[simp, to_additive] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
+@[to_additive] lemma div_def [Π i, has_div $ f i] : x / y = λ i, x i / y i := rfl
 
 section
 
@@ -70,3 +71,8 @@ function.update_injective _ i
 
 end
 end pi
+
+lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_zero α]
+  (i : I) (x : α) :
+  pi.single i x = λ _, x :=
+funext $ λ j, by rw [subsingleton.elim j i, pi.single_eq_same]

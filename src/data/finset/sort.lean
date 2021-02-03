@@ -128,6 +128,10 @@ lemma order_emb_of_fin_apply (s : finset α) {k : ℕ} (h : s.card = k) (i : fin
   s.order_emb_of_fin h i = (s.sort (≤)).nth_le i (by { rw [length_sort, h], exact i.2 }) :=
 rfl
 
+@[simp] lemma order_emb_of_fin_mem (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) :
+  s.order_emb_of_fin h i ∈ s :=
+(s.order_iso_of_fin h i).2
+
 @[simp] lemma range_order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   set.range (s.order_emb_of_fin h) = s :=
 by simp [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]

@@ -88,12 +88,12 @@ unfreezing intros,
 (lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],
-(lhs', prf1) ← decorate_error "simplify fails on left-hand side:" $
+(lhs', prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
   simplify sls [] lhs {fail_if_unchanged := ff},
 prf1_lems ← heuristic_simp_lemma_extraction prf1,
 if d.to_name ∈ prf1_lems then pure none else do
 is_cond ← simp_is_conditional d.type,
-(rhs', prf2) ← decorate_error "simplify fails on right-hand side:" $
+(rhs', prf2, ns2) ← decorate_error "simplify fails on right-hand side:" $
   simplify sls [] rhs {fail_if_unchanged := ff},
 lhs'_eq_rhs' ← is_simp_eq lhs' rhs',
 lhs_in_nf ← is_simp_eq lhs' lhs,

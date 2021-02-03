@@ -545,6 +545,24 @@ e.has_deriv_within_at.deriv_within hxs
 
 end linear_map
 
+section analytic
+
+variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ennreal}
+
+lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
+  has_strict_deriv_at f (p 1 (λ _, 1)) x :=
+h.has_strict_fderiv_at.has_strict_deriv_at
+
+lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
+  has_deriv_at f (p 1 (λ _, 1)) x :=
+h.has_strict_deriv_at.has_deriv_at
+
+lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
+  deriv f x = p 1 (λ _, 1) :=
+h.has_deriv_at.deriv
+
+end analytic
+
 section add
 /-! ### Derivative of the sum of two functions -/
 

@@ -260,7 +260,7 @@ lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
   ∏ i : fin n, f i = ∏ i in range n, f i :=
 calc (∏ i : fin n, f i) = ∏ i : {x // x ∈ range n}, f i :
   ((equiv.fin_equiv_subtype n).trans
-    (equiv.subtype_congr_right (λ _, mem_range.symm))).prod_comp (f ∘ coe)
+    (equiv.subtype_equiv_right (λ _, mem_range.symm))).prod_comp (f ∘ coe)
 ... = ∏ i in range n, f i : by rw [← attach_eq_univ, prod_attach]
 
 @[to_additive]
@@ -309,9 +309,9 @@ lemma fintype.prod_dite [fintype α] {p : α → Prop} [decidable_pred p]
 begin
   simp only [prod_dite, attach_eq_univ],
   congr' 1,
-  { convert (equiv.subtype_congr_right _).prod_comp (λ x : {x // p x}, f x x.2),
+  { convert (equiv.subtype_equiv_right _).prod_comp (λ x : {x // p x}, f x x.2),
     simp },
-  { convert (equiv.subtype_congr_right _).prod_comp (λ x : {x // ¬p x}, g x x.2),
+  { convert (equiv.subtype_equiv_right _).prod_comp (λ x : {x // ¬p x}, g x x.2),
     simp }
 end
 

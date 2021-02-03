@@ -500,15 +500,15 @@ protected def caratheodory : measurable_space α :=
 caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, is_caratheodory_inter
 
 lemma is_caratheodory_iff {s : set α} :
-  caratheodory.is_measurable' s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
+  caratheodory.measurable_set' s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
 iff.rfl
 
 lemma is_caratheodory_iff_le {s : set α} :
-  caratheodory.is_measurable' s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
+  caratheodory.measurable_set' s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
 is_caratheodory_iff_le'
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
-  (h : ∀i, caratheodory.is_measurable' (s i)) (hd : pairwise (disjoint on s)) :
+  (h : ∀i, caratheodory.measurable_set' (s i)) (hd : pairwise (disjoint on s)) :
   m (⋃i, s i) = ∑'i, m (s i) :=
 f_Union h hd
 
@@ -518,7 +518,7 @@ variables {α : Type*}
 
 lemma of_function_caratheodory {m : set α → ennreal} {s : set α}
   {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
-  (outer_measure.of_function m h₀).caratheodory.is_measurable' s :=
+  (outer_measure.of_function m h₀).caratheodory.measurable_set' s :=
 begin
   apply (is_caratheodory_iff_le _).mpr,
   refine λ t, le_infi (λ f, le_infi $ λ hf, _),
@@ -531,7 +531,7 @@ begin
 end
 
 lemma bounded_by_caratheodory {m : set α → ennreal} {s : set α}
-  (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) : (bounded_by m).caratheodory.is_measurable' s :=
+  (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) : (bounded_by m).caratheodory.measurable_set' s :=
 begin
   apply of_function_caratheodory, intro t,
   cases t.eq_empty_or_nonempty with h h,
@@ -554,7 +554,7 @@ theorem le_add_caratheodory (m₁ m₂ : outer_measure α) :
 theorem le_sum_caratheodory {ι} (m : ι → outer_measure α) :
   (⨅ i, (m i).caratheodory) ≤ (sum m).caratheodory :=
 λ s h t, by simp [λ i,
-  measurable_space.is_measurable_infi.1 h i t, ennreal.tsum_add]
+  measurable_space.measurable_set_infi.1 h i t, ennreal.tsum_add]
 
 theorem le_smul_caratheodory (a : ennreal) (m : outer_measure α) :
   m.caratheodory ≤ (a • m).caratheodory :=
@@ -650,7 +650,7 @@ open outer_measure
   `induced_outer_measure`.
 
   Some lemmas below are proven twice, once in the general case, and one where the function `m`
-  is only defined on measurable sets (i.e. when `P = is_measurable`). In the latter cases, we can
+  is only defined on measurable sets (i.e. when `P = measurable_set`). In the latter cases, we can
   remove some hypotheses in the statement. The general version has the same name, but with a prime
   at the end. -/
 section extend
@@ -792,7 +792,7 @@ end
   of `s`.
 -/
 lemma induced_outer_measure_caratheodory (s : set α) :
-  (induced_outer_measure m P0 m0).caratheodory.is_measurable' s ↔ ∀ (t : set α), P t →
+  (induced_outer_measure m P0 m0).caratheodory.measurable_set' s ↔ ∀ (t : set α), P t →
   induced_outer_measure m P0 m0 (t ∩ s) + induced_outer_measure m P0 m0 (t \ s) ≤
     induced_outer_measure m P0 m0 t :=
 begin
@@ -808,22 +808,23 @@ end
 
 end extend_set
 
-/-! If `P` is `is_measurable` for some measurable space, then we can remove some hypotheses of the
+/-! If `P` is `measurable_set` for some measurable space, then we can remove some hypotheses of the
   above lemmas. -/
 section measurable_space
 
 variables {α : Type*} [measurable_space α]
-variables {m : Π (s : set α), is_measurable s → ennreal}
-variables (m0 : m ∅ is_measurable.empty = 0)
-variable (mU : ∀ {{f : ℕ → set α}} (hm : ∀i, is_measurable (f i)), pairwise (disjoint on f) →
-  m (⋃i, f i) (is_measurable.Union hm) = ∑'i, m (f i) (hm i))
+variables {m : Π (s : set α), measurable_set s → ennreal}
+variables (m0 : m ∅ measurable_set.empty = 0)
+variable (mU : ∀ {{f : ℕ → set α}} (hm : ∀i, measurable_set (f i)), pairwise (disjoint on f) →
+  m (⋃i, f i) (measurable_set.Union hm) = ∑'i, m (f i) (hm i))
 include m0 mU
 
-lemma extend_mono {s₁ s₂ : set α} (h₁ : is_measurable s₁) (hs : s₁ ⊆ s₂) :
+lemma extend_mono {s₁ s₂ : set α} (h₁ : measurable_set s₁) (hs : s₁ ⊆ s₂) :
   extend m s₁ ≤ extend m s₂ :=
 begin
   refine le_infi _, intro h₂,
-  have := extend_union is_measurable.empty m0 is_measurable.Union mU disjoint_diff h₁ (h₂.diff h₁),
+  have := extend_union measurable_set.empty m0 measurable_set.Union mU disjoint_diff
+    h₁ (h₂.diff h₁),
   rw union_diff_cancel hs at this,
   rw ← extend_eq m,
   exact le_iff_exists_add.2 ⟨_, this⟩,
@@ -831,20 +832,20 @@ end
 
 lemma extend_Union_le_tsum_nat : ∀ (s : ℕ → set α), extend m (⋃i, s i) ≤ ∑'i, extend m (s i) :=
 begin
-  refine extend_Union_le_tsum_nat' is_measurable.Union _, intros f h,
+  refine extend_Union_le_tsum_nat' measurable_set.Union _, intros f h,
   simp [Union_disjointed.symm] {single_pass := tt},
-  rw [mU (is_measurable.disjointed h) disjoint_disjointed],
+  rw [mU (measurable_set.disjointed h) disjoint_disjointed],
   refine ennreal.tsum_le_tsum (λ i, _),
   rw [← extend_eq m, ← extend_eq m],
-  exact extend_mono m0 mU (is_measurable.disjointed h _) (inter_subset_left _ _)
+  exact extend_mono m0 mU (measurable_set.disjointed h _) (inter_subset_left _ _)
 end
 
-lemma induced_outer_measure_eq_extend {s : set α} (hs : is_measurable s) :
-  induced_outer_measure m is_measurable.empty m0 s = extend m s :=
+lemma induced_outer_measure_eq_extend {s : set α} (hs : measurable_set s) :
+  induced_outer_measure m measurable_set.empty m0 s = extend m s :=
 of_function_eq s (λ t, extend_mono m0 mU hs) (extend_Union_le_tsum_nat m0 mU)
 
-lemma induced_outer_measure_eq {s : set α} (hs : is_measurable s) :
-  induced_outer_measure m is_measurable.empty m0 s = m s hs :=
+lemma induced_outer_measure_eq {s : set α} (hs : measurable_set s) :
+  induced_outer_measure m measurable_set.empty m0 s = m s hs :=
 (induced_outer_measure_eq_extend m0 mU hs).trans $ extend_eq _ _
 
 end measurable_space
@@ -855,30 +856,31 @@ variables {α : Type*} [measurable_space α] (m : outer_measure α)
 /-- Given an outer measure `m` we can forget its value on non-measurable sets, and then consider
   `m.trim`, the unique maximal outer measure less than that function. -/
 def trim : outer_measure α :=
-induced_outer_measure (λ s _, m s) is_measurable.empty m.empty
+induced_outer_measure (λ s _, m s) measurable_set.empty m.empty
 
 theorem le_trim : m ≤ m.trim :=
 le_of_function.mpr $ λ s, le_infi $ λ _, le_refl _
 
-theorem trim_eq {s : set α} (hs : is_measurable s) : m.trim s = m s :=
-induced_outer_measure_eq' is_measurable.Union (λ f hf, m.Union_nat f) (λ _ _ _ _ h, m.mono h) hs
+theorem trim_eq {s : set α} (hs : measurable_set s) : m.trim s = m s :=
+induced_outer_measure_eq' measurable_set.Union (λ f hf, m.Union_nat f) (λ _ _ _ _ h, m.mono h) hs
 
 theorem trim_congr {m₁ m₂ : outer_measure α}
-  (H : ∀ {s : set α}, is_measurable s → m₁ s = m₂ s) :
+  (H : ∀ {s : set α}, measurable_set s → m₁ s = m₂ s) :
   m₁.trim = m₂.trim :=
 by { unfold trim, congr, funext s hs, exact H hs }
 
 theorem trim_le_trim {m₁ m₂ : outer_measure α} (H : m₁ ≤ m₂) : m₁.trim ≤ m₂.trim :=
 λ s, binfi_le_binfi $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
 
-theorem le_trim_iff {m₁ m₂ : outer_measure α} : m₁ ≤ m₂.trim ↔ ∀ s, is_measurable s → m₁ s ≤ m₂ s :=
+theorem le_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
-theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : is_measurable t), m t :=
+theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : measurable_set t), m t :=
 by { simp only [infi_comm] {single_pass := tt}, exact induced_outer_measure_eq_infi
-    is_measurable.Union (λ f _, m.Union_nat f) (λ _ _ _ _ h, m.mono h) s }
+    measurable_set.Union (λ f _, m.Union_nat f) (λ _ _ _ _ h, m.mono h) s }
 
-theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ is_measurable t}, m t :=
+theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ measurable_set t}, m t :=
 by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
@@ -887,7 +889,7 @@ le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (le_trim 
 @[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm
   (le_trans ((trim 0).mono (subset_univ s)) $
-    le_of_eq $ trim_eq _ is_measurable.univ)
+    le_of_eq $ trim_eq _ measurable_set.univ)
   (zero_le _)
 
 theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim + m₂.trim :=
@@ -906,23 +908,23 @@ theorem trim_sum_ge {ι} (m : ι → outer_measure α) : sum (λ i, (m i).trim) 
 λ t st ht, ennreal.tsum_le_tsum (λ i,
   infi_le_of_le t $ infi_le_of_le st $ infi_le _ ht)
 
-lemma exists_is_measurable_superset_eq_trim (m : outer_measure α) (s : set α) :
-  ∃ t, s ⊆ t ∧ is_measurable t ∧ m t = m.trim s :=
+lemma exists_measurable_superset_eq_trim (m : outer_measure α) (s : set α) :
+  ∃ t, s ⊆ t ∧ measurable_set t ∧ m t = m.trim s :=
 begin
-  simp only [trim_eq_infi], set ms := ⨅ (t : set α) (st : s ⊆ t) (ht : is_measurable t), m t,
+  simp only [trim_eq_infi], set ms := ⨅ (t : set α) (st : s ⊆ t) (ht : measurable_set t), m t,
   by_cases hs : ms = ⊤,
   { simp only [hs],
     simp only [infi_eq_top] at hs,
-    exact ⟨univ, subset_univ s, is_measurable.univ, hs _ (subset_univ s) is_measurable.univ⟩ },
-  { have : ∀ r > ms, ∃ t, s ⊆ t ∧ is_measurable t ∧ m t < r,
+    exact ⟨univ, subset_univ s, measurable_set.univ, hs _ (subset_univ s) measurable_set.univ⟩ },
+  { have : ∀ r > ms, ∃ t, s ⊆ t ∧ measurable_set t ∧ m t < r,
     { intros r hs,
       simpa [infi_lt_iff] using hs },
-    have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ is_measurable t ∧ m t < ms + n⁻¹,
+    have : ∀ n : ℕ, ∃ t, s ⊆ t ∧ measurable_set t ∧ m t < ms + n⁻¹,
     { assume n,
       refine this _ (ennreal.lt_add_right (lt_top_iff_ne_top.2 hs) _),
       exact (ennreal.inv_pos.2 $ ennreal.nat_ne_top _) },
     choose t hsub hm hm',
-    refine ⟨⋂ n, t n, subset_Inter hsub, is_measurable.Inter hm, _⟩,
+    refine ⟨⋂ n, t n, subset_Inter hsub, measurable_set.Inter hm, _⟩,
     have : tendsto (λ n : ℕ, ms + n⁻¹) at_top (𝓝 (ms + 0)),
       from tendsto_const_nhds.add ennreal.tendsto_inv_nat_nhds_zero,
     rw add_zero at this,
@@ -930,14 +932,14 @@ begin
     { exact le_trans (m.mono' $ Inter_subset t n) (hm' n).le },
     { refine infi_le_of_le (⋂ n, t n) _,
       refine infi_le_of_le (subset_Inter hsub) _,
-      refine infi_le _ (is_measurable.Inter hm) } }
+      refine infi_le _ (measurable_set.Inter hm) } }
 end
 
-lemma exists_is_measurable_superset_of_trim_eq_zero
+lemma exists_measurable_superset_of_trim_eq_zero
   {m : outer_measure α} {s : set α} (h : m.trim s = 0) :
-  ∃t, s ⊆ t ∧ is_measurable t ∧ m t = 0 :=
+  ∃t, s ⊆ t ∧ measurable_set t ∧ m t = 0 :=
 begin
-  rcases exists_is_measurable_superset_eq_trim m s with ⟨t, hst, ht, hm⟩,
+  rcases exists_measurable_superset_eq_trim m s with ⟨t, hst, ht, hm⟩,
   exact ⟨t, hst, ht, h ▸ hm⟩
 end
 
@@ -946,15 +948,15 @@ theorem trim_smul (c : ennreal) (m : outer_measure α) :
 begin
   ext1 s,
   simp only [trim_eq_infi', smul_apply],
-  haveI : nonempty {t // s ⊆ t ∧ is_measurable t} := ⟨⟨univ, subset_univ _, is_measurable.univ⟩⟩,
+  haveI : nonempty {t // s ⊆ t ∧ measurable_set t} := ⟨⟨univ, subset_univ _, measurable_set.univ⟩⟩,
   refine ennreal.infi_mul_left (assume hc hs, _),
   rw ← trim_eq_infi' at hs,
-  simpa [and_assoc] using exists_is_measurable_superset_of_trim_eq_zero hs
+  simpa [and_assoc] using exists_measurable_superset_of_trim_eq_zero hs
 end
 
 /-- The trimmed property of a measure μ states that `μ.to_outer_measure.trim = μ.to_outer_measure`.
 This theorem shows that a restricted trimmed outer measure is a trimmed outer measure. -/
-lemma restrict_trim {μ : outer_measure α} {s : set α} (hs : is_measurable s) :
+lemma restrict_trim {μ : outer_measure α} {s : set α} (hs : measurable_set s) :
   (restrict s μ).trim = restrict s μ.trim :=
 begin
   apply measure_theory.outer_measure.ext, intro t,

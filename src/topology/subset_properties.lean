@@ -457,7 +457,7 @@ by simpa using compact_univ (show f ≤ 𝓟 univ, by simp)
 
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
-    (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
+    (⋂ i, Z i) = ∅ → ∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅) :
   compact_space α :=
 { compact_univ :=
   begin
@@ -583,11 +583,11 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
 end⟩
 
 section tychonoff
-variables {ι : Type*} {π : ι → Type*} [∀i, topological_space (π i)]
+variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
 
 /-- Tychonoff's theorem -/
-lemma compact_pi_infinite {s : Πi:ι, set (π i)} :
-  (∀i, is_compact (s i)) → is_compact {x : Πi:ι, π i | ∀i, x i ∈ s i} :=
+lemma compact_pi_infinite {s : Π i, set (π i)} :
+  (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
   simp only [compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff,
     le_principal_iff],
@@ -600,17 +600,12 @@ begin
 end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
-lemma compact_univ_pi {s : Πi:ι, set (π i)} (h : ∀i, is_compact (s i)) :
+lemma compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
 by { convert compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
 
-instance pi.compact [∀i:ι, compact_space (π i)] : compact_space (Πi, π i) :=
-⟨begin
-  have A : is_compact {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} :=
-    compact_pi_infinite (λi, compact_univ),
-  have : {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} = univ := by ext; simp,
-  rwa this at A,
-end⟩
+instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
+⟨by { rw [← pi_univ univ], exact compact_univ_pi (λ i, compact_univ) }⟩
 
 end tychonoff
 

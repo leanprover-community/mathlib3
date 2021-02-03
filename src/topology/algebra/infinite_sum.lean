@@ -757,6 +757,22 @@ begin
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
+@[simp] lemma tsum_ite_eq' (i : ℕ) (a : ℝ) :
+  ∑' n, (ite (n = i) a 0) = a :=
+tsum_ite_eq i a
+
+lemma tsum_ite_eq_add {f : ℕ → ℝ} (hf : summable f) (i : ℕ) (a : ℝ) :
+  ∑' n, ((ite (n = i) a 0) + f n) = a + ∑' n, f n :=
+begin
+  rw [tsum_add ⟨a, has_sum_ite_eq i a⟩ hf, @tsum_eq_single ℝ _ _ _ _ _ i],
+  { simp_rw if_pos rfl },
+  { exact λ j ji, if_neg ji }
+end
+
+lemma tsum_congr {f g : ℕ → ℝ} (hfg : ∀ n, f n = g n) :
+  ∑' n, f n = ∑' n, g n :=
+congr_arg tsum (funext hfg)
+
 end order_topology
 
 section canonically_ordered
@@ -886,6 +902,24 @@ tsum_prod' h h.prod_factor
 lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
+
+lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
+  ∑' n, f n = f i + ∑' n, ite (n ≠ i) (f n) 0 :=
+by rw [← tsum_ite_eq_add (hf.summable_of_eq_zero_or_self (λ j, _)) i, tsum_congr (λ j, _)];
+  by_cases ji : j = i; simp [ji]
+
+lemma tsum_lt {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b)
+  (hf: summable f) (hg: summable g) {i : ℕ} (hi : f i < g i) :
+  ∑' n, f n < ∑' n, g n :=
+begin
+  rw [tsum_ite_eq_extract hf i, tsum_ite_eq_extract hg i],
+  refine add_lt_add_of_lt_of_le hi (tsum_le_tsum (λ j, _) _ _),
+  by_cases ji : j = i; simp [ji]; exact h j,
+  { refine hf.summable_of_eq_zero_or_self (λ j, _),
+    by_cases ji : j = i; simp [ji] },
+  { refine hg.summable_of_eq_zero_or_self (λ j, _),
+    by_cases ji : j = i; simp [ji] }
+end
 
 end uniform_group
 

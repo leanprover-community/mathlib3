@@ -762,6 +762,11 @@ lemma tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n
 le_of_tendsto' ((has_sum_iff_tendsto_nat_of_nonneg hf _).1
   (summable_of_sum_range_le hf h).has_sum) h
 
+lemma tsum_lt_of_nonneg {f g : ℕ → ℝ} (h0 : ∀ (b : ℕ), 0 ≤ f b) (h : ∀ (b : ℕ), f b ≤ g b)
+  (hg: summable g) {i : ℕ} (hi : f i < g i) :
+  ∑' n, f n < ∑' n, g n :=
+tsum_lt h (summable_of_nonneg_of_le h0 h hg) hg hi
+
 section
 variables [emetric_space β]
 open ennreal filter emetric

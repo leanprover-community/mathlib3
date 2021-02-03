@@ -114,4 +114,13 @@ begin
     ((le_of_eq (add_comm n 1)).trans ((add_le_add_iff_right n).mpr (one_le_two.trans hi)))),
 end
 
+lemma add_factorial_lt_factorial_add' {i n : ℕ} (hi : 2 ≤ i) (hn : 1 ≤ n) :
+  i + n! < (i + n)! :=
+begin
+  cases hn,
+  { rw factorial_one,
+    exact lt_factorial_self (succ_le_succ hi) },
+  { exact add_factorial_lt_factorial_add _ hi }
+end
+
 end nat

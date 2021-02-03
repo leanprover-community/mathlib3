@@ -233,11 +233,13 @@ theorem le_stable (s : computation α) {a m n} (h : m ≤ n) :
   s.1 m = some a → s.1 n = some a :=
 by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
 
-theorem mem_unique :
-   relator.left_unique ((∈) : α → computation α → Prop) :=
-λa s b ⟨m, ha⟩ ⟨n, hb⟩, by injection
+theorem mem_unique {s : computation α} {a b : α} : a ∈ s → b ∈ s → a = b
+| ⟨m, ha⟩ ⟨n, hb⟩ := by injection
   (le_stable s (le_max_left m n) ha.symm).symm.trans
   (le_stable s (le_max_right m n) hb.symm)
+
+theorem mem.left_unique : relator.left_unique ((∈) : α → computation α → Prop) :=
+⟨λ a s b, mem_unique⟩
 
 /-- `terminates s` asserts that the computation `s` eventually terminates with some value. -/
 class terminates (s : computation α) : Prop := (term : ∃ a, a ∈ s)

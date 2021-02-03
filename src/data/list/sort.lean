@@ -86,7 +86,7 @@ lemma sorted.rel_of_mem_take_of_mem_drop {l : list α} (h : list.sorted r l)
   (k : ℕ) {x y : α} (hx : x ∈ list.take k l) (hy : y ∈ list.drop k l) :
   r x y :=
 begin
-  induction l with lh lt generalizing k,
+  induction l with lh lt l_ih generalizing k,
   { simpa using hy },
   cases k,
   { simpa using hx, },

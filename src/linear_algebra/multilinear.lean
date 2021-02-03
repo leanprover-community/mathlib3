@@ -592,6 +592,8 @@ instance [semimodule R' M₂] [smul_comm_class A R' M₂] : semimodule R' (multi
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
+variables (M₂ M₃ R' A)
+
 /-- `multilinear_map.dom_dom_congr` as a `linear_equiv`. -/
 @[simps apply symm_apply]
 def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq ι₂] (σ : ι₁ ≃ ι₂) :
@@ -1090,8 +1092,7 @@ def curry_fin_finset {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set
   (hk : s.card = k) (hl : sᶜ.card = l) :
   multilinear_map R (λ x : fin n, M') M₂ ≃ₗ[R]
     multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂) :=
-(dom_dom_congr_linear_equiv (fin_sum_equiv_of_finset hk hl).symm :
-  multilinear_map R (λ x : fin n, M') M₂ ≃ₗ[R] multilinear_map R (λ x : fin k ⊕ fin l, M') M₂).trans
+(dom_dom_congr_linear_equiv M' M₂ R R (fin_sum_equiv_of_finset hk hl).symm).trans
   (curry_sum_equiv R (fin k) M₂ M' (fin l))
 
 variables {R M₂ M'}

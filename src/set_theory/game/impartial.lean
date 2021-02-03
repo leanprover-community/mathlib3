@@ -39,6 +39,7 @@ begin
     exact hi }
 end
 
+/-- A typeclass on impartial games. -/
 class impartial (G : pgame) : Prop := (out : impartial_aux G)
 
 lemma impartial_iff_aux {G : pgame} : G.impartial ↔ G.impartial_aux :=

@@ -33,7 +33,7 @@ open classical set function topological_space filter
 namespace emetric
 
 section inf_edist
-open_locale ennreal
+
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α}
   {Φ : α → β}
 
@@ -158,7 +158,7 @@ lemma Hausdorff_edist_def {α : Type u} [emetric_space α] (s t : set α) :
 attribute [irreducible] Hausdorff_edist
 
 section Hausdorff_edist
-open_locale ennreal
+
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
           {x y : α} {s t u : set α} {Φ : α → β}
 

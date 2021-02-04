@@ -28,6 +28,10 @@ ordered_semiring.zero_le_one
 lemma zero_le_two : 0 ≤ (2:α) :=
 add_nonneg zero_le_one zero_le_one
 
+lemma one_le_two : 1 ≤ (2:α) :=
+calc (1:α) = 0 + 1 : (zero_add _).symm
+       ... ≤ 1 + 1 : add_le_add_right zero_le_one _
+
 section nontrivial
 
 variables [nontrivial α]
@@ -44,8 +48,6 @@ lemma one_lt_two : 1 < (2:α) :=
 calc (2:α) = 1+1 : one_add_one_eq_two
      ...   > 1+0 : add_lt_add_left zero_lt_one _
      ...   = 1   : add_zero 1
-
-lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
 lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
 

@@ -164,63 +164,73 @@ using `rw ←`. -/
 lemma prod_antidiagonal_eq_prod_range_succ {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) (n : ℕ) :
   ∏ ij in finset.nat.antidiagonal n, f ij.1 ij.2 = ∏ k in range n.succ, f k (n - k) := sorry
 
-noncomputable def eval_neg_hom (A : Type*) [comm_ring A] : power_series A →+* power_series A :=
+noncomputable def eval_mul_hom (A : Type*) [comm_ring A] (a : A) : power_series A →+* power_series A :=
 {
-  to_fun :=   λ f, mk $ λ n, (-1)^n * (coeff A n f),
+  to_fun :=   λ f, mk $ λ n, a^n * (coeff A n f),
   map_zero' := by {simp, ext, simp, },
   map_one' := by { simp, ext1, simp, split_ifs, rw [h, pow_zero], refl, },
   map_add' := by {intros, ext, norm_num, rw mul_add, },
   map_mul' := by {intros, ext, rw coeff_mul, simp, rw coeff_mul, rw mul_sum, apply sum_congr rfl,
-            norm_num, intros a b H, rw <-H, rw pow_add, rw mul_assoc, rw ←mul_assoc ((-1 : A)^b) _ _,
-            rw mul_comm ((-1 : A)^b) _, rw mul_assoc _ ((-1 : A)^b) _, ring, },
+            norm_num, intros b c H, rw <-H, rw pow_add, rw mul_assoc, rw ←mul_assoc (a^c) _ _,
+            rw mul_comm (a^c) _, rw mul_assoc _ (a^c) _, ring, },
 }
+
+theorem exp_mul_exp_eq_exp_add (A : Type*) [comm_ring A] [algebra ℚ A] (a b : A) :
+  (eval_mul_hom A a (exp A)) * (eval_mul_hom A b (exp A)) = (eval_mul_hom A (a + b) (exp A)) :=
+begin
+  ext,
+  rw [coeff_mul, exp, eval_mul_hom, eval_mul_hom, eval_mul_hom], simp only [coeff_mk, coe_mk, factorial],
+  { rw sum_antidiagonal_eq_sum_range_succ_mk, simp only [factorial], rw add_pow,
+  rw sum_mul, apply sum_congr, refl, rintros x hx,
+  rw mul_assoc (a^x * b ^ (n - x)) _ _, rw mul_assoc (a^x) _ _, rw ←mul_assoc _  (b ^ (n - x)) _,
+  rw mul_comm _ (b^(n - x)), rw ←mul_assoc (a^x) _ _, rw ←mul_assoc (a^x) _ _,
+  suffices f : (algebra_map ℚ A) (1 / ↑(x.factorial)) * (algebra_map ℚ A) (1 / ↑((n - x).factorial))
+   = (↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial))),
+  { rw ←f, rw mul_assoc, },
+  rw ←map_nat_cast (algebra_map ℚ A) (n.choose x), rw ←map_mul, rw ←map_mul,
+  refine ring_hom.congr_arg _ _, rw mul_one_div ↑(n.choose x) _, rw one_div_mul_one_div,
+   symmetry, rw div_eq_iff, rw div_mul_eq_mul_div, rw one_mul, rw choose_eq_factorial_div_factorial,
+   norm_cast, rw cast_dvd_char_zero,
+   { apply factorial_mul_factorial_dvd_factorial (mem_range_succ_iff.1 hx), },
+   { apply mem_range_succ_iff.1 hx, },
+   { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },
+ },
+end
+
+lemma eval_mul_hom_zero (A : Type*) [comm_ring A] [algebra ℚ A] (f : power_series A) :
+  eval_mul_hom A 0 f = (C A ((constant_coeff A) f) ) :=
+begin
+  rw eval_mul_hom, simp, ext, simp, rw power_series.coeff_C, split_ifs,
+  rw h, simp,
+  rw zero_pow' n h, rw zero_mul,
+end
+
+lemma eval_mul_hom_one (A : Type*) [comm_ring A] [algebra ℚ A] (f : power_series A) :
+  eval_mul_hom A 1 f = f :=
+begin
+  rw eval_mul_hom, simp, ext, simp,
+end
+
+noncomputable def eval_neg_hom (A : Type*) [comm_ring A] : power_series A →+* power_series A :=
+  eval_mul_hom A (-1 : A)
 
 lemma sum_choose_neg_one : ∀ n : ℕ,
   ∑ k in finset.range n.succ, (n.choose k : ℚ) * (-1)^(n - k) = 0 := sorry
 
-theorem exp_mul_neg_eq_one (A : Type*) [comm_ring A] [algebra ℚ A] :
+@[simp] lemma constant_coeff_exp (A : Type*) [comm_ring A] [algebra ℚ A] : constant_coeff A (exp A) = 1 := sorry
+
+theorem exp_mul_exp_neg_eq_one (A : Type*) [comm_ring A] [algebra ℚ A] :
   (exp A) * (eval_neg_hom A (exp A)) = 1 :=
 begin
-  ext,
-  rw [coeff_mul, exp], simp only [coeff_mk, coeff_one, factorial], split_ifs, {rw h,
-  simp only [nat.antidiagonal_zero, one_mul, cast_one, coeff_zero_eq_constant_coeff, map_one,
-  sum_singleton, inv_one, factorial], rw eval_neg_hom, simp only [one_div, coeff_mk, one_mul,
-  coe_mk, map_one, factorial, div_one], rw [←coeff_zero_eq_constant_coeff, coeff_mk], simp,},
-  { rw eval_neg_hom, simp only [coeff_mk, coe_mk, factorial],
-    rw sum_antidiagonal_eq_sum_range_succ_mk, simp only [factorial],
-    conv_lhs { apply_congr, skip, rw mul_comm ((-1 : A)^_) _, rw ←mul_assoc, },
-    convert_to ∑ (x : ℕ) in range n.succ, (algebra_map ℚ A) (1 / ↑(x.factorial) * 1/
-      ↑((n - x).factorial) * (-1) ^ (n - x) ) = 0,
-    {
-      apply sum_congr, { refl, },
-      rintros x hx, rw ←map_mul, rw map_mul _ _ ((-1 : ℚ) ^ (n - x)), congr, rw mul_div_assoc, simp,
-    },
-    {
-      rw ←map_sum,
-      have f : 0 = (algebra_map ℚ A) 0 := by simp,
-      rw f, refine congr_arg ⇑(algebra_map ℚ A) _,
-      suffices g : (n.factorial : ℚ) * (∑ (x : ℕ) in range n.succ, 1 / ↑(x.factorial) *
-        1 / ↑((n - x).factorial) * (-1 : ℚ) ^ (n - x)) = 0,
-      {
-        have g' := integral_domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ g,
-        { cases g', { exfalso, apply factorial_ne_zero n, rw cast_eq_zero.1 g', }, exact g', },
-      },
-      rw mul_sum,
-      conv_lhs { apply_congr, skip, rw ←mul_assoc, rw mul_div_assoc, rw ←div_mul_eq_div_mul_one_div,
-       rw mul_one_div, rw ←cast_mul, rw ←cast_dvd_char_zero, rw ←choose_eq_factorial_div_factorial,
-       skip,
-       { apply_congr ( mem_range_succ_iff.1 H ), },
-       { apply_congr factorial_mul_factorial_dvd_factorial ( mem_range_succ_iff.1 H ), },
-      },
-      rw sum_choose_neg_one n,
-    },
- },
+  rw eval_neg_hom,
+  conv_lhs { congr, rw ←eval_mul_hom_one A (exp A), },
+  rw exp_mul_exp_eq_exp_add, simp, rw eval_mul_hom_zero, simp,
 end
 
 @[simp] lemma eval_neg_hom_X (A : Type*) [comm_ring A] : eval_neg_hom ℚ X = -X :=
 begin
-  rw eval_neg_hom, simp, ext, simp, rw coeff_X, split_ifs, rw h, simp,
-  norm_num,
+  rw eval_neg_hom, ext, simp, rw coeff_X, split_ifs, rw h, rw eval_mul_hom, simp,
+  rw eval_mul_hom, simp, right, rw coeff_X, split_ifs, refl,
 end
 
 theorem bernoulli_odd_eq_zero : ∀ n : ℕ, (n % 2 = 1 ∧ 1 < n) → bernoulli n = 0 :=
@@ -231,12 +241,12 @@ begin
     { rw mul_eq_mul_right_iff, left,
       congr, assumption, },
     rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc ((eval_neg_hom ℚ) X) _ _,
-    mul_comm ((eval_neg_hom ℚ) (exp ℚ)) (exp ℚ), exp_mul_neg_eq_one ℚ, eval_neg_hom_X ℚ, mul_one,
+    mul_comm ((eval_neg_hom ℚ) (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one ℚ, eval_neg_hom_X ℚ, mul_one,
      one_mul] at g,
   suffices h : (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) - (eval_neg_hom ℚ) (mk (λ (n : ℕ),
     bernoulli n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
     simp at h, cases h,
-    { rw eval_neg_hom at h, simp at h, rw power_series.ext_iff at h, simp at h,
+    { rw eval_neg_hom at h, rw eval_mul_hom at h, simp at h, rw power_series.ext_iff at h, simp at h,
      rintros n hn, cases hn with hn1 hn2, specialize h n, rw coeff_X n at h, split_ifs at h,
      { rw h_1 at hn2, exfalso, simp at *, norm_num at *, },
      rw ←mul_div_assoc at h, rw sub_eq_zero_iff_eq at h,

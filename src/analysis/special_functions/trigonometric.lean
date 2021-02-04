@@ -2801,7 +2801,7 @@ lemma arcsin_eq_arctan {x : ℝ} (h : x ∈ Ioo (-(1:ℝ)) 1) :
   arcsin x = arctan (x / sqrt (1 - x ^ 2)) :=
 begin
   rw [arctan_eq_arcsin, div_pow, sqr_sqrt, one_add_div, div_div_eq_div_mul,
-      ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one],
+      ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one];
   nlinarith [h.1, h.2],
 end
 

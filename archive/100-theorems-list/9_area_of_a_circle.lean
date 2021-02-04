@@ -20,24 +20,24 @@ open_locale classical
 variables {α β : Type*} [measurable_space α] [measurable_space β] {μ : measure α} {ν : measure β}
   [sigma_finite μ] [sigma_finite ν] {f g : α → ℝ} {s t : set α}
 
-lemma measure.eq_restrict_of_measurable_subset (ht : is_measurable t) (t_subset : t ⊆ s) :
+lemma measure.eq_restrict_of_measurable_subset (ht : measurable_set t) (t_subset : t ⊆ s) :
   μ t = μ.restrict s t :=
 by rw [measure.restrict_apply ht, set.inter_eq_self_of_subset_left t_subset]
 
-lemma measure.restrict_apply' (hs : is_measurable s) : μ.restrict s t = μ (t ∩ s) :=
+lemma measure.restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
 by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
       outer_measure.restrict_apply s t _, coe_to_outer_measure]
 
-lemma measure.eq_restrict_of_subset_of_measurable (hs : is_measurable s) (t_subset : t ⊆ s) :
+lemma measure.eq_restrict_of_subset_of_measurable (hs : measurable_set s) (t_subset : t ⊆ s) :
   μ t = μ.restrict s t :=
 by rwa [measure.restrict_apply', set.inter_eq_self_of_subset_left t_subset]
 
-lemma measure.restrict_prod_eq_prod_univ {s : set α} (hs : is_measurable s) :
+lemma measure.restrict_prod_eq_prod_univ {s : set α} (hs : measurable_set s) :
   (μ.restrict s).prod ν = (μ.prod ν).restrict (s.prod univ) :=
 begin
   have : ν = ν.restrict set.univ := measure.restrict_univ.symm,
   rwa [this, measure.prod_restrict, ← this],
-  exact is_measurable.univ,
+  exact measurable_set.univ,
 end
 
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
@@ -46,18 +46,18 @@ def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s.prod univ :=
 by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
 
-lemma is_measurable_region_between (hf : measurable f) (hg: measurable g) (hs : is_measurable s) :
-  is_measurable (region_between f g s) :=
+lemma measurable_set_region_between (hf : measurable f) (hg: measurable g) (hs : measurable_set s) :
+  measurable_set (region_between f g s) :=
 begin
   dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
-  refine is_measurable.inter _ ((is_measurable_lt (hf.comp measurable_fst) measurable_snd).inter
-    (is_measurable_lt measurable_snd (hg.comp measurable_fst))),
-  convert hs.prod is_measurable.univ,
+  refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
+  convert hs.prod measurable_set.univ,
   simp only [and_true, mem_univ],
 end
 
 theorem volume_region_between_eq_lintegral'
-  (hf : measurable f) (hg : measurable g) (hs : is_measurable s) :
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
   μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
 begin
   rw measure.prod_apply,
@@ -73,12 +73,12 @@ begin
     dsimp only [region_between, preimage_set_of_eq],
     rw [h, lintegral_indicator];
     simp only [hs, pi.sub_apply] },
-  { exact is_measurable_region_between hf hg hs },
+  { exact measurable_set_region_between hf hg hs },
 end
 
 theorem volume_region_between_eq_lintegral
   (hf : ae_measurable f (μ.restrict s)) (hg : ae_measurable g (μ.restrict s))
-  (hs : is_measurable s) :
+  (hs : measurable_set s) :
   μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
 begin
   have h₁ : (λ y, ennreal.of_real ((g - f) y))
@@ -98,17 +98,17 @@ begin
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [measure.eq_restrict_of_subset_of_measurable (hs.prod is_measurable.univ)
+    exacts [measure.eq_restrict_of_subset_of_measurable (hs.prod measurable_set.univ)
       (region_between_subset f g s), hs] },
   { rw measure.restrict_prod_eq_prod_univ,
-    exacts [measure.eq_restrict_of_subset_of_measurable (hs.prod is_measurable.univ)
+    exacts [measure.eq_restrict_of_subset_of_measurable (hs.prod measurable_set.univ)
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s), hs] },
   { apply_instance },
 end
 
 theorem volume_region_between_eq_integral
   (hf : integrable_on f s μ) (hg : integrable_on g s μ)
-  (hs : is_measurable s) (hfg : ∀ x ∈ s, f x ≤ g x) : -- (hfg : f ≤ᵐ[μ.restrict s] g)
+  (hs : measurable_set s) (hfg : ∀ x ∈ s, f x ≤ g x) : -- (hfg : f ≤ᵐ[μ.restrict s] g)
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
   have h : g - f =ᵐ[μ.restrict s] λ y, (λ x, nnreal.of_real (g x - f x)) y,
@@ -148,7 +148,7 @@ begin
   have H : ∀ {f : ℝ → ℝ}, continuous f → integrable_on f (Ioc (-r) r) :=
     λ f hc, (hc.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
-  convert volume_region_between_eq_integral (H hc1.neg) (H hc1) is_measurable_Ioc
+  convert volume_region_between_eq_integral (H hc1.neg) (H hc1) measurable_set_Ioc
     --(eventually_of_forall (λ u, neg_le_self (sqrt_nonneg _))),
     (λ x hx, neg_le_self (sqrt_nonneg _)),
   simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul],

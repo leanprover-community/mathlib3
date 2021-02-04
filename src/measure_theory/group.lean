@@ -36,7 +36,7 @@ variables [measurable_space G] [has_mul G]
   if the measure of left translations of a set are equal to the measure of the set itself.
   To left translate sets we use preimage under left addition,
   since preimages are nicer to work with than images."]
-def is_mul_left_invariant (μ : set G → ennreal) : Prop :=
+def is_mul_left_invariant (μ : set G → ℝ≥0∞) : Prop :=
 ∀ (g : G) {A : set G} (h : measurable_set A), μ ((λ h, g * h) ⁻¹' A) = μ A
 
 /-- A measure `μ` on a topological group is right invariant
@@ -47,7 +47,7 @@ def is_mul_left_invariant (μ : set G → ennreal) : Prop :=
   if the measure of right translations of a set are equal to the measure of the set itself.
   To right translate sets we use preimage under right addition,
   since preimages are nicer to work with than images."]
-def is_mul_right_invariant (μ : set G → ennreal) : Prop :=
+def is_mul_right_invariant (μ : set G → ℝ≥0∞) : Prop :=
 ∀ (g : G) {A : set G} (h : measurable_set A), μ ((λ h, h * g) ⁻¹' A) = μ A
 
 end

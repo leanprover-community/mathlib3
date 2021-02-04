@@ -118,7 +118,7 @@ namespace measure
 /-! ### General facts about measures -/
 
 /-- Obtain a measure by giving a countably additive function that sends `∅` to `0`. -/
-def of_measurable (m : Π (s : set α), measurable_set s → ennreal)
+def of_measurable (m : Π (s : set α), measurable_set s → ℝ≥0∞)
   (m0 : m ∅ measurable_set.empty = 0)
   (mU : ∀ {{f : ℕ → set α}} (h : ∀ i, measurable_set (f i)), pairwise (disjoint on f) →
     m (⋃ i, f i) (measurable_set.Union h) = ∑' i, m (f i) (h i)) : measure α :=
@@ -136,7 +136,7 @@ def of_measurable (m : Π (s : set α), measurable_set s → ennreal)
   end,
   ..induced_outer_measure m _ m0 }
 
-lemma of_measurable_apply {m : Π (s : set α), measurable_set s → ennreal}
+lemma of_measurable_apply {m : Π (s : set α), measurable_set s → ℝ≥0∞}
   {m0 : m ∅ measurable_set.empty = 0}
   {mU : ∀ {{f : ℕ → set α}} (h : ∀ i, measurable_set (f i)), pairwise (disjoint on f) →
     m (⋃ i, f i) (measurable_set.Union h) = ∑' i, m (f i) (h i)}
@@ -699,7 +699,7 @@ def lift_linear (f : outer_measure α →ₗ[ℝ≥0∞] outer_measure β)
   map_add' := λ μ₁ μ₂, ext $ λ s hs, by simp [hs],
   map_smul' := λ c μ, ext $ λ s hs, by simp [hs] }
 
-@[simp] lemma lift_linear_apply {f : outer_measure α →ₗ[ennreal] outer_measure β} (hf)
+@[simp] lemma lift_linear_apply {f : outer_measure α →ₗ[ℝ≥0∞] outer_measure β} (hf)
   {s : set β} (hs : measurable_set s) : lift_linear f hf μ s = f μ.to_outer_measure s :=
 to_measure_apply _ _ hs
 
@@ -747,7 +747,7 @@ nonpos_iff_eq_zero.mp $ (le_map_apply hf s).trans_eq hs
 
 /-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
 measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
-def comap (f : α → β) : measure β →ₗ[ennreal] measure α :=
+def comap (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
 if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
@@ -2027,7 +2027,7 @@ theorem measurable_set.diff_null (hs : measurable_set s) (hz : μ z = 0) :
 begin
   rw measure_eq_infi at hz,
   choose f hf using show ∀ q : {q : ℚ // q > 0}, ∃ t : set α,
-    z ⊆ t ∧ measurable_set t ∧ μ t < (nnreal.of_real q.1 : ennreal),
+    z ⊆ t ∧ measurable_set t ∧ μ t < (nnreal.of_real q.1 : ℝ≥0∞),
   { rintro ⟨ε, ε0⟩,
     have : 0 < (nnreal.of_real ε : ℝ≥0∞), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },

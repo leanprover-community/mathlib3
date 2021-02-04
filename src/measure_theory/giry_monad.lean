@@ -42,7 +42,7 @@ variables [measurable_space α] [measurable_space β]
 
 /-- Measurability structure on `measure`: Measures are measurable w.r.t. all projections -/
 instance : measurable_space (measure α) :=
-⨆ (s : set α) (hs : measurable_set s), (borel ennreal).comap (λμ, μ s)
+⨆ (s : set α) (hs : measurable_set s), (borel ℝ≥0∞).comap (λμ, μ s)
 
 lemma measurable_coe {s : set α} (hs : measurable_set s) : measurable (λμ : measure α, μ s) :=
 measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_refl _

@@ -530,7 +530,7 @@ begin
   { rw ← ennreal.tsum_add, exact ennreal.tsum_le_tsum (λ i, hs _) }
 end
 
-lemma bounded_by_caratheodory {m : set α → ennreal} {s : set α}
+lemma bounded_by_caratheodory {m : set α → ℝ≥0∞} {s : set α}
   (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) : (bounded_by m).caratheodory.measurable_set' s :=
 begin
   apply of_function_caratheodory, intro t,
@@ -813,7 +813,7 @@ end extend_set
 section measurable_space
 
 variables {α : Type*} [measurable_space α]
-variables {m : Π (s : set α), measurable_set s → ennreal}
+variables {m : Π (s : set α), measurable_set s → ℝ≥0∞}
 variables (m0 : m ∅ measurable_set.empty = 0)
 variable (mU : ∀ {{f : ℕ → set α}} (hm : ∀i, measurable_set (f i)), pairwise (disjoint on f) →
   m (⋃i, f i) (measurable_set.Union hm) = ∑'i, m (f i) (hm i))

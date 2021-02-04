@@ -618,7 +618,7 @@ begin
   apply ennreal.tsum_comm
 end
 
-lemma restrict_lintegral (f : α →ₛ ennreal) {s : set α} (hs : measurable_set s) :
+lemma restrict_lintegral (f : α →ₛ ℝ≥0∞) {s : set α} (hs : measurable_set s) :
   (restrict f s).lintegral μ = ∑ r in f.range, r * μ (f ⁻¹' {r} ∩ s) :=
 calc (restrict f s).lintegral μ = ∑ r in f.range, r * μ (restrict f s ⁻¹' {r}) :
   lintegral_eq_of_subset _ $ λ x hx, if hxs : x ∈ s
@@ -632,7 +632,7 @@ lemma lintegral_restrict (f : α →ₛ ℝ≥0∞) (s : set α) (μ : measure �
   f.lintegral (μ.restrict s) = ∑ y in f.range, y * μ (f ⁻¹' {y} ∩ s) :=
 by simp only [lintegral, measure.restrict_apply, f.measurable_set_preimage]
 
-lemma restrict_lintegral_eq_lintegral_restrict (f : α →ₛ ennreal) {s : set α}
+lemma restrict_lintegral_eq_lintegral_restrict (f : α →ₛ ℝ≥0∞) {s : set α}
   (hs : measurable_set s) :
   (restrict f s).lintegral μ = f.lintegral (μ.restrict s) :=
 by rw [f.restrict_lintegral hs, lintegral_restrict]
@@ -649,7 +649,7 @@ lemma const_lintegral_restrict (c : ℝ≥0∞) (s : set α) :
   (const α c).lintegral (μ.restrict s) = c * μ s :=
 by rw [const_lintegral, measure.restrict_apply measurable_set.univ, univ_inter]
 
-lemma restrict_const_lintegral (c : ennreal) {s : set α} (hs : measurable_set s) :
+lemma restrict_const_lintegral (c : ℝ≥0∞) {s : set α} (hs : measurable_set s) :
   ((const α c).restrict s).lintegral μ = c * μ s :=
 by rw [restrict_lintegral_eq_lintegral_restrict _ hs, const_lintegral_restrict]
 
@@ -693,7 +693,7 @@ lemma lintegral_congr {f g : α →ₛ ℝ≥0∞} (h : f =ᵐ[μ] g) :
 lintegral_eq_of_measure_preimage $ λ y, measure_congr $
   eventually.set_eq $ h.mono $ λ x hx, by simp [hx]
 
-lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ennreal) (g : β →ₛ ennreal)
+lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ℝ≥0∞) (g : β →ₛ ℝ≥0∞)
   (m : α → β) (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, measurable_set s → μ' s = μ (m ⁻¹' s)) :
   f.lintegral μ = g.lintegral μ' :=
 lintegral_eq_of_measure_preimage $ λ y,
@@ -705,7 +705,7 @@ section fin_meas_supp
 
 variables [measurable_space α] [has_zero β] [has_zero γ] {μ : measure α}
 
-open finset ennreal function
+open finset ℝ≥0∞ function
 
 lemma support_eq (f : α →ₛ β) : support f = ⋃ y ∈ f.range.filter (λ y, y ≠ 0), f ⁻¹' {y} :=
 set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support, set.mem_preimage,
@@ -1030,7 +1030,7 @@ begin
     assume x hx, exact le_trans hx (h_mono h x) },
   have h_meas : ∀n, measurable_set {a : α | ⇑(map c rs) a ≤ f n a} :=
     assume n, measurable_set_le (simple_func.measurable _) (hf n),
-  calc (r:ennreal) * (s.map c).lintegral μ = ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r}) :
+  calc (r:ℝ≥0∞) * (s.map c).lintegral μ = ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r}) :
       by rw [← const_mul_lintegral, eq_rs, simple_func.lintegral]
     ... ≤ ∑ r in (rs.map c).range, r * μ (⋃n, (rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
       le_of_eq (finset.sum_congr rfl $ assume x hx, by rw ← eq)
@@ -1313,7 +1313,7 @@ lemma lintegral_rw₂ {f₁ f₁' : α → β} {f₂ f₂' : α → γ} (h₁ : 
   (∫⁻ a, g (f₁ a) (f₂ a) ∂μ) = (∫⁻ a, g (f₁' a) (f₂' a) ∂μ) :=
 lintegral_congr_ae $ h₁.mp $ h₂.mono $ λ _ h₂ h₁, by rw [h₁, h₂]
 
-@[simp] lemma lintegral_indicator (f : α → ennreal) {s : set α} (hs : measurable_set s) :
+@[simp] lemma lintegral_indicator (f : α → ℝ≥0∞) {s : set α} (hs : measurable_set s) :
   ∫⁻ a, s.indicator f a ∂μ = ∫⁻ a in s, f a ∂μ :=
 begin
   simp only [lintegral, ← restrict_lintegral_eq_lintegral_restrict _ hs, supr_subtype'],
@@ -1613,7 +1613,7 @@ end
 open measure
 
 lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable_set (s i))
-  (hd : pairwise (disjoint on s)) (f : α → ennreal) :
+  (hd : pairwise (disjoint on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
 
@@ -1646,7 +1646,7 @@ lemma lintegral_comp [measurable_space β] {f : β → ℝ≥0∞} {g : α → �
   (hf : measurable f) (hg : measurable g) : lintegral μ (f ∘ g) = ∫⁻ a, f a ∂(map g μ) :=
 (lintegral_map hf hg).symm
 
-lemma set_lintegral_map [measurable_space β] {f : β → ennreal} {g : α → β}
+lemma set_lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   {s : set β} (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
 by rw [restrict_map hg hs, lintegral_map hf hg]
@@ -1690,7 +1690,7 @@ measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻
 def measure.with_density (μ : measure α) (f : α → ℝ≥0∞) : measure α :=
 measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, lintegral_Union hs hd _)
 
-@[simp] lemma with_density_apply (f : α → ennreal) {s : set α} (hs : measurable_set s) :
+@[simp] lemma with_density_apply (f : α → ℝ≥0∞) {s : set α} (hs : measurable_set s) :
   μ.with_density f s = ∫⁻ a in s, f a ∂μ :=
 measure.of_measurable_apply s hs
 
@@ -1708,9 +1708,9 @@ can be added once we need them (for example in `h_sum` it is only necessary to c
 a simple function with a multiple of a characteristic function and that the intersection
 of their images is a subset of `{0}`. -/
 @[elab_as_eliminator]
-theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
-  (h_ind : ∀ (c : ennreal) ⦃s⦄, measurable_set s → P (indicator s (λ _, c)))
-  (h_sum : ∀ ⦃f g : α → ennreal⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
+theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ℝ≥0∞) → Prop}
+  (h_ind : ∀ (c : ℝ≥0∞) ⦃s⦄, measurable_set s → P (indicator s (λ _, c)))
+  (h_sum : ∀ ⦃f g : α → ℝ≥0∞⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
     P f → P g → P (f + g))
   (h_supr : ∀ ⦃f : ℕ → α → ℝ≥0∞⦄ (hf : ∀n, measurable (f n)) (h_mono : monotone f)
     (hP : ∀ n, P (f n)), P (λ x, ⨆ n, f n x))

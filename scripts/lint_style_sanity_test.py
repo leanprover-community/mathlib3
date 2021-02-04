@@ -130,7 +130,7 @@ class TestLinterIntegration(unittest.TestCase):
         self.assertNotIn(str(ROOT_DIR), current_contents)
         self.addCleanup(exceptions.write_text, current_contents)
 
-        result = subprocess.run(
+        subprocess.run(
             ["./scripts/update-style-exceptions.sh"],
             check=True,
             capture_output=True,
@@ -140,6 +140,17 @@ class TestLinterIntegration(unittest.TestCase):
             str(ROOT_DIR),
             SCRIPTS_DIR.joinpath("style-exceptions.txt").read_text(),
         )
+
+    def test_running_the_shell_script_does_not_error(self):
+        """
+        Normally, users will run scripts/lint-style.sh, which will run the
+        linter on all files within mathlib.
+
+        Running it exits with successful return code.
+        """
+
+        subprocess.run(["./scripts/lint-style.sh"], check=True, cwd=ROOT_DIR)
+
 
 if __name__ == "__main__":
     unittest.main()

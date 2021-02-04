@@ -88,22 +88,23 @@ infi_le_infi $ assume s, infi_le_infi2 $ assume hs, ⟨hf hs, hg s⟩
 lemma lift_mono' (hg : ∀s∈f, g₁ s ≤ g₂ s) : f.lift g₁ ≤ f.lift g₂ :=
 infi_le_infi $ assume s, infi_le_infi $ assume hs, hg s hs
 
+lemma tendsto_lift {m : γ → β} {l : filter γ} :
+  tendsto m l (f.lift g) ↔ ∀ s ∈ f, tendsto m l (g s) :=
+by simp only [filter.lift, tendsto_infi]
+
 lemma map_lift_eq {m : β → γ} (hg : monotone g) : map m (f.lift g) = f.lift (map m ∘ g) :=
 have monotone (map m ∘ g),
   from map_mono.comp hg,
-filter_eq $ set.ext $
-  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, forall_const, mem_map, iff_self,
-    function.comp_app]
+filter.ext $ λ s,
+  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, mem_map, function.comp_app]
 
 lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
 have monotone (comap m ∘ g),
   from comap_mono.comp hg,
-filter_eq $ set.ext begin
-  simp only [mem_lift_sets hg, mem_lift_sets this, comap, mem_lift_sets, mem_set_of_eq, exists_prop,
-    function.comp_apply],
-  exact λ s,
-   ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩,
-    λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
+begin
+  ext,
+  simp only [mem_lift_sets hg, mem_lift_sets this, mem_comap_sets, exists_prop, mem_lift_sets],
+  exact ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩, λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
 end
 
 theorem comap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :
@@ -219,6 +220,10 @@ variables {f f₁ f₂ : filter α} {h h₁ h₂ : set α → set β}
 lemma mem_lift' {t : set α} (ht : t ∈ f) : h t ∈ (f.lift' h) :=
 le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
   from infi_le_of_le t $ infi_le_of_le ht $ le_refl _
+
+lemma tendsto_lift' {m : γ → β} {l : filter γ} :
+  tendsto m l (f.lift' h) ↔ ∀ s ∈ f, ∀ᶠ a in l, m a ∈ h s :=
+by simp only [filter.lift', tendsto_lift, tendsto_principal]
 
 lemma has_basis.lift' {ι} {p : ι → Prop} {s} (hf : f.has_basis p s) (hh : monotone h) :
   (f.lift' h).has_basis p (h ∘ s) :=
@@ -354,6 +359,10 @@ by simpa only [infi_bool_eq]
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
+
+lemma lift'_infi_powerset [nonempty ι] {f : ι → filter α} :
+  (infi f).lift' powerset = (⨅i, (f i).lift' powerset) :=
+lift'_infi $ λ _ _, (powerset_inter _ _).symm
 
 lemma lift'_inf_powerset (f g : filter α) :
   (f ⊓ g).lift' powerset = f.lift' powerset ⊓ g.lift' powerset :=

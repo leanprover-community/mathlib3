@@ -220,13 +220,13 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   end,
   open_source := begin
     have : is_open {z : ℝ | z < y} := is_open_Iio,
-    exact continuous_subtype_val _ this
+    exact this.preimage continuous_subtype_val
   end,
   open_target := begin
     have : is_open {z : ℝ | z < y - x} := is_open_Iio,
     have : is_open {z : euclidean_space ℝ (fin 1) | z 0 < y - x} :=
-      @continuous_apply (fin 1) (λ _, ℝ) _ 0 _ this,
-    exact continuous_subtype_val _ this
+      this.preimage (@continuous_apply (fin 1) (λ _, ℝ) _ 0),
+    exact this.preimage continuous_subtype_val
   end,
   continuous_to_fun := begin
     apply continuous.continuous_on,
@@ -275,13 +275,13 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   end,
   open_source := begin
     have : is_open {z : ℝ | x < z} := is_open_Ioi,
-    exact continuous_subtype_val _ this
+    exact this.preimage continuous_subtype_val
   end,
   open_target := begin
     have : is_open {z : ℝ | z < y - x} := is_open_Iio,
     have : is_open {z : euclidean_space ℝ (fin 1) | z 0 < y - x} :=
-      @continuous_apply (fin 1) (λ _, ℝ) _ 0 _ this,
-    exact continuous_subtype_val _ this
+      this.preimage (@continuous_apply (fin 1) (λ _, ℝ) _ 0),
+    exact this.preimage continuous_subtype_val
   end,
   continuous_to_fun := begin
     apply continuous.continuous_on,

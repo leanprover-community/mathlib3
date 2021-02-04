@@ -5,6 +5,7 @@ Author: Adam Topaz.
 -/
 import algebra.free_algebra
 import algebra.ring_quot
+import algebra.triv_sq_zero_ext
 
 /-!
 # Tensor Algebras
@@ -61,7 +62,7 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 namespace tensor_algebra
 
 instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
-ring_quot.ring _
+ring_quot.ring (rel S M)
 
 variables {M}
 /--
@@ -79,14 +80,19 @@ lemma ring_quot_mk_alg_hom_free_algebra_ι_eq_ι (m : M) :
 Given a linear map `f : M → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
 of `f` to a morphism of `R`-algebras `tensor_algebra R M → A`.
 -/
-def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) : tensor_algebra R M →ₐ[R] A :=
-ring_quot.lift_alg_hom R (free_algebra.lift R ⇑f) (λ x y h, by induction h; simp [algebra.smul_def])
+@[simps symm_apply]
+def lift {A : Type*} [semiring A] [algebra R A] : (M →ₗ[R] A) ≃ (tensor_algebra R M →ₐ[R] A) :=
+{ to_fun := ring_quot.lift_alg_hom R ∘ λ f,
+    ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h; simp [algebra.smul_def]⟩,
+  inv_fun := λ F, F.to_linear_map.comp (ι R),
+  left_inv := λ f, by { ext, simp [ι], },
+  right_inv := λ F, by { ext, simp [ι], } }
 
 variables {R}
 
 @[simp]
 theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) :
-  (lift R f).to_linear_map.comp (ι R) = f := by { ext, simp [lift, ι], }
+  (lift R f).to_linear_map.comp (ι R) = f := (lift R).symm_apply_apply f
 
 @[simp]
 theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (x) :
@@ -95,27 +101,57 @@ theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (g : tensor_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R) = f ↔ g = lift R f :=
-begin
-  refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
-  ext,
-  rw ←hyp,
-  simp [lift],
-  refl,
-end
+(lift R).symm_apply_eq
 
-attribute [irreducible] tensor_algebra ι lift
+-- Marking `tensor_algebra` irreducible makes `ring` instances inaccessible on quotients.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
+attribute [irreducible] ι lift
 
 @[simp]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : tensor_algebra R M →ₐ[R] A) :
-  lift R (g.to_linear_map.comp (ι R)) = g := by {symmetry, rw ←lift_unique}
+  lift R (g.to_linear_map.comp (ι R)) = g :=
+by { rw ←lift_symm_apply, exact (lift R).apply_symm_apply g }
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : tensor_algebra R M →ₐ[R] A}
   (w : f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R)) : f = g :=
 begin
-  let h := g.to_linear_map.comp (ι R),
-  have : g = lift R h, by rw ←lift_unique,
-  rw [this, ←lift_unique, w],
+  rw [←lift_symm_apply, ←lift_symm_apply] at w,
+  exact (lift R).symm.injective w,
 end
 
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : tensor_algebra R M →ₐ[R] R :=
+lift R (0 : M →ₗ[R] R)
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ tensor_algebra R M) :=
+λ x, by simp [algebra_map_inv]
+
+/-- The left-inverse of `ι`.
+
+As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
+algebra structure. -/
+def ι_inv : tensor_algebra R M →ₗ[R] M :=
+(triv_sq_zero_ext.snd_hom R M).comp (lift R (triv_sq_zero_ext.inr_hom R M)).to_linear_map
+
+lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebra R M) :=
+λ x, by simp [ι_inv]
+
 end tensor_algebra
+
+namespace free_algebra
+
+variables {R M}
+
+/-- The canonical image of the `free_algebra` in the `tensor_algebra`, which maps
+`free_algebra.ι R x` to `tensor_algebra.ι R x`. -/
+def to_tensor : free_algebra R M →ₐ[R] tensor_algebra R M :=
+free_algebra.lift R (tensor_algebra.ι R)
+
+@[simp] lemma to_tensor_ι (m : M) : (free_algebra.ι R m).to_tensor = tensor_algebra.ι R m :=
+by simp [to_tensor]
+
+end free_algebra

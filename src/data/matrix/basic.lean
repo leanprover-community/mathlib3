@@ -5,8 +5,10 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import algebra.big_operators.pi
 import algebra.module.pi
+import algebra.module.linear_map
 import algebra.big_operators.ring
 import algebra.star.basic
+import data.equiv.ring
 import data.fintype.card
 
 /-!
@@ -72,12 +74,18 @@ instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
 instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
 instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
+instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
 
 @[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
 @[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
-@[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) : (M + N) i j = M i j + N i j := rfl
+@[simp] theorem add_apply [has_add α] (M N : matrix m n α) (i j) :
+  (M + N) i j = M i j + N i j :=
+rfl
+@[simp] theorem sub_apply [has_sub α] (M N : matrix m n α) (i j) :
+  (M - N) i j = M i j - N i j :=
+rfl
 
 @[simp] lemma map_zero [has_zero α] {β : Type w} [has_zero β] {f : α → β} (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=
@@ -327,10 +335,12 @@ diagonal_dot_product _ _ _
   (d : n → α) (M : matrix m n α) (i j) : (M ⬝ diagonal d) i j = M i j * d j :=
 by { rw ← diagonal_transpose, apply dot_product_diagonal }
 
-@[simp] protected theorem one_mul [decidable_eq m] (M : matrix m n α) : (1 : matrix m m α) ⬝ M = M :=
+@[simp] protected theorem one_mul [decidable_eq m] (M : matrix m n α) :
+  (1 : matrix m m α) ⬝ M = M :=
 by ext i j; rw [← diagonal_one, diagonal_mul, one_mul]
 
-@[simp] protected theorem mul_one [decidable_eq n] (M : matrix m n α) : M ⬝ (1 : matrix n n α) = M :=
+@[simp] protected theorem mul_one [decidable_eq n] (M : matrix m n α) :
+  M ⬝ (1 : matrix n n α) = M :=
 by ext i j; rw [← diagonal_one, mul_diagonal, mul_one]
 
 instance [decidable_eq n] : monoid (matrix n n α) :=
@@ -354,10 +364,66 @@ theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal _ _
 
+@[simp]
 lemma map_mul {L : matrix m n α} {M : matrix n o α}
   {β : Type w} [semiring β] {f : α →+* β} :
-(L ⬝ M).map f = L.map f ⬝ M.map f :=
+  (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
+
+-- TODO: there should be a way to avoid restating these for each `foo_hom`.
+/-- A version of `one_map` where `f` is a ring hom. -/
+@[simp] lemma ring_hom_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `one_map` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α ≃+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `map_zero` where `f` is a `zero_hom`. -/
+@[simp] lemma zero_hom_map_zero
+  {β : Type w} [has_zero β] (f : zero_hom α β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_monoid_hom`. -/
+@[simp] lemma add_monoid_hom_map_zero
+  {β : Type w} [add_monoid β] (f : α →+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_equiv`. -/
+@[simp] lemma add_equiv_map_zero
+  {β : Type w} [add_monoid β] (f : α ≃+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_map`. -/
+@[simp] lemma linear_map_map_zero {R : Type*} [semiring R]
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α →ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_equiv`. -/
+@[simp] lemma linear_equiv_map_zero {R : Type*} [semiring R]
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α ≃ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_hom`. -/
+@[simp] lemma ring_hom_map_zero
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_zero
+  {β : Type w} [semiring β] (f : α ≃+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
 
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
@@ -433,7 +499,8 @@ instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
 instance {β : Type w} [semiring α] [add_comm_monoid β] [semimodule α β] :
   semimodule α (matrix m n β) := pi.semimodule _ _ _
 
-@[simp] lemma smul_apply [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
+@[simp] lemma smul_apply [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) :
+  (a • A) i j = a * A i j := rfl
 
 section semiring
 variables [semiring α]
@@ -598,18 +665,15 @@ begin
   split_ifs with h; simp [h],
 end
 
-
 lemma matrix_eq_sum_std_basis (x : matrix n m α) :
-x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
+  x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
 begin
-  ext, iterate 2 {rw finset.sum_apply},
-  rw ← finset.sum_subset, swap 4, exact {i},
-  { norm_num [std_basis_matrix] },
-  { simp },
-  intros, norm_num at a, norm_num,
-  convert finset.sum_const_zero,
-  ext, norm_num [std_basis_matrix],
-  rw if_neg, tauto!,
+  ext, symmetry,
+  iterate 2 { rw finset.sum_apply },
+  convert fintype.sum_eq_single i _,
+  { simp [std_basis_matrix] },
+  { intros j hj,
+    simp [std_basis_matrix, hj.symm] }
 end
 
 -- TODO: tie this up with the `basis` machinery of linear algebra
@@ -664,6 +728,13 @@ by { ext, apply neg_dot_product }
 
 lemma mul_vec_neg (v : n → α) (A : matrix m n α) : mul_vec A (-v) = - mul_vec A v :=
 by { ext, apply dot_product_neg }
+
+lemma smul_mul_vec_assoc (A : matrix n n α) (b : n → α) (a : α) :
+  (a • A).mul_vec b = a • (A.mul_vec b) :=
+begin
+  ext i, change dot_product ((a • A) i) b = _,
+  simp only [mul_vec, smul_eq_mul, pi.smul_apply, smul_dot_product],
+end
 
 end ring
 
@@ -731,8 +802,7 @@ the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance : star_ring (matrix n n R) :=
 { star := λ M, M.transpose.map star,
-  star_star := λ M, by { ext, simp, },
-  star_zero := by simp,
+  star_involutive := λ M, by { ext, simp, },
   star_add := λ M N, by { ext, simp, },
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
 
@@ -799,9 +869,11 @@ Simplification lemmas for `matrix.row` and `matrix.col`.
 open_locale matrix
 
 @[simp] lemma col_add [semiring α] (v w : m → α) : col (v + w) = col v + col w := by { ext, refl }
-@[simp] lemma col_smul [semiring α] (x : α) (v : m → α) : col (x • v) = x • col v := by { ext, refl }
+@[simp] lemma col_smul [semiring α] (x : α) (v : m → α) : col (x • v) = x • col v :=
+by { ext, refl }
 @[simp] lemma row_add [semiring α] (v w : m → α) : row (v + w) = row v + row w := by { ext, refl }
-@[simp] lemma row_smul [semiring α] (x : α) (v : m → α) : row (x • v) = x • row v := by { ext, refl }
+@[simp] lemma row_smul [semiring α] (x : α) (v : m → α) : row (x • v) = x • row v :=
+by { ext, refl }
 
 @[simp] lemma col_apply (v : m → α) (i j) : matrix.col v i j = v i := rfl
 @[simp] lemma row_apply (v : m → α) (i j) : matrix.row v i j = v j := rfl
@@ -828,7 +900,7 @@ section update
 def update_row [decidable_eq n] (M : matrix n m α) (i : n) (b : m → α) : matrix n m α :=
 function.update M i b
 
-/-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
+/-- Update, i.e. replace the `j`th column of matrix `A` with the values in `b`. -/
 def update_column [decidable_eq m] (M : matrix n m α) (j : m) (b : n → α) : matrix n m α :=
 λ i, function.update (M i) j (b i)
 
@@ -854,7 +926,8 @@ begin
   { rwa [update_row_ne h, if_neg h] }
 end
 
-lemma update_column_apply [decidable_eq m] {j' : m} : update_column M j c i j' = if j' = j then c i else M i j' :=
+lemma update_column_apply [decidable_eq m] {j' : m} :
+  update_column M j c i j' = if j' = j then c i else M i j' :=
 begin
   by_cases j' = j,
   { rw [h, update_column_self, if_pos rfl] },

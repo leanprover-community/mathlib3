@@ -3,11 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison.
 -/
-import algebra.algebra.ordered
+import algebra.algebra.basic
 import algebra.star.basic
 
 /-!
-# star_algebra
+# Star algebras
 
 Introduces the notion of a star algebra over a star ring.
 -/

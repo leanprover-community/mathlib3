@@ -48,7 +48,7 @@ by { rw [mem_support_to_fun, not_not], refl, }
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
-finsupp.leval n
+finsupp.lapply n
 variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
@@ -86,7 +86,7 @@ add_monoid_algebra.mul_single_zero_apply p a n
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
-by rw [← monomial_one_eq_X_pow]; simp [monomial, single, eq_comm, coeff]; congr
+by { simp only [X_pow_eq_monomial, monomial, single, eq_comm], congr }
 
 @[simp]
 lemma coeff_X_pow_self (n : ℕ) :
@@ -139,5 +139,34 @@ begin
 end
 
 end coeff
+
+open submodule polynomial set
+
+variables {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
+
+/--  If the coefficients of a polynomial belong to n ideal contains the submodule span of the
+coefficients of a polynomial. -/
+lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
+  (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
+begin
+  refine bInter_subset_of_mem _,
+  rintros _ ⟨i, rfl⟩,
+  exact (mem_coe _).mpr (cf i),
+end
+
+lemma mem_span_C_coeff :
+  f ∈ span (polynomial R) {g : polynomial R | ∃ i : ℕ, g = (C (coeff f i))} :=
+begin
+  rw [← f.sum_single] {occs := occurrences.pos [1]},
+  refine sum_mem _ (λ i hi, _),
+  change monomial i _ ∈ span _ _,
+  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul],
+  exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
+end
+
+lemma exists_coeff_not_mem_C_inverse :
+  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
+imp_of_not_imp_not _ _
+  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
 
 end polynomial

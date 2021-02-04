@@ -361,9 +361,9 @@ calc (mk L₁ = mk L₂) ↔ eqv_gen red.step L₁ L₂ : iff.intro (quot.exact 
   ... ↔ join red L₁ L₂ : eqv_gen_step_iff_join_red
 
 /-- The canonical injection from the type to the free group is an injection. -/
-theorem of.inj {x y : α} (H : of x = of y) : x = y :=
-let ⟨L₁, hx, hy⟩ := red.exact.1 H in
-by simp [red.singleton_iff] at hx hy; cc
+theorem of_injective : function.injective (@of α) :=
+λ _ _ H, let ⟨L₁, hx, hy⟩ := red.exact.1 H in
+  by simp [red.singleton_iff] at hx hy; cc
 
 section to_group
 
@@ -423,6 +423,18 @@ by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.map_one g)
   (show g (of x * mk t) = to_group f (mk ((x, tt) :: t)),
      by simp [monoid_hom.map_mul g, monoid_hom.map_inv g, hg, ih,
        to_group.to_fun, to_group.aux]))
+
+/-- Two homomorphisms out of a free group are equal if they are equal on generators.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma ext_hom {G : Type*} [group G] (f g : free_group α →* G) (h : ∀ a, f (of a) = g (of a)) :
+  f = g :=
+begin
+  ext x,
+  rw [to_group.unique f (λ x, rfl), to_group.unique g (λ x, rfl)],
+  simp only [h]
+end
 
 theorem to_group.of_eq (x : free_group α) : to_group of x = x :=
 eq.symm $ to_group.unique (monoid_hom.id _) (λ x, rfl)

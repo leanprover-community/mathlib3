@@ -5,8 +5,7 @@ Authors: Markus Himmel
 -/
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.regular_mono
+import category_theory.limits.shapes.normal_mono
 import category_theory.preadditive
 
 /-!
@@ -132,7 +131,7 @@ let ⟨b', hb'⟩ := kernel_fork.is_limit.lift' i' (kernel.ι (prod.lift f g)) $
     ... = (0 : kernel (prod.lift f g) ⟶ P ⨯ Q) ≫ limits.prod.snd : by rw kernel.condition_assoc
     ... = 0 : zero_comp in
 has_limit.mk { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', hb'] },
-  is_limit := pullback_cone.is_limit.mk _ _ _
+  is_limit := pullback_cone.is_limit.mk _
     (λ s, kernel.lift (prod.lift f g) (pullback_cone.snd s ≫ b) $ prod.hom_ext
       (calc ((pullback_cone.snd s ≫ b) ≫ prod.lift f g) ≫ limits.prod.fst
             = pullback_cone.snd s ≫ b ≫ f : by simp only [prod.lift_fst, category.assoc]
@@ -174,7 +173,7 @@ let ⟨b', hb'⟩ := cokernel_cofork.is_colimit.desc' i' (cokernel.π (coprod.de
   ... = 0 : has_zero_morphisms.comp_zero _ _ in
 has_colimit.mk
 { cocone := pushout_cocone.mk a' b' $ by { simp only [cofork.π_of_π] at ha' hb', rw [ha', hb'] },
-  is_colimit := pushout_cocone.is_colimit.mk _ _ _
+  is_colimit := pushout_cocone.is_colimit.mk _
   (λ s, cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) $ coprod.hom_ext
     (calc coprod.inl ≫ coprod.desc f g ≫ b ≫ pushout_cocone.inr s
           = f ≫ b ≫ pushout_cocone.inr s : by rw coprod.inl_desc_assoc
@@ -207,8 +206,6 @@ pullback (prod.lift (𝟙 X) f) (prod.lift (𝟙 X) g)
 /-- The equalizer of `f` and `g` exists. -/
 @[irreducible]
 lemma has_limit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_limit (parallel_pair f g) :=
-have h1f : mono (prod.lift (𝟙 X) f), from mono_of_mono_fac $ prod.lift_fst (𝟙 X) f,
-have h1g : mono (prod.lift (𝟙 X) g), from mono_of_mono_fac $ prod.lift_fst (𝟙 X) g,
 have huv : (pullback.fst : P f g ⟶ X) = pullback.snd, from
   calc (pullback.fst : P f g ⟶ X) = pullback.fst ≫ 𝟙 _ : eq.symm $ category.comp_id _
     ... = pullback.fst ≫ prod.lift (𝟙 X) f ≫ limits.prod.fst : by rw prod.lift_fst
@@ -243,8 +240,6 @@ pushout (coprod.desc (𝟙 Y) f) (coprod.desc (𝟙 Y) g)
 /-- The coequalizer of `f` and `g` exists. -/
 @[irreducible]
 lemma has_colimit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_colimit (parallel_pair f g) :=
-have h1f : epi (coprod.desc (𝟙 Y) f), from epi_of_epi_fac $ coprod.inl_desc _ _,
-have h1g : epi (coprod.desc (𝟙 Y) g), from epi_of_epi_fac $ coprod.inl_desc _ _,
 have huv : (pushout.inl : Y ⟶ Q f g) = pushout.inr, from
   calc (pushout.inl : Y ⟶ Q f g) = 𝟙 _ ≫ pushout.inl : eq.symm $ category.id_comp _
     ... = (coprod.inl ≫ coprod.desc (𝟙 Y) f) ≫ pushout.inl : by rw coprod.inl_desc

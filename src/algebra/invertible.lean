@@ -7,7 +7,7 @@ A typeclass for the two-sided multiplicative inverse.
 -/
 
 import algebra.char_zero
-import algebra.char_p
+import algebra.char_p.basic
 
 /-!
 # Invertible elements
@@ -81,7 +81,8 @@ by simp [mul_assoc]
 lemma inv_of_eq_right_inv [monoid α] {a b : α} [invertible a] (hac : a * b = 1) : ⅟a = b :=
 left_inv_eq_right_inv (inv_of_mul_self _) hac
 
-lemma invertible_unique {α : Type u} [monoid α] (a b : α) (h : a = b) [invertible a] [invertible b] :
+lemma invertible_unique {α : Type u} [monoid α] (a b : α) (h : a = b)
+  [invertible a] [invertible b] :
   ⅟a = ⅟b :=
 by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
 
@@ -124,6 +125,10 @@ def invertible_neg [ring α] (a : α) [invertible a] : invertible (-a) :=
 
 @[simp] lemma inv_of_neg [ring α] (a : α) [invertible a] [invertible (-a)] : ⅟(-a) = -⅟a :=
 inv_of_eq_right_inv (by simp)
+
+@[simp] lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
+(is_unit_of_invertible (2:α)).mul_right_inj.1 $
+  by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
 
 /-- `a` is the inverse of `⅟a`. -/
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
@@ -209,7 +214,8 @@ end group_with_zero
 /--
 Monoid homs preserve invertibility.
 -/
-def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S) (r : R) [invertible r] :
+def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S)
+  (r : R) [invertible r] :
   invertible (f r) :=
 { inv_of := f (⅟r),
   inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
@@ -217,7 +223,8 @@ def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S) 
 
 section ring_char
 
-/-- A natural number `t` is invertible in a field `K` if the charactistic of `K` does not divide `t`. -/
+/-- A natural number `t` is invertible in a field `K` if the charactistic of `K` does not divide
+`t`. -/
 def invertible_of_ring_char_not_dvd {K : Type*} [field K]
   {t : ℕ} (not_dvd : ¬(ring_char K ∣ t)) : invertible (t : K) :=
 invertible_of_nonzero (λ h, not_dvd ((ring_char.spec K t).mp h))
@@ -226,14 +233,15 @@ end ring_char
 
 section char_p
 
-/-- A natural number `t` is invertible in a field `K` of charactistic `p` if `p` does not divide `t`. -/
+/-- A natural number `t` is invertible in a field `K` of charactistic `p` if `p` does not divide
+`t`. -/
 def invertible_of_char_p_not_dvd {K : Type*} [field K] {p : ℕ} [char_p K p]
   {t : ℕ} (not_dvd : ¬(p ∣ t)) : invertible (t : K) :=
 invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff K p t).mp h))
 
 instance invertible_of_pos {K : Type*} [field K] [char_zero K] (n : ℕ) [h : fact (0 < n)] :
   invertible (n : K) :=
-invertible_of_nonzero $ by simpa [nat.pos_iff_ne_zero] using h
+invertible_of_nonzero $ by simpa [pos_iff_ne_zero] using h
 
 end char_p
 

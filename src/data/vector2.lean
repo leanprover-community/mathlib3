@@ -105,6 +105,10 @@ begin
              and_self, singleton_tail]
 end
 
+/-- Mapping under `id` does not change a vector. -/
+@[simp] lemma map_id {n : ℕ} (v : vector α n) : vector.map id v = v :=
+  vector.eq _ _ (by simp only [list.map_id, vector.to_list_map])
+
 lemma mem_iff_nth {a : α} {v : vector α n} : a ∈ v.to_list ↔ ∃ i, v.nth i = a :=
 by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
   exact ⟨λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length at hi, h⟩,
@@ -149,7 +153,7 @@ by simp [nth_zero]
 
 /-- Accessing the `nth` element of a vector made up
 of one element `x : α` is `x` itself. -/
-@[simp] lemma nth_cons_nil {ix : ℕ}
+@[simp] lemma nth_cons_nil {ix : fin 1}
   (x : α) : nth (x ::ᵥ nil) ix = x :=
 by convert nth_cons_zero x nil
 
@@ -173,6 +177,95 @@ begin
   simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
   rw list.nth_le_reverse,
 end
+
+section scan
+
+variables {β : Type*}
+variables (f : β → α → β) (b : β)
+variables (v : vector α n)
+
+/--
+Construct a `vector β (n + 1)` from a `vector α n` by scanning `f : β → α → β`
+from the "left", that is, from 0 to `fin.last n`, using `b : β` as the starting value.
+-/
+def scanl : vector β (n + 1) :=
+⟨list.scanl f b v.to_list, by rw [list.length_scanl, to_list_length]⟩
+
+/-- Providing an empty vector to `scanl` gives the starting value `b : β`. -/
+@[simp] lemma scanl_nil : scanl f b nil = b ::ᵥ nil := rfl
+
+/--
+The recursive step of `scanl` splits a vector `x ::ᵥ v : vector α (n + 1)`
+into the provided starting value `b : β` and the recursed `scanl`
+`f b x : β` as the starting value.
+
+This lemma is the `cons` version of `scanl_nth`.
+-/
+@[simp] lemma scanl_cons (x : α) : scanl f b (x ::ᵥ v) = b ::ᵥ scanl f (f b x) v :=
+by simpa only [scanl, to_list_cons]
+
+/--
+The underlying `list` of a `vector` after a `scanl` is the `list.scanl`
+of the underlying `list` of the original `vector`.
+-/
+@[simp] lemma scanl_val : ∀ {v : vector α n}, (scanl f b v).val = list.scanl f b v.val
+| ⟨l, hl⟩ := rfl
+
+/--
+The `to_list` of a `vector` after a `scanl` is the `list.scanl`
+of the `to_list` of the original `vector`.
+-/
+@[simp] lemma to_list_scanl : (scanl f b v).to_list = list.scanl f b v.to_list := rfl
+
+/--
+The recursive step of `scanl` splits a vector made up of a single element
+`x ::ᵥ nil : vector α 1` into a `vector` of the provided starting value `b : β`
+and the mapped `f b x : β` as the last value.
+-/
+@[simp] lemma scanl_singleton (v : vector α 1) : scanl f b v = b ::ᵥ f b v.head ::ᵥ nil :=
+begin
+  rw [←cons_head_tail v],
+  simp only [scanl_cons, scanl_nil, cons_head, singleton_tail]
+end
+
+/--
+The first element of `scanl` of a vector `v : vector α n`,
+retrieved via `head`, is the starting value `b : β`.
+-/
+@[simp] lemma scanl_head : (scanl f b v).head = b :=
+begin
+  cases n,
+  { have : v = nil := by simp only [eq_iff_true_of_subsingleton],
+    simp only [this, scanl_nil, cons_head] },
+  { rw ←cons_head_tail v,
+    simp only [←nth_zero, nth_eq_nth_le, to_list_scanl,
+                to_list_cons, list.scanl, fin.val_zero', list.nth_le] }
+end
+
+/--
+For an index `i : fin n`, the `nth` element of `scanl` of a
+vector `v : vector α n` at `i.succ`, is equal to the application
+function `f : β → α → β` of the `i.cast_succ` element of
+`scanl f b v` and `nth v i`.
+
+This lemma is the `nth` version of `scanl_cons`.
+-/
+@[simp] lemma scanl_nth (i : fin n) :
+  (scanl f b v).nth i.succ = f ((scanl f b v).nth i.cast_succ) (v.nth i) :=
+begin
+  cases n,
+  { exact fin_zero_elim i },
+  induction n with n hn generalizing b,
+  { have i0 : i = 0 := by simp only [eq_iff_true_of_subsingleton],
+    simpa only [scanl_singleton, i0, nth_zero] },
+  { rw [←cons_head_tail v, scanl_cons, nth_cons_succ],
+    refine fin.cases _ _ i,
+    { simp only [nth_zero, scanl_head, fin.cast_succ_zero, cons_head] },
+    { intro i',
+      simp only [hn, fin.cast_succ_fin_succ, nth_cons_succ] } }
+end
+
+end scan
 
 def m_of_fn {m} [monad m] {α : Type u} : ∀ {n}, (fin n → m α) → m (vector α n)
 | 0     f := pure nil

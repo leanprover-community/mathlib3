@@ -233,13 +233,26 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
     c :=
     { app := λ U, desc_c_app F s U,
       naturality' := λ U V i, desc_c_naturality F s i }, },
+  fac' := -- tidy can do this but it takes too long
+  begin
+    intros s j,
+    dsimp,
+    fapply PresheafedSpace.ext,
+    { simp, },
+    { ext,
+      dsimp [desc_c_app],
+      simp only [eq_to_hom_op, limit.lift_π_assoc, eq_to_hom_map, assoc, pushforward.comp_inv_app,
+                 limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc],
+      dsimp,
+      simp },
+  end,
   uniq' := λ s m w,
   begin
     -- We need to use the identity on the continuous maps twice, so we prepare that first:
     have t : m.base = colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
     { ext,
       dsimp,
-      simp only [colimit.ι_desc_apply, map_cocone_ι],
+      simp only [colimit.ι_desc_apply, map_cocone_ι_app],
       rw ← w j,
       simp, },
     fapply PresheafedSpace.ext, -- could `ext` please not reorder goals?

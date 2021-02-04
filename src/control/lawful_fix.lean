@@ -59,7 +59,7 @@ lemma approx_mono ⦃i j : ℕ⦄ (hij : i ≤ j) : approx f i ≤ approx f j :=
 begin
   induction j, cases hij, refine @le_refl _ _ _,
   cases hij, apply @le_refl _ _ _,
-  apply @le_trans _ _ _ (approx f j_n) _ (j_ih hij_a),
+  apply @le_trans _ _ _ (approx f j_n) _ (j_ih ‹_›),
   apply approx_mono' f
 end
 

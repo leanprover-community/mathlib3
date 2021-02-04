@@ -5,6 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.encodable.basic
 import algebra.euclidean_domain
+import data.nat.gcd
+import data.int.cast
 
 /-!
 # Basics for the Rational Numbers
@@ -513,7 +515,7 @@ if hr : r.num = 0 then
   have hr' : r = 0, from zero_of_num_zero hr,
   by simp *
 else
-  calc q / r = q * r⁻¹ : div_eq_mul_inv
+  calc q / r = q * r⁻¹ : div_eq_mul_inv q r
          ... = (q.num /. q.denom) * (r.num /. r.denom)⁻¹ : by simp
          ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
          ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
@@ -584,6 +586,14 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
+lemma exists_eq_mul_div_num_and_eq_mul_div_denom {n d : ℤ} (n_ne_zero : n ≠ 0)
+  (d_ne_zero : d ≠ 0) :
+  ∃ (c : ℤ), n = c * ((n : ℚ) / d).num ∧ (d : ℤ) = c * ((n : ℚ) / d).denom :=
+begin
+  have : ((n : ℚ) / d) = rat.mk n d, by rw [←rat.mk_eq_div],
+  exact rat.num_denom_mk n_ne_zero d_ne_zero this
+end
+
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
 (coe_int_eq_mk z).trans (of_int_eq_mk z).symm
 
@@ -612,7 +622,7 @@ by rw [← int.cast_coe_nat, coe_int_num]
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 -- Will be subsumed by `int.coe_inj` after we have defined
--- `discrete_linear_ordered_field ℚ` (which implies characteristic zero).
+-- `linear_ordered_field ℚ` (which implies characteristic zero).
 lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
 ⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
 

@@ -16,7 +16,7 @@ a global minimum, and likewise for concave functions.
 
 variables {E β: Type*} [add_comm_group E] [topological_space E]
   [module ℝ E] [topological_add_group E] [topological_vector_space ℝ E]
-  [decidable_linear_ordered_add_comm_group β] [semimodule ℝ β] [ordered_semimodule ℝ β]
+  [linear_ordered_add_comm_group β] [semimodule ℝ β] [ordered_semimodule ℝ β]
   {s : set E}
 
 open set filter
@@ -47,7 +47,7 @@ begin
       ... ≤ ya • f a + yx • f x
                 : h_conv.2 (left_mem_Icc.mpr (le_of_lt a_lt_b)) ⟨h_ax, h_xb⟩ (ya_pos)
                     (le_of_lt yx_pos) yax
-      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) (ya • f a)
+      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) _
       ... = f a                       : by rw [←add_smul, yax, one_smul] },
   by_cases h_xz : x ≤ z,
   { exact not_lt_of_ge (ge_on_nhd x (show x ∈ Icc a z, by exact ⟨h_ax, h_xz⟩)) fx_lt_fa, },

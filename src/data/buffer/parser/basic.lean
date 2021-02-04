@@ -52,6 +52,8 @@ is always at a `parse_result.pos` that is at least `n`.
 class mono : Prop :=
 (le' : ∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos)
 
+lemma mono.le [p.mono] : n ≤ (p cb n).pos := mono.le' cb n
+
 lemma fail_iff :
   (∀ pos' result, p cb n ≠ done pos' result) ↔
     ∃ (pos' : ℕ) (err : dlist string), p cb n = fail pos' err :=
@@ -63,13 +65,11 @@ by cases p cb n; simp
 
 variables {p q cb n n' msgs msg}
 
-lemma mono.le (hp : p.mono) (cb : char_buffer) (n : ℕ) : n ≤ (p cb n).pos := mono.le' cb n
+lemma mono.of_done [p.mono] (h : p cb n = done n' a) : n ≤ n' :=
+by simpa [h] using mono.le p cb n
 
-lemma mono.of_done [hp : p.mono] (h : p cb n = done n' a) : n ≤ n' :=
-by simpa [h] using mono.le hp cb n
-
-lemma mono.of_fail [hp : p.mono] (h : p cb n = fail n' err) : n ≤ n' :=
-by simpa [h] using mono.le hp cb n
+lemma mono.of_fail [p.mono] (h : p cb n = fail n' err) : n ≤ n' :=
+by simpa [h] using mono.le p cb n
 
 lemma decorate_errors_fail (h : p cb n = fail n' err) :
   @decorate_errors α msgs p cb n = fail n ((dlist.lazy_of_list (msgs ()))) :=
@@ -425,7 +425,7 @@ instance foldr_core {f : α → β → β} {b : β} [p.mono] :
 end
 
 instance foldr {f : α → β → β} [p.mono] : mono (foldr f p b) :=
-⟨λ _ _, mono.foldr_core.le _ _⟩
+⟨λ _ _, by { convert mono.le (foldr_core f p b _) _ _, exact mono.foldr_core }⟩
 
 instance foldl_core {f : α → β → α} {p : parser β} [p.mono] :
   ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).mono
@@ -439,7 +439,7 @@ instance foldl_core {f : α → β → α} {p : parser β} [p.mono] :
 end
 
 instance foldl {f : α → β → α} {p : parser β} [p.mono] : mono (foldl f a p) :=
-⟨λ _ _, mono.foldl_core.le _ _⟩
+⟨λ _ _, by { convert mono.le (foldl_core f a p _) _ _, exact mono.foldl_core }⟩
 
 instance many [p.mono] : p.many.mono :=
 mono.foldr

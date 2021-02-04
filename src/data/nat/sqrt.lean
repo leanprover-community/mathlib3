@@ -2,24 +2,30 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
-
-An efficient binary implementation of a (sqrt n) function that
-returns s s.t.
-    s*s ≤ n ≤ s*s + s + s
 -/
-import data.nat.basic algebra.ordered_group algebra.ring tactic.alias
+import data.int.basic
+/-!
+# Square root of natural numbers
 
+An efficient binary implementation of a (`sqrt n`) function that
+returns `s` such that
+```
+s*s ≤ n ≤ s*s + s + s
+```
+-/
 namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
 begin
-  simp [shiftr_eq_div_pow],
+  simp only [shiftr_eq_div_pow],
   apply (nat.div_lt_iff_lt_mul' (dec_trivial : 0 < 4)).2,
   have := nat.mul_lt_mul_of_pos_left
     (dec_trivial : 1 < 4) (nat.pos_of_ne_zero h),
   rwa mul_one at this
 end
 
+/-- Auxiliary function for `nat.sqrt`. See e.g.
+<https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)> -/
 def sqrt_aux : ℕ → ℕ → ℕ → ℕ
 | b r n := if b0 : b = 0 then r else
   let b' := shiftr b 2 in
@@ -31,7 +37,7 @@ def sqrt_aux : ℕ → ℕ → ℕ → ℕ
 
 /-- `sqrt n` is the square root of a natural number `n`. If `n` is not a
   perfect square, it returns the largest `k:ℕ` such that `k*k ≤ n`. -/
-def sqrt (n : ℕ) : ℕ :=
+@[pp_nodot] def sqrt (n : ℕ) : ℕ :=
 match size n with
 | 0      := 0
 | succ s := sqrt_aux (shiftl 1 (bit0 (div2 s))) 0 n
@@ -67,12 +73,13 @@ private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
   is_sqrt n (sqrt_aux (2^m * 2^m) ((2*r)*2^m) (n - r*r)) :=
 begin
   have b0 :=
-    have b0:_, from ne_of_gt (@pos_pow_of_pos 2 m dec_trivial),
+    have b0:_, from ne_of_gt (pow_pos (show 0 < 2, from dec_trivial) m),
     nat.mul_ne_zero b0 b0,
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m), {
     rw [nat.sub_lt_right_iff_lt_add h₁],
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_comm, add_left_comm] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc,
+      add_comm, add_assoc, add_left_comm] },
   have re : div2 (2 * r * 2^m) = r * 2^m, {
     rw [div2_val, mul_assoc,
         nat.mul_div_cancel_left _ (dec_trivial:2>0)] },
@@ -85,24 +92,24 @@ begin
     apply eq.symm, apply nat.sub_eq_of_eq_add,
     rw [← add_assoc, (_ : r*r + _ = _)],
     exact (nat.add_sub_cancel' hl).symm,
-    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc] },
+    simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc, add_assoc] },
 end
 
 private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
   r*r ≤ n → n < (r + 2^(m+1)) * (r + 2^(m+1)) →
   is_sqrt n (sqrt_aux (2^m * 2^m) (2*r*2^m) (n - r*r))
 | 0 r h₁ h₂ := by apply sqrt_aux_is_sqrt_lemma 0 r n h₁ 0 rfl;
-  intros; simp; [exact ⟨h₁, a⟩, exact ⟨a, h₂⟩]
+  intro h; simp; [exact ⟨h₁, h⟩, exact ⟨h, h₂⟩]
 | (m+1) r h₁ h₂ := begin
     apply sqrt_aux_is_sqrt_lemma
       (m+1) r n h₁ (2^m * 2^m)
       (by simp [shiftr, pow_succ, div2_val, mul_comm, mul_left_comm];
           repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
-      intros,
-    { have := sqrt_aux_is_sqrt m r h₁ a,
+      intro h,
+    { have := sqrt_aux_is_sqrt m r h₁ h,
       simpa [pow_succ, mul_comm, mul_assoc] },
-    { rw [pow_succ, mul_two, ← add_assoc] at h₂,
-      have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
+    { rw [pow_succ', mul_two, ← add_assoc] at h₂,
+      have := sqrt_aux_is_sqrt m (r + 2^(m+1)) h h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
           by simp [pow_succ, mul_comm, mul_left_comm] }
   end
@@ -183,5 +190,21 @@ le_trans (sqrt_le_add n) $ add_le_add_right
 theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=
 ⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq], λ h, ⟨sqrt x, h⟩⟩
+
+theorem sqrt_mul_sqrt_lt_succ (n : ℕ) : sqrt n * sqrt n < n + 1 :=
+lt_succ_iff.mpr (sqrt_le _)
+
+theorem succ_le_succ_sqrt (n : ℕ) : n + 1 ≤ (sqrt n + 1) * (sqrt n + 1) :=
+le_of_pred_lt (lt_succ_sqrt _)
+
+/-- There are no perfect squares strictly between m² and (m+1)² -/
+theorem not_exists_sq {n m : ℕ} (hl : m * m < n) (hr : n < (m + 1) * (m + 1)) :
+  ¬ ∃ t, t * t = n :=
+begin
+  rintro ⟨t, rfl⟩,
+  have h1 : m < t, from nat.mul_self_lt_mul_self_iff.mpr hl,
+  have h2 : t < m + 1, from nat.mul_self_lt_mul_self_iff.mpr hr,
+  exact (not_lt_of_ge $ le_of_lt_succ h2) h1
+end
 
 end nat

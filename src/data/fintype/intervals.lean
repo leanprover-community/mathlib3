@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import data.set.intervals
 import data.set.finite
-import data.fintype
 import data.pnat.intervals
 
 /-!

@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 The Schröder-Bernstein theorem, and well ordering of cardinals.
 -/
-import order.fixed_points data.set.lattice logic.function logic.embedding order.zorn
+import order.fixed_points
+import order.zorn
 
 open set classical
 open_locale classical
@@ -19,27 +20,27 @@ section antisymm
 variables {α : Type u} {β : Type v}
 
 theorem schroeder_bernstein {f : α → β} {g : β → α}
-  (hf : injective f) (hg : injective g) : ∃h:α→β, bijective h :=
-let s : set α := lfp $ λs, - (g '' - (f '' s)) in
-have hs : s = - (g '' - (f '' s)),
+  (hf : function.injective f) (hg : function.injective g) : ∃h:α→β, bijective h :=
+let s : set α := lfp $ λs, (g '' (f '' s)ᶜ)ᶜ in
+have hs : s = (g '' (f '' s)ᶜ)ᶜ,
   from lfp_eq $ assume s t h,
     compl_subset_compl.mpr $ image_subset _ $
     compl_subset_compl.mpr $ image_subset _ h,
 
-have hns : - s = g '' - (f '' s),
-  from compl_inj $ by simp [hs.symm],
+have hns : sᶜ = g '' (f '' s)ᶜ,
+  from compl_injective $ by simp [hs.symm],
 
 let g' := λa, @inv_fun β ⟨f a⟩ α g a in
 have g'g : g' ∘ g = id,
   from funext $ assume b, @left_inverse_inv_fun _ ⟨f (g b)⟩ _ _ hg b,
-have hg'ns : g' '' (-s) = - (f '' s),
+have hg'ns : g' '' sᶜ = (f '' s)ᶜ,
   by rw [hns, ←image_comp, g'g, image_id],
 
 let h := λa, if a ∈ s then f a else g' a in
 
 have h '' univ = univ,
-  from calc h '' univ = h '' s ∪ h '' (- s) : by rw [←image_union, union_compl_self]
-    ... = f '' s ∪ g' '' (-s) :
+  from calc h '' univ = h '' s ∪ h '' sᶜ : by rw [←image_union, union_compl_self]
+    ... = f '' s ∪ g' '' sᶜ :
       congr (congr_arg (∪)
         (image_congr $ by simp [h, if_pos] {contextual := tt}))
         (image_congr $ by simp [h, if_neg] {contextual := tt})
@@ -52,7 +53,7 @@ have surjective h,
 
 have split : ∀x∈s, ∀y∉s, h x = h y → false,
   from assume x hx y hy eq,
-  have y ∈ g '' - (f '' s), by rwa [←hns],
+  have y ∈ g '' (f '' s)ᶜ, by rwa [←hns],
   let ⟨y', hy', eq_y'⟩ := this in
   have f x = y',
     from calc f x = g' y : by simp [h, hx, hy, if_pos, if_neg] at eq; assumption
@@ -60,7 +61,7 @@ have split : ∀x∈s, ∀y∉s, h x = h y → false,
       ... = _ : by simp [g'g],
   have y' ∈ f '' s, from this ▸ mem_image_of_mem _ hx,
   hy' this,
-have injective h,
+have function.injective h,
   from assume x y eq,
   by_cases
     (assume hx : x ∈ s, by_cases
@@ -69,9 +70,9 @@ have injective h,
     (assume hx : x ∉ s, by_cases
       (assume hy : y ∈ s, (split y hy x hx eq.symm).elim)
       (assume hy : y ∉ s,
-        have x ∈ g '' - (f '' s), by rwa [←hns],
+        have x ∈ g '' (f '' s)ᶜ, by rwa [←hns],
         let ⟨x', hx', eqx⟩ := this in
-        have y ∈ g '' - (f '' s), by rwa [←hns],
+        have y ∈ g '' (f '' s)ᶜ, by rwa [←hns],
         let ⟨y', hy', eqy⟩ := this in
         have g' x = g' y, by simp [h, hx, hy, if_pos, if_neg] at eq; assumption,
         have (g' ∘ g) x' = (g' ∘ g) y', by simp [(∘), eqx, eqy, this],
@@ -80,12 +81,12 @@ have injective h,
           ... = g y' : by rw [this]
           ... = y : eqy)),
 
-⟨h, ‹injective h›, ‹surjective h›⟩
+⟨h, ‹function.injective h›, ‹function.surjective h›⟩
 
 theorem antisymm : (α ↪ β) → (β ↪ α) → nonempty (α ≃ β)
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ :=
   let ⟨f, hf⟩ := schroeder_bernstein h₁ h₂ in
-  ⟨equiv.of_bijective hf⟩
+  ⟨equiv.of_bijective f hf⟩
 
 end antisymm
 
@@ -95,7 +96,7 @@ parameters {ι : Type u} {β : ι → Type v}
 @[reducible] private def sets := {s : set (∀ i, β i) |
   ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
-theorem injective_min (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
+theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨s, hs, ms⟩ := show ∃s∈sets, ∀a∈sets, s ⊆ a → a = s, from
   zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
     λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi,
@@ -104,7 +105,7 @@ let ⟨s, hs, ms⟩ := show ∃s∈sets, ∀a∈sets, s ⊆ a → a = s, from
 let ⟨i, e⟩ := show ∃ i, ∀ y, ∃ x ∈ s, (x : ∀ i, β i) i = y, from
   classical.by_contradiction $ λ h,
   have h : ∀ i, ∃ y, ∀ x ∈ s, (x : ∀ i, β i) i ≠ y,
-    by simpa only [not_exists, classical.not_forall] using h,
+    by simpa only [not_exists, not_forall] using h,
   let ⟨f, hf⟩ := axiom_of_choice h in
   have f ∈ s, from
     have insert f s ∈ sets := λ x hx y hy, begin
@@ -122,7 +123,7 @@ let ⟨f, hf⟩ := axiom_of_choice e in
 end wo
 
 theorem total {α : Type u} {β : Type v} : nonempty (α ↪ β) ∨ nonempty (β ↪ α) :=
-match @injective_min bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
+match @min_injective bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
 | ⟨tt, ⟨h⟩⟩ := let ⟨f, hf⟩ := h ff in or.inl ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩
 | ⟨ff, ⟨h⟩⟩ := let ⟨f, hf⟩ := h tt in or.inr ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩
 end

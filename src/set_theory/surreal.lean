@@ -70,7 +70,7 @@ instance : has_mul pgame := ⟨mul⟩
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/
 inductive inv_ty (l r : Type u) : bool → Type u
-| zero {} : inv_ty ff
+| zero : inv_ty ff
 | left₁ : r → inv_ty ff → inv_ty ff
 | left₂ : l → inv_ty tt → inv_ty ff
 | right₁ : l → inv_ty ff → inv_ty tt
@@ -321,9 +321,10 @@ instance : partial_order surreal :=
 { le_antisymm := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩ h₁ h₂; exact quot.sound ⟨h₁, h₂⟩,
   ..surreal.preorder }
 
-instance : linear_order surreal :=
+noncomputable instance : linear_order surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
+  decidable_le := classical.dec_rel _,
   ..surreal.partial_order }
 
 /-- Addition on surreals is inherited from pre-game addition:
@@ -349,7 +350,7 @@ instance : add_semigroup surreal :=
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO construct the remaining instances:
---   add_monoid, add_group, add_comm_semigroup, add_comm_group, ordered_comm_group,
+--   add_monoid, add_group, add_comm_semigroup, add_comm_group, ordered_add_comm_group,
 -- as per the instances for `game`
 
 -- TODO define the inclusion of groups `surreal → game`

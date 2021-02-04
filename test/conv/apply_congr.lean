@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
 
-import algebra.big_operators
-import data.finsupp
+import algebra.big_operators.basic
+import data.finsupp.basic
 import tactic.converter.apply_congr
 import tactic.interactive
 
@@ -30,7 +30,8 @@ example (f g : ℤ → ℤ) (S : finset ℤ) (h : ∀ m ∈ S, f m = g m) :
 begin
   conv_lhs {
     apply_congr finset.sum_congr,
-    (do ng ← tactic.num_goals, guard $ ng = 2), -- (See the note about get_goals/set_goals inside apply_congr)
+    -- (See the note about get_goals/set_goals inside apply_congr)
+    (do ng ← tactic.num_goals, guard $ ng = 2),
     guard_target S,
     skip,
     guard_target f x,

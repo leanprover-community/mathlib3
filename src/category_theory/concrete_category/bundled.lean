@@ -2,16 +2,17 @@
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
-
-Bundled types.
 -/
+import category_theory.category
 
 /-!
+# Bundled types
+
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
 
-We provide `category` instances for these in `unbundled_hom.lean` (for categories with unbundled
-homs, e.g. topological spaces) and in `bundled_hom.lean` (for categories with bundled homs, e.g.
-monoids).
+We provide `category` instances for these in `category_theory/unbundled_hom.lean`
+(for categories with unbundled homs, e.g. topological spaces)
+and in `category_theory/bundled_hom.lean` (for categories with bundled homs, e.g. monoids).
 -/
 
 universes u v
@@ -21,6 +22,7 @@ variables {c d : Type u → Type v} {α : Type u}
 
 /-- `bundled` is a type bundled with a type class instance for that type. Only
 the type class is exposed as a parameter. -/
+@[nolint has_inhabited_instance]
 structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
 (α : Type u)
 (str : c α . tactic.apply_instance)
@@ -34,6 +36,9 @@ def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, 
 instance : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }
 
+@[simp]
+lemma coe_mk (α) (str) : (@bundled.mk c α str : Type u) = α := rfl
+
 /-
 `bundled.map` is reducible so that, if we define a category
 
@@ -45,7 +50,7 @@ a (semi)ring homomorphism from R.α to S.α, and not merely from
 -/
 /-- Map over the bundled structure -/
 @[reducible] def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
-⟨b.α, f b.str⟩
+⟨b, f b.str⟩
 
 end bundled
 

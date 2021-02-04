@@ -14,7 +14,7 @@ For a metric space, the latter inequality is equivalent to `dist x y ≤ K * dis
 
 ## Implementation notes
 
-The parameter `K` has type `nnreal`. This way we avoid conjuction in the definition and have
+The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
 coercions both to `ℝ` and `ennreal`. We do not require `0 < K` in the definition, mostly because
 we do not have a `posreal` type.
 -/
@@ -42,13 +42,18 @@ lemma antilipschitz_with.mul_le_dist [metric_space α] [metric_space β] {K : �
 begin
   by_cases hK : K = 0, by simp [hK, dist_nonneg],
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  apply div_le_of_le_mul (nnreal.coe_pos.2 $ zero_lt_iff_ne_zero.2 hK),
+  rw div_le_iff' (nnreal.coe_pos.2 $ pos_iff_ne_zero.2 hK),
   exact hf.le_mul_dist x y
 end
 
 namespace antilipschitz_with
 
 variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {f : α → β}
+
+/-- Extract the constant from `hf : antilipschitz_with K f`. This is useful, e.g.,
+if `K` is given by a long formula, and we want to reuse this value. -/
+@[nolint unused_arguments] -- uses neither `f` nor `hf`
+protected def K (hf : antilipschitz_with K f) : ℝ≥0 := K
 
 protected lemma injective (hf : antilipschitz_with K f) :
   function.injective f :=
@@ -58,7 +63,7 @@ lemma mul_le_edist (hf : antilipschitz_with K f) (x y : α) :
   ↑K⁻¹ * edist x y ≤ edist (f x) (f y) :=
 begin
   by_cases hK : K = 0, by simp [hK],
-  rw [ennreal.coe_inv hK, mul_comm, ← ennreal.div_def],
+  rw [ennreal.coe_inv hK, mul_comm, ← div_eq_mul_inv],
   apply ennreal.div_le_of_le_mul,
   rw mul_comm,
   exact hf x y
@@ -111,7 +116,7 @@ begin
     simpa only [hK, ennreal.coe_zero, zero_mul] using hf x y },
   { refine ⟨K⁻¹ * δ, _, λ x y hxy, lt_of_le_of_lt (hf x y) _⟩,
     { exact canonically_ordered_semiring.mul_pos.2 ⟨ennreal.inv_pos.2 ennreal.coe_ne_top, δ0⟩ },
-    { rw [mul_comm, ← ennreal.div_def] at hxy,
+    { rw [mul_comm, ← div_eq_mul_inv] at hxy,
       have := ennreal.mul_lt_of_lt_div hxy,
       rwa mul_comm } }
 end

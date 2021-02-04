@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl (CMU)
 -/
 prelude
-import init.meta.tactic init.meta.match_tactic init.meta.mk_dec_eq_instance
-import init.data.list.instances logic.relator
+import init.meta.tactic
+import init.meta.match_tactic
+import init.meta.mk_dec_eq_instance
+import init.data.list.instances
+import logic.relator
 
 open tactic expr list monad
 namespace transfer

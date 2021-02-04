@@ -18,9 +18,8 @@ This module defines a tactic `simp_rw` which functions as a mix of `simp` and
 ## Implementation notes
 
 The tactic works by taking each rewrite rule in turn and applying `simp only` to
-it. It should be possible to support backwards rewriting in the tactic, i.e.
-`simp_rw [←lemma]`, but it will be more useful and not much more work to add
-support for this directly to `simp`.
+it. Arguments to `simp_rw` are of the format used by `rw` and are translated to
+their equivalents for `simp`.
 -/
 
 namespace tactic.interactive
@@ -33,7 +32,7 @@ rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
 
 Usage:
   - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
-    lemmas in that order.
+    lemmas in that order. A lemma preceded by `←` is applied in the reverse direction.
   - `simp_rw [lemma_1, ..., lemma_n] at h₁ ... hₙ` will rewrite the given hypotheses.
   - `simp_rw [...] at ⊢ h₁ ... hₙ` rewrites the goal as well as the given hypotheses.
   - `simp_rw [...] at *` rewrites in the whole context: all hypotheses and the goal.
@@ -47,11 +46,12 @@ by simp_rw [set.image_subset_iff, set.subset_def]
 ```
 -/
 meta def simp_rw (q : parse rw_rules) (l : parse location) : tactic unit :=
-q.rules.mmap' (λ rule, if rule.symm
-  then fail "simp_rw [← ...] not supported: can only rewrite in forward direction"
-  else do
-    save_info rule.pos,
-    simp none tt [simp_arg_type.expr rule.rule] [] l) -- equivalent to `simp only [rule] at l`
+q.rules.mmap' (λ rule, do
+  let simp_arg := if rule.symm
+    then simp_arg_type.symm_expr rule.rule
+    else simp_arg_type.expr rule.rule,
+  save_info rule.pos,
+  simp none none tt [simp_arg] [] l) -- equivalent to `simp only [rule] at l`
 
 add_tactic_doc
 { name       := "simp_rw",

@@ -3,7 +3,6 @@ Copyright (c) 2019 Patrick MAssot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
 import topology.uniform_space.absolute_value
 import topology.instances.real
 import topology.uniform_space.completion

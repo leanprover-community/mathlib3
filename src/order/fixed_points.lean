@@ -2,16 +2,18 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
-
-Fixed point construction on complete lattices.
 -/
 import order.complete_lattice
+import dynamics.fixed_points.basic
+
+/-!
+# Fixed point construction on complete lattices
+-/
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-/-- The set of fixed points of a self-map -/
-def fixed_points (f : α → α) : set α := { x | f x = x }
+open function (fixed_points)
 
 section fixedpoint
 variables [complete_lattice α] {f : α → α}
@@ -133,9 +135,9 @@ theorem prev_le {x : α} : prev f x ≤ x := gfp_le $ λ z hz, le_trans hz inf_l
 
 lemma prev_eq (hf : monotone f) {a : α} (h : f a ≤ a) : prev f a = f (prev f a) :=
 calc prev f a = a ⊓ f (prev f a) :
-    gfp_eq $ show monotone (λz, a ⊓ f z), from assume x y h, inf_le_inf (le_refl _) (hf h)
+    gfp_eq $ show monotone (λz, a ⊓ f z), from assume x y h, inf_le_inf_left _ (hf h)
   ... = f (prev f a) :
-    by rw [inf_of_le_right]; exact le_trans (hf prev_le) h
+    inf_of_le_right $ le_trans (hf prev_le) h
 
 def prev_fixed (hf : monotone f) (a : α) (h : f a ≤ a) : fixed_points f :=
 ⟨prev f a, (prev_eq hf h).symm⟩
@@ -144,9 +146,9 @@ theorem next_le {x : α} : x ≤ next f x := le_lfp $ λ z hz, le_trans le_sup_l
 
 lemma next_eq (hf : monotone f) {a : α} (h : a ≤ f a) : next f a = f (next f a) :=
 calc next f a = a ⊔ f (next f a) :
-    lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup (le_refl _) (hf h)
+    lfp_eq $ show monotone (λz, a ⊔ f z), from assume x y h, sup_le_sup_left (hf h) _
  ... = f (next f a) :
-    by rw [sup_of_le_right]; exact le_trans h (hf next_le)
+    sup_of_le_right $ le_trans h (hf next_le)
 
 def next_fixed (hf : monotone f) (a : α) (h : a ≤ f a) : fixed_points f :=
 ⟨next f a, (next_eq hf h).symm⟩

@@ -3,7 +3,8 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
-import tactic.monotonicity tactic.norm_num
+import tactic.monotonicity
+import tactic.norm_num
 import algebra.ordered_ring
 import data.list.defs
 
@@ -20,7 +21,10 @@ example
   (h : 3 ≤ (4 : ℤ))
   (h' : 5 ≤ (6 : ℤ))
 : (1 + 3 + 2) - 6 ≤ (4 + 2 + 1 : ℤ) - 5 :=
-by ac_mono
+begin
+  ac_mono,
+  mono,
+end
 
 example
   (h : 3 ≤ (4 : ℤ))
@@ -401,7 +405,7 @@ begin
   exact 3
 end
 
-example {α} [decidable_linear_order α]
+example {α} [linear_order α]
   (a b c d e : α) :
   max a b ≤ e → b ≤ e :=
 by { mono, apply le_max_right }

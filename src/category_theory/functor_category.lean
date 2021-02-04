@@ -11,8 +11,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 open nat_trans category category_theory.functor
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
 local attribute [simp] vcomp_app
 /--
@@ -29,7 +28,7 @@ instance functor.category : category.{(max u₁ v₂)} (C ⥤ D) :=
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, vcomp α β }
 
-variables {C D} {E : Type u₃} [ℰ : category.{v₃} E]
+variables {C D} {E : Type u₃} [category.{v₃} E]
 variables {F G H I : C ⥤ D}
 
 namespace nat_trans
@@ -44,8 +43,6 @@ lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X :=
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
 
-include ℰ
-
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
   ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) :=
 (T.app X).naturality f
@@ -53,6 +50,14 @@ lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f 
 lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (Z : D) {X Y : C} (f : X ⟶ Y) :
   ((F.map f).app Z) ≫ ((T.app Y).app Z) = ((T.app X).app Z) ≫ ((G.map f).app Z) :=
 congr_fun (congr_arg app (T.naturality f)) Z
+
+/-- A natural transformation is a monomorphism if each component is. -/
+lemma mono_app_of_mono (α : F ⟶ G) [∀ (X : C), mono (α.app X)] : mono α :=
+⟨λ H g h eq, by { ext X, rw [←cancel_mono (α.app X), ←comp_app, eq, comp_app] }⟩
+
+/-- A natural transformation is an epimorphism if each component is. -/
+lemma epi_app_of_epi (α : F ⟶ G) [∀ (X : C), epi (α.app X)] : epi α :=
+⟨λ H g h eq, by { ext X, rw [←cancel_epi (α.app X), ←comp_app, eq, comp_app] }⟩
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/
 def hcomp {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) : (F ⋙ H) ⟶ (G ⋙ I) :=
@@ -68,6 +73,11 @@ infix ` ◫ `:80 := hcomp
 @[simp] lemma hcomp_app {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) (X : C) :
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
+@[simp] lemma hcomp_id_app {H : D ⥤ E} (α : F ⟶ G) (X : C) : (α ◫ 𝟙 H).app X = H.map (α.app X) :=
+  by {dsimp, simp} -- See note [dsimp, simp].
+
+lemma id_hcomp_app {H : E ⥤ C} (α : F ⟶ G) (X : E) : (𝟙 H ◫ α).app X = α.app _ := by simp
+
 -- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
 -- need to use associativity of functor composition. (It's true without the explicit associator,
 -- because functor composition is definitionally associative, but relying on the definitional equality
@@ -75,14 +85,13 @@ infix ` ◫ `:80 := hcomp
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=
-by { ext, dsimp, rw [assoc, assoc, map_comp, ←assoc _ (δ.app _), ← naturality, assoc] }
+by ext; simp
 
 end nat_trans
 open nat_trans
 namespace functor
 
-include ℰ
-
+/-- Flip the arguments of a bifunctor. See also `currying.lean`. -/
 protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
 { obj := λ k,
   { obj := λ j, (F.obj j).obj k,

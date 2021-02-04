@@ -3,7 +3,6 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
 import tactic.fix_reflect_string
 
 /-!
@@ -39,6 +38,30 @@ s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 meta def string.mk_hashed_name (nspace : name) (id : string) : name :=
 nspace <.> ("_" ++ to_string id.hash)
 
+open tactic
+
+/--
+`copy_doc_string fr to` copies the docstring from the declaration named `fr`
+to each declaration named in the list `to`. -/
+meta def tactic.copy_doc_string (fr : name) (to : list name) : tactic unit :=
+do fr_ds ← doc_string fr,
+   to.mmap' $ λ tgt, add_doc_string tgt fr_ds
+
+open lean lean.parser interactive
+
+/--
+`copy_doc_string source → target_1 target_2 ... target_n` copies the doc string of the
+declaration named `source` to each of `target_1`, `target_2`, ..., `target_n`.
+ -/
+@[user_command] meta def copy_doc_string_cmd
+  (_ : parse (tk "copy_doc_string")) : parser unit :=
+do fr ← parser.ident,
+   tk "->",
+   to ← parser.many parser.ident,
+   expr.const fr _  ← resolve_name fr,
+   to ← parser.of_tactic (to.mmap $ λ n, expr.const_name <$> resolve_name n),
+   tactic.copy_doc_string fr to
+
 /-! ### The `library_note` command -/
 
 /-- A user attribute `library_note` for tagging decls of type `string × string` for use in note
@@ -46,8 +69,6 @@ output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
   descr := "Notes about library features to be included in documentation" }
-
-open tactic
 
 /--
 `mk_reflected_definition name val` constructs a definition declaration by reflection.
@@ -67,11 +88,8 @@ do let decl_name := note_name.mk_hashed_name `library_note,
    add_decl $ mk_reflected_definition decl_name (note_name, note),
    library_note_attr.set decl_name () tt none
 
-/-- `tactic.eval_pexpr e α` evaluates the pre-expression `e` to a VM object of type `α`. -/
-meta def tactic.eval_pexpr (α) [reflected α] (e : pexpr) : tactic α :=
-to_expr ``(%%e : %%(reflect α)) ff ff >>= eval_expr α
+open tactic
 
-open tactic lean lean.parser interactive
 /--
 A command to add library notes. Syntax:
 ```
@@ -80,49 +98,6 @@ note message
 -/
 library_note "note id"
 ```
-
----
-
-At various places in mathlib, we leave implementation notes that are referenced from many other
-files. To keep track of these notes, we use the command `library_note`. This makes it easy to
-retrieve a list of all notes, e.g. for documentation output.
-
-These notes can be referenced in mathlib with the syntax `Note [note id]`.
-Often, these references will be made in code comments (`--`) that won't be displayed in docs.
-If such a reference is made in a doc string or module doc, it will be linked to the corresponding
-note in the doc display.
-
-Syntax:
-```
-/--
-note message
--/
-library_note "note id"
-```
-
-An example from `meta.expr`:
-
-```
-/--
-Some declarations work with open expressions, i.e. an expr that has free variables.
-Terms will free variables are not well-typed, and one should not use them in tactics like
-`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
-The reason for working with open types is for performance: instantiating variables requires
-iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
--/
-library_note "open expressions"
-```
-
-This note can be referenced near a usage of `pi_binders`:
-
-
-```
--- See Note [open expressions]
-/-- behavior of f -/
-def f := pi_binders ...
-```
-
 -/
 @[user_command] meta def library_note (mi : interactive.decl_meta_info)
   (_ : parse (tk "library_note")) : parser unit := do
@@ -163,15 +138,18 @@ structure tactic_doc_entry :=
 (description : string := "")
 (inherit_description_from : option _root_.name := none)
 
-/-- format a `tactic_doc_entry` -/
-meta def tactic_doc_entry.to_string : tactic_doc_entry → string
-| ⟨name, category, decl_names, tags, description, _⟩ :=
-let decl_names := decl_names.map (repr ∘ to_string),
-    tags := tags.map repr in
-"{" ++ to_string (format!"\"name\": {repr name}, \"category\": \"{category}\", \"decl_names\":{decl_names}, \"tags\": {tags}, \"description\": {repr description}") ++ "}"
+/-- Turns a `tactic_doc_entry` into a JSON representation. -/
+meta def tactic_doc_entry.to_json (d : tactic_doc_entry) : json :=
+json.object [
+  ("name", d.name),
+  ("category", d.category.to_string),
+  ("decl_names", d.decl_names.map (json.of_string ∘ to_string)),
+  ("tags", d.tags.map json.of_string),
+  ("description", d.description)
+]
 
 meta instance : has_to_string tactic_doc_entry :=
-⟨tactic_doc_entry.to_string⟩
+⟨json.unparse ∘ tactic_doc_entry.to_json⟩
 
 /-- `update_description_from tde inh_id` replaces the `description` field of `tde` with the
     doc string of the declaration named `inh_id`. -/
@@ -212,7 +190,11 @@ if `tde.description` is the empty string, `add_tactic_doc` uses the doc
 string of `decl` as the description. -/
 meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
 do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
-     fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",
+     fail "A tactic doc entry must either:
+ 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or
+ 2. have a single declaration in the `decl_names` field, to inherit a description from, or
+ 3. explicitly indicate the declaration to inherit the description from using
+    `inherit_description_from`.",
    tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
@@ -253,9 +235,8 @@ that declaration will become the body of the tactic doc entry. If there are
 multiple declarations, you can select the one to be used by passing a name to
 the `inherit_description_from` field.
 
-If you prefer a tactic to have a doc string that is different then the doc entry, then between
-the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,
-and then the doc entry.
+If you prefer a tactic to have a doc string that is different then the doc entry,
+you should write the doc entry as a doc string for the `add_tactic_doc` invocation.
 
 Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error
 messages.
@@ -271,6 +252,47 @@ let e : tactic_doc_entry := match mi.doc_string with
   end,
 tactic.add_tactic_doc e .
 
+/--
+At various places in mathlib, we leave implementation notes that are referenced from many other
+files. To keep track of these notes, we use the command `library_note`. This makes it easy to
+retrieve a list of all notes, e.g. for documentation output.
+
+These notes can be referenced in mathlib with the syntax `Note [note id]`.
+Often, these references will be made in code comments (`--`) that won't be displayed in docs.
+If such a reference is made in a doc string or module doc, it will be linked to the corresponding
+note in the doc display.
+
+Syntax:
+```
+/--
+note message
+-/
+library_note "note id"
+```
+
+An example from `meta.expr`:
+
+```
+/--
+Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+-/
+library_note "open expressions"
+```
+
+This note can be referenced near a usage of `pi_binders`:
+
+
+```
+-- See Note [open expressions]
+/-- behavior of f -/
+def f := pi_binders ...
+```
+-/
 add_tactic_doc
 { name                     := "library_note",
   category                 := doc_category.cmd,
@@ -284,6 +306,13 @@ add_tactic_doc
   decl_names               := [`add_tactic_doc_command, `tactic.add_tactic_doc],
   tags                     := ["documentation"],
   inherit_description_from := `add_tactic_doc_command }
+
+add_tactic_doc
+{ name := "copy_doc_string",
+  category := doc_category.cmd,
+  decl_names := [`copy_doc_string_cmd, `tactic.copy_doc_string],
+  tags := ["documentation"],
+  inherit_description_from := `copy_doc_string_cmd }
 
 -- add docs to core tactics
 
@@ -338,11 +367,11 @@ add_tactic_doc
 `conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
 by focusing on particular subexpressions.
 
-See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
+See <https://leanprover-community.github.io/extras/conv.html> for more details.
 
 Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,
-* `ring` and `ring2`,
+* `ring`, `ring2` and `ring_exp`,
 * `norm_num`,
 * `norm_cast`,
 * `apply_congr`, and
@@ -397,6 +426,33 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.simp],
   tags := ["core", "simplification"] }
+
+/--
+Accepts terms with the type `component tactic_state string` or `html empty` and
+renders them interactively.
+Requires a compatible version of the vscode extension to view the resulting widget.
+
+### Example:
+
+```lean
+/-- A simple counter that can be incremented or decremented with some buttons. -/
+meta def counter_widget {π α : Type} : component π α :=
+component.ignore_props $ component.mk_simple int int 0 (λ _ x y, (x + y, none)) (λ _ s,
+  h "div" [] [
+    button "+" (1 : int),
+    html.of_string $ to_string $ s,
+    button "-" (-1)
+  ]
+)
+
+#html counter_widget
+```
+-/
+add_tactic_doc
+{ name := "#html",
+  category := doc_category.cmd,
+  decl_names := [`show_widget_cmd],
+  tags := ["core", "widgets"] }
 
 /--
 The `add_decl_doc` command is used to add a doc string to an existing declaration.

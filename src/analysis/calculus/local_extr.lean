@@ -3,10 +3,11 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import topology.local_extr
+import analysis.calculus.deriv
 
-import topology.local_extr analysis.calculus.deriv
-
-/-! # Local extrema of smooth functions
+/-!
+# Local extrema of smooth functions
 
 ## Main definitions
 
@@ -93,7 +94,7 @@ begin
     { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
     { simp only [d, sub_smul, smul_sub, one_smul], abel } },
   show tendsto c at_top at_top,
-  { exact tendsto_pow_at_top_at_top_of_gt_1 one_lt_two },
+  { exact tendsto_pow_at_top_at_top_of_one_lt one_lt_two },
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
   { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
     { ext n,
@@ -120,16 +121,16 @@ lemma is_local_max_on.has_fderiv_within_at_nonpos {s : set E} (h : is_local_max_
 begin
   rcases hy with ⟨c, d, hd, hc, hcd⟩,
   have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
-    from tendsto_at_top_mono _ (λ n, le_abs_self _) hc,
-  refine le_of_tendsto at_top_ne_bot (hf.lim at_top hd hc' hcd) _,
-  replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
+    from tendsto_at_top_mono (λ n, le_abs_self _) hc,
+  refine le_of_tendsto (hf.lim at_top hd hc' hcd) _,
+  replace hd : tendsto (λ n, a + d n) at_top (𝓝[s] (a + 0)),
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,
   rw [add_zero] at hd,
   replace h : ∀ᶠ n in at_top, f (a + d n) ≤ f a, from mem_map.1 (hd h),
   replace hc : ∀ᶠ n in at_top, 0 ≤ c n, from mem_map.1 (hc (mem_at_top (0:ℝ))),
   filter_upwards [h, hc],
-  simp only [mem_set_of_eq, smul_eq_mul, mem_preimage, subset_def],
+  simp only [smul_eq_mul, mem_preimage, subset_def],
   assume n hnf hn,
   exact mul_nonpos_of_nonneg_of_nonpos hn (sub_nonpos.2 hnf)
 end
@@ -286,7 +287,7 @@ begin
     { have : ∀ x ∈ Icc a b, f x = f a,
         from λ x hx, le_antisymm (hC ▸ Cge x hx) (hc ▸ cle x hx),
       -- `f` is a constant, so we can take any point in `Ioo a b`
-      rcases dense hab with ⟨c', hc'⟩,
+      rcases exists_between hab with ⟨c', hc'⟩,
       refine ⟨c', hc', or.inl _⟩,
       assume x hx,
       rw [mem_set_of_eq, this x hx, ← hC],
@@ -313,5 +314,37 @@ let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
 lemma exists_deriv_eq_zero : ∃ c ∈ Ioo a b, deriv f c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
   ⟨c, cmem, hc.deriv_eq_zero⟩
+
+omit hfc hfI
+
+variables {f f'}
+
+lemma exists_has_deriv_at_eq_zero' {l : ℝ}
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l))
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
+  ∃ c ∈ Ioo a b, f' c = 0 :=
+begin
+  have : continuous_on f (Ioo a b) := λ x hx, (hff' x hx).continuous_at.continuous_within_at,
+  have hcont := continuous_on_Icc_extend_from_Ioo hab this hfa hfb,
+  obtain ⟨c, hc, hcextr⟩ : ∃ c ∈ Ioo a b, is_local_extr (extend_from (Ioo a b) f) c,
+  { apply exists_local_extr_Ioo _ hab hcont,
+    rw eq_lim_at_right_extend_from_Ioo hab hfb,
+    exact eq_lim_at_left_extend_from_Ioo hab hfa },
+  use [c, hc],
+  apply (hcextr.congr _).has_deriv_at_eq_zero (hff' c hc),
+  rw eventually_eq_iff_exists_mem,
+  exact ⟨Ioo a b, Ioo_mem_nhds hc.1 hc.2, extend_from_extends this⟩
+end
+
+lemma exists_deriv_eq_zero' {l : ℝ}
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :
+  ∃ c ∈ Ioo a b, deriv f c = 0 :=
+classical.by_cases
+  (assume h : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
+    show ∃ c ∈ Ioo a b, deriv f c = 0,
+      from exists_has_deriv_at_eq_zero' hab hfa hfb (λ x hx, (h x hx).has_deriv_at))
+  (assume h : ¬∀ x ∈ Ioo a b, differentiable_at ℝ f x,
+    have h : ∃ x, x ∈ Ioo a b ∧ ¬differentiable_at ℝ f x, by { push_neg at h, exact h },
+      let ⟨c, hc, hcdiff⟩ := h in ⟨c, hc, deriv_zero_of_not_differentiable_at hcdiff⟩)
 
 end Rolle

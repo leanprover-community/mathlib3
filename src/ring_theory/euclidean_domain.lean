@@ -3,19 +3,35 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
-import algebra.associated algebra.euclidean_domain ring_theory.ideals
+import ring_theory.coprime
+import ring_theory.ideal.basic
+
+/-!
+# Lemmas about Euclidean domains
+
+Various about Euclidean domains are proved; all of them seem to be true
+more generally for principal ideal domains, so these lemmas should
+probably be reproved in more generality and this file perhaps removed?
+
+## Tags
+
+euclidean domain
+-/
+
 noncomputable theory
 open_locale classical
 open euclidean_domain set ideal
 
+-- TODO -- this should surely be proved for PIDs instead?
+
 theorem span_gcd {α} [euclidean_domain α] (x y : α) :
   span ({gcd x y} : set α) = span ({x, y} : set α) :=
 begin
-  apply le_antisymm; refine span_le.1 _,
-  { simp [submodule.span_span, mem_span_pair, submodule.le_def', mem_span_singleton'],
-    assume a b ha,
-    exact ⟨b * gcd_a x y, b * gcd_b x y, by rw [← ha, gcd_eq_gcd_ab x y];
-      simp [mul_add, mul_comm, mul_left_comm]⟩ },
+  apply le_antisymm,
+  { refine span_le.2 (λ x, _),
+    simp only [set.mem_singleton_iff, submodule.mem_coe, mem_span_pair],
+    rintro rfl,
+    exact ⟨gcd_a x y, gcd_b x y, by simp [gcd_eq_gcd_ab, mul_comm]⟩ },
   { assume z ,
     simp [mem_span_singleton, euclidean_domain.gcd_dvd_left, mem_span_pair,
       @eq_comm _ _ z] {contextual := tt},
@@ -23,11 +39,15 @@ begin
     exact dvd_add (dvd_mul_of_dvd_right (gcd_dvd_left _ _) _)
       (dvd_mul_of_dvd_right (gcd_dvd_right _ _) _) }
 end
-
+-- this should be proved for PIDs?
 theorem gcd_is_unit_iff {α} [euclidean_domain α] {x y : α} :
   is_unit (gcd x y) ↔ is_coprime x y :=
-by rw [← span_singleton_eq_top, span_gcd, is_coprime]
+⟨λ h, let ⟨b, hb⟩ := is_unit_iff_exists_inv'.1 h in ⟨b * gcd_a x y, b * gcd_b x y,
+  by rw [← hb, gcd_eq_gcd_ab, mul_comm x, mul_comm y, mul_add, mul_assoc, mul_assoc]⟩,
+λ ⟨a, b, h⟩, is_unit_iff_dvd_one.2 $ h ▸ dvd_add (dvd_mul_of_dvd_right (gcd_dvd_left x y) _)
+  (dvd_mul_of_dvd_right (gcd_dvd_right x y) _)⟩
 
+-- this should be proved for UFDs surely?
 theorem is_coprime_of_dvd {α} [euclidean_domain α] {x y : α}
   (z : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits α, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
@@ -38,13 +58,14 @@ begin
   rwa [ne, euclidean_domain.gcd_eq_zero_iff]
 end
 
+-- this should be proved for UFDs surely?
 theorem dvd_or_coprime {α} [euclidean_domain α] (x y : α)
   (h : irreducible x) : x ∣ y ∨ is_coprime x y :=
 begin
   refine or_iff_not_imp_left.2 (λ h', _),
-  unfreezeI, apply is_coprime_of_dvd,
-  { rintro ⟨rfl, rfl⟩, simpa using h },
-  { rintro z nu nz ⟨w, rfl⟩ dy,
+  apply is_coprime_of_dvd,
+  { unfreezingI { rintro ⟨rfl, rfl⟩ }, simpa using h },
+  { unfreezingI { rintro z nu nz ⟨w, rfl⟩ dy },
     refine h' (dvd.trans _ dy),
     simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
       (of_irreducible_mul h).resolve_left nu) }

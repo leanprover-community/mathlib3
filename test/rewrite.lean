@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import tactic.rewrite
+import data.nat.basic
 
 open tactic
 example : ∀ x y z a b c : ℕ, true :=
@@ -42,7 +43,7 @@ variables h₂ : y + b + c = y + b + a
 include h₀ h₁ h₂
 example : a + (b + x) + y + (z + b + c) ≤ 0 :=
 by { assoc_rw [h₀,h₂] at *,
-     guard_hyp _inst := is_associative ℕ has_add.add,
+     guard_hyp _inst : is_associative ℕ has_add.add,
        -- keep a local instance of is_associative to cache
        -- type class queries
      exact h₁ }

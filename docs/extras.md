@@ -1,7 +1,4 @@
 # Extra Lean documentation
 
-* The [conversion tactic mode](extras/conv.md)
-* The [simplifier](extras/simp.md)
-* The [calc environment](extras/calc.md)
-* [Well founded recursion](extras/well_founded_recursion.md)
-* A [Tactic writing tutorial](extras/tactic_writing.md)
+**This page has moved to the
+[leanprover-community website](https://leanprover-community.github.io/learn.html).**

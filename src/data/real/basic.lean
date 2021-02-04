@@ -6,9 +6,13 @@ Authors: Mario Carneiro, Floris van Doorn
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import order.conditionally_complete_lattice data.real.cau_seq_completion
-  algebra.archimedean order.bounds
+import order.conditionally_complete_lattice
+import data.real.cau_seq_completion
+import algebra.archimedean
+import algebra.star.basic
 
+/-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
+numbers. -/
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
 
@@ -17,11 +21,7 @@ open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
 
-def of_rat (x : ℚ) : ℝ := of_rat x
-
-def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
-
-def comm_ring_aux : comm_ring ℝ := cau_seq.completion.comm_ring
+def comm_ring_aux : comm_ring ℝ := Cauchy.comm_ring
 
 instance : comm_ring ℝ := { ..comm_ring_aux }
 
@@ -42,6 +42,16 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
+
+/-- The real numbers are a *-ring, with the trivial *-structure. -/
+instance : star_ring ℝ          := star_ring_of_comm
+
+/-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
+is `cau_seq.completion.of_rat`, not `rat.cast`. -/
+def of_rat : ℚ →+* ℝ := ⟨of_rat, rfl, of_rat_mul, rfl, of_rat_add⟩
+
+/-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
+def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -73,7 +83,7 @@ theorem add_lt_add_iff_left {a b : ℝ} (c : ℝ) : c + a < c + b ↔ a < b :=
 quotient.induction_on₃ a b c (λ f g h,
   iff_of_eq (congr_arg pos $ by rw add_sub_add_left_eq_sub))
 
-instance : linear_order ℝ :=
+instance : partial_order ℝ :=
 { le := (≤), lt := (<),
   le_refl := λ a, or.inr rfl,
   le_trans := λ a b c, quotient.induction_on₃ a b c $
@@ -81,12 +91,9 @@ instance : linear_order ℝ :=
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ f g, by simpa [quotient_mk_eq_mk] using lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g,
-  le_total := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g }
+    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g }
 
-instance : partial_order ℝ := by apply_instance
-instance : preorder ℝ      := by apply_instance
+instance : preorder ℝ := by apply_instance
 
 theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y := const_lt
 
@@ -97,66 +104,65 @@ quotient.induction_on₂ a b $ λ f g,
   show pos (f - 0) → pos (g - 0) → pos (f * g - 0),
   by simpa using cau_seq.mul_pos
 
-instance : linear_ordered_comm_ring ℝ :=
-{ add_le_add_left := λ a b h c,
-    (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
-  zero_ne_one := ne_of_lt real.zero_lt_one,
-  mul_nonneg := λ a b a0 b0,
-    match a0, b0 with
-    | or.inl a0, or.inl b0 := le_of_lt (real.mul_pos a0 b0)
-    | or.inr a0, _ := by simp [a0.symm]
-    | _, or.inr b0 := by simp [b0.symm]
-    end,
-  mul_pos := @real.mul_pos,
-  zero_lt_one := real.zero_lt_one,
-  add_lt_add_left := λ a b h c, (real.add_lt_add_iff_left c).2 h,
-  ..real.comm_ring, ..real.linear_order }
+instance : ordered_ring ℝ :=
+{ add_le_add_left := λ a b h c, h.imp (real.add_lt_add_iff_left c).2 (λ h, h ▸ rfl),
+  zero_le_one := le_of_lt real.zero_lt_one,
+  mul_pos     := @real.mul_pos,
+  .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
-/- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_ring ℝ        := by apply_instance
-instance : ordered_ring ℝ               := by apply_instance
-instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_comm_group ℝ         := by apply_instance
-instance : ordered_cancel_comm_monoid ℝ := by apply_instance
-instance : ordered_comm_monoid ℝ        := by apply_instance
-instance : domain ℝ                     := by apply_instance
+instance : ordered_add_comm_group ℝ     := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
+instance : ordered_add_comm_monoid ℝ    := by apply_instance
+instance : has_one ℝ                    := by apply_instance
+instance : has_zero ℝ                   := by apply_instance
+instance : has_mul ℝ                    := by apply_instance
+instance : has_add ℝ                    := by apply_instance
+instance : has_sub ℝ                    := by apply_instance
+instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
 open_locale classical
 
-noncomputable instance : discrete_linear_ordered_field ℝ :=
-{ decidable_le := by apply_instance,
-  ..real.linear_ordered_comm_ring,
+noncomputable instance : linear_order ℝ :=
+{ le_total := λ a b, quotient.induction_on₂ a b $
+    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g,
+  decidable_le := by apply_instance,
+  .. real.partial_order }
+
+noncomputable instance : linear_ordered_comm_ring ℝ :=
+{ .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }
+
+/- Extra instances to short-circuit type class resolution -/
+noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
+noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
+instance : domain ℝ                     :=
+{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
+
+noncomputable instance : linear_ordered_field ℝ :=
+{ ..real.linear_ordered_comm_ring,
   ..real.domain,
   ..cau_seq.completion.field }
 
 /- Extra instances to short-circuit type class resolution -/
 
-noncomputable instance : linear_ordered_field ℝ    := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
+noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
-noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
-noncomputable instance : decidable_linear_order ℝ  := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
 noncomputable instance : semilattice_inf ℝ := by apply_instance
 noncomputable instance : semilattice_sup ℝ := by apply_instance
 noncomputable instance : has_inf ℝ         := by apply_instance
 noncomputable instance : has_sup ℝ         := by apply_instance
-
-lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
-le_of_forall_le_of_dense $ assume x hxb,
-calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
-    ... = x : by rw [add_comm]; simp
+noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
+noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
+noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
 open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
-eq_cast of_rat rfl of_rat_add of_rat_mul
+of_rat.eq_rat_cast
 
 theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=
@@ -229,7 +235,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
 | ⟨L, hL⟩ ⟨U, hU⟩ := begin
   choose f hf using begin
     refine λ d : ℕ, @int.exists_greatest_of_bdd
-      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _ _,
+      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _,
     { cases exists_int_gt U with k hk,
       refine ⟨k * d, λ z h, _⟩,
       rcases h with ⟨y, yS, hy⟩,
@@ -388,7 +394,7 @@ begin
     ((lt_total _ _).resolve_left (λ h, _)).resolve_right (λ h, _)⟩,
   { rcases h with ⟨ε, ε0, i, ih⟩,
     refine not_lt_of_le (Sup_le_ub S lb (ub' _ _))
-      ((sub_lt_self_iff _).2 (half_pos ε0)),
+      (sub_lt_self _ (half_pos ε0)),
     refine ⟨_, half_pos ε0, i, λ j ij, _⟩,
     rw [sub_apply, const_apply, sub_right_comm,
       le_sub_iff_add_le, add_halves],
@@ -403,214 +409,6 @@ begin
 end
 
 noncomputable instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
-
-theorem sqrt_exists : ∀ {x : ℝ}, 0 ≤ x → ∃ y, 0 ≤ y ∧ y * y = x :=
-suffices H : ∀ {x : ℝ}, 0 < x → x ≤ 1 → ∃ y, 0 < y ∧ y * y = x, begin
-  intros x x0, cases x0,
-  cases le_total x 1 with x1 x1,
-  { rcases H x0 x1 with ⟨y, y0, hy⟩,
-    exact ⟨y, le_of_lt y0, hy⟩ },
-  { have := (inv_le_inv x0 zero_lt_one).2 x1,
-    rw inv_one at this,
-    rcases H (inv_pos.2 x0) this with ⟨y, y0, hy⟩,
-    refine ⟨y⁻¹, le_of_lt (inv_pos.2 y0), _⟩, rw [← mul_inv', hy, inv_inv'] },
-  { exact ⟨0, by simp [x0.symm]⟩ }
-end,
-λ x x0 x1, begin
-  let S := {y | 0 < y ∧ y * y ≤ x},
-  have lb : x ∈ S := ⟨x0, by simpa using (mul_le_mul_right x0).2 x1⟩,
-  have ub : ∀ y ∈ S, (y:ℝ) ≤ 1,
-  { intros y yS, cases yS with y0 yx,
-    refine (mul_self_le_mul_self_iff (le_of_lt y0) zero_le_one).2 _,
-    simpa using le_trans yx x1 },
-  have S0 : 0 < Sup S := lt_of_lt_of_le x0 (le_Sup _ ⟨_, ub⟩ lb),
-  refine ⟨Sup S, S0, le_antisymm (not_lt.1 $ λ h, _) (not_lt.1 $ λ h, _)⟩,
-  { rw [← div_lt_iff S0, lt_Sup S ⟨_, lb⟩ ⟨_, ub⟩] at h,
-    rcases h with ⟨y, ⟨y0, yx⟩, hy⟩,
-    rw [div_lt_iff S0, ← div_lt_iff' y0, lt_Sup S ⟨_, lb⟩ ⟨_, ub⟩] at hy,
-    rcases hy with ⟨z, ⟨z0, zx⟩, hz⟩,
-    rw [div_lt_iff y0] at hz,
-    exact not_lt_of_lt
-      ((mul_lt_mul_right y0).1 (lt_of_le_of_lt yx hz))
-      ((mul_lt_mul_left z0).1 (lt_of_le_of_lt zx hz)) },
-  { let s := Sup S, let y := s + (x - s * s) / 3,
-    replace h : 0 < x - s * s := sub_pos.2 h,
-    have _30 := bit1_pos zero_le_one,
-    have : s < y := (lt_add_iff_pos_right _).2 (div_pos h _30),
-    refine not_le_of_lt this (le_Sup S ⟨_, ub⟩ ⟨lt_trans S0 this, _⟩),
-    rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
-      ← le_div_iff (div_pos h _30), field.div_div_cancel (ne_of_gt h)],
-    apply add_le_add,
-    { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
-    { rw [div_le_one_iff_le _30],
-      refine le_trans (sub_le_self _ (mul_self_nonneg _)) (le_trans x1 _),
-      exact (le_add_iff_nonneg_left _).2 (le_of_lt two_pos) } }
-end
-
-def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
-| 0       := rat.mk_nat (f 0).num.to_nat.sqrt (f 0).denom.sqrt
-| (n + 1) := let s := sqrt_aux n in max 0 $ (s + f (n+1) / s) / 2
-
-theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
-| 0       := by rw [sqrt_aux, mk_nat_eq, mk_eq_div];
-  apply div_nonneg'; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
-| (n + 1) := le_max_left _ _
-
-/- TODO(Mario): finish the proof
-theorem sqrt_aux_converges (f : cau_seq ℚ abs) : ∃ h x, 0 ≤ x ∧ x * x = max 0 (mk f) ∧
-  mk ⟨sqrt_aux f, h⟩ = x :=
-begin
-  rcases sqrt_exists (le_max_left 0 (mk f)) with ⟨x, x0, hx⟩,
-  suffices : ∃ h, mk ⟨sqrt_aux f, h⟩ = x,
-  { exact this.imp (λ h e, ⟨x, x0, hx, e⟩) },
-  apply of_near,
-
-  suffices : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
-  { rcases this with ⟨δ, δ0, hδ⟩,
-    intros,
-     }
-end -/
-
-noncomputable def sqrt (x : ℝ) : ℝ :=
-classical.some (sqrt_exists (le_max_left 0 x))
-/-quotient.lift_on x
-  (λ f, mk ⟨sqrt_aux f, (sqrt_aux_converges f).fst⟩)
-  (λ f g e, begin
-    rcases sqrt_aux_converges f with ⟨hf, x, x0, xf, xs⟩,
-    rcases sqrt_aux_converges g with ⟨hg, y, y0, yg, ys⟩,
-    refine xs.trans (eq.trans _ ys.symm),
-    rw [← @mul_self_inj_of_nonneg ℝ _ x y x0 y0, xf, yg],
-    congr' 1, exact quotient.sound e
-  end)-/
-
-theorem sqrt_prop (x : ℝ) : 0 ≤ sqrt x ∧ sqrt x * sqrt x = max 0 x :=
-classical.some_spec (sqrt_exists (le_max_left 0 x))
-/-quotient.induction_on x $ λ f,
-by rcases sqrt_aux_converges f with ⟨hf, _, x0, xf, rfl⟩; exact ⟨x0, xf⟩-/
-
-theorem sqrt_eq_zero_of_nonpos (h : x ≤ 0) : sqrt x = 0 :=
-eq_zero_of_mul_self_eq_zero $ (sqrt_prop x).2.trans $ max_eq_left h
-
-theorem sqrt_nonneg (x : ℝ) : 0 ≤ sqrt x := (sqrt_prop x).1
-
-@[simp] theorem mul_self_sqrt (h : 0 ≤ x) : sqrt x * sqrt x = x :=
-(sqrt_prop x).2.trans (max_eq_right h)
-
-@[simp] theorem sqrt_mul_self (h : 0 ≤ x) : sqrt (x * x) = x :=
-(mul_self_inj_of_nonneg (sqrt_nonneg _) h).1 (mul_self_sqrt (mul_self_nonneg _))
-
-theorem sqrt_eq_iff_mul_self_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
-  sqrt x = y ↔ y * y = x :=
-⟨λ h, by rw [← h, mul_self_sqrt hx],
- λ h, by rw [← h, sqrt_mul_self hy]⟩
-
-@[simp] theorem sqr_sqrt (h : 0 ≤ x) : sqrt x ^ 2 = x :=
-by rw [pow_two, mul_self_sqrt h]
-
-@[simp] theorem sqrt_sqr (h : 0 ≤ x) : sqrt (x ^ 2) = x :=
-by rw [pow_two, sqrt_mul_self h]
-
-theorem sqrt_eq_iff_sqr_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
-  sqrt x = y ↔ y ^ 2 = x :=
-by rw [pow_two, sqrt_eq_iff_mul_self_eq hx hy]
-
-theorem sqrt_mul_self_eq_abs (x : ℝ) : sqrt (x * x) = abs x :=
-(le_total 0 x).elim
-  (λ h, (sqrt_mul_self h).trans (abs_of_nonneg h).symm)
-  (λ h, by rw [← neg_mul_neg,
-    sqrt_mul_self (neg_nonneg.2 h), abs_of_nonpos h])
-
-theorem sqrt_sqr_eq_abs (x : ℝ) : sqrt (x ^ 2) = abs x :=
-by rw [pow_two, sqrt_mul_self_eq_abs]
-
-@[simp] theorem sqrt_zero : sqrt 0 = 0 :=
-by simpa using sqrt_mul_self (le_refl _)
-
-@[simp] theorem sqrt_one : sqrt 1 = 1 :=
-by simpa using sqrt_mul_self zero_le_one
-
-@[simp] theorem sqrt_le (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x ≤ sqrt y ↔ x ≤ y :=
-by rw [mul_self_le_mul_self_iff (sqrt_nonneg _) (sqrt_nonneg _),
-       mul_self_sqrt hx, mul_self_sqrt hy]
-
-@[simp] theorem sqrt_lt (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < sqrt y ↔ x < y :=
-lt_iff_lt_of_le_iff_le (sqrt_le hy hx)
-
-lemma sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=
-begin
-  rw [mul_self_le_mul_self_iff (sqrt_nonneg _) (sqrt_nonneg _), (sqrt_prop _).2, (sqrt_prop _).2],
-  exact max_le_max (le_refl _) h
-end
-
-lemma sqrt_le_left (hy : 0 ≤ y) : sqrt x ≤ y ↔ x ≤ y ^ 2 :=
-begin
-  rw [mul_self_le_mul_self_iff (sqrt_nonneg _) hy, pow_two],
-  cases le_total 0 x with hx hx,
-  { rw [mul_self_sqrt hx] },
-  { have h1 : 0 ≤ y * y := mul_nonneg hy hy,
-    have h2 : x ≤ y * y := le_trans hx h1,
-    simp [sqrt_eq_zero_of_nonpos, hx, h1, h2] }
-end
-
-/- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sqr_le`.
-   if you have `x > 0`, consider using `le_sqrt'` -/
-lemma le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), pow_two, mul_self_sqrt hy]
-
-lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-begin
-  rw [mul_self_le_mul_self_iff (le_of_lt hx) (sqrt_nonneg _), pow_two],
-  cases le_total 0 y with hy hy,
-  { rw [mul_self_sqrt hy] },
-  { have h1 : 0 < x * x := mul_pos hx hx,
-    have h2 : ¬x * x ≤ y := not_le_of_lt (lt_of_le_of_lt hy h1),
-    simp [sqrt_eq_zero_of_nonpos, hy, h1, h2] }
-end
-
-lemma le_sqrt_of_sqr_le (h : x ^ 2 ≤ y) : x ≤ sqrt y :=
-begin
-  cases lt_or_ge 0 x with hx hx,
-  { rwa [le_sqrt' hx] },
-  { exact le_trans hx (sqrt_nonneg y) }
-end
-
-@[simp] theorem sqrt_inj (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
-by simp [le_antisymm_iff, hx, hy]
-
-@[simp] theorem sqrt_eq_zero (h : 0 ≤ x) : sqrt x = 0 ↔ x = 0 :=
-by simpa using sqrt_inj h (le_refl _)
-
-theorem sqrt_eq_zero' : sqrt x = 0 ↔ x ≤ 0 :=
-(le_total x 0).elim
-  (λ h, by simp [h, sqrt_eq_zero_of_nonpos])
-  (λ h, by simp [h]; simp [le_antisymm_iff, h])
-
-@[simp] theorem sqrt_pos : 0 < sqrt x ↔ 0 < x :=
-lt_iff_lt_of_le_iff_le (iff.trans
-  (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
-
-@[simp] theorem sqrt_mul' (x) {y : ℝ} (hy : 0 ≤ y) : sqrt (x * y) = sqrt x * sqrt y :=
-begin
-  cases le_total 0 x with hx hx,
-  { refine (mul_self_inj_of_nonneg _ (mul_nonneg _ _)).1 _; try {apply sqrt_nonneg},
-    rw [mul_self_sqrt (mul_nonneg hx hy), mul_assoc,
-        mul_left_comm (sqrt y), mul_self_sqrt hy, ← mul_assoc, mul_self_sqrt hx] },
-  { rw [sqrt_eq_zero'.2 (mul_nonpos_of_nonpos_of_nonneg hx hy),
-        sqrt_eq_zero'.2 hx, zero_mul] }
-end
-
-@[simp] theorem sqrt_mul (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
-by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
-
-@[simp] theorem sqrt_inv (x : ℝ) : sqrt x⁻¹ = (sqrt x)⁻¹ :=
-(le_or_lt x 0).elim
-  (λ h, by simp [sqrt_eq_zero'.2, inv_nonpos, h])
-  (λ h, by rw [
-    ← mul_self_inj_of_nonneg (sqrt_nonneg _) (le_of_lt $ inv_pos.2 $ sqrt_pos.2 h),
-    mul_self_sqrt (le_of_lt $ inv_pos.2 h), ← mul_inv', mul_self_sqrt (le_of_lt h)])
-
-@[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
-by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
 
 attribute [irreducible] real.le
 

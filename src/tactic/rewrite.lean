@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import data.dlist tactic.core
+import data.dlist
+import tactic.core
 
 namespace tactic
 open expr list
@@ -194,6 +195,18 @@ end >> try reflexivity
 `assoc_rewrite [h₀,← h₁] at ⊢ h₂` behaves like `rewrite [h₀,← h₁] at ⊢ h₂`
 with the exception that associativity is used implicitly to make rewriting
 possible.
+
+It works for any function `f` for which an `is_associative f` instance can be found.
+
+```
+example {α : Type*} (f : α → α → α) [is_associative α f] (a b c d x : α) :
+  let infix `~` := f in
+  b ~ c = x → (a ~ b ~ c ~ d) = (a ~ x ~ d) :=
+begin
+  intro h,
+  assoc_rw h, 
+end
+```
 -/
 meta def assoc_rewrite (q : parse rw_rules) (l : parse location) : tactic unit :=
 propagate_tags (assoc_rw_core q l)
@@ -206,7 +219,7 @@ add_tactic_doc
 { name                     := "assoc_rewrite",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.assoc_rewrite, `tactic.interactive.assoc_rw],
-  tags                     := ["rewrite"],
+  tags                     := ["rewriting"],
   inherit_description_from := `tactic.interactive.assoc_rewrite }
 
 end interactive

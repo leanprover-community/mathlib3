@@ -790,6 +790,14 @@ quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
 { map_add := sum_add, map_zero := sum_zero }
 
+lemma to_mul_sum [comm_monoid α] (s : multiset (additive α)) :
+  additive.to_mul (sum s) = (s.map additive.to_mul).prod :=
+multiset.induction (by simp) (by intros; simp *) s
+
+lemma to_add_prod [add_comm_monoid α] (s : multiset (multiplicative α)) :
+  multiplicative.to_add (prod s) = (s.map multiplicative.to_add).sum :=
+multiset.induction (by simp) (by intros; simp *) s
+
 lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
   ∀n, (n •ℕ m).prod = m.prod ^ n
 | 0       := rfl
@@ -800,7 +808,7 @@ lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] :
   ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n •ℕ a :=
-@prod_repeat (multiplicative α) _
+by simp [repeat, list.sum_repeat]
 attribute [to_additive] prod_repeat
 
 lemma prod_map_one [comm_monoid γ] {m : multiset α} :
@@ -820,9 +828,9 @@ lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f 
   prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
 
-lemma sum_map_sum_map [add_comm_monoid γ] : ∀ (m : multiset α) (n : multiset β) {f : α → β → γ},
+lemma sum_map_sum_map [add_comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
   sum (m.map $ λa, sum $ n.map $ λb, f a b) = sum (n.map $ λb, sum $ m.map $ λa, f a b) :=
-@prod_map_prod_map _ _ (multiplicative γ) _
+multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
 attribute [to_additive] prod_map_prod_map
 
 lemma sum_map_mul_left [semiring β] {b : β} {s : multiset α} {f : α → β} :

@@ -117,7 +117,7 @@ we prove `(∫ (f + g)^p ∂μ) ^ (1/p) ≤ (∫ f^p ∂μ) ^ (1/p) + (∫ g^p �
 universes u v
 
 open finset
-open_locale classical nnreal big_operators ennreal
+open_locale classical big_operators nnreal ennreal
 noncomputable theory
 
 variables {ι : Type u} (s : finset ι)

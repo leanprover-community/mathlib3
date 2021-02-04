@@ -639,27 +639,68 @@ end
 
 end ae_eq_fun
 
-lemma L1.integrable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+namespace L1
+variables [second_countable_topology β] [borel_space β]
+
+lemma integrable_coe_fn (f : α →₁[μ] β) :
   integrable f μ :=
 by { rw ← mem_ℒp_one_iff_integrable, exact Lp.mem_ℒp f }
 
-lemma L1.measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+lemma has_finite_integral_coe_fn (f : α →₁[μ] β) :
+  has_finite_integral f μ :=
+(integrable_coe_fn f).has_finite_integral
+
+lemma measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
   measurable f := Lp.measurable f
 
-lemma L1.ae_measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+lemma ae_measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
   ae_measurable f μ := Lp.ae_measurable f
 
-lemma L1.edist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
+lemma edist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
   edist f g = ∫⁻ a, edist (f a) (g a) ∂μ :=
 by { simp [Lp.edist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
 
-lemma L1.dist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
+lemma dist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
   dist f g = (∫⁻ a, edist (f a) (g a) ∂μ).to_real :=
 by { simp [Lp.dist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
 
-lemma L1.norm_def [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+lemma norm_def [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
   ∥f∥ = (∫⁻ a, nnnorm (f a) ∂μ).to_real :=
 by { simp [Lp.norm_def, snorm, snorm'] }
+
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `norm_def` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
+lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
+  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ).to_real :=
+begin
+  rw [norm_def],
+  congr' 1,
+  rw lintegral_congr_ae,
+  filter_upwards [Lp.coe_fn_sub f g],
+  assume a ha,
+  simp only [ha, pi.sub_apply],
+end
+
+lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
+  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ennreal) ∂μ :=
+by { rw [norm_def, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
+  exact has_finite_integral_coe_fn f }
+
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
+lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
+  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ :=
+begin
+  simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],
+  apply lintegral_congr_ae,
+  filter_upwards [Lp.coe_fn_sub f g],
+  assume a ha,
+  simp only [ha, pi.sub_apply],
+end
+
+end L1
 
 namespace integrable
 

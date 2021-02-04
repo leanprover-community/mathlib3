@@ -575,7 +575,7 @@ end
 variables (E μ)
 lemma zero_to_simple_func : to_simple_func (0 : α →₁ₛ[μ] E) =ᵐ[μ] 0 :=
 begin
-  filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ[μ] E), Lp.coe_fn_zero E μ 1],
+  filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ[μ] E), Lp.coe_fn_zero E 1 μ],
   assume a h₁ h₂,
   rwa h₁,
 end
@@ -926,7 +926,7 @@ by simp [L1.integral, L1.integral_clm.continuous]
 
 section pos_part
 
-local attribute [instance] Lp.fact_one_le_one
+local attribute [instance] fact_one_le_one_ennreal
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁[μ] ℝ) :
   integral f = ∥Lp.pos_part f∥ - ∥Lp.neg_part f∥ :=

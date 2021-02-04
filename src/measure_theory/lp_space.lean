@@ -16,7 +16,7 @@ denoted by `snorm f p μ` and defined for `p:ennreal` as `0` if `p=0`, `(∫ ∥
 
 The Prop-valued `mem_ℒp f p μ` states that a function `f : α → E` has finite seminorm.
 The space `Lp α E p μ` is the subtype of elements of `α →ₘ[μ] E` (see ae_eq_fun) such that
-`snorm f p μ` is finite. For `1 ≤ p`, `snorm` defines a norm and Lp is a metric space.
+`snorm f p μ` is finite. For `1 ≤ p`, `snorm` defines a norm and `Lp` is a metric space.
 
 TODO: prove that Lp is complete.
 
@@ -33,11 +33,41 @@ TODO: prove that Lp is complete.
 * `Lp E p μ` : elements of `α →ₘ[μ] E` (see ae_eq_fun) such that `snorm f p μ` is finite. Defined
   as an `add_subgroup` of `α →ₘ[μ] E`.
 
+## Implementation
+
+Since `Lp` is defined as an `add_subgroup`, dot notation does not work. Use `Lp.measurable f` to
+say that the coercion of `f` to a genuine function is measurable, instead of the non-working
+`f.measurable`.
+
+To prove that two `Lp` elements are equal, it suffices to show that their coercions to functions
+coincide almost everywhere (this is registered as an `ext` rule). This can often be done using
+`filter_upwards`. For instance, a proof from first principles that `f + (g + h) = (f + g) + h`
+could read (in the `Lp` namespace)
+```
+lemma foo (f g h : Lp E p μ) : (f + g) + h = f + (g + h) :=
+begin
+  ext1,
+  filter_upwards [coe_fn_add (f + g) h, coe_fn_add f g, coe_fn_add f (g + h), coe_fn_add g h],
+  assume a ha1 ha2 ha3 ha4,
+  simp only [ha1, ha2, ha3, ha4, add_assoc],
+end
+```
+The lemma `coe_fn_add` states that the coercion of `f + g` coincides almost everywhere with the sum
+of the coercions of `f` and `g`. All such lemmas use `coe_fn` in their name, to distinguish the
+function coercion from the coercion to almost everywhere defined functions.
 -/
 
 noncomputable theory
 open topological_space measure_theory
 
+lemma fact_one_le_one_ennreal : fact ((1 : ennreal) ≤ 1) := le_refl _
+
+lemma fact_one_le_two_ennreal : fact ((1 : ennreal) ≤ 2) :=
+ennreal.coe_le_coe.2 (show (1 : nnreal) ≤ 2, by norm_num)
+
+lemma fact_one_le_top_ennreal : fact ((1 : ennreal) ≤ ⊤) := le_top
+
+local attribute [instance] fact_one_le_one_ennreal fact_one_le_two_ennreal fact_one_le_top_ennreal
 
 variables {α E F G : Type*} [measurable_space α] {p : ennreal} {q : ℝ} {μ : measure α}
   [measurable_space E] [normed_group E]
@@ -980,15 +1010,6 @@ normed_group.of_core _
   end,
   norm_neg := by simp }
 
-lemma fact_one_le_one : fact ((1 : ennreal) ≤ 1) := le_refl _
-
-lemma fact_one_le_two : fact ((1 : ennreal) ≤ 2) :=
-ennreal.coe_le_coe.2 (show (1 : nnreal) ≤ 2, by norm_num)
-
-lemma fact_one_le_top : fact ((1 : ennreal) ≤ ⊤) := le_top
-
-local attribute [instance] fact_one_le_one fact_one_le_two fact_one_le_top
-
 instance normed_group_L1 : normed_group (Lp E 1 μ) := by apply_instance
 instance normed_group_L2 : normed_group (Lp E 2 μ) := by apply_instance
 instance normed_group_Ltop : normed_group (Lp E ⊤ μ) := by apply_instance
@@ -1030,6 +1051,17 @@ instance normed_space_Ltop : normed_space 𝕜 (Lp E ⊤ μ) := by apply_instanc
 end normed_space
 
 end Lp
+
+namespace mem_ℒp
+
+variables
+  [borel_space E] [topological_space.second_countable_topology E]
+  {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+
+lemma to_Lp_const_smul {f : α → E} (c : 𝕜) (hf : mem_ℒp f p μ) :
+  (hf.const_smul c).to_Lp (c • f) = c • hf.to_Lp f := rfl
+
+end mem_ℒp
 
 end measure_theory
 
@@ -1093,6 +1125,14 @@ lemma norm_comp_Lp_le (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) :
   ∥hg.comp_Lp g0 f∥ ≤ c * ∥f∥ :=
 by simpa using hg.norm_comp_Lp_sub_le g0 f 0
 
+lemma lipschitz_with_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 0) :
+  lipschitz_with c (hg.comp_Lp g0 : Lp E p μ → Lp F p μ) :=
+lipschitz_with.of_dist_le_mul (λ f g, by simp [dist_eq_norm, norm_comp_Lp_sub_le])
+
+lemma continuous_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 0) :
+  continuous (hg.comp_Lp g0 : Lp E p μ → Lp F p μ) :=
+(lipschitz_with_comp_Lp hg g0).continuous
+
 end lipschitz_with
 
 namespace continuous_linear_map
@@ -1116,7 +1156,7 @@ def comp_Lpₗ (L : E →L[ℝ] F) : (Lp E p μ) →ₗ[ℝ] (Lp F p μ) :=
     filter_upwards [Lp.coe_fn_add f g, coe_fn_comp_Lp L (f + g), coe_fn_comp_Lp L f,
       coe_fn_comp_Lp L g, Lp.coe_fn_add (L.comp_Lp f) (L.comp_Lp g)],
     assume a ha1 ha2 ha3 ha4 ha5,
-    simp [ha1, ha2, ha3, ha4, ha5],
+    simp only [ha1, ha2, ha3, ha4, ha5, map_add, pi.add_apply],
   end,
   map_smul' := begin
     intros c f,
@@ -1124,7 +1164,7 @@ def comp_Lpₗ (L : E →L[ℝ] F) : (Lp E p μ) →ₗ[ℝ] (Lp F p μ) :=
     filter_upwards [Lp.coe_fn_smul c f, coe_fn_comp_Lp L (c • f), Lp.coe_fn_smul c (L.comp_Lp f),
       coe_fn_comp_Lp L f],
     assume a ha1 ha2 ha3 ha4,
-    simp [ha1, ha2, ha3, ha4],
+    simp only [ha1, ha2, ha3, ha4, map_smul, pi.smul_apply],
   end }
 
 variables {μ p}
@@ -1135,7 +1175,7 @@ lipschitz_with.norm_comp_Lp_le _ _ _
 `Lp E p μ`. -/
 variables (μ p)
 def comp_LpL [fact (1 ≤ p)] (L : E →L[ℝ] F) : (Lp E p μ) →L[ℝ] (Lp F p μ) :=
-linear_map.mk_continuous (L.comp_Lpₗ p μ) (∥L∥) L.norm_comp_Lp_le
+linear_map.mk_continuous (L.comp_Lpₗ p μ) ∥L∥ L.norm_comp_Lp_le
 
 lemma norm_compLpL_le [fact (1 ≤ p)] (L : E →L[ℝ] F) :
   ∥L.comp_LpL p μ∥ ≤ ∥L∥ :=
@@ -1143,23 +1183,18 @@ linear_map.mk_continuous_norm_le _ (norm_nonneg _) _
 
 end continuous_linear_map
 
-end composition
+namespace measure_theory
+
+namespace Lp
 
 section pos_part
 
+lemma lipschitz_with_pos_part : lipschitz_with 1 (λ (x : ℝ), max x 0) :=
+lipschitz_with.of_dist_le_mul (λ x y, by simp [dist, abs_max_sub_max_le_abs])
+
 /-- Positive part of a function in `L^p`. -/
 def pos_part (f : Lp ℝ p μ) : Lp ℝ p μ :=
-⟨ae_eq_fun.pos_part f,
-  begin
-    change (f : α →ₘ[μ] ℝ).pos_part ∈ Lp ℝ p μ,
-    rw mem_Lp_iff_mem_ℒp,
-    apply (Lp.mem_ℒp f).of_le (ae_eq_fun.ae_measurable _),
-    filter_upwards [ae_eq_fun.coe_fn_pos_part (f : α →ₘ[μ] ℝ)],
-    assume a ha,
-    rw ha,
-    change ∥max (f a) 0∥ ≤ ∥f a∥,
-    simp [real.norm_eq_abs, abs_le, abs_nonneg, le_abs_self],
-  end ⟩
+lipschitz_with_pos_part.comp_Lp (max_eq_right (le_refl _)) f
 
 /-- Negative part of a function in `L^p`. -/
 def neg_part (f : Lp ℝ p μ) : Lp ℝ p μ := pos_part (-f)
@@ -1183,19 +1218,7 @@ lemma coe_fn_neg_part (f : Lp ℝ p μ) : ∀ᵐ a ∂μ, neg_part f a = - min (
 by rw [h, ← max_neg_neg, neg_zero]
 
 lemma continuous_pos_part [fact (1 ≤ p)] : continuous (λf : Lp ℝ p μ, pos_part f) :=
-begin
-  suffices H : lipschitz_with (nnreal.of_real 1) (λf : Lp ℝ p μ, pos_part f),
-    by exact H.continuous,
-  apply lipschitz_with.of_dist_le' (λ f g, _),
-  simp only [dist_eq_norm, one_mul],
-  rw [norm_def, norm_def, ennreal.to_real_le_to_real (snorm_ne_top _) (snorm_ne_top _)],
-  refine snorm_mono_ae _,
-  filter_upwards [Lp.coe_fn_sub f g, Lp.coe_fn_sub (pos_part f) (pos_part g),
-    coe_fn_pos_part f, coe_fn_pos_part g],
-  assume a h₁ h₂ h₃ h₄,
-  simp only [real.norm_eq_abs, h₁, h₂, h₃, h₄, pi.sub_apply],
-  exact abs_max_sub_max_le_abs _ _ _
-end
+lipschitz_with.continuous_comp_Lp _ _
 
 lemma continuous_neg_part [fact (1 ≤ p)] : continuous (λf : Lp ℝ p μ, neg_part f) :=
 have eq : (λf : Lp ℝ p μ, neg_part f) = (λf : Lp ℝ p μ, pos_part (-f)) := rfl,
@@ -1205,15 +1228,6 @@ end pos_part
 
 end Lp
 
-namespace mem_ℒp
-
-variables {α E : Type*} [measurable_space α] [measurable_space E] [normed_group E]
-  [borel_space E] [topological_space.second_countable_topology E] {p : ennreal} {μ : measure α}
-  {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
-
-lemma to_Lp_const_smul {f : α → E} (c : 𝕜) (hf : mem_ℒp f p μ) :
-  (hf.const_smul c).to_Lp (c • f) = c • hf.to_Lp f := rfl
-
-end mem_ℒp
-
 end measure_theory
+
+end composition

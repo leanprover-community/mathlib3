@@ -653,102 +653,39 @@ section
 /-! ### Continuous linear maps composed with integration
 
 The goal of this section is to prove that integration commutes with continuous linear maps.
-The first step is to prove that, given a function `φ : α → E` which is measurable and integrable,
-and a continuous linear map `L : E →L[ℝ] F`, the function `λ a, L (φ a)` is also measurable
-and integrable. Note we cannot write this as `L ∘ φ` since the type of `L` is not an actual
-function type.
-
-The next step is translate this to `L1`, replacing the function `φ` by a term with type
-`α →₁[μ] E` (an equivalence class of integrable functions).
-The corresponding "composition" is `L.comp_L1 φ : α →₁[μ] F`. This is then upgraded to
-a linear map `L.comp_L1ₗ : (α →₁[μ] E) →ₗ[ℝ] (α →₁[μ] F)` and a continuous linear map
-`L.comp_L1L : (α →₁[μ] E) →L[ℝ] (α →₁[μ] F)`.
-
-Then we can prove the commutation result using continuity of all relevant operations
-and the result on simple functions.
+This holds for simple functions. The general result follows from the continuity of all involved
+operations on the space `L¹`. Note that composition by a continuous linear map on `L¹` is not just
+the composition, as we are dealing with classes of functions, but it has already been defined
+as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 -/
 
 variables {μ : measure α} [normed_space ℝ E]
 variables [normed_group F] [normed_space ℝ F]
 variables {p : ennreal}
 
-namespace continuous_linear_map
+local attribute [instance] fact_one_le_one_ennreal
 
-lemma norm_comp_ae_eq_fun_apply_le [borel_space E] [second_countable_topology E] (φ : α →ₘ[μ] E)
-  (L : E →L[ℝ] F) : ∀ᵐ a ∂μ, ∥L (φ a)∥ ≤ ∥L∥ * ∥φ a∥ :=
-eventually_of_forall (λ a, L.le_op_norm (φ a))
+namespace continuous_linear_map
 
 variables [measurable_space F] [borel_space F]
 
-lemma mem_ℒp_comp [opens_measurable_space E] {φ : α → E} (L : E →L[ℝ] F)
-  (hφ : mem_ℒp φ p μ) : mem_ℒp (λ (a : α), L (φ a)) p μ :=
-(hφ.norm.const_mul (∥L∥)).of_le (L.measurable.comp_ae_measurable hφ.ae_measurable)
-  (eventually_of_forall (λ a, by simpa using L.le_op_norm (φ a)))
+lemma integrable_comp [opens_measurable_space E] {φ : α → E} (L : E →L[ℝ] F)
+  (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
+((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp_ae_measurable φ_int.ae_measurable)
+  (eventually_of_forall $ λ a, L.le_op_norm (φ a))
 
-variables [borel_space E] [second_countable_topology E]
+variables [second_countable_topology F] [complete_space F]
+[borel_space E] [second_countable_topology E]
 
-/-- Composing `φ : Lp ` with `L : E →L[ℝ] F`. -/
-def comp_Lp [second_countable_topology F] (L : E →L[ℝ] F) (φ : Lp E p μ) : Lp F p μ :=
-(L.mem_ℒp_comp (Lp.mem_ℒp φ)).to_Lp _
-
-lemma comp_Lp_apply [second_countable_topology F] (L : E →L[ℝ] F) (φ : Lp E p μ) :
-  ∀ᵐ a ∂μ, (L.comp_Lp φ) a = L (φ a) :=
-mem_ℒp.coe_fn_to_Lp _
-
-lemma mem_ℒp_comp_Lp (L : E →L[ℝ] F) (φ : Lp E p μ) : mem_ℒp (λ a, L (φ a)) p μ :=
-mem_ℒp_comp L (Lp.mem_ℒp φ)
-
-lemma measurable_comp_Lp (L : E →L[ℝ] F) (φ : Lp E p μ) : measurable (λ a, L (φ a)) :=
-L.measurable.comp (Lp.measurable _)
-
-variables [second_countable_topology F]
-
-lemma integral_comp_Lp [complete_space F] (L : E →L[ℝ] F) (φ : Lp E p μ) :
+lemma integral_comp_Lp (L : E →L[ℝ] F) (φ : Lp E p μ) :
   ∫ a, (L.comp_Lp φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
-integral_congr_ae $ comp_Lp_apply _ _
-
-/-- Composing `φ : Lp E p μ` with `L : E →L[ℝ] F`, seen as a `ℝ`-linear map on `Lp E p μ`. -/
-def comp_Lpₗ (L : E →L[ℝ] F) : (Lp E p μ) →ₗ[ℝ] (Lp F p μ) :=
-{ to_fun := λ φ, L.comp_Lp φ,
-  map_add' := begin
-    intros f g,
-    dsimp [comp_Lp],
-    rw [← mem_ℒp.to_Lp_add, mem_ℒp.to_Lp_eq_to_Lp_iff],
-    apply (Lp.coe_fn_add f g).mono,
-    intros a ha,
-    simp only [ha, pi.add_apply, L.map_add]
-  end,
-  map_smul' := begin
-    intros c f,
-    dsimp [comp_Lp],
-    rw [← mem_ℒp.to_Lp_const_smul, mem_ℒp.to_Lp_eq_to_Lp_iff],
-    apply (Lp.coe_fn_smul c f).mono,
-    intros a ha,
-    simp only [ha, pi.smul_apply, continuous_linear_map.map_smul]
-  end }
-
-lemma norm_comp_Lp_le (φ : Lp E p μ) (L : E →L[ℝ] F) : ∥L.comp_Lp φ∥ ≤ ∥L∥ * ∥φ∥ :=
-begin
-  rw Lp.norm_def,
-
-end
-
-
-/-- Composing `φ : α →₁[μ] E` with `L : E →L[ℝ] F`, seen as a continuous `ℝ`-linear map on
-`α →₁[μ] E`. -/
-def comp_L1L (L : E →L[ℝ] F) : (α →₁[μ] E) →L[ℝ] (α →₁[μ] F) :=
-linear_map.mk_continuous L.comp_L1ₗ (∥L∥) (λ φ, L.norm_comp_L1_le φ)
-
-lemma norm_compL1L_le (L : E →L[ℝ] F) : ∥(L.comp_L1L : (α →₁[μ] E) →L[ℝ] (α →₁[μ] F))∥ ≤ ∥L∥ :=
-op_norm_le_bound _ (norm_nonneg _) (λ φ, L.norm_comp_L1_le φ)
-
-variables [complete_space F]
+integral_congr_ae $ coe_fn_comp_Lp _ _
 
 lemma continuous_integral_comp_L1 (L : E →L[ℝ] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=
 begin
-  rw ← funext L.integral_comp_L1,
-  exact continuous_integral.comp L.comp_L1L.continuous
+  rw ← funext L.integral_comp_Lp,
+  exact continuous_integral.comp (L.comp_LpL 1 μ).continuous
 end
 
 variables [complete_space E]

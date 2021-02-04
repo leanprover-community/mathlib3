@@ -47,11 +47,12 @@ begin
 end
 
 /--
-When restricted to objects in `D` given by `i : D ⥤ C`, the unit is an isomorphism.
+When restricted to objects in `D` given by `i : D ⥤ C`, the unit is an isomorphism. In other words,
+`η_iX` is an isomorphism for any `X` in `D`.
 More generally this applies to objects essentially in the reflective subcategory, see
 `functor.ess_image.unit_iso`.
 -/
-instance functor.ess_image.unit_iso_restrict [reflective i] {B : D} :
+instance is_iso_unit_obj [reflective i] {B : D} :
   is_iso ((adjunction.of_right_adjoint i).unit.app (i.obj B)) :=
 begin
   have : (adjunction.of_right_adjoint i).unit.app (i.obj B) =

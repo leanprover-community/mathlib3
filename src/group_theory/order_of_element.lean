@@ -9,6 +9,39 @@ import data.nat.totient
 import data.int.gcd
 import data.set.finite
 
+/-!
+# Order of an element
+
+This file defines the order of an element of a finite group. For a finite group `G` the order of
+`g ∈ G` is the minimal `n ≥ 1` such that `g ^ n = 1`.
+
+## Main definitions
+
+* `order_of` defines the order of an element `a` of a group `G`.
+* `is_cyclic` is a predicate on a group stating that the group is cyclic.
+
+## Main statements
+
+`is_cyclic_of_prime_card` proves that a finite group of prime order is cyclic.
+
+## Implementation notes
+
+`order_of` is currently only defined for finite multiplicatively written groups.
+
+## Tags
+
+order of an element, cyclic group
+
+## TODO
+
+* Move the first declarations until the definition of order to other files.
+* Add the attribute `@[to_additive]` to the declarations in that file so that they also work with
+  additive groups.
+* Modify the definition to work with infinite groups. (Defining `order_of` to have value `0` for
+  elements of infinite order would make more statements true with fewer assumptions.)
+* Potentially expand the definition to work with monoids.
+-/
+
 open function
 open_locale big_operators
 
@@ -115,9 +148,9 @@ lemma pow_injective_of_lt_order_of {n m : ℕ} (a : α)
   (assume h, (pow_injective_aux a h hm hn eq.symm).symm)
 
 lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
-finset.card_le_of_inj_on ((^) a)
-  (assume n _, fintype.complete _)
-  (assume i j, pow_injective_of_lt_order_of a)
+finset.le_card_of_inj_on_range ((^) a)
+  (assume n _, finset.mem_univ _)
+  (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
 
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
 calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) :
@@ -296,6 +329,7 @@ lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
 
+/-- A finite group of prime order is cyclic. -/
 lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
@@ -387,7 +421,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
       begin
         rw [gpow_coe_nat, ← pow_mul, nat.mul_div_cancel_left', hm],
         refine dvd_of_mul_dvd_mul_right (gcd_pos_of_pos_left (fintype.card α) hn0) _,
-        conv {to_lhs, rw [nat.div_mul_cancel (gcd_dvd_right _ _), ← order_of_eq_card_of_forall_mem_gpowers hg]},
+        conv {to_lhs,
+          rw [nat.div_mul_cancel (gcd_dvd_right _ _), ← order_of_eq_card_of_forall_mem_gpowers hg]},
         exact order_of_dvd_of_pow_eq_one hgmn
       end⟩)
 ... ≤ n :
@@ -427,7 +462,9 @@ end
 
 section totient
 
-variables [group α] [decidable_eq α] [fintype α] (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
+variables [group α] [decidable_eq α] [fintype α]
+(hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
+
 include hn
 
 lemma card_pow_eq_one_eq_order_of_aux (a : α) :
@@ -437,7 +474,8 @@ le_antisymm
   (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
     ... ≤ @fintype.card (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
     (fintype.of_finset _ (λ _, iff.rfl)) :
-      @fintype.card_le_of_injective (gpowers a) (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
+      @fintype.card_le_of_injective (gpowers a)
+        (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
         (id _) (id _) (λ b, ⟨b.1, mem_filter.2 ⟨mem_univ _,
           let ⟨i, hi⟩ := b.2 in
           by rw [← hi, ← gpow_coe_nat, ← gpow_mul, mul_comm, gpow_mul, gpow_coe_nat,
@@ -467,7 +505,8 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
-    (by clear _let_match; simp [range_succ]; tauto), by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
+    (by clear _let_match; simp [range_succ]; tauto),
+     by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
 have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   by simp [mem_range, zero_le_one, le_succ],
 (add_left_inj (∑ m in (range d.succ).filter (∣ d.succ),
@@ -512,9 +551,11 @@ lt_irrefl c $
   ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
       (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
-  ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m : eq.symm (sum_insert (by simp))
+  ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m :
+    eq.symm (sum_insert (by simp))
   ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
-      (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩)) (λ _ _, rfl)
+      (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
+                           (λ _ _, rfl)
   ... = c : sum_totient _
 
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=

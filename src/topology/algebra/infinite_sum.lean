@@ -137,7 +137,8 @@ suffices has_sum f (∑ b' in {b}, f b'),
   by simpa using this,
 has_sum_sum_of_ne_finset_zero $ by simpa [hf]
 
-lemma has_sum_ite_eq (b : β) (a : α) : has_sum (λb', if b' = b then a else 0) a :=
+lemma has_sum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
+  has_sum (λb', if b' = b then a else 0) a :=
 begin
   convert has_sum_single b _,
   { exact (if_pos rfl).symm },
@@ -319,7 +320,8 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   ∑'b, f b = f b :=
 (has_sum_single b hf).tsum_eq
 
-@[simp] lemma tsum_ite_eq (b : β) (a : α) : ∑'b', (if b' = b then a else 0) = a :=
+@[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
+  ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
 
 lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']

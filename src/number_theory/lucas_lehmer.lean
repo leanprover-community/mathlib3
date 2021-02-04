@@ -505,9 +505,9 @@ Someone should do this, too!
 lemma modeq_mersenne (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :=
 -- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446
 begin
-  conv in k {rw [← nat.mod_add_div k (2^n), add_comm]},
+  conv in k { rw ← nat.div_add_mod k (2^n) },
   refine nat.modeq.modeq_add _ (by refl),
-  conv {congr, skip, skip, rw ← one_mul (k/2^n)},
+  conv { congr, skip, skip, rw ← one_mul (k/2^n) },
   refine nat.modeq.modeq_mul _ (by refl),
   symmetry,
   rw [nat.modeq.modeq_iff_dvd, int.coe_nat_sub],

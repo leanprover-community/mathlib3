@@ -917,7 +917,7 @@ instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 instance nnreal.measurable_space : measurable_space ℝ≥0 := borel ℝ≥0
 instance nnreal.borel_space : borel_space ℝ≥0 := ⟨rfl⟩
 
-instance ennreal.measurable_space : measurable_space ℝ≥0∞ := borel ennreal
+instance ennreal.measurable_space : measurable_space ℝ≥0∞ := borel ℝ≥0∞
 instance ennreal.borel_space : borel_space ℝ≥0∞ := ⟨rfl⟩
 
 instance complex.measurable_space : measurable_space ℂ := borel ℂ

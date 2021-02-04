@@ -1071,7 +1071,7 @@ namespace ennreal
 `y : ℝ` as the restriction of the real power function if `0 < x < ⊤`, and with the natural values
 for `0` and `⊤` (i.e., `0 ^ x = 0` for `x > 0`, `1` for `x = 0` and `⊤` for `x < 0`, and
 `⊤ ^ x = 1 / 0 ^ x`). -/
-noncomputable def rpow : ℝ≥0∞ → ℝ → ennreal
+noncomputable def rpow : ℝ≥0∞ → ℝ → ℝ≥0∞
 | (some x) y := if x = 0 ∧ y < 0 then ⊤ else (x ^ y : ℝ≥0)
 | none     y := if 0 < y then ⊤ else if y = 0 then 1 else 0
 

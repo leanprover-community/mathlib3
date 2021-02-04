@@ -699,11 +699,11 @@ begin
   begin
     simp only [div_eq_mul_inv],
     rw lintegral_add',
-    { rw [lintegral_mul_const'' _ hf.ℝ≥0∞_rpow_const,
-        lintegral_mul_const'' _ hg.ℝ≥0∞_rpow_const, hf_norm, hg_norm, ← div_eq_mul_inv,
+    { rw [lintegral_mul_const'' _ hf.ennreal_rpow_const,
+        lintegral_mul_const'' _ hg.ennreal_rpow_const, hf_norm, hg_norm, ← div_eq_mul_inv,
         ← div_eq_mul_inv, hpq.inv_add_inv_conj_ennreal], },
-    { exact hf.ℝ≥0∞_rpow_const.ℝ≥0∞_mul ae_measurable_const, },
-    { exact hg.ℝ≥0∞_rpow_const.ℝ≥0∞_mul ae_measurable_const, },
+    { exact hf.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
+    { exact hg.ennreal_rpow_const.ennreal_mul ae_measurable_const, },
   end
 end
 
@@ -731,7 +731,7 @@ lemma lintegral_rpow_fun_mul_inv_snorm_eq_one {p : ℝ} (hp0_lt : 0 < p) {f : α
   ∫⁻ c, (fun_mul_inv_snorm f p μ c)^p ∂μ = 1 :=
 begin
   simp_rw fun_mul_inv_snorm_rpow hp0_lt,
-  rw [lintegral_mul_const'' _ hf.ℝ≥0∞_rpow_const, mul_inv_cancel hf_nonzero hf_top],
+  rw [lintegral_mul_const'' _ hf.ennreal_rpow_const, mul_inv_cancel hf_nonzero hf_top],
 end
 
 /-- Hölder's inequality in case of finite non-zero integrals -/
@@ -759,8 +759,8 @@ begin
     refine mul_le_mul _ (le_refl (npf * nqg)),
     have hf1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.pos hf hf_nonzero hf_nontop,
     have hg1 := lintegral_rpow_fun_mul_inv_snorm_eq_one hpq.symm.pos hg hg_nonzero hg_nontop,
-    exact lintegral_mul_le_one_of_lintegral_rpow_eq_one hpq (hf.ℝ≥0∞_mul ae_measurable_const)
-      (hg.ℝ≥0∞_mul ae_measurable_const) hf1 hg1,
+    exact lintegral_mul_le_one_of_lintegral_rpow_eq_one hpq (hf.ennreal_mul ae_measurable_const)
+      (hg.ennreal_mul ae_measurable_const) hf1 hg1,
   end
 end
 
@@ -768,7 +768,7 @@ lemma ae_eq_zero_of_lintegral_rpow_eq_zero {p : ℝ} (hp0_lt : 0 < p) {f : α �
   (hf : ae_measurable f μ) (hf_zero : ∫⁻ a, (f a)^p ∂μ = 0) :
   f =ᵐ[μ] 0 :=
 begin
-  rw lintegral_eq_zero_iff' hf.ℝ≥0∞_rpow_const at hf_zero,
+  rw lintegral_eq_zero_iff' hf.ennreal_rpow_const at hf_zero,
   refine filter.eventually.mp hf_zero (filter.eventually_of_forall (λ x, _)),
   dsimp only,
   rw [pi.zero_apply, rpow_eq_zero_iff],
@@ -857,16 +857,16 @@ begin
   end
   ... < ⊤ :
   begin
-    rw [lintegral_add', lintegral_const_mul'' _ hf.ℝ≥0∞_rpow_const,
-      lintegral_const_mul'' _ hg.ℝ≥0∞_rpow_const, ennreal.add_lt_top],
+    rw [lintegral_add', lintegral_const_mul'' _ hf.ennreal_rpow_const,
+      lintegral_const_mul'' _ hg.ennreal_rpow_const, ennreal.add_lt_top],
     { have h_two : (2 : ℝ≥0∞) ^ (p - 1) < ⊤,
       from ennreal.rpow_lt_top_of_nonneg (by simp [hp1]) ennreal.coe_ne_top,
       repeat {rw ennreal.mul_lt_top_iff},
       simp [hf_top, hg_top, h_two], },
     { exact (ennreal.continuous_const_mul (by simp)).measurable.comp_ae_measurable
-        hf.ℝ≥0∞_rpow_const, },
+        hf.ennreal_rpow_const, },
     { exact (ennreal.continuous_const_mul (by simp)).measurable.comp_ae_measurable
-        hg.ℝ≥0∞_rpow_const },
+        hg.ennreal_rpow_const },
   end
 end
 
@@ -896,7 +896,7 @@ begin
   begin
     refine ennreal.rpow_le_rpow _ (by simp [hp0]),
     simp_rw ennreal.rpow_mul,
-    exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hp2q2 hf.ℝ≥0∞_rpow_const hg.ℝ≥0∞_rpow_const,
+    exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hp2q2 hf.ennreal_rpow_const hg.ennreal_rpow_const,
   end
   ... = (∫⁻ (a : α), (f a) ^ q ∂μ) ^ (1 / q) * (∫⁻ (a : α), (g a) ^ r ∂μ) ^ (1 / r) :
   begin
@@ -916,7 +916,7 @@ lemma lintegral_mul_rpow_le_lintegral_rpow_mul_lintegral_rpow {p q : ℝ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) (hf_top : ∫⁻ a, (f a) ^ p ∂μ ≠ ⊤) :
   ∫⁻ a, (f a) * (g a) ^ (p - 1) ∂μ ≤ (∫⁻ a, (f a)^p ∂μ) ^ (1/p) * (∫⁻ a, (g a)^p ∂μ) ^ (1/q) :=
 begin
-  refine le_trans (ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf hg.ℝ≥0∞_rpow_const) _,
+  refine le_trans (ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf hg.ennreal_rpow_const) _,
   by_cases hf_zero_rpow : (∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) = 0,
   { rw [hf_zero_rpow, zero_mul],
     exact zero_le _, },
@@ -956,12 +956,12 @@ begin
     ... = ∫⁻ (a : α), f a * (f + g) a ^ (p - 1) ∂μ + ∫⁻ (a : α), g a * (f + g) a ^ (p - 1) ∂μ :
   begin
     have h_add_m : ae_measurable (λ (a : α), ((f + g) a) ^ (p-1)) μ,
-      from (hf.add hg).ℝ≥0∞_rpow_const,
+      from (hf.add hg).ennreal_rpow_const,
     have h_add_apply : ∫⁻ (a : α), (f + g) a * (f + g) a ^ (p - 1) ∂μ
       = ∫⁻ (a : α), (f a + g a) * (f + g) a ^ (p - 1) ∂μ,
     from rfl,
     simp_rw [h_add_apply, add_mul],
-    rw lintegral_add' (hf.ℝ≥0∞_mul h_add_m) (hg.ℝ≥0∞_mul h_add_m),
+    rw lintegral_add' (hf.ennreal_mul h_add_m) (hg.ennreal_mul h_add_m),
   end
     ... ≤ ((∫⁻ a, (f a)^p ∂μ) ^ (1/p) + (∫⁻ a, (g a)^p ∂μ) ^ (1/p))
       * (∫⁻ a, (f a + g a)^p ∂μ) ^ (1/q) :
@@ -1039,7 +1039,7 @@ theorem nnreal.lintegral_mul_le_Lp_mul_Lq {p q : ℝ} (hpq : p.is_conjugate_expo
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ)^(1/p) * (∫⁻ a, (g a)^q ∂μ)^(1/q) :=
 begin
   simp_rw [pi.mul_apply, ennreal.coe_mul],
-  exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.ℝ≥0∞_coe hg.ℝ≥0∞_coe,
+  exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.ennreal_coe hg.ennreal_coe,
 end
 
 end lintegral

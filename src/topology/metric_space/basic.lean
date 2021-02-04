@@ -12,10 +12,10 @@ topological spaces. For example:
 import topology.metric_space.emetric_space
 import topology.algebra.ordered
 
-open set filter classical topological_space ennreal
+open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity topological_space big_operators filter nnreal
+open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -186,7 +186,7 @@ by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
 by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 
-@[simp, norm_cast] lemma ℝ≥0∞_coe_nndist (x y : α) : ↑(nndist x y) = edist x y :=
+@[simp, norm_cast] lemma ennreal_coe_nndist (x y : α) : ↑(nndist x y) = edist x y :=
 (edist_nndist x y).symm
 
 @[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : ℝ≥0} :

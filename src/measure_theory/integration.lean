@@ -15,7 +15,7 @@ We define simple functions and show that each Borel measurable function on `ℝ�
 approximated by a sequence of simple functions.
 
 To prove something for an arbitrary measurable function into `ℝ≥0∞`, the theorem
-`measurable.ℝ≥0∞_induction` shows that is it sufficient to show that the property holds for
+`measurable.ennreal_induction` shows that is it sufficient to show that the property holds for
 (multiples of) characteristic functions and is closed under addition and supremum of increasing
 sequences of functions.
 
@@ -495,16 +495,16 @@ end approx
 section eapprox
 
 /-- A sequence of `ℝ≥0∞`s such that its range is the set of non-negative rational numbers. -/
-def ℝ≥0∞_rat_embed (n : ℕ) : ℝ≥0∞ :=
+def ennreal_rat_embed (n : ℕ) : ℝ≥0∞ :=
 ennreal.of_real ((encodable.decode ℚ n).get_or_else (0 : ℚ))
 
-lemma ℝ≥0∞_rat_embed_encode (q : ℚ) :
-  ℝ≥0∞_rat_embed (encodable.encode q) = nnreal.of_real q :=
-by rw [ℝ≥0∞_rat_embed, encodable.encodek]; refl
+lemma ennreal_rat_embed_encode (q : ℚ) :
+  ennreal_rat_embed (encodable.encode q) = nnreal.of_real q :=
+by rw [ennreal_rat_embed, encodable.encodek]; refl
 
 /-- Approximate a function `α → ℝ≥0∞` by a sequence of simple functions. -/
 def eapprox : (α → ℝ≥0∞) → ℕ → α →ₛ ℝ≥0∞ :=
-approx ℝ≥0∞_rat_embed
+approx ennreal_rat_embed
 
 @[mono] lemma monotone_eapprox (f : α → ℝ≥0∞) : monotone (eapprox f) :=
 monotone_approx _ f
@@ -512,14 +512,14 @@ monotone_approx _ f
 lemma supr_eapprox_apply (f : α → ℝ≥0∞) (hf : measurable f) (a : α) :
   (⨆n, (eapprox f n : α →ₛ ℝ≥0∞) a) = f a :=
 begin
-  rw [eapprox, supr_approx_apply ℝ≥0∞_rat_embed f a hf rfl],
+  rw [eapprox, supr_approx_apply ennreal_rat_embed f a hf rfl],
   refine le_antisymm (supr_le $ assume i, supr_le $ assume hi, hi) (le_of_not_gt _),
   assume h,
   rcases ennreal.lt_iff_exists_rat_btwn.1 h with ⟨q, hq, lt_q, q_lt⟩,
   have : (nnreal.of_real q : ℝ≥0∞) ≤
-      (⨆ (k : ℕ) (h : ℝ≥0∞_rat_embed k ≤ f a), ℝ≥0∞_rat_embed k),
+      (⨆ (k : ℕ) (h : ennreal_rat_embed k ≤ f a), ennreal_rat_embed k),
   { refine le_supr_of_le (encodable.encode q) _,
-    rw [ℝ≥0∞_rat_embed_encode q],
+    rw [ennreal_rat_embed_encode q],
     refine le_supr_of_le (le_of_lt q_lt) _,
     exact le_refl _ },
   exact lt_irrefl _ (lt_of_le_of_lt this lt_q)
@@ -1409,7 +1409,7 @@ lemma lintegral_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurab
 begin
   rw [← ennreal.add_left_inj hg_fin,
         ennreal.sub_add_cancel_of_le (lintegral_mono_ae h_le),
-      ← lintegral_add (hf.ℝ≥0∞_sub hg) hg],
+      ← lintegral_add (hf.ennreal_sub hg) hg],
   refine lintegral_congr_ae (h_le.mono $ λ x hx, _),
   exact ennreal.sub_add_cancel_of_le hx
 end
@@ -1434,7 +1434,7 @@ calc
   ... = ∫⁻ a, ⨆n, f 0 a - f n a ∂μ : congr rfl (funext (assume a, ennreal.sub_infi))
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
     lintegral_supr_ae
-      (assume n, (h_meas 0).ℝ≥0∞_sub (h_meas n))
+      (assume n, (h_meas 0).ennreal_sub (h_meas n))
       (assume n, (h_mono n).mono $ assume a ha, ennreal.sub_le_sub (le_refl _) ha)
   ... = ⨆n, ∫⁻ a, f 0 a ∂μ - ∫⁻ a, f n a ∂μ :
     have h_mono : ∀ᵐ a ∂μ, ∀n:ℕ, f n.succ a ≤ f n a := ae_all_iff.2 h_mono,
@@ -1708,7 +1708,7 @@ can be added once we need them (for example in `h_sum` it is only necessary to c
 a simple function with a multiple of a characteristic function and that the intersection
 of their images is a subset of `{0}`. -/
 @[elab_as_eliminator]
-theorem measurable.ℝ≥0∞_induction {α} [measurable_space α] {P : (α → ℝ≥0∞) → Prop}
+theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ℝ≥0∞) → Prop}
   (h_ind : ∀ (c : ℝ≥0∞) ⦃s⦄, is_measurable s → P (indicator s (λ _, c)))
   (h_sum : ∀ ⦃f g : α → ℝ≥0∞⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
     P f → P g → P (f + g))
@@ -1737,14 +1737,14 @@ lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : m
   {f : α → ℝ≥0∞} (h_mf : measurable f) : ∀ {g : α → ℝ≥0∞}, measurable g →
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
-  apply measurable.ℝ≥0∞_induction,
+  apply measurable.ennreal_induction,
   { intros c s h_ms,
     simp [*, mul_comm _ c] },
   { intros g h h_univ h_mea_g h_mea_h h_ind_g h_ind_h,
-    simp [mul_add, *, measurable.ℝ≥0∞_mul] },
+    simp [mul_add, *, measurable.ennreal_mul] },
   { intros g h_mea_g h_mono_g h_ind,
     have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
-    simp [lintegral_supr, ennreal.mul_supr, h_mf.ℝ≥0∞_mul (h_mea_g _), *] }
+    simp [lintegral_supr, ennreal.mul_supr, h_mf.ennreal_mul (h_mea_g _), *] }
 end
 
 end measure_theory

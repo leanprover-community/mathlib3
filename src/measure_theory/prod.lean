@@ -154,12 +154,12 @@ begin
     exact measurable_const.indicator hs },
   { intros t ht h2t,
     simp_rw [preimage_compl, measure_compl (measurable_prod_mk_left ht) (measure_lt_top ν _)],
-    exact measurable_const.ℝ≥0∞_sub h2t },
+    exact measurable_const.ennreal_sub h2t },
   { intros f h1f h2f h3f, simp_rw [preimage_Union],
     have : ∀ b, ν (⋃ i, prod.mk b ⁻¹' f i) = ∑' i, ν (prod.mk b ⁻¹' f i) :=
       λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f i j hij))
         (λ i, measurable_prod_mk_left (h2f i)),
-    simp_rw [this], apply measurable.ℝ≥0∞_tsum h3f },
+    simp_rw [this], apply measurable.ennreal_tsum h3f },
 end
 
 /-- If `ν` is a σ-finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
@@ -201,11 +201,11 @@ lemma measurable.lintegral_prod_right' [sigma_finite ν] :
   ∀ {f : α × β → ℝ≥0∞} (hf : measurable f), measurable (λ x, ∫⁻ y, f (x, y) ∂ν) :=
 begin
   have m := @measurable_prod_mk_left,
-  refine measurable.ℝ≥0∞_induction _ _ _,
+  refine measurable.ennreal_induction _ _ _,
   { intros c s hs, simp only [← indicator_comp_right],
     suffices : measurable (λ x, c * ν (prod.mk x ⁻¹' s)),
     { simpa [lintegral_indicator _ (m hs)] },
-    exact measurable_const.ℝ≥0∞_mul (measurable_measure_prod_mk_left hs) },
+    exact measurable_const.ennreal_mul (measurable_measure_prod_mk_left hs) },
   { rintro f g - hf hg h2f h2g, simp_rw [pi.add_apply, lintegral_add (hf.comp m) (hg.comp m)],
     exact h2f.add h2g },
   { intros f hf h2f h3f,
@@ -588,7 +588,7 @@ lemma lintegral_prod_of_measurable :
   ∀ (f : α × β → ℝ≥0∞) (hf : measurable f), ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
 begin
   have m := @measurable_prod_mk_left,
-  refine measurable.ℝ≥0∞_induction _ _ _,
+  refine measurable.ennreal_induction _ _ _,
   { intros c s hs, simp only [← indicator_comp_right],
     simp [lintegral_indicator, m hs, hs, lintegral_const_mul, measurable_measure_prod_mk_left hs,
       prod_apply] },
@@ -654,7 +654,7 @@ lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ℝ≥0∞
 lemma lintegral_prod_mul {f : α → ℝ≥0∞} {g : β → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
-by simp [lintegral_prod _ (hf.fst.ℝ≥0∞_mul hg.snd), lintegral_lintegral_mul hf hg]
+by simp [lintegral_prod _ (hf.fst.ennreal_mul hg.snd), lintegral_lintegral_mul hf hg]
 
 /-! ### Integrability on a product -/
 section

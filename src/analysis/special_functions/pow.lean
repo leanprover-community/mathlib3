@@ -1557,7 +1557,7 @@ lemma ennreal.measurable_rpow : measurable (λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2)
 begin
   refine ennreal.measurable_of_measurable_nnreal_prod _ _,
   { simp_rw ennreal.coe_rpow_def,
-    refine measurable.ite _ measurable_const nnreal.measurable_rpow.ℝ≥0∞_coe,
+    refine measurable.ite _ measurable_const nnreal.measurable_rpow.ennreal_coe,
     exact is_measurable.inter (measurable_fst (is_measurable_singleton 0))
       (measurable_snd is_measurable_Iio), },
   { simp_rw ennreal.top_rpow_def,
@@ -1565,7 +1565,7 @@ begin
     exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
 end
 
-lemma measurable.ℝ≥0∞_rpow {α} [measurable_space α] {f : α → ℝ≥0∞} (hf : measurable f)
+lemma measurable.ennreal_rpow {α} [measurable_space α] {f : α → ℝ≥0∞} (hf : measurable f)
   {g : α → ℝ} (hg : measurable g) :
   measurable (λ a : α, (f a) ^ (g a)) :=
 begin
@@ -1581,12 +1581,12 @@ begin
   exact measurable_const,
 end
 
-lemma measurable.ℝ≥0∞_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞} (hf : measurable f)
+lemma measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞} (hf : measurable f)
   {y : ℝ} :
   measurable (λ a : α, (f a) ^ y) :=
-hf.ℝ≥0∞_rpow measurable_const
+hf.ennreal_rpow measurable_const
 
-lemma ae_measurable.ℝ≥0∞_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞}
+lemma ae_measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞}
   {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
   ae_measurable (λ a : α, (f a) ^ y) μ :=
 ennreal.measurable_rpow_const.comp_ae_measurable hf

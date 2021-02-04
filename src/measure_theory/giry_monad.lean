@@ -77,7 +77,7 @@ lemma measurable_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :
 begin
   simp only [lintegral_eq_supr_eapprox_lintegral, hf, simple_func.lintegral],
   refine measurable_supr (λ n, finset.measurable_sum _ (λ i, _)),
-    refine measurable_const.ℝ≥0∞_mul _,
+    refine measurable_const.ennreal_mul _,
     exact measurable_coe ((simple_func.eapprox f n).is_measurable_preimage _)
 end
 
@@ -121,12 +121,12 @@ begin
     transitivity,
     apply lintegral_supr,
     { assume n,
-      exact finset.measurable_sum _ (assume r, measurable_const.ℝ≥0∞_mul (hf _ _)) },
+      exact finset.measurable_sum _ (assume r, measurable_const.ennreal_mul (hf _ _)) },
     { exact hm },
     congr, funext n,
     transitivity,
     apply lintegral_finset_sum,
-    { assume r, exact measurable_const.ℝ≥0∞_mul (hf _ _) },
+    { assume r, exact measurable_const.ennreal_mul (hf _ _) },
     congr, funext r,
     apply lintegral_const_mul,
     exact hf _ _ },

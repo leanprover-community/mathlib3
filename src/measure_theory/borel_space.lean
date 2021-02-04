@@ -1075,34 +1075,34 @@ lemma measurable.nnreal_coe {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ)) :=
 nnreal.measurable_coe.comp hf
 
-lemma measurable.ℝ≥0∞_coe {f : α → ℝ≥0} (hf : measurable f) :
+lemma measurable.ennreal_coe {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ≥0∞)) :=
 ennreal.continuous_coe.measurable.comp hf
 
-lemma ae_measurable.ℝ≥0∞_coe {f : α → ℝ≥0} {μ : measure α} (hf :  ae_measurable f μ) :
+lemma ae_measurable.ennreal_coe {f : α → ℝ≥0} {μ : measure α} (hf :  ae_measurable f μ) :
   ae_measurable (λ x, (f x : ℝ≥0∞)) μ :=
 ennreal.continuous_coe.measurable.comp_ae_measurable hf
 
-lemma measurable.ℝ≥0∞_of_real {f : α → ℝ} (hf : measurable f) :
+lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, ennreal.of_real (f x)) :=
 ennreal.continuous_of_real.measurable.comp hf
 
 /-- The set of finite `ℝ≥0∞` numbers is `measurable_equiv` to `ℝ≥0`. -/
-def measurable_equiv.ℝ≥0∞_equiv_nnreal : {r : ℝ≥0∞ | r ≠ ⊤} ≃ᵐ ℝ≥0 :=
+def measurable_equiv.ennreal_equiv_nnreal : {r : ℝ≥0∞ | r ≠ ⊤} ≃ᵐ ℝ≥0 :=
 ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
 
 namespace ennreal
 
 lemma measurable_coe : measurable (coe : ℝ≥0 → ℝ≥0∞) :=
-measurable_id.ℝ≥0∞_coe
+measurable_id.ennreal_coe
 
 lemma measurable_of_measurable_nnreal {f : ℝ≥0∞ → α}
   (h : measurable (λ p : ℝ≥0, f p)) : measurable f :=
 measurable_of_measurable_on_compl_singleton ⊤
-  (measurable_equiv.ℝ≥0∞_equiv_nnreal.symm.measurable_coe_iff.1 h)
+  (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
 
 /-- `ℝ≥0∞` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
-def ℝ≥0∞_equiv_sum : ℝ≥0∞ ≃ᵐ ℝ≥0 ⊕ unit :=
+def ennreal_equiv_sum : ℝ≥0∞ ≃ᵐ ℝ≥0 ⊕ unit :=
 { measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
   measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ℝ≥0∞ unit _ _ ⊤),
   .. equiv.option_equiv_sum_punit ℝ≥0 }
@@ -1114,7 +1114,7 @@ lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_spa
   (H₂ : measurable (λ x, f (⊤, x))) :
   measurable f :=
 let e : ℝ≥0∞ × β ≃ᵐ ℝ≥0 × β ⊕ unit × β :=
-  (ℝ≥0∞_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
+  (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
     (measurable_equiv.sum_prod_distrib _ _ _) in
 e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
 
@@ -1138,7 +1138,7 @@ ennreal.measurable_of_measurable_nnreal measurable_id
 lemma measurable_mul : measurable (λ p : ℝ≥0∞ × ℝ≥0∞, p.1 * p.2) :=
 begin
   apply measurable_of_measurable_nnreal_nnreal,
-  { simp only [← ennreal.coe_mul, measurable_mul.ℝ≥0∞_coe] },
+  { simp only [← ennreal.coe_mul, measurable_mul.ennreal_coe] },
   { simp only [ennreal.top_mul, ennreal.coe_eq_zero],
     exact measurable_const.piecewise (is_measurable_singleton _) measurable_const },
   { simp only [ennreal.mul_top, ennreal.coe_eq_zero],
@@ -1147,7 +1147,7 @@ end
 
 lemma measurable_sub : measurable (λ p : ℝ≥0∞ × ℝ≥0∞, p.1 - p.2) :=
 by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, continuous_sub.measurable.ℝ≥0∞_coe]
+  simp [← ennreal.coe_sub, continuous_sub.measurable.ennreal_coe]
 
 lemma measurable_inv : measurable (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
 ennreal.continuous_inv.measurable
@@ -1163,7 +1163,7 @@ ennreal.measurable_to_nnreal.comp hf
 
 lemma measurable_ennreal_coe_iff {f : α → ℝ≥0} :
   measurable (λ x, (f x : ℝ≥0∞)) ↔ measurable f :=
-⟨λ h, h.to_nnreal, λ h, h.ℝ≥0∞_coe⟩
+⟨λ h, h.to_nnreal, λ h, h.ennreal_coe⟩
 
 lemma measurable.to_real {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ x, ennreal.to_real (f x)) :=
@@ -1173,27 +1173,27 @@ lemma ae_measurable.to_real {f : α → ℝ≥0∞} {μ : measure α} (hf : ae_m
   ae_measurable (λ x, ennreal.to_real (f x)) μ :=
 ennreal.measurable_to_real.comp_ae_measurable hf
 
-lemma measurable.ℝ≥0∞_mul {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+lemma measurable.ennreal_mul {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a * g a) :=
 ennreal.measurable_mul.comp (hf.prod_mk hg)
 
-lemma ae_measurable.ℝ≥0∞_mul {f g : α → ℝ≥0∞} {μ : measure α}
+lemma ae_measurable.ennreal_mul {f g : α → ℝ≥0∞} {μ : measure α}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, f a * g a) μ :=
 ennreal.measurable_mul.comp_ae_measurable (hf.prod_mk hg)
 
-lemma measurable.ℝ≥0∞_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+lemma measurable.ennreal_sub {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a - g a) :=
 ennreal.measurable_sub.comp (hf.prod_mk hg)
 
 /-- note: `ℝ≥0∞` can probably be generalized in a future version of this lemma. -/
-lemma measurable.ℝ≥0∞_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr, exact λ s, s.measurable_sum h }
 
-lemma measurable.ℝ≥0∞_inv {f : α → ℝ≥0∞} (hf : measurable f) : measurable (λ a, (f a)⁻¹) :=
+lemma measurable.ennreal_inv {f : α → ℝ≥0∞} (hf : measurable f) : measurable (λ a, (f a)⁻¹) :=
 ennreal.measurable_inv.comp hf
 
-lemma measurable.ℝ≥0∞_div {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+lemma measurable.ennreal_div {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, f a / g a) :=
 ennreal.measurable_div.comp $ hf.prod_mk hg
 
@@ -1222,11 +1222,11 @@ lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable
 measurable_nnnorm.comp_ae_measurable hf
 
 lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ℝ≥0∞)) :=
-measurable_nnnorm.ℝ≥0∞_coe
+measurable_nnnorm.ennreal_coe
 
 lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
   measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
-hf.nnnorm.ℝ≥0∞_coe
+hf.nnnorm.ennreal_coe
 
 lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
   ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
@@ -1252,7 +1252,7 @@ begin
   λ x, ((ennreal.continuous_coe.tendsto (g x)).comp (lim x)).liminf_eq,
   simp_rw [← this],
   show measurable (λ x, liminf u (λ n, (f n x : ℝ≥0∞))),
-  exact measurable_liminf' (λ i, (hf i).ℝ≥0∞_coe) hu hs,
+  exact measurable_liminf' (λ i, (hf i).ennreal_coe) hu hs,
 end
 
 /-- A sequential limit of measurable `ℝ≥0` valued functions is measurable. -/

@@ -175,12 +175,12 @@ begin
   have Em := hE.is_measurable,
   symmetry,
   set g := λ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E),
-  have hg : measurable g := (hf.comp measurable_inv).ℝ≥0∞_div
+  have hg : measurable g := (hf.comp measurable_inv).ennreal_div
     ((measurable_measure_mul_right Em).comp measurable_inv),
   rw [← set_lintegral_one, ← lintegral_indicator _ Em,
     ← lintegral_lintegral_mul (measurable_const.indicator Em).ae_measurable hg.ae_measurable,
     ← lintegral_lintegral_mul_inv hμ hν],
-  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).ℝ≥0∞_mul
+  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
       (hg.comp measurable_snd)).ae_measurable },
   have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ℝ≥0∞)) y) :=
   λ x, measurable_const.indicator (measurable_mul_right _ Em),

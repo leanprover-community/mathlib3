@@ -63,6 +63,7 @@ def over_to_coalgebra :
   map := λ f₁ f₂ g, { f := g.left } }
 
 /-- The equivalence from coalgebras for the product comonad to the over category. -/
+@[simps]
 def coalgebra_equiv_over :
   coalgebra (prod.functor.obj X) ≌ over X :=
 { functor := coalgebra_to_over X,

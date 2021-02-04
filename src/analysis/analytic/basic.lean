@@ -890,7 +890,7 @@ theorem has_fpower_series_on_ball.change_origin
     convert p.change_origin_eval (lt_of_lt_of_le A hf.r_le),
     have : y + z ∈ emetric.ball (0 : E) r := calc
       edist (y + z) 0 ≤ ↑(nnnorm y) + ↑(nnnorm z) :
-        by { rw [edist_eq_coe_nnnorm, ← ennreal.coe_add, ennreal.coe_le_coe], exact norm_add_le y z }
+        by { rw edist_eq_coe_nnnorm, exact_mod_cast nnnorm_add_le y z }
       ... < r : A,
     simpa only [add_assoc] using hf.sum this
   end }

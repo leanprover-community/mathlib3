@@ -178,7 +178,7 @@ do t ← infer_type h,
    skip
 
 meta def normalize_hyp (cfg : auto_config) (simps : simp_lemmas) (h : expr) : tactic unit :=
-(do h ← simp_hyp simps [] h, try (normalize_negations cfg h)) <|>
+(do (h, _) ← simp_hyp simps [] h, try (normalize_negations cfg h)) <|>
 try (normalize_negations cfg h)
 
 meta def normalize_hyps (cfg : auto_config) : tactic unit :=

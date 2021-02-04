@@ -9,6 +9,7 @@ import algebra.module.prod
 import algebra.module.submodule
 import algebra.group.prod
 import data.finsupp.basic
+import data.dfinsupp
 import algebra.pointwise
 
 /-!
@@ -186,12 +187,20 @@ lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
 (t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
 
-/-- `λb, f b • x` is a linear map. -/
-def smul_right (f : M₂ →ₗ[R] R) (x : M) : M₂ →ₗ[R] M :=
-⟨λb, f b • x, by simp [add_smul], by simp [smul_smul]⟩.
+section smul_right
 
-@[simp] theorem smul_right_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
-  (smul_right f x : M₂ → M) c = f c • x := rfl
+variables {S : Type*} [semiring S] [semimodule R S] [semimodule S M] [is_scalar_tower R S M]
+
+/-- When `f` is an `R`-linear map taking values in `S`, then `λb, f b • x` is an `R`-linear map. -/
+def smul_right (f : M₂ →ₗ[R] S) (x : M) : M₂ →ₗ[R] M :=
+{ to_fun := λb, f b • x,
+  map_add' := λ x y, by rw [f.map_add, add_smul],
+  map_smul' := λ b y, by rw [f.map_smul, smul_assoc] }
+
+@[simp] theorem smul_right_apply (f : M₂ →ₗ[R] S) (x : M) (c : M₂) :
+  smul_right f x c = f c • x := rfl
+
+end smul_right
 
 instance : has_one (M →ₗ[R] M) := ⟨linear_map.id⟩
 instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
@@ -371,6 +380,11 @@ instance : has_scalar S (M →ₗ[R] M₂) :=
   λ c x, by simp only [f.map_smul, smul_comm c]⟩⟩
 
 @[simp] lemma smul_apply (a : S) (x : M) : (a • f) x = a • f x := rfl
+
+instance {T : Type*} [monoid T] [distrib_mul_action T M₂] [smul_comm_class R T M₂]
+  [smul_comm_class S T M₂] :
+  smul_comm_class S T (M →ₗ[R] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
 instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,
@@ -825,6 +839,9 @@ lemma span_union (s t : set M) : span R (s ∪ t) = span R s ⊔ span R t :=
 lemma span_Union {ι} (s : ι → set M) : span R (⋃ i, s i) = ⨆ i, span R (s i) :=
 (submodule.gi R M).gc.l_supr
 
+lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
+by simp only [←span_Union, set.bUnion_of_singleton s]
+
 @[simp] theorem coe_supr_of_directed {ι} [hι : nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) :
   ((supr S : submodule R M) : set M) = ⋃ i, S i :=
@@ -1024,6 +1041,33 @@ lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
 begin
   rw [← span_singleton_le_iff_mem, le_supr_iff],
   simp only [span_singleton_le_iff_mem],
+end
+
+section
+
+open_locale classical
+
+/-- For every element in the span of a set, there exists a finite subset of the set
+such that the element is contained in the span of the subset. -/
+lemma mem_span_finite_of_mem_span {S : set M} {x : M} (hx : x ∈ span R S) :
+  ∃ T : finset M, ↑T ⊆ S ∧ x ∈ span R (T : set M) :=
+begin
+  refine span_induction hx (λ x hx, _) _ _ _,
+  { refine ⟨{x}, _, _⟩,
+    { rwa [finset.coe_singleton, set.singleton_subset_iff] },
+    { rw finset.coe_singleton,
+      exact submodule.mem_span_singleton_self x } },
+  { use ∅, simp },
+  { rintros x y ⟨X, hX, hxX⟩ ⟨Y, hY, hyY⟩,
+    refine ⟨X ∪ Y, _, _⟩,
+    { rw finset.coe_union,
+      exact set.union_subset hX hY },
+    rw [finset.coe_union, span_union, mem_sup],
+    exact ⟨x, hxX, y, hyY, rfl⟩, },
+  { rintros a x ⟨T, hT, h2⟩,
+    exact ⟨T, hT, smul_mem _ _ h2⟩ }
+end
+
 end
 
 /-- The product of two submodules is a submodule. -/
@@ -1240,9 +1284,33 @@ lemma ext_on_range {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (set.ran
   (h : ∀i, f (v i) = g (v i)) : f = g :=
 ext_on hv (set.forall_range_iff.2 h)
 
-@[simp] lemma finsupp_sum {γ} [has_zero γ]
-  (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
-  f (t.sum g) = t.sum (λi d, f (g i d)) := f.map_sum
+section finsupp
+variables {γ : Type*} [has_zero γ]
+
+@[simp] lemma map_finsupp_sum (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
+
+lemma coe_finsupp_sum (t : ι →₀ γ) (g : ι → γ → M →ₗ[R] M₂) :
+  ⇑(t.sum g) = t.sum (λ i d, g i d) := coe_fn_sum _ _
+
+@[simp] lemma finsupp_sum_apply (t : ι →₀ γ) (g : ι → γ → M →ₗ[R] M₂) (b : M) :
+  (t.sum g) b = t.sum (λ i d, g i d b) := sum_apply _ _ _
+
+end finsupp
+
+section dfinsupp
+variables {γ : ι → Type*} [decidable_eq ι] [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
+
+@[simp] lemma map_dfinsupp_sum (f : M →ₗ[R] M₂) {t : Π₀ i, γ i} {g : Π i, γ i → M} :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
+
+lemma coe_dfinsupp_sum (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂) :
+  ⇑(t.sum g) = t.sum (λ i d, g i d) := coe_fn_sum _ _
+
+@[simp] lemma dfinsupp_sum_apply (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂) (b : M) :
+  (t.sum g) b = t.sum (λ i d, g i d b) := sum_apply _ _ _
+
+end dfinsupp
 
 theorem map_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (h p') :
   submodule.map (cod_restrict p f h) p' = comap p.subtype (p'.map f) :=

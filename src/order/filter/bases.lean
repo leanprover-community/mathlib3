@@ -37,8 +37,8 @@ and consequences are derived.
 
 ## Main statements
 
-* `has_basis.mem_iff`, `has_basis.mem_of_superset`, `has_basis.mem_of_mem` : restate `t ∈ f` in terms
-  of a basis;
+* `has_basis.mem_iff`, `has_basis.mem_of_superset`, `has_basis.mem_of_mem` : restate `t ∈ f`
+  in terms of a basis;
 * `basis_sets` : all sets of a filter form a basis;
 * `has_basis.inf`, `has_basis.inf_principal`, `has_basis.prod`, `has_basis.prod_self`,
   `has_basis.map`, `has_basis.comap` : combinators to construct filters of `l ⊓ l'`,
@@ -83,7 +83,8 @@ structure filter_basis (α : Type*) :=
 
 instance filter_basis.nonempty_sets (B : filter_basis α) : nonempty B.sets := B.nonempty.to_subtype
 
-/-- If `B` is a filter basis on `α`, and `U` a subset of `α` then we can write `U ∈ B` as on paper. -/
+/-- If `B` is a filter basis on `α`, and `U` a subset of `α` then we can write `U ∈ B` as
+on paper. -/
 @[reducible]
 instance {α : Type*}: has_mem (set α) (filter_basis α) := ⟨λ U B, U ∈ B.sets⟩
 
@@ -248,7 +249,8 @@ lemma has_basis.set_index_subset (h : l.has_basis p s) (ht : t ∈ l) : s (h.ind
 
 lemma has_basis.is_basis (h : l.has_basis p s) : is_basis p s :=
 { nonempty := let ⟨i, hi, H⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, hi⟩,
-  inter := λ i j hi hj, by simpa [h.mem_iff] using l.inter_sets (h.mem_of_mem hi) (h.mem_of_mem hj) }
+  inter := λ i j hi hj, by simpa [h.mem_iff]
+    using l.inter_sets (h.mem_of_mem hi) (h.mem_of_mem hj) }
 
 lemma has_basis.filter_eq (h : l.has_basis p s) : h.is_basis.filter = l :=
 by { ext U, simp [h.mem_iff, is_basis.mem_filter_iff] }
@@ -256,7 +258,8 @@ by { ext U, simp [h.mem_iff, is_basis.mem_filter_iff] }
 lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p i ∧ s i = U } :=
 by rw [← h.is_basis.filter_eq_generate, h.filter_eq]
 
-lemma generate_eq_generate_inter (s : set (set α)) : generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
+lemma generate_eq_generate_inter (s : set (set α)) :
+  generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
 by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq] ; refl
 
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
@@ -622,7 +625,8 @@ structure is_countable_basis (p : ι → Prop) (s : ι → set α) extends is_ba
 /-- We say that a filter `l` has a countable basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`, and the set
 defined by `p` is countable. -/
-structure has_countable_basis (l : filter α) (p : ι → Prop) (s : ι → set α) extends has_basis l p s : Prop :=
+structure has_countable_basis (l : filter α) (p : ι → Prop) (s : ι → set α)
+  extends has_basis l p s : Prop :=
 (countable : countable $ set_of p)
 
 /-- A countable filter basis `B` on a type `α` is a nonempty countable collection of sets of `α`

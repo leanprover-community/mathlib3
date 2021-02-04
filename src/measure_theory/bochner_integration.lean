@@ -235,7 +235,7 @@ begin
   refine finset.sum_image' _ (assume b hb, _),
   rcases mem_range.1 hb with ⟨a, rfl⟩,
   rw [map_preimage_singleton, ← sum_measure_preimage_singleton _
-    (λ _ _, f.is_measurable_preimage _)],
+    (λ _ _, f.measurable_set_preimage _)],
   -- Now we use `hf : integrable f μ` to show that `ennreal.to_real` is additive.
   by_cases ha : g (f a) = 0,
   { simp only [ha, smul_zero],
@@ -1509,7 +1509,7 @@ begin
     ((integrable_map_measure hfm.ae_measurable hφ).1 hfi),
   ext1 i,
   simp only [simple_func.approx_on_comp, simple_func.integral, measure.map_apply, hφ,
-    simple_func.is_measurable_preimage, ← preimage_comp, simple_func.coe_comp],
+    simple_func.measurable_set_preimage, ← preimage_comp, simple_func.coe_comp],
   refine (finset.sum_subset (simple_func.range_comp_subset_range _ hφ) (λ y _ hy, _)).symm,
   rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty, simple_func.coe_comp] at hy,
   simp [hy]

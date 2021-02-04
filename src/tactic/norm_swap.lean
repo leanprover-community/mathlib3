@@ -38,17 +38,19 @@ example : equiv.swap 1 2 1 = 2 := by norm_num
   na ← a.to_rat <|> (do (fa, _) ← norm_fin.eval_fin_num a, fa.to_rat),
   nb ← b.to_rat <|> (do (fb, _) ← norm_fin.eval_fin_num b, fb.to_rat),
   nc ← c.to_rat <|> (do (fc, _) ← norm_fin.eval_fin_num c, fc.to_rat),
-  if nc = na
-    then let p : expr := `(@swap_apply_left.{1} %%α %%deceq_inst %%a %%b) in pure (b, p)
-  else if nc = nb
-    then let p : expr := `(@swap_apply_right.{1} %%α %%deceq_inst %%a %%b) in pure (a, p)
+  if nc = na then do
+    p ← mk_mapp `equiv.swap_apply_left [α, deceq_inst, a, b],
+    pure (b, p)
+  else if nc = nb then do
+    p ← mk_mapp `equiv.swap_apply_right [α, deceq_inst, a, b],
+    pure (a, p)
   else do
     nic ← mk_instance_cache α,
     hca ← (prod.snd <$> prove_ne nic c a nc na) <|>
       (do (_, ff, p) ← norm_fin.prove_eq_ne_fin c a, pure p),
     hcb ← (prod.snd <$> prove_ne nic c b nc nb) <|>
       (do (_, ff, p) ← norm_fin.prove_eq_ne_fin c b, pure p),
-    let p : expr := `(@swap_apply_of_ne_of_ne.{1} %%α %%deceq_inst %%a %%b %%c %%hca %%hcb),
+    p ← mk_mapp `equiv.swap_apply_of_ne_of_ne [α, deceq_inst, a, b, c, hca, hcb],
     pure (c, p)
 
 end norm_swap

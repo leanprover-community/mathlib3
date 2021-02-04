@@ -1542,67 +1542,20 @@ by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em
 /-- Given a (decidable) property p on mutlisets and a multiset satisfying it,
 we can assume that this multiset has minimal cardinality -/
 
-lemma can_assume_min [decidable_eq α] (p : multiset α → Prop) [decidable_pred p]
-  (s₀ : multiset α) (H : p s₀) :  ∃ s ≤ s₀,  p s  ∧ (∀ a ∈ s, ¬ p (s.erase a)) :=
+lemma nat.well_ordered_of_exists {s : set ℕ} [decidable_pred (λ w, w ∈ s)] (ex : ∃ w : ℕ, w ∈ s) :
+  ∃ n ∈ s, ∀ m ∈ s, n ≤ m :=
+  ⟨nat.find ex, nat.find_spec ex, λ m, nat.find_min' ex⟩
+
+lemma exists_minimal_subset {p : multiset α → Prop} {s₀ : multiset α} (H : p s₀)
+  [decidable_pred (λ w, w ∈ {i | ∃ u, u ≤ s₀ ∧ p u ∧ u.card = i})] :
+  ∃ s ≤ s₀, p s ∧ (∀ s' ≤ s, p s' → s' = s) :=
 begin
-  induction h : s₀.card with n hn generalizing s₀,
-  { use s₀,
-    rw ← and_assoc,
-    split,
-    exact and.intro (le_of_eq (refl s₀)) H,
-    intros a ha,
-    rw [card_eq_zero, eq_zero_iff_forall_not_mem] at h,
-    tauto },
-  { let q : α → Prop := λ a, p (s₀.erase a),
-    let A := filter q s₀,
-    by_cases hA : A = 0,
-    repeat { rw filter_eq_nil at hA },
-    { use s₀,
-      exact ⟨le_of_eq rfl, H, hA⟩ },
-    { rw not_forall at hA,
-      rcases hA with ⟨b, hb⟩,
-      rw [not_imp, not_not] at hb,
-      dsimp [q] at hb,
-      have : (s₀.erase b).card = n := by rwa [card_erase_of_mem hb.1, h, nat.pred_succ],
-      specialize hn (s₀.erase b) hb.2 this,
-      rcases hn with ⟨s', h_s's₀b, h_ps', h_nps'a⟩,
-      use s',
-      split, swap,
-      exact and.intro h_ps' h_nps'a,
-      apply has_le.le.trans h_s's₀b (erase_le _ _) } }
+  obtain ⟨n, ⟨sm, sm0, ps, sc⟩, F⟩ := nat.well_ordered_of_exists
+    (⟨_, _, le_rfl, H, rfl⟩ : ∃ w : ℕ, w ∈ { i | ∃ u, u ≤ s₀ ∧ p u ∧ u.card = i }),
+  exact ⟨sm, sm0, ps, λ t tsm pt, eq_of_le_of_card_le tsm
+    (by {rw sc, exact F _ ⟨t, le_trans tsm sm0, pt, rfl⟩})⟩,
 end
 
--- lemma can_assume_min_nonempty [decidable_eq α] (p : multiset α → Prop) [decidable_pred p]
---   (s₀ : multiset α) (H : p s₀) (hne : s₀ ≠ 0):  ∃ s : multiset α, s ≠ 0 ∧ p s  ∧
---   (∀ a ∈ s, ¬ p (s.erase a)) :=
--- begin
---   induction h : s₀.card with n hn generalizing s₀,
---   { use s₀,
---     rwa card_eq_zero at h,
---     tauto },
---   { let q : α → Prop := λ a, p (s₀.erase a),
---     let A := filter q s₀,
---     by_cases hA : A = 0,
---     repeat { rw filter_eq_nil at hA },
---     { use s₀,
---       exact ⟨hne, H, hA⟩ },
---     { rw not_forall at hA,
---       rcases hA with ⟨b, hb⟩,
---       rw [not_imp, not_not] at hb,
---       dsimp [q] at hb,
---       have : (s₀.erase b).card = n := by rwa [card_erase_of_mem hb.1, h, nat.pred_succ],
---       by_cases h_succA : A.card = 1,--O ZERO? O ≥ 1?
---       {sorry},
---       { have hne_b : s₀.erase b ≠ 0,
---         rw ← (not_iff_not_of_iff card_pos),
---         rw ← card_pos_iff_exists_mem,
---          sorry,
---         specialize hn (s₀.erase b) hb.2 hne_b this,
---         rcases hn with ⟨s', h_s's₀b, h_ps', h_nps'a⟩,
---         use s',
---         split, swap,
---         exacts [and.intro h_ps' h_nps'a, h_s's₀b] }}}
--- end
 
 /-! ### Simultaneously filter and map elements of a multiset -/
 

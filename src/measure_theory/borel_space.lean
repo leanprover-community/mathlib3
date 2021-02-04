@@ -32,7 +32,7 @@ import topology.G_delta
 * `measurable.add` etc : dot notation for arithmetic operations on `measurable` predicates,
   and similarly for `dist` and `edist`;
 * `ae_measurable.add` : similar dot notation for almost everywhere measurable functions;
-* `measurable.ℝ≥0∞*` : special cases for arithmetic operations on `ℝ≥0∞`s.
+* `measurable.ennreal*` : special cases for arithmetic operations on `ℝ≥0∞`.
 -/
 
 noncomputable theory

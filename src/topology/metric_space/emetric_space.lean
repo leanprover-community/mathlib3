@@ -83,7 +83,7 @@ filled in by default. There is a default value for the uniformity, that can be s
 in cases of interest, for instance when instantiating an `emetric_space` structure
 on a product.
 
-Continuity of `edist` is proved in `topology.instances.ℝ≥0∞`
+Continuity of `edist` is proved in `topology.instances.ennreal`
 -/
 class emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_self : ∀ x : α, edist x x = 0)

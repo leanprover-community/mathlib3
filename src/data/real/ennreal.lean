@@ -1416,7 +1416,7 @@ lemma mul_infi {ι} [nonempty ι] {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h : 
   x * infi f = ⨅i, x * f i :=
 by { rw [mul_comm, infi_mul h], simp only [mul_comm], assumption }
 
-/-! `supr_mul`, `mul_supr` and variants are in `topology.instances.ℝ≥0∞`. -/
+/-! `supr_mul`, `mul_supr` and variants are in `topology.instances.ennreal`. -/
 
 end infi
 

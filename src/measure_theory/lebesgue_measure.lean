@@ -365,7 +365,8 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 
 @[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply measurable_neg measurable_set_Ioo]
+  by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
+    from measure.map_apply measurable_neg measurable_set_Ioo]
 
 end real
 

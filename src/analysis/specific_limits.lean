@@ -188,8 +188,11 @@ metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
 lemma geom_lt {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) {n : ℕ} (hn : 0 < n)
   (h : ∀ k < n, c * u k < u (k + 1)) :
   c ^ n * u 0 < u n :=
-(monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_le_of_lt hn (by simp)
-  (λ k hk, by simp [pow_succ, mul_assoc]) h
+begin
+  refine (monotone_mul_left_of_nonneg hc).seq_pos_lt_seq_of_le_of_lt hn _ _ h,
+  { simp },
+  { simp [pow_succ, mul_assoc, le_refl] }
+end
 
 lemma geom_le {u : ℕ → ℝ} {c : ℝ} (hc : 0 ≤ c) (n : ℕ) (h : ∀ k < n, c * u k ≤ u (k + 1)) :
   c ^ n * u 0 ≤ u n :=

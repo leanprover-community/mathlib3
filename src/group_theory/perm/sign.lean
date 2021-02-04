@@ -84,6 +84,28 @@ f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_per
   (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
+lemma perm_on_inr_of_perm_on_inl {m n : Type u} [decidable_eq m] [fintype m] [decidable_eq n]
+  [fintype n] (σ : equiv.perm (m ⊕ n)) (h : ∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) :
+  ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
+begin
+  intro b,
+  generalize hx : σ (sum.inr b) = x,
+  cases x with a0 b0,
+  { have hl : σ⁻¹ (sum.inl a0) ∈ univ.filter (λ x, ∃ a, @sum.inl m n a = x),
+    { apply perm_inv_on_of_perm_on_finset,
+      { intro x, rw mem_filter, intro hx,
+        obtain ⟨a1, ha1⟩ := hx.right,
+        rw mem_filter,
+        refine ⟨mem_univ _, _⟩,
+        rw ← ha1, exact h a1 },
+      { rw mem_filter, refine ⟨mem_univ _, _⟩, use a0 }},
+    rw mem_filter at hl,
+    obtain ⟨a1, ha1⟩ := hl.right,
+    rw ← eq_inv_iff_eq.mpr hx at ha1,
+    apply absurd ha1 sum.inl_ne_inr },
+  { use b0 }
+end
+
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
 every element is fixed either by `f`, or by `g`. -/
 def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x

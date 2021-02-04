@@ -16,7 +16,8 @@ open equiv equiv.perm finset function
 namespace matrix
 open_locale matrix big_operators
 
-variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
+variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m] {R : Type v}
+  [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
@@ -319,4 +320,181 @@ begin
     exact hkx }
 end
 
+lemma upper_two_block_triangular_det (A  : matrix m m R) (B  : matrix m n R) (C  : matrix n m R)
+  (D  : matrix n n R) (hz : C = 0) :
+  (matrix.from_blocks A B C D).det = A.det * D.det :=
+begin
+  unfold det,
+  rw sum_mul_sum,
+  let preserving_A : finset (perm (m ⊕ n)) :=
+    univ.filter (λ σ, ∀ x, ∃ y, sum.inl y = (σ (sum.inl x))),
+  simp_rw univ_product_univ,
+  have mem_preserving_A : ∀ {σ : perm (m ⊕ n)},
+    σ ∈ preserving_A ↔ ∀ x, ∃ y, sum.inl y = σ (sum.inl x) :=
+    λ σ, mem_filter.trans ⟨λ h, h.2, λ h, ⟨mem_univ _, h⟩⟩,
+  rw ← sum_subset (subset_univ preserving_A) _,
+  rw (sum_bij (λ (σ : perm m × perm n) _, equiv.sum_congr σ.fst σ.snd) _ _ _ _).symm,
+  { intros a ha,
+    rw mem_preserving_A,
+    intro x,
+    use a.fst x,
+    simp },
+  { simp only [forall_prop_of_true, prod.forall, mem_univ],
+    intros σ₁ σ₂,
+    rw fintype.prod_sum_type,
+    simp_rw [equiv.sum_congr_apply, sum.map_inr, sum.map_inl, from_blocks_apply₁₁,
+      from_blocks_apply₂₂],
+    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ring },
+    rw hr,
+    congr,
+    norm_cast,
+    rw sign_sum_congr },
+  { intros σ₁ σ₂ h₁ h₂,
+    dsimp only [],
+    intro h,
+    dunfold equiv.sum_congr at h, simp only [] at h,
+    have h2 : ∀ x, sum.map (σ₁.fst) (σ₁.snd) x = sum.map (σ₂.fst) (σ₂.snd) x :=
+      λ (x : m ⊕ n), congr_fun h.left x,
+    have h3 := sum.forall.mp h2,
+    simp only [sum.map_inr, sum.map_inl] at h3,
+    ext,
+    { exact h3.left x },
+    { exact h3.right x }},
+  { intros σ hσ,
+    have h1 : ∀ (x : m ⊕ n), (∃ (a : m), sum.inl a = x) → (∃ (a : m), sum.inl a = σ x),
+    { rintros x ⟨a, ha⟩,
+      rw ← ha,
+      exact (@mem_preserving_A σ).mp hσ a },
+    have h2 : ∀ (x : m ⊕ n), (∃ (b : n), sum.inr b = x) → (∃ (b : n), sum.inr b = σ x),
+    { rintros x ⟨b, hb⟩,
+      rw ← hb,
+      exact perm_on_inr_of_perm_on_inl σ ((@mem_preserving_A σ).mp hσ) b },
+    let σ₁' := subtype_perm_of_fintype σ h1,
+    let σ₂' := subtype_perm_of_fintype σ h2,
+    let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.injective_inl).symm σ₁',
+    let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.injective_inr).symm σ₂',
+    use [⟨σ₁, σ₂⟩, finset.mem_univ _],
+    ext,
+    cases x with a b,
+    { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
+        set.apply_range_symm (@sum.inl m n)],
+      erw subtype_perm_apply,
+      rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+    { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
+        set.apply_range_symm (@sum.inr m n)],
+      erw subtype_perm_apply,
+      rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }},
+  { intros σ h0 hσ,
+    obtain ⟨a, ha⟩ := not_forall.mp ((not_congr (@mem_preserving_A σ)).mp hσ),
+    generalize hx : σ (sum.inl a) = x,
+    cases x with a2 b,
+    { have hn := (not_exists.mp ha) a2,
+      exact absurd hx.symm hn },
+    { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],
+      rw [hx, from_blocks_apply₂₁, hz], refl }}
+end
+
+lemma index_equiv_det (f : equiv m n) (N : matrix n n R)
+  : matrix.det (λ i j, N (f i) (f j)) = N.det :=
+begin
+  unfold det,
+  rw sum_bij (λ (σ : perm m) _, f.perm_congr σ),
+  { exact λ a ha, mem_univ ((λ σ _, (f.perm_congr) σ) a ha) },
+  { intros a ha,
+    apply congr (congr_arg has_mul.mul _),
+    { rw prod_bij (λ (i : m) _, f i),
+      { intros a ha, apply mem_univ },
+      { intros i hi, rw [perm_congr_apply, symm_apply_apply] },
+      { intros i1 i2 hi1 hi2, exact (apply_eq_iff_eq f).mp },
+      { intros j hj, use (f.inv_fun j), simp }},
+    { simp only [sign_perm_congr] }},
+  { intros i1 i2 hi1 hi2, exact (apply_eq_iff_eq f.perm_congr).mp },
+  { intros b hb, use [((f.perm_congr).inv_fun b), finset.mem_univ _],
+    simp only [], rw [←to_fun_as_coe, f.perm_congr.right_inv] }
+end
+
+lemma to_block_matrix_det (M : matrix m m R) (p : m → Prop) [decidable_pred p] :
+  M.det = (matrix.from_blocks (to_block M p p) (to_block M p (λ j, ¬p j))
+    (to_block M (λ j, ¬p j) p) (to_block M (λ j, ¬p j) (λ j, ¬p j))).det :=
+begin
+  rw ← index_equiv_det (sum_compl p),
+  unfold det,
+  congr, ext σ, congr, ext,
+  generalize hy : σ x = y,
+  cases x; cases y;
+  simp only [to_block_apply, sum_compl_apply_inr, sum_compl_apply_inl,
+    from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂],
+end
+
+lemma to_square_block_det (M : matrix m m R) (b : m → ℕ) (k : ℕ) :
+  (to_square_block M b k).det = (to_square_block' M (λ i, b i = k)).det := by simp
+
+lemma upper_two_block_triangular_det' (M : matrix m m R) (p : m → Prop) [decidable_pred p]
+  (h : ∀ i (h1 : ¬p i) j (h2 : p j), M i j = 0) :
+  M.det = (to_square_block' M p).det * (to_square_block' M (λ i, ¬p i)).det :=
+begin
+  rw to_block_matrix_det M p,
+  convert upper_two_block_triangular_det (to_block M p p) (to_block M p (λ j, ¬p j))
+    (to_block M (λ j, ¬p j) p) (to_block M (λ j, ¬p j) (λ j, ¬p j)) _,
+  ext,
+  exact h ↑i i.2 ↑j j.2
+end
+
+lemma equiv_block_det (M : matrix m m R) {p q : m → Prop} [decidable_pred p] [decidable_pred q]
+  (e : ∀x, p x ↔ q x) : (to_square_block' M p).det = (to_square_block' M q).det :=
+by convert index_equiv_det (subtype_equiv_right e) (to_square_block' M q)
+
+/-- Let `b` map rows and columns of a square matrix `M` to `n + 1` blocks. Then
+  `upper_block_triangular_matrix M n b` says the matrix is upper block triangular. -/
+def upper_block_triangular_matrix (M : matrix m m R) (n : ℕ) (b : m → ℕ) :=
+  (∀ i, b i ≤ n) ∧ (∀ i j, b j < b i → M i j = 0)
+
+/-
+lemma upper_block_triangular_det (M : matrix m m R) (n : ℕ) (b : m → ℕ)
+  (h : upper_block_triangular_matrix M n b) :
+  M.det = ∏ k in range (n + 1), (to_square_block M b k).det :=
+begin
+  tactic.unfreeze_local_instances,
+  induction n with n hn generalizing m M b,
+  { rw [zero_add, range_one, prod_singleton],
+    have hb0 : ∀ i, b i = 0, { intro i, exact nat.le_zero_iff.mp (h.left i) },
+    convert (index_equiv_det (subtype_univ_equiv hb0) M).symm },
+  { rw prod_range_succ,
+    have h2 : (M.to_square_block' (λ (i : m), b i = n.succ)).det =
+      (M.to_square_block b n.succ).det,
+    { dunfold to_square_block, dunfold to_square_block', refl },
+    rw upper_two_block_triangular_det' M (λ i, ¬(b i = n.succ)),
+    { rw mul_comm,
+      apply congr (congr_arg has_mul.mul _),
+      { let m' := {a // ¬b a = n.succ },
+        let b' := (λ (i : m'), b ↑i),
+        have h' : upper_block_triangular_matrix (M.to_square_block' (λ (i : m), ¬b i = n.succ)) n b',
+        { split,
+          { intro i, exact nat.lt_succ_iff.mp ((ne.le_iff_lt i.property).mp (h.left ↑i)) },
+          { intros i j, apply h.right ↑i ↑j }},
+        have h1 := hn (M.to_square_block' (λ (i : m), ¬b i = n.succ)) b' h',
+        rw ←fin.prod_univ_eq_prod_range,
+        rw ←fin.prod_univ_eq_prod_range at h1,
+        convert h1,
+        ext k,
+        simp only [to_square_block_def', to_square_block_def],
+        let he : {a // b' a = ↑k} ≃ {a // b a = ↑k},
+        { have hc : ∀ (i : m), (λ a, b a = ↑k) i → (λ a, ¬b a = n.succ) i,
+          { intros i hbi, rw hbi, exact ne_of_lt (fin.is_lt k) },
+          exact subtype_subtype_equiv_subtype hc },
+        apply eq.symm,
+        convert index_equiv_det he (λ (i j : {a // b a = ↑k}), M ↑i ↑j),
+        ext i j,
+        have hh : ∀ i, (he.to_fun i).val = i.val.val, { simp },
+        exact congr (congr_arg M (eq.symm (hh i))) (eq.symm (hh j)) },
+      { rw to_square_block_det M b n.succ,
+        have hh : ∀ a, ¬(λ (i : m), ¬b i = n.succ) a ↔ b a = n.succ,
+        { intro i, simp only [not_not] },
+        exact equiv_block_det M hh }},
+    { intros i hi j hj,
+      apply (h.right i), simp only [not_not] at hi,
+      rw hi,
+      exact (ne.le_iff_lt hj).mp (h.left j) }}
+end
+-/
 end matrix

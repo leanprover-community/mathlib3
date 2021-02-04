@@ -370,7 +370,7 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
--- TODO: there should be a way to avoid restating these for each `foo_hom`. 
+-- TODO: there should be a way to avoid restating these for each `foo_hom`.
 /-- A version of `one_map` where `f` is a ring hom. -/
 @[simp] lemma ring_hom_map_one [decidable_eq n]
   {β : Type w} [semiring β] (f : α →+* β) :
@@ -979,22 +979,22 @@ rfl
   from_blocks A B C D (sum.inr i) (sum.inr j) = D i j :=
 rfl
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top left" submatrix. -/
 def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
 λ i j, M (sum.inl i) (sum.inl j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top right" submatrix. -/
 def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
 λ i j, M (sum.inl i) (sum.inr j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom left" submatrix. -/
 def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
 λ i j, M (sum.inr i) (sum.inl j)
 
-/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom right" submatrix. -/
 def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
 λ i j, M (sum.inr i) (sum.inr j)
@@ -1031,6 +1031,31 @@ lemma from_blocks_transpose
 begin
   ext i j, rcases i; rcases j; simp [from_blocks],
 end
+
+/-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
+  `to_block M p q` is the corresponding block matrix. -/
+def to_block (M : matrix m n α) (p : m → Prop) [decidable_pred p]
+  (q : n → Prop) [decidable_pred q] : matrix {a // p a} {a // q a} α := λ i j, M ↑i ↑j
+
+@[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) [decidable_pred p]
+  (q : n → Prop) [decidable_pred q] (i : {a // p a}) (j : {a // q a}) :
+  to_block M p q i j = M ↑i ↑j := rfl
+
+/-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
+  `to_square_block M b k` is the block `k` matrix. -/
+def to_square_block (M : matrix m m α) (b : m → ℕ) (k : ℕ) :
+  matrix {a // b a = k} {a // b a = k} α := λ i j, M ↑i ↑j
+
+@[simp] lemma to_square_block_def (M : matrix m m α) (b : m → ℕ) (k : ℕ) :
+  to_square_block M b k = λ i j, M ↑i ↑j := rfl
+
+/-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
+  `to_square_block M p` is the corresponding block matrix. -/
+def to_square_block' (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  matrix {a // p a} {a // p a} α := λ i j, M ↑i ↑j
+
+@[simp] lemma to_square_block_def' (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  to_square_block' M p = λ i j, M ↑i ↑j := rfl
 
 variables [semiring α]
 

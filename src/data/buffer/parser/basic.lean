@@ -80,8 +80,12 @@ A `parser a` is defined to be `bounded` if it produces a
 `fail` `parse_result` when it is parsing outside the provided `char_buffer`.
 -/
 class bounded : Prop :=
-(le' : ∀ {cb : char_buffer} {n : ℕ}, cb.size ≤ n → ∃ (n' : ℕ) (err : dlist string),
+(ex' : ∀ {cb : char_buffer} {n : ℕ}, cb.size ≤ n → ∃ (n' : ℕ) (err : dlist string),
   p cb n = fail n' err)
+
+lemma bounded.exists {p : parser α} (hp : p.bounded) {cb : char_buffer} {n : ℕ} (h : cb.size ≤ n) :
+  ∃ (n' : ℕ) (err : dlist string), p cb n = fail n' err :=
+bounded.ex' h
 
 /--
 A `parser a` is defined to be `unfailing` if it always produces a `done` `parse_result`.
@@ -94,8 +98,7 @@ A `parser a` is defined to be `conditionally_unfailing` if it produces a
 `done` `parse_result` as long as it is parsing within the provided `char_buffer`.
 -/
 class conditionally_unfailing : Prop :=
-(lt' : ∀ {cb : char_buffer} {n : ℕ}, n < cb.size → ∃ (n' : ℕ) (a : α), p cb n = done n' a)
-
+(ex' : ∀ {cb : char_buffer} {n : ℕ}, n < cb.size → ∃ (n' : ℕ) (a : α), p cb n = done n' a)
 
 lemma fail_iff :
   (∀ pos' result, p cb n ≠ done pos' result) ↔
@@ -114,31 +117,47 @@ by simpa [h] using hp.le cb n
 lemma mono.of_fail [hp : p.mono] (h : p cb n = fail n' err) : n ≤ n' :=
 by simpa [h] using hp.le cb n
 
-lemma unfailing.of_fail [p.unfailing] (h : p cb n = fail n' err) : false :=
+lemma bounded.of_done [hp : p.bounded] (h : p cb n = done n' a) : n < cb.size :=
 begin
+  contrapose! h,
+  obtain ⟨np, err, hp⟩ := hp.exists h,
+  simp [hp]
 end
 
 lemma exists_done (p : parser α) [p.unfailing] (cb : char_buffer) (n : ℕ) :
   ∃ (n' : ℕ) (a : α), p cb n = done n' a :=
 unfailing.ex' cb n
 
+lemma unfailing.of_fail [p.unfailing] (h : p cb n = fail n' err) : false :=
+begin
+  obtain ⟨np, a, hp⟩ := p.exists_done cb n,
+  simpa [hp] using h
+end
+
 instance conditionally_unfailing_of_unfailing [p.unfailing] : conditionally_unfailing p :=
-⟨λ _ _ _ _ _ h, unfailing.of_fail h⟩
+⟨λ _ _ _, p.exists_done _ _⟩
+
+lemma exists_done_in_bounds (p : parser α) [p.conditionally_unfailing] {cb : char_buffer} {n : ℕ}
+  (h : n < cb.size) : ∃ (n' : ℕ) (a : α), p cb n = done n' a :=
+conditionally_unfailing.ex' h
 
 lemma conditionally_unfailing.of_fail [p.conditionally_unfailing] (h : p cb n = fail n' err)
   (hn : n < cb.size) : false :=
-conditionally_unfailing.ne' hn h
+begin
+  obtain ⟨np, a, hp⟩ := p.exists_done_in_bounds hn,
+  simpa [hp] using h
+end
 
-lemma prog.of_done [p.prog] (h : p cb n = done n' a) : n < n' := prog.lt' h
+-- lemma prog.of_done [p.prog] (h : p cb n = done n' a) : n < n' := prog.lt' h
 
-lemma bounded.of_done [p.bounded] (h : p cb n = done n' a) : n < cb.size :=
-by { by_contra hn, exact bounded.ne' (le_of_not_lt hn) h }
+-- lemma bounded.of_done [p.bounded] (h : p cb n = done n' a) : n < cb.size :=
+-- by { by_contra hn, exact bounded.ne' (le_of_not_lt hn) h }
 
-lemma static.of_done [p.static] (h : p cb n = done n' a) : n = n' :=
-static.eq' h
+-- lemma static.of_done [p.static] (h : p cb n = done n' a) : n = n' :=
+-- static.eq' h
 
-lemma err_static.of_fail [p.err_static] (h : p cb n = fail n' err) : n = n' :=
-err_static.eq' h
+-- lemma err_static.of_fail [p.err_static] (h : p cb n = fail n' err) : n = n' :=
+-- err_static.eq' h
 
 lemma decorate_errors_fail (h : p cb n = fail n' err) :
   @decorate_errors α msgs p cb n = fail n ((dlist.lazy_of_list (msgs ()))) :=

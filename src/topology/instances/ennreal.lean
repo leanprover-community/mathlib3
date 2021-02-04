@@ -769,7 +769,7 @@ than the series of `g`. -/
 lemma tsum_lt_of_nonneg {i : ℕ} {f g : ℕ → ℝ}
   (h0 : ∀ (b : ℕ), 0 ≤ f b) (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i) (hg : summable g) :
   ∑' n, f n < ∑' n, g n :=
-tsum_lt h hi (summable_of_nonneg_of_le h0 h hg) hg
+tsum_lt_tsum h hi (summable_of_nonneg_of_le h0 h hg) hg
 
 section
 variables [emetric_space β]

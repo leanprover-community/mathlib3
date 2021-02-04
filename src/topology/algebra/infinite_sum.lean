@@ -905,7 +905,7 @@ end
 /-- Let `f, g : ℕ → ℝ` be two sequences with summable series.  If `f` is dominated by `g` and
 at least one term of `f` is strictly smaller than the corresponding term in `g`, then the series
 of `f` is strictly smaller than the series of `g`. -/
-lemma tsum_lt {i : ℕ} {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i)
+lemma tsum_lt_tsum {i : ℕ} {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i)
   (hf : summable f) (hg : summable g) :
   ∑' n, f n < ∑' n, g n :=
 begin

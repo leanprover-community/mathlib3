@@ -832,8 +832,8 @@ by rw [← measure_univ_eq_zero, restrict_apply_univ]
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
 
-lemma eq_restrict_of_measurable_subset (ht : measurable_set t) (t_subset : t ⊆ s) :
-  μ t = μ.restrict s t :=
+lemma restrict_eq_self_of_measurable_subset (ht : measurable_set t) (t_subset : t ⊆ s) :
+  μ.restrict s t = μ t :=
 by rw [measure.restrict_apply ht, set.inter_eq_self_of_subset_left t_subset]
 
 lemma restrict_union_apply (h : disjoint (t ∩ s) (t ∩ s')) (hs : measurable_set s)
@@ -1001,14 +1001,15 @@ begin
     outer_measure.restrict_apply]
 end
 
-/-- Alternate version of `measure.restrict_apply`.
-  Requires that `s` is measurable instead of `t`. -/
+/-- If `s` is a measurable set, then the measure of `t` restricted to `s` equals the measure of
+`t ∩ s`. This is an alternate version of `measure.restrict_apply`, requiring that `s` is measurable
+instead of `t`. -/
 lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
 by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
       outer_measure.restrict_apply s t _, coe_to_outer_measure]
 
-lemma eq_restrict_of_subset_of_measurable (hs : measurable_set s) (t_subset : t ⊆ s) :
-  μ t = μ.restrict s t :=
+lemma restrict_eq_self_of_subset_of_measurable (hs : measurable_set s) (t_subset : t ⊆ s) :
+  μ.restrict s t = μ t :=
 by rw [restrict_apply' hs, set.inter_eq_self_of_subset_left t_subset]
 
 /-! ### Extensionality results -/

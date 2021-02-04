@@ -109,18 +109,18 @@ begin
       apply generate_from_le; rintro _ ⟨s, hs, rfl⟩,
     { rcases hD with ⟨t, h1t, h2t⟩,
       rw [← prod_univ, ← h2t, prod_Union],
-      apply is_measurable.Union,
-      intro n, apply is_measurable_generate_from,
+      apply measurable_set.Union,
+      intro n, apply measurable_set_generate_from,
       exact ⟨s, t n, hs, h1t n, rfl⟩ },
     { rcases hC with ⟨t, h1t, h2t⟩,
       rw [← univ_prod, ← h2t, Union_prod],
-      apply is_measurable.Union,
-      rintro n, apply is_measurable_generate_from,
+      apply measurable_set.Union,
+      rintro n, apply measurable_set_generate_from,
       exact mem_image2_of_mem (h1t n) hs } },
   { apply generate_from_le, rintro _ ⟨s, t, hs, ht, rfl⟩, rw [prod_eq],
     apply (measurable_fst _).inter (measurable_snd _),
-    { exact is_measurable_generate_from hs },
-    { exact is_measurable_generate_from ht } }
+    { exact measurable_set_generate_from hs },
+    { exact measurable_set_generate_from ht } }
 end
 
 /-- If `C` and `D` generate the σ-algebras on `α` resp. `β`, then rectangles formed by `C` and `D`
@@ -133,20 +133,20 @@ by rw [← hC, ← hD, generate_from_prod_eq h2C h2D]
 /-- The product σ-algebra is generated from boxes, i.e. `s.prod t` for sets `s : set α` and
   `t : set β`. -/
 lemma generate_from_prod :
-  generate_from (image2 set.prod { s : set α | is_measurable s } { t : set β | is_measurable t }) =
+  generate_from (image2 set.prod {s : set α | measurable_set s} {t : set β | measurable_set t}) =
   prod.measurable_space :=
-generate_from_eq_prod generate_from_is_measurable generate_from_is_measurable
-  is_countably_spanning_is_measurable is_countably_spanning_is_measurable
+generate_from_eq_prod generate_from_measurable_set generate_from_measurable_set
+  is_countably_spanning_measurable_set is_countably_spanning_measurable_set
 
 /-- Rectangles form a π-system. -/
 lemma is_pi_system_prod :
-  is_pi_system (image2 set.prod { s : set α | is_measurable s } { t : set β | is_measurable t }) :=
-is_pi_system_is_measurable.prod is_pi_system_is_measurable
+  is_pi_system (image2 set.prod {s : set α | measurable_set s} {t : set β | measurable_set t}) :=
+is_pi_system_measurable_set.prod is_pi_system_measurable_set
 
 /-- If `ν` is a finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
   a measurable function. `measurable_measure_prod_mk_left` is strictly more general. -/
 lemma measurable_measure_prod_mk_left_finite [finite_measure ν] {s : set (α × β)}
-  (hs : is_measurable s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
+  (hs : measurable_set s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
 begin
   refine induction_on_inter generate_from_prod.symm is_pi_system_prod _ _ _ _ hs,
   { simp [measurable_zero, const_def] },
@@ -165,9 +165,9 @@ end
 /-- If `ν` is a σ-finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
   a measurable function. -/
 lemma measurable_measure_prod_mk_left [sigma_finite ν] {s : set (α × β)}
-  (hs : is_measurable s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
+  (hs : measurable_set s) : measurable (λ x, ν (prod.mk x ⁻¹' s)) :=
 begin
-  have : ∀ x, is_measurable (prod.mk x ⁻¹' s) := λ x, measurable_prod_mk_left hs,
+  have : ∀ x, measurable_set (prod.mk x ⁻¹' s) := λ x, measurable_prod_mk_left hs,
   simp only [← @supr_restrict_spanning_sets _ _ ν, this],
   apply measurable_supr, intro i,
   haveI : fact _ := measure_spanning_sets_lt_top ν i,
@@ -177,8 +177,8 @@ end
 /-- If `μ` is a σ-finite measure, and `s ⊆ α × β` is measurable, then `y ↦ μ { x | (x, y) ∈ s }` is
   a measurable function. -/
 lemma measurable_measure_prod_mk_right {μ : measure α} [sigma_finite μ] {s : set (α × β)}
-  (hs : is_measurable s) : measurable (λ y, μ ((λ x, (x, y)) ⁻¹' s)) :=
-measurable_measure_prod_mk_left (is_measurable_swap_iff.mpr hs)
+  (hs : measurable_set s) : measurable (λ y, μ ((λ x, (x, y)) ⁻¹' s)) :=
+measurable_measure_prod_mk_left (measurable_set_swap_iff.mpr hs)
 
 lemma measurable.map_prod_mk_left [sigma_finite ν] : measurable (λ x : α, map (prod.mk x) ν) :=
 begin
@@ -234,11 +234,11 @@ lemma measurable.lintegral_prod_left [sigma_finite μ] {f : α → β → ennrea
   (hf : measurable (uncurry f)) : measurable (λ y, ∫⁻ x, f x y ∂μ) :=
 hf.lintegral_prod_left'
 
-lemma is_measurable_integrable [sigma_finite ν] [opens_measurable_space E] ⦃f : α → β → E⦄
-  (hf : measurable (uncurry f)) : is_measurable { x | integrable (f x) ν } :=
+lemma measurable_set_integrable [sigma_finite ν] [opens_measurable_space E] ⦃f : α → β → E⦄
+  (hf : measurable (uncurry f)) : measurable_set { x | integrable (f x) ν } :=
 begin
   simp_rw [integrable, hf.of_uncurry_left.ae_measurable, true_and],
-  exact is_measurable_lt (measurable.lintegral_prod_right hf.ennnorm) measurable_const
+  exact measurable_set_lt (measurable.lintegral_prod_right hf.ennnorm) measurable_const
 end
 
 section
@@ -256,7 +256,7 @@ begin
   let f' : ℕ → α → E := λ n, {x | integrable (f x) ν}.indicator
     (λ x, (s' n x).integral ν),
   have hf' : ∀ n, measurable (f' n),
-  { intro n, refine measurable.indicator _ (is_measurable_integrable hf),
+  { intro n, refine measurable.indicator _ (measurable_set_integrable hf),
     have : ∀ x, (s' n x).range.filter (λ x, x ≠ 0) ⊆ (s n).range,
     { intros x, refine finset.subset.trans (finset.filter_subset _ _) _, intro y,
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
@@ -265,7 +265,7 @@ begin
     refine (measurable.to_real _).smul measurable_const,
     simp only [simple_func.coe_comp, preimage_comp] {single_pass := tt},
     apply measurable_measure_prod_mk_left,
-    exact (s n).is_measurable_fiber x },
+    exact (s n).measurable_set_fiber x },
   have h2f' : tendsto f' at_top (𝓝 (λ (x : α), ∫ (y : β), f x y ∂ν)),
   { rw [tendsto_pi], intro x,
     by_cases hfx : integrable (f x) ν,
@@ -320,15 +320,15 @@ instance prod.measure_space {α β} [measure_space α] [measure_space β] : meas
 
 variables {μ ν} [sigma_finite ν]
 
-lemma prod_apply {s : set (α × β)} (hs : is_measurable s) :
+lemma prod_apply {s : set (α × β)} (hs : measurable_set s) :
   μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ :=
 by simp_rw [measure.prod, bind_apply hs measurable.map_prod_mk_left,
   map_apply measurable_prod_mk_left hs]
 
 @[simp] lemma prod_prod {s : set α} {t : set β}
-  (hs : is_measurable s) (ht : is_measurable t) : μ.prod ν (s.prod t) = μ s * ν t :=
+  (hs : measurable_set s) (ht : measurable_set t) : μ.prod ν (s.prod t) = μ s * ν t :=
 by simp_rw [prod_apply (hs.prod ht), mk_preimage_prod_right_eq_if, measure_if,
-  lintegral_indicator _ hs, lintegral_const, restrict_apply is_measurable.univ,
+  lintegral_indicator _ hs, lintegral_const, restrict_apply measurable_set.univ,
   univ_inter, mul_comm]
 
 local attribute [instance] nonempty_measurable_superset
@@ -336,9 +336,9 @@ local attribute [instance] nonempty_measurable_superset
 lemma prod_prod_le (s : set α) (t : set β) : μ.prod ν (s.prod t) ≤ μ s * ν t :=
 begin
   by_cases hs0 : μ s = 0,
-  { rcases (exists_is_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
+  { rcases (exists_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
     convert measure_mono (prod_mono hs' (subset_univ _)),
-    simp_rw [hs0, prod_prod h2s' is_measurable.univ, h3s', zero_mul] },
+    simp_rw [hs0, prod_prod h2s' measurable_set.univ, h3s', zero_mul] },
   by_cases hti : ν t = ⊤,
   { convert le_top, simp_rw [hti, ennreal.mul_top, hs0, if_false] },
   rw [measure_eq_infi' μ],
@@ -347,9 +347,9 @@ begin
   rintro ⟨s', h1s', h2s'⟩,
   rw [subtype.coe_mk],
   by_cases ht0 : ν t = 0,
-  { rcases (exists_is_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
+  { rcases (exists_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
     convert measure_mono (prod_mono (subset_univ _) ht'),
-    simp_rw [ht0, prod_prod is_measurable.univ h2t', h3t', mul_zero] },
+    simp_rw [ht0, prod_prod measurable_set.univ h2t', h3t', mul_zero] },
   by_cases hsi : μ s' = ⊤,
   { convert le_top, simp_rw [hsi, ennreal.top_mul, ht0, if_false] },
   rw [measure_eq_infi' ν],
@@ -360,12 +360,12 @@ begin
   simp [prod_prod h2s' h2t'],
 end
 
-lemma ae_measure_lt_top {s : set (α × β)} (hs : is_measurable s)
+lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
   (h2s : (μ.prod ν) s < ⊤) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ⊤ :=
 by { simp_rw [prod_apply hs] at h2s, refine ae_lt_top (measurable_measure_prod_mk_left hs) h2s }
 
 lemma integrable_measure_prod_mk_left {s : set (α × β)}
-  (hs : is_measurable s) (h2s : (μ.prod ν) s < ⊤) :
+  (hs : measurable_set s) (h2s : (μ.prod ν) s < ⊤) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
   refine ⟨(measurable_measure_prod_mk_left hs).to_real.ae_measurable, _⟩,
@@ -378,7 +378,7 @@ end
 /-- Note: the assumption `hs` cannot be dropped. For a counterexample, see
   Walter Rudin *Real and Complex Analysis*, example (c) in section 8.9. -/
 lemma measure_prod_null {s : set (α × β)}
-  (hs : is_measurable s) : μ.prod ν s = 0 ↔ (λ x, ν (prod.mk x ⁻¹' s)) =ᵐ[μ] 0 :=
+  (hs : measurable_set s) : μ.prod ν s = 0 ↔ (λ x, ν (prod.mk x ⁻¹' s)) =ᵐ[μ] 0 :=
 by simp_rw [prod_apply hs, lintegral_eq_zero_iff (measurable_measure_prod_mk_left hs)]
 
 /-- Note: the converse is not true without assuming that `s` is measurable. For a counterexample,
@@ -386,7 +386,7 @@ by simp_rw [prod_apply hs, lintegral_eq_zero_iff (measurable_measure_prod_mk_lef
 lemma measure_ae_null_of_prod_null {s : set (α × β)}
   (h : μ.prod ν s = 0) : (λ x, ν (prod.mk x ⁻¹' s)) =ᵐ[μ] 0 :=
 begin
-  obtain ⟨t, hst, mt, ht⟩ := exists_is_measurable_superset_of_null h,
+  obtain ⟨t, hst, mt, ht⟩ := exists_measurable_superset_of_null h,
   simp_rw [measure_prod_null mt] at ht,
   rw [eventually_le_antisymm_iff],
   exact ⟨eventually_le.trans_eq
@@ -403,7 +403,7 @@ measure_ae_null_of_prod_null h
 /-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
 def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (set β)}
   (hμ : μ.finite_spanning_sets_in C) (hν : ν.finite_spanning_sets_in D)
-  (hC : ∀ s ∈ C, is_measurable s) (hD : ∀ t ∈ D, is_measurable t) :
+  (hC : ∀ s ∈ C, measurable_set s) (hD : ∀ t ∈ D, measurable_set t) :
   (μ.prod ν).finite_spanning_sets_in (image2 set.prod C D) :=
 begin
   haveI := hν.sigma_finite hD,
@@ -417,14 +417,14 @@ end
 lemma prod_fst_absolutely_continuous : map prod.fst (μ.prod ν) ≪ μ :=
 begin
   refine absolutely_continuous.mk (λ s hs h2s, _),
-  simp_rw [map_apply measurable_fst hs, ← prod_univ, prod_prod hs is_measurable.univ],
+  simp_rw [map_apply measurable_fst hs, ← prod_univ, prod_prod hs measurable_set.univ],
   rw [h2s, zero_mul] -- for some reason `simp_rw [h2s]` doesn't work
 end
 
 lemma prod_snd_absolutely_continuous : map prod.snd (μ.prod ν) ≪ ν :=
 begin
   refine absolutely_continuous.mk (λ s hs h2s, _),
-  simp_rw [map_apply measurable_snd hs, ← univ_prod, prod_prod is_measurable.univ hs],
+  simp_rw [map_apply measurable_snd hs, ← univ_prod, prod_prod measurable_set.univ hs],
   rw [h2s, mul_zero] -- for some reason `simp_rw [h2s]` doesn't work
 end
 
@@ -443,10 +443,10 @@ lemma prod_eq_generate_from {μ : measure α} {ν : measure β} {C : set (set α
   {μν : measure (α × β)}
   (h₁ : ∀ (s ∈ C) (t ∈ D), μν (set.prod s t) = μ s * ν t) : μ.prod ν = μν :=
 begin
-  have h4C : ∀ (s : set α), s ∈ C → is_measurable s,
-  { intros s hs, rw [← hC], exact is_measurable_generate_from hs },
-  have h4D : ∀ (t : set β), t ∈ D → is_measurable t,
-  { intros t ht, rw [← hD], exact is_measurable_generate_from ht },
+  have h4C : ∀ (s : set α), s ∈ C → measurable_set s,
+  { intros s hs, rw [← hC], exact measurable_set_generate_from hs },
+  have h4D : ∀ (t : set β), t ∈ D → measurable_set t,
+  { intros t ht, rw [← hD], exact measurable_set_generate_from ht },
   refine (h3C.prod h3D h4C h4D).ext
     (generate_from_eq_prod hC hD h3C.is_countably_spanning h3D.is_countably_spanning).symm
     (h2C.prod h2D) _,
@@ -456,9 +456,9 @@ end
 
 /-- Measures on a product space are equal to the product measure if they are equal on rectangles. -/
 lemma prod_eq {μν : measure (α × β)}
-  (h : ∀ s t, is_measurable s → is_measurable t → μν (s.prod t) = μ s * ν t) : μ.prod ν = μν :=
-prod_eq_generate_from generate_from_is_measurable generate_from_is_measurable
-  is_pi_system_is_measurable is_pi_system_is_measurable
+  (h : ∀ s t, measurable_set s → measurable_set t → μν (s.prod t) = μ s * ν t) : μ.prod ν = μν :=
+prod_eq_generate_from generate_from_measurable_set generate_from_measurable_set
+  is_pi_system_measurable_set is_pi_system_measurable_set
   μ.to_finite_spanning_sets_in ν.to_finite_spanning_sets_in (λ s hs t ht, h s t hs ht)
 
 lemma prod_swap : map prod.swap (μ.prod ν) = ν.prod μ :=
@@ -468,7 +468,7 @@ begin
   simp_rw [map_apply measurable_swap (hs.prod ht), preimage_swap_prod, prod_prod ht hs, mul_comm]
 end
 
-lemma prod_apply_symm {s : set (α × β)} (hs : is_measurable s) :
+lemma prod_apply_symm {s : set (α × β)} (hs : measurable_set s) :
   μ.prod ν s = ∫⁻ y, μ ((λ x, (x, y)) ⁻¹' s) ∂ν :=
 by { rw [← prod_swap, map_apply measurable_swap hs],
      simp only [prod_apply (measurable_swap hs)], refl }
@@ -476,8 +476,8 @@ by { rw [← prod_swap, map_apply measurable_swap hs],
 lemma prod_assoc_prod [sigma_finite τ] :
   map measurable_equiv.prod_assoc ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
 begin
-  refine (prod_eq_generate_from generate_from_is_measurable generate_from_prod
-    is_pi_system_is_measurable is_pi_system_prod μ.to_finite_spanning_sets_in
+  refine (prod_eq_generate_from generate_from_measurable_set generate_from_prod
+    is_pi_system_measurable_set is_pi_system_prod μ.to_finite_spanning_sets_in
     (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in (λ _, id) (λ _, id)) _).symm,
   rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of_eq] at hs ht hu,
   simp_rw [map_apply (measurable_equiv.measurable _) (hs.prod (ht.prod hu)), prod_prod ht hu,
@@ -487,7 +487,7 @@ end
 
 /-! ### The product of specific measures -/
 
-lemma prod_restrict {s : set α} {t : set β} (hs : is_measurable s) (ht : is_measurable t) :
+lemma prod_restrict {s : set α} {t : set β} (hs : measurable_set s) (ht : measurable_set t) :
   (μ.restrict s).prod (ν.restrict t) = (μ.prod ν).restrict (s.prod t) :=
 begin
   refine prod_eq (λ s' t' hs' ht', _),

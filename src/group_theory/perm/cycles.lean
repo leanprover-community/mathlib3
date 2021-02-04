@@ -345,13 +345,9 @@ end
 lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
   (filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
 begin
-  rw nat.lt_sub_left_iff_add_lt,
-  apply nat.add_lt_of_lt_sub_right,
-  convert one_lt_nonfixed_point_card_of_ne_one h,
-  rw [nat.sub_eq_iff_eq_add, add_comm], swap, { apply card_le_of_subset, simp },
-  rw ← card_disjoint_union, swap, { rw [disjoint_iff_inter_eq_empty, filter_inter_filter_neg_eq] },
-  rw filter_union_filter_neg_eq,
-  refl
+  rw [nat.lt_sub_left_iff_add_lt, ← nat.lt_sub_right_iff_add_lt, ← finset.card_compl,
+    finset.compl_filter],
+  exact one_lt_nonfixed_point_card_of_ne_one h
 end
 
 end fixed_points

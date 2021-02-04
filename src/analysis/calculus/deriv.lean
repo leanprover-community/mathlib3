@@ -198,6 +198,8 @@ lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
   has_fderiv_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
 iff.rfl
 
+alias has_deriv_at_iff_has_fderiv_at ↔ has_deriv_at.has_fderiv_at _
+
 lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
 by { unfold deriv_within, rw fderiv_within_zero_of_not_differentiable_within_at, simp, assumption }
@@ -311,9 +313,9 @@ has_fderiv_at.differentiable_at h
 @[simp] lemma has_deriv_within_at_univ : has_deriv_within_at f f' univ x ↔ has_deriv_at f f' x :=
 has_fderiv_within_at_univ
 
-theorem has_deriv_at_unique
+theorem has_deriv_at.unique
   (h₀ : has_deriv_at f f₀' x) (h₁ : has_deriv_at f f₁' x) : f₀' = f₁' :=
-smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
+smul_right_one_eq_iff.mp $ h₀.has_fderiv_at.unique h₁
 
 lemma has_deriv_within_at_inter' (h : t ∈ 𝓝[s] x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
@@ -347,7 +349,7 @@ lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) : has_deri
 show has_fderiv_at _ _ _, by { convert h.has_fderiv_at, simp [deriv] }
 
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
-has_deriv_at_unique h.differentiable_at.has_deriv_at h
+h.differentiable_at.has_deriv_at.unique h
 
 lemma has_deriv_within_at.deriv_within
   (h : has_deriv_within_at f f' s x) (hxs : unique_diff_within_at 𝕜 s x) :
@@ -499,22 +501,22 @@ section continuous_linear_map
 /-! ### Derivative of continuous linear maps -/
 variables (e : 𝕜 →L[𝕜] F)
 
-lemma continuous_linear_map.has_deriv_at_filter : has_deriv_at_filter e (e 1) x L :=
+protected lemma continuous_linear_map.has_deriv_at_filter : has_deriv_at_filter e (e 1) x L :=
 e.has_fderiv_at_filter.has_deriv_at_filter
 
-lemma continuous_linear_map.has_strict_deriv_at : has_strict_deriv_at e (e 1) x :=
+protected lemma continuous_linear_map.has_strict_deriv_at : has_strict_deriv_at e (e 1) x :=
 e.has_strict_fderiv_at.has_strict_deriv_at
 
-lemma continuous_linear_map.has_deriv_at : has_deriv_at e (e 1) x :=
+protected lemma continuous_linear_map.has_deriv_at : has_deriv_at e (e 1) x :=
 e.has_deriv_at_filter
 
-lemma continuous_linear_map.has_deriv_within_at : has_deriv_within_at e (e 1) s x :=
+protected lemma continuous_linear_map.has_deriv_within_at : has_deriv_within_at e (e 1) s x :=
 e.has_deriv_at_filter
 
-@[simp] lemma continuous_linear_map.deriv : deriv e x = e 1 :=
+@[simp] protected lemma continuous_linear_map.deriv : deriv e x = e 1 :=
 e.has_deriv_at.deriv
 
-lemma continuous_linear_map.deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
+protected lemma continuous_linear_map.deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within e s x = e 1 :=
 e.has_deriv_within_at.deriv_within hxs
 
@@ -524,22 +526,22 @@ section linear_map
 /-! ### Derivative of bundled linear maps -/
 variables (e : 𝕜 →ₗ[𝕜] F)
 
-lemma linear_map.has_deriv_at_filter : has_deriv_at_filter e (e 1) x L :=
+protected lemma linear_map.has_deriv_at_filter : has_deriv_at_filter e (e 1) x L :=
 e.to_continuous_linear_map₁.has_deriv_at_filter
 
-lemma linear_map.has_strict_deriv_at : has_strict_deriv_at e (e 1) x :=
+protected lemma linear_map.has_strict_deriv_at : has_strict_deriv_at e (e 1) x :=
 e.to_continuous_linear_map₁.has_strict_deriv_at
 
-lemma linear_map.has_deriv_at : has_deriv_at e (e 1) x :=
+protected lemma linear_map.has_deriv_at : has_deriv_at e (e 1) x :=
 e.has_deriv_at_filter
 
-lemma linear_map.has_deriv_within_at : has_deriv_within_at e (e 1) s x :=
+protected lemma linear_map.has_deriv_within_at : has_deriv_within_at e (e 1) s x :=
 e.has_deriv_at_filter
 
-@[simp] lemma linear_map.deriv : deriv e x = e 1 :=
+@[simp] protected lemma linear_map.deriv : deriv e x = e 1 :=
 e.has_deriv_at.deriv
 
-lemma linear_map.deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
+protected lemma linear_map.deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within e s x = e 1 :=
 e.has_deriv_within_at.deriv_within hxs
 
@@ -549,15 +551,15 @@ section analytic
 
 variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ennreal}
 
-lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
+protected lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
   has_strict_deriv_at f (p 1 (λ _, 1)) x :=
 h.has_strict_fderiv_at.has_strict_deriv_at
 
-lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
+protected lemma has_fpower_series_at.has_deriv_at (h : has_fpower_series_at f p x) :
   has_deriv_at f (p 1 (λ _, 1)) x :=
 h.has_strict_deriv_at.has_deriv_at
 
-lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
+protected lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
   deriv f x = p 1 (λ _, 1) :=
 h.has_deriv_at.deriv
 
@@ -1518,7 +1520,7 @@ theorem not_differentiable_at_of_local_left_inverse_has_deriv_at_zero
 begin
   intro hg,
   have := (hf.comp a hg.has_deriv_at).congr_of_eventually_eq hfg.symm,
-  simpa using has_deriv_at_unique this (has_deriv_at_id a)
+  simpa using this.unique (has_deriv_at_id a)
 end
 
 end

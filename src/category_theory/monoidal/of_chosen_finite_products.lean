@@ -71,8 +71,8 @@ has_limit.mk ⟨binary_fan.swap (limit.cone (pair P Q)), (limit.is_limit (pair P
 
 /--
 Given a limit cone over `X` and `Y`, and another limit cone over `Y` and `X`, we can construct
-an isomorphism between the cone points. Relative to some fixed choice of limits cones for every pair,
-these isomorphisms constitute a braiding.
+an isomorphism between the cone points. Relative to some fixed choice of limits cones for every
+pair, these isomorphisms constitute a braiding.
 -/
 def binary_fan.braiding {X Y : C}
   {s : binary_fan X Y} (P : is_limit s) {t : binary_fan Y X} (Q : is_limit t) :

@@ -108,7 +108,7 @@ end
 
 theorem volume_region_between_eq_integral
   (hf : integrable_on f s μ) (hg : integrable_on g s μ)
-  (hs : is_measurable s) (hfg : ∀ x ∈ s, f x ≤ g x) :
+  (hs : is_measurable s) (hfg : ∀ x ∈ s, f x ≤ g x) : -- (hfg : f ≤ᵐ[μ.restrict s] g)
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
   have h : g - f =ᵐ[μ.restrict s] λ y, (λ x, nnreal.of_real (g x - f x)) y,
@@ -182,8 +182,9 @@ begin
   have H : ∀ {f : ℝ → ℝ}, continuous f → integrable_on f (Ioc (-r) r) :=
     λ f hc, (hc.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
   obtain ⟨hc1, hc2⟩ := ⟨(continuous_const.sub (continuous_pow 2)).sqrt, continuous_const.mul hc1⟩,
-  convert volume_region_between_eq_integral (H hc1.neg) (H hc1)
-    is_measurable_Ioc (λ x hx, le_trans (neg_nonpos.mpr (sqrt_nonneg _)) (sqrt_nonneg _)),
+  convert volume_region_between_eq_integral (H hc1.neg) (H hc1) is_measurable_Ioc
+    --(eventually_of_forall (λ u, neg_le_self (sqrt_nonneg _))),
+    (λ x hx, neg_le_self (sqrt_nonneg _)),
   simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul],
   rw [← integral_of_le, integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr.le)
       (((continuous_const.mul (continuous_arcsin.comp (continuous_id.div continuous_const

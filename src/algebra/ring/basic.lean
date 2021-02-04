@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
 Neil Strickland
 -/
+import data.multiset.basic
 import algebra.divisibility
 import data.set.basic
+
+
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -446,6 +449,29 @@ by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
 
 lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
 λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
+
+lemma prod_zero_iff_exists_zero {R : Type*} [comm_semiring R] [no_zero_divisors R] [nontrivial R] {s : multiset R} :
+  s.prod = 0 ↔ ∃ (r : R) (hr : r ∈ s), r = 0 := sorry,
+-- begin
+-- split, swap,
+--   { rintros ⟨r, hrs, hrz⟩,
+--     apply multiset.prod_eq_zero,
+--     rwa hrz at hrs },
+--   refine multiset.induction _ (λ a s ih, _) s,
+--   { rw multiset.prod_zero,
+--     intro habs,
+--     by_contra, from ne.elim (@one_ne_zero _ _ _) habs },
+--   { rw multiset.prod_cons,
+--     intro hprod,
+--     replace hprod := eq_zero_or_eq_zero_of_mul_eq_zero hprod,
+--     cases hprod with ha,
+--     { exact ⟨a, multiset.mem_cons_self a s, ha⟩ },
+--     { apply (ih hprod).imp _,
+--       rintros b ⟨hb₁, hb₂⟩,
+--       have this : ∃ (hr : b ∈ a ::ₘ s), b = 0,
+--       use multiset.mem_cons_of_mem hb₁,
+--       exacts [hb₂, this] } },
+-- end
 
 end comm_semiring
 

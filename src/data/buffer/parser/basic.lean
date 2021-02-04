@@ -628,6 +628,19 @@ lemma foldl_eq_fail {f : β → α → β} {p : parser α} {err : dlist string} 
     foldl_core f (f b a) p (cb.size - n) cb np = fail n' err) :=
 by simp [foldl, foldl_core_succ_eq_fail]
 
+lemma foldl_eq_fail_of_mono_at_end {f : β → α → β} {p : parser α} {err : dlist string}
+  [p.mono] (hc : cb.size ≤ n) : foldl f b p cb n = fail n' err ↔
+    n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
+begin
+  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  simp only [foldl, foldl_core_succ_eq_fail, this, and.left_comm, ne_iff_lt_iff_le, exists_eq_left,
+             exists_and_distrib_right, and.congr_left_iff, exists_and_distrib_left,
+             foldl_core_zero_eq_fail],
+  rintro (h | ⟨⟨a, h⟩, rfl⟩),
+  { exact mono.of_fail h },
+  { exact mono.of_done h }
+end
+
 lemma many_eq_done_nil {p : parser α} : many p cb n = done n' (@list.nil α) ↔ n = n' ∧
   ∃ (err), p cb n = fail n err ∨ ∃ (np : ℕ) (a : α), p cb n = done np a ∧
     foldr_core list.cons p [] (cb.size - n) cb np = fail n err :=

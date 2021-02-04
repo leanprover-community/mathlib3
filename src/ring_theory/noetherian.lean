@@ -238,6 +238,12 @@ begin
     exact ⟨t, ssup⟩, },
 end
 
+instance : is_compactly_generated (submodule R M) :=
+⟨λ s, ⟨(λ x, span R {x}) '' s, ⟨λ t ht, begin
+  rcases (set.mem_image _ _ _).1 ht with ⟨x, hx, rfl⟩,
+  apply singleton_span_is_compact_element,
+end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
+
 end submodule
 
 /--

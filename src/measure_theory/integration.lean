@@ -46,7 +46,7 @@ if every preimage `f ⁻¹' {x}` is measurable, and the range is finite. This st
 a function with these properties. -/
 structure {u v} simple_func (α : Type u) [measurable_space α] (β : Type v) :=
 (to_fun : α → β)
-(is_measurable_fiber' : ∀ x, is_measurable (to_fun ⁻¹' {x}))
+(measurable_set_fiber' : ∀ x, measurable_set (to_fun ⁻¹' {x}))
 (finite_range' : (set.range to_fun).finite)
 
 local infixr ` →ₛ `:25 := simple_func
@@ -65,8 +65,8 @@ coe_injective $ funext H
 
 lemma finite_range (f : α →ₛ β) : (set.range f).finite := f.finite_range'
 
-lemma is_measurable_fiber (f : α →ₛ β) (x : β) : is_measurable (f ⁻¹' {x}) :=
-f.is_measurable_fiber' x
+lemma measurable_set_fiber (f : α →ₛ β) (x : β) : measurable_set (f ⁻¹' {x}) :=
+f.measurable_set_fiber' x
 
 /-- Range of a simple function `α →ₛ β` as a `finset β`. -/
 protected def range (f : α →ₛ β) : finset β := f.finite_range.to_finset
@@ -101,7 +101,7 @@ f.range.exists_le.imp $ λ C, forall_range_iff.1
 
 /-- Constant function as a `simple_func`. -/
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
-⟨λ a, b, λ x, is_measurable.const _, finite_range_const⟩
+⟨λ a, b, λ x, measurable_set.const _, finite_range_const⟩
 
 instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
 
@@ -113,24 +113,24 @@ theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
   (const α b).range = {b} :=
 finset.coe_injective $ by simp
 
-lemma is_measurable_cut (r : α → β → Prop) (f : α →ₛ β)
-  (h : ∀b, is_measurable {a | r a b}) : is_measurable {a | r a (f a)} :=
+lemma measurable_set_cut (r : α → β → Prop) (f : α →ₛ β)
+  (h : ∀b, measurable_set {a | r a b}) : measurable_set {a | r a (f a)} :=
 begin
   have : {a | r a (f a)} = ⋃ b ∈ range f, {a | r a b} ∩ f ⁻¹' {b},
   { ext a,
     suffices : r a (f a) ↔ ∃ i, r a (f i) ∧ f a = f i, by simpa,
     exact ⟨λ h, ⟨a, ⟨h, rfl⟩⟩, λ ⟨a', ⟨h', e⟩⟩, e.symm ▸ h'⟩ },
   rw this,
-  exact is_measurable.bUnion f.finite_range.countable
-    (λ b _, is_measurable.inter (h b) (f.is_measurable_fiber _))
+  exact measurable_set.bUnion f.finite_range.countable
+    (λ b _, measurable_set.inter (h b) (f.measurable_set_fiber _))
 end
 
-theorem is_measurable_preimage (f : α →ₛ β) (s) : is_measurable (f ⁻¹' s) :=
-is_measurable_cut (λ _ b, b ∈ s) f (λ b, is_measurable.const (b ∈ s))
+theorem measurable_set_preimage (f : α →ₛ β) (s) : measurable_set (f ⁻¹' s) :=
+measurable_set_cut (λ _ b, b ∈ s) f (λ b, measurable_set.const (b ∈ s))
 
 /-- A simple function is measurable -/
 protected theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
-λ s _, is_measurable_preimage f s
+λ s _, measurable_set_preimage f s
 
 protected theorem ae_measurable [measurable_space β] {μ : measure α} (f : α →ₛ β) :
   ae_measurable f μ :=
@@ -138,46 +138,46 @@ f.measurable.ae_measurable
 
 protected lemma sum_measure_preimage_singleton (f : α →ₛ β) {μ : measure α} (s : finset β) :
   ∑ y in s, μ (f ⁻¹' {y}) = μ (f ⁻¹' ↑s) :=
-sum_measure_preimage_singleton _ (λ _ _, f.is_measurable_fiber _)
+sum_measure_preimage_singleton _ (λ _ _, f.measurable_set_fiber _)
 
 lemma sum_range_measure_preimage_singleton (f : α →ₛ β) (μ : measure α) :
   ∑ y in f.range, μ (f ⁻¹' {y}) = μ univ :=
 by rw [f.sum_measure_preimage_singleton, coe_range, preimage_range]
 
 /-- If-then-else as a `simple_func`. -/
-def piecewise (s : set α) (hs : is_measurable s) (f g : α →ₛ β) : α →ₛ β :=
+def piecewise (s : set α) (hs : measurable_set s) (f g : α →ₛ β) : α →ₛ β :=
 ⟨s.piecewise f g,
  λ x, by letI : measurable_space β := ⊤; exact
    f.measurable.piecewise hs g.measurable trivial,
  (f.finite_range.union g.finite_range).subset range_ite_subset⟩
 
-@[simp] theorem coe_piecewise {s : set α} (hs : is_measurable s) (f g : α →ₛ β) :
+@[simp] theorem coe_piecewise {s : set α} (hs : measurable_set s) (f g : α →ₛ β) :
   ⇑(piecewise s hs f g) = s.piecewise f g :=
 rfl
 
-theorem piecewise_apply {s : set α} (hs : is_measurable s) (f g : α →ₛ β) (a) :
+theorem piecewise_apply {s : set α} (hs : measurable_set s) (f g : α →ₛ β) (a) :
   piecewise s hs f g a = if a ∈ s then f a else g a :=
 rfl
 
-@[simp] lemma piecewise_compl {s : set α} (hs : is_measurable sᶜ) (f g : α →ₛ β) :
+@[simp] lemma piecewise_compl {s : set α} (hs : measurable_set sᶜ) (f g : α →ₛ β) :
   piecewise sᶜ hs f g = piecewise s hs.of_compl g f :=
 coe_injective $ by simp [hs]
 
-@[simp] lemma piecewise_univ (f g : α →ₛ β) : piecewise univ is_measurable.univ f g = f :=
+@[simp] lemma piecewise_univ (f g : α →ₛ β) : piecewise univ measurable_set.univ f g = f :=
 coe_injective $ by simp
 
-@[simp] lemma piecewise_empty (f g : α →ₛ β) : piecewise ∅ is_measurable.empty f g = g :=
+@[simp] lemma piecewise_empty (f g : α →ₛ β) : piecewise ∅ measurable_set.empty f g = g :=
 coe_injective $ by simp
 
 lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
   (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
-λ s hs, f.is_measurable_cut (λ a b, g b a ∈ s) $ λ b, hg b hs
+λ s hs, f.measurable_set_cut (λ a b, g b a ∈ s) $ λ b, hg b hs
 
 /-- If `f : α →ₛ β` is a simple function and `g : β → α →ₛ γ` is a family of simple functions,
 then `f.bind g` binds the first argument of `g` to `f`. In other words, `f.bind g a = g (f a) a`. -/
 def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
- λ c, f.is_measurable_cut (λ a b, g b a = c) $ λ b, (g b).is_measurable_preimage {c},
+ λ c, f.measurable_set_cut (λ a b, g b a = c) $ λ b, (g b).measurable_set_preimage {c},
  (f.finite_range.bUnion (λ b _, (g b).finite_range)).subset $
  by rintro _ ⟨a, rfl⟩; simp; exact ⟨a, a, rfl⟩⟩
 
@@ -213,7 +213,7 @@ map_preimage _ _ _
 def comp [measurable_space β] (f : β →ₛ γ) (g : α → β) (hgm : measurable g) : α →ₛ γ :=
 { to_fun := f ∘ g,
   finite_range' := f.finite_range.subset $ set.range_comp_subset_range _ _,
-  is_measurable_fiber' := λ z, hgm (f.is_measurable_fiber z) }
+  measurable_set_fiber' := λ z, hgm (f.measurable_set_fiber z) }
 
 @[simp] lemma coe_comp [measurable_space β] (f : β →ₛ γ) {g : α → β} (hgm : measurable g) :
   ⇑(f.comp g hgm) = f ∘ g :=
@@ -375,14 +375,14 @@ variables [has_zero β]
 /-- Restrict a simple function `f : α →ₛ β` to a set `s`. If `s` is measurable,
 then `f.restrict s a = if a ∈ s then f a else 0`, otherwise `f.restrict s = const α 0`. -/
 def restrict (f : α →ₛ β) (s : set α) : α →ₛ β :=
-if hs : is_measurable s then piecewise s hs f 0 else 0
+if hs : measurable_set s then piecewise s hs f 0 else 0
 
 theorem restrict_of_not_measurable {f : α →ₛ β} {s : set α}
-  (hs : ¬is_measurable s) :
+  (hs : ¬measurable_set s) :
   restrict f s = 0 :=
 dif_neg hs
 
-@[simp] theorem coe_restrict (f : α →ₛ β) {s : set α} (hs : is_measurable s) :
+@[simp] theorem coe_restrict (f : α →ₛ β) {s : set α} (hs : measurable_set s) :
   ⇑(restrict f s) = indicator s f :=
 by { rw [restrict, dif_pos hs], refl }
 
@@ -395,7 +395,7 @@ by simp [restrict]
 theorem map_restrict_of_zero [has_zero γ] {g : β → γ} (hg : g 0 = 0) (f : α →ₛ β) (s : set α) :
   (f.restrict s).map g = (f.map g).restrict s :=
 ext $ λ x,
-if hs : is_measurable s then by simp [hs, set.indicator_comp_of_zero hg]
+if hs : measurable_set s then by simp [hs, set.indicator_comp_of_zero hg]
 else by simp [restrict_of_not_measurable hs, hg]
 
 theorem map_coe_ennreal_restrict (f : α →ₛ ℝ≥0) (s : set α) :
@@ -406,32 +406,32 @@ theorem map_coe_nnreal_restrict (f : α →ₛ ℝ≥0) (s : set α) :
   (f.restrict s).map (coe : ℝ≥0 → ℝ) = (f.map coe).restrict s :=
 map_restrict_of_zero nnreal.coe_zero _ _
 
-theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a) :
+theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : measurable_set s) (a) :
   restrict f s a = if a ∈ s then f a else 0 :=
 by simp only [hs, coe_restrict]
 
-theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : is_measurable s)
+theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
 by simp [hs, indicator_preimage_of_not_mem _ _ ht]
 
-theorem restrict_preimage_singleton (f : α →ₛ β) {s : set α} (hs : is_measurable s)
+theorem restrict_preimage_singleton (f : α →ₛ β) {s : set α} (hs : measurable_set s)
   {r : β} (hr : r ≠ 0) : restrict f s ⁻¹' {r} = s ∩ f ⁻¹' {r} :=
 f.restrict_preimage hs hr.symm
 
-lemma mem_restrict_range {r : β} {s : set α} {f : α →ₛ β} (hs : is_measurable s) :
+lemma mem_restrict_range {r : β} {s : set α} {f : α →ₛ β} (hs : measurable_set s) :
   r ∈ (restrict f s).range ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
 by rw [← finset.mem_coe, coe_range, coe_restrict _ hs, mem_range_indicator]
 
 lemma mem_image_of_mem_range_restrict {r : β} {s : set α} {f : α →ₛ β}
   (hr : r ∈ (restrict f s).range) (h0 : r ≠ 0) :
   r ∈ f '' s :=
-if hs : is_measurable s then by simpa [mem_restrict_range hs, h0] using hr
+if hs : measurable_set s then by simpa [mem_restrict_range hs, h0] using hr
 else by { rw [restrict_of_not_measurable hs] at hr,
   exact (h0 $ eq_zero_of_mem_range_zero hr).elim }
 
 @[mono] lemma restrict_mono [preorder β] (s : set α) {f g : α →ₛ β} (H : f ≤ g) :
   f.restrict s ≤ g.restrict s :=
-if hs : is_measurable s then λ x, by simp only [coe_restrict _ hs, indicator_le_indicator (H x)]
+if hs : measurable_set s then λ x, by simp only [coe_restrict _ hs, indicator_le_indicator (H x)]
 else by simp only [restrict_of_not_measurable hs, le_refl]
 
 end restrict
@@ -457,7 +457,7 @@ begin
   funext k,
   rw [restrict_apply],
   refl,
-  exact (hf is_measurable_Ici)
+  exact (hf measurable_set_Ici)
 end
 
 lemma monotone_approx (i : ℕ → β) (f : α → β) : monotone (approx i f) :=
@@ -613,12 +613,12 @@ lemma lintegral_smul (f : α →ₛ ℝ≥0∞) (c : ℝ≥0∞) :
 lemma lintegral_sum {ι} (f : α →ₛ ℝ≥0∞) (μ : ι → measure α) :
   f.lintegral (measure.sum μ) = ∑' i, f.lintegral (μ i) :=
 begin
-  simp only [lintegral, measure.sum_apply, f.is_measurable_preimage, ← finset.tsum_subtype,
+  simp only [lintegral, measure.sum_apply, f.measurable_set_preimage, ← finset.tsum_subtype,
     ← ennreal.tsum_mul_left],
   apply ennreal.tsum_comm
 end
 
-lemma restrict_lintegral (f : α →ₛ ℝ≥0∞) {s : set α} (hs : is_measurable s) :
+lemma restrict_lintegral (f : α →ₛ ennreal) {s : set α} (hs : measurable_set s) :
   (restrict f s).lintegral μ = ∑ r in f.range, r * μ (f ⁻¹' {r} ∩ s) :=
 calc (restrict f s).lintegral μ = ∑ r in f.range, r * μ (restrict f s ⁻¹' {r}) :
   lintegral_eq_of_subset _ $ λ x hx, if hxs : x ∈ s
@@ -630,10 +630,10 @@ calc (restrict f s).lintegral μ = ∑ r in f.range, r * μ (restrict f s ⁻¹'
 
 lemma lintegral_restrict (f : α →ₛ ℝ≥0∞) (s : set α) (μ : measure α) :
   f.lintegral (μ.restrict s) = ∑ y in f.range, y * μ (f ⁻¹' {y} ∩ s) :=
-by simp only [lintegral, measure.restrict_apply, f.is_measurable_preimage]
+by simp only [lintegral, measure.restrict_apply, f.measurable_set_preimage]
 
-lemma restrict_lintegral_eq_lintegral_restrict (f : α →ₛ ℝ≥0∞) {s : set α}
-  (hs : is_measurable s) :
+lemma restrict_lintegral_eq_lintegral_restrict (f : α →ₛ ennreal) {s : set α}
+  (hs : measurable_set s) :
   (restrict f s).lintegral μ = f.lintegral (μ.restrict s) :=
 by rw [f.restrict_lintegral hs, lintegral_restrict]
 
@@ -647,9 +647,9 @@ end
 
 lemma const_lintegral_restrict (c : ℝ≥0∞) (s : set α) :
   (const α c).lintegral (μ.restrict s) = c * μ s :=
-by rw [const_lintegral, measure.restrict_apply is_measurable.univ, univ_inter]
+by rw [const_lintegral, measure.restrict_apply measurable_set.univ, univ_inter]
 
-lemma restrict_const_lintegral (c : ℝ≥0∞) {s : set α} (hs : is_measurable s) :
+lemma restrict_const_lintegral (c : ennreal) {s : set α} (hs : measurable_set s) :
   ((const α c).restrict s).lintegral μ = c * μ s :=
 by rw [restrict_lintegral_eq_lintegral_restrict _ hs, const_lintegral_restrict]
 
@@ -673,7 +673,7 @@ calc f.lintegral μ ≤ f.lintegral μ ⊔ g.lintegral μ : le_sup_left
   ... ≤ (f ⊔ g).lintegral μ : le_sup_lintegral _ _
   ... = g.lintegral μ : by rw [sup_of_le_right hfg]
   ... ≤ g.lintegral ν : finset.sum_le_sum $ λ y hy, ennreal.mul_left_mono $
-                          hμν _ (g.is_measurable_preimage _)
+                          hμν _ (g.measurable_set_preimage _)
 
 /-- `simple_func.lintegral` depends only on the measures of `f ⁻¹' {y}`. -/
 lemma lintegral_eq_of_measure_preimage [measurable_space β] {f : α →ₛ ℝ≥0∞} {g : β →ₛ ℝ≥0∞}
@@ -693,11 +693,11 @@ lemma lintegral_congr {f g : α →ₛ ℝ≥0∞} (h : f =ᵐ[μ] g) :
 lintegral_eq_of_measure_preimage $ λ y, measure_congr $
   eventually.set_eq $ h.mono $ λ x hx, by simp [hx]
 
-lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ℝ≥0∞) (g : β →ₛ ℝ≥0∞)
-  (m : α → β) (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, is_measurable s → μ' s = μ (m ⁻¹' s)) :
+lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ennreal) (g : β →ₛ ennreal)
+  (m : α → β) (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, measurable_set s → μ' s = μ (m ⁻¹' s)) :
   f.lintegral μ = g.lintegral μ' :=
 lintegral_eq_of_measure_preimage $ λ y,
-by { simp only [preimage, eq], exact (h (g ⁻¹' {y}) (g.is_measurable_preimage _)).symm }
+by { simp only [preimage, eq], exact (h (g ⁻¹' {y}) (g.measurable_set_preimage _)).symm }
 
 end measure
 
@@ -815,7 +815,7 @@ once we need them (for example it is only necessary to consider the case where `
 of a characteristic function, and that this multiple doesn't appear in the image of `f`) -/
 @[elab_as_eliminator]
 protected lemma induction {α γ} [measurable_space α] [add_monoid γ] {P : simple_func α γ → Prop}
-  (h_ind : ∀ c {s} (hs : is_measurable s),
+  (h_ind : ∀ c {s} (hs : measurable_set s),
     P (simple_func.piecewise s hs (simple_func.const _ c) (simple_func.const _ 0)))
   (h_sum : ∀ ⦃f g : simple_func α γ⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → P f → P g → P (f + g))
   (f : simple_func α γ) : P f :=
@@ -824,9 +824,9 @@ begin
   rw [← finset.coe_inj, finset.coe_sdiff, finset.coe_singleton, simple_func.coe_range] at h,
   revert s f h, refine finset.induction _ _,
   { intros f hf, rw [finset.coe_empty, diff_eq_empty, range_subset_singleton] at hf,
-    convert h_ind 0 is_measurable.univ, ext x, simp [hf] },
+    convert h_ind 0 measurable_set.univ, ext x, simp [hf] },
   { intros x s hxs ih f hf,
-    have mx := f.is_measurable_preimage {x},
+    have mx := f.measurable_set_preimage {x},
     let g := simple_func.piecewise (f ⁻¹' {x}) mx 0 f,
     have Pg : P g,
     { apply ih, simp only [g, simple_func.coe_piecewise, range_piecewise],
@@ -918,7 +918,7 @@ begin
     refine le_trans le_top (ge_of_eq $ (supr_eq_top _).2 $ λ b hb, _),
     obtain ⟨n, hn⟩ : ∃ n : ℕ, b < n * μ (φ ⁻¹' {⊤}), from exists_nat_mul_gt h_meas (ne_of_lt hb),
     use (const α (n : ℝ≥0)).restrict (φ ⁻¹' {⊤}),
-    simp only [lt_supr_iff, exists_prop, coe_restrict, φ.is_measurable_preimage, coe_const,
+    simp only [lt_supr_iff, exists_prop, coe_restrict, φ.measurable_set_preimage, coe_const,
       ennreal.coe_indicator, map_coe_ennreal_restrict, map_const, ennreal.coe_nat,
       restrict_const_lintegral],
     refine ⟨indicator_le (λ x hx, le_trans _ (hφ _)), hn⟩,
@@ -966,7 +966,7 @@ by { convert (monotone_lintegral μ).map_infi2_le f, ext1 a, simp only [infi_app
 lemma lintegral_mono_ae {f g : α → ℝ≥0∞} (h : ∀ᵐ a ∂μ, f a ≤ g a) :
   (∫⁻ a, f a ∂μ) ≤ (∫⁻ a, g a ∂μ) :=
 begin
-  rcases exists_is_measurable_superset_of_null h with ⟨t, hts, ht, ht0⟩,
+  rcases exists_measurable_superset_of_null h with ⟨t, hts, ht, ht0⟩,
   have : ∀ᵐ x ∂μ, x ∉ t := measure_zero_iff_ae_nmem.1 ht0,
   refine (supr_le $ assume s, supr_le $ assume hfs,
     le_supr_of_le (s.restrict tᶜ) $ le_supr_of_le _ _),
@@ -1028,9 +1028,9 @@ begin
   { assume r i j h,
     refine inter_subset_inter (subset.refl _) _,
     assume x hx, exact le_trans hx (h_mono h x) },
-  have h_meas : ∀n, is_measurable {a : α | ⇑(map c rs) a ≤ f n a} :=
-    assume n, is_measurable_le (simple_func.measurable _) (hf n),
-  calc (r:ℝ≥0∞) * (s.map c).lintegral μ = ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r}) :
+  have h_meas : ∀n, measurable_set {a : α | ⇑(map c rs) a ≤ f n a} :=
+    assume n, measurable_set_le (simple_func.measurable _) (hf n),
+  calc (r:ennreal) * (s.map c).lintegral μ = ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r}) :
       by rw [← const_mul_lintegral, eq_rs, simple_func.lintegral]
     ... ≤ ∑ r in (rs.map c).range, r * μ (⋃n, (rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
       le_of_eq (finset.sum_congr rfl $ assume x hx, by rw ← eq)
@@ -1039,8 +1039,8 @@ begin
         begin
           rw [measure_Union_eq_supr _ (directed_of_sup $ mono x), ennreal.mul_supr],
           { assume i,
-            refine ((rs.map c).is_measurable_preimage _).inter _,
-            exact hf i is_measurable_Ici }
+            refine ((rs.map c).measurable_set_preimage _).inter _,
+            exact hf i measurable_set_Ici }
         end)
     ... ≤ ⨆n, ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
       begin
@@ -1313,7 +1313,7 @@ lemma lintegral_rw₂ {f₁ f₁' : α → β} {f₂ f₂' : α → γ} (h₁ : 
   (∫⁻ a, g (f₁ a) (f₂ a) ∂μ) = (∫⁻ a, g (f₁' a) (f₂' a) ∂μ) :=
 lintegral_congr_ae $ h₁.mp $ h₂.mono $ λ _ h₂ h₁, by rw [h₁, h₂]
 
-@[simp] lemma lintegral_indicator (f : α → ℝ≥0∞) {s : set α} (hs : is_measurable s) :
+@[simp] lemma lintegral_indicator (f : α → ennreal) {s : set α} (hs : measurable_set s) :
   ∫⁻ a, s.indicator f a ∂μ = ∫⁻ a in s, f a ∂μ :=
 begin
   simp only [lintegral, ← restrict_lintegral_eq_lintegral_restrict _ hs, supr_subtype'],
@@ -1332,7 +1332,7 @@ end
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 begin
-  have : is_measurable {a : α | ε ≤ f a }, from hf is_measurable_Ici,
+  have : measurable_set {a : α | ε ≤ f a }, from hf measurable_set_Ici,
   rw [← simple_func.restrict_const_lintegral _ this, ← simple_func.lintegral_eq_lintegral],
   refine lintegral_mono (λ a, _),
   simp only [restrict_apply _ this],
@@ -1382,7 +1382,7 @@ by simp [pos_iff_ne_zero, hf, filter.eventually_eq, ae_iff, function.support]
 lemma lintegral_supr_ae {f : ℕ → α → ℝ≥0∞} (hf : ∀n, measurable (f n))
   (h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a) :
   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
-let ⟨s, hs⟩ := exists_is_measurable_superset_of_null
+let ⟨s, hs⟩ := exists_measurable_superset_of_null
                        (ae_iff.1 (ae_all_iff.2 h_mono)) in
 let g := λ n a, if a ∈ s then 0 else f n a in
 have g_eq_f : ∀ᵐ a ∂μ, ∀n, g n a = f n a,
@@ -1612,8 +1612,8 @@ end
 
 open measure
 
-lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, is_measurable (s i))
-  (hd : pairwise (disjoint on s)) (f : α → ℝ≥0∞) :
+lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable_set (s i))
+  (hd : pairwise (disjoint on s)) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
 
@@ -1646,8 +1646,8 @@ lemma lintegral_comp [measurable_space β] {f : β → ℝ≥0∞} {g : α → �
   (hf : measurable f) (hg : measurable g) : lintegral μ (f ∘ g) = ∫⁻ a, f a ∂(map g μ) :=
 (lintegral_map hf hg).symm
 
-lemma set_lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
-  {s : set β} (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
+lemma set_lintegral_map [measurable_space β] {f : β → ennreal} {g : α → β}
+  {s : set β} (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
 by rw [restrict_map hg hs, lintegral_map hf hg]
 
@@ -1682,7 +1682,7 @@ begin
   have : (f ⁻¹' {⊤}).indicator ⊤ ≤ f,
   { intro x, by_cases hx : x ∈ f ⁻¹' {⊤}; [simpa [hx], simp [hx]] },
   convert lintegral_mono this,
-  rw [lintegral_indicator _ (hf (is_measurable_singleton ⊤))], simp [ennreal.top_mul, preimage, h]
+  rw [lintegral_indicator _ (hf (measurable_set_singleton ⊤))], simp [ennreal.top_mul, preimage, h]
 end
 
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the
@@ -1690,7 +1690,7 @@ measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻
 def measure.with_density (μ : measure α) (f : α → ℝ≥0∞) : measure α :=
 measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, lintegral_Union hs hd _)
 
-@[simp] lemma with_density_apply (f : α → ℝ≥0∞) {s : set α} (hs : is_measurable s) :
+@[simp] lemma with_density_apply (f : α → ennreal) {s : set α} (hs : measurable_set s) :
   μ.with_density f s = ∫⁻ a in s, f a ∂μ :=
 measure.of_measurable_apply s hs
 
@@ -1708,9 +1708,9 @@ can be added once we need them (for example in `h_sum` it is only necessary to c
 a simple function with a multiple of a characteristic function and that the intersection
 of their images is a subset of `{0}`. -/
 @[elab_as_eliminator]
-theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ℝ≥0∞) → Prop}
-  (h_ind : ∀ (c : ℝ≥0∞) ⦃s⦄, is_measurable s → P (indicator s (λ _, c)))
-  (h_sum : ∀ ⦃f g : α → ℝ≥0∞⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
+theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
+  (h_ind : ∀ (c : ennreal) ⦃s⦄, measurable_set s → P (indicator s (λ _, c)))
+  (h_sum : ∀ ⦃f g : α → ennreal⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
     P f → P g → P (f + g))
   (h_supr : ∀ ⦃f : ℕ → α → ℝ≥0∞⦄ (hf : ∀n, measurable (f n)) (h_mono : monotone f)
     (hP : ∀ n, P (f n)), P (λ x, ⨆ n, f n x))

@@ -1366,10 +1366,6 @@ end semimodule
 end restrict_scalars
 
 namespace linear_map
-section extend_scalars
-/-! When `V` is an `R`-module and `W` is an `S`-module, where `S` is an algebra over `R`, then
-the collection of `R`-linear maps from `V` to `W` admits an `S`-module structure, given by
-multiplication in the target. -/
 
 variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
   (V : Type*) [add_comm_monoid V] [semimodule R V]
@@ -1379,16 +1375,4 @@ instance is_scalar_tower_extend_scalars :
   is_scalar_tower R S (V →ₗ[R] W) :=
 { smul_assoc := λ r s f, by simp only [(•), coe_mk, smul_assoc] }
 
-variables {R S V W}
-
-/-- When `f` is a linear map taking values in `S`, then `λb, f b • x` is a linear map. -/
-def smul_algebra_right (f : V →ₗ[R] S) (x : W) : V →ₗ[R] W :=
-{ to_fun := λb, f b • x,
-  map_add' := by simp [add_smul],
-  map_smul' := λ b y, by { simp [algebra.smul_def, ← smul_smul], } }
-
-@[simp] theorem smul_algebra_right_apply (f : V →ₗ[R] S) (x : W) (c : V) :
-  smul_algebra_right f x c = f c • x := rfl
-
-end extend_scalars
 end linear_map

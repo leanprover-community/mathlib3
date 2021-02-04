@@ -1140,23 +1140,23 @@ instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { norm_algebra_map_eq := by simp,
 .. algebra.id 𝕜}
 
-variables {𝕜'} [normed_algebra 𝕜 𝕜']
+variables (𝕜') [normed_algebra 𝕜 𝕜']
 include 𝕜
 
-@[simp] lemma normed_algebra.norm_one : ∥(1:𝕜')∥ = 1 :=
+lemma normed_algebra.norm_one : ∥(1:𝕜')∥ = 1 :=
 by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
 
 lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
-⟨normed_algebra.norm_one 𝕜⟩
+⟨normed_algebra.norm_one 𝕜 𝕜'⟩
 
 lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
 begin
   refine (norm_pos_iff.mp _).symm,
-  rw @normed_algebra.norm_one 𝕜, norm_num,
+  rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
 end
 
 lemma normed_algebra.nontrivial : nontrivial 𝕜' :=
-⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜⟩⟩
+⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜 𝕜'⟩⟩
 
 end normed_algebra
 

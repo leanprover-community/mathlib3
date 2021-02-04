@@ -170,7 +170,7 @@ open power_series
 open nat
 
 theorem bernoulli_power_series :
-(power_series.mk (λ n, ((bernoulli n) / (nat.factorial n) : ℚ))) * (power_series.exp ℚ - 1) =
+  (power_series.mk (λ n, ((bernoulli n) / (nat.factorial n) : ℚ))) * (power_series.exp ℚ - 1) =
   (X : power_series ℚ) * (exp ℚ) :=
 begin
   ext n,

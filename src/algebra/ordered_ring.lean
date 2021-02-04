@@ -351,6 +351,9 @@ begin
     exact add_le_mul₂ b2 hab.le }
 end
 
+lemma add_le_mul' (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ b * a :=
+(le_of_eq (add_comm _ _)).trans (add_le_mul b2 a2)
+
 section
 variables [nontrivial α]
 

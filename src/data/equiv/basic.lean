@@ -321,6 +321,18 @@ protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
 
+@[simp] lemma symm_preimage_preimage {α β} (e : α ≃ β) (s : set β) :
+  e.symm ⁻¹' (e ⁻¹' s) = s :=
+by ext; simp
+
+@[simp] lemma preimage_symm_preimage {α β} (e : α ≃ β) (s : set α) :
+  e ⁻¹' (e.symm ⁻¹' s) = s :=
+by ext; simp
+
+@[simp] lemma preimage_subset {α β} (e : α ≃ β) (s t : set β) : e ⁻¹' s ⊆ e ⁻¹' t ↔ s ⊆ t :=
+⟨by simpa using @set.preimage_mono _ _ e.symm (e ⁻¹' s) (e ⁻¹' t),
+ set.preimage_mono⟩
+
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (h : α → false) : α ≃ empty :=
 ⟨λ x, (h x).elim, λ e, e.rec _, λ x, (h x).elim, λ e, e.rec _⟩

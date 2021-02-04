@@ -44,8 +44,11 @@ def to_mul : additive α ≃ α := of_mul.symm
 
 @[simp] lemma to_mul_symm_eq : (@to_mul α).symm = of_mul := rfl
 
-@[ext] lemma ext {x y : additive α} : x.to_mul = y.to_mul → x = y :=
+@[ext] protected lemma ext {x y : additive α} : x.to_mul = y.to_mul → x = y :=
 to_mul.apply_eq_iff_eq.mp
+
+protected lemma ext_iff {x y : additive α} : x = y ↔ x.to_mul = y.to_mul :=
+⟨congr_arg _, additive.ext⟩
 
 end additive
 
@@ -62,8 +65,11 @@ def to_add : multiplicative α ≃ α := of_add.symm
 
 @[simp] lemma to_add_symm_eq : (@to_add α).symm = of_add := rfl
 
-@[ext] lemma ext {x y : multiplicative α} : x.to_add = y.to_add → x = y :=
+@[ext] protected lemma ext {x y : multiplicative α} : x.to_add = y.to_add → x = y :=
 to_add.apply_eq_iff_eq.mp
+
+protected lemma ext_iff {x y : multiplicative α} : x = y ↔ x.to_add = y.to_add :=
+⟨congr_arg _, multiplicative.ext⟩
 
 end multiplicative
 

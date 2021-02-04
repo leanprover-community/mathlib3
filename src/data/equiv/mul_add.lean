@@ -387,6 +387,17 @@ end group
 end equiv
 
 section type_tags
+open multiplicative additive
+
+/-- Add-isomorphism between `additive (multiplicative A)` and `A`. -/
+@[simps] def additive.to_mul_to_add [add_monoid A] : additive (multiplicative A) ≃+ A :=
+{ to_fun := to_add ∘ to_mul, inv_fun := of_mul ∘ of_add,
+  left_inv := λ _, by simp, right_inv := λ _, by simp, map_add' := by simp }
+
+/-- Mul-isomorphism between `multiplicative (additive G)` and `G`. -/
+@[simps] def multiplicative.to_add_to_mul [monoid G] : multiplicative (additive G) ≃* G :=
+{ to_fun := to_mul ∘ to_add, inv_fun := of_add ∘ of_mul,
+  left_inv := λ _, by simp, right_inv := λ _, by simp, map_mul' := by simp }
 
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
 @[simps {simp_rhs := tt}]

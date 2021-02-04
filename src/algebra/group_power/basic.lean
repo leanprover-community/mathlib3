@@ -41,7 +41,7 @@ universes u v w x y z u₁ u₂
 variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
   {R : Type u₁} {S : Type u₂}
 
-open multiplicative
+open multiplicative additive
 
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
@@ -192,6 +192,12 @@ by simpa [nsmul] using congr_arg to_add (pow_mul_comm (of_add a) m n)
 
 @[simp] theorem add_monoid_hom.map_nsmul (f : A →+ B) (a : A) (n : ℕ) : f (n •ℕ a) = n •ℕ f a :=
 by simpa [nsmul, -monoid_hom.map_pow] using congr_arg to_add (f.to_multiplicative.map_pow _ n)
+
+lemma to_mul_nsmul [monoid M] (a : additive M) (n : ℕ) :
+  to_mul (n •ℕ a) = to_mul a ^ n :=
+have ∀ a (n : ℕ), to_mul (to_add (a ^ n)) = to_mul (to_add a) ^ n,
+from (@to_add_to_mul M _).to_monoid_hom.map_pow,
+by simp [nsmul, this]
 
 theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
   ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=

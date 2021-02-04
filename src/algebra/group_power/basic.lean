@@ -287,6 +287,10 @@ infix ` •ℤ `:70 := gsmul
 
 @[simp] lemma group.gpow_eq_has_pow (a : G) (n : ℤ) : gpow a n = a ^ n := rfl
 
+lemma to_add_pow_gsmul (a : multiplicative A) (n : ℤ) :
+  to_add (a ^ n) = n •ℤ to_add a :=
+by simp [gsmul]
+
 section nat
 
 @[simp] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=

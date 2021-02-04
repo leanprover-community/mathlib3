@@ -283,3 +283,13 @@ def add_monoid_hom.to_multiplicative'' [add_monoid α] [monoid β] :
 def monoid_hom.to_additive'' [add_monoid α] [monoid β] :
   (multiplicative α →* β) ≃ (α →+ additive β) :=
 add_monoid_hom.to_multiplicative''.symm
+
+@[simp]
+lemma add_monoid_hom.to_multiplicative_conjugate [add_monoid α] [add_monoid β] (f : α →+ β) :
+  multiplicative.to_add ∘ f.to_multiplicative ∘ multiplicative.of_add = f :=
+by { ext, simp }
+
+@[simp]
+lemma monoid_hom.to_additive_conjugate [monoid α] [monoid β] (f : α →* β) :
+  additive.to_mul ∘ f.to_additive ∘ additive.of_mul = f :=
+by { ext, simp }

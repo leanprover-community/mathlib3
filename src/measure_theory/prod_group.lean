@@ -101,7 +101,7 @@ begin
 end
 
 lemma measure_null_of_measure_inv_null (hμ : is_mul_left_invariant μ)
-  {E : set G} (hE : is_measurable E) (h2E : μ ((λ x, x⁻¹) ⁻¹' E) = 0) : μ E = 0 :=
+  {E : set G} (hE : measurable_set E) (h2E : μ ((λ x, x⁻¹) ⁻¹' E) = 0) : μ E = 0 :=
 begin
   have hf : measurable (λ z : G × G, (z.2 * z.1, z.1⁻¹)) :=
   (measurable_snd.mul measurable_fst).prod_mk measurable_fst.inv,
@@ -112,7 +112,7 @@ begin
   convert lintegral_zero, ext1 x, refine measure_mono_null (inter_subset_right _ _) h2E
 end
 
-lemma measure_inv_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_measurable E) :
+lemma measure_inv_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E) :
   μ ((λ x, x⁻¹) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
   refine ⟨measure_null_of_measure_inv_null hμ hE, _⟩,
@@ -122,14 +122,14 @@ begin
   exact set.inv_inv
 end
 
-lemma measurable_measure_mul_right {E : set G} (hE : is_measurable E) :
+lemma measurable_measure_mul_right {E : set G} (hE : measurable_set E) :
   measurable (λ x, μ ((λ y, y * x) ⁻¹' E)) :=
 begin
   suffices :
     measurable (λ y, μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, (1, z.1 * z.2)) ⁻¹' set.prod univ E))),
   { convert this, ext1 x, congr' 1 with y : 1, simp },
   apply measurable_measure_prod_mk_right,
-  exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (is_measurable.univ.prod hE)
+  exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (measurable_set.univ.prod hE)
 end
 
 lemma lintegral_lintegral_mul_inv (hμ : is_mul_left_invariant μ) (hν : is_mul_left_invariant ν)
@@ -146,7 +146,7 @@ begin
   exact lintegral_map' (hf.mono' (map_prod_mul_inv_eq hμ hν).absolutely_continuous) h,
 end
 
-lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_measurable E)
+lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E)
   (y : G) : μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
   rw [← measure_inv_null hμ hE, ← hμ y⁻¹ (measurable_inv hE),
@@ -154,7 +154,7 @@ begin
   convert iff.rfl using 3, ext x, simp,
 end
 
-lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE : is_measurable E)
+lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E)
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null hμ hE y)).mpr h2E
 
@@ -172,7 +172,7 @@ lemma measure_lintegral_div_measure [t2_space G] (hμ : is_mul_left_invariant μ
   (f : G → ennreal) (hf : measurable f) :
   μ E * ∫⁻ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
-  have Em := hE.is_measurable,
+  have Em := hE.measurable_set,
   symmetry,
   set g := λ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E),
   have hg : measurable g := (hf.comp measurable_inv).ennreal_div
@@ -200,7 +200,7 @@ end
   `measure_theory.measure.haar_measure_unique` -/
 lemma measure_mul_measure_eq [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) (h2ν : regular ν) {E F : set G}
-  (hE : is_compact E) (hF : is_measurable F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=
+  (hE : is_compact E) (hF : measurable_set F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=
 begin
   have h1 := measure_lintegral_div_measure hν hν h2ν hE h2E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),

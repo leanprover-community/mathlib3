@@ -325,7 +325,7 @@ by { convert mul_lt_mul_left h, simp }
 @[simp] lemma zero_lt_mul_right (h : 0 < c) : 0 < b * c ↔ 0 < b :=
 by { convert mul_lt_mul_right h, simp }
 
-lemma add_le_mul₁ (a2 : 2 ≤ a) (ab : a ≤ b) : a + b ≤ a * b :=
+lemma add_le_mul_of_left_le_right (a2 : 2 ≤ a) (ab : a ≤ b) : a + b ≤ a * b :=
 have 0 < b, from
 calc 0 < 2 : zero_lt_two
    ... ≤ a : a2
@@ -334,7 +334,7 @@ calc a + b ≤ b + b : add_le_add_right ab b
        ... = 2 * b : (two_mul b).symm
        ... ≤ a * b : (mul_le_mul_right this).mpr a2
 
-lemma add_le_mul₂ (b2 : 2 ≤ b) (ba : b ≤ a) : a + b ≤ a * b :=
+lemma add_le_mul_of_right_le_left (b2 : 2 ≤ b) (ba : b ≤ a) : a + b ≤ a * b :=
 have 0 < a, from
 calc 0 < 2 : zero_lt_two
    ... ≤ b : b2
@@ -346,9 +346,8 @@ calc a + b ≤ a + a : add_le_add_left ba a
 lemma add_le_mul (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ a * b :=
 begin
   by_cases hab : a ≤ b,
-  { exact add_le_mul₁ a2 hab },
-  { push_neg at hab,
-    exact add_le_mul₂ b2 hab.le }
+  { exact add_le_mul_of_left_le_right a2 hab },
+  { exact add_le_mul_of_right_le_left b2 (le_of_not_le hab) }
 end
 
 section

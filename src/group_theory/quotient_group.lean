@@ -14,8 +14,11 @@ namespace quotient_group
 variables {G : Type u} [group G] (N : subgroup G) [nN : N.normal] {H : Type v} [group H]
 include nN
 
-@[to_additive quotient_add_group.add_group]
-instance : group (quotient N) :=
+-- Define the `div_inv_monoid` before the `group` structure,
+-- to make sure we have `inv` fully defined before we show `mul_left_inv`.
+-- TODO: is there a non-invasive way of defining this in one declaration?
+@[to_additive quotient_add_group.div_inv_monoid]
+instance : div_inv_monoid (quotient N) :=
 { one := (1 : G),
   mul := quotient.map₂' (*)
   (λ a₁ b₁ hab₁ a₂ b₂ hab₂,
@@ -34,9 +37,13 @@ instance : group (quotient N) :=
       show a⁻¹⁻¹ * b⁻¹ ∈ N,
       rw ← mul_inv_rev,
       exact N.inv_mem (nN.mem_comm hab)
-    end),
-  mul_left_inv := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (mul_left_inv a)) }
+    end) }
+
+@[to_additive quotient_add_group.add_group]
+instance : group (quotient N) :=
+{ mul_left_inv := λ a, quotient.induction_on' a
+    (λ a, congr_arg mk (mul_left_inv a)),
+ .. quotient.div_inv_monoid _ }
 
 /-- The group homomorphism from `G` to `G/N`. -/
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
@@ -59,7 +66,7 @@ omit nN
 instance {G : Type*} [comm_group G] (N : subgroup G) : comm_group (quotient N) :=
 { mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),
-  ..@quotient_group.group _ _ N N.normal_of_comm }
+  .. @quotient_group.quotient.group _ _ N N.normal_of_comm }
 
 include nN
 

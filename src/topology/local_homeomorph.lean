@@ -37,7 +37,7 @@ especially when restricting to subsets, as these should be open subsets.
 For design notes, see `local_equiv.lean`.
 -/
 
-open function set
+open function set filter
 open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -121,7 +121,7 @@ end
 
 lemma eventually_left_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   ∀ᶠ y in 𝓝 x, e.symm (e y) = y :=
-filter.eventually.mono (mem_nhds_sets e.open_source hx) e.left_inv'
+(e.open_source.eventually_mem hx).mono e.left_inv'
 
 lemma eventually_left_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
   ∀ᶠ y in 𝓝 (e.symm x), e.symm (e y) = y :=
@@ -129,11 +129,16 @@ e.eventually_left_inverse (e.map_target hx)
 
 lemma eventually_right_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
   ∀ᶠ y in 𝓝 x, e (e.symm y) = y :=
-filter.eventually.mono (mem_nhds_sets e.open_target hx) e.right_inv'
+(e.open_target.eventually_mem hx).mono e.right_inv'
 
 lemma eventually_right_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   ∀ᶠ y in 𝓝 (e x), e (e.symm y) = y :=
 e.eventually_right_inverse (e.map_source hx)
+
+lemma eventually_ne_nhds_within (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+  ∀ᶠ x' in 𝓝[{x}ᶜ] x, e x' ≠ e x :=
+eventually_nhds_within_iff.2 $ (e.eventually_left_inverse hx).mono $
+  λ x' hx', mt $ λ h, by rw [mem_singleton_iff, ← e.left_inv hx, ← h, hx']
 
 lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
   e '' s = e.target ∩ e.symm ⁻¹' s :=
@@ -175,8 +180,13 @@ lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x 
 e.symm.continuous_at h
 
 lemma tendsto_symm (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
-  filter.tendsto e.symm (𝓝 (e x)) (𝓝 x) :=
+  tendsto e.symm (𝓝 (e x)) (𝓝 x) :=
 by simpa only [continuous_at, e.left_inv hx] using e.continuous_at_symm (e.map_source hx)
+
+lemma map_nhds_eq (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+  map e (𝓝 x) = 𝓝 (e x) :=
+le_antisymm (e.continuous_at hx) $
+  le_map_of_right_inverse (e.eventually_right_inverse' hx) (e.tendsto_symm hx)
 
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
@@ -523,14 +533,15 @@ lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 
 @[simp, mfld_simps] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
-by ext x; simp [prod_coe_symm]
+rfl
 
 @[simp, mfld_simps] lemma prod_trans
   {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]
   (e : local_homeomorph α β) (f : local_homeomorph β γ)
   (e' : local_homeomorph δ η) (f' : local_homeomorph η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
-by ext x; simp [ext_iff]; tauto
+local_homeomorph.eq_of_local_equiv_eq $
+  by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
 
 end prod
 

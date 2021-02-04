@@ -18,7 +18,7 @@ The variable `n` can belong to any type `α`, with the following restrictions:
 * an instance of `decidable_eq α` is available,
 * an explicit lower bound can be found amongst the hypotheses, or from `bot_le n`,
 * an explicit upper bound can be found amongst the hypotheses, or from `le_top n`,
-* if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
+* if multiple bounds are located, an instance of `linear_order α` is available, and
 * an instance of `fintype set.Ico l u` is available for the relevant bounds.
 
 You can also explicitly specify a lower and upper bound to use, as `interval_cases using hl hu`.
@@ -189,7 +189,8 @@ an `Ico` interval corresponding to a lower and an upper bound.
 Here `hl` should be an expression of the form `a ≤ n`, for some explicit `a`, and
 `hu` should be of the form `n < b`, for some explicit `b`.
 
-By default `interval_cases_using` automatically generates a name for the new hypothesis. The name can be specified via the optional argument `n`.
+By default `interval_cases_using` automatically generates a name for the new hypothesis. The name
+can be specified via the optional argument `n`.
 -/
 meta def interval_cases_using (hl hu : expr) (n : option name) : tactic unit :=
 to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>=
@@ -227,10 +228,14 @@ in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ se
 You can specify a name `h` for the new hypothesis,
 as `interval_cases n with h` or `interval_cases n using hl hu with h`.
 -/
-meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) (lname : parse (tk "with" *> ident)?) : tactic unit :=
+meta def interval_cases (n : parse texpr?)
+  (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?)
+  (lname : parse (tk "with" *> ident)?) :
+  tactic unit :=
 do
   if h : n.is_some then (do
-    guard bounds.is_none <|> fail "Do not use the `using` keyword if specifying the variable explicitly.",
+    guard bounds.is_none <|>
+      fail "Do not use the `using` keyword if specifying the variable explicitly.",
     n ← to_expr (option.get h),
     (hl, hu) ← get_bounds n,
     tactic.interval_cases_using hl hu lname)
@@ -276,7 +281,7 @@ The variable `n` can belong to any type `α`, with the following restrictions:
 * an instance of `decidable_eq α` is available,
 * an explicit lower bound can be found amongst the hypotheses, or from `bot_le n`,
 * an explicit upper bound can be found amongst the hypotheses, or from `le_top n`,
-* if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
+* if multiple bounds are located, an instance of `linear_order α` is available, and
 * an instance of `fintype set.Ico l u` is available for the relevant bounds.
 -/
 add_tactic_doc

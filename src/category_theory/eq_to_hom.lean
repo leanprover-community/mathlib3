@@ -44,10 +44,12 @@ rfl
   eq_to_iso p ≪≫ eq_to_iso q = eq_to_iso (p.trans q) :=
 by ext; simp
 
-@[simp] lemma eq_to_hom_op {X Y : C} (h : X = Y) : (eq_to_hom h).op = eq_to_hom (congr_arg op h.symm) :=
+@[simp] lemma eq_to_hom_op {X Y : C} (h : X = Y) :
+  (eq_to_hom h).op = eq_to_hom (congr_arg op h.symm) :=
 by { cases h, refl, }
 
-@[simp] lemma eq_to_hom_unop {X Y : Cᵒᵖ} (h : X = Y) : (eq_to_hom h).unop = eq_to_hom (congr_arg unop h.symm) :=
+@[simp] lemma eq_to_hom_unop {X Y : Cᵒᵖ} (h : X = Y) :
+  (eq_to_hom h).unop = eq_to_hom (congr_arg unop h.symm) :=
 by { cases h, refl, }
 
 instance {X Y : C} (h : X = Y) : is_iso (eq_to_hom h) := { .. eq_to_iso h }

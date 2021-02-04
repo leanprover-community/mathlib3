@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Supplementary theorems about the `char` type.
 -/
 
-instance : decidable_linear_order char :=
+instance : linear_order char :=
 { le_refl := λ a, @le_refl ℕ _ _,
   le_trans := λ a b c, @le_trans ℕ _ _ _ _,
   le_antisymm := λ a b h₁ h₂,

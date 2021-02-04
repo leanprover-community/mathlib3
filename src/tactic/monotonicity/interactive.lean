@@ -440,7 +440,7 @@ do gs ← get_goals,
    tac, done,
    set_goals $ gs
 
-def list.minimum_on {α β} [decidable_linear_order β] (f : α → β) : list α → list α
+def list.minimum_on {α β} [linear_order β] (f : α → β) : list α → list α
 | [] := []
 | (x :: xs) := prod.snd $ xs.foldl (λ ⟨k,a⟩ b,
      let k' := f b in
@@ -526,7 +526,7 @@ meta def mono (many : parse (tk "*")?)
   tactic unit :=
 do hyps ← hyps.mmap (λ p, to_expr p >>= mk_meta_var),
    hyps.mmap' (λ pr, do h ← get_unused_name `h, note h none pr),
-   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none])),
+   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none]) >> skip),
    if many.is_some
      then repeat $ mono_aux dir
      else mono_aux dir,
@@ -549,7 +549,7 @@ associative operator and if the operator is commutative
 meta def ac_mono_aux (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 hide_meta_vars $ λ asms,
-do try `[dunfold has_sub.sub algebra.sub int.sub],
+do try `[simp only [sub_eq_add_neg]],
    tgt ← target >>= instantiate_mvars,
    (l,r,id_rs,g) ← ac_monotonicity_goal cfg tgt
              <|> fail "monotonic context not found",

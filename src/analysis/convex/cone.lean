@@ -189,19 +189,18 @@ ext' $ preimage_comp.symm
 @[simp] lemma mem_comap {f : E →ₗ[ℝ] F} {S : convex_cone F} {x : E} :
   x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 
--- We use `{ to_semimodule := ‹_›, .. }` to avoid making this definition noncomputable
 /--
 Constructs an ordered semimodule given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-def to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
+lemma to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
   (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
-{ .. (show ordered_semimodule ℝ M, from ordered_semimodule.mk'
-    begin
-      intros x y z xy hz,
-      rw [h (z • x) (z • y), ←smul_sub z y x],
-      exact smul_mem S hz ((h x y).mp (le_of_lt xy))
-    end) }
+ordered_semimodule.mk'
+begin
+  intros x y z xy hz,
+  rw [h (z • x) (z • y), ←smul_sub z y x],
+  exact smul_mem S hz ((h x y).mp (le_of_lt xy))
+end
 
 /-! ### Convex cones with extra properties -/
 
@@ -414,7 +413,7 @@ begin
       by simpa only [set.nonempty, upper_bounds, lower_bounds, ball_image_iff] using this,
     refine exists_between_of_forall_le (nonempty.image f _) (nonempty.image f (dense y)) _,
     { rcases (dense (-y)) with ⟨x, hx⟩,
-      rw [← neg_neg x, coe_neg] at hx,
+      rw [← neg_neg x, coe_neg, ← sub_eq_add_neg] at hx,
       exact ⟨_, hx⟩ },
     rintros a ⟨xn, hxn, rfl⟩ b ⟨xp, hxp, rfl⟩,
     have := s.add_mem hxp hxn,
@@ -526,7 +525,7 @@ begin
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),
-      rw [A, map_add, ← neg_le_iff_add_nonneg] at B,
+      rw [A, map_add, ← neg_le_iff_add_nonneg'] at B,
       have C := g_eq 0 (N x),
       simp only [submodule.coe_zero, f.map_zero, sub_zero] at C,
       rwa ← C } },

@@ -38,7 +38,7 @@ namespace units
 from `1` is a unit.  Here we construct its `units` structure.  -/
 def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 { val := 1 - t,
-  inv := ∑' (n : ℕ), t ^ n,
+  inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
 
@@ -103,9 +103,7 @@ lemma inverse_add (x : units R) :
 begin
   nontriviality R,
   rw [eventually_iff, mem_nhds_iff],
-  have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹,
-  { cancel_denoms,
-    exact x⁻¹.norm_pos },
+  have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
   use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
   intros t ht,
   simp only [mem_ball, dist_zero_right] at ht,
@@ -116,7 +114,7 @@ begin
     cancel_denoms },
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
-  simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add] at hright,
+  simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
   simp only [units.add_coe] at hleft,
   simp [hleft, hright, units.add]
 end
@@ -173,7 +171,7 @@ begin
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
   simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
-  change ∥(∑' (n : ℕ), t ^ n)∥ ≤ _,
+  change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
   { rw ← inv_inv' (2:ℝ),

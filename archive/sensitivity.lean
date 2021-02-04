@@ -10,6 +10,7 @@ import tactic.apply_fun
 import linear_algebra.finite_dimensional
 import linear_algebra.dual
 import analysis.normed_space.basic
+import data.real.sqrt
 
 /-!
 # Huang's sensitivity theorem
@@ -28,8 +29,8 @@ by Leonardo de Moura at Microsoft Research, and his collaborators
 and using Lean's user maintained mathematics library
 (https://github.com/leanprover-community/mathlib).
 
-The project was developed at https://github.com/leanprover-community/lean-sensitivity
-and is now archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
+The project was developed at https://github.com/leanprover-community/lean-sensitivity and is now
+archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
 
 /-! The next two lines assert we do not want to give a constructive proof,
@@ -177,7 +178,8 @@ noncomputable def e : Π {n}, Q n → V n
 /-- The dual basis to `e`, defined inductively. -/
 noncomputable def ε : Π {n : ℕ} (p : Q n), V n →ₗ[ℝ] ℝ
 | 0 _ := linear_map.id
-| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _) ((ε $ π p).comp $ linear_map.snd _ _ _)
+| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _)
+               ((ε $ π p).comp $ linear_map.snd _ _ _)
 
 variable {n : ℕ}
 
@@ -211,7 +213,8 @@ begin
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
     all_goals {
       specialize h q,
-      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|> rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
+      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|>
+        rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
       rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
 end
 
@@ -399,20 +402,32 @@ begin
 
   let coeffs := (dual_pair_e_ε (m+1)).coeffs,
   calc
-    s * (abs (ε q y))
-        = abs (ε q (s • y)) : by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
-    ... = abs (ε q (f (m+1) y)) : by rw [← f_image_g y (by simpa using y_mem_g)]
-    ... = abs (ε q (f (m+1) (lc _ (coeffs y)))) : by rw (dual_pair_e_ε _).decomposition y
-    ... = abs ((coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘ λ (i : Q (m + 1)), e i) i)): by
-                  { erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
-    ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| : norm_sum_le _ $ λ p, coeffs y p * _
-    ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0  : by simp only [abs_mul, f_matrix]
-    ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p|     : by simp [finset.sum_filter]
-    ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q|     : finset.sum_le_sum (λ p _, H_max p)
-    ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [finset.sum_const, nsmul_eq_mul]
-    ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by { congr' with x, simp, refl }
+    s * |ε q y|
+        = |ε q (s • y)| :
+      by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
+    ... = |ε q (f (m+1) y)| : by rw [← f_image_g y (by simpa using y_mem_g)]
+    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).decomposition y
+    ... = |(coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘
+            λ (i : Q (m + 1)), e i) i)| :
+      by erw [(f $ m + 1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply]
+    ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| :
+      norm_sum_le _ $ λ p, coeffs y p * _
+    ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0 :
+      by simp only [abs_mul, f_matrix]
+    ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p| :
+      by simp [finset.sum_filter]
+    ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q| :
+      finset.sum_le_sum (λ p _, H_max p)
+    ... = (((coeffs y).support.filter (Q.adjacent q)).card : ℝ) * |coeffs y q| :
+      by rw [finset.sum_const, nsmul_eq_mul]
+    ... = (((coeffs y).support ∩ (Q.adjacent q).to_finset).card : ℝ) * |coeffs y q| :
+      by { congr' with x, simp, refl }
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
-     (mul_le_mul_right H_q_pos).mpr (by {
-             norm_cast,
-             exact finset.card_le_of_subset (by rw set.to_finset_inter; convert finset.inter_subset_inter_right coeffs_support) })
+      begin
+        refine (mul_le_mul_right H_q_pos).2 _,
+        norm_cast,
+        apply finset.card_le_of_subset,
+        rw set.to_finset_inter,
+        convert finset.inter_subset_inter_right coeffs_support
+      end
 end

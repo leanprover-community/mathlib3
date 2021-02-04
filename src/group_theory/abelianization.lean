@@ -37,7 +37,7 @@ instance : comm_group (abelianization G) :=
     use b⁻¹, use a⁻¹,
     group,
   end,
-.. quotient_group.group _ }
+.. quotient_group.quotient.group _ }
 
 instance : inhabited (abelianization G) := ⟨1⟩
 
@@ -83,6 +83,8 @@ end lift
 
 variables {A : Type v} [monoid A]
 
+/-- See note [partially-applied ext lemmas]. -/
+@[ext]
 theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
 begin

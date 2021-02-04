@@ -18,12 +18,13 @@ for the values involved in the continued fractions computation `gcf.of`.
 ## Main Theorems
 
 - `gcf.of_part_num_eq_one`: shows that all partial numerators `aᵢ` are equal to one.
-- `gcf.exists_int_eq_of_part_denom`: shows that all partial denominators `bᵢ` correspond to an integer.
+- `gcf.exists_int_eq_of_part_denom`: shows that all partial denominators `bᵢ` correspond to an
+  integer.
 - `gcf.one_le_of_nth_part_denom`: shows that `1 ≤ bᵢ`.
-- `gcf.succ_nth_fib_le_of_nth_denom`: shows that the `n`th denominator `Bₙ` is greater than or equal to
-  the `n + 1`th fibonacci number `nat.fib (n + 1)`.
-- `gcf.le_of_succ_nth_denom`: shows that `Bₙ₊₁ ≥ bₙ * Bₙ`, where `bₙ` is the `n`th partial denominator
-  of the continued fraction.
+- `gcf.succ_nth_fib_le_of_nth_denom`: shows that the `n`th denominator `Bₙ` is greater than or equal
+  to the `n + 1`th fibonacci number `nat.fib (n + 1)`.
+- `gcf.le_of_succ_nth_denom`: shows that `Bₙ₊₁ ≥ bₙ * Bₙ`, where `bₙ` is the `n`th partial
+  denominator of the continued fraction.
 
 ## References
 
@@ -33,7 +34,7 @@ for the values involved in the continued fractions computation `gcf.of`.
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
-variables {K : Type*} {v : K} {n : ℕ} [discrete_linear_ordered_field K] [floor_ring K]
+variables {K : Type*} {v : K} {n : ℕ} [linear_ordered_field K] [floor_ring K]
 
 /-
 We begin with some lemmas about the stream of `int_fract_pair`s, which presumably are not

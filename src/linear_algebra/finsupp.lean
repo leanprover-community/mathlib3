@@ -40,7 +40,7 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 * `finsupp.dom_lcongr`: a `linear_equiv` version of `finsupp.dom_congr`;
 
 * `finsupp.congr`: if the sets `s` and `t` are equivalent, then `supported M R s` is equivalent to
-  `supported M R t`; 
+  `supported M R t`;
 
 * `finsupp.lcongr`: a `linear_equiv`alence between `α →₀ M` and `β →₀ N` constructed using `e : α ≃
   β` and `e' : M ≃ₗ[R] N`.
@@ -65,9 +65,23 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] 
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
 { map_smul' := assume a b, (smul_single _ _ _).symm, ..finsupp.single_add_hom a }
 
+/-- Two `R`-linear maps from `finsupp X M` which agree on each `single x y` agree everywhere. -/
+lemma lhom_ext ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
+  φ = ψ :=
+linear_map.to_add_monoid_hom_injective $ add_hom_ext h
+
+/-- Two `R`-linear maps from `finsupp X M` which agree on each `single x y` agree everywhere.
+
+We formulate this fact using equality of linear maps `φ.comp (lsingle a)` and `ψ.comp (lsingle a)`
+so that the `ext` tactic can apply a type-specific extensionality lemma to prove equality of these
+maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
+@[ext] lemma lhom_ext' ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a, φ.comp (lsingle a) = ψ.comp (lsingle a)) :
+  φ = ψ :=
+lhom_ext $ λ a, linear_map.congr_fun (h a)
+
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
-{ map_smul' := assume a b, rfl, ..finsupp.eval_add_hom a }
+{ map_smul' := assume a b, rfl, ..finsupp.apply_add_hom a }
 
 section lsubtype_domain
 variables (s : set α)
@@ -117,8 +131,8 @@ lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
 begin
   refine disjoint.mono
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right s)
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right t)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
     (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
   classical,
   by_cases his : i ∈ s,
@@ -366,7 +380,7 @@ variables (α) {α' : Type*} (M) {M' : Type*} (R)
 
 /-- Interprets (l : α →₀ R) as linear combination of the elements in the family (v : α → M) and
     evaluates this linear combination. -/
-protected def total : (α →₀ R) →ₗ M := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
+protected def total : (α →₀ R) →ₗ[R] M := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
 
 variables {α M v}
 

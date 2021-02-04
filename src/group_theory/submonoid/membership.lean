@@ -152,7 +152,7 @@ closure_eq_of_le (set.singleton_subset_iff.2 ⟨multiplicative.of_add 1, trivial
   λ x ⟨n, _, hn⟩, hn ▸ pow_mem _ (subset_closure $ set.mem_singleton _) _
 
 -- TODO: equiv_rw should probably be able to do this
-lemma exists_multiplicative_iff (p : multiplicative ℕ → Prop) :
+lemma exists_multiplicative_iff {α} (p : multiplicative α → Prop) :
   (∃ x, p x) ↔ ∃ x, p (multiplicative.of_add x) :=
 ⟨λ ⟨x, h⟩, ⟨x.to_add, by simpa⟩, λ ⟨x, h⟩, ⟨_, h⟩⟩
 

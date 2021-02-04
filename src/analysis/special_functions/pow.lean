@@ -136,7 +136,7 @@ lemma rpow_def_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ y =
     else exp (log x * y) :=
 by simp only [rpow_def, complex.cpow_def];
   split_ifs;
-  simp [*, (complex.of_real_log hx).symm, -complex.of_real_mul,
+  simp [*, (complex.of_real_log hx).symm, -complex.of_real_mul, -is_R_or_C.of_real_mul,
     (complex.of_real_mul _ _).symm, complex.exp_of_real_re] at *
 
 lemma rpow_def_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : x ^ y = exp (log x * y) :=
@@ -217,7 +217,7 @@ begin
   split_ifs;
   simp [*, abs_of_nonneg (le_of_lt (real.exp_pos _)), complex.log, complex.exp_add,
     add_mul, mul_right_comm _ I, exp_mul_I, abs_cos_add_sin_mul_I,
-    (complex.of_real_mul _ _).symm, -complex.of_real_mul] at *
+    (complex.of_real_mul _ _).symm, -complex.of_real_mul, -is_R_or_C.of_real_mul] at *
 end
 
 @[simp] lemma abs_cpow_inv_nat (x : ℂ) (n : ℕ) : abs (x ^ (n⁻¹ : ℂ)) = x.abs ^ (n⁻¹ : ℝ) :=
@@ -603,8 +603,8 @@ section measurability_real
 
 lemma real.measurable_rpow : measurable (λ p : ℝ × ℝ, p.1 ^ p.2) :=
 begin
-  have h_meas : is_measurable {p : ℝ × ℝ | p.1 = 0} :=
-    (is_closed_singleton.preimage continuous_fst).is_measurable,
+  have h_meas : measurable_set {p : ℝ × ℝ | p.1 = 0} :=
+    (is_closed_singleton.preimage continuous_fst).measurable_set,
   refine measurable_of_measurable_union_cover {p : ℝ × ℝ | p.1 = 0} {p : ℝ × ℝ | p.1 ≠ 0} h_meas
     h_meas.compl _ _ _,
   { intro x, simp [em (x.fst = 0)], },
@@ -621,7 +621,7 @@ begin
     change measurable ((λ x : ℝ, ite (x = 0) (1:ℝ) (0:ℝ))
       ∘ (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).snd)),
     refine measurable.comp _ (measurable_snd.comp measurable_subtype_coe),
-    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
+    exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
   { refine continuous.measurable _,
     rw continuous_iff_continuous_at,
     intro x,
@@ -1558,11 +1558,11 @@ begin
   refine ennreal.measurable_of_measurable_nnreal_prod _ _,
   { simp_rw ennreal.coe_rpow_def,
     refine measurable.ite _ measurable_const nnreal.measurable_rpow.ennreal_coe,
-    exact is_measurable.inter (measurable_fst (is_measurable_singleton 0))
-      (measurable_snd is_measurable_Iio), },
+    exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
+      (measurable_snd measurable_set_Iio), },
   { simp_rw ennreal.top_rpow_def,
-    refine measurable.ite is_measurable_Ioi measurable_const _,
-    exact measurable.ite (is_measurable_singleton 0) measurable_const measurable_const, },
+    refine measurable.ite measurable_set_Ioi measurable_const _,
+    exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
 end
 
 lemma measurable.ennreal_rpow {α} [measurable_space α] {f : α → ennreal} (hf : measurable f)

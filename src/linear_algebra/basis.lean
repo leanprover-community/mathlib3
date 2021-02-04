@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import linear_algebra.linear_independent
 import linear_algebra.projection
+import linear_algebra.std_basis
 import data.fintype.card
 
 /-!

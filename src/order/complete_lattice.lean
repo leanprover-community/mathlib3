@@ -1006,3 +1006,30 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
   .. prod.has_Inf α β }
 
 end prod
+
+section complete_lattice
+variables [complete_lattice α] {a : α} {s : set α}
+
+lemma sup_Inf_le_infi_sup :
+  a ⊔ Inf s ≤ (⨅ b ∈ s, a ⊔ b) :=
+le_infi $ assume i, le_infi $ assume h, sup_le_sup_left (Inf_le h) _
+
+lemma supr_inf_le_inf_Sup :
+  (⨆ b ∈ s, a ⊓ b) ≤ a ⊓ Sup s :=
+supr_le $ assume i, supr_le $ assume h, inf_le_inf_left _ (le_Sup h)
+
+end complete_lattice
+
+section complete_lattice
+variables [complete_lattice α]
+
+/-- An independent set of elements in a complete lattice is one in which every element is disjoint
+  from the `Sup` of the rest. -/
+def complete_lattice.independent (s : set α) : Prop := ∀ a ∈ s, disjoint a (Sup (s \ {a}))
+
+theorem complete_lattice.independent.mono {s t : set α}
+  (ht : complete_lattice.independent t) (hst : s ⊆ t) :
+  complete_lattice.independent s :=
+λ a ha, (ht a (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
+
+end complete_lattice

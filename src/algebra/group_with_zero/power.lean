@@ -150,7 +150,8 @@ theorem commute.fpow_self (a : G₀) (n : ℤ) : commute (a^n) a := (commute.ref
 
 theorem commute.self_fpow (a : G₀) (n : ℤ) : commute a (a^n) := (commute.refl a).fpow_right n
 
-theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) := (commute.refl a).fpow_fpow m n
+theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) :=
+(commute.refl a).fpow_fpow m n
 
 theorem fpow_bit0 (a : G₀) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n :=
 begin

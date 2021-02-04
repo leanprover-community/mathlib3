@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.local_extr
 import analysis.convex.topology
+import data.complex.is_R_or_C
 
 /-!
 # The mean value inequality and equalities
@@ -1075,11 +1076,45 @@ begin
   simp [g, hMVT'],
 end
 
-/-! ### Vector-valued functions `f : E → F`.  Strict differentiability. -/
 
-/-- Over the reals, a continuously differentiable function is strictly differentiable. -/
+section is_R_or_C
+
+/-!
+### Vector-valued functions `f : E → F`.  Strict differentiability.
+
+A `C^1` function is strictly differentiable, when the field is `ℝ` or `ℂ`. This follows from the
+mean value inequality on balls, which is a particular case of the above results after restricting
+the scalars to `ℝ`. Note that it does not make sense to talk of a convex set over `ℂ`, but balls
+make sense and are enough. Many formulations of the mean value inequality could be generalized to
+balls over `ℝ` or `ℂ`. For now, we only include the ones that we need.
+-/
+
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
+{G : Type*} [normed_group G] [normed_space 𝕜 G]
+{H : Type*} [normed_group H] [normed_space 𝕜 H]
+
+/-- Variant of the mean value inequality over `ℝ` or `ℂ`, on a ball, using a bound on the difference
+between the derivative and a fixed linear map, rather than a bound on the derivative itself.
+Version with `has_fderiv_within`. -/
+theorem is_R_or_C.norm_image_sub_le_of_norm_has_fderiv_within_le'
+  {f : G → H} {C : ℝ} {x y z : G} {r : ℝ} {f' : G → (G →L[𝕜] H)} {φ : G →L[𝕜] H}
+  (hf : ∀ x ∈ ball z r, has_fderiv_within_at f (f' x) (ball z r) x)
+  (bound : ∀ x ∈ ball z r, ∥f' x - φ∥ ≤ C) (xs : x ∈ ball z r) (ys : y ∈ ball z r) :
+  ∥f y - f x - φ (y - x)∥ ≤ C * ∥y - x∥ :=
+begin
+  letI : normed_space ℝ G := restrict_scalars.normed_space ℝ 𝕜 G,
+  letI : is_scalar_tower ℝ 𝕜 G := restrict_scalars.is_scalar_tower _ _ _,
+  letI : normed_space ℝ H := restrict_scalars.normed_space ℝ 𝕜 H,
+  letI : is_scalar_tower ℝ 𝕜 H := restrict_scalars.is_scalar_tower _ _ _,
+  change ∥f y - f x - (φ.restrict_scalars ℝ) (y - x)∥ ≤ C * ∥y - x∥,
+  have : ∀ x ∈ ball z r, has_fderiv_within_at f ((f' x).restrict_scalars ℝ) (ball z r) x := hf,
+  exact convex.norm_image_sub_le_of_norm_has_fderiv_within_le' this bound (convex_ball _ _) xs ys,
+end
+
+/-- Over the reals or the complexes, a continuously differentiable function is strictly
+differentiable. -/
 lemma strict_fderiv_of_cont_diff
-  {f : E → F} {s : set E}  {x : E} {f' : E → (E →L[ℝ] F)}
+  {f : G → H} {s : set G}  {x : G} {f' : G → (G →L[𝕜] H)}
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hcont : continuous_on f' s) (hs : s ∈ 𝓝 x) :
   has_strict_fderiv_at f (f' x) x :=
 begin
@@ -1096,7 +1131,6 @@ begin
   have hts : t ⊆ s := λ _ hy, hε₂ (ball_subset_ball (min_le_right ε₁ ε₂) hy),
   have Hf : ∀ y ∈ t, has_fderiv_within_at f (f' y) t y :=
     λ y yt, has_fderiv_within_at.mono (hf y (hts yt)) hts,
-  have hconv := convex_ball x (min ε₁ ε₂),
 -- simplify formulas involving the product E × E
   rintros ⟨a, b⟩ h,
   simp only [mem_set_of_eq, map_sub],
@@ -1107,5 +1141,7 @@ begin
     refine le_of_lt (hcont' x' (hts H') _),
     exact ball_subset_ball (min_le_left ε₁ ε₂) H' },
 -- apply mean value theorem
-  simpa using convex.norm_image_sub_le_of_norm_has_fderiv_within_le' Hf hf' hconv hab.2 hab.1,
+  simpa using is_R_or_C.norm_image_sub_le_of_norm_has_fderiv_within_le' Hf hf' hab.2 hab.1,
 end
+
+end is_R_or_C

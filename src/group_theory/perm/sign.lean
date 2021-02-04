@@ -84,10 +84,10 @@ f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_per
   (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
-lemma perm_on_inr_of_perm_on_inl {m n : Type u} [decidable_eq m] [fintype m] [decidable_eq n]
-  [fintype n] (σ : equiv.perm (m ⊕ n)) (h : ∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) :
-  ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
+lemma perm_on_inr_of_perm_on_inl {m n : Type u} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n))
+  (h : ∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) : ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
 begin
+  classical,
   intro b,
   generalize hx : σ (sum.inr b) = x,
   cases x with a0 b0,

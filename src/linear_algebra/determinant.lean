@@ -52,6 +52,16 @@ begin
   simp [det, card_eq_zero.mp h, perm_eq],
 end
 
+lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
+  det A = A k k :=
+begin
+  have h1 : (univ : finset (perm n)) = {1},
+  { apply univ_eq_singleton_of_card_one (1 : perm n),
+    simp [card_univ, fintype.card_perm, h] },
+  have h2 := univ_eq_singleton_of_card_one k h,
+  simp [det, h1, h2],
+end
+
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin
@@ -446,10 +456,9 @@ by convert index_equiv_det (subtype_equiv_right e) (to_square_block' M q)
 
 /-- Let `b` map rows and columns of a square matrix `M` to `n + 1` blocks. Then
   `upper_block_triangular_matrix M n b` says the matrix is upper block triangular. -/
-def upper_block_triangular_matrix (M : matrix m m R) (n : ℕ) (b : m → ℕ) :=
+def upper_block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (n : ℕ) (b : o → ℕ) :=
   (∀ i, b i ≤ n) ∧ (∀ i j, b j < b i → M i j = 0)
 
-/-
 lemma upper_block_triangular_det (M : matrix m m R) (n : ℕ) (b : m → ℕ)
   (h : upper_block_triangular_matrix M n b) :
   M.det = ∏ k in range (n + 1), (to_square_block M b k).det :=
@@ -468,7 +477,8 @@ begin
       apply congr (congr_arg has_mul.mul _),
       { let m' := {a // ¬b a = n.succ },
         let b' := (λ (i : m'), b ↑i),
-        have h' : upper_block_triangular_matrix (M.to_square_block' (λ (i : m), ¬b i = n.succ)) n b',
+        have h' :
+          upper_block_triangular_matrix (M.to_square_block' (λ (i : m), ¬b i = n.succ)) n b',
         { split,
           { intro i, exact nat.lt_succ_iff.mp ((ne.le_iff_lt i.property).mp (h.left ↑i)) },
           { intros i j, apply h.right ↑i ↑j }},
@@ -496,5 +506,33 @@ begin
       rw hi,
       exact (ne.le_iff_lt hj).mp (h.left j) }}
 end
--/
+
+lemma upper_triangular_det (n : ℕ) (M : matrix (fin (n + 1)) (fin (n + 1)) R)
+  (h : ∀ (i j : fin (n + 1)), j < i → M i j = 0) :
+  M.det = ∏ i : (fin (n + 1)), M i i :=
+begin
+  let b : (fin (n + 1)) → ℕ := (λ i, ↑i),
+  have hu : upper_block_triangular_matrix M n b := ⟨λ i, nat.lt_succ_iff.mp i.is_lt, h⟩,
+  have h1 := upper_block_triangular_det M n b hu,
+  rw ←fin.prod_univ_eq_prod_range at h1,
+  convert h1,
+  ext k,
+  generalize hM : M.to_square_block b ↑k = Mk,
+  have h2 : ∀ (j : {a // b a = ↑k}), j = ⟨k, rfl⟩ := λ j, subtype.ext (fin.ext j.property),
+  have h3 : Mk.det = Mk ⟨k, rfl⟩ ⟨k, rfl⟩ :=
+    det_eq_elem_of_card_eq_one (fintype.card_eq_one_of_forall_eq h2) _,
+  have h4 : Mk ⟨k, rfl⟩ ⟨k, rfl⟩ = M k k, { rw ←hM, simp },
+  apply eq.symm,
+  rw h4 at h3,
+  convert h3
+end
+
+lemma lower_triangular_det (n : ℕ) (M : matrix (fin (n + 1)) (fin (n + 1)) R)
+  (h : ∀ (i j : fin (n + 1)), i < j → M i j = 0) :
+  M.det = ∏ i : (fin (n + 1)), M i i :=
+begin
+  rw ← det_transpose,
+  apply upper_triangular_det _ _ (λ (i j : fin (n + 1)) (hji : j < i), h j i hji),
+end
+
 end matrix

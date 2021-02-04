@@ -207,7 +207,7 @@ is_O_with.congr hc (λ _, rfl) (λ _, rfl)
 theorem is_O_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
-by unfold is_O; exact exists_congr (λ c, is_O_with_congr rfl hf hg)
+by { unfold is_O, exact exists_congr (λ c, is_O_with_congr rfl hf hg) }
 
 theorem is_O.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
@@ -230,7 +230,7 @@ is_O.congr (λ _, rfl) hg
 theorem is_o_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
-by unfold is_o; exact ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg)
+by { unfold is_o, exact ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg) }
 
 theorem is_o.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
@@ -267,7 +267,7 @@ is_o.of_is_O_with $ λ c cpos, (hfg.forall_is_O_with cpos).comp_tendsto hk
 
 @[simp] theorem is_O_with_map {k : β → α} {l : filter β} :
   is_O_with c f g (map k l) ↔ is_O_with c (f ∘ k) (g ∘ k) l :=
-by unfold is_O_with; exact mem_map
+by { unfold is_O_with, exact mem_map }
 
 @[simp] theorem is_O_map {k : β → α} {l : filter β} :
   is_O f g (map k l) ↔ is_O (f ∘ k) (g ∘ k) l :=
@@ -403,12 +403,12 @@ by simp only [is_O_with, norm_norm]
 alias is_O_with_norm_right ↔ asymptotics.is_O_with.of_norm_right asymptotics.is_O_with.norm_right
 
 @[simp] theorem is_O_norm_right : is_O f (λ x, ∥g' x∥) l ↔ is_O f g' l :=
-by unfold is_O; exact exists_congr (λ _, is_O_with_norm_right)
+by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_right) }
 
 alias is_O_norm_right ↔ asymptotics.is_O.of_norm_right asymptotics.is_O.norm_right
 
 @[simp] theorem is_o_norm_right : is_o f (λ x, ∥g' x∥) l ↔ is_o f g' l :=
-by unfold is_o; exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_right)
+by { unfold is_o, exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_right) }
 
 alias is_o_norm_right ↔ asymptotics.is_o.of_norm_right asymptotics.is_o.norm_right
 
@@ -418,12 +418,12 @@ by simp only [is_O_with, norm_norm]
 alias is_O_with_norm_left ↔ asymptotics.is_O_with.of_norm_left asymptotics.is_O_with.norm_left
 
 @[simp] theorem is_O_norm_left : is_O (λ x, ∥f' x∥) g l ↔ is_O f' g l :=
-by unfold is_O; exact exists_congr (λ _, is_O_with_norm_left)
+by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_left) }
 
 alias is_O_norm_left ↔ asymptotics.is_O.of_norm_left asymptotics.is_O.norm_left
 
 @[simp] theorem is_o_norm_left : is_o (λ x, ∥f' x∥) g l ↔ is_o f' g l :=
-by unfold is_o; exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_left)
+by { unfold is_o,  exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_left) }
 
 alias is_o_norm_left ↔ asymptotics.is_o.of_norm_left asymptotics.is_o.norm_left
 
@@ -453,12 +453,12 @@ by simp only [is_O_with, norm_neg]
 alias is_O_with_neg_right ↔ asymptotics.is_O_with.of_neg_right asymptotics.is_O_with.neg_right
 
 @[simp] theorem is_O_neg_right : is_O f (λ x, -(g' x)) l ↔ is_O f g' l :=
-by unfold is_O; exact exists_congr (λ _, is_O_with_neg_right)
+by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_right) }
 
 alias is_O_neg_right ↔ asymptotics.is_O.of_neg_right asymptotics.is_O.neg_right
 
 @[simp] theorem is_o_neg_right : is_o f (λ x, -(g' x)) l ↔ is_o f g' l :=
-by unfold is_o; exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_right)))
+by { unfold is_o, exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_right))) }
 
 alias is_o_neg_right ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_right
 
@@ -468,12 +468,12 @@ by simp only [is_O_with, norm_neg]
 alias is_O_with_neg_left ↔ asymptotics.is_O_with.of_neg_left asymptotics.is_O_with.neg_left
 
 @[simp] theorem is_O_neg_left : is_O (λ x, -(f' x)) g l ↔ is_O f' g l :=
-by unfold is_O; exact exists_congr (λ _, is_O_with_neg_left)
+by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_left) }
 
 alias is_O_neg_left ↔ asymptotics.is_O.of_neg_left asymptotics.is_O.neg_left
 
 @[simp] theorem is_o_neg_left : is_o (λ x, -(f' x)) g l ↔ is_o f' g l :=
-by unfold is_o; exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_left)))
+by { unfold is_o, exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_left))) }
 
 alias is_o_neg_left ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_left
 
@@ -1350,12 +1350,12 @@ lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target
 /-- Transfer `is_O` over a `local_homeomorph`. -/
 lemma is_O_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
   is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-by unfold is_O; exact exists_congr (λ C, e.is_O_with_congr hb)
+by { unfold is_O, exact exists_congr (λ C, e.is_O_with_congr hb) }
 
 /-- Transfer `is_o` over a `local_homeomorph`. -/
 lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
   is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-by unfold is_o; exact (forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb)
+by { unfold is_o, exact (forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb) }
 
 end local_homeomorph
 
@@ -1375,11 +1375,11 @@ e.to_local_homeomorph.is_O_with_congr trivial
 /-- Transfer `is_O` over a `homeomorph`. -/
 lemma is_O_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
   is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-by unfold is_O; exact exists_congr (λ C, e.is_O_with_congr)
+by { unfold is_O, exact exists_congr (λ C, e.is_O_with_congr) }
 
 /-- Transfer `is_o` over a `homeomorph`. -/
 lemma is_o_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
   is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-by unfold is_o; exact forall_congr (λ c, forall_congr (λ hc, e.is_O_with_congr))
+by { unfold is_o, exact forall_congr (λ c, forall_congr (λ hc, e.is_O_with_congr)) }
 
 end homeomorph

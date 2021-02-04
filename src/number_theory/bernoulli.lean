@@ -193,7 +193,7 @@ begin
   dsimp only,
   have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
   have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
-  have hnz : ((j : ℚ) + 1) * (nat.factorial j) * (nat.factorial i) ≠ 0,
+  have hnz : (j + 1 : ℚ) * nat.factorial j * nat.factorial i ≠ 0,
   { norm_cast at *,
     exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
   field_simp [hj, hnz],

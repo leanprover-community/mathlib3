@@ -706,7 +706,7 @@ end
 
 lemma concave_on.add {f g : E → β} (hf : concave_on s f) (hg : concave_on s g) :
   concave_on s (λx, f x + g x) :=
-@convex_on.add _ _ _ _ (order_dual β) _ _ _ f g hf hg
+@convex_on.add _ _ _ _ (order_dual β) _ _ f g hf hg
 
 lemma convex_on.smul [ordered_semimodule ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
   (hf : convex_on s f) : convex_on s (λx, c • f x) :=
@@ -856,7 +856,7 @@ end
 /-- If a function is concave on `s`, it remains concave when precomposed by an affine map. -/
 lemma concave_on.comp_affine_map {f : F → β} (g : E →ᵃ[ℝ] F) {s : set F}
   (hf : concave_on s f) : concave_on (g ⁻¹' s) (f ∘ g) :=
-@convex_on.comp_affine_map _ _ _ _ _ _ (order_dual β) _ _ _ f g s hf
+@convex_on.comp_affine_map _ _ _ _ _ _ (order_dual β) _ _ f g s hf
 
 /-- If `g` is convex on `s`, so is `(g ∘ f)` on `f ⁻¹' s` for a linear `f`. -/
 lemma convex_on.comp_linear_map {g : F → β} {s : set F} (hg : convex_on s g) (f : E →ₗ[ℝ] F) :

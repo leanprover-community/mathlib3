@@ -60,8 +60,8 @@ variables {R : Type u} {ι : Type u'} {n : ℕ}
 /-- Multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂` are modules
 over `R`. -/
 structure multilinear_map (R : Type u) {ι : Type u'} (M₁ : ι → Type v) (M₂ : Type w)
-  [decidable_eq ι] [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [∀i, semimodule R (M₁ i)]
-  [semimodule R M₂] :=
+  [decidable_eq ι] [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [∀i, semimodule R (M₁ i)] [semimodule R M₂] :=
 (to_fun : (Πi, M₁ i) → M₂)
 (map_add' : ∀(m : Πi, M₁ i) (i : ι) (x y : M₁ i),
   to_fun (update m i (x + y)) = to_fun (update m i x) + to_fun (update m i y))
@@ -75,7 +75,8 @@ section semiring
 variables [semiring R]
 [∀i, add_comm_monoid (M i)] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
 [add_comm_monoid M']
-[∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃] [semimodule R M']
+[∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
+[semimodule R M']
 (f f' : multilinear_map R M₁ M₂)
 
 instance : has_coe_to_fun (multilinear_map R M₁ M₂) := ⟨_, to_fun⟩
@@ -126,7 +127,8 @@ begin
 end
 
 instance : has_add (multilinear_map R M₁ M₂) :=
-⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm, add_assoc], λm i c x, by simp [smul_add]⟩⟩
+⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm, add_assoc],
+  λm i c x, by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
@@ -532,8 +534,8 @@ namespace multilinear_map
 
 section comm_semiring
 
-variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [∀i, add_comm_monoid (M i)] [add_comm_monoid M₂]
-[∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂]
+variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [∀i, add_comm_monoid (M i)]
+[add_comm_monoid M₂] [∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂]
 (f f' : multilinear_map R M₁ M₂)
 
 /-- If one multiplies by `c i` the coordinates in a finset `s`, then the image under a multilinear
@@ -1113,7 +1115,7 @@ lemma curry_fin_finset_symm_apply {k l n : ℕ} {s : finset (fin n)}
       (λ i, m $ fin_sum_equiv_of_finset hk hl (sum.inr i)) :=
 rfl
 
-lemma curry_fin_finset_symm_apply_piecewise_diag {k l n : ℕ} {s : finset (fin n)}
+lemma curry_fin_finset_symm_apply_piecewise_const {k l n : ℕ} {s : finset (fin n)}
   [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂)) (x y : M') :
   (curry_fin_finset R M₂ M' hk hl).symm f (s.piecewise (λ _, x) (λ _, y)) = f (λ _, x) (λ _, y) :=
@@ -1125,17 +1127,18 @@ begin
     exact finset.mem_compl.1 (finset.order_emb_of_fin_mem _ _ _) }
 end
 
-lemma curry_fin_finset_symm_apply_diag {k l n : ℕ} {s : finset (fin n)}
+lemma curry_fin_finset_symm_apply_const {k l n : ℕ} {s : finset (fin n)}
   [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂)) (x : M') :
   (curry_fin_finset R M₂ M' hk hl).symm f (λ _, x) = f (λ _, x) (λ _, x) :=
 curry_fin_finset_symm_apply hk hl f _
 
-lemma curry_fin_finset_apply_diag {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+lemma curry_fin_finset_apply_const {k l n : ℕ} {s : finset (fin n)}
+  [decidable_pred (s : set (fin n))]
   (hk : s.card = k) (hl : sᶜ.card = l) (f : multilinear_map R (λ x : fin n, M') M₂) (x y : M') :
   curry_fin_finset R M₂ M' hk hl f (λ _, x) (λ _, y) = f (s.piecewise (λ _, x) (λ _, y)) :=
 begin
-  refine (curry_fin_finset_symm_apply_piecewise_diag hk hl _ _ _).symm.trans _, -- `rw` fails
+  refine (curry_fin_finset_symm_apply_piecewise_const hk hl _ _ _).symm.trans _, -- `rw` fails
   rw linear_equiv.symm_apply_apply
 end
 

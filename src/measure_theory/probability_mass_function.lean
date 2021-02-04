@@ -162,6 +162,11 @@ def filter [fintype α] (p : pmf α) (pred : α → Prop) (h : ∃ a, pred a ∧
 pmf.of_fintype' (λ a, if pred a then p a else 0) $
     let ⟨a, ha, hpa⟩ := h in ⟨a, by simp only [ha, hpa, if_true, ne.def, not_false_iff]⟩
 
+/-- Given a `pmf` on a fintype `α`, create new `pmf` by filtering on a set and normalizing -/
+def filter' [fintype α] (p : pmf α) (s : set α) (h : ∃ a, a ∈ s ∧ p a ≠ 0) : pmf α :=
+pmf.of_fintype' (s.indicator p) $
+  let ⟨a, ha, hpa⟩ := h in ⟨a, by simp only [ha, hpa, set.indicator_of_mem, ne.def, not_false_iff]⟩
+
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])

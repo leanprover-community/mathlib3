@@ -173,7 +173,7 @@ begin
   { have hvy' : ⟪a • v, y⟫_ℝ = 0 := by simp [inner_smul_left, hvy],
     convert norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero _ _ hvy' using 2,
     { simp [← split] },
-    { simp [norm_smul, hv, real.norm_eq_abs, ← pow_two, abs_sq_eq] },
+    { simp [norm_smul, hv, real.norm_eq_abs, ← pow_two, sqr_abs] },
     { exact pow_two _ } },
   -- two facts which will be helpful for clearing denominators in the main calculation
   have ha : 1 - a ≠ 0,
@@ -198,7 +198,7 @@ begin
   convert congr_arg2 has_add.add (congr_arg (λ t, t • (y:E)) h₁) (congr_arg (λ t, t • v) h₂)
     using 1,
   { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_square, hv, mul_smul,
-      mul_pow, real.norm_eq_abs, abs_sq_eq, norm_smul] },
+      mul_pow, real.norm_eq_abs, sqr_abs, norm_smul] },
   { simp [split, add_comm] }
 end
 

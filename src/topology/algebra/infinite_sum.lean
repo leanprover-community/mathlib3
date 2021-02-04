@@ -909,10 +909,10 @@ lemma tsum_lt {i : ℕ} {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b) (hi
   (hf : summable f) (hg : summable g) :
   ∑' n, f n < ∑' n, g n :=
 begin
-  refine lt_of_le_of_lt (le_of_eq (tsum_ite_eq_extract hf i)) (lt_of_lt_of_le
-    (add_lt_add_of_lt_of_le hi (tsum_le_tsum _ (hf.summable_of_eq_zero_or_self _)
-    (hg.summable_of_eq_zero_or_self _))) (le_of_eq (tsum_ite_eq_extract hg i).symm));
-  exact λ j, by { by_cases ji : j = i; simp [ji, h j] }
+  rw [tsum_ite_eq_extract hf i, tsum_ite_eq_extract hg i],
+  refine add_lt_add_of_lt_of_le hi _,
+  refine tsum_le_tsum _ (hf.summable_of_eq_zero_or_self _) (hg.summable_of_eq_zero_or_self _);
+  exact λ j, by { by_cases ji : j = i; simp [ji, h j] },
 end
 
 end uniform_group

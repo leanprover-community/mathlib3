@@ -12,7 +12,7 @@ import analysis.mean_inequalities
 
 The area of a disc with radius `r` is `π * r^2`.
 
-Skip to line 160.
+Skip to line 126.
 -/
 
 open set interval_integral real measure_theory filter
@@ -122,40 +122,6 @@ begin
       lintegral_coe_eq_integral _ ((integrable_congr h).mp (hg.sub hf))],
   simpa only,
 end
-
-lemma sqrt_ne_zero {x : ℝ} (hlt : 0 < x) : sqrt x ≠ 0 :=
-(sqrt_pos.mpr hlt).ne.symm
-
-@[simp] lemma div_sqrt {x : ℝ} : x / sqrt x = sqrt x :=
-begin
-  cases le_or_lt x 0,
-  { rw [sqrt_eq_zero'.mpr h, div_zero] },
-  { rw [div_eq_iff (sqrt_ne_zero h), mul_self_sqrt h.le] },
-end
-
-lemma sqr_abs {a : ℝ} : (abs a) ^ 2 = a ^ 2 :=
-by rw [← sqrt_sqr_eq_abs, sqr_sqrt (pow_two_nonneg a)]
-
-lemma lt_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
-by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), pow_two, mul_self_sqrt hy]
-
-theorem sqr_lt {a b : ℝ} : a^2 < b ↔ -sqrt b < a ∧ a < sqrt b :=
-begin
-  split,
-  { simpa only [← sqrt_lt (pow_two_nonneg a), sqrt_sqr_eq_abs] using abs_lt.mp },
-  { rw [← abs_lt, ← sqr_abs],
-    exact λ h, (lt_sqrt (abs_nonneg a) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg a) h)).le).mp h },
-end
-
-lemma neg_sqrt_lt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : -sqrt b < a := (sqr_lt.mp h).1
-
-lemma lt_sqrt_of_sqr_lt {a b : ℝ} (h : a^2 < b) : a < sqrt b := (sqr_lt.mp h).2
-
-lemma sqr_lt_sqr {x y : ℝ} (h : abs x < y) : x ^ 2 < y ^ 2 :=
-by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) zero_lt_two
-
-lemma sqr_lt_sqr' {x y : ℝ} (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
-sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
     `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`. -/

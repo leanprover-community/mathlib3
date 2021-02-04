@@ -317,6 +317,24 @@ end canonically_ordered_comm_semiring
 
 end finset
 
+namespace fintype
+
+variables [fintype α]
+
+@[mono] lemma sum_mono [ordered_add_comm_monoid β] : monotone (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, finset.sum_le_sum $ λ x _, hfg x
+
+-- from gh-6023
+private lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y : Π i, α i} :
+  x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
+by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
+
+lemma sum_strict_mono [ordered_cancel_add_comm_monoid β] : strict_mono (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, let ⟨hle, i, hlt⟩ := pi.lt_def.mp hfg in
+  finset.sum_lt_sum (λ i _, hle i) ⟨i, finset.mem_univ i, hlt⟩
+
+end fintype
+
 namespace with_top
 open finset
 

@@ -48,7 +48,8 @@ theorem char_zero_of_inj_zero {R : Type*} [add_left_cancel_monoid R] [has_one R]
    rw [H k h, add_zero]
  end⟩
 
-/-- Note this is not an instances as `char_zero` implies `nontrivial`, and this would risk forming a loop. -/
+/-- Note this is not an instances as `char_zero` implies `nontrivial`,
+and this would risk forming a loop. -/
 lemma ordered_semiring.to_char_zero {R : Type*} [ordered_semiring R] [nontrivial R] :
   char_zero R :=
 ⟨nat.strict_mono_cast.injective⟩

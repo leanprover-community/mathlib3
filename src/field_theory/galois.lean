@@ -54,6 +54,8 @@ theorem is_galois_iff : is_galois F E ↔ is_separable F E ∧ normal F E :=
 
 protected theorem is_galois.is_separable (h : is_galois F E) : is_separable F E := h.1
 protected theorem is_galois.normal (h : is_galois F E) : normal F E := h.2
+
+@[priority 100] -- see Note [lower instance priority]
 instance is_galois.normal'' [h : is_galois F E] : normal F E := h.2
 
 variables (F E)

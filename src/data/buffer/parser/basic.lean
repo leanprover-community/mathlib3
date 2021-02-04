@@ -575,13 +575,13 @@ lemma foldr_eq_done {f : α → β → β} {p : parser α} {b' : β} :
 by simp [foldr, foldr_core_eq_done]
 
 lemma foldr_eq_fail_of_mono_at_end {f : α → β → β} {p : parser α} {err : dlist string}
-  (hp : p.mono) (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
+  [p.mono] (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
   have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
   simp only [foldr, foldr_core_succ_eq_fail, this, and.left_comm, foldr_core_zero_eq_fail,
-            ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
-            exists_and_distrib_left],
+             ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
+             exists_and_distrib_left],
   rintro (h | ⟨⟨a, h⟩, rfl⟩),
   { exact mono.of_fail h },
   { exact mono.of_done h }

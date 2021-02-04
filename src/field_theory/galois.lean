@@ -52,8 +52,9 @@ variables {F E}
 theorem is_galois_iff : is_galois F E ↔ is_separable F E ∧ normal F E :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
-theorem is_galois.sep (h : is_galois F E) : is_separable F E := h.1
-theorem is_galois.norm (h : is_galois F E) : normal F E := h.2
+protected theorem is_galois.is_separable (h : is_galois F E) : is_separable F E := h.1
+protected theorem is_galois.normal (h : is_galois F E) : normal F E := h.2
+instance is_galois.normal'' [h : is_galois F E] : normal F E := h.2
 
 variables (F E)
 
@@ -70,12 +71,11 @@ instance to_normal [h : is_galois F E] : normal F E := h.2
 
 variables (F) {E}
 
-lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral F x
+lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral' x
 
-lemma separable [h : is_galois F E] (x : E) : (minpoly F x).separable := (h.sep.out x).2
+lemma separable [h : is_galois F E] (x : E) : (minpoly F x).separable := h.is_separable.separable x
 
--- TODO(Commelin, Browning): rename this to `splits`
-lemma normal [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) := normal.splits F x
+lemma splits [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) := normal.splits' x
 
 variables (F E)
 
@@ -109,7 +109,7 @@ begin
     commutes' := λ _, rfl },
   have H : is_integral F α := is_galois.integral F α,
   have h_sep : (minpoly F α).separable := is_galois.separable F α,
-  have h_splits : (minpoly F α).splits (algebra_map F E) := is_galois.normal F α,
+  have h_splits : (minpoly F α).splits (algebra_map F E) := is_galois.splits F α,
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minpoly F α),
   { convert polynomial.splits_comp_of_splits
     (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits },
@@ -308,7 +308,7 @@ lemma is_separable_splitting_field [finite_dimensional F E] [h : is_galois F E] 
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element h.1 with α h1,
-  use [minpoly F α, separable F α, is_galois.normal F α],
+  use [minpoly F α, separable F α, is_galois.splits F α],
   rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
   rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α (integral F α),
   apply algebra.adjoin_mono,

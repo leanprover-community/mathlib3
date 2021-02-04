@@ -552,36 +552,40 @@ end
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
 the minimal polynomial of every `x : K` is separable. -/
 class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
-(out' : ∀ x : K, is_integral F x ∧ (minpoly F x).separable)
+(is_integral' (x : K) : is_integral F x)
+(separable' (x : K) : (minpoly F x).separable)
+
+theorem is_separable.is_integral {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+  ∀ x : K, is_integral F x := is_separable.is_integral'
+
+theorem is_separable.separable {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+  ∀ x : K, (minpoly F x).separable := is_separable.separable'
 
 theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
   ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
-⟨λ h, h.1, λ h, ⟨h⟩⟩
-
-theorem is_separable.out {F K} [field F] [field K] [algebra F K] : is_separable F K →
-  ∀ x : K, is_integral F x ∧ (minpoly F x).separable := is_separable_iff.1
+⟨λ h x, ⟨h.is_integral x, h.separable x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
-⟨λ x, ⟨is_integral_algebra_map, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩⟩
+⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
 
 section is_separable_tower
 variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_separable_tower_top_of_is_separable [h : is_separable F E] : is_separable K E :=
-⟨λ x, (h.out x).imp (is_integral_of_is_scalar_tower x) $
-  λ hx, hx.map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
+⟨λ x, is_integral_of_is_scalar_tower x (h.is_integral x),
+ λ x, (h.separable x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
-⟨λ x, begin
-  refine (h.out (algebra_map K E x)).imp is_integral_tower_bot_of_is_integral_field _,
-  intro hs,
+is_separable_iff.2 $ λ x, begin
+  refine (is_separable_iff.1 h (algebra_map K E x)).imp
+    is_integral_tower_bot_of_is_integral_field (λ hs, _),
   obtain ⟨q, hq⟩ := minpoly.dvd F x
     (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
       (minpoly.aeval F ((algebra_map K E) x))),
   rw hq at hs,
   exact hs.of_mul_left
-end⟩
+end
 
 variables {E}
 

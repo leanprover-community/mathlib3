@@ -140,9 +140,7 @@ lemma add_le_mul_two_add [nontrivial α] {a b : α}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
 calc a + (2 + b) ≤ a + (a + a * b) :
       add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
-             ... ≤ a * (2 + b) :
-      le_trans (le_trans (le_of_eq (add_assoc a a _).symm) (le_trans rfl.ge (add_le_add_right
-      (le_of_eq (mul_two a).symm) _))) (le_of_eq (mul_add a 2 b).symm)
+             ... ≤ a * (2 + b) : by rw [mul_add, mul_two, add_assoc]
 
 section
 variable [nontrivial α]

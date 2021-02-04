@@ -12,7 +12,7 @@ import topology.compacts
 # Contents
 
 In this file we work with *contents*. A content `λ` is a function from a certain class of subsets
-(such as the the compact subsets) to `ennreal` (or `nnreal`) that is
+(such as the the compact subsets) to `ennreal` (or `ℝ≥0`) that is
 * additive: If `K₁` and `K₂` are disjoint sets in the domain of `λ`,
   then `λ(K₁ ∪ K₂) = λ(K₁) + λ(K₂)`;
 * subadditive: If `K₁` and `K₂` are in the domain of `λ`, then `λ(K₁ ∪ K₂) ≤ λ(K₁) + λ(K₂)`;
@@ -42,6 +42,7 @@ universe variables u v w
 noncomputable theory
 
 open set topological_space
+open_locale nnreal
 
 namespace measure_theory
 
@@ -83,13 +84,13 @@ lemma inner_content_mono {μ : compacts G → ennreal} ⦃U V : set G⦄ (hU : i
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 
 lemma inner_content_exists_compact {μ : compacts G → ennreal} {U : opens G}
-  (hU : inner_content μ U < ⊤) {ε : nnreal} (hε : 0 < ε) :
+  (hU : inner_content μ U < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ K : compacts G, K.1 ⊆ U ∧ inner_content μ U ≤ μ K + ε :=
 begin
   have h'ε := ennreal.zero_lt_coe_iff.2 hε,
   cases le_or_lt (inner_content μ U) ε,
   { exact ⟨⊥, empty_subset _, le_trans h (le_add_of_nonneg_left (zero_le _))⟩ },
-  have := ennreal.sub_lt_sub_self (ne_of_lt hU) (ne_of_gt $ lt_trans h'ε h) h'ε,
+  have := ennreal.sub_lt_self (ne_of_lt hU) (ne_of_gt $ lt_trans h'ε h) h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
@@ -104,7 +105,7 @@ lemma inner_content_Sup_nat [t2_space G] {μ : compacts G → ennreal}
 begin
   have h3 : ∀ (t : finset ℕ) (K : ℕ → compacts G), μ (t.sup K) ≤ t.sum (λ i, μ (K i)),
   { intros t K, refine finset.induction_on t _ _,
-    { simp only [h1, le_zero_iff_eq, finset.sum_empty, finset.sup_empty] },
+    { simp only [h1, nonpos_iff_eq_zero, finset.sum_empty, finset.sup_empty] },
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (h2 _ _) (add_le_add_left ih _) }},
   refine bsupr_le (λ K hK, _),
@@ -140,12 +141,15 @@ begin
   apply h,
 end
 
-lemma is_left_invariant_inner_content [group G] [topological_group G] {μ : compacts G → ennreal}
+@[to_additive]
+lemma is_mul_left_invariant_inner_content [group G] [topological_group G] {μ : compacts G → ennreal}
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
   (U : opens G) : inner_content μ (U.comap $ continuous_mul_left g) = inner_content μ U :=
 by convert inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
-lemma inner_content_pos [t2_space G] [group G] [topological_group G] {μ : compacts G → ennreal}
+-- @[to_additive] (fails for now)
+lemma inner_content_pos_of_is_mul_left_invariant [t2_space G] [group G] [topological_group G]
+  {μ : compacts G → ennreal}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂)
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
@@ -161,7 +165,7 @@ begin
   refine (le_inner_content _ _ this).trans _,
   refine (rel_supr_sum (inner_content μ) (inner_content_empty h1) (≤)
     (inner_content_Sup_nat h1 h2) _ _).trans _,
-  simp only [is_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
+  simp only [is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
 
 lemma inner_content_mono' {μ : compacts G → ennreal} ⦃U V : set G⦄
@@ -204,7 +208,7 @@ lemma of_content_interior_compacts (h3 : ∀ (K₁ K₂ : compacts G), K₁.1 �
 le_trans (le_of_eq $ of_content_opens h2 (opens.interior K.1))
          (inner_content_le h3 _ _ interior_subset)
 
-lemma of_content_exists_compact {U : opens G} (hU : of_content μ h1 U < ⊤) {ε : nnreal}
+lemma of_content_exists_compact {U : opens G} (hU : of_content μ h1 U < ⊤) {ε : ℝ≥0}
   (hε : 0 < ε) : ∃ K : compacts G, K.1 ⊆ U ∧ of_content μ h1 U ≤ of_content μ h1 K.1 + ε :=
 begin
   rw [of_content_opens h2] at hU ⊢,
@@ -212,7 +216,7 @@ begin
   exact ⟨K, h1K, le_trans h2K $ add_le_add_right (le_of_content_compacts h2 K) _⟩,
 end
 
-lemma of_content_exists_open {A : set G} (hA : of_content μ h1 A < ⊤) {ε : nnreal} (hε : 0 < ε) :
+lemma of_content_exists_open {A : set G} (hA : of_content μ h1 A < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ U : opens G, A ⊆ U ∧ of_content μ h1 U ≤ of_content μ h1 A + ε :=
 begin
   rcases induced_outer_measure_exists_set _ _ inner_content_mono hA hε with ⟨U, hU, h2U, h3U⟩,
@@ -227,13 +231,14 @@ begin
   intros s hs, convert inner_content_comap f h ⟨s, hs⟩
 end
 
-lemma is_left_invariant_of_content [group G] [topological_group G]
+@[to_additive]
+lemma is_mul_left_invariant_of_content [group G] [topological_group G]
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
   (A : set G) : of_content μ h1 ((λ h, g * h) ⁻¹' A) = of_content μ h1 A :=
 by convert of_content_preimage h2 (homeomorph.mul_left g) (λ K, h g) A
 
 lemma of_content_caratheodory (A : set G) :
-  (of_content μ h1).caratheodory.is_measurable' A ↔ ∀ (U : opens G),
+  (of_content μ h1).caratheodory.measurable_set' A ↔ ∀ (U : opens G),
   of_content μ h1 (U ∩ A) + of_content μ h1 (U \ A) ≤ of_content μ h1 U :=
 begin
   dsimp [opens], rw subtype.forall,
@@ -242,11 +247,13 @@ begin
   apply inner_content_mono'
 end
 
-lemma of_content_pos_of_is_open [group G] [topological_group G]
+-- @[to_additive] (fails for now)
+lemma of_content_pos_of_is_mul_left_invariant [group G] [topological_group G]
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
   (K : compacts G) (hK : 0 < μ K) {U : set G} (h1U : is_open U) (h2U : U.nonempty) :
   0 < of_content μ h1 U :=
-by { convert inner_content_pos h1 h2 h3 K hK ⟨U, h1U⟩ h2U, exact of_content_opens h2 ⟨U, h1U⟩ }
+by { convert inner_content_pos_of_is_mul_left_invariant h1 h2 h3 K hK ⟨U, h1U⟩ h2U,
+     exact of_content_opens h2 ⟨U, h1U⟩ }
 
 end outer_measure
 end measure_theory

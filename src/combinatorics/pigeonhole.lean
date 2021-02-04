@@ -58,7 +58,7 @@ pigeonhole principle
 -/
 
 universes u v w
-variables {α : Type u} {β : Type v} {M : Type w} [decidable_linear_ordered_cancel_add_comm_monoid M]
+variables {α : Type u} {β : Type v} {M : Type w} [linear_ordered_cancel_add_comm_monoid M]
   [decidable_eq β]
 
 open_locale big_operators
@@ -78,13 +78,14 @@ variations of this theorem.
 The principle is formalized in the following way, see
 `finset.exists_lt_sum_fiber_of_maps_to_of_nsmul_lt_sum`: if `f : α → β` is a function which maps all
 elements of `s : finset α` to `t : finset β` and `card t •ℕ b < ∑ x in s, w x`, where `w : α → M` is
-a weight function taking values in a `decidable_linear_ordered_cancel_add_comm_monoid`, then for
+a weight function taking values in a `linear_ordered_cancel_add_comm_monoid`, then for
 some `y ∈ t`, the sum of the weights of all `x ∈ s` such that `f x = y` is greater than `b`.
 
 There are a few bits we can change in this theorem:
 
 * reverse all inequalities, with obvious adjustments to the name;
-* replace the assumption `∀ a ∈ s, f a ∈ t` with `∀ y ∉ t, (∑ x in s.filter (λ x, f x = y), w x) ≤ 0`,
+* replace the assumption `∀ a ∈ s, f a ∈ t` with
+  `∀ y ∉ t, (∑ x in s.filter (λ x, f x = y), w x) ≤ 0`,
   and replace `of_maps_to` with `of_sum_fiber_nonpos` in the name;
 * use non-strict inequalities assuming `t` is nonempty.
 

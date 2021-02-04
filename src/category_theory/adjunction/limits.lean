@@ -47,7 +47,8 @@ The counit for the adjunction for `cocones.functoriality K F : cocone K ⥤ coco
 
 Auxiliary definition for `functoriality_is_left_adjoint`.
 -/
-@[simps] def functoriality_counit : functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
+@[simps] def functoriality_counit :
+  functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
 { app := λ c, { hom := adj.counit.app c.X } }
 
 /-- The functor `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)` is a left adjoint. -/
@@ -76,6 +77,25 @@ omit adj
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
 left_adjoint_preserves_colimits E.adjunction
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : reflects_colimits E :=
+{ reflects_colimits_of_shape := λ J 𝒥, by exactI
+  { reflects_colimit := λ K,
+    { reflects := λ c t,
+      begin
+        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.fun_inv_id,
+        refine (((is_colimit.precompose_inv_equiv K.right_unitor _).symm) l).of_iso_colimit _,
+        tidy,
+      end } } }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] : creates_colimits H :=
+{ creates_colimits_of_shape := λ J 𝒥, by exactI
+  { creates_colimit := λ F,
+    { lifts := λ c t,
+      { lifted_cocone := H.map_cocone_inv c,
+        valid_lift := H.map_cocone_map_cocone_inv c } } } }
 
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
@@ -115,7 +135,8 @@ The unit for the adjunction for`cones.functoriality K G : cone K ⥤ cone (K ⋙
 
 Auxiliary definition for `functoriality_is_right_adjoint`.
 -/
-@[simps] def functoriality_unit' : 𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
+@[simps] def functoriality_unit' :
+  𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
 { app := λ c, { hom := adj.unit.app c.X, } }
 
 /--
@@ -123,7 +144,8 @@ The counit for the adjunction for`cones.functoriality K G : cone K ⥤ cone (K �
 
 Auxiliary definition for `functoriality_is_right_adjoint`.
 -/
-@[simps] def functoriality_counit' : cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
+@[simps] def functoriality_counit' :
+  cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
 { app := λ c, { hom := adj.counit.app c.X, } }
 
 /-- The functor `cones.functoriality K G : cone K ⥤ cone (K ⋙ G)` is a right adjoint. -/
@@ -159,12 +181,9 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
   { reflects_limit := λ K,
     { reflects := λ c t,
       begin
-        have l: is_limit (E.inv.map_cone (E.map_cone c)) := preserves_limit.preserves t,
-        convert is_limit.map_cone_equiv E.fun_inv_id l,
-        { rw functor.comp_id },
-        { cases c,
-          cases c_π,
-          congr; rw functor.comp_id }
+        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.fun_inv_id,
+        refine (((is_limit.postcompose_hom_equiv K.left_unitor _).symm) this).of_iso_limit _,
+        tidy,
       end } } }
 
 @[priority 100] -- see Note [lower instance priority]

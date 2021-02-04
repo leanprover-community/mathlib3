@@ -148,15 +148,23 @@ lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
 
 end bool
 
-instance : decidable_linear_order bool :=
-begin
-  constructor,
-  show bool → bool → Prop,
-  { exact λ a b, a = ff ∨ b = tt },
-  all_goals {apply_instance <|> exact dec_trivial}
-end
+instance : linear_order bool :=
+{ le := λ a b, a = ff ∨ b = tt,
+  le_refl := dec_trivial,
+  le_trans := dec_trivial,
+  le_antisymm := dec_trivial,
+  le_total := dec_trivial,
+  decidable_le := infer_instance,
+  decidable_eq := infer_instance,
+  decidable_lt := infer_instance }
 
 namespace bool
+
+@[simp] lemma ff_le {x : bool} : ff ≤ x := or.intro_left _ rfl
+
+@[simp] lemma le_tt {x : bool} : x ≤ tt := or.intro_right _ rfl
+
+@[simp] lemma ff_lt_tt : ff < tt := lt_of_le_of_ne ff_le ff_ne_tt
 
 /-- convert a `bool` to a `ℕ`, `false -> 0`, `true -> 1` -/
 def to_nat (b : bool) : ℕ :=

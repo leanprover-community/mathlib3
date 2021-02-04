@@ -6,10 +6,10 @@ Authors: Johannes Hölzl
 Relator for functions, pairs, sums, and lists.
 -/
 
+import tactic.reserved_notation
+
 namespace relator
 universe variables u₁ u₂ v₁ v₂
-
-reserve infixr ` ⇒ `:40
 
 /- TODO(johoelzl):
  * should we introduce relators of datatypes as recursive function or as inductive

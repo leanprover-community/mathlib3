@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.operator_norm
+import analysis.normed_space.add_torsor
 import topology.bases
 import linear_algebra.finite_dimensional
 import tactic.omega
@@ -164,11 +165,17 @@ begin
   rw linear_equiv.symm_apply_apply
 end
 
+theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
+  [metric_space PE] [normed_add_torsor E PE] [metric_space PF] [normed_add_torsor F PF]
+  [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
+affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
+
 /-- The continuous linear map induced by a linear map on a finite dimensional space -/
 def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') : E →L[𝕜] F' :=
 { cont := f.continuous_of_finite_dimensional, ..f }
 
-/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional space. -/
+/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
+space. -/
 def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
@@ -176,6 +183,28 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }
+
+/-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
+(finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq
+  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] (cond : findim 𝕜 E = findim 𝕜 F) :
+  nonempty (E ≃L[𝕜] F) :=
+(nonempty_linear_equiv_of_findim_eq cond).map linear_equiv.to_continuous_linear_equiv
+
+/-- Two finite-dimensional normed spaces are continuously linearly equivalent if and only if they
+have the same (finite) dimension. -/
+theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_findim_eq
+  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
+   nonempty (E ≃L[𝕜] F) ↔ findim 𝕜 E = findim 𝕜 F :=
+⟨ λ ⟨h⟩, h.to_linear_equiv.findim_eq,
+  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq h ⟩
+
+/-- A continuous linear equivalence between two finite-dimensional normed spaces of the same
+(finite) dimension. -/
+def continuous_linear_equiv.of_findim_eq [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
+  (cond : findim 𝕜 E = findim 𝕜 F) :
+  E ≃L[𝕜] F :=
+(linear_equiv.of_findim_eq E F cond).to_continuous_linear_equiv
 
 variables {ι : Type*} [fintype ι]
 
@@ -259,7 +288,8 @@ begin
   obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
-          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
+          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
+    hv.op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,

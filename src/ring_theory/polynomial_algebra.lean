@@ -88,14 +88,14 @@ def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
   map_smul' := by {
     intros, unfold to_fun_linear_right,
     congr, simp only [linear_map.coe_mk],
-    unfold to_fun finsupp.sum monomial,
-    simp_rw [finset.smul_sum, finsupp.smul_single,  ← algebra.smul_mul_assoc],
+    unfold to_fun finsupp.sum,
+    simp_rw [finset.smul_sum, smul_monomial,  ← algebra.smul_mul_assoc],
     refl },
   map_add' := by {
     intros, unfold to_fun_linear_right,
     congr, simp only [linear_map.coe_mk],
-    unfold to_fun finsupp.sum monomial,
-    simp_rw [← finset.sum_add_distrib, ← finsupp.single_add, ← add_mul],
+    unfold to_fun finsupp.sum,
+    simp_rw [← finset.sum_add_distrib, ← monomial_add, ← add_mul],
     refl } }
 
 /--
@@ -124,7 +124,7 @@ begin
 end
 
 lemma to_fun_linear_mul_tmul_mul (a₁ a₂ : A) (p₁ p₂ : polynomial R) :
-  (to_fun_linear R A) ((a₁ * a₂) ⊗ₜ[R] p₁ * p₂) =
+  (to_fun_linear R A) ((a₁ * a₂) ⊗ₜ[R] (p₁ * p₂)) =
     (to_fun_linear R A) (a₁ ⊗ₜ[R] p₁) * (to_fun_linear R A) (a₂ ⊗ₜ[R] p₂) :=
 begin
   dsimp [to_fun_linear],
@@ -148,9 +148,8 @@ begin
   dsimp [to_fun_linear],
   simp only [lift.tmul],
   dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
-  rw [← C_1, ←monomial_zero_left, monomial, finsupp.sum_single_index],
-  { simp, refl, },
-  { simp, },
+  rw [← C_1, ←monomial_zero_left],
+  refine (finsupp.sum_single_index _).trans _; simp [algebra_map_apply]
 end
 
 /--
@@ -182,6 +181,10 @@ p.eval₂
 lemma inv_fun_add {p q} : inv_fun R A (p + q) = inv_fun R A p + inv_fun R A q :=
 by simp only [inv_fun, eval₂_add]
 
+lemma inv_fun_monomial (n : ℕ) (a : A) :
+  inv_fun R A (monomial n a) = include_left a * ((1 : A) ⊗ₜ[R] (X : polynomial R)) ^ n :=
+eval₂_monomial _ _
+
 lemma left_inv (x : A ⊗ polynomial R) :
   inv_fun R A ((to_fun_alg_hom R A) x) = x :=
 begin
@@ -206,9 +209,9 @@ begin
   apply polynomial.induction_on' x,
   { intros p q hp hq, simp only [inv_fun_add, alg_hom.map_add, hp, hq], },
   { intros n a,
-    rw [inv_fun, eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.include_left_apply,
+    rw [inv_fun_monomial, algebra.tensor_product.include_left_apply,
       algebra.tensor_product.tmul_pow, one_pow, algebra.tensor_product.tmul_mul_tmul,
-      mul_one, one_mul, to_fun_alg_hom_apply_tmul, ←monomial_one_eq_X_pow],
+      mul_one, one_mul, to_fun_alg_hom_apply_tmul, X_pow_eq_monomial],
     dsimp [monomial],
     rw [finsupp.sum_single_index]; simp, }
 end

@@ -83,7 +83,7 @@ meta def congr' (n : parse (with_desc "n" small_nat)?) :
   parse (tk "with" *> prod.mk <$> (rcases_patt_parse tt)* <*> (tk ":" *> small_nat)?)? →
   tactic unit
 | none         := tactic.congr' n
-| (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (ext p m))
+| (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (tactic.ext p m $> ()))
 
 /--
 Repeatedly and apply `congr'` and `ext`, using the the given patterns as arguments for `ext`.

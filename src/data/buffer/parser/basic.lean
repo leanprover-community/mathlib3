@@ -462,7 +462,7 @@ mono.seq
 instance sep_by [p.mono] [hs : sep.mono] : mono (sep_by sep p) :=
 mono.orelse
 
-instance fix_core {F : parser α → parser α} [hF : ∀ (p : parser α), p.mono → (F p).mono] :
+instance fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.mono → (F p).mono) :
   ∀ {max_depth : ℕ}, mono (fix_core F max_depth)
 | 0               := mono.failure
 | (max_depth + 1) := hF _ fix_core
@@ -473,9 +473,9 @@ mono.decorate_error
 instance nat : nat.mono :=
 mono.decorate_error
 
-instance fix {F : parser α → parser α} [hF : ∀ (p : parser α), p.mono → (F p).mono] :
+instance fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.mono → (F p).mono) :
   mono (fix F) :=
-⟨λ _ _, by { convert mono.fix_core.le _ _, exact hF }⟩
+⟨λ _ _, by { convert mono.le (fix_core F _) _ _, exact mono.fix_core hF }⟩
 
 end mono
 

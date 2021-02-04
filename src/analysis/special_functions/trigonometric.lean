@@ -884,20 +884,20 @@ intermediate_value_Icc' (by norm_num) continuous_on_cos
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
 which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
-noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
+protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
-by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
-by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
-by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
@@ -1251,7 +1251,7 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
     exact sqrt_le_sqrt (add_le_add_left (sqrt_two_add_series_monotone_left _) _)
   end
 
-@[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
+@[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (π / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
 | 0     := by simp
 | (n+1) :=
   begin
@@ -1266,24 +1266,24 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
     apply le_of_lt, apply cos_pos_of_mem_Ioo ⟨_, _⟩,
     { transitivity (0 : ℝ), rw neg_lt_zero, apply pi_div_two_pos,
       apply div_pos pi_pos, apply pow_pos, norm_num },
-    apply div_lt_div' (le_refl pi) _ pi_pos _,
+    apply div_lt_div' (le_refl π) _ pi_pos _,
     refine lt_of_le_of_lt (le_of_eq (pow_one _).symm) _,
     apply pow_lt_pow, norm_num, apply nat.succ_lt_succ, apply nat.succ_pos, all_goals {norm_num}
   end
 
 lemma sin_square_pi_over_two_pow (n : ℕ) :
-  sin (pi / 2 ^ (n+1)) ^ 2 = 1 - (sqrt_two_add_series 0 n / 2) ^ 2 :=
+  sin (π / 2 ^ (n+1)) ^ 2 = 1 - (sqrt_two_add_series 0 n / 2) ^ 2 :=
 by rw [sin_square, cos_pi_over_two_pow]
 
 lemma sin_square_pi_over_two_pow_succ (n : ℕ) :
-  sin (pi / 2 ^ (n+2)) ^ 2 = 1 / 2 - sqrt_two_add_series 0 n / 4 :=
+  sin (π / 2 ^ (n+2)) ^ 2 = 1 / 2 - sqrt_two_add_series 0 n / 4 :=
 begin
   rw [sin_square_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
   congr, norm_num, norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg,
 end
 
 @[simp] lemma sin_pi_over_two_pow_succ (n : ℕ) :
-  sin (pi / 2 ^ (n+2)) = sqrt (2 - sqrt_two_add_series 0 n) / 2 :=
+  sin (π / 2 ^ (n+2)) = sqrt (2 - sqrt_two_add_series 0 n) / 2 :=
 begin
   symmetry, rw [div_eq_iff_mul_eq], symmetry,
   rw [sqrt_eq_iff_sqr_eq, mul_pow, sin_square_pi_over_two_pow_succ, sub_mul],
@@ -1297,29 +1297,29 @@ begin
   apply pow_pos, all_goals {norm_num}
 end
 
-@[simp] lemma cos_pi_div_four : cos (pi / 4) = sqrt 2 / 2 :=
-by { transitivity cos (pi / 2 ^ 2), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_four : cos (π / 4) = sqrt 2 / 2 :=
+by { transitivity cos (π / 2 ^ 2), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_four : sin (pi / 4) = sqrt 2 / 2 :=
-by { transitivity sin (pi / 2 ^ 2), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_four : sin (π / 4) = sqrt 2 / 2 :=
+by { transitivity sin (π / 2 ^ 2), congr, norm_num, simp }
 
-@[simp] lemma cos_pi_div_eight : cos (pi / 8) = sqrt (2 + sqrt 2) / 2 :=
-by { transitivity cos (pi / 2 ^ 3), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_eight : cos (π / 8) = sqrt (2 + sqrt 2) / 2 :=
+by { transitivity cos (π / 2 ^ 3), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_eight : sin (pi / 8) = sqrt (2 - sqrt 2) / 2 :=
-by { transitivity sin (pi / 2 ^ 3), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_eight : sin (π / 8) = sqrt (2 - sqrt 2) / 2 :=
+by { transitivity sin (π / 2 ^ 3), congr, norm_num, simp }
 
-@[simp] lemma cos_pi_div_sixteen : cos (pi / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity cos (pi / 2 ^ 4), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_sixteen : cos (π / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
+by { transitivity cos (π / 2 ^ 4), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_sixteen : sin (pi / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity sin (pi / 2 ^ 4), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_sixteen : sin (π / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
+by { transitivity sin (π / 2 ^ 4), congr, norm_num, simp }
 
-@[simp] lemma cos_pi_div_thirty_two : cos (pi / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity cos (pi / 2 ^ 5), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_thirty_two : cos (π / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
+by { transitivity cos (π / 2 ^ 5), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity sin (pi / 2 ^ 5), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_thirty_two : sin (π / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
+by { transitivity sin (π / 2 ^ 5), congr, norm_num, simp }
 
 -- This section is also a convenient location for other explicit values of `sin` and `cos`.
 

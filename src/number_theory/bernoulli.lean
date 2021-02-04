@@ -169,8 +169,6 @@ end
 open power_series
 open nat
 
-@[simp] lemma constant_coeff_exp : constant_coeff ℚ (exp ℚ) = 1 := rfl
-
 theorem bernoulli_power_series :
 (power_series.mk (λ n, ((bernoulli n) / (nat.factorial n) : ℚ))) * (power_series.exp ℚ - 1) =
   (X : power_series ℚ) * (exp ℚ) :=

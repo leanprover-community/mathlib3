@@ -86,7 +86,7 @@ begin
       ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (by rwa one_div_one))),
   rw [div_pow, one_pow],
   refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (exi a)),
-  repeat { exact pow_pos (zero_lt_one.trans hm) _ }
+  repeat { exact pow_pos (zero_lt_one.trans hm) _ },
 end
 
 /-- This series is explicitly proven, since it is used twice in the remaining lemmas. -/
@@ -98,16 +98,49 @@ omit hm
 
 section natural
 open nat
-
--- the next two lemmas about factorials are in a PR from comm_semiring
 lemma lt_factorial_self {n : ℕ} (hi : 3 ≤ n) : n < n! :=
 begin
   rw [← succ_pred_eq_of_pos (lt_of_lt_of_le (zero_lt_two.trans (lt.base 2)) hi), factorial_succ],
-  exact lt_mul_of_one_lt_right ((pred n).succ_pos) (lt_of_lt_of_le (lt_of_lt_of_le one_lt_two
-    (le_pred_of_lt (succ_le_iff.mp hi))) (self_le_factorial _)),
+  refine lt_mul_of_one_lt_right ((pred n).succ_pos) (lt_of_lt_of_le _ (self_le_factorial _)),
+  exact lt_of_lt_of_le one_lt_two (le_pred_of_lt (succ_le_iff.mp hi)),
 end
 
-lemma add_factorial_lt_factorial_add {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
+lemma factorial_one_lt_iff {n : ℕ} : n < factorial n ↔ n ≠ 1 :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  by_contra k,
+  rw not_not at k,
+  rw k at h,
+  exact not_le.mpr h (le_of_eq factorial_one),
+  apply lt_iff_le_and_ne.mpr ⟨self_le_factorial _, λ k, h _⟩,
+  by_cases n0 : n = 0,
+  { rw [n0, factorial_zero, factorial_one] at k,
+    exact (rfl.congr k).mp n0 },
+  have : n = n.pred.succ := (succ_pred_eq_of_pos (zero_lt_iff.mpr n0)).symm,
+  rw [this] at k { occs := occurrences.pos [2] },
+  rw [factorial_succ, succ_eq_add_one, add_mul] at k,
+  nth_rewrite 1 [this] at k,
+
+  rw [not_le, lt_succ_iff] at k,
+  cases k with k k,
+  exact not_le.mpr h (le_of_eq factorial_one),
+  change n ≤ 0 at k,
+  rw nat.le_zero_iff at k,
+  apply lt_of_lt_of_le _ (le_of_eq factorial_one.symm),
+  rw factorial_one at h,
+  exact nat.lt_asymm h h,
+
+  rw [not_le, lt_succ_iff, ← factorial_eq_one] at k,
+  rw k at h,
+  rw factorial_eq_one at k,
+  symmetry,
+  by_contra,
+  rw [not_iff,not_le, lt_succ_iff] at h,
+  rw ← factorial_eq_one at h,
+  have : n < 2 ↔ n ≤ 1,exact lt_succ_iff,
+end
+
+lemma add_factorial_lt_factorial_add_fewer_rw {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
   i + n.succ! < (i + n.succ)! :=
 begin
   rw [succ_eq_add_one, ← add_assoc, factorial_succ (i + _), succ_eq_add_one, add_mul, one_mul],
@@ -118,13 +151,42 @@ begin
     ((le_of_eq (add_comm n 1)).trans ((add_le_add_iff_right n).mpr (one_le_two.trans hi)))),
 end
 
+lemma add_factorial_lt_factorial_add_cases {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
+  i + n.succ! < (i + n.succ)! :=
+begin
+  by_cases n0 : n = 0,
+  { rw [n0],
+    exact lt_of_lt_of_le (lt_factorial_self (succ_le_succ hi)) (le_of_eq rfl) },
+  rw [succ_eq_add_one, ← add_assoc, factorial_succ (i + _), succ_eq_add_one, add_mul, one_mul],
+  have : i < i + n := (lt_add_iff_pos_right _).mpr (zero_lt_iff.mpr n0),
+  refine add_lt_add_of_lt_of_le (lt_of_lt_of_le this _) _,
+  refine (le_mul_iff_one_le_right (lt_trans (lt_of_lt_of_le zero_lt_two hi) this)).mpr (factorial_pos _),
+  exact factorial_le ((le_of_eq (add_comm n 1)).trans ((add_le_add_iff_right n).mpr (one_le_two.trans hi))),
+end
+
+
+lemma add_factorial_lt_factorial_add {i : ℕ} (n : ℕ) (hi : 2 ≤ i) : i + n.succ! < (i + n.succ)! :=
+begin
+  by_cases n0 : n = 0,
+  { rw [n0],
+    exact lt_of_lt_of_le (lt_factorial_self (succ_le_succ hi)) (le_of_eq rfl) },
+  rw [factorial_succ, succ_eq_add_one, add_mul, one_mul, ← add_assoc, ← add_assoc, factorial_succ],
+  simp only [succ_eq_add_one, add_mul, one_mul],
+  repeat { refine add_lt_add _  _ },
+  apply (lt_mul_iff_one_lt_right _).mpr,
+  refine lt_of_le_of_lt (le_of_eq factorial_one.symm) ((factorial_lt zero_lt_one).mpr _),
+  apply lt_add_right,
+  any_goals { refine lt_of_lt_of_le _ hi, exact zero_lt_two <|> exact one_lt_two },
+  apply mul_lt_mul_of_pos_left _ (zero_lt_iff.mpr n0),
+  any_goals { exact (factorial_lt (zero_lt_iff.mpr n0)).mpr
+    ((lt_add_iff_pos_left _).mpr (lt_of_lt_of_le zero_lt_two hi)) },
+end
+
 lemma add_le_mul_two_add {R : Type*} [ordered_semiring R] [nontrivial R] {a b : R}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
-calc a + (2 + b) ≤ a + (a + a * b) :
-      add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
-             ... ≤ a * (2 + b) :
-      le_trans (le_trans (le_of_eq (add_assoc a a _).symm) (le_trans rfl.ge (add_le_add_right
-      (le_of_eq (mul_two a).symm) _))) (le_of_eq (mul_add a 2 b).symm)
+(((add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a).trans
+  (le_of_eq (add_assoc a a _).symm)).trans (add_le_add_right (le_of_eq (mul_two a).symm) _)).trans
+  (le_of_eq (mul_add a 2 b).symm)
 
 lemma add_le_mul {a b : ℕ} (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ a * b :=
 begin
@@ -132,9 +194,42 @@ begin
   exact add_le_mul_two_add a2 k.zero_le
 end
 
+lemma add_factorial_lt_factorial_add_ind {i : ℕ} (n : ℕ) (hi : 2 ≤ i) : i + n.succ! < (i + n.succ)! :=
+begin
+  induction n with n hn,
+  { exact lt_of_lt_of_le (lt_factorial_self (succ_le_succ hi)) (le_of_eq rfl) },
+  rw [add_succ, factorial_succ (i + _)],
+  simp [succ_eq_add_one, add_mul, mul_add, ← add_assoc],
+  repeat { refine add_lt_add _  _ },
+  apply (lt_mul_iff_one_lt_right _).mpr,
+  refine lt_of_le_of_lt (le_of_eq factorial_one.symm) ((factorial_lt zero_lt_one).mpr _),
+  apply lt_add_right,
+  any_goals { refine lt_of_lt_of_le _ hi, exact zero_lt_two <|> exact one_lt_two },
+  apply mul_lt_mul_of_pos_left _ (zero_lt_iff.mpr n0),
+  any_goals { exact (factorial_lt (zero_lt_iff.mpr n0)).mpr
+    ((lt_add_iff_pos_left _).mpr (lt_of_lt_of_le zero_lt_two hi)) },
+end
 end natural
 
 /-
+lemma add_factorial_le_factorial_add (i n : ℕ) (n0 : n ≠ 0) (hi : 2 ≤ i) : i + n! < (i + n)! :=
+begin
+  induction i with i ih,
+  { cases hi },
+  { simp only [nat.succ_eq_add_one, add_right_comm _ 1, nat.factorial_succ],
+    rw [add_mul (i + n), one_mul, add_comm _ 1],
+    by_cases i0 : i = 0,
+    { subst i0, exact (nat.not_succ_le_self 1 hi).elim },
+    by_cases i0 : i = 1,
+    { subst i0,
+      simp,
+    },
+
+    apply add_le_add _ ih,
+    exact mul_pos (nat.add_pos_right _ (nat.pos_of_ne_zero hn)) (nat.factorial_pos _) }
+end
+
+
 omit hm
 -/
 
@@ -148,19 +243,19 @@ lemma calc_liou_one_le_no_calc_ep {ε : ℝ} (e0 : 0 ≤ ε) (e1 : ε ≤ 1) (n 
 
 lemma one_div_pow_le_one_div_pow {R : Type*} [linear_ordered_field R] {a : R} (a1 : 1 ≤ a) {n m : ℕ} (h : n ≤ m) :
   1 / a ^ m ≤ 1 / a ^ n :=
-(one_div_le_one_div (pow_pos (zero_lt_one.trans_le a1) _)
-  (pow_pos (zero_lt_one.trans_le a1) _)).mpr (pow_mono a1 h)
+(one_div_le_one_div (pow_pos (lt_of_lt_of_le zero_lt_one a1) _)
+  (pow_pos (lt_of_lt_of_le zero_lt_one a1) _)).mpr (pow_mono a1 h)
 
 lemma calc_liou_one_le_no_calc (m1 : 1 ≤ m) (n : ℕ) (i : ℕ) :
 1 / m ^ (i + (n + 1))! ≤ 1 / m ^ i * 1 / m ^ (n + 1)! :=
 begin
   refine (le_of_eq (one_div_pow (i + (n + 1))!).symm).trans ((calc_liou_one_le_no_calc_ep
-    (one_div_nonneg.mpr (zero_le_one.trans m1)) ((one_div_le ((@zero_lt_one ℝ _ _).trans_le
+    (one_div_nonneg.mpr (zero_le_one.trans m1)) ((one_div_le (lt_of_lt_of_le (@zero_lt_one ℝ _ _)
       m1) zero_lt_one).mpr ((le_of_eq one_div_one).trans m1)) n i).trans
       (le_trans _ (le_of_eq (mul_div_assoc).symm))),
     rw ← one_div_pow,
     exact (mul_le_mul_left (pow_pos (one_div_pos.mpr
-      ((@zero_lt_one ℝ _ _).trans_le m1)) i)).mpr (le_of_eq (one_div_pow _))
+      (lt_of_lt_of_le (@zero_lt_one ℝ _ _) m1)) i)).mpr (le_of_eq (one_div_pow _))
 end
 
 lemma calc_liou_one_le (m1 : 1 ≤ m) (n : ℕ) (i : ℕ) :
@@ -193,7 +288,7 @@ begin
   { refine (mul_left_inj' (ne_of_gt (one_div_pos.mpr (pow_pos m0 _)))).mpr _,
     rw [tsum_geometric_of_abs_lt_1 mi, inv_eq_one_div],
     refine (div_eq_iff (ne_of_gt (sub_pos.mpr ((one_div_lt m0 zero_lt_one).mpr
-      ((le_of_eq (div_one 1)).trans_lt m1))))).mpr _,
+      (lt_of_le_of_lt (le_of_eq (div_one 1)) m1))))).mpr _,
     rw [div_mul_eq_mul_div, mul_sub, mul_one, mul_one_div_cancel (ne_of_gt m0),
       div_self (ne_of_gt (sub_pos.mpr m1))] },
 calc (∑' i, 1 / m ^ (i + (n + 1))!)
@@ -221,10 +316,10 @@ lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
   m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
 begin
   calc m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
-    mul_le_mul ((div_le_iff (sub_pos.mpr ((@one_lt_two ℝ _ _).trans_le hm))).mpr
+    mul_le_mul ((div_le_iff (sub_pos.mpr (lt_of_lt_of_le (@one_lt_two ℝ _ _) hm))).mpr
     (le_trans (le_sub.mpr ((le_of_eq (mul_one 2)).trans (has_le.le.trans hm (le_of_eq
     (eq_sub_iff_add_eq.mpr (two_mul m).symm))))) (le_of_eq (mul_sub 2 m 1).symm))) rfl.le
-    (one_div_nonneg.mpr (le_of_lt (pow_pos (zero_lt_two.trans_le hm) (n + 1)!))) zero_le_two
+    (one_div_nonneg.mpr (le_of_lt (pow_pos (lt_of_lt_of_le zero_lt_two hm) (n + 1)!))) zero_le_two
   ... = 2 / m ^ (n + 1)! : mul_one_div 2 _
   ... = 2 / m ^ (n! * (n + 1)) : by rw [nat.factorial_succ, mul_comm]
   ... ≤ 1 / m ^ (n! * n) :
@@ -233,7 +328,7 @@ begin
       conv_rhs { rw [mul_add, pow_add, mul_one, pow_mul, mul_comm] },
       refine mul_le_mul (hm.trans (le_pow_self (nat.factorial_pos n) (one_le_two.trans hm)))
         (le_of_eq (pow_mul _ _ _)) (le_of_lt _) (le_of_lt _),
-      any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
+      any_goals { exact pow_pos (lt_of_lt_of_le zero_lt_two hm) _ },
     end
   ... = 1 / (m ^ n!) ^ n : by rw pow_mul
 end
@@ -254,7 +349,7 @@ calc m / (m - 1) * (1 / m ^ (n + 1)!) < 2 * (1 / m ^ (n + 1)!) :
     rw [div_lt_div_iff, one_mul],
     conv_rhs { rw [mul_add, pow_add, mul_one, pow_mul, mul_comm] },
     apply mul_lt_mul,
-    { refine hm.trans_le _,
+    { refine lt_of_lt_of_le hm _,
       conv_lhs { rw ← pow_one m },
       exact pow_le_pow (one_le_two.trans hm.le) (nat.factorial_pos _) },
     { rw pow_mul },

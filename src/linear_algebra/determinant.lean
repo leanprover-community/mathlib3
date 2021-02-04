@@ -456,8 +456,8 @@ by convert index_equiv_det (subtype_equiv_right e) (to_square_block' M q)
 
 /-- Let `b` map rows and columns of a square matrix `M` to `n + 1` blocks. Then
   `upper_block_triangular_matrix M n b` says the matrix is upper block triangular. -/
-def upper_block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (n : ℕ) (b : o → ℕ) :=
-  (∀ i, b i ≤ n) ∧ (∀ i j, b j < b i → M i j = 0)
+def upper_block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (n : ℕ)
+  (b : o → ℕ) := (∀ i, b i ≤ n) ∧ (∀ i j, b j < b i → M i j = 0)
 
 lemma upper_block_triangular_det (M : matrix m m R) (n : ℕ) (b : m → ℕ)
   (h : upper_block_triangular_matrix M n b) :

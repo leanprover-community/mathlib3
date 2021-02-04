@@ -71,12 +71,13 @@ begin
   finish
 end
 
-lemma pumping_lemma [fintype σ] : ∃ (p : ℕ), ∀ (x ∈ M.accepts) (hlen : p ≤ list.length x),
-  ∃ a b c,  x = a ++ b ++ c ∧ a.length + b.length ≤ p ∧ b ≠ [] ∧
+lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
+  (hlen : fintype.card (set σ) + 1 ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) + 1 ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
-  rw ←to_DFA_correct,
-  exact ⟨ _, M.to_DFA.pumping_lemma ⟩
+  rw ←to_DFA_correct at hx ⊢,
+  exact M.to_DFA.pumping_lemma hx hlen
 end
 
 end NFA

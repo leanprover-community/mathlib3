@@ -48,20 +48,18 @@ lemma mem_accepts (x : list α) : x ∈ M.accepts ↔ M.eval_from M.start x ∈ 
 
 lemma eval_from_of_append (start : σ) (x y : list α) :
   M.eval_from start (x ++ y) = M.eval_from (M.eval_from start x) y :=
-list.foldl_append _ _ x y
+x.foldl_append _ _ y
 
-lemma eval_from_split [fintype σ] (x : list α) (s t : σ) :
-  fintype.card σ + 1 ≤ x.length →
-    M.eval_from s x = t →
-      ∃ q a b c,
-        x = a ++ b ++ c ∧
-        a.length + b.length ≤ fintype.card σ + 1 ∧
-        b ≠ [] ∧
-        M.eval_from s a = q ∧
-        M.eval_from q b = q ∧
-        M.eval_from q c = t :=
+lemma eval_from_split [fintype σ] {x : list α} {s t : σ} (hlen : fintype.card σ + 1 ≤ x.length)
+  (hx : M.eval_from s x = t) :
+  ∃ q a b c,
+  x = a ++ b ++ c ∧
+  a.length + b.length ≤ fintype.card σ + 1 ∧
+  b ≠ [] ∧
+  M.eval_from s a = q ∧
+  M.eval_from q b = q ∧
+  M.eval_from q c = t :=
 begin
-  intros hlen hx,
   obtain ⟨⟨n, hn⟩, ⟨m, hm⟩, hneq, heq⟩ := fintype.exists_ne_map_eq_of_card_lt
     (λ n : fin (fintype.card σ + 1), M.eval_from s (x.take n)) (by norm_num),
   wlog hle : n ≤ m := le_total n m using [n m, m n],
@@ -72,8 +70,8 @@ begin
   { rw [list.take_append_drop, list.take_append_drop] },
 
   { simp only [list.length_drop, list.length_take],
-    rw [min_eq_left (le_of_lt (lt_of_lt_of_le hm hlen)), min_eq_left hle, nat.add_sub_cancel' hle],
-    exact le_of_lt hm },
+    rw [min_eq_left (hm.le.trans hlen), min_eq_left hle, nat.add_sub_cancel' hle],
+    exact hm.le },
 
   { intro h,
     have hlen' := congr_arg list.length h,
@@ -82,28 +80,25 @@ begin
     { apply hneq,
       apply le_antisymm,
       assumption' },
-    apply lt_of_lt_of_le hm,
-    assumption },
+    exact hm.trans_le hlen, },
 
   have hq :
-    M.eval_from (M.eval_from s (list.take n (list.take m x))) (list.drop n (list.take m x))
-     = M.eval_from s (list.take n (list.take m x)),
+    M.eval_from (M.eval_from s ((x.take m).take n)) ((x.take m).drop n) =
+      M.eval_from s ((x.take m).take n),
   { simp only [fin.coe_mk] at heq,
     rw [list.take_take, min_eq_left hle, ←eval_from_of_append, heq, ←min_eq_left hle,
         ←list.take_take, min_eq_left hle, list.take_append_drop] },
-  use hq,
 
-  { rwa [←hq, ←eval_from_of_append, ←eval_from_of_append, ←list.append_assoc, list.take_append_drop,
-        list.take_append_drop] }
+  use hq,
+  rwa [←hq, ←eval_from_of_append, ←eval_from_of_append, ←list.append_assoc, list.take_append_drop,
+       list.take_append_drop]
 end
 
-lemma eval_from_of_pow (x : list α) (s : σ) (hx : M.eval_from s x = s) :
-  ∀ y ∈ @language.star α {x}, M.eval_from s y = s :=
+lemma eval_from_of_pow {x y : list α} {s : σ} (hx : M.eval_from s x = s)
+  (hy : y ∈ @language.star α {x}) : M.eval_from s y = s :=
 begin
-  intros y hy,
   rw language.mem_star at hy,
-  rcases hy with ⟨ S, hy, hS ⟩,
-  subst hy,
+  rcases hy with ⟨ S, rfl, hS ⟩,
   induction S with a S ih,
   { refl },
   { have ha := hS a (list.mem_cons_self _ _),
@@ -114,24 +109,22 @@ begin
     exact hS z (list.mem_cons_of_mem a hz) }
 end
 
-lemma pumping_lemma [fintype σ] (x : list α) (hx : x ∈ M.accepts)
-  (hlen : (fintype.card σ + 1) ≤ list.length x) :
-  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ (fintype.card σ + 1) ∧ b ≠ [] ∧
+lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
+  (hlen : fintype.card σ + 1 ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card σ + 1 ∧ b ≠ [] ∧
   {a} * language.star {b} * {c} ≤ M.accepts :=
 begin
-  obtain ⟨_, a, b, c, hx, hlen, hnil, rfl, hb, hc⟩ :=
-    M.eval_from_split x M.start (M.eval x) hlen rfl,
+  obtain ⟨_, a, b, c, hx, hlen, hnil, rfl, hb, hc⟩ := M.eval_from_split hlen rfl,
   use [a, b, c, hx, hlen, hnil],
   intros y hy,
   rw language.mem_mul at hy,
-  rcases hy with ⟨ ab, c', hab, hc', hy ⟩,
+  rcases hy with ⟨ ab, c', hab, hc', rfl ⟩,
   rw language.mem_mul at hab,
-  rcases hab with ⟨ a', b', ha', hb', hab ⟩,
+  rcases hab with ⟨ a', b', ha', hb', rfl ⟩,
   rw set.mem_singleton_iff at ha' hc',
-  substs hy hab ha' hc',
-  have h := M.eval_from_of_pow _ _ hb b' hb',
-  rw [mem_accepts, eval_from_of_append, eval_from_of_append, h, hc],
-  assumption
+  substs ha' hc',
+  have h := M.eval_from_of_pow hb hb',
+  rwa [mem_accepts, eval_from_of_append, eval_from_of_append, h, hc]
 end
 
 end DFA

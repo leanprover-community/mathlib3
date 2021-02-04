@@ -31,9 +31,13 @@ begin
   refl
 end
 
-lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {f : β → α} {s : finset β} :
+lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
 le_sum_of_subadditive _ abs_zero abs_add s f
+
+lemma abs_prod [linear_ordered_comm_ring α] {f : β → α} {s : finset β} :
+  abs (∏ x in s, f x) = ∏ x in s, abs (f x) :=
+(abs_hom.to_monoid_hom : α →* α).map_prod _ _
 
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
@@ -195,9 +199,9 @@ end
 
 end ordered_cancel_comm_monoid
 
-section decidable_linear_ordered_cancel_comm_monoid
+section linear_ordered_cancel_comm_monoid
 
-variables [decidable_linear_ordered_cancel_add_comm_monoid β]
+variables [linear_ordered_cancel_add_comm_monoid β]
 
 theorem exists_lt_of_sum_lt (Hlt : (∑ x in s, f x) < ∑ x in s, g x) :
   ∃ i ∈ s, f i < g i :=
@@ -225,7 +229,7 @@ begin
                  ... = 0           : by rw [finset.sum_const, nsmul_zero],
 end
 
-end decidable_linear_ordered_cancel_comm_monoid
+end linear_ordered_cancel_comm_monoid
 
 section linear_ordered_comm_ring
 variables [linear_ordered_comm_ring β]
@@ -240,7 +244,6 @@ prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
 prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
-
 
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_le_prod {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
@@ -316,13 +319,17 @@ end finset
 
 namespace with_top
 open finset
-open_locale classical
+
+/-- A product of finite numbers is still finite -/
+lemma prod_lt_top [canonically_ordered_comm_semiring β] [nontrivial β] [decidable_eq β]
+  {s : finset α} {f : α → with_top β} (h : ∀ a ∈ s, f a < ⊤) :
+  (∏ x in s, f x) < ⊤ :=
+prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → (∑ x in s, f x) < ⊤ :=
 λ h, sum_induction f (λ a, a < ⊤) (by { simp_rw add_lt_top, tauto }) zero_lt_top h
-
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_add_monoid β] {s : finset α} {f : α → with_top β} :
@@ -338,16 +345,5 @@ begin
   simp only [← lt_top_iff_ne_top],
   exact sum_lt_top_iff
 end
-
-open opposite
-
-/-- Moving to the opposite additive commutative monoid commutes with summing. -/
-@[simp] lemma op_sum [add_comm_monoid β] {s : finset α} (f : α → β) :
-  op (∑ x in s, f x) = ∑ x in s, op (f x) :=
-(@op_add_hom β _).map_sum _ _
-
-@[simp] lemma unop_sum [add_comm_monoid β] {s : finset α} (f : α → βᵒᵖ) :
-  unop (∑ x in s, f x) = ∑ x in s, unop (f x) :=
-(@unop_add_hom β _).map_sum _ _
 
 end with_top

@@ -317,7 +317,6 @@ apply_nolint tactic.mllist.take doc_blame unused_arguments
 apply_nolint tactic.mllist.uncons doc_blame unused_arguments
 
 -- data/multiset/basic.lean
-apply_nolint multiset.choose doc_blame
 apply_nolint multiset.decidable_exists_multiset doc_blame
 apply_nolint multiset.decidable_forall_multiset doc_blame
 apply_nolint multiset.rec_on doc_blame
@@ -409,7 +408,6 @@ apply_nolint rat.nonneg doc_blame
 -- data/real/basic.lean
 apply_nolint real.comm_ring_aux doc_blame
 apply_nolint real.le doc_blame
-apply_nolint real.sqrt_aux doc_blame
 
 -- data/real/cau_seq_completion.lean
 apply_nolint cau_seq.completion.Cauchy doc_blame
@@ -827,9 +825,6 @@ apply_nolint auto.preprocess_goal doc_blame
 apply_nolint auto.whnf_reducible doc_blame
 apply_nolint tactic.interactive.revert_all doc_blame
 
--- tactic/generalize_proofs.lean
-apply_nolint tactic.generalize_proofs doc_blame
-
 -- tactic/interactive.lean
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame
@@ -875,11 +870,6 @@ apply_nolint tactic.local_cache.internal.save_data doc_blame unused_arguments
 
 -- tactic/localized.lean
 apply_nolint localized_attr doc_blame
-
--- tactic/mk_iff_of_inductive_prop.lean
-apply_nolint tactic.constr_to_prop doc_blame
-apply_nolint tactic.mk_iff doc_blame
-apply_nolint tactic.select doc_blame
 
 -- tactic/monotonicity/basic.lean
 apply_nolint tactic.interactive.compare doc_blame
@@ -953,9 +943,6 @@ apply_nolint tactic.interactive.same_function_aux doc_blame
 apply_nolint tactic.interactive.side_conditions doc_blame
 apply_nolint tactic.interactive.solve_mvar doc_blame
 apply_nolint tactic.interactive.unify_with_instance doc_blame
-
--- tactic/norm_num.lean
-apply_nolint norm_num.derive doc_blame
 
 -- tactic/obviously.lean
 apply_nolint obviously.attr doc_blame
@@ -1172,7 +1159,6 @@ apply_nolint continuous_map.induced doc_blame
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame
-apply_nolint is_closed_map doc_blame
 
 -- topology/metric_space/emetric_space.lean
 apply_nolint has_edist doc_blame

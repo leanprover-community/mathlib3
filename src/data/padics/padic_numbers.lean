@@ -158,7 +158,6 @@ else by simp [norm, hf, padic_norm.nonneg]
 lemma lift_index_left_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v2 v3 : ℕ) :
   padic_norm p (f (stationary_point hf)) =
     padic_norm p (f (max (stationary_point hf) (max v2 v3))) :=
-let i := max (stationary_point hf) (max v2 v3) in
 begin
   apply stationary_point_spec hf,
   { apply le_max_left },
@@ -169,7 +168,6 @@ end
 lemma lift_index_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v1 v3 : ℕ) :
   padic_norm p (f (stationary_point hf)) =
     padic_norm p (f (max v1 (max (stationary_point hf) v3))) :=
-let i := max v1 (max (stationary_point hf) v3) in
 begin
   apply stationary_point_spec hf,
   { apply le_trans,
@@ -182,7 +180,6 @@ end
 lemma lift_index_right {f : padic_seq p} (hf : ¬ f ≈ 0) (v1 v2 : ℕ) :
   padic_norm p (f (stationary_point hf)) =
     padic_norm p (f (max v1 (max v2 (stationary_point hf)))) :=
-let i := max v1 (max v2 (stationary_point hf)) in
 begin
   apply stationary_point_spec hf,
   { apply le_trans,
@@ -242,7 +239,7 @@ do [v1, v2, v3] ← [hh, hf, hg].mmap
    e2 ← tactic.mk_app ``lift_index_left [hf, v1, v3] <|> return `(true),
    e3 ← tactic.mk_app ``lift_index_right [hg, v1, v2] <|> return `(true),
    sl ← [e1, e2, e3].mfoldl (λ s e, simp_lemmas.add s e) simp_lemmas.mk,
-   when at_.include_goal (tactic.simp_target sl),
+   when at_.include_goal (tactic.simp_target sl >> tactic.skip),
    hs ← at_.get_locals, hs.mmap' (tactic.simp_hyp sl [])
 
 /--
@@ -767,7 +764,7 @@ instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
+instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ _, norm_eq_zero,
   abv_add := norm_add_le,
@@ -777,7 +774,7 @@ theorem rat_dense {p : ℕ} {hp : fact p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : 
         ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
-⟨r, lt.trans (by simpa [has_norm.norm] using hr) hε'r⟩
+⟨r, lt_trans (by simpa [has_norm.norm] using hr) hε'r⟩
 
 end normed_space
 end padic
@@ -963,7 +960,7 @@ begin
   intros i hi, let h := hN i hi,
   unfold norm,
   rw_mod_cast [cau_seq.sub_apply, padic_norm_e.sub_rev],
-  refine lt.trans _ hε'.2,
+  refine lt_trans _ hε'.2,
   exact_mod_cast hN i hi
 end
 

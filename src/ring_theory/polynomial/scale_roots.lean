@@ -42,7 +42,7 @@ begin
 end
 
 lemma support_scale_roots_le (p : polynomial R) (s : R) :
-(scale_roots p s).support ≤ p.support :=
+  (scale_roots p s).support ≤ p.support :=
 begin
   intros i,
   simp only [mem_support_iff, scale_roots, on_finset_apply],
@@ -80,7 +80,7 @@ by simp only [nat_degree, degree_scale_roots]
 
 lemma monic_scale_roots_iff {p : polynomial R} (s : R) :
   monic (scale_roots p s) ↔ monic p :=
-by simp [monic, leading_coeff]
+by simp only [monic, leading_coeff, nat_degree_scale_roots, coeff_scale_roots_nat_degree]
 
 lemma scale_roots_eval₂_eq_zero {p : polynomial S} (f : S →+* R)
   {r : R} {s : S} (hr : eval₂ f r p = 0) :

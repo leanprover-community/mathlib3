@@ -6,10 +6,6 @@ Author: Joseph Myers.
 import linear_algebra.affine_space.independent
 import linear_algebra.finite_dimensional
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-
 /-!
 # Finite-dimensional subspaces of affine spaces.
 
@@ -23,6 +19,9 @@ subspaces of affine spaces.
 
 -/
 
+noncomputable theory
+open_locale big_operators classical affine
+
 section affine_space'
 
 variables (k : Type*) {V : Type*} {P : Type*} [field k] [add_comm_group V] [module k V]
@@ -35,7 +34,7 @@ open affine_subspace finite_dimensional vector_space
 /-- The `vector_span` of a finite set is finite-dimensional. -/
 lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :
   finite_dimensional k (vector_span k s) :=
-span_of_finite k $ vsub_set_finite_of_finite h
+span_of_finite k $ h.vsub h
 
 /-- The `vector_span` of a family indexed by a `fintype` is
 finite-dimensional. -/
@@ -314,7 +313,7 @@ begin
   { rintro ⟨v, hp₀v⟩,
     use v,
     intros w hw,
-    have hs : vector_span k s ≤ submodule.span k ({v} : set V),
+    have hs : vector_span k s ≤ k ∙ v,
     { rw [vector_span_eq_span_vsub_set_right k h, submodule.span_le, set.subset_def],
       intros x hx,
       rw [submodule.mem_coe, submodule.mem_span_singleton],

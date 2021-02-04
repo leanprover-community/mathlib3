@@ -46,8 +46,7 @@ end semiring
 
 lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
   (∑ x in s, f x) / b = ∑ x in s, f x / b :=
-calc (∑ x in s, f x) / b = ∑ x in s, f x * (1 / b) : by rw [div_eq_mul_one_div, sum_mul]
-                     ... = ∑ x in s, f x / b : by { congr' with x, rw ← div_eq_mul_one_div (f x) b }
+by simp only [div_eq_mul_inv, sum_mul]
 
 section comm_semiring
 variables [comm_semiring β]
@@ -70,7 +69,7 @@ begin
       { rw [eq₂, eq₃, eq] },
       rw [pi.cons_same, pi.cons_same] at this,
       exact h this },
-    rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bind h₁],
+    rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bUnion h₁],
     refine sum_congr rfl (λ b _, _),
     have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
       assume p₁ h₁ p₂ h₂ eq, pi_cons_injective ha eq,
@@ -153,7 +152,8 @@ end comm_semiring
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]
-lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s) (f : finset α → β) :
+lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s)
+  (f : finset α → β) :
   (∏ a in (insert x s).powerset, f a) =
     (∏ a in s.powerset, f a) * (∏ t in s.powerset, f (insert x t)) :=
 begin

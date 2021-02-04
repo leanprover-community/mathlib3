@@ -23,6 +23,7 @@ and composition with linear maps `f`, `Q.comp f x = Q (f x)`.
 
  * `quadratic_form.associated`: associated bilinear form
  * `quadratic_form.pos_def`: positive definite quadratic forms
+ * `quadratic_form.anisotropic`: anisotropic quadratic forms
  * `quadratic_form.discr`: discriminant of a quadratic form
 
 ## Main statements
@@ -112,6 +113,16 @@ lemma polar_smul_left (a : R) (x y : M) :
 Q.polar_smul_left' a x y
 
 @[simp]
+lemma polar_neg_left (x y : M) :
+  polar Q (-x) y = -polar Q x y :=
+by rw [←neg_one_smul R x, polar_smul_left, neg_one_mul]
+
+@[simp]
+lemma polar_sub_left (x x' y : M) :
+  polar Q (x - x') y = polar Q x y - polar Q x' y :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_left, polar_neg_left]
+
+@[simp]
 lemma polar_add_right (x y y' : M) :
   polar Q x (y + y') = polar Q x y + polar Q x y' :=
 Q.polar_add_right' x y y'
@@ -121,15 +132,25 @@ lemma polar_smul_right (a : R) (x y : M) :
   polar Q x (a • y) = a * polar Q x y :=
 Q.polar_smul_right' a x y
 
+@[simp]
+lemma polar_neg_right (x y : M) :
+  polar Q x (-y) = -polar Q x y :=
+by rw [←neg_one_smul R y, polar_smul_right, neg_one_mul]
+
+@[simp]
+lemma polar_sub_right (x y y' : M) :
+  polar Q x (y - y') = polar Q x y - polar Q x y' :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_right, polar_neg_right]
+
 lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
 
 lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
 by { rw [←one_smul R x, ←add_smul, map_smul], norm_num }
 
-lemma map_zero : Q 0 = 0 :=
+@[simp] lemma map_zero : Q 0 = 0 :=
 by rw [←@zero_smul R _ _ _ _ (0 : M), map_smul, zero_mul, zero_mul]
 
-lemma map_neg (x : M) : Q (-x) = Q x :=
+@[simp] lemma map_neg (x : M) : Q (-x) = Q x :=
 by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
 
 lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=
@@ -187,6 +208,22 @@ instance : has_neg (quadratic_form R M) :=
 
 @[simp] lemma neg_apply (Q : quadratic_form R M) (x : M) : (-Q) x = -Q x := rfl
 
+instance : add_comm_group (quadratic_form R M) :=
+{ add := (+),
+  zero := 0,
+  neg := has_neg.neg,
+  add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
+  add_assoc := λ Q Q' Q'', by { ext, simp only [add_apply, add_assoc] },
+  add_left_neg := λ Q, by { ext, simp only [add_apply, neg_apply, zero_apply, add_left_neg] },
+  add_zero := λ Q, by { ext, simp only [zero_apply, add_apply, add_zero] },
+  zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] } }
+
+@[simp] lemma coe_fn_sub (Q Q' : quadratic_form R M) : ⇑(Q - Q') = Q - Q' :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
+by simp [sub_eq_add_neg]
+
 instance : has_scalar R₁ (quadratic_form R₁ M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
@@ -201,16 +238,6 @@ instance : has_scalar R₁ (quadratic_form R₁ M) :=
 @[simp] lemma coe_fn_smul (a : R₁) (Q : quadratic_form R₁ M) : ⇑(a • Q) = a • Q := rfl
 
 @[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = a * Q x := rfl
-
-instance : add_comm_group (quadratic_form R M) :=
-{ add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
-  add_assoc := λ Q Q' Q'', by { ext, simp only [add_apply, add_assoc] },
-  add_left_neg := λ Q, by { ext, simp only [add_apply, neg_apply, zero_apply, add_left_neg] },
-  add_zero := λ Q, by { ext, simp only [zero_apply, add_apply, add_zero] },
-  zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] },
-  ..quadratic_form.has_add,
-  ..quadratic_form.has_neg,
-  ..quadratic_form.has_zero }
 
 instance : module R₁ (quadratic_form R₁ M) :=
 { mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_left_comm, mul_assoc]),
@@ -360,7 +387,7 @@ variables {Q : quadratic_form R₁ M}
   associated Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
 lemma associated_is_sym : is_sym Q.associated :=
-λ x y, by simp [add_comm, add_left_comm, sub_eq_add_neg]
+λ x y, by simp only [associated_apply, add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R₁ N] (f : N →ₗ[R₁] M) :
   (Q.comp f).associated = Q.associated.comp f f :=
@@ -387,6 +414,17 @@ quadratic_form.ext $ λ x,
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 
 end associated
+
+section anisotropic
+
+/-- An anisotropic quadratic form is zero only on zero vectors. -/
+def anisotropic (Q : quadratic_form R M) : Prop := ∀ x, Q x = 0 → x = 0
+
+lemma not_anisotropic_iff_exists (Q : quadratic_form R M) :
+  ¬anisotropic Q ↔ ∃ x ≠ 0, Q x = 0 :=
+by simp only [anisotropic, not_forall, exists_prop, and_comm]
+
+end anisotropic
 
 section pos_def
 
@@ -423,23 +461,23 @@ matrix.
 The determinant of the matrix is the discriminant of the quadratic form.
 -/
 
-variables {n : Type w} [fintype n]
+variables {n : Type w} [fintype n] [decidable_eq n]
 
 /-- `M.to_quadratic_form` is the map `λ x, col x ⬝ M ⬝ row x` as a quadratic form. -/
-def matrix.to_quadratic_form (M : matrix n n R₁) : quadratic_form R₁ (n → R₁) :=
-M.to_bilin_form.to_quadratic_form
+def matrix.to_quadratic_form' (M : matrix n n R₁) :
+  quadratic_form R₁ (n → R₁) :=
+M.to_bilin'.to_quadratic_form
 
-variables [decidable_eq n] [invertible (2 : R₁)]
+variables [invertible (2 : R₁)]
 
 /-- A matrix representation of the quadratic form. -/
-def quadratic_form.to_matrix (Q : quadratic_form R₁ (n → R₁)) :
-  matrix n n R₁ :=
-Q.associated.to_matrix
+def quadratic_form.to_matrix' (Q : quadratic_form R₁ (n → R₁)) : matrix n n R₁ :=
+Q.associated.to_matrix'
 
 open quadratic_form
-lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
-  (a • Q).to_matrix = a • Q.to_matrix :=
-by simp only [to_matrix, bilin_form.to_matrix_smul, linear_map.map_smul]
+lemma quadratic_form.to_matrix'_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
+  (a • Q).to_matrix' = a • Q.to_matrix' :=
+by simp only [to_matrix', linear_equiv.map_smul, linear_map.map_smul]
 
 end
 
@@ -451,18 +489,18 @@ variables {m : Type w} [decidable_eq m] [fintype m]
 open_locale matrix
 
 @[simp]
-lemma to_matrix_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
-  (Q.comp f).to_matrix = f.to_matrix'ᵀ ⬝ Q.to_matrix ⬝ f.to_matrix' :=
-by { ext, simp [to_matrix, bilin_form.to_matrix_comp] }
+lemma to_matrix'_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
+  (Q.comp f).to_matrix' = f.to_matrix'ᵀ ⬝ Q.to_matrix' ⬝ f.to_matrix' :=
+by { ext, simp [to_matrix', bilin_form.to_matrix'_comp] }
 
 section discriminant
 variables {Q : quadratic_form R₁ (n → R₁)}
 
 /-- The discriminant of a quadratic form generalizes the discriminant of a quadratic polynomial. -/
-def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := Q.to_matrix.det
+def discr (Q : quadratic_form R₁ (n → R₁)) : R₁ := Q.to_matrix'.det
 
 lemma discr_smul (a : R₁) : (a • Q).discr = a ^ fintype.card n * Q.discr :=
-by simp only [discr, to_matrix_smul, matrix.det_smul]
+by simp only [discr, to_matrix'_smul, matrix.det_smul]
 
 lemma discr_comp (f : (n → R₁) →ₗ[R₁] (n → R₁)) :
   (Q.comp f).discr = f.to_matrix'.det * f.to_matrix'.det * Q.discr :=

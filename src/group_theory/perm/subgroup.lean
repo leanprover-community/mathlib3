@@ -31,5 +31,12 @@ lemma sigma_congr_right_hom.card_range {α : Type*} {β : α → Type*}
   fintype.card (sigma_congr_right_hom β).range = fintype.card (Π a, perm (β a)) :=
 fintype.card_eq.mpr ⟨(set.range (sigma_congr_right_hom β) sigma_congr_right_hom_injective).symm⟩
 
+@[simp]
+lemma subtype_congr_hom.card_range {α : Type*} (p : α → Prop) [decidable_pred p]
+  [fintype (subtype_congr_hom p).range] [fintype (perm {a // p a} × perm {a // ¬ p a})] :
+  fintype.card (subtype_congr_hom p).range = fintype.card (perm {a // p a} × perm {a // ¬ p a}) :=
+fintype.card_eq.mpr ⟨(set.range (subtype_congr_hom p) (subtype_congr_hom_injective p)).symm⟩
+
+
 end perm
 end equiv

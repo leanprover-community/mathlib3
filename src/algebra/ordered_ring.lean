@@ -344,11 +344,8 @@ calc a + b ≤ a + a : add_le_add_left ba a
        ... ≤ a * b : (mul_le_mul_left this).mpr b2
 
 lemma add_le_mul (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ a * b :=
-begin
-  by_cases hab : a ≤ b,
-  { exact add_le_mul_of_left_le_right a2 hab },
-  { exact add_le_mul_of_right_le_left b2 (le_of_not_le hab) }
-end
+if hab : a ≤ b then add_le_mul_of_left_le_right a2 hab
+               else add_le_mul_of_right_le_left b2 (le_of_not_le hab)
 
 section
 variables [nontrivial α]

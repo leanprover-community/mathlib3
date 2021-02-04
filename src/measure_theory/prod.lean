@@ -495,12 +495,12 @@ begin
     restrict_apply hs', restrict_apply ht']
 end
 
-lemma restrict_prod_eq_prod_univ {s : set α} (hs : is_measurable s) :
+lemma restrict_prod_eq_prod_univ {s : set α} (hs : measurable_set s) :
   (μ.restrict s).prod ν = (μ.prod ν).restrict (s.prod univ) :=
 begin
   have : ν = ν.restrict set.univ := measure.restrict_univ.symm,
   rwa [this, measure.prod_restrict, ← this],
-  exact is_measurable.univ,
+  exact measurable_set.univ,
 end
 
 lemma prod_dirac (y : β) : μ.prod (dirac y) = map (λ x, (x, y)) μ :=

@@ -7,7 +7,8 @@ import data.finset.basic
 import tactic.linarith
 import algebra.big_operators.intervals
 import data.set.intervals.basic
-import ring_theory.power_series
+import ring_theory.power_series.basic
+import ring_theory.power_series.well_known
 
 noncomputable theory
 open_locale big_operators
@@ -58,32 +59,6 @@ begin
   exact nat.lt_succ_iff.1 h,
 end
 
-/-lemma sum_eq_sum_iff {α β : Type*} [canonically_ordered_add_monoid β] [add_comm_group β] ( f g : α → ℕ ) (s : finset α)
-( h : ∑ x in s, f x = ∑ x in s, g x) :  ∀ x ∈ s, f x  = g x :=
-begin
-  conv at h
-  {
-    rw <-sub_eq_zero_iff_eq,
-    rw <-finset.sum_sub_distrib,
-    conv
-    {
-      to_lhs,
-      apply_congr,
-      skip,
-    },
-  },
-  have h' : ∑ (x : α) in s, (f - g) x = 0,
-  simp at *, exact h,
-  suffices f : ∀ (x : α), x ∈ s → (f - g) x = 0,
-  simp at f,
-  rintros x hx,
-  specialize f x hx,
-  rw sub_eq_zero_iff_eq at f, exact f,
-  set g' := f - g with hg',
-  have h1 := finset.sum_eq_zero_iff.1 h',
-  sorry,
-end -/
-
 end finset
 
 open_locale nat
@@ -117,176 +92,59 @@ end
 
 open nat
 
-/-def delta_function (i j : ℕ) : ℕ := if i = j then 1 else 0
-
-lemma delta_function_zero (n : ℕ) (h : n ≠ 0) : delta_function n 0 = 0 :=
-begin
-  rw delta_function,
-  split_ifs,
-  exfalso, apply h, exact h_1,
-  refl,
-end
-
-lemma delta_function_zero' (n : ℕ) (h : n ≠ 0) : delta_function 0 n = 0 :=
-begin
-  rw delta_function,
-  split_ifs,
-  exfalso, apply h, exact eq.symm h_1,
-  refl,
-end
--/
-
 def bernoulli_neg (n : ℕ) : ℚ := (-1)^n * (bernoulli n)
-
-/-lemma bernoulli_neg_def (n : ℕ) :
-  bernoulli_neg n = (-1)^n * (bernoulli n) :=
-well_founded.fix_eq _ _ _ -/
-
-/-lemma bernoulli_neg_def (n : ℕ) :
-  bernoulli_neg n = (delta_function n 0) - ∑ k in finset.range n, (n.choose k) * (bernoulli_neg k) / (n + 1 - k) :=
-by { rw [bernoulli_neg_def', ← fin.sum_univ_eq_sum_range], refl } -/
 
 @[simp] lemma bernoulli_neg_zero  : bernoulli_neg 0 = 1 := rfl
 
 @[simp] lemma bernoulli_neg_one   : bernoulli_neg 1 = -1/2 :=
 begin
-  rw [bernoulli_neg, bernoulli_one],
-  linarith,
+  rw [bernoulli_neg, bernoulli_one], linarith,
 end
 
-@[simp] lemma two_le_one_false : 2 ≤ 1 → false := by simp
+theorem bernoulli_odd_eq_zero : ∀ n : ℕ, (n % 2 = 1 ∧ 1 < n) → bernoulli n = 0 :=sorry
 
-@[simp] lemma two_le_of_ne_zero : ∀ n : ℕ, n ≠ 0 → 2 ≤ n + 1 :=
+theorem ber_neg_eq_ber : ∀ n : ℕ, n ≠ 1 → bernoulli_neg n = bernoulli n :=
 begin
   rintros n hn,
-  induction n with d hd, { simp at *, exfalso, assumption, },
-  sorry,
+  by_cases n = 0,
+  { rw h, simp, },
+  rw bernoulli_neg, rw neg_one_pow_eq_pow_mod_two,
+  by_cases k : n%2 = 1,
+  { rw k, simp,
+    have f : 1 < n,
+    {
+      apply one_lt_iff_ne_zero_and_ne_one.2 ⟨h, hn⟩,
+    },
+    have g := bernoulli_odd_eq_zero n ⟨k,f⟩,
+    rw g, simp,
+  },
+  simp at *,
+  rw k, simp,
 end
 
-lemma zero_le_sub (a b x : ℕ) (h :  x ∈ finset.Ico a b ) : 0 ≤ (b - x) := sorry
-
-lemma bernoulli_neg_def (k : ℕ) :
-  bernoulli_neg k =
-  (-1)^k - ∑ i in finset.range k, ↑(k.choose i) * (-1)^(k - i) * (bernoulli_neg i) / (k.succ - i) := sorry
-
-lemma sum_choose_neg_one : ∀ n : ℕ, ∑ k in finset.range n, (n.choose k : ℚ) * (-1)^k =
-  (-1)^(n - 1) := sorry
-
-lemma neg_one_pow_succ : ∀ n : ℕ, (-1 : ℚ)^n = - (-1)^(n.succ) := sorry
+lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
+  by { rintros h, rw one_succ_zero at h, simp only at h, apply succ_ne_zero n h, }
 
 @[simp] lemma sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
   ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli_neg k = 0 :=
 begin
-  suffices f : (-1 : ℚ)^(n - 1) = ∑ i in finset.range n, (n.choose i) / (n.succ - i) * (bernoulli_neg i) * ∑ t in finset.range (n.succ - i), ((n.succ - i).choose t.succ) * (-1)^t - (-1)^n * ∑ i in finset.range n, (n.choose i) * (bernoulli i) / (n.succ - i),
-  { conv_rhs at f
-    {
-      congr, apply_congr, skip,
-      rw [<-one_mul ↑(n.choose _)],
-      rw <-@one_div_mul_cancel ℚ _ n.succ _,
-      rw mul_assoc _ ↑(n.succ) _, rw mul_comm ↑(n.succ) _, rw <-cast_mul,
-      rw choose_mul_succ_eq, rw cast_mul, rw mul_div_cancel_of_imp _,
-
-      rw [succ_sub _],
-      rw [finset.sum_range_succ],skip,
-      apply_congr ge_iff_le.2 (le_of_lt (finset.mem_range.1 H)),
-      congr, skip, apply_congr, skip,
-      rw [<-cast_sub _, succ_sub _], skip,
-      apply_congr ge_iff_le.2 (le_of_lt (finset.mem_range.1 H)),
-      apply_congr le_trans (le_of_lt (finset.mem_range.1 H)) (le_succ n),
-    },
-    simp at f, simp_rw[mul_add, finset.sum_add_distrib] at f,
-    conv_rhs at f
+  cases n, {sorry},
+  rw finset.sum_range_succ', simp,
+  cases n, {sorry},
+  {
+    rw finset.sum_range_succ', simp,
+    have f := sum_bernoulli n.succ.succ,
+    rw finset.sum_range_succ' at f,
+    rw finset.sum_range_succ' at f, simp at f,
+    conv_lhs
     {
       congr, congr, apply_congr, skip,
-      rw [bernoulli_neg], rw mul_comm ((-1)^x : ℚ) _,
-      rw mul_assoc ↑(n.choose x) _ _, rw mul_assoc (bernoulli x) _ _,
-      rw mul_comm ((-1)^x : ℚ) _, rw <-pow_add, rw nat.sub_add_cancel, rw <-mul_assoc, rw mul_comm,
-      skip,
-      apply_congr ge_iff_le.2 (le_of_lt (finset.mem_range.1 H)),
-      {
-        rw finset.range_eq_Ico,
-        conv
-        {
-          apply_congr, skip, conv { congr, skip, apply_congr, skip, rw [neg_one_pow_succ _], rw [succ_eq_add_one x_1], rw [add_comm], },
-          conv { congr, skip, rw [finset.range_eq_Ico, finset.sum_Ico_add (λ y, ↑((n - x).succ.choose (y)) * -(-1 : ℚ) ^ (y)) 0 (n-x) 1],  },
-          norm_num,
-          rw finset.sum_Ico_eq_sub, skip,
-          apply_congr succ_le_succ_iff.2 (zero_le_sub _ n x H),
-        },
-        rw <-finset.range_eq_Ico,
-        rw finset.range_one,
-        conv {apply_congr, skip, rw [finset.sum_singleton], rw choose_zero_right, rw pow_zero, rw mul_sub,
-          rw sum_choose_neg_one, rw[bernoulli_neg, mul_comm ((-1 : ℚ)^x) _, mul_assoc (↑(n.choose x)) _ _, mul_assoc (bernoulli x) _ _ ],
-          rw <-pow_add, norm_num, rw nat.add_sub_cancel', rw <-mul_assoc _ _  ((-1 : ℚ)^n), rw mul_comm _ ((-1 : ℚ)^n), rw mul_comm (bernoulli x) _, rw [<-bernoulli_neg], skip,
-          apply_congr le_of_lt (finset.mem_range.1 H),
-            },
-        norm_num, rw <-finset.mul_sum, rw sum_bernoulli,
-      },
---      skip,
-      congr, skip, apply_congr, skip,
-      rw [<-cast_one, <-cast_add, <-nat.sub_add_comm _, cast_sub, cast_add, cast_one], skip,
-      apply_congr le_trans (le_of_lt (finset.mem_range.1 H)) (le_succ n),
-      apply_congr le_of_lt (finset.mem_range.1 H),
+      rw ber_neg_eq_ber, skip, apply_congr succ_succ_ne_one x, skip, skip,
     },
-    rw <-finset.mul_sum at f, rw sum_bernoulli at f,
-    rw eq_sub_of_add_eq' (eq_sub_iff_add_eq.1 (bernoulli_def n)) at f,
-    simp at f,
+    have g := eq_sub_iff_add_eq.2 f,
+    rw g,
     sorry,
   },
-  suffices f : (-1)^(n - 1) -
-  ∑ k in finset.range n, ∑ i in finset.range k.succ,
-  (n.choose k : ℚ) * (k.choose i) * (-1)^(k - i) * (bernoulli_neg i) / (k.succ - i) +
-  ∑ k in finset.range n, (n.choose k) * (bernoulli_neg k) = ∑ k in finset.range n, ↑(n.choose k) * (bernoulli_neg k),
-  {
-    simp at f,
-    have g : ∀ i ∈ finset.range n, n.succ - i = (n - i).succ := sorry,
-    simp_rw [g],
-
-    apply [succ_sub] _,
-    simp_rw [finset.sum_range_succ],
-    simp_rw [finset.range_eq_Ico] at f,
-    rw <-finset.dependent_double_sum at f,
-    rw [sub_eq_zero_iff_eq, <-finset.range_eq_Ico] at f,
-    conv_rhs at f
-    {
-      apply_congr, skip,
-      conv{
-        apply_congr, skip,
-        rw choose_mul,
-        rw add_comm,
-        skip,
-        apply_congr le_of_lt (finset.Ico.mem.1 H_1).right,
-        apply_congr (finset.Ico.mem.1 H_1).left,
-      },
-      rw [finset.sum_Ico_eq_sum_range],
-      conv
-      {
-        apply_congr, skip,
-        rw [<-add_sub (1 : ℚ) _ ↑x, cast_add, <-add_sub ↑x ↑x_1, add_sub_cancel'_right ↑x ↑x_1,  add_comm (1 : ℚ) _ ],
-        rw mul_comm, rw <-mul_assoc (bernoulli_neg x) _ _, rw <-mul_assoc (bernoulli_neg x) _ _, rw mul_assoc (bernoulli_neg x * ↑(n.choose x)) _ _, rw mul_div_assoc,
-      },
-      rw <-finset.mul_sum,
-    },
-    simp at f,
-    rw [finset.sum_Ico_eq_sum_range] at f,
-    rw [choose_mul _ _] at f,
-
-    rw [finset.sum_range_succ, add_comm, choose_succ_self_right],
-    rw <-add_sub_cancel ( ∑ (x : ℕ) in finset.range n,
-    ↑(n.succ.choose x) * bernoulli_neg x + ↑(n + 1) * bernoulli_neg n) ((n.succ : ℚ )*(-1)^(n - 1)),
-    rw [bernoulli_neg, <-mul_assoc],
-    have f : ((-1)^n : ℚ) = (-1)^(n - 1) * (-1) := sorry,
-    rw f, rw <-mul_assoc, rw <-mul_one (↑(n.succ) * (-1) ^ (n - 1) : ℚ),
-    rw <-mul_add (↑(n + 1) * (-1)^(n - 1) : ℚ) _ _,
-    sorry },
-  {
-    rw [<-sum_choose_neg_one, <-finset.sum_sub_distrib, <-sub_eq_zero_iff_eq,
-    <-finset.sum_sub_distrib, finset.sum_eq_zero], rintros x hx,
-    rw [bernoulli_neg_def, mul_sub, finset.mul_sum], simp,
-    rw <-finset.sum_sub_distrib,
-    apply finset.sum_eq_zero, rintros y hy,
-    rw [sub_eq_zero_iff_eq, mul_assoc ↑(n.choose x) _ _,
-    mul_assoc ↑(n.choose x) _ _, <-mul_div_assoc],  },
 end
 
 def bernoulli_poly (n : ℕ) : ℚ → ℚ := λ X, ∑ i in finset.range (n+1),
@@ -506,11 +364,7 @@ begin
     apply finset.sum_eq_zero,
     rintros x hx, rw sub_eq_zero_iff_eq,
     ring,
-    rw mul_comm (bernoulli_neg x) (_)⁻¹,
-    rw mul_eq_mul_right_iff,
-    left,
-    rw mul_inv',
-    rw mul_comm,
+    rw mul_inv', rw mul_comm ((↑(n - x)!)⁻¹) _,
   },
   {
     rw finset.mul_sum,

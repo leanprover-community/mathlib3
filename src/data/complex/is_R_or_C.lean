@@ -178,6 +178,7 @@ lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z
 @[simp] lemma conj_im (z : K) : im (conj z) = -(im z) := is_R_or_C.conj_im_ax z
+@[simp] lemma conj_I : conj (I : K) = -I := is_R_or_C.conj_I_ax
 @[simp] lemma conj_of_real (r : ℝ) : conj (r : K) = (r : K) :=
 by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_self, neg_zero] }
 
@@ -419,6 +420,12 @@ theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
 begin
   haveI : char_zero K := char_zero_R_or_C,
   rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
+end
+
+theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
+begin
+  rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj],
+  simp [mul_add, sub_eq_add_neg, neg_div']
 end
 
 /-! ### Absolute value -/

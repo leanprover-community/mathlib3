@@ -121,7 +121,22 @@ begin
   simpa [mul_smul b, ← mul_smul a⁻¹, inv_mul_cancel ha],
 end
 
+lemma mem_mk_iff {v : V} {w : nonzero V} : v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
+begin
+  rw mem_def,
+  split,
+  { rintro ⟨u,a,h1,h2⟩,
+    rw mk_eq_mk' at h2,
+    rcases h2 with ⟨b,h2⟩,
+    rw [← h2, ← h1],
+    refine ⟨b * a, _⟩,
+    simp [mul_smul] },
+  { rintro ⟨a,h⟩,
+    exact ⟨w, a, h, rfl⟩ },
+end
+
 variables (K V)
+/-- The type of linear subspaces of the projective space `proj_space K V`. -/
 structure linear_subspace :=
 (carrier : set (proj_space K V))
 (add_mem {u v : V} {a b c : proj_space K V} :
@@ -129,5 +144,11 @@ structure linear_subspace :=
 variables {K V}
 
 instance : has_coe (linear_subspace K V) (set (proj_space K V)) := ⟨linear_subspace.carrier⟩
+
+instance : has_bot (linear_subspace K V) := has_bot.mk $
+{ carrier := ∅,
+  add_mem := by tauto }
+
+instance : inhabited (linear_subspace K V) := ⟨⊥⟩
 
 end proj_space

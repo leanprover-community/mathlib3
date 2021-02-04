@@ -121,6 +121,12 @@ begin
   simpa [mul_smul b, ← mul_smul a⁻¹, inv_mul_cancel ha],
 end
 
+instance : has_coe (proj_space K V) (subspace K V) := has_coe.mk $ λ x,
+{ carrier := {v | v = 0 ∨ v ∈ x},
+  zero_mem' := or.inl rfl,
+  add_mem' := sorry,
+  smul_mem' := sorry }
+
 lemma mem_mk_iff {v : V} {w : nonzero V} : v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
 begin
   rw mem_def,
@@ -143,35 +149,30 @@ structure linear_subspace :=
   u ∈ a → v ∈ b → (u + v) ∈ c → a ∈ carrier → b ∈ carrier → c ∈ carrier)
 variables {K V}
 
+namespace linear_subspace
+
 instance : has_coe (linear_subspace K V) (set (proj_space K V)) := ⟨linear_subspace.carrier⟩
 
-instance : has_mem (proj_space K V) (linear_subspace K V) := ⟨λ x X, x ∈ X.carrier⟩
+instance : has_mem (proj_space K V) (linear_subspace K V) := ⟨λ x X, x ∈ (X : set (proj_space K V))⟩
 
-lemma linear_subspace.add_mem (X : linear_subspace K V) {u v : V} {a b c : proj_space K V} :
+lemma add_mem (X : linear_subspace K V) {u v : V} {a b c : proj_space K V} :
   u ∈ a → v ∈ b → (u + v) ∈ c → a ∈ X → b ∈ X → c ∈ X := linear_subspace.add_mem' _
-
 instance : has_bot (linear_subspace K V) := has_bot.mk $
 { carrier := ⊥,
   add_mem' := by tauto }
 
-instance : inhabited (linear_subspace K V) := ⟨⊥⟩
+instance : has_coe (linear_subspace K V) (subspace K V) := has_coe.mk $ λ X, has_Sup.Sup $
+(coe '' (X : set (proj_space K V)))
 
-instance : has_top (linear_subspace K V) := has_top.mk $
-{ carrier := ⊤,
-  add_mem' := by tauto }
+def of_subspace : subspace K V → linear_subspace K V := λ W,
+{ carrier := {x | (x : subspace K V) ≤ W},
+  add_mem' := sorry }
 
-instance : has_inf (linear_subspace K V) := has_inf.mk $ λ X Y,
-{ carrier := X ⊓ Y,
-  add_mem' := by {
-    rintros u v a b c ha hb hc ⟨h1,h2⟩ ⟨h3,h4⟩,
-    split,
-    { exact X.add_mem ha hb hc h1 h3 },
-    { exact Y.add_mem ha hb hc h2 h4, } } }
+def equiv_subspace : linear_subspace K V ≃ subspace K V :=
+{ to_fun := coe,
+  inv_fun := of_subspace,
+  left_inv := sorry,
+  right_inv := sorry }
 
-instance : has_Inf (linear_subspace K V) := has_Inf.mk $ λ S,
-{ carrier := ⋂₀ ((coe '' S) : set (set (proj_space K V))),
-  add_mem' := by {
-    rintros u v a b c ha hb hc h1 h2 T ⟨A,h3,rfl⟩,
-    exact A.add_mem ha hb hc (h1 _ ⟨A,h3,rfl⟩) (h2 _ ⟨A,h3,rfl⟩) } }
-
+end linear_subspace
 end proj_space

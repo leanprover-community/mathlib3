@@ -4,6 +4,11 @@ import tactic.norm_swap
 
 open equiv tactic
 
+/--
+To properly test that norm_swap works without the help of the simplifier,
+we turn off the simp lemmas that simplify swaps of the form
+`swap x y x = y` and `swap x y y = x`.
+-/
 local attribute [-simp] swap_apply_left
 local attribute [-simp] swap_apply_right
 

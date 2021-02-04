@@ -705,7 +705,7 @@ section fin_meas_supp
 
 variables [measurable_space α] [has_zero β] [has_zero γ] {μ : measure α}
 
-open finset ℝ≥0∞ function
+open finset ennreal function
 
 lemma support_eq (f : α →ₛ β) : support f = ⋃ y ∈ f.range.filter (λ y, y ≠ 0), f ⁻¹' {y} :=
 set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support, set.mem_preimage,

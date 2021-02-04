@@ -454,27 +454,26 @@ begin
       (region_between_subset f g s)).symm, hs], },
   { rw measure.restrict_prod_eq_prod_univ,
     exacts [(measure.restrict_eq_self_of_subset_of_measurable (hs.prod measurable_set.univ)
-      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm,
-       hs] },
+      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm, hs] },
 end
 
-/-- If two functions are integrable on a measurable set, and one function is less
-    than or equal to the other everywhere on that set, then the volume of the region between the
-    two functions can be respresented as an integral. -/
+/-- If two functions are integrable on a measurable set, and one function is less than
+    or equal to the other almost everywhere on that set, then the volume of the region
+    between the two functions can be respresented as an integral. -/
 theorem volume_region_between_eq_integral [sigma_finite μ]
-  (hf : integrable_on f s μ) (hg : integrable_on g s μ)
-  (hs : measurable_set s) (hfg : ∀ x ∈ s, f x ≤ g x) :
+  (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
+  (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
-  have h : g - f =ᵐ[μ.restrict s] λ y, (λ x, nnreal.of_real (g x - f x)) y,
-  { rw eventually_eq_iff_exists_mem,
-    use s,
-    simpa only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
-                measure_empty, compl_inter_self, eq_self_iff_true, true_and] using
-      λ x hx, (nnreal.coe_of_real _ (sub_nonneg.mpr (hfg x hx))).symm },
-  rw [volume_region_between_eq_lintegral hf.ae_measurable hg.ae_measurable hs,
+  have h : g - f =ᵐ[μ.restrict s] (λ x, nnreal.of_real (g x - f x)),
+  { apply filter.eventually.mono hfg,
+    simp only [nnreal.of_real, max, sub_nonneg, pi.sub_apply],
+    intros x hx,
+    split_ifs,
+    refl },
+  rw [volume_region_between_eq_lintegral f_int.ae_measurable g_int.ae_measurable hs,
       integral_congr_ae h, lintegral_congr_ae,
-      lintegral_coe_eq_integral _ ((integrable_congr h).mp (hg.sub hf))],
+      lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))],
   simpa only,
 end
 

@@ -139,16 +139,39 @@ variables (K V)
 /-- The type of linear subspaces of the projective space `proj_space K V`. -/
 structure linear_subspace :=
 (carrier : set (proj_space K V))
-(add_mem {u v : V} {a b c : proj_space K V} :
+(add_mem' {u v : V} {a b c : proj_space K V} :
   u ∈ a → v ∈ b → (u + v) ∈ c → a ∈ carrier → b ∈ carrier → c ∈ carrier)
 variables {K V}
 
 instance : has_coe (linear_subspace K V) (set (proj_space K V)) := ⟨linear_subspace.carrier⟩
 
+instance : has_mem (proj_space K V) (linear_subspace K V) := ⟨λ x X, x ∈ X.carrier⟩
+
+lemma linear_subspace.add_mem (X : linear_subspace K V) {u v : V} {a b c : proj_space K V} :
+  u ∈ a → v ∈ b → (u + v) ∈ c → a ∈ X → b ∈ X → c ∈ X := linear_subspace.add_mem' _
+
 instance : has_bot (linear_subspace K V) := has_bot.mk $
-{ carrier := ∅,
-  add_mem := by tauto }
+{ carrier := ⊥,
+  add_mem' := by tauto }
 
 instance : inhabited (linear_subspace K V) := ⟨⊥⟩
+
+instance : has_top (linear_subspace K V) := has_top.mk $
+{ carrier := ⊤,
+  add_mem' := by tauto }
+
+instance : has_inf (linear_subspace K V) := has_inf.mk $ λ X Y,
+{ carrier := X ⊓ Y,
+  add_mem' := by {
+    rintros u v a b c ha hb hc ⟨h1,h2⟩ ⟨h3,h4⟩,
+    split,
+    { exact X.add_mem ha hb hc h1 h3 },
+    { exact Y.add_mem ha hb hc h2 h4, } } }
+
+instance : has_Inf (linear_subspace K V) := has_Inf.mk $ λ S,
+{ carrier := ⋂₀ ((coe '' S) : set (set (proj_space K V))),
+  add_mem' := by {
+    rintros u v a b c ha hb hc h1 h2 T ⟨A,h3,rfl⟩,
+    exact A.add_mem ha hb hc (h1 _ ⟨A,h3,rfl⟩) (h2 _ ⟨A,h3,rfl⟩) } }
 
 end proj_space

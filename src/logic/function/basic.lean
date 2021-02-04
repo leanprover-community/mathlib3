@@ -220,7 +220,7 @@ include n
 local attribute [instance, priority 10] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
-on `f '' s`. -/
+on `f '' s`. For a computable version, see `function.injective.inv_of_mem_range`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
 if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
 

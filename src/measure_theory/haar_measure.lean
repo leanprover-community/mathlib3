@@ -54,7 +54,7 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical
+open_locale nnreal classical ennreal
 
 variables {G : Type*} [group G]
 
@@ -412,8 +412,8 @@ begin
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
 end
 
-/-- The function `chaar` interpreted in `ennreal` -/
-@[reducible] def echaar (K₀ : positive_compacts G) (K : compacts G) : ennreal :=
+/-- The function `chaar` interpreted in `ℝ≥0∞` -/
+@[reducible] def echaar (K₀ : positive_compacts G) (K : compacts G) : ℝ≥0∞ :=
 show nnreal, from ⟨chaar K₀ K, chaar_nonneg _ _⟩
 
 /-! We only prove the properties for `echaar` that we use at least twice below. -/

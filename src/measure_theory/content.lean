@@ -12,7 +12,7 @@ import topology.compacts
 # Contents
 
 In this file we work with *contents*. A content `λ` is a function from a certain class of subsets
-(such as the the compact subsets) to `ennreal` (or `ℝ≥0`) that is
+(such as the the compact subsets) to `ℝ≥0∞` (or `ℝ≥0`) that is
 * additive: If `K₁` and `K₂` are disjoint sets in the domain of `λ`,
   then `λ(K₁ ∪ K₂) = λ(K₁) + λ(K₂)`;
 * subadditive: If `K₁` and `K₂` are in the domain of `λ`, then `λ(K₁ ∪ K₂) ≤ λ(K₁) + λ(K₂)`;
@@ -42,7 +42,7 @@ universe variables u v w
 noncomputable theory
 
 open set topological_space
-open_locale nnreal
+open_locale nnreal ennreal
 
 namespace measure_theory
 
@@ -51,26 +51,26 @@ variables {G : Type w} [topological_space G]
 /-- Constructing the inner content of a content. From a content defined on the compact sets, we
   obtain a function defined on all open sets, by taking the supremum of the content of all compact
   subsets. -/
-def inner_content (μ : compacts G → ennreal) (U : opens G) : ennreal :=
+def inner_content (μ : compacts G → ℝ≥0∞) (U : opens G) : ℝ≥0∞ :=
 ⨆ (K : compacts G) (h : K.1 ⊆ U), μ K
 
-lemma le_inner_content {μ : compacts G → ennreal} (K : compacts G) (U : opens G)
+lemma le_inner_content {μ : compacts G → ℝ≥0∞} (K : compacts G) (U : opens G)
   (h2 : K.1 ⊆ U) : μ K ≤ inner_content μ U :=
 le_supr_of_le K $ le_supr _ h2
 
-lemma inner_content_le {μ : compacts G → ennreal}
+lemma inner_content_le {μ : compacts G → ℝ≥0∞}
   (h : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → μ K₁ ≤ μ K₂)
   (U : opens G) (K : compacts G)
   (h2 : (U : set G) ⊆ K.1) : inner_content μ U ≤ μ K :=
 bsupr_le $ λ K' hK', h _ _ (subset.trans hK' h2)
 
-lemma inner_content_of_is_compact {μ : compacts G → ennreal}
+lemma inner_content_of_is_compact {μ : compacts G → ℝ≥0∞}
   (h : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → μ K₁ ≤ μ K₂) {K : set G} (h1K : is_compact K)
   (h2K : is_open K) : inner_content μ ⟨K, h2K⟩ = μ ⟨K, h1K⟩ :=
 le_antisymm (bsupr_le $ λ K' hK', h _ ⟨K, h1K⟩ hK')
             (le_inner_content _ _ subset.rfl)
 
-lemma inner_content_empty {μ : compacts G → ennreal} (h : μ ⊥ = 0) :
+lemma inner_content_empty {μ : compacts G → ℝ≥0∞} (h : μ ⊥ = 0) :
   inner_content μ ∅ = 0 :=
 begin
   refine le_antisymm _ (zero_le _), rw ←h,
@@ -79,11 +79,11 @@ begin
 end
 
 /-- This is "unbundled", because that it required for the API of `induced_outer_measure`. -/
-lemma inner_content_mono {μ : compacts G → ennreal} ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V)
+lemma inner_content_mono {μ : compacts G → ℝ≥0∞} ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V)
   (h2 : U ⊆ V) : inner_content μ ⟨U, hU⟩ ≤ inner_content μ ⟨V, hV⟩ :=
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 
-lemma inner_content_exists_compact {μ : compacts G → ennreal} {U : opens G}
+lemma inner_content_exists_compact {μ : compacts G → ℝ≥0∞} {U : opens G}
   (hU : inner_content μ U < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ K : compacts G, K.1 ⊆ U ∧ inner_content μ U ≤ μ K + ε :=
 begin
@@ -98,7 +98,7 @@ end
 
 /-- The inner content of a supremum of opens is at most the sum of the individual inner
 contents. -/
-lemma inner_content_Sup_nat [t2_space G] {μ : compacts G → ennreal}
+lemma inner_content_Sup_nat [t2_space G] {μ : compacts G → ℝ≥0∞}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂) (U : ℕ → opens G) :
   inner_content μ (⨆ (i : ℕ), U i) ≤ ∑' (i : ℕ), inner_content μ (U i) :=
@@ -124,14 +124,14 @@ end
 /-- The inner content of a union of sets is at most the sum of the individual inner contents.
   This is the "unbundled" version of `inner_content_Sup_nat`.
   It required for the API of `induced_outer_measure`. -/
-lemma inner_content_Union_nat [t2_space G] {μ : compacts G → ennreal}
+lemma inner_content_Union_nat [t2_space G] {μ : compacts G → ℝ≥0∞}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂)
   ⦃U : ℕ → set G⦄ (hU : ∀ (i : ℕ), is_open (U i)) :
   inner_content μ ⟨⋃ (i : ℕ), U i, is_open_Union hU⟩ ≤ ∑' (i : ℕ), inner_content μ ⟨U i, hU i⟩ :=
 by { have := inner_content_Sup_nat h1 h2 (λ i, ⟨U i, hU i⟩), rwa [opens.supr_def] at this }
 
-lemma inner_content_comap {μ : compacts G → ennreal} (f : G ≃ₜ G)
+lemma inner_content_comap {μ : compacts G → ℝ≥0∞} (f : G ≃ₜ G)
   (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K) (U : opens G) :
   inner_content μ (U.comap f.continuous) = inner_content μ U :=
 begin
@@ -142,14 +142,14 @@ begin
 end
 
 @[to_additive]
-lemma is_mul_left_invariant_inner_content [group G] [topological_group G] {μ : compacts G → ennreal}
+lemma is_mul_left_invariant_inner_content [group G] [topological_group G] {μ : compacts G → ℝ≥0∞}
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
   (U : opens G) : inner_content μ (U.comap $ continuous_mul_left g) = inner_content μ U :=
 by convert inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
 -- @[to_additive] (fails for now)
 lemma inner_content_pos_of_is_mul_left_invariant [t2_space G] [group G] [topological_group G]
-  {μ : compacts G → ennreal}
+  {μ : compacts G → ℝ≥0∞}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂)
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
@@ -168,7 +168,7 @@ begin
   simp only [is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
 
-lemma inner_content_mono' {μ : compacts G → ennreal} ⦃U V : set G⦄
+lemma inner_content_mono' {μ : compacts G → ℝ≥0∞} ⦃U V : set G⦄
   (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
   inner_content μ ⟨U, hU⟩ ≤ inner_content μ ⟨V, hV⟩ :=
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
@@ -176,10 +176,10 @@ supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 namespace outer_measure
 
 /-- Extending a content on compact sets to an outer measure on all sets. -/
-def of_content [t2_space G] (μ : compacts G → ennreal) (h1 : μ ⊥ = 0) : outer_measure G :=
+def of_content [t2_space G] (μ : compacts G → ℝ≥0∞) (h1 : μ ⊥ = 0) : outer_measure G :=
 induced_outer_measure (λ U hU, inner_content μ ⟨U, hU⟩) is_open_empty (inner_content_empty h1)
 
-variables [t2_space G] {μ : compacts G → ennreal} {h1 : μ ⊥ = 0}
+variables [t2_space G] {μ : compacts G → ℝ≥0∞} {h1 : μ ⊥ = 0}
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂)
 
 include h2

@@ -28,7 +28,7 @@ giry monad
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale classical big_operators ennreal
 
 open classical set filter
 
@@ -42,7 +42,7 @@ variables [measurable_space α] [measurable_space β]
 
 /-- Measurability structure on `measure`: Measures are measurable w.r.t. all projections -/
 instance : measurable_space (measure α) :=
-⨆ (s : set α) (hs : is_measurable s), (borel ennreal).comap (λμ, μ s)
+⨆ (s : set α) (hs : is_measurable s), (borel ℝ≥0∞).comap (λμ, μ s)
 
 lemma measurable_coe {s : set α} (hs : is_measurable s) : measurable (λμ : measure α, μ s) :=
 measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_refl _
@@ -72,12 +72,12 @@ measurable_of_measurable_coe _ $ assume s hs,
     exact measurable_one.indicator hs
   end
 
-lemma measurable_lintegral {f : α → ennreal} (hf : measurable f) :
+lemma measurable_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λμ : measure α, ∫⁻ x, f x ∂μ) :=
 begin
   simp only [lintegral_eq_supr_eapprox_lintegral, hf, simple_func.lintegral],
   refine measurable_supr (λ n, finset.measurable_sum _ (λ i, _)),
-    refine measurable_const.ennreal_mul _,
+    refine measurable_const.ℝ≥0∞_mul _,
     exact measurable_coe ((simple_func.eapprox f n).is_measurable_preimage _)
 end
 
@@ -102,7 +102,7 @@ lemma measurable_join : measurable (join : measure (measure α) → measure α) 
 measurable_of_measurable_coe _ $ assume s hs,
   by simp only [join_apply hs]; exact measurable_lintegral (measurable_coe hs)
 
-lemma lintegral_join {m : measure (measure α)} {f : α → ennreal} (hf : measurable f) :
+lemma lintegral_join {m : measure (measure α)} {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ x, f x ∂(join m) = ∫⁻ μ, ∫⁻ x, f x ∂μ ∂m :=
 begin
   rw [lintegral_eq_supr_eapprox_lintegral hf],
@@ -112,7 +112,7 @@ begin
     assume n x, join_apply (simple_func.is_measurable_preimage _ _),
   simp only [simple_func.lintegral, this],
   transitivity,
-  have : ∀(s : ℕ → finset ennreal) (f : ℕ → ennreal → measure α → ennreal)
+  have : ∀(s : ℕ → finset ℝ≥0∞) (f : ℕ → ℝ≥0∞ → measure α → ℝ≥0∞)
     (hf : ∀n r, measurable (f n r)) (hm : monotone (λn μ, ∑ r in s n, r * f n r μ)),
     (⨆n:ℕ, ∑ r in s n, r * ∫⁻ μ, f n r μ ∂m) =
     ∫⁻ μ, ⨆n:ℕ, ∑ r in s n, r * f n r μ ∂m,
@@ -121,12 +121,12 @@ begin
     transitivity,
     apply lintegral_supr,
     { assume n,
-      exact finset.measurable_sum _ (assume r, measurable_const.ennreal_mul (hf _ _)) },
+      exact finset.measurable_sum _ (assume r, measurable_const.ℝ≥0∞_mul (hf _ _)) },
     { exact hm },
     congr, funext n,
     transitivity,
     apply lintegral_finset_sum,
-    { assume r, exact measurable_const.ennreal_mul (hf _ _) },
+    { assume r, exact measurable_const.ℝ≥0∞_mul (hf _ _) },
     congr, funext r,
     apply lintegral_const_mul,
     exact hf _ _ },
@@ -160,7 +160,7 @@ by rw [bind, join_apply hs, lintegral_map (measurable_coe hs) hf]
 lemma measurable_bind' {g : α → measure β} (hg : measurable g) : measurable (λm, bind m g) :=
 measurable_join.comp (measurable_map _ hg)
 
-lemma lintegral_bind {m : measure α} {μ : α → measure β} {f : β → ennreal}
+lemma lintegral_bind {m : measure α} {μ : α → measure β} {f : β → ℝ≥0∞}
   (hμ : measurable μ) (hf : measurable f) :
   ∫⁻ x, f x ∂ (bind m μ) = ∫⁻ a, ∫⁻ x, f x ∂(μ a) ∂m:=
 (lintegral_join hf).trans (lintegral_map (measurable_lintegral hf) hμ)

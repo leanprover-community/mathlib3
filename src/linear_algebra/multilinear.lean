@@ -1099,6 +1099,7 @@ def curry_fin_finset {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set
 
 variables {R M₂ M'}
 
+@[simp]
 lemma curry_fin_finset_apply {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
   (hk : s.card = k) (hl : sᶜ.card = l) (f : multilinear_map R (λ x : fin n, M') M₂)
   (mk : fin k → M') (ml : fin l → M') :
@@ -1106,7 +1107,7 @@ lemma curry_fin_finset_apply {k l n : ℕ} {s : finset (fin n)} [decidable_pred 
     f (λ i, sum.elim mk ml ((fin_sum_equiv_of_finset hk hl).symm i)) :=
 rfl
 
-lemma curry_fin_finset_symm_apply {k l n : ℕ} {s : finset (fin n)}
+@[simp] lemma curry_fin_finset_symm_apply {k l n : ℕ} {s : finset (fin n)}
   [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂))
   (m : fin n → M') :
@@ -1115,7 +1116,7 @@ lemma curry_fin_finset_symm_apply {k l n : ℕ} {s : finset (fin n)}
       (λ i, m $ fin_sum_equiv_of_finset hk hl (sum.inr i)) :=
 rfl
 
-lemma curry_fin_finset_symm_apply_piecewise_const {k l n : ℕ} {s : finset (fin n)}
+@[simp] lemma curry_fin_finset_symm_apply_piecewise_const {k l n : ℕ} {s : finset (fin n)}
   [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂)) (x y : M') :
   (curry_fin_finset R M₂ M' hk hl).symm f (s.piecewise (λ _, x) (λ _, y)) = f (λ _, x) (λ _, y) :=
@@ -1127,13 +1128,13 @@ begin
     exact finset.mem_compl.1 (finset.order_emb_of_fin_mem _ _ _) }
 end
 
-lemma curry_fin_finset_symm_apply_const {k l n : ℕ} {s : finset (fin n)}
+@[simp] lemma curry_fin_finset_symm_apply_const {k l n : ℕ} {s : finset (fin n)}
   [decidable_pred (s : set (fin n))] (hk : s.card = k) (hl : sᶜ.card = l)
   (f : multilinear_map R (λ x : fin k, M') (multilinear_map R (λ x : fin l, M') M₂)) (x : M') :
   (curry_fin_finset R M₂ M' hk hl).symm f (λ _, x) = f (λ _, x) (λ _, x) :=
-curry_fin_finset_symm_apply hk hl f _
+rfl
 
-lemma curry_fin_finset_apply_const {k l n : ℕ} {s : finset (fin n)}
+@[simp] lemma curry_fin_finset_apply_const {k l n : ℕ} {s : finset (fin n)}
   [decidable_pred (s : set (fin n))]
   (hk : s.card = k) (hl : sᶜ.card = l) (f : multilinear_map R (λ x : fin n, M') M₂) (x y : M') :
   curry_fin_finset R M₂ M' hk hl f (λ _, x) (λ _, y) = f (s.piecewise (λ _, x) (λ _, y)) :=

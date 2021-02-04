@@ -53,6 +53,11 @@ instance linear_ordered_semiring.to_char_zero {R : Type*}
   [linear_ordered_semiring R] : char_zero R :=
 ⟨nat.strict_mono_cast.injective⟩
 
+/-- An `ordered_semiring` has characteristic zero. -/
+lemma char_zero_ordered_semiring {R : Type*} [ordered_semiring R] [nontrivial R] :
+  char_zero R :=
+{ cast_injective := nat.strict_mono_cast.injective }
+
 namespace nat
 variables {R : Type*} [add_monoid R] [has_one R] [char_zero R]
 

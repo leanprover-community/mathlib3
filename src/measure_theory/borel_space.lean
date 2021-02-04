@@ -465,18 +465,6 @@ lemma ae_measurable_const_smul_iff {α : Type*} [topological_space α]
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,
   λ h, h.const_smul c⟩
 
-lemma measurable.const_mul {R : Type*} [topological_space R] [measurable_space R]
-  [borel_space R] [semiring R] [topological_semiring R]
-  {f : δ → R} (hf : measurable f) (c : R) :
-  measurable (λ x, c * f x) :=
-hf.const_smul c
-
-lemma measurable.mul_const {R : Type*} [topological_space R] [measurable_space R]
-  [borel_space R] [semiring R] [topological_semiring R]
-  {f : δ → R} (hf : measurable f) (c : R) :
-  measurable (λ x, f x * c) :=
-(continuous_id.mul continuous_const).measurable.comp hf
-
 end
 
 section borel_space
@@ -547,6 +535,23 @@ lemma measurable_mul_right [has_mul α] [has_continuous_mul α] (x : α) :
 continuous.measurable $ continuous_id.mul continuous_const
 
 @[to_additive]
+lemma measurable.const_mul [has_mul α] [has_continuous_mul α] {f : δ → α} (hf : measurable f)
+  (c : α) :
+  measurable (λ x, c * f x) :=
+(measurable_mul_left _).comp hf
+
+@[to_additive]
+lemma measurable.mul_const [has_mul α] [has_continuous_mul α] {f : δ → α} (hf : measurable f)
+  (c : α) :
+  measurable (λ x, f x * c) :=
+(measurable_mul_right _).comp hf
+
+lemma measurable.sub_const [sub_neg_monoid α] [has_continuous_add α] {f : δ → α} (hf : measurable f)
+  (c : α) :
+  measurable (λ x, f x - c) :=
+by simpa only [sub_eq_add_neg] using hf.add_const (-c)
+
+@[to_additive]
 lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
   measurable (λ a, ∏ i in s, f i a) :=
@@ -576,6 +581,11 @@ lemma measurable.inv' {α : Type*} [normed_field α] [measurable_space α] [bore
   {f : δ → α} (hf : measurable f) :
   measurable (λ a, (f a)⁻¹) :=
 measurable_inv'.comp hf
+
+lemma measurable.div {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
+  [second_countable_topology α] {f g : δ → α} (hf : measurable f) (hg : measurable g) :
+  measurable (λ a, f a / g a) :=
+hf.mul hg.inv'
 
 @[to_additive]
 lemma measurable.of_inv [group α] [topological_group α] {f : δ → α}

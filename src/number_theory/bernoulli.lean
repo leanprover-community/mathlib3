@@ -217,7 +217,11 @@ begin
  },
 end
 
-lemma eval_neg_hom_X (A : Type*) [comm_ring A] : eval_neg_hom ℚ X = -X := sorry
+@[simp] lemma eval_neg_hom_X (A : Type*) [comm_ring A] : eval_neg_hom ℚ X = -X :=
+begin
+  rw eval_neg_hom, simp, ext, simp, rw coeff_X, split_ifs, rw h, simp,
+  norm_num,
+end
 
 theorem bernoulli_odd_eq_zero : ∀ n : ℕ, (n % 2 = 1 ∧ 1 < n) → bernoulli n = 0 :=
 begin

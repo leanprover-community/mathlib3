@@ -242,6 +242,67 @@ class is_compactly_generated (α : Type*) [complete_lattice α] : Prop :=
 (exists_Sup_eq :
   ∀ (x : α), ∃ (s : set α), (∀ x ∈ s, complete_lattice.is_compact_element x) ∧ Sup s = x)
 
+section
+variables {α : Type*} [complete_lattice α] [is_compactly_generated α] {a b : α} {s : set α}
+
+@[simp]
+lemma Sup_compact_le_eq (b) : Sup {c : α | complete_lattice.is_compact_element c ∧ c ≤ b} = b :=
+begin
+  rcases is_compactly_generated.exists_Sup_eq b with ⟨s, hs, rfl⟩,
+  exact le_antisymm (Sup_le (λ c hc, hc.2)) (Sup_le_Sup (λ c cs, ⟨hs c cs, le_Sup cs⟩)),
+end
+
+theorem le_iff_compact_le_imp {a b : α} :
+  a ≤ b ↔ ∀ c : α, complete_lattice.is_compact_element c → c ≤ a → c ≤ b :=
+⟨λ ab c hc ca, le_trans ca ab, λ h, begin
+  rw [← Sup_compact_le_eq a, ← Sup_compact_le_eq b],
+  exact Sup_le_Sup (λ c hc, ⟨hc.1, h c hc.1 hc.2⟩),
+end⟩
+
+/-- This property is sometimes referred to as `α` being upper continuous. -/
+theorem inf_Sup_eq_of_directed_on (h : directed_on (≤) s):
+  a ⊓ Sup s = ⨆ b ∈ s, a ⊓ b :=
+le_antisymm (begin
+  rw le_iff_compact_le_imp,
+  by_cases hs : s.nonempty,
+  { intros c hc hcinf,
+    rw le_inf_iff at hcinf,
+    rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le at hc,
+    rcases hc s hs h hcinf.2 with ⟨d, ds, cd⟩,
+    exact (le_inf hcinf.1 cd).trans (le_bsupr d ds) },
+  { rw set.not_nonempty_iff_eq_empty at hs,
+    simp [hs] }
+end) supr_inf_le_inf_Sup
+
+/-- This property is equivalent to `α` being upper continuous. -/
+theorem inf_Sup_eq_supr_inf_sup_finset :
+  a ⊓ Sup s = ⨆ (t : finset α) (H : ↑t ⊆ s), a ⊓ (t.sup id) :=
+le_antisymm (begin
+  rw le_iff_compact_le_imp,
+  intros c hc hcinf,
+  rw le_inf_iff at hcinf,
+  rcases hc s hcinf.2 with ⟨t, ht1, ht2⟩,
+  exact (le_inf hcinf.1 ht2).trans (le_bsupr t ht1),
+end) (supr_le $ λ t, supr_le $ λ h, inf_le_inf_left _ ((finset.sup_eq_Sup t).symm ▸ (Sup_le_Sup h)))
+
+theorem complete_lattice.independent_iff_finite {s : set α} :
+  complete_lattice.independent s ↔
+    ∀ t : finset α, ↑t ⊆ s → complete_lattice.independent (↑t : set α) :=
+⟨λ hs t ht, hs.mono ht, λ h a ha, begin
+  rw [disjoint_iff, inf_Sup_eq_supr_inf_sup_finset, supr_eq_bot],
+  intro t,
+  rw [supr_eq_bot, finset.sup_eq_Sup],
+  intro ht,
+  classical,
+  have h' := (h (insert a t) _ a (t.mem_insert_self a)).eq_bot,
+  { rwa [finset.coe_insert, set.insert_diff_self_of_not_mem] at h',
+    exact λ con, ((set.mem_diff a).1 (ht con)).2 (set.mem_singleton a) },
+  { rw [finset.coe_insert, set.insert_subset],
+    exact ⟨ha, set.subset.trans ht (set.diff_subset _ _)⟩ }
+end⟩
+
+end
+
 namespace complete_lattice
 variables {α : Type*} [complete_lattice α]
 

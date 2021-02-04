@@ -370,7 +370,7 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
--- TODO: there should be a way to avoid restating these for each `foo_hom`. 
+-- TODO: there should be a way to avoid restating these for each `foo_hom`.
 /-- A version of `one_map` where `f` is a ring hom. -/
 @[simp] lemma ring_hom_map_one [decidable_eq n]
   {β : Type w} [semiring β] (f : α →+* β) :
@@ -647,23 +647,10 @@ variables [decidable_eq m] [decidable_eq n]
 `std_basis_matrix i j a` is the matrix with `a` in the `i`-th row, `j`-th column,
 and zeroes elsewhere.
 -/
-def std_basis_matrix (i : m) (j : n) (a : α) : matrix m n α :=
-(λ i' j', if i' = i ∧ j' = j then a else 0)
-
-@[simp] lemma smul_std_basis_matrix (i : m) (j : n) (a b : α) :
-b • std_basis_matrix i j a = std_basis_matrix i j (b • a) :=
-by { unfold std_basis_matrix, ext, simp }
-
-@[simp] lemma std_basis_matrix_zero (i : m) (j : n) :
-std_basis_matrix i j (0 : α) = 0 :=
-by { unfold std_basis_matrix, ext, simp }
-
-lemma std_basis_matrix_add (i : m) (j : n) (a b : α) :
-std_basis_matrix i j (a + b) = std_basis_matrix i j a + std_basis_matrix i j b :=
-begin
-  unfold std_basis_matrix, ext,
-  split_ifs with h; simp [h],
-end
+def std_basis_matrix (i : m) (j : n) : α →ₗ[α] matrix m n α :=
+{ to_fun := λ a, (λ i' j', if i' = i ∧ j' = j then a else 0),
+  map_add' := λ a b, by { ext, split_ifs with h; simp [h] },
+  map_smul' := λ c a, by { ext, simp } }
 
 lemma matrix_eq_sum_std_basis (x : matrix n m α) :
   x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=

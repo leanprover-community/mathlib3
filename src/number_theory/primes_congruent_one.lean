@@ -54,9 +54,9 @@ begin
     exact_mod_cast min_fac_dvd (eval ↑b (cyclotomic k ℤ)).nat_abs },
   refine ⟨p, hprime.1, _, _⟩,
   { by_contra habs,
-    exact ((prime.dvd_iff_not_coprime hprime.1).1 (dvd_factorial (min_fac_pos _) (le_of_not_ge habs)))
-      (coprime.coprime_mul_left_right (coprime.coprime_mul_left_right (coprime_of_root_cyclotomic
-      hpos hroot).symm)) },
+    exact (prime.dvd_iff_not_coprime hprime.1).1
+      (dvd_factorial (min_fac_pos _) (le_of_not_ge habs))
+      (coprime_of_root_cyclotomic hpos hroot).symm.coprime_mul_left_right.coprime_mul_left_right },
   { have hdiv := order_of_dvd_of_pow_eq_one (zmod.units_pow_card_sub_one_eq_one p
       (zmod.unit_of_coprime b (coprime_of_root_cyclotomic hpos hroot))),
     have : ¬p ∣ k := hprime.1.coprime_iff_not_dvd.1

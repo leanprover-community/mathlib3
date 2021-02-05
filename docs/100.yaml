@@ -28,7 +28,7 @@
   title  : The Area of a Circle
   links  :
     mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/9_area_of_a_circle.lean
-  author : Benjamin Davidson, Andrew Souther, and James Arthur
+  author : James Arthur, Benjamin Davidson, and Andrew Souther
 10:
   title  : Euler’s Generalization of Fermat’s Little Theorem
   decl   : nat.modeq.pow_totient

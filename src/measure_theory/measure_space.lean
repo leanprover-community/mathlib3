@@ -1391,7 +1391,7 @@ end
 ae_eq_bot.trans restrict_eq_zero
 
 @[simp] lemma ae_restrict_ne_bot {s} : (μ.restrict s).ae.ne_bot ↔ 0 < μ s :=
-(not_congr ae_restrict_eq_bot).trans pos_iff_ne_zero.symm
+ne_bot_iff.trans $ (not_congr ae_restrict_eq_bot).trans pos_iff_ne_zero.symm
 
 lemma self_mem_ae_restrict {s} (hs : measurable_set s) : s ∈ (μ.restrict s).ae :=
 by simp only [ae_restrict_eq hs, exists_prop, mem_principal_sets, mem_inf_sets];
@@ -1600,13 +1600,20 @@ open measure
 
 /-- A measure `μ` is called σ-finite if there is a countable collection of sets
   `{ A i | i ∈ ℕ }` such that `μ (A i) < ⊤` and `⋃ i, A i = s`. -/
-@[class] def sigma_finite (μ : measure α) : Prop :=
-nonempty (μ.finite_spanning_sets_in {s | measurable_set s})
+class sigma_finite (μ : measure α) : Prop :=
+(out' : nonempty (μ.finite_spanning_sets_in {s | measurable_set s}))
+
+theorem sigma_finite_iff {μ : measure α} : sigma_finite μ ↔
+  nonempty (μ.finite_spanning_sets_in {s | measurable_set s}) :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+theorem sigma_finite.out {μ : measure α} (h : sigma_finite μ) :
+  nonempty (μ.finite_spanning_sets_in {s | measurable_set s}) := h.1
 
 /-- If `μ` is σ-finite it has finite spanning sets in the collection of all measurable sets. -/
 def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
   μ.finite_spanning_sets_in {s | measurable_set s} :=
-classical.choice h
+classical.choice h.out
 
 /-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
   measure using `classical.some`. This definition satisfies monotonicity in addition to all other
@@ -1657,7 +1664,7 @@ protected def mono (h : μ.finite_spanning_sets_in C) (hC : C ⊆ D) : μ.finite
 -/
 protected lemma sigma_finite (h : μ.finite_spanning_sets_in C) (hC : ∀ s ∈ C, measurable_set s) :
   sigma_finite μ :=
-⟨h.mono hC⟩
+⟨⟨h.mono hC⟩⟩
 
 /-- An extensionality for measures. It is `ext_of_generate_from_of_Union` formulated in terms of
 `finite_spanning_sets_in`. -/
@@ -1671,7 +1678,7 @@ protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_co
 end finite_spanning_sets_in
 
 lemma sigma_finite_of_not_nonempty (μ : measure α) (hα : ¬ nonempty α) : sigma_finite μ :=
-⟨⟨λ _, ∅, λ n, measurable_set.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩
+⟨⟨⟨λ _, ∅, λ n, measurable_set.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩⟩
 
 lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
   (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
@@ -1679,7 +1686,7 @@ lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
 begin
   obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ⊤) ∧ (⋃ n, s n) = univ,
     from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
-  refine ⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩,
+  refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end
 
@@ -1688,12 +1695,12 @@ end measure
 /-- Every finite measure is σ-finite. -/
 @[priority 100]
 instance finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] : sigma_finite μ :=
-⟨⟨λ _, univ, λ _, measurable_set.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩
+⟨⟨⟨λ _, univ, λ _, measurable_set.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
   sigma_finite (μ.restrict s) :=
 begin
-  refine ⟨⟨spanning_sets μ, measurable_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩,
+  refine ⟨⟨⟨spanning_sets μ, measurable_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩⟩,
   rw [restrict_apply (measurable_spanning_sets μ i)],
   exact (measure_mono $ inter_subset_left _ _).trans_lt (measure_spanning_sets_lt_top μ i)
 end
@@ -1704,7 +1711,7 @@ begin
   haveI : encodable ι := (encodable.trunc_encodable_of_fintype ι).out,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
   λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
-  refine ⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩,
+  refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩⟩,
   { rw [sum_apply _ (this n), tsum_fintype, ennreal.sum_lt_top_iff],
     rintro i -,
     exact (measure_mono $ Inter_subset _ i).trans_lt (measure_spanning_sets_lt_top (μ i) n) },
@@ -1960,9 +1967,13 @@ section is_complete
   A null set is a subset of a measurable set with measure `0`.
   Since every measure is defined as a special case of an outer measure, we can more simply state
   that a set `s` is null if `μ s = 0`. -/
-@[class] def measure_theory.measure.is_complete {_ : measurable_space α} (μ : measure α) :
-  Prop :=
-∀ s, μ s = 0 → measurable_set s
+class measure_theory.measure.is_complete {_ : measurable_space α} (μ : measure α) : Prop :=
+(out' : ∀ s, μ s = 0 → measurable_set s)
+
+theorem measure_theory.measure.is_complete_iff {_ : measurable_space α} {μ : measure α} :
+  μ.is_complete ↔ ∀ s, μ s = 0 → measurable_set s := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+theorem measure_theory.measure.is_complete.out {_ : measurable_space α} {μ : measure α}
+  (h : μ.is_complete) : ∀ s, μ s = 0 → measurable_set s := h.1
 
 variables [measurable_space α] {μ : measure α} {s t z : set α}
 
@@ -1995,7 +2006,7 @@ theorem measurable_set.null_measurable_set (μ : measure α) (hs : measurable_se
 theorem null_measurable_set_of_complete (μ : measure α) [c : μ.is_complete] :
   null_measurable_set μ s ↔ measurable_set s :=
 ⟨by rintro ⟨t, z, rfl, ht, hz⟩; exact
-  measurable_set.union ht (c _ hz),
+  measurable_set.union ht (c.out _ hz),
  λ h, h.null_measurable_set _⟩
 
 theorem null_measurable_set.union_null (hs : null_measurable_set μ s) (hz : μ z = 0) :
@@ -2163,7 +2174,7 @@ def completion (μ : measure α) : @measure_theory.measure α (null_measurable �
   end }
 
 instance completion.is_complete (μ : measure α) : (completion μ).is_complete :=
-λ z hz, null_null_measurable_set hz
+⟨λ z hz, null_null_measurable_set hz⟩
 
 lemma measurable.ae_eq {α β} [measurable_space α] [measurable_space β] {μ : measure α}
   [hμ : μ.is_complete] {f g : α → β} (hf : measurable f) (hfg : f =ᵐ[μ] g) :
@@ -2179,8 +2190,8 @@ begin
       simp only [set.mem_inter_iff, set.mem_preimage, and.congr_left_iff, set.mem_set_of_eq],
       exact λ hx, by rw hx, },
     rw h_g_to_f,
-    exact measurable_set.inter (hf hs) (measurable_set.compl_iff.mp (hμ tᶜ ht_compl)), },
-  { exact hμ (g ⁻¹' s ∩ tᶜ) (measure_mono_null (set.inter_subset_right _ _) ht_compl), },
+    exact measurable_set.inter (hf hs) (measurable_set.compl_iff.mp (hμ.out tᶜ ht_compl)), },
+  { exact hμ.out (g ⁻¹' s ∩ tᶜ) (measure_mono_null (set.inter_subset_right _ _) ht_compl), },
 end
 
 end is_complete

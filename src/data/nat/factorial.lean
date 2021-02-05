@@ -135,4 +135,12 @@ begin
     { rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add] } }
 end
 
+lemma add_factorial_le_factorial_add' (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
+  i + n! ≤ (i + n)! :=
+begin
+  cases n1 with h,
+  { exact self_le_factorial _ },
+  { exact add_factorial_le_factorial_add i h }
+end
+
 end nat

@@ -87,68 +87,71 @@ end field
 open ring_hom
 open finset nat
 
-noncomputable def eval_mul_hom (A : Type*) [comm_ring A] (a : A) : power_series A →+* power_series A :=
+variables (A : Type*) [comm_ring A]
+
+noncomputable def eval_mul_hom (a : A) : power_series A →+* power_series A :=
 {
   to_fun :=   λ f, mk $ λ n, a^n * (coeff A n f),
-  map_zero' := by {simp, ext, simp, },
-  map_one' := by { simp, ext1, simp, split_ifs, rw [h, pow_zero], refl, },
+  map_zero' := by { ext, simp only [linear_map.map_zero, coeff_mk, mul_zero], },
+  map_one' := by { ext1, simp only [mul_boole, coeff_mk, coeff_one], split_ifs,
+                rw [h, pow_zero], refl, },
   map_add' := by {intros, ext, norm_num, rw mul_add, },
-  map_mul' := by {intros, ext, rw coeff_mul, simp, rw coeff_mul, rw finset.mul_sum, apply sum_congr rfl,
-            norm_num, intros b c H, rw <-H, rw pow_add, rw mul_assoc, rw ←mul_assoc (a^c) _ _,
-            rw mul_comm (a^c) _, rw mul_assoc _ (a^c) _, ring, },
+  map_mul' := by {intros, ext, rw [coeff_mul, coeff_mk, coeff_mul, finset.mul_sum],
+                apply sum_congr rfl, norm_num, intros b c H, rw [<-H, pow_add], ring, },
 }
 
-theorem exp_mul_exp_eq_exp_add (A : Type*) [comm_ring A] [algebra ℚ A] (a b : A) :
+/-- Shows that `e^(aX) * e^(bX) = e^((a + b)X) ` -/
+theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
   (eval_mul_hom A a (exp A)) * (eval_mul_hom A b (exp A)) = (eval_mul_hom A (a + b) (exp A)) :=
 begin
-  ext,
-  rw [coeff_mul, exp, eval_mul_hom, eval_mul_hom, eval_mul_hom], simp only [coeff_mk, coe_mk, factorial],
-  { rw nat.sum_antidiagonal_eq_sum_range_succ_mk, simp only [factorial], rw add_pow,
-  rw sum_mul, apply sum_congr, refl, rintros x hx,
-  rw mul_assoc (a^x * b ^ (n - x)) _ _, rw mul_assoc (a^x) _ _, rw ←mul_assoc _  (b ^ (n - x)) _,
-  rw mul_comm _ (b^(n - x)), rw ←mul_assoc (a^x) _ _, rw ←mul_assoc (a^x) _ _,
-  suffices f : (algebra_map ℚ A) (1 / ↑(x.factorial)) * (algebra_map ℚ A) (1 / ↑((n - x).factorial))
-   = (↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial))),
-  { rw ←f, rw mul_assoc, },
-  rw ←map_nat_cast (algebra_map ℚ A) (n.choose x), rw ←map_mul, rw ←map_mul,
-  refine ring_hom.congr_arg _ _, rw mul_one_div ↑(n.choose x) _, rw one_div_mul_one_div,
-   symmetry, rw div_eq_iff, rw div_mul_eq_mul_div, rw one_mul, rw choose_eq_factorial_div_factorial,
-   norm_cast, rw cast_dvd_char_zero,
-   { apply factorial_mul_factorial_dvd_factorial (mem_range_succ_iff.1 hx), },
-   { apply mem_range_succ_iff.1 hx, },
-   { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },
- },
+  ext, rw [coeff_mul, exp, eval_mul_hom, eval_mul_hom, eval_mul_hom],
+  simp only [coeff_mk, coe_mk, factorial], rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+  simp only [factorial], rw [add_pow, sum_mul], apply sum_congr, { refl },
+  { rintros x hx,
+    rw [mul_assoc (a^x * b ^ (n - x)) _ _, mul_assoc (a^x) _ _, ←mul_assoc _  (b ^ (n - x)) _,
+    mul_comm _ (b^(n - x)), ←mul_assoc (a^x) _ _, ←mul_assoc (a^x) _ _],
+    suffices f : (algebra_map ℚ A) (1 / ↑(x.factorial)) * (algebra_map ℚ A)
+     (1 / ↑((n - x).factorial)) = (↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial))),
+      { rw [←f, mul_assoc], },
+    rw [←map_nat_cast (algebra_map ℚ A) (n.choose x), ←map_mul, ←map_mul],
+    refine ring_hom.congr_arg _ _, rw [mul_one_div ↑(n.choose x) _, one_div_mul_one_div],
+    symmetry, rw [div_eq_iff, div_mul_eq_mul_div, one_mul, choose_eq_factorial_div_factorial],
+    norm_cast, rw cast_dvd_char_zero,
+    { apply factorial_mul_factorial_dvd_factorial (mem_range_succ_iff.1 hx), },
+    { apply mem_range_succ_iff.1 hx, },
+    { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },
+  },
 end
 
-lemma eval_mul_hom_zero (A : Type*) [comm_ring A] [algebra ℚ A] (f : power_series A) :
+lemma eval_mul_hom_zero [algebra ℚ A] (f : power_series A) :
   eval_mul_hom A 0 f = (C A ((constant_coeff A) f) ) :=
 begin
-  rw eval_mul_hom, simp, ext, simp, rw power_series.coeff_C, split_ifs,
-  rw h, simp,
-  rw zero_pow' n h, rw zero_mul,
+  rw [eval_mul_hom, coe_mk], ext, rw [coeff_mk, power_series.coeff_C], split_ifs,
+  { rw h, simp only [one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
+  { rw [zero_pow' n h, zero_mul], },
 end
 
-lemma eval_mul_hom_one (A : Type*) [comm_ring A] [algebra ℚ A] (f : power_series A) :
+lemma eval_mul_hom_one [algebra ℚ A] (f : power_series A) :
   eval_mul_hom A 1 f = f :=
-begin
-  rw eval_mul_hom, simp, ext, simp,
-end
+  by { rw eval_mul_hom, ext, simp only [one_pow, coeff_mk, one_mul, coe_mk], }
 
-noncomputable def eval_neg_hom (A : Type*) [comm_ring A] : power_series A →+* power_series A :=
+noncomputable def eval_neg_hom : power_series A →+* power_series A :=
   eval_mul_hom A (-1 : A)
 
-theorem exp_mul_exp_neg_eq_one (A : Type*) [comm_ring A] [algebra ℚ A] :
-  (exp A) * (eval_neg_hom A (exp A)) = 1 :=
+/-- Shows that `e^{x} * e^{-x} = 1` -/
+theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : (exp A) * (eval_neg_hom A (exp A)) = 1 :=
 begin
   rw eval_neg_hom,
   conv_lhs { congr, rw ←eval_mul_hom_one A (exp A), },
   rw exp_mul_exp_eq_exp_add, simp, rw eval_mul_hom_zero, simp,
 end
 
-@[simp] lemma eval_neg_hom_X (A : Type*) [comm_ring A] : eval_neg_hom ℚ X = -X :=
+@[simp] lemma eval_neg_hom_X : eval_neg_hom ℚ X = -X :=
 begin
-  rw eval_neg_hom, ext, simp, rw coeff_X, split_ifs, rw h, rw eval_mul_hom, simp,
-  rw eval_mul_hom, simp, right, rw coeff_X, split_ifs, refl,
+  rw eval_neg_hom, ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
+  { rw [h, eval_mul_hom], simp only [coeff_mk, mul_one, coe_mk, coeff_one_X, pow_one], },
+  { rw eval_mul_hom, simp only [coeff_mk, coe_mk, neg_zero, mul_eq_zero], right, rw coeff_X,
+    split_ifs, refl, },
 end
 
 end power_series

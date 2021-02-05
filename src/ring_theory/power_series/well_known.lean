@@ -96,8 +96,7 @@ noncomputable def eval_mul_hom (a : A) : power_series A →+* power_series A :=
                 rw [h, pow_zero], refl, },
   map_add' := by {intros, ext, norm_num, rw mul_add, },
   map_mul' := by {intros, ext, rw [coeff_mul, coeff_mk, coeff_mul, finset.mul_sum],
-                apply sum_congr rfl, norm_num, intros b c H, rw [<-H, pow_add], ring, },
-}
+                apply sum_congr rfl, norm_num, intros b c H, rw [<-H, pow_add], ring, }, }
 
 /-- Shows that `e^(aX) * e^(bX) = e^((a + b)X) ` -/
 theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :

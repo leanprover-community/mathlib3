@@ -100,7 +100,7 @@ noncomputable def eval_mul_hom (a : A) : power_series A →+* power_series A :=
 
 /-- Shows that `e^(aX) * e^(bX) = e^((a + b)X) ` -/
 theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
-  (eval_mul_hom A a (exp A)) * (eval_mul_hom A b (exp A)) = (eval_mul_hom A (a + b) (exp A)) :=
+  eval_mul_hom A a (exp A) * eval_mul_hom A b (exp A) = eval_mul_hom A (a + b) (exp A) :=
 begin
   ext, rw [coeff_mul, exp, eval_mul_hom, eval_mul_hom, eval_mul_hom],
   simp only [coeff_mk, coe_mk, factorial], rw nat.sum_antidiagonal_eq_sum_range_succ_mk,

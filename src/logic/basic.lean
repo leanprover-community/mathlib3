@@ -169,6 +169,7 @@ into an automated theorem prover for first order logic. -/
 class fact (p : Prop) : Prop := (out : p)
 
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
+lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 end miscellany
 

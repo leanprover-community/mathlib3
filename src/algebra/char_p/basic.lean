@@ -185,7 +185,7 @@ begin
   rw [show (2 : R) = (2 : ℕ), by norm_cast] at h,
   have := (char_p.cast_eq_zero_iff R p 2).mp h,
   have := nat.le_of_dvd dec_trivial this,
-  rw fact at *, linarith,
+  rw fact_iff at *, linarith,
 end
 
 lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
@@ -201,7 +201,7 @@ section frobenius
 section comm_semiring
 
 variables (R : Type u) [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
@@ -264,7 +264,7 @@ end comm_semiring
 section comm_ring
 
 variables (R : Type u) [comm_ring R] {S : Type v} [comm_ring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 theorem frobenius_neg : frobenius R p (-x) = -frobenius R p x := (frobenius R p).map_neg x
 
@@ -336,7 +336,7 @@ match p, hc with
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
-(char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h)
+(char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h.1)
 
 theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : p.prime :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
@@ -399,7 +399,7 @@ begin
   obtain ⟨c, hc⟩ := char_p.exists R, resetI,
   have hcpn : c ∣ p ^ n,
   { rw [← char_p.cast_eq_zero_iff R c, ← hn, char_p.cast_card_eq_zero], },
-  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp at hcpn,
+  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp.1 at hcpn,
   obtain rfl : i = n,
   { apply hR i hi, rw [← nat.cast_pow, ← hc, char_p.cast_eq_zero] },
   rwa ← hc

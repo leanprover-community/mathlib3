@@ -170,7 +170,7 @@ begin
   have : ∀ x, measurable_set (prod.mk x ⁻¹' s) := λ x, measurable_prod_mk_left hs,
   simp only [← @supr_restrict_spanning_sets _ _ ν, this],
   apply measurable_supr, intro i,
-  haveI : fact _ := measure_spanning_sets_lt_top ν i,
+  haveI := fact.mk (measure_spanning_sets_lt_top ν i),
   exact measurable_measure_prod_mk_left_finite hs
 end
 

@@ -130,7 +130,7 @@ variable (K)
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
-  haveI hp : fact p.prime := char_p.char_is_prime K p,
+  haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
   letI : vector_space (zmod p) K := { .. (zmod.cast_hom (dvd_refl _) K).to_semimodule },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
@@ -228,7 +228,7 @@ lemma expand_card (f : polynomial K) :
   expand K q f = f ^ q :=
 begin
   cases char_p.exists K with p hp, letI := hp,
-  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, haveI : fact p.prime := ⟨hp⟩,
   dsimp at hn, rw hn at *,
   rw ← map_expand_pow_char,
   rw [frobenius_pow hn, ring_hom.one_def, map_id],
@@ -243,7 +243,7 @@ open finite_field polynomial
 lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
-  cases hp.eq_two_or_odd with hp2 hp_odd,
+  cases hp.1.eq_two_or_odd with hp2 hp_odd,
   { substI p, revert x, exact dec_trivial },
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
@@ -298,7 +298,7 @@ namespace zmod
 @[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
 by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
-@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] :
+@[simp] lemma frobenius_zmod (p : ℕ) [fact p.prime] :
   frobenius (zmod p) p = ring_hom.id _ :=
 by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 

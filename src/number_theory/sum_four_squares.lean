@@ -40,14 +40,14 @@ calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 
 lemma exists_sum_two_squares_add_one_eq_k (p : ℕ) [hp : fact p.prime] :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=
-hp.eq_two_or_odd.elim (λ hp2, hp2.symm ▸ ⟨1, 0, 1, rfl, dec_trivial⟩) $ λ hp1,
+hp.1.eq_two_or_odd.elim (λ hp2, hp2.symm ▸ ⟨1, 0, 1, rfl, dec_trivial⟩) $ λ hp1,
 let ⟨a, b, hab⟩ := zmod.sum_two_squares p (-1) in
 have hab' : (p : ℤ) ∣ a.val_min_abs ^ 2 + b.val_min_abs ^ 2 + 1,
   from (char_p.int_cast_eq_zero_iff (zmod p) p _).1 $ by simpa [eq_neg_iff_add_eq_zero] using hab,
 let ⟨k, hk⟩ := hab' in
 have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
   (by rw ← hk; exact (add_nonneg (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _)) zero_le_one))
-  (int.coe_nat_pos.2 hp.pos),
+  (int.coe_nat_pos.2 hp.1.pos),
 ⟨a.val_min_abs, b.val_min_abs, k.nat_abs,
     by rw [hk, int.nat_abs_of_nonneg hk0, mul_comm],
   lt_of_mul_lt_mul_left
@@ -115,7 +115,7 @@ have hm : ∃ m < p, 0 < m ∧ ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = m * p,
     a, b, 1, 0, by simpa [pow_two] using hk.1⟩,
 let m := nat.find hm in
 let ⟨a, b, c, d, (habcd : a^2 + b^2 + c^2 + d^2 = m * p)⟩ := (nat.find_spec hm).snd.2 in
-by haveI hm0 : _root_.fact (0 < m) := (nat.find_spec hm).snd.1; exact
+by haveI hm0 : _root_.fact (0 < m) := ⟨(nat.find_spec hm).snd.1⟩; exact
 have hmp : m < p, from (nat.find_spec hm).fst,
 m.mod_two_eq_zero_or_one.elim
   (λ hm2 : m % 2 = 0,
@@ -202,7 +202,7 @@ lemma sum_four_squares : ∀ n : ℕ, ∃ a b c d : ℕ, a^2 + b^2 + c^2 + d^2 =
 | 0 := ⟨0, 0, 0, 0, rfl⟩
 | 1 := ⟨1, 0, 0, 0, rfl⟩
 | n@(k+2) :=
-have hm : _root_.fact (min_fac (k+2)).prime := min_fac_prime dec_trivial,
+have hm : _root_.fact (min_fac (k+2)).prime := ⟨min_fac_prime dec_trivial⟩,
 have n / min_fac n < n := factors_lemma,
 let ⟨a, b, c, d, h₁⟩ := show ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = min_fac n,
   by exactI prime_sum_four_squares (min_fac (k+2)) in

@@ -587,10 +587,10 @@ end⟩
 lemma le_div_two_iff_lt_neg (n : ℕ) [hn : fact ((n : ℕ) % 2 = 1)]
   {x : zmod n} (hx0 : x ≠ 0) : x.val ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).val :=
 begin
-  haveI npos : fact (0 < n) := by
+  haveI npos : fact (0 < n) := ⟨by
   { apply (nat.eq_zero_or_pos n).resolve_left,
     unfreezingI { rintro rfl },
-    simpa [fact] using hn, },
+    simpa [fact_iff] using hn, }⟩,
   have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left npos).2 dec_trivial),
   have hn2' : (n : ℕ) - n / 2 = n / 2 + 1,
   { conv {to_lhs, congr, rw [← nat.succ_sub_one n, nat.succ_sub npos]},
@@ -659,7 +659,7 @@ lemma val_min_abs_def_pos {n : ℕ} [fact (0 < n)] (x : zmod n) :
   val_min_abs x = if x.val ≤ n / 2 then x.val else x.val - n :=
 begin
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
+  { exfalso, exact nat.not_lt_zero 0 (fact.out (0 < 0)) },
   { refl }
 end
 
@@ -754,7 +754,7 @@ by { rw [zmod.val_min_abs_def_pos], split_ifs; simp only [add_zero, sub_add_canc
 lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p ≠ q) :
   (q : zmod p) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
-  ← hp.coprime_iff_not_dvd, nat.coprime_primes hp hq]
+  ← hp.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
 end zmod
 

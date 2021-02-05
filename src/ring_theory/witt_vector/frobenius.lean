@@ -71,7 +71,7 @@ end
 /-- An auxilliary definition, to avoid an excessive amount of finiteness proofs
 for `multiplicity p n`. -/
 private def pnat_multiplicity (n : ℕ+) : ℕ :=
-(multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.one_lt, n.2⟩
+(multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.1.one_lt, n.2⟩
 
 local notation `v` := pnat_multiplicity
 
@@ -118,10 +118,10 @@ begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
-    exact ⟨hp.ne_one, nat.choose_pos hj⟩, },
+    exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
   rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
       ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
-  exact (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).ge,
+  exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 
 /-- A key numerical identity needed for the proof of `witt_vector.map_frobenius_poly`. -/
@@ -190,7 +190,7 @@ begin
   suffices : ((p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n : ℚ) =
     p ^ j * p * ((p ^ (n - i)).choose (j + 1) * p ^ i) * p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩),
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
-    { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    { intro, apply pow_ne_zero, exact_mod_cast hp.1.ne_zero },
     simpa [aux, -one_div] with field_simps using this.symm },
   rw [mul_comm _ (p : ℚ), mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p hi hj],
   ring_exp

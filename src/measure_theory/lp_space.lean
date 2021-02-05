@@ -738,7 +738,7 @@ by rw [norm_def, norm_def, snorm_congr_ae coe_fn_neg, snorm_neg]
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
 normed_group.of_core _
-{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp),
+{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
   triangle := begin
     assume f g,
     simp only [norm_def],
@@ -747,7 +747,7 @@ normed_group.of_core _
     { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
       exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
     rw [snorm_congr_ae coe_fn_add],
-    exact snorm_add_le (ae_measurable f) (ae_measurable g) hp,
+    exact snorm_add_le (ae_measurable f) (ae_measurable g) hp.1,
   end,
   norm_neg := by simp }
 

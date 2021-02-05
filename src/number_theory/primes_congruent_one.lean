@@ -45,7 +45,7 @@ begin
       rwa [← eval_map, map_cyclotomic_int k ℚ, abs_cast] at ha },
     exact le_mul_of_pos_right (mul_pos hpos (factorial_pos n)) },
   let p := min_fac (eval ↑b (cyclotomic k ℤ)).nat_abs,
-  letI hprime : fact p.prime := min_fac_prime (ne_of_lt hgt).symm,
+  haveI hprime : fact p.prime := ⟨min_fac_prime (ne_of_lt hgt).symm⟩,
   have hroot : is_root (cyclotomic k (zmod p)) (cast_ring_hom (zmod p) b),
   { rw [is_root.def, ← map_cyclotomic_int k (zmod p), eval_map, coe_cast_ring_hom,
     ← int.cast_coe_nat, ← int.coe_cast_ring_hom, eval₂_hom, int.coe_cast_ring_hom,

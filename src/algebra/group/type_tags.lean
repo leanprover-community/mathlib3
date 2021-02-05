@@ -81,6 +81,26 @@ multiplicative.of_add.right_inv _
 @[simp] lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x :=
 additive.of_mul.right_inv _
 
+-- TODO: equiv_rw should probably be able to do this
+lemma exists_multiplicative_iff (p : multiplicative α → Prop) :
+  (∃ x, p x) ↔ ∃ x, p (multiplicative.of_add x) :=
+⟨λ ⟨x, h⟩, ⟨x.to_add, by simpa⟩, λ ⟨x, h⟩, ⟨_, h⟩⟩
+
+-- TODO: equiv_rw should probably be able to do this
+lemma forall_multiplicative_iff (p : multiplicative α → Prop) :
+  (∀ x, p x) ↔ ∀ x, p (multiplicative.of_add x) :=
+⟨λ h x, h _, λ h x, by simpa using h x.to_add⟩
+
+-- TODO: equiv_rw should probably be able to do this
+lemma exists_additive_iff (p : additive α → Prop) :
+  (∃ x, p x) ↔ ∃ x, p (additive.of_mul x) :=
+⟨λ ⟨x, h⟩, ⟨x.to_mul, by simpa⟩, λ ⟨x, h⟩, ⟨_, h⟩⟩
+
+-- TODO: equiv_rw should probably be able to do this
+lemma forall_additive_iff (p : additive α → Prop) :
+  (∀ x, p x) ↔ ∀ x, p (additive.of_mul x) :=
+⟨λ h x, h _, λ h x, by simpa using h x.to_mul⟩
+
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 

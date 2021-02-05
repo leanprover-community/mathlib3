@@ -61,8 +61,11 @@ instance : inhabited (roption α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : roption α := ⟨true, λ_, a⟩
 
-theorem mem_unique : relator.left_unique ((∈) : α → roption α → Prop)
-| _ ⟨p, f⟩ _ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+theorem mem_unique : ∀ {a b : α} {o : roption α}, a ∈ o → b ∈ o → a = b
+| _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
+
+theorem mem.left_unique : relator.left_unique ((∈) : α → roption α → Prop) :=
+⟨λ a o b, mem_unique⟩
 
 theorem get_eq_of_mem {o : roption α} {a} (h : a ∈ o) (h') : get o h' = a :=
 mem_unique ⟨_, rfl⟩ h
@@ -445,19 +448,19 @@ def ran (f : α →. β) : set β := {b | ∃a, b ∈ f a}
 
 /-- Restrict a partial function to a smaller domain. -/
 def restrict (f : α →. β) {p : set α} (H : p ⊆ f.dom) : α →. β :=
-λ x, roption.restrict (p x) (f x) (@H x)
+λ x, roption.restrict (x ∈ p) (f x) (@H x)
 
 @[simp]
 theorem mem_restrict {f : α →. β} {s : set α} (h : s ⊆ f.dom) (a : α) (b : β) :
   b ∈ restrict f h a ↔ a ∈ s ∧ b ∈ f a :=
-by { simp [restrict], reflexivity }
+by simp [restrict]
 
 def res (f : α → β) (s : set α) : α →. β :=
 restrict (pfun.lift f) (set.subset_univ s)
 
 theorem mem_res (f : α → β) (s : set α) (a : α) (b : β) :
   b ∈ res f s a ↔ (a ∈ s ∧ f a = b) :=
-by { simp [res], split; {intro h, simp [h]} }
+by simp [res, @eq_comm _ b]
 
 theorem res_univ (f : α → β) : pfun.res f set.univ = f :=
 rfl

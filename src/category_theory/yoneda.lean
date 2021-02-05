@@ -127,6 +127,13 @@ If `coyoneda.map f` is an isomorphism, so was `f`.
 def is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful coyoneda f
 
+-- No need to use Cᵒᵖ here, works with any category
+/-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
+  coyoneda functor coming from `punit`. -/
+@[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
+{ hom := { app := λ X f, f punit.star},
+  inv := { app := λ X a _, a } }
+
 end coyoneda
 
 /--

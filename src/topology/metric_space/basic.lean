@@ -15,7 +15,7 @@ import topology.algebra.ordered
 open set filter classical topological_space
 noncomputable theory
 
-open_locale uniformity topological_space big_operators filter
+open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -63,7 +63,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
-(edist : α → α → ennreal := λx y, ennreal.of_real (dist x y))
+(edist : α → α → ℝ≥0∞ := λx y, ennreal.of_real (dist x y))
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
@@ -104,17 +104,16 @@ by rw dist_comm y; apply dist_triangle
 
 lemma dist_triangle4 (x y z w : α) :
   dist x w ≤ dist x y + dist y z + dist z w :=
-calc
-  dist x w ≤ dist x z + dist z w : dist_triangle x z w
-       ... ≤ (dist x y + dist y z) + dist z w : add_le_add_right (metric_space.dist_triangle x y z) _
+calc dist x w ≤ dist x z + dist z w : dist_triangle x z w
+          ... ≤ (dist x y + dist y z) + dist z w : add_le_add_right (dist_triangle x y z) _
 
 lemma dist_triangle4_left (x₁ y₁ x₂ y₂ : α) :
   dist x₂ y₂ ≤ dist x₁ y₁ + (dist x₁ x₂ + dist y₁ y₂) :=
-by rw [add_left_comm, dist_comm x₁, ← add_assoc]; apply dist_triangle4
+by { rw [add_left_comm, dist_comm x₁, ← add_assoc], apply dist_triangle4 }
 
 lemma dist_triangle4_right (x₁ y₁ x₂ y₂ : α) :
   dist x₁ y₁ ≤ dist x₁ x₂ + dist y₁ y₂ + dist x₂ y₂ :=
-by rw [add_right_comm, dist_comm y₁]; apply dist_triangle4
+by { rw [add_right_comm, dist_comm y₁], apply dist_triangle4 }
 
 /-- The triangle (polygon) inequality for sequences of points; `finset.Ico` version. -/
 lemma dist_le_Ico_sum_dist (f : ℕ → α) {m n} (h : m ≤ n) :
@@ -177,7 +176,7 @@ theorem eq_of_forall_dist_le {x y : α} (h : ∀ ε > 0, dist x y ≤ ε) : x = 
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
 
 /-- Distance as a nonnegative real number. -/
-def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
+def nndist (a b : α) : ℝ≥0 := ⟨dist a b, dist_nonneg⟩
 
 /--Express `nndist` in terms of `edist`-/
 lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=
@@ -190,11 +189,11 @@ by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 @[simp, norm_cast] lemma ennreal_coe_nndist (x y : α) : ↑(nndist x y) = edist x y :=
 (edist_nndist x y).symm
 
-@[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : ℝ≥0} :
   edist x y < c ↔ nndist x y < c :=
 by rw [edist_nndist, ennreal.coe_lt_coe]
 
-@[simp, norm_cast] lemma edist_le_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma edist_le_coe {x y : α} {c : ℝ≥0} :
   edist x y ≤ c ↔ nndist x y ≤ c :=
 by rw [edist_nndist, ennreal.coe_le_coe]
 
@@ -215,11 +214,11 @@ lemma dist_nndist (x y : α) : dist x y = ↑(nndist x y) := rfl
 @[simp, norm_cast] lemma coe_nndist (x y : α) : ↑(nndist x y) = dist x y :=
 (dist_nndist x y).symm
 
-@[simp, norm_cast] lemma dist_lt_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma dist_lt_coe {x y : α} {c : ℝ≥0} :
   dist x y < c ↔ nndist x y < c :=
 iff.rfl
 
-@[simp, norm_cast] lemma dist_le_coe {x y : α} {c : nnreal} :
+@[simp, norm_cast] lemma dist_le_coe {x y : α} {c : ℝ≥0} :
   dist x y ≤ c ↔ nndist x y ≤ c :=
 iff.rfl
 
@@ -243,13 +242,13 @@ by simp only [← nnreal.eq_iff, ← dist_nndist, imp_self, nnreal.coe_zero, zer
 
 /--Triangle inequality for the nonnegative distance-/
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
-by simpa [nnreal.coe_le_coe] using dist_triangle x y z
+dist_triangle _ _ _
 
 theorem nndist_triangle_left (x y z : α) : nndist x y ≤ nndist z x + nndist z y :=
-by simpa [nnreal.coe_le_coe] using dist_triangle_left x y z
+dist_triangle_left _ _ _
 
 theorem nndist_triangle_right (x y z : α) : nndist x y ≤ nndist x z + nndist y z :=
-by simpa [nnreal.coe_le_coe] using dist_triangle_right x y z
+dist_triangle_right _ _ _
 
 /--Express `dist` in terms of `edist`-/
 lemma dist_edist (x y : α) : dist x y = (edist x y).to_real :=
@@ -280,10 +279,12 @@ by { ext, simp [dist_comm, uniform_space.ball] }
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
+@[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+
 /-- `sphere x ε` is the set of all points `y` with `dist y x = ε` -/
 def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
-@[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+@[simp] theorem mem_sphere : y ∈ sphere x ε ↔ dist y x = ε := iff.rfl
 
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }
@@ -327,7 +328,7 @@ by simp [dist_comm]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
-theorem closed_ball_subset_closed_ball {α : Type u} [metric_space α] {ε₁ ε₂ : ℝ} {x : α} (h : ε₁ ≤ ε₂) :
+theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
@@ -445,7 +446,8 @@ lemma uniform_continuous_on_iff [metric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y < δ → dist (f x) (f y) < ε :=
 begin
   dsimp [uniform_continuous_on],
-  rw (metric.uniformity_basis_dist.inf_principal (s.prod s)).tendsto_iff metric.uniformity_basis_dist,
+  rw (metric.uniformity_basis_dist.inf_principal (s.prod s)).tendsto_iff
+    metric.uniformity_basis_dist,
   simp only [and_imp, exists_prop, prod.forall, mem_inter_eq, gt_iff_lt, mem_set_of_eq, mem_prod],
   finish,
 end
@@ -668,6 +670,22 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
+lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
+  is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
+by simp [is_open_iff, subset_singleton_iff, mem_ball]
+
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is an open ball
+centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_ball_inter_eq_singleton_of_mem_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.ball x ε ∩ s = {x} :=
+nhds_basis_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
+/-- Given a point `x` in a discrete subset `s` of a metric space, there is a closed ball
+of positive radius centered at `x` and intersecting `s` only at `x`. -/
+lemma exists_closed_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
+  ∃ ε > 0, metric.closed_ball x ε ∩ s = {x} :=
+nhds_basis_closed_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
 end metric
 
 open metric
@@ -683,7 +701,7 @@ distance coincide. -/
 
 /-- Expressing the uniformity in terms of `edist` -/
 protected lemma metric.uniformity_basis_edist :
-  (𝓤 α).has_basis (λ ε:ennreal, 0 < ε) (λ ε, {p | edist p.1 p.2 < ε}) :=
+  (𝓤 α).has_basis (λ ε:ℝ≥0∞, 0 < ε) (λ ε, {p | edist p.1 p.2 < ε}) :=
 ⟨begin
   intro t,
   refine mem_uniformity_dist.trans ⟨_, _⟩; rintro ⟨ε, ε0, Hε⟩,
@@ -725,7 +743,7 @@ begin
 end
 
 /-- Balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_ball_nnreal {x : α} {ε : nnreal} : emetric.ball x ε = ball x ε :=
+lemma metric.emetric_ball_nnreal {x : α} {ε : ℝ≥0} : emetric.ball x ε = ball x ε :=
 by { convert metric.emetric_ball, simp }
 
 /-- Closed balls defined using the distance or the edistance coincide -/
@@ -734,7 +752,7 @@ lemma metric.emetric_closed_ball {x : α} {ε : ℝ} (h : 0 ≤ ε) :
 by ext y; simp [edist_dist]; rw ennreal.of_real_le_of_real_iff h
 
 /-- Closed balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_closed_ball_nnreal {x : α} {ε : nnreal} :
+lemma metric.emetric_closed_ball_nnreal {x : α} {ε : ℝ≥0} :
   emetric.closed_ball x ε = closed_ball x ε :=
 by { convert metric.emetric_closed_ball ε.2, simp }
 
@@ -767,7 +785,8 @@ def emetric_space.to_metric_space_of_dist {α : Type u} [e : emetric_space α]
   metric_space α :=
 let m : metric_space α :=
 { dist := dist,
-  eq_of_dist_eq_zero := λx y hxy, by simpa [h, ennreal.to_real_eq_zero_iff, edist_ne_top x y] using hxy,
+  eq_of_dist_eq_zero := λx y hxy,
+    by simpa [h, ennreal.to_real_eq_zero_iff, edist_ne_top x y] using hxy,
   dist_self          := λx, by simp [h],
   dist_comm          := λx y, by simp [h, emetric_space.edist_comm],
   dist_triangle      := λx y z, begin
@@ -794,7 +813,8 @@ converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast con
 `0`, which makes it possible to use arguments of converging series, while this is impossible
 to do in general for arbitrary Cauchy sequences. -/
 theorem metric.complete_of_convergent_controlled_sequences (B : ℕ → real) (hB : ∀n, 0 < B n)
-  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) → ∃x, tendsto u at_top (𝓝 x)) :
+  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) →
+    ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
 begin
   -- this follows from the same criterion in emetric spaces. We just need to translate
@@ -994,11 +1014,11 @@ theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x
 
 section nnreal
 
-instance : metric_space nnreal := by unfold nnreal; apply_instance
+instance : metric_space ℝ≥0 := by unfold nnreal; apply_instance
 
-lemma nnreal.dist_eq (a b : nnreal) : dist a b = abs ((a:ℝ) - b) := rfl
+lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = abs ((a:ℝ) - b) := rfl
 
-lemma nnreal.nndist_eq (a b : nnreal) :
+lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
   wlog h : a ≤ b,
@@ -1041,6 +1061,14 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
 lemma prod.dist_eq [metric_space β] {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
+theorem ball_prod_same [metric_space β] (x : α) (y : β) (r : ℝ) :
+  (ball x r).prod (ball y r) = ball (x, y) r :=
+ext $ λ z, by simp [prod.dist_eq]
+
+theorem closed_ball_prod_same [metric_space β] (x : α) (y : β) (r : ℝ) :
+  (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
+ext $ λ z, by simp [prod.dist_eq]
+
 end prod
 
 theorem uniform_continuous_dist : uniform_continuous (λp:α×α, dist p.1 p.2) :=
@@ -1071,7 +1099,7 @@ uniform_continuous_dist.continuous
 
 theorem continuous.dist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, dist (f b) (g b)) :=
-continuous_dist.comp (hf.prod_mk hg)
+continuous_dist.comp (hf.prod_mk hg : _)
 
 theorem filter.tendsto.dist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
@@ -1099,7 +1127,7 @@ uniform_continuous_nndist.continuous
 
 lemma continuous.nndist [topological_space β] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, nndist (f b) (g b)) :=
-continuous_nndist.comp (hf.prod_mk hg)
+continuous_nndist.comp (hf.prod_mk hg : _)
 
 theorem filter.tendsto.nndist {f g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
@@ -1162,11 +1190,11 @@ begin
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
   refine emetric_space.to_metric_space_of_dist
-    (λf g, ((sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)) _ _,
+    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) _ _,
   show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
   { assume x y,
     rw ← lt_top_iff_ne_top,
-    have : (⊥ : ennreal) < ⊤ := ennreal.coe_lt_top,
+    have : (⊥ : ℝ≥0∞) < ⊤ := ennreal.coe_lt_top,
     simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
   show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
     ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
@@ -1179,19 +1207,25 @@ lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b)
 subtype.eta _ _
 
 lemma dist_pi_def (f g : Πb, π b) :
-  dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
+  dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl
+
+@[simp] lemma dist_pi_const [nonempty β] (a b : α) : dist (λ x : β, a) (λ _, b) = dist a b :=
+by simpa only [dist_edist] using congr_arg ennreal.to_real (edist_pi_const a b)
+
+@[simp] lemma nndist_pi_const [nonempty β] (a b : α) : nndist (λ x : β, a) (λ _, b) = nndist a b :=
+nnreal.eq $ dist_pi_const a b
 
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
-  lift r to nnreal using hr.le,
+  lift r to ℝ≥0 using hr.le,
   simp [dist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
 end
 
 lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
-  lift r to nnreal using hr,
+  lift r to ℝ≥0 using hr,
   simp [nndist_pi_def]
 end
 
@@ -1300,8 +1334,8 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
   have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),
   have : closed_ball x 1 ∈ f := f.sets_of_superset t_fset this,
-  rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf (le_principal_iff.2 this)
-    with ⟨y, _, hy⟩,
+  rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf
+    (le_principal_iff.2 this) with ⟨y, _, hy⟩,
   exact ⟨y, hy⟩
 end⟩
 
@@ -1475,7 +1509,7 @@ begin
     intros x y x_in y_in,
     exact this (x, y) (mk_mem_prod x_in y_in) },
   intros p p_in,
-  have := mem_closure continuous_dist p_in h,
+  have := map_mem_closure continuous_dist p_in h,
   rwa (is_closed_le' C).closure_eq at this
 end
 
@@ -1663,7 +1697,8 @@ end
 /-- The diameter of a union is controlled by the sum of the diameters, and the distance between
 any two points in each of the sets. This lemma is true without any side condition, since it is
 obviously true if `s ∪ t` is unbounded. -/
-lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) : diam (s ∪ t) ≤ diam s + dist x y + diam t :=
+lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) :
+  diam (s ∪ t) ≤ diam s + dist x y + diam t :=
 begin
   classical, by_cases H : bounded (s ∪ t),
   { have hs : bounded s, from H.subset (subset_union_left _ _),

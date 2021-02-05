@@ -97,7 +97,8 @@ let ⟨hlg, Mg, hMgp, hMg⟩ := hg in
                ... ≤ (Mf + Mg) * ∥x∥     : by rw add_mul
 
 lemma sub (hf : is_bounded_linear_map 𝕜 f) (hg : is_bounded_linear_map 𝕜 g) :
-  is_bounded_linear_map 𝕜 (λ e, f e - g e) := add hf (neg hg)
+  is_bounded_linear_map 𝕜 (λ e, f e - g e) :=
+by simpa [sub_eq_add_neg] using add hf (neg hg)
 
 lemma comp {g : F → G}
   (hg : is_bounded_linear_map 𝕜 g) (hf : is_bounded_linear_map 𝕜 f) :
@@ -113,7 +114,7 @@ tendsto_iff_norm_tendsto_zero.2 $
       calc ∥f e - f x∥ = ∥hf.mk' f (e - x)∥ : by rw (hf.mk' _).map_sub e x; refl
                    ... ≤ M * ∥e - x∥        : hM (e - x))
     (suffices tendsto (λ (e : E), M * ∥e - x∥) (𝓝 x) (𝓝 (M * 0)), by simpa,
-      tendsto_const_nhds.mul (lim_norm _))
+      tendsto_const_nhds.mul (tendsto_norm_sub_self _))
 
 lemma continuous (hf : is_bounded_linear_map 𝕜 f) : continuous f :=
 continuous_iff_continuous_at.2 $ λ _, hf.tendsto _
@@ -271,15 +272,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_biline
                       le_of_lt C_pos]
   end }
 
-lemma is_bounded_bilinear_map_smul :
-  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × E), p.1 • p.2) :=
-{ add_left   := add_smul,
-  smul_left  := λc x y, by simp [smul_smul],
-  add_right  := smul_add,
-  smul_right := λc x y, by simp [smul_smul, mul_comm],
-  bound      := ⟨1, zero_lt_one, λx y, by simp [norm_smul]⟩ }
-
-lemma is_bounded_bilinear_map_smul_algebra {𝕜' : Type*} [normed_field 𝕜']
+lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
   [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
   [is_scalar_tower 𝕜 𝕜' E] :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=
@@ -438,3 +431,14 @@ begin
 end
 
 end bilinear_map
+
+/-- A linear isometry preserves the norm. -/
+lemma linear_map.norm_apply_of_isometry (f : E →ₗ[𝕜] F) {x : E} (hf : isometry f) : ∥f x∥ = ∥x∥ :=
+by { simp_rw [←dist_zero_right, ←f.map_zero], exact isometry.dist_eq hf _ _ }
+
+/-- Construct a continuous linear equiv from a linear map that is also an isometry with full range. -/
+def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
+  E ≃L[𝕜] F :=
+continuous_linear_equiv.of_homothety 𝕜
+(linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)
+1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])

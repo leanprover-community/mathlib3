@@ -279,15 +279,24 @@ def mod (m k : ℕ+) : ℕ+ := (mod_div m k).1
 -/
 def div (m k : ℕ+) : ℕ  := (mod_div m k).2
 
-theorem mod_add_div (m k : ℕ+) : (m : ℕ) = (mod m k) + k * (div m k) :=
+theorem mod_add_div (m k : ℕ+) : ((mod m k) + k * (div m k) : ℕ) = m :=
 begin
   let h₀ := nat.mod_add_div (m : ℕ) (k : ℕ),
   have : ¬ ((m : ℕ) % (k : ℕ) = 0 ∧ (m : ℕ) / (k : ℕ) = 0),
   by { rintro ⟨hr, hq⟩, rw [hr, hq, mul_zero, zero_add] at h₀,
        exact (m.ne_zero h₀.symm).elim },
   have := mod_div_aux_spec k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ)) this,
-  exact (this.trans h₀).symm,
+  exact (this.trans h₀),
 end
+
+theorem div_add_mod (m k : ℕ+) : (k * (div m k) + mod m k : ℕ) = m :=
+(add_comm _ _).trans (mod_add_div _ _)
+
+lemma mod_add_div' (m k : ℕ+) : ((mod m k) + (div m k) * k : ℕ) = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : ℕ+) : ((div m k) * k + mod m k : ℕ) = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 theorem mod_coe (m k : ℕ+) :
  ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
@@ -351,7 +360,7 @@ theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact m k) = m :=
 begin
  apply eq, rw [mul_coe],
  change (k : ℕ) * (div m k).succ = m,
- rw [mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
+ rw [← div_add_mod m k, dvd_iff'.mp h, nat.mul_succ]
 end
 
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
@@ -362,10 +371,22 @@ theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
 
 lemma pos_of_div_pos {n : ℕ+} {a : ℕ} (h : a ∣ n) : 0 < a :=
 begin
-  apply zero_lt_iff_ne_zero.2,
+  apply pos_iff_ne_zero.2,
   intro hzero,
   rw hzero at h,
   exact pnat.ne_zero n (eq_zero_of_zero_dvd h)
 end
 
 end pnat
+
+section can_lift
+
+instance nat.can_lift_pnat : can_lift ℕ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' n, pnat.to_pnat'_coe hn⟩⟩
+
+instance int.can_lift_pnat : can_lift ℤ ℕ+ :=
+⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' (int.nat_abs n),
+  by rw [coe_coe, nat.to_pnat'_coe, if_pos (int.nat_abs_pos_of_ne_zero (ne_of_gt hn)),
+    int.nat_abs_of_nonneg hn.le]⟩⟩
+
+end can_lift

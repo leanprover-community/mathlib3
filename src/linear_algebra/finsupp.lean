@@ -131,8 +131,8 @@ lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
 begin
   refine disjoint.mono
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right s)
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right t)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
     (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
   classical,
   by_cases his : i ∈ s,
@@ -380,7 +380,7 @@ variables (α) {α' : Type*} (M) {M' : Type*} (R)
 
 /-- Interprets (l : α →₀ R) as linear combination of the elements in the family (v : α → M) and
     evaluates this linear combination. -/
-protected def total : (α →₀ R) →ₗ M := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
+protected def total : (α →₀ R) →ₗ[R] M := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
 
 variables {α M v}
 

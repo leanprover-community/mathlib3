@@ -2,21 +2,24 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
-
-## Lagrange's four square theorem
-
-The main result in this file is `sum_four_squares`,
-a proof that every natural number is the sum of four square numbers.
-
-# Implementation Notes
-
-The proof used is close to Lagrange's original proof.
 -/
+
 import algebra.group_power.identities
 import data.zmod.basic
 import field_theory.finite.basic
 import data.int.parity
 import data.fintype.card
+
+/-!
+# Lagrange's four square theorem
+
+The main result in this file is `sum_four_squares`,
+a proof that every natural number is the sum of four square numbers.
+
+## Implementation Notes
+
+The proof used is close to Lagrange's original proof.
+-/
 
 open finset polynomial finite_field equiv
 open_locale big_operators
@@ -28,7 +31,6 @@ lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m =  x^2
 have even (x^2 + y^2), by simp [h.symm, even_mul],
 have hxaddy : even (x + y), by simpa [pow_two] with parity_simps,
 have hxsuby : even (x - y), by simpa [pow_two] with parity_simps,
-have (x^2 + y^2) % 2 = 0, by simp [h.symm],
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :

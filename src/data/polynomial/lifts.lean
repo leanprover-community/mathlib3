@@ -8,7 +8,6 @@ import data.polynomial.algebra_map
 import algebra.algebra.subalgebra
 import algebra.polynomial.big_operators
 import data.polynomial.erase_lead
-import data.polynomial.degree.basic
 
 /-!
 # Polynomials that lift
@@ -177,7 +176,7 @@ begin
   rw [←hdeg, erase_lead] at deg_erase,
   replace deg_erase := lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 deg_erase),
   rw [← deg_lead, ← herase.2] at deg_erase,
-  rw [degree_add_eq_of_degree_lt deg_erase, deg_lead, degree_eq_nat_degree pzero]
+  rw [degree_add_eq_right_of_degree_lt deg_erase, deg_lead, degree_eq_nat_degree pzero]
 end
 
 end lift_deg
@@ -213,7 +212,7 @@ begin
   { simp only [hq, map_add, map_pow, map_X],
     nth_rewrite 3 [← erase_lead_add_C_mul_X_pow p],
     rw [erase_lead, monic.leading_coeff hmonic, C_1, one_mul] },
-  { rw [degree_add_eq_of_degree_lt deg_er, @degree_X_pow R _ Rtrivial p.nat_degree,
+  { rw [degree_add_eq_right_of_degree_lt deg_er, @degree_X_pow R _ Rtrivial p.nat_degree,
     degree_eq_nat_degree (monic.ne_zero hmonic)] },
   { rw [monic.def, leading_coeff_add_of_degree_lt deg_er],
     exact monic_pow monic_X p.nat_degree }

@@ -83,6 +83,9 @@ instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
 @is_total.swap α _ _
 
+lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y
+| _ _ h rfl := irrefl _ h
+
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
   ¬r b a → r b c → r a c :=
 begin

@@ -8,6 +8,8 @@ import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
 import tactic.linarith
+import algebra.big_operators.nat_antidiagonal
+
 
 /-!
 # Formal power series
@@ -968,6 +970,45 @@ lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
 lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :
   is_unit (constant_coeff R φ) :=
 mv_power_series.is_unit_constant_coeff φ h
+
+open finset nat
+
+variables {A : Type*} [comm_ring A]
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
+noncomputable def eval_mul_hom (a : A) : power_series A →+* power_series A :=
+{ to_fun :=   λ f, power_series.mk $ λ n, a^n * (power_series.coeff A n f),
+  map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
+  map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
+                split_ifs, { rw [h, pow_zero], }, refl, },
+  map_add' := by {intros, ext, norm_num, rw mul_add, },
+  map_mul' := by {intros, ext, rw [power_series.coeff_mul, power_series.coeff_mk,
+              power_series.coeff_mul, finset.mul_sum], apply sum_congr rfl, norm_num,
+              intros b c H, rw [<-H, pow_add], ring, }, }
+
+lemma eval_mul_hom_zero [algebra ℚ A] (f : power_series A) :
+  eval_mul_hom 0 f = C A (constant_coeff A f) :=
+begin
+  rw [eval_mul_hom, ring_hom.coe_mk], ext, rw [power_series.coeff_mk _ _, coeff_C],
+  split_ifs, { rw h, simp only [one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
+  { rw [zero_pow' n h, zero_mul], },
+end
+
+lemma eval_mul_hom_one [algebra ℚ A] (f : power_series A) :
+  eval_mul_hom 1 f = f :=
+by { rw eval_mul_hom, ext, simp only [one_pow, coeff_mk, one_mul, ring_hom.coe_mk], }
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
+noncomputable def eval_neg_hom : power_series A →+* power_series A :=
+eval_mul_hom (-1 : A)
+
+@[simp] lemma eval_neg_hom_X : @eval_neg_hom A _ X = -X :=
+begin
+  rw eval_neg_hom, ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
+  { rw [h, eval_mul_hom], simp only [coeff_mk, mul_one, ring_hom.coe_mk, coeff_one_X, pow_one], },
+  { rw eval_mul_hom, simp, suffices f : (coeff A n) X = 0, {rw f, rw mul_zero,},
+    rw coeff_X, split_ifs, refl, },
+end
 
 section map
 variables {S : Type*} {T : Type*} [semiring S] [semiring T]

@@ -283,10 +283,10 @@ begin
   rw ← int.coe_nat_dvd_left at hp1 hp2,
   have h2m : (p : ℤ) ∣ 2 * m ^ 2, { convert dvd_add hp2 hp1, ring },
   have h2n : (p : ℤ) ∣ 2 * n ^ 2, { convert dvd_sub hp2 hp1, ring },
-  have hmc : p = 2 ∨ p ∣ int.nat_abs m,
-    { exact prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2m },
-  have hnc : p = 2 ∨ p ∣ int.nat_abs n,
-    { exact prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2n },
+  have hmc : p = 2 ∨ p ∣ int.nat_abs m :=
+    prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2m,
+  have hnc : p = 2 ∨ p ∣ int.nat_abs n :=
+    prime_two_or_dvd_of_dvd_two_mul_pow_self_two hp h2n,
   by_cases h2 : p = 2,
   { have h3 : (m ^ 2 + n ^ 2) % 2 = 1, { norm_num [pow_two, int.add_mod, int.mul_mod, hm, hn] },
     have h4 : (m ^ 2 + n ^ 2) % 2 = 0, { apply int.mod_eq_zero_of_dvd, rwa h2 at hp2 },
@@ -317,8 +317,8 @@ begin
   cases int.prime.dvd_mul hp hp2 with hp2m hpn,
   { rw int.nat_abs_mul at hp2m,
     cases (nat.prime.dvd_mul hp).mp hp2m with hp2 hpm,
-    { have hp2' : p = 2,
-        { exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
+    { have hp2' : p = 2 :=
+        le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp),
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
       norm_num [pow_two, int.sub_mod, int.mul_mod, hm, hn],
@@ -422,8 +422,9 @@ begin
   { field_simp [hz, pow_two], norm_cast, exact h },
   have hvz : v ≠ 0, { field_simp [hz], exact h0 },
   have hw1 : w ≠ -1,
-  { contrapose! hvz with hw1, rw [hw1, neg_square, one_pow, add_left_eq_self]
-    at hq, exact pow_eq_zero hq, },
+  { contrapose! hvz with hw1,
+    rw [hw1, neg_square, one_pow, add_left_eq_self] at hq,
+    exact pow_eq_zero hq, },
   have hQ : ∀ x : ℚ, 1 + x^2 ≠ 0,
   { intro q, apply ne_of_gt, exact lt_add_of_pos_of_le zero_lt_one (pow_two_nonneg q) },
   have hp : (⟨v, w⟩ : ℚ × ℚ) ∈ {p : ℚ × ℚ | p.1^2 + p.2^2 = 1 ∧ p.2 ≠ -1} := ⟨hq, hw1⟩,

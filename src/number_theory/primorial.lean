@@ -36,8 +36,8 @@ begin
     { linarith, },
     { exfalso,
       rw ←not_even_iff at n_even r,
-      have e : even (n + 1 - n),
-        exact (even_sub (le_of_lt (lt_add_one n))).2 (iff_of_false n_even r),
+      have e : even (n + 1 - n) :=
+        (even_sub (le_of_lt (lt_add_one n))).2 (iff_of_false n_even r),
       simp only [nat.add_sub_cancel_left, not_even_one] at e,
       exact e, }, },
   apply finset.prod_congr,

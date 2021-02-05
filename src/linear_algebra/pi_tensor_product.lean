@@ -54,12 +54,11 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 multilinear, tensor, tensor product
 -/
 
-noncomputable theory
 open function
 
 section semiring
 
-variables {ι : Type*} {R : Type*} [comm_semiring R] [decidable_eq ι]
+variables {ι : Type*} [decidable_eq ι] {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
@@ -371,7 +370,7 @@ namespace pi_tensor_product
 open pi_tensor_product
 open_locale tensor_product
 
-variables {ι : Type*} {R : Type*} [comm_ring R] [decidable_eq ι]
+variables {ι : Type*} [decidable_eq ι] {R : Type*} [comm_ring R]
 variables {s : ι → Type*} [∀ i, add_comm_group (s i)] [∀ i, module R (s i)]
 
 /- Unlike for the binary tensor product, we require `R` to be a `comm_ring` here, otherwise

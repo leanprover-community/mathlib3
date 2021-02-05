@@ -313,7 +313,8 @@ tendsto f (𝓝[s] x) (𝓝 (f x))
 /-- If a function is continuous within `s` at `x`, then it tends to `f x` within `s` by definition.
 We register this fact for use with the dot notation, especially to use `tendsto.comp` as
 `continuous_within_at.comp` will have a different meaning. -/
-lemma continuous_within_at.tendsto {f : α → β} {s : set α} {x : α} (h : continuous_within_at f s x) :
+lemma continuous_within_at.tendsto {f : α → β} {s : set α} {x : α}
+  (h : continuous_within_at f s x) :
   tendsto f (𝓝[s] x) (𝓝 (f x)) := h
 
 /-- A function between topological spaces is continuous on a subset `s`
@@ -328,7 +329,8 @@ theorem continuous_within_at_univ (f : α → β) (x : α) :
   continuous_within_at f set.univ x ↔ continuous_at f x :=
 by rw [continuous_at, continuous_within_at, nhds_within_univ]
 
-theorem continuous_within_at_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α} (h : x ∈ s) :
+theorem continuous_within_at_iff_continuous_at_restrict (f : α → β) {x : α} {s : set α}
+  (h : x ∈ s) :
   continuous_within_at f s x ↔ continuous_at (s.restrict f) ⟨x, h⟩ :=
 tendsto_nhds_within_iff_subtype h f _
 
@@ -715,7 +717,7 @@ lemma continuous_within_at_of_not_mem_closure {f : α → β} {s : set α} {x : 
   x ∉ closure s → continuous_within_at f s x :=
 begin
   intros hx,
-  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, not_not] at hx,
+  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot_iff, not_not] at hx,
   rw [continuous_within_at, hx],
   exact tendsto_bot,
 end

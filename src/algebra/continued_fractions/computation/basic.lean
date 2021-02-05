@@ -72,6 +72,8 @@ We collect an integer part `b = ⌊v⌋` and fractional part `fr = v - ⌊v⌋` 
 -/
 structure int_fract_pair := (b : ℤ) (fr : K)
 
+variable {K}
+
 /-! Interlude: define some expected coercions and instances. -/
 namespace int_fract_pair
 
@@ -81,17 +83,20 @@ instance [has_repr K] : has_repr (int_fract_pair K) :=
 
 instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, (default _)⟩⟩
 
-variable {K}
+/--
+Maps a function `f` on the fractional components of a given pair.
+-/
+def mapFr {β : Type*} (f : K → β) (gp : int_fract_pair K) : int_fract_pair β :=
+⟨gp.b, f gp.fr⟩
 
 section coe
 /-! Interlude: define some expected coercions. -/
-/- Fix another type `β` and assume `K` can be converted to `β`. -/
+/- Fix another type `β` which we will convert to. -/
 variables {β : Type*} [has_coe K β]
 
 /-- Coerce a pair by coercing the fractional component. -/
 instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
-⟨λ ⟨b, fr⟩, ⟨b, (fr : β)⟩⟩
-
+⟨mapFr coe⟩
 
 @[simp, norm_cast]
 lemma coe_to_int_fract_pair {b : ℤ} {fr : K} :
@@ -153,8 +158,6 @@ protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
 
 end int_fract_pair
 
-variable {K}
-
 /--
 Returns the `generalized_continued_fraction` of a value. In fact, the returned gcf is also
 a `continued_fraction` that terminates if and only if `v` is rational (those proofs will be
@@ -162,7 +165,7 @@ added in a future commit).
 
 The continued fraction representation of `v` is given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
 `[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`. This
-process stops when the fractional part `v- ⌊v⌋` hits 0 at some step.
+process stops when the fractional part `v - ⌊v⌋` hits 0 at some step.
 
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued
 fraction. Refer to said function for more details about the computation process.

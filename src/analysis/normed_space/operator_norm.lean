@@ -764,10 +764,10 @@ end continuous_linear_map
 
 namespace submodule
 
-lemma norm_subtypeL_le (K : submodule 𝕜 E) : ∥K.subtype_continuous∥ ≤ 1 :=
+lemma norm_subtypeL_le (K : submodule 𝕜 E) : ∥K.subtypeL∥ ≤ 1 :=
 K.subtypeₗᵢ.norm_to_continuous_linear_map_le
 
-lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtype_continuous∥ = 1 :=
+lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtypeL∥ = 1 :=
 K.subtypeₗᵢ.norm_to_continuous_linear_map
 
 end submodule

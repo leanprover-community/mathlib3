@@ -5,7 +5,7 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.intermediate_field
-import field_theory.minimal_polynomial
+import field_theory.minpoly
 import field_theory.splitting_field
 import field_theory.fixed
 import field_theory.minpoly

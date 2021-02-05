@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio, Ashvni Narayanan
 -/
 import algebra.group_with_zero.basic
-import field_theory.minimal_polynomial
+import field_theory.minpoly
 import linear_algebra.finite_dimensional
 import logic.function.basic
 import order.zorn

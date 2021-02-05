@@ -317,9 +317,9 @@ lemma linear_map.injective_iff {V V' : Type*} [add_comm_group V] [add_comm_monoi
 f.to_add_monoid_hom.injective_iff
 
 lemma char_poly_lmul_power_basis [algebra K S] (h : power_basis K S) :
-  char_poly (matrix.lmul h.is_basis h.gen) = minimal_polynomial h.is_integral_gen :=
+  char_poly (matrix.lmul h.is_basis h.gen) = minpoly h.is_integral_gen :=
 begin
-  apply minimal_polynomial.unique,
+  apply minpoly.unique,
   { apply char_poly_monic },
   { have := matrix.lmul_injective h.is_basis,
     apply (matrix.lmul _).injective_iff.mp this,
@@ -444,8 +444,8 @@ begin
       ring_hom.map_one, neg_mul_eq_neg_mul_symm, one_mul, neg_neg],
    { exact pb.nat_degree_minpoly_gen_pos },
    { apply fin.nonempty,
-      rw [← pb.nat_degree_minimal_polynomial, polynomial.nat_degree_pos_iff_degree_pos],
-     exact minimal_polynomial.degree_pos _ }
+      rw [← pb.nat_degree_minpoly, polynomial.nat_degree_pos_iff_degree_pos],
+     exact minpoly.degree_pos _ }
 end
 
 section
@@ -453,9 +453,9 @@ section
 open intermediate_field
 
 lemma trace_gen_eq_sum_roots {F : Type*} [field F] [algebra K F]
-  {x : L} (hx : is_integral K x) (h : polynomial.splits (algebra_map K F) (minimal_polynomial hx)) :
+  {x : L} (hx : is_integral K x) (h : polynomial.splits (algebra_map K F) (minpoly hx)) :
   algebra_map _ F (algebra.trace K K⟮x⟯ (gen K x)) =
-    ((minimal_polynomial hx).map (algebra_map K F)).roots.sum :=
+    ((minpoly hx).map (algebra_map K F)).roots.sum :=
 begin
   rw ← adjoin.power_basis.minpoly_gen_eq hx at ⊢ h,
   exact power_basis.trace_gen_eq_sum_roots _ h
@@ -470,18 +470,18 @@ section conjugates
 
 open polynomial
 
-/-- `alg_hom_of_root (hx : is_integral K x) (hy : aeval y (minimal_polynomial hx) = 0)`
+/-- `alg_hom_of_root (hx : is_integral K x) (hy : aeval y (minpoly hx) = 0)`
 is the algebra homomorphism sending `K` to the image of `K` in `F` and `x` to `y`. -/
 noncomputable def alg_hom_of_root {F : Type*} [field F] [algebra K F]
-  {x : L} (hx : is_integral K x) {y : F} (hy : aeval y (minimal_polynomial hx) = 0) :
+  {x : L} (hx : is_integral K x) {y : F} (hy : aeval y (minpoly hx) = 0) :
   ↥K⟮x⟯ →ₐ[K] F :=
 (alg_hom_adjoin_integral_equiv _ hx).symm
-⟨y, by simpa [mem_roots_map (minimal_polynomial.ne_zero hx)] using hy⟩
+⟨y, by simpa [mem_roots_map (minpoly.ne_zero hx)] using hy⟩
 
 noncomputable instance algebra_adjoin_splitting_field {x : L} (hx : is_integral K x) :
-  algebra ↥K⟮x⟯ (splitting_field (minimal_polynomial hx)) :=
+  algebra ↥K⟮x⟯ (splitting_field (minpoly hx)) :=
 (alg_hom_of_root hx (map_root_of_splits _ (splitting_field.splits _)
-  (minimal_polynomial.degree_ne_zero hx))).to_ring_hom.to_algebra
+  (minpoly.degree_ne_zero hx))).to_ring_hom.to_algebra
 
 variables {F : Type*} [field F] [algebra K F] (pb : power_basis K L)
   (hF : pb.minpoly_gen.splits (algebra_map K F))
@@ -595,9 +595,9 @@ instance algebra_tower_alg_hom (f : S →ₐ[R] T) :
 { smul_assoc := λ x y z, show f (x • y) • z = x • (f y • z), by rw [f.map_smul, smul_assoc] }
 
 lemma trace_eq_sum_roots [finite_dimensional K L]
-  {x : L} (hx : is_integral K x) (hF : (minimal_polynomial hx).splits (algebra_map K F)) :
+  {x : L} (hx : is_integral K x) (hF : (minpoly hx).splits (algebra_map K F)) :
   algebra_map K F (algebra.trace K L x) =
-    findim ↥K⟮x⟯ L • ((minimal_polynomial hx).map (algebra_map K _)).roots.sum :=
+    findim ↥K⟮x⟯ L • ((minpoly hx).map (algebra_map K _)).roots.sum :=
 begin
   haveI : finite_dimensional K⟮x⟯ L := finite_dimensional.right K _ L,
   rw trace_comp K⟮x⟯ x,
@@ -639,7 +639,7 @@ finset.sum_bij'
 
 @[simp] lemma adjoin_root_equiv_adjoin_symm_gen {x : L} (h : is_integral K x) :
   (adjoin_root_equiv_adjoin K h).symm (adjoin_simple.gen K x) =
-    adjoin_root.root (minimal_polynomial h) :=
+    adjoin_root.root (minpoly h) :=
 (adjoin_root_equiv_adjoin K h).injective (by simp [adjoin_root_equiv_adjoin_apply_root])
 
 @[simp] lemma adjoin_root_equiv_symm_apply_root {f : polynomial K} (hf : f ≠ 0)
@@ -650,18 +650,18 @@ by { simp only [adjoin_root.equiv, equiv.coe_fn_symm_mk],
 
 lemma alg_hom_adjoin_integral_equiv_apply
   {x : L} (hx : is_integral K x)
-  (y : {y // y ∈ ((minimal_polynomial hx).map (algebra_map K F)).roots}) :
+  (y : {y // y ∈ ((minpoly hx).map (algebra_map K F)).roots}) :
   (alg_hom_adjoin_integral_equiv K hx).symm y (gen K x) = y :=
 by simp only [alg_hom_adjoin_integral_equiv, equiv.symm_trans_apply,
   adjoin_root_equiv_adjoin_symm_gen, alg_equiv.coe_alg_hom, equiv.coe_fn_symm_mk,
   alg_equiv.to_alg_hom_eq_coe, adjoin_root_equiv_symm_apply_root, alg_hom.comp_apply]
 
 lemma sum_embeddings_gen {M : Type*} [add_comm_monoid M]
-  {x : L} (hx : is_integral K x) (hfx : (minimal_polynomial hx).separable)
+  {x : L} (hx : is_integral K x) (hfx : (minpoly hx).separable)
   (f : F → M) :
   @finset.sum _ _ _ (@finset.univ _ (fintype_of_alg_hom_adjoin_integral _ hx))
       (λ σ : ↥K⟮x⟯ →ₐ[K] F, f (σ (adjoin_simple.gen K x)))
-    = (((minimal_polynomial hx).map (algebra_map K F)).roots.map f).sum :=
+    = (((minpoly hx).map (algebra_map K F)).roots.map f).sum :=
 begin
   classical,
   rw [finset.sum_equiv (alg_hom_adjoin_integral_equiv K hx), multiset.sum_mem _ _ f],
@@ -673,8 +673,8 @@ end
 
 -- TODO: prove this directly assuming `is_power_basis`
 lemma trace_eq_sum_embeddings_gen [finite_dimensional K L]
-  {x : L} (hx : is_integral K x) (hfx : (minimal_polynomial hx).separable)
-  (hF : (minimal_polynomial hx).splits (algebra_map K F)) :
+  {x : L} (hx : is_integral K x) (hfx : (minpoly hx).separable)
+  (hF : (minpoly hx).splits (algebra_map K F)) :
   algebra_map K F (algebra.trace K L x) =
     findim ↥K⟮x⟯ L • @finset.sum _ _ _ (@finset.univ _ (fintype_of_alg_hom_adjoin_integral _ hx))
       (λ σ : ↥K⟮x⟯ →ₐ[K] F, σ (adjoin_simple.gen K x)) :=
@@ -762,7 +762,7 @@ lemma adjoin_root.nontrivial {R : Type*} [integral_domain R]
   end ⟩⟩
 
 /-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
-of `minimal_polynomial α` in `K`. -/
+of `minpoly α` in `K`. -/
 noncomputable def power_basis.alg_hom_adjoin_equiv (pb : power_basis K L) :
   (L →ₐ[K] F) ≃ {x // x ∈ (pb.minpoly_gen.map (algebra_map K F)).roots} :=
 begin
@@ -779,7 +779,7 @@ begin
     let swap2 := adjoin_root.equiv K F pb.minpoly_gen pb.minpoly_gen_ne_zero,
     exact swap1.trans swap2 },
   rw [adjoin_root.minpoly_gen_eq _ pb.minpoly_gen_monic],
-  { rw pb.minpoly_gen_eq, exact minimal_polynomial.irreducible _ }
+  { rw pb.minpoly_gen_eq, exact minpoly.irreducible _ }
 end
 
 -- generalizes card_alg_hom_adjoin_integral
@@ -911,7 +911,7 @@ begin
             finset.mem_univ _,
             _⟩,
     simp },
-  { rw [pb_x.minpoly_gen_eq], apply is_separable.minimal_polynomial_separable },
+  { rw [pb_x.minpoly_gen_eq], apply is_separable.minpoly_separable },
   { apply polynomial.splits_of_is_alg_closed },
 end
 
@@ -962,7 +962,7 @@ begin
     convert finset.sum_congr rfl (λ x _, _),
     rw [alg_hom_congr_left_symm_apply, power_basis.equiv_adjoin_simple_symm_gen] },
   { rw pb.minpoly_gen_eq },
-  { apply is_separable.minimal_polynomial_separable }
+  { apply is_separable.minpoly_separable }
 end
 
 lemma power_basis.trace_gen_eq_sum_embeddings [is_separable K L]
@@ -983,7 +983,7 @@ lemma trace_eq_sum_embeddings
   [is_alg_closed F] [finite_dimensional K L] [is_separable K L]
   {x : L} (hx : is_integral K x) :
   algebra_map K F (algebra.trace K L x) = ∑ σ : L →ₐ[K] F, σ x :=
-by { rw trace_eq_sum_embeddings_gen hx (is_separable.minimal_polynomial_separable K x)
+by { rw trace_eq_sum_embeddings_gen hx (is_separable.minpoly_separable K x)
           (polynomial.splits_of_is_alg_closed F _),
      exact (sum_embeddings_eq_findim_mul hx).symm }
 end
@@ -1066,7 +1066,7 @@ begin
     intros i _ j hj,
     refine mt (λ hij, pb.conjugates_injective hF _ hij) (ne_of_lt (finset.mem_filter.mp hj).2).symm,
     rw pb.minpoly_gen_eq,
-    exact is_separable.minimal_polynomial_separable K pb.gen }
+    exact is_separable.minpoly_separable K pb.gen }
 end
 
 lemma det_transpose_mul_mul_self {n m : Type*} [fintype m] [fintype n]
@@ -1247,12 +1247,12 @@ begin
   { apply is_integral.nat_smul,
     apply is_integral.multiset_sum,
     intros y hy,
-    rw mem_roots_map (minimal_polynomial.ne_zero hx') at hy,
-    use [minimal_polynomial hx, minimal_polynomial.monic hx],
+    rw mem_roots_map (minpoly.ne_zero hx') at hy,
+    use [minpoly hx, minpoly.monic hx],
     rw [← aeval_def, is_scalar_tower.aeval_apply R L, aeval_def],
-    apply eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (minimal_polynomial.dvd hx' _) hy,
+    apply eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (minpoly.dvd hx' _) hy,
     rw ← is_scalar_tower.aeval_apply R L,
-    apply minimal_polynomial.aeval },
+    apply minpoly.aeval },
   { apply splits_of_is_alg_closed },
   { apply_instance }
 end

@@ -274,7 +274,7 @@ instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, 
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
 theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
-by { intros f g H, cases f, cases g, congr' 1, exact H }
+by { intros f g H, cases f, cases g, congr' }
 
 theorem injective_coe_fn : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
 linear_map.coe_injective.comp coe_injective

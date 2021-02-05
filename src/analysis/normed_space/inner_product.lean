@@ -2591,7 +2591,7 @@ begin
       { intros hab'',
         apply hab',
         simpa using hab'' },
-      convert hv.2 this } },
+      exact hv.2 this } },
     { -- ** direction 2: empty orthogonal complement implies maximal
       simp only [subset.antisymm_iff],
       rintros h u (huv : v ⊆ u) hu,

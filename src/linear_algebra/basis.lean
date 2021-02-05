@@ -539,9 +539,7 @@ begin
                ⨆ j ∈ J, range (std_basis R (λ (j : η), Ms j) j) :=
       supr_le_supr (λ i, supr_le_supr (λ H, h₀ i)),
     have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
-    { convert set.disjoint_singleton_left.2 hiJ,
-      rw ←@set_of_mem_eq _ {j},
-      refl },
+    { convert set.disjoint_singleton_left.2 hiJ using 0 },
     exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
 end
 

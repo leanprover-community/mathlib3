@@ -1168,7 +1168,7 @@ end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
 
-lemma is_o.tendsto_of_tendsto_const {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
+lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=
 begin

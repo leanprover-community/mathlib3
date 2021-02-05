@@ -743,12 +743,12 @@ eq_C_of_degree_le_zero $ degree_le_of_nat_degree_le h
 lemma eq_C_of_nat_degree_eq_zero {p : polynomial R} (h : nat_degree p = 0) : p = C (coeff p 0) :=
 eq_C_of_nat_degree_le_zero h.le
 
-lemma ne_zero_of_degree_ge_coe {P : polynomial R} {n : ℕ} (hdeg : ↑n ≤ P.degree) : P ≠ 0 :=
+lemma ne_zero_of_coe_le_degree {P : polynomial R} {n : ℕ} (hdeg : ↑n ≤ P.degree) : P ≠ 0 :=
 by rw ← degree_nonneg_iff_ne_zero; exact trans (by exact_mod_cast n.zero_le) hdeg
 
-lemma nat_degree_ge_of_degree_ge_coe {P : polynomial R} {n : ℕ} (hdeg : ↑n ≤ P.degree) :
+lemma le_nat_degree_of_coe_le_degree {P : polynomial R} {n : ℕ} (hdeg : ↑n ≤ P.degree) :
   n ≤ P.nat_degree :=
-with_bot.coe_le_coe.mp ((degree_eq_nat_degree $ ne_zero_of_degree_ge_coe hdeg) ▸ hdeg)
+with_bot.coe_le_coe.mp ((degree_eq_nat_degree $ ne_zero_of_coe_le_degree hdeg) ▸ hdeg)
 
 end semiring
 

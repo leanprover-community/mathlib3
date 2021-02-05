@@ -1586,14 +1586,6 @@ begin
   exact tendsto_pow_neg_at_top (by exact_mod_cast this)
 end
 
-lemma tendsto_pow_div_pow_at_top_zero {p q : ℕ} (hpq : p < q) :
-  tendsto (λ x : α, x^p / x^q) at_top (𝓝 0) :=
-begin
-  rw tendsto_congr' pow_div_pow_eventually_eq_at_top,
-  apply tendsto_fpow_at_top_zero,
-  linarith
-end
-
 end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=

@@ -3,7 +3,8 @@ Copyright (c) 2020 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.asymptotic_equivalent
+import analysis.asymptotics.asymptotic_equivalent
+import analysis.asymptotics.specific_asymptotics
 import data.polynomial.erase_lead
 
 /-!
@@ -24,9 +25,9 @@ open_locale asymptotics topological_space
 
 namespace polynomial
 
-variables {α : Type*} [normed_linear_ordered_field α] [order_topology α]
+variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] [order_topology 𝕜] (P Q : polynomial 𝕜)
 
-lemma is_equivalent_at_top_lead (P : polynomial α) :
+lemma is_equivalent_at_top_lead :
   (λ x, eval x P) ~[at_top] (λ x, P.leading_coeff * x ^ P.nat_degree) :=
 begin
   by_cases h : P = 0,
@@ -39,19 +40,19 @@ begin
         is_o_pow_pow_at_top_of_lt (mem_range.mp hi)) _) }
 end
 
-lemma tendsto_at_top_of_leading_coeff_nonneg (P : polynomial α) (hdeg : 1 ≤ P.degree)
-  (hnng : 0 ≤ P.leading_coeff) : tendsto (λ x, eval x P) at_top at_top :=
+lemma tendsto_at_top_of_leading_coeff_nonneg (hdeg : 1 ≤ P.degree) (hnng : 0 ≤ P.leading_coeff) :
+  tendsto (λ x, eval x P) at_top at_top :=
 P.is_equivalent_at_top_lead.symm.tendsto_at_top
-  (tendsto_const_mul_pow_at_top (nat_degree_ge_of_degree_ge_coe hdeg)
-    (lt_of_le_of_ne hnng $ ne.symm $ mt leading_coeff_eq_zero.mp $ ne_zero_of_degree_ge_coe hdeg))
+  (tendsto_const_mul_pow_at_top (le_nat_degree_of_coe_le_degree hdeg)
+    (lt_of_le_of_ne hnng $ ne.symm $ mt leading_coeff_eq_zero.mp $ ne_zero_of_coe_le_degree hdeg))
 
-lemma tendsto_at_bot_of_leading_coeff_nonpos (P : polynomial α) (hdeg : 1 ≤ P.degree)
-  (hnps : P.leading_coeff ≤ 0) : tendsto (λ x, eval x P) at_top at_bot :=
+lemma tendsto_at_bot_of_leading_coeff_nonpos (hdeg : 1 ≤ P.degree) (hnps : P.leading_coeff ≤ 0) :
+  tendsto (λ x, eval x P) at_top at_bot :=
 P.is_equivalent_at_top_lead.symm.tendsto_at_bot
-  (tendsto_neg_const_mul_pow_at_top (nat_degree_ge_of_degree_ge_coe hdeg)
-    (lt_of_le_of_ne hnps $ mt leading_coeff_eq_zero.mp $ ne_zero_of_degree_ge_coe hdeg))
+  (tendsto_neg_const_mul_pow_at_top (le_nat_degree_of_coe_le_degree hdeg)
+    (lt_of_le_of_ne hnps $ mt leading_coeff_eq_zero.mp $ ne_zero_of_coe_le_degree hdeg))
 
-lemma abs_tendsto_at_top (P : polynomial α) (hdeg : 1 ≤ P.degree) :
+lemma abs_tendsto_at_top (hdeg : 1 ≤ P.degree) :
   tendsto (λ x, abs $ eval x P) at_top at_top :=
 begin
   by_cases hP : 0 ≤ P.leading_coeff,
@@ -60,9 +61,9 @@ begin
     exact tendsto_abs_at_bot_at_top.comp (P.tendsto_at_bot_of_leading_coeff_nonpos hdeg hP.le)}
 end
 
-lemma is_equivalent_at_top_div {P Q : polynomial α} :
-   (λ x, (eval x P)/(eval x Q)) ~[at_top]
-     λ x, P.leading_coeff/Q.leading_coeff * x^(P.nat_degree - Q.nat_degree : ℤ) :=
+lemma is_equivalent_at_top_div :
+  (λ x, (eval x P)/(eval x Q)) ~[at_top]
+    λ x, P.leading_coeff/Q.leading_coeff * x^(P.nat_degree - Q.nat_degree : ℤ) :=
 begin
   by_cases hP : P = 0,
   { simp [hP] },
@@ -74,57 +75,70 @@ begin
   simp [← div_mul_div, hP, hQ, fpow_sub hx.ne.symm]
 end
 
-lemma div_tendsto_zero_of_degree_lt (P Q : polynomial α) (hdeg : P.degree < Q.degree) :
+lemma div_tendsto_zero_of_degree_lt (hdeg : P.degree < Q.degree) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top (𝓝 0) :=
 begin
   by_cases hP : P = 0,
   { simp [hP, tendsto_const_nhds] },
   rw ←  nat_degree_lt_nat_degree_iff hP at hdeg,
-  refine is_equivalent_at_top_div.symm.tendsto_nhds _,
+  refine (is_equivalent_at_top_div P Q).symm.tendsto_nhds _,
   rw ← mul_zero,
   refine tendsto.const_mul _ _,
   apply tendsto_fpow_at_top_zero,
   linarith
 end
 
-lemma div_tendsto_leading_coeff_div_of_degree_eq (P Q : polynomial α)
-  (hdeg : P.degree = Q.degree) :
+lemma div_tendsto_leading_coeff_div_of_degree_eq (hdeg : P.degree = Q.degree) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top (𝓝 $ P.leading_coeff / Q.leading_coeff) :=
 begin
-  refine is_equivalent_at_top_div.symm.tendsto_nhds _,
+  refine (is_equivalent_at_top_div P Q).symm.tendsto_nhds _,
   rw show (P.nat_degree : ℤ) = Q.nat_degree, by simp [hdeg, nat_degree],
   simp [tendsto_const_nhds]
 end
 
-lemma div_tendsto_at_top_of_degree_gt (P Q : polynomial α) (hdeg : Q.degree < P.degree)
-  (hQ : Q ≠ 0) (hnng : 0 ≤ P.leading_coeff/Q.leading_coeff) :
+lemma div_tendsto_at_top_of_degree_gt' (hdeg : Q.degree < P.degree)
+  (hpos : 0 < P.leading_coeff/Q.leading_coeff) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top at_top :=
 begin
-  have ratio_pos : 0 < P.leading_coeff/Q.leading_coeff :=
-    lt_of_le_of_ne hnng (div_ne_zero (λ h, ne_zero_of_degree_gt hdeg $ leading_coeff_eq_zero.mp h)
-      (λ h, hQ $ leading_coeff_eq_zero.mp h)).symm,
+  have hQ : Q ≠ 0 := λ h, by {simp only [h, div_zero, leading_coeff_zero] at hpos, linarith},
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
-  refine is_equivalent_at_top_div.symm.tendsto_at_top _,
-  apply tendsto.const_mul_at_top ratio_pos,
+  refine (is_equivalent_at_top_div P Q).symm.tendsto_at_top _,
+  apply tendsto.const_mul_at_top hpos,
   apply tendsto_fpow_at_top_at_top,
   linarith
 end
 
-lemma div_tendsto_at_bot_of_degree_gt (P Q : polynomial α) (hdeg : Q.degree < P.degree)
-  (hQ : Q ≠ 0) (hnng : P.leading_coeff/Q.leading_coeff ≤ 0) :
+lemma div_tendsto_at_top_of_degree_gt (hdeg : Q.degree < P.degree)
+  (hQ : Q ≠ 0) (hnng : 0 ≤ P.leading_coeff/Q.leading_coeff) :
+  tendsto (λ x, (eval x P)/(eval x Q)) at_top at_top :=
+have ratio_pos : 0 < P.leading_coeff/Q.leading_coeff,
+  from lt_of_le_of_ne hnng
+    (div_ne_zero (λ h, ne_zero_of_degree_gt hdeg $ leading_coeff_eq_zero.mp h)
+      (λ h, hQ $ leading_coeff_eq_zero.mp h)).symm,
+div_tendsto_at_top_of_degree_gt' P Q hdeg ratio_pos
+
+lemma div_tendsto_at_bot_of_degree_gt' (hdeg : Q.degree < P.degree)
+  (hneg : P.leading_coeff/Q.leading_coeff < 0) :
   tendsto (λ x, (eval x P)/(eval x Q)) at_top at_bot :=
 begin
-  have ratio_neg : P.leading_coeff/Q.leading_coeff < 0 :=
-    lt_of_le_of_ne hnng (div_ne_zero (λ h, ne_zero_of_degree_gt hdeg $ leading_coeff_eq_zero.mp h)
-      (λ h, hQ $ leading_coeff_eq_zero.mp h)),
+  have hQ : Q ≠ 0 := λ h, by {simp only [h, div_zero, leading_coeff_zero] at hneg, linarith},
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
-  refine is_equivalent_at_top_div.symm.tendsto_at_bot _,
-  apply tendsto.neg_const_mul_at_top ratio_neg,
+  refine (is_equivalent_at_top_div P Q).symm.tendsto_at_bot _,
+  apply tendsto.neg_const_mul_at_top hneg,
   apply tendsto_fpow_at_top_at_top,
   linarith
 end
 
-lemma eval_div_tendsto_at_top_of_degree_gt (P Q : polynomial α) (hdeg : Q.degree < P.degree)
+lemma div_tendsto_at_bot_of_degree_gt (hdeg : Q.degree < P.degree)
+  (hQ : Q ≠ 0) (hnps : P.leading_coeff/Q.leading_coeff ≤ 0) :
+  tendsto (λ x, (eval x P)/(eval x Q)) at_top at_bot :=
+have ratio_neg : P.leading_coeff/Q.leading_coeff < 0,
+  from lt_of_le_of_ne hnps
+    (div_ne_zero (λ h, ne_zero_of_degree_gt hdeg $ leading_coeff_eq_zero.mp h)
+      (λ h, hQ $ leading_coeff_eq_zero.mp h)),
+div_tendsto_at_bot_of_degree_gt' P Q hdeg ratio_neg
+
+lemma eval_div_tendsto_at_top_of_degree_gt (hdeg : Q.degree < P.degree)
   (hQ : Q ≠ 0) :
   tendsto (λ x, abs ((eval x P)/(eval x Q))) at_top at_top :=
 begin

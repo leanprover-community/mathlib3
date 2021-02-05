@@ -87,7 +87,7 @@ end field
 open ring_hom
 open finset nat
 
-variables (A : Type*) [comm_ring A]
+variables {A : Type*} [comm_ring A]
 
 noncomputable def eval_mul_hom (a : A) : power_series A →+* power_series A :=
 { to_fun :=   λ f, mk $ λ n, a^n * (coeff A n f),

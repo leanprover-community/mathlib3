@@ -72,7 +72,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
 open filter list
-open_locale topological_space big_operators classical nnreal
+open_locale topological_space big_operators classical nnreal ennreal
 
 /-! ### Composing formal multilinear series -/
 
@@ -493,7 +493,7 @@ summability over all compositions. -/
 theorem le_comp_radius_of_summable
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (r : ℝ≥0)
   (hr : summable (λ i : (Σ n, composition n), nnnorm (q.comp_along_composition p i.2) * r ^ i.1)) :
-  (r : ennreal) ≤ (q.comp p).radius :=
+  (r : ℝ≥0∞) ≤ (q.comp p).radius :=
 begin
   refine le_radius_of_bound_nnreal _
     (∑' i : (Σ n, composition n), nnnorm (comp_along_composition q p i.snd) * r ^ i.fst) (λ n, _),
@@ -708,7 +708,7 @@ begin
   `f (x + y)` is close enough to `f x` to be in the disk where `g` is well behaved. Let
   `min (r, rf, δ)` be this new radius.-/
   have : continuous_at f x := Hf.analytic_at.continuous_at,
-  obtain ⟨δ, δpos, hδ⟩ : ∃ (δ : ennreal) (H : 0 < δ),
+  obtain ⟨δ, δpos, hδ⟩ : ∃ (δ : ℝ≥0∞) (H : 0 < δ),
     ∀ {z : E}, z ∈ emetric.ball x δ → f z ∈ emetric.ball (f x) rg,
   { have : emetric.ball (f x) rg ∈ 𝓝 (f x) := emetric.ball_mem_nhds _ Hg.r_pos,
     rcases emetric.mem_nhds_iff.1 (Hf.analytic_at.continuous_at this) with ⟨δ, δpos, Hδ⟩,

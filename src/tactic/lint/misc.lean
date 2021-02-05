@@ -15,6 +15,8 @@ This file defines several small linters:
   - `doc_blame` checks that every definition has a documentation string
   - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default)
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
+  - `class_structure` checks that every `class` is a structure, not an `inductive` or `def`
+    (i.e. `@[class] def` and `class inductive` are forbidden)
 -/
 
 open tactic expr
@@ -243,3 +245,22 @@ has been used. -/
   errors_found := "INCORRECT DEF/LEMMA" }
 
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+
+
+
+/-!
+## Linter for `@[class] def`
+-/
+
+/-- A linter for checking that all uses of the `@[class]` attribute apply to structures. -/
+@[linter] meta def linter.class_structure : linter :=
+{ test := λ d, (do
+    is_class ← has_attribute' `class d.to_name,
+    if is_class then do
+      env ← get_env,
+      pure $ if env.is_structure d.to_name then none else
+        "is a non-structure marked @[class]"
+    else pure none),
+  auto_decls := tt,
+  no_errors_found := "All classes are structures",
+  errors_found := "USE OF @[class] def IS DISALLOWED" }

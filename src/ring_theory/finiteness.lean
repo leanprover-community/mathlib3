@@ -33,13 +33,11 @@ variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-@[class]
-def module.finite : Prop := (⊤ : submodule R M).fg
+class module.finite : Prop := (out : (⊤ : submodule R M).fg)
 
 /-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
 over the base ring as algebra. -/
-@[class]
-def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
+class algebra.finite_type : Prop := (out : (⊤ : subalgebra R A).fg)
 
 /-- An algebra over a commutative ring is `finitely_presented` if it is the quotient of a
 polynomial ring in `n` variables by a finitely generated ideal. -/

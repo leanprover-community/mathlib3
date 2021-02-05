@@ -259,19 +259,10 @@ end resp
 /-- A set function is "definable" if it is the image of some n-ary pre-set
   function. This isn't exactly definability, but is useful as a sufficient
   condition for functions that have a computable image. -/
-@[class] inductive definable (n) : arity Set.{u} n → Type (u+1)
-| mk (f) : definable (resp.eval _ f)
-attribute [instance] definable.mk
+class definable (n) (s : arity Set.{u} n) : Type (u+1) :=
+eq_mk :: (resp : resp n) (eq : resp.eval _ = s)
 
-def definable.eq_mk {n} (f) : Π {s : arity Set.{u} n} (H : resp.eval _ f = s), definable n s
-| ._ rfl := ⟨f⟩
-
-def definable.resp {n} : Π (s : arity Set.{u} n) [definable n s], resp n
-| ._ ⟨f⟩ := f
-
-theorem definable.eq {n} :
-  Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval _ = s
-| ._ ⟨f⟩ := rfl
+instance definable.mk (n) (f : resp n) : definable n (f.eval n) := ⟨f, rfl⟩
 
 end pSet
 
@@ -501,11 +492,11 @@ resp.eval 1 ⟨image r.1, λx y e, mem.ext $ λz,
 
 theorem image.mk :
   Π (f : Set.{u} → Set.{u}) [H : definable 1 f] (x) {y} (h : y ∈ x), f y ∈ @image f H x
-| ._ ⟨F⟩ x y := quotient.induction_on₂ x y $ λ⟨α, A⟩ y ⟨a, ya⟩, ⟨a, F.2 _ _ ya⟩
+| ._ ⟨F, rfl⟩ x y := quotient.induction_on₂ x y $ λ⟨α, A⟩ y ⟨a, ya⟩, ⟨a, F.2 _ _ ya⟩
 
 @[simp] theorem mem_image :
   Π {f : Set.{u} → Set.{u}} [H : definable 1 f] {x y : Set.{u}}, y ∈ @image f H x ↔ ∃z ∈ x, f z = y
-| ._ ⟨F⟩ x y := quotient.induction_on₂ x y $ λ⟨α, A⟩ y,
+| ._ ⟨F, rfl⟩ x y := quotient.induction_on₂ x y $ λ⟨α, A⟩ y,
   ⟨λ⟨a, ya⟩, ⟨⟦A a⟧, mem.mk A a, eq.symm $ quotient.sound ya⟩,
   λ⟨z, hz, e⟩, e ▸ image.mk _ _ hz⟩
 

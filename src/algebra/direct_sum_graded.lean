@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.direct_sum
+import algebra.algebra.basic
 import group_theory.subgroup
 
 /-!
@@ -30,8 +31,10 @@ instances for:
 
 * `A : ι → submonoid S`: `direct_sum.ghas_one.of_submonoids`, `direct_sum.ghas_mul.of_submonoids`,
   `direct_sum.gmonoid.of_submonoids`, `direct_sum.gcomm_monoid.of_submonoids`
-* `A : ι → submonoid S`: `direct_sum.ghas_one.of_subgroups`, `direct_sum.ghas_mul.of_subgroups`,
+* `A : ι → subgroup S`: `direct_sum.ghas_one.of_subgroups`, `direct_sum.ghas_mul.of_subgroups`,
   `direct_sum.gmonoid.of_subgroups`, `direct_sum.gcomm_monoid.of_subgroups`
+* `A : ι → submodule S`: `direct_sum.ghas_one.of_submodules`, `direct_sum.ghas_mul.of_submodules`,
+  `direct_sum.gmonoid.of_submodules`, `direct_sum.gcomm_monoid.of_submodules`
 
 If the `A i` are disjoint, these provide a gradation of `⨆ i, A i`, and the mapping
 `⨁ i, A i →+ ⨆ i, A i` can be obtained as
@@ -162,6 +165,15 @@ def gmonoid.of_subgroups {R : Type*} [ring R] [add_monoid ι]
   gmonoid (λ i, carriers i) :=
 gmonoid.of_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
 
+/-- Build a `gcomm_monoid` instance for a collection of `submodules`s. -/
+def gmonoid.of_submodules {R A : Type*}
+  [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid ι]
+  (carriers : ι → submodule R A)
+  (one_mem : (1 : A) ∈ carriers 0)
+  (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : A) ∈ carriers (i + j)) :
+  gmonoid (λ i, carriers i) :=
+gmonoid.of_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
+
 /-- Build a `gcomm_monoid` instance for a collection of `add_submonoid`s. -/
 def gcomm_monoid.of_submonoids {R : Type*} [comm_semiring R] [add_comm_monoid ι]
   (carriers : ι → add_submonoid R)
@@ -184,6 +196,15 @@ def gcomm_monoid.of_subgroups {R : Type*} [comm_ring R] [add_comm_monoid ι]
   (carriers : ι → add_subgroup R)
   (one_mem : (1 : R) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
+  gcomm_monoid (λ i, carriers i) :=
+gcomm_monoid.of_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
+
+/-- Build a `gcomm_monoid` instance for a collection of `submodules`s. -/
+def gcomm_monoid.of_submodules {R A : Type*}
+  [comm_semiring R] [comm_semiring A] [algebra R A] [add_comm_monoid ι]
+  (carriers : ι → submodule R A)
+  (one_mem : (1 : A) ∈ carriers 0)
+  (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : A) ∈ carriers (i + j)) :
   gcomm_monoid (λ i, carriers i) :=
 gcomm_monoid.of_submonoids (λ i, (carriers i).to_add_submonoid) one_mem mul_mem
 

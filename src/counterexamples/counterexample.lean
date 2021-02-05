@@ -3,7 +3,13 @@ import data.real.basic
 import data.zmod.basic
 import ring_theory.subsemiring
 import tactic
+/-! Reference:
+https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
 
+-/
+
+
+/--  Bhavik Mehta's example. -/
 @[derive [comm_semiring]]
 def K : Type := subsemiring.closure ({1.5} : set ℚ)
 
@@ -20,7 +26,7 @@ instance : preorder K :=
     linarith
   end }
 
-
+/-- A slightly different example. -/
 @[derive [comm_semiring]]
 def L : Type := subsemiring.closure ({(1, 0), (1, 1)} : set (ℕ × zmod 2))
 

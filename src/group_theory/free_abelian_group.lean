@@ -2,14 +2,62 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Free abelian groups as abelianization of free groups.
-
--- TODO: rewrite in terms of finsupp
 -/
+
 import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
+-- the below import is just for ℤ[empty] ≃+ unit
+import algebra.punit_instances
+-- the below import is just for ℤ[punit] ≃+ ℤ
+import algebra.module.basic
+/-!
+# Free abelian groups
+
+The free abelian group on a type `α`, defined as the abelianisation of
+the free group on `α`. The free abelian group on `α` is the left adjoint of the
+forgetful functor from abelian groups to types. A model for it is the functions
+`α → ℤ` which send all but finitely many `(a : α)` to `0`, under pointwise addition.
+
+## Main definitions
+
+Here we use the following variables: `(α β : Type*) (A : Type*) [add_comm_group A]`
+
+* `free_abelian_group α` : the free abelian group on a type `α`. As an abelian
+group it is `α →₀ ℤ`, the functions from `α` to `ℤ` such that all but finitely
+many elements get mapped to zero, however this is not how it is implemented.
+
+* `lift (f : α → A) : free_abelian_group α →+ A` : the group homomorphism induced
+by the map `f`.
+
+* `hom_equiv : (free_abelian_group α →+ A) ≃ (α → A)` : the bijection witnessing adjointness.
+
+* `map (f : α → β) : free_abelian_group α →+ free_abelian_group β` : functoriality
+    of `free_abelian_group`
+
+* `instance [monoid α] : semigroup (free_abelian_group α)`
+
+* `[comm_monoid α] : comm_ring (free_abelian_group α)`
+
+It has been suggested that we would be better off refactoring this file
+and using `finsupp` instead.
+
+## Main results
+
+
+
+
+## Implementation issues
+
+The definition is `def free_abelian_group : Type u :=
+additive $ abelianization $ free_group α`
+
+Chris Hughes has suggested that this all be rewritten in terms of `finsupp`.
+Johan Commelin has written all the API relating the definition to `finsupp`
+in the lean-liquid repo.
+
+-/
+
 
 universes u v
 
@@ -191,6 +239,12 @@ lift.sub _ _ _
 def map (f : α → β) : free_abelian_group α →+ free_abelian_group β :=
 add_monoid_hom.mk' (λ x, f <$> x) $ map_add _
 
+lemma map_id : map id = add_monoid_hom.id (free_abelian_group α) :=
+eq.symm $ lift.ext _ _ $ λ x, lift.unique of (add_monoid_hom.id _) $ λ y, add_monoid_hom.id_apply _
+
+-- version of map_of which uses `map`
+lemma map_of' {f : α → β} (a : α) : map f (of a) = of (f a) := map_of f a
+
 lemma lift_comp {α} {β} {γ} [add_comm_group γ]
   (f : α → β) (g : β → γ) (x : free_abelian_group α) :
   lift (g ∘ f) x = lift g (f <$> x) :=
@@ -201,6 +255,9 @@ begin
   { intros x w, simp only [w, neg_inj, lift.neg, map_neg], },
   { intros x y w₁ w₂, simp only [w₁, w₂, lift.add, add_right_inj, map_add], },
 end
+
+lemma map_comp {α β γ : Type*} {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
+eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
 
 @[simp] lemma pure_bind (f : α → free_abelian_group β) (x) : pure x >>= f = f x :=
 lift.of _ _
@@ -347,5 +404,63 @@ instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
     { intros x1 x2 ih1 ih2, rw [add_mul, mul_add, ih1, ih2] }
   end
   .. free_abelian_group.ring α }
+
+def pempty_equiv : free_abelian_group pempty ≃+ unit :=
+{ to_fun := lift (λ _, ()),
+  inv_fun := λ _, 0,
+  left_inv := λ z, free_abelian_group.induction_on z
+    ( rfl )
+    ( λ x, pempty.elim x)
+    ( λ x, pempty.elim x)
+    ( λ x y hx hy, by {simp only * at *, simp * at *}),
+  right_inv := λ z, unit.ext,
+  map_add' := λ x y, unit.ext
+}
+
+def punit_equiv : free_abelian_group punit ≃+ ℤ :=
+{ to_fun := free_abelian_group.lift (λ _, (1 : ℤ)),
+  inv_fun := λ n, n • of (punit.star),
+  left_inv := λ z, free_abelian_group.induction_on z
+    (by {dsimp only, rw [add_monoid_hom.map_zero, zero_smul]})
+    (λ x, punit.cases_on x (by simp))
+    (λ x, punit.cases_on x (by simp))
+    (λ x y hx hy, by { simp only [lift.add, add_smul] at *, rw [hx, hy]}),
+  right_inv := λ n, begin
+    rw [add_monoid_hom.map_int_module_smul, lift.of],
+    exact gsmul_int_one n
+  end,
+  map_add' := add_monoid_hom.map_add _ }
+
+-- this would be easier with `to_fun := map` but for some reason `map` is not universe
+-- polymorphic.
+def equiv_of_equiv {α β : Type*} (f : α ≃ β) : free_abelian_group α ≃+ free_abelian_group β :=
+{ to_fun := free_abelian_group.lift $ free_abelian_group.of ∘ f,
+  inv_fun := free_abelian_group.lift $ free_abelian_group.of ∘ f.symm,
+  left_inv := begin
+    intros x,
+    refine free_abelian_group.induction_on x
+    (by simp only [lift.zero])
+    (by simp only [equiv.symm_apply_apply, eq_self_iff_true, function.comp_app,
+          lift.of, forall_true_iff])
+    (by simp only [equiv.symm_apply_apply, eq_self_iff_true, function.comp_app,
+          lift.neg, lift.of, forall_true_iff]) _,
+    intros x y h,
+    simp only [h, imp_self, add_right_inj, lift.add],
+  end,
+  right_inv := begin
+    intros x,
+    refine free_abelian_group.induction_on x
+    (by simp only [lift.zero])
+    (by simp only [eq_self_iff_true, function.comp_app, equiv.apply_symm_apply,
+          lift.of, forall_true_iff])
+    (by simp only [eq_self_iff_true, function.comp_app, equiv.apply_symm_apply,
+          lift.neg, lift.of, forall_true_iff]) _,
+    intros x y h,
+    simp only [h, imp_self, add_right_inj, lift.add],
+  end,
+  map_add' := begin
+     intros x y,
+     simp only [lift.add],
+  end }
 
 end free_abelian_group

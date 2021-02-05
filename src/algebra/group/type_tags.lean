@@ -104,6 +104,22 @@ lemma forall_additive_iff (p : additive α → Prop) :
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 
+@[simp] lemma to_add_cond {b : bool} {x y : multiplicative α} :
+  (cond b x y).to_add = cond b x.to_add y.to_add :=
+by cases b; simp
+
+@[simp] lemma to_mul_cond {b : bool} {x y : additive α} :
+  (cond b x y).to_mul = cond b x.to_mul y.to_mul :=
+by cases b; simp
+
+@[simp] lemma of_add_cond {b : bool} {x y : α} :
+  multiplicative.of_add (cond b x y) = cond b (multiplicative.of_add x) (multiplicative.of_add y) :=
+by cases b; simp
+
+@[simp] lemma of_mul_cond {b : bool} {x y : α} :
+  additive.of_mul (cond b x y) = cond b (additive.of_mul x) (additive.of_mul y) :=
+by cases b; simp
+
 instance additive.has_add [has_mul α] : has_add (additive α) :=
 { add := λ x y, additive.of_mul (x.to_mul * y.to_mul) }
 

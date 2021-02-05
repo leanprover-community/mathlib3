@@ -586,34 +586,35 @@ end
 section sum
 
 variables [add_group α] (x y : free_group α)
+open multiplicative additive
 
 /-- If `α` is a group, then any function from `α` to `α`
 extends uniquely to a homomorphism from the
 free group over `α` to `α`. This is the additive
 version of `prod`. -/
 def sum : α :=
-@prod (multiplicative _) _ x
+(free_group.map of_add x).prod.to_add
 
 variables {x y}
 
 @[simp] lemma sum_mk :
   sum (mk L) = list.sum (L.map $ λ x, cond x.2 x.1 (-x.1)) :=
-rfl
+by simp [sum, (∘), list.to_add_prod]
 
 @[simp] lemma sum.of {x : α} : sum (of x) = x :=
-prod.of
+by simp [sum]
 
-instance sum.is_group_hom : is_group_hom (@sum α _) :=
-prod.is_group_hom
+-- instance sum.is_group_hom : is_group_hom (@sum α _) :=
+-- prod.is_group_hom
 
 @[simp] lemma sum.mul : sum (x * y) = sum x + sum y :=
-prod.mul
+by simp [sum]
 
 @[simp] lemma sum.one : sum (1:free_group α) = 0 :=
-prod.one
+by simp [sum]
 
 @[simp] lemma sum.inv : sum x⁻¹ = -sum x :=
-prod.inv
+by simp [sum]
 
 end sum
 

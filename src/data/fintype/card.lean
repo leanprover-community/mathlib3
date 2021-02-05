@@ -20,15 +20,6 @@ universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-lemma list.to_add_prod [has_zero α] [has_add α] (x : list (multiplicative α)) :
-  multiplicative.to_add x.prod = (x.map multiplicative.to_add).sum :=
-begin
-  unfold list.prod list.sum,
-  rw ← to_add_one,
-  generalize : (1 : multiplicative α) = y,
-  induction x generalizing y; simp *
-end
-
 open_locale big_operators
 
 namespace fintype

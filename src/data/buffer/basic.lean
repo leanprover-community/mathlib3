@@ -45,15 +45,18 @@ by ext x : 1; simp [array.to_buffer,to_list,to_list_append_list];
 @[simp] lemma to_buffer_to_list (b : buffer α) : b.to_list.to_buffer = b :=
 begin
   cases b,
-  simp [to_list,to_array,list.to_buffer],
-  congr, simp, refl, apply array.to_list_to_array
+  rw [to_list, to_array, list.to_buffer, append_list_mk_buffer],
+  congr,
+  { simpa },
+  { apply array.to_list_to_array }
 end
 
 @[simp] lemma to_list_to_buffer (l : list α) : l.to_buffer.to_list = l :=
 begin
-  induction l with hd tl hl, refl,
-  simp [list.to_buffer,append_list],
-  rw ← hl, refl
+  cases l,
+  { refl },
+  { rw [list.to_buffer, to_list_append_list],
+    refl }
 end
 
 @[simp] lemma append_list_nil (b : buffer α) : b.append_list [] = b := rfl

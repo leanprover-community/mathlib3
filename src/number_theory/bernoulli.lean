@@ -7,6 +7,7 @@ import data.rat
 import data.fintype.card
 import algebra.big_operators.nat_antidiagonal
 import ring_theory.power_series.well_known
+import algebra.group_with_zero.basic
 
 /-!
 # Bernoulli numbers
@@ -205,36 +206,36 @@ begin
 end
 
 open ring_hom
---open nat
 
 theorem bernoulli_odd_eq_zero : ∀ n : ℕ, (n % 2 = 1 ∧ 1 < n) → bernoulli n = 0 :=
 begin
   have f := bernoulli_power_series,
   have g : eval_neg_hom ℚ (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom ℚ (X * exp ℚ)) * (exp ℚ),
-    { rw mul_eq_mul_right_iff, left,
-      congr, assumption, },
-    rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc ((eval_neg_hom ℚ) X) _ _,
-    mul_comm ((eval_neg_hom ℚ) (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one ℚ, eval_neg_hom_X ℚ, mul_one,
-     one_mul] at g,
+  { rw mul_eq_mul_right_iff, left, congr, assumption, },
+  rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc ((eval_neg_hom ℚ) X) _ _,
+  mul_comm ((eval_neg_hom ℚ) (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one ℚ, eval_neg_hom_X, mul_one,
+  one_mul] at g,
   suffices h : (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) - (eval_neg_hom ℚ) (mk (λ (n : ℕ),
     bernoulli n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
-    simp at h, cases h,
-    { rw eval_neg_hom at h, rw eval_mul_hom at h, simp at h, rw power_series.ext_iff at h, simp at h,
-     rintros n hn, cases hn with hn1 hn2, specialize h n, rw coeff_X n at h, split_ifs at h,
-     { rw h_1 at hn2, exfalso, simp at *, norm_num at *, },
-     rw ←mul_div_assoc at h, rw sub_eq_zero_iff_eq at h,
-     rw div_eq_iff at h,
-     { rw div_mul_cancel at h, {rw neg_one_pow_eq_pow_mod_two at h, rw hn1 at h,
-     simp at *, rw eq_zero_of_neg_eq h.symm, },
+  { simp only [mul_eq_mul_right_iff] at h, cases h,
+    { rw [eval_neg_hom, eval_mul_hom] at h, simp only [coeff_mk, coe_mk] at h,
+      rw power_series.ext_iff at h, simp only [coeff_mk, linear_map.map_sub] at h,
+      rintros n hn, cases hn with hn1 hn2, specialize h n, rw coeff_X n at h, split_ifs at h,
+      { rw h_1 at hn2, exfalso, norm_num at *, },
+      rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff] at h,
+      { rw div_mul_cancel at h,
+        { rw [neg_one_pow_eq_pow_mod_two, hn1] at h,
+          simp only [neg_mul_eq_neg_mul_symm, one_mul, pow_one] at *,
+          rw eq_zero_of_neg_eq h.symm, },
      { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, }, },
-     { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },
-    },
-  { rintros n ⟨hn1, hn2⟩, exfalso, rw sub_eq_zero_iff_eq at h, rw power_series.ext_iff at h,
-    simp at h, specialize h n, split_ifs at h,
-    { rw h_1 at hn2, norm_num at *, },
-    apply factorial_ne_zero n, simp at h, assumption, },
-  { rw sub_mul, rw f, rw mul_sub X _ _, simp,
-    have f : (exp ℚ - 1) = -(1 - exp ℚ) := by simp,
-    rw f, rw ←neg_neg X, rw ←g, rw neg_mul_eq_mul_neg, },
+     { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, }, },
+    { rintros n ⟨hn1, hn2⟩, exfalso, rw [sub_eq_zero_iff_eq, power_series.ext_iff] at h,
+      simp only [one_div, coeff_one, coeff_exp, id_apply, rat.algebra_map_rat_rat] at h,
+      specialize h n, split_ifs at h,
+      { rw h_1 at hn2, norm_num at *, },
+      apply factorial_ne_zero n, rw [inv_eq_iff, inv_zero] at h, apply cast_eq_zero.1 h.symm, }, },
+  { rw [sub_mul, f, mul_sub X _ _, mul_one, sub_right_inj],
+    have f : (exp ℚ - 1) = -(1 - exp ℚ) := by simp only [neg_sub],
+    rw [f, ←neg_neg X, ←g, neg_mul_eq_mul_neg], },
 end

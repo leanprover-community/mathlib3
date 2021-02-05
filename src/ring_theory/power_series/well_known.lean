@@ -146,12 +146,12 @@ begin
   rw exp_mul_exp_eq_exp_add, simp, rw eval_mul_hom_zero, simp,
 end
 
-@[simp] lemma eval_neg_hom_X : eval_neg_hom ℚ X = -X :=
+@[simp] lemma eval_neg_hom_X : eval_neg_hom A X = -X :=
 begin
   rw eval_neg_hom, ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
   { rw [h, eval_mul_hom], simp only [coeff_mk, mul_one, coe_mk, coeff_one_X, pow_one], },
-  { rw eval_mul_hom, simp only [coeff_mk, coe_mk, neg_zero, mul_eq_zero], right, rw coeff_X,
-    split_ifs, refl, },
+  { rw eval_mul_hom, simp, suffices f : (coeff A n) X = 0, {rw f, rw mul_zero,},
+    rw coeff_X, split_ifs, refl, },
 end
 
 end power_series

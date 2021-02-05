@@ -328,8 +328,6 @@ section prod
 variables (S : Type*) [semiring R] [semiring S]
   [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
   [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
-  [semimodule S M₂] [semimodule S M₃]
-  [smul_comm_class R S M₂] [smul_comm_class R S M₃]
   (f : M →ₗ[R] M₂)
 
 section
@@ -346,9 +344,14 @@ end
 @[simp] theorem snd_apply (x : M × M₂) : snd R M M₂ x = x.2 := rfl
 
 /-- Taking the product of two maps with the same domain is equivalent to taking the product of
-their codomains. -/
+their codomains.
+
+Note that if a weaker `add_equiv` is needed, `S = ℕ` can be used and will satisfy the
+`smul_comm_class` requirements for any `R`. -/
 @[simps symm_apply]
-def prod_equiv : ((M →ₗ[R] M₂) × (M →ₗ[R] M₃)) ≃ₗ[S] (M →ₗ[R] M₂ × M₃) :=
+def prod_equiv
+  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃] :
+  ((M →ₗ[R] M₂) × (M →ₗ[R] M₃)) ≃ₗ[S] (M →ₗ[R] M₂ × M₃) :=
 { to_fun := λ f,
   { to_fun    := λ x, (f.1 x, f.2 x),
     map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
@@ -373,7 +376,9 @@ def prod_equiv : ((M →ₗ[R] M₂) × (M →ₗ[R] M₃)) ≃ₗ[S] (M →ₗ[
 /-- The prod of two linear maps is a linear map. -/
 def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) := prod_equiv ℕ (f, g)
 
-@[simp] theorem prod_equiv_apply (f : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)) :
+@[simp] theorem prod_equiv_apply
+  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃]
+  (f : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)) :
   prod_equiv S f = prod f.1 f.2 := rfl
 
 @[simp] theorem prod_apply (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) (x : M) :
@@ -409,9 +414,13 @@ theorem inr_injective : function.injective (inr R M M₂) :=
 λ _, by simp
 
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
-their domains. -/
+their domains.
+
+Note that if a weaker `add_equiv` is needed, `S = ℕ` can be used and will satisfy the
+`smul_comm_class` requirement for any `R`. -/
 @[simps symm_apply]
-def coprod_equiv : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃ₗ[S] (M × M₂ →ₗ[R] M₃) :=
+def coprod_equiv [semimodule S M₃] [smul_comm_class R S M₃] :
+  ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃ₗ[S] (M × M₂ →ₗ[R] M₃) :=
 { to_fun := λ f, f.1.comp (fst _ _ _) + f.2.comp (snd _ _ _),
   inv_fun := λ f, (f.comp (inl _ _ _), f.comp (inr _ _ _)),
   left_inv := λ f, by {
@@ -433,7 +442,8 @@ def coprod_equiv : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃ₗ[S] (M ×
 /-- The coprod function `λ x : M × M₂, f.1 x.1 + f.2 x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ := coprod_equiv ℕ (f, g)
 
-@[simp] theorem coprod_equiv_apply (f : (M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) :
+@[simp] theorem coprod_equiv_apply [semimodule S M₃] [smul_comm_class R S M₃]
+  (f : (M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) :
   coprod_equiv S f = coprod f.1 f.2 := rfl
 
 @[simp] theorem coprod_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (x : M) (y : M₂) :

@@ -89,7 +89,7 @@ end
 
 lemma size_singleton (a : α) : [a].to_buffer.size = 1 := rfl
 
-@[simp] lemma read_push_back_left (b : buffer α) (a : α) {i : ℕ} (h : i < b.size) :
+lemma read_push_back_left (b : buffer α) (a : α) {i : ℕ} (h : i < b.size) :
   (b.push_back a).read ⟨i, by { convert nat.lt_succ_of_lt h, simp }⟩ = b.read ⟨i, h⟩ :=
 by { cases b, convert array.read_push_back_left _, simp }
 
@@ -107,10 +107,10 @@ begin
     have hb' : i < (b.push_back hd).size := by { convert nat.lt_succ_of_lt h', simp },
     have : (append_list b (hd :: tl)).read ⟨i, h⟩ =
       read ((push_back b hd).append_list tl) ⟨i, hb⟩ := rfl,
-    simp [this, hl _ hb hb', h'] }
+    simp [this, hl _ hb hb', read_push_back_left _ _ h'] }
 end
 
-@[simp] lemma read_append_list_left (b : buffer α) (l : list α) {i : ℕ} (h : i < b.size) :
+lemma read_append_list_left (b : buffer α) (l : list α) {i : ℕ} (h : i < b.size) :
   (b.append_list l).read ⟨i, by simpa using nat.lt_add_right _ _ _ h⟩ = b.read ⟨i, h⟩ :=
 read_append_list_left' b l _ h
 
@@ -123,7 +123,7 @@ begin
     cases i,
     { convert read_append_list_left _ _ _;
       simp },
-    { simp [nat.succ_lt_succ_iff] at h,
+    { rw [list.length, nat.succ_lt_succ_iff] at h,
       have : b.size + i.succ = (b.push_back hd).size + i,
         { simp [add_comm, add_left_comm, nat.succ_eq_add_one] },
       convert hl (b.push_back hd) h } }

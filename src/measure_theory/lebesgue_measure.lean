@@ -427,7 +427,7 @@ begin
 end
 
 /-- The volume of the region between two almost everywhere measurable functions on a measurable set
-    can be respresented as a Lebesgue integral. -/
+    can be represented as a Lebesgue integral. -/
 theorem volume_region_between_eq_lintegral [sigma_finite μ]
   (hf : ae_measurable f (μ.restrict s)) (hg : ae_measurable g (μ.restrict s))
   (hs : measurable_set s) :

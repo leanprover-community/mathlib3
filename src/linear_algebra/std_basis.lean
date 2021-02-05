@@ -22,8 +22,9 @@ in `R³`, and `pi.is_basis_fun` proves this is a basis over `fin 3 → R`.
 
 ## Main results
 
- - `pi.is_basis_std_basis`: `std_basis` turns a component-wise basis into a basis on the product type
- - `pi.is_basis_fun`: `std_basis R (λ _, R) i 1` is a basis for `n → R`
+ - `pi.is_basis_std_basis`: `std_basis` turns a component-wise basis into a basis on the product
+   type.
+ - `pi.is_basis_fun`: `std_basis R (λ _, R) i 1` is a basis for `n → R`.
 
 -/
 

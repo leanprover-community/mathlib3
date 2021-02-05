@@ -134,7 +134,7 @@ lemma eval_mul_hom_one [algebra ℚ A] (f : power_series A) :
 by { rw eval_mul_hom, ext, simp only [one_pow, coeff_mk, one_mul, coe_mk], }
 
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
-  eval_mul_hom A (-1 : A)
+eval_mul_hom A (-1 : A)
 
 /-- Shows that `e^{x} * e^{-x} = 1` -/
 theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : (exp A) * (eval_neg_hom A (exp A)) = 1 :=

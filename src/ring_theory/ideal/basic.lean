@@ -255,7 +255,7 @@ let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨�
 theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
 let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
 
-lemma ideals_nontrivial_of_nontrivial [nontrivial α] : nontrivial (ideal α) :=
+instance [nontrivial α] : nontrivial (ideal α) :=
 begin
   rcases exists_maximal with ⟨M, hM⟩,
   apply nontrivial_of_ne M ⊤,

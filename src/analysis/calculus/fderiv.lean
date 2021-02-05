@@ -114,7 +114,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal asymptotics filter
+open_locale topological_space classical nnreal asymptotics filter ennreal
 
 noncomputable theory
 
@@ -913,7 +913,7 @@ end continuous_linear_map
 
 section analytic
 
-variables {p : formal_multilinear_series 𝕜 E F} {r : ennreal}
+variables {p : formal_multilinear_series 𝕜 E F} {r : ℝ≥0∞}
 
 lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x) :
   has_strict_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=

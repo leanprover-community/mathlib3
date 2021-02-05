@@ -25,7 +25,7 @@ probability mass function, discrete probability measure, bernoulli distribution
 -/
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-open_locale classical big_operators nnreal
+open_locale classical big_operators nnreal ennreal
 
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0` such that
   the values have (infinite) sum `1`. -/
@@ -81,7 +81,7 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 rfl
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
-  (p.bind f b : ennreal) = ∑'a, p a * f a b :=
+  (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
 eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=

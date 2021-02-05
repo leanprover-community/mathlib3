@@ -12,7 +12,7 @@ TODO:
 import measure_theory.measure_space
 
 open set filter
-open_locale classical topological_space
+open_locale classical topological_space ennreal
 
 namespace measure_theory
 
@@ -34,9 +34,9 @@ begin
 
   have hμ : ∀s, μ s < ⊤ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hμ,
   have hν : ∀s, ν s < ⊤ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hν,
-  have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ennreal) = μ s :=
+  have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
     (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
-  have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ennreal) = ν s :=
+  have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=
     (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hν _),
 
   have d_empty : d ∅ = 0, { simp [d], rw [measure_empty, measure_empty], simp },

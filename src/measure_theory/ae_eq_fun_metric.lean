@@ -12,7 +12,7 @@ Emetric on `L⁰` :
     If `β` is an `emetric_space`, then `L⁰` can be made into an `emetric_space`, where
     `edist [f] [g]` is defined to be `∫⁻ a, edist (f a) (g a)`.
 
-    The integral used here is `lintegral : (α → ennreal) → ennreal`, which is defined in the file
+    The integral used here is `lintegral : (α → ℝ≥0∞) → ℝ≥0∞`, which is defined in the file
     `integration.lean`.
 
     See `edist_mk_mk` and `edist_to_fun`.
@@ -35,7 +35,7 @@ section
 variables [emetric_space γ] [second_countable_topology γ] [opens_measurable_space γ]
 
 /-- `comp_edist [f] [g] a` will return `edist (f a) (g a)` -/
-protected def edist (f g : α →ₘ[μ] γ) : α →ₘ[μ] ennreal := comp₂ edist measurable_edist f g
+protected def edist (f g : α →ₘ[μ] γ) : α →ₘ[μ] ℝ≥0∞ := comp₂ edist measurable_edist f g
 
 protected lemma edist_comm (f g : α →ₘ[μ] γ) : f.edist g = g.edist f :=
 induction_on₂ f g $ λ f hf g hg, mk_eq_mk.2 $ eventually_of_forall $ λ x, edist_comm (f x) (g x)

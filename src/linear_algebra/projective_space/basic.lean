@@ -74,6 +74,8 @@ def mk : nonzero V → proj_space K V := quotient.mk
 
 noncomputable instance [nontrivial V] : inhabited (proj_space K V) := ⟨mk $ default _⟩
 
+lemma exists_rep (v : proj_space K V) : ∃ (u : nonzero V), mk u = v := quotient.exists_rep _
+
 lemma mk_eq_mk {v w : nonzero V} : (mk v : proj_space K V) = mk w ↔
   ∃ (u : units K), u • w = v :=
 begin
@@ -124,49 +126,6 @@ begin
   simpa [mul_smul b, ← mul_smul a⁻¹, inv_mul_cancel ha],
 end
 
-lemma mem_mk {v : V} {w : nonzero V} : v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
-begin
-  sorry,
-end
-
-instance : has_coe (proj_space K V) (subspace K V) := has_coe.mk $ λ x,
-{ carrier := {v | v = 0 ∨ v ∈ x},
-  zero_mem' := or.inl rfl,
-  add_mem' := begin
-    rintros u v (h1|h1) (h2|h2),
-    { left, simp [h1, h2] },
-    { right, simpa [h1] },
-    { right, simpa [h2] },
-    rw mem_def at *,
-    rcases h1 with ⟨v1,a1,ha1,rfl⟩,
-    rcases h2 with ⟨v2,a2,ha2,ha3⟩,
-    have : v ∈ (mk v2 : proj_space K V), by {rw mem_mk, refine ⟨a2,ha2⟩},
-    rw [← ha3, mem_mk] at this,
-    rcases this with ⟨b,hb⟩,
-    have ha1' : a1 ≠ 0 := nonzero.ne_zero_of_smul_eq ha1,
-    have hb' : b ≠ 0 := nonzero.ne_zero_of_smul_eq hb,
-    apply_fun (λ t, b⁻¹ • t) at hb,
-    simp [← mul_smul, inv_mul_cancel hb'] at hb,
-    apply_fun (λ t, a1⁻¹ • t) at ha1,
-    simp [← mul_smul, inv_mul_cancel ha1'] at ha1,
-    rw [hb, ha1, ← add_smul],
-    by_cases h : a1⁻¹ + b⁻¹ = 0,
-    { left,
-      simp [h] },
-    right,
-    rw mem_mk,
-    refine ⟨(a1⁻¹ + b⁻¹)⁻¹,_⟩,
-    simp [← mul_smul, inv_mul_cancel h],
-  end,
-  smul_mem' := begin
-    rintros c v (h|h),
-    { left, simp [h] },
-    by_cases hc : c = 0,
-    { left, simp [hc] },
-    right,
-    exact smul_mem hc h,
-  end }
-
 lemma mem_mk_iff {v : V} {w : nonzero V} : v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
 begin
   rw mem_def,
@@ -181,6 +140,44 @@ begin
     exact ⟨w, a, h, rfl⟩ },
 end
 
+instance : has_coe (proj_space K V) (subspace K V) := has_coe.mk $ λ x,
+{ carrier := {v | v = 0 ∨ v ∈ x},
+  zero_mem' := or.inl rfl,
+  add_mem' := begin
+    rintros u v (h1|h1) (h2|h2),
+    { left, simp [h1, h2] },
+    { right, simpa [h1] },
+    { right, simpa [h2] },
+    rw mem_def at *,
+    rcases h1 with ⟨v1,a1,ha1,rfl⟩,
+    rcases h2 with ⟨v2,a2,ha2,ha3⟩,
+    have : v ∈ (mk v2 : proj_space K V), by {rw mem_mk_iff, refine ⟨a2,ha2⟩},
+    rw [← ha3, mem_mk_iff] at this,
+    rcases this with ⟨b,hb⟩,
+    have ha1' : a1 ≠ 0 := nonzero.ne_zero_of_smul_eq ha1,
+    have hb' : b ≠ 0 := nonzero.ne_zero_of_smul_eq hb,
+    apply_fun (λ t, b⁻¹ • t) at hb,
+    simp [← mul_smul, inv_mul_cancel hb'] at hb,
+    apply_fun (λ t, a1⁻¹ • t) at ha1,
+    simp [← mul_smul, inv_mul_cancel ha1'] at ha1,
+    rw [hb, ha1, ← add_smul],
+    by_cases h : a1⁻¹ + b⁻¹ = 0,
+    { left,
+      simp [h] },
+    right,
+    rw mem_mk_iff,
+    refine ⟨(a1⁻¹ + b⁻¹)⁻¹,_⟩,
+    simp [← mul_smul, inv_mul_cancel h],
+  end,
+  smul_mem' := begin
+    rintros c v (h|h),
+    { left, simp [h] },
+    by_cases hc : c = 0,
+    { left, simp [hc] },
+    right,
+    exact smul_mem hc h,
+  end }
+
 variables (K V)
 /-- The type of linear subspaces of the projective space `proj_space K V`. -/
 structure linear_subspace :=
@@ -193,6 +190,10 @@ namespace linear_subspace
 
 instance : has_coe (linear_subspace K V) (set (proj_space K V)) := ⟨linear_subspace.carrier⟩
 
+@[ext]
+lemma ext (X Y : linear_subspace K V) : (X : set (proj_space K V)) = Y → X = Y :=
+λ h, by {cases X, cases Y, simpa}
+
 instance : has_mem (proj_space K V) (linear_subspace K V) := ⟨λ x X, x ∈ (X : set (proj_space K V))⟩
 
 lemma add_mem (X : linear_subspace K V) {u v : V} {a b c : proj_space K V} :
@@ -201,17 +202,22 @@ instance : has_bot (linear_subspace K V) := has_bot.mk $
 { carrier := ⊥,
   add_mem' := by tauto }
 
-instance : has_coe (linear_subspace K V) (subspace K V) := has_coe.mk $ λ X, has_Sup.Sup $
-(coe '' (X : set (proj_space K V)))
+def to_subspace : linear_subspace K V → subspace K V :=
+λ X, has_Sup.Sup $ (coe '' (X : set (proj_space K V)))
 
 def of_subspace : subspace K V → linear_subspace K V := λ W,
 { carrier := {x | (x : subspace K V) ≤ W},
   add_mem' := sorry }
 
 def equiv_subspace : linear_subspace K V ≃ subspace K V :=
-{ to_fun := coe,
+{ to_fun := to_subspace,
   inv_fun := of_subspace,
-  left_inv := sorry,
+  left_inv := begin
+    intros M,
+    simp [of_subspace, to_subspace],
+    ext m,
+    sorry,
+  end,
   right_inv := sorry }
 
 end linear_subspace

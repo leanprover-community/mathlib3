@@ -447,7 +447,6 @@ by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
 lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
 λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
 
-
 end comm_semiring
 
 /-!

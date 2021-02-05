@@ -159,4 +159,30 @@ end
 
 end erase_lead
 
+/-- An induction lemma for polynomials. It takes a natural number `N` as a parameter, that is
+required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
+results where you want to change each term in a polynomial to something else depending on the
+`nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/
+lemma induction_with_nat_degree_le {R : Type*} [semiring R] {P : polynomial R → Prop} (N : ℕ)
+  (P_0 : P 0)
+  (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
+  (P_C_add : ∀ f g : polynomial R, f.nat_degree ≤ N → g.nat_degree ≤ N → P f → P g → P (f + g)) :
+  ∀ f : polynomial R, f.nat_degree ≤ N → P f :=
+begin
+  intros f df,
+  generalize' hd : card f.support = c,
+  revert f,
+  induction c with c hc,
+  { exact λ f df f0, by rwa (finsupp.support_eq_empty.mp (card_eq_zero.mp f0)) },
+  { intros f df f0,
+    rw ← erase_lead_add_C_mul_X_pow f,
+    refine P_C_add f.erase_lead _ (erase_lead_nat_degree_le.trans df) _ _ _,
+    { exact (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree).trans df },
+    { exact hc _ (erase_lead_nat_degree_le.trans df) (erase_lead_card_support f0) },
+    { refine P_C_mul_pow _ _ _ df,
+      rw [ne.def, leading_coeff_eq_zero],
+      rintro rfl,
+      exact not_le.mpr c.succ_pos f0.ge } }
+end
+
 end polynomial

@@ -96,7 +96,7 @@ end
 
 theorem degree_interpolate_lt : (interpolate s f).degree < s.card :=
 if H : s = ∅ then by { subst H, rw [interpolate_empty, degree_zero], exact with_bot.bot_lt_coe _ }
-else lt_of_le_of_lt (degree_sum_le _ _) $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
+else (degree_sum_le _ _).trans_lt $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
 calc  (C (f b) * basis s b).degree
     ≤ (C (f b)).degree + (basis s b).degree : degree_mul_le _ _
 ... ≤ 0 + (basis s b).degree : add_le_add_right degree_C_le _

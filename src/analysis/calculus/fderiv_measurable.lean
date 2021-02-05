@@ -13,7 +13,7 @@ import measure_theory.borel_space
 In this file we prove that the derivative of any function with complete codomain is a measurable
 function. Namely, we prove:
 
-* `is_measurable_set_of_differentiable_at`: the set `{x | differentiable_at 𝕜 f x}` is measurable;
+* `measurable_set_of_differentiable_at`: the set `{x | differentiable_at 𝕜 f x}` is measurable;
 * `measurable_fderiv`: the function `fderiv 𝕜 f` is measurable;
 * `measurable_fderiv_apply_const`: for a fixed vector `y`, the function `λ x, fderiv 𝕜 f x y`
   is measurable;
@@ -392,21 +392,21 @@ variables (𝕜 f)
 
 /-- The set of differentiability points of a function, with derivative in a given complete set,
 is Borel-measurable. -/
-theorem is_measurable_set_of_differentiable_at_of_is_complete
+theorem measurable_set_of_differentiable_at_of_is_complete
   {K : set (E →L[𝕜] F)} (hK : is_complete K) :
-  is_measurable {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, is_open_B.is_measurable, is_measurable.Inter_Prop,
-         is_measurable.Inter, is_measurable.Union]
+  measurable_set {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
+by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter_Prop,
+         measurable_set.Inter, measurable_set.Union]
 
 variable [complete_space F]
 
 /-- The set of differentiability points of a function taking values in a complete space is
 Borel-measurable. -/
-theorem is_measurable_set_of_differentiable_at :
-  is_measurable {x | differentiable_at 𝕜 f x} :=
+theorem measurable_set_of_differentiable_at :
+  measurable_set {x | differentiable_at 𝕜 f x} :=
 begin
   have : is_complete (univ : set (E →L[𝕜] F)) := complete_univ,
-  convert is_measurable_set_of_differentiable_at_of_is_complete 𝕜 f this,
+  convert measurable_set_of_differentiable_at_of_is_complete 𝕜 f this,
   simp
 end
 
@@ -417,8 +417,8 @@ begin
     {x | (0 : E →L[𝕜] F) ∈ s} ∩ {x | ¬differentiable_at 𝕜 f x} :=
     set.ext (λ x, mem_preimage.trans fderiv_mem_iff),
   rw this,
-  exact (is_measurable_set_of_differentiable_at_of_is_complete _ _ hs.is_complete).union
-    ((is_measurable.const _).inter (is_measurable_set_of_differentiable_at _ _).compl)
+  exact (measurable_set_of_differentiable_at_of_is_complete _ _ hs.is_complete).union
+    ((measurable_set.const _).inter (measurable_set_of_differentiable_at _ _).compl)
 end
 
 lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :

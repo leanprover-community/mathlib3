@@ -122,7 +122,7 @@ begin
 end
 
 lemma eval_mul_hom_zero [algebra ℚ A] (f : power_series A) :
-  eval_mul_hom A 0 f = (C A ((constant_coeff A) f) ) :=
+  eval_mul_hom A 0 f = C A (constant_coeff A f) :=
 begin
   rw [eval_mul_hom, coe_mk], ext, rw [coeff_mk, power_series.coeff_C], split_ifs,
   { rw h, simp only [one_mul, coeff_zero_eq_constant_coeff, pow_zero], },

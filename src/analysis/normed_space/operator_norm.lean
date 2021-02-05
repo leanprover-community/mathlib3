@@ -765,10 +765,10 @@ end continuous_linear_map
 namespace submodule
 
 lemma norm_subtypeL_le (K : submodule 𝕜 E) : ∥K.subtype_continuous∥ ≤ 1 :=
-K.subtype_isometry.norm_to_continuous_linear_map_le
+K.subtypeₗᵢ.norm_to_continuous_linear_map_le
 
 lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtype_continuous∥ = 1 :=
-K.subtype_isometry.norm_to_continuous_linear_map
+K.subtypeₗᵢ.norm_to_continuous_linear_map
 
 end submodule
 

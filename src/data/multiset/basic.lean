@@ -1544,7 +1544,6 @@ lemma nat.well_ordered_of_exists {s : set ℕ} [decidable_pred (λ w, w ∈ s)] 
 ⟨nat.find ex, nat.find_spec ex, λ m, nat.find_min' ex⟩
 
 lemma exists_minimal_subset {p : multiset α → Prop} {s₀ : multiset α} (H : p s₀)
-  --[decidable_pred (λ w, w ∈ {i | ∃ u, u ≤ s₀ ∧ p u ∧ u.card = i})] :
   : ∃ s ≤ s₀, p s ∧ (∀ s' ≤ s, p s' → s' = s) :=
 begin
   classical,

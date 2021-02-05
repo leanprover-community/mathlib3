@@ -17,12 +17,13 @@ in `R³`, and `pi.is_basis_fun` proves this is a basis over `fin 3 → R`.
 
 ## Main definitions
 
- - `std_basis R ϕ i b`: the `i`'th standard `R`-basis vector on `Π i, ϕ i`
+ - `std_basis R ϕ i b`: the `i`'th standard `R`-basis vector on `Π i, ϕ i`.
+   scaled by `b`
 
 ## Main results
 
  - `is_basis_std_basis`: `std_basis` turns a componentwise basis into a basis on the product type
- - `is_basis_fun`: `std_basis R (λ _, R) i 1` is a basis for `n → R`
+ - `pi.is_basis_fun`: `std_basis R (λ _, R) i 1` is a basis for `n → R`
 
 -/
 

@@ -228,7 +228,7 @@ by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
 
 lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
   (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
-(hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+(hp.1.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
 
 section classical
 open_locale classical
@@ -334,12 +334,12 @@ lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.pri
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
   obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
-  from fintype.exists_ne_of_one_lt_card (by { rw h, exact nat.prime.one_lt hp }) 1,
+  from fintype.exists_ne_of_one_lt_card (by { rw h, exact hp.1.one_lt }) 1,
   classical, -- for fintype (subgroup.gpowers g)
   have : fintype.card (subgroup.gpowers g) ∣ p,
   { rw ←h,
     apply card_subgroup_dvd_card },
-  rw nat.dvd_prime hp at this,
+  rw nat.dvd_prime hp.1 at this,
   cases this,
   { rw fintype.card_eq_one_iff at this,
     cases this with t ht,

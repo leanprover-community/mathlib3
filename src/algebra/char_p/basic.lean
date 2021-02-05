@@ -112,18 +112,18 @@ theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 
 end ring_char
 
-theorem add_pow_char_of_commute (R : Type u) [semiring R] {p : ℕ} [fact p.prime]
+theorem add_pow_char_of_commute (R : Type u) [semiring R] {p : ℕ} [hp : fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
   rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one], congr' 1,
   convert finset.sum_eq_single 0 _ _, { simp },
-  swap, { intro h1, contrapose! h1, rw finset.mem_range, apply nat.prime.pos, assumption },
+  swap, { intro h1, contrapose! h1, rw finset.mem_range, exact hp.1.pos },
   intros b h1 h2,
   suffices : (p.choose b : R) = 0, { rw this, simp },
   rw char_p.cast_eq_zero_iff R p,
-  apply nat.prime.dvd_choose_self, assumption', { omega },
+  refine hp.1.dvd_choose_self (by omega) _,
   rwa ← finset.mem_range
 end
 
@@ -208,7 +208,7 @@ def frobenius : R →+* R :=
 { to_fun := λ x, x^p,
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
-  map_zero' := zero_pow (lt_trans zero_lt_one ‹nat.prime p›.one_lt),
+  map_zero' := zero_pow (lt_trans zero_lt_one (fact.out (nat.prime p)).one_lt),
   map_add' := add_pow_char R }
 
 variable {R}

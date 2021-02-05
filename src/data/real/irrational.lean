@@ -64,19 +64,20 @@ begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
   { rw [eq_comm, pow_zero, ← int.cast_one, int.cast_inj] at hxr,
     simpa [hxr, multiplicity.one_right (mt is_unit_iff_dvd_one.1
-      (mt int.coe_nat_dvd.1 hp.not_dvd_one)), nat.zero_mod] using hv },
+      (mt int.coe_nat_dvd.1 hp.1.not_dvd_one)), nat.zero_mod] using hv },
   refine irrational_nrt_of_notint_nrt _ _ hxr _ hnpos,
   rintro ⟨y, rfl⟩,
   rw [← int.cast_pow, int.cast_inj] at hxr, subst m,
   have : y ≠ 0, { rintro rfl, rw zero_pow hnpos at hm, exact hm rfl },
-  erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp)
+  erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp.1)
     (finite_int_iff.2 ⟨hp.ne_one, this⟩), nat.mul_mod_right] at hv,
   exact hv rfl
 end
 
 theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
   (p : ℕ) [hp : fact p.prime]
-  (Hpv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
+  (Hpv : (multiplicity (p : ℤ) m).get
+    (finite_int_iff.2 ⟨hp.1.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
   irrational (sqrt m) :=
 @irrational_nrt_of_n_not_dvd_multiplicity _ 2 _ (ne.symm (ne_of_lt hm)) p hp
   (sqr_sqrt (int.cast_nonneg.2 $ le_of_lt hm))

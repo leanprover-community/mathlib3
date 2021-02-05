@@ -166,7 +166,7 @@ The compromise is to add the assumption `[fact p.prime]` to `zmod.field`.
 
 In particular, this class is not intended for turning the type class system
 into an automated theorem prover for first order logic. -/
-class fact (p : Prop) : Prop := (out : p)
+class fact (p : Prop) : Prop := (out [] : p)
 
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩

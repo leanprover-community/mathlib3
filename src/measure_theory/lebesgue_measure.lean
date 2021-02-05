@@ -459,7 +459,7 @@ end
 
 /-- If two functions are integrable on a measurable set, and one function is less than
     or equal to the other almost everywhere on that set, then the volume of the region
-    between the two functions can be respresented as an integral. -/
+    between the two functions can be represented as an integral. -/
 theorem volume_region_between_eq_integral [sigma_finite μ]
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
   (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :

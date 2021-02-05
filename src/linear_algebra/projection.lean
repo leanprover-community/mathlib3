@@ -204,7 +204,7 @@ lemma of_is_compl_eq (h : is_compl p q)
   (hφ : ∀ u, φ u = χ u) (hψ : ∀ u, ψ u = χ u) :
   of_is_compl h φ ψ = χ :=
 begin
-  ext,
+  ext x,
   obtain ⟨_, _, rfl, _⟩ := exists_unique_add_of_is_compl h x,
   simp [of_is_compl, hφ, hψ]
 end

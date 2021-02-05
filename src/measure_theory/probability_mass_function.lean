@@ -151,15 +151,7 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
 ⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
 
-/-- Given a fintype type `α` and a function `f : α → ℝ≥0` not identically 0,
-  we get a `pmf` by normalizing `f` -/
-def of_fintype' [fintype α] (f : α → ℝ≥0) (h : ∃ a, f a ≠ 0) : pmf α :=
-⟨λ a, f a * (∑ x, f x)⁻¹,
-  have 1 = ∑ a, f a * (∑ x, f x)⁻¹, by simp only [← finset.sum_mul,
-    mul_inv_cancel (finset.sum_ne_zero_iff.2 (let ⟨a, ha⟩ := h in ⟨a, finset.mem_univ a, ha⟩))],
-  this.symm ▸ has_sum_fintype (λ (a : α), f a / ∑ x, f x)⟩
-
-/-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by its `sum` -/
+/-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by its `tsum` -/
 def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
 ⟨λ a, f a * (∑' x, f x)⁻¹,
   (mul_inv_cancel hf0) ▸ has_sum.mul_right (∑' x, f x)⁻¹
@@ -168,7 +160,7 @@ def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
 lemma normalize_apply (f : α → ℝ≥0) {hf0 : tsum f ≠ 0} {a : α} :
   (normalize f hf0) a = f a * (∑' x, f x)⁻¹ := rfl
 
-/-- Given a `pmf` on a fintype `α`, create new `pmf` by filtering on a set and normalizing -/
+/-- Create new `pmf` by filtering on a set with non-zero measure and normalizing -/
 def filter (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) : pmf α :=
 pmf.normalize (s.indicator p) $ nnreal.tsum_indicator_ne_zero p.2.summable h
 

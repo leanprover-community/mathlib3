@@ -257,10 +257,8 @@ let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_
 
 instance [nontrivial α] : nontrivial (ideal α) :=
 begin
-  rcases exists_maximal with ⟨M, hM⟩,
-  apply nontrivial_of_ne M ⊤,
-  exact hM.1,
-  assumption,
+  rcases @exists_maximal α _ _ with ⟨M, hM, _⟩,
+  exact nontrivial_of_ne M ⊤ hM
 end
 
 /-- If P is not properly contained in any maximal ideal then it is not properly contained

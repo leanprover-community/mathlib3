@@ -55,8 +55,8 @@ lemma add_le_mul_two_add {R : Type*} [ordered_semiring R] {a b : R}
 calc a + (2 + b) ≤ a + (a + a * b) :
       add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
              ... ≤ a * (2 + b) :
-      ((le_of_eq (add_assoc a a _).symm).trans (le_trans rfl.ge (add_le_add_right
-        (le_of_eq (mul_two a).symm) _))).trans (le_of_eq (mul_add a 2 b).symm)
+      ((add_assoc a a _).symm.le.trans (rfl.ge.trans (add_le_add_right
+        (mul_two a).symm.le _))).trans (mul_add a 2 b).symm.le
 
 lemma add_le_mul {a b : ℕ} (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ a * b :=
 begin
@@ -70,7 +70,7 @@ lemma add_factorial_le_factorial_add (i : ℕ) (n : ℕ) :
   i + (n + 1)! ≤ (i + (n + 1))! :=
 begin
   by_cases i2 : 2 ≤ i,
-  { exact le_of_lt (n.add_factorial_lt_factorial_add i2) },
+  { exact (n.add_factorial_lt_factorial_add i2).le },
   { cases not_le.mp i2 with _ i0,
     { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
       rw [add_mul, one_mul, add_comm 1 n],
@@ -81,7 +81,7 @@ end
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
 ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < m / (m - 1) * (1 / m ^ (n + 1)!) :=
-have m0 : 0 < m := (lt_trans zero_lt_one m1),
+have m0 : 0 < m := (zero_lt_one.trans m1),
 have mi : abs (1 / m) < 1,
 { rw abs_of_pos (one_div_pos.mpr m0),
   exact (div_lt_one m0).mpr m1 },
@@ -99,7 +99,7 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
     by { congr, ext i, rw [pow_add, div_pow, one_pow, ← div_div_eq_div_mul, div_eq_mul_one_div] }
 ... = (∑' i, (1 / m) ^ i) * (1 / m ^ (n + 1)!) : tsum_mul_right
 ... = m / (m - 1) * (1 / m ^ (n + 1)!) :
-    by rw [tsum_geometric_of_abs_lt_1 mi, ← @inv_div _ _ _ m, sub_div, div_self (ne_of_gt m0)]
+    by rw [tsum_geometric_of_abs_lt_1 mi, ← @inv_div _ _ _ m, sub_div, div_self (m0.ne.symm)]
 
 lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
   m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
@@ -120,7 +120,7 @@ begin
       apply (mul_le_mul_right _).mpr,
       any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
       refine le_trans (hm.trans _) (pow_mono (one_le_two.trans hm) n.factorial_pos),
-      exact le_of_eq (pow_one _).symm
+      exact (pow_one _).symm.le
     end
   ... = 1 / (m ^ n!) ^ n : by rw pow_mul
 end
@@ -154,7 +154,7 @@ def liouville_constant_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i 
 
 lemma liouville_constant_terms_after_pos (hm : 1 < m) :
   ∀ k, 0 < liouville_constant_terms_after_k m k := λ n,
-calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (lt_trans zero_lt_one hm) _)
+calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
   ... = 1 / m ^ (0 + (n + 1))! : by rw zero_add
   ... ≤ ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! :
       le_tsum (summable_inv_pow_n_add_fact _ hm) 0
@@ -186,25 +186,25 @@ begin
         by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul,
         one_mul, pow_add], ring },
     refine mul_ne_zero_iff.mpr ⟨_, _⟩,
-    all_goals { refine pow_ne_zero _ (nat.cast_ne_zero.mpr (ne_of_gt (zero_lt_one.trans hm))) } }
+    all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr ((zero_lt_one.trans hm).ne.symm)) } }
 end
 
 theorem is_liouville_liouville_constant (hm : 2 ≤ m) :
   is_liouville (liouville_constant m) :=
 begin
-  have mZ1 : 1 < (m : ℤ) := lt_of_le_of_lt (le_of_eq nat.cast_one.symm)
-    (lt_of_lt_of_le one_lt_two ((le_of_eq nat.cast_two.symm).trans (int.to_nat_le.mp hm))),
+  have mZ1 : 1 < (m : ℤ) := nat.cast_one.symm.le.trans_lt
+    (one_lt_two.trans_le (nat.cast_two.symm.le.trans (int.to_nat_le.mp hm))),
   have m1 : 1 < (m : ℝ) :=
-    lt_of_lt_of_le one_lt_two ((le_of_eq nat.cast_two.symm).trans (nat.cast_le.mpr hm)),
+    one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
   intro n,
-  have h_truncation_wd := liouville_constant_eq_first_k_terms_add_rest m1 n,
-  rcases rat_of_liouville_constant_first_k_terms (lt_of_lt_of_le one_lt_two hm) n with ⟨p, hp⟩,
+  have mkk := liouville_constant_eq_first_k_terms_add_rest m1 n,
+  rcases rat_of_liouville_constant_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
-  rw [← hp, h_truncation_wd, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos m1 _)],
-  exact ⟨ne_of_gt ((lt_add_iff_pos_right _).mpr (liouville_constant_terms_after_pos m1 n)),
-    lt_of_lt_of_le (calc_liou_one m1 n) (calc_liou_two_zero _ ((le_of_eq nat.cast_two.symm).trans
-      (nat.cast_le.mpr hm)))⟩
+  rw [← hp, mkk, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos m1 _)],
+  exact ⟨((lt_add_iff_pos_right _).mpr (liouville_constant_terms_after_pos m1 n)).ne.symm,
+    (calc_liou_one m1 n).trans_le
+    (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
 lemma is_transcendental_liouville_constant (hm : 2 ≤ m) :

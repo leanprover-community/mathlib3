@@ -2476,8 +2476,8 @@ complement sum to the identity. -/
 lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   [complete_space E] [complete_space K] :
   continuous_linear_map.id 𝕜 E
-  = K.subtype_continuous.comp (orthogonal_projection K)
-  + Kᗮ.subtype_continuous.comp (orthogonal_projection Kᗮ) :=
+  = K.subtypeL.comp (orthogonal_projection K)
+  + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
 open finite_dimensional

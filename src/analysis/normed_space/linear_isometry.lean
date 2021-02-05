@@ -142,11 +142,11 @@ def subtype_isometry : p →ₗᵢ[R'] E := ⟨p.subtype, λ x, rfl⟩
 @[simp] lemma subtype_isometry_to_linear_map : p.subtype_isometry.to_linear_map = p.subtype := rfl
 
 /-- `submodule.subtype` as a `continuous_linear_map`. -/
-def subtype_continuous : p →L[R'] E := p.subtype_isometry.to_continuous_linear_map
+def subtypeL : p →L[R'] E := p.subtype_isometry.to_continuous_linear_map
 
-@[simp] lemma coe_subtype_continuous : (p.subtype_continuous : p →ₗ[R'] E) = p.subtype := rfl
+@[simp] lemma coe_subtypeL : (p.subtype_continuous : p →ₗ[R'] E) = p.subtype := rfl
 
-@[simp] lemma coe_subtype_continuous' : ⇑p.subtype_continuous = p.subtype := rfl
+@[simp] lemma coe_subtypeL' : ⇑p.subtype_continuous = p.subtype := rfl
 
 end submodule
 

@@ -111,7 +111,7 @@ Use `is_closed_property` or `dense_range.induction_on` for this argument.
 
 * `α →ₛ E`  : simple functions (defined in `measure_theory/integration`)
 * `α →₁[μ] E` : functions in L1 space, i.e., equivalence classes of integrable functions (defined in
-                `measure_theory/L1_space`)
+                `measure_theory/lp_space`)
 * `α →₁ₛ[μ] E` : simple functions in L1 space, i.e., equivalence classes of integrable simple
                  functions
 

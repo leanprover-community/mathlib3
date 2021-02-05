@@ -12,13 +12,15 @@ import measure_theory.lp_space
 In the first part of this file, the predicate `integrable` is defined and basic properties of
 integrable functions are proved.
 
-In the second part, the space `L¹` of equivalence classes of integrable functions under the relation
-of being almost everywhere equal is defined as a subspace of the space `L⁰`. See the file
-`src/measure_theory/ae_eq_fun.lean` for information on `L⁰` space.
+Such a predicate is already available under the name `mem_ℒp 1`. We give a direct definition which
+is easier to use, and show that it is equivalent to `mem_ℒp 1`
+
+In the second part, we establish an API between API and the space `L¹` of equivalence classes of
+integrable functions, already defined as a special case of `L^p` spaces for `p = 1`.
 
 ## Notation
 
-* `α →₁ β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group`
+* `α →₁[μ] β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group`
   with a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`. In comments, `[f]` is
   also used to denote an `L¹` function.
 
@@ -32,20 +34,7 @@ of being almost everywhere equal is defined as a subspace of the space `L⁰`. S
 * If `β` is moreover a `measurable_space` then `f` is called `integrable` if
   `f` is `measurable` and `has_finite_integral f` holds.
 
-* The space `L¹` is defined as a subspace of `L⁰` :
-  An `ae_eq_fun` `[f] : α →ₘ β` is in the space `L¹` if `edist [f] 0 < ⊤`, which means
-  `(∫⁻ a, edist (f a) 0) < ⊤` if we expand the definition of `edist` in `L⁰`.
-
-## Main statements
-
-`L¹`, as a subspace, inherits most of the structures of `L⁰`.
-
 ## Implementation notes
-
-Maybe `integrable f` should be mean `(∫⁻ a, edist (f a) 0) < ⊤`, so that `integrable` and
-`ae_eq_fun.integrable` are more aligned. But in the end one can use the lemma
-`lintegral_nnnorm_eq_lintegral_edist : (∫⁻ a, nnnorm (f a)) = (∫⁻ a, edist (f a) 0)` to switch the
-two forms.
 
 To prove something for an arbitrary integrable function, a useful theorem is
 `integrable.induction` in the file `set_integral`.
@@ -650,21 +639,21 @@ lemma has_finite_integral_coe_fn (f : α →₁[μ] β) :
   has_finite_integral f μ :=
 (integrable_coe_fn f).has_finite_integral
 
-lemma measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+lemma measurable_coe_fn (f : α →₁[μ] β) :
   measurable f := Lp.measurable f
 
-lemma ae_measurable_coe_fn [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+lemma ae_measurable_coe_fn (f : α →₁[μ] β) :
   ae_measurable f μ := Lp.ae_measurable f
 
-lemma edist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
+lemma edist_def (f g : α →₁[μ] β) :
   edist f g = ∫⁻ a, edist (f a) (g a) ∂μ :=
 by { simp [Lp.edist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
 
-lemma dist_def [second_countable_topology β] [borel_space β] (f g : α →₁[μ] β) :
+lemma dist_def (f g : α →₁[μ] β) :
   dist f g = (∫⁻ a, edist (f a) (g a) ∂μ).to_real :=
 by { simp [Lp.dist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
 
-lemma norm_def [second_countable_topology β] [borel_space β] (f : α →₁[μ] β) :
+lemma norm_def (f : α →₁[μ] β) :
   ∥f∥ = (∫⁻ a, nnnorm (f a) ∂μ).to_real :=
 by { simp [Lp.norm_def, snorm, snorm'] }
 

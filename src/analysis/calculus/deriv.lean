@@ -99,7 +99,7 @@ variables {E : Type w} [normed_group E] [normed_space 𝕜 E]
 That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges along the filter `L`.
 -/
 def has_deriv_at_filter (f : 𝕜 → F) (f' : F) (x : 𝕜) (L : filter 𝕜) :=
-has_fderiv_at_filter f (smul_right 1 f' : 𝕜 →L[𝕜] F) x L
+has_fderiv_at_filter f (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') x L
 
 /--
 `f` has the derivative `f'` at the point `x` within the subset `s`.
@@ -121,7 +121,7 @@ has_deriv_at_filter f f' x (𝓝 x)
 
 That is, `f y - f z = (y - z) • f' + o(y - z)` as `y, z → x`. -/
 def has_strict_deriv_at (f : 𝕜 → F) (f' : F) (x : 𝕜) :=
-has_strict_fderiv_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) x
+has_strict_fderiv_at f (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') x
 
 /--
 Derivative of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.
@@ -130,7 +130,7 @@ If the derivative exists (i.e., `∃ f', has_deriv_within_at f f' s x`), then
 `f x' = f x + (x' - x) • deriv_within f s x + o(x' - x)` where `x'` converges to `x` inside `s`.
 -/
 def deriv_within (f : 𝕜 → F) (s : set 𝕜) (x : 𝕜) :=
-(fderiv_within 𝕜 f s x : 𝕜 →L[𝕜] F) 1
+fderiv_within 𝕜 f s x 1
 
 /--
 Derivative of `f` at the point `x`, if it exists.  Zero otherwise.
@@ -139,7 +139,7 @@ If the derivative exists (i.e., `∃ f', has_deriv_at f f' x`), then
 `f x' = f x + (x' - x) • deriv f x + o(x' - x)` where `x'` converges to `x`.
 -/
 def deriv (f : 𝕜 → F) (x : 𝕜) :=
-(fderiv 𝕜 f x : 𝕜 →L[𝕜] F) 1
+fderiv 𝕜 f x 1
 
 variables {f f₀ f₁ g : 𝕜 → F}
 variables {f' f₀' f₁' g' : F}
@@ -164,7 +164,7 @@ has_fderiv_at_filter_iff_has_deriv_at_filter
 /-- Expressing `has_deriv_within_at f f' s x` in terms of `has_fderiv_within_at` -/
 lemma has_deriv_within_at_iff_has_fderiv_within_at {f' : F} :
   has_deriv_within_at f f' s x ↔
-  has_fderiv_within_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
+  has_fderiv_within_at f (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') s x :=
 iff.rfl
 
 lemma has_fderiv_within_at.has_deriv_within_at {f' : 𝕜 →L[𝕜] F} :
@@ -172,7 +172,7 @@ lemma has_fderiv_within_at.has_deriv_within_at {f' : 𝕜 →L[𝕜] F} :
 has_fderiv_within_at_iff_has_deriv_within_at.mp
 
 lemma has_deriv_within_at.has_fderiv_within_at {f' : F} :
-  has_deriv_within_at f f' s x → has_fderiv_within_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
+  has_deriv_within_at f f' s x → has_fderiv_within_at f (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') s x :=
 has_deriv_within_at_iff_has_fderiv_within_at.mp
 
 /-- Expressing `has_fderiv_at f f' x` in terms of `has_deriv_at` -/
@@ -195,7 +195,7 @@ has_strict_fderiv_at_iff_has_strict_deriv_at.mp
 /-- Expressing `has_deriv_at f f' x` in terms of `has_fderiv_at` -/
 lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
   has_deriv_at f f' x ↔
-  has_fderiv_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
+  has_fderiv_at f (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') x :=
 iff.rfl
 
 alias has_deriv_at_iff_has_fderiv_at ↔ has_deriv_at.has_fderiv_at _
@@ -360,14 +360,14 @@ lemma fderiv_within_deriv_within : (fderiv_within 𝕜 f s x : 𝕜 → F) 1 = d
 rfl
 
 lemma deriv_within_fderiv_within :
-  smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
+  smul_right (1 : 𝕜 →L[𝕜] 𝕜) (deriv_within f s x) = fderiv_within 𝕜 f s x :=
 by simp [deriv_within]
 
 lemma fderiv_deriv : (fderiv 𝕜 f x : 𝕜 → F) 1 = deriv f x :=
 rfl
 
 lemma deriv_fderiv :
-  smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
+  smul_right (1 : 𝕜 →L[𝕜] 𝕜) (deriv f x) = fderiv 𝕜 f x :=
 by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
@@ -1310,19 +1310,19 @@ begin
 end
 
 lemma has_fderiv_at_inv (x_ne_zero : x ≠ 0) :
-  has_fderiv_at (λx, x⁻¹) (smul_right 1 (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) x :=
+  has_fderiv_at (λx, x⁻¹) (smul_right (1 : 𝕜 →L[𝕜] 𝕜) (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) x :=
 has_deriv_at_inv x_ne_zero
 
 lemma has_fderiv_within_at_inv (x_ne_zero : x ≠ 0) :
-  has_fderiv_within_at (λx, x⁻¹) (smul_right 1 (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) s x :=
+  has_fderiv_within_at (λx, x⁻¹) (smul_right (1 : 𝕜 →L[𝕜] 𝕜) (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) s x :=
 (has_fderiv_at_inv x_ne_zero).has_fderiv_within_at
 
 lemma fderiv_inv (x_ne_zero : x ≠ 0) :
-  fderiv 𝕜 (λx, x⁻¹) x = smul_right 1 (-(x^2)⁻¹) :=
+  fderiv 𝕜 (λx, x⁻¹) x = smul_right (1 : 𝕜 →L[𝕜] 𝕜) (-(x^2)⁻¹) :=
 (has_fderiv_at_inv x_ne_zero).fderiv
 
 lemma fderiv_within_inv (x_ne_zero : x ≠ 0) (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 (λx, x⁻¹) s x = smul_right 1 (-(x^2)⁻¹) :=
+  fderiv_within 𝕜 (λx, x⁻¹) s x = smul_right (1 : 𝕜 →L[𝕜] 𝕜) (-(x^2)⁻¹) :=
 begin
   rw differentiable_at.fderiv_within (differentiable_at_inv x_ne_zero) hxs,
   exact fderiv_inv x_ne_zero
@@ -1577,22 +1577,20 @@ begin
 end
 
 protected lemma has_fderiv_at (x : 𝕜) :
-  has_fderiv_at (λx, p.eval x) (smul_right 1 (p.derivative.eval x) : 𝕜 →L[𝕜] 𝕜) x :=
-by simpa [has_deriv_at_iff_has_fderiv_at] using p.has_deriv_at x
+  has_fderiv_at (λx, p.eval x) (smul_right (1 : 𝕜 →L[𝕜] 𝕜) (p.derivative.eval x)) x :=
+p.has_deriv_at x
 
 protected lemma has_fderiv_within_at (x : 𝕜) :
-  has_fderiv_within_at (λx, p.eval x) (smul_right 1 (p.derivative.eval x) : 𝕜 →L[𝕜] 𝕜) s x :=
+  has_fderiv_within_at (λx, p.eval x) (smul_right (1 : 𝕜 →L[𝕜] 𝕜) (p.derivative.eval x)) s x :=
 (p.has_fderiv_at x).has_fderiv_within_at
 
-@[simp] protected lemma fderiv : fderiv 𝕜 (λx, p.eval x) x = smul_right 1 (p.derivative.eval x) :=
+@[simp] protected lemma fderiv :
+  fderiv 𝕜 (λx, p.eval x) x = smul_right (1 : 𝕜 →L[𝕜] 𝕜) (p.derivative.eval x) :=
 (p.has_fderiv_at x).fderiv
 
 protected lemma fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 (λx, p.eval x) s x = smul_right 1 (p.derivative.eval x) :=
-begin
-  rw differentiable_at.fderiv_within p.differentiable_at hxs,
-  exact p.fderiv
-end
+  fderiv_within 𝕜 (λx, p.eval x) s x = smul_right (1 : 𝕜 →L[𝕜] 𝕜) (p.derivative.eval x) :=
+(p.has_fderiv_within_at x).fderiv_within hxs
 
 end polynomial
 

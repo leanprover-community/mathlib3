@@ -522,7 +522,7 @@ by simp_rw [integrable, has_finite_integral, mem_ℒp,
     snorm_eq_snorm' one_ne_zero ennreal.one_ne_top, ennreal.one_to_real, snorm', one_div_one,
     ennreal.rpow_one]
 
-lemma mem_ℒp.integrable [borel_space β] {q : ennreal} (hq1 : 1 ≤ q) {f : α → β} [finite_measure μ]
+lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [finite_measure μ]
   (hfq : mem_ℒp f q μ) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
 

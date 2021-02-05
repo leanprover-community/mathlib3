@@ -21,7 +21,7 @@ TODO: remove this file, and use instead the more general `Lp` space specialized 
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical ennreal
 
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}

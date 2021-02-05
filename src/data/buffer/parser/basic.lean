@@ -566,50 +566,54 @@ end defn_lemmas
 section done
 
 variables {α β : Type}
-  {cb : char_buffer} {n n' : ℕ} (hn : n < cb.size) {a a' : α} {b : β} {c : char}
-include hn
+  {cb : char_buffer} {n n' : ℕ} {a a' : α} {b : β} {c : char}
 
-lemma any_char_eq_done : any_char cb n = done n' c ↔ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
-by simp [any_char, hn, eq_comm]
-
-lemma sat_eq_done {p : char → Prop} [decidable_pred p] : sat p cb n = done n' c ↔
-  p c ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+lemma any_char_eq_done : any_char cb n = done n' c ↔
+  ∃ (hn : n < cb.size), n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
 begin
-  by_cases hp : p (cb.read ⟨n, hn⟩),
-  { simp only [sat, hp, hn, dif_pos, if_true],
-    split,
-    { rintro ⟨rfl, rfl⟩, simp [hp] },
-    { rintro ⟨-, rfl, rfl⟩, simp } },
-  { simp [sat, hp, hn, dif_pos, false_iff, not_and, if_false],
-    rintro hc rfl rfl,
-    exact hp hc }
+  simp_rw [any_char],
+  split_ifs with h;
+  simp [h, eq_comm]
 end
 
-omit hn
+lemma sat_eq_done {p : char → Prop} [decidable_pred p] : sat p cb n = done n' c ↔
+  ∃ (hn : n < cb.size), p c ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+begin
+  by_cases hn : n < cb.size,
+  { by_cases hp : p (cb.read ⟨n, hn⟩),
+    { simp only [sat, hn, hp, dif_pos, if_true, exists_prop_of_true],
+      split,
+      { rintro ⟨rfl, rfl⟩, simp [hp] },
+      { rintro ⟨-, rfl, rfl⟩, simp } },
+    { simp only [sat, hn, hp, dif_pos, false_iff, not_and, exists_prop_of_true, if_false],
+      rintro H - rfl,
+      exact hp H } },
+  { simp [sat, hn] },
+end
+
 lemma eps_eq_done : eps cb n = done n' () ↔ n = n' := by simp [eps, pure_eq_done]
 
-include hn
-
-lemma ch_eq_done : ch c cb n = done n' () ↔ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
-by simp [ch, hn, eps_eq_done, sat_eq_done, and.comm, @eq_comm _ n']
+lemma ch_eq_done : ch c cb n = done n' () ↔ ∃ (hn : n < cb.size), n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+by simp [ch, eps_eq_done, sat_eq_done, and.comm, @eq_comm _ n']
 
 -- TODO: add char_buf_eq_done, and str_eq_done, needs lemmas about matching buffers
 
 lemma one_of_eq_done {cs : list char} : one_of cs cb n = done n' c ↔
-  c ∈ cs ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
-by simp [one_of, hn, sat_eq_done]
+  ∃ (hn : n < cb.size), c ∈ cs ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+by simp [one_of, sat_eq_done]
 
 lemma one_of'_eq_done {cs : list char} : one_of' cs cb n = done n' () ↔
-  cb.read ⟨n, hn⟩ ∈ cs ∧ n' = n + 1 :=
+  ∃ (hn : n < cb.size), cb.read ⟨n, hn⟩ ∈ cs ∧ n' = n + 1 :=
 begin
-  have : ∀ {x : char} {p : Prop},
-    (∃ (z : char), z ∈ cs ∧ p ∧ x = z) ↔ x ∈ cs ∧ p,
-    { intros x p,
-      exact ⟨λ ⟨z, hz, hp, rfl⟩, ⟨hz, hp⟩, λ ⟨hx, hp⟩, ⟨x, hx, hp, rfl⟩⟩ },
-  simp [one_of', hn, one_of_eq_done, sat_eq_done, eps_eq_done, this]
+  simp only [one_of', one_of_eq_done, eps_eq_done, and.comm, and_then_eq_bind, bind_eq_done,
+             exists_eq_left, exists_and_distrib_left],
+  split,
+  { rintro ⟨c, hc, rfl, hn, rfl⟩,
+    exact ⟨rfl, hn, hc⟩ },
+  { rintro ⟨rfl, hn, hc⟩,
+    exact ⟨cb.read ⟨n, hn⟩, hc, rfl, hn, rfl⟩ }
 end
 
-omit hn
 lemma remaining_eq_done {r : ℕ} : remaining cb n = done n' r ↔ n = n' ∧ cb.size - n = r :=
 by simp [remaining]
 
@@ -790,20 +794,22 @@ lemma fix_core_eq_done {F : parser α → parser α} {max_depth : ℕ} :
   fix_core F (max_depth + 1) cb n = done n' a ↔ F (fix_core F max_depth) cb n = done n' a :=
 by simp [fix_core]
 
-include hn
-
-lemma digit_eq_done {k : ℕ} : digit cb n = done n' k ↔ n' = n + 1 ∧ k ≤ 9 ∧
+lemma digit_eq_done {k : ℕ} : digit cb n = done n' k ↔ ∃ (hn : n < cb.size), n' = n + 1 ∧ k ≤ 9 ∧
   (cb.read ⟨n, hn⟩).to_nat - '0'.to_nat = k ∧ '0' ≤ cb.read ⟨n, hn⟩ ∧ cb.read ⟨n, hn⟩ ≤ '9' :=
 begin
   have c9 : '9'.to_nat - '0'.to_nat = 9 := rfl,
   have l09 : '0'.to_nat ≤ '9'.to_nat := dec_trivial,
   have le_iff_le : ∀ {c c' : char}, c ≤ c' ↔ c.to_nat ≤ c'.to_nat := λ _ _, iff.rfl,
-  simp only [digit, pure_eq_done, sat_eq_done, hn, and.left_comm, exists_eq_left, bind_eq_done,
-             and.congr_right_iff, @eq_comm _ n', decorate_error_eq_done, and.comm,
-             exists_and_distrib_left],
-  simp only [←and.assoc, exists_eq_right', le_iff_le, and.congr_left_iff, ←c9],
-  rintro hn rfl hl,
-  simp [l09, nat.sub_le_sub_right_iff, hl],
+  split,
+  { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9],
+    rintro ⟨np, c, ⟨hn, ⟨ge0, le9⟩, rfl, rfl⟩, rfl, rfl⟩,
+    simpa [hn, ge0, le9, true_and, and_true, eq_self_iff_true, exists_prop_of_true,
+            nat.sub_le_sub_right_iff, l09] using (le_iff_le.mp le9) },
+  { simp only [digit, sat_eq_done, pure_eq_done, decorate_error_eq_done, bind_eq_done, ←c9,
+               le_iff_le],
+    rintro ⟨hn, rfl, -, rfl, ge0, le9⟩,
+    use [n + 1, cb.read ⟨n, hn⟩],
+    simp [hn, ge0, le9] }
 end
 
 end done

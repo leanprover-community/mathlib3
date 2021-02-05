@@ -330,9 +330,8 @@ begin
     exact hkx }
 end
 
-lemma upper_two_block_triangular_det (A  : matrix m m R) (B  : matrix m n R) (C  : matrix n m R)
-  (D  : matrix n n R) (hz : C = 0) :
-  (matrix.from_blocks A B C D).det = A.det * D.det :=
+lemma upper_two_block_triangular_det (A  : matrix m m R) (B  : matrix m n R) (D  : matrix n n R) :
+  (matrix.from_blocks A B 0 D).det = A.det * D.det :=
 begin
   unfold det,
   rw sum_mul_sum,
@@ -401,7 +400,7 @@ begin
     { have hn := (not_exists.mp ha) a2,
       exact absurd hx.symm hn },
     { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],
-      rw [hx, from_blocks_apply₂₁, hz], refl }}
+      rw [hx, from_blocks_apply₂₁], refl }}
 end
 
 lemma index_equiv_det (f : equiv m n) (N : matrix n n R)
@@ -445,7 +444,7 @@ lemma upper_two_block_triangular_det' (M : matrix m m R) (p : m → Prop) [decid
 begin
   rw to_block_matrix_det M p,
   convert upper_two_block_triangular_det (to_block M p p) (to_block M p (λ j, ¬p j))
-    (to_block M (λ j, ¬p j) p) (to_block M (λ j, ¬p j) (λ j, ¬p j)) _,
+    (to_block M (λ j, ¬p j) (λ j, ¬p j)),
   ext,
   exact h ↑i i.2 ↑j j.2
 end

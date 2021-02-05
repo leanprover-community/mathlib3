@@ -55,6 +55,9 @@ instance : mul_action (units K) (nonzero V) :=
 lemma ne_zero_of_smul_eq {v : V} {w : nonzero V} {a : K} : a • v = w → a ≠ 0 :=
 λ h c, coe_nonzero w $ by simp [← h, c]
 
+lemma eq_smul_inv_of_smul_eq {v : V} {w : nonzero V} { a : K } : a • v = w → v = a⁻¹ • w :=
+λ h, by simp [← h, ← mul_smul, inv_mul_cancel (ne_zero_of_smul_eq h)]
+
 lemma is_unit_of_smul_eq {v : V} {w : nonzero V} {a : K} : a • v = w → is_unit a :=
 λ h, is_unit_iff_ne_zero.mpr $ ne_zero_of_smul_eq h
 
@@ -154,12 +157,9 @@ def to_subspace : proj_space K V → subspace K V := λ x,
     have : v ∈ (mk v2 : proj_space K V), by {rw mem_mk_iff, refine ⟨a2,ha2⟩},
     rw [← ha3, mem_mk_iff] at this,
     rcases this with ⟨b,hb⟩,
-    have ha1' : a1 ≠ 0 := nonzero.ne_zero_of_smul_eq ha1,
-    have hb' : b ≠ 0 := nonzero.ne_zero_of_smul_eq hb,
-    apply_fun (λ t, b⁻¹ • t) at hb,
-    simp [← mul_smul, inv_mul_cancel hb'] at hb,
-    apply_fun (λ t, a1⁻¹ • t) at ha1,
-    simp [← mul_smul, inv_mul_cancel ha1'] at ha1,
+    replace ha1 := nonzero.eq_smul_inv_of_smul_eq ha1,
+    replace ha2 := nonzero.eq_smul_inv_of_smul_eq ha2,
+    replace hb := nonzero.eq_smul_inv_of_smul_eq hb,
     rw [hb, ha1, ← add_smul],
     by_cases h : a1⁻¹ + b⁻¹ = 0,
     { left,
@@ -202,9 +202,58 @@ instance : has_bot (linear_subspace K V) := has_bot.mk $
 def to_subspace : linear_subspace K V → subspace K V :=
 λ X, ⨆ (x : X), (x : proj_space K V).to_subspace
 
+lemma to_subspace_mk_eq {v : nonzero V} : (proj_space.mk v : proj_space K V).to_subspace = K ∙ (v : V) :=
+begin
+  ext,
+  split,
+  { rintro (h|h),
+    { simp [h] },
+    rw mem_mk_iff at h,
+    rcases h with ⟨a,ha⟩,
+    replace ha := nonzero.eq_smul_inv_of_smul_eq ha,
+    rw ha,
+    exact (K ∙ (v : V)).smul_mem _ (submodule.subset_span rfl) },
+  { intro h,
+    rw submodule.mem_span_singleton at h,
+    rcases h with ⟨a,rfl⟩,
+    by_cases hx : a = 0,
+    { left, simp [hx] },
+    right,
+    rw mem_mk_iff,
+    refine ⟨a⁻¹, _⟩,
+    rw [← mul_smul, inv_mul_cancel hx, one_smul] }
+end
+
+lemma to_subspace_mk_le_iff {v : nonzero V} (M : subspace K V) :
+  (proj_space.mk v : proj_space K V).to_subspace ≤ M ↔ (v : V) ∈ M :=
+by {rw [to_subspace_mk_eq, submodule.span_le], finish}
+
 def of_subspace : subspace K V → linear_subspace K V := λ W,
 { carrier := {x | x.to_subspace ≤ W},
-  add_mem' := sorry }
+  add_mem' := begin
+    intros u v a b c ha hb hc haW hbW,
+    rcases a.exists_rep with ⟨a,rfl⟩,
+    rcases b.exists_rep with ⟨b,rfl⟩,
+    rcases c.exists_rep with ⟨c,rfl⟩,
+    rw mem_mk_iff at *,
+    rcases ha with ⟨a',ha⟩,
+    rcases hb with ⟨b',hb⟩,
+    rcases hc with ⟨c',hc⟩,
+    change _ ≤ _,
+    change _ ≤ _ at haW,
+    change _ ≤ _ at hbW,
+    rw to_subspace_mk_le_iff at *,
+    rw [← hc, smul_add],
+    apply W.add_mem,
+    { apply W.smul_mem,
+      replace ha := nonzero.eq_smul_inv_of_smul_eq ha,
+      rw ha,
+      exact W.smul_mem _ haW },
+    { apply W.smul_mem,
+      replace hb := nonzero.eq_smul_inv_of_smul_eq hb,
+      rw hb,
+      exact W.smul_mem _ hbW }
+  end }
 
 def equiv_subspace : linear_subspace K V ≃ subspace K V :=
 { to_fun := to_subspace,

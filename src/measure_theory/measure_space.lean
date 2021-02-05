@@ -293,6 +293,10 @@ compl_mem_ae_iff.symm
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀ a, p a) → ∀ᵐ a ∂ μ, p a :=
 eventually_of_forall
 
+instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
+  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
+
 instance : countable_Inter_filter μ.ae :=
 ⟨begin
   intros S hSc hS,
@@ -300,10 +304,6 @@ instance : countable_Inter_filter μ.ae :=
   haveI := hSc.to_encodable,
   exact measure_Union_null (subtype.forall.2 hS)
 end⟩
-
-instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
-⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
-  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
 lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
   (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
@@ -340,6 +340,19 @@ by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
+
+/-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
+lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
+calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
+     ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
+     ... ≤ μ t + μ (s \ t) : measure_union_le _ _
+     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
+
+alias measure_mono_ae ← filter.eventually_le.measure_le
+
+/-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
+lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
+le_antisymm H.le.measure_le H.symm.le.measure_le
 
 lemma measure_Union [encodable β] {f : β → set α}
   (hn : pairwise (disjoint on f)) (h : ∀ i, measurable_set (f i)) :
@@ -1428,19 +1441,6 @@ lemma ae_eq_dirac' [measurable_singleton_class β] {a : α} {f : α → β} (hf 
 lemma ae_eq_dirac [measurable_singleton_class α] {a : α} (f : α → δ) :
   f =ᵐ[dirac a] const α (f a) :=
 by simp [filter.eventually_eq]
-
-/-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
-lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
-calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
-     ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
-     ... ≤ μ t + μ (s \ t) : measure_union_le _ _
-     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
-
-alias measure_mono_ae ← filter.eventually_le.measure_le
-
-/-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
-lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
-le_antisymm H.le.measure_le H.symm.le.measure_le
 
 lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
 begin

@@ -110,7 +110,8 @@ by {rintros v w ⟨a,rfl⟩, refine quotient.sound ⟨a,nonzero.ext $ by simp⟩
 instance : has_mem V (proj_space K V) := has_mem.mk $
 λ v w, ∃ (u : nonzero V) (a : K), a • v = u ∧ w = mk u
 
-lemma mem_def {v : V} {w : proj_space K V} : v ∈ w ↔ ∃ (u : nonzero V) (a : K), a • v = u ∧ w = mk u := iff.rfl
+lemma mem_def {v : V} {w : proj_space K V} :
+  v ∈ w ↔ ∃ (u : nonzero V) (a : K), a • v = u ∧ w = mk u := iff.rfl
 
 lemma ne_zero_of_mem {v : V} {w : proj_space K V} : v ∈ w → v ≠ 0 :=
 begin
@@ -129,7 +130,8 @@ begin
   simpa [mul_smul b, ← mul_smul a⁻¹, inv_mul_cancel ha],
 end
 
-lemma mem_mk_iff {v : V} {w : nonzero V} : v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
+lemma mem_mk_iff {v : V} {w : nonzero V} :
+  v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
 begin
   rw mem_def,
   split,
@@ -143,6 +145,7 @@ begin
     exact ⟨w, a, h, rfl⟩ },
 end
 
+/-- Construct a subspace out of an element in projective space. -/
 def to_subspace : proj_space K V → subspace K V := λ x,
 { carrier := {v | v = 0 ∨ v ∈ x},
   zero_mem' := or.inl rfl,
@@ -190,7 +193,8 @@ namespace linear_subspace
 
 instance : has_coe (linear_subspace K V) (set (proj_space K V)) := ⟨linear_subspace.carrier⟩
 
-instance : has_mem (proj_space K V) (linear_subspace K V) := ⟨λ x X, x ∈ (X : set (proj_space K V))⟩
+instance : has_mem (proj_space K V) (linear_subspace K V) :=
+⟨λ x X, x ∈ (X : set (proj_space K V))⟩
 
 lemma add_mem (X : linear_subspace K V) {u v : V} {a b c : proj_space K V} :
   u ∈ a → v ∈ b → (u + v) ∈ c → a ∈ X → b ∈ X → c ∈ X := linear_subspace.add_mem' _
@@ -199,10 +203,14 @@ instance : has_bot (linear_subspace K V) := has_bot.mk $
 { carrier := ⊥,
   add_mem' := by tauto }
 
+instance : inhabited (linear_subspace K V) := ⟨⊥⟩
+
+/-- Construct a subspace out of a linear subspace. -/
 def to_subspace : linear_subspace K V → subspace K V :=
 λ X, ⨆ (x : X), (x : proj_space K V).to_subspace
 
-lemma to_subspace_mk_eq {v : nonzero V} : (proj_space.mk v : proj_space K V).to_subspace = K ∙ (v : V) :=
+lemma to_subspace_mk_eq {v : nonzero V} : (proj_space.mk v :
+  proj_space K V).to_subspace = K ∙ (v : V) :=
 begin
   ext,
   split,
@@ -228,6 +236,7 @@ lemma to_subspace_mk_le_iff {v : nonzero V} (M : subspace K V) :
   (proj_space.mk v : proj_space K V).to_subspace ≤ M ↔ (v : V) ∈ M :=
 by {rw [to_subspace_mk_eq, submodule.span_le], finish}
 
+/-- Construct a linear_subspace out of a subspace. -/
 def of_subspace : subspace K V → linear_subspace K V := λ W,
 { carrier := {x | x.to_subspace ≤ W},
   add_mem' := begin
@@ -255,6 +264,7 @@ def of_subspace : subspace K V → linear_subspace K V := λ W,
       exact W.smul_mem _ hbW }
   end }
 
+/-- The equivalence between subspaces of `V` and linear subspaces of `proj_space K V`.-/
 def equiv_subspace : linear_subspace K V ≃ subspace K V :=
 { to_fun := to_subspace,
   inv_fun := of_subspace,

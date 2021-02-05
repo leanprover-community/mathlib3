@@ -194,7 +194,7 @@ begin
   exact div_pos h (norm_sq_pos.mpr (bottom_nonzero h)),
 end
 
-@[simp] lemma expand_sum_01 (f : fin 2 → ℂ ) :
+@[simp] lemma expand_sum_01 {R : Type*} [ring R] (f : fin 2 → R ) :
 (∑ (x : fin 2), f x) = f 0 + f 1 :=
 calc (∑ (x : fin 2), f x) = _ + _ : by {refl}
   ... = f 0 + f 1 : by {simp}
@@ -367,9 +367,69 @@ end
 
 lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n := by {simp [inv_gpow, gpow_neg]}
 
+
+lemma T_pow_ℕ {n : ℕ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
+begin
+  induction n with n hn,
+  simp,
+  have : T ^ n.succ = (T^n)* T,
+  {
+    exact pow_succ' T n,
+  },
+  rw this,
+  rw hn,
+  rw T,
+  simp,
+  refine ⟨ _ , _, _ , _ ⟩; rw matrix.mul; simp; rw dot_product; unfold_coes; simp [vec_head],
+  ring,
+end
+
+lemma T_inv_pow_ℕ {n : ℕ} : (T⁻¹)^n = { val := ![![1, -n], ![0, 1]], property := by simp [det2] } :=
+begin
+  induction n with n hn,
+  simp,
+  have : (T⁻¹) ^ n.succ = ((T⁻¹)^n)* (T⁻¹),
+  {
+    exact pow_succ' (T⁻¹) n,
+  },
+  rw this,
+  rw hn,
+  rw T_inv,
+  simp,
+  refine ⟨ _ , _, _ , _ ⟩; rw matrix.mul; simp; rw dot_product; unfold_coes; simp [vec_head],
+end
+
+lemma something (k:ℕ) : T ^ (k:ℤ ) = T ^ k :=
+begin
+    exact gpow_coe_nat T k,
+end
+
 lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
 begin
-  sorry
+  by_cases n_ge_0 : 0 ≤ n,
+  lift n to ℕ with n_ge_0,
+  refine T_pow_ℕ,
+  exact n_ge_0,
+  have : T ^ n = T ^ (- (-n)) := by simp,
+  rw this,
+  rw T_n_def,
+  generalize' hk : -n=k,
+  have k_ge_0 : 0 ≤ k,
+  {
+    -- Alex homework
+    --rw [← hk], exact neg_nonneg.mpr n_ge_0
+    sorry,
+  },
+  have : n = -k,
+  {
+    -- Alex homework
+    sorry,
+  },
+  rw this,
+  lift k to ℕ using k_ge_0,
+  rw gpow_coe_nat,
+  norm_cast,
+  rw T_inv_pow_ℕ,
 end
 
 lemma T_action {z : H} : (T • z).1 = z + 1 :=
@@ -383,7 +443,13 @@ end
 
 lemma Tn_action {z : H} {n : ℤ} : (T^n • z).1 = z + n :=
 begin
-  sorry
+  have := @smul_sound (T^n) z,
+  convert this,
+  rw smul_aux,
+  rw T_pow,
+  rw top,
+  rw bottom,
+  simp,
 end
 
 lemma S_action (z : H) : (S • z).1 = -z⁻¹ :=
@@ -472,9 +538,11 @@ begin
   },
   {
     simp at M_nonneg,
---    let s:= (finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1)) × (finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1)),
+    let s1 := finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1),
+    let s2 := finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1),
+    let s : finset (ℤ × ℤ ):= s1.product s2,
 
---   making a product set not working????
+--   AK homework!
 
     sorry,
   },
@@ -541,11 +609,25 @@ begin
     let dd : ℤ  := (g'.val 1 1),
     have : euclidean_domain.gcd (g'.val 1 0) (g'.val 1 1) = euclidean_domain.gcd cc dd,
     {
+      -- Heather homework
       sorry,
     },
---    rw this,
 
---    refine gcd_eq_one_iff_coprime'.2 _,
+    convert this,
+    symmetry,
+    have : euclidean_domain.gcd cc dd = gcd cc dd,
+    {
+      --library_search,
+      sorry,
+    },
+    rw this,
+    rw gcd_eq_one_iff_coprime',
+    use [(- (g'.val 0 1)) , ((g'.val 0 0))],
+
+    -- Alex homework
+
+
+--
     sorry,
   },
   convert hcd' ⟨ (g'.val 1 0 , g'.val 1 1) , this ⟩ ,
@@ -606,16 +688,19 @@ end
 
 lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
 begin
+  --- Alex homework
   sorry
 end
 
 lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=
 begin
+  -- Alex homework
   sorry
 end
 
 lemma im_Tn_z {z : H} {n : ℤ} : (T^n • z).val.im = z.val.im :=
 begin
+  -- Alex homework
   sorry
 end
 
@@ -746,6 +831,27 @@ begin
   exact h,
 end
 
+lemma namedIs (c :ℕ ) (h: c≤ 1) :  c=0 ∨ c=1 :=
+begin
+  cases nat.of_le_succ h,
+  {
+    left,
+    exact le_zero_iff.mp h_1,
+  },
+  right,
+  exact h_1,
+end
+
+lemma namedIsZ (c :ℤ  ) (h: c≤ 1) (h2: 0≤ c) :  c=0 ∨ c=1 :=
+begin
+  --lift n to ℕ using hn
+  lift c to ℕ using h2,
+  norm_cast,
+  refine namedIs _ _ ,
+  exact_mod_cast h,
+end
+
+
 lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :
   (z = z') ∨
   (z.val.re = -1/2 ∧ z' = T • z) ∨
@@ -782,7 +888,9 @@ begin
     },
     replace hc : c = 0 ∨ c = 1,
     {
-      sorry
+
+      rw abs_le at hc,
+      exact namedIsZ c hc.2 hcpos,
     },
     rcases hc with  hc | hc ,
     { -- case c = 0

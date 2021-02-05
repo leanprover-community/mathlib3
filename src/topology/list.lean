@@ -84,7 +84,8 @@ continuous_iff_continuous_at.mpr $ λ ⟨x, y⟩, continuous_at_fst.cons continu
 
 lemma tendsto_nhds {β : Type*} {f : list α → β} {r : list α → _root_.filter β}
   (h_nil : tendsto f (pure []) (r []))
-  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) → tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
+  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) →
+    tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
   ∀l, tendsto f (𝓝 l) (r l)
 | []     := by rwa [nhds_nil]
 | (a::l) := by rw [tendsto_cons_iff]; exact h_cons l a (tendsto_nhds l)

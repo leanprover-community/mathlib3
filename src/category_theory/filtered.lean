@@ -216,7 +216,7 @@ begin
   classical,
   let O := (finset.univ.image F.obj),
   let H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
-    finset.univ.bind (λ X : J, finset.univ.bind (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
+    finset.univ.bUnion (λ X : J, finset.univ.bUnion (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
       ⟨F.obj X, F.obj Y, by simp, by simp, F.map f⟩))),
   obtain ⟨Z, f, w⟩ := sup_exists O H,
   refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
@@ -224,7 +224,7 @@ begin
   dsimp,
   simp only [category.comp_id],
   apply w,
-  simp only [finset.mem_univ, finset.mem_bind, exists_and_distrib_left,
+  simp only [finset.mem_univ, finset.mem_bUnion, exists_and_distrib_left,
     exists_prop_of_true, finset.mem_image],
   exact ⟨j, rfl, j', g, (by simp)⟩,
 end

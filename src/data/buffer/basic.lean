@@ -91,17 +91,18 @@ begin
   { simp [append_list, hl, add_comm, add_assoc] }
 end
 
-@[simp] lemma size_singleton (c : char) : [c].to_buffer.size = 1 := dec_trivial
-
-@[simp] lemma size_to_buffer (l : list char) : l.to_buffer.size = l.length :=
+@[simp] lemma size_to_buffer (l : list α) : l.to_buffer.size = l.length :=
 begin
   induction l with hd tl hl,
   { simpa },
   { rw [to_buffer_cons],
-    simp [add_comm] },
+    have : [hd].to_buffer.size = 1 := rfl,
+    simp [add_comm, this] }
 end
 
-@[simp] lemma read_push_back_left (b : buffer α) (a : α) {i : ℕ} (h : i < b.size) :
+lemma size_singleton (a : α) : [a].to_buffer.size = 1 := rfl
+
+lemma read_push_back_left (b : buffer α) (a : α) {i : ℕ} (h : i < b.size) :
   (b.push_back a).read ⟨i, by { convert nat.lt_succ_of_lt h, simp }⟩ = b.read ⟨i, h⟩ :=
 by { cases b, convert array.read_push_back_left _, simp }
 
@@ -119,10 +120,10 @@ begin
     have hb' : i < (b.push_back hd).size := by { convert nat.lt_succ_of_lt h', simp },
     have : (append_list b (hd :: tl)).read ⟨i, h⟩ =
       read ((push_back b hd).append_list tl) ⟨i, hb⟩ := rfl,
-    simp [this, hl _ hb hb', h'] }
+    simp [this, hl _ hb hb', read_push_back_left _ _ h'] }
 end
 
-@[simp] lemma read_append_list_left (b : buffer α) (l : list α) {i : ℕ} (h : i < b.size) :
+lemma read_append_list_left (b : buffer α) (l : list α) {i : ℕ} (h : i < b.size) :
   (b.append_list l).read ⟨i, by simpa using nat.lt_add_right _ _ _ h⟩ = b.read ⟨i, h⟩ :=
 read_append_list_left' b l _ h
 
@@ -135,19 +136,19 @@ begin
     cases i,
     { convert read_append_list_left _ _ _;
       simp },
-    { simp [nat.succ_lt_succ_iff] at h,
+    { rw [list.length, nat.succ_lt_succ_iff] at h,
       have : b.size + i.succ = (b.push_back hd).size + i,
         { simp [add_comm, add_left_comm, nat.succ_eq_add_one] },
       convert hl (b.push_back hd) h } }
 end
 
-lemma read_to_buffer' (l : list char) {i : ℕ} (h : i < l.to_buffer.size) (h' : i < l.length) :
+lemma read_to_buffer' (l : list α) {i : ℕ} (h : i < l.to_buffer.size) (h' : i < l.length) :
   l.to_buffer.read ⟨i, h⟩ = l.nth_le i h' :=
 begin
   cases l with hd tl,
   { simpa using h' },
   { have hi : i < ([hd].to_buffer.append_list tl).size := by simpa [add_comm] using h,
-    rw [read_eq_read', to_buffer_cons, ←read_eq_read' _ _ hi],
+    convert_to ([hd].to_buffer.append_list tl).read ⟨i, hi⟩ = _,
     cases i,
     { convert read_append_list_left _ _ _,
       simp },
@@ -155,11 +156,11 @@ begin
       simp [nat.succ_eq_add_one, add_comm] } }
 end
 
-@[simp] lemma read_to_buffer (l : list char) (i) :
+@[simp] lemma read_to_buffer (l : list α) (i) :
   l.to_buffer.read i = l.nth_le i (by { convert i.property, simp }) :=
 by { convert read_to_buffer' _ _ _, { simp }, { simpa using i.property } }
 
-lemma read_singleton (c : char) : [c].to_buffer.read ⟨0, by simp⟩ = c :=
+lemma read_singleton (c : α) : [c].to_buffer.read ⟨0, by simp⟩ = c :=
 by simp
 
 /-- The natural equivalence between lists and buffers, using

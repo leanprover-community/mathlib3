@@ -57,7 +57,7 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators ennreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -196,7 +196,7 @@ h.mono_measure $ measure.le_add_left $ le_refl _
   has_finite_integral f (μ + ν) ↔ has_finite_integral f μ ∧ has_finite_integral f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
-lemma has_finite_integral.smul_measure {f : α → β} (h : has_finite_integral f μ) {c : ennreal}
+lemma has_finite_integral.smul_measure {f : α → β} (h : has_finite_integral f μ) {c : ℝ≥0∞}
   (hc : c < ⊤) : has_finite_integral f (c • μ) :=
 begin
   simp only [has_finite_integral, lintegral_smul_measure] at *,
@@ -221,7 +221,7 @@ by simpa [has_finite_integral] using hfi
 
 lemma has_finite_integral.norm {f : α → β} (hfi : has_finite_integral f μ) :
   has_finite_integral (λa, ∥f a∥) μ :=
-have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
+have eq : (λa, (nnnorm ∥f a∥ : ℝ≥0∞)) = λa, (nnnorm (f a) : ℝ≥0∞),
   by { funext, rw nnnorm_norm },
 by { rwa [has_finite_integral, eq] }
 
@@ -439,7 +439,7 @@ h.mono_measure $ measure.le_add_left $ le_refl _
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
-lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
+lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c < ⊤) :
   integrable f (c • μ) :=
 ⟨h.ae_measurable.smul_measure c, h.has_finite_integral.smul_measure hc⟩
 
@@ -568,7 +568,7 @@ begin
   simp_rw [integrable, ae_measurable_smul_const hc, and.congr_right_iff, has_finite_integral,
     nnnorm_smul, ennreal.coe_mul],
   intro hf, rw [lintegral_mul_const' _ _ ennreal.coe_ne_top, ennreal.mul_lt_top_iff],
-  have : ∀ x : ennreal, x = 0 → x < ⊤ := by simp,
+  have : ∀ x : ℝ≥0∞, x = 0 → x < ⊤ := by simp,
   simp [hc, or_iff_left_of_imp (this _)]
 end
 end normed_space_over_complete_field
@@ -672,7 +672,7 @@ by { simp [Lp.norm_def, snorm, snorm'] }
   special case of `norm_def` since `(f - g) x` and `f x - g x` are not equal
   (but only a.e.-equal). -/
 lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
-  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ).to_real :=
+  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ℝ≥0∞) ∂μ).to_real :=
 begin
   rw [norm_def],
   congr' 1,
@@ -683,7 +683,7 @@ begin
 end
 
 lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
-  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ennreal) ∂μ :=
+  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ℝ≥0∞) ∂μ :=
 by { rw [norm_def, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
   exact has_finite_integral_coe_fn f }
 
@@ -691,7 +691,7 @@ by { rw [norm_def, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
   special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
   (but only a.e.-equal). -/
 lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
-  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ :=
+  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ℝ≥0∞) ∂μ :=
 begin
   simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],
   apply lintegral_congr_ae,

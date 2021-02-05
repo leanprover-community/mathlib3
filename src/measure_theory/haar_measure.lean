@@ -54,7 +54,7 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical
+open_locale nnreal classical ennreal
 
 variables {G : Type*} [group G]
 
@@ -190,7 +190,7 @@ begin
   refine le_trans (add_le_add (this K₁.1 $ subset.trans (subset_union_left _ _) h1s)
     (this K₂.1 $ subset.trans (subset_union_right _ _) h1s)) _,
   rw [← finset.card_union_eq, finset.filter_union_right],
-  { apply finset.card_le_of_subset, apply finset.filter_subset },
+  exact s.card_filter_le _,
   apply finset.disjoint_filter.mpr,
   rintro g₁ h1g₁ ⟨g₂, h1g₂, h2g₂⟩ ⟨g₃, h1g₃, h2g₃⟩,
   simp only [mem_preimage] at h1g₃ h1g₂,
@@ -412,8 +412,8 @@ begin
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
 end
 
-/-- The function `chaar` interpreted in `ennreal` -/
-@[reducible] def echaar (K₀ : positive_compacts G) (K : compacts G) : ennreal :=
+/-- The function `chaar` interpreted in `ℝ≥0∞` -/
+@[reducible] def echaar (K₀ : positive_compacts G) (K : compacts G) : ℝ≥0∞ :=
 show nnreal, from ⟨chaar K₀ K, chaar_nonneg _ _⟩
 
 /-! We only prove the properties for `echaar` that we use at least twice below. -/
@@ -480,7 +480,7 @@ lemma haar_outer_measure_exists_compact {K₀ : positive_compacts G} {U : opens 
 outer_measure.of_content_exists_compact echaar_sup_le hU hε
 
 lemma haar_outer_measure_caratheodory {K₀ : positive_compacts G} (A : set G) :
-  (haar_outer_measure K₀).caratheodory.is_measurable' A ↔ ∀ (U : opens G),
+  (haar_outer_measure K₀).caratheodory.measurable_set' A ↔ ∀ (U : opens G),
   haar_outer_measure K₀ (U ∩ A) + haar_outer_measure K₀ (U \ A) ≤ haar_outer_measure K₀ U :=
 outer_measure.of_content_caratheodory echaar_sup_le A
 
@@ -545,7 +545,7 @@ def haar_measure (K₀ : positive_compacts G) : measure G :=
 (haar_outer_measure K₀ K₀.1)⁻¹ •
   (haar_outer_measure K₀).to_measure (haar_caratheodory_measurable K₀)
 
-lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : is_measurable s) :
+lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : measurable_set s) :
   haar_measure K₀ s = haar_outer_measure K₀ s / haar_outer_measure K₀ K₀.1 :=
 by { simp only [haar_measure, hs, div_eq_mul_inv, mul_comm, to_measure_apply,
       algebra.id.smul_eq_mul, pi.smul_apply, measure.coe_smul] }
@@ -562,7 +562,7 @@ end
 lemma haar_measure_self [locally_compact_space G] {K₀ : positive_compacts G} :
   haar_measure K₀ K₀.1 = 1 :=
 begin
-  rw [haar_measure_apply K₀.2.1.is_measurable, ennreal.div_self],
+  rw [haar_measure_apply K₀.2.1.measurable_set, ennreal.div_self],
   { rw [← pos_iff_ne_zero], exact haar_outer_measure_self_pos },
   { exact ne_of_lt (haar_outer_measure_lt_top_of_is_compact K₀.2.1) }
 end
@@ -570,7 +570,7 @@ end
 lemma haar_measure_pos_of_is_open [locally_compact_space G] {K₀ : positive_compacts G}
   {U : set G} (hU : is_open U) (h2U : U.nonempty) : 0 < haar_measure K₀ U :=
 begin
-  rw [haar_measure_apply hU.is_measurable, ennreal.div_pos_iff],
+  rw [haar_measure_apply hU.measurable_set, ennreal.div_pos_iff],
   refine ⟨_, ne_of_lt $ haar_outer_measure_lt_top_of_is_compact K₀.2.1⟩,
   rw [← pos_iff_ne_zero], apply haar_outer_measure_pos_of_is_open hU h2U
 end
@@ -579,15 +579,15 @@ lemma regular_haar_measure [locally_compact_space G] {K₀ : positive_compacts G
   (haar_measure K₀).regular :=
 begin
   apply measure.regular.smul, split,
-  { intros K hK, rw [to_measure_apply _ _ hK.is_measurable],
+  { intros K hK, rw [to_measure_apply _ _ hK.measurable_set],
     apply haar_outer_measure_lt_top_of_is_compact hK },
   { intros A hA, rw [to_measure_apply _ _ hA, haar_outer_measure_eq_infi],
     refine binfi_le_binfi _, intros U hU, refine infi_le_infi _, intro h2U,
-    rw [to_measure_apply _ _ hU.is_measurable, haar_outer_measure_of_is_open U hU], refl' },
-  { intros U hU, rw [to_measure_apply _ _ hU.is_measurable, haar_outer_measure_of_is_open U hU],
+    rw [to_measure_apply _ _ hU.measurable_set, haar_outer_measure_of_is_open U hU], refl' },
+  { intros U hU, rw [to_measure_apply _ _ hU.measurable_set, haar_outer_measure_of_is_open U hU],
     dsimp only [inner_content], refine bsupr_le (λ K hK, _),
     refine le_supr_of_le K.1 _, refine le_supr_of_le K.2 _, refine le_supr_of_le hK _,
-    rw [to_measure_apply _ _ K.2.is_measurable], apply echaar_le_haar_outer_measure },
+    rw [to_measure_apply _ _ K.2.measurable_set], apply echaar_le_haar_outer_measure },
   { rw ennreal.inv_lt_top, apply haar_outer_measure_self_pos }
 end
 

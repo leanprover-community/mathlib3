@@ -409,7 +409,8 @@ theorem surjective_algebra_map_iff :
 ⟨λ h, eq_bot_iff.2 $ λ y _, let ⟨x, hx⟩ := h y in hx ▸ subalgebra.algebra_map_mem _ _,
 λ h y, algebra.mem_bot.1 $ eq_bot_iff.1 h (algebra.mem_top : y ∈ _)⟩
 
-theorem bijective_algebra_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A] [algebra R A] :
+theorem bijective_algebra_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A]
+  [algebra R A] :
   function.bijective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
 ⟨λ h, surjective_algebra_map_iff.1 h.2,
 λ h, ⟨(algebra_map R A).injective, surjective_algebra_map_iff.2 h⟩⟩

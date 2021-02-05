@@ -274,7 +274,7 @@ instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, 
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
 theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
-by { intros f g H, cases f, cases g, congr' 1, exact H }
+by { intros f g H, cases f, cases g, congr' }
 
 theorem injective_coe_fn : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
 linear_map.coe_injective.comp coe_injective
@@ -802,6 +802,8 @@ end
 /-- A continuous linear equivalence induces a homeomorphism. -/
 def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 
+@[simp] lemma coe_to_homeomorph (e : M ≃L[R] M₂) : ⇑e.to_homeomorph = e := rfl
+
 -- Make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
 @[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
@@ -866,6 +868,9 @@ end
 @[simp] lemma symm_to_linear_equiv (e : M ≃L[R] M₂) :
   e.symm.to_linear_equiv = e.to_linear_equiv.symm :=
 by { ext, refl }
+
+@[simp] lemma symm_to_homeomorph (e : M ≃L[R] M₂) : e.to_homeomorph.symm = e.symm.to_homeomorph :=
+rfl
 
 /-- The composition of two continuous linear equivalences as a continuous linear equivalence. -/
 @[trans] protected def trans (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) : M ≃L[R] M₃ :=

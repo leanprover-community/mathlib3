@@ -578,10 +578,8 @@ apply_nolint vector3.nil_elim doc_blame
 apply_nolint vector3.rec_on doc_blame
 
 -- number_theory/pell.lean
-apply_nolint pell.az doc_blame unused_arguments
+apply_nolint pell.az unused_arguments
 apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
-apply_nolint pell.xz doc_blame
-apply_nolint pell.yz doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame

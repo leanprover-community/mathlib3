@@ -168,7 +168,7 @@ begin
   simp only [ mem_range, path.symm, has_coe_to_fun.coe, coe_fn, I_symm, set_coe.exists, comp_app,
               subtype.coe_mk, subtype.val_eq_coe ],
   split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, Icc_zero_one_symm.mp hy, _⟩; convert hxy,
-  exact sub_sub_cancel _ _
+  simp
 end
 
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/

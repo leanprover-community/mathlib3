@@ -23,8 +23,6 @@ class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 (quotient : R → R → R)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : R → R → R)
- -- This could be changed to the same order as int.mod_add_div.
- -- We normally write `qb+r` rather than `r + qb` though.
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (r : R → R → Prop)
 (r_well_founded : well_founded r)
@@ -49,6 +47,12 @@ euclidean_domain.quotient_mul_add_remainder_eq _ _
 
 lemma mod_add_div (a b : R) : a % b + b * (a / b) = a :=
 (add_comm _ _).trans (div_add_mod _ _)
+
+lemma mod_add_div' (m k : R) : m % k + (m / k) * k = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : R) : (m / k) * k + m % k = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain R] (a b : R) :
   a % b = a - b * (a / b) :=
@@ -358,7 +362,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   quotient := (/),
   quotient_zero := int.div_zero,
   remainder := (%),
-  quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
+  quotient_mul_add_remainder_eq := λ a b, int.div_add_mod _ _,
   r := λ a b, a.nat_abs < b.nat_abs,
   r_well_founded := measure_wf (λ a, int.nat_abs a),
   remainder_lt := λ a b b0, int.coe_nat_lt.1 $

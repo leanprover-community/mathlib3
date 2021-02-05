@@ -228,7 +228,7 @@ begin
     (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) = p ^ (n + 1),
   suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (comap H.normalizer.subtype H))
     (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
-  { convert this },
+  { convert this using 2 },
   rw [set.card_image_of_injective
         (subgroup.comap (mk' (comap H.normalizer.subtype H)) (gpowers x) : set (H.normalizer))
         subtype.val_injective,

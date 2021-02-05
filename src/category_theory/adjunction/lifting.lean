@@ -137,7 +137,7 @@ calc (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y)
   ... ≃ {g : U.obj X ⟶ U.obj (R.obj Y) //
           U.map (F.map g ≫ adj₁.counit.app _) = U.map (adj₁.counit.app _) ≫ g} :
             begin
-              apply (adj₂.hom_equiv _ _).subtype_congr _,
+              apply (adj₂.hom_equiv _ _).subtype_equiv _,
               intro f,
               rw [← (adj₂.hom_equiv _ _).injective.eq_iff, eq_comm, adj₂.hom_equiv_naturality_left,
                   other_map, assoc, adj₂.hom_equiv_naturality_left, ← adj₂.counit_naturality,
@@ -149,7 +149,7 @@ calc (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y)
             end
   ... ≃ {z : F.obj (U.obj X) ⟶ R.obj Y // _} :
             begin
-              apply (adj₁.hom_equiv _ _).symm.subtype_congr,
+              apply (adj₁.hom_equiv _ _).symm.subtype_equiv,
               intro g,
               rw [← (adj₁.hom_equiv _ _).symm.injective.eq_iff, adj₁.hom_equiv_counit,
                   adj₁.hom_equiv_counit, adj₁.hom_equiv_counit, F.map_comp, assoc, U.map_comp,
@@ -166,8 +166,8 @@ begin
   rw [construct_left_adjoint_equiv_apply, construct_left_adjoint_equiv_apply, function.comp_app,
       function.comp_app, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply,
       equiv.symm_apply_eq, subtype.ext_iff, cofork.is_colimit.hom_iso_natural,
-      equiv.apply_symm_apply, equiv.subtype_congr_apply, equiv.subtype_congr_apply,
-      equiv.subtype_congr_apply, equiv.subtype_congr_apply, subtype.coe_mk, subtype.coe_mk,
+      equiv.apply_symm_apply, equiv.subtype_equiv_apply, equiv.subtype_equiv_apply,
+      equiv.subtype_equiv_apply, equiv.subtype_equiv_apply, subtype.coe_mk, subtype.coe_mk,
       subtype.coe_mk, subtype.coe_mk, ← adj₁.hom_equiv_naturality_right_symm,
       cofork.is_colimit.hom_iso_natural, adj₂.hom_equiv_naturality_right, functor.comp_map],
 end

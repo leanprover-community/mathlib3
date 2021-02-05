@@ -428,9 +428,6 @@ subtype.ext_iff.symm
 @[norm_cast] protected lemma eq_iff' {f g : α →₁ₛ[μ] E} : (f : α →ₘ[μ] E) = g ↔ f = g :=
 iff.intro (simple_func.eq') (congr_arg _)
 
-local attribute [instance, priority 10000]
-local attribute [reducible] simple_func
-
 /-- L1 simple functions forms a `normed_group`, with the metric being inherited from L1 space,
   i.e., `dist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a)`).
   Not declared as an instance as `α →₁ₛ[μ] β` will only be useful in the construction of the Bochner
@@ -455,12 +452,6 @@ lemma coe_sub (f g : α →₁ₛ[μ] E) : ((f - g : α →₁ₛ[μ] E) : α �
 @[simp] lemma dist_eq (f g : α →₁ₛ[μ] E) : dist f g = dist (f : α →₁[μ] E) (g : α →₁[μ] E) := rfl
 
 lemma norm_eq (f : α →₁ₛ[μ] E) : ∥f∥ = ∥(f : α →₁[μ] E)∥ := rfl
-/-
-lemma norm_eq' (f : α →₁ₛ[μ] E) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ[μ] E) 0) :=
-begin
-  refl,
-end
--/
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
@@ -659,9 +650,6 @@ begin
 end
 
 lemma norm_eq_integral (f : α →₁ₛ[μ] E) : ∥f∥ = ((to_simple_func f).map norm).integral μ :=
--- calc ∥f∥ = ennreal.to_real (∫⁻ (x : α), (coe ∘ nnnorm) ((to_simple_func f) x) ∂μ) :
---   by { rw norm_to_simple_func }
--- ... = ((to_simple_func f).map norm).integral μ :
 begin
   rw [norm_to_simple_func, simple_func.integral_eq_lintegral],
   { simp only [simple_func.map_apply, of_real_norm_eq_coe_nnnorm] },

@@ -90,8 +90,7 @@ open finset nat
 variables (A : Type*) [comm_ring A]
 
 noncomputable def eval_mul_hom (a : A) : power_series A →+* power_series A :=
-{
-  to_fun :=   λ f, mk $ λ n, a^n * (coeff A n f),
+{ to_fun :=   λ f, mk $ λ n, a^n * (coeff A n f),
   map_zero' := by { ext, simp only [linear_map.map_zero, coeff_mk, mul_zero], },
   map_one' := by { ext1, simp only [mul_boole, coeff_mk, coeff_one], split_ifs,
                 rw [h, pow_zero], refl, },

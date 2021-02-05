@@ -48,7 +48,10 @@ instance : preorder L :=
 @[simp] lemma pro (a b : L) : a < b ↔ a.val.1 < b.val.1 :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  {cases h, cases b, cases a, cases h_left, cases a_val, cases b_val, work_on_goal 0 { cases b_val_snd, cases a_val_snd, dsimp at *, simp at *, cases h_left, induction h_left_right, induction h_left_left, simp at *, cases h_right }, exact h_left},
+  {cases h, cases b, cases a, cases h_left, cases a_val, cases b_val,
+  work_on_goal 0
+  { cases b_val_snd, cases a_val_snd, dsimp at *, simp at *, cases h_left, induction h_left_right,
+  induction h_left_left, simp at *, cases h_right }, exact h_left},
   cases b,
   cases a,
   cases a_val,
@@ -199,7 +202,7 @@ begin
  le_refl := λ _, le_rfl,
  le_trans := λ _ _ _, le_trans,
  lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
- le_antisymm := λ _ _, antisymm,
+ le_antisymm := sorry,
  add_le_add_left := λ _ _, add_le_add_left,
  lt_of_add_lt_add_left := λ (a : L) {b c : L}, (add_lt_add_iff_left a).mp,
  bot := 0,

@@ -241,7 +241,8 @@ lemma calc_liou_one_le_no_calc_ep {ε : ℝ} (e0 : 0 ≤ ε) (e1 : ε ≤ 1) (n 
 (pow_le_pow_of_le_one e0 e1 (i.add_factorial_le_factorial_add n.succ n.succ_ne_zero)).trans
   (le_of_eq (pow_add ε i (n + 1)!))
 
-lemma one_div_pow_le_one_div_pow {R : Type*} [linear_ordered_field R] {a : R} (a1 : 1 ≤ a) {n m : ℕ} (h : n ≤ m) :
+lemma one_div_pow_le_one_div_pow {R : Type*} [linear_ordered_field R] {n m : ℕ} {a : R}
+  (h : n ≤ m) (a1 : 1 ≤ a) :
   1 / a ^ m ≤ 1 / a ^ n :=
 (one_div_le_one_div (pow_pos (lt_of_lt_of_le zero_lt_one a1) _)
   (pow_pos (lt_of_lt_of_le zero_lt_one a1) _)).mpr (pow_mono a1 h)
@@ -264,16 +265,6 @@ begin
   rw [one_div_pow],
   exact calc_liou_one_le_no_calc m1 n i,
 end
-
-lemma calc_liou_one_lt (m1 : 1 < m) (n : ℕ) (i : ℕ) (hi : 2 ≤ i) :
-1 / m ^ (i + (n + 1))! < 1 / m ^ i * 1 / m ^ (n + 1)! :=
-begin
-  rw [mul_div_assoc, one_div_mul_one_div, ← pow_add],
-  refine (one_div_lt_one_div _ _).mpr (pow_lt_pow m1 (add_factorial_lt_factorial_add n hi)),
-  repeat { exact pow_pos (zero_lt_one.trans m1) _ },
-end
-
---#exit
 
 /--  Partial inequality, works with `m ∈ ℝ` and satisfying `1 < m`. -/
 lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
@@ -356,6 +347,14 @@ calc m / (m - 1) * (1 / m ^ (n + 1)!) < 2 * (1 / m ^ (n + 1)!) :
     any_goals { try {refine le_of_lt _}, exact pow_pos (zero_lt_two.trans hm) _ }
   end
   ... = 1 / (m ^ n!) ^ n : by rw pow_mul
+
+lemma calc_liou_one_lt (m1 : 1 < m) (n : ℕ) (i : ℕ) (hi : 2 ≤ i) :
+1 / m ^ (i + (n + 1))! < 1 / m ^ i * 1 / m ^ (n + 1)! :=
+begin
+  rw [mul_div_assoc, one_div_mul_one_div, ← pow_add],
+  refine (one_div_lt_one_div _ _).mpr (pow_lt_pow m1 (n.add_factorial_lt_factorial_add hi)),
+  repeat { exact pow_pos (zero_lt_one.trans m1) _ },
+end
 
 end lemmas_about_summability_and_sums
 

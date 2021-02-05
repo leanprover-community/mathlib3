@@ -131,7 +131,7 @@ end
 
 lemma eval_mul_hom_one [algebra ℚ A] (f : power_series A) :
   eval_mul_hom A 1 f = f :=
-  by { rw eval_mul_hom, ext, simp only [one_pow, coeff_mk, one_mul, coe_mk], }
+by { rw eval_mul_hom, ext, simp only [one_pow, coeff_mk, one_mul, coe_mk], }
 
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
   eval_mul_hom A (-1 : A)

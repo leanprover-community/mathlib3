@@ -89,6 +89,7 @@ open finset nat
 
 variables {A : Type*} [comm_ring A]
 
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
 noncomputable def eval_mul_hom (a : A) : power_series A →+* power_series A :=
 { to_fun :=   λ f, mk $ λ n, a^n * (coeff A n f),
   map_zero' := by { ext, simp only [linear_map.map_zero, coeff_mk, mul_zero], },
@@ -133,6 +134,7 @@ lemma eval_mul_hom_one [algebra ℚ A] (f : power_series A) :
   eval_mul_hom 1 f = f :=
 by { rw eval_mul_hom, ext, simp only [one_pow, coeff_mk, one_mul, coe_mk], }
 
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
 eval_mul_hom (-1 : A)
 

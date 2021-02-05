@@ -7,8 +7,6 @@ Authors: Kevin Lacker
 import tactic.ring
 import data.nat.prime
 
-open nat
-
 /-!
 # IMO 1959 Q1
 
@@ -17,6 +15,8 @@ Prove that the fraction `(21n+4)/(14n+3)` is irreducible for every natural numbe
 Since Lean doesn't have a concept of "irreducible fractions" per se, we just formalize this
 as saying the numerator and denominator are relatively prime.
 -/
+
+open nat
 
 lemma calculation (n k : ℕ) (h1 : k ∣ 21 * n + 4) (h2 : k ∣ 14 * n + 3) : k ∣ 1 :=
 have h3 : k ∣ 2 * (21 * n + 4), from dvd_mul_of_dvd_right h1 2,

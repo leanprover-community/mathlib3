@@ -2,21 +2,24 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
-
-## Lagrange's four square theorem
-
-The main result in this file is `sum_four_squares`,
-a proof that every natural number is the sum of four square numbers.
-
-# Implementation Notes
-
-The proof used is close to Lagrange's original proof.
 -/
+
 import algebra.group_power.identities
 import data.zmod.basic
 import field_theory.finite.basic
 import data.int.parity
 import data.fintype.card
+
+/-!
+# Lagrange's four square theorem
+
+The main result in this file is `sum_four_squares`,
+a proof that every natural number is the sum of four square numbers.
+
+## Implementation Notes
+
+The proof used is close to Lagrange's original proof.
+-/
 
 open finset polynomial finite_field equiv
 open_locale big_operators

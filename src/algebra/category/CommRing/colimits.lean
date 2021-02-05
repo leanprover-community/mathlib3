@@ -43,8 +43,10 @@ comm_ring.add_comm : ∀ {α : Type u} [c : comm_ring α] (a b : α), a + b = b 
 comm_ring.mul_comm : ∀ {α : Type u} [c : comm_ring α] (a b : α), a * b = b * a
 comm_ring.add_assoc : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), a + b + c_1 = a + (b + c_1)
 comm_ring.mul_assoc : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), a * b * c_1 = a * (b * c_1)
-comm_ring.left_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), a * (b + c_1) = a * b + a * c_1
-comm_ring.right_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), (a + b) * c_1 = a * c_1 + b * c_1
+comm_ring.left_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α),
+                                                            a * (b + c_1) = a * b + a * c_1
+comm_ring.right_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α),
+                                                            (a + b) * c_1 = a * c_1 + b * c_1
 -/
 
 namespace CommRing.colimits

@@ -60,7 +60,7 @@ begin
     ← int.cast_sub, ← int.cast_abs, ← int.cast_mul, int.cast_lt] at a1,
   rw [ne.def, div_eq_div_iff b0 (ne_of_gt qR0), mul_comm ↑p, ← sub_eq_zero_iff_eq] at a0,
   rw [← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul, ← int.cast_sub, int.cast_eq_zero] at a0,
-  exact not_le.mpr a1 (le_of_lt (int.mul_lt_mul_pow_succ (abs_pos.mpr a0) q1)),
+  exact not_le.mpr a1 (int.mul_lt_mul_pow_succ (abs_pos.mpr a0) q1).le,
 end
 
 lemma not_liouville_zero : ¬ is_liouville 0 :=
@@ -95,7 +95,7 @@ begin
   apply_mod_cast int.le_of_lt_add_one ((lt_add_iff_pos_left 1).mpr (abs_pos.mpr (λ F0, fab _))),
   rw [eq_one_div_of_mul_eq_one_left bu, F0, one_div, eq_int_cast, int.cast_zero, zero_eq_mul] at hF,
   cases hF with hF hF,
-  { exact (not_le.mpr b0 (le_of_eq (pow_eq_zero hF))).elim },
+  { exact (not_le.mpr b0 (pow_eq_zero hF).le).elim },
   { exact hF }
 end
 
@@ -162,7 +162,7 @@ begin
   obtain ⟨ζ, z0, U⟩ :=
     @exists_closed_ball_inter_eq_singleton_of_discrete _ _ _ discrete_of_t1_of_finite _ ar,
   obtain ⟨xm, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - ζ) (α + ζ))
-    ⟨α, le_of_lt $ sub_lt_self α z0, le_of_lt $ lt_add_of_pos_right α z0⟩
+    ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
   apply @with_metr_max ℤ ℕ ℝ _ _ _ (λ y, eval y fR) α ζ (abs (eval xm fR.derivative)) _ _ z0
     (λ y hy, _) (λ z a hq, _),

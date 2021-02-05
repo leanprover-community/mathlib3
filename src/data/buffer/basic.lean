@@ -90,6 +90,9 @@ begin
     simp [add_comm, this] }
 end
 
+@[simp] lemma length_to_list (b : buffer α) : b.to_list.length = b.size :=
+by rw [←to_buffer_to_list b, to_list_to_buffer, size_to_buffer]
+
 lemma size_singleton (a : α) : [a].to_buffer.size = 1 := rfl
 
 lemma read_push_back_left (b : buffer α) (a : α) {i : ℕ} (h : i < b.size) :

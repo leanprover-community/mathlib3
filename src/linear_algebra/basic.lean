@@ -52,6 +52,10 @@ We note that, when constructing linear maps, it is convenient to use operations 
 maps (`prod`, `coprod`, arithmetic operations like `+`) instead of defining a function and proving
 it is linear.
 
+`linear_map.prod` and `linear_map.coprod` are `linear_equiv`s in `S` between `linear_map`s in
+`R`. When we have `comm_semiring R`, `S = R` can be used (via `nat_smul_comm_class`). When we do
+not, these defs can always be used with `S = ℕ` (via `add_comm_monoid.nat_smul_comm_class`).
+
 ## Tags
 linear algebra, vector space, module
 
@@ -344,10 +348,7 @@ end
 @[simp] theorem snd_apply (x : M × M₂) : snd R M M₂ x = x.2 := rfl
 
 /-- Taking the product of two maps with the same domain is equivalent to taking the product of
-their codomains.
-
-Note that if a weaker `add_equiv` is needed, `S = ℕ` can be used and will satisfy the
-`smul_comm_class` requirements for any `R`. -/
+their codomains. -/
 @[simps symm_apply]
 def prod_equiv
   [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃] :
@@ -409,10 +410,7 @@ theorem inr_injective : function.injective (inr R M M₂) :=
 λ _, by simp
 
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
-their domains.
-
-Note that if a weaker `add_equiv` is needed, `S = ℕ` can be used and will satisfy the
-`smul_comm_class` requirement for any `R`. -/
+their domains. -/
 @[simps symm_apply]
 def coprod_equiv [semimodule S M₃] [smul_comm_class R S M₃] :
   ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃ₗ[S] (M × M₂ →ₗ[R] M₃) :=

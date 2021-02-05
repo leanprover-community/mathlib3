@@ -239,7 +239,7 @@ def of_is_compl_prod {p q : submodule R₁ E} (h : is_compl p q) :
 @[simp] lemma of_is_compl_prod_apply {p q : submodule R₁ E} (h : is_compl p q)
   (φ : (p →ₗ[R₁] F) × (q →ₗ[R₁] F)) : of_is_compl_prod h φ = of_is_compl h φ.1 φ.2 := rfl
 
-/-- The natrual linear equivalence between `(p →ₗ[R₁] F) × (q →ₗ[R₁] F)` and `E →ₗ[R₁] F`. -/
+/-- The natural linear equivalence between `(p →ₗ[R₁] F) × (q →ₗ[R₁] F)` and `E →ₗ[R₁] F`. -/
 def of_is_compl_prod_equiv {p q : submodule R₁ E} (h : is_compl p q) :
   ((p →ₗ[R₁] F) × (q →ₗ[R₁] F)) ≃ₗ[R₁] (E →ₗ[R₁] F) :=
 { inv_fun := λ φ, ⟨φ.dom_restrict p, φ.dom_restrict q⟩,

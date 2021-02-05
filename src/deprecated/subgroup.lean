@@ -276,11 +276,11 @@ by rw [← equiv.eq_preimage_iff_image_eq, to_add_preimage_trivial]
 
 lemma of_mul_image_trivial [group G]:
   of_mul '' is_subgroup.trivial G = is_add_subgroup.trivial (additive G) :=
-by { ext, simp [eq_comm] }
+by { ext, simp [additive.ext_iff], }
 
 lemma of_add_image_trivial [add_group A]:
   of_add '' is_add_subgroup.trivial A = is_subgroup.trivial (multiplicative A) :=
-by { ext, simp [eq_comm] }
+by { ext, simp [multiplicative.ext_iff] }
 
 @[to_additive]
 instance univ_subgroup : normal_subgroup (@univ G) :=

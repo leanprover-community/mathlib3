@@ -1570,6 +1570,7 @@ begin
 end
 
 /-- If `α` is equivalent to `β`, then `set α` is equivalent to `set β`. -/
+@[simps]
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 ⟨λ s, e '' s, λ t, e.symm '' t, symm_image_image e, symm_image_image e.symm⟩
 
@@ -1814,6 +1815,18 @@ equiv.forall_congr f (λx, by simp)
 protected lemma forall_congr_left {p : β → Prop} (f : α ≃ β) :
   (∀x, p (f x)) ↔ (∀y, p y) :=
 (equiv.forall_congr_left' f.symm).symm
+
+protected lemma exists_congr_left {α β} (f : α ≃ β) {p : α → Prop} :
+  (∃ a, p a) ↔ (∃ b, p (f.symm b)) :=
+⟨λ ⟨a, h⟩, ⟨f a, by simpa using h⟩, λ ⟨b, h⟩, ⟨_, h⟩⟩
+
+protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
+  (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=
+by simpa [equiv.image_eq_preimage] using (equiv.set.congr e).forall_congr_left'
+
+@[simp] protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
+  f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
+by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 
 section
 variables (P : α → Sort w) (e : α ≃ β)

@@ -380,10 +380,7 @@ instance {R : Type*} [integral_domain R] : no_zero_divisors (ideal R) :=
 is zero. Decidability is required for multiset.erase-/
 lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
-begin
-  apply @prod_zero_iff_exists_zero _ _ _ _,
-  exact ideal.no_zero_divisors,-- ideals_nontrivial_of_nontrivial],
-end
+prod_zero_iff_exists_zero
 
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=

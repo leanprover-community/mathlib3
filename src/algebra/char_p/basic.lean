@@ -336,7 +336,7 @@ match p, hc with
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
-(char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h.1)
+⟨(char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
 
 theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : p.prime :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)

@@ -134,7 +134,7 @@ begin
   { cases this, unfreezingI { clear_dependent p }, omega },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
-        ← (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos)],
+        ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
     apply le_add_left, refl },
   { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
     { rw [← h], exact multiplicity.pow_multiplicity_dvd _, },
@@ -142,7 +142,7 @@ begin
     { apply nat.exists_eq_succ_of_ne_zero, rintro rfl, simpa only using hc },
     rw [mul_add, mul_one] at hc,
     apply nat.le_of_lt_succ,
-    calc m < p ^ m : nat.lt_pow_self hp.one_lt m
+    calc m < p ^ m : nat.lt_pow_self hp.1.one_lt m
        ... ≤ j + 1 : by { rw ← nat.sub_eq_of_eq_add hc, apply nat.sub_le } }
 end
 

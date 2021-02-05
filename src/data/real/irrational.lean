@@ -58,7 +58,7 @@ end
 is irrational. -/
 theorem irrational_nrt_of_n_not_dvd_multiplicity {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠ 0) (p : ℕ)
   [hp : fact p.prime] (hxr : x ^ n = m)
-  (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, hm⟩) % n ≠ 0) :
+  (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.1.ne_one, hm⟩) % n ≠ 0) :
   irrational x :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
@@ -70,7 +70,7 @@ begin
   rw [← int.cast_pow, int.cast_inj] at hxr, subst m,
   have : y ≠ 0, { rintro rfl, rw zero_pow hnpos at hm, exact hm rfl },
   erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp.1)
-    (finite_int_iff.2 ⟨hp.ne_one, this⟩), nat.mul_mod_right] at hv,
+    (finite_int_iff.2 ⟨hp.1.ne_one, this⟩), nat.mul_mod_right] at hv,
   exact hv rfl
 end
 
@@ -84,7 +84,7 @@ theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
   (by rw Hpv; exact one_ne_zero)
 
 theorem nat.prime.irrational_sqrt {p : ℕ} (hp : nat.prime p) : irrational (sqrt p) :=
-@irrational_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p hp $
+@irrational_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p ⟨hp⟩ $
 by simp [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
   refl
 

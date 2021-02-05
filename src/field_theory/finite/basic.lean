@@ -134,7 +134,7 @@ begin
   letI : vector_space (zmod p) K := { .. (zmod.cast_hom (dvd_refl _) K).to_semimodule },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
-  refine ⟨⟨n, _⟩, hp, h⟩,
+  refine ⟨⟨n, _⟩, hp.1, h⟩,
   apply or.resolve_left (nat.eq_zero_or_pos n),
   rintro rfl,
   rw pow_zero at h,

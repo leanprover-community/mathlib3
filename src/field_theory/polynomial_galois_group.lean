@@ -70,14 +70,14 @@ alg_equiv.restrict_normal_hom_surjective E
 section roots_action
 
 /-- The function from `roots p p.splitting_field` to `roots p E` -/
-def map_roots [h : fact (p.splits (algebra_map F E))] :
+def map_roots [fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
 λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
   have key := subtype.mem x,
   by_cases p = 0,
-  { simp only [h.1, root_set_zero] at key,
+  { simp only [h, root_set_zero] at key,
     exact false.rec _ key },
-  { rw [mem_root_set h.1, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
+  { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
 
 lemma map_roots_bijective [h : fact (p.splits (algebra_map F E))] :
   function.bijective (map_roots p E) :=
@@ -163,7 +163,7 @@ variables {p q}
 /-- The restriction homomorphism between Galois groups -/
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
-  (splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq)
+  ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩
 
 lemma restrict_dvd_surjective (hpq : p ∣ q) (hq : q ≠ 0) :
   function.surjective (restrict_dvd hpq) :=

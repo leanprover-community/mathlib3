@@ -273,7 +273,7 @@ end
 /-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
 lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
 begin
-  haveI := fact.mk w,
+  haveI : fact (1 < (q:ℕ)) := ⟨w⟩,
   convert card_units_lt (X q),
   rw X_card,
 end

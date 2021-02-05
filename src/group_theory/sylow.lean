@@ -144,7 +144,7 @@ have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
 have hzmod : fintype.card (multiplicative (zmod p)) = p ^ 1,
   by { rw pow_one p, exact zmod.card p },
 have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
-  (multiplicative (zmod p)) (vectors_prod_eq_one G p) _ _ _ _ _ _ 1 hp.1 hzmod,
+  (multiplicative (zmod p)) (vectors_prod_eq_one G p) _ _ _ _ _ _ 1 hp hzmod,
 have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=
   calc p ∣ card G ^ 1 : by rwa pow_one
   ... ∣ card G ^ (n : ℕ) : pow_dvd_pow _ n.2

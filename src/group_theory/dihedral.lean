@@ -146,7 +146,7 @@ If `0 < n`, then `sr i` has order 2.
 @[simp] lemma order_of_sr [fact (0 < n)] (i : zmod n) : order_of (sr i) = 2 :=
 begin
   rw order_of_eq_prime _ _,
-  { exact nat.prime_two },
+  { exact ⟨nat.prime_two⟩ },
   rw [pow_two, sr_mul_self],
   dec_trivial,
 end
@@ -156,7 +156,8 @@ If `0 < n`, then `r 1` has order `n`.
 -/
 @[simp] lemma order_of_r_one [hnpos : fact (0 < n)] : order_of (r 1 : dihedral n) = n :=
 begin
-  cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n))) with h h,
+  cases lt_or_eq_of_le
+    (nat.le_of_dvd hnpos.1 (order_of_dvd_of_pow_eq_one (@r_one_pow_n n))) with h h,
   { have h1 : (r 1 : dihedral n)^(order_of (r 1)) = 1,
     { exact pow_order_of_eq_one _ },
     rw r_one_pow at h1,

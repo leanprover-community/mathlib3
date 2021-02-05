@@ -70,10 +70,10 @@ else 0
 A simplification of the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
 -/
 lemma padic_val_rat_def (p : ℕ) [hp : fact p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
-  (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
+  (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.1.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
   (multiplicity (p : ℤ) q.denom).get
-    (finite_int_iff.2 ⟨hp.ne_one, by exact_mod_cast rat.denom_ne_zero _⟩) :=
-dif_pos ⟨hq, hp.ne_one⟩
+    (finite_int_iff.2 ⟨hp.1.ne_one, by exact_mod_cast rat.denom_ne_zero _⟩) :=
+dif_pos ⟨hq, hp.1.ne_one⟩
 
 namespace padic_val_rat
 open multiplicity
@@ -398,7 +398,7 @@ end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
   (neq : p ≠ q) : padic_val_nat p q = 0 :=
-@padic_val_nat_of_not_dvd p p_prime.1 q $
+@padic_val_nat_of_not_dvd p p_prime q $
 (not_congr (iff.symm (prime_dvd_prime_iff_eq p_prime.1 q_prime.1))).mp neq
 
 protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
@@ -458,16 +458,16 @@ begin
   refine finset.prod_bij_ne_one (λ p hp hp', p) _ _ _ _,
   { rintro p hp hpn,
     rw [finset.mem_filter, finset.mem_range] at hp,
-    haveI Hp : fact p.prime := ⟨hp.2⟩,
-    rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn Hp],
+    rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn hp.2],
     contrapose! hpn,
+    haveI Hp : fact p.prime := ⟨hp.2⟩,
     rw [padic_val_nat_of_not_dvd hpn, pow_zero], },
   { intros, assumption },
   { intros p hp hpn,
     rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
     haveI Hp : fact p.prime := ⟨mem_factors hp⟩,
     simp only [exists_prop, ne.def, finset.mem_filter, finset.mem_range],
-    refine ⟨p, ⟨_, Hp⟩, ⟨_, rfl⟩⟩,
+    refine ⟨p, ⟨_, Hp.1⟩, ⟨_, rfl⟩⟩,
     { rw mem_factors_iff_dvd hn Hp.1 at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },
     { rw padic_val_nat_eq_factors_count,
       simpa [ne.def, multiset.coe_count] using hpn } },
@@ -535,7 +535,7 @@ The p-adic norm of `p` is `1/p` if `p` is prime.
 See also `padic_norm.padic_norm_p` for a version that assumes `1 < p`.
 -/
 @[simp] lemma padic_norm_p_of_prime (p : ℕ) [fact p.prime] : padic_norm p p = 1 / p :=
-padic_norm_p $ nat.prime.one_lt ‹_›
+padic_norm_p $ nat.prime.one_lt (fact.out _)
 
 /--
 The p-adic norm of `p` is less than 1 if `1 < p`.
@@ -555,7 +555,7 @@ The p-adic norm of `p` is less than 1 if `p` is prime.
 See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`.
 -/
 lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
-padic_norm_p_lt_one $ nat.prime.one_lt ‹_›
+padic_norm_p_lt_one $ nat.prime.one_lt (fact.out _)
 
 /--
 `padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`.
@@ -737,7 +737,7 @@ begin
       rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
       simp },
     { exact_mod_cast hz },
-    { exact_mod_cast hp.one_lt } }
+    { exact_mod_cast hp.1.one_lt } }
 end
 
 end padic_norm

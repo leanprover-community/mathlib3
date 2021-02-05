@@ -399,7 +399,7 @@ begin
   by_cases hvp : v p = 0, { rw hvp, exact zero_le _ }, replace hvp := zero_lt_iff.2 hvp,
   conv_lhs { rw ← rpow_one (v p) }, rw ← rpow_add (ne_of_gt hvp),
   refine rpow_le_rpow_of_exponent_ge hvp ((algebra_map O K).map_nat_cast p ▸ hv.2 _) _,
-  rw [← add_div, div_le_one (nat.cast_pos.2 hp.1.pos : 0 < (p : ℝ))], exact_mod_cast hp.two_le
+  rw [← add_div, div_le_one (nat.cast_pos.2 hp.1.pos : 0 < (p : ℝ))], exact_mod_cast hp.1.two_le
 end
 
 end classical

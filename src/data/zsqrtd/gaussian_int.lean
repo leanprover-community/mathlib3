@@ -220,7 +220,7 @@ hp.1.eq_two_or_odd.elim
         by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
         by simp [pow_two, zsqrtd.ext],
-      have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
+      have hpne1 : p ≠ 1 := ne_of_gt hp.1.one_lt,
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
           add_le_add_right (nat.pos_of_ne_zero

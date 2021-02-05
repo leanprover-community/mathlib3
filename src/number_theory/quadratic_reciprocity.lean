@@ -70,7 +70,7 @@ end
 lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
-  cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
+  cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
   { substI p, exact dec_trivial },
   haveI := fact.mk hp_odd,
   have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
@@ -129,7 +129,7 @@ end
 
 @[simp] lemma prod_Ico_one_prime : (∏ x in Ico 1 p, (x : zmod p)) = -1 :=
 begin
-  conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub (nat.prime.pos ‹p.prime›)] },
+  conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub (fact.out p.prime).pos] },
   rw [← prod_nat_cast, finset.prod_Ico_id_eq_factorial, wilsons_lemma]
 end
 
@@ -367,7 +367,7 @@ begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
   { simp only [if_pos, ha, zero_pow (nat.div_pos (hp.1.two_le) (succ_pos 1)), int.cast_zero] },
-  cases hp.eq_two_or_odd with hp2 hp_odd,
+  cases hp.1.eq_two_or_odd with hp2 hp_odd,
   { substI p,
     generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
   { haveI := fact.mk hp_odd,
@@ -421,15 +421,16 @@ lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a 
 by rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p ha0, neg_one_pow_eq_pow_mod_two,
     show _ = _, from eisenstein_lemma_aux₂ p ha1 ha0]
 
-theorem quadratic_reciprocity [fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
+theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
   legendre_sym p q * legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) :=
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
-by rw [eisenstein_lemma q hp1 hpq0, eisenstein_lemma p hq1 hqp0,
+by rw [eisenstein_lemma q hp1.1 hpq0, eisenstein_lemma p hq1.1 hqp0,
   ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
 -- move this
-instance fact_prime_two : fact (nat.prime 2) := nat.prime_two
+local attribute [instance]
+def fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
 
 lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym 2 p = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1.1),
@@ -467,7 +468,7 @@ end
 lemma exists_pow_two_eq_two_iff [hp1 : fact (p % 2 = 1)] :
   (∃ a : zmod p, a ^ 2 = 2) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 have hp2 : ((2 : ℕ) : zmod p) ≠ 0,
-  from prime_ne_zero p 2 (λ h, by simpa [h] using hp1),
+  from prime_ne_zero p 2 (λ h, by simpa [h] using hp1.1),
 have hpm4 : p % 4 = p % 8 % 4, from (nat.mod_mul_left_mod p 2 4).symm,
 have hpm2 : p % 2 = p % 8 % 2, from (nat.mod_mul_left_mod p 4 2).symm,
 begin

@@ -797,7 +797,7 @@ begin
   by rw [← zmod.expand_card, map_expand hprime.1.pos],
   rw [hfrob],
   apply ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))),
-  exact minpoly_dvd_expand h hpos hprime hdiv
+  exact minpoly_dvd_expand h hpos hprime.1 hdiv
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of

@@ -65,7 +65,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
         by rw [hp1, one_pow, mul_one];
           exact (lt_add_iff_pos_right _).2
             (add_pos_of_nonneg_of_pos (nat.zero_le _) (mul_pos dec_trivial
-              (nat.div_pos hp.two_le dec_trivial)))
+              (nat.div_pos hp.1.two_le dec_trivial)))
       ... = p * p : by { conv_rhs { rw [← nat.mod_add_div p 2] }, ring })
     (show 0 ≤ p, from nat.zero_le _)⟩
 
@@ -167,9 +167,9 @@ m.mod_two_eq_zero_or_one.elim
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,
           from int.coe_nat_dvd.1 ⟨ma^2 + mb^2 + mc^2 + md^2,
-            (mul_right_inj' (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0)).1 $
+            (mul_right_inj' (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0.1)).1 $
               by { rw [← habcd, hma, hmb, hmc, hmd], ring }⟩,
-        (hp.2 _ hmdvdp).elim hm1 (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
+        (hp.1.2 _ hmdvdp).elim hm1 (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
         from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { rw [← hwxyz0], simp, ring },
       have haxbwczdy : ((m : ℕ) : ℤ) ∣ a * x - b * w - c * z + d * y,
@@ -182,14 +182,14 @@ m.mod_two_eq_zero_or_one.elim
       have hn_nonneg : 0 ≤ n,
         from nonneg_of_mul_nonneg_left
           (by { erw [← hn], repeat {try {refine add_nonneg _ _}, try {exact pow_two_nonneg _}} })
-          (int.coe_nat_pos.2 hm0),
+          (int.coe_nat_pos.2 hm0.1),
       have hnm : n.nat_abs < m,
         from int.coe_nat_lt.1 (lt_of_mul_lt_mul_left
           (by { rw [int.nat_abs_of_nonneg hn_nonneg, ← hn, ← pow_two], exact hwxyzlt })
           (int.coe_nat_nonneg m)),
       have hstuv : s^2 + t^2 + u^2 + v^2 = n.nat_abs * p,
         from (mul_right_inj' (show (m^2 : ℤ) ≠ 0, from pow_ne_zero 2
-            (int.coe_nat_ne_zero_iff_pos.2 hm0))).1 $
+            (int.coe_nat_ne_zero_iff_pos.2 hm0.1))).1 $
           calc (m : ℤ)^2 * (s^2 + t^2 + u^2 + v^2) = ((m : ℕ) * s)^2 + ((m : ℕ) * t)^2 +
               ((m : ℕ) * u)^2 + ((m : ℕ) * v)^2 :
             by { simp [mul_pow], ring }

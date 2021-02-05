@@ -111,13 +111,13 @@ def zmod : ℕ → Type
 namespace zmod
 
 instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
-| 0     _ := false.elim $ nat.not_lt_zero 0 ‹0 < 0›
+| 0     h := false.elim $ nat.not_lt_zero 0 h.1
 | (n+1) _ := fin.fintype (n+1)
 
 lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
+  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
   { exact fintype.card_fin (n+1) }
 end
 
@@ -148,7 +148,7 @@ def val : Π {n : ℕ}, zmod n → ℕ
 lemma val_lt {n : ℕ} [fact (0 < n)] (a : zmod n) : a.val < n :=
 begin
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
+  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
   exact fin.is_lt a
 end
 
@@ -209,7 +209,7 @@ lemma nat_cast_surjective [fact (0 < n)] :
 begin
   assume i,
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
+  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
   { change fin (n + 1) at i,
     refine ⟨i, _⟩,
     rw [fin.ext_iff, fin.coe_coe_eq_self] }
@@ -246,7 +246,7 @@ variables [ring R]
   (i.val : R) = i :=
 begin
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
+  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
   refl
 end
 
@@ -365,11 +365,11 @@ lemma cast_hom_bijective [fintype R] (h : fintype.card R = n) :
   function.bijective (zmod.cast_hom (dvd_refl n) R) :=
 begin
   haveI : fact (0 < n) :=
-  begin
+  ⟨begin
     rw [pos_iff_ne_zero],
     unfreezingI { rintro rfl },
     exact fintype.card_eq_zero_iff.mp h 0
-  end,
+  end⟩,
   rw [fintype.bijective_iff_injective_and_card, zmod.card, h, eq_self_iff_true, and_true],
   apply zmod.cast_hom_injective
 end
@@ -424,7 +424,7 @@ lemma val_injective (n : ℕ) [fact (0 < n)] :
   function.injective (zmod.val : zmod n → ℕ) :=
 begin
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 ‹_› },
+  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
   assume a b h,
   ext,
   exact h
@@ -434,12 +434,12 @@ lemma val_one_eq_one_mod (n : ℕ) : (1 : zmod n).val = 1 % n :=
 by rw [← nat.cast_one, val_cast_nat]
 
 lemma val_one (n : ℕ) [fact (1 < n)] : (1 : zmod n).val = 1 :=
-by { rw val_one_eq_one_mod, exact nat.mod_eq_of_lt ‹1 < n› }
+by { rw val_one_eq_one_mod, exact nat.mod_eq_of_lt (fact.out _) }
 
 lemma val_add {n : ℕ} [fact (0 < n)] (a b : zmod n) : (a + b).val = (a.val + b.val) % n :=
 begin
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
+  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
   { apply fin.val_add }
 end
 
@@ -591,10 +591,11 @@ begin
   { apply (nat.eq_zero_or_pos n).resolve_left,
     unfreezingI { rintro rfl },
     simpa [fact_iff] using hn, }⟩,
-  have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left npos).2 dec_trivial),
+  have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul
+    ((lt_mul_iff_one_lt_left npos.1).2 dec_trivial),
   have hn2' : (n : ℕ) - n / 2 = n / 2 + 1,
-  { conv {to_lhs, congr, rw [← nat.succ_sub_one n, nat.succ_sub npos]},
-    rw [← nat.two_mul_odd_div_two hn, two_mul, ← nat.succ_add, nat.add_sub_cancel], },
+  { conv {to_lhs, congr, rw [← nat.succ_sub_one n, nat.succ_sub npos.1]},
+    rw [← nat.two_mul_odd_div_two hn.1, two_mul, ← nat.succ_add, nat.add_sub_cancel], },
   have hxn : (n : ℕ) - x.val < n,
   { rw [nat.sub_lt_iff (le_of_lt x.val_lt) (le_refl _), nat.sub_self],
     rw ← zmod.cast_val x at hx0,
@@ -642,7 +643,7 @@ begin
   by_cases h : a = 0, { rw [if_pos h, h, val_zero, nat.sub_zero, nat.mod_self] },
   rw if_neg h,
   apply nat.mod_eq_of_lt,
-  apply nat.sub_lt ‹0 < n›,
+  apply nat.sub_lt (fact.out (0 < n)),
   contrapose! h,
   rwa [nat.le_zero_iff, val_eq_zero] at h,
 end
@@ -754,7 +755,7 @@ by { rw [zmod.val_min_abs_def_pos], split_ifs; simp only [add_zero, sub_add_canc
 lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p ≠ q) :
   (q : zmod p) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
-  ← hp.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
+  ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
 end zmod
 
@@ -767,7 +768,7 @@ begin
   obtain ⟨k, rfl⟩ := nat_cast_surjective a,
   apply coe_mul_inv_eq_one,
   apply nat.coprime.symm,
-  rwa [nat.prime.coprime_iff_not_dvd ‹p.prime›, ← char_p.cast_eq_zero_iff (zmod p)]
+  rwa [nat.prime.coprime_iff_not_dvd (fact.out p.prime), ← char_p.cast_eq_zero_iff (zmod p)]
 end
 
 /-- Field structure on `zmod p` if `p` is prime. -/

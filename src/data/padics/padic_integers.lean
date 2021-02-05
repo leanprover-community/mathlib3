@@ -482,9 +482,9 @@ begin
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
   simp only [int.coe_nat_le, fpow_neg, fpow_coe_nat],
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
-  { apply pow_pos, exact_mod_cast nat.prime.pos ‹_› },
+  { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
-  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono (nat.prime.two_le ‹_›)).le_iff_le,
+  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono hp_prime.1.two_le).le_iff_le,
   rw [← this],
   norm_cast,
 end
@@ -520,10 +520,10 @@ lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℤ_[p]) (n : ℤ) :
   ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
   have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
-  { apply nat.fpow_pos_of_pos, exact nat.prime.pos ‹_› },
+  { apply nat.fpow_pos_of_pos, exact hp_prime.1.pos },
   by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
   rw norm_eq_pow_val hx0,
-  have h1p : 1 < (p : ℝ), { exact_mod_cast nat.prime.one_lt ‹_› },
+  have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
   have H := fpow_strict_mono h1p,
   rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
 end

@@ -446,6 +446,14 @@ fintype.of_equiv α additive.of_mul
 instance multiplicative.fintype [fintype α] : fintype (multiplicative α) :=
 fintype.of_equiv α multiplicative.of_add
 
+@[simp] lemma fintype.card_additive [fintype α] :
+  fintype.card (additive α) = fintype.card α :=
+fintype.card_congr additive.to_mul
+
+@[simp] lemma fintype.card_multiplicative [fintype α] :
+  fintype.card (multiplicative α) = fintype.card α :=
+fintype.card_congr multiplicative.to_add
+
 @[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
 
 noncomputable instance [monoid α] [fintype α] : fintype (units α) :=

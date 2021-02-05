@@ -48,7 +48,7 @@ lemma additive.is_add_submonoid (s : set M) [is_submonoid s] :
 { add_mem := by { equiv_rw to_mul, simpa using @is_submonoid.mul_mem _ _ s _ },
   zero_mem := by simpa using is_submonoid.one_mem }
 
-lemma multiplicative.is_mul_submonoid' (s : set M) [is_add_submonoid (to_mul ⁻¹' s)] :
+lemma multiplicative.is_submonoid' (s : set M) [is_add_submonoid (to_mul ⁻¹' s)] :
   is_submonoid s :=
 { mul_mem := by { equiv_rw of_mul, simpa using @is_add_submonoid.add_mem _ _ (to_mul ⁻¹' s) _ },
   one_mem := by simpa using @is_add_submonoid.zero_mem _ _ (to_mul ⁻¹' s) _ }
@@ -65,7 +65,7 @@ lemma additive.is_add_submonoid' (s : set A) [is_submonoid (to_add ⁻¹' s)] :
 
 @[simp] theorem additive.is_add_submonoid_iff {s : set M} :
   is_add_submonoid (to_mul ⁻¹' s) ↔ is_submonoid s :=
-⟨@multiplicative.is_mul_submonoid' _ _ s, @additive.is_add_submonoid _ _ s⟩
+⟨@multiplicative.is_submonoid' _ _ s, @additive.is_add_submonoid _ _ s⟩
 
 @[simp] theorem multiplicative.is_submonoid_iff {s : set A} :
   is_submonoid (to_add ⁻¹' s) ↔ is_add_submonoid s :=

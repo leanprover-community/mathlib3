@@ -52,8 +52,11 @@ instance : mul_action (units K) (nonzero V) :=
 { one_smul := λ x, by tidy,
   mul_smul := λ x y v, nonzero.ext $ by simp [mul_smul] }
 
+lemma ne_zero_of_smul_eq {v : V} {w : nonzero V} {a : K} : a • v = w → a ≠ 0 :=
+λ h c, coe_nonzero w $ by simp [← h, c]
+
 lemma is_unit_of_smul_eq {v : V} {w : nonzero V} {a : K} : a • v = w → is_unit a :=
-λ h, is_unit_iff_ne_zero.mpr $ λ c, coe_nonzero w $ by simp [← h, c]
+λ h, is_unit_iff_ne_zero.mpr $ ne_zero_of_smul_eq h
 
 end nonzero
 
@@ -121,11 +124,48 @@ begin
   simpa [mul_smul b, ← mul_smul a⁻¹, inv_mul_cancel ha],
 end
 
+lemma mem_mk {v : V} {w : nonzero V} : v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
+begin
+  sorry,
+end
+
 instance : has_coe (proj_space K V) (subspace K V) := has_coe.mk $ λ x,
 { carrier := {v | v = 0 ∨ v ∈ x},
   zero_mem' := or.inl rfl,
-  add_mem' := sorry,
-  smul_mem' := sorry }
+  add_mem' := begin
+    rintros u v (h1|h1) (h2|h2),
+    { left, simp [h1, h2] },
+    { right, simpa [h1] },
+    { right, simpa [h2] },
+    rw mem_def at *,
+    rcases h1 with ⟨v1,a1,ha1,rfl⟩,
+    rcases h2 with ⟨v2,a2,ha2,ha3⟩,
+    have : v ∈ (mk v2 : proj_space K V), by {rw mem_mk, refine ⟨a2,ha2⟩},
+    rw [← ha3, mem_mk] at this,
+    rcases this with ⟨b,hb⟩,
+    have ha1' : a1 ≠ 0 := nonzero.ne_zero_of_smul_eq ha1,
+    have hb' : b ≠ 0 := nonzero.ne_zero_of_smul_eq hb,
+    apply_fun (λ t, b⁻¹ • t) at hb,
+    simp [← mul_smul, inv_mul_cancel hb'] at hb,
+    apply_fun (λ t, a1⁻¹ • t) at ha1,
+    simp [← mul_smul, inv_mul_cancel ha1'] at ha1,
+    rw [hb, ha1, ← add_smul],
+    by_cases h : a1⁻¹ + b⁻¹ = 0,
+    { left,
+      simp [h] },
+    right,
+    rw mem_mk,
+    refine ⟨(a1⁻¹ + b⁻¹)⁻¹,_⟩,
+    simp [← mul_smul, inv_mul_cancel h],
+  end,
+  smul_mem' := begin
+    rintros c v (h|h),
+    { left, simp [h] },
+    by_cases hc : c = 0,
+    { left, simp [hc] },
+    right,
+    exact smul_mem hc h,
+  end }
 
 lemma mem_mk_iff {v : V} {w : nonzero V} : v ∈ (mk w : proj_space K V) ↔ ∃ a : K, a • v = w :=
 begin

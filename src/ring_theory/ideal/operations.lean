@@ -382,7 +382,7 @@ lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 begin
   apply @prod_zero_iff_exists_zero _ _ _ _,
-  exacts [ideal.no_zero_divisors, ideals_nontrivial_of_nontrivial],
+  exact ideal.no_zero_divisors,-- ideals_nontrivial_of_nontrivial],
 end
 
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/

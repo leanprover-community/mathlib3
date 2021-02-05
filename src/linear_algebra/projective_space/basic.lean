@@ -140,7 +140,7 @@ begin
     exact ⟨w, a, h, rfl⟩ },
 end
 
-instance : has_coe (proj_space K V) (subspace K V) := has_coe.mk $ λ x,
+def to_subspace : proj_space K V → subspace K V := λ x,
 { carrier := {v | v = 0 ∨ v ∈ x},
   zero_mem' := or.inl rfl,
   add_mem' := begin
@@ -190,34 +190,26 @@ namespace linear_subspace
 
 instance : has_coe (linear_subspace K V) (set (proj_space K V)) := ⟨linear_subspace.carrier⟩
 
-@[ext]
-lemma ext (X Y : linear_subspace K V) : (X : set (proj_space K V)) = Y → X = Y :=
-λ h, by {cases X, cases Y, simpa}
-
 instance : has_mem (proj_space K V) (linear_subspace K V) := ⟨λ x X, x ∈ (X : set (proj_space K V))⟩
 
 lemma add_mem (X : linear_subspace K V) {u v : V} {a b c : proj_space K V} :
   u ∈ a → v ∈ b → (u + v) ∈ c → a ∈ X → b ∈ X → c ∈ X := linear_subspace.add_mem' _
+
 instance : has_bot (linear_subspace K V) := has_bot.mk $
 { carrier := ⊥,
   add_mem' := by tauto }
 
 def to_subspace : linear_subspace K V → subspace K V :=
-λ X, has_Sup.Sup $ (coe '' (X : set (proj_space K V)))
+λ X, ⨆ (x : X), (x : proj_space K V).to_subspace
 
 def of_subspace : subspace K V → linear_subspace K V := λ W,
-{ carrier := {x | (x : subspace K V) ≤ W},
+{ carrier := {x | x.to_subspace ≤ W},
   add_mem' := sorry }
 
 def equiv_subspace : linear_subspace K V ≃ subspace K V :=
 { to_fun := to_subspace,
   inv_fun := of_subspace,
-  left_inv := begin
-    intros M,
-    simp [of_subspace, to_subspace],
-    ext m,
-    sorry,
-  end,
+  left_inv := sorry,
   right_inv := sorry }
 
 end linear_subspace

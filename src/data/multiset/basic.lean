@@ -1547,15 +1547,21 @@ lemma nat.well_ordered_of_exists {s : set ℕ} [decidable_pred (λ w, w ∈ s)] 
   ⟨nat.find ex, nat.find_spec ex, λ m, nat.find_min' ex⟩
 
 lemma exists_minimal_subset {p : multiset α → Prop} {s₀ : multiset α} (H : p s₀)
-  [decidable_pred (λ w, w ∈ {i | ∃ u, u ≤ s₀ ∧ p u ∧ u.card = i})] :
-  ∃ s ≤ s₀, p s ∧ (∀ s' ≤ s, p s' → s' = s) :=
+  --[decidable_pred (λ w, w ∈ {i | ∃ u, u ≤ s₀ ∧ p u ∧ u.card = i})] :
+  : ∃ s ≤ s₀, p s ∧ (∀ s' ≤ s, p s' → s' = s) :=
 begin
+  classical,
   obtain ⟨n, ⟨sm, sm0, ps, sc⟩, F⟩ := nat.well_ordered_of_exists
     (⟨_, _, le_rfl, H, rfl⟩ : ∃ w : ℕ, w ∈ { i | ∃ u, u ≤ s₀ ∧ p u ∧ u.card = i }),
   exact ⟨sm, sm0, ps, λ t tsm pt, eq_of_le_of_card_le tsm
     (by {rw sc, exact F _ ⟨t, le_trans tsm sm0, pt, rfl⟩})⟩,
 end
 
+lemma can_assume_minimal_cardinality [decidable_eq α] (p : multiset α → Prop) [decidable_pred p]
+  (s₀ : multiset α) (H : p s₀) :  ∃ s ≤ s₀,  p s  ∧ (∀ a ∈ s, ¬ p (s.erase a)) :=
+begin
+  sorry
+end
 
 /-! ### Simultaneously filter and map elements of a multiset -/
 

@@ -1001,9 +1001,9 @@ begin
     outer_measure.restrict_apply]
 end
 
-/-- If `s` is a measurable set, then the measure of `t` restricted to `s` equals the measure of
-`t ∩ s`. This is an alternate version of `measure.restrict_apply`, requiring that `s` is measurable
-instead of `t`. -/
+/-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
+the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of 
+`measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
 lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
 by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
       outer_measure.restrict_apply s t _, coe_to_outer_measure]

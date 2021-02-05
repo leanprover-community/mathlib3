@@ -153,8 +153,7 @@ section
     have na : n < a, from nat.mul_self_lt_mul_self_iff.2 (by rw ← this; exact nat.lt_succ_self _),
     have (n+1)*(n+1) ≤ n*n + 1, by rw this; exact nat.mul_self_le_mul_self na,
     have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by ring at this ⊢; assumption),
-    ne_of_gt d_pos $
-      by rw nat.eq_zero_of_le_zero (le_trans (nat.le_add_left _ _) this) at h; exact h⟩
+    ne_of_gt d_pos $ by rwa nat.eq_zero_of_le_zero ((nat.le_add_left _ _).trans this) at h⟩
 
   theorem xn_ge_a_pow : ∀ (n : ℕ), a^n ≤ xn n
   | 0     := le_refl 1
@@ -495,15 +494,14 @@ section
                                    by rw [nat.sub_add_cancel npos], xn_succ],
           exact le_trans (nat.mul_le_mul_left _ a1) (nat.le_add_right _ _) },
         have npm : (n-1).succ = n := nat.succ_pred_eq_of_pos npos,
-        have il : i ≤ n - 1 := by apply nat.le_of_succ_le_succ; rw npm; exact lin,
+        have il : i ≤ n - 1, { apply nat.le_of_succ_le_succ, rw npm, exact lin },
         cases lt_or_eq_of_le il with ill ile,
         { exact lt_of_lt_of_le (nat.add_lt_add_left (x_increasing a1 ill) _) ll },
         { rw ile,
           apply lt_of_le_of_ne ll,
           rw ← two_mul,
           exact λe, ntriv $
-            let ⟨a2, s1⟩ := @eq_of_xn_modeq_lem2 _ a1 (n-1)
-              (by rw[nat.sub_add_cancel npos]; exact e) in
+            let ⟨a2, s1⟩ := @eq_of_xn_modeq_lem2 _ a1 (n-1) (by rwa [nat.sub_add_cancel npos]) in
             have n1 : n = 1, from le_antisymm (nat.le_of_sub_eq_zero s1) npos,
             by rw [ile, a2, n1]; exact ⟨rfl, rfl, rfl, rfl⟩ } },
       { rw [ein, nat.mod_self, add_zero],
@@ -557,8 +555,8 @@ section
         exact nat.add_le_add_left (le_of_lt j2n) _,
      eq_of_xn_modeq npos i2n j42n
        (h.symm.trans $ let t := xn_modeq_x4n_sub j42n in by rwa [nat.sub_sub_self j4n] at t)
-       (λa2 n1, ⟨λi0, absurd i0 (ne_of_gt ipos), λi2, by rw[n1, i2] at hin;
-         exact absurd hin dec_trivial⟩))
+       (λa2 n1, ⟨λi0, absurd i0 (ne_of_gt ipos), λi2, by { rw [n1, i2] at hin,
+         exact absurd hin dec_trivial }⟩))
 
   theorem modeq_of_xn_modeq {i j n} (ipos : 0 < i) (hin : i ≤ n) (h : xn j ≡ xn i [MOD xn n]) :
     j ≡ i [MOD 4 * n] ∨ j + i ≡ 0 [MOD 4 * n] :=

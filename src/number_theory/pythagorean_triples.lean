@@ -13,8 +13,8 @@ import tactic.field_simp
 /-!
 # Pythagorean Triples
 
-The main result is the classification of pythagorean triples. The final result is for general
-pythagorean triples. It follows from the more interesting relatively prime case. We use the
+The main result is the classification of Pythagorean triples. The final result is for general
+Pythagorean triples. It follows from the more interesting relatively prime case. We use the
 "rational parametrization of the circle" method for the proof. The parametrization maps the point
 `(x / z, y / z)` to the slope of the line through `(-1 , 0)` and `(x / z, y / z)`. This quickly
 shows that `(x / z, y / z) = (2 * m * n / (m ^ 2 + n ^ 2), (m ^ 2 - n ^ 2) / (m ^ 2 + n ^ 2))` where
@@ -81,7 +81,7 @@ end
 
 include h
 
-/-- A pythogorean triple `x, y, z` is “classified” if there exist integers `k, m, n` such that
+/-- A Pythagorean triple `x, y, z` is “classified” if there exist integers `k, m, n` such that
 either
  * `x = k * (m ^ 2 - n ^ 2)` and `y = k * (2 * m * n)`, or
  * `x = k * (2 * m * n)` and `y = k * (m ^ 2 - n ^ 2)`. -/
@@ -317,8 +317,7 @@ begin
   cases int.prime.dvd_mul hp hp2 with hp2m hpn,
   { rw int.nat_abs_mul at hp2m,
     cases (nat.prime.dvd_mul hp).mp hp2m with hp2 hpm,
-    { have hp2' : p = 2 :=
-        le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp),
+    { have hp2' : p = 2 := (nat.le_of_dvd zero_lt_two hp2).antisymm hp.two_le,
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
       norm_num [pow_two, int.sub_mod, int.mul_mod, hm, hn],

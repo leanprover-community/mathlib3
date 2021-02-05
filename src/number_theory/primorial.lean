@@ -36,8 +36,7 @@ begin
     { linarith, },
     { exfalso,
       rw ←not_even_iff at n_even r,
-      have e : even (n + 1 - n) :=
-        (even_sub (le_of_lt (lt_add_one n))).2 (iff_of_false n_even r),
+      have e : even (n + 1 - n) := (even_sub (lt_add_one n).le).2 (iff_of_false n_even r),
       simp only [nat.add_sub_cancel_left, not_even_one] at e,
       exact e, }, },
   apply finset.prod_congr,
@@ -130,7 +129,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                 apply finset.prod_union,
                 have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
                 { simp only [finset.disjoint_left, and_imp, finset.Ico.mem, not_lt,
-                  finset.mem_range],
+                    finset.mem_range],
                   intros _ pr _, exact pr, },
                 exact finset.disjoint_filter_filter disj,
               end

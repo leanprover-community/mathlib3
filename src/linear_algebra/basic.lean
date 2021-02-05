@@ -1002,6 +1002,13 @@ le_antisymm
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
 
+lemma span_singleton_smul_unit_eq (u : units R) (x : M) : (R ∙ ((u : R) • x)) = R ∙ x :=
+begin
+  refine le_antisymm (span_singleton_smul_le _ _) _,
+  rw [span_singleton_le_iff_mem, mem_span_singleton],
+  exact ⟨↑(u⁻¹), by simp [← mul_smul]⟩,
+end
+
 lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + (R ∙ a) ↔ a ∉ I :=
 begin
   split,

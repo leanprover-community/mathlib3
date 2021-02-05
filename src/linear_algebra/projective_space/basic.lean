@@ -145,41 +145,13 @@ begin
     exact ⟨w, a, h, rfl⟩ },
 end
 
-/-- Construct a subspace out of an element in projective space. -/
-def to_subspace : proj_space K V → subspace K V := λ x,
-{ carrier := {v | v = 0 ∨ v ∈ x},
-  zero_mem' := or.inl rfl,
-  add_mem' := begin
-    rintros u v (h1|h1) (h2|h2),
-    { left, simp [h1, h2] },
-    { right, simpa [h1] },
-    { right, simpa [h2] },
-    rw mem_def at *,
-    rcases h1 with ⟨v1,a1,ha1,rfl⟩,
-    rcases h2 with ⟨v2,a2,ha2,ha3⟩,
-    have : v ∈ (mk v2 : proj_space K V), by {rw mem_mk_iff, refine ⟨a2,ha2⟩},
-    rw [← ha3, mem_mk_iff] at this,
-    rcases this with ⟨b,hb⟩,
-    replace ha1 := nonzero.eq_smul_inv_of_smul_eq ha1,
-    replace ha2 := nonzero.eq_smul_inv_of_smul_eq ha2,
-    replace hb := nonzero.eq_smul_inv_of_smul_eq hb,
-    rw [hb, ha1, ← add_smul],
-    by_cases h : a1⁻¹ + b⁻¹ = 0,
-    { left,
-      simp [h] },
-    right,
-    rw mem_mk_iff,
-    refine ⟨(a1⁻¹ + b⁻¹)⁻¹,_⟩,
-    simp [← mul_smul, inv_mul_cancel h],
-  end,
-  smul_mem' := begin
-    rintros c v (h|h),
-    { left, simp [h] },
-    by_cases hc : c = 0,
-    { left, simp [hc] },
-    right,
-    exact smul_mem hc h,
-  end }
+def to_subspace : proj_space K V → subspace K V := λ x, quotient.lift_on x (λ v, K ∙ (v : V))
+begin
+  intros a b h,
+  rcases h with ⟨u,rfl⟩,
+  dsimp only,
+  erw submodule.span_singleton_smul_unit_eq,
+end
 
 variables (K V)
 /-- The type of linear subspaces of the projective space `proj_space K V`. -/
@@ -210,27 +182,7 @@ def to_subspace : linear_subspace K V → subspace K V :=
 λ X, ⨆ (x : X), (x : proj_space K V).to_subspace
 
 lemma to_subspace_mk_eq {v : nonzero V} : (proj_space.mk v :
-  proj_space K V).to_subspace = K ∙ (v : V) :=
-begin
-  ext,
-  split,
-  { rintro (h|h),
-    { simp [h] },
-    rw mem_mk_iff at h,
-    rcases h with ⟨a,ha⟩,
-    replace ha := nonzero.eq_smul_inv_of_smul_eq ha,
-    rw ha,
-    exact (K ∙ (v : V)).smul_mem _ (submodule.subset_span rfl) },
-  { intro h,
-    rw submodule.mem_span_singleton at h,
-    rcases h with ⟨a,rfl⟩,
-    by_cases hx : a = 0,
-    { left, simp [hx] },
-    right,
-    rw mem_mk_iff,
-    refine ⟨a⁻¹, _⟩,
-    rw [← mul_smul, inv_mul_cancel hx, one_smul] }
-end
+  proj_space K V).to_subspace = K ∙ (v : V) := by {rcases v, refl}
 
 lemma to_subspace_mk_le_iff {v : nonzero V} (M : subspace K V) :
   (proj_space.mk v : proj_space K V).to_subspace ≤ M ↔ (v : V) ∈ M :=

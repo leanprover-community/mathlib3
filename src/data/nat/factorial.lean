@@ -124,7 +124,7 @@ begin
 end
 
 lemma add_factorial_le_factorial_add (i : ℕ) (n : ℕ) :
-  i + (n + 1)! ≤ (i + n + 1)! :=
+  i + (n + 1)! ≤ (i + (n + 1))! :=
 begin
   by_cases i2 : 2 ≤ i,
   { exact le_of_lt (n.add_factorial_lt_factorial_add i2) },

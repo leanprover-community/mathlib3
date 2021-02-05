@@ -37,49 +37,63 @@ def fin_two_equiv : fin 2 ≃ bool :=
   end,
   assume b, match b with tt := rfl | ff := rfl end⟩
 
-/-- Equivalence between `fin n.succ` and `option (fin n)`.
-This is a version of `fin.pred` that produces `option (fin n)` instead of
-requiring a proof that the input is not `0`. -/
-def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
-⟨λ x, fin.cases none some x, λ x, option.rec_on x 0 fin.succ,
-  λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
-    0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x,
-  by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _]⟩
-
-@[simp] lemma fin_succ_equiv_zero {n : ℕ} :
-  (fin_succ_equiv n) 0 = none := rfl
-
-@[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
-  (fin_succ_equiv n) m.succ = some m := by simp [fin_succ_equiv]
-
-@[simp] lemma fin_succ_equiv_symm_none {n : ℕ} :
-  (fin_succ_equiv n).symm none = 0 := rfl
-
-@[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
-  (fin_succ_equiv n).symm (some m) = m.succ := rfl
-
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of
 requiring a proof that the input is not `i`. -/
-def fin_succ_equiv' {n : ℕ} (i : fin n.succ) :
+def fin_succ_equiv' {n : ℕ} (i : fin (n + 1)) :
   fin n.succ ≃ option (fin n) :=
 { to_fun := λ x, if h : x = i then none else some (i.pred_above x h),
   inv_fun := λ x, x.cases_on' i (fin.succ_above i),
   left_inv := λ x, if h : x = i then by simp [h] else by simp [h, fin.succ_above_ne],
   right_inv := λ x, by { cases x, simp, simp [fin.succ_above_ne], }}
 
+@[simp] lemma fin_succ_equiv'_at {n : ℕ} (i : fin (n + 1)) :
+  (fin_succ_equiv' i) i = none := by simp [fin_succ_equiv']
+
+lemma fin_succ_equiv'_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+  (fin_succ_equiv' i) m.cast_succ = some m :=
+by simp [fin_succ_equiv', ne_of_lt h, fin.pred_above, h]
+
+lemma fin_succ_equiv'_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+  (fin_succ_equiv' i) m.succ = some m :=
+by simp [fin_succ_equiv', ne_of_gt h, fin.pred_above, not_lt_of_gt h]
+
+@[simp] lemma fin_succ_equiv'_symm_none {n : ℕ} (i : fin (n + 1)) :
+  (fin_succ_equiv' i).symm none = i := rfl
+
+lemma fin_succ_equiv_symm'_some_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+  (fin_succ_equiv' i).symm (some m) = m.cast_succ :=
+by simp [fin_succ_equiv', ne_of_gt h, fin.succ_above, not_le_of_gt h]
+
+lemma fin_succ_equiv_symm'_some_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+  (fin_succ_equiv' i).symm (some m) = m.succ :=
+begin
+  have : ¬ m.cast_succ < i := by simpa [fin.lt_iff_coe_lt_coe, nat.lt_succ_iff] using h,
+  simp [fin_succ_equiv', ne_of_lt h, fin.succ_above, not_le_of_lt h, this]
+end
+
+/-- Equivalence between `fin n.succ` and `option (fin n)`.
+This is a version of `fin.pred` that produces `option (fin n)` instead of
+requiring a proof that the input is not `0`. -/
+def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
+fin_succ_equiv' 0
+
+@[simp] lemma fin_succ_equiv_zero {n : ℕ} :
+  (fin_succ_equiv n) 0 = none := rfl
+
+@[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
+  (fin_succ_equiv n) m.succ = some m :=
+by { convert fin_succ_equiv'_above _, simp [fin.lt_iff_coe_lt_coe] }
+
+@[simp] lemma fin_succ_equiv_symm_none {n : ℕ} :
+  (fin_succ_equiv n).symm none = 0 := by simp [fin_succ_equiv]
+
+@[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
+  (fin_succ_equiv n).symm (some m) = m.succ := rfl
+
 /-- The equiv version of `fin.pred_above_zero`. -/
 lemma fin_succ_equiv'_zero {n : ℕ} :
-  fin_succ_equiv' 0 = fin_succ_equiv' n :=
-begin
-  ext1 x,
-  simp only [fin_succ_equiv', fin_succ_equiv, equiv.coe_fn_mk,
-             fin.pred_above_zero, fin.succ_above_zero],
-  split_ifs,
-  { rw h, refl },
-  { conv_rhs { rw ←x.succ_pred h },
-    rw fin.cases_succ, }
-end
+  fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv n := rfl
 
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=

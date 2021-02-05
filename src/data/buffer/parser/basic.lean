@@ -299,7 +299,7 @@ namespace mono
 instance pure : mono (pure a) :=
 ⟨λ _ _, by simp [pure_eq_done]⟩
 
-@[simp] instance bind {f : α → parser β} [p.mono] [∀ a, (f a).mono] :
+instance bind {f : α → parser β} [p.mono] [∀ a, (f a).mono] :
   (p >>= f).mono :=
 begin
   constructor,
@@ -342,7 +342,7 @@ instance mmap' : Π {l : list α} {f : α → parser β} [∀ a ∈ l, (f a).mon
     exact (λ _ ha, h _ (list.mem_cons_of_mem _ ha)) }
 end
 
-instance failure : @parser.mono α failure :=
+instance failure : (failure : parser α).mono :=
 ⟨by simp [le_refl]⟩
 
 instance guard {p : Prop} [decidable p] : mono (guard p) :=
@@ -574,7 +574,7 @@ lemma foldr_eq_done {f : α → β → β} {p : parser α} {b' : β} :
     ∃ (np : ℕ) (x : α), p cb n = done np x ∧ foldr_core f p b (cb.size - n) cb np = fail n err))) :=
 by simp [foldr, foldr_core_eq_done]
 
-lemma foldr_eq_fail_of_mono_at_end {f : α → β → β} {p : parser α} {err : dlist string}
+lemma foldr_eq_fail_iff_mono_at_end {f : α → β → β} {p : parser α} {err : dlist string}
   [p.mono] (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
@@ -628,7 +628,7 @@ lemma foldl_eq_fail {f : β → α → β} {p : parser α} {err : dlist string} 
     foldl_core f (f b a) p (cb.size - n) cb np = fail n' err) :=
 by simp [foldl, foldl_core_succ_eq_fail]
 
-lemma foldl_eq_fail_of_mono_at_end {f : β → α → β} {p : parser α} {err : dlist string}
+lemma foldl_eq_fail_iff_mono_at_end {f : β → α → β} {p : parser α} {err : dlist string}
   [p.mono] (hc : cb.size ≤ n) : foldl f b p cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin

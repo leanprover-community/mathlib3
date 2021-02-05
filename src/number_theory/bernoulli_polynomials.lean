@@ -20,8 +20,8 @@ lemma dependent_double_sum {M : Type*} [add_comm_monoid M]
   ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
   ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
 begin
-  rw ← @@finset.sum_sigma _ _ (λ i, finset.Ico i b) (λ x, f x.1 x.2),
-  rw ← @@finset.sum_sigma _ _ (λ j, finset.Ico a (j+1)) (λ x, f x.2 x.1),
+  rw ← @@finset.sum_sigma _ _ _ (λ i, finset.Ico i b) (λ x, f x.1 x.2),
+  rw ← @@finset.sum_sigma _ _ _ (λ j, finset.Ico a (j+1)) (λ x, f x.2 x.1),
   refine finset.sum_bij'
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
@@ -128,9 +128,9 @@ lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
 @[simp] lemma sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
   ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli_neg k = 0 :=
 begin
-  cases n, {sorry},
+  cases n, { norm_num at *, },
   rw finset.sum_range_succ', simp,
-  cases n, {sorry},
+  cases n, { norm_num at *, },
   {
     rw finset.sum_range_succ', simp,
     have f := sum_bernoulli n.succ.succ,
@@ -142,8 +142,7 @@ begin
       rw ber_neg_eq_ber, skip, apply_congr succ_succ_ne_one x, skip, skip,
     },
     have g := eq_sub_iff_add_eq.2 f,
-    rw g,
-    sorry,
+    rw g, ring,
   },
 end
 

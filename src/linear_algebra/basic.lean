@@ -365,13 +365,8 @@ def prod_equiv
   right_inv := λ f, by {
     ext1,
     simp only [fst_apply, snd_apply, prod.mk.eta, comp_apply, mk_coe] },
-  map_add' := λ a b, by {
-    ext1,
-    simp only [prod.mk_add_mk, coe_mk, add_apply, prod.fst_add, prod.snd_add] },
-  map_smul' := λ r a, by {
-    ext1,
-    simp only [prod.smul_mk, coe_mk, smul_apply, prod.smul_snd, prod.smul_fst],
-  } }
+  map_add' := λ a b, rfl,
+  map_smul' := λ r a, rfl }
 
 /-- The prod of two linear maps is a linear map. -/
 def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) := prod_equiv ℕ (f, g)
@@ -2527,17 +2522,6 @@ lemma quotient_inf_equiv_sup_quotient_symm_apply_right (p p' : submodule R M) {x
 quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 end isomorphism_laws
-
-section prod
-
-lemma is_linear_map_prod_iso {R M M₂ M₃ : Type*}
-  [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
-  [add_comm_group M₃] [semimodule R M] [semimodule R M₂] [semimodule R M₃] :
-  is_linear_map R (λ(p : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)),
-    (linear_map.prod p.1 p.2 : (M →ₗ[R] (M₂ × M₃)))) :=
-⟨λu v, rfl, λc u, rfl⟩
-
-end prod
 
 section pi
 universe i

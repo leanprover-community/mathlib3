@@ -766,11 +766,11 @@ add_decl_doc add_monoid_hom.has_neg
 
 @[simp, to_additive] lemma inv_comp {M N A} {mM : monoid M} {gN : monoid N}
   {gA : comm_group A} (φ : N →* A) (ψ : M →* N) : φ⁻¹.comp ψ = (φ.comp ψ)⁻¹ :=
-by { ext, simp only [function.comp_app, inv_apply, coe_comp]}
+by { ext, simp only [function.comp_app, inv_apply, coe_comp] }
 
 @[simp, to_additive] lemma comp_inv {M A B} {mM : monoid M} {mA : comm_group A}
   {mB : comm_group B} (φ : A →* B) (ψ : M →* A) : φ.comp ψ⁻¹ = (φ.comp ψ)⁻¹ :=
-by {ext, simp only [function.comp_app, inv_apply, map_inv, coe_comp] }
+by { ext, simp only [function.comp_app, inv_apply, map_inv, coe_comp] }
 
 /-- If `f` and `g` are monoid homomorphisms to a commutative group, then `f / g` is the homomorphism
 sending `x` to `(f x) / (g x)`. -/

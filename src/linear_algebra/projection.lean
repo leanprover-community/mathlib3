@@ -209,6 +209,12 @@ begin
   simp [of_is_compl, hφ, hψ]
 end
 
+lemma of_is_compl_eq' (h : is_compl p q)
+  {φ : p →ₗ[R] F} {ψ : q →ₗ[R] F} {χ : E →ₗ[R] F}
+  (hφ : φ = χ.comp p.subtype) (hψ : ψ = χ.comp q.subtype) :
+  of_is_compl h φ ψ = χ :=
+of_is_compl_eq h (λ _, hφ.symm ▸ rfl) (λ _, hψ.symm ▸ rfl)
+
 @[simp] lemma of_is_compl_zero (h : is_compl p q) :
   (of_is_compl h 0 0 : E →ₗ[R] F) = 0 :=
 of_is_compl_eq _ (λ _, rfl) (λ _, rfl)

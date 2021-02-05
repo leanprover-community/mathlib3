@@ -7,10 +7,8 @@ Authors: Kenny Lau
 import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
--- the below import is just for ℤ[empty] ≃+ unit
-import algebra.punit_instances
--- the below import is just for ℤ[punit] ≃+ ℤ
-import algebra.module.basic
+import algebra.punit_instances -- just for ℤ[empty] ≃+ unit
+import algebra.module.basic -- just for ℤ[punit] ≃+ ℤ
 /-!
 # Free abelian groups
 
@@ -37,7 +35,7 @@ by the map `f`.
 
 * `instance [monoid α] : semigroup (free_abelian_group α)`
 
-* `[comm_monoid α] : comm_ring (free_abelian_group α)`
+* `instance [comm_monoid α] : comm_ring (free_abelian_group α)`
 
 It has been suggested that we would be better off refactoring this file
 and using `finsupp` instead.
@@ -400,7 +398,7 @@ instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
       { intros y1 y2 ih1 ih2, rw [mul_add, add_mul, ih1, ih2] } },
     { intros s ih, rw [neg_mul_eq_neg_mul_symm, ih, neg_mul_eq_mul_neg] },
     { intros x1 x2 ih1 ih2, rw [add_mul, mul_add, ih1, ih2] }
-  end
+  end,
   .. free_abelian_group.ring α }
 
 /-- The free abelian group on the empty type is the trivial group. -/
@@ -413,8 +411,7 @@ def pempty_equiv : free_abelian_group pempty ≃+ unit :=
     ( λ x, pempty.elim x)
     ( λ x y hx hy, by {simp only * at *, simp * at *}),
   right_inv := λ z, unit.ext,
-  map_add' := λ x y, unit.ext
-}
+  map_add' := λ x y, unit.ext }
 
 /-- The free abelian group on `punit` is isomorphic to `ℤ`. -/
 def punit_equiv : free_abelian_group punit ≃+ ℤ :=
@@ -425,7 +422,8 @@ def punit_equiv : free_abelian_group punit ≃+ ℤ :=
     (λ x, punit.cases_on x (by simp))
     (λ x, punit.cases_on x (by simp))
     (λ x y hx hy, by { simp only [lift.add, add_smul] at *, rw [hx, hy]}),
-  right_inv := λ n, begin
+  right_inv := λ n,
+  begin
     rw [add_monoid_hom.map_int_module_smul, lift.of],
     exact gsmul_int_one n
   end,

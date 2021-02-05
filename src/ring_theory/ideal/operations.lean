@@ -7,6 +7,7 @@ import data.nat.choose.sum
 import data.equiv.ring
 import algebra.algebra.operations
 import ring_theory.ideal.basic
+import algebra.algebra.tower
 /-!
 # More operations on modules and ideals
 -/
@@ -43,8 +44,9 @@ theorem annihilator_bot : (⊥ : submodule R M).annihilator = ⊤ :=
 (ideal.eq_top_iff_one _).2 $ mem_annihilator'.2 bot_le
 
 theorem annihilator_eq_top_iff : N.annihilator = ⊤ ↔ N = ⊥ :=
-⟨λ H, eq_bot_iff.2 $ λ (n:M) hn, (mem_bot R).2 $ one_smul R n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
-λ H, H.symm ▸ annihilator_bot⟩
+⟨λ H, eq_bot_iff.2 $ λ (n:M) hn, (mem_bot R).2 $
+  one_smul R n ▸ mem_annihilator.1 ((ideal.eq_top_iff_one _).1 H) n hn,
+  λ H, H.symm ▸ annihilator_bot⟩
 
 theorem annihilator_mono (h : N ≤ P) : P.annihilator ≤ N.annihilator :=
 λ r hrp, mem_annihilator.2 $ λ n hn, mem_annihilator.1 hrp n $ h hn
@@ -471,7 +473,7 @@ or.cases_on (lt_or_eq_of_le $ nat.le_of_lt_succ H)
 theorem is_prime.mul_le {I J P : ideal R} (hp : is_prime P) :
   I * J ≤ P ↔ I ≤ P ∨ J ≤ P :=
 ⟨λ h, or_iff_not_imp_left.2 $ λ hip j hj, let ⟨i, hi, hip⟩ := set.not_subset.1 hip in
-  (hp.2 $ h $ mul_mem_mul hi hj).resolve_left hip,
+  (hp.mem_or_mem $ h $ mul_mem_mul hi hj).resolve_left hip,
 λ h, or.cases_on h (le_trans $ le_trans mul_le_inf inf_le_left)
   (le_trans $ le_trans mul_le_inf inf_le_right)⟩
 
@@ -797,8 +799,8 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 (λ r ⟨n, hfrnk⟩, ⟨n, f.map_pow r n ▸ hfrnk⟩)
 
 theorem comap_is_prime [H : is_prime K] : is_prime (comap f K) :=
-⟨comap_ne_top f H.left,
-  λ x y h, H.right (show f x * f y ∈ K, by rwa [mem_comap, ring_hom.map_mul] at h)⟩
+⟨comap_ne_top f H.ne_top,
+  λ x y h, H.mem_or_mem $ by rwa [mem_comap, ring_hom.map_mul] at h⟩
 
 @[simp] lemma map_quotient_self :
   map (quotient.mk I) I = ⊥ :=
@@ -899,22 +901,22 @@ def order_embedding_of_surjective : ideal S ↪o ideal R :=
 theorem map_eq_top_or_is_maximal_of_surjective (H : is_maximal I) :
   (map f I) = ⊤ ∨ is_maximal (map f I) :=
 begin
-  refine or_iff_not_imp_left.2 (λ ne_top, ⟨λ h, ne_top h, λ J hJ, _⟩),
+  refine or_iff_not_imp_left.2 (λ ne_top, ⟨⟨λ h, ne_top h, λ J hJ, _⟩⟩),
   { refine (rel_iso_of_surjective f hf).injective
-      (subtype.ext_iff.2 (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm)),
+      (subtype.ext_iff.2 (eq.trans (H.1.2 (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm)),
     { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
     { exact λ h, hJ.right (le_map_of_comap_le_of_surjective f hf (le_of_eq h.symm)) } }
 end
 
 theorem comap_is_maximal_of_surjective [H : is_maximal K] : is_maximal (comap f K) :=
 begin
-  refine ⟨comap_ne_top _ H.left, λ J hJ, _⟩,
+  refine ⟨⟨comap_ne_top _ H.1.1, λ J hJ, _⟩⟩,
   suffices : map f J = ⊤,
   { replace this := congr_arg (comap f) this,
     rw [comap_top, comap_map_of_surjective _ hf, eq_top_iff] at this,
     rw eq_top_iff,
     exact le_trans this (sup_le (le_of_eq rfl) (le_trans (comap_mono (bot_le)) (le_of_lt hJ))) },
-  refine H.right (map f J) (lt_of_le_of_ne (le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ))
+  refine H.1.2 (map f J) (lt_of_le_of_ne (le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ))
     (λ h, ne_of_lt hJ (trans (congr_arg (comap f) h) _))),
   rw [comap_map_of_surjective _ hf, sup_eq_left],
   exact le_trans (comap_mono bot_le) (le_of_lt hJ)
@@ -969,7 +971,7 @@ lemma comap_le_iff_le_map : comap f K ≤ I ↔ K ≤ map f I :=
 
 theorem map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
 by refine or_iff_not_imp_left.1
-  (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.left _);
+  (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.1.1 _);
 calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm
    ... = comap f ⊤ : by rw h
    ... = ⊤ : by rw comap_top
@@ -991,7 +993,7 @@ def is_primary (I : ideal R) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : R}, x * y ∈ I → x ∈ I ∨ y ∈ radical I
 
 theorem is_primary.to_is_prime (I : ideal R) (hi : is_prime I) : is_primary I :=
-⟨hi.1, λ x y hxy, (hi.2 hxy).imp id $ λ hyi, le_radical hyi⟩
+⟨hi.1, λ x y hxy, (hi.mem_or_mem hxy).imp id $ λ hyi, le_radical hyi⟩
 
 theorem mem_radical_of_pow_mem {I : ideal R} {x : R} {m : ℕ} (hx : x ^ m ∈ radical I) : x ∈ radical I :=
 radical_idem I ▸ ⟨m, hx⟩
@@ -1097,7 +1099,7 @@ end
 theorem map_is_prime_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   [H : is_prime I] (hk : ring_hom.ker f ≤ I) : is_prime (map f I) :=
 begin
-  refine ⟨λ h, H.left (eq_top_iff.2 _), λ x y, _⟩,
+  refine ⟨λ h, H.ne_top (eq_top_iff.2 _), λ x y, _⟩,
   { replace h := congr_arg (comap f) h,
     rw [comap_map_of_surjective _ hf, comap_top] at h,
     exact h ▸ sup_le (le_of_eq rfl) hk },
@@ -1108,7 +1110,7 @@ begin
     have : a * b ∈ I,
     { convert I.sub_mem hc (hk (hc' : c - a * b ∈ f.ker)),
       ring },
-    exact (H.right this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
+    exact (H.mem_or_mem this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
 end
 
 theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
@@ -1139,6 +1141,41 @@ end
 
 section quotient_algebra
 
+variables (R) {A : Type*} [comm_ring A] [algebra R A]
+
+/-- The `R`-algebra structure on `A/I` for an `R`-algebra `A` -/
+instance {I : ideal A} : algebra R (ideal.quotient I) :=
+(ring_hom.comp (ideal.quotient.mk I) (algebra_map R A)).to_algebra
+
+/-- The canonical morphism `A →ₐ[R] I.quotient` as morphism of `R`-algebras, for `I` an ideal of
+`A`, where `A` is an `R`-algebra. -/
+def quotient.mkₐ (I : ideal A) : A →ₐ[R] I.quotient :=
+⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl, λ _, rfl⟩
+
+lemma quotient.alg_map_eq (I : ideal A) :
+  algebra_map R I.quotient = (algebra_map A I.quotient).comp (algebra_map R A) :=
+by simp only [ring_hom.algebra_map_to_algebra, ring_hom.comp_id]
+
+instance {I : ideal A} : is_scalar_tower R A (ideal.quotient I) :=
+is_scalar_tower.of_algebra_map_eq' (quotient.alg_map_eq R I)
+
+lemma quotient.mkₐ_to_ring_hom (I : ideal A) :
+  (quotient.mkₐ R I).to_ring_hom = ideal.quotient.mk I := rfl
+
+@[simp] lemma quotient.mkₐ_eq_mk (I : ideal A) :
+  ⇑(quotient.mkₐ R I) = ideal.quotient.mk I := rfl
+
+/-- The canonical morphism `A →ₐ[R] I.quotient` is surjective. -/
+lemma quotient.mkₐ_surjective (I : ideal A) : function.surjective (quotient.mkₐ R I) :=
+surjective_quot_mk _
+
+/-- The kernel of `A →ₐ[R] I.quotient` is `I`. -/
+@[simp]
+lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
+ideal.mk_ker
+
+variable {R}
+
 /-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
   I.quotient →+* J.quotient :=
@@ -1150,19 +1187,24 @@ lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.c
   {x : R} : quotient_map I f H (quotient.mk J x) = quotient.mk I (f x) :=
 quotient.lift_mk J _ _
 
-lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f} :
+lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J ≤ I.comap f) :
   (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
 
-/-- If we take `J = I.comap f` then `quotient_map` is injective. -/
+/-- `H` and `h` are kept as separate hypothesis since H is used in constructing the quotient map -/
+lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
+  (h : I.comap f ≤ J) : function.injective (quotient_map I f H) :=
+begin
+  refine (quotient_map I f H).injective_iff.2 (λ a ha, _),
+  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
+  rw [quotient_map_mk, quotient.eq_zero_iff_mem] at ha,
+  exact (quotient.eq_zero_iff_mem).mpr (h ha),
+end
+
+/-- If we take `J = I.comap f` then `quotient_map` is injective automatically. -/
 lemma quotient_map_injective {I : ideal S} {f : R →+* S} :
   function.injective (quotient_map I f le_rfl) :=
-begin
-  refine (quotient_map I f le_rfl).injective_iff.2 (λ a ha, _),
-  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
-  rw quotient_map_mk at ha,
-  rwa quotient.eq_zero_iff_mem at ha ⊢
-end
+quotient_map_injective' le_rfl
 
 lemma quotient_map_surjective {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
   (hf : function.surjective f) : function.surjective (quotient_map I f H) :=

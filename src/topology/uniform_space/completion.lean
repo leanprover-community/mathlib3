@@ -147,7 +147,8 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       from funext $ assume s, set.ext $ assume ⟨a₁, a₂⟩,
         by simp [preimage, gen, pure_cauchy, prod_principal_principal],
     calc comap (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ((𝓤 α).lift' gen)
-          = (𝓤 α).lift' (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
+          = (𝓤 α).lift'
+              (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
         comap_lift'_eq monotone_gen
       ... = 𝓤 α : by simp [this]⟩
 
@@ -278,7 +279,7 @@ begin
     have limc : ∀ (f : Cauchy α) (x ∈ f.1), Lim f.1 ∈ closure x,
     { intros f x xf,
       rw closure_eq_cluster_pts,
-      exact ne_bot_of_le_ne_bot f.2.1
+      exact f.2.1.mono
         (le_inf f.2.le_nhds_Lim (le_principal_iff.2 xf)) },
     have := dc.closure_subset_iff.2 h,
     rw closure_prod_eq at this,

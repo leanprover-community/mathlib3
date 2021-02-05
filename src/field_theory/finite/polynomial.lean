@@ -90,7 +90,7 @@ begin
   refine le_trans (degrees_pow _ _) (nsmul_le_nsmul_of_le_right _ _),
   refine le_trans (degrees_sub _ _) _,
   rw [degrees_C, ← bot_eq_zero, sup_bot_eq],
-  exact degrees_X _
+  exact degrees_X' _
 end
 
 lemma indicator_mem_restrict_degree (c : σ → K) :
@@ -162,7 +162,7 @@ calc vector_space.dim K (R σ K) =
     by rw [finsupp.dim_eq, dim_of_field, mul_one]
   ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
-    refine quotient.sound ⟨equiv.subtype_congr finsupp.equiv_fun_on_fintype $ assume f, _⟩,
+    refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
     refine forall_congr (assume n, nat.le_sub_right_iff_add_le _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end

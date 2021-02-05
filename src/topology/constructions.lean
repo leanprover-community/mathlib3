@@ -212,7 +212,7 @@ have hf : continuous_at f (x, y).fst, from hf,
 have hg : continuous_at g (x, y).snd, from hg,
 hf.prod_map hg
 
-lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (set α)} {t : set (set β)}
+lemma prod_generate_from_generate_from_eq {α β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
   @prod.topological_space α β (generate_from s) (generate_from t) =
   generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} :=
@@ -627,7 +627,7 @@ by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (cont
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
-by { rw [pi_def], exact Inter_mem_sets hi (λ a ha, (continuous_apply a).continuous_at (hs a ha)) }
+by { rw [pi_def, bInter_mem_sets hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =

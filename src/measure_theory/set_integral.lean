@@ -50,7 +50,7 @@ migrated to the new definition.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter
+open_locale classical topological_space interval big_operators filter ennreal
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -58,13 +58,13 @@ section piecewise
 
 variables {μ : measure α} {s : set α} {f g : α → β}
 
-lemma piecewise_ae_eq_restrict (hs : is_measurable s) : piecewise s f g =ᵐ[μ.restrict s] f :=
+lemma piecewise_ae_eq_restrict (hs : measurable_set s) : piecewise s f g =ᵐ[μ.restrict s] f :=
 begin
   rw [ae_restrict_eq hs],
   exact (piecewise_eq_on s f g).eventually_eq.filter_mono inf_le_right
 end
 
-lemma piecewise_ae_eq_restrict_compl (hs : is_measurable s) :
+lemma piecewise_ae_eq_restrict_compl (hs : measurable_set s) :
   piecewise s f g =ᵐ[μ.restrict sᶜ] g :=
 begin
   rw [ae_restrict_eq hs.compl],
@@ -77,13 +77,48 @@ section indicator_function
 
 variables [has_zero β] {μ : measure α} {s : set α} {f : α → β}
 
-lemma indicator_ae_eq_restrict (hs : is_measurable s) : indicator s f =ᵐ[μ.restrict s] f :=
+lemma indicator_ae_eq_restrict (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict s] f :=
 piecewise_ae_eq_restrict hs
 
-lemma indicator_ae_eq_restrict_compl (hs : is_measurable s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
+lemma indicator_ae_eq_restrict_compl (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
 piecewise_ae_eq_restrict_compl hs
 
 end indicator_function
+
+section
+
+variables [measurable_space β] {l l' : filter α} {f g : α → β} {μ ν : measure α}
+
+/-- A function `f` is measurable at filter `l` w.r.t. a measure `μ` if it is ae-measurable
+w.r.t. `μ.restrict s` for some `s ∈ l`. -/
+def measurable_at_filter (f : α → β) (l : filter α) (μ : measure α . volume_tac) :=
+∃ s ∈ l, ae_measurable f (μ.restrict s)
+
+@[simp] lemma measurable_at_bot {f : α → β} : measurable_at_filter f ⊥ μ :=
+⟨∅, mem_bot_sets, by simp⟩
+
+protected lemma measurable_at_filter.eventually (h : measurable_at_filter f l μ) :
+  ∀ᶠ s in l.lift' powerset, ae_measurable f (μ.restrict s) :=
+(eventually_lift'_powerset' $ λ s t, ae_measurable.mono_set).2 h
+
+protected lemma measurable_at_filter.filter_mono (h : measurable_at_filter f l μ) (h' : l' ≤ l) :
+  measurable_at_filter f l' μ :=
+let ⟨s, hsl, hs⟩ := h in ⟨s, h' hsl, hs⟩
+
+protected lemma ae_measurable.measurable_at_filter (h : ae_measurable f μ) :
+  measurable_at_filter f l μ :=
+⟨univ, univ_mem_sets, by rwa measure.restrict_univ⟩
+
+lemma ae_measurable.measurable_at_filter_of_mem {s} (h : ae_measurable f (μ.restrict s))
+  (hl : s ∈ l):
+  measurable_at_filter f l μ :=
+⟨s, hl, h⟩
+
+protected lemma measurable.measurable_at_filter (h : measurable f) :
+  measurable_at_filter f l μ :=
+h.ae_measurable.measurable_at_filter
+
+end
 
 namespace measure_theory
 
@@ -95,7 +130,7 @@ lemma has_finite_integral_restrict_of_bounded [normed_group E] {f : α → E} {s
 by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
 
-variables [normed_group E] [measurable_space E] {f : α → E} {s t : set α} {μ ν : measure α}
+variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
 
 /-- A function is `integrable_on` a set `s` if it is a measurable function and if the integral of
   its pointwise norm over `s` is less than infinity. -/
@@ -175,7 +210,7 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
   h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_measure h.2⟩
 
-lemma ae_measurable_indicator_iff (hs : is_measurable s) :
+lemma ae_measurable_indicator_iff (hs : measurable_set s) :
   ae_measurable f (μ.restrict s) ↔ ae_measurable (indicator s f) μ :=
 begin
   split,
@@ -192,12 +227,12 @@ begin
     exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) }
 end
 
-lemma integrable_indicator_iff (hs : is_measurable s) :
+lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
 by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
   ennreal.coe_indicator, lintegral_indicator _ hs, ae_measurable_indicator_iff hs]
 
-lemma integrable_on.indicator (h : integrable_on f s μ) (hs : is_measurable s) :
+lemma integrable_on.indicator (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 (integrable_indicator_iff hs).2 h
 
@@ -240,37 +275,34 @@ alias integrable_at_filter.inf_ae_iff ↔ measure_theory.integrable_at_filter.of
 
 /-- If `μ` is a measure finite at filter `l` and `f` is a function such that its norm is bounded
 above at `l`, then `f` is integrable at `l`. -/
-lemma measure.finite_at_filter.integrable_at_filter (hfm : ae_measurable f μ)
-  {l : filter α} [is_measurably_generated l]
-  (hμ : μ.finite_at_filter l) (hf : l.is_bounded_under (≤) (norm ∘ f)) :
+lemma measure.finite_at_filter.integrable_at_filter {l : filter α} [is_measurably_generated l]
+  (hfm : measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
+  (hf : l.is_bounded_under (≤) (norm ∘ f)) :
   integrable_at_filter f l μ :=
 begin
-  rcases hμ with ⟨s, hsl, hsμ⟩,
-  rcases hf with ⟨C, hC⟩,
-  simp only [eventually_map] at hC,
-  rcases hC.exists_measurable_mem with ⟨t, htl, htm, hC⟩,
-  refine ⟨t ∩ s, inter_mem_sets htl hsl, _⟩,
-  refine ⟨hfm.mono_measure measure.restrict_le_self, has_finite_integral_restrict_of_bounded
-    (lt_of_le_of_lt (measure_mono $ inter_subset_right _ _) hsμ) _⟩,
+  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in (l.lift' powerset), ∀ x ∈ s, ∥f x∥ ≤ C,
+    from hf.imp (λ C hC, eventually_lift'_powerset.2 ⟨_, hC, λ t, id⟩),
+  rcases (hfm.eventually.and (hμ.eventually.and hC)).exists_measurable_mem_of_lift'
+    with ⟨s, hsl, hsm, hfm, hμ, hC⟩,
+  refine ⟨s, hsl, ⟨hfm, has_finite_integral_restrict_of_bounded hμ _⟩⟩,
   exact C,
-  suffices : ∀ᵐ x ∂μ.restrict t, ∥f x∥ ≤ C,
-    from ae_mono (measure.restrict_mono (inter_subset_left _ _) (le_refl _)) this,
-  rw [ae_restrict_eq htm, eventually_inf_principal],
+  rw [ae_restrict_eq hsm, eventually_inf_principal],
   exact eventually_of_forall hC
 end
 
-lemma measure.finite_at_filter.integrable_at_filter_of_tendsto_ae (hfm : ae_measurable f μ)
-  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter l) {b}
-  (hf : tendsto f (l ⊓ μ.ae) (𝓝 b)) :
+lemma measure.finite_at_filter.integrable_at_filter_of_tendsto_ae
+  {l : filter α} [is_measurably_generated l] (hfm : measurable_at_filter f l μ)
+  (hμ : μ.finite_at_filter l) {b} (hf : tendsto f (l ⊓ μ.ae) (𝓝 b)) :
   integrable_at_filter f l μ :=
-(hμ.inf_of_left.integrable_at_filter hfm hf.norm.is_bounded_under_le).of_inf_ae
+(hμ.inf_of_left.integrable_at_filter (hfm.filter_mono inf_le_left)
+  hf.norm.is_bounded_under_le).of_inf_ae
 
 alias measure.finite_at_filter.integrable_at_filter_of_tendsto_ae ←
   filter.tendsto.integrable_at_filter_ae
 
-lemma measure.finite_at_filter.integrable_at_filter_of_tendsto (hfm : ae_measurable f μ)
-  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter l) {b}
-  (hf : tendsto f l (𝓝 b)) :
+lemma measure.finite_at_filter.integrable_at_filter_of_tendsto {l : filter α}
+  [is_measurably_generated l] (hfm : measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
+  {b} (hf : tendsto f l (𝓝 b)) :
   integrable_at_filter f l μ :=
 hμ.integrable_at_filter hfm hf.norm.is_bounded_under_le
 
@@ -285,8 +317,8 @@ begin
   refine ⟨λ hfg, _, λ h, h.1.add h.2⟩,
   rw [← indicator_add_eq_left h],
   conv { congr, skip, rw [← indicator_add_eq_right h] },
-  rw [integrable_indicator_iff (hf (is_measurable_singleton 0)).compl],
-  rw [integrable_indicator_iff (hg (is_measurable_singleton 0)).compl],
+  rw [integrable_indicator_iff (hf (measurable_set_singleton 0)).compl],
+  rw [integrable_indicator_iff (hg (measurable_set_singleton 0)).compl],
   exact ⟨hfg.integrable_on, hfg.integrable_on⟩
 end
 
@@ -304,7 +336,7 @@ of their images is a subset of `{0}`).
 -/
 @[elab_as_eliminator]
 lemma integrable.induction (P : (α → E) → Prop)
-  (h_ind : ∀ (c : E) ⦃s⦄, is_measurable s → μ s < ⊤ → P (s.indicator (λ _, c)))
+  (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ⊤ → P (s.indicator (λ _, c)))
   (h_sum : ∀ ⦃f g : α → E⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → integrable f μ → integrable g μ →
     P f → P g → P (f + g))
   (h_closed : is_closed {f : α →₁[μ] E | P f} )
@@ -316,10 +348,10 @@ begin
     { intros c s hs h, dsimp only [simple_func.coe_const, simple_func.const_zero,
         piecewise_eq_indicator, simple_func.coe_zero, simple_func.coe_piecewise] at h ⊢,
       by_cases hc : c = 0,
-      { subst hc, convert h_ind 0 is_measurable.empty (by simp) using 1, simp [const] },
+      { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, simp [const] },
       apply h_ind c hs,
-      have : (nnnorm c : ennreal) * μ s < ⊤,
-      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ennreal)) (const α c) s,
+      have : (nnnorm c : ℝ≥0∞) * μ s < ⊤,
+      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ℝ≥0∞)) (const α c) s,
         dsimp only at this,
         have h' := h.has_finite_integral,
         simpa [has_finite_integral, this, lintegral_indicator, hs] using h' },
@@ -337,7 +369,16 @@ end
 
 variables [complete_space E] [normed_space ℝ E]
 
-lemma integral_union (hst : disjoint s t) (hs : is_measurable s) (ht : is_measurable t)
+
+lemma set_integral_congr_ae (hs : measurable_set s) (h : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
+  ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
+integral_congr_ae ((ae_restrict_iff' hs).2 h)
+
+lemma set_integral_congr (hs : measurable_set s) (h : eq_on f g s) :
+  ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
+set_integral_congr_ae hs $ eventually_of_forall h
+
+lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurable_set t)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
 by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
@@ -346,14 +387,14 @@ lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_em
 
 lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [measure.restrict_univ]
 
-lemma integral_add_compl (hs : is_measurable s) (hfi : integrable f μ) :
+lemma integral_add_compl (hs : measurable_set s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
 by rw [← integral_union disjoint_compl_right hs hs.compl hfi.integrable_on hfi.integrable_on,
   union_compl_self, integral_univ]
 
 /-- For a function `f` and a measurable set `s`, the integral of `indicator s f`
 over the whole space is equal to `∫ x in s, f x ∂μ` defined as `∫ x, f x ∂(μ.restrict s)`. -/
-lemma integral_indicator (hs : is_measurable s) :
+lemma integral_indicator (hs : measurable_set s) :
   ∫ x, indicator s f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   by_cases hf : ae_measurable f (μ.restrict s), swap,
@@ -375,12 +416,12 @@ lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
 
 @[simp]
-lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : is_measurable s) :
+lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : measurable_set s) :
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator s_meas, ← set_integral_const]
 
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
-  (hs : is_measurable s) (hf : ae_measurable f (measure.map g μ)) (hg : measurable g) :
+  (hs : measurable_set s) (hf : ae_measurable f (measure.map g μ)) (hg : measurable g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 begin
   rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
@@ -397,33 +438,32 @@ begin
 end
 
 lemma norm_set_integral_le_of_norm_le_const_ae' {C : ℝ} (hs : μ s < ⊤)
-  (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) (hfm : ae_measurable f μ) :
+  (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) (hfm : ae_measurable f (μ.restrict s)) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 begin
   apply norm_set_integral_le_of_norm_le_const_ae hs,
   have A : ∀ᵐ (x : α) ∂μ, x ∈ s → ∥ae_measurable.mk f hfm x∥ ≤ C,
-  { filter_upwards [hC, hfm.ae_eq_mk],
+  { filter_upwards [hC, hfm.ae_mem_imp_eq_mk],
     assume a h1 h2 h3,
-    rw ← h2,
+    rw [← h2 h3],
     exact h1 h3 },
-  have B : is_measurable {x | ∥(hfm.mk f) x∥ ≤ C} := hfm.measurable_mk.norm is_measurable_Iic,
-  filter_upwards [eventually.filter_mono (ae_mono measure.restrict_le_self) hfm.ae_eq_mk,
-                  (ae_restrict_iff B).2 A],
+  have B : measurable_set {x | ∥(hfm.mk f) x∥ ≤ C} := hfm.measurable_mk.norm measurable_set_Iic,
+  filter_upwards [hfm.ae_eq_mk, (ae_restrict_iff B).2 A],
   assume a h1 h2,
   rwa h1
 end
 
-lemma norm_set_integral_le_of_norm_le_const_ae'' {C : ℝ} (hs : μ s < ⊤) (hsm : is_measurable s)
+lemma norm_set_integral_le_of_norm_le_const_ae'' {C : ℝ} (hs : μ s < ⊤) (hsm : measurable_set s)
   (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae hs $ by rwa [ae_restrict_eq hsm, eventually_inf_principal]
 
 lemma norm_set_integral_le_of_norm_le_const {C : ℝ} (hs : μ s < ⊤)
-  (hC : ∀ x ∈ s, ∥f x∥ ≤ C) (hfm : ae_measurable f μ) :
+  (hC : ∀ x ∈ s, ∥f x∥ ≤ C) (hfm : ae_measurable f (μ.restrict s)) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae' hs (eventually_of_forall hC) hfm
 
-lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ⊤) (hsm : is_measurable s)
+lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ⊤) (hsm : measurable_set s)
   (hC : ∀ x ∈ s, ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae'' hs hsm $ eventually_of_forall hC
@@ -437,8 +477,8 @@ lemma set_integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[
   (hfi : integrable_on f s μ) :
   0 < ∫ x in s, f x ∂μ ↔ 0 < μ (support f ∩ s) :=
 begin
-  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_is_null_measurable],
-  exact hfi.ae_measurable.is_null_measurable (is_measurable_singleton 0).compl
+  rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_null_measurable_set],
+  exact hfi.ae_measurable.null_measurable_set (measurable_set_singleton 0).compl
 end
 
 end normed_group
@@ -447,31 +487,84 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
-variables [measurable_space E] [normed_group E]
+variables {ι : Type*} [measurable_space E] [normed_group E]
 
-/-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite
-at a filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`,
-then `∫ x in s, f x ∂μ = μ s • b + o(μ s)` as `s` tends to `l.lift' powerset`. Since `μ s` is
-an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
+/-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite at a
+filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`, then `∫ x in
+s i, f x ∂μ = μ (s i) • b + o(μ (s i))` at a filter `li` provided that `s i` tends to `l.lift'
+powerset` along `li`. Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the
+actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma filter.tendsto.integral_sub_linear_is_o_ae
   [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} {l : filter α} [l.is_measurably_generated]
-  {f : α → E} {b : E} (h : tendsto f (l ⊓ μ.ae) (𝓝 b)) (hfm : ae_measurable f μ)
-  (hμ : μ.finite_at_filter l) :
-  is_o (λ s : set α, ∫ x in s, f x ∂μ - (μ s).to_real • b) (λ s, (μ s).to_real)
-    (l.lift' powerset) :=
+  {f : α → E} {b : E} (h : tendsto f (l ⊓ μ.ae) (𝓝 b))
+  (hfm : measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li (l.lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • b) m li :=
 begin
-  simp only [is_o_iff],
-  intros ε ε₀,
+  suffices : is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) (λ s, (μ s).to_real)
+    (l.lift' powerset),
+    from (this.comp_tendsto hs).congr' (hsμ.mono $ λ a ha, ha ▸ rfl) hsμ,
+  refine is_o_iff.2 (λ ε ε₀, _),
   have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
     eventually_lift'_powerset_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
-  refine hμ.eventually.mp ((h.integrable_at_filter_ae hfm hμ).eventually.mp (this.mono _)),
+  filter_upwards [hμ.eventually, (hμ.integrable_at_filter_of_tendsto_ae hfm h).eventually,
+    hfm.eventually, this],
   simp only [mem_closed_ball, dist_eq_norm],
-  intros s h_norm h_integrable hμs,
+  intros s hμs h_integrable hfm h_norm,
   rw [← set_integral_const, ← integral_sub h_integrable (integrable_on_const.2 $ or.inr hμs),
     real.norm_eq_abs, abs_of_nonneg ennreal.to_real_nonneg],
   exact norm_set_integral_le_of_norm_le_const_ae' hμs h_norm (hfm.sub ae_measurable_const)
 end
+
+/-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
+finite measure and `f` is an almost everywhere measurable function that is continuous at a point `a`
+within a measurable set `t`, then `∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at a filter `li`
+provided that `s i` tends to `(𝓝[t] a).lift' powerset` along `li`.  Since `μ (s i)` is an `ℝ≥0∞`
+number, we use `(μ (s i)).to_real` in the actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
+lemma continuous_within_at.integral_sub_linear_is_o_ae
+  [topological_space α] [opens_measurable_space α]
+  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
+  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
+  {f : α → E} (ha : continuous_within_at f t a) (ht : measurable_set t)
+  (hfm : measurable_at_filter f (𝓝[t] a) μ)
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
+exact (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae
+  hfm (μ.finite_at_nhds_within a t) hs m hsμ
+
+/-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
+measure and `f` is an almost everywhere measurable function that is continuous at a point `a`, then
+`∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at `li` provided that `s` tends to `(𝓝 a).lift'
+powerset` along `li.  Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the
+actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
+lemma continuous_at.integral_sub_linear_is_o_ae
+  [topological_space α] [opens_measurable_space α]
+  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
+  {μ : measure α} [locally_finite_measure μ] {a : α}
+  {f : α → E} (ha : continuous_at f a) (hfm : measurable_at_filter f (𝓝 a) μ)
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝 a).lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+(ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a) hs m hsμ
 
 /-- If a function is integrable at `𝓝[s] x` for each point `x` of a compact set `s`, then it is
 integrable on `s`. -/
@@ -484,7 +577,7 @@ is_compact.induction_on hs integrable_on_empty (λ s t hst ht, ht.mono_set hst)
 /-- A function which is continuous on a set `s` is almost everywhere measurable with respect to
 `μ.restrict s`. -/
 lemma continuous_on.ae_measurable [topological_space α] [opens_measurable_space α] [borel_space E]
-  {f : α → E} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : is_measurable s) :
+  {f : α → E} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
   ae_measurable f (μ.restrict s) :=
 begin
   refine ⟨indicator s f, _, (indicator_ae_eq_restrict hs).symm⟩,
@@ -493,8 +586,36 @@ begin
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
     _root_.continuous_on_iff'.1 hf t ht,
   rw [indicator_preimage, inter_comm, hu],
-  exact (u_open.is_measurable.inter hs).union (hs.compl.inter (measurable_const ht.is_measurable))
+  exact (u_open.measurable_set.inter hs).union (hs.compl.inter (measurable_const ht.measurable_set))
 end
+
+lemma continuous_on.integrable_at_nhds_within
+  [topological_space α] [opens_measurable_space α] [borel_space E]
+  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α} {f : α → E}
+  (hft : continuous_on f t) (ht : measurable_set t) (ha : a ∈ t) :
+  integrable_at_filter f (𝓝[t] a) μ :=
+by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
+exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_measurable ht⟩
+  (μ.finite_at_nhds_within _ _)
+
+/-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
+finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =
+μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).lift' powerset` along
+`li`.  Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the actual statement.
+
+Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
+argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
+arguments, `m i = (μ (s i)).to_real` is used in the output. -/
+lemma continuous_on.integral_sub_linear_is_o_ae
+  [topological_space α] [opens_measurable_space α]
+  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
+  {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
+  {f : α → E} (hft : continuous_on f t) (ha : a ∈ t) (ht : measurable_set t)
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
+  (m : ι → ℝ := λ i, (μ (s i)).to_real)
+  (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
+  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+(hft a ha).integral_sub_linear_is_o_ae ht ⟨t, self_mem_nhds_within, hft.ae_measurable ht⟩ hs m hsμ
 
 /-- A function `f` continuous on a compact set `s` is integrable on this set with respect to any
 locally finite measure. -/
@@ -503,14 +624,7 @@ lemma continuous_on.integrable_on_compact
   [t2_space α] {μ : measure α} [locally_finite_measure μ]
   {s : set α} (hs : is_compact s) {f : α → E} (hf : continuous_on f s) :
   integrable_on f s μ :=
-begin
-  have : (μ.restrict s).restrict s = μ.restrict s, by simp [hs.is_measurable],
-  rw [integrable_on, ← this, ← integrable_on],
-  refine hs.integrable_on_of_nhds_within (λ x hx, _),
-  haveI := hs.is_measurable.nhds_within_is_measurably_generated,
-  refine (hf x hx).integrable_at_filter (hf.ae_measurable hs.is_measurable) _,
-  exact (μ.finite_at_nhds_within x s).measure_mono measure.restrict_le_self
-end
+hs.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hs.measurable_set hx
 
 /-- A continuous function `f` is integrable on any compact set with respect to any locally finite
 measure. -/
@@ -529,23 +643,10 @@ lemma continuous.integrable_of_compact_closure_support
   integrable f μ :=
 begin
   rw [← indicator_eq_self.2 (@subset_closure _ _ (support f)),
-    integrable_indicator_iff is_closed_closure.is_measurable],
+    integrable_indicator_iff is_closed_closure.measurable_set],
   { exact hf.integrable_on_compact hfc },
   { apply_instance }
 end
-
-/-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
-measure that and `f` is an almost everywhere measurable function that is continuous at a point `a`,
-then `∫ x in s, f x ∂μ = μ s • f a + o(μ s)` as `s` tends to `(𝓝 a).lift' powerset`.
-Since `μ s` is an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
-lemma continuous_at.integral_sub_linear_is_o_ae
-  [topological_space α] [opens_measurable_space α]
-  [normed_space ℝ E] [second_countable_topology E] [complete_space E]
-  [borel_space E]
-  {μ : measure α} [locally_finite_measure μ] {a : α}
-  {f : α → E} (ha : continuous_at f a) (hfm : ae_measurable f μ) :
-  is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • f a) (λ s, (μ s).to_real) ((𝓝 a).lift' powerset) :=
-(ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a)
 
 section
 /-! ### Continuous linear maps composed with integration
@@ -723,7 +824,7 @@ variables [measurable_space α]
   {s t : set α} {f g : α → β} {μ : measure α}
 open set
 
-lemma integral_on_congr (hf : measurable f) (hg : measurable g) (hs : is_measurable s)
+lemma integral_on_congr (hf : measurable f) (hg : measurable g) (hs : measurable_set s)
   (h : ∀ᵐ a ∂μ, a ∈ s → f a = g a) : ∫ a in s, f a ∂μ = ∫ a in s, g a ∂μ :=
 integral_congr_ae hf hg $ _
 
@@ -760,7 +861,7 @@ lemma integral_on_union (hsm : measurable_on s f) (hsi : integrable_on s f)
   (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
 by { rw [indicator_union_of_disjoint h, integral_add hsm hsi htm hti] }
 
-lemma integral_on_union_ae (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
+lemma integral_on_union_ae (hs : measurable_set s) (ht : measurable_set t) (hsm : measurable_on s f)
   (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f)
   (h : ∀ᵐ a, a ∉ s ∩ t) :
   (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
@@ -783,7 +884,7 @@ integral_nonpos_of_nonpos_ae $ by { filter_upwards [hf] λ a h, indicator_nonpos
 lemma integral_on_nonpos {f : α → ℝ} (hf : ∀ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
 integral_on_nonpos_of_ae $ univ_mem_sets' hf
 
-lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, is_measurable (s i))
+lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
   (h_mono : monotone s) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
   tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Union s), f a)) :=
 let bound : α → ℝ := indicator (Union s) (λa, ∥f a∥) in
@@ -799,14 +900,14 @@ begin
   { filter_upwards [] λa, le_trans (tendsto_indicator_of_monotone _ h_mono _ _) (pure_le_nhds _) }
 end
 
-lemma tendsto_integral_on_of_antimono (s : ℕ → set α) (f : α → β) (hsm : ∀i, is_measurable (s i))
+lemma tendsto_integral_on_of_antimono (s : ℕ → set α) (f : α → β) (hsm : ∀i, measurable_set (s i))
   (h_mono : ∀i j, i ≤ j → s j ⊆ s i) (hfm : measurable_on (s 0) f) (hfi : integrable_on (s 0) f) :
   tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Inter s), f a)) :=
 let bound : α → ℝ := indicator (s 0) (λa, ∥f a∥) in
 begin
   apply tendsto_integral_of_dominated_convergence,
   { assume i, refine hfm.subset (hsm i) (h_mono _ _ (zero_le _)) },
-  { exact hfm.subset (is_measurable.Inter hsm) (Inter_subset _ _) },
+  { exact hfm.subset (measurable_set.Inter hsm) (Inter_subset _ _) },
   { show integrable_on (s 0) (λa, ∥f a∥), rwa integrable_on_norm_iff },
   { assume i, apply ae_of_all,
     assume a,
@@ -817,7 +918,7 @@ end
 
 -- TODO : prove this for an encodable type
 -- by proving an encodable version of `filter.is_countably_generated_at_top_finset_nat `
-lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
+lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, measurable_set (s i))
   (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f)
   (hfi : integrable_on (Union s) f) :
   (∫ a in (Union s), f a) = ∑'i, ∫ a in s i, f a :=
@@ -836,7 +937,7 @@ begin
   { exact is_countably_generated_at_top_finset_nat },
   { refine univ_mem_sets' (λ n, _),
     simp only [mem_set_of_eq],
-    refine hfm.subset (is_measurable.Union (λ i, is_measurable.Union_Prop (λh, hm _)))
+    refine hfm.subset (measurable_set.Union (λ i, measurable_set.Union_Prop (λh, hm _)))
       (bUnion_subset_Union _ _), },
   { assumption },
   { refine univ_mem_sets' (λ n, univ_mem_sets' $ _),

@@ -522,7 +522,7 @@ begin
       exact nhds_within_mono _ (subset_insert x u) hv },
     { rw has_ftaylor_series_up_to_on_succ_iff_right,
       refine ⟨λ y hy, rfl, λ y hy, _, _⟩,
-      { change has_fderiv_within_at (λ (z : E), (continuous_multilinear_curry_fin0 𝕜 E F).symm (f z))
+      { change has_fderiv_within_at (λ z, (continuous_multilinear_curry_fin0 𝕜 E F).symm (f z))
           ((formal_multilinear_series.unshift (p' y) (f y) 1).curry_left) (v ∩ u) y,
         rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
         convert (f'_eq_deriv y hy.2).mono (inter_subset_right v u),
@@ -2389,9 +2389,18 @@ lemma times_cont_diff_within_at.inv {f : E → 𝕜'} {n} (hf : times_cont_diff_
   times_cont_diff_within_at 𝕜 n (λ x, (f x)⁻¹) s x :=
 (times_cont_diff_at_inv 𝕜 hx).comp_times_cont_diff_within_at x hf
 
+lemma times_cont_diff_on.inv {f : E → 𝕜'} {n} (hf : times_cont_diff_on 𝕜 n f s)
+  (h : ∀ x ∈ s, f x ≠ 0) :
+  times_cont_diff_on 𝕜 n (λ x, (f x)⁻¹) s :=
+λ x hx, (hf.times_cont_diff_within_at hx).inv (h x hx)
+
 lemma times_cont_diff_at.inv {f : E → 𝕜'} {n} (hf : times_cont_diff_at 𝕜 n f x) (hx : f x ≠ 0) :
   times_cont_diff_at 𝕜 n (λ x, (f x)⁻¹) x :=
 hf.inv hx
+
+lemma times_cont_diff.inv {f : E → 𝕜'} {n} (hf : times_cont_diff 𝕜 n f) (h : ∀ x, f x ≠ 0) :
+  times_cont_diff 𝕜 n (λ x, (f x)⁻¹) :=
+by { rw times_cont_diff_iff_times_cont_diff_at, exact λ x, hf.times_cont_diff_at.inv (h x) }
 
 -- TODO: generalize to `f g : E → 𝕜'`
 lemma times_cont_diff_within_at.div [complete_space 𝕜] {f g : E → 𝕜} {n}
@@ -2399,6 +2408,11 @@ lemma times_cont_diff_within_at.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hx : g x ≠ 0) :
   times_cont_diff_within_at 𝕜 n (λ x, f x / g x) s x :=
 hf.mul (hg.inv hx)
+
+lemma times_cont_diff_on.div [complete_space 𝕜] {f g : E → 𝕜} {n}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) (h₀ : ∀ x ∈ s, g x ≠ 0) :
+  times_cont_diff_on 𝕜 n (f / g) s :=
+λ x hx, (hf x hx).div (hg x hx) (h₀ x hx)
 
 lemma times_cont_diff_at.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x)
@@ -2472,7 +2486,7 @@ begin
     -- For showing `n.succ` times continuous differentiability (the main inductive step), it
     -- suffices to produce the derivative and show that it is `n` times continuously differentiable
     have eq_f₀' : f' (f.symm a) = f₀',
-    { exact has_fderiv_at_unique (hff' (f.symm a) (mem_of_nhds hu)) hf₀' },
+    { exact (hff' (f.symm a) (mem_of_nhds hu)).unique hf₀' },
     -- This follows by a bootstrapping formula expressing the derivative as a function of `f` itself
     refine ⟨inverse ∘ f' ∘ f.symm, _, _⟩,
     { -- We first check that the derivative of `f` is that formula
@@ -2523,35 +2537,36 @@ end function_inverse
 
 section real
 /-!
-### Results over `ℝ`
+### Results over `ℝ` or `ℂ`
   The results in this section rely on the Mean Value Theorem, and therefore hold only over `ℝ` (and
   its extension fields such as `ℂ`).
 -/
 
 variables
-{E' : Type*} [normed_group E'] [normed_space ℝ E']
-{F' : Type*} [normed_group F'] [normed_space ℝ F']
+{𝕂 : Type*} [is_R_or_C 𝕂]
+{E' : Type*} [normed_group E'] [normed_space 𝕂 E']
+{F' : Type*} [normed_group F'] [normed_space 𝕂 F']
 
 /-- If a function has a Taylor series at order at least 1, then at points in the interior of the
     domain of definition, the term of order 1 of this series is a strict derivative of `f`. -/
 lemma has_ftaylor_series_up_to_on.has_strict_fderiv_at
-  {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series ℝ E' F'} {n : with_top ℕ}
+  {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series 𝕂 E' F'} {n : with_top ℕ}
   (hf : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hs : s ∈ 𝓝 x) :
-  has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 ℝ E' F') (p x 1)) x :=
+  has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 𝕂 E' F') (p x 1)) x :=
 begin
-  let f' := λ x, (continuous_multilinear_curry_fin1 ℝ E' F') (p x 1),
+  let f' := λ x, (continuous_multilinear_curry_fin1 𝕂 E' F') (p x 1),
   have hf' : ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
     λ x, has_ftaylor_series_up_to_on.has_fderiv_within_at hf hn,
   have hcont : continuous_on f' s :=
-    (continuous_multilinear_curry_fin1 ℝ E' F').continuous.comp_continuous_on (hf.cont 1 hn),
+    (continuous_multilinear_curry_fin1 𝕂 E' F').continuous.comp_continuous_on (hf.cont 1 hn),
   exact strict_fderiv_of_cont_diff hf' hcont hs,
 end
 
 /-- If a function is `C^n` with `1 ≤ n` around a point, then the derivative of `f` at this point
 is also a strict derivative. -/
 lemma times_cont_diff_at.has_strict_fderiv_at {f : E' → F'} {x : E'} {n : with_top ℕ}
-  (hf : times_cont_diff_at ℝ n f x) (hn : 1 ≤ n) :
-  has_strict_fderiv_at f (fderiv ℝ f x) x :=
+  (hf : times_cont_diff_at 𝕂 n f x) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f (fderiv 𝕂 f x) x :=
 begin
   rcases hf 1 hn with ⟨u, H, p, hp⟩,
   simp only [nhds_within_univ, mem_univ, insert_eq_of_mem] at H,
@@ -2563,15 +2578,15 @@ end
 /-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative at that point is given to
 us as `f'`, then `f'` is also a strict derivative. -/
 lemma times_cont_diff_at.has_strict_fderiv_at'
-  {f : E' → F'} {f' : E' →L[ℝ] F'} {x : E'}
-  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :
+  {f : E' → F'} {f' : E' →L[𝕂] F'} {x : E'}
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :
   has_strict_fderiv_at f f' x :=
 by simpa only [hf'.fderiv] using hf.has_strict_fderiv_at hn
 
 /-- If a function is `C^n` with `1 ≤ n`, then the derivative of `f` is also a strict derivative. -/
 lemma times_cont_diff.has_strict_fderiv_at
-  {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff ℝ n f) (hn : 1 ≤ n) :
-  has_strict_fderiv_at f (fderiv ℝ f x) x :=
+  {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff 𝕂 n f) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f (fderiv 𝕂 f x) x :=
 hf.times_cont_diff_at.has_strict_fderiv_at hn
 
 end real
@@ -2605,7 +2620,7 @@ begin
     apply times_cont_diff.comp_times_cont_diff_on _ h,
     exact (is_bounded_bilinear_map_apply.is_bounded_linear_map_left _).times_cont_diff },
   { assume h,
-    have : fderiv_within 𝕜 f₂ s₂ = (λ u, smul_right 1 u) ∘ (λ x, deriv_within f₂ s₂ x),
+    have : fderiv_within 𝕜 f₂ s₂ = smul_right (1 : 𝕜 →L[𝕜] 𝕜) ∘ deriv_within f₂ s₂,
       by { ext x, simp [deriv_within] },
     simp only [this],
     apply times_cont_diff.comp_times_cont_diff_on _ h,

@@ -380,7 +380,7 @@ variables (α) {α' : Type*} (M) {M' : Type*} (R)
 
 /-- Interprets (l : α →₀ R) as linear combination of the elements in the family (v : α → M) and
     evaluates this linear combination. -/
-protected def total : (α →₀ R) →ₗ M := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
+protected def total : (α →₀ R) →ₗ[R] M := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
 
 variables {α M v}
 

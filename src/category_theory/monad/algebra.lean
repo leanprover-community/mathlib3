@@ -86,6 +86,17 @@ instance : category_struct (algebra T) :=
     cf Definition 5.2.4 in [Riehl][riehl2017]. -/
 instance EilenbergMoore : category (algebra T) := {}.
 
+/--
+To construct an isomorphism of algebras, it suffices to give an isomorphism of the carriers which
+commutes with the structure morphisms.
+-/
+@[simps]
+def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : T.map h.hom ≫ B.a = A.a ≫ h.hom) : A ≅ B :=
+{ hom := { f := h.hom },
+  inv :=
+  { f := h.inv,
+    h' := by { rw [h.eq_comp_inv, category.assoc, ←w, ←T.map_comp_assoc], simp } } }
+
 end algebra
 
 variables (T : C ⥤ C) [monad T]
@@ -108,8 +119,8 @@ variables (T : C ⥤ C) [monad T]
 instance [inhabited C] : inhabited (algebra T) :=
 ⟨(free T).obj (default C)⟩
 
-/-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
-    cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
+/-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for
+  a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
 @[simps unit counit {rhs_md := semireducible}]
@@ -132,10 +143,12 @@ adjunction.mk_of_hom_equiv
       apply category.comp_id,
     end }}
 
-/-- Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism. -/
-def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso f :=
+/--
+Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism.
+-/
+def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 { inv :=
-  { f := i.inv,
+  { f := inv f.f,
     h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], simp } } }
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
@@ -204,16 +217,40 @@ instance EilenbergMoore : category (coalgebra G) :=
   id := hom.id,
   comp := @hom.comp _ _ _ _ }
 
+/--
+To construct an isomorphism of coalgebras, it suffices to give an isomorphism of the carriers which
+commutes with the structure morphisms.
+-/
+@[simps]
+def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.hom ≫ B.a) : A ≅ B :=
+{ hom := { f := h.hom },
+  inv :=
+  { f := h.inv,
+    h' := by { rw [h.eq_inv_comp, ←reassoc_of w, ←G.map_comp], simp } } }
+
 end coalgebra
 
 variables (G : C ⥤ C) [comonad G]
 
-/-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic structure. -/
+/-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic
+structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=
 { obj := λ A, A.A,
   map := λ A B f, f.f }
 
-/-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any object. -/
+/--
+Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
+-/
+def coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
+{ inv :=
+  { f := inv f.f,
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc, ←G.map_comp], simp } } }
+
+instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
+{ reflects := λ A B, coalgebra_iso_of_iso G }
+
+/-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any
+object. -/
 @[simps] def cofree : C ⥤ coalgebra G :=
 { obj := λ X,
   { A := G.obj X,

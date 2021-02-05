@@ -110,6 +110,20 @@ theorem surjective.exists₃ {f : α → β} (hf : surjective f) {p : β → β 
   (∃ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∃ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
 hf.exists.trans $ exists_congr $ λ x, hf.exists₂
 
+protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
+protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
+
+lemma bijective_iff_exists_unique (f : α → β) : bijective f ↔
+  ∀ b : β, ∃! (a : α), f a = b :=
+⟨ λ hf b, let ⟨a, ha⟩ := hf.surjective b in ⟨a, ha, λ a' ha', hf.injective (ha'.trans ha.symm)⟩,
+  λ he, ⟨
+    λ a a' h, unique_of_exists_unique (he (f a')) h rfl,
+    λ b, exists_of_exists_unique (he b) ⟩⟩
+
+/-- Shorthand for using projection notation with `function.bijective_iff_exists_unique`. -/
+lemma bijective.exists_unique {f : α → β} (hf : bijective f) (b : β) : ∃! (a : α), f a = b :=
+(bijective_iff_exists_unique f).mp hf b
+
 /-- Cantor's diagonal argument implies that there are no surjective functions from `α`
 to `set α`. -/
 theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
@@ -206,7 +220,7 @@ include n
 local attribute [instance, priority 10] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
-on `f '' s`. -/
+on `f '' s`. For a computable version, see `function.injective.inv_of_mem_range`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
 if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
 
@@ -342,9 +356,27 @@ funext_iff.trans $ forall_update_iff _ (λ x y, g x = y)
 @[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
 update_eq_iff.2 ⟨rfl, λ _ _, rfl⟩
 
-lemma update_comp {β : Sort v} (f : α → β) {g : α' → α} (hg : injective g) (a : α') (v : β) :
-  (update f (g a) v) ∘ g = update (f ∘ g) a v :=
-eq_update_iff.2 ⟨update_same _ _ _, λ x hx, update_noteq (hg.ne hx) _ _⟩
+lemma update_comp_eq_of_forall_ne' {α'} (g : Π a, β a) {f : α' → α} {i : α} (a : β i)
+  (h : ∀ x, f x ≠ i) :
+  (λ j, (update g i a) (f j)) = (λ j, g (f j)) :=
+funext $ λ x, update_noteq (h _) _ _
+
+/-- Non-dependent version of `function.update_comp_eq_of_forall_ne'` -/
+lemma update_comp_eq_of_forall_ne {α β : Sort*} (g : α' → β) {f : α → α'} {i : α'} (a : β)
+  (h : ∀ x, f x ≠ i) :
+  (update g i a) ∘ f = g ∘ f :=
+update_comp_eq_of_forall_ne' g a h
+
+lemma update_comp_eq_of_injective' (g : Π a, β a) {f : α' → α} (hf : function.injective f)
+  (i : α') (a : β (f i)) :
+  (λ j, update g (f i) a (f j)) = update (λ i, g (f i)) i a :=
+eq_update_iff.2 ⟨update_same _ _ _, λ j hj, update_noteq (hf.ne hj) _ _⟩
+
+/-- Non-dependent version of `function.update_comp_eq_of_injective'` -/
+lemma update_comp_eq_of_injective {β : Sort*} (g : α' → β) {f : α → α'}
+  (hf : function.injective f) (i : α) (a : β) :
+  (function.update g (f i) a) ∘ f = function.update (g ∘ f) i a :=
+update_comp_eq_of_injective' g hf i a
 
 lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
   (f : Π i, α i → β i) (g : Π i, α i) (i : ι) (v : α i) (j : ι) :

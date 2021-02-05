@@ -22,7 +22,7 @@ The Bochner integral is defined following these steps:
   where `E` is a real normed space.
 
   (See `simple_func.bintegral` and section `bintegral` for details. Also see `simple_func.integral`
-  for the integral on simple functions of the type `simple_func α ennreal`.)
+  for the integral on simple functions of the type `simple_func α ℝ≥0∞`.)
 
 2. Use `α →ₛ E` to cut out the simple functions from L1 functions, and define integral
   on these. The type of simple functions in L1 space is written as `α →₁ₛ[μ] E`.
@@ -58,7 +58,7 @@ The Bochner integral is defined following these steps:
   * `integral_nonpos`       : `f ≤ 0 → ∫ x, f x ∂μ ≤ 0`
   * `integral_mono`         : `f ≤ᵐ[μ] g → ∫ x, f x ∂μ ≤ ∫ x, g x ∂μ`
 
-3. Propositions connecting the Bochner integral with the integral on `ennreal`-valued functions,
+3. Propositions connecting the Bochner integral with the integral on `ℝ≥0∞`-valued functions,
    which is called `lintegral` and has the notation `∫⁻`.
 
   * `integral_eq_lintegral_max_sub_lintegral_min` : `∫ x, f x ∂μ = ∫⁻ x, f⁺ x ∂μ - ∫⁻ x, f⁻ x ∂μ`,
@@ -78,7 +78,7 @@ you to prove something for an arbitrary measurable + integrable function.
 Another method is using the following steps.
 See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
 `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, with the first integral sign being the Bochner integral of a real-valued
-function `f : α → ℝ`, and second and third integral sign being the integral on ennreal-valued
+function `f : α → ℝ`, and second and third integral sign being the integral on `ℝ≥0∞`-valued
 functions (called `lintegral`). The proof of `integral_eq_lintegral_max_sub_lintegral_min` is
 scattered in sections with the name `pos_part`.
 
@@ -123,7 +123,7 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators nnreal
+open_locale classical topological_space big_operators nnreal ennreal
 
 namespace measure_theory
 
@@ -191,10 +191,10 @@ variables {μ : measure α}
     finite volume support. -/
 lemma integrable_iff_fin_meas_supp {f : α →ₛ E} {μ : measure α} :
   integrable f μ ↔ f.fin_meas_supp μ :=
-calc integrable f μ ↔ ∫⁻ x, f.map (coe ∘ nnnorm : E → ennreal) x ∂μ < ⊤ :
+calc integrable f μ ↔ ∫⁻ x, f.map (coe ∘ nnnorm : E → ℝ≥0∞) x ∂μ < ⊤ :
   and_iff_right f.ae_measurable
-... ↔ (f.map (coe ∘ nnnorm : E → ennreal)).lintegral μ < ⊤ : by rw lintegral_eq_lintegral
-... ↔ (f.map (coe ∘ nnnorm : E → ennreal)).fin_meas_supp μ : iff.symm $
+... ↔ (f.map (coe ∘ nnnorm : E → ℝ≥0∞)).lintegral μ < ⊤ : by rw lintegral_eq_lintegral
+... ↔ (f.map (coe ∘ nnnorm : E → ℝ≥0∞)).fin_meas_supp μ : iff.symm $
   fin_meas_supp.iff_lintegral_lt_top $ eventually_of_forall $ λ x, coe_lt_top
 ... ↔ _ : fin_meas_supp.map_iff $ λ b, coe_eq_zero.trans nnnorm_eq_zero
 
@@ -235,7 +235,7 @@ begin
   refine finset.sum_image' _ (assume b hb, _),
   rcases mem_range.1 hb with ⟨a, rfl⟩,
   rw [map_preimage_singleton, ← sum_measure_preimage_singleton _
-    (λ _ _, f.is_measurable_preimage _)],
+    (λ _ _, f.measurable_set_preimage _)],
   -- Now we use `hf : integrable f μ` to show that `ennreal.to_real` is additive.
   by_cases ha : g (f a) = 0,
   { simp only [ha, smul_zero],
@@ -253,9 +253,9 @@ begin
 end
 
 /-- `simple_func.integral` and `simple_func.lintegral` agree when the integrand has type
-    `α →ₛ ennreal`. But since `ennreal` is not a `normed_space`, we need some form of coercion.
+    `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `normed_space`, we need some form of coercion.
     See `integral_eq_lintegral` for a simpler version. -/
-lemma integral_eq_lintegral' {f : α →ₛ E} {g : E → ennreal} (hf : integrable f μ) (hg0 : g 0 = 0)
+lemma integral_eq_lintegral' {f : α →ₛ E} {g : E → ℝ≥0∞} (hf : integrable f μ) (hg0 : g 0 = 0)
   (hgt : ∀b, g b < ⊤):
   (f.map (ennreal.to_real ∘ g)).integral μ = ennreal.to_real (∫⁻ a, g (f a) ∂μ) :=
 begin
@@ -292,7 +292,7 @@ begin
 end
 
 /-- `simple_func.bintegral` and `simple_func.integral` agree when the integrand has type
-    `α →ₛ ennreal`. But since `ennreal` is not a `normed_space`, we need some form of coercion. -/
+    `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `normed_space`, we need some form of coercion. -/
 lemma integral_eq_lintegral {f : α →ₛ ℝ} (hf : integrable f μ) (h_pos : 0 ≤ᵐ[μ] f) :
   f.integral μ = ennreal.to_real (∫⁻ a, ennreal.of_real (f a) ∂μ) :=
 begin
@@ -1071,13 +1071,35 @@ begin
 end
 
 lemma ennnorm_integral_le_lintegral_ennnorm (f : α → E) :
-  (nnnorm (∫ a, f a ∂μ) : ennreal) ≤ ∫⁻ a, (nnnorm (f a)) ∂μ :=
+  (nnnorm (∫ a, f a ∂μ) : ℝ≥0∞) ≤ ∫⁻ a, (nnnorm (f a)) ∂μ :=
 by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to_real,
   exact norm_integral_le_lintegral_norm f }
 
 lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=
 if hfm : ae_measurable f μ then by simp [integral_congr_ae hf, integral_zero]
 else integral_non_ae_measurable hfm
+
+/-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma has_finite_integral.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : has_finite_integral f μ) {l : filter ι} {s : ι → set α}
+  (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+begin
+  rw [tendsto_zero_iff_norm_tendsto_zero],
+  simp_rw [← coe_nnnorm, ← nnreal.coe_zero, nnreal.tendsto_coe, ← ennreal.tendsto_coe,
+    ennreal.coe_zero],
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (tendsto_set_lintegral_zero hf hs) (λ i, zero_le _)
+    (λ i, ennnorm_integral_le_lintegral_ennnorm _)
+end
+
+/-- If `f` is integrable, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
+to zero as `μ s` tends to zero. -/
+lemma integrable.tendsto_set_integral_nhds_zero {ι} {f : α → E}
+  (hf : integrable f μ) {l : filter ι} {s : ι → set α} (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
+hf.2.tendsto_set_integral_nhds_zero hs
 
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
 lemma tendsto_integral_of_l1 {ι} (f : α → E) (hfi : integrable f μ)
@@ -1233,7 +1255,7 @@ begin
   rw [← lt_top_iff_ne_top], convert hfi.has_finite_integral, ext1 x, rw [real.nnnorm_coe_eq_self]
 end
 
-lemma integral_to_real {f : α → ennreal} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ⊤) :
+lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ⊤) :
   ∫ a, (f a).to_real ∂μ = (∫⁻ a, f a ∂μ).to_real :=
 begin
   rw [integral_eq_lintegral_of_nonneg_ae _ hfm.to_real],
@@ -1426,7 +1448,7 @@ end
 @[simp] lemma integral_zero_measure (f : α → E) : ∫ x, f x ∂0 = 0 :=
 norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
 
-private lemma integral_smul_measure_aux {f : α → E} {c : ennreal}
+private lemma integral_smul_measure_aux {f : α → E} {c : ℝ≥0∞}
   (h0 : 0 < c) (hc : c < ⊤) (fmeas : measurable f) (hfi : integrable f μ) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin
@@ -1437,7 +1459,7 @@ begin
     ennreal.to_real_mul]
 end
 
-@[simp] lemma integral_smul_measure (f : α → E) (c : ennreal) :
+@[simp] lemma integral_smul_measure (f : α → E) (c : ℝ≥0∞) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin
   -- First we consider “degenerate” cases:
@@ -1487,7 +1509,7 @@ begin
     ((integrable_map_measure hfm.ae_measurable hφ).1 hfi),
   ext1 i,
   simp only [simple_func.approx_on_comp, simple_func.integral, measure.map_apply, hφ,
-    simple_func.is_measurable_preimage, ← preimage_comp, simple_func.coe_comp],
+    simple_func.measurable_set_preimage, ← preimage_comp, simple_func.coe_comp],
   refine (finset.sum_subset (simple_func.range_comp_subset_range _ hφ) (λ y _ hy, _)).symm,
   rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty, simple_func.coe_comp] at hy,
   simp [hy]
@@ -1501,10 +1523,16 @@ let g := hfm.mk f in calc
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
-lemma integral_dirac (f : α → E) (a : α) (hfm : measurable f) :
+lemma integral_dirac' (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
-  integral_congr_ae $ eventually_eq_dirac hfm
+  integral_congr_ae $ ae_eq_dirac' hfm
+... = f a : by simp [measure.dirac_apply_of_mem]
+
+lemma integral_dirac [measurable_singleton_class α] (f : α → E) (a : α) :
+  ∫ x, f x ∂(measure.dirac a) = f a :=
+calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
+  integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties

@@ -457,25 +457,33 @@ begin
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm, hs] },
 end
 
-/-- If two functions are integrable on a measurable set, and one function is less than
-    or equal to the other almost everywhere on that set, then the volume of the region
-    between the two functions can be represented as an integral. -/
-theorem volume_region_between_eq_integral [sigma_finite μ]
+
+theorem volume_region_between_eq_integral' [sigma_finite μ]
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
   (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
   have h : g - f =ᵐ[μ.restrict s] (λ x, nnreal.of_real (g x - f x)),
-  { apply eventually.mono hfg,
+  { apply hfg.mono,
     simp only [nnreal.of_real, max, sub_nonneg, pi.sub_apply],
     intros x hx,
     split_ifs,
     refl },
   rw [volume_region_between_eq_lintegral f_int.ae_measurable g_int.ae_measurable hs,
-      integral_congr_ae h, lintegral_congr_ae,
-      lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))],
+    integral_congr_ae h, lintegral_congr_ae,
+    lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))],
   simpa only,
 end
+
+/-- If two functions are integrable on a measurable set, and one function is less than
+    or equal to the other on that set, then the volume of the region
+    between the two functions can be represented as an integral. -/
+theorem volume_region_between_eq_integral [sigma_finite μ]
+  (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
+  (hs : measurable_set s) (hfg : ∀ x ∈ s, f x ≤ g x) :
+  μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
+volume_region_between_eq_integral' f_int g_int hs
+  ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
 
 end region_between
 

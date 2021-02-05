@@ -157,22 +157,22 @@ def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
   (mul_inv_cancel hf0) ▸ has_sum.mul_right (∑' x, f x)⁻¹
     (not_not.mp (mt tsum_eq_zero_of_not_summable hf0 : ¬¬summable f)).has_sum⟩
 
-lemma normalize_apply (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) (a : α) :
+lemma normalize_apply {f : α → ℝ≥0} (hf0 : tsum f ≠ 0) (a : α) :
   (normalize f hf0) a = f a * (∑' x, f x)⁻¹ := rfl
 
 /-- Create new `pmf` by filtering on a set with non-zero measure and normalizing -/
 def filter (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) : pmf α :=
 pmf.normalize (s.indicator p) $ nnreal.tsum_indicator_ne_zero p.2.summable h
 
-lemma filter_apply (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) {a : α} :
+lemma filter_apply (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) {a : α} :
   (p.filter s h) a = (s.indicator p a) * (∑' x, (s.indicator p) x)⁻¹ :=
 by rw [filter, normalize_apply]
 
-lemma filter_apply_eq_zero_of_not_mem (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0)
+lemma filter_apply_eq_zero_of_not_mem (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0)
   {a : α} (ha : a ∉ s) : (p.filter s h) a = 0 :=
 by rw [filter_apply, set.indicator_apply_eq_zero.mpr (λ ha', absurd ha' ha), zero_mul]
 
-lemma filter_apply_eq_zero_iff (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
+lemma filter_apply_eq_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
   (p.filter s h) a = 0 ↔ p a = 0 ∨ a ∉ s :=
 begin
   split; intro ha,
@@ -183,7 +183,7 @@ begin
   { rw [filter_apply, set.indicator_apply_eq_zero.2 (λ h, ha.by_cases id (absurd h)), zero_mul] }
 end
 
-lemma filter_apply_ne_zero_iff (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
+lemma filter_apply_ne_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
   (p.filter s h) a ≠ 0 ↔ a ∈ p.support ∧ a ∈ s :=
 by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_or_distrib, not_not, mem_support_iff]
 

@@ -23,8 +23,6 @@ class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 (quotient : R → R → R)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : R → R → R)
- -- This could be changed to the same order as int.mod_add_div.
- -- We normally write `qb+r` rather than `r + qb` though.
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (r : R → R → Prop)
 (r_well_founded : well_founded r)
@@ -46,6 +44,15 @@ instance : has_mod R := ⟨euclidean_domain.remainder⟩
 
 theorem div_add_mod (a b : R) : b * (a / b) + a % b = a :=
 euclidean_domain.quotient_mul_add_remainder_eq _ _
+
+lemma mod_add_div (a b : R) : a % b + b * (a / b) = a :=
+(add_comm _ _).trans (div_add_mod _ _)
+
+lemma mod_add_div' (m k : R) : m % k + (m / k) * k = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : R) : (m / k) * k + m % k = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 lemma mod_eq_sub_mul_div {R : Type*} [euclidean_domain R] (a b : R) :
   a % b = a - b * (a / b) :=
@@ -230,6 +237,12 @@ def gcd_a (x y : R) : R := (xgcd x y).1
 /-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : R) : R := (xgcd x y).2
 
+@[simp] theorem gcd_a_zero_left {s : R} : gcd_a 0 s = 0 :=
+by { unfold gcd_a, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_b_zero_left {s : R} : gcd_b 0 s = 1 :=
+by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
+
 @[simp] theorem xgcd_aux_fst (x y : R) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
 gcd.induction x y (by intros; rw [xgcd_zero_left, gcd_zero_left])
@@ -349,7 +362,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   quotient := (/),
   quotient_zero := int.div_zero,
   remainder := (%),
-  quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
+  quotient_mul_add_remainder_eq := λ a b, int.div_add_mod _ _,
   r := λ a b, a.nat_abs < b.nat_abs,
   r_well_founded := measure_wf (λ a, int.nat_abs a),
   remainder_lt := λ a b b0, int.coe_nat_lt.1 $

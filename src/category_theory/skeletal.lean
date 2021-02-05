@@ -63,13 +63,15 @@ preorder with nice definitional properties, but is only really appropriate for t
 -/
 def thin_skeleton : Type u₁ := quotient (is_isomorphic_setoid C)
 
-instance inhabited_thin_skeleton [inhabited C] : inhabited (thin_skeleton C) := ⟨quotient.mk (default _)⟩
+instance inhabited_thin_skeleton [inhabited C] : inhabited (thin_skeleton C) :=
+⟨quotient.mk (default _)⟩
 
 instance thin_skeleton.preorder : preorder (thin_skeleton C) :=
 { le := quotient.lift₂ (λ X Y, nonempty (X ⟶ Y))
   begin
     rintros _ _ _ _ ⟨i₁⟩ ⟨i₂⟩,
-    exact propext ⟨nonempty.map (λ f, i₁.inv ≫ f ≫ i₂.hom), nonempty.map (λ f, i₁.hom ≫ f ≫ i₂.inv)⟩,
+    exact propext ⟨nonempty.map (λ f, i₁.inv ≫ f ≫ i₂.hom),
+      nonempty.map (λ f, i₁.hom ≫ f ≫ i₂.inv)⟩,
   end,
   le_refl :=
   begin
@@ -145,7 +147,8 @@ noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thi
   counit_iso := nat_iso.of_components (λ X, (nonempty.some (quotient.mk_out X))) (by tidy),
   unit_iso :=
     nat_iso.of_components
-      (λ x, quotient.rec_on_subsingleton x (λ X, eq_to_iso (quotient.sound ⟨(nonempty.some (quotient.mk_out X)).symm⟩)))
+      (λ x, quotient.rec_on_subsingleton x
+        (λ X, eq_to_iso (quotient.sound ⟨(nonempty.some (quotient.mk_out X)).symm⟩)))
       (by tidy) }
 
 variables {C}
@@ -162,7 +165,7 @@ instance thin_skeleton_partial_order : partial_order (thin_skeleton C) :=
   ..category_theory.thin_skeleton.preorder C }
 
 lemma skeletal : skeletal (thin_skeleton C) :=
-λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, le_antisymm (le_of_hom i.1) (le_of_hom i.2)
+λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, (le_of_hom i.1).antisymm (le_of_hom i.2)
 
 lemma map_comp_eq (F : E ⥤ D) (G : D ⥤ C) : map (F ⋙ G) = map F ⋙ map G :=
 functor.eq_of_iso skeletal $
@@ -176,7 +179,8 @@ lemma map_iso_eq {F₁ F₂ : D ⥤ C} (h : F₁ ≅ F₂) : map F₁ = map F₂
 functor.eq_of_iso skeletal { hom := map_nat_trans h.hom, inv := map_nat_trans h.inv }
 
 /-- `from_thin_skeleton C` exhibits the thin skeleton as a skeleton. -/
-noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C) :=
+noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C)
+  (from_thin_skeleton C) :=
 { skel := skeletal,
   eqv := thin_skeleton.from_thin_skeleton_equivalence C }
 

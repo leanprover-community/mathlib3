@@ -17,7 +17,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
-open_locale topological_space classical big_operators nnreal
+open_locale topological_space classical big_operators nnreal ennreal
 open filter asymptotics
 
 namespace formal_multilinear_series
@@ -30,7 +30,7 @@ coercions. -/
 lemma radius_eq_liminf : p.radius = liminf at_top (λ n, 1/((nnnorm (p n)) ^ (1 / (n : ℝ)) : ℝ≥0)) :=
 begin
   have : ∀ (r : ℝ≥0) {n : ℕ}, 0 < n →
-    ((r : ennreal) ≤ 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) ↔ nnnorm (p n) * r ^ n ≤ 1),
+    ((r : ℝ≥0∞) ≤ 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) ↔ nnnorm (p n) * r ^ n ≤ 1),
   { intros r n hn,
     have : 0 < (n : ℝ) := nat.cast_pos.2 hn,
     conv_lhs {rw [one_div, ennreal.le_inv_iff_mul_le, ← ennreal.coe_mul,

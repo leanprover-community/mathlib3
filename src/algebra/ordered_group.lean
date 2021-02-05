@@ -642,10 +642,16 @@ lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
 by rw [← neg_sub, abs_neg]
 
-theorem abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
+lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
 
-theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
+lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 by rw [abs_le', and.comm, neg_le]
+
+lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
+
+lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
+
+lemma le_abs : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
 
 lemma le_abs_self (a : α) : a ≤ abs a := le_max_left _ _
 
@@ -663,10 +669,14 @@ not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
-lemma abs_lt {a b : α} : abs a < b ↔ - b < a ∧ a < b :=
+lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
 
-lemma lt_abs {a b : α} : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
+lemma neg_lt_of_abs_lt (h : abs a < b) : -b < a := (abs_lt.mp h).1
+
+lemma lt_of_abs_lt (h : abs a < b) : a < b := (abs_lt.mp h).2
+
+lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
 
 lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=
 begin

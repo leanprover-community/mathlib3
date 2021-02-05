@@ -358,6 +358,10 @@ theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
+@[simp] lemma Union_subtype {α β : Type*} (s : set α) (f : α → set β) :
+  (⋃ (i : s), f i) = ⋃ (i ∈ s), f i :=
+(set.bUnion_eq_Union s $ λ x _, f x).symm
+
 -- TODO(Jeremy): once again, simp doesn't do it alone.
 
 @[simp] theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :
@@ -481,10 +485,16 @@ Inf_pair
 
 @[simp] theorem sInter_range (f : ι → set β) : ⋂₀ (range f) = ⋂ x, f x := rfl
 
+lemma Union_eq_univ_iff {f : ι → set α} : (⋃ i, f i) = univ ↔ ∀ x, ∃ i, x ∈ f i :=
+by simp only [eq_univ_iff_forall, mem_Union]
+
+lemma bUnion_eq_univ_iff {f : α → set β} {s : set α} :
+  (⋃ x ∈ s, f x) = univ ↔ ∀ y, ∃ x ∈ s, y ∈ f x :=
+by simp only [Union_eq_univ_iff, mem_Union]
+
 lemma sUnion_eq_univ_iff {c : set (set α)} :
-  ⋃₀ c = @set.univ α ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
-⟨λ H a, let ⟨b, hm, hb⟩ := mem_sUnion.1 $ by rw H; exact mem_univ a in ⟨b, hm, hb⟩,
- λ H, set.univ_subset_iff.1 $ λ x hx, let ⟨b, hm, hb⟩ := H x in set.mem_sUnion_of_mem hb hm⟩
+  ⋃₀ c = univ ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
+by simp only [eq_univ_iff_forall, mem_sUnion]
 
 theorem compl_sUnion (S : set (set α)) :
   (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=
@@ -543,6 +553,10 @@ lemma Union_subset_Union_const {ι₂ : Sort x} {s : set α} (h : ι → ι₂) 
 
 @[simp] lemma Union_of_singleton (α : Type u) : (⋃(x : α), {x}) = @set.univ α :=
 ext $ λ x, ⟨λ h, ⟨⟩, λ h, ⟨{x}, ⟨⟨x, rfl⟩, mem_singleton x⟩⟩⟩
+
+@[simp] lemma Union_of_singleton_coe (s : set α) :
+  (⋃ (i : s), {i} : set α) = s :=
+ext $ by simp
 
 theorem bUnion_subset_Union (s : set α) (t : α → set β) :
   (⋃ x ∈ s, t x) ⊆ (⋃ x, t x) :=

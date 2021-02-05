@@ -95,8 +95,8 @@ lemma primitive_element_inf_aux (F_sep : is_separable F E) :
 begin
   obtain ⟨hα, hf⟩ := F_sep α,
   obtain ⟨hβ, hg⟩ := F_sep β,
-  let f := minpoly hα,
-  let g := minpoly hβ,
+  let f := minpoly F α,
+  let g := minpoly F β,
   let ιFE := algebra_map F E,
   let ιEE' := algebra_map E (splitting_field (g.map ιFE)),
   obtain ⟨c, hc⟩ := primitive_element_inf_aux_exists_c (ιEE'.comp ιFE) (ιEE' α) (ιEE' β) f g,

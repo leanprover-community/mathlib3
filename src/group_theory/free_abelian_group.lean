@@ -12,6 +12,7 @@ import group_theory.free_group
 import group_theory.abelianization
 
 universes u v
+open multiplicative additive
 
 variables (α : Type u)
 
@@ -28,11 +29,10 @@ variable {α}
 namespace free_abelian_group
 
 def of (x : α) : free_abelian_group α :=
-abelianization.of $ free_group.of x
+of_mul $ abelianization.of $ free_group.of x
 
 def lift {β : Type v} [add_comm_group β] (f : α → β) : free_abelian_group α →+ β :=
-(@abelianization.lift _ _ (multiplicative β) _
-  (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f))).to_additive
+(abelianization.lift (free_group.to_group (of_add ∘ f))).to_additive'
 
 namespace lift
 variables {β : Type v} [add_comm_group β] (f : α → β)
@@ -53,19 +53,18 @@ by simp [sub_eq_add_neg]
 is_add_group_hom.map_zero _
 
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
-begin
-  convert @abelianization.lift.of (free_group α) _ (multiplicative β) _ _ _,
-  convert free_group.to_group.of.symm
-end
+by simp [lift, of]
 
 protected theorem unique (g : free_abelian_group α →+ β)
   (hg : ∀ x, g (of x) = f x) {x} :
   g x = lift f x :=
-@abelianization.lift.unique (free_group α) _ (multiplicative β) _
-  (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f)) g.to_multiplicative
-  (λ x, @free_group.to_group.unique α (multiplicative β) _ _
-    ((add_monoid_hom.to_multiplicative' g).comp abelianization.of)
-    hg x) _
+begin
+  show g x = to_add (abelianization.lift (free_group.to_group (of_add ∘ f)) (to_mul x)),
+  rw ← abelianization.lift.unique _ g.to_multiplicative', { simp },
+  intro y,
+  rw ← free_group.to_group.unique (g.to_multiplicative'.comp abelianization.of), { simp },
+  simpa using hg
+end
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext]
@@ -129,9 +128,16 @@ protected theorem induction_on
   (C1 : ∀ x, C $ of x)
   (Cn : ∀ x, C (of x) → C (-of x))
   (Cp : ∀ x y, C x → C y → C (x + y)) : C z :=
-quotient.induction_on' z $ λ x, quot.induction_on x $ λ L,
-list.rec_on L C0 $ λ ⟨x, b⟩ tl ih,
-bool.rec_on b (Cp _ _ (Cn _ (C1 x)) ih) (Cp _ _ (C1 x) ih)
+begin
+  rw ← of_mul_to_mul z,
+  generalize : to_mul z = y,
+  apply abelianization.ind_on y, intro x,
+  apply free_group.induction_on x,
+  { simpa using C0 },
+  { simpa using C1 },
+  { simpa using Cn },
+  { intros a b, apply Cp }
+end
 
 theorem lift.add' {α β} [add_comm_group β] (a : free_abelian_group α) (f g : α → β) :
   lift (f + g) a = lift f a + lift g a :=

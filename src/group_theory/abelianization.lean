@@ -49,6 +49,10 @@ def of : G →* abelianization G :=
   map_one' := rfl,
   map_mul' := λ x y, rfl }
 
+@[elab_as_eliminator]
+lemma ind_on {C : abelianization G → Prop} (x : abelianization G) (h : ∀ y, C (of y)) : C x :=
+quot.induction_on x h
+
 section lift
 -- so far -- built Gᵃᵇ and proved it's an abelian group.
 -- defined `of : G → Gᵃᵇ`

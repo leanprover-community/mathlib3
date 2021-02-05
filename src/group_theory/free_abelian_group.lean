@@ -63,6 +63,7 @@ universes u v
 
 variables (α : Type u)
 
+/-- The free abelian group on a type. -/
 def free_abelian_group : Type u :=
 additive $ abelianization $ free_group α
 
@@ -75,9 +76,11 @@ variable {α}
 
 namespace free_abelian_group
 
+/-- The canonical map from α to `free_abelian_group α` -/
 def of (x : α) : free_abelian_group α :=
 abelianization.of $ free_group.of x
 
+/-- The map `free_abelian_group α →+ A` induced by a map of types `α → A`. -/
 def lift {β : Type v} [add_comm_group β] (f : α → β) : free_abelian_group α →+ β :=
 (@abelianization.lift _ _ (multiplicative β) _
   (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f))).to_additive
@@ -405,6 +408,7 @@ instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
   end
   .. free_abelian_group.ring α }
 
+/-- The free abelian group on the empty type is the trivial group. -/
 def pempty_equiv : free_abelian_group pempty ≃+ unit :=
 { to_fun := lift (λ _, ()),
   inv_fun := λ _, 0,
@@ -417,6 +421,7 @@ def pempty_equiv : free_abelian_group pempty ≃+ unit :=
   map_add' := λ x y, unit.ext
 }
 
+/-- The free abelian group on `punit` is isomorphic to `ℤ`. -/
 def punit_equiv : free_abelian_group punit ≃+ ℤ :=
 { to_fun := free_abelian_group.lift (λ _, (1 : ℤ)),
   inv_fun := λ n, n • of (punit.star),
@@ -433,6 +438,7 @@ def punit_equiv : free_abelian_group punit ≃+ ℤ :=
 
 -- this would be easier with `to_fun := map` but for some reason `map` is not universe
 -- polymorphic.
+/-- Isomorphic types have isomorphic free abelian groups. -/
 def equiv_of_equiv {α β : Type*} (f : α ≃ β) : free_abelian_group α ≃+ free_abelian_group β :=
 { to_fun := free_abelian_group.lift $ free_abelian_group.of ∘ f,
   inv_fun := free_abelian_group.lift $ free_abelian_group.of ∘ f.symm,

@@ -466,7 +466,7 @@ theorem volume_region_between_eq_integral [sigma_finite μ]
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
   have h : g - f =ᵐ[μ.restrict s] (λ x, nnreal.of_real (g x - f x)),
-  { apply filter.eventually.mono hfg,
+  { apply eventually.mono hfg,
     simp only [nnreal.of_real, max, sub_nonneg, pi.sub_apply],
     intros x hx,
     split_ifs,

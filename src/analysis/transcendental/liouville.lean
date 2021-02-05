@@ -68,14 +68,14 @@ lemma not_liouville_zero : ¬ is_liouville 0 :=
 
 end real
 
-lemma pow_mul_lt_c {ab A b c : ℝ} {r d : ℕ} (A0 : 0 < A)
-  (c0 : 0 < c) (b2 : c ≤ b) (hl : (b : ℝ) ^ (r + d) * ab < 1) (A2 : 1 ≤ c ^ r * A) :
-  (b : ℝ) ^ d * ab < A :=
+lemma pow_mul_lt {a b c d : ℝ} {m n : ℕ} (c0 : 0 < c)
+  (d0 : 0 < d) (db : d ≤ b) (dc : 1 ≤ d ^ m * c) (ba : b ^ (m + n) * a < 1) :
+  b ^ n * a < c :=
 begin
-  rw [pow_add, mul_assoc] at hl,
-  refine lt_of_lt_of_le ((lt_div_iff' _).mpr hl) ((div_le_iff' _).mpr (le_trans A2 _)),
-  any_goals { exact pow_pos (lt_of_lt_of_le c0 b2) r },
-  exact (mul_le_mul_right A0).mpr (pow_le_pow_of_le_left (le_of_lt c0) b2 r),
+  rw [pow_add, mul_assoc] at ba,
+  refine ((lt_div_iff' _).mpr ba).trans_le ((div_le_iff' _).mpr (dc.trans _)),
+  any_goals { exact pow_pos (d0.trans_le db) m },
+  exact (mul_le_mul_right c0).mpr (pow_le_pow_of_le_left d0.le db m),
 end
 
 open set ring_hom
@@ -86,8 +86,8 @@ lemma one_le_denom_pow_eval_rat {f : polynomial ℤ} {a b : ℤ}
   (b0 : (0 : ℝ) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
   (1 : ℝ) ≤ b ^ f.nat_degree * abs (eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ))) :=
 begin
-  obtain ⟨ev, bi, bu, hF⟩ := @denoms_clearable_nat_degree ℤ ℝ _ _ b (1 / b : ℝ) (algebra_map ℤ ℝ)
-    f a (by { rw [eq_int_cast, one_div_mul_cancel], exact (ne_of_gt b0) }),
+  obtain ⟨ev, bi, bu, hF⟩ := @denoms_clearable_nat_degree ℤ ℝ _ _ b _ (algebra_map ℤ ℝ)
+    f a (by { rw [eq_int_cast, one_div_mul_cancel], exact (b0.ne.symm) }),
   obtain Fa := congr_arg abs hF,
   rw [eq_one_div_of_mul_eq_one_left bu, eq_int_cast, eq_int_cast, abs_mul,
     (abs_of_pos (pow_pos b0 _)), one_div, eq_int_cast] at Fa,
@@ -109,9 +109,9 @@ lemma le_mul_of_le_and {R : Type*} [linear_ordered_semiring R] {a b : R} (c : R)
   1 ≤ a * b :=
 begin
   by_cases A : b ≤ 1,
-  { exact le_trans (key A).1 ((mul_le_mul_left (lt_of_lt_of_le zero_lt_one ha)).mpr (key A).2) },
+  { exact (key A).1.trans ((mul_le_mul_left (zero_lt_one.trans_le ha)).mpr (key A).2) },
   { rw ← mul_one (1 : R),
-    exact mul_le_mul ha (le_of_lt (not_le.mp A)) zero_le_one (le_trans zero_le_one ha) }
+    exact mul_le_mul ha (not_le.mp A).le zero_le_one (zero_le_one.trans ha) }
 end
 
 lemma mem_Icc_of_abs_le {R : Type*} [linear_ordered_add_comm_group R]
@@ -144,8 +144,8 @@ begin
   refine ⟨max (1 / ε) M, me0, λ z a, _⟩,
   refine le_mul_of_le_and (dist (f α) (f (j z a))) (one_le_pow_of_one_le (d0 a) _) (λ p, _),
   have jd : j z a ∈ closed_ball α ε := mem_closed_ball'.mp
-    (le_trans ((le_div_iff me0).mpr p) ((one_div_le me0 e0).mpr (le_max_left _ _))),
-  exact ⟨L jd, le_trans (B jd) (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩,
+    (((le_div_iff me0).mpr p).trans ((one_div_le me0 e0).mpr (le_max_left _ _))),
+  exact ⟨L jd, (B jd).trans (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩,
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
@@ -166,16 +166,16 @@ begin
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
   apply @with_metr_max ℤ ℕ ℝ _ _ _ (λ y, eval y fR) α ζ (abs (eval xm fR.derivative)) _ _ z0
     (λ y hy, _) (λ z a hq, _),
-  { exact (λ a : ℕ, (le_add_iff_nonneg_left _).mpr a.cast_nonneg) }, --simp
+  { exact (λ a, (le_add_iff_nonneg_left _).mpr a.cast_nonneg) }, --simp
   { rw [mul_comm],
     rw [closed_ball_Icc] at hy,
     refine convex.norm_image_sub_le_of_norm_deriv_le (λ _ _, fR.differentiable_at)
       (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_of_abs_le _),
     exact @mem_closed_ball_self ℝ _ α ζ (le_of_lt z0) },
-  { show (1 : ℝ) ≤ (a + 1) ^ f.nat_degree * abs (eval α fR - eval (z / (a + 1)) fR),
+  { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * abs (eval α fR - eval (z / (a + 1)) fR),
     rw [fa, zero_sub, abs_neg],
-    refine @one_le_denom_pow_eval_rat f z (a + 1) (by exact_mod_cast a.succ_pos) (λ hy, _),
-    refine (irrational_iff_ne_rational α).mp ha z (a + 1) (eq.symm (mem_singleton_iff.mp _)),
+    refine one_le_denom_pow_eval_rat (int.cast_pos.mpr (int.coe_nat_succ_pos a)) (λ hy, _),
+    refine (irrational_iff_ne_rational α).mp ha z (a + 1) ((mem_singleton_iff.mp _).symm),
     rw ← U,
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,
     exact (mem_roots (fR0)).mpr (is_root.def.mpr hy) },
@@ -193,14 +193,14 @@ begin
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
   obtain ⟨a, b, b1, -, a1⟩ := liouville_x (r + f.nat_degree),
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
-  have : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A,
-  { refine pow_mul_lt_c (one_div_pos.mpr hA) (zero_lt_two) _ ((lt_div_iff' (pow_pos b0 _)).mp a1) _,
-    { exact_mod_cast int.add_one_le_iff.mpr b1 },
+  refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
+  refine ((_  : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A).trans_le _),
+  { refine pow_mul_lt (one_div_pos.mpr hA) zero_lt_two _ _ ((lt_div_iff' (pow_pos b0 _)).mp a1),
+    { exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)) },
     { rw [mul_one_div, (le_div_iff hA), one_mul],
-      exact le_of_lt hn } },
-  refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) (lt_of_lt_of_le this _),
-  lift b to ℕ using le_trans zero_le_one (le_of_lt b1),
-  specialize h a b.pred,
-  rwa [nat.succ_pred_eq_of_pos (lt_trans zero_lt_one _), ← mul_assoc, ← (div_le_iff hA)] at h,
-  exact_mod_cast b1,
+      exact hn.le } },
+  { lift b to ℕ using zero_le_one.trans b1.le,
+    specialize h a b.pred,
+    rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,
+    exact int.coe_nat_lt.mp b1 }
 end

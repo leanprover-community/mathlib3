@@ -201,7 +201,7 @@ begin
     λ jk, S.mul_mem (hyS (finset.mem_product.1 jk.2).1) (hyS (finset.mem_product.1 jk.2).2),
   rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_iff_total] at this,
   choose ly hly1 hly2,
-  let S₀ : set R := ring.closure ↑(lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ ly)),
+  let S₀ : set R := ring.closure ↑(lx.frange ∪ finset.bUnion finset.univ (finsupp.frange ∘ ly)),
   refine is_integral_of_subring S₀ _,
   letI : comm_ring S₀ := @subtype.comm_ring _ _ _ ring.closure.is_subring,
   letI : algebra S₀ A := algebra.of_is_subring _,
@@ -215,7 +215,7 @@ begin
     rw [finsupp.total_apply, finsupp.sum],
     refine (span S₀ (insert 1 ↑y : set A)).sum_mem (λ t ht, _),
     have : ly ⟨(p, q), finset.mem_product.2 ⟨hp, hq⟩⟩ t ∈ S₀ :=
-    ring.subset_closure (finset.mem_union_right _ $ finset.mem_bind.2
+    ring.subset_closure (finset.mem_union_right _ $ finset.mem_bUnion.2
       ⟨⟨(p, q), finset.mem_product.2 ⟨hp, hq⟩⟩, finset.mem_univ _,
         finsupp.mem_frange.2 ⟨finsupp.mem_support_iff.1 ht, _, rfl⟩⟩),
     change (⟨_, this⟩ : S₀) • t ∈ _, exact smul_mem _ _ (subset_span $ or.inr $ hly1 _ ht) },
@@ -494,7 +494,7 @@ lemma is_integral_quotient_map_iff {I : ideal S} :
     ((ideal.quotient.mk I).comp f : R →+* I.quotient).is_integral :=
 begin
   let g := ideal.quotient.mk (I.comap f),
-  have := @ideal.quotient_map_comp_mk R S _ _ _ I f le_rfl,
+  have := ideal.quotient_map_comp_mk le_rfl,
   refine ⟨λ h, _, λ h, ring_hom.is_integral_tower_top_of_is_integral g _ (this ▸ h)⟩,
   refine this ▸ ring_hom.is_integral_trans g (ideal.quotient_map I f le_rfl) _ h,
   exact ring_hom.is_integral_of_surjective g ideal.quotient.mk_surjective,

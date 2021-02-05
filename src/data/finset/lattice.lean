@@ -119,6 +119,27 @@ begin
     { rw [finset.sup_insert, id.def], exact h h_subset.1 (h₁ htne h_subset.2), }, },
 end
 
+lemma sup_le_of_le_directed {α : Type*} [semilattice_sup_bot α] (s : set α)
+  (hs : s.nonempty) (hdir : directed_on (≤) s) (t : finset α):
+  (∀ x ∈ t, ∃ y ∈ s, x ≤ y) → ∃ x, x ∈ s ∧ t.sup id ≤ x :=
+begin
+  classical,
+  apply finset.induction_on t,
+  { simpa only [forall_prop_of_true, and_true, forall_prop_of_false, bot_le, not_false_iff,
+      sup_empty, forall_true_iff, not_mem_empty], },
+  { intros a r har ih h,
+    have incs : ↑r ⊆ ↑(insert a r), by { rw finset.coe_subset, apply finset.subset_insert, },
+    -- x ∈ s is above the sup of r
+    obtain ⟨x, ⟨hxs, hsx_sup⟩⟩ := ih (λ x hx, h x $ incs hx),
+    -- y ∈ s is above a
+    obtain ⟨y, hys, hay⟩ := h a (finset.mem_insert_self a r),
+    -- z ∈ s is above x and y
+    obtain ⟨z, hzs, ⟨hxz, hyz⟩⟩ := hdir x hxs y hys,
+    use [z, hzs],
+    rw [sup_insert, id.def, _root_.sup_le_iff],
+    exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
+end
+
 end sup
 
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
@@ -452,9 +473,9 @@ begin
   simp_rw [val_to_finset],
 end
 
-lemma sup_eq_bind {α β} [decidable_eq β] (s : finset α) (t : α → finset β) :
-  s.sup t = s.bind t :=
-by { ext, rw [mem_sup, mem_bind], }
+lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset β) :
+  s.sup t = s.bUnion t :=
+by { ext, rw [mem_sup, mem_bUnion], }
 
 end finset
 
@@ -585,6 +606,10 @@ lemma supr_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨆ x ∈ s.image f, g x) = (⨆ y ∈ s, g (f y)) :=
 by rw [← supr_coe, coe_image, supr_image, supr_coe]
 
+lemma sup_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
+  s.sup (g ∘ f) = (s.image f).sup g :=
+by { simp_rw [sup_eq_supr, comp_app], rw supr_finset_image, }
+
 lemma infi_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨅ x ∈ s.image f, g x) = (⨅ y ∈ s, g (f y)) :=
 by rw [← infi_coe, coe_image, infi_image, infi_coe]
@@ -600,84 +625,86 @@ lemma infi_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx :
   (⨅ (i ∈ insert x t), update f x s i) = (s ⊓ ⨅ (i ∈ t), f i) :=
 @supr_insert_update α (order_dual β) _ _ _ _ f _ hx
 
-lemma supr_bind (s : finset γ) (t : γ → finset α) (f : α → β) :
-  (⨆ y ∈ s.bind t, f y) = ⨆ (x ∈ s) (y ∈ t x), f y :=
-calc (⨆ y ∈ s.bind t, f y) = ⨆ y (hy : ∃ x ∈ s, y ∈ t x), f y :
-  congr_arg _ $ funext $ λ y, by rw [mem_bind]
+lemma supr_bUnion (s : finset γ) (t : γ → finset α) (f : α → β) :
+  (⨆ y ∈ s.bUnion t, f y) = ⨆ (x ∈ s) (y ∈ t x), f y :=
+calc (⨆ y ∈ s.bUnion t, f y) = ⨆ y (hy : ∃ x ∈ s, y ∈ t x), f y :
+  congr_arg _ $ funext $ λ y, by rw [mem_bUnion]
 ... = _ : by simp only [supr_exists, @supr_comm _ α]
 
-lemma infi_bind (s : finset γ) (t : γ → finset α) (f : α → β) :
-  (⨅ y ∈ s.bind t, f y) = ⨅ (x ∈ s) (y ∈ t x), f y :=
-@supr_bind _ (order_dual β) _ _ _ _ _ _
+lemma infi_bUnion (s : finset γ) (t : γ → finset α) (f : α → β) :
+  (⨅ y ∈ s.bUnion t, f y) = ⨅ (x ∈ s) (y ∈ t x), f y :=
+@supr_bUnion _ (order_dual β) _ _ _ _ _ _
 
 end lattice
 
-@[simp] theorem bUnion_coe (s : finset α) (t : α → set β) :
+@[simp] theorem set_bUnion_coe (s : finset α) (t : α → set β) :
   (⋃ x ∈ (↑s : set α), t x) = ⋃ x ∈ s, t x :=
 rfl
 
-@[simp] theorem bInter_coe (s : finset α) (t : α → set β) :
+@[simp] theorem set_bInter_coe (s : finset α) (t : α → set β) :
   (⋂ x ∈ (↑s : set α), t x) = ⋂ x ∈ s, t x :=
 rfl
 
-@[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
+@[simp] theorem set_bUnion_singleton (a : α) (s : α → set β) :
+  (⋃ x ∈ ({a} : finset α), s x) = s a :=
 supr_singleton a s
 
-@[simp] theorem bInter_singleton (a : α) (s : α → set β) : (⋂ x ∈ ({a} : finset α), s x) = s a :=
+@[simp] theorem set_bInter_singleton (a : α) (s : α → set β) :
+  (⋂ x ∈ ({a} : finset α), s x) = s a :=
 infi_singleton a s
 
-@[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
+@[simp] lemma set_bUnion_preimage_singleton (f : α → β) (s : finset β) :
   (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
 set.bUnion_preimage_singleton f ↑s
 
-@[simp] lemma bUnion_option_to_finset (o : option α) (f : α → set β) :
+@[simp] lemma set_bUnion_option_to_finset (o : option α) (f : α → set β) :
   (⋃ x ∈ o.to_finset, f x) = ⋃ x ∈ o, f x :=
 supr_option_to_finset o f
 
-@[simp] lemma bInter_option_to_finset (o : option α) (f : α → set β) :
+@[simp] lemma set_bInter_option_to_finset (o : option α) (f : α → set β) :
   (⋂ x ∈ o.to_finset, f x) = ⋂ x ∈ o, f x :=
 infi_option_to_finset o f
 
 variables [decidable_eq α]
 
-lemma bUnion_union (s t : finset α) (u : α → set β) :
+lemma set_bUnion_union (s t : finset α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
-lemma bInter_inter (s t : finset α) (u : α → set β) :
+lemma set_bInter_inter (s t : finset α) (u : α → set β) :
   (⋂ x ∈ s ∪ t, u x) = (⋂ x ∈ s, u x) ∩ (⋂ x ∈ t, u x) :=
 infi_union
 
-@[simp] lemma bUnion_insert (a : α) (s : finset α) (t : α → set β) :
+@[simp] lemma set_bUnion_insert (a : α) (s : finset α) (t : α → set β) :
   (⋃ x ∈ insert a s, t x) = t a ∪ (⋃ x ∈ s, t x) :=
 supr_insert a s t
 
-@[simp] lemma bInter_insert (a : α) (s : finset α) (t : α → set β) :
+@[simp] lemma set_bInter_insert (a : α) (s : finset α) (t : α → set β) :
   (⋂ x ∈ insert a s, t x) = t a ∩ (⋂ x ∈ s, t x) :=
 infi_insert a s t
 
-@[simp] lemma bUnion_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
+@[simp] lemma set_bUnion_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
   (⋃x ∈ s.image f, g x) = (⋃y ∈ s, g (f y)) :=
 supr_finset_image
 
-@[simp] lemma bInter_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
+@[simp] lemma set_bInter_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
   (⋂ x ∈ s.image f, g x) = (⋂ y ∈ s, g (f y)) :=
 infi_finset_image
 
-lemma bUnion_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
+lemma set_bUnion_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
   (⋃ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∪ ⋃ (i ∈ t), f i) :=
 supr_insert_update f hx
 
-lemma bInter_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
+lemma set_bInter_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
   (⋂ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∩ ⋂ (i ∈ t), f i) :=
 infi_insert_update f hx
 
-@[simp] lemma bUnion_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
-  (⋃ y ∈ s.bind t, f y) = ⋃ (x ∈ s) (y ∈ t x), f y :=
-supr_bind s t f
+@[simp] lemma set_bUnion_bUnion (s : finset γ) (t : γ → finset α) (f : α → set β) :
+  (⋃ y ∈ s.bUnion t, f y) = ⋃ (x ∈ s) (y ∈ t x), f y :=
+supr_bUnion s t f
 
-@[simp] lemma bInter_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
-  (⋂ y ∈ s.bind t, f y) = ⋂ (x ∈ s) (y ∈ t x), f y :=
-infi_bind s t f
+@[simp] lemma set_bInter_bUnion (s : finset γ) (t : γ → finset α) (f : α → set β) :
+  (⋂ y ∈ s.bUnion t, f y) = ⋂ (x ∈ s) (y ∈ t x), f y :=
+infi_bUnion s t f
 
 end finset

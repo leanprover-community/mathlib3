@@ -42,11 +42,6 @@ by the map `f`.
 It has been suggested that we would be better off refactoring this file
 and using `finsupp` instead.
 
-## Main results
-
-
-
-
 ## Implementation issues
 
 The definition is `def free_abelian_group : Type u :=

@@ -893,7 +893,7 @@ end
 
 /-- Expand the square -/
 lemma norm_sub_pow_two_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-by { have h := @norm_sub_pow_two ℝ F _ _, simpa using h }
+norm_sub_pow_two
 
 /-- Expand the square -/
 lemma norm_sub_mul_self {x y : E} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=

@@ -364,7 +364,7 @@ begin
   rw [← mul_smul, mul_inv_cancel hy, one_smul]
 end
 
-theorem has_fderiv_at_unique
+theorem has_fderiv_at.unique
   (h₀ : has_fderiv_at f f₀' x) (h₁ : has_fderiv_at f f₁' x) : f₀' = f₁' :=
 begin
   rw ← has_fderiv_within_at_univ at h₀ h₁,
@@ -414,7 +414,7 @@ begin
 end
 
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
-by { ext, rw has_fderiv_at_unique h h.differentiable_at.has_fderiv_at }
+by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
 on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.

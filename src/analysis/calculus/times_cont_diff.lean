@@ -2486,7 +2486,7 @@ begin
     -- For showing `n.succ` times continuous differentiability (the main inductive step), it
     -- suffices to produce the derivative and show that it is `n` times continuously differentiable
     have eq_f₀' : f' (f.symm a) = f₀',
-    { exact has_fderiv_at_unique (hff' (f.symm a) (mem_of_nhds hu)) hf₀' },
+    { exact (hff' (f.symm a) (mem_of_nhds hu)).unique hf₀' },
     -- This follows by a bootstrapping formula expressing the derivative as a function of `f` itself
     refine ⟨inverse ∘ f' ∘ f.symm, _, _⟩,
     { -- We first check that the derivative of `f` is that formula

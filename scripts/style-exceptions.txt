@@ -1,6 +1,4 @@
 archive/miu_language/basic.lean : line 53 : ERR_LIN : Line has more than 100 characters
-src/algebra/archimedean.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/algebra/char_zero.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/algebra/continued_fractions/convergents_equiv.lean : line 283 : ERR_LIN : Line has more than 100 characters
 src/algebra/continued_fractions/terminated_stable.lean : line 28 : ERR_LIN : Line has more than 100 characters
 src/algebra/euclidean_domain.lean : line 12 : ERR_MOD : Module docstring missing, or too late
@@ -21,7 +19,7 @@ src/algebraic_geometry/sheafed_space.lean : line 82 : ERR_LIN : Line has more th
 src/algebraic_geometry/stalks.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 608 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/deriv.lean : line 1123 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/deriv.lean : line 1125 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 22 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 305 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/tangent_cone.lean : line 250 : ERR_LIN : Line has more than 100 characters
@@ -850,7 +848,7 @@ src/tactic/lint/default.lean : line 46 : ERR_LIN : Line has more than 100 charac
 src/tactic/lint/frontend.lean : line 153 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/misc.lean : line 78 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/simp.lean : line 116 : ERR_LIN : Line has more than 100 characters
-src/tactic/lint/simp.lean : line 122 : ERR_LIN : Line has more than 100 characters
+src/tactic/lint/simp.lean : line 123 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/type_classes.lean : line 146 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/type_classes.lean : line 184 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/type_classes.lean : line 190 : ERR_LIN : Line has more than 100 characters

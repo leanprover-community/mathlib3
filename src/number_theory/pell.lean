@@ -3,9 +3,53 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+
 import data.nat.modeq
 import data.zsqrtd.basic
 import tactic.omega
+
+/-!
+# Pell's equation and Matiyasevic's theorem
+
+This file solves Pell's equation, i.e. integer solutions to `x ^ 2 - d * y ^ 2 = 1` in the special
+case that `d = a ^ 2 - 1`. This is then applied to prove Matiyasevic's theorem that the power
+function is Diophantine, which is the last key ingredient in the solution to Hilbert's tenth
+problem.
+
+## Main definition
+
+* `pell` is a function assigning to a natural number `n` the `n`-th solution to Pell's equation
+  constructed recursively from the intial solution `(0,1)`.
+
+## Main statements
+
+* `eq_pell` shows that every solution to Pell's equation is recursively obtained using `pell`
+* `matiyasevic` shows that a certain system of Diophantine equations has a solution if and only if
+  the first variable is the `x`-component in a solution to Pell's equation - the key step towards
+  Hilbert's tenth problem in Davis' version of Matiyasevic's theorem.
+* `eq_pow_of_pell` shows that the power function is Diophantine.
+
+## Implementation notes
+
+The proof of Matiyasevic's theorem doesn't follow Matiyasevic's original account of using Fibonacci
+numbers but instead Davis' variant of using solutions to Pell's equation.
+
+## References
+
+* [M. Carneiro, _A Lean formalization of Matiyasiv's theorem_][carneiro2018matiysevic]
+* [M. Davis, _Hilbert's tenth problem is unsolvable_][MR317916]
+
+## Tags
+
+Pell's equation, Matiyasevic's theorem, Hilbert's tenth problem
+
+## TODO
+
+* Please the unused arguments linter.
+* Provide solutions to Pell's equation for the case of arbitrary `d` (not just `d = a ^ 2 - 1` like
+  in the current version) and furthermore also for `x ^ 2 - d * y ^ 2 = -1`.
+* Connect solutions to the continued fraction expansion of `√d`.
+-/
 
 namespace pell
 open nat
@@ -19,7 +63,8 @@ section
   @[simp] theorem d_pos : 0 < d :=
   nat.sub_pos_of_lt (mul_lt_mul a1 (le_of_lt a1) dec_trivial dec_trivial : 1*1<a*a)
 
-  /-- The Pell sequences, defined together in mutual recursion. -/
+  /-- The Pell sequences, i.e. the sequence of integer solutions to `x ^ 2 - d * y ^ 2 = 1`, where
+  `d = a ^ 2 - 1`, defined together in mutual recursion. -/
   -- TODO(lint): Fix double namespace issue
   @[nolint dup_namespace] def pell : ℕ → ℕ × ℕ :=
   λn, nat.rec_on n (1, 0) (λn xy, (xy.1*a + d*xy.2, xy.1 + xy.2*a))
@@ -41,8 +86,11 @@ section
   @[simp] theorem xn_one : xn 1 = a := by simp
   @[simp] theorem yn_one : yn 1 = 1 := by simp
 
+  /-- The Pell `x` sequence, considered as an integer sequence.-/
   def xz (n : ℕ) : ℤ := xn n
+  /-- The Pell `y` sequence, considered as an integer sequence.-/
   def yz (n : ℕ) : ℤ := yn n
+  /-- The element `a` such that `d = a ^ 2 - 1`, considered as an integer.-/
   def az : ℤ := a
 
   theorem asq_pos : 0 < a*a :=
@@ -167,6 +215,8 @@ section
   zsqrtd.le_of_le_le
     (int.coe_nat_le_coe_nat_of_le $ le_of_lt $ n_lt_xn _ _) (int.coe_zero_le _)
 
+  /-- Every solution to Pell's equation is recursively obtained from the initial solution `(1,0)`
+    using the recursion `pell`-/
   theorem eq_pell {x y : ℕ} (hp : x*x - d*y*y = 1) : ∃n, x = xn n ∧ y = yn n :=
   have (1:ℤ√d) ≤ ⟨x, y⟩, from match x, hp with
   | 0,    (hp : 0 - _ = 1) := by rw nat.zero_sub at hp; contradiction

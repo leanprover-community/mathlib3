@@ -345,8 +345,10 @@ by { rw ← e.image_eq_iff_eq, simp }
 lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
 by { rw ← e.image_eq_iff_eq, simp }
 
-@[simp] lemma image_univ {α β} (e : α ≃ β) : e '' set.univ = set.univ := by { ext, simp }
-@[simp] lemma preimage_univ {α β} (e : α ≃ β) : e ⁻¹' set.univ = set.univ := by { ext, simp }
+@[simp] protected lemma image_univ {α β} (e : α ≃ β) : e '' set.univ = set.univ :=
+by { ext, simp }
+@[simp] protected lemma preimage_univ {α β} (e : α ≃ β) : e ⁻¹' set.univ = set.univ :=
+by { ext, simp }
 
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (h : α → false) : α ≃ empty :=

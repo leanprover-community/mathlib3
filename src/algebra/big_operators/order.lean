@@ -317,14 +317,27 @@ end canonically_ordered_comm_semiring
 
 end finset
 
+namespace fintype
+
+variables [fintype α]
+
+@[mono] lemma sum_mono [ordered_add_comm_monoid β] : monotone (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, finset.sum_le_sum $ λ x _, hfg x
+
+lemma sum_strict_mono [ordered_cancel_add_comm_monoid β] : strict_mono (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, let ⟨hle, i, hlt⟩ := pi.lt_def.mp hfg in
+  finset.sum_lt_sum (λ i _, hle i) ⟨i, finset.mem_univ i, hlt⟩
+
+end fintype
+
 namespace with_top
 open finset
 
 /-- A product of finite numbers is still finite -/
 lemma prod_lt_top [canonically_ordered_comm_semiring β] [nontrivial β] [decidable_eq β]
-  {s : finset α} {f : α → with_top β} :
-  (∀a∈s, f a < ⊤) → (∏ x in s, f x) < ⊤ :=
-λ h, prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
+  {s : finset α} {f : α → with_top β} (h : ∀ a ∈ s, f a < ⊤) :
+  (∏ x in s, f x) < ⊤ :=
+prod_induction f (λ a, a < ⊤) (λ a b, mul_lt_top) (coe_lt_top 1) h
 
 /-- A sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_add_comm_monoid β] {s : finset α} {f : α → with_top β} :

@@ -570,7 +570,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  rcongr
+  congr, funext, congr' 2
 end
 
 omit V
@@ -587,8 +587,7 @@ def circumcenter_weights_with_circumcenter (n : ℕ) : points_with_circumcenter_
 begin
   convert sum_ite_eq' univ circumcenter_index (function.const _ (1 : ℝ)),
   { ext ⟨j⟩ ; simp [circumcenter_weights_with_circumcenter] },
-  { simp },
-  { exact classical.dec_eq _ }
+  { simp }
 end
 
 include V

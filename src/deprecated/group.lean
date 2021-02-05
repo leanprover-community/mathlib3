@@ -38,8 +38,8 @@ is_group_hom, is_monoid_hom, monoid_hom
 
 /--
 We have lemmas stating that the composition of two morphisms is again a morphism.
-Since composition is reducible, type class inference will always succeed in applying these instances.
-For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
+Since composition is reducible, type class inference will always succeed in applying these
+instances. For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
 will still succeed, unifying `f` with `f ∘ (λ x, x)`.  This causes type class inference to loop.
 To avoid this, we do not make these lemmas instances.
 -/
@@ -231,7 +231,7 @@ eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
 @[to_additive]
 instance id : is_group_hom (@id α) := { }
 
-/-- The composition of two group homomomorphisms is a group homomorphism. -/
+/-- The composition of two group homomorphisms is a group homomorphism. -/
 @[to_additive] -- see Note [no instance on morphisms]
 lemma comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) :=
 { ..is_mul_hom.comp _ _ }

@@ -513,7 +513,7 @@ begin
   by_cases hf0 : f = 0, { rw hf0, exact iff_of_true (valuation.map_zero _) rfl },
   obtain ⟨n, hn⟩ : ∃ n, coeff _ _ n f ≠ 0 := not_forall.1 (λ h, hf0 $ perfection.ext h),
   show val_aux K v O hv p f = 0 ↔ f = 0, refine iff_of_false (λ hvf, hn _) hf0,
-  rw val_aux_eq hn at hvf, replace hvf := nnreal.pow_eq_zero hvf, rwa mod_p.pre_val_eq_zero at hvf
+  rw val_aux_eq hn at hvf, replace hvf := pow_eq_zero hvf, rwa mod_p.pre_val_eq_zero at hvf
 end
 
 end classical

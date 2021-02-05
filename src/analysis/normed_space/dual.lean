@@ -181,7 +181,7 @@ begin
       exact h' },
     exact ⟨0, by simp [hℓ]⟩ },
   { have Ycomplete := is_complete_ker ℓ,
-    rw [submodule.eq_top_iff_orthogonal_eq_bot Ycomplete, ←hY] at htriv,
+    rw [← submodule.orthogonal_eq_bot_iff Ycomplete, ←hY] at htriv,
     change Yᗮ ≠ ⊥ at htriv,
     rw [submodule.ne_bot_iff] at htriv,
     obtain ⟨z : E, hz : z ∈ Yᗮ, z_ne_0 : z ≠ 0⟩ := htriv,

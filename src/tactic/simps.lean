@@ -36,6 +36,7 @@ open tactic expr
 
 setup_tactic_parser
 declare_trace simps.verbose
+declare_trace simps.debug
 
 /--
 The `@[_simps_str]` attribute specifies the preferred projections of the given structure,
@@ -298,7 +299,8 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     appended to the definition name to form the lemma name, and when this is `tt`, only the
     last projection name will be appended.
   * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put in
-    simp-normal form.
+    simp-normal form. More precisely: `dsimp, simp` will be called on all these expressions.
+    See note [dsimp, simp].
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.
     Default: `instances`. This will unfold coercion instances (so that a coercion to a function type
@@ -306,11 +308,18 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   * `rhs_md` specifies how aggressively definition in the declaration are unfolded for the purposes
     of finding out whether it is a constructor.
     Default: `none`
+    Exception: `@[simps]` will automatically add the options
+    `{rhs_md := semireducible, simp_rhs := tt}` if the given definition is not a constructor with
+    the given reducibility setting for `rhs_md`.
   * If `fully_applied` is `ff` then the generated simp-lemmas will be between non-fully applied
     terms, i.e. equalities between functions. This does not restrict the recursive behavior of
     `@[simps]`, so only the "final" projection will be non-fully applied.
     However, it can be used in combination with explicit field names, to get a partially applied
     intermediate projection.
+  * The option `not_recursive` contains the list of names of types for which `@[simps]` doesn't
+    recursively apply projections. For example, given an equivalence `α × β ≃ β × α` one usually
+    wants to only apply the projections for `equiv`, and not also those for `×`. This option is
+    only relevant if no explicit projection names are given as argument to `@[simps]`.
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 (attrs         := [`simp])
@@ -319,21 +328,32 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 (type_md       := transparency.instances)
 (rhs_md        := transparency.none)
 (fully_applied := tt)
+(not_recursive := [`prod, `pprod])
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
   If `add_simp` then we make the resulting lemma a simp-lemma. -/
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
-  -- simplify `rhs` if `simp_rhs` and `simp` makes progress
-  (rhs, prf) ← (guard cfg.simp_rhs >> rhs.simp) <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
+  when_tracing `simps.debug trace!
+    "[simps] > Planning to add the equality\n        > {lhs} = ({rhs} : {type})",
+  -- simplify `rhs` if `cfg.simp_rhs` is true
+  (rhs, prf) ← do { guard cfg.simp_rhs,
+    rhs' ← rhs.dsimp {fail_if_unchanged := ff},
+    when_tracing `simps.debug $ when (rhs ≠ rhs') trace!
+      "[simps] > `dsimp` simplified rhs to\n        > {rhs'}",
+    (rhsprf1, rhsprf2, ns) ← rhs'.simp {fail_if_unchanged := ff},
+    when_tracing `simps.debug $ when (rhs' ≠ rhsprf1) trace!
+      "[simps] > `simp` simplified rhs to\n        > {rhsprf1}",
+    return (prod.mk rhsprf1 rhsprf2) }
+    <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
   eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := prf.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when_tracing `simps.verbose trace!
-    "[simps] > adding projection\n        > {decl_name} : {decl_type}",
+    "[simps] > adding projection {decl_name}:\n        > {decl_type}",
   decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
     add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,
@@ -347,8 +367,15 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   (cfg : simps_cfg) (todo : list string), tactic unit
 | e nm suffix type lhs rhs args univs must_be_str cfg todo := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
-  (type_args, tgt) ← whnf type cfg.type_md >>= open_pis,
+  when_tracing `simps.debug trace!
+    "[simps] > Trying to add simp-lemmas for\n        > {lhs}
+[simps] > Type of the expression before normalizing: {type}",
+  (type_args, tgt) ← open_pis_whnf type cfg.type_md,
+  when_tracing `simps.debug trace!
+    "[simps] > Type after removing pi's: {tgt}",
   tgt ← whnf tgt,
+  when_tracing `simps.debug trace!
+    "[simps] > Type after reduction: {tgt}",
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
@@ -356,13 +383,12 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   let new_nm := nm.append_suffix suffix,
   /- We want to generate the current projection if it is in `todo` -/
   let todo_next := todo.filter (≠ ""),
-  /- Don't recursively continue if `str` is not a structure. As a special case, also don't
-    recursively continue if the nested structure is `prod` or `pprod`, unless projections are
-    specified manually. -/
-  if e.is_structure str ∧ ¬(todo = [] ∧ str ∈ [`prod, `pprod] ∧ ¬must_be_str) then do
+  /- Don't recursively continue if `str` is not a structure or if the structure is in
+    `not_recursive`. -/
+  if e.is_structure str ∧ ¬(todo = [] ∧ str ∈ cfg.not_recursive ∧ ¬must_be_str) then do
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     rhs_whnf ← whnf rhs_ap cfg.rhs_md,
-    (rhs_ap, todo_now) ← if h : ¬is_constant_of rhs_ap.get_app_fn intro ∧
+    (rhs_ap, todo_now) ← if h : ¬ is_constant_of rhs_ap.get_app_fn intro ∧
       is_constant_of rhs_whnf.get_app_fn intro then
       /- If this was a desired projection, we want to apply it before taking the whnf.
         However, if the current field is an eta-expansion (see below), we first want
@@ -413,24 +439,27 @@ Note: the projection names used by @[simps] might not correspond to the projecti
               suffix ++ "_" ++ proj.last,
             simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
               ff cfg new_todo
+    -- if I'm about to run into an error, try to set the transparency for `rhs_md` higher.
+    else if cfg.rhs_md = transparency.none ∧ (must_be_str ∨ todo_next ≠ []) then do
+      when_tracing `simps.verbose trace!
+        "[simps] > The given definition is not a constructor application:
+        >   {rhs_ap}
+        > Retrying with the options {{ rhs_md := semireducible, simp_rhs := tt}.",
+      simps_add_projections e nm suffix type lhs rhs args univs must_be_str
+        { rhs_md := semireducible, simp_rhs := tt, ..cfg} todo
     else do
       when must_be_str $
-        fail!"Invalid `simps` attribute. The body is not a constructor application:
-  {rhs_ap}
-Possible solution: add option {{rhs_md := semireducible}.
-The option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
+        fail!"Invalid `simps` attribute. The body is not a constructor application:\n  {rhs_ap}",
       when (todo_next ≠ []) $
         fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
-The given definition is not a constructor application:\n  {rhs_ap}
-Possible solution: add option {{rhs_md := semireducible}.
-The option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
+The given definition is not a constructor application:\n  {rhs_ap}",
       if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection new_nm type lhs rhs args univs cfg
   else do
     when must_be_str $
-      fail "Invalid `simps` attribute. Target is not a structure",
-    when (todo_next ≠ [] ∧ str ∉ [`prod, `pprod]) $
+      fail!"Invalid `simps` attribute. Target {str} is not a structure",
+    when (todo_next ≠ [] ∧ str ∉ cfg.not_recursive) $
         fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
 Projection {(todo_next.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
     if cfg.fully_applied then

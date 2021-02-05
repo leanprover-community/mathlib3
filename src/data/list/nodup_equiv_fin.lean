@@ -49,11 +49,11 @@ variables [preorder α] {l : list α}
 
 lemma nth_le_mono (h : l.sorted (≤)) :
   monotone (λ i : fin l.length, l.nth_le i i.2) :=
-λ i j, nth_le_of_sorted_of_le h
+λ i j, h.rel_nth_le_of_le _ _
 
 lemma nth_le_strict_mono (h : l.sorted (<)) :
   strict_mono (λ i : fin l.length, l.nth_le i i.2) :=
-λ i j, pairwise_iff_nth_le.1 h i j j.2
+λ i j, h.rel_nth_le_of_lt _ _
 
 variable [decidable_eq α]
 
@@ -61,7 +61,7 @@ variable [decidable_eq α]
 `fin (length l)` and the set of elements of `l`. -/
 def nth_le_iso (l : list α) (H : sorted (<) l) : fin (length l) ≃o {x // x ∈ l} :=
 { to_equiv := H.nodup.nth_le_equiv l,
-  map_rel_iff' := λ i j, H.nth_le_strict_mono.le_iff_le.symm }
+  map_rel_iff' := λ i j, H.nth_le_strict_mono.le_iff_le }
 
 variables (H : sorted (<) l) {x : {x // x ∈ l}} {i : fin l.length}
 

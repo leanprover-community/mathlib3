@@ -578,10 +578,8 @@ apply_nolint vector3.nil_elim doc_blame
 apply_nolint vector3.rec_on doc_blame
 
 -- number_theory/pell.lean
-apply_nolint pell.az doc_blame unused_arguments
+apply_nolint pell.az unused_arguments
 apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
-apply_nolint pell.xz doc_blame
-apply_nolint pell.yz doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame
@@ -824,9 +822,6 @@ apply_nolint auto.normalize_negations doc_blame
 apply_nolint auto.preprocess_goal doc_blame
 apply_nolint auto.whnf_reducible doc_blame
 apply_nolint tactic.interactive.revert_all doc_blame
-
--- tactic/generalize_proofs.lean
-apply_nolint tactic.generalize_proofs doc_blame
 
 -- tactic/interactive.lean
 apply_nolint tactic.interactive.collect_struct doc_blame
@@ -1162,7 +1157,6 @@ apply_nolint continuous_map.induced doc_blame
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame
-apply_nolint is_closed_map doc_blame
 
 -- topology/metric_space/emetric_space.lean
 apply_nolint has_edist doc_blame

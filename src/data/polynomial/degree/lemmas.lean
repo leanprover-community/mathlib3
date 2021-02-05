@@ -59,6 +59,16 @@ else begin
   exact mt leading_coeff_eq_zero.1 h
 end
 
+lemma nat_degree_map_le [semiring S] (f : R →+* S) :
+  (map f p).nat_degree ≤ p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  { rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree hp],
+    by_cases hfp : map f p = 0,
+    { simp [hfp, zero_le_degree_iff.mpr hp] },
+    { simp [← degree_eq_nat_degree hfp, degree_map_le] } }
+end
 
 lemma degree_map_eq_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=

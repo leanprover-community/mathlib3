@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import field_theory.adjoin
-import field_theory.minimal_polynomial
+import field_theory.minpoly
 import linear_algebra.free_module
 import ring_theory.adjoin
 import ring_theory.adjoin_root
@@ -144,7 +144,7 @@ variable [algebra A S]
 /-- `pb.minpoly_gen` is a minimal polynomial for `pb.gen`.
 
 If `A` is not a field, it might not necessarily be *the* minimal polynomial,
-however `nat_degree_minimal_polynomial` shows its degree is indeed minimal.
+however `nat_degree_minpoly` shows its degree is indeed minimal.
 -/
 noncomputable def minpoly_gen (pb : power_basis A S) : polynomial A :=
 X ^ pb.dim -
@@ -227,28 +227,28 @@ begin
 end
 
 @[simp]
-lemma degree_minimal_polynomial (pb : power_basis A S) :
-  (minimal_polynomial pb.is_integral_gen).degree = pb.dim :=
+lemma degree_minpoly (pb : power_basis A S) :
+  (minpoly pb.is_integral_gen).degree = pb.dim :=
 begin
   refine le_antisymm _
-    (dim_le_degree_of_root pb (minimal_polynomial.ne_zero _) (minimal_polynomial.aeval _)),
+    (dim_le_degree_of_root pb (minpoly.ne_zero _) (minpoly.aeval _)),
   rw [← nat_degree_minpoly_gen, ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero],
-  exact minimal_polynomial.min _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
+  exact minpoly.min _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
 end
 
 @[simp]
-lemma nat_degree_minimal_polynomial (pb : power_basis A S) :
-  (minimal_polynomial pb.is_integral_gen).nat_degree = pb.dim :=
-by rw [← with_bot.coe_eq_coe, ← degree_minimal_polynomial pb,
-       degree_eq_nat_degree (minimal_polynomial.ne_zero pb.is_integral_gen)]
+lemma nat_degree_minpoly (pb : power_basis A S) :
+  (minpoly pb.is_integral_gen).nat_degree = pb.dim :=
+by rw [← with_bot.coe_eq_coe, ← degree_minpoly pb,
+       degree_eq_nat_degree (minpoly.ne_zero pb.is_integral_gen)]
 
 lemma minpoly_gen_eq [algebra K S] (pb : power_basis K S) :
-  pb.minpoly_gen = minimal_polynomial pb.is_integral_gen :=
+  pb.minpoly_gen = minpoly pb.is_integral_gen :=
 begin
-  apply minimal_polynomial.unique _ pb.minpoly_gen_monic pb.aeval_minpoly_gen,
+  apply minpoly.unique _ pb.minpoly_gen_monic pb.aeval_minpoly_gen,
   intros q q_monic aeval_q,
-  rw [degree_minpoly_gen pb, ← degree_minimal_polynomial pb],
-  exact minimal_polynomial.min _ q_monic aeval_q
+  rw [degree_minpoly_gen pb, ← degree_minpoly pb],
+  exact minpoly.min _ q_monic aeval_q
 end
 
 end minpoly
@@ -406,50 +406,27 @@ end equiv
 
 end power_basis
 
-lemma is_integral_algebra_map_iff {x : S} (hST : function.injective (algebra_map S T)) :
-  is_integral R (algebra_map S T x) ↔ is_integral R x :=
-begin
-  split; rintros ⟨f, hf, hx⟩; use [f, hf],
-  { exact is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero R S T hST hx },
-  { rw [is_scalar_tower.algebra_map_eq R S T, ← hom_eval₂, hx, ring_hom.map_zero] }
-end
-
-/-- If `y` is the image of `x` in an extension, their minimal polynomials coincide.
-
-We take `h : y = algebra_map L T x` as an argument because `rw h` typically fails
-since `is_integral R y` depends on y.
--/
-lemma minimal_polynomial.eq_of_algebra_map_eq [algebra K S] [algebra K T]
-  [is_scalar_tower K S T] (hST : function.injective (algebra_map S T))
-  {x : S} {y : T} (hx : is_integral K x) (hy : is_integral K y)
-  (h : y = algebra_map S T x) : minimal_polynomial hx = minimal_polynomial hy :=
-minimal_polynomial.unique hy (minimal_polynomial.monic hx)
-  (by rw [h, ← is_scalar_tower.algebra_map_aeval, minimal_polynomial.aeval hx, ring_hom.map_zero])
-  (λ q q_monic root_q, minimal_polynomial.min _ q_monic
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
-      (h ▸ root_q : aeval (algebra_map S T x) q = 0)))
-
 namespace algebra
 
 open power_basis
 
 lemma mem_span_power_basis [nontrivial R] {x y : S} (hx : _root_.is_integral R x)
   (hy : ∃ f : polynomial R, y = aeval x f) :
-  y ∈ submodule.span R (set.range (λ (i : fin (minimal_polynomial hx).nat_degree),
+  y ∈ submodule.span R (set.range (λ (i : fin (minpoly R x).nat_degree),
     x ^ (i : ℕ))) :=
 begin
   obtain ⟨f, rfl⟩ := hy,
   rw mem_span_pow',
-  have := minimal_polynomial.monic hx,
-  refine ⟨f.mod_by_monic (minimal_polynomial hx),
+  have := minpoly.monic hx,
+  refine ⟨f.mod_by_monic (minpoly R x),
     lt_of_lt_of_le (degree_mod_by_monic_lt _ this (ne_zero_of_monic this)) degree_le_nat_degree,
     _⟩,
   conv_lhs { rw ← mod_by_monic_add_div f this },
-  simp only [add_zero, zero_mul, minimal_polynomial.aeval, aeval_add, alg_hom.map_mul]
+  simp only [add_zero, zero_mul, minpoly.aeval, aeval_add, alg_hom.map_mul]
 end
 
 lemma linear_independent_power_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
-  linear_independent K (λ (i : fin (minimal_polynomial hx).nat_degree), x ^ (i : ℕ)) :=
+  linear_independent K (λ (i : fin (minpoly K x).nat_degree), x ^ (i : ℕ)) :=
 begin
   rw linear_independent_iff,
   intros p hp,
@@ -481,8 +458,8 @@ begin
   { ext i, rw [← f_def, this, coeff_zero, finsupp.zero_apply] },
   contrapose hp with hf,
   intro h,
-  have : (minimal_polynomial hx).degree ≤ f.degree,
-  { apply minimal_polynomial.degree_le_of_ne_zero hx hf,
+  have : (minpoly K x).degree ≤ f.degree,
+  { apply minpoly.degree_le_of_ne_zero K x hf,
     convert h,
     rw [finsupp.total_apply, aeval_def, eval₂_eq_sum, finsupp.sum_sum_index],
     { apply finset.sum_congr rfl,
@@ -491,9 +468,9 @@ begin
         finsupp.sum_single_index] },
     { intro, simp only [ring_hom.map_zero, zero_mul] },
     { intros, simp only [ring_hom.map_add, add_mul] } },
-  have : ¬ (minimal_polynomial hx).degree ≤ f.degree,
+  have : ¬ (minpoly K x).degree ≤ f.degree,
   { apply not_le_of_lt,
-    rw [degree_eq_nat_degree (minimal_polynomial.ne_zero hx), degree_lt_iff_coeff_zero],
+    rw [degree_eq_nat_degree (minpoly.ne_zero hx), degree_lt_iff_coeff_zero],
     intros i hi,
     rw [f_def' i, dif_neg],
     exact not_lt_of_ge hi },
@@ -501,7 +478,7 @@ begin
 end
 
 lemma power_basis_is_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
-  is_basis K (λ (i : fin (minimal_polynomial hx).nat_degree),
+  is_basis K (λ (i : fin (minpoly K x).nat_degree),
     (⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ) : adjoin K ({x} : set S))) :=
 begin
   have hST : function.injective (algebra_map (adjoin K ({x} : set S)) S) := subtype.coe_injective,
@@ -510,11 +487,10 @@ begin
   { apply (is_integral_algebra_map_iff hST).mp,
     convert hx,
     apply_instance },
-  have minpoly_eq := minimal_polynomial.eq_of_algebra_map_eq hST hx' hx,
+  have minpoly_eq := minpoly.eq_of_algebra_map_eq hST hx' rfl,
   refine ⟨_, _root_.eq_top_iff.mpr _⟩,
   { have := linear_independent_power_basis hx',
-    rwa minpoly_eq at this,
-    refl },
+    rwa minpoly_eq at this },
   { rintros ⟨y, hy⟩ _,
     have := mem_span_power_basis hx',
     rw minpoly_eq at this,
@@ -523,8 +499,7 @@ begin
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm },
-    { refl } }
+      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
@@ -532,7 +507,7 @@ where `d` is the degree of the minimal polynomial of `x`. -/
 noncomputable def adjoin.power_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
-  dim := (minimal_polynomial hx).nat_degree,
+  dim := (minpoly K x).nat_degree,
   is_basis := power_basis_is_basis hx }
 
 end algebra
@@ -551,8 +526,8 @@ begin
   have aeval_f' : aeval (root f) f' = 0,
   { rw [f'_def, alg_hom.map_mul, aeval_eq, mk_self, zero_mul] },
   have hx : is_integral K (root f) := ⟨f', f'_monic, aeval_f'⟩,
-  have minpoly_eq : f' = minimal_polynomial hx,
-  { apply minimal_polynomial.unique hx f'_monic aeval_f',
+  have minpoly_eq : f' = minpoly K (root f),
+  { apply minpoly.unique K _ f'_monic aeval_f',
     intros q q_monic q_aeval,
     have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
     { ext,
@@ -589,13 +564,13 @@ noncomputable def power_basis (hf : f ≠ 0) :
 
 lemma minpoly_gen_dvd (hf : f ≠ 0) :
   (adjoin_root.power_basis hf).minpoly_gen ∣ f :=
-by { rw power_basis.minpoly_gen_eq, exact minimal_polynomial.dvd _ (adjoin_root.eval₂_root f) }
+by { rw power_basis.minpoly_gen_eq, exact minpoly.dvd _ (adjoin_root.eval₂_root f) }
 
 @[simp]
 lemma minpoly_gen_eq (hf : irreducible f) (hfm : monic f) :
   (adjoin_root.power_basis hf.ne_zero).minpoly_gen = f :=
 begin
-  rw [(power_basis hf.ne_zero).minpoly_gen_eq, ← minimal_polynomial.unique' _ hf _ hfm],
+  rw [(power_basis hf.ne_zero).minpoly_gen_eq, ← minpoly.unique' _ hf _ hfm],
   { exact field.to_nontrivial _ },
   { exact adjoin_root.eval₂_root f }
 end
@@ -605,17 +580,17 @@ end adjoin_root
 namespace intermediate_field
 
 lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
-  is_basis K (λ (i : fin (minimal_polynomial hx).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
+  is_basis K (λ (i : fin (minpoly K x).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
 begin
   let ϕ := (adjoin_root_equiv_adjoin K hx).to_linear_equiv,
-  have key : ϕ (adjoin_root.root (minimal_polynomial hx)) = adjoin_simple.gen K x,
+  have key : ϕ (adjoin_root.root (minpoly K x)) = adjoin_simple.gen K x,
   { exact intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx },
-  suffices : ϕ ∘ (λ (i : fin (minimal_polynomial hx).nat_degree),
-    adjoin_root.root (minimal_polynomial hx) ^ (i.val)) =
-      (λ (i : fin (minimal_polynomial hx).nat_degree),
+  suffices : ϕ ∘ (λ (i : fin (minpoly K x).nat_degree),
+    adjoin_root.root (minpoly K x) ^ (i.val)) =
+      (λ (i : fin (minpoly K x).nat_degree),
         (adjoin_simple.gen K x) ^ ↑i),
   { rw ← this, exact linear_equiv.is_basis
-    (adjoin_root.power_basis_is_basis (minimal_polynomial.ne_zero hx)) ϕ },
+    (adjoin_root.power_basis_is_basis (minpoly.ne_zero hx)) ϕ },
   ext y,
   rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
   rw intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx,
@@ -626,23 +601,23 @@ where `d` is the degree of the minimal polynomial of `x`. -/
 noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
   power_basis K K⟮x⟯ :=
 { gen := adjoin_simple.gen K x,
-  dim := (minimal_polynomial hx).nat_degree,
+  dim := (minpoly K x).nat_degree,
   is_basis := power_basis_is_basis hx }
 
 @[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
   (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
 
 @[simp] lemma adjoin.power_basis.minpoly_gen_eq {x : L} (hx : is_integral K x) :
-  (adjoin.power_basis hx).minpoly_gen = minimal_polynomial hx :=
+  (adjoin.power_basis hx).minpoly_gen = minpoly hx :=
 by rw [(adjoin.power_basis hx).minpoly_gen_eq,
-       minimal_polynomial.eq_of_algebra_map_eq (algebra_map K⟮x⟯ L).injective _ hx
+       minpoly.eq_of_algebra_map_eq (algebra_map K⟮x⟯ L).injective _ hx
          (adjoin_simple.algebra_map_gen K x).symm]
 
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
 power_basis.finite_dimensional (adjoin.power_basis hx)
 
 lemma adjoin.findim {x : L} (hx : is_integral K x) :
-  finite_dimensional.findim K K⟮x⟯ = (minimal_polynomial hx).nat_degree :=
+  finite_dimensional.findim K K⟮x⟯ = (minpoly K x).nat_degree :=
 begin
   rw power_basis.findim (adjoin.power_basis hx),
   refl,

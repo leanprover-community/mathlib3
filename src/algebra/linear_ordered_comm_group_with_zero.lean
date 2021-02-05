@@ -10,7 +10,7 @@ import algebra.group_with_zero.power
 import tactic.abel
 
 /-!
-# Linearly ordered commutative groups with a zero element adjoined
+# Linearly ordered commutative groups and monoids with a zero element adjoined
 
 This file sets up a special class of linearly ordered commutative monoids
 that show up as the target of so-called “valuations” in algebraic number theory.
@@ -21,17 +21,18 @@ by taking a linearly ordered commutative group Γ and formally adjoining a zero 
 The disadvantage is that a type such as `nnreal` is not of that form,
 whereas it is a very common target for valuations.
 The solutions is to use a typeclass, and that is exactly what we do in this file.
+
+Note that to avoid issues with import cycles, `linear_ordered_comm_monoid_with_zero` is defined
+in another file. However, the lemmas about it are stated here.
 -/
 
 set_option old_structure_cmd true
 
 /-- A linearly ordered commutative group with a zero element. -/
 class linear_ordered_comm_group_with_zero (α : Type*)
-  extends linear_order α, comm_group_with_zero α :=
-(mul_le_mul_left : ∀ {a b : α}, a ≤ b → ∀ c : α, c * a ≤ c * b)
-(zero_le_one : (0:α) ≤ 1)
+  extends linear_ordered_comm_monoid_with_zero α, comm_group_with_zero α
 
-variables {α : Type*} [linear_ordered_comm_group_with_zero α]
+variables {α : Type*}
 variables {a b c d x y z : α}
 
 local attribute [instance] classical.prop_decidable
@@ -45,6 +46,8 @@ instance linear_ordered_comm_group_with_zero.to_ordered_comm_group_with_zero :
   .. ‹linear_ordered_comm_group_with_zero α› }
 
 section linear_ordered_comm_monoid
+
+variables [linear_ordered_comm_monoid_with_zero α]
 /-
 The following facts are true more generally in a (linearly) ordered commutative monoid.
 -/
@@ -85,6 +88,58 @@ begin
   rw [ne.def, eq_comm, pow_eq_one_iff hn],
   exact ne_of_gt h,
 end
+
+lemma zero_le_one' : (0 : α) ≤ 1 :=
+linear_ordered_comm_monoid_with_zero.zero_le_one
+
+@[simp] lemma zero_le' : 0 ≤ a :=
+by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
+
+@[simp] lemma not_lt_zero' : ¬a < 0 :=
+not_lt_of_le zero_le'
+
+@[simp] lemma le_zero_iff : a ≤ 0 ↔ a = 0 :=
+⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_refl _⟩
+
+lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
+⟨ne_of_gt, λ h, lt_of_le_of_ne zero_le' h.symm⟩
+
+lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
+λ h1, not_lt_zero' $ show b < 0, from h1 ▸ h
+
+end linear_ordered_comm_monoid
+
+variables [linear_ordered_comm_group_with_zero α]
+
+lemma zero_lt_one'' : (0 : α) < 1 :=
+lt_of_le_of_ne zero_le_one' zero_ne_one
+
+lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=
+by simpa only [mul_inv_cancel_right' h] using (mul_le_mul_right' hab c⁻¹)
+
+lemma le_mul_inv_of_mul_le (h : c ≠ 0) (hab : a * c ≤ b) : a ≤ b * c⁻¹ :=
+le_of_le_mul_right h (by simpa [h] using hab)
+
+lemma mul_inv_le_of_le_mul (h : c ≠ 0) (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
+le_of_le_mul_right h (by simpa [h] using hab)
+
+lemma div_le_div' (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
+  a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+begin
+  by_cases ha : a = 0, { simp [ha] },
+  by_cases hc : c = 0, { simp [inv_ne_zero hb, hc, hd], },
+  exact @div_le_div_iff' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd)
+end
+
+@[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
+zero_lt_iff.2 $ u.ne_zero
+
+lemma mul_lt_mul'''' (hab : a < b) (hcd : c < d) : a * c < b * d :=
+have hb : b ≠ 0 := ne_zero_of_lt hab,
+have hd : d ≠ 0 := ne_zero_of_lt hcd,
+if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd } else
+if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
+@mul_lt_mul''' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) hab hcd
 
 end linear_ordered_comm_monoid
 

@@ -37,8 +37,8 @@ and consequences are derived.
 
 ## Main statements
 
-* `has_basis.mem_iff`, `has_basis.mem_of_superset`, `has_basis.mem_of_mem` : restate `t ∈ f` in terms
-  of a basis;
+* `has_basis.mem_iff`, `has_basis.mem_of_superset`, `has_basis.mem_of_mem` : restate `t ∈ f`
+  in terms of a basis;
 * `basis_sets` : all sets of a filter form a basis;
 * `has_basis.inf`, `has_basis.inf_principal`, `has_basis.prod`, `has_basis.prod_self`,
   `has_basis.map`, `has_basis.comap` : combinators to construct filters of `l ⊓ l'`,
@@ -83,7 +83,8 @@ structure filter_basis (α : Type*) :=
 
 instance filter_basis.nonempty_sets (B : filter_basis α) : nonempty B.sets := B.nonempty.to_subtype
 
-/-- If `B` is a filter basis on `α`, and `U` a subset of `α` then we can write `U ∈ B` as on paper. -/
+/-- If `B` is a filter basis on `α`, and `U` a subset of `α` then we can write `U ∈ B` as
+on paper. -/
 @[reducible]
 instance {α : Type*}: has_mem (set α) (filter_basis α) := ⟨λ U B, U ∈ B.sets⟩
 
@@ -248,7 +249,8 @@ lemma has_basis.set_index_subset (h : l.has_basis p s) (ht : t ∈ l) : s (h.ind
 
 lemma has_basis.is_basis (h : l.has_basis p s) : is_basis p s :=
 { nonempty := let ⟨i, hi, H⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, hi⟩,
-  inter := λ i j hi hj, by simpa [h.mem_iff] using l.inter_sets (h.mem_of_mem hi) (h.mem_of_mem hj) }
+  inter := λ i j hi hj, by simpa [h.mem_iff]
+    using l.inter_sets (h.mem_of_mem hi) (h.mem_of_mem hj) }
 
 lemma has_basis.filter_eq (h : l.has_basis p s) : h.is_basis.filter = l :=
 by { ext U, simp [h.mem_iff, is_basis.mem_filter_iff] }
@@ -256,7 +258,8 @@ by { ext U, simp [h.mem_iff, is_basis.mem_filter_iff] }
 lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p i ∧ s i = U } :=
 by rw [← h.is_basis.filter_eq_generate, h.filter_eq]
 
-lemma generate_eq_generate_inter (s : set (set α)) : generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
+lemma generate_eq_generate_inter (s : set (set α)) :
+  generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
 by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq] ; refl
 
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
@@ -467,7 +470,7 @@ lemma has_basis_infi_principal_finite (s : ι → set α) :
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
   simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
-    exists_finite_iff_finset, finset.bInter_coe]
+    exists_finite_iff_finset, finset.set_bInter_coe]
 end
 
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
@@ -622,7 +625,8 @@ structure is_countable_basis (p : ι → Prop) (s : ι → set α) extends is_ba
 /-- We say that a filter `l` has a countable basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`, and the set
 defined by `p` is countable. -/
-structure has_countable_basis (l : filter α) (p : ι → Prop) (s : ι → set α) extends has_basis l p s : Prop :=
+structure has_countable_basis (l : filter α) (p : ι → Prop) (s : ι → set α)
+  extends has_basis l p s : Prop :=
 (countable : countable $ set_of p)
 
 /-- A countable filter basis `B` on a type `α` is a nonempty countable collection of sets of `α`
@@ -640,10 +644,10 @@ lemma antimono_seq_of_seq (s : ℕ → set α) :
   ∃ t : ℕ → set α, (∀ i j, i ≤ j → t j ⊆ t i) ∧ (⨅ i, 𝓟 $ s i) = ⨅ i, 𝓟 (t i) :=
 begin
   use λ n, ⋂ m ≤ n, s m, split,
-  { intros i j hij a, simp, intros h i' hi'i, apply h, transitivity; assumption },
-    apply le_antisymm; rw le_infi_iff; intro i,
-  { rw le_principal_iff, apply Inter_mem_sets (finite_le_nat _),
-    intros j hji, rw ← le_principal_iff, apply infi_le_of_le j _, apply le_refl _ },
+  { exact λ i j hij, bInter_mono' (Iic_subset_Iic.2 hij) (λ n hn, subset.refl _) },
+  apply le_antisymm; rw le_infi_iff; intro i,
+  { rw le_principal_iff, refine (bInter_mem_sets (finite_le_nat _)).2 (λ j hji, _),
+    rw ← le_principal_iff, apply infi_le_of_le j _, apply le_refl _ },
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 

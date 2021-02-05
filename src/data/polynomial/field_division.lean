@@ -276,6 +276,10 @@ begin
   rw polynomial.eval_map,
 end
 
+lemma mem_root_set [field k] [algebra R k] {x : k} (hp : p ≠ 0) :
+  x ∈ p.root_set k ↔ aeval x p = 0 :=
+iff.trans multiset.mem_to_finset (mem_roots_map hp)
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,

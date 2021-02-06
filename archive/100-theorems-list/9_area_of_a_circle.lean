@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Benjamin Davidson. All rights reserved.
+Copyright (c) 2021 James Arthur, Benjamin Davidson, Andrew Souther. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
@@ -186,8 +186,8 @@ begin
             div_mul_eq_mul_div_comm, pow_two, mul_div_cancel_left _ (pow_ne_zero 2 hr.ne.symm),
             ← mul_assoc, ← sub_mul, mul_comm, sqrt_mul (pow_nonneg hr.le 2), sqrt_sqr hr.le,
             one_mul],
-        simpa only [sub_nonneg, sqrt_sqr (pow_nonneg hr.le 2), div_le_one (pow_pos hr 2)] using
-          (sqr_lt_sqr' hx1 hx2).le },
+        simpa only [sub_nonneg, sqrt_sqr (pow_nonneg hr.le 2), div_le_one (pow_pos hr 2)]
+          using (sqr_lt_sqr' hx1 hx2).le },
       field_simp,
       rw [h, mul_div_assoc, ← div_div_eq_div_mul, div_self hr.ne.symm, mul_one_div, mul_left_comm,
           ← pow_two, neg_div, mul_div_mul_left (x^2) (sqrt (r^2-x^2)) two_ne_zero, ← add_assoc,

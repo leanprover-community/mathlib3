@@ -1,13 +1,20 @@
+/-
+Copyright (c) 2021 Damiano Testa. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Damiano Testa
+-/
 import algebra.char_zero
 import data.real.basic
 import data.zmod.basic
 import ring_theory.subsemiring
 import tactic
-/-! Reference:
+/-!
+Reference:
 https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
 
 -/
 
+namespace counterexample
 
 /--  Bhavik Mehta's example. -/
 @[derive [comm_semiring]]
@@ -30,19 +37,21 @@ instance : preorder K :=
 @[derive [comm_semiring]]
 def L : Type := subsemiring.closure ({(1, 0), (1, 1)} : set (ℕ × zmod 2))
 
+instance : has_coe L (ℕ × zmod 2) := ⟨λ x, x.1⟩
+
 instance : preorder L :=
 { le := λ x y, ( x.1 = y.1 ∨ x.1.1 < y.1.1 ),
   le_refl := by simp only [forall_const, true_or, eq_self_iff_true],
   le_trans := λ x y z xy yz,
   begin
-    rcases xy,
-    { rcases yz,
+    cases xy,
+    { cases yz,
       { exact or.inl (xy.trans yz) },
       { exact or.inr (lt_of_le_of_lt (congr_arg prod.fst xy).le yz) } },
     { refine or.inr (xy.trans_le _),
       cases yz,
       { exact (congr_arg prod.fst yz).le },
-      {  exact le_of_lt yz } },
+      {  exact yz.le } },
   end }
 
 @[simp] lemma pro (a b : L) : a < b ↔ a.val.1 < b.val.1 :=
@@ -254,3 +263,5 @@ sorry,
 --   tidy?,
  end},
 end
+
+end counterexample

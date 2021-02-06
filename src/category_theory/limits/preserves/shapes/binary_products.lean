@@ -36,7 +36,7 @@ essentially lets us commute `binary_fan.mk` with `functor.map_cone`.
 -/
 def is_limit_map_cone_binary_fan_equiv :
   is_limit (G.map_cone (binary_fan.mk f g)) ≃ is_limit (binary_fan.mk (G.map f) (G.map g)) :=
-(is_limit.postcompose_hom_equiv (diagram_iso_pair _) _).symm.trans
+(is_limit.postcompose_hom_equiv (diagram_iso_pair.{v} _) _).symm.trans
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by { rintro (_ | _), tidy })))
 
 /-- The property of preserving products expressed in terms of binary fans. -/

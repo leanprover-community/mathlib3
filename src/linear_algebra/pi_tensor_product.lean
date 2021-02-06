@@ -57,7 +57,8 @@ open function
 
 section semiring
 
-variables {ι : Type*} [decidable_eq ι] {R : Type*} [comm_semiring R]
+variables {ι : Type*} [decidable_eq ι] {ι₂ : Type*} [decidable_eq ι₂]
+variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
@@ -354,8 +355,42 @@ theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R
   φ' = lift φ :=
 lift.unique' (multilinear_map.ext H)
 
+@[simp]
+theorem lift_symm (φ' : (⨂[R] i, s i) →ₗ[R] E) : lift.symm φ' = φ'.comp_multilinear_map (tprod R) :=
+rfl
+
+@[simp]
 theorem lift_tprod : lift (tprod R : multilinear_map R s _) = linear_map.id :=
 eq.symm $ lift.unique' rfl
+
+/-- Re-index the components of the tensor power by `e`. -/
+def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, E ≃ₗ[R] ⨂[R] i : ι₂, E :=
+linear_equiv.of_linear
+  ((lift.symm.trans $
+    multilinear_map.dom_dom_congr_linear_equiv E (⨂[R] i : ι₂, E) R R e.symm).trans
+      lift (linear_map.id))
+  ((lift.symm.trans $
+    multilinear_map.dom_dom_congr_linear_equiv E (⨂[R] i : ι, E) R R e).trans
+      lift (linear_map.id))
+  (by { ext, simp })
+  (by { ext, simp })
+
+/-- The tensor product over an empty set of indices is isomorphic to the base ring -/
+def pempty_equiv : ⨂[R] i : pempty, E ≃ₗ[R] R :=
+{ to_fun := lift ⟨λ (_ : pempty → E), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
+  inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
+  left_inv := λ x, by {
+    apply x.induction_on,
+    { intros r f,
+      have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
+      simp [this], },
+    { simp only,
+      intros x y hx hy,
+      simp [add_smul, hx, hy] }},
+  right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, multilinear_map.coe_mk,
+    linear_map.map_smul, pi_tensor_product.lift.tprod],
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _, }
 
 end multilinear
 

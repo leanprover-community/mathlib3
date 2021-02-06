@@ -58,7 +58,8 @@ open function
 
 section semiring
 
-variables {ι : Type*} [decidable_eq ι] {R : Type*} [comm_semiring R]
+variables {ι : Type*} [decidable_eq ι] {ι₂ : Type*} [decidable_eq ι₂]
+variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
@@ -355,13 +356,27 @@ theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R
   φ' = lift φ :=
 lift.unique' (multilinear_map.ext H)
 
+@[simp]
+theorem lift_symm (φ' : (⨂[R] i, s i) →ₗ[R] E) : lift.symm φ' = φ'.comp_multilinear_map (tprod R) :=
+rfl
+
+@[simp]
 theorem lift_tprod : lift (tprod R : multilinear_map R s _) = linear_map.id :=
 eq.symm $ lift.unique' rfl
+
+/-- Re-index the components of the tensor power by `e`. -/
+def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, E ≃ₗ[R] ⨂[R] i : ι₂, E :=
+linear_equiv.of_linear
+  ((lift.symm.trans $ multilinear_map.dom_dom_congr_linear_equiv E (⨂[R] i : ι₂, E) R R e.symm).trans lift (linear_map.id))
+  ((lift.symm.trans $ multilinear_map.dom_dom_congr_linear_equiv E (⨂[R] i : ι, E) R R e).trans lift (linear_map.id))
+  (by { ext, simp })
+  (by { ext, simp })
 
 section mul
 
 variables {M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+
 
 /-- Collapse a `tensor_product` of `pi_tensor_product`s -/
 def mul : (⨂[R] i : ι₁, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι₁ ⊕ ι₂, M :=

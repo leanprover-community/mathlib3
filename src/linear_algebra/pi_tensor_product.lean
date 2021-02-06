@@ -358,6 +358,64 @@ lift.unique' (multilinear_map.ext H)
 theorem lift_tprod : lift (tprod R : multilinear_map R s _) = linear_map.id :=
 eq.symm $ lift.unique' rfl
 
+section mul
+
+variables {M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M]
+variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
+
+/-- Collapse a `tensor_product` of `pi_tensor_product`s -/
+def mul : (⨂[R] i : ι₁, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι₁ ⊕ ι₂, M :=
+tensor_product.lift
+  { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
+      (multilinear_map.curry_sum_equiv R _ _ _ _
+        (tprod R : multilinear_map R (λ _, M) _))
+        a,
+    map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
+    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
+
+/-- Expand `pi_tensor_product` into a `tensor_product` of two halves -/
+def unmul : ⨂[R] i : ι₁ ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι₁, M) ⊗[R] (⨂[R] i : ι₂, M) :=
+pi_tensor_product.lift begin
+  apply multilinear_map.dom_coprod,
+  exact tprod R,
+  exact tprod R,
+end
+
+/-- `mul` and `unmul` combined as an equiv. -/
+def mul_equiv : (⨂[R] i : ι₁, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι₁ ⊕ ι₂, M :=
+linear_equiv.of_linear mul unmul
+  begin
+    unfold mul unmul,
+    ext,
+    simp only [sum.elim_comp_inl_inr,
+      linear_map.id_coe,
+      tensor_product.lift.tmul,
+      linear_map.coe_comp_multilinear_map,
+      eq_self_iff_true,
+      linear_map.coe_mk,
+      function.comp_app,
+      multilinear_map.curry_sum_apply,
+      function.comp.left_id,
+      multilinear_map.dom_coprod_apply,
+      pi_tensor_product.lift.tprod,
+      linear_map.comp_apply],
+    simp only [sum.elim_comp_inl_inr,
+      eq_self_iff_true,
+      multilinear_map.coe_curry_sum_equiv,
+      multilinear_map.curry_sum_apply],
+  end
+  begin
+    unfold mul unmul,
+    ext1,
+    simp only [linear_map.id_coe, tensor_product.lift.tmul, id.def, linear_map.coe_mk,
+      linear_map.comp_apply],
+    simp only [multilinear_map.coe_curry_sum_equiv],
+    -- (lift ((tprod R).dom_coprod (tprod R))) ((lift ((lift (tprod R).curry_sum) x)) y) = x ⊗ₜ[R] y
+    sorry,
+  end
+
+end mul
+
 end multilinear
 
 end pi_tensor_product
@@ -385,40 +443,29 @@ section fin_algebra
 namespace pi_tensor_product
 open_locale tensor_product
 
+/-- Homogenous tensor powers $M^{\otimes n}$. `⨂[R]^n M` is a shorthand for
+`⨂[R] (i : fin n), M`. -/
 protected abbreviation fin (R : Type*) (n : ℕ) (M : Type*)
   [comm_semiring R] [add_comm_monoid M] [semimodule R M] : Type* :=
 ⨂[R] (i : fin n), M
 
 variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 
-notation `⨂[`:100 R `]^`:80 n:max := pi_tensor_product.fin R n
+localized "notation `⨂[`:100 R `]^`:80 n:max := pi_tensor_product.fin R n"
+  in tensor_product
 
-#print notation ^
-
--- localized "notation `⨂[`:100 R `]^` n ` ` M := ⨂[R] (i : fin n), M"
---   in tensor_product
+namespace fin
 
 def one : ⨂[R]^0 M := pi_tensor_product.tprod R 0
 
--- def mul' {n m : ℕ} : ((⨂[R]^n M) ⊗[R] (⨂[R]^n M)) →ₗ[R] ⨂[R]^(n + m) M :=
--- tensor_product.lift begin
---   apply tensor_product.lift,
---   apply linear_map.applyₗ,
---   apply linear_map.
---   apply pi_tensor_product.lift,
+def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n + m) M :=
+begin
+  have : (⨂[R]^n M) ⊗[R] _ ≃ₗ[R] _ := pi_tensor_product.mul_equiv,
+  apply this.trans,
+  sorry,
+end
 
--- -- pi_tensor_product.lift (multilinear_map.dom_dom_congr sum_fin_sum_equiv _)
--- end
-
-def mul {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) →ₗ[R] ⨂[R]^(n + m) M :=
-tensor_product.lift
-  { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
-      (multilinear_map.curry_sum_equiv R _ _ _ _
-        ((tprod R : multilinear_map R (λ _, M) _).dom_dom_congr sum_fin_sum_equiv.symm))
-        a,
-    map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
-    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
-
-end pi_tensor_product.fin
+end fin
+end pi_tensor_product
 
 end fin_algebra

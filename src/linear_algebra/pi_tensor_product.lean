@@ -410,35 +410,14 @@ def one : ⨂[R]^0 M := pi_tensor_product.tprod R 0
 -- -- pi_tensor_product.lift (multilinear_map.dom_dom_congr sum_fin_sum_equiv _)
 -- end
 
-def mul {n m : ℕ} : (⨂[R]^n M) → (⨂[R]^m M) → ⨂[R]^(n + m) M :=
-λ a, pi_tensor_product.lift (pi_tensor_product.lift (
-    show multilinear_map R (λ (i : fin n), M) (multilinear_map R (λ (i : fin m), M) (⨂[R]^(n + m) M)),
-    from
-    { to_fun := λ a',
-      { to_fun := λ b', tprod R (λ i, (sum_fin_sum_equiv.symm i).elim a' b'),
-        map_add' := begin
-          intros,
-          sorry,
-          -- convert (tprod R).map_add m_1 _ x _ using 1,
-        end,
-        map_smul' := sorry },
-      map_add' := sorry,
-      map_smul' := sorry }
-   )) a
-  -- exact
-
-
-
-#check multilinear_map.map_add
-
-def mul {n m : ℕ} : (⨂[R]^n M) →ₗ[R] (⨂[R]^m M) →ₗ[R] ⨂[R]^(n + m) M :=
-linear_map.mk₂ R (λ a b, begin
-  refine pi_tensor_product.lift _ b,
-  refine pi_tensor_product.lift _ a,
-  refine { to_fun := λ a', { to_fun := λ b', _, .. }, .. },
-  refine tprod R (λ i, _),
-  refine (sum_fin_sum_equiv.symm i).elim a' b',
-end) sorry sorry sorry sorry
+def mul {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) →ₗ[R] ⨂[R]^(n + m) M :=
+tensor_product.lift
+  { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
+      (multilinear_map.curry_sum_equiv R _ _ _ _
+        ((tprod R : multilinear_map R (λ _, M) _).dom_dom_congr sum_fin_sum_equiv.symm))
+        a,
+    map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
+    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
 
 end pi_tensor_product.fin
 

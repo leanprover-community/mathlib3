@@ -114,7 +114,7 @@ See https://stacks.math.columbia.edu/tag/002O.
 -/
 lemma finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
-λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }
+⟨λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }⟩
 
 variables {D : Type u₂} [category.{v} D]
 noncomputable theory

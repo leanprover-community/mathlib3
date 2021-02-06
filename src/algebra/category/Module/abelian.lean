@@ -68,7 +68,7 @@ def normal_epi (hf : epi f) : normal_epi f :=
 
 /-- The category of R-modules is abelian. -/
 instance : abelian (Module R) :=
-{ has_finite_products := by { dsimp [has_finite_products], apply_instance },
+{ has_finite_products := ⟨by apply_instance⟩,
   has_kernels := by apply_instance,
   has_cokernels := has_cokernels_Module,
   normal_mono := λ X Y, normal_mono,

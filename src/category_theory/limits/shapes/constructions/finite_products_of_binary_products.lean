@@ -134,13 +134,13 @@ end }
 
 /-- If `C` has a terminal object and binary products, then it has finite products. -/
 lemma has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
-λ J 𝒥₁ 𝒥₂,
-begin
+⟨λ J 𝒥₁ 𝒥₂, begin
   resetI,
   rcases fintype.equiv_fin J with ⟨e⟩,
   apply has_limits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
   refine has_limits_of_shape_ulift_fin (fintype.card J),
-end
+end⟩
+
 end
 
 section preserves

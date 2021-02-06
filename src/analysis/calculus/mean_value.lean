@@ -463,12 +463,14 @@ end
 
 end
 
-/-! ### Vector-valued functions `f : E → F`
+/-!
+### Vector-valued functions `f : E → G`
 
 Theorems in this section work both for real and complex differentiable functions. We use assumptions
-`[is_R_or_C 𝕜] [normed_space 𝕜 E]` to achieve this result. For to domain we also assume
-`[normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]` to have a notion of a `convex` set. In both interesting
-cases `𝕜 = ℝ` and `𝕜 = ℂ` the assumption `[is_scalar_tower ℝ 𝕜 E]` is satisfied automatically. -/
+`[is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 G]` to achieve this result. For the domain `E` we
+also assume `[normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]` to have a notion of a `convex` set. In both
+interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` the assumption `[is_scalar_tower ℝ 𝕜 E]` is satisfied
+automatically. -/
 
 section
 

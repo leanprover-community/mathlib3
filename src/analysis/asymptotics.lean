@@ -43,7 +43,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space big_operators classical filter
+open_locale topological_space big_operators classical filter nnreal
 
 namespace asymptotics
 
@@ -1317,6 +1317,36 @@ theorem is_O_one_nat_at_top_iff {f : ℕ → E'} :
   is_O f (λ n, 1 : ℕ → ℝ) at_top ↔ ∃ C, ∀ n, ∥f n∥ ≤ C :=
 iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
   by simp only [norm_one, mul_one]
+
+theorem is_O_with.pi_same {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : Π i, α → E' i} {C : ℝ} (hC : 0 ≤ C) (h : ∀ i, is_O_with C (f i) g' l) :
+  is_O_with C (λ x i, f i x) g' l :=
+begin
+  simp only [is_O_with_iff] at *,
+  exact (eventually_all.2 h).mono (λ x hx, (pi_norm_le_iff (mul_nonneg hC (norm_nonneg _))).2 hx)
+end
+
+theorem is_O_with.pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : Π i, α → E' i} {C : ι → ℝ≥0} (h : ∀ i, is_O_with (C i) (f i) g' l) :
+  is_O_with (finset.univ.sup C : ℝ≥0) (λ x i, f i x) g' l :=
+is_O_with.pi_same (nnreal.coe_nonneg _) $
+  λ i, (h i).weaken $ nnreal.coe_le_coe.2 $ finset.le_sup $ finset.mem_univ i
+
+theorem is_O.pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : Π i, α → E' i} (h : ∀ i, is_O (f i) g' l) :
+  is_O (λ x i, f i x) g' l :=
+begin
+  choose C Cpos hC using λ i, (h i).exists_pos, lift C to ι → ℝ≥0 using λ i, (Cpos i).le,
+  exact (is_O_with.pi hC).is_O
+end
+
+theorem is_o.pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : Π i, α → E' i} (h : ∀ i, is_o (f i) g' l) :
+  is_o (λ x i, f i x) g' l :=
+begin
+  simp only [is_o] at *,
+  exact λ c hc, is_O_with.pi_same hc.le (λ i, h i hc)
+end
 
 end asymptotics
 

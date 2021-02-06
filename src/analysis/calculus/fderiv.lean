@@ -1680,6 +1680,39 @@ theorem fderiv_sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
 
 end sum
 
+section pi
+
+variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_group (F' i)]
+  [Π i, normed_space 𝕜 (F' i)]
+
+lemma has_strict_fderiv_at.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
+  (h : ∀ i, has_strict_fderiv_at (f i) (f' i) x) :
+  has_strict_fderiv_at (λ x i, f i x) (continuous_linear_map.pi f') x :=
+begin
+  simp only [has_strict_fderiv_at, continuous_linear_map.coe_pi] at *,
+  exact is_o.pi h
+end
+
+lemma has_fderiv_at_filter.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
+  (h : ∀ i, has_fderiv_at_filter (f i) (f' i) x L) :
+  has_fderiv_at_filter (λ x i, f i x) (continuous_linear_map.pi f') x L :=
+begin
+  simp only [has_fderiv_at_filter, continuous_linear_map.coe_pi] at *,
+  exact is_o.pi h
+end
+
+lemma has_fderiv_at.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
+  (h : ∀ i, has_fderiv_at (f i) (f' i) x) :
+  has_fderiv_at (λ x i, f i x) (continuous_linear_map.pi f') x :=
+has_fderiv_at_filter.pi h
+
+lemma has_fderiv_within_at.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
+  (h : ∀ i, has_fderiv_within_at (f i) (f' i) s x) :
+  has_fderiv_within_at (λ x i, f i x) (continuous_linear_map.pi f') s x :=
+has_fderiv_at_filter.pi h
+
+end pi
+
 section neg
 /-! ### Derivative of the negative of a function -/
 

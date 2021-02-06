@@ -2486,7 +2486,7 @@ begin
     -- For showing `n.succ` times continuous differentiability (the main inductive step), it
     -- suffices to produce the derivative and show that it is `n` times continuously differentiable
     have eq_f₀' : f' (f.symm a) = f₀',
-    { exact has_fderiv_at_unique (hff' (f.symm a) (mem_of_nhds hu)) hf₀' },
+    { exact (hff' (f.symm a) (mem_of_nhds hu)).unique hf₀' },
     -- This follows by a bootstrapping formula expressing the derivative as a function of `f` itself
     refine ⟨inverse ∘ f' ∘ f.symm, _, _⟩,
     { -- We first check that the derivative of `f` is that formula
@@ -2620,7 +2620,7 @@ begin
     apply times_cont_diff.comp_times_cont_diff_on _ h,
     exact (is_bounded_bilinear_map_apply.is_bounded_linear_map_left _).times_cont_diff },
   { assume h,
-    have : fderiv_within 𝕜 f₂ s₂ = (λ u, smul_right 1 u) ∘ (λ x, deriv_within f₂ s₂ x),
+    have : fderiv_within 𝕜 f₂ s₂ = smul_right (1 : 𝕜 →L[𝕜] 𝕜) ∘ deriv_within f₂ s₂,
       by { ext x, simp [deriv_within] },
     simp only [this],
     apply times_cont_diff.comp_times_cont_diff_on _ h,

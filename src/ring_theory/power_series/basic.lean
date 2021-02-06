@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
 import data.mv_polynomial
+import linear_algebra.std_basis
 import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
@@ -797,7 +798,8 @@ instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [s
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower
 
-instance [comm_ring R]       : algebra R       (power_series R) := by apply_instance
+instance {A} [semiring A] [comm_semiring R] [algebra R A] :
+  algebra R (power_series A) := by apply_instance
 
 end
 

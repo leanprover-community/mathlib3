@@ -893,7 +893,7 @@ end
 
 /-- Expand the square -/
 lemma norm_sub_pow_two_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-by { have h := @norm_sub_pow_two ℝ F _ _, simpa using h }
+norm_sub_pow_two
 
 /-- Expand the square -/
 lemma norm_sub_mul_self {x y : E} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=
@@ -2476,8 +2476,8 @@ complement sum to the identity. -/
 lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   [complete_space E] [complete_space K] :
   continuous_linear_map.id 𝕜 E
-  = K.subtype_continuous.comp (orthogonal_projection K)
-  + Kᗮ.subtype_continuous.comp (orthogonal_projection Kᗮ) :=
+  = K.subtypeL.comp (orthogonal_projection K)
+  + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
 open finite_dimensional
@@ -2523,12 +2523,14 @@ lemma submodule.findim_add_findim_orthogonal' [finite_dimensional 𝕜 E] {K : s
   findim 𝕜 Kᗮ = n :=
 by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_orthogonal, h_dim] }
 
+local attribute [instance] finite_dimensional_of_findim_eq_succ
+
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/
-lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1)
+lemma findim_orthogonal_span_singleton {n : ℕ} [_i : fact (findim 𝕜 E = n + 1)]
   {v : E} (hv : v ≠ 0) :
   findim 𝕜 (𝕜 ∙ v)ᗮ = n :=
-submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, hn, add_comm]
+submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, _i.elim, add_comm]
 
 end orthogonal
 
@@ -2589,7 +2591,7 @@ begin
       { intros hab'',
         apply hab',
         simpa using hab'' },
-      convert hv.2 this } },
+      exact hv.2 this } },
     { -- ** direction 2: empty orthogonal complement implies maximal
       simp only [subset.antisymm_iff],
       rintros h u (huv : v ⊆ u) hu,
@@ -2684,12 +2686,14 @@ def linear_isometry_equiv.of_inner_product_space
 let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
 hv.2.isometry_euclidean_of_orthonormal hv.1
 
+local attribute [instance] finite_dimensional_of_findim_eq_succ
+
 /-- Given a natural number `n` one less than the `findim` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.from_orthogonal_span_singleton
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1) {v : E} (hv : v ≠ 0) :
+  {n : ℕ} [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hn hv)
+linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hv)
 
 end orthonormal_basis

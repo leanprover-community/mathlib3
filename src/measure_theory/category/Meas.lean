@@ -27,6 +27,7 @@ measurable space, giry monad, borel
 noncomputable theory
 
 open category_theory measure_theory
+open_locale ennreal
 universes u v
 
 /-- The category of measurable spaces and measurable functions. -/
@@ -81,11 +82,11 @@ instance : category_theory.monad Measure.{u} :=
 /-- An example for an algebra on `Measure`: the nonnegative Lebesgue integral is a hom, behaving
 nicely under the monad operations. -/
 def Integral : monad.algebra Measure :=
-{ A      := Meas.of ennreal ,
-  a      := ⟨λm:measure ennreal, ∫⁻ x, x ∂m, measure.measurable_lintegral measurable_id ⟩,
-  unit'  := subtype.eq $ funext $ assume r:ennreal, lintegral_dirac' _ measurable_id,
-  assoc' := subtype.eq $ funext $ assume μ : measure (measure ennreal),
-    show ∫⁻ x, x ∂ μ.join = ∫⁻ x, x ∂ (measure.map (λm:measure ennreal, ∫⁻ x, x ∂m) μ),
+{ A      := Meas.of ℝ≥0∞ ,
+  a      := ⟨λm:measure ℝ≥0∞, ∫⁻ x, x ∂m, measure.measurable_lintegral measurable_id ⟩,
+  unit'  := subtype.eq $ funext $ assume r:ℝ≥0∞, lintegral_dirac' _ measurable_id,
+  assoc' := subtype.eq $ funext $ assume μ : measure (measure ℝ≥0∞),
+    show ∫⁻ x, x ∂ μ.join = ∫⁻ x, x ∂ (measure.map (λm:measure ℝ≥0∞, ∫⁻ x, x ∂m) μ),
     by rw [measure.lintegral_join, lintegral_map];
       apply_rules [measurable_id, measure.measurable_lintegral] }
 

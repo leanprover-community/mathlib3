@@ -182,16 +182,16 @@ minpoly.unique' (is_integral G F x) (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points G F) F :=
-λ x, ⟨is_integral G F x, (polynomial.splits_id_iff_splits _).1 $
+⟨λ x, is_integral G F x, λ x, (polynomial.splits_id_iff_splits _).1 $
 by { rw [← minpoly_eq_minpoly, minpoly,
     coe_algebra_map, polynomial.map_to_subring, prod_X_sub_smul],
   exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _) }⟩
 
 instance separable : is_separable (fixed_points G F) F :=
-λ x, ⟨is_integral G F x,
-by { rw [← minpoly_eq_minpoly,
-        ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
-        minpoly, polynomial.map_to_subring],
+⟨λ x, is_integral G F x,
+ λ x, by {
+  rw [← minpoly_eq_minpoly, ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
+    minpoly, polynomial.map_to_subring],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
 lemma dim_le_card : vector_space.dim (fixed_points G F) F ≤ fintype.card G :=

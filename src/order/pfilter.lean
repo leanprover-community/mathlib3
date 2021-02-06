@@ -88,7 +88,7 @@ order.ideal.bot_mem
 /-- There is a bottom filter when `P` has a top element. -/
 instance : order_bot (pfilter P) :=
 { bot := principal ⊤,
-  bot_le := by simp,
+  bot_le := λ F, principal_le_iff.mpr top_mem,
   .. pfilter.partial_order }
 
 end order_top
@@ -104,7 +104,7 @@ variables [semilattice_inf P] {x y : P} {F : pfilter P}
 
 /-- A specific witness of `pfilter.directed` when `P` has meets. -/
 lemma inf_mem (x y ∈ F) : x ⊓ y ∈ F :=
-order.ideal.sup_mem x y (by assumption) (by assumption)
+order.ideal.sup_mem x y ‹x ∈ F› ‹y ∈ F›
 
 @[simp] lemma inf_mem_iff : x ⊓ y ∈ F ↔ x ∈ F ∧ y ∈ F :=
 order.ideal.sup_mem_iff

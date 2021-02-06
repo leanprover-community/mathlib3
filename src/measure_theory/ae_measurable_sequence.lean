@@ -89,15 +89,15 @@ end
 
 end mem_ae_seq_set
 
-lemma ae_seq_set_is_measurable {hf : ∀ i, ae_measurable (f i) μ} :
-  is_measurable (ae_seq_set hf p) :=
-(is_measurable_to_measurable _ _).compl
+lemma ae_seq_set_measurable_set {hf : ∀ i, ae_measurable (f i) μ} :
+  measurable_set (ae_seq_set hf p) :=
+(measurable_set_to_measurable _ _).compl
 
 lemma measurable (hf : ∀ i, ae_measurable (f i) μ) (p : α → (ι → β) → Prop)
   (i : ι) :
   measurable (ae_seq hf p i) :=
 begin
-  refine measurable.ite ae_seq_set_is_measurable (hf i).measurable_mk _,
+  refine measurable.ite ae_seq_set_measurable_set (hf i).measurable_mk _,
   by_cases hα : nonempty α,
   { exact @measurable_const _ _ _ _ (⟨f i hα.some⟩ : nonempty β).some },
   { exact measurable_of_not_nonempty hα _ }

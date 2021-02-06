@@ -128,7 +128,7 @@ noncomputable theory
 open topological_space (second_countable_topology)
 open measure_theory set classical filter
 
-open_locale classical topological_space filter
+open_locale classical topological_space filter ennreal
 
 variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
@@ -329,7 +329,7 @@ lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
   ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
 begin
   rw [norm_integral_eq_norm_integral_Ioc],
-  convert norm_set_integral_le_of_norm_le_const_ae'' _ is_measurable_Ioc h,
+  convert norm_set_integral_le_of_norm_le_const_ae'' _ measurable_set_Ioc h,
   { rw [real.volume_Ioc, max_sub_min_eq_abs, ennreal.to_real_of_real (abs_nonneg _)] },
   { simp only [real.volume_Ioc, ennreal.of_real_lt_top] },
 end
@@ -361,7 +361,7 @@ lemma integral_const {a b : ℝ} (c : E) : (∫ (x : ℝ) in a..b, c) = (b - a) 
 by simp only [integral_const', real.volume_Ioc, ennreal.to_real_of_real', ← neg_sub b,
   max_zero_sub_eq_self]
 
-lemma integral_smul_measure (c : ennreal) :
+lemma integral_smul_measure (c : ℝ≥0∞) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
@@ -369,7 +369,7 @@ lemma integral_comp_add_right (a b c : ℝ) (f : ℝ → E) (hfm : ae_measurable
   ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x :=
 have A : ae_measurable f (measure.map (λ x, x + c) volume), by rwa [real.map_volume_add_right],
 calc ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x ∂(measure.map (λ x, x + c) volume) :
-  by simp only [interval_integral, set_integral_map is_measurable_Ioc A (measurable_add_right _),
+  by simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_add_right _),
     preimage_add_const_Ioc, add_sub_cancel]
 ... = ∫ x in a+c..b+c, f x : by rw [real.map_volume_add_right]
 
@@ -380,7 +380,7 @@ begin
     by { rw real.map_volume_mul_right (ne_of_gt hc), exact hfm.smul_measure _ },
   conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
   rw [integral_smul_measure],
-  simp only [interval_integral, set_integral_map is_measurable_Ioc A (measurable_mul_right _),
+  simp only [interval_integral, set_integral_map measurable_set_Ioc A (measurable_mul_right _),
     hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc), abs_of_pos,
     ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)],
 end
@@ -390,7 +390,7 @@ lemma integral_comp_neg (a b : ℝ) (f : ℝ → E) (hfm : ae_measurable f) :
 begin
   have A : ae_measurable f (measure.map (λ (x : ℝ), -x) volume), by rwa real.map_volume_neg,
   conv_rhs { rw ← real.map_volume_neg },
-  simp only [interval_integral, set_integral_map is_measurable_Ioc A measurable_neg, neg_preimage,
+  simp only [interval_integral, set_integral_map measurable_set_Ioc A measurable_neg, neg_preimage,
     preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc]
 end
 
@@ -412,7 +412,7 @@ variables [order_closed_topology α]
 lemma integral_congr {a b : α} {f g : α → E} (h : eq_on f g (interval a b)) :
   ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
 by cases le_total a b with hab hab; simpa [hab, integral_of_le, integral_of_ge]
-  using set_integral_congr is_measurable_Ioc (h.mono Ioc_subset_Icc_self)
+  using set_integral_congr measurable_set_Ioc (h.mono Ioc_subset_Icc_self)
 
 lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
@@ -424,7 +424,7 @@ begin
   { suffices : Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc b a ∪ Ioc c b ∪ Ioc a c, by rw this,
     rw [Ioc_union_Ioc_union_Ioc_cycle, union_right_comm, Ioc_union_Ioc_union_Ioc_cycle,
       min_left_comm, max_left_comm] },
-  all_goals { simp [*, is_measurable.union, is_measurable_Ioc, Ioc_disjoint_Ioc_same,
+  all_goals { simp [*, measurable_set.union, measurable_set_Ioc, Ioc_disjoint_Ioc_same,
     Ioc_disjoint_Ioc_same.symm, hab.1, hab.2, hbc.1, hbc.2, hac.1, hac.2] }
 end
 
@@ -462,7 +462,7 @@ begin
   wlog hab : a ≤ b using [a b] tactic.skip,
   { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc (le_refl _)),
       Iic_union_Ioc_eq_Iic hab],
-    exacts [is_measurable_Iic, is_measurable_Ioc, ha, hb.mono_set (λ _, and.right)] },
+    exacts [measurable_set_Iic, measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
   { intros ha hb,
     rw [integral_symm, ← this hb ha, neg_sub] }
 end
@@ -480,7 +480,7 @@ lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : function.
   ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ :=
 begin
   cases le_total a b with hab hab,
-  { rw [integral_of_le hab, ← integral_indicator is_measurable_Ioc, indicator_eq_self.2 h];
+  { rw [integral_of_le hab, ← integral_indicator measurable_set_Ioc, indicator_eq_self.2 h];
     apply_instance },
   { rw [Ioc_eq_empty hab, subset_empty_iff, function.support_eq_empty_iff] at h,
     simp [h] }
@@ -644,7 +644,7 @@ begin
   simp only [integral_const'],
   convert (A.trans_le _).sub (B.trans_le _),
   { ext t,
-    simp_rw [(∘), interval_integral, sub_smul],
+    simp_rw [interval_integral, sub_smul],
     abel },
   all_goals { intro t, cases le_total (u t) (v t) with huv huv; simp [huv] }
 end
@@ -1305,7 +1305,7 @@ theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : contin
   ∫ y in a..b, f' y = f b - f a :=
 begin
   have hmeas' : ae_measurable f' (volume.restrict (Icc a b)),
-    from hcont'.ae_measurable is_measurable_Icc,
+    from hcont'.ae_measurable measurable_set_Icc,
   refine eq_sub_of_add_eq (eq_of_has_deriv_right_eq (λ y hy, _) hderiv
     (λ y hy, _) hcont (by simp) _ (right_mem_Icc.2 hab)),
   { refine (integral_has_deriv_within_at_right _ _ _).add_const _,
@@ -1317,7 +1317,7 @@ begin
     letI : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Ioc a b)) :=
       tendsto_Ixx_class_principal.2 (λ x hx y hy, Ioc_subset_Ioc hx.1 hy.2),
     haveI : is_measurably_generated (𝓝[Ioc a b] y) :=
-      is_measurable_Ioc.nhds_within_is_measurably_generated y,
+      measurable_set_Ioc.nhds_within_is_measurably_generated y,
     letI : FTC_filter y (𝓝[Icc a b] y) (𝓝[Ioc a b] y) := ⟨pure_le_nhds_within hy, inf_le_left⟩,
     refine (integral_has_deriv_within_at_right _ _ _).continuous_within_at.add
       continuous_within_at_const,

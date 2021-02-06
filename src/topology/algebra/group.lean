@@ -535,8 +535,8 @@ variables [topological_space G] [group G] [topological_group G]
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `KV ⊆ U`. -/
-@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `0`
-  such that `K + V ⊆ U`."]
+@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
+`0` such that `K + V ⊆ U`."]
 lemma compact_open_separated_mul {K U : set G} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ K * V ⊆ U :=
 begin
@@ -545,8 +545,9 @@ begin
   have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
   choose V hV using λ x : K, exists_open_nhds_one_mul_subset (mem_nhds_sets (h1W x) (h2W x.1 x.2)),
   let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
-  cases hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _ with t ht, swap,
-  { intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
+  obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
+  { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _,
+    intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
     simp only [mul_left_inv, subtype.coe_mk] },
   refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,
   { simp only [mem_Inter], intros x hx, exact (hV x).2.1 },
@@ -563,14 +564,13 @@ end
 lemma compact_covered_by_mul_left_translates {K V : set G} (hK : is_compact K)
   (hV : (interior V).nonempty) : ∃ t : finset G, K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V :=
 begin
-  cases hV with g₀ hg₀,
-  rcases is_compact.elim_finite_subcover hK (λ x : G, interior $ (λ h, x * h) ⁻¹' V) _ _ with ⟨t, ht⟩,
-  { refine ⟨t, subset.trans ht _⟩,
-    apply Union_subset_Union, intro g, apply Union_subset_Union, intro hg, apply interior_subset },
-  { intro g, apply is_open_interior },
-  { intros g hg, rw [mem_Union], use g₀ * g⁻¹,
-    apply preimage_interior_subset_interior_preimage, exact continuous_const.mul continuous_id,
-    rwa [mem_preimage, inv_mul_cancel_right] }
+  obtain ⟨t, ht⟩ : ∃ t : finset G, K ⊆ ⋃ x ∈ t, interior (((*) x) ⁻¹' V),
+  { refine hK.elim_finite_subcover (λ x, interior $ ((*) x) ⁻¹' V) (λ x, is_open_interior) _,
+    cases hV with g₀ hg₀,
+    refine λ g hg, mem_Union.2 ⟨g₀ * g⁻¹, _⟩,
+    refine preimage_interior_subset_interior_preimage (continuous_const.mul continuous_id) _,
+    rwa [mem_preimage, inv_mul_cancel_right] },
+  exact ⟨t, subset.trans ht $ bUnion_subset_bUnion_right $ λ g hg, interior_subset⟩
 end
 
 /-- Every locally compact separable topological group is σ-compact.

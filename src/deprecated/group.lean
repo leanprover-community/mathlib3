@@ -38,8 +38,8 @@ is_group_hom, is_monoid_hom, monoid_hom
 
 /--
 We have lemmas stating that the composition of two morphisms is again a morphism.
-Since composition is reducible, type class inference will always succeed in applying these instances.
-For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
+Since composition is reducible, type class inference will always succeed in applying these
+instances. For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
 will still succeed, unifying `f` with `f ∘ (λ x, x)`.  This causes type class inference to loop.
 To avoid this, we do not make these lemmas instances.
 -/

@@ -884,20 +884,20 @@ intermediate_value_Icc' (by norm_num) continuous_on_cos
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
 which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
-noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
+protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
-by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
-by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
-by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
@@ -1251,7 +1251,7 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
     exact sqrt_le_sqrt (add_le_add_left (sqrt_two_add_series_monotone_left _) _)
   end
 
-@[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
+@[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (π / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
 | 0     := by simp
 | (n+1) :=
   begin
@@ -1266,24 +1266,24 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
     apply le_of_lt, apply cos_pos_of_mem_Ioo ⟨_, _⟩,
     { transitivity (0 : ℝ), rw neg_lt_zero, apply pi_div_two_pos,
       apply div_pos pi_pos, apply pow_pos, norm_num },
-    apply div_lt_div' (le_refl pi) _ pi_pos _,
+    apply div_lt_div' (le_refl π) _ pi_pos _,
     refine lt_of_le_of_lt (le_of_eq (pow_one _).symm) _,
     apply pow_lt_pow, norm_num, apply nat.succ_lt_succ, apply nat.succ_pos, all_goals {norm_num}
   end
 
 lemma sin_square_pi_over_two_pow (n : ℕ) :
-  sin (pi / 2 ^ (n+1)) ^ 2 = 1 - (sqrt_two_add_series 0 n / 2) ^ 2 :=
+  sin (π / 2 ^ (n+1)) ^ 2 = 1 - (sqrt_two_add_series 0 n / 2) ^ 2 :=
 by rw [sin_square, cos_pi_over_two_pow]
 
 lemma sin_square_pi_over_two_pow_succ (n : ℕ) :
-  sin (pi / 2 ^ (n+2)) ^ 2 = 1 / 2 - sqrt_two_add_series 0 n / 4 :=
+  sin (π / 2 ^ (n+2)) ^ 2 = 1 / 2 - sqrt_two_add_series 0 n / 4 :=
 begin
   rw [sin_square_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
   congr, norm_num, norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg,
 end
 
 @[simp] lemma sin_pi_over_two_pow_succ (n : ℕ) :
-  sin (pi / 2 ^ (n+2)) = sqrt (2 - sqrt_two_add_series 0 n) / 2 :=
+  sin (π / 2 ^ (n+2)) = sqrt (2 - sqrt_two_add_series 0 n) / 2 :=
 begin
   symmetry, rw [div_eq_iff_mul_eq], symmetry,
   rw [sqrt_eq_iff_sqr_eq, mul_pow, sin_square_pi_over_two_pow_succ, sub_mul],
@@ -1297,29 +1297,29 @@ begin
   apply pow_pos, all_goals {norm_num}
 end
 
-@[simp] lemma cos_pi_div_four : cos (pi / 4) = sqrt 2 / 2 :=
-by { transitivity cos (pi / 2 ^ 2), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_four : cos (π / 4) = sqrt 2 / 2 :=
+by { transitivity cos (π / 2 ^ 2), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_four : sin (pi / 4) = sqrt 2 / 2 :=
-by { transitivity sin (pi / 2 ^ 2), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_four : sin (π / 4) = sqrt 2 / 2 :=
+by { transitivity sin (π / 2 ^ 2), congr, norm_num, simp }
 
-@[simp] lemma cos_pi_div_eight : cos (pi / 8) = sqrt (2 + sqrt 2) / 2 :=
-by { transitivity cos (pi / 2 ^ 3), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_eight : cos (π / 8) = sqrt (2 + sqrt 2) / 2 :=
+by { transitivity cos (π / 2 ^ 3), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_eight : sin (pi / 8) = sqrt (2 - sqrt 2) / 2 :=
-by { transitivity sin (pi / 2 ^ 3), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_eight : sin (π / 8) = sqrt (2 - sqrt 2) / 2 :=
+by { transitivity sin (π / 2 ^ 3), congr, norm_num, simp }
 
-@[simp] lemma cos_pi_div_sixteen : cos (pi / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity cos (pi / 2 ^ 4), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_sixteen : cos (π / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
+by { transitivity cos (π / 2 ^ 4), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_sixteen : sin (pi / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity sin (pi / 2 ^ 4), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_sixteen : sin (π / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
+by { transitivity sin (π / 2 ^ 4), congr, norm_num, simp }
 
-@[simp] lemma cos_pi_div_thirty_two : cos (pi / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity cos (pi / 2 ^ 5), congr, norm_num, simp }
+@[simp] lemma cos_pi_div_thirty_two : cos (π / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
+by { transitivity cos (π / 2 ^ 5), congr, norm_num, simp }
 
-@[simp] lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity sin (pi / 2 ^ 5), congr, norm_num, simp }
+@[simp] lemma sin_pi_div_thirty_two : sin (π / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
+by { transitivity sin (π / 2 ^ 5), congr, norm_num, simp }
 
 -- This section is also a convenient location for other explicit values of `sin` and `cos`.
 
@@ -2561,7 +2561,8 @@ section chebyshev₁
 
 open polynomial complex
 
-/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `cos (n * θ)`. -/
+/-- The `n`-th Chebyshev polynomial of the first kind evaluates on `cos θ` to the
+value `cos (n * θ)`. -/
 lemma chebyshev₁_complex_cos (θ : ℂ) :
   ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
 | 0       := by simp only [chebyshev₁_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
@@ -2576,12 +2577,39 @@ begin
   ring,
 end
 
-/-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial evaluated on `cos θ`. -/
+/-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial of the first kind evaluated
+on `cos θ`. -/
 lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
   cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
 (chebyshev₁_complex_cos θ n).symm
 
 end chebyshev₁
+
+section chebyshev₂
+
+open polynomial complex
+
+/-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
+value `sin ((n+1) * θ) / sin θ`. -/
+lemma chebyshev₂_complex_cos (θ : ℂ) (n : ℕ) :
+  (chebyshev₂ ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
+begin
+  induction n with d hd,
+  { simp only [chebyshev₂_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
+  { rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁,
+    simp only [eval_add, eval_mul, eval_X, chebyshev₁_complex_cos, add_mul, mul_assoc, hd, one_mul],
+    conv_rhs { rw [sin_add, mul_comm] },
+    push_cast,
+    simp only [add_mul, one_mul] }
+end
+
+/-- `sin ((n + 1) * θ)` is equal to `sin θ` multiplied with the `n`-th Chebyshev polynomial of the
+second kind evaluated on `cos θ`. -/
+lemma sin_nat_succ_mul (n : ℕ) (θ : ℂ) :
+  sin ((n + 1) * θ) = (chebyshev₂ ℂ n).eval (cos θ) * sin θ :=
+(chebyshev₂_complex_cos θ n).symm
+
+end chebyshev₂
 
 namespace real
 open_locale real
@@ -2768,6 +2796,14 @@ lemma neg_pi_div_two_lt_arctan (x : ℝ) : -(π / 2) < arctan x :=
 
 lemma arctan_eq_arcsin (x : ℝ) : arctan x = arcsin (x / sqrt (1 + x ^ 2)) :=
 eq.symm $ arcsin_eq_of_sin_eq (sin_arctan x) (mem_Icc_of_Ioo $ arctan_mem_Ioo x)
+
+lemma arcsin_eq_arctan {x : ℝ} (h : x ∈ Ioo (-(1:ℝ)) 1) :
+  arcsin x = arctan (x / sqrt (1 - x ^ 2)) :=
+begin
+  rw [arctan_eq_arcsin, div_pow, sqr_sqrt, one_add_div, div_div_eq_div_mul,
+      ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one];
+  nlinarith [h.1, h.2],
+end
 
 @[simp] lemma arctan_zero : arctan 0 = 0 :=
 by simp [arctan_eq_arcsin]

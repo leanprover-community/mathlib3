@@ -363,8 +363,7 @@ begin
   { assume x,
     simpa using (has_deriv_at_const x C).mul ((has_deriv_at_id x).sub (has_deriv_at_const x a)) },
   convert image_norm_le_of_norm_deriv_right_le_deriv_boundary hg hg' _ hB bound,
-  { simp only [g, B] },
-  { simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero] }
+  simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero]
 end
 
 /-- A function on `[a, b]` with the norm of the derivative within `[a, b]`

@@ -98,7 +98,7 @@ calc (comparison_left_adjoint_obj A ⟶ B) ≃ {f : F .obj A.A ⟶ B // _} :
         cofork.is_colimit.hom_iso (colimit.is_colimit _) B
      ... ≃ {g : A.A ⟶ G.obj B // G.map (F .map g) ≫ G.map (adj .counit.app B) = A.a ≫ g} :
       begin
-        refine (adj .hom_equiv _ _).subtype_congr _,
+        refine (adj .hom_equiv _ _).subtype_equiv _,
         intro f,
         rw [← (adj .hom_equiv _ _).injective.eq_iff, adjunction.hom_equiv_naturality_left,
             adj .hom_equiv_unit, adj .hom_equiv_unit, G.map_comp],

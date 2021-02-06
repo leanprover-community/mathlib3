@@ -296,6 +296,14 @@ lemma im_smul_SL' {g : SL(2, ℤ)} {z : H} :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
 by simpa [mat_coe] using @im_smul_SL g z
 
+lemma im_smul_SL'' {g : SL(2, ℤ)} {z : H} :
+(g • z).val.im = z.val.im / (complex.norm_sq (bottom g z)) :=
+begin
+  rw bottom,
+  simp,
+  refine im_smul_SL',
+end
+
 
 @[simp]
 lemma smul_sound {g : SL(2,ℤ)} {z : H} : ((g:SL(2,ℝ)) • z).1 = smul_aux g z :=
@@ -399,10 +407,12 @@ begin
   refine ⟨ _ , _, _ , _ ⟩; rw matrix.mul; simp; rw dot_product; unfold_coes; simp [vec_head],
 end
 
+/-
 lemma something (k:ℕ) : T ^ (k:ℤ ) = T ^ k :=
 begin
     exact gpow_coe_nat T k,
 end
+-/
 
 lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
 begin
@@ -416,14 +426,13 @@ begin
   generalize' hk : -n=k,
   have k_ge_0 : 0 ≤ k,
   {
-    -- Alex homework
-    --rw [← hk], exact neg_nonneg.mpr n_ge_0
-    sorry,
+    rw ← hk,
+    linarith,
   },
   have : n = -k,
   {
-    -- Alex homework
-    sorry,
+    rw ← hk,
+    ring,
   },
   rw this,
   lift k to ℕ using k_ge_0,
@@ -542,16 +551,12 @@ begin
     let s2 := finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1),
     let s : finset (ℤ × ℤ ):= s1.product s2,
 
---   AK homework!
+--    suffices : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} ⊆  s,
+--   AK homework?
+--  nope! Can't get suffices to work... :(
 
     sorry,
   },
---
-    -- AK homework!!!
-  -- prove that |cz+d| < max |c|,|d| * (|z|+1), so
-  -- max |c|,|d| < M / |z|+1
-  -- contained in a finite set -> finite...???
-  -- set.finite.subset
 end
 
 variables {g : SL(2,ℤ)} {z : H}
@@ -559,6 +564,12 @@ variables {g : SL(2,ℤ)} {z : H}
 lemma gcd_eq_one_iff_coprime' (a b : ℤ) : gcd a b = 1 ↔ is_coprime a b :=
 begin
   rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
+end
+
+lemma crap (cc dd : ℤ ) : euclidean_domain.gcd cc dd = gcd cc dd :=
+begin
+--  library_search, --- just not working at all???
+  sorry,
 end
 
 lemma exists_g_with_min_bottom (z : H) :
@@ -617,18 +628,17 @@ begin
     symmetry,
     have : euclidean_domain.gcd cc dd = gcd cc dd,
     {
-      --library_search,
-      sorry,
+      exact crap cc dd,
     },
     rw this,
     rw gcd_eq_one_iff_coprime',
     use [(- (g'.val 0 1)) , ((g'.val 0 0))],
 
-    -- Alex homework
-
-
---
-    sorry,
+    have := g'.2,
+    rw det2 at this,
+    convert this using 1,
+    simp [cc, dd],
+    ring,
   },
   convert hcd' ⟨ (g'.val 1 0 , g'.val 1 1) , this ⟩ ,
   {
@@ -642,8 +652,43 @@ end
 lemma exists_g_with_max_Im (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).val.im ≤ (g • z).val.im :=
 begin
-  -- Alex homework
-  sorry,
+  have := exists_g_with_min_bottom z,
+  have z_in_H : (z:ℂ ) ∈ H,
+  {
+    -- how do I access this???
+    sorry,
+  },
+  have im_z_pos : 0 < (z:ℂ ).im,
+  {
+    exact im_pos_of_in_H.mp z_in_H,
+  },
+  cases this with gg hg,
+  use gg,
+  intros g',
+  rw im_smul_SL'',
+  rw im_smul_SL'',
+  have bg_n_pos : (bottom gg z).norm_sq > 0,
+  {
+    have bg : (bottom gg z) ≠ 0,
+    {
+      refine bottom_nonzero im_z_pos,
+    },
+    exact norm_sq_pos.mpr bg,
+  },
+  have bg'_n_pos : (bottom g' z).norm_sq > 0,
+  {
+    have bg' : (bottom g' z) ≠ 0,
+    {
+      refine bottom_nonzero im_z_pos,
+    },
+    exact norm_sq_pos.mpr bg',
+  },
+  have hgg' := hg g',
+  have : 1/ norm_sq (bottom g' z) ≤ 1/ norm_sq (bottom gg z) ,
+  {
+    exact (one_div_le_one_div bg'_n_pos bg_n_pos).mpr (hg g'),
+  },
+  exact (div_le_div_left im_z_pos bg'_n_pos bg_n_pos).mpr (hg g'),
 end
 
 def G' : subgroup SL(2,ℤ) := subgroup.closure {S, T}
@@ -652,6 +697,7 @@ lemma exists_g_with_max_Im' (z : H) :
   ∃ g : SL(2,ℤ), (g ∈ G') ∧  ∀ g' : SL(2,ℤ), g' ∈ G' → ((g' : SL(2,ℤ)) • z).val.im ≤ ((g : SL(2,ℤ)) • z).val.im :=
 begin
   -- Alex, can you do this one as well?
+  -- I don't understand; how am I supposed to show g ∈ G' without proving S,T generate SL(2,Z)?...
   sorry
 end
 
@@ -685,15 +731,137 @@ begin
   exact eq_inv_smul_iff.symm,
 end
 
+lemma junk1 (z:H) : (-2⁻¹)- (z.val.re) ≤ (-⌊z.val.re + 2⁻¹⌋) → -2⁻¹ ≤ (z.val.re) +(-⌊z.val.re + 2⁻¹⌋) :=
+begin
+  intros,
+  exact sub_le_iff_le_add'.mp ᾰ,
+end
+
+lemma junk2 (a b c :ℝ ) : c ≤ a + b → - (a + b) ≤ -c
+:=
+begin
+  intros,
+  exact neg_le_neg ᾰ,
+end
+
+lemma junk3 (a b c :ℝ ) : a+b ≤ c → a ≤ c-b
+:=
+begin
+  intros,
+  exact le_sub_iff_add_le.mpr ᾰ,
+end
+
+
+lemma junk4 (a b c :ℝ ) : a - b ≤ c → a -c ≤ b
+:=
+begin
+  intros,
+  exact sub_le.mp ᾰ,
+end
+
+lemma junk5 (a b c :ℝ ) : a - c =  a + -c
+:=
+begin
+  exact sub_eq_add_neg a c,
+end
+
+
+lemma junk6 (a b :ℝ ) : a + b =  a - -b
+:=
+begin
+  exact (sub_neg_eq_add a b).symm,
+end
+
+lemma junk7 (a :ℝ ) : a-1 ≤ ⌊a⌋
+:=
+begin
+  suffices : a ≤ ⌊a⌋+1,
+  {
+    exact sub_le_iff_le_add.mpr this,
+  },
+  have :  (⌊a⌋:ℝ )+1 =  (⌊a⌋.succ),
+  {
+    norm_cast,
+  },
+  rw this, clear this,
+  have : a < ⌊a⌋.succ,
+  {
+    refine lt_succ_floor a,
+  },
+  exact le_of_lt this,
+end
 
 lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
 begin
-  --- Alex homework
-  sorry
+  let n := -floor ((z:ℂ ).re+1/2),
+  use n,
+  rw Tn_action,
+  rw abs_le,
+  split,
+  simp,
+  suffices : -2⁻¹ - z.val.re ≤ -⌊z.val.re + 2⁻¹⌋,
+  {
+    refine junk1 z this,
+  },
+  have : -2⁻¹ - z.val.re = - (2⁻¹ + z.val.re),
+  {
+    exact (neg_add' 2⁻¹ z.val.re).symm,
+  },
+  rw this, clear this,
+  suffices : (⌊z.val.re + 2⁻¹⌋:ℝ ) ≤ 2⁻¹ + z.val.re,
+  {
+    exact junk2 2⁻¹ z.val.re ↑⌊z.val.re + 2⁻¹⌋ this,
+  },
+  rw add_comm,
+  exact floor_le (2⁻¹ + z.val.re),
+
+  have : ((z:ℂ ) + (n:ℂ )).re  = (z.val).re + (n:ℂ ).re,
+  {
+    simp,
+  },
+  rw this, clear this,
+  have : (n:ℂ ).re  =  (n:ℝ),
+  {
+    simp,
+  },
+  rw this, clear this,
+  have : n = -⌊(z:ℂ).re + 1 / 2⌋,
+  {
+    simp,
+  },
+  rw this, clear this,
+
+  have : z.val.re + ↑-⌊(z:ℂ ).re + 1 / 2⌋ = z.val.re - -↑-⌊(z:ℂ ).re + 1 / 2⌋,
+  {
+    refine junk6 (z.val.re) (↑-⌊(z:ℂ ).re + 1 / 2⌋),
+  },
+  rw this, clear this,
+  have : -↑-⌊(z:ℂ ).re + 1 / 2⌋ = ↑⌊(z:ℂ ).re + 1 / 2⌋,
+  {
+    norm_cast,
+    simp,
+    --- Come ON!
+    sorry,
+  },
+  rw this, clear this,
+
+
+  suffices : z.val.re - 1/2 ≤ ↑⌊(z:ℂ ).re + 1 / 2⌋,
+  {
+    refine junk4 (z.val.re) (1/2) (↑⌊(z:ℂ ).re + 1 / 2⌋) this,
+--    rw ← sub_eq_add_neg,
+--      refine junk3,
+--    refine sub_le_iff_le_add'.mp,
+  },
+
+  convert  junk7 ((z:ℂ ).re + 1 / 2) using 1,
+  simp,
+  ring,
 end
 
 lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=
 begin
+
   -- Alex homework
   sorry
 end

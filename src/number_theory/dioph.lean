@@ -12,25 +12,25 @@ import data.fin2
 # Diophantine functions and Matiyasevic's theorem
 
 Hilbert's tenth problem asked whether there exists an algorithm which for a given integer polynomial
-determines whether this polynomial has integer solutions. It was answered to the negative in 1970,
+determines whether this polynomial has integer solutions. It was answered in the negative in 1970,
 the final step being completed by Matiyasevic who showed that the power function is Diophantine.
 
 Here a function is called Diophantine if its graph is Diophantine as a set. A subset `S ⊆ ℕ ^ α` in
 turn is called Diophantine if there exists an integer polynomial on `α ⊕ β` such that `v ∈ S` iff
-there exists `t : ℕ^β` with `p (v, t) = 0`
+there exists `t : ℕ^β` with `p (v, t) = 0`.
 
 ## Main definitions
 
-* `is_poly` a predicate stating that a function is a multivariate integer polynomial.
-* `poly` the type of multivariate integer polynomial functions.
-* `dioph` a predicate stating that a set `S ⊆ ℕ^α` is Diophantine, i.e. that
-* `dioph_fn` a predicate on a function stating that it is Diophantine in the sense that its graph is
-  Diophantine as a set.
+* `is_poly`: a predicate stating that a function is a multivariate integer polynomial.
+* `poly`: the type of multivariate integer polynomial functions.
+* `dioph`: a predicate stating that a set `S ⊆ ℕ^α` is Diophantine, i.e. that
+* `dioph_fn`: a predicate on a function stating that it is Diophantine in the sense that its graph
+  is Diophantine as a set.
 
 ## Main statements
 
 * `pell_dioph` states that solutions to Pell's equation form a Diophantine set.
-* `pow_dioph` states that the power function is Diophantine, a version of Matiyasevic's theorem
+* `pow_dioph` states that the power function is Diophantine, a version of Matiyasevic's theorem.
 
 ## References
 

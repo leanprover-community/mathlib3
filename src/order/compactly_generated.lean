@@ -3,6 +3,8 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import data.set.finite
+import data.finset.order
 import order.well_founded
 import order.order_iso_nat
 import order.atoms
@@ -37,6 +39,9 @@ This is demonstrated by means of the following four lemmas:
 
  We also show well-founded lattices are compactly generated
  (`complete_lattice.compactly_generated_of_well_founded`).
+
+## References
+- [G. Călugăreanu, *Lattice Concepts of Module Theory*][calugareanu]
 
 ## Tags
 
@@ -252,6 +257,14 @@ begin
   exact le_antisymm (Sup_le (λ c hc, hc.2)) (Sup_le_Sup (λ c cs, ⟨hs c cs, le_Sup cs⟩)),
 end
 
+@[simp]
+theorem Sup_compact_eq_top [is_atomistic α] :
+  Sup {a : α | complete_lattice.is_compact_element a} = ⊤ :=
+begin
+  refine eq.trans (congr rfl (set.ext (λ x, _))) (Sup_compact_le_eq ⊤),
+  exact (and_iff_left le_top).symm,
+end
+
 theorem le_iff_compact_le_imp {a b : α} :
   a ≤ b ↔ ∀ c : α, complete_lattice.is_compact_element c → c ≤ a → c ≤ b :=
 ⟨λ ab c hc ca, le_trans ca ab, λ h, begin
@@ -301,6 +314,31 @@ theorem complete_lattice.independent_iff_finite {s : set α} :
     exact ⟨ha, set.subset.trans ht (set.diff_subset _ _)⟩ }
 end⟩
 
+lemma complete_lattice.independent_Union_of_directed {η : Type*}
+  {s : η → set α} (hs : directed (⊆) s)
+  (h : ∀ i, complete_lattice.independent (s i)) :
+  complete_lattice.independent (⋃ i, s i) :=
+begin
+  by_cases hη : nonempty η,
+  { resetI,
+    rw complete_lattice.independent_iff_finite,
+    intros t ht,
+    rcases set.finite_subset_Union t.finite_to_set ht with ⟨I, fi, hI⟩,
+    rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
+    exact (h i).mono (set.subset.trans hI $ set.bUnion_subset $
+      λ j hj, hi j (set.finite.mem_to_finset.2 hj)) },
+  { refine complete_lattice.independent_empty.mono _,
+    rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
+end
+
+lemma complete_lattice.independent_sUnion_of_directed {s : set (set α)}
+  (hs : directed_on (⊆) s)
+  (h : ∀ a ∈ s, complete_lattice.independent a) :
+  complete_lattice.independent (⋃₀ s) :=
+by rw set.sUnion_eq_Union; exact
+  complete_lattice.independent_Union_of_directed hs.directed_coe (by simpa using h)
+
+
 end
 
 namespace complete_lattice
@@ -334,3 +372,105 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
 end⟩
 
 end complete_lattice
+
+section
+variables {α : Type*} [complete_lattice α] [is_modular_lattice α] [is_compactly_generated α]
+
+instance is_atomic_of_is_complemented [is_complemented α] : is_atomic α :=
+⟨λ b, begin
+  by_cases h : {c : α | complete_lattice.is_compact_element c ∧ c ≤ b} ⊆ {⊥},
+  { left,
+    rw [← Sup_compact_le_eq b, Sup_eq_bot],
+    exact h },
+  { rcases set.not_subset.1 h with ⟨c, ⟨hc, hcb⟩, hcbot⟩,
+    right,
+    have hc' := complete_lattice.Iic_coatomic_of_compact_element hc,
+    rw ← is_atomic_iff_is_coatomic at hc',
+    haveI := hc',
+    rcases eq_bot_or_exists_atom_le (⟨c, le_refl c⟩ : set.Iic c) with con | ⟨a, ha, hac⟩,
+    { exfalso,
+      apply hcbot,
+      simp only [subtype.ext_iff, set.Iic.coe_bot, subtype.coe_mk] at con,
+      exact con },
+    rw [← subtype.coe_le_coe, subtype.coe_mk] at hac,
+    exact ⟨a, ha.of_is_atom_coe_Iic, hac.trans hcb⟩ },
+end⟩
+
+/-- See Lemma 5.1, Călugăreanu -/
+instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α :=
+⟨λ b, ⟨{a | is_atom a ∧ a ≤ b}, begin
+  symmetry,
+  have hle : Sup {a : α | is_atom a ∧ a ≤ b} ≤ b := (Sup_le $ λ _, and.right),
+  apply (lt_or_eq_of_le hle).resolve_left (λ con, _),
+  rcases exists_is_compl (⟨Sup {a : α | is_atom a ∧ a ≤ b}, hle⟩ : set.Iic b) with ⟨c, hc⟩,
+  rcases eq_bot_or_exists_atom_le c with rfl | ⟨a, ha, hac⟩,
+  { exact ne_of_lt con (subtype.ext_iff.1 (eq_top_of_is_compl_bot hc)) },
+  { apply ha.1,
+    rw eq_bot_iff,
+    apply le_trans (le_inf _ hac) hc.1,
+    rw [← subtype.coe_le_coe, subtype.coe_mk],
+    exact le_Sup ⟨ha.of_is_atom_coe_Iic, a.2⟩ }
+end, λ _, and.left⟩⟩
+
+theorem disjoint.disjoint_sup_right_of_disjoint_sup_left {a b c : α}
+  (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
+  disjoint a (b ⊔ c) :=
+begin
+  rw [disjoint, ← h.eq_bot, sup_comm],
+  apply le_inf inf_le_left,
+  apply (inf_le_inf_right (c ⊔ b) le_sup_right).trans,
+  rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
+end
+
+/-- See Theorem 6.6, Călugăreanu -/
+instance is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
+⟨λ b, begin
+  rcases zorn.zorn_subset
+    {s : set α | complete_lattice.independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _ with
+      ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩,
+  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, le_iff_atom_le_imp.2 (λ a ha _, _)⟩,
+    rw ← inf_eq_left,
+    refine (eq_bot_or_eq_of_le_atom ha inf_le_left).resolve_left (λ con, ha.1 _),
+    rw [eq_bot_iff, ← con],
+    refine le_inf (le_refl a) ((le_Sup _).trans le_sup_right),
+    rw ← disjoint_iff at *,
+    have a_dis_Sup_s : disjoint a (Sup s) := con.mono_right le_sup_right,
+    rw ← s_max (s ∪ {a}) ⟨λ x hx, _, ⟨_, λ x hx, _⟩⟩ (set.subset_union_left _ _),
+    { exact set.mem_union_right _ (set.mem_singleton _) },
+    { rw [set.mem_union, set.mem_singleton_iff] at hx,
+      by_cases xa : x = a,
+      { simp only [xa, set.mem_singleton, set.insert_diff_of_mem, set.union_singleton],
+        exact con.mono_right (le_trans (Sup_le_Sup (set.diff_subset s {a})) le_sup_right) },
+      { have h : (s ∪ {a}) \ {x} = (s \ {x}) ∪ {a},
+        { simp only [set.union_singleton],
+          rw set.insert_diff_of_not_mem,
+          rw set.mem_singleton_iff,
+          exact ne.symm xa },
+        rw [h, Sup_union, Sup_singleton],
+        apply (s_ind x (hx.resolve_right xa)).disjoint_sup_right_of_disjoint_sup_left
+          (a_dis_Sup_s.mono_right _).symm,
+        rw [← Sup_insert, set.insert_diff_singleton,
+          set.insert_eq_of_mem (hx.resolve_right xa)] } },
+    { rw [Sup_union, Sup_singleton, ← disjoint_iff],
+      exact b_inf_Sup_s.disjoint_sup_right_of_disjoint_sup_left con.symm },
+    { rw [set.mem_union, set.mem_singleton_iff] at hx,
+      cases hx,
+      { exact s_atoms x hx },
+      { rw hx,
+        exact ha } } },
+  { intros c hc1 hc2,
+    refine ⟨⋃₀ c, ⟨complete_lattice.independent_sUnion_of_directed hc2.directed_on
+      (λ s hs, (hc1 hs).1), _, λ a ha, _⟩, λ _, set.subset_sUnion_of_mem⟩,
+    { rw [Sup_sUnion, ← Sup_image, inf_Sup_eq_of_directed_on, supr_eq_bot],
+      { intro i,
+        rw supr_eq_bot,
+        intro hi,
+        rcases (set.mem_image _ _ _).1 hi with ⟨x, xc, rfl⟩,
+        exact (hc1 xc).2.1 },
+      { rw directed_on_image,
+        refine hc2.directed_on.mono (λ s t, Sup_le_Sup) } },
+    { rcases set.mem_sUnion.1 ha with ⟨s, sc, as⟩,
+      exact (hc1 sc).2.2 a as } }
+end⟩
+
+end

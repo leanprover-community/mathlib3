@@ -430,7 +430,7 @@ by rw [eisenstein_lemma q hp1.1 hpq0, eisenstein_lemma p hq1.1 hqp0,
 
 -- move this
 local attribute [instance]
-def fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
+lemma fact_prime_two : fact (nat.prime 2) := ⟨nat.prime_two⟩
 
 lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym 2 p = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1.1),

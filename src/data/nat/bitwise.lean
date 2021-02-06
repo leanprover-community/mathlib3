@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import tactic.linarith
+import data.nat.basic
 
 /-!
 # Bitwise operations on natural numbers
@@ -102,6 +103,29 @@ begin
     cases b; cases b';
     simp only [bit_ff, bit_tt, bit0_val n, bit1_val n, bit0_val m, bit1_val m];
     linarith }
+end
+
+@[simp]
+lemma test_bit_two_pow_self {n : ℕ} : test_bit (2 ^ n) n = tt :=
+by rw [test_bit, shiftr_eq_div_pow, nat.div_self (pow_pos zero_lt_two n), bodd_one]
+
+lemma test_bit_two_pow_of_ne {n m : ℕ} (hm : n ≠ m) : test_bit (2 ^ n) m = ff :=
+begin
+  rw [test_bit, shiftr_eq_div_pow],
+  cases lt_or_gt_of_ne hm with hm hm,
+  { rw [nat.div_eq_zero, bodd_zero],
+    apply nat.pow_lt_pow_of_lt_right one_lt_two hm },
+  { rw [pow_div (le_of_lt hm) zero_lt_two, ←nat.sub_add_cancel (nat.sub_pos_of_lt hm), pow_succ],
+    simp }
+end
+
+lemma test_bit_two_pow {n m : ℕ} : test_bit (2 ^ n) m = (n = m) :=
+begin
+  by_cases n = m,
+  { cases h,
+    simp },
+  { rw test_bit_two_pow_of_ne h,
+    simp [h] }
 end
 
 /-- If `f` is a commutative operation on bools such that `f ff ff = ff`, then `bitwise f` is also

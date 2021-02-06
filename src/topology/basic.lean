@@ -666,7 +666,7 @@ by simp only [cluster_pt, inf_eq_left.mpr H, nhds_ne_bot]
 
 lemma cluster_pt.mono {x : α} {f g : filter α} (H : cluster_pt x f) (h : f ≤ g) :
   cluster_pt x g :=
-ne_bot_of_le_ne_bot H $ inf_le_inf_left _ h
+⟨ne_bot_of_le_ne_bot H.ne $ inf_le_inf_left _ h⟩
 
 lemma cluster_pt.of_inf_left {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
   cluster_pt x f :=
@@ -753,6 +753,9 @@ end
 theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
 mem_closure_iff_frequently.trans cluster_pt_principal_iff_frequently.symm
 
+lemma mem_closure_iff_nhds_ne_bot {s : set α} : a ∈ closure s ↔ 𝓝 a ⊓ 𝓟 s ≠ ⊥ :=
+mem_closure_iff_cluster_pt.trans ne_bot_iff
+
 lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
 set.ext $ λ x, mem_closure_iff_cluster_pt
 
@@ -790,14 +793,12 @@ lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀ x, (∀ U ∈ 𝓝 x
 by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
-assume a ⟨hs, ht⟩,
-have s ∈ 𝓝 a, from mem_nhds_sets h hs,
-have 𝓝 a ⊓ 𝓟 s = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
-have cluster_pt a (𝓟 (s ∩ t)),
-  from calc 𝓝 a ⊓ 𝓟 (s ∩ t) = 𝓝 a ⊓ (𝓟 s ⊓ 𝓟 t) : by rw inf_principal
-    ... = 𝓝 a ⊓ 𝓟 t : by rw [←inf_assoc, this]
-    ... ≠ ⊥ : by rw [closure_eq_cluster_pts] at ht; assumption,
-by rwa [closure_eq_cluster_pts]
+begin
+  rintro a ⟨hs, ht⟩,
+  have : s ∈ 𝓝 a := mem_nhds_sets h hs,
+  rw mem_closure_iff_nhds_ne_bot at ht ⊢,
+  rwa [← inf_principal, ← inf_assoc, inf_eq_left.2 (le_principal_iff.2 this)],
+end
 
 /-- The intersection of an open dense set with a dense set is a dense set. -/
 lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
@@ -976,7 +977,7 @@ h ht
 lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt x la)
   {f : α → β} (hfc : continuous_at f x) (hf : tendsto f la lb) :
   cluster_pt (f x) lb :=
-ne_bot_of_le_ne_bot ((map_ne_bot_iff f).2 H) $ hfc.tendsto.inf hf
+⟨ne_bot_of_le_ne_bot ((map_ne_bot_iff f).2 H).ne $ hfc.tendsto.inf hf⟩
 
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=

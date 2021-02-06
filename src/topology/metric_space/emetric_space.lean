@@ -308,7 +308,7 @@ end
 /-- ε-δ characterization of Cauchy sequences on emetric spaces -/
 protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, edist x y < ε :=
-uniformity_basis_edist.cauchy_iff
+by rw ← ne_bot_iff; exact uniformity_basis_edist.cauchy_iff
 
 /-- A very useful criterion to show that a space is complete is to show that all sequences
 which satisfy a bound of the form `edist (u n) (u m) < B N` for all `n m ≥ N` are

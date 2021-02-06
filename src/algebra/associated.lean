@@ -125,8 +125,9 @@ end
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a
 monoid allows us to reuse irreducible for associated elements.
 -/
-@[class] def irreducible [monoid α] (p : α) : Prop :=
-¬ is_unit p ∧ ∀a b, p = a * b → is_unit a ∨ is_unit b
+class irreducible [monoid α] (p : α) : Prop :=
+(not_unit' : ¬ is_unit p)
+(is_unit_or_is_unit' : ∀a b, p = a * b → is_unit a ∨ is_unit b)
 
 namespace irreducible
 
@@ -135,12 +136,16 @@ hp.1
 
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
-hp.2 a b h
+irreducible.is_unit_or_is_unit' a b h
 
 end irreducible
 
+lemma irreducible_iff [monoid α] {p : α} :
+  irreducible p ↔ ¬ is_unit p ∧ ∀a b, p = a * b → is_unit a ∨ is_unit b :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
 @[simp] theorem not_irreducible_one [monoid α] : ¬ irreducible (1 : α) :=
-by simp [irreducible]
+by simp [irreducible_iff]
 
 @[simp] theorem not_irreducible_zero [monoid_with_zero α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
@@ -158,7 +163,7 @@ theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
 begin
   haveI := classical.dec,
   refine or_iff_not_imp_right.2 (λ H, _),
-  simp [h, irreducible] at H ⊢,
+  simp [h, irreducible_iff] at H ⊢,
   refine λ a b h, classical.by_contradiction $ λ o, _,
   simp [not_or_distrib] at o,
   exact H _ o.1 _ o.2 h.symm
@@ -287,7 +292,7 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
     { use [a, by simp],
       cases h with u hu,
       cases ((irreducible_of_prime (hs a (multiset.mem_cons.2
-        (or.inl rfl)))).2 p u hu).resolve_left hp.not_unit with v hv,
+        (or.inl rfl)))).is_unit_or_is_unit hu).resolve_left hp.not_unit with v hv,
       exact ⟨v, by simp [hu, hv]⟩ },
     { rcases ih (λ r hr, hs _ (multiset.mem_cons.2 (or.inr hr))) h with ⟨q, hq₁, hq₂⟩,
       exact ⟨q, multiset.mem_cons.2 (or.inr hq₁), hq₂⟩ }
@@ -328,7 +333,7 @@ lemma irreducible_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~�
   have hpab : p = a * (b * (u⁻¹ : units α)),
     from calc p = (p * u) * (u ⁻¹ : units α) : by simp
       ... = _ : by rw hu; simp [hab, mul_assoc],
-  (hp.2 _ _ hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
+  (hp.is_unit_or_is_unit hpab).elim or.inl (λ ⟨v, hv⟩, or.inr ⟨v * u, by simp [hv]⟩)⟩
 
 lemma irreducible_iff_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) :
   irreducible p ↔ irreducible q :=
@@ -592,7 +597,7 @@ end
 
 theorem irreducible_mk (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
-  simp only [irreducible, is_unit_mk],
+  simp only [irreducible_iff, is_unit_mk],
   apply and_congr iff.rfl,
   split,
   { rintro h x y rfl,

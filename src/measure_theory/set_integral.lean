@@ -50,7 +50,7 @@ migrated to the new definition.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter
+open_locale classical topological_space interval big_operators filter ennreal
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -350,8 +350,8 @@ begin
       by_cases hc : c = 0,
       { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, simp [const] },
       apply h_ind c hs,
-      have : (nnnorm c : ennreal) * μ s < ⊤,
-      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ennreal)) (const α c) s,
+      have : (nnnorm c : ℝ≥0∞) * μ s < ⊤,
+      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ℝ≥0∞)) (const α c) s,
         dsimp only at this,
         have h' := h.has_finite_integral,
         simpa [has_finite_integral, this, lintegral_indicator, hs] using h' },
@@ -492,7 +492,7 @@ variables {ι : Type*} [measurable_space E] [normed_group E]
 /-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite at a
 filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`, then `∫ x in
 s i, f x ∂μ = μ (s i) • b + o(μ (s i))` at a filter `li` provided that `s i` tends to `l.lift'
-powerset` along `li`. Since `μ (s i)` is an `ennreal` number, we use `(μ (s i)).to_real` in the
+powerset` along `li`. Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the
 actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
@@ -526,7 +526,7 @@ end
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure and `f` is an almost everywhere measurable function that is continuous at a point `a`
 within a measurable set `t`, then `∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at a filter `li`
-provided that `s i` tends to `(𝓝[t] a).lift' powerset` along `li`.  Since `μ (s i)` is an `ennreal`
+provided that `s i` tends to `(𝓝[t] a).lift' powerset` along `li`.  Since `μ (s i)` is an `ℝ≥0∞`
 number, we use `(μ (s i)).to_real` in the actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
@@ -549,7 +549,7 @@ exact (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae
 /-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
 measure and `f` is an almost everywhere measurable function that is continuous at a point `a`, then
 `∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at `li` provided that `s` tends to `(𝓝 a).lift'
-powerset` along `li.  Since `μ (s i)` is an `ennreal` number, we use `(μ (s i)).to_real` in the
+powerset` along `li.  Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the
 actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
@@ -601,7 +601,7 @@ exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_measura
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =
 μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).lift' powerset` along
-`li`.  Since `μ (s i)` is an `ennreal` number, we use `(μ (s i)).to_real` in the actual statement.
+`li`.  Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
 argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these

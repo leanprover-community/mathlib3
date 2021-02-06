@@ -757,6 +757,10 @@ begin
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
+lemma tsum_congr {f g : ℕ → ℝ} (hfg : ∀ n, f n = g n) :
+  ∑' n, f n = ∑' n, g n :=
+congr_arg tsum (funext hfg)
+
 end order_topology
 
 section canonically_ordered
@@ -886,6 +890,30 @@ tsum_prod' h h.prod_factor
 lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
+
+/-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
+Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
+remaining terms. -/
+lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
+  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
+begin
+  refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
+    hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
+  exact λ j, by { by_cases ji : j = i; simp [ji] }
+end
+
+/-- Let `f, g : ℕ → ℝ` be two sequences with summable series.  If `f` is dominated by `g` and
+at least one term of `f` is strictly smaller than the corresponding term in `g`, then the series
+of `f` is strictly smaller than the series of `g`. -/
+lemma tsum_lt_tsum {i : ℕ} {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i)
+  (hf : summable f) (hg : summable g) :
+  ∑' n, f n < ∑' n, g n :=
+begin
+  rw [tsum_ite_eq_extract hf i, tsum_ite_eq_extract hg i],
+  refine add_lt_add_of_lt_of_le hi _,
+  refine tsum_le_tsum _ (hf.summable_of_eq_zero_or_self _) (hg.summable_of_eq_zero_or_self _);
+  exact λ j, by { by_cases ji : j = i; simp [ji, h j] },
+end
 
 end uniform_group
 

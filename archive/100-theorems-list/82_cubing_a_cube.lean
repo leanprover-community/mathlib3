@@ -219,7 +219,7 @@ begin
     use i,
     split, { apply le_antisymm, rw h0, exact zero_le_b h, exact (hi 0).1 },
     intro j, exact hi _ },
-  { intros i hi h', rw to_set_subset, intro j, convert side_subset h, simp [side_tail] },
+  { intros i hi h', rw to_set_subset, intro j, convert side_subset h using 1, simp [side_tail] },
   { intros i hi, exact w_ne_one h i }
 end
 

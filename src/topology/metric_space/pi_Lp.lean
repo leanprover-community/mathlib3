@@ -47,7 +47,7 @@ are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we g
 -/
 
 open real set filter
-open_locale big_operators uniformity topological_space nnreal
+open_locale big_operators uniformity topological_space nnreal ennreal
 
 noncomputable theory
 
@@ -136,7 +136,7 @@ begin
   ... ≤ (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) :
   begin
     apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
-    exact finset.single_le_sum (λ i hi, (bot_le : (0 : ennreal) ≤ _)) (finset.mem_univ i)
+    exact finset.single_le_sum (λ i hi, (bot_le : (0 : ℝ≥0∞) ≤ _)) (finset.mem_univ i)
   end
 end
 
@@ -161,7 +161,7 @@ begin
   begin
     simp only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
       ennreal.mul_rpow_of_nonneg _ _ nonneg, ←ennreal.rpow_mul, cancel],
-    have : (fintype.card ι : ennreal) = (fintype.card ι : ℝ≥0) :=
+    have : (fintype.card ι : ℝ≥0∞) = (fintype.card ι : ℝ≥0) :=
       (ennreal.coe_nat (fintype.card ι)).symm,
     rw [this, ennreal.coe_rpow_of_nonneg _ nonneg]
   end

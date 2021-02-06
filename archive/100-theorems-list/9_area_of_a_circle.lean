@@ -11,117 +11,9 @@ import analysis.mean_inequalities
 # Freek № 9: The Area of a Circle
 
 The area of a disc with radius `r` is `π * r^2`.
-
-Skip to line 126.
 -/
 
-open set interval_integral real measure_theory filter
-open_locale classical
-variables {α β : Type*} [measurable_space α] [measurable_space β] {μ : measure α} {ν : measure β}
-  [sigma_finite μ] [sigma_finite ν] {f g : α → ℝ} {s t : set α}
-
-lemma measure.eq_restrict_of_measurable_subset (ht : measurable_set t) (t_subset : t ⊆ s) :
-  μ t = μ.restrict s t :=
-by rw [measure.restrict_apply ht, set.inter_eq_self_of_subset_left t_subset]
-
-lemma measure.restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
-by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
-      outer_measure.restrict_apply s t _, coe_to_outer_measure]
-
-lemma measure.eq_restrict_of_subset_of_measurable (hs : measurable_set s) (t_subset : t ⊆ s) :
-  μ t = μ.restrict s t :=
-by rwa [measure.restrict_apply', set.inter_eq_self_of_subset_left t_subset]
-
-lemma measure.restrict_prod_eq_prod_univ {s : set α} (hs : measurable_set s) :
-  (μ.restrict s).prod ν = (μ.prod ν).restrict (s.prod univ) :=
-begin
-  have : ν = ν.restrict set.univ := measure.restrict_univ.symm,
-  rwa [this, measure.prod_restrict, ← this],
-  exact measurable_set.univ,
-end
-
-def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
-{p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
-
-lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s.prod univ :=
-by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
-
-lemma measurable_set_region_between (hf : measurable f) (hg: measurable g) (hs : measurable_set s) :
-  measurable_set (region_between f g s) :=
-begin
-  dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
-  refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
-    (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
-  convert hs.prod measurable_set.univ,
-  simp only [and_true, mem_univ],
-end
-
-theorem volume_region_between_eq_lintegral'
-  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
-  μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
-begin
-  rw measure.prod_apply,
-  { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)})
-            = s.indicator (λ x, ennreal.of_real (g x - f x)),
-    { funext x,
-      rw indicator_apply,
-      split_ifs,
-      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = Ioo (f x) (g x) := by simp [h, Ioo],
-        simp only [hx, real.volume_Ioo, sub_zero] },
-      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = ∅ := by simp [h],
-        simp only [hx, measure_empty] } },
-    dsimp only [region_between, preimage_set_of_eq],
-    rw [h, lintegral_indicator];
-    simp only [hs, pi.sub_apply] },
-  { exact measurable_set_region_between hf hg hs },
-end
-
-theorem volume_region_between_eq_lintegral
-  (hf : ae_measurable f (μ.restrict s)) (hg : ae_measurable g (μ.restrict s))
-  (hs : measurable_set s) :
-  μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
-begin
-  have h₁ : (λ y, ennreal.of_real ((g - f) y))
-          =ᵐ[μ.restrict s]
-              λ y, ennreal.of_real ((ae_measurable.mk g hg - ae_measurable.mk f hf) y) :=
-    eventually_eq.fun_comp (eventually_eq.sub hg.ae_eq_mk hf.ae_eq_mk) _,
-  have h₂ : (μ.restrict s).prod volume (region_between f g s) =
-    (μ.restrict s).prod volume (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
-  { apply measure_congr,
-    apply eventually_eq.inter, { refl },
-    exact eventually_eq.inter
-            (eventually_eq.comp₂ (ae_eq_comp' measurable_fst hf.ae_eq_mk
-              measure.prod_fst_absolutely_continuous) _ eventually_eq.rfl)
-            (eventually_eq.comp₂ eventually_eq.rfl _
-              (ae_eq_comp' measurable_fst hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
-  rw [lintegral_congr_ae h₁,
-      ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
-  convert h₂ using 1,
-  { rw measure.restrict_prod_eq_prod_univ,
-    exacts [measure.eq_restrict_of_subset_of_measurable (hs.prod measurable_set.univ)
-      (region_between_subset f g s), hs] },
-  { rw measure.restrict_prod_eq_prod_univ,
-    exacts [measure.eq_restrict_of_subset_of_measurable (hs.prod measurable_set.univ)
-      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s), hs] },
-  { apply_instance },
-end
-
-theorem volume_region_between_eq_integral
-  (hf : integrable_on f s μ) (hg : integrable_on g s μ)
-  (hs : measurable_set s) (hfg : ∀ x ∈ s, f x ≤ g x) :
-  μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
-begin
-  have h : g - f =ᵐ[μ.restrict s] λ y, (λ x, nnreal.of_real (g x - f x)) y,
-  { rw eventually_eq_iff_exists_mem,
-    use s,
-    simpa only [measure.ae, mem_set_of_eq, filter.mem_mk, measure.restrict_apply hs.compl,
-                measure_empty, compl_inter_self, eq_self_iff_true, true_and] using
-      λ x hx, (nnreal.coe_of_real _ (sub_nonneg.mpr (hfg x hx))).symm },
-  rw [volume_region_between_eq_lintegral hf.ae_measurable hg.ae_measurable hs,
-      integral_congr_ae h, lintegral_congr_ae,
-      lintegral_coe_eq_integral _ ((integrable_congr h).mp (hg.sub hf))],
-  simpa only,
-end
+open real set filter measure_theory interval_integral
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
   `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`. -/
@@ -205,7 +97,7 @@ end
 
 /-- The area of a disc with radius `r`, which can be represented as the region between the two
     curves `λ x, - sqrt (r ^ 2 - x ^ 2)` and `λ x, sqrt (r ^ 2 - x ^ 2)`, is `π * r ^ 2`. -/
-theorem volume_disc' {r : ℝ} (hr : 0 < r) :
+theorem volume_disc_old {r : ℝ} (hr : 0 < r) :
   volume.prod volume (disc hr) = ennreal.of_real (pi * r ^ 2) :=
 begin
   have : disc hr = region_between (λ x, -sqrt (r^2 - x^2)) (λ x, sqrt (r^2 - x^2)) (Ioc (-r) r),

@@ -861,15 +861,20 @@ end
 
 lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=
 begin
-
-  -- Alex homework
-  sorry
+  rw im_smul_SL'',
+  rw bottom,
+  simp,
+  rw S,
+  simp,
 end
 
 lemma im_Tn_z {z : H} {n : ℤ} : (T^n • z).val.im = z.val.im :=
 begin
-  -- Alex homework
-  sorry
+  rw im_smul_SL'',
+  rw bottom,
+  simp,
+  rw T_pow,
+  simp,
 end
 
 lemma im_lt_im_S {z : H} (h: norm_sq z.val < 1) : z.val.im < (S • z).val.im :=

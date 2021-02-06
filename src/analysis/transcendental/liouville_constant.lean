@@ -10,7 +10,7 @@ import data.nat.factorial
 /-!
 # Liouville constants
 
-This files contains a construction of a family of Liouville number.
+This file contains a construction of a family of Liouville numbers.
 The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
 -/
@@ -50,27 +50,13 @@ end lemmas_about_summability_and_sums
 section natural
 open nat
 
-lemma add_le_mul_two_add {R : Type*} [ordered_semiring R] {a b : R}
-  (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
-calc a + (2 + b) ≤ a + (a + a * b) :
-      add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
-             ... ≤ a * (2 + b) :
-      ((add_assoc a a _).symm.le.trans (rfl.ge.trans (add_le_add_right
-        (mul_two a).symm.le _))).trans (mul_add a 2 b).symm.le
-
-lemma add_le_mul {a b : ℕ} (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ a * b :=
-begin
-  rcases le_iff_exists_add.mp b2 with ⟨k, rfl⟩,
-  exact add_le_mul_two_add a2 k.zero_le
-end
-
 end natural
 
 lemma add_factorial_le_factorial_add (i : ℕ) (n : ℕ) :
   i + (n + 1)! ≤ (i + (n + 1))! :=
 begin
   by_cases i2 : 2 ≤ i,
-  { exact (n.add_factorial_lt_factorial_add i2).le },
+  { exact (n.add_factorial_succ_lt_factorial_add_succ i2).le },
   { cases not_le.mp i2 with _ i0,
     { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
       rw [add_mul, one_mul, add_comm 1 n],
@@ -89,11 +75,11 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
     < ∑' i, 1 / m ^ (i + (n + 1)!) : begin refine tsum_lt_tsum_of_nonneg
     (λ b, one_div_nonneg.mpr (pow_nonneg m0.le _))
     (λ b, (one_div_le_one_div (pow_pos m0 _) (pow_pos m0 _)).mpr
-      (pow_le_pow m1.le (add_factorial_le_factorial_add b n))) _
+      (pow_le_pow m1.le (b.add_factorial_succ_le_factorial_add_succ n))) _
       (summable_inv_pow_ge m1 (λ j, nat.le.intro rfl)),
     { exact 2 },
     { refine (one_div_lt_one_div (pow_pos m0 _) (pow_pos m0 _)).mpr (pow_lt_pow m1 _),
-      exact (n.add_factorial_lt_factorial_add rfl.le) }
+      exact (n.add_factorial_succ_lt_factorial_add_succ rfl.le) }
   end
 ... = ∑' i, (1 / m) ^ i * (1 / m ^ (n + 1)!) :
     by { congr, ext i, rw [pow_add, div_pow, one_pow, ← div_div_eq_div_mul, div_eq_mul_one_div] }

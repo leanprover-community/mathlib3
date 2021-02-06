@@ -292,7 +292,8 @@ noncomputable def sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F) (hx
 f.sup (mk_span_singleton x y (λ h₀, hx $ h₀.symm ▸ f.domain.zero_mem)) $
   sup_h_of_disjoint _ _ $ by simpa [disjoint_span_singleton]
 
-@[simp] lemma domain_sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F) (hx : x ∉ f.domain) :
+@[simp] lemma domain_sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F)
+  (hx : x ∉ f.domain) :
   (f.sup_span_singleton x y hx).domain = f.domain ⊔ K ∙ x := rfl
 
 @[simp] lemma sup_span_singleton_apply_mk (f : linear_pmap K E F) (x : E) (y : F)

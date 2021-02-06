@@ -23,6 +23,8 @@ respect to some basis.
 Some results are proved about the linear map corresponding to a
 diagonal matrix (`range`, `ker` and `rank`).
 
+Some results are proved for determinants of block triangular matrices.
+
 ## Main definitions
 
 In the list below, and in all this file, `R` is a commutative ring (semiring
@@ -970,5 +972,123 @@ matrix.dot_product_eq _ _ $ λ u, (h u).symm ▸ (zero_dot_product u).symm
 
 lemma matrix.dot_product_eq_zero_iff {v : n → R} : (∀ w, matrix.dot_product v w = 0) ↔ v = 0 :=
 ⟨λ h, matrix.dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩
+
+end
+
+section
+
+variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m] {R : Type v}
+  [comm_ring R]
+
+lemma to_block_matrix_det (M : matrix m m R) (p : m → Prop) [decidable_pred p] :
+  M.det = (matrix.from_blocks (to_block M p p) (to_block M p (λ j, ¬p j))
+    (to_block M (λ j, ¬p j) p) (to_block M (λ j, ¬p j) (λ j, ¬p j))).det :=
+begin
+  rw ← matrix.det_reindex_self (equiv.sum_compl p).symm M,
+  unfold det,
+  congr, ext σ, congr, ext,
+  generalize hy : σ x = y,
+  cases x; cases y;
+  simp only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
+    equiv.sum_compl_apply_inr, equiv.sum_compl_apply_inl,
+    from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂],
+end
+
+lemma to_square_block_det (M : matrix m m R) (b : m → ℕ) (k : ℕ) :
+  (to_square_block M b k).det = (to_square_block' M (λ i, b i = k)).det := by simp
+
+lemma upper_two_block_triangular_det' (M : matrix m m R) (p : m → Prop) [decidable_pred p]
+  (h : ∀ i (h1 : ¬p i) j (h2 : p j), M i j = 0) :
+  M.det = (to_square_block' M p).det * (to_square_block' M (λ i, ¬p i)).det :=
+begin
+  rw to_block_matrix_det M p,
+  convert upper_two_block_triangular_det (to_block M p p) (to_block M p (λ j, ¬p j))
+    (to_block M (λ j, ¬p j) (λ j, ¬p j)),
+  ext,
+  exact h ↑i i.2 ↑j j.2
+end
+
+lemma equiv_block_det (M : matrix m m R) {p q : m → Prop} [decidable_pred p] [decidable_pred q]
+  (e : ∀x, q x ↔ p x) : (to_square_block' M p).det = (to_square_block' M q).det :=
+by convert matrix.det_reindex_self (equiv.subtype_equiv_right e) (to_square_block' M q)
+
+/-- Let `b` map rows and columns of a square matrix `M` to `n` blocks. Then
+  `upper_block_triangular_matrix M n b` says the matrix is upper block triangular. -/
+def upper_block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (n : ℕ)
+  (b : o → ℕ) := (∀ i, b i < n) ∧ (∀ i j, b j < b i → M i j = 0)
+
+lemma upper_block_triangular_det (M : matrix m m R) (n : ℕ) (b : m → ℕ)
+  (h : upper_block_triangular_matrix M n b) :
+  M.det = ∏ k in finset.range n, (to_square_block M b k).det :=
+begin
+  tactic.unfreeze_local_instances,
+  induction n with n hn generalizing m M b,
+  { rw finset.prod_range_zero,
+    apply det_eq_one_of_card_eq_zero,
+    apply fintype.card_eq_zero_iff.mpr,
+    intro i,
+    exact nat.not_lt_zero (b i) (h.left i) },
+  { rw finset.prod_range_succ,
+    have h2 : (M.to_square_block' (λ (i : m), b i = n.succ)).det =
+      (M.to_square_block b n.succ).det,
+    { dunfold to_square_block, dunfold to_square_block', refl },
+    rw upper_two_block_triangular_det' M (λ i, ¬(b i = n)),
+    { rw mul_comm,
+      apply congr (congr_arg has_mul.mul _),
+      { let m' := {a // ¬b a = n },
+        let b' := (λ (i : m'), b ↑i),
+        have h' :
+          upper_block_triangular_matrix (M.to_square_block' (λ (i : m), ¬b i = n)) n b',
+        { split,
+          { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (h.left ↑i)) },
+          { intros i j, apply h.right ↑i ↑j }},
+        have h1 := hn (M.to_square_block' (λ (i : m), ¬b i = n)) b' h',
+        rw ←fin.prod_univ_eq_prod_range,
+        rw ←fin.prod_univ_eq_prod_range at h1,
+        convert h1,
+        ext k,
+        simp only [to_square_block_def', to_square_block_def],
+        let he : {a // b' a = ↑k} ≃ {a // b a = ↑k},
+        { have hc : ∀ (i : m), (λ a, b a = ↑k) i → (λ a, ¬b a = n) i,
+          { intros i hbi, rw hbi, exact ne_of_lt (fin.is_lt k) },
+          exact equiv.subtype_subtype_equiv_subtype hc },
+        exact matrix.det_reindex_self he (λ (i j : {a // b' a = ↑k}), M ↑i ↑j) },
+      { rw to_square_block_det M b n,
+        have hh : ∀ a, b a = n ↔ ¬(λ (i : m), ¬b i = n) a,
+        { intro i, simp only [not_not] },
+        exact equiv_block_det M hh }},
+    { intros i hi j hj,
+      apply (h.right i), simp only [not_not] at hi,
+      rw hi,
+      exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (h.left j)) }}
+end
+
+lemma upper_triangular_det (n : ℕ) (M : matrix (fin n) (fin n) R)
+  (h : ∀ (i j : fin n), j < i → M i j = 0) :
+  M.det = ∏ i : (fin n), M i i :=
+begin
+  let b : (fin n) → ℕ := (λ i, ↑i),
+  have hu : upper_block_triangular_matrix M n b := ⟨λ i, i.is_lt, h⟩,
+  have h1 := upper_block_triangular_det M n b hu,
+  rw ←fin.prod_univ_eq_prod_range at h1,
+  convert h1,
+  ext k,
+  generalize hM : M.to_square_block b ↑k = Mk,
+  have h2 : ∀ (j : {a // b a = ↑k}), j = ⟨k, rfl⟩ := λ j, subtype.ext (fin.ext j.property),
+  have h3 : Mk.det = Mk ⟨k, rfl⟩ ⟨k, rfl⟩ :=
+    det_eq_elem_of_card_eq_one (fintype.card_eq_one_of_forall_eq h2) _,
+  have h4 : Mk ⟨k, rfl⟩ ⟨k, rfl⟩ = M k k, { rw ←hM, simp },
+  apply eq.symm,
+  rw h4 at h3,
+  convert h3
+end
+
+lemma lower_triangular_det (n : ℕ) (M : matrix (fin n) (fin n) R)
+  (h : ∀ (i j : fin n), i < j → M i j = 0) :
+  M.det = ∏ i : (fin n), M i i :=
+begin
+  rw ← det_transpose,
+  apply upper_triangular_det _ _ (λ (i j : fin n) (hji : j < i), h j i hji),
+end
 
 end

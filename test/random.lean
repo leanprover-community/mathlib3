@@ -3,7 +3,7 @@ import data.nat.prime
 import data.zmod.basic
 
 /-- fermat's primality test -/
-def primality_test (p : ℕ) (h : fact (0 < p)) : rand bool :=
+def primality_test (p : ℕ) (h : 0 < p) : rand bool :=
 if h : 2 ≤ p-1 then do
   n ← rand.random_r 2 (p-1) h,
   return $ (n : zmod p)^(p-1) = 1 -- we do arithmetic with `zmod n` so that modulo and multiplication are interleaved
@@ -11,7 +11,7 @@ else return (p = 2)
 
 /-- `iterated_primality_test_aux p h n` generating `n` candidate witnesses that `p` is a
 composite number and concludes that `p` is prime if none of them is a valid witness  -/
-def iterated_primality_test_aux (p : ℕ) (h : fact (0 < p)) : ℕ → rand bool
+def iterated_primality_test_aux (p : ℕ) (h : 0 < p) : ℕ → rand bool
 | 0 := pure tt
 | (n+1) := do
   b ← primality_test p h,

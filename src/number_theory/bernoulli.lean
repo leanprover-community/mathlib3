@@ -7,7 +7,6 @@ import data.rat
 import data.fintype.card
 import algebra.big_operators.nat_antidiagonal
 import ring_theory.power_series.well_known
-import algebra.group_with_zero.basic
 
 /-!
 # Bernoulli numbers

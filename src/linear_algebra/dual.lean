@@ -33,6 +33,7 @@ We sometimes use `V'` as local notation for `dual K V`.
 -/
 
 namespace module
+
 variables (R : Type*) (M : Type*)
 variables [comm_ring R] [add_comm_group M] [module R M]
 
@@ -70,12 +71,16 @@ lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
 
 end dual
+
 end module
 
 namespace is_basis
+
 universes u v w
+
 variables {K : Type u} {V : Type v} {ι : Type w}
 variables [field K] [add_comm_group V] [vector_space K V]
+
 open vector_space module module.dual submodule linear_map cardinal function
 
 variables [de : decidable_eq ι]
@@ -297,6 +302,7 @@ section dual_pair
 open vector_space module module.dual linear_map function
 
 universes u v w
+
 variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
 variables [field K] [add_comm_group V] [vector_space K V]
 
@@ -400,12 +406,11 @@ end
 
 end dual_pair
 
+namespace submodule
+
 universes u v w
 
 variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
-
-namespace submodule
-
 variable {W : submodule R M}
 
 /-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
@@ -451,9 +456,9 @@ namespace subspace
 
 open submodule linear_map
 
+-- We work in vector spaces because `exists_is_compl` only hold for vector spaces
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
 
--- We work in vector spaces because `exists_is_compl` only hold for vector spaces
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
   the natural extenstion of `φ` to an element of the dual of `V`. -/
 noncomputable def dual_lift
@@ -499,8 +504,6 @@ begin
   rintro _ _ h,
   ext, rw [← dual_lift_of_subtype, h, dual_lift_of_subtype],
 end
-
--- V* / U∘ ≅ U*
 
 /-- The quotient by the `dual_annihilator` of a subspace is isomorphic to the
   dual of that subspace. -/
@@ -548,12 +551,6 @@ noncomputable def dual_equiv_dual (W : subspace K V) :
   module.dual K W ≃ₗ[K] W.dual :=
 linear_equiv.of_bijective W.dual_to_subspace_dual
   dual_to_subspace_ker_eq_bot dual_to_subspace_range_eq_top
-
-/- Next step
-  V* / U∘ ≅ U*
-  → V* / U* ≅ U∘
-  → V / U ≅ U∘ ≅ U⊥
--/
 
 section
 

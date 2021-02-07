@@ -107,7 +107,7 @@ def ring_equiv_of_unique_of_unique {M N}
 instance {M N} [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] :
   unique (M ≃+* N) :=
 { default := ring_equiv_of_unique_of_unique,
-  uniq := λ _, ext $ λ x, subsingleton.elim _ _}
+  uniq := λ _, ext $ λ x, subsingleton.elim _ _ }
 
 variable (R)
 

@@ -2,14 +2,34 @@
 Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
-
-Sums of finite geometric series
 -/
+
 import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import tactic.omega
+
+/-!
+# Partial sums of geometric series
+
+This file determines the values of the geometric series $\sum_{i=0}^{n-1} x^i$ and
+$\sum_{i=0}^{n-1} x^i y^{n-1-i}$ and variants thereof.
+
+## Main definitions
+
+* `geom_series` defines for each $x$ in a semiring and each natural number $n$ the partial sum
+  $\sum_{i=0}^{n-1} x^i$ of the geometric series.
+* `geom_series₂` defines for each $x,y$ in a semiring and each natural number $n$ the partial sum
+  $\sum_{i=0}^{n-1} x^i y^{n-1-i}$ of the geometric series.
+
+## Main statements
+
+* `geom_sum_Ico` proves that $\sum_{i=m}^{n-1} x^i=\frac{x^n-x^m}{x-1}$ in a division ring.
+* `geom_sum₂_Ico` proves that $\sum_{i=m}^{n-1} x^i=\frac{x^n-y^{n-m}x^m}{x-y}$ in a field.
+
+Several variants are recorded, generalising the results to semirings.
+-/
 
 universe u
 variable {α : Type u}

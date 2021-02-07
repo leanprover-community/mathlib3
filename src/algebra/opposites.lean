@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import data.opposite
 import algebra.field
+import algebra.group.commute
 import group_theory.group_action.defs
 import data.equiv.mul_add
 
@@ -191,6 +192,20 @@ variable {α}
 @[simp] lemma op_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : op (c • a) = c • op a := rfl
 @[simp] lemma unop_smul {R : Type*} [has_scalar R α] (c : R) (a : αᵒᵖ) :
   unop (c • a) = c • unop a := rfl
+
+lemma semiconj_by.op [has_mul α] {a x y : α} (h : semiconj_by a x y) :
+semiconj_by (op a) (op y) (op x) :=
+begin
+  dunfold semiconj_by,
+  rw [← op_mul, ← op_mul, h.eq]
+end
+
+lemma commute.op [has_mul α] {x y : α} (h : commute x y) : commute (op x) (op y) :=
+begin
+  dunfold commute at h,
+  dunfold commute,
+  exact semiconj_by.op h
+end
 
 /-- The function `op` is an additive equivalence. -/
 def op_add_equiv [has_add α] : α ≃+ αᵒᵖ :=

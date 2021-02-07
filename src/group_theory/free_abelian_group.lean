@@ -195,6 +195,8 @@ instance is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_
   is_add_group_hom (λf, (lift f a : β)) :=
 { map_add := λ f g, lift.add' a f g }
 
+section monad
+
 variables {β : Type u}
 
 instance : monad free_abelian_group.{u} :=
@@ -229,31 +231,6 @@ lift.neg _ _
 lift.sub _ _ _
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
-
-/-- The additive group homomorphism `free_abelian_group α →+ free_abelian_group β` induced from a
-  map `α → β` -/
-def map (f : α → β) : free_abelian_group α →+ free_abelian_group β :=
-add_monoid_hom.mk' (λ x, f <$> x) $ map_add _
-
-lemma map_id : map id = add_monoid_hom.id (free_abelian_group α) :=
-eq.symm $ lift.ext _ _ $ λ x, lift.unique of (add_monoid_hom.id _) $ λ y, add_monoid_hom.id_apply _
-
--- version of map_of which uses `map`
-lemma map_of' {f : α → β} (a : α) : map f (of a) = of (f a) := map_of f a
-
-lemma lift_comp {α} {β} {γ} [add_comm_group γ]
-  (f : α → β) (g : β → γ) (x : free_abelian_group α) :
-  lift (g ∘ f) x = lift g (f <$> x) :=
-begin
-  apply free_abelian_group.induction_on x,
-  { simp only [lift.zero, map_zero], },
-  { intro y, simp [lift.of, map_of, function.comp_app], },
-  { intros x w, simp only [w, neg_inj, lift.neg, map_neg], },
-  { intros x y w₁ w₂, simp only [w₁, w₂, lift.add, add_right_inj, map_add], },
-end
-
-lemma map_comp {α β γ : Type*} {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
-eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
 
 @[simp] lemma pure_bind (f : α → free_abelian_group β) (x) : pure x >>= f = f x :=
 lift.of _ _
@@ -330,6 +307,39 @@ instance : is_comm_applicative free_abelian_group.{u} :=
       (λ y₁ y₂ ih1 ih2, by rw [map_add, map_add, add_seq, ih1, ih2]))
     (λ p ih, by rw [map_neg, neg_seq, seq_neg, ih])
     (λ x₁ x₂ ih1 ih2, by rw [map_add, add_seq, seq_add, ih1, ih2]) }
+
+
+end monad
+
+universe w
+
+variables {β : Type v} {γ : Type w}
+
+/-- The additive group homomorphism `free_abelian_group α →+ free_abelian_group β` induced from a
+  map `α → β` -/
+def map (f : α → β) : free_abelian_group α →+ free_abelian_group β :=
+lift (of ∘ f)
+
+lemma lift_comp {α} {β} {γ} [add_comm_group γ]
+  (f : α → β) (g : β → γ) (x : free_abelian_group α) :
+  lift (g ∘ f) x = lift g (map f x) :=
+begin
+  apply free_abelian_group.induction_on x,
+  { exact add_monoid_hom.map_zero _ },
+  { intro y, refl },
+  { intros x h, simp only [h, add_monoid_hom.map_neg] },
+  { intros x y h₁ h₂, simp only [h₁, h₂, add_monoid_hom.map_add] }
+end
+
+lemma map_comp {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
+eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
+
+lemma map_id : map id = add_monoid_hom.id (free_abelian_group α) :=
+eq.symm $ lift.ext _ _ $ λ x, lift.unique of (add_monoid_hom.id _) $ λ y, add_monoid_hom.id_apply _
+
+-- version of map_of which uses `map`
+lemma map_of' {f : α → β} (a : α) : map f (of a) = of (f a) := rfl
+
 variable (α)
 
 instance [monoid α] : semigroup (free_abelian_group α) :=
@@ -433,37 +443,22 @@ def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
   end,
   map_add' := add_monoid_hom.map_add _ }
 
--- this would be easier with `to_fun := map` but for some reason `map` is not universe
--- polymorphic.
 /-- Isomorphic types have isomorphic free abelian groups. -/
 def equiv_of_equiv {α β : Type*} (f : α ≃ β) : free_abelian_group α ≃+ free_abelian_group β :=
-{ to_fun := free_abelian_group.lift $ free_abelian_group.of ∘ f,
-  inv_fun := free_abelian_group.lift $ free_abelian_group.of ∘ f.symm,
+{ to_fun := map f,
+  inv_fun := map f.symm,
   left_inv := begin
     intros x,
-    refine free_abelian_group.induction_on x
-    (by simp only [lift.zero])
-    (by simp only [equiv.symm_apply_apply, eq_self_iff_true, function.comp_app,
-          lift.of, forall_true_iff])
-    (by simp only [equiv.symm_apply_apply, eq_self_iff_true, function.comp_app,
-          lift.neg, lift.of, forall_true_iff]) _,
-    intros x y h,
-    simp only [h, imp_self, add_right_inj, lift.add],
+    change (map f.symm).comp (map f) x = x,
+    rw [← map_comp, equiv.symm_comp_self, map_id],
+    refl,
   end,
   right_inv := begin
     intros x,
-    refine free_abelian_group.induction_on x
-    (by simp only [lift.zero])
-    (by simp only [eq_self_iff_true, function.comp_app, equiv.apply_symm_apply,
-          lift.of, forall_true_iff])
-    (by simp only [eq_self_iff_true, function.comp_app, equiv.apply_symm_apply,
-          lift.neg, lift.of, forall_true_iff]) _,
-    intros x y h,
-    simp only [h, imp_self, add_right_inj, lift.add],
+    change (map f).comp (map f.symm) x = x,
+    rw [← map_comp, equiv.self_comp_symm, map_id],
+    refl,
   end,
-  map_add' := begin
-     intros x y,
-     simp only [lift.add],
-  end }
+  map_add' := lift.add _ }
 
 end free_abelian_group

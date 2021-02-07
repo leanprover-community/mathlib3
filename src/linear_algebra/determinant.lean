@@ -330,10 +330,10 @@ begin
     exact hkx }
 end
 
-/-- The determinant of 2x2 block matrix with the lower left block zero, is the product of
-the determinants of the diagonal blocks. For the generalization to any number of blocks
-see upper_block_triangular_det in linear_algebra/matrix.lean  -/
-lemma upper_two_block_triangular_det (A  : matrix m m R) (B  : matrix m n R) (D  : matrix n n R) :
+/-- The determinant of a 2x2 block matrix with the lower-left block equal to zero is the product of
+the determinants of the diagonal blocks. For the generalization to any number of blocks, see
+`matrix.upper_block_triangular_det`. -/
+lemma upper_two_block_triangular_det (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   (matrix.from_blocks A B 0 D).det = A.det * D.det :=
 begin
   unfold det,

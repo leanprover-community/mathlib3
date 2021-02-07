@@ -975,7 +975,7 @@ lemma matrix.dot_product_eq_zero_iff {v : n → R} : (∀ w, matrix.dot_product 
 
 end
 
-section
+namespace matrix
 
 variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m] {R : Type v}
   [comm_ring R]
@@ -1063,7 +1063,7 @@ begin
       exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (h.left j)) }}
 end
 
-lemma upper_triangular_det (n : ℕ) (M : matrix (fin n) (fin n) R)
+lemma upper_triangular_det {n : ℕ} (M : matrix (fin n) (fin n) R)
   (h : ∀ (i j : fin n), j < i → M i j = 0) :
   M.det = ∏ i : (fin n), M i i :=
 begin
@@ -1083,7 +1083,7 @@ begin
   convert h3
 end
 
-lemma lower_triangular_det (n : ℕ) (M : matrix (fin n) (fin n) R)
+lemma lower_triangular_det {n : ℕ} (M : matrix (fin n) (fin n) R)
   (h : ∀ (i j : fin n), i < j → M i j = 0) :
   M.det = ∏ i : (fin n), M i i :=
 begin
@@ -1091,4 +1091,4 @@ begin
   apply upper_triangular_det _ _ (λ (i j : fin n) (hji : j < i), h j i hji),
 end
 
-end
+end matrix

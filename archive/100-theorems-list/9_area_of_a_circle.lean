@@ -61,14 +61,13 @@ begin
   rw disc_eq_region_between,
   convert volume_region_between_eq_integral (H hc.neg) (H hc) measurable_set_Ioc
     (λ x hx, neg_le_self (sqrt_nonneg _)),
-  simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul],
-  rw [← integral_of_le, integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr.le)
-      (((continuous_const.mul (continuous_arcsin.comp (continuous_id.div continuous_const
-        (λ x, hr.ne')))).add (continuous_id.mul (@hc r))).continuous_on) _
-          (continuous_const.mul (@hc r)).continuous_on],
-  { simp only [id.def, add_zero, sqrt_zero, arcsin_neg, pi.div_apply, function.comp_app,
-              neg_square, mul_zero, sub_self, neg_div, div_self hr.ne', arcsin_one],
-    rw [mul_neg_eq_neg_mul_symm, sub_neg_eq_add, ← mul_div_assoc, add_halves', mul_comm] },
+  simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul, ← integral_of_le (neg_le_self hr.le)],
+  rw integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr.le) ((continuous_const.mul
+      (continuous_arcsin.comp (continuous_id.div continuous_const (λ x, hr.ne')))).add
+        (continuous_id.mul (@hc r))).continuous_on _ (continuous_const.mul hc).continuous_on,
+  { simp_rw [function.comp_app, pi.div_apply, id.def, neg_div, div_self hr.ne', arcsin_neg,
+            arcsin_one, neg_square, sub_self, sqrt_zero, mul_zero, add_zero,
+            mul_neg_eq_neg_mul_symm, sub_neg_eq_add, ← mul_div_assoc, add_halves', mul_comm] },
   { rintros x ⟨hx1, hx2⟩,
     convert ((has_deriv_at_const x (r^2)).mul ((has_deriv_at_arcsin _ _).comp x
       ((has_deriv_at_id' x).div (has_deriv_at_const x r) hr.ne'))).add
@@ -86,10 +85,9 @@ begin
     { by_contra hnot,
       rw [not_not, eq_neg_iff_eq_neg, ← div_neg, eq_comm,
           div_eq_one_iff_eq (neg_ne_zero.mpr hr.ne')] at hnot,
-      exact hx1.ne.symm hnot },
+      exact hx1.ne' hnot },
     { by_contra hnot,
       rw [not_not, div_eq_one_iff_eq hr.ne'] at hnot,
       exact hx2.ne hnot },
-    { simpa only [sub_ne_zero] using (sqr_lt_sqr' hx1 hx2).ne.symm } },
-  { exact neg_le_self hr.le },
+    { simpa only [sub_ne_zero] using (sqr_lt_sqr' hx1 hx2).ne' } },
 end

@@ -40,6 +40,9 @@ which are lattices with only two elements, and related ideas.
    of `is_atom` and `is_coatom`.
   * `is_simple_lattice_iff_is_atom_top` and `is_simple_lattice_iff_is_coatom_bot` express the
   connection between atoms, coatoms, and simple lattices
+  * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
+  bounded lattice, a complement of an atom is a coatom and vice versa.
+  * ``is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
 
 -/
 
@@ -455,5 +458,27 @@ set.is_simple_lattice_Iic_iff_is_atom.symm.trans $ hc.Iic_order_iso_Ici.is_simpl
 lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_is_coatom.symm
 
 end is_compl
+
+variables [is_complemented α]
+
+lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] : is_coatomic α :=
+⟨λ x, begin
+  rcases exists_is_compl x with ⟨y, xy⟩,
+  apply (eq_bot_or_exists_atom_le y).imp _ _,
+  { rintro rfl,
+    exact eq_top_of_is_compl_bot xy },
+  { rintro ⟨a, ha, ay⟩,
+    rcases exists_is_compl (xy.symm.Iic_order_iso_Ici ⟨a, ay⟩) with ⟨⟨b, xb⟩, hb⟩,
+    refine ⟨↑(⟨b, xb⟩ : set.Ici x), is_coatom.of_is_coatom_coe_Ici _, xb⟩,
+    rw [← hb.is_atom_iff_is_coatom, order_iso.is_atom_iff],
+    apply ha.Iic }
+end⟩
+
+lemma is_atomic_of_is_coatomic_of_is_complemented_of_is_modular [is_coatomic α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_is_complemented_of_is_modular
+
+theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
+⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ h,
+  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ h⟩
 
 end is_modular_lattice

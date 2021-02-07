@@ -708,7 +708,7 @@ lemma ae_measurable.is_lub {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   ae_measurable g μ :=
 begin
   by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_of_zero_measure },
-  haveI : μ.ae.ne_bot := by simpa [ne_bot],
+  haveI : μ.ae.ne_bot := by simpa [ne_bot_iff],
   by_cases hι : nonempty ι, { exact ae_measurable.is_lub_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
@@ -765,7 +765,7 @@ lemma ae_measurable.is_glb {ι} {μ : measure δ} [encodable ι] {f : ι → δ 
   ae_measurable g μ :=
 begin
   by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_of_zero_measure },
-  haveI : μ.ae.ne_bot := by simpa [ne_bot],
+  haveI : μ.ae.ne_bot := by simpa [ne_bot_iff],
   by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hι hf hg, },
   suffices : ∃ x, g =ᵐ[μ] λ y, g x,
   by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
@@ -1447,10 +1447,10 @@ end
 /-- A regular measure in a σ-compact space is σ-finite. -/
 protected lemma sigma_finite [opens_measurable_space α] [t2_space α] [sigma_compact_space α]
   (hμ : regular μ) : sigma_finite μ :=
-⟨{ set := compact_covering α,
+⟨⟨{ set := compact_covering α,
   set_mem := λ n, (is_compact_compact_covering α n).measurable_set,
   finite := λ n, hμ.lt_top_of_is_compact $ is_compact_compact_covering α n,
-  spanning := Union_compact_covering α }⟩
+  spanning := Union_compact_covering α }⟩⟩
 
 
 end regular

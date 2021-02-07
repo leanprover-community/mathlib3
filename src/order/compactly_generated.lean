@@ -415,7 +415,7 @@ instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α 
 end, λ _, and.left⟩⟩
 
 /-- See Theorem 6.6, Călugăreanu -/
-@[priority 100]
+@[priority 200]
 instance is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
 ⟨λ b, begin
   rcases zorn.zorn_subset

@@ -8,7 +8,6 @@ import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
 import algebra.punit_instances -- just for ℤ[pempty] ≃+ punit
-import algebra.module.basic -- just for ℤ[punit] ≃+ ℤ
 /-!
 # Free abelian groups
 

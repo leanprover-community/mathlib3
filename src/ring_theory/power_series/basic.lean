@@ -1162,7 +1162,7 @@ end ring
 section comm_ring
 variables (A : Type*) [comm_ring A]
 
-/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
+/-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
 eval_mul_hom (-1 : A)
 

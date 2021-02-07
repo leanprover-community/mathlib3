@@ -35,6 +35,9 @@ instance : preorder K :=
 @[derive [comm_semiring]]
 def L : Type := subsemiring.closure ({(1, 0), (1, 1)} : set (ℕ × zmod 2))
 
+instance inhabited : inhabited L :=
+⟨0⟩
+
 /-- The preorder relation on `ℕ × ℤ/2ℤ` where we only compare the first coordinate,
 except that we leave incomparable the two elements with the same first component.
 For instance, `∀ α, β ∈ ℤ/2ℤ`, the inequality `(1,α) ≤ (2,β)` holds,
@@ -537,7 +540,7 @@ begin
       exact (hb rfl).elim } }
 end
 
-lemma can : canonically_ordered_comm_semiring L :=
+instance can : canonically_ordered_comm_semiring L :=
 { add := (+),
   add_assoc := add_assoc,
   zero := 0,
@@ -568,3 +571,4 @@ lemma can : canonically_ordered_comm_semiring L :=
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero }
 
 end counterexample
+#lint

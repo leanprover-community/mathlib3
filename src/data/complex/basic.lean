@@ -518,18 +518,16 @@ begin
   { rintro ⟨⟨x, l, rfl⟩, h⟩,
     by_cases hx : x = 0,
     { simp [hx] at h, exfalso, exact h (le_refl _), },
-    { replace l : 0 < x := lt_of_le_of_ne l (by { symmetry, exact hx }),
+    { replace l : 0 < x := l.lt_of_ne (ne.symm hx),
       exact ⟨x, l, rfl⟩, } },
   { rintro ⟨x, l, rfl⟩,
     fsplit,
-    { exact ⟨x, le_of_lt l, rfl⟩, },
+    { exact ⟨x, l.le, rfl⟩, },
     { rintro ⟨x', l', e⟩,
       rw [add_assoc] at e,
       replace e := add_left_cancel (by { convert e, simp }),
       norm_cast at e,
-      apply lt_irrefl (0 : ℝ),
-      conv { congr, skip, rw e, },
-      apply lt_of_lt_of_le l (le_add_of_nonneg_right l'), } }
+      linarith, } }
 end
 
 @[simp, norm_cast] lemma real_le_real {x y : ℝ} : (x : ℂ) ≤ (y : ℂ) ↔ x ≤ y :=
@@ -541,7 +539,7 @@ begin
     subst e,
     exact le_add_of_nonneg_right l, },
   { intro h,
-    refine ⟨y - x, sub_nonneg.mpr h, (by simp)⟩, },
+    exact ⟨y - x, sub_nonneg.mpr h, (by simp)⟩, },
 end
 @[simp, norm_cast] lemma real_lt_real {x y : ℝ} : (x : ℂ) < (y : ℂ) ↔ x < y :=
 begin
@@ -552,7 +550,7 @@ begin
     subst e,
     exact lt_add_of_pos_right x l, },
   { intro h,
-    refine ⟨y - x, sub_pos.mpr h, (by simp)⟩, },
+    exact ⟨y - x, sub_pos.mpr h, (by simp)⟩, },
 end
 @[simp, norm_cast] lemma zero_le_real {x : ℝ} : (0 : ℂ) ≤ (x : ℂ) ↔ 0 ≤ x := real_le_real
 @[simp, norm_cast] lemma zero_lt_real {x : ℝ} : (0 : ℂ) < (x : ℂ) ↔ 0 < x := real_lt_real
@@ -565,7 +563,7 @@ instance : ordered_comm_ring ℂ :=
   add_le_add_left := λ w z h y,
   begin
     obtain ⟨x, l, rfl⟩ := h,
-    refine ⟨x, l, by simp [add_assoc]⟩,
+    exact ⟨x, l, by simp [add_assoc]⟩,
   end,
   mul_pos := λ z w hz hw,
   begin

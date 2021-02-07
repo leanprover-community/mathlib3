@@ -97,8 +97,8 @@ begin
   simp only [coeff_mk, coe_mk, factorial], rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
   simp only [factorial, add_pow, sum_mul], apply sum_congr rfl,
   { rintros x hx,
-    suffices : a^x * b^(n - x) * ((algebra_map ℚ A) (1 / ↑(x.factorial)) * (algebra_map ℚ A)
-     (1 / ↑((n - x).factorial))) =
+    suffices : a^x * b^(n - x) * (algebra_map ℚ A (1 / ↑(x.factorial)) * algebra_map ℚ A
+      (1 / ↑((n - x).factorial))) =
      a^x * b^(n - x) * ((↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial)))),
     { convert this using 1; ring },
     congr' 1,

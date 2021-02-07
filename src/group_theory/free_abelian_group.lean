@@ -7,7 +7,7 @@ Authors: Kenny Lau
 import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
-import algebra.punit_instances -- just for ℤ[empty] ≃+ unit
+import algebra.punit_instances -- just for ℤ[pempty] ≃+ punit
 import algebra.module.basic -- just for ℤ[punit] ≃+ ℤ
 /-!
 # Free abelian groups
@@ -401,26 +401,30 @@ instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
   end,
   .. free_abelian_group.ring α }
 
+instance pempty_unique : unique (free_abelian_group pempty) :=
+{ default := 0,
+  uniq := λ x, free_abelian_group.induction_on x rfl
+    (λ x, pempty.elim x)
+    (λ x, pempty.elim x)
+    (by { rintros - - rfl rfl, simp })  }
+
+
 /-- The free abelian group on the empty type is the trivial group. -/
 def pempty_equiv : free_abelian_group pempty ≃+ unit :=
-{ to_fun := lift (λ _, ()),
-  inv_fun := λ _, 0,
-  left_inv := λ z, free_abelian_group.induction_on z
-    ( rfl )
-    ( λ x, pempty.elim x)
-    ( λ x, pempty.elim x)
-    ( λ x y hx hy, by {simp only * at *, simp * at *}),
-  right_inv := λ z, unit.ext,
-  map_add' := λ x y, unit.ext }
+{ map_add' := λ _ _, unit.ext,
+  ..equiv_punit_of_unique }
 
-/-- The free abelian group on `punit` is isomorphic to `ℤ`. -/
-def punit_equiv : free_abelian_group punit ≃+ ℤ :=
+example (T : Type*) [unique T] (C : T → Prop) (h : C (inhabited.default T))
+  (x : T) : C x := by refine unique.forall_iff.mpr h x
+
+/-- The free abelian group on a type with one term is isomorphic to `ℤ`. -/
+def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
 { to_fun := free_abelian_group.lift (λ _, (1 : ℤ)),
-  inv_fun := λ n, n • of (punit.star),
+  inv_fun := λ n, n • of (inhabited.default T),
   left_inv := λ z, free_abelian_group.induction_on z
-    (by {dsimp only, rw [add_monoid_hom.map_zero, zero_smul]})
-    (λ x, punit.cases_on x (by simp))
-    (λ x, punit.cases_on x (by simp))
+    (by simp only [zero_smul, lift.zero])
+    (unique.forall_iff.2 $ by simp only [one_smul, lift.of])
+    (unique.forall_iff.2 $ by simp)
     (λ x y hx hy, by { simp only [lift.add, add_smul] at *, rw [hx, hy]}),
   right_inv := λ n,
   begin

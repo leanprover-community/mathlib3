@@ -1021,8 +1021,9 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
                 split_ifs, { rw [h, pow_zero], }, refl, },
   map_add' := by {intros, ext, exact mul_add _ _ _, },
   map_mul' := by {intros, ext, rw [power_series.coeff_mul, power_series.coeff_mk,
-              power_series.coeff_mul, finset.mul_sum], apply sum_congr rfl, norm_num,
-              intros b c H, rw [<-H, pow_add], ring, }, }
+              power_series.coeff_mul, finset.mul_sum], apply sum_congr rfl,
+              simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
+              intros b c H, rw [<-H, pow_add, mul_mul_mul_comm] }, }
 
 @[simp] lemma eval_mul_hom_zero : eval_mul_hom 0 = (C R).comp (constant_coeff R) :=
 begin

@@ -1025,7 +1025,7 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
               power_series.coeff_mul, finset.mul_sum], apply sum_congr rfl, norm_num,
               intros b c H, rw [<-H, pow_add], ring, }, }
 
-lemma eval_mul_hom_zero (f : power_series R) : eval_mul_hom 0 f = C  R (constant_coeff  R f) :=
+lemma eval_mul_hom_zero (f : power_series R) : eval_mul_hom 0 f = C R (constant_coeff  R f) :=
 begin
   rw [eval_mul_hom, ring_hom.coe_mk], ext, rw [power_series.coeff_mk _ _, coeff_C],
   split_ifs, { rw h, simp only [one_mul, coeff_zero_eq_constant_coeff, pow_zero], },

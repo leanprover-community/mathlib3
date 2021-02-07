@@ -1168,15 +1168,15 @@ end ring
 section comm_ring
 variables (A : Type*) [comm_ring A]
 
-/-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
-noncomputable def eval_neg_hom : power_series A →+* power_series A :=
-eval_mul_hom (-1 : A)
-
 @[simp] lemma eval_mul_hom_neg_one_X : eval_mul_hom (-1 : A) X = -X :=
 begin
   ext, simp only [linear_map.map_neg, coeff_eval_mul_hom, coeff_X],
   split_ifs with h; simp [h]
 end
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
+noncomputable def eval_neg_hom : power_series A →+* power_series A :=
+eval_mul_hom (-1 : A)
 
 @[simp] lemma eval_neg_hom_X : eval_neg_hom A X = -X :=
 eval_mul_hom_neg_one_X A

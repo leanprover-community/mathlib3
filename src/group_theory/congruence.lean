@@ -282,7 +282,7 @@ lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
     that is constant on `c`'s equivalence classes. -/
 @[simp, to_additive "Definition of the function on the quotient by an additive congruence
 relation `c` induced by a function that is constant on `c`'s equivalence classes."]
-protected lemma lift_on_beta {β} (c : con M) (f : M → β)
+protected lemma lift_on_coe {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
   con.lift_on (x : c.quotient) f h = f x := rfl
 

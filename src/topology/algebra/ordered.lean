@@ -2634,7 +2634,7 @@ theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : �
   (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a) :
   tendsto u f (𝓝 a) :=
 if hf : f = ⊥ then hf.symm ▸ tendsto_bot
-else by haveI : ne_bot f := hf; exact tendsto_of_liminf_eq_limsup
+else by haveI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
   (le_antisymm (le_trans liminf_le_limsup hsup) hinf)
   (le_antisymm hsup (le_trans hinf liminf_le_limsup))
 

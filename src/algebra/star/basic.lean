@@ -152,7 +152,7 @@ local attribute [instance] star_ring_of_comm
 end
 
 /--
-An ordered *-ring is a ring which is both an ordered ring and a *-star,
+An ordered *-ring is a ring which is both an ordered ring and a *-ring,
 and `0 ≤ star r * r` for every `r`.
 
 (In a Banach algebra, the natural ordering is given by the positive cone

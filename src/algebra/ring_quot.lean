@@ -285,7 +285,7 @@ def lift_alg_hom {s : A → A → Prop} :
       rintros x,
       conv_rhs { rw [algebra.algebra_map_eq_smul_one, ←f.map_one, ←f.map_smul], },
       rw algebra.algebra_map_eq_smul_one,
-      exact quot.lift_beta f f'.prop (x • 1),
+      exact quot.lift_mk f f'.prop (x • 1),
     end, },
   inv_fun := λ F, ⟨F.comp (mk_alg_hom S s), λ _ _ h, by { dsimp, erw mk_alg_hom_rel S h }⟩,
   left_inv := λ f, by { ext, simp, refl },

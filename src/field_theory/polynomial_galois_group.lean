@@ -63,6 +63,10 @@ is_scalar_tower.of_algebra_map_eq
 def restrict [h : fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
 alg_equiv.restrict_normal_hom p.splitting_field
 
+lemma restrict_surjective [h : fact (p.splits (algebra_map F E))] [normal F E] :
+  function.surjective (restrict p E) :=
+alg_equiv.restrict_normal_hom_surjective E
+
 section roots_action
 
 /-- The function from `roots p p.splitting_field` to `roots p E` -/
@@ -160,6 +164,10 @@ variables {p q}
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
   (splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq)
+
+lemma restrict_dvd_surjective (hpq : p ∣ q) (hq : q ≠ 0) :
+  function.surjective (restrict_dvd hpq) :=
+by simp only [restrict_dvd, dif_neg hq, restrict_surjective]
 
 variables (p q)
 

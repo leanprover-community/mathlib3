@@ -201,7 +201,7 @@ def mul_equiv_of_unique_of_unique {M N}
 ## Monoids
 -/
 
-/-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
+/-- A multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism). -/
 @[simp, to_additive]
 lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]

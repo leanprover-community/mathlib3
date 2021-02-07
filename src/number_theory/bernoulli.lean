@@ -237,6 +237,5 @@ begin
       { rw h_1 at hlt, norm_num at *, },
       apply factorial_ne_zero n, rw [inv_eq_iff, inv_zero] at h, apply cast_eq_zero.1 h.symm, }, },
   { rw [sub_mul, f, mul_sub X _ _, mul_one, sub_right_inj],
-    have f : (exp ℚ - 1) = -(1 - exp ℚ) := by simp only [neg_sub],
-    rw [f, ←neg_neg X, ←g, neg_mul_eq_mul_neg], },
+   rw [← neg_sub, ←neg_neg X, ←g, neg_mul_eq_mul_neg], },
 end

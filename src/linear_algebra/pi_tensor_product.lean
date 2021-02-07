@@ -369,7 +369,7 @@ section
 variables (R M)
 /-- Re-index the components of the tensor power by `e`.
 
-For simplicity, this is defined only for homegenously- (rather than dependently-) typed components.
+For simplicity, this is defined only for homogeneously- (rather than dependently-) typed components.
 -/
 def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M :=
 linear_equiv.of_linear

@@ -330,16 +330,6 @@ begin
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
-lemma inter_add_inter_compl {α:Type*} [measurable_space α]
-  (μ : measure α) (s t : set α)  (A2 : measurable_set s) (A1 : measurable_set t) :
-  (μ (s ∩ t) + μ (s ∩ tᶜ)) = μ s :=
-begin
-  rw ← measure_union (set.disjoint_of_subset_left (set.inter_subset_right s t) 
-       (set.disjoint_of_subset_right (set.inter_subset_right s _) (disjoint_compl_right)))
-       (measurable_set.inter A2 A1) (measurable_set.inter A2 (measurable_set.compl A1)),
-  rw set.inter_union_compl,
-end
-
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s < ⊤) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
@@ -1930,9 +1920,7 @@ end
 
 end measure_sub
 
-
-lemma restrict_sub_eq_restrict_sub_restrict {Ω : Type*} [measurable_space Ω]
-  (μ ν : measure Ω) {s : set Ω} (h_meas_s : measurable_set s) :
+lemma restrict_sub_eq_restrict_sub_restrict (h_meas_s : measurable_set s) :
   (μ - ν).restrict s = (μ.restrict s) - (ν.restrict s) :=
 begin
   repeat {rw sub_def},
@@ -1940,7 +1928,7 @@ begin
   { apply @set.nonempty_of_mem _ _ μ, simp, intros t h_meas,
     apply le_add_right (le_refl (μ t)) },
   rw restrict_Inf_eq_Inf_restrict h_nonempty h_meas_s,
-  have h_Inf_le_Inf : ∀ s' t' : set (measure Ω),
+  have h_Inf_le_Inf : ∀ s' t' : set (measure α),
                       (∀ b ∈ t', ∃ a ∈ s', a ≤ b) → Inf s' ≤ Inf t',
   { intros s' t' h, 
     rw le_Inf_iff, intros b h_b_in_t', 
@@ -1951,19 +1939,17 @@ begin
   { apply h_Inf_le_Inf,
     intros ν' h_ν'_in, simp at h_ν'_in, apply exists.intro (ν'.restrict s),
     split,
-    { simp, apply exists.intro (ν' + (⊤ : measure_theory.measure Ω).restrict sᶜ),
+    { simp, apply exists.intro (ν' + (⊤ : measure_theory.measure α).restrict sᶜ),
       split,
       { rw [add_assoc, add_comm _ ν, ← add_assoc, measure_theory.measure.le_iff],
         intros t h_meas_t,
-        have h_inter_inter_eq_inter : ∀ t' : set Ω , t ∩ t' ∩ t' = t ∩ t',
+        have h_inter_inter_eq_inter : ∀ t' : set α , t ∩ t' ∩ t' = t ∩ t',
         { intro t', rw set.inter_eq_self_of_subset_left, apply set.inter_subset_right t t' },
         have h_meas_t_inter_s : measurable_set (t ∩ s) :=
         measurable_set.inter h_meas_t h_meas_s,
-        rw [← inter_add_inter_compl μ t s h_meas_t h_meas_s,
-            ← inter_add_inter_compl 
-              (ν' + ν + (⊤ : measure Ω).restrict sᶜ) t s h_meas_t h_meas_s],
+        repeat {rw measure_eq_inter_diff h_meas_t h_meas_s, rw set.diff_eq},
         apply add_le_add _ _; rw add_apply,
-        { have h_restrict : ∀ μ₂ : measure Ω, μ₂ (t ∩ s) = μ₂.restrict s (t ∩ s),
+        { have h_restrict : ∀ μ₂ : measure α, μ₂ (t ∩ s) = μ₂.restrict s (t ∩ s),
           { intro μ₂, rw [restrict_apply h_meas_t_inter_s], 
             rw [(h_inter_inter_eq_inter s)] },
           apply le_add_right _,
@@ -1991,8 +1977,7 @@ begin
     { apply le_refl _ } },
 end
 
-lemma sub_apply_eq_zero_of_restrict_le_restrict {Ω:Type*} [measurable_space Ω] 
-  (μ ν : measure_theory.measure Ω) (s : set Ω) 
+lemma sub_apply_eq_zero_of_restrict_le_restrict 
   (h_le : μ.restrict s ≤ ν.restrict s) (h_meas_s : measurable_set s) :
   (μ - ν) s = 0 :=
 begin

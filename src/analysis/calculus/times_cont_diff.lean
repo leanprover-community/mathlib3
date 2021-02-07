@@ -283,6 +283,27 @@ lemma has_ftaylor_series_up_to_on.differentiable_on {n : with_top ℕ}
   (h : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) : differentiable_on 𝕜 f s :=
 λ x hx, (h.has_fderiv_within_at hn hx).differentiable_within_at
 
+/-- If a function has a Taylor series at order at least `1` on a neighborhood of `x`, then the term
+of order `1` of this series is a derivative of `f` at `x`. -/
+lemma has_ftaylor_series_up_to_on.has_fderiv_at {n : with_top ℕ}
+  (h : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hx : s ∈ 𝓝 x) :
+  has_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) x :=
+(h.has_fderiv_within_at hn (mem_of_nhds hx)).has_fderiv_at hx
+
+/-- If a function has a Taylor series at order at least `1` on a neighborhood of `x`, then
+in a neighborhood of `x`, the term of order `1` of this series is a derivative of `f`. -/
+lemma has_ftaylor_series_up_to_on.eventually_has_fderiv_at {n : with_top ℕ}
+  (h : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hx : s ∈ 𝓝 x) :
+  ∀ᶠ y in 𝓝 x, has_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p y 1)) y :=
+(eventually_eventually_nhds.2 hx).mono $ λ y hy, h.has_fderiv_at hn hy
+
+/-- If a function has a Taylor series at order at least `1` on a neighborhood of `x`, then
+it is differentiable at `x`. -/
+lemma has_ftaylor_series_up_to_on.differentiable_at {n : with_top ℕ}
+  (h : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hx : s ∈ 𝓝 x) :
+  differentiable_at 𝕜 f x :=
+(h.has_fderiv_at hn hx).differentiable_at
+
 /-- `p` is a Taylor series of `f` up to `n+1` if and only if `p` is a Taylor series up to `n`, and
 `p (n + 1)` is a derivative of `p n`. -/
 theorem has_ftaylor_series_up_to_on_succ_iff_left {n : ℕ} :
@@ -2553,27 +2574,9 @@ lemma has_ftaylor_series_up_to_on.has_strict_fderiv_at
   {s : set E'} {f : E' → F'} {x : E'} {p : E' → formal_multilinear_series 𝕂 E' F'} {n : with_top ℕ}
   (hf : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hs : s ∈ 𝓝 x) :
   has_strict_fderiv_at f ((continuous_multilinear_curry_fin1 𝕂 E' F') (p x 1)) x :=
-begin
-  let f' := λ x, (continuous_multilinear_curry_fin1 𝕂 E' F') (p x 1),
-  have hf' : ∀ x, x ∈ s → has_fderiv_within_at f (f' x) s x :=
-    λ x, has_ftaylor_series_up_to_on.has_fderiv_within_at hf hn,
-  have hcont : continuous_on f' s :=
-    (continuous_multilinear_curry_fin1 𝕂 E' F').continuous.comp_continuous_on (hf.cont 1 hn),
-  exact strict_fderiv_of_cont_diff hf' hcont hs,
-end
-
-/-- If a function is `C^n` with `1 ≤ n` around a point, then the derivative of `f` at this point
-is also a strict derivative. -/
-lemma times_cont_diff_at.has_strict_fderiv_at {f : E' → F'} {x : E'} {n : with_top ℕ}
-  (hf : times_cont_diff_at 𝕂 n f x) (hn : 1 ≤ n) :
-  has_strict_fderiv_at f (fderiv 𝕂 f x) x :=
-begin
-  rcases hf 1 hn with ⟨u, H, p, hp⟩,
-  simp only [nhds_within_univ, mem_univ, insert_eq_of_mem] at H,
-  have := hp.has_strict_fderiv_at (by norm_num) H,
-  convert this,
-  exact this.has_fderiv_at.fderiv
-end
+has_strict_fderiv_at_of_has_fderiv_at_of_continuous_at (hf.eventually_has_fderiv_at hn hs) $
+  (continuous_multilinear_curry_fin1 𝕂 E' F').continuous_at.comp $
+    (hf.cont 1 hn).continuous_at hs
 
 /-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative at that point is given to
 us as `f'`, then `f'` is also a strict derivative. -/
@@ -2581,13 +2584,45 @@ lemma times_cont_diff_at.has_strict_fderiv_at'
   {f : E' → F'} {f' : E' →L[𝕂] F'} {x : E'}
   {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :
   has_strict_fderiv_at f f' x :=
-by simpa only [hf'.fderiv] using hf.has_strict_fderiv_at hn
+begin
+  rcases hf 1 hn with ⟨u, H, p, hp⟩,
+  simp only [nhds_within_univ, mem_univ, insert_eq_of_mem] at H,
+  have := hp.has_strict_fderiv_at le_rfl H,
+  rwa hf'.unique this.has_fderiv_at
+end
+
+/-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative at that point is given to
+us as `f'`, then `f'` is also a strict derivative. -/
+lemma times_cont_diff_at.has_strict_deriv_at' {f : 𝕂 → F'} {f' : F'} {x : 𝕂}
+  {n : with_top ℕ} (hf : times_cont_diff_at 𝕂 n f x) (hf' : has_deriv_at f f' x) (hn : 1 ≤ n) :
+  has_strict_deriv_at f f' x :=
+hf.has_strict_fderiv_at' hf' hn
+
+/-- If a function is `C^n` with `1 ≤ n` around a point, then the derivative of `f` at this point
+is also a strict derivative. -/
+lemma times_cont_diff_at.has_strict_fderiv_at {f : E' → F'} {x : E'} {n : with_top ℕ}
+  (hf : times_cont_diff_at 𝕂 n f x) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f (fderiv 𝕂 f x) x :=
+hf.has_strict_fderiv_at' (hf.differentiable_at hn).has_fderiv_at hn
+
+/-- If a function is `C^n` with `1 ≤ n` around a point, then the derivative of `f` at this point
+is also a strict derivative. -/
+lemma times_cont_diff_at.has_strict_deriv_at {f : 𝕂 → F'} {x : 𝕂} {n : with_top ℕ}
+  (hf : times_cont_diff_at 𝕂 n f x) (hn : 1 ≤ n) :
+  has_strict_deriv_at f (deriv f x) x :=
+(hf.has_strict_fderiv_at hn).has_strict_deriv_at
 
 /-- If a function is `C^n` with `1 ≤ n`, then the derivative of `f` is also a strict derivative. -/
 lemma times_cont_diff.has_strict_fderiv_at
   {f : E' → F'} {x : E'} {n : with_top ℕ} (hf : times_cont_diff 𝕂 n f) (hn : 1 ≤ n) :
   has_strict_fderiv_at f (fderiv 𝕂 f x) x :=
 hf.times_cont_diff_at.has_strict_fderiv_at hn
+
+/-- If a function is `C^n` with `1 ≤ n`, then the derivative of `f` is also a strict derivative. -/
+lemma times_cont_diff.has_strict_deriv_at
+  {f : 𝕂 → F'} {x : 𝕂} {n : with_top ℕ} (hf : times_cont_diff 𝕂 n f) (hn : 1 ≤ n) :
+  has_strict_deriv_at f (deriv f x) x :=
+hf.times_cont_diff_at.has_strict_deriv_at hn
 
 end real
 
@@ -2611,8 +2646,7 @@ theorem times_cont_diff_on_succ_iff_deriv_within {n : ℕ} (hs : unique_diff_on 
 begin
   rw times_cont_diff_on_succ_iff_fderiv_within hs,
   congr' 2,
-  rw ← iff_iff_eq,
-  split,
+  apply le_antisymm,
   { assume h,
     have : deriv_within f₂ s₂ = (λ u : 𝕜 →L[𝕜] F, u 1) ∘ (fderiv_within 𝕜 f₂ s₂),
       by { ext x, refl },

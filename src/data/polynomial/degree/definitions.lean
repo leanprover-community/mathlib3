@@ -799,6 +799,13 @@ from calc degree (C a) ≤ 0 : degree_C_le
                    ... = degree X : degree_X.symm,
 by rw [degree_sub_eq_left_of_degree_lt this, degree_X]
 
+@[simp] lemma degree_X_add_C (a : R) : degree (X + C a) = 1 :=
+have degree (C a) < degree (X : polynomial R),
+from calc degree (C a) ≤ 0 : degree_C_le
+                   ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
+                   ... = degree X : degree_X.symm,
+by rw [degree_add_eq_left_of_degree_lt this, degree_X]
+
 @[simp] lemma nat_degree_X_sub_C (x : R) : (X - C x).nat_degree = 1 :=
 nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x
 

@@ -190,7 +190,7 @@ protected lemma congr_fun {f g : mul_equiv M N} (h : f = g) (x : M) : f x = g x 
 def mul_equiv_of_unique_of_unique {M N}
   [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
 { map_mul' := λ _ _, subsingleton.elim _ _,
-  ..equiv_of_unique_of_unique}
+  ..equiv_of_unique_of_unique }
 
 /-- There is a unique monoid homomorphism between two monoids with a unique element. -/
 @[to_additive] instance {M N} [unique M] [unique N] [has_mul M] [has_mul N] : unique (M ≃* N) :=

@@ -677,8 +677,6 @@ end sum
 
 section pi
 
-section pi
-
 /-! ### Derivatives of functions `f : 𝕜 → Π i, E i` -/
 
 variables {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]

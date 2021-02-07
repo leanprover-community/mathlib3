@@ -1025,6 +1025,9 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
               simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
               intros b c H, rw [<-H, pow_add, mul_mul_mul_comm] }, }
 
+@[simp] lemma coeff_eval_mul_hom (f : power_series R) (a : R) (n : ℕ) :
+  coeff R n (eval_mul_hom a f) = a^n * coeff R n f := coeff_mk n _
+
 @[simp] lemma eval_mul_hom_zero : eval_mul_hom 0 = (C R).comp (constant_coeff R) :=
 begin
   ext, simp only [function.comp_app, ring_hom.coe_comp], rw [eval_mul_hom, ring_hom.coe_mk],
@@ -1168,10 +1171,8 @@ eval_mul_hom (-1 : A)
 
 @[simp] lemma eval_mul_hom_neg_one_X : eval_mul_hom (-1 : A) X = -X :=
 begin
-  ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
-  { rw [h, eval_mul_hom], simp only [coeff_mk, mul_one, ring_hom.coe_mk, coeff_one_X, pow_one], },
-  { rw eval_mul_hom, simp, suffices f : (coeff A n) X = 0, {rw f, rw mul_zero,},
-    rw coeff_X, split_ifs, refl, },
+  ext, simp only [linear_map.map_neg, coeff_eval_mul_hom, coeff_X],
+  split_ifs with h; simp [h]
 end
 
 @[simp] lemma eval_neg_hom_X : eval_neg_hom A X = -X :=

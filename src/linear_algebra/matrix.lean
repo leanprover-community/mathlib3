@@ -1088,7 +1088,7 @@ lemma lower_triangular_det {n : ℕ} (M : matrix (fin n) (fin n) R)
   M.det = ∏ i : (fin n), M i i :=
 begin
   rw ← det_transpose,
-  apply upper_triangular_det _ _ (λ (i j : fin n) (hji : j < i), h j i hji),
+  apply upper_triangular_det _ (λ (i j : fin n) (hji : j < i), h j i hji),
 end
 
 end matrix

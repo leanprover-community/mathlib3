@@ -613,16 +613,17 @@ variables
 /-- `pi` construction for continuous linear functions. From a family of continuous linear functions
 it produces a continuous linear function into a family of topological modules. -/
 def pi (f : Πi, M →L[R] φ i) : M →L[R] (Πi, φ i) :=
-⟨linear_map.pi (λ i, (f i : M →ₗ[R] φ i)),
- continuous_pi (λ i, (f i).continuous)⟩
+⟨linear_map.pi (λ i, f i), continuous_pi (λ i, (f i).continuous)⟩
 
-@[simp] lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
+@[simp] lemma coe_pi (f : Π i, M →L[R] φ i) : ⇑(pi f) = λ c i, f i c := rfl
+
+lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
   pi f c i = f i c := rfl
 
 lemma pi_eq_zero (f : Πi, M →L[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
-by simp only [ext_iff, pi_apply, function.funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
+by { simp only [ext_iff, pi_apply, function.funext_iff], exact forall_swap }
 
-lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := by ext; refl
+lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := ext $ λ _, rfl
 
 lemma pi_comp (f : Πi, M →L[R] φ i) (g : M₂ →L[R] M) : (pi f).comp g = pi (λi, (f i).comp g) := rfl
 

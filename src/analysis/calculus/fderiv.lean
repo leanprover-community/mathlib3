@@ -1682,34 +1682,57 @@ end sum
 
 section pi
 
-variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_group (F' i)]
-  [Π i, normed_space 𝕜 (F' i)]
+/-! ### Derivatives of functions `f : E → Π i, F i` -/
 
-lemma has_strict_fderiv_at.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
-  (h : ∀ i, has_strict_fderiv_at (f i) (f' i) x) :
-  has_strict_fderiv_at (λ x i, f i x) (continuous_linear_map.pi f') x :=
+variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_group (F' i)]
+  [Π i, normed_space 𝕜 (F' i)] {φ : Π i, E → F' i} {φ' : Π i, E →L[𝕜] F' i}
+
+lemma has_strict_fderiv_at_pi (h : ∀ i, has_strict_fderiv_at (φ i) (φ' i) x) :
+  has_strict_fderiv_at (λ x i, φ i x) (continuous_linear_map.pi φ') x :=
 begin
   simp only [has_strict_fderiv_at, continuous_linear_map.coe_pi] at *,
   exact is_o.pi h
 end
 
-lemma has_fderiv_at_filter.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
-  (h : ∀ i, has_fderiv_at_filter (f i) (f' i) x L) :
-  has_fderiv_at_filter (λ x i, f i x) (continuous_linear_map.pi f') x L :=
+lemma has_fderiv_at_filter_pi (h : ∀ i, has_fderiv_at_filter (φ i) (φ' i) x L) :
+  has_fderiv_at_filter (λ x i, φ i x) (continuous_linear_map.pi φ') x L :=
 begin
   simp only [has_fderiv_at_filter, continuous_linear_map.coe_pi] at *,
   exact is_o.pi h
 end
 
-lemma has_fderiv_at.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
-  (h : ∀ i, has_fderiv_at (f i) (f' i) x) :
-  has_fderiv_at (λ x i, f i x) (continuous_linear_map.pi f') x :=
-has_fderiv_at_filter.pi h
+lemma has_fderiv_at_pi (h : ∀ i, has_fderiv_at (φ i) (φ' i) x) :
+  has_fderiv_at (λ x i, φ i x) (continuous_linear_map.pi φ') x :=
+has_fderiv_at_filter_pi h
 
-lemma has_fderiv_within_at.pi {f : Π i, E → F' i} {f' : Π i, E →L[𝕜] F' i}
-  (h : ∀ i, has_fderiv_within_at (f i) (f' i) s x) :
-  has_fderiv_within_at (λ x i, f i x) (continuous_linear_map.pi f') s x :=
-has_fderiv_at_filter.pi h
+lemma has_fderiv_within_at_pi (h : ∀ i, has_fderiv_within_at (φ i) (φ' i) s x) :
+  has_fderiv_within_at (λ x i, φ i x) (continuous_linear_map.pi φ') s x :=
+has_fderiv_at_filter_pi h
+
+lemma differentiable_within_at_pi (h : ∀ i, differentiable_within_at 𝕜 (φ i) s x) :
+  differentiable_within_at 𝕜 (λ x i, φ i x) s x :=
+(has_fderiv_within_at_pi (λ i, (h i).has_fderiv_within_at)).differentiable_within_at
+
+lemma differentiable_at_pi (h : ∀ i, differentiable_at 𝕜 (φ i) x) :
+  differentiable_at 𝕜 (λ x i, φ i x) x :=
+(has_fderiv_at_pi (λ i, (h i).has_fderiv_at)).differentiable_at
+
+lemma differentiable_on_pi (h : ∀ i, differentiable_on 𝕜 (φ i) s) :
+  differentiable_on 𝕜 (λ x i, φ i x) s :=
+λ x hx, differentiable_within_at_pi (λ i, h i x hx)
+
+lemma differentiable_pi (h : ∀ i, differentiable 𝕜 (φ i)) :
+  differentiable 𝕜 (λ x i, φ i x) :=
+λ x, differentiable_at_pi $ λ i, h i x
+
+lemma fderiv_within_pi (h : ∀ i, differentiable_within_at 𝕜 (φ i) s x)
+  (hs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λ x i, φ i x) s x = pi (λ i, fderiv_within 𝕜 (φ i) s x) :=
+(has_fderiv_within_at_pi (λ i, (h i).has_fderiv_within_at)).fderiv_within hs
+
+lemma fderiv_pi (h : ∀ i, differentiable_at 𝕜 (φ i) x) :
+  fderiv 𝕜 (λ x i, φ i x) x = pi (λ i, fderiv 𝕜 (φ i) x) :=
+(has_fderiv_at_pi (λ i, (h i).has_fderiv_at)).fderiv
 
 end pi
 

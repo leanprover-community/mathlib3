@@ -401,17 +401,24 @@ lemma lift_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _, M) E) (x : 
   lift φ (reindex R M e x) = lift (φ.dom_dom_congr e.symm) x :=
 linear_map.congr_fun (lift_comp_reindex e φ) x
 
-@[simp] lemma reindex_symm (e : ι ≃ ι₂) :
-  reindex R M e.symm = (reindex R M e).symm := rfl
-
 @[simp] lemma reindex_trans (e : ι ≃ ι₂) (e' : ι₂ ≃ ι₃) :
   (reindex R M e).trans (reindex R M e') = reindex R M (e.trans e') :=
 linear_equiv.injective_to_linear_map begin
   ext f,
-  simp only [linear_equiv.trans_apply, linear_equiv.coe_coe, pi_tensor_product.reindex_tprod,
+  simp only [linear_equiv.trans_apply, linear_equiv.coe_coe, reindex_tprod,
     linear_map.coe_comp_multilinear_map, function.comp_app, multilinear_map.dom_dom_congr_apply,
-    pi_tensor_product.reindex_comp_tprod],
+    reindex_comp_tprod],
   congr,
+end
+
+@[simp] lemma reindex_symm (e : ι ≃ ι₂) :
+  (reindex R M e).symm = reindex R M e.symm := rfl
+
+@[simp] lemma reindex_refl : reindex R M (equiv.refl ι) = linear_equiv.refl R _ :=
+linear_equiv.injective_to_linear_map begin
+  ext1,
+  rw [reindex_comp_tprod, linear_equiv.refl_to_linear_map, equiv.refl_symm],
+  refl,
 end
 
 /-- The tensor product over an empty set of indices is isomorphic to the base ring -/

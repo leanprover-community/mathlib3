@@ -106,14 +106,14 @@ theorem powerset_len_eq_filter {n} {s : finset α} :
   powerset_len n s = (powerset s).filter (λ x, x.card = n) :=
 by { ext, simp [mem_powerset_len] }
 
-lemma powerset_card_bind [decidable_eq (finset α)] (s : finset α) :
-  finset.powerset s = (range (s.card + 1)).bind (λ i, powerset_len i s) :=
+lemma powerset_card_bUnion [decidable_eq (finset α)] (s : finset α) :
+  finset.powerset s = (range (s.card + 1)).bUnion (λ i, powerset_len i s) :=
 begin
   refine ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
-  { rw mem_bind,
+  { rw mem_bUnion,
     exact ⟨a.card, mem_range.mpr (nat.lt_succ_of_le (card_le_of_subset (mem_powerset.mp ha))),
       mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
-  { rcases mem_bind.mp ha with ⟨i, hi, ha⟩,
+  { rcases mem_bUnion.mp ha with ⟨i, hi, ha⟩,
     exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }
 end
 

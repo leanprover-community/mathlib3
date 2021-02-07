@@ -45,7 +45,7 @@ finitary product measure
 
 noncomputable theory
 open function set measure_theory.outer_measure filter
-open_locale classical big_operators topological_space
+open_locale classical big_operators topological_space ennreal
 
 namespace measure_theory
 
@@ -55,7 +55,7 @@ variables {ι : Type*} [fintype ι] {α : ι → Type*} {m : Π i, outer_measure
   It is defined to by taking the image of the set under all projections, and taking the product
   of the measures of these images.
   For measurable boxes it is equal to the correct measure. -/
-@[simp] def pi_premeasure (m : Π i, outer_measure (α i)) (s : set (Π i, α i)) : ennreal :=
+@[simp] def pi_premeasure (m : Π i, outer_measure (α i)) (s : set (Π i, α i)) : ℝ≥0∞ :=
 ∏ i, m i (eval i '' s)
 
 lemma pi_premeasure_pi {s : Π i, set (α i)} (hs : (pi univ s).nonempty) :
@@ -69,7 +69,7 @@ begin
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
     have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
     simpa [h, finset.card_univ, zero_pow (fintype.card_pos_iff.mpr _inst_2),
-      @eq_comm _ (0 : ennreal), finset.prod_eq_zero_iff] },
+      @eq_comm _ (0 : ℝ≥0∞), finset.prod_eq_zero_iff] },
   { simp [h] }
 end
 

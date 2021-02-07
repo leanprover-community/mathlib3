@@ -639,6 +639,11 @@ begin
           sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
 end
 
+@[simp] lemma sign_subtype_congr {p : α → Prop} [decidable_pred p]
+  (ep : perm {a // p a}) (en : perm {a // ¬ p a}) :
+  (ep.subtype_congr en).sign = ep.sign * en.sign :=
+by simp [subtype_congr]
+
 end congr
 
 end sign

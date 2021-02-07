@@ -22,8 +22,7 @@ always finite in this context.
 -/
 
 noncomputable theory
-open_locale classical
-open_locale topological_space
+open_locale classical topological_space ennreal
 
 universe u
 open classical set function topological_space filter
@@ -89,8 +88,8 @@ begin
   `edist (s n) (s (n+1)) < 2^{-n}`, then it converges. This is enough to guarantee
   completeness, by a standard completeness criterion.
   We use the shorthand `B n = 2^{-n}` in ennreal. -/
-  let B : ℕ → ennreal := λ n, (2⁻¹)^n,
-  have B_pos : ∀ n, (0:ennreal) < B n,
+  let B : ℕ → ℝ≥0∞ := λ n, (2⁻¹)^n,
+  have B_pos : ∀ n, (0:ℝ≥0∞) < B n,
     by simp [B, ennreal.pow_pos],
   have B_ne_top : ∀ n, B n ≠ ⊤,
     by simp [B, ennreal.pow_ne_top],

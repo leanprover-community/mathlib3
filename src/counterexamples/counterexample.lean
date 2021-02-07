@@ -10,7 +10,8 @@ import ring_theory.subsemiring
 import tactic
 /-!
 Reference:
-https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
+https://
+leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
 
 -/
 
@@ -569,90 +570,5 @@ lemma can : canonically_ordered_comm_semiring L :=
   right_distrib := add_mul,
   mul_comm := mul_comm,
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero }
-
-
-#exit
-
-instance : preorder L :=
-{ le := λ x y, ( x = y ∨ x.1.1 < y.1.1 ),
-  le_refl := by simp only [forall_const, true_or, eq_self_iff_true],
-  le_trans := λ x y z xy yz,
-  begin
-    cases xy,
-    { cases yz,
-      { exact or.inl (xy.trans yz) },
-      { exact or.inr (lt_of_le_of_lt (congr_arg prod.fst xy).le yz) } },
-    { refine or.inr (xy.trans_le _),
-      cases yz,
-      { exact (congr_arg prod.fst yz).le },
-      {  exact yz.le } },
-  end }
-
-
-lemma can : canonically_ordered_comm_semiring L :=
-begin
-  refine {add := (+),
- add_assoc := add_assoc,
- zero := 0,
- zero_add := zero_add,
- add_zero := add_zero,
- add_comm := add_comm,
- le := (≤),
- lt := λ (a b : L), a ≤ b ∧ ¬b ≤ a,
- le_refl := λ _, le_rfl,
- le_trans := λ _ _ _, le_trans,
- lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
- le_antisymm := sorry,
- add_le_add_left := λ _ _, add_le_add_left,
- lt_of_add_lt_add_left := λ (a : L) {b c : L}, (add_lt_add_iff_left a).mp,
- bot := 0,
- bot_le := begin
-    intros a,
-    by_cases a0 : a = 0,
-    exact eq.ge a0,
-    refine or.inr _,simp,
-    by_contra,
-    apply a0,
-    rw not_lt at h,
-    cases a, cases a_val, cases a_val_snd, dsimp at *, simp at *, fsplit, work_on_goal 1 { ext1, dsimp at * },
-rw ← nat.le_zero_iff,
-exact h,
-sorry,
- end,
- le_iff_exists_add := begin
-   intros a b,
-   refine ⟨λ h, _, λ h, _⟩,
-   sorry,
-   rcases h with ⟨h, rfl⟩,
-   cases h, cases a, cases a_val, cases h_val, cases h_val_snd, cases a_val_snd, dsimp at *, simp at *, norm_cast,
-   by_cases h0 : h_val_fst = 0,
-   { subst h0,
-     refine or.inl _,
-     simp,
-     rw ← zero_iff,
-     sorry,
-      },
-    refine or.inr _,
-    by_contra,
-    push_neg at h,
-    apply h0,
-    apply nat.le_zero_iff.mp h,
- end,
- mul := (*),
- mul_assoc := mul_assoc,
- one := 1,
- one_mul := one_mul,
- mul_one := mul_one,
- zero_mul := zero_mul,
- mul_zero := mul_zero,
- left_distrib := mul_add,
- right_distrib := add_mul,
- mul_comm := mul_comm,
- eq_zero_or_eq_zero_of_mul_eq_zero := begin
-   intros a b ab,
-
---   tidy?,
- end},
-end
 
 end counterexample

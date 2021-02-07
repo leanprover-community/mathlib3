@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import measure_theory.ae_eq_fun
+import measure_theory.ae_eq_fun_metric
 
 /-!
 # Integrable functions and `L¹` space

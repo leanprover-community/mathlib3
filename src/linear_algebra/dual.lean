@@ -456,6 +456,8 @@ namespace subspace
 
 open submodule linear_map
 
+universes u v w
+
 -- We work in vector spaces because `exists_is_compl` only hold for vector spaces
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
 
@@ -559,27 +561,6 @@ open_locale classical
 open finite_dimensional
 
 variables {V₁ : Type*} [add_comm_group V₁] [vector_space K V₁]
-variables [finite_dimensional K V] [finite_dimensional K V₁]
-
-/-- Given isomorphic subspaces `p q` of vector spaces `V` and `V₁` respectively,
-  `p.quotient` is isomorphic to `q.quotient`. -/
-noncomputable def linear_equiv.quot_equiv_of_equiv
-  {p : subspace K V} {q : subspace K V₁}
-  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₁) : p.quotient ≃ₗ[K] q.quotient :=
-linear_equiv.of_findim_eq _ _
-begin
-  rw [← @add_right_cancel_iff _ _ (findim K p), findim_quotient_add_findim,
-    linear_equiv.findim_eq f₁, findim_quotient_add_findim, linear_equiv.findim_eq f₂],
-end
-
-/-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
-noncomputable def linear_equiv.quot_equiv_of_quot_equiv
-  {p q : subspace K V} (f : p.quotient ≃ₗ[K] q) : q.quotient ≃ₗ[K] p :=
-linear_equiv.of_findim_eq _ _
-begin
-  rw [← @add_right_cancel_iff _ _ (findim K q), findim_quotient_add_findim,
-    ← linear_equiv.findim_eq f, add_comm, findim_quotient_add_findim]
-end
 
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
 begin
@@ -588,6 +569,8 @@ begin
   haveI := classical.choice hB.2,
   exact is_basis.to_dual_equiv _ hB.1
 end
+
+variables [finite_dimensional K V] [finite_dimensional K V₁]
 
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/
 noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :

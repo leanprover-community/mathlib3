@@ -1159,19 +1159,24 @@ open finset nat
 
 variables {A : Type*} [comm_ring A]
 
-/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
-noncomputable def eval_neg_hom : power_series A →+* power_series A :=
-eval_mul_hom (-1 : A)
+end ring
 
-@[simp] lemma eval_neg_hom_X : @eval_neg_hom A _ X = -X :=
+section comm_ring
+variables [comm_ring R]
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
+noncomputable def eval_neg_hom : power_series R →+* power_series R :=
+eval_mul_hom (-1 : R)
+
+@[simp] lemma eval_neg_hom_X : @eval_neg_hom R _ X = -X :=
 begin
   rw eval_neg_hom, ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
   { rw [h, eval_mul_hom], simp only [coeff_mk, mul_one, ring_hom.coe_mk, coeff_one_X, pow_one], },
-  { rw eval_mul_hom, simp, suffices f : (coeff A n) X = 0, {rw f, rw mul_zero,},
+  { rw eval_mul_hom, simp, suffices f : (coeff R n) X = 0, {rw f, rw mul_zero,},
     rw coeff_X, split_ifs, refl, },
 end
 
-end ring
+end comm_ring
 
 section integral_domain
 variable [integral_domain R]

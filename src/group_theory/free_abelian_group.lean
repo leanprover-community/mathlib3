@@ -330,11 +330,11 @@ begin
   { intros x y h₁ h₂, simp only [h₁, h₂, add_monoid_hom.map_add] }
 end
 
-lemma map_comp {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
-eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
-
 lemma map_id : map id = add_monoid_hom.id (free_abelian_group α) :=
 eq.symm $ lift.ext _ _ $ λ x, lift.unique of (add_monoid_hom.id _) $ λ y, add_monoid_hom.id_apply _
+
+lemma map_comp {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
+eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
 
 -- version of map_of which uses `map`
 lemma map_of' {f : α → β} (a : α) : map f (of a) = of (f a) := rfl

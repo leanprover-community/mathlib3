@@ -336,6 +336,9 @@ eq.symm $ lift.ext _ _ $ λ x, lift.unique of (add_monoid_hom.id _) $ λ y, add_
 lemma map_comp {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
 eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
 
+lemma map_comp_apply {f : α → β} {g : β → γ} (x : free_abelian_group α) :
+  map (g ∘ f) x = (map g) ((map f) x) := by { rw map_comp, refl }
+
 -- version of map_of which uses `map`
 lemma map_of' {f : α → β} (a : α) : map f (of a) = of (f a) := rfl
 
@@ -448,14 +451,12 @@ def equiv_of_equiv {α β : Type*} (f : α ≃ β) : free_abelian_group α ≃+ 
   inv_fun := map f.symm,
   left_inv := begin
     intros x,
-    change (map f.symm).comp (map f) x = x,
-    rw [← map_comp, equiv.symm_comp_self, map_id],
+    rw [← map_comp_apply, equiv.symm_comp_self, map_id],
     refl,
   end,
   right_inv := begin
     intros x,
-    change (map f).comp (map f.symm) x = x,
-    rw [← map_comp, equiv.self_comp_symm, map_id],
+    rw [← map_comp_apply, equiv.self_comp_symm, map_id],
     refl,
   end,
   map_add' := lift.add _ }

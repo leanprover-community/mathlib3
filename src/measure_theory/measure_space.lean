@@ -787,10 +787,11 @@ rfl
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
 by simp [← restrictₗ_apply, restrictₗ, ht]
 
-lemma restrict_apply_self {α : Type*} [measurable_space α]
-  (μ : measure α) {s : set α} (h_meas_s : measurable_set s) :
-  (μ.restrict s) s = μ s :=
-by rw [restrict_apply h_meas_s, set.inter_self]
+lemma restrict_eq_self (h_meas_t : measurable_set t) (h : t ⊆ s) : μ.restrict s t = μ t :=
+by rw [restrict_apply h_meas_t, subset_iff_inter_eq_left.1 h]
+
+lemma restrict_apply_self (μ:measure α) (h_meas_s : measurable_set s) :
+  (μ.restrict s) s = μ s := (restrict_eq_self h_meas_s (set.subset.refl _))
 
 lemma restrict_apply_univ (s : set α) : μ.restrict s univ = μ s :=
 by rw [restrict_apply measurable_set.univ, set.univ_inter]
@@ -1949,11 +1950,11 @@ begin
         measurable_set.inter h_meas_t h_meas_s,
         repeat {rw measure_eq_inter_diff h_meas_t h_meas_s, rw set.diff_eq},
         apply add_le_add _ _; rw add_apply,
-        { have h_restrict : ∀ μ₂ : measure α, μ₂ (t ∩ s) = μ₂.restrict s (t ∩ s),
-          { intro μ₂, rw [restrict_apply h_meas_t_inter_s], 
-            rw [(h_inter_inter_eq_inter s)] },
-          apply le_add_right _,
-          rw [add_apply, h_restrict μ, h_restrict ν], apply h_ν'_in _ h_meas_t_inter_s },
+        { apply le_add_right _,
+          rw add_apply,
+          rw ← @restrict_eq_self _ _ μ s _ h_meas_t_inter_s (set.inter_subset_right _ _),
+          rw ← @restrict_eq_self _ _ ν s _ h_meas_t_inter_s (set.inter_subset_right _ _),
+          apply h_ν'_in _ h_meas_t_inter_s },
         cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
         { simp [h_inter_empty] },
         { have h_meas_inter_compl := 

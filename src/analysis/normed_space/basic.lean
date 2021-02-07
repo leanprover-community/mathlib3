@@ -373,6 +373,18 @@ begin
   ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
 end
 
+/-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
+instance add_subgroup.normed_group {E : Type*} [normed_group E] (s : add_subgroup E) :
+  normed_group s :=
+{ norm := λx, norm (x : E),
+  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+/-- If `x` is an element of a subgroup `s` of a normed group `E`, its norm in `s` is equal to its
+norm in `E`. -/
+@[simp] lemma coe_norm_subgroup {E : Type*} [normed_group E] {s : add_subgroup E} (x : s) :
+  ∥x∥ = ∥(x:E)∥ :=
+rfl
+
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 
 See note [implicit instance arguments]. -/

@@ -57,7 +57,8 @@ instance : has_coe L (ℕ × zmod 2) := ⟨λ x, x.1⟩
 
 @[simp] lemma coe_add (a b : L) : ((a + b) : ℕ × zmod 2) = a.val + b.val := rfl
 
-@[simp] lemma coe_add_u (a b : L) : ((a + b) : ℕ × zmod 2) = (a : ℕ × zmod 2) + (b : ℕ × zmod 2) := rfl
+@[simp] lemma coe_add_u (a b : L) : ((a + b) : ℕ × zmod 2) = (a : ℕ × zmod 2) + (b : ℕ × zmod 2) :=
+rfl
 
 @[simp] lemma coe_add_val (a b : L) : (a + b).val = a.val + b.val := rfl
 

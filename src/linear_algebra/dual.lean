@@ -581,7 +581,6 @@ begin
     ← linear_equiv.findim_eq f, add_comm, findim_quotient_add_findim]
 end
 
--- dependency
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
 begin
   refine @linear_equiv.finite_dimensional _ _ _ _ _ _ _ _ _ H,

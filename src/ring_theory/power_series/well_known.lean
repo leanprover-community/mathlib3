@@ -115,7 +115,7 @@ begin
   },
 end
 
-/-- Shows that `e^{x} * e^{-x} = 1` -/
+/-- Shows that $e^{x} * e^{-x} = 1$ -/
 theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom A (exp A) = 1 :=
 begin
   convert exp_mul_exp_eq_exp_add (1 : A) (-1); simp,

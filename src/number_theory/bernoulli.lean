@@ -233,5 +233,5 @@ begin
       specialize h 1,
       simpa using h } },
   { rw [sub_mul, f, mul_sub X, mul_one, sub_right_inj],
-   rw [← neg_sub, ←neg_neg X, ←g, neg_mul_eq_mul_neg], },
+    rw [← neg_sub, ←neg_neg X, ←g, neg_mul_eq_mul_neg], },
 end

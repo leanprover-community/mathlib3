@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+from shutil import copy
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from textwrap import dedent
 import subprocess
 import unittest
 
@@ -148,19 +150,33 @@ class TestLinterIntegration(unittest.TestCase):
 
         Running it exits with successful return code.
 
-        This test will not run if there are current style warnings.
+        This test will execute in a separate directory tree to make sure
+        it doesn't fail if there are current style warnings.
         """
 
-        src = list(ROOT_DIR.glob("src/**/*.lean"))
-        archive = list(ROOT_DIR.glob("archive/**/*.lean"))
-        if subprocess.run(
-            ["./scripts/lint-style.py"] + src + archive,
-            stdout=subprocess.DEVNULL,
-            cwd=ROOT_DIR,
-        ).returncode:
-            self.skipTest("Skipping... there are unfixed style warnings.")
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            for each in "scripts", "src", "archive":
+                root.joinpath(each).mkdir()
 
-        subprocess.run(["./scripts/lint-style.sh"], check=True, cwd=ROOT_DIR)
+            copy(SCRIPTS_DIR / "lint-style.sh", root / "scripts")
+            copy(SCRIPTS_DIR / "lint-style.py", root / "scripts")
+
+            # Give us at least one file to check
+            root.joinpath("src", "unittesting123.lean").write_text(
+                dedent(
+                    """\
+                    /-
+                    Copyright (c) 2021 Someone. All rights reserved.
+                    Released under Apache 2.0 license as described in the file LICENSE.
+                    Authors: Someone
+                    -/
+                    example : 37 = 37 := rfl
+                    """,
+                )
+            )
+
+            subprocess.run(["./scripts/lint-style.sh"], check=True, cwd=root)
 
 
 if __name__ == "__main__":

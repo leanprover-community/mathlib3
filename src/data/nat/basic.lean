@@ -1241,6 +1241,9 @@ dvd_trans this hdiv
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
+lemma pow_div {x m n : ℕ} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) :=
+by rw [nat.div_eq_iff_eq_mul_left (pow_pos hx n) (pow_dvd_pow _ h), pow_sub_mul_pow _ h]
+
 /-- `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)` for some `k`. -/
 lemma exists_lt_and_lt_iff_not_dvd (m : ℕ) {n : ℕ} (hn : 0 < n) :
   (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=

@@ -258,7 +258,7 @@ begin
 end
 
 @[simp]
-theorem Sup_compact_eq_top [is_atomistic α] :
+theorem Sup_compact_eq_top :
   Sup {a : α | complete_lattice.is_compact_element a} = ⊤ :=
 begin
   refine eq.trans (congr rfl (set.ext (λ x, _))) (Sup_compact_le_eq ⊤),
@@ -376,6 +376,7 @@ end complete_lattice
 section
 variables {α : Type*} [complete_lattice α] [is_modular_lattice α] [is_compactly_generated α]
 
+@[priority 100]
 instance is_atomic_of_is_complemented [is_complemented α] : is_atomic α :=
 ⟨λ b, begin
   by_cases h : {c : α | complete_lattice.is_compact_element c ∧ c ≤ b} ⊆ {⊥},
@@ -397,6 +398,7 @@ instance is_atomic_of_is_complemented [is_complemented α] : is_atomic α :=
 end⟩
 
 /-- See Lemma 5.1, Călugăreanu -/
+@[priority 100]
 instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α :=
 ⟨λ b, ⟨{a | is_atom a ∧ a ≤ b}, begin
   symmetry,
@@ -412,17 +414,8 @@ instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α 
     exact le_Sup ⟨ha.of_is_atom_coe_Iic, a.2⟩ }
 end, λ _, and.left⟩⟩
 
-theorem disjoint.disjoint_sup_right_of_disjoint_sup_left {a b c : α}
-  (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
-  disjoint a (b ⊔ c) :=
-begin
-  rw [disjoint, ← h.eq_bot, sup_comm],
-  apply le_inf inf_le_left,
-  apply (inf_le_inf_right (c ⊔ b) le_sup_right).trans,
-  rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
-end
-
 /-- See Theorem 6.6, Călugăreanu -/
+@[priority 100]
 instance is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
 ⟨λ b, begin
   rcases zorn.zorn_subset

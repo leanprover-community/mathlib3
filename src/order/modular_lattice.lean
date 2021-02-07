@@ -101,6 +101,17 @@ instance [distrib_lattice α] : is_modular_lattice α :=
 
 end distrib_lattice
 
+theorem disjoint.disjoint_sup_right_of_disjoint_sup_left
+  [bounded_lattice α] [is_modular_lattice α] {a b c : α}
+  (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
+  disjoint a (b ⊔ c) :=
+begin
+  rw [disjoint, ← h.eq_bot, sup_comm],
+  apply le_inf inf_le_left,
+  apply (inf_le_inf_right (c ⊔ b) le_sup_right).trans,
+  rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
+end
+
 namespace is_modular_lattice
 
 variables [bounded_lattice α] [is_modular_lattice α] {a : α}

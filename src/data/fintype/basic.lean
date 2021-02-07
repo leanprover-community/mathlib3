@@ -248,6 +248,95 @@ def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.s
   fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
+end fintype
+
+section inv
+
+namespace function
+
+variables [fintype α] [decidable_eq β]
+
+namespace injective
+
+variables {f : α → β} (hf : function.injective f)
+
+/--
+The inverse of an `hf : injective` function `f : α → β`, of the type `↥(set.range f) → α`.
+This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
+or the function version of applying `(equiv.set.range f hf).symm`.
+This function should not usually be used for actual computation because for most cases,
+an explicit inverse can be stated that has better computational properties.
+This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
+`N = fintype.card α`.
+-/
+def inv_of_mem_range : set.range f → α :=
+λ b, finset.choose (λ a, f a = b) finset.univ ((exists_unique_congr (by simp)).mp
+  (hf.exists_unique_of_mem_range b.property))
+
+lemma left_inv_of_inv_of_mem_range (b : set.range f) :
+  f (hf.inv_of_mem_range b) = b :=
+(finset.choose_spec (λ a, f a = b) _ _).right
+
+@[simp] lemma right_inv_of_inv_of_mem_range (a : α) :
+  hf.inv_of_mem_range (⟨f a, set.mem_range_self a⟩) = a :=
+hf (finset.choose_spec (λ a', f a' = f a) _ _).right
+
+lemma inv_fun_restrict [nonempty α] :
+  (set.range f).restrict (inv_fun f) = hf.inv_of_mem_range :=
+begin
+  ext ⟨b, h⟩,
+  apply hf,
+  simp [hf.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
+end
+
+lemma inv_of_mem_range_surjective : function.surjective hf.inv_of_mem_range :=
+λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
+
+end injective
+
+namespace embedding
+
+variables (f : α ↪ β) (b : set.range f)
+
+/--
+The inverse of an embedding `f : α ↪ β`, of the type `↥(set.range f) → α`.
+This is the computable version of `function.inv_fun` that requires `fintype α` and `decidable_eq β`,
+or the function version of applying `(equiv.set.range f f.injective).symm`.
+This function should not usually be used for actual computation because for most cases,
+an explicit inverse can be stated that has better computational properties.
+This function computes by checking all terms `a : α` to find the `f a = b`, so it is O(N) where
+`N = fintype.card α`.
+-/
+def inv_of_mem_range : α :=
+f.injective.inv_of_mem_range b
+
+@[simp] lemma left_inv_of_inv_of_mem_range :
+  f (f.inv_of_mem_range b) = b :=
+f.injective.left_inv_of_inv_of_mem_range b
+
+@[simp] lemma right_inv_of_inv_of_mem_range (a : α) :
+  f.inv_of_mem_range ⟨f a, set.mem_range_self a⟩ = a :=
+f.injective.right_inv_of_inv_of_mem_range a
+
+lemma inv_fun_restrict [nonempty α] :
+  (set.range f).restrict (inv_fun f) = f.inv_of_mem_range :=
+begin
+  ext ⟨b, h⟩,
+  apply f.injective,
+  simp [f.left_inv_of_inv_of_mem_range, @inv_fun_eq _ _ _ f b (set.mem_range.mp h)]
+end
+
+lemma inv_of_mem_range_surjective : function.surjective f.inv_of_mem_range :=
+λ a, ⟨⟨f a, set.mem_range_self a⟩, by simp⟩
+
+end embedding
+
+end function
+
+end inv
+
+namespace fintype
+
 /-- Given an injective function to a fintype, the domain is also a
 fintype. This is noncomputable because injectivity alone cannot be
 used to construct preimages. -/

@@ -100,7 +100,6 @@ class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
   extends normed_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
 (norm_sq_eq_inner : ∀ (x : E), ∥x∥^2 = re (inner x x))
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
-(nonneg_im : ∀ x, im (inner x x) = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
 
@@ -133,7 +132,6 @@ structure inner_product_space.core
   [is_R_or_C 𝕜] [add_comm_group F] [semimodule 𝕜 F] :=
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
-(nonneg_im : ∀ x, im (inner x x) = 0)
 (nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
@@ -169,9 +167,11 @@ lemma inner_conj_sym (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_sym x y
 
 lemma inner_self_nonneg {x : F} : 0 ≤ re ⟪x, x⟫ := c.nonneg_re _
 
-lemma inner_self_nonneg_im {x : F} : im ⟪x, x⟫ = 0 := c.nonneg_im _
+lemma inner_self_nonneg_im {x : F} : im ⟪x, x⟫ = 0 :=
+by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp [inner_conj_sym]
 
-lemma inner_self_im_zero {x : F} : im ⟪x, x⟫ = 0 := c.nonneg_im _
+lemma inner_self_im_zero {x : F} : im ⟪x, x⟫ = 0 :=
+inner_self_nonneg_im
 
 lemma inner_add_left {x y z : F} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 c.add_left _ _ _
@@ -389,15 +389,16 @@ export inner_product_space (norm_sq_eq_inner)
 
 section basic_properties
 
-lemma inner_conj_sym (x y : E) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_sym _ _
+@[simp] lemma inner_conj_sym (x y : E) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_sym _ _
 lemma real_inner_comm (x y : F) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := inner_conj_sym x y
 
 lemma inner_eq_zero_sym {x y : E} : ⟪x, y⟫ = 0 ↔ ⟪y, x⟫ = 0 :=
 ⟨λ h, by simp [←inner_conj_sym, h], λ h, by simp [←inner_conj_sym, h]⟩
 
-lemma inner_self_nonneg_im {x : E} : im ⟪x, x⟫ = 0 := inner_product_space.nonneg_im _
+@[simp] lemma inner_self_nonneg_im {x : E} : im ⟪x, x⟫ = 0 :=
+by rw [← @of_real_inj 𝕜, im_eq_conj_sub]; simp
 
-lemma inner_self_im_zero {x : E} : im ⟪x, x⟫ = 0 := inner_product_space.nonneg_im _
+lemma inner_self_im_zero {x : E} : im ⟪x, x⟫ = 0 := inner_self_nonneg_im
 
 lemma inner_add_left {x y z : E} : ⟪x + y, z⟫ = ⟪x, z⟫ + ⟪y, z⟫ :=
 inner_product_space.add_left _ _ _
@@ -896,7 +897,7 @@ end
 
 /-- Expand the square -/
 lemma norm_sub_pow_two_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-by { have h := @norm_sub_pow_two ℝ F _ _, simpa using h }
+norm_sub_pow_two
 
 /-- Expand the square -/
 lemma norm_sub_mul_self {x y : E} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=
@@ -1424,16 +1425,6 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     apply inner_conj_sym,
     apply_instance
   end,
-  nonneg_im :=
-  begin
-    intro x,
-    unfold inner,
-    rw[←finset.sum_hom finset.univ im],
-    apply finset.sum_eq_zero,
-    rintros z -,
-    exact inner_self_nonneg_im,
-    apply_instance
-  end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
     by simp only [inner_add_left, finset.sum_add_distrib],
@@ -1453,7 +1444,6 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   norm_sq_eq_inner := λ x,
     by { unfold inner, rw [mul_comm, mul_conj, of_real_re, norm_sq_eq_def'] },
   conj_sym := λ x y, by simp [mul_comm],
-  nonneg_im := λ x, by rw [mul_im, conj_re, conj_im]; ring,
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
@@ -1471,7 +1461,6 @@ def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
 instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_space 𝕜 W :=
 { inner             := λ x y, ⟪(x:E), (y:E)⟫,
   conj_sym          := λ _ _, inner_conj_sym _ _ ,
-  nonneg_im         := λ _, inner_self_nonneg_im,
   norm_sq_eq_inner  := λ _, norm_sq_eq_inner _,
   add_left          := λ _ _ _ , inner_add_left,
   smul_left         := λ _ _ _, inner_smul_left,
@@ -1499,7 +1488,6 @@ structure. -/
 def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
-  nonneg_im := λ x, rfl,
   add_left := λ x y z, by {
     change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫,
     simp [inner_add_left] },
@@ -2516,8 +2504,8 @@ complement sum to the identity. -/
 lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   [complete_space E] [complete_space K] :
   continuous_linear_map.id 𝕜 E
-  = K.subtype_continuous.comp (orthogonal_projection K)
-  + Kᗮ.subtype_continuous.comp (orthogonal_projection Kᗮ) :=
+  = K.subtypeL.comp (orthogonal_projection K)
+  + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
 open finite_dimensional
@@ -2563,12 +2551,14 @@ lemma submodule.findim_add_findim_orthogonal' [finite_dimensional 𝕜 E] {K : s
   findim 𝕜 Kᗮ = n :=
 by { rw ← add_right_inj (findim 𝕜 K), simp [submodule.findim_add_findim_orthogonal, h_dim] }
 
+local attribute [instance] finite_dimensional_of_findim_eq_succ
+
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/
-lemma findim_orthogonal_span_singleton [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1)
+lemma findim_orthogonal_span_singleton {n : ℕ} [_i : fact (findim 𝕜 E = n + 1)]
   {v : E} (hv : v ≠ 0) :
   findim 𝕜 (𝕜 ∙ v)ᗮ = n :=
-submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, hn, add_comm]
+submodule.findim_add_findim_orthogonal' $ by simp [findim_span_singleton hv, _i.elim, add_comm]
 
 end orthogonal
 
@@ -2629,7 +2619,7 @@ begin
       { intros hab'',
         apply hab',
         simpa using hab'' },
-      convert hv.2 this } },
+      exact hv.2 this } },
     { -- ** direction 2: empty orthogonal complement implies maximal
       simp only [subset.antisymm_iff],
       rintros h u (huv : v ⊆ u) hu,
@@ -2724,12 +2714,14 @@ def linear_isometry_equiv.of_inner_product_space
 let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
 hv.2.isometry_euclidean_of_orthonormal hv.1
 
+local attribute [instance] finite_dimensional_of_findim_eq_succ
+
 /-- Given a natural number `n` one less than the `findim` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.from_orthogonal_span_singleton
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : findim 𝕜 E = n + 1) {v : E} (hv : v ≠ 0) :
+  {n : ℕ} [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hn hv)
+linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hv)
 
 end orthonormal_basis

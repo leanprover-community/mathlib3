@@ -81,11 +81,10 @@ by rw [bit0, eval₂_add, bit0]
 by rw [bit1, eval₂_add, eval₂_bit0, eval₂_one, bit1]
 
 @[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
-  eval₂ g x (s • p) = g s • eval₂ g x p :=
+  eval₂ g x (s • p) = g s * eval₂ g x p :=
 begin
   simp only [eval₂, sum_smul_index, forall_const, zero_mul, g.map_zero, g.map_mul, mul_assoc],
-  -- Why doesn't `rw [←finsupp.mul_sum]` work?
-  convert (@finsupp.mul_sum _ _ _ _ _ (g s) p (λ i a, (g a * x ^ i))).symm,
+  rw [←finsupp.mul_sum],
 end
 
 @[simp] lemma eval₂_C_X : eval₂ C X p = p :=
@@ -239,7 +238,7 @@ eval₂_monomial _ _
 @[simp] lemma eval_bit1 : (bit1 p).eval x = bit1 (p.eval x) := eval₂_bit1 _ _
 
 @[simp] lemma eval_smul (p : polynomial R) (x : R) {s : R} :
-  (s • p).eval x = s • p.eval x :=
+  (s • p).eval x = s * p.eval x :=
 eval₂_smul (ring_hom.id _) _ _
 
 lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :

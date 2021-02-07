@@ -47,8 +47,8 @@ points `e 0`, ..., `e N`. If more than one point are at the same distance from `
 noncomputable def nearest_pt_ind (e : ℕ → α) : ℕ → α →ₛ ℕ
 | 0 := const α 0
 | (N + 1) := piecewise (⋂ k ≤ N, {x | edist (e (N + 1)) x < edist (e k) x})
-    (is_measurable.Inter $ λ k, is_measurable.Inter_Prop $ λ hk,
-      is_measurable_lt measurable_edist_right measurable_edist_right)
+    (measurable_set.Inter $ λ k, measurable_set.Inter_Prop $ λ hk,
+      measurable_set_lt measurable_edist_right measurable_edist_right)
     (const α $ N + 1) (nearest_pt_ind N)
 
 /-- `nearest_pt e N x` is the nearest point to `x` among the points `e 0`, ..., `e N`. If more than

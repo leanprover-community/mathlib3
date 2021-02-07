@@ -135,18 +135,18 @@ namespace submodule
 variables {R' : Type*} [ring R'] [module R' E] (p : submodule R' E)
 
 /-- `submodule.subtype` as a `linear_isometry`. -/
-def subtype_isometry : p →ₗᵢ[R'] E := ⟨p.subtype, λ x, rfl⟩
+def subtypeₗᵢ : p →ₗᵢ[R'] E := ⟨p.subtype, λ x, rfl⟩
 
-@[simp] lemma coe_subtype_isometry : ⇑p.subtype_isometry = p.subtype := rfl
+@[simp] lemma coe_subtypeₗᵢ : ⇑p.subtypeₗᵢ = p.subtype := rfl
 
-@[simp] lemma subtype_isometry_to_linear_map : p.subtype_isometry.to_linear_map = p.subtype := rfl
+@[simp] lemma subtypeₗᵢ_to_linear_map : p.subtypeₗᵢ.to_linear_map = p.subtype := rfl
 
 /-- `submodule.subtype` as a `continuous_linear_map`. -/
-def subtype_continuous : p →L[R'] E := p.subtype_isometry.to_continuous_linear_map
+def subtypeL : p →L[R'] E := p.subtypeₗᵢ.to_continuous_linear_map
 
-@[simp] lemma coe_subtype_continuous : (p.subtype_continuous : p →ₗ[R'] E) = p.subtype := rfl
+@[simp] lemma coe_subtypeL : (p.subtypeL : p →ₗ[R'] E) = p.subtype := rfl
 
-@[simp] lemma coe_subtype_continuous' : ⇑p.subtype_continuous = p.subtype := rfl
+@[simp] lemma coe_subtypeL' : ⇑p.subtypeL = p.subtype := rfl
 
 end submodule
 

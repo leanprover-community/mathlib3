@@ -112,7 +112,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal asymptotics filter
+open_locale topological_space classical nnreal asymptotics filter ennreal
 
 noncomputable theory
 
@@ -362,7 +362,7 @@ begin
   rw [← mul_smul, mul_inv_cancel hy, one_smul]
 end
 
-theorem has_fderiv_at_unique
+theorem has_fderiv_at.unique
   (h₀ : has_fderiv_at f f₀' x) (h₁ : has_fderiv_at f f₁' x) : f₀' = f₁' :=
 begin
   rw ← has_fderiv_within_at_univ at h₀ h₁,
@@ -412,7 +412,7 @@ begin
 end
 
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
-by { ext, rw has_fderiv_at_unique h h.differentiable_at.has_fderiv_at }
+by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
 on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.
@@ -431,7 +431,7 @@ as this statement is empty. -/
 lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
-  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot, ne.def, not_not] at h,
+  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot_iff, ne.def, not_not] at h,
   simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 
@@ -869,7 +869,7 @@ end continuous_linear_map
 
 section analytic
 
-variables {p : formal_multilinear_series 𝕜 E F} {r : ennreal}
+variables {p : formal_multilinear_series 𝕜 E F} {r : ℝ≥0∞}
 
 lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x) :
   has_strict_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=

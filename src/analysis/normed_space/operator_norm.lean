@@ -643,14 +643,13 @@ end op_norm
 
 end continuous_linear_map
 
-namespace linear_map
+lemma linear_isometry.norm_to_continuous_linear_map_le (f : E →ₗᵢ[𝕜] F) :
+  ∥f.to_continuous_linear_map∥ ≤ 1 :=
+f.to_continuous_linear_map.op_norm_le_bound zero_le_one $ λ x, by simp
 
-/-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
-then its norm is bounded by the bound given to the constructor, or zero if this bound is negative. -/
-lemma mk_continuous_norm_le' (f : E →ₗ[𝕜] F) {C : ℝ} (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ∥f.mk_continuous C h∥ ≤ max C 0 :=
-continuous_linear_map.op_norm_le_bound _ (le_max_iff.2 $ or.inr le_rfl) $
-  λ x, (h x).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg x)
+@[simp] lemma linear_isometry.norm_to_continuous_linear_map [nontrivial E] (f : E →ₗᵢ[𝕜] F) :
+  ∥f.to_continuous_linear_map∥ = 1 :=
+f.to_continuous_linear_map.homothety_norm $ by simp
 
 /-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
 then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
@@ -943,11 +942,11 @@ end continuous_linear_map
 
 namespace submodule
 
-lemma norm_subtype_continuous_le (K : submodule 𝕜 E) : ∥K.subtype_continuous∥ ≤ 1 :=
-K.subtype_isometry.norm_to_continuous_linear_map_le
+lemma norm_subtypeL_le (K : submodule 𝕜 E) : ∥K.subtypeL∥ ≤ 1 :=
+K.subtypeₗᵢ.norm_to_continuous_linear_map_le
 
-lemma norm_subtype_continuous (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtype_continuous∥ = 1 :=
-K.subtype_isometry.norm_to_continuous_linear_map
+lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtypeL∥ = 1 :=
+K.subtypeₗᵢ.norm_to_continuous_linear_map
 
 end submodule
 

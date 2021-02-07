@@ -7,7 +7,8 @@ Authors: Kenny Lau
 import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
-import algebra.punit_instances -- just for ℤ[pempty] ≃+ punit
+import algebra.module.basic -- we use the ℤ-module structure on an add_comm_group in punit_equiv
+
 /-!
 # Free abelian groups
 
@@ -419,12 +420,6 @@ instance pempty_unique : unique (free_abelian_group pempty) :=
     (λ x, pempty.elim x)
     (λ x, pempty.elim x)
     (by { rintros - - rfl rfl, simp })  }
-
-
-/-- The free abelian group on the empty type is the trivial group. -/
-def pempty_equiv : free_abelian_group pempty ≃+ unit :=
-{ map_add' := λ _ _, unit.ext,
-  ..equiv_punit_of_unique }
 
 example (T : Type*) [unique T] (C : T → Prop) (h : C (inhabited.default T))
   (x : T) : C x := by refine unique.forall_iff.mpr h x

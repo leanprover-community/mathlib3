@@ -113,11 +113,11 @@ begin
 end
 
 /-- Shows that `e^{x} * e^{-x} = 1` -/
-theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom (exp A) = 1 :=
+theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom A (exp A) = 1 :=
 begin
   rw eval_neg_hom,
-  conv_lhs { congr, rw ←eval_mul_hom_one (exp A), },
-  rw exp_mul_exp_eq_exp_add, simp, rw eval_mul_hom_zero, simp,
+  have f : exp A = eval_mul_hom _ (exp A) := by { rw eval_mul_hom_one, simp only [id_apply], },
+  conv_lhs { congr, rw f, }, rw exp_mul_exp_eq_exp_add, simp,
 end
 
 end power_series

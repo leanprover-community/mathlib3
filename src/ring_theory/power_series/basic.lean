@@ -1025,15 +1025,17 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
               power_series.coeff_mul, finset.mul_sum], apply sum_congr rfl, norm_num,
               intros b c H, rw [<-H, pow_add], ring, }, }
 
-lemma eval_mul_hom_zero (f : power_series R) : eval_mul_hom 0 f = C R (constant_coeff  R f) :=
+@[simp] lemma eval_mul_hom_zero : eval_mul_hom 0 = (C R).comp (constant_coeff R) :=
 begin
-  rw [eval_mul_hom, ring_hom.coe_mk], ext, rw [power_series.coeff_mk _ _, coeff_C],
-  split_ifs, { rw h, simp only [one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
+  ext, simp only [function.comp_app, ring_hom.coe_comp], rw [eval_mul_hom, ring_hom.coe_mk],
+  rw [power_series.coeff_mk _ _, coeff_C], split_ifs,
+  { rw h, simp only [one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
   { rw [zero_pow' n h, zero_mul], },
 end
 
-lemma eval_mul_hom_one (f : power_series R) : eval_mul_hom 1 f = f :=
-by { rw eval_mul_hom, ext, simp only [one_pow, coeff_mk, one_mul, ring_hom.coe_mk], }
+@[simp] lemma eval_mul_hom_one : eval_mul_hom 1 = ring_hom.id (power_series R) :=
+by { ext, simp only [ring_hom.id_apply], rw eval_mul_hom,
+  simp only [one_pow, coeff_mk, one_mul, ring_hom.coe_mk], }
 
 section trunc
 
@@ -1158,22 +1160,22 @@ mv_power_series.mul_inv_of_unit φ u $ h
 end ring
 
 section comm_ring
-variables [comm_ring R]
+variables (A : Type*) [comm_ring A]
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
-noncomputable def eval_neg_hom : power_series R →+* power_series R :=
-eval_mul_hom (-1 : R)
+noncomputable def eval_neg_hom : power_series A →+* power_series A :=
+eval_mul_hom (-1 : A)
 
-@[simp] lemma eval_mul_hom_neg_one_X : eval_mul_hom (-1 : R) X = -X :=
+@[simp] lemma eval_mul_hom_neg_one_X : eval_mul_hom (-1 : A) X = -X :=
 begin
   ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
   { rw [h, eval_mul_hom], simp only [coeff_mk, mul_one, ring_hom.coe_mk, coeff_one_X, pow_one], },
-  { rw eval_mul_hom, simp, suffices f : (coeff R n) X = 0, {rw f, rw mul_zero,},
+  { rw eval_mul_hom, simp, suffices f : (coeff A n) X = 0, {rw f, rw mul_zero,},
     rw coeff_X, split_ifs, refl, },
 end
 
-@[simp] lemma eval_neg_hom_X : @eval_neg_hom R _ X = -X :=
-eval_mul_hom_neg_one 
+@[simp] lemma eval_neg_hom_X : eval_neg_hom A X = -X :=
+eval_mul_hom_neg_one_X A
 
 end comm_ring
 

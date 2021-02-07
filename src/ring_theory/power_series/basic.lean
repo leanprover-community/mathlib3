@@ -10,7 +10,6 @@ import ring_theory.algebra_tower
 import tactic.linarith
 import algebra.big_operators.nat_antidiagonal
 
-
 /-!
 # Formal power series
 

@@ -220,7 +220,7 @@ of the difference.
 (We could work over `ℤ[2^(1/2), 2^(-1/2)]` if we really wanted to!)
 -/
 lemma tsirelson_inequality
-  [ordered_comm_ring R] [star_ordered_ring R]
+  [ordered_ring R] [star_ordered_ring R]
   [algebra ℝ R] [ordered_semimodule ℝ R] [star_algebra ℝ R]
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=

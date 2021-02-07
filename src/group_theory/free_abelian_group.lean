@@ -334,6 +334,8 @@ end
 lemma map_id : map id = add_monoid_hom.id (free_abelian_group α) :=
 eq.symm $ lift.ext _ _ $ λ x, lift.unique of (add_monoid_hom.id _) $ λ y, add_monoid_hom.id_apply _
 
+lemma map_id_apply (x : free_abelian_group α) : map id x = x := by {rw map_id, refl }
+
 lemma map_comp {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
 eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
 

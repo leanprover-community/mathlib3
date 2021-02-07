@@ -83,7 +83,7 @@ def mul_semiring_action.to_semiring_hom [mul_semiring_action M R] (x : M) : R �
   map_mul' := smul_mul' x,
   .. distrib_mul_action.to_add_monoid_hom M R x }
 
-theorem injective_to_semiring_hom [faithful_mul_semiring_action M R] :
+theorem to_semiring_hom_injective [faithful_mul_semiring_action M R] :
   function.injective (mul_semiring_action.to_semiring_hom M R) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul R $ λ r, ring_hom.ext_iff.1 h r
 

@@ -632,11 +632,11 @@ begin
   { apply σa.swap_induction_on _ (λ σa' a₁ a₂ ha ih, _),
     { simp },
     { rw [←one_mul (1 : perm β), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_swap_one,
-          sign_swap ha, sign_swap (sum.injective_inl.ne_iff.mpr ha)], }, },
+          sign_swap ha, sign_swap (sum.inl_injective.ne_iff.mpr ha)], }, },
   { apply σb.swap_induction_on _ (λ σb' b₁ b₂ hb ih, _),
     { simp },
     { rw [←one_mul (1 : perm α), ←sum_congr_mul, sign_mul, sign_mul, ih, sum_congr_one_swap,
-          sign_swap hb, sign_swap (sum.injective_inr.ne_iff.mpr hb)], }, }
+          sign_swap hb, sign_swap (sum.inr_injective.ne_iff.mpr hb)], }, }
 end
 
 @[simp] lemma sign_subtype_congr {p : α → Prop} [decidable_pred p]

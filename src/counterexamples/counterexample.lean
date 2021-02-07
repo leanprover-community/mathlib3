@@ -3,11 +3,8 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.char_zero
-import data.real.basic
 import data.zmod.basic
 import ring_theory.subsemiring
-import tactic
 /-!
 Reference:
 https://
@@ -31,14 +28,13 @@ instance : preorder K :=
     rcases xy with (rfl | _), { apply yz },
     rcases yz with (rfl | _), { right, apply xy },
     right,
-    linarith
+    exact xy.trans (le_trans ((le_add_iff_nonneg_right _).mpr zero_le_one) yz)
   end }
 
 /-- A slightly different example. -/
 @[derive [comm_semiring]]
 def L : Type := subsemiring.closure ({(1, 0), (1, 1)} : set (ℕ × zmod 2))
 
---lemma ssr : ((L : set (ℕ × zmod 2)) : subsemiring (ℕ × zmod 2)) :=
 /-- The preorder relation on `ℕ × ℤ/2ℤ` where we only compare the first coordinate,
 except that we leave incomparable the two elements with the same first component.
 For instance, `∀ α, β ∈ ℤ/2ℤ`, the inequality `(1,α) ≤ (2,β)` holds,
@@ -336,8 +332,7 @@ lemma add_one_one (n : ℕ) : ((n.succ, 1) : ℕ × zmod 2) = (n, 1) + (1, 0) :=
 
 
 lemma L_mem_n_zero (l : ℕ × zmod 2) (l0 : l.2 = 0) :
-  l ∈ --subsemiring.closure ({(1, 0), (1, 1)} : set (ℕ × zmod 2)) :=
-  {a : ℕ × zmod 2 | ∃ l : L, a = ↑l } :=
+  l ∈ {a : ℕ × zmod 2 | ∃ l : L, a = ↑l } :=
 begin
   rcases l with ⟨n, n2⟩,
   simp only at l0,

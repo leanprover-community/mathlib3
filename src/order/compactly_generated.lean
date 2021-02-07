@@ -48,9 +48,11 @@ This is demonstrated by means of the following four lemmas:
 complete lattice, well-founded, compact
 -/
 
+variables {α : Type*} [complete_lattice α]
+
 namespace complete_lattice
 
-variables (α : Type*) [complete_lattice α]
+variables (α)
 
 /-- A compactness property for a complete lattice is that any `sup`-closed non-empty subset
 contains its `Sup`. -/
@@ -248,7 +250,7 @@ class is_compactly_generated (α : Type*) [complete_lattice α] : Prop :=
   ∀ (x : α), ∃ (s : set α), (∀ x ∈ s, complete_lattice.is_compact_element x) ∧ Sup s = x)
 
 section
-variables {α : Type*} [complete_lattice α] [is_compactly_generated α] {a b : α} {s : set α}
+variables {α} [is_compactly_generated α] {a b : α} {s : set α}
 
 @[simp]
 lemma Sup_compact_le_eq (b) : Sup {c : α | complete_lattice.is_compact_element c ∧ c ≤ b} = b :=
@@ -342,7 +344,6 @@ by rw set.sUnion_eq_Union; exact
 end
 
 namespace complete_lattice
-variables {α : Type*} [complete_lattice α]
 
 lemma compactly_generated_of_well_founded (h : well_founded ((>) : α → α → Prop)) :
   is_compactly_generated α :=
@@ -374,7 +375,7 @@ end⟩
 end complete_lattice
 
 section
-variables {α : Type*} [complete_lattice α] [is_modular_lattice α] [is_compactly_generated α]
+variables [is_modular_lattice α] [is_compactly_generated α]
 
 @[priority 100]
 instance is_atomic_of_is_complemented [is_complemented α] : is_atomic α :=
@@ -415,8 +416,7 @@ instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α 
 end, λ _, and.left⟩⟩
 
 /-- See Theorem 6.6, Călugăreanu -/
-@[priority 200]
-instance is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
+theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
 ⟨λ b, begin
   rcases zorn.zorn_subset
     {s : set α | complete_lattice.independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _ with
@@ -464,6 +464,15 @@ instance is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α 
         refine hc2.directed_on.mono (λ s t, Sup_le_Sup) } },
     { rcases set.mem_sUnion.1 ha with ⟨s, sc, as⟩,
       exact (hc1 sc).2.2 a as } }
+end⟩
+
+theorem is_complemented_iff_is_atomistic : is_complemented α ↔ is_atomistic α :=
+⟨λ inst, begin
+  haveI := inst,
+  exact is_atomistic_of_is_complemented,
+end, λ inst, begin
+  haveI := inst,
+  exact is_complemented_of_is_atomistic,
 end⟩
 
 end

@@ -28,10 +28,10 @@ Measures on `α` form a complete lattice, and are closed under scalar multiplica
 We introduce the following typeclasses for measures:
 
 * `probability_measure μ`: `μ univ = 1`;
-* `finite_measure μ`: `μ univ < ⊤`;
+* `finite_measure μ`: `μ univ < ∞`;
 * `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
   where `μ` is finite;
-* `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ⊤`;
+* `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
   `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
 
@@ -194,7 +194,7 @@ lemma measure_mono (h : s₁ ⊆ s₂) : μ s₁ ≤ μ s₂ := μ.mono h
 lemma measure_mono_null (h : s₁ ⊆ s₂) (h₂ : μ s₂ = 0) : μ s₁ = 0 :=
 nonpos_iff_eq_zero.1 $ h₂ ▸ measure_mono h
 
-lemma measure_mono_top (h : s₁ ⊆ s₂) (h₁ : μ s₁ = ⊤) : μ s₂ = ⊤ :=
+lemma measure_mono_top (h : s₁ ⊆ s₂) (h₁ : μ s₁ = ∞) : μ s₂ = ∞ :=
 top_unique $ h₁ ▸ measure_mono h
 
 lemma exists_measurable_superset (μ : measure α) (s : set α) :
@@ -242,7 +242,7 @@ begin
 end
 
 lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
-  (hfin : ∀ i ∈ s, μ (f i) < ⊤) : μ (⋃ i ∈ s, f i) < ⊤ :=
+  (hfin : ∀ i ∈ s, μ (f i) < ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
   convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
   { ext, rw [finite.mem_to_finset] },
@@ -410,14 +410,14 @@ by simp only [← measure_bUnion_finset (pairwise_on_disjoint_fiber _ _) hf,
   finset.set_bUnion_preimage_singleton]
 
 lemma measure_diff (h : s₂ ⊆ s₁) (h₁ : measurable_set s₁) (h₂ : measurable_set s₂)
-  (h_fin : μ s₂ < ⊤) :
+  (h_fin : μ s₂ < ∞) :
   μ (s₁ \ s₂) = μ s₁ - μ s₂ :=
 begin
   refine (ennreal.add_sub_self' h_fin).symm.trans _,
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
-lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s < ⊤) : μ (sᶜ) = μ univ - μ s :=
+lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s < ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
 lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, measurable_set (t i))
@@ -492,7 +492,7 @@ end
 sets is the infimum of the measures. -/
 lemma measure_Inter_eq_infi [encodable ι] {s : ι → set α}
   (h : ∀ i, measurable_set (s i)) (hd : directed (⊇) s)
-  (hfin : ∃ i, μ (s i) < ⊤) :
+  (hfin : ∃ i, μ (s i) < ∞) :
   μ (⋂ i, s i) = (⨅ i, μ (s i)) :=
 begin
   rcases hfin with ⟨k, hk⟩,
@@ -536,7 +536,7 @@ end
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
 sets is the limit of the measures. -/
 lemma tendsto_measure_Inter {s : ℕ → set α}
-  (hs : ∀ n, measurable_set (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) < ⊤) :
+  (hs : ∀ n, measurable_set (s n)) (hm : ∀ ⦃n m⦄, n ≤ m → s m ⊆ s n) (hf : ∃ i, μ (s i) < ∞) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
   rw measure_Inter_eq_infi hs (directed_of_sup hm) hf,
@@ -546,7 +546,7 @@ end
 /-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
   ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, measurable_set (s i))
-  (hs' : ∑' i, μ (s i) ≠ ⊤) : μ (limsup at_top s) = 0 :=
+  (hs' : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
 begin
   rw limsup_eq_infi_supr_of_nat',
   -- We will show that both `μ (⨅ n, ⨆ i, s (i + n))` and `0` are the limit of `μ (⊔ i, s (i + n))`
@@ -1116,7 +1116,7 @@ alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_un
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
   (h_gen : ‹_› = generate_from S) (hc : countable T)
   (h_inter : is_pi_system S)
-  (hm : ∀ t ∈ T, measurable_set t) (hU : ⋃₀ T = univ) (htop : ∀ t ∈ T, μ t < ⊤)
+  (hm : ∀ t ∈ T, measurable_set t) (hU : ⋃₀ T = univ) (htop : ∀ t ∈ T, μ t < ∞)
   (ST_eq : ∀ (t ∈ T) (s ∈ S), μ (s ∩ t) = ν (s ∩ t)) (T_eq : ∀ t ∈ T, μ t = ν t) :
   μ = ν :=
 begin
@@ -1143,7 +1143,7 @@ end
 lemma ext_of_generate_from_of_cover_subset {S T : set (set α)}
   (h_gen : ‹_› = generate_from S)
   (h_inter : is_pi_system S)
-  (h_sub : T ⊆ S) (hc : countable T) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s < ⊤)
+  (h_sub : T ⊆ S) (hc : countable T) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s < ∞)
   (h_eq : ∀ s ∈ S, μ s = ν s) :
   μ = ν :=
 begin
@@ -1160,7 +1160,7 @@ end
   `finite_spanning_sets_in.ext` is a reformulation of this lemma. -/
 lemma ext_of_generate_from_of_Union (C : set (set α)) (B : ℕ → set α)
   (hA : ‹_› = generate_from C) (hC : is_pi_system C) (h1B : (⋃ i, B i) = univ)
-  (h2B : ∀ i, B i ∈ C) (hμB : ∀ i, μ (B i) < ⊤) (h_eq : ∀ s ∈ C, μ s = ν s) : μ = ν :=
+  (h2B : ∀ i, B i ∈ C) (hμB : ∀ i, μ (B i) < ∞) (h_eq : ∀ s ∈ C, μ s = ν s) : μ = ν :=
 begin
   refine ext_of_generate_from_of_cover_subset hA hC _ (countable_range B) h1B _ h_eq,
   { rintro _ ⟨i, rfl⟩, apply h2B },
@@ -1264,7 +1264,7 @@ lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : fini
 by rw [← count_apply_finset, finite.coe_to_finset]
 
 /-- `count` measure evaluates to infinity at infinite sets. -/
-lemma count_apply_infinite (hs : s.infinite) : count s = ⊤ :=
+lemma count_apply_infinite (hs : s.infinite) : count s = ∞ :=
 begin
   refine top_unique (le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n, _),
   rcases hs.exists_subset_card_eq n with ⟨t, ht, rfl⟩,
@@ -1274,7 +1274,7 @@ begin
   ... ≤ count s : measure_mono ht
 end
 
-@[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ⊤ ↔ s.infinite :=
+@[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ∞ ↔ s.infinite :=
 begin
   by_cases hs : s.finite,
   { simp [set.infinite, hs, count_apply_finite] },
@@ -1282,8 +1282,8 @@ begin
     simp [hs, count_apply_infinite] }
 end
 
-@[simp] lemma count_apply_lt_top [measurable_singleton_class α] : count s < ⊤ ↔ s.finite :=
-calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
+@[simp] lemma count_apply_lt_top [measurable_singleton_class α] : count s < ∞ ↔ s.finite :=
+calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
 
@@ -1316,19 +1316,19 @@ alias absolutely_continuous_of_eq ← eq.absolutely_continuous
 
 /-- The filter of sets `s` such that `sᶜ` has finite measure. -/
 def cofinite (μ : measure α) : filter α :=
-{ sets := {s | μ sᶜ < ⊤},
+{ sets := {s | μ sᶜ < ∞},
   univ_sets := by simp,
   inter_sets := λ s t hs ht, by { simp only [compl_inter, mem_set_of_eq],
     calc μ (sᶜ ∪ tᶜ) ≤ μ sᶜ + μ tᶜ : measure_union_le _ _
-                ... < ⊤ : ennreal.add_lt_top.2 ⟨hs, ht⟩ },
+                ... < ∞ : ennreal.add_lt_top.2 ⟨hs, ht⟩ },
   sets_of_superset := λ s t hs hst, lt_of_le_of_lt (measure_mono $ compl_subset_compl.2 hst) hs }
 
-lemma mem_cofinite : s ∈ μ.cofinite ↔ μ sᶜ < ⊤ := iff.rfl
+lemma mem_cofinite : s ∈ μ.cofinite ↔ μ sᶜ < ∞ := iff.rfl
 
-lemma compl_mem_cofinite : sᶜ ∈ μ.cofinite ↔ μ s < ⊤ :=
+lemma compl_mem_cofinite : sᶜ ∈ μ.cofinite ↔ μ s < ∞ :=
 by rw [mem_cofinite, compl_compl]
 
-lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔ μ {x | ¬p x} < ⊤ := iff.rfl
+lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔ μ {x | ¬p x} < ∞ := iff.rfl
 
 end measure
 open measure
@@ -1412,7 +1412,7 @@ by simp only [ae_restrict_eq hs, exists_prop, mem_principal_sets, mem_inf_sets];
 /-- A version of the Borel-Cantelli lemma: if `sᵢ` is a sequence of measurable sets such that
 `∑ μ sᵢ` exists, then for almost all `x`, `x` does not belong to almost all `sᵢ`. -/
 lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∀ i, measurable_set (s i))
-  (hs' : ∑' i, μ (s i) ≠ ⊤) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
+  (hs' : ∑' i, μ (s i) ≠ ∞) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
 begin
   refine measure_mono_null _ (measure_limsup_eq_zero hs hs'),
   rw ←set.le_eq_subset,
@@ -1458,10 +1458,10 @@ class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 
 instance measure.dirac.probability_measure {x : α} : probability_measure (dirac x) :=
 ⟨dirac_apply_of_mem $ mem_univ x⟩
 
-/-- A measure `μ` is called finite if `μ univ < ⊤`. -/
-class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ⊤)
+/-- A measure `μ` is called finite if `μ univ < ∞`. -/
+class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
 
-instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ⊤)] :
+instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   finite_measure (μ.restrict s) :=
 ⟨by simp [hs.elim]⟩
 
@@ -1477,10 +1477,10 @@ export probability_measure (measure_univ) has_no_atoms (measure_singleton)
 
 attribute [simp] measure_singleton
 
-lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s < ⊤ :=
+lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s < ∞ :=
 (measure_mono (subset_univ s)).trans_lt finite_measure.measure_univ_lt_top
 
-lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s ≠ ⊤ :=
+lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
 
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
@@ -1568,7 +1568,7 @@ namespace measure
 
 /-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
 Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
-def finite_at_filter (μ : measure α) (f : filter α) : Prop := ∃ s ∈ f, μ s < ⊤
+def finite_at_filter (μ : measure α) (f : filter α) : Prop := ∃ s ∈ f, μ s < ∞
 
 lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filter α) :
   μ.finite_at_filter f :=
@@ -1576,7 +1576,7 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
 
 lemma finite_at_filter.exists_mem_basis {μ : measure α} {f : filter α} (hμ : finite_at_filter μ f)
   {p : ι → Prop} {s : ι → set α} (hf : f.has_basis p s) :
-  ∃ i (hi : p i), μ (s i) < ⊤ :=
+  ∃ i (hi : p i), μ (s i) < ∞ :=
 (hf.exists_iff (λ s t hst ht, (measure_mono hst).trans_lt ht)).1 hμ
 
 lemma finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
@@ -1591,14 +1591,14 @@ lemma finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
 structure finite_spanning_sets_in (μ : measure α) (C : set (set α)) :=
 (set : ℕ → set α)
 (set_mem : ∀ i, set i ∈ C)
-(finite : ∀ i, μ (set i) < ⊤)
+(finite : ∀ i, μ (set i) < ∞)
 (spanning : (⋃ i, set i) = univ)
 
 end measure
 open measure
 
 /-- A measure `μ` is called σ-finite if there is a countable collection of sets
-  `{ A i | i ∈ ℕ }` such that `μ (A i) < ⊤` and `⋃ i, A i = s`. -/
+  `{ A i | i ∈ ℕ }` such that `μ (A i) < ∞` and `⋃ i, A i = s`. -/
 class sigma_finite (μ : measure α) : Prop :=
 (out' : nonempty (μ.finite_spanning_sets_in {s | measurable_set s}))
 
@@ -1630,7 +1630,7 @@ measurable_set.Union $ λ j, measurable_set.Union_Prop $
   λ hij, μ.to_finite_spanning_sets_in.set_mem j
 
 lemma measure_spanning_sets_lt_top (μ : measure α) [sigma_finite μ] (i : ℕ) :
-  μ (spanning_sets μ i) < ⊤ :=
+  μ (spanning_sets μ i) < ∞ :=
 measure_bUnion_lt_top (finite_le_nat i) $ λ j _, μ.to_finite_spanning_sets_in.finite j
 
 lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
@@ -1680,10 +1680,10 @@ lemma sigma_finite_of_not_nonempty (μ : measure α) (hα : ¬ nonempty α) : si
 ⟨⟨⟨λ _, ∅, λ n, measurable_set.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩⟩
 
 lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
-  (hμ : ∀ s ∈ S, μ s < ⊤)  (hU : ⋃₀ S = univ) :
+  (hμ : ∀ s ∈ S, μ s < ∞)  (hU : ⋃₀ S = univ) :
   sigma_finite μ :=
 begin
-  obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ⊤) ∧ (⋃ n, s n) = univ,
+  obtain ⟨s, hμ, hs⟩ : ∃ s : ℕ → set α, (∀ n, μ (s n) < ∞) ∧ (⋃ n, s n) = univ,
     from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
   refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
@@ -1738,7 +1738,7 @@ lemma measure.finite_at_nhds [topological_space α] (μ : measure α)
 locally_finite_measure.finite_at_nhds x
 
 lemma measure.smul_finite {α : Type*} [measurable_space α] (μ : measure α) [finite_measure μ]
-  {c : ℝ≥0∞} (hc : c < ⊤) :
+  {c : ℝ≥0∞} (hc : c < ∞) :
   finite_measure (c • μ) :=
 begin
   refine ⟨_⟩,
@@ -1748,7 +1748,7 @@ end
 
 lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure α)
   [locally_finite_measure μ] (x : α) :
-  ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ⊤ :=
+  ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
 
@@ -1833,7 +1833,7 @@ protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.fini
   ν.finite_at_filter g → μ.finite_at_filter f :=
 λ h, (h.filter_mono hf).measure_mono hμ
 
-protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.lift' powerset, μ s < ⊤ :=
+protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.lift' powerset, μ s < ∞ :=
 (eventually_lift'_powerset' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
 
 lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite_at_filter (f ⊔ g) :=
@@ -1847,7 +1847,7 @@ lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_fi
   μ.finite_at_filter (𝓝[s] x) :=
 (finite_at_nhds μ x).inf_of_left
 
-@[simp] lemma finite_at_principal : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
+@[simp] lemma finite_at_principal : μ.finite_at_filter (𝓟 s) ↔ μ s < ∞ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
 
 /-! ### Subtraction of measures -/
@@ -1857,7 +1857,7 @@ It is the equivalent of `(μ - ν) ⊔ 0` if `μ` and `ν` were signed measures.
 Compare with `ennreal.has_sub`.
 Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0`, and
 `ν {2} = 2`, `ν {1} = 0`, then `(μ - ν) {1, 2} = 2`. However, if `μ ≤ ν`, and
-`ν univ ≠ ⊤`, then `(μ - ν) + ν = μ`. -/
+`ν univ ≠ ∞`, then `(μ - ν) + ν = μ`. -/
 noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) :=
 ⟨λ μ ν, Inf {τ | μ ≤ τ + ν} ⟩
 
@@ -2387,11 +2387,11 @@ namespace is_compact
 variables [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
 
 lemma finite_measure_of_nhds_within (hs : is_compact s) :
-  (∀ a ∈ s, μ.finite_at_filter (𝓝[s] a)) → μ s < ⊤ :=
+  (∀ a ∈ s, μ.finite_at_filter (𝓝[s] a)) → μ s < ∞ :=
 by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
   using hs.compl_mem_sets_of_nhds_within
 
-lemma finite_measure [locally_finite_measure μ] (hs : is_compact s) : μ s < ⊤ :=
+lemma finite_measure [locally_finite_measure μ] (hs : is_compact s) : μ s < ∞ :=
 hs.finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
@@ -2403,6 +2403,6 @@ end is_compact
 lemma metric.bounded.finite_measure [metric_space α] [proper_space α]
   [measurable_space α] {μ : measure α} [locally_finite_measure μ] {s : set α}
   (hs : metric.bounded s) :
-  μ s < ⊤ :=
+  μ s < ∞ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
   ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).finite_measure

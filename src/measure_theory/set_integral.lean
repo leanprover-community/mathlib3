@@ -125,7 +125,7 @@ namespace measure_theory
 section normed_group
 
 lemma has_finite_integral_restrict_of_bounded [normed_group E] {f : α → E} {s : set α}
-  {μ : measure α} {C}  (hs : μ s < ⊤) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
+  {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
   has_finite_integral f (μ.restrict s) :=
 by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
@@ -149,7 +149,7 @@ by rw [integrable_on, measure.restrict_univ]
 
 lemma integrable_on_zero : integrable_on (λ _, (0:E)) s μ := integrable_zero _ _ _
 
-lemma integrable_on_const {C : E} : integrable_on (λ _, C) s μ ↔ C = 0 ∨ μ s < ⊤ :=
+lemma integrable_on_const {C : E} : integrable_on (λ _, C) s μ ↔ C = 0 ∨ μ s < ∞ :=
 integrable_const_iff.trans $ by rw [measure.restrict_apply_univ]
 
 lemma integrable_on.mono (h : integrable_on f t ν) (hs : s ⊆ t) (hμ : μ ≤ ν) :
@@ -336,7 +336,7 @@ of their images is a subset of `{0}`).
 -/
 @[elab_as_eliminator]
 lemma integrable.induction (P : (α → E) → Prop)
-  (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ⊤ → P (s.indicator (λ _, c)))
+  (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
   (h_sum : ∀ ⦃f g : α → E⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → integrable f μ → integrable g μ →
     P f → P g → P (f + g))
   (h_closed : is_closed {f : α →₁[μ] E | P f} )
@@ -350,7 +350,7 @@ begin
       by_cases hc : c = 0,
       { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, simp [const] },
       apply h_ind c hs,
-      have : (nnnorm c : ℝ≥0∞) * μ s < ⊤,
+      have : (nnnorm c : ℝ≥0∞) * μ s < ∞,
       { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ℝ≥0∞)) (const α c) s,
         dsimp only at this,
         have h' := h.has_finite_integral,
@@ -428,7 +428,7 @@ begin
   exact measure.map_mono hg measure.restrict_le_self
 end
 
-lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)
+lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 begin
@@ -437,7 +437,7 @@ begin
   exact norm_integral_le_of_norm_le_const hC
 end
 
-lemma norm_set_integral_le_of_norm_le_const_ae' {C : ℝ} (hs : μ s < ⊤)
+lemma norm_set_integral_le_of_norm_le_const_ae' {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) (hfm : ae_measurable f (μ.restrict s)) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 begin
@@ -453,17 +453,17 @@ begin
   rwa h1
 end
 
-lemma norm_set_integral_le_of_norm_le_const_ae'' {C : ℝ} (hs : μ s < ⊤) (hsm : measurable_set s)
+lemma norm_set_integral_le_of_norm_le_const_ae'' {C : ℝ} (hs : μ s < ∞) (hsm : measurable_set s)
   (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae hs $ by rwa [ae_restrict_eq hsm, eventually_inf_principal]
 
-lemma norm_set_integral_le_of_norm_le_const {C : ℝ} (hs : μ s < ⊤)
+lemma norm_set_integral_le_of_norm_le_const {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ x ∈ s, ∥f x∥ ≤ C) (hfm : ae_measurable f (μ.restrict s)) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae' hs (eventually_of_forall hC) hfm
 
-lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ⊤) (hsm : measurable_set s)
+lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ∞) (hsm : measurable_set s)
   (hC : ∀ x ∈ s, ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae'' hs hsm $ eventually_of_forall hC

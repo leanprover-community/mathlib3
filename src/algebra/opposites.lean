@@ -194,7 +194,7 @@ variable {α}
   unop (c • a) = c • unop a := rfl
 
 lemma semiconj_by.op [has_mul α] {a x y : α} (h : semiconj_by a x y) :
-semiconj_by (op a) (op y) (op x) :=
+  semiconj_by (op a) (op y) (op x) :=
 begin
   dunfold semiconj_by,
   rw [← op_mul, ← op_mul, h.eq]
@@ -202,8 +202,7 @@ end
 
 lemma commute.op [has_mul α] {x y : α} (h : commute x y) : commute (op x) (op y) :=
 begin
-  dunfold commute at h,
-  dunfold commute,
+  dunfold commute at h \|-,
   exact semiconj_by.op h
 end
 

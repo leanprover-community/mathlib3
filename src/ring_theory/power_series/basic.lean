@@ -1164,13 +1164,16 @@ variables [comm_ring R]
 noncomputable def eval_neg_hom : power_series R →+* power_series R :=
 eval_mul_hom (-1 : R)
 
-@[simp] lemma eval_neg_hom_X : @eval_neg_hom R _ X = -X :=
+@[simp] lemma eval_mul_hom_neg_one : eval_mul_hom (-1 : R) X = -X :=
 begin
-  rw eval_neg_hom, ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
+  ext, simp only [linear_map.map_neg], rw coeff_X, split_ifs,
   { rw [h, eval_mul_hom], simp only [coeff_mk, mul_one, ring_hom.coe_mk, coeff_one_X, pow_one], },
   { rw eval_mul_hom, simp, suffices f : (coeff R n) X = 0, {rw f, rw mul_zero,},
     rw coeff_X, split_ifs, refl, },
 end
+
+@[simp] lemma eval_neg_hom_X : @eval_neg_hom R _ X = -X :=
+eval_mul_hom_neg_one 
 
 end comm_ring
 

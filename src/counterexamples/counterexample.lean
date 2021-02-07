@@ -20,6 +20,9 @@ def K : Type := subsemiring.closure ({1.5} : set ℚ)
 
 instance : has_coe K ℚ := ⟨λ x, x.1⟩
 
+instance inhabited_K : inhabited K :=
+⟨0⟩
+
 instance : preorder K :=
 { le := λ x y, x = y ∨ (x : ℚ) + 1 ≤ (y : ℚ),
   le_refl := λ x, or.inl rfl,
@@ -35,7 +38,7 @@ instance : preorder K :=
 @[derive [comm_semiring]]
 def L : Type := subsemiring.closure ({(1, 0), (1, 1)} : set (ℕ × zmod 2))
 
-instance inhabited : inhabited L :=
+instance inhabited_L : inhabited L :=
 ⟨0⟩
 
 /-- The preorder relation on `ℕ × ℤ/2ℤ` where we only compare the first coordinate,
@@ -58,12 +61,7 @@ instance : preorder (ℕ × zmod 2) :=
 /-- `L` is a subtype of `ℕ × ℤ/2ℤ`. -/
 instance : has_coe L (ℕ × zmod 2) := ⟨λ x, x.1⟩
 
-@[simp] lemma coe_add (a b : L) : ((a + b) : ℕ × zmod 2) = a.val + b.val := rfl
-
-@[simp] lemma coe_add_u (a b : L) : ((a + b) : ℕ × zmod 2) = (a : ℕ × zmod 2) + (b : ℕ × zmod 2) :=
-rfl
-
-@[simp] lemma coe_add_val (a b : L) : (a + b).val = a.val + b.val := rfl
+lemma coe_add_val (a b : L) : (a + b).val = a.val + b.val := rfl
 
 instance : preorder L :=
 { le := λ x y, ( x = y ∨ (x : ℕ × zmod 2) < y ),
@@ -183,7 +181,7 @@ begin
   { push_neg at ab1,
     exact ab1.1.elim rfl },
   { unfold_coes,
-    simpa }
+    simpa [coe_add_val] }
 end
 
 lemma le_of_add_le_add_left : ∀ (a b c : L), a + b ≤ a + c → b ≤ c :=

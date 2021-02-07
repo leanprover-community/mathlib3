@@ -15,7 +15,8 @@ In this file we prove the following facts:
 * `convex.norm_image_sub_le_of_norm_deriv_le` : if `f` is differentiable on a convex set `s`
   and the norm of its derivative is bounded by `C`, then `f` is Lipschitz continuous on `s` with
   constant `C`; also a variant in which what is bounded by `C` is the norm of the difference of the
-  derivative from a fixed linear map.
+  derivative from a fixed linear map. This lemma and its versions are formulated using `is_R_or_C`,
+  so they work both for real and complex derivatives.
 
 * `image_le_of*`, `image_norm_le_of_*` : several similar lemmas deducing `f x ≤ B x` or
   `∥f x∥ ≤ B x` from upper estimates on `f'` or `∥f'∥`, respectively. These lemmas differ by
@@ -363,8 +364,7 @@ begin
   { assume x,
     simpa using (has_deriv_at_const x C).mul ((has_deriv_at_id x).sub (has_deriv_at_const x a)) },
   convert image_norm_le_of_norm_deriv_right_le_deriv_boundary hg hg' _ hB bound,
-  { simp only [g, B] },
-  { simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero] }
+  simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero]
 end
 
 /-- A function on `[a, b]` with the norm of the derivative within `[a, b]`
@@ -463,7 +463,14 @@ end
 
 end
 
-/-! ### Vector-valued functions `f : E → F` -/
+/-!
+### Vector-valued functions `f : E → G`
+
+Theorems in this section work both for real and complex differentiable functions. We use assumptions
+`[is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 G]` to achieve this result. For the domain `E` we
+also assume `[normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E]` to have a notion of a `convex` set. In both
+interesting cases `𝕜 = ℝ` and `𝕜 = ℂ` the assumption `[is_scalar_tower ℝ 𝕜 E]` is satisfied
+automatically. -/
 
 section
 

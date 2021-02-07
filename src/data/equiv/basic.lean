@@ -751,6 +751,63 @@ def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
   (a : α) (h : ¬ p a) :
   (sum_compl p).symm a = sum.inr ⟨a, h⟩ := dif_neg h
 
+open equiv
+
+variables {ε : Type*} {p : ε → Prop} [decidable_pred p]
+variables (ep ep' : perm {a // p a}) (en en' : perm {a // ¬ p a})
+
+/-- Combining permutations on `ε` that permute only inside or outside the subtype
+split induced by `p : ε → Prop` constructs a permutation on `ε`. -/
+def perm.subtype_congr : equiv.perm ε :=
+perm_congr (sum_compl p) (sum_congr ep en)
+
+lemma perm.subtype_congr.apply (a : ε) :
+  ep.subtype_congr en a = if h : p a then ep ⟨a, h⟩ else en ⟨a, h⟩ :=
+by { by_cases h : p a; simp [perm.subtype_congr, h] }
+
+@[simp] lemma perm.subtype_congr.left_apply {a : ε} (h : p a) :
+  ep.subtype_congr en a = ep ⟨a, h⟩ :=
+by simp [perm.subtype_congr.apply, h]
+
+@[simp] lemma perm.subtype_congr.left_apply_subtype (a : {a // p a}) :
+  ep.subtype_congr en a = ep a :=
+by { convert perm.subtype_congr.left_apply _ _ a.property, simp }
+
+@[simp] lemma perm.subtype_congr.right_apply {a : ε} (h : ¬ p a) :
+  ep.subtype_congr en a = en ⟨a, h⟩ :=
+by simp [perm.subtype_congr.apply, h]
+
+@[simp] lemma perm.subtype_congr.right_apply_subtype (a : {a // ¬ p a}) :
+  ep.subtype_congr en a = en a :=
+by { convert perm.subtype_congr.right_apply _ _ a.property, simp }
+
+@[simp] lemma perm.subtype_congr.refl :
+  perm.subtype_congr (equiv.refl {a // p a}) (equiv.refl {a // ¬ p a}) = equiv.refl ε :=
+by { ext x, by_cases h : p x; simp [h] }
+
+@[simp] lemma perm.subtype_congr.symm :
+  (ep.subtype_congr en).symm = perm.subtype_congr ep.symm en.symm :=
+begin
+  ext x,
+  by_cases h : p x,
+  { have : p (ep.symm ⟨x, h⟩) := subtype.property _,
+    simp [perm.subtype_congr.apply, h, symm_apply_eq, this] },
+  { have : ¬ p (en.symm ⟨x, h⟩) := subtype.property (en.symm _),
+    simp [perm.subtype_congr.apply, h, symm_apply_eq, this] }
+end
+
+@[simp] lemma perm.subtype_congr.trans :
+  (ep.subtype_congr en).trans (ep'.subtype_congr en') =
+    perm.subtype_congr (ep.trans ep') (en.trans en') :=
+begin
+  ext x,
+  by_cases h : p x,
+  { have : p (ep ⟨x, h⟩) := subtype.property _,
+    simp [perm.subtype_congr.apply, h, this] },
+  { have : ¬ p (en ⟨x, h⟩) := subtype.property (en _),
+    simp [perm.subtype_congr.apply, h, symm_apply_eq, this] }
+end
+
 end sum_compl
 
 section subtype_preimage
@@ -1108,7 +1165,8 @@ section
 open subtype
 
 /-- If `α` is equivalent to `β` and the predicates `p : α → Prop` and `q : β → Prop` are equivalent
-at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`. -/
+at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`.
+For the statement where `α = β`, that is, `e : perm α`, see `perm.subtype_perm`. -/
 def subtype_equiv {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
 ⟨λ x, ⟨e x, (h _).1 x.2⟩,

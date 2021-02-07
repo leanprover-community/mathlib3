@@ -297,8 +297,8 @@ lemma has_ftaylor_series_up_to_on.eventually_has_fderiv_at {n : with_top ℕ}
   ∀ᶠ y in 𝓝 x, has_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p y 1)) y :=
 (eventually_eventually_nhds.2 hx).mono $ λ y hy, h.has_fderiv_at hn hy
 
-/-- If a function has a Taylor series at order at least `1` on a neighborhood of `x`, then the term
-of order `1` of this series is a derivative of `f` at `x`. -/
+/-- If a function has a Taylor series at order at least `1` on a neighborhood of `x`, then
+it is differentiable at `x`. -/
 lemma has_ftaylor_series_up_to_on.differentiable_at {n : with_top ℕ}
   (h : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hx : s ∈ 𝓝 x) :
   differentiable_at 𝕜 f x :=
@@ -2654,7 +2654,7 @@ begin
     apply times_cont_diff.comp_times_cont_diff_on _ h,
     exact (is_bounded_bilinear_map_apply.is_bounded_linear_map_left _).times_cont_diff },
   { assume h,
-    have : fderiv_within 𝕜 f₂ s₂ = (λ u, smul_right 1 u) ∘ (λ x, deriv_within f₂ s₂ x),
+    have : fderiv_within 𝕜 f₂ s₂ = smul_right (1 : 𝕜 →L[𝕜] 𝕜) ∘ deriv_within f₂ s₂,
       by { ext x, simp [deriv_within] },
     simp only [this],
     apply times_cont_diff.comp_times_cont_diff_on _ h,

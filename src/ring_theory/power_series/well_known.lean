@@ -95,13 +95,13 @@ theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
 begin
   ext, rw [coeff_mul, exp, eval_mul_hom, eval_mul_hom, eval_mul_hom],
   simp only [coeff_mk, coe_mk, factorial], rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-  simp only [factorial], rw [add_pow, sum_mul], apply sum_congr, { refl },
+  simp only [factorial, add_pow, sum_mul], apply sum_congr rfl,
   { rintros x hx,
-    rw [mul_assoc (a^x * b ^ (n - x)) _ _, mul_assoc (a^x) _ _, ←mul_assoc _  (b ^ (n - x)) _,
-    mul_comm _ (b^(n - x)), ←mul_assoc (a^x) _ _, ←mul_assoc (a^x) _ _],
-    suffices f : (algebra_map ℚ A) (1 / ↑(x.factorial)) * (algebra_map ℚ A)
-     (1 / ↑((n - x).factorial)) = (↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial))),
-      { rw [←f, mul_assoc], },
+    suffices : a^x * b^(n - x) * ((algebra_map ℚ A) (1 / ↑(x.factorial)) * (algebra_map ℚ A)
+     (1 / ↑((n - x).factorial))) =
+     a^x * b^(n - x) * ((↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial)))),
+    { convert this using 1; ring },
+    congr' 1,
     rw [←map_nat_cast (algebra_map ℚ A) (n.choose x), ←map_mul, ←map_mul],
     refine ring_hom.congr_arg _ _, rw [mul_one_div ↑(n.choose x) _, one_div_mul_one_div],
     symmetry, rw [div_eq_iff, div_mul_eq_mul_div, one_mul, choose_eq_factorial_div_factorial],
@@ -115,9 +115,7 @@ end
 /-- Shows that `e^{x} * e^{-x} = 1` -/
 theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom A (exp A) = 1 :=
 begin
-  rw eval_neg_hom,
-  have f : exp A = eval_mul_hom _ (exp A) := by { rw eval_mul_hom_one, simp only [id_apply], },
-  conv_lhs { congr, rw f, }, rw exp_mul_exp_eq_exp_add, simp,
+  convert exp_mul_exp_eq_exp_add (1 : A) (-1); simp,
 end
 
 end power_series

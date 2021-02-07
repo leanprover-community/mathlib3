@@ -493,7 +493,35 @@ exact finset.range_succ_mem_le _ _ hy,
 rw <-finset.range_eq_Ico at hx, exact hx,
 end
 
+open finset nat
 
+variables {R : Type*} [comm_semiring R]
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
+noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
+{ to_fun :=   λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
+  map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
+  map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
+                split_ifs, { rw [h, pow_zero], }, refl, },
+  map_add' := by {intros, ext, norm_num, rw mul_add, },
+  map_mul' := by {intros, ext, rw [power_series.coeff_mul, power_series.coeff_mk,
+              power_series.coeff_mul, finset.mul_sum], apply sum_congr rfl, norm_num,
+              intros b c H, rw [<-H, pow_add], ring, }, }
+
+
+theorem exp_bernoulli_poly' (t : ℚ) :
+  power_series.mk (λ n, (bernoulli_poly n t / nat.factorial n : ℚ)) * (exp ℚ - 1)
+    = X * eval_mul_hom t (exp ℚ) :=
+begin
+  ext, rw coeff_mul, rw coeff_mul, rw finset.sum_antidiagonal, rw finset.sum_antidiagonal,
+  apply finset.sum_congr, { refl, },
+  {
+    rintros x hx, simp, rw coeff_X, split_ifs,
+    { rw [h, h_1], simp, rw nat.sub_eq_zero_iff_le at h, sorry, },
+  },
+end
+
+/-
 lemma exp_bernoulli_poly (t : ℕ) (f : ℕ → ℕ → ℚ) (hf : f = λ t i, (bernoulli_poly i t / (nat.factorial i)) )
 (g : ℕ → ℕ → ℚ) (hg : g = λ t i, if i = 0 then 0 else (1 / (nat.factorial (i) )) )
 (g' : ℕ → ℕ → ℚ) (hg' : g' = λ t i, (1 / (nat.factorial (i) )) ) :
@@ -576,7 +604,7 @@ begin
       simp,
       apply factorial_ne_zero,
   },
-end
+end -/
 
 lemma one_sub_eq_neg : ∀ n : ℕ, ∀ X : ℚ, (bernoulli_poly n) ((1: ℚ) - X) = (-1)^n * bernoulli_poly n X :=
 begin

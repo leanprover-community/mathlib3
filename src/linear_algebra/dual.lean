@@ -19,12 +19,14 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 * Given a basis for a K-vector space `V`, `is_basis.to_dual` produces a map from `V` to `dual K V`.
 * Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
   characteristic properties of a basis and a dual.
+* `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
 
 ## Main results
 
 * `to_dual_equiv` : the dual space is linearly equivalent to the primal space.
 * `dual_pair.is_basis` and `dual_pair.eq_dual`: if `e` and `ε` form a dual pair, `e` is a basis and
   `ε` is its dual basis.
+* `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.
 
 ## Notation
 
@@ -432,9 +434,7 @@ def dual_annihilator {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M]
   restricted to `W`. -/
 def dual_restrict (W : submodule R M) :
   module.dual R M →ₗ[R] module.dual R W :=
-{ to_fun := λ φ, φ.dom_restrict W,
-  map_add' := by simp [linear_map.ext_iff],
-  map_smul' := by simp [linear_map.ext_iff] }.
+linear_map.dom_restrict' W
 
 @[simp] lemma dual_restrict_apply
   (W : submodule R M) (φ : module.dual R M) (x : W) :

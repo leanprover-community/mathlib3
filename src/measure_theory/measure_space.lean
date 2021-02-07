@@ -331,12 +331,12 @@ begin
 end
 
 lemma inter_add_inter_compl {α:Type*} [measurable_space α]
-  (μ : measure α) (s t : set α)  (A2 : is_measurable s) (A1 : is_measurable t) :
+  (μ : measure α) (s t : set α)  (A2 : measurable_set s) (A1 : measurable_set t) :
   (μ (s ∩ t) + μ (s ∩ tᶜ)) = μ s :=
 begin
   rw ← measure_union (set.disjoint_of_subset_left (set.inter_subset_right s t) 
-       (set.disjoint_of_subset_right (set.inter_subset_right s _) (set.disjoint_compl_right t)))
-       (is_measurable.inter A2 A1) (is_measurable.inter A2 (is_measurable.compl A1)),
+       (set.disjoint_of_subset_right (set.inter_subset_right s _) (disjoint_compl_right)))
+       (measurable_set.inter A2 A1) (measurable_set.inter A2 (measurable_set.compl A1)),
   rw set.inter_union_compl,
 end
 
@@ -798,7 +798,7 @@ rfl
 by simp [← restrictₗ_apply, restrictₗ, ht]
 
 lemma restrict_apply_self {α : Type*} [measurable_space α]
-  (μ : measure α) {s : set α} (h_meas_s : is_measurable s) :
+  (μ : measure α) {s : set α} (h_meas_s : measurable_set s) :
   (μ.restrict s) s = μ s :=
 by rw [restrict_apply h_meas_s, set.inter_self]
 
@@ -1932,7 +1932,7 @@ end measure_sub
 
 
 lemma restrict_sub_eq_restrict_sub_restrict {Ω : Type*} [measurable_space Ω]
-  (μ ν : measure Ω) {s : set Ω} (h_meas_s : is_measurable s) :
+  (μ ν : measure Ω) {s : set Ω} (h_meas_s : measurable_set s) :
   (μ - ν).restrict s = (μ.restrict s) - (ν.restrict s) :=
 begin
   repeat {rw sub_def},
@@ -1957,8 +1957,8 @@ begin
         intros t h_meas_t,
         have h_inter_inter_eq_inter : ∀ t' : set Ω , t ∩ t' ∩ t' = t ∩ t',
         { intro t', rw set.inter_eq_self_of_subset_left, apply set.inter_subset_right t t' },
-        have h_meas_t_inter_s : is_measurable (t ∩ s) :=
-        is_measurable.inter h_meas_t h_meas_s,
+        have h_meas_t_inter_s : measurable_set (t ∩ s) :=
+        measurable_set.inter h_meas_t h_meas_s,
         rw [← inter_add_inter_compl μ t s h_meas_t h_meas_s,
             ← inter_add_inter_compl 
               (ν' + ν + (⊤ : measure Ω).restrict sᶜ) t s h_meas_t h_meas_s],
@@ -1971,7 +1971,7 @@ begin
         cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
         { simp [h_inter_empty] },
         { have h_meas_inter_compl := 
-          is_measurable.inter h_meas_t (is_measurable.compl h_meas_s),
+          measurable_set.inter h_meas_t (measurable_set.compl h_meas_s),
           rw [restrict_apply h_meas_inter_compl, h_inter_inter_eq_inter sᶜ],
           have h_mu_le_add_top : μ ≤ ν' + ν + ⊤,
           { rw add_comm,
@@ -1980,7 +1980,7 @@ begin
           apply h_mu_le_add_top _ h_meas_inter_compl } },
       { ext1 t h_meas_t,
         simp [restrict_apply h_meas_t,
-              restrict_apply (is_measurable.inter h_meas_t h_meas_s),
+              restrict_apply (measurable_set.inter h_meas_t h_meas_s),
               set.inter_assoc] } },
     { apply restrict_le_self } },
   { apply h_Inf_le_Inf,
@@ -1993,7 +1993,7 @@ end
 
 lemma sub_apply_eq_zero_of_restrict_le_restrict {Ω:Type*} [measurable_space Ω] 
   (μ ν : measure_theory.measure Ω) (s : set Ω) 
-  (h_le : μ.restrict s ≤ ν.restrict s) (h_meas_s : is_measurable s) :
+  (h_le : μ.restrict s ≤ ν.restrict s) (h_meas_s : measurable_set s) :
   (μ - ν) s = 0 :=
 begin
   rw [← restrict_apply_self _ h_meas_s, restrict_sub_eq_restrict_sub_restrict,

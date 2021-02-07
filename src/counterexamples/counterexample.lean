@@ -571,4 +571,3 @@ instance can : canonically_ordered_comm_semiring L :=
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero }
 
 end counterexample
-#lint

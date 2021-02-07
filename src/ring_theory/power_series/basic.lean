@@ -1155,10 +1155,6 @@ lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R 
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u $ h
 
-open finset nat
-
-variables {A : Type*} [comm_ring A]
-
 end ring
 
 section comm_ring

@@ -15,6 +15,9 @@ datatypes representing isomorphisms of `add_monoid`s/`add_group`s and `monoid`s/
 
 ## Notations
 
+* ``infix ` ≃* `:25 := mul_equiv``
+* ``infix ` ≃+ `:25 := add_equiv``
+
 The extended equivs all have coercions to functions, and the coercions are the canonical
 notation when treating the isomorphisms as maps.
 
@@ -156,6 +159,13 @@ e.to_equiv.symm_apply_eq
 @[to_additive]
 lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
 e.to_equiv.eq_symm_apply
+
+/-- The `mul_equiv` between two monoids with a unique element. -/
+@[to_additive "The `add_equiv` between two add_monoids with a unique element."]
+def mul_equiv_of_unique_of_unique {M N}
+  [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
+{ map_mul' := λ _ _, subsingleton.elim _ _,
+  ..equiv_of_unique_of_unique}
 
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
 @[simp, to_additive]

@@ -267,6 +267,93 @@ lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s�
 ⟨λ h, ⟨measure_mono_null (subset_union_left _ _) h, measure_mono_null (subset_union_right _ _) h⟩,
   λ h, measure_union_null h.1 h.2⟩
 
+/-! ### The almost everywhere filter -/
+
+/-- The “almost everywhere” filter of co-null sets. -/
+def measure.ae (μ : measure α) : filter α :=
+{ sets := {s | μ sᶜ = 0},
+  univ_sets := by simp,
+  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
+    exact measure_union_null hs ht,
+  sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
+
+notation `∀ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
+notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
+notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
+
+lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
+
+lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
+
+lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+
+lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
+compl_mem_ae_iff.symm
+
+lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀ a, p a) → ∀ᵐ a ∂ μ, p a :=
+eventually_of_forall
+
+instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
+  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
+
+instance : countable_Inter_filter μ.ae :=
+⟨begin
+  intros S hSc hS,
+  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
+  haveI := hSc.to_encodable,
+  exact measure_Union_null (subtype.forall.2 hS)
+end⟩
+
+lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
+  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
+eventually_countable_forall
+
+lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
+  (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
+eventually_countable_ball hS
+
+lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.rfl
+
+lemma ae_eq_symm {f g : α → δ} (h : f =ᵐ[μ] g) : g =ᵐ[μ] f :=
+h.symm
+
+lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h) :
+  f =ᵐ[μ] h :=
+h₁.trans h₂
+
+lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
+eventually_eq_empty.trans $ by simp [ae_iff]
+
+lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
+calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
+           ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
+
+lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
+  diff_eq_empty.2 (set.subset_union_right _ _)]
+
+lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
+  diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
+
+lemma ae_eq_set {s t : set α} :
+  s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
+by simp [eventually_le_antisymm_iff, ae_le_set]
+
+/-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
+lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
+calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
+     ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
+     ... ≤ μ t + μ (s \ t) : measure_union_le _ _
+     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
+
+alias measure_mono_ae ← filter.eventually_le.measure_le
+
+/-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
+lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
+le_antisymm H.le.measure_le H.symm.le.measure_le
+
 lemma measure_Union [encodable β] {f : β → set α}
   (hn : pairwise (disjoint on f)) (h : ∀ i, measurable_set (f i)) :
   μ (⋃ i, f i) = ∑' i, μ (f i) :=
@@ -1227,17 +1314,6 @@ alias absolutely_continuous_of_eq ← eq.absolutely_continuous
 @[trans] lemma absolutely_continuous.trans (h1 : μ₁ ≪ μ₂) (h2 : μ₂ ≪ μ₃) : μ₁ ≪ μ₃ :=
 λ s hs, h1 $ h2 hs
 
-
-/-! ### The almost everywhere filter -/
-
-/-- The “almost everywhere” filter of co-null sets. -/
-def ae (μ : measure α) : filter α :=
-{ sets := {s | μ sᶜ = 0},
-  univ_sets := by simp,
-  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
-    exact measure_union_null hs ht,
-  sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
-
 /-- The filter of sets `s` such that `sᶜ` has finite measure. -/
 def cofinite (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ < ⊤},
@@ -1257,77 +1333,13 @@ lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔
 end measure
 open measure
 
-notation `∀ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
-notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
-notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
-
-lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
-
-lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
-
-lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
-
-lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
-compl_mem_ae_iff.symm
-
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
 
 @[simp] lemma ae_zero : (0 : measure α).ae = ⊥ := ae_eq_bot.2 rfl
 
-lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀ a, p a) → ∀ᵐ a ∂ μ, p a :=
-eventually_of_forall
-
 @[mono] lemma ae_mono {μ ν : measure α} (h : μ ≤ ν) : μ.ae ≤ ν.ae :=
 λ s hs, bot_unique $ trans_rel_left (≤) (measure.le_iff'.1 h _) hs
-
-instance : countable_Inter_filter μ.ae :=
-⟨begin
-  intros S hSc hS,
-  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
-  haveI := hSc.to_encodable,
-  exact measure_Union_null (subtype.forall.2 hS)
-end⟩
-
-instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
-⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
-  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
-
-lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
-  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
-eventually_countable_forall
-
-lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
-  (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
-eventually_countable_ball hS
-
-lemma ae_eq_refl (f : α → δ) : f =ᵐ[μ] f := eventually_eq.rfl
-
-lemma ae_eq_symm {f g : α → δ} (h : f =ᵐ[μ] g) : g =ᵐ[μ] f :=
-h.symm
-
-lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h) :
-  f =ᵐ[μ] h :=
-h₁.trans h₂
-
-lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
-eventually_eq_empty.trans $ by simp [ae_iff]
-
-lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
-           ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
-
-lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
-  diff_eq_empty.2 (set.subset_union_right _ _)]
-
-lemma diff_ae_eq_self : (s \ t : set α) =ᵐ[μ] s ↔ μ (s ∩ t) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set, diff_diff_right,
-  diff_diff, diff_eq_empty.2 (set.subset_union_right _ _)]
-
-lemma ae_eq_set {s t : set α} :
-  s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
-by simp [eventually_le_antisymm_iff, ae_le_set]
 
 lemma mem_ae_map_iff {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   s ∈ (map f μ).ae ↔ (f ⁻¹' s) ∈ μ.ae :=
@@ -1429,19 +1441,6 @@ lemma ae_eq_dirac' [measurable_singleton_class β] {a : α} {f : α → β} (hf 
 lemma ae_eq_dirac [measurable_singleton_class α] {a : α} (f : α → δ) :
   f =ᵐ[dirac a] const α (f a) :=
 by simp [filter.eventually_eq]
-
-/-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
-lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
-calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
-     ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
-     ... ≤ μ t + μ (s \ t) : measure_union_le _ _
-     ... = μ t             : by rw [ae_le_set.1 H, add_zero]
-
-alias measure_mono_ae ← filter.eventually_le.measure_le
-
-/-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
-lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
-le_antisymm H.le.measure_le H.symm.le.measure_le
 
 lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
 begin

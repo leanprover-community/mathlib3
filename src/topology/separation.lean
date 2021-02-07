@@ -204,7 +204,7 @@ absurd huv $ (inf_ne_bot_iff.1 h (mem_nhds_sets hu hx) (mem_nhds_sets hv hy)).ne
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
-   have 𝓝 x ⊓ 𝓝 y = ⊥ := classical.by_contradiction (mt h xy),
+   have 𝓝 x ⊓ 𝓝 y = ⊥ := not_ne_bot.1 $ mt h xy,
    let ⟨u', hu', v', hv', u'v'⟩ := empty_in_sets_eq_bot.mpr this,
        ⟨u, uu', uo, hu⟩ := mem_nhds_sets_iff.mp hu',
        ⟨v, vv', vo, hv⟩ := mem_nhds_sets_iff.mp hv' in
@@ -215,18 +215,18 @@ lemma t2_iff_ultrafilter :
 t2_iff_nhds.trans $ by simp only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
-is_closed_iff_cluster_pt.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
-  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
-    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
-  begin
-    change t₁ ∈ 𝓝 a₁ at ht₁,
-    change t₂ ∈ 𝓝 a₂ at ht₂,
-    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
-    apply filter.sets_of_superset,
-    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
-    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
-      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
-  end
+begin
+  refine is_closed_iff_cluster_pt.mpr _,
+  rintro ⟨a₁, a₂⟩ h,
+  refine eq_of_nhds_ne_bot ⟨λ this : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h.ne _⟩,
+  obtain ⟨t₁, (ht₁ : t₁ ∈ 𝓝 a₁), t₂, (ht₂ : t₂ ∈ 𝓝 a₂), (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
+    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this,
+  rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
+  apply filter.sets_of_superset,
+  apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
+  exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
+    show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
+end
 
 lemma t2_iff_is_closed_diagonal : t2_space α ↔ is_closed (diagonal α) :=
 begin
@@ -496,7 +496,7 @@ begin
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
   { refine ⟨λ _, ∅, λ i, compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
       finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
-  simp only [finset.bUnion_insert] at hsC,
+  simp only [finset.set_bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
   have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
   rcases hs.binary_compact_cover (hU x (or.inl rfl)) (is_open_bUnion hU') hsC
@@ -509,7 +509,7 @@ begin
   { intros i, by_cases hi : i = x,
     { simp only [update_same, hi, h2K₁] },
     { rw [← ne.def] at hi, simp only [update_noteq hi, h2K] }},
-  { simp only [bUnion_insert_update _ hx, hK, h3K] }
+  { simp only [set_bUnion_insert_update _ hx, hK, h3K] }
 end
 end
 

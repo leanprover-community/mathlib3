@@ -46,7 +46,7 @@ See `l1_space.lean` for `L¹` space.
     If `β` is an `emetric_space`, then `L⁰` can be made into an `emetric_space`, where
     `edist [f] [g]` is defined to be `∫⁻ a, edist (f a) (g a)`.
 
-    The integral used here is `lintegral : (α → ennreal) → ennreal`, which is defined in the file
+    The integral used here is `lintegral : (α → ℝ≥0∞) → ℝ≥0∞`, which is defined in the file
     `integration.lean`.
 
     See `edist_mk_mk` and `edist_to_fun`.
@@ -70,7 +70,7 @@ function space, almost everywhere equal, `L⁰`, ae_eq_fun
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical ennreal
 
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
@@ -405,32 +405,32 @@ end semimodule
 
 open ennreal
 
-/-- For `f : α → ennreal`, define `∫ [f]` to be `∫ f` -/
-def lintegral (f : α →ₘ[μ] ennreal) : ennreal :=
-quotient.lift_on' f (λf, ∫⁻ a, (f : α → ennreal) a ∂μ) (assume f g, lintegral_congr_ae)
+/-- For `f : α → ℝ≥0∞`, define `∫ [f]` to be `∫ f` -/
+def lintegral (f : α →ₘ[μ] ℝ≥0∞) : ℝ≥0∞ :=
+quotient.lift_on' f (λf, ∫⁻ a, (f : α → ℝ≥0∞) a ∂μ) (assume f g, lintegral_congr_ae)
 
-@[simp] lemma lintegral_mk (f : α → ennreal) (hf) :
-  (mk f hf : α →ₘ[μ] ennreal).lintegral = ∫⁻ a, f a ∂μ := rfl
+@[simp] lemma lintegral_mk (f : α → ℝ≥0∞) (hf) :
+  (mk f hf : α →ₘ[μ] ℝ≥0∞).lintegral = ∫⁻ a, f a ∂μ := rfl
 
-lemma lintegral_coe_fn (f : α →ₘ[μ] ennreal) : ∫⁻ a, f a ∂μ = f.lintegral :=
+lemma lintegral_coe_fn (f : α →ₘ[μ] ℝ≥0∞) : ∫⁻ a, f a ∂μ = f.lintegral :=
 by rw [← lintegral_mk, mk_coe_fn]
 
-@[simp] lemma lintegral_zero : lintegral (0 : α →ₘ[μ] ennreal) = 0 := lintegral_zero
+@[simp] lemma lintegral_zero : lintegral (0 : α →ₘ[μ] ℝ≥0∞) = 0 := lintegral_zero
 
-@[simp] lemma lintegral_eq_zero_iff {f : α →ₘ[μ] ennreal} : lintegral f = 0 ↔ f = 0 :=
+@[simp] lemma lintegral_eq_zero_iff {f : α →ₘ[μ] ℝ≥0∞} : lintegral f = 0 ↔ f = 0 :=
 induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf).trans mk_eq_mk.symm
 
-lemma lintegral_add (f g : α →ₘ[μ] ennreal) : lintegral (f + g) = lintegral f + lintegral g :=
+lemma lintegral_add (f g : α →ₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
 induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf hg]
 
-lemma lintegral_mono {f g : α →ₘ[μ] ennreal} : f ≤ g → lintegral f ≤ lintegral g :=
+lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
 
 section
 variables [emetric_space γ] [second_countable_topology γ] [opens_measurable_space γ]
 
 /-- `comp_edist [f] [g] a` will return `edist (f a) (g a)` -/
-protected def edist (f g : α →ₘ[μ] γ) : α →ₘ[μ] ennreal := comp₂ edist measurable_edist f g
+protected def edist (f g : α →ₘ[μ] γ) : α →ₘ[μ] ℝ≥0∞ := comp₂ edist measurable_edist f g
 
 protected lemma edist_comm (f g : α →ₘ[μ] γ) : f.edist g = g.edist f :=
 induction_on₂ f g $ λ f hf g hg, mk_eq_mk.2 $ eventually_of_forall $ λ x, edist_comm (f x) (g x)

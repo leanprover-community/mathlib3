@@ -45,7 +45,8 @@ variables {K : Type*} [linear_ordered_field K] {v : K} {n : ℕ}
 /--
 Given two continuants `pconts` and `conts` and a value `fr`, this function returns
 - `conts.a / conts.b` if `fr = 0`
-- `exact_conts.a / exact_conts.b` where `exact_conts = next_continuants 1 fr⁻¹ pconts conts` otherwise.
+- `exact_conts.a / exact_conts.b` where `exact_conts = next_continuants 1 fr⁻¹ pconts conts`
+  otherwise.
 
 This function can be used to compute the exact value approxmated by a continued fraction `gcf.of v`
 as described in lemma `comp_exact_value_correctness_of_stream_eq_some`.
@@ -79,9 +80,9 @@ fraction. Here is an example to illustrate the idea:
 Let `(v : ℚ) := 3.4`. We have
 - `gcf.int_fract_pair.stream v 0 = some ⟨3, 0.4⟩`, and
 - `gcf.int_fract_pair.stream v 1 = some ⟨2, 0.5⟩`.
-Now `(gcf.of v).convergents' 1 = 3 + 1/2`, and our fractional term at position `2` is `0.5`. We hence
-have `v = 3 + 1/(2 + 0.5) = 3 + 1/2.5 = 3.4`. This computation corresponds exactly to the one using
-the recurrence equation in `comp_exact_value`.
+Now `(gcf.of v).convergents' 1 = 3 + 1/2`, and our fractional term at position `2` is `0.5`. We
+hence have `v = 3 + 1/(2 + 0.5) = 3 + 1/2.5 = 3.4`. This computation corresponds exactly to the one
+using the recurrence equation in `comp_exact_value`.
 -/
 lemma comp_exact_value_correctness_of_stream_eq_some :
   ∀ {ifp_n : int_fract_pair K}, int_fract_pair.stream v n = some ifp_n →
@@ -145,8 +146,9 @@ begin
       have : ifp_n' = ifp_n, by injection (eq.trans (nth_stream_eq').symm nth_stream_eq),
       cases this,
       -- get the correspondence between ifp_n and g.s.nth n
-      have s_nth_eq : g.s.nth n = some ⟨1, (⌊ifp_n.fr⁻¹⌋ : K)⟩, from
-        gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq ifp_n_fract_ne_zero,
+      have s_nth_eq : g.s.nth n = some ⟨1, (⌊ifp_n.fr⁻¹⌋ : K)⟩,
+        from gcf.nth_of_eq_some_of_nth_int_fract_pair_stream_fr_ne_zero nth_stream_eq
+          ifp_n_fract_ne_zero,
       -- the claim now follows by unfolding the definitions and tedious calculations
       -- some shorthand notation
       let ppA := ppconts.a, let ppB := ppconts.b,
@@ -207,7 +209,8 @@ have int_fract_pair.stream v (n + 1) = none, from
   gcf.of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none.elim_left terminated_at_n,
  of_correctness_of_nth_stream_eq_none this
 
-/-- If `gcf.of v` terminates, then there is `n : ℕ` such that the `n`th convergent is exactly `v`. -/
+/-- If `gcf.of v` terminates, then there is `n : ℕ` such that the `n`th convergent is exactly
+`v`. -/
 lemma of_correctness_of_terminates (terminates : (gcf.of v).terminates) :
   ∃ (n : ℕ), v = (gcf.of v).convergents n :=
 exists.elim terminates

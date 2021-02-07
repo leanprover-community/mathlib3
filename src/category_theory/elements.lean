@@ -10,14 +10,17 @@ import category_theory.punit
 /-!
 # The category of elements
 
-This file defines the category of elements, also known as (a special case of) the Grothendieck construction.
+This file defines the category of elements, also known as (a special case of) the Grothendieck
+construction.
 
 Given a functor `F : C ⥤ Type`, an object of `F.elements` is a pair `(X : C, x : F.obj X)`.
 A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
 
 ## Implementation notes
-This construction is equivalent to a special case of a comma construction, so this is mostly just
-a more convenient API. We prove the equivalence in `category_theory.category_of_elements.comma_equivalence`.
+
+This construction is equivalent to a special case of a comma construction, so this is mostly just a
+more convenient API. We prove the equivalence in
+`category_theory.category_of_elements.comma_equivalence`.
 
 ## References
 * [Emily Riehl, *Category Theory in Context*, Section 2.4][riehl2017]
@@ -61,7 +64,8 @@ subtype.ext_val w
 
 end category_of_elements
 
-instance groupoid_of_elements {G : Type u} [groupoid.{v} G] (F : G ⥤ Type w) : groupoid F.elements :=
+instance groupoid_of_elements {G : Type u} [groupoid.{v} G] (F : G ⥤ Type w) :
+  groupoid F.elements :=
 { inv := λ p q f, ⟨inv f.val,
       calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
                              ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp

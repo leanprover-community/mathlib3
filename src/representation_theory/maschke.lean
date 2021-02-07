@@ -136,6 +136,8 @@ end
 end linear_map
 end
 
+namespace monoid_algebra
+
 -- Now we work over a `[field k]`, and replace the assumption `[invertible (fintype.card G : k)]`
 -- with `¬(ring_char k ∣ fintype.card G)`.
 variables {k : Type u} [field k] {G : Type u} [fintype G] [group G]
@@ -144,7 +146,7 @@ variables [is_scalar_tower k (monoid_algebra k G) V]
 variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
 variables [is_scalar_tower k (monoid_algebra k G) W]
 
-lemma monoid_algebra.exists_left_inverse_of_injective
+lemma exists_left_inverse_of_injective
   (not_dvd : ¬(ring_char k ∣ fintype.card G)) (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
 begin
@@ -161,8 +163,16 @@ begin
   exact congr_fun this v
 end
 
-lemma monoid_algebra.submodule.exists_is_compl
+namespace submodule
+
+lemma exists_is_compl
   (not_dvd : ¬(ring_char k ∣ fintype.card G)) (p : submodule (monoid_algebra k G) V) :
   ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
 let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
+
+theorem is_complemented (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
+  is_complemented (submodule (monoid_algebra k G) V) := ⟨exists_is_compl not_dvd⟩
+
+end submodule
+end monoid_algebra

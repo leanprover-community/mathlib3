@@ -192,7 +192,7 @@ def mul_equiv_of_unique_of_unique {M N}
 { map_mul' := λ _ _, subsingleton.elim _ _,
   ..equiv_of_unique_of_unique}
 
-/-- There is a uniqu monoid homomorphism between two monoids with a unique element. -/
+/-- There is a unique monoid homomorphism between two monoids with a unique element. -/
 @[to_additive] instance {M N} [unique M] [unique N] [has_mul M] [has_mul N] : unique (M ≃* N) :=
 { default := mul_equiv_of_unique_of_unique ,
   uniq := λ _, ext $ λ x, subsingleton.elim _ _}

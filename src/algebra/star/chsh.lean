@@ -45,7 +45,7 @@ and in the noncommutative case we need √2 and √2⁻¹.
 To keep things simple we just assume our rings are ℝ-algebras.)
 
 The proofs I've seen in the literature either
-assume a significant framework for quantum mechanices,
+assume a significant framework for quantum mechanics,
 or assume the ring is a C*-algebra.
 In the C*-algebra case, the order structure is completely determined by the *-algebra structure:
 `0 ≤ A` iff there exists some `B` so `A = star B * B`.
@@ -143,6 +143,7 @@ begin
     conv_rhs { congr, skip, congr, rw ←sa, },
     convert smul_le_smul_of_nonneg (star_mul_self_nonneg : 0 ≤ star P * P) _,
     { simp, },
+    { apply_instance, },
     { norm_num, }, },
   apply le_of_sub_nonneg,
   simpa only [sub_add_eq_sub_sub, ←sub_add] using i₁,
@@ -179,11 +180,11 @@ If anyone sees how to obtain these from general statements, please improve this!
 
 lemma two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
   2 •ℤ (2⁻¹ : ℝ) • X = X :=
-by { rw [module.gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
+by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
 
 lemma neg_two_gsmul_half_smul {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
   (-2) •ℤ (2⁻¹ : ℝ) • X = - X :=
-by { rw [module.gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
+by { rw [gsmul_eq_smul_cast ℝ, ←mul_smul]; norm_num, }
 
 lemma smul_two {α : Type*} [ring α] [algebra ℝ α] {x : ℝ} :
   x • (2 : α) = (2 * x) • 1 :=

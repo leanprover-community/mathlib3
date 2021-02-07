@@ -197,10 +197,6 @@ instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
 instance : ordered_add_comm_monoid ℝ    := by apply_instance
 instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
-/-- The real numbers are an ordered *-ring, with the trivial *-structure. -/
-instance : star_ordered_ring ℝ :=
-{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
-
 open_locale classical
 
 noncomputable instance : linear_order ℝ :=
@@ -221,6 +217,10 @@ noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : domain ℝ                     :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
+
+/-- The real numbers are an ordered *-ring, with the trivial *-structure. -/
+instance : star_ordered_ring ℝ :=
+{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
 
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩

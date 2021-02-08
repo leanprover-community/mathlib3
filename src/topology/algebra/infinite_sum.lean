@@ -942,6 +942,9 @@ begin
   by simpa using hs {x} (singleton_disjoint.2 hx)
 end
 
+lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : tendsto f at_top (𝓝 0) :=
+by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
+
 end topological_group
 
 lemma summable_abs_iff [linear_ordered_add_comm_group β] [uniform_space β]

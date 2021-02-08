@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon, Patrick Massot
+Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import algebra.module.basic
 /-!
@@ -10,45 +10,41 @@ import algebra.module.basic
 This file defines instances for binary product of modules
 -/
 
-variables {α β γ M N M₂ R S : Type*}
+variables {R : Type*} {S : Type*} {M : Type*} {N : Type*}
 
 namespace prod
 
-section
+instance [has_scalar R M] [has_scalar R N] : has_scalar R (M × N) := ⟨λa p, (a • p.1, a • p.2)⟩
 
-variables [has_scalar M α] [has_scalar M β]
+@[simp] theorem smul_fst [has_scalar R M] [has_scalar R N]
+  (a : R) (x : M × N) : (a • x).1 = a • x.1 := rfl
+@[simp] theorem smul_snd [has_scalar R M] [has_scalar R N]
+  (a : R) (x : M × N) : (a • x).2 = a • x.2 := rfl
+@[simp] theorem smul_mk [has_scalar R M] [has_scalar R N]
+  (a : R) (b : M) (c : N) : a • (b, c) = (a • b, a • c) := rfl
 
-instance : has_scalar M (α × β) := ⟨λa p, (a • p.1, a • p.2)⟩
+instance [has_scalar R S] [has_scalar S M] [has_scalar R M] [has_scalar S N] [has_scalar R N]
+  [is_scalar_tower R S M] [is_scalar_tower R S N] : is_scalar_tower R S (M × N) :=
+⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩
 
-@[simp] theorem smul_fst (c : M) (p : α × β) : (c • p).1 = c • p.1 := rfl
-@[simp] theorem smul_snd (c : M) (p : α × β) : (c • p).2 = c • p.2 := rfl
-@[simp] theorem smul_mk (c : M) (a : α) (b : β) : c • (a, b) = (c • a, c • b) := rfl
+instance [has_scalar R M] [has_scalar S M] [has_scalar R N] [has_scalar S N]
+  [smul_comm_class R S M] [smul_comm_class R S N] :
+  smul_comm_class R S (M × N) :=
+{ smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
 
-variables [has_scalar N α] [has_scalar N β]
+instance {r : monoid R} [mul_action R M] [mul_action R N] : mul_action R (M × N) :=
+{ mul_smul  := λ a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul _ _ _, mul_smul _ _ _⟩,
+  one_smul  := λ ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul _ _, one_smul _ _⟩ }
 
-instance [smul_comm_class M N α] [smul_comm_class M N β] :
-  smul_comm_class M N (α × β) :=
-⟨λ m n ⟨a, b⟩, by simp only [smul_mk, smul_comm m n]⟩
+instance {r : monoid R} [add_monoid M] [add_monoid N]
+  [distrib_mul_action R M] [distrib_mul_action R N] : distrib_mul_action R (M × N) :=
+{ smul_add  := λ a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩,
+  smul_zero := λ a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩ }
 
-instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
-  is_scalar_tower M N (α × β) :=
-⟨λ m n ⟨a, b⟩, by simp only [smul_mk, smul_assoc]⟩
-
-end
-
-instance {_ : monoid M} [mul_action M α] [mul_action M β] : mul_action M (α × β) :=
-{ one_smul := λ ⟨a, b⟩, by rw [smul_mk, one_smul, one_smul],
-  mul_smul := λ c₁ c₂ ⟨a, b⟩, by simp only [smul_mk, mul_smul] }
-
-instance {_ : monoid N} {_ : add_comm_monoid M} {_ : add_comm_monoid M₂}
-  [distrib_mul_action N M] [distrib_mul_action N M₂] :
-  distrib_mul_action N (M × M₂) :=
-{ smul_add  := assume a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩,
-  smul_zero := assume a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩ }
-
-instance {_ : semiring R} [add_comm_monoid M] [add_comm_monoid M₂]
-  [semimodule R M] [semimodule R M₂] : semimodule R (M × M₂) :=
-{ add_smul  := assume a p₁ p₂, mk.inj_iff.mpr ⟨add_smul _ _ _, add_smul _ _ _⟩,
-  zero_smul := assume ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _ _, zero_smul _ _⟩ }
+instance {r : semiring R} [add_comm_monoid M] [add_comm_monoid N]
+  [semimodule R M] [semimodule R N] : semimodule R (M × N) :=
+{ add_smul  := λ a p₁ p₂, mk.inj_iff.mpr ⟨add_smul _ _ _, add_smul _ _ _⟩,
+  zero_smul := λ ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _ _, zero_smul _ _⟩,
+  .. prod.distrib_mul_action }
 
 end prod

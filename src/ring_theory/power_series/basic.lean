@@ -1026,7 +1026,7 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
     apply sum_congr rfl,
     simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
     intros b c H,
-    rw [<-H, pow_add, mul_mul_mul_comm] }, }
+    rw [←H, pow_add, mul_mul_mul_comm] }, }
 
 @[simp] lemma coeff_eval_mul_hom (f : power_series R) (a : R) (n : ℕ) :
   coeff R n (eval_mul_hom a f) = a^n * coeff R n f := coeff_mk n _

@@ -1369,7 +1369,7 @@ submodule.span_le.mpr submodule.subset_span
 lemma span_eq_restrict_scalars (X : set M) (hsur : function.surjective (algebra_map R A)) :
   span R X = restrict_scalars R (span A X) :=
 begin
-  apply le_antisymm (span_le_restrict_scalars R A M X) (λ m hm, _),
+  apply (span_le_restrict_scalars R A M X).antisymm (λ m hm, _),
   refine span_induction hm subset_span (zero_mem _) (λ _ _, add_mem _) (λ a m hm, _),
   obtain ⟨r, rfl⟩ := hsur a,
   simpa [algebra_map_smul] using smul_mem _ r hm

@@ -1766,8 +1766,9 @@ lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
   @lintegral α M μ (T.indicator (λ (_x : α), c)) :=
 begin
   revert f,
-  have h_mul_indicator:∀ g, @measurable α ℝ≥0∞ M _ g → @measurable α ℝ≥0∞ M ennreal.measurable_space (g * (λ (a : α), T.indicator (λ (_x : α), c) a)) :=
-    (λ g h_mg, @measurable.ennreal_mul _ M _ _ h_mg (@measurable.indicator _ _ M _ _ _ _ (@measurable_const _ _ _ M _) h_meas_T)),
+  have h_mul_indicator:∀ g, @measurable α ℝ≥0∞ M _ g →
+    @measurable α ℝ≥0∞ M ennreal.measurable_space (g * (λ (a : α), T.indicator (λ (_x : α), c) a)) :=
+  (λ g h_mg, @measurable.ennreal_mul _ M _ _ h_mg (@measurable.indicator _ _ M _ _ _ _ (@measurable_const _ _ _ M _) h_meas_T)),
   apply measurable.ennreal_induction,
   { intros c' s' h_meas_s',
       have h1:(λ a, (s'.indicator (λ (_x : α), c') * T.indicator (λ (_x : α), c)) a) =

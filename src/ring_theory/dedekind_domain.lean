@@ -993,7 +993,7 @@ instance ideal.unique_factorization_monoid :
 noncomputable def ideal.finite_divisors (I : ideal R) (hI : I ≠ ⊥) : fintype {J // J ∣ I} :=
 begin
   apply @fintype.of_equiv _ _ (unique_factorization_monoid.finite_divisors hI),
-  refine equiv.symm (equiv.subtype_congr associates_ideal_equiv.to_equiv _),
+  refine equiv.symm (equiv.subtype_equiv associates_ideal_equiv.to_equiv _),
   intro J,
   simp [associates_ideal_equiv, associates.mk_dvd_mk],
 end

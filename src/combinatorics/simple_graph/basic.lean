@@ -446,7 +446,7 @@ begin
     have : (univ : finset V) = ∅,
     { rw eq_empty_iff_forall_not_mem,
       intro v,
-      apply (h₁ v).elim },
+      exact (h₁ v).elim },
     rw [this, image_empty],
     apply nat.zero_le },
   { have : nonempty V,
@@ -474,7 +474,7 @@ lemma max_degree_lt_card_verts [decidable_rel G.adj] [nonempty V] : G.max_degree
 begin
   cases G.exists_maximal_degree_vertex with v hv,
   rw ← hv,
-  apply G.degree_lt_card_verts v,
+  exact G.degree_lt_card_verts v,
 end
 
 lemma card_common_neighbors_le_degree_left [decidable_rel G.adj] (v w : V) :

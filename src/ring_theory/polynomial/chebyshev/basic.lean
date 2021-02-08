@@ -108,8 +108,8 @@ begin
   rw [inv_of_mul_self, C_1, one_mul, one_mul, comp_X]
 end
 
-/-- the `(m * n)`-th Dickson polynomial of the first kind is the composition of the `m`-th and
-`n`-th -/
+/-- The `(m * n)`-th Dickson polynomial of the first kind is the composition of the `m`-th and
+`n`-th. -/
 lemma dickson_one_one_mul (m n : ℕ) :
   dickson 1 (1 : R) (m * n) = (dickson 1 1 m).comp (dickson 1 1 n) :=
 begin

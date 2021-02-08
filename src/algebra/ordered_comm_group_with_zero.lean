@@ -22,12 +22,14 @@ class ordered_comm_group_with_zero (G : Type*)
   extends comm_group_with_zero G, ordered_comm_monoid G :=
 (zero_le_one : (0:G) ≤ 1)
 
-variables {G : Type*} [ordered_comm_group_with_zero G]
+variables {G : Type*}
 variables {a b c d x y z : G}
 
 local attribute [instance] classical.prop_decidable
 
 section ordered_comm_monoid
+
+variables [ordered_comm_monoid G]
 
 /-
 The following facts are true more generally in a (linearly) ordered commutative monoid.
@@ -48,6 +50,10 @@ begin
 end
 
 end ordered_comm_monoid
+
+section ordered_comm_group_with_zero
+
+variables [ordered_comm_group_with_zero G]
 
 lemma zero_le_one' : (0 : G) ≤ 1 :=
 ordered_comm_group_with_zero.zero_le_one
@@ -102,3 +108,5 @@ lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
 
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 @inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
+
+end ordered_comm_group_with_zero

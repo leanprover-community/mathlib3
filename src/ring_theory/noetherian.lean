@@ -213,7 +213,7 @@ begin
   { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
 end
 
-lemma fg_of_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]
   [add_comm_group M] [module S M] [module R M] [is_scalar_tower R S M] (N : submodule S M)
   (hfin : N.fg) (h : function.surjective (algebra_map R S)) : (submodule.restrict_scalars R N).fg :=
 begin

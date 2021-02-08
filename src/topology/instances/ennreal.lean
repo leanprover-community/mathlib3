@@ -601,7 +601,7 @@ begin
   exact nnreal.tendsto_cofinite_zero_of_summable (summable_to_nnreal_of_tsum_ne_top hf.ne),
 end
 
-lemma tendsto_at_top_zero_of_summable {f : ℕ → ennreal} (hf : tsum f < ∞) :
+lemma tendsto_at_top_zero_of_tsum_lt_top {f : ℕ → ennreal} (hf : tsum f < ∞) :
   filter.at_top.tendsto f (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_tsum_lt_top hf }
 

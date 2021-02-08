@@ -431,8 +431,8 @@ end
 variables [sigma_finite μ]
 
 instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
-⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
- by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩
+⟨⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
+ by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩⟩
 
 /-- Measures on a product space are equal the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/

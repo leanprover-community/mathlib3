@@ -325,6 +325,31 @@ by { convert mul_lt_mul_left h, simp }
 @[simp] lemma zero_lt_mul_right (h : 0 < c) : 0 < b * c ↔ 0 < b :=
 by { convert mul_lt_mul_right h, simp }
 
+lemma add_le_mul_of_left_le_right (a2 : 2 ≤ a) (ab : a ≤ b) : a + b ≤ a * b :=
+have 0 < b, from
+calc 0 < 2 : zero_lt_two
+   ... ≤ a : a2
+   ... ≤ b : ab,
+calc a + b ≤ b + b : add_le_add_right ab b
+       ... = 2 * b : (two_mul b).symm
+       ... ≤ a * b : (mul_le_mul_right this).mpr a2
+
+lemma add_le_mul_of_right_le_left (b2 : 2 ≤ b) (ba : b ≤ a) : a + b ≤ a * b :=
+have 0 < a, from
+calc 0 < 2 : zero_lt_two
+   ... ≤ b : b2
+   ... ≤ a : ba,
+calc a + b ≤ a + a : add_le_add_left ba a
+       ... = a * 2 : (mul_two a).symm
+       ... ≤ a * b : (mul_le_mul_left this).mpr b2
+
+lemma add_le_mul (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ a * b :=
+if hab : a ≤ b then add_le_mul_of_left_le_right a2 hab
+               else add_le_mul_of_right_le_left b2 (le_of_not_le hab)
+
+lemma add_le_mul' (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ b * a :=
+(le_of_eq (add_comm _ _)).trans (add_le_mul b2 a2)
+
 section
 variables [nontrivial α]
 
@@ -803,6 +828,10 @@ instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ri
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=
+-- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
+-- achieved the same result here.
+-- Unfortunately with that definition we see mismatched `preorder ℝ` instances in
+-- `topology.metric_space.basic`.
 let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
 { zero_mul                   := @linear_ordered_semiring.zero_mul α s,
   mul_zero                   := @linear_ordered_semiring.mul_zero α s,

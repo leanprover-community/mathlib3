@@ -1062,10 +1062,9 @@ def sigma_equiv_sigma_pi (n : ℕ) :
         composition.length_gather _ _,
       conv_rhs { rw [← of_fn_nth_le b.blocks] },
       congr' 1,
-      { exact B },
-      { apply (fin.heq_fun_iff B).2 (λ i, _),
-        rw [sigma_composition_aux, composition.length, nth_le_map_rev list.length,
-            nth_le_of_eq (map_length_split_wrt_composition _ _)], refl } }
+      apply (fin.heq_fun_iff B).2 (λ i, _),
+      rw [sigma_composition_aux, composition.length, nth_le_map_rev list.length,
+          nth_le_of_eq (map_length_split_wrt_composition _ _)], refl }
   end,
   right_inv :=
   begin

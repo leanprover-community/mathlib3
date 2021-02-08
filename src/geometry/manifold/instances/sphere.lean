@@ -320,7 +320,7 @@ begin
   have H₁ := U'.to_continuous_linear_map.times_cont_diff.comp_times_cont_diff_on
       times_cont_diff_on_stereo_to_fun,
   have H₂ := (times_cont_diff_stereo_inv_fun_aux.comp
-      (ℝ ∙ (v:E))ᗮ.subtype_continuous.times_cont_diff).comp
+      (ℝ ∙ (v:E))ᗮ.subtypeL.times_cont_diff).comp
       U.symm.to_continuous_linear_map.times_cont_diff,
   convert H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ) using 1,
   have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
@@ -341,7 +341,7 @@ begin
       (linear_isometry_equiv.from_orthogonal_span_singleton
       (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
     exact ((times_cont_diff_stereo_inv_fun_aux.comp
-      (ℝ ∙ ((-v):E))ᗮ.subtype_continuous.times_cont_diff).comp
+      (ℝ ∙ ((-v):E))ᗮ.subtypeL.times_cont_diff).comp
       U.symm.to_continuous_linear_map.times_cont_diff).times_cont_diff_on }
 end
 

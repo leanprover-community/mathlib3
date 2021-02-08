@@ -473,7 +473,7 @@ or.cases_on (lt_or_eq_of_le $ nat.le_of_lt_succ H)
 theorem is_prime.mul_le {I J P : ideal R} (hp : is_prime P) :
   I * J ≤ P ↔ I ≤ P ∨ J ≤ P :=
 ⟨λ h, or_iff_not_imp_left.2 $ λ hip j hj, let ⟨i, hi, hip⟩ := set.not_subset.1 hip in
-  (hp.2 $ h $ mul_mem_mul hi hj).resolve_left hip,
+  (hp.mem_or_mem $ h $ mul_mem_mul hi hj).resolve_left hip,
 λ h, or.cases_on h (le_trans $ le_trans mul_le_inf inf_le_left)
   (le_trans $ le_trans mul_le_inf inf_le_right)⟩
 
@@ -799,8 +799,8 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 (λ r ⟨n, hfrnk⟩, ⟨n, f.map_pow r n ▸ hfrnk⟩)
 
 theorem comap_is_prime [H : is_prime K] : is_prime (comap f K) :=
-⟨comap_ne_top f H.left,
-  λ x y h, H.right (show f x * f y ∈ K, by rwa [mem_comap, ring_hom.map_mul] at h)⟩
+⟨comap_ne_top f H.ne_top,
+  λ x y h, H.mem_or_mem $ by rwa [mem_comap, ring_hom.map_mul] at h⟩
 
 @[simp] lemma map_quotient_self :
   map (quotient.mk I) I = ⊥ :=
@@ -901,22 +901,22 @@ def order_embedding_of_surjective : ideal S ↪o ideal R :=
 theorem map_eq_top_or_is_maximal_of_surjective (H : is_maximal I) :
   (map f I) = ⊤ ∨ is_maximal (map f I) :=
 begin
-  refine or_iff_not_imp_left.2 (λ ne_top, ⟨λ h, ne_top h, λ J hJ, _⟩),
+  refine or_iff_not_imp_left.2 (λ ne_top, ⟨⟨λ h, ne_top h, λ J hJ, _⟩⟩),
   { refine (rel_iso_of_surjective f hf).injective
-      (subtype.ext_iff.2 (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm)),
+      (subtype.ext_iff.2 (eq.trans (H.1.2 (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm)),
     { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
     { exact λ h, hJ.right (le_map_of_comap_le_of_surjective f hf (le_of_eq h.symm)) } }
 end
 
 theorem comap_is_maximal_of_surjective [H : is_maximal K] : is_maximal (comap f K) :=
 begin
-  refine ⟨comap_ne_top _ H.left, λ J hJ, _⟩,
+  refine ⟨⟨comap_ne_top _ H.1.1, λ J hJ, _⟩⟩,
   suffices : map f J = ⊤,
   { replace this := congr_arg (comap f) this,
     rw [comap_top, comap_map_of_surjective _ hf, eq_top_iff] at this,
     rw eq_top_iff,
     exact le_trans this (sup_le (le_of_eq rfl) (le_trans (comap_mono (bot_le)) (le_of_lt hJ))) },
-  refine H.right (map f J) (lt_of_le_of_ne (le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ))
+  refine H.1.2 (map f J) (lt_of_le_of_ne (le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ))
     (λ h, ne_of_lt hJ (trans (congr_arg (comap f) h) _))),
   rw [comap_map_of_surjective _ hf, sup_eq_left],
   exact le_trans (comap_mono bot_le) (le_of_lt hJ)
@@ -971,7 +971,7 @@ lemma comap_le_iff_le_map : comap f K ≤ I ↔ K ≤ map f I :=
 
 theorem map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
 by refine or_iff_not_imp_left.1
-  (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.left _);
+  (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.1.1 _);
 calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm
    ... = comap f ⊤ : by rw h
    ... = ⊤ : by rw comap_top
@@ -993,7 +993,7 @@ def is_primary (I : ideal R) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : R}, x * y ∈ I → x ∈ I ∨ y ∈ radical I
 
 theorem is_primary.to_is_prime (I : ideal R) (hi : is_prime I) : is_primary I :=
-⟨hi.1, λ x y hxy, (hi.2 hxy).imp id $ λ hyi, le_radical hyi⟩
+⟨hi.1, λ x y hxy, (hi.mem_or_mem hxy).imp id $ λ hyi, le_radical hyi⟩
 
 theorem mem_radical_of_pow_mem {I : ideal R} {x : R} {m : ℕ} (hx : x ^ m ∈ radical I) : x ∈ radical I :=
 radical_idem I ▸ ⟨m, hx⟩
@@ -1099,7 +1099,7 @@ end
 theorem map_is_prime_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   [H : is_prime I] (hk : ring_hom.ker f ≤ I) : is_prime (map f I) :=
 begin
-  refine ⟨λ h, H.left (eq_top_iff.2 _), λ x y, _⟩,
+  refine ⟨λ h, H.ne_top (eq_top_iff.2 _), λ x y, _⟩,
   { replace h := congr_arg (comap f) h,
     rw [comap_map_of_surjective _ hf, comap_top] at h,
     exact h ▸ sup_le (le_of_eq rfl) hk },
@@ -1110,7 +1110,7 @@ begin
     have : a * b ∈ I,
     { convert I.sub_mem hc (hk (hc' : c - a * b ∈ f.ker)),
       ring },
-    exact (H.right this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
+    exact (H.mem_or_mem this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
 end
 
 theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :

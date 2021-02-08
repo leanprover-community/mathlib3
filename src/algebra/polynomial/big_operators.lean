@@ -169,7 +169,7 @@ end
 end comm_ring
 
 section no_zero_divisors
-variables [comm_ring R] [no_zero_divisors R] (f : ι → polynomial R)
+variables [comm_ring R] [no_zero_divisors R] [nontrivial R] (f : ι → polynomial R)
 
 lemma nat_degree_multiset_prod (m : multiset (polynomial R)) (h : ∀ f ∈ m, f ≠ (0 : polynomial R)) :
   m.prod.nat_degree = (m.map nat_degree).sum :=
@@ -180,18 +180,6 @@ begin
   exact h x hx (leading_coeff_eq_zero.mp fx_eq)
 end
 
-lemma nat_degree_prod (h : ∀ i ∈ s, f i ≠ 0) :
-  (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
-begin
-  refine trans (nat_degree_multiset_prod _ _) _,
-  { simp only [multiset.mem_map], rintros _ ⟨i, hi, rfl⟩, exact h i hi },
-  { rw multiset.map_map, refl }
-end
-
-lemma leading_coeff_multiset_prod (m : multiset (polynomial R)) :
-  m.prod.leading_coeff = (m.map leading_coeff).prod :=
-by { rw [← leading_coeff_hom_apply, monoid_hom.map_multiset_prod], refl }
-
 /--
 The degree of a product of polynomials is equal to
 the sum of the degrees.
@@ -199,12 +187,12 @@ the sum of the degrees.
 See `polynomial.nat_degree_prod'` (with a `'`) for a version for commutative semirings,
 where additionally, the product of the leading coefficients must be nonzero.
 -/
-lemma nat_degree_prod [nontrivial R] (h : ∀ i ∈ s, f i ≠ 0) :
+lemma nat_degree_prod (h : ∀ i ∈ s, f i ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
-  apply nat_degree_prod',
-  rw prod_ne_zero_iff,
-  intros x hx, simp [h x hx],
+  refine trans (nat_degree_multiset_prod _ _) _,
+  { simp only [multiset.mem_map], rintros _ ⟨i, hi, rfl⟩, exact h i hi },
+  { rw multiset.map_map, refl }
 end
 
 /--
@@ -219,6 +207,10 @@ begin
   { rw [prod_insert ha, sum_insert ha, degree_mul, hs] },
 end
 
+lemma leading_coeff_multiset_prod (m : multiset (polynomial R)) :
+  m.prod.leading_coeff = (m.map leading_coeff).prod :=
+by { rw [← leading_coeff_hom_apply, monoid_hom.map_multiset_prod], refl }
+
 /--
 The leading coefficient of a product of polynomials is equal to
 the product of the leading coefficients.
@@ -226,9 +218,8 @@ the product of the leading coefficients.
 See `polynomial.leading_coeff_prod'` (with a `'`) for a version for commutative semirings,
 where additionally, the product of the leading coefficients must be nonzero.
 -/
->>>>>>> mathlib/master
 lemma leading_coeff_prod :
-  (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
+(∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 begin
   refine trans (leading_coeff_multiset_prod _) _,
   rw multiset.map_map, refl

@@ -868,7 +868,7 @@ begin
   simp,
 end
 
-theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
+theorem prod_eq_zero_iff [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α]
   {s : multiset α} :
   s.prod = 0 ↔ (0 : α) ∈ s :=
 multiset.induction_on s (by simp) $

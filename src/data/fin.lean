@@ -35,7 +35,7 @@ This file expands on the development in the core library.
 * `cast_add m` : embed `fin n` into `fin (n+m)`;
 * `cast_succ` : embed `fin n` into `fin (n+1)`;
 * `succ_above p` : embed `fin n` into `fin (n + 1)` with a hole around `p`;
-* `pred_above p i h` : embed `i : fin (n+1)` into `fin n` by ignoring `p`;
+* `pred_above p i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
 * `sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
 * `add_nat i h` : add `m` on `i` on the right, generalizes `fin.succ`;
 * `nat_add i h` adds `n` on `i` on the left;
@@ -88,6 +88,8 @@ localized "attribute [instance] fact.pow.pos" in fin_fact
 
 namespace fin
 variables {n m : ℕ} {a b : fin n}
+
+instance has_zero_of_pos [h : fact (0 < n)] : has_zero (fin n) := { zero := ⟨0, h⟩ }
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
@@ -402,13 +404,12 @@ lemma succ_above_aux (p : fin (n + 1)) :
 def succ_above (p : fin (n + 1)) : fin n ↪o fin (n + 1) :=
 order_embedding.of_strict_mono _ p.succ_above_aux
 
-/-- `pred_above p i h` embeds `i : fin (n+1)` into `fin n` by ignoring `p`. -/
-def pred_above (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
-if h : i < p
-then i.cast_lt (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)
-else i.pred $
-  have p < i, from lt_of_le_of_ne (le_of_not_gt h) hi.symm,
-  ne_of_gt (lt_of_le_of_lt (zero_le p) this)
+/-- `pred_above p i` embeds `i : fin (n+1)` into `fin n` by subtracting one if `p < i`. -/
+def pred_above (p : fin n) (i : fin (n+1)) : fin n :=
+if h : p.cast_succ < i then
+  i.pred (ne_of_lt (lt_of_le_of_lt (zero_le p.cast_succ) h)).symm
+else
+  i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
 /-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
 def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
@@ -662,35 +663,36 @@ lemma succ_above_right_inj {x : fin (n + 1)} :
   x.succ_above a = x.succ_above b ↔ a = b :=
 succ_above_right_injective.eq_iff
 
-/-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
-gives the starting `fin (n + 1)` -/
-@[simp] lemma succ_above_pred_above (p i : fin (n + 1)) (h : i ≠ p) :
-  p.succ_above (p.pred_above i h) = i :=
+/-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
+then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/
+@[simp] lemma succ_above_pred_above (p : fin n) (i : fin (n + 1)) (h : i ≠ p) :
+  p.cast_succ.succ_above (p.pred_above i) = i :=
 begin
   rw pred_above,
   cases lt_or_le i p with H H,
-  { simp only [succ_above_below, cast_succ_cast_lt, H, dif_pos]},
-  { rw le_iff_coe_le_coe at H,
-    rw succ_above_above,
-    { simp only [le_iff_coe_le_coe, H, not_lt, dif_neg, succ_pred] },
-    { simp only [le_iff_coe_le_coe, H, coe_pred, not_lt, dif_neg, coe_cast_succ],
-      exact le_pred_of_lt (lt_of_le_of_ne H (vne_of_ne h.symm)) } }
+  { sorry, },
+  { sorry, }
 end
 
-/-- Embedding a `fin n` into `fin (n + 1)` and embedding it back around the same hole
-gives the starting `fin n` -/
-@[simp] lemma pred_above_succ_above (p : fin (n + 1)) (i : fin n) :
-  p.pred_above (p.succ_above i) (succ_above_ne _ _) = i :=
-by rw [← succ_above_right_inj, succ_above_pred_above]
+/-- Sending `fin n` into `fin (n + 1)` with a gap at `p`
+then back to `fin n` by subtracting one from anything above `p` is the identity. -/
+@[simp] lemma pred_above_succ_above (p : fin n) (i : fin n) :
+  p.pred_above (p.cast_succ.succ_above i) = i :=
+begin
+  dsimp [pred_above],
+  rcases p with ⟨p, _⟩,
+  rcases i with ⟨i, _⟩,
+  simp,
+end
 
-@[simp] theorem pred_above_zero {i : fin (n + 1)} (hi : i ≠ 0) :
-  pred_above 0 i hi = i.pred hi :=
-rfl
+@[simp] theorem pred_above_zero [fact (0 < n)] {i : fin (n + 1)} (hi : i ≠ 0) :
+  pred_above 0 i = i.pred hi :=
+sorry
 
 lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
   (∀ j, p j) ↔ p i ∧ ∀ j, p (i.succ_above j) :=
 ⟨λ h, ⟨h _, λ j, h _⟩,
-  λ h j, if hj : j = i then (hj.symm ▸ h.1) else (i.succ_above_pred_above j hj ▸ h.2 _)⟩
+  λ h j, if hj : j = i then (hj.symm ▸ h.1) else (begin sorry, end)⟩
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_injective : injective (@succ_above n) :=

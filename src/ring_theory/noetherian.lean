@@ -224,7 +224,7 @@ begin
   exact submodule.span_eq_restrict_scalars R S M X h
 end
 
-lemma fg_of_ker_of_ring_hom_comp {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+lemma fg_ker_ring_hom_comp {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
   (f : R →+* S) (g : S →+* A) (hf : f.ker.fg) (hg : g.ker.fg) (hsur : function.surjective f) :
   (g.comp f).ker.fg :=
 begin

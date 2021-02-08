@@ -443,31 +443,6 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
 
-/-- Re-index the components of the tensor power by `e`. -/
--- def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, E ≃ₗ[R] ⨂[R] i : ι₂, E :=
--- linear_equiv.of_linear
---   ((lift.symm.trans $ multilinear_map.dom_dom_congr_linear_equiv E (⨂[R] i : ι₂, E) R R e.symm).trans lift (linear_map.id))
---   ((lift.symm.trans $ multilinear_map.dom_dom_congr_linear_equiv E (⨂[R] i : ι, E) R R e).trans lift (linear_map.id))
---   (by { ext, simp })
---   (by { ext, simp })
-
-/-- The tensor product over an empty set of indices is isomorphic to the base ring -/
-def pempty_equiv : ⨂[R] i : pempty, E ≃ₗ[R] R :=
-{ to_fun := lift ⟨λ (_ : pempty → E), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
-  inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
-  left_inv := λ x, by {
-    apply x.induction_on,
-    { intros r f,
-      have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
-      simp [this], },
-    { simp only,
-      intros x y hx hy,
-      simp [add_smul, hx, hy] }},
-  right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, multilinear_map.coe_mk,
-    linear_map.map_smul, pi_tensor_product.lift.tprod],
-  map_add' := linear_map.map_add _,
-  map_smul' := linear_map.map_smul _, }
-
 #check 1
 
 -- /-- The tensor product over an empty set of indices is isomorphic to the base ring -/
@@ -500,12 +475,8 @@ def pempty_equiv : ⨂[R] i : pempty, E ≃ₗ[R] R :=
 
 section mul
 
-variables {M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M]
-variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
-
-
 /-- Collapse a `tensor_product` of `pi_tensor_product`s -/
-def mul : (⨂[R] i : ι₁, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι₁ ⊕ ι₂, M :=
+def mul : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
 tensor_product.lift
   { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
       (multilinear_map.curry_sum_equiv R _ _ _ _
@@ -515,7 +486,7 @@ tensor_product.lift
     map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
 
 /-- Expand `pi_tensor_product` into a `tensor_product` of two halves -/
-def unmul : ⨂[R] i : ι₁ ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι₁, M) ⊗[R] (⨂[R] i : ι₂, M) :=
+def unmul : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) :=
 pi_tensor_product.lift begin
   apply multilinear_map.dom_coprod,
   exact tprod R,
@@ -523,7 +494,7 @@ pi_tensor_product.lift begin
 end
 
 /-- `mul` and `unmul` combined as an equiv. -/
-def mul_equiv : (⨂[R] i : ι₁, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι₁ ⊕ ι₂, M :=
+def mul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
 linear_equiv.of_linear mul unmul
   begin
     unfold mul unmul,
@@ -535,24 +506,26 @@ linear_equiv.of_linear mul unmul
       eq_self_iff_true,
       linear_map.coe_mk,
       function.comp_app,
+      multilinear_map.coe_curry_sum_equiv,
       multilinear_map.curry_sum_apply,
       function.comp.left_id,
       multilinear_map.dom_coprod_apply,
       pi_tensor_product.lift.tprod,
       linear_map.comp_apply],
-    simp only [sum.elim_comp_inl_inr,
-      eq_self_iff_true,
-      multilinear_map.coe_curry_sum_equiv,
-      multilinear_map.curry_sum_apply],
   end
   begin
     unfold mul unmul,
+    -- there's no obvious way to apply ext to both elements of the tensor product
     ext1,
-    simp only [linear_map.id_coe, tensor_product.lift.tmul, id.def, linear_map.coe_mk,
-      linear_map.comp_apply],
-    simp only [multilinear_map.coe_curry_sum_equiv],
-    -- (lift ((tprod R).dom_coprod (tprod R))) ((lift ((lift (tprod R).curry_sum) x)) y) = x ⊗ₜ[R] y
-    sorry,
+    simp only [linear_map.id_coe, id_def],
+    rw [←tensor_product.mk_apply, ←linear_map.flip_apply, ←linear_map.comp_apply],
+    convert linear_map.congr_fun _ x,
+    ext x',
+    simp only [linear_map.comp_apply, linear_map.flip_apply, linear_map.comp_multilinear_map_apply],
+    simp only [←linear_map.comp_apply],
+    convert linear_map.congr_fun _ y,
+    ext y',
+    simp?,
   end
 
 end mul

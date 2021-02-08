@@ -797,7 +797,7 @@ have 0 - f i + a₁ ≤ 0 - g i + a₂ := has_sum_le this (hf.update i 0) (hg.up
 by simpa only [zero_sub, add_neg_cancel_left] using add_lt_add_of_lt_of_le hi this
 
 @[mono] lemma has_sum_strict_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f < g) : a₁ < a₂ :=
-let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt i hle hi hf hg
+let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt hle hi hf hg
 
 lemma tsum_lt_tsum {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
   (hf : summable f) (hg : summable g) :

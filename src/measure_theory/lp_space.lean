@@ -103,17 +103,17 @@ deduce it for `snorm`, and translate it in terms of `mem_ℒp`.
 
 section ℒp_space_definition
 
-/-- `(∫ ∥f a∥^p ∂μ) ^ (1/p)`, which is a seminorm on the space of measurable functions for which
+/-- `(∫ ∥f a∥^q ∂μ) ^ (1/q)`, which is a seminorm on the space of measurable functions for which
 this quantity is finite -/
-def snorm' (f : α → F) (p : ℝ) (μ : measure α) : ℝ≥0∞ := (∫⁻ a, (nnnorm (f a))^p ∂μ) ^ (1/p)
+def snorm' (f : α → F) (q : ℝ) (μ : measure α) : ℝ≥0∞ := (∫⁻ a, (nnnorm (f a))^q ∂μ) ^ (1/q)
 
 /-- seminorm for `ℒ∞`, equal to the essential supremum of `∥f∥`. -/
 def snorm_ess_sup (f : α → F) (μ : measure α) := ess_sup (λ x, (nnnorm (f x) : ℝ≥0∞)) μ
 
 /-- `ℒp` seminorm, equal to `0` for `p=0`, to `(∫ ∥f a∥^p ∂μ) ^ (1/p)` for `0 < p < ∞` and to
 `ess_sup ∥f∥ μ` for `p = ∞`. -/
-def snorm (f : α → F) (q : ℝ≥0∞) (μ : measure α) : ℝ≥0∞ :=
-if q = 0 then 0 else (if q = ∞ then snorm_ess_sup f μ else snorm' f (ennreal.to_real q) μ)
+def snorm (f : α → F) (p : ℝ≥0∞) (μ : measure α) : ℝ≥0∞ :=
+if p = 0 then 0 else (if p = ∞ then snorm_ess_sup f μ else snorm' f (ennreal.to_real p) μ)
 
 lemma snorm_eq_snorm' (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) {f : α → F} :
   snorm f p μ = snorm' f (ennreal.to_real p) μ :=

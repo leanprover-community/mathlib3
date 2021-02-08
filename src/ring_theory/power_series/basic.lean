@@ -1039,7 +1039,7 @@ begin
   { rw [zero_pow' n h, zero_mul], },
 end
 
-lemma eval_mul_hom_zero_apply : eval_mul_hom 0 x = C R (constant_coeff R x) :=
+lemma eval_mul_hom_zero_apply : eval_mul_hom 0 X = C R (constant_coeff R X) :=
 by simp
 
 @[simp] lemma eval_mul_hom_one : eval_mul_hom 1 = ring_hom.id (power_series R) :=

@@ -207,12 +207,10 @@ lemma fg_ker_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
   (g : N →ₗ[R] P) (hf1 : f.ker.fg) (hf2 : g.ker.fg) (hsur : function.surjective f) :
   (g.comp f).ker.fg :=
 begin
-  have h1 : map f (comap f g.ker) = g.ker,
-  { rw [linear_map.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
-  have h2 : (map f (comap f g.ker)).fg := by rwa h1,
-  have h3 : f.ker ≤ (comap f g.ker) := (comap_mono (@bot_le _ _ g.ker)),
-  have h4 : ((comap f g.ker) ⊓ f.ker).fg := by rwa [inf_of_le_right h3],
-  exact fg_of_fg_map_of_fg_inf_ker f h2 h4
+  rw linear_map.ker_comp,
+  apply fg_of_fg_map_of_fg_inf_ker f,
+  { rwa [linear_map.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
+  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
 end
 
 lemma fg_of_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]

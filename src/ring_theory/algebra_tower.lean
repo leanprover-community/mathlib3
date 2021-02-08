@@ -287,6 +287,7 @@ end artin_tate
 lemma is_noetherian_ring_of_is_noetherian_coe_submodule (R) {S} [comm_ring R] [ring S] [algebra R S]
 (N : subalgebra R S) (h : is_noetherian R (N : submodule R S)) : is_noetherian_ring N :=
 begin
+  rw is_noetherian_ring_iff,
   apply is_noetherian_of_is_scalar_tower R h,
   { apply_instance },
   exact is_scalar_tower.subalgebra_to_submodule N

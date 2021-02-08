@@ -684,7 +684,7 @@ open_locale matrix
 /-- The (non-unique) map `ϕ` such that `N.map ϕ` is maximal along the set of `N.map _`. -/
 noncomputable def maximal_projection (N : submodule R M) : M →ₗ[R] R :=
 have _ := set_has_maximal_iff_noetherian.mpr
-  (principal_ideal_ring.is_noetherian_ring : is_noetherian R R) _ (nonempty_range_map N),
+  (infer_instance : is_noetherian R R) _ (nonempty_range_map N),
 have hv' : classical.some this ∈ set.range _ := classical.some (classical.some_spec this),
 classical.some hv'
 
@@ -694,7 +694,7 @@ lemma maximal_projection_is_maximal (N : submodule R M) (ϕ : M →ₗ[R] R)
   N.map ϕ = N.map (maximal_projection N) :=
 begin
   have h := set_has_maximal_iff_noetherian.mpr
-    (principal_ideal_ring.is_noetherian_ring : is_noetherian R R) _ (nonempty_range_map N),
+  (infer_instance : is_noetherian R R) _ (nonempty_range_map N),
   have h1 := classical.some h,
   have h2 := classical.some_spec h,
   have h21 := classical.some h2,

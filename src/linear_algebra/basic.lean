@@ -2228,10 +2228,6 @@ quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 end isomorphism_laws
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 section pi
 universe i
 variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]

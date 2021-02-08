@@ -200,7 +200,7 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
-/-- The kernel of the composition of two morphism is finitely generated if both kernel are and
+/-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
 the first morphism is surjective. -/
 lemma fg_of_ker_of_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
   [add_comm_group N] [module R N] [add_comm_group P] [module R P] (f : M →ₗ[R] N)

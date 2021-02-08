@@ -230,6 +230,14 @@ begin
     tendsto_coe, tendsto_add]
 end
 
+protected lemma tendsto_at_top_zero [hβ : nonempty β] [semilattice_sup β] {f : β → ℝ≥0∞} :
+  filter.at_top.tendsto f (𝓝 0) ↔ ∀ ε > 0, ∃ N, ∀ n ≥ N, f n ≤ ε :=
+begin
+  rw ennreal.tendsto_at_top zero_ne_top,
+  { simp_rw [set.mem_Icc, zero_add, zero_sub, zero_le _, true_and], },
+  { exact hβ, },
+end
+
 protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=
 have ht : ∀b:ℝ≥0∞, b ≠ 0 → tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 ((⊤:ℝ≥0∞), b)) (𝓝 ⊤),
@@ -582,6 +590,20 @@ coe_to_nnreal $ ennreal.ne_top_of_tsum_ne_top hf _
 lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ℝ≥0∞} (hf : ∑' i, f i ≠ ∞) :
   summable (ennreal.to_nnreal ∘ f) :=
 by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
+
+lemma tendsto_cofinite_zero_of_tsum_lt_top {α} {f : α → ℝ≥0∞} (hf : ∑' x, f x < ∞) :
+  tendsto f cofinite (𝓝 0) :=
+begin
+  have f_ne_top : ∀ n, f n ≠ ∞, from ennreal.ne_top_of_tsum_ne_top hf.ne,
+  have h_f_coe : f = λ n, ((f n).to_nnreal : ennreal),
+    from funext (λ n, (coe_to_nnreal (f_ne_top n)).symm),
+  rw [h_f_coe, ←@coe_zero, tendsto_coe],
+  exact nnreal.tendsto_cofinite_zero_of_summable (summable_to_nnreal_of_tsum_ne_top hf.ne),
+end
+
+lemma tendsto_at_top_zero_of_tsum_lt_top {f : ℕ → ℝ≥0∞} (hf : ∑' x, f x < ∞) :
+  tendsto f at_top (𝓝 0) :=
+by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_tsum_lt_top hf }
 
 protected lemma tsum_apply {ι α : Type*} {f : ι → α → ℝ≥0∞} {x : α} :
   (∑' i, f i) x = ∑' i, f i x :=

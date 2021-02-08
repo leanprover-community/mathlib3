@@ -138,6 +138,12 @@ lemma le_mul_of_one_le_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
+lemma add_le_mul_two_add {a b : α}
+  (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
+calc a + (2 + b) ≤ a + (a + a * b) :
+      add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
+             ... ≤ a * (2 + b) : by rw [mul_add, mul_two, add_assoc]
+
 section
 variable [nontrivial α]
 
@@ -828,6 +834,10 @@ instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ri
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=
+-- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
+-- achieved the same result here.
+-- Unfortunately with that definition we see mismatched `preorder ℝ` instances in
+-- `topology.metric_space.basic`.
 let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
 { zero_mul                   := @linear_ordered_semiring.zero_mul α s,
   mul_zero                   := @linear_ordered_semiring.mul_zero α s,

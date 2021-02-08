@@ -798,7 +798,8 @@ instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [s
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower
 
-instance [comm_ring R]       : algebra R       (power_series R) := by apply_instance
+instance {A} [semiring A] [comm_semiring R] [algebra R A] :
+  algebra R (power_series A) := by apply_instance
 
 end
 

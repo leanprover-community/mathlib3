@@ -6,7 +6,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import linear_algebra.finite_dimensional
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 
 /-!
 # Operator norm on the space of continuous linear maps

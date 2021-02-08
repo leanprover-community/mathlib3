@@ -1015,7 +1015,7 @@ open finset nat
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
 noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
-{ to_fun :=   λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
+{ to_fun :=  λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
   map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
   map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
                 split_ifs, { rw [h, pow_zero], }, refl, },

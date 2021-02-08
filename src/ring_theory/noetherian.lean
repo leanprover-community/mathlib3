@@ -202,7 +202,7 @@ end
 
 /-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
 the first morphism is surjective. -/
-lemma fg_of_ker_of_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
+lemma fg_ker_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
   [add_comm_group N] [module R N] [add_comm_group P] [module R P] (f : M →ₗ[R] N)
   (g : N →ₗ[R] P) (hf1 : f.ker.fg) (hf2 : g.ker.fg) (hsur : function.surjective f) :
   (g.comp f).ker.fg :=

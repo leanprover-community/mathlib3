@@ -22,7 +22,7 @@ namespace algebra
 open polynomial
 open power_basis
 
-lemma power_basis_is_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
+lemma power_basis_is_basis {x : S} (hx : _root_.is_integral K x) :
   is_basis K (λ (i : fin (minpoly K x).nat_degree),
     (⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ) : adjoin K ({x} : set S))) :=
 begin
@@ -49,7 +49,7 @@ end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
 where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def adjoin.power_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
+noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
   dim := (minpoly K x).nat_degree,

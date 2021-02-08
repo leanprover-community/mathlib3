@@ -714,6 +714,11 @@ lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
 by rw [interior_eq_nhds', mem_set_of_eq]
 
+@[simp] lemma interior_mem_nhds {s : set α} {a : α} :
+  interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
+⟨λ h, mem_sets_of_superset h interior_subset,
+  λ h, mem_nhds_sets is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
+
 lemma interior_set_of_eq {p : α → Prop} :
   interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=
 interior_eq_nhds'

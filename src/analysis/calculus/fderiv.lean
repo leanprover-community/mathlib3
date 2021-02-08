@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.tangent_cone
 import analysis.normed_space.units
-import analysis.asymptotic_equivalent
+import analysis.asymptotics.asymptotic_equivalent
 import analysis.analytic.basic
 
 /-!

@@ -168,4 +168,12 @@ le_antisymm
 
 end coe
 
+lemma tendsto_zero_at_top_of_summable {f : ℕ → nnreal} (hf : summable f) :
+  filter.at_top.tendsto f (𝓝 0) :=
+begin
+  have h_f_coe : f = λ n, nnreal.of_real (f n : ℝ), from funext (λ n, of_real_coe.symm),
+  rw [h_f_coe, ←@of_real_coe 0],
+  exact tendsto_of_real (tendsto_zero_at_top_of_summable (summable_coe.mpr hf)),
+end
+
 end nnreal

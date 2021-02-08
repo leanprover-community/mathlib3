@@ -13,7 +13,7 @@ import ring_theory.polynomial.chebyshev.defs
 The (generalised) Dickson polynomials are a family of polynomials indexed by `ℕ × ℕ`,
 with coefficients in a commutative ring `R` depending on an element `a∈R`.
 They are closely related to the Chebyshev polynomials in the case that `a=1`.
-When `a=0` they are just the family of monomials `x ^ n`.
+When `a=0` they are just the family of monomials `X ^ n`.
 
 ## Main declarations
 
@@ -26,10 +26,10 @@ When `a=0` they are just the family of monomials `x ^ n`.
 ## TODO
 
 * Redefine `dickson` in terms of `linear_recurrence`.
-* Move the definition of `lambdashev` from `chebyshev.defs` into this file
-  (or even remove it because it is a special case of the polynomials defined here?).
-* Show that `lambdashev` is equal to the characteristic polynomial of the adjacency matrix of a
+* Show that `dickson 2 1` is equal to the characteristic polynomial of the adjacency matrix of a
   type A Dynkin diagram.
+* Prove that the adjacency matrices of simply laced Dynkin diagrams are precisely the adjacency
+  matrices of simple connected graphs which annihilate `dickson 2 1`.
 -/
 
 noncomputable theory
@@ -61,7 +61,7 @@ begin
   exact dickson_add_two k a n
 end
 
-variables {R S a}
+variables {R S k a}
 
 lemma map_dickson (f : R →+* S) :
   ∀ (n : ℕ), map f (dickson k a n) = dickson k (f a) n
@@ -75,24 +75,14 @@ end
 
 variable {R}
 
-lemma lambdashev_eq_dickson_of_eq_one :
-  ∀ (n : ℕ), lambdashev R n = dickson 1 1 n
-| 0       := by { simp only [lambdashev_zero, dickson_zero], norm_num }
-| 1       := by simp only [lambdashev_one, dickson_one]
-| (n + 2) :=
-begin
-  simp only [lambdashev_add_two, dickson_add_two, one_mul, ring_hom.map_one],
-  rw [lambdashev_eq_dickson_of_eq_one, lambdashev_eq_dickson_of_eq_one]
-end
-
 @[simp] lemma dickson_two_zero :
-  ∀ (n : ℕ), dickson 2 (0 : polynomial R) n = X ^ n
+  ∀ (n : ℕ), dickson 2 (0 : R) n = X ^ n
 | 0       := by { simp only [dickson_zero, pow_zero], norm_num }
 | 1       := by simp only [dickson_one, pow_one]
 | (n + 2) :=
 begin
   simp only [dickson_add_two, C_0, zero_mul, sub_zero],
-  rw [dickson_two_zero, pow_add X (n + 1) 1, mul_comm, pow_one],
+  rw [dickson_two_zero, pow_add X (n + 1) 1, mul_comm, pow_one]
 end
 
 end polynomial

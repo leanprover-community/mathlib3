@@ -7,10 +7,10 @@ Authors: Thomas Browning and Patrick Lutz
 import field_theory.intermediate_field
 import field_theory.minpoly
 import field_theory.splitting_field
-import field_theory.fixed
 import field_theory.minpoly
 import field_theory.separable
 import ring_theory.adjoin_root
+import ring_theory.power_basis
 
 /-!
 # Adjoining Elements to Fields
@@ -704,7 +704,13 @@ end
 
 end alg_hom_mk_adjoin_splits
 
+end intermediate_field
+
 section power_basis
+
+namespace intermediate_field
+
+variables {K L : Type*} [field K] [field L] [algebra K L]
 
 lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
   is_basis K (λ (i : fin (minpoly K x).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
@@ -735,9 +741,10 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
   (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
 
 @[simp] lemma adjoin.power_basis.minpoly_gen_eq {x : L} (hx : is_integral K x) :
-  (adjoin.power_basis hx).minpoly_gen = minpoly hx :=
+  (adjoin.power_basis hx).minpoly_gen = minpoly K x :=
 by rw [(adjoin.power_basis hx).minpoly_gen_eq,
-       minpoly.eq_of_algebra_map_eq (algebra_map K⟮x⟯ L).injective _ hx
+       ← minpoly.eq_of_algebra_map_eq (algebra_map K⟮x⟯ L).injective
+         (adjoin.power_basis hx).is_integral_gen
          (adjoin_simple.algebra_map_gen K x).symm]
 
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
@@ -753,6 +760,8 @@ end
 end intermediate_field
 
 namespace power_basis
+
+variables {K L : Type*} [field K] [field L] [algebra K L]
 
 open intermediate_field
 

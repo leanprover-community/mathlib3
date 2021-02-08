@@ -514,8 +514,7 @@ linear_map.ker_eq_bot.2 $ λ φ ψ h, dual_lift_injective (subtype.mk_eq_mk.1 h)
 
 lemma dual_to_subspace_range_eq_top :
   W.dual_to_subspace_dual.range = ⊤ :=
-linear_map.range_eq_top.2 $ λ ⟨φ, hφ⟩, let ⟨ψ, hψ⟩ := hφ in
-  ⟨ψ, by rw [dual_to_subspace_dual_apply, subtype.mk_eq_mk, hψ.2]⟩
+W.dual_lift.range_range_restrict
 
 /-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_equiv_dual (W : subspace K V) :

@@ -7,7 +7,7 @@ Authors: Kenny Lau
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
-import ring_theory.adjoin
+import ring_theory.adjoin.basic
 
 /-!
 # Towers of algebras

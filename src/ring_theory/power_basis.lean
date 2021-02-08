@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 import field_theory.adjoin
 import field_theory.minpoly
-import ring_theory.adjoin
 import ring_theory.adjoin_root
 import ring_theory.algebraic
 
@@ -325,26 +324,11 @@ end equiv
 
 end power_basis
 
-namespace algebra
-
 open power_basis
 
-lemma mem_span_power_basis [nontrivial R] {x y : S} (hx : _root_.is_integral R x)
-  (hy : ∃ f : polynomial R, y = aeval x f) :
-  y ∈ submodule.span R (set.range (λ (i : fin (minpoly R x).nat_degree),
-    x ^ (i : ℕ))) :=
-begin
-  obtain ⟨f, rfl⟩ := hy,
-  rw mem_span_pow',
-  have := minpoly.monic hx,
-  refine ⟨f.mod_by_monic (minpoly R x),
-    lt_of_lt_of_le (degree_mod_by_monic_lt _ this (ne_zero_of_monic this)) degree_le_nat_degree,
-    _⟩,
-  conv_lhs { rw ← mod_by_monic_add_div f this },
-  simp only [add_zero, zero_mul, minpoly.aeval, aeval_add, alg_hom.map_mul]
-end
-
-lemma linear_independent_power_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
+/-- Useful lemma to show `x` generates a power basis:
+the powers of `x` less than the degree of `x`'s minimal polynomial are linear independent. -/
+lemma is_integral.linear_independent_pow [algebra K S] {x : S} (hx : is_integral K x) :
   linear_independent K (λ (i : fin (minpoly K x).nat_degree), x ^ (i : ℕ)) :=
 begin
   rw linear_independent_iff,
@@ -392,44 +376,24 @@ begin
     rw [degree_eq_nat_degree (minpoly.ne_zero hx), degree_lt_iff_coeff_zero],
     intros i hi,
     rw [f_def' i, dif_neg],
-    exact not_lt_of_ge hi },
+    exact hi.not_lt },
   contradiction
 end
 
-lemma power_basis_is_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
-  is_basis K (λ (i : fin (minpoly K x).nat_degree),
-    (⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ) : adjoin K ({x} : set S))) :=
+lemma is_integral.mem_span_pow [nontrivial R] {x y : S} (hx : is_integral R x)
+  (hy : ∃ f : polynomial R, y = aeval x f) :
+  y ∈ submodule.span R (set.range (λ (i : fin (minpoly R x).nat_degree),
+    x ^ (i : ℕ))) :=
 begin
-  have hST : function.injective (algebra_map (adjoin K ({x} : set S)) S) := subtype.coe_injective,
-  have hx' : _root_.is_integral K
-    (show adjoin K ({x} : set S), from ⟨x, subset_adjoin (set.mem_singleton x)⟩),
-  { apply (is_integral_algebra_map_iff hST).mp,
-    convert hx,
-    apply_instance },
-  have minpoly_eq := minpoly.eq_of_algebra_map_eq hST hx' rfl,
-  refine ⟨_, _root_.eq_top_iff.mpr _⟩,
-  { have := linear_independent_power_basis hx',
-    rwa minpoly_eq at this },
-  { rintros ⟨y, hy⟩ _,
-    have := mem_span_power_basis hx',
-    rw minpoly_eq at this,
-    apply this,
-    { rw [adjoin_singleton_eq_range] at hy,
-      obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
-      use f,
-      ext,
-      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
+  obtain ⟨f, rfl⟩ := hy,
+  apply mem_span_pow'.mpr _,
+  have := minpoly.monic hx,
+  refine ⟨f.mod_by_monic (minpoly R x),
+      lt_of_lt_of_le (degree_mod_by_monic_lt _ this (ne_zero_of_monic this)) degree_le_nat_degree,
+      _⟩,
+  conv_lhs { rw ← mod_by_monic_add_div f this },
+  simp only [add_zero, zero_mul, minpoly.aeval, aeval_add, alg_hom.map_mul]
 end
-
-/-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
-where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def adjoin.power_basis [algebra K S] {x : S} (hx : _root_.is_integral K x) :
-  power_basis K (adjoin K ({x} : set S)) :=
-{ gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
-  dim := (minpoly K x).nat_degree,
-  is_basis := power_basis_is_basis hx }
-
-end algebra
 
 namespace adjoin_root
 
@@ -461,10 +425,10 @@ begin
     { exact q_monic.ne_zero } },
   refine ⟨_, eq_top_iff.mpr _⟩,
   { rw [←deg_f', minpoly_eq],
-    exact algebra.linear_independent_power_basis hx, },
+    exact hx.linear_independent_pow },
   { rintros y -,
     rw [←deg_f', minpoly_eq],
-    apply algebra.mem_span_power_basis hx,
+    apply hx.mem_span_pow,
     obtain ⟨g⟩ := y,
     use g,
     rw aeval_eq,

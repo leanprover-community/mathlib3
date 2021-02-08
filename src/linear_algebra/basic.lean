@@ -360,38 +360,12 @@ end
 @[simp] theorem fst_apply (x : M × M₂) : fst R M M₂ x = x.1 := rfl
 @[simp] theorem snd_apply (x : M × M₂) : snd R M M₂ x = x.2 := rfl
 
-/-- Taking the product of two maps with the same domain is equivalent to taking the product of
-their codomains. -/
-@[simps symm_apply]
-def prod_equiv
-  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃] :
-  ((M →ₗ[R] M₂) × (M →ₗ[R] M₃)) ≃ₗ[S] (M →ₗ[R] M₂ × M₃) :=
-{ to_fun := λ f,
-  { to_fun    := λ x, (f.1 x, f.2 x),
-    map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
-    map_smul' := λ c x, by simp only [prod.smul_mk, map_smul] },
-  inv_fun := λ f, ((fst _ _ _).comp f, (snd _ _ _).comp f),
-  left_inv := λ f, by {
-    ext,
-    cases f,
-    { simp only [comp_apply, coe_mk, fst_apply] },
-    { simp only [comp_apply, coe_mk, snd_apply] }, },
-  right_inv := λ f, by {
-    ext1,
-    simp only [fst_apply, snd_apply, prod.mk.eta, comp_apply, mk_coe] },
-  map_add' := λ a b, rfl,
-  map_smul' := λ r a, rfl }
-
 /-- The prod of two linear maps is a linear map. -/
-def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) := prod_equiv ℕ (f, g)
+@[simps] def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) :=
+{ to_fun    := λ x, (f x, g x),
+  map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
+  map_smul' := λ c x, by simp only [prod.smul_mk, map_smul] }
 
-@[simp] theorem prod_equiv_apply
-  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃]
-  (f : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)) :
-  prod_equiv S f = prod f.1 f.2 := rfl
-
-@[simp] theorem prod_apply (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) (x : M) :
-  prod f g x = (f x, g x) := rfl
 
 @[simp] theorem fst_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   (fst R M₂ M₃).comp (prod f g) = f := by ext; refl
@@ -401,6 +375,18 @@ def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M�
 
 @[simp] theorem pair_fst_snd : prod (fst R M M₂) (snd R M M₂) = linear_map.id :=
 by ext; refl
+
+/-- Taking the product of two maps with the same domain is equivalent to taking the product of
+their codomains. -/
+@[simps] def prod_equiv
+  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃] :
+  ((M →ₗ[R] M₂) × (M →ₗ[R] M₃)) ≃ₗ[S] (M →ₗ[R] M₂ × M₃) :=
+{ to_fun := λ f, f.1.prod f.2,
+  inv_fun := λ f, ((fst _ _ _).comp f, (snd _ _ _).comp f),
+  left_inv := λ f, by ext; refl,
+  right_inv := λ f, by ext; refl,
+  map_add' := λ a b, rfl,
+  map_smul' := λ r a, rfl }
 
 section
 variables (R M M₂)

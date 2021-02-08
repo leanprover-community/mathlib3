@@ -9,9 +9,10 @@ import tactic.linarith
 
 /-! # The simplex category
 
-TODO: explain that this shouldn't be used by default,
-but it gives access to a useful constructor.
+We construct a skeletal model of the simplex category, with objects `ℕ` and the
+morphism `n ⟶ m` being the monotone maps from `fin (n+1)` to `fin (m+1)`.
 
+We show that this category is equivalent to `NonemptyFinLinOrd`.
 -/
 
 universe variables u
@@ -30,6 +31,11 @@ instance : small_category simplex_category :=
 { hom := λ m n, preorder_hom (fin (m+1)) (fin (n+1)),
   id := λ m, preorder_hom.id,
   comp := λ _ _ _ f g, preorder_hom.comp g f, }
+
+@[simp] lemma id_apply {n : simplex_category} (i : fin (n+1)) :
+  (𝟙 n : fin _ → fin _) i = i := rfl
+@[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l+1)) :
+  (f ≫ g) i = g (f i) := rfl
 
 section generators
 /-!
@@ -71,38 +77,58 @@ def σ {n} (i : fin (n+1)) :
   then a.cast_lt (lt_of_le_of_lt h i.is_lt)
   else ⟨a.val.pred,
     (nat.sub_lt_right_iff_lt_add (lt_of_le_of_lt i.val.zero_le (not_le.mp h))).mpr a.is_lt⟩,
-  monotone' := λ a b (H : a.val ≤ b.val),
+  monotone' := λ a b H,
   begin
     dsimp,
     split_ifs with ha hb,
-    all_goals
-    { simp [fin.le_iff_val_le_val], try { linarith }, },
-    { simp at hb,
-      have hb' : i.val ≤ nat.pred b.val,
-      { rw ←nat.pred_succ i.val,
-        exact nat.pred_le_pred hb },
-      exact nat.le_trans ha hb' },
-    { exact nat.pred_le_pred H },
+    all_goals { simp only [fin.le_iff_coe_le_coe], simp, },
+    { exact H, },
+    { simp at hb, exact nat.le_pred_of_lt (lt_of_le_of_lt ha hb), },
+    { calc _ ≤ _ : nat.pred_le _
+         ... ≤ _ : H, },
+    { exact nat.pred_le_pred H, }
   end }
+
+@[simp] lemma fin.cast_succ_mk (n i : ℕ) (h : i < n) : fin.cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
+rfl
+
+@[simp] lemma fin.succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
+rfl
 
 /-- The first simplicial identity -/
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   δ i ≫ δ j.succ = δ j ≫ δ i.cast_succ :=
 begin
-  change i.val ≤ j.val at H,
   ext k,
-  show (j.succ.succ_above (i.succ_above k)).val = (i.cast_succ.succ_above (j.succ_above k)).val,
-  dsimp [fin.succ_above],
-  split_ifs; { simp [nat.succ_eq_add_one] at *, try { linarith } },
+  dsimp [δ, fin.succ_above],
+  rcases i with ⟨i, _⟩,
+  rcases j with ⟨j, _⟩,
+  rcases k with ⟨k, _⟩,
+  split_ifs; { simp at *, try { linarith } },
 end
+
+@[simp]
+lemma dite_eq_ite (P : Prop) [decidable P] {α : Type*} (x y : α) :
+  dite P (λ h, x) (λ h, y) = ite P x y := rfl
 
 /-- The second simplicial identity -/
 lemma δ_comp_σ {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
 begin
-  change i.val ≤ j.val at H,
   ext k,
-  sorry
+  dsimp [δ, σ, fin.succ_above],
+  rcases i with ⟨i, _⟩,
+  rcases j with ⟨j, _⟩,
+  rcases k with ⟨k, _⟩,
+  simp only [subtype.mk_le_mk, simplex_category.dite_eq_ite, if_congr, subtype.mk_lt_mk,
+    simplex_category.fin.succ_mk, fin.coe_cast_lt, fin.coe_succ, fin.coe_cast_succ, dif_ctx_congr,
+     dite_cast, order_embedding.lt_iff_lt, simplex_category.fin.cast_succ_mk, fin.coe_mk, ite_cast] at *,
+  split_ifs,
+  -- Hope for the best from `linarith`:
+  all_goals { simp at *, try { linarith } },
+  -- Two of the goals need special handling:
+  { replace h_3 := nat.le_of_pred_lt h_3, linarith, },
+  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_1)).symm, }
 end
 
 /-- The fifth simplicial identity -/

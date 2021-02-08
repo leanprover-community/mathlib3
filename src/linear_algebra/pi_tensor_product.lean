@@ -366,6 +366,7 @@ theorem lift_tprod : lift (tprod R : multilinear_map R s _) = linear_map.id :=
 eq.symm $ lift.unique' rfl
 
 section
+
 variables (R M)
 /-- Re-index the components of the tensor power by `e`.
 
@@ -381,6 +382,7 @@ linear_equiv.of_linear
       lift (linear_map.id))
   (by { ext, simp })
   (by { ext, simp })
+
 end
 
 @[simp] lemma reindex_tprod (e : ι ≃ ι₂) (f : Π i, M) :

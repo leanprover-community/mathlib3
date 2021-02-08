@@ -247,7 +247,7 @@ begin
   obtain ⟨n, f, hf⟩ := hfp,
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact function.surjective.comp (ideal.quotient.mkₐ_surjective R I) hf.1 },
-  { refine submodule.fg_of_ker_of_ring_hom_comp _ _ hf.2 _ hf.1,
+  { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
     rwa ideal.quotient.mkₐ_ker R I }
 end
 

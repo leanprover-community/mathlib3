@@ -53,7 +53,7 @@ maps (`prod`, `coprod`, arithmetic operations like `+`) instead of defining a fu
 it is linear.
 
 `linear_map.prod` and `linear_map.coprod` are `linear_equiv`s in `S` between `linear_map`s in
-`R`. When we have `comm_semiring R`, `S = R` can be used (via `nat_smul_comm_class`). When we do
+`R`. When we have `comm_semiring R`, `S = R` can be used (via `smul_comm_class_self`). When we do
 not, these defs can always be used with `S = ℕ` (via `add_comm_monoid.nat_smul_comm_class`).
 
 ## Tags

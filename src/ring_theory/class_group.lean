@@ -134,7 +134,7 @@ begin
     exact h x (dvd_refl x) zI hzI },
   { rintros h _ ⟨z, rfl⟩ zI hzI,
     rw [mul_comm x z, mul_assoc],
-    exact J.mul_mem_left (h zI hzI) },
+    exact J.mul_mem_left _ (h zI hzI) },
 end
 
 lemma ideal.span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :

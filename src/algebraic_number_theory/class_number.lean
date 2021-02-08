@@ -413,7 +413,7 @@ begin
   obtain ⟨q, r, r_mem, lt⟩ := exists_mem_finset_approx' L f abs a b_ne_zero,
   apply @dvd_of_mul_left_dvd _ _ q,
   simp only [algebra.smul_def] at lt,
-  rw ← sub_eq_zero.mp (b_min _ (I.1.sub_mem (I.1.mul_mem_left ha) (I.1.mul_mem_left b_mem)) lt),
+  rw ← sub_eq_zero.mp (b_min _ (I.1.sub_mem (I.1.mul_mem_left _ ha) (I.1.mul_mem_left _ b_mem)) lt),
   refine mul_dvd_mul_right (dvd_trans (ring_hom.map_dvd _ _) hr') _,
   exact finset.dvd_prod r_mem (λ x, x)
 end

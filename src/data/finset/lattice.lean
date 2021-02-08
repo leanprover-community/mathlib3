@@ -405,6 +405,42 @@ end
 @[simp] lemma of_dual_min_eq_max_of_dual {a b : α} :
   of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
 
+lemma max'_subset {s t : finset α} (H : s.nonempty) (hst : s ⊆ t) :
+  s.max' H ≤ t.max' (H.mono hst) :=
+finset.le_max' _ _ (hst (s.max'_mem H))
+
+lemma min'_subset {s t : finset α} (H : s.nonempty) (hst : s ⊆ t) :
+  t.min' (H.mono hst) ≤ s.min' H :=
+finset.min'_le _ _ (hst (s.min'_mem H))
+
+lemma max'_insert (a : α) (s : finset α) (H : s.nonempty) :
+  (insert a s).max' (s.insert_nonempty a) = max (s.max' H) a :=
+begin
+  apply eq_max,
+  { exact finset.max'_subset _ (s.subset_insert a) },
+  { exact (insert a s).le_max' _ (s.mem_insert_self a) },
+  { intros b hsb hab,
+    apply finset.max'_le,
+    intros c hc,
+    rcases finset.mem_insert.mp hc with (rfl | hcs),
+    { exact hab },
+    { exact le_trans (s.le_max' _ hcs) hsb } },
+end
+
+lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
+  (insert a s).min' (s.insert_nonempty a) = min (s.min' H) a :=
+begin
+  apply eq_min,
+  { exact finset.min'_subset _ (s.subset_insert a) },
+  { exact (insert a s).min'_le _ (s.mem_insert_self a) },
+  { intros b hsb hab,
+    apply finset.le_min',
+    intros c hc,
+    rcases finset.mem_insert.mp hc with (rfl | hcs),
+    { exact hab },
+    { exact le_trans hsb (s.min'_le _ hcs) } },
+end
+
 end max_min
 
 section exists_max_min

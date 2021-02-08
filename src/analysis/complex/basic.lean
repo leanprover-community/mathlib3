@@ -79,13 +79,6 @@ instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed
 
 open continuous_linear_map
 
-/-- The space of continuous linear maps over `ℝ`, from a real vector space to a complex vector
-space, is a normed vector space over `ℂ`. -/
-instance continuous_linear_map.real_smul_complex (E : Type*) [normed_group E] [normed_space ℝ E]
-  (F : Type*) [normed_group F] [normed_space ℂ F] :
-  normed_space ℂ (E →L[ℝ] F) :=
-continuous_linear_map.normed_space_extend_scalars
-
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def continuous_linear_map.re : ℂ →L[ℝ] ℝ := linear_map.re.to_continuous_linear_map
 

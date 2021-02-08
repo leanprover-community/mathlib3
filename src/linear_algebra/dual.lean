@@ -494,6 +494,20 @@ begin
   rw [← smul_zero c, of_is_compl_smul], simp
 end
 
+/-- The alternative version of `dual_lift` as a linear map. -/
+noncomputable def dual_lift' (W : subspace K V) :
+  module.dual K W →ₗ[K] module.dual K V :=
+{ to_fun := λ φ, W.dual_lift φ,
+  map_add' := dual_lift_add,
+  map_smul' := dual_lift_smul }
+
+@[simp] lemma dual_lift'_def (W : subspace K V) (φ : module.dual K W) :
+  W.dual_lift' φ = W.dual_lift φ := rfl
+
+lemma dual_lift_left_inverse (W : subspace K V) :
+  W.dual_restrict.comp W.dual_lift' = 1 :=
+by { ext φ x, simp }
+
 lemma dual_restrict_surjective :
   function.surjective W.dual_restrict :=
 begin

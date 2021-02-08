@@ -202,7 +202,7 @@ end
 
 lemma commute.op [has_mul α] {x y : α} (h : commute x y) : commute (op x) (op y) :=
 begin
-  dunfold commute at h \|-,
+  dunfold commute at h ⊢,
   exact semiconj_by.op h
 end
 

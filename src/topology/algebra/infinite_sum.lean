@@ -600,28 +600,6 @@ end
 
 end subtype
 
-lemma tendsto_zero_at_top_of_summable {α} [add_comm_group α] [topological_space α] [t2_space α]
-  [tag : topological_add_group α] {f : ℕ → α} (hf : summable f) :
-  filter.at_top.tendsto f (𝓝 0) :=
-begin
-  have f_diff_sum : f
-    = (λ n, ∑ i in finset.range (n+1), f i) - (λ n, ∑ i in finset.range n, f i),
-  from funext (λ n, by simp [finset.sum_range_succ]),
-  rw [f_diff_sum, ←sub_self (tsum f)],
-  refine filter.tendsto.sub _ _,
-  swap, { exact (summable.has_sum_iff_tendsto_nat hf).mp hf.has_sum, },
-  have h_sum_offset : (λ n, ∑ i in finset.range (n+1), f i)
-    = λ n, f 0 + (∑ i in finset.range n, f (i+1)),
-  { ext1 n, nth_rewrite 1 add_comm, exact finset.sum_range_succ' f n, },
-  have h_tsum_add_sub : tsum f = f 0 + (tsum f - f 0), by abel,
-  rw [h_sum_offset, h_tsum_add_sub],
-  refine filter.tendsto.add tendsto_const_nhds _,
-  rw ←summable.has_sum_iff_tendsto_nat,
-  { rw @has_sum_nat_add_iff _ _ _ tag _ 1,
-    simp [hf.has_sum], },
-  { rwa @summable_nat_add_iff _ _ _ tag _ 1, },
-end
-
 end topological_group
 
 section topological_semiring
@@ -963,6 +941,9 @@ begin
   refine s.eventually_cofinite_nmem.mono (λ x hx, _),
   by simpa using hs {x} (singleton_disjoint.2 hx)
 end
+
+lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : filter.at_top.tendsto f (𝓝 0) :=
+by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
 
 end topological_group
 

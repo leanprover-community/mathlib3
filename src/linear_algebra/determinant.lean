@@ -7,9 +7,9 @@ import algebra.algebra.basic
 import data.equiv.fin
 import data.fintype.card
 import data.matrix.pequiv
-import group_theory.perm.sign
-import tactic.ring
+import group_theory.perm.cycles
 import linear_algebra.alternating
+import tactic.ring
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -813,7 +813,7 @@ begin
   cases n, { exact fin_zero_elim i },
   refine @fin.cases _ (λ i, sign (cycle_range' i) = (-1) ^ (i : ℕ)) _ (λ i, _) i,
   { simp },
-  rw [sign_cycle (is_cycle_cycle_range' i), support_cycle_range'_succ,
+  rw [(is_cycle_cycle_range' i).sign, support_cycle_range'_succ,
       finset.card_fin_range_inclusive, pow_succ, units.neg_mul, one_mul, units.neg_neg],
 end
 
@@ -829,7 +829,7 @@ begin
   convert det_succ_eq_sum_swap M,
   ext j,
   refine fin.cases _ (λ j, _) j,
-  { simp [swap_self] },
+  { simp [swap_self (0 : fin n.succ)] },
   rw [if_neg j.succ_ne_zero],
   simp_rw ← succ_above_cycle_range',
   rw [det_permute (cycle_range' j) (λ i' j', M ((fin.succ j).succ_above i') j'.succ),

@@ -199,11 +199,23 @@ begin
   dunfold semiconj_by,
   rw [← op_mul, ← op_mul, h.eq]
 end
+lemma semiconj_by.unop [has_mul α] {a x y : αᵒᵖ} (h : semiconj_by a x y) :
+  semiconj_by (unop a) (unop y) (unop x) :=
+begin
+  dunfold semiconj_by,
+  rw [← unop_mul, ← unop_mul, h.eq]
+end
 
 lemma commute.op [has_mul α] {x y : α} (h : commute x y) : commute (op x) (op y) :=
 begin
   dunfold commute at h ⊢,
   exact semiconj_by.op h
+end
+
+lemma commute.unop [has_mul α] {x y : αᵒᵖ} (h : commute x y) : commute (unop x) (unop y) :=
+begin
+  dunfold commute at h ⊢,
+  exact semiconj_by.unop h
 end
 
 /-- The function `op` is an additive equivalence. -/

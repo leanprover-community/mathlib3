@@ -138,7 +138,7 @@ begin
   exact this
 end
 
-theorem commute.geom_sum₂_mul [ring α] {x y : α} (h : commute x y) (n : ℕ) :
+protected theorem commute.geom_sum₂_mul [ring α] {x y : α} (h : commute x y) (n : ℕ) :
   (geom_series₂ x y n) * (x - y) = x ^ n - y ^ n :=
 begin
   have := (h.sub_left (commute.refl y)).geom_sum₂_mul_add n,
@@ -192,8 +192,8 @@ begin
   simpa using geom_sum_mul_neg (op x) n,
 end
 
-theorem commute.geom_sum₂ [division_ring α] {x y : α} (h' : commute x y) (h : x ≠ y) (n : ℕ) :
-  (geom_series₂ x y n) = (x ^ n - y ^ n) / (x - y) :=
+protected theorem commute.geom_sum₂ [division_ring α] {x y : α} (h' : commute x y) (h : x ≠ y)
+(n : ℕ) : (geom_series₂ x y n) = (x ^ n - y ^ n) / (x - y) :=
 have x - y ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
 by rw [← h'.geom_sum₂_mul, mul_div_cancel _ this]
 
@@ -206,7 +206,7 @@ theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
 have x - 1 ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
 by rw [← geom_sum_mul, mul_div_cancel _ this]
 
-theorem commute.mul_geom_sum₂_Ico [ring α] {x y : α} (h : commute x y) {m n : ℕ} (hmn : m ≤ n) :
+protected theorem commute.mul_geom_sum₂_Ico [ring α] {x y : α} (h : commute x y) {m n : ℕ} (hmn : m ≤ n) :
   (x - y) * (∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i)) = x ^ n - x ^ m * y ^ (n - m) :=
 begin
   rw [sum_Ico_eq_sub _ hmn, ← geom_series₂_def],
@@ -229,7 +229,7 @@ theorem mul_geom_sum₂_Ico [comm_ring α] (x y : α) {m n : ℕ} (hmn : m ≤ n
   (x - y) * (∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i)) = x ^ n - x ^ m * y ^ (n - m) :=
 (commute.all x y).mul_geom_sum₂_Ico hmn
 
-theorem commute.geom_sum₂_Ico_mul [ring α] {x y : α} (h : commute x y) {m n : ℕ} (hmn : m ≤ n) :
+protected theorem commute.geom_sum₂_Ico_mul [ring α] {x y : α} (h : commute x y) {m n : ℕ} (hmn : m ≤ n) :
   (∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i)) * (x - y) = x ^ n -  y ^ (n - m) * x ^ m :=
 begin
   rw ← op_inj_iff,
@@ -252,7 +252,7 @@ theorem geom_sum_Ico_mul_neg [ring α] (x : α) {m n : ℕ} (hmn : m ≤ n) :
 by rw [sum_Ico_eq_sub _ hmn, ← geom_series_def, ← geom_series_def, sub_mul,
   geom_sum_mul_neg, geom_sum_mul_neg, sub_sub_sub_cancel_left]
 
-theorem commute.geom_sum₂_Ico [division_ring α] {x y : α} (h : commute x y) (hxy : x ≠ y)
+protected theorem commute.geom_sum₂_Ico [division_ring α] {x y : α} (h : commute x y) (hxy : x ≠ y)
   {m n : ℕ} (hmn : m ≤ n) :
   ∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i) = (x ^ n - y ^ (n - m) * x ^ m ) / (x - y) :=
 have x - y ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,

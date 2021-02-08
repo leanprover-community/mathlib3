@@ -513,14 +513,14 @@ lemma det_succ_eq_sum_ite {n : ℕ} (M : matrix (fin n.succ) (fin n.succ) R) :
     ∑ (j : fin n), - M j.succ 0 * det (λ (i' j' : fin n), M (if i' = j then 0 else i'.succ) j'.succ) :=
 begin
   convert det_succ_eq_sum_swap M,
-  simp_rw [fin.sum_univ_succ, if_pos rfl, swap_self, equiv.refl_apply],
+  simp_rw [fin.sum_univ_succ, if_pos rfl, swap_self (0 : fin n.succ), equiv.refl_apply],
   congr,
   ext j,
   rw if_neg j.succ_ne_zero,
   congr,
   ext i' j',
   split_ifs with hi'j,
-  { rw [hi'j, swap_apply_right] },
+  { rw [hi'j, swap_apply_right 0 j.succ] },
   { rw swap_apply_of_ne_of_ne i'.succ_ne_zero (mt (λ h, fin.succ_injective _ h) hi'j) },
 end
 

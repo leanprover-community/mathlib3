@@ -4,7 +4,7 @@ import data.rat.order
 
 import tactic.norm_num
 import tactic.field_simp
-import tactic.fin_cases
+import tactic.interval_cases
 
 namespace pqr
 
@@ -27,6 +27,17 @@ by simp only [sum_inv, map_congr, coe_coe, add_zero, insert_eq_cons, add_assoc,
 
 def admissible (pqr : multiset ℕ+) : Prop :=
   (∃ p q, A' p q = pqr) ∨ (∃ n, D' n = pqr) ∨ (E' 3 = pqr ∨ E' 4 = pqr ∨ E' 5 = pqr)
+
+lemma admissible_A' (q r : ℕ+) : admissible (A' q r) := or.inl ⟨q, r, rfl⟩
+lemma admissible_D' (n : ℕ+) : admissible (D' n) := or.inr $ or.inl ⟨n, rfl⟩
+
+lemma admissible_E'3 : admissible (E' 3) := or.inr $ or.inr $ or.inl rfl
+lemma admissible_E'4 : admissible (E' 4) := or.inr $ or.inr $ or.inr $ or.inl rfl
+lemma admissible_E'5 : admissible (E' 5) := or.inr $ or.inr $ or.inr $ or.inr rfl
+
+lemma admissible_E6 : admissible (E6) := admissible_E'3
+lemma admissible_E7 : admissible (E7) := admissible_E'4
+lemma admissible_E8 : admissible (E8) := admissible_E'5
 
 lemma admissible.one_lt_sum_inv {pqr : multiset ℕ+} :
   admissible pqr → 1 < sum_inv pqr :=
@@ -81,17 +92,16 @@ lemma admissible_of_one_lt_sum_inv_aux' {p q r : ℕ+} (hpq : p ≤ q) (hqr : q 
   admissible {p,q,r} :=
 begin
   have hp3 : p < 3 := lt_three hpq hqr H,
-  obtain (rfl|rfl) : p = 1 ∨ p = 2, { sorry },
-  { /- case A -/ left, exact ⟨q, r, rfl⟩ },
-  clear hp3,
+  interval_cases p,
+  { exact admissible_A' q r },
   have hq4 : q < 4 := lt_four hpq hqr H,
-  obtain (rfl|rfl) : q = 2 ∨ q = 3, { sorry },
-  { /- case D -/ right, left, exact ⟨r, rfl⟩ },
+  interval_cases q,
+  { exact admissible_D' r },
   have hr6 : r < 6 := lt_six hqr H,
-  obtain (rfl|rfl|rfl) : r = 3 ∨ r = 4 ∨ r = 5, { sorry },
-  { /- case E6 -/ right, right, left, refl },
-  { /- case E7 -/ right, right, right, left, refl },
-  { /- case E8 -/ right, right, right, right, refl }
+  interval_cases r,
+  { exact admissible_E6 },
+  { exact admissible_E7 },
+  { exact admissible_E8 }
 end
 
 lemma admissible_of_one_lt_sum_inv_aux :

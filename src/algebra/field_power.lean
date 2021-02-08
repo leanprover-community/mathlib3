@@ -9,7 +9,7 @@ import tactic.linarith
 /-!
 # Integer power operation on fields and division rings
 
-This file collects basic facts about the operation of raising an element of a division ring to an
+This file collects basic facts about the operation of raising an element of a `division_ring` to an
 integer power. More specialised results are provided in the case of a linearly ordered field.
 -/
 

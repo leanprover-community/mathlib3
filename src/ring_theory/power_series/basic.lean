@@ -1169,7 +1169,7 @@ mv_power_series.mul_inv_of_unit φ u $ h
 end ring
 
 section comm_ring
-variables (A : Type*) [comm_ring A]
+variables {A : Type*} [comm_ring A]
 
 @[simp] lemma eval_mul_hom_neg_one_X : eval_mul_hom (-1 : A) X = -X :=
 begin
@@ -1181,8 +1181,8 @@ end
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
 eval_mul_hom (-1 : A)
 
-@[simp] lemma eval_neg_hom_X : eval_neg_hom A X = -X :=
-eval_mul_hom_neg_one_X A
+@[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
+eval_mul_hom_neg_one_X
 
 end comm_ring
 

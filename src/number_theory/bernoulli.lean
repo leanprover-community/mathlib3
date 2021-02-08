@@ -207,16 +207,16 @@ end
 open ring_hom
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
-theorem bernoulli_odd_eq_zero (n : ℕ) (h_odd : n % 2 = 1) (hlt : 1 < n) : bernoulli n = 0 :=
+theorem bernoulli_odd_eq_zero {n : ℕ} (h_odd : n % 2 = 1) (hlt : 1 < n) : bernoulli n = 0 :=
 begin
   have f := bernoulli_power_series,
-  have g : eval_neg_hom _ (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
-    (eval_neg_hom ℚ (X * exp ℚ)) * (exp ℚ),
+  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
+    (eval_neg_hom (X * exp ℚ)) * (exp ℚ),
   { congr', },
-  rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom _ X) _ _,
-    mul_comm (eval_neg_hom _ (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one, eval_neg_hom_X, mul_one,
+  rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
+    mul_comm (eval_neg_hom (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one, eval_neg_hom_X, mul_one,
     one_mul] at g,
-  suffices h : (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) - eval_neg_hom _ (mk (λ (n : ℕ),
+  suffices h : (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) - eval_neg_hom (mk (λ (n : ℕ),
     bernoulli n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
   { rw [mul_eq_mul_right_iff] at h, cases h,
      { simp only [eval_neg_hom, eval_mul_hom, coeff_mk, coe_mk, power_series.ext_iff,

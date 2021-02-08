@@ -57,7 +57,7 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 7 = h := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 37 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
 
-example {α : Type} [comm_ring α] {a b c d : α} :
+example {α : Type*} [comm_ring α] {a b c d : α} :
   matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
 begin
   -- TODO: can we make this require less steering?
@@ -66,12 +66,12 @@ begin
   ring
 end
 
-example {R : Type*} [comm_ring R] (A : matrix (fin 3) (fin 3) R) {a b c d e f g h i}
-        (hA : A = ![![a, b, c], ![d, e, f], ![g, h, i]]) :
-        matrix.det A = a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
+example {α : Type*} [comm_ring α] (A : matrix (fin 3) (fin 3) α) {a b c d e f g h i : α} :
+        matrix.det ![![a, b, c], ![d, e, f], ![g, h, i]] =
+          a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
 begin
   -- We utilize the `norm_swap` plugin for `norm_num` to reduce swap terms
-  norm_num [hA, matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ,
+  norm_num [matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ,
             finset.sum_product, fin.sum_univ_succ, fin.prod_univ_succ],
   ring
 end

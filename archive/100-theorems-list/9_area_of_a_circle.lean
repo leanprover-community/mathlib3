@@ -10,7 +10,26 @@ import analysis.mean_inequalities
 /-!
 # Freek № 9: The Area of a Circle
 
-The area of a disc with radius `r` is `π * r^2`.
+In this file we show that the area of a disc with radius `r` (with `0 < r`) is `π * r^2`. The main
+tools our proof uses are `volume_region_between_eq_integral`, which allows us to represent the area
+of the disc as an integral, and `integral_eq_sub_of_has_deriv_at'_of_le`, the second fundamental
+theorem of calculus.
+
+We begin by defining `disc` in `ℝ × ℝ`, then show that `disc` can be represented as the
+`region_between` two functions.
+
+Though not necessary for our proof, we nonetheless choose to include a proof of the measurability of
+the disc in order to convince the reader that the set whose volume we will be calculating is indeed
+measurable and our result is therefore meaningful.
+
+Finally, in our main proof, we use `volume_region_between_eq_integral` to convert the `volume` of
+the `region_between` to an `integral`, and then `integral_of_le` to convert to `interval_integral`.
+Our goal now reduced to showing `∫ (x : ℝ) in -r..r, 2 * sqrt (r ^ 2 - x ^ 2) = π * r ^ 2`, we apply
+`integral_eq_sub_of_has_deriv_at'_of_le` with the fact that `λ x, 2 * sqrt (r ^ 2 - x ^ 2)` is equal
+to the derivative of `λ x, r ^ 2 * arcsin (x / r) + x * sqrt (r ^ 2 - x ^ 2)` on `Ioo (-r) r`. Some
+simple algebra then completes the proof.
+
+*Part about our choice of definition for `disc`*
 -/
 
 open set real filter measure_theory interval_integral
@@ -43,9 +62,7 @@ end
 lemma hc {r : ℝ} : continuous (λ x, sqrt (r ^ 2 - x ^ 2)) :=
 (continuous_const.sub (continuous_pow 2)).sqrt
 
-/-- The disc is a measurable set. Though not necessary for our proof, we choose to show this fact
-  nonetheless in order to convince the reader that the set whose volume we will be calculating is
-  indeed measurable and our result is therefore meaningful. -/
+/-- The disc is a `measurable_set`. -/
 theorem measurable_set_disc {r : ℝ} (hr : 0 < r) : measurable_set (disc hr) :=
 begin
   rw disc_eq_region_between,

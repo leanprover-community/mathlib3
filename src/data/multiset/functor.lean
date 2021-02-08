@@ -67,10 +67,10 @@ open functor
 open traversable is_lawful_traversable
 
 @[simp]
-lemma lift_beta {α β : Type*} (x : list α) (f : list α → β)
+lemma lift_coe {α β : Type*} (x : list α) (f : list α → β)
   (h : ∀ a b : list α, a ≈ b → f a = f b) :
   quotient.lift f h (x : multiset α) = f x :=
-quotient.lift_beta _ _ _
+quotient.lift_mk _ _ _
 
 @[simp]
 lemma map_comp_coe {α β} (h : α → β) :

@@ -1594,6 +1594,15 @@ A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
 tendsto.congr (λ x, (fpow_neg x n).symm) (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
+lemma tendsto_fpow_at_top_zero {n : ℤ} (hn : n < 0) :
+  tendsto (λ x : α, x^n) at_top (𝓝 0) :=
+begin
+  have : 1 ≤ -n, by linarith,
+  apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
+  lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
+  exact tendsto_pow_neg_at_top (by exact_mod_cast this)
+end
+
 end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
@@ -2634,7 +2643,7 @@ theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : �
   (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a) :
   tendsto u f (𝓝 a) :=
 if hf : f = ⊥ then hf.symm ▸ tendsto_bot
-else by haveI : ne_bot f := hf; exact tendsto_of_liminf_eq_limsup
+else by haveI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
   (le_antisymm (le_trans liminf_le_limsup hsup) hinf)
   (le_antisymm hsup (le_trans hinf liminf_le_limsup))
 

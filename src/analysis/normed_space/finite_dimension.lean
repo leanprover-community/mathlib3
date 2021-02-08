@@ -170,11 +170,32 @@ theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
   [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
 affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
 
-/-- The continuous linear map induced by a linear map on a finite dimensional space -/
-def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') : E →L[𝕜] F' :=
-{ cont := f.continuous_of_finite_dimensional, ..f }
+namespace linear_map
 
-/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional space. -/
+variables [finite_dimensional 𝕜 E]
+
+/-- The continuous linear map induced by a linear map on a finite dimensional space -/
+def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' :=
+{ to_fun := λ f, ⟨f, f.continuous_of_finite_dimensional⟩,
+  inv_fun := coe,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  left_inv := λ f, rfl,
+  right_inv := λ f, continuous_linear_map.coe_injective rfl }
+
+@[simp] lemma coe_to_continuous_linear_map' (f : E →ₗ[𝕜] F') :
+  ⇑f.to_continuous_linear_map = f := rfl
+
+@[simp] lemma coe_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
+  (f.to_continuous_linear_map : E →ₗ[𝕜] F') = f := rfl
+
+@[simp] lemma coe_to_continuous_linear_map_symm :
+  ⇑(to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F').symm = coe := rfl
+
+end linear_map
+
+/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
+space. -/
 def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
@@ -287,7 +308,8 @@ begin
   obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
-          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
+          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
+    hv.op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,

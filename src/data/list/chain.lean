@@ -132,7 +132,7 @@ begin
     { apply h0, simp, },
     { split,
       { apply h 0, },
-      { intros i w, convert h (i+1) _,
+      { intros i w, convert h (i+1) _ using 1,
         exact lt_pred_iff.mp w, } } },
 end
 
@@ -251,7 +251,7 @@ begin
    },
   { rintros h, split,
     { apply h 0, simp, },
-    { intros i w, convert h (i+1) _,
+    { intros i w, convert h (i+1) _ using 1,
       simp only [add_zero, length, add_succ_sub_one] at w,
       simpa using w, }
     },

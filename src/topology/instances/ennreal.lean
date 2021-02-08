@@ -591,7 +591,7 @@ lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ℝ≥0∞} (hf
   summable (ennreal.to_nnreal ∘ f) :=
 by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
 
-lemma tendsto_cofinite_zero_of_tsum_lt_top {α} {f : α → ennreal} (hf : tsum f < ∞) :
+lemma tendsto_cofinite_zero_of_tsum_lt_top {α} {f : α → ℝ≥0∞} (hf : ∑' x, f x < ∞) :
   tendsto f cofinite (𝓝 0) :=
 begin
   have f_ne_top : ∀ n, f n ≠ ∞, from ennreal.ne_top_of_tsum_ne_top hf.ne,

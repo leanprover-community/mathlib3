@@ -173,8 +173,9 @@ lemma filter_apply_eq_zero_of_not_mem (p : pmf α) {s : set α} (h : ∃ a ∈ s
 by rw [filter_apply, set.indicator_apply_eq_zero.mpr (λ ha', absurd ha' ha), zero_mul]
 
 lemma filter_apply_eq_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
-  (p.filter s h) a = 0 ↔ p a = 0 ∨ a ∉ s :=
+  (p.filter s h) a = 0 ↔ a ∉ (p.support ∩ s) :=
 begin
+  rw [set.mem_inter_iff, p.mem_support_iff, not_and_distrib, not_not],
   split; intro ha,
   { rw [filter_apply, mul_eq_zero] at ha,
     refine ha.by_cases
@@ -184,8 +185,8 @@ begin
 end
 
 lemma filter_apply_ne_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
-  (p.filter s h) a ≠ 0 ↔ a ∈ p.support ∧ a ∈ s :=
-by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_or_distrib, not_not, mem_support_iff]
+  (p.filter s h) a ≠ 0 ↔ a ∈ (p.support ∩ s) :=
+by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_not]
 
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=

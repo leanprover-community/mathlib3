@@ -503,9 +503,7 @@ noncomputable def quot_annihilator_equiv (W : subspace K V) :
 /-- The natural linear map from the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_to_subspace_dual (W : subspace K V) :
   module.dual K W →ₗ[K] W.dual_lift.range :=
-{ to_fun := λ φ, ⟨W.dual_lift φ, mem_range.2 ⟨φ, rfl⟩⟩,
-  map_add' := by { intros _ _, simp, refl },
-  map_smul' := by { intros _ _, simp, refl } }
+W.dual_lift.range_restrict
 
 @[simp] lemma dual_to_subspace_dual_apply (φ : module.dual K W) :
   W.dual_to_subspace_dual φ = ⟨W.dual_lift φ, mem_range.2 ⟨φ, rfl⟩⟩ := rfl

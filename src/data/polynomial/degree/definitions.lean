@@ -391,6 +391,29 @@ coeff_eq_zero_of_degree_lt (lt_of_lt_of_le h degree_le_nat_degree)
 lemma ne_zero_of_degree_gt {n : with_bot ℕ} (h : n < degree p) : p ≠ 0 :=
 mt degree_eq_bot.2 (ne.symm (ne_of_lt (lt_of_le_of_lt bot_le h)))
 
+lemma ne_zero_of_nat_degree_gt {n : ℕ} (h : n < nat_degree p) : p ≠ 0 :=
+λ H, by simpa [H, nat.not_lt_zero] using h
+
+lemma degree_lt_degree (h : nat_degree p < nat_degree q) : degree p < degree q :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp],
+    rw bot_lt_iff_ne_bot,
+    intro hq,
+    simpa [hp, degree_eq_bot.mp hq, lt_irrefl] using h },
+  { rw [degree_eq_nat_degree hp, degree_eq_nat_degree $ ne_zero_of_nat_degree_gt h],
+    exact_mod_cast h }
+end
+
+lemma nat_degree_lt_nat_degree_iff (hp : p ≠ 0) :
+  nat_degree p < nat_degree q ↔ degree p < degree q :=
+⟨degree_lt_degree, begin
+  intro h,
+  have hq : q ≠ 0 := ne_zero_of_degree_gt h,
+  rw [degree_eq_nat_degree hp, degree_eq_nat_degree hq] at h,
+  exact_mod_cast h
+end⟩
+
 lemma eq_C_of_degree_le_zero (h : degree p ≤ 0) : p = C (coeff p 0) :=
 begin
   ext (_|n), { simp },
@@ -713,6 +736,13 @@ eq_C_of_degree_le_zero $ degree_le_of_nat_degree_le h
 
 lemma eq_C_of_nat_degree_eq_zero {p : polynomial R} (h : nat_degree p = 0) : p = C (coeff p 0) :=
 eq_C_of_nat_degree_le_zero h.le
+
+lemma ne_zero_of_coe_le_degree {P : polynomial R} {n : ℕ} (hdeg : ↑n ≤ P.degree) : P ≠ 0 :=
+by rw ← degree_nonneg_iff_ne_zero; exact trans (by exact_mod_cast n.zero_le) hdeg
+
+lemma le_nat_degree_of_coe_le_degree {P : polynomial R} {n : ℕ} (hdeg : ↑n ≤ P.degree) :
+  n ≤ P.nat_degree :=
+with_bot.coe_le_coe.mp ((degree_eq_nat_degree $ ne_zero_of_coe_le_degree hdeg) ▸ hdeg)
 
 end semiring
 

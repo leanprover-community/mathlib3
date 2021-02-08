@@ -444,19 +444,18 @@ f.is_simple_lattice_iff.mpr h
 
 lemma is_atomic_iff : is_atomic α ↔ is_atomic β :=
 begin
-  suffices : ∀ (b : α),
-    (b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔ ((f b) = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ (f b)),
-  { split; rintro ⟨h⟩; refine ⟨λ b, _⟩,
-    { rw ←(@apply_symm_apply _ _ _ _ f b), exact (this $ f.symm b).mp (h $ f.symm b), },
-    { exact (this $ b).mpr (h $ f b), }, },
+  suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
+    (∀ b : β, b = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ b),
+  from ⟨λ ⟨p⟩, ⟨this.mp p⟩, λ ⟨p⟩, ⟨this.mpr p⟩⟩,
+  apply f.to_equiv.forall_congr,
+  simp_rw [rel_iso.coe_fn_to_equiv],
   intro b, apply or_congr,
+  { rw [f.apply_eq_iff_eq_symm_apply, map_bot], },
   { split,
-    rintro ⟨rfl⟩, exact map_bot f,
-    intro h, rwa [f.apply_eq_iff_eq_symm_apply, map_bot] at h, },
-  { split,
-    exact λ ⟨a, ha⟩, ⟨f a, ⟨(f.is_atom_iff a).mpr ha.1, f.le_iff_le.mpr ha.2⟩⟩,
-    rintros ⟨b, hb⟩, refine ⟨f.symm b, ⟨(f.symm.is_atom_iff b).mpr hb.1, _⟩⟩,
-    { rw [←f.le_iff_le, f.apply_symm_apply], exact hb.2, } },
+    { exact λ ⟨a, ha⟩, ⟨f a, ⟨(f.is_atom_iff a).mpr ha.1, f.le_iff_le.mpr ha.2⟩⟩, },
+    { rintros ⟨b, ⟨hb1, hb2⟩⟩,
+      refine ⟨f.symm b, ⟨(f.symm.is_atom_iff b).mpr hb1, _⟩⟩,
+      rwa [←f.le_iff_le, f.apply_symm_apply], }, },
 end
 
 lemma is_coatomic_iff : is_coatomic α ↔ is_coatomic β :=

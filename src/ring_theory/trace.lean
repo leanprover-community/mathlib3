@@ -703,12 +703,12 @@ rfl
 
 /-- A rephrasing of the primitive element theorem:
 in a finite separable field extension, there is an `x` such that `L ≃ K⟮x⟯`. -/
-noncomputable def field.equiv_primitive_element
-  (hsep : is_separable K L) [finite_dimensional K L] :
+noncomputable def field.equiv_primitive_element (K L : Type*) [field K] [field L] [algebra K L]
+  [is_separable K L] [finite_dimensional K L] :
   Σ x : L, L ≃ₐ[K] K⟮x⟯ :=
 let f := (@intermediate_field.top_equiv K _ L _ _).symm in
-⟨classical.some (field.exists_primitive_element hsep),
- by rwa ← classical.some_spec (field.exists_primitive_element hsep) at f⟩
+⟨classical.some (field.exists_primitive_element K L),
+ by rwa ← classical.some_spec (field.exists_primitive_element K L) at f⟩
 
 /-- If `L` has a power basis over `K`, there are finitely many maps `L → F` fixing `K`. -/
 noncomputable def power_basis.fintype_alg_hom (pb : power_basis K L) :
@@ -724,9 +724,9 @@ lemma finite_dimensional.is_integral (K : Type*) [field K] [algebra K L] [finite
 noncomputable instance alg_hom.fintype_of_separable
   [hsep : is_separable K L] [finite_dimensional K L] :
   fintype (L →ₐ[K] F) :=
-@fintype.of_equiv _ (K⟮(field.equiv_primitive_element hsep).1⟯ →ₐ[K] F)
+@fintype.of_equiv _ (K⟮(field.equiv_primitive_element K L).1⟯ →ₐ[K] F)
   (fintype_of_alg_hom_adjoin_integral _ (finite_dimensional.is_integral _ _))
-  (alg_hom_congr_left F (field.equiv_primitive_element hsep).2.symm)
+  (alg_hom_congr_left F (field.equiv_primitive_element K L).2.symm)
 
 noncomputable instance adjoin.fintype_alg_hom_of_finite_dimensional (x : L)
   [finite_dimensional K L] :
@@ -879,7 +879,7 @@ lemma card_filter_apply_eq [decidable_eq F] [is_alg_closed F]
   (hy : aeval y ((intermediate_field.adjoin.power_basis hx).minpoly_gen) = 0) :
   (finset.univ.filter (λ (σ : L →ₐ[K] F), σ x = y)).card = findim K⟮x⟯ L :=
 begin
-  let pb : power_basis K L := field.power_basis_of_finite_of_separable,
+  let pb : power_basis K L := field.power_basis_of_finite_of_separable K L,
   let emb_y : K⟮x⟯ →ₐ[K] F := (intermediate_field.adjoin.power_basis hx).lift y hy,
   letI : algebra K⟮x⟯ F := (emb_y : K⟮x⟯ →+* F).to_algebra,
   haveI : is_scalar_tower K K⟮x⟯ F := is_scalar_tower.of_algebra_map_eq
@@ -891,7 +891,7 @@ begin
 
   haveI sep_x : is_separable K⟮x⟯ L :=
     is_separable_tower_top_of_is_separable K K⟮x⟯ L,
-  let pb_x : power_basis K⟮x⟯ L := field.power_basis_of_finite_of_separable,
+  let pb_x : power_basis K⟮x⟯ L := field.power_basis_of_finite_of_separable _ L,
   letI : fintype (L →ₐ[K⟮x⟯] F) := pb_x.fintype_alg_hom,
 
   calc (finset.univ.filter (λ (σ : L →ₐ[K] F), σ x = y)).card
@@ -911,7 +911,7 @@ begin
             finset.mem_univ _,
             _⟩,
     simp },
-  { rw [pb_x.minpoly_gen_eq], apply is_separable.minpoly },
+  { rw [pb_x.minpoly_gen_eq], apply is_separable.separable },
   { apply polynomial.splits_of_is_alg_closed },
 end
 
@@ -962,7 +962,7 @@ begin
     convert finset.sum_congr rfl (λ x _, _),
     rw [alg_hom_congr_left_symm_apply, power_basis.equiv_adjoin_simple_symm_gen] },
   { rw pb.minpoly_gen_eq },
-  { apply is_separable.minpoly }
+  { apply is_separable.separable }
 end
 
 lemma power_basis.trace_gen_eq_sum_embeddings [is_separable K L]
@@ -983,7 +983,7 @@ lemma trace_eq_sum_embeddings
   [is_alg_closed F] [finite_dimensional K L] [is_separable K L]
   {x : L} (hx : is_integral K x) :
   algebra_map K F (algebra.trace K L x) = ∑ σ : L →ₐ[K] F, σ x :=
-by { rw trace_eq_sum_embeddings_gen hx (is_separable.minpoly K x)
+by { rw trace_eq_sum_embeddings_gen hx (is_separable.separable K x)
           (polynomial.splits_of_is_alg_closed F _),
      exact (sum_embeddings_eq_findim_mul hx).symm }
 end
@@ -1015,7 +1015,6 @@ begin
   ext i k,
   simp only [matrix.mul_apply, map_apply, trace_form_to_matrix_power_basis, transpose_apply,
              power_basis.conjugate_matrix],
-
 
   haveI := pb.finite_dimensional,
   rw trace_eq_sum_embeddings K (is_integral_pow (i + k) pb.is_integral_gen),
@@ -1066,7 +1065,7 @@ begin
     intros i _ j hj,
     refine mt (λ hij, pb.conjugates_injective hF _ hij) (ne_of_lt (finset.mem_filter.mp hj).2).symm,
     rw pb.minpoly_gen_eq,
-    exact is_separable.minpoly K pb.gen }
+    exact is_separable.separable K pb.gen }
 end
 
 lemma det_transpose_mul_mul_self {n m : Type*} [fintype m] [fintype n]
@@ -1084,7 +1083,7 @@ lemma det_trace_form_ne_zero  [is_separable K L] [decidable_eq ι] {b : ι → L
   det (bilin_form.to_matrix hb (trace_form K L)) ≠ 0 :=
 begin
   haveI : finite_dimensional K L := finite_dimensional.of_fintype_basis hb,
-  let pb : power_basis K L := field.power_basis_of_finite_of_separable,
+  let pb : power_basis K L := field.power_basis_of_finite_of_separable _ _,
   have hph : pb.is_basis.to_matrix b ⬝ hb.to_matrix (λ i : fin pb.dim, pb.gen ^ (i : ℕ)) = 1,
   { apply (matrix.to_lin pb.is_basis pb.is_basis).injective,
     rw [matrix.to_lin_mul pb.is_basis hb pb.is_basis, is_basis.to_lin_to_matrix,

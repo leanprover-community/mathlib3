@@ -560,31 +560,24 @@ class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 (is_integral' (x : K) : is_integral F x)
 (separable' (x : K) : (minpoly F x).separable)
 
-theorem is_separable.is_integral {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
-  ∀ x : K, is_integral F x := is_separable.is_integral'
-
-theorem is_separable.separable {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
-  ∀ x : K, (minpoly F x).separable := is_separable.separable'
+section
+variables {K} [h : is_separable F K]
 
 theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
-  ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
-⟨λ h x, ⟨h.is_integral x, h.separable x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
+⟨λ h x, by { haveI := h, exact ⟨is_separable.is_integral' x, is_separable.separable' x⟩ },
+ λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
 
-section
-variables {K} [h : is_separable F K]
 include h
 
-lemma is_separable.is_integral (x : K) : is_integral F x :=
-let ⟨H, _⟩ := h x in H
+theorem is_separable.is_integral :
+  ∀ x : K, is_integral F x := is_separable.is_integral'
 
-lemma is_separable.is_algebraic (x : K) : is_algebraic F x :=
-let ⟨int, _⟩ := h x in int.is_algebraic F
-
-lemma is_separable.minpoly (x : K) : separable (minpoly F x) :=
-let ⟨_, H⟩ := h x in H
+theorem is_separable.separable :
+  ∀ x : K, (minpoly F x).separable := is_separable.separable'
 
 end
 
@@ -594,8 +587,8 @@ attribute [class] algebra.is_algebraic
 @[priority 100] -- See note [lower instance priority]
 instance is_separable_of_char_zero [char_zero F] [alg : algebra.is_algebraic F K] :
   is_separable F K :=
-λ x, have int : is_integral F x := (is_algebraic_iff_is_integral _).mp (alg x),
-⟨int, irreducible.separable (minpoly.irreducible int)⟩
+have int : ∀ x, is_integral F x := λ x, (is_algebraic_iff_is_integral _).mp (alg x),
+⟨int, λ x, irreducible.separable (minpoly.irreducible (int x))⟩
 
 end field_extension
 
@@ -604,8 +597,8 @@ variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_separable_tower_top_of_is_separable [h : is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (h.is_integral x),
- λ x, (h.separable x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
+⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
+ λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
 is_separable_iff.2 $ λ x, begin

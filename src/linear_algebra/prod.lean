@@ -310,8 +310,8 @@ lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 end
 
 section
-variables [ring R]
-variables [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_group M₄]
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables {semimodule_M₃ : semimodule R M₃} {semimodule_M₄ : semimodule R M₄}
 variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)

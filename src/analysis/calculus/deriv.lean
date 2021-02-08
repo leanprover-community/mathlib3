@@ -680,32 +680,33 @@ section pi
 /-! ### Derivatives of functions `f : 𝕜 → Π i, E i` -/
 
 variables {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
-  [Π i, normed_space 𝕜 (E' i)] {φ : Π i, 𝕜 → E' i} {φ' : Π i, E' i}
+  [Π i, normed_space 𝕜 (E' i)] {φ : 𝕜 → Π i, E' i} {φ' : Π i, E' i}
 
-lemma has_strict_deriv_at_pi (h : ∀ i, has_strict_deriv_at (φ i) (φ' i) x) :
-  has_strict_deriv_at (λ x i, φ i x) φ' x :=
-has_strict_fderiv_at_pi h
+@[simp] lemma has_strict_deriv_at_pi :
+  has_strict_deriv_at φ φ' x ↔ ∀ i, has_strict_deriv_at (λ x, φ x i) (φ' i) x :=
+has_strict_fderiv_at_pi'
 
-lemma has_deriv_at_filter_pi (h : ∀ i, has_deriv_at_filter (φ i) (φ' i) x L) :
-  has_deriv_at_filter (λ x i, φ i x) φ' x L :=
-has_fderiv_at_filter_pi h
+@[simp] lemma has_deriv_at_filter_pi :
+  has_deriv_at_filter φ φ' x L ↔
+    ∀ i, has_deriv_at_filter (λ x, φ x i) (φ' i) x L :=
+has_fderiv_at_filter_pi'
 
-lemma has_deriv_at_pi (h : ∀ i, has_deriv_at (φ i) (φ' i) x) :
-  has_deriv_at (λ x i, φ i x) φ' x :=
-has_fderiv_at_filter_pi h
+lemma has_deriv_at_pi :
+  has_deriv_at φ φ' x ↔ ∀ i, has_deriv_at (λ x, φ x i) (φ' i) x:=
+has_deriv_at_filter_pi
 
-lemma has_deriv_within_at_pi (h : ∀ i, has_deriv_within_at (φ i) (φ' i) s x) :
-  has_deriv_within_at (λ x i, φ i x) φ' s x :=
-has_fderiv_at_filter_pi h
+lemma has_deriv_within_at_pi :
+  has_deriv_within_at φ φ' s x ↔ ∀ i, has_deriv_within_at (λ x, φ x i) (φ' i) s x:=
+has_deriv_at_filter_pi
 
-lemma deriv_within_pi (h : ∀ i, differentiable_within_at 𝕜 (φ i) s x)
+lemma deriv_within_pi (h : ∀ i, differentiable_within_at 𝕜 (λ x, φ x i) s x)
   (hs : unique_diff_within_at 𝕜 s x) :
-  deriv_within (λ x i, φ i x) s x = λ i, deriv_within (φ i) s x :=
-(has_deriv_within_at_pi (λ i, (h i).has_deriv_within_at)).deriv_within hs
+  deriv_within φ s x = λ i, deriv_within (λ x, φ x i) s x :=
+(has_deriv_within_at_pi.2 (λ i, (h i).has_deriv_within_at)).deriv_within hs
 
-lemma deriv_pi (h : ∀ i, differentiable_at 𝕜 (φ i) x) :
-  deriv (λ x i, φ i x) x = λ i, deriv (φ i) x :=
-(has_deriv_at_pi (λ i, (h i).has_deriv_at)).deriv
+lemma deriv_pi (h : ∀ i, differentiable_at 𝕜 (λ x, φ x i) x) :
+  deriv φ x = λ i, deriv (λ x, φ x i) x :=
+(has_deriv_at_pi.2 (λ i, (h i).has_deriv_at)).deriv
 
 end pi
 

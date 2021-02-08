@@ -5,6 +5,8 @@ universe u
 variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M]
   [module R M] (n : ℕ)
 
+open_locale classical
+
 def tpow_aux :
   ℕ → Σ (N : Type*) (h : add_comm_group N), @module R N _ h
 | 0 := ⟨R, ⟨by apply_instance, by apply_instance⟩⟩

@@ -7,7 +7,7 @@ variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M
   (N : Type u) [add_comm_group N] [module R N]
 
 open tpow
-open_locale direct_sum
+open_locale classical direct_sum
 
 lemma map_sum_tmul {α : Type*} (s : multiset α) (m : α → M) (n : N) :
   ((multiset.map m s).sum ⊗ₜ[R] n) = (multiset.map (λ a, m a ⊗ₜ[R] n) s).sum :=

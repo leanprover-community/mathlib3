@@ -6,6 +6,8 @@ import algebra.category.Module.basic
 universes u v
 variables (R : Type u) [comm_ring R] {M : Type u} [add_comm_group M] [module R M] (x : M)
 
+open_locale classical
+
 def wedge_d (n : ℕ) : epow R M n →ₗ[R] epow R M n.succ :=
 epow_lift R $
 { to_fun := λ f, epow.mk R M n.succ $ fin.cons x f,

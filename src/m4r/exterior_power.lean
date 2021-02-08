@@ -4,6 +4,7 @@ universes u v
 variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M]
 
 open exterior_algebra
+open_locale classical
 
 lemma wedge_eq_ι_multi {n : ℕ} (v : fin n → M) :
   wedge R M v = ι_multi R n v :=

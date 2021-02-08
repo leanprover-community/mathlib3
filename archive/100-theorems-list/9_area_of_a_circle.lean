@@ -33,14 +33,15 @@ simple algebra then completes the proof.
 -/
 
 open set real filter measure_theory interval_integral
+variable {r : ℝ}
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
   `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`. -/
-def disc {r : ℝ} (h : 0 < r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
+def disc (h : 0 < r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
 /-- A disc of radius `r` can be represented as the region between the two curves
   `λ x, - sqrt (r ^ 2 - x ^ 2)` and `λ x, sqrt (r ^ 2 - x ^ 2)`. -/
-lemma disc_eq_region_between {r : ℝ} {hr : 0 < r} :
+lemma disc_eq_region_between {hr : 0 < r} :
   disc hr = region_between (λ x, -sqrt (r^2 - x^2)) (λ x, sqrt (r^2 - x^2)) (Ioc (-r) r) :=
 begin
   ext p,
@@ -58,20 +59,21 @@ begin
 end
 
 /-- For convenience we show a fact we will need multiple times throughout the following proofs:
-  For any real `r`, `λ x, sqrt (r ^ 2 - x ^ 2)` is a continuous function. -/
-lemma hc {r : ℝ} : continuous (λ x, sqrt (r ^ 2 - x ^ 2)) :=
+  For any real `a`, `λ x, sqrt (a - x ^ 2)` is a continuous function. -/
+lemma continuous_sqrt_sub {a : ℝ} : continuous (λ x, sqrt (a - x ^ 2)) :=
 (continuous_const.sub (continuous_pow 2)).sqrt
 
+alias continuous_sqrt_sub ← hc
+
 /-- The disc is a `measurable_set`. -/
-theorem measurable_set_disc {r : ℝ} (hr : 0 < r) : measurable_set (disc hr) :=
+theorem measurable_set_disc (hr : 0 < r) : measurable_set (disc hr) :=
 begin
   rw disc_eq_region_between,
   exact measurable_set_region_between hc.neg.measurable hc.measurable measurable_set_Ioc,
 end
 
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
-theorem volume_disc {r : ℝ} (hr : 0 < r) :
-  volume.prod volume (disc hr) = ennreal.of_real (pi * r ^ 2) :=
+theorem area_disc (hr : 0 < r) : volume (disc hr) = ennreal.of_real (pi * r ^ 2) :=
 begin
   have H : ∀ {f : ℝ → ℝ}, continuous f → integrable_on f (Ioc (-r) r) :=
     λ f h, (h.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
@@ -81,7 +83,7 @@ begin
   simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul, ← integral_of_le (neg_le_self hr.le)],
   rw integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr.le) ((continuous_const.mul
       (continuous_arcsin.comp (continuous_id.div continuous_const (λ x, hr.ne')))).add
-        (continuous_id.mul (@hc r))).continuous_on _ (continuous_const.mul hc).continuous_on,
+        (continuous_id.mul (@hc (r^2)))).continuous_on _ (continuous_const.mul hc).continuous_on,
   { simp_rw [function.comp_app, pi.div_apply, id.def, neg_div, div_self hr.ne', arcsin_neg,
             arcsin_one, neg_square, sub_self, sqrt_zero, mul_zero, add_zero,
             mul_neg_eq_neg_mul_symm, sub_neg_eq_add, ← mul_div_assoc, add_halves', mul_comm] },

@@ -199,8 +199,8 @@ by simp [snorm', hq_pos]
 
 lemma snorm'_measure_zero_of_exponent_zero {f : α → F} : snorm' f 0 0 = 1 := by simp [snorm']
 
-lemma snorm'_measure_zero_of_neg {f : α → F} (hp_neg : p < 0) : snorm' f p 0 = ∞ :=
-by simp [snorm', hp_neg]
+lemma snorm'_measure_zero_of_neg {f : α → F} (hq_neg : q < 0) : snorm' f q 0 = ∞ :=
+by simp [snorm', hq_neg]
 
 @[simp] lemma snorm_ess_sup_measure_zero {f : α → F} : snorm_ess_sup f 0 = 0 :=
 by simp [snorm_ess_sup]
@@ -1568,6 +1568,25 @@ begin
     (filter.tendsto.sub tendsto_const_nhds ha),
 end
 
+lemma ennreal.mul_lt_mul' {a b c d : ennreal} (hac : a < c) (hbd : b ≤ d) (hb : b < ⊤)
+  (hd : 0 < d) :
+  a * b < c * d :=
+begin
+  by_cases hd_top : d = ⊤,
+  { rw [hd_top, ennreal.mul_top],
+    have hc_pos : 0 < c, from lt_of_le_of_lt (zero_le a) hac,
+    simp only [(ne_of_lt hc_pos).symm, if_false],
+    refine ennreal.mul_lt_top _ hb,
+    by_contra,
+    push_neg at h,
+    rw ←eq_top_iff at h,
+    have hc_top : ⊤ < c, by rwa h at hac,
+    exact ((lt_iff_not_ge _ _).mp hc_top) le_top, },
+  by_cases hbd_eq : b = d,
+  { rwa [hbd_eq, ennreal.mul_lt_mul_right (ne_of_lt hd).symm hd_top], },
+  { exact ennreal.mul_lt_mul hac (lt_of_le_of_ne hbd hbd_eq), },
+end
+
 lemma complete_ℒp_minus_ℒp [complete_space E] {f : ℕ → α → E} {p : ℝ}
   (hf : ∀ n, mem_ℒp (f n) (ennreal.of_real p) μ) (hp1 : 1 ≤ p) {B : ℕ → ennreal} (hB : tsum B < ⊤)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) p μ < B N) :
@@ -1609,8 +1628,10 @@ begin
       refine ⟨(ne_of_lt hε).symm, _⟩,
       rw [ne.def, @ennreal.rpow_eq_top_iff_of_pos _ (1/p) (by simp [hp_pos])],
       exact ennreal.two_ne_top, },
-    have h_tendsto_zero :=
-      ennreal.exists_le_of_tendsto_zero (ennreal.tendsto_zero_of_tsum_lt_top hB) hε2_pos,
+    have h_tendsto_zero : ∃ (N : ℕ), ∀ n : ℕ, N ≤ n → B n ≤ ε/2^(1/p),
+    { have h_B_tendsto_zero := ennreal.tendsto_at_top_zero_of_tsum_lt_top hB,
+      rw ennreal.tendsto_at_top_zero at h_B_tendsto_zero,
+      exact h_B_tendsto_zero (ε/2^(1/p)) hε2_pos, },
     cases h_tendsto_zero with N h_tendsto_zero,
     exact Exists.intro N (h_tendsto_zero N (le_refl N)), },
   rcases h_integral with ⟨N, h_⟩,
@@ -1622,15 +1643,15 @@ begin
     nth_rewrite 1 ←@mul_inv_cancel _ _ p hp_ne_zero,
     rw [←one_div, ennreal.rpow_mul],
     exact @ennreal.rpow_lt_rpow _ _ (1/p) h_lt_pow (by simp [hp_pos]), },
-  refine lt_of_le_of_lt (ae_lintegral_liminf_le (λ m,
+  refine lt_of_le_of_lt (lintegral_liminf_le' (λ m,
     ((hf n).1.sub (hf m).1).nnnorm.ennreal_coe.ennreal_rpow_const)) _,
   rw filter.liminf_eq,
   have hε2 : ε^p/2 < ε^p,
-  { rw [ennreal.div_def, mul_comm],
+  { rw [div_eq_mul_inv, mul_comm],
     nth_rewrite 1 ←one_mul (ε^p),
     refine ennreal.mul_lt_mul' (by simp [one_lt_two]) (le_refl (ε^p)) _ _,
     { exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hp_pos) (lt_top_iff_ne_top.mp hε_top), },
-    { exact ennreal.rpow_pos_of_pos hε hp_pos, }, },
+    { exact ennreal.rpow_pos_of_nonneg hε hp_pos.le, }, },
   refine lt_of_le_of_lt (Sup_le (λ b hb, _)) hε2,
   rw [set.mem_set_of_eq, filter.eventually_at_top] at hb,
   cases hb with N1 hb,

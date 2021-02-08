@@ -230,7 +230,7 @@ begin
     tendsto_coe, tendsto_add]
 end
 
-protected lemma tendsto_zero_at_top [hβ : nonempty β] [semilattice_sup β] {f : β → ennreal} :
+protected lemma tendsto_at_top_zero [hβ : nonempty β] [semilattice_sup β] {f : β → ℝ≥0∞} :
   filter.at_top.tendsto f (𝓝 0) ↔ ∀ ε > 0, ∃ N, ∀ n ≥ N, f n ≤ ε :=
 begin
   rw ennreal.tendsto_at_top zero_ne_top,
@@ -601,7 +601,7 @@ begin
   exact nnreal.tendsto_cofinite_zero_of_summable (summable_to_nnreal_of_tsum_ne_top hf.ne),
 end
 
-lemma tendsto_at_top_zero_of_tsum_lt_top {f : ℕ → ennreal} (hf : tsum f < ∞) :
+lemma tendsto_at_top_zero_of_tsum_lt_top {f : ℕ → ℝ≥0∞} (hf : ∑' x, f x < ∞) :
   tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_tsum_lt_top hf }
 

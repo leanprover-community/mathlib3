@@ -168,7 +168,7 @@ le_antisymm
 
 end coe
 
-lemma tendsto_cofinite_zero_of_summable {α} {f : α → nnreal} (hf : summable f) :
+lemma tendsto_cofinite_zero_of_summable {α} {f : α → ℝ≥0} (hf : summable f) :
   tendsto f cofinite (𝓝 0) :=
 begin
   have h_f_coe : f = λ n, nnreal.of_real (f n : ℝ), from funext (λ n, of_real_coe.symm),
@@ -176,7 +176,7 @@ begin
   exact tendsto_of_real ((summable_coe.mpr hf).tendsto_cofinite_zero),
 end
 
-lemma tendsto_at_top_zero_of_summable {f : ℕ → nnreal} (hf : summable f) :
+lemma tendsto_at_top_zero_of_summable {f : ℕ → ℝ≥0} (hf : summable f) :
   tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact tendsto_cofinite_zero_of_summable hf }
 

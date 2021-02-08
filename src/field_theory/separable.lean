@@ -572,6 +572,9 @@ let ⟨H, _⟩ := h x in H
 lemma is_separable.is_algebraic (x : K) : is_algebraic F x :=
 let ⟨int, _⟩ := h x in int.is_algebraic F
 
+lemma is_separable.minpoly (x : K) : separable (minpoly F x) :=
+let ⟨_, H⟩ := h x in H
+
 end
 
 attribute [class] algebra.is_algebraic

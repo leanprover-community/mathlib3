@@ -98,7 +98,7 @@ begin
     ext i j,
     by_cases hi : i = 0,
     { rw [hi, h0] },
-    rw hlast _ (nat.pos_iff_ne_zero.mpr
+    rw hlast _ (pos_iff_ne_zero.mpr
       (mt (λ (h : (i : ℕ) = (0 : fin n.succ)), fin.coe_injective h) hi)) },
 
   set M' := update_row M k.succ (N k.succ) with hM',
@@ -162,7 +162,7 @@ begin
     ext i j,
     by_cases hi : i = 0,
     { rw [hi, h0] },
-    rw hlast _ (nat.pos_iff_ne_zero.mpr
+    rw hlast _ (pos_iff_ne_zero.mpr
       (mt (λ (h : (i : ℕ) = (0 : fin n.succ)), fin.coe_injective h) hi)) },
 
   set M' := update_row M k.succ (N k.succ) with hM',

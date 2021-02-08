@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import linear_algebra.linear_independent
 import linear_algebra.projection
+import linear_algebra.linear_pmap
 import data.fintype.card
 
 /-!
@@ -494,7 +495,30 @@ begin
   simp [constr_basis hC, right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) c]
 end
 
+/-- Any linear map `f : p →ₗ[K] V'` defined on a subspace `p` can be extended to the whole
+space. -/
+lemma linear_map.exists_extend {p : submodule K V} (f : p →ₗ[K] V') :
+  ∃ g : V →ₗ[K] V', g.comp p.subtype = f :=
+let ⟨g, hg⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
+⟨f.comp g, by rw [linear_map.comp_assoc, hg, f.comp_id]⟩
+
 open submodule linear_map
+
+/-- If `p < ⊤` is a subspace of a vector space `V`, then there exists a nonzero linear map
+`f : V →ₗ[K] K` such that `p ≤ ker f`. -/
+lemma submodule.exists_le_ker_of_lt_top (p : submodule K V) (hp : p < ⊤) :
+  ∃ f ≠ (0 : V →ₗ[K] K), p ≤ ker f :=
+begin
+  rcases submodule.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
+  rcases (linear_pmap.sup_span_singleton ⟨p, 0⟩ v (1 : K) hpv).to_fun.exists_extend with ⟨f, hf⟩,
+  refine ⟨f, _, _⟩,
+  { rintro rfl, rw [linear_map.zero_comp] at hf,
+    have := linear_pmap.sup_span_singleton_apply_mk ⟨p, 0⟩ v (1 : K) hpv 0 p.zero_mem 1,
+    simpa using (linear_map.congr_fun hf _).trans this },
+  { refine λ x hx, mem_ker.2 _,
+    have := linear_pmap.sup_span_singleton_apply_mk ⟨p, 0⟩ v (1 : K) hpv x hx 0,
+    simpa using (linear_map.congr_fun hf _).trans this }
+end
 
 theorem quotient_prod_linear_equiv (p : submodule K V) :
   nonempty ((p.quotient × p) ≃ₗ[K] V) :=

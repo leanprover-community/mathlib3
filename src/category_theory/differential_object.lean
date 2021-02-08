@@ -102,6 +102,19 @@ variables {C}
 @[simp]
 lemma zero_f (P Q : differential_object C) : (0 : P ⟶ Q).f = 0 := rfl
 
+/--
+An isomorphism of differential objects gives an isomorphism of the underlying objects.
+-/
+@[simps] def iso_app {X Y : differential_object C} (f : X ≅ Y) : X.X ≅ Y.X :=
+⟨f.hom.f, f.inv.f, by { dsimp, rw [← comp_f, iso.hom_inv_id, id_f] },
+  by { dsimp, rw [← comp_f, iso.inv_hom_id, id_f] }⟩
+
+@[simp] lemma iso_app_refl (X : differential_object C) : iso_app (iso.refl X) = iso.refl X.X := rfl
+@[simp] lemma iso_app_symm {X Y : differential_object C} (f : X ≅ Y) :
+  iso_app f.symm = (iso_app f).symm := rfl
+@[simp] lemma iso_app_trans {X Y Z : differential_object C} (f : X ≅ Y) (g : Y ≅ Z) :
+  iso_app (f ≪≫ g) = iso_app f ≪≫ iso_app g := rfl
+
 end differential_object
 
 namespace functor

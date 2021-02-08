@@ -792,12 +792,9 @@ variables [ordered_add_comm_group α] [topological_space α] [topological_add_gr
 lemma has_sum_lt (i : β) (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
   (hf : has_sum f a₁) (hg : has_sum g a₂) :
   a₁ < a₂ :=
-begin
-  have := has_sum_le (_) (hf.update i 0) (hg.update i 0),
-  { simpa using add_lt_add_of_lt_of_le hi this, },
-  rw [←pi.le_def, update_le_update_iff],
-  exact ⟨rfl.le, λ i _, h i⟩,
-end
+have update f i 0 ≤ update g i 0 := update_le_update_iff.mpr ⟨rfl.le, λ i _, h i⟩,
+have 0 - f i + a₁ ≤ 0 - g i + a₂ := has_sum_le this (hf.update i 0) (hg.update i 0),
+by simpa only [zero_sub, add_neg_cancel_left] using add_lt_add_of_lt_of_le hi this
 
 @[mono] lemma has_sum_strict_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f < g) : a₁ < a₂ :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt i hle hi hf hg

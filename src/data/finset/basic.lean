@@ -1797,6 +1797,17 @@ theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 
 theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = {a} :=
 by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton_val]
 
+theorem card_le_one {s : finset α} : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|⟨x, hx⟩, { simp },
+  refine (nat.succ_le_of_lt (card_pos.2 ⟨x, hx⟩)).le_iff_eq.trans (card_eq_one.trans ⟨_, _⟩),
+  { rintro ⟨y, rfl⟩, simp },
+  { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
+end
+
+theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
+by { rw ← not_iff_not, push_neg, exact card_le_one }
+
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
 by simpa only [card_cons, card, insert_val] using

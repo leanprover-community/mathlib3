@@ -415,20 +415,6 @@ universes u v w
 variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
 variable {W : submodule R M}
 
-/-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
-  that `φ w = 0` for all `w ∈ W`. -/
-def dual_annihilator {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M]
-  [module R M] (W : submodule R M) : submodule R $ module.dual R M :=
-{ carrier := { φ | ∀ w ∈ W, φ w = 0 },
-  zero_mem' := by simp,
-  add_mem' :=  by { intros φ ψ hφ hψ w hw,
-    rw [linear_map.add_apply, hφ w hw, hψ w hw, add_zero] },
-  smul_mem' := by { intros c φ hφ w hw,
-    rw [linear_map.smul_apply, hφ w hw, smul_zero] } }
-
-@[simp] lemma mem_dual_annihilator (φ : module.dual R M) :
-  φ ∈ W.dual_annihilator ↔ ∀ w ∈ W, φ w = 0 := iff.rfl
-
 /-- The `dual_restrict` of a submodule `W` of `M` is the linear map from the
   dual of `M` to the dual of `W` such that the domain of each linear map is
   restricted to `W`. -/
@@ -440,15 +426,27 @@ linear_map.dom_restrict' W
   (W : submodule R M) (φ : module.dual R M) (x : W) :
   W.dual_restrict φ x = φ x.1 := rfl
 
-lemma dual_restrict_ker_eq_dual_anihilator
-  (W : submodule R M) : W.dual_restrict.ker = W.dual_annihilator :=
+/-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
+  that `φ w = 0` for all `w ∈ W`. -/
+def dual_annihilator {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M]
+  [module R M] (W : submodule R M) : submodule R $ module.dual R M :=
+W.dual_restrict.ker
+
+@[simp] lemma mem_dual_annihilator (φ : module.dual R M) :
+  φ ∈ W.dual_annihilator ↔ ∀ w ∈ W, φ w = 0 :=
 begin
-  ext φ, split; intro hφ,
+  split; intro h,
   { intros w hw,
-    rw linear_map.mem_ker at hφ,
-    rw [← W.dual_restrict_apply φ ⟨w, hw⟩, hφ], refl },
-  { ext, exact hφ x.1 x.2 }
+    erw linear_map.mem_ker at h,
+    rw [← dual_restrict_apply W φ ⟨w, hw⟩, h], refl },
+  { erw linear_map.mem_ker,
+    ext x,
+    simp [h] }
 end
+
+lemma dual_restrict_ker_eq_dual_annihilator
+  (W : submodule R M) : W.dual_restrict.ker = W.dual_annihilator :=
+rfl
 
 end submodule
 
@@ -465,20 +463,14 @@ variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K
   the natural extenstion of `φ` to an element of the dual of `V`. -/
 noncomputable def dual_lift (W : subspace K V) :
   module.dual K W →ₗ[K] module.dual K V :=
-{ to_fun := λ φ, let h :=
-    classical.indefinite_description _ W.exists_is_compl in of_is_compl h.2 φ 0,
-  map_add' := λ φ ψ,
-    show of_is_compl _ _ 0 = of_is_compl _ φ 0 + of_is_compl _ ψ 0,
-    by { rw [← zero_add (0 : _ →ₗ[K] _), of_is_compl_add], simp },
-  map_smul' := λ c φ,
-    show of_is_compl _ _ 0 = c • of_is_compl _ _ 0,
-    by { rw [← smul_zero c, of_is_compl_smul], simp } }
+let h := classical.indefinite_description _ W.exists_is_compl in
+  (linear_map.of_is_compl_prod h.2).comp (linear_map.inl _ _ _)
 
 variable {W : subspace K V}
 
 @[simp] lemma dual_lift_of_subtype {φ : module.dual K W} (w : W) :
   W.dual_lift φ (w : V) = φ w :=
-by erw of_is_compl_left_apply _ w
+by { erw of_is_compl_left_apply _ w, refl }
 
 lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
   W.dual_lift φ w = φ ⟨w, hw⟩ :=
@@ -492,7 +484,7 @@ lemma dual_restrict_surjective :
   function.surjective W.dual_restrict :=
 begin
   intros φ, refine ⟨W.dual_lift φ, _⟩, ext,
-  erw [dual_restrict_apply, dual_lift, of_is_compl_left_apply],
+  erw [dual_restrict_apply, dual_lift, of_is_compl_left_apply], refl
 end
 
 lemma dual_lift_injective : function.injective W.dual_lift :=
@@ -505,7 +497,7 @@ end
   dual of that subspace. -/
 noncomputable def quot_annihilator_equiv (W : subspace K V) :
   W.dual_annihilator.quotient ≃ₗ[K] module.dual K W :=
-(quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_anihilator).symm.trans $
+(quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_annihilator).symm.trans $
   W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
 
 /-- The natural linear map from the dual of a subspace `W` to `W.dual_lift.range`. -/

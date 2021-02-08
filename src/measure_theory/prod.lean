@@ -339,7 +339,7 @@ begin
   { rcases (exists_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
     convert measure_mono (prod_mono hs' (subset_univ _)),
     simp_rw [hs0, prod_prod h2s' measurable_set.univ, h3s', zero_mul] },
-  by_cases hti : ν t = ⊤,
+  by_cases hti : ν t = ∞,
   { convert le_top, simp_rw [hti, ennreal.mul_top, hs0, if_false] },
   rw [measure_eq_infi' μ],
   simp_rw [ennreal.infi_mul hti],
@@ -350,7 +350,7 @@ begin
   { rcases (exists_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
     convert measure_mono (prod_mono (subset_univ _) ht'),
     simp_rw [ht0, prod_prod measurable_set.univ h2t', h3t', mul_zero] },
-  by_cases hsi : μ s' = ⊤,
+  by_cases hsi : μ s' = ∞,
   { convert le_top, simp_rw [hsi, ennreal.top_mul, ht0, if_false] },
   rw [measure_eq_infi' ν],
   simp_rw [ennreal.mul_infi hsi],
@@ -361,11 +361,11 @@ begin
 end
 
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
-  (h2s : (μ.prod ν) s < ⊤) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ⊤ :=
+  (h2s : (μ.prod ν) s < ∞) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ∞ :=
 by { simp_rw [prod_apply hs] at h2s, refine ae_lt_top (measurable_measure_prod_mk_left hs) h2s }
 
 lemma integrable_measure_prod_mk_left {s : set (α × β)}
-  (hs : measurable_set s) (h2s : (μ.prod ν) s < ⊤) :
+  (hs : measurable_set s) (h2s : (μ.prod ν) s < ∞) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
   refine ⟨(measurable_measure_prod_mk_left hs).to_real.ae_measurable, _⟩,

@@ -191,9 +191,9 @@ variables {μ : measure α}
     finite volume support. -/
 lemma integrable_iff_fin_meas_supp {f : α →ₛ E} {μ : measure α} :
   integrable f μ ↔ f.fin_meas_supp μ :=
-calc integrable f μ ↔ ∫⁻ x, f.map (coe ∘ nnnorm : E → ℝ≥0∞) x ∂μ < ⊤ :
+calc integrable f μ ↔ ∫⁻ x, f.map (coe ∘ nnnorm : E → ℝ≥0∞) x ∂μ < ∞ :
   and_iff_right f.ae_measurable
-... ↔ (f.map (coe ∘ nnnorm : E → ℝ≥0∞)).lintegral μ < ⊤ : by rw lintegral_eq_lintegral
+... ↔ (f.map (coe ∘ nnnorm : E → ℝ≥0∞)).lintegral μ < ∞ : by rw lintegral_eq_lintegral
 ... ↔ (f.map (coe ∘ nnnorm : E → ℝ≥0∞)).fin_meas_supp μ : iff.symm $
   fin_meas_supp.iff_lintegral_lt_top $ eventually_of_forall $ λ x, coe_lt_top
 ... ↔ _ : fin_meas_supp.map_iff $ λ b, coe_eq_zero.trans nnnorm_eq_zero
@@ -256,7 +256,7 @@ end
     `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `normed_space`, we need some form of coercion.
     See `integral_eq_lintegral` for a simpler version. -/
 lemma integral_eq_lintegral' {f : α →ₛ E} {g : E → ℝ≥0∞} (hf : integrable f μ) (hg0 : g 0 = 0)
-  (hgt : ∀b, g b < ⊤):
+  (hgt : ∀b, g b < ∞):
   (f.map (ennreal.to_real ∘ g)).integral μ = ennreal.to_real (∫⁻ a, g (f a) ∂μ) :=
 begin
   have hf' : f.fin_meas_supp μ := integrable_iff_fin_meas_supp.1 hf,
@@ -630,7 +630,7 @@ begin
 end
 
 lemma lintegral_edist_to_simple_func_lt_top (f g : α →₁ₛ[μ] E) :
-  ∫⁻ (x : α), edist ((to_simple_func f) x) ((to_simple_func g) x) ∂μ < ⊤ :=
+  ∫⁻ (x : α), edist ((to_simple_func f) x) ((to_simple_func g) x) ∂μ < ∞ :=
 begin
   rw lintegral_rw₂ (to_simple_func_eq_to_fun f) (to_simple_func_eq_to_fun g),
   exact lintegral_edist_to_fun_lt_top _ _
@@ -1255,7 +1255,7 @@ begin
   rw [← lt_top_iff_ne_top], convert hfi.has_finite_integral, ext1 x, rw [real.nnnorm_coe_eq_self]
 end
 
-lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ⊤) :
+lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ∞) :
   ∫ a, (f a).to_real ∂μ = (∫⁻ a, f a ∂μ).to_real :=
 begin
   rw [integral_eq_lintegral_of_nonneg_ae _ hfm.to_real],
@@ -1378,7 +1378,7 @@ end
 
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
-  by_cases hμ : μ univ < ⊤,
+  by_cases hμ : μ univ < ∞,
   { haveI : finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
       ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
@@ -1449,7 +1449,7 @@ end
 norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
 
 private lemma integral_smul_measure_aux {f : α → E} {c : ℝ≥0∞}
-  (h0 : 0 < c) (hc : c < ⊤) (fmeas : measurable f) (hfi : integrable f μ) :
+  (h0 : 0 < c) (hc : c < ∞) (fmeas : measurable f) (hfi : integrable f μ) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin
   refine tendsto_nhds_unique _
@@ -1469,26 +1469,26 @@ begin
   by_cases hfm : ae_measurable f μ, swap,
   { have : ¬ (ae_measurable f (c • μ)), by simpa [ne_of_gt h0] using hfm,
     simp [integral_non_ae_measurable, hfm, this] },
-  -- `c = ⊤`
-  rcases (le_top : c ≤ ⊤).eq_or_lt with rfl|hc,
+  -- `c = ∞`
+  rcases (le_top : c ≤ ∞).eq_or_lt with rfl|hc,
   { rw [ennreal.top_to_real, zero_smul],
     by_cases hf : f =ᵐ[μ] 0,
-    { have : f =ᵐ[⊤ • μ] 0 := ae_smul_measure hf ⊤,
+    { have : f =ᵐ[∞ • μ] 0 := ae_smul_measure hf ∞,
       exact integral_eq_zero_of_ae this },
     { apply integral_undef,
-      rw [integrable, has_finite_integral, iff_true_intro (hfm.smul_measure ⊤), true_and,
+      rw [integrable, has_finite_integral, iff_true_intro (hfm.smul_measure ∞), true_and,
           lintegral_smul_measure, top_mul, if_neg],
       { apply lt_irrefl },
       { rw [lintegral_eq_zero_iff' hfm.ennnorm],
         refine λ h, hf (h.mono $ λ x, _),
         simp } } },
-  -- `f` is not integrable and `0 < c < ⊤`
+  -- `f` is not integrable and `0 < c < ∞`
   by_cases hfi : integrable f μ, swap,
   { rw [integral_undef hfi, smul_zero],
     refine integral_undef (mt (λ h, _) hfi),
     convert h.smul_measure (ennreal.inv_lt_top.2 h0),
     rw [smul_smul, ennreal.inv_mul_cancel (ne_of_gt h0) (ne_of_lt hc), one_smul] },
-  -- Main case: `0 < c < ⊤`, `f` is almost everywhere measurable and integrable
+  -- Main case: `0 < c < ∞`, `f` is almost everywhere measurable and integrable
   let g := hfm.mk f,
   calc ∫ x, f x ∂(c • μ) = ∫ x, g x ∂(c • μ) : integral_congr_ae $ ae_smul_measure hfm.ae_eq_mk c
   ... = c.to_real • ∫ x, g x ∂μ :

@@ -1045,8 +1045,8 @@ lemma eval_mul_hom_zero_apply : eval_mul_hom 0 X = C R (constant_coeff R X) :=
 by simp
 
 @[simp] lemma eval_mul_hom_one : eval_mul_hom 1 = ring_hom.id (power_series R) :=
-by { ext, simp only [ring_hom.id_apply], rw eval_mul_hom,
-  simp only [one_pow, coeff_mk, one_mul, ring_hom.coe_mk], }
+by { ext, simp only [ring_hom.id_apply, eval_mul_hom, one_pow, coeff_mk, one_mul,
+  ring_hom.coe_mk], }
 
 section trunc
 

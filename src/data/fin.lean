@@ -113,6 +113,10 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
 section coe
 
+/-!
+### coercions and constructions
+-/
+
 @[simp] protected lemma eta (a : fin n) (h : (a : ℕ) < n) : (⟨(a : ℕ), h⟩ : fin n) = a :=
 by cases a; refl
 
@@ -174,17 +178,13 @@ end coe
 
 section order
 
+/-!
+### order
+-/
+
 lemma is_lt (i : fin n) : (i : ℕ) < n := i.2
 
 lemma is_le (i : fin (n + 1)) : (i : ℕ) ≤ n := le_of_lt_succ i.is_lt
-
-/-- `a < b` as natural numbers if and only if `a < b` in `fin n`. -/
-@[norm_cast, simp] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
-iff.rfl
-
-/-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/
-@[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
-iff.rfl
 
 lemma lt_iff_coe_lt_coe : a < b ↔ (a : ℕ) < b := iff.rfl
 
@@ -193,6 +193,14 @@ lemma le_iff_coe_le_coe : a ≤ b ↔ (a : ℕ) ≤ b := iff.rfl
 lemma mk_lt_of_lt_coe {a : ℕ} (h : a < b) : (⟨a, h.trans b.is_lt⟩ : fin n) < b := h
 
 lemma mk_le_of_le_coe {a : ℕ} (h : a ≤ b) : (⟨a, h.trans_lt b.is_lt⟩ : fin n) ≤ b := h
+
+/-- `a < b` as natural numbers if and only if `a < b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_lt {n : ℕ} {a b : fin n} : (a : ℕ) < (b : ℕ) ↔ a < b :=
+iff.rfl
+
+/-- `a ≤ b` as natural numbers if and only if `a ≤ b` in `fin n`. -/
+@[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
+iff.rfl
 
 instance {n : ℕ} : linear_order (fin n) :=
 { le := (≤), lt := (<),
@@ -293,43 +301,35 @@ rel_embedding.ext $ funext_iff.1 $ strict_mono_unique f.strict_mono g.strict_mon
 
 end
 
+/-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
+lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
+  strict_mono f ↔ ∀ i (h : i + 1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
+begin
+  split,
+  { assume H i hi,
+    apply H,
+    exact nat.lt_succ_self _ },
+  { assume H,
+    have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
+    { assume i j h h',
+      induction h with k h IH,
+      { exact H _ _ },
+      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
+    assume i j hij,
+    convert A (i : ℕ) (j : ℕ) hij j.2; ext; simp only [subtype.coe_eta] }
+end
+
 end order
 
 section add
 
--- We use a saturating addition, which can correspond to a tropical semiring structure
--- with `(min, +)` as the operations. For reducibility, the `min` is expanded out into an `ite`.
--- For mathlib convenience, `(+)` is directly defined instead of using `⊗`.
+/-!
+### addition, numerals, and coercion from nat
 
-/-- Convert a `ℕ` to `fin (n + 1)`. -/
-def of_nat (a : ℕ) : fin (n + 1) :=
-⟨if n ≤ a then n else a,
-  by { split_ifs with h, exact lt_succ_self n, exact lt_succ_of_lt (not_le.mp h) }⟩
-
-/-- Convert a `ℕ` to `fin n`, provided `n` is positive -/
-def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n :=
-⟨if n - 1 ≤ i then n - 1 else i, min_lt_iff.mpr (or.inl (pred_lt (ne_of_gt h)))⟩
-
-@[simp] lemma of_nat_le {a : ℕ} (ha : a ≤ n) : @of_nat n a = ⟨a, lt_succ_of_le ha⟩ :=
-by { suffices : n ≤ a → n = a, { simpa [of_nat] using this }, exact (λ h, (le_antisymm ha h).symm) }
-
-@[simp] lemma of_nat_lt {a : ℕ} (ha : a < n + 1) : @of_nat n a = ⟨a, ha⟩ :=
-of_nat_le (le_of_lt_succ ha)
-
-lemma of_nat_zero : @of_nat n 0 = 0 :=
-by simp [zero_le]
-
-instance : has_one (fin (n + 1)) := ⟨of_nat 1⟩
-
-@[simp] lemma coe_one : ((1 : fin (n + 2)) : ℕ) = 1 :=
-by { unfold has_one.one, simp }
-
-lemma val_one : (1 : fin (n + 2)).val = 1 := by simp
-
-@[simp] lemma mk_one : (⟨1, succ_lt_succ (succ_pos n)⟩ : fin (n + 2)) = (1 : fin _) :=
-by simp [eq_iff_veq]
-
-instance : nontrivial (fin (n + 2)) := ⟨⟨0, 1, by { rw ne_iff_vne, simp }⟩⟩
+We use a saturating addition, which can correspond to a tropical semiring structure
+with `(min, +)` as the operations. For reducibility, the `min` is expanded out into an `ite`.
+For mathlib convenience, `(+)` is directly defined instead of using `⊗`.
+-/
 
 /--
 Addition of `x y : fin (n + 1)` is the saturating addition such that `x + y` maxes out at `last n`
@@ -396,6 +396,36 @@ by simp [eq_iff_veq]
 
 @[simp] lemma add_last (i : fin (n + 1)) : i + last n = last n :=
 by simp [eq_iff_veq]
+
+/-- Convert a `ℕ` to `fin (n + 1)`. -/
+def of_nat (a : ℕ) : fin (n + 1) :=
+⟨if n ≤ a then n else a,
+  by { split_ifs with h, exact lt_succ_self n, exact lt_succ_of_lt (not_le.mp h) }⟩
+
+/-- Convert a `ℕ` to `fin n`, provided `n` is positive -/
+def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n :=
+⟨if n - 1 ≤ i then n - 1 else i, min_lt_iff.mpr (or.inl (pred_lt (ne_of_gt h)))⟩
+
+@[simp] lemma of_nat_le {a : ℕ} (ha : a ≤ n) : @of_nat n a = ⟨a, lt_succ_of_le ha⟩ :=
+by { suffices : n ≤ a → n = a, { simpa [of_nat] using this }, exact (λ h, (le_antisymm ha h).symm) }
+
+@[simp] lemma of_nat_lt {a : ℕ} (ha : a < n + 1) : @of_nat n a = ⟨a, ha⟩ :=
+of_nat_le (le_of_lt_succ ha)
+
+lemma of_nat_zero : @of_nat n 0 = 0 :=
+by simp [zero_le]
+
+instance : has_one (fin (n + 1)) := ⟨of_nat 1⟩
+
+@[simp] lemma coe_one : ((1 : fin (n + 2)) : ℕ) = 1 :=
+by { unfold has_one.one, simp }
+
+lemma val_one : (1 : fin (n + 2)).val = 1 := by simp
+
+@[simp] lemma mk_one : (⟨1, succ_lt_succ (succ_pos n)⟩ : fin (n + 2)) = (1 : fin _) :=
+by simp [eq_iff_veq]
+
+instance : nontrivial (fin (n + 2)) := ⟨⟨0, 1, by { rw ne_iff_vne, simp }⟩⟩
 
 section bit
 
@@ -480,14 +510,35 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = min (n - 1) (a + b)
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = min (n - 1) (a + b)
 | ⟨_, _⟩ ⟨_, _⟩ := add_def _ _
 
-end add
-
 lemma coe_one' {n : ℕ} : ((1 : fin (n + 1)) : ℕ) = 1 % (n + 1) :=
 by { cases n, simpa, simp }
 
 lemma one_val {n : ℕ} : (1 : fin (n + 1)).val = 1 % (n + 1) := coe_one'
 
 @[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
+
+lemma add_one_pos (i : fin (n + 1)) (h : i < fin.last n) : (0 : fin (n + 1)) < i + 1 :=
+begin
+  cases n,
+  { exact absurd h (nat.not_lt_zero _) },
+  { simp [lt_iff_vlt] }
+end
+
+lemma one_pos : (0 : fin (n + 2)) < 1 := by simp [lt_iff_vlt]
+
+lemma zero_ne_one : (0 : fin (n + 2)) ≠ 1 := ne_of_lt one_pos
+
+@[simp] lemma zero_eq_one_iff : (0 : fin (n + 1)) = 1 ↔ n = 0 :=
+begin
+  split,
+  { cases n; intro h,
+    { refl },
+    { have := zero_ne_one, contradiction } },
+  { rintro rfl, refl }
+end
+
+@[simp] lemma one_eq_zero_iff : (1 : fin (n + 1)) = 0 ↔ n = 0 :=
+by rw [eq_comm, zero_eq_one_iff]
 
 /-- Converting an in-range number to `fin (n + 1)` produces a result
 whose value is the original number.  -/
@@ -498,7 +549,13 @@ lemma coe_val_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
 in the same value.  -/
 lemma coe_val_eq_self {n : ℕ} (a : fin (n + 1)) : (a.val : fin (n + 1)) = a := coe_coe_eq_self _
 
+end add
+
 section succ
+
+/-!
+### succ and casts into larger fin types
+-/
 
 @[simp] lemma coe_succ (j : fin n) : (j.succ : ℕ) = j + 1 :=
 by cases j; simp [fin.succ]
@@ -602,29 +659,6 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 lemma cast_succ_pos (i : fin (n + 1)) (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
 
-lemma add_one_pos (i : fin (n + 1)) (h : i < fin.last n) : (0 : fin (n + 1)) < i + 1 :=
-begin
-  cases n,
-  { exact absurd h (nat.not_lt_zero _) },
-  { simp [lt_iff_vlt] }
-end
-
-lemma one_pos : (0 : fin (n + 2)) < 1 := by simp [lt_iff_vlt]
-
-lemma zero_ne_one : (0 : fin (n + 2)) ≠ 1 := ne_of_lt one_pos
-
-@[simp] lemma zero_eq_one_iff : (0 : fin (n + 1)) = 1 ↔ n = 0 :=
-begin
-  split,
-  { cases n; intro h,
-    { refl },
-    { have := zero_ne_one, contradiction } },
-  { rintro rfl, refl }
-end
-
-@[simp] lemma one_eq_zero_iff : (1 : fin (n + 1)) = 0 ↔ n = 0 :=
-by rw [eq_comm, zero_eq_one_iff]
-
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by { simp [fin.ext_iff], }
@@ -645,16 +679,6 @@ end
 lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_coe_lt_coe, coe_cast_add, coe_succ], exact lt_add_one a.val }
 
-lemma succ_above_aux (p : fin (n + 1)) :
-  strict_mono (λ i : fin n, if i.cast_succ < p then i.cast_succ else i.succ) :=
-(cast_succ : fin n ↪o _).strict_mono.ite (succ_embedding n).strict_mono
-  (λ i j hij hj, lt_trans ((cast_add 1 : fin n ↪o _).lt_iff_lt.2 hij) hj)
-  (λ i, (cast_succ_lt_succ i).le)
-
-/-- `succ_above p i` embeds `fin n` into `fin (n + 1)` with a hole around `p`. -/
-def succ_above (p : fin (n + 1)) : fin n ↪o fin (n + 1) :=
-order_embedding.of_strict_mono _ p.succ_above_aux
-
 /-- `add_nat i h` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=
 order_embedding.of_strict_mono (λ i, ⟨(i : ℕ) + m, add_lt_add_right i.2 _⟩) $
@@ -669,8 +693,15 @@ order_embedding.of_strict_mono (λ i, ⟨n + (i : ℕ), add_lt_add_left i.2 _⟩
 
 @[simp] lemma coe_nat_add (n : ℕ) {m : ℕ} (i : fin m) : (nat_add n i : ℕ) = n + i := rfl
 
-lemma nat_add_zero {n : ℕ} : fin.nat_add 0 = (fin.cast (zero_add n).symm).to_rel_embedding :=
-by { ext, apply zero_add }
+lemma succ_above_aux (p : fin (n + 1)) :
+  strict_mono (λ i : fin n, if i.cast_succ < p then i.cast_succ else i.succ) :=
+(cast_succ : fin n ↪o _).strict_mono.ite (succ_embedding n).strict_mono
+  (λ i j hij hj, lt_trans ((cast_succ : fin n ↪o _).lt_iff_lt.2 hij) hj)
+  (λ i, (cast_succ_lt_succ i).le)
+
+/-- `succ_above p i` embeds `fin n` into `fin (n + 1)` with a hole around `p`. -/
+def succ_above (p : fin (n + 1)) : fin n ↪o fin (n + 1) :=
+order_embedding.of_strict_mono _ p.succ_above_aux
 
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
 embeds `i` by `cast_succ` when the resulting `i.cast_succ < p`. -/
@@ -763,141 +794,11 @@ succ_above_right_injective.eq_iff
 
 end succ
 
-section pred
-
-/-- `pred i h` embeds `i : fin (n + 1)` into `fin n` by ignoring `0`. -/
-def pred {n : nat} : ∀ i : fin (succ n), i ≠ 0 → fin n
-| ⟨a, h₁⟩ h₂ := ⟨a.pred,
-  begin
-    have this : a ≠ 0,
-    { have aux₁ := vne_of_ne h₂,
-      dsimp at aux₁, exact aux₁ },
-    exact nat.pred_lt_pred this h₁
-  end⟩
-
-/-- `pred_above p i h` embeds `i : fin (n+1)` into `fin n` by ignoring `p`. -/
-def pred_above (p : fin (n + 1)) (i : fin (n +1)) (hi : i ≠ p) : fin n :=
-if h : i < p
-then i.cast_lt (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)
-else i.pred $
-  have p < i, from lt_of_le_of_ne (le_of_not_gt h) hi.symm,
-  ne_of_gt (lt_of_le_of_lt (zero_le p) this)
-
-@[simp] lemma coe_pred (j : fin (n+1)) (h : j ≠ 0) : (j.pred h : ℕ) = j - 1 :=
-by { cases j, refl }
-
-@[simp] lemma succ_pred : ∀(i : fin (n+1)) (h : i ≠ 0), (i.pred h).succ = i
-| ⟨0,     h⟩ hi := by contradiction
-| ⟨n + 1, h⟩ hi := rfl
-
-@[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
-by { cases i, refl }
-
-@[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
-  fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
-by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
-
-@[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
-  a.pred ha ≤ b.pred hb ↔ a ≤ b :=
-by rw [←succ_le_succ_iff, succ_pred, succ_pred]
-
-@[simp] lemma pred_lt_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
-  a.pred ha < b.pred hb ↔ a < b :=
-by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
-
-@[simp] lemma pred_inj :
-  ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b
-| ⟨0,   _⟩  b         ha hb := by contradiction
-| ⟨i+1, _⟩  ⟨0,   _⟩  ha hb := by contradiction
-| ⟨i+1, hi⟩ ⟨j+1, hj⟩ ha hb := by simp [fin.eq_iff_veq]
-
-@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt one_pos)) = 0 :=
-by simp [eq_iff_veq]
-
-lemma pred_add_one (i : fin (n + 2)) (h : (i : ℕ) < n + 1) :
-  pred (i + 1) (ne_of_gt (add_one_pos _ (lt_iff_coe_lt_coe.mpr h))) = cast_lt i h :=
-by simp [eq_iff_veq, min_eq_right (succ_le_of_lt h)]
-
-/-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
-def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
-⟨(i : ℕ) - m, by { rw [nat.sub_lt_right_iff_lt_add h], exact i.is_lt }⟩
-
-@[simp] lemma coe_sub_nat (i : fin (n + m)) (h : m ≤ i) : (i.sub_nat m h : ℕ) = i - m :=
-rfl
-
-end pred
-
-/-- `min n m` as an element of `fin (m + 1)` -/
-def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
-
-@[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
--- nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
-by {  convert coe_coe_of_lt _; simp [clamp] }
-
-/-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
-gives the starting `fin (n + 1)` -/
-@[simp] lemma succ_above_pred_above (p i : fin (n + 1)) (h : i ≠ p) :
-  p.succ_above (p.pred_above i h) = i :=
-begin
-  rw pred_above,
-  cases lt_or_le i p with H H,
-  { simp only [succ_above_below, cast_succ_cast_lt, H, dif_pos]},
-  { rw le_iff_coe_le_coe at H,
-    rw succ_above_above,
-    { simp only [le_iff_coe_le_coe, H, not_lt, dif_neg, succ_pred] },
-    { simp only [le_iff_coe_le_coe, H, coe_pred, not_lt, dif_neg, coe_cast_succ],
-      exact le_pred_of_lt (lt_of_le_of_ne H (vne_of_ne h.symm)) } }
-end
-
-/-- Embedding a `fin n` into `fin (n + 1)` and embedding it back around the same hole
-gives the starting `fin n` -/
-@[simp] lemma pred_above_succ_above (p : fin (n + 1)) (i : fin n) :
-  p.pred_above (p.succ_above i) (succ_above_ne _ _) = i :=
-by rw [← succ_above_right_inj, succ_above_pred_above]
-
-@[simp] theorem pred_above_zero {i : fin (n + 1)} (hi : i ≠ 0) :
-  pred_above 0 i hi = i.pred hi :=
-rfl
-
-lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
-  (∀ j, p j) ↔ p i ∧ ∀ j, p (i.succ_above j) :=
-⟨λ h, ⟨h _, λ j, h _⟩,
-  λ h j, if hj : j = i then (hj.symm ▸ h.1) else (i.succ_above_pred_above j hj ▸ h.2 _)⟩
-
-/-- `succ_above` is injective at the pivot -/
-lemma succ_above_left_injective : injective (@succ_above n) :=
-λ x y, begin
-  contrapose!,
-  intros H h,
-  have key : succ_above x (y.pred_above x H) = succ_above y (y.pred_above x H), by rw h,
-  rw [succ_above_pred_above] at key,
-  exact absurd key (succ_above_ne x _)
-end
-
-/-- `succ_above` is injective at the pivot -/
-lemma succ_above_left_inj {x y : fin (n + 1)} :
-  x.succ_above = y.succ_above ↔ x = y :=
-succ_above_left_injective.eq_iff
-
-/-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
-lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
-  strict_mono f ↔ ∀ i (h : i + 1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
-begin
-  split,
-  { assume H i hi,
-    apply H,
-    exact nat.lt_succ_self _ },
-  { assume H,
-    have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
-    { assume i j h h',
-      induction h with k h IH,
-      { exact H _ _ },
-      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
-    assume i j hij,
-    convert A (i : ℕ) (j : ℕ) hij j.2; ext; simp only [subtype.coe_eta] }
-end
-
 section rec
+
+/-!
+### recursion and induction principles
+-/
 
 /-- Define `C n i` by induction on `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
 This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
@@ -990,6 +891,119 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
   λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
 
 end rec
+
+section pred
+
+/-!
+### pred
+-/
+
+/-- `pred i h` embeds `i : fin (n + 1)` into `fin n` by ignoring `0`. -/
+def pred {n : nat} : ∀ i : fin (succ n), i ≠ 0 → fin n
+| ⟨a, h₁⟩ h₂ := ⟨a.pred, nat.pred_lt_pred (vne_of_ne h₂) h₁⟩
+
+@[simp] lemma coe_pred (j : fin (n+1)) (h : j ≠ 0) : (j.pred h : ℕ) = j - 1 :=
+by { cases j, refl }
+
+@[simp] lemma succ_pred : ∀(i : fin (n+1)) (h : i ≠ 0), (i.pred h).succ = i
+| ⟨0,     h⟩ hi := by contradiction
+| ⟨n + 1, h⟩ hi := rfl
+
+@[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
+by { cases i, refl }
+
+@[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
+  fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
+by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
+
+@[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
+  a.pred ha ≤ b.pred hb ↔ a ≤ b :=
+by rw [←succ_le_succ_iff, succ_pred, succ_pred]
+
+@[simp] lemma pred_lt_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
+  a.pred ha < b.pred hb ↔ a < b :=
+by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
+
+@[simp] lemma pred_inj :
+  ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b
+| ⟨0,   _⟩  b         ha hb := by contradiction
+| ⟨i+1, _⟩  ⟨0,   _⟩  ha hb := by contradiction
+| ⟨i+1, hi⟩ ⟨j+1, hj⟩ ha hb := by simp [fin.eq_iff_veq]
+
+@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt one_pos)) = 0 :=
+by simp [eq_iff_veq]
+
+lemma pred_add_one (i : fin (n + 2)) (h : (i : ℕ) < n + 1) :
+  pred (i + 1) (ne_of_gt (add_one_pos _ (lt_iff_coe_lt_coe.mpr h))) = cast_lt i h :=
+by simp [eq_iff_veq, min_eq_right (succ_le_of_lt h)]
+
+/-- `pred_above p i h` embeds `i : fin (n+1)` into `fin n` by ignoring `p`. -/
+def pred_above (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
+if h : i < p
+then i.cast_lt (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)
+else i.pred $
+  have p < i, from lt_of_le_of_ne (le_of_not_gt h) hi.symm,
+  ne_of_gt (lt_of_le_of_lt (zero_le p) this)
+
+@[simp] theorem pred_above_zero {i : fin (n + 1)} (hi : i ≠ 0) :
+  pred_above 0 i hi = i.pred hi :=
+rfl
+
+/-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
+gives the starting `fin (n + 1)` -/
+@[simp] lemma succ_above_pred_above (p i : fin (n + 1)) (h : i ≠ p) :
+  p.succ_above (p.pred_above i h) = i :=
+begin
+  rw pred_above,
+  cases lt_or_le i p with H H,
+  { simp only [succ_above_below, cast_succ_cast_lt, H, dif_pos]},
+  { rw le_iff_coe_le_coe at H,
+    rw succ_above_above,
+    { simp only [le_iff_coe_le_coe, H, not_lt, dif_neg, succ_pred] },
+    { simp only [le_iff_coe_le_coe, H, coe_pred, not_lt, dif_neg, coe_cast_succ],
+      exact le_pred_of_lt (lt_of_le_of_ne H (vne_of_ne h.symm)) } }
+end
+
+/-- Embedding a `fin n` into `fin (n + 1)` and embedding it back around the same hole
+gives the starting `fin n` -/
+@[simp] lemma pred_above_succ_above (p : fin (n + 1)) (i : fin n) :
+  p.pred_above (p.succ_above i) (succ_above_ne _ _) = i :=
+by rw [← succ_above_right_inj, succ_above_pred_above]
+
+lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
+  (∀ j, p j) ↔ p i ∧ ∀ j, p (i.succ_above j) :=
+⟨λ h, ⟨h _, λ j, h _⟩,
+  λ h j, if hj : j = i then (hj.symm ▸ h.1) else (i.succ_above_pred_above j hj ▸ h.2 _)⟩
+
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_left_injective : injective (@succ_above n) :=
+λ x y, begin
+  contrapose!,
+  intros H h,
+  have key : succ_above x (y.pred_above x H) = succ_above y (y.pred_above x H), by rw h,
+  rw [succ_above_pred_above] at key,
+  exact absurd key (succ_above_ne x _)
+end
+
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_left_inj {x y : fin (n + 1)} :
+  x.succ_above = y.succ_above ↔ x = y :=
+succ_above_left_injective.eq_iff
+
+/-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
+def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
+⟨(i : ℕ) - m, by { rw [nat.sub_lt_right_iff_lt_add h], exact i.is_lt }⟩
+
+@[simp] lemma coe_sub_nat (i : fin (n + m)) (h : m ≤ i) : (i.sub_nat m h : ℕ) = i - m :=
+rfl
+
+end pred
+
+/-- `min n m` as an element of `fin (m + 1)` -/
+def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
+
+@[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
+by { convert coe_coe_of_lt _; simp [clamp] }
 
 section tuple
 /-!

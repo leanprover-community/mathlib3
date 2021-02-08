@@ -4,7 +4,7 @@ Authors: Johan Commelin
 -/
 
 import order.category.NonemptyFinLinOrd.basic
-
+import tactic.apply_fun
 import tactic.linarith
 
 /-! # The simplex category
@@ -43,15 +43,25 @@ TODO: prove that these generate the category
 def δ {n} (i : fin (n+2)) :
   @has_hom.hom simplex_category _ n (n+1 : ℕ) :=
 { to_fun := fin.succ_above i,
-  monotone :=
+  monotone' :=
   begin
     intros a b H,
-    change a.val ≤ b.val at H,
     dsimp [fin.succ_above],
     split_ifs with ha hb hb,
-    all_goals
-    { simp [fin.le_iff_val_le_val, nat.succ_eq_add_one],
-      linarith },
+    { simpa using H, },
+    { simp at hb,
+      apply le_of_lt,
+      calc _ < _ : ha
+         ... ≤ _ : hb
+         ... < _ : fin.cast_succ_lt_succ b, },
+    { simp at ha,
+      apply_fun fin.cast_succ at H,
+      exfalso,
+      apply lt_irrefl i,
+      calc _ ≤ _ : ha
+         ... ≤ _ : H
+         ... < _ : hb, },
+    { simpa using H, },
   end }
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
@@ -61,7 +71,7 @@ def σ {n} (i : fin (n+1)) :
   then a.cast_lt (lt_of_le_of_lt h i.is_lt)
   else ⟨a.val.pred,
     (nat.sub_lt_right_iff_lt_add (lt_of_le_of_lt i.val.zero_le (not_le.mp h))).mpr a.is_lt⟩,
-  monotone := λ a b (H : a.val ≤ b.val),
+  monotone' := λ a b (H : a.val ≤ b.val),
   begin
     dsimp,
     split_ifs with ha hb,
@@ -130,10 +140,7 @@ instance : faithful skeletal_functor.{u} :=
   end }
 
 noncomputable instance : ess_surj skeletal_functor.{u} :=
-{ obj_preimage := λ X, (fintype.card X - 1 : ℕ),
-  iso' :=
-  begin
-    intro X,
+{ mem_ess_image := λ X, ⟨(fintype.card X - 1 : ℕ), ⟨begin
     have aux : fintype.card X = fintype.card X - 1 + 1,
     { exact (nat.succ_pred_eq_of_pos $ fintype.card_pos_iff.mpr ⟨⊥⟩).symm, },
     let f := mono_equiv_of_fin X aux,
@@ -148,7 +155,7 @@ noncomputable instance : ess_surj skeletal_functor.{u} :=
       show f (f.symm i) ≤ f (f.symm j), simpa only [equiv.apply_symm_apply], },
     { ext1 ⟨i⟩, ext1, exact f.symm_apply_apply i },
     { ext1 i, exact f.apply_symm_apply i },
-  end }
+  end⟩⟩,}
 
 noncomputable instance is_equivalence : is_equivalence skeletal_functor.{u} :=
 equivalence.equivalence_of_fully_faithfully_ess_surj skeletal_functor

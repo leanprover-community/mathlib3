@@ -496,27 +496,16 @@ noncomputable def quot_annihilator_equiv (W : subspace K V) :
 (quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_annihilator).symm.trans $
   W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
 
-/-- The natural linear map from the dual of a subspace `W` to `W.dual_lift.range`. -/
-noncomputable def dual_to_subspace_dual (W : subspace K V) :
-  module.dual K W →ₗ[K] W.dual_lift.range :=
-W.dual_lift.range_restrict
-
-@[simp] lemma dual_to_subspace_dual_apply (φ : module.dual K W) :
-  W.dual_to_subspace_dual φ = ⟨W.dual_lift φ, mem_range.2 ⟨φ, rfl⟩⟩ := rfl
-
-lemma dual_to_subspace_ker_eq_bot :
-  W.dual_to_subspace_dual.ker = ⊥ :=
-linear_map.ker_eq_bot.2 $ λ φ ψ h, dual_lift_injective (subtype.mk_eq_mk.1 h)
-
-lemma dual_to_subspace_range_eq_top :
-  W.dual_to_subspace_dual.range = ⊤ :=
-W.dual_lift.range_range_restrict
-
 /-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_equiv_dual (W : subspace K V) :
   module.dual K W ≃ₗ[K] W.dual_lift.range :=
-linear_equiv.of_bijective W.dual_to_subspace_dual
-  dual_to_subspace_ker_eq_bot dual_to_subspace_range_eq_top
+linear_equiv.of_injective _ $ ker_eq_bot.2 dual_lift_injective
+
+lemma dual_equiv_dual_def (W : subspace K V) :
+  W.dual_equiv_dual.to_linear_map = W.dual_lift.range_restrict := rfl
+
+@[simp] lemma dual_equiv_dual_apply (φ : module.dual K W) :
+  W.dual_equiv_dual φ = ⟨W.dual_lift φ, mem_range.2 ⟨φ, rfl⟩⟩ := rfl
 
 section
 

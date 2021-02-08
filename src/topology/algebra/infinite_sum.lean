@@ -789,7 +789,7 @@ section ordered_topological_group
 variables [ordered_add_comm_group α] [topological_space α] [topological_add_group α]
   [order_closed_topology α] {f g : β → α} {a₁ a₂ : α}
 
-lemma has_sum_lt (i : β) (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
+lemma has_sum_lt {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
   (hf : has_sum f a₁) (hg : has_sum g a₂) :
   a₁ < a₂ :=
 have update f i 0 ≤ update g i 0 := update_le_update_iff.mpr ⟨rfl.le, λ i _, h i⟩,
@@ -802,7 +802,7 @@ let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt i hle hi hf hg
 lemma tsum_lt_tsum {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
   (hf : summable f) (hg : summable g) :
   ∑' n, f n < ∑' n, g n :=
-has_sum_lt i h hi hf.has_sum hg.has_sum
+has_sum_lt h hi hf.has_sum hg.has_sum
 
 @[mono] lemma tsum_strict_mono (hf : summable f) (hg : summable g) (h : f < g) :
   ∑' n, f n < ∑' n, g n :=

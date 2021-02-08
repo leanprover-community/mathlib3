@@ -89,36 +89,34 @@ open finset nat
 
 variables {A : Type*} [comm_ring A]
 
-/-- Shows that `e^(aX) * e^(bX) = e^((a + b)X) ` -/
+/-- Shows that $e^{aX} * e^{bX} = e^{(a + b)X}$ -/
 theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
   eval_mul_hom a (exp A) * eval_mul_hom b (exp A) = eval_mul_hom (a + b) (exp A) :=
 begin
-  ext, rw [coeff_mul, exp, eval_mul_hom, eval_mul_hom, eval_mul_hom],
-  simp only [coeff_mk, coe_mk, factorial], rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-  simp only [factorial, add_pow, sum_mul], apply sum_congr rfl,
-  { rintros x hx,
-    suffices : a^x * b^(n - x) * (algebra_map ℚ A (1 / ↑(x.factorial)) * algebra_map ℚ A
-      (1 / ↑((n - x).factorial))) =
-     a^x * b^(n - x) * ((↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial)))),
-    { convert this using 1; ring },
-    congr' 1,
-    rw [←map_nat_cast (algebra_map ℚ A) (n.choose x), ←map_mul, ←map_mul],
-    refine ring_hom.congr_arg _ _,
-    rw [mul_one_div ↑(n.choose x) _, one_div_mul_one_div],
-    symmetry,
-    rw [div_eq_iff, div_mul_eq_mul_div, one_mul, choose_eq_factorial_div_factorial],
-    norm_cast,
-    rw cast_dvd_char_zero,
-    { apply factorial_mul_factorial_dvd_factorial (mem_range_succ_iff.1 hx), },
-    { apply mem_range_succ_iff.1 hx, },
-    { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },
-  },
+  ext,
+  simp only [coeff_mul, exp, eval_mul_hom, coeff_mk, coe_mk, factorial,
+    nat.sum_antidiagonal_eq_sum_range_succ_mk, add_pow, sum_mul],
+  apply sum_congr rfl,
+  rintros x hx,
+  suffices : a^x * b^(n - x) * (algebra_map ℚ A (1 / ↑(x.factorial)) * algebra_map ℚ A
+    (1 / ↑((n - x).factorial))) =
+    a^x * b^(n - x) * ((↑(n.choose x) * (algebra_map ℚ A) (1 / ↑(n.factorial)))),
+  { convert this using 1; ring },
+  congr' 1,
+  rw [←map_nat_cast (algebra_map ℚ A) (n.choose x), ←map_mul, ←map_mul],
+  refine ring_hom.congr_arg _ _,
+  rw [mul_one_div ↑(n.choose x) _, one_div_mul_one_div],
+  symmetry,
+  rw [div_eq_iff, div_mul_eq_mul_div, one_mul, choose_eq_factorial_div_factorial],
+  norm_cast,
+  rw cast_dvd_char_zero,
+  { apply factorial_mul_factorial_dvd_factorial (mem_range_succ_iff.1 hx), },
+  { apply mem_range_succ_iff.1 hx, },
+  { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },
 end
 
 /-- Shows that $e^{x} * e^{-x} = 1$ -/
 theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom (exp A) = 1 :=
-begin
-  convert exp_mul_exp_eq_exp_add (1 : A) (-1); simp,
-end
+by convert exp_mul_exp_eq_exp_add (1 : A) (-1); simp
 
 end power_series

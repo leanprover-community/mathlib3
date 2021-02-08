@@ -675,6 +675,41 @@ lemma deriv_within_sum (hxs : unique_diff_within_at 𝕜 s x)
 
 end sum
 
+section pi
+
+/-! ### Derivatives of functions `f : 𝕜 → Π i, E i` -/
+
+variables {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  [Π i, normed_space 𝕜 (E' i)] {φ : 𝕜 → Π i, E' i} {φ' : Π i, E' i}
+
+@[simp] lemma has_strict_deriv_at_pi :
+  has_strict_deriv_at φ φ' x ↔ ∀ i, has_strict_deriv_at (λ x, φ x i) (φ' i) x :=
+has_strict_fderiv_at_pi'
+
+@[simp] lemma has_deriv_at_filter_pi :
+  has_deriv_at_filter φ φ' x L ↔
+    ∀ i, has_deriv_at_filter (λ x, φ x i) (φ' i) x L :=
+has_fderiv_at_filter_pi'
+
+lemma has_deriv_at_pi :
+  has_deriv_at φ φ' x ↔ ∀ i, has_deriv_at (λ x, φ x i) (φ' i) x:=
+has_deriv_at_filter_pi
+
+lemma has_deriv_within_at_pi :
+  has_deriv_within_at φ φ' s x ↔ ∀ i, has_deriv_within_at (λ x, φ x i) (φ' i) s x:=
+has_deriv_at_filter_pi
+
+lemma deriv_within_pi (h : ∀ i, differentiable_within_at 𝕜 (λ x, φ x i) s x)
+  (hs : unique_diff_within_at 𝕜 s x) :
+  deriv_within φ s x = λ i, deriv_within (λ x, φ x i) s x :=
+(has_deriv_within_at_pi.2 (λ i, (h i).has_deriv_within_at)).deriv_within hs
+
+lemma deriv_pi (h : ∀ i, differentiable_at 𝕜 (λ x, φ x i) x) :
+  deriv φ x = λ i, deriv (λ x, φ x i) x :=
+(has_deriv_at_pi.2 (λ i, (h i).has_deriv_at)).deriv
+
+end pi
+
 section mul_vector
 /-! ### Derivative of the multiplication of a scalar function and a vector function -/
 variables {c : 𝕜 → 𝕜} {c' : 𝕜}

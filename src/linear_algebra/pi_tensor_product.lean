@@ -25,6 +25,7 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
   function `φ : (R × Π i, s i) → F` with the appropriate properties.
 * `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
   `(⨂[R] i, s i) →ₗ[R] E`. This is bundled as a linear equivalence.
+* `pi_tensor_product.reindex e` re-indexes the components of `⨂[R] i : ι, M` along `e : ι ≃ ι₂`.
 
 ## Notations
 
@@ -57,9 +58,11 @@ open function
 
 section semiring
 
-variables {ι : Type*} [decidable_eq ι] {R : Type*} [comm_semiring R]
+variables {ι ι₂ ι₃ : Type*} [decidable_eq ι] [decidable_eq ι₂] [decidable_eq ι₃]
+variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
 variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
+variables {M : Type*} [add_comm_monoid M] [semimodule R M]
 variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 variables {F : Type*} [add_comm_monoid F]
 
@@ -354,8 +357,90 @@ theorem lift.unique {φ' : (⨂[R] i, s i) →ₗ[R] E} (H : ∀ f, φ' (tprod R
   φ' = lift φ :=
 lift.unique' (multilinear_map.ext H)
 
+@[simp]
+theorem lift_symm (φ' : (⨂[R] i, s i) →ₗ[R] E) : lift.symm φ' = φ'.comp_multilinear_map (tprod R) :=
+rfl
+
+@[simp]
 theorem lift_tprod : lift (tprod R : multilinear_map R s _) = linear_map.id :=
 eq.symm $ lift.unique' rfl
+
+section
+
+variables (R M)
+/-- Re-index the components of the tensor power by `e`.
+
+For simplicity, this is defined only for homogeneously- (rather than dependently-) typed components.
+-/
+def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M :=
+linear_equiv.of_linear
+  ((lift.symm.trans $
+    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm).trans
+      lift (linear_map.id))
+  ((lift.symm.trans $
+    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e).trans
+      lift (linear_map.id))
+  (by { ext, simp })
+  (by { ext, simp })
+
+end
+
+@[simp] lemma reindex_tprod (e : ι ≃ ι₂) (f : Π i, M) :
+  reindex R M e (tprod R f) = tprod R (λ i, f (e.symm i)) :=
+lift.tprod f
+
+@[simp] lemma reindex_comp_tprod (e : ι ≃ ι₂) :
+  (reindex R M e : ⨂[R] i : ι, M →ₗ[R] ⨂[R] i : ι₂, M).comp_multilinear_map (tprod R) =
+    (tprod R : multilinear_map R (λ i, M) _).dom_dom_congr e.symm :=
+multilinear_map.ext $ reindex_tprod e
+
+@[simp] lemma lift_comp_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _ : ι₂, M) E) :
+  (lift φ).comp ↑(reindex R M e) = lift (φ.dom_dom_congr e.symm) :=
+by { ext, simp, }
+
+@[simp]
+lemma lift_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _, M) E) (x : ⨂[R] i, M) :
+  lift φ (reindex R M e x) = lift (φ.dom_dom_congr e.symm) x :=
+linear_map.congr_fun (lift_comp_reindex e φ) x
+
+@[simp] lemma reindex_trans (e : ι ≃ ι₂) (e' : ι₂ ≃ ι₃) :
+  (reindex R M e).trans (reindex R M e') = reindex R M (e.trans e') :=
+begin
+  apply linear_equiv.injective_to_linear_map,
+  ext f,
+  simp only [linear_equiv.trans_apply, linear_equiv.coe_coe, reindex_tprod,
+    linear_map.coe_comp_multilinear_map, function.comp_app, multilinear_map.dom_dom_congr_apply,
+    reindex_comp_tprod],
+  congr,
+end
+
+@[simp] lemma reindex_symm (e : ι ≃ ι₂) :
+  (reindex R M e).symm = reindex R M e.symm := rfl
+
+@[simp] lemma reindex_refl : reindex R M (equiv.refl ι) = linear_equiv.refl R _ :=
+begin
+  apply linear_equiv.injective_to_linear_map,
+  ext1,
+  rw [reindex_comp_tprod, linear_equiv.refl_to_linear_map, equiv.refl_symm],
+  refl,
+end
+
+/-- The tensor product over an empty set of indices is isomorphic to the base ring -/
+def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
+{ to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
+  inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
+  left_inv := λ x, by {
+    apply x.induction_on,
+    { intros r f,
+      have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
+      simp [this], },
+    { simp only,
+      intros x y hx hy,
+      simp [add_smul, hx, hy] }},
+  right_inv := λ t, by simp only [mul_one, algebra.id.smul_eq_mul, multilinear_map.coe_mk,
+    linear_map.map_smul, pi_tensor_product.lift.tprod],
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _, }
 
 end multilinear
 

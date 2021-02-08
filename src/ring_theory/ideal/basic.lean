@@ -238,10 +238,11 @@ end⟩
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
 is_maximal.is_prime
 
-instance coatomic_lattice : is_coatomic (ideal α) :=
+instance : is_coatomic (ideal α) :=
 begin
   apply complete_lattice.coatomic_of_top_compact,
-  rw ←span_singleton_one, exact submodule.singleton_span_is_compact_element 1,
+  rw ←span_singleton_one,
+  exact submodule.singleton_span_is_compact_element 1,
 end
 
 /-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some

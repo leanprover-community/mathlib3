@@ -938,6 +938,20 @@ lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (functio
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
+/-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
+Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
+remaining terms.
+
+TODO: generalize this to `f : β → α` with appropriate typeclass assumptions
+-/
+lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
+  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
+begin
+  refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
+    hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
+  exact λ j, by { by_cases ji : j = i; simp [ji] }
+end
+
 end uniform_group
 
 section topological_group

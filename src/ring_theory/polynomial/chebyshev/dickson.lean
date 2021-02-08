@@ -11,11 +11,14 @@ import ring_theory.polynomial.chebyshev.defs
 # Dickson polynomials
 
 The (generalised) Dickson polynomials are a family of polynomials indexed by `ℕ × ℕ`,
-with coefficients in a commutative ring `R` depending on an element `a∈R`.
-They are closely related to the Chebyshev polynomials in the case that `a=1`.
+with coefficients in a commutative ring `R` depending on an element `a∈R`. More precisely, the
+they satisfy the recursion `dickson k a (n + 2) = X * (dickson k a n + 1) - a * (dickson k a n)`
+with starting values `dickson k a 0 = 3 - k` and `dickson k a 1 = X`. In the literature,
+`dickson k a n` is called the `n`-th Dickson polynomial of the `k`-th kind associated to the
+parameter `a : R`. They are closely related to the Chebyshev polynomials in the case that `a=1`.
 When `a=0` they are just the family of monomials `X ^ n`.
 
-## Main declarations
+## Main definition
 
 * `polynomial.dickson`: the generalised Dickson polynomials.
 
@@ -40,7 +43,7 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] (k : ℕ) (a : R)
 
 /-- `dickson` is the `n`the (generalised) Dickson polynomial of the `k`-th kind associated to the
 element `a ∈ R`. -/
-def dickson : ℕ → polynomial R
+noncomputable def dickson : ℕ → polynomial R
 | 0       := 3 - k
 | 1       := X
 | (n + 2) := X * dickson (n + 1) - (C a) * dickson n

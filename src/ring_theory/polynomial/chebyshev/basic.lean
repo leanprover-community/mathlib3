@@ -22,10 +22,11 @@ In this file, we only consider Chebyshev polynomials of the first kind.
 
 * `polynomial.chebyshev₁_mul`, the `(m * n)`-th Chebyshev polynomial is the composition
   of the `m`-th and `n`-th Chebyshev polynomials.
-* `polynomial.dickson_one_one_mul`, the `(m * n)`-th lambdashev polynomial is the composition
-  of the `m`-th and `n`-th lambdashev polynomials.
-* `polynomial.dickson_one_one_char_p`, for a prime number `p`, the `p`-th lambdashev polynomial
-  is congruent to `X ^ p` modulo `p`.
+* `polynomial.dickson_one_one_mul`, the `(m * n)`-th Dickson polynomial of the first kind for
+  parameter `1 : R` is the composition of the `m`-th and `n`-th Dickson polynomials of the first
+  kind for `1 : R`.
+* `polynomial.dickson_one_one_char_p`, for a prime number `p`, the `p`-th Dickson polynomial of the
+  first kind associated to parameter `1 : R` is congruent to `X ^ p` modulo `p`.
 
 ## Implementation details
 
@@ -126,7 +127,7 @@ begin
   rw [comp_assoc],
   apply eval₂_congr rfl _ rfl,
   rw [mul_comp, C_comp, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
-      inv_of_mul_self, C_1, one_mul],
+      inv_of_mul_self, C_1, one_mul]
 end
 
 lemma dickson_one_one_comp_comm (m n : ℕ) :
@@ -199,10 +200,10 @@ begin
       { simp only [hx, and_true, eq_self_iff_true, inv_zero, or_true],
         exact ⟨_, 1, rfl, one_ne_zero⟩ },
       { simp only [hx, or_false, exists_eq_right],
-        exact ⟨_, rfl, hx⟩ } } },
+        exact ⟨_, rfl, hx⟩ } } }
 end
 
-lemma lambdashev_char_p (p : ℕ) [fact p.prime] [char_p R p] :
+lemma dickson_one_one_char_p (p : ℕ) [fact p.prime] [char_p R p] :
   dickson 1 (1 : R) p = X ^ p :=
 begin
   have h : (1 : R) = zmod.cast_hom (dvd_refl p) R (1),

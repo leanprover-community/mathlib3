@@ -27,7 +27,7 @@ instance [has_scalar R S] [has_scalar S M] [has_scalar R M] [has_scalar S N] [ha
   [is_scalar_tower R S M] [is_scalar_tower R S N] : is_scalar_tower R S (M × N) :=
 ⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩
 
-instance [has_scalar R M] [has_scalar R N] [has_scalar S M] [has_scalar S N]
+instance [has_scalar R M] [has_scalar S M] [has_scalar R N] [has_scalar S N]
   [smul_comm_class R S M] [smul_comm_class R S N] :
   smul_comm_class R S (M × N) :=
 { smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }

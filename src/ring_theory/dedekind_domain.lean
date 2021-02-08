@@ -346,43 +346,6 @@ variables {M : Type*} [add_comm_monoid M] [semimodule B M]
 
 open submodule
 
-lemma submodule.mem_span_mul_finite_of_mem_span_mul {B M : Type*} [comm_semiring B] [semiring M]
-  [algebra B M] {S : set M} {S' : set M} {x : M} (hx : x ∈ span B (S * S')) :
-  ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span B (T * T' : set M) :=
-begin
-  apply span_induction hx,
-  { rintros x hx,
-    obtain ⟨y, z, hy, hz, h'⟩ := set.mem_mul.mp hx,
-    have hy' := submodule.subset_span hy,
-    have hz' := submodule.subset_span hz,
-    obtain ⟨T, hT, fy⟩ := submodule.mem_span_finite_of_mem_span hy',
-    obtain ⟨T', hT', fz⟩ := submodule.mem_span_finite_of_mem_span hz',
-    use [T, T', hT, hT'],
-    rw [←h', ←submodule.span_mul_span],
-    apply mul_mem_mul fy fz, },
-  { use [∅, ∅], simp, },
-  { rintros x y ⟨T, T', hT, hT', h1⟩ ⟨U, U', hU, hU', h2⟩,
-    use [T ∪ U, T' ∪ U'],
-    simp only [finset.coe_union],
-    use [set.union_subset hT hU, set.union_subset hT' hU'],
-    suffices f : x + y ∈ span B ((T * T') ∪ (U * U') : set M),
-    { have f' : ((T * T') ∪ (U * U') : set M) ⊆ ((T ∪ U) * (T' ∪ U') : set M),
-      { convert set.subset_union_left (T * T' ∪ U * U' : set M) (T * U' ∪ U * T'),
-        simp only [set.mul_union, set.union_mul, set.union_mul],
-        ac_refl },
-      apply span_mono f' f, },
-    rw [span_union, mem_sup],
-    exact ⟨x, h1, y, h2, rfl⟩ },
-  rintros a x ⟨T, T', hT, hT', h⟩,
-  exact ⟨T, T', hT, hT', smul_mem _ _ h⟩,
-end
-
-lemma submodule.mem_span_mul_finite_of_mem_mul {B M : Type*} [comm_semiring B] [semiring M]
-  [algebra B M] {P Q : submodule B M} {x : M} (hx : x ∈ P * Q) :
-  ∃ (T T' : finset M), (T : set M) ⊆ P ∧ (T' : set M) ⊆ Q ∧ x ∈ span B (T * T' : set M) :=
-submodule.mem_span_mul_finite_of_mem_span_mul
-  (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
-
 variables {K} {f : fraction_map A K}
 
 lemma fg_of_one_mem_span_mul (s : ideal A) (h2 : (s * (1 / s) : fractional_ideal f) = 1)

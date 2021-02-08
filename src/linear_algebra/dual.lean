@@ -435,13 +435,9 @@ W.dual_restrict.ker
 @[simp] lemma mem_dual_annihilator (φ : module.dual R M) :
   φ ∈ W.dual_annihilator ↔ ∀ w ∈ W, φ w = 0 :=
 begin
-  split; intro h,
-  { intros w hw,
-    erw linear_map.mem_ker at h,
-    rw [← dual_restrict_apply W φ ⟨w, hw⟩, h], refl },
-  { erw linear_map.mem_ker,
-    ext x,
-    simp [h] }
+  refine linear_map.mem_ker.trans _,
+  simp_rw [linear_map.ext_iff, dual_restrict_apply],
+  exact ⟨λ h w hw, h ⟨w, hw⟩, λ h w, h w.1 w.2⟩
 end
 
 lemma dual_restrict_ker_eq_dual_annihilator

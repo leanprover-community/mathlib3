@@ -473,7 +473,7 @@ by rw [lift_compr₂ f, lift_mk, linear_map.comp_id]
 
 /--
 Using this as the `@[ext]` lemma instead of `tensor_product.ext` allows `ext` to apply lemmas
-specific to `M →ₗ P` and `N →ₗ P`.
+specific to `M →ₗ _` and `N →ₗ _`.
 
 See note [partially-applied ext lemmas]. -/
 @[ext]

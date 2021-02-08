@@ -394,6 +394,22 @@ instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E)
     by {rw [norm_smul, norm_id], simp},
   .. continuous_linear_map.algebra }
 
+@[simp] lemma op_norm_prod (f : E →L[𝕜] F) (g : E →L[𝕜] G) : ∥f.prod g∥ = ∥(f, g)∥ :=
+le_antisymm
+  (op_norm_le_bound _ (norm_nonneg _) $ λ x,
+    by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, norm_nonneg]
+      using max_le_max (le_op_norm f x) (le_op_norm g x)) $
+  max_le
+    (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))
+    (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_right _ _).trans ((f.prod g).le_op_norm x))
+
+/-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
+def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R F] [module R G]
+  [topological_module R F] [topological_module R G]
+  [smul_comm_class 𝕜 R F] [smul_comm_class 𝕜 R G] :
+  (E →L[𝕜] F) × (E →L[𝕜] G) ≃ₗᵢ[R] (E →L[𝕜] F × G) :=
+⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
+
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous

@@ -54,6 +54,8 @@ parameters {C : Type u₁} {D : Type u₂}
 parameters [category.{v₁} C] [category.{v₁} D]
 parameters {G : D ⥤ C} [is_right_adjoint G]
 
+-- An unfortunate consequence of the local notation is that it is only recognised if there is an
+-- extra space after the reference.
 local notation `F` := left_adjoint G
 local notation `adj` := adjunction.of_right_adjoint G
 

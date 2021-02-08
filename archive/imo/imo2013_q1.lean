@@ -10,8 +10,6 @@ import algebra.big_operators.pi
 import tactic.ring
 import tactic.field_simp
 
-open_locale big_operators
-
 /-!
 # IMO 2013 Q1
 
@@ -27,6 +25,8 @@ Adaptation of the solution found in https://www.imo-official.org/problems/IMO201
 We prove a slightly more general version where k does not need to be strictly positive.
 
 -/
+
+open_locale big_operators
 
 lemma arith_lemma (k n : ℕ) : 0 < 2 * n + 2 ^ k.succ :=
 calc 0 < 2 : zero_lt_two

@@ -199,8 +199,8 @@ by simp [snorm', hq_pos]
 
 lemma snorm'_measure_zero_of_exponent_zero {f : α → F} : snorm' f 0 0 = 1 := by simp [snorm']
 
-lemma snorm'_measure_zero_of_neg {f : α → F} (hq_neg : q < 0) : snorm' f q 0 = ∞ :=
-by simp [snorm', hq_neg]
+lemma snorm'_measure_zero_of_neg {f : α → F} (hp_neg : p < 0) : snorm' f p 0 = ∞ :=
+by simp [snorm', hp_neg]
 
 @[simp] lemma snorm_ess_sup_measure_zero {f : α → F} : snorm_ess_sup f 0 = 0 :=
 by simp [snorm_ess_sup]

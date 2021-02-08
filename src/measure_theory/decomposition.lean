@@ -23,7 +23,7 @@ private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
   γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
 by linarith
 
-lemma hahn_decomposition (hμ : μ univ < ⊤) (hν : ν univ < ⊤) :
+lemma hahn_decomposition (hμ : μ univ < ∞) (hν : ν univ < ∞) :
   ∃s, measurable_set s ∧
     (∀t, measurable_set t → t ⊆ s → ν t ≤ μ t) ∧
     (∀t, measurable_set t → t ⊆ sᶜ → μ t ≤ ν t) :=
@@ -32,8 +32,8 @@ begin
   let c : set ℝ := d '' {s | measurable_set s },
   let γ : ℝ := Sup c,
 
-  have hμ : ∀s, μ s < ⊤ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hμ,
-  have hν : ∀s, ν s < ⊤ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hν,
+  have hμ : ∀s, μ s < ∞ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hμ,
+  have hν : ∀s, ν s < ∞ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hν,
   have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
     (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
   have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=
@@ -56,7 +56,7 @@ begin
   { assume s hs hm,
     refine tendsto.sub _ _;
       refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Union hs hm),
+        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Union hs hm),
     exact hμ _,
     exact hν _ },
 
@@ -65,7 +65,7 @@ begin
   { assume s hs hm,
     refine tendsto.sub _ _;
       refine (nnreal.tendsto_coe.2 $
-        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Inter hs hm _),
+        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ∞ _).comp $ tendsto_measure_Inter hs hm _),
     exact hμ _,
     exact ⟨0, hμ _⟩,
     exact hν _,

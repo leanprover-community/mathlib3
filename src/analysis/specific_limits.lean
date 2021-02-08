@@ -8,7 +8,7 @@ import order.filter.archimedean
 import order.iterate
 import topology.instances.ennreal
 import tactic.ring_exp
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 
 /-!
 # A collection of specific limit computations

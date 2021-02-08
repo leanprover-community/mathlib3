@@ -288,9 +288,9 @@ def restrict (s : set α) : outer_measure α →ₗ[ℝ≥0∞] outer_measure α
   restrict s m t = m (t ∩ s) :=
 by simp [restrict]
 
-theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ⊤ :=
+theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ∞ :=
 let ⟨a, as⟩ := h in
-top_unique $ le_trans (by simp [smul_dirac_apply, as]) (le_bsupr ((⊤ : ℝ≥0∞) • dirac a) trivial)
+top_unique $ le_trans (by simp [smul_dirac_apply, as]) (le_bsupr (∞ • dirac a) trivial)
 
 end basic
 
@@ -311,7 +311,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
   mono       := assume s₁ s₂ hs, infi_le_infi $ assume f,
     infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
-    assume ε hε (hb : ∑'i, μ (s i) < ⊤),
+    assume ε hε (hb : ∑'i, μ (s i) < ∞),
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_lt_coe.2 hε) ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left (le_of_lt hl) _),
     rw ← ennreal.tsum_add,
@@ -775,7 +775,7 @@ begin
 end
 
 lemma induced_outer_measure_exists_set {s : set α}
-  (hs : induced_outer_measure m P0 m0 s < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hs : induced_outer_measure m P0 m0 s < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
     induced_outer_measure m P0 m0 t ≤ induced_outer_measure m P0 m0 s + ε :=
 begin
@@ -912,7 +912,7 @@ lemma exists_measurable_superset_eq_trim (m : outer_measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ m t = m.trim s :=
 begin
   simp only [trim_eq_infi], set ms := ⨅ (t : set α) (st : s ⊆ t) (ht : measurable_set t), m t,
-  by_cases hs : ms = ⊤,
+  by_cases hs : ms = ∞,
   { simp only [hs],
     simp only [infi_eq_top] at hs,
     exact ⟨univ, subset_univ s, measurable_set.univ, hs _ (subset_univ s) measurable_set.univ⟩ },

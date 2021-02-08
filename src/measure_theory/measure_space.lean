@@ -871,6 +871,9 @@ def restrict (μ : measure α) (s : set α) : measure α := restrictₗ s μ
   restrictₗ s μ = μ.restrict s :=
 rfl
 
+/-- If `t` is a measurable set, then the measure of `t` with respect to the restriction of
+  the measure to `s` equals the outer measure of `t ∩ s`. An alternate version requiring that `s`
+  be measurable instead of `t` exists as `measure.restrict_apply'`. -/
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
 by simp [← restrictₗ_apply, restrictₗ, ht]
 
@@ -918,6 +921,10 @@ by rw [← measure_univ_eq_zero, restrict_apply_univ]
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := ext $ λ s hs, by simp [hs]
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
+
+lemma restrict_eq_self_of_measurable_subset (ht : measurable_set t) (t_subset : t ⊆ s) :
+  μ.restrict s t = μ t :=
+by rw [measure.restrict_apply ht, set.inter_eq_self_of_subset_left t_subset]
 
 lemma restrict_union_apply (h : disjoint (t ∩ s) (t ∩ s')) (hs : measurable_set s)
   (hs' : measurable_set s') (ht : measurable_set t) :
@@ -1083,6 +1090,17 @@ begin
     ← outer_measure.restrict_Inf_eq_Inf_restrict _ (hm.image _),
     outer_measure.restrict_apply]
 end
+
+/-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
+the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
+`measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
+lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
+by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
+      outer_measure.restrict_apply s t _, coe_to_outer_measure]
+
+lemma restrict_eq_self_of_subset_of_measurable (hs : measurable_set s) (t_subset : t ⊆ s) :
+  μ.restrict s t = μ t :=
+by rw [restrict_apply' hs, set.inter_eq_self_of_subset_left t_subset]
 
 /-! ### Extensionality results -/
 

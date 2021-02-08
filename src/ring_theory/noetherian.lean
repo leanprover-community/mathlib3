@@ -231,18 +231,8 @@ begin
   letI : algebra S A := ring_hom.to_algebra g,
   letI : is_scalar_tower R S A := is_scalar_tower.comap,
   let f₁ := algebra.linear_map R S,
-  have hfcoe : (f : R → S) = (f₁ : R → S) := rfl,
-  have hsur₁ : function.surjective f₁ := by rwa [← hfcoe],
-  have hkerf : f.ker = f₁.ker := rfl,
-  have hf₁ : f₁.ker.fg := by rwa ← hkerf,
   let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
-  have hgf : (g.comp f).ker = (g₁.comp f₁).ker := rfl,
-  have hkerg : submodule.restrict_scalars R g.ker = g₁.ker := rfl,
-  have hg₁ : g₁.ker.fg,
-  { rw ← hkerg,
-    exact fg_of_restrict_scalars g.ker hg hsur },
-  rw hgf,
-  exact fg_of_ker_of_comp f₁ g₁ hf₁ hg₁ hsur₁
+  exact fg_of_ker_of_comp f₁ g₁ hf (fg_of_restrict_scalars g.ker hg hsur) hsur
 end
 
 lemma singleton_span_is_compact_element (x : M) :

@@ -33,19 +33,48 @@ namespace ε_NFA
 
 instance : inhabited (ε_NFA α σ) := ⟨ ε_NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
-/-- The derived NFA of an ε_NFA `M` is the NFA on `option σ` with transition function exactly the
-  transition function of `M`. Note this does not accept the same language as `M`. -/
-def derived_NFA : NFA (option α) σ := ⟨ M.step, M.start, M.accept ⟩
+/-- The ε_closure of a set is the set of states which can be reached by taking a finite string of
+  ε-transitions from an element of the the set -/
+inductive ε_closure : set σ → set σ
+| base : ∀ S (s ∈ S), ε_closure S s
+| step : ∀ S s (t ∈ M.step s none), ε_closure S s → ε_closure S t
 
-/-- The derived NFA input `x` is the language of `x` with any amount of `none`'s inserted inbetween
-  the charactrers and at the start and end. -/
-def derived_NFA_input (x : list α) : language (option α) :=
-  x.foldl (λ l a, l + {[a]} + (language.star {[none]})) (language.star {[none]})
+def step_set : set σ → α → set σ :=
+λ S a, S >>= (λ s, M.ε_closure (M.step s a))
 
-/-- `M.accepts` is the language of `x` such that the derived NFA accepts some string in the derived
-  NFA input of `x`. -/
+-- lemma mem_step_set (s : σ) (S : set σ) (a : α) :
+--   s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
+-- by simp only [step_set, set.mem_Union, set.bind_def]
+
+/-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
+  of `S`. -/
+def eval_from (start : set σ) : list α → set σ :=
+list.foldl M.step_set (M.ε_closure start)
+
+/-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
+  `M.start`. -/
+def eval := M.eval_from M.start
+
+/-- `M.accepts` is the language of `x` such that there is an accept state in `M.eval x`. -/
 def accepts : language α :=
-  λ x, ∃ y ∈ derived_NFA_input x, y ∈ M.derived_NFA.accepts
+λ x, ∃ S ∈ M.accept, S ∈ M.eval x
+
+/-- `M.to_NFA` is an `NFA` constructed from an `ε_NFA` `M`. -/
+def to_NFA : NFA α σ :=
+{ step := λ S a, M.ε_closure (M.step S a),
+  start := M.ε_closure M.start,
+  accept := M.accept }
+
+lemma to_NFA_eval_from_match (start : set σ) :
+  M.to_NFA.eval_from (M.ε_closure start) = M.eval_from start := rfl
+
+@[simp] lemma to_NFA_correct :
+  M.to_NFA.accepts = M.accepts :=
+begin
+  ext x,
+  rw [accepts, NFA.accepts, eval, NFA.eval, ←to_NFA_eval_from_match],
+  refl
+end
 
 end ε_NFA
 
@@ -58,31 +87,37 @@ def to_ε_NFA (M : NFA α σ) : ε_NFA α σ :=
   start := M.start,
   accept := M.accept }
 
+lemma to_ε_NFA_ε_closure (M : NFA α σ) (S : set σ) : M.to_ε_NFA.ε_closure S = S :=
+begin
+  ext a,
+  split,
+  { rintro ( ⟨ _, _, h ⟩ | ⟨ _, _, _, h, _ ⟩ ),
+    exact h,
+    cases h },
+  { intro h,
+    apply ε_NFA.ε_closure.base,
+    exact h }
+end
+
+lemma to_ε_NFA_eval_from_match (M : NFA α σ) (start : set σ) :
+  M.to_ε_NFA.eval_from start = M.eval_from start :=
+begin
+  rw [eval_from, ε_NFA.eval_from, step_set, ε_NFA.step_set, to_ε_NFA_ε_closure],
+  congr,
+  ext S s,
+  simp only [exists_prop, set.mem_Union, set.bind_def],
+  apply exists_congr,
+  simp only [and.congr_right_iff],
+  intros t ht,
+  rw M.to_ε_NFA_ε_closure,
+  refl
+end
+
 @[simp] lemma to_ε_NFA_correct (M : NFA α σ) :
   M.to_ε_NFA.accepts = M.accepts :=
 begin
-  ext x,
-  split,
-  { rintro ⟨ y, hy₁, hy₂ ⟩,
-    induction x,
-    { rw [ε_NFA.derived_NFA_input, list.foldl, language.mem_star] at hy₁,
-      rcases hy₁ with ⟨ S, hy, hS ⟩,
-      cases S with a S,
-      -- { finish },
-      sorry,
-      { have : M.to_ε_NFA.derived_NFA.accepts = 0,
-        { induction S with b S ih,
-          { simp only [list.join, list.append_nil] at hy,
-            specialize hS a _,
-            rw set.mem_singleton_iff at hS,
-            rw [hy, hS, accepts, eval, eval_from] at hy₂,
-            rcases hy₂ with ⟨ s, hs, h ⟩,
-            simp only [list.foldl, step_set, exists_prop, set.mem_Union, set.bind_def] at h,
-             } } }
-          },
-
-        },
-
+  rw [accepts, ε_NFA.accepts, eval, ε_NFA.eval, to_ε_NFA_eval_from_match],
+  refl
 end
 
 end NFA

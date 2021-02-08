@@ -157,6 +157,8 @@ instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨morphis
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
 
+initialize_simps_projections lie_algebra.morphism (to_fun → apply)
+
 @[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
   ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
 
@@ -553,7 +555,7 @@ variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [modul
 variables [lie_ring_module L M] [lie_module R L M]
 
 /-- A Lie module yields a Lie algebra morphism into the linear endomorphisms of the module. -/
-def lie_module.to_endo_morphism : L →ₗ⁅R⁆ module.End R M :=
+@[simps] def lie_module.to_endomorphism : L →ₗ⁅R⁆ module.End R M :=
 { to_fun    := λ x,
   { to_fun    := λ m, ⁅x, m⁆,
     map_add'  := lie_add x,
@@ -563,7 +565,7 @@ def lie_module.to_endo_morphism : L →ₗ⁅R⁆ module.End R M :=
   map_lie   := λ x y, by { ext m, apply lie_lie, }, }
 
 /-- The adjoint action of a Lie algebra on itself. -/
-def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endo_morphism R L L
+def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphism R L L
 
 @[simp] lemma lie_algebra.ad_apply (x y : L) : lie_algebra.ad R L x y = ⁅x, y⁆ := rfl
 
@@ -855,6 +857,10 @@ instance : has_coe (lie_ideal R L) (lie_subalgebra R L) := ⟨λ I, lie_ideal_su
 @[norm_cast] lemma lie_ideal.coe_to_subalgebra (I : lie_ideal R L) :
   ((I : lie_subalgebra R L) : set L) = I := rfl
 
+instance lie_ideal.is_lie_abelian_of_trivial (I : lie_ideal R L) [h : lie_module.is_trivial L I] :
+  is_lie_abelian I :=
+{ trivial := λ x y, by apply h.trivial, }
+
 end lie_ideal
 
 end lie_submodule
@@ -983,15 +989,13 @@ by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
-lemma of_bot_eq_bot (N : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = ⊥ :=
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_bot : subsingleton (lie_submodule R L ↥(⊥ : lie_submodule R L M)) :=
 begin
+  apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
-  rw [mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
-  exact N.zero_mem,
+  simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, lie_submodule.mem_bot],
 end
-
-lemma unique_of_bot (N N' : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : N = N' :=
-by rw [N.of_bot_eq_bot, N'.of_bot_eq_bot]
 
 section inclusion_maps
 
@@ -1210,7 +1214,7 @@ lemma is_quotient_mk (m : M) :
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
 def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
-  linear_map.cod_restrict _ (lie_module.to_endo_morphism R L M) N.lie_mem
+  linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) N.lie_mem
 
 variables (N)
 
@@ -1512,21 +1516,19 @@ begin
   { rw [lie_submodule.le_def, ← h], exact lie_submodule.subset_lie_span, },
 end
 
-/-- Note that this is not a special case of `lie_submodule.of_bot_eq_bot`. Indeed, given
+/-- Note that this is not a special case of `lie_submodule.subsingleton_of_bot`. Indeed, given
 `I : lie_ideal R L`, in general the two lattices `lie_ideal R I` and `lie_submodule R L I` are
 different (though the latter does naturally inject into the former).
 
 In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
 same as ideals of `L` contained in `I`. -/
-lemma of_bot_eq_bot (I : lie_ideal R ↥(⊥ : lie_ideal R L)) : I = ⊥ :=
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_bot : subsingleton (lie_ideal R ↥(⊥ : lie_ideal R L)) :=
 begin
+  apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
-  rw [lie_submodule.mem_bot, submodule.mk_eq_zero, eq_self_iff_true, iff_true],
-  exact I.zero_mem,
+  simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, lie_submodule.mem_bot],
 end
-
-lemma unique_of_bot (I J : lie_submodule R L ↥(⊥ : lie_submodule R L M)) : I = J :=
-by rw [I.of_bot_eq_bot, J.of_bot_eq_bot]
 
 end lie_ideal
 
@@ -1799,11 +1801,54 @@ class is_irreducible : Prop :=
 
 /-- A Lie module is nilpotent if its lower central series reaches 0 (in a finite number of steps).-/
 class is_nilpotent : Prop :=
-(nilpotent : ∃ k, lie_module.lower_central_series R L M k = ⊥)
+(nilpotent : ∃ k, lower_central_series R L M k = ⊥)
 
 @[priority 100]
-instance trivial_is_nilpotent [lie_module.is_trivial L M] : lie_module.is_nilpotent R L M :=
+instance trivial_is_nilpotent [is_trivial L M] : is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
+
+/-- The kernel of the action of a Lie algebra `L` on a Lie module `M` as a Lie ideal in `L`. -/
+protected def ker : lie_ideal R L := (to_endomorphism R L M).ker
+
+@[simp] protected lemma mem_ker (x : L) : x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
+begin
+  dunfold lie_module.ker,
+  simp only [lie_algebra.morphism.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
+    to_endomorphism_apply_apply],
+end
+
+/-- The largest submodule of a Lie module `M` on which the Lie algebra `L` acts trivially. -/
+def maximal_trivial_submodule : lie_submodule R L M :=
+{ carrier   := { m | ∀ (x : L), ⁅x, m⁆ = 0 },
+  zero_mem' := λ x, lie_zero x,
+  add_mem'  := λ x y hx hy z, by rw [lie_add, hx, hy, add_zero],
+  smul_mem' := λ c x hx y, by rw [lie_smul, hx, smul_zero],
+  lie_mem   := λ x m hm y, by rw [leibniz_lie, hm, hm, lie_zero, add_zero], }
+
+@[simp] lemma mem_maximal_trivial_submodule (m : M) :
+  m ∈ maximal_trivial_submodule R L M ↔ ∀ (x : L), ⁅x, m⁆ = 0 :=
+iff.rfl
+
+instance : is_trivial L (maximal_trivial_submodule R L M) :=
+{ trivial := λ x m, subtype.ext (m.property x), }
+
+lemma trivial_iff_le_maximal_trivial (N : lie_submodule R L M) :
+  is_trivial L N ↔ N ≤ maximal_trivial_submodule R L M :=
+begin
+  split,
+  { rintros ⟨h⟩, intros m hm x, specialize h x ⟨m, hm⟩, rw subtype.ext_iff at h, exact h, },
+  { intros h, constructor, rintros x ⟨m, hm⟩, apply subtype.ext, apply h, exact hm, },
+end
+
+lemma is_trivial_iff_maximal_trivial_eq_top :
+  is_trivial L M ↔ maximal_trivial_submodule R L M = ⊤ :=
+begin
+  split,
+  { rintros ⟨h⟩, ext,
+    simp only [mem_maximal_trivial_submodule, h, forall_const, true_iff, eq_self_iff_true], },
+  { intros h, constructor, intros x m, revert x,
+    rw [← mem_maximal_trivial_submodule R L M, h], exact lie_submodule.mem_top m, },
+end
 
 end lie_module
 
@@ -1822,6 +1867,29 @@ def top_equiv_self : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
 
 variables (R L)
 
+/-- The center of a Lie algebra is the set of elements that commute with everything. It can
+be viewed as the maximal trivial submodule of the Lie algebra as a Lie module over itself via the
+adjoint representation. -/
+abbreviation center : lie_ideal R L := lie_module.maximal_trivial_submodule R L L
+
+instance : is_lie_abelian (center R L) := infer_instance
+
+lemma center_eq_adjoint_kernel : center R L = lie_module.ker R L L :=
+begin
+  ext y,
+  simp only [lie_module.mem_maximal_trivial_submodule, lie_module.mem_ker,
+    ← lie_skew _ y, neg_eq_zero],
+end
+
+lemma abelian_of_le_center (I : lie_ideal R L) (h : I ≤ center R L) : is_lie_abelian I :=
+begin
+  rw ← lie_module.trivial_iff_le_maximal_trivial R L L I at h,
+  haveI := h, exact lie_ideal.is_lie_abelian_of_trivial R L I,
+end
+
+lemma is_lie_abelian_iff_center_eq_top : is_lie_abelian L ↔ center R L = ⊤ :=
+lie_module.is_trivial_iff_maximal_trivial_eq_top R L L
+
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
 class is_simple extends lie_module.is_irreducible R L L : Prop :=
@@ -1831,7 +1899,8 @@ class is_simple extends lie_module.is_irreducible R L L : Prop :=
 class is_solvable : Prop :=
 (solvable : ∃ k, derived_series R L k = ⊥)
 
-instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) := ⟨⟨0, lie_ideal.of_bot_eq_bot ⊤⟩⟩
+instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
+⟨⟨0, @subsingleton.elim _ lie_ideal.subsingleton_of_bot _ ⊥⟩⟩
 
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=
@@ -1947,13 +2016,13 @@ end
 
 variables (R L)
 
-lemma of_abelian_is_solvable [is_lie_abelian L] : is_solvable R L :=
+@[priority 100]
+instance of_abelian_is_solvable [is_lie_abelian L] : is_solvable R L :=
 begin
   use 1,
   rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian top_equiv_self],
   apply_instance,
 end
-
 
 /-- The (solvable) radical of Lie algebra is the `Sup` of all solvable ideals. -/
 def radical := Sup { I : lie_ideal R L | is_solvable R I }
@@ -1977,6 +2046,9 @@ begin
   { apply le_solvable_ideal_solvable h, apply_instance, },
 end
 
+lemma center_le_radical : center R L ≤ radical R L :=
+have h : is_solvable R (center R L), { apply_instance, }, le_Sup h
+
 /-- A semisimple Lie algebra is one with trivial radical.
 
 Note that the label 'semisimple' is apparently not universally agreed
@@ -1996,10 +2068,13 @@ lemma is_semisimple_iff_no_abelian_ideals :
 begin
   rw is_semisimple_iff_no_solvable_ideals,
   split; intros h₁ I h₂,
-  { haveI : is_lie_abelian I := h₂, apply h₁, exact of_abelian_is_solvable R I, },
+  { haveI : is_lie_abelian I := h₂, apply h₁, exact lie_algebra.of_abelian_is_solvable R I, },
   { haveI : is_solvable R I := h₂, rw ← abelian_of_solvable_ideal_eq_bot_iff, apply h₁,
     exact abelian_derived_abelian_of_ideal I, },
 end
+
+@[simp] lemma center_eq_bot_of_semisimple [h : is_semisimple R L] : center R L = ⊥ :=
+by { rw is_semisimple_iff_no_abelian_ideals at h, apply h, apply_instance, }
 
 /-- A simple Lie algebra is semisimple. -/
 @[priority 100]
@@ -2013,12 +2088,33 @@ begin
   exact h₂ hI,
 end
 
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_semisimple_lie_abelian [is_semisimple R L] [h : is_lie_abelian L] :
+  subsingleton (lie_ideal R L) :=
+begin
+  apply subsingleton_of_bot_eq_top,
+  rwa [is_lie_abelian_iff_center_eq_top R L, center_eq_bot_of_semisimple] at h,
+end
+
 @[priority 100]
 instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] : is_solvable R L :=
 begin
   obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL.nilpotent,
   use k, rw ← le_bot_iff at h ⊢,
   exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
+end
+
+lemma abelian_radical_of_semisimple [is_semisimple R L] : is_lie_abelian (radical R L) :=
+by { rw is_semisimple.semisimple, exact is_lie_abelian_bot R L, }
+
+lemma abelian_radical_iff_solvable_is_abelian [is_noetherian R L] :
+  is_lie_abelian (radical R L) ↔ ∀ (I : lie_ideal R L), is_solvable R I → is_lie_abelian I :=
+begin
+  split,
+  { rintros h₁ I h₂,
+    rw lie_ideal.solvable_iff_le_radical at h₂,
+    exact (lie_ideal.hom_of_le_injective h₂).is_lie_abelian h₁, },
+  { intros h, apply h, apply_instance, },
 end
 
 end lie_algebra

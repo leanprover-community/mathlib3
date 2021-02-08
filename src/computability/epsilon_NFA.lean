@@ -39,12 +39,9 @@ inductive ε_closure : set σ → set σ
 | base : ∀ S (s ∈ S), ε_closure S s
 | step : ∀ S s (t ∈ M.step s none), ε_closure S s → ε_closure S t
 
+/-- `M.step_set S a` is the union of the ε-closure of `M.step s a` for all `s ∈ S`. -/
 def step_set : set σ → α → set σ :=
 λ S a, S >>= (λ s, M.ε_closure (M.step s a))
-
--- lemma mem_step_set (s : σ) (S : set σ) (a : α) :
---   s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
--- by simp only [step_set, set.mem_Union, set.bind_def]
 
 /-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
   of `S`. -/

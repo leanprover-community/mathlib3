@@ -200,6 +200,53 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
+/-- The kernel of the composition of two morphism is finitely generated if both kernel are and
+the first morphism is surjective. -/
+lemma fg_of_ker_of_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N] [add_comm_group P] [module R P] (f : M →ₗ[R] N)
+  (g : N →ₗ[R] P) (hf1 : f.ker.fg) (hf2 : g.ker.fg) (hsur : function.surjective f) :
+  (g.comp f).ker.fg :=
+begin
+  have h1 : map f (comap f g.ker) = g.ker,
+  { rw [linear_map.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
+  have h2 : (map f (comap f g.ker)).fg := by rwa h1,
+  have h3 : f.ker ≤ (comap f g.ker) := (comap_mono (@bot_le _ _ g.ker)),
+  have h4 : ((comap f g.ker) ⊓ f.ker).fg := by rwa [inf_of_le_right h3],
+  exact fg_of_fg_map_of_fg_inf_ker f h2 h4
+end
+
+lemma fg_of_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+  [add_comm_group M] [module S M] [module R M] [is_scalar_tower R S M] (N : submodule S M)
+  (hfin : N.fg) (h : function.surjective (algebra_map R S)) : (submodule.restrict_scalars R N).fg :=
+begin
+  obtain ⟨X, rfl⟩ := hfin,
+  use X,
+  exact submodule.span_eq_restrict_scalars R S M X h
+end
+
+lemma fg_of_ker_of_ring_hom_comp {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+  (f : R →+* S) (g : S →+* A) (hf : f.ker.fg) (hg : g.ker.fg) (hsur : function.surjective f) :
+  (g.comp f).ker.fg :=
+begin
+  letI : algebra R S := ring_hom.to_algebra f,
+  letI : algebra R A := ring_hom.to_algebra (g.comp f),
+  letI : algebra S A := ring_hom.to_algebra g,
+  letI : is_scalar_tower R S A := is_scalar_tower.comap,
+  let f₁ := algebra.linear_map R S,
+  have hfcoe : (f : R → S) = (f₁ : R → S) := rfl,
+  have hsur₁ : function.surjective f₁ := by rwa [← hfcoe],
+  have hkerf : f.ker = f₁.ker := rfl,
+  have hf₁ : f₁.ker.fg := by rwa ← hkerf,
+  let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
+  have hgf : (g.comp f).ker = (g₁.comp f₁).ker := rfl,
+  have hkerg : submodule.restrict_scalars R g.ker = g₁.ker := rfl,
+  have hg₁ : g₁.ker.fg,
+  { rw ← hkerg,
+    exact fg_of_restrict_scalars g.ker hg hsur },
+  rw hgf,
+  exact fg_of_ker_of_comp f₁ g₁ hf₁ hg₁ hsur₁
+end
+
 lemma singleton_span_is_compact_element (x : M) :
   complete_lattice.is_compact_element (span R {x} : submodule R M) :=
 begin

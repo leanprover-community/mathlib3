@@ -239,6 +239,22 @@ begin
     (mv_polynomial.pempty_alg_equiv R)
 end
 
+/-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
+presented. -/
+lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finitely_presented R A) :
+  finitely_presented R I.quotient :=
+begin
+  obtain ⟨n, f, hf⟩ := hfp,
+  use [n, (ideal.quotient.mkₐ R I).comp f],
+  split,
+  { exact function.surjective.comp (ideal.quotient.mkₐ_surjective R I) hf.1 },
+  { have h : ((ideal.quotient.mkₐ R I).comp f).to_ring_hom =
+      (ideal.quotient.mkₐ R I).to_ring_hom.comp f.to_ring_hom := rfl,
+    rw h,
+    refine submodule.fg_of_ker_of_ring_hom_comp _ _ hf.2 _ hf.1,
+    rwa ideal.quotient.mkₐ_ker R I }
+end
+
 end finitely_presented
 
 end algebra

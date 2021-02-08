@@ -1146,7 +1146,6 @@ include 𝕜
 lemma normed_algebra.norm_one : ∥(1:𝕜')∥ = 1 :=
 by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
 
-
 lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
 ⟨normed_algebra.norm_one 𝕜 𝕜'⟩
 

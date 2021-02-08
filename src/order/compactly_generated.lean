@@ -334,14 +334,6 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
 end⟩
 
 lemma coatomic_of_top_compact (h : is_compact_element (⊤ : α)) : is_coatomic α :=
-⟨λ b, begin
-  obtain ⟨prop⟩ := Iic_coatomic_of_compact_element h,
-  by_cases hb : b = ⊤, exact or.inl hb, right,
-  obtain ⟨⟨a, _⟩, ⟨⟨ha1, ha2⟩, ha3⟩⟩ :=
-    (prop ⟨b, le_top b⟩).resolve_left (λ n, by { injection n with n, exact hb n }),
-  replace ha1 := lt_of_le_of_ne _root_.le_top ha1, rw [←subtype.coe_lt_coe] at ha1,
-  refine ⟨a, ⟨⟨ne_of_lt ha1, _⟩, ha3⟩⟩,
-  intros c hc, specialize ha2 ⟨c, le_top c⟩ hc, injection ha2,
-end⟩
+(@order_iso.Iic_top α _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
 
 end complete_lattice

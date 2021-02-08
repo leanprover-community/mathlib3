@@ -41,7 +41,7 @@ find src archive -name '*.lean' | xargs ./scripts/lint-style.py
 
 # 2.1 Check for executable bit on Lean files
 
-executable_files="$(find . -name '*.lean' -type f -executable)"
+executable_files="$(find . -name '*.lean' -type f \( -perm -u=x -o -perm -g=x -o -perm -o=x \))"
 
 if [[ -n "$executable_files" ]]
 then

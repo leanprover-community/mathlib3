@@ -187,7 +187,7 @@ begin
   have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
   { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, simp },
-  have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ⊤ :=
+  have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
   λ y, ennreal.lt_top_iff_ne_top.mp (h2ν.lt_top_of_is_compact $
     (homeomorph.mul_right _).compact_preimage.mpr hE),
   simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_right _ Em),

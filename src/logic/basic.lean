@@ -1230,7 +1230,7 @@ section ite
 
 /-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
 @[simp]
-lemma dite_eq_ite (P : Prop) [decidable P] {α : Type*} (x y : α) :
+lemma dite_eq_ite (P : Prop) [decidable P] {α : Sort*} (x y : α) :
   dite P (λ h, x) (λ h, y) = ite P x y := rfl
 
 /-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/

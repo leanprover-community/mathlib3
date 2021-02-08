@@ -227,27 +227,27 @@ end
 
 @[simp]
 lemma degree_minpoly (pb : power_basis A S) :
-  (minpoly pb.is_integral_gen).degree = pb.dim :=
+  (minpoly A pb.gen).degree = pb.dim :=
 begin
   refine le_antisymm _
-    (dim_le_degree_of_root pb (minpoly.ne_zero _) (minpoly.aeval _)),
+    (dim_le_degree_of_root pb (minpoly.ne_zero pb.is_integral_gen) (minpoly.aeval _ _)),
   rw [← nat_degree_minpoly_gen, ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero],
-  exact minpoly.min _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
+  exact minpoly.min _ _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
 end
 
 @[simp]
 lemma nat_degree_minpoly (pb : power_basis A S) :
-  (minpoly pb.is_integral_gen).nat_degree = pb.dim :=
+  (minpoly A pb.gen).nat_degree = pb.dim :=
 by rw [← with_bot.coe_eq_coe, ← degree_minpoly pb,
        degree_eq_nat_degree (minpoly.ne_zero pb.is_integral_gen)]
 
 lemma minpoly_gen_eq [algebra K S] (pb : power_basis K S) :
-  pb.minpoly_gen = minpoly pb.is_integral_gen :=
+  pb.minpoly_gen = minpoly K pb.gen :=
 begin
-  apply minpoly.unique _ pb.minpoly_gen_monic pb.aeval_minpoly_gen,
+  apply minpoly.unique _ _ pb.minpoly_gen_monic pb.aeval_minpoly_gen,
   intros q q_monic aeval_q,
   rw [degree_minpoly_gen pb, ← degree_minpoly pb],
-  exact minpoly.min _ q_monic aeval_q
+  exact minpoly.min _ _ q_monic aeval_q
 end
 
 end minpoly
@@ -563,7 +563,7 @@ noncomputable def power_basis (hf : f ≠ 0) :
 
 lemma minpoly_gen_dvd (hf : f ≠ 0) :
   (adjoin_root.power_basis hf).minpoly_gen ∣ f :=
-by { rw power_basis.minpoly_gen_eq, exact minpoly.dvd _ (adjoin_root.eval₂_root f) }
+by { rw power_basis.minpoly_gen_eq, exact minpoly.dvd _ _ (adjoin_root.eval₂_root f) }
 
 @[simp]
 lemma minpoly_gen_eq (hf : irreducible f) (hfm : monic f) :
@@ -571,6 +571,7 @@ lemma minpoly_gen_eq (hf : irreducible f) (hfm : monic f) :
 begin
   rw [(power_basis hf.ne_zero).minpoly_gen_eq, ← minpoly.unique' _ hf _ hfm],
   { exact field.to_nontrivial _ },
+  { exact (power_basis hf.ne_zero).is_integral_gen },
   { exact adjoin_root.eval₂_root f }
 end
 

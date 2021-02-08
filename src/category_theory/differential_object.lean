@@ -281,7 +281,7 @@ def shift_counit : shift_inverse C ⋙ shift_functor C ⟶ 𝟭 (differential_ob
       dsimp,
       slice_rhs 1 2 { erw ←(shift C).counit.naturality, },
       rw [(shift C).functor.map_comp, (shift C).functor.map_comp],
-      slice_lhs 3 4 { erw [←(shift C).functor.map_comp, iso.inv_hom_id_app, category_theory.functor.map_id], },
+      slice_lhs 3 4 { erw [←functor.map_comp, iso.inv_hom_id_app, functor.map_id], },
       erw equivalence.counit_app_functor,
       rw category.comp_id,
       refl,

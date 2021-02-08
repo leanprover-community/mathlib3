@@ -1033,9 +1033,11 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
 
 @[simp] lemma eval_mul_hom_zero : eval_mul_hom 0 = (C R).comp (constant_coeff R) :=
 begin
-  ext, simp only [function.comp_app, ring_hom.coe_comp], rw [eval_mul_hom, ring_hom.coe_mk],
-  rw [power_series.coeff_mk _ _, coeff_C], split_ifs,
-  { rw h, simp only [one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
+  ext,
+  simp only [function.comp_app, ring_hom.coe_comp, eval_mul_hom, ring_hom.coe_mk,
+    power_series.coeff_mk _ _, coeff_C],
+  split_ifs,
+  { simp only [h, one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
   { rw [zero_pow' n h, zero_mul], },
 end
 

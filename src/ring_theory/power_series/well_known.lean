@@ -89,7 +89,7 @@ open finset nat
 
 variables {A : Type*} [comm_ring A]
 
-/-- Shows that `e^(aX) * e^(bX) = e^((a + b)X) ` -/
+/-- Shows that $e^{aX} * e^{bX} = e^{(a + b)X}$ -/
 theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
   eval_mul_hom a (exp A) * eval_mul_hom b (exp A) = eval_mul_hom (a + b) (exp A) :=
 begin

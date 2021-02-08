@@ -200,7 +200,7 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
-/-- Finitely generated submodules are precisely compact elements in the submodule lattice -/
+/-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
 theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
 begin
   classical,

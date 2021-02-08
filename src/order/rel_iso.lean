@@ -694,12 +694,12 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 
-/-- Order isomorphism between Iic (⊤ : α) and α when α has a top element -/
+/-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
 def order_iso.Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
 
-/-- Order isomorphism between Ici (⊥ : α) and α when α has a bottom element -/
+/-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
 def order_iso.Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }

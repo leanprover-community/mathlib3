@@ -2188,7 +2188,9 @@ begin
   rw [← arg_neg_one, arg_eq_arg_iff h₀ (neg_ne_zero.2 one_ne_zero), abs_neg, abs_one,
     of_real_one, one_div, ← div_eq_inv_mul, div_eq_iff_mul_eq h₀', neg_one_mul,
     ext_iff, neg_im, of_real_im, neg_zero, @eq_comm _ z.im, and.congr_left_iff],
-  rcases z with ⟨x, y⟩, simp only, rintro rfl, simp only [← of_real_def, of_real_eq_zero] at *,
+  rcases z with ⟨x, y⟩, simp only,
+  rintro rfl,
+  simp only [← of_real_def, of_real_eq_zero] at *,
   simp [← ne.le_iff_lt h₀, @neg_eq_iff_neg_eq _ _ _ x, @eq_comm _ (-x)]
 end
 
@@ -2295,13 +2297,14 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
-/-- `complex.exp` as a `local_homeomorph`. This definition is used to prove that `complex.log`
+/-- `complex.exp` as a `local_homeomorph` with `source = {z | -π < im z < π}` and
+`target = {z | 0 < re z} ∪ {z | im z ≠ 0}`. This definition is used to prove that `complex.log`
 is complex differentiable at all points but the negative real semi-axis. -/
 def exp_local_homeomorph : local_homeomorph ℂ ℂ :=
 local_homeomorph.of_continuous_open
 { to_fun := exp,
   inv_fun := log,
-  source := {z : ℂ | - π < z.im} ∩ {z : ℂ | z.im < π},
+  source := {z : ℂ | z.im ∈ Ioo (- π) π},
   target := {z : ℂ | 0 < z.re} ∪ {z : ℂ | z.im ≠ 0},
   map_source' :=
     begin
@@ -2319,9 +2322,7 @@ local_homeomorph.of_continuous_open
     h.imp (λ h, le_of_lt h) id,
   left_inv' := λ x hx, log_exp hx.1 (le_of_lt hx.2),
   right_inv' := λ x hx, exp_log $ by { rintro rfl, simpa [lt_irrefl] using hx } }
-continuous_exp.continuous_on is_open_map_exp
-(is_open_inter (is_open_lt continuous_const continuous_im)
-  (is_open_lt continuous_im continuous_const))
+continuous_exp.continuous_on is_open_map_exp (is_open_Ioo.preimage continuous_im)
 
 lemma has_strict_deriv_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
   has_strict_deriv_at log x⁻¹ x :=

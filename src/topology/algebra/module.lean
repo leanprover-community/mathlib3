@@ -780,7 +780,7 @@ instance : semimodule S (M →L[R] M₂) :=
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
 
-variables (S) [has_continuous_add M₃] [smul_comm_class R S M₃]
+variables (S) [has_continuous_add M₃]
 
 /-- `continuous_linear_map.prod` as a `linear_equiv`. -/
 def prodₗ : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ₗ[S] (M →L[R] M₂ × M₃) :=

@@ -463,9 +463,16 @@ variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
   the natural extenstion of `φ` to an element of the dual of `V`. -/
-noncomputable def dual_lift
-  (W : subspace K V) (φ : module.dual K W) : module.dual K V :=
-let h := classical.indefinite_description _ W.exists_is_compl in of_is_compl h.2 φ 0
+noncomputable def dual_lift (W : subspace K V) :
+  module.dual K W →ₗ[K] module.dual K V :=
+{ to_fun := λ φ, let h :=
+    classical.indefinite_description _ W.exists_is_compl in of_is_compl h.2 φ 0,
+  map_add' := λ φ ψ,
+    show of_is_compl _ _ 0 = of_is_compl _ φ 0 + of_is_compl _ ψ 0,
+    by { rw [← zero_add (0 : _ →ₗ[K] _), of_is_compl_add], simp },
+  map_smul' := λ c φ,
+    show of_is_compl _ _ 0 = c • of_is_compl _ _ 0,
+    by { rw [← smul_zero c, of_is_compl_smul], simp } }
 
 variable {W : subspace K V}
 
@@ -477,35 +484,8 @@ lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
   W.dual_lift φ w = φ ⟨w, hw⟩ :=
 dual_lift_of_subtype ⟨w, hw⟩
 
-@[simp] lemma dual_lift_zero : W.dual_lift 0 = 0 := by simp [dual_lift]
-
-@[simp] lemma dual_lift_add (φ ψ : module.dual K W) :
-  W.dual_lift (φ + ψ) = W.dual_lift φ + W.dual_lift ψ :=
-begin
-  -- `change` is significantly slower than `show`
-  show of_is_compl _ _ 0 = of_is_compl _ φ 0 + of_is_compl _ ψ 0,
-  rw [← zero_add (0 : _ →ₗ[K] _), of_is_compl_add], simp
-end
-
-@[simp] lemma dual_lift_smul (c : K) (φ : module.dual K W) :
-  W.dual_lift (c • φ) = c • W.dual_lift φ :=
-begin
-  show of_is_compl _ _ 0 = c • of_is_compl _ _ 0,
-  rw [← smul_zero c, of_is_compl_smul], simp
-end
-
-/-- The alternative version of `dual_lift` as a linear map. -/
-noncomputable def dual_lift' (W : subspace K V) :
-  module.dual K W →ₗ[K] module.dual K V :=
-{ to_fun := λ φ, W.dual_lift φ,
-  map_add' := dual_lift_add,
-  map_smul' := dual_lift_smul }
-
-@[simp] lemma dual_lift'_def (W : subspace K V) (φ : module.dual K W) :
-  W.dual_lift' φ = W.dual_lift φ := rfl
-
 lemma dual_lift_left_inverse (W : subspace K V) :
-  W.dual_restrict.comp W.dual_lift' = 1 :=
+  W.dual_restrict.comp W.dual_lift = 1 :=
 by { ext φ x, simp }
 
 lemma dual_restrict_surjective :
@@ -532,13 +512,13 @@ noncomputable def quot_annihilator_equiv (W : subspace K V) :
   the dual of `V`. -/
 def dual (W : subspace K V) : subspace K (module.dual K V) :=
 { carrier := { φ | ∃ ψ : module.dual K W, φ = W.dual_lift ψ },
-  zero_mem' := ⟨0, dual_lift_zero.symm⟩,
+  zero_mem' := ⟨0, (linear_map.map_zero _).symm⟩,
   add_mem' :=
     by { rintro _ _ ⟨ψ₁, rfl⟩ ⟨ψ₂, rfl⟩,
-         exact ⟨ψ₁ + ψ₂, (dual_lift_add ψ₁ ψ₂).symm⟩ },
+         exact ⟨ψ₁ + ψ₂, (linear_map.map_add _ ψ₁ ψ₂).symm⟩ },
   smul_mem' :=
     by { rintro c _ ⟨ψ, rfl⟩,
-         exact ⟨c • ψ, (dual_lift_smul c ψ).symm⟩ } }
+         exact ⟨c • ψ, (linear_map.map_smul _ c ψ).symm⟩ } }
 
 @[simp] lemma mem_dual_iff (φ : module.dual K V) : φ ∈ W.dual ↔
   ∃ ψ : module.dual K W, φ = W.dual_lift ψ := iff.rfl
@@ -547,8 +527,8 @@ def dual (W : subspace K V) : subspace K (module.dual K V) :=
 noncomputable def dual_to_subspace_dual (W : subspace K V) :
   module.dual K W →ₗ[K] W.dual :=
 { to_fun := λ φ, ⟨W.dual_lift φ, ⟨φ, rfl⟩⟩,
-  map_add' := by { intros _ _, simp_rw [dual_lift_add], refl },
-  map_smul' := by { intros _ _, simp_rw [dual_lift_smul], refl } }
+  map_add' := by { intros _ _, simp, refl },
+  map_smul' := by { intros _ _, simp, refl } }
 
 @[simp] lemma dual_to_subspace_dual_apply (φ : module.dual K W) :
   W.dual_to_subspace_dual φ = ⟨W.dual_lift φ, ⟨φ, rfl⟩⟩ := rfl

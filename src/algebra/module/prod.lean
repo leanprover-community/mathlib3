@@ -27,6 +27,11 @@ instance [has_scalar R S] [has_scalar S M] [has_scalar R M] [has_scalar S N] [ha
   [is_scalar_tower R S M] [is_scalar_tower R S N] : is_scalar_tower R S (M × N) :=
 ⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩
 
+instance [has_scalar R M] [has_scalar R N] [has_scalar S M] [has_scalar S N]
+  [smul_comm_class R S M] [smul_comm_class R S N] :
+  smul_comm_class R S (M × N) :=
+{ smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
+
 instance {r : monoid R} [mul_action R M] [mul_action R N] : mul_action R (M × N) :=
 { mul_smul  := λ a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul _ _ _, mul_smul _ _ _⟩,
   one_smul  := λ ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul _ _, one_smul _ _⟩ }
@@ -41,11 +46,5 @@ instance {r : semiring R} [add_comm_monoid M] [add_comm_monoid N]
 { add_smul  := λ a p₁ p₂, mk.inj_iff.mpr ⟨add_smul _ _ _, add_smul _ _ _⟩,
   zero_smul := λ ⟨b, c⟩, mk.inj_iff.mpr ⟨zero_smul _ _, zero_smul _ _⟩,
   .. prod.distrib_mul_action }
-
-instance {r : semiring R} {s : semiring S} [add_comm_monoid M] [add_comm_monoid N]
-  [semimodule R M] [semimodule R N] [semimodule S M] [semimodule S N]
-  [smul_comm_class R S M] [smul_comm_class R S N] :
-  smul_comm_class R S (M × N) :=
-{ smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
 
 end prod

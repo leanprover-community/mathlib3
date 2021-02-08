@@ -93,6 +93,10 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
 section coe
 
+/-!
+### coercions and constructions
+-/
+
 @[simp] protected lemma eta (a : fin n) (h : (a : ℕ) < n) : (⟨(a : ℕ), h⟩ : fin n) = a :=
 by cases a; refl
 
@@ -150,6 +154,10 @@ lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :
 end coe
 
 section order
+
+/-!
+### order
+-/
 
 lemma is_lt (i : fin n) : (i : ℕ) < n := i.2
 
@@ -279,6 +287,10 @@ end
 end order
 
 section add
+
+/-!
+### addition, numerals, and coercion from nat
+-/
 
 /-- convert a `ℕ` to `fin n`, provided `n` is positive -/
 def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h⟩
@@ -410,6 +422,10 @@ by rw [eq_comm, zero_eq_one_iff]
 end add
 
 section succ
+
+/-!
+### succ and casts into larger fin types
+-/
 
 @[simp] lemma coe_succ (j : fin n) : (j.succ : ℕ) = j + 1 :=
 by cases j; simp [fin.succ]
@@ -653,6 +669,10 @@ end succ
 
 section rec
 
+/-!
+### recursion and induction principles
+-/
+
 /-- Define `C n i` by induction on `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
 This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
 and `Hs n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
@@ -746,6 +766,10 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 end rec
 
 section pred
+
+/-!
+### pred
+-/
 
 @[simp] lemma coe_pred (j : fin (n+1)) (h : j ≠ 0) : (j.pred h : ℕ) = j - 1 :=
 by { cases j, refl }
@@ -1356,6 +1380,10 @@ by rw [← of_nat_eq_coe]; refl
 rfl
 
 section mul
+
+/-!
+### mul
+-/
 
 lemma val_mul {n : ℕ} :  ∀ a b : fin n, (a * b).val = (a.val * b.val) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl

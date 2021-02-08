@@ -412,7 +412,7 @@ begin
     { exact quotient.sound (λ i, rfl) },
     rw H3, apply ih },
   have H2 : p (erase i ⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧),
-  { dsimp only [erase, quotient.lift_on_beta],
+  { dsimp only [erase, quotient.lift_on_mk],
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) 0 (f j) = 0,
     { intro j, cases H j with H2 H2,
       { cases multiset.mem_cons.1 H2 with H3 H3,
@@ -536,7 +536,7 @@ end
 @[simp] theorem mem_support_to_fun (f : Π₀ i, β i) (i) : i ∈ f.support ↔ f i ≠ 0 :=
 begin
   refine quotient.induction_on f (λ x, _),
-  dsimp only [support, quotient.lift_on_beta],
+  dsimp only [support, quotient.lift_on_mk],
   rw [finset.mem_filter, multiset.mem_to_finset],
   exact and_iff_right_of_imp (x.3 i).resolve_right
 end
@@ -865,7 +865,7 @@ lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : 
   sum_add_hom (λ i₁, sum_add_hom (λ i₂, (h i₁ i₂).flip) f₂) f₁ :=
 begin
   refine quotient.induction_on₂ f₁ f₂ (λ x₁ x₂, _),
-  simp only [sum_add_hom, add_monoid_hom.finset_sum_apply, quotient.lift_on_beta,
+  simp only [sum_add_hom, add_monoid_hom.finset_sum_apply, quotient.lift_on_mk,
     add_monoid_hom.coe_mk, add_monoid_hom.flip_apply],
   exact finset.sum_comm,
 end

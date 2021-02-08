@@ -1238,6 +1238,15 @@ end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
 
+lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
+  {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
+  tendsto u l (𝓝 0) :=
+begin
+  suffices h : is_o u (λ x, (1 : 𝕜)) l,
+  { rwa is_o_one_iff at h },
+  exact huv.trans_is_O (is_O_one_of_tendsto 𝕜 hv),
+end
+
 theorem is_o_pow_pow {m n : ℕ} (h : m < n) :
   is_o (λ(x : 𝕜), x^n) (λx, x^m) (𝓝 0) :=
 begin

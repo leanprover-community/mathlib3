@@ -378,6 +378,7 @@ end
 lemma is_noetherian_of_is_dedekind_domain_inv : is_dedekind_domain_inv A → is_noetherian_ring A :=
 begin
   intro h2,
+  rw is_noetherian_ring_iff,
   refine ⟨λ s, _⟩,
   by_cases h : s = ⊥,
   { rw h, apply submodule.fg_bot },
@@ -452,7 +453,7 @@ begin
   have hMinv := h2 M' M'_ne,
   convert hM1,
   by_contra h,
-  apply hM1.1,
+  apply hM1.ne_top,
   rw [eq_top_iff, ← @coe_ideal_le_coe_ideal _ _ _ _ (fraction_ring.of A), ← ideal.one_eq_top],
   show 1 ≤ M',
   suffices g : (1 / M') * p' ≤ p',
@@ -474,7 +475,7 @@ begin
   suffices zy_mem : (fraction_ring.of A).to_map (z * y) ∈ p',
   { obtain ⟨zy, hzy, zy_eq⟩ := mem_coe_ideal.mp zy_mem,
     rw (fraction_ring.of A).injective zy_eq at hzy,
-    exact mem_coe_ideal.mpr ⟨_, or.resolve_left (hp.2 hzy) hzp, rfl⟩ },
+    exact mem_coe_ideal.mpr ⟨_, or.resolve_left (hp.mem_or_mem hzy) hzp, rfl⟩ },
 
   -- But `p' = M * M⁻¹ * p`, so `z ∈ M` and `y ∈ M⁻¹ * p` and we get our conclusion.
     rw [ring_hom.map_mul],
@@ -532,14 +533,14 @@ begin
       { rw [h, multiset.map_zero, ← one_eq_top],
         exact multiset.prod_zero },
       rw [this, top_le_iff] at hZ_M,
-      exact absurd hZ_M hM.1.1 },
+      exact hM.1.ne_top hZ_M },
   obtain ⟨P, h_PZ, h_PM⟩ := is_prime.multiset.prod_le (ideal.is_maximal.is_prime hM.1) hZ_M,
   have hZP_nz : P.1 ≠ ⊥ ∧ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R)) ≠ ⊥,
     { suffices this : multiset.prod (Z.map (coe : subtype _ → ideal R)) ≠ ⊥,
       rw [← (multiset.cons_erase h_PZ), multiset.map_cons, multiset.prod_cons, ne.def,
         ideal.mul_eq_bot, not_or_distrib] at this,
       exacts [this, hZ.2] },
-  replace h_PM : P.val = M := is_maximal.eq_of_le _ hM.1.1 h_PM,
+  replace h_PM : P.val = M := is_maximal.eq_of_le _ hM.1.ne_top h_PM,
   swap, { apply hR.2, exacts [hZP_nz.1, P.2] },
   obtain ⟨b, hb⟩ : ∃ (b : R) (H : b ∈ multiset.prod ((Z.erase P).map (coe : subtype _ → ideal R))),
     b ∉ A,
@@ -870,6 +871,7 @@ lemma integral_closure.is_noetherian_ring [is_noetherian_ring R]
 begin
   haveI := classical.dec_eq L,
   obtain ⟨s, b, hb, hb_int⟩ := exists_is_basis_integral L f,
+  rw is_noetherian_ring_iff,
   exact is_noetherian_of_is_scalar_tower _ (is_noetherian_of_le
     (is_noetherian_span_of_finite _ (set.finite_range _))
     (integral_closure_le_span hb (λ x, hb_int x) int_cl))
@@ -968,7 +970,8 @@ by { ext, exact ideal.dvd_not_unit_iff_lt }
 instance : wf_dvd_monoid (ideal R) :=
 { well_founded_dvd_not_unit :=
   have well_founded ((>) : ideal R → ideal R → Prop) :=
-  is_noetherian_iff_well_founded.mp (is_dedekind_domain.to_is_noetherian_ring),
+  is_noetherian_iff_well_founded.mp
+    (is_noetherian_ring_iff.mp is_dedekind_domain.to_is_noetherian_ring),
   by rwa ideal.dvd_not_unit_eq_gt }
 
 instance ideal.unique_factorization_monoid :

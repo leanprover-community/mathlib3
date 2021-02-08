@@ -394,6 +394,29 @@ instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E)
     by {rw [norm_smul, norm_id], simp},
   .. continuous_linear_map.algebra }
 
+theorem le_op_norm₂ (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
+  ∥f x y∥ ≤ ∥f∥ * ∥x∥ * ∥y∥ :=
+(f x).le_of_op_norm_le (f.le_op_norm x) y
+
+theorem op_norm_le_bound₂ (f : E →L[𝕜] F →L[𝕜] G) {C : ℝ} (h0 : 0 ≤ C)
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  ∥f∥ ≤ C :=
+f.op_norm_le_bound h0 $ λ x,
+  (f x).op_norm_le_bound (mul_nonneg h0 (norm_nonneg _)) $ hC x
+
+lemma op_norm_prod (f : E →L[𝕜] F) (g : E →L[𝕜] G) : ∥f.prod g∥ = ∥(f, g)∥ :=
+le_antisymm
+  (op_norm_le_bound _ (norm_nonneg _) $ λ x,
+    by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, norm_nonneg]
+      using max_le_max (le_op_norm f x) (le_op_norm g x)) $
+  max_le
+    (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))
+    (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_right _ _).trans ((f.prod g).le_op_norm x))
+
+/-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
+def prodₗᵢ : (E →L[𝕜] F) × (E →L[𝕜] G) ≃ₗᵢ[𝕜] (E →L[𝕜] F × G) :=
+⟨prodₗ 𝕜, λ ⟨f, g⟩, op_norm_prod f g⟩
+
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.uniform_continuous
@@ -621,11 +644,50 @@ f.to_continuous_linear_map.op_norm_le_bound zero_le_one $ λ x, by simp
   ∥f.to_continuous_linear_map∥ = 1 :=
 f.to_continuous_linear_map.homothety_norm $ by simp
 
+namespace linear_map
+
 /-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
 then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
-lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ∥f.mk_continuous C h∥ ≤ C :=
 continuous_linear_map.op_norm_le_bound _ hC h
+
+/-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
+then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
+lemma mk_continuous_norm_le' (f : E →ₗ[𝕜] F) {C : ℝ} (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ∥f.mk_continuous C h∥ ≤ max C 0 :=
+continuous_linear_map.op_norm_le_bound _ (le_max_right _ _) $ λ x, (h x).trans $
+  mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
+
+/-- Create a bilinear map (represented as a map `E →L[𝕜] F →L[𝕜] G`) from the corresponding linear
+map and a bound on the norm of the image. The linear map can be constructed using
+`linear_map.mk₂`. -/
+def mk_continuous₂ (f : E →ₗ[𝕜] F →ₗ[𝕜] G) (C : ℝ)
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  E →L[𝕜] F →L[𝕜] G :=
+linear_map.mk_continuous
+  { to_fun := λ x, (f x).mk_continuous (C * ∥x∥) (hC x),
+    map_add' := λ x y, by { ext z, simp },
+    map_smul' := λ c x, by { ext z, simp } }
+  (max C 0) $ λ x, (mk_continuous_norm_le' _ _).trans_eq $
+    by rw [max_mul_of_nonneg _ _ (norm_nonneg x), zero_mul]
+
+@[simp] lemma mk_continuous₂_apply (f : E →ₗ[𝕜] F →ₗ[𝕜] G) {C : ℝ}
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) (x : E) (y : F) :
+  f.mk_continuous₂ C hC x y = f x y :=
+rfl
+
+lemma mk_continuous₂_norm_le' (f : E →ₗ[𝕜] F →ₗ[𝕜] G) {C : ℝ}
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  ∥f.mk_continuous₂ C hC∥ ≤ max C 0 :=
+mk_continuous_norm_le _ (le_max_iff.2 $ or.inr le_rfl) _
+
+lemma mk_continuous₂_norm_le (f : E →ₗ[𝕜] F →ₗ[𝕜] G) {C : ℝ} (h0 : 0 ≤ C)
+  (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
+  ∥f.mk_continuous₂ C hC∥ ≤ C :=
+(f.mk_continuous₂_norm_le' hC).trans_eq $ max_eq_left h0
+
+end linear_map
 
 namespace continuous_linear_map
 

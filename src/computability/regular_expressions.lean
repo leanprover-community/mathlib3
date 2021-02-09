@@ -7,7 +7,7 @@ import data.fintype.basic
 import data.finset.basic
 import tactic.rcases
 import tactic.omega
-import computability.language
+import computability.epsilon_NFA
 
 /-!
 # Regular Expressions
@@ -21,7 +21,7 @@ TODO
 * `attribute [pattern] has_mul.mul` has been added into this file, it could be moved.
 -/
 
-universe u
+universes u v
 
 variables {α : Type u} [dec : decidable_eq α]
 
@@ -299,5 +299,42 @@ begin
   rw ←rmatch_iff_matches,
   exact eq.decidable _ _
 end
+
+def to_ε_NFA_states : regular_expression α → Type v
+| 0 := pempty
+| 1 := punit
+| (char _) := ulift bool
+| (P + Q) := P.to_ε_NFA_states × Q.to_ε_NFA_states
+| (P * Q) := P.to_ε_NFA_states ⊕ Q.to_ε_NFA_states
+| (star P) := P.to_ε_NFA_states
+
+
+
+def to_ε_NFA : Π P : regular_expression α, NFA α P.to_ε_NFA_states
+| 0 :=
+{ step := λ _ _, ∅,
+  start := ∅,
+  accept := ∅ }
+| 1 :=
+{ step := λ _ _, ∅,
+  start := {punit.star},
+  accept := {punit.star} }
+| (char a₁) :=
+{ step := λ b a₂, if a₁ = a₂ then (if begin rw to_ε_NFA_states at b, use ↑(ulift.down b) end then {ff} else ∅) else ∅,
+  start := _,
+  accept := _ }
+| (P + Q) :=
+{ step := _,
+  start := _,
+  accept := _ }
+| (P * Q) :=
+{ step := _,
+  start := _,
+  accept := _ }
+| (star P) :=
+{ step := _,
+  start := _,
+  accept := _ }
+
 
 end regular_expression

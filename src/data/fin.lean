@@ -268,13 +268,18 @@ by cases j; simp [fin.succ]
 
 lemma succ_pos (a : fin n) : (0 : fin (n + 1)) < a.succ := by simp [lt_iff_coe_lt_coe]
 
--- This is hideous.
 lemma pos_iff_ne_zero [fact (0 < n)] (a : fin n) : 0 < a ↔ a ≠ 0 :=
 begin
-  have := @pos_iff_ne_zero _ _ (a : ℕ),
   split,
-  rintros h rfl, exact lt_irrefl _ h,
-  rintros h, apply this.mpr, cases a, rintro w, simp at w, subst w, apply h, refl,
+  { rintros h rfl, exact lt_irrefl _ h, },
+  { rintros h,
+    apply (@pos_iff_ne_zero _ _ (a : ℕ)).mpr,
+    cases a,
+    rintro w,
+    apply h,
+    simp at w,
+    subst w,
+    refl, },
 end
 
 /-- The greatest value of `fin (n+1)` -/

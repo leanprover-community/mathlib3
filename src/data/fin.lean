@@ -485,6 +485,16 @@ begin
   exact absurd (lt_of_succ_le h) (not_lt_of_gt H)
 end
 
+/-- Coercing an `a : ℕ` to `fin (n + 1)`, and converting back to `ℕ`,
+is always at most `a : ℕ`. -/
+lemma coe_coe_le_self (a : ℕ) : ((a : fin (n + 1)) : ℕ) ≤ a :=
+begin
+  by_cases h : a < n + 1,
+  { rw [coe_coe_of_lt h] },
+  { rw [coe_coe_of_le (le_of_not_lt h)],
+    exact le_of_succ_le (le_of_not_lt h) }
+end
+
 /-- Converting a `fin (n + 1)` to `ℕ` and back results in the same
 value. -/
 @[simp] lemma coe_coe_eq_self (a : fin (n + 1)) : ((a : ℕ) : fin (n + 1)) = a :=

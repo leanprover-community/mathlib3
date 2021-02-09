@@ -673,6 +673,17 @@ begin
       simpa [pi_if, hf] } }
 end
 
+variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
+
+/-- A finite product of discrete spaces is discrete. -/
+instance Pi.discrete_topology : discrete_topology (Π i, π i) :=
+singletons_open_iff_discrete.mp (λ x,
+begin
+  rw show {x} = ⋂ i, {y : Π i, π i | y i = x i},
+  { ext, simp only [function.funext_iff, set.mem_singleton_iff, set.mem_Inter, set.mem_set_of_eq] },
+  exact is_open_Inter (λ i, (continuous_apply i).is_open_preimage {x i} (is_open_discrete {x i}))
+end)
+
 end pi
 
 section sigma

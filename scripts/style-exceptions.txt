@@ -19,9 +19,8 @@ src/algebraic_geometry/sheafed_space.lean : line 82 : ERR_LIN : Line has more th
 src/algebraic_geometry/stalks.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 608 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/deriv.lean : line 1125 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/deriv.lean : line 1160 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 22 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/local_extr.lean : line 305 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/tangent_cone.lean : line 250 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/times_cont_diff.lean : line 1423 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/times_cont_diff.lean : line 1834 : ERR_LIN : Line has more than 100 characters
@@ -507,9 +506,9 @@ src/group_theory/subgroup.lean : line 853 : ERR_LIN : Line has more than 100 cha
 src/group_theory/subgroup.lean : line 888 : ERR_LIN : Line has more than 100 characters
 src/group_theory/submonoid/operations.lean : line 560 : ERR_LIN : Line has more than 100 characters
 src/group_theory/sylow.lean : line 13 : ERR_MOD : Module docstring missing, or too late
-src/linear_algebra/basis.lean : line 291 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basis.lean : line 295 : ERR_LIN : Line has more than 100 characters
-src/linear_algebra/basis.lean : line 93 : ERR_LIN : Line has more than 100 characters
+src/linear_algebra/basis.lean : line 292 : ERR_LIN : Line has more than 100 characters
+src/linear_algebra/basis.lean : line 296 : ERR_LIN : Line has more than 100 characters
+src/linear_algebra/basis.lean : line 94 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/char_poly/coeff.lean : line 190 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/char_poly/coeff.lean : line 24 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/char_poly/coeff.lean : line 26 : ERR_LIN : Line has more than 100 characters
@@ -828,7 +827,7 @@ src/tactic/monotonicity/interactive.lean : line 489 : ERR_LIN : Line has more th
 src/tactic/monotonicity/lemmas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/noncomm_ring.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/norm_cast.lean : line 561 : ERR_LIN : Line has more than 100 characters
-src/tactic/norm_cast.lean : line 752 : ERR_LIN : Line has more than 100 characters
+src/tactic/norm_cast.lean : line 757 : ERR_LIN : Line has more than 100 characters
 src/tactic/nth_rewrite/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/congr.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/default.lean : line 110 : ERR_LIN : Line has more than 100 characters
@@ -938,7 +937,7 @@ src/testing/slim_check/testable.lean : line 606 : ERR_LIN : Line has more than 1
 src/testing/slim_check/testable.lean : line 741 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/floor_ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/group_completion.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/topology/algebra/module.lean : line 1265 : ERR_LIN : Line has more than 100 characters
+src/topology/algebra/module.lean : line 1266 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/open_subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/ring.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/uniform_ring.lean : line 11 : ERR_MOD : Module docstring missing, or too late

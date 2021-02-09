@@ -801,12 +801,11 @@ subset.antisymm (λ x hx, hx.elim (λ hx, lt_of_le_of_lt hx h) and.right) Iio_su
 lemma Iio_union_Ioo' {c d : α} (h₁ : c < b) :
   Iio b ∪ Ioo c d = Iio (max b d) :=
 begin
-  ext1 x,
-  simp_rw [mem_union, mem_Iio, mem_Ioo, lt_max_iff],
-  by_cases hc : c < x,
-  { tauto, },
-  { have hxb : x < b, from lt_of_le_of_lt (le_of_not_gt hc) h₁,
-    tauto, },
+  ext x, cases lt_or_le x b with hba hba,
+  { simp [hba, h₁] },
+  { simp only [mem_Iio, mem_union_eq, mem_Ioo, lt_max_iff],
+    apply or_congr, refl, split, exact and.right,
+    exact λ h₂, ⟨lt_of_lt_of_le h₁ hba, h₂⟩}
 end
 
 lemma Iio_union_Ioo {c d : α} (h : min c d < b) :

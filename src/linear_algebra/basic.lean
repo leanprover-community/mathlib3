@@ -330,11 +330,15 @@ variable (S)
 
 /-- Applying a linear map at `v : M`, seen as `S`-linear map from `M →ₗ[R] M₂` to `M₂`.
 
- See `applyₗ` for a version where `S = R` -/
-def applyₗ' (v : M) : (M →ₗ[R] M₂) →ₗ[S] M₂ :=
-{ to_fun := λ f, f v,
-  map_add' := λ f g, f.add_apply g v,
-  map_smul' := λ x f, f.smul_apply x v }
+ See `linear_map.applyₗ` for a version where `S = R`. -/
+@[simps]
+def applyₗ' : M →+ (M →ₗ[R] M₂) →ₗ[S] M₂ :=
+{ to_fun := λ v,
+  { to_fun := λ f, f v,
+    map_add' := λ f g, f.add_apply g v,
+    map_smul' := λ x f, f.smul_apply x v },
+  map_zero' := linear_map.ext $ λ f, f.map_zero,
+  map_add' := λ x y, linear_map.ext $ λ f, f.map_add _ _ }
 
 end semimodule
 
@@ -479,9 +483,14 @@ def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →�
 λ _ _, linear_map.ext $ λ _, f.3 _ _⟩
 
 /-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`.
-See also `linear_map.applyₗ'` for a version that works with two different semirings. -/
-def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
-applyₗ' R v
+See also `linear_map.applyₗ'` for a version that works with two different semirings.
+
+This is the `linear_map` version of `add_monoid_hom.eval`. -/
+@[simps]
+def applyₗ : M →ₗ[R] (M →ₗ[R] M₂) →ₗ[R] M₂ :=
+{ to_fun := λ v, { to_fun := λ f, f v, ..applyₗ' R v },
+  map_smul' := λ x y, linear_map.ext $ λ f, f.map_smul _ _,
+  ..applyₗ' R }
 
 end comm_semiring
 

@@ -442,6 +442,59 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
 
+section mul
+
+/-- Collapse a `tensor_product` of `pi_tensor_product`s -/
+def mul : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+tensor_product.lift
+  { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
+      (multilinear_map.curry_sum_equiv R _ _ M _ (tprod R)) a,
+    map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
+    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
+
+@[simp] lemma mul_tprod_tmul_tprod (a : ι → M) (b : ι₂ → M) :
+  mul ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
+begin
+  erw [tensor_product.lift.tmul, pi_tensor_product.lift.tprod, pi_tensor_product.lift.tprod],
+  refl
+end
+
+/-- Expand `pi_tensor_product` into a `tensor_product` of two halves -/
+def unmul : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) :=
+pi_tensor_product.lift begin
+  apply multilinear_map.dom_coprod,
+  exact tprod R,
+  exact tprod R,
+end
+
+@[simp] lemma unmul_tprod (a : ι ⊕ ι₂ → M) :
+  unmul (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
+pi_tensor_product.lift.tprod _
+
+/-- `mul` and `unmul` combined as an equiv. -/
+def mul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+linear_equiv.of_linear mul unmul
+  begin
+    ext,
+    simp only [linear_map.comp_multilinear_map_apply, linear_map.comp_apply, linear_map.id_apply,
+      unmul_tprod, mul_tprod_tmul_tprod, sum.elim_comp_inl_inr],
+  end
+  begin
+    ext,
+    simp only [linear_map.comp_multilinear_map_apply, linear_map.comp_apply, linear_map.id_apply,
+      linear_map.compr₂_apply, tensor_product.mk_apply, unmul_tprod, mul_tprod_tmul_tprod,
+      sum.elim_inl, sum.elim_inr],
+  end
+
+lemma mul_equiv_apply (a : ι → M) (b : ι₂ → M) :
+  mul_equiv ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
+mul_tprod_tmul_tprod a b
+
+lemma mul_equiv_symm_apply (a : ι ⊕ ι₂ → M) :
+  mul_equiv.symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
+unmul_tprod a
+
+end mul
 end multilinear
 
 end pi_tensor_product

@@ -199,6 +199,7 @@ begin
   dunfold semiconj_by,
   rw [← op_mul, ← op_mul, h.eq]
 end
+
 lemma semiconj_by.unop [has_mul α] {a x y : αᵒᵖ} (h : semiconj_by a x y) :
   semiconj_by (unop a) (unop y) (unop x) :=
 begin

@@ -335,6 +335,11 @@ theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x := min_le_of_mem H
 
 theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
 
+theorem is_least_min' : is_least ↑s (s.min' H) := ⟨min'_mem _ _, min'_le _⟩
+
+@[simp] lemma le_min'_iff {x} : x ≤ s.min' H ↔ ∀ y ∈ s, x ≤ y :=
+le_is_glb_iff (is_least_min' s H).is_glb
+
 /-- `{a}.min' _` is `a`. -/
 @[simp] lemma min'_singleton (a : α) :
   ({a} : finset α).min' (singleton_nonempty _) = a :=
@@ -346,6 +351,11 @@ theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ := le_max_of_mem H
 
 theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
 
+theorem is_greatest_max' : is_greatest ↑s (s.max' H) := ⟨max'_mem _ _, le_max' _⟩
+
+@[simp] lemma max'_le_iff {x} : s.max' H ≤ x ↔ ∀ y ∈ s, y ≤ x :=
+is_lub_le_iff (is_greatest_max' s H).is_lub
+
 /-- `{a}.max' _` is `a`. -/
 @[simp] lemma max'_singleton (a : α) :
   ({a} : finset α).max' (singleton_nonempty _) = a :=
@@ -353,18 +363,7 @@ by simp [max']
 
 theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) :
   s.min' ⟨i, H1⟩ < s.max' ⟨i, H1⟩ :=
-begin
-  rcases lt_trichotomy i j with H4 | H4 | H4,
-  { have H5 := min'_le s i H1,
-    have H6 := le_max' s j H2,
-    apply lt_of_le_of_lt H5,
-    apply lt_of_lt_of_le H4 H6 },
-  { cc },
-  { have H5 := min'_le s j H2,
-    have H6 := le_max' s i H1,
-    apply lt_of_le_of_lt H5,
-    apply lt_of_lt_of_le H4 H6 }
-end
+is_glb_lt_is_lub_of_ne (s.is_least_min' _).is_glb (s.is_greatest_max' _).is_lub H1 H2 H3
 
 /--
 If there's more than 1 element, the min' is less than the max'. An alternate version of
@@ -374,13 +373,8 @@ lemma min'_lt_max'_of_card (h₂ : 1 < card s) :
   s.min' (finset.card_pos.mp $ lt_trans zero_lt_one h₂) <
   s.max' (finset.card_pos.mp $ lt_trans zero_lt_one h₂) :=
 begin
-  apply lt_of_not_ge,
-  intro a,
-  apply not_le_of_lt h₂ (le_of_eq _),
-  rw card_eq_one,
-  use (max' s (finset.card_pos.mp $ lt_trans zero_lt_one h₂)),
-  rw eq_singleton_iff_unique_mem,
-  refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s t Ht) (le_trans a (min'_le s t Ht))⟩,
+  rcases one_lt_card.1 h₂ with ⟨a, ha, b, hb, hab⟩,
+  exact s.min'_lt_max' ha hb hab
 end
 
 lemma max'_eq_of_dual_min' {s : finset α} (hs : s.nonempty) :
@@ -404,6 +398,24 @@ end
 
 @[simp] lemma of_dual_min_eq_max_of_dual {a b : α} :
   of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
+
+lemma max'_subset {s t : finset α} (H : s.nonempty) (hst : s ⊆ t) :
+  s.max' H ≤ t.max' (H.mono hst) :=
+le_max' _ _ (hst (s.max'_mem H))
+
+lemma min'_subset {s t : finset α} (H : s.nonempty) (hst : s ⊆ t) :
+  t.min' (H.mono hst) ≤ s.min' H :=
+min'_le _ _ (hst (s.min'_mem H))
+
+lemma max'_insert (a : α) (s : finset α) (H : s.nonempty) :
+  (insert a s).max' (s.insert_nonempty a) = max (s.max' H) a :=
+(is_greatest_max' _ _).unique $
+  by { rw [coe_insert, max_comm], exact (is_greatest_max' _ _).insert _ }
+
+lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
+  (insert a s).min' (s.insert_nonempty a) = min (s.min' H) a :=
+(is_least_min' _ _).unique $
+  by { rw [coe_insert, min_comm], exact (is_least_min' _ _).insert _ }
 
 end max_min
 

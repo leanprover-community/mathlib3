@@ -137,7 +137,8 @@ suffices has_sum f (∑ b' in {b}, f b'),
   by simpa using this,
 has_sum_sum_of_ne_finset_zero $ by simpa [hf]
 
-lemma has_sum_ite_eq (b : β) (a : α) : has_sum (λb', if b' = b then a else 0) a :=
+lemma has_sum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
+  has_sum (λb', if b' = b then a else 0) a :=
 begin
   convert has_sum_single b _,
   { exact (if_pos rfl).symm },
@@ -319,7 +320,8 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   ∑'b, f b = f b :=
 (has_sum_single b hf).tsum_eq
 
-@[simp] lemma tsum_ite_eq (b : β) (a : α) : ∑'b', (if b' = b then a else 0) = a :=
+@[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
+  ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
 
 lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
@@ -755,6 +757,10 @@ begin
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
+lemma tsum_congr {f g : ℕ → ℝ} (hfg : ∀ n, f n = g n) :
+  ∑' n, f n = ∑' n, g n :=
+congr_arg tsum (funext hfg)
+
 end order_topology
 
 section canonically_ordered
@@ -885,6 +891,30 @@ lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (functio
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
+/-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
+Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
+remaining terms. -/
+lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
+  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
+begin
+  refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
+    hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
+  exact λ j, by { by_cases ji : j = i; simp [ji] }
+end
+
+/-- Let `f, g : ℕ → ℝ` be two sequences with summable series.  If `f` is dominated by `g` and
+at least one term of `f` is strictly smaller than the corresponding term in `g`, then the series
+of `f` is strictly smaller than the series of `g`. -/
+lemma tsum_lt_tsum {i : ℕ} {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i)
+  (hf : summable f) (hg : summable g) :
+  ∑' n, f n < ∑' n, g n :=
+begin
+  rw [tsum_ite_eq_extract hf i, tsum_ite_eq_extract hg i],
+  refine add_lt_add_of_lt_of_le hi _,
+  refine tsum_le_tsum _ (hf.summable_of_eq_zero_or_self _) (hg.summable_of_eq_zero_or_self _);
+  exact λ j, by { by_cases ji : j = i; simp [ji, h j] },
+end
+
 end uniform_group
 
 section topological_group
@@ -911,6 +941,9 @@ begin
   refine s.eventually_cofinite_nmem.mono (λ x hx, _),
   by simpa using hs {x} (singleton_disjoint.2 hx)
 end
+
+lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : tendsto f at_top (𝓝 0) :=
+by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
 
 end topological_group
 

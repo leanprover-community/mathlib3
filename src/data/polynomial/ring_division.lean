@@ -488,6 +488,21 @@ begin
   rw [eval_sub, sub_eq_zero, ext],
 end
 
+/-- The set of distinct roots of `p` in `E`.
+
+If you have a non-separable polynomial, use `polynomial.roots` for the multiset
+where multiple roots have the appropriate multiplicity. -/
+def root_set (p : polynomial R) (S) [integral_domain S] [algebra R S] : set S :=
+(p.map (algebra_map R S)).roots.to_finset
+
+lemma root_set_def (p : polynomial R) (S) [integral_domain S] [algebra R S] :
+  p.root_set S = (p.map (algebra_map R S)).roots.to_finset :=
+rfl
+
+@[simp] lemma root_set_zero (S) [integral_domain S] [algebra R S] :
+  (0 : polynomial R).root_set S = ∅ :=
+by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
+
 end roots
 
 theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=
@@ -510,7 +525,7 @@ let ⟨u, hu⟩ := h in by simp [hu.symm]
 lemma degree_eq_one_of_irreducible_of_root (hi : irreducible p) {x : R} (hx : is_root p x) :
   degree p = 1 :=
 let ⟨g, hg⟩ := dvd_iff_is_root.2 hx in
-have is_unit (X - C x) ∨ is_unit g, from hi.2 _ _ hg,
+have is_unit (X - C x) ∨ is_unit g, from hi.is_unit_or_is_unit hg,
 this.elim
   (λ h, have h₁ : degree (X - C x) = 1, from degree_X_sub_C x,
     have h₂ : degree (X - C x) = 0, from degree_eq_zero_of_is_unit h,
@@ -602,7 +617,7 @@ lemma monic.irreducible_of_irreducible_map (f : polynomial R)
 begin
   fsplit,
   { intro h,
-    exact h_irr.1 (is_unit.map (monoid_hom.of (map φ)) h), },
+    exact h_irr.not_unit (is_unit.map (monoid_hom.of (map φ)) h), },
   { intros a b h,
 
     have q := (leading_coeff_mul a b).symm,
@@ -616,7 +631,7 @@ begin
 
     have h' := congr_arg (map φ) h,
     simp only [map_mul] at h',
-    cases h_irr.2 _ _ h' with w w,
+    cases h_irr.is_unit_or_is_unit h' with w w,
     { left,
       exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },
     { right,

@@ -119,8 +119,8 @@ variables (T : C ⥤ C) [monad T]
 instance [inhabited C] : inhabited (algebra T) :=
 ⟨(free T).obj (default C)⟩
 
-/-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
-    cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
+/-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for
+  a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
 @[simps unit counit {rhs_md := semireducible}]
@@ -232,7 +232,8 @@ end coalgebra
 
 variables (G : C ⥤ C) [comonad G]
 
-/-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic structure. -/
+/-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic
+structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=
 { obj := λ A, A.A,
   map := λ A B f, f.f }
@@ -248,7 +249,8 @@ def coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso
 instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
 { reflects := λ A B, coalgebra_iso_of_iso G }
 
-/-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any object. -/
+/-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any
+object. -/
 @[simps] def cofree : C ⥤ coalgebra G :=
 { obj := λ X,
   { A := G.obj X,

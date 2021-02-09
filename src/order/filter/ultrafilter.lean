@@ -64,8 +64,8 @@ lemma le_of_inf_ne_bot' (f : ultrafilter α) {g : filter α} (hg : ne_bot (g ⊓
 f.le_of_inf_ne_bot $ by rwa inf_comm
 
 @[simp] lemma compl_not_mem_iff : sᶜ ∉ f ↔ s ∈ f :=
-⟨λ hsc, le_principal_iff.1 $ f.le_of_inf_ne_bot $
-  λ h, hsc $ mem_sets_of_eq_bot $ by rwa compl_compl, compl_not_mem_sets⟩
+⟨λ hsc, le_principal_iff.1 $ f.le_of_inf_ne_bot
+  ⟨λ h, hsc $ mem_sets_of_eq_bot $ by rwa compl_compl⟩, compl_not_mem_sets⟩
 
 @[simp] lemma frequently_iff_eventually : (∃ᶠ x in f, p x) ↔ ∀ᶠ x in f, p x :=
 compl_not_mem_iff
@@ -78,7 +78,7 @@ lemma compl_mem_iff_not_mem : sᶜ ∈ f ↔ s ∉ f := by rw [← compl_not_mem
 `ultrafilter.compl_not_mem_iff`.  -/
 def of_compl_not_mem_iff (f : filter α) (h : ∀ s, sᶜ ∉ f ↔ s ∈ f) : ultrafilter α :=
 { to_filter := f,
-  ne_bot' := λ hf, by simpa [hf] using h,
+  ne_bot' := ⟨λ hf, by simpa [hf] using h⟩,
   le_of_le := λ g hg hgf s hs, (h s).1 $ λ hsc, by exactI compl_not_mem_sets hs (hgf hsc) }
 
 lemma nonempty_of_mem (hs : s ∈ f) : s.nonempty := nonempty_of_mem_sets hs
@@ -268,7 +268,7 @@ lemma hyperfilter_le_cofinite : ↑(hyperfilter α) ≤ @cofinite α :=
 ultrafilter.of_le cofinite
 
 @[simp] lemma bot_ne_hyperfilter : (⊥ : filter α) ≠ hyperfilter α :=
-ne.symm $ show ne_bot ↑(hyperfilter α), by apply_instance
+(by apply_instance : ne_bot ↑(hyperfilter α)).1.symm
 
 theorem nmem_hyperfilter_of_finite {s : set α} (hf : s.finite) : s ∉ hyperfilter α :=
 λ hy, compl_not_mem_sets hy $ hyperfilter_le_cofinite hf.compl_mem_cofinite

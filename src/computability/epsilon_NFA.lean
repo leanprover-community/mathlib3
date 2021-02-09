@@ -73,6 +73,15 @@ begin
   refl
 end
 
+lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
+  (hlen : fintype.card (set σ) + 1 ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) + 1 ∧ b ≠ [] ∧
+  {a} * language.star {b} * {c} ≤ M.accepts :=
+begin
+  rw ←to_NFA_correct at hx ⊢,
+  exact M.to_NFA.pumping_lemma hx hlen
+end
+
 end ε_NFA
 
 namespace NFA

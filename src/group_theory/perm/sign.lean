@@ -72,7 +72,8 @@ begin
 end
 
 /-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation
-  on `{x // p x}` induced by `f`. Note that the `h` hypothesis is weaker than for `equiv.perm.subtype_perm`. -/
+  on `{x // p x}` induced by `f`. Note that the `h` hypothesis is weaker than for
+  `equiv.perm.subtype_perm`. -/
 abbreviation subtype_perm_of_fintype (f : perm α) {p : α → Prop} [fintype {x // p x}]
   (h : ∀ x, p x → p (f x)) : perm {x // p x} :=
 f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype h h₂⟩)

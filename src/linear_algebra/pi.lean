@@ -42,6 +42,14 @@ def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
 @[simp] lemma pi_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
   pi f c i = f i c := rfl
 
+/-- The projections from a family of modules are linear maps. -/
+def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
+⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
+
+def pi_equiv : (Π i, M₂ →ₗ[R] φ i) ≃ₗ[R] (M₂ →ₗ[R] (Π i, φ i)) :=
+{ to_fun := pi,
+  }
+
 lemma ker_pi (f : Πi, M₂ →ₗ[R] φ i) : ker (pi f) = (⨅i:ι, ker (f i)) :=
 by ext c; simp [funext_iff]; refl
 

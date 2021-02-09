@@ -1577,15 +1577,7 @@ begin
 end
 
 @[simp] lemma map_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
-begin
-  rw le_ker_iff, unfold lie_ideal.map, split; intros h,
-  { rwa [eq_bot_iff, lie_submodule.lie_span_le, set.image_subset_iff, lie_submodule.bot_coe] at h,},
-  { suffices : f '' I = ↑(⊥ : lie_ideal R L'), { rw [this, lie_submodule.lie_span_eq], },
-    ext x, rw [lie_submodule.bot_coe, set.mem_singleton_iff, set.mem_image],
-    split,
-    { rintros ⟨y, hy, hx⟩, rw ← hx, exact h y hy, },
-    { intros hx, use 0, simp [hx], }, },
-end
+by { rw ← le_bot_iff, apply lie_ideal.map_le_iff_le_comap }
 
 lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, ker_coe_submodule, lie_submodule.bot_coe_submodule,

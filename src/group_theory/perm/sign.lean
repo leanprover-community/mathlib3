@@ -41,6 +41,50 @@ def mod_swap [decidable_eq α] (i j : α) : setoid (perm α) :=
 instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
 λ σ τ, or.decidable
 
+lemma perm_inv_on_of_perm_on_finset {s : finset α} {f : perm α}
+  (h : ∀ x ∈ s, f x ∈ s) {y : α} (hy : y ∈ s) : f⁻¹ y ∈ s :=
+begin
+  have h0 : ∀ y ∈ s, ∃ x (hx : x ∈ s), y = (λ i (hi : i ∈ s), f i) x hx :=
+    finset.surj_on_of_inj_on_of_card_le (λ x hx, (λ i hi, f i) x hx)
+    (λ a ha, h a ha) (λ a₁ a₂ ha₁ ha₂ heq, (equiv.apply_eq_iff_eq f).mp heq) rfl.ge,
+  obtain ⟨y2, hy2, heq⟩ := h0 y hy,
+  convert hy2,
+  rw heq,
+  simp only [inv_apply_self]
+end
+
+lemma perm_inv_maps_to_of_maps_to (f : perm α) {s : set α} [fintype s]
+  (h : set.maps_to f s s) : set.maps_to (f⁻¹ : _) s s :=
+λ x hx, set.mem_to_finset.mp $
+  perm_inv_on_of_perm_on_finset
+   (λ a ha, set.mem_to_finset.mpr (h (set.mem_to_finset.mp ha)))
+   (set.mem_to_finset.mpr hx)
+
+@[simp] lemma perm_inv_maps_to_iff_maps_to {f : perm α} {s : set α} [fintype s] :
+  set.maps_to (f⁻¹ : _) s s ↔ set.maps_to f s s :=
+⟨perm_inv_maps_to_of_maps_to f⁻¹, perm_inv_maps_to_of_maps_to f⟩
+
+lemma perm_inv_on_of_perm_on_fintype {f : perm α} {p : α → Prop} [fintype {x // p x}]
+  (h : ∀ x, p x → p (f x)) {x : α} (hx : p x) : p (f⁻¹ x) :=
+begin
+  letI : fintype ↥(show set α, from p) := ‹fintype {x // p x}›,
+  exact perm_inv_maps_to_of_maps_to f h hx
+end
+
+/-- If the permutation `f` maps `{x // p x}` into itself, then this returns the permutation
+  on `{x // p x}` induced by `f`. Note that the `h` hypothesis is weaker than for
+  `equiv.perm.subtype_perm`. -/
+abbreviation subtype_perm_of_fintype (f : perm α) {p : α → Prop} [fintype {x // p x}]
+  (h : ∀ x, p x → p (f x)) : perm {x // p x} :=
+f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_perm_on_fintype h h₂⟩)
+
+@[simp] lemma subtype_perm_of_fintype_apply (f : perm α) {p : α → Prop} [fintype {x // p x}]
+  (h : ∀ x, p x → p (f x)) (x : {x // p x}) : subtype_perm_of_fintype f h x = ⟨f x, h x x.2⟩ := rfl
+
+@[simp] lemma subtype_perm_of_fintype_one (p : α → Prop) [fintype {x // p x}]
+  (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
+equiv.ext $ λ ⟨_, _⟩, rfl
+
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
 every element is fixed either by `f`, or by `g`. -/
 def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x
@@ -268,11 +312,11 @@ lemma sign_bij_aux_surj {n : ℕ} {f : perm (fin n)} : ∀ a ∈ fin_pairs_lt n,
 if hxa : f⁻¹ a₂ < f⁻¹ a₁
 then ⟨⟨f⁻¹ a₁, f⁻¹ a₂⟩, mem_fin_pairs_lt.2 hxa,
   by { dsimp [sign_bij_aux],
-    rw [apply_inv_self, apply_inv_self, dif_pos (mem_fin_pairs_lt.1 ha)] }⟩
+    rw [apply_inv_self, apply_inv_self, if_pos (mem_fin_pairs_lt.1 ha)] }⟩
 else ⟨⟨f⁻¹ a₂, f⁻¹ a₁⟩, mem_fin_pairs_lt.2 $ (le_of_not_gt hxa).lt_of_ne $ λ h,
     by simpa [mem_fin_pairs_lt, (f⁻¹).injective h, lt_irrefl] using ha,
   by { dsimp [sign_bij_aux],
-    rw [apply_inv_self, apply_inv_self, dif_neg (mem_fin_pairs_lt.1 ha).le.not_lt] }⟩
+    rw [apply_inv_self, apply_inv_self, if_neg (mem_fin_pairs_lt.1 ha).le.not_lt] }⟩
 
 lemma sign_bij_aux_mem {n : ℕ} {f : perm (fin n)} : ∀ a : Σ a : fin n, fin n,
   a ∈ fin_pairs_lt n → sign_bij_aux f a ∈ fin_pairs_lt n :=

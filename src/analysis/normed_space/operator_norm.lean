@@ -794,7 +794,9 @@ variables {𝕜 E F G}
 
 variables (𝕜 F)
 
-/-- Evaluation of a `continuous_linear_map` at a point as a continuous bilinear map. -/
+/-- The continuous linear map obtained by applying a continuous linear map at a given vector.
+
+This is the continuous version of `linear_map.applyₗ`. -/
 def apply : E →L[𝕜] (E →L[𝕜] F) →L[𝕜] F := flip (id 𝕜 (E →L[𝕜] F))
 
 variables {𝕜 F}

@@ -284,12 +284,12 @@ well_founded.fix has_well_founded.wf $ λ x f_rec,
 
 instance fin.sampleable {n} [fact $ 0 < n] : sampleable (fin n) :=
 sampleable.lift ℕ fin.of_nat' subtype.val $
-λ i, (mod_le _ _ : i % n ≤ i)
+λ i, by simpa using fin.coe_coe_le_self i
 
 @[priority 100]
 instance fin.sampleable' {n} : sampleable (fin (succ n)) :=
 sampleable.lift ℕ fin.of_nat subtype.val $
-λ i, (mod_le _ _ : i % succ n ≤ i)
+λ i, by simpa using fin.coe_coe_le_self i
 
 instance pnat.sampleable : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat pnat.nat_pred $ λ a,

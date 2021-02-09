@@ -88,10 +88,10 @@ instance coe_fun : has_coe_to_fun (unitary_group n α) :=
   coe := λ A, A.val }
 
 /--
-  `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.
+`to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.
 
-  After the group structure on `unitary_group n` is defined,
-  we show in `to_linear_equiv` that this gives a linear equivalence.
+After the group structure on `unitary_group n` is defined,
+we show in `to_linear_equiv` that this gives a linear equivalence.
 -/
 def to_lin' (A : unitary_group n α) := matrix.to_lin' A
 
@@ -176,7 +176,7 @@ lemma to_GL_mul (A B : unitary_group n α) :
 by { ext1 v i, rw [coe_to_GL, to_lin'_mul], refl }
 
 /-- `unitary_group.embedding_GL` is the embedding from `unitary_group n α`
-  to `general_linear_group n α`. -/
+to `general_linear_group n α`. -/
 def embedding_GL : unitary_group n α →* general_linear_group α (n → α) :=
 ⟨λ A, to_GL A, by simp, by simp⟩
 
@@ -188,7 +188,7 @@ variables (β : Type v) [comm_ring β]
 
 local attribute [instance] star_ring_of_comm
 /--
-  `orthogonal_group n` is the group of `n` by `n` matrices where the transpose is the inverse.
+`orthogonal_group n` is the group of `n` by `n` matrices where the transpose is the inverse.
 -/
 abbreviation orthogonal_group := unitary_group n β
 

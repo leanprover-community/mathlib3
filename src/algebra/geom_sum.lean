@@ -28,8 +28,9 @@ $\sum_{i=0}^{n-1} x^i y^{n-1-i}$ and variants thereof.
 * `geom_sum_Ico` proves that $\sum_{i=m}^{n-1} x^i=\frac{x^n-x^m}{x-1}$ in a division ring.
 * `geom_sum₂_Ico` proves that $\sum_{i=m}^{n-1} x^i=\frac{x^n-y^{n-m}x^m}{x-y}$ in a field.
 
-Several variants are recorded, generalising the results to semirings. In this case, the assumption
-of commutativity of the ring is replaced by `commute x y`.
+Several variants are recorded, generalising in particular to the case of a noncommutative ring in
+which `x` and `y` commute. Even versions not using division or subtraction, valid in each semiring,
+are recorded.
 -/
 
 universe u

@@ -624,6 +624,17 @@ lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 @[simp] lemma cast_refl {i : fin n} : cast rfl i = i :=
 by { ext, refl }
 
+@[simp] lemma of_nat_eq {n : ℕ} (k : ℕ) [h : fact (0 < n)]:
+  (of_nat' k : fin n) = cast (succ_pred_eq_of_pos h) (of_nat k) :=
+begin
+  rw [of_nat', eq_iff_veq],
+  split_ifs with hl,
+  { cases eq_or_lt_of_le hl with H H,
+    { simp [←H] },
+    { simpa [eq_comm] using coe_coe_of_le (succ_le_of_lt H) } },
+  { simpa [eq_comm] using coe_coe_of_lt (lt_succ_of_lt (lt_of_not_ge hl)) }
+end
+
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
 def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
 

@@ -8,7 +8,6 @@ import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
-import tactic.omega
 
 /-!
 # Partial sums of geometric series
@@ -81,7 +80,9 @@ begin
   refine sum_congr rfl (λ j j_in, _),
   rw mem_range at j_in,
   congr,
-  omega
+  rw nat.lt_iff_add_one_le at j_in,
+  apply nat.sub_sub_self,
+  exact nat.le_sub_right_of_add_le j_in
 end
 
 @[simp] theorem geom_series₂_with_one [semiring α] (x : α) (n : ℕ) :
@@ -219,7 +220,13 @@ begin
       rw ← pow_add,
       congr,
       rw mem_range at j_in,
-      omega },
+      rw nat.lt_iff_add_one_le at j_in,
+      rw nat.sub_sub m,
+      rw add_comm at j_in,
+      have h' : n - m + (m - (1 + j)) = n - (1 + j) :=
+      nat.sub_add_sub_cancel hmn j_in,
+      rw h',
+      rw nat.sub_sub },
   rw this,
   simp_rw pow_mul_comm y (n-m) _,
   simp_rw ← mul_assoc,

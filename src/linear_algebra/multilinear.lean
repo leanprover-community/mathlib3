@@ -282,11 +282,6 @@ variables {α : ι → Type*} (g : Π i, α i → M₁ i) (A : Π i, finset (α 
 open_locale classical
 open fintype finset
 
-lemma glouk (n : ℕ) (h : n ≠ 0) (h' : n ≤ 1) : n = 1 :=
-begin
-  exact le_antisymm h' (pos_iff_ne_zero.mpr h),
-end
-
 /-- If `f` is multilinear, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r 1 ∈ A₁`, ...,
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each

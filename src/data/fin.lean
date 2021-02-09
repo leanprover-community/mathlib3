@@ -624,6 +624,9 @@ lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 @[simp] lemma cast_refl {i : fin n} : cast rfl i = i :=
 by { ext, refl }
 
+/--
+Coercing a `k : ℕ` into a `fin n` is the same as coercing to a `fin (n - 1 + 1)`.
+-/
 @[simp] lemma of_nat_eq {n : ℕ} (k : ℕ) [h : fact (0 < n)]:
   (of_nat' k : fin n) = cast (succ_pred_eq_of_pos h) (of_nat k) :=
 begin

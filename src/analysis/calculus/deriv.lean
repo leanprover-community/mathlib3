@@ -1055,6 +1055,11 @@ theorem has_deriv_at_filter.comp_has_fderiv_at_filter {f : E → 𝕜} {f' : E �
   has_fderiv_at_filter (h₁ ∘ f) (h₁' • f') x L :=
 by { convert has_fderiv_at_filter.comp x hh₁ hf, ext x, simp [mul_comm] }
 
+theorem has_strict_deriv_at.comp_has_strict_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
+  (hh₁ : has_strict_deriv_at h₁ h₁' (f x)) (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (h₁ ∘ f) (h₁' • f') x :=
+by { rw has_strict_deriv_at at hh₁, convert hh₁.comp x hf, ext x, simp [mul_comm] }
+
 theorem has_deriv_at.comp_has_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
   (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_at f f' x) :
   has_fderiv_at (h₁ ∘ f) (h₁' • f') x :=
@@ -1512,6 +1517,17 @@ theorem has_strict_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 
   (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
   has_strict_deriv_at g f'⁻¹ a :=
 (hf.has_strict_fderiv_at_equiv hf').of_local_left_inverse hg hfg
+
+/-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has a
+nonzero derivative `f'` at `f.symm a` in the strict sense, then `f.symm` has the derivative `f'⁻¹`
+at `a` in the strict sense.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+lemma local_homeomorph.has_strict_deriv_at_symm (f : local_homeomorph 𝕜 𝕜) {a f' : 𝕜}
+  (ha : a ∈ f.target) (hf' : f' ≠ 0) (htff' : has_strict_deriv_at f f' (f.symm a)) :
+  has_strict_deriv_at f.symm f'⁻¹ a :=
+htff'.of_local_left_inverse (f.symm.continuous_at ha) hf' (f.eventually_right_inverse ha)
 
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
 invertible derivative `f'` at `g a`, then `g` has the derivative `f'⁻¹` at `a`.

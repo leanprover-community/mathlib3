@@ -438,6 +438,14 @@ if h : p.cast_succ < i then
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
+/-- `pred_above' p i h` embeds `i : fin (n+1)` into `fin n` by ignoring `p`. -/
+def pred_above' (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
+if h : i < p
+then i.cast_lt (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)
+else i.pred $
+  have p < i, from lt_of_le_of_ne (le_of_not_gt h) hi.symm,
+  ne_of_gt (lt_of_le_of_lt (zero_le p) this)
+
 /-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
 def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
 ⟨(i : ℕ) - m, by { rw [nat.sub_lt_right_iff_lt_add h], exact i.is_lt }⟩
@@ -771,11 +779,35 @@ begin
   exact (pos_iff_ne_zero _).mpr hi,
 end
 
-lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin n) :
-  (∀ j, p j) ↔ p i.cast_succ ∧ ∀ j, p (i.cast_succ.succ_above j) :=
+/-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
+gives the starting `fin (n + 1)` -/
+@[simp] lemma succ_above_pred_above' (p i : fin (n + 1)) (h : i ≠ p) :
+  p.succ_above (p.pred_above' i h) = i :=
+begin
+  rw pred_above',
+  cases lt_or_le i p with H H,
+  { simp only [succ_above_below, cast_succ_cast_lt, H, dif_pos]},
+  { rw le_iff_coe_le_coe at H,
+    rw succ_above_above,
+    { simp only [le_iff_coe_le_coe, H, not_lt, dif_neg, succ_pred] },
+    { simp only [le_iff_coe_le_coe, H, coe_pred, not_lt, dif_neg, coe_cast_succ],
+      exact le_pred_of_lt (lt_of_le_of_ne H (vne_of_ne h.symm)) } }
+end
+
+/-- Embedding a `fin n` into `fin (n + 1)` and embedding it back around the same hole
+gives the starting `fin n` -/
+@[simp] lemma pred_above'_succ_above (p : fin (n + 1)) (i : fin n) :
+  p.pred_above' (p.succ_above i) (succ_above_ne _ _) = i :=
+by rw [← succ_above_right_inj, succ_above_pred_above']
+
+@[simp] theorem pred_above'_zero {i : fin (n + 1)} (hi : i ≠ 0) :
+  pred_above' 0 i hi = i.pred hi :=
+rfl
+
+lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin (n + 1)) :
+  (∀ j, p j) ↔ p i ∧ ∀ j, p (i.succ_above j) :=
 ⟨λ h, ⟨h _, λ j, h _⟩,
-  λ h j, if hj : j = i.cast_succ then (hj.symm ▸ h.1) else
-  begin convert h.2 _, exact (succ_above_pred_above hj).symm, end⟩
+  λ h j, if hj : j = i then (hj.symm ▸ h.1) else (i.succ_above_pred_above' j hj ▸ h.2 _)⟩
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_injective : injective (@succ_above n) :=
@@ -1182,101 +1214,101 @@ by { ext j, simp [init] }
 
 end tuple_right
 
--- section insert_nth
+section insert_nth
 
--- variables {α : fin (n+1) → Type u} {β : Type v}
+variables {α : fin (n+1) → Type u} {β : Type v}
 
--- /-- Insert an element into a tuple at a given position. For `i = 0` see `fin.cons`,
--- for `i = fin.last n` see `fin.snoc`. -/
--- def insert_nth (i : fin (n + 1)) (x : α i) (p : Π j : fin n, α (i.succ_above j))
---   (j : fin (n + 1)) : α j :=
--- if h : j = i
--- then _root_.cast (congr_arg α h.symm) x
--- else _root_.cast (congr_arg α $ succ_above_pred_above i _ h) (p $ i.pred_above j h)
+/-- Insert an element into a tuple at a given position. For `i = 0` see `fin.cons`,
+for `i = fin.last n` see `fin.snoc`. -/
+def insert_nth (i : fin (n + 1)) (x : α i) (p : Π j : fin n, α (i.succ_above j))
+  (j : fin (n + 1)) : α j :=
+if h : j = i
+then _root_.cast (congr_arg α h.symm) x
+else _root_.cast (congr_arg α $ succ_above_pred_above' i _ h) (p $ i.pred_above' j h)
 
--- @[simp] lemma insert_nth_apply_same (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j)) :
---   insert_nth i x p i = x :=
--- by simp [insert_nth]
+@[simp] lemma insert_nth_apply_same (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j)) :
+  insert_nth i x p i = x :=
+by simp [insert_nth]
 
--- @[simp] lemma insert_nth_apply_succ_above (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j))
---   (j : fin n) :
---   insert_nth i x p (i.succ_above j) = p j :=
--- begin
---   simp only [insert_nth, dif_neg (succ_above_ne _ _)],
---   refine eq_of_heq ((cast_heq _ _).trans _),
---   rw [pred_above_succ_above]
--- end
+@[simp] lemma insert_nth_apply_succ_above (i : fin (n + 1)) (x : α i) (p : Π j, α (i.succ_above j))
+  (j : fin n) :
+  insert_nth i x p (i.succ_above j) = p j :=
+begin
+  simp only [insert_nth, dif_neg (succ_above_ne _ _)],
+  refine eq_of_heq ((cast_heq _ _).trans _),
+  rw [pred_above'_succ_above]
+end
 
--- @[simp] lemma insert_nth_comp_succ_above (i : fin (n + 1)) (x : β) (p : fin n → β) :
---   insert_nth i x p ∘ i.succ_above = p :=
--- funext $ insert_nth_apply_succ_above i x p
+@[simp] lemma insert_nth_comp_succ_above (i : fin (n + 1)) (x : β) (p : fin n → β) :
+  insert_nth i x p ∘ i.succ_above = p :=
+funext $ insert_nth_apply_succ_above i x p
 
--- lemma insert_nth_eq_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
---   i.insert_nth x p = q ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
--- by simp [funext_iff, forall_iff_succ_above i, eq_comm]
+lemma insert_nth_eq_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  i.insert_nth x p = q ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
+by simp [funext_iff, forall_iff_succ_above i, eq_comm]
 
--- lemma eq_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
---   q = i.insert_nth x p ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
--- eq_comm.trans insert_nth_eq_iff
+lemma eq_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  q = i.insert_nth x p ↔ q i = x ∧ p = (λ j, q (i.succ_above j)) :=
+eq_comm.trans insert_nth_eq_iff
 
--- lemma insert_nth_zero (x : α 0) (p : Π j : fin n, α (succ_above 0 j)) :
---   insert_nth 0 x p = cons x (λ j, _root_.cast (congr_arg α (congr_fun succ_above_zero j)) (p j)) :=
--- begin
---   refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
---   ext j,
---   convert (cons_succ _ _ _).symm
--- end
+lemma insert_nth_zero (x : α 0) (p : Π j : fin n, α (succ_above 0 j)) :
+  insert_nth 0 x p = cons x (λ j, _root_.cast (congr_arg α (congr_fun succ_above_zero j)) (p j)) :=
+begin
+  refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
+  ext j,
+  convert (cons_succ _ _ _).symm
+end
 
--- @[simp] lemma insert_nth_zero' (x : β) (p : fin n → β) :
---   @insert_nth _ (λ _, β) 0 x p = cons x p :=
--- by simp [insert_nth_zero]
+@[simp] lemma insert_nth_zero' (x : β) (p : fin n → β) :
+  @insert_nth _ (λ _, β) 0 x p = cons x p :=
+by simp [insert_nth_zero]
 
--- lemma insert_nth_last (x : α (last n)) (p : Π j : fin n, α ((last n).succ_above j)) :
---   insert_nth (last n) x p =
---     snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x :=
--- begin
---   refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
---   ext j,
---   apply eq_of_heq,
---   transitivity snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x j.cast_succ,
---   { rw [snoc_cast_succ], exact (cast_heq _ _).symm },
---   { apply congr_arg_heq,
---     rw [succ_above_last] }
--- end
+lemma insert_nth_last (x : α (last n)) (p : Π j : fin n, α ((last n).succ_above j)) :
+  insert_nth (last n) x p =
+    snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x :=
+begin
+  refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
+  ext j,
+  apply eq_of_heq,
+  transitivity snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x j.cast_succ,
+  { rw [snoc_cast_succ], exact (cast_heq _ _).symm },
+  { apply congr_arg_heq,
+    rw [succ_above_last] }
+end
 
--- @[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
---   @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
--- by simp [insert_nth_last]
+@[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
+  @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
+by simp [insert_nth_last]
 
--- variables [Π i, preorder (α i)]
+variables [Π i, preorder (α i)]
 
--- lemma insert_nth_le_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
---   i.insert_nth x p ≤ q ↔ x ≤ q i ∧ p ≤ (λ j, q (i.succ_above j)) :=
--- by simp [pi.le_def, forall_iff_succ_above i]
+lemma insert_nth_le_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  i.insert_nth x p ≤ q ↔ x ≤ q i ∧ p ≤ (λ j, q (i.succ_above j)) :=
+by simp [pi.le_def, forall_iff_succ_above i]
 
--- lemma le_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
---   q ≤ i.insert_nth x p ↔ q i ≤ x ∧ (λ j, q (i.succ_above j)) ≤ p :=
--- by simp [pi.le_def, forall_iff_succ_above i]
+lemma le_insert_nth_iff {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)} {q : Π j, α j} :
+  q ≤ i.insert_nth x p ↔ q i ≤ x ∧ (λ j, q (i.succ_above j)) ≤ p :=
+by simp [pi.le_def, forall_iff_succ_above i]
 
--- open set
+open set
 
--- lemma insert_nth_mem_Icc {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)}
---   {q₁ q₂ : Π j, α j} :
---   i.insert_nth x p ∈ Icc q₁ q₂ ↔
---     x ∈ Icc (q₁ i) (q₂ i) ∧ p ∈ Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
--- by simp only [mem_Icc, insert_nth_le_iff, le_insert_nth_iff, and.assoc, and.left_comm]
+lemma insert_nth_mem_Icc {i : fin (n + 1)} {x : α i} {p : Π j, α (i.succ_above j)}
+  {q₁ q₂ : Π j, α j} :
+  i.insert_nth x p ∈ Icc q₁ q₂ ↔
+    x ∈ Icc (q₁ i) (q₂ i) ∧ p ∈ Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
+by simp only [mem_Icc, insert_nth_le_iff, le_insert_nth_iff, and.assoc, and.left_comm]
 
--- lemma preimage_insert_nth_Icc_of_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
---   (hx : x ∈ Icc (q₁ i) (q₂ i)) :
---   i.insert_nth x ⁻¹' (Icc q₁ q₂) = Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
--- set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
+lemma preimage_insert_nth_Icc_of_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+  (hx : x ∈ Icc (q₁ i) (q₂ i)) :
+  i.insert_nth x ⁻¹' (Icc q₁ q₂) = Icc (λ j, q₁ (i.succ_above j)) (λ j, q₂ (i.succ_above j)) :=
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
 
--- lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
---   (hx : x ∉ Icc (q₁ i) (q₂ i)) :
---   i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
--- set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
+lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
+  (hx : x ∉ Icc (q₁ i) (q₂ i)) :
+  i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
 
--- end insert_nth
+end insert_nth
 
 section find
 

@@ -330,18 +330,18 @@ begin
   rcases a with ⟨a₁, a₂⟩,
   replace ha₁ : a₂ < a₁ := mem_fin_pairs_lt.1 ha₁,
   dsimp only,
-  rcases eq_or_lt_of_le a₁.zero_le with rfl|H,
+  rcases a₁.zero_le.eq_or_lt with rfl|H,
   { exact absurd a₂.zero_le ha₁.not_le },
-  rcases eq_or_lt_of_le a₂.zero_le with rfl|H',
+  rcases a₂.zero_le.eq_or_lt with rfl|H',
   { simp only [and_true, eq_self_iff_true, heq_iff_eq, mem_singleton] at ha₂,
     have : 1 < a₁ := lt_of_le_of_ne (nat.succ_le_of_lt ha₁) (ne.symm ha₂),
     norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) ha₂, this.not_le] },
   { have le : 1 ≤ a₂ := nat.succ_le_of_lt H',
-    have lt : 1 < a₁ := lt_of_le_of_lt le ha₁,
-    rcases eq_or_lt_of_le le with rfl|lt',
+    have lt : 1 < a₁ := le.trans_lt ha₁,
+    rcases le.eq_or_lt with rfl|lt',
     { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt), H.not_le] },
     { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt),
-      swap_apply_of_ne_of_ne (ne_of_gt H') (ne_of_gt lt'), ha₁.not_le] } }
+        swap_apply_of_ne_of_ne (ne_of_gt H') (ne_of_gt lt'), ha₁.not_le] } }
 end
 
 private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :

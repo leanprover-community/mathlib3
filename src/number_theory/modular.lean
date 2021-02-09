@@ -253,6 +253,12 @@ mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
 instance has_coe_SL : has_coe SL(2,ℤ) SL(2,ℝ) := ⟨λ x, SL_n_insertion (int.cast_ring_hom ℝ) x⟩
 
+@[simp] lemma has_coe_SL_apply (g : SL(2, ℤ)) :
+  @coe _ (special_linear_group (fin 2) ℝ) _ g
+  = ⟨map (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g) (int.cast_ring_hom ℝ),
+    ring_hom.map_det_one (int.cast_ring_hom ℝ) (det_coe_matrix g)⟩ :=
+SL_n_insertion_apply (int.cast_ring_hom ℝ) g
+
 instance has_neg_SL : has_neg SL(2,ℤ) := ⟨λ g, ⟨(-1 : ℤ) • (g.1), by simpa [det2] using g.2⟩⟩
 
 @[simp]
@@ -261,11 +267,11 @@ lemma bottom_def' {g : SL(2,ℝ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1
 @[simp]
 lemma top_def' {g : SL(2,ℝ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by refl
 
-@[simp]
-lemma coeff_coe {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)).val i j = ((g.val i j) : ℝ) := by refl
+-- @[simp]
+-- lemma coeff_coe {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)).val i j = ((g.val i j) : ℝ) := by refl
 
-@[simp]
-lemma coeff_coe' {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)) i j = ((g i j) : ℝ) := by refl
+-- @[simp]
+-- lemma coeff_coe' {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)) i j = ((g i j) : ℝ) := by refl
 
 @[simp]
 lemma bottom_def {g : SL(2,ℤ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by simp
@@ -282,53 +288,22 @@ end
 lemma im_smul_SL {g : SL(2, ℝ)} {z : H} :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) := im_smul_mat_complex
 
-lemma mat_coe { g : SL(2,ℤ) } : (g : SL(2,ℝ)) =
-  { val := ![![g.1 0 0, g.1 0 1], ![g.1 1 0, g.1 1 1]], property :=
-  by {simp [det2], norm_cast, simpa [det2] using g.2 }} :=
-begin
-  ext i j,
-  dsimp,
-  fin_cases i,
-  all_goals {fin_cases j, simp, try{ refl }, try{ simp, refl }},
-end
-
 lemma im_smul_SL' {g : SL(2, ℤ)} {z : H} :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
-by simpa [mat_coe] using @im_smul_SL g z
+by simpa using @im_smul_SL g z
 
 lemma im_smul_SL'' {g : SL(2, ℤ)} {z : H} :
 (g • z).val.im = z.val.im / (complex.norm_sq (bottom g z)) :=
-begin
-  rw bottom,
-  simp,
-  refine im_smul_SL',
-end
+im_smul_mat_complex
 
 
 @[simp]
 lemma smul_sound {g : SL(2,ℤ)} {z : H} : ((g:SL(2,ℝ)) • z).1 = smul_aux g z :=
-begin
-  simp only [mat_coe],
-  unfold_coes,
-  simp [top, bottom],
-  norm_cast,
-end
+rfl
 
 def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property := by simp [det2] }
 
 def S : SL(2,ℤ) := { val := ![![0, -1], ![1, 0]], property := by simp [det2] }
-
-lemma T_real : (T : SL(2,ℝ)) = { val := ![![(1:ℝ), (1:ℝ)], ![(0:ℝ), (1:ℝ)]],
-  property := by simp [det2] } :=
-begin
-  simp [T, mat_coe],
-end
-
-lemma S_real : (S : SL(2,ℝ)) = { val := ![![(0:ℤ), (-1:ℤ)], ![(1:ℤ), (0:ℤ)]],
-  property := by simp [det2] } :=
-begin
-  simp [S, mat_coe],
-end
 
 example : T⁻¹ * T = 1 := inv_mul_self T
 
@@ -443,10 +418,9 @@ end
 
 lemma T_action {z : H} : (T • z).1 = z + 1 :=
 begin
-  change ((T:SL(2,ℝ)) • z).1 = z + 1,
-  simp only [smul_sound],
-  simp [smul_aux_def, T_real, top, bottom],
-  field_simp *,
+  convert @smul_sound T z,
+  simp only [smul_aux_def, top, bottom, T, has_coe_SL_apply, subtype.coe_mk, map_cons],
+  simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
 end
 
 
@@ -463,10 +437,10 @@ end
 
 lemma S_action (z : H) : (S • z).1 = -z⁻¹ :=
 begin
-  change ((S:SL(2,ℝ)) • z).1 = -z⁻¹,
-  simp only [smul_sound],
-  simp [smul_aux_def, S_real, top, bottom],
-  field_simp *,
+  convert @smul_sound S z,
+  simp only [smul_aux_def, top, bottom, S, has_coe_SL_apply, subtype.coe_mk, map_cons],
+  simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
+  ring,
 end
 
 

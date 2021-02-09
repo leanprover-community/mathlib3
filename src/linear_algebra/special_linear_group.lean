@@ -7,6 +7,7 @@
 -/
 import linear_algebra.matrix
 import linear_algebra.nonsingular_inverse
+import data.matrix.notation
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -174,6 +175,29 @@ monoid_hom (special_linear_group n R) (special_linear_group n S) :=
 { to_fun := λ g, ⟨f.map_matrix g, ring_hom.map_det_one f g.2⟩,
   map_one' := by simpa,
   map_mul' := λ x y, by simpa }
+
+@[simp] lemma SL_n_insertion_apply (f : R →+* S) (g : special_linear_group n R) :
+  SL_n_insertion f g = ⟨f.map_matrix g, ring_hom.map_det_one f (det_coe_matrix g)⟩ :=
+rfl
+
+section matrix_notation
+
+variables {m : ℕ}
+
+lemma cons_apply_zero
+  (M : matrix (fin m) (fin m.succ) R) (v : (fin m.succ) → R) (hM : det (vec_cons v M) = 1) :
+  (@coe_fn _ special_linear_group.coe_fun (⟨vec_cons v M, hM⟩ :
+    special_linear_group (fin m.succ) R)) 0 = v :=
+rfl
+
+lemma cons_apply_one
+  (M : matrix (fin m.succ) (fin m.succ.succ) R) (v : (fin m.succ.succ) → R)
+  (hM : det (vec_cons v M) = 1) :
+  (@coe_fn _ special_linear_group.coe_fun (⟨vec_cons v M, hM⟩ :
+    special_linear_group (fin m.succ.succ) R)) 1 = M 0 :=
+cons_val_one v M
+
+end matrix_notation
 
 end special_linear_group
 

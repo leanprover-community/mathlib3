@@ -77,7 +77,14 @@ begin
 end
 
 lemma to_fin_val {n : ℕ} (v : bitvec n) : (to_fin v : ℕ) = v.to_nat :=
-by rw [to_fin, fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt]; apply to_nat_lt
+begin
+  have : nat.pred (2 ^ n) + 1 = 2 ^ n,
+    { rw [←nat.succ_eq_add_one, nat.succ_pred_eq_of_pos (pow_pos zero_lt_two _)] },
+  simp only [to_fin, fin.of_nat_eq, fin.coe_order_iso_apply, fin.of_nat_eq_coe],
+  rw [fin.coe_coe_of_lt],
+  convert (to_nat_lt _)
+end
+-- by rw [to_fin, fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt]; apply to_nat_lt
 
 lemma to_fin_le_to_fin_of_le {n} {v₀ v₁ : bitvec n} (h : v₀ ≤ v₁) : v₀.to_fin ≤ v₁.to_fin :=
 show (v₀.to_fin : ℕ) ≤ v₁.to_fin,

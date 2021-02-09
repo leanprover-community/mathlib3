@@ -438,7 +438,8 @@ if h : p.cast_succ < i then
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
-/-- `pred_above' p i h` embeds `i : fin (n+1)` into `fin n` by ignoring `p`. -/
+/-- `pred_above' p i h` embeds `i : fin (n+1)` into `fin n` by subtracting one if `p < i`,
+and is not defined at `i = p`. -/
 def pred_above' (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
 if h : i < p
 then i.cast_lt (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)

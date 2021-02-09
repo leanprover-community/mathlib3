@@ -6,6 +6,7 @@ Authors: Jujian Zhang
 
 import analysis.transcendental.liouville
 import data.nat.factorial
+import order.basic
 
 /-!
 # Liouville constants
@@ -47,22 +48,42 @@ summable_inv_pow_ge hm (λ i, (nat.self_le_factorial _).trans (nat.factorial_le 
 
 end lemmas_about_summability_and_sums
 
-section natural
-open nat
+lemma one_div_pow_strict_mono_decr_on : strict_mono_decr_on (λ x : ℝ, 1 / x) (set.Ioi 0) :=
+λ x x1 y y1 xy, (one_div_lt_one_div (mem_Ioi.mp y1) (mem_Ioi.mp x1)).mpr xy
 
-end natural
-
-lemma add_factorial_le_factorial_add (i : ℕ) (n : ℕ) :
-  i + (n + 1)! ≤ (i + (n + 1))! :=
+lemma one_div_mono_exp (m1 : 1 ≤ m) {a b : ℕ} (ab : a ≤ b) :
+  1 / m ^ b ≤ 1 / m ^ a :=
 begin
-  by_cases i2 : 2 ≤ i,
-  { exact (n.add_factorial_succ_lt_factorial_add_succ i2).le },
-  { cases not_le.mp i2 with _ i0,
-    { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
-      rw [add_mul, one_mul, add_comm 1 n],
-      exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
-    { rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add] } }
+  refine (one_div_le_one_div _ _).mpr (pow_le_pow m1 ab);
+  exact pow_pos (lt_of_lt_of_le zero_lt_one m1) _
 end
+
+lemma one_div_pow_strict_mono (m1 : 1 < m) {a b : ℕ} (ab : a < b) :
+  1 / m ^ b < 1 / m ^ a :=
+begin
+  refine one_div_pow_strict_mono_decr_on _ _ (pow_lt_pow m1 ab);
+  exact pow_pos (zero_lt_one.trans m1) _
+end
+
+/-
+lemma one_div_mono_base {x y : ℝ} (x0 : 0 < x) (xy : x < y) (n : ℕ) : 1 / x ^ n < 1 / y ^ n :=
+sorry
+begin
+  apply (one_div_lt_one_div _ _).mpr _,
+  apply pow_pos x0,
+  apply pow_pos (x0.trans xy),
+  apply pow_lt_pow,
+  refine (one_div_lt_one_div (pow_pos x0 _) _).mpr _,
+end
+-/
+
+lemma pre_calc_liou_one_le (m1 : 1 ≤ m) (n : ℕ) (i : ℕ) :
+  1 / m ^ (i + (n + 1))! ≤ 1 / m ^ (i + (n + 1)!) :=
+one_div_mono_exp m1 (i.add_factorial_succ_le_factorial_add_succ n)
+
+lemma pre_calc_liou_one (m1 : 1 < m) (n : ℕ) {i : ℕ} (i2 : 2 ≤ i) :
+  1 / m ^ (i + (n + 1))! < 1 / m ^ (i + (n + 1)!) :=
+one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ i2)
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
@@ -72,31 +93,34 @@ have mi : abs (1 / m) < 1,
 { rw abs_of_pos (one_div_pos.mpr m0),
   exact (div_lt_one m0).mpr m1 },
 calc (∑' i, 1 / m ^ (i + (n + 1))!)
-    < ∑' i, 1 / m ^ (i + (n + 1)!) : begin refine tsum_lt_tsum_of_nonneg
-    (λ b, one_div_nonneg.mpr (pow_nonneg m0.le _))
-    (λ b, (one_div_le_one_div (pow_pos m0 _) (pow_pos m0 _)).mpr
-      (pow_le_pow m1.le (b.add_factorial_succ_le_factorial_add_succ n))) _
-      (summable_inv_pow_ge m1 (λ j, nat.le.intro rfl)),
-    { exact 2 },
-    { refine (one_div_lt_one_div (pow_pos m0 _) (pow_pos m0 _)).mpr (pow_lt_pow m1 _),
-      exact (n.add_factorial_succ_lt_factorial_add_succ rfl.le) }
-  end
+    < ∑' i, 1 / m ^ (i + (n + 1)!) : tsum_lt_tsum_of_nonneg
+-- the first series has non-negative term
+      (λ b, one_div_nonneg.mpr (pow_nonneg m0.le _))
+-- the second series dominates the first
+      (λ b, one_div_mono_exp m1.le (b.add_factorial_succ_le_factorial_add_succ n))
+-- the second term of the first series is strictly smaller than the second term of the first
+      (one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ rfl.le))
+-- the second series is summable
+      (summable_inv_pow_ge m1 (λ j, nat.le.intro rfl))
 ... = ∑' i, (1 / m) ^ i * (1 / m ^ (n + 1)!) :
-    by { congr, ext i, rw [pow_add, div_pow, one_pow, ← div_div_eq_div_mul, div_eq_mul_one_div] }
+    by { congr, ext i, rw [pow_add, ← div_div_eq_div_mul, div_eq_mul_one_div, ← one_div_pow i] }
 ... = (∑' i, (1 / m) ^ i) * (1 / m ^ (n + 1)!) : tsum_mul_right
 ... = m / (m - 1) * (1 / m ^ (n + 1)!) :
     by rw [tsum_geometric_of_abs_lt_1 mi, ← @inv_div _ _ _ m, sub_div, div_self (m0.ne.symm)]
 
+lemma ine (hm : 2 ≤ m) :
+  m / (m - 1) ≤ 2 :=
+begin
+  refine (div_le_iff (sub_pos.mpr (one_lt_two.trans_le hm))).mpr _,
+  rw [mul_sub, mul_one, two_mul m],
+  exact le_sub_iff_add_le.mpr ((add_le_add_iff_left _).mpr hm)
+end
+
 lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
   m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
 begin
-  calc m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) : begin
-    refine mul_le_mul _ rfl.le _ zero_le_two,
-    { refine (div_le_iff (sub_pos.mpr (one_lt_two.trans_le hm))).mpr _,
-      rw [mul_sub, mul_one, two_mul m],
-      exact le_sub_iff_add_le.mpr ((add_le_add_iff_left _).mpr hm) },
-    { exact one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _) },
-  end
+  calc m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
+    mul_mono_nonneg (one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _)) (ine hm)
   ... = 2 / m ^ (n + 1)! : mul_one_div 2 _
   ... = 2 / m ^ (n! * (n + 1)) : by rw [nat.factorial_succ, mul_comm]
   ... ≤ 1 / m ^ (n! * n) :
@@ -142,9 +166,11 @@ lemma liouville_constant_terms_after_pos (hm : 1 < m) :
   ∀ k, 0 < liouville_constant_terms_after_k m k := λ n,
 calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
   ... = 1 / m ^ (0 + (n + 1))! : by rw zero_add
-  ... ≤ ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! :
-      le_tsum (summable_inv_pow_n_add_fact _ hm) 0
-        (λ i i0, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
+  ... ≤ ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! : le_tsum
+      (summable_inv_pow_n_add_fact _ hm)
+      0
+      (λ i i0, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
+
 
 lemma liouville_constant_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
   liouville_constant m = liouville_constant_first_k_terms m k +

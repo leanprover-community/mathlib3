@@ -86,13 +86,13 @@ lemma one_le_denom_pow_eval_rat {f : polynomial ℤ} {a b : ℤ}
   (b0 : (0 : ℝ) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
   (1 : ℝ) ≤ b ^ f.nat_degree * abs (eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ))) :=
 begin
-  obtain ⟨ev, bi, bu, hF⟩ := @denoms_clearable_nat_degree ℤ ℝ _ _ b _ (algebra_map ℤ ℝ)
+  obtain ⟨ev, bi, bu, hF⟩ := @denoms_clearable_nat_degree _ _ _ _ b _ (algebra_map ℤ ℝ)
     f a (by { rw [eq_int_cast, one_div_mul_cancel], exact (b0.ne.symm) }),
   obtain Fa := congr_arg abs hF,
   rw [eq_one_div_of_mul_eq_one_left bu, eq_int_cast, eq_int_cast, abs_mul,
     (abs_of_pos (pow_pos b0 _)), one_div, eq_int_cast] at Fa,
-  rw [div_eq_mul_inv, ← Fa],
-  apply_mod_cast int.le_of_lt_add_one ((lt_add_iff_pos_left 1).mpr (abs_pos.mpr (λ F0, fab _))),
+  rw [div_eq_mul_inv, ← Fa, ← int.cast_abs, ← int.cast_one, int.cast_le],
+  refine int.le_of_lt_add_one ((lt_add_iff_pos_left 1).mpr (abs_pos.mpr (λ F0, fab _))),
   rw [eq_one_div_of_mul_eq_one_left bu, F0, one_div, eq_int_cast, int.cast_zero, zero_eq_mul] at hF,
   cases hF with hF hF,
   { exact (not_le.mpr b0 (pow_eq_zero hF).le).elim },
@@ -114,13 +114,10 @@ begin
     exact mul_le_mul ha (not_le.mp A).le zero_le_one (zero_le_one.trans ha) }
 end
 
-lemma mem_Icc_of_abs_le {R : Type*} [linear_ordered_add_comm_group R]
-  {x y z : R} (h : abs (x - y) ≤ z) : y ∈ Icc (x - z) (x + z) :=
-⟨sub_le.mp (abs_le.mp h).2, neg_le_sub_iff_le_add.mp (abs_le.mp h).1⟩
-
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R]
   {x y z : R} : abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
-⟨mem_Icc_of_abs_le, λ hy, abs_le.mpr ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
+⟨λ h, ⟨sub_le.mp (abs_le.mp h).2, neg_le_sub_iff_le_add.mp (abs_le.mp h).1⟩,
+ λ hy, abs_le.mpr ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
 
 end inequality_and_intervals
 
@@ -170,7 +167,7 @@ begin
   { rw [mul_comm],
     rw [closed_ball_Icc] at hy,
     refine convex.norm_image_sub_le_of_norm_deriv_le (λ _ _, fR.differentiable_at)
-      (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_of_abs_le _),
+      (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_iff_abs_le.mp _),
     exact @mem_closed_ball_self ℝ _ α ζ (le_of_lt z0) },
   { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * abs (eval α fR - eval (z / (a + 1)) fR),
     rw [fa, zero_sub, abs_neg],

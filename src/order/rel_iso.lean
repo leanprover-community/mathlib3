@@ -284,6 +284,11 @@ def order_embedding_of_lt_embedding [partial_order α] [partial_order β]
   α ↪o β :=
 { map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective] }, .. f }
 
+@[simp]
+lemma order_embedding_of_lt_embedding_apply [partial_order α] [partial_order β]
+  {f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)} {x : α} :
+  order_embedding_of_lt_embedding f x = f x := rfl
+
 end rel_embedding
 
 namespace order_embedding

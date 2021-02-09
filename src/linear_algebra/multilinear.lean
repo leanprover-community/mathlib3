@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
 import algebra.algebra.basic
-import tactic.omega
 import data.fintype.sort
 
 /-!
@@ -283,6 +282,11 @@ variables {α : ι → Type*} (g : Π i, α i → M₁ i) (A : Π i, finset (α 
 open_locale classical
 open fintype finset
 
+lemma glouk (n : ℕ) (h : n ≠ 0) (h' : n ≤ 1) : n = 1 :=
+begin
+  exact le_antisymm h' (pos_iff_ne_zero.mpr h),
+end
+
 /-- If `f` is multilinear, then `f (Σ_{j₁ ∈ A₁} g₁ j₁, ..., Σ_{jₙ ∈ Aₙ} gₙ jₙ)` is the sum of
 `f (g₁ (r 1), ..., gₙ (r n))` where `r` ranges over all functions with `r 1 ∈ A₁`, ...,
 `r n ∈ Aₙ`. This follows from multilinearity by expanding successively with respect to each
@@ -308,9 +312,9 @@ begin
   by_cases Ai_singleton : ∀ i, (A i).card ≤ 1,
   { have Ai_card : ∀ i, (A i).card = 1,
     { assume i,
-      have : finset.card (A i) ≠ 0, by simp [finset.card_eq_zero, Ai_empty i],
+      have pos : finset.card (A i) ≠ 0, by simp [finset.card_eq_zero, Ai_empty i],
       have : finset.card (A i) ≤ 1 := Ai_singleton i,
-      omega },
+      exact le_antisymm this (pos_iff_ne_zero.mpr pos), },
     have : ∀ (r : Π i, α i), r ∈ pi_finset A → f (λ i, g i (r i)) = f (λ i, ∑ j in A i, g i j),
     { assume r hr,
       unfold_coes,

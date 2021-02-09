@@ -70,10 +70,9 @@ by { cases s, refl }
 lemma to_list_nonempty {s : string} (h : s ≠ string.empty) :
   s.to_list = s.head :: (s.popn 1).to_list :=
 begin
-  rcases s with ⟨_ | ⟨hd, tl⟩⟩,
-  { simpa only using h },
-  { simp [to_list, popn, iterator.nextn, mk_iterator, head, iterator.next,
-          iterator.next_to_string, iterator.curr] }
+  induction s, cases s,
+  { exact absurd rfl h },
+  { exact rfl }
 end
 
 @[simp] lemma head_empty : "".head = default _ := rfl

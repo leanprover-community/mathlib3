@@ -6,6 +6,7 @@ Author: Joseph Myers.
 import linear_algebra.affine_space.basic
 import linear_algebra.tensor_product
 import linear_algebra.prod
+import linear_algebra.pi
 import data.set.intervals.unordered_interval
 
 /-!

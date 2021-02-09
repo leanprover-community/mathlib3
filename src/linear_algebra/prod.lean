@@ -29,9 +29,10 @@ It contains theorems relating these to each other, as well as to `submodule.prod
 
 ## Implementation notes
 
-`linear_map.prod` and `linear_map.coprod` are `linear_equiv`s in `S` between `linear_map`s in
-`R`. When we have `comm_ring R`, `S = R` can be used (via `nat_smul_comm_class`). When we don't,
-these equivs can always be instantiated with `S = ℕ` (via `add_comm_monoid.nat_smul_comm_class`).
+`linear_map.prod_equiv` and `linear_map.coprod_equiv` are `linear_equiv`s in `S` between
+`linear_map`s in `R`. When we have `comm_ring R`, `S = R` can be used (via `nat_smul_comm_class`).
+When we don't, these equivs can always be instantiated with `S = ℕ` (via
+`add_comm_monoid.nat_smul_comm_class`).
 -/
 
 universes u v w x y z u' v' w' y'

@@ -78,9 +78,8 @@ begin
   simp only [geom_series₂_def, op_sum, op_mul, units.op_pow],
   rw ← sum_range_reflect,
   refine sum_congr rfl (λ j j_in, _),
-  rw mem_range at j_in,
+  rw [mem_range, nat.lt_iff_add_one_le] at j_in,
   congr,
-  rw nat.lt_iff_add_one_le at j_in,
   apply nat.sub_sub_self,
   exact nat.le_sub_right_of_add_le j_in
 end
@@ -219,14 +218,9 @@ begin
     { refine sum_congr rfl (λ j j_in, _),
       rw ← pow_add,
       congr,
-      rw mem_range at j_in,
-      rw nat.lt_iff_add_one_le at j_in,
-      rw nat.sub_sub m,
-      rw add_comm at j_in,
-      have h' : n - m + (m - (1 + j)) = n - (1 + j) :=
-      nat.sub_add_sub_cancel hmn j_in,
-      rw h',
-      rw nat.sub_sub },
+      rw [mem_range, nat.lt_iff_add_one_le, add_comm] at j_in,
+      have h' : n - m + (m - (1 + j)) = n - (1 + j) := nat.sub_add_sub_cancel hmn j_in,
+      rw [nat.sub_sub m, h', nat.sub_sub] },
   rw this,
   simp_rw pow_mul_comm y (n-m) _,
   simp_rw ← mul_assoc,

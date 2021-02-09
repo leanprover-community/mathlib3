@@ -325,8 +325,8 @@ private lemma sign_aux_swap_zero_one' (n : ℕ) :
 show _ = ∏ x : Σ a : fin (n + 2), fin (n + 2) in {(⟨1, 0⟩ : Σ a : fin (n + 2), fin (n + 2))},
   if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : units ℤ) else 1,
 begin
-  refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩, by simp [mem_fin_pairs_lt, fin.one_pos] {contextual := tt})
-    (λ a ha₁ ha₂, _)),
+  refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩,
+    by simp [mem_fin_pairs_lt, fin.one_pos] {contextual := tt}) (λ a ha₁ ha₂, _)),
   rcases a with ⟨a₁, a₂⟩,
   replace ha₁ : a₂ < a₁ := mem_fin_pairs_lt.1 ha₁,
   dsimp only,

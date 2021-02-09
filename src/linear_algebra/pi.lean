@@ -35,8 +35,8 @@ variables (S : Type*) [semiring S]
 variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
 {φ : ι → Type i} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
 
-/-- `pi` construction for linear functions. From a family of linear functions it produces a linear
-function into a family of modules. -/
+/-- `pi` construction for linear functions. From a family of linear functions with the same domain
+it produces a linear function into a family of modules. -/
 def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
 ⟨λc i, f i c, λ c d, funext $ λ i, (f i).map_add _ _, λ c d, funext $ λ i, (f i).map_smul _ _⟩
 
@@ -55,11 +55,53 @@ ext $ assume c, rfl
 /-- This is the `pi` version of `linear_map.prod_equiv`. -/
 def pi_equiv
   [semimodule S M₂] [Π i, semimodule S (φ i)] [∀ i, smul_comm_class R S (φ i)] :
-  (Π i, M₂ →ₗ[R] φ i) ≃ (M₂ →ₗ[R] (Π i, φ i)) :=
+  (Π i, M₂ →ₗ[R] φ i) ≃ₗ[S] (M₂ →ₗ[R] (Π i, φ i)) :=
 { to_fun := pi,
   inv_fun := λ f i, (proj i).comp f,
   left_inv := λ f, funext (proj_pi _),
-  right_inv := λ f, by { ext, simp }, }
+  right_inv := λ f, by { ext, refl },
+  map_add' := λ a b, rfl,
+  map_smul' := λ a b, rfl }
+
+/-- co-`pi` construction for linear functions. From a family of linear functions with the same
+codomain it produces a linear function from a family of modules. -/
+def co_pi [fintype ι] (f : Πi, φ i →ₗ[R] M₂) : (Πi, φ i) →ₗ[R] M₂ :=
+{ to_fun := λ c, finset.univ.sum (λ i, f i (c i)),
+  map_add' := λ c d, begin
+    rw [←finset.sum_add_distrib, finset.sum_congr rfl (λ x hx, _)],
+    exact (f x).map_add _ _,
+  end,
+  map_smul' := λ c d, begin
+    rw [finset.smul_sum, finset.sum_congr rfl (λ x hx, _)],
+    exact (f x).map_smul _ _,
+  end}
+
+/-- `pi.single` as a linear_map -/
+def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
+{ to_fun := λ x, pi.single i x,
+  map_add' := λ x y, begin
+    ext j,
+    by_cases h : j = i,
+    { rw h, simp [h], },
+    { simp [pi.single_eq_of_ne h], }
+  end,
+  map_smul' := λ x y, begin
+    ext j,
+    by_cases h : j = i,
+    { rw h, simp [h], },
+    { simp [pi.single_eq_of_ne h], }
+  end}
+
+def co_pi_equiv
+  [fintype ι] [decidable_eq ι]
+  [semimodule S M₂] [Π i, semimodule S (φ i)] [smul_comm_class R S M₂] :
+  (Π i, φ i →ₗ[R] M₂) ≃ₗ[S] (Πi, φ i) →ₗ[R] M₂ :=
+{ to_fun := co_pi,
+  inv_fun := λ f i, f.comp (single i),
+  left_inv := λ f, funext (proj_pi _),
+  right_inv := λ f, by { ext, refl },
+  map_add' := λ a b, rfl,
+  map_smul' := λ a b, rfl }
 
 lemma ker_pi (f : Πi, M₂ →ₗ[R] φ i) : ker (pi f) = (⨅i:ι, ker (f i)) :=
 by ext c; simp [funext_iff]; refl

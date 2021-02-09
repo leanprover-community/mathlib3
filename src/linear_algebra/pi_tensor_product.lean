@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Frédéric Dupuis
+Authors: Frédéric Dupuis, Eric Wieser
 -/
 
 import group_theory.congruence
@@ -26,6 +26,8 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 * `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
   `(⨂[R] i, s i) →ₗ[R] E`. This is bundled as a linear equivalence.
 * `pi_tensor_product.reindex e` re-indexes the components of `⨂[R] i : ι, M` along `e : ι ≃ ι₂`.
+* `pi_tensor_product.mul_equiv` equivalence between a `tensor_product` of `pi_tensor_product`s and
+  a single `pi_tensor_product`.
 
 ## Notations
 

@@ -26,7 +26,7 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 * `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
   `(⨂[R] i, s i) →ₗ[R] E`. This is bundled as a linear equivalence.
 * `pi_tensor_product.reindex e` re-indexes the components of `⨂[R] i : ι, M` along `e : ι ≃ ι₂`.
-* `pi_tensor_product.mul_equiv` equivalence between a `tensor_product` of `pi_tensor_product`s and
+* `pi_tensor_product.tmul_equiv` equivalence between a `tensor_product` of `pi_tensor_product`s and
   a single `pi_tensor_product`.
 
 ## Notations
@@ -447,14 +447,14 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
 section mul
 
 /-- Collapse a `tensor_product` of `pi_tensor_product`s. -/
-def mul : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+private def mul : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
 tensor_product.lift
   { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
       (multilinear_map.curry_sum_equiv R _ _ M _ (tprod R)) a,
     map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
     map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
 
-@[simp] lemma mul_tprod_tmul_tprod (a : ι → M) (b : ι₂ → M) :
+private lemma mul_tprod_tmul_tprod (a : ι → M) (b : ι₂ → M) :
   mul ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
 begin
   erw [tensor_product.lift.tmul, pi_tensor_product.lift.tprod, pi_tensor_product.lift.tprod],
@@ -462,18 +462,18 @@ begin
 end
 
 /-- Expand `pi_tensor_product` into a `tensor_product` of two factors. -/
-def factor : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) :=
+private def factor : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) :=
 pi_tensor_product.lift begin
   apply multilinear_map.dom_coprod,
   exact tprod R,
   exact tprod R,
 end
 
-@[simp] lemma factor_tprod (a : ι ⊕ ι₂ → M) :
+private lemma factor_tprod (a : ι ⊕ ι₂ → M) :
   factor (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
 pi_tensor_product.lift.tprod _
 
-@[simp] lemma factor_comp_mul :
+private lemma factor_comp_mul :
   (factor : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] _).comp mul = linear_map.id :=
 begin
   ext,
@@ -482,11 +482,7 @@ begin
     sum.elim_inl, sum.elim_inr],
 end
 
-@[simp] lemma factor_mul (x : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M)) :
-  factor (mul x) = x :=
-by rw [←linear_map.comp_apply, factor_comp_mul, linear_map.id_apply]
-
-@[simp] lemma mul_comp_factor :
+private lemma mul_comp_factor :
   (mul : _ →ₗ[R] ⨂[R] i : ι ⊕ ι₂, M).comp factor = linear_map.id :=
 begin
   ext,
@@ -494,22 +490,23 @@ begin
     factor_tprod, mul_tprod_tmul_tprod, sum.elim_comp_inl_inr],
 end
 
-@[simp] lemma mul_factor (x : ⨂[R] i : ι ⊕ ι₂, M) :
+private lemma mul_factor (x : ⨂[R] i : ι ⊕ ι₂, M) :
   mul (factor x) = x :=
 by rw [←linear_map.comp_apply, mul_comp_factor, linear_map.id_apply]
 
 variables (R M)
 
-/-- `mul` and `factor` combined as an ``linear_equiv`. -/
-def mul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+/-- Equivalence between a `tensor_product` of `pi_tensor_product`s and a single
+`pi_tensor_product`. -/
+def tmul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
 linear_equiv.of_linear mul factor mul_comp_factor factor_comp_mul
 
-@[simp] lemma mul_equiv_apply (a : ι → M) (b : ι₂ → M) :
-  mul_equiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
+@[simp] lemma tmul_equiv_apply (a : ι → M) (b : ι₂ → M) :
+  tmul_equiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
 mul_tprod_tmul_tprod a b
 
-@[simp] lemma mul_equiv_symm_apply (a : ι ⊕ ι₂ → M) :
-  (mul_equiv R M).symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
+@[simp] lemma tmul_equiv_symm_apply (a : ι ⊕ ι₂ → M) :
+  (tmul_equiv R M).symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
 factor_tprod a
 
 end mul

@@ -36,7 +36,9 @@ This file expands on the development in the core library.
 * `cast_add m` : embed `fin n` into `fin (n+m)`;
 * `cast_succ` : embed `fin n` into `fin (n+1)`;
 * `succ_above p` : embed `fin n` into `fin (n + 1)` with a hole around `p`;
-* `pred_above p i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
+* `pred_above (p : fin n) i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
+* `pred_above' (p : fin (n+1)) i h` :
+     embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`, as long as `h : p ≠ i`;
 * `sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
 * `add_nat m i` : add `m` on `i` on the right, generalizes `fin.succ`;
 * `nat_add n i` adds `n` on `i` on the left;

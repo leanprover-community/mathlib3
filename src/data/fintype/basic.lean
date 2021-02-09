@@ -486,8 +486,8 @@ begin
     simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
     refine or_iff_not_imp_left.mpr _,
     { intro h,
-      use p.pred_above m h,
-      simp only [eq_self_iff_true, fin.succ_above_pred_above, and_self] } },
+      use p.pred_above' m h,
+      simp only [eq_self_iff_true, fin.succ_above_pred_above', and_self] } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end

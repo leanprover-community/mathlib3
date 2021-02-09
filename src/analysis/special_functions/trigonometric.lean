@@ -2400,7 +2400,7 @@ lemma tan_int_mul_pi_div_two (n : ℤ) : tan (n * π/2) = 0 :=
 tan_eq_zero_iff.mpr (by use n)
 
 lemma tan_int_mul_pi (n : ℤ) : tan (n * π) = 0 :=
-by rw tan_eq_zero_iff; use (2*n); field_simp [mul_comm ((n:ℂ)*(π:ℂ)) 2, ← mul_assoc]
+by simp [tan, add_mul, sin_add, sin_int_mul_pi]
 
 lemma cos_eq_cos_iff {x y : ℂ} :
   cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=

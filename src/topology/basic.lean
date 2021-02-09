@@ -480,6 +480,12 @@ infimum over the principal filters of all open sets containing `a`. -/
 
 localized "notation `𝓝` := nhds" in topological_space
 
+/-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
+intersection of `s` and a neighborhood of `a`. -/
+def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
+
+localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
 /-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`

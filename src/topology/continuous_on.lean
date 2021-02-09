@@ -32,12 +32,6 @@ open_locale topological_space filter
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]
 
-/-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
-intersection of `s` and a neighborhood of `a`. -/
-def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
-
-localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
-
 @[simp] lemma nhds_bind_nhds_within {a : α} {s : set α} :
   (𝓝 a).bind (λ x, 𝓝[s] x) = 𝓝[s] a :=
 bind_inf_principal.trans $ congr_arg2 _ nhds_bind_nhds rfl

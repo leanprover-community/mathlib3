@@ -75,6 +75,51 @@ end
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc (hr : 0 < r) : volume (disc hr) = ennreal.of_real (pi * r ^ 2) :=
 begin
+  let f := λ x, sqrt (r ^ 2 - x ^ 2),
+  let F := λ x, r ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
+  suffices : ∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x = pi * r ^ 2,
+  { have H : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
+      λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
+    erw [disc_eq_region_between, ← this,
+        volume_region_between_eq_integral (H hc.neg) (H hc) measurable_set_Ioc
+          (λ x hx, neg_le_self (sqrt_nonneg _))] },
+  have hderiv : ∀ x ∈ Ioo (-r) r, has_deriv_at F (2 * f x) x,
+  { rintros x ⟨hx1, hx2⟩,
+    convert ((has_deriv_at_const x (r^2)).mul ((has_deriv_at_arcsin _ _).comp x
+      ((has_deriv_at_const x r⁻¹).mul (has_deriv_at_id' x)))).add
+        ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub (r^2)).sqrt _)),
+    { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
+      { rw [← sqrt_sqr hr.le, ← sqrt_mul, sub_mul, sqrt_sqr hr.le, div_mul_eq_mul_div_comm,
+            div_self (pow_ne_zero 2 hr.ne'), one_mul, mul_one],
+        simpa only [sub_nonneg, sqrt_sqr hr.le, div_le_one (pow_pos hr 2)]
+          using (sqr_lt_sqr' hx1 hx2).le },
+      field_simp,
+      rw [h, mul_left_comm, ← pow_two, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
+          add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },
+    { by_contra hnot,
+      rw [not_not, eq_neg_iff_eq_neg, ← one_div, div_mul_eq_mul_div, one_mul,
+          ← div_neg_eq_neg_div, eq_comm, div_eq_one_iff_eq (neg_ne_zero.mpr hr.ne')] at hnot,
+      exact hx1.ne' hnot },
+    { by_contra hnot,
+      rw [not_not, ← one_div, div_mul_eq_mul_div, one_mul, div_eq_one_iff_eq hr.ne'] at hnot,
+      exact hx2.ne hnot },
+    { simpa only [sub_ne_zero] using (sqr_lt_sqr' hx1 hx2).ne' } },
+  have Fcont := ((continuous_const.mul (continuous_arcsin.comp
+                  ((@continuous_const _ _ _ _ r⁻¹).mul continuous_id))).add
+                    (continuous_id.mul (@hc (r^2)))).continuous_on,
+  have fcont := (continuous_const.mul hc).continuous_on,
+  calc  ∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x
+      = ∫ x in Ioc (-r) r, (λ x, 2 * f x) x : by simp only [pi.sub_apply, sub_neg_eq_add, ← two_mul]
+  ... = ∫ x in (-r)..r, (λ x, 2 * f x) x : (integral_of_le (neg_le_self hr.le)).symm
+  ... = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr.le) Fcont hderiv fcont
+  ... = pi * r ^ 2 : by simp_rw [F, ← neg_mul_eq_mul_neg, inv_mul_cancel hr.ne', arcsin_neg,
+                                arcsin_one, neg_square, sub_self, sqrt_zero, mul_zero, add_zero,
+                                ← neg_mul_eq_mul_neg, sub_neg_eq_add, ← mul_div_assoc, add_halves',
+                                mul_comm],
+end
+
+theorem area_disc' (hr : 0 < r) : volume (disc hr) = ennreal.of_real (pi * r ^ 2) :=
+begin
   have H : ∀ {f : ℝ → ℝ}, continuous f → integrable_on f (Ioc (-r) r) :=
     λ f h, (h.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
   rw disc_eq_region_between,

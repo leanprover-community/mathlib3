@@ -1040,7 +1040,7 @@ lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros N hN, exact hN hm, }
 
 lemma submodule_span_le_lie_span : submodule.span R s ≤ lie_span R L s :=
-by { rw [submodule.span_le, coe_to_submodule], apply subset_lie_span, }
+by { rw submodule.span_le, apply subset_lie_span, }
 
 lemma lie_span_le {N} : lie_span R L s ≤ N ↔ s ⊆ N :=
 begin

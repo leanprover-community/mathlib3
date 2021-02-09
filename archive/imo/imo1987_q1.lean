@@ -12,8 +12,8 @@ import dynamics.fixed_points.basic
 Let $p_{n, k}$ be the number of permutations of a set of cardinality `n ≥ 1` that fix exactly `k`
 elements. Prove that $∑_{k=0}^n k p_{n,k}=n!$.
 
-To prove this identity, we show that boths sides are equal to the cardinality of the set
-`{(x : α, σ : perm α) | σ x = x}` regrouping by `card (fixed_points σ)` for the left hand side and
+To prove this identity, we show that both sides are equal to the cardinality of the set
+`{(x : α, σ : perm α) | σ x = x}`, regrouping by `card (fixed_points σ)` for the left hand side and
 by `x` for the right hand side.
 
 The original problem assumes `n ≥ 1`. It turns out that a version with `n * (n - 1)!` in the RHS
@@ -63,8 +63,10 @@ def fixed_points_equiv' :
     {σx : α × perm α | σx.2 σx.1 = σx.1} :=
 { to_fun := λ p, ⟨⟨p.2.2, p.2.1⟩, p.2.2.2⟩,
   inv_fun := λ p,
-    ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (nat.lt_succ_self _)⟩, ⟨p.1.2, rfl⟩, ⟨p.1.1, p.2⟩⟩,
-  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, subtype.coe_mk] at hσ, subst k, refl },
+    ⟨⟨card (fixed_points p.1.2), (card_subtype_le _).trans_lt (nat.lt_succ_self _)⟩, 
+     ⟨p.1.2, rfl⟩, ⟨p.1.1, p.2⟩⟩,
+  left_inv := λ ⟨⟨k, hk⟩, ⟨σ, hσ⟩, ⟨x, hx⟩⟩, by { simp only [mem_fiber, subtype.coe_mk] at hσ, 
+    subst k, refl },
   right_inv := λ ⟨⟨x, σ⟩, h⟩, rfl }
 
 /-- Main statement for any `(α : Type*) [fintype α]`. -/

@@ -382,12 +382,12 @@ open linear_map
   (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])
 
 /-- A generalization of `linear_map.to_matrix_id`. -/
-@[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix
-  [decidable_eq ι] [fintype ι']
+@[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :
   linear_map.to_matrix hb hb' id = hb'.to_matrix b :=
 by { haveI := classical.dec_eq ι',
-      rw [← is_basis_to_matrix_mul_linear_map_to_matrix hb hb', to_matrix_id_aux, matrix.mul_one] }
+      rw [← is_basis_to_matrix_mul_linear_map_to_matrix hb hb', to_matrix_id, matrix.mul_one] }
 
+/-- A generalization of `is_basis.to_matrix_self`, in the opposite direction. -/
 @[simp] lemma is_basis.to_matrix_mul_to_matrix
   {ι'' : Type*} [fintype ι''] {b'' : ι'' → M} (hb'' : is_basis R b'') :
   hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=

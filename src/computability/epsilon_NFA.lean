@@ -86,7 +86,7 @@ end ε_NFA
 
 namespace NFA
 
-/-- `M.to_ε_NFA` is an `ε_NFA` constructed from a `NFA` `M` by using the same start and accept
+/-- `M.to_ε_NFA` is an `ε_NFA` constructed from an `NFA` `M` by using the same start and accept
   states and transition functions. -/
 def to_ε_NFA (M : NFA α σ) : ε_NFA α σ :=
 { step := λ s a, a.cases_on' ∅ (λ a, M.step s a),

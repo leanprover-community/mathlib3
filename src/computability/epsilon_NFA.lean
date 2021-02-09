@@ -8,20 +8,22 @@ import computability.NFA
 
 /-!
 # Epsilon Nondeterministic Finite Automata
-This file contains the definition of an epsilon Nondeterministic Finite Automaton (ε_NFA), a state
+This file contains the definition of an epsilon Nondeterministic Finite Automaton (`ε_NFA`), a state
 machine which determines whether a string (implemented as a list over an arbitrary alphabet) is in a
 regular set by evaluating the string over every possible path, also having access to ε-transitons,
 which can be followed without reading a character.
-Note that this definition allows for Automaton with infinite states, a `fintype` instance must be
-supplied for true ε_NFA's.
+Since this definition allows for Automata with infinite states, a `fintype` instance must be
+supplied for true `ε_NFA`'s.
 -/
 
 universes u v
 
-/-- An ε_NFA is a set of states (`σ`), a transition function from state to state labelled by the
+/-- An `ε_NFA` is a set of states (`σ`), a transition function from state to state labelled by the
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).
   Note the transition function sends a state to a `set` of states and can make ε-transitions by
-  inputing `none`. -/
+  inputing `none`.
+  Since this definition allows for Automata with infinite states, a `fintype` instance must be
+  supplied for true `ε_NFA`'s.-/
 structure ε_NFA (α : Type u) (σ : Type v) :=
 (step : σ → option α → set σ)
 (start : set σ)
@@ -33,7 +35,7 @@ namespace ε_NFA
 
 instance : inhabited (ε_NFA α σ) := ⟨ ε_NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
-/-- The ε_closure of a set is the set of states which can be reached by taking a finite string of
+/-- The `ε_closure` of a set is the set of states which can be reached by taking a finite string of
   ε-transitions from an element of the the set -/
 inductive ε_closure : set σ → set σ
 | base : ∀ S (s ∈ S), ε_closure S s

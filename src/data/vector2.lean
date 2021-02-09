@@ -339,8 +339,18 @@ lemma remove_nth_insert_nth' {v : vector α (n+1)} :
     remove_nth (j.succ_above i) (insert_nth a j v) = insert_nth a (i.pred_above j) (remove_nth i v)
 | ⟨i, hi⟩ ⟨j, hj⟩ :=
   begin
-    dsimp [insert_nth, remove_nth],
-    sorry,
+    dsimp [insert_nth, remove_nth, fin.succ_above, fin.pred_above],
+    simp only [subtype.mk_eq_mk],
+    split_ifs,
+    { convert (list.insert_nth_remove_nth_of_ge i (j-1) _ _ _).symm,
+      { convert (nat.succ_pred_eq_of_pos _).symm, exact lt_of_le_of_lt (zero_le _) h, },
+      { apply remove_nth_val, },
+      { convert hi, exact v.2, },
+      { exact nat.le_pred_of_lt h, }, },
+    { convert (list.insert_nth_remove_nth_of_le i j _ _ _).symm,
+      { apply remove_nth_val, },
+      { convert hi, exact v.2, },
+      { simpa using h, }, }
   end
 
 lemma insert_nth_comm (a b : α) (i j : fin (n+1)) (h : i ≤ j) :

@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
 import tactic.localized
+import tactic.apply_fun
 import order.rel_iso
 
 /-!
@@ -681,6 +682,39 @@ begin
   { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos _ },
 end
 
+/-- The range of `p.succ_above` is everything except `p`. -/
+lemma range_succ_above (p : fin (n + 1)) : set.range (p.succ_above) = { i | i ≠ p } :=
+begin
+  ext, simp,
+  rcases lt_trichotomy p x with H|rfl|H,
+  { split,
+    { rintro ⟨y, rfl⟩,
+      exact (ne_of_lt H).symm, },
+    { rintro h,
+      refine ⟨x.pred _, _⟩,
+      { apply (ne_of_lt (lt_of_le_of_lt (zero_le p) H)).symm, },
+      { rw succ_above_above,
+        { simp, },
+        { rcases p with ⟨p, _⟩, rcases x with ⟨x, _⟩,
+          simp at H,
+          exact nat.le_pred_of_lt H, }, }, }, },
+  { split,
+    { rintro ⟨y, h⟩,
+      cases succ_above_ne _ _ h, },
+    { rintro h,
+      simp at h,
+      cases h, }, },
+  { split,
+    { rintro ⟨y, rfl⟩,
+      exact ne_of_lt H, },
+    { rintro h,
+      refine ⟨x.cast_lt _, _⟩,
+      { exact lt_of_lt_of_le H (le_pred_of_lt p.property), },
+      { rw succ_above_below,
+        { simp, },
+        { exact H, }, }, }, },
+end
+
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_right_injective {x : fin (n + 1)} : injective (succ_above x) :=
 (succ_above x).injective
@@ -700,7 +734,13 @@ begin
   rcases i with ⟨i, _⟩,
   cases lt_or_le i p with H H,
   { rw dif_neg, rw if_pos, refl, exact H, simp, apply le_of_lt H, },
-  { rw dif_pos, rw if_neg, sorry, sorry, sorry, }
+  { rw dif_pos, rw if_neg,
+    swap 3, -- For some reason `simp` doesn't fire fully unless we discharge the third goal.
+    { exact lt_of_le_of_ne H (ne.symm h), },
+    { simp, },
+    { simp only [subtype.mk_eq_mk, ne.def, fin.cast_succ_mk] at h,
+      simp only [pred, subtype.mk_lt_mk, not_lt],
+      exact nat.le_pred_of_lt (nat.lt_of_le_and_ne H (ne.symm h)), }, },
 end
 
 /-- Sending `fin n` into `fin (n + 1)` with a gap at `p`
@@ -714,7 +754,9 @@ begin
   split_ifs,
   { rw dif_neg,
     { refl },
-    { simp_rw [if_pos h], simp only [subtype.mk_lt_mk, not_lt], exact le_of_lt h, }, },
+    { simp_rw [if_pos h],
+      simp only [subtype.mk_lt_mk, not_lt],
+      exact le_of_lt h, }, },
   { rw dif_pos,
     { refl, },
     { simp_rw [if_neg h],
@@ -735,22 +777,19 @@ lemma forall_iff_succ_above {p : fin (n + 1) → Prop} (i : fin n) :
   λ h j, if hj : j = i.cast_succ then (hj.symm ▸ h.1) else
   begin convert h.2 _, exact (succ_above_pred_above hj).symm, end⟩
 
--- FIXME these next two lemmas don't seem to get used, but we probably shouldn't just drop them...
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_left_injective : injective (@succ_above n) :=
+λ x y h, begin
+  apply_fun (λ f : fin n ↪o fin (n + 1), set.range f) at h,
+  rw [range_succ_above, range_succ_above] at h,
+  apply_fun (λ s : set _, sᶜ) at h,
+  simpa using h,
+end
 
--- /-- `succ_above` is injective at the pivot -/
--- lemma succ_above_left_injective : injective (@succ_above n) :=
--- λ x y, begin
---   contrapose!,
---   intros H h,
---   have key : succ_above x (y.pred_above x H) = succ_above y (y.pred_above x H), by rw h,
---   rw [succ_above_pred_above] at key,
---   exact absurd key (succ_above_ne x _)
--- end
-
--- /-- `succ_above` is injective at the pivot -/
--- lemma succ_above_left_inj {x y : fin (n + 1)} :
---   x.succ_above = y.succ_above ↔ x = y :=
--- succ_above_left_injective.eq_iff
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_left_inj {x y : fin (n + 1)} :
+  x.succ_above = y.succ_above ↔ x = y :=
+succ_above_left_injective.eq_iff
 
 /-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
 lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :

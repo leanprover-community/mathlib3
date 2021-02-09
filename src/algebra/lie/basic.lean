@@ -1577,7 +1577,7 @@ begin
 end
 
 @[simp] lemma map_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
-by { rw ←le_bot_iff, apply lie_ideal.map_le_iff_le_comap }
+by { rw ← le_bot_iff, apply lie_ideal.map_le_iff_le_comap }
 
 lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, ker_coe_submodule, lie_submodule.bot_coe_submodule,

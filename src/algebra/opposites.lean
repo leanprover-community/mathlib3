@@ -11,6 +11,10 @@ import data.equiv.mul_add
 
 /-!
 # Algebraic operations on `αᵒᵖ`
+
+This file records several basic facts about the opposite of an algebraic structure, e.g. the
+opposite of a ring is a ring (with multiplication `x * y = yx`). Use is made of the identity
+functions `op : α → αᵒᵖ` and `unop : αᵒᵖ → α`.
 -/
 
 namespace opposite

@@ -3427,12 +3427,7 @@ end
 lemma map_prefix {l l' : list α} (f : α → β) (h : l <+: l') :
   l.map f <+: l'.map f :=
 begin
-  induction l with hd tl hl generalizing l',
-  { simp only [nil_prefix, map_nil] },
-  { cases l' with hd' tl',
-    { simpa only using eq_nil_of_prefix_nil h },
-    { rw cons_prefix_iff at h,
-      simp only [h, prefix_cons_inj, hl, map] } },
+  rcases h with ⟨xs, h⟩, subst h, simp
 end
 
 lemma is_prefix.filter_map {l l' : list α} (h : l <+: l') (f : α → option β) :

@@ -37,7 +37,7 @@ The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons
 
 ## Examples
 
-Examples of usage can be found in the `test/matrix` file.
+Examples of usage can be found in the `test/matrix.lean` file.
 -/
 
 namespace matrix

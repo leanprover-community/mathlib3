@@ -31,6 +31,7 @@ open function
 open submodule
 
 universe i
+variables (S : Type*) [semiring S]
 variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
 {φ : ι → Type i} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
 
@@ -46,9 +47,19 @@ def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
-def pi_equiv : (Π i, M₂ →ₗ[R] φ i) ≃ₗ[R] (M₂ →ₗ[R] (Π i, φ i)) :=
+@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
+
+lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
+ext $ assume c, rfl
+
+/-- This is the `pi` version of `linear_map.prod_equiv`. -/
+def pi_equiv
+  [semimodule S M₂] [Π i, semimodule S (φ i)] [∀ i, smul_comm_class R S (φ i)] :
+  (Π i, M₂ →ₗ[R] φ i) ≃ (M₂ →ₗ[R] (Π i, φ i)) :=
 { to_fun := pi,
-  }
+  inv_fun := λ f i, (proj i).comp f,
+  left_inv := λ f, funext (proj_pi _),
+  right_inv := λ f, by { ext, simp }, }
 
 lemma ker_pi (f : Πi, M₂ →ₗ[R] φ i) : ker (pi f) = (⨅i:ι, ker (f i)) :=
 by ext c; simp [funext_iff]; refl
@@ -61,15 +72,6 @@ by ext; refl
 
 lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
 rfl
-
-/-- The projections from a family of modules are linear maps. -/
-def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
-⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
-
-@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
-
-lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
-ext $ assume c, rfl
 
 lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
 bot_unique $ submodule.le_def'.2 $ assume a h,

@@ -149,13 +149,12 @@ end inf_edist --section
 
 /-- The Hausdorff edistance between two sets is the smallest `r` such that each set
 is contained in the `r`-neighborhood of the other one -/
-def Hausdorff_edist {α : Type u} [emetric_space α] (s t : set α) : ℝ≥0∞ :=
+@[irreducible] def Hausdorff_edist {α : Type u} [emetric_space α] (s t : set α) : ℝ≥0∞ :=
   Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t)
 
 lemma Hausdorff_edist_def {α : Type u} [emetric_space α] (s t : set α) :
-  Hausdorff_edist s t = Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t) := rfl
-
-attribute [irreducible] Hausdorff_edist
+  Hausdorff_edist s t = Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t) :=
+by rw Hausdorff_edist
 
 section Hausdorff_edist
 

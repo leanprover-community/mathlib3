@@ -82,6 +82,7 @@ open set ring_hom
 
 namespace polynomial
 
+-- going to denoms_clearable
 lemma one_le_denom_pow_eval_rat {f : polynomial ℤ} {a b : ℤ}
   (b0 : (0 : ℝ) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
   (1 : ℝ) ≤ b ^ f.nat_degree * abs (eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ))) :=

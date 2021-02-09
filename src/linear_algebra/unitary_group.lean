@@ -46,8 +46,8 @@ variables (n : Type u) [fintype n] [decidable_eq n]
 variables (α : Type v) [comm_ring α] [star_ring α]
 
 /--
-  `unitary_submonoid n α` is the submonoid consisting of all `n` by `n` matrices `A` where
-  `star A ⬝ A = 1`.
+`unitary_submonoid n α` is the submonoid consisting of all `n` by `n` matrices `A` where
+`star A ⬝ A = 1`.
 -/
 def unitary_submonoid : submonoid (matrix n n α) :=
 { carrier := {A | star A ⬝ A = 1},
@@ -56,7 +56,7 @@ def unitary_submonoid : submonoid (matrix n n α) :=
     by { rwa [star_mul, ←matrix.mul_assoc, matrix.mul_assoc _ _ A, hA, matrix.mul_one] } }
 
 /--
-  `unitary_group n` is the group of `n` by `n` matrices where the star-transpose is the inverse.
+`unitary_group n` is the group of `n` by `n` matrices where the star-transpose is the inverse.
 -/
 @[derive monoid]
 def unitary_group : Type* := unitary_submonoid n α

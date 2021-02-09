@@ -269,11 +269,11 @@ lemma sign_bij_aux_surj {n : ℕ} {f : perm (fin n)} : ∀ a ∈ fin_pairs_lt n,
 if hxa : f⁻¹ a₂ < f⁻¹ a₁
 then ⟨⟨f⁻¹ a₁, f⁻¹ a₂⟩, mem_fin_pairs_lt.2 hxa,
   by { dsimp [sign_bij_aux],
-    rw [apply_inv_self, apply_inv_self, if_pos (mem_fin_pairs_lt.1 ha)] }⟩
+    rw [apply_inv_self, apply_inv_self, dif_pos (mem_fin_pairs_lt.1 ha)] }⟩
 else ⟨⟨f⁻¹ a₂, f⁻¹ a₁⟩, mem_fin_pairs_lt.2 $ (le_of_not_gt hxa).lt_of_ne $ λ h,
     by simpa [mem_fin_pairs_lt, (f⁻¹).injective h, lt_irrefl] using ha,
   by { dsimp [sign_bij_aux],
-    rw [apply_inv_self, apply_inv_self, if_neg (mem_fin_pairs_lt.1 ha).le.not_lt] }⟩
+    rw [apply_inv_self, apply_inv_self, dif_neg (mem_fin_pairs_lt.1 ha).le.not_lt] }⟩
 
 lemma sign_bij_aux_mem {n : ℕ} {f : perm (fin n)} : ∀ a : Σ a : fin n, fin n,
   a ∈ fin_pairs_lt n → sign_bij_aux f a ∈ fin_pairs_lt n :=
@@ -322,11 +322,16 @@ end
 
 private lemma sign_aux_swap_zero_one' (n : ℕ) :
   sign_aux (swap (0 : fin (n + 2)) 1) = -1 :=
-show _ = ∏ x : Σ a : fin (n + 2), fin (n + 2) in {(⟨1, 0⟩ : Σ a : fin (n + 2), fin (n + 2))},
-  if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : units ℤ) else 1,
 begin
-  refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩,
-    by simp [mem_fin_pairs_lt, fin.one_pos] {contextual := tt}) (λ a ha₁ ha₂, _)),
+  rw sign_aux,
+  have : (-1 : units ℤ) = ∏ (x : Σ (a : fin (n + 2)), fin (n + 2))
+    in ({⟨1, 0⟩} : finset (Σ (a : fin (n + 2)), fin (n + 2))),
+    ite (equiv.swap 0 1 x.fst ≤ equiv.swap 0 1 x.snd) (-1) 1,
+    { simp },
+  conv_rhs { rw this },
+  replace this : ({⟨1, 0⟩} : finset (Σ (a : fin (n + 2)), fin (n + 2))) ⊆ fin_pairs_lt (n + 2),
+    { simp [fin_pairs_lt] },
+  refine eq.symm (prod_subset this (λ a ha₁ ha₂, _)),
   rcases a with ⟨a₁, a₂⟩,
   replace ha₁ : a₂ < a₁ := mem_fin_pairs_lt.1 ha₁,
   dsimp only,
@@ -334,12 +339,14 @@ begin
   { exact absurd a₂.zero_le ha₁.not_le },
   rcases eq_or_lt_of_le a₂.zero_le with rfl|H',
   { simp only [and_true, eq_self_iff_true, heq_iff_eq, mem_singleton] at ha₂,
-    have : 1 < a₁ := lt_of_le_of_ne (nat.succ_le_of_lt ha₁) (ne.symm ha₂),
+    have : 1 < a₁,
+      { refine lt_of_le_of_ne _ (ne.symm ha₂),
+        simpa [fin.le_iff_vle] using nat.succ_le_of_lt (fin.lt_iff_vlt.mp H) },
     norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) ha₂, this.not_le] },
-  { have le : 1 ≤ a₂ := nat.succ_le_of_lt H',
+  { have le : 1 ≤ a₂ := by simpa [fin.le_iff_vle] using (nat.succ_le_of_lt H'),
     have lt : 1 < a₁ := lt_of_le_of_lt le ha₁,
     rcases eq_or_lt_of_le le with rfl|lt',
-    { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt), H.not_le] },
+    { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt), H.ne.symm] },
     { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt),
       swap_apply_of_ne_of_ne (ne_of_gt H') (ne_of_gt lt'), ha₁.not_le] } }
 end
@@ -348,10 +355,11 @@ private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
   sign_aux (swap (⟨0, lt_of_lt_of_le dec_trivial hn⟩ : fin n)
   ⟨1, lt_of_lt_of_le dec_trivial hn⟩) = -1 :=
 begin
-  rcases n with _|_|n,
+  rcases n with _|_|_|n,
   { norm_num at hn },
   { norm_num at hn },
-  { exact sign_aux_swap_zero_one' n }
+  { exact sign_aux_swap_zero_one' _ },
+  { exact sign_aux_swap_zero_one' _ }
 end
 
 lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),

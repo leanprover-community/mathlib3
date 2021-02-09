@@ -85,17 +85,9 @@ SL(2, ℝ) → ℂ → ℂ :=
 
 lemma split_fin2 (i : fin 2) : i = 0 ∨ i = 1 :=
 begin
-  refine or.imp _ _ (em (i.val ≤ 0)),
-  all_goals
-  { intros hi,
-    ext },
-  { have : 0 ≤ i.val := zero_le i.val,
-    have : i.val = 0 := by linarith,
-    exact this },
-  { have : i.val < 2 := i.2,
-    have : i.val = 1 := by linarith,
-    exact this },
+  fin_cases i; tauto,
 end
+
 
 lemma det2 {F : Type*} [comm_ring F] {g: matrix (fin 2) (fin 2) F} :
 g.det = g 0 0 * g 1 1 - g 1 0 * g 0 1 :=
@@ -285,14 +277,14 @@ begin
   norm_num,
 end
 
-lemma im_smul_SL {g : SL(2, ℝ)} {z : H} :
+lemma im_smul_SL (g : SL(2, ℝ)) (z : H) :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) := im_smul_mat_complex
 
-lemma im_smul_SL' {g : SL(2, ℤ)} {z : H} :
+lemma im_smul_SL' (g : SL(2, ℤ)) (z : H) :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
-by simpa using @im_smul_SL g z
+by simpa using im_smul_SL g z
 
-lemma im_smul_SL'' {g : SL(2, ℤ)} {z : H} :
+lemma im_smul_SL'' (g : SL(2, ℤ)) (z : H) :
 (g • z).val.im = z.val.im / (complex.norm_sq (bottom g z)) :=
 im_smul_mat_complex
 
@@ -317,19 +309,18 @@ example { x y : SL(2,ℤ)} (h : x.1 = y.1) : x = y := subtype.eq h
 lemma mat_congr_SL { x y : SL(2,ℤ) } : x = y ↔ x.val = y.val := subtype.ext_iff_val
 
 @[simp]
-lemma mat_congr  {F : Type*} [comm_ring F] (x y : matrix (fin 2) (fin 2) F) :
+lemma mat_ext_iff  {F : Type*} [comm_ring F] (x y : matrix (fin 2) (fin 2) F) :
   x = y ↔ x 0 0 = y 0 0 ∧ x 0 1 = y 0 1 ∧ x 1 0 = y 1 0 ∧ x 1 1 = y 1 1 :=
 begin
+  rw ←matrix.ext_iff,
   split,
-  { intro h,
+  {
+    intro h,
     rw h,
     tauto },
   {
-    rintro ⟨h1, h2, h3, h4⟩,
-    ext,
-    fin_cases i,
-    all_goals {fin_cases j},
-    all_goals {assumption},
+    rintros ⟨h1, h2, h3, h4⟩ i j,
+    fin_cases i; fin_cases j; assumption,
   }
 end
 
@@ -525,7 +516,7 @@ begin
     let s2 := finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1),
     let s : finset (ℤ × ℤ ):= s1.product s2,
 
---    suffices : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} ⊆  s,
+    --suffices : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} ⊆  s,
 --   AK homework?
 --  nope! Can't get suffices to work... :(
 
@@ -627,15 +618,7 @@ lemma exists_g_with_max_Im (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).val.im ≤ (g • z).val.im :=
 begin
   have := exists_g_with_min_bottom z,
-  have z_in_H : (z:ℂ ) ∈ H,
-  {
-    -- how do I access this???
-    sorry,
-  },
-  have im_z_pos : 0 < (z:ℂ ).im,
-  {
-    exact im_pos_of_in_H.mp z_in_H,
-  },
+  have im_z_pos : 0 < (z:ℂ ).im := im_pos_of_in_H.mp z.2,
   cases this with gg hg,
   use gg,
   intros g',
@@ -749,20 +732,18 @@ end
 lemma junk7 (a :ℝ ) : a-1 ≤ ⌊a⌋
 :=
 begin
-  suffices : a ≤ ⌊a⌋+1,
+  apply le_of_lt,
+  exact sub_one_lt_floor a,
+end
+
+lemma junklemma (a : ℝ) : |a + -⌊a + 2⁻¹⌋| ≤ 2⁻¹ :=
+begin
+  rw abs_le,
+  split,
   {
-    exact sub_le_iff_le_add.mpr this,
+    sorry
   },
-  have :  (⌊a⌋:ℝ )+1 =  (⌊a⌋.succ),
-  {
-    norm_cast,
-  },
-  rw this, clear this,
-  have : a < ⌊a⌋.succ,
-  {
-    refine lt_succ_floor a,
-  },
-  exact le_of_lt this,
+  admit,
 end
 
 lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
@@ -770,7 +751,10 @@ begin
   let n := -floor ((z:ℂ ).re+1/2),
   use n,
   rw Tn_action,
-  rw abs_le,
+  simp,
+  apply junklemma,
+
+ /-  rw abs_le,
   split,
   simp,
   suffices : -2⁻¹ - z.val.re ≤ -⌊z.val.re + 2⁻¹⌋,
@@ -788,7 +772,6 @@ begin
   },
   rw add_comm,
   exact floor_le (2⁻¹ + z.val.re),
-
   have : ((z:ℂ ) + (n:ℂ )).re  = (z.val).re + (n:ℂ ).re,
   {
     simp,
@@ -810,27 +793,20 @@ begin
     refine junk6 (z.val.re) (↑-⌊(z:ℂ ).re + 1 / 2⌋),
   },
   rw this, clear this,
-  have : -↑-⌊(z:ℂ ).re + 1 / 2⌋ = ↑⌊(z:ℂ ).re + 1 / 2⌋,
+  have : -((-⌊(z:ℂ ).re + 1 / 2⌋ : ℤ) : ℝ) = ⌊(z:ℂ ).re + 1 / 2⌋,
   {
-    norm_cast,
     simp,
-    --- Come ON!
-    sorry,
   },
   rw this, clear this,
-
-
   suffices : z.val.re - 1/2 ≤ ↑⌊(z:ℂ ).re + 1 / 2⌋,
   {
     refine junk4 (z.val.re) (1/2) (↑⌊(z:ℂ ).re + 1 / 2⌋) this,
---    rw ← sub_eq_add_neg,
---      refine junk3,
---    refine sub_le_iff_le_add'.mp,
   },
 
   convert  junk7 ((z:ℂ ).re + 1 / 2) using 1,
   simp,
   ring,
+ -/
 end
 
 lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=
@@ -883,6 +859,7 @@ example {a b : ℤ} (ha : 0 ≤ a) (hp : a * b = 1) : a = 1 :=
 begin
   exact int.eq_one_of_mul_eq_one_right ha hp,
 end
+
 /- By choosing from g or -g, we can impose conditions on the coefficients of g -/
 lemma sign_coef { z z' : H } (h : ∃ g : SL(2, ℤ), z' = g • z) :
   ∃ g : SL(2, ℤ), 0 ≤ g.1 1 0 ∧ (g.1 1 0 = 0 → g.1 1 1 = 1 ∧ g.1 0 0 = 1) ∧ z' = g • z :=
@@ -998,6 +975,8 @@ begin
   exact_mod_cast h,
 end
 
+-- Describe closure of D as union of boundary segments and interior.
+-- Then the lemma goes by cases on where z and z'
 
 lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :
   (z = z') ∨

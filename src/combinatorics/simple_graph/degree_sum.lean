@@ -218,7 +218,7 @@ begin
     rw [nat.pred_eq_succ_iff, hg, nat.mul_sub_left_distrib, ← nat.sub_add_comm, eq_comm,
       ← (nat.sub_eq_iff_eq_add _).symm],
     { ring },
-    { exact add_le_add_right (bot_le : 0 ≤ 2 * k) 2 },
+    { exact add_le_add_right (zero_le (2 * k)) 2 },
     { exact nat.mul_le_mul_left _ hk } },
   { simpa only [true_and, mem_filter, mem_univ] },
 end

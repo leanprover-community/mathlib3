@@ -193,7 +193,7 @@ lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
 begin
   have A : ∀ (m n : ℕ), n < m + n + 1,
   { assume m n,
-     convert add_lt_add_of_le_of_lt (add_le_add (bot_le : 0 ≤ m) (le_refl n)) zero_lt_one,
+    convert add_lt_add_of_le_of_lt (add_le_add (zero_le m) (le_refl n)) zero_lt_one,
     simp },
   have IH := λ t (h : list.length t < list.length x), star_rmatch_iff t,
   clear star_rmatch_iff,

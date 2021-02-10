@@ -26,18 +26,9 @@ begin
   exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr c0) (nat.lt_pow_self b1 a),
 end
 
-lemma int.mul_lt_mul_pow_succ {n : ℕ} {a q : ℤ} (a0 : 0 < a) (q1 : 1 < q) :
-  (n : ℤ) * q < a * q ^ (n + 1) :=
-begin
-  lift a to ℕ using a0.le,
-  lift q to ℕ using zero_le_one.trans q1.le,
-  rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt],
-  exact mul_lt_mul_pow_succ (int.coe_nat_pos.mp a0) (int.coe_nat_lt.mp q1),
-end
-
 -- PR int_abs_lt_one_eq_zero
 -- moved to data.int.basic
-lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
+@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (int.le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
@@ -63,7 +54,11 @@ begin
     ← int.cast_sub, ← int.cast_abs, ← int.cast_mul, int.cast_lt] at a1,
   rw [ne.def, div_eq_div_iff b0 (ne_of_gt qR0), mul_comm ↑p, ← sub_eq_zero_iff_eq] at a0,
   rw [← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul, ← int.cast_sub, int.cast_eq_zero] at a0,
-  exact not_le.mpr a1 (int.mul_lt_mul_pow_succ (abs_pos.mpr a0) q1).le,
+  lift q to ℕ using (zero_lt_one.trans q1).le,
+  have ap : 0 < abs (a * ↑q - ↑b * p) := abs_pos.mpr a0,
+  lift (abs (a * ↑q - ↑b * p)) to ℕ using (abs_nonneg (a * ↑q - ↑b * p)),
+  rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt] at a1,
+  exact not_le.mpr a1 (mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
 end
 
 lemma not_liouville_zero : ¬ is_liouville 0 :=

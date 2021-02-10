@@ -688,6 +688,10 @@ rfl
   (reindex eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
 rfl
 
+@[simp] lemma reindex_refl_refl (A : matrix m n R) :
+  (reindex (equiv.refl _) (equiv.refl _) A) = A :=
+by { ext, simp only [reindex_apply, equiv.refl_symm, equiv.refl_apply] }
+
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is a linear
 equivalence. -/
 def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
@@ -696,15 +700,29 @@ def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
   map_smul' := λ M N, rfl,
 ..(reindex eₘ eₙ)}
 
-@[simp] lemma reindex_linear_equiv_apply [semiring R]
+@[simp] lemma coe_reindex_linear_equiv [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
   reindex_linear_equiv eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
 rfl
 
-@[simp] lemma reindex_linear_equiv_symm_apply [semiring R]
+lemma reindex_linear_equiv_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) (i j) :
+  reindex_linear_equiv eₘ eₙ M i j = M (eₘ.symm i) (eₙ.symm j) :=
+rfl
+
+@[simp] lemma coe_reindex_linear_equiv_symm [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
   (reindex_linear_equiv eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
 rfl
+
+lemma reindex_linear_equiv_symm_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) (i j) :
+  (reindex_linear_equiv eₘ eₙ).symm M i j = M (eₘ i) (eₙ j) :=
+rfl
+
+@[simp] lemma reindex_linear_equiv_refl_refl [semiring R] (A : matrix m n R) :
+  (reindex_linear_equiv (equiv.refl _) (equiv.refl _) A) = A :=
+reindex_refl_refl A
 
 lemma reindex_mul [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
@@ -724,15 +742,29 @@ def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   commutes' := λ r, by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }
 
-@[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+@[simp] lemma coe_reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) (M : matrix m m R) :
   reindex_alg_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
 rfl
 
-@[simp] lemma reindex_alg_equiv_symm_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+@[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix m m R) (i j) :
+  reindex_alg_equiv e M i j = M (e.symm i) (e.symm j) :=
+rfl
+
+@[simp] lemma coe_reindex_alg_equiv_symm [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) (M : matrix n n R) :
   (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
+
+@[simp] lemma reindex_alg_equiv_symm_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix n n R) (i j):
+  (reindex_alg_equiv e).symm M i j = M (e i) (e j) :=
+rfl
+
+@[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m]
+  (A : matrix m m R) : (reindex_alg_equiv (equiv.refl m) A) = A :=
+reindex_linear_equiv_refl_refl A
 
 lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=

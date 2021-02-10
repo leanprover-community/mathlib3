@@ -22,7 +22,7 @@ category of abelian groups.
 
 * `AddCommGroup.adj` proves that `free` is the left adjoint of the forgetful functor from abelian
   groups to types.
-* `abelianization.adj` proves that `abelianize` is left adjoint to the forgetful functor from
+* `abelianize_adj` proves that `abelianize` is left adjoint to the forgetful functor from
   abelian groups to groups.
 -/
 
@@ -73,7 +73,7 @@ example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :
 
 end AddCommGroup
 
-namespace abelianization
+section abelianization
 
 /-- The abelianization functor `Group ⥤ CommGroup` sending a group `G` to its abelianization `Gᵃᵇ`.
  -/
@@ -86,7 +86,7 @@ def abelianize : Group.{u} ⥤ CommGroup.{u} :=
   map_comp' := by { intros, simp, ext1, refl } }
 
 /-- The abelianization-forgetful adjuction from `Group` to `CommGroup`.-/
-def adj : abelianize ⊣ forget₂ CommGroup.{u} Group.{u} :=
+def abelianize_adj : abelianize ⊣ forget₂ CommGroup.{u} Group.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ G A, abelianization.hom_equiv,
   hom_equiv_naturality_left_symm' := λ G H A f g, by { ext1, refl } }

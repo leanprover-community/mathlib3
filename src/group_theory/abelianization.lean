@@ -112,6 +112,7 @@ variables {B : Type v} [comm_group B]
 
 /-- The bijection underlying the abelianization-forgetful adjuction from groups to abelian groups.
 -/
+@[simps]
 def hom_equiv : (abelianization G →* B) ≃ (G →* B) :=
 { to_fun := λ f, { to_fun := f.1 ∘ abelianization.of ,
   map_one' := by simp,
@@ -119,9 +120,6 @@ def hom_equiv : (abelianization G →* B) ≃ (G →* B) :=
   inv_fun := λ g, abelianization.lift g,
   left_inv := by { intro x, ext, simp },
   right_inv := by { intro x, ext, simp } }
-
-@[simp]
-lemma hom_equiv_apply (f) (x) : (hom_equiv f : G →* B) x = f (of x) := rfl
 
 end lift
 

@@ -33,6 +33,9 @@ end
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
 namespace real
+
+-- PR liouville_def contains the definition `is_liouville` and the lemma that
+-- a liouville number is irrational
 /--
 A Liouville number `x` is a number such that for every natural number `n`, there exists `a, b ∈ ℤ`
 with `b > 1` such that `0 < |x - a/b| < 1/bⁿ`.

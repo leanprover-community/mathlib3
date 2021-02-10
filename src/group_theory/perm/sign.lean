@@ -7,6 +7,7 @@ import data.fintype.basic
 import data.finset.sort
 import group_theory.perm.basic
 import group_theory.order_of_element
+import tactic.norm_swap
 
 /-!
 # Sign of a permutation
@@ -363,28 +364,38 @@ begin
       refl } }
 end
 
--- TODO: slow
+private lemma sign_aux_swap_zero_one' (n : ℕ) :
+  sign_aux (swap (0 : fin (n + 2)) 1) = -1 :=
+show _ = ∏ x : Σ a : fin (n + 2), fin (n + 2) in {(⟨1, 0⟩ : Σ a : fin (n + 2), fin (n + 2))},
+  if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : units ℤ) else 1,
+begin
+  refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩,
+    by simp [mem_fin_pairs_lt, fin.one_pos] {contextual := tt}) (λ a ha₁ ha₂, _)),
+  rcases a with ⟨a₁, a₂⟩,
+  replace ha₁ : a₂ < a₁ := mem_fin_pairs_lt.1 ha₁,
+  dsimp only,
+  rcases a₁.zero_le.eq_or_lt with rfl|H,
+  { exact absurd a₂.zero_le ha₁.not_le },
+  rcases a₂.zero_le.eq_or_lt with rfl|H',
+  { simp only [and_true, eq_self_iff_true, heq_iff_eq, mem_singleton] at ha₂,
+    have : 1 < a₁ := lt_of_le_of_ne (nat.succ_le_of_lt ha₁) (ne.symm ha₂),
+    norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) ha₂, this.not_le] },
+  { have le : 1 ≤ a₂ := nat.succ_le_of_lt H',
+    have lt : 1 < a₁ := le.trans_lt ha₁,
+    rcases le.eq_or_lt with rfl|lt',
+    { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt), H.not_le] },
+    { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt),
+        swap_apply_of_ne_of_ne (ne_of_gt H') (ne_of_gt lt'), ha₁.not_le] } }
+end
+
 private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
   sign_aux (swap (⟨0, lt_of_lt_of_le dec_trivial hn⟩ : fin n)
   ⟨1, lt_of_lt_of_le dec_trivial hn⟩) = -1 :=
-let zero : fin n := ⟨0, lt_of_lt_of_le dec_trivial hn⟩ in
-let one : fin n := ⟨1, lt_of_lt_of_le dec_trivial hn⟩ in
-have hzo : zero < one := dec_trivial,
-show _ = ∏ x : Σ a : fin n, fin n in {(⟨one, zero⟩ : Σ a : fin n, fin n)},
-  if (equiv.swap zero one) x.1 ≤ swap zero one x.2 then (-1 : units ℤ) else 1,
 begin
-  refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩, by simp [mem_fin_pairs_lt, hzo] {contextual := tt})
-    (λ a ha₁ ha₂, _)),
-  rcases a with ⟨⟨a₁, ha₁⟩, ⟨a₂, ha₂⟩⟩,
-  replace ha₁ : a₂ < a₁ := mem_fin_pairs_lt.1 ha₁,
-  simp only [swap_apply_def],
-  have : ¬ 1 ≤ a₂ → a₂ = 0, from λ h, nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge h)),
-  have : a₁ ≤ 1 → a₁ = 0 ∨ a₁ = 1, from nat.cases_on a₁ (λ _, or.inl rfl)
-    (λ a₁, nat.cases_on a₁ (λ _, or.inr rfl) (λ _ h, absurd h dec_trivial)),
-  split_ifs;
-  simp only [*, not_le.symm, iff.intro fin.veq_of_eq fin.eq_of_veq, nat.le_zero_iff,
-    eq_self_iff_true, not_true, fin.le_def, one, nat.zero_le, and_self, heq_iff_eq, mem_singleton,
-    forall_prop_of_true, or_self, le_refl] at *,
+  rcases n with _|_|n,
+  { norm_num at hn },
+  { norm_num at hn },
+  { exact sign_aux_swap_zero_one' n }
 end
 
 lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),

@@ -512,7 +512,7 @@ begin
   rw eq_bot_iff, exact h₂,
 end
 
-/-- Given two nested Lie ideals `I₁ ⊆ I₂`, the inclusion `I₁ ↪ I₂` is a morphism of Lie algebras.-/
+/-- Given two nested Lie ideals `I₁ ⊆ I₂`, the inclusion `I₁ ↪ I₂` is a morphism of Lie algebras. -/
 def hom_of_le {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) : I₁ →ₗ⁅R⁆ I₂ :=
 { map_lie := λ x y, rfl,
   ..submodule.of_le h, }

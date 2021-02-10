@@ -256,7 +256,7 @@ instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
   .. nnreal.comm_group_with_zero }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ .. nnreal.canonically_ordered_add_monoid,
+{ .. nnreal.canonically_linear_ordered_add_monoid,
   .. nnreal.comm_semiring,
   .. (show no_zero_divisors ℝ≥0, by apply_instance),
   .. nnreal.comm_group_with_zero }

@@ -12,24 +12,30 @@ import analysis.mean_inequalities
 
 In this file we show that the area of a disc with radius `r` (with `0 < r`) is `π * r^2`. The main
 tools our proof uses are `volume_region_between_eq_integral`, which allows us to represent the area
-of the disc as an integral, and `integral_eq_sub_of_has_deriv_at'_of_le`, the second fundamental
-theorem of calculus.
+of the disc as an integral, and `interval_integral.integral_eq_sub_of_has_deriv_at'_of_le`, the
+second fundamental theorem of calculus.
 
 We begin by defining `disc` in `ℝ × ℝ`, then show that `disc` can be represented as the
 `region_between` two functions.
 
-Though not necessary for our proof, we nonetheless choose to include a proof of the measurability of
-the disc in order to convince the reader that the set whose volume we will be calculating is indeed
-measurable and our result is therefore meaningful.
+Though not necessary for the main proof, we nonetheless choose to include a proof of the
+measurability of the disc in order to convince the reader that the set whose volume we will be
+calculating is indeed measurable and our result is therefore meaningful.
 
-Finally, in our main proof, we use `volume_region_between_eq_integral` to convert the `volume` of
-the `region_between` to an `integral`, and then `integral_of_le` to convert to `interval_integral`.
-Our goal now reduced to showing `∫ (x : ℝ) in -r..r, 2 * sqrt (r ^ 2 - x ^ 2) = π * r ^ 2`, we apply
-`integral_eq_sub_of_has_deriv_at'_of_le` with the fact that `λ x, 2 * sqrt (r ^ 2 - x ^ 2)` is equal
-to the derivative of `λ x, r ^ 2 * arcsin (x / r) + x * sqrt (r ^ 2 - x ^ 2)` on `Ioo (-r) r`. Some
-simple algebra then completes the proof.
+In the main proof, `area_disc`, we use `volume_region_between_eq_integral` followed by
+`interval_integral.integral_of_le` to reduce our goal to a single `interval_integral`:
+  `∫ (x : ℝ) in -r..r, 2 * sqrt (r ^ 2 - x ^ 2) = π * r ^ 2`.
+After showing that `λ x, 2 * sqrt (r ^ 2 - x ^ 2)` is equal to the derivative of
+`λ x, r ^ 2 * arcsin (x / r) + x * sqrt (r ^ 2 - x ^ 2)` everywhere on `Ioo (-r) r` (and that those
+two functions are continuous), we apply `interval_integral.integral_eq_sub_of_has_deriv_at'_of_le`.
+Some simple algebra then completes the proof.
 
-*Part about our choice of definition for `disc`*
+Note that we choose to define `disc` as a set of points in `ℝ ⨯ ℝ`. This is admittedly not ideal; it
+would be more natural to define `disc` as a `metric.ball` in `fin 2 → ℝ` (as well as to provide a
+more general proof in higher dimensions). However, our proof indirectly relies on a number of
+theorems (particularly `measure_theory.prod.prod_apply`) which do not yet exist for Euclidean space,
+thus forcing us to use this less-preferable definition. As `measure_theory.pi` continues to develop,
+it should eventually become possible to redefine `disc` and extend our proof to the n-ball.
 -/
 
 open set real filter measure_theory interval_integral

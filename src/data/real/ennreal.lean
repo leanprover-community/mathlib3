@@ -77,7 +77,7 @@ variables {α : Type*} {β : Type*}
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
 @[derive canonically_ordered_comm_semiring, derive complete_linear_order, derive densely_ordered,
-  derive nontrivial]
+  derive nontrivial, derive canonically_linear_ordered_add_monoid]
 def ennreal := with_top ℝ≥0
 
 localized "notation `ℝ≥0∞` := ennreal" in ennreal

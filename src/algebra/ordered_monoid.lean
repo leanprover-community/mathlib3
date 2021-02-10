@@ -676,6 +676,12 @@ instance canonically_linear_ordered_monoid.semilattice_sup_bot
   [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
 
+instance with_top.canonically_linear_ordered_add_monoid
+  (α : Type*) [canonically_linear_ordered_add_monoid α] :
+    canonically_linear_ordered_add_monoid (with_top α) :=
+{ .. (infer_instance : canonically_ordered_add_monoid (with_top α)),
+  .. (infer_instance : linear_order (with_top α)) }
+
 @[to_additive] lemma min_mul_distrib [canonically_linear_ordered_monoid α] (a b c : α) :
   min a (b * c) = min a (min a b * min a c) :=
 begin

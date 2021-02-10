@@ -8,7 +8,7 @@ import tactic.doc_commands
 /-!
 # `specialize'`
 
-`specialize'` is a variant of specialize, the only difference being the order of the goals generated
+`specialize'` is a variant of `specialize`, the only difference being the order of the goals generated
 by any underscores used. That is, `specialize'` puts the goals from the underscores first.
 -/
 

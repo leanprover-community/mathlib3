@@ -90,7 +90,7 @@ c.monotone.map_inf_le _ _
 
 lemma closure_union_closure_le {α : Type u} [semilattice_sup α] (c : closure_operator α) (x y : α) :
   c x ⊔ c y ≤ c (x ⊔ y) :=
-sup_le (c.monotone le_sup_left) (c.monotone le_sup_right)
+c.monotone.le_map_sup _ _
 
 /-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
 def closed : set α := λ x, c x = x

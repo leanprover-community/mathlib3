@@ -74,7 +74,7 @@ open set ring_hom real
 namespace polynomial
 
 -- going to denoms_clearable
-lemma one_le_denom_pow_eval_rat {f : polynomial ℤ} {a b : ℤ}
+lemma one_le_pow_mul_abs_eval_div {f : polynomial ℤ} {a b : ℤ}
   (b0 : (0) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
   (1 : ℝ) ≤ b ^ f.nat_degree * abs (eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ))) :=
 one_le_pow_mul_abs_eval_div_no_coe b0 fab
@@ -182,8 +182,7 @@ begin
     exact @mem_closed_ball_self ℝ _ α ζ (le_of_lt z0) },
   { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * abs (eval α fR - eval (z / (a + 1)) fR),
     rw [fa, zero_sub, abs_neg],
-    refine one_le_denom_pow_eval_rat (--int.cast_pos.mpr
-       (int.coe_nat_succ_pos a)) (λ hy, _),
+    refine one_le_pow_mul_abs_eval_div (int.coe_nat_succ_pos a) (λ hy, _),
     refine (irrational_iff_ne_rational α).mp ha z (a + 1) ((mem_singleton_iff.mp _).symm),
     rw ← U,
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,

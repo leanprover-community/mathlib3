@@ -215,7 +215,7 @@ galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono
 instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
-instance : canonically_ordered_add_monoid ℝ≥0 :=
+instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
   lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
@@ -227,10 +227,6 @@ instance : canonically_ordered_add_monoid ℝ≥0 :=
   ..nnreal.comm_semiring,
   ..nnreal.order_bot,
   ..nnreal.linear_order }
-
-instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
-{ .. (infer_instance : canonically_ordered_add_monoid ℝ≥0),
-  .. nnreal.linear_order }
 
 instance : distrib_lattice ℝ≥0 := by apply_instance
 

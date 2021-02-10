@@ -347,7 +347,7 @@ begin
   have hr := s.dist_circumcenter_eq_circumradius,
   simp_rw [←h, dist_eq_zero] at hr,
   have h01 := (injective_of_affine_independent s.independent).ne
-    (dec_trivial : (0 : fin (n + 2)) ≠ 1),
+    (fin.one_pos : (0 : fin (n + 2)) < 1).ne,
   simpa [hr] using h01
 end
 

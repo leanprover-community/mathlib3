@@ -102,7 +102,7 @@ variables {V : Type u} (G : simple_graph V)
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
 instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
-  decidable_pred (∈ G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
+  decidable_pred (G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -497,11 +497,11 @@ begin
   simp,
 end
 
-lemma to_finset_disjoint (α : Type u) [fintype α] (s t : set α) [fintype s] [fintype t] :
+/-lemma to_finset_disjoint (α : Type u) [fintype α] (s t : set α) [fintype s] [fintype t] :
   disjoint s t ↔ disjoint (s.to_finset) (t.to_finset) :=
 begin
   simp,
-end
+end-/
 
 lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj]
   [decidable_rel Gᶜ.adj] (v : V) [nonempty V] :
@@ -512,14 +512,15 @@ begin
   rw ← nat.sub_sub,
   rw ← neighbor_set_union_compl_neighbor_set_card G v,
   simp only [fintype.card_of_finset],
-  have h2 :
+  sorry,
+  /-have h2 :
    ((G.neighbor_set v).to_finset ∪ (Gᶜ.neighbor_set v).to_finset).card = G.degree v + Gᶜ.degree v,
   { have h3 := compl_neighbor_set_disjoint G v,
     have h4 := (to_finset_disjoint V (G.neighbor_set v) (Gᶜ.neighbor_set v)).1 h3,
     sorry },
   rw h2,
   rw add_comm,
-  simp,
+  simp,-/
 end
 
 lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj] [decidable_rel Gᶜ.adj] [nonempty V]

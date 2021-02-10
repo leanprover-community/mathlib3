@@ -28,18 +28,14 @@ import data.set.finite
 -/
 
 -- CR : depends on
-  -- graph_compl (#5697) `done`
-  -- common_neighbor_card `done`
-    -- graph_common_neighbors (#5718) `done`
-  -- to_finset_subset (#5725) `done`
 
 universes u
 
 namespace simple_graph
 variables {V : Type u}
-variables (G : simple_graph V)
+variables (G : simple_graph V) [decidable_rel G.adj]
 
-variables  [fintype V]
+variables [fintype V] [decidable_eq V]
 
 /--
 A graph is strongly regular with parameters `n k l m` if
@@ -54,34 +50,13 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
 (nadj_common : ∀ (v w : V), ¬ G.adj v w → fintype.card (G.common_neighbors v w) = m)
 
--- these aren't necessary i guess?
-lemma card_common_neighbors_le_regular_degree (v w : V) (k : ℕ) (h : G.is_regular_of_degree k) :
-  fintype.card (G.common_neighbors v w) ≤ k :=
-begin
-  rw is_regular_of_degree at h,
-  specialize h v,
-  rw ← h,
-  exact card_common_neighbors_le_degree_left G v w
-end
-
-lemma adj_card_common_neighbors_lt_regular_degree (v w : V) (h : G.adj v w) (k : ℕ)
-  (h2 : G.is_regular_of_degree k) : fintype.card (G.common_neighbors v w) < k :=
-begin
-  rw is_regular_of_degree at h2,
-  specialize h2 v,
-  rw ← h2,
-  exact adj.card_common_neighbors_lt_degree h,
-end
-
-lemma is_regular_degree_lt_card_verts [nonempty V] (G : simple_graph V) (k : ℕ) (h : G.is_regular_of_degree k) :
-  k < fintype.card V :=
-begin
-  rw is_regular_of_degree at h,
-  inhabit V,
-  specialize h (default V),
-  rw ← h,
-  apply degree_lt_card_verts,
-end
-
+-- Prove that the complement of a strongly regular graph is strongly regular with parameters
+  -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`
+lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
+  Gᶜ.is_SRG_of n (n - k - 1) (n - 2 - 2 * k + m) (n - 2 * k + l) :=
+{ card := h.card,
+  regular := _,
+  adj_common := _,
+  nadj_common := _ }
 
 end simple_graph

@@ -14,6 +14,9 @@ import data.real.irrational
 # Liouville's theorem
 This file will contain a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
+
+At the moment, it contains the definition of a Liouville number and a proof that Liouville
+numbers are irrational.
 -/
 
 section irrational

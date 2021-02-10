@@ -335,8 +335,6 @@ section finite
 
 variables [fintype V]
 
-instance fintype.locally_finite [decidable_rel G.adj] : locally_finite G := λ v, set_fintype _
-
 instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbor_set v) :=
 @subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _
 

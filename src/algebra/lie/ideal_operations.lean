@@ -15,7 +15,7 @@ define solvability / nilpotency of a Lie algebra via the derived / lower-central
 
 ## Main definitions
 
-  * `lie_submodule.ideal_operation`
+  * `lie_submodule.has_bracket`
   * `lie_submodule.lie_ideal_oper_eq_linear_span`
   * `lie_ideal.map_bracket_le`
   * `lie_ideal.comap_bracket_le`
@@ -44,7 +44,7 @@ section lie_ideal_operations
 
 /-- Given a Lie module `M` over a Lie algebra `L`, the set of Lie ideals of `L` acts on the set
 of submodules of `M`. -/
-instance ideal_operation : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
+instance has_bracket : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
 ⟨λ I N, lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m }⟩
 
 lemma lie_ideal_oper_eq_span :

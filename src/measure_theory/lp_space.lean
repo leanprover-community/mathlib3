@@ -1517,7 +1517,7 @@ begin
   exact hbx.exists.some_spec,
 end
 
-lemma complete_ℒp_minus_ℒp [complete_space E] {f : ℕ → α → E} {p : ℝ}
+lemma cauchy_limit_ℒp [complete_space E] {f : ℕ → α → E} {p : ℝ}
   (hf : ∀ n, mem_ℒp (f n) (ennreal.of_real p) μ) (hp1 : 1 ≤ p) {B : ℕ → ennreal} (hB : tsum B < ⊤)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) p μ < B N) :
   ∃ (f_lim : α → E) (hf_lim_meas : measurable f_lim),
@@ -1567,7 +1567,7 @@ lemma cauchy_complete_ℒp [complete_space E] {f : ℕ → α → E} {p : ℝ}
   ∃ (f_lim : α → E) (hf_lim_ℒp : mem_ℒp f_lim (ennreal.of_real p) μ),
     ∀ ε, 0 < ε → ε < ⊤ → (∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → snorm' (f n - f_lim) p μ < ε) :=
 begin
-  obtain ⟨f_lim, f_lim_meas, h_tendsto⟩ := complete_ℒp_minus_ℒp hf hp1 hB h_cau,
+  obtain ⟨f_lim, f_lim_meas, h_tendsto⟩ := cauchy_limit_ℒp hf hp1 hB h_cau,
   refine ⟨f_lim, ⟨f_lim_meas.ae_measurable, _⟩, h_tendsto⟩,
   have hp_ne_zero : ennreal.of_real p ≠ 0,
   { rw [ne.def, ennreal.of_real_eq_zero],
@@ -1592,7 +1592,7 @@ end
 lemma ae_imp_left_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
 filter.eventually_imp_distrib_left
 
-lemma cauchy_complete_ℒp_top_minus_ℒp [complete_space E] {f : ℕ → α → E}
+lemma cauchy_limit_ℒp_top [complete_space E] {f : ℕ → α → E}
   (hf : ∀ n, mem_ℒp (f n) ∞ μ)
   {B : ℕ → ennreal} (hB : tsum B < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) ∞ μ < B N) :
@@ -1649,7 +1649,7 @@ lemma cauchy_complete_ℒp_top [complete_space E] {f : ℕ → α → E} (hf : �
   ∃ (f_lim : α → E) (hf_lim_ℒp : mem_ℒp f_lim ∞ μ),
     ∀ (ε : ℝ≥0∞), 0 < ε → ε < ∞ → (∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → snorm (f n - f_lim) ∞ μ < ε) :=
 begin
-  obtain ⟨f_lim, h_lim_meas, h_tendsto⟩ := cauchy_complete_ℒp_top_minus_ℒp hf hB h_cau,
+  obtain ⟨f_lim, h_lim_meas, h_tendsto⟩ := cauchy_limit_ℒp_top hf hB h_cau,
   refine ⟨f_lim, ⟨h_lim_meas.ae_measurable, _⟩, h_tendsto⟩,
   cases (h_tendsto 1 ennreal.zero_lt_one ennreal.one_lt_top) with N h_tendsto_1,
   specialize h_tendsto_1 N (le_refl N),
@@ -1776,9 +1776,8 @@ end
 instance [complete_space E] [fact (1 ≤ p)] : complete_space (Lp E p μ) :=
 begin
   by_cases hp_top : p = ∞,
-  { have h : complete_space (Lp E ∞ μ), from complete_space_Lp_top,
-    have h_eq : Lp E p μ = Lp E ∞ μ, by rw hp_top,
-    sorry, },
+  { convert complete_space_Lp_top,
+    apply_instance, },
   { exact complete_space_Lp_of_ne_top hp_top, },
 end
 

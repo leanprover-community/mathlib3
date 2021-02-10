@@ -663,6 +663,11 @@ end conv.interactive
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
 
+@[norm_cast] lemma dite_cast {α β} [has_lift_t α β]
+  {c : Prop} [decidable c] {a : c → α} {b : ¬ c → α} :
+  ↑(dite c a b) = dite c (λ h, (↑(a h) : β)) (λ h, (↑(b h) : β)) :=
+by by_cases h : c; simp [h]
+
 add_hint_tactic "norm_cast at *"
 
 /--

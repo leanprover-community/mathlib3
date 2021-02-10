@@ -195,30 +195,20 @@ protected def to_equiv : equiv (e.source) (e.target) :=
 lemma bij_on_source : bij_on e e.source e.target :=
 inv_on.bij_on ⟨e.left_inv_on, e.right_inv_on⟩ e.maps_to e.symm_maps_to
 
-lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
-  e '' s = e.target ∩ e.symm ⁻¹' s :=
-begin
-  refine subset.antisymm (λx hx, _) (λx hx, _),
-  { rcases (mem_image _ _ _).1 hx with ⟨y, ys, hy⟩,
-    rw ← hy,
-    split,
-    { apply e.map_source,
-      exact h ys },
-    { rwa [mem_preimage, e.left_inv (h ys)] } },
-  { rw ← e.right_inv hx.1,
-    exact mem_image_of_mem _ hx.2 }
-end
-
-lemma image_inter_source_eq (s : set α) :
-  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
-e.image_eq_target_inter_inv_preimage (inter_subset_right _ _)
+lemma image_source_eq_target : e '' e.source = e.target :=
+e.bij_on_source.image_eq
 
 lemma image_inter_source_eq' (s : set α) :
   e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' s :=
-begin
-  rw e.image_eq_target_inter_inv_preimage (inter_subset_right _ _),
-  ext x, split; { assume hx, simp at hx, simp [hx] }
-end
+by rw [e.left_inv_on.image_inter', image_source_eq_target, inter_comm]
+
+lemma image_inter_source_eq (s : set α) :
+  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
+by rw [e.left_inv_on.image_inter, image_source_eq_target, inter_comm]
+
+lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
+  e '' s = e.target ∩ e.symm ⁻¹' s :=
+by rw [← e.image_inter_source_eq', inter_eq_self_of_subset_left h]
 
 lemma symm_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
   e.symm '' s = e.source ∩ e ⁻¹' s :=
@@ -246,9 +236,6 @@ end
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=
 e.symm.source_inter_preimage_inv_preimage _
-
-lemma image_source_eq_target : e '' e.source = e.target :=
-e.bij_on_source.image_eq
 
 lemma source_subset_preimage_target : e.source ⊆ e ⁻¹' e.target :=
 λx hx, e.map_source hx

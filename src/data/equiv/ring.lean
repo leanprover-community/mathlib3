@@ -16,6 +16,8 @@ corresponding group of automorphisms `ring_aut`.
 
 ## Notations
 
+* ``infix ` ≃+* `:25 := ring_equiv``
+
 The extended equiv have coercions to functions, and the coercion is the canonical notation when
 treating the isomorphism as maps.
 
@@ -95,6 +97,17 @@ instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.
 
 @[norm_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
   (f : R ≃+ S) a = f a := rfl
+
+/-- The `ring_equiv` between two semirings with a unique element. -/
+def ring_equiv_of_unique_of_unique {M N}
+  [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] : M ≃+* N :=
+{ ..add_equiv.add_equiv_of_unique_of_unique,
+  ..mul_equiv.mul_equiv_of_unique_of_unique}
+
+instance {M N} [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] :
+  unique (M ≃+* N) :=
+{ default := ring_equiv_of_unique_of_unique,
+  uniq := λ _, ext $ λ x, subsingleton.elim _ _ }
 
 variable (R)
 

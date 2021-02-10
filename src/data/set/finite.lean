@@ -187,6 +187,16 @@ fintype.of_equiv α $ (equiv.set.univ α).symm
 
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
 
+/-- If `(set.univ : set α)` is finite then `α` is a finite type. -/
+noncomputable
+def fintype_of_univ_finite (H : set.finite (set.univ : set α)) :
+  fintype α :=
+begin
+  choose t ht using H.exists_finset,
+  refine ⟨t, _⟩,
+  simpa only [set.mem_univ, iff_true] using ht
+end
+
 theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
 ⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
   λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.set.univ _⟩

@@ -102,7 +102,7 @@ variables {V : Type u} (G : simple_graph V)
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
 instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
-  decidable_pred (∈ G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
+  decidable_pred (G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -334,6 +334,8 @@ end locally_finite
 section finite
 
 variables [fintype V]
+
+instance fintype.locally_finite [decidable_rel G.adj] : locally_finite G := λ v, set_fintype _
 
 instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbor_set v) :=
 @subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _

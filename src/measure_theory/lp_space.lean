@@ -1455,6 +1455,33 @@ begin
   exact λ m _, (h_cau m (m + 1) m (nat.le_succ m) (le_refl m)).le,
 end
 
+lemma lintegral_rpow_sum_coe_nnnorm_sub_le_rpow_tsum_of_cauchy_snorm' {f : ℕ → α → E}
+  (hf : ∀ n, ae_measurable (f n) μ) {p : ℝ} (hp1 : 1 ≤ p)
+  {B : ℕ → ℝ≥0∞} (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) p μ < B N) (n : ℕ) :
+  ∫⁻ a, (∑ i in finset.range (n + 1), nnnorm (f (i + 1) a - f i a) : ennreal)^p ∂μ
+    ≤ (tsum B) ^ p :=
+begin
+  have hp_pos : 0 < p := zero_lt_one.trans_le hp1,
+  let hn_snorm := snorm'_sum_norm_sub_le_tsum_of_cauchy_snorm'(λ n, hf n)
+    hp1 h_cau n,
+  rw [←one_div_one_div p, @ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]),
+    one_div_one_div p],
+  simp_rw snorm' at hn_snorm,
+  have h_nnnorm_nonneg :
+    (λ a, (nnnorm (∑ i in finset.range (n + 1), ∥f (i + 1) a - f i a∥) : ennreal) ^ p)
+    = λ a, (∑ i in finset.range (n + 1), (nnnorm( f (i + 1) a - f i a) : ennreal)) ^ p,
+  { ext1 a,
+    congr,
+    simp_rw ←of_real_norm_eq_coe_nnnorm,
+    rw ←ennreal.of_real_sum_of_nonneg,
+    { rw real.norm_of_nonneg _,
+      exact finset.sum_nonneg (λ x hx, norm_nonneg _), },
+    { exact λ x hx, norm_nonneg _, }, },
+  change (∫⁻ a, (λ x, ↑(nnnorm (∑ i in finset.range (n + 1), ∥f (i+1) x - f i x∥))^p) a ∂μ)^(1/p)
+    ≤ tsum B at hn_snorm,
+  rwa h_nnnorm_nonneg at hn_snorm,
+end
+
 lemma lintegral_rpow_tsum_coe_nnnorm_sub_le_tsum_of_cauchy_snorm' {f : ℕ → α → E}
   (hf : ∀ n, ae_measurable (f n) μ) {p : ℝ} (hp1 : 1 ≤ p) {B : ℕ → ennreal}
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) p μ < B N) :
@@ -1464,27 +1491,7 @@ begin
   have hp_ne_zero : p ≠ 0 := hp_pos.ne.symm,
   suffices h_pow : ∫⁻ a, (∑' i, nnnorm (f (i + 1) a - f i a) : ennreal)^p ∂μ ≤ (tsum B) ^ p,
     by rwa [←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]), one_div_one_div],
-  have hn : ∀ n, ∫⁻ a, (∑ i in finset.range (n + 1), nnnorm (f (i + 1) a - f i a) : ennreal)^p ∂μ
-    ≤ (tsum B) ^ p,
-  { intro n,
-    let hn_snorm := snorm'_sum_norm_sub_le_tsum_of_cauchy_snorm'(λ n, hf n)
-      hp1 h_cau n,
-    rw [←one_div_one_div p, @ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]),
-      one_div_one_div p],
-    simp_rw snorm' at hn_snorm,
-    have h_nnnorm_nonneg :
-      (λ a, (nnnorm (∑ i in finset.range (n + 1), ∥f (i + 1) a - f i a∥) : ennreal) ^ p)
-      = λ a, (∑ i in finset.range (n + 1), (nnnorm( f (i + 1) a - f i a) : ennreal)) ^ p,
-    { ext1 a,
-      congr,
-      simp_rw ←of_real_norm_eq_coe_nnnorm,
-      rw ←ennreal.of_real_sum_of_nonneg,
-      { rw real.norm_of_nonneg _,
-        exact finset.sum_nonneg (λ x hx, norm_nonneg _), },
-      { exact λ x hx, norm_nonneg _, }, },
-    change (∫⁻ a, (λ x, ↑(nnnorm (∑ i in finset.range (n + 1), ∥f (i+1) x - f i x∥))^p) a ∂μ)^(1/p)
-      ≤ tsum B at hn_snorm,
-    rwa h_nnnorm_nonneg at hn_snorm, },
+  have hn := λ n, lintegral_rpow_sum_coe_nnnorm_sub_le_rpow_tsum_of_cauchy_snorm' hf hp1 h_cau n,
   simp_rw ennreal.tsum_eq_liminf_add_nat 1,
   rw ←ennreal.tsum_eq_liminf_add_nat 1,
   have h_liminf_pow : ∫⁻ a, filter.at_top.liminf (λ n, ∑ i in finset.range (n + 1),
@@ -1499,13 +1506,9 @@ begin
     rw liminf_map_eq h_rpow_surj h_rpow_mono, },
   rw h_liminf_pow,
   refine (lintegral_liminf_le' _).trans _,
-  { refine λ n, ae_measurable.ennreal_rpow_const _,
-    exact finset.ae_measurable_sum (finset.range (n+1))
-      (λ i, ((hf (i+1)).sub (hf i)).nnnorm.ennreal_coe), },
-  { rw filter.liminf_eq,
-    refine Sup_le (λ x hx, _),
-    rw [set.mem_set_of_eq, filter.eventually_at_top] at hx,
-    exact (hx.some_spec hx.some (le_refl hx.some)).trans (hn hx.some), },
+  { exact λ n, ae_measurable.ennreal_rpow_const (finset.ae_measurable_sum (finset.range (n+1))
+      (λ i, ((hf (i+1)).sub (hf i)).nnnorm.ennreal_coe)), },
+  { exact filter.liminf_le_of_frequently_le' (filter.frequently_of_forall hn), },
 end
 
 lemma tsum_nnnorm_sub_ae_lt_top_of_cauchy_snorm' {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ)

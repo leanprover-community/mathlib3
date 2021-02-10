@@ -111,7 +111,7 @@ namespace ennreal
 lemma ae_le_ess_sup (f : α → ℝ≥0∞) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
 eventually_le_limsup f
 
-lemma ess_sup_eq_zero_iff {f : α → ℝ≥0∞} : ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
+@[simp] lemma ess_sup_eq_zero_iff {f : α → ℝ≥0∞} : ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
 limsup_eq_zero_iff
 
 lemma ess_sup_const_mul {f : α → ℝ≥0∞} {a : ℝ≥0∞} :

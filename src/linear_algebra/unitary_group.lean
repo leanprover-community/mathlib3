@@ -169,7 +169,7 @@ def to_GL (A : unitary_group n α) : general_linear_group α (n → α) :=
 general_linear_group.of_linear_equiv (to_linear_equiv A)
 
 lemma coe_to_GL (A : unitary_group n α) :
-  (@coe (units _) _ _ (to_GL A)) = A.to_lin' :=
+  ↑(to_GL A) = A.to_lin' :=
 rfl
 
 @[simp]

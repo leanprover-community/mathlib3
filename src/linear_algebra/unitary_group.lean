@@ -34,47 +34,52 @@ matrix group, group, unitary group, orthogonal group
 
 -/
 
-namespace matrix
 universes u v
-open linear_map
-open_locale matrix
-
 
 section
 
-variables (n : Type u) [fintype n] [decidable_eq n]
-variables (α : Type v) [comm_ring α] [star_ring α]
+variables (M : Type v) [monoid M] [star_monoid M]
 
 /--
-`unitary_submonoid n α` is the submonoid consisting of all `n` by `n` matrices `A` where
-`star A ⬝ A = 1`.
+In a `star_monoid M`, `unitary_submonoid M` is the submonoid consisting of all the elements of
+`M` such that `star A * A = 1`.
 -/
-def unitary_submonoid : submonoid (matrix n n α) :=
-{ carrier := {A | star A ⬝ A = 1},
-  one_mem' := show star 1 ⬝ 1 = 1, by { rw [star_one, matrix.one_mul] },
-  mul_mem' := λ A B (hA : star A ⬝ A = 1) (hB : star B ⬝ B = 1), show star (A ⬝ B) ⬝ (A ⬝ B) = 1,
-    by { rwa [star_mul, ←matrix.mul_assoc, matrix.mul_assoc _ _ A, hA, matrix.mul_one] } }
+def unitary_submonoid : submonoid M :=
+{ carrier := {A | star A * A = 1},
+  one_mem' := by simp,
+  mul_mem' := λ A B (hA : star A * A = 1) (hB : star B * B = 1), show star (A * B) * (A * B) = 1, by { rwa [star_mul, ←mul_assoc, mul_assoc _ _ A, hA, mul_one] } }
+
+end
+
+namespace matrix
+open linear_map
+open_locale matrix
+
+section
+
+variables (n : Type u) [decidable_eq n] [fintype n]
+variables (α : Type v) [comm_ring α] [star_ring α]
 
 /--
 `unitary_group n` is the group of `n` by `n` matrices where the star-transpose is the inverse.
 -/
 @[derive monoid]
-def unitary_group : Type* := unitary_submonoid n α
+def unitary_group : Type* := unitary_submonoid (matrix n n α)
 
 end
 
-variables {α : Type v} [comm_ring α] [star_ring α]
 variables {n : Type u} [decidable_eq n] [fintype n]
+variables {α : Type v} [comm_ring α] [star_ring α]
 
 namespace unitary_submonoid
 
-lemma star_mem {A : matrix n n α} (h : A ∈ unitary_submonoid n α) :
-  star A ∈ unitary_submonoid n α :=
+lemma star_mem {A : matrix n n α} (h : A ∈ unitary_submonoid (matrix n n α)) :
+  star A ∈ unitary_submonoid (matrix n n α) :=
 matrix.nonsing_inv_left_right _ _ $ (star_star A).symm ▸ h
 
 @[simp]
 lemma star_mem_iff {A : matrix n n α} :
-  star A ∈ unitary_submonoid n α ↔ A ∈ unitary_submonoid n α :=
+  star A ∈ unitary_submonoid (matrix n n α) ↔ A ∈ unitary_submonoid (matrix n n α) :=
 ⟨λ ha, star_star A ▸ star_mem ha, star_mem⟩
 
 end unitary_submonoid

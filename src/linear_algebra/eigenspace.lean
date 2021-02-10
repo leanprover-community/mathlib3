@@ -456,7 +456,7 @@ begin
     have h_dim_add : findim K ER + findim K ES = findim K V,
     { apply linear_map.findim_range_add_findim_ker },
     -- Therefore the dimension `ER` mus be smaller than `findim K V`.
-    have h_dim_ER : findim K ER < n.succ, by omega,
+    have h_dim_ER : findim K ER < n.succ, by linarith,
     -- This allows us to apply the induction hypothesis on `ER`:
     have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
       from ih (findim K ER) h_dim_ER f' rfl,

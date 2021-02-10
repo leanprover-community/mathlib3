@@ -68,85 +68,6 @@ lemma not_liouville_zero : ¬ is_liouville 0 :=
 
 end real
 
---use d ^ m = b ^ m
-lemma pow_mul_lt_base {R : Type*} [linear_ordered_semiring R] {a b c d : R}
-  (c0 : 0 ≤ c) (b0 : 0 ≤ b) (d0 : 0 ≤ d) (cd : c ≤ d) (ba : d * b * a < 1) :
-  c * b * a < 1 :=
-begin
-  by_cases a0 : a ≤ 0,
-  { refine lt_of_le_of_lt _ zero_lt_one,
-    exact mul_nonpos_of_nonneg_of_nonpos (mul_nonneg c0 ( b0)) a0 },
-  { refine lt_of_le_of_lt _ ba,
-    refine mul_le_mul _ rfl.le _ _,
-    { exact mul_le_mul_of_nonneg_right cd b0 },
-    { rwa not_le at a0,
-      exact a0.le },
-    exact mul_nonneg d0 b0 }
-end
-
-lemma pow_le_pow_of_base_le {R : Type*} [ordered_semiring R] {a b : R} {n : ℕ}
-  (a0 : 0 ≤ a) (ab : a ≤ b) :
-  a ^ n ≤ b ^ n :=
-pow_le_pow_of_le_left a0 ab n
-
-lemma pow_mul_lt {R : Type*} [linear_ordered_field R] {a b c d : R} {m n : ℕ} (c0 : 0 < c)
-  (d0 : 0 < d) (db : d ≤ b) (dc : 1 ≤ d ^ m * c) (ba : b ^ (m + n) * a < 1) :
-  b ^ n * a < c :=
-begin
-  rw [← mul_one c, ← div_lt_iff' c0, mul_div_assoc, mul_div_comm, mul_comm, ← mul_one_div,
-    mul_comm (b ^ n)],
-  rw [pow_add] at ba,
-  refine pow_mul_lt_base (one_div_pos.mpr c0).le _ _ _ ba;
-  try { exact pow_nonneg (d0.le.trans db) _ },
-  { rw [← mul_one (1 : R), ← div_le_iff c0, mul_one] at dc,
-    exact dc.trans (pow_le_pow_of_le_left d0.le db _) }
-/-
-  rw one_div_le at dc,
-  apply (one_div_pos.mp c0).le
-  refine ((lt_div_iff' _).mpr ba).trans_le ((div_le_iff' _).mpr (dc.trans _)),
-  any_goals { exact pow_pos (d0.trans_le db) m },
-  exact (mul_le_mul_right c0).mpr (pow_le_pow_of_le_left d0.le db m),
--/
-end
-
---use d ^ m = b ^ m
-lemma pow_mul_lt_two {R : Type*} [linear_ordered_field R] {a b c : R} {m n : ℕ}
-  (c0 : 0 ≤ c) (b0 : 0 ≤ b) (cb : c ≤ b ^ m) (ba : b ^ (m + n) * a < 1) :
-  c * (b ^ n * a) < 1 :=
-begin
-  by_cases a0 : a ≤ 0,
-  apply lt_of_le_of_lt _ zero_lt_one,
-  rw ← mul_assoc,
-  apply mul_nonpos_of_nonneg_of_nonpos (mul_nonneg c0 ( pow_nonneg b0 _)) a0,
-  exact nontrivial_of_lt (b ^ (m + n) * a) 1 ba,
-
-  rw [pow_add, mul_assoc] at ba,
-  apply lt_of_le_of_lt _ ba,
-  apply mul_le_mul _ rfl.le _ _,
-  {
-    apply cb.trans rfl.le,
-  },
-  {
-    rw not_le at a0,
-    apply mul_nonneg _ a0.le,apply pow_nonneg b0,
-  },
-  apply pow_nonneg b0,
-end
-
-
-lemma pow_mul_lt_three {R : Type*} [linear_ordered_field R] {a b c d : R} {m n : ℕ} (c0 : 0 < c)
-  (d0 : 0 < d) (db : d ≤ b) (dc : 1 ≤ d ^ m * c) (ba : b ^ (m + n) * a < 1) :
-  b ^ n * a < c :=
-begin
-  rw [← mul_one c, ← div_lt_iff' c0, mul_div_assoc, mul_div_comm, mul_comm, ← mul_one_div,
-    mul_comm (b ^ n), mul_assoc],
-  apply pow_mul_lt,
-  rw [pow_add, mul_assoc] at ba,
-  refine ((lt_div_iff' _).mpr ba).trans_le ((div_le_iff' _).mpr (dc.trans _)),
-  any_goals { exact pow_pos (d0.trans_le db) m },
-  exact (mul_le_mul_right c0).mpr (pow_le_pow_of_le_left d0.le db m),
-end
-
 open set ring_hom
 
 namespace polynomial
@@ -219,7 +140,7 @@ begin
   obtain ⟨xm, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - ζ) (α + ζ))
     ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
-  apply @with_metr_max ℤ ℕ ℝ _ _ _ (λ y, eval y fR) α ζ (abs (eval xm fR.derivative)) _ _ z0
+  refine @with_metr_max ℤ ℕ ℝ _ _ _ (λ y, eval y fR) α ζ (abs (eval xm fR.derivative)) _ _ z0
     (λ y hy, _) (λ z a hq, _),
   { exact (λ a, (le_add_iff_nonneg_left _).mpr a.cast_nonneg) }, --simp
   { rw [mul_comm],
@@ -250,10 +171,26 @@ begin
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
   refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
   refine ((_  : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A).trans_le _),
-  { refine pow_mul_lt (one_div_pos.mpr hA) zero_lt_two _ _ ((lt_div_iff' (pow_pos b0 _)).mp a1),
-    { exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)) },
-    { rw [mul_one_div, (le_div_iff hA), one_mul],
-      exact hn.le } },
+  { rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,
+    refine (lt_div_iff' hA).mpr _,
+    refine lt_of_le_of_lt _ a1,
+    refine mul_le_mul_of_nonneg_right _ (mul_nonneg (pow_nonneg b0.le _) (abs_nonneg _)),
+    refine hn.le.trans _,
+    refine pow_le_pow_of_le_left zero_le_two _ _,
+    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)),
+/-
+--    refine (mul_le_mul_right _).mpr _,
+    exact pow_nonneg b0.le _,
+    sorry,
+    refine (mul_le_mul_right _).mpr _,
+    apply hn.le.trans _,
+    apply pow_le_pow_of_le_left zero_le_two _,
+--    refine (mul_le_mul_right' _ (abs (x - (a / b)))),
+--    refine pow_mul_lt_base hA.le (pow_nonneg b0.le f.nat_degree) (pow_nonneg b0.le _) _ a1,
+--    refine hn.le.trans (pow_le_pow_of_le_left zero_le_two _ _),
+    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1))
+-/
+ },
   { lift b to ℕ using zero_le_one.trans b1.le,
     specialize h a b.pred,
     rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,

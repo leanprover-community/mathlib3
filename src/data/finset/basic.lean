@@ -2125,7 +2125,7 @@ by { rw bUnion_singleton, exact image_id }
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
   t.bUnion (λa, s.filter $ (λc, f c = a)) = s :=
-by { ext b, suffices : b ∈ s → f b ∈ t, by simpa, apply h }
+ext $ λ b, by simpa using h b
 
 lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=

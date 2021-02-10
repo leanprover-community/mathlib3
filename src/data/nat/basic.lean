@@ -1153,7 +1153,7 @@ strict_mono.injective (pow_right_strict_mono k)
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
 
-lemma mul_lt_mul_pow_succ {n : ℕ} {a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
+lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
   n * q < a * q ^ (n + 1) :=
 begin
   rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],

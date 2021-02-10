@@ -133,8 +133,8 @@ begin
   have ami : function.injective (algebra_map ℤ ℝ) :=
     λ _ _ A, by simpa only [ring_hom.eq_int_cast, int.cast_inj] using A,
   obtain fR0 : fR ≠ 0 := by simpa using (map_injective (algebra_map ℤ ℝ) ami).ne f0,
-  have ar : α ∈ (fR.roots.to_finset : set ℝ) := finset.mem_coe.mpr (multiset.mem_to_finset.mpr $
-    (mem_roots (fR0)).mpr (is_root.def.mpr fa)),
+  have ar : α ∈ (fR.roots.to_finset : set ℝ) :=
+    finset.mem_coe.mpr (multiset.mem_to_finset.mpr ((mem_roots fR0).mpr (is_root.def.mpr fa))),
   obtain ⟨ζ, z0, U⟩ :=
     @exists_closed_ball_inter_eq_singleton_of_discrete _ _ _ discrete_of_t1_of_finite _ ar,
   obtain ⟨xm, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - ζ) (α + ζ))
@@ -170,27 +170,14 @@ begin
   obtain ⟨a, b, b1, -, a1⟩ := liouville_x (r + f.nat_degree),
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
   refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
+  rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,
   refine ((_  : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A).trans_le _),
-  { rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,
-    refine (lt_div_iff' hA).mpr _,
+  { refine (lt_div_iff' hA).mpr _,
     refine lt_of_le_of_lt _ a1,
     refine mul_le_mul_of_nonneg_right _ (mul_nonneg (pow_nonneg b0.le _) (abs_nonneg _)),
     refine hn.le.trans _,
     refine pow_le_pow_of_le_left zero_le_two _ _,
-    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)),
-/-
---    refine (mul_le_mul_right _).mpr _,
-    exact pow_nonneg b0.le _,
-    sorry,
-    refine (mul_le_mul_right _).mpr _,
-    apply hn.le.trans _,
-    apply pow_le_pow_of_le_left zero_le_two _,
---    refine (mul_le_mul_right' _ (abs (x - (a / b)))),
---    refine pow_mul_lt_base hA.le (pow_nonneg b0.le f.nat_degree) (pow_nonneg b0.le _) _ a1,
---    refine hn.le.trans (pow_le_pow_of_le_left zero_le_two _ _),
-    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1))
--/
- },
+    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)) },
   { lift b to ℕ using zero_le_one.trans b1.le,
     specialize h a b.pred,
     rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,

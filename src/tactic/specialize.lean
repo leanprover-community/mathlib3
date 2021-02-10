@@ -25,11 +25,11 @@ With `specialize'`, the goal for any underscores comes first, then the current g
 -/
 meta def specialize' (p : parse texpr) : tactic unit :=
 do
-  n ← list.length <$> get_goals,
-  specialize p,
-  n' ← list.length <$> get_goals,
   g :: gs ← get_goals,
-  set_goals $ gs.take (n' - n) ++ [g] ++ gs.drop (n' - n)
+  set_goals [g],
+  specialize p,
+  g' :: gs' ← get_goals,
+  set_goals $ gs' ++ [g'] ++ gs
 
 end interactive
 

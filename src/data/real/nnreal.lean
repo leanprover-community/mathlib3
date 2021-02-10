@@ -215,7 +215,7 @@ galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono
 instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
-instance : canonically_ordered_add_monoid ℝ≥0 :=
+instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
   lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
@@ -246,8 +246,7 @@ instance : linear_ordered_semiring ℝ≥0 :=
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
   zero_le_one                := @zero_le_one ℝ _,
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
-  .. nnreal.linear_order,
-  .. nnreal.canonically_ordered_add_monoid,
+  .. nnreal.canonically_linear_ordered_add_monoid,
   .. nnreal.comm_semiring, }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
@@ -257,7 +256,7 @@ instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
   .. nnreal.comm_group_with_zero }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ .. nnreal.canonically_ordered_add_monoid,
+{ .. nnreal.canonically_linear_ordered_add_monoid,
   .. nnreal.comm_semiring,
   .. (show no_zero_divisors ℝ≥0, by apply_instance),
   .. nnreal.comm_group_with_zero }

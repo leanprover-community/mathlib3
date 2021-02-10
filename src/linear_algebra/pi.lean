@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.basic
 
-/-! ### Pi types of semimodules
+/-!
+# Pi types of semimodules
 
 This file defines constructors for linear maps whose domains or codomains are pi types.
 

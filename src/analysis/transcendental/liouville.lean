@@ -68,10 +68,79 @@ lemma not_liouville_zero : ¬ is_liouville 0 :=
 
 end real
 
-lemma pow_mul_lt {a b c d : ℝ} {m n : ℕ} (c0 : 0 < c)
+--use d ^ m = b ^ m
+lemma pow_mul_lt_base {R : Type*} [linear_ordered_semiring R] {a b c d : R}
+  (c0 : 0 ≤ c) (b0 : 0 ≤ b) (d0 : 0 ≤ d) (cd : c ≤ d) (ba : d * b * a < 1) :
+  c * b * a < 1 :=
+begin
+  by_cases a0 : a ≤ 0,
+  { refine lt_of_le_of_lt _ zero_lt_one,
+    exact mul_nonpos_of_nonneg_of_nonpos (mul_nonneg c0 ( b0)) a0 },
+  { refine lt_of_le_of_lt _ ba,
+    refine mul_le_mul _ rfl.le _ _,
+    { exact mul_le_mul_of_nonneg_right cd b0 },
+    { rwa not_le at a0,
+      exact a0.le },
+    exact mul_nonneg d0 b0 }
+end
+
+lemma pow_le_pow_of_base_le {R : Type*} [ordered_semiring R] {a b : R} {n : ℕ}
+  (a0 : 0 ≤ a) (ab : a ≤ b) :
+  a ^ n ≤ b ^ n :=
+pow_le_pow_of_le_left a0 ab n
+
+lemma pow_mul_lt {R : Type*} [linear_ordered_field R] {a b c d : R} {m n : ℕ} (c0 : 0 < c)
   (d0 : 0 < d) (db : d ≤ b) (dc : 1 ≤ d ^ m * c) (ba : b ^ (m + n) * a < 1) :
   b ^ n * a < c :=
 begin
+  rw [← mul_one c, ← div_lt_iff' c0, mul_div_assoc, mul_div_comm, mul_comm, ← mul_one_div,
+    mul_comm (b ^ n)],
+  rw [pow_add] at ba,
+  refine pow_mul_lt_base (one_div_pos.mpr c0).le _ _ _ ba;
+  try { exact pow_nonneg (d0.le.trans db) _ },
+  { rw [← mul_one (1 : R), ← div_le_iff c0, mul_one] at dc,
+    exact dc.trans (pow_le_pow_of_le_left d0.le db _) }
+/-
+  rw one_div_le at dc,
+  apply (one_div_pos.mp c0).le
+  refine ((lt_div_iff' _).mpr ba).trans_le ((div_le_iff' _).mpr (dc.trans _)),
+  any_goals { exact pow_pos (d0.trans_le db) m },
+  exact (mul_le_mul_right c0).mpr (pow_le_pow_of_le_left d0.le db m),
+-/
+end
+
+--use d ^ m = b ^ m
+lemma pow_mul_lt_two {R : Type*} [linear_ordered_field R] {a b c : R} {m n : ℕ}
+  (c0 : 0 ≤ c) (b0 : 0 ≤ b) (cb : c ≤ b ^ m) (ba : b ^ (m + n) * a < 1) :
+  c * (b ^ n * a) < 1 :=
+begin
+  by_cases a0 : a ≤ 0,
+  apply lt_of_le_of_lt _ zero_lt_one,
+  rw ← mul_assoc,
+  apply mul_nonpos_of_nonneg_of_nonpos (mul_nonneg c0 ( pow_nonneg b0 _)) a0,
+  exact nontrivial_of_lt (b ^ (m + n) * a) 1 ba,
+
+  rw [pow_add, mul_assoc] at ba,
+  apply lt_of_le_of_lt _ ba,
+  apply mul_le_mul _ rfl.le _ _,
+  {
+    apply cb.trans rfl.le,
+  },
+  {
+    rw not_le at a0,
+    apply mul_nonneg _ a0.le,apply pow_nonneg b0,
+  },
+  apply pow_nonneg b0,
+end
+
+
+lemma pow_mul_lt_three {R : Type*} [linear_ordered_field R] {a b c d : R} {m n : ℕ} (c0 : 0 < c)
+  (d0 : 0 < d) (db : d ≤ b) (dc : 1 ≤ d ^ m * c) (ba : b ^ (m + n) * a < 1) :
+  b ^ n * a < c :=
+begin
+  rw [← mul_one c, ← div_lt_iff' c0, mul_div_assoc, mul_div_comm, mul_comm, ← mul_one_div,
+    mul_comm (b ^ n), mul_assoc],
+  apply pow_mul_lt,
   rw [pow_add, mul_assoc] at ba,
   refine ((lt_div_iff' _).mpr ba).trans_le ((div_le_iff' _).mpr (dc.trans _)),
   any_goals { exact pow_pos (d0.trans_le db) m },
@@ -86,19 +155,7 @@ namespace polynomial
 lemma one_le_denom_pow_eval_rat {f : polynomial ℤ} {a b : ℤ}
   (b0 : (0 : ℝ) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
   (1 : ℝ) ≤ b ^ f.nat_degree * abs (eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ))) :=
-begin
-  obtain ⟨ev, bi, bu, hF⟩ := @denoms_clearable_nat_degree _ _ _ _ b _ (algebra_map ℤ ℝ)
-    f a (by { rw [eq_int_cast, one_div_mul_cancel], exact (b0.ne.symm) }),
-  obtain Fa := congr_arg abs hF,
-  rw [eq_one_div_of_mul_eq_one_left bu, eq_int_cast, eq_int_cast, abs_mul,
-    (abs_of_pos (pow_pos b0 _)), one_div, eq_int_cast] at Fa,
-  rw [div_eq_mul_inv, ← Fa, ← int.cast_abs, ← int.cast_one, int.cast_le],
-  refine int.le_of_lt_add_one ((lt_add_iff_pos_left 1).mpr (abs_pos.mpr (λ F0, fab _))),
-  rw [eq_one_div_of_mul_eq_one_left bu, F0, one_div, eq_int_cast, int.cast_zero, zero_eq_mul] at hF,
-  cases hF with hF hF,
-  { exact (not_le.mpr b0 (pow_eq_zero hF).le).elim },
-  { exact hF }
-end
+one_le_pow_mul_abs_eval_div b0 fab
 
 end polynomial
 
@@ -115,8 +172,8 @@ begin
     exact mul_le_mul ha (not_le.mp A).le zero_le_one (zero_le_one.trans ha) }
 end
 
-lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R]
-  {x y z : R} : abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
+lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
+  abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
 ⟨λ h, ⟨sub_le.mp (abs_le.mp h).2, neg_le_sub_iff_le_add.mp (abs_le.mp h).1⟩,
  λ hy, abs_le.mpr ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
 
@@ -176,7 +233,7 @@ begin
     refine (irrational_iff_ne_rational α).mp ha z (a + 1) ((mem_singleton_iff.mp _).symm),
     rw ← U,
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,
-    exact (mem_roots (fR0)).mpr (is_root.def.mpr hy) },
+    exact (mem_roots (fR0)).mpr (is_root.def.mpr hy) }
 end
 
 open real
@@ -185,7 +242,7 @@ theorem transcendental_of_is_liouville {x : ℝ} (liouville_x : is_liouville x) 
   is_transcendental ℤ x :=
 begin
   rintros ⟨f : polynomial ℤ, f0, ef0⟩,
-  replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rw aeval_def at ef0, rwa [eval_map] },
+  replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rwa [aeval_def, ← eval_map] at ef0 },
   obtain ⟨A, hA, h⟩ :=
     exists_pos_real_of_irrational_root (irrational_of_is_liouville liouville_x) f0 ef0,
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,

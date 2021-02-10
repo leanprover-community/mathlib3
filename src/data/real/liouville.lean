@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import data.real.irrational
---import data.polynomial.denoms_clearable
---import ring_theory.algebraic
---import topology.algebra.polynomial
---import analysis.calculus.mean_value
 
 /-!
 # Liouville's theorem
@@ -16,6 +12,13 @@ transcendental.
 
 At the moment, it contains the definition of a Liouville number and a proof that Liouville
 numbers are irrational.
+
+The commented imports below will appear as they are needed.  I (Damiano) leave them here for
+ease of reference.
+--import data.polynomial.denoms_clearable
+--import ring_theory.algebraic
+--import topology.algebra.polynomial
+--import analysis.calculus.mean_value
 -/
 
 section irrational

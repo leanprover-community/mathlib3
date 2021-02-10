@@ -145,23 +145,6 @@ end is_bounded_linear_map
 section
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
-/-- Taking the cartesian product of two continuous linear maps is a bounded linear operation. -/
-lemma is_bounded_linear_map_prod_iso :
-  is_bounded_linear_map 𝕜 (λ(p : (E →L[𝕜] F) × (E →L[𝕜] G)), (p.1.prod p.2 : (E →L[𝕜] (F × G)))) :=
-begin
-  refine is_linear_map.with_bound ⟨λu v, rfl, λc u, rfl⟩ 1 (λp, _),
-  simp only [norm, one_mul],
-  refine continuous_linear_map.op_norm_le_bound _ (le_trans (norm_nonneg _) (le_max_left _ _)) (λu, _),
-  simp only [norm, continuous_linear_map.prod, max_le_iff],
-  split,
-  { calc ∥p.1 u∥ ≤ ∥p.1∥ * ∥u∥ : continuous_linear_map.le_op_norm _ _
-    ... ≤ max (∥p.1∥) (∥p.2∥) * ∥u∥ :
-      mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) },
-  { calc ∥p.2 u∥ ≤ ∥p.2∥ * ∥u∥ : continuous_linear_map.le_op_norm _ _
-    ... ≤ max (∥p.1∥) (∥p.2∥) * ∥u∥ :
-      mul_le_mul_of_nonneg_right (le_max_right _ _) (norm_nonneg _) }
-end
-
 /-- Taking the cartesian product of two continuous multilinear maps is a bounded linear operation. -/
 lemma is_bounded_linear_map_prod_multilinear
   {E : ι → Type*} [∀i, normed_group (E i)] [∀i, normed_space 𝕜 (E i)] :
@@ -272,15 +255,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_biline
                       le_of_lt C_pos]
   end }
 
-lemma is_bounded_bilinear_map_smul :
-  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × E), p.1 • p.2) :=
-{ add_left   := add_smul,
-  smul_left  := λc x y, by simp [smul_smul],
-  add_right  := smul_add,
-  smul_right := λc x y, by simp [smul_smul, mul_comm],
-  bound      := ⟨1, zero_lt_one, λx y, by simp [norm_smul]⟩ }
-
-lemma is_bounded_bilinear_map_smul_algebra {𝕜' : Type*} [normed_field 𝕜']
+lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
   [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
   [is_scalar_tower 𝕜 𝕜' E] :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=

@@ -79,6 +79,20 @@ def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
 
+lemma injective.dite (p : α → Prop) [decidable_pred p]
+  {f : {a : α // p a} → β} {f' : {a : α // ¬ p a} → β}
+  (hf : injective f) (hf' : injective f')
+  (im_disj : ∀ {x x' : α} {hx : p x} {hx' : ¬ p x'}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
+  function.injective (λ x, if h : p x then f ⟨x, h⟩ else f' ⟨x, h⟩) :=
+λ x₁ x₂ h, begin
+  dsimp only at h,
+  by_cases h₁ : p x₁; by_cases h₂ : p x₂,
+  { rw [dif_pos h₁, dif_pos h₂] at h, injection (hf h), },
+  { rw [dif_pos h₁, dif_neg h₂] at h, exact (im_disj h).elim, },
+  { rw [dif_neg h₁, dif_pos h₂] at h, exact (im_disj h.symm).elim, },
+  { rw [dif_neg h₁, dif_neg h₂] at h, injection (hf' h), },
+end
+
 lemma surjective.of_comp {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
 λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩
 
@@ -109,6 +123,20 @@ hf.exists.trans $ exists_congr $ λ x, hf.exists
 theorem surjective.exists₃ {f : α → β} (hf : surjective f) {p : β → β → β → Prop} :
   (∃ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∃ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
 hf.exists.trans $ exists_congr $ λ x, hf.exists₂
+
+protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
+protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
+
+lemma bijective_iff_exists_unique (f : α → β) : bijective f ↔
+  ∀ b : β, ∃! (a : α), f a = b :=
+⟨ λ hf b, let ⟨a, ha⟩ := hf.surjective b in ⟨a, ha, λ a' ha', hf.injective (ha'.trans ha.symm)⟩,
+  λ he, ⟨
+    λ a a' h, unique_of_exists_unique (he (f a')) h rfl,
+    λ b, exists_of_exists_unique (he b) ⟩⟩
+
+/-- Shorthand for using projection notation with `function.bijective_iff_exists_unique`. -/
+lemma bijective.exists_unique {f : α → β} (hf : bijective f) (b : β) : ∃! (a : α), f a = b :=
+(bijective_iff_exists_unique f).mp hf b
 
 /-- Cantor's diagonal argument implies that there are no surjective functions from `α`
 to `set α`. -/
@@ -206,7 +234,7 @@ include n
 local attribute [instance, priority 10] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. This function is a right inverse of `f`
-on `f '' s`. -/
+on `f '' s`. For a computable version, see `function.injective.inv_of_mem_range`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
 if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
 

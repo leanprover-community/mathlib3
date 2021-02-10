@@ -477,16 +477,10 @@ theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set 
   (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :
   continuous_on finv (f '' s) :=
 begin
-  rintros _ ⟨x, xs, rfl⟩ t ht,
-  rw [hleft xs] at ht,
-  replace h := h.nhds_le ⟨x, xs⟩,
-  apply mem_nhds_within_of_mem_nhds,
-  apply h,
-  erw [map_compose.symm, function.comp, mem_map, ← nhds_within_eq_map_subtype_coe],
-  apply mem_sets_of_superset (inter_mem_nhds_within _ ht),
-  assume y hy,
-  rw [mem_set_of_eq, mem_preimage, hleft hy.1],
-  exact hy.2
+  refine continuous_on_iff'.2 (λ t ht, ⟨f '' (t ∩ s), _, _⟩),
+  { rw ← image_restrict, exact h _ (ht.preimage continuous_subtype_coe) },
+  { rw [inter_eq_self_of_subset_left (image_subset f (inter_subset_right t s)),
+      hleft.image_inter'] },
 end
 
 theorem is_open_map.continuous_on_range_of_left_inverse {f : α → β} (hf : is_open_map f)
@@ -717,7 +711,7 @@ lemma continuous_within_at_of_not_mem_closure {f : α → β} {s : set α} {x : 
   x ∉ closure s → continuous_within_at f s x :=
 begin
   intros hx,
-  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, not_not] at hx,
+  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot_iff, not_not] at hx,
   rw [continuous_within_at, hx],
   exact tendsto_bot,
 end

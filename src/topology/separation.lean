@@ -204,7 +204,7 @@ absurd huv $ (inf_ne_bot_iff.1 h (mem_nhds_sets hu hx) (mem_nhds_sets hv hy)).ne
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
-   have 𝓝 x ⊓ 𝓝 y = ⊥ := classical.by_contradiction (mt h xy),
+   have 𝓝 x ⊓ 𝓝 y = ⊥ := not_ne_bot.1 $ mt h xy,
    let ⟨u', hu', v', hv', u'v'⟩ := empty_in_sets_eq_bot.mpr this,
        ⟨u, uu', uo, hu⟩ := mem_nhds_sets_iff.mp hu',
        ⟨v, vv', vo, hv⟩ := mem_nhds_sets_iff.mp hv' in
@@ -215,18 +215,18 @@ lemma t2_iff_ultrafilter :
 t2_iff_nhds.trans $ by simp only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
-is_closed_iff_cluster_pt.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
-  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
-    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
-  begin
-    change t₁ ∈ 𝓝 a₁ at ht₁,
-    change t₂ ∈ 𝓝 a₂ at ht₂,
-    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
-    apply filter.sets_of_superset,
-    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
-    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
-      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
-  end
+begin
+  refine is_closed_iff_cluster_pt.mpr _,
+  rintro ⟨a₁, a₂⟩ h,
+  refine eq_of_nhds_ne_bot ⟨λ this : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h.ne _⟩,
+  obtain ⟨t₁, (ht₁ : t₁ ∈ 𝓝 a₁), t₂, (ht₂ : t₂ ∈ 𝓝 a₂), (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
+    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this,
+  rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
+  apply filter.sets_of_superset,
+  apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
+  exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
+    show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
+end
 
 lemma t2_iff_is_closed_diagonal : t2_space α ↔ is_closed (diagonal α) :=
 begin
@@ -484,6 +484,14 @@ begin
   refine ⟨_, _, compact_diff hK h1O₁, compact_diff hK h1O₂,
     by rwa [diff_subset_comm], by rwa [diff_subset_comm], by rw [← diff_inter, hO, diff_empty]⟩
 end
+
+lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β} (h : continuous f) :
+  is_closed_map f :=
+λ s hs, (hs.compact.image h).is_closed
+
+lemma continuous.closed_embedding [compact_space α] [t2_space β] {f : α → β} (h : continuous f)
+  (hf : function.injective f) : closed_embedding f :=
+closed_embedding_of_continuous_injective_closed h hf h.is_closed_map
 
 section
 open finset function

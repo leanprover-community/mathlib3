@@ -69,7 +69,7 @@ lemma is_compact.compl_mem_sets (hs : is_compact s) {f : filter α} (hf : ∀ a 
   sᶜ ∈ f :=
 begin
   contrapose! hf,
-  simp only [mem_iff_inf_principal_compl, compl_compl, inf_assoc, ← exists_prop] at hf ⊢,
+  simp only [not_mem_iff_inf_principal_compl, compl_compl, inf_assoc, ← exists_prop] at hf ⊢,
   exact @hs _ hf inf_le_right
 end
 
@@ -133,7 +133,7 @@ lemma is_compact.adherence_nhdset {f : filter α}
   t ∈ f :=
 classical.by_cases mem_sets_of_eq_bot $
   assume : f ⊓ 𝓟 tᶜ ≠ ⊥,
-  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := @@hs this $ inf_le_left_of_le hf₂ in
+  let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := @@hs ⟨this⟩ $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha (hfa.of_inf_left),
   have tᶜ ∩ t ∈ 𝓝[tᶜ] a,
@@ -141,7 +141,7 @@ classical.by_cases mem_sets_of_eq_bot $
   have A : 𝓝[tᶜ] a = ⊥,
     from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
   have 𝓝[tᶜ] a ≠ ⊥,
-    from hfa.of_inf_right,
+    from hfa.of_inf_right.ne,
   absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds :
@@ -257,7 +257,7 @@ theorem compact_of_finite_subfamily_closed
   is_compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt x f),
   have hf : ∀x∈s, 𝓝 x ⊓ f = ⊥,
-    by simpa only [cluster_pt, not_exists, not_not, ne_bot],
+    by simpa only [cluster_pt, not_exists, not_not, ne_bot_iff],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
@@ -266,7 +266,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt
       from (𝓝[t₂] x).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
     have 𝓝[t₂] x = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
-    by simp only [closure_eq_cluster_pts] at hx; exact hx t₂ ht₂ this,
+    by simp only [closure_eq_cluster_pts] at hx; exact (hx t₂ ht₂).ne this,
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
     (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
   have (⋂i∈t, subtype.val i) ∈ f,
@@ -279,7 +279,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt
       by { rw [eq_empty_iff_forall_not_mem] at ht, simpa [hxs, not_forall] using ht x }) in
     have x ∈ closure i.val, from subset_closure (mem_bInter_iff.mp hx i hit),
     show false, from hxi this,
-  hfn $ by rwa [empty_in_sets_eq_bot] at this
+  hfn.ne $ by rwa [empty_in_sets_eq_bot] at this
 
 /-- A set `s` is compact if for every open cover of `s`, there exists a finite subcover. -/
 lemma compact_of_finite_subcover
@@ -312,7 +312,7 @@ theorem compact_iff_finite_subfamily_closed :
 
 @[simp]
 lemma compact_empty : is_compact (∅ : set α) :=
-assume f hnf hsf, not.elim hnf $
+assume f hnf hsf, not.elim hnf.ne $
 empty_in_sets_eq_bot.1 $ le_principal_iff.1 hsf
 
 @[simp]
@@ -457,7 +457,7 @@ by simpa using compact_univ (show f ≤ 𝓟 univ, by simp)
 
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
-    (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
+    (⋂ i, Z i) = ∅ → ∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅) :
   compact_space α :=
 { compact_univ :=
   begin
@@ -509,22 +509,22 @@ begin
   have : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
   { suffices : ne_bot (map πY (comap πY (𝓝 y) ⊓ 𝓟 C)),
       by simpa only [map_ne_bot_iff],
+    convert y_closure,
     calc map πY (comap πY (𝓝 y) ⊓ 𝓟 C) =
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
-      ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal
-      ... ≠ ⊥ : y_closure },
+      ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal },
   resetI,
   obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
     from cluster_point_of_compact _,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
   apply hC,
   rw [cluster_pt, ← filter.map_ne_bot_iff πX],
+  convert hx,
   calc map πX (𝓝 (x, y) ⊓ 𝓟 C)
       = map πX (comap πX (𝓝 x) ⊓ comap πY (𝓝 y) ⊓ 𝓟 C) : by rw [nhds_prod_eq, filter.prod]
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C ⊓ comap πX (𝓝 x)) : by ac_refl
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x            : by rw filter.push_pull
   ... = 𝓝 x ⊓ map πX (comap πY (𝓝 y) ⊓ 𝓟 C)            : by rw inf_comm
-  ... ≠ ⊥ : hx,
 end
 
 lemma embedding.compact_iff_compact_image {f : α → β} (hf : embedding f) :
@@ -583,11 +583,11 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
 end⟩
 
 section tychonoff
-variables {ι : Type*} {π : ι → Type*} [∀i, topological_space (π i)]
+variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
 
 /-- Tychonoff's theorem -/
-lemma compact_pi_infinite {s : Πi:ι, set (π i)} :
-  (∀i, is_compact (s i)) → is_compact {x : Πi:ι, π i | ∀i, x i ∈ s i} :=
+lemma compact_pi_infinite {s : Π i, set (π i)} :
+  (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
   simp only [compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff,
     le_principal_iff],
@@ -600,17 +600,12 @@ begin
 end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/
-lemma compact_univ_pi {s : Πi:ι, set (π i)} (h : ∀i, is_compact (s i)) :
+lemma compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
 by { convert compact_pi_infinite h, simp only [pi, forall_prop_of_true, mem_univ] }
 
-instance pi.compact [∀i:ι, compact_space (π i)] : compact_space (Πi, π i) :=
-⟨begin
-  have A : is_compact {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} :=
-    compact_pi_infinite (λi, compact_univ),
-  have : {x : Πi:ι, π i | ∀i, x i ∈ (univ : set (π i))} = univ := by ext; simp,
-  rwa this at A,
-end⟩
+instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
+⟨by { rw [← pi_univ univ], exact compact_univ_pi (λ i, compact_univ) }⟩
 
 end tychonoff
 

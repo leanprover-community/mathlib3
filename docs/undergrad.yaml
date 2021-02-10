@@ -217,7 +217,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'
-    orthonormal bases:
+    orthonormal bases: 'maximal_orthonormal_iff_is_basis_of_finite_dimensional'
   Endomorphisms:
     orthogonal group:
     unitary group:
@@ -429,10 +429,10 @@ Topology:
   Hilbert Spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
-    dual space: 'normed_space.dual.inst'
+    dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
     $l^2$ and $L^2$ cases:
-    Hilbert (orthonormal) bases (in the separable case):
+    Hilbert (orthonormal) bases (in the separable case): 'exists_is_orthonormal_dense_span'
     Hilbert basis of trigonometric polynomials:
     Hilbert bases of orthogonal polynomials:
     Lax-Milgram theorem:

@@ -440,7 +440,8 @@ have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
   from λ x hx, have h2xp : 2 * x < p,
       from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
         (le_of_lt_succ $ by finish) dec_trivial
-      ... < _ : by conv_rhs {rw [← mod_add_div p 2, add_comm, show p % 2 = 1, from hp1]}; exact lt_succ_self _,
+      ... < _ :
+        by conv_rhs {rw [← div_add_mod p 2, show p % 2 = 1, from hp1]}; exact lt_succ_self _,
     by rw [← nat.cast_two, ← nat.cast_mul, val_cast_of_lt h2xp],
 have hdisj : disjoint
     ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val))

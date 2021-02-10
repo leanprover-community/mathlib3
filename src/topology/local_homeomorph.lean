@@ -53,7 +53,7 @@ structure local_homeomorph (α : Type*) (β : Type*) [topological_space α] [top
 (continuous_inv_fun : continuous_on inv_fun target)
 
 /-- A homeomorphism induces a local homeomorphism on the whole space -/
-def homeomorph.to_local_homeomorph (e : homeomorph α β) :
+def homeomorph.to_local_homeomorph (e : α ≃ₜ β) :
   local_homeomorph α β :=
 { open_source        := is_open_univ,
   open_target        := is_open_univ,
@@ -243,6 +243,23 @@ begin
   refine image_open_of_open _ (is_open_inter hs e.open_source) _,
   simp,
 end
+
+/-- A `local_equiv` with continuous open forward map and an open source is a `local_homeomorph`. -/
+def of_continuous_open_restrict (e : local_equiv α β) (hc : continuous_on e e.source)
+  (ho : is_open_map (e.source.restrict e)) (hs : is_open e.source) :
+  local_homeomorph α β :=
+{ to_local_equiv := e,
+  open_source := hs,
+  open_target := by simpa only [range_restrict, e.image_source_eq_target] using ho.is_open_range,
+  continuous_to_fun := hc,
+  continuous_inv_fun := e.image_source_eq_target ▸
+    ho.continuous_on_image_of_left_inv_on e.left_inv_on }
+
+/-- A `local_equiv` with continuous open forward map and an open source is a `local_homeomorph`. -/
+def of_continuous_open (e : local_equiv α β) (hc : continuous_on e e.source)
+  (ho : is_open_map  e) (hs : is_open e.source) :
+  local_homeomorph α β :=
+of_continuous_open_restrict e hc (ho.restrict hs) hs
 
 /-- Restricting a local homeomorphism `e` to `e.source ∩ s` when `s` is open. This is sometimes hard
 to use because of the openness assumption, but it has the advantage that when it can
@@ -540,7 +557,8 @@ rfl
   (e : local_homeomorph α β) (f : local_homeomorph β γ)
   (e' : local_homeomorph δ η) (f' : local_homeomorph η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
-by ext x; simp [ext_iff]; tauto
+local_homeomorph.eq_of_local_equiv_eq $
+  by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
 
 end prod
 

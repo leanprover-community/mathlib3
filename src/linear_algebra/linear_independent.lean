@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
 import linear_algebra.finsupp
+import linear_algebra.prod
 import order.zorn
 import data.finset.order
 import data.equiv.fin
@@ -647,7 +648,8 @@ begin
 end
 
 /-- Dedekind's linear independence of characters -/
--- See, for example, Keith Conrad's note <https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf>
+-- See, for example, Keith Conrad's note
+--  <https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf>
 theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [comm_ring L]
   [no_zero_divisors L] :
   @linear_independent _ L (G → L) (λ f, f : (G →* L) → (G → L)) _ _ _ :=
@@ -664,7 +666,8 @@ exact linear_independent_iff'.2
 -- and it remains to prove that `g` vanishes on `insert a s`.
 
 -- We now make the key calculation:
--- For any character `i` in the original `finset`, we have `g i • i = g i • a` as functions on the monoid `G`.
+-- For any character `i` in the original `finset`, we have `g i • i = g i • a` as functions on the
+-- monoid `G`.
 have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext $ λ x : G,
   -- We prove these expressions are equal by showing
   -- the differences of their values on each monoid element `x` is zero
@@ -707,11 +710,13 @@ have h4 : g a = 0, from calc
   ... = (g a • a : G → L) 1 : by rw ← a.map_one; refl
   ... = (∑ i in insert a s, (g i • i : G → L)) 1 : begin
       rw finset.sum_eq_single a,
-      { intros i his hia, rw finset.mem_insert at his, rw [h3 i (his.resolve_left hia), zero_smul] },
+      { intros i his hia, rw finset.mem_insert at his,
+        rw [h3 i (his.resolve_left hia), zero_smul] },
       { intros haas, exfalso, apply haas, exact finset.mem_insert_self a s }
     end
   ... = 0 : by rw hg; refl,
--- Now we're done; the last two facts together imply that `g` vanishes on every element of `insert a s`.
+-- Now we're done; the last two facts together imply that `g` vanishes on every element
+-- of `insert a s`.
 (finset.forall_mem_insert _ _ _).2 ⟨h4, h3⟩)
 
 lemma le_of_span_le_span [nontrivial R] {s t u: set M}
@@ -906,7 +911,8 @@ assume t, finset.induction_on t
         have s ⊆ (span K ↑(insert b₂ s' ∪ t) : submodule K V), from
           assume b₃ hb₃,
           have ↑(s' ∪ insert b₁ t) ⊆ insert b₁ (insert b₂ ↑(s' ∪ t) : set V),
-            by simp [insert_eq, -singleton_union, -union_singleton, union_subset_union, subset.refl, subset_union_right],
+            by simp [insert_eq, -singleton_union, -union_singleton, union_subset_union, subset.refl,
+              subset_union_right],
           have hb₃ : b₃ ∈ span K (insert b₁ (insert b₂ ↑(s' ∪ t) : set V)),
             from span_mono this (hss' hb₃),
           have s ⊆ (span K (insert b₁ ↑(s' ∪ t)) : submodule K V),

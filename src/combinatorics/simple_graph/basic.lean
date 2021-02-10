@@ -212,10 +212,10 @@ lemma common_neighbors_symm (v w : V) : G.common_neighbors v w = G.common_neighb
 by { rw [common_neighbors, set.inter_comm], refl }
 
 lemma not_mem_common_neighbors_left (v w : V) : v ∉ G.common_neighbors v w :=
-by simp [common_neighbors]
+λ h, ne_of_adj G h.1 rfl
 
 lemma not_mem_common_neighbors_right (v w : V) : w ∉ G.common_neighbors v w :=
-by simp [common_neighbors]
+λ h, ne_of_adj G h.2 rfl
 
 lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
 by simp [common_neighbors]
@@ -443,7 +443,7 @@ instance has_compl : has_compl (simple_graph V) :=
 lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
 instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
-[decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
+  [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
 
 @[simp]
 lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=

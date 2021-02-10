@@ -29,7 +29,7 @@ import data.set.finite
 
 -- CR : depends on
   -- graph_compl (#5697) `done`
-  -- common_neighbor_card `PRed`
+  -- common_neighbor_card `done`
     -- graph_common_neighbors (#5718) `done`
   -- to_finset_subset (#5725) `done`
 

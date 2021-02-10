@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.tangent_cone
 import analysis.normed_space.units
-import analysis.asymptotic_equivalent
+import analysis.asymptotics.asymptotic_equivalent
 import analysis.analytic.basic
 
 /-!
@@ -114,7 +114,7 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set metric
-open_locale topological_space classical nnreal asymptotics filter
+open_locale topological_space classical nnreal asymptotics filter ennreal
 
 noncomputable theory
 
@@ -364,7 +364,7 @@ begin
   rw [← mul_smul, mul_inv_cancel hy, one_smul]
 end
 
-theorem has_fderiv_at_unique
+theorem has_fderiv_at.unique
   (h₀ : has_fderiv_at f f₀' x) (h₁ : has_fderiv_at f f₁' x) : f₀' = f₁' :=
 begin
   rw ← has_fderiv_within_at_univ at h₀ h₁,
@@ -414,7 +414,7 @@ begin
 end
 
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
-by { ext, rw has_fderiv_at_unique h h.differentiable_at.has_fderiv_at }
+by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
 on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.
@@ -433,7 +433,7 @@ as this statement is empty. -/
 lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
-  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot, ne.def, not_not] at h,
+  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot_iff, ne.def, not_not] at h,
   simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 
@@ -913,7 +913,7 @@ end continuous_linear_map
 
 section analytic
 
-variables {p : formal_multilinear_series 𝕜 E F} {r : ennreal}
+variables {p : formal_multilinear_series 𝕜 E F} {r : ℝ≥0∞}
 
 lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x) :
   has_strict_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=
@@ -1680,6 +1680,104 @@ theorem fderiv_sum (h : ∀ i ∈ u, differentiable_at 𝕜 (A i) x) :
 
 end sum
 
+section pi
+
+/-!
+### Derivatives of functions `f : E → Π i, F' i`
+
+In this section we formulate `has_*fderiv*_pi` theorems as `iff`s, and provide two versions of each
+theorem:
+
+* the version without `'` deals with `φ : Π i, E → F' i` and `φ' : Π i, E →L[𝕜] F' i`
+  and is designed to deduce differentiability of `λ x i, φ i x` from differentiability
+  of each `φ i`;
+* the version with `'` deals with `Φ : E → Π i, F' i` and `Φ' : E →L[𝕜] Π i, F' i`
+  and is designed to deduce differentiability of the components `λ x, Φ x i` from
+  differentiability of `Φ`.
+-/
+
+variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_group (F' i)]
+  [Π i, normed_space 𝕜 (F' i)] {φ : Π i, E → F' i} {φ' : Π i, E →L[𝕜] F' i}
+  {Φ : E → Π i, F' i} {Φ' : E →L[𝕜] Π i, F' i}
+
+@[simp] lemma has_strict_fderiv_at_pi' :
+  has_strict_fderiv_at Φ Φ' x ↔
+    ∀ i, has_strict_fderiv_at (λ x, Φ x i) ((proj i).comp Φ') x :=
+begin
+  simp only [has_strict_fderiv_at, continuous_linear_map.coe_pi],
+  exact is_o_pi
+end
+
+@[simp] lemma has_strict_fderiv_at_pi :
+  has_strict_fderiv_at (λ x i, φ i x) (continuous_linear_map.pi φ') x ↔
+    ∀ i, has_strict_fderiv_at (φ i) (φ' i) x :=
+has_strict_fderiv_at_pi'
+
+@[simp] lemma has_fderiv_at_filter_pi' :
+  has_fderiv_at_filter Φ Φ' x L ↔
+    ∀ i, has_fderiv_at_filter (λ x, Φ x i) ((proj i).comp Φ') x L :=
+begin
+  simp only [has_fderiv_at_filter, continuous_linear_map.coe_pi],
+  exact is_o_pi
+end
+
+lemma has_fderiv_at_filter_pi :
+  has_fderiv_at_filter (λ x i, φ i x) (continuous_linear_map.pi φ') x L ↔
+    ∀ i, has_fderiv_at_filter (φ i) (φ' i) x L :=
+has_fderiv_at_filter_pi'
+
+@[simp] lemma has_fderiv_at_pi' :
+  has_fderiv_at Φ Φ' x ↔
+    ∀ i, has_fderiv_at (λ x, Φ x i) ((proj i).comp Φ') x :=
+has_fderiv_at_filter_pi'
+
+lemma has_fderiv_at_pi :
+  has_fderiv_at (λ x i, φ i x) (continuous_linear_map.pi φ') x ↔
+    ∀ i, has_fderiv_at (φ i) (φ' i) x :=
+has_fderiv_at_filter_pi
+
+@[simp] lemma has_fderiv_within_at_pi' :
+  has_fderiv_within_at Φ Φ' s x ↔
+    ∀ i, has_fderiv_within_at (λ x, Φ x i) ((proj i).comp Φ') s x :=
+has_fderiv_at_filter_pi'
+
+lemma has_fderiv_within_at_pi :
+  has_fderiv_within_at (λ x i, φ i x) (continuous_linear_map.pi φ') s x ↔
+    ∀ i, has_fderiv_within_at (φ i) (φ' i) s x :=
+has_fderiv_at_filter_pi
+
+@[simp] lemma differentiable_within_at_pi :
+  differentiable_within_at 𝕜 Φ s x ↔
+   ∀ i, differentiable_within_at 𝕜 (λ x, Φ x i) s x :=
+⟨λ h i, (has_fderiv_within_at_pi'.1 h.has_fderiv_within_at i).differentiable_within_at,
+  λ h, (has_fderiv_within_at_pi.2 (λ i, (h i).has_fderiv_within_at)).differentiable_within_at⟩
+
+@[simp] lemma differentiable_at_pi :
+  differentiable_at 𝕜 Φ x ↔ ∀ i, differentiable_at 𝕜 (λ x, Φ x i) x :=
+⟨λ h i, (has_fderiv_at_pi'.1 h.has_fderiv_at i).differentiable_at,
+  λ h, (has_fderiv_at_pi.2 (λ i, (h i).has_fderiv_at)).differentiable_at⟩
+
+lemma differentiable_on_pi :
+  differentiable_on 𝕜 Φ s ↔ ∀ i, differentiable_on 𝕜 (λ x, Φ x i) s :=
+⟨λ h i x hx, differentiable_within_at_pi.1 (h x hx) i,
+  λ h x hx, differentiable_within_at_pi.2 (λ i, h i x hx)⟩
+
+lemma differentiable_pi :
+  differentiable 𝕜 Φ ↔ ∀ i, differentiable 𝕜 (λ x, Φ x i) :=
+⟨λ h i x, differentiable_at_pi.1 (h x) i, λ h x, differentiable_at_pi.2 (λ i, h i x)⟩
+
+-- TODO: find out which version (`φ` or `Φ`) works better with `rw`/`simp`
+lemma fderiv_within_pi (h : ∀ i, differentiable_within_at 𝕜 (φ i) s x)
+  (hs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λ x i, φ i x) s x = pi (λ i, fderiv_within 𝕜 (φ i) s x) :=
+(has_fderiv_within_at_pi.2 (λ i, (h i).has_fderiv_within_at)).fderiv_within hs
+
+lemma fderiv_pi (h : ∀ i, differentiable_at 𝕜 (φ i) x) :
+  fderiv 𝕜 (λ x i, φ i x) x = pi (λ i, fderiv 𝕜 (φ i) x) :=
+(has_fderiv_at_pi.2 (λ i, (h i).has_fderiv_at)).fderiv
+
+end pi
+
 section neg
 /-! ### Derivative of the negative of a function -/
 
@@ -2037,9 +2135,18 @@ mem_nhds_sets continuous_linear_equiv.is_open (by simp)
 end continuous_linear_equiv
 
 section smul
-/-! ### Derivative of the product of a scalar-valued function and a vector-valued function -/
+/-! ### Derivative of the product of a scalar-valued function and a vector-valued function
 
-variables {c : E → 𝕜} {c' : E →L[𝕜] 𝕜}
+If `c` is a differentiable scalar-valued function and `f` is a differentiable vector-valued
+function, then `λ x, c x • f x` is differentiable as well. Lemmas in this section works for
+function `c` taking values in the base field, as well as in a normed algebra over the base
+field: e.g., they work for `c : E → ℂ` and `f : E → F` provided that `F` is a complex
+normed vector space.
+-/
+
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
+variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'}
 
 theorem has_strict_fderiv_at.smul (hc : has_strict_fderiv_at c c' x)
   (hf : has_strict_fderiv_at f f' x) :
@@ -2649,156 +2756,3 @@ lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
 λx, (h x).restrict_scalars 𝕜
 
 end restrict_scalars
-
-/-!
-### Multiplying by a complex function respects real differentiability
-
-Consider two functions `c : E → ℂ` and `f : E → F` where `F` is a complex vector space. If both
-`c` and `f` are differentiable over `ℝ`, then so is their product. This paragraph proves this
-statement, in the general version where `ℝ` is replaced by a field `𝕜`, and `ℂ` is replaced
-by a normed algebra `𝕜'` over `𝕜`.
- -/
-section smul_algebra
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
-variables [is_scalar_tower 𝕜 𝕜' F]
-variables {f : E → F} {f' : E →L[𝕜] F} {s : set E} {x : E}
-variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'} {L : filter E}
-
-theorem has_strict_fderiv_at.smul_algebra (hc : has_strict_fderiv_at c c' x)
-  (hf : has_strict_fderiv_at f f' x) :
-  has_strict_fderiv_at (λ y, c y • f y) (c x • f' + c'.smul_algebra_right (f x)) x :=
-(is_bounded_bilinear_map_smul_algebra.has_strict_fderiv_at (c x, f x)).comp x $
-  hc.prod hf
-
-theorem has_fderiv_within_at.smul_algebra
-  (hc : has_fderiv_within_at c c' s x) (hf : has_fderiv_within_at f f' s x) :
-  has_fderiv_within_at (λ y, c y • f y) (c x • f' + c'.smul_algebra_right (f x)) s x :=
-(is_bounded_bilinear_map_smul_algebra.has_fderiv_at (c x, f x)).comp_has_fderiv_within_at x $
-  hc.prod hf
-
-theorem has_fderiv_at.smul_algebra (hc : has_fderiv_at c c' x) (hf : has_fderiv_at f f' x) :
-  has_fderiv_at (λ y, c y • f y) (c x • f' + c'.smul_algebra_right (f x)) x :=
-(is_bounded_bilinear_map_smul_algebra.has_fderiv_at (c x, f x)).comp x $
-  hc.prod hf
-
-lemma differentiable_within_at.smul_algebra
-  (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :
-  differentiable_within_at 𝕜 (λ y, c y • f y) s x :=
-(hc.has_fderiv_within_at.smul_algebra hf.has_fderiv_within_at).differentiable_within_at
-
-@[simp] lemma differentiable_at.smul_algebra
-  (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
-  differentiable_at 𝕜 (λ y, c y • f y) x :=
-(hc.has_fderiv_at.smul_algebra hf.has_fderiv_at).differentiable_at
-
-lemma differentiable_on.smul_algebra (hc : differentiable_on 𝕜 c s) (hf : differentiable_on 𝕜 f s) :
-  differentiable_on 𝕜 (λ y, c y • f y) s :=
-λx hx, (hc x hx).smul_algebra (hf x hx)
-
-@[simp] lemma differentiable.smul_algebra (hc : differentiable 𝕜 c) (hf : differentiable 𝕜 f) :
-  differentiable 𝕜 (λ y, c y • f y) :=
-λx, (hc x).smul_algebra (hf x)
-
-lemma fderiv_within_smul_algebra (hxs : unique_diff_within_at 𝕜 s x)
-  (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :
-  fderiv_within 𝕜 (λ y, c y • f y) s x =
-    c x • fderiv_within 𝕜 f s x + (fderiv_within 𝕜 c s x).smul_algebra_right (f x) :=
-(hc.has_fderiv_within_at.smul_algebra hf.has_fderiv_within_at).fderiv_within hxs
-
-lemma fderiv_smul_algebra (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
-  fderiv 𝕜 (λ y, c y • f y) x =
-    c x • fderiv 𝕜 f x + (fderiv 𝕜 c x).smul_algebra_right (f x) :=
-(hc.has_fderiv_at.smul_algebra hf.has_fderiv_at).fderiv
-
-theorem has_strict_fderiv_at.smul_algebra_const
-  (hc : has_strict_fderiv_at c c' x) (f : F) :
-  has_strict_fderiv_at (λ y, c y • f) (c'.smul_algebra_right f) x :=
-by simpa only [smul_zero, zero_add] using hc.smul_algebra (has_strict_fderiv_at_const f x)
-
-theorem has_fderiv_within_at.smul_algebra_const
-  (hc : has_fderiv_within_at c c' s x) (f : F) :
-  has_fderiv_within_at (λ y, c y • f) (c'.smul_algebra_right f) s x :=
-by simpa only [smul_zero, zero_add] using hc.smul_algebra (has_fderiv_within_at_const f x s)
-
-theorem has_fderiv_at.smul_algebra_const
-  (hc : has_fderiv_at c c' x) (f : F) :
-  has_fderiv_at (λ y, c y • f) (c'.smul_algebra_right f) x :=
-by simpa only [smul_zero, zero_add] using hc.smul_algebra (has_fderiv_at_const f x)
-
-lemma differentiable_within_at.smul_algebra_const
-  (hc : differentiable_within_at 𝕜 c s x) (f : F) :
-  differentiable_within_at 𝕜 (λ y, c y • f) s x :=
-(hc.has_fderiv_within_at.smul_algebra_const f).differentiable_within_at
-
-lemma differentiable_at.smul_algebra_const
-  (hc : differentiable_at 𝕜 c x) (f : F) :
-  differentiable_at 𝕜 (λ y, c y • f) x :=
-(hc.has_fderiv_at.smul_algebra_const f).differentiable_at
-
-lemma differentiable_on.smul_algebra_const
-  (hc : differentiable_on 𝕜 c s) (f : F) :
-  differentiable_on 𝕜 (λ y, c y • f) s :=
-λx hx, (hc x hx).smul_algebra_const f
-
-lemma differentiable.smul_algebra_const
-  (hc : differentiable 𝕜 c) (f : F) :
-  differentiable 𝕜 (λ y, c y • f) :=
-λx, (hc x).smul_algebra_const f
-
-lemma fderiv_within_smul_algebra_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hc : differentiable_within_at 𝕜 c s x) (f : F) :
-  fderiv_within 𝕜 (λ y, c y • f) s x =
-    (fderiv_within 𝕜 c s x).smul_algebra_right f :=
-(hc.has_fderiv_within_at.smul_algebra_const f).fderiv_within hxs
-
-lemma fderiv_smul_algebra_const
-  (hc : differentiable_at 𝕜 c x) (f : F) :
-  fderiv 𝕜 (λ y, c y • f) x = (fderiv 𝕜 c x).smul_algebra_right f :=
-(hc.has_fderiv_at.smul_algebra_const f).fderiv
-
-theorem has_strict_fderiv_at.const_smul_algebra (h : has_strict_fderiv_at f f' x) (c : 𝕜') :
-  has_strict_fderiv_at (λ x, c • f x) (c • f') x :=
-(c • (1 : F →L[𝕜] F)).has_strict_fderiv_at.comp x h
-
-theorem has_fderiv_at_filter.const_smul_algebra (h : has_fderiv_at_filter f f' x L) (c : 𝕜') :
-  has_fderiv_at_filter (λ x, c • f x) (c • f') x L :=
-(c • (1 : F →L[𝕜] F)).has_fderiv_at_filter.comp x h
-
-theorem has_fderiv_within_at.const_smul_algebra (h : has_fderiv_within_at f f' s x) (c : 𝕜') :
-  has_fderiv_within_at (λ x, c • f x) (c • f') s x :=
-h.const_smul_algebra c
-
-theorem has_fderiv_at.const_smul_algebra (h : has_fderiv_at f f' x) (c : 𝕜') :
-  has_fderiv_at (λ x, c • f x) (c • f') x :=
-h.const_smul_algebra c
-
-lemma differentiable_within_at.const_smul_algebra (h : differentiable_within_at 𝕜 f s x) (c : 𝕜') :
-  differentiable_within_at 𝕜 (λy, c • f y) s x :=
-(h.has_fderiv_within_at.const_smul_algebra c).differentiable_within_at
-
-lemma differentiable_at.const_smul_algebra (h : differentiable_at 𝕜 f x) (c : 𝕜') :
-  differentiable_at 𝕜 (λy, c • f y) x :=
-(h.has_fderiv_at.const_smul_algebra c).differentiable_at
-
-lemma differentiable_on.const_smul_algebra (h : differentiable_on 𝕜 f s) (c : 𝕜') :
-  differentiable_on 𝕜 (λy, c • f y) s :=
-λx hx, (h x hx).const_smul_algebra c
-
-lemma differentiable.const_smul_algebra (h : differentiable 𝕜 f) (c : 𝕜') :
-  differentiable 𝕜 (λy, c • f y) :=
-λx, (h x).const_smul_algebra c
-
-lemma fderiv_within_const_smul_algebra (hxs : unique_diff_within_at 𝕜 s x)
-  (h : differentiable_within_at 𝕜 f s x) (c : 𝕜') :
-  fderiv_within 𝕜 (λy, c • f y) s x = c • fderiv_within 𝕜 f s x :=
-(h.has_fderiv_within_at.const_smul_algebra c).fderiv_within hxs
-
-lemma fderiv_const_smul_algebra (h : differentiable_at 𝕜 f x) (c : 𝕜') :
-  fderiv 𝕜 (λy, c • f y) x = c • fderiv 𝕜 f x :=
-(h.has_fderiv_at.const_smul_algebra c).fderiv
-
-end smul_algebra

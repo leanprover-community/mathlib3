@@ -64,7 +64,8 @@ variables {C}
 
 /-- This lemma will be immediately superseded by `ext`, below. -/
 private lemma ext_aux (I J : has_zero_morphisms C)
-  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero _ _ I X Y).zero = (@has_zero_morphisms.has_zero _ _ J X Y).zero) : I = J :=
+  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero _ _ I X Y).zero =
+    (@has_zero_morphisms.has_zero _ _ J X Y).zero) : I = J :=
 begin
   casesI I, casesI J,
   congr,
@@ -121,7 +122,8 @@ variables [has_zero_morphisms C] [has_zero_morphisms D]
 lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
 begin
-  have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
+  have t : F.functor.map (0 : X ⟶ Y) =
+    F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
   { apply faithful.map_injective (F.inverse),
     rw [functor.map_comp, equivalence.inv_fun_map],
     dsimp,
@@ -268,7 +270,8 @@ the identities on both `X` and `Y` are zero.
 -/
 @[simps]
 def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 Y = 0) :=
-{ to_fun := begin introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y), rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp, end,
+{ to_fun := by { introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y),
+    rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp },
   inv_fun := λ h, { inv := (0 : Y ⟶ X), },
   left_inv := by tidy,
   right_inv := by tidy, }

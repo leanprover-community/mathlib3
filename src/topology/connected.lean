@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import topology.subset_properties
 
 /-!
-# Properties of subsets of topological spaces
+# Connected subsets of topological spaces
 
 In this file we define connected subsets of a topological spaces and various other properties and
 classes related to connectivity.
@@ -17,7 +17,7 @@ We define the following properties for sets in a topological space:
 
 * `is_connected`: a nonempty set that has no non-trivial open partition.
   See also the section below in the module doc.
-  `connected_component` is the connected component of an element in the space.
+* `connected_component` is the connected component of an element in the space.
 * `is_totally_disconnected`: all of its connected components are singletons.
 * `is_totally_separated`: any two points can be separated by two disjoint opens that cover the set.
 

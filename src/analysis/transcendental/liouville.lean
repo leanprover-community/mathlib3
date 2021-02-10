@@ -17,15 +17,6 @@ This file contains the proof of Liouville's theorem stating that all Liouville n
 transcendental.
 -/
 
--- branch adomani_nat_lt_mul_pow_self
--- went into data.nat.basic
-lemma mul_lt_mul_pow_succ {a b c : ℕ} (c0 : 0 < c) (b1 : 1 < b) :
-  a * b < c * b ^ (a + 1) :=
-begin
-  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans b1)],
-  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr c0) (nat.lt_pow_self b1 a),
-end
-
 -- PR int_abs_lt_one_eq_zero
 -- moved to data.int.basic
 @[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=

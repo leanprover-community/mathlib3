@@ -241,7 +241,7 @@ node' l x r
 
 theorem dual_node' (l : ordnode α) (x : α) (r : ordnode α) :
   dual (node' l x r) = node' (dual r) x (dual l) :=
-by { unfold dual, congr' 1, simp [add_comm, add_left_comm] }
+  by { rw dual, congr' 2, rw [add_comm, size_dual, size_dual] }
 
 theorem dual_node3_l (l : ordnode α) (x : α) (m : ordnode α) (y : α) (r : ordnode α) :
   dual (node3_l l x m y r) = node3_r (dual r) y (dual m) x (dual l) :=

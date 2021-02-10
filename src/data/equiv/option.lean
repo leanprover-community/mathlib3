@@ -8,6 +8,12 @@ import control.equiv_functor
 
 /-!
 # Equivalences for `option α`
+
+We define `remove_none` which acts to provide a `e : α ≃ β` if given a `f : option α ≃ option β`.
+
+To construct an `f : option α ≃ option β` from `e : α ≃ β` such that
+`f none = none` and `f (some x) = some (e x)`, use
+`f = equiv_functor.map_equiv option e`.
 -/
 
 namespace equiv

@@ -467,12 +467,10 @@ theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :
 end⟩
 
 theorem is_complemented_iff_is_atomistic : is_complemented α ↔ is_atomistic α :=
-⟨λ inst, begin
-  haveI := inst,
-  exact is_atomistic_of_is_complemented,
-end, λ inst, begin
-  haveI := inst,
-  exact is_complemented_of_is_atomistic,
-end⟩
+begin
+  split; introsI,
+  { exact is_atomistic_of_is_complemented },
+  { exact is_complemented_of_is_atomistic }
+end
 
 end

@@ -252,7 +252,7 @@ Inf {k | derived_series_of_ideal R L k I = ⊥}
 
 /-- The derived length of a Lie algebra is the derived length of its 'top' Lie ideal.
 
-See also `derived_length_eq_derived_length_of_ideal`. -/
+See also `lie_algebra.derived_length_eq_derived_length_of_ideal`. -/
 noncomputable abbreviation derived_length : ℕ := derived_length_of_ideal R L ⊤
 
 lemma derived_series_of_derived_length_succ (I : lie_ideal R L) (k : ℕ) :

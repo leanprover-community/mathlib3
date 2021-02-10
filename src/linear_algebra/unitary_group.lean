@@ -48,7 +48,7 @@ def unitary_submonoid : submonoid M :=
 { carrier := {A | star A * A = 1},
   one_mem' := by simp,
   mul_mem' := λ A B (hA : star A * A = 1) (hB : star B * B = 1), show star (A * B) * (A * B) = 1,
-  by { rwa [star_mul, ←mul_assoc, mul_assoc _ _ A, hA, mul_one] } }
+  by rwa [star_mul, ←mul_assoc, mul_assoc _ _ A, hA, mul_one] }
 
 end
 

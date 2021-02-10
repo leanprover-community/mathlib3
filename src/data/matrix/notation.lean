@@ -133,7 +133,7 @@ set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
 -/
 @[simp] lemma cons_val_one (x : α) (u : fin m.succ → α) :
   vec_cons x u 1 = vec_head u :=
-cons_val_succ x u 0
+by { convert cons_val_succ x u 0, simp }
 
 @[simp] lemma cons_val_fin_one (x : α) (u : fin 0 → α) (i : fin 1) :
   vec_cons x u i = x :=
@@ -143,9 +143,8 @@ by { fin_cases i, refl }
 The following definitions and `simp` lemmas are to allow any
 numeral-indexed element of a vector given with matrix notation to
 be extracted by `simp` (even when the numeral is larger than the
-number of elements in the vector, which is taken modulo that number
-of elements by virtue of the semantics of `bit0` and `bit1` and of
-addition on `fin n`).
+number of elements in the vector, which is taken to be the last
+possible value for that `fin n`).
 -/
 
 @[simp] lemma empty_append (v : fin n → α) : fin.append (zero_add _).symm ![] v = v :=

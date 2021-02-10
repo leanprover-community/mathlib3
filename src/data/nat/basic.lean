@@ -94,6 +94,10 @@ instance : canonically_ordered_comm_semiring ℕ :=
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
+instance : canonically_linear_ordered_add_monoid ℕ :=
+{ .. (infer_instance : canonically_ordered_add_monoid ℕ),
+  .. nat.linear_order }
+
 instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
   semilattice_sup_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,

@@ -1051,6 +1051,38 @@ by { rw [mem_ker, f.map_one], exact one_ne_zero }
 @[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
 by simpa only [←injective_iff_ker_eq_bot] using f.injective
 
+/-- The induced map from the quotient by the kernel to the codomain. -/
+def ker_lift (f : R →+* S) : f.ker.quotient →+* S :=
+ideal.quotient.lift _ f $ λ r, f.mem_ker.mp
+
+@[simp]
+lemma ker_lift_mk (f : R →+* S) (r : R) : (ker_lift f) (ideal.quotient.mk f.ker r) = f r :=
+ideal.quotient.lift_mk _ _ _
+
+/-- The induced map from the quotient by the kernel is injective. -/
+lemma injective_ker_lift (f : R →+* S) : function.injective (ker_lift f) :=
+assume a b, quotient.induction_on₂' a b $
+  assume a b (h : f a = f b), quotient.sound' $
+show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
+
+variable {f}
+
+/-- If `f : R →+* S` is surjective, then the induced map from the quotient by the kernel is
+surjective. -/
+lemma surjective_ker_lift (hf : function.surjective f) : function.surjective (ker_lift f) :=
+begin
+  intro s,
+  rcases hf s with ⟨r, rfl⟩,
+  refine ⟨ideal.quotient.mk _ r, rfl⟩,
+end
+
+/-- The first isomorphism theorem for commutative rings. -/
+noncomputable def quotient_ker_equiv_of_surjective (hf : function.surjective f) :
+  f.ker.quotient ≃+* S :=
+ring_equiv.of_bijective (ker_lift f) $
+{ left := injective_ker_lift f,
+  right := surjective_ker_lift hf }
+
 end comm_ring
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
@@ -1174,7 +1206,46 @@ surjective_quot_mk _
 lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
 ideal.mk_ker
 
-variable {R}
+variables {R} {B : Type*} [comm_ring B] [algebra R B]
+
+lemma quotient.smul (f : A →ₐ[R] B) (r : R) (x : f.to_ring_hom.ker.quotient) :
+  (f.to_ring_hom.ker_lift) (r • x) = r • (f.to_ring_hom.ker_lift) x :=
+begin
+  obtain ⟨a, rfl⟩ := quotient.mkₐ_surjective R _ x,
+  rw [← alg_hom.map_smul, quotient.mkₐ_eq_mk, ring_hom.ker_lift_mk],
+  have h : f.to_ring_hom (r • a) = r • (f a) := alg_hom.map_smul f r a,
+  rw [h, ring_hom.ker_lift_mk],
+  refl
+end
+
+/-- The induced algebra morphism from the quotient by the kernel to the codomain. -/
+def ker_lift_alg (f : A →ₐ[R] B) : f.to_ring_hom.ker.quotient →ₐ[R] B :=
+alg_hom.mk' (ring_hom.ker_lift f.to_ring_hom) (λ _ _, quotient.smul f _ _)
+
+@[simp]
+lemma ker_lift_alg_mk (f : A →ₐ[R] B) (a : A) :
+  (ker_lift_alg f) (quotient.mkₐ R f.to_ring_hom.ker a) = f a := rfl
+
+@[simp]
+lemma ker_lift_alg_to_ring_hom (f : A →ₐ[R] B) :
+  (ker_lift_alg f).to_ring_hom = ring_hom.ker_lift f := rfl
+
+/-- The induced algebra morphism from the quotient by the kernel is injective. -/
+lemma injective_ker_lift_alg (f : A →ₐ[R] B) : function.injective (ker_lift_alg f) :=
+ring_hom.injective_ker_lift f
+
+/-- If `f : A →ₐ[R] B` is surjective, then the induced algebra morphism from the quotient by the
+kernel is surjective. -/
+lemma surjective_ker_lift_alg {f : A →ₐ[R] B} (hf : function.surjective f) :
+  function.surjective (ker_lift_alg f) :=
+ring_hom.surjective_ker_lift hf
+
+/-- The first isomorphism theorem for agebras. -/
+noncomputable def quotient_ker_alg_equiv_of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) :
+  f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
+alg_equiv.of_bijective (ker_lift_alg f) $
+{ left := injective_ker_lift_alg f,
+  right := surjective_ker_lift_alg hf }
 
 /-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :

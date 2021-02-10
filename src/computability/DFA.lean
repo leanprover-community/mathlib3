@@ -43,4 +43,26 @@ def eval := M.eval_from M.start
 def accepts : language α :=
 λ x, M.eval x ∈ M.accept
 
+def zero : DFA α punit :=
+{ step := λ _ _, punit.star,
+  start := punit.star,
+  accept := ∅ }
+
+def epsilon : DFA α bool :=
+{ step := λ _ _, ff,
+  start := tt,
+  accept := {tt} }
+
+def char (a₁ : α) [decidable_eq α] : DFA α (option bool) :=
+{ step := λ b a₂, if a₁ = a₂ ∧ b.is_none then tt else ff,
+  start := none,
+  accept := {tt} }
+
+lemma zero_accepts : (@zero α).accepts = 0 := rfl
+lemma epsilon_accepts : (@epsilon α).accepts = 1 :=
+begin
+  ext x,
+  rw [language.mem_one]
+end
+
 end DFA

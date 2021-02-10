@@ -73,6 +73,21 @@ begin
   refl
 end
 
+def zero : ε_NFA α pempty :=
+{ step := λ _ _, ∅,
+  start := ∅,
+  accept := ∅ }
+
+def epsilon : ε_NFA α punit :=
+{ step := λ _ _, ∅,
+  start := {punit.star},
+  accept := {punit.star} }
+
+def char (a₁ : α) [decidable_eq α] : ε_NFA α (ulift bool) :=
+{ step := λ b a₂, if some a₁ = a₂ then (if ↑(ulift.down b) then {⟨ff⟩} else ∅) else ∅,
+  start := {⟨tt⟩},
+  accept := {⟨ff⟩} }
+
 end ε_NFA
 
 namespace NFA

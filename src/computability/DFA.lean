@@ -138,7 +138,7 @@ def epsilon : DFA α bool :=
   accept := {tt} }
 
 def char (a₁ : α) [decidable_eq α] : DFA α (option bool) :=
-{ step := λ b a₂, if a₁ = a₂ ∧ b.is_none then tt else ff,
+{ step := λ b a₂, if a₂ = a₁ ∧ b.is_none then tt else ff,
   start := none,
   accept := {tt} }
 
@@ -146,7 +146,31 @@ lemma zero_accepts : (@zero α).accepts = 0 := rfl
 lemma epsilon_accepts : (@epsilon α).accepts = 1 :=
 begin
   ext x,
-  rw [language.mem_one]
+  change list.foldl _ _ _ ∈ {tt} ↔ x = list.nil,
+  cases x with a x,
+  { tauto },
+  { simp only [eq_ff_eq_not_eq_tt, set.mem_singleton_iff, list.foldl, iff_false],
+    induction x,
+    { refl },
+    { assumption } }
+end
+lemma char_accepts {a : α} [decidable_eq α] : (char a).accepts = {[a]} :=
+begin
+  ext x,
+  change list.foldl (λ _ _, _) none _ ∈ {↑tt} ↔ x ∈ {[a]},
+  cases x with b x,
+  { dec_trivial },
+  cases x with _ x,
+  { simp only [list.foldl],
+    split_ifs,
+    { tauto },
+    { simp only [and_true, set.mem_singleton_iff, eq_self_iff_true],
+      simp only [and_true, bool.coe_sort_tt, option.is_none_none] at h,
+      split,
+      { dec_trivial },
+      { contradiction } } },
+  { simp only [and_true, list.foldl_cons, set.mem_singleton_iff, bool.coe_sort_tt,
+      option.is_none_none, list.foldl, iff_false, and_false] }
 end
 
 end DFA

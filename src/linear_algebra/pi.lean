@@ -17,6 +17,7 @@ It contains theorems relating these to each other, as well as to `linear_map.ker
 - pi types in the codomain:
   - `linear_map.proj`
   - `linear_map.pi`
+- `linear_map.diag`
 
 -/
 

@@ -4,6 +4,7 @@ Authors: Johan Commelin
 -/
 
 import order.category.NonemptyFinLinOrd.basic
+import data.finset.sort
 import tactic.apply_fun
 import tactic.linarith
 
@@ -165,12 +166,12 @@ instance : faithful skeletal_functor.{u} :=
     rw h,
   end }
 
-noncomputable instance : ess_surj skeletal_functor.{u} :=
+instance : ess_surj skeletal_functor.{u} :=
 { mem_ess_image := λ X, ⟨(fintype.card X - 1 : ℕ), ⟨begin
     have aux : fintype.card X = fintype.card X - 1 + 1,
     { exact (nat.succ_pred_eq_of_pos $ fintype.card_pos_iff.mpr ⟨⊥⟩).symm, },
     let f := mono_equiv_of_fin X aux,
-    have hf := (finset.mono_of_fin_strict_mono finset.univ aux),
+    have hf := (finset.univ.order_emb_of_fin aux).strict_mono,
     refine
     { hom := ⟨λ i, f i.down, _⟩,
       inv := ⟨λ i, ⟨f.symm i⟩, _⟩,
@@ -178,7 +179,7 @@ noncomputable instance : ess_surj skeletal_functor.{u} :=
       inv_hom_id' := _ },
     { rintro ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, exact hf.monotone h, },
     { intros i j h, show f.symm i ≤ f.symm j, rw ← hf.le_iff_le,
-      show f (f.symm i) ≤ f (f.symm j), simpa only [equiv.apply_symm_apply], },
+      show f (f.symm i) ≤ f (f.symm j), simpa only [order_iso.apply_symm_apply], },
     { ext1 ⟨i⟩, ext1, exact f.symm_apply_apply i },
     { ext1 i, exact f.apply_symm_apply i },
   end⟩⟩,}

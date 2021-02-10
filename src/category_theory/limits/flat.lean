@@ -85,7 +85,7 @@ def alt_cocone_eval (v : C) :
 def tk (j : J) : is_colimit (ck F K j) :=
 begin
   change is_colimit (functor.map_cocone _ _),
-  apply preserves_colimit.preserves _,
+  apply alt_cocone_eval,
 end
 
 def c₁ : cocone (cones_to_functor (λ q, tj F K c q t)) :=
@@ -108,152 +108,91 @@ begin
   apply ((evaluation C (Type v₁)).obj c.X).map_cocone (alt_cocone F)
 end
 
-set_option pp.universes true
 noncomputable def c₂ : cone (cocones_to_functor (tk F K)) :=
 limit.cone _
 
+def t₁ : is_colimit (c₁ F K c t) :=
+begin
+  change is_colimit ((cocones.precompose _).obj _),
+  apply (is_colimit.precompose_inv_equiv _ _).symm _,
+  apply alt_cocone_eval
+end
+
+noncomputable def t₂ : is_limit (c₂ F K) :=
+limit.is_limit _
 -- is_limit_of_preserves (coyoneda.obj (op (unop q).fst)) t
 
--- noncomputable def my_thm
---   (J : Type u₂) [category.{v₂} J] [fin_category J]
---   {C : Type u₁} [category.{v₁} C]
---   (F : C ⥤ Type v₁) (hF : is_filtered F.elementsᵒᵖ) :
---   preserves_limits_of_shape J F :=
--- begin
---   split,
---   intro K,
---   split,
---   intros c t,
---   let Γ : F.elementsᵒᵖ ⥤ J ⥤ Type v₁ := my_functor F ⋙ (whiskering_left J C _).obj K,
---   let cj : Π (j : (F.elements)ᵒᵖ), cone (Γ.obj j) :=
---     λ j, ((my_functor F).obj j).map_cone c,
---   let ck : Π (k : J), cocone (Γ.flip.obj k) :=
---     λ j, ((evaluation C (Type v₁)).obj (K.obj j)).map_cocone (alt_cocone F),
---   have tj : Π j, is_limit (cj j),
---   { intro j,
---     apply is_limit_of_preserves (coyoneda.obj (op (unop j).fst)) t },
---   have tk : Π k, is_colimit (ck k),
---   { intro k,
---     refine ⟨λ s q, s.ι.app (op ⟨_, q⟩) (𝟙 _), _, _⟩,
---     { intros s j,
---       op_induction j,
---       cases j with X x,
---       ext q,
---       let X' : F.elementsᵒᵖ := op ⟨X, x⟩,
---       let Y' : F.elementsᵒᵖ := (op ⟨K.obj k, F.map q x⟩),
---       let α : Y' ⟶ X' := has_hom.hom.op ⟨q, rfl⟩,
---       have := s.w α,
---       dsimp at this,
---       change s.ι.app Y' _ = _,
---       rw ← this,
---       dsimp,
---       simp },
---     { intros s m w,
---       ext X,
---       dsimp,
---       rw ← w,
---       dsimp,
---       simp } },
---   let c₁ : cocone (cones_to_functor tj),
---   { refine ⟨F.obj c.X, λ j q, F.map q j.unop.2, _⟩,
---     { intros j₁ j₂ α,
---       ext,
---       dsimp at x,
---       dsimp,
---       rw ← α.unop.2,
---       rw ← functor_to_types.map_comp_apply,
---       congr' 1,
---       let m : (cj j₁).X ⟶ (cj j₂).X := λ z, α.unop.1 ≫ z,
---       have : is_limit.map (cj j₁) (tj j₂) (whisker_left K ((my_functor F).map α)) = m,
---       { refine (tj j₂).hom_ext _,
---         intro j,
---         rw is_limit.map_π,
---         ext,
---         change _ ≫ _ ≫ _ = (_ ≫ _) ≫ _,
---         rw category.assoc,
---         refl },
---       rw this } },
---   let c₂ : cone (cocones_to_functor tk),
---   { apply limit.cone (cocones_to_functor tk) },
---   let t₁ : is_colimit c₁,
---   { refine ⟨λ s q, _, _, _⟩,
---     { apply s.ι.app (op ⟨_, q⟩) (𝟙 _) },
---     { intros s j,
---       op_induction j,
---       cases j with X x,
---       ext q,
---       dsimp,
---       let X' : F.elementsᵒᵖ := op ⟨X, x⟩,
---       let Y' : F.elementsᵒᵖ := (op ⟨_, F.map q x⟩),
---       let α : Y' ⟶ X' := has_hom.hom.op ⟨q, rfl⟩,
---       rw ← s.w α,
---       dsimp,
---       congr' 1,
---       have : is_limit.map (cj Y') (tj X') (whisker_left K ((my_functor F).map α)) = (λ z, q ≫ z),
---       { apply (tj X').hom_ext,
---         intro j,
---         rw is_limit.map_π,
---         ext z,
---         dsimp [my_functor],
---         simp },
---       rw this,
---       simp },
---     { intros s m w,
---       ext q,
---       rw ← w,
---       dsimp,
---       simp, } },
---   let t₂ : is_limit c₂ := limit.is_limit _,
---   let q : cocones_to_functor tk ≅ K ⋙ F,
---   { refine nat_iso.of_components (λ X, iso.refl _) _,
---     intros X Y f,
---     dsimp,
---     rw [category.id_comp, category.comp_id],
---     apply (tk X).hom_ext,
---     intro j,
---     rw is_colimit.ι_map,
---     ext q,
---     dsimp [alt_cocone, my_functor],
---     simp, },
---   let i₂ := has_limit.iso_of_nat_iso q,
---   let i₃ : F.obj c.X ≅ limit (K ⋙ F) := filtered_colimit_finite_limit_iso Γ tj tk t₁ t₂ ≪≫ i₂,
---   apply is_limit.of_point_iso (limit.is_limit (K ⋙ F)),
---   dsimp,
---   have : limit.lift (K ⋙ F) (F.map_cone c) = i₃.hom,
---   { apply limit.hom_ext,
---     intro j,
---     rw limit.lift_π,
---     dsimp,
---     change _ = (_ ≫ _) ≫ _,
---     rw category.assoc,
---     simp only [iso.refl_hom, category.comp_id, nat_iso.of_components.hom_app,
---       has_limit.iso_of_nat_iso_hom_π],
---     apply t₁.hom_ext,
---     intro k,
---     change _ = _ ≫ _ ≫ c₂.π.app j,
---     rw ι_colimit_to_limit_π,
---     ext q,
---     dsimp,
---     simp, },
---   rw this,
---   apply is_iso.of_iso,
--- end
+noncomputable def my_thm
+  (J : Type v₁) [category.{v₂} J] [fin_category J]
+  {C : Type u₁} [category.{v₁} C]
+  (F : C ⥤ Type v₁) (hF : is_filtered F.elementsᵒᵖ) :
+  preserves_limits_of_shape J F :=
+begin
+  split,
+  intro K,
+  split,
+  intros c t,
+  let Γ' := Γ F K,
+  let tj : Π (q : F.elementsᵒᵖ), is_limit (cj F K c q) := λ q, tj F K c q t,
+  let q : cocones_to_functor (tk F K) ≅ K ⋙ F,
+  { refine nat_iso.of_components (λ X, iso.refl _) _,
+    intros X Y f,
+    dsimp,
+    rw [category.id_comp, category.comp_id],
+    apply (tk F K X).hom_ext,
+    intro j,
+    rw is_colimit.ι_map,
+    ext q,
+    dsimp [alt_cocone, my_functor, ck],
+    simp, },
+  let i₂ := has_limit.iso_of_nat_iso q,
+
+  let i₃ : F.obj c.X ≅ limit (K ⋙ F) :=
+    filtered_colimit_finite_limit_iso Γ' tj (tk F K) (t₁ F K c t) (t₂ F K) ≪≫ i₂,
+  apply is_limit.of_point_iso (limit.is_limit (K ⋙ F)),
+  dsimp,
+  have : limit.lift (K ⋙ F) (F.map_cone c) = i₃.hom,
+  { apply limit.hom_ext,
+    intro j,
+    rw limit.lift_π,
+    dsimp,
+    change _ = (_ ≫ _) ≫ _,
+    rw category.assoc,
+    simp only [iso.refl_hom, category.comp_id, nat_iso.of_components.hom_app,
+      has_limit.iso_of_nat_iso_hom_π],
+    apply (t₁ F K c t).hom_ext,
+    intro k,
+    change _ = _ ≫ _ ≫ (c₂ F K).π.app j,
+    rw ι_colimit_to_limit_π,
+    ext q,
+    dsimp [cj, ck,
+           category_theory.flat_finite_limits.cj, c₁,
+           category_theory.flat_finite_limits.c₁],
+    simp, },
+  rw this,
+  apply is_iso.of_iso,
+end
+
 end flat_finite_limits
 
-#exit
+-- #exit
 
--- variables {C : Type u₁} [category.{v₂} C]
-def is_set_flat (F : C ⥤ Type v₁) := is_filtered F.elementsᵒᵖ
+def is_set_flat (F : C ⥤ Type w) := is_filtered F.elementsᵒᵖ
+
+lemma representable_is_set_flat (X : Cᵒᵖ) : is_set_flat (coyoneda.obj X) :=
+begin
+
+end
 
 variable (C)
 
 @[derive category]
-def ind := {F : Cᵒᵖ ⥤ Type v₁ // is_set_flat F}
+def ind := {F : Cᵒᵖ ⥤ Type w // is_set_flat F}
 
 @[derive [full, faithful, reflects_isomorphisms]]
 def ind_to_presheaf : ind C ⥤ (Cᵒᵖ ⥤ Type v₁) := full_subcategory_inclusion _
 
-def six_three_six {C : Type u₁} [category.{v₂} C] {D : Type u₁} [small_category D] [is_filtered D]
+def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_category D] [is_filtered D]
   (H : D ⥤ C ⥤ Type u₁)
   {c : cocone H} (t : is_colimit c)
   (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
@@ -397,16 +336,17 @@ def six_three_six {C : Type u₁} [category.{v₂} C] {D : Type u₁} [small_cat
 
 }.
 
-instance {C : Type u₁} [category.{v₂} C] {J : Type u₁} [small_category J]  :
+instance {C : Type u₁} [category.{v₁} C] {J : Type u₂} [category.{v₂} J]  :
   reflects_colimits_of_shape J (ind_to_presheaf C) :=
 fully_faithful_reflects_colimits_of_shape (ind_to_presheaf C)
 
-instance {C : Type u₁} [category.{v₂} C] {J : Type u₁} [small_category J] [is_filtered J] :
+-- It *should* be possible to generalise the universe levels here
+instance {C : Type u₁} [small_category C] {J : Type u₁} [small_category J] [is_filtered J] :
   creates_colimits_of_shape J (ind_to_presheaf C) :=
 { creates_colimit := λ K,
   { lifts := λ c t,
     { lifted_cocone :=
-      { X := ⟨c.X, six_three_six _ t (λ j, (K.obj j).2)⟩,
+      { X := ⟨c.X, six_three_six (K ⋙ ind_to_presheaf _) t (λ j, (K.obj j).2)⟩,
         ι :=
         { app := λ j, c.ι.app j,
           naturality' := λ j₁ j₂ f, c.ι.naturality f } },
@@ -417,6 +357,52 @@ instance {C : Type u₁} [category.{v₂} C] {J : Type u₁} [small_category J] 
         apply category.comp_id
       end } } }
 
-set_option pp.universes true
+/-- If `C` is small, then the category of ind-objects has filtered colimits. -/
+-- TODO: Figure out how much we can generalise the universes here.
+instance {C : Type u₁} [small_category C] {J : Type u₁} [small_category J] [is_filtered J] :
+  has_colimits_of_shape J (ind C) :=
+has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (ind_to_presheaf C)
+
+-- set_option pp.universes true
+
+
+-- def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_category D] [is_filtered D]
+--   (H : D ⥤ C ⥤ Type u₁)
+--   {c : cocone H} (t : is_colimit c)
+--   (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
+
+def is_set_flat_of_filtered_colimit_of_representables
+  {C : Type u₁} [category.{u₁} C]
+  {D : Type u₁} [category.{v₁} D]
+  (ψ : Dᵒᵖ ⥤ C)
+  [is_filtered Dᵒᵖ]
+  (c : cocone (ψ ⋙ yoneda))
+  (t : is_colimit c) :
+is_set_flat c.X :=
+begin
+
+  -- let H : D ⥤ C ⥤ Type u₁ := ψ ⋙ coyoneda,
+  -- have := six_three_six H,
+end
+
+-- { nonempty :=
+--   begin
+--     haveI : nonempty D := is_filtered.nonempty,
+--     inhabit D,
+--     refine ⟨op ⟨op (ψ.obj (default D)), (c.ι.app (default D)).app _ (𝟙 _)⟩⟩,
+--   end,
+--   cocone_objs :=
+--   begin
+--     intros Aa Aa',
+--     op_induction Aa,
+--     op_induction Aa',
+--     cases Aa with A a,
+--     cases Aa' with A' a',
+
+--   end,
+--   cocone_maps := _
+
+
+-- }
 
 end category_theory

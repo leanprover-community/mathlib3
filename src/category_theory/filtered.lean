@@ -7,6 +7,7 @@ import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
 import order.bounded_lattice
+import category_theory.limits.shapes.terminal
 
 /-!
 # Filtered categories
@@ -80,6 +81,20 @@ instance is_filtered_of_semilattice_sup_top
   (α : Type u) [semilattice_sup_top α] : is_filtered α :=
 { nonempty := ⟨⊤⟩,
   ..category_theory.is_filtered_or_empty_of_semilattice_sup α }
+
+@[priority 100]
+instance is_filtered_or_empty_of_is_directed_order
+  (α : Type u) [directed_order α] : is_filtered_or_empty α :=
+{ cocone_objs := λ X Y,
+  begin
+    rcases directed_order.directed X Y with ⟨Z, XZ, YZ⟩,
+    exact ⟨Z, hom_of_le XZ, hom_of_le YZ, ⟨⟩⟩
+  end,
+  cocone_maps := λ X Y f g, ⟨_, 𝟙 _, rfl⟩ }
+
+@[priority 100]
+instance is_filtered_of_is_nonempty_directed_order
+  (α : Type u) [nonempty α] [directed_order α] : is_filtered α := {}.
 
 namespace is_filtered
 
@@ -255,6 +270,16 @@ of_right_adjoint (adjunction.of_right_adjoint R)
 /-- Being filtered is preserved by equivalence of categories. -/
 lemma of_equivalence (h : C ≌ D) : is_filtered D :=
 of_right_adjoint h.symm.to_adjunction
+
+lemma is_filtered_of_terminal {T : C} (hT : is_terminal T) :
+is_filtered C :=
+{ cocone_objs := λ X Y, ⟨T, hT.from X, hT.from Y, ⟨⟩⟩,
+  cocone_maps := λ X Y f g, ⟨T, hT.from Y, hT.hom_ext _ _⟩,
+  nonempty := ⟨T⟩ }
+
+lemma is_filtered_of_has_terminal [has_terminal C] :
+  is_filtered C :=
+is_filtered_of_terminal terminal_is_terminal
 
 end is_filtered
 

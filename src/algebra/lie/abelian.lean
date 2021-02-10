@@ -79,8 +79,8 @@ begin
   simp only [h₁, h₂, lie_ring.of_associative_ring_bracket, sub_eq_zero],
 end
 
-lemma lie_algebra.is_lie_abelian_bot (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
-  : is_lie_abelian (⊥ : lie_ideal R L) :=
+lemma lie_algebra.is_lie_abelian_bot (R : Type u) (L : Type v)
+  [comm_ring R] [lie_ring L] [lie_algebra R L] : is_lie_abelian (⊥ : lie_ideal R L) :=
 ⟨begin
   rintros ⟨x, hx⟩ ⟨y, hy⟩,
   suffices : ⁅x, y⁆ = 0, { ext, simp [this], },

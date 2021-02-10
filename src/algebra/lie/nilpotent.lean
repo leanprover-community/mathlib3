@@ -58,7 +58,8 @@ begin
     exact lie_submodule.mono_lie _ _ _ _ h' h, },
 end
 
-/-- A Lie module is nilpotent if its lower central series reaches 0 (in a finite number of steps).-/
+/-- A Lie module is nilpotent if its lower central series reaches 0 (in a finite number of
+steps). -/
 class is_nilpotent : Prop :=
 (nilpotent : ∃ k, lower_central_series R L M k = ⊥)
 

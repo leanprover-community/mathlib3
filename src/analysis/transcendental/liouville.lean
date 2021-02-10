@@ -17,11 +17,13 @@ This file contains the proof of Liouville's theorem stating that all Liouville n
 transcendental.
 -/
 
-lemma nat.mul_lt_mul_pow_succ {n : ℕ} {a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
-  n * q < a * q ^ (n + 1) :=
+-- branch adomani_nat_lt_mul_pow_self
+-- went into data.nat.basic
+lemma mul_lt_mul_pow_succ {a b c : ℕ} (c0 : 0 < c) (b1 : 1 < b) :
+  a * b < c * b ^ (a + 1) :=
 begin
-  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
-  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans b1)],
+  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr c0) (nat.lt_pow_self b1 a),
 end
 
 lemma int.mul_lt_mul_pow_succ {n : ℕ} {a q : ℤ} (a0 : 0 < a) (q1 : 1 < q) :
@@ -30,7 +32,7 @@ begin
   lift a to ℕ using a0.le,
   lift q to ℕ using zero_le_one.trans q1.le,
   rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt],
-  exact nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp a0) (int.coe_nat_lt.mp q1),
+  exact mul_lt_mul_pow_succ (int.coe_nat_pos.mp a0) (int.coe_nat_lt.mp q1),
 end
 
 -- PR int_abs_lt_one_eq_zero

@@ -326,6 +326,7 @@ begin
   exact h _ ((lt_add_iff_pos_right b).1 hxb)
 end
 
+-- TODO: generalize to some ordered add_monoids, based on #6145
 lemma le_of_add_le_left {a b c : ℝ≥0} (h : a + b ≤ c) : a ≤ c :=
 by { refine le_trans _ h, simp }
 

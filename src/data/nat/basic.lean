@@ -340,6 +340,7 @@ begin
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
 
+-- TODO: generalize to some ordered add_monoids, based on #6145
 lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
 by { refine le_trans _ h, simp }
 

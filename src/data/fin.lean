@@ -633,7 +633,7 @@ def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 
-/-- `raise i` embeds `i : fin n` in `fin (n+1)`. -/
+/-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 
 @[simp] lemma coe_cast_succ (i : fin n) : (i.cast_succ : ℕ) = i := rfl

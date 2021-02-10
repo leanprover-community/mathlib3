@@ -30,6 +30,7 @@ import tactic.simp_rw
 import tactic.simp_command
 import tactic.simp_result
 import tactic.simps
+import tactic.specialize
 import tactic.split_ifs
 import tactic.squeeze
 import tactic.suggest

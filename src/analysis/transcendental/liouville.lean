@@ -33,10 +33,11 @@ begin
   exact nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp a0) (int.coe_nat_lt.mp q1),
 end
 
-lemma int.eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
-⟨λ a0, le_antisymm (int.le_of_lt_add_one (by { rw zero_add, exact (abs_lt.mp a0).2 }))
-  (by { rw ← add_left_neg (0 : ℤ), exact int.add_one_le_iff.mpr (abs_lt.mp a0).1 }),
-  λ a0, by { rw [a0, abs_zero], exact zero_lt_one }⟩
+-- PR int_abs_lt_one_eq_zero
+-- moved to data.int.basic
+lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
+⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (int.le_of_lt_add_one (by exact hp)).antisymm hn,
+  λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
 namespace real
 /--
@@ -68,20 +69,21 @@ lemma not_liouville_zero : ¬ is_liouville 0 :=
 
 end real
 
-open set ring_hom
+open set ring_hom real
 
 namespace polynomial
 
 -- going to denoms_clearable
 lemma one_le_denom_pow_eval_rat {f : polynomial ℤ} {a b : ℤ}
-  (b0 : (0 : ℝ) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
+  (b0 : (0) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
   (1 : ℝ) ≤ b ^ f.nat_degree * abs (eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ))) :=
-one_le_pow_mul_abs_eval_div b0 fab
+one_le_pow_mul_abs_eval_div_no_coe b0 fab
 
 end polynomial
 
 section inequality_and_intervals
 
+/-- This inequality streamlines the argument in `exists_one_le_pow_mul_dist`. -/
 lemma le_mul_of_le_and {R : Type*} [linear_ordered_semiring R] {a b : R} (c : R)
   (ha   : 1 ≤ a)
   (key  : b ≤ 1 → 1 ≤ a * c ∧ c ≤ b) :
@@ -104,7 +106,13 @@ end inequality_and_intervals
 
 open polynomial metric
 
-lemma with_metr_max {Z N R : Type*} [metric_space R]
+/-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
+It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
+`R = ℝ`, `d n = n`, `j z n  = z / (n + 1)`, `f ∈ ℤ[x]`, `α` is an irrational root of `f`, `ε` is
+small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is the degree of the
+polynomial `f`.
+-/
+lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
   {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ} {n : ℕ}
 --denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)
@@ -112,16 +120,40 @@ lemma with_metr_max {Z N R : Type*} [metric_space R]
 --function is Lipschitz at α
   (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
 --clear denominators
-  (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε →
-    (1 : ℝ) ≤ (d a) ^ n * dist (f α) (f (j z a))) :
+  (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) ^ n * dist (f α) (f (j z a))) :
   ∃ e : ℝ, 0 < e ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) ^ n * (dist α (j z a) * e) :=
 begin
   have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),
   refine ⟨max (1 / ε) M, me0, λ z a, _⟩,
   refine le_mul_of_le_and (dist (f α) (f (j z a))) (one_le_pow_of_one_le (d0 a) _) (λ p, _),
-  have jd : j z a ∈ closed_ball α ε := mem_closed_ball'.mp
-    (((le_div_iff me0).mpr p).trans ((one_div_le me0 e0).mpr (le_max_left _ _))),
-  exact ⟨L jd, (B jd).trans (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩,
+  refine ⟨L _, (B _).trans (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩;
+  { refine mem_closed_ball'.mp _,
+    exact ((le_div_iff me0).mpr p).trans ((one_div_le me0 e0).mpr (le_max_left _ _)) }
+end
+
+/-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
+It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
+`R = ℝ`, `d a = a ^ f.nat_degree`, `j z n  = z / (n + 1)`, `f ∈ ℤ[x]`, `α` is an irrational
+root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
+the degree of the polynomial `f`.
+-/
+lemma exists_one_le_pow_mul_dist_no_pow {Z N R : Type*} [metric_space R]
+  {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ}
+--denominators are positive
+  (d0 : ∀ (a : N), 1 ≤ d a)
+  (e0 : 0 < ε)
+--function is Lipschitz at α
+  (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
+--clear denominators
+  (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) * dist (f α) (f (j z a))) :
+  ∃ e : ℝ, 0 < e ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * e) :=
+begin
+  have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),
+  refine ⟨max (1 / ε) M, me0, λ z a, _⟩,
+  refine le_mul_of_le_and (dist (f α) (f (j z a))) ((d0) _) (λ p, _),
+  refine ⟨L _, (B _).trans (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩;
+  { refine mem_closed_ball'.mp _,
+    exact ((le_div_iff me0).mpr p).trans ((one_div_le me0 e0).mpr (le_max_left _ _)) }
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
@@ -140,24 +172,23 @@ begin
   obtain ⟨xm, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - ζ) (α + ζ))
     ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
-  refine @with_metr_max ℤ ℕ ℝ _ _ _ (λ y, eval y fR) α ζ (abs (eval xm fR.derivative)) _ _ z0
-    (λ y hy, _) (λ z a hq, _),
-  { exact (λ a, (le_add_iff_nonneg_left _).mpr a.cast_nonneg) }, --simp
-  { rw [mul_comm],
-    rw [closed_ball_Icc] at hy,
+  refine @exists_one_le_pow_mul_dist_no_pow ℤ ℕ ℝ _ _ _ (λ y, fR.eval y) α ζ
+    (abs (fR.derivative.eval xm)) _ z0 (λ y hy, _) (λ z a hq, _),
+  { exact λ a, one_le_pow_of_one_le ((le_add_iff_nonneg_left 1).mpr a.cast_nonneg) _ }, --simp
+  { rw mul_comm,
+    rw closed_ball_Icc at hy,
     refine convex.norm_image_sub_le_of_norm_deriv_le (λ _ _, fR.differentiable_at)
       (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_iff_abs_le.mp _),
     exact @mem_closed_ball_self ℝ _ α ζ (le_of_lt z0) },
   { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * abs (eval α fR - eval (z / (a + 1)) fR),
     rw [fa, zero_sub, abs_neg],
-    refine one_le_denom_pow_eval_rat (int.cast_pos.mpr (int.coe_nat_succ_pos a)) (λ hy, _),
+    refine one_le_denom_pow_eval_rat (--int.cast_pos.mpr
+       (int.coe_nat_succ_pos a)) (λ hy, _),
     refine (irrational_iff_ne_rational α).mp ha z (a + 1) ((mem_singleton_iff.mp _).symm),
     rw ← U,
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,
-    exact (mem_roots (fR0)).mpr (is_root.def.mpr hy) }
+    exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
-
-open real
 
 theorem transcendental_of_is_liouville {x : ℝ} (liouville_x : is_liouville x) :
   is_transcendental ℤ x :=

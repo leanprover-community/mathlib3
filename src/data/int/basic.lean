@@ -163,11 +163,6 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
-lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
-⟨λ a0, le_antisymm (le_of_lt_add_one (by { rw zero_add, exact (abs_lt.mp a0).2 }))
-  (by { rw ← add_left_neg (0 : ℤ), exact add_one_le_iff.mpr (abs_lt.mp a0).1 }),
-  λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
-
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀i : ℕ, p i → p (i + 1)) (hn : ∀i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin

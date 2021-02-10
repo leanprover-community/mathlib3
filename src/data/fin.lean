@@ -64,26 +64,6 @@ We define the following operations:
 
 -/
 
-lemma nat.le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, simp }
-
-lemma nat.le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, simp }
-
-lemma nat.min_add_distrib (a b c : ℕ) :
-  min a (b + c) = min a (min a b + min a c) :=
-begin
-  cases le_total a b with hb hb,
-  { simp [hb, le_add_right] },
-  { cases le_total a c with hc hc,
-    { simp [hc, le_add_left] },
-    { simp [hb, hc] } }
-end
-
-lemma nat.min_add_distrib' (a b c : ℕ) :
-  min (a + b) c = min (min a c + min b c) c :=
-by simpa [min_comm _ c] using nat.min_add_distrib c a b
-
 universes u v
 open fin nat function
 
@@ -361,9 +341,9 @@ instance {n : ℕ} : add_comm_monoid (fin (n + 1)) :=
 { add := (+),
   add_assoc := λ a b c, by {
     simp only [eq_iff_veq, add_zero, add_succ_sub_one, add_def],
-    rw [←min_eq_right c.is_le, ←nat.min_add_distrib],
+    rw [←min_eq_right c.is_le, ←min_add_distrib],
     symmetry,
-    rw [←min_eq_right a.is_le, ←nat.min_add_distrib, min_eq_right a.is_le, min_eq_right c.is_le,
+    rw [←min_eq_right a.is_le, ←min_add_distrib, min_eq_right a.is_le, min_eq_right c.is_le,
         add_assoc] },
   zero := 0,
   zero_add := fin.zero_add,

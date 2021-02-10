@@ -66,12 +66,14 @@ class is_nilpotent : Prop :=
 instance trivial_is_nilpotent [is_trivial L M] : is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
 
+end lie_module
+
 @[priority 100]
-instance is_solvable_of_is_nilpotent [hL : lie_module.is_nilpotent R L L] : is_solvable R L :=
+instance lie_algebra.is_solvable_of_is_nilpotent (R : Type u) (L : Type v)
+  [comm_ring R] [lie_ring L] [lie_algebra R L] [hL : lie_module.is_nilpotent R L L] :
+  lie_algebra.is_solvable R L :=
 begin
   obtain ⟨k, h⟩ : ∃ k, lie_module.lower_central_series R L L k = ⊥ := hL.nilpotent,
   use k, rw ← le_bot_iff at h ⊢,
   exact le_trans (lie_module.derived_series_le_lower_central_series R L k) h,
 end
-
-end lie_module

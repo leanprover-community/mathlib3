@@ -21,16 +21,10 @@ We define the following properties for sets in a topological space:
 * `is_clopen`: a set that is both open and closed.
 * `is_irreducible`: a nonempty set that has contains no non-trivial pair of disjoint opens.
   See also the section below in the module doc.
-* `is_connected`: a nonempty set that has no non-trivial open partition.
-  See also the section below in the module doc.
-  `connected_component` is the connected component of an element in the space.
-* `is_totally_disconnected`: all of its connected components are singletons.
-* `is_totally_separated`: any two points can be separated by two disjoint opens that cover the set.
 
 For each of these definitions (except for `is_clopen`), we also have a class stating that the whole
 space satisfies that property:
-`compact_space`, `irreducible_space`, `connected_space`, `totally_disconnected_space`,
-`totally_separated_space`.
+`compact_space`, `irreducible_space`
 
 Furthermore, we have two more classes:
 * `locally_compact_space`: for every point `x`, every open neighborhood of `x` contains a compact
@@ -39,11 +33,9 @@ Furthermore, we have two more classes:
 
 ## On the definition of irreducible and connected sets/spaces
 
-In informal mathematics, irreducible and connected spaces are assumed to be nonempty.
-We formalise the predicate without that assumption
-as `is_preirreducible` and `is_preconnected` respectively.
-In other words, the only difference is whether the empty space
-counts as irreducible and/or connected.
+In informal mathematics, irreducible spaces are assumed to be nonempty.
+We formalise the predicate without that assumption as `is_preirreducible`.
+In other words, the only difference is whether the empty space counts as irreducible.
 There are good reasons to consider the empty space to be “too simple to be simple”
 See also https://ncatlab.org/nlab/show/too+simple+to+be+simple,
 and in particular

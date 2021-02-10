@@ -29,8 +29,7 @@ satisfies that property:
 
 In informal mathematics, connected spaces are assumed to be nonempty.
 We formalise the predicate without that assumption as `is_preconnected`.
-In other words, the only difference is whether the empty space
-counts as irreducible and/or connected.
+In other words, the only difference is whether the empty space counts as connected.
 There are good reasons to consider the empty space to be “too simple to be simple”
 See also https://ncatlab.org/nlab/show/too+simple+to+be+simple,
 and in particular

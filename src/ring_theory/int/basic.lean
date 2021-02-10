@@ -39,7 +39,7 @@ begin
   { refine ⟨_, λ m hm, _⟩,
     { cases p, { exfalso, apply h.ne_zero rfl },
       cases p, { exfalso, apply h.ne_one rfl },
-      omega },
+      exact (add_le_add_right (zero_le p) 2 : _ ) },
     { cases hm with n hn,
       cases h.2.2 m n (hn ▸ dvd_refl _) with hpm hpn,
       { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
@@ -57,10 +57,10 @@ begin
   rw ← nat.prime_iff,
   refine ⟨_, λ m hm, _⟩,
   { cases p, { exfalso, apply h.ne_zero rfl },
-    cases p, { exfalso, apply h.1 is_unit_one, },
-    omega },
+    cases p, { exfalso, apply h.not_unit is_unit_one, },
+    exact (add_le_add_right (zero_le p) 2 : _ ) },
   { cases hm with n hn,
-    cases h.2 m n hn with um un,
+    cases h.is_unit_or_is_unit hn with um un,
     { left, rw nat.is_unit_iff.1 um, },
     { right, rw [hn, nat.is_unit_iff.1 un, mul_one], } }
 end
@@ -197,7 +197,7 @@ theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
 | (n + 2) :=
   have h₁ : ¬n + 2 = 1, from dec_trivial,
   begin
-    simp [h₁, nat.prime, irreducible, (≥), nat.le_add_left 2 n, (∣)],
+    simp [h₁, nat.prime, irreducible_iff, (≥), nat.le_add_left 2 n, (∣)],
     refine forall_congr (assume a, forall_congr $ assume b, forall_congr $ assume hab, _),
     by_cases a = 1; simp [h],
     split,

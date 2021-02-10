@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
 import linear_algebra.finsupp
+import linear_algebra.prod
 import order.zorn
 import data.finset.order
 import data.equiv.fin

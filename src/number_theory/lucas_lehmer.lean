@@ -398,7 +398,8 @@ begin
   { norm_num, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
-    replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) : units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
+    replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :
+      units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
     simp at ω_pow,
     have h : (1 : zmod (q (p'+2))) = -1 :=
       congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),

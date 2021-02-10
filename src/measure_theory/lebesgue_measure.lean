@@ -380,6 +380,114 @@ begin
   simpa [-mem_Ioo] using hx.1.trans hx.2
 end
 
+section region_between
+
+open_locale classical
+
+variable {α : Type*}
+
+/-- The region between two real-valued functions on an arbitrary set. -/
+def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
+{p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
+
+lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s.prod univ :=
+by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
+
+variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}
+
+/-- The region between two measurable functions on a measurable set is measurable. -/
+lemma measurable_set_region_between
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  measurable_set (region_between f g s) :=
+begin
+  dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
+  refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
+  convert hs.prod measurable_set.univ,
+  simp only [and_true, mem_univ],
+end
+
+theorem volume_region_between_eq_lintegral'
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
+begin
+  rw measure.prod_apply,
+  { have h : (λ x, volume {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)})
+            = s.indicator (λ x, ennreal.of_real (g x - f x)),
+    { funext x,
+      rw indicator_apply,
+      split_ifs,
+      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = Ioo (f x) (g x) := by simp [h, Ioo],
+        simp only [hx, real.volume_Ioo, sub_zero] },
+      { have hx : {a | x ∈ s ∧ a ∈ Ioo (f x) (g x)} = ∅ := by simp [h],
+        simp only [hx, measure_empty] } },
+    dsimp only [region_between, preimage_set_of_eq],
+    rw [h, lintegral_indicator];
+    simp only [hs, pi.sub_apply] },
+  { exact measurable_set_region_between hf hg hs },
+end
+
+/-- The volume of the region between two almost everywhere measurable functions on a measurable set
+    can be represented as a Lebesgue integral. -/
+theorem volume_region_between_eq_lintegral [sigma_finite μ]
+  (hf : ae_measurable f (μ.restrict s)) (hg : ae_measurable g (μ.restrict s))
+  (hs : measurable_set s) :
+  μ.prod volume (region_between f g s) = ∫⁻ y in s, ennreal.of_real ((g - f) y) ∂μ :=
+begin
+  have h₁ : (λ y, ennreal.of_real ((g - f) y))
+          =ᵐ[μ.restrict s]
+              λ y, ennreal.of_real ((ae_measurable.mk g hg - ae_measurable.mk f hf) y) :=
+    eventually_eq.fun_comp (eventually_eq.sub hg.ae_eq_mk hf.ae_eq_mk) _,
+  have h₂ : (μ.restrict s).prod volume (region_between f g s) =
+    (μ.restrict s).prod volume (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
+  { apply measure_congr,
+    apply eventually_eq.inter, { refl },
+    exact eventually_eq.inter
+            (eventually_eq.comp₂ (ae_eq_comp' measurable_fst hf.ae_eq_mk
+              measure.prod_fst_absolutely_continuous) _ eventually_eq.rfl)
+            (eventually_eq.comp₂ eventually_eq.rfl _
+              (ae_eq_comp' measurable_fst hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+  rw [lintegral_congr_ae h₁,
+      ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
+  convert h₂ using 1,
+  { rw measure.restrict_prod_eq_prod_univ,
+    exacts [ (measure.restrict_eq_self_of_subset_of_measurable (hs.prod measurable_set.univ)
+      (region_between_subset f g s)).symm, hs], },
+  { rw measure.restrict_prod_eq_prod_univ,
+    exacts [(measure.restrict_eq_self_of_subset_of_measurable (hs.prod measurable_set.univ)
+      (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm, hs] },
+end
+
+
+theorem volume_region_between_eq_integral' [sigma_finite μ]
+  (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
+  (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :
+  μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
+begin
+  have h : g - f =ᵐ[μ.restrict s] (λ x, nnreal.of_real (g x - f x)),
+  { apply hfg.mono,
+    simp only [nnreal.of_real, max, sub_nonneg, pi.sub_apply],
+    intros x hx,
+    split_ifs,
+    refl },
+  rw [volume_region_between_eq_lintegral f_int.ae_measurable g_int.ae_measurable hs,
+    integral_congr_ae h, lintegral_congr_ae,
+    lintegral_coe_eq_integral _ ((integrable_congr h).mp (g_int.sub f_int))],
+  simpa only,
+end
+
+/-- If two functions are integrable on a measurable set, and one function is less than
+    or equal to the other on that set, then the volume of the region
+    between the two functions can be represented as an integral. -/
+theorem volume_region_between_eq_integral [sigma_finite μ]
+  (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
+  (hs : measurable_set s) (hfg : ∀ x ∈ s, f x ≤ g x) :
+  μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
+volume_region_between_eq_integral' f_int g_int hs
+  ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
+
+end region_between
+
 /-
 section vitali
 

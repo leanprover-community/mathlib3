@@ -42,15 +42,6 @@ See `l1_space.lean` for `L¹` space.
     TODO: Define `sup` and `inf` on `L⁰` so that it forms a lattice. It seems that `β` must be a
     linear order, since otherwise `f ⊔ g` may not be a measurable function.
 
-* Emetric on `L⁰` :
-    If `β` is an `emetric_space`, then `L⁰` can be made into an `emetric_space`, where
-    `edist [f] [g]` is defined to be `∫⁻ a, edist (f a) (g a)`.
-
-    The integral used here is `lintegral : (α → ℝ≥0∞) → ℝ≥0∞`, which is defined in the file
-    `integration.lean`.
-
-    See `edist_mk_mk` and `edist_to_fun`.
-
 ## Implementation notes
 
 * `f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
@@ -403,8 +394,6 @@ instance : semimodule 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.semimodule 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
 
 end semimodule
-
-/- TODO : Prove that `L⁰` is a complete space if the codomain is complete. -/
 
 open ennreal
 

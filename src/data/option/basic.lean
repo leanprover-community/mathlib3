@@ -36,6 +36,9 @@ by cases x; [contradiction, rw get_or_else_some]
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
+theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
+⟨λ a o b, mem_unique⟩
+
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
 

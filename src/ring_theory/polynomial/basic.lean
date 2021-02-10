@@ -375,7 +375,7 @@ end
 lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
   (I : ideal (polynomial R)) [hI : I.is_maximal] (x : R) (hx : C x ∈ I) : x = 0 :=
 begin
-  refine classical.by_contradiction (λ hx0, hI.1 ((eq_top_iff_one I).2 _)),
+  refine classical.by_contradiction (λ hx0, hI.ne_top ((eq_top_iff_one I).2 _)),
   obtain ⟨y, hy⟩ := hR.mul_inv_cancel hx0,
   convert I.smul_mem (C y) hx,
   rw [smul_eq_mul, ← C.map_mul, mul_comm y x, hy, ring_hom.map_one],
@@ -507,7 +507,7 @@ end polynomial
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
   is_noetherian_ring (polynomial R) :=
-⟨assume I : ideal (polynomial R),
+is_noetherian_ring_iff.2 ⟨assume I : ideal (polynomial R),
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
   (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
 have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,

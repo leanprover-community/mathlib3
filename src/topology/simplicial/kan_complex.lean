@@ -24,6 +24,7 @@ begin
   intros n i f,
   let a : realization ⊣ singular := adjunction_realization_singular,
   let f' := (a.hom_equiv (horn n i) X).symm f,
+  sorry,
 end
 
 end

@@ -11,6 +11,8 @@ namespace category_theory
 section
 variables {C D E : Type*} [category C] [category D] [category E]
 
+-- These already exist in `whiskering.lean`:
+
 @[simps]
 def functor.comp_left (F : C ⥤ D) :
   (D ⥤ E) ⥤ (C ⥤ E) :=
@@ -85,10 +87,6 @@ namespace finset
 open_locale big_operators
 variables (α β : Type*) [fintype α] [fintype β]
 
-@[simp]
-lemma univ_product_univ : finset.univ.product finset.univ = (finset.univ : finset (α × β)) :=
-by simp only [finset.eq_univ_iff_forall, prod.forall, mem_univ, forall_2_true_iff, and_self, mem_product]
-
 open_locale classical
 
 noncomputable instance : has_compl (finset α) :=
@@ -98,11 +96,6 @@ variables {α β} {M : Type*} [comm_monoid M]
 
 @[simp] lemma mem_compl_iff (s : finset α) (a : α) : a ∈ sᶜ ↔ a ∉ s :=
 show a ∈ (univ \ s) ↔ ¬ a ∈ s, by simp only [true_and, mem_sdiff, mem_univ]
-
-@[to_additive]
-lemma prod_mul_prod_compl (s : finset α) (f : α → M) :
-  (∏ i in s, f i) * ∏ i in sᶜ, f i = ∏ i, f i :=
-by { rw [← prod_sdiff (subset_univ s), mul_comm], refl, }
 
 end finset
 

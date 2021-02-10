@@ -15,8 +15,6 @@ open category_theory Top Simplicial sType
 
 variables (X : Top.{u}) (R : Type u) [comm_ring R]
 
-@[simp] lemma fin.coe_succ {n : ℕ} (i : fin n) : (i.succ : ℕ) = i+1 := fin.succ_val i
-
 lemma singular_chain_complex_d_of_nonpos :
   Π (i : ℤ) (h : i ≤ 0), ((singular_chain_complex R).obj X).d i = 0
 | -[1+n]  h := rfl

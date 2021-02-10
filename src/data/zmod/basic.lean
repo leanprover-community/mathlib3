@@ -233,8 +233,7 @@ begin
   cases h : (↑a) with b hb,
   simp only [fin.eq_iff_veq, fin.coe_mk] at h,
   rw [val, nat.mod_eq_of_lt hb, ←h],
-  suggest,
-  -- sorry
+  sorry
 end
 
 instance (n : ℕ) : char_p (zmod n) n :=

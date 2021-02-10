@@ -23,14 +23,26 @@ the pretty printer will not use the notation.
 inductive typeinfo (α : Type*)
 | of [] : typeinfo
 
+-- without this, `#check typeinfo.domain (typeinfo.of (fin 2 → M'))` fails
+attribute [elab_simple] typeinfo.of
+
 /-- Get the type of the domain of a function type. -/
 abbreviation typeinfo.domain {α : Type*} {β : α → Type*}
   (a : typeinfo (Π (i : α), β i)) : Type* := α
+
+@[simp] lemma typeinfo.domain_of {α : Type*} {β : α → Type*} :
+  (typeinfo.of (Π a, β a)).domain = α := rfl
 
 /-- Get the type of the codomain of a function type. -/
 abbreviation typeinfo.codomain {α β :Type*}
   (a : typeinfo (α → β)) : Type* := β
 
+@[simp] lemma typeinfo.codomain_of {α : Type*} {β : Type*} :
+  (typeinfo.of (α → β)).codomain = β := rfl
+
 /-- Get the type of the codomain of a dependent function type. -/
 abbreviation typeinfo.pi_codomain {α : Type*} {β : α → Type*}
   (a : typeinfo (Π (i : α), β i)) : α → Type* := β
+
+@[simp] lemma typeinfo.pi_codomain_of {α : Type*} {β : α → Type*} :
+  (typeinfo.of (Π a, β a)).pi_codomain = β := rfl

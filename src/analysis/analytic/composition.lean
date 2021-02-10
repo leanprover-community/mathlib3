@@ -563,7 +563,7 @@ begin
   dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
   simp only [map_of_fn, nth_le_of_fn', function.comp_app],
   apply congr_arg,
-  rw [fin.ext_iff, fin.mk_coe]
+  exact fin.eta _ _
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal

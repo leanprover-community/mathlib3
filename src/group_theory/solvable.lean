@@ -228,7 +228,7 @@ begin
 end
 
 lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=
-⟨⟨0, by simp *⟩⟩
+⟨⟨0, h⟩⟩
 
 @[priority 100]
 instance is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=

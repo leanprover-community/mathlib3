@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 
 import data.nat.modeq
 import data.zsqrtd.basic
-import tactic.omega
 
 /-!
 # Pell's equation and Matiyasevic's theorem

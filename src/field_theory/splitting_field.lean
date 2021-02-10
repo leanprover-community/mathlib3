@@ -65,6 +65,12 @@ begin
       exact splits_of_degree_eq_one _ (by rw [h, hn]; refl) } }
 end
 
+lemma splits_of_nat_degree_le_one {f : polynomial α} (hf : nat_degree f ≤ 1) : splits i f :=
+splits_of_degree_le_one i (degree_le_of_nat_degree_le hf)
+
+lemma splits_of_nat_degree_eq_one {f : polynomial α} (hf : nat_degree f = 1) : splits i f :=
+splits_of_nat_degree_le_one i (le_of_eq hf)
+
 lemma splits_mul {f g : polynomial α} (hf : splits i f) (hg : splits i g) : splits i (f * g) :=
 if h : f * g = 0 then by simp [h]
 else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.2 _ _

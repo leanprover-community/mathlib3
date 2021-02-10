@@ -17,6 +17,7 @@ universe u
 
 open category_theory
 
+/-- `finsupp.map_domain` as an `R`-linear map, whenever `R` is a semiring. -/
 def finsupp.lmap_domain (R : Type*) [semiring R] {X Y : Type*} (f : X ⟶ Y) :
   linear_map R (X →₀ R) (Y →₀ R) :=
 { to_fun := finsupp.map_domain f,
@@ -36,14 +37,21 @@ def finsupp.hom_equiv : ((X →₀ R) →ₗ[R] M) ≃ (X → M) :=
   { to_fun := λ g, g.sum (λ x r, r • f x),
     map_add' := λ g₁ g₂, by { rw [finsupp.sum_add_index], simp, simp [add_smul], },
     map_smul' := λ c g, begin sorry, end, },
-  left_inv := λ f, begin ext g, simp, sorry, end,
+  left_inv := λ f, begin
+    ext g,
+    apply finsupp.induction_linear g,
+    { simp, },
+    { sorry, },
+    { sorry, },
+  end,
   right_inv := λ f, funext $ sorry }
 
 @[simp]
 lemma finsupp.hom_equiv_apply (f) (x) : ((finsupp.hom_equiv R X M) f) x = f (finsupp.single x 1) :=
 rfl
 @[simp]
-lemma finsupp.hom_equiv_symm_apply (f) (x) : ((finsupp.hom_equiv R X M).symm f) x = sorry :=
+lemma finsupp.hom_equiv_symm_apply (f) (g) :
+  ((finsupp.hom_equiv R X M).symm f) g = g.sum (λ x r, r • f x) :=
 sorry
 
 end

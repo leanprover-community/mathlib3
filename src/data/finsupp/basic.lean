@@ -732,6 +732,11 @@ begin
     rw [support_erase, hf, finset.erase_insert has] }
 end
 
+lemma induction_linear {p : (α →₀ M) → Prop} (f : α →₀ M)
+  (h0 : p 0) (hadd : ∀ f g : α →₀ M, p f → p g → p (f + g)) (hsingle : ∀ a b, p (single a b)) :
+  p f :=
+induction₂ f h0 (λ a b f _ _ w, hadd _ _ w (hsingle _ _))
+
 @[simp] lemma add_closure_Union_range_single :
   add_submonoid.closure (⋃ a : α, set.range (single a : M → α →₀ M)) = ⊤ :=
 top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $

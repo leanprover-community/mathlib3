@@ -53,6 +53,43 @@ begin
   rwa [← int.coe_nat_lt, nat_mod, to_nat_of_nonneg (int.mod_nonneg _ h)]
 end⟩⟩
 
+private lemma mlt {n b : nat} : ∀ {a}, n > a → b % n < n
+| 0     h := nat.mod_lt _ h
+| (a+1) h :=
+  have n > 0, from lt_trans (nat.zero_lt_succ _) h,
+  nat.mod_lt _ this
+
+def add_mod {n : ℕ} : fin n → fin n → fin n
+| ⟨a, h⟩ ⟨b, _⟩ := ⟨(a + b) % n, mlt h⟩
+
+def mul_mod {n : ℕ} : fin n → fin n → fin n
+| ⟨a, h⟩ ⟨b, _⟩ := ⟨(a * b) % n, mlt h⟩
+
+local notation a ` +ₘ ` b := add_mod a b
+local notation a ` *ₘ ` b := mul_mod a b
+
+lemma val_add_mod {n : ℕ} : ∀ a b : fin n, (a +ₘ b).val = (a.val + b.val) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma coe_add_mod {n : ℕ} : ∀ a b : fin n, (a +ₘ b : ℕ) = (a + b) % n
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma val_mul {n : ℕ} :  ∀ a b : fin (n + 1), (a *ₘ b).val = (a.val * b.val) % (n + 1)
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma coe_mul {n : ℕ} :  ∀ a b : fin (n + 1), (a *ₘ b : ℕ) = (a * b) % (n + 1)
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+def fin.mod_comm_monoid (n : ℕ) : add_comm_monoid (fin (n + 1)) :=
+{ add := (+ₘ),
+  add_assoc := by simp [eq_iff_veq, coe_add_mod, add_assoc],
+  zero := 0,
+  zero_add := λ k, by { simp_rw [eq_iff_veq, has_add.add, coe_add_mod],
+                        simp [mod_eq_of_lt k.is_lt] },
+  add_zero := λ k, by { simp_rw [eq_iff_veq, has_add.add, coe_add_mod],
+                        simp [mod_eq_of_lt k.is_lt] },
+  add_comm := by { simp_rw [eq_iff_veq, has_add.add, coe_add_mod, add_comm], simp } }
+
 /-- Multiplicative commutative semigroup structure on `fin (n+1)`. -/
 def comm_semigroup (n : ℕ) : comm_semigroup (fin (n+1)) :=
 { mul_assoc := λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
@@ -61,25 +98,31 @@ def comm_semigroup (n : ℕ) : comm_semigroup (fin (n+1)) :=
       ... ≡ a * (b * c % (n+1)) [MOD (n+1)] : modeq_mul rfl (nat.mod_mod _ _).symm),
   mul_comm := λ ⟨a, _⟩ ⟨b, _⟩,
     fin.eq_of_veq (show (a * b) % (n+1) = (b * a) % (n+1), by rw mul_comm),
-  ..fin.has_mul }
+  mul := λ a b, ⟨(a : ℕ) * b % (n + 1), mod_lt _ (zero_lt_succ _)⟩ }
 
 local attribute [instance] fin.comm_semigroup
 
-private lemma one_mul_aux (n : ℕ) (a : fin (n+1)) : (1 : fin (n+1)) * a = a :=
-begin
-  cases n with n,
-  { exact subsingleton.elim _ _ },
-  { have h₁ : (a : ℕ) % n.succ.succ = a := nat.mod_eq_of_lt a.2,
-    apply fin.ext,
-    simp only [coe_mul, coe_one, h₁, one_mul], }
-end
+private lemma add_def_mod {n : ℕ} (a b : fin (n + 1)) : (a +ₘ b : ℕ) = (a + b) % (n + 1) :=
+by { cases a, cases b, simp [add_mod] }
 
-private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = a * b + a * c :=
+private lemma mul_def_mod {n : ℕ} (a b : fin (n + 1)) : a * b = ⟨a * b % (n + 1), mlt a.property⟩ :=
+by { cases a, cases b, refl }
+
+private lemma one_mul {n : ℕ} (k : fin (n + 1)) : (1 : fin (n + 1)) * k = k :=
+by { cases n, simp, simp [eq_iff_veq, mul_def_mod, mod_eq_of_lt (is_lt k)] }
+
+private lemma mul_one {n : ℕ} (k : fin (n + 1)) : k * 1 = k :=
+by { cases n, simp, simp [eq_iff_veq, mul_def_mod, mod_eq_of_lt (is_lt k)] }
+
+private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b +ₘ c) = (a * b +ₘ a * c) :=
 λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
 (calc a * ((b + c) % (n+1)) ≡ a * (b + c) [MOD (n+1)] : modeq_mul rfl (nat.mod_mod _ _)
   ... ≡ a * b + a * c [MOD (n+1)] : by rw mul_add
   ... ≡ (a * b) % (n+1) + (a * c) % (n+1) [MOD (n+1)] :
         modeq_add (nat.mod_mod _ _).symm (nat.mod_mod _ _).symm)
+
+private lemma right_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), (a +ₘ b) * c = (a * c +ₘ b * c) :=
+λ _ b _, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]
 
 /-- Commutative ring structure on `fin (n+1)`. -/
 def comm_ring (n : ℕ) : comm_ring (fin (n+1)) :=
@@ -92,13 +135,13 @@ def comm_ring (n : ℕ) : comm_ring (fin (n+1)) :=
         rw [int.coe_nat_mod, int.coe_nat_add, to_nat_of_nonneg (int.mod_nonneg _ hn), add_comm],
         simp,
       end),
-  one_mul := fin.one_mul,
-  mul_one := fin.mul_one,
+  one_mul := one_mul,
+  mul_one := mul_one,
   left_distrib := left_distrib_aux n,
-  right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
+  right_distrib := right_distrib_aux n,
   ..fin.has_one,
   ..fin.has_neg (n+1),
-  ..fin.add_comm_monoid n,
+  ..fin.mod_comm_monoid n,
   ..fin.comm_semigroup n }
 
 end fin
@@ -135,6 +178,23 @@ instance comm_ring : Π (n : ℕ), comm_ring (zmod n)
 
 instance inhabited (n : ℕ) : inhabited (zmod n) := ⟨0⟩
 
+instance subsingleton_one : subsingleton (zmod 1) :=
+⟨begin
+  rintro ⟨_|a, ha⟩ ⟨_|b, hb⟩,
+  { simp },
+  { exact absurd b.zero_le (not_le_of_lt $ by simpa [nat.succ_lt_succ_iff] using hb) },
+  { exact absurd a.zero_le (not_le_of_lt $ by simpa [nat.succ_lt_succ_iff] using ha) },
+  { exact absurd b.zero_le (not_le_of_lt $ by simpa [nat.succ_lt_succ_iff] using hb) }
+end⟩
+
+lemma add_def {n : ℕ} (a b : zmod (n + 1)) :
+  a + b = fin.add_mod a b :=
+by { cases a, cases b, simpa [fin.add_mod] }
+
+lemma mul_def {n : ℕ} (a b : zmod (n + 1)) :
+  a * b = fin.mul_mod a b :=
+by { cases a, cases b, refl }
+
 /-- `val a` is a natural number defined as:
   - for `a : zmod 0` it is the absolute value of `a`
   - for `a : zmod n` with `0 < n` it is the least natural number in the equivalence class
@@ -142,36 +202,48 @@ instance inhabited (n : ℕ) : inhabited (zmod n) := ⟨0⟩
 See `zmod.val_min_abs` for a variant that takes values in the integers.
 -/
 def val : Π {n : ℕ}, zmod n → ℕ
-| 0     := int.nat_abs
-| (n+1) := (coe : fin (n + 1) → ℕ)
+| 0     x       := int.nat_abs x
+| (n+1) ⟨x, hx⟩ := x % (n + 1)
 
 lemma val_lt {n : ℕ} [fact (0 < n)] (a : zmod n) : a.val < n :=
 begin
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
-  exact fin.is_lt a
+  cases a with a ha,
+  simp [val, nat.mod_lt, ha]
 end
 
 @[simp] lemma val_zero : ∀ {n}, (0 : zmod n).val = 0
 | 0     := rfl
 | (n+1) := rfl
 
+@[simp] lemma subtype_val {n : ℕ} (a : zmod (n + 1)) : subtype.val a = a.val :=
+begin
+  cases a with a ha,
+  rw [nat.add_def, add_zero] at ha,
+  simp [val, nat.mod_eq_of_lt, ha]
+end
+
 lemma val_cast_nat {n : ℕ} (a : ℕ) : (a : zmod n).val = a % n :=
 begin
   casesI n,
   { rw [nat.mod_zero, int.nat_cast_eq_coe_nat],
     exact int.nat_abs_of_nat a, },
-  rw ← fin.of_nat_eq_coe,
-  refl
+  change zmod n.succ with fin (n + 1),
+  cases h : (↑a) with b hb,
+  simp only [fin.eq_iff_veq, fin.coe_mk] at h,
+  rw [val, nat.mod_eq_of_lt hb, ←h],
+  suggest,
+  -- sorry
 end
 
 instance (n : ℕ) : char_p (zmod n) n :=
 { cast_eq_zero_iff :=
   begin
     intro k,
-    cases n,
+    casesI n,
     { simp only [int.nat_cast_eq_coe_nat, zero_dvd_iff, int.coe_nat_eq_zero], },
-    rw [fin.eq_iff_veq],
+    rw [fin.eq_iff_veq, fin.coe_eq_val, subtype_val],
     show (k : zmod (n+1)).val = (0 : zmod (n+1)).val ↔ _,
     rw [val_cast_nat, val_zero, nat.dvd_iff_mod_eq_zero],
   end }
@@ -199,6 +271,9 @@ def cast : Π {n : ℕ}, zmod n → R
 -- see Note [coercion into rings]
 @[priority 900] instance (n : ℕ) : has_coe_t (zmod n) R := ⟨cast⟩
 
+lemma cast_eq_int_cast (a : zmod 0) : (a : R) = int.cast a := rfl
+lemma cast_eq_val {n : ℕ} (a : zmod (n + 1)) : (a : R) = a.val := rfl
+
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by { cases n; refl }
 
@@ -210,9 +285,9 @@ begin
   assume i,
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
-  { change fin (n + 1) at i,
-    refine ⟨i, _⟩,
-    rw [fin.ext_iff, fin.coe_coe_eq_self] }
+  { use i.val,
+    apply subtype.eq,
+    simp [val_cast_nat, nat.mod_eq_of_lt, val_lt] }
 end
 
 lemma int_cast_surjective :
@@ -259,8 +334,8 @@ variables {n} {m : ℕ} [char_p R m]
 begin
   casesI n,
   { exact int.cast_one },
-  show ((1 % (n+1) : ℕ) : R) = 1,
   cases n, { rw [nat.dvd_one] at h, substI m, apply subsingleton.elim },
+  show ((1 % (n+1) : ℕ) : R) = 1,
   rw nat.mod_eq_of_lt,
   { exact nat.cast_one },
   exact nat.lt_of_sub_eq_succ rfl
@@ -270,9 +345,8 @@ lemma cast_add (h : m ∣ n) (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
 begin
   casesI n,
   { apply int.cast_add },
-  simp only [coe_coe],
   symmetry,
-  erw [fin.coe_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
+  erw [fin.coe_add_mod, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
       @char_p.cast_eq_zero_iff R _ m],
   exact dvd_trans h (nat.dvd_sub_mod _),
 end
@@ -427,7 +501,8 @@ begin
   { exfalso, exact nat.not_lt_zero 0 ‹_› },
   assume a b h,
   ext,
-  exact h
+  convert h;
+  simp [fin.coe_eq_val]
 end
 
 lemma val_one_eq_one_mod (n : ℕ) : (1 : zmod n).val = 1 % n :=
@@ -440,14 +515,19 @@ lemma val_add {n : ℕ} [fact (0 < n)] (a b : zmod n) : (a + b).val = (a.val + b
 begin
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
-  { apply fin.val_add }
+  { cases a,
+    cases b,
+    simp [add_def, val, fin.add_mod],
+  }
 end
 
 lemma val_mul {n : ℕ} (a b : zmod n) : (a * b).val = (a.val * b.val) % n :=
 begin
   cases n,
   { rw nat.mod_zero, apply int.nat_abs_mul },
-  { apply fin.val_mul }
+  { cases a,
+    cases b,
+    simp [val, mul_def, fin.mul_mod, nat.mul_mod] }
 end
 
 instance nontrivial (n : ℕ) [fact (1 < n)] : nontrivial (zmod n) :=
@@ -491,7 +571,8 @@ lemma eq_iff_modeq_nat (n : ℕ) {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MOD
 begin
   cases n,
   { simp only [nat.modeq, int.coe_nat_inj', nat.mod_zero, int.nat_cast_eq_coe_nat], },
-  { rw [fin.ext_iff, nat.modeq, ← val_cast_nat, ← val_cast_nat], exact iff.rfl, }
+  { rw [fin.ext_iff, nat.modeq, ← val_cast_nat, ← val_cast_nat], convert iff.rfl;
+    simp [fin.coe_eq_val] }
 end
 
 lemma coe_mul_inv_eq_one {n : ℕ} (x : ℕ) (h : nat.coprime x n) :
@@ -623,7 +704,7 @@ end
 
 @[simp] lemma val_eq_zero : ∀ {n : ℕ} (a : zmod n), a.val = 0 ↔ a = 0
 | 0     a := int.nat_abs_eq_zero
-| (n+1) a := by { rw fin.ext_iff, exact iff.rfl }
+| (n+1) a := by { rw fin.ext_iff, convert iff.rfl, simp [fin.coe_eq_val] }
 
 lemma val_cast_of_lt {n : ℕ} {a : ℕ} (h : a < n) : (a : zmod n).val = a :=
 by rw [val_cast_nat, nat.mod_eq_of_lt h]

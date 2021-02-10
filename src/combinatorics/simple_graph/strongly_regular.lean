@@ -55,7 +55,13 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
   Gᶜ.is_SRG_of n (n - k - 1) (n - 2 - 2 * k + m) (n - 2 * k + l) :=
 { card := h.card,
-  regular := _,
+  regular := λ v,
+    begin
+      rw ← h.card,
+      rw ← h.regular v,
+
+      sorry,
+    end,
   adj_common := _,
   nadj_common := _ }
 

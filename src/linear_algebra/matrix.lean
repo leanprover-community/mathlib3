@@ -277,7 +277,7 @@ end to_matrix
 
 section is_basis_to_matrix
 
-variables {ι ι' : Type*} [fintype ι] [fintype ι']
+variables {ι ι' κ κ' : Type*} [fintype ι] [fintype ι'] [fintype κ] [fintype κ']
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
 open function matrix
@@ -363,7 +363,6 @@ end is_basis
 section mul_linear_map_to_matrix
 
 variables {N : Type*} [add_comm_group N] [module R N]
-variables {κ κ' : Type*} [fintype κ] [fintype κ']
 variables {b : ι → M} {b' : ι' → M} {c : κ → N} {c' : κ' → N}
 variables (hb : is_basis R b) (hb' : is_basis R b') (hc : is_basis R c) (hc' : is_basis R c')
 variables (f : M →ₗ[R] N)

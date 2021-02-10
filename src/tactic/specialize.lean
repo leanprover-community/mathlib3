@@ -5,16 +5,16 @@ Authors: Shing Tak Lam
 -/
 import tactic.doc_commands
 
-namespace tactic
-namespace interactive
-open interactive interactive.types expr tactic
-
 /-!
 # `specialize'`
 
 `specialize'` is a variant of specialize, the only difference being the order of the goals generated
 by any underscores used. That is, `specialize'` puts the goals from the underscores first.
 -/
+
+namespace tactic
+namespace interactive
+open interactive interactive.types expr tactic
 
 /--
 A variant of `specialize` that puts the current goal last. That is, if we have a hypothesis

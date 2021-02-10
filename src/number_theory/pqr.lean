@@ -6,18 +6,87 @@ import tactic.norm_num
 import tactic.field_simp
 import tactic.interval_cases
 
+
+/-!
+# The inequality `p⁻¹ + q⁻¹ + r⁻¹ > 1`
+
+In this file we classify solutions to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`, for positive natural numbers `p`, `q`, and `r`.
+
+The solutions are exactly of the form.
+* `A' q r := {1,q,r}`
+* `D r := {2,2,r}`
+* `E6 := {2,3,3}`, or `E7 := {2,3,4}`, or `E8 := {2,3,5}`
+
+This inequality shows up in Lie theory,
+in the classification of Dynkin diagrams, root systems, and semisimple Lie algebras.
+
+## Main declarations
+
+* `pqr.A' q r`, the multiset `{1,q,r}`
+* `pqr.D' r`, the multiset `{2,2,r}`
+* `pqr.E6`, the multiset `{2,3,3}`
+* `pqr.E7`, the multiset `{2,3,4}`
+* `pqr.E8`, the multiset `{2,3,5}`
+* `pqr.classification`, the classification of solutions to `p⁻¹ + q⁻¹ + r⁻¹ > 1`
+
+-/
+
 namespace pqr
 
 open multiset
 
-def A' (p q : ℕ+) : multiset ℕ+ := {1,p,q}
-def A  (n   : ℕ+) : multiset ℕ+ := A' 1 n
-def D' (n   : ℕ+) : multiset ℕ+ := {2,2,n}
-def E' (n   : ℕ+) : multiset ℕ+ := {2,3,n}
+/-- `A' q r := {1,q,r}` is a `multiset ℕ+`
+that is a solution to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`. -/
+def A' (q r : ℕ+) : multiset ℕ+ := {1,q,r}
+
+/-- `A r := {1,1,r}` is a `multiset ℕ+`
+that is a solution to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`.
+
+These solutions are related to the Dynkin diagrams $A_r$. -/
+def A  (r   : ℕ+) : multiset ℕ+ := A' 1 r
+
+/-- `D' r := {2,2,r}` is a `multiset ℕ+`
+that is a solution to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`.
+
+These solutions are related to the Dynkin diagrams $D_{r+2}$. -/
+def D' (r   : ℕ+) : multiset ℕ+ := {2,2,r}
+
+/-- `E' r := {2,3,r}` is a `multiset ℕ+`.
+For `r ∈ {3,4,5}` is a solution to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`.
+
+These solutions are related to the Dynkin diagrams $E_{r+3}$. -/
+def E' (r   : ℕ+) : multiset ℕ+ := {2,3,r}
+
+/-- `E6 := {2,3,3}` is a `multiset ℕ+`
+that is a solution to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`.
+
+This solution is related to the Dynkin diagrams $E_6$. -/
 def E6            : multiset ℕ+ := E' 3
+
+/-- `E7 := {2,3,4}` is a `multiset ℕ+`
+that is a solution to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`.
+
+This solution is related to the Dynkin diagrams $E_7$. -/
 def E7            : multiset ℕ+ := E' 4
+
+/-- `E8 := {2,3,5}` is a `multiset ℕ+`
+that is a solution to the inequality
+`(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1`.
+
+This solution is related to the Dynkin diagrams $E_8$. -/
 def E8            : multiset ℕ+ := E' 5
 
+/-- `sum_inv pqr` for a `pqr : multiset ℕ+` is the sum of the inverses
+of the elements of `pqr`, as rational number.
+
+The intended argument is a multiset `{p,q,r}` of cardinality `3`. -/
 def sum_inv (pqr : multiset ℕ+) : ℚ :=
 multiset.sum $ pqr.map $ λ x, x⁻¹
 
@@ -25,8 +94,10 @@ lemma sum_inv_pqr (p q r : ℕ+) : sum_inv {p,q,r} = p⁻¹ + q⁻¹ + r⁻¹ :=
 by simp only [sum_inv, map_congr, coe_coe, add_zero, insert_eq_cons, add_assoc,
     singleton_eq_singleton, map_cons, sum_cons, map_zero, sum_zero]
 
+/-- A multiset `pqr` of positive natural numbers is `admissible`
+if it is equal to `A' q r`, or `D' r`, or one of `E6`, `E7`, or `E8`. -/
 def admissible (pqr : multiset ℕ+) : Prop :=
-  (∃ p q, A' p q = pqr) ∨ (∃ n, D' n = pqr) ∨ (E' 3 = pqr ∨ E' 4 = pqr ∨ E' 5 = pqr)
+  (∃ q r, A' q r = pqr) ∨ (∃ r, D' r = pqr) ∨ (E' 3 = pqr ∨ E' 4 = pqr ∨ E' 5 = pqr)
 
 lemma admissible_A' (q r : ℕ+) : admissible (A' q r) := or.inl ⟨q, r, rfl⟩
 lemma admissible_D' (n : ℕ+) : admissible (D' n) := or.inr $ or.inl ⟨n, rfl⟩
@@ -127,6 +198,14 @@ begin
     card_cons, card_zero],
 end
 
+/-- A multiset `{p,q,r}` of positive natural numbers
+is a solution to `(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1` if and only if
+it is `admissible` which means it is one of:
+
+* `A' q r := {1,q,r}`
+* `D r := {2,2,r}`
+* `E6 := {2,3,3}`, or `E7 := {2,3,4}`, or `E8 := {2,3,5}`
+-/
 lemma classification (p q r : ℕ+) :
   1 < sum_inv {p,q,r} ↔ admissible {p,q,r} :=
 ⟨admissible_of_one_lt_sum_inv, admissible.one_lt_sum_inv⟩

@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import linear_algebra.basic
 import algebra.algebra.basic
 import data.fintype.sort
+import data.typeinfo
 
 /-!
 # Multilinear maps
@@ -37,6 +38,12 @@ multilinear functions in `n` variables (resp. multilinear functions in `n` varia
 in linear functions), called respectively `multilinear_curry_left_equiv` and
 `multilinear_curry_right_equiv`.
 
+## Notation
+
+This introduces `V →ₗₘ[R] N` as notation for a multilinear map from `V` to `N`. Typically, this is
+used as either `Π i, M i →ₗₘ[R] N` for dependently-typed arguments, and `(ι → M) →ₗₘ[R] N` for
+non-dependently typed arguments.
+
 ## Implementation notes
 
 Expressing that a map is linear along the `i`-th coordinate when all other coordinates are fixed
@@ -66,6 +73,8 @@ structure multilinear_map (R : Type u) {ι : Type u'} (M₁ : ι → Type v) (M�
   to_fun (update m i (x + y)) = to_fun (update m i x) + to_fun (update m i y))
 (map_smul' : ∀(m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i),
   to_fun (update m i (c • x)) = c • to_fun (update m i x))
+
+notation A ` →ₗₘ[`:25 R:25 `] ` N := multilinear_map R (typeinfo.pi_codomain (typeinfo.of A)) N
 
 namespace multilinear_map
 

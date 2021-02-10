@@ -327,7 +327,8 @@ instance reflects_cone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : 
 begin
   constructor,
   introsI,
-  haveI : is_iso (F.map f.hom) := (cones.forget (K ⋙ F)).map_is_iso ((cones.functoriality K F).map f),
+  haveI : is_iso (F.map f.hom) :=
+    (cones.forget (K ⋙ F)).map_is_iso ((cones.functoriality K F).map f),
   haveI := reflects_isomorphisms.reflects F f.hom,
   apply cone_iso_of_hom_iso
 end
@@ -373,9 +374,8 @@ def cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_i
   { hom := i.inv,
     w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm } }
 
-/--
-Functorially precompose a cocone for `F` by a natural transformation `G ⟶ F` to give a cocone for `G`.
--/
+/-- Functorially precompose a cocone for `F` by a natural transformation `G ⟶ F` to give a cocone
+for `G`. -/
 @[simps] def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
 { obj := λ c, { X := c.X, ι := α ≫ c.ι },
   map := λ c₁ c₂ f, { hom := f.hom } }
@@ -417,7 +417,8 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
   cocone F ≌ cocone (e.functor ⋙ F) :=
 { functor := whiskering e.functor,
   inverse := whiskering e.inverse ⋙
-    precompose ((functor.left_unitor F).inv ≫ (whisker_right (e.counit_iso).inv F) ≫ (functor.associator _ _ _).inv),
+    precompose ((functor.left_unitor F).inv ≫ (whisker_right (e.counit_iso).inv F) ≫
+      (functor.associator _ _ _).inv),
   unit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _)
   (begin
@@ -483,8 +484,8 @@ let f : (F ⋙ e.functor) ⋙ e.inverse ≅ F :=
     -- In this configuration `simp` reaches a dead-end and needs help.
     intros j,
     dsimp,
-    simp only [←equivalence.counit_inv_app_functor, iso.inv_hom_id_app, map_comp, equivalence.fun_inv_map,
-      assoc, id_comp, iso.inv_hom_id_app_assoc],
+    simp only [←equivalence.counit_inv_app_functor, iso.inv_hom_id_app, map_comp,
+      equivalence.fun_inv_map, assoc, id_comp, iso.inv_hom_id_app_assoc],
     dsimp, simp, -- See note [dsimp, simp].
   end) (by tidy), }
 
@@ -497,7 +498,8 @@ instance reflects_cocone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K 
 begin
   constructor,
   introsI,
-  haveI : is_iso (F.map f.hom) := (cocones.forget (K ⋙ F)).map_is_iso ((cocones.functoriality K F).map f),
+  haveI : is_iso (F.map f.hom) :=
+    (cocones.forget (K ⋙ F)).map_is_iso ((cocones.functoriality K F).map f),
   haveI := reflects_isomorphisms.reflects F f.hom,
   apply cocone_iso_of_hom_iso
 end
@@ -524,7 +526,9 @@ def map_cocone (c : cocone F) : cocone (F ⋙ H) := (cocones.functoriality F H).
 /-- Given a cone morphism `c ⟶ c'`, construct a cone morphism on the mapped cones functorially.  -/
 def map_cone_morphism   {c c' : cone F}   (f : c ⟶ c')   :
   H.map_cone c ⟶ H.map_cone c' := (cones.functoriality F H).map f
-/-- Given a cocone morphism `c ⟶ c'`, construct a cocone morphism on the mapped cocones functorially.  -/
+
+/-- Given a cocone morphism `c ⟶ c'`, construct a cocone morphism on the mapped cocones
+functorially. -/
 def map_cocone_morphism {c c' : cocone F} (f : c ⟶ c') :
   H.map_cocone c ⟶ H.map_cocone c' := (cocones.functoriality F H).map f
 

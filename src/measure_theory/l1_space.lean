@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import measure_theory.ae_eq_fun
+import measure_theory.ae_eq_fun_metric
 
 /-!
 # Integrable functions and `L¹` space
@@ -26,14 +26,14 @@ of being almost everywhere equal is defined as a subspace of the space `L⁰`. S
 ## Main definitions
 
 * Let `f : α → β` be a function, where `α` is a `measure_space` and `β` a `normed_group`.
-  Then `has_finite_integral f` means `(∫⁻ a, nnnorm (f a)) < ⊤`.
+  Then `has_finite_integral f` means `(∫⁻ a, nnnorm (f a)) < ∞`.
 
 * If `β` is moreover a `measurable_space` then `f` is called `integrable` if
   `f` is `measurable` and `has_finite_integral f` holds.
 
 * The space `L¹` is defined as a subspace of `L⁰` :
-  An `ae_eq_fun` `[f] : α →ₘ β` is in the space `L¹` if `edist [f] 0 < ⊤`, which means
-  `(∫⁻ a, edist (f a) 0) < ⊤` if we expand the definition of `edist` in `L⁰`.
+  An `ae_eq_fun` `[f] : α →ₘ β` is in the space `L¹` if `edist [f] 0 < ∞`, which means
+  `(∫⁻ a, edist (f a) 0) < ∞` if we expand the definition of `edist` in `L⁰`.
 
 ## Main statements
 
@@ -41,7 +41,7 @@ of being almost everywhere equal is defined as a subspace of the space `L⁰`. S
 
 ## Implementation notes
 
-Maybe `integrable f` should be mean `(∫⁻ a, edist (f a) 0) < ⊤`, so that `integrable` and
+Maybe `integrable f` should be mean `(∫⁻ a, edist (f a) 0) < ∞`, so that `integrable` and
 `ae_eq_fun.integrable` are more aligned. But in the end one can use the lemma
 `lintegral_nnnorm_eq_lintegral_edist : (∫⁻ a, nnnorm (f a)) = (∫⁻ a, edist (f a) 0)` to switch the
 two forms.
@@ -56,7 +56,7 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators ennreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -103,18 +103,18 @@ by simp only [pi.neg_apply, nnnorm_neg]
 /-- `has_finite_integral f μ` means that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `has_finite_integral f` means `has_finite_integral f volume`. -/
 def has_finite_integral (f : α → β) (μ : measure α . volume_tac) : Prop :=
-∫⁻ a, nnnorm (f a) ∂μ < ⊤
+∫⁻ a, nnnorm (f a) ∂μ < ∞
 
 lemma has_finite_integral_iff_norm (f : α → β) :
-  has_finite_integral f μ ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ⊤ :=
+  has_finite_integral f μ ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ∞ :=
 by simp only [has_finite_integral, of_real_norm_eq_coe_nnnorm]
 
 lemma has_finite_integral_iff_edist (f : α → β) :
-  has_finite_integral f μ ↔ ∫⁻ a, edist (f a) 0 ∂μ < ⊤ :=
+  has_finite_integral f μ ↔ ∫⁻ a, edist (f a) 0 ∂μ < ∞ :=
 by simp only [has_finite_integral_iff_norm, edist_dist, dist_zero_right]
 
 lemma has_finite_integral_iff_of_real {f : α → ℝ} (h : 0 ≤ᵐ[μ] f) :
-  has_finite_integral f μ ↔ ∫⁻ a, ennreal.of_real (f a) ∂μ < ⊤ :=
+  has_finite_integral f μ ↔ ∫⁻ a, ennreal.of_real (f a) ∂μ < ∞ :=
 have lintegral_eq : ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ = ∫⁻ a, ennreal.of_real (f a) ∂μ :=
 begin
   refine lintegral_congr_ae (h.mono $ λ a h, _),
@@ -128,7 +128,7 @@ begin
   simp only [has_finite_integral_iff_norm] at *,
   calc ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ ≤ ∫⁻ (a : α), (ennreal.of_real ∥g a∥) ∂μ :
     lintegral_mono_ae (h.mono $ assume a h, of_real_le_of_real h)
-    ... < ⊤ : hg
+    ... < ∞ : hg
 end
 
 lemma has_finite_integral.mono' {f : α → β} {g : α → ℝ} (hg : has_finite_integral g μ)
@@ -153,7 +153,7 @@ lemma has_finite_integral_congr {f g : α → β} (h : f =ᵐ[μ] g) :
 has_finite_integral_congr' $ h.fun_comp norm
 
 lemma has_finite_integral_const_iff {c : β} :
-  has_finite_integral (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ⊤ :=
+  has_finite_integral (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ∞ :=
 begin
   simp only [has_finite_integral, lintegral_const],
   by_cases hc : c = 0,
@@ -195,8 +195,8 @@ h.mono_measure $ measure.le_add_left $ le_refl _
   has_finite_integral f (μ + ν) ↔ has_finite_integral f μ ∧ has_finite_integral f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
-lemma has_finite_integral.smul_measure {f : α → β} (h : has_finite_integral f μ) {c : ennreal}
-  (hc : c < ⊤) : has_finite_integral f (c • μ) :=
+lemma has_finite_integral.smul_measure {f : α → β} (h : has_finite_integral f μ) {c : ℝ≥0∞}
+  (hc : c < ∞) : has_finite_integral f (c • μ) :=
 begin
   simp only [has_finite_integral, lintegral_smul_measure] at *,
   exact mul_lt_top hc h
@@ -220,7 +220,7 @@ by simpa [has_finite_integral] using hfi
 
 lemma has_finite_integral.norm {f : α → β} (hfi : has_finite_integral f μ) :
   has_finite_integral (λa, ∥f a∥) μ :=
-have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
+have eq : (λa, (nnnorm ∥f a∥ : ℝ≥0∞)) = λa, (nnnorm (f a) : ℝ≥0∞),
   by { funext, rw nnnorm_norm },
 by { rwa [has_finite_integral, eq] }
 
@@ -258,12 +258,12 @@ lemma has_finite_integral_of_dominated_convergence {F : ℕ → α → β} {f : 
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   has_finite_integral f μ :=
 /- `∥F n a∥ ≤ bound a` and `∥F n a∥ --> ∥f a∥` implies `∥f a∥ ≤ bound a`,
-  and so `∫ ∥f∥ ≤ ∫ bound < ⊤` since `bound` is has_finite_integral -/
+  and so `∫ ∥f∥ ≤ ∫ bound < ∞` since `bound` is has_finite_integral -/
 begin
   rw has_finite_integral_iff_norm,
   calc ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ ≤ ∫⁻ a, ennreal.of_real (bound a) ∂μ :
     lintegral_mono_ae $ all_ae_of_real_f_le_bound h_bound h_lim
-    ... < ⊤ :
+    ... < ∞ :
     begin
       rw ← has_finite_integral_iff_of_real,
       { exact bound_has_finite_integral },
@@ -317,7 +317,7 @@ begin
   { rw has_finite_integral_iff_of_real at bound_has_finite_integral,
     { calc ∫⁻ a, b a ∂μ = 2 * ∫⁻ a, ennreal.of_real (bound a) ∂μ :
         by { rw lintegral_const_mul', exact coe_ne_top }
-        ... < ⊤ : mul_lt_top (coe_lt_top) bound_has_finite_integral },
+        ... < ∞ : mul_lt_top (coe_lt_top) bound_has_finite_integral },
     filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h },
   -- Show `∥f a - F n a∥ --> 0`
   { exact h }
@@ -349,7 +349,7 @@ begin
   calc
     ∫⁻ (a : α), nnnorm (c • f a) ∂μ = ∫⁻ (a : α), (nnnorm c) * nnnorm (f a) ∂μ :
       by simp only [nnnorm_smul, ennreal.coe_mul]
-    ... < ⊤ :
+    ... < ∞ :
     begin
       rw lintegral_const_mul',
       exacts [mul_lt_top coe_lt_top hfi, coe_ne_top]
@@ -411,7 +411,7 @@ lemma integrable_congr {f g : α → β} (h : f =ᵐ[μ] g) :
   integrable f μ ↔ integrable g μ :=
 ⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
 
-lemma integrable_const_iff {c : β} : integrable (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ⊤ :=
+lemma integrable_const_iff {c : β} : integrable (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ∞ :=
 begin
   have : ae_measurable (λ (x : α), c) μ := measurable_const.ae_measurable,
   rw [integrable, and_iff_right this, has_finite_integral_const_iff]
@@ -438,7 +438,7 @@ h.mono_measure $ measure.le_add_left $ le_refl _
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
-lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
+lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c < ∞) :
   integrable f (c • μ) :=
 ⟨h.ae_measurable.smul_measure c, h.has_finite_integral.smul_measure hc⟩
 
@@ -449,7 +449,7 @@ by simp [integrable, hg, hg.comp_measurable hf, has_finite_integral, lintegral_m
 
 lemma lintegral_edist_lt_top [second_countable_topology β] [opens_measurable_space β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
-  ∫⁻ a, edist (f a) (g a) ∂μ < ⊤ :=
+  ∫⁻ a, edist (f a) (g a) ∂μ < ∞ :=
 lt_of_le_of_lt
   (lintegral_edist_triangle hf.ae_measurable hg.ae_measurable
     (measurable_const.ae_measurable : ae_measurable (λa, (0 : β)) μ))
@@ -467,7 +467,7 @@ lemma integrable.add' [opens_measurable_space β] {f g : α → β} (hf : integr
 calc ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
   lintegral_mono (λ a, by exact_mod_cast nnnorm_add_le _ _)
 ... = _ : lintegral_nnnorm_add hf.ae_measurable hg.ae_measurable
-... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
+... < ∞ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
 
 lemma integrable.add [borel_space β] [second_countable_topology β]
   {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) : integrable (f + g) μ :=
@@ -494,7 +494,7 @@ calc ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g 
   lintegral_mono (assume a, by { simp only [sub_eq_add_neg], exact_mod_cast nnnorm_add_le _ _ } )
 ... = _ :
   by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hf.ae_measurable hg.ae_measurable }
-... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
+... < ∞ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
 
 lemma integrable.sub [borel_space β] [second_countable_topology β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) : integrable (f - g) μ :=
@@ -557,7 +557,7 @@ begin
   simp_rw [integrable, ae_measurable_smul_const hc, and.congr_right_iff, has_finite_integral,
     nnnorm_smul, ennreal.coe_mul],
   intro hf, rw [lintegral_mul_const' _ _ ennreal.coe_ne_top, ennreal.mul_lt_top_iff],
-  have : ∀ x : ennreal, x = 0 → x < ⊤ := by simp,
+  have : ∀ x : ℝ≥0∞, x = 0 → x < ∞ := by simp,
   simp [hc, or_iff_left_of_imp (this _)]
 end
 end normed_space_over_complete_field
@@ -575,7 +575,7 @@ variable [opens_measurable_space β]
 
 /-- A class of almost everywhere equal functions is `integrable` if it has a finite distance to
   the origin. It means the same thing as the predicate `integrable` over functions. -/
-def integrable (f : α →ₘ[μ] β) : Prop := f ∈ ball (0 : α →ₘ[μ] β) ⊤
+def integrable (f : α →ₘ[μ] β) : Prop := f ∈ ball (0 : α →ₘ[μ] β) ∞
 
 lemma integrable_mk {f : α → β} (hf : ae_measurable f μ ) :
   (integrable (mk f hf : α →ₘ[μ] β)) ↔ measure_theory.integrable f μ :=
@@ -607,7 +607,7 @@ lemma integrable.sub {f g : α →ₘ[μ] β} (hf : integrable f) (hg : integrab
   integrable (f - g) :=
 hf.add hg.neg
 
-protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ[μ] β) ⊤) :=
+protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ[μ] β) ∞) :=
 { zero_mem := integrable_zero,
   add_mem := λ _ _, integrable.add,
   neg_mem := λ _, integrable.neg }
@@ -662,7 +662,7 @@ instance : emetric_space (α →₁[μ] β) := subtype.emetric_space
 
 /-- `L¹` space forms a `metric_space`, with the metric being inherited from almost everywhere
   functions, i.e., `edist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a))`. -/
-instance : metric_space (α →₁[μ] β) := metric_space_emetric_ball 0 ⊤
+instance : metric_space (α →₁[μ] β) := metric_space_emetric_ball 0 ∞
 
 end
 
@@ -811,7 +811,7 @@ lemma norm_eq_norm_to_fun (f : α →₁[μ] β) :
   ∥f∥ = ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 by { rw norm_eq_nnnorm_to_fun, congr, funext, rw of_real_norm_eq_coe_nnnorm }
 
-lemma lintegral_edist_to_fun_lt_top (f g : α →₁[μ] β) : (∫⁻ a, edist (f a) (g a) ∂μ) < ⊤ :=
+lemma lintegral_edist_to_fun_lt_top (f g : α →₁[μ] β) : (∫⁻ a, edist (f a) (g a) ∂μ) < ∞ :=
 lintegral_edist_lt_top f.integrable g.integrable
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
@@ -819,14 +819,14 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 lemma smul_to_fun (c : 𝕜) (f : α →₁[μ] β) : ⇑(c • f) =ᵐ[μ] c • f :=
 ae_eq_fun.coe_fn_smul _ _
 
-lemma norm_eq_lintegral (f : α →₁[μ] β) : ∥f∥ = (∫⁻ x, (nnnorm (f x) : ennreal) ∂μ).to_real :=
+lemma norm_eq_lintegral (f : α →₁[μ] β) : ∥f∥ = (∫⁻ x, (nnnorm (f x) : ℝ≥0∞) ∂μ).to_real :=
 by simp [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm]
 
 /-- Computing the norm of a difference between two L¹-functions. Note that this is not a
   special case of `norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
   (but only a.e.-equal). -/
 lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
-  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ).to_real :=
+  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ℝ≥0∞) ∂μ).to_real :=
 begin
   simp_rw [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm],
   rw lintegral_congr_ae,
@@ -835,7 +835,7 @@ begin
 end
 
 lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
-  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ennreal) ∂μ :=
+  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ℝ≥0∞) ∂μ :=
 by { rw [norm_eq_lintegral, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
   exact f.has_finite_integral }
 
@@ -843,7 +843,7 @@ by { rw [norm_eq_lintegral, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff
   special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
   (but only a.e.-equal). -/
 lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
-  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ :=
+  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ℝ≥0∞) ∂μ :=
 begin
   simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],
   apply lintegral_congr_ae,

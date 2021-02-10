@@ -698,6 +698,15 @@ lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x * r) l at_top :=
 by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
 
+lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
+tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
+tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
+
+
 end linear_ordered_field
 
 open_locale filter

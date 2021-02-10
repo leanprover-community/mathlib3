@@ -1013,6 +1013,14 @@ namespace rat
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 (rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
 
+@[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
+subsingleton.elim _ _
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma algebra_rat_subsingleton {α} [semiring α] :
+  subsingleton (algebra ℚ α) :=
+⟨λ x y, algebra.algebra_ext x y $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
+
 end rat
 
 namespace algebra
@@ -1363,10 +1371,6 @@ end semimodule
 end restrict_scalars
 
 namespace linear_map
-section extend_scalars
-/-! When `V` is an `R`-module and `W` is an `S`-module, where `S` is an algebra over `R`, then
-the collection of `R`-linear maps from `V` to `W` admits an `S`-module structure, given by
-multiplication in the target. -/
 
 variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
   (V : Type*) [add_comm_monoid V] [semimodule R V]
@@ -1376,16 +1380,4 @@ instance is_scalar_tower_extend_scalars :
   is_scalar_tower R S (V →ₗ[R] W) :=
 { smul_assoc := λ r s f, by simp only [(•), coe_mk, smul_assoc] }
 
-variables {R S V W}
-
-/-- When `f` is a linear map taking values in `S`, then `λb, f b • x` is a linear map. -/
-def smul_algebra_right (f : V →ₗ[R] S) (x : W) : V →ₗ[R] W :=
-{ to_fun := λb, f b • x,
-  map_add' := by simp [add_smul],
-  map_smul' := λ b y, by { simp [algebra.smul_def, ← smul_smul], } }
-
-@[simp] theorem smul_algebra_right_apply (f : V →ₗ[R] S) (x : W) (c : V) :
-  smul_algebra_right f x c = f c • x := rfl
-
-end extend_scalars
 end linear_map

@@ -24,12 +24,7 @@ would be the current goal, the second goal is for the underscore.
 With `specialize'`, the goal for any underscores comes first, then the current goal.
 -/
 meta def specialize' (p : parse texpr) : tactic unit :=
-do
-  g :: gs ← get_goals,
-  set_goals [g],
-  specialize p,
-  g' :: gs' ← get_goals,
-  set_goals $ gs' ++ [g'] ++ gs
+focus1 $ do specialize p, rotate 1
 
 end interactive
 

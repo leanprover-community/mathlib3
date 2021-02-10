@@ -340,6 +340,12 @@ begin
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
 
+lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
+by { refine le_trans _ h, simp }
+
+lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
+by { refine le_trans _ h, simp }
+
 /-! ### `pred` -/
 
 @[simp]

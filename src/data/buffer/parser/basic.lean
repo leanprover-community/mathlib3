@@ -124,6 +124,10 @@ begin
   simp [hp]
 end
 
+lemma static.iff :
+  static p ↔ (∀ (cb : char_buffer) (n n' : ℕ) (a : α), p cb n = done n' a → n = n') :=
+⟨λ h _ _ _ _ hp, by { haveI := h, exact static.of_done hp}, λ h, ⟨h⟩⟩
+
 lemma exists_done (p : parser α) [p.unfailing] (cb : char_buffer) (n : ℕ) :
   ∃ (n' : ℕ) (a : α), p cb n = done n' a :=
 unfailing.ex' cb n
@@ -370,8 +374,8 @@ lemma mmap'_eq_done {f : α → parser β} {a : α} {l : list α} :
   ∃ (np : ℕ) (b : β), f a cb n = done np b ∧ l.mmap' f cb np = done n' () :=
 by simp [mmap']
 
-lemma guard_eq_done {p : Prop} [decidable p] :
-  @guard parser _ p _ cb n = done n' () ↔ p ∧ n = n' :=
+lemma guard_eq_done {p : Prop} [decidable p] {u : unit} :
+  @guard parser _ p _ cb n = done n' u ↔ p ∧ n = n' :=
 by { by_cases hp : p; simp [guard, hp, pure_eq_done] }
 
 lemma guard_eq_fail {p : Prop} [decidable p] :
@@ -565,8 +569,7 @@ end defn_lemmas
 
 section done
 
-variables {α β : Type}
-  {cb : char_buffer} {n n' : ℕ} {a a' : α} {b : β} {c : char}
+variables {α β : Type} {cb : char_buffer} {n n' : ℕ} {a a' : α} {b : β} {c : char} {u : unit}
 
 lemma any_char_eq_done : any_char cb n = done n' c ↔
   ∃ (hn : n < cb.size), n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
@@ -591,10 +594,53 @@ begin
   { simp [sat, hn] },
 end
 
-lemma eps_eq_done : eps cb n = done n' () ↔ n = n' := by simp [eps, pure_eq_done]
+lemma eps_eq_done : eps cb n = done n' u ↔ n = n' := by simp [eps, pure_eq_done]
 
-lemma ch_eq_done : ch c cb n = done n' () ↔ ∃ (hn : n < cb.size), n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
+lemma ch_eq_done : ch c cb n = done n' u ↔ ∃ (hn : n < cb.size), n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
 by simp [ch, eps_eq_done, sat_eq_done, and.comm, @eq_comm _ n']
+
+@[simp] lemma tail_drop (l : list α) (n : ℕ) : (l.drop n).tail = l.drop (n + 1) :=
+begin
+  induction l with hd tl hl generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simp [hl] } }
+end
+
+lemma cons_nth_le_drop_succ {l : list α} {n : ℕ} (hn : n < l.length) :
+  l.nth_le n hn :: l.drop (n + 1) = l.drop n :=
+begin
+  induction l with hd tl hl generalizing n,
+  { exact absurd n.zero_le (not_le_of_lt (by simpa using hn)) },
+  { cases n,
+    { simp },
+    { simp only [nat.succ_lt_succ_iff, list.length] at hn,
+      simpa [list.nth_le, list.drop] using hl hn } },
+end
+
+lemma char_buf_eq_done {cb' : char_buffer} : char_buf cb' cb n = done n' u ↔
+  n + cb'.size = n' ∧ cb'.to_list <+: (cb.to_list.drop n) :=
+begin
+  simp only [char_buf, decorate_error_eq_done, ne.def, ←buffer.length_to_list],
+  induction cb'.to_list with hd tl hl generalizing cb n n',
+  { simp [pure_eq_done, mmap'_eq_done, -buffer.length_to_list, list.nil_prefix] },
+  { simp [ch_eq_done, and.comm, and.assoc, and.left_comm, hl],
+    split,
+    { rintro ⟨np, h, rfl, rfl, hn, rfl⟩,
+      simp only [add_comm, add_left_comm, h, true_and, eq_self_iff_true],
+      rw [←buffer.nth_le_to_list _ (by simpa using hn), cons_nth_le_drop_succ] },
+    { rintro ⟨h, rfl, h'⟩,
+      use [n + 1],
+      simp [add_comm, add_left_comm, add_assoc, h],
+      by_cases hn : n < cb.size,
+      { use hn,
+        rw ←cons_nth_le_drop_succ (show n < cb.to_list.length, by simpa using hn) at h',
+        simpa using h' },
+      sorry
+    },
+  }
+end
 
 -- TODO: add char_buf_eq_done, and str_eq_done, needs lemmas about matching buffers
 
@@ -602,7 +648,7 @@ lemma one_of_eq_done {cs : list char} : one_of cs cb n = done n' c ↔
   ∃ (hn : n < cb.size), c ∈ cs ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
 by simp [one_of, sat_eq_done]
 
-lemma one_of'_eq_done {cs : list char} : one_of' cs cb n = done n' () ↔
+lemma one_of'_eq_done {cs : list char} : one_of' cs cb n = done n' u ↔
   ∃ (hn : n < cb.size), cb.read ⟨n, hn⟩ ∈ cs ∧ n' = n + 1 :=
 begin
   simp only [one_of', one_of_eq_done, eps_eq_done, and.comm, and_then_eq_bind, bind_eq_done,
@@ -617,7 +663,7 @@ end
 lemma remaining_eq_done {r : ℕ} : remaining cb n = done n' r ↔ n = n' ∧ cb.size - n = r :=
 by simp [remaining]
 
-lemma eof_eq_done : eof cb n = done n' () ↔ n = n' ∧ cb.size ≤ n :=
+lemma eof_eq_done {u : unit} : eof cb n = done n' u ↔ n = n' ∧ cb.size ≤ n :=
 by simp [eof, guard_eq_done, remaining_eq_done, nat.sub_eq_zero_iff_le, and_comm, and_assoc]
 
 @[simp] lemma foldr_core_zero_eq_done {f : α → β → β} {p : parser α} {b' : β} :
@@ -734,7 +780,7 @@ lemma many_char_eq_many_of_to_list {p : parser char} {s : string} :
   many_char p cb n = done n' s ↔ many p cb n = done n' s.to_list :=
 by simp [many_char, list.as_string_eq]
 
-lemma many'_eq_done {p : parser α} : many' p cb n = done n' () ↔
+lemma many'_eq_done {p : parser α} : many' p cb n = done n' u ↔
   many p cb n = done n' [] ∨ ∃ (np : ℕ) (a : α) (l : list α), many p cb n = done n' (a :: l)
     ∧ p cb n = done np a ∧ foldr_core list.cons p [] (buffer.size cb - n) cb np = done n' l :=
 begin
@@ -814,13 +860,214 @@ end
 
 end done
 
-section bounded
+namespace static
+
+variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
+  {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
+
+lemma not_of_ne (h : p cb n = done n' a) (hne : n ≠ n') : ¬ static p :=
+by { introI, exact hne (of_done h) }
+
+instance pure : static (pure a) :=
+⟨λ _ _ _ _, by { simp_rw pure_eq_done, rw [and.comm], simp }⟩
+
+instance bind {f : α → parser β} [p.static] [∀ a, (f a).static] :
+  (p >>= f).static :=
+⟨λ _ _ _ _, by { rw bind_eq_done, rintro ⟨_, _, hp, hf⟩, exact trans (of_done hp) (of_done hf) }⟩
+
+instance and_then {q : parser β} [p.static] [q.static] : (p >> q).static := static.bind
+
+instance map [p.static] {f : α → β} : (f <$> p).static :=
+⟨λ _ _ _ _, by { simp_rw map_eq_done, rintro ⟨_, hp, _⟩, exact of_done hp }⟩
+
+instance seq {f : parser (α → β)} [f.static] [p.static] : (f <*> p).static := static.bind
+
+instance mmap : Π {l : list α} {f : α → parser β}, (∀ a, (f a).static) → (l.mmap f).static
+| []       _ _ := static.pure
+| (a :: l) _ h := begin
+  convert static.bind,
+  { exact h _ },
+  { intro,
+    convert static.bind,
+    { exact mmap h },
+    { exact λ _, static.pure } }
+end
+
+instance mmap' : Π {l : list α} {f : α → parser β}, (∀ a, (f a).static) → (l.mmap' f).static
+| []       _ _ := static.pure
+| (a :: l) _ h := begin
+  convert static.and_then,
+  { exact h _ },
+  { exact mmap' h }
+end
+
+instance failure : @parser.static α failure :=
+⟨λ _ _ _ _, by simp⟩
+
+instance guard {p : Prop} [decidable p] : static (guard p) :=
+⟨λ _ _ _ _, by simp [guard_eq_done]⟩
+
+instance orelse [p.static] [q.static] : (p <|> q).static :=
+⟨λ _ _ _ _, by { simp_rw orelse_eq_done, rintro (h | ⟨h, -⟩); exact of_done h }⟩
+
+instance decorate_errors [p.static] :
+  (@decorate_errors α msgs p).static :=
+⟨λ _ _ _ _, by { rw decorate_errors_eq_done, exact of_done }⟩
+
+instance decorate_error [p.static] : (@decorate_error α msg p).static :=
+static.decorate_errors
+
+lemma any_char : ¬ static any_char :=
+begin
+  have : any_char "s".to_char_buffer 0 = done 1 's',
+    { have : 0 < "s".to_char_buffer.size := dec_trivial,
+      simpa [any_char_eq_done, this] },
+  exact not_of_ne this zero_ne_one
+end
+
+lemma sat_iff {p : char → Prop} [decidable_pred p] : static (sat p) ↔ ∀ c, ¬ p c :=
+begin
+  split,
+  { introI,
+    intros c hc,
+    have : sat p [c].to_buffer 0 = done 1 c := by simp [sat_eq_done, hc],
+    exact zero_ne_one (of_done this) },
+  { contrapose!,
+    simp only [iff, sat_eq_done, and_imp, exists_prop, exists_and_distrib_right,
+               exists_and_distrib_left, exists_imp_distrib, not_forall],
+    rintros _ _ _ a h hne rfl hp -,
+    exact ⟨a, hp⟩ }
+end
+
+instance sat : static (sat (λ _, false)) :=
+by { apply sat_iff.mpr, simp }
+
+instance eps : static eps := static.pure
+
+lemma ch (c : char) : ¬ static (ch c) :=
+begin
+  have : ch c [c].to_buffer 0 = done 1 (),
+    { have : 0 < [c].to_buffer.size := dec_trivial,
+      simp [ch_eq_done, this] },
+  exact not_of_ne this zero_ne_one
+end
+
+-- TODO: add ¬ static.char_buf, needs char_buf_eq_done
+
+lemma one_of_iff {cs : list char} : static (one_of cs) ↔ cs = [] :=
+begin
+  cases cs with hd tl,
+  { simp [one_of, static.decorate_errors] },
+  { have : one_of (hd :: tl) (hd :: tl).to_buffer 0 = done 1 hd,
+      { simp [one_of_eq_done] },
+    simpa using not_of_ne this zero_ne_one }
+end
+
+instance one_of : static (one_of []) :=
+by { apply one_of_iff.mpr, refl }
+
+lemma one_of'_iff {cs : list char} : static (one_of' cs) ↔ cs = [] :=
+begin
+  cases cs with hd tl,
+  { simp [one_of', static.bind], },
+  { have : one_of' (hd :: tl) (hd :: tl).to_buffer 0 = done 1 (),
+      { simp [one_of'_eq_done] },
+    simpa using not_of_ne this zero_ne_one }
+end
+
+instance one_of' : static (one_of []) :=
+by { apply one_of_iff.mpr, refl }
+
+lemma str_iff {s : string} : static (str s) ↔ s = "" :=
+begin
+  cases hl : s.to_list with hd tl,
+  { simp [←string.to_list_inj, str, hl, static.decorate_error] },
+  {
+    have : str s s.to_char_buffer 0 = done s.length (),
+      { simp [str, hl, ch_eq_done], },
+
+  },
+end
+
+instance remaining : remaining.static :=
+⟨λ _ _ _ _ h, (remaining_eq_done.mp h).left⟩
+
+instance eof : eof.static :=
+static.decorate_error
+
+instance foldr_core {f : α → β → β} {b : β} [p.static] [p.mono] :
+  ∀ {reps : ℕ}, (foldr_core f p b reps).static
+| 0          := static.failure
+| (reps + 1) := begin
+  simp_rw parser.foldr_core,
+  sorry,
+  -- convert static.orelse,
+  -- { apply_instance },
+  -- { exact static.pure }
+end
+
+instance foldr {f : α → β → β} [p.static] [p.mono] : static (foldr f p b) :=
+⟨λ _ _ _ _, by { dsimp [foldr], exact of_done }⟩
+
+instance foldl_core {f : α → β → α} {p : parser β} [p.static] :
+  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).static
+| _ 0          := static.failure
+| _ (reps + 1) := begin
+  convert static.orelse,
+  { convert static.bind,
+    { apply_instance },
+    { exact λ _, foldl_core } },
+  { exact static.pure }
+end
+
+instance foldl {f : α → β → α} {p : parser β} [p.static] : static (foldl f a p) :=
+⟨λ _ _ _ _, by { dsimp [foldl], exact of_done }⟩
+
+instance many [p.static] [p.mono] : p.many.static :=
+static.foldr
+
+instance many_char {p : parser char} [p.static] [p.mono] : p.many_char.static :=
+static.map
+
+instance many' [p.static] [p.mono] : p.many'.static :=
+static.and_then
+
+instance many1 [p.static] [p.mono] : p.many1.static :=
+static.seq
+
+instance many_char1 {p : parser char} [p.static] [p.mono] : p.many_char1.static :=
+static.map
+
+instance sep_by1 [p.static] [sep.static] [p.mono] [sep.mono] : static (sep_by1 sep p) :=
+static.seq
+
+instance sep_by [p.static] [sep.static] [p.mono] [sep.mono] : static (sep_by sep p) :=
+static.orelse
+
+instance fix_core {F : parser α → parser α} [hF : ∀ (p : parser α), p.static → (F p).static] :
+  ∀ {max_depth : ℕ}, static (fix_core F max_depth)
+| 0               := static.failure
+| (max_depth + 1) := hF _ fix_core
+
+instance digit : digit.static :=
+static.decorate_error
+
+instance nat : nat.static :=
+static.decorate_error
+
+instance fix {F : parser α → parser α} [hF : ∀ (p : parser α), p.static → (F p).static] :
+  static (fix F) :=
+⟨λ _ _, by { convert static.fix_core.le _ _, exact hF }⟩
+
+end static
+
+#exit
+
+namespace bounded
 
 variables {α β : Type} {msgs : thunk (list string)} {msg : thunk string}
 variables {p q : parser α} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
 variables {a : α} {b : β}
-
-namespace bounded
 
 lemma done_of_unbounded (h : ¬ p.bounded) : ∃ (cb : char_buffer) (n n' : ℕ) (a : α),
   p cb n = done n' a ∧ cb.size ≤ n :=
@@ -1076,7 +1323,6 @@ lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.bounded →
 
 end bounded
 
-end bounded
 namespace unfailing
 
 variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
@@ -1271,7 +1517,7 @@ unfailing.map
 instance sep_by1 [p.unfailing] [sep.unfailing] : unfailing (sep_by1 sep p) :=
 unfailing.seq
 
-instance sep_by [p.unfailing] [hs : sep.unfailing] : unfailing (sep_by sep p) :=
+instance sep_by [p.unfailing] [sep.unfailing] : unfailing (sep_by sep p) :=
 unfailing.orelse
 
 instance fix_core {F : parser α → parser α} [hF : ∀ (p : parser α), p.unfailing → (F p).unfailing] :
@@ -1291,12 +1537,10 @@ instance fix {F : parser α → parser α} [hF : ∀ (p : parser α), p.unfailin
 
 end unfailing
 
-section prog
+namespace prog
 
 variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
   {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
-
-namespace prog
 
 lemma pure (a : α) : ¬ prog (pure a) :=
 begin
@@ -1459,7 +1703,7 @@ prog.map
 instance sep_by1 [p.prog] [sep.prog] : prog (sep_by1 sep p) :=
 prog.seq
 
-instance sep_by [p.prog] [hs : sep.prog] : prog (sep_by sep p) :=
+instance sep_by [p.prog] [sep.prog] : prog (sep_by sep p) :=
 prog.orelse
 
 instance fix_core {F : parser α → parser α} [hF : ∀ (p : parser α), p.prog → (F p).prog] :
@@ -1476,8 +1720,6 @@ prog.decorate_error
 instance fix {F : parser α → parser α} [hF : ∀ (p : parser α), p.prog → (F p).prog] :
   prog (fix F) :=
 ⟨λ _ _, by { convert prog.fix_core.le _ _, exact hF }⟩
-
-end prog
 
 end prog
 

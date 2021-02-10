@@ -3346,6 +3346,19 @@ exists_congr $ λ r, by rw [append_assoc, append_right_inj]
 theorem prefix_cons_inj {l₁ l₂ : list α} (a) : a :: l₁ <+: a :: l₂ ↔ l₁ <+: l₂ :=
 prefix_append_right_inj [a]
 
+@[simp] lemma prefix_cons_iff {hd : α} {tl l : list α} :
+  (hd :: tl) <+: l ↔ l = hd :: l.tail ∧ tl <+: l.tail :=
+begin
+  split,
+  { rintro ⟨_, h⟩,
+    rw cons_append at h,
+    simp [←h] },
+  { rw and_imp,
+    intro h,
+    rw h,
+    simp [prefix_cons_inj] }
+end
+
 theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
 
 theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop _ _⟩

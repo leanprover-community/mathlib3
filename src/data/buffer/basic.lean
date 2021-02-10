@@ -163,6 +163,18 @@ end
   l.to_buffer.read i = l.nth_le i (by { convert i.property, simp }) :=
 by { convert read_to_buffer' _ _ _, { simp }, { simpa using i.property } }
 
+lemma nth_le_to_list' (b : buffer α) {i : ℕ} (h h') :
+  b.to_list.nth_le i h = b.read ⟨i, h'⟩ :=
+begin
+  have : b.to_list.to_buffer.read ⟨i, (by simpa using h')⟩ = b.read ⟨i, h'⟩,
+    { congr' 1; simp [fin.heq_ext_iff] },
+  simp [←this]
+end
+
+@[simp] lemma nth_le_to_list (b : buffer α) {i : ℕ} (h) :
+  b.to_list.nth_le i h = b.read ⟨i, by simpa using h⟩ :=
+nth_le_to_list' _ _ _
+
 lemma read_singleton (c : α) : [c].to_buffer.read ⟨0, by simp⟩ = c :=
 by simp
 

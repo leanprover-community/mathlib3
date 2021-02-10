@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2021 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+-/
+
 import data.multiset.sort
 import data.pnat.basic
 import data.rat.order
@@ -137,7 +143,7 @@ begin
   all_goals { rw inv_le_inv _ h3; [assumption_mod_cast, norm_num] }
 end
 
-lemma lt_four {q r : ℕ+} (h2q : 2 ≤ q) (hqr : q ≤ r) (H : 1 < sum_inv {2, q, r}) :
+lemma lt_four {q r : ℕ+} (hqr : q ≤ r) (H : 1 < sum_inv {2, q, r}) :
   q < 4 :=
 begin
   have h4 : (0:ℚ) < 4, by norm_num,
@@ -148,7 +154,7 @@ begin
   all_goals { rw inv_le_inv _ h4; [assumption_mod_cast, norm_num] }
 end
 
-lemma lt_six {r : ℕ+} (h3r : 3 ≤ r) (H : 1 < sum_inv {2, 3, r}) :
+lemma lt_six {r : ℕ+} (H : 1 < sum_inv {2, 3, r}) :
   r < 6 :=
 begin
   have h6 : (0:ℚ) < 6, by norm_num,
@@ -165,10 +171,10 @@ begin
   have hp3 : p < 3 := lt_three hpq hqr H,
   interval_cases p,
   { exact admissible_A' q r },
-  have hq4 : q < 4 := lt_four hpq hqr H,
+  have hq4 : q < 4 := lt_four hqr H,
   interval_cases q,
   { exact admissible_D' r },
-  have hr6 : r < 6 := lt_six hqr H,
+  have hr6 : r < 6 := lt_six H,
   interval_cases r,
   { exact admissible_E6 },
   { exact admissible_E7 },

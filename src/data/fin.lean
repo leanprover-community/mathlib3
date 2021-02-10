@@ -37,8 +37,6 @@ This file expands on the development in the core library.
 * `cast_succ` : embed `fin n` into `fin (n+1)`;
 * `succ_above p` : embed `fin n` into `fin (n + 1)` with a hole around `p`;
 * `pred_above (p : fin n) i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
-* `pred_above' (p : fin (n+1)) i h` :
-     embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`, as long as `h : p ≠ i`;
 * `sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
 * `add_nat m i` : add `m` on `i` on the right, generalizes `fin.succ`;
 * `nat_add n i` adds `n` on `i` on the left;
@@ -924,15 +922,6 @@ by lowering just `last (n + 1)` to `last n`. -/
 def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
 pred_above (last n) i
 
-/-- `pred_above' p i h` embeds `i : fin (n+1)` into `fin n` by subtracting one if `p < i`,
-and is not defined at `i = p`. -/
-def pred_above' (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
-if h : i < p
-then i.cast_lt (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)
-else i.pred $
-  have p < i, from lt_of_le_of_ne (le_of_not_gt h) hi.symm,
-  ne_of_gt (lt_of_le_of_lt (zero_le p) this)
-
 @[simp] theorem pred_above_zero [fact (0 < n)] {i : fin (n + 1)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=
 begin
@@ -940,10 +929,6 @@ begin
   rw dif_pos,
   exact (pos_iff_ne_zero _).mpr hi,
 end
-
-@[simp] theorem pred_above'_zero {i : fin (n + 1)} (hi : i ≠ 0) :
-  pred_above' 0 i hi = i.pred hi :=
-rfl
 
 @[simp] lemma cast_pred_last : cast_pred (last (n + 1)) = last n :=
 by simp [eq_iff_veq, cast_pred, pred_above, cast_succ_lt_last]

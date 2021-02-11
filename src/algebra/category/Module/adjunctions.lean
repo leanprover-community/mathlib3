@@ -44,7 +44,7 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' :=
   begin
     intros _ _ M f g, ext x,
-    exact (finsupp.map_domain_sum_index f _ (λ y, (smul_add_hom R M).flip (g y))).symm,
+    exact (finsupp.sum_map_domain_index_add_monoid_hom (λ y, (smul_add_hom R M).flip (g y))).symm,
   end }
 
 end Module

@@ -1172,9 +1172,24 @@ end
 
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
-  {h : β → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  (map_domain f s).prod h = s.prod (λa b, h (f a) b) :=
+  {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :
+  (map_domain f s).prod h = s.prod (λa m, h (f a) m) :=
 (prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+
+/--
+A version of `sum_map_domain_index` that takes a bundled `add_monoid_hom`,
+rather than separate linearity hypotheses.
+-/
+-- Note that in `prod_map_domain_index`, `M` is still an additive homomorphism,
+-- so there is no analogous version in terms of `monoid_hom`.
+@[simp]
+lemma sum_map_domain_index_add_monoid_hom [add_comm_monoid N] {f : α → β}
+  {s : α →₀ M} (h : β → M →+ N) :
+  (map_domain f s).sum (λ b m, h b m) = s.sum (λ a m, h (f a) m) :=
+@sum_map_domain_index _ _ _ _ _ _ _ _
+  (λ b m, h b m)
+  (λ b, (h b).map_zero)
+  (λ b m₁ m₂, (h b).map_add _ _)
 
 lemma emb_domain_eq_map_domain (f : α ↪ β) (v : α →₀ M) :
   emb_domain f v = map_domain f v :=

@@ -919,6 +919,8 @@ by lowering just `last (n + 1)` to `last n`. -/
 def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
 pred_above (last n) i
 
+@[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
+
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=
 begin
@@ -929,6 +931,14 @@ end
 
 @[simp] lemma cast_pred_last : cast_pred (last (n + 1)) = last n :=
 by simp [eq_iff_veq, cast_pred, pred_above, cast_succ_lt_last]
+
+@[simp] lemma cast_pred_mk (n i : ℕ) (h : i < n + 1) :
+  cast_pred ⟨i, lt_succ_of_lt h⟩ = ⟨i, h⟩ :=
+begin
+  have : ¬cast_succ (last n) < ⟨i, lt_succ_of_lt h⟩,
+    { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
+  simp [cast_pred, pred_above, this]
+end
 
 /-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
 then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/

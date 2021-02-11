@@ -193,7 +193,8 @@ mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
   refl
 end⟩
 
-/-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are isomorphic. -/
+/-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
+isomorphic. -/
 def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   quotient M ≃* quotient N :=
 { to_fun := (lift M (mk' N) (λ m hm, quotient_group.eq.mpr (by simpa [← h] using M.inv_mem hm))),
@@ -218,13 +219,13 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
     rintro ⟨y, (hy : y ∈ ↑(H ⊔ N))⟩, rw mul_normal H N at hy,
     rcases hy with ⟨h, n, hh, hn, rfl⟩,
     use [h, hh], apply quotient.eq.mpr, change h⁻¹ * (h * n) ∈ N,
-    rwa [← mul_assoc, inv_mul_self, one_mul],
+    rwa [←mul_assoc, inv_mul_self, one_mul],
   end,
 suffices h : (H ⊓ N).comap H.subtype = φ.ker,
   from mul_equiv.trans (equiv_quotient_of_eq h) (quotient_ker_equiv_of_surjective φ φ_surjective),
 ext $ λ x,
-  ⟨λ h, by { dsimp [φ], rw [← comap_ker, ker_mk], simp at h, simpa using h.2 },
-  λ h, by { simp, use x.2, dsimp [φ] at h, rw [← comap_ker, ker_mk, mem_comap] at h, simpa using h }⟩
+  ⟨λ h, by { simpa [←comap_ker, ker_mk] using h.2 },
+  λ h, by { use x.2, simpa [←comap_ker, ker_mk, mem_comap] using h }⟩
 
 end snd_isomorphism_thm
 

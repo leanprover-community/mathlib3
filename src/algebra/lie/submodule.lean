@@ -259,6 +259,11 @@ begin
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, lie_submodule.mem_bot],
 end
 
+instance : is_modular_lattice (lie_submodule R L M) :=
+{ sup_inf_le_assoc_of_le := λ N₁ N₂ N₃,
+    by { simp only [← coe_submodule_le_coe_submodule, sup_coe_to_submodule, inf_coe_to_submodule],
+         exact is_modular_lattice.sup_inf_le_assoc_of_le ↑N₂, }, }
+
 variables (R L M)
 
 lemma well_founded_of_noetherian [is_noetherian R M] :

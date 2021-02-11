@@ -1216,8 +1216,7 @@ lemma quotient.smul (f : A →ₐ[R] B) (r : R) (x : f.to_ring_hom.ker.quotient)
 begin
   obtain ⟨a, rfl⟩ := quotient.mkₐ_surjective R _ x,
   rw [← alg_hom.map_smul, quotient.mkₐ_eq_mk, ring_hom.ker_lift_mk],
-  change f (r • a) = r • f a,
-  exact alg_hom.map_smul _ _ _
+  exact f.map_smul _ _
 end
 
 /-- The induced algebras morphism from the quotient by the kernel to the codomain. -/

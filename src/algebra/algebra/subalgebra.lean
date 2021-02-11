@@ -351,10 +351,10 @@ def of_left_inverse
   {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) :
   A ≃ₐ[R] f.range :=
 { to_fun := f.range_restrict,
-  inv_fun := λ x, g (f.range.val x),
+  inv_fun := g ∘ f.range.val,
   left_inv := λ x, subtype.ext $
     let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
-    show f (g x) = x, by rw [←hx', h x'])
+    show f (g x) = x, by rw [←hx', h x']
   right_inv := h,
   ..f.range_restrict }
 

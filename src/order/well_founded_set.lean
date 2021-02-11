@@ -138,6 +138,15 @@ fintype.preorder.well_founded
 namespace set
 variables [partial_order α] {s : set α} {a : α}
 
+theorem finite.is_wf (h : s.finite) : s.is_wf :=
+begin
+  rw ← h.coe_to_finset,
+  exact finset.is_wf,
+end
+
+@[simp]
+theorem fintype.is_wf [fintype α] : s.is_wf := (finite.of_fintype s).is_wf
+
 @[simp]
 theorem is_wf_singleton : is_wf ({a} : set α) :=
 by simp [← finset.coe_singleton]

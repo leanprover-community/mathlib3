@@ -1180,7 +1180,7 @@ lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
 A version of `sum_map_domain_index` that takes a bundled `add_monoid_hom`,
 rather than separate linearity hypotheses.
 -/
--- Note that in `prod_map_domain_index`, `M` is still an additive homomorphism,
+-- Note that in `prod_map_domain_index`, `M` is still an additive monoid,
 -- so there is no analogous version in terms of `monoid_hom`.
 @[simp]
 lemma sum_map_domain_index_add_monoid_hom [add_comm_monoid N] {f : α → β}

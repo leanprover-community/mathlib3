@@ -150,6 +150,24 @@ le_antisymm
 lemma sup_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
 by simp [Sup_eq_supr, sup_eq_supr]
 
+lemma exists_mem_eq_sup [complete_linear_order β] (s : finset α) (h : s.nonempty) (f : α → β) :
+  ∃ a, a ∈ s ∧ s.sup f = f a :=
+begin
+  classical,
+  induction s using finset.induction_on with x xs hxm ih,
+  { exact (not_nonempty_empty h).elim, },
+  { rw sup_insert,
+    by_cases hx : xs.sup f ≤ f x,
+    { refine ⟨x, mem_insert_self _ _, sup_eq_left.mpr hx⟩, },
+    by_cases hxs : xs.nonempty,
+    { obtain ⟨a, ham, ha⟩ := ih hxs,
+      refine ⟨a, mem_insert_of_mem ham, _⟩,
+      simpa only [ha, sup_eq_right] using le_of_not_le hx, },
+    { rw not_nonempty_iff_eq_empty.mp hxs,
+      refine ⟨x, mem_singleton_self _, _⟩,
+      simp, } }
+end
+
 /-! ### inf -/
 section inf
 variables [semilattice_inf_top α]
@@ -217,6 +235,10 @@ lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf 
 
 lemma inf_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
 by simp [Inf_eq_infi, inf_eq_infi]
+
+lemma exists_mem_eq_inf [complete_linear_order β] (s : finset α) (h : s.nonempty) (f : α → β) :
+  ∃ a, a ∈ s ∧ s.inf f = f a :=
+@exists_mem_eq_sup _ (order_dual β) _ _ h _
 
 /-! ### max and min of finite sets -/
 section max_min

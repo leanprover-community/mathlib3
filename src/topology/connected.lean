@@ -541,7 +541,8 @@ begin
   have fiber_decomp : ∀ t' ∈ connected_component t, f ⁻¹' {t'} ⊆ u ∨ f ⁻¹' {t'} ⊆ v,
   { intros t' ht',
     apply is_preconnected_iff_subset_of_disjoint_closed.1 (connected_fibers t').2 u v hu hv,
-    { exact subset.trans ((function.surjective.preimage_subset_preimage_iff hf).2 (singleton_subset_iff.2 ht')) huv },
+    { exact subset.trans ((function.surjective.preimage_subset_preimage_iff hf).2
+      (singleton_subset_iff.2 ht')) huv},
     rw uv_disj,
     exact inter_empty _ },
 
@@ -551,7 +552,7 @@ begin
       apply bUnion_subset,
       intros t' ht',
       apply subset_inter _ ht'.2,
-      exact (function.surjective.preimage_subset_preimage_iff hf).2 (singleton_subset_iff.2 ht'.1) },
+      exact (function.surjective.preimage_subset_preimage_iff hf).2 (singleton_subset_iff.2 ht'.1)},
     intros a ha,
     cases ha with hat hau,
     constructor,
@@ -571,7 +572,8 @@ begin
       apply bUnion_subset,
       intros t' ht',
       apply subset_inter _ ht'.2,
-      exact ((function.surjective.preimage_subset_preimage_iff hf).2 (singleton_subset_iff.2 ht'.1)) },
+      exact ((function.surjective.preimage_subset_preimage_iff hf).2
+        (singleton_subset_iff.2 ht'.1))},
     intros a ha,
     cases ha with hat hav,
     constructor,
@@ -793,8 +795,8 @@ def pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β]
   (h : continuous f) : π₀ α → β :=
 quotient.lift f (image_eq_of_equiv h)
 
-lemma pi0_lift_continuous {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
-  (h : continuous f) : continuous (pi0_lift h) :=
+lemma pi0_lift_continuous {β : Type*} [topological_space β] [totally_disconnected_space β]
+  {f : α → β} (h : continuous f) : continuous (pi0_lift h) :=
 continuous_quotient_lift (image_eq_of_equiv h) h
 
 lemma pi0_lift_factors {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}

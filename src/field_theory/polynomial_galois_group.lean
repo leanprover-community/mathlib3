@@ -231,8 +231,8 @@ begin
     by_cases hr' : nat_degree r = 0,
     { exact splits_of_nat_degree_le_one _ (le_trans (le_of_eq hr') zero_le_one) },
     obtain ⟨x, hx⟩ := exists_root_of_splits _ (splitting_field.splits (r.comp q))
-      (λ h, hr' (or.resolve_right (mul_eq_zero.mp (eq.trans nat_degree_comp.symm
-      (nat_degree_eq_zero_iff_degree_le_zero.mpr (le_of_eq h)))) hq)),
+      (λ h, hr' ((mul_eq_zero.mp (nat_degree_comp.symm.trans
+        (nat_degree_eq_of_degree_eq_some h))).resolve_right hq)),
     rw [←aeval_def, aeval_comp] at hx,
     have h_normal : normal F (r.comp q).splitting_field := splitting_field.normal (r.comp q),
     exact splits_of_splits_of_dvd _ (minpoly.ne_zero (normal.is_integral h_normal _))

@@ -317,7 +317,7 @@ def alg_equiv.of_left_inverse
   A ≃ₐ[R] f.range :=
 alg_equiv.of_alg_hom
   (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩))
-  (alg_hom.comp g f.range.val)
+  (g.comp f.range.val)
   (alg_hom.ext $ λ x, subtype.ext $
     let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
     show f (g x) = x, by rw [←hx', h x'])

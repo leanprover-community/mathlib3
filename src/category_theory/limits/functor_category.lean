@@ -14,7 +14,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃
 
 variables {C : Type u₁} [category.{v₁} C]
 variables {J : Type u₂} [category.{v₂} J]
-variables {K : Type v₁} [category.{v₃} K]
+variables {K : Type u₃} [category.{v₃} K]
 
 @[simp, reassoc]
 lemma limit.lift_π_app (H : J ⥤ K ⥤ C) [has_limit H] (c : cone H) (j : J) (k : K) :
@@ -137,10 +137,12 @@ instance functor_category_has_colimits_of_shape
   { cocone := combine_cocones _ (λ k, get_colimit_cocone _),
     is_colimit := combined_is_colimit _ _ } }
 
-instance functor_category_has_limits [has_limits.{v₁} C] : has_limits (K ⥤ C) :=
+instance functor_category_has_limits {K : Type v₁} [category.{v₃} K] [has_limits C] :
+  has_limits (K ⥤ C) :=
 { has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) :=
+instance functor_category_has_colimits {K : Type v₁} [category.{v₃} K] [has_colimits C] :
+  has_colimits (K ⥤ C) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
@@ -237,11 +239,11 @@ begin
   simpa using w j,
 end
 
-instance evaluation_preserves_limits [has_limits C] (k : K) :
+instance evaluation_preserves_limits {K : Type v₁} [category.{v₃} K] [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance evaluation_preserves_colimits [has_colimits C] (k : K) :
+instance evaluation_preserves_colimits {K : Type v₁} [category.{v₃} K] [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 

@@ -1,5 +1,6 @@
 import category_theory.limits.filtered_colimit_commutes_finite_limit2
 import category_theory.elements
+import category_theory.limits.elements
 import category_theory.functor_category
 import category_theory.limits.preserves.limits
 import category_theory.limits.yoneda
@@ -180,9 +181,7 @@ end flat_finite_limits
 def is_set_flat (F : C ⥤ Type w) := is_filtered F.elementsᵒᵖ
 
 lemma representable_is_set_flat (X : Cᵒᵖ) : is_set_flat (coyoneda.obj X) :=
-begin
-
-end
+is_filtered.of_terminal (terminal_op_of_initial (is_initial X.unop))
 
 variable (C)
 
@@ -192,9 +191,10 @@ def ind := {F : Cᵒᵖ ⥤ Type w // is_set_flat F}
 @[derive [full, faithful, reflects_isomorphisms]]
 def ind_to_presheaf : ind C ⥤ (Cᵒᵖ ⥤ Type v₁) := full_subcategory_inclusion _
 
-def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_category D] [is_filtered D]
+def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D] [is_filtered D]
   (H : D ⥤ C ⥤ Type u₁)
-  {c : cocone H} (t : is_colimit c)
+  {c : cocone H}
+  (t' : ∀ x, is_colimit (((evaluation _ _).obj x).map_cocone c))
   (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
 { nonempty :=
   begin
@@ -210,12 +210,8 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_cat
     op_induction Bb,
     cases Aa with A a,
     cases Bb with B b,
-    let t' : is_colimit (((evaluation C _).obj A).map_cocone c) :=
-      preserves_colimit.preserves t,
-      -- is_colimit_of_preserves ((evaluation C (Type v₂)).obj A) t,
-    rcases types.jointly_surjective _ t' a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
-    let t'' : is_colimit (((evaluation C _).obj B).map_cocone c) := is_colimit_of_preserves _ t,
-    rcases types.jointly_surjective _ t'' b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
+    rcases types.jointly_surjective _ (t' A) a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
+    rcases types.jointly_surjective _ (t' B) b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
     rcases is_filtered_or_empty.cocone_objs d d' with ⟨d'', f, g, ⟨⟩⟩,
     let a'' := (H.map f).app A a',
     have ha'' : (c.ι.app d'').app A a'' = a,
@@ -226,7 +222,7 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_cat
     { rw ←c.w g at hb',
       apply hb' },
     clear_value a'' b'',
-    clear ha' hb' a' b' f g d d' t' t'',
+    clear ha' hb' a' b' f g d d',
     subst ha'',
     subst hb'',
     rename d'' d,
@@ -277,10 +273,10 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_cat
     have hu : c.X.map u a = b := u'.unop.2,
     have hv : c.X.map v a = b := v'.unop.2,
 
-    let t' : is_colimit (((evaluation C _).obj A).map_cocone c) := is_colimit_of_preserves _ t,
-    rcases types.jointly_surjective _ t' a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
-    let t'' : is_colimit (((evaluation C _).obj B).map_cocone c) := is_colimit_of_preserves _ t,
-    rcases types.jointly_surjective _ t'' b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
+    -- let t' : is_colimit (((evaluation C _).obj A).map_cocone c) := is_colimit_of_preserves _ t,
+    rcases types.jointly_surjective _ (t' A) a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
+    -- let t'' : is_colimit (((evaluation C _).obj B).map_cocone c) := is_colimit_of_preserves _ t,
+    rcases types.jointly_surjective _ (t' B) b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
     rcases is_filtered_or_empty.cocone_objs d d' with ⟨d'', f, g, ⟨⟩⟩,
     let a'' := (H.map f).app A a',
     have ha'' : (c.ι.app d'').app A a'' = a,
@@ -291,7 +287,7 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_cat
     { rw ←c.w g at hb',
       apply hb' },
     clear_value a'' b'',
-    clear' a' b' ha' hb' t' f g d d',
+    clear' a' b' ha' hb' f g d d',
     rename [d'' d, a'' a', b'' b', ha'' ha', hb'' hb'],
     have q : ((H.obj d).map u ≫ (c.ι.app d).app B) a' = ((H.obj d).map v ≫ (c.ι.app d).app B) a',
     { rw [(c.ι.app d).naturality, (c.ι.app d).naturality, types_comp_apply, types_comp_apply, ha'],
@@ -300,7 +296,7 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_cat
     rw [types_comp_apply, types_comp_apply] at q,
     -- have : (c.ι.app d).app _ = _,
     have : (c.ι.app d).app B ((H.obj d).map u a') = (c.ι.app d).app B ((H.obj d).map v a') ↔ _ :=
-      types.filtered_colimit.is_colimit_eq_iff' _ t'',
+      types.filtered_colimit.is_colimit_eq_iff' _ (t' B),
     dsimp at this,
     rw this at q,
     rcases q with ⟨d', dh, q⟩,
@@ -331,10 +327,7 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₁} [small_cat
     have := congr_arg has_hom.hom.unop this,
     rw subtype.ext_iff_val at this,
     exact this,
-    -- have := (hD d').cocone_maps u' v',
-  end
-
-}.
+  end }.
 
 instance {C : Type u₁} [category.{v₁} C] {J : Type u₂} [category.{v₂} J]  :
   reflects_colimits_of_shape J (ind_to_presheaf C) :=
@@ -346,7 +339,7 @@ instance {C : Type u₁} [small_category C] {J : Type u₁} [small_category J] [
 { creates_colimit := λ K,
   { lifts := λ c t,
     { lifted_cocone :=
-      { X := ⟨c.X, six_three_six (K ⋙ ind_to_presheaf _) t (λ j, (K.obj j).2)⟩,
+      { X := ⟨c.X, six_three_six (K ⋙ ind_to_presheaf _) _ (λ j, (K.obj j).2)⟩,
         ι :=
         { app := λ j, c.ι.app j,
           naturality' := λ j₁ j₂ f, c.ι.naturality f } },
@@ -373,17 +366,13 @@ has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (ind_to
 
 def is_set_flat_of_filtered_colimit_of_representables
   {C : Type u₁} [category.{u₁} C]
-  {D : Type u₁} [category.{v₁} D]
-  (ψ : Dᵒᵖ ⥤ C)
-  [is_filtered Dᵒᵖ]
-  (c : cocone (ψ ⋙ yoneda))
+  {D : Type u₁} [category.{v₂} D]
+  (ψ : D ⥤ Cᵒᵖ)
+  [is_filtered D]
+  (c : cocone (ψ ⋙ coyoneda))
   (t : is_colimit c) :
-is_set_flat c.X :=
-begin
-
-  -- let H : D ⥤ C ⥤ Type u₁ := ψ ⋙ coyoneda,
-  -- have := six_three_six H,
-end
+  is_set_flat c.X :=
+six_three_six (ψ ⋙ coyoneda) t (λ d, representable_is_set_flat _)
 
 -- { nonempty :=
 --   begin

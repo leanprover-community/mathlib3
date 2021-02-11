@@ -271,15 +271,15 @@ of_right_adjoint (adjunction.of_right_adjoint R)
 lemma of_equivalence (h : C ≌ D) : is_filtered D :=
 of_right_adjoint h.symm.to_adjunction
 
-lemma is_filtered_of_terminal {T : C} (hT : is_terminal T) :
-is_filtered C :=
+lemma of_terminal {T : D} (hT : is_terminal T) :
+is_filtered D :=
 { cocone_objs := λ X Y, ⟨T, hT.from X, hT.from Y, ⟨⟩⟩,
   cocone_maps := λ X Y f g, ⟨T, hT.from Y, hT.hom_ext _ _⟩,
   nonempty := ⟨T⟩ }
 
-lemma is_filtered_of_has_terminal [has_terminal C] :
-  is_filtered C :=
-is_filtered_of_terminal terminal_is_terminal
+lemma of_has_terminal [has_terminal D] :
+  is_filtered D :=
+of_terminal terminal_is_terminal
 
 end is_filtered
 

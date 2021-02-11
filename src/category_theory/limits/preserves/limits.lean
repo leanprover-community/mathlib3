@@ -26,7 +26,7 @@ namespace category_theory
 open category limits
 
 variables {C : Type u₁} [category.{v₁} C]
-variables {D : Type u₂} [category.{v₁} D]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 variables {J : Type u₃} [category.{v₃} J]
 variables (F : J ⥤ C)

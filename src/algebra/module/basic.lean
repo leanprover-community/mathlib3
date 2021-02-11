@@ -92,7 +92,7 @@ def smul_add_hom : R →+ M →+ M :=
   map_zero' := add_monoid_hom.ext $ λ r, by simp,
   map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul] }
 
-variables {M R}
+variables {R M}
 
 @[simp] lemma smul_add_hom_apply (r : R) (x : M) :
   smul_add_hom R M r x = r • x := rfl

@@ -12,7 +12,7 @@ open limits opposite
 
 universes w v₁ v₂ u₁ u₂
 
-variables (J : Type v₁) [category.{v₂} J]
+variables (J : Type u₂) [category.{v₂} J]
 variables {C : Type u₁} [category.{v₁} C]
 
 -- set_option pp.universes true
@@ -110,7 +110,8 @@ begin
   apply ((evaluation C (Type v₁)).obj c.X).map_cocone (alt_cocone F)
 end
 
-noncomputable def c₂ : cone (cocones_to_functor (tk F K)) :=
+noncomputable def c₂ {J : Type v₁} [category.{v₂} J] (K : J ⥤ C) :
+  cone (cocones_to_functor (tk F K)) :=
 limit.cone _
 
 def t₁ : is_colimit (c₁ F K c t) :=
@@ -120,7 +121,7 @@ begin
   apply alt_cocone_eval
 end
 
-noncomputable def t₂ : is_limit (c₂ F K) :=
+noncomputable def t₂ {J : Type v₁} [category.{v₂} J] (K : J ⥤ C) : is_limit (c₂ F K) :=
 limit.is_limit _
 -- is_limit_of_preserves (coyoneda.obj (op (unop q).fst)) t
 
@@ -182,7 +183,10 @@ end flat_finite_limits
 def is_set_flat (F : C ⥤ Type w) := is_filtered F.elementsᵒᵖ
 
 lemma representable_is_set_flat (X : Cᵒᵖ) : is_set_flat (coyoneda.obj X) :=
-is_filtered.of_terminal (terminal_op_of_initial (is_initial X.unop))
+is_filtered.of_terminal (terminal_op_of_initial (elements.is_initial X.unop))
+
+lemma representable_is_set_flat' (X : C) : is_set_flat (yoneda.obj X) :=
+is_filtered.of_terminal (terminal_op_of_initial (elements.yoneda_is_initial _))
 
 variable (C)
 
@@ -226,6 +230,9 @@ adjunction.mk_of_hom_equiv
       simp,
     end } }
 
+instance (c : C) : preserves_colimits_of_shape J ((evaluation _ (Type v₁)).obj c) :=
+adjunction.left_adjoint_preserves_colimits_of_shape (adj C c)
+
 -- #exit
 
 -- def adj (c : C) : is_left_adjoint ((evaluation _ (Type u₁)).obj c)
@@ -235,7 +242,6 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.
   (H : D ⥤ C ⥤ Type v₁)
   {c : cocone H}
   (t : is_colimit c)
-  (t' : ∀ x, is_colimit (((evaluation C (Type v₁)).obj x).map_cocone c))
   (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
 { nonempty :=
   begin
@@ -251,10 +257,8 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.
     op_induction Bb,
     cases Aa with A a,
     cases Bb with B b,
-    have : is_colimit (((evaluation C (Type v₁)).obj A).map_cocone c),
-    { apply is_colimit_of_preserves ((evaluation C (Type v₁)).obj A) t,
-
-    },
+    let t' : ∀ (A), is_colimit (((evaluation C (Type v₁)).obj A).map_cocone c),
+    { intro A, apply is_colimit_of_preserves ((evaluation C (Type v₁)).obj A) t },
     rcases types.jointly_surjective _ (t' A) a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
     rcases types.jointly_surjective _ (t' B) b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
     rcases is_filtered_or_empty.cocone_objs d d' with ⟨d'', f, g, ⟨⟩⟩,
@@ -318,6 +322,8 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.
     have hu : c.X.map u a = b := u'.unop.2,
     have hv : c.X.map v a = b := v'.unop.2,
 
+    let t' : ∀ (A), is_colimit (((evaluation C (Type v₁)).obj A).map_cocone c),
+    { intro A, apply is_colimit_of_preserves ((evaluation C (Type v₁)).obj A) t },
     -- let t' : is_colimit (((evaluation C _).obj A).map_cocone c) := is_colimit_of_preserves _ t,
     rcases types.jointly_surjective _ (t' A) a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
     -- let t'' : is_colimit (((evaluation C _).obj B).map_cocone c) := is_colimit_of_preserves _ t,
@@ -374,17 +380,23 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.
     exact this,
   end }.
 
+def six_three_six' {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D] [is_filtered D]
+  (H : D ⥤ Cᵒᵖ ⥤ Type v₁)
+  {c : cocone H}
+  (t : is_colimit c)
+  (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
+six_three_six _ t hD
+
 instance {C : Type u₁} [category.{v₁} C] {J : Type u₂} [category.{v₂} J]  :
   reflects_colimits_of_shape J (ind_to_presheaf C) :=
 fully_faithful_reflects_colimits_of_shape (ind_to_presheaf C)
 
--- It *should* be possible to generalise the universe levels here
-instance {C : Type u₁} [small_category C] {J : Type u₁} [small_category J] [is_filtered J] :
+instance {C : Type u₁} [category.{v₁} C] {J : Type u₂} [category.{v₂} J] [is_filtered J] :
   creates_colimits_of_shape J (ind_to_presheaf C) :=
 { creates_colimit := λ K,
   { lifts := λ c t,
     { lifted_cocone :=
-      { X := ⟨c.X, six_three_six (K ⋙ ind_to_presheaf _) _ (λ j, (K.obj j).2)⟩,
+      { X := ⟨c.X, six_three_six (K ⋙ ind_to_presheaf _) t (λ j, (K.obj j).2)⟩,
         ι :=
         { app := λ j, c.ι.app j,
           naturality' := λ j₁ j₂ f, c.ι.naturality f } },
@@ -396,8 +408,7 @@ instance {C : Type u₁} [small_category C] {J : Type u₁} [small_category J] [
       end } } }
 
 /-- If `C` is small, then the category of ind-objects has filtered colimits. -/
--- TODO: Figure out how much we can generalise the universes here.
-instance {C : Type u₁} [small_category C] {J : Type u₁} [small_category J] [is_filtered J] :
+instance {C : Type u₁} [category.{v₁} C] {J : Type v₁} [category.{v₂} J] [is_filtered J] :
   has_colimits_of_shape J (ind C) :=
 has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (ind_to_presheaf C)
 
@@ -409,9 +420,15 @@ has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (ind_to
 --   {c : cocone H} (t : is_colimit c)
 --   (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
 
+/-- The canonical embedding of a category C into its ind-completion. -/
+@[simps]
+def ind_embed : C ⥤ ind C :=
+{ obj := λ X, ⟨yoneda.obj X, representable_is_set_flat' _⟩,
+  map := λ X Y f, yoneda.map f }
+
 def is_set_flat_of_filtered_colimit_of_representables
-  {C : Type u₁} [category.{u₁} C]
-  {D : Type u₁} [category.{v₂} D]
+  {C : Type u₁} [category.{v₁} C]
+  (D : Type u₂) [category.{v₂} D]
   (ψ : D ⥤ Cᵒᵖ)
   [is_filtered D]
   (c : cocone (ψ ⋙ coyoneda))
@@ -419,24 +436,15 @@ def is_set_flat_of_filtered_colimit_of_representables
   is_set_flat c.X :=
 six_three_six (ψ ⋙ coyoneda) t (λ d, representable_is_set_flat _)
 
--- { nonempty :=
---   begin
---     haveI : nonempty D := is_filtered.nonempty,
---     inhabit D,
---     refine ⟨op ⟨op (ψ.obj (default D)), (c.ι.app (default D)).app _ (𝟙 _)⟩⟩,
---   end,
---   cocone_objs :=
---   begin
---     intros Aa Aa',
---     op_induction Aa,
---     op_induction Aa',
---     cases Aa with A a,
---     cases Aa' with A' a',
-
---   end,
---   cocone_maps := _
-
-
--- }
+def is_set_flat'_of_filtered_colimit_of_representables
+  {C : Type u₁} [category.{v₁} C]
+  (D : Type u₂) [category.{v₂} D]
+  (ψ : D ⥤ C)
+  [is_filtered D]
+  (c : cocone (ψ ⋙ yoneda))
+  (t : is_colimit c) :
+  is_set_flat c.X :=
+six_three_six' _ t (λ d, representable_is_set_flat' _)
+-- six_three_six (ψ ⋙ coyoneda) t (λ d, representable_is_set_flat _)
 
 end category_theory

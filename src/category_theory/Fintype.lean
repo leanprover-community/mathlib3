@@ -36,6 +36,7 @@ namespace Fintype
 def of (X : Type*) [fintype X] : Fintype := bundled.of X
 instance : inhabited Fintype := ⟨⟨pempty⟩⟩
 instance {X : Fintype} : fintype X := X.2
+@[simp] lemma of_α {X : Type*} [fintype X] : (Fintype.of X).α = X := rfl
 
 instance : category Fintype := induced_category.category bundled.α
 

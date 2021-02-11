@@ -508,15 +508,15 @@ begin
   exact h,
 end
 
+/-- The preimage of a connected component is preconnected if the function has connected fibers
+and a subset is closed iff the preimage is. -/
 lemma preimage_connected_component_preconnected {β : Type*} [topological_space β] {f : α → β}
   (connected_fibers : ∀ t : β, is_connected (f ⁻¹' {t}))
-  (hcl : ∀ (T : set β), is_closed T ↔ is_closed (f ⁻¹' T)) :
-  ∀ t : β, is_preconnected (f ⁻¹' connected_component t) :=
+  (hcl : ∀ (T : set β), is_closed T ↔ is_closed (f ⁻¹' T)) (t : β):
+  is_preconnected (f ⁻¹' connected_component t) :=
 begin
   -- The following proof is essentially https://stacks.math.columbia.edu/tag/0377
   -- although the statement is slightly different
-  intro t,
-
   have hf : function.surjective f,
   { intro t,
     choose s hs using (connected_fibers t).1,
@@ -543,8 +543,7 @@ begin
     apply is_preconnected_iff_subset_of_disjoint_closed.1 (connected_fibers t').2 u v hu hv,
     { exact subset.trans ((function.surjective.preimage_subset_preimage_iff hf).2 (singleton_subset_iff.2 ht')) huv },
     rw uv_disj,
-    exact inter_empty _,
-  },
+    exact inter_empty _ },
 
   have T₁_u :  f ⁻¹' T₁ =  (f ⁻¹' connected_component t) ∩ u,
   { apply eq_of_subset_of_subset,
@@ -627,8 +626,7 @@ begin
     rw subset.antisymm_iff at T₁_u,
     suffices : f ⁻¹' connected_component t ⊆ f ⁻¹' T₁,
     { exact (subset.trans (subset.trans this T₁_u.1) (inter_subset_right _ _)) },
-    apply preimage_mono h,
-  },
+    apply preimage_mono h },
   right,
   rw subset.antisymm_iff at T₂_v,
   suffices : f ⁻¹' connected_component t ⊆ f ⁻¹' T₂,
@@ -690,8 +688,7 @@ begin
   { choose x hx using h,
     have H := h x,
     rw subsingleton_coe at H,
-    apply subsingleton.mono H (subset_connected_component hs hx),
-  },
+    apply subsingleton.mono H (subset_connected_component hs hx) },
   rw not_nonempty_iff_eq_empty at h,
   rw h,
   exact subsingleton_empty,
@@ -705,8 +702,7 @@ begin
     have hx := totally_disconnected_space_iff_connected_component_subsingleton.1 h x,
     rw subsingleton_coe at hx,
     apply subsingleton.eq_singleton_of_mem hx,
-    exact mem_connected_component,
-  },
+    exact mem_connected_component },
   intro h,
   apply totally_disconnected_space_iff_connected_component_subsingleton.2,
   intro x,
@@ -714,8 +710,9 @@ begin
   exact subsingleton_singleton,
 end
 
-lemma image_connected_component_eq_singleton {β : Type*} [topological_space β] [totally_disconnected_space β]
-  {f : α → β} (h : continuous f) (a : α) : f '' connected_component a = {f a} :=
+lemma image_connected_component_eq_singleton {β : Type*} [topological_space β]
+  [totally_disconnected_space β] {f : α → β} (h : continuous f) (a : α) :
+  f '' connected_component a = {f a} :=
 begin
   have ha : subsingleton (f '' connected_component a),
   { apply _inst_3.1,
@@ -783,8 +780,8 @@ lemma component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ connected_component x
 notation `π₀ ` α :max := quotient (connected_component_setoid α)
 
 lemma image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
-  (h : continuous f) : ∀ (a b : α) (hab : a ≈ b), f a = f b :=
-λ a b hab, singleton_eq_singleton_iff.1 $
+  (h : continuous f) (a b : α) (hab : a ≈ b) : f a = f b :=
+singleton_eq_singleton_iff.1 $
   image_connected_component_eq_singleton h a ▸
   image_connected_component_eq_singleton h b ▸ hab ▸ rfl
 
@@ -878,16 +875,14 @@ begin
       apply quotient.induction_on t,
       intro s,
       rw ←pi0_preimage_singleton,
-      exact is_connected_connected_component,
-    },
+      exact is_connected_connected_component },
     intro T,
     split,
     { exact λ hT, is_closed.preimage (continuous_quotient_mk) hT },
     intro hT,
     rw [←is_open_compl_iff, ←preimage_compl] at hT,
     rw [←is_open_compl_iff, ←(quotient_map.is_open_preimage quotient_map_quotient_mk)],
-    exact hT,
-  },
+    exact hT },
   have h1 := subset_connected_component H hb,
   rw ←mem_preimage at hc,
   apply eq.symm,

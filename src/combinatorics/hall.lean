@@ -21,6 +21,8 @@ finite sets, with `[fintype ι]`, along with some variants of the
 statement.  The list of distinct representatives is given by an
 injective function `f : ι → α` such that `∀ i, f i ∈ t i`.
 
+A description of this formalization is in [Gusakov2021].
+
 ## Main statements
 * `finset.all_card_le_bUnion_card_iff_exists_injective` is in terms of `t : ι → finset α`.
 * `fintype.all_card_le_rel_image_card_iff_exists_injective` is in terms of a relation
@@ -52,7 +54,7 @@ theorem hall_hard_inductive_zero (t : ι → finset α) (hn : fintype.card ι = 
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
   rw fintype.card_eq_zero_iff at hn,
-  refine ⟨λ x, (hn x).elim, by tauto⟩,
+  exact ⟨λ x, (hn x).elim, by tauto⟩,
 end
 
 variables {t : ι → finset α} [decidable_eq α]
@@ -114,7 +116,7 @@ begin
   have card_ι' : fintype.card ι' = n,
   { convert congr_arg (λ m, m - 1) hn,
     convert set.card_ne_eq _, },
-  rcases ih t' (le_of_eq card_ι') (hall_cond_of_erase y ha) with ⟨f', hfinj, hfr⟩,
+  rcases ih t' card_ι'.le (hall_cond_of_erase y ha) with ⟨f', hfinj, hfr⟩,
   /- Extend the resulting function. -/
   refine ⟨λ z, if h : z = x then y else f' ⟨z, h⟩, _, _⟩,
   { rintro z₁ z₂,
@@ -164,10 +166,8 @@ begin
   rw ← card_sdiff,
   { have : (s ∪ s'.image subtype.val).bUnion t \ s.bUnion t ⊆ s'.bUnion (λ x', t x' \ s.bUnion t),
     { intros t,
-      simp only [mem_bUnion, mem_sdiff],
-      simp only [not_exists, mem_image, and_imp, exists_prop, mem_union, not_and,
-                 exists_and_distrib_right, exists_eq_right, subtype.exists, subtype.coe_mk,
-                 exists_imp_distrib],
+      simp only [mem_bUnion, mem_sdiff, not_exists, mem_image, and_imp, mem_union,
+                 exists_and_distrib_right, exists_imp_distrib],
       rintro x (hx | ⟨x', hx', rfl⟩) rat hs,
       { exact (hs x hx rat).elim },
       { exact ⟨⟨x', hx', rat⟩, hs⟩, } },
@@ -217,7 +217,7 @@ begin
   rcases ih t'' card_ι''_le (hall_cond_of_compl hus ht) with ⟨f'', hf'', hsf''⟩,
   /- Put them together -/
   have f'_mem_bUnion : ∀ {x'} (hx' : x' ∈ s), f' ⟨x', hx'⟩ ∈ s.bUnion t,
-  { intros,
+  { intros x' hx',
     rw mem_bUnion,
     exact ⟨x', hx', hsf' _⟩, },
   have f''_not_mem_bUnion : ∀ {x''} (hx'' : ¬ x'' ∈ s), ¬ f'' ⟨x'', hx''⟩ ∈ s.bUnion t,
@@ -231,7 +231,7 @@ begin
     rw ←h,
     apply f'_mem_bUnion, },
   refine ⟨λ x, if h : x ∈ s then f' ⟨x, h⟩ else f'' ⟨x, h⟩, _, _⟩,
-  { exact function.injective.dite _ hf' hf'' @im_disj },
+  { exact hf'.dite _ hf'' @im_disj },
   { intro x,
     split_ifs,
     { exact hsf' ⟨x, h⟩ },
@@ -270,7 +270,7 @@ begin
   tactic.unfreeze_local_instances,
   revert ι,
   refine nat.strong_induction_on n (λ n' ih, _),
-  intros,
+  intros _ _ t hn ht,
   rcases n' with (_|_),
   { exact hall_hard_inductive_zero t hn },
   { apply hall_hard_inductive_step hn ht,
@@ -290,15 +290,15 @@ Recall that `s.bUnion t` is the union of all the sets `t i` for `i ∈ s`.
 -/
 theorem finset.all_card_le_bUnion_card_iff_exists_injective
   {ι α : Type*} [fintype ι] [decidable_eq α] (t : ι → finset α) :
-  (∀ (s : finset ι), s.card ≤ (s.bUnion t).card)
-  ↔ (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x) :=
+  (∀ (s : finset ι), s.card ≤ (s.bUnion t).card) ↔
+    (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x) :=
 begin
   split,
   { exact hall_marriage_theorem.hall_hard_inductive rfl },
   { rintro ⟨f, hf₁, hf₂⟩ s,
     rw ←card_image_of_injective s hf₁,
     apply card_le_of_subset,
-    intro,
+    intro _,
     rw [mem_image, mem_bUnion],
     rintros ⟨x, hx, rfl⟩,
     exact ⟨x, hx, hf₂ x⟩, },
@@ -320,16 +320,16 @@ end
 This is a version of Hall's Marriage Theorem in terms of a relation
 between types `α` and `β` such that `α` is finite and the image of
 each `x : α` is finite (it suffices for `β` to be finite).  There is
-an injective function `α → β` respecting the relation iff for every
-`k` terms of `α` there are at least `k` terms of `β` related to them.
+an injective function `α → β` respecting the relation iff every subset of
+`k` terms of `α` is related to at least `k` terms of `β`.
 
 If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied.
 -/
 theorem fintype.all_card_le_rel_image_card_iff_exists_injective
   {α β : Type*} [fintype α] [decidable_eq β]
   (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
-  (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A))
-  ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
+  (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A)) ↔
+    (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin
   let r' := λ a, (rel.image r {a}).to_finset,
   have h : ∀ (A : finset α), fintype.card (rel.image r A) = (A.bUnion r').card,
@@ -346,14 +346,17 @@ end
 
 /--
 This is a version of Hall's Marriage Theorem in terms of a relation between finite types.
+There is an injective function `α → β` respecting the relation iff every subset of
+`k` terms of `α` is related to at least `k` terms of `β`.
+
 It is like `fintype.all_card_le_rel_image_card_iff_exists_injective` but uses `finset.filter`
 rather than `rel.image`.
 -/
 theorem fintype.all_card_le_filter_rel_iff_exists_injective
   {α β : Type*} [fintype α] [fintype β]
   (r : α → β → Prop) [∀ a, decidable_pred (r a)] :
-  (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card)
-  ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
+  (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card) ↔
+    (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin
   haveI := classical.dec_eq β,
   let r' := λ a, univ.filter (λ b, r a b),

@@ -1226,7 +1226,7 @@ alg_hom.mk' f.to_ring_hom.ker_lift (λ _ _, quotient.smul f _ _)
 
 @[simp]
 lemma ker_lift_alg_mk (f : A →ₐ[R] B) (a : A) :
-  (ker_lift_alg f) ((quotient.mk f.to_ring_hom.ker) a) = f a := rfl
+  ker_lift_alg f (quotient.mk f.to_ring_hom.ker a) = f a := rfl
 
 @[simp]
 lemma ker_lift_alg_to_ring_hom (f : A →ₐ[R] B) :

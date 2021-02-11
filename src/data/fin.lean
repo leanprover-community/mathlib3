@@ -37,6 +37,7 @@ This file expands on the development in the core library.
 * `cast_succ` : embed `fin n` into `fin (n+1)`;
 * `succ_above p` : embed `fin n` into `fin (n + 1)` with a hole around `p`;
 * `pred_above (p : fin n) i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
+* `cast_pred` : embed `fin (n + 2)` into `fin (n + 1)` by mapping `last (n + 1)` to `last n`;
 * `sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
 * `add_nat m i` : add `m` on `i` on the right, generalizes `fin.succ`;
 * `nat_add n i` adds `n` on `i` on the left;
@@ -534,7 +535,7 @@ def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 
 @[simp] lemma coe_cast_succ (i : fin n) : (i.cast_succ : ℕ) = i := rfl
 
-@[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : fin.cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
+@[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
 rfl
 
 lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=

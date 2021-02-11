@@ -51,6 +51,9 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 @[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
 (range_comp _ _).trans $ congr_arg (('') f) subtype.range_coe
 
+lemma image_restrict (f : α → β) (s t : set α) : s.restrict f '' (coe ⁻¹' t) = f '' (t ∩ s) :=
+by rw [restrict, image_comp, image_preimage_eq_inter_range, subtype.range_coe]
+
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/
 def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
@@ -426,6 +429,22 @@ calc
 
 theorem left_inv_on.mono (hf : left_inv_on f' f s) (ht : s₁ ⊆ s) : left_inv_on f' f s₁ :=
 λ x hx, hf (ht hx)
+
+theorem left_inv_on.image_inter' (hf : left_inv_on f' f s) :
+  f '' (s₁ ∩ s) = f' ⁻¹' s₁ ∩ f '' s :=
+begin
+  apply subset.antisymm,
+  { rintro _ ⟨x, ⟨h₁, h⟩, rfl⟩, exact ⟨by rwa [mem_preimage, hf h], mem_image_of_mem _ h⟩ },
+  { rintro _ ⟨h₁, ⟨x, h, rfl⟩⟩, exact mem_image_of_mem _ ⟨by rwa ← hf h, h⟩ }
+end
+
+theorem left_inv_on.image_inter (hf : left_inv_on f' f s) :
+  f '' (s₁ ∩ s) = f' ⁻¹' (s₁ ∩ s) ∩ f '' s :=
+begin
+  rw hf.image_inter',
+  refine subset.antisymm _ (inter_subset_inter_left _ (preimage_mono $ inter_subset_left _ _)),
+  rintro _ ⟨h₁, x, hx, rfl⟩, exact ⟨⟨h₁, by rwa hf hx⟩, mem_image_of_mem _ hx⟩
+end
 
 /-! ### Right inverse -/
 

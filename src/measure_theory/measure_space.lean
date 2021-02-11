@@ -1577,10 +1577,7 @@ end
 
 lemma ite_ae_eq_of_measure_compl_zero {γ} (f : α → γ) (g : α → γ) (s : set α) (hs_zero : μ sᶜ = 0) :
   (λ x, ite (x ∈ s) (f x) (g x)) =ᵐ[μ] f :=
-begin
-  have h_ss : s ⊆ {a : α | ite (a ∈ s) (f a) (g a) = f a}, from λ x hx, by simp [hx],
-  exact measure_mono_null (set.compl_subset_compl.mpr h_ss) hs_zero,
-end
+by { filter_upwards [hs_zero], intros, split_ifs, refl }
 
 namespace measure
 

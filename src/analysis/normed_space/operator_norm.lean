@@ -712,7 +712,7 @@ begin
        mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)
      ... = ∥c∥ * ∥f∥ * ∥x∥ : by ring },
   { by_cases h : f = 0,
-    { rw h, simp },
+    { simp [h] },
     { have : 0 < ∥f∥ := norm_pos_iff.2 h,
       rw ← le_div_iff this,
       apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) (norm_nonneg f)) (λx, _),
@@ -723,10 +723,10 @@ begin
 end
 
 variables (𝕜 E F)
--- TODO: rewrite docstring
-/-- Given `c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `E →L[𝕜] F`
-sending `f` to `λ e, c e • f`. -/
-def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] F →L[𝕜] (E →L[𝕜] F) :=
+
+/-- `continuous_linear_map.smul_right` as a continuous trilinear map:
+`smul_rightL (c : E →L[𝕜] 𝕜) (f : F) (x : E) = c x • f`. -/
+def smul_rightL : (E →L[𝕜] 𝕜) →L[𝕜] F →L[𝕜] E →L[𝕜] F :=
 linear_map.mk_continuous₂
   { to_fun := smul_rightₗ,
     map_add' := λ c₁ c₂, by { ext x, simp [add_smul] },
@@ -737,7 +737,7 @@ variables {𝕜 E F}
 
 @[simp] lemma norm_smul_rightL_apply (c : E →L[𝕜] 𝕜) (f : F) :
   ∥smul_rightL 𝕜 E F c f∥ = ∥c∥ * ∥f∥ :=
-by simp [continuous_linear_map.smul_rightL, continuous_linear_map.smul_rightₗ]
+norm_smul_right_apply c f
 
 @[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial F] :
   ∥smul_rightL 𝕜 E F c∥ = ∥c∥ :=
@@ -777,7 +777,7 @@ variables (𝕜 E F G)
 /-- Flip the order of arguments of a continuous bilinear map.
 This is a version bundled as a `linear_isometry_equiv`.
 For an unbundled version see `continuous_linear_map.flip`. -/
-def flipL : (E →L[𝕜] F →L[𝕜] G) ≃ₗᵢ[𝕜] (F →L[𝕜] E →L[𝕜] G) :=
+def flipₗᵢ : (E →L[𝕜] F →L[𝕜] G) ≃ₗᵢ[𝕜] (F →L[𝕜] E →L[𝕜] G) :=
 { to_fun := flip,
   inv_fun := flip,
   map_add' := flip_add,
@@ -788,9 +788,9 @@ def flipL : (E →L[𝕜] F →L[𝕜] G) ≃ₗᵢ[𝕜] (F →L[𝕜] E →L[�
 
 variables {𝕜 E F G}
 
-@[simp] lemma flipL_symm : (flipL 𝕜 E F G).symm = flipL 𝕜 F E G := rfl
+@[simp] lemma flipₗᵢ_symm : (flipₗᵢ 𝕜 E F G).symm = flipₗᵢ 𝕜 F E G := rfl
 
-@[simp] lemma coe_flipL : ⇑(flipL 𝕜 E F G) = flip := rfl
+@[simp] lemma coe_flipₗᵢ : ⇑(flipₗᵢ 𝕜 E F G) = flip := rfl
 
 variables (𝕜 F)
 

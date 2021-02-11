@@ -7,6 +7,7 @@ import topology.algebra.ring
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
+import linear_algebra.pi
 
 /-!
 # Theory of topological modules and continuous linear maps.

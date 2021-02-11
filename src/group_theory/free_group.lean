@@ -10,15 +10,34 @@ open relation
 /-!
 # Free groups
 
-Free groups as a quotient over the reduction relation `a * x * x⁻¹ * b = a * b`.
+This file defines free groups over a type.
 
-First we introduce the one step reduction relation
-  `free_group.red.step`:  w * x * x⁻¹ * v   ~>   w * v
-its reflexive transitive closure:
-  `free_group.red.trans`
-and proof that its join is an equivalence relation.
+## Main definitions
 
-Then we introduce `free_group α` as a quotient over `free_group.red.step`.
+* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool `
+  modulo the relation `a * x * x⁻¹ * b = a * b`.
+* `mk`: the canonical quotient map `list (α × bool) → free_group α`.
+* `of`: the canoical injection `α → free_group α`.
+* `to_group f`: the canonical group homomorphism `free_group α →* G` given a group `G` and a function
+  `f : α → G`.
+
+## Main statements
+
+* `church_rosser`: The Church-Rosser theorem for word reduction (also known as the diamond
+  lemma).
+* `free_group_unit_equiv_int`: The free group over the one-point type is isomorphic to the integers.
+
+
+## Implementation details
+
+First we introduce the one step reduction relation `free_group.red.step`:
+`w * x * x⁻¹ * v   ~>   w * v`, its reflexive transitive closure `free_group.red.trans`
+and prove that its join is an equivalence relation. Then we introduce `free_group α` as a quotient
+over `free_group.red.step`.
+
+## Tags
+
+free group, diamonad lemma, Church-Rosser theorem
 -/
 
 universes u v w
@@ -358,7 +377,7 @@ instance : group (free_group α) :=
   mul_left_inv := by rintros ⟨L⟩; exact (list.rec_on L rfl $
     λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih) }
 
-/-- `of x` is the canonical injection from the type to the free group over that type by sending each
+/-- `of` is the canonical injection from the type to the free group over that type by sending each
 element to the equivalence class of the letter that is the element. -/
 def of (x : α) : free_group α :=
 mk [(x, tt)]

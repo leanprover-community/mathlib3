@@ -50,6 +50,7 @@ instance : has_coe ℝ ℂ := ⟨λ r, ⟨r, 0⟩⟩
 
 @[simp, norm_cast] lemma of_real_re (r : ℝ) : (r : ℂ).re = r := rfl
 @[simp, norm_cast] lemma of_real_im (r : ℝ) : (r : ℂ).im = 0 := rfl
+lemma of_real_def (r : ℝ) : (r : ℂ) = ⟨r, 0⟩ := rfl
 
 @[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : ℂ) = w ↔ z = w :=
 ⟨congr_arg re, congr_arg _⟩
@@ -485,7 +486,7 @@ by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
 We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.
 Complex numbers with different imaginary parts are incomparable.
 -/
-instance : partial_order ℂ :=
+def complex_order : partial_order ℂ :=
 { le := λ z w, ∃ x : ℝ, 0 ≤ x ∧ w = z + x,
   le_refl := λ x, ⟨0, by simp⟩,
   le_trans := λ x y z h₁ h₂,
@@ -510,6 +511,11 @@ instance : partial_order ℂ :=
     simp [h₄],
   end, }
 
+localized "attribute [instance] complex_order" in complex_order
+
+section complex_order
+open_locale complex_order
+
 lemma le_def {z w : ℂ} : z ≤ w ↔ ∃ x : ℝ, 0 ≤ x ∧ w = z + x := iff.refl _
 lemma lt_def {z w : ℂ} : z < w ↔ ∃ x : ℝ, 0 < x ∧ w = z + x :=
 begin
@@ -518,18 +524,16 @@ begin
   { rintro ⟨⟨x, l, rfl⟩, h⟩,
     by_cases hx : x = 0,
     { simp [hx] at h, exfalso, exact h (le_refl _), },
-    { replace l : 0 < x := lt_of_le_of_ne l (by { symmetry, exact hx }),
+    { replace l : 0 < x := l.lt_of_ne (ne.symm hx),
       exact ⟨x, l, rfl⟩, } },
   { rintro ⟨x, l, rfl⟩,
     fsplit,
-    { exact ⟨x, le_of_lt l, rfl⟩, },
+    { exact ⟨x, l.le, rfl⟩, },
     { rintro ⟨x', l', e⟩,
       rw [add_assoc] at e,
       replace e := add_left_cancel (by { convert e, simp }),
       norm_cast at e,
-      apply lt_irrefl (0 : ℝ),
-      conv { congr, skip, rw e, },
-      apply lt_of_lt_of_le l (le_add_of_nonneg_right l'), } }
+      linarith, } }
 end
 
 @[simp, norm_cast] lemma real_le_real {x y : ℝ} : (x : ℂ) ≤ (y : ℂ) ↔ x ≤ y :=
@@ -541,7 +545,7 @@ begin
     subst e,
     exact le_add_of_nonneg_right l, },
   { intro h,
-    refine ⟨y - x, sub_nonneg.mpr h, (by simp)⟩, },
+    exact ⟨y - x, sub_nonneg.mpr h, (by simp)⟩, },
 end
 @[simp, norm_cast] lemma real_lt_real {x y : ℝ} : (x : ℂ) < (y : ℂ) ↔ x < y :=
 begin
@@ -552,7 +556,7 @@ begin
     subst e,
     exact lt_add_of_pos_right x l, },
   { intro h,
-    refine ⟨y - x, sub_pos.mpr h, (by simp)⟩, },
+    exact ⟨y - x, sub_pos.mpr h, (by simp)⟩, },
 end
 @[simp, norm_cast] lemma zero_le_real {x : ℝ} : (0 : ℂ) ≤ (x : ℂ) ↔ 0 ≤ x := real_le_real
 @[simp, norm_cast] lemma zero_lt_real {x : ℝ} : (0 : ℂ) < (x : ℂ) ↔ 0 < x := real_lt_real
@@ -560,12 +564,12 @@ end
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
 -/
-instance : ordered_comm_ring ℂ :=
+def complex_ordered_comm_ring : ordered_comm_ring ℂ :=
 { zero_le_one := ⟨1, zero_le_one, by simp⟩,
   add_le_add_left := λ w z h y,
   begin
     obtain ⟨x, l, rfl⟩ := h,
-    refine ⟨x, l, by simp [add_assoc]⟩,
+    exact ⟨x, l, by simp [add_assoc]⟩,
   end,
   mul_pos := λ z w hz hw,
   begin
@@ -594,22 +598,24 @@ instance : ordered_comm_ring ℂ :=
     simp only [add_mul, zero_add],
     exact lt_def.mpr ⟨x₁ * x₂, mul_pos l₁ l₂, (by norm_cast)⟩,
   end,
-  -- Why do we need these next four fields? They should be copied from `comm_ring ℂ`.
-  zero_mul := λ z, zero_mul z,
-  mul_zero := λ z, mul_zero z,
-  add_left_cancel := λ z₁ z₂ z₃, add_left_cancel,
-  add_right_cancel := λ z₁ z₂ z₃, add_right_cancel,
+-- we need more instances here because comm_ring doesn't have zero_add et al as fields,
+-- they are derived as lemmas
   ..(by apply_instance : partial_order ℂ),
-  ..(by apply_instance : comm_ring ℂ), }
+  ..(by apply_instance : comm_ring ℂ),
+  ..(by apply_instance : comm_semiring ℂ),
+  ..(by apply_instance : add_cancel_monoid ℂ) }
+
+localized "attribute [instance] complex_ordered_comm_ring" in complex_order
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
 (That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
 
-In fact, `ℂ` is a C*-algebra, and so the nonnegative elements are precisely those of this form,
+In fact, the nonnegative elements are precisely those of this form.
+This hold in any C*-algebra, e.g. `ℂ`,
 but we don't yet have C*-algebras in mathlib.
 -/
-instance : star_ordered_ring ℂ :=
+def complex_star_ordered_ring : star_ordered_ring ℂ :=
 { star_mul_self_nonneg := λ z,
   begin
     refine ⟨z.abs^2, pow_nonneg (abs_nonneg z) 2, _⟩,
@@ -617,6 +623,10 @@ instance : star_ordered_ring ℂ :=
     norm_cast,
     rw [←norm_sq_eq_abs, norm_sq_eq_conj_mul_self],
   end, }
+
+localized "attribute [instance] complex_star_ordered_ring" in complex_order
+
+end complex_order
 
 /-! ### Cauchy sequences -/
 

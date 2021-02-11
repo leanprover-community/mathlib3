@@ -144,6 +144,10 @@ calc a + (2 + b) ≤ a + (a + a * b) :
       add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
              ... ≤ a * (2 + b) : by rw [mul_add, mul_two, add_assoc]
 
+lemma one_le_mul_of_one_le_of_one_le {a b : α} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
+  (1 : α) ≤ a * b :=
+(mul_one (1 : α)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
+
 section
 variable [nontrivial α]
 

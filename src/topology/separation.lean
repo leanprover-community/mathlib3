@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Separation properties of topological spaces.
 -/
 import topology.subset_properties
+import topology.connected
 
 open set filter
 open_locale topological_space filter
@@ -484,6 +485,14 @@ begin
   refine ⟨_, _, compact_diff hK h1O₁, compact_diff hK h1O₂,
     by rwa [diff_subset_comm], by rwa [diff_subset_comm], by rw [← diff_inter, hO, diff_empty]⟩
 end
+
+lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β} (h : continuous f) :
+  is_closed_map f :=
+λ s hs, (hs.compact.image h).is_closed
+
+lemma continuous.closed_embedding [compact_space α] [t2_space β] {f : α → β} (h : continuous f)
+  (hf : function.injective f) : closed_embedding f :=
+closed_embedding_of_continuous_injective_closed h hf h.is_closed_map
 
 section
 open finset function

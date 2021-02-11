@@ -56,6 +56,10 @@ def pure (a : α) : pmf α := ⟨λ a', if a' = a then 1 else 0, has_sum_ite_eq 
 
 @[simp] lemma pure_apply (a a' : α) : pure a a' = (if a' = a then 1 else 0) := rfl
 
+@[simp] lemma mem_support_pure_iff (a a' : α) :
+  a' ∈ (pure a).support ↔ a' = a :=
+by simp
+
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
@@ -69,103 +73,6 @@ begin
   { refine (mul_zero (p a)).symm ▸ le_of_eq h.symm },
   { suffices : p a * f a h b ≤ p a * 1, { simpa },
     exact mul_le_mul_of_nonneg_left ((f a h).coe_le_one _) (p a).2 }
-end
-
-/-- Generalized version of `bind` allowing `f` to only be defined on the support of `p`.
-  `p.bind f` is equivalent to `p.bind_on_support (λ a _, f a)` (`bind_on_support_eq_bind`) -/
-noncomputable def bind_on_support (p : pmf α) (f : ∀ a ∈ p.support, pmf β) : pmf β :=
-⟨λ b, ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b),
-ennreal.has_sum_coe.1 begin
-  simp only [ennreal.coe_tsum (bind_on_support.summable p f _)],
-  rw [ennreal.summable.has_sum_iff, ennreal.tsum_comm],
-  simp only [ennreal.coe_mul, ennreal.coe_one, ennreal.tsum_mul_left],
-  have : ∑' (a : α), (p a : ennreal) = 1 :=
-    by simp only [←ennreal.coe_tsum p.summable_coe, ennreal.coe_one, tsum_coe],
-  refine trans (tsum_congr (λ a, _)) this,
-  split_ifs with h,
-  { simp [h] },
-  { simp [← ennreal.coe_tsum (f a h).summable_coe, (f a h).tsum_coe] }
-end⟩
-
-@[simp] lemma bind_on_support_apply (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  p.bind_on_support f b = ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b) := rfl
-
-lemma coe_bind_on_support_apply (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  (p.bind_on_support f b : ℝ≥0∞) = ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b) :=
-by simp only [bind_on_support_apply, ennreal.coe_tsum (bind_on_support.summable p f b),
-    dite_cast, ennreal.coe_mul, ennreal.coe_zero]
-
-lemma mem_support_bind_on_support_iff (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  b ∈ (p.bind_on_support f).support ↔ ∃ a (ha : p a ≠ 0), b ∈ (f a ha).support :=
-begin
-  simp only [mem_support_iff, bind_on_support_apply,
-    tsum_ne_zero_iff (bind_on_support.summable p f b), mul_ne_zero_iff],
-  split; rintro ⟨a, ha, haf⟩; refine ⟨a, ha, ne_of_eq_of_ne _ haf⟩; simp [ha],
-end
-
-lemma bind_on_support_eq_zero_iff (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  p.bind_on_support f b = 0 ↔ ∀ a (ha : p a ≠ 0), f a ha b = 0 :=
-begin
-  simp only [bind_on_support_apply, tsum_eq_zero_iff (bind_on_support.summable p f b),
-    mul_eq_zero, or_iff_not_imp_left],
-  refine ⟨λ h a ha, trans (dif_neg ha).symm (h a ha), λ h a ha, trans (dif_neg ha) (h a ha)⟩,
-end
-
-@[simp] lemma pure_bind_on_support (a : α) (f : ∀ (a' : α) (ha : a' ∈ (pure a).support), pmf β) :
-  (pure a).bind_on_support f = f a (by simp) :=
-begin
-  ext b,
-  simp only [nnreal.coe_eq, bind_on_support_apply, pure_apply],
-  refine trans (tsum_congr (λ a', _)) (tsum_ite_eq a _),
-  by_cases h : (a' = a); simp [h],
-end
-
-@[simp] lemma bind_on_support_pure (p : pmf α) :
-  p.bind_on_support (λ a _, pure a) = p :=
-begin
-  refine pmf.ext (λ a, _),
-  have h : ∀ (a' : α), ite (p a' = 0) 0 (ite (a = a') (p a') 0) = ite (a = a') (p a) 0,
-  { intro a',
-    split_ifs with h1 h2 h3 h4,
-    any_goals { trivial },
-    all_goals { simp only * at * } },
-  suffices : ∑' (a_1 : α), ite (a = a_1) (p a) 0 = p a,
-  by simpa [h],
-  exact (trans (tsum_congr (λ a', by rw @eq_comm α a a')) (tsum_ite_eq a (p a))),
-end
-
-@[simp] lemma bind_on_support_bind_on_support (p : pmf α)
-  (f : ∀ a ∈ p.support, pmf β)
-  (g : ∀ (b ∈ (p.bind_on_support f).support), pmf γ) :
-  (p.bind_on_support f).bind_on_support g =
-    p.bind_on_support (λ a ha, (f a ha).bind_on_support
-      (λ b hb, g b ((p.mem_support_bind_on_support_iff f b).mpr ⟨a, ha, hb⟩))) :=
-begin
-  refine pmf.ext (λ a, _),
-  simp only [ennreal.coe_eq_coe.symm, coe_bind_on_support_apply, ← tsum_dite_right,
-    ennreal.tsum_mul_left.symm, ennreal.tsum_mul_right.symm],
-  refine trans (ennreal.tsum_comm) (tsum_congr (λ a', _)),
-  split_ifs with h,
-  { simp only [h, ennreal.coe_zero, zero_mul, tsum_zero] },
-  { simp only [← ennreal.tsum_mul_left, ← mul_assoc],
-    refine tsum_congr (λ b, _),
-    split_ifs with h1 h2 h2,
-    any_goals { ring },
-    { rw bind_on_support_eq_zero_iff at h1,
-      simp only [h1 a' h, ennreal.coe_zero, zero_mul, mul_zero] },
-    { simp only [h2, ennreal.coe_zero, mul_zero, zero_mul] } }
-end
-
-lemma bind_on_support_comm (p : pmf α) (q : pmf β)
-  (f : ∀ (a ∈ p.support) (b ∈ q.support), pmf γ) :
-  p.bind_on_support (λ a ha, q.bind_on_support (f a ha)) =
-    q.bind_on_support (λ b hb, p.bind_on_support (λ a ha, f a ha b hb)) :=
-begin
-  apply pmf.ext, rintro c,
-  simp only [ennreal.coe_eq_coe.symm, coe_bind_on_support_apply, ← tsum_dite_right,
-    ennreal.tsum_mul_left.symm, ennreal.tsum_mul_right.symm],
-  refine trans (ennreal.tsum_comm) (tsum_congr (λ b, tsum_congr (λ a, _))),
-  split_ifs with h1 h2 h2; ring,
 end
 
 protected lemma bind.summable (p : pmf α) (f : α → pmf β) (b : β) :
@@ -224,6 +131,25 @@ begin
   simp [mul_assoc, mul_left_comm, mul_comm]
 end
 
+/-- Generalized version of `bind` allowing `f` to only be defined on the support of `p`.
+  `p.bind f` is equivalent to `p.bind_on_support (λ a _, f a)`, see `bind_on_support_eq_bind` -/
+noncomputable def bind_on_support (p : pmf α) (f : ∀ a ∈ p.support, pmf β) : pmf β :=
+⟨λ b, ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b),
+ennreal.has_sum_coe.1 begin
+  simp only [ennreal.coe_tsum (bind_on_support.summable p f _)],
+  rw [ennreal.summable.has_sum_iff, ennreal.tsum_comm],
+  simp only [ennreal.coe_mul, ennreal.coe_one, ennreal.tsum_mul_left],
+  have : ∑' (a : α), (p a : ennreal) = 1 :=
+    by simp only [←ennreal.coe_tsum p.summable_coe, ennreal.coe_one, tsum_coe],
+  refine trans (tsum_congr (λ a, _)) this,
+  split_ifs with h,
+  { simp [h] },
+  { simp [← ennreal.coe_tsum (f a h).summable_coe, (f a h).tsum_coe] }
+end⟩
+
+@[simp] lemma bind_on_support_apply (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
+  p.bind_on_support f b = ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b) := rfl
+
 /-- `bind_on_support` reduces to `bind` if `f` doesn't depend on the additional hypothesis -/
 @[simp] lemma bind_on_support_eq_bind (p : pmf α) (f : α → pmf β) :
   p.bind_on_support (λ a _, f a) = p.bind f :=
@@ -234,6 +160,74 @@ begin
   split_ifs,
   { simp [h] },
   { exact rfl },
+end
+
+lemma coe_bind_on_support_apply (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
+  (p.bind_on_support f b : ℝ≥0∞) = ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b) :=
+by simp only [bind_on_support_apply, ennreal.coe_tsum (bind_on_support.summable p f b),
+    dite_cast, ennreal.coe_mul, ennreal.coe_zero]
+
+@[simp] lemma mem_support_bind_on_support_iff (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
+  b ∈ (p.bind_on_support f).support ↔ ∃ a (ha : p a ≠ 0), b ∈ (f a ha).support :=
+begin
+  simp only [mem_support_iff, bind_on_support_apply,
+    tsum_ne_zero_iff (bind_on_support.summable p f b), mul_ne_zero_iff],
+  split; rintro ⟨a, ha, haf⟩; refine ⟨a, ha, ne_of_eq_of_ne _ haf⟩; simp [ha],
+end
+
+@[simp] lemma bind_on_support_eq_zero_iff (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
+  p.bind_on_support f b = 0 ↔ ∀ a (ha : p a ≠ 0), f a ha b = 0 :=
+begin
+  simp only [bind_on_support_apply, tsum_eq_zero_iff (bind_on_support.summable p f b),
+    mul_eq_zero, or_iff_not_imp_left],
+  exact ⟨λ h a ha, trans (dif_neg ha).symm (h a ha), λ h a ha, trans (dif_neg ha) (h a ha)⟩,
+end
+
+@[simp] lemma pure_bind_on_support (a : α) (f : ∀ (a' : α) (ha : a' ∈ (pure a).support), pmf β) :
+  (pure a).bind_on_support f = f a ((mem_support_pure_iff a a).mpr rfl) :=
+begin
+  refine pmf.ext (λ b, _),
+  simp only [nnreal.coe_eq, bind_on_support_apply, pure_apply],
+  refine trans (tsum_congr (λ a', _)) (tsum_ite_eq a _),
+  by_cases h : (a' = a); simp [h],
+end
+
+@[simp] lemma bind_on_support_pure (p : pmf α) :
+  p.bind_on_support (λ a _, pure a) = p :=
+by simp only [pmf.bind_pure, pmf.bind_on_support_eq_bind]
+
+@[simp] lemma bind_on_support_bind_on_support (p : pmf α)
+  (f : ∀ a ∈ p.support, pmf β)
+  (g : ∀ (b ∈ (p.bind_on_support f).support), pmf γ) :
+  (p.bind_on_support f).bind_on_support g =
+    p.bind_on_support (λ a ha, (f a ha).bind_on_support
+      (λ b hb, g b ((p.mem_support_bind_on_support_iff f b).mpr ⟨a, ha, hb⟩))) :=
+begin
+  refine pmf.ext (λ a, _),
+  simp only [ennreal.coe_eq_coe.symm, coe_bind_on_support_apply, ← tsum_dite_right,
+    ennreal.tsum_mul_left.symm, ennreal.tsum_mul_right.symm],
+  refine trans (ennreal.tsum_comm) (tsum_congr (λ a', _)),
+  split_ifs with h,
+  { simp only [h, ennreal.coe_zero, zero_mul, tsum_zero] },
+  { simp only [← ennreal.tsum_mul_left, ← mul_assoc],
+    refine tsum_congr (λ b, _),
+    split_ifs with h1 h2 h2,
+    any_goals { ring },
+    { rw bind_on_support_eq_zero_iff at h1,
+      simp only [h1 a' h, ennreal.coe_zero, zero_mul, mul_zero] },
+    { simp only [h2, ennreal.coe_zero, mul_zero, zero_mul] } }
+end
+
+lemma bind_on_support_comm (p : pmf α) (q : pmf β)
+  (f : ∀ (a ∈ p.support) (b ∈ q.support), pmf γ) :
+  p.bind_on_support (λ a ha, q.bind_on_support (f a ha)) =
+    q.bind_on_support (λ b hb, p.bind_on_support (λ a ha, f a ha b hb)) :=
+begin
+  apply pmf.ext, rintro c,
+  simp only [ennreal.coe_eq_coe.symm, coe_bind_on_support_apply, ← tsum_dite_right,
+    ennreal.tsum_mul_left.symm, ennreal.tsum_mul_right.symm],
+  refine trans (ennreal.tsum_comm) (tsum_congr (λ b, tsum_congr (λ a, _))),
+  split_ifs with h1 h2 h2; ring,
 end
 
 /-- The functorial action of a function on a `pmf`. -/

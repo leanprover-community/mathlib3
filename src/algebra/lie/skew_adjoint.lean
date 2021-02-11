@@ -3,11 +3,26 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.basic
+import algebra.lie.matrix
 import linear_algebra.bilinear_form
 
 /-!
 # Lie algebras of skew-adjoint endomorphisms of a bilinear form
+
+When a module carries a bilinear form, the Lie algebra of endomorphisms of the module contains a
+distinguished Lie subalgebra: the skew-adjoint endomorphisms. Such subalgebras are important
+because they provide a simple, explicit construction of the so-called classical Lie algebras.
+
+This file defines the Lie subalgebra of skew-adjoint endomorphims cut out by a bilinear form on
+a module and proves some basic related results. It also provides the corresponding definitions and
+results for the Lie algebra of square matrices.
+
+## Main definitions
+
+  * `skew_adjoint_lie_subalgebra`
+  * `skew_adjoint_lie_subalgebra_equiv`
+  * `skew_adjoint_matrices_lie_subalgebra`
+  * `skew_adjoint_matrices_lie_subalgebra_equiv`
 
 ## Tags
 

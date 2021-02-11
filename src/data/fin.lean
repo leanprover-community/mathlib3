@@ -37,6 +37,7 @@ This file expands on the development in the core library.
 * `cast_succ` : embed `fin n` into `fin (n+1)`;
 * `succ_above p` : embed `fin n` into `fin (n + 1)` with a hole around `p`;
 * `pred_above (p : fin n) i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
+* `cast_pred` : embed `fin (n + 2)` into `fin (n + 1)` by mapping `last (n + 1)` to `last n`;
 * `sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
 * `add_nat m i` : add `m` on `i` on the right, generalizes `fin.succ`;
 * `nat_add n i` adds `n` on `i` on the left;
@@ -534,7 +535,7 @@ def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 
 @[simp] lemma coe_cast_succ (i : fin n) : (i.cast_succ : ℕ) = i := rfl
 
-@[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : fin.cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
+@[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
 rfl
 
 lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
@@ -551,6 +552,9 @@ fin.eq_of_veq rfl
 @[simp] lemma cast_lt_cast_succ {n : ℕ} (a : fin n) (h : (a : ℕ) < n) :
   cast_lt (cast_succ a) h = a :=
 by cases a; refl
+
+@[simp] lemma cast_succ_lt_cast_succ_iff : a.cast_succ < b.cast_succ ↔ a < b :=
+(@cast_succ n).lt_iff_lt
 
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
 (cast_succ : fin n ↪o _).injective
@@ -920,23 +924,36 @@ if h : p.cast_succ < i then
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
-lemma pred_above_monotone (p : fin n) : monotone p.pred_above :=
+lemma pred_above_left_monotone (p : fin n) : monotone p.pred_above :=
 λ a b H,
 begin
-  dsimp [fin.pred_above],
+  dsimp [pred_above],
   split_ifs with ha hb hb,
-  all_goals { simp only [fin.le_iff_coe_le_coe, fin.coe_pred], },
-  { exact nat.pred_le_pred H, },
+  all_goals { simp only [le_iff_coe_le_coe, coe_pred], },
+  { exact pred_le_pred H, },
   { calc _ ≤ _ : nat.pred_le _
         ... ≤ _ : H, },
-  { simp at ha, exact nat.le_pred_of_lt (lt_of_le_of_lt ha hb), },
+  { simp at ha, exact le_pred_of_lt (lt_of_le_of_lt ha hb), },
   { exact H, },
+end
+
+lemma pred_above_left_monotone (i : fin (n + 1)) : monotone (λ p, pred_above p i) :=
+λ a b H,
+begin
+  dsimp [pred_above],
+  split_ifs with ha hb hb,
+  all_goals { simp only [le_iff_coe_le_coe, coe_pred] },
+  { exact pred_le _, },
+  { have : b < a := cast_succ_lt_cast_succ_iff.mpr (hb.trans_le (le_of_not_gt ha)),
+    exact absurd H this.not_le }
 end
 
 /-- `cast_pred` embeds `i : fin (n + 2)` into `fin (n + 1)`
 by lowering just `last (n + 1)` to `last n`. -/
 def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
 pred_above (last n) i
+
+@[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
 
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=
@@ -948,6 +965,17 @@ end
 
 @[simp] lemma cast_pred_last : cast_pred (last (n + 1)) = last n :=
 by simp [eq_iff_veq, cast_pred, pred_above, cast_succ_lt_last]
+
+@[simp] lemma cast_pred_mk (n i : ℕ) (h : i < n + 1) :
+  cast_pred ⟨i, lt_succ_of_lt h⟩ = ⟨i, h⟩ :=
+begin
+  have : ¬cast_succ (last n) < ⟨i, lt_succ_of_lt h⟩,
+    { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
+  simp [cast_pred, pred_above, this]
+end
+
+lemma cast_pred_monotone : monotone (@cast_pred n) :=
+pred_above_monotone (last _)
 
 /-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
 then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/

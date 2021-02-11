@@ -153,7 +153,7 @@ refl_trans_gen.single
 
 /-- Church-Rosser theorem for word reduction: If `w1 w2 w3` are words such that `w1` reduces to `w2`
 and `w3` respectively, then there is a word `w4` such that `w2` and `w3` reduce to `w4`
-respectively. -/
+respectively. This is also known as Newman's diamond lemma. -/
 theorem church_rosser : red L₁ L₂ → red L₁ L₃ → join red L₂ L₃ :=
 relation.church_rosser (assume a b c hab hac,
 match b, c, red.step.diamond hab hac rfl with
@@ -200,13 +200,13 @@ iff.intro
     { exact ⟨_, _, eq.symm, by refl, by refl⟩ },
     { cases h with s e a b,
       rcases list.append_eq_append_iff.1 eq with ⟨s', rfl, rfl⟩ | ⟨e', rfl, rfl⟩,
-      { have : L₁ ++ (s' ++ ((a, b) :: (a, bnot b) :: e))
-               = (L₁ ++ s') ++ ((a, b) :: (a, bnot b) :: e),
+      { have : L₁ ++ (s' ++ ((a, b) :: (a, bnot b) :: e)) =
+                 (L₁ ++ s') ++ ((a, b) :: (a, bnot b) :: e),
         { simp },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
         exact ⟨w₁, w₂, rfl, h₁, h₂.tail step.bnot⟩ },
-      { have : (s ++ ((a, b) :: (a, bnot b) :: e')) ++ L₂
-               = s ++ ((a, b) :: (a, bnot b) :: (e' ++ L₂)),
+      { have : (s ++ ((a, b) :: (a, bnot b) :: e')) ++ L₂ =
+                 s ++ ((a, b) :: (a, bnot b) :: (e' ++ L₂)),
         { simp },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
         exact ⟨w₁, w₂, rfl, h₁.tail step.bnot, h₂⟩ }, }
@@ -789,7 +789,7 @@ begin
 end
 
 theorem reduce.not {p : Prop} :
-∀ {L₁ L₂ L₃ : list (α × bool)} {x b}, reduce L₁ = L₂ ++ (x, b) :: (x, bnot b) :: L₃ → p
+  ∀ {L₁ L₂ L₃ : list (α × bool)} {x b}, reduce L₁ = L₂ ++ (x, b) :: (x, bnot b) :: L₃ → p
 | [] L2 L3 _ _ := λ h, by cases L2; injections
 | ((x,b)::L1) L2 L3 x' b' := begin
   dsimp,

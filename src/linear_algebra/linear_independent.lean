@@ -237,6 +237,29 @@ lemma linear_independent_span (hs : linear_independent R v) :
       (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ :=
 linear_independent.of_comp (span R (range v)).subtype hs
 
+/-- See `linear_independent.fin_cons` for a family of elements in a vector space. -/
+lemma linear_independent.fin_cons' {m : ℕ} (x : M) (v : fin m → M)
+  (hli : linear_independent R v)
+  (x_ortho : (∀ (c : R) (y : submodule.span R (set.range v)), c • x + y = (0 : M) → c = 0)) :
+  linear_independent R (fin.cons x v : fin m.succ → M) :=
+begin
+  rw fintype.linear_independent_iff at hli ⊢,
+  rintros g total_eq j,
+  have zero_not_mem : (0 : fin m.succ) ∉ finset.univ.image (fin.succ : fin m → fin m.succ),
+  { rw finset.mem_image,
+    rintro ⟨x, hx, succ_eq⟩,
+    exact fin.succ_ne_zero _ succ_eq },
+  simp only [submodule.coe_mk, fin.univ_succ, finset.sum_insert zero_not_mem,
+  fin.cons_zero, fin.cons_succ,
+  forall_true_iff, imp_self, fin.succ_inj, finset.sum_image] at total_eq,
+  have : g 0 = 0,
+  { refine x_ortho (g 0) ⟨∑ (i : fin m), g i.succ • v i, _⟩ total_eq,
+    exact sum_mem _ (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
+  refine fin.cases this (λ j, _) j,
+  apply hli (λ i, g i.succ),
+  simpa only [this, zero_smul, zero_add] using total_eq
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 

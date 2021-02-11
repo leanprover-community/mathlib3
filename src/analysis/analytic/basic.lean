@@ -182,6 +182,18 @@ lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
 in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
 
+/-- If the radius of `p` is positive, then `∥pₙ∥` grows at most geometrically. -/
+lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
+  ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ n, ∥p n∥ ≤ C * r ^ n :=
+begin
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨r, r0, rlt⟩,
+  have rpos : 0 < (r : ℝ), by simp [ennreal.coe_pos.1 r0],
+  rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
+  refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
+  convert hCp n,
+  exact inv_pow' _ _,
+end
+
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
 lemma min_radius_le_radius_add (p q : formal_multilinear_series 𝕜 E F) :
   min p.radius q.radius ≤ (p + q).radius :=
@@ -612,11 +624,11 @@ end
 If a function is analytic in a disk `D(x, R)`, then it is analytic in any disk contained in that
 one. Indeed, one can write
 $$
-f (x + y + z) = \sum_{n} p_n (y + z)^n = \sum_{n, k} \binom{n}{k} p_n y^{n-k} z^k
-= \sum_{k} \Bigl(\sum_{n} \binom{n}{k} p_n y^{n-k}\Bigr) z^k.
+f (x + y + z) = \\sum_{n} p_n (y + z)^n = \\sum_{n, k} \binom{n}{k} p_n y^{n-k} z^k
+= \\sum_{k} \Bigl(\\sum_{n} \binom{n}{k} p_n y^{n-k}\Bigr) z^k.
 $$
 The corresponding power series has thus a `k`-th coefficient equal to
-$\sum_{n} \binom{n}{k} p_n y^{n-k}$. In the general case where `pₙ` is a multilinear map, this has
+$\\sum_{n} \binom{n}{k} p_n y^{n-k}$. In the general case where `pₙ` is a multilinear map, this has
 to be interpreted suitably: instead of having a binomial coefficient, one should sum over all
 possible subsets `s` of `fin n` of cardinal `k`, and attribute `z` to the indices in `s` and
 `y` to the indices outside of `s`.

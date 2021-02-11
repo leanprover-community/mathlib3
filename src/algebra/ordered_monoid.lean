@@ -133,11 +133,11 @@ by simpa only [mul_one] using mul_le_mul_left' h a
 lemma le_mul_of_one_le_left' (h : 1 ≤ b) : a ≤ b * a :=
 by simpa only [one_mul] using mul_le_mul_right' h a
 
-@[to_additive mul_le_of_le_one_right]
+@[to_additive add_le_of_nonpos_right]
 lemma mul_le_of_le_one_right' (h : b ≤ 1) : a * b ≤ a :=
 by simpa only [mul_one] using mul_le_mul_left' h a
 
-@[to_additive mul_le_of_le_one_left]
+@[to_additive add_le_of_nonpos_left]
 lemma mul_le_of_le_one_left' (h : b ≤ 1) : b * a ≤ a :=
 by simpa only [one_mul] using mul_le_mul_right' h a
 

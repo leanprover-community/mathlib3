@@ -485,7 +485,7 @@ by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
 We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.
 Complex numbers with different imaginary parts are incomparable.
 -/
-instance : partial_order ℂ :=
+def complex_order : partial_order ℂ :=
 { le := λ z w, ∃ x : ℝ, 0 ≤ x ∧ w = z + x,
   le_refl := λ x, ⟨0, by simp⟩,
   le_trans := λ x y z h₁ h₂,
@@ -509,6 +509,11 @@ instance : partial_order ℂ :=
     have h₄ : w₁ = 0, linarith,
     simp [h₄],
   end, }
+
+localized "attribute [instance] complex_order" in complex_order
+
+section complex_order
+open_locale complex_order
 
 lemma le_def {z w : ℂ} : z ≤ w ↔ ∃ x : ℝ, 0 ≤ x ∧ w = z + x := iff.refl _
 lemma lt_def {z w : ℂ} : z < w ↔ ∃ x : ℝ, 0 < x ∧ w = z + x :=
@@ -558,7 +563,7 @@ end
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
 -/
-instance : ordered_comm_ring ℂ :=
+def complex_ordered_comm_ring : ordered_comm_ring ℂ :=
 { zero_le_one := ⟨1, zero_le_one, by simp⟩,
   add_le_add_left := λ w z h y,
   begin
@@ -592,12 +597,15 @@ instance : ordered_comm_ring ℂ :=
     simp only [add_mul, zero_add],
     exact lt_def.mpr ⟨x₁ * x₂, mul_pos l₁ l₂, (by norm_cast)⟩,
   end,
--- we need more instances here because comm_ring doesn't have zero_add et al as fields, 
+-- we need more instances here because comm_ring doesn't have zero_add et al as fields,
 -- they are derived as lemmas
   ..(by apply_instance : partial_order ℂ),
   ..(by apply_instance : comm_ring ℂ),
   ..(by apply_instance : comm_semiring ℂ),
   ..(by apply_instance : add_cancel_monoid ℂ) }
+
+localized "attribute [instance] complex_ordered_comm_ring" in complex_order
+end complex_order
 
 /-! ### Cauchy sequences -/
 

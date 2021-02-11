@@ -314,7 +314,8 @@ theorem lsum_single (f : α → M →ₗ[R] N) (i : α) (m : M) :
   finsupp.lsum S f (finsupp.single i m) = f i m :=
 finsupp.sum_single_index (f i).map_zero
 
-theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) : (lsum S).symm f x = f.comp (lsingle x) := rfl
+theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
+  (lsum S).symm f x = f.comp (lsingle x) := rfl
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)

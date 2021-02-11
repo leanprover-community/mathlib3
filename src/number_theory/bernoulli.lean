@@ -207,12 +207,11 @@ end
 open ring_hom
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
-theorem bernoulli_odd_eq_zero {n : ℕ} (h_odd : n % 2 = 1) (hlt : 1 < n) : bernoulli n = 0 :=
+theorem bernoulli_odd_eq_zero {n : ℕ} (h_odd : odd n ) (hlt : 1 < n) : bernoulli n = 0 :=
 begin
   have f := bernoulli_power_series,
   have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
-    (eval_neg_hom (X * exp ℚ)) * (exp ℚ),
-  { congr', },
+    (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
     mul_comm (eval_neg_hom (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one, eval_neg_hom_X, mul_one,
     one_mul] at g,
@@ -227,13 +226,13 @@ begin
       split_ifs at h with h2,
       { rw h2 at hlt, exfalso, exact lt_irrefl _ hlt, },
       have hn : (n.factorial : ℚ) ≠ 0, { simp [factorial_ne_zero], },
-      rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff hn, div_mul_cancel _ hn] at h,
-      simp only [neg_one_pow_eq_pow_mod_two, h_odd, neg_mul_eq_neg_mul_symm, one_mul, pow_one] at h,
+      rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff hn, div_mul_cancel _ hn,
+      neg_one_pow_of_odd h_odd, neg_mul_eq_neg_mul_symm, one_mul] at h,
       exact eq_zero_of_neg_eq h.symm, },
-    { exfalso,
+      { exfalso,
       rw [power_series.ext_iff] at h,
       specialize h 1,
-      simpa using h, } },
+      simpa using h, }, },
   { rw [sub_mul, f, mul_sub X, mul_one, sub_right_inj, ←neg_sub, ←neg_neg X, ←g,
       neg_mul_eq_mul_neg], },
 end

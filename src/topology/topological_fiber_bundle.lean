@@ -563,11 +563,11 @@ def local_triv_ext (i : ι) : bundle_trivialization F Z.proj :=
   source_eq     := rfl,
   target_eq     := rfl,
   proj_to_fun   := λp hp, by simp,
-  ..Z.local_triv i }
+  to_local_homeomorph := Z.local_triv i }
 
 /-- A topological fiber bundle constructed from core is indeed a topological fiber bundle. -/
-theorem is_topological_fiber_bundle : is_topological_fiber_bundle F Z.proj :=
-λx, ⟨Z.local_triv_ext (Z.index_at (Z.proj x)), by simp [local_triv_ext]⟩
+protected theorem is_topological_fiber_bundle : is_topological_fiber_bundle F Z.proj :=
+λx, ⟨Z.local_triv_ext (Z.index_at x), Z.mem_base_set_at x⟩
 
 /-- The projection on the base of a topological bundle created from core is continuous -/
 lemma continuous_proj : continuous Z.proj :=

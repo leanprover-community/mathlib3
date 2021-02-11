@@ -62,23 +62,6 @@ end polynomial
 
 section inequality_and_intervals
 
-/-- To prove that the inequality `1 ≤ a * b` holds, it suffices to prove
-* the inequality `1 ≤ a`; and
-* if `1 < b`, then to provide a `c ≤ b` satisfying `1 ≤ a * c`.
-This lemma is mostly useful if `c` already appears in the context, especially in
-situations when the terms `a` and `b` are complicated.
-This inequality streamlines the argument in `exists_one_le_pow_mul_dist`. -/
-lemma one_le_mul_of_le_and_of_lt {R : Type*} [linear_ordered_semiring R] {a b : R} (c : R)
-  (ha   : 1 ≤ a)
-  (key  : b < 1 → 1 ≤ a * c ∧ c ≤ b) :
-  1 ≤ a * b :=
-begin
-  by_cases A : b < 1,
-  { exact (key A).1.trans ((mul_le_mul_left (zero_lt_one.trans_le ha)).mpr (key A).2) },
-  { rw ← mul_one (1 : R),
-    exact mul_le_mul ha (not_lt.mp A) zero_le_one (zero_le_one.trans ha) }
-end
-
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
   abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
 ⟨λ h, ⟨sub_le.mp (abs_le.mp h).2, neg_le_sub_iff_le_add.mp (abs_le.mp h).1⟩,
@@ -95,7 +78,6 @@ end inequality_and_intervals
 --namespace is_liouville
 
 open polynomial metric
-
 
 /-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
 It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,

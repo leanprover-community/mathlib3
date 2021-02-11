@@ -468,6 +468,26 @@ by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
 lemma is_simple_lattice [h : is_simple_lattice β] (f : α ≃o β) : is_simple_lattice α :=
 f.is_simple_lattice_iff.mpr h
 
+lemma is_atomic_iff : is_atomic α ↔ is_atomic β :=
+begin
+  suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
+    (∀ b : β, b = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ b),
+  from ⟨λ ⟨p⟩, ⟨this.mp p⟩, λ ⟨p⟩, ⟨this.mpr p⟩⟩,
+  apply f.to_equiv.forall_congr,
+  simp_rw [rel_iso.coe_fn_to_equiv],
+  intro b, apply or_congr,
+  { rw [f.apply_eq_iff_eq_symm_apply, map_bot], },
+  { split,
+    { exact λ ⟨a, ha⟩, ⟨f a, ⟨(f.is_atom_iff a).mpr ha.1, f.le_iff_le.mpr ha.2⟩⟩, },
+    { rintros ⟨b, ⟨hb1, hb2⟩⟩,
+      refine ⟨f.symm b, ⟨(f.symm.is_atom_iff b).mpr hb1, _⟩⟩,
+      rwa [←f.le_iff_le, f.apply_symm_apply], }, },
+end
+
+lemma is_coatomic_iff : is_coatomic α ↔ is_coatomic β :=
+by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
+  exact f.dual.is_atomic_iff, }
+
 end order_iso
 
 section is_modular_lattice

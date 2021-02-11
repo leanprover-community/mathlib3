@@ -5,12 +5,13 @@ Authors: Kenny Lau
 -/
 import data.fintype.basic
 import group_theory.subgroup
-open relation
 
 /-!
 # Free groups
 
-This file defines free groups over a type.
+This file defines free groups over a type. Furthermore, it is shown that the free group construction
+is an instance of a monad. For the result that `free_group` is the left adjoint to the forgetful
+functor from groups to types, see `algebra/category/Group/adjunctions`.
 
 ## Main definitions
 
@@ -18,15 +19,15 @@ This file defines free groups over a type.
   modulo the relation `a * x * x⁻¹ * b = a * b`.
 * `mk`: the canonical quotient map `list (α × bool) → free_group α`.
 * `of`: the canoical injection `α → free_group α`.
-* `to_group f`: the canonical group homomorphism `free_group α →* G` given a group `G` and a function
-  `f : α → G`.
+* `to_group f`: the canonical group homomorphism `free_group α →* G` given a group `G` and a
+  function `f : α → G`.
 
 ## Main statements
 
-* `church_rosser`: The Church-Rosser theorem for word reduction (also known as the diamond
+* `church_rosser`: The Church-Rosser theorem for word reduction (also known as Newman's diamond
   lemma).
 * `free_group_unit_equiv_int`: The free group over the one-point type is isomorphic to the integers.
-
+* The free group construction is an instance of a monad.
 
 ## Implementation details
 
@@ -37,8 +38,10 @@ over `free_group.red.step`.
 
 ## Tags
 
-free group, diamonad lemma, Church-Rosser theorem
+free group, Newman's diamond lemma, Church-Rosser theorem
 -/
+
+open relation
 
 universes u v w
 
@@ -663,7 +666,7 @@ def free_group_empty_equiv_unit : free_group empty ≃ unit :=
   right_inv := λ ⟨⟩, rfl }
 
 /-- The bijection between the free group on a singleton, and the integers. -/
-def free_group_unit_equiv_int : free_group unit ≃ int :=
+def free_group_unit_equiv_int : free_group unit ≃ ℤ :=
 { to_fun    := λ x,
    sum begin revert x, apply monoid_hom.to_fun,
     apply map (λ _, (1 : ℤ)),

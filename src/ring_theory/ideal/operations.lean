@@ -1060,7 +1060,7 @@ lemma ker_lift_mk (f : R →+* S) (r : R) : ker_lift f (ideal.quotient.mk f.ker 
 ideal.quotient.lift_mk _ _ _
 
 /-- The induced map from the quotient by the kernel is injective. -/
-lemma injective_ker_lift (f : R →+* S) : function.injective (ker_lift f) :=
+lemma ker_lift_injective (f : R →+* S) : function.injective (ker_lift f) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : f a = f b), quotient.sound' $
 show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
@@ -1075,7 +1075,7 @@ def quotient_ker_equiv_of_right_inverse
   inv_fun := (ideal.quotient.mk f.ker) ∘ g,
   left_inv := begin
     rintro ⟨x⟩,
-    apply injective_ker_lift,
+    apply ker_lift_injective,
     simp [hf (f x)],
   end,
   right_inv := hf,
@@ -1232,8 +1232,8 @@ lemma ker_lift_alg_to_ring_hom (f : A →ₐ[R] B) :
   (ker_lift_alg f).to_ring_hom = ring_hom.ker_lift f := rfl
 
 /-- The induced algebra morphism from the quotient by the kernel is injective. -/
-lemma injective_ker_lift_alg (f : A →ₐ[R] B) : function.injective (ker_lift_alg f) :=
-ring_hom.injective_ker_lift f
+lemma ker_lift_alg_injective (f : A →ₐ[R] B) : function.injective (ker_lift_alg f) :=
+ring_hom.ker_lift_injective f
 
 /-- The first isomorphism theorem for agebras, computable version. -/
 def quotient_ker_alg_equiv_of_right_inverse
@@ -1243,7 +1243,7 @@ def quotient_ker_alg_equiv_of_right_inverse
   inv_fun := (quotient.mkₐ R f.to_ring_hom.ker) ∘ g,
   left_inv := begin
     rintro ⟨a⟩,
-    apply injective_ker_lift_alg,
+    apply ker_lift_alg_injective,
     change f (g (f a)) = f a,
     exact hf (f a),
   end,

@@ -5,7 +5,7 @@ Authors: Johan Commelin
 
 import topology.simplicial.move_this
 import topology.simplicial.basic
-import algebra.category.Module.basic
+import algebra.category.Module.adjunctions
 import algebra.homology.homology
 import linear_algebra.tensor_product
 
@@ -67,7 +67,7 @@ begin
     _ _ _ _),
   { -- Show that our function is well-defined
     rintro ⟨i,j⟩ hij, simp only [mem_filter, true_and, mem_compl_iff, mem_univ, not_le],
-    unfold_coes, dsimp [s] at hij ⊢, simp only [true_and, mem_filter, mem_univ, fin.succ_val] at *,
+    unfold_coes, dsimp [s] at hij ⊢, simp only [true_and, mem_filter, mem_univ] at *,
     exact nat.succ_le_succ (by assumption) },
   { -- The core of the proof.
     -- After all, we have to use the simplicial identity somewhere.

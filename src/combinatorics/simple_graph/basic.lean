@@ -521,12 +521,9 @@ begin
 end
 
 lemma card_compl_neighbor_set' [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) [nonempty V] :
-  Gᶜ.degree v = fintype.card V - G.degree v - 1 :=
+  fintype.card (Gᶜ.neighbor_set v) = fintype.card V - fintype.card (G.neighbor_set v) - 1 :=
 begin
-  --have h2 := compl_neighbor_set G v,
-  rw ← card_neighbor_set_eq_degree,
-  rw ← card_neighbor_set_eq_degree,
-  rw compl_neighbor_set' G v,
+  --rw compl_neighbor_set' G v,
   sorry,
 end
 

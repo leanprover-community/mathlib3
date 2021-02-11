@@ -50,6 +50,17 @@ structure is_SRG_of (n k l m : ℕ) : Prop :=
 (adj_common : ∀ (v w : V), G.adj v w → fintype.card (G.common_neighbors v w) = l)
 (nadj_common : ∀ (v w : V), ¬ G.adj v w → fintype.card (G.common_neighbors v w) = m)
 
+lemma complete_strongly_regular :
+  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) 0 :=
+{ card := rfl,
+  regular := complete_graph_degree,
+  adj_common := λ v w h,
+    begin
+      unfold common_neighbors,
+      sorry,
+    end,
+  nadj_common := sorry }
+
 -- Prove that the complement of a strongly regular graph is strongly regular with parameters
   -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (v - 2k + l)`
 lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
@@ -62,7 +73,7 @@ lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
 
       sorry,
     end,
-  adj_common := _,
-  nadj_common := _ }
+  adj_common := sorry,
+  nadj_common := sorry }
 
 end simple_graph

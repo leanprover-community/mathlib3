@@ -85,9 +85,10 @@ lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : 
  λ hy, abs_le.mpr ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
 
 -- this lemma went in PR adomani_one_le_mul_of_one_le_of_one_le
-lemma one_le_mul_of_one_le_of_one_le {R : Type*} [ordered_semiring R] {a b : R} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
-  (1 : R) ≤ a * b :=
-(mul_one (1 : R)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
+lemma one_le_mul_of_one_le_of_one_le {α : Type*} [ordered_semiring α]
+  {a b : α} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
+  (1 : α) ≤ a * b :=
+(mul_one (1 : α)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
 
 end inequality_and_intervals
 

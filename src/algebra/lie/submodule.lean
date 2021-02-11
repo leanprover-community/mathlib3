@@ -282,7 +282,7 @@ section inclusion_maps
 
 /-- The inclusion of a Lie submodule into its ambient space is a morphism of Lie modules. -/
 def incl : N →ₗ⁅R,L⁆ M :=
-{ map_lie := λ x m, rfl,
+{ map_lie' := λ x m, rfl,
   ..submodule.subtype (N : submodule R M) }
 
 @[simp] lemma incl_apply (m : N) : N.incl m = m := rfl
@@ -293,7 +293,7 @@ variables {N N'} (h : N ≤ N')
 
 /-- Given two nested Lie submodules `N ⊆ N'`, the inclusion `N ↪ N'` is a morphism of Lie modules.-/
 def hom_of_le : N →ₗ⁅R,L⁆ N' :=
-{ map_lie := λ x m, rfl,
+{ map_lie' := λ x m, rfl,
   ..submodule.of_le h }
 
 @[simp] lemma coe_hom_of_le (m : N) : (hom_of_le h m : M) = m := rfl
@@ -452,7 +452,7 @@ end
 
 end lie_ideal
 
-namespace lie_algebra.morphism
+namespace lie_hom
 
 variables (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L) (J : lie_ideal R L')
 
@@ -478,7 +478,7 @@ lemma ker_le_comap : f.ker ≤ J.comap f := lie_ideal.comap_mono bot_le
 
 @[simp] lemma mem_ker {x : L} : x ∈ ker f ↔ f x = 0 :=
 show x ∈ (f.ker : submodule R L) ↔ _,
-by simp only [ker_coe_submodule, linear_map.mem_ker, lie_algebra.coe_to_linear_map]
+by simp only [ker_coe_submodule, linear_map.mem_ker, coe_to_linear_map]
 
 lemma mem_ideal_range {x : L} : f x ∈ ideal_range f := lie_ideal.mem_map (lie_submodule.mem_top x)
 
@@ -501,9 +501,9 @@ by { rw ← le_bot_iff, exact lie_ideal.map_le_iff_le_comap, }
 
 lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, ker_coe_submodule, lie_submodule.bot_coe_submodule,
-  linear_map.ker_eq_bot, lie_algebra.coe_to_linear_map]
+  linear_map.ker_eq_bot, coe_to_linear_map]
 
-end lie_algebra.morphism
+end lie_hom
 
 namespace lie_ideal
 
@@ -519,7 +519,7 @@ end
 
 /-- Given two nested Lie ideals `I₁ ⊆ I₂`, the inclusion `I₁ ↪ I₂` is a morphism of Lie algebras. -/
 def hom_of_le {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) : I₁ →ₗ⁅R⁆ I₂ :=
-{ map_lie := λ x y, rfl,
+{ map_lie' := λ x y, rfl,
   ..submodule.of_le h, }
 
 @[simp] lemma coe_hom_of_le {I₁ I₂ : lie_ideal R L} (h : I₁ ≤ I₂) (x : I₁) :

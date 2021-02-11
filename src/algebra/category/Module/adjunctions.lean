@@ -26,7 +26,7 @@ variables (R : Type u) [ring R]
 
 /--
 The free functor `Type u ⥤ Module R` sending a type `X` to the
-free `R`-module with generators `x : X`.
+free `R`-module with generators `x : X`, implemented as the type `X →₀ R`.
 -/
 @[simps]
 def free : Type u ⥤ Module R :=

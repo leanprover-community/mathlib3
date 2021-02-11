@@ -497,12 +497,6 @@ begin
   simp,
 end
 
-/-lemma to_finset_disjoint (α : Type u) [fintype α] (s t : set α) [fintype s] [fintype t] :
-  disjoint s t ↔ disjoint (s.to_finset) (t.to_finset) :=
-begin
-  simp,
-end-/
-
 lemma compl_neighbor_set (G : simple_graph V) [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
 begin

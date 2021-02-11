@@ -1212,7 +1212,7 @@ ideal.mk_ker
 variables {R} {B : Type*} [comm_ring B] [algebra R B]
 
 lemma quotient.smul (f : A →ₐ[R] B) (r : R) (x : f.to_ring_hom.ker.quotient) :
-  (f.to_ring_hom.ker_lift) (r • x) = r • (f.to_ring_hom.ker_lift) x :=
+  f.to_ring_hom.ker_lift (r • x) = r • f.to_ring_hom.ker_lift x :=
 begin
   obtain ⟨a, rfl⟩ := quotient.mkₐ_surjective R _ x,
   rw [← alg_hom.map_smul, quotient.mkₐ_eq_mk, ring_hom.ker_lift_mk],

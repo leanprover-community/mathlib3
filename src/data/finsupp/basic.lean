@@ -1155,6 +1155,21 @@ finset.subset.trans support_sum $
   finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
   by rw [finset.bUnion_singleton]; exact subset.refl _
 
+@[simp]
+lemma map_domain_sum_index {X Y : Type*} (f : X → Y)
+  {M N : Type*} [add_comm_monoid M] [add_comm_monoid N]
+  (g : X →₀ M) (h : Y → M →+ N) :
+  (finsupp.map_domain f g).sum (λ y m, h y m) = g.sum (λ x m, h (f x) m) :=
+begin
+  dsimp [finsupp.map_domain],
+  apply finsupp.induction_linear g,
+  { simp, },
+  { intros g₁ g₂ h₁ h₂,
+    rw [finsupp.sum_add_index, finsupp.sum_add_index, finsupp.sum_add_index, h₁, h₂];
+    simp, },
+  { simp, }
+end
+
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
   {h : β → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :

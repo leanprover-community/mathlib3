@@ -1474,6 +1474,48 @@ end field
 
 end linear_map
 
+/-- `finsupp.map_domain` as an `R`-linear map, whenever `R` is a semiring. -/
+noncomputable def finsupp.lmap_domain (R : Type*) [semiring R] {X Y : Type*} (f : X → Y) :
+  (X →₀ R) →ₗ[R] (Y →₀ R) :=
+{ to_fun := finsupp.map_domain f,
+  map_add' := λ _ _, finsupp.map_domain_add,
+  map_smul' := λ _ _, finsupp.map_domain_smul _ _ }
+
+@[simp] lemma finsupp.coe_lmap_domain (R : Type*) [semiring R] {X Y : Type*} (f : X → Y) :
+  (finsupp.lmap_domain R f : (X →₀ R) → (Y →₀ R)) = finsupp.map_domain f := rfl
+
+section
+variables (R) [ring R] (X : Type*) (M) [add_comm_group M] [module R M]
+
+/-- The bijection underlying the free-forgetful adjunction for R-modules. -/
+noncomputable def finsupp.hom_equiv : ((X →₀ R) →ₗ[R] M) ≃ (X → M) :=
+{ to_fun := λ f x, f (finsupp.single x 1),
+  inv_fun := λ f,
+  { to_fun := λ g, g.sum (λ x r, r • f x),
+    map_add' := λ g₁ g₂, by { rw [finsupp.sum_add_index], simp, simp [add_smul], },
+    map_smul' := λ c g, begin
+      rw [finsupp.sum_smul_index, finsupp.smul_sum],
+      { congr, funext, rw [mul_smul], },
+      { simp, },
+    end, },
+  left_inv := λ f, begin
+    ext g,
+    apply finsupp.induction_linear g,
+    { simp, },
+    { intros g₁ g₂ h₁ h₂, rw [f.map_add, ←h₁, ←h₂], simp, },
+    { intros x r, simp [←f.map_smul], },
+  end,
+  right_inv := λ f, funext $ (λ x, (by simp)) }
+
+@[simp]
+lemma finsupp.hom_equiv_apply (f) (x) : ((finsupp.hom_equiv R M X) f) x = f (finsupp.single x 1) :=
+rfl
+@[simp]
+lemma finsupp.hom_equiv_symm_apply (f) (g) :
+  ((finsupp.hom_equiv R M X).symm f) g = g.sum (λ x r, r • f x) :=
+rfl
+
+end
 
 namespace is_linear_map
 

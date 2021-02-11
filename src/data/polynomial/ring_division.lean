@@ -475,6 +475,22 @@ by rw [←polynomial.C_mul', ←polynomial.eq_C_of_degree_eq_zero (degree_coe_un
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)
 
+lemma comp_eq_zero_iff :
+  p.comp q = 0 ↔ p = 0 ∨ (p.eval (q.coeff 0) = 0 ∧ q = C (q.coeff 0)) :=
+begin
+  split,
+  { intro h,
+    have key : p.nat_degree = 0 ∨ q.nat_degree = 0,
+    { rw [←mul_eq_zero, ←nat_degree_comp, h, nat_degree_zero] },
+    replace key := or.imp eq_C_of_nat_degree_eq_zero eq_C_of_nat_degree_eq_zero key,
+    cases key,
+    { rw [key, C_comp] at h,
+      exact or.inl (key.trans h) },
+    { rw [key, comp_C, C_eq_zero] at h,
+      exact or.inr ⟨h, key⟩ }, },
+  { exact λ h, or.rec (λ h, by rw [h, zero_comp]) (λ h, by rw [h.2, comp_C, h.1, C_0]) h },
+end
+
 lemma zero_of_eval_zero [infinite R] (p : polynomial R) (h : ∀ x, p.eval x = 0) : p = 0 :=
 by classical; by_contradiction hp; exact
 infinite.not_fintype ⟨p.roots.to_finset, λ x, multiset.mem_to_finset.mpr ((mem_roots hp).mpr (h _))⟩

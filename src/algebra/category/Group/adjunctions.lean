@@ -7,8 +7,23 @@ import algebra.category.Group.basic
 import group_theory.free_abelian_group
 
 /-!
-The free abelian group on a type is the left adjoint of the
-forgetful functor from abelian groups to types.
+# Adjunctions regarding the category of (abelian) groups
+
+This file contains construction of basic adjunctions concerning the category of groups and the
+category of abelian groups.
+
+## Main definitions
+
+* `free`: constructs the functor associating to a type `X` the free abelian group with generators
+  `x : X`
+* `abelianize`: constructs the functor which associates to a group `G` its abelianization `Gᵃᵇ`.
+
+## Main statements
+
+* `AddCommGroup.adj` proves that `free` is the left adjoint of the forgetful functor from abelian
+  groups to types.
+* `abelianize_adj` proves that `abelianize` is left adjoint to the forgetful functor from
+  abelian groups to groups.
 -/
 
 noncomputable theory
@@ -57,3 +72,23 @@ example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :
 (mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
 
 end AddCommGroup
+
+section abelianization
+
+/-- The abelianization functor `Group ⥤ CommGroup` sending a group `G` to its abelianization `Gᵃᵇ`.
+ -/
+def abelianize : Group.{u} ⥤ CommGroup.{u} :=
+{ obj := λ G, { α := abelianization G, str := by apply_instance },
+  map := λ G H f, abelianization.lift ( { to_fun := λ x, abelianization.of (f x),
+  map_one' := by simp,
+  map_mul' := by simp } ),
+  map_id' := by { intros, simp only [monoid_hom.mk_coe, coe_id], ext1, refl },
+  map_comp' := by { intros, simp, ext1, refl } }
+
+/-- The abelianization-forgetful adjuction from `Group` to `CommGroup`.-/
+def abelianize_adj : abelianize ⊣ forget₂ CommGroup.{u} Group.{u} :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ G A, abelianization.hom_equiv,
+  hom_equiv_naturality_left_symm' := λ G H A f g, by { ext1, refl } }
+
+end abelianization

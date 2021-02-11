@@ -178,22 +178,20 @@ only alternate elements (odd-numbered). -/
 def vec_alt1 (hm : m = n + n) (v : fin m → α) (k : fin n) : α :=
 v ⟨(k : ℕ) + k + 1, hm.symm ▸ nat.add_succ_lt_add k.property k.property⟩
 
-lemma vec_alt0_append (v : fin n → α) : vec_alt0 rfl (fin.append rfl v v) = v ∘ bit0 :=
+lemma vec_alt0_append (v : fin (n + 1) → α) :
+  vec_alt0 rfl (fin.append rfl v (λ _, v (fin.last _))) = v ∘ bit0 :=
 begin
   ext i,
   simp_rw [function.comp, bit0, vec_alt0, fin.append],
   split_ifs with h; congr,
   { rw fin.coe_mk at h,
-    simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
-    exact (nat.mod_eq_of_lt h).symm },
+    simp [fin.ext_iff, nat.le_of_lt_succ h] },
   { rw [fin.coe_mk, not_lt] at h,
-    simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
-    refine (nat.mod_eq_of_lt _).symm,
-    rw nat.sub_lt_left_iff_lt_add h,
-    exact add_lt_add i.property i.property }
+    simp [fin.ext_iff, nat.le_of_succ_le h] }
 end
 
-lemma vec_alt1_append (v : fin (n + 1) → α) : vec_alt1 rfl (fin.append rfl v v) = v ∘ bit1 :=
+lemma vec_alt1_append (v : fin (n + 1) → α) :
+vec_alt1 rfl (fin.append rfl v (λ _, v (fin.last _))) = v ∘ bit1 :=
 begin
   ext i,
   simp_rw [function.comp, vec_alt1, fin.append],
@@ -201,29 +199,26 @@ begin
   { simp, congr },
   { split_ifs with h; simp_rw [bit1, bit0]; congr,
     { rw fin.coe_mk at h,
-      simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
-      rw nat.mod_eq_of_lt (nat.lt_of_succ_lt h),
-      exact (nat.mod_eq_of_lt h).symm },
+      simp [fin.ext_iff, nat.le_of_lt_succ h, le_of_lt (nat.lt_of_succ_lt_succ h)] },
     { rw [fin.coe_mk, not_lt] at h,
-      simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
-                 nat.mod_eq_sub_mod h],
-      refine (nat.mod_eq_of_lt _).symm,
-      rw nat.sub_lt_left_iff_lt_add h,
-      exact nat.add_succ_lt_add i.property i.property } }
+      simp [fin.ext_iff, nat.le_of_succ_le h, nat.le_of_succ_le_succ h] } }
 end
 
 @[simp] lemma vec_head_vec_alt0 (hm : (m + 2) = (n + 1) + (n + 1)) (v : fin (m + 2) → α) :
   vec_head (vec_alt0 hm v) = v 0 := rfl
 
 @[simp] lemma vec_head_vec_alt1 (hm : (m + 2) = (n + 1) + (n + 1)) (v : fin (m + 2) → α) :
-  vec_head (vec_alt1 hm v) = v 1 := rfl
+  vec_head (vec_alt1 hm v) = v 1 :=
+by simp [vec_head, vec_alt1]
 
 @[simp] lemma cons_vec_bit0_eq_alt0 (x : α) (u : fin n → α) (i : fin (n + 1)) :
-  vec_cons x u (bit0 i) = vec_alt0 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
+  vec_cons x u (bit0 i) =
+    vec_alt0 rfl (fin.append rfl (vec_cons x u) (λ _, vec_cons x u (fin.last _))) i :=
 by rw vec_alt0_append
 
 @[simp] lemma cons_vec_bit1_eq_alt1 (x : α) (u : fin n → α) (i : fin (n + 1)) :
-  vec_cons x u (bit1 i) = vec_alt1 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
+  vec_cons x u (bit1 i) =
+    vec_alt1 rfl (fin.append rfl (vec_cons x u) (λ _, vec_cons x u (fin.last _))) i :=
 by rw vec_alt1_append
 
 @[simp] lemma cons_vec_alt0 (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :

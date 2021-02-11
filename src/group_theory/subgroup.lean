@@ -1377,36 +1377,20 @@ end⟩
 
 end subgroup
 
-section subgroup_monoid
+section pointwise
 
 namespace subgroup
 
-/-- Two subgroups `H` and `K` can be multiplied to form another one. The result
-is the smallest subgroup that contains `{ h * k | h ∈ H, k ∈ K }`. -/
-instance subgroup_mul : has_mul (subgroup G) := ⟨λ H K, closure (H * K)⟩
+lemma sup_eq_closure (H K : subgroup G) : H ⊔ K = closure (H * K) :=
+le_antisymm
+  (sup_le
+    (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
+    (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
+  (Inf_le $ λ x ⟨h, k, hh, hk, hx⟩, hx ▸ (H ⊔ K).mul_mem
+    (le_def.mp le_sup_left hh)
+    (le_def.mp le_sup_right hk))
 
-section inequalities
-
-variables {H K L : subgroup G}
-
-lemma subset_set_mul_left : (H : set G) ⊆ ↑H * ↑K :=
-λ x hx, ⟨x, 1, mem_coe.mpr hx, mem_coe.mpr K.one_mem, mul_one x⟩
-
-lemma le_mul_left : H ≤ H * K :=
-λ x hx, subset_closure $ subset_set_mul_left hx
-
-lemma subset_set_mul_right : (K : set G) ⊆ ↑H * ↑K :=
-λ x hx, ⟨1, x, mem_coe.mpr H.one_mem, mem_coe.mpr hx, one_mul x⟩
-
-lemma le_mul_right : K ≤ H * K :=
-λ x hx, subset_closure $ subset_set_mul_right hx
-
-lemma mul_le : H ≤ L → K ≤ L → H * K ≤ L :=
-λ hH hK, Inf_le $ λ x ⟨h, k, hh, hk, hx⟩, hx ▸ L.mul_mem (hH hh) (hK hk)
-
-end inequalities
-
-protected def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
+protected def sup_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
 { carrier := (H : set G) * N,
   one_mem' := ⟨1, 1, H.one_mem, N.one_mem, by rw mul_one⟩,
   mul_mem' := λ a b ⟨h, n, hh, hn, ha⟩ ⟨h', n', hh', hn', hb⟩,
@@ -1417,12 +1401,12 @@ protected def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
     ⟨h⁻¹, h * n⁻¹ * h⁻¹, H.inv_mem hh, hN.conj_mem _ (N.inv_mem hn) h,
     by rw [mul_assoc h, inv_mul_cancel_left, ← hx, mul_inv_rev]⟩ }
 
-/-- The carrier of `H * N` is just `↑H * ↑N` when `N` is normal. -/
-lemma mul_normal (H N : subgroup G) [N.normal] : (↑(H * N) : set G) = H * N :=
-set.ext $ λ x,
-  ⟨λ hx, suffices h : H * N ≤ subgroup.mul_normal_aux H N, from h (mem_coe.mp hx),
-    Inf_le (λ y hy, hy),
-  λ hx, subset_closure hx⟩
+/-- The carrier of `H ⊔ N` is just `↑H * ↑N` (pointwise set product) when `N` is normal. -/
+lemma mul_normal (H N : subgroup G) [N.normal] : (↑(H ⊔ N) : set G) = H * N :=
+set.subset.antisymm
+  (show H ⊔ N ≤ subgroup.sup_normal_aux H N,
+    by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
+  ((sup_eq_closure H N).symm ▸ subset_closure)
 
 protected def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
 { carrier := (N : set G) * H,
@@ -1436,41 +1420,13 @@ protected def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
     by simpa using hN.conj_mem _ (N.inv_mem hn) h⁻¹, H.inv_mem hh,
     by rw [mul_inv_cancel_right, ← mul_inv_rev, hx]⟩ }
 
-/-- The carrier of `N * H` is just `↑N * ↑H` when `N` is normal. -/
-lemma normal_mul (N H : subgroup G) [N.normal] : (↑(N * H) : set G) = N * H :=
-set.ext $ λ x,
-  ⟨λ hx, suffices h : N * H ≤ subgroup.normal_mul_aux N H, from h (mem_coe.mp hx),
-    Inf_le (λ y hy, hy),
-  λ hx, subset_closure hx⟩
-
-lemma mul_mul (H K L : subgroup G) : H * K * L = closure (H * K * L) :=
-le_antisymm
-  (le_Inf $ λ A hA, mul_le
-    (Inf_le $ λ hk hhk, hA $ ⟨hk, 1, hhk, L.one_mem, mul_one hk⟩)
-    (λ l hl, hA $ ⟨1, l, ⟨1, 1, H.one_mem, K.one_mem, mul_one 1⟩, hl, one_mul l⟩))
-  (Inf_le $ set.subset.trans (set.mul_subset_mul subset_closure $ set.subset.refl _) subset_closure)
-
-protected lemma mul_assoc (H K L : subgroup G) : H * K * L = H * (K * L) :=
-suffices h : H * (K * L) = closure (H * (K * L)), by rw [mul_mul, h, mul_assoc],
-le_antisymm
-  (le_Inf $ λ A hA, mul_le
-    (λ h hh, hA $ ⟨h, 1, hh, ⟨1, 1, K.one_mem, L.one_mem, mul_one 1⟩, mul_one h⟩)
-    (Inf_le $ λ kl hkl, hA $ ⟨1, kl, H.one_mem, hkl, one_mul kl⟩))
-  (Inf_le $ set.subset.trans (set.mul_subset_mul (set.subset.refl _) subset_closure) subset_closure)
-
-
-/-- Subgroups form a monoid under multiplication. -/
-instance : monoid (subgroup G) :=
-{ mul := (*),
-  mul_assoc := subgroup.mul_assoc,
-  one := ⊥ ,
-  one_mul := λ H, ext' $ eq.trans (normal_mul _ _) $ set.ext $ λ x,
-    ⟨λ ⟨a, b, ha, hb, hx⟩, by simpa [← hx, mem_bot.mp ha],
-    λ hx, ⟨1, x, mem_coe.mpr $ one_mem ⊥, hx, one_mul x⟩⟩,
-  mul_one := λ H, ext' $ eq.trans (mul_normal _ _) $ set.ext $ λ x,
-    ⟨λ ⟨a, b, ha, hb, hx⟩, by simpa [← hx, mem_bot.mp hb],
-    λ hx, ⟨x, 1, hx, mem_coe.mpr $ one_mem ⊥, mul_one x⟩⟩ }
+/-- The carrier of `N ⊔ H` is just `↑N * ↑H` (pointwise set product) when `N` is normal. -/
+lemma normal_mul (N H : subgroup G) [N.normal] : (↑(N ⊔ H) : set G) = N * H :=
+set.subset.antisymm
+  (show N ⊔ H ≤ subgroup.normal_mul_aux N H,
+    by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
+  ((sup_eq_closure N H).symm ▸ subset_closure)
 
 end subgroup
 
-end subgroup_monoid
+end pointwise

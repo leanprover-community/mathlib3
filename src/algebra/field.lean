@@ -10,7 +10,7 @@ import algebra.group_with_zero
 # Fields and division rings
 
 This file introduces fields and division rings (also known as skewfields) and proves some basic
-statements about them. For a more extensive theory of fields, see `field_theory`.
+statements about them. For a more extensive theory of fields, see the `field_theory` folder.
 
 ## Main definitions
 
@@ -30,12 +30,16 @@ functions has the advantage of not constantly having to check that `x ≠ 0` whe
 this convention in place, some statements like `(a + b) * c⁻¹ = a * c⁻¹ + b * c⁻¹` still remain
 true, while others like the defining property `a * a⁻¹ = 1` need the assumption `a ≠ 0`. If you are
 a beginner in using Lean and are confused by that, you can read more about why this convention is
-taken in the Kevin Buzzard's
+taken in Kevin Buzzard's
 [blogpost](https://xenaproject.wordpress.com/2020/07/05/division-by-zero-in-type-theory-a-faq/)
+
+A division ring or field is an example of a `group_with_zero`. If you cannot find
+a division ring / field lemma that does not involve `+`, you can try looking for
+a `group_with_zero` lemma instead.
 
 ## Tags
 
-field, division ring, skew-field
+field, division ring, skew field, skew-field, skewfield
 -/
 
 open set

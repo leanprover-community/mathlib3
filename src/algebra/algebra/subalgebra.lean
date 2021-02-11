@@ -298,9 +298,38 @@ def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S
 { commutes' := λ r, subtype.eq $ f.commutes r,
   .. ring_hom.cod_srestrict (f : A →+* B) S hf }
 
+@[simp] lemma val_comp_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
+  S.val.comp (f.cod_restrict S hf) = f :=
+alg_hom.ext $ λ _, rfl
+
+@[simp] lemma coe_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) (x : A) :
+  ↑(f.cod_restrict S hf x) = f x := rfl
+
 theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
+
+/-- Restrict an algebra homomorphism with a left inverse to an algebra isomorphism to its range.
+
+This is a computable alternative to `alg_equiv.of_injective`. -/
+def alg_equiv.of_left_inverse
+  {g : B →ₐ[R] A} {f : A →ₐ[R] B} (h : function.left_inverse g f) :
+  A ≃ₐ[R] f.range :=
+alg_equiv.of_alg_hom
+  (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩))
+  (alg_hom.comp g f.range.val)
+  (alg_hom.ext $ λ x, subtype.ext $
+    let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'])
+  (alg_hom.ext h)
+
+@[simp] lemma alg_equiv.of_left_inverse_apply
+  {g : B →ₐ[R] A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : A) :
+  ↑(alg_equiv.of_left_inverse h x) = f x := rfl
+
+@[simp] lemma alg_equiv.of_left_inverse_symm_apply
+  {g : B →ₐ[R] A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : f.range) :
+  (alg_equiv.of_left_inverse h).symm x = g x := rfl
 
 /-- Restrict an injective algebra homomorphism to an algebra isomorphism -/
 noncomputable def alg_equiv.of_injective (f : A →ₐ[R] B) (hf : function.injective f) :

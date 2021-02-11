@@ -542,7 +542,7 @@ iff.rfl
 
 @[simp, mfld_simps] lemma mem_local_triv_target (i : ι) (p : B × F) :
   p ∈ (Z.local_triv i).target ↔ p.1 ∈ Z.base_set i :=
-iff.rfl
+by { erw [mem_prod], simp }
 
 @[simp, mfld_simps] lemma local_triv_apply (i : ι) (p : Z.total_space) :
   (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl

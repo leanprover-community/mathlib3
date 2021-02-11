@@ -311,7 +311,9 @@ theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : �
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
 
-/-- Restrict the codomain of a alg_hom `f` to `f.range`. -/
+/-- Restrict the codomain of a alg_hom `f` to `f.range`.
+
+This is the bundled version of `set.range_factorization`. -/
 @[reducible] def range_restrict (f : A →ₐ[R] B) : A →ₐ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
 

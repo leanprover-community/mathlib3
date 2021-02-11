@@ -636,7 +636,9 @@ def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
 @[simp] lemma restrict_apply (f : R →+* S) (x : s) : f.restrict s x = f x := rfl
 
-/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring. -/
+/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
+
+This is the bundled version of `set.range_factorization`. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
 f.cod_restrict' f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
 

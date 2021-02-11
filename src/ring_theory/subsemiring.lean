@@ -520,7 +520,9 @@ def cod_srestrict (f : R →+* S) (s : subsemiring S) (h : ∀ x, f x ∈ s) : R
   .. (f : R →* S).cod_mrestrict s.to_submonoid h,
   .. (f : R →+ S).cod_mrestrict s.to_add_submonoid h }
 
-/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring. -/
+/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
+
+This is the bundled version of `set.range_factorization`. -/
 def srange_restrict (f : R →+* S) : R →+* f.srange :=
 f.cod_srestrict f.srange f.mem_srange_self
 

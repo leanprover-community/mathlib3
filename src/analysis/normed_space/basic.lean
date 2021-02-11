@@ -72,6 +72,12 @@ noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_nor
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
              ... = ∥y - x∥ : by { rw [C.norm_neg] } }
 
+instance : normed_group ℝ :=
+{ norm := λ x, abs x,
+  dist_eq := assume x y, rfl }
+
+lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
+
 section normed_group
 variables [normed_group α] [normed_group β]
 
@@ -448,7 +454,7 @@ by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }
 
 lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
   tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥f e∥) a (𝓝 0) :=
-by simp [tendsto_iff_norm_tendsto_zero]
+by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
 
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `g` which tends to `0`, then `f` tends to `0`.
@@ -483,6 +489,22 @@ by simpa using continuous_id.dist (continuous_const : continuous (λ g, (0:α)))
 
 lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
+
+lemma uniform_continuous_norm : uniform_continuous (norm : α → ℝ) :=
+begin
+  rw metric.uniform_continuous_iff,
+  intros ε hε,
+  use [ε, hε],
+  intros x y hxy,
+  rw dist_eq_norm at hxy ⊢,
+  calc ∥∥x∥ - ∥y∥∥
+      = abs(∥x∥ - ∥y∥) : by rw real.norm_eq_abs
+  ... ≤ ∥x - y∥ : abs_norm_sub_norm_le x y
+  ... < ε : hxy
+end
+
+lemma uniform_continuous_nnnorm : uniform_continuous (nnnorm : α → ℝ≥0) :=
+uniform_continuous_subtype_mk uniform_continuous_norm _
 
 lemma tendsto_norm_nhds_within_zero : tendsto (norm : α → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
 (continuous_norm.tendsto' (0 : α) 0 norm_zero).inf $ tendsto_principal_principal.2 $
@@ -838,16 +860,13 @@ by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 end normed_field
 
 instance : normed_field ℝ :=
-{ norm := λ x, abs x,
-  dist_eq := assume x y, rfl,
-  norm_mul' := abs_mul }
+{ norm_mul' := abs_mul,
+  .. real.normed_group }
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 namespace real
-
-lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
 lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
 abs_of_nonneg hx

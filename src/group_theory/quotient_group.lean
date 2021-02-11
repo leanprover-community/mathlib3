@@ -193,4 +193,13 @@ mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
   refl
 end⟩
 
+/-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are isomorphic. -/
+def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
+  quotient M ≃* quotient N :=
+{ to_fun := (lift M (mk' N) (λ m hm, quotient_group.eq.mpr (by simpa [← h] using M.inv_mem hm))),
+  inv_fun := (lift N (mk' M) (λ n hn, quotient_group.eq.mpr (by simpa [← h] using N.inv_mem hn))),
+  left_inv := λ x, x.induction_on' $ by { intro, refl },
+  right_inv := λ x, x.induction_on' $ by { intro, refl },
+  map_mul' := λ x y, by rw map_mul }
+
 end quotient_group

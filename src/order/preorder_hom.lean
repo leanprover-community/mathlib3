@@ -170,7 +170,6 @@ end preorder_hom
 namespace order_embedding
 
 /-- Convert an `order_embedding` to a `preorder_hom`. -/
-@[simps]
 def to_preorder_hom {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) : X →ₘ Y :=
 { to_fun := f,
   monotone' := f.monotone }

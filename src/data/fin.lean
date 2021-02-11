@@ -954,6 +954,9 @@ begin
   simp [cast_pred, pred_above, this]
 end
 
+lemma cast_pred_monotone : monotone (@cast_pred n) :=
+pred_above_monotone (last _)
+
 /-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
 then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/
 @[simp] lemma succ_above_pred_above {p : fin n} {i : fin (n + 1)} (h : i ≠ p.cast_succ) :

@@ -158,30 +158,6 @@ begin
 end
 
 /-!
-Before proving Tsirelson's bound,
-we prepare some easy lemmas about √2.
--/
-
-
-local notation `√2` := (2^(2⁻¹ : ℝ) : ℝ)
-
-lemma one_lt_sqrt_two : 1 < √2 :=
-by { convert real.rpow_lt_rpow _ one_lt_two _; norm_num }
-
-lemma sqrt_two_ne_zero : √2 ≠ 0 :=
-ne_of_gt (lt_trans zero_lt_one one_lt_sqrt_two)
-
-lemma zero_lt_sqrt_two_inv : 0 < √2⁻¹ :=
-begin
-  simp only [inv_pos],
-  apply real.rpow_pos_of_pos,
-  norm_num,
-end
-
-@[simp] lemma sqrt_two_inv_sq : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
-by { rw [←mul_inv', ←real.rpow_add]; norm_num }
-
-/-!
 We next need some silly lemmas about numerals in modules and algebras.
 If anyone sees how to obtain these from general statements, please improve this!
 -/
@@ -202,21 +178,27 @@ lemma smul_four {α : Type*} [ring α] [algebra ℝ α] {x : ℝ} :
   x • (4 : α) = (4 * x) • 1 :=
 by { rw [mul_comm 4 x, mul_smul], simp, }
 
+/-!
+Before proving Tsirelson's bound,
+we prepare some easy lemmas about √2.
+-/
+local notation `√2` := (real.sqrt 2 : ℝ)
+
 -- This calculation, which we need for Tsirelson's bound,
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
 lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
   ring,
-  rw [mul_assoc, inv_mul_cancel, ←real.rpow_nat_cast, ←real.rpow_mul],
+  rw [mul_assoc, inv_mul_cancel, real.sqrt_eq_rpow, ←real.rpow_nat_cast, ←real.rpow_mul],
   { norm_num,
     rw show (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ (2 : ℕ), by { rw ←real.rpow_nat_cast, norm_num },
     norm_num },
-  { norm_num },
-  { -- I didn't find rpow_ne_zero
-    apply ne_of_gt,
-    apply real.rpow_pos_of_pos,
-    norm_num },
+  { norm_num, },
+  { norm_num, },
 end
+
+lemma sqrt_two_inv_sq : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
+by { rw [←mul_inv'], norm_num, }
 
 /--
 In a noncommutative ordered *-algebra over ℝ,
@@ -249,7 +231,7 @@ begin
     simp only [mul_one, int.cast_bit0, algebra.mul_smul_comm, int.cast_one, gsmul_eq_mul],
     rw [smul_two, smul_four, ←add_smul],
     congr,
-    exact mul_left_cancel' sqrt_two_ne_zero tsirelson_inequality_aux, },
+    exact mul_left_cancel' (by norm_num) tsirelson_inequality_aux, },
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
     have P_sa : star P = P,
     { dsimp [P],
@@ -267,7 +249,8 @@ begin
     { rw [pow_two],
       conv { congr, skip, congr, rw ←Q_sa, },
       convert (star_mul_self_nonneg : 0 ≤ star Q * Q), },
-    convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg) (le_of_lt zero_lt_sqrt_two_inv),
+    convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg)
+      (le_of_lt (show 0 < √2⁻¹, by norm_num)), -- `norm_num` can't directly show `0 ≤ √2⁻¹`
     simp, },
   apply le_of_sub_nonneg,
   simpa only [sub_add_eq_sub_sub, ←sub_add, w] using pos,

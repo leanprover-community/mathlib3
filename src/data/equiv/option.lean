@@ -70,6 +70,22 @@ lemma remove_none_some {x : α} (h : ∃ x', e (some x) = some x') :
 lemma remove_none_none {x : α} (h : e (some x) = none) :
   some (remove_none e x) = e none := remove_none_aux_none e h
 
+@[simp] lemma option_symm_apply_none_iff : e.symm none = none ↔ e none = none :=
+⟨λ h, by simpa using (congr_arg e h).symm, λ h, by simpa using (congr_arg e.symm h).symm⟩
+
+lemma some_remove_none_iff {x : α} :
+  some (remove_none e x) = e none ↔ e.symm none = some x :=
+begin
+  cases h : e (some x) with a,
+  { rw remove_none_none _ h,
+    simpa using (congr_arg e.symm h).symm },
+  { rw remove_none_some _ ⟨a, h⟩,
+    have := (congr_arg e.symm h),
+    rw [symm_apply_apply] at this,
+    simp only [false_iff, apply_eq_iff_eq],
+    simp [this] }
+end
+
 @[simp]
 lemma remove_none_map_equiv {α β : Type*} (e : α ≃ β) :
   remove_none (equiv_functor.map_equiv option e) = e :=

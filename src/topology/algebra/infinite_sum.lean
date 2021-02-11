@@ -305,6 +305,10 @@ lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=
 (has_sum_sum_of_ne_finset_zero hf).tsum_eq
 
+lemma tsum_congr (hfg : ∀ b, f b = g b) :
+  ∑' b, f b = ∑' b, g b :=
+congr_arg tsum (funext hfg)
+
 lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=
 (has_sum_fintype f).tsum_eq
 
@@ -778,10 +782,6 @@ begin
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
-lemma tsum_congr {f g : ℕ → ℝ} (hfg : ∀ n, f n = g n) :
-  ∑' n, f n = ∑' n, g n :=
-congr_arg tsum (funext hfg)
-
 end order_topology
 
 section ordered_topological_group
@@ -831,6 +831,9 @@ end
 
 lemma tsum_eq_zero_iff (hf : summable f) : ∑' i, f i = 0 ↔ ∀ x, f x = 0 :=
 by rw [←has_sum_zero_iff, hf.has_sum_iff]
+
+lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 0 :=
+by rw [ne.def, ← not_iff, tsum_eq_zero_iff hf, not_iff, not_forall]
 
 end canonically_ordered
 

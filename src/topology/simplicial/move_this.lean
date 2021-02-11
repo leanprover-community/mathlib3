@@ -44,32 +44,6 @@ end
 
 end category_theory
 
-noncomputable def finsupp.lmap_domain (R : Type*) [ring R] {X Y : Type*} (f : X ⟶ Y) :
-  linear_map R (X →₀ R) (Y →₀ R) :=
-{ to_fun := finsupp.map_domain f,
-  map_add' := λ _ _, finsupp.map_domain_add,
-  map_smul' := λ _ _, finsupp.map_domain_smul _ _ }
-
-@[simp] lemma finsupp.coe_lmap_domain (R : Type*) [ring R] {X Y : Type*} (f : X ⟶ Y) :
-  (finsupp.lmap_domain R f : (X →₀ R) → (Y →₀ R)) = finsupp.map_domain f := rfl
-
-namespace Module
-
-universe variables u
-
-variables (R : Type u) [ring R]
-
-@[simps]
-noncomputable def Free : Type u ⥤ Module R :=
-{ obj := λ X, Module.of R (X →₀ R),
-  map := λ X Y f, finsupp.lmap_domain R f,
-  map_id' := by { intros, ext1 v, exact finsupp.map_domain_id },
-  map_comp' := by { intros, ext1 v,
-    simp only [finsupp.coe_lmap_domain, function.comp_app, coe_comp],
-    exact finsupp.map_domain_comp } }
-
-end Module
-
 namespace linear_map
 variables (R M N P : Type*) [comm_ring R]
 variables [add_comm_group M] [module R M]

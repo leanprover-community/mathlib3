@@ -158,7 +158,17 @@ begin
 end
 
 /-!
-We next need some silly lemmas about numerals in modules and algebras.
+We now prove some rather specialized lemmas in preparation for the Tsirelson inequality,
+which we hide in a namespace as they are unlikely to be useful elsewhere.
+-/
+local notation `√2` := (real.sqrt 2 : ℝ)
+
+namespace tsirelson_inequality
+
+/-!
+We next need some lemmas about numerals in modules and algebras.
+The awkward appearance of both `•ℤ` and `•` seems unavoidable because later calculations by `abel`
+will introduce `•ℤ`.
 If anyone sees how to obtain these from general statements, please improve this!
 -/
 
@@ -182,7 +192,6 @@ by { rw [mul_comm 4 x, mul_smul], simp, }
 Before proving Tsirelson's bound,
 we prepare some easy lemmas about √2.
 -/
-local notation `√2` := (real.sqrt 2 : ℝ)
 
 -- This calculation, which we need for Tsirelson's bound,
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
@@ -199,6 +208,9 @@ end
 
 lemma sqrt_two_inv_sq : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
 by { rw [←mul_inv'], norm_num, }
+
+end tsirelson_inequality
+open tsirelson_inequality
 
 /--
 In a noncommutative ordered *-algebra over ℝ,

@@ -714,8 +714,7 @@ begin
   exact subsingleton_singleton,
 end
 
--- TODO: place in a section... where?
-lemma image_connected_component {β : Type*} [topological_space β] [totally_disconnected_space β]
+lemma image_connected_component_eq_singleton {β : Type*} [topological_space β] [totally_disconnected_space β]
   {f : α → β} (h : continuous f) (a : α) : f '' connected_component a = {f a} :=
 begin
   have ha : subsingleton (f '' connected_component a),
@@ -786,7 +785,8 @@ notation `π₀ ` α :max := quotient (connected_component_setoid α)
 lemma image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
   (h : continuous f) : ∀ (a b : α) (hab : a ≈ b), f a = f b :=
 λ a b hab, singleton_eq_singleton_iff.1 $
-  image_connected_component h a ▸ image_connected_component h b ▸ hab ▸ rfl
+  image_connected_component_eq_singleton h a ▸
+  image_connected_component_eq_singleton h b ▸ hab ▸ rfl
 
 def pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
   (h : continuous f) : π₀ α → β :=
@@ -812,10 +812,6 @@ begin
   change (g₁ ∘ quotient.mk) a = (g₂ ∘ quotient.mk) a,
   rw hg,
 end
-
-lemma pi0_lift_unique'' {β : Type*} [topological_space β] [totally_disconnected_space β]
-  (g₁ : π₀ α → β) (g₂ : π₀ α → β) (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ := sorry
---funext (λ x, quotient.induction_on x $ λ a, (eq.subst hg (@rfl β ((g₁ ∘ quotient.mk) a)))
 
 lemma pi0_preimage_singleton {t : α} : connected_component t = quotient.mk ⁻¹' {⟦t⟧} :=
 begin

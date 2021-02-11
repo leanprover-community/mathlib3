@@ -295,9 +295,8 @@ begin
   { have := eq_bot_of_generator_maximal_map_eq_zero hb ϕ_max a_zero,
     contradiction },
 
-  -- We claim that `ϕ⁻¹ a = y` is a basis element of `M` such that `a • y` is a basis element of `N`.
+  -- We claim that `ϕ⁻¹ a = y` can be taken as basis element of `N`.
   obtain ⟨y, y_mem, ϕy_eq⟩ := a_mem,
-  have ay_mem_N : generator (N.map ϕ) • y ∈ N := N.smul_mem _ y_mem,
   have ϕy_ne_zero := λ h, a_zero (ϕy_eq.symm.trans h),
 
   -- If `N'` is `ker (ϕ : N → R)`, it is smaller than `N` so by the induction hypothesis,

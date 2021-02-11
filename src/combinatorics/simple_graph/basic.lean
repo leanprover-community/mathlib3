@@ -520,14 +520,14 @@ begin
   exact ⟨λ ⟨hne, hnadj⟩, ⟨ne.symm hne, hnadj⟩, λ ⟨hne, hnadj⟩, ⟨ne.symm hne, hnadj⟩⟩,
 end
 
-lemma card_compl_neighbor_set' [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) [nonempty V] :
+lemma card_compl_neighbor_set' [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) :
   fintype.card (Gᶜ.neighbor_set v) = fintype.card V - fintype.card (G.neighbor_set v) - 1 :=
 begin
-  --rw compl_neighbor_set' G v,
+  -- rw compl_neighbor_set' G v,
   sorry,
 end
 
-lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) [nonempty V] :
+lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) :
   Gᶜ.degree v = fintype.card V - G.degree v - 1 :=
 begin
   rw nat.sub_sub,
@@ -546,8 +546,9 @@ begin
   simp,-/
 end
 
-lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj] [decidable_rel Gᶜ.adj] [nonempty V]
-(k : ℕ) (h : G.is_regular_of_degree k) : Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
+lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj]
+  [decidable_rel Gᶜ.adj] [nonempty V] (k : ℕ) (h : G.is_regular_of_degree k) :
+  Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
 begin
   rw is_regular_of_degree,
   intros v,

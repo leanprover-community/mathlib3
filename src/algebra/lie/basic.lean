@@ -19,8 +19,8 @@ modules, morphisms and equivalences, as well as various lemmas to make these def
   * `lie_algebra`
   * `lie_ring_module`
   * `lie_module`
-  * `lie_algebra.morphism`
-  * `lie_algebra.equiv`
+  * `lie_hom`
+  * `lie_equiv`
   * `lie_module_hom`
   * `lie_module_equiv`
 
@@ -133,31 +133,29 @@ by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie]
 
 end basic_properties
 
-namespace lie_algebra
-
 set_option old_structure_cmd true
 /-- A morphism of Lie algebras is a linear map respecting the bracket operations. -/
-structure morphism (R : Type u) (L : Type v) (L' : Type w)
+structure lie_hom (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
-  extends linear_map R L L' :=
-(map_lie : ∀ {x y : L}, to_fun ⁅x, y⁆ = ⁅to_fun x, to_fun y⁆)
+  extends L →ₗ[R] L' :=
+(map_lie' : ∀ {x y : L}, to_fun ⁅x, y⁆ = ⁅to_fun x, to_fun y⁆)
 
-attribute [nolint doc_blame] lie_algebra.morphism.to_linear_map
+attribute [nolint doc_blame] lie_hom.to_linear_map
 
-notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := morphism R L L'
+notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := lie_hom R L L'
 
-section morphism_properties
+namespace lie_hom
 
 variables {R : Type u} {L₁ : Type v} {L₂ : Type w} {L₃ : Type w₁}
 variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_ring L₃]
 variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
 
-instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨morphism.to_linear_map⟩
+instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨lie_hom.to_linear_map⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
+instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, lie_hom.to_fun⟩
 
-initialize_simps_projections lie_algebra.morphism (to_fun → apply)
+initialize_simps_projections lie_hom (to_fun → apply)
 
 @[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
   ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
@@ -165,75 +163,75 @@ initialize_simps_projections lie_algebra.morphism (to_fun → apply)
 @[simp, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
 rfl
 
-@[simp] lemma morphism.map_smul (f : L₁ →ₗ⁅R⁆ L₂) (c : R) (x : L₁) : f (c • x) = c • f x :=
+@[simp] lemma map_smul (f : L₁ →ₗ⁅R⁆ L₂) (c : R) (x : L₁) : f (c • x) = c • f x :=
 linear_map.map_smul (f : L₁ →ₗ[R] L₂) c x
 
-@[simp] lemma morphism.map_add (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f (x + y) = (f x) + (f y) :=
+@[simp] lemma map_add (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f (x + y) = (f x) + (f y) :=
 linear_map.map_add (f : L₁ →ₗ[R] L₂) x y
 
-@[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
+@[simp] lemma map_lie (f : L₁ →ₗ⁅R⁆ L₂) (x y : L₁) : f ⁅x, y⁆ = ⁅f x, f y⁆ := lie_hom.map_lie' f
 
 @[simp] lemma map_zero (f : L₁ →ₗ⁅R⁆ L₂) : f 0 = 0 := (f : L₁ →ₗ[R] L₂).map_zero
 
 /-- The constant 0 map is a Lie algebra morphism. -/
-instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
+instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie' := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
 
 /-- The identity map is a Lie algebra morphism. -/
-instance : has_one (L₁ →ₗ⁅R⁆ L₁) := ⟨{ map_lie := by simp, ..(1 : L₁ →ₗ[R] L₁)}⟩
+instance : has_one (L₁ →ₗ⁅R⁆ L₁) := ⟨{ map_lie' := by simp, ..(1 : L₁ →ₗ[R] L₁)}⟩
 
 instance : inhabited (L₁ →ₗ⁅R⁆ L₂) := ⟨0⟩
 
-lemma morphism.coe_injective : function.injective (λ f : L₁ →ₗ⁅R⁆ L₂, show L₁ → L₂, from f) :=
+lemma coe_injective : function.injective (λ f : L₁ →ₗ⁅R⁆ L₂, show L₁ → L₂, from f) :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
-@[ext] lemma morphism.ext {f g : L₁ →ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g :=
-morphism.coe_injective $ funext h
+@[ext] lemma ext {f g : L₁ →ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g :=
+coe_injective $ funext h
 
-lemma morphism.ext_iff {f g : L₁ →ₗ⁅R⁆ L₂} : f = g ↔ ∀ x, f x = g x :=
-⟨by { rintro rfl x, refl }, morphism.ext⟩
+lemma ext_iff {f g : L₁ →ₗ⁅R⁆ L₂} : f = g ↔ ∀ x, f x = g x :=
+⟨by { rintro rfl x, refl }, ext⟩
 
 /-- The composition of morphisms is a morphism. -/
-def morphism.comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ⁅R⁆ L₃ :=
-{ map_lie := λ x y, by { change f (g ⁅x, y⁆) = ⁅f (g x), f (g y)⁆, rw [map_lie, map_lie], },
+def comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ⁅R⁆ L₃ :=
+{ map_lie' := λ x y, by { change f (g ⁅x, y⁆) = ⁅f (g x), f (g y)⁆, rw [map_lie, map_lie], },
   ..linear_map.comp f.to_linear_map g.to_linear_map }
 
-@[simp] lemma morphism.comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
+@[simp] lemma comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
   f.comp g x = f (g x) := rfl
 
 @[norm_cast]
-lemma morphism.comp_coe (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
+lemma comp_coe (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
   (f : L₂ → L₃) ∘ (g : L₁ → L₂) = f.comp g := rfl
 
 /-- The inverse of a bijective morphism is a morphism. -/
-def morphism.inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
+def inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : L₂ →ₗ⁅R⁆ L₁ :=
-{ map_lie := λ x y,
+{ map_lie' := λ x y,
   calc g ⁅x, y⁆ = g ⁅f (g x), f (g y)⁆ : by { conv_lhs { rw [←h₂ x, ←h₂ y], }, }
             ... = g (f ⁅g x, g y⁆) : by rw map_lie
             ... = ⁅g x, g y⁆ : (h₁ _),
   ..linear_map.inverse f.to_linear_map g h₁ h₂ }
 
-end morphism_properties
+end lie_hom
 
 /-- An equivalence of Lie algebras is a morphism which is also a linear equivalence. We could
 instead define an equivalence to be a morphism which is also a (plain) equivalence. However it is
 more convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/
-structure equiv (R : Type u) (L : Type v) (L' : Type w)
+structure lie_equiv (R : Type u) (L : Type v) (L' : Type w)
   [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   extends L →ₗ⁅R⁆ L', L ≃ₗ[R] L'
 
-attribute [nolint doc_blame] lie_algebra.equiv.to_morphism
-attribute [nolint doc_blame] lie_algebra.equiv.to_linear_equiv
+attribute [nolint doc_blame] lie_equiv.to_lie_hom
+attribute [nolint doc_blame] lie_equiv.to_linear_equiv
 
-notation L ` ≃ₗ⁅`:50 R `⁆ ` L' := equiv R L L'
+notation L ` ≃ₗ⁅`:50 R `⁆ ` L' := lie_equiv R L L'
 
-namespace equiv
+namespace lie_equiv
 
 variables {R : Type u} {L₁ : Type v} {L₂ : Type w} {L₃ : Type w₁}
 variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_ring L₃]
 variables [lie_algebra R L₁] [lie_algebra R L₂] [lie_algebra R L₃]
 
-instance has_coe_to_lie_hom : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ →ₗ⁅R⁆ L₂) := ⟨to_morphism⟩
+instance has_coe_to_lie_hom : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ →ₗ⁅R⁆ L₂) := ⟨to_lie_hom⟩
 instance has_coe_to_linear_equiv : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ ≃ₗ[R] L₂) := ⟨to_linear_equiv⟩
 
 /-- see Note [function coercion] -/
@@ -246,7 +244,7 @@ instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) := ⟨_, to_fun⟩
   ((e : L₁ ≃ₗ[R] L₂) : L₁ → L₂) = e := rfl
 
 instance : has_one (L₁ ≃ₗ⁅R⁆ L₁) :=
-⟨{ map_lie := λ x y,
+⟨{ map_lie' := λ x y,
     by { change ((1 : L₁→ₗ[R] L₁) ⁅x, y⁆) = ⁅(1 : L₁→ₗ[R] L₁) x, (1 : L₁→ₗ[R] L₁) y⁆, simp, },
   ..(1 : L₁ ≃ₗ[R] L₁)}⟩
 
@@ -263,7 +261,7 @@ def refl : L₁ ≃ₗ⁅R⁆ L₁ := 1
 /-- Lie algebra equivalences are symmetric. -/
 @[symm]
 def symm (e : L₁ ≃ₗ⁅R⁆ L₂) : L₂ ≃ₗ⁅R⁆ L₁ :=
-{ ..morphism.inverse e.to_morphism e.inv_fun e.left_inv e.right_inv,
+{ ..lie_hom.inverse e.to_lie_hom e.inv_fun e.left_inv e.right_inv,
   ..e.to_linear_equiv.symm }
 
 @[simp] lemma symm_symm (e : L₁ ≃ₗ⁅R⁆ L₂) : e.symm.symm = e :=
@@ -278,7 +276,7 @@ by { cases e, refl, }
 /-- Lie algebra equivalences are transitive. -/
 @[trans]
 def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L₁ ≃ₗ⁅R⁆ L₃ :=
-{ ..morphism.comp e₂.to_morphism e₁.to_morphism,
+{ ..lie_hom.comp e₂.to_lie_hom e₁.to_lie_hom,
   ..linear_equiv.trans e₁.to_linear_equiv e₂.to_linear_equiv }
 
 @[simp] lemma trans_apply (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) (x : L₁) :
@@ -296,9 +294,7 @@ e.to_linear_equiv.injective
 lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.surjective
 
-end equiv
-
-end lie_algebra
+end lie_equiv
 
 section lie_module_morphisms
 
@@ -314,7 +310,7 @@ set_option old_structure_cmd true
 /-- A morphism of Lie algebra modules is a linear map which commutes with the action of the Lie
 algebra. -/
 structure lie_module_hom extends M →ₗ[R] N :=
-(map_lie : ∀ {x : L} {m : M}, to_fun ⁅x, m⁆ = ⁅x, to_fun m⁆)
+(map_lie' : ∀ {x : L} {m : M}, to_fun ⁅x, m⁆ = ⁅x, to_fun m⁆)
 
 attribute [nolint doc_blame] lie_module_hom.to_linear_map
 
@@ -335,14 +331,14 @@ instance : has_coe_to_fun (M →ₗ⁅R,L⁆ N) := ⟨_, lie_module_hom.to_fun�
 @[simp, norm_cast] lemma coe_to_linear_map (f : M →ₗ⁅R,L⁆ N) : ((f : M →ₗ[R] N) : M → N) = f :=
 rfl
 
-@[simp] lemma map_lie' (f : M →ₗ⁅R,L⁆ N) (x : L) (m : M) : f ⁅x, m⁆ = ⁅x, f m⁆ :=
-lie_module_hom.map_lie f
+@[simp] lemma map_lie (f : M →ₗ⁅R,L⁆ N) (x : L) (m : M) : f ⁅x, m⁆ = ⁅x, f m⁆ :=
+lie_module_hom.map_lie' f
 
 /-- The constant 0 map is a Lie module morphism. -/
-instance : has_zero (M →ₗ⁅R,L⁆ N) := ⟨{ map_lie := by simp, ..(0 : M →ₗ[R] N) }⟩
+instance : has_zero (M →ₗ⁅R,L⁆ N) := ⟨{ map_lie' := by simp, ..(0 : M →ₗ[R] N) }⟩
 
 /-- The identity map is a Lie module morphism. -/
-instance : has_one (M →ₗ⁅R,L⁆ M) := ⟨{ map_lie := by simp, ..(1 : M →ₗ[R] M) }⟩
+instance : has_one (M →ₗ⁅R,L⁆ M) := ⟨{ map_lie' := by simp, ..(1 : M →ₗ[R] M) }⟩
 
 instance : inhabited (M →ₗ⁅R,L⁆ N) := ⟨0⟩
 
@@ -357,7 +353,7 @@ lemma ext_iff {f g : M →ₗ⁅R,L⁆ N} : f = g ↔ ∀ m, f m = g m :=
 
 /-- The composition of Lie module morphisms is a morphism. -/
 def comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) : M →ₗ⁅R,L⁆ P :=
-{ map_lie := λ x m, by { change f (g ⁅x, m⁆) = ⁅x, f (g m)⁆, rw [map_lie', map_lie'], },
+{ map_lie' := λ x m, by { change f (g ⁅x, m⁆) = ⁅x, f (g m)⁆, rw [map_lie, map_lie], },
   ..linear_map.comp f.to_linear_map g.to_linear_map }
 
 @[simp] lemma comp_apply (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) (m : M) :
@@ -369,9 +365,9 @@ def comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) : M →ₗ⁅R,L⁆
 /-- The inverse of a bijective morphism of Lie modules is a morphism of Lie modules. -/
 def inverse (f : M →ₗ⁅R,L⁆ N) (g : N → M)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : N →ₗ⁅R,L⁆ M :=
-{ map_lie := λ x n,
+{ map_lie' := λ x n,
     calc g ⁅x, n⁆ = g ⁅x, f (g n)⁆ : by rw h₂
-              ... = g (f ⁅x, g n⁆) : by rw map_lie'
+              ... = g (f ⁅x, g n⁆) : by rw map_lie
               ... = ⁅x, g n⁆ : (h₁ _),
   ..linear_map.inverse f.to_linear_map g h₁ h₂ }
 
@@ -402,7 +398,7 @@ instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, to_fun⟩
 @[simp, norm_cast] lemma coe_to_linear_equiv (e : M ≃ₗ⁅R,L⁆ N) : ((e : M ≃ₗ[R] N) : M → N) = e :=
 rfl
 
-instance : has_one (M ≃ₗ⁅R,L⁆ M) := ⟨{ map_lie := λ x m, rfl, ..(1 : M ≃ₗ[R] M) }⟩
+instance : has_one (M ≃ₗ⁅R,L⁆ M) := ⟨{ map_lie' := λ x m, rfl, ..(1 : M ≃ₗ[R] M) }⟩
 
 @[simp] lemma one_apply (m : M) : (1 : (M ≃ₗ⁅R,L⁆ M)) m = m := rfl
 

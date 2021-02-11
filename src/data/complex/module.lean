@@ -36,7 +36,10 @@ instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
 
 @[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z := rfl
 
-instance : ordered_algebra ℝ ℂ :=
+section
+open_locale complex_order
+
+def complex_ordered_semimodule : ordered_semimodule ℝ ℂ :=
 { smul_lt_smul_of_pos := λ z w x h₁ h₂,
   begin
     obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
@@ -44,13 +47,12 @@ instance : ordered_algebra ℝ ℂ :=
     exact mul_pos h₂ l,
     ext; simp [mul_add],
   end,
-  lt_of_smul_lt_smul_of_nonneg := λ z w x h₁ h₂,
+  lt_of_smul_lt_smul_of_pos := λ z w x h₁ h₂,
   begin
     obtain ⟨y, l, e⟩ := lt_def.mp h₁,
     by_cases h : x = 0,
     { subst h, simp at h₁, exfalso, exact lt_irrefl 0 h₁, },
-    { replace h₂ : 0 < x := lt_of_le_of_ne h₂ (by { symmetry, exact h }),
-      refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
+    { refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
       replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
       simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
         not_false_iff, inv_mul_cancel] at e,
@@ -60,6 +62,12 @@ instance : ordered_algebra ℝ ℂ :=
       simp [mul_comm _ y, mul_assoc, h],
     },
   end }
+
+localized "attribute [instance] complex_ordered_semimodule" in complex_order
+
+end
+
+
 @[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
 
 @[simp] lemma re_smul (a : ℝ) (z : ℂ) : re (a • z) = a * re z := by simp [algebra.smul_def]
@@ -72,7 +80,7 @@ lemma is_basis_one_I : is_basis ℝ ![1, I] :=
 begin
   refine ⟨linear_independent_fin2.2 ⟨I_ne_zero, λ a, mt (congr_arg re) $ by simp⟩,
     eq_top_iff'.2 $ λ z, _⟩,
-  suffices : ∃ a b, z = a • I + b • 1,
+  suffices : ∃ a b : ℝ, z = a • I + b • 1,
     by simpa [mem_span_insert, mem_span_singleton, -set.singleton_one],
   use [z.im, z.re],
   simp [algebra.smul_def, add_comm]

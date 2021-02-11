@@ -29,6 +29,7 @@ partially defined functions.
 
 * `𝓝 x`: the filter of neighborhoods of a point `x`;
 * `𝓟 s`: the principal filter of a set `s`;
+* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`.
 
 ## Implementation notes
 
@@ -476,19 +477,28 @@ lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s
 /-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all
 neighborhoods of `a` forms a filter, the neighborhood filter at `a`, is here defined as the
 infimum over the principal filters of all open sets containing `a`. -/
-def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
+@[irreducible] def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
 localized "notation `𝓝` := nhds" in topological_space
 
-lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
+/-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
+intersection of `s` and a neighborhood of `a`. -/
+def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
+
+localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+
+lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
 /-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
 for a variant using open neighborhoods instead. -/
 lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
-has_basis_binfi_principal
-  (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
-    ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
-  ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
+begin
+  rw nhds_def,
+  exact has_basis_binfi_principal
+    (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
+      ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
+    ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
+end
 
 /-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
@@ -513,8 +523,6 @@ mem_nhds_sets_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
 lemma map_nhds {a : α} {f : α → β} :
   map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 (image f s)) :=
 ((nhds_basis_opens a).map f).eq_binfi
-
-attribute [irreducible] nhds
 
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
@@ -712,6 +720,11 @@ interior_eq_nhds'.trans $ by simp only [le_principal_iff]
 lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
 by rw [interior_eq_nhds', mem_set_of_eq]
+
+@[simp] lemma interior_mem_nhds {s : set α} {a : α} :
+  interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
+⟨λ h, mem_sets_of_superset h interior_subset,
+  λ h, mem_nhds_sets is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
 
 lemma interior_set_of_eq {p : α → Prop} :
   interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=

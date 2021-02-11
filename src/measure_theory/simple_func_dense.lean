@@ -29,7 +29,7 @@ both pointwise and in `L¹` norm, by a sequence of simple functions.
 -/
 
 open set filter topological_space
-open_locale classical topological_space
+open_locale classical topological_space ennreal
 variables {α β ι E : Type*}
 
 namespace measure_theory
@@ -203,7 +203,7 @@ begin
     measure_theory.lintegral_mono (λ x, edist_approx_on_y0_le fmeas h₀ x n)
   ... = ∫⁻ x, edist y₀ (f x) ∂μ + ∫⁻ x, edist y₀ (f x) ∂μ :
     measure_theory.lintegral_add this this
-  ... < ⊤ :
+  ... < ∞ :
     add_lt_top.2 ⟨hi, hi⟩
 end
 

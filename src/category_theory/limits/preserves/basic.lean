@@ -38,14 +38,14 @@ noncomputable theory
 
 namespace category_theory.limits
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ u₄
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
   -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D]
-variables {E : Type u₃} [category.{v₁} E]
+variables {E : Type u₃} [category.{v₃} E]
 
-variables {J J' : Type u₄} [category.{v₃} J] [category.{v₃} J'] {K : J ⥤ C}
+variables {J J' : Type u₄} [category.{v₄} J] [category.{v₄} J'] {K : J ⥤ C}
 
 /--
 A functor `F` preserves limits of `K` (written as `preserves_limit K F`)
@@ -149,7 +149,7 @@ instance comp_preserves_limits_of_shape
   preserves_limits_of_shape J (F ⋙ G) :=
 { preserves_limit := λ K, infer_instance }
 
-instance comp_preserves_limits {D : Type u₂} [category.{v₁} D]
+instance comp_preserves_limits {D : Type u₂} [category.{v₁} D] {E : Type u₃} [category.{v₁} E]
   (F : C ⥤ D) (G : D ⥤ E)
   [preserves_limits F] [preserves_limits G] :
   preserves_limits (F ⋙ G) :=
@@ -164,7 +164,7 @@ instance comp_preserves_colimits_of_shape
   preserves_colimits_of_shape J (F ⋙ G) :=
 { preserves_colimit := λ K, infer_instance }
 
-instance comp_preserves_colimits {D : Type u₂} [category.{v₁} D]
+instance comp_preserves_colimits {D : Type u₂} [category.{v₁} D] {E : Type u₃} [category.{v₁} E]
   (F : C ⥤ D) (G : D ⥤ E) [preserves_colimits F] [preserves_colimits G] :
   preserves_colimits (F ⋙ G) :=
 { preserves_colimits_of_shape := λ J 𝒥₁, infer_instance }
@@ -431,6 +431,7 @@ def preserves_limits_of_shape_of_reflects_of_preserves [preserves_limits_of_shap
 
 /-- If `F ⋙ G` preserves limits and `G` reflects limits, then `F` preserves limits. -/
 def preserves_limits_of_reflects_of_preserves {D : Type u₂} [category.{v₁} D]
+  {E : Type u₃} [category.{v₁} E]
   (F : C ⥤ D) (G : D ⥤ E) [preserves_limits (F ⋙ G)] [reflects_limits G] :
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥₁,
@@ -506,6 +507,7 @@ def preserves_colimits_of_shape_of_reflects_of_preserves [preserves_colimits_of_
 
 /-- If `F ⋙ G` preserves colimits and `G` reflects colimits, then `F` preserves colimits. -/
 def preserves_colimits_of_reflects_of_preserves {D : Type u₂} [category.{v₁} D]
+  {E : Type u₃} [category.{v₁} E]
   (F : C ⥤ D) (G : D ⥤ E)
   [preserves_colimits (F ⋙ G)]
   [reflects_colimits G] : preserves_colimits F :=

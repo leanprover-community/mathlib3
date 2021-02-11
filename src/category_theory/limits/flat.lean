@@ -191,10 +191,50 @@ def ind := {F : Cᵒᵖ ⥤ Type w // is_set_flat F}
 @[derive [full, faithful, reflects_isomorphisms]]
 def ind_to_presheaf : ind C ⥤ (Cᵒᵖ ⥤ Type v₁) := full_subcategory_inclusion _
 
+@[simps]
+def right (c : C) : Type v₁ ⥤ (C ⥤ Type v₁) :=
+{ obj := λ X,
+  { obj := λ d, (d ⟶ c) → X,
+    map := λ d d' f g h, g (f ≫ h) },
+  map := λ X Y f,
+  { app := λ Z g h, f (g h) } }
+
+def adj (c : C) : (evaluation _ (Type v₁)).obj c ⊣ right C c :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ F Y,
+  { to_fun := λ f,
+    { app := λ X x g, f (F.map g x),
+      naturality' := λ X Y g,
+      begin
+        ext t,
+        dsimp,
+        rw functor_to_types.map_comp_apply,
+      end },
+    inv_fun := λ f x, f.app c x (𝟙 _),
+    left_inv := λ f,
+    begin
+      ext,
+      simp,
+    end,
+    right_inv := λ f,
+    begin
+      ext t g,
+      dsimp,
+      rw functor_to_types.naturality,
+      dsimp,
+      simp,
+    end } }
+
+-- #exit
+
+-- def adj (c : C) : is_left_adjoint ((evaluation _ (Type u₁)).obj c)
+
+
 def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D] [is_filtered D]
-  (H : D ⥤ C ⥤ Type u₁)
+  (H : D ⥤ C ⥤ Type v₁)
   {c : cocone H}
-  (t' : ∀ x, is_colimit (((evaluation _ _).obj x).map_cocone c))
+  (t : is_colimit c)
+  (t' : ∀ x, is_colimit (((evaluation C (Type v₁)).obj x).map_cocone c))
   (hD : ∀ d, is_set_flat (H.obj d)) : is_set_flat c.X :=
 { nonempty :=
   begin
@@ -210,6 +250,10 @@ def six_three_six {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.
     op_induction Bb,
     cases Aa with A a,
     cases Bb with B b,
+    have : is_colimit (((evaluation C (Type v₁)).obj A).map_cocone c),
+    { apply is_colimit_of_preserves ((evaluation C (Type v₁)).obj A) t,
+
+    },
     rcases types.jointly_surjective _ (t' A) a with ⟨d, a' : (H.obj _).obj _, ha' : (c.ι.app d).app A a' = a⟩,
     rcases types.jointly_surjective _ (t' B) b with ⟨d', (b' : (H.obj _).obj _), hb' : (c.ι.app d').app B b' = b⟩,
     rcases is_filtered_or_empty.cocone_objs d d' with ⟨d'', f, g, ⟨⟩⟩,

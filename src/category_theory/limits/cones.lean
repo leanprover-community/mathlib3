@@ -13,10 +13,10 @@ universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 open category_theory
 
-variables {C : Type u₁} [category.{v₁} C]
-variables {D : Type u₂} [category.{v₂} D]
 variables {J : Type u₃} [category.{v₃} J]
 variables {K : Type u₄} [category.{v₄} K]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 
 open category_theory
 open category_theory.category

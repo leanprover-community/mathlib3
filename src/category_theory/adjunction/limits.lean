@@ -13,15 +13,15 @@ open category_theory
 open category_theory.functor
 open category_theory.limits
 
-universes u₁ u₂ v
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
 include adj
 
 section preservation_colimits
-variables {J : Type v} [small_category J] (K : J ⥤ C)
+variables {J : Type u₃} [category.{v₃} J] (K : J ⥤ C)
 
 /--
 The right adjoint of `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)`.
@@ -58,38 +58,62 @@ def functoriality_is_left_adjoint :
   { unit := functoriality_unit adj K,
     counit := functoriality_counit adj K } }
 
+def left_adjoint_preserves_colimits_of_shape : preserves_colimits_of_shape J F :=
+{ preserves_colimit := λ K,
+  { preserves := λ c hc,
+    is_colimit.iso_unique_cocone_morphism.inv
+      (λ s, @equiv.unique _ _ (is_colimit.iso_unique_cocone_morphism.hom hc _)
+             (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _)) } }
+
 /--
 A left adjoint preserves colimits.
 
 See https://stacks.math.columbia.edu/tag/0038.
 -/
-def left_adjoint_preserves_colimits : preserves_colimits F :=
-{ preserves_colimits_of_shape := λ J 𝒥,
-  { preserves_colimit := λ F,
-    by exactI
-    { preserves := λ c hc, is_colimit.iso_unique_cocone_morphism.inv
-        (λ s, @equiv.unique _ _ (is_colimit.iso_unique_cocone_morphism.hom hc _)
-          (((adj.functoriality_is_left_adjoint _).adj).hom_equiv _ _)) } } }.
+def left_adjoint_preserves_colimits {D : Type u₂} [category.{v₁} D]
+  {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)  :
+  preserves_colimits F :=
+{ preserves_colimits_of_shape := λ J 𝒥, by exactI left_adjoint_preserves_colimits_of_shape adj }
 
 omit adj
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
+instance is_equivalence_preserves_colimits_of_shape
+  (E : C ⥤ D) [is_equivalence E] : preserves_colimits_of_shape J E :=
+left_adjoint_preserves_colimits_of_shape E.adjunction
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_preserves_colimits {D : Type u₂} [category.{v₁} D]
+  (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
 left_adjoint_preserves_colimits E.adjunction
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : reflects_colimits E :=
-{ reflects_colimits_of_shape := λ J 𝒥, by exactI
-  { reflects_colimit := λ K,
-    { reflects := λ c t,
-      begin
-        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.fun_inv_id,
-        refine (((is_colimit.precompose_inv_equiv K.right_unitor _).symm) l).of_iso_colimit _,
-        tidy,
-      end } } }
+instance is_equivalence_reflects_colimits_of_shape
+  (E : D ⥤ C) [is_equivalence E] : reflects_colimits_of_shape J E :=
+{ reflects_colimit := λ K,
+  { reflects := λ c t,
+    begin
+      have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.fun_inv_id,
+      refine (((is_colimit.precompose_inv_equiv K.right_unitor _).symm) l).of_iso_colimit _,
+      tidy,
+    end } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] : creates_colimits H :=
+instance is_equivalence_reflects_colimits {D : Type u₂} [category.{v₁} D]
+  (E : D ⥤ C) [is_equivalence E] : reflects_colimits E :=
+{ reflects_colimits_of_shape := λ J 𝒥, infer_instance }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_colimits_of_shape (H : D ⥤ C)
+  [is_equivalence H] : creates_colimits_of_shape J H :=
+{ creates_colimit := λ F,
+  { lifts := λ c t,
+    { lifted_cocone := H.map_cocone_inv c,
+      valid_lift := H.map_cocone_map_cocone_inv c } } }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_colimits {D : Type u₂} [category.{v₁} D] (H : D ⥤ C)
+  [is_equivalence H] : creates_colimits H :=
 { creates_colimits_of_shape := λ J 𝒥, by exactI
   { creates_colimit := λ F,
     { lifts := λ c t,
@@ -97,7 +121,7 @@ instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] : crea
         valid_lift := H.map_cocone_map_cocone_inv c } } } }
 
 -- verify the preserve_colimits instance works as expected:
-example (E : C ⥤ D) [is_equivalence E]
+example {D : Type u₂} [category.{v₁} D] (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
 preserves_colimit.preserves h
 
@@ -116,7 +140,7 @@ lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_coli
 end preservation_colimits
 
 section preservation_limits
-variables {J : Type v} [small_category J] (K : J ⥤ D)
+variables {J : Type u₃} [category.{v₃} J] (K : J ⥤ D)
 
 /--
 The left adjoint of `cones.functoriality K G : cone K ⥤ cone (K ⋙ G)`.
@@ -153,38 +177,62 @@ def functoriality_is_right_adjoint :
   { unit := functoriality_unit' adj K,
     counit := functoriality_counit' adj K } }
 
+def right_adjoint_preserves_limits_of_shape : preserves_limits_of_shape J G :=
+{ preserves_limit := λ K,
+  by exactI
+  { preserves := λ c hc, is_limit.iso_unique_cone_morphism.inv
+      (λ s, @equiv.unique _ _ (is_limit.iso_unique_cone_morphism.hom hc _)
+        (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm) } }.
+
 /--
 A right adjoint preserves limits.
 
 See https://stacks.math.columbia.edu/tag/0038.
 -/
-def right_adjoint_preserves_limits : preserves_limits G :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ K,
-    by exactI
-    { preserves := λ c hc, is_limit.iso_unique_cone_morphism.inv
-        (λ s, @equiv.unique _ _ (is_limit.iso_unique_cone_morphism.hom hc _)
-          (((adj.functoriality_is_right_adjoint _).adj).hom_equiv _ _).symm) } } }.
+def right_adjoint_preserves_limits {D : Type u₂} [category.{v₁} D]
+  {F : D ⥤ C} {G : C ⥤ D} (adj : F ⊣ G) :
+  preserves_limits G :=
+{ preserves_limits_of_shape := λ J 𝒥, by exactI right_adjoint_preserves_limits_of_shape adj }
 
 omit adj
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] : preserves_limits E :=
+instance is_equivalence_preserves_limits_of_shape (E : D ⥤ C)
+  [is_equivalence E] : preserves_limits_of_shape J E :=
+right_adjoint_preserves_limits_of_shape E.inv.adjunction
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_preserves_limits {D : Type u₂} [category.{v₁} D] (E : D ⥤ C)
+  [is_equivalence E] : preserves_limits E :=
 right_adjoint_preserves_limits E.inv.adjunction
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : reflects_limits E :=
-{ reflects_limits_of_shape := λ J 𝒥, by exactI
-  { reflects_limit := λ K,
-    { reflects := λ c t,
-      begin
-        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.fun_inv_id,
-        refine (((is_limit.postcompose_hom_equiv K.left_unitor _).symm) this).of_iso_limit _,
-        tidy,
-      end } } }
+instance is_equivalence_reflects_limits_of_shape (E : D ⥤ C)
+  [is_equivalence E] : reflects_limits_of_shape J E :=
+{ reflects_limit := λ K,
+  { reflects := λ c t,
+    begin
+      have := (is_limit_of_preserves E.inv t).map_cone_equiv E.fun_inv_id,
+      refine (((is_limit.postcompose_hom_equiv K.left_unitor _).symm) this).of_iso_limit _,
+      tidy,
+    end } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
+instance is_equivalence_reflects_limits {D : Type u₂} [category.{v₁} D] (E : D ⥤ C)
+  [is_equivalence E] : reflects_limits E :=
+{ reflects_limits_of_shape := λ J 𝒥, infer_instance }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_limits_of_shape
+  (H : D ⥤ C) [is_equivalence H] : creates_limits_of_shape J H :=
+{ creates_limit := λ F,
+  { lifts := λ c t,
+    { lifted_cone := H.map_cone_inv c,
+      valid_lift := H.map_cone_map_cone_inv c } } }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_limits {D : Type u₂} [category.{v₁} D]
+  (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
   { creates_limit := λ F,
     { lifts := λ c t,
@@ -212,7 +260,7 @@ end preservation_limits
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
-def cocones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ C}
+def cocones_iso_component_hom {J : Type u₃} [category J] {K : J ⥤ C}
   (Y : D) (t : ((cocones J D).obj (op (K ⋙ F))).obj Y) :
   (G ⋙ (cocones J C).obj (op K)).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y) (t.app j),

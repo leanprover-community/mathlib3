@@ -1,4 +1,4 @@
-import category_theory.fintype
+import category_theory.Fintype
 import category_theory.limits.flat
 import data.finset.lattice
 

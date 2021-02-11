@@ -352,9 +352,9 @@ begin
   exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp hb.repr) bot_le) _ ⟨x, hx, rfl⟩
 end
 
-lemma generator_dvd_maximal_projection {N : submodule R M}
-  {ϕ : M →ₗ[R] R} (hϕ : ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ)
-  [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_map_dvd_of_mem {N : submodule R M}
+  (ϕ : M →ₗ[R] R) [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
   generator (N.map ϕ) ∣ ϕ x :=
 by { rw [← mem_iff_generator_dvd, submodule.mem_map], exact ⟨x, hx, rfl⟩ }
 
@@ -583,6 +583,7 @@ def submodule.induction_on_rank [fintype ι] (hb : is_basis R b) (P : submodule 
 submodule.induction_on_rank_aux hb P ih (fintype.card ι) N (λ s hs hli,
   by simpa using hb.card_le_card_of_linear_independent hli)
 
+/-
 @[simp] lemma fin.cons_zero' {n : ℕ} (C : fin (n + 1) → Type*)
   (hi : 0 < n + 1) (a : C 0) (b : Π (i : fin n), C i.succ) :
   fin.cons a b ⟨0, hi⟩ = a := fin.cons_zero a b
@@ -591,7 +592,9 @@ submodule.induction_on_rank_aux hb P ih (fintype.card ι) N (λ s hs hli,
   (hi : i + 1 < n + 1) (a : C 0) (b : Π (i : fin n), C i.succ) :
   fin.cons a b ⟨i + 1, hi⟩ = b ⟨i, (add_lt_add_iff_right 1).mp hi⟩ :=
 fin.cons_succ a b ⟨i, (add_lt_add_iff_right 1).mp hi⟩
+-/
 
+/-
 lemma submodule.exists_is_basis_fin_zero (N : submodule R (fin 0 → R)) :
   ∃ (bN : fin 0 → N), is_basis R bN :=
 begin
@@ -600,6 +603,7 @@ begin
   ext i,
   exact fin_zero_elim i
 end
+-/
 
 lemma nonempty_range_map (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] R) → ideal R)).nonempty :=
@@ -607,6 +611,7 @@ lemma nonempty_range_map (N : submodule R M) :
 
 open submodule.is_principal
 
+/-
 lemma submodule.generator_mem_iff_le {N P : submodule R M} [hN : submodule.is_principal N] :
   generator N ∈ P ↔ N ≤ P :=
 begin
@@ -614,7 +619,9 @@ begin
   obtain ⟨a, rfl⟩ := (mem_iff_eq_smul_generator N).mp hx,
   exact P.smul_mem a h
 end
+-/
 
+/-
 @[simp] lemma finset.sum_fin_zero (s : finset (fin 0)) (f : fin 0 → M) :
   ∑ x in s, f x = 0 :=
 begin
@@ -642,6 +649,7 @@ begin
       rintros ⟨x, hx⟩ -,
       simpa only [(submodule.mem_bot _).mp hx] using submodule.zero_mem _ } }
 end
+-/
 
 /-
 lemma fin.linear_independent_cons {n : ℕ} {x : M} {b : fin n → M}
@@ -673,6 +681,7 @@ def submodule.top_equiv : (⊤ : submodule R M) ≃ₗ[R] M :=
   map_add' := λ x y, by simp,
   map_smul' := λ c x, by simp }
 
+/-
 lemma finset.linear_independent_image
   {M' : Type*} [decidable_eq M'] [add_comm_group M'] [module R M']
   {s : finset M} (f : M →ₗ[R] M') (hf : function.injective f)
@@ -694,6 +703,7 @@ begin
     contradiction },
   { exact finset.mem_preimage.mpr hx }
 end
+-/
 
 end integral_domain
 
@@ -705,86 +715,6 @@ variables {ι : Type*} {R : Type*} [integral_domain R] [is_principal_ideal_ring 
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 open_locale matrix
-
-/-- The (non-unique) map `ϕ` such that `N.map ϕ` is maximal along the set of `N.map _`. -/
-noncomputable def maximal_projection (N : submodule R M) : M →ₗ[R] R :=
-have _ := set_has_maximal_iff_noetherian.mpr
-  (infer_instance : is_noetherian R R) _ (nonempty_range_map N),
-have hv' : classical.some this ∈ set.range _ := classical.some (classical.some_spec this),
-classical.some hv'
-
-/-- `maximal_projection` has a maximal image. -/
-lemma maximal_projection_is_maximal (N : submodule R M) (ϕ : M →ₗ[R] R)
-  (hϕ : N.map (maximal_projection N) ≤ N.map ϕ) :
-  N.map ϕ = N.map (maximal_projection N) :=
-begin
-  have h := set_has_maximal_iff_noetherian.mpr
-  (infer_instance : is_noetherian R R) _ (nonempty_range_map N),
-  have h1 := classical.some h,
-  have h2 := classical.some_spec h,
-  have h21 := classical.some h2,
-  have h212 := classical.some_spec (set.mem_range.mp h21),
-  have h22 := classical.some_spec h2,
-  specialize h22 (N.map ϕ),
-  rw ← h212 at h22,
-  exact h22 ⟨_, rfl⟩ hϕ,
-end
-
-/-- `maximal_gen N` is an element of `N` such that
-`maximal_projection N (maximal_gen N)` generates the image of `maximal_projection N`. -/
-noncomputable def maximal_gen (N : submodule R M) : M :=
-have _ := generator_mem (N.map (maximal_projection N)),
-classical.some (submodule.mem_map.mp this)
-
-lemma maximal_gen_mem (N : submodule R M) : maximal_gen N ∈ N :=
-have _ := generator_mem (N.map (maximal_projection N)),
-(classical.some_spec (submodule.mem_map.mp this)).1
-
-@[simp] lemma maximal_projection_maximal_gen (N : submodule R M) :
-  maximal_projection N (maximal_gen N) =
-    generator (N.map (maximal_projection N)) :=
-have _ := generator_mem (N.map (maximal_projection N)),
-(classical.some_spec (submodule.mem_map.mp this)).2
-
-lemma maximal_gen_ne_zero {b : ι → M} (hb : is_basis R b)
-  {N : submodule R M} (hN : N ≠ ⊥) :
-  generator (N.map (maximal_projection N)) ≠ 0 :=
-begin
-  rw [ne.def, submodule.eq_bot_iff] at hN,
-  refine mt (λ ha, _) hN,
-  intros x hx,
-  refine hb.ext_elem (λ i, _),
-  have := maximal_projection_is_maximal N ((finsupp.lapply i).comp hb.repr),
-  rw (eq_bot_iff_generator_eq_zero _).mpr ha at this,
-  rw [linear_map.map_zero, finsupp.zero_apply],
-  exact (submodule.eq_bot_iff _).mp (this bot_le) (hb.repr x i) ⟨x, hx, rfl⟩
-end
-
-lemma generator_dvd_maximal_gen (N : submodule R M) (ϕ : M →ₗ[R] R) :
-  generator (N.map (maximal_projection N)) ∣ ϕ (maximal_gen N) :=
-begin
-  rw ← mem_iff_generator_dvd,
-  set S : ideal R :=
-    submodule.span R ({generator (N.map (maximal_projection N)), ϕ (maximal_gen N)} : set R),
-  suffices : submodule.map (maximal_projection N) N = S,
-  { rw [this, submodule.mem_span_insert],
-    exact ⟨0, _, submodule.mem_span_singleton_self _, by rw [zero_smul, zero_add]⟩ },
-  have := generator_mem S,
-  have le_S : N.map (maximal_projection N) ≤ S :=
-    submodule.generator_mem_iff_le.mp (submodule.mem_span_insert.mpr
-      ⟨1, 0, submodule.zero_mem _, by rw [one_smul, add_zero]⟩),
-  obtain ⟨r₁, d', hd', d_eq⟩ := submodule.mem_span_insert.mp this,
-  obtain ⟨r₂, rfl⟩ := submodule.mem_span_singleton.mp hd',
-  have : ((r₁ • maximal_projection N) + (r₂ • ϕ)) (maximal_gen N) = generator S,
-  { rw [linear_map.add_apply, linear_map.smul_apply, linear_map.smul_apply,
-        maximal_projection_maximal_gen, d_eq] },
-  have S_le : S ≤ N.map ((r₁ • maximal_projection N) + (r₂ • ϕ)) :=
-    submodule.generator_mem_iff_le.mp (submodule.mem_map.mpr
-      ⟨maximal_gen N, maximal_gen_mem N, this⟩),
-  have := maximal_projection_is_maximal N _ (le_trans le_S S_le),
-  rw this at S_le,
-  exact le_antisymm le_S S_le
-end
 
 @[simp]
 lemma set.range_fin_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
@@ -802,69 +732,9 @@ begin
       rw [fin.cons_succ, hi] } }
 end
 
-lemma exists_generator_smul_eq_maximal_gen [fintype ι] (hb : is_basis R b)
-  {N : submodule R M} :
-  ∃ y, generator (N.map (maximal_projection N)) • y = maximal_gen N :=
-begin
-  let π : ι → (M →ₗ[R] R) :=
-  λ i, ⟨λ x, hb.repr x i,
-  λ x y, by rw [linear_map.map_add, finsupp.add_apply],
-  λ x y, by rw [linear_map.map_smul, finsupp.smul_apply]⟩,
-  have π_apply : ∀ i x, π i x = hb.repr x i := λ x i, rfl,
-
-  have : ∀ ϕ : M →ₗ[R] R, generator (N.map (maximal_projection N)) ∣ ϕ (maximal_gen N) :=
-  generator_dvd_maximal_gen N,
-  have : ∀ i, generator (N.map (maximal_projection N)) ∣ π i (maximal_gen N) := λ i, this (π i),
-  let c : ι → R := λ i, classical.some (this i),
-  have c_spec : ∀ i, π i (maximal_gen N) = generator (N.map (maximal_projection N)) * c i :=
-  λ i, classical.some_spec (this i),
-  use ∑ i, c i • b i,
-  -- TODO: this should be easier!
-  simp_rw [finset.smul_sum, ← smul_assoc, smul_eq_mul, ← c_spec, π_apply],
-  refine trans _ (hb.total_repr (maximal_gen N)),
-  simp only [finsupp.total_apply, finsupp.sum_fintype, eq_self_iff_true, zero_smul, forall_true_iff]
-end
-
-lemma mem_span_basis_iff {N : submodule R M} {n : ℕ}
-  {bN : fin n → (maximal_projection N).ker ⊓ N} (hbN : is_basis R bN) (y : N) :
-  y ∈ submodule.span R (set.range
-      (submodule.of_le (inf_le_right : ((maximal_projection N).ker ⊓ N) ≤ N) ∘ bN)) ↔
-    maximal_projection N y = 0 :=
-begin
-  have N'_le_ker : ((maximal_projection N).ker ⊓ N) ≤ (maximal_projection N).ker := inf_le_left,
-  obtain ⟨y, hy⟩ := y,
-  simp only [set.range_comp, submodule.span_image, submodule.mem_map],
-  split,
-  { rintros ⟨⟨y', mem_N'⟩, _, map_eq⟩,
-    have := subtype.mk_eq_mk.mp map_eq,
-    subst this,
-    exact linear_map.mem_ker.mp (N'_le_ker mem_N') },
-  { intros hy_ker,
-    rw ← linear_map.mem_ker at hy_ker,
-    refine ⟨⟨y, submodule.mem_inf.mpr ⟨hy_ker, hy⟩⟩, _, _⟩,
-    { show _ ∈ submodule.span R (bN '' set.range id),
-      simpa using hbN.mem_span ⟨y, submodule.mem_inf.mpr ⟨hy_ker, hy⟩⟩ },
-    { ext, simp } }
-end
-
-lemma linear_independent_maximal_gen_cons {N : submodule R M} (hN : N ≠ ⊥) {n : ℕ}
-  {b : ι → M} (hb : is_basis R b)
-  {bN : fin n → (maximal_projection N).ker ⊓ N} (hbN : is_basis R bN) :
-  linear_independent R (fin.cons
-      ⟨maximal_gen N, maximal_gen_mem N⟩
-      (submodule.of_le (inf_le_right : ((maximal_projection N).ker ⊓ N) ≤ N) ∘ bN) :
-    fin n.succ → N) :=
-begin
-  refine fin.linear_independent_cons _ _ (hbN.1.map' _ (submodule.ker_of_le _ _ _)) _,
-  intros c y hc,
-  have := congr_arg (maximal_projection N ∘ (coe : N → M)) hc,
-  squeeze_simp at this,
-  exact this.resolve_right (maximal_gen_ne_zero hb hN),
-end
-
 /-- A submodule of a free `R`-module of finite rank is also a free `R`-module of finite rank,
 if `R` is a principal ideal domain. -/
-lemma submodule.exists_is_basis {ι : Type*} [fintype ι]
+theorem submodule.exists_is_basis {ι : Type*} [fintype ι]
   {b : ι → M} (hb : is_basis R b) (N : submodule R M) :
   ∃ (n : ℕ) (bN : fin n → N), is_basis R bN :=
 begin
@@ -874,7 +744,13 @@ begin
 
   -- Let `ϕ` be a maximal projection of `M` onto `R`, in the sense that there is
   -- no `ψ` whose image of `N` is larger than `ϕ`'s image of `N`.
-  obtain ⟨ϕ, ϕ_max⟩ : ∃ ϕ : M →ₗ[R] R, ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ := _,
+  obtain ⟨ϕ, ϕ_max⟩ : ∃ ϕ : M →ₗ[R] R, ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ,
+  { obtain ⟨P, P_eq, P_max⟩ := set_has_maximal_iff_noetherian.mpr
+        (infer_instance : is_noetherian R R) _ (nonempty_range_map N),
+    obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
+    use ϕ,
+    intros ψ hψ,
+    exact P_max (N.map ψ) ⟨_, rfl⟩ hψ },
   -- Since `N.map ϕ` is a `R`-submodule of the PID `R`, it is principal and generated by some `a`.
   have a_mem : generator (N.map ϕ) ∈ N.map ϕ := generator_mem _,
 
@@ -888,62 +764,45 @@ begin
     contradiction },
 
   -- We claim that `ϕ⁻¹ a = y` is a basis element of `M` such that `a • y` is a basis element of `N`.
-  obtain ⟨y, y_mem, y'_eq⟩ := a_mem,
+  obtain ⟨y, y_mem, ϕy_eq⟩ := a_mem,
   have ay_mem_N : generator (N.map ϕ) • y ∈ N := N.smul_mem _ y_mem,
+  have ϕy_ne_zero := λ h, a_zero (ϕy_eq.symm.trans h),
 
   -- If `N'` is `ker (ϕ : N → R)`, it is smaller than `N` so by the induction hypothesis,
   -- it has a basis `bN'`.
   have N'_le_ker : (ϕ.ker ⊓ N) ≤ ϕ.ker := inf_le_left,
   have N'_le_N : (ϕ.ker ⊓ N) ≤ N := inf_le_right,
-  obtain ⟨nN', bN', hbN'⟩ := ih (ϕ.ker ⊓ N) N'_le_N y y_mem _,
+  -- Note that `y` is orthogonal to `N'`.
+  have y_ortho_N' : ∀ (c : R) (z : M), z ∈ ϕ.ker ⊓ N → c • y + z = 0 → c = 0,
+  { intros c x hx hc,
+    have hx' : x ∈ ϕ.ker := (inf_le_left : _ ⊓ N ≤ _) hx,
+    rw linear_map.mem_ker at hx',
+    simpa [ϕy_ne_zero, hx'] using congr_arg ϕ hc },
+  obtain ⟨nN', bN', hbN'⟩ := ih (ϕ.ker ⊓ N) N'_le_N y y_mem y_ortho_N',
   use nN'.succ,
 
+  -- Extend `bN'` with `y`, we'll show it's linear independent and spans `N`.
   use fin.cons ⟨y, y_mem⟩ (submodule.of_le N'_le_N ∘ bN'),
-  have bN_li : linear_independent R (submodule.of_le N'_le_N ∘ bN'),
-  { apply hbN'.1.map',
-    exact submodule.ker_of_le _ _ _ },
   split,
-  { apply fin.linear_independent_cons _ _ bN_li,
+  { apply fin.linear_independent_cons _ _
+            (hbN'.1.map' (submodule.of_le N'_le_N) (submodule.ker_of_le _ _ _)),
     intros c z hc,
-    have : submodule.span R (set.range (coe ∘ bN')) ≤ ϕ.ker,
+    apply y_ortho_N' c z (submodule.mem_inf.mpr ⟨_, z.1.2⟩) (congr_arg coe hc),
+    have : submodule.span R (set.range (submodule.of_le N'_le_N ∘ bN')) ≤ (ϕ.dom_restrict N).ker,
     { rw submodule.span_le,
       rintros _ ⟨i, rfl⟩,
       exact N'_le_ker (bN' i).2 },
-    have hz : ϕ (z : N) = 0 := linear_map.mem_ker.mp (this sorry),
-    have := congr_arg (ϕ ∘ coe) hc,
-    simp only [hz, linear_map.map_zero, submodule.coe_smul, add_zero, algebra.id.smul_eq_mul,
-               submodule.coe_add, submodule.coe_mk, function.comp_app, submodule.coe_zero,
-               linear_map.map_smul, linear_map.map_add, mul_eq_zero] at this,
-    exact this.resolve_right (λ h, a_zero (y'_eq.symm.trans h)) },
+    exact this z.2 },
   { rw eq_top_iff,
     rintro x -,
     rw [set.range_fin_cons, set.range_comp, submodule.mem_span_insert, submodule.span_image],
-    obtain ⟨b, hb⟩ : _ ∣ ϕ x := generator_dvd_maximal_projection ϕ_max x.2,
-    refine ⟨b, x - b • ⟨_, ay_mem_N⟩, _, _⟩,
-    { rw submodule.mem_map, },
-    /-
-    refine ⟨b, x - b • ⟨_, ay_mem_N⟩, _, _⟩,
-    { rw [mem_span_basis_iff hbN', submodule.coe_sub, linear_map.map_sub, hb, submodule.coe_smul,
-          linear_map.map_smul, submodule.coe_mk, y'_eq, smul_eq_mul, mul_comm,
-          maximal_projection_maximal_gen, sub_self] },
-    { ext, simp only [y'_eq, add_sub_cancel'_right] } -/ }
-
-  /-
-  have bN_li : linear_independent R (submodule.of_le N'_le_N ∘ bN'),
-  { apply hbN'.1.map',
-    exact submodule.ker_of_le _ _ _ },
-  split,
-  { exact linear_independent_maximal_gen_cons hN hb hbN' },
-  { rw eq_top_iff,
-    rintro x -,
-    simp only [set.range_cons],
-    rw submodule.mem_span_insert,
-     },
-  { intros c x hx hc,
-    have hx' : x ∈ (maximal_projection N).ker := (inf_le_left : _ ⊓ N ≤ _) hx,
-    rw linear_map.mem_ker at hx',
-    simpa [maximal_gen_ne_zero hb hN, hx'] using congr_arg (maximal_projection N) hc }
-    -/
+    obtain ⟨b, hb⟩ : _ ∣ ϕ x := generator_map_dvd_of_mem ϕ x.2,
+    refine ⟨b, x - b • ⟨_, y_mem⟩, _, _⟩,
+    { rw submodule.mem_map,
+      refine ⟨⟨x - b • _, _⟩, hbN'.mem_span _, rfl⟩,
+      refine submodule.mem_inf.mpr ⟨linear_map.mem_ker.mpr _, N.sub_mem x.2 (N.smul_mem _ y_mem)⟩,
+      simp [hb, ϕy_eq, mul_comm] },
+    { ext, simp only [ϕy_eq, add_sub_cancel'_right] } },
 end
 
 lemma submodule.exists_is_basis_of_le {ι : Type*} [fintype ι]
@@ -957,7 +816,5 @@ lemma submodule.exists_is_basis_of_le_span
   {N : submodule R M} (le : N ≤ submodule.span R (set.range b)) :
   ∃ (n : ℕ) (b : fin n → N), is_basis R b :=
 submodule.exists_is_basis_of_le le (is_basis_span hb)
-
-end principal_ideal_domain
 
 end principal_ideal_domain

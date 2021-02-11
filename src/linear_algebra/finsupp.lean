@@ -316,7 +316,7 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) : lsum.symm f x
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
 
-/-- Interpret `finsupp.lmap_domain` as a linear map. -/
+/-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
 ⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
 

@@ -1474,16 +1474,6 @@ end field
 
 end linear_map
 
-/-- `finsupp.map_domain` as an `R`-linear map, whenever `R` is a semiring. -/
-noncomputable def finsupp.lmap_domain (R : Type*) [semiring R] {X Y : Type*} (f : X → Y) :
-  (X →₀ R) →ₗ[R] (Y →₀ R) :=
-{ to_fun := finsupp.map_domain f,
-  map_add' := λ _ _, finsupp.map_domain_add,
-  map_smul' := λ _ _, finsupp.map_domain_smul _ _ }
-
-@[simp] lemma finsupp.coe_lmap_domain (R : Type*) [semiring R] {X Y : Type*} (f : X → Y) :
-  (finsupp.lmap_domain R f : (X →₀ R) → (Y →₀ R)) = finsupp.map_domain f := rfl
-
 section
 variables (R) [ring R] (X : Type*) (M) [add_comm_group M] [module R M]
 

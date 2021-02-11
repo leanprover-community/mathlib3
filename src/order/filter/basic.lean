@@ -2226,9 +2226,8 @@ begin
   intros s hs,
   filter_upwards [h₀ s hs, h₁ s hs],
   simp only [mem_preimage], intros x hp₀ hp₁,
-  by_cases h : p x,
-  { rw if_pos h, exact hp₀ h },
-  { rw if_neg h, exact hp₁ h }
+  split_ifs,
+  exacts [hp₀ h, hp₁ h]
 end
 
 lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}

@@ -1382,17 +1382,21 @@ section pointwise
 namespace subgroup
 
 @[to_additive]
+lemma closure_mul_le (S T : set G) : closure (S * T) ≤ closure S ⊔ closure T :=
+Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
+    (le_def.mp le_sup_left $ subset_closure hs)
+    (le_def.mp le_sup_right $ subset_closure ht)
+
+@[to_additive]
 lemma sup_eq_closure (H K : subgroup G) : H ⊔ K = closure (H * K) :=
 le_antisymm
   (sup_le
     (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
     (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
-  (Inf_le $ λ x ⟨h, k, hh, hk, hx⟩, hx ▸ (H ⊔ K).mul_mem
-    (le_def.mp le_sup_left hh)
-    (le_def.mp le_sup_right hk))
+  (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
 @[to_additive]
-protected def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
+private def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
 { carrier := (H : set G) * N,
   one_mem' := ⟨1, 1, H.one_mem, N.one_mem, by rw mul_one⟩,
   mul_mem' := λ a b ⟨h, n, hh, hn, ha⟩ ⟨h', n', hh', hn', hb⟩,
@@ -1408,12 +1412,12 @@ protected def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
 when `N` is normal."]
 lemma mul_normal (H N : subgroup G) [N.normal] : (↑(H ⊔ N) : set G) = H * N :=
 set.subset.antisymm
-  (show H ⊔ N ≤ subgroup.mul_normal_aux H N,
+  (show H ⊔ N ≤ mul_normal_aux H N,
     by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
   ((sup_eq_closure H N).symm ▸ subset_closure)
 
 @[to_additive]
-protected def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
+private def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
 { carrier := (N : set G) * H,
   one_mem' := ⟨1, 1, N.one_mem, H.one_mem, by rw mul_one⟩,
   mul_mem' := λ a b ⟨n, h, hn, hh, ha⟩ ⟨n', h', hn', hh', hb⟩,
@@ -1430,7 +1434,7 @@ protected def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
 when `N` is normal."]
 lemma normal_mul (N H : subgroup G) [N.normal] : (↑(N ⊔ H) : set G) = N * H :=
 set.subset.antisymm
-  (show N ⊔ H ≤ subgroup.normal_mul_aux N H,
+  (show N ⊔ H ≤ normal_mul_aux N H,
     by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
   ((sup_eq_closure N H).symm ▸ subset_closure)
 

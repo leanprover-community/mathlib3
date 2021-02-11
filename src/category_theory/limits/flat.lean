@@ -5,6 +5,7 @@ import category_theory.functor_category
 import category_theory.limits.preserves.limits
 import category_theory.limits.yoneda
 import category_theory.limits.creates
+import category_theory.adjunction.limits
 
 namespace category_theory
 open limits opposite

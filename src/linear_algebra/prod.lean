@@ -18,6 +18,7 @@ It contains theorems relating these to each other, as well as to `submodule.prod
   - `linear_map.fst`
   - `linear_map.snd`
   - `linear_map.coprod`
+  - `linear_map.prod_ext`
 - products in the codomain:
   - `linear_map.inl`
   - `linear_map.inr`
@@ -153,6 +154,20 @@ their domains. -/
     by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add], ac_refl },
   map_smul' := λ r a,
     by { ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst, coprod_apply] } }
+
+/--
+Split equality of linear maps from a product into linear maps over each component, to allow `ext`
+to apply lemmas specific to `M →ₗ M₃` and `M₂ →ₗ M₃`.
+
+See note [partially-applied ext lemmas]. -/
+@[ext] theorem prod_ext {f g : M × M₂ →ₗ[R] M₃}
+  (hl : f.comp (inl _ _ _) = g.comp (inl _ _ _))
+  (hr : f.comp (inr _ _ _) = g.comp (inr _ _ _)) :
+  f = g :=
+begin
+  refine (coprod_equiv ℕ).symm.injective _,
+  simp only [coprod_equiv_symm_apply, hl, hr],
+end
 
 /-- `prod.map` of two linear maps. -/
 def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →ₗ[R] (M₃ × M₄) :=

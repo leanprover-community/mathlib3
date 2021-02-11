@@ -92,7 +92,8 @@ The cause seems to be an inability to unify the `Π i, add_comm_monoid (M i →�
 we have with the `Π i, has_zero (M i →ₗ[R] N)` instance one of the parameters to the `dfinsupp`
 type. -/
 instance semimodule_of_linear_map [semiring S] [semimodule S N] [smul_comm_class R S N] :
-  by haveI : add_comm_monoid (Π₀ i, M i →ₗ[R] N) := @dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _;
+  by haveI : add_comm_monoid (Π₀ i, M i →ₗ[R] N) :=
+    @dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _;
   exactI semimodule S (Π₀ (i : ι), M i →ₗ[R] N) :=
   let unused := S in
   @dfinsupp.semimodule _ (λ i, M i →ₗ[R] N) _ _ _ _

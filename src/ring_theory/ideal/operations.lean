@@ -1222,7 +1222,7 @@ end
 
 /-- The induced algebras morphism from the quotient by the kernel to the codomain. -/
 def ker_lift_alg (f : A →ₐ[R] B) : f.to_ring_hom.ker.quotient →ₐ[R] B :=
-alg_hom.mk' (ring_hom.ker_lift f.to_ring_hom) (λ _ _, quotient.smul f _ _)
+alg_hom.mk' f.to_ring_hom.ker_lift (λ _ _, quotient.smul f _ _)
 
 @[simp]
 lemma ker_lift_alg_mk (f : A →ₐ[R] B) (a : A) :

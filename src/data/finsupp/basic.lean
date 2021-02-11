@@ -732,6 +732,11 @@ begin
     rw [support_erase, hf, finset.erase_insert has] }
 end
 
+lemma induction_linear {p : (α →₀ M) → Prop} (f : α →₀ M)
+  (h0 : p 0) (hadd : ∀ f g : α →₀ M, p f → p g → p (f + g)) (hsingle : ∀ a b, p (single a b)) :
+  p f :=
+induction₂ f h0 (λ a b f _ _ w, hadd _ _ w (hsingle _ _))
+
 @[simp] lemma add_closure_Union_range_single :
   add_submonoid.closure (⋃ a : α, set.range (single a : M → α →₀ M)) = ⊤ :=
 top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
@@ -1149,6 +1154,21 @@ lemma map_domain_support {f : α → β} {s : α →₀ M} :
 finset.subset.trans support_sum $
   finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
   by rw [finset.bUnion_singleton]; exact subset.refl _
+
+@[simp]
+lemma map_domain_sum_index {X Y : Type*} (f : X → Y)
+  {M N : Type*} [add_comm_monoid M] [add_comm_monoid N]
+  (g : X →₀ M) (h : Y → M →+ N) :
+  (finsupp.map_domain f g).sum (λ y m, h y m) = g.sum (λ x m, h (f x) m) :=
+begin
+  dsimp [finsupp.map_domain],
+  apply finsupp.induction_linear g,
+  { simp, },
+  { intros g₁ g₂ h₁ h₂,
+    rw [finsupp.sum_add_index, finsupp.sum_add_index, finsupp.sum_add_index, h₁, h₂];
+    simp, },
+  { simp, }
+end
 
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}

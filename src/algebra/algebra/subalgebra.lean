@@ -352,10 +352,10 @@ def of_left_inverse
   A ≃ₐ[R] f.range :=
 { to_fun := f.range_restrict,
   inv_fun := g ∘ f.range.val,
-  left_inv := λ x, subtype.ext $
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
     let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
-    show f (g x) = x, by rw [←hx', h x']
-  right_inv := h,
+    show f (g x) = x, by rw [←hx', h x'],
   ..f.range_restrict }
 
 @[simp] lemma of_left_inverse_apply

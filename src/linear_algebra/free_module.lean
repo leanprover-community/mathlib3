@@ -14,6 +14,25 @@ equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `
 
 This file proves a submodule of a free `R`-module of finite rank is also
 a free `R`-module of finite rank, if `R` is a principal ideal domain.
+We express "free `R`-module of finite rank" as a module `M` which has a basis
+`b : ι → R`, where `ι` is a `fintype`.
+We call the cardinality of `ι` the rank of `M` in this file;
+it would be equal to `findim R M` if `R` is a field and `M` is a vector space.
+
+## Main results
+
+ - `submodule.induction_on_rank`: if `M` is free and finitely generated,
+   if `P` holds for `⊥ : submodule R M` and if `P N` follows from `P N'`
+   for all `N'` that are of lower rank, then `P` holds on all submodules
+
+ - `submodule.exists_is_basis`: if `M` is free and finitely generated
+   and `R` is a PID, then `N : submodule R M` is free and finitely generated.
+   This is the first part of the structure theorem for modules.
+
+## Tags
+
+free module, finitely generated module, rank, structure theorem
+
 -/
 
 open_locale big_operators

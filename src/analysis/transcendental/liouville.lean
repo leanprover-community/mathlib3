@@ -17,12 +17,6 @@ This file contains the proof of Liouville's theorem stating that all Liouville n
 transcendental.
 -/
 
--- PR int_abs_lt_one_eq_zero
--- moved to data.int.basic
-@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : abs a < 1 ↔ a = 0 :=
-⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (int.le_of_lt_add_one (by exact hp)).antisymm hn,
-  λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
-
 namespace real
 
 -- PR liouville_def contains the definition `is_liouville` and the lemma that
@@ -52,7 +46,7 @@ begin
   have ap : 0 < abs (a * ↑q - ↑b * p) := abs_pos.mpr a0,
   lift (abs (a * ↑q - ↑b * p)) to ℕ using (abs_nonneg (a * ↑q - ↑b * p)),
   rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt] at a1,
-  exact not_le.mpr a1 (mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
+  exact not_le.mpr a1 (nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
 end
 
 lemma not_liouville_zero : ¬ is_liouville 0 :=
@@ -63,12 +57,6 @@ end real
 open set ring_hom real
 
 namespace polynomial
-
--- going to denoms_clearable
-lemma one_le_pow_mul_abs_eval_div {f : polynomial ℤ} {a b : ℤ}
-  (b0 : (0) < b) (fab : eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ)) ≠ 0) :
-  (1 : ℝ) ≤ b ^ f.nat_degree * abs (eval ((a : ℝ) / b) (f.map (algebra_map ℤ ℝ))) :=
-one_le_pow_mul_abs_eval_div_no_coe b0 fab
 
 end polynomial
 
@@ -124,7 +112,7 @@ end
 
 /-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
 It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
-`R = ℝ`, `d a = a ^ f.nat_degree`, `j z n  = z / (n + 1)`, `f ∈ ℤ[x]`, `α` is an irrational
+`R = ℝ`, `d a = a ^ f.nat_degree`, `j z a  = z / (a + 1)`, `f ∈ ℤ[x]`, `α` is an irrational
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
 the degree of the polynomial `f`.
 -/

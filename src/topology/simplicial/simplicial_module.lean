@@ -20,14 +20,14 @@ open category_theory
 variables (R : Type u) [comm_ring R]
 
 /-- The category of simplicial modules over a ring. -/
-@[derive small_category]
-def simplicial_module := Simplicial.{u} (Module R)
+@[derive category]
+def simplicial_module := Simplicial.{u} (Module.{u} R)
 
 namespace sType
 
 /-- The free simplicial module on a simplicial type. -/
 def free_simplicial_module : sType.{u} ⥤ (simplicial_module R) :=
-functor.comp_right (Module.Free R)
+functor.comp_right (Module.free R)
 
 end sType
 

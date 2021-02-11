@@ -94,19 +94,10 @@ def smul_add_hom : R →+ M →+ M :=
 
 variables {M}
 
-/-- Scalar multiplication as an additive map in its first argument (with second argument fixed). -/
-def smul_add_hom_left (m : M) : R →+ M :=
-{ to_fun := λ r, r • m,
-  map_zero' := by simp,
-  map_add' := by simp [add_smul], }
-
 variables {R}
 
 @[simp] lemma smul_add_hom_apply (r : R) (x : M) :
   smul_add_hom R M r x = r • x := rfl
-
-@[simp] lemma smul_add_hom_left_apply (x : M) (r : R) :
-  smul_add_hom_left R x r = r • x := rfl
 
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]

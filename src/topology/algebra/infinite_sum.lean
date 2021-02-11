@@ -328,6 +328,14 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
 
+lemma tsum_dite_right (P : Prop) [decidable P] (x : β → ¬ P → α) :
+  ∑' (b : β), dite P (λ h, (0 : α)) (x b) = dite P (λ h, 0) (λ h, ∑' (b : β), x b h) :=
+by by_cases hP : P; simp [hP]
+
+lemma tsum_dite_left (P : Prop) [decidable P] (x : β → P → α) :
+  ∑' (b : β), dite P (x b) (λ h, 0) = dite P (λ h, ∑' (b : β), x b h) (λ h, 0) :=
+by by_cases hP : P; simp [hP]
+
 lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
   [topological_space α'] (e : α' ≃ α) (h0 : e 0 = 0) {f : β → α} {g : γ → α'}
   (h : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :

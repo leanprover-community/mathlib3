@@ -32,7 +32,7 @@ much more developed, but many lemmas in that file should be eligible to copy ove
 function with finite support, semimodule, linear algebra
 -/
 
-variables {ι : Type*} {R : Type*} {M : ι → Type*} {N : Type*}
+variables {ι : Type*} {R : Type*} {S : Type*} {M : ι → Type*} {N : Type*}
 
 variables [dec_ι : decidable_eq ι]
 variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
@@ -83,11 +83,28 @@ omit dec_ι
 
 @[simp] lemma lapply_apply (i : ι) (f : Π₀ i, M i) : (lapply i : _ →ₗ[R] _) f = f i := rfl
 
+section lsum
+
+/-- Typeclass inference has a _really_ bad time finding this instance, so we have to build it
+excruciatingly. This is needed to define `dfinsupp.lsum` below.
+
+The cause seems to be an inability to unify the `Π i, add_comm_monoid (M i →ₗ[R] N)` instance that
+we have with the `Π i, has_zero (M i →ₗ[R] N)` instance one of the parameters to the `dfinsupp`
+type. -/
+instance semimodule_of_linear_map [semiring S] [semimodule S N] [smul_comm_class R S N] :
+  by haveI : add_comm_monoid (Π₀ i, M i →ₗ[R] N) := @dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _;
+  exactI semimodule S (Π₀ (i : ι), M i →ₗ[R] N) :=
+  let unused := S in
+  @dfinsupp.semimodule _ (λ i, M i →ₗ[R] N) _ _ _ _
+
+variables (S)
+
 include dec_ι
 
 /-- The `dfinsupp` version of `finsupp.lsum`. -/
 @[simps apply symm_apply]
-def lsum : (Π i, M i →ₗ[R] N) ≃+ ((Π₀ i, M i) →ₗ[R] N) :=
+def lsum [semiring S] [semimodule S N] [smul_comm_class R S N] :
+  (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
     to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
     map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
@@ -101,6 +118,9 @@ def lsum : (Π i, M i →ₗ[R] N) ≃+ ((Π₀ i, M i) →ₗ[R] N) :=
   inv_fun := λ F i, F.comp (lsingle i),
   left_inv := λ F, by { ext x y, simp },
   right_inv := λ F, by { ext x y, simp },
-  map_add' := λ F G, by { ext x y, simp } }
+  map_add' := λ F G, by { ext x y, simp },
+  map_smul' := λ c F, by { ext, simp } }
+
+end lsum
 
 end dfinsupp

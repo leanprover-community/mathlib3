@@ -90,8 +90,6 @@ localized "attribute [instance] fact.pow.pos" in fin_fact
 namespace fin
 variables {n m : ℕ} {a b : fin n}
 
-instance has_zero_of_pos [h : fact (0 < n)] : has_zero (fin n) := { zero := ⟨0, h⟩ }
-
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
 section coe
@@ -204,7 +202,7 @@ attribute [simp] val_zero
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
-lemma pos_iff_ne_zero [fact (0 < n)] (a : fin n) : 0 < a ↔ a ≠ 0 :=
+lemma pos_iff_ne_zero (a : fin (n+1)) : 0 < a ↔ a ≠ 0 :=
 begin
   split,
   { rintros h rfl, exact lt_irrefl _ h, },
@@ -563,7 +561,6 @@ lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.mpr a.is_lt
 
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
-@[simp] lemma cast_succ_zero' [fact (0 < n)] : cast_succ (0 : fin n) = 0 := rfl
 
 /-- `cast_succ i` is positive when `i` is positive -/
 lemma cast_succ_pos (i : fin (n + 1)) (h : 0 < i) : 0 < cast_succ i :=
@@ -922,7 +919,7 @@ by lowering just `last (n + 1)` to `last n`. -/
 def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
 pred_above (last n) i
 
-@[simp] theorem pred_above_zero [fact (0 < n)] {i : fin (n + 1)} (hi : i ≠ 0) :
+@[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=
 begin
   dsimp [pred_above],

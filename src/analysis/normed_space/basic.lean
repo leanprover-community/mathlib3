@@ -860,24 +860,28 @@ abs_of_nonneg hx
 
 @[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
 
-open_locale nnreal
-
-@[simp] lemma nnreal.norm_eq (x : ℝ≥0) : ∥(x : ℝ)∥ = x :=
-by rw [real.norm_eq_abs, x.abs_eq]
-
-lemma nnnorm_coe_eq_self {x : ℝ≥0} : nnnorm (x : ℝ) = x :=
-by { ext, exact norm_of_nonneg (zero_le x) }
-
 lemma nnnorm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : nnnorm x = ⟨x, hx⟩ :=
-@nnnorm_coe_eq_self ⟨x, hx⟩
+nnreal.eq $ norm_of_nonneg hx
 
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (nnnorm x : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
 
 end real
 
+namespace nnreal
+
+open_locale nnreal
+
+@[simp] lemma norm_eq (x : ℝ≥0) : ∥(x : ℝ)∥ = x :=
+by rw [real.norm_eq_abs, x.abs_eq]
+
+@[simp] lemma nnnorm_eq (x : ℝ≥0) : nnnorm (x : ℝ) = x :=
+nnreal.eq $ real.norm_of_nonneg x.2
+
+end nnreal
+
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
-by rw [real.norm_of_nonneg (norm_nonneg _)]
+real.norm_of_nonneg (norm_nonneg _)
 
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]

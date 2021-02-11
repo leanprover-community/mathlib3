@@ -114,6 +114,20 @@ def sum : (Π i, C i) ⥤ (Π j, D j) ⥤ (Π s : I ⊕ J, sum.elim C D s) :=
 
 end
 
+variables {C}
+
+/-- An isomorphism between `I`-indexed objects gives an isomorphism between each
+pair of corresponding components. -/
+@[simps] def iso_app {X Y : Π i, C i} (f : X ≅ Y) (i : I) : X i ≅ Y i :=
+⟨f.hom i, f.inv i, by { dsimp, rw [← comp_apply, iso.hom_inv_id, id_apply] },
+  by { dsimp, rw [← comp_apply, iso.inv_hom_id, id_apply] }⟩
+
+@[simp] lemma iso_app_refl (X : Π i, C i) (i : I) : iso_app (iso.refl X) i = iso.refl (X i) := rfl
+@[simp] lemma iso_app_symm {X Y : Π i, C i} (f : X ≅ Y) (i : I) :
+  iso_app f.symm i = (iso_app f i).symm := rfl
+@[simp] lemma iso_app_trans {X Y Z : Π i, C i} (f : X ≅ Y) (g : Y ≅ Z) (i : I) :
+  iso_app (f ≪≫ g) i = iso_app f i ≪≫ iso_app g i := rfl
+
 end pi
 
 namespace functor

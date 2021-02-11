@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import data.complex.exponential
-import analysis.calculus.mean_value
+import analysis.calculus.inverse
 import measure_theory.borel_space
 import analysis.complex.real_deriv
 
@@ -34,6 +34,12 @@ open finset filter metric asymptotics set function
 open_locale classical topological_space
 
 namespace complex
+
+lemma measurable_re : measurable re := continuous_re.measurable
+
+lemma measurable_im : measurable im := continuous_im.measurable
+
+lemma measurable_of_real : measurable (coe : ℝ → ℂ) := continuous_of_real.measurable
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
@@ -76,6 +82,12 @@ begin
     use differentiable_exp,
     rwa deriv_exp }
 end
+
+lemma has_strict_deriv_at_exp (x : ℂ) : has_strict_deriv_at exp (exp x) x :=
+times_cont_diff_exp.times_cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
+
+lemma is_open_map_exp : is_open_map exp :=
+open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 
 lemma measurable_exp : measurable exp := continuous_exp.measurable
 

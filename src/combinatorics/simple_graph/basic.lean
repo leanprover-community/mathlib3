@@ -503,8 +503,34 @@ begin
   simp,
 end-/
 
-lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj]
-  [decidable_rel Gᶜ.adj] (v : V) [nonempty V] :
+lemma compl_neighbor_set (G : simple_graph V) [decidable_rel G.adj] (v : V) :
+  Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
+begin
+  ext w,
+  simp,
+  exact ⟨λ ⟨hne, hnadj⟩, ⟨hnadj, ne.symm hne⟩, λ ⟨hnadj, hne⟩, ⟨ne.symm hne, hnadj⟩⟩,
+end
+
+lemma compl_neighbor_set' (G : simple_graph V) [decidable_rel G.adj] (v : V) :
+  Gᶜ.neighbor_set v = set.univ \ (G.neighbor_set v ∪ {v}) :=
+begin
+  ext w,
+  simp,
+  push_neg,
+  exact ⟨λ ⟨hne, hnadj⟩, ⟨ne.symm hne, hnadj⟩, λ ⟨hne, hnadj⟩, ⟨ne.symm hne, hnadj⟩⟩,
+end
+
+lemma card_compl_neighbor_set' [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) [nonempty V] :
+  Gᶜ.degree v = fintype.card V - G.degree v - 1 :=
+begin
+  --have h2 := compl_neighbor_set G v,
+  rw ← card_neighbor_set_eq_degree,
+  rw ← card_neighbor_set_eq_degree,
+  rw compl_neighbor_set' G v,
+  sorry,
+end
+
+lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) [nonempty V] :
   Gᶜ.degree v = fintype.card V - G.degree v - 1 :=
 begin
   rw nat.sub_sub,

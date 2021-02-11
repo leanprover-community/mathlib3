@@ -330,6 +330,15 @@ lemma le_def {H K : subgroup G} : H ≤ K ↔ ∀ ⦃x : G⦄, x ∈ H → x ∈
 @[simp, to_additive]
 lemma coe_subset_coe {H K : subgroup G} : (H : set G) ⊆ K ↔ H ≤ K := iff.rfl
 
+/-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
+@[to_additive]
+def inclusion {H K : subgroup G} (h : H ≤ K) : H →* K :=
+monoid_hom.mk' (λ ⟨x, hx⟩, ⟨x, h hx⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
+
+@[simp, to_additive]
+lemma coe_inclusion {H K : subgroup G} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=
+by { cases a, simp only [inclusion, coe_mk, monoid_hom.coe_mk'] }
+
 @[to_additive]
 instance : partial_order (subgroup G) :=
 { le := (≤),

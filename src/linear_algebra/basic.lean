@@ -1491,6 +1491,7 @@ end field
 
 end linear_map
 
+
 namespace is_linear_map
 
 lemma is_linear_map_add [semiring R] [add_comm_monoid M] [semimodule R M] :

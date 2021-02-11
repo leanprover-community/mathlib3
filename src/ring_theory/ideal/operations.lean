@@ -1056,7 +1056,7 @@ def ker_lift (f : R →+* S) : f.ker.quotient →+* S :=
 ideal.quotient.lift _ f $ λ r, f.mem_ker.mp
 
 @[simp]
-lemma ker_lift_mk (f : R →+* S) (r : R) : (ker_lift f) (ideal.quotient.mk f.ker r) = f r :=
+lemma ker_lift_mk (f : R →+* S) (r : R) : ker_lift f (ideal.quotient.mk f.ker r) = f r :=
 ideal.quotient.lift_mk _ _ _
 
 /-- The induced map from the quotient by the kernel is injective. -/

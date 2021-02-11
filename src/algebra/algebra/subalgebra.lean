@@ -290,6 +290,8 @@ protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
 @[simp] lemma mem_range (φ : A →ₐ[R] B) {y : B} :
   y ∈ φ.range ↔ ∃ x, φ x = y := ring_hom.mem_srange
 
+theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ f.range := mem_range.2 ⟨x, rfl⟩
+
 @[simp] lemma coe_range (φ : A →ₐ[R] B) : (φ.range : set B) = set.range φ :=
 by { ext, rw [subalgebra.mem_coe, mem_range], refl }
 
@@ -309,34 +311,36 @@ theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : �
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
 
+/-- Restrict the codomain of a alg_hom `f` to `f.range`. -/
+@[reducible] def range_restrict (f : A →ₐ[R] B) : A →ₐ[R] f.range :=
+f.cod_restrict f.range f.mem_range_self
+
 /-- Restrict an algebra homomorphism with a left inverse to an algebra isomorphism to its range.
 
 This is a computable alternative to `alg_equiv.of_injective`. -/
 def alg_equiv.of_left_inverse
-  {g : B →ₐ[R] A} {f : A →ₐ[R] B} (h : function.left_inverse g f) :
+  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) :
   A ≃ₐ[R] f.range :=
-alg_equiv.of_alg_hom
-  (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩))
-  (alg_hom.comp g f.range.val)
-  (alg_hom.ext $ λ x, subtype.ext $
+{ to_fun := f.range_restrict,
+  inv_fun := λ x, g (f.range.val x),
+  left_inv := λ x, subtype.ext $
     let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
     show f (g x) = x, by rw [←hx', h x'])
-  (alg_hom.ext h)
+  right_inv := h,
+  ..f.range_restrict }
 
 @[simp] lemma alg_equiv.of_left_inverse_apply
-  {g : B →ₐ[R] A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : A) :
+  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : A) :
   ↑(alg_equiv.of_left_inverse h x) = f x := rfl
 
 @[simp] lemma alg_equiv.of_left_inverse_symm_apply
-  {g : B →ₐ[R] A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : f.range) :
+  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : f.range) :
   (alg_equiv.of_left_inverse h).symm x = g x := rfl
 
 /-- Restrict an injective algebra homomorphism to an algebra isomorphism -/
 noncomputable def alg_equiv.of_injective (f : A →ₐ[R] B) (hf : function.injective f) :
   A ≃ₐ[R] f.range :=
-alg_equiv.of_bijective (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩))
-⟨(f.injective_cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩)).mpr hf,
-  λ x, Exists.cases_on (f.mem_range.mp (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩)⟩
+alg_equiv.of_left_inverse (classical.some_spec hf.has_left_inverse)
 
 @[simp] lemma alg_equiv.of_injective_apply (f : A →ₐ[R] B) (hf : function.injective f) (x : A) :
   ↑(alg_equiv.of_injective f hf x) = f x := rfl

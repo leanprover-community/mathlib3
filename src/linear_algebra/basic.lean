@@ -1838,9 +1838,9 @@ between `M` and `f.range`.
 
 This is a computable alternative to `linear_equiv.of_injective`, and a bidirectional version of
 `linear_map.range_restrict`. -/
-def of_left_inverse (h : function.left_inverse g f) : M ≃ₗ[R] f.range :=
+def of_left_inverse {g : M₂ → M} (h : function.left_inverse g f) : M ≃ₗ[R] f.range :=
 { to_fun := f.range_restrict,
-  inv_fun := (g.comp f.range.subtype),
+  inv_fun := g ∘ f.range.subtype,
   left_inv := h,
   right_inv := λ x, subtype.ext $
     let ⟨x', hx'⟩ := linear_map.mem_range.mp x.prop in
@@ -1897,10 +1897,9 @@ variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
 
 /-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
-between `M` and `f.range`. -/
+between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
 noncomputable def of_injective (h : f.ker = ⊥) : M ≃ₗ[R] f.range :=
-{ .. (equiv.set.range f $ linear_map.ker_eq_bot.1 h).trans (equiv.set.of_eq f.range_coe.symm),
-  .. f.cod_restrict f.range (λ x, f.mem_range_self x) }
+of_left_inverse $ classical.some_spec (linear_map.ker_eq_bot.1 h).has_left_inverse
 
 @[simp] theorem of_injective_apply {h : f.ker = ⊥} (x : M) :
   ↑(of_injective f h x) = f x := rfl

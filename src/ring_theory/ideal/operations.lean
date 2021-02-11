@@ -1077,11 +1077,23 @@ begin
 end
 
 /-- The first isomorphism theorem for commutative rings. -/
+def quotient_ker_equiv_of_right_inverse
+  {g : S → R} (hf : function.right_inverse g f) :
+  f.ker.quotient ≃+* S :=
+{ to_fun := ker_lift f,
+  inv_fun := (ideal.quotient.mk f.ker) ∘ g,
+  left_inv := begin
+    rintro ⟨x⟩,
+    apply injective_ker_lift,
+    simp [hf (f x)],
+  end,
+  right_inv := hf,
+  ..ker_lift f}
+
+/-- The first isomorphism theorem for commutative rings. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : function.surjective f) :
   f.ker.quotient ≃+* S :=
-ring_equiv.of_bijective (ker_lift f) $
-{ left := injective_ker_lift f,
-  right := surjective_ker_lift hf }
+quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
 end comm_ring
 

@@ -219,6 +219,32 @@ instance : is_atomic α :=
 
 end is_atomistic
 
+section is_atomistic
+variables [is_atomistic α]
+
+@[simp]
+theorem Sup_atoms_le_eq (b : α) : Sup {a : α | is_atom a ∧ a ≤ b} = b :=
+begin
+  rcases eq_Sup_atoms b with ⟨s, rfl, hs⟩,
+  exact le_antisymm (Sup_le (λ _, and.right)) (Sup_le_Sup (λ a ha, ⟨hs a ha, le_Sup ha⟩)),
+end
+
+@[simp]
+theorem Sup_atoms_eq_top : Sup {a : α | is_atom a} = ⊤ :=
+begin
+  refine eq.trans (congr rfl (set.ext (λ x, _))) (Sup_atoms_le_eq ⊤),
+  exact (and_iff_left le_top).symm,
+end
+
+theorem le_iff_atom_le_imp {a b : α} :
+  a ≤ b ↔ ∀ c : α, is_atom c → c ≤ a → c ≤ b :=
+⟨λ ab c hc ca, le_trans ca ab, λ h, begin
+  rw [← Sup_atoms_le_eq a, ← Sup_atoms_le_eq b],
+  exact Sup_le_Sup (λ c hc, ⟨hc.1, h c hc.1 hc.2⟩),
+end⟩
+
+end is_atomistic
+
 namespace is_coatomistic
 
 instance is_atomistic_dual [h : is_coatomistic α] : is_atomistic (order_dual α) :=

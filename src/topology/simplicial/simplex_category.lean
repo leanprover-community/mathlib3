@@ -3,7 +3,7 @@ Copyleft 2020 Johan Commelin. No rights reserved.
 Authors: Johan Commelin
 -/
 
-import order.category.NonemptyFinLinOrd.basic
+import order.category.NonemptyFinLinOrd
 import data.finset.sort
 import tactic.apply_fun
 import tactic.linarith
@@ -90,12 +90,6 @@ def σ {n} (i : fin (n+1)) :
     { exact nat.pred_le_pred H, }
   end }
 
-@[simp] lemma fin.cast_succ_mk (n i : ℕ) (h : i < n) : fin.cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
-rfl
-
-@[simp] lemma fin.succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
-rfl
-
 /-- The first simplicial identity -/
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   δ i ≫ δ j.succ = δ j ≫ δ i.cast_succ :=
@@ -108,10 +102,6 @@ begin
   split_ifs; { simp at *, try { linarith } },
 end
 
-@[simp]
-lemma dite_eq_ite (P : Prop) [decidable P] {α : Type*} (x y : α) :
-  dite P (λ h, x) (λ h, y) = ite P x y := rfl
-
 /-- The second simplicial identity -/
 lemma δ_comp_σ {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
@@ -121,9 +111,9 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk, simplex_category.dite_eq_ite, if_congr, subtype.mk_lt_mk,
-    simplex_category.fin.succ_mk, fin.coe_cast_lt, fin.coe_succ, fin.coe_cast_succ, dif_ctx_congr,
-     dite_cast, order_embedding.lt_iff_lt, simplex_category.fin.cast_succ_mk, fin.coe_mk, ite_cast] at *,
+  simp only [subtype.mk_le_mk, dite_eq_ite, if_congr, subtype.mk_lt_mk,
+    fin.succ_mk, fin.coe_cast_lt, fin.coe_succ, fin.coe_cast_succ, dif_ctx_congr,
+     dite_cast, order_embedding.lt_iff_lt, fin.cast_succ_mk, fin.coe_mk, ite_cast] at *,
   split_ifs,
   -- Hope for the best from `linarith`:
   all_goals { simp at *, try { linarith } },

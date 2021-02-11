@@ -592,13 +592,12 @@ instance : ordered_comm_ring ℂ :=
     simp only [add_mul, zero_add],
     exact lt_def.mpr ⟨x₁ * x₂, mul_pos l₁ l₂, (by norm_cast)⟩,
   end,
-  -- Why do we need these next four fields? They should be copied from `comm_ring ℂ`.
-  zero_mul := λ z, zero_mul z,
-  mul_zero := λ z, mul_zero z,
-  add_left_cancel := λ z₁ z₂ z₃, add_left_cancel,
-  add_right_cancel := λ z₁ z₂ z₃, add_right_cancel,
+-- we need more instances here because comm_ring doesn't have zero_add et al as fields, 
+-- they are derived as lemmas
   ..(by apply_instance : partial_order ℂ),
-  ..(by apply_instance : comm_ring ℂ), }
+  ..(by apply_instance : comm_ring ℂ),
+  ..(by apply_instance : comm_semiring ℂ),
+  ..(by apply_instance : add_cancel_monoid ℂ) }
 
 /-! ### Cauchy sequences -/
 

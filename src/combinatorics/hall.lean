@@ -46,20 +46,6 @@ universes u v
 
 namespace hall_marriage_theorem
 
-lemma inj_of_dite_disjoint_inj {α β : Type*} (s : set α) [decidable_pred s]
-  (f : s → β) (f' : sᶜ → β)
-  (hf : function.injective f) (hf' : function.injective f')
-  (im_disj : ∀ {x x' : α} {hx : x ∈ s} {hx' : ¬ x' ∈ s}, f ⟨x, hx⟩ ≠ f' ⟨x', hx'⟩) :
-  function.injective (λ x, if h : x ∈ s then f ⟨x, h⟩ else f' ⟨x, h⟩) :=
-begin
-  { rintros x₁ x₂ (h : dite _ _ _ = dite _ _ _),
-    split_ifs at h,
-    { injection (hf h), },
-    { exact (im_disj h).elim, },
-    { exact (im_disj h.symm).elim, },
-    { injection (hf' h), }, },
-end
-
 variables {ι : Type u} {α : Type v} [fintype ι]
 
 theorem hall_hard_inductive_zero (t : ι → finset α) (hn : fintype.card ι = 0) :
@@ -126,7 +112,9 @@ begin
   let ι' := {x' : ι | x' ≠ x},
   let t' : ι' → finset α := λ x', (t x').erase y,
   have card_ι'_le : fintype.card ι' ≤ n,
-  { rw [set.card_ne_eq, hn],
+  { convert_to fintype.card ι - 1 ≤ n,
+    convert set.card_ne_eq _,
+    rw hn,
     exact le_refl _, },
   rcases ih t' card_ι'_le (hall_cond_of_erase y ha) with ⟨f', hfinj, hfr⟩,
   /- Extend the resulting function. -/
@@ -245,7 +233,7 @@ begin
     rw ←h,
     apply f'_mem_bUnion, },
   refine ⟨λ x, if h : x ∈ s then f' ⟨x, h⟩ else f'' ⟨x, h⟩, _, _⟩,
-  exact inj_of_dite_disjoint_inj s f' f'' hf' hf'' @im_disj,
+  { exact function.injective.dite _ hf' hf'' @im_disj },
   { intro x,
     split_ifs,
     { exact hsf' ⟨x, h⟩ },

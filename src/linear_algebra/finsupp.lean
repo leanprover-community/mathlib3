@@ -58,10 +58,9 @@ open_locale classical big_operators
 
 namespace finsupp
 
-variables {α : Type*} {M : Type*} {N : Type*} {R : Type*} (S : Type*)
-variables [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M] [semimodule S M]
-variables [add_comm_monoid N] [semimodule R N] [semimodule S N]
-variables [smul_comm_class R S M] [smul_comm_class R S N]
+variables {α : Type*} {M : Type*} {N : Type*} {R : Type*} {S : Type*}
+variables [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M]
+variables [add_comm_monoid N] [semimodule R N]
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
@@ -290,8 +289,16 @@ begin
   exact linear_map.is_linear _
 end
 
+section lsum
+
+variables (S) [semimodule S N] [smul_comm_class R S N]
+
 /-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
 `N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
+
+When we have `comm_ring R`, `S = R` can be used (via `nat_smul_comm_class`).
+When we don't, this equiv can always be instantiated with `S = ℕ` (via
+`add_comm_monoid.nat_smul_comm_class`).
 -/
 def lsum : (α → M →ₗ[R] N) ≃ₗ[S] ((α →₀ M) →ₗ[R] N) :=
 { to_fun := λ F, {
@@ -316,6 +323,8 @@ finsupp.sum_single_index (f i).map_zero
 
 theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
   (lsum S).symm f x = f.comp (lsingle x) := rfl
+
+end lsum
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)

@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import field_theory.adjoin
 import field_theory.minpoly
 import field_theory.splitting_field
 import field_theory.tower
-import ring_theory.power_basis
 
 /-!
 # Normal field extensions

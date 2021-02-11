@@ -16,11 +16,11 @@ results.
   * `lie_subalgebra`
   * `lie_subalgebra.incl`
   * `lie_subalgebra.map`
-  * `lie_algebra.morphism.range`
-  * `lie_algebra.equiv.of_injective`
-  * `lie_algebra.equiv.of_eq`
-  * `lie_algebra.equiv.of_subalgebra`
-  * `lie_algebra.equiv.of_subalgebras`
+  * `lie_hom.range`
+  * `lie_equiv.of_injective`
+  * `lie_equiv.of_eq`
+  * `lie_equiv.of_subalgebra`
+  * `lie_equiv.of_subalgebras`
 
 ## Tags
 
@@ -120,21 +120,21 @@ variables (f : L →ₗ⁅R⁆ L₂)
 
 /-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
 def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
-{ map_lie := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
+{ map_lie' := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
   ..L'.to_submodule.subtype }
 
 /-- The range of a morphism of Lie algebras is a Lie subalgebra. -/
-def lie_algebra.morphism.range : lie_subalgebra R L₂ :=
+def lie_hom.range : lie_subalgebra R L₂ :=
 { lie_mem' := λ x y,
     show x ∈ f.to_linear_map.range → y ∈ f.to_linear_map.range → ⁅x, y⁆ ∈ f.to_linear_map.range,
     by { repeat { rw linear_map.mem_range }, rintros ⟨x', hx⟩ ⟨y', hy⟩, refine ⟨⁅x', y'⁆, _⟩,
-         rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw lie_algebra.map_lie, },
+         rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw lie_hom.map_lie, },
   ..f.to_linear_map.range }
 
-@[simp] lemma lie_algebra.morphism.range_bracket (x y : f.range) :
+@[simp] lemma lie_hom.range_bracket (x y : f.range) :
   (↑⁅x, y⁆ : L₂) = ⁅(↑x : L₂), ↑y⁆ := rfl
 
-@[simp] lemma lie_algebra.morphism.range_coe : (f.range : set L₂) = set.range f :=
+@[simp] lemma lie_hom.range_coe : (f.range : set L₂) = set.range f :=
 linear_map.range_coe ↑f
 
 @[simp] lemma lie_subalgebra.range_incl (L' : lie_subalgebra R L) : L'.incl.range = L' :=
@@ -147,7 +147,7 @@ def lie_subalgebra.map (L' : lie_subalgebra R L) : lie_subalgebra R L₂ :=
     erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
-    exact ⟨⁅x', y'⁆, L'.lie_mem hx' hy', lie_algebra.map_lie f x' y'⟩, },
+    exact ⟨⁅x', y'⁆, L'.lie_mem hx' hy', lie_hom.map_lie f x' y'⟩, },
 ..((L' : submodule R L).map (f : L →ₗ[R] L₂))}
 
 @[simp] lemma lie_subalgebra.mem_map_submodule (e : L ≃ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) (x : L₂) :
@@ -156,19 +156,17 @@ iff.rfl
 
 end lie_subalgebra
 
-namespace lie_algebra
+namespace lie_equiv
 
 variables {R : Type u} {L₁ : Type v} {L₂ : Type w}
 variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
-
-namespace equiv
 
 /-- An injective Lie algebra morphism is an equivalence onto its range. -/
 noncomputable def of_injective (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) :
   L₁ ≃ₗ⁅R⁆ f.range :=
 have h' : (f : L₁ →ₗ[R] L₂).ker = ⊥ := linear_map.ker_eq_bot_of_injective h,
-{ map_lie := λ x y, by { apply set_coe.ext,
-    simp only [linear_equiv.of_injective_apply, lie_algebra.morphism.range_bracket],
+{ map_lie' := λ x y, by { apply set_coe.ext,
+    simp only [linear_equiv.of_injective_apply, lie_hom.range_bracket],
     apply f.map_lie, },
 ..(linear_equiv.of_injective ↑f h')}
 
@@ -179,7 +177,7 @@ variables (L₁' L₁'' : lie_subalgebra R L₁) (L₂' : lie_subalgebra R L₂)
 
 /-- Lie subalgebras that are equal as sets are equivalent as Lie algebras. -/
 def of_eq (h : (L₁' : set L₁) = L₁'') : L₁' ≃ₗ⁅R⁆ L₁'' :=
-{ map_lie := λ x y, by { apply set_coe.ext, simp, },
+{ map_lie' := λ x y, by { apply set_coe.ext, simp, },
   ..(linear_equiv.of_eq ↑L₁' ↑L₁''
       (by {ext x, change x ∈ (L₁' : set L₁) ↔ x ∈ (L₁'' : set L₁), rw h, } )) }
 
@@ -191,7 +189,7 @@ variables (e : L₁ ≃ₗ⁅R⁆ L₂)
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/
 def of_subalgebra : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
-{ map_lie := λ x y, by { apply set_coe.ext, exact lie_algebra.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, }
+{ map_lie' := λ x y, by { apply set_coe.ext, exact lie_hom.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, }
   ..(linear_equiv.of_submodule (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
 
 @[simp] lemma of_subalgebra_apply (x : L₁'') : ↑(e.of_subalgebra _  x) = e x := rfl
@@ -199,7 +197,7 @@ def of_subalgebra : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/
 def of_subalgebras (h : L₁'.map ↑e = L₂') : L₁' ≃ₗ⁅R⁆ L₂' :=
-{ map_lie := λ x y, by { apply set_coe.ext, exact lie_algebra.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, },
+{ map_lie' := λ x y, by { apply set_coe.ext, exact lie_hom.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, },
   ..(linear_equiv.of_submodules (e : L₁ ≃ₗ[R] L₂) ↑L₁' ↑L₂' (by { rw ←h, refl, })) }
 
 @[simp] lemma of_subalgebras_apply (h : L₁'.map ↑e = L₂') (x : L₁') :
@@ -208,6 +206,4 @@ def of_subalgebras (h : L₁'.map ↑e = L₂') : L₁' ≃ₗ⁅R⁆ L₂' :=
 @[simp] lemma of_subalgebras_symm_apply (h : L₁'.map ↑e = L₂') (x : L₂') :
   ↑((e.of_subalgebras _ _ h).symm x) = e.symm x := rfl
 
-end equiv
-
-end lie_algebra
+end lie_equiv

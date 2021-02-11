@@ -553,6 +553,9 @@ fin.eq_of_veq rfl
   cast_lt (cast_succ a) h = a :=
 by cases a; refl
 
+@[simp] lemma cast_succ_lt_cast_succ_iff : a.cast_succ < b.cast_succ ↔ a < b :=
+(@cast_succ n).lt_iff_lt
+
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
 (cast_succ : fin n ↪o _).injective
 
@@ -918,14 +921,25 @@ else
 lemma pred_above_monotone (p : fin n) : monotone p.pred_above :=
 λ a b H,
 begin
-  dsimp [fin.pred_above],
+  dsimp [pred_above],
   split_ifs with ha hb hb,
-  all_goals { simp only [fin.le_iff_coe_le_coe, fin.coe_pred], },
-  { exact nat.pred_le_pred H, },
+  all_goals { simp only [le_iff_coe_le_coe, coe_pred], },
+  { exact pred_le_pred H, },
   { calc _ ≤ _ : nat.pred_le _
         ... ≤ _ : H, },
-  { simp at ha, exact nat.le_pred_of_lt (lt_of_le_of_lt ha hb), },
+  { simp at ha, exact le_pred_of_lt (lt_of_le_of_lt ha hb), },
   { exact H, },
+end
+
+lemma pred_above_left_monotone (i : fin (n + 1)) : monotone (λ p, pred_above p i) :=
+λ a b H,
+begin
+  dsimp [pred_above],
+  split_ifs with ha hb hb,
+  all_goals { simp only [le_iff_coe_le_coe, coe_pred] },
+  { exact pred_le _, },
+  { have : b < a := cast_succ_lt_cast_succ_iff.mpr (hb.trans_le (le_of_not_gt ha)),
+    exact absurd H this.not_le }
 end
 
 /-- `cast_pred` embeds `i : fin (n + 2)` into `fin (n + 1)`

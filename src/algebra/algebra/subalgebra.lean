@@ -290,7 +290,7 @@ protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
 @[simp] lemma mem_range (φ : A →ₐ[R] B) {y : B} :
   y ∈ φ.range ↔ ∃ x, φ x = y := ring_hom.mem_srange
 
-theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ φ.range := mem_range.2 ⟨x, rfl⟩
+theorem mem_range_self (φ : A →ₐ[R] B) (x : A) : φ x ∈ φ.range := φ.mem_range.2 ⟨x, rfl⟩
 
 @[simp] lemma coe_range (φ : A →ₐ[R] B) : (φ.range : set B) = set.range φ :=
 by { ext, rw [subalgebra.mem_coe, mem_range], refl }

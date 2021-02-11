@@ -918,7 +918,7 @@ if h : p.cast_succ < i then
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
-lemma pred_above_monotone (p : fin n) : monotone p.pred_above :=
+lemma pred_above_left_monotone (p : fin n) : monotone p.pred_above :=
 λ a b H,
 begin
   dsimp [pred_above],

@@ -259,6 +259,9 @@ def srange : subsemiring S := (⊤ : subsemiring R).map f
 @[simp] lemma mem_srange {f : R →+* S} {y : S} : y ∈ f.srange ↔ ∃ x, f x = y :=
 by simp [srange]
 
+lemma mem_srange_self (f : R →+* S) (x : R) : f x ∈ f.srange :=
+mem_srange.mpr ⟨x, rfl⟩
+
 lemma map_srange : f.srange.map g = (g.comp f).srange :=
 (⊤ : subsemiring R).map_map g f
 
@@ -519,31 +522,14 @@ def cod_srestrict (f : R →+* S) (s : subsemiring S) (h : ∀ x, f x ∈ s) : R
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring. -/
 def srange_restrict (f : R →+* S) : R →+* f.srange :=
-f.cod_srestrict f.srange $ λ x, ⟨x, subsemiring.mem_top x, rfl⟩
+f.cod_srestrict f.srange f.mem_srange_self
 
 @[simp] lemma coe_srange_restrict (f : R →+* S) (x : R) :
   (f.srange_restrict x : S) = f x :=
 rfl
 
-/-- Restrict a ring homomorphism with a left inverse to an ring isomorphism to its
-`ring_hom.srange`. -/
-def of_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f) :
-  R ≃+* f.srange :=
-{ to_fun := λ x, f.srange_restrict x,
-  inv_fun := λ x, (g ∘ f.srange.subtype) x,
-  left_inv := h,
-  right_inv := λ x, subtype.ext $
-    let ⟨x', hx'⟩ := mem_srange.mp x.prop in
-    show f (g x) = x, by rw [←hx', h x'],
-  ..f.srange_restrict }
-
-@[simp] lemma of_left_inverse_apply
-  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : R) :
-  ↑(of_left_inverse h x) = f x := rfl
-
-@[simp] lemma of_left_inverse_symm_apply
-  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
-  (of_left_inverse h).symm x = g x := rfl
+lemma srange_restrict_surjective (f : R →+* S) : function.surjective f.srange_restrict :=
+λ ⟨y, hy⟩, let ⟨x, hx⟩ := mem_srange.mp hy in ⟨x, subtype.ext hx⟩
 
 lemma srange_top_iff_surjective {f : R →+* S} :
   f.srange = (⊤ : subsemiring S) ↔ function.surjective f :=
@@ -623,5 +609,25 @@ variables {s t : subsemiring R}
     monoid are equal. -/
 def subsemiring_congr (h : s = t) : s ≃+* t :=
 { map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ subsemiring.ext'_iff.1 h }
+
+/-- Restrict a ring homomorphism with a left inverse to a ring isomorphism to its
+`ring_hom.srange`. -/
+def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f) :
+  R ≃+* f.srange :=
+{ to_fun := λ x, f.srange_restrict x,
+  inv_fun := λ x, (g ∘ f.srange.subtype) x,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := ring_hom.mem_srange.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  ..f.srange_restrict }
+
+@[simp] lemma sof_left_inverse_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : R) :
+  ↑(sof_left_inverse h x) = f x := rfl
+
+@[simp] lemma sof_left_inverse_symm_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
+  (sof_left_inverse h).symm x = g x := rfl
 
 end ring_equiv

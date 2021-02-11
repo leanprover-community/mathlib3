@@ -194,6 +194,7 @@ instance : complete_lattice (topological_space α) :=
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 (eq_bot [] : t = ⊥)
 
+@[priority 100]
 instance discrete_topology_bot (α : Type*) : @discrete_topology α ⊥ :=
 { eq_bot := rfl }
 

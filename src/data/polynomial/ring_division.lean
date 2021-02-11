@@ -432,13 +432,12 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
   begin
     assume b hbs hbp,
     have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
-    have : coeff p b ≠ 0, rwa finsupp.mem_support_iff at hbs,
+    have : coeff p b ≠ 0,  by rwa finsupp.mem_support_iff at hbs,
     refine coeff_eq_zero_of_degree_lt _,
-    rw [degree_mul], erw degree_C this,
-    rw [degree_pow, zero_add, degree_eq_nat_degree hq0,
-      ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id],
-    rw mul_lt_mul_right, apply lt_of_le_of_ne, assumption', swap, omega,
-    exact le_nat_degree_of_ne_zero this,
+    erw [degree_mul, degree_C this, degree_pow, zero_add, degree_eq_nat_degree hq0,
+      ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id,
+      mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)],
+    exact lt_of_le_of_ne (le_nat_degree_of_ne_zero this) hbp,
   end
   begin
     intro h, contrapose! hp0,
@@ -475,6 +474,22 @@ by rw [←polynomial.C_mul', ←polynomial.eq_C_of_degree_eq_zero (degree_coe_un
 @[simp] lemma nat_degree_coe_units (u : units (polynomial R)) :
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)
+
+lemma comp_eq_zero_iff :
+  p.comp q = 0 ↔ p = 0 ∨ (p.eval (q.coeff 0) = 0 ∧ q = C (q.coeff 0)) :=
+begin
+  split,
+  { intro h,
+    have key : p.nat_degree = 0 ∨ q.nat_degree = 0,
+    { rw [←mul_eq_zero, ←nat_degree_comp, h, nat_degree_zero] },
+    replace key := or.imp eq_C_of_nat_degree_eq_zero eq_C_of_nat_degree_eq_zero key,
+    cases key,
+    { rw [key, C_comp] at h,
+      exact or.inl (key.trans h) },
+    { rw [key, comp_C, C_eq_zero] at h,
+      exact or.inr ⟨h, key⟩ }, },
+  { exact λ h, or.rec (λ h, by rw [h, zero_comp]) (λ h, by rw [h.2, comp_C, h.1, C_0]) h },
+end
 
 lemma zero_of_eval_zero [infinite R] (p : polynomial R) (h : ∀ x, p.eval x = 0) : p = 0 :=
 by classical; by_contradiction hp; exact

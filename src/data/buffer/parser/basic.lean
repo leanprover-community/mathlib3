@@ -11,17 +11,17 @@ import data.string.basic
 `parser α` is the type that describes a computation that can ingest a `char_buffer`
 and output, if successful, a term of type `α`.
 This file expands on the definitions in the core library, proving that all the core library
-parsers are `valid`. There are also lemmas on the composability of parsers.
+parsers are `mono`. There are also lemmas on the composability of parsers.
 
 ## Main definitions
 
 * `parse_result.pos` : The position of a `char_buffer` at which a `parser α` has finished.
-* `parser.valid` : The property that a parser only moves forward within a buffer,
+* `parser.mono` : The property that a parser only moves forward within a buffer,
   in both cases of success or failure.
 
 ## Implementation details
 
-Lemmas about how parsers are valid are in the `valid` namespace. That allows using projection
+Lemmas about how parsers are mono are in the `mono` namespace. That allows using projection
 notation for shorter term proofs that are parallel to the definitions of the parsers in structure.
 
 -/
@@ -45,14 +45,14 @@ variables (p q : parser α) (cb : char_buffer) (n n' : ℕ) {err : dlist string}
 variables {a : α} {b : β}
 
 /--
-A `parser α` is defined to be `valid` if the result `p cb n` it gives,
+A `parser α` is defined to be `mono` if the result `p cb n` it gives,
 for some `cb : char_buffer` and `n : ℕ`, (whether `done` or `fail`),
-is always at a `parse_result.pos` that is at least `n`. Additionally, if the position of the result
-of the parser was within the size of the `cb`, then the input to the parser must have been within
-`cb.size` too.
+is always at a `parse_result.pos` that is at least `n`.
 -/
-def valid : Prop :=
-∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos ∧ ((p cb n).pos ≤ cb.size → n ≤ cb.size)
+class mono : Prop :=
+(le' : ∀ (cb : char_buffer) (n : ℕ), n ≤ (p cb n).pos)
+
+lemma mono.le [p.mono] : n ≤ (p cb n).pos := mono.le' cb n
 
 lemma fail_iff :
   (∀ pos' result, p cb n ≠ done pos' result) ↔
@@ -64,6 +64,12 @@ lemma success_iff :
 by cases p cb n; simp
 
 variables {p q cb n n' msgs msg}
+
+lemma mono.of_done [p.mono] (h : p cb n = done n' a) : n ≤ n' :=
+by simpa [h] using mono.le p cb n
+
+lemma mono.of_fail [p.mono] (h : p cb n = fail n' err) : n ≤ n' :=
+by simpa [h] using mono.le p cb n
 
 lemma decorate_errors_fail (h : p cb n = fail n' err) :
   @decorate_errors α msgs p cb n = fail n ((dlist.lazy_of_list (msgs ()))) :=
@@ -196,7 +202,7 @@ begin
     { simp [hp, hn, ←orelse_eq_orelse, parser.orelse] } }
 end
 
-lemma orelse_eq_fail_invalid_lt (hn : n' < n) : (p <|> q) cb n = fail n' err ↔
+lemma orelse_eq_fail_not_mono_lt (hn : n' < n) : (p <|> q) cb n = fail n' err ↔
   (p cb n = fail n' err) ∨
   (q cb n = fail n' err ∧ (∃ (errp), p cb n = fail n errp)) :=
 begin
@@ -212,7 +218,7 @@ begin
     { simp [hp, h, ←orelse_eq_orelse, parser.orelse] } }
 end
 
-lemma orelse_eq_fail_of_valid_ne (hv : q.valid) (hn : n ≠ n') :
+lemma orelse_eq_fail_of_mono_ne [q.mono] (hn : n ≠ n') :
   (p <|> q) cb n = fail n' err ↔ p cb n = fail n' err :=
 begin
   cases hp : p cb n with np resp np errp,
@@ -220,7 +226,7 @@ begin
   { by_cases h : np = n,
     { cases hq : q cb n with nq resq nq errq,
       { simp [hp, h, hn, hq, hn, ←orelse_eq_orelse, parser.orelse] },
-      { have : n ≤ nq := by { convert (hv cb n).left, simp [hq] },
+      { have : n ≤ nq := mono.of_fail hq,
         rcases eq_or_lt_of_le this with rfl|H,
         { simp [hp, hq, h, hn, lt_irrefl, ←orelse_eq_orelse, parser.orelse] },
         { simp [hp, hq, h, hn, H, ←orelse_eq_orelse, parser.orelse] } } },
@@ -284,202 +290,203 @@ lemma guard_eq_fail {p : Prop} [decidable p] :
   @guard parser _ p _ cb n = fail n' err ↔ (¬ p) ∧ n = n' ∧ err = dlist.empty :=
 by { by_cases hp : p; simp [guard, hp, eq_comm, pure_eq_done] }
 
-section valid
+section mono
 
 variables {sep : parser unit}
 
-namespace valid
+namespace mono
 
-lemma mono_done (hp : p.valid) (h : p cb n = done n' a) : n ≤ n' :=
-by simpa [h] using (hp cb n).left
+instance pure : mono (pure a) :=
+⟨λ _ _, by simp [pure_eq_done]⟩
 
-lemma mono_fail (hp : p.valid) (h : p cb n = fail n' err) : n ≤ n' :=
-by simpa [h] using (hp cb n).left
-
-lemma pure : valid (pure a) :=
-λ _ _, by simp [pure_eq_done]
-
-@[simp] lemma bind {f : α → parser β} (hp : p.valid) (hf : ∀ a, (f a).valid) :
-  (p >>= f).valid :=
+instance bind {f : α → parser β} [p.mono] [∀ a, (f a).mono] :
+  (p >>= f).mono :=
 begin
+  constructor,
   intros cb n,
   cases hx : (p >>= f) cb n,
   { obtain ⟨n', a, h, h'⟩ := bind_eq_done.mp hx,
-    refine ⟨le_trans (hp cb n).left (h' ▸ _), λ hn, (hp cb n).right _⟩,
-    { simp [h, hf a cb n'] },
-    { simp [h, (hf a cb n').right (h'.symm ▸ hn)] } },
+    refine le_trans (of_done h) _,
+    simpa [h'] using of_done h' },
   { obtain h | ⟨n', a, h, h'⟩ := bind_eq_fail.mp hx,
-    { simpa only [h] using hp cb n },
-    { refine ⟨le_trans (hp cb n).left (h' ▸ _), λ hn, (hp cb n).right _⟩,
-      { simp [h, hf a cb n'] },
-      { simp [h, (hf a cb n').right (h'.symm ▸ hn)] } } }
+    { simpa [h] using of_fail h },
+    { refine le_trans (of_done h) _,
+      simpa [h'] using of_fail h' } }
 end
 
-lemma and_then {q : parser β} (hp : p.valid) (hq : q.valid) : (p >> q).valid :=
-hp.bind (λ _, hq)
+instance and_then {q : parser β} [p.mono] [q.mono] : (p >> q).mono := mono.bind
 
-@[simp] lemma map (hp : p.valid) {f : α → β} : (f <$> p).valid :=
-hp.bind (λ _, pure)
+instance map [p.mono] {f : α → β} : (f <$> p).mono := mono.bind
 
-@[simp] lemma seq {f : parser (α → β)} (hf : f.valid) (hp : p.valid) : (f <*> p).valid :=
-hf.bind (λ _, hp.map)
+instance seq {f : parser (α → β)} [f.mono] [p.mono] : (f <*> p).mono := mono.bind
 
-@[simp] lemma mmap {l : list α} {f : α → parser β} (h : ∀ a ∈ l, (f a).valid) :
-  (l.mmap f).valid :=
-begin
-  induction l with hd tl hl generalizing h,
-  { exact pure },
-  { exact bind (h _ (list.mem_cons_self _ _))
-      (λ b, map (hl (λ _ ha, h _ (list.mem_cons_of_mem _ ha)))) }
+instance mmap : Π {l : list α} {f : α → parser β} [∀ a ∈ l, (f a).mono],
+  (l.mmap f).mono
+| []       _ _ := mono.pure
+| (a :: l) f h := begin
+  convert mono.bind,
+  { exact h _ (list.mem_cons_self _ _) },
+  { intro,
+    convert mono.map,
+    convert mmap,
+    exact (λ _ ha, h _ (list.mem_cons_of_mem _ ha)) }
 end
 
-@[simp] lemma mmap' {l : list α} {f : α → parser β} (h : ∀ a ∈ l, (f a).valid) :
-  (l.mmap' f).valid :=
-begin
-  induction l with hd tl hl generalizing h,
-  { exact pure },
-  { exact and_then (h _ (list.mem_cons_self _ _)) (hl (λ _ ha, h _ (list.mem_cons_of_mem _ ha))) }
+instance mmap' : Π {l : list α} {f : α → parser β} [∀ a ∈ l, (f a).mono],
+  (l.mmap' f).mono
+| []       _ _ := mono.pure
+| (a :: l) f h := begin
+  convert mono.and_then,
+  { exact h _ (list.mem_cons_self _ _) },
+  { convert mmap',
+    exact (λ _ ha, h _ (list.mem_cons_of_mem _ ha)) }
 end
 
-@[simp] lemma failure : @parser.valid α failure :=
-by simp [valid, le_refl]
+instance failure : (failure : parser α).mono :=
+⟨by simp [le_refl]⟩
 
-@[simp] lemma guard {p : Prop} [decidable p] : valid (guard p) :=
-by simp only [guard, apply_ite valid, pure, failure, or_true, if_true_left_eq_or]
+instance guard {p : Prop} [decidable p] : mono (guard p) :=
+⟨by { by_cases h : p; simp [h, pure_eq_done, le_refl] }⟩
 
-@[simp] lemma orelse (hp : p.valid) (hq : q.valid) : (p <|> q).valid :=
+instance orelse [p.mono] [q.mono] : (p <|> q).mono :=
 begin
+  constructor,
   intros cb n,
   cases hx : (p <|> q) cb n with posx resx posx errx,
-  { obtain h | ⟨h, -, -⟩ := orelse_eq_done.mp hx,
-    { simpa [h] using hp cb n },
-    { simpa [h] using hq cb n } },
+  { obtain h | ⟨h, -, -⟩ := orelse_eq_done.mp hx;
+    simpa [h] using of_done h },
   { by_cases h : n = posx,
     { simp [hx, h] },
-    { simpa [(orelse_eq_fail_of_valid_ne hq h).mp hx] using hp cb n } }
+    { simp [orelse_eq_fail_of_mono_ne h, of_fail] at hx,
+      exact of_fail hx } }
 end
 
-@[simp] lemma decorate_errors (hp : p.valid) :
-  (@decorate_errors α msgs p).valid :=
+instance decorate_errors [p.mono] :
+  (@decorate_errors α msgs p).mono :=
 begin
+  constructor,
   intros cb n,
   cases h : p cb n,
-  { simpa [decorate_errors, h] using hp cb n },
+  { simpa [decorate_errors, h] using of_done h },
   { simp [decorate_errors, h] }
 end
 
-@[simp] lemma decorate_error (hp : p.valid) : (@decorate_error α msg p).valid :=
-decorate_errors hp
+instance decorate_error [p.mono] : (@decorate_error α msg p).mono :=
+mono.decorate_errors
 
-@[simp] lemma any_char : valid any_char :=
+instance any_char : mono any_char :=
 begin
+  constructor,
   intros cb n,
-  by_cases h : n < cb.size,
-  { simpa [any_char, h] using nat.le_of_succ_le },
-  { simp [any_char, h] }
+  by_cases h : n < cb.size;
+  simp [any_char, h],
 end
 
-@[simp] lemma sat {p : char → Prop} [decidable_pred p] : valid (sat p) :=
+instance sat {p : char → Prop} [decidable_pred p] : mono (sat p) :=
 begin
+  constructor,
   intros cb n,
   simp only [sat],
-  split_ifs,
-  { simpa using nat.le_of_succ_le },
-  { simp },
-  { simp }
+  split_ifs;
+  simp
 end
 
-@[simp] lemma eps : valid eps := pure
+instance eps : mono eps := mono.pure
 
-lemma ch {c : char} : valid (ch c) := decorate_error (sat.and_then eps)
+instance ch {c : char} : mono (ch c) := mono.decorate_error
 
-lemma char_buf {s : char_buffer} : valid (char_buf s) :=
-decorate_error (mmap' (λ _ _, ch))
+instance char_buf {s : char_buffer} : mono (char_buf s) :=
+mono.decorate_error
 
-lemma one_of {cs : list char} : (one_of cs).valid :=
-decorate_errors sat
+instance one_of {cs : list char} : (one_of cs).mono :=
+mono.decorate_errors
 
-lemma one_of' {cs : list char} : (one_of' cs).valid :=
-one_of.and_then eps
+instance one_of' {cs : list char} : (one_of' cs).mono :=
+mono.and_then
 
-lemma str {s : string} : (str s).valid :=
-decorate_error (mmap' (λ _ _, ch))
+instance str {s : string} : (str s).mono :=
+mono.decorate_error
 
-lemma remaining : remaining.valid :=
-λ _ _, ⟨le_refl _, λ h, h⟩
+instance remaining : remaining.mono :=
+⟨λ _ _, le_refl _⟩
 
-lemma eof : eof.valid :=
-decorate_error (remaining.bind (λ _, guard))
+instance eof : eof.mono :=
+mono.decorate_error
 
-lemma foldr_core_zero {f : α → β → β} {b : β} : (foldr_core f p b 0).valid :=
-failure
+instance foldr_core {f : α → β → β} {b : β} [p.mono] :
+  ∀ {reps : ℕ}, (foldr_core f p b reps).mono
+| 0          := mono.failure
+| (reps + 1) := begin
+  convert mono.orelse,
+  { convert mono.bind,
+    { apply_instance },
+    { exact λ _, @mono.bind _ _ _ _ foldr_core _ } },
+  { exact mono.pure }
+end
 
-lemma foldr_core {f : α → β → β} {b : β} (hp : p.valid) :
-  ∀ {reps : ℕ}, (foldr_core f p b reps).valid
-| 0          := failure
-| (reps + 1) := orelse (hp.bind (λ _, foldr_core.bind (λ _, pure))) pure
+instance foldr {f : α → β → β} [p.mono] : mono (foldr f p b) :=
+⟨λ _ _, by { convert mono.le (foldr_core f p b _) _ _, exact mono.foldr_core }⟩
 
-lemma foldr {f : α → β → β} (hp : p.valid) : valid (foldr f p b) :=
-λ _ _, foldr_core hp _ _
+instance foldl_core {f : α → β → α} {p : parser β} [p.mono] :
+  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).mono
+| _ 0          := mono.failure
+| _ (reps + 1) := begin
+  convert mono.orelse,
+  { convert mono.bind,
+    { apply_instance },
+    { exact λ _, foldl_core } },
+  { exact mono.pure }
+end
 
-lemma foldl_core_zero {f : β → α → β} {b : β} : (foldl_core f b p 0).valid :=
-failure
+instance foldl {f : α → β → α} {p : parser β} [p.mono] : mono (foldl f a p) :=
+⟨λ _ _, by { convert mono.le (foldl_core f a p _) _ _, exact mono.foldl_core }⟩
 
-lemma foldl_core {f : α → β → α} {p : parser β} (hp : p.valid) :
-  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).valid
-| _ 0          := failure
-| _ (reps + 1) := orelse (hp.bind (λ _, foldl_core)) pure
+instance many [p.mono] : p.many.mono :=
+mono.foldr
 
-lemma foldl {f : α → β → α} {p : parser β} (hp : p.valid) : valid (foldl f a p) :=
-λ _ _, foldl_core hp _ _
+instance many_char {p : parser char} [p.mono] : p.many_char.mono :=
+mono.map
 
-lemma many (hp : p.valid) : p.many.valid :=
-hp.foldr
+instance many' [p.mono] : p.many'.mono :=
+mono.and_then
 
-lemma many_char {p : parser char} (hp : p.valid) : p.many_char.valid :=
-hp.many.map
+instance many1 [p.mono] : p.many1.mono :=
+mono.seq
 
-lemma many' (hp : p.valid) : p.many'.valid :=
-hp.many.and_then eps
+instance many_char1 {p : parser char} [p.mono] : p.many_char1.mono :=
+mono.map
 
-lemma many1 (hp : p.valid) : p.many1.valid :=
-hp.map.seq hp.many
+instance sep_by1 [p.mono] [sep.mono] : mono (sep_by1 sep p) :=
+mono.seq
 
-lemma many_char1 {p : parser char} (hp : p.valid) : p.many_char1.valid :=
-hp.many1.map
+instance sep_by [p.mono] [hs : sep.mono] : mono (sep_by sep p) :=
+mono.orelse
 
-lemma sep_by1 {sep : parser unit} (hp : p.valid) (hs : sep.valid) : valid (sep_by1 sep p) :=
-hp.map.seq (hs.and_then hp).many
-
-lemma sep_by {sep : parser unit} (hp : p.valid) (hs : sep.valid) : valid (sep_by sep p) :=
-(hp.sep_by1 hs).orelse pure
-
-lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.valid → (F p).valid) :
-  ∀ (max_depth : ℕ), valid (fix_core F max_depth)
-| 0               := failure
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.mono → (F p).mono) :
+  ∀ (max_depth : ℕ), mono (fix_core F max_depth)
+| 0               := mono.failure
 | (max_depth + 1) := hF _ (fix_core _)
 
-lemma digit : digit.valid :=
-decorate_error (sat.bind (λ _, pure))
+instance digit : digit.mono :=
+mono.decorate_error
 
-lemma nat : nat.valid :=
-decorate_error (digit.many1.bind (λ _, pure))
+instance nat : nat.mono :=
+mono.decorate_error
 
-lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.valid → (F p).valid) :
-  valid (fix F) :=
-λ _ _, fix_core hF _ _ _
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.mono → (F p).mono) :
+  mono (fix F) :=
+⟨λ _ _, by { convert mono.le (parser.fix_core F _) _ _, exact fix_core hF _ }⟩
 
-end valid
+end mono
 
-end valid
+end mono
 
 @[simp] lemma orelse_pure_eq_fail : (p <|> pure a) cb n = fail n' err ↔
   p cb n = fail n' err ∧ n ≠ n' :=
 begin
   by_cases hn : n = n',
   { simp [hn, pure_eq_done] },
-  { rw [orelse_eq_fail_of_valid_ne valid.pure hn],
-    simp [hn] }
+  { simp [orelse_eq_fail_of_mono_ne, hn] }
 end
 
 end defn_lemmas
@@ -567,17 +574,17 @@ lemma foldr_eq_done {f : α → β → β} {p : parser α} {b' : β} :
     ∃ (np : ℕ) (x : α), p cb n = done np x ∧ foldr_core f p b (cb.size - n) cb np = fail n err))) :=
 by simp [foldr, foldr_core_eq_done]
 
-lemma foldr_eq_fail_of_valid_at_end {f : α → β → β} {p : parser α} {err : dlist string}
-  (hp : p.valid) (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
+lemma foldr_eq_fail_iff_mono_at_end {f : α → β → β} {p : parser α} {err : dlist string}
+  [p.mono] (hc : cb.size ≤ n) : foldr f p b cb n = fail n' err ↔
     n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
 begin
   have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
   simp only [foldr, foldr_core_succ_eq_fail, this, and.left_comm, foldr_core_zero_eq_fail,
-            ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
-            exists_and_distrib_left],
+             ne_iff_lt_iff_le, exists_and_distrib_right, exists_eq_left, and.congr_left_iff,
+             exists_and_distrib_left],
   rintro (h | ⟨⟨a, h⟩, rfl⟩),
-  { exact hp.mono_fail h },
-  { exact hp.mono_done h }
+  { exact mono.of_fail h },
+  { exact mono.of_done h }
 end
 
 lemma foldr_eq_fail {f : α → β → β} {p : parser α} {err : dlist string} :
@@ -620,6 +627,19 @@ lemma foldl_eq_fail {f : β → α → β} {p : parser α} {err : dlist string} 
     ∃ (np : ℕ) (a : α), p cb n = done np a ∧
     foldl_core f (f b a) p (cb.size - n) cb np = fail n' err) :=
 by simp [foldl, foldl_core_succ_eq_fail]
+
+lemma foldl_eq_fail_iff_mono_at_end {f : β → α → β} {p : parser α} {err : dlist string}
+  [p.mono] (hc : cb.size ≤ n) : foldl f b p cb n = fail n' err ↔
+    n < n' ∧ (p cb n = fail n' err ∨ ∃ (a : α), p cb n = done n' a ∧ err = dlist.empty) :=
+begin
+  have : cb.size - n = 0 := nat.sub_eq_zero_of_le hc,
+  simp only [foldl, foldl_core_succ_eq_fail, this, and.left_comm, ne_iff_lt_iff_le, exists_eq_left,
+             exists_and_distrib_right, and.congr_left_iff, exists_and_distrib_left,
+             foldl_core_zero_eq_fail],
+  rintro (h | ⟨⟨a, h⟩, rfl⟩),
+  { exact mono.of_fail h },
+  { exact mono.of_done h }
+end
 
 lemma many_eq_done_nil {p : parser α} : many p cb n = done n' (@list.nil α) ↔ n = n' ∧
   ∃ (err), p cb n = fail n err ∨ ∃ (np : ℕ) (a : α), p cb n = done np a ∧

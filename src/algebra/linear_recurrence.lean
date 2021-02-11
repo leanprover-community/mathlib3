@@ -78,7 +78,7 @@ lemma is_sol_mk_sol (init : fin E.order → α) : E.is_solution (E.mk_sol init) 
 
 /-- `E.mk_sol init`'s first `E.order` terms are `init`. -/
 lemma mk_sol_eq_init (init : fin E.order → α) : ∀ n : fin E.order, E.mk_sol init n = init n :=
-  λ n, by { rw mk_sol, simp only [n.is_lt, dif_pos, fin.mk_coe] }
+  λ n, by { rw mk_sol, simp only [n.is_lt, dif_pos, fin.mk_coe, fin.eta] }
 
 /-- If `u` is a solution to `E` and `init` designates its first `E.order` values,
   then `∀ n, u n = E.mk_sol init n`. -/

@@ -62,7 +62,7 @@ lemma hall_cond_of_erase {x : ι} (a : α)
   (s' : finset {x' : ι | x' ≠ x}) :
   s'.card ≤ (s'.bUnion (λ x', (t x').erase a)).card :=
 begin
-  haveI : decidable_eq ι := by { classical, apply_instance },
+  haveI := classical.dec_eq ι,
   specialize ha (s'.image coe),
   rw [nonempty.image_iff, finset.card_image_of_injective s' subtype.coe_injective] at ha,
   by_cases he : s'.nonempty,
@@ -98,8 +98,8 @@ lemma hall_hard_inductive_step_A {n : ℕ} (hn : fintype.card ι = n + 1)
   (ha : ∀ (s : finset ι), s.nonempty → s ≠ univ → s.card < (s.bUnion t).card) :
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
-  haveI : nonempty ι := by { rw [←fintype.card_pos_iff, hn], exact nat.succ_pos _, },
-  haveI : decidable_eq ι := by { classical, apply_instance },
+  haveI : nonempty ι := fintype.card_pos_iff.mp (hn.symm ▸ nat.succ_pos _),
+  haveI := classical.dec_eq ι,
   /- Choose an arbitrary element `x : ι` and `y : t x`. -/
   let x := classical.arbitrary ι,
   have tx_ne : (t x).nonempty,
@@ -111,12 +111,10 @@ begin
   /- Restrict to everything except `x` and `y`. -/
   let ι' := {x' : ι | x' ≠ x},
   let t' : ι' → finset α := λ x', (t x').erase y,
-  have card_ι'_le : fintype.card ι' ≤ n,
-  { convert_to fintype.card ι - 1 ≤ n,
-    convert set.card_ne_eq _,
-    rw hn,
-    exact le_refl _, },
-  rcases ih t' card_ι'_le (hall_cond_of_erase y ha) with ⟨f', hfinj, hfr⟩,
+  have card_ι' : fintype.card ι' = n,
+  { convert congr_arg (λ m, m - 1) hn,
+    convert set.card_ne_eq _, },
+  rcases ih t' (le_of_eq card_ι') (hall_cond_of_erase y ha) with ⟨f', hfinj, hfr⟩,
   /- Extend the resulting function. -/
   refine ⟨λ z, if h : z = x then y else f' ⟨z, h⟩, _, _⟩,
   { rintro z₁ z₂,
@@ -139,7 +137,7 @@ lemma hall_cond_of_restrict {ι : Type u} {t : ι → finset α} {s : finset ι}
   (s' : finset (s : set ι)) :
   s'.card ≤ (s'.bUnion (λ a', t a')).card :=
 begin
-  haveI : decidable_eq ι := by { classical, apply_instance },
+  haveI := classical.dec_eq ι,
   convert ht (s'.image coe) using 1,
   { rw card_image_of_injective _ subtype.coe_injective, },
   { apply congr_arg,
@@ -153,7 +151,7 @@ lemma hall_cond_of_compl {ι : Type u} {t : ι → finset α} {s : finset ι}
   (s' : finset (sᶜ : set ι)) :
   s'.card ≤ (s'.bUnion (λ x', t x' \ s.bUnion t)).card :=
 begin
-  haveI : decidable_eq ι := by { classical, apply_instance },
+  haveI := classical.dec_eq ι,
   have : s'.card = (s ∪ s'.image coe).card - s.card,
   { rw [card_disjoint_union, nat.add_sub_cancel_left,
         card_image_of_injective _ subtype.coe_injective],
@@ -196,7 +194,7 @@ lemma hall_hard_inductive_step_B {n : ℕ} (hn : fintype.card ι = n + 1)
   (hus : s.card = (s.bUnion t).card) :
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
-  haveI : decidable_eq ι := by { classical, apply_instance },
+  haveI := classical.dec_eq ι,
   /- Restrict to `s` -/
   let ι' := (s : set ι),
   let t' : ι' → finset α := λ x', t x',
@@ -357,7 +355,7 @@ theorem fintype.all_card_le_filter_rel_iff_exists_injective
   (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card)
   ↔ (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
 begin
-  haveI : decidable_eq β := by { classical, apply_instance },
+  haveI := classical.dec_eq β,
   let r' := λ a, univ.filter (λ b, r a b),
   have h : ∀ (A : finset α), (univ.filter (λ (b : β), ∃ a ∈ A, r a b)) = (A.bUnion r'),
   { intro A,

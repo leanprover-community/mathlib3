@@ -76,7 +76,16 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  split_ifs; { simp at *, try { linarith } },
+  split_ifs; { simp at *; linarith },
+end
+
+lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ δ i.succ :=
+begin
+  ext j,
+  dsimp [δ, fin.succ_above],
+  rcases i with ⟨i, _⟩,
+  rcases j with ⟨j, _⟩,
+  split_ifs; { simp at *; linarith },
 end
 
 @[simp]
@@ -86,7 +95,7 @@ lemma fin.pred_mk {n : ℕ} (i : ℕ) (h : i < n + 1) (w) :
 rfl
 
 /-- The second simplicial identity -/
-lemma δ_comp_σ {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
+lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
 begin
   ext k,
@@ -104,13 +113,75 @@ begin
   { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_1)).symm, },
 end
 
+/-- The first part of the third simplicial identity -/
+lemma δ_comp_σ_self {n} {i : fin (n+1)} :
+  δ i.cast_succ ≫ σ i = 𝟙 _ :=
+begin
+  ext j,
+  rcases i with ⟨i, _⟩,
+  rcases j with ⟨j, _⟩,
+  dsimp [δ, σ, fin.succ_above, fin.pred_above],
+  simp with push_cast,
+  split_ifs; { simp at *; linarith, },
+end
+
+/-- The second part of the third simplicial identity -/
+lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
+  δ i.succ ≫ σ i = 𝟙 _ :=
+begin
+  ext j,
+  rcases i with ⟨i, _⟩,
+  rcases j with ⟨j, _⟩,
+  dsimp [δ, σ, fin.succ_above, fin.pred_above],
+  simp with push_cast,
+  split_ifs; { simp at *; linarith, },
+end
+
+/-- The fourth simplicial identity -/
+lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
+  δ i.succ ≫ σ j.cast_succ = σ j ≫ δ i :=
+begin
+  ext k,
+  dsimp [δ, σ, fin.succ_above, fin.pred_above],
+  rcases i with ⟨i, _⟩,
+  rcases j with ⟨j, _⟩,
+  rcases k with ⟨k, _⟩,
+  simp at H,
+  -- rw apply_dite fin.cast_succ,
+  simp [apply_dite fin.cast_succ] with push_cast, -- `simp?` doesn't work here
+  split_ifs,
+  -- Hope for the best from `linarith`:
+  any_goals { simp at *, try { linarith }, },
+  -- Four of the goals need special handling:
+  { simp at h_1,
+    exact lt_irrefl (k - 1) (lt_of_lt_of_le
+     (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
+     (le_trans (nat.le_of_lt_succ h) h_2)) },
+  { simp at h_1, linarith, },
+  { exfalso, exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
+  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
+end
+
 /-- The fifth simplicial identity -/
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   σ i.cast_succ ≫ σ j = σ j.succ ≫ σ i :=
 begin
-  change i.val ≤ j.val at H,
   ext k,
-  sorry
+  dsimp [σ, fin.pred_above],
+  rcases i with ⟨i, _⟩,
+  rcases j with ⟨j, _⟩,
+  rcases k with ⟨k, _⟩,
+  simp at H,
+  simp with push_cast,
+  split_ifs,
+  -- Hope for the best from `linarith`:
+  any_goals { simp at *, try { linarith }, },
+  { exact false.elim
+    (lt_irrefl (k - 1)
+      (lt_of_lt_of_le (nat.pred_lt (id (ne_of_lt (lt_of_le_of_lt (zero_le i) h)).symm))
+        (le_trans h_2 (nat.succ_le_of_lt h_1)))) },
+  { exact false.elim
+    (lt_irrefl j (lt_of_lt_of_le (nat.pred_lt_pred (nat.succ_ne_zero j) h_2) h_1)) },
 end
 
 end generators

@@ -321,7 +321,7 @@ theorem witt_structure_prop (Φ : mv_polynomial idx ℤ) (n) :
   aeval (λ i, map (int.cast_ring_hom R) (witt_structure_int p Φ i)) (witt_polynomial p ℤ n) =
   aeval (λ i, rename (prod.mk i) (W n)) Φ :=
 begin
-  convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n);
+  convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n) using 1;
     rw hom_bind₁; apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   { refl },
   { simp only [map_rename, map_witt_polynomial] }

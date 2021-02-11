@@ -474,6 +474,18 @@ set.subset.antisymm
 
 end to_group
 
+section
+variables (X : Type*) (G : Type*) [group G]
+
+/-- The bijection underlying the free-forgetful adjunction for abelian groups.-/
+@[simps]
+def hom_equiv : (free_group X →* G) ≃ (X → G) :=
+{ to_fun := λ f, f.1 ∘ of,
+  inv_fun := λ g, monoid_hom.of (to_group g),
+  left_inv := by { intros x, ext1, simp },
+  right_inv := by { intros x, ext1, simp }  }
+end
+
 section map
 
 variables {β : Type v} (f : α → β) {x y : free_group α}

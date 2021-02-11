@@ -22,10 +22,40 @@ fiber bundle and projection.
 
 ## Main definitions
 
+### Basic definitions
+
 * `bundle_trivialization F p` : structure extending local homeomorphisms, defining a local
                   trivialization of a topological space `Z` with projection `p` and fiber `F`.
+
 * `is_topological_fiber_bundle F p` : Prop saying that the map `p` between topological spaces is a
                   fiber bundle with fiber `F`.
+
+* `is_trivial_topological_fiber_bundle F p` : Prop saying that the map `p : Z → B` between
+  topological spaces is a trivial topological fiber bundle, i.e., there exists a homeomorphism
+  `h : Z ≃ₜ B × F` such that `proj x = (h x).1`.
+
+### Operations on bundles
+
+We provide the following operations on `bundle_trivialization`s.
+
+* `bundle_trivialization.comap`: given a local trivialization `e` of a fiber bundle `p : Z → B`, a
+  continuous map `f : B' → B` and a point `b' : B'` such that `f b' ∈ e.base_set`,
+  `e.comap f hf b' hb'` is a trivialization of the pullback bundle. The pullback bundle
+  (a.k.a., the induced bundle) has total space `{(x, y) : B' × Z | f x = p y}`, and is given by
+  `λ ⟨(x, y), h⟩, x`.
+
+* `is_topological_fiber_bundle.comap`: if `p : Z → B` is a topological fiber bundle, then its
+  pullback along a continuous map `f : B' → B` is a topological fiber bundle as well.
+
+* `bundle_trivialization.comp_homeomorph`: given a local trivialization `e` of a fiber bundle
+  `p : Z → B` and a homeomorphism `h : Z' ≃ₜ Z`, returns a local trivialization of the fiber bundle
+  `p ∘ h`.
+
+* `is_topological_fiber_bundle.comp_homeomorph`: if `p : Z → B` is a topological fiber bundle
+  and `h : Z' ≃ₜ Z` is a homeomorphism, then `p ∘ h : Z' → B` is a topological fiber bundle with
+  the same fiber.
+
+### Construction of a bundle from trivializations
 
 * `topological_fiber_bundle_core ι B F` : structure registering how changes of coordinates act
   on the fiber `F` above open subsets of `B`, where local trivializations are indexed by `ι`.
@@ -283,7 +313,7 @@ variables {B' : Type*} [topological_space B']
 /-- Given a bundle trivialization of `proj : Z → B` and a continuous map `f : B' → B`,
 construct a bundle trivialization of `φ : {p : B' × Z | f p.1 = proj p.2} → B'`
 given by `φ x = (x : B' × Z).1`. -/
-noncomputable def bundle_trivialization.induced
+noncomputable def bundle_trivialization.comap
   (e : bundle_trivialization F proj) (f : B' → B) (hf : continuous f)
   (b' : B') (hb' : f b' ∈ e.base_set) :
   bundle_trivialization F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
@@ -328,10 +358,13 @@ noncomputable def bundle_trivialization.induced
   open_base_set := e.open_base_set.preimage hf,
   proj_to_fun := λ _ _, rfl }
 
-lemma is_topological_fiber_bundle.induced (h : is_topological_fiber_bundle F proj)
+/-- If `proj : Z → B` is a topological fiber bundle with fiber `F` and `f : B' → B` is a continuous
+map, then the pullback bundle (a.k.a. induced bundle) is the topological bundle with the total space
+`{(x, y) : B' × Z | f x = proj y}` given by `λ ⟨(x, y), h⟩, x`. -/
+lemma is_topological_fiber_bundle.comap (h : is_topological_fiber_bundle F proj)
   {f : B' → B} (hf : continuous f) :
   is_topological_fiber_bundle F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
-λ x, let ⟨e, he⟩ := h (f x) in ⟨e.induced f hf x he, he⟩
+λ x, let ⟨e, he⟩ := h (f x) in ⟨e.comap f hf x he, he⟩
 
 end induced
 

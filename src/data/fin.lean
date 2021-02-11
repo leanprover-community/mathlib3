@@ -724,6 +724,10 @@ by { cases i, refl }
   ⟨i - 1, by rwa nat.sub_lt_right_iff_lt_add (nat.pos_of_ne_zero (fin.vne_of_ne w))⟩ :=
 rfl
 
+@[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
+  fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
+by simp only [ext_iff, coe_pred, coe_mk, nat.add_sub_cancel]
+
 @[simp] lemma pred_le_pred_iff {n : ℕ} {a b : fin n.succ} {ha : a ≠ 0} {hb : b ≠ 0} :
   a.pred ha ≤ b.pred hb ↔ a ≤ b :=
 by rw [←succ_le_succ_iff, succ_pred, succ_pred]

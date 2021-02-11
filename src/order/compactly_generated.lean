@@ -372,6 +372,9 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
       set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩, },
 end⟩
 
+lemma coatomic_of_top_compact (h : is_compact_element (⊤ : α)) : is_coatomic α :=
+(@order_iso.Iic_top α _).is_coatomic_iff.mp (Iic_coatomic_of_compact_element h)
+
 end complete_lattice
 
 section

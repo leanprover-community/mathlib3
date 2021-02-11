@@ -1381,6 +1381,7 @@ section pointwise
 
 namespace subgroup
 
+@[to_additive]
 lemma sup_eq_closure (H K : subgroup G) : H ⊔ K = closure (H * K) :=
 le_antisymm
   (sup_le
@@ -1390,7 +1391,8 @@ le_antisymm
     (le_def.mp le_sup_left hh)
     (le_def.mp le_sup_right hk))
 
-protected def sup_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
+@[to_additive]
+protected def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
 { carrier := (H : set G) * N,
   one_mem' := ⟨1, 1, H.one_mem, N.one_mem, by rw mul_one⟩,
   mul_mem' := λ a b ⟨h, n, hh, hn, ha⟩ ⟨h', n', hh', hn', hb⟩,
@@ -1402,12 +1404,15 @@ protected def sup_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
     by rw [mul_assoc h, inv_mul_cancel_left, ← hx, mul_inv_rev]⟩ }
 
 /-- The carrier of `H ⊔ N` is just `↑H * ↑N` (pointwise set product) when `N` is normal. -/
+@[to_additive "The carrier of `H ⊔ N` is just `↑H + ↑N` (pointwise set addition)
+when `N` is normal."]
 lemma mul_normal (H N : subgroup G) [N.normal] : (↑(H ⊔ N) : set G) = H * N :=
 set.subset.antisymm
-  (show H ⊔ N ≤ subgroup.sup_normal_aux H N,
+  (show H ⊔ N ≤ subgroup.mul_normal_aux H N,
     by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
   ((sup_eq_closure H N).symm ▸ subset_closure)
 
+@[to_additive]
 protected def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
 { carrier := (N : set G) * H,
   one_mem' := ⟨1, 1, N.one_mem, H.one_mem, by rw mul_one⟩,
@@ -1421,6 +1426,8 @@ protected def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
     by rw [mul_inv_cancel_right, ← mul_inv_rev, hx]⟩ }
 
 /-- The carrier of `N ⊔ H` is just `↑N * ↑H` (pointwise set product) when `N` is normal. -/
+@[to_additive "The carrier of `N ⊔ H` is just `↑N + ↑H` (pointwise set addition)
+when `N` is normal."]
 lemma normal_mul (N H : subgroup G) [N.normal] : (↑(N ⊔ H) : set G) = N * H :=
 set.subset.antisymm
   (show N ⊔ H ≤ subgroup.normal_mul_aux N H,

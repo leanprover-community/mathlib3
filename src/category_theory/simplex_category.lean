@@ -6,7 +6,6 @@ Authors: Johan Commelin, Scott Morrison
 
 import order.category.NonemptyFinLinOrd
 import data.finset.sort
-import tactic.apply_fun
 import tactic.linarith
 
 /-! # The simplex category
@@ -147,6 +146,8 @@ begin
   { exfalso, exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
   { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
 end
+
+local attribute [simp] fin.pred_mk
 
 /-- The fifth simplicial identity -/
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :

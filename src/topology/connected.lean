@@ -226,8 +226,8 @@ closure_eq_iff_is_closed.1 $ subset.antisymm
     (subset_closure mem_connected_component))
   subset_closure
 
-lemma image_connected_component_sub {β : Type*} [topological_space β] (f : α → β) (h : continuous f) (a : α):
-  f '' connected_component a ⊆ connected_component (f a) :=
+lemma image_connected_component_sub {β : Type*} [topological_space β] (f : α → β) (h : continuous f)
+  (a : α) : f '' connected_component a ⊆ connected_component (f a) :=
 subset_connected_component
   (is_preconnected.image (is_connected_connected_component).2 f (continuous.continuous_on h))
   ((mem_image f (connected_component a) (f a)).2 (exists.intro a ⟨mem_connected_component, rfl⟩))
@@ -673,6 +673,7 @@ instance subtype.totally_disconnected_space {α : Type*} {p : α → Prop} [topo
     totally_disconnected_space.is_totally_disconnected_univ (subtype.val '' s) (set.subset_univ _)
       ((is_preconnected.image h2 _) (continuous.continuous_on (@continuous_subtype_val _ _ p))))⟩
 
+/-- A space is totally disconnected iff its connected components are subsingletons -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :
   totally_disconnected_space α ↔ (∀ x : α, subsingleton (connected_component x)) :=
 begin
@@ -694,6 +695,7 @@ begin
   exact subsingleton_empty,
 end
 
+/-- A space is totally disconnected iff its connected components are singletons -/
 lemma totally_disconnected_space_iff_connected_component_singleton :
   totally_disconnected_space α ↔ (∀ x : α, (connected_component x) = {x}) :=
 begin
@@ -710,6 +712,7 @@ begin
   exact subsingleton_singleton,
 end
 
+/-- The image of a connected component in a totally disconnected space is a singleton -/
 lemma image_connected_component_eq_singleton {β : Type*} [topological_space β]
   [totally_disconnected_space β] {f : α → β} (h : continuous f) (a : α) :
   f '' connected_component a = {f a} :=
@@ -769,6 +772,7 @@ end totally_separated
 
 section connected_component_setoid
 
+/-- The setoid on a topological space given by the connected components of it -/
 def connected_component_setoid (α : Type*) [topological_space α] : setoid α :=
 ⟨ λ x y, connected_component x = connected_component y,
   ⟨ λ x, by trivial, λ x y h1, eq.symm h1, λ x y z h1 h2, eq.trans h1 h2 ⟩⟩
@@ -810,6 +814,8 @@ begin
   rw hg,
 end
 
+/-- The preimage of a singleton in π₀ is the connected component of an element in the
+equivalence class -/
 lemma pi0_preimage_singleton {t : α} : connected_component t = quotient.mk ⁻¹' {⟦t⟧} :=
 begin
   apply set.eq_of_subset_of_subset,
@@ -828,6 +834,8 @@ begin
   exact mem_connected_component,
 end
 
+/-- The preimage of the image of a set under the quotient map to π₀ α is the union of the
+connected components of the elements in it -/
 lemma pi0_preimage_image (U : set α) :
   quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ (x : α) (h : x ∈ U), connected_component x :=
 begin

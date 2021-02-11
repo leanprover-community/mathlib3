@@ -2217,8 +2217,7 @@ lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β
   ¬ tendsto f a b₂ :=
 λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot.ne hb.eq_bot
 
-lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β}
-  {p : α → Prop} {_ : ∀ x, decidable (p x)}
+lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop} [∀ x, decidable (p x)]
   (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
   tendsto (λ x, if p x then f x else g x) l₁ l₂ :=
 begin
@@ -2231,7 +2230,7 @@ begin
 end
 
 lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
-  {s : set α} {_ : ∀ x, decidable (x ∈ s)}
+  {s : set α} [∀ x, decidable (x ∈ s)]
   (h₀ : tendsto f (l₁ ⊓ 𝓟 s) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 sᶜ) l₂) :
   tendsto (piecewise s f g) l₁ l₂ :=
 h₀.if h₁

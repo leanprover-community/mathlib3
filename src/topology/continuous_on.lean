@@ -716,7 +716,7 @@ begin
   exact tendsto_bot,
 end
 
-lemma continuous_on.piecewise' {s t : set α} {f g : α → β} {h : ∀ a, decidable (a ∈ t)}
+lemma continuous_on.piecewise' {s t : set α} {f g : α → β} [∀ a, decidable (a ∈ t)]
   (hpf : ∀ a ∈ s ∩ frontier t, tendsto f (𝓝[s ∩ t] a) (𝓝 (piecewise t f g a)))
   (hpg : ∀ a ∈ s ∩ frontier t, tendsto g (𝓝[s ∩ tᶜ] a) (𝓝 (piecewise t f g a)))
   (hf : continuous_on f $ s ∩ t) (hg : continuous_on g $ s ∩ tᶜ) :
@@ -743,8 +743,8 @@ begin
           (λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
           (piecewise_eq_of_not_mem _ _ _ hx.2) } } }
 end
-  
-lemma continuous_on.if' {s : set α} {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
+
+lemma continuous_on.if' {s : set α} {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   (hpf : ∀ a ∈ s ∩ frontier {a | p a},
     tendsto f (𝓝[s ∩ {a | p a}] a) (𝓝 $ if p a then f a else g a))
   (hpg : ∀ a ∈ s ∩ frontier {a | p a},
@@ -754,7 +754,7 @@ lemma continuous_on.if' {s : set α} {p : α → Prop} {f g : α → β} {h : �
 hf.piecewise' hpf hpg hg
 
 lemma continuous_on.if {α β : Type*} [topological_space α] [topological_space β] {p : α → Prop}
-  {h : ∀a, decidable (p a)} {s : set α} {f g : α → β}
+  [∀ a, decidable (p a)] {s : set α} {f g : α → β}
   (hp : ∀ a ∈ s ∩ frontier {a | p a}, f a = g a) (hf : continuous_on f $ s ∩ closure {a | p a})
   (hg : continuous_on g $ s ∩ closure {a | ¬ p a}) :
   continuous_on (λa, if p a then f a else g a) s :=
@@ -780,7 +780,7 @@ lemma continuous_on.piecewise {s t : set α} {f g : α → β} [∀ a, decidable
   continuous_on (piecewise t f g) s :=
 hf.if ht hg
 
-lemma continuous_if' {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
+lemma continuous_if' {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   (hpf : ∀ a ∈ frontier {x | p x}, tendsto f (𝓝[{x | p x}] a) (𝓝 $ ite (p a) (f a) (g a)))
   (hpg : ∀ a ∈ frontier {x | p x}, tendsto g (𝓝[{x | ¬p x}] a) (𝓝 $ ite (p a) (f a) (g a)))
   (hf : continuous_on f {x | p x}) (hg : continuous_on g {x | ¬p x}) :
@@ -790,7 +790,7 @@ begin
   apply continuous_on.if'; simp *; assumption
 end
 
-lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀ a, decidable (p a)}
+lemma continuous_if {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   (hp : ∀ a ∈ frontier {x | p x}, f a = g a) (hf : continuous_on f (closure {x | p x}))
   (hg : continuous_on g (closure {x | ¬p x})) :
   continuous (λ a, if p a then f a else g a) :=
@@ -799,7 +799,7 @@ begin
   apply continuous_on.if; simp; assumption
 end
 
-lemma continuous_piecewise {s : set α} {f g : α → β} {h : ∀ a, decidable (a ∈ s)}
+lemma continuous_piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
   (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous_on f (closure s))
   (hg : continuous_on g (closure sᶜ)) :
   continuous (piecewise s f g) :=
@@ -809,10 +809,10 @@ lemma is_open_inter_union_inter_compl' {s s' t : set α}
   (hs : is_open s) (hs' : is_open s') (ht : ∀ x ∈ frontier t, x ∈ s ↔ x ∈ s') :
   is_open (s ∩ t ∪ s' ∩ tᶜ) :=
 begin
+  classical,
   simp only [is_open_iff_continuous_mem] at *,
   convert continuous_piecewise (λ x hx, propext (ht x hx)) hs.continuous_on hs'.continuous_on,
-  { ext x, by_cases hx : x ∈ t; simp [hx] },
-  { exact λ _, classical.dec _ }
+  ext x, by_cases hx : x ∈ t; simp [hx]
 end
 
 lemma is_open_inter_union_inter_compl {s s' t : set α} (hs : is_open s) (hs' : is_open s')

@@ -226,18 +226,11 @@ closure_eq_iff_is_closed.1 $ subset.antisymm
     (subset_closure mem_connected_component))
   subset_closure
 
--- TODOOOOOOOO GOLF
 lemma image_connected_component_sub {β : Type*} [topological_space β] (f : α → β) (h : continuous f) (a : α):
   f '' connected_component a ⊆ connected_component (f a) :=
-begin
-  apply subset_connected_component,
-  { exact is_preconnected.image (is_connected_connected_component).2 f (continuous.continuous_on h)},
-  rw mem_image,
-  use a,
-  split,
-  { exact mem_connected_component },
-  refl,
-end
+subset_connected_component
+  (is_preconnected.image (is_connected_connected_component).2 f (continuous.continuous_on h))
+  ((mem_image f (connected_component a) (f a)).2 (exists.intro a ⟨mem_connected_component, rfl⟩))
 
 theorem irreducible_component_subset_connected_component {x : α} :
   irreducible_component x ⊆ connected_component x :=
@@ -524,7 +517,6 @@ begin
   -- although the statement is slightly different
   intro t,
 
-  -- First we show that f is surjective
   have hf : function.surjective f,
   { intro t,
     choose s hs using (connected_fibers t).1,
@@ -546,8 +538,7 @@ begin
   let T₁ := {t' ∈ connected_component t | f ⁻¹' {t'} ⊆ u },
   let T₂ := {t' ∈ connected_component t | f ⁻¹' {t'} ⊆ v },
 
-  -- TODO: rename
-  have h_decomp : ∀ t' ∈ connected_component t, f ⁻¹' {t'} ⊆ u ∨ f ⁻¹' {t'} ⊆ v,
+  have fiber_decomp : ∀ t' ∈ connected_component t, f ⁻¹' {t'} ⊆ u ∨ f ⁻¹' {t'} ⊆ v,
   { intros t' ht',
     apply is_preconnected_iff_subset_of_disjoint_closed.1 (connected_fibers t').2 u v hu hv,
     { exact subset.trans ((function.surjective.preimage_subset_preimage_iff hf).2 (singleton_subset_iff.2 ht')) huv },
@@ -567,7 +558,7 @@ begin
     constructor,
     { apply mem_preimage.1 hat },
     simp,
-    cases h_decomp (f a) (mem_preimage.1 hat),
+    cases fiber_decomp (f a) (mem_preimage.1 hat),
     { apply h },
     { exfalso,
       rw ←not_nonempty_iff_eq_empty at uv_disj,
@@ -587,7 +578,7 @@ begin
     constructor,
     { apply mem_preimage.1 hat },
     simp,
-    cases h_decomp (f a) (mem_preimage.1 hat),
+    cases fiber_decomp (f a) (mem_preimage.1 hat),
     { exfalso,
       rw ←not_nonempty_iff_eq_empty at uv_disj,
       apply uv_disj,
@@ -608,7 +599,7 @@ begin
   have T_decomp : (connected_component t) ⊆ T₁ ∪ T₂,
   { intros t' ht',
     apply (mem_union t' T₁ T₂).2,
-    cases h_decomp t' ht' with htu htv,
+    cases fiber_decomp t' ht' with htu htv,
     { left, exact ⟨ht', htu⟩ },
     right, exact ⟨ht', htv⟩ },
 
@@ -821,6 +812,10 @@ begin
   change (g₁ ∘ quotient.mk) a = (g₂ ∘ quotient.mk) a,
   rw hg,
 end
+
+lemma pi0_lift_unique'' {β : Type*} [topological_space β] [totally_disconnected_space β]
+  (g₁ : π₀ α → β) (g₂ : π₀ α → β) (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ := sorry
+--funext (λ x, quotient.induction_on x $ λ a, (eq.subst hg (@rfl β ((g₁ ∘ quotient.mk) a)))
 
 lemma pi0_preimage_singleton {t : α} : connected_component t = quotient.mk ⁻¹' {⟦t⟧} :=
 begin

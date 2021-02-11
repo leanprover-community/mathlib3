@@ -914,6 +914,19 @@ if h : p.cast_succ < i then
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
+lemma pred_above_monotone (p : fin n) : monotone p.pred_above :=
+λ a b H,
+begin
+  dsimp [fin.pred_above],
+  split_ifs with ha hb hb,
+  all_goals { simp only [fin.le_iff_coe_le_coe, fin.coe_pred], },
+  { exact nat.pred_le_pred H, },
+  { calc _ ≤ _ : nat.pred_le _
+        ... ≤ _ : H, },
+  { simp at ha, exact nat.le_pred_of_lt (lt_of_le_of_lt ha hb), },
+  { exact H, },
+end
+
 /-- `cast_pred` embeds `i : fin (n + 2)` into `fin (n + 1)`
 by lowering just `last (n + 1)` to `last n`. -/
 def cast_pred (i : fin (n + 2)) : fin (n + 1) :=

@@ -84,18 +84,7 @@ lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : 
 ⟨λ h, ⟨sub_le.mp (abs_le.mp h).2, neg_le_sub_iff_le_add.mp (abs_le.mp h).1⟩,
  λ hy, abs_le.mpr ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
 
-/-
-lemma ordered_monoid.le_mul {R : Type*} [ordered_semiring R] {a b c : R}
-  (ab : a ≤ b) (c1 : 1 ≤ c) :
-  a ≤ b * c :=
-begin
-  apply (mul_one a).symm.le.trans _,
-  apply mul_le_mul ab c1 zero_le_one,
---  library_search,
---(mul_one (1 : R)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
-end
--/
-
+-- this lemma went in PR adomani_one_le_mul_of_one_le_of_one_le
 lemma one_le_mul_of_one_le_of_one_le {R : Type*} [ordered_semiring R] {a b : R} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
   (1 : R) ≤ a * b :=
 (mul_one (1 : R)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
@@ -103,8 +92,6 @@ lemma one_le_mul_of_one_le_of_one_le {R : Type*} [ordered_semiring R] {a b : R} 
 end inequality_and_intervals
 
 --namespace is_liouville
-
-
 
 open polynomial metric
 
@@ -129,37 +116,13 @@ begin
   have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),
   refine ⟨max (1 / ε) M, me0, λ z a, _⟩,
   by_cases dm1 : 1 ≤ (dist α (j z a) * max (1 / ε) M),
-  {
-    apply one_le_mul_of_one_le_of_one_le (d0 a) dm1,
-  },
-  have : j z a ∈ closed_ball α ε,
-  { refine mem_closed_ball'.mp _,
-    sorry,
---    exact ((le_div_iff me0).mpr p.le).trans ((one_div_le me0 e0).mpr (le_max_left _ _))
-     },
-
-  apply (L _ : 1 ≤ d a * ((dist (f α) (f (j z a))))).trans (_),
-  {
-    sorry,
-  },
-  {
-    refine mul_le_mul_of_nonneg_left _ (zero_le_one.trans (d0 a)),
-    refine (B _).trans _,
-    sorry,
-    exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg,
-  },
-  -- this fact is probably too specialized to be its own lemma
-  -- `ℝ` can be replaced by a `linear_ordered_semiring R`.
-  have abc : ∀ {a b : ℝ} (c : ℝ), 1 ≤ a ∧ (b < 1 → 1 ≤ a * c ∧ c ≤ b) → 1 ≤ a * b,
-  { rintros a b c ⟨ha, key⟩,
-    by_cases A : b < 1,
-    { exact (key A).1.trans ((mul_le_mul_left (zero_lt_one.trans_le ha)).mpr (key A).2) },
-    { rw ← mul_one (1 : ℝ),
-      exact mul_le_mul ha (not_lt.mp A) zero_le_one (zero_le_one.trans ha) } },
-  refine abc (dist (f α) (f (j z a))) ⟨d0 a, λ p, _⟩,
-  refine ⟨L _, (B _).trans (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩;
-  { refine mem_closed_ball'.mp _,
-    exact ((le_div_iff me0).mpr p.le).trans ((one_div_le me0 e0).mpr (le_max_left _ _)) }
+  { exact one_le_mul_of_one_le_of_one_le (d0 a) dm1 },
+  { have : j z a ∈ closed_ball α ε,
+    { refine mem_closed_ball'.mp (le_trans _ ((one_div_le me0 e0).mpr (le_max_left _ _))),
+      exact ((le_div_iff me0).mpr (not_le.mp dm1).le) },
+    refine (L this).trans _,
+    refine mul_le_mul_of_nonneg_left ((B this).trans _) (zero_le_one.trans (d0 a)),
+    exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg }
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)

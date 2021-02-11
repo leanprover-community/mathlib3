@@ -21,7 +21,7 @@ In this file we classify solutions to the inequality
 
 The solutions are exactly of the form.
 * `A' q r := {1,q,r}`
-* `D r := {2,2,r}`
+* `D' r := {2,2,r}`
 * `E6 := {2,3,3}`, or `E7 := {2,3,4}`, or `E8 := {2,3,5}`
 
 This inequality shows up in Lie theory,
@@ -209,7 +209,7 @@ is a solution to `(p⁻¹ + q⁻¹ + r⁻¹ : ℚ) > 1` if and only if
 it is `admissible` which means it is one of:
 
 * `A' q r := {1,q,r}`
-* `D r := {2,2,r}`
+* `D' r := {2,2,r}`
 * `E6 := {2,3,3}`, or `E7 := {2,3,4}`, or `E8 := {2,3,5}`
 -/
 lemma classification (p q r : ℕ+) :

@@ -280,7 +280,7 @@ open_locale classical
 
 variables {B' : Type*} [topological_space B']
 
-/-- Fiven a bundle trivialization of `proj : Z → B` and a continuous map `f : B' → B`,
+/-- Given a bundle trivialization of `proj : Z → B` and a continuous map `f : B' → B`,
 construct a bundle trivialization of `φ : {p : B' × Z | f p.1 = proj p.2} → B'`
 given by `φ x = (x : B' × Z).1`. -/
 noncomputable def bundle_trivialization.induced

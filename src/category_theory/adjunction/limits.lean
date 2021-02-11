@@ -260,7 +260,7 @@ end preservation_limits
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
-def cocones_iso_component_hom {J : Type u₃} [category J] {K : J ⥤ C}
+def cocones_iso_component_hom {J : Type u₃} [category.{v₃} J] {K : J ⥤ C}
   (Y : D) (t : ((cocones J D).obj (op (K ⋙ F))).obj Y) :
   (G ⋙ (cocones J C).obj (op K)).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y) (t.app j),
@@ -268,7 +268,7 @@ def cocones_iso_component_hom {J : Type u₃} [category J] {K : J ⥤ C}
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
-def cocones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ C}
+def cocones_iso_component_inv {J : Type u₃} [category.{v₃} J] {K : J ⥤ C}
   (Y : D) (t : (G ⋙ (cocones J C).obj (op K)).obj Y) :
   ((cocones J D).obj (op (K ⋙ F))).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y).symm (t.app j),
@@ -285,12 +285,13 @@ is naturally isomorphic to
 the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
 -/
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
-def cocones_iso {J : Type v} [small_category J] {K : J ⥤ C} :
+def cocones_iso {D : Type u₂} [category.{v₁} D] {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
+  {J : Type u₃} [category.{v₁} J] {K : J ⥤ C} :
   (cocones J D).obj (op (K ⋙ F)) ≅ G ⋙ ((cocones J C).obj (op K)) :=
 nat_iso.of_components (λ Y,
 { hom := cocones_iso_component_hom adj Y,
   inv := cocones_iso_component_inv adj Y, })
-(by tidy)
+(λ Y₁ Y₂ f, begin ext x t, dsimp,  end)
 
 /-- auxiliary construction for `cones_iso` -/
 @[simps]

@@ -77,7 +77,7 @@ by { convert mul_le_mul_left' h c using 1; rw mul_comm }
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) : a * d < c :=
-lt_of_le_of_lt (mul_le_mul_left' hle a) h
+(mul_le_mul_left' hle a).trans_lt h
 
 @[to_additive]
 lemma lt_of_mul_lt_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=
@@ -85,7 +85,7 @@ by simpa only [mul_one] using mul_lt_of_mul_lt_left h hle
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) : d * b < c :=
-lt_of_le_of_lt (mul_le_mul_right' hle b) h
+(mul_le_mul_right' hle b).trans_lt h
 
 @[to_additive]
 lemma lt_of_mul_lt_right (h : a * b < c) (hle : 1 ≤ a) : b < c :=
@@ -109,7 +109,7 @@ by simpa only [one_mul] using mul_le_of_mul_le_right h hle
 
 @[to_additive]
 lemma lt_mul_of_lt_mul_left (h : a < b * c) (hle : c ≤ d) : a < b * d :=
-lt_of_lt_of_le h (mul_le_mul_left' hle b)
+h.trans_le (mul_le_mul_left' hle b)
 
 @[to_additive]
 lemma lt_of_lt_mul_left (h : a < b * c) (hle : c ≤ 1) : a < b :=
@@ -117,7 +117,7 @@ by simpa only [mul_one] using lt_mul_of_lt_mul_left h hle
 
 @[to_additive]
 lemma lt_mul_of_lt_mul_right (h : a < b * c) (hle : b ≤ d) : a < d * c :=
-lt_of_lt_of_le h (mul_le_mul_right' hle c)
+h.trans_le (mul_le_mul_right' hle c)
 
 @[to_additive]
 lemma lt_of_lt_mul_right (h : a < b * c) (hle : b ≤ 1) : a < c :=

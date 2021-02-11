@@ -235,9 +235,11 @@ begin
         (nat_degree_eq_of_degree_eq_some h))).resolve_right hq)),
     rw [←aeval_def, aeval_comp] at hx,
     have h_normal : normal F (r.comp q).splitting_field := splitting_field.normal (r.comp q),
-    exact splits_of_splits_of_dvd _ (minpoly.ne_zero (normal.is_integral h_normal _))
-      (normal.splits h_normal _) (dvd_symm_of_irreducible (minpoly.irreducible
-      (normal.is_integral h_normal _)) hr (minpoly.dvd F _ hx)) },
+    have qx_int := normal.is_integral h_normal (aeval x q),
+    exact splits_of_splits_of_dvd _
+      (minpoly.ne_zero qx_int)
+      (normal.splits h_normal _)
+      (dvd_symm_of_irreducible (minpoly.irreducible qx_int) hr (minpoly.dvd F _ hx)) },
   have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,

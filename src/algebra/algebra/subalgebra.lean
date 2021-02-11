@@ -315,41 +315,6 @@ theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : �
 @[reducible] def range_restrict (f : A →ₐ[R] B) : A →ₐ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
 
-/-- Restrict an algebra homomorphism with a left inverse to an algebra isomorphism to its range.
-
-This is a computable alternative to `alg_equiv.of_injective`. -/
-def alg_equiv.of_left_inverse
-  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) :
-  A ≃ₐ[R] f.range :=
-{ to_fun := f.range_restrict,
-  inv_fun := λ x, g (f.range.val x),
-  left_inv := λ x, subtype.ext $
-    let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
-    show f (g x) = x, by rw [←hx', h x'])
-  right_inv := h,
-  ..f.range_restrict }
-
-@[simp] lemma alg_equiv.of_left_inverse_apply
-  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : A) :
-  ↑(alg_equiv.of_left_inverse h x) = f x := rfl
-
-@[simp] lemma alg_equiv.of_left_inverse_symm_apply
-  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : f.range) :
-  (alg_equiv.of_left_inverse h).symm x = g x := rfl
-
-/-- Restrict an injective algebra homomorphism to an algebra isomorphism -/
-noncomputable def alg_equiv.of_injective (f : A →ₐ[R] B) (hf : function.injective f) :
-  A ≃ₐ[R] f.range :=
-alg_equiv.of_left_inverse (classical.some_spec hf.has_left_inverse)
-
-@[simp] lemma alg_equiv.of_injective_apply (f : A →ₐ[R] B) (hf : function.injective f) (x : A) :
-  ↑(alg_equiv.of_injective f hf x) = f x := rfl
-
-/-- Restrict an algebra homomorphism between fields to an algebra isomorphism -/
-noncomputable def alg_equiv.of_injective_field {E F : Type*} [division_ring E] [semiring F]
-  [nontrivial F] [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
-alg_equiv.of_injective f f.to_ring_hom.injective
-
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
@@ -373,6 +338,48 @@ def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
 
 end alg_hom
+
+namespace alg_equiv
+
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+
+/-- Restrict an algebra homomorphism with a left inverse to an algebra isomorphism to its range.
+
+This is a computable alternative to `alg_equiv.of_injective`. -/
+def of_left_inverse
+  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) :
+  A ≃ₐ[R] f.range :=
+{ to_fun := f.range_restrict,
+  inv_fun := λ x, g (f.range.val x),
+  left_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := f.mem_range.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'])
+  right_inv := h,
+  ..f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply
+  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : A) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply
+  {g : B → A} {f : A →ₐ[R] B} (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
+
+/-- Restrict an injective algebra homomorphism to an algebra isomorphism -/
+noncomputable def of_injective (f : A →ₐ[R] B) (hf : function.injective f) :
+  A ≃ₐ[R] f.range :=
+of_left_inverse (classical.some_spec hf.has_left_inverse)
+
+@[simp] lemma of_injective_apply (f : A →ₐ[R] B) (hf : function.injective f) (x : A) :
+  ↑(of_injective f hf x) = f x := rfl
+
+/-- Restrict an algebra homomorphism between fields to an algebra isomorphism -/
+noncomputable def of_injective_field {E F : Type*} [division_ring E] [semiring F]
+  [nontrivial F] [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
+of_injective f f.to_ring_hom.injective
+
+end alg_equiv
 
 namespace algebra
 

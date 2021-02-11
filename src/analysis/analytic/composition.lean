@@ -457,7 +457,7 @@ begin
     ... ≤ Cq : hCq _,
     have B,
     calc ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n)
-        ≤ ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
+        = ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
       by simp only [finset.prod_mul_distrib, finset.prod_pow_eq_pow_sum, c.sum_blocks_fun]
     ... ≤ ∏ i : fin c.length, Cp : finset.prod_le_prod' (λ i _, hCp _)
     ... = Cp ^ c.length : by simp

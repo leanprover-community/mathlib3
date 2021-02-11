@@ -235,16 +235,6 @@ begin
   exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur
 end
 
-lemma singleton_span_is_compact_element (x : M) :
-  complete_lattice.is_compact_element (span R {x} : submodule R M) :=
-begin
-  rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le,
-  intros d hemp hdir hsup,
-  have : x ∈ Sup d, from (le_def.mp hsup) (mem_span_singleton_self x),
-  obtain ⟨y, ⟨hyd, hxy⟩⟩ := (mem_Sup_of_directed hemp hdir).mp this,
-  exact ⟨y, ⟨hyd, by simpa only [span_le, singleton_subset_iff]⟩⟩,
-end
-
 /-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
 theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
 begin

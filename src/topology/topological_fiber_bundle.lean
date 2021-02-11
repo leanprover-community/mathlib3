@@ -138,12 +138,15 @@ variable {F}
 
 variable (F)
 
-/-- A topological fiber bundle with fiber F over a base B is a space projecting on B for which the
-fibers are all homeomorphic to F, such that the local situation around each point is a direct
-product. -/
+/-- A topological fiber bundle with fiber `F` over a base `B` is a space projecting on `B`
+for which the fibers are all homeomorphic to `F`, such that the local situation around each point
+is a direct product. -/
 def is_topological_fiber_bundle (proj : Z → B) : Prop :=
 ∀ x : B, ∃e : bundle_trivialization F proj, x ∈ e.base_set
 
+/-- A trivial topological fiber bundle with fiber `F` over a base `B` is a space `Z`
+projecting on `B` for which there exists a homeomorphism to `B × F` that sends `proj`
+to `prod.fst`. -/
 def is_trivial_topological_fiber_bundle (proj : Z → B) : Prop :=
 ∃ e : Z ≃ₜ (B × F), ∀ x, (e x).1 = proj x
 

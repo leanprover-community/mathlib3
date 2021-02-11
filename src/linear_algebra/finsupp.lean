@@ -313,6 +313,30 @@ finsupp.sum_single_index (f i).map_zero
 
 theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) : lsum.symm f x = f.comp (lsingle x) := rfl
 
+section
+variables (M) (R) (X : Type*)
+
+/--
+A slight rearrangement from `lsum` gives us
+the bijection underlying the free-forgetful adjunction for R-modules.
+-/
+noncomputable def hom_equiv : ((X →₀ R) →ₗ[R] M) ≃ (X → M) :=
+(lsum : _ ≃+ _).to_equiv.symm.trans $ equiv.arrow_congr (equiv.refl _)
+{ to_fun := λ f, f 1,
+  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { simp } }
+
+@[simp]
+lemma hom_equiv_apply (f) (x) : ((hom_equiv M R X) f) x = f (single x 1) :=
+rfl
+@[simp]
+lemma hom_equiv_symm_apply (f) (g) :
+  ((hom_equiv M R X).symm f) g = g.sum (λ x r, r • f x) :=
+rfl
+
+end
+
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
 

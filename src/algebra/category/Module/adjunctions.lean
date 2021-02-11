@@ -40,7 +40,7 @@ The free-forgetful adjunction for R-modules.
 -/
 def adj : free R ⊣ forget (Module.{u} R) :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X M, finsupp.hom_equiv R M X,
+{ hom_equiv := λ X M, finsupp.hom_equiv M R X,
   hom_equiv_naturality_left_symm' :=
   begin
     intros _ _ M f g, ext x,

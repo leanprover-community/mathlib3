@@ -1,6 +1,7 @@
 /-
 Copyright (c) 2021 Filippo A. E. Nuccio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Author: Filippo A. E. Nuccio
 -/
 import data.mv_polynomial
 import linear_algebra.std_basis
@@ -62,60 +63,116 @@ We then build some glue to treat formal power series as if they are indexed by `
 Occasionally this leads to proofs that are uglier than expected.
 -/
 
+namespace maxumal
+
+def maxumal := ℕ
+
+def equiv_to_nat : maxumal ≃ nat := equiv.refl _
+
+notation `𝕄` := maxumal
+notation `℘` := equiv_to_nat.to_fun
+notation `℘⁻¹` := equiv_to_nat.symm
+notation `𝟘` := ℘⁻¹ 0
+
+instance : inhabited 𝕄 := ⟨𝟘⟩
+instance : has_zero 𝕄 := ⟨𝟘⟩
+instance : nontrivial 𝕄 := ⟨⟨𝟘, ℘⁻¹ 1, nat.zero_ne_one⟩⟩
+
+lemma nat.max_zero : ∀ {m : ℕ}, max m 0 = m :=
+begin
+  intro a,
+  rw [max_comm a 0, nat.zero_max],
+end
+
+instance : add_comm_monoid 𝕄 :=
+{ add := begin change ℕ → ℕ → ℕ, use max, end,
+  add_assoc := by convert max_assoc,
+  zero := 𝟘,
+  zero_add := λ _, nat.zero_max,
+  add_zero := λ _, nat.max_zero,
+  add_comm := max_comm, }
+
+def sub_left_maxumal : 𝕄 × 𝕄 → 𝕄
+| (𝕜₁, 𝕜₂) := ℘⁻¹ (℘ (𝕜₁ + 𝕜₂) - ℘ 𝕜₁)
+notation `μ` := sub_left_maxumal
+
+@[simp] lemma zero_sub_left : ∀ (𝕜 : 𝕄), μ (𝟘, 𝕜) = 𝕜 := sorry
+@[simp] lemma sub_left_zero : ∀ (𝕜 : 𝕄 ), μ (𝕜, 𝟘) = 𝟘 := sorry
+
+#eval ℘ ((℘⁻¹ 8) + (℘⁻¹ 5))
+#eval μ (℘⁻¹ 8, ℘⁻¹ 5)
+#eval μ (℘⁻¹ 5, ℘⁻¹ 8)
+-- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 5) + (equiv_to_nat.inv_fun 8))
+-- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 3) + (equiv_to_nat.inv_fun 5))
+-- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 2) + (equiv_to_nat.inv_fun 0))
+
+end maxumal
 noncomputable theory
 open_locale classical big_operators
 
+namespace punctured_power_series
+
 /-- Multivariate formal power series, where `σ` is the index set of the variables
 and `R` is the coefficient ring.-/
--- def mv_power_series (σ : Type*) (R : Type*) := (σ →₀ ℕ) → R
-def punctured_power_series (R : Type*) := ℕ × (ℕ → R)
+-- def mv_power_series (σ : Type*) (R : Type*) := (σ →₀ ℕ) →
+def punctured_power_series (R : Type*) := 𝕄 × (ℕ → R)
 
-def old_shift_fun {R : Type*} : ℕ → (ℕ → R) → (ℕ → R)
--- | 0 := λ x, x
-| (n) := λ f, function.comp f (nat.add n)
-
-def preshift : ℕ → ℕ → ℕ
-| 0 := λ x, x
-| k := λ x, if x < k then 0 else x-k
-
-lemma preshift_by_zero : preshift 0 = (λ x, x) := rfl
-
-def shift_fun {R : Type*} : ℕ → (ℕ → R) → (ℕ → R)
-| (n) := λ f, function.comp f (preshift n)
-
-lemma shift_fun_by_zero {R : Type*} (f : ℕ → R) : shift_fun 0 f = f :=
-begin
-  rw shift_fun,
-  funext,
-  simp only [nat.add_def, function.comp_app, preshift_by_zero],
-end
-
-namespace punctured_power_series
 -- open finsupp
 variables {R : Type*}
 
 instance [inhabited R]       : inhabited       (punctured_power_series R) := ⟨(default _, (λ _, default _))⟩
-instance [has_zero R]        : has_zero        (punctured_power_series R) := ⟨(0, 0)⟩
+instance [has_zero R]        : has_zero        (punctured_power_series R) := ⟨(𝟘, 0)⟩
 instance [nontrivial R]      : nontrivial      (punctured_power_series R) := nontrivial_prod_left
 
-section monoid
+def shift_fun {R : Type*} [has_zero R]: 𝕄 → (ℕ → R) → (ℕ → R)
+| (k) := λ f, λ n, if n < (℘ k) then (0 : R) else f (n - ℘ k)
 
-variable [add_monoid R]
+lemma shift_fun_by_zero [has_zero R] (f : ℕ → R) : shift_fun 𝟘 f = f := rfl
 
-lemma zero_shift_fun (k : ℕ) : shift_fun k (0 : ℕ → R) = 0 := rfl
+-- section add_comm_monoid
+
+/-We only consider the case where R is a commutative additive monoid, for simplicity-/
+variable [add_comm_monoid R]
+
+-- lemma cst_shift_fun' (𝕜 : 𝕄) : shift_fun 𝕜 (function.const : ℕ → R) = (0 : ℕ → R) := sorry,
+
+lemma cst_shift_fun (𝕜 : 𝕄) : shift_fun 𝕜 (0 : ℕ → R) = (0 : ℕ → R) :=
+begin
+      -- funext,
+      -- dsimp [shift_fun],
+      sorry,
+      -- apply if_congr,
+      -- split,
+      -- -- apply dif_eq_if,
+      -- apply dif_neg,
+      -- simp * at *,
+      -- rw function.const_apply _ 0 n,
+      -- apply rfl,
+
+end
 
 protected def add : (punctured_power_series R) → (punctured_power_series R) → (punctured_power_series R) :=
 begin
-  rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩,
-  exact ⟨max k₁ k₂, (shift_fun ((max k₁ k₂) - k₁ ) f₁) + (shift_fun ((max k₁ k₂) - k₂ ) f₂)⟩,
+  rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩,
+  exact ⟨𝕜₁ + 𝕜₂, shift_fun (μ (𝕜₁, 𝕜₂)) f₁ + shift_fun (μ (𝕜₂, 𝕜₁)) f₂⟩,
 end
 
-lemma add_assoc (F₁ F₂ F₃ : punctured_power_series R) : punctured_power_series.add (punctured_power_series.add  F₁ F₂) F₃ =
+lemma add_assoc : ∀ (F₁ F₂ F₃ : punctured_power_series R), punctured_power_series.add (punctured_power_series.add  F₁ F₂) F₃ =
  punctured_power_series.add F₁ (punctured_power_series.add F₂ F₃) :=
-begin sorry,
-                -- rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩ ⟨k₃, f₃⟩,
-                -- ext,
-                -- apply max_assoc,
+begin -- sorry,
+  rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩ ⟨𝕜₃, f₃⟩,
+  ext,
+  apply max_assoc,
+  dsimp [punctured_power_series.add],
+  show (shift_fun (μ (𝕜₁ + 𝕜₂, 𝕜₃)) (shift_fun (μ (𝕜₁, 𝕜₂)) f₁ + shift_fun (μ (𝕜₂, 𝕜₁)) f₂) +
+       shift_fun (μ (𝕜₃, 𝕜₁ + 𝕜₂)) f₃) x = (shift_fun (μ (𝕜₁, 𝕜₂ + 𝕜₃)) f₁ +
+        shift_fun (μ (𝕜₂ + 𝕜₃, 𝕜₁)) (shift_fun (μ (𝕜₂, 𝕜₃)) f₂ + shift_fun (μ (𝕜₃, 𝕜₂)) f₃)) x,
+  simp only [pi.add_apply] at *,
+  sorry,
+  -- apply add_assoc,
+  --     x,
+  -- show (shift_fun μ (μ (𝕜₁, 𝕜₂), 𝕜₃) (punctured_power_series.add  F₁ F₂).snd + shift_fun μ (𝕜₃, μ (𝕜₁, 𝕜₂)) f₃).snd x =
+  --   (shift_fun μ (𝕜₁, μ (𝕜₂, 𝕜₃)) f₁ + shift_fun μ (μ (𝕜₂, 𝕜₃), 𝕜₁) (punctured_power_series.add F₂ F₃).snd).snd x,
 -- suffices primo : (((k₁, f₁) + (k₂, f₂)) + (k₃, f₃)).2 x = ((k₁, f₁) + ((k₂, f₂) + (k₃, f₃))).2 x,
 -- exact primo,
 -- suffices this : (shift_fun ((max (max k₁ k₂) k₃) - max k₁ k₂) (((k₁,f₁) + (k₂, f₂)).snd)
@@ -126,35 +183,37 @@ end
 
 lemma zero_add : ∀ (F: punctured_power_series R), punctured_power_series.add 0 F = F :=
 begin
-  rintro ⟨k, f⟩,
+  rintro ⟨𝕜, f⟩,
   ext,
   apply nat.zero_max,
-  suffices this : (shift_fun ((max 0 k) - 0) 0 + shift_fun ((max 0 k) - k) f) x = f x,
-  exact this,
-  rw [nat.zero_max, nat.sub_zero, nat.sub_self, shift_fun_by_zero, zero_shift_fun, zero_add],
+  show (shift_fun (μ (𝟘, 𝕜)) 0 + shift_fun (μ (𝕜, 𝟘)) f) x = f x,
+  rw [maxumal.zero_sub_left, maxumal.sub_left_zero, pi.add_apply, shift_fun_by_zero,
+    cst_shift_fun, pi.zero_apply, zero_add],
 end
 
 lemma add_zero : ∀ (F: punctured_power_series R), punctured_power_series.add F 0 = F :=
 begin
-  rintro ⟨k, f⟩,
+  rintro ⟨𝕜, f⟩,
   ext,
-  convert nat.zero_max,
-  apply max_comm k 0,
-  suffices this : (shift_fun ((max k 0) - k) f + shift_fun ((max k 0) - 0) 0) x = f x,
-  exact this,
-  simp only [max_comm k 0, nat.zero_max, shift_fun_by_zero, zero_shift_fun, add_zero, nat.sub_self],
+  apply maxumal.nat.max_zero,
+  show (shift_fun (μ (𝕜, 𝟘)) f + shift_fun (μ (𝟘, 𝕜)) 0) x = f x,
+  rw [maxumal.zero_sub_left, maxumal.sub_left_zero, pi.add_apply, shift_fun_by_zero,
+    cst_shift_fun, pi.zero_apply, add_zero],
 end
 
-instance [add_monoid R]      : add_monoid      (punctured_power_series R) :=
-{ add := punctured_power_series.add,
-  add_assoc := punctured_power_series.add_assoc,
-  zero := (0, 0),
-  zero_add := punctured_power_series.zero_add,
-  add_zero := punctured_power_series.add_zero}
+lemma add_comm : ∀ (F G: punctured_power_series R), punctured_power_series.add F G =
+  punctured_power_series.add G F :=
+begin
+  rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩,
+  ext,
+  apply max_comm,
+  show (shift_fun (μ (𝕜₁, 𝕜₂)) f₁ + shift_fun (μ (𝕜₂, 𝕜₁)) f₂) x =
+    (shift_fun (μ (𝕜₂, 𝕜₁)) f₂ + shift_fun (μ (𝕜₁, 𝕜₂)) f₁) x,
+  simp only [pi.add_apply] at *,
+  apply add_comm,
+end
 
-lemma add_comm : ∀ (F G: punctured_power_series R), punctured_power_series.add F G = punctured_power_series.add G F := sorry
-
-instance [add_comm_monoid R] : add_comm_monoid (punctured_power_series R) :=
+instance : add_comm_monoid (punctured_power_series R) :=
 { add := punctured_power_series.add,
   add_assoc := punctured_power_series.add_assoc,
   zero := (0, 0),
@@ -162,29 +221,146 @@ instance [add_comm_monoid R] : add_comm_monoid (punctured_power_series R) :=
   add_zero := punctured_power_series.add_zero,
   add_comm := punctured_power_series.add_comm }
 
-variables F₁ F₂ : punctured_power_series R
+-- def a : ℕ → ℤ := λ n, 4*n+3
+-- def b : ℕ → ℤ := λ n, 1-2*n
+-- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
+-- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
 
+-- def F₁ : punctured_power_series ℤ := (𝕜₁, a)
+-- def F₂ : punctured_power_series ℤ := (𝕜₂, b)
 
-def eqv_punctured_shift {R : Type*} [semiring R] (F₁ F₂ : punctured_power_series R) : Prop :=
-(F₂.snd = (shift_fun (F₂.fst - F₁.fst) F₁.snd)) ∨ (F₁.snd = (shift_fun (F₁.fst - F₂.fst) F₂.snd))
+-- #eval (F₁ + F₂).snd 8
+/-The right answers are
+0 → 1, 1 → -1, 2 → 0, 3 → 2, 4 → 4, 5 → 6, 6 → 8, 7 → 10, 8 → 12
 
-lemma eqv_punctured_shift_rfl {R : Type*} [semiring R] (F : punctured_power_series R) :
-  eqv_punctured_shift F F :=
-sorry
+def F₃ := (𝟘, b) --check!
+--/
 
-lemma eqv_punctured_shift_symm {R : Type*} [semiring R] (F₁ F₂ : punctured_power_series R) :
-  eqv_punctured_shift F₁ F₂ →  eqv_punctured_shift F₂ F₁:=
-sorry
+-- variables {S : Type*} [comm_ring R]
 
-lemma eqv_punctured_shift_trans {R : Type*} [semiring R] (F₁ F₂ F₃: punctured_power_series R) :
-  eqv_punctured_shift F₁ F₂ →  eqv_punctured_shift F₂ F₃ → eqv_punctured_shift F₁ F₃ :=
-begin sorry,
+--def eqv_punctured_shift {R : Type*} [add_comm_monoid R] (F₁ F₂ : punctured_power_series R) : Prop :=
+-- (F₂.snd = (shift_fun ℘⁻¹ (℘ (F₂.fst) - ℘ (F₁.fst))) F₁.snd)) ∨ (F₁.snd = (shift_fun (F₁.fst - F₂.fst) F₂.snd))
+
+def eqv_punctured (F₁ F₂ : punctured_power_series R) : Prop :=
+∃ ℓ₁₂ ℓ₂₁ : 𝕄, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
+
+lemma eqv_punctured_rfl: reflexive (@eqv_punctured R _) := sorry
+lemma eqv_punctured_symm : symmetric (@eqv_punctured R _) := sorry
+lemma eqv_punctured_trans : transitive (@eqv_punctured R _) := sorry
+
+theorem eqv_punctured.is_equivalence :  equivalence (@eqv_punctured R _) :=
+ ⟨eqv_punctured_rfl, eqv_punctured_symm, eqv_punctured_trans⟩
+
+def eqv_punctured.add_con (R : Type*) [add_comm_monoid R] : add_con (punctured_power_series R) :=
+begin
+  use @eqv_punctured R _,
+  exact eqv_punctured.is_equivalence,
+  sorry,
 end
 
+def laurent_series (R : Type*) [add_comm_monoid R]:= (eqv_punctured.add_con R).quotient
+instance inhabited : inhabited (laurent_series R) :=-- ⟨((eqv_punctured.add_con R).mk' 0)⟩
+  begin
+    use (eqv_punctured.add_con R).mk' 0,
+  end
 
--- theorem is_equivalence_shift {R : Type*} [semiring R] equivalence (@eqv_punctured_shift :=
--- begin
--- end SEE PAG 166 tpil
+instance : add_comm_monoid (laurent_series R) := (eqv_punctured.add_con R).add_comm_monoid
+
+instance : has_coe (punctured_power_series R) (laurent_series R) :=
+⟨@quotient.mk _ (eqv_punctured.add_con R).to_setoid⟩
+
+
+
+-- def a : ℕ → ℤ := λ n, 4*n+3
+-- def b : ℕ → ℤ := λ n, 1-2*n
+-- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
+-- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
+
+--setoid.mk (@eqv_punctured R _) (eqv_punctured.is_equivalence)
+
+-- instance laurent_series.setoid (R : Type*) [add_comm_monoid R] : setoid (punctured_power_series R) :=
+-- setoid.mk (@eqv_punctured R _) (eqv_punctured.is_equivalence)
+
+-- definition laurent_series (R : Type*) [add_comm_monoid R] : Type* :=
+-- quotient (laurent_series.setoid R)
+
+-- instance : add_comm_monoid (laurent_series R) :=
+-- { add := punctured_power_series.add,
+--   add_assoc := _,
+--   zero := _,
+--   zero_add := _,
+--   add_zero := _,
+--   add_comm := _ }
+
+variables {S : Type*} [comm_ring S]
+
+noncomputable theory
+open classical
+-- open_locale classical
+
+instance : comm_ring (laurent_series S) :=
+{ add := λ F₁ F₂, F₁ + F₂,
+  add_assoc := sorry,
+  zero := (eqv_punctured.add_con S).mk' 0,
+  zero_add := λ _, by simp,
+  add_zero := λ _, by simp,
+  -- begin
+  --   rintros F,
+  --   obtain ⟨f⟩ : ∃ f : (punctured_power_series S),
+  --     (eqv_punctured.add_con S).mk' f = F,
+  -- end,
+  neg := begin
+                -- refine quot.lift_on _ _ _,
+                -- use (punctured_power_series S),
+                -- -- rintros F₁ F₂,
+                -- rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
+                -- use eqv_punctured ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
+                -- --  (λ (𝕜, f), (𝕜, -f))⟩,
+                -- -- begin
+
+                  intro G,
+                have hG : ∃ f : (punctured_power_series S),
+                    (eqv_punctured.add_con S).mk' f = G,
+                apply add_con.mk'_surjective,
+                rcases some hG with ⟨𝕜, g⟩,
+                use (eqv_punctured.add_con S).mk' ⟨𝕜, -g⟩,
+                end,
+  sub := begin
+                  intros F₁ F₂,
+                  have hF₁ : ∃ f₁ : (punctured_power_series S),
+                    (eqv_punctured.add_con S).mk' f₁ = F₁,
+                  apply add_con.mk'_surjective,
+                  have hF₂ : ∃ f₂ : (punctured_power_series S),
+                    (eqv_punctured.add_con S).mk' f₂ = F₂,
+                  apply add_con.mk'_surjective,
+                  rcases some hF₁ with ⟨𝕜₁, f₁⟩,
+                  rcases some hF₂ with ⟨𝕜₂, f₂⟩,
+                  use (eqv_punctured.add_con S).mk' (μ (𝕜₁, 𝕜₂), f₁-f₂),
+                end,
+  sub_eq_add_neg :=
+                begin intros F₁ F₂,
+                rcases F₁,
+                rcases F₂,
+                rcases F₁ with ⟨𝕜₁, f₁⟩,
+                rcases F₂ with ⟨𝕜₂, f₂⟩,
+                suffices this : f₁ - f₂ = f₁ + -f₂,
+                simp * at *,
+                sorry,
+                sorry,
+                end,
+  add_left_neg := _,
+  add_comm := _,
+  mul := _,
+  mul_assoc := _,
+  one := _,
+  one_mul := _,
+  mul_one := _,
+  left_distrib := _,
+  right_distrib := _,
+  mul_comm := _ }
+
+-- end add_comm_monoid
+end punctured_power_series--SEE PAG 166 tpil
 
 
 
@@ -207,5 +383,4 @@ end
 
 -- end
 
-end monoid
-end punctured_power_series
+-- end punctured_power_series

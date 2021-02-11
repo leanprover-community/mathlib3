@@ -291,11 +291,11 @@ def cocones_iso {D : Type u₂} [category.{v₁} D] {F : C ⥤ D} {G : D ⥤ C} 
 nat_iso.of_components (λ Y,
 { hom := cocones_iso_component_hom adj Y,
   inv := cocones_iso_component_inv adj Y, })
-(λ Y₁ Y₂ f, begin ext x t, dsimp,  end)
+(by tidy)
 
 /-- auxiliary construction for `cones_iso` -/
 @[simps]
-def cones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ D}
+def cones_iso_component_hom {J : Type u₃} [category.{v₃} J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : (functor.op F ⋙ (cones J D).obj K).obj X) :
   ((cones J C).obj (K ⋙ G)).obj X :=
 { app := λ j, (adj.hom_equiv (unop X) (K.obj j)) (t.app j),
@@ -307,7 +307,7 @@ def cones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ D}
 
 /-- auxiliary construction for `cones_iso` -/
 @[simps]
-def cones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ D}
+def cones_iso_component_inv {J : Type u₃} [category.{v₃} J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : ((cones J C).obj (K ⋙ G)).obj X) :
   (functor.op F ⋙ (cones J D).obj K).obj X :=
 { app := λ j, (adj.hom_equiv (unop X) (K.obj j)).symm (t.app j),
@@ -323,7 +323,8 @@ the functor associating to each `X` the cones over `K` with cone point `F.op.obj
 is naturally isomorphic to
 the functor associating to each `X` the cones over `K ⋙ G` with cone point `X`.
 -/
-def cones_iso {J : Type v} [small_category J] {K : J ⥤ D} :
+def cones_iso {D : Type u₂} [category.{v₁} D] {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
+  {J : Type u₃} [category.{v₁} J] {K : J ⥤ D} :
   F.op ⋙ ((cones J D).obj K) ≅ (cones J C).obj (K ⋙ G) :=
 nat_iso.of_components (λ X,
 { hom := cones_iso_component_hom adj X,

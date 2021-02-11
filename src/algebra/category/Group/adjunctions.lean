@@ -79,12 +79,16 @@ end AddCommGroup
 
 namespace Group
 
+/-- The free functor `Type u ⥤ Group` sending a type `X` to the free group with generators `x : X`.
+-/
 def free : Type u ⥤ Group :=
 { obj := λ α, of (free_group α),
   map := λ X Y, free_group.map,
   map_id' := by { intros, ext1, refl },
   map_comp' := by { intros, ext1, refl } }
 
+/-- The free-forgetful adjunction for groups.
+-/
 def adj : free ⊣ forget Group.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_group.hom_equiv X G,

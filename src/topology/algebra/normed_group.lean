@@ -6,6 +6,18 @@ Authors: Johan Commelin
 import topology.algebra.group_completion
 import topology.metric_space.completion
 
+/-!
+# Completion of normed groups
+
+In this file we show that the completion of a normed group
+is naturally a normed group.
+
+## Main declaration
+
+* `uniform_space.completion.normed_group`:
+  the normed group instance on the completion of a normed group
+-/
+
 noncomputable theory
 
 variables (V : Type*)

@@ -62,16 +62,21 @@ end polynomial
 
 section inequality_and_intervals
 
-/-- This inequality streamlines the argument in `exists_one_le_pow_mul_dist`. -/
-lemma le_mul_of_le_and {R : Type*} [linear_ordered_semiring R] {a b : R} (c : R)
+/-- To prove that the inequality `1 ≤ a * b` holds, it suffices to prove
+* the inequality `1 ≤ a`; and
+* if `1 < b`, then to provide a `c ≤ b` satisfying `1 ≤ a * c`.
+This lemma is mostly useful if `c` already appears in the context, especially in
+situations when the terms `a` and `b` are complicated.
+This inequality streamlines the argument in `exists_one_le_pow_mul_dist`. -/
+lemma one_le_mul_of_le_and_of_lt {R : Type*} [linear_ordered_semiring R] {a b : R} (c : R)
   (ha   : 1 ≤ a)
-  (key  : b ≤ 1 → 1 ≤ a * c ∧ c ≤ b) :
+  (key  : b < 1 → 1 ≤ a * c ∧ c ≤ b) :
   1 ≤ a * b :=
 begin
-  by_cases A : b ≤ 1,
+  by_cases A : b < 1,
   { exact (key A).1.trans ((mul_le_mul_left (zero_lt_one.trans_le ha)).mpr (key A).2) },
   { rw ← mul_one (1 : R),
-    exact mul_le_mul ha (not_le.mp A).le zero_le_one (zero_le_one.trans ha) }
+    exact mul_le_mul ha (not_lt.mp A) zero_le_one (zero_le_one.trans ha) }
 end
 
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
@@ -79,36 +84,30 @@ lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : 
 ⟨λ h, ⟨sub_le.mp (abs_le.mp h).2, neg_le_sub_iff_le_add.mp (abs_le.mp h).1⟩,
  λ hy, abs_le.mpr ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
 
+/-
+lemma ordered_monoid.le_mul {R : Type*} [ordered_semiring R] {a b c : R}
+  (ab : a ≤ b) (c1 : 1 ≤ c) :
+  a ≤ b * c :=
+begin
+  apply (mul_one a).symm.le.trans _,
+  apply mul_le_mul ab c1 zero_le_one,
+--  library_search,
+--(mul_one (1 : R)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
+end
+-/
+
+lemma one_le_mul_of_one_le_of_one_le {R : Type*} [ordered_semiring R] {a b : R} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
+  (1 : R) ≤ a * b :=
+(mul_one (1 : R)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
+
 end inequality_and_intervals
 
 --namespace is_liouville
 
+
+
 open polynomial metric
 
-/-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
-It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
-`R = ℝ`, `d n = n`, `j z n  = z / (n + 1)`, `f ∈ ℤ[x]`, `α` is an irrational root of `f`, `ε` is
-small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is the degree of the
-polynomial `f`.
--/
-lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
-  {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ} {n : ℕ}
---denominators are positive
-  (d0 : ∀ (a : N), 1 ≤ d a)
-  (e0 : 0 < ε)
---function is Lipschitz at α
-  (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
---clear denominators
-  (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) ^ n * dist (f α) (f (j z a))) :
-  ∃ e : ℝ, 0 < e ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) ^ n * (dist α (j z a) * e) :=
-begin
-  have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),
-  refine ⟨max (1 / ε) M, me0, λ z a, _⟩,
-  refine le_mul_of_le_and (dist (f α) (f (j z a))) (one_le_pow_of_one_le (d0 a) _) (λ p, _),
-  refine ⟨L _, (B _).trans (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩;
-  { refine mem_closed_ball'.mp _,
-    exact ((le_div_iff me0).mpr p).trans ((one_div_le me0 e0).mpr (le_max_left _ _)) }
-end
 
 /-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
 It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
@@ -116,7 +115,7 @@ It is stated in more general form than needed: in the intended application, `Z =
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
 the degree of the polynomial `f`.
 -/
-lemma exists_one_le_pow_mul_dist_no_pow {Z N R : Type*} [metric_space R]
+lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
   {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ}
 --denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)
@@ -129,10 +128,38 @@ lemma exists_one_le_pow_mul_dist_no_pow {Z N R : Type*} [metric_space R]
 begin
   have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),
   refine ⟨max (1 / ε) M, me0, λ z a, _⟩,
-  refine le_mul_of_le_and (dist (f α) (f (j z a))) ((d0) _) (λ p, _),
+  by_cases dm1 : 1 ≤ (dist α (j z a) * max (1 / ε) M),
+  {
+    apply one_le_mul_of_one_le_of_one_le (d0 a) dm1,
+  },
+  have : j z a ∈ closed_ball α ε,
+  { refine mem_closed_ball'.mp _,
+    sorry,
+--    exact ((le_div_iff me0).mpr p.le).trans ((one_div_le me0 e0).mpr (le_max_left _ _))
+     },
+
+  apply (L _ : 1 ≤ d a * ((dist (f α) (f (j z a))))).trans (_),
+  {
+    sorry,
+  },
+  {
+    refine mul_le_mul_of_nonneg_left _ (zero_le_one.trans (d0 a)),
+    refine (B _).trans _,
+    sorry,
+    exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg,
+  },
+  -- this fact is probably too specialized to be its own lemma
+  -- `ℝ` can be replaced by a `linear_ordered_semiring R`.
+  have abc : ∀ {a b : ℝ} (c : ℝ), 1 ≤ a ∧ (b < 1 → 1 ≤ a * c ∧ c ≤ b) → 1 ≤ a * b,
+  { rintros a b c ⟨ha, key⟩,
+    by_cases A : b < 1,
+    { exact (key A).1.trans ((mul_le_mul_left (zero_lt_one.trans_le ha)).mpr (key A).2) },
+    { rw ← mul_one (1 : ℝ),
+      exact mul_le_mul ha (not_lt.mp A) zero_le_one (zero_le_one.trans ha) } },
+  refine abc (dist (f α) (f (j z a))) ⟨d0 a, λ p, _⟩,
   refine ⟨L _, (B _).trans (mul_le_mul_of_nonneg_left (le_max_right (1 / ε) M) dist_nonneg)⟩;
   { refine mem_closed_ball'.mp _,
-    exact ((le_div_iff me0).mpr p).trans ((one_div_le me0 e0).mpr (le_max_left _ _)) }
+    exact ((le_div_iff me0).mpr p.le).trans ((one_div_le me0 e0).mpr (le_max_left _ _)) }
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
@@ -151,7 +178,7 @@ begin
   obtain ⟨xm, ⟨h_x_max_range, hM⟩⟩ := is_compact.exists_forall_ge (@compact_Icc (α - ζ) (α + ζ))
     ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
-  refine @exists_one_le_pow_mul_dist_no_pow ℤ ℕ ℝ _ _ _ (λ y, fR.eval y) α ζ
+  refine @exists_one_le_pow_mul_dist ℤ ℕ ℝ _ _ _ (λ y, fR.eval y) α ζ
     (abs (fR.derivative.eval xm)) _ z0 (λ y hy, _) (λ z a hq, _),
   { exact λ a, one_le_pow_of_one_le ((le_add_iff_nonneg_left 1).mpr a.cast_nonneg) _ }, --simp
   { rw mul_comm,

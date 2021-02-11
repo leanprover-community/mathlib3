@@ -7,6 +7,7 @@ import topology.algebra.ring
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
+import linear_algebra.pi
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -429,8 +430,7 @@ lemma mul_apply (f g : M →L[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
 protected def prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) : M →L[R] (M₂ × M₃) :=
-{ cont := f₁.2.prod_mk f₂.2,
-  ..f₁.to_linear_map.prod f₂.to_linear_map }
+⟨(f₁ : M →ₗ[R] M₂).prod f₂, f₁.2.prod_mk f₂.2⟩
 
 @[simp, norm_cast] lemma coe_prod (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) :
   (f₁.prod f₂ : M →ₗ[R] M₂ × M₃) = linear_map.prod f₁ f₂ :=
@@ -439,6 +439,11 @@ rfl
 @[simp, norm_cast] lemma prod_apply (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) (x : M) :
   f₁.prod f₂ x = (f₁ x, f₂ x) :=
 rfl
+
+instance [topological_space R] [topological_semimodule R M] [topological_semimodule R M₂] :
+  topological_semimodule R (M × M₂) :=
+⟨(continuous_fst.smul (continuous_fst.comp continuous_snd)).prod_mk
+  (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
 
 /-- Kernel of a continuous linear map. -/
 def ker (f : M →L[R] M₂) : submodule R M := (f : M →ₗ[R] M₂).ker
@@ -613,16 +618,17 @@ variables
 /-- `pi` construction for continuous linear functions. From a family of continuous linear functions
 it produces a continuous linear function into a family of topological modules. -/
 def pi (f : Πi, M →L[R] φ i) : M →L[R] (Πi, φ i) :=
-⟨linear_map.pi (λ i, (f i : M →ₗ[R] φ i)),
- continuous_pi (λ i, (f i).continuous)⟩
+⟨linear_map.pi (λ i, f i), continuous_pi (λ i, (f i).continuous)⟩
 
-@[simp] lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
+@[simp] lemma coe_pi (f : Π i, M →L[R] φ i) : ⇑(pi f) = λ c i, f i c := rfl
+
+lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
   pi f c i = f i c := rfl
 
 lemma pi_eq_zero (f : Πi, M →L[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
-by simp only [ext_iff, pi_apply, function.funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
+by { simp only [ext_iff, pi_apply, function.funext_iff], exact forall_swap }
 
-lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := by ext; refl
+lemma pi_zero : pi (λi, 0 : Πi, M →L[R] φ i) = 0 := ext $ λ _, rfl
 
 lemma pi_comp (f : Πi, M →L[R] φ i) (g : M₂ →L[R] M) : (pi f).comp g = pi (λi, (f i).comp g) := rfl
 
@@ -766,15 +772,26 @@ lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp] lemma comp_smul [linear_map.compatible_smul M₂ M₃ S R] : h.comp (c • f) = c • (h.comp f) :=
 by { ext x, exact h.map_smul_of_tower c (f x) }
 
-variable [topological_add_group M₂]
+variables [has_continuous_add M₂]
 
-instance : module S (M →L[R] M₂) :=
+instance : semimodule S (M →L[R] M₂) :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
   zero_smul := λ _, ext $ λ _, zero_smul _ _,
   one_smul  := λ _, ext $ λ _, one_smul _ _,
   mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
+
+variables (S) [has_continuous_add M₃]
+
+/-- `continuous_linear_map.prod` as a `linear_equiv`. -/
+def prodₗ : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ₗ[S] (M →L[R] M₂ × M₃) :=
+{ to_fun := λ f, f.1.prod f.2,
+  inv_fun := λ f, ⟨(fst _ _ _).comp f, (snd _ _ _).comp f⟩,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  left_inv := λ f, by ext; refl,
+  right_inv := λ f, by ext; refl }
 
 end smul
 

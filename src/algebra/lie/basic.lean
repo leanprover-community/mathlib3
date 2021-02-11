@@ -1040,7 +1040,7 @@ lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros N hN, exact hN hm, }
 
 lemma submodule_span_le_lie_span : submodule.span R s ≤ lie_span R L s :=
-by { rw [submodule.span_le, coe_to_submodule], apply subset_lie_span, }
+by { rw submodule.span_le, apply subset_lie_span, }
 
 lemma lie_span_le {N} : lie_span R L s ≤ N ↔ s ⊆ N :=
 begin
@@ -1343,7 +1343,7 @@ lemma derived_series_of_ideal_le {I J : lie_ideal R L} {k l : ℕ} (h₁ : I ≤
 begin
   revert l, induction k with k ih; intros l h₂,
   { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
-  { have h : l = k.succ ∨ l ≤ k, { omega, },
+  { have h : l = k.succ ∨ l ≤ k, by rwa [le_iff_eq_or_lt, nat.lt_succ_iff] at h₂,
     cases h,
     { rw [h, derived_series_of_ideal_succ, derived_series_of_ideal_succ],
       exact lie_submodule.mono_lie _ _ _ _ (ih (le_refl k)) (ih (le_refl k)), },
@@ -1577,15 +1577,7 @@ begin
 end
 
 @[simp] lemma map_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
-begin
-  rw le_ker_iff, unfold lie_ideal.map, split; intros h,
-  { rwa [eq_bot_iff, lie_submodule.lie_span_le, set.image_subset_iff, lie_submodule.bot_coe] at h,},
-  { suffices : f '' I = ↑(⊥ : lie_ideal R L'), { rw [this, lie_submodule.lie_span_eq], },
-    ext x, rw [lie_submodule.bot_coe, set.mem_singleton_iff, set.mem_image],
-    split,
-    { rintros ⟨y, hy, hx⟩, rw ← hx, exact h y hy, },
-    { intros hx, use 0, simp [hx], }, },
-end
+by { rw ← le_bot_iff, apply lie_ideal.map_le_iff_le_comap }
 
 lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, ker_coe_submodule, lie_submodule.bot_coe_submodule,

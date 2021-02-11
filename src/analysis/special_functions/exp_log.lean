@@ -35,6 +35,12 @@ open_locale classical topological_space
 
 namespace complex
 
+lemma measurable_re : measurable re := continuous_re.measurable
+
+lemma measurable_im : measurable im := continuous_im.measurable
+
+lemma measurable_of_real : measurable (coe : ℝ → ℂ) := continuous_of_real.measurable
+
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
 begin

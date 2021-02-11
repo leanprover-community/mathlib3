@@ -1051,6 +1051,41 @@ by { rw [mem_ker, f.map_one], exact one_ne_zero }
 @[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
 by simpa only [←injective_iff_ker_eq_bot] using f.injective
 
+/-- The induced map from the quotient by the kernel to the codomain. -/
+def ker_lift (f : R →+* S) : f.ker.quotient →+* S :=
+ideal.quotient.lift _ f $ λ r, f.mem_ker.mp
+
+@[simp]
+lemma ker_lift_mk (f : R →+* S) (r : R) : ker_lift f (ideal.quotient.mk f.ker r) = f r :=
+ideal.quotient.lift_mk _ _ _
+
+/-- The induced map from the quotient by the kernel is injective. -/
+lemma ker_lift_injective (f : R →+* S) : function.injective (ker_lift f) :=
+assume a b, quotient.induction_on₂' a b $
+  assume a b (h : f a = f b), quotient.sound' $
+show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
+
+variable {f}
+
+/-- The first isomorphism theorem for commutative rings, computable version. -/
+def quotient_ker_equiv_of_right_inverse
+  {g : S → R} (hf : function.right_inverse g f) :
+  f.ker.quotient ≃+* S :=
+{ to_fun := ker_lift f,
+  inv_fun := (ideal.quotient.mk f.ker) ∘ g,
+  left_inv := begin
+    rintro ⟨x⟩,
+    apply ker_lift_injective,
+    simp [hf (f x)],
+  end,
+  right_inv := hf,
+  ..ker_lift f}
+
+/-- The first isomorphism theorem for commutative rings. -/
+noncomputable def quotient_ker_equiv_of_surjective (hf : function.surjective f) :
+  f.ker.quotient ≃+* S :=
+quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
+
 end comm_ring
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
@@ -1174,7 +1209,51 @@ surjective_quot_mk _
 lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
 ideal.mk_ker
 
-variable {R}
+variables {R} {B : Type*} [comm_ring B] [algebra R B]
+
+lemma quotient.smul (f : A →ₐ[R] B) (r : R) (x : f.to_ring_hom.ker.quotient) :
+  f.to_ring_hom.ker_lift (r • x) = r • f.to_ring_hom.ker_lift x :=
+begin
+  obtain ⟨a, rfl⟩ := quotient.mkₐ_surjective R _ x,
+  rw [← alg_hom.map_smul, quotient.mkₐ_eq_mk, ring_hom.ker_lift_mk],
+  exact f.map_smul _ _
+end
+
+/-- The induced algebras morphism from the quotient by the kernel to the codomain. -/
+def ker_lift_alg (f : A →ₐ[R] B) : f.to_ring_hom.ker.quotient →ₐ[R] B :=
+alg_hom.mk' f.to_ring_hom.ker_lift (λ _ _, quotient.smul f _ _)
+
+@[simp]
+lemma ker_lift_alg_mk (f : A →ₐ[R] B) (a : A) :
+  ker_lift_alg f (quotient.mk f.to_ring_hom.ker a) = f a := rfl
+
+@[simp]
+lemma ker_lift_alg_to_ring_hom (f : A →ₐ[R] B) :
+  (ker_lift_alg f).to_ring_hom = ring_hom.ker_lift f := rfl
+
+/-- The induced algebra morphism from the quotient by the kernel is injective. -/
+lemma ker_lift_alg_injective (f : A →ₐ[R] B) : function.injective (ker_lift_alg f) :=
+ring_hom.ker_lift_injective f
+
+/-- The first isomorphism theorem for agebras, computable version. -/
+def quotient_ker_alg_equiv_of_right_inverse
+  {f : A →ₐ[R] B} {g : B → A} (hf : function.right_inverse g f) :
+  f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
+{ to_fun := ker_lift_alg f,
+  inv_fun := (quotient.mkₐ R f.to_ring_hom.ker) ∘ g,
+  left_inv := begin
+    rintro ⟨a⟩,
+    apply ker_lift_alg_injective,
+    change f (g (f a)) = f a,
+    exact hf (f a),
+  end,
+  right_inv := hf,
+  ..ker_lift_alg f}
+
+/-- The first isomorphism theorem for agebras. -/
+noncomputable def quotient_ker_alg_equiv_of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) :
+  f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
+quotient_ker_alg_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
 /-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :

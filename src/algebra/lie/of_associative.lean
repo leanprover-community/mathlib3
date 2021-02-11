@@ -79,7 +79,7 @@ instance of_associative_algebra : lie_algebra R A :=
 /-- The map `of_associative_algebra` associating a Lie algebra to an associative algebra is
 functorial. -/
 def of_associative_algebra_hom {B : Type w} [ring B] [algebra R B] (f : A →ₐ[R] B) : A →ₗ⁅R⁆ B :=
- { map_lie := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
+ { map_lie' := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
      by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
   ..f.to_linear_map, }
 
@@ -111,7 +111,7 @@ variables [lie_ring_module L M] [lie_module R L M]
     map_smul' := λ t, lie_smul t x, },
   map_add'  := λ x y, by { ext m, apply add_lie, },
   map_smul' := λ t x, by { ext m, apply smul_lie, },
-  map_lie   := λ x y, by { ext m, apply lie_lie, }, }
+  map_lie'  := λ x y, by { ext m, apply lie_lie, }, }
 
 /-- The adjoint action of a Lie algebra on itself. -/
 def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphism R L L
@@ -139,7 +139,7 @@ variables (e : M₁ ≃ₗ[R] M₂)
 
 /-- A linear equivalence of two modules induces a Lie algebra equivalence of their endomorphisms. -/
 def lie_conj : module.End R M₁ ≃ₗ⁅R⁆ module.End R M₂ :=
-{ map_lie := λ f g, show e.conj ⁅f, g⁆ = ⁅e.conj f, e.conj g⁆,
+{ map_lie' := λ f g, show e.conj ⁅f, g⁆ = ⁅e.conj f, e.conj g⁆,
     by simp only [lie_ring.of_associative_ring_bracket, linear_map.mul_eq_comp, e.conj_comp,
                   linear_equiv.map_sub],
   ..e.conj }
@@ -158,8 +158,8 @@ variables (e : A₁ ≃ₐ[R] A₂)
 
 /-- An equivalence of associative algebras is an equivalence of associated Lie algebras. -/
 def to_lie_equiv : A₁ ≃ₗ⁅R⁆ A₂ :=
-{ to_fun  := e.to_fun,
-  map_lie := λ x y, by simp [lie_ring.of_associative_ring_bracket],
+{ to_fun   := e.to_fun,
+  map_lie' := λ x y, by simp [lie_ring.of_associative_ring_bracket],
   ..e.to_linear_equiv }
 
 @[simp] lemma to_lie_equiv_apply (x : A₁) : e.to_lie_equiv x = e x := rfl

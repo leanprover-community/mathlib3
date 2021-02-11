@@ -221,7 +221,7 @@ begin
     rw mem_bUnion,
     exact ⟨x', hx', hsf' _⟩, },
   have f''_not_mem_bUnion : ∀ {x''} (hx'' : ¬ x'' ∈ s), ¬ f'' ⟨x'', hx''⟩ ∈ s.bUnion t,
-  { intros,
+  { intros x'' hx'',
     have h := hsf'' ⟨x'', hx''⟩,
     rw mem_sdiff at h,
     exact h.2, },

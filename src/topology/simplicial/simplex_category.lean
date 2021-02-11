@@ -49,45 +49,22 @@ TODO: prove that these generate the category
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) :
   @has_hom.hom simplex_category _ n (n+1 : ℕ) :=
-{ to_fun := fin.succ_above i,
-  monotone' :=
-  begin
-    intros a b H,
-    dsimp [fin.succ_above],
-    split_ifs with ha hb hb,
-    { simpa using H, },
-    { simp at hb,
-      apply le_of_lt,
-      calc _ < _ : ha
-         ... ≤ _ : hb
-         ... < _ : fin.cast_succ_lt_succ b, },
-    { simp at ha,
-      apply_fun fin.cast_succ at H,
-      exfalso,
-      apply lt_irrefl i,
-      calc _ ≤ _ : ha
-         ... ≤ _ : H
-         ... < _ : hb, },
-    { simpa using H, },
-  end }
+(fin.succ_above i).to_preorder_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
 def σ {n} (i : fin (n+1)) :
   @has_hom.hom simplex_category _ (n+1 : ℕ) n :=
-{ to_fun := λ a, if h : a.val ≤ i.val
-  then a.cast_lt (lt_of_le_of_lt h i.is_lt)
-  else ⟨a.val.pred,
-    (nat.sub_lt_right_iff_lt_add (lt_of_le_of_lt i.val.zero_le (not_le.mp h))).mpr a.is_lt⟩,
+{ to_fun := fin.pred_above i,
   monotone' := λ a b H,
   begin
-    dsimp,
-    split_ifs with ha hb,
+    dsimp [fin.pred_above],
+    split_ifs with ha hb hb,
     all_goals { simp only [fin.le_iff_coe_le_coe], simp, },
-    { exact H, },
-    { simp at hb, exact nat.le_pred_of_lt (lt_of_le_of_lt ha hb), },
+    { exact nat.pred_le_pred H, },
     { calc _ ≤ _ : nat.pred_le _
          ... ≤ _ : H, },
-    { exact nat.pred_le_pred H, }
+    { simp at ha, exact nat.le_pred_of_lt (lt_of_le_of_lt ha hb), },
+    { exact H, },
   end }
 
 /-- The first simplicial identity -/
@@ -102,24 +79,29 @@ begin
   split_ifs; { simp at *, try { linarith } },
 end
 
+@[simp]
+lemma fin.pred_mk {n : ℕ} (i : ℕ) (h : i < n + 1) (w) :
+  fin.pred ⟨i, h⟩ w =
+  ⟨i - 1, by rwa nat.sub_lt_right_iff_lt_add (nat.pos_of_ne_zero (fin.vne_of_ne w))⟩ :=
+rfl
+
 /-- The second simplicial identity -/
 lemma δ_comp_σ {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
 begin
   ext k,
-  dsimp [δ, σ, fin.succ_above],
+  dsimp [δ, σ, fin.succ_above, fin.pred_above],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk, dite_eq_ite, if_congr, subtype.mk_lt_mk,
-    fin.succ_mk, fin.coe_cast_lt, fin.coe_succ, fin.coe_cast_succ, dif_ctx_congr,
-     dite_cast, order_embedding.lt_iff_lt, fin.cast_succ_mk, fin.coe_mk, ite_cast] at *,
+  simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
+  simp with push_cast, -- `simp?` doesn't work here
   split_ifs,
   -- Hope for the best from `linarith`:
-  all_goals { simp at *, try { linarith } },
+  all_goals { simp at *, try { linarith }, },
   -- Two of the goals need special handling:
-  { replace h_3 := nat.le_of_pred_lt h_3, linarith, },
-  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_1)).symm, }
+  { replace h_3 := nat.le_of_pred_lt h_3, change k ≤ i at h_3, linarith, },
+  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_1)).symm, },
 end
 
 /-- The fifth simplicial identity -/

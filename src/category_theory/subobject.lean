@@ -28,7 +28,8 @@ namespace category_theory
 variables {C : Type u} [category.{v} C]
 
 /-- The category of monomorphisms into `X` is "thin", i.e. a preorder. -/
-instance {X : C} (A B : { f : over X // mono f.hom }) : subsingleton (A ⟶ B) :=
+instance monomorphisms_subsingleton {X : C} (A B : { f : over X // mono f.hom }) :
+  subsingleton (A ⟶ B) :=
 begin
   fsplit,
   rintros ⟨f, _, wf⟩ ⟨g, _, wg⟩,

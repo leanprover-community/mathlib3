@@ -791,6 +791,7 @@ singleton_eq_singleton_iff.1 $
   image_connected_component_eq_singleton h a ▸
   image_connected_component_eq_singleton h b ▸ hab ▸ rfl
 
+/-- A map to a totally disconnected space factors through π₀ α. This is the lift to the quotient. -/
 def pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
   (h : continuous f) : π₀ α → β :=
 quotient.lift f (image_eq_of_equiv h)
@@ -806,7 +807,7 @@ lemma pi0_lift_unique {β : Type*} [topological_space β] [totally_disconnected_
   (h : continuous f) (g : π₀ α → β) (hg : g ∘ quotient.mk = f) : g = pi0_lift h :=
 by {subst hg, ext1 x, apply quotient.induction_on x, intro a, refl}
 
-lemma pi0_lift_unique' {β : Type*} [topological_space β] [totally_disconnected_space β]
+lemma pi0_lift_unique' {β : Type*} [topological_space β]
   (g₁ : π₀ α → β) (g₂ : π₀ α → β) (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ :=
 begin
   ext1 x,
@@ -900,6 +901,7 @@ begin
   apply mem_of_subset_of_mem h1 hc,
 end
 
+/-- functoriality of π₀ -/
 def pi0_map {β : Type*} [topological_space β] (f : α → β) (h : continuous f) : π₀ α → π₀ β :=
 pi0_lift (continuous.comp (continuous_quotient_mk) h)
 

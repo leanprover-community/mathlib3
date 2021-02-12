@@ -508,6 +508,12 @@ begin
   exact h,
 end
 
+lemma clopen_eq_union_connected_components {Z : set α} (h : is_clopen Z) :
+  Z = (⋃ (x : α) (H : x ∈ Z), connected_component x) :=
+eq_of_subset_of_subset (λ x xZ, mem_Union.2 ⟨x, mem_Union.2 ⟨xZ, mem_connected_component⟩⟩)
+  (Union_subset $ λ x, Union_subset $ λ xZ,
+    (by {apply subset.trans connected_component_subset_Inter_clopen (Inter_subset _ ⟨Z, ⟨h, xZ⟩⟩)}))
+
 /-- The preimage of a connected component is preconnected if the function has connected fibers
 and a subset is closed iff the preimage is. -/
 lemma preimage_connected_component_preconnected {β : Type*} [topological_space β] {f : α → β}
@@ -782,6 +788,9 @@ local attribute [instance] connected_component_setoid
 
 lemma component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ connected_component x = connected_component y :=
 ⟨λ h, (quotient.exact h), λ h, quotient.sound h⟩
+
+lemma component_nrel_iff {x y : α} : ⟦x⟧ ≠ ⟦y⟧ ↔ connected_component x ≠ connected_component y :=
+by {rw not_iff_not, exact component_rel_iff}
 
 notation `π₀ ` α :max := quotient (connected_component_setoid α)
 

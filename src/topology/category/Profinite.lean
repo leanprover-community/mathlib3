@@ -84,19 +84,7 @@ namespace Profinite
 
 variables {α : Type*} [topological_space α]
 open set
-local attribute [instance] component_setoid
-
---
-lemma component_nrel_iff {x y : α} : ⟦x⟧ ≠ ⟦y⟧ ↔ connected_component x ≠ connected_component y :=
-by {rw not_iff_not, exact component_rel_iff}
-
-lemma clopen_eq_union_connected_components {Z : set α} (h : is_clopen Z) :
-  Z = (⋃ (x : α) (H : x ∈ Z), connected_component x) :=
-eq_of_subset_of_subset (λ x xZ, mem_Union.2 ⟨x, mem_Union.2 ⟨xZ, mem_connected_component⟩⟩)
-  (Union_subset $ λ x, Union_subset $ λ xZ,
-    (by {apply subset.trans connected_component_subset_Inter_clopen (Inter_subset _ ⟨Z, ⟨h, xZ⟩⟩)}))
-
--- TODO USE IMAGE_CONNECTED_COMPONENT TO REWRITE LATER PROOF
+local attribute [instance] connected_component_setoid
 
 instance pi0.t2 [t2_space α] [compact_space α]: t2_space (π₀ α) :=
 begin
@@ -125,10 +113,10 @@ begin
   -- TODO: renaming
   have h1 := clopen_eq_union_connected_components hu_clopen,
   have h2 : (quotient.mk ⁻¹' (quotient.mk '' U)) = U,
-  { rw preimage_image_pi0,
+  { rw pi0_preimage_image,
     exact eq.symm h1 },
   have h3 : (quotient.mk ⁻¹' (quotient.mk '' Uᶜ)) = Uᶜ,
-  { rw preimage_image_pi0,
+  { rw pi0_preimage_image,
     exact eq.symm (clopen_eq_union_connected_components (is_clopen_compl hu_clopen)) },
   -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
   -- TODO, can I avoid all these splits?
@@ -170,8 +158,8 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
         { to_fun := f.1 ∘ quotient.mk,
           continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
         inv_fun := λ g,
-        { to_fun := pi0.lift g.1 g.2,
-          continuous_to_fun := pi0.lift.continuous g.1 g.2 },
+        { to_fun := pi0_lift g.2,
+          continuous_to_fun := pi0_lift_continuous g.2 },
   -- TODO: REMOVE BAD TIDY CODE
         left_inv := by {intros x, dsimp at *, simp at *, ext1, induction x_1,
           work_on_goal 0 { refl }, refl},
@@ -190,7 +178,7 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
         simp only [functor.id_obj, functor.comp_obj],
         fsplit,
         { change ((π₀ Y.to_Top.α) → Y.to_Top.α),
-          apply pi0.lift (𝟙 Y.to_Top),
+          apply @pi0_lift _ _ _ _ _ (𝟙 Y.to_Top),
           -- TODO: FIX
           dsimp at *, fsplit, intros s ᾰ, assumption},
         -- TODO: FIX

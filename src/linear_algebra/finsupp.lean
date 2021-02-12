@@ -600,7 +600,3 @@ lemma mem_span_finset {s : finset M} {x : M} :
     (show x ∈ span R (id '' (↑s : set M)), by rwa set.image_id) in
   ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
 λ ⟨f, hf⟩, hf ▸ sum_mem _ (λ i hi, smul_mem _ _ $ subset_span hi)⟩
-
-instance {ι : Type*} [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=
-⟨λ c f h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext
-  (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩

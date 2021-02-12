@@ -463,11 +463,8 @@ end
 
 /-- Expand `pi_tensor_product` into a `tensor_product` of two factors. -/
 private def tmul_symm : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) :=
-pi_tensor_product.lift begin
-  apply multilinear_map.dom_coprod,
-  exact tprod R,
-  exact tprod R,
-end
+-- by using tactic mode, we avoid the need for a lot of `@`s and `_`s
+pi_tensor_product.lift $ by apply multilinear_map.dom_coprod; [exact tprod R, exact tprod R]
 
 private lemma tmul_symm_apply (a : ι ⊕ ι₂ → M) :
   tmul_symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=

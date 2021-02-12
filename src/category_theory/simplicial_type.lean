@@ -30,6 +30,8 @@ is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sType :=
 yoneda
 
+instance : inhabited sType := ⟨standard_simplex.obj (0 : ℕ)⟩
+
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/
 def as_preorder_hom {n} {m} (α : (standard_simplex.obj n).obj m) :

@@ -23,7 +23,7 @@ variables (C : Type u) [category.{v} C]
 /-- The category of simplicial objects valued in a category `C`.
 This is the category of contravariant functors from
 `NonemptyFinLinOrd` to `C`. -/
-@[derive category]
+@[derive category, nolint has_inhabited_instance]
 def simplicial_object := simplex_categoryᵒᵖ ⥤ C
 
 namespace simplicial_object

@@ -40,6 +40,21 @@ def isomorphism_classes : Cat.{v u} ⥤ Type u :=
 { obj := λ C, quotient (is_isomorphic_setoid C.α),
   map := λ C D F, quot.map F.obj $ λ X Y ⟨f⟩, ⟨F.map_iso f⟩ }
 
+/--
+Construct an isomorphism class from an explicit object.
+-/
+def isomorphism_classes.mk {C : Cat.{v u}} (X : C) : isomorphism_classes.obj C :=
+quot.mk _ X
+
+noncomputable
+def isomorphism_classes.representative {C : Cat.{v u}} (X : isomorphism_classes.obj C) : C :=
+@quotient.out _ (is_isomorphic_setoid C.α) X
+
+noncomputable
+def isomorphism_classes.mk_representative_iso {C : Cat.{v u}} (X : C) :
+  isomorphism_classes.representative (isomorphism_classes.mk X) ≅ X :=
+nonempty.some (@quotient.mk_out _ (is_isomorphic_setoid C.α) X)
+
 lemma groupoid.is_isomorphic_iff_nonempty_hom {C : Type u} [groupoid.{v} C] {X Y : C} :
   is_isomorphic X Y ↔ nonempty (X ⟶ Y) :=
 (groupoid.iso_equiv_hom X Y).nonempty_iff_nonempty

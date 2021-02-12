@@ -64,7 +64,7 @@ def to_NFA : NFA α σ :=
   start := M.ε_closure M.start,
   accept := M.accept }
 
-lemma to_NFA_eval_from_match (start : set σ) :
+@[simp] lemma to_NFA_eval_from_match (start : set σ) :
   M.to_NFA.eval_from (M.ε_closure start) = M.eval_from start := rfl
 
 @[simp] lemma to_NFA_correct :

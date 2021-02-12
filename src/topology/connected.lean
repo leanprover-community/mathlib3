@@ -783,7 +783,12 @@ local attribute [instance] connected_component_setoid
 lemma component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ connected_component x = connected_component y :=
 ⟨λ h, (quotient.exact h), λ h, quotient.sound h⟩
 
-notation `π₀ ` α :max := quotient (connected_component_setoid α)
+/-- The quotient of a space by its connecte components -/
+def pi0 (α : Type u) [topological_space α] : Type u := quotient (connected_component_setoid α)
+
+notation `π₀` := pi0
+
+instance pi0.topological_space : topological_space (π₀ α) := quotient.topological_space
 
 lemma image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
   (h : continuous f) (a b : α) (hab : a ≈ b) : f a = f b :=
@@ -861,7 +866,7 @@ begin
 end
 
 instance pi0.totally_disconnected_space :
-  totally_disconnected_space π₀ α :=
+  totally_disconnected_space (π₀ α) :=
 begin
   rw totally_disconnected_space_iff_connected_component_subsingleton,
   intro x,

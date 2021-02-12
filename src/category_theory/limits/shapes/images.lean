@@ -543,6 +543,16 @@ def im : arrow C ⥤ C :=
 { obj := λ f, image f.hom,
   map := λ _ _ st, image.map st }
 
+/--
+When `f` and `g` are composable morphisms, there is a canonical map `image f ⟶ image g`.
+-/
+def image.map_composable {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : image f ⟶ image g :=
+@image.map _ _ (arrow.mk f) (arrow.mk g) _ _ { left := f, right := g, w' := rfl, } _
+
+@[simp,reassoc] lemma image.factor_image_image_comp_map_composable {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  factor_thru_image f ≫ image.map_composable f g = f ≫ factor_thru_image g :=
+@image.factor_map _ _ (arrow.mk f) (arrow.mk g) _ _ { left := f, right := g, w' := rfl, } _
+
 end has_image_maps
 
 section strong_epi_mono_factorisation

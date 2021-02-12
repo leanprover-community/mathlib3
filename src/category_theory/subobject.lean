@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.over
 import category_theory.thin
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.zero
 import category_theory.isomorphism_classes
 
 /-!
@@ -84,6 +85,10 @@ begin
 end
 
 @[simp]
+lemma mk_X_iso_id_hom {X : C} : (mk_X_iso (𝟙 X)).hom = (mk (𝟙 X)).ι :=
+by rw [←mk_X_iso_hom_comm, category.comp_id]
+
+@[simp]
 lemma mk_X_iso_inv_comm {X Y : C} (f : X ⟶ Y) [w : mono f] :
   (mk_X_iso f).inv ≫ (mk f).ι = f :=
 by simp [iso.inv_comp_eq]
@@ -151,7 +156,41 @@ instance (X : C) : partial_order (subobject X) :=
 
 open category_theory.limits
 
-section has_pullbacks
+section has_top
+variables (W : C)
+
+instance : has_top (subobject W) :=
+{ top := mk (𝟙 W), }
+
+@[simp] lemma top_ι : (⊤ : subobject W).ι = (mk_X_iso (𝟙 W)).hom :=
+by { simp, refl, }
+
+variables {W}
+
+lemma le_top (X : subobject W) : X ≤ ⊤ :=
+le_of_hom (X.ι ≫ (mk_X_iso (𝟙 W)).inv) (by simp)
+
+end has_top
+
+section has_bot
+variables (W : C)
+variables [has_zero_object C] [has_zero_morphisms C]
+local attribute [instance] has_zero_object.has_zero
+
+instance : has_bot (subobject W) :=
+{ bot := mk (0 : 0 ⟶ W) }
+
+@[simp] lemma bot_ι : (⊥ : subobject W).ι = 0 :=
+by { erw [←mk_X_iso_hom_comm, comp_zero], }
+
+variables {W}
+
+lemma bot_le (X : subobject W) : ⊥ ≤ X :=
+le_of_hom 0 (by simp)
+
+end has_bot
+
+section semilattice_inf
 variables [has_pullbacks C] (W : C)
 
 instance : has_inf (subobject W) :=
@@ -178,7 +217,54 @@ instance : semilattice_inf (subobject W) :=
   ..(by apply_instance : partial_order (subobject W)),
   ..(by apply_instance : has_inf (subobject W)) }
 
-end has_pullbacks
+end semilattice_inf
+
+section
+variables [has_coproducts C] [has_images C] (W : C)
+
+instance : has_sup (subobject W) :=
+{ sup := λ A B, mk (image.ι (coprod.desc A.ι B.ι)), }
+
+variables [has_image_maps C]
+
+lemma le_sup_left (X Y : subobject W) : X ≤ X ⊔ Y :=
+le_of_hom
+  ((factor_thru_image coprod.inl ≫ image.map_composable coprod.inl (coprod.desc X.ι Y.ι)) ≫
+    (mk_X_iso (image.ι _)).inv)
+  (by { slice_lhs 3 4 { erw mk_X_iso_inv_comm, }, simp, })
+
+lemma le_sup_right (X Y : subobject W) : Y ≤ X ⊔ Y :=
+le_of_hom
+  ((factor_thru_image coprod.inr ≫ image.map_composable coprod.inr (coprod.desc X.ι Y.ι)) ≫
+    (mk_X_iso (image.ι _)).inv)
+  (by { slice_lhs 3 4 { erw mk_X_iso_inv_comm, }, simp, })
+
+variables [has_equalizers C]
+
+lemma sup_le (X Y Z : subobject W) (f : X ≤ Z) (g : Y ≤ Z) : X ⊔ Y ≤ Z :=
+le_of_hom
+((mk_X_iso _).hom ≫
+  image.eq_to_hom (show coprod.desc X.ι Y.ι = coprod.desc (hom_of_le f) (hom_of_le g) ≫ Z.ι, by simp) ≫
+  image.lift { I := Z.X, m := Z.ι, e := coprod.desc (hom_of_le f) (hom_of_le g) })
+(begin
+  dsimp,
+  rw [category.assoc, category.assoc, image.lift_fac, ←(mk_X_iso _).eq_inv_comp],
+  erw [mk_X_iso_inv_comm, ←image.eq_fac],
+end)
+
+instance : semilattice_sup (subobject W) :=
+{ sup_le := sup_le W,
+  le_sup_left := le_sup_left W,
+  le_sup_right := le_sup_right W,
+  ..(by apply_instance : partial_order (subobject W)),
+  ..(by apply_instance : has_sup (subobject W)) }
+
+end
+
+-- PROJECT: Further lattice structures on `subobject W`.
+-- What conditions are required to get a distributive lattice?
+-- https://ncatlab.org/nlab/show/poset+of+subobjects says a "coherent category" (including any pretopos)
+-- What about in the abelian direction?
 
 end subobject
 

@@ -42,8 +42,8 @@ section generators
 /-!
 ## Generating maps for the simplex category
 
-TODO: prove the remaining simplicial identities
-TODO: prove that these generate the category
+PROJECT: prove that the simplex category is equivalent to
+one given by the following generators and relations.
 -/
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
@@ -55,19 +55,9 @@ def δ {n} (i : fin (n+2)) :
 def σ {n} (i : fin (n+1)) :
   @has_hom.hom simplex_category _ (n+1 : ℕ) n :=
 { to_fun := fin.pred_above i,
-  monotone' := λ a b H,
-  begin
-    dsimp [fin.pred_above],
-    split_ifs with ha hb hb,
-    all_goals { simp only [fin.le_iff_coe_le_coe], simp, },
-    { exact nat.pred_le_pred H, },
-    { calc _ ≤ _ : nat.pred_le _
-         ... ≤ _ : H, },
-    { simp at ha, exact nat.le_pred_of_lt (lt_of_le_of_lt ha hb), },
-    { exact H, },
-  end }
+  monotone' := fin.pred_above_monotone i }
 
-/-- The first simplicial identity -/
+/-- The generic case of the first simplicial identity -/
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   δ i ≫ δ j.succ = δ j ≫ δ i.cast_succ :=
 begin
@@ -79,6 +69,7 @@ begin
   split_ifs; { simp at *; linarith },
 end
 
+/-- The special case of the first simplicial identity -/
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ δ i.succ :=
 begin
   ext j,

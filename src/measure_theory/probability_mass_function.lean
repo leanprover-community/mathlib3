@@ -65,16 +65,6 @@ instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
 has_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (has_sum_ite_eq a (p a)) p.2
 
-protected lemma bind_on_support.summable (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  summable (λ a : α, p a * dite (p a = 0) (λ _, (0 : nnreal)) (λ h, f a h b)) :=
-begin
-  refine nnreal.summable_of_le (assume a, _) p.summable_coe,
-  split_ifs,
-  { refine (mul_zero (p a)).symm ▸ le_of_eq h.symm },
-  { suffices : p a * f a h b ≤ p a * 1, { simpa },
-    exact mul_le_mul_of_nonneg_left ((f a h).coe_le_one _) (p a).2 }
-end
-
 protected lemma bind.summable (p : pmf α) (f : α → pmf β) (b : β) :
   summable (λ a : α, p a * f a b) :=
 begin
@@ -131,6 +121,16 @@ begin
   simp [mul_assoc, mul_left_comm, mul_comm]
 end
 
+protected lemma bind_on_support.summable (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
+  summable (λ a : α, p a * dite (p a = 0) (λ _, (0 : nnreal)) (λ h, f a h b)) :=
+begin
+  refine nnreal.summable_of_le (assume a, _) p.summable_coe,
+  split_ifs,
+  { refine (mul_zero (p a)).symm ▸ le_of_eq h.symm },
+  { suffices : p a * f a h b ≤ p a * 1, { simpa },
+    exact mul_le_mul_of_nonneg_left ((f a h).coe_le_one _) (p a).2 }
+end
+
 /-- Generalized version of `bind` allowing `f` to only be defined on the support of `p`.
   `p.bind f` is equivalent to `p.bind_on_support (λ a _, f a)`, see `bind_on_support_eq_bind` -/
 noncomputable def bind_on_support (p : pmf α) (f : ∀ a ∈ p.support, pmf β) : pmf β :=
@@ -175,7 +175,7 @@ begin
   split; rintro ⟨a, ha, haf⟩; refine ⟨a, ha, ne_of_eq_of_ne _ haf⟩; simp [ha],
 end
 
-@[simp] lemma bind_on_support_eq_zero_iff (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
+lemma bind_on_support_eq_zero_iff (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
   p.bind_on_support f b = 0 ↔ ∀ a (ha : p a ≠ 0), f a ha b = 0 :=
 begin
   simp only [bind_on_support_apply, tsum_eq_zero_iff (bind_on_support.summable p f b),

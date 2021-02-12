@@ -305,8 +305,8 @@ lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=
 (has_sum_sum_of_ne_finset_zero hf).tsum_eq
 
-lemma tsum_congr (hfg : ∀ b, f b = g b) :
-  ∑' b, f b = ∑' b, g b :=
+lemma tsum_congr {α β : Type*} [add_comm_monoid α] [topological_space α]
+  {f g : β → α} (hfg : ∀ b, f b = g b) : ∑' b, f b = ∑' b, g b :=
 congr_arg tsum (funext hfg)
 
 lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=

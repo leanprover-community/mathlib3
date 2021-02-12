@@ -38,7 +38,7 @@ in the classification of Dynkin diagrams, root systems, and semisimple Lie algeb
 
 -/
 
-namespace pqr
+namespace ADE_inequality
 
 open multiset
 
@@ -216,4 +216,4 @@ lemma classification (p q r : ℕ+) :
   1 < sum_inv {p,q,r} ↔ admissible {p,q,r} :=
 ⟨admissible_of_one_lt_sum_inv, admissible.one_lt_sum_inv⟩
 
-end pqr
+end ADE_inequality

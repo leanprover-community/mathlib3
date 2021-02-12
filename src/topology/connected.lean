@@ -508,12 +508,17 @@ begin
   exact h,
 end
 
-/-- The preimage of a connected component is preconnected if the function has connected fibers
+lemma surjective_if_nonempty_fibers (f : α → β) :
+(∀ b : β, (f ⁻¹' {b}).nonempty) → function.surjective f := function.surjective.of_comp
+
+
+
+/-- The preimage of a connected component is connected if the function has connected fibers
 and a subset is closed iff the preimage is. -/
-lemma preimage_connected_component_preconnected {β : Type*} [topological_space β] {f : α → β}
+lemma preimage_connected_component_connected {β : Type*} [topological_space β] {f : α → β}
   (connected_fibers : ∀ t : β, is_connected (f ⁻¹' {t}))
   (hcl : ∀ (T : set β), is_closed T ↔ is_closed (f ⁻¹' T)) (t : β):
-  is_preconnected (f ⁻¹' connected_component t) :=
+  is_connected (f ⁻¹' connected_component t) :=
 begin
   -- The following proof is essentially https://stacks.math.columbia.edu/tag/0377
   -- although the statement is slightly different
@@ -523,6 +528,12 @@ begin
     use s,
     rw mem_preimage at hs,
     apply hs },
+
+  refine ⟨_,_⟩,
+  { cases hf t with s hs,
+    use s,
+    rw [mem_preimage, hs],
+    apply mem_connected_component },
 
   have hT : is_closed (f ⁻¹' connected_component t),
   { exact (hcl (connected_component t)).1 is_closed_connected_component },
@@ -882,7 +893,7 @@ begin
     suffices : is_preconnected (quotient.mk ⁻¹' connected_component ⟦a⟧),
     { apply mem_of_subset_of_mem (subset_connected_component this hb),
       apply mem_preimage.2 mem_connected_component },
-    apply preimage_connected_component_preconnected,
+    apply (@preimage_connected_component_connected _ _ _ _ _ _ _ _).2,
     { intro t,
       apply quotient.induction_on t,
       intro s,

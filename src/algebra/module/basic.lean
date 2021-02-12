@@ -490,14 +490,17 @@ theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
 
 section nat
 
-variables (R) [no_zero_smul_divisors R M] [semimodule ℕ M] [char_zero R]
+variables (R) (M) [no_zero_smul_divisors R M] [semimodule ℕ M] [char_zero R]
 include R
 
-instance nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
+lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [← nsmul_eq_smul, nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
+variables {M}
+
 lemma eq_zero_of_smul_two_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
-(smul_eq_zero.mp hv).resolve_left (by norm_num)
+by haveI := nat.no_zero_smul_divisors R M;
+exact (smul_eq_zero.mp hv).resolve_left (by norm_num)
 
 end nat
 
@@ -509,13 +512,14 @@ variables [ring R] [add_comm_group M] [module R M]
 
 section nat
 
-variables (R) [no_zero_smul_divisors R M] [semimodule ℕ M] [char_zero R]
+variables (R) [no_zero_smul_divisors R M] [char_zero R]
 include R
 
 lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
 begin
   -- any semimodule will do
   haveI : semimodule ℕ M := add_comm_monoid.nat_semimodule,
+  haveI := nat.no_zero_smul_divisors R M,
   refine eq_zero_of_smul_two_eq_zero R _,
   rw ←nsmul_eq_smul,
   convert add_eq_zero_iff_eq_neg.mpr hv,
@@ -535,6 +539,7 @@ section division_ring
 
 variables [division_ring R] [add_comm_group M] [module R M]
 
+@[priority 100] -- see note [lower instance priority]
 instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h⟩
 

@@ -324,7 +324,6 @@ begin
   }
 end
 
-
 @[simp]
 lemma mat_one {F : Type*} [comm_ring F] : (![![1,0], ![0,1]] : matrix (fin 2) (fin 2) F)
   = (1 : matrix (fin 2) (fin 2) F) := by {simp}
@@ -340,7 +339,6 @@ begin
 end
 
 lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n := by {simp [inv_gpow, gpow_neg]}
-
 
 lemma T_pow_ℕ {n : ℕ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
 begin
@@ -516,11 +514,21 @@ begin
     let s2 := finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1),
     let s : finset (ℤ × ℤ ):= s1.product s2,
 
-    --suffices : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} ⊆  s,
+    suffices : (coe '' {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M}) ⊆  (s : set (ℤ × ℤ)),
+--    suffices : ({cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M}) ⊆  (((coe ⁻¹' (s : set (ℤ × ℤ))  : set coprime_ints))),
+    {
+      have := set.finite.subset s.finite_to_set this,
+      refine set.finite_of_finite_image _ this,
+      apply set.inj_on_of_injective,
+      refine subtype.coe_injective,
+    },
+    intros x hx,
+    simp at hx,
+    rcases hx with ⟨ w, ⟨nhw1, nhw2⟩⟩ ,
+    rw nhw2 at nhw1,
+    simp [s, s1, s2],
 --   AK homework?
---  nope! Can't get suffices to work... :(
-
-    sorry,
+    repeat {sorry},
   },
 end
 
@@ -583,11 +591,7 @@ begin
     simp,
     let cc : ℤ  := (g'.val 1 0),
     let dd : ℤ  := (g'.val 1 1),
-    have : euclidean_domain.gcd (g'.val 1 0) (g'.val 1 1) = euclidean_domain.gcd cc dd,
-    {
-      -- Heather homework
-      sorry,
-    },
+    have : euclidean_domain.gcd (g'.val 1 0) (g'.val 1 1) = euclidean_domain.gcd cc dd := rfl,
 
     convert this,
     symmetry,
@@ -741,9 +745,10 @@ begin
   rw abs_le,
   split,
   {
+    -- Alex homework
     sorry
   },
-  admit,
+  sorry,
 end
 
 lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
@@ -885,7 +890,12 @@ begin
       use -g,
       have hd : (-g).val 1 1 = 1,
       {
-        sorry
+        suffices : g.val 1 1 = -1,
+        {
+          simp [this],
+          sorry,
+        },
+        sorry,
       },
       sorry
     },
@@ -930,6 +940,37 @@ begin
   rw smul_smul at hn,
   change |z'.val.re| ≤ 1 / 2 at hn,
   suffices : 1 ≤ z'.1.norm_sq, by exact ⟨hTng,⟨this, hn⟩⟩,
+  set w := (S * T^n * g) • z with hw,
+  apply norm_sq_ge_one_of_act_S,
+  replace hw : w = S•z',
+  {rw [hw, z'df, smul_smul, mul_assoc]},
+  rw [imz', ← hw],
+  exact hg2,
+end
+
+
+lemma is_fundom' {z : H} : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
+begin
+  obtain ⟨g, hg2⟩ := exists_g_with_max_Im z,
+  obtain ⟨n, hn⟩ := find_appropriate_T ((g : SL(2,ℤ)) • z),
+  use (T^n * g),
+  have hS : S ∈ G' := by {apply subgroup.mem_closure', simp},
+  have hT : T ∈ G' := by {apply subgroup.mem_closure', simp},
+  have hTn : T^n ∈ G' := by {apply subgroup.gpow_mem G' hT},
+--  have hTng : T^n * g ∈ G' := G'.mul_mem hTn hg1,
+--  have hSTg : S * T^n * g ∈ G' := G'.mul_mem (G'.mul_mem hS hTn) hg1,
+  replace hg2 := hg2 (S * T^n * g), -- hSTg,
+  set z' := (T^n * g) • z with z'df,
+  have imz' : z'.val.im = ((g : SL(2,ℤ)) • z).val.im,
+  { rw [z'df, ← smul_smul, im_Tn_z] },
+  rw smul_smul at hn,
+  change |z'.val.re| ≤ 1 / 2 at hn,
+  suffices : 1 ≤ z'.1.norm_sq,
+  -- by exact ⟨hTn,⟨this, hn⟩⟩,
+  {
+    exact ⟨this, hn⟩,
+  },
+
   set w := (S * T^n * g) • z with hw,
   apply norm_sq_ge_one_of_act_S,
   replace hw : w = S•z',

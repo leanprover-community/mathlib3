@@ -7,7 +7,6 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.add_torsor
 import topology.bases
 import linear_algebra.finite_dimensional
-import tactic.omega
 
 /-!
 # Finite dimensional normed spaces over complete fields
@@ -70,7 +69,6 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 [topological_add_group F'] [topological_vector_space 𝕜 F']
 [complete_space 𝕜]
 
-
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
 all norms are equivalent in finite dimension.
@@ -108,15 +106,14 @@ begin
       have : findim 𝕜 f.ker = n ∨ findim 𝕜 f.ker = n.succ,
       { have Z := f.findim_range_add_findim_ker,
         rw [findim_eq_card_basis hξ, hn] at Z,
-        have : findim 𝕜 f.range = 0 ∨ findim 𝕜 f.range = 1,
-        { have I : ∀(k : ℕ), k ≤ 1 ↔ k = 0 ∨ k = 1, by omega manual,
-          have : findim 𝕜 f.range ≤ findim 𝕜 𝕜 := submodule.findim_le _,
-          rwa [findim_of_field, I] at this },
-        cases this,
-        { rw this at Z,
-          right,
+        by_cases H : findim 𝕜 f.range = 0,
+        { right,
+          rw H at Z,
           simpa using Z },
         { left,
+          have : findim 𝕜 f.range = 1,
+          { refine le_antisymm _ (zero_lt_iff.mpr H),
+            simpa [findim_of_field] using f.range.findim_le },
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),

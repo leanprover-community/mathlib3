@@ -145,13 +145,16 @@ by simp [← finset.coe_singleton]
 theorem is_wf.insert (hs : is_wf s) : is_wf (insert a s) :=
 by { rw ← union_singleton, exact hs.union is_wf_singleton }
 
-end set
-
-lemma set.infinite.nonempty {s : set α} (h : s.infinite) : s.nonempty :=
+theorem finite.is_wf (h : s.finite) : s.is_wf :=
 begin
-  haveI := set.infinite_coe_iff.2 h,
-  exact set.nonempty_of_nonempty_subtype
+  rw ← h.coe_to_finset,
+  exact finset.is_wf,
 end
+
+@[simp]
+theorem fintype.is_wf [fintype α] : s.is_wf := (finite.of_fintype s).is_wf
+
+end set
 
 lemma not_well_founded_swap_of_infinite_of_well_order_aux
   {r : α → α → Prop} [is_well_order α r] {a : α} (h_inf : ({x : α | r a x}).infinite) :

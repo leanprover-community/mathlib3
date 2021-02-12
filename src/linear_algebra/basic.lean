@@ -11,6 +11,7 @@ import algebra.group.prod
 import data.finsupp.basic
 import data.dfinsupp
 import algebra.pointwise
+import order.compactly_generated
 
 /-!
 # Linear algebra
@@ -936,6 +937,22 @@ le_antisymm
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
+
+lemma singleton_span_is_compact_element (x : M) :
+  complete_lattice.is_compact_element (span R {x} : submodule R M) :=
+begin
+  rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le,
+  intros d hemp hdir hsup,
+  have : x ∈ Sup d, from (le_def.mp hsup) (mem_span_singleton_self x),
+  obtain ⟨y, ⟨hyd, hxy⟩⟩ := (mem_Sup_of_directed hemp hdir).mp this,
+  exact ⟨y, ⟨hyd, by simpa only [span_le, singleton_subset_iff]⟩⟩,
+end
+
+instance : is_compactly_generated (submodule R M) :=
+⟨λ s, ⟨(λ x, span R {x}) '' s, ⟨λ t ht, begin
+  rcases (set.mem_image _ _ _).1 ht with ⟨x, hx, rfl⟩,
+  apply singleton_span_is_compact_element,
+end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
 
 lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + (R ∙ a) ↔ a ∉ I :=
 begin
@@ -2236,97 +2253,6 @@ lemma quotient_inf_equiv_sup_quotient_symm_apply_right (p p' : submodule R M) {x
 quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 end isomorphism_laws
-
-section pi
-universe i
-variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
-{φ : ι → Type i} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
-
-/-- `pi` construction for linear functions. From a family of linear functions it produces a linear
-function into a family of modules. -/
-def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
-⟨λc i, f i c, λ c d, funext $ λ i, (f i).map_add _ _, λ c d, funext $ λ i, (f i).map_smul _ _⟩
-
-@[simp] lemma pi_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
-  pi f c i = f i c := rfl
-
-lemma ker_pi (f : Πi, M₂ →ₗ[R] φ i) : ker (pi f) = (⨅i:ι, ker (f i)) :=
-by ext c; simp [funext_iff]; refl
-
-lemma pi_eq_zero (f : Πi, M₂ →ₗ[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
-by simp only [linear_map.ext_iff, pi_apply, funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
-
-lemma pi_zero : pi (λi, 0 : Πi, M₂ →ₗ[R] φ i) = 0 :=
-by ext; refl
-
-lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
-rfl
-
-/-- The projections from a family of modules are linear maps. -/
-def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
-⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
-
-@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
-
-lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
-ext $ assume c, rfl
-
-lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
-bot_unique $ submodule.le_def'.2 $ assume a h,
-begin
-  simp only [mem_infi, mem_ker, proj_apply] at h,
-  exact (mem_bot _).2 (funext $ assume i, h i)
-end
-
-section
-variables (R φ)
-
-/-- If `I` and `J` are disjoint index sets, the product of the kernels of the `J`th projections of
-`φ` is linearly equivalent to the product over `I`. -/
-def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
-  (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
-  (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃ₗ[R] (Πi:I, φ i) :=
-begin
-  refine linear_equiv.of_linear
-    (pi $ λi, (proj (i:ι)).comp (submodule.subtype _))
-    (cod_restrict _ (pi $ λi, if h : i ∈ I then proj (⟨i, h⟩ : I) else 0) _) _ _,
-  { assume b,
-    simp only [mem_infi, mem_ker, funext_iff, proj_apply, pi_apply],
-    assume j hjJ,
-    have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
-    rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.coe_prop],
-    ext b ⟨j, hj⟩, refl },
-  { ext1 ⟨b, hb⟩,
-    apply subtype.ext,
-    ext j,
-    have hb : ∀i ∈ J, b i = 0,
-    { simpa only [mem_infi, mem_ker, proj_apply] using (mem_infi _).1 hb },
-    simp only [comp_apply, pi_apply, id_apply, proj_apply, subtype_apply, cod_restrict_apply],
-    split_ifs,
-    { refl },
-    { exact (hb _ $ (hu trivial).resolve_left h).symm } }
-end
-end
-
-section
-variable [decidable_eq ι]
-
-/-- `diag i j` is the identity map if `i = j`. Otherwise it is the constant 0 map. -/
-def diag (i j : ι) : φ i →ₗ[R] φ j :=
-@function.update ι (λj, φ i →ₗ[R] φ j) _ 0 i id j
-
-lemma update_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i j : ι) (b : M₂ →ₗ[R] φ i) :
-  (update f i b j) c = update (λi, f i c) i (b c) j :=
-begin
-  by_cases j = i,
-  { rw [h, update_same, update_same] },
-  { rw [update_noteq h, update_noteq h] }
-end
-
-end
-
-end pi
 
 section fun_left
 variables (R M) [semiring R] [add_comm_monoid M] [semimodule R M]

@@ -415,7 +415,8 @@ lemma image_mem_to_local_homeomorph_target (hf : has_strict_fderiv_at f (f' : E 
   f a ∈ (hf.to_local_homeomorph f).target :=
 (hf.to_local_homeomorph f).map_source hf.mem_to_local_homeomorph_source
 
-lemma map_nhds_eq (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) : map f (𝓝 a) = 𝓝 (f a) :=
+lemma map_nhds_eq_of_equiv (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
+  map f (𝓝 a) = 𝓝 (f a) :=
 (hf.to_local_homeomorph f).map_nhds_eq hf.mem_to_local_homeomorph_source
 
 variables (f f' a)
@@ -477,10 +478,10 @@ hf.to_local_inverse.congr_of_eventually_eq $ (hf.local_inverse_unique hg).mono $
 end has_strict_fderiv_at
 
 /-- If a function has an invertible strict derivative at all points, then it is an open map. -/
-lemma open_map_of_strict_fderiv [complete_space E] {f : E → F} {f' : E → E ≃L[𝕜] F}
+lemma open_map_of_strict_fderiv_equiv [complete_space E] {f : E → F} {f' : E → E ≃L[𝕜] F}
   (hf : ∀ x, has_strict_fderiv_at f (f' x : E →L[𝕜] F) x) :
   is_open_map f :=
-is_open_map_iff_nhds_le.2 $ λ x, (hf x).map_nhds_eq.ge
+is_open_map_iff_nhds_le.2 $ λ x, (hf x).map_nhds_eq_of_equiv.ge
 
 /-!
 ### Inverse function theorem, 1D case
@@ -506,7 +507,7 @@ variables (f f' a)
 variables {f f' a}
 
 lemma map_nhds_eq : map f (𝓝 a) = 𝓝 (f a) :=
-(hf.has_strict_fderiv_at_equiv hf').map_nhds_eq
+(hf.has_strict_fderiv_at_equiv hf').map_nhds_eq_of_equiv
 
 theorem to_local_inverse : has_strict_deriv_at (hf.local_inverse f f' a hf') f'⁻¹ (f a) :=
 (hf.has_strict_fderiv_at_equiv hf').to_local_inverse

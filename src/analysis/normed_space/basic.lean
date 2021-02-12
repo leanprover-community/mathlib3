@@ -490,18 +490,17 @@ by simpa using continuous_id.dist (continuous_const : continuous (λ g, (0:α)))
 lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
 
-lemma uniform_continuous_norm : uniform_continuous (norm : α → ℝ) :=
+lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : α → ℝ) :=
 begin
-  rw metric.uniform_continuous_iff,
-  intros ε hε,
-  use [ε, hε],
-  intros x y hxy,
-  rw dist_eq_norm at hxy ⊢,
+  intros x y,
+  simp only [ennreal.coe_one, one_mul, edist_nndist, nndist_eq_nnnorm, ennreal.coe_le_coe],
   calc ∥∥x∥ - ∥y∥∥
       = abs(∥x∥ - ∥y∥) : by rw real.norm_eq_abs
   ... ≤ ∥x - y∥ : abs_norm_sub_norm_le x y
-  ... < ε : hxy
 end
+
+lemma uniform_continuous_norm : uniform_continuous (norm : α → ℝ) :=
+lipschitz_with_one_norm.uniform_continuous
 
 lemma uniform_continuous_nnnorm : uniform_continuous (nnnorm : α → ℝ≥0) :=
 uniform_continuous_subtype_mk uniform_continuous_norm _

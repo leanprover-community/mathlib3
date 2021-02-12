@@ -167,7 +167,7 @@ begin
   let fy₁ : ↥(map f I₁) := ⟨f y₁, mem_map hy₁⟩,
   let fy₂ : ↥(map f I₂) := ⟨f y₂, mem_map hy₂⟩,
   change _ ∈ comap f ⁅map f I₁, map f I₂⁆,
-  simp only [submodule.coe_mk, mem_comap, map_lie],
+  simp only [submodule.coe_mk, mem_comap, lie_hom.map_lie],
   exact lie_submodule.lie_mem_lie _ _ fy₁ fy₂,
 end
 
@@ -189,20 +189,20 @@ begin
     lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, ← linear_map.comap_map_eq,
     lie_submodule.lie_ideal_oper_eq_linear_span, lie_submodule.lie_ideal_oper_eq_linear_span,
     submodule.map_span],
-  congr, simp only [coe_to_linear_map, set.mem_set_of_eq], ext y,
+  congr, simp only [lie_hom.coe_to_linear_map, set.mem_set_of_eq], ext y,
   split,
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩, hy⟩, rw ← hy,
     erw [lie_submodule.mem_inf, f.mem_ideal_range_iff h] at hx₁ hx₂,
     obtain ⟨⟨z₁, hz₁⟩, hz₁'⟩ := hx₁, rw ← hz₁ at hz₁',
     obtain ⟨⟨z₂, hz₂⟩, hz₂'⟩ := hx₂, rw ← hz₂ at hz₂',
     use [⁅z₁, z₂⁆, ⟨z₁, hz₁'⟩, ⟨z₂, hz₂'⟩, rfl],
-    simp only [hz₁, hz₂, submodule.coe_mk, map_lie], },
+    simp only [hz₁, hz₂, submodule.coe_mk, lie_hom.map_lie], },
   { rintros ⟨x, ⟨⟨z₁, hz₁⟩, ⟨z₂, hz₂⟩, hx⟩, hy⟩, rw [← hy, ← hx],
     have hz₁' : f z₁ ∈ f.ideal_range ⊓ J₁,
     { rw lie_submodule.mem_inf, exact ⟨f.mem_ideal_range, hz₁⟩, },
     have hz₂' : f z₂ ∈ f.ideal_range ⊓ J₂,
     { rw lie_submodule.mem_inf, exact ⟨f.mem_ideal_range, hz₂⟩, },
-    use [⟨f z₁, hz₁'⟩, ⟨f z₂, hz₂'⟩], simp only [submodule.coe_mk, map_lie], },
+    use [⟨f z₁, hz₁'⟩, ⟨f z₂, hz₂'⟩], simp only [submodule.coe_mk, lie_hom.map_lie], },
 end
 
 lemma map_comap_bracket_eq {J₁ J₂ : lie_ideal R L'} (h : f.is_ideal_morphism) :

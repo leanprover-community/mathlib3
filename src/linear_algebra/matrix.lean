@@ -232,7 +232,7 @@ by rw [matrix.to_lin'_apply, hv₂.equiv_fun_symm_apply]
 by simp only [matrix.to_lin_apply, matrix.mul_vec, dot_product, hv₁.equiv_fun_self, mul_boole,
   finset.sum_ite_eq, finset.mem_univ, if_true]
 
-@[simp]
+/-- This will be a special case of `linear_map.to_matrix_id_eq_basis_to_matrix`. -/
 lemma linear_map.to_matrix_id : linear_map.to_matrix hv₁ hv₁ id = 1 :=
 begin
   ext i j,
@@ -277,7 +277,7 @@ end to_matrix
 
 section is_basis_to_matrix
 
-variables {ι ι' : Type*} [fintype ι] [fintype ι']
+variables {ι ι' κ κ' : Type*} [fintype ι] [fintype ι'] [fintype κ] [fintype κ']
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
 open function matrix
@@ -363,19 +363,41 @@ end is_basis
 section mul_linear_map_to_matrix
 
 variables {N : Type*} [add_comm_group N] [module R N]
-variables {b : ι → M} {b' : ι' → M} {c : ι → N} {c' : ι' → N}
+variables {b : ι → M} {b' : ι' → M} {c : κ → N} {c' : κ' → N}
 variables (hb : is_basis R b) (hb' : is_basis R b') (hc : is_basis R c) (hc' : is_basis R c')
 variables (f : M →ₗ[R] N)
+
+open linear_map
 
 @[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix [decidable_eq ι'] :
   hc.to_matrix c' ⬝ linear_map.to_matrix hb' hc' f = linear_map.to_matrix hb' hc f :=
 (matrix.to_lin hb' hc).injective
-  (by rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
+  (by haveI := classical.dec_eq κ';
+      rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
 
 @[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix [decidable_eq ι] [decidable_eq ι'] :
   linear_map.to_matrix hb' hc' f ⬝ hb'.to_matrix b = linear_map.to_matrix hb hc' f :=
 (matrix.to_lin hb hc').injective
   (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])
+
+/-- A generalization of `linear_map.to_matrix_id`. -/
+@[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :
+  linear_map.to_matrix hb hb' id = hb'.to_matrix b :=
+by { haveI := classical.dec_eq ι',
+      rw [← is_basis_to_matrix_mul_linear_map_to_matrix hb hb', to_matrix_id, matrix.mul_one] }
+
+/-- A generalization of `is_basis.to_matrix_self`, in the opposite direction. -/
+@[simp] lemma is_basis.to_matrix_mul_to_matrix
+  {ι'' : Type*} [fintype ι''] {b'' : ι'' → M} (hb'' : is_basis R b'') :
+  hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=
+begin
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq ι',
+  haveI := classical.dec_eq ι'',
+  rw [← linear_map.to_matrix_id_eq_basis_to_matrix hb' hb,
+      ← linear_map.to_matrix_id_eq_basis_to_matrix hb'' hb',
+      ← to_matrix_comp, id_comp, linear_map.to_matrix_id_eq_basis_to_matrix],
+end
 
 end mul_linear_map_to_matrix
 
@@ -387,7 +409,7 @@ section det
 
 open linear_map matrix
 
-variables {R : Type} [comm_ring R]
+variables {R : Type*} [comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {ι : Type*} [decidable_eq ι] [fintype ι] {v : ι → M} {v' : ι → M'}

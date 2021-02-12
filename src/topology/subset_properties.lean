@@ -340,6 +340,19 @@ by rw ← bUnion_univ; exact finite_univ.compact_bUnion (λ i _, h i)
 lemma set.finite.is_compact (hs : finite s) : is_compact s :=
 bUnion_of_singleton s ▸ hs.compact_bUnion (λ _ _, compact_singleton)
 
+lemma finite_of_is_compact_of_discrete [discrete_topology α] (s : set α) (hs : is_compact s) :
+  s.finite :=
+begin
+  have := hs.elim_finite_subcover (λ x : α, ({x} : set α))
+    (λ x, is_open_discrete _),
+  simp only [set.subset_univ, forall_prop_of_true, set.Union_of_singleton] at this,
+  rcases this with ⟨t, ht⟩,
+  suffices : (⋃ (i : α) (H : i ∈ t), {i} : set α) = (t : set α),
+  { rw this at ht, exact t.finite_to_set.subset ht },
+  ext x,
+  simp only [exists_prop, set.mem_Union, set.mem_singleton_iff, exists_eq_right', finset.mem_coe]
+end
+
 lemma is_compact.union (hs : is_compact s) (ht : is_compact t) : is_compact (s ∪ t) :=
 by rw union_eq_Union; exact compact_Union (λ b, by cases b; assumption)
 
@@ -461,6 +474,12 @@ theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_spac
 lemma is_closed.compact [compact_space α] {s : set α} (h : is_closed s) :
   is_compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
+
+/-- A compact discrete space is finite. -/
+noncomputable
+def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
+  fintype α :=
+fintype_of_univ_finite $ finite_of_is_compact_of_discrete _ compact_univ
 
 variables [topological_space β]
 

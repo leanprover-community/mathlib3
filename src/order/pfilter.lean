@@ -87,16 +87,16 @@ order.ideal.bot_mem
 
 /-- There is a bottom filter when `P` has a top element. -/
 instance : order_bot (pfilter P) :=
-{ bot := principal ⊤,
-  bot_le := λ F, principal_le_iff.mpr top_mem,
+{ bot := ⟨⊥⟩,
+  bot_le := λ F, (bot_le : ⊥ ≤ F.dual),
   .. pfilter.partial_order }
 
 end order_top
 
 /-- There is a top filter when `P` has a bottom element. -/
 instance {P} [order_bot P] : order_top (pfilter P) :=
-{ top := principal ⊥,
-  le_top := λ F x h, bot_le,
+{ top := ⟨⊤⟩,
+  le_top := λ F, (le_top : F.dual ≤ ⊤),
   .. pfilter.partial_order }
 
 section semilattice_inf

@@ -482,14 +482,12 @@ For simplicity, this is defined only for homogeneously- (rather than dependently
 -/
 def tmul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
 linear_equiv.of_linear tmul tmul_symm
-  (by {
-    ext x,
-    show tmul (tmul_symm (tprod R x)) = tprod R x,
-    simp only [tmul_symm_apply, tmul_apply, sum.elim_comp_inl_inr], })
-  (by {
-    ext x y,
-    show tmul_symm (tmul (tprod R x ⊗ₜ[R] tprod R y)) = tprod R x ⊗ₜ[R] tprod R y,
-    simp only [tmul_apply, tmul_symm_apply, sum.elim_inl, sum.elim_inr], })
+  (by { ext x,
+        show tmul (tmul_symm (tprod R x)) = tprod R x, -- Speed up the call to `simp`.
+        simp only [tmul_symm_apply, tmul_apply, sum.elim_comp_inl_inr], })
+  (by { ext x y,
+        show tmul_symm (tmul (tprod R x ⊗ₜ[R] tprod R y)) = tprod R x ⊗ₜ[R] tprod R y,
+        simp only [tmul_apply, tmul_symm_apply, sum.elim_inl, sum.elim_inr], })
 
 @[simp] lemma tmul_equiv_apply (a : ι → M) (b : ι₂ → M) :
   tmul_equiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=

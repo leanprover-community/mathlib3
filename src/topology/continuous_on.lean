@@ -799,11 +799,21 @@ begin
   apply continuous_on.if; simp; assumption
 end
 
+lemma continuous.if {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
+  (hp : ∀ a ∈ frontier {x | p x}, f a = g a) (hf : continuous f) (hg : continuous g) :
+  continuous (λ a, if p a then f a else g a) :=
+continuous_if hp hf.continuous_on hg.continuous_on
+
 lemma continuous_piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
   (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous_on f (closure s))
   (hg : continuous_on g (closure sᶜ)) :
   continuous (piecewise s f g) :=
 continuous_if hs hf hg
+
+lemma continuous.piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
+  (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous f) (hg : continuous g) :
+  continuous (piecewise s f g) :=
+hf.if hs hg
 
 lemma is_open_inter_union_inter_compl' {s s' t : set α}
   (hs : is_open s) (hs' : is_open s') (ht : ∀ x ∈ frontier t, x ∈ s ↔ x ∈ s') :

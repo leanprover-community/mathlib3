@@ -225,12 +225,11 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
 { to_fun := (λ t : ℝ, if t ≤ 1/2 then γ.extend (2*t) else γ'.extend (2*t-1)) ∘ coe,
   continuous' :=
   begin
-    refine (continuous_if_le continuous_id continuous_const _ _ _).comp continuous_subtype_coe,
+    refine (continuous.if_le _ _ continuous_id continuous_const (by norm_num)).comp
+      continuous_subtype_coe,
     -- TODO: the following are provable by `continuity` but it is too slow
-    { exact (γ.continuous_extend.comp (continuous_const.mul continuous_id)).continuous_on },
-    { exact (γ'.continuous_extend.comp
-        ((continuous_const.mul continuous_id).sub continuous_const)).continuous_on },
-    { norm_num },
+    exacts [γ.continuous_extend.comp (continuous_const.mul continuous_id),
+      γ'.continuous_extend.comp ((continuous_const.mul continuous_id).sub continuous_const)]
   end,
   source' := by norm_num,
   target' := by norm_num }
@@ -336,12 +335,10 @@ begin
   have h₁' := path.continuous_uncurry_extend_of_continuous_family γ₁ h₁,
   have h₂' := path.continuous_uncurry_extend_of_continuous_family γ₂ h₂,
   simp only [has_uncurry.uncurry, has_coe_to_fun.coe, coe_fn, path.trans, (∘)],
-  refine continuous_if_le (continuous_subtype_coe.comp continuous_snd) continuous_const _ _ _,
-  { apply continuous.continuous_on,
-    change continuous ((λ p : ι × ℝ, (γ₁ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x : I → ℝ))),
+  refine continuous.if_le _ _ (continuous_subtype_coe.comp continuous_snd) continuous_const _,
+  { change continuous ((λ p : ι × ℝ, (γ₁ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x : I → ℝ))),
     exact h₁'.comp (continuous_id.prod_map $ continuous_const.mul continuous_subtype_coe) },
-  { apply continuous.continuous_on,
-    change continuous ((λ p : ι × ℝ, (γ₂ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x - 1 : I → ℝ))),
+  { change continuous ((λ p : ι × ℝ, (γ₂ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x - 1 : I → ℝ))),
     exact h₂'.comp (continuous_id.prod_map $
       (continuous_const.mul continuous_subtype_coe).sub continuous_const) },
   { rintros st hst,

@@ -548,9 +548,15 @@ begin
   { simp only [not_le], exact closure_lt_subset_le hg hf }
 end
 
+lemma continuous.if_le [topological_space γ] [Π x, decidable (f x ≤ g x)] {f' g' : β → γ}
+  (hf' : continuous f') (hg' : continuous g') (hf : continuous f) (hg : continuous g)
+  (hfg : ∀ x, f x = g x → f' x = g' x) :
+  continuous (λ x, if f x ≤ g x then f' x else g' x) :=
+continuous_if_le hf hg hf'.continuous_on hg'.continuous_on hfg
+
 @[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
   continuous (λb, min (f b) (g b)) :=
-continuous_if_le hf hg hf.continuous_on hg.continuous_on (λ x, id)
+hf.if_le hg hf hg (λ x, id)
 
 @[continuity] lemma continuous.max (hf : continuous f) (hg : continuous g) :
   continuous (λb, max (f b) (g b)) :=

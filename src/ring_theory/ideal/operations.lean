@@ -1084,6 +1084,14 @@ def quotient_ker_equiv_of_right_inverse
   right_inv := hf,
   ..ker_lift f}
 
+@[simp]
+lemma quotient_ker_equiv_of_right_inverse.apply {g : S → R} (hf : function.right_inverse g f)
+  (x : f.ker.quotient) : quotient_ker_equiv_of_right_inverse hf x = ker_lift f x := rfl
+
+@[simp]
+lemma quotient_ker_equiv_of_right_inverse.inv.apply {g : S → R} (hf : function.right_inverse g f)
+  (x : S) : (quotient_ker_equiv_of_right_inverse hf).symm x = ideal.quotient.mk f.ker (g x) := rfl
+
 /-- The first isomorphism theorem for commutative rings. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : function.surjective f) :
   f.ker.quotient ≃+* S :=
@@ -1255,6 +1263,16 @@ def quotient_ker_alg_equiv_of_right_inverse
   end,
   right_inv := hf,
   ..ker_lift_alg f}
+
+@[simp]
+lemma quotient_ker_alg_equiv_of_right_inverse.apply {f : A →ₐ[R] B} {g : B → A}
+  (hf : function.right_inverse g f) (x : f.to_ring_hom.ker.quotient) :
+  quotient_ker_alg_equiv_of_right_inverse hf x = ker_lift_alg f x := rfl
+
+@[simp]
+lemma quotient_ker_alg_equiv_of_right_inverse.inv.apply {f : A →ₐ[R] B} {g : B → A}
+  (hf : function.right_inverse g f) (x : B) :
+  (quotient_ker_alg_equiv_of_right_inverse hf).symm x = quotient.mkₐ R f.to_ring_hom.ker (g x) := rfl
 
 /-- The first isomorphism theorem for agebras. -/
 noncomputable def quotient_ker_alg_equiv_of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) :

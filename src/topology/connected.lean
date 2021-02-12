@@ -807,7 +807,7 @@ singleton_eq_singleton_iff.1 $
   image_connected_component_eq_singleton h a ▸
   image_connected_component_eq_singleton h b ▸ hab ▸ rfl
 
-/-- A map to a totally disconnected space factors through π₀ α. This is the lift to the quotient. -/
+/-- The lift to π₀ α of a continuous map from α to a totally disconnected space -/
 def pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
   (h : continuous f) : π₀ α → β :=
 quotient.lift f (image_eq_of_equiv h)

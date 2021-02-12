@@ -277,7 +277,7 @@ end
 -- What conditions are required to get a distributive lattice?
 --   https://ncatlab.org/nlab/show/poset+of+subobjects
 --   says any "coherent category" (including any pretopos)
--- Abelian categories do not have distributive subobject lattices.
+-- Categories with biproducts (e.g. abelian categories) do not have distributive subobject lattices.
 --   https://ncatlab.org/nlab/show/subobject+classifier#categories_without_subobject_classifiers
 
 end subobject

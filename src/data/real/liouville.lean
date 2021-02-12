@@ -28,15 +28,15 @@ A Liouville number is a real number `x` such that for every natural number `n`, 
 `a, b ∈ ℤ` with `1 < b` such that `0 < |x - a/b| < 1/bⁿ`.
 In the implementation, the condition `x ≠ a/b` replaces the traditional equivalent `0 < |x - a/b|`.
 -/
-def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
-  1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
+def liouville (x : ℝ) :=
+  ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
 
-namespace is_liouville
+namespace liouville
 
-lemma irrational {x : ℝ} (h : is_liouville x) : irrational x :=
+lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
 begin
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
-  change (is_liouville (a / b)) at h,
+  change (liouville (a / b)) at h,
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
   have qR0 : (0 : ℝ) < q := int.cast_pos.mpr (zero_lt_one.trans q1),
   have b0 : (b : ℝ) ≠ 0 := ne_of_gt (nat.cast_pos.mpr bN0),
@@ -56,6 +56,6 @@ begin
   exact not_le.mpr a1 (nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
 end
 
-end is_liouville
+end liouville
 
 end irrational

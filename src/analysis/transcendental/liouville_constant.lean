@@ -16,8 +16,6 @@ The most important property is that they are examples of transcendental real num
 This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
 -/
 
-namespace is_liouville
-
 noncomputable theory
 open_locale nat big_operators
 open set real finset
@@ -135,6 +133,8 @@ begin
   ... = 1 / (m ^ n!) ^ n : by rw pow_mul
 end
 
+namespace liouville
+
 /--
 For a real number `m`, Liouville's constant is
 $$
@@ -177,12 +177,16 @@ lemma number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
   number_terms_after_k m k :=
 (sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm
 
+end liouville
+
 end m_is_real
 
 
 section m_is_natural
 
 variable {m : ℕ}
+
+namespace liouville
 
 lemma number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
 ∃ p : ℕ, number_first_k_terms m k = p / (m ^ k!) :=
@@ -202,7 +206,7 @@ begin
 end
 
 theorem is_number (hm : 2 ≤ m) :
-  is_liouville (number m) :=
+  liouville (number m) :=
 begin
   have mZ1 : 1 < (m : ℤ) := nat.cast_one.symm.le.trans_lt
     (one_lt_two.trans_le (nat.cast_two.symm.le.trans (int.to_nat_le.mp hm))),
@@ -219,10 +223,10 @@ begin
     (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
-lemma number_is_transcendental (hm : 2 ≤ m) :
+lemma is_transcendental (hm : 2 ≤ m) :
   is_transcendental ℤ (number m) :=
 transcendental (is_number hm)
 
-end m_is_natural
+end liouville
 
-end is_liouville
+end m_is_natural

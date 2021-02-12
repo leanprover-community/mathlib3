@@ -39,7 +39,7 @@ instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
 section
 open_locale complex_order
 
-def complex_ordered_semimodule : ordered_semimodule ℝ ℂ :=
+lemma complex_ordered_semimodule : ordered_semimodule ℝ ℂ :=
 { smul_lt_smul_of_pos := λ z w x h₁ h₂,
   begin
     obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
@@ -69,10 +69,6 @@ end
 
 
 @[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
-
-@[simp] lemma re_smul (a : ℝ) (z : ℂ) : re (a • z) = a * re z := by simp [algebra.smul_def]
-
-@[simp] lemma im_smul (a : ℝ) (z : ℂ) : im (a • z) = a * im z := by simp [algebra.smul_def]
 
 open submodule finite_dimensional
 

@@ -620,7 +620,7 @@ begin
     end,
     apply inter_empty },
 
-  -- Now we do cases on wether (connected_component t) is a subset of T₁ or T₂ to show
+  -- Now we do cases on whether (connected_component t) is a subset of T₁ or T₂ to show
   -- that the preimage is a subset of u or v.
   cases (is_preconnected_iff_subset_of_fully_disjoint_closed is_closed_connected_component).1
     (is_connected_connected_component).2 T₁ T₂ hT₁ hT₂ T_decomp T_disjoint,

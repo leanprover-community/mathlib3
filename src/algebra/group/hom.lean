@@ -724,7 +724,7 @@ include mM
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
-  map_one' := mul_eq_right_iff.1 $ by rw [←map_mul, mul_one] }
+  map_one' := mul_right_eq_self.1 $ by rw [←map_mul, mul_one] }
 
 @[simp, to_additive]
 lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :

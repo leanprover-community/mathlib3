@@ -13,11 +13,8 @@ import topology.algebra.polynomial
 This file will contain a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 
-At the moment, it contains the definition of a Liouville number and a proof that Liouville
-numbers are irrational.
-
-The commented imports below will appear as they are needed.  I (Damiano) leave them here for
-ease of reference.
+At the moment, it contains the definition of a Liouville number, a proof that Liouville
+numbers are irrational and two technical lemmas.
 -/
 
 section irrational

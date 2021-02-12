@@ -69,7 +69,7 @@ end
 
 end liouville
 
-open polynomial metric set real ring_hom
+open polynomial metric set
 
 /-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
 It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
@@ -107,7 +107,7 @@ begin
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
-  {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
+  {f : polynomial ℤ} (f0 : f ≠ 0) (fa : (f.map (algebra_map ℤ ℝ)).eval α  = 0) :
   ∃ ε : ℝ, 0 < ε ∧
     ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (α - (a / (b.succ))) * ε) :=
 begin
@@ -157,5 +157,34 @@ begin
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
+
+namespace liouville
+
+theorem transcendental {x : ℝ} (liouville_x : liouville x) :
+  is_transcendental ℤ x :=
+begin
+  rintros ⟨f : polynomial ℤ, f0, ef0⟩,
+  replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rwa [aeval_def, ← eval_map] at ef0 },
+  obtain ⟨A, hA, h⟩ :=
+    exists_pos_real_of_irrational_root liouville_x.irrational f0 ef0,
+  rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
+  obtain ⟨a, b, b1, -, a1⟩ := liouville_x (r + f.nat_degree),
+  have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
+  refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
+  rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,
+  refine ((_  : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A).trans_le _),
+  { refine (lt_div_iff' hA).mpr _,
+    refine lt_of_le_of_lt _ a1,
+    refine mul_le_mul_of_nonneg_right _ (mul_nonneg (pow_nonneg b0.le _) (abs_nonneg _)),
+    refine hn.le.trans _,
+    refine pow_le_pow_of_le_left zero_le_two _ _,
+    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)) },
+  { lift b to ℕ using zero_le_one.trans b1.le,
+    specialize h a b.pred,
+    rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,
+    exact int.coe_nat_lt.mp b1 }
+end
+
+end liouville
 
 end irrational

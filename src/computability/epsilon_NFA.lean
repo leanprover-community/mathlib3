@@ -95,7 +95,7 @@ def to_ε_NFA (M : NFA α σ) : ε_NFA α σ :=
   start := M.start,
   accept := M.accept }
 
-lemma to_ε_NFA_ε_closure (M : NFA α σ) (S : set σ) : M.to_ε_NFA.ε_closure S = S :=
+@[simp] lemma to_ε_NFA_ε_closure (M : NFA α σ) (S : set σ) : M.to_ε_NFA.ε_closure S = S :=
 begin
   ext a,
   split,

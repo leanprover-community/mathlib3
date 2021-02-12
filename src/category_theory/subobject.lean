@@ -263,11 +263,22 @@ instance : semilattice_sup (subobject W) :=
 
 end
 
+section
+variables [has_pullbacks C] [has_equalizers C] [has_coproducts C] [has_images C] [has_image_maps C]
+variables (W : C)
+
+instance : lattice (subobject W) :=
+{ ..(by apply_instance : semilattice_inf (subobject W)),
+  ..(by apply_instance : semilattice_sup (subobject W)) }
+
+end
+
 -- PROJECT: Further lattice structures on `subobject W`.
 -- What conditions are required to get a distributive lattice?
 --   https://ncatlab.org/nlab/show/poset+of+subobjects
 --   says any "coherent category" (including any pretopos)
--- What about in the abelian direction?
+-- Abelian categories do not have distributive subobject lattices.
+--   https://ncatlab.org/nlab/show/subobject+classifier#categories_without_subobject_classifiers
 
 end subobject
 

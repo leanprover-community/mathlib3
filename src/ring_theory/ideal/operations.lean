@@ -1051,7 +1051,10 @@ by { rw [mem_ker, f.map_one], exact one_ne_zero }
 @[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
 by simpa only [←injective_iff_ker_eq_bot] using f.injective
 
-/-- The induced map from the quotient by the kernel to the codomain. -/
+/-- The induced map from the quotient by the kernel to the codomain.
+
+This is an isomorphism if `f` has a right inverse (`quotient_ker_equiv_of_right_inverse`) / is surjective (`quotient_ker_equiv_of_surjective`).
+-/
 def ker_lift (f : R →+* S) : f.ker.quotient →+* S :=
 ideal.quotient.lift _ f $ λ r, f.mem_ker.mp
 

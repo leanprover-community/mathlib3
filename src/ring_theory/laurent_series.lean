@@ -144,8 +144,12 @@ def shift_fun {R : Type*} [has_zero R]: 𝕄 → (ℕ → R) → (ℕ → R)
 | (k) := λ f, λ n, if n < (℘ k) then (0 : R) else f (n - ℘ k)
 
 @[simp] lemma shift_fun_by_zero [has_zero R] (f : ℕ → R) : shift_fun 𝟘 f = f := rfl
+@[simp] lemma shift_neg [has_neg R] [has_zero R] (f : ℕ → R) (𝕜 : 𝕄) :
+  shift_fun 𝕜 (-f) = - (shift_fun 𝕜 f) := sorry
+-- @[simp] lemma eq_shift_fun [has_neg R] [has_zero R] (𝕜₁ 𝕜₂ : 𝕄) (f₁ f₂ : ℕ → R) :
+--   𝕜₁ = 𝕜₂ → shift_fun 𝕜₁ f₁ = shift_fun 𝕜₂ f₂ ↔ f₁ = f₂ := sorry
 
--- section add_comm_monoid
+
 
 /-We only consider the case where R is a commutative additive monoid, for simplicity-/
 variable [add_comm_monoid R]
@@ -310,17 +314,25 @@ begin
   dsimp [lift_neg],
   rw eqv_punctured at h,
   rcases h with ⟨ℓ₁₂, ℓ₂₁, h⟩,
-  replace h : 𝕜₁ + ℓ₁₂ = 𝕜₂ + ℓ₂₁ ∧ shift_fun (μ (𝕜₁, ℓ₁₂)) (-f₁) = shift_fun (μ (𝕜₂, ℓ₂₁)) (-f₂),
-  split,
   rw ext_punctured_power_series at h,
+  have hμ : μ (𝕜₁, ℓ₁₂) = μ (𝕜₂, ℓ₂₁),
+  -- rw cst_shift_fun at h,
+  -- rw μ,
+  sorry,
+  replace h : 𝕜₁ + ℓ₁₂ = 𝕜₂ + ℓ₂₁ ∧ ((𝕜₁, f₁) + (ℓ₁₂, 0)).snd = ((𝕜₂, f₂) + (ℓ₂₁, 0)).snd,
+  split,
   exact h.1,
+  let k := h.2,
+  exact k,
   sorry,
   replace h : eqv_punctured (𝕜₁, -f₁) (𝕜₂, -f₂),
   { use [ℓ₁₂, ℓ₂₁],
-    ext, exact h.1,
+    ext,
+    exact h.1,
     show (shift_fun (μ (𝕜₁, ℓ₁₂)) (- f₁) + shift_fun (μ (ℓ₁₂, 𝕜₁)) 0) x =
     (shift_fun (μ (𝕜₂, ℓ₂₁)) (-f₂) + shift_fun (μ (ℓ₂₁, 𝕜₂)) 0) x,
-    simp only [*, cst_shift_fun]},
+    simp [*, prod.mk_add_mk, add_zero, pi.neg_apply, cst_shift_fun, eq_self_iff_true,
+      neg_inj, shift_neg] at *, },
   apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
 end
 

@@ -1089,7 +1089,7 @@ lemma quotient_ker_equiv_of_right_inverse.apply {g : S → R} (hf : function.rig
   (x : f.ker.quotient) : quotient_ker_equiv_of_right_inverse hf x = ker_lift f x := rfl
 
 @[simp]
-lemma quotient_ker_equiv_of_right_inverse.inv.apply {g : S → R} (hf : function.right_inverse g f)
+lemma quotient_ker_equiv_of_right_inverse.symm.apply {g : S → R} (hf : function.right_inverse g f)
   (x : S) : (quotient_ker_equiv_of_right_inverse hf).symm x = ideal.quotient.mk f.ker (g x) := rfl
 
 /-- The first isomorphism theorem for commutative rings. -/
@@ -1270,7 +1270,7 @@ lemma quotient_ker_alg_equiv_of_right_inverse.apply {f : A →ₐ[R] B} {g : B �
   quotient_ker_alg_equiv_of_right_inverse hf x = ker_lift_alg f x := rfl
 
 @[simp]
-lemma quotient_ker_alg_equiv_of_right_inverse.inv.apply {f : A →ₐ[R] B} {g : B → A}
+lemma quotient_ker_alg_equiv_of_right_inverse_symm.apply {f : A →ₐ[R] B} {g : B → A}
   (hf : function.right_inverse g f) (x : B) :
   (quotient_ker_alg_equiv_of_right_inverse hf).symm x = quotient.mkₐ R f.to_ring_hom.ker (g x) := rfl
 

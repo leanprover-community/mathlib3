@@ -244,7 +244,8 @@ variables [has_equalizers C]
 lemma sup_le (X Y Z : subobject W) (f : X ≤ Z) (g : Y ≤ Z) : X ⊔ Y ≤ Z :=
 le_of_hom
 ((mk_X_iso _).hom ≫
-  image.eq_to_hom (show coprod.desc X.ι Y.ι = coprod.desc (hom_of_le f) (hom_of_le g) ≫ Z.ι, by simp) ≫
+  image.eq_to_hom
+    (show coprod.desc X.ι Y.ι = coprod.desc (hom_of_le f) (hom_of_le g) ≫ Z.ι, by simp) ≫
   image.lift { I := Z.X, m := Z.ι, e := coprod.desc (hom_of_le f) (hom_of_le g) })
 (begin
   dsimp,
@@ -263,7 +264,8 @@ end
 
 -- PROJECT: Further lattice structures on `subobject W`.
 -- What conditions are required to get a distributive lattice?
--- https://ncatlab.org/nlab/show/poset+of+subobjects says a "coherent category" (including any pretopos)
+--   https://ncatlab.org/nlab/show/poset+of+subobjects
+--   says any "coherent category" (including any pretopos)
 -- What about in the abelian direction?
 
 end subobject

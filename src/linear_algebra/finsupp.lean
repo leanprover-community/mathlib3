@@ -316,6 +316,10 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) : lsum.symm f x
 section
 variables (M) (R) (X : Type*)
 
+/--
+The type-level equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
+This says that the forgetful functor from `R`-modules to types is representable, by `R`.
+-/
 @[simps]
 def ring_lmap_equiv_self : (R →ₗ[R] M) ≃ M :=
 { to_fun := λ f, f 1,

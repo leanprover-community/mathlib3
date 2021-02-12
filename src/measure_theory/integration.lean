@@ -1752,48 +1752,45 @@ section product
 open measure_theory measure_theory.simple_func
 
 /-- This (roughly) proves that if a random variable `f` is independent of an event `T`,
-   then if you restrict the random variable to `T`, then 
-   `E[f * indicator T c 0]`=E[f] * E[indicator T c 0]`. It is useful for
-   `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/  
+   then if you restrict the random variable to `T`, then
+   `E[f * indicator T c 0] = E[f] * E[indicator T c 0]`. It is useful for
+   `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
-  {α:Type*} [M:measurable_space α] (μ:measure α) (Mf:measurable_space α) (hMf:Mf ≤ M)
-  (c:ℝ≥0∞) (T:set α) (h_meas_T:M.measurable_set' T)
-  (h_ind:∀ (S:set α), Mf.measurable_set' S →
-  (μ S * μ T = μ (S ∩ T)))   
-  (f:α → ℝ≥0∞) (h_meas_f:@measurable α ℝ≥0∞ Mf _ f):
-@lintegral α M μ (λ a, (f * (T.indicator (λ (_x : α), c))) a) =
-  @lintegral α M μ f * 
-  @lintegral α M μ (T.indicator (λ (_x : α), c)) :=
+  {α : Type*} {Mf : measurable_space α} [M : measurable_space α] {μ : measure α} (hMf : Mf ≤ M)
+  (c : ℝ≥0∞) {T : set α} (h_meas_T : measurable_set T)
+  (h_ind : ∀ (S : set α), Mf.measurable_set' S → μ S * μ T = μ (S ∩ T))
+  (f : α → ℝ≥0∞) (h_meas_f : @measurable _ _ Mf _ f) :
+  ∫⁻ a, (f * T.indicator (λ x, c)) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, T.indicator (λ x, c) a ∂μ :=
 begin
   revert f,
   have h_mul_indicator:∀ g, @measurable α ℝ≥0∞ M _ g →
-    @measurable α ℝ≥0∞ M _ (g * (λ (a : α), T.indicator (λ (_x : α), c) a)) :=
+    @measurable α ℝ≥0∞ M _ (g * (λ (a : α), T.indicator (λ x, c) a)) :=
   (λ g h_mg, @measurable.ennreal_mul _ M _ _ h_mg
     (@measurable.indicator _ _ M _ _ _ _ (@measurable_const _ _ _ M _) h_meas_T)),
   apply measurable.ennreal_induction,
   { intros c' s' h_meas_s',
-      have h1:(λ a, (s'.indicator (λ (_x : α), c') * T.indicator (λ (_x : α), c)) a) =
-         (λ a, (s' ∩ T).indicator (λ (_x :α), c * c') a),
+      have h1:(λ a, (s'.indicator (λ x, c') * T.indicator (λ x, c)) a) =
+         (λ a, (s' ∩ T).indicator (λ x, c * c') a),
       { ext1 a, cases classical.em (a ∈ s' ∩ T) with h1_1 h1_1,
-        { rw set.indicator_of_mem h1_1, 
+        { rw set.indicator_of_mem h1_1,
           rw [set.mem_inter_eq] at h1_1,
           simp only [zero_mul, pi.mul_apply, ite_mul, mul_ite, mul_zero],
           repeat {rw if_pos},
           rw mul_comm,
           apply h1_1.left,
           apply h1_1.right },
-        { rw set.indicator_of_not_mem h1_1, 
+        { rw set.indicator_of_not_mem h1_1,
           simp only [zero_mul, pi.mul_apply, set.indicator_apply_eq_zero, ite_mul, mul_ite,
             mul_zero, mul_eq_zero],
           simp only [set.mem_inter_eq, not_and] at h1_1,
           intros h1_2 h1_3,
           exfalso,
           apply h1_1 h1_3 h1_2 } },
-      rw [h1, @lintegral_indicator _ M _ _ _ 
+      rw [h1, @lintegral_indicator _ M _ _ _
           (@measurable_set.inter _ M _ _ (hMf _ h_meas_s') (h_meas_T)),
           @lintegral_indicator _ M _ _ _ (hMf _ h_meas_s'),
           @lintegral_indicator _ M _ _ _ h_meas_T],
-      simp only [measurable_const, lintegral_const, set.univ_inter, lintegral_const_mul, 
+      simp only [measurable_const, lintegral_const, set.univ_inter, lintegral_const_mul,
         measurable_set.univ, measure.restrict_apply],
       rw ← h_ind,
       ring,
@@ -1801,27 +1798,27 @@ begin
   { intros f' g h_univ h_meas_f' h_meas_g h_ind_f' h_ind_g,
     have h_measM_f' := measurable.mono h_meas_f' hMf (le_refl _),
     have h_measM_g := measurable.mono h_meas_g hMf (le_refl _),
-    have h_indicator:@measurable α ℝ≥0∞ M _ (λ (a : α), T.indicator (λ (_x : α), c) a),
+    have h_indicator:@measurable α ℝ≥0∞ M _ (λ (a : α), T.indicator (λ x, c) a),
     { apply @measurable.indicator _ _ M _ _ _ _ (@measurable_const _ _ _ M _) h_meas_T },
-    have h8:(f' + g) * T.indicator (λ (_x : α), c)= 
+    have h8 : (f' + g) * T.indicator (λ x, c) =
              (λ a, (f' * (T.indicator (λ _, c))) a + (g * (T.indicator (λ _, c))) a),
     { ext1 a, simp [right_distrib] },
     rw h8,
     have h_add:(f' + g) = (λ a, (f' a + g a)),
    { refl },
    rw [h_add, @lintegral_add _ M _ _ _ (h_mul_indicator _ h_measM_f')
-       (h_mul_indicator _ h_measM_g), 
+       (h_mul_indicator _ h_measM_g),
        @lintegral_add _ M _ _ _ h_measM_f' h_measM_g, right_distrib, h_ind_f',
        h_ind_g] },
   { intros f h_meas_f h_mono_f h_ind_f,
     have h_measM_f := (λ n, measurable.mono (h_meas_f n) hMf (le_refl _)),
     have h_mul:
-     (λ a, ((λ (x : α), ⨆ (n : ℕ), f n x) * T.indicator (λ (_x : α), c)) a) =
-      (λ (a : α), ⨆ (n : ℕ), (λ (x:α), f n x * (T.indicator (λ (_x : α), c) x)) a),
+     (λ a, ((λ (x : α), ⨆ (n : ℕ), f n x) * T.indicator (λ x, c)) a) =
+      (λ (a : α), ⨆ (n : ℕ), (λ (x:α), f n x * (T.indicator (λ x, c) x)) a),
     { ext1 a, rw @pi.mul_apply, rw ennreal.supr_mul, },
-    have h_mul2:(λ (n:ℕ), (@lintegral α M μ 
-       (λ (x : α), f n x * T.indicator (λ (_x : α), c) x)))  =
-        (λ n, @lintegral α M μ (f n) * @lintegral α M μ (T.indicator (λ (_x : α), c))), 
+    have h_mul2:(λ (n:ℕ), (@lintegral α M μ
+       (λ (x : α), f n x * T.indicator (λ x, c) x)))  =
+        (λ n, @lintegral α M μ (f n) * @lintegral α M μ (T.indicator (λ x, c))),
     { ext1 n, rw ← h_ind_f n, refl },
     rw [h_mul, lintegral_supr, lintegral_supr, ennreal.supr_mul, h_mul2],
     apply h_measM_f,
@@ -1836,64 +1833,64 @@ end
    of the random variables, it uses the independence of measurable spaces for the
    domains of `f` and `g`. This is similar to the sigma-algebra approach to
    independence. See `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_fn` for
-   a more common variant of the product of independent variables. -/  
-lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space 
-  {α:Type*} [M:measurable_space α] (μ:measure α) (Mf:measurable_space α) 
-  (Mg:measurable_space α) (hMf:Mf ≤ M) (hMg:Mg ≤ M) 
-  (h_ind:∀ (S T:set α), Mf.measurable_set' S → Mg.measurable_set' T → (μ S * μ T = μ (S ∩ T)))   
-  (f g:α → ℝ≥0∞) (h_meas_f:@measurable α ℝ≥0∞ Mf _ f) 
-  (h_meas_g:@measurable α ℝ≥0∞ Mg _ g):
+   a more common variant of the product of independent variables. -/
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
+  {α : Type*} {Mf : measurable_space α} {Mg : measurable_space α} [M : measurable_space α]
+  {μ : measure α} {hMf : Mf ≤ M} {hMg : Mg ≤ M}
+  (h_ind : ∀ (S T : set α), Mf.measurable_set' S → Mg.measurable_set' T → (μ S * μ T = μ (S ∩ T)))
+  {f g : α → ℝ≥0∞} (h_meas_f : @measurable α ℝ≥0∞ Mf _ f)
+  (h_meas_g : @measurable α ℝ≥0∞ Mg _ g):
   @lintegral α M μ (λ a, (f * g) a) = @lintegral α M μ f * @lintegral α M μ g :=
 begin
   revert g,
-  have h_meas_Mf:∀ ⦃f:α → ℝ≥0∞⦄, (@measurable α ℝ≥0∞ Mf _ f) → 
-    (@measurable α ℝ≥0∞ M _ f),
-  { intros f' h_meas_f', apply measurable.mono h_meas_f' hMf, apply le_refl _ }, 
-  have h_meas_Mg:∀ ⦃f:α → ℝ≥0∞⦄, (@measurable α ℝ≥0∞ Mg _ f) → 
-    (@measurable α ℝ≥0∞ M _ f),
-  { intros f' h_meas_f', apply measurable.mono h_meas_f' hMg, apply le_refl _ }, 
+  have h_meas_Mf : ∀ ⦃f : α → ℝ≥0∞⦄, @measurable _ _ Mf _ f →
+    measurable f,
+  { intros f' h_meas_f', apply measurable.mono h_meas_f' hMf, apply le_refl _ },
+  have h_meas_Mg : ∀ ⦃f : α → ℝ≥0∞⦄, @measurable _ _ Mg _ f →
+    measurable f,
+  { intros f' h_meas_f', apply measurable.mono h_meas_f' hMg, apply le_refl _ },
   have h_measM_f := h_meas_Mf h_meas_f,
   apply measurable.ennreal_induction,
   { intros c s h_s,
-    apply @lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator _ M _ _ 
-       hMf _ _ (hMg _ h_s) (λ S h_meas_S, h_ind _ _ h_meas_S h_s) _ h_meas_f },
+    apply lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator hMf _ (hMg _ h_s)
+      (λ S h_meas_S, h_ind _ _ h_meas_S h_s) _ h_meas_f },
   { intros f' g h_univ h_measMg_f' h_measMg_g h_ind_f' h_ind_g',
     have h_measM_f' := h_meas_Mg h_measMg_f',
     have h_measM_g := h_meas_Mg h_measMg_g,
-    have h_add:(f' + g) = (λ a, (f' a + g a)) := rfl,
-    have h8:(λ a, (f * λ a', (f' a' + g a')) a ) = (λ a, (f a * f' a) + (f a * g a)),
+    have h_add : (f' + g) = (λ a, (f' a + g a)) := rfl,
+    have h8 : (λ a, (f * λ a', (f' a' + g a')) a ) = (λ a, (f a * f' a) + (f a * g a)),
     { ext1 a, simp [left_distrib] },
-    have h9:(λ a, (f * f') a) = (λ a, f a * f' a),
+    have h9 : (λ a, (f * f') a) = (λ a, f a * f' a),
+    { refl },
+    have h10 : (λ a, (f * g) a) = (λ a, f a * g a),
     { ext1 a, refl },
-    have h10:(λ a, (f * g) a) = (λ a, f a * g a),
-    { ext1 a, refl },
-    rw [h_add, @lintegral_add _ M _ _ _ h_measM_f' h_measM_g, h8, 
+    rw [h_add, @lintegral_add _ M _ _ _ h_measM_f' h_measM_g, h8,
         @lintegral_add _ M _ _ _ (@measurable.ennreal_mul _ M _ _ h_measM_f h_measM_f')
           (@measurable.ennreal_mul _ M _ _ h_measM_f h_measM_g),
         left_distrib, ← h9, h_ind_f', ← h10, h_ind_g'] },
   { intros f' h_meas_f' h_mono_f' h_ind_f',
     have h_measM_f' := (λ n, h_meas_Mg (h_meas_f' n)),
-    have h_mul:(λ (a : α), (f * λ (x : α), ⨆ (n : ℕ), f' n x) a) = 
-      (λ (a : α), ⨆ (n : ℕ), (λ (x:α), (f x * f' n x)) a),
+    have h_mul : (λ (a : α), (f * λ (x : α), ⨆ (n : ℕ), f' n x) a) =
+      (λ (a : α), ⨆ (n : ℕ), (λ (x : α), (f x * f' n x)) a),
     { ext1 a, simp only [pi.mul_apply], rw ennreal.mul_supr },
-    have h_mul2:(λ (n:ℕ), (@lintegral α M μ (λ (x : α), f x * f' n x))) =
-        (λ n, @lintegral α M μ f * @lintegral α M μ (f' n)), 
+    have h_mul2 : (λ (n : ℕ), (@lintegral α M μ (λ (x : α), f x * f' n x))) =
+        (λ n, @lintegral α M μ f * @lintegral α M μ (f' n)),
     { ext1 n, rw ← h_ind_f' n, refl },
-    rw [h_mul, @lintegral_supr _ M _ _ 
-       (λ (n:ℕ), @measurable.ennreal_mul _ M _ _ h_measM_f (h_measM_f' n))
-       (λ (n:ℕ) (m:ℕ) (h_le:n ≤ m) a,ennreal.mul_le_mul (le_refl _) (h_mono_f' h_le a)),
+    rw [h_mul, @lintegral_supr _ M _ _
+       (λ (n : ℕ), @measurable.ennreal_mul _ M _ _ h_measM_f (h_measM_f' n))
+       (λ (n : ℕ) (m : ℕ) (h_le : n ≤ m) a,ennreal.mul_le_mul (le_refl _) (h_mono_f' h_le a)),
        @lintegral_supr _ M _ _ h_measM_f' h_mono_f', ennreal.mul_supr, h_mul2] }
 end
 
 /-- This proves that if `f` and `g` are independent random variables,
    then `E[f * g] = E[f] * E[g]`. Note that this will only apply to probability
-   measures, because `μ (f ⁻¹' univ) * μ (g ⁻¹' univ) = μ ((f ⁻¹' univ) ∩ (g ⁻¹' univ)))`
-   implies μ univ * μ univ = μ univ, i.e. μ univ = 1. -/  
-lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_fn {α:Type*} [M:measurable_space α]
-  (μ:measure α) (f g:α → ℝ≥0∞) (h_meas_f:measurable f) (h_meas_g:measurable g)
-  (h_ind:∀ (S T:set ℝ≥0∞), measurable_set S → measurable_set T →
-    (μ (f ⁻¹' S) * μ (g ⁻¹' T) = μ ((f ⁻¹' S) ∩ (g ⁻¹' T)))):
-  ∫⁻ (a : α), (f * g) a ∂μ = (∫⁻ (a : α), f a ∂μ) * (∫⁻ (a : α), g a ∂μ) :=
+   measures, because `μ (f ⁻¹' univ) * μ (g ⁻¹' S) = μ ((f ⁻¹' univ) ∩ (g ⁻¹' S)))`
+   implies `μ univ * μ S = μ S`, i.e. `μ univ = 1` (or `μ S` is `0`/`∞` for all `S`). -/
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_fn {α} [M : measurable_space α]
+  (μ : measure α) (f g : α → ℝ≥0∞) (h_meas_f : measurable f) (h_meas_g : measurable g)
+  (h_ind : ∀ (S T : set ℝ≥0∞), measurable_set S → measurable_set T →
+    μ (f ⁻¹' S) * μ (g ⁻¹' T) = μ (f ⁻¹' S ∩ g ⁻¹' T)):
+  ∫⁻ (a : α), (f * g) a ∂μ = ∫⁻ (a : α), f a ∂μ * ∫⁻ (a : α), g a ∂μ :=
 begin
   apply lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space μ
     (ennreal.measurable_space.comap f) (ennreal.measurable_space.comap g)

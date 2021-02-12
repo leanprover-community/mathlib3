@@ -195,6 +195,8 @@ end⟩
 
 /-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
 isomorphic. -/
+@[to_additive "If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
+isomorphic."]
 def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   quotient M ≃* quotient N :=
 { to_fun := (lift M (mk' N) (λ m hm, quotient_group.eq.mpr (by simpa [← h] using M.inv_mem hm))),
@@ -209,6 +211,8 @@ open subgroup
 
 /-- The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`, where `N`
 is normal, defines an isomorphism between `H/(H ∩ N)` and `(HN)/N`. -/
+@[to_additive "The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`,
+where `N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(H + N)/N`"]
 noncomputable def quotient_inf_equiv_prod_normal_quotient (H N : subgroup G) [N.normal] :
   quotient ((H ⊓ N).comap H.subtype) ≃* quotient (N.comap (H ⊔ N).subtype) :=
 /- φ is the natural homomorphism H →* (HN)/N. -/

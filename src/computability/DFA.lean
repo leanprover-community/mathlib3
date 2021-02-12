@@ -157,20 +157,19 @@ end
 lemma char_accepts {a : α} [decidable_eq α] : (char a).accepts = {[a]} :=
 begin
   ext x,
-  change list.foldl (λ _ _, _) none _ ∈ {↑tt} ↔ x ∈ {[a]},
-  cases x with b x,
-  { dec_trivial },
-  cases x with _ x,
-  { simp only [list.foldl],
-    split_ifs,
+  -- change list.foldl (λ _ _, _) none _ ∈ {↑tt} ↔ x ∈ {[a]},
+  simp only [set.mem_singleton_iff],
+  split,
+  { rw mem_accepts,
+    intro h,
+    cases x with b x,
     { tauto },
-    { simp only [and_true, set.mem_singleton_iff, eq_self_iff_true],
-      simp only [and_true, bool.coe_sort_tt, option.is_none_none] at h,
-      split,
-      { dec_trivial },
-      { contradiction } } },
-  { simp only [and_true, list.foldl_cons, set.mem_singleton_iff, bool.coe_sort_tt,
-      option.is_none_none, list.foldl, iff_false, and_false] }
+    { rw [eval_from, list.foldl_cons] at h,
+      split_ifs, } },
+  { intro h,
+    subst h,
+    simp only [if_true, bool.coe_sort_tt, eq_self_iff_true, option.is_none_none, and_self,
+      list.foldl] }
 end
 
 end DFA

@@ -88,6 +88,39 @@ def char (a₁ : α) [decidable_eq α] : ε_NFA α (ulift bool) :=
   start := {⟨tt⟩},
   accept := {⟨ff⟩} }
 
+def plus (M : ε_NFA α σ) (N : ε_NFA α σ') : ε_NFA α (σ × σ') :=
+{ step := λ ⟨ s, t ⟩ a, (M.step s a).prod (N.step t a),
+  start := M.start.prod N.start,
+  accept := M.accept.prod N.accept }
+
+def prod (M : ε_NFA α σ) (N : ε_NFA α σ') [decidable_pred M.accept] : ε_NFA α (σ ⊕ σ') :=
+{ step := λ s a, s.elim
+    ( λ s,
+      if s ∈ M.accept ∧ a.is_none
+      then ((sum.inl '' (M.step s a)) ∪ (sum.inr '' N.start))
+      else (sum.inl '' (M.step s a)))
+    (λ t, (sum.inr '' (N.step t a))),
+  start := sum.inl '' M.start,
+  accept := sum.inr '' N.accept }
+
+def star (M : ε_NFA α σ) [decidable_pred M.accept] : ε_NFA α σ :=
+{ step := λ s a,
+    if s ∈ M.accept ∧ a.is_none
+    then M.step s a ∪ M.start
+    else M.step s a,
+  start := M.start,
+  accept := M.accept }
+
+lemma zero_accepts : (@zero α).accepts = 0 := by tidy
+lemma epsilon_accepts : (@epsilon α).accepts = 1 :=
+begin
+  ext x,
+  rw [language.mem_one, mem_accepts],
+  split,
+  { rintro ⟨ S, hs, h ⟩, }
+end
+lemma char_accepts (a : α) [decidable_eq α] : (char a).accepts = {[a]} := by tidy
+
 end ε_NFA
 
 namespace NFA

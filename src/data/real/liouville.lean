@@ -179,15 +179,22 @@ begin
   obtain ⟨a, b, b1, -, a1⟩ : ∃ (a b : ℤ), 1 < b ∧ x ≠ a / b ∧
     abs (x - a / b) < 1 / b ^ (r + f.nat_degree):= liouville_x (r + f.nat_degree),
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
+  -- Prove that `b ^ f.nat_degree * abs (x - a / b)` is strictly smaller than itself:
+  -- recall, this is a proof by contradiction!
   refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
+  -- clear denominators at a1
   rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,
+  -- split the inequality via `1 / A`.
   refine ((_  : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A).trans_le _),
+  -- This branch of the proof uses the Liouville condition and the Archimedean property
   { refine (lt_div_iff' hA).mpr _,
     refine lt_of_le_of_lt _ a1,
     refine mul_le_mul_of_nonneg_right _ (mul_nonneg (pow_nonneg b0.le _) (abs_nonneg _)),
     refine hn.le.trans _,
     refine pow_le_pow_of_le_left zero_le_two _ _,
     exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)) },
+  -- this branch of the proof exploits the "integrality" of evaluations of polynomials
+  -- at ratios of integers.
   { lift b to ℕ using zero_le_one.trans b1.le,
     specialize h a b.pred,
     rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,

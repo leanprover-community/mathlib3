@@ -276,8 +276,8 @@ instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divi
   [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
 S.to_subsemiring.no_zero_divisors
 
-instance no_zero_smul_divisors_top {R A : Type*} [comm_ring R] [comm_semiring A] [no_zero_divisors A]
-  [algebra R A] (S : subalgebra R A) : no_zero_smul_divisors S A :=
+instance no_zero_smul_divisors_top {R A : Type*} [comm_ring R] [comm_semiring A] [algebra R A]
+  [no_zero_divisors A] (S : subalgebra R A) : no_zero_smul_divisors S A :=
 ⟨λ c x h,
   have (c : A) = 0 ∨ x = 0,
   from eq_zero_or_eq_zero_of_mul_eq_zero h,

@@ -124,8 +124,7 @@ open pi
 into a dependent family of additive monoids, as functions supported at a point.
 
 This is the `add_monoid_hom` version of `pi.single`. -/
-@[simps]
-def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
+@[simps] def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
   map_zero' :=
   begin

@@ -1159,7 +1159,7 @@ section ordered_comm_group
 
 variables {α : Type*} [ordered_comm_group α] {a b c d : α}
 
--- inv_mem_Ixx_iff, sub_mem_Ixx_iff
+/-! `inv_mem_Ixx_iff`, `sub_mem_Ixx_iff` -/
 @[to_additive] lemma inv_mem_Icc_iff : a⁻¹ ∈ set.Icc c d ↔ a ∈ set.Icc (d⁻¹) (c⁻¹) :=
 (and_comm _ _).trans $ (and_congr inv_le' le_inv')
 @[to_additive] lemma inv_mem_Ico_iff : a⁻¹ ∈ set.Ico c d ↔ a ∈ set.Ioc (d⁻¹) (c⁻¹) :=
@@ -1175,7 +1175,7 @@ section ordered_add_comm_group
 
 variables {α : Type*} [ordered_add_comm_group α] {a b c d : α}
 
--- add_mem_Ixx_iff_left
+/-! `add_mem_Ixx_iff_left` -/
 lemma add_mem_Icc_iff_left : a + b ∈ set.Icc c d ↔ a ∈ set.Icc (c - b) (d - b) :=
 (and_congr sub_le_iff_le_add le_sub_iff_add_le).symm
 lemma add_mem_Ico_iff_left : a + b ∈ set.Ico c d ↔ a ∈ set.Ico (c - b) (d - b) :=
@@ -1185,7 +1185,7 @@ lemma add_mem_Ioc_iff_left : a + b ∈ set.Ioc c d ↔ a ∈ set.Ioc (c - b) (d 
 lemma add_mem_Ioo_iff_left : a + b ∈ set.Ioo c d ↔ a ∈ set.Ioo (c - b) (d - b) :=
 (and_congr sub_lt_iff_lt_add lt_sub_iff_add_lt).symm
 
--- add_mem_Ixx_iff_right
+/-! `add_mem_Ixx_iff_right` -/
 lemma add_mem_Icc_iff_right : a + b ∈ set.Icc c d ↔ b ∈ set.Icc (c - a) (d - a) :=
 (and_congr sub_le_iff_le_add' le_sub_iff_add_le').symm
 lemma add_mem_Ico_iff_right : a + b ∈ set.Ico c d ↔ b ∈ set.Ico (c - a) (d - a) :=
@@ -1195,7 +1195,7 @@ lemma add_mem_Ioc_iff_right : a + b ∈ set.Ioc c d ↔ b ∈ set.Ioc (c - a) (d
 lemma add_mem_Ioo_iff_right : a + b ∈ set.Ioo c d ↔ b ∈ set.Ioo (c - a) (d - a) :=
 (and_congr sub_lt_iff_lt_add' lt_sub_iff_add_lt').symm
 
--- sub_mem_Ixx_iff_left
+/-! `sub_mem_Ixx_iff_left` -/
 lemma sub_mem_Icc_iff_left : a - b ∈ set.Icc c d ↔ a ∈ set.Icc (c + b) (d + b) :=
 (and_congr le_sub_iff_add_le sub_le_iff_le_add)
 lemma sub_mem_Ico_iff_left : a - b ∈ set.Ico c d ↔ a ∈ set.Ico (c + b) (d + b) :=
@@ -1205,7 +1205,7 @@ lemma sub_mem_Ioc_iff_left : a - b ∈ set.Ioc c d ↔ a ∈ set.Ioc (c + b) (d 
 lemma sub_mem_Ioo_iff_left : a - b ∈ set.Ioo c d ↔ a ∈ set.Ioo (c + b) (d + b) :=
 (and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add)
 
--- sub_mem_Ixx_iff_right
+/-! `sub_mem_Ixx_iff_right` -/
 lemma sub_mem_Icc_iff_right : a - b ∈ set.Icc c d ↔ b ∈ set.Icc (a - d) (a - c) :=
 (and_comm _ _).trans $ (and_congr sub_le le_sub)
 lemma sub_mem_Ico_iff_right : a - b ∈ set.Ico c d ↔ b ∈ set.Ioc (a - d) (a - c) :=

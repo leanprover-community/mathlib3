@@ -12,7 +12,7 @@ This file contains the definition of an epsilon Nondeterministic Finite Automato
 machine which determines whether a string (implemented as a list over an arbitrary alphabet) is in a
 regular set by evaluating the string over every possible path, also having access to ε-transitons,
 which can be followed without reading a character.
-Since this definition allows for Automata with infinite states, a `fintype` instance must be
+Since this definition allows for automata with infinite states, a `fintype` instance must be
 supplied for true `ε_NFA`'s.
 -/
 

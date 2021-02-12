@@ -1028,11 +1028,18 @@ of_homothety 𝕜
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
     linear map from the span of `x` to `𝕜`.-/
-abbreviation coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 :=
-  (to_span_nonzero_singleton 𝕜 x h).symm
+def coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 := (to_span_nonzero_singleton 𝕜 x h).symm
 
 @[simp] lemma coe_to_span_nonzero_singleton_symm {x : E} (h : x ≠ 0) :
   ⇑(to_span_nonzero_singleton 𝕜 x h).symm = coord 𝕜 x h := rfl
+
+@[simp] lemma coord_to_span_nonzero_singleton {x : E} (h : x ≠ 0) (c : 𝕜) :
+  coord 𝕜 x h (to_span_nonzero_singleton 𝕜 x h c) = c :=
+(to_span_nonzero_singleton 𝕜 x h).symm_apply_apply c
+
+@[simp] lemma to_span_nonzero_singleton_coord {x : E} (h : x ≠ 0) (y : 𝕜 ∙ x) :
+  to_span_nonzero_singleton 𝕜 x h (coord 𝕜 x h y) = y :=
+(to_span_nonzero_singleton 𝕜 x h).apply_symm_apply y
 
 @[simp] lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin

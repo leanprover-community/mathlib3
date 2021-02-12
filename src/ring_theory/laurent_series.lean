@@ -124,6 +124,22 @@ instance [inhabited R]       : inhabited       (punctured_power_series R) := ⟨
 instance [has_zero R]        : has_zero        (punctured_power_series R) := ⟨(𝟘, 0)⟩
 instance [nontrivial R]      : nontrivial      (punctured_power_series R) := nontrivial_prod_left
 
+@[simp] lemma ext_punctured_power_series (F₁ F₂ : punctured_power_series R) :
+  F₁ = F₂ ↔ F₁.1 = F₂.1 ∧ F₁.2 = F₂.2 :=
+begin
+  split,
+    {intro h,
+    split,
+    apply_fun prod.fst at h,
+    assumption,
+    apply_fun prod.snd at h,
+    assumption },
+  { intro h,
+    ext,
+    exact h.1,
+    simp only * at * },
+end
+
 def shift_fun {R : Type*} [has_zero R]: 𝕄 → (ℕ → R) → (ℕ → R)
 | (k) := λ f, λ n, if n < (℘ k) then (0 : R) else f (n - ℘ k)
 
@@ -295,7 +311,10 @@ begin
   rw eqv_punctured at h,
   rcases h with ⟨ℓ₁₂, ℓ₂₁, h⟩,
   replace h : 𝕜₁ + ℓ₁₂ = 𝕜₂ + ℓ₂₁ ∧ shift_fun (μ (𝕜₁, ℓ₁₂)) (-f₁) = shift_fun (μ (𝕜₂, ℓ₂₁)) (-f₂),
-  split, sorry, sorry,
+  split,
+  rw ext_punctured_power_series at h,
+  exact h.1,
+  sorry,
   replace h : eqv_punctured (𝕜₁, -f₁) (𝕜₂, -f₂),
   { use [ℓ₁₂, ℓ₂₁],
     ext, exact h.1,

@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.real.irrational
 import data.polynomial.denoms_clearable
 import ring_theory.algebraic
 import topology.algebra.polynomial
 import analysis.calculus.mean_value
-
+import data.real.liouville
 /-!
 # Liouville's theorem
 
@@ -17,48 +16,7 @@ This file contains the proof of Liouville's theorem stating that all Liouville n
 transcendental.
 -/
 
-namespace real
-
--- PR liouville_def contains the definition `is_liouville` and the lemma that
--- a liouville number is irrational
-/--
-A Liouville number `x` is a number such that for every natural number `n`, there exists `a, b ∈ ℤ`
-with `b > 1` such that `0 < |x - a/b| < 1/bⁿ`.
--/
-def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
-  1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
-
-lemma irrational_of_is_liouville {x : ℝ} (h : is_liouville x) : irrational x :=
-begin
-  rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
-  change (is_liouville (a / b)) at h,
-  rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
-  have qR0 : (0 : ℝ) < q := int.cast_pos.mpr (zero_lt_one.trans q1),
-  have b0 : (b : ℝ) ≠ 0 := ne_of_gt (nat.cast_pos.mpr bN0),
-  have bq0 : (0 : ℝ) < b * q := mul_pos (nat.cast_pos.mpr bN0) qR0,
-  rw [div_sub_div _ _ b0 (ne_of_gt qR0), abs_div, div_lt_div_iff (abs_pos.mpr (ne_of_gt bq0))
-    (pow_pos qR0 _), abs_of_pos bq0, one_mul] at a1,
-  rw [← int.cast_pow, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul,
-    ← int.cast_sub, ← int.cast_abs, ← int.cast_mul, int.cast_lt] at a1,
-  rw [ne.def, div_eq_div_iff b0 (ne_of_gt qR0), mul_comm ↑p, ← sub_eq_zero_iff_eq] at a0,
-  rw [← int.cast_coe_nat, ← int.cast_mul, ← int.cast_mul, ← int.cast_sub, int.cast_eq_zero] at a0,
-  lift q to ℕ using (zero_lt_one.trans q1).le,
-  have ap : 0 < abs (a * ↑q - ↑b * p) := abs_pos.mpr a0,
-  lift (abs (a * ↑q - ↑b * p)) to ℕ using (abs_nonneg (a * ↑q - ↑b * p)),
-  rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt] at a1,
-  exact not_le.mpr a1 (nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
-end
-
-lemma not_liouville_zero : ¬ is_liouville 0 :=
-λ h, irrational_of_is_liouville h ⟨0, rat.cast_zero⟩
-
-end real
-
 open set ring_hom real
-
-namespace polynomial
-
-end polynomial
 
 section inequality_and_intervals
 
@@ -66,12 +24,6 @@ lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : 
   abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
 ⟨λ h, ⟨sub_le.mp (abs_le.mp h).2, neg_le_sub_iff_le_add.mp (abs_le.mp h).1⟩,
  λ hy, abs_le.mpr ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
-
--- this lemma went in PR adomani_one_le_mul_of_one_le_of_one_le
-lemma one_le_mul_of_one_le_of_one_le {α : Type*} [ordered_semiring α]
-  {a b : α} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
-  (1 : α) ≤ a * b :=
-(mul_one (1 : α)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
 
 end inequality_and_intervals
 
@@ -141,13 +93,13 @@ begin
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
 
-theorem transcendental_of_is_liouville {x : ℝ} (liouville_x : is_liouville x) :
+theorem is_liouville.transcendental {x : ℝ} (liouville_x : is_liouville x) :
   is_transcendental ℤ x :=
 begin
   rintros ⟨f : polynomial ℤ, f0, ef0⟩,
   replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rwa [aeval_def, ← eval_map] at ef0 },
   obtain ⟨A, hA, h⟩ :=
-    exists_pos_real_of_irrational_root (irrational_of_is_liouville liouville_x) f0 ef0,
+    exists_pos_real_of_irrational_root liouville_x.irrational f0 ef0,
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
   obtain ⟨a, b, b1, -, a1⟩ := liouville_x (r + f.nat_degree),
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
@@ -165,3 +117,6 @@ begin
     rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,
     exact int.coe_nat_lt.mp b1 }
 end
+
+lemma not_liouville_zero : ¬ is_liouville 0 :=
+λ h, h.irrational ⟨0, rat.cast_zero⟩

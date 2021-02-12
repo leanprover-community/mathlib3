@@ -1253,15 +1253,7 @@ ring_hom.ker_lift_injective f
 def quotient_ker_alg_equiv_of_right_inverse
   {f : A →ₐ[R] B} {g : B → A} (hf : function.right_inverse g f) :
   f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
-{ to_fun := ker_lift_alg f,
-  inv_fun := (quotient.mkₐ R f.to_ring_hom.ker) ∘ g,
-  left_inv := begin
-    rintro ⟨a⟩,
-    apply ker_lift_alg_injective,
-    change f (g (f a)) = f a,
-    exact hf (f a),
-  end,
-  right_inv := hf,
+{ ..ring_hom.quotient_ker_equiv_of_right_inverse (λ x, show f.to_ring_hom (g x) = x, from hf x),
   ..ker_lift_alg f}
 
 @[simp]

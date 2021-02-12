@@ -220,6 +220,10 @@ namespace add_antidiagonal
 
 variables {s} {t} {a}
 
+@[simp]
+lemma mem_add_antidiagonal_of_is_wf {x : α × α} :
+  x ∈ add_antidiagonal s t a ↔ x.1 + x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
+
 lemma fst_eq_fst_iff_snd_eq_snd {x y : (add_antidiagonal s t a)} :
   (x : α × α).fst = (y : α × α).fst ↔ (x : α × α).snd = (y : α × α).snd :=
 ⟨λ h, begin
@@ -297,10 +301,22 @@ end
 end add_antidiagonal
 end set
 
+namespace finset
+
+variables  [linear_ordered_cancel_add_comm_monoid α]
+variables {s t : set α} (hs : s.is_wf) (ht : t.is_wf) (a : α)
+
 /-- `finset.add_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
   `s` and an element in `t` that add to `a`, but its construction requires proofs `hs` and `ht` that
   `s` and `t` are well-ordered. -/
-noncomputable def finset.add_antidiagonal_of_is_wf [linear_ordered_cancel_add_comm_monoid α]
-  {s t : set α} (hs : s.is_wf) (ht : t.is_wf) (a : α) :
-  finset (α × α) :=
+noncomputable def add_antidiagonal_of_is_wf : finset (α × α) :=
 (set.add_antidiagonal.finite_of_is_wf hs ht a).to_finset
+
+variables {hs} {ht} {a} {x : α × α}
+
+@[simp]
+lemma finset.mem_add_antidiagonal_of_is_wf :
+  x ∈ finset.add_antidiagonal_of_is_wf hs ht a ↔ x.1 + x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
+by simp [finset.add_antidiagonal_of_is_wf]
+
+end finset

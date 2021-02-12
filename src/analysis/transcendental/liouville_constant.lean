@@ -143,7 +143,7 @@ $$
 The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
 if the series does not converge, then the sum of the series is defined to be zero.
 -/
-def liouville_constant (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
+def number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
 
 /--
 `liouville_constant_first_k_terms` is the sum of the first `k` terms of Liouville's constant, i.e.
@@ -151,7 +151,7 @@ $$
 \sum_{i=0}^k\frac{1}{m^{i!}}.
 $$
 -/
-def liouville_constant_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
+def number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
 
 /--
 `liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`
@@ -160,10 +160,10 @@ $$
 \sum_{i=k+1}^\infty\frac{1}{m^{i!}}.
 $$
 -/
-def liouville_constant_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
+def number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
 
-lemma liouville_constant_terms_after_pos (hm : 1 < m) :
-  ∀ k, 0 < liouville_constant_terms_after_k m k := λ n,
+lemma number_terms_after_pos (hm : 1 < m) :
+  ∀ k, 0 < number_terms_after_k m k := λ n,
 calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
   ... = 1 / m ^ (0 + (n + 1))! : by rw zero_add
   ... ≤ ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! : le_tsum
@@ -172,9 +172,9 @@ calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
       (λ i i0, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
 
 
-lemma liouville_constant_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
-  liouville_constant m = liouville_constant_first_k_terms m k +
-  liouville_constant_terms_after_k m k :=
+lemma number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
+  number m = number_first_k_terms m k +
+  number_terms_after_k m k :=
 (sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm
 
 end m_is_real
@@ -184,14 +184,14 @@ section m_is_natural
 
 variable {m : ℕ}
 
-lemma rat_of_liouville_constant_first_k_terms (hm : 1 < m) (k : ℕ) :
-∃ p : ℕ, liouville_constant_first_k_terms m k = p / (m ^ k!) :=
+lemma number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
+∃ p : ℕ, number_first_k_terms m k = p / (m ^ k!) :=
 begin
   induction k with k h,
-  { exact ⟨1, by rw [liouville_constant_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
+  { exact ⟨1, by rw [number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
   { rcases h with ⟨p_k, h_k⟩,
     use p_k * (m ^ ((k + 1)! - k!)) + 1,
-    unfold liouville_constant_first_k_terms at h_k ⊢,
+    unfold number_first_k_terms at h_k ⊢,
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
@@ -201,27 +201,27 @@ begin
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr ((zero_lt_one.trans hm).ne.symm)) } }
 end
 
-theorem is_liouville_liouville_constant (hm : 2 ≤ m) :
-  is_liouville (liouville_constant m) :=
+theorem is_number (hm : 2 ≤ m) :
+  is_liouville (number m) :=
 begin
   have mZ1 : 1 < (m : ℤ) := nat.cast_one.symm.le.trans_lt
     (one_lt_two.trans_le (nat.cast_two.symm.le.trans (int.to_nat_le.mp hm))),
   have m1 : 1 < (m : ℝ) :=
     one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
   intro n,
-  have mkk := liouville_constant_eq_first_k_terms_add_rest m1 n,
-  rcases rat_of_liouville_constant_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
+  have mkk := number_eq_first_k_terms_add_rest m1 n,
+  rcases number_rat_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
-  rw [← hp, mkk, add_sub_cancel', abs_of_pos (liouville_constant_terms_after_pos m1 _)],
-  exact ⟨((lt_add_iff_pos_right _).mpr (liouville_constant_terms_after_pos m1 n)).ne.symm,
+  rw [← hp, mkk, add_sub_cancel', abs_of_pos (number_terms_after_pos m1 _)],
+  exact ⟨((lt_add_iff_pos_right _).mpr (number_terms_after_pos m1 n)).ne.symm,
     (calc_liou_one m1 n).trans_le
     (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
-lemma is_transcendental_liouville_constant (hm : 2 ≤ m) :
-  is_transcendental ℤ (liouville_constant m) :=
-transcendental_of_is_liouville (is_liouville_liouville_constant hm)
+lemma number_is_transcendental (hm : 2 ≤ m) :
+  is_transcendental ℤ (number m) :=
+transcendental (is_number hm)
 
 end m_is_natural
 

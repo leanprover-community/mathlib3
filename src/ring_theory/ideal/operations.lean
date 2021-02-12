@@ -1222,7 +1222,7 @@ ideal.mk_ker
 
 variables {R} {B : Type*} [comm_ring B] [algebra R B]
 
-lemma quotient.smul (f : A →ₐ[R] B) (r : R) (x : f.to_ring_hom.ker.quotient) :
+lemma ker_lift.map_smul (f : A →ₐ[R] B) (r : R) (x : f.to_ring_hom.ker.quotient) :
   f.to_ring_hom.ker_lift (r • x) = r • f.to_ring_hom.ker_lift x :=
 begin
   obtain ⟨a, rfl⟩ := quotient.mkₐ_surjective R _ x,
@@ -1235,7 +1235,7 @@ end
 This is an isomorphism if `f` has a right inverse (`quotient_ker_alg_equiv_of_right_inverse`) / is surjective (`quotient_ker_alg_equiv_of_surjective`).
 -/
 def ker_lift_alg (f : A →ₐ[R] B) : f.to_ring_hom.ker.quotient →ₐ[R] B :=
-alg_hom.mk' f.to_ring_hom.ker_lift (λ _ _, quotient.smul f _ _)
+alg_hom.mk' f.to_ring_hom.ker_lift (λ _ _, ker_lift.map_smul f _ _)
 
 @[simp]
 lemma ker_lift_alg_mk (f : A →ₐ[R] B) (a : A) :

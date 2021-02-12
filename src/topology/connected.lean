@@ -508,11 +508,6 @@ begin
   exact h,
 end
 
-lemma surjective_if_nonempty_fibers (f : α → β) :
-(∀ b : β, (f ⁻¹' {b}).nonempty) → function.surjective f := function.surjective.of_comp
-
-
-
 /-- The preimage of a connected component is connected if the function has connected fibers
 and a subset is closed iff the preimage is. -/
 lemma preimage_connected_component_connected {β : Type*} [topological_space β] {f : α → β}
@@ -523,11 +518,7 @@ begin
   -- The following proof is essentially https://stacks.math.columbia.edu/tag/0377
   -- although the statement is slightly different
   have hf : function.surjective f,
-  { intro t,
-    choose s hs using (connected_fibers t).1,
-    use s,
-    rw mem_preimage at hs,
-    apply hs },
+  { exact function.surjective.of_comp (λ t : β, (connected_fibers t).1) },
 
   refine ⟨_,_⟩,
   { cases hf t with s hs,
@@ -823,8 +814,8 @@ lemma pi0_lift_unique {β : Type*} [topological_space β] [totally_disconnected_
   (h : continuous f) (g : π₀ α → β) (hg : g ∘ quotient.mk = f) : g = pi0_lift h :=
 by {subst hg, ext1 x, apply quotient.induction_on x, intro a, refl}
 
-lemma pi0_lift_unique' {β : Type*} [topological_space β]
-  (g₁ : π₀ α → β) (g₂ : π₀ α → β) (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ :=
+lemma pi0_lift_unique' {β : Type*} (g₁ : π₀ α → β) (g₂ : π₀ α → β)
+  (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ :=
 begin
   ext1 x,
   apply quotient.induction_on x,

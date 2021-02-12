@@ -376,9 +376,8 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
 instance {R : Type*} [integral_domain R] : no_zero_divisors (ideal R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ I J, mul_eq_bot.1 }
 
-/-- A product of ideals in an integral domain is zero if and only if one of the terms
-is zero. Decidability is required for multiset.erase-/
-lemma prod_eq_bot {R : Type*} [integral_domain R] [decidable_eq (ideal R)]
+/-- A product of ideals in an integral domain is zero if and only if one of the terms is zero. -/
+lemma prod_eq_bot {R : Type*} [integral_domain R]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 prod_zero_iff_exists_zero
 

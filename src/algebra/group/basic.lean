@@ -3,8 +3,17 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
+
 import algebra.group.defs
 import logic.function.basic
+
+/-!
+# Basic lemmas about semigroups, monoids, and groups
+
+This file lists various basic lemmas about semigroups, monoids, and groups. Most proofs are
+one-liners from the corresponding axioms. For the definitions of semigroups, monoids and groups, see
+`algebra/group/defs.lean`.
+-/
 
 universe u
 

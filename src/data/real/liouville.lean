@@ -109,7 +109,7 @@ end
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
   {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
   ∃ ε : ℝ, 0 < ε ∧
-    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (α - (a / (b.succ))) * ε) :=
+    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (abs (α - (a / (b + 1))) * ε) :=
 begin
   -- `fR` is `f` viewed as a polynomial with `ℝ` coefficients.
   set fR : polynomial ℝ := map (algebra_map ℤ ℝ) f,

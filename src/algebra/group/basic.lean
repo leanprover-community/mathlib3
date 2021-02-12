@@ -119,7 +119,8 @@ section left_cancel_monoid
 variables {M : Type u} [left_cancel_monoid M] {a b : M}
 
 @[simp, to_additive] lemma mul_left_eq_self : a * b = a ↔ b = 1 :=
-⟨λ h, @mul_left_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
+calc a * b = a ↔ a * b = a * 1 : by rw mul_one
+           ... ↔ b = 1         : mul_left_cancel_iff
 
 @[simp, to_additive] lemma self_eq_mul_left : a = a * b ↔ b = 1 :=
 eq_comm.trans mul_left_eq_self
@@ -131,7 +132,8 @@ section right_cancel_monoid
 variables {M : Type u} [right_cancel_monoid M] {a b : M}
 
 @[simp, to_additive] lemma mul_right_eq_self : a * b = b ↔ a = 1 :=
-⟨λ h, @mul_right_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
+calc a * b = b ↔ a * b = 1 * b : by rw one_mul
+           ... ↔ a = 1         : mul_right_cancel_iff
 
 @[simp, to_additive] lemma self_eq_mul_right : b = a * b ↔ a = 1 :=
 eq_comm.trans mul_right_eq_self

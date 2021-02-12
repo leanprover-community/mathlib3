@@ -46,10 +46,17 @@ Construct an isomorphism class from an explicit object.
 def isomorphism_classes.mk {C : Cat.{v u}} (X : C) : isomorphism_classes.obj C :=
 quot.mk _ X
 
+/--
+Use the axiom of choice to pick a representative of an isomorphism class.
+-/
 noncomputable
 def isomorphism_classes.representative {C : Cat.{v u}} (X : isomorphism_classes.obj C) : C :=
 @quotient.out _ (is_isomorphic_setoid C.α) X
 
+/--
+The arbitrarily chosen representative of an isomorphism class constructed from an explicit object
+is isomorphic to the original object.
+-/
 noncomputable
 def isomorphism_classes.mk_representative_iso {C : Cat.{v u}} (X : C) :
   isomorphism_classes.representative (isomorphism_classes.mk X) ≅ X :=

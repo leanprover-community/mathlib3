@@ -52,6 +52,8 @@ namespace subobject
 def mk {X Y : C} (f : X ⟶ Y) [w : mono f] : subobject Y :=
 quot.mk _ ⟨over.mk f, w⟩
 
+instance (X : C) : inhabited (subobject X) := ⟨mk (𝟙 _)⟩
+
 /-- The underlying object of a subobject. -/
 def X {X : C} (A : subobject X) : C :=
 (isomorphism_classes.representative A).val.left
@@ -100,7 +102,7 @@ instance (X : C) : preorder (subobject X) :=
 /--
 Construct an inequality in the preorder on subobjects from an explicit morphism.
 -/
-def le_of_hom {X : C} {A B : subobject X} (f : A.X ⟶ B.X) (w : f ≫ B.ι = A.ι) : A ≤ B :=
+lemma le_of_hom {X : C} {A B : subobject X} (f : A.X ⟶ B.X) (w : f ≫ B.ι = A.ι) : A ≤ B :=
 nonempty.intro (over.hom_mk f w)
 
 /-- Construct a morphism between the underlying objects from an inequality between subobjects. -/

@@ -91,9 +91,8 @@ def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
 { obj := λ X,
     { to_Top := { α := (π₀ X.to_Top.α) } },
   map := λ X Y f,
-    { to_fun := pi0_map f.1 f.2,
-    continuous_to_fun := continuous_quotient_lift _ (continuous.comp (continuous_quotient_mk) f.2)}}
-    -- possible TODO: pi0_map.continuous
+    { to_fun := pi0_map f.2,
+      continuous_to_fun := pi0_map_continuous f.2 }}
 
 instance : is_right_adjoint Profinite_to_CompHaus :=
 { left := CompHaus_to_Profinite,
@@ -105,10 +104,8 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
         inv_fun := λ g,
         { to_fun := pi0_lift g.2,
           continuous_to_fun := pi0_lift_continuous g.2 },
-  -- TODO: REMOVE BAD TIDY CODE
-        left_inv := by {intros f, ext1 x, dsimp, induction x,
-        work_on_goal 0 { refl }, refl},
-        right_inv := by {intros x, dsimp, ext1, refl}},
+        left_inv := by {intro f, ext1 x, apply quotient.induction_on x, intro a, refl},
+        right_inv := by {intro f, ext1 x, refl}},
     unit :=
     { app := λ X,
       begin
@@ -124,10 +121,8 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
         fsplit,
         { change ((π₀ Y.to_Top.α) → Y.to_Top.α),
           apply @pi0_lift _ _ _ _ _ (𝟙 Y.to_Top),
-          -- TODO: FIX
-          dsimp at *, fsplit, intros s ᾰ, assumption},
-        -- TODO: FIX
-        dsimp at *, simp at *, fsplit, intros s ᾰ, assumption,
+          split, intros s hs, exact hs},
+        split, intros s hs, exact hs,
       end}}}
 
 instance : reflective Profinite_to_CompHaus :=

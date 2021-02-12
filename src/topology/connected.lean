@@ -909,7 +909,10 @@ begin
   apply mem_of_subset_of_mem h1 hc,
 end
 
-def pi0_map {β : Type*} [topological_space β] (f : α → β) (h : continuous f) : π₀ α → π₀ β :=
+def pi0_map {β : Type*} [topological_space β] {f : α → β} (h : continuous f) : π₀ α → π₀ β :=
 pi0_lift (continuous.comp (continuous_quotient_mk) h)
+
+lemma pi0_map_continuous {β : Type*} [topological_space β] {f : α → β} (h : continuous f) :
+  continuous (pi0_map h) := pi0_lift_continuous (continuous.comp (continuous_quotient_mk) h)
 
 end connected_component_setoid

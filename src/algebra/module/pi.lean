@@ -105,4 +105,10 @@ instance semimodule' {g : I → Type*} {r : Π i, semiring (f i)} {m : Π i, add
 { add_smul := by { intros, ext1, apply add_smul },
   zero_smul := by { intros, ext1, apply zero_smul } }
 
+instance (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
+  [∀ i, semimodule α $ f i] [∀ i, no_zero_smul_divisors α $ f i] :
+  no_zero_smul_divisors α (Π i : I, f i) :=
+⟨λ c x h, or_iff_not_imp_left.mpr (λ hc, funext
+  (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩
+
 end pi

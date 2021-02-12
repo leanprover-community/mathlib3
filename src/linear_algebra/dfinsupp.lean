@@ -89,8 +89,8 @@ section lsum
 excruciatingly. This is needed to define `dfinsupp.lsum` below.
 
 The cause seems to be an inability to unify the `Π i, add_comm_monoid (M i →ₗ[R] N)` instance that
-we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a parameter to the `dfinsupp`
-type. -/
+we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a parameter to the
+`dfinsupp` type. -/
 instance semimodule_of_linear_map [semiring S] [semimodule S N] [smul_comm_class R S N] :
   by haveI : add_comm_monoid (Π₀ i, M i →ₗ[R] N) :=
     @dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _;

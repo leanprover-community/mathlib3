@@ -298,6 +298,22 @@ noncomputable theory
 open classical
 -- open_locale classical
 
+def lift_neg : (punctured_power_series S) → (laurent_series S) :=
+  λ ⟨𝕜, f⟩, (eqv_punctured.add_con S).mk' ⟨𝕜, -f⟩
+lemma cong_neg : ∀ (F₁ F₂ : punctured_power_series S),  eqv_punctured F₁ F₂ →
+  lift_neg F₁ = lift_neg F₂ :=
+begin
+  rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩ h,
+  dsimp [lift_neg, h],
+  rw eqv_punctured at h,
+  sorry,
+end
+
+def lift_sub : (punctured_power_series S) → (punctured_power_series S) → (laurent_series S) :=
+  λ ⟨𝕜₁, f₁⟩, λ ⟨𝕜₂, f₂⟩, (eqv_punctured.add_con S).mk' ⟨μ (𝕜₁, 𝕜₂), f₁-f₂⟩
+lemma cong_sub : ∀ (F₁ F₂ G₁ G₂: punctured_power_series S),  eqv_punctured F₁ G₁ →
+  eqv_punctured.add_con S F₂ G₂ → lift_sub F₁ F₂ = lift_sub G₁ G₂ := sorry
+
 instance : comm_ring (laurent_series S) :=
 { add := λ F₁ F₂, F₁ + F₂,
   add_assoc := sorry,
@@ -309,35 +325,42 @@ instance : comm_ring (laurent_series S) :=
   --   obtain ⟨f⟩ : ∃ f : (punctured_power_series S),
   --     (eqv_punctured.add_con S).mk' f = F,
   -- end,
-  neg := begin
-                -- refine quot.lift_on _ _ _,
-                -- use (punctured_power_series S),
-                -- -- rintros F₁ F₂,
-                -- rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
-                -- use eqv_punctured ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
-                -- --  (λ (𝕜, f), (𝕜, -f))⟩,
-                -- -- begin
+  neg := λ F, add_con.lift_on F lift_neg cong_neg,
 
-                  intro G,
-                have hG : ∃ f : (punctured_power_series S),
-                    (eqv_punctured.add_con S).mk' f = G,
-                apply add_con.mk'_surjective,
-                rcases some hG with ⟨𝕜, g⟩,
-                use (eqv_punctured.add_con S).mk' ⟨𝕜, -g⟩,
-                end,
-  sub := begin
-                  intros F₁ F₂,
-                  have hF₁ : ∃ f₁ : (punctured_power_series S),
-                    (eqv_punctured.add_con S).mk' f₁ = F₁,
-                  apply add_con.mk'_surjective,
-                  have hF₂ : ∃ f₂ : (punctured_power_series S),
-                    (eqv_punctured.add_con S).mk' f₂ = F₂,
-                  apply add_con.mk'_surjective,
-                  rcases some hF₁ with ⟨𝕜₁, f₁⟩,
-                  rcases some hF₂ with ⟨𝕜₂, f₂⟩,
-                  use (eqv_punctured.add_con S).mk' (μ (𝕜₁, 𝕜₂), f₁-f₂),
-                end,
-  sub_eq_add_neg :=
+  -- begin
+  --   let φ : (punctured_power_series S) → (punctured_power_series S) :=
+  -- λ ⟨𝕜, f⟩, ⟨𝕜, -f⟩,
+  --   use (add_con.lift_on (laurent_series S) φ),
+  -- end,
+  --               -- refine quot.lift_on _ _ _,
+  --               -- use (punctured_power_series S),
+  --               -- -- rintros F₁ F₂,
+  --               -- rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
+  --               -- use eqv_punctured ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
+  --               -- --  (λ (𝕜, f), (𝕜, -f))⟩,
+  --               -- -- begin
+
+  --               --   intro G,
+  --               -- have hG : ∃ f : (punctured_power_series S),
+  --               --     (eqv_punctured.add_con S).mk' f = G,
+  --               -- apply add_con.mk'_surjective,
+  --               -- rcases some hG with ⟨𝕜, g⟩,
+  --               -- use (eqv_punctured.add_con S).mk' ⟨𝕜, -g⟩,
+  --               -- end,
+  sub :=  λ F₁ F₂, add_con.lift_on₂ F₁ F₂ lift_sub cong_sub,
+  -- begin
+  --           intros F₁ F₂,
+  --                 have hF₁ : ∃ f₁ : (punctured_power_series S),
+  --                   (eqv_punctured.add_con S).mk' f₁ = F₁,
+  --                 apply add_con.mk'_surjective,
+  --                 have hF₂ : ∃ f₂ : (punctured_power_series S),
+  --                   (eqv_punctured.add_con S).mk' f₂ = F₂,
+  --                 apply add_con.mk'_surjective,
+  --                 rcases some hF₁ with ⟨𝕜₁, f₁⟩,
+  --                 rcases some hF₂ with ⟨𝕜₂, f₂⟩,
+  --                 use (eqv_punctured.add_con S).mk' (μ (𝕜₁, 𝕜₂), f₁-f₂),
+  --               end,
+  sub_eq_add_neg := --by simp,
                 begin intros F₁ F₂,
                 rcases F₁,
                 rcases F₂,
@@ -348,16 +371,16 @@ instance : comm_ring (laurent_series S) :=
                 sorry,
                 sorry,
                 end,
-  add_left_neg := _,
-  add_comm := _,
-  mul := _,
-  mul_assoc := _,
-  one := _,
-  one_mul := _,
-  mul_one := _,
-  left_distrib := _,
-  right_distrib := _,
-  mul_comm := _ }
+  add_left_neg := sorry,
+  add_comm := sorry,
+  mul := sorry,
+  mul_assoc := sorry,
+  one := sorry,
+  one_mul := sorry,
+  mul_one := sorry,
+  left_distrib := sorry,
+  right_distrib := sorry,
+  mul_comm := sorry }
 
 -- end add_comm_monoid
 end punctured_power_series--SEE PAG 166 tpil

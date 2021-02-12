@@ -242,7 +242,7 @@ end skeleton
 
 noncomputable
 def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
-{ skel := sorry,
+{ skel := skeletal,
   eqv := is_equivalence.of_equivalence skeletal_equivalence }
 
 end simplex_category

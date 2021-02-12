@@ -924,7 +924,7 @@ if h : p.cast_succ < i then
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
-lemma pred_above_left_monotone (p : fin n) : monotone p.pred_above :=
+lemma pred_above_right_monotone (p : fin n) : monotone p.pred_above :=
 λ a b H,
 begin
   dsimp [pred_above],
@@ -975,7 +975,7 @@ begin
 end
 
 lemma cast_pred_monotone : monotone (@cast_pred n) :=
-pred_above_monotone (last _)
+pred_above_right_monotone (last _)
 
 /-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
 then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/

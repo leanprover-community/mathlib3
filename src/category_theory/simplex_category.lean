@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 
 import order.category.NonemptyFinLinOrd
+import category_theory.skeletal
 import data.finset.sort
 import tactic.linarith
 
@@ -22,14 +23,14 @@ open category_theory
 
 /-- The simplex category:
 * objects are natural numbers `n : ℕ`
-* morphisms are monotone functions `fin (m+1) → fin (n+1)`
+* morphisms from `n` to `m` are monotone functions `fin (n+1) → fin (m+1)`
 -/
 def simplex_category := ℕ
 
 namespace simplex_category
 
 instance : small_category simplex_category :=
-{ hom := λ m n, preorder_hom (fin (m+1)) (fin (n+1)),
+{ hom := λ n m, preorder_hom (fin (n+1)) (fin (m+1)),
   id := λ m, preorder_hom.id,
   comp := λ _ _ _ f g, preorder_hom.comp g f, }
 
@@ -55,7 +56,7 @@ def δ {n} (i : fin (n+2)) :
 def σ {n} (i : fin (n+1)) :
   @has_hom.hom simplex_category _ (n+1 : ℕ) n :=
 { to_fun := fin.pred_above i,
-  monotone' := fin.pred_above_monotone i }
+  monotone' := fin.pred_above_right_monotone i }
 
 /-- The generic case of the first simplicial identity -/
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
@@ -175,6 +176,18 @@ end generators
 
 section skeleton
 
+lemma skeletal : skeletal simplex_category :=
+λ X Y I,
+begin
+  rcases I with ⟨I⟩,
+  suffices : fintype.card (fin (X+1)) = fintype.card (fin (Y+1)),
+  { simpa, },
+  { apply fintype.card_congr,
+    refine ⟨I.hom, I.inv, _, _⟩,
+    intro x, exact congr_fun (congr_arg (preorder_hom.to_fun) I.hom_inv_id : _) x,
+    intro y, exact congr_fun (congr_arg (preorder_hom.to_fun) I.inv_hom_id : _) y, }
+end
+
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
 def skeletal_functor :
@@ -226,5 +239,10 @@ noncomputable def skeletal_equivalence :
 functor.as_equivalence skeletal_functor.{u}
 
 end skeleton
+
+noncomputable
+def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
+{ skel := sorry,
+  eqv := is_equivalence.of_equivalence skeletal_equivalence }
 
 end simplex_category

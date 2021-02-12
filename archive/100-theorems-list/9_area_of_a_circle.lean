@@ -27,22 +27,25 @@ In the main proof, `area_disc`, we use `volume_region_between_eq_integral` follo
   `∫ (x : ℝ) in -r..r, 2 * sqrt (r ^ 2 - x ^ 2) = π * r ^ 2`.
 After showing that `λ x, 2 * sqrt (r ^ 2 - x ^ 2)` is equal to the derivative of
 `λ x, r ^ 2 * arcsin (x / r) + x * sqrt (r ^ 2 - x ^ 2)` everywhere on `Ioo (-r) r` (and that those
-two functions are continuous), we apply `interval_integral.integral_eq_sub_of_has_deriv_at'_of_le`.
-Some simple algebra then completes the proof.
+two functions are continuous), we apply the second fundamental theorem of calculus. Some simple
+algebra then completes the proof.
 
-Note that we choose to define `disc` as a set of points in `ℝ ⨯ ℝ`. This is admittedly not ideal; it
-would be more natural to define `disc` as a `metric.ball` in `fin 2 → ℝ` (as well as to provide a
-more general proof in higher dimensions). However, our proof indirectly relies on a number of
-theorems (particularly `measure_theory.prod.prod_apply`) which do not yet exist for Euclidean space,
-thus forcing us to use this less-preferable definition. As `measure_theory.pi` continues to develop,
-it should eventually become possible to redefine `disc` and extend our proof to the n-ball.
+Note that we choose to define `disc` as a set of points in `ℝ ⨯ ℝ`. This is admittedly not ideal;
+it would be more natural to define `disc` as a `metric.ball` in `euclidean_space ℝ (fin 2)` (as well
+as to provide a more general proof in higher dimensions). However, our proof indirectly relies on
+a number of theorems (particularly `measure_theory.prod.prod_apply`) which do not yet exist for
+Euclidean space, thus forcing us to use this less-preferable definition. As `measure_theory.pi`
+continues to develop, it should eventually become possible to redefine `disc` and extend our proof
+to the n-ball.
 -/
 
 open set real filter measure_theory interval_integral
 variable {r : ℝ}
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
-  `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`. -/
+  `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`.
+Note: This definition is not equivalent to `metric.ball (0 : ℝ × ℝ) r`. In `ℝ × ℝ`, distance is
+defined as the uniform norm, so the `metric.ball` is a square, not a disc. -/
 def disc (h : 0 < r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
 /-- A disc of radius `r` can be represented as the region between the two curves

@@ -127,7 +127,7 @@ instance [nontrivial R]      : nontrivial      (punctured_power_series R) := non
 def shift_fun {R : Type*} [has_zero R]: 𝕄 → (ℕ → R) → (ℕ → R)
 | (k) := λ f, λ n, if n < (℘ k) then (0 : R) else f (n - ℘ k)
 
-lemma shift_fun_by_zero [has_zero R] (f : ℕ → R) : shift_fun 𝟘 f = f := rfl
+@[simp] lemma shift_fun_by_zero [has_zero R] (f : ℕ → R) : shift_fun 𝟘 f = f := rfl
 
 -- section add_comm_monoid
 
@@ -136,7 +136,7 @@ variable [add_comm_monoid R]
 
 -- lemma cst_shift_fun' (𝕜 : 𝕄) : shift_fun 𝕜 (function.const : ℕ → R) = (0 : ℕ → R) := sorry,
 
-lemma cst_shift_fun (𝕜 : 𝕄) : shift_fun 𝕜 (0 : ℕ → R) = (0 : ℕ → R) :=
+@[simp] lemma cst_shift_fun (𝕜 : 𝕄) : shift_fun 𝕜 (0 : ℕ → R) = (0 : ℕ → R) :=
 begin
       -- funext,
       -- dsimp [shift_fun],
@@ -151,7 +151,7 @@ begin
 
 end
 
-protected def add : (punctured_power_series R) → (punctured_power_series R) → (punctured_power_series R) :=
+def add : (punctured_power_series R) → (punctured_power_series R) → (punctured_power_series R) :=
 begin
   rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩,
   exact ⟨𝕜₁ + 𝕜₂, shift_fun (μ (𝕜₁, 𝕜₂)) f₁ + shift_fun (μ (𝕜₂, 𝕜₁)) f₂⟩,
@@ -221,6 +221,7 @@ instance : add_comm_monoid (punctured_power_series R) :=
   add_zero := punctured_power_series.add_zero,
   add_comm := punctured_power_series.add_comm }
 
+#print punctured_power_series.add
 -- def a : ℕ → ℤ := λ n, 4*n+3
 -- def b : ℕ → ℤ := λ n, 1-2*n
 -- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
@@ -235,11 +236,6 @@ instance : add_comm_monoid (punctured_power_series R) :=
 
 def F₃ := (𝟘, b) --check!
 --/
-
--- variables {S : Type*} [comm_ring R]
-
---def eqv_punctured_shift {R : Type*} [add_comm_monoid R] (F₁ F₂ : punctured_power_series R) : Prop :=
--- (F₂.snd = (shift_fun ℘⁻¹ (℘ (F₂.fst) - ℘ (F₁.fst))) F₁.snd)) ∨ (F₁.snd = (shift_fun (F₁.fst - F₂.fst) F₂.snd))
 
 def eqv_punctured (F₁ F₂ : punctured_power_series R) : Prop :=
 ∃ ℓ₁₂ ℓ₂₁ : 𝕄, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
@@ -269,34 +265,25 @@ instance : add_comm_monoid (laurent_series R) := (eqv_punctured.add_con R).add_c
 instance : has_coe (punctured_power_series R) (laurent_series R) :=
 ⟨@quotient.mk _ (eqv_punctured.add_con R).to_setoid⟩
 
-
-
--- def a : ℕ → ℤ := λ n, 4*n+3
--- def b : ℕ → ℤ := λ n, 1-2*n
--- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
--- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
-
---setoid.mk (@eqv_punctured R _) (eqv_punctured.is_equivalence)
-
--- instance laurent_series.setoid (R : Type*) [add_comm_monoid R] : setoid (punctured_power_series R) :=
--- setoid.mk (@eqv_punctured R _) (eqv_punctured.is_equivalence)
-
--- definition laurent_series (R : Type*) [add_comm_monoid R] : Type* :=
--- quotient (laurent_series.setoid R)
-
--- instance : add_comm_monoid (laurent_series R) :=
--- { add := punctured_power_series.add,
---   add_assoc := _,
---   zero := _,
---   zero_add := _,
---   add_zero := _,
---   add_comm := _ }
-
 variables {S : Type*} [comm_ring S]
 
 noncomputable theory
 open classical
 -- open_locale classical
+
+
+-- lemma add_comm : ∀ (F G: punctured_power_series R), punctured_power_series.add F G =
+--   punctured_power_series.add G F :=
+-- begin
+--   rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩,
+--   ext,
+--   apply max_comm,
+--   show (shift_fun (μ (𝕜₁, 𝕜₂)) f₁ + shift_fun (μ (𝕜₂, 𝕜₁)) f₂) x =
+--     (shift_fun (μ (𝕜₂, 𝕜₁)) f₂ + shift_fun (μ (𝕜₁, 𝕜₂)) f₁) x,
+--   simp only [pi.add_apply] at *,
+--   apply add_comm,
+-- end
+#check (eqv_punctured.add_con S).mk'
 
 def lift_neg : (punctured_power_series S) → (laurent_series S) :=
   λ ⟨𝕜, f⟩, (eqv_punctured.add_con S).mk' ⟨𝕜, -f⟩
@@ -304,9 +291,18 @@ lemma cong_neg : ∀ (F₁ F₂ : punctured_power_series S),  eqv_punctured F₁
   lift_neg F₁ = lift_neg F₂ :=
 begin
   rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩ h,
-  dsimp [lift_neg, h],
+  dsimp [lift_neg],
   rw eqv_punctured at h,
-  sorry,
+  rcases h with ⟨ℓ₁₂, ℓ₂₁, h⟩,
+  replace h : 𝕜₁ + ℓ₁₂ = 𝕜₂ + ℓ₂₁ ∧ shift_fun (μ (𝕜₁, ℓ₁₂)) (-f₁) = shift_fun (μ (𝕜₂, ℓ₂₁)) (-f₂),
+  split, sorry, sorry,
+  replace h : eqv_punctured (𝕜₁, -f₁) (𝕜₂, -f₂),
+  { use [ℓ₁₂, ℓ₂₁],
+    ext, exact h.1,
+    show (shift_fun (μ (𝕜₁, ℓ₁₂)) (- f₁) + shift_fun (μ (ℓ₁₂, 𝕜₁)) 0) x =
+    (shift_fun (μ (𝕜₂, ℓ₂₁)) (-f₂) + shift_fun (μ (ℓ₂₁, 𝕜₂)) 0) x,
+    simp only [*, cst_shift_fun]},
+  apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
 end
 
 def lift_sub : (punctured_power_series S) → (punctured_power_series S) → (laurent_series S) :=

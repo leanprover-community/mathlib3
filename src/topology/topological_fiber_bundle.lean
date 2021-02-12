@@ -230,8 +230,8 @@ begin
     open_base_set := is_open_univ,
     source_eq     := rfl,
     target_eq     := by simp,
-    proj_to_fun   := λp, by { simp, refl },
-     ..(homeomorph.prod_comm F B).to_local_homeomorph },
+    proj_to_fun   := λp, by simp,
+    to_local_homeomorph := (homeomorph.prod_comm F B).to_local_homeomorph },
   exact λx, ⟨F, by simp⟩
 end
 

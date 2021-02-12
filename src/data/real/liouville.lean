@@ -79,12 +79,12 @@ the degree of the polynomial `f`.
 -/
 lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
   {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ}
---denominators are positive
+-- denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)
   (e0 : 0 < ε)
 --function is Lipschitz at α
   (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
---clear denominators
+-- clear denominators
   (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) * dist (f α) (f (j z a))) :
   ∃ e : ℝ, 0 < e ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * e) :=
 begin
@@ -95,13 +95,13 @@ begin
   -- First, let's deal with the easy case in which we are far away from `α`
   by_cases dm1 : 1 ≤ (dist α (j z a) * max (1 / ε) M),
   { exact one_le_mul_of_one_le_of_one_le (d0 a) dm1 },
-  { -- `j z a = z / (a + 1)`: we prove that this ratio number is close to `α`
+  { -- `j z a = z / (a + 1)`: we prove that this ratio is close to `α`
     have : j z a ∈ closed_ball α ε,
     { refine mem_closed_ball'.mp (le_trans _ ((one_div_le me0 e0).mpr (le_max_left _ _))),
       exact ((le_div_iff me0).mpr (not_le.mp dm1).le) },
-    -- use the separation after clearing denominators, assumption `L`
+    -- use the "separation from `1`" (assumption `L`) for numerators,
     refine (L this).trans _,
-    -- remove a common factor and use Lipschitz assumption `B`
+    -- remove a common factor and use the Lipschitz assumption `B`
     refine mul_le_mul_of_nonneg_left ((B this).trans _) (zero_le_one.trans (d0 a)),
     exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg }
 end
@@ -111,47 +111,45 @@ lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
   ∃ ε : ℝ, 0 < ε ∧
     ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (α - (a / (b.succ))) * ε) :=
 begin
-  -- fR is f viewed as a polynomial with ℝ coefficients.
+  -- `fR` is `f` viewed as a polynomial with `ℝ` coefficients.
   set fR : polynomial ℝ := map (algebra_map ℤ ℝ) f,
-  -- fR is non-zero, since f is non-zero.
+  -- `fR` is non-zero, since `f` is non-zero.
   obtain fR0 : fR ≠ 0 := λ fR0, (map_injective (algebra_map ℤ ℝ) (λ _ _ A, int.cast_inj.mp A)).ne
     f0 (fR0.trans (polynomial.map_zero _).symm),
-  -- reformulating assumption fa: α is a root of fR.
+  -- reformulating assumption `fa`: `α` is a root of `fR`.
   have ar : α ∈ (fR.roots.to_finset : set ℝ) :=
     finset.mem_coe.mpr (multiset.mem_to_finset.mpr ((mem_roots fR0).mpr (is_root.def.mpr fa))),
-  -- Since the fR has finitely many roots, there is a closed interval centered at α such that α is
-  -- the only root of fR in the interval.
+  -- Since the polynomial `fR` has finitely many roots, there is a closed interval centered at `α`
+  -- such that `α` is the only root of `fR` in the interval.
   obtain ⟨ζ, z0, U⟩ : ∃ ζ > 0, closed_ball α ζ ∩ (fR.roots.to_finset) = {α} :=
     @exists_closed_ball_inter_eq_singleton_of_discrete _ _ _ discrete_of_t1_of_finite _ ar,
-  -- Since fR is continuous, it is bounded on the interval above.
+  -- Since `fR` is continuous, it is bounded on the interval above.
   obtain ⟨xm, -, hM⟩ : ∃ (xm : ℝ) (H : xm ∈ Icc (α - ζ) (α + ζ)), ∀ (y : ℝ),
-    y ∈ Icc (α - ζ) (α + ζ) → abs (eval y (derivative fR)) ≤ abs (eval xm (derivative fR)) :=
-    is_compact.exists_forall_ge (compact_Icc)
+    y ∈ Icc (α - ζ) (α + ζ) → abs (fR.derivative.eval y) ≤ abs (fR.derivative.eval xm) :=
+    is_compact.exists_forall_ge compact_Icc
     ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
-  -- Use the key lemma `exists_one_le_pow_mul_dist`: we are left to show that
-  -- 1: denominators are positive
-  -- 2: the polynomial fR is Lipschitz at α
-  -- 3: the weird inequality of Liouville type with powers of the denominators.
+  -- Use the key lemma `exists_one_le_pow_mul_dist`: we are left to show that ...
   refine @exists_one_le_pow_mul_dist ℤ ℕ ℝ _ _ _ (λ y, fR.eval y) α ζ
     (abs (fR.derivative.eval xm)) _ z0 (λ y hy, _) (λ z a hq, _),
   -- 1: the denominators are positive -- essentially by definition;
   { exact λ a, one_le_pow_of_one_le ((le_add_iff_nonneg_left 1).mpr a.cast_nonneg) _ },
-  -- 2: the polynomial fR is Lipschits at α -- as it's derivative continuous;
+  -- 2: the polynomial `fR` is Lipschitz at `α` -- as its derivative continuous;
   { rw mul_comm,
     rw closed_ball_Icc at hy,
-    -- apply the Mean value theorem: the bound on the derivative comes from differentiability.
+    -- apply the Mean Value Theorem: the bound on the derivative comes from differentiability.
     refine convex.norm_image_sub_le_of_norm_deriv_le (λ _ _, fR.differentiable_at)
       (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_iff_abs_le.mp _),
     exact @mem_closed_ball_self ℝ _ α ζ (le_of_lt z0) },
-  -- 3: weird, Liouville-like inequality.
+  -- 3: the weird inequality of Liouville type with powers of the denominators.
   { show 1 ≤ (a + 1 : ℝ) ^ f.nat_degree * abs (eval α fR - eval (z / (a + 1)) fR),
     rw [fa, zero_sub, abs_neg],
     -- key observation: the right-hand side of the inequality is an *integer*.  Therefore,
     -- if its absolute value is not at least one, then it vanishes.  Proceed by contradiction
     refine one_le_pow_mul_abs_eval_div (int.coe_nat_succ_pos a) (λ hy, _),
-    -- If the evaluation of the polynomial vanishes, then we found a root of fR that is rational.
-    -- We know that α is the only root of fR in our interval, and α is irrational: follow your nose.
+    -- If the evaluation of the polynomial vanishes, then we found a root of `fR` that is rational.
+    -- We know that `α` is the only root of `fR` in our interval, and `α` is irrational:
+    -- follow your nose.
     refine (irrational_iff_ne_rational α).mp ha z (a + 1) ((mem_singleton_iff.mp _).symm),
     rw ← U,
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,

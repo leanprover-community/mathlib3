@@ -64,7 +64,7 @@ section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)
 
 example : α → γ := ↾f ≫ ↾g
-example [is_iso ↾f] : mono ↾f := by apply_instance
+example [is_iso ↾f] : mono ↾f := mono_of_iso _
 example [is_iso ↾f] : ↾f ≫ inv ↾f = 𝟙 α := by simp
 end
 
@@ -159,7 +159,7 @@ begin
   { intros H x x' h,
     resetI,
     rw ←hom_of_element_eq_iff at ⊢ h,
-    exact (cancel_mono f).mp h },
+    exact (cancel_mono H).mp h },
   { refine λ H, ⟨λ Z g h H₂, _⟩,
     ext z,
     replace H₂ := congr_fun H₂ z,
@@ -179,7 +179,7 @@ begin
     let h : Y ⟶ ulift Prop := λ y, ⟨∃ x, f x = y⟩,
     suffices : f ≫ g = f ≫ h,
     { resetI,
-      rw cancel_epi at this,
+      rw cancel_epi H at this,
       intro y,
       replace this := congr_fun this y,
       replace this : true = ∃ x, f x = y := congr_arg ulift.down this,

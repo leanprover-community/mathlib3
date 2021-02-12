@@ -226,24 +226,22 @@ lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫
 lemma eq_comp_inv (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ inv α ↔ g ≫ α = f :=
 (as_iso α).eq_comp_inv
 
-@[priority 100] -- see Note [lower instance priority]
-instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
+end is_iso
+
+def epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 { left_cancellation := λ Z g h w,
   -- This is an interesting test case for better rewrite automation.
   by rw [← is_iso.inv_hom_id_assoc f g, w, is_iso.inv_hom_id_assoc f h] }
-@[priority 100] -- see Note [lower instance priority]
-instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
+def mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
   by rw [← category.comp_id g, ← category.comp_id h, ← is_iso.hom_inv_id f, ← category.assoc, w,
     ← category.assoc] }
-
-end is_iso
 
 open is_iso
 
 lemma eq_of_inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] (p : inv f = inv g) : f = g :=
 begin
-  apply (cancel_epi (inv f)).1,
+  apply (cancel_epi (epi_of_iso (inv f))).1,
   erw [inv_hom_id, p, inv_hom_id],
 end
 
@@ -279,19 +277,19 @@ Presumably we could write `X ↪ Y` and `X ↠ Y`.
 
 @[simp] lemma cancel_iso_hom_left {X Y Z : C} (f : X ≅ Y) (g g' : Y ⟶ Z) :
   f.hom ≫ g = f.hom ≫ g' ↔ g = g' :=
-by simp only [cancel_epi]
+by simp only [cancel_epi (epi_of_iso f.hom)]
 
 @[simp] lemma cancel_iso_inv_left {X Y Z : C} (f : Y ≅ X) (g g' : Y ⟶ Z) :
   f.inv ≫ g = f.inv ≫ g' ↔ g = g' :=
-by simp only [cancel_epi]
+by simp only [cancel_epi (epi_of_iso f.inv)]
 
 @[simp] lemma cancel_iso_hom_right {X Y Z : C} (f f' : X ⟶ Y) (g : Y ≅ Z) :
   f ≫ g.hom = f' ≫ g.hom ↔ f = f' :=
-by simp only [cancel_mono]
+by simp only [cancel_mono (mono_of_iso g.hom)]
 
 @[simp] lemma cancel_iso_inv_right {X Y Z : C} (f f' : X ⟶ Y) (g : Z ≅ Y) :
   f ≫ g.inv = f' ≫ g.inv ↔ f = f' :=
-by simp only [cancel_mono]
+by simp only [cancel_mono (mono_of_iso g.inv)]
 
 /-
 Unfortunately cancelling an isomorphism from the right of a chain of compositions is awkward.
@@ -305,13 +303,13 @@ but then stop.
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y)
   (h : Y ≅ Z) :
   f ≫ g ≫ h.hom = f' ≫ g' ≫ h.hom ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_mono (mono_of_iso h.hom)]
 
 @[simp] lemma cancel_iso_inv_right_assoc {W X X' Y Z : C}
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y)
   (h : Z ≅ Y) :
   f ≫ g ≫ h.inv = f' ≫ g' ≫ h.inv ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_mono (mono_of_iso h.inv)]
 
 end iso
 

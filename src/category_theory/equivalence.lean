@@ -310,42 +310,42 @@ We also provide the lemmas for length four compositions, since they're occasiona
 @[simp] lemma cancel_unit_right {X Y : C}
   (f f' : X ⟶ Y) :
   f ≫ e.unit.app Y = f' ≫ e.unit.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+cancel_nat_iso_hom_right e.unit_iso _ _
 
 @[simp] lemma cancel_unit_inv_right {X Y : C}
   (f f' : X ⟶ e.inverse.obj (e.functor.obj Y))   :
   f ≫ e.unit_inv.app Y = f' ≫ e.unit_inv.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+cancel_nat_iso_inv_right e.unit_iso _ _
 
 @[simp] lemma cancel_counit_right {X Y : D}
   (f f' : X ⟶ e.functor.obj (e.inverse.obj Y))   :
   f ≫ e.counit.app Y = f' ≫ e.counit.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+cancel_nat_iso_hom_right e.counit_iso _ _
 
 @[simp] lemma cancel_counit_inv_right {X Y : D}
   (f f' : X ⟶ Y) :
   f ≫ e.counit_inv.app Y = f' ≫ e.counit_inv.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+cancel_nat_iso_inv_right e.counit_iso _ _
 
 @[simp] lemma cancel_unit_right_assoc {W X X' Y : C}
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
   f ≫ g ≫ e.unit.app Y = f' ≫ g' ≫ e.unit.app Y ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_unit_right]
 
 @[simp] lemma cancel_counit_inv_right_assoc {W X X' Y : D}
   (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
   f ≫ g ≫ e.counit_inv.app Y = f' ≫ g' ≫ e.counit_inv.app Y ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_counit_inv_right]
 
 @[simp] lemma cancel_unit_right_assoc' {W X X' Y Y' Z : C}
   (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
   f ≫ g ≫ h ≫ e.unit.app Z = f' ≫ g' ≫ h' ≫ e.unit.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_unit_right]
 
 @[simp] lemma cancel_counit_inv_right_assoc' {W X X' Y Y' Z : D}
   (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
   f ≫ g ≫ h ≫ e.counit_inv.app Z = f' ≫ g' ≫ h' ≫ e.counit_inv.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_counit_inv_right]
 
 end cancellation_lemmas
 
@@ -515,7 +515,8 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
 { map_injective' := λ X Y f g w,
   begin
     have p := congr_arg (@category_theory.functor.map _ _ _ _ F.inv _ _) w,
-    simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
+    simpa only [is_equivalence.inv_fun_map, nat_iso.cancel_nat_iso_hom_left,
+      nat_iso.cancel_nat_iso_inv_right F.fun_inv_id] using p,
   end }.
 
 /--

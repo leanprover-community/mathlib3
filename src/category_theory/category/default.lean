@@ -124,7 +124,7 @@ A morphism `f` is an epimorphism if it can be "cancelled" when precomposed:
 
 See https://stacks.math.columbia.edu/tag/003B.
 -/
-class epi (f : X ⟶ Y) : Prop :=
+structure epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 
 /--
@@ -133,64 +133,64 @@ A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
 
 See https://stacks.math.columbia.edu/tag/003B.
 -/
-class mono (f : X ⟶ Y) : Prop :=
+structure mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-instance (X : C) : epi (𝟙 X) :=
+def id_epi (X : C) : epi (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
-instance (X : C) : mono (𝟙 X) :=
+def id_mono (X : C) : mono (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
 
-lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
-⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
-lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
-⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
+lemma cancel_epi {f : X ⟶ Y} (w : epi f) {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
+⟨ λ p, w.left_cancellation g h p, begin intro a, subst a end ⟩
+lemma cancel_mono {f : X ⟶ Y} (w : mono f) {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
+⟨ λ p, w.right_cancellation g h p, begin intro a, subst a end ⟩
 
-lemma cancel_epi_id (f : X ⟶ Y) [epi f] {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
-by { convert cancel_epi f, simp, }
-lemma cancel_mono_id (f : X ⟶ Y) [mono f] {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
-by { convert cancel_mono f, simp, }
+lemma cancel_epi_id {f : X ⟶ Y} (w : epi f) {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
+by { convert cancel_epi w, simp, }
+lemma cancel_mono_id {f : X ⟶ Y} (w : mono f) {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
+by { convert cancel_mono w, simp, }
 
-lemma epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
+lemma epi_comp {X Y Z : C} (f : X ⟶ Y) (wf : epi f) (g : Y ⟶ Z) (wg : epi g) : epi (f ≫ g) :=
 begin
   split, intros Z a b w,
-  apply (cancel_epi g).1,
-  apply (cancel_epi f).1,
+  apply (cancel_epi wg).1,
+  apply (cancel_epi wf).1,
   simpa using w,
 end
-lemma mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
+lemma mono_comp {X Y Z : C} (f : X ⟶ Y) (wf : mono f) (g : Y ⟶ Z) (wg : mono g) : mono (f ≫ g) :=
 begin
   split, intros Z a b w,
-  apply (cancel_mono f).1,
-  apply (cancel_mono g).1,
+  apply (cancel_mono wf).1,
+  apply (cancel_mono wg).1,
   simpa using w,
 end
 
-lemma mono_of_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [mono (f ≫ g)] : mono f :=
+lemma mono_of_mono {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} (w : mono (f ≫ g)) : mono f :=
 begin
-  split, intros Z a b w,
-  replace w := congr_arg (λ k, k ≫ g) w,
-  dsimp at w,
-  rw [category.assoc, category.assoc] at w,
-  exact (cancel_mono _).1 w,
+  split, intros Z a b z,
+  replace z := congr_arg (λ k, k ≫ g) z,
+  dsimp at z,
+  rw [category.assoc, category.assoc] at z,
+  exact (cancel_mono w).1 z,
 end
 
-lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) :
+lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} (p : mono h) (w : f ≫ g = h) :
   mono f :=
-by { substI h, exact mono_of_mono f g, }
+by { substI h, exact mono_of_mono p, }
 
-lemma epi_of_epi {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi (f ≫ g)] : epi g :=
+lemma epi_of_epi {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} (w : epi (f ≫ g)) : epi g :=
 begin
-  split, intros Z a b w,
-  replace w := congr_arg (λ k, f ≫ k) w,
-  dsimp at w,
-  rw [←category.assoc, ←category.assoc] at w,
-  exact (cancel_epi _).1 w,
+  split, intros Z a b z,
+  replace z := congr_arg (λ k, f ≫ k) z,
+  dsimp at z,
+  rw [←category.assoc, ←category.assoc] at z,
+  exact (cancel_epi w).1 z,
 end
 
-lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) :
+lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} (p : epi h) (w : f ≫ g = h) :
   epi g :=
-by substI h; exact epi_of_epi f g
+by { substI h, exact epi_of_epi p }
 end
 
 section

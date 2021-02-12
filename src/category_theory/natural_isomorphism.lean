@@ -100,29 +100,29 @@ variables (α : F ≅ G)
 
 @[simp] lemma cancel_nat_iso_hom_left {X : C} {Z : D} (g g' : G.obj X ⟶ Z) :
   α.hom.app X ≫ g = α.hom.app X ≫ g' ↔ g = g' :=
-by simp only [cancel_epi]
+by simp only [cancel_epi (epi_of_iso (α.hom.app X))]
 
 @[simp] lemma cancel_nat_iso_inv_left {X : C} {Z : D} (g g' : F.obj X ⟶ Z) :
   α.inv.app X ≫ g = α.inv.app X ≫ g' ↔ g = g' :=
-by simp only [cancel_epi]
+by simp only [cancel_epi (epi_of_iso (α.inv.app X))]
 
 @[simp] lemma cancel_nat_iso_hom_right {X : D} {Y : C} (f f' : X ⟶ F.obj Y) :
   f ≫ α.hom.app Y = f' ≫ α.hom.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+by simp only [cancel_mono (mono_of_iso (α.hom.app Y))]
 
 @[simp] lemma cancel_nat_iso_inv_right {X : D} {Y : C} (f f' : X ⟶ G.obj Y) :
   f ≫ α.inv.app Y = f' ≫ α.inv.app Y ↔ f = f' :=
-by simp only [cancel_mono]
+by simp only [cancel_mono (mono_of_iso (α.inv.app Y))]
 
 @[simp] lemma cancel_nat_iso_hom_right_assoc {W X X' : D} {Y : C}
   (f : W ⟶ X) (g : X ⟶ F.obj Y) (f' : W ⟶ X') (g' : X' ⟶ F.obj Y)  :
   f ≫ g ≫ α.hom.app Y = f' ≫ g' ≫ α.hom.app Y ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_mono (mono_of_iso (α.hom.app Y))]
 
 @[simp] lemma cancel_nat_iso_inv_right_assoc {W X X' : D} {Y : C}
   (f : W ⟶ X) (g : X ⟶ G.obj Y) (f' : W ⟶ X') (g' : X' ⟶ G.obj Y)  :
   f ≫ g ≫ α.inv.app Y = f' ≫ g' ≫ α.inv.app Y ↔ f ≫ g = f' ≫ g' :=
-by simp only [←category.assoc, cancel_mono]
+by simp only [←category.assoc, cancel_mono (mono_of_iso (α.inv.app Y))]
 
 end
 

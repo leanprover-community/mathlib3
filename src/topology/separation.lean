@@ -738,3 +738,58 @@ begin
   { exact mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
   { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
 end
+
+section connected_component_setoid
+local attribute [instance] connected_component_setoid
+
+instance pi0.t2 [t2_space α] [compact_space α]: t2_space (π₀ α) :=
+begin
+  -- Fix 2 distinct connected components, with points a and b
+  constructor, intros x y,
+  apply quotient.induction_on x,
+  apply quotient.induction_on y,
+  intros a b ne,
+  rw component_nrel_iff at ne,
+  have h := connected_component_disjoint ne,
+  -- write ⟦b⟧ as the intersection of all clopen subsets containing it
+  rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
+  -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
+  cases is_compact.elim_finite_subfamily_closed
+    (is_closed.compact (is_closed_connected_component)) _ _ h with fin_a ha,
+
+  -- TODO... possible to incorporate in line above?
+  swap, exact (λ Z, Z.2.1.2),
+
+  set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), ↑i) with hU,
+  have hu_clopen : is_clopen U, { apply is_clopen_bInter _, exact (λ i j, i.2.1) },
+  rw ←hU at ha,
+  -- This clopen and its complement will separate the points corresponding to ⟦a⟧ and ⟦b⟧
+  use quotient.mk '' U,
+  use quotient.mk '' Uᶜ,
+  -- Using the fact that clopens are unions of connected components, we show that
+  -- U and Uᶜ is the preimage of a clopen set in the quotient
+  have hu : (quotient.mk ⁻¹' (quotient.mk '' U)) = U,
+  { exact (pi0_preimage_image U ▸ eq.symm $ clopen_eq_union_connected_components hu_clopen) },
+  have huc : (quotient.mk ⁻¹' (quotient.mk '' Uᶜ)) = Uᶜ,
+  { exact (pi0_preimage_image Uᶜ ▸ eq.symm $ clopen_eq_union_connected_components
+      (is_clopen_compl hu_clopen))},
+  -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
+  refine ⟨_,_,_,_,_⟩,
+  {  apply ((quotient_map_iff.1 quotient_map_quotient_mk).2 _).2,
+      rw hu,
+      exact hu_clopen.1 },
+  { apply ((quotient_map_iff.1 quotient_map_quotient_mk).2 _).2,
+    rw huc,
+    exact is_open_compl_iff.2 hu_clopen.2 },
+  { apply mem_image_of_mem,
+    rw mem_Inter, intro Z,
+    rw mem_Inter, intro Zmem,
+    exact Z.2.2 },
+  { apply mem_image_of_mem,
+    apply mem_of_subset_of_mem _ (@mem_connected_component _ _ a),
+    exact subset_compl_iff_disjoint.2 ha },
+  apply preimage_injective.2 (@surjective_quotient_mk _ _),
+  rw [preimage_inter, preimage_empty, hu, huc, inter_compl_self _],
+end
+
+end connected_component_setoid

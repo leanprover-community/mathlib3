@@ -37,19 +37,19 @@ variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_mono
 
 /-- `pi` construction for linear functions. From a family of linear functions with the same domain
 it produces a linear function into a family of modules. -/
-def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
+def pi (f : Π i, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Π i, φ i) :=
 ⟨λc i, f i c, λ c d, funext $ λ i, (f i).map_add _ _, λ c d, funext $ λ i, (f i).map_smul _ _⟩
 
-@[simp] lemma pi_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
+@[simp] lemma pi_apply (f : Π i, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
   pi f c i = f i c := rfl
 
 /-- The projections from a family of modules are linear maps. -/
-def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
+def proj (i : ι) : (Π i, φ i) →ₗ[R] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
-@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
+@[simp] lemma proj_apply (i : ι) (b : Π i, φ i) : (proj i : (Π i, φ i) →ₗ[R] φ i) b = b i := rfl
 
-lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
+@[simp] lemma proj_comp_pi (f : Π i, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
 ext $ assume c, rfl
 
 /-- This is the `pi` version of `linear_map.prod_equiv`. -/
@@ -58,14 +58,14 @@ def pi_equiv
   (Π i, M₂ →ₗ[R] φ i) ≃ₗ[S] (M₂ →ₗ[R] (Π i, φ i)) :=
 { to_fun := pi,
   inv_fun := λ f i, (proj i).comp f,
-  left_inv := λ f, funext (proj_pi _),
+  left_inv := λ f, funext (proj_comp_pi _),
   right_inv := λ f, by { ext, refl },
   map_add' := λ a b, rfl,
   map_smul' := λ a b, rfl }
 
 /-- co-`pi` construction for linear functions. From a family of linear functions with the same
 codomain it produces a linear function from a family of modules. -/
-def co_pi [fintype ι] (f : Πi, φ i →ₗ[R] M₂) : (Πi, φ i) →ₗ[R] M₂ :=
+def co_pi [fintype ι] (f : Π i, φ i →ₗ[R] M₂) : (Π i, φ i) →ₗ[R] M₂ :=
 { to_fun := λ c, finset.univ.sum (λ i, f i (c i)),
   map_add' := λ c d, begin
     rw [←finset.sum_add_distrib, finset.sum_congr rfl (λ x hx, _)],
@@ -76,8 +76,11 @@ def co_pi [fintype ι] (f : Πi, φ i →ₗ[R] M₂) : (Πi, φ i) →ₗ[R] M�
     exact (f x).map_smul _ _,
   end}
 
+@[simp] lemma co_pi_apply [fintype ι] (f : Π i, φ i →ₗ[R] M₂) (x : Π i, φ i):
+  (co_pi f : _ →ₗ[R] _) x = finset.univ.sum (λ i, f i (x i)) := rfl
+
 /-- `pi.single` as a linear_map -/
-def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
+def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Π i, φ i) :=
 { to_fun := λ x, pi.single i x,
   map_add' := λ x y, begin
     ext j,
@@ -92,30 +95,47 @@ def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
     { simp [pi.single_eq_of_ne h], }
   end}
 
+@[simp] lemma single_apply [decidable_eq ι] (i : ι) (x : φ i) :
+  (single i : _ →ₗ[R] _) x = pi.single i x := rfl
+
+@[simp] lemma co_pi_comp_single [fintype ι] [decidable_eq ι] (f : Π i, φ i →ₗ[R] M₂) (i : ι) :
+  (co_pi f).comp (single i) = f i :=
+ext $ λ x, begin
+  intros,
+  simp only [single_apply, co_pi_apply, linear_map.comp_apply],
+  rw ←finset.insert_erase (finset.mem_univ i),
+  rw finset.sum_insert,
+  { convert add_zero _,
+    { apply finset.sum_eq_zero,
+      simp {contextual := tt}, },
+    simp },
+  simp,
+end
+
 def co_pi_equiv
   [fintype ι] [decidable_eq ι]
   [semimodule S M₂] [Π i, semimodule S (φ i)] [smul_comm_class R S M₂] :
-  (Π i, φ i →ₗ[R] M₂) ≃ₗ[S] (Πi, φ i) →ₗ[R] M₂ :=
+  (Π i, φ i →ₗ[R] M₂) ≃ₗ[S] (Π i, φ i) →ₗ[R] M₂ :=
 { to_fun := co_pi,
   inv_fun := λ f i, f.comp (single i),
-  left_inv := λ f, funext (proj_pi _),
-  right_inv := λ f, by { ext, refl },
+  left_inv := λ f, funext (co_pi_comp_single _),
+  right_inv := λ f, by { ext, simp },
   map_add' := λ a b, rfl,
   map_smul' := λ a b, rfl }
 
-lemma ker_pi (f : Πi, M₂ →ₗ[R] φ i) : ker (pi f) = (⨅i:ι, ker (f i)) :=
+lemma ker_pi (f : Π i, M₂ →ₗ[R] φ i) : ker (pi f) = (⨅i:ι, ker (f i)) :=
 by ext c; simp [funext_iff]; refl
 
-lemma pi_eq_zero (f : Πi, M₂ →ₗ[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
+lemma pi_eq_zero (f : Π i, M₂ →ₗ[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :=
 by simp only [linear_map.ext_iff, pi_apply, funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
 
-lemma pi_zero : pi (λi, 0 : Πi, M₂ →ₗ[R] φ i) = 0 :=
+lemma pi_zero : pi (λi, 0 : Π i, M₂ →ₗ[R] φ i) = 0 :=
 by ext; refl
 
-lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
+lemma pi_comp (f : Π i, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
 rfl
 
-lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
+lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Π i, φ i)) = ⊥ :=
 bot_unique $ submodule.le_def'.2 $ assume a h,
 begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
@@ -129,7 +149,7 @@ variables (R φ)
 `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
-  (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃ₗ[R] (Πi:I, φ i) :=
+  (⨅i ∈ J, ker (proj i) : submodule R (Π i, φ i)) ≃ₗ[R] (Π i:I, φ i) :=
 begin
   refine linear_equiv.of_linear
     (pi $ λi, (proj (i:ι)).comp (submodule.subtype _))
@@ -160,7 +180,7 @@ variable [decidable_eq ι]
 def diag (i j : ι) : φ i →ₗ[R] φ j :=
 @function.update ι (λj, φ i →ₗ[R] φ j) _ 0 i id j
 
-lemma update_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i j : ι) (b : M₂ →ₗ[R] φ i) :
+lemma update_apply (f : Π i, M₂ →ₗ[R] φ i) (c : M₂) (i j : ι) (b : M₂ →ₗ[R] φ i) :
   (update f i b j) c = update (λi, f i c) i (b c) j :=
 begin
   by_cases j = i,

@@ -1134,6 +1134,8 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 variables {𝕜}
 
+/-- Reinterpret a bilinear map `f : E →L[𝕜] F →L[𝕜] G` as a bilinear map
+`(E × F) →L[𝕜] (E × F) →L[𝕜] G`. -/
 def on_prod₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
 ((f.comp $ fst 𝕜 E F).flip.comp (snd 𝕜 E F)).flip
 

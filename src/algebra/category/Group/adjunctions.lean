@@ -16,7 +16,7 @@ category of abelian groups.
 
 * `AddCommGroup.free`: constructs the functor associating to a type `X` the free abelian group with
   generators `x : X`.
-* `Group.free`: constructs the functor associating to a type `X` the free abelian group with
+* `Group.free`: constructs the functor associating to a type `X` the free group with
   generators `x : X`.
 * `abelianize`: constructs the functor which associates to a group `G` its abelianization `Gᵃᵇ`.
 

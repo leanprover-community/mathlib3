@@ -472,7 +472,7 @@ It is a generalization of the `no_zero_divisors` class to heterogeneous multipli
 class no_zero_smul_divisors (R M : Type*) [has_zero R] [has_zero M] [has_scalar R M] : Prop :=
 (eq_zero_or_eq_zero_of_smul_eq_zero : ∀ {c : R} {x : M}, c • x = 0 → c = 0 ∨ x = 0)
 
-export no_zero_smul_divisors
+export no_zero_smul_divisors (eq_zero_or_eq_zero_of_smul_eq_zero)
 
 section semimodule
 

@@ -1797,6 +1797,17 @@ theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 
 theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = {a} :=
 by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton_val]
 
+theorem card_le_one {s : finset α} : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|⟨x, hx⟩, { simp },
+  refine (nat.succ_le_of_lt (card_pos.2 ⟨x, hx⟩)).le_iff_eq.trans (card_eq_one.trans ⟨_, _⟩),
+  { rintro ⟨y, rfl⟩, simp },
+  { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
+end
+
+theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
+by { rw ← not_iff_not, push_neg, exact card_le_one }
+
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
 by simpa only [card_cons, card, insert_val] using
@@ -2114,11 +2125,7 @@ by { rw bUnion_singleton, exact image_id }
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
   t.bUnion (λa, s.filter $ (λc, f c = a)) = s :=
-begin
-  ext b,
-  suffices : (∃ a ∈ t, b ∈ s ∧ f b = a) ↔ b ∈ s, by simpa,
-  exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨f b, h b hb, hb, rfl⟩⟩
-end
+ext $ λ b, by simpa using h b
 
 lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=

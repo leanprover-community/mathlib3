@@ -1171,6 +1171,11 @@ lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
 by simpa only [div_eq_mul_inv] using h.mul h'.inv
 
+lemma eventually_eq.div' [group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+  (h' : f' =ᶠ[l] g') :
+  ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
+by simpa only [div_eq_mul_inv] using h.mul h'.inv
+
 lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
@@ -1203,6 +1208,14 @@ iff.rfl
 lemma eventually_eq_inf_principal_iff {F : filter α} {s : set α} {f g : α → β} :
   (f =ᶠ[F ⊓ 𝓟 s] g) ↔ ∀ᶠ x in F, x ∈ s → f x = g x :=
 eventually_inf_principal
+
+lemma eventually_eq.sub_eq [add_group β] {f g : α → β} {l : filter α} (h : f =ᶠ[l] g) :
+  f - g =ᶠ[l] 0 :=
+by simpa using (eventually_eq.sub (eventually_eq.refl l f) h).symm
+
+lemma eventually_eq_iff_sub [add_group β] {f g : α → β} {l : filter α} :
+  f =ᶠ[l] g ↔ f - g =ᶠ[l] 0 :=
+⟨λ h, h.sub_eq, λ h, by simpa using h.add (eventually_eq.refl l g)⟩
 
 section has_le
 
@@ -2192,6 +2205,10 @@ iff.rfl
 lemma tendsto_pure_left {f : α → β} {a : α} {l : filter β} :
   tendsto f (pure a) l ↔ ∀ s ∈ l, f a ∈ s :=
 iff.rfl
+
+@[simp] lemma map_inf_principal_preimage {f : α → β} {s : set β} {l : filter α} :
+  map f (l ⊓ 𝓟 (f ⁻¹' s)) = map f l ⊓ 𝓟 s :=
+filter.ext $ λ t, by simp only [mem_map, mem_inf_principal, mem_set_of_eq, mem_preimage]
 
 /-- If two filters are disjoint, then a function cannot tend to both of them along a non-trivial
 filter. -/

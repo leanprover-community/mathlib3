@@ -140,7 +140,7 @@ begin
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
   rw mem_range at hk,
-  omega
+  rw [add_comm, nat.add_sub_assoc (nat.lt_succ_iff.mp hk), ← add_comm],
 end
 
 section p_prime

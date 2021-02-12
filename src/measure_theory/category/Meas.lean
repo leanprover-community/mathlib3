@@ -66,22 +66,23 @@ def Measure : Meas ⥤ Meas :=
     assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ, (measure.map_map hg hf).symm }
 
 /-- The Giry monad, i.e. the monadic structure associated with `Measure`. -/
-instance : category_theory.monad Measure.{u} :=
-{ η :=
+def Giry : category_theory.monad Meas :=
+{ to_functor := Measure,
+  η' :=
   { app         := λX, ⟨@measure.dirac X.1 X.2, measure.measurable_dirac⟩,
     naturality' :=
       assume X Y ⟨f, hf⟩, subtype.eq $ funext $ assume a, (measure.map_dirac hf a).symm },
-  μ :=
+  μ' :=
   { app         := λX, ⟨@measure.join X.1 X.2, measure.measurable_join⟩,
     naturality' :=
       assume X Y ⟨f, hf⟩, subtype.eq $ funext $ assume μ, measure.join_map_map hf μ },
-  assoc' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_map_join α I μ,
-  left_unit' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_dirac α I μ,
-  right_unit' := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.join_map_dirac α I μ }
+  assoc' := assume α, subtype.eq $ funext $ assume μ, @measure.join_map_join _ _ _,
+  left_unit' := assume α, subtype.eq $ funext $ assume μ, @measure.join_dirac _ _ _,
+  right_unit' := assume α, subtype.eq $ funext $ assume μ, @measure.join_map_dirac _ _ _ }
 
 /-- An example for an algebra on `Measure`: the nonnegative Lebesgue integral is a hom, behaving
 nicely under the monad operations. -/
-def Integral : monad.algebra Measure :=
+def Integral : Giry.algebra :=
 { A      := Meas.of ℝ≥0∞ ,
   a      := ⟨λm:measure ℝ≥0∞, ∫⁻ x, x ∂m, measure.measurable_lintegral measurable_id ⟩,
   unit'  := subtype.eq $ funext $ assume r:ℝ≥0∞, lintegral_dirac' _ measurable_id,

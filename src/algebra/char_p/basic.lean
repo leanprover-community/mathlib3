@@ -123,7 +123,7 @@ begin
   intros b h1 h2,
   suffices : (p.choose b : R) = 0, { rw this, simp },
   rw char_p.cast_eq_zero_iff R p,
-  refine hp.1.dvd_choose_self (by omega) _,
+  refine nat.prime.dvd_choose_self (pos_iff_ne_zero.mpr h2) _ hp.1,
   rwa ← finset.mem_range
 end
 

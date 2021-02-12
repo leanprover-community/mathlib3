@@ -1134,6 +1134,6 @@ lemma has_strict_deriv_at_of_has_deriv_at_of_continuous_at {f f' : 𝕜 → G} {
   (hder : ∀ᶠ y in 𝓝 x, has_deriv_at f (f' y) y) (hcont : continuous_at f' x) :
   has_strict_deriv_at f (f' x) x :=
 has_strict_fderiv_at_of_has_fderiv_at_of_continuous_at (hder.mono (λ y hy, hy.has_fderiv_at)) $
-  (smul_rightL 1).continuous.continuous_at.comp hcont
+  (smul_rightL 𝕜 _ _ 1).continuous.continuous_at.comp hcont
 
 end is_R_or_C

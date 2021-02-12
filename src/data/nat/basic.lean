@@ -94,6 +94,10 @@ instance : canonically_ordered_comm_semiring ℕ :=
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
+instance : canonically_linear_ordered_add_monoid ℕ :=
+{ .. (infer_instance : canonically_ordered_add_monoid ℕ),
+  .. nat.linear_order }
+
 instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
   semilattice_sup_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
@@ -339,6 +343,13 @@ begin
   rw add_assoc,
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
+
+-- TODO: generalize to some ordered add_monoids, based on #6145
+lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
+by { refine le_trans _ h, simp }
+
+lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
+by { refine le_trans _ h, simp }
 
 /-! ### `pred` -/
 
@@ -1152,6 +1163,13 @@ strict_mono.injective (pow_right_strict_mono k)
 
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
+
+lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
+  n * q < a * q ^ (n + 1) :=
+begin
+  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
+  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+end
 
 end nat
 

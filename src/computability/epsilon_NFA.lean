@@ -107,7 +107,7 @@ begin
     exact h }
 end
 
-lemma to_ε_NFA_eval_from_match (M : NFA α σ) (start : set σ) :
+@[simp] lemma to_ε_NFA_eval_from_match (M : NFA α σ) (start : set σ) :
   M.to_ε_NFA.eval_from start = M.eval_from start :=
 begin
   rw [eval_from, ε_NFA.eval_from, step_set, ε_NFA.step_set, to_ε_NFA_ε_closure],

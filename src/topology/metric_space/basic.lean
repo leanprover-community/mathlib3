@@ -867,9 +867,7 @@ by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
 -- free to suggest where it may be added.  Here, all the needed imports are available!
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
   abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
-abs_le.trans ⟨
-  λ h, ⟨sub_le.mp h.2, neg_le_sub_iff_le_add.mp h.1⟩,
-  λ hy, ⟨neg_le_sub_iff_le_add.mpr hy.2, sub_le.mp hy.1⟩⟩
+abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le neg_le_sub_iff_le_add
 
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
 general case. -/

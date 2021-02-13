@@ -105,11 +105,14 @@ def lift : free_comm_ring α →+* R :=
         calc _ = multiset.prod ((multiset.map f s1) + (multiset.map f s2)) :
             by {congr' 1, exact multiset.map_add _ _ _}
           ... = _ : multiset.prod_add _ _ },
-      { intros s1 ih, iterate 3 { rw free_abelian_group.lift.neg }, rw [ih, neg_mul_eq_neg_mul] },
-      { intros x1 x2 ih1 ih2, iterate 3 { rw free_abelian_group.lift.add }, rw [ih1, ih2, add_mul] } },
+      { intros s1 ih, iterate 3 { rw (free_abelian_group.lift _).map_neg },
+        rw [ih, neg_mul_eq_neg_mul] },
+      { intros x1 x2 ih1 ih2, iterate 3 { rw (free_abelian_group.lift _).map_add },
+        rw [ih1, ih2, add_mul] } },
     { intros s2 ih,
       simp only [add_monoid_hom.to_fun_eq_coe] at ih ⊢,
-      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg, mul_neg_eq_neg_mul_symm, ih] },
+      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
+        mul_neg_eq_neg_mul_symm, ih] },
     { intros y1 y2 ih1 ih2,
       simp only [add_monoid_hom.to_fun_eq_coe] at ih1 ih2 ⊢,
       rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },

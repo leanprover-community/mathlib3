@@ -279,8 +279,10 @@ begin
   refine ⟨⟨i, h2i⟩, ⟨i', h2i'⟩, _⟩,
   intro hii', cases congr_arg subtype.val hii',
   apply not_le_of_lt (hi'.2 ⟨1, nat.le_of_succ_le_succ h.2.2.2.2⟩).2,
-  simp only [-add_comm, tail, cube.tail, p], rw [if_pos], simp [-add_comm],
-  exact (hi.2 _).1, refl
+  simp only [-add_comm, tail, cube.tail, p],
+  rw [if_pos, add_le_add_iff_right],
+  { exact (hi.2 _).1 },
+  refl
 end
 
 /-- There is a cube in the valley -/

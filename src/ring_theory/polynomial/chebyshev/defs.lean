@@ -19,8 +19,7 @@ See the file `ring_theory.polynomial.chebyshev.basic` for more properties.
 
 * `polynomial.chebyshev₁`: the Chebyshev polynomials of the first kind.
 * `polynomial.chebyshev₂`: the Chebyshev polynomials of the second kind.
-* `polynomial.lambdashev`: a variant on the Chebyshev polynomials that define a Lambda structure
-  on `polynomial ℤ`.
+
 
 ## Main statements
 
@@ -46,10 +45,6 @@ and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 * Compute zeroes and extrema of Chebyshev polynomials.
 * Prove that the roots of the Chebyshev polynomials (except 0) are irrational.
 * Prove minimax properties of Chebyshev polynomials.
-* Define a variant of Chebyshev polynomials of the second kind removing the 2
-  (sometimes Dickson polynomials of the second kind) or even more general Dickson polynomials.
-* Prove that the adjacency matrices of simply laced Dynkin diagrams are precisely the adjacency
-  matrices of simple connected graphs which annihilate the Dickson polynomials.
 -/
 
 
@@ -92,45 +87,6 @@ begin
   simp only [chebyshev₁_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
   rw [map_chebyshev₁ (n + 1), map_chebyshev₁ n],
 end
-
-variables (R)
-
-/-- `lambdashev R n` is equal to `2 * (chebyshev₁ R n).comp (X / 2)`.
-It is a family of polynomials that satisfies
-`lambdashev (zmod p) p = X ^ p`, and therefore defines a Lambda structure on `polynomial ℤ`. -/
-noncomputable def lambdashev : ℕ → polynomial R
-| 0       := 2
-| 1       := X
-| (n + 2) := X * lambdashev (n + 1) - lambdashev n
-
-@[simp] lemma lambdashev_zero : lambdashev R 0 = 2 := rfl
-@[simp] lemma lambdashev_one : lambdashev R 1 = X := rfl
-lemma lambdashev_two : lambdashev R 2 = X ^ 2 - 2 :=
-by simp only [lambdashev, sub_left_inj, pow_two, mul_assoc]
-@[simp] lemma lambdashev_add_two (n : ℕ) :
-  lambdashev R (n + 2) = X * lambdashev R (n + 1) - lambdashev R n :=
-by rw lambdashev
-
-lemma lambdashev_eq_two_le (n : ℕ) (h : 2 ≤ n) :
-  lambdashev R n = X * lambdashev R (n - 1) - lambdashev R (n - 2) :=
-begin
-  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
-  rw add_comm,
-  exact lambdashev_add_two R n
-end
-
-variables {R S}
-
-lemma map_lambdashev (f : R →+* S) :
-  ∀ (n : ℕ), map f (lambdashev R n) = lambdashev S n
-| 0       := by simp only [lambdashev_zero, bit0, map_add, map_one]
-| 1       := by simp only [lambdashev_one, map_X]
-| (n + 2) :=
-begin
-  simp only [lambdashev_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
-  rw [map_lambdashev (n + 1), map_lambdashev n],
-end
-
 
 end polynomial
 

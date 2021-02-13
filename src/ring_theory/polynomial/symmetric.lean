@@ -90,7 +90,7 @@ lemma neg (hφ : is_symmetric φ) : is_symmetric (-φ) :=
 λ e, by rw [alg_hom.map_neg, hφ]
 
 lemma sub (hφ : is_symmetric φ) (hψ : is_symmetric ψ) : is_symmetric (φ - ψ) :=
-λ e, by rw [alg_hom.map_sub, hφ, hψ]
+by { rw sub_eq_add_neg, exact hφ.add hψ.neg }
 
 end comm_ring
 

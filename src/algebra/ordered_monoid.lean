@@ -676,6 +676,26 @@ instance canonically_linear_ordered_monoid.semilattice_sup_bot
   [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
 
+instance with_top.canonically_linear_ordered_add_monoid
+  (α : Type*) [canonically_linear_ordered_add_monoid α] :
+    canonically_linear_ordered_add_monoid (with_top α) :=
+{ .. (infer_instance : canonically_ordered_add_monoid (with_top α)),
+  .. (infer_instance : linear_order (with_top α)) }
+
+@[to_additive] lemma min_mul_distrib [canonically_linear_ordered_monoid α] (a b c : α) :
+  min a (b * c) = min a (min a b * min a c) :=
+begin
+  cases le_total a b with hb hb,
+  { simp [hb, le_mul_right] },
+  { cases le_total a c with hc hc,
+    { simp [hc, le_mul_left] },
+    { simp [hb, hc] } }
+end
+
+@[to_additive] lemma min_mul_distrib' [canonically_linear_ordered_monoid α] (a b c : α) :
+  min (a * b) c = min (min a c * min b c) c :=
+by simpa [min_comm _ c] using min_mul_distrib c a b
+
 end canonically_linear_ordered_monoid
 
 /-- An ordered cancellative additive commutative monoid

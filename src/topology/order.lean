@@ -194,6 +194,10 @@ instance : complete_lattice (topological_space α) :=
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 (eq_bot [] : t = ⊥)
 
+@[priority 100]
+instance discrete_topology_bot (α : Type*) : @discrete_topology α ⊥ :=
+{ eq_bot := rfl }
+
 @[simp] lemma is_open_discrete [topological_space α] [discrete_topology α] (s : set α) :
   is_open s :=
 (discrete_topology.eq_bot α).symm ▸ trivial
@@ -379,8 +383,8 @@ instance : topological_space empty := ⊥
 instance : discrete_topology empty := ⟨rfl⟩
 instance : topological_space pempty := ⊥
 instance : discrete_topology pempty := ⟨rfl⟩
-instance : topological_space unit := ⊥
-instance : discrete_topology unit := ⟨rfl⟩
+instance : topological_space punit := ⊥
+instance : discrete_topology punit := ⟨rfl⟩
 instance : topological_space bool := ⊥
 instance : discrete_topology bool := ⟨rfl⟩
 instance : topological_space ℕ := ⊥
@@ -638,6 +642,9 @@ lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
   assume h : is_open {x | p x},
   continuous_generated_from $ assume s (hs : s ∈ {{true}}),
     by simp at hs; simp [hs, preimage, eq_true, h]⟩
+
+lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
+continuous_Prop.symm
 
 end sierpinski
 

@@ -712,6 +712,7 @@ def order_iso.Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
 section bounded_lattice
 
 variables [bounded_lattice α]  [bounded_lattice β] (f : α ≃o β)
+include f
 
 lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
 ⟨by { rw [← f.map_bot, ← f.map_inf, f.map_rel_iff], exact h.1 },
@@ -724,7 +725,7 @@ theorem order_iso.is_compl_iff {x y : α} :
   exact f.symm.is_compl h,
 end⟩
 
-lemma order_iso.is_complemented [bounded_lattice α] [bounded_lattice β] (f : α ≃o β)
+lemma order_iso.is_complemented
   [is_complemented α] : is_complemented β :=
 ⟨λ x, begin
   obtain ⟨y, hy⟩ := exists_is_compl (f.symm x),
@@ -732,7 +733,7 @@ lemma order_iso.is_complemented [bounded_lattice α] [bounded_lattice β] (f : �
   refine ⟨f y, f.symm.is_compl_iff.2 hy⟩,
 end⟩
 
-theorem order_iso.is_complemented_iff [bounded_lattice α] [bounded_lattice β] (f : α ≃o β) :
+theorem order_iso.is_complemented_iff :
   is_complemented α ↔ is_complemented β :=
 ⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
 

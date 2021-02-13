@@ -106,6 +106,26 @@ end nat
 /-! ### Divisibility over ℤ -/
 namespace int
 
+def gcd_a : ℤ → ℤ → ℤ
+| (of_nat m) n := m.gcd_a n.nat_abs
+| -[1+ m]    n := -m.succ.gcd_a n.nat_abs
+
+def gcd_b : ℤ → ℤ → ℤ
+| m (of_nat n) := m.nat_abs.gcd_b n
+| m -[1+ n]    := -m.nat_abs.gcd_b n.succ
+
+theorem gcd_eq_gcd_ab (x y : ℤ) : (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y :=
+begin
+  cases x; cases y,
+  { apply nat.gcd_eq_gcd_ab },
+  { change (_ : ℤ) = _ + -y.succ * -_, rw neg_mul_neg,
+    apply nat.gcd_eq_gcd_ab },
+  { change (_ : ℤ) = -x.succ * -_ + _, rw neg_mul_neg,
+    apply nat.gcd_eq_gcd_ab },
+  { change (_ : ℤ) = -x.succ * -_ + -y.succ * -_, rw [neg_mul_neg, neg_mul_neg],
+    apply nat.gcd_eq_gcd_ab },
+end
+
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
 begin
   cases (nat.eq_zero_or_pos (nat_abs b)),

@@ -305,6 +305,9 @@ instance : countable_Inter_filter μ.ae :=
   exact measure_Union_null (subtype.forall.2 hS)
 end⟩
 
+lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
+filter.eventually_imp_distrib_left
+
 lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
   (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
 eventually_countable_forall
@@ -1965,7 +1968,7 @@ begin
           apply h_ν'_in _ h_meas_t_inter_s },
         cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
         { simp [h_inter_empty] },
-        { have h_meas_inter_compl := 
+        { have h_meas_inter_compl :=
             h_meas_t.inter (measurable_set.compl h_meas_s),
           rw [restrict_apply h_meas_inter_compl, h_inter_inter_eq_inter sᶜ],
           have h_mu_le_add_top : μ ≤ ν' + ν + ⊤,
@@ -1979,15 +1982,15 @@ begin
               set.inter_assoc] } },
     { apply restrict_le_self } },
   { apply @Inf_le_Inf_of_forall_exists_le (measure α) _,
-   
+
     intros s h_s_in, cases h_s_in with t h_t, cases h_t with h_t_in h_t_eq, subst s,
     apply exists.intro (t.restrict s), split,
-    { rw [set.mem_set_of_eq, ← restrict_add], 
+    { rw [set.mem_set_of_eq, ← restrict_add],
       apply restrict_mono (set.subset.refl _) h_t_in },
     { apply le_refl _ } },
 end
 
-lemma sub_apply_eq_zero_of_restrict_le_restrict 
+lemma sub_apply_eq_zero_of_restrict_le_restrict
   (h_le : μ.restrict s ≤ ν.restrict s) (h_meas_s : measurable_set s) :
   (μ - ν) s = 0 :=
 begin

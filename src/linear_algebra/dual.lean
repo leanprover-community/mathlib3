@@ -456,7 +456,8 @@ universes u v w
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
-  the natural extenstion of `φ` to an element of the dual of `V`. -/
+the natural extension of `φ` to an element of the dual of `V`.
+That is, `dual_lift W φ` sends `w ∈ W` to `φ x` and `x` in the complement of `W` to `0`. -/
 noncomputable def dual_lift (W : subspace K V) :
   module.dual K W →ₗ[K] module.dual K V :=
 let h := classical.indefinite_description _ W.exists_is_compl in

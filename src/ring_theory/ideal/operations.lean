@@ -1233,7 +1233,8 @@ end
 
 /-- The induced algebras morphism from the quotient by the kernel to the codomain.
 
-This is an isomorphism if `f` has a right inverse (`quotient_ker_alg_equiv_of_right_inverse`) / is surjective (`quotient_ker_alg_equiv_of_surjective`).
+This is an isomorphism if `f` has a right inverse (`quotient_ker_alg_equiv_of_right_inverse`) /
+is surjective (`quotient_ker_alg_equiv_of_surjective`).
 -/
 def ker_lift_alg (f : A →ₐ[R] B) : f.to_ring_hom.ker.quotient →ₐ[R] B :=
 alg_hom.mk' f.to_ring_hom.ker_lift (λ _ _, ker_lift.map_smul f _ _)

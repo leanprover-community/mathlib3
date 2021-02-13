@@ -691,7 +691,7 @@ to_group.of
 
 @[simp] lemma mul_bind (f : α → free_group β) (x y : free_group α) :
   x * y >>= f = (x >>= f) * (y >>= f) :=
-to_group.mul.map_mul _ _ 
+(to_group f).map_mul _ _
 
 @[simp] lemma inv_bind (f : α → free_group β) (x : free_group α) : x⁻¹ >>= f = (x >>= f)⁻¹ :=
 (to_group f).map_inv _

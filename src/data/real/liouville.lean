@@ -106,6 +106,13 @@ begin
     exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg }
 end
 
+lemma da {R : Type*} {s t : set R} {x : R} (h : s = t) (hx : x ∈ s) :
+  x ∈ t :=
+begin
+  have : s ⊆ t, exact h.subset,
+  exact h.subset hx,
+end
+
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
   {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
   ∃ ε : ℝ, 0 < ε ∧
@@ -147,11 +154,11 @@ begin
     -- key observation: the right-hand side of the inequality is an *integer*.  Therefore,
     -- if its absolute value is not at least one, then it vanishes.  Proceed by contradiction
     refine one_le_pow_mul_abs_eval_div (int.coe_nat_succ_pos a) (λ hy, _),
-    -- If the evaluation of the polynomial vanishes, then we found a root of `fR` that is rational.
+    -- As the evaluation of the polynomial vanishes, we found a root of `fR` that is rational.
     -- We know that `α` is the only root of `fR` in our interval, and `α` is irrational:
     -- follow your nose.
     refine (irrational_iff_ne_rational α).mp ha z (a + 1) ((mem_singleton_iff.mp _).symm),
-    rw ← U,
+    refine U.subset _,
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end

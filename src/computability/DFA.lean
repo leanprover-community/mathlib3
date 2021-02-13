@@ -26,9 +26,9 @@ structure DFA (α : Type u) (σ : Type v) :=
 (start : σ)
 (accept : set σ)
 
-namespace DFA
-
 variables {α : Type u} {σ : Type v} (M : DFA α σ)
+
+namespace DFA
 
 instance [inhabited σ] : inhabited (DFA α σ) :=
 ⟨DFA.mk (λ _ _, default σ) (default σ) ∅⟩
@@ -126,5 +126,40 @@ begin
   have h := M.eval_from_of_pow hb hb',
   rwa [mem_accepts, eval_from_of_append, eval_from_of_append, h, hc]
 end
+
+end DFA
+
+namespace language
+
+/-- A language `is_regular` if it is the strings accepted by some DFA -/
+structure is_regular (l : language α) :=
+(σ : Type v)
+[hfin : fintype σ]
+(M : DFA α σ)
+(h : M.accepts = l)
+
+instance (l : language α) (hreg : is_regular l) : fintype hreg.σ := hreg.hfin
+
+lemma pumping_lemma (l : language α) [hreg : is_regular l] {x : list α} (hx : x ∈ l)
+  (hlen : fintype.card hreg.σ + 1 ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card hreg.σ + 1 ∧ b ≠ [] ∧
+  {a} * language.star {b} * {c} ≤ l :=
+begin
+  rw ←hreg.h at hx,
+  rcases hreg.M.pumping_lemma hx hlen with ⟨ a, b, c, d, e, f, g ⟩,
+  refine ⟨ a, b, c, d, e, f, _ ⟩,
+  convert g,
+  exact hreg.h.symm
+end
+
+end language
+
+namespace DFA
+
+/-- NFA's with finite states are (by definition) regular languages -/
+def is_regular {σ : Type v} (M : DFA α σ) [fintype σ] : M.accepts.is_regular :=
+{ σ := σ,
+  M := M,
+  h := rfl }
 
 end DFA

@@ -71,14 +71,11 @@ begin
   finish
 end
 
-lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
-  (hlen : fintype.card (set σ) + 1 ≤ list.length x) :
-  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) + 1 ∧ b ≠ [] ∧
-  {a} * language.star {b} * {c} ≤ M.accepts :=
-begin
-  rw ←to_DFA_correct at hx ⊢,
-  exact M.to_DFA.pumping_lemma hx hlen
-end
+/-- NFA's with finite states are regular languages -/
+def is_regular [fintype σ] : M.accepts.is_regular :=
+{ σ := set σ,
+  M := M.to_DFA,
+  h := M.to_DFA_correct }
 
 end NFA
 

@@ -336,6 +336,7 @@ section field
 
 variables [field R] [semiring A] [algebra R A]
 
+@[priority 100] -- see note [lower instance priority]
 instance [nontrivial A] [no_zero_divisors A] : no_zero_smul_divisors R A :=
 no_zero_smul_divisors.of_algebra_map_injective (algebra_map R A).injective
 

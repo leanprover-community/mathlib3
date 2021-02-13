@@ -81,15 +81,12 @@ instance : faithful Profinite_to_CompHaus := {}
 rfl
 
 namespace Profinite
-
-variables {α : Type*} [topological_space α]
-open set
 local attribute [instance] connected_component_setoid
 
-#check id.contin
-
-
--- Stacks tag 09000
+/--
+π₀ functor from CompHaus to Profinite, quotienting a space by its connected components.
+See: https://stacks.math.columbia.edu/tag/0900
+-/
 def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
 { obj := λ X,
     { to_Top := { α := (π₀ X.to_Top.α) },
@@ -98,9 +95,7 @@ def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
       is_totally_disconnected := pi0.totally_disconnected_space },
   map := λ X Y f,
     { to_fun := pi0_map f.2,
-      continuous_to_fun := pi0_map_continuous f.2 },
-  map_id' := by obviously,
-  map_comp' := by obviously }
+      continuous_to_fun := pi0_map_continuous f.2 }}
 
 instance : is_right_adjoint Profinite_to_CompHaus :=
 { left := CompHaus_to_Profinite,
@@ -116,15 +111,13 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
       right_inv := λ f, continuous_map.ext $ λ x, rfl },
     unit :=
       { app := λ X, { to_fun := quotient.mk,
-                      continuous_to_fun := continuous_quotient_mk },
-        naturality' := by obviously },
+                      continuous_to_fun := continuous_quotient_mk }},
     counit :=
       { app := λ Y, { to_fun := pi0_lift (@continuous_map.coe_continuous _ _ _ _ (𝟙 Y.to_Top)),
-                      continuous_to_fun := { is_open_preimage := λ s hs, hs } },
-        naturality' := by obviously },
-    hom_equiv_unit' := by obviously,
-    hom_equiv_counit' := by obviously, }}
-
+                      continuous_to_fun := { is_open_preimage := λ s hs, hs }}}}}
+/--
+The category of profinite sets is reflective in the category of compact hausdroff spaces
+-/
 instance : reflective Profinite_to_CompHaus :=
 { .. Profinite_to_CompHaus.category_theory.is_right_adjoint,
   .. Profinite_to_CompHaus.category_theory.full,

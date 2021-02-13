@@ -742,8 +742,10 @@ end
 section connected_component_setoid
 local attribute [instance] connected_component_setoid
 
+/-- π₀ α is Hausdorff when α is Hausdorff and compact -/
 instance pi0.t2 [t2_space α] [compact_space α]: t2_space (π₀ α) :=
 begin
+  -- Proof follows that of: https://stacks.math.columbia.edu/tag/0900
   -- Fix 2 distinct connected components, with points a and b
   constructor, intros x y,
   apply quotient.induction_on x,
@@ -756,10 +758,7 @@ begin
   -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
   cases is_compact.elim_finite_subfamily_closed
     (is_closed.compact (is_closed_connected_component)) _ _ h with fin_a ha,
-
-  -- TODO... possible to incorporate in line above?
-  swap, exact (λ Z, Z.2.1.2),
-
+  swap, { exact (λ Z, Z.2.1.2) },
   set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), ↑i) with hU,
   have hu_clopen : is_clopen U, { apply is_clopen_bInter _, exact (λ i j, i.2.1) },
   rw ←hU at ha,

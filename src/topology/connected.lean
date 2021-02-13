@@ -508,6 +508,7 @@ begin
   exact h,
 end
 
+/-- A clopen set is the union of its connected components -/
 lemma clopen_eq_union_connected_components {Z : set α} (h : is_clopen Z) :
   Z = (⋃ (x : α) (H : x ∈ Z), connected_component x) :=
 eq_of_subset_of_subset (λ x xZ, mem_Union.2 ⟨x, mem_Union.2 ⟨xZ, mem_connected_component⟩⟩)

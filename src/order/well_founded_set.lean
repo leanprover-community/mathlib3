@@ -213,40 +213,45 @@ end
 
 namespace set
 
-/-- `set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
-  that add to `a`. -/
-def add_antidiagonal [add_monoid α] (s t : set α) (a : α) : set (α × α) :=
-{ x | x.1 + x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t }
+/-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
+  that multiply to `a`. -/
+@[to_additive add_antidiagonal "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
+  that add to `a`."]
+def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
+{ x | x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t }
 
-namespace add_antidiagonal
+namespace mul_antidiagonal
 
-@[simp]
-lemma mem_add_antidiagonal_of_is_wf [add_monoid α] {s t : set α} {a : α} {x : α × α} :
-  x ∈ add_antidiagonal s t a ↔ x.1 + x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
+@[simp, to_additive]
+lemma mem_mul_antidiagonal_of_is_wf [monoid α] {s t : set α} {a : α} {x : α × α} :
+  x ∈ mul_antidiagonal s t a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
 
-variables [add_cancel_comm_monoid α] {s t : set α} {a : α}
+variables [cancel_comm_monoid α] {s t : set α} {a : α}
 
-lemma fst_eq_fst_iff_snd_eq_snd {x y : (add_antidiagonal s t a)} :
+@[to_additive]
+lemma fst_eq_fst_iff_snd_eq_snd {x y : (mul_antidiagonal s t a)} :
   (x : α × α).fst = (y : α × α).fst ↔ (x : α × α).snd = (y : α × α).snd :=
 ⟨λ h, begin
   have hx := x.2.1,
   rw [subtype.val_eq_coe, h] at hx,
-  apply add_left_cancel (hx.trans y.2.1.symm),
+  apply mul_left_cancel (hx.trans y.2.1.symm),
 end, λ h, begin
   have hx := x.2.1,
   rw [subtype.val_eq_coe, h] at hx,
-  apply add_right_cancel (hx.trans y.2.1.symm),
+  apply mul_right_cancel (hx.trans y.2.1.symm),
 end⟩
 
-lemma eq_of_fst_eq_fst {x y : (add_antidiagonal s t a)}
+@[to_additive]
+lemma eq_of_fst_eq_fst {x y : (mul_antidiagonal s t a)}
   (h : (x : α × α).fst = (y : α × α).fst) : x = y :=
-subtype.ext (prod.ext h (add_antidiagonal.fst_eq_fst_iff_snd_eq_snd.1 h))
+subtype.ext (prod.ext h (mul_antidiagonal.fst_eq_fst_iff_snd_eq_snd.1 h))
 
-lemma eq_of_snd_eq_snd {x y : (add_antidiagonal s t a)}
+@[to_additive]
+lemma eq_of_snd_eq_snd {x y : (mul_antidiagonal s t a)}
   (h : (x : α × α).snd = (y : α × α).snd) : x = y :=
-subtype.ext (prod.ext (add_antidiagonal.fst_eq_fst_iff_snd_eq_snd.2 h) h)
+subtype.ext (prod.ext (mul_antidiagonal.fst_eq_fst_iff_snd_eq_snd.2 h) h)
 
-end add_antidiagonal
+end mul_antidiagonal
 end set
 
 namespace set

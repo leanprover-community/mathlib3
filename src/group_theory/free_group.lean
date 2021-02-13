@@ -401,28 +401,14 @@ rfl
 @[simp] lemma to_group.of {x} : to_group f (of x) = f x :=
 one_mul _
 
-instance to_group.is_group_hom : is_group_hom (to_group f) :=
-{ map_mul := by rintros ⟨L₁⟩ ⟨L₂⟩; simp }
-
-@[simp] lemma to_group.mul : to_group f (x * y) = to_group f x * to_group f y :=
-is_mul_hom.map_mul _ _ _
-
-@[simp] lemma to_group.one : to_group f 1 = 1 :=
-is_group_hom.map_one _
-
-@[simp] lemma to_group.inv : to_group f x⁻¹ = (to_group f x)⁻¹ :=
-is_group_hom.map_inv _ _
-
 theorem to_group.unique (g : free_group α →* β)
   (hg : ∀ x, g (of x) = f x) : ∀{x}, g x = to_group f x :=
 by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.map_one g)
 (λ ⟨x, b⟩ t (ih : g (mk t) = _), bool.rec_on b
   (show g ((of x)⁻¹ * mk t) = to_group f (mk ((x, ff) :: t)),
-     by simp [monoid_hom.map_mul g, monoid_hom.map_inv g, hg, ih,
-       to_group.to_fun, to_group.aux])
+     by simp [g.map_mul, g.map_inv, hg, ih, to_group.to_fun, to_group.aux])
   (show g (of x * mk t) = to_group f (mk ((x, tt) :: t)),
-     by simp [monoid_hom.map_mul g, monoid_hom.map_inv g, hg, ih,
-       to_group.to_fun, to_group.aux]))
+     by simp [g.map_mul, g.map_inv, hg, ih, to_group.to_fun, to_group.aux]))
 
 /-- Two homomorphisms out of a free group are equal if they are equal on generators.
 
@@ -511,23 +497,14 @@ by rcases x with ⟨L⟩; simp
 
 @[simp] lemma map.of {x} : map f (of x) = of (f x) := rfl
 
-@[simp] lemma map.mul : map f (x * y) = map f x * map f y :=
-is_mul_hom.map_mul _ x y
-
-@[simp] lemma map.one : map f 1 = 1 :=
-is_group_hom.map_one _
-
-@[simp] lemma map.inv : map f x⁻¹ = (map f x)⁻¹ :=
-is_group_hom.map_inv _ x
-
-theorem map.unique (g : free_group α → free_group β) [is_group_hom g]
+theorem map.unique (g : free_group α →* free_group β)
   (hg : ∀ x, g (of x) = of (f x)) : ∀{x}, g x = map f x :=
-by rintros ⟨L⟩; exact list.rec_on L (is_group_hom.map_one g)
+by rintros ⟨L⟩; exact list.rec_on L g.map_one
 (λ ⟨x, b⟩ t (ih : g (mk t) = map f (mk t)), bool.rec_on b
   (show g ((of x)⁻¹ * mk t) = map f ((of x)⁻¹ * mk t),
-     by simp [is_mul_hom.map_mul g, is_group_hom.map_inv g, hg, ih])
+     by simp [g.map_mul, g.map_inv, hg, ih])
   (show g (of x * mk t) = map f (of x * mk t),
-     by simp [is_mul_hom.map_mul g, hg, ih]))
+     by simp [g.map_mul, hg, ih]))
 
 /-- Equivalent types give rise to equivalent free groups. -/
 def free_group_congr {α β} (e : α ≃ β) : free_group α ≃ free_group β :=
@@ -558,15 +535,6 @@ rfl
 
 @[simp] lemma prod.of {x : α} : prod (of x) = x :=
 to_group.of
-
-@[simp] lemma prod.mul : prod (x * y) = prod x * prod y :=
-to_group.mul
-
-@[simp] lemma prod.one : prod (1:free_group α) = 1 :=
-to_group.one
-
-@[simp] lemma prod.inv : prod x⁻¹ = (prod x)⁻¹ :=
-to_group.inv
 
 lemma prod.unique (g : free_group α →* α)
   (hg : ∀ x, g (of x) = x) {x} :
@@ -603,17 +571,16 @@ rfl
 @[simp] lemma sum.of {x : α} : sum (of x) = x :=
 prod.of
 
-instance sum.is_group_hom : is_group_hom (@sum α _) :=
-prod.is_group_hom
+-- note: there are no bundled homs with different notation in the domain and codomain, so we copy
+-- these manually
+@[simp] lemma sum.map_mul : sum (x * y) = sum x + sum y :=
+(@prod (multiplicative _) _).map_mul _ _
 
-@[simp] lemma sum.mul : sum (x * y) = sum x + sum y :=
-prod.mul
+@[simp] lemma sum.map_one : sum (1:free_group α) = 0 :=
+(@prod (multiplicative _) _).map_one
 
-@[simp] lemma sum.one : sum (1:free_group α) = 0 :=
-prod.one
-
-@[simp] lemma sum.inv : sum x⁻¹ = -sum x :=
-prod.inv
+@[simp] lemma sum.map_inv : sum x⁻¹ = -sum x :=
+(@prod (multiplicative _) _).map_inv _
 
 end sum
 
@@ -667,25 +634,25 @@ bool.rec_on b (Cm _ _ (Ci _ $ Cp x) ih) (Cm _ _ (Cp x) ih)
 map.of
 
 @[simp] lemma map_one (f : α → β) : f <$> (1 : free_group α) = 1 :=
-map.one
+(map f).map_one
 
 @[simp] lemma map_mul (f : α → β) (x y : free_group α) : f <$> (x * y) = f <$> x * f <$> y :=
-map.mul
+(map f).map_mul x y
 
 @[simp] lemma map_inv (f : α → β) (x : free_group α) : f <$> (x⁻¹) = (f <$> x)⁻¹ :=
-map.inv
+(map f).map_inv x
 
 @[simp] lemma pure_bind (f : α → free_group β) (x) : pure x >>= f = f x :=
 to_group.of
 
 @[simp] lemma one_bind (f : α → free_group β) : 1 >>= f = 1 :=
-@@to_group.one _ f
+(to_group f).map_one
 
 @[simp] lemma mul_bind (f : α → free_group β) (x y : free_group α) : x * y >>= f = (x >>= f) * (y >>= f) :=
-to_group.mul
+(to_group f).map_mul _ _
 
 @[simp] lemma inv_bind (f : α → free_group β) (x : free_group α) : x⁻¹ >>= f = (x >>= f)⁻¹ :=
-to_group.inv
+(to_group f).map_inv _
 
 instance : is_lawful_monad free_group.{u} :=
 { id_map := λ α x, free_group.induction_on x (map_one id) (λ x, map_pure id x)

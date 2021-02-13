@@ -117,9 +117,6 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
                       continuous_to_fun := { is_open_preimage := λ s hs, hs }}}}}
 
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
-instance : reflective Profinite_to_CompHaus :=
-{ .. Profinite_to_CompHaus.category_theory.is_right_adjoint,
-  .. Profinite_to_CompHaus.category_theory.full,
-  .. Profinite_to_CompHaus.category_theory.faithful}
+instance : reflective Profinite_to_CompHaus := { }
 
 end Profinite

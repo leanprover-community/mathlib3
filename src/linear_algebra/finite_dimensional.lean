@@ -734,7 +734,7 @@ noncomputable def linear_equiv.quot_equiv_of_quot_equiv
 linear_equiv.of_findim_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (findim K q), submodule.findim_quotient_add_findim,
-    ← linear_equiv.findim_eq f, add_comm, submodule.findim_quotient_add_findim]
+      ← linear_equiv.findim_eq f, add_comm, submodule.findim_quotient_add_findim]
 end
 
 end finite_dimensional

@@ -305,7 +305,7 @@ instance : countable_Inter_filter μ.ae :=
   exact measure_Union_null (subtype.forall.2 hS)
 end⟩
 
-lemma ae_imp_left_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
+lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
 filter.eventually_imp_distrib_left
 
 lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :

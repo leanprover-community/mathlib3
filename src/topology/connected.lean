@@ -785,7 +785,7 @@ local attribute [instance] connected_component_setoid
 lemma component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ connected_component x = connected_component y :=
 ⟨λ h, (quotient.exact h), λ h, quotient.sound h⟩
 
-/-- The quotient of a space by its connecte components -/
+/-- The quotient of a space by its connected components -/
 def pi0 (α : Type u) [topological_space α] := quotient (connected_component_setoid α)
 
 localized "notation `π₀` := pi0" in topological_space

@@ -398,10 +398,10 @@ variables {𝕜}
 lemma is_bounded_bilinear_map.is_bounded_linear_map_deriv (h : is_bounded_bilinear_map 𝕜 f) :
   is_bounded_linear_map 𝕜 (λp : E × F, h.deriv p) :=
 begin
-  rcases h.bound with ⟨C, Cpos, hC⟩,
+  rcases h.bound with ⟨C, Cpos : 0 < C, hC⟩,
   refine is_linear_map.with_bound ⟨λp₁ p₂, _, λc p, _⟩ (C + C) (λp, _),
   { ext; simp [h.add_left, h.add_right]; abel },
-  { ext q; simp [h.smul_left, h.smul_right, smul_add] },
+  { ext; simp [h.smul_left, h.smul_right, smul_add] },
   { refine continuous_linear_map.op_norm_le_bound _
       (mul_nonneg (add_nonneg Cpos.le Cpos.le) (norm_nonneg _)) (λq, _),
     calc ∥f (p.1, q.2) + f (q.1, p.2)∥

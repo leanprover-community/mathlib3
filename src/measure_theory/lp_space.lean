@@ -1391,24 +1391,6 @@ begin
   exact (continuous_nnnorm.tendsto (f n a - f_lim a)).comp (tendsto_const_nhds.sub ha),
 end
 
-lemma nnreal.div_two_lt_of_pos {a : nnreal} (ha_pos : 0 < a) : a / 2 < a :=
-begin
-  have ha_pos_real : 0 < (a : ℝ), from nnreal.coe_pos.mpr ha_pos,
-  rw [←@nnreal.of_real_coe a, ←@nnreal.of_real_coe 2, ←nnreal.of_real_div'],
-  { rw nnreal.of_real_lt_of_real_iff ha_pos_real,
-    simp only [nnreal.coe_one, nnreal.coe_bit0],
-    refine div_two_lt_of_pos ha_pos_real, },
-  { simp [zero_le_one], },
-end
-
-lemma ennreal.div_two_lt {a : ℝ≥0∞} (ha_pos : 0 < a) (ha_ne_top : a ≠ ∞) : a / 2 < a :=
-begin
-  rw [←ennreal.coe_to_nnreal ha_ne_top, ←ennreal.coe_two, ←ennreal.coe_div two_ne_zero,
-    ennreal.coe_lt_coe],
-  exact nnreal.div_two_lt_of_pos (ennreal.to_nnreal_pos_iff.mpr ⟨ha_pos, ha_ne_top⟩),
-end
-
-
 
 
 
@@ -1584,8 +1566,8 @@ begin
   refine (lintegral_liminf_le' (λ m,
     ((hf n).1.sub (hf m).1).nnnorm.ennreal_coe.ennreal_rpow_const)).trans_lt _,
   have hε2 : ε^p/2 < ε^p,
-  { refine ennreal.div_two_lt _ _,
-    { exact ennreal.rpow_pos_of_nonneg hε hp_pos.le, },
+  { refine ennreal.half_lt_self _ _,
+    { exact (ennreal.rpow_pos_of_nonneg hε hp_pos.le).ne.symm, },
     { exact ennreal.rpow_ne_top_of_nonneg hp_pos.le (lt_top_iff_ne_top.mp hε_top), }, },
   refine lt_of_le_of_lt _ hε2,
   refine filter.liminf_le_of_frequently_le' (filter.frequently_at_top.mpr _),
@@ -1629,7 +1611,7 @@ begin
       (ε/2) (ennreal.div_pos_iff.mpr ⟨hε_pos.ne.symm, ennreal.two_ne_top⟩), },
   refine ⟨N, λ n hn, _⟩,
   rw [ess_sup, filter.limsup_eq],
-  refine (Inf_le _).trans_lt (ennreal.div_two_lt hε_pos hε_lt_top.ne),
+  refine (Inf_le _).trans_lt (ennreal.half_lt_self hε_pos.ne.symm hε_lt_top.ne),
   have h_liminf : ∀ᵐ x ∂μ, (nnnorm ((f n - f_lim) x) : ennreal)
     = filter.at_top.liminf (λ m, (nnnorm ((f n - f m) x) : ennreal)),
   { refine h_lim.mono (λ x hx, _),

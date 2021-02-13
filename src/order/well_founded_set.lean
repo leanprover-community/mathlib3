@@ -305,7 +305,7 @@ end set
 
 namespace finset
 
-variables  [linear_ordered_cancel_add_comm_monoid α]
+variables [linear_ordered_cancel_add_comm_monoid α]
 variables {s t : set α} (hs : s.is_wf) (ht : t.is_wf) (a : α)
 
 /-- `finset.add_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
@@ -317,8 +317,8 @@ noncomputable def add_antidiagonal_of_is_wf : finset (α × α) :=
 variables {hs} {ht} {a} {x : α × α}
 
 @[simp]
-lemma finset.mem_add_antidiagonal_of_is_wf :
-  x ∈ finset.add_antidiagonal_of_is_wf hs ht a ↔ x.1 + x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
-by simp [finset.add_antidiagonal_of_is_wf]
+lemma mem_add_antidiagonal_of_is_wf :
+  x ∈ add_antidiagonal_of_is_wf hs ht a ↔ x.1 + x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
+by simp [add_antidiagonal_of_is_wf]
 
 end finset

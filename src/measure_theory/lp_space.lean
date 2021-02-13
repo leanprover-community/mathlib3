@@ -66,12 +66,12 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory
-open_locale ennreal big_operators classical topological_space
+open_locale nnreal ennreal big_operators classical topological_space
 
 lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := le_refl _
 
 lemma fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
-ennreal.coe_le_coe.2 (show (1 : nnreal) ≤ 2, by norm_num)
+ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)
 
 lemma fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := le_top
 
@@ -737,7 +737,7 @@ lemma snorm_le_mul_snorm_aux_of_nonneg {f : α → F} {g : α → G} {c : ℝ}
   (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) (hc : 0 ≤ c) (p : ℝ≥0∞) :
   snorm f p μ ≤ (ennreal.of_real c) * snorm g p μ :=
 begin
-  lift c to nnreal using hc,
+  lift c to ℝ≥0 using hc,
   rw [ennreal.of_real_coe_nnreal, ← c.nnnorm_eq, ← snorm_norm g, ← snorm_const_smul (c : ℝ)],
   swap, apply_instance,
   refine snorm_mono_ae _,
@@ -1076,7 +1076,7 @@ section composition
 
 variables [second_countable_topology E] [borel_space E]
   [second_countable_topology F] [measurable_space F] [borel_space F]
-  {g : E → F} {c : nnreal}
+  {g : E → F} {c : ℝ≥0}
 
 namespace lipschitz_with
 

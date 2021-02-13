@@ -56,7 +56,7 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
 instance : has_zero (Module R) := ⟨of R punit⟩
-instance : inhabited (Module R) := 0
+instance : inhabited (Module R) := ⟨0⟩
 
 @[simp]
 lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl

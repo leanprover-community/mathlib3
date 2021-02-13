@@ -27,19 +27,26 @@ This is the category of contravariant functors from
 def simplicial_object := simplex_categoryᵒᵖ ⥤ C
 
 namespace simplicial_object
-variable {C}
+variables {C} (X : simplicial_object C)
 
 /-- Face maps for a simplicial object. -/
-def δ (X : simplicial_object C) {n} (i : fin (n+2)) :
+def δ {n} (i : fin (n+2)) :
   X.obj (op (n+1 : ℕ)) ⟶ X.obj (op n) :=
 X.map (simplex_category.δ i).op
 
 /-- Degeneracy maps for a simplicial object. -/
-def σ (X : simplicial_object C) {n} (i : fin (n+1)) :
+def σ {n} (i : fin (n+1)) :
   X.obj (op n) ⟶ X.obj (op (n+1 : ℕ)) :=
 X.map (simplex_category.σ i).op
 
 -- PROJECT: transfer the simplicial identities over to simplicial objects.
+
+/-- Isomorphisms from identities in ℕ. -/
+def eq_to_iso {n m : ℕ} (h : n = m) : X.obj (op n) ≅ X.obj (op m) :=
+X.map_iso (eq_to_iso (by rw h))
+
+@[simp] lemma eq_to_iso_refl {n : ℕ} (h : n = n) : X.eq_to_iso h = iso.refl _ :=
+by { ext, simp [eq_to_iso], }
 
 end simplicial_object
 

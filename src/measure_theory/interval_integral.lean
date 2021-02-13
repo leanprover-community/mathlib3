@@ -7,6 +7,7 @@ import measure_theory.set_integral
 import measure_theory.lebesgue_measure
 import analysis.calculus.fderiv_measurable
 import analysis.calculus.extend_deriv
+import analysis.special_functions.pow
 
 /-!
 # Integral over an interval
@@ -1381,6 +1382,12 @@ theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_a
   ∫ y in a..b, deriv f y = f b - f a :=
 integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
 
+theorem integral_deriv_eq_sub' (f) (hderiv : deriv f = f')
+  (hdiff : ∀ x ∈ interval a b, differentiable_at ℝ f x)
+  (hcont' : continuous_on f' (interval a b)) :
+  ∫ y in a..b, f' y = f b - f a :=
+by rw [← hderiv, integral_deriv_eq_sub hdiff]; cc
+
 /-!
 ### Integration by parts
 -/
@@ -1413,5 +1420,49 @@ begin
   { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
   { exact (hcv.mul hcu').interval_integrable },
 end
+
+/-!
+### Integration
+-/
+open real
+
+@[simp]
+lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
+by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
+
+@[simp]
+lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
+by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
+
+@[simp]
+lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
+by rw integral_deriv_eq_sub'; norm_num [continuous_exp.continuous_on]
+
+@[simp]
+lemma integral_pow (n : ℕ) : ∫ x : ℝ in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
+begin
+  have hderiv : deriv (λ x : ℝ, x^(n + 1) / (n + 1)) = λ x, x ^ n,
+  { have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast nat.succ_ne_zero n,
+    ext,
+    simp [mul_div_assoc, mul_div_cancel' _ hne] },
+  rw integral_deriv_eq_sub' _ hderiv;
+  norm_num [div_sub_div_same, (continuous_pow n).continuous_on],
+end
+
+@[simp]
+lemma integral_id : ∫ x in a..b, x = (b^2 - a^2) / 2 :=
+by simpa using integral_pow 1
+
+@[simp]
+lemma integral_one : ∫ x in a..b, (1:ℝ) = b - a :=
+by simpa using integral_pow 0
+
+-- Simple integrals are now computable by `norm_num`. Here are some examples:
+example : ∫ x in 0..real.pi, sin x = 2 := by norm_num
+example : ∫ x in 0..real.pi/4, cos x = sqrt 2 / 2 := by simp
+example : ∫ x:ℝ in 2..4, x^(3:ℕ) = 60 := by norm_num
+example : ∫ x in 0..2, exp x = exp 2 - 1 := by simp
+example : ∫ x:ℝ in (-1)..2, x = 3/2 := by norm_num
+example : ∫ x:ℝ in 8..11, (1:ℝ) = 3 := by norm_num
 
 end interval_integral

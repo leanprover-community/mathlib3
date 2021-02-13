@@ -227,6 +227,7 @@ variables [has_coproducts C] [has_images C] (W : C)
 instance : has_sup (subobject W) :=
 { sup := λ A B, mk (image.ι (coprod.desc A.ι B.ι)), }
 
+section
 variables [has_image_maps C]
 
 lemma le_sup_left (X Y : subobject W) : X ≤ X ⊔ Y :=
@@ -240,7 +241,9 @@ le_of_hom
   ((factor_thru_image coprod.inr ≫ image.map_composable coprod.inr (coprod.desc X.ι Y.ι)) ≫
     (mk_X_iso (image.ι _)).inv)
   (by { slice_lhs 3 4 { erw mk_X_iso_inv_comm, }, simp, })
+end
 
+section
 variables [has_equalizers C]
 
 lemma sup_le (X Y Z : subobject W) (f : X ≤ Z) (g : Y ≤ Z) : X ⊔ Y ≤ Z :=
@@ -254,6 +257,9 @@ le_of_hom
   rw [category.assoc, category.assoc, image.lift_fac, ←(mk_X_iso _).eq_inv_comp],
   erw [mk_X_iso_inv_comm, ←image.eq_fac],
 end)
+end
+
+variables [has_image_maps C] [has_equalizers C]
 
 instance : semilattice_sup (subobject W) :=
 { sup_le := sup_le W,

@@ -215,7 +215,7 @@ namespace set
 
 /-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
   that multiply to `a`. -/
-@[to_additive add_antidiagonal "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
+@[to_additive "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
   that add to `a`."]
 def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
 { x | x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t }
@@ -255,40 +255,44 @@ end mul_antidiagonal
 end set
 
 namespace set
-namespace add_antidiagonal
+namespace mul_antidiagonal
 
-variables [linear_ordered_cancel_add_comm_monoid α] (s t : set α) (a : α)
+variables [linear_ordered_cancel_comm_monoid α] (s t : set α) (a : α)
 
-/-- The relation on `set.add_antidagonal s t a` given by `<` on the first coordinate. -/
-def lt_left (x y : add_antidiagonal s t a) : Prop := (x : α × α).1 < (y : α × α).1
+/-- The relation on `set.mul_antidagonal s t a` given by `<` on the first coordinate. -/
+@[to_additive "The relation on `set.add_antidagonal s t a` given by `<` on the first coordinate."]
+def lt_left (x y : mul_antidiagonal s t a) : Prop := (x : α × α).1 < (y : α × α).1
 
-/-- `set.add_antidiagonal s t a` ordered by `lt_left` embeds into `s` -/
+/-- `set.mul_antidiagonal s t a` ordered by `lt_left` embeds into `s` -/
+@[to_additive "`set.add_antidiagonal s t a` ordered by `lt_left` embeds into `s`"]
 def fst_rel_embedding : (lt_left s t a) ↪r ((<) : s → s → Prop) :=
 ⟨⟨λ x, ⟨(↑x : α × α).1, x.2.2.1⟩, λ x y hxy,
-    add_antidiagonal.eq_of_fst_eq_fst (subtype.mk_eq_mk.1 hxy)⟩, λ x y, iff.refl _⟩
+    mul_antidiagonal.eq_of_fst_eq_fst (subtype.mk_eq_mk.1 hxy)⟩, λ x y, iff.refl _⟩
 
-/-- `set.add_antidiagonal s t a` ordered by `lt_left` embeds into the dual of `t` -/
+/-- `set.mul_antidiagonal s t a` ordered by `lt_left` embeds into the dual of `t` -/
+@[to_additive "`set.add_antidiagonal s t a` ordered by `lt_left` embeds into the dual of `t`"]
 def snd_rel_embedding : (lt_left s t a) ↪r ((>) : t → t → Prop) :=
-⟨⟨λ x, ⟨(↑x : α × α).2, x.2.2.2⟩, λ x y hxy,
-    add_antidiagonal.eq_of_snd_eq_snd (subtype.mk_eq_mk.1 hxy)⟩, λ x y, begin
+⟨⟨λ x, ⟨(↑x : α × α).2, x.2.2.2⟩, λ x y hxy, eq_of_snd_eq_snd (subtype.mk_eq_mk.1 hxy)⟩,
+  λ x y, begin
   simp only [lt_left, subtype.mk_lt_mk, gt_iff_lt, function.embedding.coe_fn_mk],
   split; intro h,
   { by_contra hle,
     rw not_lt at hle,
-    have h := add_lt_add_of_le_of_lt hle h,
+    have h := mul_lt_mul_of_le_of_lt hle h,
     rw [← subtype.val_eq_coe, ← subtype.val_eq_coe, x.2.1, y.2.1] at h,
     exact lt_irrefl a h },
   { by_contra hle,
     rw not_lt at hle,
-    have h := add_lt_add_of_le_of_lt hle h,
-    rw [← subtype.val_eq_coe, ← subtype.val_eq_coe, add_comm, x.2.1, add_comm, y.2.1] at h,
+    have h := mul_lt_mul_of_le_of_lt hle h,
+    rw [← subtype.val_eq_coe, ← subtype.val_eq_coe, mul_comm, x.2.1, mul_comm, y.2.1] at h,
     exact lt_irrefl a h }
 end⟩
 
 variables {s} {t}
 
+@[to_additive]
 theorem finite_of_is_wf (hs : s.is_wf) (ht : t.is_wf) (a) :
-  (add_antidiagonal s t a).finite :=
+  (mul_antidiagonal s t a).finite :=
 begin
   by_contra h,
   rw [← set.infinite, ← infinite_coe_iff] at h,
@@ -297,33 +301,36 @@ begin
     wf := hs,
     .. (infer_instance : is_strict_total_order _ _),
   },
-  haveI : is_well_order (add_antidiagonal s t a) (lt_left s t a) :=
-    (add_antidiagonal.fst_rel_embedding s t a).is_well_order,
+  haveI : is_well_order (mul_antidiagonal s t a) (lt_left s t a) :=
+    (fst_rel_embedding s t a).is_well_order,
   have hwf : well_founded
     (function.swap (lt_left s t a)) :=
-    (add_antidiagonal.snd_rel_embedding s t a).swap.well_founded ht,
+    (snd_rel_embedding s t a).swap.well_founded ht,
   exact not_well_founded_swap_of_infinite_of_well_order (hwf),
 end
 
-end add_antidiagonal
+end mul_antidiagonal
 end set
 
 namespace finset
 
-variables [linear_ordered_cancel_add_comm_monoid α]
+variables [linear_ordered_cancel_comm_monoid α]
 variables {s t : set α} (hs : s.is_wf) (ht : t.is_wf) (a : α)
 
-/-- `finset.add_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
-  `s` and an element in `t` that add to `a`, but its construction requires proofs `hs` and `ht` that
-  `s` and `t` are well-ordered. -/
-noncomputable def add_antidiagonal_of_is_wf : finset (α × α) :=
-(set.add_antidiagonal.finite_of_is_wf hs ht a).to_finset
+/-- `finset.mul_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
+  `s` and an element in `t` that multiply to `a`, but its construction requires proofs
+  `hs` and `ht` that `s` and `t` are well-ordered. -/
+@[to_additive "`finset.add_antidiagonal_of_is_wf hs ht a` is the set of all pairs of an element in
+  `s` and an element in `t` that add to `a`, but its construction requires proofs
+  `hs` and `ht` that `s` and `t` are well-ordered."]
+noncomputable def mul_antidiagonal : finset (α × α) :=
+(set.mul_antidiagonal.finite_of_is_wf hs ht a).to_finset
 
 variables {hs} {ht} {a} {x : α × α}
 
-@[simp]
-lemma mem_add_antidiagonal_of_is_wf :
-  x ∈ add_antidiagonal_of_is_wf hs ht a ↔ x.1 + x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
-by simp [add_antidiagonal_of_is_wf]
+@[simp, to_additive]
+lemma mem_mul_antidiagonal_of_is_wf :
+  x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
+by simp [mul_antidiagonal]
 
 end finset

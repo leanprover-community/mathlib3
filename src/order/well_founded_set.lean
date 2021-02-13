@@ -329,7 +329,7 @@ noncomputable def mul_antidiagonal : finset (α × α) :=
 variables {hs} {ht} {a} {x : α × α}
 
 @[simp, to_additive]
-lemma mem_mul_antidiagonal_of_is_wf :
+lemma mem_mul_antidiagonal :
   x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
 by simp [mul_antidiagonal]
 

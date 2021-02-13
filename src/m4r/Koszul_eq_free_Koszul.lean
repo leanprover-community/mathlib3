@@ -76,28 +76,58 @@ def epow.zero_isom :
       exact mul_one _
     end }
 
-
-def multilinear_map.of_subsingleton (ι : Type v) [subsingleton ι] [inhabited ι] {N : Type u}
-  [add_comm_group N] [module R N] (f : M →ₗ[R] N) : multilinear_map R (λ (i : ι), M) N :=
-{ to_fun := λ x, f (x $ default ι),
-  map_add' := λ m i x y, by rw subsingleton.elim i (default ι); simp only
+def multilinear_map.of_fin_one {N : Type u}
+  [add_comm_group N] [module R N] (f : M →ₗ[R] N) : multilinear_map R (λ (i : fin 1), M) N :=
+{ to_fun := λ x, f (x $ default (fin 1)),
+  map_add' := λ m i x y, by rw subsingleton.elim i (default (fin 1)); simp only
     [function.update_same, f.map_add],
-  map_smul' := λ m i r x, by rw subsingleton.elim i (default ι); simp only
+  map_smul' := λ m i r x, by rw subsingleton.elim i (default (fin 1)); simp only
     [function.update_same, f.map_smul], }
 
-def alternating_map.of_subsingleton (ι : Type v) [subsingleton ι] [inhabited ι] {N : Type u}
-  [add_comm_group N] [module R N] (f : M →ₗ[R] N) : alternating_map R M N ι :=
+def alternating_map.of_fin_one {N : Type u}
+  [add_comm_group N] [module R N] (f : M →ₗ[R] N) : alternating_map R M N (fin 1) :=
 { map_eq_zero_of_eq' := λ v i j hv hij, false.elim $ hij $ subsingleton.elim _ _,
-  ..multilinear_map.of_subsingleton R M _ f }
+  ..multilinear_map.of_fin_one R M f }
 
+instance grrr : module R (tpow_aux R M 0).1 := infer_instance
 def epow.one_isom :
   epow R M 1 ≃ₗ[R] M :=
-{ to_fun := epow_lift R $ sorry, --alternating_map.of_subsingleton R M (fin 1) linear_map.id,
+{ to_fun := epow_lift R $ alternating_map.of_fin_one R M linear_map.id,
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _,
   inv_fun := (epow_ker R M 1).mkq.comp (tensor_product.lid R M).symm.to_linear_map,
-  left_inv := sorry,
-  right_inv := sorry }
+  left_inv :=
+    begin
+      intro y,
+      refine quotient.induction_on' y _,
+      intro a,
+      refine tensor_product.induction_on a _ _ _,
+      { simp only [linear_map.map_zero, submodule.quotient.mk'_eq_mk,
+          submodule.quotient.mk_zero], },
+      { intros r x,
+        simp only [submodule.quotient.mk'_eq_mk, to_linear_map_apply,
+          submodule.mkq_apply, tensor_product.lid_symm_apply, linear_map.comp_apply],
+        congr' 1,
+        rw @tpow.mk_one_fin R _ M _ _ (r : R) x,
+        erw epow_lift_mk,
+        refl },
+      { intros x y hx hy,
+        show (epow_ker R M 1).mkq.comp _ ((epow_lift R
+          (alternating_map.of_fin_one R M linear_map.id)) (submodule.mkq _ (x + y)))
+            = submodule.mkq _ (x + y),
+        simp only [linear_map.map_add, linear_map.add_apply],
+        erw [hx, hy],
+        refl }
+    end,
+  right_inv :=
+    begin
+      intro y,
+      dsimp,
+      rw tpow.mk_one_fin,
+      erw epow_lift_mk,
+      simp only [one_smul],
+      refl,
+    end }
 
 lemma epow.ext {N : Type u} [add_comm_group N] [module R N] {n : ℕ}
   (f g : epow R M n →ₗ[R] N)
@@ -151,14 +181,45 @@ def smul_cx_isom_aux (x : R) : Π (i : ℤ),
 | (int.of_nat (n + 2)) := (epow.ring_isom_zero R n).symm.to_Module_iso
 | -[1+ n] := category_theory.iso.refl _
 
+lemma tpow_zero_mk (y : R) :
+  y = y • tpow.mk R M 0 (default (fin 0 → M)) :=
+begin
+  unfold tpow.mk,
+  rw algebra.id.smul_eq_mul,
+  rw mul_one,
+end
+
 def smul_cx_isom (x : R) :
   (smul_cx R x) ≅ (Koszul R R x) :=
 { hom :=
   { f := λ i, (smul_cx_isom_aux R x i).hom,
-    comm' := sorry },
+    comm' :=
+      begin
+        ext n y,
+        induction n with n n,
+        { induction n with n hn,
+          { simp only [function.comp_app, category_theory.pi.comp_apply, Module.coe_comp],
+            show (epow.one_isom R R).symm (x • (y : R)) = wedge_d R x 0 ((epow_ker R R 0).mkq y),
+            erw linear_map.comp_apply,
+            rw to_linear_map_apply,
+            rw tensor_product.lid_symm_apply,
+            conv_rhs {rw tpow_zero_mk R R y},
+            rw linear_map.map_smul,
+            rw linear_map.map_smul,
+            erw epow_lift_mk,
+            sorry,
+            sorry },
+            { sorry }},
+        { sorry },
+      end },
   inv :=
   { f := λ i, (smul_cx_isom_aux R x i).inv,
-    comm' := sorry },
+    comm' :=
+      begin
+        ext n y,
+        dsimp,
+          sorry,
+      end },
   hom_inv_id' := sorry,
   inv_hom_id' := sorry }
 

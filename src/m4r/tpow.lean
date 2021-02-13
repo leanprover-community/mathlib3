@@ -146,6 +146,14 @@ lemma mk_one_lid_symm (x : M) :
   (tensor_product.lid R M).symm x = mk' R M 1 (λ i, x) :=
 rfl
 
+lemma mk_one_fin (r : R) (x : M) :
+  (r ⊗ₜ[R] x : tpow R M 1) = tpow.mk R M 1 (λ i, r • x) :=
+begin
+  unfold tpow.mk,
+  rw [linear_map.map_smul, ←linear_map.map_smul₂, algebra.id.smul_eq_mul, mul_one],
+  refl,
+end
+
 lemma mk_one_rid (x : tensor_product R M R) :
   tensor_product.mk R M R (tensor_product.rid R M x) 1 = x :=
 begin

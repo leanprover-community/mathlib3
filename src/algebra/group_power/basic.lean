@@ -548,6 +548,22 @@ variable [ordered_semiring R]
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 
+theorem pow_add_pow_le {x y : R} {n : ℕ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) :
+  x ^ n + y ^ n ≤ (x + y) ^ n :=
+begin
+  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨k, rfl⟩,
+  induction k with k ih, { simp only [pow_one] },
+  let n := k.succ,
+  have h1 := add_nonneg (mul_nonneg hx (pow_nonneg hy n)) (mul_nonneg hy (pow_nonneg hx n)),
+  have h2 := add_nonneg hx hy,
+  calc x^n.succ + y^n.succ ≤ x*x^n + y*y^n + (x*y^n + y*x^n) : le_add_of_nonneg_right h1
+                       ... = (x+y) * (x^n + y^n) : by rw [add_mul, mul_add, mul_add,
+                                                          add_comm (y*x^n), ← add_assoc,
+                                                          ← add_assoc, add_assoc (x*x^n) (x*y^n),
+                                                          add_comm (x*y^n) (y*y^n), ← add_assoc]
+                       ... ≤ (x+y)^n.succ : mul_le_mul_of_nonneg_left (ih (nat.succ_ne_zero k)) h2,
+end
+
 theorem pow_lt_pow_of_lt_left {x y : R} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
   x ^ n < y ^ n :=
 begin

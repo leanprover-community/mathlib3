@@ -284,7 +284,7 @@ Analysis:
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
     Fatou's lemma: 'measure_theory.lintegral_liminf_le'
     vector-valued integrable function (Bochner integral): 'measure_theory.integrable'
-    $L^1$ space: 'measure_theory.l1'
+    $L^p$ space: 'measure_theory.Lp'
     Bochner integral: 'measure_theory.integral'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'

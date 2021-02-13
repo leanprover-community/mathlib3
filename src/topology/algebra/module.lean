@@ -619,10 +619,7 @@ by ext; simp [← continuous_linear_map.map_smul_of_tower]
 @[simp]
 lemma smul_right_one_eq_iff {f f' : M₂} :
   smul_right (1 : R →L[R] R) f = smul_right (1 : R →L[R] R) f' ↔ f = f' :=
-⟨λ h, have (smul_right (1 : R →L[R] R) f : R → M₂) 1 = (smul_right (1 : R →L[R] R) f' : R → M₂) 1,
-        by rw h,
-      by simp at this; assumption,
-  λ h, by rw h⟩
+by simp only [ext_ring_iff, smul_right_apply, one_apply, one_smul]
 
 lemma smul_right_comp [topological_semimodule R R] {x : M₂} {c : R} :
   (smul_right (1 : R →L[R] R) x).comp (smul_right (1 : R →L[R] R) c) =

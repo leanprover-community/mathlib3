@@ -448,7 +448,7 @@ def dom_restrict'
   (p : submodule R M) : (M →ₗ[R] M₂) →ₗ[R] (p →ₗ[R] M₂) :=
 { to_fun := λ φ, φ.dom_restrict p,
   map_add' := by simp [linear_map.ext_iff],
-  map_smul' := by simp [linear_map.ext_iff] }.
+  map_smul' := by simp [linear_map.ext_iff] }
 
 @[simp] lemma dom_restrict'_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
   dom_restrict' p f x = f x := rfl

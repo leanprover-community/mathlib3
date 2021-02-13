@@ -424,7 +424,7 @@ linear_map.dom_restrict' W
 
 @[simp] lemma dual_restrict_apply
   (W : submodule R M) (φ : module.dual R M) (x : W) :
-  W.dual_restrict φ x = φ x.1 := rfl
+  W.dual_restrict φ x = φ (x : M) := rfl
 
 /-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
   that `φ w = 0` for all `w ∈ W`. -/

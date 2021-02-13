@@ -106,10 +106,12 @@ end nat
 /-! ### Divisibility over ℤ -/
 namespace int
 
+/-- The extended GCD `a` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_a : ℤ → ℤ → ℤ
 | (of_nat m) n := m.gcd_a n.nat_abs
 | -[1+ m]    n := -m.succ.gcd_a n.nat_abs
 
+/-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b : ℤ → ℤ → ℤ
 | m (of_nat n) := m.nat_abs.gcd_b n
 | m -[1+ n]    := -m.nat_abs.gcd_b n.succ

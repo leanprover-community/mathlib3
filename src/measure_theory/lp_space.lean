@@ -343,24 +343,6 @@ lemma mem_ℒp.of_le [measurable_space F] {f : α → E} {g : α → F}
   (hg : mem_ℒp g p μ) (hf : ae_measurable f μ) (hfg : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) : mem_ℒp f p μ :=
 ⟨hf, (snorm_mono_ae hfg).trans_lt hg.snorm_lt_top⟩
 
-lemma snorm_norm_mono_ae {f : α → F} {g : α → G} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ ∥g x∥) :
-  snorm f p μ ≤ snorm g p μ :=
-begin
-  simp only [snorm],
-  split_ifs,
-  { exact le_refl _ },
-  { refine ess_sup_mono_ae _,
-    filter_upwards [h],
-    assume x hx,
-    exact ennreal.coe_le_coe.2 hx },
-  { rw [snorm'],
-    refine ennreal.rpow_le_rpow _ (by simp),
-    apply lintegral_mono_ae,
-    filter_upwards [h],
-    assume x hx,
-    exact ennreal.rpow_le_rpow (ennreal.coe_le_coe.2 hx) (by simp) }
-end
-
 section opens_measurable_space
 variable [opens_measurable_space E]
 

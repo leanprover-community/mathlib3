@@ -725,7 +725,7 @@ noncomputable def linear_equiv.quot_equiv_of_equiv
 linear_equiv.of_findim_eq _ _
 begin
   rw [← @add_right_cancel_iff _ _ (findim K p), submodule.findim_quotient_add_findim,
-    linear_equiv.findim_eq f₁, submodule.findim_quotient_add_findim, linear_equiv.findim_eq f₂],
+      linear_equiv.findim_eq f₁, submodule.findim_quotient_add_findim, linear_equiv.findim_eq f₂],
 end
 
 /-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/

@@ -528,14 +528,16 @@ noncomputable def mul_antidiagonal : finset (α × α) :=
 variables {hs} {ht} {a} {x : α × α}
 
 @[simp, to_additive]
-lemma mem_mul_antidiagonal_of_is_wf :
+lemma mem_mul_antidiagonal :
   x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
 by simp [mul_antidiagonal]
 
-theorem foo : { a : α | (add_antidiagonal_of_is_wf hs ht a).nonempty }.is_wf :=
-(is_wf.sum_set hs ht).mono (λ x hx, begin
+@[to_additive]
+theorem is_wf_support_mul_antidiagonal :
+  { a : α | (mul_antidiagonal hs ht a).nonempty }.is_wf :=
+(hs.product_set ht).mono (λ x hx, begin
   obtain ⟨a, ha⟩ := hx,
-  rw mem_add_antidiagonal_of_is_wf at ha,
+  rw mem_mul_antidiagonal at ha,
   refine ⟨a, ha.2, ha.1⟩,
 end)
 

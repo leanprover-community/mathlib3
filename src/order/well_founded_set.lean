@@ -16,7 +16,13 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
 ## Main Definitions
  * `set.well_founded_on s r` indicates that the relation `r` is
   well-founded when restricted to the set `s`.
- * `set.is_wf s` indicates that `<` is well-founded when restricted to `s`.notation
+ * `set.is_wf s` indicates that `<` is well-founded when restricted to `s`.
+
+### Definitions for Hahn Series
+ * `set.add_antidiagonal s t a` and `set.mul_antidiagonal s t a` are the sets of pairs of elements
+  from `s` and `t` that add/multiply to `a`.
+ * `finset.add_antidiagonal` and `finset.mul_antidiagonal` are finite versions of
+  `set.add_antidiagonal` and `set.mul_antidiagonal` defined when `s` and `t` are well-founded.
 
 ## Main Results
  * `set.well_founded_on_iff` relates `well_founded_on` to the well-foundedness of a relation on the
@@ -215,8 +221,8 @@ namespace set
 
 /-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
   that multiply to `a`. -/
-@[to_additive "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
-  that add to `a`."]
+@[to_additive "`set.add_antidiagonal s t a` is the set of all pairs of an element in `s` and an
+  element in `t` that add to `a`."]
 def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
 { x | x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t }
 

@@ -114,8 +114,7 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
     unit :=
       { app := λ X,
         begin
-          simp only [functor.id_obj],
-          simp only [functor.comp_obj],
+          simp only [functor.id_obj, functor.comp_obj],
           exact { to_fun := quotient.mk,
                   continuous_to_fun := continuous_quotient_mk },
         end,

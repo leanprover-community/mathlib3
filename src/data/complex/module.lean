@@ -125,7 +125,7 @@ namespace complex
 def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
   map_add' := add_re,
-  map_smul' := re_smul }
+  map_smul' := by simp, }
 
 @[simp] lemma linear_map.coe_re : ⇑linear_map.re = re := rfl
 
@@ -133,7 +133,7 @@ def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
 def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
   map_add' := add_im,
-  map_smul' := im_smul }
+  map_smul' := by simp, }
 
 @[simp] lemma linear_map.coe_im : ⇑linear_map.im = im := rfl
 

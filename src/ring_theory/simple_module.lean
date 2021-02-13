@@ -27,7 +27,7 @@ import order.atoms
 
 -/
 
-variables (R : Type*) [comm_ring R] (M : Type*) [add_comm_group M] [module R M]
+variables (R : Type*) [ring R] (M : Type*) [add_comm_group M] [module R M]
 
 /-- A module is simple when it has only two submodules, `⊥` and `⊤`. -/
 abbreviation is_simple_module := (is_simple_lattice (submodule R M))
@@ -82,8 +82,7 @@ end
 instance is_semisimple_submodule {m : submodule R M} : is_semisimple_module R m :=
 begin
   have f : submodule R m ≃o set.Iic m := submodule.map_subtype.rel_iso m,
-  apply f.is_complemented_iff.2,
-  apply is_modular_lattice.is_complemented_Iic,
+  exact f.is_complemented_iff.2 is_modular_lattice.is_complemented_Iic,
 end
 
 end is_semisimple_module

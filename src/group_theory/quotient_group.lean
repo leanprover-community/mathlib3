@@ -226,7 +226,7 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
     rwa [←mul_assoc, inv_mul_self, one_mul],
   end,
 suffices h : (H ⊓ N).comap H.subtype = φ.ker,
-  from mul_equiv.trans (equiv_quotient_of_eq h) (quotient_ker_equiv_of_surjective φ φ_surjective),
+  from (equiv_quotient_of_eq h).trans (quotient_ker_equiv_of_surjective φ φ_surjective),
 ext $ λ x,
   ⟨λ h, by { simpa [←comap_ker, ker_mk] using h.2 },
   λ h, by { use x.2, simpa [←comap_ker, ker_mk, mem_comap] using h }⟩

@@ -23,7 +23,6 @@ open_locale classical topological_space big_operators nnreal ennreal
 
 namespace measure_theory
 
-
 open measure_theory measure_theory.simple_func
 
 /-- This (roughly) proves that if a random variable `f` is independent of an event `T`,
@@ -33,13 +32,14 @@ open measure_theory measure_theory.simple_func
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
   {α:Type*} [M:measurable_space α] (μ:measure α) (Mf:measurable_space α) (hMf:Mf ≤ M)
   (c:ℝ≥0∞) (T:set α) (h_meas_T:M.measurable_set' T)
-  (h_ind:∀ (S:set α), Mf.measurable_set' S →
-  (μ S * μ T = μ (S ∩ T)))   
+  (h_ind:@probability_theory.indep_sets α M Mf.measurable_set' {T} μ )   
   (f:α → ℝ≥0∞) (h_meas_f:@measurable α ℝ≥0∞ Mf _ f):
 @lintegral α M μ (λ a, (f * (T.indicator (λ (_x : α), c))) a) =
   @lintegral α M μ f * 
   @lintegral α M μ (T.indicator (λ (_x : α), c)) :=
 begin
+  /- have h_ind_symm:@probability_theory.indep_sets α M Mf.measurable_set' {T} μ,
+  { intros s t h_s h_t, rw set.inter_comm, rw h_ind t s h_t h_s, rw mul_comm }, -/
   revert f,
   have h_mul_indicator:∀ g, @measurable α ℝ≥0∞ M _ g →
     @measurable α ℝ≥0∞ M _ (g * (λ (a : α), T.indicator (λ (_x : α), c) a)) :=
@@ -70,9 +70,7 @@ begin
           @lintegral_indicator _ M _ _ _ h_meas_T],
       simp only [measurable_const, lintegral_const, set.univ_inter, lintegral_const_mul, 
         measurable_set.univ, measure.restrict_apply],
-      rw ← h_ind,
-      ring,
-      apply h_meas_s' },
+      rw h_ind, ring, apply h_meas_s', simp },
   { intros f' g h_univ h_meas_f' h_meas_g h_ind_f' h_ind_g,
     have h_measM_f' := measurable.mono h_meas_f' hMf (le_refl _),
     have h_measM_g := measurable.mono h_meas_g hMf (le_refl _),
@@ -106,6 +104,7 @@ begin
       apply ennreal.mul_le_mul, apply h_mono_f, apply h_le, apply le_refl _  } },
 end
 
+set_option pp.implicit true
 /-- This (roughly) proves that if `f` and `g` are independent random variables,
    then `E[f * g] = E[f] * E[g]`. However, instead of directly using the independence
    of the random variables, it uses the independence of measurable spaces for the
@@ -131,9 +130,9 @@ begin
   apply measurable.ennreal_induction,
   { intros c s h_s,
     apply @lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator _ M _ _ 
-       hMf _ _ (hMg _ h_s) _ _ h_meas_f,
-    intros S h_S,
-    rw h_ind S s h_S h_s, },
+       hMf _ _ (hMg _ h_s) _ _ h_meas_f, 
+    apply @probability_theory.indep_sets_of_indep_sets_of_le_right α _ _ _ M _ h_ind,
+    rw singleton_subset_iff, apply h_s },
   { intros f' g h_univ h_measMg_f' h_measMg_g h_ind_f' h_ind_g',
     have h_measM_f' := h_meas_Mg h_measMg_f',
     have h_measM_g := h_meas_Mg h_measMg_g,
@@ -177,10 +176,5 @@ begin
   apply h_indep_fun,  
   repeat { apply measurable.of_comap_le (le_refl _) },
 end
-
-
-
-
-
 
 end measure_theory

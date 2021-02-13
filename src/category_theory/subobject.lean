@@ -8,6 +8,7 @@ import category_theory.thin
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.zero
 import category_theory.isomorphism_classes
+import order.modular_lattice
 
 /-!
 ## Subobjects in a category.
@@ -279,6 +280,10 @@ end
 --   says any "coherent category" (including any pretopos)
 -- Categories with biproducts (e.g. abelian categories) do not have distributive subobject lattices.
 --   https://ncatlab.org/nlab/show/subobject+classifier#categories_without_subobject_classifiers
+-- Abelian categories have modular subobject lattices.
+--   I haven't found a good reference.
+--   Freyd's "Abelian Categories" gives this as an exercise on p. 103,
+--   presumably intending to use Mitchell's embedding theorem.
 
 end subobject
 

@@ -15,8 +15,8 @@ integrable functions are proved.
 Such a predicate is already available under the name `mem_ℒp 1`. We give a direct definition which
 is easier to use, and show that it is equivalent to `mem_ℒp 1`
 
-In the second part, we establish an API between API and the space `L¹` of equivalence classes of
-integrable functions, already defined as a special case of `L^p` spaces for `p = 1`.
+In the second part, we establish an API between `integrable` and the space `L¹` of equivalence
+classes of integrable functions, already defined as a special case of `L^p` spaces for `p = 1`.
 
 ## Notation
 

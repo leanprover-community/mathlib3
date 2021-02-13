@@ -114,17 +114,12 @@ def gcd_b : ℤ → ℤ → ℤ
 | m (of_nat n) := m.nat_abs.gcd_b n
 | m -[1+ n]    := -m.nat_abs.gcd_b n.succ
 
-theorem gcd_eq_gcd_ab (x y : ℤ) : (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y :=
-begin
-  cases x; cases y,
-  { apply nat.gcd_eq_gcd_ab },
-  { change (_ : ℤ) = _ + -y.succ * -_, rw neg_mul_neg,
-    apply nat.gcd_eq_gcd_ab },
-  { change (_ : ℤ) = -x.succ * -_ + _, rw neg_mul_neg,
-    apply nat.gcd_eq_gcd_ab },
-  { change (_ : ℤ) = -x.succ * -_ + -y.succ * -_, rw [neg_mul_neg, neg_mul_neg],
-    apply nat.gcd_eq_gcd_ab },
-end
+theorem gcd_eq_gcd_ab : ∀ x y : ℤ, (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y
+| (m : ℕ) (n : ℕ) := nat.gcd_eq_gcd_ab _ _
+| (m : ℕ) -[1+ n] := show (_ : ℤ) = _ + -(n+1) * -_, by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab
+| -[1+ m] (n : ℕ) := show (_ : ℤ) = -(m+1) * -_ + _ , by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab
+| -[1+ m] -[1+ n] := show (_ : ℤ) = -(m+1) * -_ + -(n+1) * -_,
+  by { rw [neg_mul_neg, neg_mul_neg], apply nat.gcd_eq_gcd_ab }
 
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
 begin

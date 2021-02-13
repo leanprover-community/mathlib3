@@ -793,16 +793,6 @@ lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp] lemma comp_smul [linear_map.compatible_smul M₂ M₃ S R] : h.comp (c • f) = c • (h.comp f) :=
 by { ext x, exact h.map_smul_of_tower c (f x) }
 
-variables [has_continuous_add M₂]
-
-instance : semimodule S (M →L[R] M₂) :=
-{ smul_zero := λ _, ext $ λ _, smul_zero _,
-  zero_smul := λ _, ext $ λ _, zero_smul _ _,
-  one_smul  := λ _, ext $ λ _, one_smul _ _,
-  mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
-  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
-  smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
-
 /-- `continuous_linear_map.prod` as an `equiv`. -/
 @[simps apply] def prod_equiv : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ (M →L[R] M₂ × M₃) :=
 { to_fun := λ f, f.1.prod f.2,
@@ -817,6 +807,16 @@ by { simp only [← coe_inj, linear_map.prod_ext_iff], refl }
 @[ext] lemma prod_ext {f g : M × M₂ →L[R] M₃} (hl : f.comp (inl _ _ _) = g.comp (inl _ _ _))
   (hr : f.comp (inr _ _ _) = g.comp (inr _ _ _)) : f = g :=
 prod_ext_iff.2 ⟨hl, hr⟩
+
+variables [has_continuous_add M₂]
+
+instance : semimodule S (M →L[R] M₂) :=
+{ smul_zero := λ _, ext $ λ _, smul_zero _,
+  zero_smul := λ _, ext $ λ _, zero_smul _ _,
+  one_smul  := λ _, ext $ λ _, one_smul _ _,
+  mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
+  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
+  smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
 
 variables (S) [has_continuous_add M₃]
 

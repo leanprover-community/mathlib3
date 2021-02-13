@@ -37,8 +37,8 @@ This file expands on the development in the core library.
 * `succ_above p` : embed `fin n` into `fin (n + 1)` with a hole around `p`;
 * `pred_above p i h` : embed `i : fin (n+1)` into `fin n` by ignoring `p`;
 * `sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
-* `add_nat i h` : add `m` on `i` on the right, generalizes `fin.succ`;
-* `nat_add i h` adds `n` on `i` on the left;
+* `add_nat m i` : add `m` on `i` on the right, generalizes `fin.succ`;
+* `nat_add n i` adds `n` on `i` on the left;
 * `clamp n m` : `min n m` as an element of `fin (m + 1)`;
 
 ### Operation on tuples
@@ -455,6 +455,9 @@ lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 
 @[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 := rfl
 
+@[simp] lemma succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
+rfl
+
 lemma mk_succ_pos (i : ℕ) (h : i < n) : (0 : fin (n + 1)) < ⟨i.succ, add_lt_add_right h 1⟩ :=
 by { rw [lt_iff_coe_lt_coe, coe_zero], exact nat.succ_pos i }
 
@@ -472,11 +475,16 @@ def cast_lt (i : fin m) (h : i.1 < n) : fin n := ⟨i.1, h⟩
 
 @[simp] lemma coe_cast_lt (i : fin m) (h : i.1 < n) : (cast_lt i h : ℕ) = i := rfl
 
+@[simp] lemma cast_lt_mk (i n m : ℕ) (hn : i < n) (hm : i < m) : cast_lt ⟨i, hn⟩ hm = ⟨i, hm⟩ := rfl
+
 /-- `cast_le h i` embeds `i` into a larger `fin` type.  -/
 def cast_le (h : n ≤ m) : fin n ↪o fin m :=
 order_embedding.of_strict_mono (λ a, cast_lt a (lt_of_lt_of_le a.2 h)) $ λ a b h, h
 
 @[simp] lemma coe_cast_le (h : n ≤ m) (i : fin n) : (cast_le h i : ℕ) = i := rfl
+
+@[simp] lemma cast_le_mk (i n m : ℕ) (hn : i < n) (h : n ≤ m) :
+  cast_le h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h⟩ := rfl
 
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
@@ -486,6 +494,9 @@ def cast (eq : n = m) : fin n ≃o fin m :=
 @[simp] lemma symm_cast (h : n = m) : (cast h).symm = cast h.symm := rfl
 
 lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
+
+@[simp] lemma cast_mk (h : n = m) (i : ℕ) (hn : i < n) :
+  cast h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h.le⟩ := rfl
 
 @[simp] lemma cast_trans {k : ℕ} (h : n = m) (h' : m = k) {i : fin n} :
   cast h' (cast h i) = cast (eq.trans h h') i := rfl
@@ -498,10 +509,16 @@ def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 
+@[simp] lemma cast_add_mk (m : ℕ) (i : ℕ) (h : i < n) :
+  cast_add m ⟨i, h⟩ = ⟨i, lt_add_right i n m h⟩ := rfl
+
 /-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 
 @[simp] lemma coe_cast_succ (i : fin n) : (i.cast_succ : ℕ) = i := rfl
+
+@[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : fin.cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
+rfl
 
 lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
 lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
@@ -549,14 +566,14 @@ end
 lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_coe_lt_coe, coe_cast_add, coe_succ], exact lt_add_one a.val }
 
-/-- `add_nat i h` adds `m` to `i`, generalizes `fin.succ`. -/
+/-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=
 order_embedding.of_strict_mono (λ i, ⟨(i : ℕ) + m, add_lt_add_right i.2 _⟩) $
   λ i j h, lt_iff_coe_lt_coe.2 $ add_lt_add_right h _
 
 @[simp] lemma coe_add_nat (m : ℕ) (i : fin n) : (add_nat m i : ℕ) = i + m := rfl
 
-/-- `nat_add i h` adds `n` to `i` "on the left". -/
+/-- `nat_add n i` adds `n` to `i` "on the left". -/
 def nat_add (n) {m} : fin m ↪o fin (n + m) :=
 order_embedding.of_strict_mono (λ i, ⟨n + (i : ℕ), add_lt_add_left i.2 _⟩) $
   λ i j h, lt_iff_coe_lt_coe.2 $ add_lt_add_left h _

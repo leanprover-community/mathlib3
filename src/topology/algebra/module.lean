@@ -909,20 +909,23 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 
 @[simp] theorem coe_def_rev (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
 
-@[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
+theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
 
 @[simp] lemma coe_to_linear_equiv (f : M ≃L[R] M₂) : ⇑f.to_linear_equiv = f := rfl
 
-@[norm_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
+@[simp, norm_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
+
+lemma to_linear_equiv_injective : function.injective (to_linear_equiv : (M ≃L[R] M₂) → (M ≃ₗ[R] M₂))
+| ⟨e, _, _⟩ ⟨e', _, _⟩ rfl := rfl
 
 @[ext] lemma ext {f g : M ≃L[R] M₂} (h : (f : M → M₂) = g) : f = g :=
-begin
-  cases f; cases g,
-  simp only,
-  ext x,
-  induction h,
-  refl
-end
+to_linear_equiv_injective $ linear_equiv.ext $ congr_fun h
+
+lemma coe_injective : function.injective (coe : (M ≃L[R] M₂) → (M →L[R] M₂)) :=
+λ e e' h, ext $ funext $ continuous_linear_map.ext_iff.1 h
+
+@[simp, norm_cast] lemma coe_inj {e e' : M ≃L[R] M₂} : (e : M →L[R] M₂) = e' ↔ e = e' :=
+coe_injective.eq_iff
 
 /-- A continuous linear equivalence induces a homeomorphism. -/
 def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
@@ -1044,21 +1047,13 @@ continuous_linear_map.ext e.apply_symm_apply
   (e.symm : M₂ →L[R] M).comp (e : M →L[R] M₂) = continuous_linear_map.id R M :=
 continuous_linear_map.ext e.symm_apply_apply
 
-lemma symm_comp_self (e : M ≃L[R] M₂) :
+@[simp] lemma symm_comp_self (e : M ≃L[R] M₂) :
   (e.symm : M₂ → M) ∘ (e : M → M₂) = id :=
 by{ ext x, exact symm_apply_apply e x }
 
-lemma self_comp_symm (e : M ≃L[R] M₂) :
+@[simp] lemma self_comp_symm (e : M ≃L[R] M₂) :
   (e : M → M₂) ∘ (e.symm : M₂ → M) = id :=
 by{ ext x, exact apply_symm_apply e x }
-
-@[simp] lemma symm_comp_self' (e : M ≃L[R] M₂) :
-  ((e.symm : M₂ →L[R] M) : M₂ → M) ∘ ((e : M →L[R] M₂) : M → M₂) = id :=
-symm_comp_self e
-
-@[simp] lemma self_comp_symm' (e : M ≃L[R] M₂) :
-  ((e : M →L[R] M₂) : M → M₂) ∘ ((e.symm : M₂ →L[R] M) : M₂ → M) = id :=
-self_comp_symm e
 
 @[simp] theorem symm_symm (e : M ≃L[R] M₂) : e.symm.symm = e :=
 by { ext x, refl }
@@ -1277,9 +1272,7 @@ begin
   have h : ∃ (e' : M ≃L[R] M₂), (e' : M →L[R] M₂) = ↑e := ⟨e, rfl⟩,
   simp only [inverse, dif_pos h],
   congr,
-  ext x,
-  have h' := classical.some_spec h,
-  simpa using continuous_linear_map.ext_iff.1 (h') x -- for some reason `h'` cannot be substituted here
+  exact_mod_cast (classical.some_spec h)
 end
 
 /-- By definition, if `f` is not invertible then `inverse f = 0`. -/

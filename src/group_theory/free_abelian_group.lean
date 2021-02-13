@@ -13,9 +13,16 @@ import algebra.module.basic -- we use the ℤ-module structure on an add_comm_gr
 # Free abelian groups
 
 The free abelian group on a type `α`, defined as the abelianisation of
-the free group on `α`. The free abelian group on `α` is the left adjoint of the
-forgetful functor from abelian groups to types. A model for it is the functions
-`α → ℤ` which send all but finitely many `(a : α)` to `0`, under pointwise addition.
+the free group on `α`.
+
+The free abelian group on `α` can be abstractly defined as the left adjoint of the
+forgetful functor from abelian groups to types. Alternatively, one could define
+it as the functions `α → ℤ` which send all but finitely many `(a : α)` to `0`,
+under pointwise addition. In this file, it is defined as the abelianisation
+of the free group on `α`. All the constructions and theorems required to show
+the adjointness of the construction and the forgetful functor are proved in this
+file, but the category-theoretic adjunction statement is in
+`algebra.category.Group.adjunctions` .
 
 ## Main definitions
 
@@ -48,6 +55,16 @@ additive $ abelianization $ free_group α`
 Chris Hughes has suggested that this all be rewritten in terms of `finsupp`.
 Johan Commelin has written all the API relating the definition to `finsupp`
 in the lean-liquid repo.
+
+The lemmas `map_pure`, `map_of`, `map_zero`, `map_add`, `map_neg` and `map_sub`
+are proved about the `functor.map` `<$>` construction, and need `α` and `β` to
+be in the same universe. But
+`free_abelian_group.map (f : α → β)` is defined to be the `add_group`
+homomorphism `free_abelian_group α →+ free_abelian_group β` (with `α` and `β` now
+allowed to be in different universes), so `(map f).map_add`
+etc can be used to prove that `free_abelian_group.map` preserves addition. The
+functions `map_id`, `map_id_apply`, `map_comp`, `map_comp_apply` and `map_of_apply`
+are about `free_abelian_group.map`.
 
 -/
 
@@ -214,7 +231,7 @@ protected theorem induction_on'
 free_abelian_group.induction_on z C0 C1 Cn Cp
 
 @[simp] lemma map_pure (f : α → β) (x : α) : f <$> (pure x : free_abelian_group α) = pure (f x) :=
-lift.of _ _
+rfl
 
 @[simp] lemma map_zero (f : α → β) : f <$> (0 : free_abelian_group α) = 0 :=
 lift.zero (of ∘ f)
@@ -343,7 +360,7 @@ lemma map_comp_apply {f : α → β} {g : β → γ} (x : free_abelian_group α)
   map (g ∘ f) x = (map g) ((map f) x) := by { rw map_comp, refl }
 
 -- version of map_of which uses `map`
-lemma map_of' {f : α → β} (a : α) : map f (of a) = of (f a) := rfl
+lemma map_of_apply {f : α → β} (a : α) : map f (of a) = of (f a) := rfl
 
 variable (α)
 

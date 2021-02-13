@@ -57,7 +57,7 @@ multilinear series expansion of `f`. -/
 def uncurry_bilinear (f : E →L[𝕜] F →L[𝕜] G) : (E × F) [×2]→L[𝕜] G :=
 @continuous_linear_map.uncurry_left 𝕜 1 (λ _, E × F) G _ _ _ _ _ $
   (continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm.to_continuous_linear_map.comp $
-  f.on_prod₂
+  f.bilinear_comp (fst _ _ _) (snd _ _ _)
 
 @[simp] lemma uncurry_bilinear_apply (f : E →L[𝕜] F →L[𝕜] G) (m : fin 2 → E × F) :
   f.uncurry_bilinear m = f (m 0).1 (m 1).2 :=

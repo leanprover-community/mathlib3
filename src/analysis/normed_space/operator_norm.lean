@@ -756,6 +756,8 @@ private lemma le_norm_flip (f : E →L[𝕜] F →L[𝕜] G) : ∥f∥ ≤ ∥fl
 f.op_norm_le_bound₂ (norm_nonneg _) $ λ x y,
   by { rw mul_right_comm, exact (flip f).le_op_norm₂ y x }
 
+@[simp] lemma flip_apply (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) : f.flip y x = f x y := rfl
+
 @[simp] lemma flip_flip (f : E →L[𝕜] F →L[𝕜] G) :
   f.flip.flip = f :=
 by { ext, refl }
@@ -1134,18 +1136,21 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 variables {𝕜}
 
-/-- Reinterpret a bilinear map `f : E →L[𝕜] F →L[𝕜] G` as a bilinear map
-`(E × F) →L[𝕜] (E × F) →L[𝕜] G`. -/
-def on_prod₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
-((f.comp $ fst 𝕜 E F).flip.comp (snd 𝕜 E F)).flip
+variables {E' F' : Type*} [normed_group E'] [normed_group F'] [normed_space 𝕜 E'] [normed_space 𝕜 F']
 
-@[simp] lemma on_prod₂_apply (f : E →L[𝕜] F →L[𝕜] G) (x y : E × F) :
-  f.on_prod₂ x y = f x.1 y.2 := rfl
+/-- Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`. -/
+def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) : E' →L[𝕜] F' →L[𝕜] G :=
+((f.comp gE).flip.comp gF).flip
+
+@[simp] lemma bilinear_comp_apply (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F)
+  (x : E') (y : F') :
+  f.bilinear_comp gE gF x y = f (gE x) (gF y) :=
+rfl
 
 /-- Derivative of a continuous bilinear map `f : E →L[𝕜] F →L[𝕜] G` interpreted as a map `E × F → G`
 at point `p : E × F` evaluated at `q : E × F`, as a continuous bilinear map. -/
 def deriv₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
-f.on_prod₂ + f.on_prod₂.flip
+f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst _ _ _)
 
 @[simp] lemma coe_deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) :
   ⇑(f.deriv₂ p) = λ q : E × F, f p.1 q.2 + f q.1 p.2 := rfl

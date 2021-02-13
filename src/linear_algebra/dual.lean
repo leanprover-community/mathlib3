@@ -472,22 +472,25 @@ lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
   W.dual_lift φ w = φ ⟨w, hw⟩ :=
 dual_lift_of_subtype ⟨w, hw⟩
 
-lemma dual_lift_left_inverse (W : subspace K V) :
+lemma dual_lift_left_inverse' (W : subspace K V) :
   W.dual_restrict.comp W.dual_lift = 1 :=
 by { ext φ x, simp }
 
+lemma dual_lift_left_inverse (W : subspace K V) :
+  function.left_inverse W.dual_restrict W.dual_lift :=
+λ x, show W.dual_restrict.comp W.dual_lift x = x,
+  by { rw [dual_lift_left_inverse'], refl }
+
+lemma dual_lift_right_inverse (W : subspace K V) :
+  function.right_inverse W.dual_lift W.dual_restrict :=
+W.dual_lift_left_inverse
+
 lemma dual_restrict_surjective :
   function.surjective W.dual_restrict :=
-begin
-  intros φ, refine ⟨W.dual_lift φ, _⟩, ext,
-  erw [dual_restrict_apply, dual_lift, of_is_compl_left_apply], refl
-end
+W.dual_lift_right_inverse.surjective
 
 lemma dual_lift_injective : function.injective W.dual_lift :=
-begin
-  rintro _ _ h,
-  ext, rw [← dual_lift_of_subtype, h, dual_lift_of_subtype],
-end
+W.dual_lift_left_inverse.injective
 
 /-- The quotient by the `dual_annihilator` of a subspace is isomorphic to the
   dual of that subspace. -/

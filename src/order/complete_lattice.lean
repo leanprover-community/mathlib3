@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.bounds
+import tactic.nth_rewrite
 
 /-!
 # Theory of complete lattices
@@ -912,6 +913,19 @@ end
 
 lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
 @supr_ge_eq_supr_nat_add (order_dual α) _ _ _
+
+lemma monotone.supr_nat_add {f : ℕ → α} (hf : monotone f) (k : ℕ) :
+  (⨆ n, f n) = (⨆ n, f (n + k)) :=
+le_antisymm (supr_le_supr (λ i, hf (nat.le_add_right i k)))
+    (supr_le (λ i, (le_refl _).trans (le_supr _ (i + k))))
+
+lemma supr_infi_ge_nat_add (f : ℕ → α) (k : ℕ) :
+  (⨆ n, ⨅ i ≥ n, f i) = ⨆ n, ⨅ i ≥ n, f (i + k) :=
+begin
+  rw monotone.supr_nat_add _ k,
+  { simp_rw [infi_ge_eq_infi_nat_add, ←nat.add_assoc], },
+  { exact λ n m hnm, le_infi (λ i, (infi_le _ i).trans (le_infi (λ h, infi_le _ (hnm.trans h)))), },
+end
 
 end
 

@@ -1229,24 +1229,25 @@ have eq : (λf : Lp ℝ p μ, neg_part f) = (λf : Lp ℝ p μ, pos_part (-f)) :
 by { rw eq, exact continuous_pos_part.comp continuous_neg }
 
 end pos_part
+end Lp
+end measure_theory
+
+end composition
 
 
 
+/-!
+## `L^p` is a complete space
 
+We show that `L^p` is a complete space for `1 ≤ p`.
+-/
 
+section complete_space
 
+variables [borel_space E] [second_countable_topology E]
 
-
-
-
-
-
-
-
-
-
-
-
+namespace measure_theory
+namespace Lp
 
 lemma finset.prop_sum_of_subadditive {α γ} [add_comm_monoid α]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
@@ -1610,7 +1611,8 @@ begin
   exact λ N1, ⟨max N N1, le_max_right _ _, (h_ n (max N N1) hnN (le_max_left _ _)).le⟩,
 end
 
-lemma cauchy_limit_ℒp_top [complete_space E] {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) ∞ μ)
+lemma cauchy_limit_ℒp_top {E} [measurable_space E] [normed_group E] [borel_space E]
+  [complete_space E] {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) ∞ μ)
   {B : ℕ → ℝ≥0∞} (hB : tsum B < ∞) (h_cau : ∀ N n m, N ≤ n → N ≤ m → snorm (f n - f m) ∞ μ < B N) :
   ∃ (f_lim : α → E) (hf_lim_meas : measurable f_lim),
     ∀ (ε : ℝ≥0∞), 0 < ε → ε < ∞ → (∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → snorm (f n - f_lim) ∞ μ < ε) :=
@@ -1831,4 +1833,5 @@ end
 
 end Lp
 end measure_theory
-end composition
+
+end complete_space

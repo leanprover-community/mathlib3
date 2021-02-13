@@ -218,6 +218,18 @@ end
 
 end zero
 
+@[simp] lemma snorm'_norm {f : α → G} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
+by simp [snorm']
+
+@[simp] lemma snorm_norm {f : α → G} : snorm (λ a, ∥f a∥) p μ = snorm f p μ :=
+begin
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
+  by_cases hp_top : p = ⊤,
+  { simp [hp_top, snorm_ess_sup], },
+  simp [snorm_eq_snorm' hp0 hp_top],
+end
+
 section const
 
 lemma snorm'_const (c : F) (hq_pos : 0 < q) :
@@ -1249,6 +1261,86 @@ variables [borel_space E] [second_countable_topology E]
 namespace measure_theory
 namespace Lp
 
+/-- ok -/
+lemma supr_monotone_add_nat {β} [complete_lattice β] {f : ℕ → β} (hf : monotone f) (k : ℕ) :
+  (⨆ n, f n) = (⨆ n, f (n + k)) :=
+le_antisymm (supr_le_supr (λ i, hf ((le_add_iff_nonneg_right i).mpr (zero_le k))))
+    (supr_le (λ i, (le_refl _).trans (le_supr _ (i + k))))
+
+/-- ok -/
+lemma supr_infi_add_nat {β} [complete_lattice β] (f : ℕ → β) (k : ℕ) :
+  (⨆ n, ⨅ i (H : i ≥ n), f i) = (⨆ n, ⨅ i (H : i ≥ n), f (i + k)) :=
+begin
+  rw supr_monotone_add_nat _ k,
+  { simp_rw [infi_ge_eq_infi_nat_add, ←add_assoc], },
+  { exact λ n m hnm, le_infi (λ i, (infi_le _ i).trans (le_infi (λ h, infi_le _ (hnm.trans h)))), },
+end
+
+/-- ok -/
+lemma liminf_add_nat {β} [complete_lattice β] (f : ℕ → β) (k : ℕ) :
+  filter.at_top.liminf f = filter.at_top.liminf (λ i, f (i + k)) :=
+by { simp_rw filter.liminf_eq_supr_infi_of_nat, exact supr_infi_add_nat f k }
+
+/-- ok -/
+@[to_additive]
+lemma finset.ae_measurable_prod {α δ ι : Type*} [measurable_space α]
+  [topological_space α] [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [borel_space α] [measurable_space δ] {f : ι → δ → α} {μ : measure δ} (s : finset ι)
+  (hf : ∀i, ae_measurable (f i) μ) :
+  ae_measurable (λ a, ∏ i in s, f i a) μ :=
+begin
+  exact finset.induction_on s
+    (by simp only [finset.prod_empty, ae_measurable_const])
+    (assume i s his ih, by simpa [his] using (hf i).mul ih)
+end
+
+/-- ok -/
+lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞}
+  (h : ∀ i, ae_measurable (f i) μ) :
+  ae_measurable (λ x, ∑' i, f i x) μ :=
+by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
+  exact λ s, finset.ae_measurable_sum s h }
+
+/-- ok -/
+lemma ae_lt_top' {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (h2f : ∫⁻ x, f x ∂μ < ∞) :
+  ∀ᵐ x ∂μ, f x < ∞ :=
+begin
+  have h2f_meas : ∫⁻ x, hf.mk f x ∂μ < ∞,
+  by rwa ←lintegral_congr_ae (ae_measurable.ae_eq_mk hf),
+  have h_meas := ae_lt_top hf.measurable_mk h2f_meas,
+  exact h_meas.mp (hf.ae_eq_mk.mono (λ x hx h, by rwa hx)),
+end
+
+/-- ok -/
+lemma filter.liminf_le_of_frequently_le' {α β} [complete_lattice β]
+  {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, u a ≤ x) :
+  f.liminf u ≤ x :=
+begin
+  rw filter.liminf_eq,
+  refine Sup_le (λ b hb, _),
+  have hbx : ∃ᶠ a in f, b ≤ x,
+  { revert h,
+    rw [←not_imp_not, filter.not_frequently, filter.not_frequently],
+    exact λ h, hb.mp (h.mono (λ a hbx hba hax, hbx (hba.trans hax))), },
+  exact hbx.exists.some_spec,
+end
+
+/-- ok -/
+lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
+filter.eventually_imp_distrib_left
+
+lemma ennreal.tsum_eq_liminf_sum {f : ℕ → ℝ≥0∞} :
+  tsum f = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
+begin
+  rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
+  congr,
+  refine funext (λ n, le_antisymm _ _),
+  { refine le_binfi (λ i hi, finset.sum_le_sum_of_subset_of_nonneg _ (λ _ _ _, zero_le _)),
+    simpa only [finset.range_subset, add_le_add_iff_right] using hi, },
+  { refine le_trans (infi_le _ n) _,
+    simp [le_refl n, le_refl ((finset.range n).sum f)], },
+end
+
 lemma finset.prop_sum_of_subadditive {α γ} [add_comm_monoid α]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
   ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
@@ -1298,83 +1390,9 @@ begin
   exact λ f g hf hg, snorm_add_le hf hg hp1,
 end
 
-@[simp] lemma snorm'_norm {f : α → G} {p : ℝ} : snorm' (λ a, ∥f a∥) p μ = snorm' f p μ :=
-by simp_rw [snorm', nnnorm_norm]
-
-@[simp] lemma snorm_norm {f : α → G} {p : ℝ≥0∞} : snorm (λ a, ∥f a∥) p μ = snorm f p μ :=
-begin
-  by_cases hp0 : p = 0,
-  { simp [hp0], },
-  by_cases hp_top : p = ⊤,
-  { simp [hp_top, snorm_ess_sup], },
-  simp [snorm_eq_snorm' hp0 hp_top],
-end
-
-/-- ok -/
-lemma supr_monotone_add_nat {β} [complete_lattice β] {f : ℕ → β} (hf : monotone f) (k : ℕ) :
-  (⨆ n, f n) = (⨆ n, f (n + k)) :=
-le_antisymm (supr_le_supr (λ i, hf ((le_add_iff_nonneg_right i).mpr (zero_le k))))
-    (supr_le (λ i, (le_refl _).trans (le_supr _ (i + k))))
-
-/-- ok -/
-lemma supr_infi_add_nat {β} [complete_lattice β] (f : ℕ → β) (k : ℕ) :
-  (⨆ n, ⨅ i (H : i ≥ n), f i) = (⨆ n, ⨅ i (H : i ≥ n), f (i + k)) :=
-begin
-  rw supr_monotone_add_nat _ k,
-  { simp_rw [infi_ge_eq_infi_nat_add, ←add_assoc], },
-  { exact λ n m hnm, le_infi (λ i, (infi_le _ i).trans (le_infi (λ h, infi_le _ (hnm.trans h)))), },
-end
-
-/-- ok -/
-lemma liminf_add_nat {β} [complete_lattice β] (f : ℕ → β) (k : ℕ) :
-  filter.at_top.liminf f = filter.at_top.liminf (λ i, f (i + k)) :=
-by { simp_rw filter.liminf_eq_supr_infi_of_nat, exact supr_infi_add_nat f k }
-
-lemma ennreal.tsum_eq_liminf_sum {f : ℕ → ℝ≥0∞} :
-  tsum f = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
-begin
-  rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
-  congr,
-  refine funext (λ n, le_antisymm _ _),
-  { refine le_binfi (λ i hi, finset.sum_le_sum_of_subset_of_nonneg _ (λ _ _ _, zero_le _)),
-    simpa only [finset.range_subset, add_le_add_iff_right] using hi, },
-  { refine le_trans (infi_le _ n) _,
-    simp [le_refl n, le_refl ((finset.range n).sum f)], },
-end
-
 lemma ennreal.tsum_eq_liminf_sum_add_nat {f : ℕ → ℝ≥0∞} (k : ℕ) :
   tsum f = filter.at_top.liminf (λ n, ∑ i in finset.range (n + k), f i) :=
 by rw [ennreal.tsum_eq_liminf_sum, liminf_add_nat _ k]
-
-/-- ok -/
-@[to_additive]
-lemma finset.ae_measurable_prod {α δ ι : Type*} [measurable_space α]
-  [topological_space α] [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
-  [borel_space α] [measurable_space δ] {f : ι → δ → α} {μ : measure δ} (s : finset ι)
-  (hf : ∀i, ae_measurable (f i) μ) :
-  ae_measurable (λ a, ∏ i in s, f i a) μ :=
-begin
-  exact finset.induction_on s
-    (by simp only [finset.prod_empty, ae_measurable_const])
-    (assume i s his ih, by simpa [his] using (hf i).mul ih)
-end
-
-/-- ok -/
-lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞}
-  (h : ∀ i, ae_measurable (f i) μ) :
-  ae_measurable (λ x, ∑' i, f i x) μ :=
-by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
-  exact λ s, finset.ae_measurable_sum s h }
-
-/-- ok -/
-lemma ae_lt_top' {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (h2f : ∫⁻ x, f x ∂μ < ∞) :
-  ∀ᵐ x ∂μ, f x < ∞ :=
-begin
-  have h2f_meas : ∫⁻ x, hf.mk f x ∂μ < ∞,
-  by rwa ←lintegral_congr_ae (ae_measurable.ae_eq_mk hf),
-  have h_meas := ae_lt_top hf.measurable_mk h2f_meas,
-  exact h_meas.mp (hf.ae_eq_mk.mono (λ x hx h, by rwa hx)),
-end
 
 lemma snorm'_lim {f : ℕ → α → G} {p : ℝ} (hp1 : 1 ≤ p) {f_lim : α → G}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) (n : ℕ) :
@@ -1408,24 +1426,6 @@ begin
     ennreal.coe_lt_coe],
   exact nnreal.div_two_lt_of_pos (ennreal.to_nnreal_pos_iff.mpr ⟨ha_pos, ha_ne_top⟩),
 end
-
-lemma filter.liminf_le_of_frequently_le' {α β} [complete_lattice β]
-  {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, u a ≤ x) :
-  f.liminf u ≤ x :=
-begin
-  rw filter.liminf_eq,
-  refine Sup_le (λ b hb, _),
-  have hbx : ∃ᶠ a in f, b ≤ x,
-  { revert h,
-    rw [←not_imp_not, filter.not_frequently, filter.not_frequently],
-    exact λ h, hb.mp (h.mono (λ a hbx hba hax, hbx (hba.trans hax))), },
-  exact hbx.exists.some_spec,
-end
-
-/-- ok -/
-lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
-filter.eventually_imp_distrib_left
-
 
 
 

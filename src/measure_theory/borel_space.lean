@@ -924,8 +924,8 @@ instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm�
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 
-instance nnreal.measurable_space : measurable_space ℝ≥0 := borel ℝ≥0
-instance nnreal.borel_space : borel_space ℝ≥0 := ⟨rfl⟩
+instance nnreal.measurable_space : measurable_space ℝ≥0 := subtype.measurable_space
+instance nnreal.borel_space : borel_space ℝ≥0 := subtype.borel_space _
 
 instance ennreal.measurable_space : measurable_space ℝ≥0∞ := borel ℝ≥0∞
 instance ennreal.borel_space : borel_space ℝ≥0∞ := ⟨rfl⟩

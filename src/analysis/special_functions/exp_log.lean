@@ -35,6 +35,12 @@ open_locale classical topological_space
 
 namespace complex
 
+lemma measurable_re : measurable re := continuous_re.measurable
+
+lemma measurable_im : measurable im := continuous_im.measurable
+
+lemma measurable_of_real : measurable (coe : ℝ → ℂ) := continuous_of_real.measurable
+
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
 begin
@@ -404,6 +410,10 @@ lemma surj_on_log' : surj_on log (Iio 0) univ :=
 lemma log_mul (hx : x ≠ 0) (hy : y ≠ 0) : log (x * y) = log x + log y :=
 exp_injective $
 by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_mul]
+
+lemma log_div (hx : x ≠ 0) (hy : y ≠ 0) : log (x / y) = log x - log y :=
+exp_injective $
+by rw [exp_log_eq_abs (div_ne_zero hx hy), exp_sub, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_div]
 
 @[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
 begin

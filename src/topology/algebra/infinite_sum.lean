@@ -493,6 +493,20 @@ by { simp [sub_eq_add_neg], exact hf.add hg.neg }
 lemma summable.sub (hf : summable f) (hg : summable g) : summable (λb, f b - g b) :=
 (hf.has_sum.sub hg.has_sum).summable
 
+lemma has_sum.update (hf : has_sum f a₁) (b : β) [decidable_eq β] (a : α) :
+  has_sum (update f b a) (a - f b + a₁) :=
+begin
+  convert ((has_sum_ite_eq b _).add hf),
+  ext b',
+  by_cases h : b' = b,
+  { rw h, simp, },
+  { simp [h] },
+end
+
+lemma summable.update (hf : summable f) (b : β) [decidable_eq β] (a : α) :
+  summable (update f b a) :=
+(hf.has_sum.update b a).summable
+
 lemma has_sum.has_sum_compl_iff {s : set β} (hf : has_sum (f ∘ coe : s → α) a₁) :
   has_sum (f ∘ coe : sᶜ → α) a₂ ↔ has_sum f (a₁ + a₂) :=
 begin
@@ -689,6 +703,9 @@ variables {f g : β → α} {a a₁ a₂ : α}
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 le_of_tendsto_of_tendsto' hf hg $ assume s, sum_le_sum $ assume b _, h b
 
+@[mono] lemma has_sum_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f ≤ g) : a₁ ≤ a₂ :=
+has_sum_le h hf hg
+
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 have has_sum (λc, (partial_inv i c).cases_on' 0 f) a₁,
@@ -737,6 +754,10 @@ le_has_sum (summable.has_sum hf) b hb
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : summable f) (hg : summable g) : ∑'b, f b ≤ ∑'b, g b :=
 has_sum_le h hf.has_sum hg.has_sum
 
+@[mono] lemma tsum_mono (hf : summable f) (hg : summable g) (h : f ≤ g) :
+  ∑' n, f n ≤ ∑' n, g n :=
+tsum_le_tsum h hf hg
+
 lemma has_sum.nonneg (h : ∀ b, 0 ≤ g b) (ha : has_sum g a) : 0 ≤ a :=
 has_sum_le h has_sum_zero ha
 
@@ -762,6 +783,32 @@ lemma tsum_congr {f g : ℕ → ℝ} (hfg : ∀ n, f n = g n) :
 congr_arg tsum (funext hfg)
 
 end order_topology
+
+section ordered_topological_group
+
+variables [ordered_add_comm_group α] [topological_space α] [topological_add_group α]
+  [order_closed_topology α] {f g : β → α} {a₁ a₂ : α}
+
+lemma has_sum_lt {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
+  (hf : has_sum f a₁) (hg : has_sum g a₂) :
+  a₁ < a₂ :=
+have update f i 0 ≤ update g i 0 := update_le_update_iff.mpr ⟨rfl.le, λ i _, h i⟩,
+have 0 - f i + a₁ ≤ 0 - g i + a₂ := has_sum_le this (hf.update i 0) (hg.update i 0),
+by simpa only [zero_sub, add_neg_cancel_left] using add_lt_add_of_lt_of_le hi this
+
+@[mono] lemma has_sum_strict_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f < g) : a₁ < a₂ :=
+let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt hle hi hf hg
+
+lemma tsum_lt_tsum {i : β} (h : ∀ (b : β), f b ≤ g b) (hi : f i < g i)
+  (hf : summable f) (hg : summable g) :
+  ∑' n, f n < ∑' n, g n :=
+has_sum_lt h hi hf.has_sum hg.has_sum
+
+@[mono] lemma tsum_strict_mono (hf : summable f) (hg : summable g) (h : f < g) :
+  ∑' n, f n < ∑' n, g n :=
+let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hf hg
+
+end ordered_topological_group
 
 section canonically_ordered
 variables [canonically_ordered_add_monoid α] [topological_space α] [order_closed_topology α]
@@ -893,26 +940,16 @@ tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
 /-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
 Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
-remaining terms. -/
+remaining terms.
+
+TODO: generalize this to `f : β → α` with appropriate typeclass assumptions
+-/
 lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
   ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
 begin
   refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
     hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
   exact λ j, by { by_cases ji : j = i; simp [ji] }
-end
-
-/-- Let `f, g : ℕ → ℝ` be two sequences with summable series.  If `f` is dominated by `g` and
-at least one term of `f` is strictly smaller than the corresponding term in `g`, then the series
-of `f` is strictly smaller than the series of `g`. -/
-lemma tsum_lt_tsum {i : ℕ} {f g : ℕ → ℝ} (h : ∀ (b : ℕ), f b ≤ g b) (hi : f i < g i)
-  (hf : summable f) (hg : summable g) :
-  ∑' n, f n < ∑' n, g n :=
-begin
-  rw [tsum_ite_eq_extract hf i, tsum_ite_eq_extract hg i],
-  refine add_lt_add_of_lt_of_le hi _,
-  refine tsum_le_tsum _ (hf.summable_of_eq_zero_or_self _) (hg.summable_of_eq_zero_or_self _);
-  exact λ j, by { by_cases ji : j = i; simp [ji, h j] },
 end
 
 end uniform_group

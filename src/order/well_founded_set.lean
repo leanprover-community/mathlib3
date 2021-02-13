@@ -16,7 +16,9 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
 ## Main Definitions
  * `set.well_founded_on s r` indicates that the relation `r` is
   well-founded when restricted to the set `s`.
- * `set.is_wf s` indicates that `<` is well-founded when restricted to `s`.notation
+ * `set.is_wf s` indicates that `<` is well-founded when restricted to `s`.
+ * `set.is_partially_well_ordered s` indicates that any infinite sequence of elements in `s`
+  contains an infinite monotone subsequence.
 
 ## Main Results
  * `set.well_founded_on_iff` relates `well_founded_on` to the well-foundedness of a relation on the
@@ -138,13 +140,6 @@ fintype.preorder.well_founded
 namespace set
 variables [partial_order α] {s : set α} {a : α}
 
-@[simp]
-theorem is_wf_singleton : is_wf ({a} : set α) :=
-by simp [← finset.coe_singleton]
-
-theorem is_wf.insert (hs : is_wf s) : is_wf (insert a s) :=
-by { rw ← union_singleton, exact hs.union is_wf_singleton }
-
 theorem finite.is_wf (h : s.finite) : s.is_wf :=
 begin
   rw ← h.coe_to_finset,
@@ -153,6 +148,210 @@ end
 
 @[simp]
 theorem fintype.is_wf [fintype α] : s.is_wf := (finite.of_fintype s).is_wf
+
+@[simp]
+theorem is_wf_empty : is_wf (∅ : set α) :=
+finite_empty.is_wf
+
+@[simp]
+theorem is_wf_singleton (a) : is_wf ({a} : set α) :=
+(finite_singleton a).is_wf
+
+theorem is_wf.insert (a) (hs : is_wf s) : is_wf (insert a s) :=
+by { rw ← union_singleton, exact hs.union (is_wf_singleton a) }
+
+end set
+
+namespace set
+
+/-- A subset of a preorder is partially well-ordered when any infinite sequence contains
+  a monotone subsequence of length 2 (or equivalently, an infinite monotone subsequence). -/
+def is_partially_well_ordered [preorder α] (s) : Prop :=
+  ∀ (f : ℕ → α), range f ⊆ s → ∃ (m n : ℕ), m < n ∧ f m ≤ f n
+
+section partial_order
+variables [partial_order α] {s : set α} {t : set α}
+
+lemma is_partially_well_ordered.is_wf (h : s.is_partially_well_ordered) :
+  s.is_wf :=
+begin
+  rw is_wf_iff_no_descending_seq,
+  intros f con,
+  obtain ⟨m, n, hlt, hle⟩ := h f con,
+  exact not_lt_of_le hle (f.lt_iff_lt.2 hlt),
+end
+
+theorem is_partially_well_ordered.exists_monotone (h : s.is_partially_well_ordered) :
+  ∀ f : ℕ → α, range f ⊆ s →
+      ∃ (t : set ℕ), t.infinite ∧ monotone (f ∘ (coe : t → ℕ)) ∧ f '' t ⊆ s :=
+λ f hf, begin
+  classical,
+  let bad : set ℕ := { m | ∀ n, m < n → ¬ f m ≤ f n },
+  have hbad : bad.finite,
+  { by_contra con,
+    haveI := infinite_coe_iff.2 con,
+    have g := nat.subtype.order_iso_of_nat bad,
+    obtain ⟨x, y, hlt, hle⟩ := h (f ∘ (coe ∘ g)) (subset.trans (range_comp_subset_range _ _) hf),
+    exact (g x).2 (g y) (g.lt_iff_lt.2 hlt) hle, },
+  { obtain ⟨m, hm⟩ : ∃ m, ∀ n, n ∈ bad → n < m,
+    { by_cases he : hbad.to_finset.nonempty,
+      { exact ⟨(hbad.to_finset.max' he).succ, λ n hn, nat.lt_succ_iff.2
+          (hbad.to_finset.le_max' n (finite.mem_to_finset.2 hn))⟩ },
+      { exact ⟨0, λ n hn, false.elim (he ⟨n, (finite.mem_to_finset.2 hn)⟩)⟩ } },
+    let g : ℕ → ℕ,
+    { apply nat.rec,
+      { exact m },
+      { intros n gn,
+        apply if hgn : gn ∈ bad then gn else _,
+        simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hgn,
+        exact nat.find hgn } },
+    have hg : ∀ n, m ≤ g n ∧ g n < g (n + 1),
+    { intro n,
+      induction n with n n_ih,
+      { refine ⟨le_refl _, _⟩,
+        simp only [g, nat.rec_add_one],
+        have hmb : ¬ m ∈ bad := (λ con, lt_irrefl m (hm _ con)),
+        rw dif_neg hmb,
+        simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hmb,
+        exact (nat.find_spec hmb).1, },
+      { refine ⟨le_trans n_ih.1 (le_of_lt n_ih.2), _⟩,
+        simp only [g, nat.rec_add_one],
+        have hnb : ¬ (g (n + 1)) ∈ bad :=
+          λ con, not_le_of_lt (hm _ con) (le_trans n_ih.1 (le_of_lt n_ih.2)),
+        apply (lt_of_lt_of_le _ (le_of_eq (dif_neg hnb).symm)),
+        simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hnb,
+        refine (nat.find_spec hnb).1, } },
+    let g' : ℕ ↪o ℕ := (rel_embedding.nat_lt g (λ n, (hg n).2)).order_embedding_of_lt_embedding,
+    { refine ⟨g' '' univ, (infinite_image_iff _).2 infinite_univ, _,
+        subset.trans (subset.trans (image_subset_range _ _) (range_comp_subset_range _ _)) hf⟩,
+      { rw ← injective_iff_inj_on_univ,
+        exact g'.injective },
+      { rintros ⟨_, ⟨x, _, rfl⟩⟩ ⟨_, ⟨y, _, rfl⟩⟩ xy,
+        rw ← nat.add_sub_cancel' (g'.le_iff_le.1 xy),
+        simp only [function.comp_app, subtype.coe_mk],
+        suffices h_ind : ∀ n, f (g' x) ≤ f (g' (x + n)),
+        { apply h_ind },
+        intro n,
+        induction n with n n_ih,
+        { refl },
+        { apply le_trans n_ih,
+          rw [nat.add_succ, nat.succ_eq_add_one],
+          simp only [rel_embedding.order_embedding_of_lt_embedding_apply,
+            rel_embedding.nat_lt_apply, g, nat.rec_add_one],
+          have hb : ¬ (g (x + n)) ∈ bad := λ con, not_le_of_lt (hm _ con) (hg _).1,
+          rw dif_neg hb,
+          simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hb,
+          exact (nat.find_spec hb).2 } } } }
+end
+
+theorem is_partially_well_ordered_iff_exists_monotone :
+  s.is_partially_well_ordered ↔
+    ∀ f : ℕ → α, range f ⊆ s →
+      ∃ (t : set ℕ), t.infinite ∧ monotone (f ∘ (coe : t → ℕ)) ∧ f '' t ⊆ s :=
+begin
+  classical,
+  split; intros h f hf,
+  { exact h.exists_monotone f hf },
+  { obtain ⟨t, t_inf, hmon, range_t⟩ := h f hf,
+    haveI := infinite_coe_iff.2 t_inf,
+    obtain ⟨m, n, hne⟩ := exists_pair_ne t,
+    cases lt_or_gt_of_ne hne with hlt hlt;
+    { exact ⟨_, _, hlt, hmon (le_of_lt hlt)⟩ } }
+end
+
+lemma is_partially_well_ordered.prod (hs : s.is_partially_well_ordered)
+  (ht : t.is_partially_well_ordered) :
+  (s.prod t).is_partially_well_ordered :=
+begin
+  classical,
+  rw is_partially_well_ordered_iff_exists_monotone at *,
+  intros f hf,
+  obtain ⟨s', s'_inf, s'_mon, hs'⟩ := hs (prod.fst ∘ f) _,
+  swap,
+  { rw [range_comp, image_subset_iff],
+    refine subset.trans hf _,
+    rintros ⟨x1, x2⟩ hx,
+    simp only [mem_preimage, hx.1] },
+  haveI := infinite_coe_iff.2 s'_inf,
+  obtain ⟨t', t'_inf, t'_mon, ht'⟩ :=
+    ht (prod.snd ∘ (f ∘ (@nat.order_embedding_of_set s' _ _inst_2))) _,
+  swap,
+  { rw [range_comp, image_subset_iff],
+    refine subset.trans (range_comp_subset_range _ _) (subset.trans hf _),
+    rintros ⟨x1, x2⟩ hx,
+    simp only [mem_preimage, hx.2] },
+  simp only [monotone, function.comp_app] at t'_mon,
+  refine ⟨(@nat.order_embedding_of_set s' _ _inst_2) '' t', _, λ x y xy, _,
+    subset.trans (image_subset_range _ _) hf⟩,
+  { rw infinite_image_iff ((rel_embedding.injective _).inj_on _),
+    exact t'_inf },
+  { simp only [function.comp_app],
+    obtain ⟨x', hx', hxx'⟩ := (mem_image _ _ _).1 x.2,
+    obtain ⟨y', hy', hyy'⟩ := (mem_image _ _ _).1 y.2,
+    rw [← subtype.val_eq_coe, ← hxx', ← subtype.val_eq_coe, ← hyy',
+      ← subtype.coe_mk x' hx', ← subtype.coe_mk y' hy'],
+    rw [← subtype.coe_le_coe, ← subtype.val_eq_coe, ← subtype.val_eq_coe, ← hxx', ← hyy',
+      (@nat.order_embedding_of_set s' _ _inst_2).le_iff_le] at xy,
+    refine ⟨_, t'_mon (subtype.mk_le_mk.2 xy)⟩,
+    simp only [monotone, function.comp_app, set_coe.forall] at s'_mon,
+    simp only [subtype.coe_mk],
+    replace hx' := mem_range_self x',
+    rw @nat.order_embedding_of_set_range s' _ _inst_2 at hx',
+    replace hy' := mem_range_self y',
+    rw @nat.order_embedding_of_set_range s' _ _inst_2 at hy',
+    exact set_coe.forall.1 (s'_mon _ hx') _ hy'
+      (subtype.mk_le_mk.2 ((order_embedding.le_iff_le _).2 xy)) },
+end
+
+theorem is_partially_well_ordered.monotone_image {β : Type*} [partial_order β]
+  (hs : s.is_partially_well_ordered) {f : α → β} (hf : monotone f) :
+  is_partially_well_ordered (f '' s) :=
+λ g hg, begin
+  have h := λ (n : ℕ), ((mem_image _ _ _).1 (hg (mem_range_self n))),
+  obtain ⟨m, n, hlt, hmn⟩ := hs (λ n, classical.some (h n)) _,
+  { refine ⟨m, n, hlt, _⟩,
+    rw [← (classical.some_spec (h m)).2,
+      ← (classical.some_spec (h n)).2],
+    apply hf hmn },
+  { rintros _ ⟨n, rfl⟩,
+    exact (classical.some_spec (h n)).1 }
+end
+
+end partial_order
+
+theorem is_wf.is_partially_well_ordered [linear_order α] {s : set α}
+  (hs : s.is_wf) : s.is_partially_well_ordered :=
+λ f hf, begin
+  rw [is_wf, well_founded_on_iff] at hs,
+  have hrange : (range f).nonempty := ⟨f 0, mem_range_self 0⟩,
+  let a := hs.min (range f) hrange,
+  obtain ⟨m, hm⟩ := hs.min_mem (range f) hrange,
+  refine ⟨m, m.succ, m.lt_succ_self, le_of_not_lt (λ con, _)⟩,
+  rw hm at con,
+  apply hs.not_lt_min (range f) hrange (mem_range_self m.succ)
+    ⟨con, hf (mem_range_self m.succ), hf _⟩,
+  rw ← hm,
+  apply mem_range_self,
+end
+
+section
+
+variables [linear_ordered_cancel_comm_monoid α] {s : set α} {t : set α}
+
+@[to_additive is_partially_well_ordered.sum_set]
+theorem is_partially_well_ordered.product_set
+  (hs : s.is_partially_well_ordered) (ht : t.is_partially_well_ordered) :
+  is_partially_well_ordered ((λ x : α × α, x.fst * x.snd) '' s.prod t) :=
+(is_partially_well_ordered.prod hs ht).monotone_image (λ _ _ h, mul_le_mul' h.1 h.2)
+
+@[to_additive is_wf.sum_set]
+theorem is_wf.product_set
+  (hs : s.is_wf) (ht : t.is_wf) :
+  is_wf ((λ x : α × α, x.fst * x.snd) '' s.prod t) :=
+(hs.is_partially_well_ordered.product_set ht.is_partially_well_ordered).is_wf
+
+end
+
 
 end set
 
@@ -332,5 +531,14 @@ variables {hs} {ht} {a} {x : α × α}
 lemma mem_mul_antidiagonal :
   x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
 by simp [mul_antidiagonal]
+
+@[to_additive]
+theorem is_wf_support_mul_antidiagonal :
+  { a : α | (mul_antidiagonal hs ht a).nonempty }.is_wf :=
+(hs.product_set ht).mono (λ x hx, begin
+  obtain ⟨a, ha⟩ := hx,
+  rw mem_mul_antidiagonal at ha,
+  refine ⟨a, ha.2, ha.1⟩,
+end)
 
 end finset

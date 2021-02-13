@@ -86,6 +86,9 @@ variables {α : Type*} [topological_space α]
 open set
 local attribute [instance] connected_component_setoid
 
+#check id.contin
+
+
 -- Stacks tag 09000
 def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
 { obj := λ X,
@@ -112,23 +115,12 @@ instance : is_right_adjoint Profinite_to_CompHaus :=
       left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
       right_inv := λ f, continuous_map.ext $ λ x, rfl },
     unit :=
-      { app := λ X,
-        begin
-          simp only [functor.id_obj, functor.comp_obj],
-          exact { to_fun := quotient.mk,
-                  continuous_to_fun := continuous_quotient_mk },
-        end,
+      { app := λ X, { to_fun := quotient.mk,
+                      continuous_to_fun := continuous_quotient_mk },
         naturality' := by obviously },
     counit :=
-      { app := λ Y,
-        begin
-          simp only [functor.id_obj, functor.comp_obj],
-          fsplit,
-          { change ((π₀ Y.to_Top.α) → Y.to_Top.α),
-            apply @pi0_lift _ _ _ _ _ (𝟙 Y.to_Top),
-            fsplit, intros s hs, exact hs},
-          fsplit, intros s hs, exact hs,
-        end,
+      { app := λ Y, { to_fun := pi0_lift (@continuous_map.coe_continuous _ _ _ _ (𝟙 Y.to_Top)),
+                      continuous_to_fun := { is_open_preimage := λ s hs, hs } },
         naturality' := by obviously },
     hom_equiv_unit' := by obviously,
     hom_equiv_counit' := by obviously, }}

@@ -501,9 +501,9 @@ variables (X : Type*) (G : Type*) [group G]
 
 /-- The bijection underlying the free-forgetful adjunction for groups. -/
 @[simps]
-def lift : (free_group X →* G) ≃ (X → G) :=
-{ to_fun := λ f, f.1 ∘ of,
-  inv_fun := λ g, to_group g,
+def lift : (X → G) ≃ (free_group X →* G)  :=
+{ to_fun := λ g, to_group g,
+  inv_fun := λ f, f.1 ∘ of,
   left_inv := by { intros x, ext1, simp },
   right_inv := by { intros x, ext1, simp }  }
 end

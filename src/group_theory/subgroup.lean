@@ -333,7 +333,7 @@ lemma coe_subset_coe {H K : subgroup G} : (H : set G) ⊆ K ↔ H ≤ K := iff.r
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
 @[to_additive "The inclusion homomorphism from a additive subgroup `H` contained in `K` to `K`."]
 def inclusion {H K : subgroup G} (h : H ≤ K) : H →* K :=
-monoid_hom.mk' (λ ⟨x, hx⟩, ⟨x, h hx⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
+monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
 
 @[simp, to_additive]
 lemma coe_inclusion {H K : subgroup G} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=

@@ -325,14 +325,14 @@ lemma ae_eq_trans {f g h: α → δ} (h₁ : f =ᵐ[μ] g) (h₂ : g =ᵐ[μ] h)
   f =ᵐ[μ] h :=
 h₁.trans h₂
 
-lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
+@[simp] lemma ae_eq_empty : s =ᵐ[μ] (∅ : set α) ↔ μ s = 0 :=
 eventually_eq_empty.trans $ by simp [ae_iff]
 
 lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
 calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
            ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl
 
-lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
+@[simp] lemma union_ae_eq_right : (s ∪ t : set α) =ᵐ[μ] t ↔ μ (s \ t) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set, union_diff_right,
   diff_eq_empty.2 (set.subset_union_right _ _)]
 
@@ -345,7 +345,7 @@ lemma ae_eq_set {s t : set α} :
 by simp [eventually_le_antisymm_iff, ae_le_set]
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
-lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
+@[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=
 calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _

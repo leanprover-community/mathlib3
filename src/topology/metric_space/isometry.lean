@@ -100,6 +100,15 @@ by { rw ← image_univ, exact hf.ediam_image univ }
 lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
+lemma isometry.comp_continuous_on_iff {γ} [topological_space γ] (hf : isometry f)
+  {g : γ → α} {s : set γ} :
+  continuous_on (f ∘ g) s ↔ continuous_on g s :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_on_iff.symm
+
+lemma isometry.comp_continuous_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} :
+  continuous (f ∘ g) ↔ continuous g :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+
 end emetric_isometry --section
 
 /-- An isometry preserves the diameter in metric spaces. -/

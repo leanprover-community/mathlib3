@@ -191,6 +191,11 @@ protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
 protected lemma continuous : continuous e := e.isometry.continuous
+protected lemma continuous_at {x} : continuous_at e x := e.continuous.continuous_at
+protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous_on
+
+protected lemma continuous_within_at {s x} : continuous_within_at e s x :=
+e.continuous.continuous_within_at
 
 variables (R E)
 
@@ -247,8 +252,16 @@ instance : group (E ≃ₗᵢ[R] E) :=
 @[simp] lemma coe_inv (e : E ≃ₗᵢ[R] E) : ⇑(e⁻¹) = e.symm := rfl
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/
-def to_continuous_linear_equiv : E ≃L[R] F :=
-⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩
+instance : has_coe_t (E ≃ₗᵢ[R] F) (E ≃L[R] F) :=
+⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩⟩
+
+instance : has_coe_t (E ≃ₗᵢ[R] F) (E →L[R] F) := ⟨λ e, ↑(e : E ≃L[R] F)⟩
+
+@[simp] lemma coe_coe : ⇑(e : E ≃L[R] F) = e := rfl
+
+@[simp] lemma coe_coe' : ((e : E ≃L[R] F) : E →L[R] F) = e := rfl
+
+@[simp] lemma coe_coe'' : ⇑(e : E →L[R] F) = e := rfl
 
 @[simp] lemma map_zero : e 0 = 0 := e.1.map_zero
 
@@ -270,7 +283,7 @@ protected lemma bijective : bijective e := e.1.bijective
 protected lemma injective : injective e := e.1.injective
 protected lemma surjective : surjective e := e.1.surjective
 
-lemma map_eq_iff {x y : E} : e x = e y ↔ x = y := e.injective.eq_iff
+@[simp] lemma map_eq_iff {x y : E} : e x = e y ↔ x = y := e.injective.eq_iff
 
 lemma map_ne {x y : E} (h : x ≠ y) : e x ≠ e y := e.injective.ne h
 
@@ -278,10 +291,20 @@ protected lemma lipschitz : lipschitz_with 1 e := e.isometry.lipschitz
 
 protected lemma antilipschitz : antilipschitz_with 1 e := e.isometry.antilipschitz
 
-lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
+@[simp] lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
 e.isometry.ediam_image s
 
-lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
+@[simp] lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
 e.isometry.diam_image s
+
+variables {α : Type*} [topological_space α]
+
+@[simp] lemma comp_continuous_on_iff {f : α → E} {s : set α} :
+  continuous_on (e ∘ f) s ↔ continuous_on f s :=
+e.isometry.comp_continuous_on_iff
+
+@[simp] lemma comp_continuous_iff {f : α → E} :
+  continuous (e ∘ f) ↔ continuous f :=
+e.isometry.comp_continuous_iff
 
 end linear_isometry_equiv

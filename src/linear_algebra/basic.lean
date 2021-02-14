@@ -104,6 +104,17 @@ linear_map.ext $ λ x, rfl
 theorem comp_assoc (g : M₂ →ₗ[R] M₃) (h : M₃ →ₗ[R] M₄) : (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 
+/--
+The type-level equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
+This says that the forgetful functor from `R`-modules to types is representable, by `R`.
+-/
+@[simps]
+def ring_lmap_equiv_self : (R →ₗ[R] M) ≃ M :=
+{ to_fun := λ f, f 1,
+  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { simp } }
+
 /-- The restriction of a linear map `f : M → M₂` to a submodule `p ⊆ M` gives a linear map
 `p → M₂`. -/
 def dom_restrict (f : M →ₗ[R] M₂) (p : submodule R M) : p →ₗ[R] M₂ := f.comp p.subtype

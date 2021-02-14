@@ -317,17 +317,6 @@ section
 variables (M) (R) (X : Type*)
 
 /--
-The type-level equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
-This says that the forgetful functor from `R`-modules to types is representable, by `R`.
--/
-@[simps]
-def ring_lmap_equiv_self : (R →ₗ[R] M) ≃ M :=
-{ to_fun := λ f, f 1,
-  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
-  left_inv := λ x, by { ext, simp },
-  right_inv := λ x, by { simp } }
-
-/--
 A slight rearrangement from `lsum` gives us
 the bijection underlying the free-forgetful adjunction for R-modules.
 -/

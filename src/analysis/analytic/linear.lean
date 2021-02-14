@@ -27,7 +27,7 @@ namespace continuous_linear_map
 `f y = f x + f (y - x)`. -/
 @[simp] def fpower_series (f : E →L[𝕜] F) (x : E) : formal_multilinear_series 𝕜 E F
 | 0 := continuous_multilinear_map.curry0 𝕜 _ (f x)
-| 1 := (continuous_multilinear_curry_fin1 𝕜 _ _).symm f
+| 1 := (continuous_multilinear_curry_fin1 𝕜 E F).symm f
 | _ := 0
 
 @[simp] lemma fpower_series_apply_add_two (f : E →L[𝕜] F) (x : E) (n : ℕ) :

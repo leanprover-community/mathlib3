@@ -190,8 +190,12 @@ protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 /-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/
 def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
+@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
 def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
+
+@[simp] lemma coe_to_homeomorph : ⇑e.to_homeomorph = e := rfl
 
 protected lemma continuous : continuous e := e.isometry.continuous
 protected lemma continuous_at {x} : continuous_at e x := e.continuous.continuous_at
@@ -221,7 +225,9 @@ def symm : F ≃ₗᵢ[R] E :=
 @[simp] lemma map_eq_zero_iff {x : E} : e x = 0 ↔ x = 0 := e.to_linear_equiv.map_eq_zero_iff
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
-@[simp] lemma coe_symm_to_linear_equiv : ⇑e.to_linear_equiv.symm = e.symm := rfl
+@[simp] lemma to_linear_equiv_symm : e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
+@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 /-- Composition of `linear_isometry_equiv`s as a `linear_isometry_equiv`. -/
 def trans (e' : F ≃ₗᵢ[R] G) : E ≃ₗᵢ[R] G :=

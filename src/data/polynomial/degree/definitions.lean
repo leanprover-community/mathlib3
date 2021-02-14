@@ -769,6 +769,13 @@ le_antisymm (nat_degree_mul_C_le f a) (calc
   ... = ((f * C a) * C ai).nat_degree : by rw [← C_1, ← au, ring_hom.map_mul, ← mul_assoc]
   ... ≤ (f * C a).nat_degree : nat_degree_mul_C_le (f * C a) ai)
 
+lemma nat_degree_C_mul_eq_of_mul_eq_one {ai : R} (au : ai * a = 1) {f : polynomial R} :
+  (C a * f).nat_degree = f.nat_degree :=
+le_antisymm (nat_degree_C_mul_le a f) (calc
+  f.nat_degree = (1 * f).nat_degree : by nth_rewrite 0 [← one_mul f]
+  ... = (C ai * (C a * f)).nat_degree : by rw [← C_1, ← au, ring_hom.map_mul, mul_assoc]
+  ... ≤ (C a * f).nat_degree : nat_degree_C_mul_le ai (C a * f))
+
 end semiring
 
 

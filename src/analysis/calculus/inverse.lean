@@ -301,10 +301,7 @@ end
 lemma open_image (hf : approximates_linear_on f f' s c)  (f'symm : f'.nonlinear_right_inverse)
   (hs : is_open s) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) : is_open (f '' s) :=
 begin
-  cases hc with hE hc,
-  { resetI,
-    apply is_open_discrete },
-  change is_open (f '' s),
+  cases hc with hE hc, { resetI, apply is_open_discrete },
   simp only [is_open_iff_mem_nhds, nhds_basis_closed_ball.mem_iff, ball_image_iff] at hs ⊢,
   intros x hx,
   rcases hs x hx with ⟨ε, ε0, hε⟩,

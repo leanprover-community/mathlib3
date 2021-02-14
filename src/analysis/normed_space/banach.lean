@@ -257,12 +257,16 @@ end
 
 /-- A surjective continuous linear map admits a (possibly nonlinear) controlled right inverse.
 In general, it is not possible to ensure that such a right inverse is linear. -/
-noncomputable def nonlinear_right_inverse_of_surjective (f : E →L[𝕜] F) (hsurj : f.range = ⊤) :
-  nonlinear_right_inverse f := classical.some (exists_nonlinear_right_inverse_of_surjective f hsurj)
+@[irreducible] noncomputable def nonlinear_right_inverse_of_surjective
+  (f : E →L[𝕜] F) (hsurj : f.range = ⊤) : nonlinear_right_inverse f :=
+classical.some (exists_nonlinear_right_inverse_of_surjective f hsurj)
 
 lemma nonlinear_right_inverse_of_surjective_nnnorm_pos (f : E →L[𝕜] F) (hsurj : f.range = ⊤) :
   0 < (nonlinear_right_inverse_of_surjective f hsurj).nnnorm :=
-classical.some_spec (exists_nonlinear_right_inverse_of_surjective f hsurj)
+begin
+  rw nonlinear_right_inverse_of_surjective,
+  exact classical.some_spec (exists_nonlinear_right_inverse_of_surjective f hsurj)
+end
 
 end continuous_linear_map
 

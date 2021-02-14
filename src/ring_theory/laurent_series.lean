@@ -63,50 +63,50 @@ We then build some glue to treat formal power series as if they are indexed by `
 Occasionally this leads to proofs that are uglier than expected.
 -/
 
-namespace maxumal
+-- namespace maxumal
 
-def maxumal := ℕ
+-- def maxumal := ℕ
 
-def equiv_to_nat : maxumal ≃ nat := equiv.refl _
+-- def equiv_to_nat : maxumal ≃ nat := equiv.refl _
 
-notation `𝕄` := maxumal
-notation `℘` := equiv_to_nat.to_fun
-notation `℘⁻¹` := equiv_to_nat.symm
-notation `𝟘` := ℘⁻¹ 0
+-- notation `𝕄` := maxumal
+-- notation `℘` := equiv_to_nat.to_fun
+-- notation `℘⁻¹` := equiv_to_nat.symm
+-- notation `𝟘` := ℘⁻¹ 0
 
-instance : inhabited 𝕄 := ⟨𝟘⟩
-instance : has_zero 𝕄 := ⟨𝟘⟩
-instance : nontrivial 𝕄 := ⟨⟨𝟘, ℘⁻¹ 1, nat.zero_ne_one⟩⟩
+-- instance : inhabited 𝕄 := ⟨𝟘⟩
+-- instance : has_zero 𝕄 := ⟨𝟘⟩
+-- instance : nontrivial 𝕄 := ⟨⟨𝟘, ℘⁻¹ 1, nat.zero_ne_one⟩⟩
 
-lemma nat.max_zero : ∀ {m : ℕ}, max m 0 = m :=
-begin
-  intro a,
-  rw [max_comm a 0, nat.zero_max],
-end
+-- lemma nat.max_zero : ∀ {m : ℕ}, max m 0 = m :=
+-- begin
+--   intro a,
+--   rw [max_comm a 0, nat.zero_max],
+-- end
 
-instance : add_comm_monoid 𝕄 :=
-{ add := begin change ℕ → ℕ → ℕ, use max, end,
-  add_assoc := by convert max_assoc,
-  zero := 𝟘,
-  zero_add := λ _, nat.zero_max,
-  add_zero := λ _, nat.max_zero,
-  add_comm := max_comm, }
+-- instance : add_comm_monoid 𝕄 :=
+-- { add := begin change ℕ → ℕ → ℕ, use max, end,
+--   add_assoc := by convert max_assoc,
+--   zero := 𝟘,
+--   zero_add := λ _, nat.zero_max,
+--   add_zero := λ _, nat.max_zero,
+--   add_comm := max_comm, }
 
-def sub_left_maxumal : 𝕄 × 𝕄 → 𝕄
-| (𝕜₁, 𝕜₂) := ℘⁻¹ (℘ (𝕜₁ + 𝕜₂) - ℘ 𝕜₁)
-notation `μ` := sub_left_maxumal
+-- def sub_left_maxumal : 𝕄 × 𝕄 → 𝕄
+-- | (𝕜₁, 𝕜₂) := ℘⁻¹ (℘ (𝕜₁ + 𝕜₂) - ℘ 𝕜₁)
+-- notation `μ` := sub_left_maxumal
 
-@[simp] lemma zero_sub_left : ∀ (𝕜 : 𝕄), μ (𝟘, 𝕜) = 𝕜 := sorry
-@[simp] lemma sub_left_zero : ∀ (𝕜 : 𝕄 ), μ (𝕜, 𝟘) = 𝟘 := sorry
+-- @[simp] lemma zero_sub_left : ∀ (𝕜 : 𝕄), μ (𝟘, 𝕜) = 𝕜 := sorry
+-- @[simp] lemma sub_left_zero : ∀ (𝕜 : 𝕄 ), μ (𝕜, 𝟘) = 𝟘 := sorry
 
-#eval ℘ ((℘⁻¹ 8) + (℘⁻¹ 5))
-#eval μ (℘⁻¹ 8, ℘⁻¹ 5)
-#eval μ (℘⁻¹ 5, ℘⁻¹ 8)
--- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 5) + (equiv_to_nat.inv_fun 8))
--- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 3) + (equiv_to_nat.inv_fun 5))
--- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 2) + (equiv_to_nat.inv_fun 0))
+-- #eval ℘ ((℘⁻¹ 8) + (℘⁻¹ 5))
+-- #eval μ (℘⁻¹ 8, ℘⁻¹ 5)
+-- #eval μ (℘⁻¹ 5, ℘⁻¹ 8)
+-- -- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 5) + (equiv_to_nat.inv_fun 8))
+-- -- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 3) + (equiv_to_nat.inv_fun 5))
+-- -- #eval equiv_to_nat.to_fun ((equiv_to_nat.inv_fun 2) + (equiv_to_nat.inv_fun 0))
 
-end maxumal
+-- end maxumal
 noncomputable theory
 open_locale classical big_operators
 
@@ -144,15 +144,19 @@ def shift_fun {R : Type*} [has_zero R]: ℕ → (ℕ → R) → (ℕ → R)
 | (k) := λ f, λ n, if (n : ℤ) < k then (0 : R) else f (n - k)
 
 @[simp] lemma shift_fun_by_zero [has_zero R] (f : ℕ → R) : shift_fun 0 f = f := rfl
-@[simp] lemma shift_neg [has_neg R] [has_zero R] (f : ℕ → R) (k : ℕ) :
-  shift_fun k (-f) = - (shift_fun k f) := sorry
-@[simp] lemma shift_fun_eq_iff [has_zero R] (f₁ f₂ : ℕ → R) (k : ℕ) :
-shift_fun k f₁ = shift_fun k f₂ ↔ f₁ = f₂ :=
-begin
-sorry,
-end
 
-example (x y z : ℤ) : x - (y + z) = x - y - z := sub_add_eq_sub_sub x y z
+-- @[simp] lemma shift_fun_eq_iff [has_zero R] (f₁ f₂ : ℕ → R) (k : ℕ) :
+-- shift_fun k f₁ = shift_fun k f₂ ↔ f₁ = f₂ :=
+-- begin
+--   split,
+--   { intro h,
+--     funext,
+--     apply congr_fun h x,
+
+--   },
+--   {sorry,},
+--   -- ext,
+-- end
 
 @[simp] lemma shift_fun_assoc [has_zero R] (f : ℕ → R) (k₁ k₂ : ℕ):
   shift_fun k₁ (shift_fun k₂ f) = shift_fun (k₁ + k₂) f :=
@@ -208,6 +212,19 @@ begin
       tauto,
       rw if_neg h,
       tauto,
+end
+
+@[simp] lemma shift_neg [ring R] (f : ℕ → R) (k : ℕ) :
+  shift_fun k (-f) = - (shift_fun k f) :=
+begin
+  ext,
+  rw pi.neg_apply,
+  dsimp [shift_fun],
+  by_cases h : (x : ℤ) < ↑k,
+  { repeat {rw if_pos h},
+    exact neg_zero.symm },
+  { repeat {rw if_neg h},
+    rw pi.neg_apply },
 end
 
 @[simp] lemma shift_fun_add (k : ℕ) (f₁ f₂ : ℕ → R) : shift_fun k (f₁ + f₂) =
@@ -282,33 +299,37 @@ instance : add_comm_monoid (punctured_power_series R) :=
 @[simp] lemma add_fst {F₁ F₂ : punctured_power_series R} :
  (F₁ + F₂).fst = F₁.fst + F₂.fst :=
 begin
-  sorry,
+  rcases F₁ with ⟨k₁, _⟩,
+  rcases F₂ with ⟨k₂, _⟩,
+  apply rfl,
 end
 
 @[simp] lemma add_snd {F₁ F₂ : punctured_power_series R} :
  (F₁ + F₂).snd = shift_fun F₂.fst F₁.snd + shift_fun F₁.fst F₂.snd :=
 begin
-  sorry,
+  rcases F₁ with ⟨_, f₁⟩,
+  rcases F₂ with ⟨_, f₂⟩,
+  apply rfl,
 end
 
-#print punctured_power_series.add
-def a : ℕ → ℤ := λ n, 4*n+3
-def b : ℕ → ℤ := λ n, 1-2*n
--- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
--- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
+-- #print punctured_power_series.add
+-- def a : ℕ → ℤ := λ n, 4*n+3
+-- def b : ℕ → ℤ := λ n, 1-2*n
+-- -- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
+-- -- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
 
-def F₁ : punctured_power_series ℤ := (1, a)
-def F₂ : punctured_power_series ℤ := (3, b)
-#eval a 5
-#eval (F₁ + F₂).snd 9
+-- def F₁ : punctured_power_series ℤ := (1, a)
+-- def F₂ : punctured_power_series ℤ := (3, b)
+-- #eval a 5
+-- #eval (F₁ + F₂).snd 9
 /-The right answers are
 0 → 0, 1 → 1, 2 → -1, 3 → 0, 4 → 2, 5 → 4, 6 → 6, 7 → 8, 8 → 10, 9 → 12
 
 def F₃ := (𝟘, b) --check!
 --/
 
-def eqv_punctured_old (F₁ F₂ : punctured_power_series R) : Prop :=
-∃ ℓ₁₂ ℓ₂₁ : 𝕄, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
+-- def eqv_punctured_old (F₁ F₂ : punctured_power_series R) : Prop :=
+-- ∃ ℓ₁₂ ℓ₂₁ : 𝕄, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
 
 def eqv_punctured (F₁ F₂ : punctured_power_series R) : Prop :=
 ∃ ℓ₁₂ ℓ₂₁ : ℕ, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
@@ -390,6 +411,7 @@ instance : has_coe (punctured_power_series R) (laurent_series R) :=
 
 variables {S : Type*} [comm_ring S]
 
+
 noncomputable theory
 open classical
 -- open_locale classical
@@ -406,7 +428,7 @@ open classical
 --   simp only [pi.add_apply] at *,
 --   apply add_comm,
 -- end
-#check (eqv_punctured.add_con S).mk'
+-- #check (eqv_punctured.add_con S).mk'
 
 def lift_neg : (punctured_power_series S) → (laurent_series S) :=
   λ ⟨k, f⟩, (eqv_punctured.add_con S).mk' ⟨k, -f⟩
@@ -416,40 +438,12 @@ lemma cong_neg : ∀ (F₁ F₂ : punctured_power_series S),  eqv_punctured F₁
 begin
   rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩ ⟨ℓ₁₂, ℓ₂₁, h⟩,
   dsimp [lift_neg],
-  -- rw eqv_punctured at h,
-  -- rcases h with ⟨ℓ₁₂, ℓ₂₁, h⟩,
   rw ext_punctured_power_series at h,
-  -- have hμ : μ (k₁, ℓ₁₂) = μ (k₂, ℓ₂₁),
-  -- rw cst_shift_fun at h,
-  -- rw μ,
-  -- sorry,
-  -- replace h : k₁ + ℓ₁₂ = k₂ + ℓ₂₁ ∧ ((k₁, f₁) + (ℓ₁₂, 0)).snd =
-  --   ((k₂, f₂) + (ℓ₂₁, 0)).snd,
-  -- split,
-  -- exact h.1,
-  -- let k := h.2,
-  -- exact h.2,
-  -- sorry,
   replace h : eqv_punctured (k₁, -f₁) (k₂, -f₂),
   { use [ℓ₁₂, ℓ₂₁],
     ext,
     exact h.1,
-    -- replace h : ((k₁, f₁) + (ℓ₁₂, 0)).snd = ((k₂, f₂) + (ℓ₂₁, 0)).snd := and.elim_right h,
-    show (shift_fun ℓ₁₂ (- f₁) + shift_fun k₁ 0) x =
-    (shift_fun ℓ₂₁ (-f₂) + shift_fun k₂ 0) x,
-    simp only [*, add_zero, pi.neg_apply, shift_fun_of_zero, neg_inj,
-      shift_neg] at *,
-    repeat {rw pi.add_apply},
-    simp [pi.zero_apply, add_zero, *] at *,
-    have this : ((k₁, f₁) + (ℓ₁₂, 0)).snd = ((k₂, f₂) + (ℓ₂₁, 0)).snd,
-    apply and.right h,
-    have that : shift_fun ℓ₁₂ f₁ = shift_fun ℓ₂₁ f₂,
-    -- dsimp [punctured_power_series.add],
-    sorry,
-    sorry,
-    sorry,
-    -- apply congr_fun that x,
-    },
+    simp * at * },
   apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
 end
 
@@ -459,30 +453,34 @@ def lift_sub : (punctured_power_series S) → (punctured_power_series S) → (la
 lemma cong_sub : ∀ (F₁ F₂ G₁ G₂: punctured_power_series S),  eqv_punctured F₁ G₁ →
   eqv_punctured.add_con S F₂ G₂ → lift_sub F₁ F₂ = lift_sub G₁ G₂ :=
 begin
-  rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩ ⟨m₁, g₁⟩ ⟨m₂, g₂⟩ ⟨μ₁₂, μ₂₁, h₁⟩ ⟨θ₁₂, θ₂₁, h₂⟩,
+  rintros ⟨k₁, f₁⟩ ⟨m₁, g₁⟩ ⟨k₂, f₂⟩ ⟨m₂, g₂⟩ ⟨μ₁₂, μ₂₁, h₁⟩ ⟨θ₁₂, θ₂₁, h₂⟩,
   dsimp [lift_sub],
   rw ext_punctured_power_series at h₁,
   rw ext_punctured_power_series at h₂,
-  have h : eqv_punctured (k₁ + k₂, f₁ - f₂) (m₁ + m₂, g₁ - g₂),
+  have h : eqv_punctured (k₁ + m₁, f₁ - g₁) (k₂ + m₂, f₂ - g₂),
   { rw eqv_punctured,
     use [μ₁₂ + θ₁₂, μ₂₁ + θ₂₁],
     ext,
-    have this₁ : ((k₁, f₁) + (μ₁₂, 0)).fst = ((m₁, g₁) + (μ₂₁, 0)).fst,
-    exact h₁.1,
-    repeat {rw prod.fst_add at this₁},
-    -- rw prod.fst_add at this₁,
-    -- rw prod.fst_add (k₁, f₁) (μ₁₂, 0) at this₁,
-    have this₂ : ((k₂, f₂) + (θ₁₂, 0)).fst = ((m₂, g₂) + (θ₂₁, 0)).fst,
-    exact h₂.1,
-    repeat {rw prod.fst_add at this₂},
-    -- apply prod.fst_add,
-    -- show (k₁ + k₂, f₁ - f₂).fst + (μ₁₂ + θ₁₂).fst =
-    --   (m₁ + m₂, g₁ - g₂).fst + (μ₂₁ + θ₂₁, 0).fst,
-    -- rw prod.fst_add,
-    rw prod.fst_add ((k₁ + k₂, f₁ - f₂) : ℕ × (ℕ → S)) (μ₁₂ + θ₁₂, 0),
-  }
+    { simp only [*, add_zero, add_snd, shift_fun_of_zero, add_fst] at *,
+      sorry },
+    { simp only [*, add_zero, add_snd, shift_fun_of_zero, add_fst,
+      pi.add_apply] at *,
+      have h₁' : shift_fun μ₁₂ f₁ = shift_fun μ₂₁ g₁, sorry,
+      have h₂' : shift_fun θ₁₂ f₂ = shift_fun θ₂₁ g₂, sorry,
+      rw nat.add_comm,
+      rw ← shift_fun_assoc,
+      rw sub_eq_add_neg,
+      rw shift_fun_add,
+      rw h₁',
+      rw nat.add_comm,
+      rw ← shift_fun_assoc,
+      rw sub_eq_add_neg,
+      -- rw shift_fun_add μ₂₁ g₁ (-g₂),
+      rw ← h₁',
+      sorry,
+  }},
   -- have
-  sorry,
+  -- sorry,
   -- rw lift_sub,
   apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
 end

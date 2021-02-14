@@ -255,8 +255,10 @@ begin
   exact hC
 end
 
-/-- A surjective continuous linear map admits a (possibly nonlinear) controlled right inverse.
-In general, it is not possible to ensure that such a right inverse is linear. -/
+/-- A surjective continuous linear map between Banach spaces admits a (possibly nonlinear)
+controlled right inverse. In general, it is not possible to ensure that such a right inverse
+is linear (take for instance the map from `E` to `E/F` where `F` is a closed subspace of `E`
+without a closed complement. Then it doesn't have a continuous linear right inverse.) -/
 @[irreducible] noncomputable def nonlinear_right_inverse_of_surjective
   (f : E →L[𝕜] F) (hsurj : f.range = ⊤) : nonlinear_right_inverse f :=
 classical.some (exists_nonlinear_right_inverse_of_surjective f hsurj)

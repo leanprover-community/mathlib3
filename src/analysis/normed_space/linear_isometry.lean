@@ -190,6 +190,9 @@ protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 /-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/
 def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
+/-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
+def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
+
 protected lemma continuous : continuous e := e.isometry.continuous
 protected lemma continuous_at {x} : continuous_at e x := e.continuous.continuous_at
 protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous_on

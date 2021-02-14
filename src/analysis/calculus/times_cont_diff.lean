@@ -1539,6 +1539,18 @@ lemma continuous_linear_map.times_cont_diff {n : with_top ℕ} (f : E →L[𝕜]
   times_cont_diff 𝕜 n f :=
 f.is_bounded_linear_map.times_cont_diff
 
+lemma continuous_linear_equiv.times_cont_diff {n : with_top ℕ} (f : E ≃L[𝕜] F) :
+  times_cont_diff 𝕜 n f :=
+(f : E →L[𝕜] F).times_cont_diff
+
+lemma linear_isometry_map.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
+  times_cont_diff 𝕜 n f :=
+f.to_continuous_linear_map.times_cont_diff
+
+lemma linear_isometry_equiv.times_cont_diff {n : with_top ℕ} (f : E ≃ₗᵢ[𝕜] F) :
+  times_cont_diff 𝕜 n f :=
+(f : E →L[𝕜] F).times_cont_diff
+
 /--
 The first projection in a product is `C^∞`.
 -/

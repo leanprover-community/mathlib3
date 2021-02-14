@@ -2692,7 +2692,7 @@ local attribute [instance] finite_dimensional_of_findim_eq_succ
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.from_orthogonal_span_singleton
-  {n : ℕ} [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
+  (n : ℕ) [fact (findim 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 linear_isometry_equiv.of_inner_product_space (findim_orthogonal_span_singleton hv)
 

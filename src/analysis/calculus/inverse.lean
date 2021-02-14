@@ -160,13 +160,13 @@ by Banach's open mapping theorem. -/
 
 include cs
 
-variables {s : set E} {c : ℝ≥0} {f' : E →L[𝕜] F} (f'symm : f'.nonlinear_right_inverse)
+variables {s : set E} {c : ℝ≥0} {f' : E →L[𝕜] F}
 
 /-- If a function is linearly approximated by a continuous linear map with a (possibly nonlinear)
 right inverse, then it is locally onto: a ball of an explicit radius is included in the image
 of the map. -/
 theorem surj_on_closed_ball_of_nonlinear_right_inverse
-  (hf : approximates_linear_on f f' s c)
+  (hf : approximates_linear_on f f' s c)  (f'symm : f'.nonlinear_right_inverse)
   {ε : ℝ} {b : E} (ε0 : 0 ≤ ε) (hε : closed_ball b ε ⊆ s) :
   surj_on f (closed_ball b ε) (closed_ball (f b) (((f'symm.nnnorm : ℝ)⁻¹ - c) * ε)) :=
 begin
@@ -298,7 +298,7 @@ begin
   exact tendsto_nhds_unique T1 T2,
 end
 
-lemma open_image (hf : approximates_linear_on f f' s c)
+lemma open_image (hf : approximates_linear_on f f' s c)  (f'symm : f'.nonlinear_right_inverse)
   (hs : is_open s) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) : is_open (f '' s) :=
 begin
   cases hc with hE hc,
@@ -313,8 +313,8 @@ begin
     hε (subset.refl _)
 end
 
-lemma image_mem_nhds (hf : approximates_linear_on f f' s c) (x : E)
-  (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
+lemma image_mem_nhds (hf : approximates_linear_on f f' s c) (f'symm : f'.nonlinear_right_inverse)
+  {x : E} (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
   f '' s ∈ 𝓝 (f x) :=
 begin
   obtain ⟨t, hts, ht, xt⟩ : ∃ t ⊆ s, is_open t ∧ x ∈ t := mem_nhds_sets_iff.1 hs,
@@ -322,13 +322,13 @@ begin
   exact mem_sets_of_superset this (image_subset _ hts),
 end
 
-lemma map_nhds_eq (hf : approximates_linear_on f f' s c) (x : E)
-  (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
+lemma map_nhds_eq (hf : approximates_linear_on f f' s c) (f'symm : f'.nonlinear_right_inverse)
+  {x : E} (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
   map f (𝓝 x) = 𝓝 (f x) :=
 begin
   refine le_antisymm ((hf.continuous_on x (mem_of_nhds hs)).continuous_at hs) (le_map (λ t ht, _)),
   have : f '' (s ∩ t) ∈ 𝓝 (f x) := (hf.mono_set (inter_subset_left s t)).image_mem_nhds
-    f'symm x (inter_mem_sets hs ht) hc,
+    f'symm (inter_mem_sets hs ht) hc,
   exact mem_sets_of_superset this (image_subset _ (inter_subset_right _ _)),
 end
 
@@ -458,7 +458,7 @@ begin
   have cpos : 0 < c, by simp [hc, nnreal.half_pos, nnreal.inv_pos, f'symm_pos],
   obtain ⟨s, s_nhds, hs⟩ : ∃ s ∈ 𝓝 a, approximates_linear_on f f' s c :=
     hf.approximates_deriv_on_nhds (or.inr cpos),
-  apply hs.map_nhds_eq f'symm _ s_nhds (or.inr (nnreal.half_lt_self _)),
+  apply hs.map_nhds_eq f'symm s_nhds (or.inr (nnreal.half_lt_self _)),
   simp [ne_of_gt f'symm_pos],
 end
 

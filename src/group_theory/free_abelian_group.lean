@@ -427,18 +427,15 @@ instance pempty_unique : unique (free_abelian_group pempty) :=
     (λ x, pempty.elim x)
     (by { rintros - - rfl rfl, simp })  }
 
-example (T : Type*) [unique T] (C : T → Prop) (h : C (inhabited.default T))
-  (x : T) : C x := by refine unique.forall_iff.mpr h x
-
 /-- The free abelian group on a type with one term is isomorphic to `ℤ`. -/
 def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
 { to_fun := free_abelian_group.lift (λ _, (1 : ℤ)),
   inv_fun := λ n, n • of (inhabited.default T),
   left_inv := λ z, free_abelian_group.induction_on z
-    (by simp only [zero_smul, lift.zero])
+    (by simp only [zero_smul, add_monoid_hom.map_zero])
     (unique.forall_iff.2 $ by simp only [one_smul, lift.of])
     (unique.forall_iff.2 $ by simp)
-    (λ x y hx hy, by { simp only [lift.add, add_smul] at *, rw [hx, hy]}),
+    (λ x y hx hy, by { simp only [add_monoid_hom.map_add, add_smul] at *, rw [hx, hy]}),
   right_inv := λ n,
   begin
     rw [add_monoid_hom.map_int_module_smul, lift.of],
@@ -460,6 +457,6 @@ def equiv_of_equiv {α β : Type*} (f : α ≃ β) : free_abelian_group α ≃+ 
     rw [← map_comp_apply, equiv.self_comp_symm, map_id],
     refl,
   end,
-  map_add' := lift.add _ }
+  map_add' := add_monoid_hom.map_add _ }
 
 end free_abelian_group

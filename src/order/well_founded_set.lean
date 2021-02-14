@@ -525,12 +525,28 @@ variables {s t : set α} (hs : s.is_wf) (ht : t.is_wf) (a : α)
 noncomputable def mul_antidiagonal : finset (α × α) :=
 (set.mul_antidiagonal.finite_of_is_wf hs ht a).to_finset
 
-variables {hs} {ht} {a} {x : α × α}
+variables {hs} {ht} {u : set α} {hu : u.is_wf} {a} {x : α × α}
 
 @[simp, to_additive]
 lemma mem_mul_antidiagonal :
   x ∈ mul_antidiagonal hs ht a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t :=
 by simp [mul_antidiagonal]
+
+@[to_additive]
+lemma mul_antidiagonal_mono_left (hus : u ⊆ s) :
+  (finset.mul_antidiagonal hu ht a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+λ x hx, begin
+  rw mem_mul_antidiagonal at *,
+  exact ⟨hx.1, hus hx.2.1, hx.2.2⟩,
+end
+
+@[to_additive]
+lemma mul_antidiagonal_mono_right (hut : u ⊆ t) :
+  (finset.mul_antidiagonal hs hu a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+λ x hx, begin
+  rw mem_mul_antidiagonal at *,
+  exact ⟨hx.1, hx.2.1, hut hx.2.2⟩,
+end
 
 @[to_additive]
 theorem is_wf_support_mul_antidiagonal :

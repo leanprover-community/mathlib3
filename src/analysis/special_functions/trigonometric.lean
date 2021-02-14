@@ -2881,7 +2881,7 @@ end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
 begin
-  convert (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two).at_top_mul (by norm_num)
+  convert (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two).at_top_mul zero_lt_one
             tendsto_sin_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end

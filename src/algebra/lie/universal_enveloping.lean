@@ -67,7 +67,7 @@ variables {L}
 
 /-- The natural Lie algebra morphism from a Lie algebra to its universal enveloping algebra. -/
 def ι : L →ₗ⁅R⁆ universal_enveloping_algebra R L :=
-{ map_lie   := λ x y, by
+{ map_lie'   := λ x y, by
   { suffices : mk_alg_hom R L (ιₜ ⁅x, y⁆ + (ιₜ y) * (ιₜ x)) = mk_alg_hom R L ((ιₜ x) * (ιₜ y)),
     { rw alg_hom.map_mul at this, simp [lie_ring.of_associative_ring_bracket, ← this], },
     exact ring_quot.mk_alg_hom_rel _ (rel.lie_compat x y), },
@@ -93,7 +93,7 @@ def lift : (L →ₗ⁅R⁆ A) ≃ (universal_enveloping_algebra R L →ₐ[R] A
 rfl
 
 @[simp] lemma ι_comp_lift : (lift R f) ∘ (ι R) = f :=
-funext $ lie_algebra.morphism.ext_iff.mp $ (lift R).symm_apply_apply f
+funext $ lie_hom.ext_iff.mp $ (lift R).symm_apply_apply f
 
 @[simp] lemma lift_ι_apply (x : L) : lift R f (ι R x) = f x :=
 by rw [←function.comp_apply (lift R f) (ι R) x, ι_comp_lift]

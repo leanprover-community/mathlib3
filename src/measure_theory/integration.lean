@@ -1685,6 +1685,13 @@ begin
   rw [lintegral_indicator _ (hf (measurable_set_singleton ∞))], simp [ennreal.top_mul, preimage, h]
 end
 
+lemma ae_lt_top' {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (h2f : ∫⁻ x, f x ∂μ < ∞) :
+  ∀ᵐ x ∂μ, f x < ∞ :=
+begin
+  have h2f_meas : ∫⁻ x, hf.mk f x ∂μ < ∞, by rwa ←lintegral_congr_ae hf.ae_eq_mk,
+  exact (ae_lt_top hf.measurable_mk h2f_meas).mp (hf.ae_eq_mk.mono (λ x hx h, by rwa hx)),
+end
+
 /-- Given a measure `μ : measure α` and a function `f : α → ℝ≥0∞`, `μ.with_density f` is the
 measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/
 def measure.with_density (μ : measure α) (f : α → ℝ≥0∞) : measure α :=

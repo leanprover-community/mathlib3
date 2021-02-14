@@ -38,20 +38,6 @@ namespace lift
 variables {β : Type v} [add_comm_group β] (f : α → β)
 open free_abelian_group
 
-@[simp] protected lemma add (x y : free_abelian_group α) :
-  lift f (x + y) = lift f x + lift f y :=
-is_add_hom.map_add _ _ _
-
-@[simp] protected lemma neg (x : free_abelian_group α) : lift f (-x) = -lift f x :=
-is_add_group_hom.map_neg _ _
-
-@[simp] protected lemma sub (x y : free_abelian_group α) :
-  lift f (x - y) = lift f x - lift f y :=
-by simp [sub_eq_add_neg]
-
-@[simp] protected lemma zero : lift f 0 = 0 :=
-is_add_group_hom.map_zero _
-
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
 begin
   convert @abelianization.lift.of (free_group α) _ (multiplicative β) _ _ _,
@@ -62,7 +48,7 @@ protected theorem unique (g : free_abelian_group α →+ β)
   (hg : ∀ x, g (of x) = f x) {x} :
   g x = lift f x :=
 @abelianization.lift.unique (free_group α) _ (multiplicative β) _
-  (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f)) g.to_multiplicative
+  (@free_group.to_group _ (multiplicative β) _ f) g.to_multiplicative
   (λ x, @free_group.to_group.unique α (multiplicative β) _ _
     ((add_monoid_hom.to_multiplicative' g).comp abelianization.of)
     hg x) _
@@ -108,7 +94,7 @@ variables (X : Type*) (G : Type*) [add_comm_group G]
 /-- The bijection underlying the free-forgetful adjunction for abelian groups.-/
 def hom_equiv : (free_abelian_group X →+ G) ≃ (X → G) :=
 { to_fun := λ f, f.1 ∘ of,
-  inv_fun := λ f, add_monoid_hom.of (lift f),
+  inv_fun := λ f, lift f,
   left_inv := λ f, begin ext, simp end,
   right_inv := λ f, funext $ λ x, lift.of f x }
 
@@ -137,13 +123,13 @@ theorem lift.add' {α β} [add_comm_group β] (a : free_abelian_group α) (f g :
   lift (f + g) a = lift f a + lift g a :=
 begin
   refine free_abelian_group.induction_on a _ _ _ _,
-  { simp only [lift.zero, zero_add] },
+  { simp only [(lift _).map_zero, zero_add] },
   { assume x,
     simp only [lift.of, pi.add_apply] },
   { assume x h,
-    simp only [lift.neg, lift.of, pi.add_apply, neg_add] },
+    simp only [(lift _).map_neg, lift.of, pi.add_apply, neg_add] },
   { assume x y hx hy,
-    simp only [lift.add, hx, hy],
+    simp only [(lift _).map_add, hx, hy],
     ac_refl }
 end
 
@@ -171,18 +157,18 @@ free_abelian_group.induction_on z C0 C1 Cn Cp
 lift.of _ _
 
 @[simp] lemma map_zero (f : α → β) : f <$> (0 : free_abelian_group α) = 0 :=
-lift.zero (of ∘ f)
+(lift (of ∘ f)).map_zero
 
 @[simp] lemma map_add (f : α → β) (x y : free_abelian_group α) :
   f <$> (x + y) = f <$> x + f <$> y :=
-lift.add _ _ _
+(lift _).map_add _ _
 
 @[simp] lemma map_neg (f : α → β) (x : free_abelian_group α) : f <$> (-x) = -(f <$> x) :=
-lift.neg _ _
+(lift _).map_neg _
 
 @[simp] lemma map_sub (f : α → β) (x y : free_abelian_group α) :
   f <$> (x - y) = f <$> x - f <$> y :=
-lift.sub _ _ _
+(lift _).map_sub _ _
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
 
@@ -196,29 +182,29 @@ lemma lift_comp {α} {β} {γ} [add_comm_group γ]
   lift (g ∘ f) x = lift g (f <$> x) :=
 begin
   apply free_abelian_group.induction_on x,
-  { simp only [lift.zero, map_zero], },
+  { simp only [(lift _).map_zero, map_zero], },
   { intro y, simp [lift.of, map_of, function.comp_app], },
-  { intros x w, simp only [w, neg_inj, lift.neg, map_neg], },
-  { intros x y w₁ w₂, simp only [w₁, w₂, lift.add, add_right_inj, map_add], },
+  { intros x w, simp only [w, neg_inj, (lift _).map_neg, map_neg], },
+  { intros x y w₁ w₂, simp only [w₁, w₂, (lift _).map_add, add_right_inj, map_add], },
 end
 
 @[simp] lemma pure_bind (f : α → free_abelian_group β) (x) : pure x >>= f = f x :=
 lift.of _ _
 
 @[simp] lemma zero_bind (f : α → free_abelian_group β) : 0 >>= f = 0 :=
-lift.zero f
+(lift f).map_zero
 
 @[simp] lemma add_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) :
   x + y >>= f = (x >>= f) + (y >>= f) :=
-lift.add _ _ _
+(lift _).map_add _ _
 
 @[simp] lemma neg_bind (f : α → free_abelian_group β) (x : free_abelian_group α) :
   -x >>= f = -(x >>= f) :=
-lift.neg _ _
+(lift _).map_neg _
 
 @[simp] lemma sub_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) :
   x - y >>= f = (x >>= f) - (y >>= f) :=
-lift.sub _ _ _
+(lift _).map_sub _ _
 
 @[simp] lemma pure_seq (f : α → β) (x : free_abelian_group α) : pure f <*> x = f <$> x :=
 pure_bind _ _
@@ -289,12 +275,13 @@ instance [monoid α] : semigroup (free_abelian_group α) :=
       { intros L2, iterate 3 { rw lift.of },
         refine free_abelian_group.induction_on x (by simp) _ _ _,
         { intros L1, iterate 3 { rw lift.of }, congr' 1, exact mul_assoc _ _ _ },
-        { intros L1 ih, iterate 3 { rw lift.neg }, rw ih },
-        { intros x1 x2 ih1 ih2, iterate 3 { rw lift.add }, rw [ih1, ih2] } },
-      { intros L2 ih, iterate 4 { rw lift.neg }, rw ih },
-      { intros y1 y2 ih1 ih2, iterate 4 { rw lift.add }, rw [ih1, ih2] } },
-    { intros L3 ih, iterate 3 { rw lift.neg }, rw ih },
-    { intros z1 z2 ih1 ih2, iterate 2 { rw lift.add }, rw [ih1, ih2], exact (lift.add _ _ _).symm }
+        { intros L1 ih, iterate 3 { rw (lift _).map_neg }, rw ih },
+        { intros x1 x2 ih1 ih2, iterate 3 { rw (lift _).map_add }, rw [ih1, ih2] } },
+      { intros L2 ih, iterate 4 { rw (lift _).map_neg }, rw ih },
+      { intros y1 y2 ih1 ih2, iterate 4 { rw (lift _).map_add }, rw [ih1, ih2] } },
+    { intros L3 ih, iterate 3 { rw (lift _).map_neg }, rw ih },
+    { intros z1 z2 ih1 ih2, iterate 2 { rw (lift _).map_add }, rw [ih1, ih2],
+      exact ((lift _).map_add _ _).symm }
   end }
 
 lemma mul_def [monoid α] (x y : free_abelian_group α) :
@@ -310,23 +297,23 @@ instance [monoid α] : ring (free_abelian_group α) :=
     rw lift.of,
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intros L, erw [lift.of], congr' 1, exact mul_one L },
-    { intros L ih, rw [lift.neg, ih] },
-    { intros x1 x2 ih1 ih2, rw [lift.add, ih1, ih2] }
+    { intros L ih, rw [(lift _).map_neg, ih] },
+    { intros x1 x2 ih1 ih2, rw [(lift _).map_add, ih1, ih2] }
   end,
   one_mul := λ x, begin
     unfold has_mul.mul semigroup.mul has_one.one,
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intros L, rw [lift.of, lift.of], congr' 1, exact one_mul L },
-    { intros L ih, rw [lift.neg, ih] },
-    { intros x1 x2 ih1 ih2, rw [lift.add, ih1, ih2] }
+    { intros L ih, rw [(lift _).map_neg, ih] },
+    { intros x1 x2 ih1 ih2, rw [(lift _).map_add, ih1, ih2] }
   end,
-  left_distrib := λ x y z, lift.add _ _ _,
+  left_distrib := λ x y z, (lift _).map_add _ _,
   right_distrib := λ x y z, begin
     unfold has_mul.mul semigroup.mul,
     refine free_abelian_group.induction_on z rfl _ _ _,
-    { intros L, iterate 3 { rw lift.of }, rw lift.add, refl },
-    { intros L ih, iterate 3 { rw lift.neg }, rw [ih, neg_add], refl },
-    { intros z1 z2 ih1 ih2, iterate 3 { rw lift.add }, rw [ih1, ih2],
+    { intros L, iterate 3 { rw lift.of }, rw (lift _).map_add, refl },
+    { intros L ih, iterate 3 { rw (lift _).map_neg }, rw [ih, neg_add], refl },
+    { intros z1 z2 ih1 ih2, iterate 3 { rw (lift _).map_add }, rw [ih1, ih2],
       rw [add_assoc, add_assoc], congr' 1, apply add_left_comm }
   end,
   .. free_abelian_group.add_comm_group α,

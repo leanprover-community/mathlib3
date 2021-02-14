@@ -750,34 +750,24 @@ by simp_rw [nat_degree_le_iff_degree_le, degree_le_iff_coeff_zero, with_bot.coe_
 
 lemma nat_degree_C_mul_le (a : R) (f : polynomial R) :
   (C a * f).nat_degree ≤ f.nat_degree :=
-begin
-  refine (nat_degree_le_iff_coeff_eq_zero _).mpr (λ n hn, _),
-  refine (coeff_C_mul f).trans (mul_eq_zero_of_right _ _),
-  refine (nat_degree_le_iff_coeff_eq_zero (n - 1)).mp (nat.le_pred_of_lt hn) n _,
-  by_cases n0 : n = 0,
-  { exact ((nat_degree f).not_lt_zero (hn.trans_le n0.le)).elim },
-  { exact nat.pred_lt n0 }
-end
+calc
+  (C a * f).nat_degree ≤ (C a).nat_degree + f.nat_degree : nat_degree_mul_le
+  ... = 0 + f.nat_degree : by rw nat_degree_C a
+  ... = f.nat_degree : zero_add _
 
 lemma nat_degree_mul_C_le (f : polynomial R) (a : R) :
   (f * C a).nat_degree ≤ f.nat_degree :=
-begin
-  refine (nat_degree_le_iff_coeff_eq_zero _).mpr (λ n hn, _),
-  refine (coeff_mul_C f n a).trans (mul_eq_zero_of_left _ _),
-  refine (nat_degree_le_iff_coeff_eq_zero (n - 1)).mp (nat.le_pred_of_lt hn) n _,
-  by_cases n0 : n = 0,
-  { exact ((nat_degree f).not_lt_zero (hn.trans_le n0.le)).elim },
-  { exact nat.pred_lt n0 }
-end
+calc
+  (f * C a).nat_degree ≤ f.nat_degree + (C a).nat_degree : nat_degree_mul_le
+  ... = f.nat_degree + 0 : by rw nat_degree_C a
+  ... = f.nat_degree : add_zero _
 
 lemma nat_degree_mul_C_eq_of_mul_eq_one {ai : R} (au : a * ai = 1) {f : polynomial R} :
   (f * C a).nat_degree = f.nat_degree :=
-begin
-  refine le_antisymm (nat_degree_mul_C_le f a) _,
-  nth_rewrite 0 [← mul_one f],
-  rw [← C_1, ← au, ring_hom.map_mul, ← mul_assoc],
-  exact nat_degree_mul_C_le (f * C a) ai
-end
+le_antisymm (nat_degree_mul_C_le f a) (calc
+  f.nat_degree = (f * 1).nat_degree : by nth_rewrite 0 [← mul_one f]
+  ... = ((f * C a) * C ai).nat_degree : by rw [← C_1, ← au, ring_hom.map_mul, ← mul_assoc]
+  ... ≤ (f * C a).nat_degree : nat_degree_mul_C_le (f * C a) ai)
 
 end semiring
 

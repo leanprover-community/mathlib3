@@ -235,22 +235,6 @@ rfl
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
 
-/-- The additive group homomorphism `free_abelian_group α →+ free_abelian_group β` induced from a
-  map `α → β` -/
-def map (f : α → β) : free_abelian_group α →+ free_abelian_group β :=
-add_monoid_hom.mk' (λ x, f <$> x) $ map_add _
-
-lemma lift_comp {α} {β} {γ} [add_comm_group γ]
-  (f : α → β) (g : β → γ) (x : free_abelian_group α) :
-  lift (g ∘ f) x = lift g (f <$> x) :=
-begin
-  apply free_abelian_group.induction_on x,
-  { simp only [(lift _).map_zero, map_zero], },
-  { intro y, simp [lift.of, map_of, function.comp_app], },
-  { intros x w, simp only [w, neg_inj, (lift _).map_neg, map_neg], },
-  { intros x y w₁ w₂, simp only [w₁, w₂, (lift _).map_add, add_right_inj, map_add], },
-end
-
 @[simp] lemma pure_bind (f : α → free_abelian_group β) (x) : pure x >>= f = f x :=
 lift.of _ _
 

@@ -104,6 +104,15 @@ end
 
 end coev
 
+section adj
+
+/-- If a map α × β → γ is continuous, then its curried form α → C(β, γ) is continuous. -/
+lemma continuous_curry (f : C(α × β, γ)) : continuous (curry f) :=
+have hf : curry f = continuous_map.induced f.continuous_to_fun ∘ coev _ _, by { ext, refl },
+hf ▸ continuous.comp (continuous_induced f.continuous_to_fun) continuous_coev
+
+end adj
+
 end compact_open
 
 end continuous_map

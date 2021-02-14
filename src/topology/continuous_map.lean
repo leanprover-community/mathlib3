@@ -58,4 +58,7 @@ def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) := ⟨f ∘ g⟩
 /-- Constant map as a continuous map -/
 def const (b : β) : C(α, β) := ⟨λ x, b⟩
 
+/-- A curried map as a continuous map. -/
+def curry (f : C(α × β, γ)) (a : α) : C(β, γ) := ⟨function.curry f a⟩
+
 end continuous_map

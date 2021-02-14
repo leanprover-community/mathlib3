@@ -321,7 +321,7 @@ A slight rearrangement from `lsum` gives us
 the bijection underlying the free-forgetful adjunction for R-modules.
 -/
 noncomputable def hom_equiv : ((X →₀ R) →ₗ[R] M) ≃ (X → M) :=
-(lsum : _ ≃+ _).to_equiv.symm.trans $ equiv.arrow_congr (equiv.refl _) (ring_lmap_equiv_self M R)
+(lsum : _ ≃+ _).to_equiv.symm.trans $ equiv.arrow_congr (equiv.refl _) (ring_lmap_equiv_self R M)
 
 @[simp]
 lemma hom_equiv_apply (f) (x) : ((hom_equiv M R X) f) x = f (single x 1) :=

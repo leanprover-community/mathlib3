@@ -7,7 +7,6 @@ import analysis.calculus.times_cont_diff
 import analysis.normed_space.banach
 import topology.local_homeomorph
 import topology.metric_space.contracting
-import analysis.normed_space.finite_dimension
 
 /-!
 # Inverse function theorem

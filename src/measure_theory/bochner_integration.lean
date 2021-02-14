@@ -614,11 +614,7 @@ begin
 end
 
 lemma lintegral_edist_to_simple_func_lt_top (f g : α →₁ₛ[μ] E) :
-<<<<<<< HEAD
-  ∫⁻ (x : α), edist (to_simple_func f x) (to_simple_func g x) ∂μ < ⊤ :=
-=======
   ∫⁻ (x : α), edist (to_simple_func f x) (to_simple_func g x) ∂μ < ∞ :=
->>>>>>> origin/master
 begin
   rw lintegral_rw₂ (to_simple_func_eq_to_fun f) (to_simple_func_eq_to_fun g),
   exact lintegral_edist_lt_top (integrable_coe_fn _) (integrable_coe_fn _)

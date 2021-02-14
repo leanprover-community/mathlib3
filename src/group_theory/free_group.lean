@@ -2,19 +2,45 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Free groups as a quotient over the reduction relation `a * x * x⁻¹ * b = a * b`.
-
-First we introduce the one step reduction relation
-  `free_group.red.step`:  w * x * x⁻¹ * v   ~>   w * v
-its reflexive transitive closure:
-  `free_group.red.trans`
-and proof that its join is an equivalence relation.
-
-Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import data.fintype.basic
 import group_theory.subgroup
+
+/-!
+# Free groups
+
+This file defines free groups over a type. Furthermore, it is shown that the free group construction
+is an instance of a monad. For the result that `free_group` is the left adjoint to the forgetful
+functor from groups to types, see `algebra/category/Group/adjunctions`.
+
+## Main definitions
+
+* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool `
+  modulo the relation `a * x * x⁻¹ * b = a * b`.
+* `mk`: the canonical quotient map `list (α × bool) → free_group α`.
+* `of`: the canoical injection `α → free_group α`.
+* `to_group f`: the canonical group homomorphism `free_group α →* G` given a group `G` and a
+  function `f : α → G`.
+
+## Main statements
+
+* `church_rosser`: The Church-Rosser theorem for word reduction (also known as Newman's diamond
+  lemma).
+* `free_group_unit_equiv_int`: The free group over the one-point type is isomorphic to the integers.
+* The free group construction is an instance of a monad.
+
+## Implementation details
+
+First we introduce the one step reduction relation `free_group.red.step`:
+`w * x * x⁻¹ * v   ~>   w * v`, its reflexive transitive closure `free_group.red.trans`
+and prove that its join is an equivalence relation. Then we introduce `free_group α` as a quotient
+over `free_group.red.step`.
+
+## Tags
+
+free group, Newman's diamond lemma, Church-Rosser theorem
+-/
+
 open relation
 
 universes u v w
@@ -126,7 +152,8 @@ lemma step.to_red : step L₁ L₂ → red L₁ L₂ :=
 refl_trans_gen.single
 
 /-- Church-Rosser theorem for word reduction: If `w1 w2 w3` are words such that `w1` reduces to `w2`
-and `w3` respectively, then there is a word `w4` such that `w2` and `w3` reduce to `w4` respectively. -/
+and `w3` respectively, then there is a word `w4` such that `w2` and `w3` reduce to `w4`
+respectively. This is also known as Newman's diamond lemma. -/
 theorem church_rosser : red L₁ L₂ → red L₁ L₃ → join red L₂ L₃ :=
 relation.church_rosser (assume a b c hab hac,
 match b, c, red.step.diamond hab hac rfl with
@@ -173,11 +200,13 @@ iff.intro
     { exact ⟨_, _, eq.symm, by refl, by refl⟩ },
     { cases h with s e a b,
       rcases list.append_eq_append_iff.1 eq with ⟨s', rfl, rfl⟩ | ⟨e', rfl, rfl⟩,
-      { have : L₁ ++ (s' ++ ((a, b) :: (a, bnot b) :: e)) = (L₁ ++ s') ++ ((a, b) :: (a, bnot b) :: e),
+      { have : L₁ ++ (s' ++ ((a, b) :: (a, bnot b) :: e)) =
+                 (L₁ ++ s') ++ ((a, b) :: (a, bnot b) :: e),
         { simp },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
         exact ⟨w₁, w₂, rfl, h₁, h₂.tail step.bnot⟩ },
-      { have : (s ++ ((a, b) :: (a, bnot b) :: e')) ++ L₂ = s ++ ((a, b) :: (a, bnot b) :: (e' ++ L₂)),
+      { have : (s ++ ((a, b) :: (a, bnot b) :: e')) ++ L₂ =
+                 s ++ ((a, b) :: (a, bnot b) :: (e' ++ L₂)),
         { simp },
         rcases ih this with ⟨w₁, w₂, rfl, h₁, h₂⟩,
         exact ⟨w₁, w₂, rfl, h₁.tail step.bnot, h₂⟩ }, }
@@ -351,7 +380,7 @@ instance : group (free_group α) :=
   mul_left_inv := by rintros ⟨L⟩; exact (list.rec_on L rfl $
     λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih) }
 
-/-- `of x` is the canonical injection from the type to the free group over that type by sending each
+/-- `of` is the canonical injection from the type to the free group over that type by sending each
 element to the equivalence class of the letter that is the element. -/
 def of (x : α) : free_group α :=
 mk [(x, tt)]
@@ -452,6 +481,18 @@ set.subset.antisymm
   end
 
 end to_group
+
+section
+variables (X : Type*) (G : Type*) [group G]
+
+/-- The bijection underlying the free-forgetful adjunction for groups. -/
+@[simps]
+def lift : (X → G) ≃ (free_group X →* G)  :=
+{ to_fun := λ g, to_group g,
+  inv_fun := λ f, f.1 ∘ of,
+  left_inv := by { intros x, ext1, simp },
+  right_inv := by { intros x, ext1, simp }  }
+end
 
 section map
 
@@ -592,7 +633,7 @@ def free_group_empty_equiv_unit : free_group empty ≃ unit :=
   right_inv := λ ⟨⟩, rfl }
 
 /-- The bijection between the free group on a singleton, and the integers. -/
-def free_group_unit_equiv_int : free_group unit ≃ int :=
+def free_group_unit_equiv_int : free_group unit ≃ ℤ :=
 { to_fun    := λ x,
    sum begin revert x, apply monoid_hom.to_fun,
     apply map (λ _, (1 : ℤ)),
@@ -648,7 +689,8 @@ to_group.of
 @[simp] lemma one_bind (f : α → free_group β) : 1 >>= f = 1 :=
 (to_group f).map_one
 
-@[simp] lemma mul_bind (f : α → free_group β) (x y : free_group α) : x * y >>= f = (x >>= f) * (y >>= f) :=
+@[simp] lemma mul_bind (f : α → free_group β) (x y : free_group α) :
+  x * y >>= f = (x >>= f) * (y >>= f) :=
 (to_group f).map_mul _ _
 
 @[simp] lemma inv_bind (f : α → free_group β) (x : free_group α) : x⁻¹ >>= f = (x >>= f)⁻¹ :=
@@ -713,7 +755,8 @@ begin
         exact red.cons_cons ih } } }
 end
 
-theorem reduce.not {p : Prop} : ∀ {L₁ L₂ L₃ : list (α × bool)} {x b}, reduce L₁ = L₂ ++ (x, b) :: (x, bnot b) :: L₃ → p
+theorem reduce.not {p : Prop} :
+  ∀ {L₁ L₂ L₃ : list (α × bool)} {x b}, reduce L₁ = L₂ ++ (x, b) :: (x, bnot b) :: L₃ → p
 | [] L2 L3 _ _ := λ h, by cases L2; injections
 | ((x,b)::L1) L2 L3 x' b' := begin
   dsimp,

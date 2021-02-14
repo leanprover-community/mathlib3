@@ -488,6 +488,7 @@ differentiable_sin x
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
 
+@[continuity]
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
@@ -511,6 +512,7 @@ lemma deriv_cos : deriv cos x = - sin x :=
 @[simp] lemma deriv_cos' : deriv cos = (λ x, - sin x) :=
 funext $ λ _, deriv_cos
 
+@[continuity]
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 

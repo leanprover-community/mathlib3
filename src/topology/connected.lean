@@ -583,12 +583,8 @@ begin
     { exact h } },
 
   -- Now we show T₁, T₂ are closed, cover connected_component t and are disjoint.
-  have hT₁ : is_closed T₁,
-  { rw [hcl T₁, T₁_u],
-    exact is_closed_inter hT hu },
-  have hT₂ : is_closed T₂,
-  { rw [hcl T₂, T₂_v],
-    exact is_closed_inter hT hv },
+  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed_inter hT hu))),
+  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed_inter hT hv))),
 
   have T_decomp : connected_component t ⊆ T₁ ∪ T₂,
   { intros t' ht',

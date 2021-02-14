@@ -1267,7 +1267,7 @@ begin
     (h (λ x hx, hpsa x (finset.mem_insert_of_mem hx))),
 end
 
-lemma finset.prop_sum_of_subadditive' {α γ} [add_comm_monoid α] [decidable_eq γ]
+lemma finset.prop_sum_nonempty_of_subadditive {α γ} [add_comm_monoid α] [decidable_eq γ]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
   ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
 begin
@@ -1300,7 +1300,7 @@ begin
   exact add_le_add_left (hs hsa_restrict) _,
 end
 
-lemma finset.le_sum_of_subadditive'' {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
+lemma finset.le_sum_nonempty_of_subadditive {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
   [decidable_eq γ] (f : α → β) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
   (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
   ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)),
@@ -1316,7 +1316,7 @@ begin
   have hsa_restrict : (∀ (x : γ), x ∈ s → p (g x)),
     from λ x hx, hsa_prop x (finset.mem_insert_of_mem hx),
   have hp_sup : p ∑ (x : γ) in s, g x,
-    from finset.prop_sum_of_subadditive' p hp_add g s hs_empty hsa_restrict,
+    from finset.prop_sum_nonempty_of_subadditive p hp_add g s hs_empty hsa_restrict,
   have hp_ga : p (g a), from hsa_prop a (finset.mem_insert_self a s),
   refine le_trans (h_add (g a) _ hp_ga hp_sup) _,
   rw finset.sum_insert ha,

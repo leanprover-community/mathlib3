@@ -320,15 +320,15 @@ variables (M) (R) (X : Type*)
 A slight rearrangement from `lsum` gives us
 the bijection underlying the free-forgetful adjunction for R-modules.
 -/
-noncomputable def hom_equiv : ((X →₀ R) →ₗ[R] M) ≃ (X → M) :=
-(lsum : _ ≃+ _).to_equiv.symm.trans $ equiv.arrow_congr (equiv.refl _) (ring_lmap_equiv_self R M)
+noncomputable def lift : (X → M) ≃ ((X →₀ R) →ₗ[R] M) :=
+(equiv.arrow_congr (equiv.refl _) (ring_lmap_equiv_self R M).symm).trans (lsum : _ ≃+ _).to_equiv
 
 @[simp]
-lemma hom_equiv_apply (f) (x) : ((hom_equiv M R X) f) x = f (single x 1) :=
+lemma lift_symm_apply (f) (x) : ((lift M R X).symm f) x = f (single x 1) :=
 rfl
 @[simp]
-lemma hom_equiv_symm_apply (f) (g) :
-  ((hom_equiv M R X).symm f) g = g.sum (λ x r, r • f x) :=
+lemma lift_apply (f) (g) :
+  ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
 rfl
 
 end

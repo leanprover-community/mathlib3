@@ -9,6 +9,7 @@ import data.indicator_function
 import data.support
 import measure_theory.integration
 import probability_theory.independence
+import tactic.split_ifs
 
 /-!
   Integration results for independent random variables. Specifically, for two
@@ -17,8 +18,17 @@ import probability_theory.independence
 -/
 
 noncomputable theory
-open set (hiding restrict restrict_apply) filter ennreal
+open set (hiding restrict restrict_apply) filter ennreal probability_theory
 open_locale classical topological_space big_operators nnreal ennreal
+
+
+
+lemma set.indicator_mul_indicator_eq_inter {α:Type*} {t1 t2:set α} {c1 c2:ennreal}:
+  (λ a, (t1.indicator (λ (x : α), c1) * t2.indicator (λ (x : α), c2)) a) =
+      (λ a, (t1 ∩ t2).indicator (λ (x : α), c1 * c2) a) := begin
+  simp only [zero_mul, pi.mul_apply, ite_mul, mul_ite, mul_zero],
+  repeat {rw ← set.indicator}, rw [set.indicator_indicator, set.inter_comm],
+end
 
 namespace measure_theory
 open measure_theory measure_theory.simple_func
@@ -30,7 +40,7 @@ open measure_theory measure_theory.simple_func
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
   {α : Type*} {Mf : measurable_space α} [M : measurable_space α] {μ : measure α} 
   (hMf : Mf ≤ M) (c : ℝ≥0∞) {T : set α} (h_meas_T : M.measurable_set' T)
-  (h_ind : probability_theory.indep_sets Mf.measurable_set' {T} μ )
+  (h_ind : indep_sets Mf.measurable_set' {T} μ )
   {f : α → ℝ≥0∞} (h_meas_f : @measurable α ℝ≥0∞ Mf _ f):
    ∫⁻ a, (f * (T.indicator (λ (x : α), c))) a ∂μ =
   ∫⁻ a, f a ∂μ *
@@ -42,36 +52,19 @@ begin
   (λ g h_mg, measurable.ennreal_mul h_mg (measurable.indicator measurable_const h_meas_T)),
   apply measurable.ennreal_induction,
   { intros c' s' h_meas_s',
-      have h1 : (λ a, (s'.indicator (λ (x : α), c') * T.indicator (λ (x : α), c)) a) =
-         (λ a, (s' ∩ T).indicator (λ (x : α), c * c') a),
-      { ext1 a, cases classical.em (a ∈ s' ∩ T) with h1_1 h1_1,
-        { rw set.indicator_of_mem h1_1,
-          rw [set.mem_inter_eq] at h1_1,
-          simp only [zero_mul, pi.mul_apply, ite_mul, mul_ite, mul_zero],
-          repeat {rw if_pos},
-          rw mul_comm,
-          apply h1_1.left,
-          apply h1_1.right },
-        { rw set.indicator_of_not_mem h1_1,
-          simp only [zero_mul, pi.mul_apply, set.indicator_apply_eq_zero, ite_mul, mul_ite,
-            mul_zero, mul_eq_zero],
-          simp only [set.mem_inter_eq, not_and] at h1_1,
-          intros h1_2 h1_3,
-          exfalso,
-          apply h1_1 h1_3 h1_2 } },
-      rw [h1, lintegral_indicator _
-          (measurable_set.inter (hMf _ h_meas_s') (h_meas_T)),
-          lintegral_indicator _  (hMf _ h_meas_s'),
-          lintegral_indicator _ h_meas_T],
-      simp only [measurable_const, lintegral_const, set.univ_inter, lintegral_const_mul,
+    rw [set.indicator_mul_indicator_eq_inter', lintegral_indicator _
+        (measurable_set.inter (hMf _ h_meas_s') (h_meas_T)),
+        lintegral_indicator _  (hMf _ h_meas_s'),
+        lintegral_indicator _ h_meas_T],
+    simp only [measurable_const, lintegral_const, set.univ_inter, lintegral_const_mul,
         measurable_set.univ, measure.restrict_apply],
-      rw h_ind, ring, apply h_meas_s', simp },
+    rw h_ind, ring, apply h_meas_s', simp },
   { intros f' g h_univ h_meas_f' h_meas_g h_ind_f' h_ind_g,
     have h_measM_f' := measurable.mono h_meas_f' hMf (le_refl _),
     have h_measM_g := measurable.mono h_meas_g hMf (le_refl _),
     have h_indicator : @measurable α ℝ≥0∞ M _ (λ (a : α), T.indicator (λ (_x : α), c) a),
     { apply measurable.indicator (measurable_const) h_meas_T },
-    have h8 : (f' + g) * T.indicator (λ (x : α), c)=
+    have h8 : (f' + g) * T.indicator (λ (x : α), c) =
              (λ a, (f' * (T.indicator (λ _, c))) a + (g * (T.indicator (λ _, c))) a),
     { ext1 a, simp [right_distrib] },
     rw h8,
@@ -83,13 +76,11 @@ begin
        h_ind_g] },
   { intros f h_meas_f h_mono_f h_ind_f,
     have h_measM_f := (λ n, measurable.mono (h_meas_f n) hMf (le_refl _)),
-    have h_mul:
-     (λ a, ((λ (x : α), ⨆ (n : ℕ), f n x) * T.indicator (λ (x : α), c)) a) =
+    have h_mul : (λ a, ((λ (x : α), ⨆ (n : ℕ), f n x) * T.indicator (λ (x : α), c)) a) =
       (λ (a : α), ⨆ (n : ℕ), (λ (x : α), f n x * (T.indicator (λ (x : α), c) x)) a),
     { ext1 a, rw @pi.mul_apply, rw ennreal.supr_mul, },
-    have h_mul2:(λ (n : ℕ), (@lintegral α M μ
-       (λ (x : α), f n x * T.indicator (λ (_x : α), c) x)))  =
-        (λ n, @lintegral α M μ (f n) * @lintegral α M μ (T.indicator (λ (_x : α), c))),
+    have h_mul2 : (λ n, ∫⁻ x, f n x * T.indicator (λ (x : α), c) x ∂μ)  =
+        (λ n, (∫⁻ x, (f n x) ∂μ) * (∫⁻ x, T.indicator (λ (x : α), c) x ∂μ)),
     { ext1 n, rw ← h_ind_f n, refl },
     rw [h_mul, lintegral_supr h_measM_f h_mono_f, lintegral_supr, ennreal.supr_mul, h_mul2],
     { apply (λ n, h_mul_indicator _ (h_measM_f n)) },
@@ -105,7 +96,7 @@ end
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
   {α : Type*} {Mf : measurable_space α} {Mg : measurable_space α} [M : measurable_space α]
   {μ : measure α} (hMf : Mf ≤ M) (hMg : Mg ≤ M)
-  (h_ind : probability_theory.indep Mf Mg μ)
+  (h_ind : indep Mf Mg μ)
   (f g : α → ℝ≥0∞) (h_meas_f : @measurable α ℝ≥0∞ Mf _ f)
   (h_meas_g : @measurable α ℝ≥0∞ Mg _ g):
   ∫⁻ a, (f * g) a ∂μ = (∫⁻ a, f a ∂μ) * (∫⁻ a, g a ∂μ) :=
@@ -139,8 +130,8 @@ begin
     have h_mul : (λ (a : α), (f * λ (x : α), ⨆ (n : ℕ), f' n x) a) =
       (λ (a : α), ⨆ (n : ℕ), (λ (x:α), (f x * f' n x)) a),
     { ext1 a, simp only [pi.mul_apply], rw ennreal.mul_supr },
-    have h_mul2 : (λ (n:ℕ), (@lintegral α M μ (λ (x : α), f x * f' n x))) =
-        (λ n, @lintegral α M μ f * @lintegral α M μ (f' n)),
+    have h_mul2 : (λ (n:ℕ), ∫⁻ (x : α), f x * f' n x ∂μ) =
+        (λ n, (∫⁻ x, f x ∂μ) * ∫⁻ x, f' n x ∂μ),
     { ext1 n, rw ← h_ind_f' n, refl },
     rw [h_mul, lintegral_supr,
         lintegral_supr h_measM_f' h_mono_f', ennreal.mul_supr, h_mul2],
@@ -153,9 +144,9 @@ end
    then `E[f * g] = E[f] * E[g]`. Note that this will only apply to probability
    measures, because `μ (f ⁻¹' univ) * μ (g ⁻¹' univ) = μ ((f ⁻¹' univ) ∩ (g ⁻¹' univ)))`
    implies μ univ * μ univ = μ univ, i.e. μ univ = 1. -/
-lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun {α:Type*} [M:measurable_space α]
-  (μ:measure α) (f g:α → ℝ≥0∞) (h_meas_f:measurable f) (h_meas_g:measurable g)
-  (h_indep_fun:probability_theory.indep_fun (borel ennreal) (borel ennreal) f g μ):
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun {α : Type*} [M : measurable_space α]
+  (μ : measure α) (f g : α → ℝ≥0∞) (h_meas_f : measurable f) (h_meas_g : measurable g)
+  (h_indep_fun : indep_fun (borel ennreal) (borel ennreal) f g μ):
   ∫⁻ (a : α), (f * g) a ∂μ = (∫⁻ (a : α), f a ∂μ) * (∫⁻ (a : α), g a ∂μ) :=
 begin
   apply lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space

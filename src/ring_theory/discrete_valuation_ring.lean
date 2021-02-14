@@ -168,7 +168,7 @@ begin
   { simpa only [pow_one] using hn.symm, },
   { obtain ⟨n, rfl⟩ : ∃ k, n = 1 + k + 1 := nat.exists_eq_add_of_lt H,
     rw pow_succ at this,
-    rcases this.2 _ _ rfl with H0|H0,
+    rcases this.is_unit_or_is_unit rfl with H0|H0,
     { exact (hϖ.not_unit H0).elim, },
     { rw [add_comm, pow_succ] at H0,
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
@@ -246,7 +246,7 @@ begin
   have ex : ∃ n : ℕ, p ^ n ∈ I,
   { obtain ⟨n, u, rfl⟩ := H hx0,
     refine ⟨n, _⟩,
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hxI, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hxI, },
   constructor,
   use p ^ (nat.find ex),
   show I = ideal.span _,
@@ -258,7 +258,7 @@ begin
     simp only [mem_span_singleton, is_unit_unit, is_unit.dvd_mul_right],
     apply pow_dvd_pow,
     apply nat.find_min',
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hr, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hr, },
   { erw submodule.span_singleton_le_iff_mem,
     exact nat.find_spec ex, },
 end

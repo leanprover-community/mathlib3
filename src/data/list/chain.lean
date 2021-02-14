@@ -72,6 +72,29 @@ theorem chain_map_of_chain {S : β → β → Prop} (f : α → β)
   (p : chain R a l) : chain S (f a) (map f l) :=
 (chain_map f).2 $ p.imp H
 
+theorem chain_pmap_of_chain {S : β → β → Prop} {p : α → Prop}
+  {f : Π a, p a → β}
+  (H : ∀ a b ha hb, R a b → S (f a ha) (f b hb))
+  {a : α} {l : list α}
+  (hl₁ : chain R a l) (ha : p a) (hl₂ : ∀ a ∈ l, p a) :
+  chain S (f a ha) (list.pmap f l hl₂) :=
+begin
+  induction l with lh lt l_ih generalizing a,
+  { simp },
+  { simp [H _ _ _ _ (rel_of_chain_cons hl₁), l_ih _ (chain_of_chain_cons hl₁)] }
+end
+
+theorem chain_of_chain_pmap {S : β → β → Prop} {p : α → Prop}
+  (f : Π a, p a → β) {l : list α} (hl₁ : ∀ a ∈ l, p a)
+  {a : α} (ha : p a) (hl₂ : chain S (f a ha) (list.pmap f l hl₁))
+  (H : ∀ a b ha hb, S (f a ha) (f b hb) → R a b) :
+  chain R a l :=
+begin
+  induction l with lh lt l_ih generalizing a,
+  { simp },
+  { simp [H _ _ _ _ (rel_of_chain_cons hl₂), l_ih _ _ (chain_of_chain_cons hl₂)] }
+end
+
 theorem chain_of_pairwise {a : α} {l : list α} (p : pairwise R (a::l)) : chain R a l :=
 begin
   cases pairwise_cons.1 p with r p', clear p,
@@ -109,7 +132,7 @@ begin
     { apply h0, simp, },
     { split,
       { apply h 0, },
-      { intros i w, convert h (i+1) _,
+      { intros i w, convert h (i+1) _ using 1,
         exact lt_pred_iff.mp w, } } },
 end
 
@@ -228,7 +251,7 @@ begin
    },
   { rintros h, split,
     { apply h 0, simp, },
-    { intros i w, convert h (i+1) _,
+    { intros i w, convert h (i+1) _ using 1,
       simp only [add_zero, length, add_succ_sub_one] at w,
       simpa using w, }
     },
@@ -248,11 +271,13 @@ lemma chain'.append_overlap : ∀ {l₁ l₂ l₃ : list α}
   exact ⟨h₁.1, chain'.append_overlap h₁.2 h₂ (cons_ne_nil _ _)⟩
 end
 
+variables {r : α → α → Prop} {a b : α}
 /--
-If `a` and `b` are related by the reflexive transitive closure of `r`,
-then there is a `r`-chain starting from `a` and ending on `b`.
+If `a` and `b` are related by the reflexive transitive closure of `r`, then there is a `r`-chain
+starting from `a` and ending on `b`.
+The converse of `relation_refl_trans_gen_of_exists_chain`.
 -/
-lemma exists_chain_of_relation_refl_trans_gen {r : α → α → Prop} {a b : α} (h : relation.refl_trans_gen r a b) :
+lemma exists_chain_of_relation_refl_trans_gen (h : relation.refl_trans_gen r a b) :
   ∃ l, chain r a l ∧ last (a :: l) (cons_ne_nil _ _) = b :=
 begin
   apply relation.refl_trans_gen.head_induction_on h,
@@ -268,7 +293,7 @@ Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → p y �
 the predicate is true everywhere in the chain and at `a`.
 That is, we can propagate the predicate up the chain.
 -/
-lemma chain.induction {r : α → α → Prop} (p : α → Prop) {a b : α}
+lemma chain.induction (p : α → Prop)
   (l : list α) (h : chain r a l)
   (hb : last (a :: l) (cons_ne_nil _ _) = b)
   (carries : ∀ ⦃x y : α⦄, r x y → p y → p x) (final : p b) : ∀ i ∈ a :: l, p i :=
@@ -287,10 +312,20 @@ Given a chain from `a` to `b`, and a predicate true at `b`, if `r x y → p y �
 the predicate is true at `a`.
 That is, we can propagate the predicate all the way up the chain.
 -/
-lemma chain.induction_head {r : α → α → Prop} (p : α → Prop) {a b : α}
+@[elab_as_eliminator]
+lemma chain.induction_head (p : α → Prop)
   (l : list α) (h : chain r a l)
   (hb : last (a :: l) (cons_ne_nil _ _) = b)
   (carries : ∀ ⦃x y : α⦄, r x y → p y → p x) (final : p b) : p a :=
 (chain.induction p l h hb carries final) _ (mem_cons_self _ _)
+
+/--
+If there is an `r`-chain starting from `a` and ending at `b`, then `a` and `b` are related by the
+reflexive transitive closure of `r`. The converse of `exists_chain_of_relation_refl_trans_gen`.
+-/
+lemma relation_refl_trans_gen_of_exists_chain (l) (hl₁ : chain r a l)
+  (hl₂ : last (a :: l) (cons_ne_nil _ _) = b) :
+  relation.refl_trans_gen r a b :=
+chain.induction_head _ l hl₁ hl₂ (λ x y, relation.refl_trans_gen.head) relation.refl_trans_gen.refl
 
 end list

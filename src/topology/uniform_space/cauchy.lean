@@ -276,7 +276,7 @@ h.le_nhds_Lim
 lemma is_closed.is_complete [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
-⟨x, is_closed_iff_cluster_pt.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
+⟨x, is_closed_iff_cluster_pt.mp h x (cf.left.mono (le_inf hx fs)), hx⟩
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
@@ -388,7 +388,7 @@ begin
     set ys := ⋃ y' ∈ ({y} : finset α), {x | (x, y') ∈ d},
     have : m ⊆ ys, by simpa [ys] using λ x hx, hmd (mk_mem_prod hx hym),
     have : c ≤ 𝓟 (s \ ys) := hcf.trans (infi_le_of_le {y} le_rfl),
-    refine hc.1 (empty_in_sets_eq_bot.mp _),
+    refine hc.1.ne (empty_in_sets_eq_bot.mp _),
     filter_upwards [le_principal_iff.1 this, hm],
     refine λ x hx hxm, hx.2 _,
     simpa [ys] using hmd (mk_mem_prod hxm hym) }
@@ -451,7 +451,7 @@ a sequence of monotonically decreasing sets `s n ∈ f` such that `(s n).prod (s
 def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
-Inter_mem_sets (finite_le_nat n) (λ m _, (set_seq_aux hf U_mem m).2.fst)
+(bInter_mem_sets (finite_le_nat n)).2 (λ m _, (set_seq_aux hf U_mem m).2.fst)
 
 lemma set_seq_mono ⦃m n : ℕ⦄ (h : m ≤ n) : set_seq hf U_mem n ⊆ set_seq hf U_mem m :=
 bInter_subset_bInter_left (λ k hk, le_trans hk h)
@@ -568,4 +568,3 @@ begin
 end
 
 end uniform_space
-

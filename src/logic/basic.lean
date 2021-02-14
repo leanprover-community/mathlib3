@@ -85,7 +85,7 @@ theorem coe_sort_coe_trans
 Many structures such as bundled morphisms coerce to functions so that you can
 transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
 then you can write `e a` and this is elaborated as `⇑e a`. This type of
-coercion is implemented using the `has_coe_to_fun`type class. There is one
+coercion is implemented using the `has_coe_to_fun` type class. There is one
 important consideration:
 
 If a type coerces to another type which in turn coerces to a function,
@@ -297,6 +297,13 @@ imp.swap
 
 /-! ### Declarations about `and` -/
 
+theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
+and.comm.trans $ (and_congr_right h).trans and.comm
+
+theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h iff.rfl
+
+theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr iff.rfl h
+
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
 mt and.left
 
@@ -347,6 +354,10 @@ by simp only [and.comm, ← and.congr_right_iff]
 
 /-! ### Declarations about `or` -/
 
+theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := or_congr h iff.rfl
+
+theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := or_congr iff.rfl h
+
 theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, or_assoc, or_comm b]
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=
@@ -382,6 +393,12 @@ protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b �
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
 theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
+
+@[simp] theorem or_iff_left_iff_imp : (a ∨ b ↔ a) ↔ (b → a) :=
+⟨λ h hb, h.1 (or.inr hb), or_iff_left_of_imp⟩
+
+@[simp] theorem or_iff_right_iff_imp : (a ∨ b ↔ b) ↔ (a → b) :=
+by rw [or_comm, or_iff_left_iff_imp]
 
 /-! ### Declarations about distributivity -/
 
@@ -791,6 +808,14 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
+@[simp] theorem exists_eq_right_right {a' : α} :
+  (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b :=
+⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
+
+@[simp] theorem exists_eq_right_right' {a' : α} :
+  (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
+⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
+
 @[simp] theorem exists_apply_eq_apply {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a = f a' :=
 ⟨a', rfl⟩
 
@@ -865,6 +890,8 @@ theorem forall_iff_forall_surj
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
+
+@[simp] lemma exists_unique_false : ¬ (∃! (a : α), false) := assume ⟨a, h, h'⟩, h
 
 theorem Exists.fst {p : b → Prop} : Exists p → b
 | ⟨h, _⟩ := h
@@ -1005,6 +1032,9 @@ theorem bex_congr (H : ∀ x h, P x h ↔ Q x h) :
   (∃ x h, P x h) ↔ (∃ x h, Q x h) :=
 exists_congr $ λ x, exists_congr (H x)
 
+theorem bex_eq_left {a : α} : (∃ x (_ : x = a), p x) ↔ p a :=
+by simp only [exists_prop, exists_eq_left]
+
 theorem ball.imp_right (H : ∀ x h, (P x h → Q x h))
   (h₁ : ∀ x h, P x h) (x h) : Q x h :=
 H _ _ $ h₁ _ _
@@ -1058,6 +1088,14 @@ iff.trans (forall_congr $ λ x, forall_and_distrib) forall_and_distrib
 
 theorem bex_or_distrib : (∃ x h, P x h ∨ Q x h) ↔ (∃ x h, P x h) ∨ (∃ x h, Q x h) :=
 iff.trans (exists_congr $ λ x, exists_or_distrib) exists_or_distrib
+
+theorem ball_or_left_distrib : (∀ x, p x ∨ q x → r x) ↔ (∀ x, p x → r x) ∧ (∀ x, q x → r x) :=
+iff.trans (forall_congr $ λ x, or_imp_distrib) forall_and_distrib
+
+theorem bex_or_left_distrib :
+  (∃ x (_ : p x ∨ q x), r x) ↔ (∃ x (_ : p x), r x) ∨ (∃ x (_ : q x), r x) :=
+by simp only [exists_prop]; exact
+iff.trans (exists_congr $ λ x, or_and_distrib_right) exists_or_distrib
 
 end bounded_quantifiers
 
@@ -1189,6 +1227,11 @@ h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 end nonempty
 
 section ite
+
+/-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
+@[simp]
+lemma dite_eq_ite (P : Prop) [decidable P] {α : Sort*} (x y : α) :
+  dite P (λ h, x) (λ h, y) = ite P x y := rfl
 
 /-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
 lemma apply_dite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :

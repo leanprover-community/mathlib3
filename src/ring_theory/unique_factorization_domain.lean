@@ -175,7 +175,7 @@ by haveI := classical.dec_eq α; exact
     multiset.rel_zero_left.2 $
       multiset.eq_zero_of_forall_not_mem (λ x hx,
         have is_unit g.prod, by simpa [associated_one_iff_is_unit] using h.symm,
-        (hg x hx).1 (is_unit_iff_dvd_one.2 (dvd.trans (multiset.dvd_prod hx)
+        (hg x hx).not_unit (is_unit_iff_dvd_one.2 (dvd.trans (multiset.dvd_prod hx)
           (is_unit_iff_dvd_one.1 this)))))
   (λ p f ih g hf hg hfg,
     let ⟨b, hbg, hb⟩ := exists_associated_mem_of_dvd_prod
@@ -201,10 +201,10 @@ by haveI := classical.dec_eq α; exact
 λ f, multiset.induction_on f
   (λ g _ hg h,
     multiset.rel_zero_left.2 $
-      multiset.eq_zero_of_forall_not_mem (λ x hx,
-        have is_unit g.prod, by simpa [associated_one_iff_is_unit] using h.symm,
-        (irreducible_of_prime $ hg x hx).1 (is_unit_iff_dvd_one.2 (dvd.trans (multiset.dvd_prod hx)
-          (is_unit_iff_dvd_one.1 this)))))
+    multiset.eq_zero_of_forall_not_mem $ λ x hx,
+    have is_unit g.prod, by simpa [associated_one_iff_is_unit] using h.symm,
+    (irreducible_of_prime $ hg x hx).not_unit $ is_unit_iff_dvd_one.2 $
+    dvd.trans (multiset.dvd_prod hx) (is_unit_iff_dvd_one.1 this))
   (λ p f ih g hf hg hfg,
     let ⟨b, hbg, hb⟩ := exists_associated_mem_of_dvd_prod
       (hf p (by simp)) (λ q hq, hg _ hq) $
@@ -226,7 +226,7 @@ lemma prime_factors_irreducible [comm_cancel_monoid_with_zero α] {a : α} {f : 
   ∃ p, a ~ᵤ p ∧ f = p ::ₘ 0 :=
 begin
   haveI := classical.dec_eq α,
-  refine multiset.induction_on f (λ h, (ha.1
+  refine multiset.induction_on f (λ h, (ha.not_unit
     (associated_one_iff_is_unit.1 (associated.symm h))).elim) _ pfa.2 pfa.1,
   rintros p s _ ⟨u, hu⟩ hs,
   use p,
@@ -234,7 +234,7 @@ begin
   { by_contra hs0,
     obtain ⟨q, hq⟩ := multiset.exists_mem_of_ne_zero hs0,
     apply (hs q (by simp [hq])).2.1,
-    refine (ha.2 ((p * ↑u) * (s.erase q).prod) _ _).resolve_left _,
+    refine (ha.is_unit_or_is_unit (_ : _ = ((p * ↑u) * (s.erase q).prod) * _)).resolve_left _,
     { rw [mul_right_comm _ _ q, mul_assoc, ← multiset.prod_cons, multiset.cons_erase hq, ← hu,
         mul_comm, mul_comm p _, mul_assoc],
       simp, },
@@ -1073,7 +1073,7 @@ end
 theorem le_of_count_ne_zero {m p : associates α} (h0 : m ≠ 0)
   (hp : irreducible p) : count p m.factors ≠ 0 → p ≤ m :=
 begin
-  rw [← nat.pos_iff_ne_zero],
+  rw [← pos_iff_ne_zero],
   intro h,
   rw [← pow_one p],
   apply (prime_pow_dvd_iff_le h0 hp).2,

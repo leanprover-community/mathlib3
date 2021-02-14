@@ -266,6 +266,10 @@ lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
 
+instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divisors A]
+  [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
+S.to_subsemiring.no_zero_divisors
+
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _
@@ -297,6 +301,21 @@ def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S
 theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
+
+/-- Restrict an injective algebra homomorphism to an algebra isomorphism -/
+noncomputable def alg_equiv.of_injective (f : A →ₐ[R] B) (hf : function.injective f) :
+  A ≃ₐ[R] f.range :=
+alg_equiv.of_bijective (f.cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩))
+⟨(f.injective_cod_restrict f.range (λ x, f.mem_range.mpr ⟨x, rfl⟩)).mpr hf,
+  λ x, Exists.cases_on (f.mem_range.mp (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩)⟩
+
+@[simp] lemma alg_equiv.of_injective_apply (f : A →ₐ[R] B) (hf : function.injective f) (x : A) :
+  ↑(alg_equiv.of_injective f hf x) = f x := rfl
+
+/-- Restrict an algebra homomorphism between fields to an algebra isomorphism -/
+noncomputable def alg_equiv.of_injective_field {E F : Type*} [division_ring E] [semiring F]
+  [nontrivial F] [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
+alg_equiv.of_injective f f.to_ring_hom.injective
 
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
@@ -354,7 +373,7 @@ suffices (of_id R A).range = (⊥ : subalgebra R A),
 by { rw [← this, ← subalgebra.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
-theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = submodule.span R {1} :=
+theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = R ∙ 1 :=
 by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
 
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
@@ -390,7 +409,8 @@ theorem surjective_algebra_map_iff :
 ⟨λ h, eq_bot_iff.2 $ λ y _, let ⟨x, hx⟩ := h y in hx ▸ subalgebra.algebra_map_mem _ _,
 λ h y, algebra.mem_bot.1 $ eq_bot_iff.1 h (algebra.mem_top : y ∈ _)⟩
 
-theorem bijective_algebra_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A] [algebra R A] :
+theorem bijective_algebra_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A]
+  [algebra R A] :
   function.bijective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
 ⟨λ h, surjective_algebra_map_iff.1 h.2,
 λ h, ⟨(algebra_map R A).injective, surjective_algebra_map_iff.2 h⟩⟩
@@ -417,9 +437,36 @@ end algebra
 namespace subalgebra
 open algebra
 
-variables {R : Type u} {A : Type v}
-variables [comm_semiring R] [semiring A] [algebra R A]
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 variables (S : subalgebra R A)
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
+⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
+⟨λ f g, alg_hom.ext $ λ a,
+  have a ∈ (⊥ : subalgebra R A) := subsingleton.elim (⊤ : subalgebra R A) ⊥ ▸ mem_top,
+  let ⟨x, hx⟩ := set.mem_range.mp (mem_bot.mp this) in
+  hx ▸ (f.commutes _).trans (g.commutes _).symm⟩
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] B) :=
+begin
+  haveI : subsingleton (A →ₐ[R] B) := alg_hom.subsingleton,
+  exact ⟨λ f g, alg_equiv.ext
+    (λ x, alg_hom.ext_iff.mp (subsingleton.elim f.to_alg_hom g.to_alg_hom) x)⟩,
+end
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
+begin
+  haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
+  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm.symm)
+    (by rw [subsingleton.elim f.symm g.symm, alg_equiv.symm_symm])⟩
+end
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val

@@ -409,6 +409,12 @@ lemma tendsto.nsmul_at_bot (hf : tendsto f l at_bot) {n : ℕ} (hn : 0 < n) :
   tendsto (λ x, n •ℕ f x) l at_bot :=
 @tendsto.nsmul_at_top α (order_dual β) _ l f hf n hn
 
+lemma tendsto_bit0_at_top : tendsto bit0 (at_top : filter β) at_top :=
+tendsto_at_top_add tendsto_id tendsto_id
+
+lemma tendsto_bit0_at_bot : tendsto bit0 (at_bot : filter β) at_bot :=
+tendsto_at_bot_add tendsto_id tendsto_id
+
 end ordered_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid
@@ -540,6 +546,9 @@ section ordered_semiring
 
 variables [ordered_semiring α] {l : filter β} {f g : β → α}
 
+lemma tendsto_bit1_at_top : tendsto bit1 (at_top : filter α) at_top :=
+tendsto_at_top_add_nonneg_right tendsto_bit0_at_top (λ _, zero_le_one)
+
 lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
   tendsto (λ x, f x * g x) l at_top :=
 begin
@@ -551,7 +560,7 @@ end
 lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=
 tendsto_id.at_top_mul_at_top tendsto_id
 
-/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+/-- The monomial function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
 lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
 begin
@@ -560,6 +569,10 @@ begin
 end
 
 end ordered_semiring
+
+lemma zero_pow_eventually_eq [monoid_with_zero α] :
+  (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=
+eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 
 section ordered_ring
 
@@ -611,6 +624,10 @@ lemma tendsto.at_top_of_mul_const {c : α} (hc : 0 < c) (hf : tendsto (λ x, f x
 tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (b * c)).mono $ λ x hx, le_of_mul_le_mul_right hx hc
 
 end linear_ordered_semiring
+
+lemma nonneg_of_eventually_pow_nonneg [linear_ordered_ring α] {a : α}
+  (h : ∀ᶠ n in at_top, 0 ≤ a ^ (n : ℕ)) : 0 ≤ a :=
+let ⟨n, hn⟩ := (tendsto_bit1_at_top.eventually h).exists in pow_bit1_nonneg_iff.1 hn
 
 section linear_ordered_field
 
@@ -680,6 +697,15 @@ a negative constant (on the right) tends to positive infinity. -/
 lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x * r) l at_top :=
 by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
+
+lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
+tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
+tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
+
 
 end linear_ordered_field
 

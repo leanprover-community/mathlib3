@@ -37,7 +37,7 @@ especially when restricting to subsets, as these should be open subsets.
 For design notes, see `local_equiv.lean`.
 -/
 
-open function set
+open function set filter
 open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -53,7 +53,7 @@ structure local_homeomorph (α : Type*) (β : Type*) [topological_space α] [top
 (continuous_inv_fun : continuous_on inv_fun target)
 
 /-- A homeomorphism induces a local homeomorphism on the whole space -/
-def homeomorph.to_local_homeomorph (e : homeomorph α β) :
+def homeomorph.to_local_homeomorph (e : α ≃ₜ β) :
   local_homeomorph α β :=
 { open_source        := is_open_univ,
   open_target        := is_open_univ,
@@ -121,7 +121,7 @@ end
 
 lemma eventually_left_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   ∀ᶠ y in 𝓝 x, e.symm (e y) = y :=
-filter.eventually.mono (mem_nhds_sets e.open_source hx) e.left_inv'
+(e.open_source.eventually_mem hx).mono e.left_inv'
 
 lemma eventually_left_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
   ∀ᶠ y in 𝓝 (e.symm x), e.symm (e y) = y :=
@@ -129,7 +129,7 @@ e.eventually_left_inverse (e.map_target hx)
 
 lemma eventually_right_inverse (e : local_homeomorph α β) {x} (hx : x ∈ e.target) :
   ∀ᶠ y in 𝓝 x, e (e.symm y) = y :=
-filter.eventually.mono (mem_nhds_sets e.open_target hx) e.right_inv'
+(e.open_target.eventually_mem hx).mono e.right_inv'
 
 lemma eventually_right_inverse' (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
   ∀ᶠ y in 𝓝 (e x), e (e.symm y) = y :=
@@ -180,8 +180,13 @@ lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x 
 e.symm.continuous_at h
 
 lemma tendsto_symm (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
-  filter.tendsto e.symm (𝓝 (e x)) (𝓝 x) :=
+  tendsto e.symm (𝓝 (e x)) (𝓝 x) :=
 by simpa only [continuous_at, e.left_inv hx] using e.continuous_at_symm (e.map_source hx)
+
+lemma map_nhds_eq (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
+  map e (𝓝 x) = 𝓝 (e x) :=
+le_antisymm (e.continuous_at hx) $
+  le_map_of_right_inverse (e.eventually_right_inverse' hx) (e.tendsto_symm hx)
 
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
@@ -238,6 +243,23 @@ begin
   refine image_open_of_open _ (is_open_inter hs e.open_source) _,
   simp,
 end
+
+/-- A `local_equiv` with continuous open forward map and an open source is a `local_homeomorph`. -/
+def of_continuous_open_restrict (e : local_equiv α β) (hc : continuous_on e e.source)
+  (ho : is_open_map (e.source.restrict e)) (hs : is_open e.source) :
+  local_homeomorph α β :=
+{ to_local_equiv := e,
+  open_source := hs,
+  open_target := by simpa only [range_restrict, e.image_source_eq_target] using ho.is_open_range,
+  continuous_to_fun := hc,
+  continuous_inv_fun := e.image_source_eq_target ▸
+    ho.continuous_on_image_of_left_inv_on e.left_inv_on }
+
+/-- A `local_equiv` with continuous open forward map and an open source is a `local_homeomorph`. -/
+def of_continuous_open (e : local_equiv α β) (hc : continuous_on e e.source)
+  (ho : is_open_map  e) (hs : is_open e.source) :
+  local_homeomorph α β :=
+of_continuous_open_restrict e hc (ho.restrict hs) hs
 
 /-- Restricting a local homeomorphism `e` to `e.source ∩ s` when `s` is open. This is sometimes hard
 to use because of the openness assumption, but it has the advantage that when it can
@@ -528,14 +550,15 @@ lemma prod_coe_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 
 @[simp, mfld_simps] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
-by ext x; simp [prod_coe_symm]
+rfl
 
 @[simp, mfld_simps] lemma prod_trans
   {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]
   (e : local_homeomorph α β) (f : local_homeomorph β γ)
   (e' : local_homeomorph δ η) (f' : local_homeomorph η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
-by ext x; simp [ext_iff]; tauto
+local_homeomorph.eq_of_local_equiv_eq $
+  by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
 
 end prod
 

@@ -64,7 +64,7 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory
-open_locale nnreal ennreal big_operators classical topological_space
+open_locale nnreal ennreal big_operators topological_space
 
 lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := le_refl _
 
@@ -1256,7 +1256,7 @@ begin
   exact hbx.exists.some_spec,
 end
 
-lemma finset.prop_sum_of_subadditive {α γ} [add_comm_monoid α]
+lemma finset.prop_sum_of_subadditive {α γ} [add_comm_monoid α] [decidable_eq γ]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
   ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
 begin
@@ -1267,7 +1267,7 @@ begin
     (h (λ x hx, hpsa x (finset.mem_insert_of_mem hx))),
 end
 
-lemma finset.prop_sum_of_subadditive' {α γ} [add_comm_monoid α]
+lemma finset.prop_sum_of_subadditive' {α γ} [add_comm_monoid α] [decidable_eq γ]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
   ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
 begin
@@ -1282,7 +1282,8 @@ begin
 end
 
 lemma finset.le_sum_of_subadditive' {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
-  (f : α → β) (h_zero : f 0 = 0) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
+  [decidable_eq γ] (f : α → β) (h_zero : f 0 = 0) (p : α → Prop)
+  (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
   (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
   ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
 begin
@@ -1300,7 +1301,7 @@ begin
 end
 
 lemma finset.le_sum_of_subadditive'' {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
-  (f : α → β) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
+  [decidable_eq γ] (f : α → β) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
   (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
   ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)),
     f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
@@ -1322,21 +1323,21 @@ begin
   exact add_le_add_left (hs hs_empty hsa_restrict) _,
 end
 
-lemma snorm'_sum_le {ι} {f : ι → α → E} {s : finset ι}
+lemma snorm'_sum_le {ι} {f : ι → α → E} {s : finset ι} [decidable_eq ι]
   (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hq1 : 1 ≤ q) :
   snorm' (∑ i in s, f i) q μ ≤ ∑ i in s, snorm' (f i) q μ :=
 begin
-  refine @finset.le_sum_of_subadditive' (α → E) ℝ≥0∞ ι _ _ (λ f, snorm' f q μ)
+  refine @finset.le_sum_of_subadditive' (α → E) ℝ≥0∞ ι _ _ _ (λ f, snorm' f q μ)
     (snorm'_zero (zero_lt_one.trans_le hq1)) (λ f, ae_measurable f μ) _
     (λ x y, ae_measurable.add) (@measurable_zero E α _ _ _).ae_measurable _ _ hfs,
   exact λ f g hf hg, snorm'_add_le hf hg hq1,
 end
 
-lemma snorm_sum_le {ι} {f : ι → α → E} {s : finset ι}
+lemma snorm_sum_le {ι} {f : ι → α → E} {s : finset ι} [decidable_eq ι]
   (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hp1 : 1 ≤ p) :
   snorm (∑ i in s, f i) p μ ≤ ∑ i in s, snorm (f i) p μ :=
 begin
-  refine @finset.le_sum_of_subadditive' (α → E) ℝ≥0∞ ι _ _ (λ f, snorm f p μ)
+  refine @finset.le_sum_of_subadditive' (α → E) ℝ≥0∞ ι _ _ _ (λ f, snorm f p μ)
     snorm_zero (λ f, ae_measurable f μ) _
     (λ x y, ae_measurable.add) (@measurable_zero E α _ _ _).ae_measurable _ _ hfs,
   exact λ f g hf hg, snorm_add_le hf hg hp1,

@@ -6,7 +6,9 @@ import group_theory.group_action.defs
 import data.int.basic
 import data.int.parity
 import data.nat.gcd
+import algebra.ordered_ring
 import ring_theory.int.basic
+import data.real.sqrt
 
 noncomputable theory
 
@@ -480,11 +482,203 @@ begin
     },
 end
 
-def coprime_ints := { cd :  ℤ × ℤ //  euclidean_domain.gcd cd.1 cd.2 = 1 }
+--def coprime_ints := { cd :  ℤ × ℤ //  euclidean_domain.gcd cd.1 cd.2 = 1 }
+def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 
 instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
 
-lemma finite_pairs (M : ℝ) (z : ℂ) :
+lemma cdxy_bnd (x y M :ℝ ) (c d :ℤ ) (h : ( (c:ℝ) * x + d)^2+(c * y)^2 ≤ M) (hy : 0< y) (hM : 0 ≤ M) :
+|(c:ℝ)| ≤   real.sqrt (M / y^2) ∧
+|(d:ℝ)| ≤ (real.sqrt M) + real.sqrt (M / y^2) * |x|
+:=
+begin
+  have y_sq_nonneg : 0 ≤ y^2 := pow_two_nonneg y,
+  have y_sq_pos : 0 < y^2 := pow_pos hy 2,
+  have y_sq_nonz : y^2 ≠ 0 := ne_of_gt y_sq_pos,
+
+  have bnd1 : |↑c| ≤ real.sqrt (M / y ^ 2),
+  {
+    have : (↑c * y) ^ 2 ≤ M,
+    {
+      have : 0 ≤  ( (c:ℝ) * x + d)^2,
+      {
+        exact pow_two_nonneg (↑c * x + ↑d),
+      },
+      linarith,
+    },
+    have : (↑c) ^ 2 ≤ M / y^2,
+    {
+      rw (_ : (↑c * y) ^ 2 = (↑c)^2 * y ^ 2 ) at this,
+      rw (_ : M = M / y^2 * y ^ 2 ) at this,
+      convert div_le_div_of_le y_sq_nonneg this,
+      field_simp [y_sq_nonz],
+      field_simp [y_sq_nonz],
+      field_simp [y_sq_nonz],
+      ring,
+    },
+
+    refine real.abs_le_sqrt this,
+  },
+
+  split,
+  exact bnd1,
+
+  have : ((c:ℝ) * x + d) ^ 2 ≤ M,
+  {
+    have : 0 ≤ ( (c:ℝ) * y)^2,
+    {
+      exact pow_two_nonneg _,
+    },
+    linarith,
+  },
+  have := real.abs_le_sqrt this,
+  rw abs_le at this,
+  rw abs_le,
+  have bnd2 := abs_le.1 bnd1,
+  split,
+  {
+    calc
+    -(real.sqrt M + real.sqrt (M / y ^ 2) * |x|)
+    = -real.sqrt M - real.sqrt (M / y ^ 2) * |x| : by ring
+    ... ≤ -real.sqrt M - |c| * |x| : _
+    ... = -real.sqrt M - |c * x| : _
+    ... ≤ -real.sqrt M - c * x : _
+    ... ≤  ↑d : _,
+
+    have : 0 ≤ |x| := abs_nonneg x,
+
+    simp [bnd1, this],
+    exact mul_mono_nonneg this bnd1,
+
+    simp,
+
+    symmetry,
+    refine abs_mul _ _, --- NOT WORKING???
+
+    simp,
+    exact le_abs_self (↑c * x),
+
+    linarith,
+  },
+  calc
+  ↑d ≤ real.sqrt M + - c * x : _
+  ... ≤ real.sqrt M + | -(c:ℝ ) * x| : _
+  ... = real.sqrt M + | ((c:ℝ ) * x)| : _
+  ... = real.sqrt M + |c| * |x| : _
+  ... ≤ real.sqrt M + real.sqrt (M / y ^ 2) * |x| : _,
+
+  linarith,
+
+  have := le_abs_self (-↑c * x),
+  refine add_le_add_left this _,
+
+  simp,
+
+  simp,
+  refine abs_mul _ _,
+
+  simp [bnd1],
+  have : 0 ≤ |x| := abs_nonneg x,
+  exact mul_mono_nonneg this bnd1,
+end
+
+/-
+-/
+
+lemma cdxy_bnd' (z:H) (M :ℝ ) (c d :ℤ ) (h : norm_sq (c*z + d) ≤ M)
+(hM : 0 ≤ M) :
+(⌊-real.sqrt (M / z.val.im ^ 2)⌋ ≤ c
+∧ c < ⌊real.sqrt (M / z.val.im ^ 2)⌋ + 1)
+∧ ⌊-(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M⌋ ≤ d
+∧ d < ⌊real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re|⌋ + 1
+:=
+begin
+  have : norm_sq (↑c * ↑z + ↑d) = (c*z.val.re + d)^2 + (c*z.val.im)^2,
+  {
+    rw norm_sq,
+    simp,
+    ring,
+  },
+  rw this at h,
+  have y_pos : 0<z.val.im := im_pos_of_in_H.mp z.2,
+  have bnd1 := cdxy_bnd (z.val.re) (z.val.im) M c d h y_pos hM,
+  have bnd11 := bnd1.1,
+  have bnd12 := bnd1.2,
+  clear bnd1,
+  rw abs_le at bnd11,
+  rw abs_le at bnd12,
+  split,
+  split,
+  {
+
+    suffices :
+    (⌊ - real.sqrt (M / z.val.im ^ 2) ⌋:ℝ )  ≤ (c:ℝ )   ,
+    {
+      norm_cast at this,
+      exact this,
+    },
+
+    calc
+    (⌊ - real.sqrt (M / z.val.im ^ 2) ⌋:ℝ )  ≤
+     - real.sqrt (M / z.val.im ^ 2)  : _
+    ... ≤ (c:ℝ ) : _,
+
+    refine floor_le _,
+
+    exact bnd11.1,
+  },
+
+  {
+    suffices :
+    (c:ℝ ) < ⌊real.sqrt (M / z.val.im ^ 2)⌋ + 1,
+    {
+      norm_cast at this,
+      exact this,
+    },
+
+
+    calc
+    (c:ℝ ) ≤
+    real.sqrt (M / z.val.im ^ 2) : bnd11.2
+    ... < ⌊real.sqrt (M / z.val.im ^ 2)⌋ + 1 : _,
+
+    refine lt_floor_add_one _,
+  },
+
+  split,
+
+  {
+    suffices :
+    (⌊-(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M⌋:ℝ ) ≤ d,
+    {
+      norm_cast at this,
+      exact this,
+    },
+    calc
+    (⌊-(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M⌋:ℝ ) ≤
+    -(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M : _
+    ... ≤ d : _,
+
+    refine floor_le _,
+
+    convert bnd12.1 using 1,
+    ring,
+  },
+
+  suffices :
+  (d:ℝ ) < ⌊real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re|⌋ + 1,
+  {
+    norm_cast at this,
+    exact this,
+  },
+  calc
+  (d:ℝ ) ≤ real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re| : bnd12.2
+  ... < ⌊real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re|⌋ + 1 : _,
+
+  refine lt_floor_add_one _,
+end
+
+lemma finite_pairs (M : ℝ) (z : H) :
   set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} :=
 begin
   by_cases M_nonneg : M < 0,
@@ -510,8 +704,8 @@ begin
   },
   {
     simp at M_nonneg,
-    let s1 := finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1),
-    let s2 := finset.Ico_ℤ (⌊- M / (z.abs +1)⌋) (⌊M / (z.abs +1)⌋+1),
+    let s1 := finset.Ico_ℤ (⌊-real.sqrt (M / (z.val.im)^2)⌋) (⌊real.sqrt (M / z.val.im^2)⌋+1),
+    let s2 := finset.Ico_ℤ (⌊- ((real.sqrt M) + real.sqrt (M / z.val.im^2) * |z.val.re|)⌋) (⌊(real.sqrt M) + real.sqrt (M / z.val.im^2) * |z.val.re|⌋+1),
     let s : finset (ℤ × ℤ ):= s1.product s2,
 
     suffices : (coe '' {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M}) ⊆  (s : set (ℤ × ℤ)),
@@ -527,8 +721,8 @@ begin
     rcases hx with ⟨ w, ⟨nhw1, nhw2⟩⟩ ,
     rw nhw2 at nhw1,
     simp [s, s1, s2],
---   AK homework?
-    repeat {sorry},
+
+    exact cdxy_bnd' z M x.1 x.2 nhw1 M_nonneg,
   },
 end
 
@@ -542,6 +736,7 @@ end
 lemma crap (cc dd : ℤ ) : euclidean_domain.gcd cc dd = gcd cc dd :=
 begin
 --  library_search, --- just not working at all???
+-- NOT NEEDED. Use new int.gcd_a etc...
   sorry,
 end
 
@@ -566,10 +761,16 @@ begin
     rw det2,
     suffices : 1 = a * cd.2 - cd.1 * b ,
     convert this,
-    simp [g],
-    rw ←  hhcd,
-    convert euclidean_domain.gcd_eq_gcd_ab cd.1 cd.2 using 1,
-    ring,
+    ---- Argh this was working before and now it's broken???
+    suffices : 1 = a * cd.snd + cd.fst * euclidean_domain.gcd_a cd.fst cd.snd,
+    {
+      simp [g],
+      sorry,
+    },
+--    rw ←  hhcd,
+--    convert euclidean_domain.gcd_eq_gcd_ab cd.1 cd.2 using 1,
+--    ring,
+    sorry,
   },
   use ⟨ g, this.symm⟩ ,
   intros,
@@ -692,63 +893,34 @@ begin
   exact eq_inv_smul_iff.symm,
 end
 
-lemma junk1 (z:H) : (-2⁻¹)- (z.val.re) ≤ (-⌊z.val.re + 2⁻¹⌋) → -2⁻¹ ≤ (z.val.re) +(-⌊z.val.re + 2⁻¹⌋) :=
-begin
-  intros,
-  exact sub_le_iff_le_add'.mp ᾰ,
-end
-
-lemma junk2 (a b c :ℝ ) : c ≤ a + b → - (a + b) ≤ -c
-:=
-begin
-  intros,
-  exact neg_le_neg ᾰ,
-end
-
-lemma junk3 (a b c :ℝ ) : a+b ≤ c → a ≤ c-b
-:=
-begin
-  intros,
-  exact le_sub_iff_add_le.mpr ᾰ,
-end
-
-
-lemma junk4 (a b c :ℝ ) : a - b ≤ c → a -c ≤ b
-:=
-begin
-  intros,
-  exact sub_le.mp ᾰ,
-end
-
-lemma junk5 (a b c :ℝ ) : a - c =  a + -c
-:=
-begin
-  exact sub_eq_add_neg a c,
-end
-
-
-lemma junk6 (a b :ℝ ) : a + b =  a - -b
-:=
-begin
-  exact (sub_neg_eq_add a b).symm,
-end
-
-lemma junk7 (a :ℝ ) : a-1 ≤ ⌊a⌋
-:=
-begin
-  apply le_of_lt,
-  exact sub_one_lt_floor a,
-end
-
-lemma junklemma (a : ℝ) : |a + -⌊a + 2⁻¹⌋| ≤ 2⁻¹ :=
+lemma abs_floor_ineq (a : ℝ) : |a + -⌊a + 2⁻¹⌋| ≤ 2⁻¹ :=
 begin
   rw abs_le,
   split,
   {
-    -- Alex homework
-    sorry
+    calc
+    -2⁻¹ = a - (a + 2⁻¹)    : by ring
+    ... ≤ a - ↑⌊a + 2⁻¹⌋    : _
+    ... = a + -↑⌊a + 2⁻¹⌋  : by ring,
+
+    simp,
+    exact floor_le _,
   },
-  sorry,
+
+  calc
+  a + -↑⌊a + 2⁻¹⌋ = a - ↑⌊a + 2⁻¹⌋ : by ring
+  ... ≤ a - a + 2⁻¹ : _
+  ... = 2⁻¹ : by ring,
+
+  simp,
+  apply le_of_lt,
+  suffices : a - 2⁻¹ < ↑⌊a + 2⁻¹⌋,
+  {
+    linarith,
+  },
+  have := sub_one_lt_floor (a + 2⁻¹),
+  convert this using 1,
+  ring,
 end
 
 lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
@@ -757,61 +929,7 @@ begin
   use n,
   rw Tn_action,
   simp,
-  apply junklemma,
-
- /-  rw abs_le,
-  split,
-  simp,
-  suffices : -2⁻¹ - z.val.re ≤ -⌊z.val.re + 2⁻¹⌋,
-  {
-    refine junk1 z this,
-  },
-  have : -2⁻¹ - z.val.re = - (2⁻¹ + z.val.re),
-  {
-    exact (neg_add' 2⁻¹ z.val.re).symm,
-  },
-  rw this, clear this,
-  suffices : (⌊z.val.re + 2⁻¹⌋:ℝ ) ≤ 2⁻¹ + z.val.re,
-  {
-    exact junk2 2⁻¹ z.val.re ↑⌊z.val.re + 2⁻¹⌋ this,
-  },
-  rw add_comm,
-  exact floor_le (2⁻¹ + z.val.re),
-  have : ((z:ℂ ) + (n:ℂ )).re  = (z.val).re + (n:ℂ ).re,
-  {
-    simp,
-  },
-  rw this, clear this,
-  have : (n:ℂ ).re  =  (n:ℝ),
-  {
-    simp,
-  },
-  rw this, clear this,
-  have : n = -⌊(z:ℂ).re + 1 / 2⌋,
-  {
-    simp,
-  },
-  rw this, clear this,
-
-  have : z.val.re + ↑-⌊(z:ℂ ).re + 1 / 2⌋ = z.val.re - -↑-⌊(z:ℂ ).re + 1 / 2⌋,
-  {
-    refine junk6 (z.val.re) (↑-⌊(z:ℂ ).re + 1 / 2⌋),
-  },
-  rw this, clear this,
-  have : -((-⌊(z:ℂ ).re + 1 / 2⌋ : ℤ) : ℝ) = ⌊(z:ℂ ).re + 1 / 2⌋,
-  {
-    simp,
-  },
-  rw this, clear this,
-  suffices : z.val.re - 1/2 ≤ ↑⌊(z:ℂ ).re + 1 / 2⌋,
-  {
-    refine junk4 (z.val.re) (1/2) (↑⌊(z:ℂ ).re + 1 / 2⌋) this,
-  },
-
-  convert  junk7 ((z:ℂ ).re + 1 / 2) using 1,
-  simp,
-  ring,
- -/
+  apply abs_floor_ineq,
 end
 
 lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=

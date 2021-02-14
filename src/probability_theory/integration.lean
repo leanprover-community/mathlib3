@@ -21,6 +21,223 @@ noncomputable theory
 open set (hiding restrict restrict_apply) filter ennreal probability_theory
 open_locale classical topological_space big_operators nnreal ennreal
 
+#check 42
+namespace measurable
+open measure_theory
+open measure_theory.simple_func
+universe u
+theorem measurable.ennreal_induction_symm 
+  {P : Π ⦃α β : Type u⦄, (α → ℝ≥0∞) → (β → ℝ≥0∞) → Prop}
+  (h_symm :  Π ⦃α β : Type u⦄ ⦃M1 : measurable_space α⦄ ⦃M2 : measurable_space β⦄,
+   ∀ ⦃f1 : α → ℝ≥0∞⦄ ⦃f2 : β →  ℝ≥0∞⦄ (hf1 : @measurable _ _ M1 _ f1) 
+     (hf2 : @measurable _ _ M2 _ f2), P f1 f2 → P f2 f1)
+  (h_ind : ∀ ⦃α β : Type u⦄ ⦃M1 : measurable_space α⦄ ⦃M2 : measurable_space β⦄
+  (c1 c2 : ℝ≥0∞) ⦃s1 : set α⦄ ⦃s2 : set β⦄, M1.measurable_set' s1 → M2.measurable_set' s2 →
+   P (set.indicator s1 (λ _, c1)) (set.indicator s2 (λ _, c2)))
+  (h_sum : ∀ ⦃α β : Type u⦄ ⦃M1:measurable_space α⦄ ⦃M2:measurable_space β⦄
+   ⦃f1 g1 : α → ℝ≥0∞⦄ ⦃f2 : β → ℝ≥0∞⦄, set.univ ⊆ f1 ⁻¹' {0} ∪ g1 ⁻¹' {0} → 
+   (@measurable _ _ M1 _ f1) → (@measurable _ _ M1 _ g1) → (@measurable _ _ M2 _ f2) →
+   P f1 f2 → P g1 f2 → P (f1 + g1) f2)
+  (h_supr : ∀  ⦃α β : Type u⦄ ⦃M1:measurable_space α⦄ ⦃M2:measurable_space β⦄
+   ⦃f1 : ℕ → α → ℝ≥0∞⦄ ⦃f2 : β → ℝ≥0∞⦄ (hf : ∀n, @measurable _ _ M1 _ (f1 n)) (h_mono : monotone f1) (hf2: @measurable _ _ M2 _ f2) 
+    (hP : ∀ n, P (f1 n) (f2)), P (λ x, ⨆ n, f1 n x) (f2))
+  ⦃α β : Type u⦄ ⦃M1:measurable_space α⦄ ⦃M2:measurable_space β⦄
+  ⦃f1 : α → ℝ≥0∞⦄ (hf : measurable f1)  ⦃f2 : β → ℝ≥0∞⦄ (hf2 : measurable f2) : P f1 f2 :=
+begin
+  apply measurable.ennreal_induction,
+  { intros c2 s2 h_meas_s2, 
+    have h_meas_indicator:measurable (s2.indicator (λ _, c2)),
+    { apply measurable.indicator measurable_const h_meas_s2,  },
+    apply @measurable.ennreal_induction α M1 (λ f1, P f1 (s2.indicator (λ _, c2))),
+    { intros c1 s1 h_meas_s1, apply h_ind c1 c2 h_meas_s1 h_meas_s2 },
+    { intros f1 g1 h_univ h_meas_f1 h_meas_g1, apply h_sum, apply h_univ,
+      apply h_meas_f1, apply h_meas_g1, apply h_meas_indicator },
+    { intros f1 h_meas_f1 h_mono, apply h_supr, apply h_meas_f1,
+      apply h_mono, apply h_meas_indicator },
+    --{ intros s1 h_meas_s1, apply h_supr, apply h_meas_f1,
+     -- apply h_mono, apply h_meas_indicator },
+    apply hf,
+  },
+  { intros f2 g2 h_univ h_meas_f2 h_meas_g2 h_P_f2 h_P_g2,
+    apply h_symm (measurable.add h_meas_f2 h_meas_g2) hf,
+    apply h_sum h_univ h_meas_f2 h_meas_g2 hf,
+    apply h_symm hf h_meas_f2 h_P_f2,
+    apply h_symm hf h_meas_g2 h_P_g2,
+      },
+  { intros f2' h_meas_f2' h_mono h_P_f2',
+    apply h_symm,
+    apply measurable_supr h_meas_f2',
+    apply hf,
+    apply h_supr h_meas_f2' h_mono hf,
+    intros n, apply h_symm, apply hf, apply h_meas_f2',
+    apply h_P_f2' },
+  apply hf2,
+end
+
+theorem measurable.ennreal_induction_symm2 
+  {Q : Π ⦃α β : Type u⦄, (measurable_space α) → (measurable_space β) → Prop}
+  (Q_symm : Π ⦃α β: Type u⦄  ⦃M1 : measurable_space α⦄ ⦃M2 : measurable_space β⦄,
+   Q M1 M2 → Q M2 M1)
+  {P : Π ⦃α β : Type u⦄, (α → ℝ≥0∞) → (β → ℝ≥0∞) → Prop}
+  (h_symm :  Π ⦃α β : Type u⦄ ⦃M1 : measurable_space α⦄ ⦃M2 : measurable_space β⦄
+    (hQ : Q M1 M2), ∀ ⦃f1 : α → ℝ≥0∞⦄ ⦃f2 : β →  ℝ≥0∞⦄ (hf1 : @measurable _ _ M1 _ f1) 
+     (hf2 : @measurable _ _ M2 _ f2), P f1 f2 → P f2 f1)
+  (h_ind : ∀ ⦃α β : Type u⦄ ⦃M1 : measurable_space α⦄ ⦃M2 : measurable_space β⦄ (hQ : Q M1 M2) 
+  (c1 c2 : ℝ≥0∞) ⦃s1 : set α⦄ ⦃s2 : set β⦄, M1.measurable_set' s1 → M2.measurable_set' s2 →
+   P (set.indicator s1 (λ _, c1)) (set.indicator s2 (λ _, c2)))
+  (h_sum : ∀ ⦃α β : Type u⦄ ⦃M1:measurable_space α⦄ ⦃M2:measurable_space β⦄ (hQ : Q M1 M2)
+   ⦃f1 g1 : α → ℝ≥0∞⦄ ⦃f2 : β → ℝ≥0∞⦄, set.univ ⊆ f1 ⁻¹' {0} ∪ g1 ⁻¹' {0} → 
+   (@measurable _ _ M1 _ f1) → (@measurable _ _ M1 _ g1) → (@measurable _ _ M2 _ f2) →
+   P f1 f2 → P g1 f2 → P (f1 + g1) f2)
+  (h_supr : ∀  ⦃α β : Type u⦄ ⦃M1:measurable_space α⦄ ⦃M2:measurable_space β⦄ (hQ : Q M1 M2)
+   ⦃f1 : ℕ → α → ℝ≥0∞⦄ ⦃f2 : β → ℝ≥0∞⦄ (hf : ∀n, @measurable _ _ M1 _ (f1 n)) (h_mono : monotone f1) (hf2: @measurable _ _ M2 _ f2) 
+    (hP : ∀ n, P (f1 n) (f2)), P (λ x, ⨆ n, f1 n x) (f2))
+  ⦃α β : Type u⦄ ⦃M1:measurable_space α⦄ ⦃M2:measurable_space β⦄ (hQ : Q M1 M2)
+  ⦃f1 : α → ℝ≥0∞⦄ (hf : measurable f1)  ⦃f2 : β → ℝ≥0∞⦄ (hf2 : measurable f2) : P f1 f2 :=
+begin
+  have hQ' : Q M2 M1 := Q_symm hQ,
+  apply measurable.ennreal_induction,
+  { intros c2 s2 h_meas_s2, 
+    have h_meas_indicator:measurable (s2.indicator (λ _, c2)),
+    { apply measurable.indicator measurable_const h_meas_s2,  },
+    apply @measurable.ennreal_induction α M1 (λ f1, P f1 (s2.indicator (λ _, c2))),
+    { intros c1 s1 h_meas_s1, apply h_ind hQ c1 c2 h_meas_s1 h_meas_s2 },
+    { intros f1 g1 h_univ h_meas_f1 h_meas_g1, apply h_sum hQ, apply h_univ,
+      apply h_meas_f1, apply h_meas_g1, apply h_meas_indicator },
+    { intros f1 h_meas_f1 h_mono, apply h_supr hQ, apply h_meas_f1,
+      apply h_mono, apply h_meas_indicator },
+    --{ intros s1 h_meas_s1, apply h_supr, apply h_meas_f1,
+     -- apply h_mono, apply h_meas_indicator },
+    apply hf,
+  },
+  { intros f2 g2 h_univ h_meas_f2 h_meas_g2 h_P_f2 h_P_g2,
+    apply h_symm hQ' (measurable.add h_meas_f2 h_meas_g2) hf,
+    apply h_sum hQ' h_univ h_meas_f2 h_meas_g2 hf,
+    apply h_symm hQ hf h_meas_f2 h_P_f2,
+    apply h_symm hQ hf h_meas_g2 h_P_g2,
+      },
+  { intros f2' h_meas_f2' h_mono h_P_f2',
+    apply h_symm hQ',
+    apply measurable_supr h_meas_f2',
+    apply hf,
+    apply h_supr hQ' h_meas_f2' h_mono hf,
+    intros n, apply h_symm hQ, apply hf, apply h_meas_f2',
+    apply h_P_f2' },
+  apply hf2,
+end
+
+theorem measurable.ennreal_induction_symm' {α:Type u}
+  {Q : (measurable_space α) → (measurable_space α) → Prop}
+  (h_symmQ : ∀ ⦃M1 M2 : measurable_space α⦄, Q M1 M2 → Q M2 M1)
+  {P : (α → ℝ≥0∞) → (α → ℝ≥0∞) → Prop}
+  (h_symm :  Π  ⦃M1 M2 : measurable_space α⦄, Q M1 M2 →
+   ∀ ⦃f1 : α → ℝ≥0∞⦄ ⦃f2 : α →  ℝ≥0∞⦄ (hf1 : @measurable _ _ M1 _ f1) 
+     (hf2 : @measurable _ _ M2 _ f2), P f1 f2 → P f2 f1)
+  (h_ind : ∀  ⦃M1 M2 : measurable_space α⦄ (hQ: Q M1 M2)
+  (c1 c2 : ℝ≥0∞) ⦃s1 : set α⦄ ⦃s2 : set α⦄, M1.measurable_set' s1 → M2.measurable_set' s2 →
+   P (set.indicator s1 (λ _, c1)) (set.indicator s2 (λ _, c2)))
+  (h_sum : ∀  ⦃M1 M2:measurable_space α⦄ (hQ : Q M1 M2)
+   ⦃f1 g1 : α → ℝ≥0∞⦄ ⦃f2 : α → ℝ≥0∞⦄, set.univ ⊆ f1 ⁻¹' {0} ∪ g1 ⁻¹' {0} → 
+   (@measurable _ _ M1 _ f1) → (@measurable _ _ M1 _ g1) → (@measurable _ _ M2 _ f2) →
+   P f1 f2 → P g1 f2 → P (f1 + g1) f2)
+  (h_supr : ∀   ⦃M1 M2:measurable_space α⦄ (hQ : Q M1 M2)
+   ⦃f1 : ℕ → α → ℝ≥0∞⦄ ⦃f2 : α → ℝ≥0∞⦄ (hf : ∀n, @measurable _ _ M1 _ (f1 n)) (h_mono : monotone f1) (hf2: @measurable _ _ M2 _ f2) 
+    (hP : ∀ n, P (f1 n) (f2)), P (λ x, ⨆ n, f1 n x) (f2))
+   ⦃M1 M2:measurable_space α⦄ (hQ: Q M1 M2)
+  ⦃f1 : α → ℝ≥0∞⦄ (hf :  @measurable _ _ M1 _ f1)  ⦃f2 : α → ℝ≥0∞⦄ (hf2 : @measurable _ _ M2 _ f2) : P f1 f2 :=
+begin
+  let Q' : Π  ⦃α β : Type u⦄, (measurable_space α) → (measurable_space β) → Prop :=
+    (λ α' β M1 M2, α' = α ∧ β = α ∧ Π (h:α' = α) (h2:β = α), Q (cast begin rw h end M1) (cast begin rw h2 end M2)),
+  let P' : Π  ⦃α β : Type u⦄,  (α → ℝ≥0∞) → (β → ℝ≥0∞) → Prop :=
+    (λ α' β f1 f2, α' = α ∧ β = α ∧ Π (h:α' = α) (h2:β = α), P (cast begin rw h end f1) (cast begin rw h2 end f2)),
+  begin
+    have h1: ∀ ⦃f1' f2'⦄, P' f1' f2' → P f1' f2',
+    { intros f1' f2' h1', apply h1'.right.right, refl, refl },
+    have h2: ∀ ⦃f1' f2'⦄, Q' f1' f2' → Q f1' f2',
+    { intros f1' f2' h1', apply h1'.right.right, refl, refl },
+    apply h1,
+    apply @measurable.ennreal_induction_symm2 Q' _ P',
+    { intros α' β M1' M2' hQ' hf1 hf2 h_meas1 h_meas2 hP',
+      split, apply hP'.right.left,
+      split, apply hP'.left,
+      intros h1 h2,
+      subst α', subst β,
+      apply h_symm (h2 hQ') h_meas1 h_meas2 (h1 hP') },
+   { intros α' β M1 M2 hQ' c1 c2 s1 s2 h_meas_s1 h_meas_s2,
+     split,
+     apply hQ'.left,
+     split,
+     apply hQ'.right.left,
+     intros h1 h2,
+     subst α', subst β,
+     apply h_ind (h2 hQ') _ _ h_meas_s1 h_meas_s2 },
+   { intros α' β M1 M2 hQ' f1 g1 f2 h_univ h_meas_f1 h_meas_g1 h_meas_f2 h_P'_f1_f2
+     h_P'_g1_f2,
+     split,
+     apply hQ'.left,
+     split,
+     apply hQ'.right.left,
+     intros h1 h2,
+     subst α', subst β,
+     apply h_sum (h2 hQ') h_univ h_meas_f1 h_meas_g1 h_meas_f2,
+     apply (h1 h_P'_f1_f2),
+     apply (h1 h_P'_g1_f2),
+   },
+  { intros α' β M1 M2 hQ' f1 f2 h_meas_f1 h_mono_f1 h_meas_f2 h_P'_f1_f2,
+    split,
+    apply hQ'.left,
+    split,
+    apply hQ'.right.left,
+    intros h h2,
+    subst α', subst β,
+    apply h_supr (h2 hQ') h_meas_f1 h_mono_f1 h_meas_f2 (λ n, h1 (h_P'_f1_f2 n)),
+   },
+   split,
+   refl,
+   split,
+   refl,
+   intros α' β,
+   apply hQ,
+   apply hf,
+   apply hf2,
+   intros α' β M1' M2' hQ',
+   { split, apply hQ'.right.left, split,
+     apply hQ'.left, intros h h2, subst α', subst β,
+     apply h_symmQ (h2 hQ') },
+  end
+end
+
+
+theorem measurable.ennreal_induction_symm'' {α : Type u} [M : measurable_space α]
+  {P : (α → ℝ≥0∞) → (α → ℝ≥0∞) → Prop}
+  (h_symm : ∀ ⦃f1 f2 : α →  ℝ≥0∞⦄ (hf1 : measurable f1) 
+    (hf2 : measurable f2), P f1 f2 → P f2 f1)
+  (h_ind : ∀ (c1 c2 : ℝ≥0∞) ⦃s1 s2:set α⦄, measurable_set s1 → measurable_set s2 →
+    P (set.indicator s1 (λ _, c1)) (set.indicator s2 (λ _, c2)))
+  (h_sum : ∀ ⦃f1 g1 f2 : α → ℝ≥0∞⦄, set.univ ⊆ f1 ⁻¹' {0} ∪ g1 ⁻¹' {0} → 
+    (measurable f1) → (measurable g1) → (measurable f2) →
+    P f1 f2 → P g1 f2 → P (f1 + g1) f2)
+  (h_supr : ∀ ⦃f1 : ℕ → α → ℝ≥0∞⦄ ⦃f2 : α → ℝ≥0∞⦄ (hf : ∀n, measurable (f1 n))
+    (h_mono : monotone f1) (hf2: measurable f2) 
+    (hP : ∀ n, P (f1 n) (f2)), P (λ x, ⨆ n, f1 n x) (f2))
+  ⦃f1 : α → ℝ≥0∞⦄ (hf : measurable f1)  ⦃f2 : α → ℝ≥0∞⦄ (hf2 : measurable f2) : P f1 f2 :=
+begin
+  let Q := (λ  (M1 M2 : measurable_space α), M1 = M ∧ M2 = M),
+  begin
+    apply @measurable.ennreal_induction_symm' α Q _ P,
+    { intros M1 M2 hQ, cases hQ, substs M1 M2, apply h_symm },
+    { intros M1 M2 hQ, cases hQ, substs M1 M2, apply h_ind },
+    { intros M1 M2 hQ, cases hQ, substs M1 M2, apply h_sum },
+    { intros M1 M2 hQ, cases hQ, substs M1 M2, apply h_supr },
+    { split; refl },
+    { apply hf },
+    { apply hf2 },
+    { intros M1 M2 hQ, cases hQ, substs M1 M2, split; refl },
+  end
+end
+
+
+end measurable
 
 
 lemma set.indicator_mul_indicator_eq_inter {α:Type*} {t1 t2:set α} {c1 c2:ennreal}:
@@ -29,6 +246,7 @@ lemma set.indicator_mul_indicator_eq_inter {α:Type*} {t1 t2:set α} {c1 c2:ennr
   simp only [zero_mul, pi.mul_apply, ite_mul, mul_ite, mul_zero],
   repeat {rw ← set.indicator}, rw [set.indicator_indicator, set.inter_comm],
 end
+
 
 namespace measure_theory
 open measure_theory measure_theory.simple_func
@@ -52,7 +270,7 @@ begin
   (λ g h_mg, measurable.ennreal_mul h_mg (measurable.indicator measurable_const h_meas_T)),
   apply measurable.ennreal_induction,
   { intros c' s' h_meas_s',
-    rw [set.indicator_mul_indicator_eq_inter', lintegral_indicator _
+    rw [set.indicator_mul_indicator_eq_inter, lintegral_indicator _
         (measurable_set.inter (hMf _ h_meas_s') (h_meas_T)),
         lintegral_indicator _  (hMf _ h_meas_s'),
         lintegral_indicator _ h_meas_T],

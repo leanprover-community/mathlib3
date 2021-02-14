@@ -298,7 +298,7 @@ begin
   exact tendsto_nhds_unique T1 T2,
 end
 
-lemma open_image_of_nonlinear_right_inverse (hf : approximates_linear_on f f' s c)
+lemma open_image (hf : approximates_linear_on f f' s c)
   (hs : is_open s) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) : is_open (f '' s) :=
 begin
   cases hc with hE hc,
@@ -311,6 +311,25 @@ begin
   refine ⟨(f'symm.nnnorm⁻¹ - c) * ε, mul_pos (sub_pos.2 hc) ε0, _⟩,
   exact (hf.surj_on_closed_ball_of_nonlinear_right_inverse f'symm (le_of_lt ε0) hε).mono
     hε (subset.refl _)
+end
+
+lemma image_mem_nhds (hf : approximates_linear_on f f' s c) (x : E)
+  (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
+  f '' s ∈ 𝓝 (f x) :=
+begin
+  obtain ⟨t, hts, ht, xt⟩ : ∃ t ⊆ s, is_open t ∧ x ∈ t := mem_nhds_sets_iff.1 hs,
+  have := mem_nhds_sets ((hf.mono_set hts).open_image f'symm ht hc) (mem_image_of_mem _ xt),
+  exact mem_sets_of_superset this (image_subset _ hts),
+end
+
+lemma map_nhds_eq (hf : approximates_linear_on f f' s c) (x : E)
+  (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
+  map f (𝓝 x) = 𝓝 (f x) :=
+begin
+  refine le_antisymm ((hf.continuous_on x (mem_of_nhds hs)).continuous_at hs) (le_map (λ t ht, _)),
+  have : f '' (s ∩ t) ∈ 𝓝 (f x) := (hf.mono_set (inter_subset_left s t)).image_mem_nhds
+    f'symm x (inter_mem_sets hs ht) hc,
+  exact mem_sets_of_superset this (image_subset _ (inter_subset_right _ _)),
 end
 
 end locally_onto
@@ -375,7 +394,7 @@ def to_local_homeomorph (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c
   (hc : subsingleton E ∨ c < N⁻¹) (hs : is_open s) : local_homeomorph E F :=
 { to_local_equiv := hf.to_local_equiv hc,
   open_source := hs,
-  open_target := hf.open_image_of_nonlinear_right_inverse f'.to_nonlinear_right_inverse hs
+  open_target := hf.open_image f'.to_nonlinear_right_inverse hs
     (by rwa f'.to_linear_equiv.to_equiv.subsingleton_iff at hc),
   continuous_to_fun := hf.continuous_on,
   continuous_inv_fun := hf.inverse_continuous_on hc }
@@ -426,6 +445,21 @@ begin
   rw [nhds_prod_eq, filter.eventually, mem_prod_same_iff] at this,
   rcases this with ⟨s, has, hs⟩,
   exact ⟨s, has, λ x hx y hy, hs (mk_mem_prod hx hy)⟩
+end
+
+lemma map_nhds_eq_of_surj [complete_space E] [complete_space F]
+  {f : E → F} {f' : E →L[𝕜] F} {a : E}
+  (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) (h : f'.range = ⊤) :
+  map f (𝓝 a) = 𝓝 (f a) :=
+begin
+  let f'symm := f'.nonlinear_right_inverse_of_surjective h,
+  set c : ℝ≥0 := f'symm.nnnorm⁻¹ / 2 with hc,
+  have f'symm_pos : 0 < f'symm.nnnorm := f'.nonlinear_right_inverse_of_surjective_nnnorm_pos h,
+  have cpos : 0 < c, by simp [hc, nnreal.half_pos, nnreal.inv_pos, f'symm_pos],
+  obtain ⟨s, s_nhds, hs⟩ : ∃ s ∈ 𝓝 a, approximates_linear_on f f' s c :=
+    hf.approximates_deriv_on_nhds (or.inr cpos),
+  apply hs.map_nhds_eq f'symm _ s_nhds (or.inr (nnreal.half_lt_self _)),
+  simp [ne_of_gt f'symm_pos],
 end
 
 variables [cs : complete_space E] {f : E → F} {f' : E ≃L[𝕜] F} {a : E}
@@ -646,5 +680,3 @@ begin
 end
 
 end times_cont_diff_at
-
-#lint

@@ -1268,6 +1268,13 @@ begin
   exact hc.mul_const d
 end
 
+theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : 𝕜) :
+  has_strict_deriv_at (λ y, c y * d) (c' * d) x :=
+begin
+  convert hc.mul (has_strict_deriv_at_const x d),
+  rw [mul_zero, add_zero]
+end
+
 lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
   (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
   deriv_within (λ y, c y * d) s x = deriv_within c s x * d :=
@@ -1289,6 +1296,13 @@ theorem has_deriv_at.const_mul (c : 𝕜) (hd : has_deriv_at d d' x) :
 begin
   rw [← has_deriv_within_at_univ] at *,
   exact hd.const_mul c
+end
+
+theorem has_strict_deriv_at.const_mul (c : 𝕜) (hd : has_strict_deriv_at d d' x) :
+  has_strict_deriv_at (λ y, c * d y) (c * d') x :=
+begin
+  convert (has_strict_deriv_at_const _ _).mul hd,
+  rw [zero_mul, zero_add]
 end
 
 lemma deriv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)

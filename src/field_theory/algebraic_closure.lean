@@ -97,8 +97,13 @@ instance complex.is_alg_closed : is_alg_closed ℂ :=
 is_alg_closed.of_exists_root _ $ λ p _ hp, complex.exists_root $ degree_pos_of_irreducible hp
 
 /-- Typeclass for an extension being an algebraic closure. -/
-@[class] def is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
-is_alg_closed K ∧ algebra.is_algebraic k K
+class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
+(alg_closed : is_alg_closed K)
+(algebraic : algebra.is_algebraic k K)
+
+theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
+  is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 namespace algebraic_closure
 

@@ -209,7 +209,7 @@ begin
   rw mem_zero_locus at hx,
   have x_prime : x.as_ideal.is_prime := by apply_instance,
   have eq_top : x.as_ideal = ⊤, { rw ideal.eq_top_iff_one, exact hx h },
-  apply x_prime.1 eq_top,
+  apply x_prime.ne_top eq_top,
 end
 
 lemma zero_locus_empty_iff_eq_top {I : ideal R} :

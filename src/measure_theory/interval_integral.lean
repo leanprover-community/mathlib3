@@ -644,7 +644,7 @@ begin
   simp only [integral_const'],
   convert (A.trans_le _).sub (B.trans_le _),
   { ext t,
-    simp_rw [(∘), interval_integral, sub_smul],
+    simp_rw [interval_integral, sub_smul],
     abel },
   all_goals { intro t, cases le_total (u t) (v t) with huv huv; simp [huv] }
 end

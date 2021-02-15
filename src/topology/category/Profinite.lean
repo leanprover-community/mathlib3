@@ -8,8 +8,6 @@ import topology.category.CompHaus
 import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
-import category_theory.adjunction.basic
-import category_theory.adjunction.limits
 
 /-!
 # The category of Profinite Types

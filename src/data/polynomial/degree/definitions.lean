@@ -953,7 +953,7 @@ by { apply nat_degree_eq_of_degree_eq_some, simp [degree_X_pow_sub_C hn], }
 end nonzero_ring
 
 section no_zero_divisors
-variables [comm_semiring R] [no_zero_divisors R] {p q : polynomial R}
+variables [semiring R] [no_zero_divisors R] {p q : polynomial R}
 
 @[simp] lemma degree_mul : degree (p * q) = degree p + degree q :=
 if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]

@@ -75,7 +75,7 @@ open polynomial metric set real ring_hom
 `j : Z → N → R` be a function.  We aim to estimate how close we can get to `α`, while staying
 in the image of `j`.  The points `j z a` of `R` in the image of `j` come with a "cost" equal to
 `d a`.  As we get closer to `α` while staying in the image of `j`, we are interested in bounding
-the quantity `d a * dist α (j z a)` from below by a strictly positive amount `1 / M`: the intuition
+the quantity `d a * dist α (j z a)` from below by a strictly positive amount `1 / A`: the intuition
 is that approximating well `α` with the points in the image of `j` should come at a high cost.  The
 hypotheses on the function `f : R → R` provide us with sufficient conditions to ensure our goal.
 The first hypothesis is that `f` is Lipschitz at `α`: this yields a bound on the distance.
@@ -119,8 +119,8 @@ end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
   {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
-  ∃ ε : ℝ, 0 < ε ∧
-    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (abs (α - (a / (b + 1))) * ε) :=
+  ∃ A : ℝ, 0 < A ∧
+    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (abs (α - (a / (b + 1))) * A) :=
 begin
   -- `fR` is `f` viewed as a polynomial with `ℝ` coefficients.
   set fR : polynomial ℝ := map (algebra_map ℤ ℝ) f,

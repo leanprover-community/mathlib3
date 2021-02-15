@@ -223,7 +223,7 @@ lemma has_ftaylor_series_up_to_on.continuous_on {n : with_top ℕ}
   (h : has_ftaylor_series_up_to_on n f p s) : continuous_on f s :=
 begin
   have := (h.cont 0 bot_le).congr (λ x hx, (h.zero_eq' hx).symm),
-  rwa continuous_linear_equiv.comp_continuous_on_iff at this
+  rwa linear_isometry_equiv.comp_continuous_on_iff at this
 end
 
 lemma has_ftaylor_series_up_to_on_zero_iff :
@@ -237,7 +237,7 @@ begin
   rw this,
   have : ∀ x ∈ s, p x 0 = (continuous_multilinear_curry_fin0 𝕜 E F).symm (f x),
     by { assume x hx, rw ← H.2 x hx, symmetry, exact continuous_multilinear_map.uncurry0_curry0 _ },
-  rw [continuous_on_congr this, continuous_linear_equiv.comp_continuous_on_iff],
+  rw [continuous_on_congr this, linear_isometry_equiv.comp_continuous_on_iff],
   exact H.1
 end
 
@@ -267,7 +267,7 @@ begin
       (λ y, continuous_multilinear_curry_fin0 𝕜 E F (p y 0))
       (continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) s x,
     by exact H.congr A (A x hx),
-  rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
+  rw linear_isometry_equiv.comp_has_fderiv_within_at_iff',
   have : ((0 : ℕ) : with_top ℕ) < n :=
     lt_of_lt_of_le (with_top.coe_lt_coe.2 nat.zero_lt_one) hn,
   convert h.fderiv_within _ this x hx,
@@ -355,7 +355,7 @@ begin
         ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ))
         (p x m.succ.succ).curry_right.curry_left s x,
-      rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
+      rw linear_isometry_equiv.comp_has_fderiv_within_at_iff',
       convert H.fderiv_within _ A x hx,
       ext y v,
       change (p x m.succ.succ) (snoc (cons y (init v)) (v (last _)))
@@ -366,7 +366,7 @@ begin
         by { rw with_top.coe_le_coe at ⊢ hm, exact nat.pred_le_iff.mp hm },
       change continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) s,
-      rw continuous_linear_equiv.comp_continuous_on_iff,
+      rw linear_isometry_equiv.comp_continuous_on_iff,
       exact H.cont _ A } },
   { rintros ⟨Hzero_eq, Hfderiv_zero, Htaylor⟩,
     split,
@@ -379,7 +379,7 @@ begin
         have : has_fderiv_within_at ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) ((p x).shift m.succ).curry_left s x :=
           Htaylor.fderiv_within _ A x hx,
-        rw continuous_linear_equiv.comp_has_fderiv_within_at_iff' at this,
+        rw linear_isometry_equiv.comp_has_fderiv_within_at_iff' at this,
         convert this,
         ext y v,
         change (p x (nat.succ (nat.succ m))) (cons y v)
@@ -395,7 +395,7 @@ begin
         have : continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
            ∘ (λ (y : E), p y m.succ)) s :=
         Htaylor.cont _ A,
-        rwa continuous_linear_equiv.comp_continuous_on_iff at this } } }
+        rwa linear_isometry_equiv.comp_continuous_on_iff at this } } }
 end
 
 /-! ### Smooth functions within a set around a point -/
@@ -545,7 +545,7 @@ begin
       refine ⟨λ y hy, rfl, λ y hy, _, _⟩,
       { change has_fderiv_within_at (λ z, (continuous_multilinear_curry_fin0 𝕜 E F).symm (f z))
           ((formal_multilinear_series.unshift (p' y) (f y) 1).curry_left) (v ∩ u) y,
-        rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
+        rw linear_isometry_equiv.comp_has_fderiv_within_at_iff',
         convert (f'_eq_deriv y hy.2).mono (inter_subset_right v u),
         rw ← Hp'.zero_eq y hy.1,
         ext z,
@@ -724,7 +724,7 @@ begin
   induction n with n IH generalizing x,
   { rw [iterated_fderiv_within_succ_eq_comp_left, iterated_fderiv_within_zero_eq_comp,
         iterated_fderiv_within_zero_apply,
-        function.comp_apply, continuous_linear_equiv.comp_fderiv_within _ (hs x hx)],
+        function.comp_apply, linear_isometry_equiv.comp_fderiv_within _ (hs x hx)],
     refl },
   { let I := continuous_multilinear_curry_right_equiv' 𝕜 n E F,
     have A : ∀ y ∈ s, iterated_fderiv_within 𝕜 n.succ f s y
@@ -739,7 +739,7 @@ begin
       by rw fderiv_within_congr (hs x hx) A (A x hx)
     ... = (I ∘ fderiv_within 𝕜 ((iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s)) s x
               : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) :
-      by { rw continuous_linear_equiv.comp_fderiv_within _ (hs x hx), refl }
+      by { rw linear_isometry_equiv.comp_fderiv_within _ (hs x hx), refl }
     ... = (fderiv_within 𝕜 ((iterated_fderiv_within 𝕜 n (λ y, fderiv_within 𝕜 f s y) s)) s x
               : E → (E [×n]→L[𝕜] (E →L[𝕜] F))) (m 0) (init (tail m)) ((tail m) (last n)) : rfl
     ... = iterated_fderiv_within 𝕜 (nat.succ n) (λ y, fderiv_within 𝕜 f s y) s x
@@ -1538,6 +1538,18 @@ end
 lemma continuous_linear_map.times_cont_diff {n : with_top ℕ} (f : E →L[𝕜] F) :
   times_cont_diff 𝕜 n f :=
 f.is_bounded_linear_map.times_cont_diff
+
+lemma continuous_linear_equiv.times_cont_diff {n : with_top ℕ} (f : E ≃L[𝕜] F) :
+  times_cont_diff 𝕜 n f :=
+(f : E →L[𝕜] F).times_cont_diff
+
+lemma linear_isometry_map.times_cont_diff {n : with_top ℕ} (f : E →ₗᵢ[𝕜] F) :
+  times_cont_diff 𝕜 n f :=
+f.to_continuous_linear_map.times_cont_diff
+
+lemma linear_isometry_equiv.times_cont_diff {n : with_top ℕ} (f : E ≃ₗᵢ[𝕜] F) :
+  times_cont_diff 𝕜 n f :=
+(f : E →L[𝕜] F).times_cont_diff
 
 /--
 The first projection in a product is `C^∞`.

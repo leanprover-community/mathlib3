@@ -90,6 +90,9 @@ by rw [dist_comm, dist_eq_norm]
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
 
+@[simp] lemma dist_zero_left : dist (0:α) = norm :=
+funext $ λ g, by rw [dist_comm, dist_zero_right]
+
 lemma tendsto_norm_cocompact_at_top [proper_space α] :
   tendsto norm (cocompact α) at_top :=
 by simpa only [dist_zero_right] using tendsto_dist_right_cocompact_at_top (0:α)
@@ -491,13 +494,7 @@ lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
 
 lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : α → ℝ) :=
-begin
-  intros x y,
-  simp only [ennreal.coe_one, one_mul, edist_nndist, nndist_eq_nnnorm, ennreal.coe_le_coe],
-  calc ∥∥x∥ - ∥y∥∥
-      = abs(∥x∥ - ∥y∥) : by rw real.norm_eq_abs
-  ... ≤ ∥x - y∥ : abs_norm_sub_norm_le x y
-end
+by simpa only [dist_zero_left] using lipschitz_with.dist_right (0 : α)
 
 lemma uniform_continuous_norm : uniform_continuous (norm : α → ℝ) :=
 lipschitz_with_one_norm.uniform_continuous

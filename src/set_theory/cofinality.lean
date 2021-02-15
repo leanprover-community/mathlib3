@@ -1,11 +1,43 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal_ordinal
 /-!
-# Cofinality on ordinals, regular cardinals
+# Cofinality
+
+This file contains the definition of cofinality of a ordinal number and regular cardinals
+
+## Main Definitions
+
+* `ordinal.cof o` is the cofinality of the ordinal `o`.
+  If `o` is the order type of the relation `<` on `α`, then `o.cof` is the smallest cardinality of a
+  subset `s` of α that is *cofinal* in `α`, i.e. `∀ x : α, ∃ y ∈ s, ¬ y < x`.
+* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
+* `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal:
+  `c ≠ 0 ∧ ∀ x < c, 2 ^ x < c`.
+* `cardinal.is_regular c` means that `c` is a regular cardinal: `omega ≤ c ∧ c.ord.cof = c`.
+* `cardinal.is_inaccessible c` means that `c` is strongly inaccessible:
+  `omega < c ∧ is_regular c ∧ is_strong_limit c`.
+
+## Main Statements
+
+* `ordinal.infinite_pigeonhole_card`: the infinite pigeonhole principle
+* `cardinal.lt_power_cof`: A consequence of König's theorem stating that `c < c ^ c.ord.cof` for
+  `c ≥ cardinal.omega`
+
+## Implementation Notes
+
+* The cofinality is defined for ordinals.
+  If `c` is a cardinal number, its cofinality is `c.ord.cof`.
+
+## Tags
+
+cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
+infinite pigeonhole principle
+
+
 -/
 noncomputable theory
 
@@ -366,7 +398,7 @@ begin
   rcases unbounded_of_unbounded_sUnion r h₁ this with ⟨_, ⟨x, rfl⟩, u⟩, exact ⟨x, u⟩
 end
 
-/-- The infinite pigeonhole principle-/
+/-- The infinite pigeonhole principle -/
 theorem infinite_pigeonhole {β α : Type u} (f : β → α) (h₁ : cardinal.omega ≤ mk β)
   (h₂ : mk α < (mk β).ord.cof) : ∃a : α, mk (f ⁻¹' {a}) = mk β :=
 begin

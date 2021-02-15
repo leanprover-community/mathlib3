@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
 import set_theory.ordinal_arithmetic
@@ -13,21 +13,27 @@ import tactic.linarith
 Relationships between cardinals and ordinals, properties of cardinals that are proved
 using ordinals.
 
-## Main definitions and results
+## Main definitions
 
-* The `aleph'` function gives the cardinals listed by their ordinal
-  index, and is the inverse of `aleph_idx`.
+* The function `cardinal.aleph'` gives the cardinals listed by their ordinal
+  index, and is the inverse of `cardinal.aleph_idx`.
   `aleph' n = n`, `aleph' ω = ω`, `aleph' (ω + 1) = ℵ₁`, etc. It is an order isomorphism
   between ordinals and cardinals.
-* The `aleph` function gives the infinite cardinals listed by their
+* The function `cardinal.aleph` gives the infinite cardinals listed by their
   ordinal index. `aleph 0 = ω`, `aleph 1 = succ ω` is the first
   uncountable cardinal, and so on.
 
-* `mul_eq_max` and `add_eq_max` state that the product (resp. sum) of two infinite cardinals
-  is just their maximum. Several variations around this fact are also given.
-* `mk_list_eq_mk` : when `α` is infinite, `α` and `list α` have the same cardinality.
-* simp lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making simp
+## Main Statements
+
+* `cardinal.mul_eq_max` and `cardinal.add_eq_max` state that the product (resp. sum) of two infinite
+  cardinals is just their maximum. Several variations around this fact are also given.
+* `cardinal.mk_list_eq_mk` : when `α` is infinite, `α` and `list α` have the same cardinality.
+* simp lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making `simp`
   able to prove inequalities about numeral cardinals.
+
+## Tags
+
+cardinal arithmetic (for infinite cardinals)
 -/
 
 noncomputable theory

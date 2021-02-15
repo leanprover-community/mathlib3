@@ -469,8 +469,9 @@ meta def prove_lt_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
   tactic (instance_cache × expr) :=
 match match_sign a, match_sign b with
 | sum.inl a, sum.inl b := do
-  (ic, p) ← prove_lt_nonneg_rat ic a b (-na) (-nb),
-  ic.mk_app ``neg_lt_neg [a, b, p]
+  -- we have to switch the order of `a` and `b` because `a < b ↔ -b < -a`
+  (ic, p) ← prove_lt_nonneg_rat ic b a (-nb) (-na),
+  ic.mk_app ``neg_lt_neg [b, a, p]
 | sum.inl a, sum.inr ff := do
   (ic, p) ← prove_pos ic a,
   ic.mk_app ``neg_neg_of_pos [a, p]

@@ -17,6 +17,7 @@ We develop some properties of measures on (topological) groups
 
 noncomputable theory
 
+open_locale ennreal
 open has_inv set function measure_theory.measure
 
 namespace measure_theory
@@ -35,7 +36,7 @@ variables [measurable_space G] [has_mul G]
   if the measure of left translations of a set are equal to the measure of the set itself.
   To left translate sets we use preimage under left addition,
   since preimages are nicer to work with than images."]
-def is_mul_left_invariant (μ : set G → ennreal) : Prop :=
+def is_mul_left_invariant (μ : set G → ℝ≥0∞) : Prop :=
 ∀ (g : G) {A : set G} (h : measurable_set A), μ ((λ h, g * h) ⁻¹' A) = μ A
 
 /-- A measure `μ` on a topological group is right invariant
@@ -46,7 +47,7 @@ def is_mul_left_invariant (μ : set G → ennreal) : Prop :=
   if the measure of right translations of a set are equal to the measure of the set itself.
   To right translate sets we use preimage under right addition,
   since preimages are nicer to work with than images."]
-def is_mul_right_invariant (μ : set G → ennreal) : Prop :=
+def is_mul_right_invariant (μ : set G → ℝ≥0∞) : Prop :=
 ∀ (g : G) {A : set G} (h : measurable_set A), μ ((λ h, h * g) ⁻¹' A) = μ A
 
 end
@@ -187,13 +188,13 @@ by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty hμ h3μ hs]
   `f` is 0 iff `f` is 0. -/
 -- @[to_additive] (fails for now)
 lemma lintegral_eq_zero_of_is_mul_left_invariant (hμ : regular μ)
-  (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ennreal} (hf : continuous f) :
+  (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
 begin
   split, swap, { rintro rfl, simp_rw [pi.zero_apply, lintegral_zero] },
   intro h, contrapose h,
   simp_rw [funext_iff, not_forall, pi.zero_apply] at h, cases h with x hx,
-  obtain ⟨r, h1r, h2r⟩ : ∃ r : ennreal, 0 < r ∧ r < f x :=
+  obtain ⟨r, h1r, h2r⟩ : ∃ r : ℝ≥0∞, 0 < r ∧ r < f x :=
   exists_between (pos_iff_ne_zero.mpr hx),
   have h3r := hf.is_open_preimage (Ioi r) is_open_Ioi,
   let s := Ioi r,

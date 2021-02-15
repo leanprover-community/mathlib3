@@ -31,11 +31,12 @@ normed space, extended norm
 -/
 
 local attribute [instance, priority 1001] classical.prop_decidable
+open_locale ennreal
 
 /-- Extended norm on a vector space. As in the case of normed spaces, we require only
 `∥c • x∥ ≤ ∥c∥ * ∥x∥` in the definition, then prove an equality in `map_smul`. -/
 structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V] [vector_space 𝕜 V] :=
-(to_fun : V → ennreal)
+(to_fun : V → ℝ≥0∞)
 (eq_zero' : ∀ x, to_fun x = 0 → x = 0)
 (map_add_le' : ∀ x y : V, to_fun (x + y) ≤ to_fun x + to_fun y)
 (map_smul_le' : ∀ (c : 𝕜) (x : V), to_fun (c • x) ≤ nnnorm c * to_fun x)
@@ -63,7 +64,7 @@ injective_coe_fn.eq_iff
 le_antisymm (e.map_smul_le' c x) $
 begin
   by_cases hc : c = 0, { simp [hc] },
-  calc (nnnorm c : ennreal) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul' hc]
+  calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul' hc]
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
   { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },

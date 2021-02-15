@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import data.complex.exponential
-import analysis.calculus.mean_value
+import analysis.calculus.inverse
 import measure_theory.borel_space
 import analysis.complex.real_deriv
 
@@ -34,6 +34,12 @@ open finset filter metric asymptotics set function
 open_locale classical topological_space
 
 namespace complex
+
+lemma measurable_re : measurable re := continuous_re.measurable
+
+lemma measurable_im : measurable im := continuous_im.measurable
+
+lemma measurable_of_real : measurable (coe : ℝ → ℂ) := continuous_of_real.measurable
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
@@ -77,12 +83,22 @@ begin
     rwa deriv_exp }
 end
 
+lemma has_strict_deriv_at_exp (x : ℂ) : has_strict_deriv_at exp (exp x) x :=
+times_cont_diff_exp.times_cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
+
+lemma is_open_map_exp : is_open_map exp :=
+open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
+
 lemma measurable_exp : measurable exp := continuous_exp.measurable
 
 end complex
 
 section
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
+
+lemma has_strict_deriv_at.cexp (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
+(complex.has_strict_deriv_at_exp (f x)).comp x hf
 
 lemma has_deriv_at.cexp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
@@ -111,6 +127,10 @@ variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' 
 lemma measurable.cexp {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
   measurable (λ x, complex.exp (f x)) :=
 complex.measurable_exp.comp hf
+
+lemma has_strict_fderiv_at.cexp (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') x :=
+(complex.has_strict_deriv_at_exp (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_within_at.cexp (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') s x :=
@@ -398,6 +418,10 @@ lemma surj_on_log' : surj_on log (Iio 0) univ :=
 lemma log_mul (hx : x ≠ 0) (hy : y ≠ 0) : log (x * y) = log x + log y :=
 exp_injective $
 by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_mul]
+
+lemma log_div (hx : x ≠ 0) (hy : y ≠ 0) : log (x / y) = log x - log y :=
+exp_injective $
+by rw [exp_log_eq_abs (div_ne_zero hx hy), exp_sub, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_div]
 
 @[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
 begin

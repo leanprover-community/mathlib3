@@ -75,6 +75,12 @@ begin
     exact h p hp q hq, }
 end
 
+lemma general_commutator_containment (H₁ H₂ : subgroup G):∀ p∈ H₁,∀ q∈ H₂, p * q * p⁻¹ * q⁻¹∈ ⁅H₁, H₂ ⁆:=
+begin
+  apply (general_commutator_le H₁ H₂ ⁅ H₁, H₂⁆).1,
+  tauto,
+end
+
 lemma general_commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
 begin
   suffices : ∀ H₁ H₂ : subgroup G, ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆, { exact le_antisymm (this _ _) (this _ _) },
@@ -163,61 +169,7 @@ general_commutator_eq_commutator G
 
 end derived_series
 
-section general_derived_series
 
-variables {G} (H : subgroup G)
-
-def general_derived_series (n : ℕ) : subgroup G :=
-nat.rec_on n H (λ _ H, ⁅H, H⁆)
-
-lemma general_derived_series_succ (n : ℕ) : general_derived_series H (nat.succ n) =
-  ⁅general_derived_series H n, general_derived_series H n⁆ :=
-rfl
-
-lemma general_derived_series_zero : general_derived_series H 0 = H :=
-rfl
-
-lemma general_derived_series_one :
-  general_derived_series H 1 = ⁅H, H⁆ :=
-by rw [general_derived_series_succ, general_derived_series_zero]
-
-lemma additive_general_derived_series (n m : ℕ) :
-  general_derived_series H (n + m) = general_derived_series (general_derived_series H n) m :=
-begin
-  induction m with m ih,
-  { simp only [general_derived_series_zero, add_zero], },
-  { simp only [general_derived_series_succ, ih], },
-end
-
-lemma additive_general_derived_series' (n m : ℕ) :
-  general_derived_series H (n + m) = general_derived_series (general_derived_series H m) n :=
-begin
-  rw add_comm n m,
-  exact additive_general_derived_series H m n,
-end
-
-lemma general_derived_series_mono (K : subgroup G) (leq : H ≤ K) (n : ℕ) :
-  general_derived_series H n ≤ general_derived_series K n :=
-begin
-  induction n with n ih,
-  { simp only [general_derived_series_zero, leq] },
-  { rw [general_derived_series_succ, general_derived_series_succ],
-    exact general_commutator_mono ih ih },
-end
-
-lemma derived_series_eq_general_derived_series_top :
-  derived_series G = general_derived_series (⊤ : subgroup G) :=
-begin
-  funext n,
-  induction n with n ih,
-  { rw [derived_series_zero, general_derived_series_zero], },
-  { rw [derived_series_succ, general_derived_series_succ, ih], },
-end
-
-
-
-
-end general_derived_series
 
 section commutator_map
 
@@ -265,13 +217,41 @@ lemma map_derived_series_eq (hf : function.surjective f) (n : ℕ) :
   (derived_series G n).map f = derived_series G' n :=
 le_antisymm (map_derived_series_le_derived_series f n) (derived_series_le_map_derived_series hf n)
 
-lemma map_general_derived_series_eq_general_derived_series_map (n : ℕ) :
-  (general_derived_series H n).map f = general_derived_series (H.map f) n :=
+
+lemma derived_series_additive (n m : ℕ) : derived_series G (n + m) = lift (derived_series (derived_series G n) m) :=
+begin
+  induction m with m ih,
+  { simp only [derived_series_zero, add_zero, lift_top], },
+  { rw [nat.add_succ, derived_series_succ, derived_series_succ, ih,
+    lift_commutator_eq_commutator_lift_lift], }
+end
+
+lemma derived_series_lift_monotonic {H K : subgroup G} (h : H ≤ K) (n : ℕ) :
+  (derived_series H n).lift ≤ (derived_series K n).lift :=
 begin
   induction n with n ih,
-  { simp only [general_derived_series_zero], },
-  { rw [general_derived_series_succ,general_derived_series_succ,
-    map_commutator_eq_commutator_map, ih], },
+  { simp only [derived_series_zero, lift_top, h], },
+  { simp only [derived_series_succ, lift_commutator_eq_commutator_lift_lift,
+    general_commutator_mono, ih], }
+end
+
+lemma map_derived_series_leq_derived_series {G' : Type*} [group G'] {H : subgroup G} {f : G' →* G} (h : H ≤ f.range) (n : ℕ) :
+  (derived_series H n).lift ≤ (derived_series G' n).map f :=
+begin
+  induction n with n ih,
+  { rw monoid_hom.range_eq_map at h,
+    rwa [derived_series_zero, derived_series_zero, lift_top], },
+  { rw [derived_series_succ, derived_series_succ, lift_commutator_eq_commutator_lift_lift],
+    exact commutator_le_map_commutator ih ih, },
+end
+
+lemma map_derived_series_monotonic {G' G'' : Type*}[group G'][group G'']{f : G' →* G}{g : G'' →* G}(h : f.range ≤ g.range)
+  (n : ℕ) : (derived_series G' n).map f ≤ (derived_series G'' n).map g :=
+begin
+  induction n with n ih,
+  { rw [monoid_hom.range_eq_map, monoid_hom.range_eq_map] at h,
+    rwa [derived_series_zero, derived_series_zero], },
+  { simp only [derived_series_succ, map_commutator_eq_commutator_map, general_commutator_mono,ih],},
 end
 
 end derived_series_map
@@ -340,7 +320,8 @@ instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solva
   is_solvable (quotient H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
-lemma le_ker_iff_map_eq_bot {G' : Type*} [group G'] (f : G →* G') {H : subgroup G} : H.map f ≤ ⊥ ↔ H ≤ f.ker :=
+lemma le_ker_iff_map_eq_bot {G' : Type*} [group G'] (f : G →* G') {H : subgroup G} :
+ H.map f ≤ ⊥ ↔ H ≤ f.ker :=
 begin
   split,
   { intros h x hx,
@@ -367,34 +348,151 @@ begin
   exact ⟨n, by rwa [hn, le_ker_iff_map_eq_bot] at key⟩,
 end
 
+lemma range_subtype (H : subgroup G) : H.subtype.range = H :=
+by { ext, exact ⟨λ ⟨⟨x, hx⟩, rfl⟩, hx, λ hx, ⟨⟨x, hx⟩, rfl⟩⟩ }
+
 
 lemma derived_series_le_of_solvable_quotient (H : subgroup G) [H.normal]
   (h : is_solvable (quotient_group.quotient H)) : ∃ n, (derived_series G n) ≤ H :=
 by {rw ← ker_mk H, exact derived_series_le_ker (mk' H) h}
 
-lemma derived_series_le_map_derived_series_of_le_map {G' : Type*} [group G'] {f : G →* G'}
-  {H : subgroup G} {K : subgroup G'} (h : K ≤ H.map f) (n : ℕ) :
-  general_derived_series K n ≤ (general_derived_series H n).map f :=
-calc general_derived_series K n
-      ≤ general_derived_series (map f H) n : general_derived_series_mono _ _ h n
-  ... = (general_derived_series H n).map f : by rw ← map_general_derived_series_eq_general_derived_series_map
 
-lemma short_exact_sequence_solvable' {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
-  (g : G →* G'') (hfg : f.range = g.ker) (hG' : is_solvable G') (hG'' : is_solvable G'') :
+lemma solvability_sequence {G' G'' : Type*} [group G'] [group G''] {f : G' →* G}
+  {g : G →* G''} (hfg : g.ker ≤ f.range) (hG' : is_solvable G') (hG'' : is_solvable G'') :
   is_solvable G :=
 begin
   rw is_solvable_def at hG' ⊢,
   cases hG' with n hn,
   obtain ⟨m, hm⟩ := derived_series_le_ker g hG'',
-  use n + m,
-  rw [eq_bot_iff, derived_series_eq_general_derived_series_top, additive_general_derived_series',
-    ← derived_series_eq_general_derived_series_top],
-  rw [← hfg, monoid_hom.range_eq_map] at hm,
-  calc general_derived_series (derived_series G m) n
-      ≤ (general_derived_series (⊤ : subgroup G') n).map f : derived_series_le_map_derived_series_of_le_map hm n
-  ... = (derived_series G' n).map f : by rw ← derived_series_eq_general_derived_series_top
-  ... = (⊥ : subgroup G').map f : by rw hn
-  ... = (⊥ : subgroup G) : map_bot f,
+  use m + n,
+  rw [derived_series_additive, eq_bot_iff],
+  replace hm := calc derived_series G m ≤ g.ker : hm
+  ... ≤ f.range : hfg,
+  calc (derived_series (derived_series G m) n).lift ≤ map f (derived_series G' n) :
+    map_derived_series_leq_derived_series hm n
+  ... = map f ⊥ : by rw hn
+  ... = ⊥ : map_bot f,
 end
+
+lemma short_exact_sequence_solvable {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
+  (g : G →* G'') (hfg : f.range = g.ker) (hG' : is_solvable G') (hG'' : is_solvable G'') :
+  is_solvable G :=
+begin
+  have z : g.ker ≤ f.range,
+  {rw hfg,
+  exact le_refl g.ker},
+  exact solvability_sequence z hG' hG'',
+end
+
+
+lemma subgroup_quotient_solvable_solvable (H : subgroup G) [H.normal] (h : is_solvable H)
+  (h' : is_solvable (quotient_group.quotient H)) : is_solvable G :=
+begin
+  refine short_exact_sequence_solvable (subtype H) (mk' H) _ h h',
+  rw [ker_mk, range_subtype],
+end
+
+lemma solvable_prod {G' : Type*} [group G'] (h : is_solvable G) (h' : is_solvable G') :
+  is_solvable (G × G') :=
+begin
+  refine short_exact_sequence_solvable (monoid_hom.inl G G') (monoid_hom.snd G G') _ h h',
+  ext x, split,
+  { rintros ⟨y, rfl⟩,
+    simp only [monoid_hom.mem_ker, monoid_hom.inl_apply, monoid_hom.coe_snd], },
+  { cases x with x y,
+    intros hx,
+    simp only [monoid_hom.mem_ker, monoid_hom.coe_snd] at hx,
+    simp only [monoid_hom.mem_range, monoid_hom.inl_apply, hx],
+    use x, }
+end
+
+
+section symmetric_unsolvable
+
+inductive weekday : Type
+| monday : weekday
+| tuesday : weekday
+| wednesday : weekday
+| thursday : weekday
+| friday : weekday
+
+open weekday
+
+def g1 : weekday → weekday
+| monday := monday
+| tuesday := tuesday
+| wednesday := thursday
+| thursday := friday
+| friday := wednesday
+
+def g2 : weekday → weekday
+| monday := monday
+| tuesday := tuesday
+| wednesday := friday
+| thursday := wednesday
+| friday := thursday
+
+def g3 : weekday → weekday
+| monday := thursday
+| tuesday := friday
+| wednesday := wednesday
+| thursday := monday
+| friday := tuesday
+
+def g4 : weekday → weekday
+| monday := wednesday
+| tuesday := tuesday
+| wednesday := friday
+| thursday := thursday
+| friday := monday
+
+def g5 : weekday → weekday
+| monday := friday
+| tuesday := tuesday
+| wednesday := monday
+| thursday := thursday
+| friday := wednesday
+
+def σ1 : weekday ≃ weekday :=
+{ to_fun := g1,
+  inv_fun := g2,
+  left_inv := λ x, by { cases x, all_goals { refl } },
+  right_inv := λ x, by { cases x, all_goals { refl } } }
+
+def σ2 : weekday ≃ weekday :=
+{ to_fun := g3,
+  inv_fun := g3,
+  left_inv := λ x, by { cases x, all_goals { refl } },
+  right_inv := λ x, by { cases x, all_goals { refl } } }
+
+def σ3 : weekday ≃ weekday :=
+{ to_fun := g4,
+  inv_fun := g5,
+  left_inv := λ x, by { cases x, all_goals { refl } },
+  right_inv := λ x, by { cases x, all_goals { refl } } }
+
+lemma alternating_stability (n : ℕ) : σ1 ∈ derived_series (equiv.perm weekday) n :=
+begin
+  induction n with n ih,
+  { exact mem_top σ1 },
+  rw (show σ1 = σ3 * ((σ2 * σ1 * σ2) * σ1 * (σ2 * σ1 * σ2⁻¹)⁻¹ * σ1⁻¹) * σ3⁻¹,
+      by { ext, cases x, all_goals { refl } }),
+  exact (derived_series_normal _ _).conj_mem _ (general_commutator_containment _ _ _
+    ((derived_series_normal _ _).conj_mem _ ih _) _ ih) _,
+end
+
+lemma not_solvable_of_mem_derived_series {g : G} (h1 : g ≠ 1)
+  (h2 : ∀ n : ℕ, g ∈ derived_series G n) : ¬ is_solvable G :=
+mt (is_solvable_def _).mp (not_exists_of_forall_not (λ n, mt subgroup.ext'_iff.mp
+  (mt set.ext_iff.mp (not_forall_of_exists_not
+    ⟨g, λ h, (not_congr (iff.symm h)).mp (mt subgroup.mem_bot.mp h1) (h2 n)⟩))))
+
+lemma weekday_perm_unsolvable : ¬ is_solvable (equiv.perm weekday) :=
+ not_solvable_of_mem_derived_series (mt equiv.ext_iff.mp
+  (not_forall_of_exists_not ⟨wednesday, by trivial⟩)) alternating_stability
+
+end  symmetric_unsolvable
+
+
 
 end solvable

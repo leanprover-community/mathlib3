@@ -76,7 +76,7 @@ le_non_zero_divisors_of_domain (λ h, let ⟨x, hx, hx0⟩ := h in
 lemma prod_zero_iff_exists_zero {R : Type*} [comm_semiring R] [no_zero_divisors R] [nontrivial R]
   {s : multiset R} : s.prod = 0 ↔ ∃ (r : R) (hr : r ∈ s), r = 0 :=
 begin
-split, swap,
+  split, swap,
   { rintros ⟨r, hrs, hrz⟩,
     apply multiset.prod_eq_zero,
     rwa hrz at hrs },

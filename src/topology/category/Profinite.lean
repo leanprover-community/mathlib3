@@ -8,6 +8,7 @@ import topology.category.CompHaus
 import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
+import category_theory.adjunction.basic
 
 /-!
 # The category of Profinite Types
@@ -84,39 +85,50 @@ namespace Profinite
 local attribute [instance] connected_component_setoid
 
 /--
-π₀ functor from CompHaus to Profinite, quotienting a space by its connected components.
+(Implementation) The object part of the π₀ functor from compact Hausdorff spaces
+to Profinite spaces, given by quotienting a space by its connected components.
 See: https://stacks.math.columbia.edu/tag/0900
 -/
-def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
-{ obj := λ X,
-    { to_Top := { α := (π₀ X.to_Top.α) },
-      is_compact := quotient.compact_space,
-      is_t2 := pi0.t2,
-      is_totally_disconnected := pi0.totally_disconnected_space },
-  map := λ X Y f,
-    { to_fun := pi0_map f.2,
-      continuous_to_fun := pi0_map_continuous f.2 }}
+def CompHaus_to_Profinite_obj' (X : CompHaus) : Profinite :=
+{ to_Top := { α := π₀ X.to_Top.α },
+  is_compact := quotient.compact_space,
+  is_t2 := pi0.t2,
+  is_totally_disconnected := pi0.totally_disconnected_space }
 
-instance : is_right_adjoint Profinite_to_CompHaus :=
-{ left := CompHaus_to_Profinite,
-  adj :=
-  { hom_equiv := λ X Y,
-    { to_fun := λ f,
-      { to_fun := f.1 ∘ quotient.mk,
-        continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
-      inv_fun := λ g,
-        { to_fun := pi0_lift g.2,
-          continuous_to_fun := pi0_lift_continuous g.2 },
-      left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
-      right_inv := λ f, continuous_map.ext $ λ x, rfl },
-    unit :=
-      { app := λ X, { to_fun := quotient.mk,
-                      continuous_to_fun := continuous_quotient_mk }},
-    counit :=
-      { app := λ Y, { to_fun := pi0_lift (@continuous_map.coe_continuous _ _ _ _ (𝟙 Y.to_Top)),
-                      continuous_to_fun := { is_open_preimage := λ s hs, hs }}}}}
+/--
+(Implementation) The bijection of homsets to establish the reflective adjunction of Profinite
+spaces in compact Hausdorff spaces.
+-/
+def Profinite_to_CompHaus_equivalence (X : CompHaus) (Y : Profinite) :
+  (CompHaus_to_Profinite_obj' X ⟶ Y) ≃ (X ⟶ Profinite_to_CompHaus.obj Y) :=
+{ to_fun := λ f,
+  { to_fun := f.1 ∘ quotient.mk,
+    continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
+  inv_fun := λ g,
+    { to_fun := continuous.pi0_lift g.2,
+      continuous_to_fun := continuous.pi0_lift_continuous g.2},
+  left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
+  right_inv := λ f, continuous_map.ext $ λ x, rfl }
+
+/--
+The π₀ functor from compact Hausdorff spaces to profinite spaces,
+left adjoint to the inclusion functor.
+-/
+def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
+adjunction.left_adjoint_of_equiv Profinite_to_CompHaus_equivalence (λ _ _ _ _ _, rfl)
+
+lemma CompHaus_to_Profinite_obj (X : CompHaus) : ↥(CompHaus_to_Profinite.obj X) = π₀ X.to_Top.α :=
+rfl
 
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
-instance : reflective Profinite_to_CompHaus := { }
+instance Profinite_to_CompHaus.reflective : reflective Profinite_to_CompHaus :=
+{ to_is_right_adjoint := ⟨CompHaus_to_Profinite, adjunction.adjunction_of_equiv_left _ _⟩ }
+
+/-- The category of profinite sets is reflective in the category of topological spaces -/
+noncomputable instance : reflective Profinite_to_Top :=
+{ to_is_right_adjoint := by { rw ←Profinite_to_CompHaus_to_Top,
+    exact @adjunction.right_adjoint_of_comp _ _ _ _ _ _ _ _
+      (Profinite_to_CompHaus.reflective.to_is_right_adjoint)
+      (CompHaus_to_Top.reflective.to_is_right_adjoint)}}
 
 end Profinite

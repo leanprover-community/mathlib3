@@ -52,7 +52,7 @@ begin
   (λ g h_mg, measurable.ennreal_mul h_mg (measurable.indicator measurable_const h_meas_T)),
   apply measurable.ennreal_induction,
   { intros c' s' h_meas_s',
-    rw [set.indicator_mul_indicator_eq_inter', lintegral_indicator _
+    rw [set.indicator_mul_indicator_eq_inter, lintegral_indicator _
         (measurable_set.inter (hMf _ h_meas_s') (h_meas_T)),
         lintegral_indicator _  (hMf _ h_meas_s'),
         lintegral_indicator _ h_meas_T],
@@ -141,9 +141,7 @@ begin
 end
 
 /-- This proves that if `f` and `g` are independent random variables,
-   then `E[f * g] = E[f] * E[g]`. Note that this will only apply to probability
-   measures, because `μ (f ⁻¹' univ) * μ (g ⁻¹' univ) = μ ((f ⁻¹' univ) ∩ (g ⁻¹' univ)))`
-   implies μ univ * μ univ = μ univ, i.e. μ univ = 1. -/
+   then `E[f * g] = E[f] * E[g]`. -/
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun {α : Type*} [M : measurable_space α]
   (μ : measure α) (f g : α → ℝ≥0∞) (h_meas_f : measurable f) (h_meas_g : measurable g)
   (h_indep_fun : indep_fun (borel ennreal) (borel ennreal) f g μ):

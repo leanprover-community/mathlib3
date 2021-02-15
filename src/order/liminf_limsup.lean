@@ -365,10 +365,12 @@ theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f :
   (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
 @has_basis.limsup_eq_infi_supr (order_dual α) _ _ _ _ _ _ _ h
 
-lemma liminf_nat_add (f : ℕ → α) (k : ℕ) : at_top.liminf f = at_top.liminf (λ i, f (i + k)) :=
+@[simp] lemma liminf_nat_add (f : ℕ → α) (k : ℕ) :
+  at_top.liminf (λ i, f (i + k)) = at_top.liminf f :=
 by { simp_rw liminf_eq_supr_infi_of_nat, exact supr_infi_ge_nat_add f k }
 
-lemma limsup_nat_add (f : ℕ → α) (k : ℕ) : at_top.limsup f = at_top.limsup (λ i, f (i + k)) :=
+@[simp] lemma limsup_nat_add (f : ℕ → α) (k : ℕ) :
+  at_top.limsup (λ i, f (i + k)) = at_top.limsup f :=
 @liminf_nat_add (order_dual α) _ f k
 
 lemma liminf_le_of_frequently_le' {α β} [complete_lattice β]

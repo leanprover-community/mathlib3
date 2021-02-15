@@ -444,6 +444,32 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
 
+/-- The tensor product over a singleton set of indices is isomorphic to the module. -/
+def unique_equiv {ι : Type*} [unique ι] : ⨂[R] i : ι, M ≃ₗ[R] M :=
+{ to_fun := lift ((multilinear_map.unique_equiv R M M).symm linear_map.id),
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _,
+  inv_fun := λ m, tprod R (λ i, m),
+  left_inv := λ x,
+    begin
+      apply x.induction_on,
+      { intros,
+        rw [linear_map.map_smul, lift.tprod],
+        conv_rhs {rw ←function.update_eq_self (default ι) f},
+        rw ←(tprod R).map_smul,
+        dsimp,
+        congr,
+        ext y,
+        rw [unique.eq_default y, function.update_same],
+        refl },
+      { intros y z hy hz,
+        dsimp at *,
+        rw [←unique_update (default ι) (λ (i : ι), lift ((unique_equiv R M M).symm
+            linear_map.id) (y + z)), linear_map.map_add, (tprod R).map_add],
+        sorry }
+    end,
+  right_inv := λ x, lift.tprod _ }
+
 section tmul
 
 /-- Collapse a `tensor_product` of `pi_tensor_product`s. -/

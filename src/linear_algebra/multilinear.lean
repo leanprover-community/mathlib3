@@ -754,6 +754,63 @@ begin
   refl
 end
 
+instance pempty_inhabited :
+  inhabited (multilinear_map R (λ (i : pempty), M₂) R) :=
+⟨⟨λ x, 1, λ x y, pempty.elim y, λ x y, pempty.elim y⟩⟩
+
+variables (R)
+/-- The `R`-module isomorphism between multilinear maps in 0 variables to `R` and `R` itself. -/
+def pempty_equiv :
+  multilinear_map R (λ (i : pempty), M₂) R ≃ₗ[R] R :=
+{ to_fun := λ f, f (@default (pempty → M₂) ⟨pempty.elim⟩),
+  map_add' := λ x y, rfl,
+  map_smul' := λ r x, rfl,
+  inv_fun := λ r, r • default _,
+  left_inv := λ x, ext $ λ f, by convert mul_one _; exact funext (λ y, pempty.elim y),
+  right_inv := λ x, mul_one _ }
+
+variables {R}
+--MOVE not sure where to put this due to imports
+@[simp] lemma unique_update [unique ι] {β : ι → Sort*} (a : ι)
+  (f : Π x, β x) : update f a (f a) = f :=
+funext $ λ x, by rw [subsingleton.elim x a, update_same]
+
+variables (R M₂ M₃)
+/-- The `R`-module isomorphism expressing that multilinear maps in 1 variable are just
+linear maps. -/
+def unique_equiv [unique ι] [add_comm_monoid M₃] [semimodule R M₃] :
+  multilinear_map R (λ (i : ι), M₂) M₃ ≃ₗ[R] (M₂ →ₗ[R] M₃) :=
+{ to_fun := λ f,
+  { to_fun := λ x, f (λ i, x),
+    map_add' := λ x y,
+      begin
+        rw [←unique_update (default _) (λ i, x + y), f.map_add],
+        congr,
+        any_goals
+        { ext y,
+          rw [unique.eq_default y, function.update_same] },
+        { apply_instance }
+      end,
+    map_smul' := λ r x,
+      begin
+        rw [←unique_update (default _) (λ i, r • x), f.map_smul],
+        congr,
+        any_goals
+        { ext y,
+          rw [unique.eq_default y, function.update_same] },
+        { apply_instance }
+      end, },
+  map_add' := λ x y, rfl,
+  map_smul' := λ r x, rfl,
+  inv_fun := λ f,
+  { to_fun := λ g, f $ g (default _),
+    map_add' := λ g i x y, by rw unique.eq_default i; simp only [function.update_same, f.map_add],
+    map_smul' := λ g i x r, by rw unique.eq_default i; simp only [function.update_same, f.map_smul] },
+  left_inv := λ x, ext $ λ y, by dsimp; exact congr_arg _ (funext $ λ z, unique.default_eq z ▸ rfl),
+  right_inv := λ x, linear_map.ext $ λ y, rfl }
+
+variables {R M₂ M₃}
+
 end comm_semiring
 
 section range_add_comm_group

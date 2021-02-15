@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import topology.subset_properties
 import topology.connected
 import topology.algebra.monoid
+import tactic.tfae
 
 /-!
 # Locally constant functions
@@ -24,6 +25,7 @@ This file setups the theory of locally constant function from a topological spac
 
 variables {X Y Z α : Type*} [topological_space X]
 
+open set filter
 open_locale topological_space
 
 /-- A function between topological spaces is locally constant if the preimage of any set is open. -/
@@ -31,68 +33,47 @@ def is_locally_constant (f : X → Y) : Prop := ∀ s : set Y, is_open (f ⁻¹'
 
 namespace is_locally_constant
 
+protected lemma tfae (f : X → Y) :
+  tfae [is_locally_constant f,
+    ∀ x, ∀ᶠ x' in 𝓝 x, f x' = f x,
+    ∀ x, is_open {x' | f x' = f x},
+    ∀ y, is_open (f ⁻¹' {y}),
+    ∀ x, ∃ (U : set X) (hU : is_open U) (hx : x ∈ U), ∀ x' ∈ U, f x' = f x] :=
+begin
+  tfae_have : 1 → 4, from λ h y, h {y},
+  tfae_have : 4 → 3, from λ h x, h (f x),
+  tfae_have : 3 → 2, from λ h x, mem_nhds_sets (h x) rfl,
+  tfae_have : 2 → 5,
+  { intros h x,
+    rcases mem_nhds_sets_iff.1 (h x) with ⟨U, eq, hU, hx⟩,
+    exact ⟨U, hU, hx, eq⟩ },
+  tfae_have : 5 → 1,
+  { intros h s,
+    refine is_open_iff_forall_mem_open.2 (λ x hx, _),
+    rcases h x with ⟨U, hU, hxU, eq⟩,
+    exact ⟨U, λ x' hx', mem_preimage.2 $ (eq x' hx').symm ▸ hx, hU, hxU⟩ },
+  tfae_finish
+end
+
 lemma is_open_fiber {f : X → Y} (hf : is_locally_constant f) (y : Y) :
   is_open {x | f x = y} :=
-have {x | f x = y} = f ⁻¹' {y},
-by { ext, simp only [set.mem_preimage, iff_self, set.mem_singleton_iff, set.mem_set_of_eq] },
-by { rw this, exact hf _ }
-
-lemma exists_open {f : X → Y} (hf : is_locally_constant f) (x : X) :
-  ∃ (U : set X) (hU : is_open U) (hx : x ∈ U), ∀ x' ∈ U, f x' = f x :=
-⟨f ⁻¹' {(f x)}, hf _, set.mem_singleton _, λ x' hx', set.mem_singleton_iff.mp hx'⟩
-
-lemma exists_nhds {f : X → Y} (hf : is_locally_constant f) (x : X) :
-  ∃ U ∈ 𝓝 x, ∀ x' ∈ U, f x' = f x :=
-let ⟨U, hU, hx, H⟩ := hf.exists_open x in ⟨U, mem_nhds_sets hU hx, H⟩
-
-protected lemma eventually_eq {f : X → Y} (hf : is_locally_constant f) (x : X) :
-  ∀ᶠ y in 𝓝 x, f y = f x :=
-begin
-  rw eventually_nhds_iff,
-  obtain ⟨U, hU, hx, H⟩ := hf.exists_open x,
-  exact ⟨U, H, hU, hx⟩
-end
+hf {y}
 
 lemma iff_exists_open (f : X → Y) :
   is_locally_constant f ↔ ∀ x, ∃ (U : set X) (hU : is_open U) (hx : x ∈ U), ∀ x' ∈ U, f x' = f x :=
-begin
-  refine ⟨exists_open, _⟩,
-  assume h s,
-  rw is_open_iff_forall_mem_open,
-  assume x hx,
-  obtain ⟨U, hU, hxU, H⟩ := h x,
-  refine ⟨U, _, hU, hxU⟩,
-  assume x' hx',
-  simp only [*, set.mem_preimage] at *,
-end
-
-lemma iff_exists_nhds (f : X → Y) :
-  is_locally_constant f ↔ ∀ x, ∃ U ∈ 𝓝 x, ∀ x' ∈ U, f x' = f x :=
-begin
-  refine ⟨exists_nhds, _⟩,
-  assume h,
-  rw iff_exists_open,
-  assume x,
-  obtain ⟨U, hU, H⟩ := h x,
-  obtain ⟨V, hVU, hV, hxV⟩ : ∃ (V : set X) (H : V ⊆ U), is_open V ∧ x ∈ V,
-  by rwa mem_nhds_sets_iff at hU,
-  refine ⟨V, hV, hxV, _⟩,
-  assume x' hx',
-  solve_by_elim only [H, hxV, hx', hVU]
-end
+(is_locally_constant.tfae f).out 0 4
 
 lemma iff_eventually_eq (f : X → Y) :
   is_locally_constant f ↔ ∀ x, ∀ᶠ y in 𝓝 x, f y = f x :=
-begin
-  refine ⟨is_locally_constant.eventually_eq, _⟩,
-  assume h,
-  rw iff_exists_open,
-  assume x,
-  specialize h x,
-  rw eventually_nhds_iff at h,
-  obtain ⟨U, H, hU, hxU⟩ := h,
-  exact ⟨U, hU, hxU, H⟩
-end
+(is_locally_constant.tfae f).out 0 1
+
+lemma exists_open {f : X → Y} (hf : is_locally_constant f) (x : X) :
+  ∃ (U : set X) (hU : is_open U) (hx : x ∈ U), ∀ x' ∈ U, f x' = f x :=
+(iff_exists_open f).1 hf x
+
+protected lemma eventually_eq {f : X → Y} (hf : is_locally_constant f) (x : X) :
+  ∀ᶠ y in 𝓝 x, f y = f x :=
+(iff_eventually_eq f).1 hf x
 
 protected lemma continuous [topological_space Y] {f : X → Y} (hf : is_locally_constant f) :
   continuous f :=
@@ -108,13 +89,7 @@ iff_continuous f
 
 lemma of_constant (f : X → Y) (h : ∀ x y, f x = f y) :
   is_locally_constant f :=
-begin
-  rw iff_exists_nhds,
-  intro x,
-  refine ⟨set.univ, filter.univ_mem_sets, _⟩,
-  rintro y -,
-  exact h _ _
-end
+(iff_eventually_eq f).2 $ λ x, eventually_of_forall $ λ x', h _ _
 
 lemma const (y : Y) : is_locally_constant (function.const X y) :=
 of_constant _ $ λ _ _, rfl
@@ -123,42 +98,38 @@ lemma comp {f : X → Y} (hf : is_locally_constant f) (g : Y → Z) :
   is_locally_constant (g ∘ f) :=
 λ s, by { rw set.preimage_comp, exact hf _ }
 
+lemma prod_mk {Y'} {f : X → Y} {f' : X → Y'} (hf : is_locally_constant f)
+  (hf' : is_locally_constant f') :
+  is_locally_constant (λ x, (f x, f' x)) :=
+(iff_eventually_eq _).2 $ λ x, (hf.eventually_eq x).mp $ (hf'.eventually_eq x).mono $
+  λ x' hf' hf, prod.ext hf hf'
+
 lemma comp₂ {Y₁ Y₂ Z : Type*} {f : X → Y₁} {g : X → Y₂}
   (hf : is_locally_constant f) (hg : is_locally_constant g) (h : Y₁ → Y₂ → Z) :
   is_locally_constant (λ x, h (f x) (g x)) :=
-begin
-  letI : topological_space Y₁ := ⊥,
-  haveI : discrete_topology Y₁ := ⟨rfl⟩,
-  letI : topological_space Y₂ := ⊥,
-  haveI : discrete_topology Y₂ := ⟨rfl⟩,
-  letI : topological_space Z := ⊥,
-  haveI : discrete_topology Z := ⟨rfl⟩,
-  rw iff_continuous_bot at hf hg ⊢,
-  let fg : X → Y₁ × Y₂ := λ x, (f x, g x),
-  have fg_ctu : continuous fg := hf.prod_mk hg,
-  let h' : Y₁ × Y₂ → Z := λ y, h y.1 y.2,
-  have h'_ctu : continuous h' := continuous_of_discrete_topology,
-  exact h'_ctu.comp fg_ctu
-end
+(hf.prod_mk hg).comp (λ x : Y₁ × Y₂, h x.1 x.2)
 
 lemma comp_continuous [topological_space Y] {g : Y → Z} {f : X → Y}
   (hg : is_locally_constant g) (hf : continuous f) :
   is_locally_constant (g ∘ f) :=
 λ s, by { rw set.preimage_comp, exact hf.is_open_preimage _ (hg _) }
 
+/-- A locally constant function is constant on any preconnected set. -/
 lemma apply_eq_of_is_preconnected {f : X → Y} (hf : is_locally_constant f)
-  (s : set X) (hs : is_preconnected s) (x y : X) (hx : x ∈ s) (hy : y ∈ s) :
-  f y = f x :=
+  {s : set X} (hs : is_preconnected s) {x y : X} (hx : x ∈ s) (hy : y ∈ s) :
+  f x = f y :=
 begin
-  let U := f ⁻¹' {f x},
-  let V := f ⁻¹' (set.univ \ {f x}),
-  specialize hs U V (hf _) (hf _),
-  simp only [U, V, set.mem_empty_eq, set.inter_empty, set.preimage_diff, ne.def,
-    set.union_diff_self, ← set.inter_diff_assoc, set.inter_self, set.inter_diff_self,
-    ← @set.ne_empty_iff_nonempty _ ∅, not_true, eq_self_iff_true, set.preimage_univ] at hs,
-  classical, by_contra hxy,
-  exact hs (λ z hz, or.inr trivial) ⟨x, hx, rfl⟩ ⟨y, ⟨hy, trivial⟩, hxy⟩,
+  let U := f ⁻¹' {f y},
+  suffices : x ∉ Uᶜ, from not_not.1 this,
+  intro hxV,
+  specialize hs U Uᶜ (hf {f y}) (hf {f y}ᶜ) _ ⟨y, ⟨hy, rfl⟩⟩ ⟨x, ⟨hx, hxV⟩⟩,
+  { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs },
+  { simp only [union_compl_self, subset_univ] }
 end
+
+lemma iff_is_const [preconnected_space X] {f : X → Y} :
+  is_locally_constant f ↔ ∀ x y, f x = f y :=
+⟨λ h x y, h.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial, of_constant _⟩
 
 lemma range_finite [compact_space X] {f : X → Y} (hf : is_locally_constant f) :
   (set.range f).finite :=
@@ -169,11 +140,9 @@ begin
   exact finite_of_is_compact_of_discrete _ (compact_range hf)
 end
 
-@[to_additive]
-lemma one [has_one Y] : is_locally_constant (1 : X → Y) := const 1
+@[to_additive] lemma one [has_one Y] : is_locally_constant (1 : X → Y) := const 1
 
-@[to_additive]
-lemma inv [has_inv Y] ⦃f : X → Y⦄ (hf : is_locally_constant f) :
+@[to_additive] lemma inv [has_inv Y] ⦃f : X → Y⦄ (hf : is_locally_constant f) :
   is_locally_constant f⁻¹ :=
 hf.comp (λ x, x⁻¹)
 
@@ -213,11 +182,14 @@ congr_arg (λ h : locally_constant X Y, h x) h
 theorem congr_arg (f : locally_constant X Y) {x y : X} (h : x = y) : f x = f y :=
 congr_arg (λ x : X, f x) h
 
-theorem coe_inj ⦃f g : locally_constant X Y⦄ (h : (f : X → Y) = g) : f = g :=
-by cases f; cases g; cases h; refl
+theorem coe_injective : function.injective (λ (f : locally_constant X Y) (x : X), f x)
+| ⟨f, hf⟩ ⟨g, hg⟩ h := have f = g, from h, by subst f
+
+@[simp, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=
+coe_injective.eq_iff
 
 @[ext] theorem ext ⦃f g : locally_constant X Y⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
+coe_injective (funext h)
 
 theorem ext_iff {f g : locally_constant X Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -233,6 +205,27 @@ def const (X : Type*) {Y : Type*} [topological_space X] (y : Y) :
 lemma range_finite [compact_space X] (f : locally_constant X Y) :
   (set.range f).finite :=
 f.is_locally_constant.range_finite
+
+lemma apply_eq_of_is_preconnected (f : locally_constant X Y) {s : set X} (hs : is_preconnected s)
+  {x y : X} (hx : x ∈ s) (hy : y ∈ s) :
+  f x = f y :=
+f.is_locally_constant.apply_eq_of_is_preconnected hs hx hy
+
+lemma apply_eq_of_preconnected_space [preconnected_space X] (f : locally_constant X Y) (x y : X) :
+  f x = f y :=
+f.is_locally_constant.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial
+
+lemma eq_const [preconnected_space X] (f : locally_constant X Y) (x : X) :
+  f = const X (f x) :=
+ext $ λ y, apply_eq_of_preconnected_space f _ _
+
+lemma exists_eq_const [preconnected_space X] [nonempty Y] (f : locally_constant X Y) :
+  ∃ y, f = const X y :=
+begin
+  rcases classical.em (nonempty X) with ⟨⟨x⟩⟩|hX,
+  { exact ⟨f x, f.eq_const x⟩ },
+  { exact ⟨classical.arbitrary Y, ext $ λ x, (hX ⟨x⟩).elim⟩ }
+end
 
 /-- Push forward of locally constant maps under any map, by post-composition. -/
 def map (f : Y → Z) : locally_constant X Y → locally_constant X Z :=

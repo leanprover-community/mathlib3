@@ -597,6 +597,15 @@ lemma to_finset_union {α : Type*} [fintype α] (s t : set α) :
   (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
 
+lemma to_finset_ne_eq_erase {α : Type*} [fintype α] (a : α) :
+  {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
+by ext; simp
+
+lemma card_ne_eq [fintype α] (a : α) :
+  fintype.card {x : α | x ≠ a} = fintype.card α - 1 :=
+by rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
+       finset.card_univ, nat.pred_eq_sub_one]
+
 end
 
 section

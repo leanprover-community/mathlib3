@@ -339,6 +339,11 @@ monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
 lemma coe_inclusion {H K : subgroup G} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=
 by { cases a, simp only [inclusion, coe_mk, monoid_hom.coe_mk'] }
 
+@[simp, to_additive]
+lemma subtype_comp_inclusion {H K : subgroup G} (hH : H ≤ K) :
+  K.subtype.comp (inclusion hH) = H.subtype :=
+by { ext, simp }
+
 @[to_additive]
 instance : partial_order (subgroup G) :=
 { le := (≤),

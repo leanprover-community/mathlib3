@@ -214,7 +214,7 @@ begin
       tauto,
 end
 
-@[simp] lemma shift_neg [ring R] (f : ℕ → R) (k : ℕ) :
+@[simp] lemma shift_fun_neg [ring R] (f : ℕ → R) (k : ℕ) :
   shift_fun k (-f) = - (shift_fun k f) :=
 begin
   ext,
@@ -312,25 +312,6 @@ begin
   apply rfl,
 end
 
--- #print punctured_power_series.add
--- def a : ℕ → ℤ := λ n, 4*n+3
--- def b : ℕ → ℤ := λ n, 1-2*n
--- -- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
--- -- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
-
--- def F₁ : punctured_power_series ℤ := (1, a)
--- def F₂ : punctured_power_series ℤ := (3, b)
--- #eval a 5
--- #eval (F₁ + F₂).snd 9
-/-The right answers are
-0 → 0, 1 → 1, 2 → -1, 3 → 0, 4 → 2, 5 → 4, 6 → 6, 7 → 8, 8 → 10, 9 → 12
-
-def F₃ := (𝟘, b) --check!
---/
-
--- def eqv_punctured_old (F₁ F₂ : punctured_power_series R) : Prop :=
--- ∃ ℓ₁₂ ℓ₂₁ : 𝕄, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
-
 def eqv_punctured (F₁ F₂ : punctured_power_series R) : Prop :=
 ∃ ℓ₁₂ ℓ₂₁ : ℕ, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
 
@@ -414,21 +395,6 @@ variables {S : Type*} [comm_ring S]
 
 noncomputable theory
 open classical
--- open_locale classical
-
-
--- lemma add_comm : ∀ (F G: punctured_power_series R), punctured_power_series.add F G =
---   punctured_power_series.add G F :=
--- begin
---   rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂, f₂⟩,
---   ext,
---   apply max_comm,
---   show (shift_fun (μ (𝕜₁, 𝕜₂)) f₁ + shift_fun (μ (𝕜₂, 𝕜₁)) f₂) x =
---     (shift_fun (μ (𝕜₂, 𝕜₁)) f₂ + shift_fun (μ (𝕜₁, 𝕜₂)) f₁) x,
---   simp only [pi.add_apply] at *,
---   apply add_comm,
--- end
--- #check (eqv_punctured.add_con S).mk'
 
 def lift_neg : (punctured_power_series S) → (laurent_series S) :=
   λ ⟨k, f⟩, (eqv_punctured.add_con S).mk' ⟨k, -f⟩
@@ -447,105 +413,170 @@ begin
   apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
 end
 
-def lift_sub : (punctured_power_series S) → (punctured_power_series S) → (laurent_series S) :=
-  λ ⟨k₁, f₁⟩ ⟨k₂, f₂⟩, (eqv_punctured.add_con S).mk' ⟨k₁ + k₂, f₁ - f₂⟩
+lemma neg_add_cong_zero (k : ℕ) (f: ℕ → S) : eqv_punctured ((k, -f) + (k, f)) 0 :=
+begin
+  use [0, k + k],
+  simp * at *,
+end
 
-lemma cong_sub : ∀ (F₁ F₂ G₁ G₂: punctured_power_series S),  eqv_punctured F₁ G₁ →
+
+def lift_sub : (punctured_power_series S) → (punctured_power_series S) → (laurent_series S) :=
+  λ ⟨k₁, f₁⟩ ⟨k₂, f₂⟩, (eqv_punctured.add_con S).mk' ⟨k₁ + k₂, shift_fun k₂ f₁ - shift_fun k₁ f₂⟩
+
+lemma cong_sub {S : Type*} [comm_ring S] : ∀ (F₁ F₂ G₁ G₂: punctured_power_series S), eqv_punctured.add_con S F₁ G₁ →
   eqv_punctured.add_con S F₂ G₂ → lift_sub F₁ F₂ = lift_sub G₁ G₂ :=
 begin
-  rintros ⟨k₁, f₁⟩ ⟨m₁, g₁⟩ ⟨k₂, f₂⟩ ⟨m₂, g₂⟩ ⟨μ₁₂, μ₂₁, h₁⟩ ⟨θ₁₂, θ₂₁, h₂⟩,
+  rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩ ⟨m₁, g₁⟩  ⟨m₂, g₂⟩ ⟨ℓ₁₂, ℓ₂₁, hf⟩ ⟨μ₁₂, μ₂₁, hg⟩,
   dsimp [lift_sub],
-  rw ext_punctured_power_series at h₁,
-  rw ext_punctured_power_series at h₂,
-  have h : eqv_punctured (k₁ + m₁, f₁ - g₁) (k₂ + m₂, f₂ - g₂),
+  rw ext_punctured_power_series at hf,
+  rw ext_punctured_power_series at hg,
+  have h : eqv_punctured (k₁ + k₂, shift_fun k₂ f₁ - shift_fun k₁ f₂)
+    (m₁ + m₂, shift_fun m₂ g₁ - shift_fun m₁ g₂),
   { rw eqv_punctured,
-    use [μ₁₂ + θ₁₂, μ₂₁ + θ₂₁],
+    use [ℓ₁₂ + μ₁₂, ℓ₂₁ + μ₂₁],
     ext,
     { simp only [*, add_zero, add_snd, shift_fun_of_zero, add_fst] at *,
-      sorry },
-    { simp only [*, add_zero, add_snd, shift_fun_of_zero, add_fst,
-      pi.add_apply] at *,
-      have h₁' : shift_fun μ₁₂ f₁ = shift_fun μ₂₁ g₁, sorry,
-      have h₂' : shift_fun θ₁₂ f₂ = shift_fun θ₂₁ g₂, sorry,
-      rw nat.add_comm,
-      rw ← shift_fun_assoc,
-      rw sub_eq_add_neg,
-      rw shift_fun_add,
-      rw h₁',
-      rw nat.add_comm,
-      rw ← shift_fun_assoc,
-      rw sub_eq_add_neg,
-      -- rw shift_fun_add μ₂₁ g₁ (-g₂),
-      rw ← h₁',
-      sorry,
-  }},
-  -- have
-  -- sorry,
-  -- rw lift_sub,
+      rw [← nat.add_left_comm, nat.add_assoc k₁ k₂ μ₁₂, hg.left,
+        nat.add_assoc m₁, nat.add_comm m₂ (ℓ₂₁ + μ₂₁), nat.add_assoc ℓ₂₁,
+        ← nat.add_assoc m₁, ← hf.left],
+      ring },
+    { simp only [*, sub_eq_add_neg, add_zero, add_snd, pi.add_apply,
+        pi.neg_apply, shift_fun_assoc, shift_fun_of_zero, shift_fun_add,
+        add_fst, shift_fun_neg, add_monoid.add_zero] at *,
+      rw nat.add_assoc,
+      rw nat.add_comm ℓ₁₂,
+      rw ← shift_fun_assoc f₁ (μ₁₂ + k₂) ℓ₁₂,
+      rw hf.right,
+      rw nat.add_assoc _ μ₁₂ k₁,
+      rw nat.add_comm μ₁₂ k₁,
+      rw ← nat.add_assoc _ k₁ μ₁₂,
+      rw ← shift_fun_assoc f₂ (ℓ₁₂ + k₁) μ₁₂,
+      rw [hg.right],
+      simp only [shift_fun_assoc],
+      have hf₁ : μ₁₂ + k₂ + ℓ₂₁ = ℓ₂₁ + μ₂₁ + m₂,
+      { rw [nat.add_comm μ₁₂ k₂, hg.left],
+        ring },
+      have hg₁ : ℓ₁₂ + k₁ + μ₂₁ = ℓ₂₁ + μ₂₁ + m₁,
+      { rw [nat.add_comm ℓ₁₂ k₁, hf.left],
+        ring },
+      rwa [hf₁, hg₁] }},
   apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
 end
 
+def punctured_power_series.mul : (punctured_power_series S) → (punctured_power_series S) → (punctured_power_series S) :=
+λ ⟨k₁, f₁⟩ ⟨k₂, f₂⟩, ⟨k₁ + k₂, λ n, ∑ p in (finset.nat.antidiagonal n), f₁ p.2 * f₂ p.1⟩
+
+def lift_mul : (punctured_power_series S) → (punctured_power_series S) → (laurent_series S) :=
+  λ F₁ F₂, (eqv_punctured.add_con S).mk' (punctured_power_series.mul F₁ F₂)
+
+
+lemma lift_mul_assoc : ∀ (F₁ F₂ F₃ : punctured_power_series S), punctured_power_series.mul
+    (punctured_power_series.mul F₁ F₂ ) F₃ = punctured_power_series.mul F₁ (punctured_power_series.mul F₂ F₃) :=
+begin
+  intros,
+  sorry,
+end
+
+lemma cong_mul {S : Type*} [comm_ring S] : ∀ (F₁ F₂ G₁ G₂: punctured_power_series S), eqv_punctured.add_con S F₁ G₁ →
+  eqv_punctured.add_con S F₂ G₂ → lift_mul F₁ F₂ = lift_mul G₁ G₂ :=
+begin
+  rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩ ⟨m₁, g₁⟩  ⟨m₂, g₂⟩ ⟨ℓ₁₂, ℓ₂₁, hf⟩ ⟨μ₁₂, μ₂₁, hg⟩,
+  dsimp [lift_mul],
+  rw ext_punctured_power_series at hf,
+  rw ext_punctured_power_series at hg,
+  sorry,
+  -- have h : eqv_punctured (k₁ + k₂, shift_fun k₂ f₁ - shift_fun k₁ f₂)
+  --   (m₁ + m₂, shift_fun m₂ g₁ - shift_fun m₁ g₂),
+  -- { rw eqv_punctured,
+  --   use [ℓ₁₂ + μ₁₂, ℓ₂₁ + μ₂₁],
+  --   ext,
+  --   { simp only [*, add_zero, add_snd, shift_fun_of_zero, add_fst] at *,
+  --     rw [← nat.add_left_comm, nat.add_assoc k₁ k₂ μ₁₂, hg.left,
+  --       nat.add_assoc m₁, nat.add_comm m₂ (ℓ₂₁ + μ₂₁), nat.add_assoc ℓ₂₁,
+  --       ← nat.add_assoc m₁, ← hf.left],
+  --     ring },
+  --   { simp only [*, sub_eq_add_neg, add_zero, add_snd, pi.add_apply,
+  --       pi.neg_apply, shift_fun_assoc, shift_fun_of_zero, shift_fun_add,
+  --       add_fst, shift_fun_neg, add_monoid.add_zero] at *,
+  --     rw nat.add_assoc,
+  --     rw nat.add_comm ℓ₁₂,
+  --     rw ← shift_fun_assoc f₁ (μ₁₂ + k₂) ℓ₁₂,
+  --     rw hf.right,
+  --     rw nat.add_assoc _ μ₁₂ k₁,
+  --     rw nat.add_comm μ₁₂ k₁,
+  --     rw ← nat.add_assoc _ k₁ μ₁₂,
+  --     rw ← shift_fun_assoc f₂ (ℓ₁₂ + k₁) μ₁₂,
+  --     rw [hg.right],
+  --     simp only [shift_fun_assoc],
+  --     have hf₁ : μ₁₂ + k₂ + ℓ₂₁ = ℓ₂₁ + μ₂₁ + m₂,
+  --     { rw [nat.add_comm μ₁₂ k₂, hg.left],
+  --       ring },
+  --     have hg₁ : ℓ₁₂ + k₁ + μ₂₁ = ℓ₂₁ + μ₂₁ + m₁,
+  --     { rw [nat.add_comm ℓ₁₂ k₁, hf.left],
+  --       ring },
+  --     rwa [hf₁, hg₁] }},
+  -- apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
+end
+
+-- -- #print punctured_power_series.add
+-- def a : ℕ → ℤ := λ n, if n < 5 then 4*n+3 else 0
+-- def b : ℕ → ℤ := λ n, if n < 7 then 1-2*n else 0
+-- -- -- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
+-- -- -- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
+
+-- def F₁ : punctured_power_series ℤ := (1, a)
+-- def F₂ : punctured_power_series ℤ := (3, b)
+-- -- #eval a 5
+-- #eval F₁.snd 2
+-- #eval F₂.snd 9
+-- #eval (F₁ + F₂).snd 7
+-- #eval (lift_mul F₁ F₂).snd 10
+/-The right answers for F₁ + F₂ are
+0 → 0, 1 → 1, 2 → -1, 3 → 0, 4 → 2, 5 → 4, 6 → 6, 7 → 8, 8 → 10, 9 → 12
+
+def F₃ := (𝟘, b) --check!
+--/
+
+-- def eqv_punctured_old (F₁ F₂ : punctured_power_series R) : Prop :=
+-- ∃ ℓ₁₂ ℓ₂₁ : 𝕄, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
+
+
 instance : comm_ring (laurent_series S) :=
 { add := λ F₁ F₂, F₁ + F₂,
-  add_assoc := sorry,
+  add_assoc :=  λ F₁ F₂ F₃, quotient.induction_on₃' F₁ F₂ F₃
+                $ λ _ _ _, congr_arg coe $ add_assoc _ _ _,
   zero := (eqv_punctured.add_con S).mk' 0,
   zero_add := λ _, by simp,
   add_zero := λ _, by simp,
-  -- begin
-  --   rintros F,
-  --   obtain ⟨f⟩ : ∃ f : (punctured_power_series S),
-  --     (eqv_punctured.add_con S).mk' f = F,
-  -- end,
   neg := λ F, add_con.lift_on F lift_neg cong_neg,
-
-  -- begin
-  --   let φ : (punctured_power_series S) → (punctured_power_series S) :=
-  -- λ ⟨𝕜, f⟩, ⟨𝕜, -f⟩,
-  --   use (add_con.lift_on (laurent_series S) φ),
-  -- end,
-  --               -- refine quot.lift_on _ _ _,
-  --               -- use (punctured_power_series S),
-  --               -- -- rintros F₁ F₂,
-  --               -- rintros ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
-  --               -- use eqv_punctured ⟨𝕜₁, f₁⟩ ⟨𝕜₂,f₂⟩,
-  --               -- --  (λ (𝕜, f), (𝕜, -f))⟩,
-  --               -- -- begin
-
-  --               --   intro G,
-  --               -- have hG : ∃ f : (punctured_power_series S),
-  --               --     (eqv_punctured.add_con S).mk' f = G,
-  --               -- apply add_con.mk'_surjective,
-  --               -- rcases some hG with ⟨𝕜, g⟩,
-  --               -- use (eqv_punctured.add_con S).mk' ⟨𝕜, -g⟩,
-  --               -- end,
   sub :=  λ F₁ F₂, add_con.lift_on₂ F₁ F₂ lift_sub cong_sub,
-  -- begin
-  --           intros F₁ F₂,
-  --                 have hF₁ : ∃ f₁ : (punctured_power_series S),
-  --                   (eqv_punctured.add_con S).mk' f₁ = F₁,
-  --                 apply add_con.mk'_surjective,
-  --                 have hF₂ : ∃ f₂ : (punctured_power_series S),
-  --                   (eqv_punctured.add_con S).mk' f₂ = F₂,
-  --                 apply add_con.mk'_surjective,
-  --                 rcases some hF₁ with ⟨𝕜₁, f₁⟩,
-  --                 rcases some hF₂ with ⟨𝕜₂, f₂⟩,
-  --                 use (eqv_punctured.add_con S).mk' (μ (𝕜₁, 𝕜₂), f₁-f₂),
-  --               end,
-  sub_eq_add_neg := --by simp,
-                begin intros F₁ F₂,
-                rcases F₁,
-                rcases F₂,
-                rcases F₁ with ⟨𝕜₁, f₁⟩,
-                rcases F₂ with ⟨𝕜₂, f₂⟩,
-                suffices this : f₁ - f₂ = f₁ + -f₂,
-                simp * at *,
-                sorry,
-                sorry,
-                end,
-  add_left_neg := sorry,
-  add_comm := sorry,
-  mul := sorry,
-  mul_assoc := sorry,
+  sub_eq_add_neg := begin
+                      intros G₁ G₂,
+                      apply quotient.induction_on₂' G₁ G₂,
+                      rintros ⟨k₁, f₁⟩  ⟨k₂, f₂⟩,
+                      apply congr_arg quotient.mk',
+                      ext,
+                      apply rfl,
+                      simp only [add_snd, pi.add_apply, pi.neg_apply,
+                        pi.sub_apply, shift_fun_neg],
+                      ring,
+                    end,
+  add_left_neg := begin
+                intro G,
+                apply quotient.induction_on' G,
+                rintro ⟨k, f⟩,
+                apply (add_con.eq (eqv_punctured.add_con S)).mpr (neg_add_cong_zero k f),
+                  end,
+  add_comm := begin
+                intros G₁ G₂,
+                apply quotient.induction_on₂' G₁ G₂,
+                rintros F₁ F₂,
+                apply congr_arg quotient.mk',
+                exact add_comm F₁ F₂,
+              end,
+  mul := λ F₁ F₂, add_con.lift_on₂ F₁ F₂ lift_mul cong_mul,
+  mul_assoc := λ F₁ F₂ F₃, quotient.induction_on₃' F₁ F₂ F₃
+              $ λ _ _ _, congr_arg coe $ lift_mul_assoc _ _ _,
   one := sorry,
   one_mul := sorry,
   mul_one := sorry,
@@ -553,7 +584,7 @@ instance : comm_ring (laurent_series S) :=
   right_distrib := sorry,
   mul_comm := sorry }
 
--- end add_comm_monoid
+
 end punctured_power_series--SEE PAG 166 tpil
 
 

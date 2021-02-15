@@ -207,7 +207,7 @@ end
 open ring_hom
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
-theorem bernoulli_odd_eq_zero {n : ℕ} (h_odd : odd n ) (hlt : 1 < n) : bernoulli n = 0 :=
+theorem bernoulli_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli n = 0 :=
 begin
   have f := bernoulli_power_series,
   have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
@@ -227,9 +227,9 @@ begin
       { rw h2 at hlt, exfalso, exact lt_irrefl _ hlt, },
       have hn : (n.factorial : ℚ) ≠ 0, { simp [factorial_ne_zero], },
       rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff hn, div_mul_cancel _ hn,
-      neg_one_pow_of_odd h_odd, neg_mul_eq_neg_mul_symm, one_mul] at h,
+        neg_one_pow_of_odd h_odd, neg_mul_eq_neg_mul_symm, one_mul] at h,
       exact eq_zero_of_neg_eq h.symm, },
-      { exfalso,
+    { exfalso,
       rw [power_series.ext_iff] at h,
       specialize h 1,
       simpa using h, }, },

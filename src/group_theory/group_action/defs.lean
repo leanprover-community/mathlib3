@@ -114,7 +114,7 @@ by split_ifs; refl
 
 end ite
 
-namespace mul_action
+section
 
 variables (α)
 
@@ -129,6 +129,9 @@ instance monoid.to_mul_action : mul_action α α :=
 instance is_scalar_tower.left : is_scalar_tower α α β :=
 ⟨λ x y z, mul_smul x y z⟩
 
+end
+
+namespace mul_action
 
 variables (α β)
 

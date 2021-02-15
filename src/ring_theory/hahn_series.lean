@@ -10,43 +10,45 @@ import algebra.big_operators
 # Hahn Series
 
 ## Main Definitions
-  * If `α` is linearly ordered and `R` has zero, then `hahn_series α R` consists of
-  formal series over `α` with coefficients in `R`, whose supports are well-founded.
-  * If `R` is a (commutative) additive monoid or group, then so is `hahn_series α R`.
-  * If `R` is a `semiring`, then `hahn_series α R` has multiplication.begin
+  * If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
+  formal series over `Γ` with coefficients in `R`, whose supports are well-founded.
+  * If `R` is a (commutative) additive monoid or group, then so is `hahn_series Γ R`.
+  * If `R` is a (comm_)(semi)ring, then so is `hahn_series Γ R`.
 
 ## TODO
-  * Given `[semiring R]`, provide the proofs for `semiring [hahn_series α R]`
+  * Given `[linear_ordered_add_comm_group Γ]` and `[field R]`, define `field (hahn_series Γ R)`.
+  * Build an API for the constant map `C` and the variable `X`
+  * Define Laurent series
 
 -/
 
 open_locale big_operators
 
-/-- If `α` is linearly ordered and `R` has zero, then `hahn_series α R` consists of
-  formal series over `α` with coefficients in `R`, whose supports are well-founded. -/
+/-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
+  formal series over `Γ` with coefficients in `R`, whose supports are well-founded. -/
 @[ext]
-structure hahn_series (α : Type*) (R : Type*) [linear_order α] [has_zero R] :=
-(coeff : α → R)
+structure hahn_series (Γ : Type*) (R : Type*) [linear_order Γ] [has_zero R] :=
+(coeff : Γ → R)
 (is_wf_support : {a | coeff a ≠ 0}.is_wf)
 
-variables {α : Type*} {R : Type*}
+variables {Γ : Type*} {R : Type*}
 
 namespace hahn_series
 
 section zero
-variables [linear_order α] [has_zero R]
+variables [linear_order Γ] [has_zero R]
 
-instance : has_zero (hahn_series α R) :=
+instance : has_zero (hahn_series Γ R) :=
 ⟨{ coeff := 0,
    is_wf_support := by simp }⟩
 
-instance : inhabited (hahn_series α R) := ⟨0⟩
+instance : inhabited (hahn_series Γ R) := ⟨0⟩
 
 @[simp]
-lemma zero_coeff {a : α} : (0 : hahn_series α R).coeff a = 0 := rfl
+lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
 
 /-- `single a r` is the Hahn series which has coefficient `r` at `a` and zero otherwise. -/
-def single (a : α) (r : R) : hahn_series α R := {
+def single (a : Γ) (r : R) : hahn_series Γ R := {
   coeff := λ b, if a = b then r else 0,
   is_wf_support := (set.is_wf_singleton a).mono (λ b, begin
     simp only [and_imp, exists_prop, set.mem_singleton_iff, ite_eq_right_iff,
@@ -54,7 +56,7 @@ def single (a : α) (r : R) : hahn_series α R := {
     exact λ h1 _, h1.symm,
   end) }
 
-variables {a b : α} {r : R}
+variables {a b : Γ} {r : R}
 
 theorem single_coeff : (single a r).coeff b = if a = b then r else 0 := rfl
 
@@ -82,9 +84,9 @@ lemma single_eq_zero : (single a (0 : R)) = 0 := by { ext, simp [single_coeff] }
 end zero
 section addition
 
-variable [linear_order α]
+variable [linear_order Γ]
 
-instance [add_monoid R] : has_add (hahn_series α R) :=
+instance [add_monoid R] : has_add (hahn_series Γ R) :=
 { add := λ x y, { coeff := λ a, x.coeff a + y.coeff a,
                   is_wf_support := (x.is_wf_support.union y.is_wf_support).mono (λ a ha, begin
                     contrapose! ha,
@@ -93,7 +95,7 @@ instance [add_monoid R] : has_add (hahn_series α R) :=
                     rw [ha.1, ha.2, add_zero],
                   end) } }
 
-instance [add_monoid R] : add_monoid (hahn_series α R) :=
+instance [add_monoid R] : add_monoid (hahn_series Γ R) :=
 { zero := 0,
   add := (+),
   add_assoc := λ x y z, by { ext, apply add_assoc },
@@ -101,14 +103,14 @@ instance [add_monoid R] : add_monoid (hahn_series α R) :=
   add_zero := λ x, by { ext, apply add_zero } }
 
 @[simp]
-lemma add_coeff [add_monoid R] {x y : hahn_series α R} {a : α} :
+lemma add_coeff [add_monoid R] {x y : hahn_series Γ R} {a : Γ} :
   (x + y).coeff a = x.coeff a + y.coeff a := rfl
 
-instance [add_comm_monoid R] : add_comm_monoid (hahn_series α R) :=
+instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
 { add_comm := λ x y, by { ext, apply add_comm }
   .. hahn_series.add_monoid }
 
-instance [add_group R] : add_group (hahn_series α R) :=
+instance [add_group R] : add_group (hahn_series Γ R) :=
 { neg := λ x, { coeff := λ a, - x.coeff a,
                 is_wf_support := by { convert x.is_wf_support,
                   ext a,
@@ -117,20 +119,20 @@ instance [add_group R] : add_group (hahn_series α R) :=
   .. hahn_series.add_monoid }
 
 @[simp]
-lemma neg_coeff [add_group R] {x : hahn_series α R} {a : α} : (- x).coeff a = - x.coeff a := rfl
+lemma neg_coeff [add_group R] {x : hahn_series Γ R} {a : Γ} : (- x).coeff a = - x.coeff a := rfl
 
-instance [add_comm_group R] : add_comm_group (hahn_series α R) :=
+instance [add_comm_group R] : add_comm_group (hahn_series Γ R) :=
 { .. hahn_series.add_comm_monoid,
   .. hahn_series.add_group }
 
 end addition
 section smul
 
-variables [linear_order α] {V : Type*}
+variables [linear_order Γ] {V : Type*}
 
 variables [semiring R] [add_comm_monoid V] [semimodule R V]
 
-instance : has_scalar R (hahn_series α V) :=
+instance : has_scalar R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := λ a, r • x.coeff a,
           is_wf_support := begin
             by_cases hr : r = 0,
@@ -142,9 +144,9 @@ instance : has_scalar R (hahn_series α V) :=
           end }⟩
 
 @[simp]
-lemma smul_coeff {r : R} {x : hahn_series α V} {a : α} : (r • x).coeff a = r • (x.coeff a) := rfl
+lemma smul_coeff {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl
 
-instance : semimodule R (hahn_series α V) :=
+instance : semimodule R (hahn_series Γ V) :=
 { smul := (•),
   zero_smul := λ _, by { ext, simp },
   one_smul := λ _, by { ext, simp },
@@ -156,26 +158,26 @@ instance : semimodule R (hahn_series α V) :=
 end smul
 section multiplication
 
-variable [linear_ordered_cancel_add_comm_monoid α]
+variable [linear_ordered_cancel_add_comm_monoid Γ]
 
-instance [has_zero R] [has_one R] : has_one (hahn_series α R) :=
+instance [has_zero R] [has_one R] : has_one (hahn_series Γ R) :=
 ⟨single 0 1⟩
 
 @[simp]
-lemma one_coeff [has_zero R] [has_one R] {a : α} :
-  (1 : hahn_series α R).coeff a = if 0 = a then 1 else 0 := rfl
+lemma one_coeff [has_zero R] [has_one R] {a : Γ} :
+  (1 : hahn_series Γ R).coeff a = if 0 = a then 1 else 0 := rfl
 
 @[simp]
 lemma single_zero_one [has_zero R] [has_one R] : (single 0 (1 : R)) = 1 := rfl
 
-noncomputable instance [semiring R] : has_mul (hahn_series α R) :=
+noncomputable instance [semiring R] : has_mul (hahn_series Γ R) :=
 { mul := λ x y, { coeff := λ a,
     ∑ ij in (finset.add_antidiagonal x.is_wf_support y.is_wf_support a),
     x.coeff ij.fst * y.coeff ij.snd,
     is_wf_support := begin
-      have h : {a : α | ∑ (ij : α × α) in finset.add_antidiagonal x.is_wf_support
+      have h : {a : Γ | ∑ (ij : Γ × Γ) in finset.add_antidiagonal x.is_wf_support
         y.is_wf_support a, x.coeff ij.fst * y.coeff ij.snd ≠ 0} ⊆
-        {a : α | (finset.add_antidiagonal x.is_wf_support y.is_wf_support a).nonempty},
+        {a : Γ | (finset.add_antidiagonal x.is_wf_support y.is_wf_support a).nonempty},
       { intros a ha,
         contrapose! ha,
         simp [finset.not_nonempty_iff_eq_empty.1 ha] },
@@ -183,11 +185,11 @@ noncomputable instance [semiring R] : has_mul (hahn_series α R) :=
     end, }, }
 
 @[simp]
-lemma mul_coeff [semiring R] {x y : hahn_series α R} {a : α} :
+lemma mul_coeff [semiring R] {x y : hahn_series Γ R} {a : Γ} :
   (x * y).coeff a = ∑ ij in (finset.add_antidiagonal x.is_wf_support y.is_wf_support a),
     x.coeff ij.fst * y.coeff ij.snd := rfl
 
-lemma mul_coeff_right' [semiring R] {x y : hahn_series α R} {a : α} {s : set α} (hs : s.is_wf)
+lemma mul_coeff_right' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_wf)
   (hys : {b | y.coeff b ≠ 0} ⊆ s) :
   (x * y).coeff a = ∑ ij in (finset.add_antidiagonal x.is_wf_support hs a),
     x.coeff ij.fst * y.coeff ij.snd :=
@@ -200,7 +202,7 @@ begin
   rw [(hb.2 hb.1.1 hb.1.2.1), mul_zero]
 end
 
-lemma mul_coeff_left' [semiring R] {x y : hahn_series α R} {a : α} {s : set α} (hs : s.is_wf)
+lemma mul_coeff_left' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_wf)
   (hxs : {b | x.coeff b ≠ 0} ⊆ s) :
   (x * y).coeff a = ∑ ij in (finset.add_antidiagonal hs y.is_wf_support a),
     x.coeff ij.fst * y.coeff ij.snd :=
@@ -213,7 +215,7 @@ begin
   rw [not_not.1 (λ con, hb.1.2.2 (hb.2 hb.1.1 con)), zero_mul],
 end
 
-noncomputable instance [semiring R] : distrib (hahn_series α R) :=
+noncomputable instance [semiring R] : distrib (hahn_series Γ R) :=
 { left_distrib := λ x y z, begin
     ext a,
     have hwf := (y.is_wf_support.union z.is_wf_support),
@@ -242,7 +244,7 @@ noncomputable instance [semiring R] : distrib (hahn_series α R) :=
   .. hahn_series.has_add }
 
 @[simp]
-lemma single_zero_mul_eq_smul [semiring R] {r : R} {x : hahn_series α R} :
+lemma single_zero_mul_eq_smul [semiring R] {r : R} {x : hahn_series Γ R} :
   (single 0 r) * x = r • x :=
 begin
   ext a,
@@ -257,7 +259,7 @@ begin
       finset.mem_add_antidiagonal, set.mem_set_of_eq, iff_false],
     rintro rfl rfl,
     rw [← hx, zero_add] },
-  transitivity ∑ (ij : α × α) in {((0 : α),a)}, (single 0 r).coeff ij.fst * x.coeff ij.snd,
+  transitivity ∑ (ij : Γ × Γ) in {((0 : Γ),a)}, (single 0 r).coeff ij.fst * x.coeff ij.snd,
   { apply finset.sum_congr _ (λ _ _, rfl),
     ext ⟨a1, a2⟩,
     simp only [set.mem_singleton_iff, prod.mk.inj_iff, finset.mem_add_antidiagonal,
@@ -270,7 +272,7 @@ begin
   { simp }
 end
 
-lemma mul_single_zero_coeff [semiring R] {r : R} {x : hahn_series α R} {a : α} :
+lemma mul_single_zero_coeff [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ} :
   (x * (single 0 r)).coeff a = x.coeff a * r :=
 begin
   by_cases hr : r = 0,
@@ -285,7 +287,7 @@ begin
     rintro rfl h rfl,
     rw add_zero at hx,
     exact h hx, },
-  transitivity ∑ (ij : α × α) in {(a,(0 : α))}, x.coeff ij.fst * (single 0 r).coeff ij.snd,
+  transitivity ∑ (ij : Γ × Γ) in {(a,(0 : Γ))}, x.coeff ij.fst * (single 0 r).coeff ij.snd,
   { apply finset.sum_congr _ (λ _ _, rfl),
     ext ⟨a1, a2⟩,
     simp only [set.mem_singleton_iff, prod.mk.inj_iff, finset.mem_add_antidiagonal,
@@ -298,8 +300,8 @@ begin
   { simp }
 end
 
-theorem support_mul_subset_mul_support [semiring R] {x y : hahn_series α R} :
-  {b : α | (x * y).coeff b ≠ 0} ⊆ {a : α | x.coeff a ≠ 0} + {a : α | y.coeff a ≠ 0} :=
+theorem support_mul_subset_mul_support [semiring R] {x y : hahn_series Γ R} :
+  {b : Γ | (x * y).coeff b ≠ 0} ⊆ {a : Γ | x.coeff a ≠ 0} + {a : Γ | y.coeff a ≠ 0} :=
 begin
   apply set.subset.trans (λ x hx, _) finset.support_add_antidiagonal_subset_add,
   { exact x.is_wf_support },
@@ -309,7 +311,7 @@ begin
   simp [hx],
 end
 
-noncomputable instance [semiring R] : semiring (hahn_series α R) :=
+noncomputable instance [semiring R] : semiring (hahn_series Γ R) :=
 { zero := 0,
   one := 1,
   add := (+),
@@ -346,7 +348,7 @@ noncomputable instance [semiring R] : semiring (hahn_series α R) :=
   .. hahn_series.add_comm_monoid,
   .. hahn_series.distrib }
 
-noncomputable instance [comm_semiring R] : comm_semiring (hahn_series α R) :=
+noncomputable instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
 { mul_comm := λ x y, begin
     ext,
     simp_rw [mul_coeff, mul_comm],
@@ -367,11 +369,11 @@ noncomputable instance [comm_semiring R] : comm_semiring (hahn_series α R) :=
   end,
   .. hahn_series.semiring }
 
-noncomputable instance [ring R] : ring (hahn_series α R) :=
+noncomputable instance [ring R] : ring (hahn_series Γ R) :=
 { .. hahn_series.semiring,
   .. hahn_series.add_comm_group }
 
-noncomputable instance [comm_ring R] : comm_ring (hahn_series α R) :=
+noncomputable instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 

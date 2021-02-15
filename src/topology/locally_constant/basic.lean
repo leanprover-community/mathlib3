@@ -15,7 +15,7 @@ This file setups the theory of locally constant function from a topological spac
 ## Main definitions and constructions
 
 * `is_locally_constant f` : a map `f : X → Y` where `X` is a topological space is locally
-                            constant if everything set in `Y` has an open preimage.
+                            constant if every set in `Y` has an open preimage.
 * `locally_constant X Y` : the type of locally constant maps from `X` to `Y`
 * `locally_constant.map` : push-forward of locally constant maps
 * `locally_constant.comap` : pull-back of locally constant maps
@@ -257,4 +257,3 @@ end
 end comap
 
 end locally_constant
-

@@ -72,6 +72,8 @@ begin
   apply w,
 end
 
+/-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in
+note [partially-applied ext lemmas]. -/
 @[ext]
 lemma add_monoid_hom.functions_ext' [fintype I] (M : Type*) [add_comm_monoid M]
   (g h : (Π i, Z i) →+ M)

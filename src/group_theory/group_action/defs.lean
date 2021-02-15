@@ -121,10 +121,13 @@ variables (α)
 /-- The regular action of a monoid on itself by left multiplication.
 
 This is promoted to a semimodule by `semiring.to_semimodule`. -/
+@[priority 910] -- see Note [lower instance priority]
 instance monoid.to_mul_action : mul_action α α :=
 { smul := (*),
   one_smul := one_mul,
   mul_smul := mul_assoc }
+
+@[simp] lemma smul_eq_mul {a a' : α} : a • a' = a * a' := rfl
 
 instance is_scalar_tower.left : is_scalar_tower α α β :=
 ⟨λ x y z, mul_smul x y z⟩

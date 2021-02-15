@@ -537,7 +537,7 @@ by simp [mul_antidiagonal]
 
 @[to_additive]
 lemma mul_antidiagonal_mono_left (hus : u ⊆ s) :
-  (finset.mul_antidiagonal hu ht a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+  (mul_antidiagonal hu ht a) ⊆ (mul_antidiagonal hs ht a) :=
 λ x hx, begin
   rw mem_mul_antidiagonal at *,
   exact ⟨hx.1, hus hx.2.1, hx.2.2⟩,
@@ -545,7 +545,7 @@ end
 
 @[to_additive]
 lemma mul_antidiagonal_mono_right (hut : u ⊆ t) :
-  (finset.mul_antidiagonal hs hu a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+  (mul_antidiagonal hs hu a) ⊆ (mul_antidiagonal hs ht a) :=
 λ x hx, begin
   rw mem_mul_antidiagonal at *,
   exact ⟨hx.1, hx.2.1, hut hx.2.2⟩,
@@ -554,8 +554,7 @@ end
 @[to_additive]
 theorem is_wf_support_mul_antidiagonal :
   { a : α | (mul_antidiagonal hs ht a).nonempty }.is_wf :=
-(hs.add ht).mono (λ x hx, begin
-  obtain ⟨⟨a1, a2⟩, ha⟩ := hx,
+(hs.mul ht).mono (λ x ⟨⟨a1, a2⟩, ha⟩, begin
   obtain ⟨hmul, h1, h2⟩ := mem_mul_antidiagonal.1 ha,
   exact ⟨a1, a2, h1, h2, hmul⟩,
 end)

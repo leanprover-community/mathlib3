@@ -1,6 +1,6 @@
 import m4r.cx data.matrix.basic
 
-universes u v
+universes u v w
 variables {R : Type u} [comm_ring R]
 (F : cochain_complex.{u u+1} (Module.{u u} R))
 open_locale classical
@@ -521,7 +521,11 @@ def hom_aux {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
       ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ)
         × (free_Koszul R n (fin.init x)).X (int.of_nat i))))-/
 
-
+lemma direct_sum.component.lof_ne {ι : Type v} [dec_ι : decidable_eq ι]
+  {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
+  {i j : ι} (h : j ≠ i) (b : M j) :
+  direct_sum.component R ι M i ((direct_sum.lof R ι M j) b) = 0 :=
+dfinsupp.single_eq_of_ne h
 
 def free_Koszul_prod {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
   (free_Koszul R n.succ x).X (int.of_nat i.succ) ≃ₗ[R]
@@ -553,64 +557,20 @@ def free_Koszul_prod {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
       refine direct_sum.linduction_on R y _ _ _,
       { simp only [linear_map.map_zero] },
       { intros j z,
-        cases j with j hj,
-        cases j with j k,
-        induction j with j j,
-        { induction j with j hj,
-          { induction k with k k,
-            { rw linear_map.prod_apply,
-              rw linear_map.coprod_apply,
-              simp only [to_linear_map_apply, linear_equiv.symm_apply_apply,
-                linear_map.comp_apply],
-              erw direct_sum.component.of,
-              have ffs : (⟨(int.of_nat 0, int.of_nat k), hj⟩ : {j : ℤ × ℤ // j.1 + j.2 = i.succ })
-                = ⟨(0, ↑(i.succ)), zero_add _⟩,
-              { ext,
-                { refl },
-                { dsimp at hj,
-                  rwa zero_add at hj }},
-              rw dif_pos,
-              swap,
-              { exact ffs },
-              { erw direct_sum.component.of,
-                rw dif_neg,
-                { rw [linear_map.map_zero, add_zero],
-                  apply heq_iff_eq.1,
-
-                  dsimp,
-                  congr },
-                { sorry } },
-              },
-            { sorry } },
-          { induction j with l hl,
-            { sorry },
-            { have hz0 : z = 0,
-              { convert subsingleton.elim _ _,
-                convert tensor_product.subsingleton_left R,
-                exact punit.subsingleton },
-              rw hz0,
-              simp only [linear_map.map_zero] }}},
-        { have hz0 : z = 0,
-          { convert subsingleton.elim _ _,
-            convert tensor_product.subsingleton_left R,
-            exact punit.subsingleton },
-          rw hz0,
-          simp only [linear_map.map_zero] }},
-      { intros X Y HX HY,
-        repeat {rw linear_map.map_add},
-        rw [HX, HY] },
+        cases classical.em (j.1 = (0, i.succ)) with hj hj,
+        { dsimp,
+          convert add_zero _,
+          { convert linear_map.map_zero _,
+            convert tensor_product.tmul_zero _ _,
+            rw [direct_sum.component.lof_ne, linear_equiv.map_zero],
+            intro hnot,
+            exact one_ne_zero ((prod.ext_iff.1 (subtype.ext_iff.1 hnot)).1.symm.trans
+              (prod.ext_iff.1 hj).1) },
+          { sorry }},
+        { sorry }},
+      { sorry },
     end,
-  right_inv := λ y,
-    begin
-      erw linear_map.coprod_apply,
-      rw linear_map.map_add,
-      rw linear_map.comp_apply,
-      rw direct_sum.to_module_lof,
-      rw linear_map.comp_apply,
-      rw to_linear_map_apply,
-      rw to_linear_map_apply,
-      erw linear_equiv.apply_symm_apply,
-    end }
+  right_inv := sorry }
 
 example : 1 + 1 = 2 := rfl
 

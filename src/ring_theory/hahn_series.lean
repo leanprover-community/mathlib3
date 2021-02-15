@@ -296,16 +296,14 @@ begin
   { simp }
 end
 
-theorem foo [semiring R] {x y : hahn_series α R} :
-  {b : α | (x * y).coeff b ≠ 0} ⊆ (λ (x : α × α), x.fst + x.snd) ''
-    {a : α | x.coeff a ≠ 0}.prod {a : α | y.coeff a ≠ 0} :=
+theorem support_mul_subset [semiring R] {x y : hahn_series α R} :
+  {b : α | (x * y).coeff b ≠ 0} ⊆ {a : α | x.coeff a ≠ 0} + {a : α | y.coeff a ≠ 0} :=
 λ a ha, begin
   simp only [mul_coeff, ne.def, set.mem_set_of_eq] at ha,
   by_cases h : (finset.add_antidiagonal x.is_wf_support y.is_wf_support a).nonempty,
   { obtain ⟨⟨x1, x2⟩, hx⟩ := h,
-    rw finset.mem_add_antidiagonal at hx,
-    rw set.mem_image,
-    exact ⟨⟨x1, x2⟩, ⟨hx.2, hx.1⟩⟩ },
+    obtain ⟨hadd, h1, h2⟩ := finset.mem_add_antidiagonal.1 hx,
+    exact ⟨_, _, h1, h2, hadd⟩, },
   { exfalso,
     rw finset.not_nonempty_iff_eq_empty at h,
     apply ha,
@@ -322,8 +320,8 @@ noncomputable instance [semiring R] : semiring (hahn_series α R) :=
   one_mul := λ x, single_zero_mul_eq_smul.trans (one_smul _ _),
   mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
   mul_assoc := λ x y z, by { ext b,
-    rw [mul_coeff_left' (x.is_wf_support.sum_set y.is_wf_support) foo,
-      mul_coeff_right' (y.is_wf_support.sum_set z.is_wf_support) foo],
+    rw [mul_coeff_left' (x.is_wf_support.sum_set y.is_wf_support) support_mul_subset,
+      mul_coeff_right' (y.is_wf_support.sum_set z.is_wf_support) support_mul_subset],
     simp only [mul_coeff, add_coeff, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
     refine finset.sum_bij_ne_zero (λ a has ha0, ⟨⟨a.2.1, a.2.2 + a.1.2⟩, ⟨a.2.2, a.1.2⟩⟩) _ _ _ _,
     { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
@@ -381,3 +379,4 @@ noncomputable instance [comm_ring R] : comm_ring (hahn_series α R) :=
 end multiplication
 
 end hahn_series
+#lint

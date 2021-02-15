@@ -577,11 +577,28 @@ instance : comm_ring (laurent_series S) :=
   mul := λ F₁ F₂, add_con.lift_on₂ F₁ F₂ lift_mul cong_mul,
   mul_assoc := λ F₁ F₂ F₃, quotient.induction_on₃' F₁ F₂ F₃
               $ λ _ _ _, congr_arg coe $ lift_mul_assoc _ _ _,
-  one := sorry,
-  one_mul := sorry,
+  one := (eqv_punctured.add_con S).mk' (0, λ n, if n = 0 then 1 else 0),
+  one_mul := begin
+              intro G,
+              apply quotient.induction_on' G,
+              rintro ⟨k, f⟩,
+              apply congr_arg quotient.mk',
+              ext,
+              apply nat.zero_add,
+              dsimp [punctured_power_series.mul],
+              induction x with n hn,
+              { rw [finset.nat.antidiagonal_zero, finset.sum_singleton,
+                  if_pos],
+                apply one_mul,
+                apply rfl },
+              { rw multiset.nat.antidiagonal_succ,
+              sorry,
+
+              },
+            end,
   mul_one := sorry,
-  left_distrib := sorry,
-  right_distrib := sorry,
+  left_distrib := begin sorry, end,
+  right_distrib := begin sorry, end,
   mul_comm := sorry }
 
 

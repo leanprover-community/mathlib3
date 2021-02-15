@@ -47,9 +47,8 @@ free abelian group with generators `x : X`.
 def free : Type u ⥤ AddCommGroup :=
 { obj := λ α, of (free_abelian_group α),
   map := λ X Y, free_abelian_group.map,
-  map_id' := λ X, add_monoid_hom.ext $ by simp [free_abelian_group.map, types_id],
-  map_comp' := λ X Y Z f g, add_monoid_hom.ext $
-    by { intro x, simp [is_lawful_functor.comp_map, free_abelian_group.map, types_comp] } }
+  map_id' := λ X, add_monoid_hom.ext free_abelian_group.map_id_apply,
+  map_comp' := λ X Y Z f g, add_monoid_hom.ext free_abelian_group.map_comp_apply, }
 
 @[simp] lemma free_obj_coe {α : Type u} :
   (free.obj α : Type u) = (free_abelian_group α) := rfl
@@ -64,7 +63,7 @@ def adj : free ⊣ forget AddCommGroup.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_abelian_group.hom_equiv X G,
   hom_equiv_naturality_left_symm' :=
-  by { intros, ext, simp [types_comp, free_abelian_group.lift_comp], } }
+  by { intros, ext, refl} }
 
 /--
 As an example, we now give a high-powered proof that

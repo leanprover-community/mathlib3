@@ -95,15 +95,19 @@ section
 variables (R M M₂)
 
 /-- The left injection into a product is a linear map. -/
-def inl : M →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inl _ _, _, _⟩; intros; simp
+def inl : M →ₗ[R] M × M₂ := prod linear_map.id 0
 
 /-- The right injection into a product is a linear map. -/
-def inr : M₂ →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inr _ _, _, _⟩; intros; simp
+def inr : M₂ →ₗ[R] M × M₂ := prod 0 linear_map.id
 
 end
 
 @[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
+
+theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
+
+theorem inr_eq_prod : inr R M M₂ = prod 0 linear_map.id := rfl
 
 theorem inl_injective : function.injective (inl R M M₂) :=
 λ _, by simp
@@ -138,10 +142,6 @@ theorem fst_eq_coprod : fst R M M₂ = coprod linear_map.id 0 := by ext; simp
 
 theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simp
 
-theorem inl_eq_prod : inl R M M₂ = prod linear_map.id 0 := rfl
-
-theorem inr_eq_prod : inr R M M₂ = prod 0 linear_map.id := rfl
-
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
 their domains. -/
 @[simps] def coprod_equiv [semimodule S M₃] [smul_comm_class R S M₃] :
@@ -155,6 +155,10 @@ their domains. -/
   map_smul' := λ r a,
     by { ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst, coprod_apply] } }
 
+theorem prod_ext_iff {f g : M × M₂ →ₗ[R] M₃} :
+  f = g ↔ f.comp (inl _ _ _) = g.comp (inl _ _ _) ∧ f.comp (inr _ _ _) = g.comp (inr _ _ _) :=
+(coprod_equiv ℕ).symm.injective.eq_iff.symm.trans prod.ext_iff
+
 /--
 Split equality of linear maps from a product into linear maps over each component, to allow `ext`
 to apply lemmas specific to `M →ₗ M₃` and `M₂ →ₗ M₃`.
@@ -164,10 +168,7 @@ See note [partially-applied ext lemmas]. -/
   (hl : f.comp (inl _ _ _) = g.comp (inl _ _ _))
   (hr : f.comp (inr _ _ _) = g.comp (inr _ _ _)) :
   f = g :=
-begin
-  refine (coprod_equiv ℕ).symm.injective _,
-  simp only [coprod_equiv_symm_apply, hl, hr],
-end
+prod_ext_iff.2 ⟨hl, hr⟩
 
 /-- `prod.map` of two linear maps. -/
 def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →ₗ[R] (M₃ × M₄) :=

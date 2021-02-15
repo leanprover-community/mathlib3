@@ -83,10 +83,10 @@ Icc_subset_interval ⟨ha, hb⟩
 lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
 Icc_subset_interval' ⟨hb, ha⟩
 
-lemma not_mem_interval_of_lt {c : α} (ha : c < a) (hb : c < b) : c ∉ [a b] :=
+lemma not_mem_interval_of_lt {c : α} (ha : c < a) (hb : c < b) : c ∉ [a, b] :=
 by simpa only [interval] using not_mem_Icc_of_lt (lt_min_iff.mpr ⟨ha, hb⟩)
 
-lemma not_mem_interval_of_gt {c : α} (ha : a < c) (hb : b < c) : c ∉ [a b] :=
+lemma not_mem_interval_of_gt {c : α} (ha : a < c) (hb : b < c) : c ∉ [a, b] :=
 by simpa only [interval] using not_mem_Icc_of_gt (max_lt_iff.mpr ⟨ha, hb⟩)
 
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=

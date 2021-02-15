@@ -10,7 +10,7 @@ import category_theory.limits.preserves.basic
 /-!
 # The category of topological spaces has all limits and colimits
 
-Further, these limits and colimits  are preserved by the forgetful functor --- that is, the
+Further, these limits and colimits are preserved by the forgetful functor --- that is, the
 underlying types are just the limits in the category of types.
 -/
 

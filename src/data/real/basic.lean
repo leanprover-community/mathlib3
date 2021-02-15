@@ -451,7 +451,6 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
     assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, a ≤ b),
     show a ≤ Inf s,
       from lb_le_Inf s ‹s.nonempty› H,
-  decidable_le := classical.dec_rel _,
  ..real.linear_order, ..real.lattice}
 
 theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp

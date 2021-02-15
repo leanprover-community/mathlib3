@@ -40,16 +40,20 @@ open set filter
 
 namespace complex
 
-/-- The complex sine function is everywhere differentiable, with the derivative `cos x`. -/
-lemma has_deriv_at_sin (x : ℂ) : has_deriv_at sin (cos x) x :=
+/-- The complex sine function is everywhere strictly differentiable, with the derivative `cos x`. -/
+lemma has_strict_deriv_at_sin (x : ℂ) : has_strict_deriv_at sin (cos x) x :=
 begin
   simp only [cos, div_eq_mul_inv],
-  convert ((((has_deriv_at_id x).neg.mul_const I).cexp.sub
-    ((has_deriv_at_id x).mul_const I).cexp).mul_const I).mul_const (2:ℂ)⁻¹,
+  convert ((((has_strict_deriv_at_id x).neg.mul_const I).cexp.sub
+    ((has_strict_deriv_at_id x).mul_const I).cexp).mul_const I).mul_const (2:ℂ)⁻¹,
   simp only [function.comp, id],
   rw [sub_mul, mul_assoc, mul_assoc, I_mul_I, neg_one_mul, neg_neg, mul_one, one_mul, mul_assoc,
       I_mul_I, mul_neg_one, sub_neg_eq_add, add_comm]
 end
+
+/-- The complex sine function is everywhere differentiable, with the derivative `cos x`. -/
+lemma has_deriv_at_sin (x : ℂ) : has_deriv_at sin (cos x) x :=
+(has_strict_deriv_at_sin x).has_deriv_at
 
 lemma times_cont_diff_sin {n} : times_cont_diff ℂ n sin :=
 (((times_cont_diff_neg.mul times_cont_diff_const).cexp.sub
@@ -71,15 +75,20 @@ lemma continuous_on_sin {s : set ℂ} : continuous_on sin s := continuous_sin.co
 
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
-/-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
-lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
+/-- The complex cosine function is everywhere strictly differentiable, with the derivative
+`-sin x`. -/
+lemma has_strict_deriv_at_cos (x : ℂ) : has_strict_deriv_at cos (-sin x) x :=
 begin
   simp only [sin, div_eq_mul_inv, neg_mul_eq_neg_mul],
-  convert (((has_deriv_at_id x).mul_const I).cexp.add
-    ((has_deriv_at_id x).neg.mul_const I).cexp).mul_const (2:ℂ)⁻¹,
+  convert (((has_strict_deriv_at_id x).mul_const I).cexp.add
+    ((has_strict_deriv_at_id x).neg.mul_const I).cexp).mul_const (2:ℂ)⁻¹,
   simp only [function.comp, id],
   ring
 end
+
+/-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
+lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
+(has_strict_deriv_at_cos x).has_deriv_at
 
 lemma times_cont_diff_cos {n} : times_cont_diff ℂ n cos :=
 ((times_cont_diff_id.mul times_cont_diff_const).cexp.add
@@ -104,14 +113,19 @@ lemma continuous_on_cos {s : set ℂ} : continuous_on cos s := continuous_cos.co
 
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
+/-- The complex hyperbolic sine function is everywhere strictly differentiable, with the derivative
+`cosh x`. -/
+lemma has_strict_deriv_at_sinh (x : ℂ) : has_strict_deriv_at sinh (cosh x) x :=
+begin
+  simp only [cosh, div_eq_mul_inv],
+  convert ((has_strict_deriv_at_exp x).sub (has_strict_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
+  rw [id, mul_neg_one, sub_eq_add_neg, neg_neg]
+end
+
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative
 `cosh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
-begin
-  simp only [cosh, div_eq_mul_inv],
-  convert ((has_deriv_at_exp x).sub (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
-  rw [id, mul_neg_one, sub_eq_add_neg, neg_neg]
-end
+(has_strict_deriv_at_sinh x).has_deriv_at
 
 lemma times_cont_diff_sinh {n} : times_cont_diff ℂ n sinh :=
 (times_cont_diff_exp.sub times_cont_diff_neg.cexp).div_const
@@ -130,14 +144,19 @@ differentiable_sinh.continuous
 
 lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
 
+/-- The complex hyperbolic cosine function is everywhere strictly differentiable, with the
+derivative `sinh x`. -/
+lemma has_strict_deriv_at_cosh (x : ℂ) : has_strict_deriv_at cosh (sinh x) x :=
+begin
+  simp only [sinh, div_eq_mul_inv],
+  convert ((has_strict_deriv_at_exp x).add (has_strict_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
+  rw [id, mul_neg_one, sub_eq_add_neg]
+end
+
 /-- The complex hyperbolic cosine function is everywhere differentiable, with the derivative
 `sinh x`. -/
 lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
-begin
-  simp only [sinh, div_eq_mul_inv],
-  convert ((has_deriv_at_exp x).add (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
-  rw [id, mul_neg_one, sub_eq_add_neg]
-end
+(has_strict_deriv_at_cosh x).has_deriv_at
 
 lemma times_cont_diff_cosh {n} : times_cont_diff ℂ n cosh :=
 (times_cont_diff_exp.add times_cont_diff_neg.cexp).div_const
@@ -169,6 +188,10 @@ lemma measurable.ccos {α : Type*} [measurable_space α] {f : α → ℂ} (hf : 
   measurable (λ x, complex.cos (f x)) :=
 complex.measurable_cos.comp hf
 
+lemma has_strict_deriv_at.ccos (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, complex.cos (f x)) (- complex.sin (f x) * f') x :=
+(complex.has_strict_deriv_at_cos (f x)).comp x hf
+
 lemma has_deriv_at.ccos (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.cos (f x)) (- complex.sin (f x) * f') x :=
 (complex.has_deriv_at_cos (f x)).comp x hf
@@ -191,6 +214,10 @@ hc.has_deriv_at.ccos.deriv
 lemma measurable.csin {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
   measurable (λ x, complex.sin (f x)) :=
 complex.measurable_sin.comp hf
+
+lemma has_strict_deriv_at.csin (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, complex.sin (f x)) (complex.cos (f x) * f') x :=
+(complex.has_strict_deriv_at_sin (f x)).comp x hf
 
 lemma has_deriv_at.csin (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.sin (f x)) (complex.cos (f x) * f') x :=
@@ -215,6 +242,10 @@ lemma measurable.ccosh {α : Type*} [measurable_space α] {f : α → ℂ} (hf :
   measurable (λ x, complex.cosh (f x)) :=
 complex.measurable_cosh.comp hf
 
+lemma has_strict_deriv_at.ccosh (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, complex.cosh (f x)) (complex.sinh (f x) * f') x :=
+(complex.has_strict_deriv_at_cosh (f x)).comp x hf
+
 lemma has_deriv_at.ccosh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.cosh (f x)) (complex.sinh (f x) * f') x :=
 (complex.has_deriv_at_cosh (f x)).comp x hf
@@ -237,6 +268,10 @@ hc.has_deriv_at.ccosh.deriv
 lemma measurable.csinh {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
   measurable (λ x, complex.sinh (f x)) :=
 complex.measurable_sinh.comp hf
+
+lemma has_strict_deriv_at.csinh (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, complex.sinh (f x)) (complex.cosh (f x) * f') x :=
+(complex.has_strict_deriv_at_sinh (f x)).comp x hf
 
 lemma has_deriv_at.csinh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.sinh (f x)) (complex.cosh (f x) * f') x :=
@@ -264,6 +299,10 @@ variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' 
   {x : E} {s : set E}
 
 /-! #### `complex.cos` -/
+
+lemma has_strict_fderiv_at.ccos (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, complex.cos (f x)) (- complex.sin (f x) • f') x :=
+(complex.has_strict_deriv_at_cos (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_at.ccos (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, complex.cos (f x)) (- complex.sin (f x) • f') x :=
@@ -316,6 +355,10 @@ complex.times_cont_diff_cos.times_cont_diff_at.comp_times_cont_diff_within_at x 
 
 /-! #### `complex.sin` -/
 
+lemma has_strict_fderiv_at.csin (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, complex.sin (f x)) (complex.cos (f x) • f') x :=
+(complex.has_strict_deriv_at_sin (f x)).comp_has_strict_fderiv_at x hf
+
 lemma has_fderiv_at.csin (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, complex.sin (f x)) (complex.cos (f x) • f') x :=
 (complex.has_deriv_at_sin (f x)).comp_has_fderiv_at x hf
@@ -367,6 +410,10 @@ complex.times_cont_diff_sin.times_cont_diff_at.comp_times_cont_diff_within_at x 
 
 /-! #### `complex.cosh` -/
 
+lemma has_strict_fderiv_at.ccosh (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, complex.cosh (f x)) (complex.sinh (f x) • f') x :=
+(complex.has_strict_deriv_at_cosh (f x)).comp_has_strict_fderiv_at x hf
+
 lemma has_fderiv_at.ccosh (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, complex.cosh (f x)) (complex.sinh (f x) • f') x :=
 (complex.has_deriv_at_cosh (f x)).comp_has_fderiv_at x hf
@@ -417,6 +464,10 @@ lemma times_cont_diff_within_at.ccosh {n} (hf : times_cont_diff_within_at ℂ n 
 complex.times_cont_diff_cosh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
 
 /-! #### `complex.sinh` -/
+
+lemma has_strict_fderiv_at.csinh (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, complex.sinh (f x)) (complex.cosh (f x) • f') x :=
+(complex.has_strict_deriv_at_sinh (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_at.csinh (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, complex.sinh (f x)) (complex.cosh (f x) • f') x :=
@@ -473,8 +524,11 @@ namespace real
 
 variables {x y z : ℝ}
 
+lemma has_strict_deriv_at_sin (x : ℝ) : has_strict_deriv_at sin (cos x) x :=
+(complex.has_strict_deriv_at_sin x).real_of_complex
+
 lemma has_deriv_at_sin (x : ℝ) : has_deriv_at sin (cos x) x :=
-(complex.has_deriv_at_sin x).real_of_complex
+(has_strict_deriv_at_sin x).has_deriv_at
 
 lemma times_cont_diff_sin {n} : times_cont_diff ℝ n sin :=
 complex.times_cont_diff_sin.real_of_complex
@@ -492,6 +546,9 @@ lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
 lemma measurable_sin : measurable sin := continuous_sin.measurable
+
+lemma has_strict_deriv_at_cos (x : ℝ) : has_strict_deriv_at cos (-sin x) x :=
+(complex.has_strict_deriv_at_cos x).real_of_complex
 
 lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
 (complex.has_deriv_at_cos x).real_of_complex
@@ -518,6 +575,9 @@ lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_o
 
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
+lemma has_strict_deriv_at_sinh (x : ℝ) : has_strict_deriv_at sinh (cosh x) x :=
+(complex.has_strict_deriv_at_sinh x).real_of_complex
+
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
 (complex.has_deriv_at_sinh x).real_of_complex
 
@@ -537,6 +597,9 @@ lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
 
 lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
+
+lemma has_strict_deriv_at_cosh (x : ℝ) : has_strict_deriv_at cosh (sinh x) x :=
+(complex.has_strict_deriv_at_cosh x).real_of_complex
 
 lemma has_deriv_at_cosh (x : ℝ) : has_deriv_at cosh (sinh x) x :=
 (complex.has_deriv_at_cosh x).real_of_complex
@@ -575,6 +638,10 @@ lemma measurable.cos {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : 
   measurable (λ x, real.cos (f x)) :=
 real.measurable_cos.comp hf
 
+lemma has_strict_deriv_at.cos (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, real.cos (f x)) (- real.sin (f x) * f') x :=
+(real.has_strict_deriv_at_cos (f x)).comp x hf
+
 lemma has_deriv_at.cos (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.cos (f x)) (- real.sin (f x) * f') x :=
 (real.has_deriv_at_cos (f x)).comp x hf
@@ -597,6 +664,10 @@ hc.has_deriv_at.cos.deriv
 lemma measurable.sin {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
   measurable (λ x, real.sin (f x)) :=
 real.measurable_sin.comp hf
+
+lemma has_strict_deriv_at.sin (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, real.sin (f x)) (real.cos (f x) * f') x :=
+(real.has_strict_deriv_at_sin (f x)).comp x hf
 
 lemma has_deriv_at.sin (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.sin (f x)) (real.cos (f x) * f') x :=
@@ -621,6 +692,10 @@ lemma measurable.cosh {α : Type*} [measurable_space α] {f : α → ℝ}  (hf :
   measurable (λ x, real.cosh (f x)) :=
 real.measurable_cosh.comp hf
 
+lemma has_strict_deriv_at.cosh (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, real.cosh (f x)) (real.sinh (f x) * f') x :=
+(real.has_strict_deriv_at_cosh (f x)).comp x hf
+
 lemma has_deriv_at.cosh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.cosh (f x)) (real.sinh (f x) * f') x :=
 (real.has_deriv_at_cosh (f x)).comp x hf
@@ -643,6 +718,10 @@ hc.has_deriv_at.cosh.deriv
 lemma measurable.sinh {α : Type*} [measurable_space α] {f : α → ℝ}  (hf : measurable f) :
   measurable (λ x, real.sinh (f x)) :=
 real.measurable_sinh.comp hf
+
+lemma has_strict_deriv_at.sinh (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, real.sinh (f x)) (real.cosh (f x) * f') x :=
+(real.has_strict_deriv_at_sinh (f x)).comp x hf
 
 lemma has_deriv_at.sinh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.sinh (f x)) (real.cosh (f x) * f') x :=
@@ -671,6 +750,10 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' 
   {x : E} {s : set E}
 
 /-! #### `real.cos` -/
+
+lemma has_strict_fderiv_at.cos (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, real.cos (f x)) (- real.sin (f x) • f') x :=
+(real.has_strict_deriv_at_cos (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_at.cos (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, real.cos (f x)) (- real.sin (f x) • f') x :=
@@ -723,6 +806,10 @@ real.times_cont_diff_cos.times_cont_diff_at.comp_times_cont_diff_within_at x hf
 
 /-! #### `real.sin` -/
 
+lemma has_strict_fderiv_at.sin (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, real.sin (f x)) (real.cos (f x) • f') x :=
+(real.has_strict_deriv_at_sin (f x)).comp_has_strict_fderiv_at x hf
+
 lemma has_fderiv_at.sin (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, real.sin (f x)) (real.cos (f x) • f') x :=
 (real.has_deriv_at_sin (f x)).comp_has_fderiv_at x hf
@@ -774,6 +861,10 @@ real.times_cont_diff_sin.times_cont_diff_at.comp_times_cont_diff_within_at x hf
 
 /-! #### `real.cosh` -/
 
+lemma has_strict_fderiv_at.cosh (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, real.cosh (f x)) (real.sinh (f x) • f') x :=
+(real.has_strict_deriv_at_cosh (f x)).comp_has_strict_fderiv_at x hf
+
 lemma has_fderiv_at.cosh (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, real.cosh (f x)) (real.sinh (f x) • f') x :=
 (real.has_deriv_at_cosh (f x)).comp_has_fderiv_at x hf
@@ -824,6 +915,10 @@ lemma times_cont_diff_within_at.cosh {n} (hf : times_cont_diff_within_at ℝ n f
 real.times_cont_diff_cosh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
 
 /-! #### `real.sinh` -/
+
+lemma has_strict_fderiv_at.sinh (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, real.sinh (f x)) (real.cosh (f x) • f') x :=
+(real.has_strict_deriv_at_sinh (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_at.sinh (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, real.sinh (f x)) (real.cosh (f x) • f') x :=
@@ -1704,31 +1799,36 @@ begin
 end
 
 lemma deriv_arcsin_aux {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
-  has_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x ∧ times_cont_diff_at ℝ ⊤ arcsin x :=
+  has_strict_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x ∧ times_cont_diff_at ℝ ⊤ arcsin x :=
 begin
   cases h₁.lt_or_lt with h₁ h₁,
   { have : 1 - x ^ 2 < 0, by nlinarith [h₁],
     rw [sqrt_eq_zero'.2 this.le, div_zero],
     have : arcsin =ᶠ[𝓝 x] λ _, -(π / 2) :=
       (gt_mem_nhds h₁).mono (λ y hy, arcsin_of_le_neg_one hy.le),
-    exact ⟨(has_deriv_at_const _ _).congr_of_eventually_eq this,
+    exact ⟨(has_strict_deriv_at_const _ _).congr_of_eventually_eq this.symm,
       times_cont_diff_at_const.congr_of_eventually_eq this⟩ },
   cases h₂.lt_or_lt with h₂ h₂,
   { have : 0 < sqrt (1 - x ^ 2) := sqrt_pos.2 (by nlinarith [h₁, h₂]),
     simp only [← cos_arcsin h₁.le h₂.le, one_div] at this ⊢,
-    exact ⟨sin_local_homeomorph.has_deriv_at_symm ⟨h₁, h₂⟩ this.ne' (has_deriv_at_sin _),
+    exact ⟨sin_local_homeomorph.has_strict_deriv_at_symm ⟨h₁, h₂⟩ this.ne'
+      (has_strict_deriv_at_sin _),
       sin_local_homeomorph.times_cont_diff_at_symm_deriv this.ne' ⟨h₁, h₂⟩
         (has_deriv_at_sin _) times_cont_diff_sin.times_cont_diff_at⟩ },
   { have : 1 - x ^ 2 < 0, by nlinarith [h₂],
     rw [sqrt_eq_zero'.2 this.le, div_zero],
     have : arcsin =ᶠ[𝓝 x] λ _, π / 2 := (lt_mem_nhds h₂).mono (λ y hy, arcsin_of_one_le hy.le),
-    exact ⟨(has_deriv_at_const _ _).congr_of_eventually_eq this,
+    exact ⟨(has_strict_deriv_at_const _ _).congr_of_eventually_eq this.symm,
       times_cont_diff_at_const.congr_of_eventually_eq this⟩ }
 end
 
+lemma has_strict_deriv_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
+  has_strict_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x :=
+(deriv_arcsin_aux h₁ h₂).1
+
 lemma has_deriv_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
   has_deriv_at arcsin (1 / sqrt (1 - x ^ 2)) x :=
-(deriv_arcsin_aux h₁ h₂).1
+(has_strict_deriv_at_arcsin h₁ h₂).has_deriv_at
 
 lemma times_cont_diff_at_arcsin {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) {n : with_top ℕ} :
   times_cont_diff_at ℝ n arcsin x :=
@@ -1859,6 +1959,10 @@ lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x)
 by rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
 
 lemma continuous_arccos : continuous arccos := continuous_const.sub continuous_arcsin
+
+lemma has_strict_deriv_at_arccos {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
+  has_strict_deriv_at arccos (-(1 / sqrt (1 - x ^ 2))) x :=
+(has_strict_deriv_at_arcsin h₁ h₂).const_sub (π / 2)
 
 lemma has_deriv_at_arccos {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
   has_deriv_at arccos (-(1 / sqrt (1 - x ^ 2))) x :=
@@ -2530,13 +2634,17 @@ lemma tan_eq {z : ℂ}
   tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
 by convert tan_add_mul_I h; exact (re_add_im z).symm
 
-lemma has_deriv_at_tan {x : ℂ} (h : cos x ≠ 0) :
-  has_deriv_at tan (1 / (cos x)^2) x :=
+lemma has_strict_deriv_at_tan {x : ℂ} (h : cos x ≠ 0) :
+  has_strict_deriv_at tan (1 / (cos x)^2) x :=
 begin
-  convert has_deriv_at.div (has_deriv_at_sin x) (has_deriv_at_cos x) h,
+  convert (has_strict_deriv_at_sin x).div (has_strict_deriv_at_cos x) h,
   rw ← sin_sq_add_cos_sq x,
   ring,
 end
+
+lemma has_deriv_at_tan {x : ℂ} (h : cos x ≠ 0) :
+  has_deriv_at tan (1 / (cos x)^2) x :=
+(has_strict_deriv_at_tan h).has_deriv_at
 
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℂ} (hx : cos x = 0) :
   tendsto (λ x, abs (tan x)) (𝓝[{x}ᶜ] x) at_top :=
@@ -2816,6 +2924,10 @@ lemma sin_eq_sin_iff {x y : ℝ} :
   sin x = sin y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = (2 * k + 1) * π - x :=
 by exact_mod_cast @complex.sin_eq_sin_iff x y
 
+lemma has_strict_deriv_at_tan {x : ℝ} (h : cos x ≠ 0) :
+  has_strict_deriv_at tan (1 / (cos x)^2) x :=
+by exact_mod_cast (complex.has_strict_deriv_at_tan (by exact_mod_cast h)).real_of_complex
+
 lemma has_deriv_at_tan {x : ℝ} (h : cos x ≠ 0) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 by exact_mod_cast (complex.has_deriv_at_tan (by exact_mod_cast h)).real_of_complex
@@ -2999,10 +3111,13 @@ def tan_local_homeomorph : local_homeomorph ℝ ℝ :=
 @[simp] lemma coe_tan_local_homeomorph : ⇑tan_local_homeomorph = tan := rfl
 @[simp] lemma coe_tan_local_homeomorph_symm : ⇑tan_local_homeomorph.symm = arctan := rfl
 
-lemma has_deriv_at_arctan (x : ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
+lemma has_strict_deriv_at_arctan (x : ℝ) : has_strict_deriv_at arctan (1 / (1 + x^2)) x :=
 have A : cos (arctan x) ≠ 0 := (cos_arctan_pos x).ne',
 by simpa [cos_sq_arctan]
-  using tan_local_homeomorph.has_deriv_at_symm trivial (by simpa) (has_deriv_at_tan A)
+  using tan_local_homeomorph.has_strict_deriv_at_symm trivial (by simpa) (has_strict_deriv_at_tan A)
+
+lemma has_deriv_at_arctan (x : ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
+(has_strict_deriv_at_arctan x).has_deriv_at
 
 lemma differentiable_at_arctan (x : ℝ) : differentiable_at ℝ arctan x :=
 (has_deriv_at_arctan x).differentiable_at
@@ -3039,6 +3154,10 @@ section deriv
 
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 
+lemma has_strict_deriv_at.arctan (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) * f') x :=
+(real.has_strict_deriv_at_arctan (f x)).comp x hf
+
 lemma has_deriv_at.arctan (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) * f') x :=
 (real.has_deriv_at_arctan (f x)).comp x hf
@@ -3062,6 +3181,10 @@ section fderiv
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ} {x : E}
   {s : set E} {n : with_top ℕ}
+
+lemma has_strict_fderiv_at.arctan (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) • f') x :=
+(has_strict_deriv_at_arctan (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_at.arctan (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) • f') x :=

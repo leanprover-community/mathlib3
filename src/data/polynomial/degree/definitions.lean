@@ -807,22 +807,6 @@ begin
   rwa coeff_C_mul,
 end
 
-lemma nat_degree_mul_C_eq_of_no_zero_divisors [no_zero_divisors R] (a0 : a ≠ 0) :
-  (p * C a).nat_degree = p.nat_degree :=
-begin
-  by_cases p0 : p = 0,
-  { rw [p0, zero_mul] },
-  { exact nat_degree_mul_C_eq_of_mul_ne_zero (mul_ne_zero (leading_coeff_ne_zero.mpr p0) a0) }
-end
-
-lemma nat_degree_C_mul_eq_of_no_zero_divisors [no_zero_divisors R] (a0 : a ≠ 0) :
-  (C a * p).nat_degree = p.nat_degree :=
-begin
-  by_cases p0 : p = 0,
-  { rw [p0, mul_zero] },
-  { exact nat_degree_C_mul_eq_of_mul_ne_zero (mul_ne_zero a0 (leading_coeff_ne_zero.mpr p0)) }
-end
-
 lemma nat_degree_add_coeff_mul (f g : polynomial R) :
   (f * g).coeff (f.nat_degree + g.nat_degree) = f.coeff f.nat_degree * g.coeff g.nat_degree :=
 by simp only [coeff_nat_degree, coeff_mul_degree_add_degree]
@@ -830,13 +814,6 @@ by simp only [coeff_nat_degree, coeff_mul_degree_add_degree]
 lemma nat_degree_lt_coeff_mul (h : p.nat_degree + q.nat_degree < m + n) :
   (p * q).coeff (m + n) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt h)
-
-lemma nat_degree_C_mul_eq_of_mul_eq_one {ai : R} (au : ai * a = 1) {f : polynomial R} :
-  (C a * f).nat_degree = f.nat_degree :=
-le_antisymm (nat_degree_C_mul_le a f) (calc
-  f.nat_degree = (1 * f).nat_degree : by nth_rewrite 0 [← one_mul f]
-  ... = (C ai * (C a * f)).nat_degree : by rw [← C_1, ← au, ring_hom.map_mul, mul_assoc]
-  ... ≤ (C a * f).nat_degree : nat_degree_C_mul_le ai (C a * f))
 
 end semiring
 
@@ -961,6 +938,22 @@ end nonzero_ring
 
 section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : polynomial R}
+
+lemma nat_degree_mul_C_eq_of_no_zero_divisors [no_zero_divisors R] (a0 : a ≠ 0) :
+  (p * C a).nat_degree = p.nat_degree :=
+begin
+  by_cases p0 : p = 0,
+  { rw [p0, zero_mul] },
+  { exact nat_degree_mul_C_eq_of_mul_ne_zero (mul_ne_zero (leading_coeff_ne_zero.mpr p0) a0) }
+end
+
+lemma nat_degree_C_mul_eq_of_no_zero_divisors [no_zero_divisors R] (a0 : a ≠ 0) :
+  (C a * p).nat_degree = p.nat_degree :=
+begin
+  by_cases p0 : p = 0,
+  { rw [p0, mul_zero] },
+  { exact nat_degree_C_mul_eq_of_mul_ne_zero (mul_ne_zero a0 (leading_coeff_ne_zero.mpr p0)) }
+end
 
 @[simp] lemma degree_mul : degree (p * q) = degree p + degree q :=
 if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]

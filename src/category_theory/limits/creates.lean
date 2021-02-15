@@ -298,6 +298,40 @@ def creates_colimit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomor
       exact is_colimit.of_iso_colimit hd' (as_iso f),
     end } }
 
+/--
+When `F` is fully faithful, and `has_colimit (K ⋙ F)`, to show that `F` creates the colimit for `K`
+it suffices to exhibit a lift of the chosen colimit cocone for `K ⋙ F`.
+-/
+-- Notice however that even if the isomorphism is `iso.refl _`,
+-- this construction will insert additional identity morphisms in the cone maps,
+-- so the constructed limits may not be ideal, definitionally.
+def creates_colimit_of_fully_faithful_of_lift {K : J ⥤ C} {F : C ⥤ D}
+  [full F] [faithful F] (c' : cocone (K ⋙ F)) (t : is_colimit c')
+  (c : cocone K) (i : F.map_cocone c ≅ c') : creates_colimit K F :=
+creates_colimit_of_reflects_iso (λ _ t',
+{ lifted_cocone := c,
+  valid_lift := i.trans (t.unique_up_to_iso t'),
+  makes_colimit :=
+    is_colimit.of_faithful F
+      (t.of_iso_colimit i.symm) (λ s, F.preimage _) (λ s, F.image_preimage _) })
+
+/--
+When `F` is fully faithful, and `has_limit (K ⋙ F)`, to show that `F` creates the limit for `K`
+it suffices to show that the chosen limit point is in the essential image of `F`.
+-/
+-- Notice however that even if the isomorphism is `iso.refl _`,
+-- this construction will insert additional identity morphisms in the cone maps,
+-- so the constructed limits may not be ideal, definitionally.
+def creates_colimit_of_fully_faithful_of_iso {K : J ⥤ C} {F : C ⥤ D}
+  [full F] [faithful F] (c : cocone (K ⋙ F)) (t : is_colimit c)
+  (X : C) (i : F.obj X ≅ c.X) : creates_colimit K F :=
+creates_colimit_of_fully_faithful_of_lift c t
+{ X := X,
+  ι :=
+  { app := λ j, F.preimage (c.ι.app j ≫ i.inv),
+    naturality' := λ Y Z f, F.map_injective (begin dsimp, rw ←c.w f, simp end) }}
+(cocones.ext i (by tidy))
+
 /-- `F` preserves the colimit of `K` if it creates the colimit and `K ⋙ F` has the colimit. -/
 @[priority 100] -- see Note [lower instance priority]
 instance preserves_colimit_of_creates_colimit_and_has_colimit (K : J ⥤ C) (F : C ⥤ D)

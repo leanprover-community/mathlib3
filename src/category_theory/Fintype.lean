@@ -9,6 +9,7 @@ import data.fin
 import category_theory.concrete_category.bundled
 import category_theory.concrete_category
 import category_theory.full_subcategory
+import category_theory.reflects_isomorphisms
 import category_theory.skeletal
 
 /-!
@@ -41,7 +42,7 @@ instance {X : Fintype} : fintype X := X.2
 instance : category Fintype := induced_category.category bundled.α
 
 /-- The fully faithful embedding of `Fintype` into the category of types. -/
-@[derive [full, faithful], simps]
+@[derive [full, faithful, reflects_isomorphisms], simps]
 def incl : Fintype ⥤ Type* := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩

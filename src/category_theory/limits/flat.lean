@@ -3,6 +3,10 @@ import category_theory.elements
 import category_theory.limits.elements
 import category_theory.functor_category
 import category_theory.limits.preserves.limits
+import category_theory.limits.shapes.types
+import category_theory.limits.preserves.shapes.terminal
+import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.yoneda
 import category_theory.limits.creates
 import category_theory.adjunction.limits
@@ -176,11 +180,54 @@ begin
   apply is_iso.of_iso,
 end
 
+
 end flat_finite_limits
 
 -- #exit
 
 def is_set_flat (F : C ⥤ Type w) := is_filtered F.elementsᵒᵖ
+
+def set_flat_of_preserves_finite_limits [has_finite_limits C] (F : C ⥤ Type v₁)
+  [∀ (J : Type v₁) [𝒥 : small_category J] [@fin_category J 𝒥],
+      @preserves_limits_of_shape _ _ _ _ J 𝒥 F] :
+  is_set_flat F :=
+{ nonempty := ⟨op ⟨⊤_ C, (is_limit_of_has_terminal_of_preserves_limit F).from punit punit.star⟩⟩,
+  cocone_objs := λ X Y,
+  begin
+    refine ⟨op ⟨X.unop.1 ⨯ Y.unop.1, _⟩, _, _, ⟨⟩⟩,
+    { apply (((types.binary_product_iso_prod.app _).app _).hom ≫
+                  inv (prod_comparison F X.unop.1 Y.unop.1)) ⟨X.unop.2, Y.unop.2⟩ },
+    { refine has_hom.hom.op (_ : _ ⟶ unop X),
+      refine ⟨limits.prod.fst, _⟩,
+      dsimp only,
+      rw [← types_comp_apply _ (F.map _), category.assoc, inv_prod_comparison_map_fst],
+      dsimp only [types.binary_product_iso_prod],
+      simp [-types_comp_apply] },
+    { refine has_hom.hom.op (_ : _ ⟶ unop Y),
+      refine ⟨limits.prod.snd, _⟩,
+      dsimp only,
+      rw [← types_comp_apply _ (F.map _), category.assoc, inv_prod_comparison_map_snd],
+      dsimp only [types.binary_product_iso_prod],
+      simp [-types_comp_apply] },
+  end,
+  cocone_maps := λ X Y f g,
+  begin
+    refine ⟨op ⟨equalizer f.unop.1 g.unop.1, _⟩, _, _⟩,
+    { apply inv (equalizer_comparison f.unop.1 g.unop.1 F) _,
+      apply (types.equalizer_limit.is_limit.cone_point_unique_up_to_iso (limit.is_limit _)).hom,
+      refine ⟨Y.unop.2, _⟩,
+      rw [f.unop.2, g.unop.2] },
+    { refine has_hom.hom.op (_ : _ ⟶ unop Y),
+      refine ⟨equalizer.ι _ _, _⟩,
+      dsimp only,
+      rw [← types_comp_apply _ (inv (equalizer_comparison f.unop.val g.unop.val F)),
+          ← types_comp_apply _ (F.map (equalizer.ι f.unop.val g.unop.val)), category.assoc,
+          inv_equalizer_comparison_comp_map],
+      simp [-types_comp_apply] },
+    { apply has_hom.hom.unop_inj,
+      apply subtype.ext,
+      apply equalizer.condition }
+  end }.
 
 lemma representable_is_set_flat (X : Cᵒᵖ) : is_set_flat (coyoneda.obj X) :=
 is_filtered.of_terminal (terminal_op_of_initial (elements.is_initial X.unop))
@@ -408,7 +455,8 @@ instance {C : Type u₁} [category.{v₁} C] {J : Type u₂} [category.{v₂} J]
       end } } }
 
 /-- If `C` is small, then the category of ind-objects has filtered colimits. -/
-instance {C : Type u₁} [category.{v₁} C] {J : Type v₁} [category.{v₂} J] [is_filtered J] :
+instance ind_has_filtered_colimits
+  {C : Type u₁} [category.{v₁} C] {J : Type v₁} [category.{v₂} J] [is_filtered J] :
   has_colimits_of_shape J (ind C) :=
 has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (ind_to_presheaf C)
 
@@ -425,6 +473,61 @@ has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (ind_to
 def ind_embed : C ⥤ ind C :=
 { obj := λ X, ⟨yoneda.obj X, representable_is_set_flat' _⟩,
   map := λ X Y f, yoneda.map f }
+
+universes v₃ u₃
+
+-- set_option pp.universes true
+
+-- def right_adj (D : Type u₂) [category.{v₂} D] : (ind C ⥤ D) ⥤ (C ⥤ D) :=
+-- (whiskering_left _ _ _).obj (ind_embed C)
+
+-- def left_adj (D : Type u₂) [category.{v₂} D] (F : C ⥤ D) : ind C ⥤ D :=
+-- adjunction.left_adjoint_of_equiv _ _
+
+@[simps]
+noncomputable def ind_extend (D : Type u₂) [category.{v₂} D] (F : C ⥤ D)
+  [Π (J : Type (max u₁ w)) [category.{v₁} J], by exactI Π [is_filtered J], has_colimits_of_shape J D] :
+  ind.{w} C ⥤ D :=
+{ obj := λ X,
+  begin
+    haveI : is_filtered _ := X.2,
+    apply colimit ((category_of_elements.π X.1).left_op ⋙ F),
+  end,
+  map := λ X Y f,
+  begin
+    -- haveI : is_filtered _ := X.2,
+    haveI : is_filtered _ := Y.2,
+    apply colimit.desc _ ⟨_, _⟩,
+    apply whisker_left
+            (category_of_elements.map f).op
+            (colimit.cocone ((category_of_elements.π Y.1).left_op ⋙ F)).ι,
+  end,
+  map_id' := λ X,
+  begin
+    symmetry,
+    haveI : is_filtered _ := X.2,
+    refine (colimit.is_colimit _).uniq ⟨_, _⟩ _ _,
+    intro j,
+    op_induction j,
+    cases j,
+    dsimp,
+    simp,
+    refl,
+  end,
+  map_comp' := λ X Y Z f g,
+  begin
+    symmetry,
+    haveI : is_filtered _ := X.2,
+    refine (colimit.is_colimit _).uniq ⟨_, _⟩ _ _,
+    intro j,
+    op_induction j,
+    cases j,
+    dsimp,
+    simp,
+    refl,
+  end
+}
+
 
 def is_set_flat_of_filtered_colimit_of_representables
   {C : Type u₁} [category.{v₁} C]

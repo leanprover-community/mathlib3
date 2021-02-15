@@ -225,7 +225,7 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
     use [h, hh], apply quotient.eq.mpr, change h⁻¹ * (h * n) ∈ N,
     rwa [←mul_assoc, inv_mul_self, one_mul],
   end,
-(equiv_quotient_of_eq (by simp [←comap_ker])).trans
+(equiv_quotient_of_eq (by simp [comap_comap, ←comap_ker])).trans
   (quotient_ker_equiv_of_surjective φ φ_surjective)
 
 end snd_isomorphism_thm

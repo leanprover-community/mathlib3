@@ -7,6 +7,7 @@ import data.set.finite
 import data.fintype.basic
 import order.well_founded
 import order.order_iso_nat
+import algebra.pointwise
 
 /-!
 # Well-founded sets
@@ -338,20 +339,19 @@ section
 
 variables [linear_ordered_cancel_comm_monoid α] {s : set α} {t : set α}
 
-@[to_additive is_partially_well_ordered.sum_set]
+@[to_additive set.is_partially_well_ordered.sum_set]
 theorem is_partially_well_ordered.product_set
   (hs : s.is_partially_well_ordered) (ht : t.is_partially_well_ordered) :
-  is_partially_well_ordered ((λ x : α × α, x.fst * x.snd) '' s.prod t) :=
+  is_partially_well_ordered (((λ x : α × α, x.fst * x.snd) '' s.prod t)) :=
 (is_partially_well_ordered.prod hs ht).monotone_image (λ _ _ h, mul_le_mul' h.1 h.2)
 
-@[to_additive is_wf.sum_set]
+@[to_additive set.is_wf.sum_set]
 theorem is_wf.product_set
   (hs : s.is_wf) (ht : t.is_wf) :
   is_wf ((λ x : α × α, x.fst * x.snd) '' s.prod t) :=
 (hs.is_partially_well_ordered.product_set ht.is_partially_well_ordered).is_wf
 
 end
-
 
 end set
 

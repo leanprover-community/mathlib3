@@ -82,7 +82,7 @@ The first hypothesis is that `f` is Lipschitz at `α`: this yields a bound on th
 The second hypothesis is specific to the Liouville argument and provides the missing bound
 involving the cost function `d`.
 
-This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
+This lemma collects the properties used in the proof of `exists_pos_real_of_irrational_root`.
 It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
 `R = ℝ`, `d a = a ^ f.nat_degree`, `j z a  = z / (a + 1)`, `f ∈ ℤ[x]`, `α` is an irrational
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is

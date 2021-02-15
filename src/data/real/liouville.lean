@@ -97,7 +97,7 @@ lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
   (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
 -- clear denominators
   (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) * dist (f α) (f (j z a))) :
-  ∃ M : ℝ, 0 < M ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * M) :=
+  ∃ A : ℝ, 0 < A ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * A) :=
 begin
   -- A useful inequality to keep at hand
   have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),

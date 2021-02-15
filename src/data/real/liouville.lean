@@ -175,7 +175,8 @@ theorem transcendental {x : ℝ} (liouville_x : liouville x) :
   -- non-zero (`f0`) polynomial `f`
   rintros ⟨f : polynomial ℤ, f0, ef0⟩,
   -- Change `aeval x f = 0` to `eval (map _ f) = 0`, who knew.
-  replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rwa [aeval_def, ← eval_map] at ef0 },  -- There is a "large" real number `A` such that `(b + 1) ^ (deg f) * |f (x - a / (b + 1))| * A`
+  replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rwa [aeval_def, ← eval_map] at ef0 },
+  -- There is a "large" real number `A` such that `(b + 1) ^ (deg f) * |f (x - a / (b + 1))| * A`
   -- is at least one.  This is obtained from lemma `exists_pos_real_of_irrational_root`.
   obtain ⟨A, hA, h⟩ : ∃ (A : ℝ), 0 < A ∧
     ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (x - a / (b.succ)) * A) :=
@@ -186,7 +187,8 @@ theorem transcendental {x : ℝ} (liouville_x : liouville x) :
   obtain ⟨a, b, b1, -, a1⟩ : ∃ (a b : ℤ), 1 < b ∧ x ≠ a / b ∧
     abs (x - a / b) < 1 / b ^ (r + f.nat_degree) := liouville_x (r + f.nat_degree),
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
-  -- Prove that `b ^ f.nat_degree * abs (x - a / b)` is strictly smaller than itself  -- recall, this is a proof by contradiction!
+  -- Prove that `b ^ f.nat_degree * abs (x - a / b)` is strictly smaller than itself
+  -- recall, this is a proof by contradiction!
   refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
   -- clear denominators at `a1`
   rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,

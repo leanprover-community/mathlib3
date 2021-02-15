@@ -783,9 +783,10 @@ le_antisymm (nat_degree_mul_C_le p a) (calc
   ... = ((p * C a) * C ai).nat_degree : by rw [← C_1, ← au, ring_hom.map_mul, ← mul_assoc]
   ... ≤ (p * C a).nat_degree : nat_degree_mul_C_le (p * C a) ai)
 
-/-- Although not explicitly stated, the assumptions of this lemma force the polynomial `p` to be
-non-zero, via `p.leading_coeff ≠ 0`.  The lemmas below split cases, effectively removing this
-assumption in some cases.
+/-- Although not explicitly stated, the assumptions of lemma `nat_degree_mul_C_eq_of_mul_ne_zero`
+force the polynomial `p` to be non-zero, via `p.leading_coeff ≠ 0`.
+Lemma `nat_degree_mul_C_eq_of_no_zero_divisors` below separates cases, in order to overcome this
+hurdle.
 -/
 lemma nat_degree_mul_C_eq_of_mul_ne_zero (h : p.leading_coeff * a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
@@ -795,9 +796,10 @@ begin
   rwa coeff_mul_C,
 end
 
-/-- Although not explicitly stated, the assumptions of this lemma force the polynomial `p` to be
-non-zero, via `p.leading_coeff ≠ 0`.  The lemmas below split cases, effectively removing this
-assumption in some cases.
+/-- Although not explicitly stated, the assumptions of lemma `nat_degree_C_mul_eq_of_mul_ne_zero`
+force the polynomial `p` to be non-zero, via `p.leading_coeff ≠ 0`.
+Lemma `nat_degree_C_mul_eq_of_no_zero_divisors` below separates cases, in order to overcome this
+hurdle.
 -/
 lemma nat_degree_C_mul_eq_of_mul_ne_zero (h : a * p.leading_coeff ≠ 0) :
   (C a * p).nat_degree = p.nat_degree :=

@@ -685,7 +685,7 @@ end
 
 /-- A space is totally disconnected iff its connected components are singletons. -/
 lemma totally_disconnected_space_iff_connected_component_singleton :
-  totally_disconnected_space α ↔ (∀ x : α, (connected_component x) = {x}) :=
+  totally_disconnected_space α ↔ ∀ x : α, connected_component x = {x} :=
 begin
   split,
   { intros h x,
@@ -702,7 +702,7 @@ begin
 end
 
 /-- The image of a connected component in a totally disconnected space is a singleton. -/
-@[simp] lemma image_connected_component_eq_singleton {β : Type*} [topological_space β]
+@[simp] lemma continuous.image_connected_component_eq_singleton {β : Type*} [topological_space β]
   [totally_disconnected_space β] {f : α → β} (h : continuous f) (a : α) :
   f '' connected_component a = {f a} :=
 begin
@@ -778,26 +778,27 @@ localized "notation `π₀` := pi0" in topological_space
 instance [inhabited α] : inhabited (π₀ α) := ⟨quotient.mk (default _)⟩
 instance pi0.topological_space : topological_space (π₀ α) := quotient.topological_space
 
-lemma image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
-  (h : continuous f) (a b : α) (hab : a ≈ b) : f a = f b :=
+lemma continuous.image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β]
+  {f : α → β} (h : continuous f) (a b : α) (hab : a ≈ b) : f a = f b :=
 singleton_eq_singleton_iff.1 $
-  image_connected_component_eq_singleton h a ▸
-  image_connected_component_eq_singleton h b ▸ hab ▸ rfl
+  h.image_connected_component_eq_singleton a ▸
+  h.image_connected_component_eq_singleton b ▸ hab ▸ rfl
 
 /-- The lift to `π₀ α` of a continuous map from `α` to a totally disconnected space -/
 def pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
   (h : continuous f) : π₀ α → β :=
-quotient.lift f (image_eq_of_equiv h)
+quotient.lift f h.image_eq_of_equiv
 
-lemma pi0_lift_continuous {β : Type*} [topological_space β] [totally_disconnected_space β]
-  {f : α → β} (h : continuous f) : continuous (pi0_lift h) :=
-continuous_quotient_lift (image_eq_of_equiv h) h
+@[continuity] lemma continuous.pi0_lift_continuous {β : Type*} [topological_space β]
+  [totally_disconnected_space β] {f : α → β} (h : continuous f) : continuous (pi0_lift h) :=
+continuous_quotient_lift h.image_eq_of_equiv h
 
-@[simp] lemma pi0_lift_factors {β : Type*} [topological_space β] [totally_disconnected_space β]
-  {f : α → β} (h : continuous f) : (pi0_lift h) ∘ quotient.mk = f := rfl
+@[simp] lemma continuous.pi0_lift_factors {β : Type*} [topological_space β]
+  [totally_disconnected_space β] {f : α → β} (h : continuous f) :
+  (pi0_lift h) ∘ quotient.mk = f := rfl
 
-lemma pi0_lift_unique {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
-  (h : continuous f) (g : π₀ α → β) (hg : g ∘ quotient.mk = f) : g = pi0_lift h :=
+lemma continuous.pi0_lift_unique {β : Type*} [topological_space β] [totally_disconnected_space β]
+  {f : α → β} (h : continuous f) (g : π₀ α → β) (hg : g ∘ quotient.mk = f) : g = pi0_lift h :=
 by { subst hg, ext1 x, exact quotient.induction_on x (λ a, refl _) }
 
 lemma pi0_lift_unique' {β : Type*} (g₁ : π₀ α → β) (g₂ : π₀ α → β)

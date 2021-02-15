@@ -31,10 +31,11 @@ begin
   refl
 end
 
-lemma prop_sum_of_additive {α γ} [add_comm_monoid α] [decidable_eq γ]
+lemma prop_sum_of_additive {α γ} [add_comm_monoid α]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
   ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
 begin
+  haveI : decidable_eq γ := classical.dec_eq γ,
   refine finset.induction (by simp [hp_zero]) _,
   intros a s ha h hpsa,
   rw finset.sum_insert ha,
@@ -42,10 +43,11 @@ begin
     (h (λ x hx, hpsa x (finset.mem_insert_of_mem hx))),
 end
 
-lemma prop_sum_nonempty_of_additive {α γ} [add_comm_monoid α] [decidable_eq γ]
+lemma prop_sum_nonempty_of_additive {α γ} [add_comm_monoid α]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
   ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
 begin
+  haveI : decidable_eq γ := classical.dec_eq γ,
   refine finset.induction _ _,
   { exact λ h, absurd rfl h, },
   intros a s ha h h_nonempty hpsa,
@@ -57,11 +59,11 @@ begin
 end
 
 lemma le_sum_of_subadditive_on_prop {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
-  [decidable_eq γ] (f : α → β) (h_zero : f 0 = 0) (p : α → Prop)
-  (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
+  (f : α → β) (h_zero : f 0 = 0) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
   (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
   ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
 begin
+  haveI : decidable_eq γ := classical.dec_eq γ,
   refine finset.induction (by simp [h_zero]) _,
   intros a s ha hs hsa,
   rw finset.sum_insert ha,
@@ -76,11 +78,12 @@ begin
 end
 
 lemma le_sum_nonempty_of_subadditive_on_prop {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
-  [decidable_eq γ] (f : α → β) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
+  (f : α → β) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
   (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
   ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)),
     f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
 begin
+  haveI : decidable_eq γ := classical.dec_eq γ,
   refine finset.induction _ _,
   { exact λ h, absurd rfl h, },
   rintros a s ha hs hsa_nonempty hsa_prop,

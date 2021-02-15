@@ -589,7 +589,7 @@ begin
 end
 
 lemma snorm'_sum_le [second_countable_topology E] {ι} {f : ι → α → E} {s : finset ι}
-  [decidable_eq ι] (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hq1 : 1 ≤ q) :
+  (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hq1 : 1 ≤ q) :
   snorm' (∑ i in s, f i) q μ ≤ ∑ i in s, snorm' (f i) q μ :=
 begin
   refine @finset.le_sum_of_subadditive_on_prop (α → E) ℝ≥0∞ ι _ _ _ (λ f, snorm' f q μ)
@@ -599,7 +599,7 @@ begin
 end
 
 lemma snorm_sum_le [second_countable_topology E] {ι} {f : ι → α → E} {s : finset ι}
-  [decidable_eq ι] (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hp1 : 1 ≤ p) :
+  (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hp1 : 1 ≤ p) :
   snorm (∑ i in s, f i) p μ ≤ ∑ i in s, snorm (f i) p μ :=
 begin
   refine @finset.le_sum_of_subadditive_on_prop (α → E) ℝ≥0∞ ι _ _ _ (λ f, snorm f p μ)

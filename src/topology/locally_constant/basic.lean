@@ -55,6 +55,10 @@ begin
   tfae_finish
 end
 
+@[nontriviality] lemma of_discrete [discrete_topology X] (f : X → Y) :
+  is_locally_constant f :=
+λ s, is_open_discrete _
+
 lemma is_open_fiber {f : X → Y} (hf : is_locally_constant f) (y : Y) :
   is_open {x | f x = y} :=
 hf {y}

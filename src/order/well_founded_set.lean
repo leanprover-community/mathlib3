@@ -552,11 +552,16 @@ lemma mul_antidiagonal_mono_right (hut : u ⊆ t) :
 end
 
 @[to_additive]
-theorem is_wf_support_mul_antidiagonal :
-  { a : α | (mul_antidiagonal hs ht a).nonempty }.is_wf :=
-(hs.mul ht).mono (λ x ⟨⟨a1, a2⟩, ha⟩, begin
+lemma support_mul_antidiagonal_subset_mul :
+  { a : α | (mul_antidiagonal hs ht a).nonempty } ⊆ s * t :=
+(λ x ⟨⟨a1, a2⟩, ha⟩, begin
   obtain ⟨hmul, h1, h2⟩ := mem_mul_antidiagonal.1 ha,
   exact ⟨a1, a2, h1, h2, hmul⟩,
 end)
+
+@[to_additive]
+theorem is_wf_support_mul_antidiagonal :
+  { a : α | (mul_antidiagonal hs ht a).nonempty }.is_wf :=
+(hs.mul ht).mono support_mul_antidiagonal_subset_mul
 
 end finset

@@ -275,7 +275,7 @@ begin
       exact measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst, }, },
 end
 
-lemma indep_set_iff (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure α . volume_tac) [probability_measure μ] :
   indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
 begin
@@ -288,7 +288,7 @@ lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probabi
   (hs_meas : measurable_set s) (ht_meas : measurable_set t) :
   indep_set s t μ ↔ indep_sets {s} {t} μ :=
 begin
-  rw [indep_set_iff hs_meas ht_meas μ, indep_sets],
+  rw [indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ, indep_sets],
   simp_rw set.mem_singleton_iff,
   exact ⟨λ h t1 t2 ht1 ht2, by rwa [ht1, ht2], λ h, h s t rfl rfl⟩,
 end

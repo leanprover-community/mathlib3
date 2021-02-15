@@ -367,14 +367,9 @@ the lemma implies there exists a vertex.
 lemma exists_minimal_degree_vertex [decidable_rel G.adj] [nonempty V] :
   ∃ v, G.min_degree = G.degree v :=
 begin
-  obtain ⟨t, ht⟩ := min_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
-  have ht₂ := mem_of_min ht,
-  simp only [mem_image, mem_univ, exists_prop_of_true] at ht₂,
-  rcases ht₂ with ⟨v, rfl⟩,
-  rw option.mem_def at ht,
-  refine ⟨v, _⟩,
-  rw [min_degree, ht],
-  refl
+  obtain ⟨t, ht : _ = _⟩ := min_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
+  obtain ⟨v, _, rfl⟩ := mem_image.mp (mem_of_min ht),
+  refine ⟨v, by simp [min_degree, ht]⟩,
 end
 
 /-- The minimum degree in the graph is at most the degree of any particular vertex. -/
@@ -396,7 +391,7 @@ lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : 
   k ≤ G.min_degree :=
 begin
   rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩,
-  rw ← hv,
+  rw hv,
   apply h
 end
 
@@ -426,9 +421,8 @@ end
 /-- The maximum degree in the graph is at least the degree of any particular vertex. -/
 lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
 begin
-  obtain ⟨t, ht⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
+  obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
   have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
-  rw option.mem_def at ht,
   rwa [max_degree, ht, option.get_or_else_some],
 end
 
@@ -440,21 +434,14 @@ lemma max_degree_le_of_forall_degree_le [decidable_rel G.adj] (k : ℕ)
   (h : ∀ v, G.degree v ≤ k) :
   G.max_degree ≤ k :=
 begin
-  cases (fintype.card V).eq_zero_or_pos with h₁ h₁,
-  { rw fintype.card_eq_zero_iff at h₁,
-    rw [max_degree],
-    have : (univ : finset V) = ∅,
-    { rw eq_empty_iff_forall_not_mem,
-      intro v,
-      exact (h₁ v).elim },
-    rw [this, image_empty],
-    apply nat.zero_le },
-  { have : nonempty V,
-    { rwa ←fintype.card_pos_iff },
-    resetI,
-    cases G.exists_maximal_degree_vertex with v hv,
-    rw ←hv,
-    apply h }
+  by_cases hV : (univ : finset V).nonempty,
+  { haveI : nonempty V := univ_nonempty_iff.mp hV,
+    obtain ⟨v, hv⟩ := G.exists_maximal_degree_vertex,
+    rw hv,
+    apply h },
+  { rw not_nonempty_iff_eq_empty at hV,
+    rw [max_degree, hV, image_empty],
+    exact zero_le k },
 end
 
 lemma degree_lt_card_verts [decidable_rel G.adj] (v : V) : G.degree v < fintype.card V :=
@@ -473,8 +460,8 @@ than zero.
 lemma max_degree_lt_card_verts [decidable_rel G.adj] [nonempty V] : G.max_degree < fintype.card V :=
 begin
   cases G.exists_maximal_degree_vertex with v hv,
-  rw ← hv,
-  exact G.degree_lt_card_verts v,
+  rw hv,
+  apply G.degree_lt_card_verts v,
 end
 
 lemma card_common_neighbors_le_degree_left [decidable_rel G.adj] (v w : V) :

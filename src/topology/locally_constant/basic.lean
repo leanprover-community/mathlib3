@@ -31,6 +31,12 @@ def is_locally_constant (f : X → Y) : Prop := ∀ s : set Y, is_open (f ⁻¹'
 
 namespace is_locally_constant
 
+lemma is_open_fiber {f : X → Y} (hf : is_locally_constant f) (y : Y) :
+  is_open {x | f x = y} :=
+have {x | f x = y} = f ⁻¹' {y},
+by { ext, simp only [set.mem_preimage, iff_self, set.mem_singleton_iff, set.mem_set_of_eq] },
+by { rw this, exact hf _ }
+
 lemma exists_open {f : X → Y} (hf : is_locally_constant f) (x : X) :
   ∃ (U : set X) (hU : is_open U) (hx : x ∈ U), ∀ x' ∈ U, f x' = f x :=
 ⟨f ⁻¹' {(f x)}, hf _, set.mem_singleton _, λ x' hx', set.mem_singleton_iff.mp hx'⟩
@@ -38,6 +44,14 @@ lemma exists_open {f : X → Y} (hf : is_locally_constant f) (x : X) :
 lemma exists_nhds {f : X → Y} (hf : is_locally_constant f) (x : X) :
   ∃ U ∈ 𝓝 x, ∀ x' ∈ U, f x' = f x :=
 let ⟨U, hU, hx, H⟩ := hf.exists_open x in ⟨U, mem_nhds_sets hU hx, H⟩
+
+protected lemma eventually_eq {f : X → Y} (hf : is_locally_constant f) (x : X) :
+  ∀ᶠ y in 𝓝 x, f y = f x :=
+begin
+  rw eventually_nhds_iff,
+  obtain ⟨U, hU, hx, H⟩ := hf.exists_open x,
+  exact ⟨U, H, hU, hx⟩
+end
 
 lemma iff_exists_open (f : X → Y) :
   is_locally_constant f ↔ ∀ x, ∃ (U : set X) (hU : is_open U) (hx : x ∈ U), ∀ x' ∈ U, f x' = f x :=
@@ -67,21 +81,20 @@ begin
   solve_by_elim only [H, hxV, hx', hVU]
 end
 
-lemma of_constant (f : X → Y) (h : ∃ y, ∀ x, f x = y) :
-  is_locally_constant f :=
+lemma iff_eventually_eq (f : X → Y) :
+  is_locally_constant f ↔ ∀ x, ∀ᶠ y in 𝓝 x, f y = f x :=
 begin
-  obtain ⟨y, hy⟩ := h,
-  rw iff_exists_nhds,
-  intro x,
-  refine ⟨set.univ, filter.univ_mem_sets, _⟩,
-  rintro x -,
-  rw [hy, hy]
+  refine ⟨is_locally_constant.eventually_eq, _⟩,
+  assume h,
+  rw iff_exists_open,
+  assume x,
+  specialize h x,
+  rw eventually_nhds_iff at h,
+  obtain ⟨U, H, hU, hxU⟩ := h,
+  exact ⟨U, hU, hxU, H⟩
 end
 
-lemma const (y : Y) : is_locally_constant (function.const X y) :=
-of_constant _ ⟨y, λ _, rfl⟩
-
-protected lemma continuous {_ : topological_space Y} {f : X → Y} (hf : is_locally_constant f) :
+protected lemma continuous [topological_space Y] {f : X → Y} (hf : is_locally_constant f) :
   continuous f :=
 ⟨λ U hU, hf _⟩
 
@@ -93,20 +106,58 @@ lemma iff_continuous_bot (f : X → Y) :
   is_locally_constant f ↔ @continuous X Y _ ⊥ f :=
 iff_continuous f
 
+lemma of_constant (f : X → Y) (h : ∀ x y, f x = f y) :
+  is_locally_constant f :=
+begin
+  rw iff_exists_nhds,
+  intro x,
+  refine ⟨set.univ, filter.univ_mem_sets, _⟩,
+  rintro y -,
+  exact h _ _
+end
+
+lemma const (y : Y) : is_locally_constant (function.const X y) :=
+of_constant _ $ λ _ _, rfl
+
+lemma comp {f : X → Y} (hf : is_locally_constant f) (g : Y → Z) :
+  is_locally_constant (g ∘ f) :=
+λ s, by { rw set.preimage_comp, exact hf _ }
+
+lemma comp₂ {Y₁ Y₂ Z : Type*} {f : X → Y₁} {g : X → Y₂}
+  (hf : is_locally_constant f) (hg : is_locally_constant g) (h : Y₁ → Y₂ → Z) :
+  is_locally_constant (λ x, h (f x) (g x)) :=
+begin
+  letI : topological_space Y₁ := ⊥,
+  haveI : discrete_topology Y₁ := ⟨rfl⟩,
+  letI : topological_space Y₂ := ⊥,
+  haveI : discrete_topology Y₂ := ⟨rfl⟩,
+  letI : topological_space Z := ⊥,
+  haveI : discrete_topology Z := ⟨rfl⟩,
+  rw iff_continuous_bot at hf hg ⊢,
+  let fg : X → Y₁ × Y₂ := λ x, (f x, g x),
+  have fg_ctu : continuous fg := hf.prod_mk hg,
+  let h' : Y₁ × Y₂ → Z := λ y, h y.1 y.2,
+  have h'_ctu : continuous h' := continuous_of_discrete_topology,
+  exact h'_ctu.comp fg_ctu
+end
+
+lemma comp_continuous [topological_space Y] {g : Y → Z} {f : X → Y}
+  (hg : is_locally_constant g) (hf : continuous f) :
+  is_locally_constant (g ∘ f) :=
+λ s, by { rw set.preimage_comp, exact hf.is_open_preimage _ (hg _) }
+
 lemma apply_eq_of_is_preconnected {f : X → Y} (hf : is_locally_constant f)
   (s : set X) (hs : is_preconnected s) (x y : X) (hx : x ∈ s) (hy : y ∈ s) :
   f y = f x :=
 begin
-  letI : topological_space Y := ⊥,
-  haveI : discrete_topology Y := ⟨rfl⟩,
-  have aux := is_preconnected.image hs f hf.continuous.continuous_on {f x} (f '' s \ {f x})
-    (is_open_discrete _) (is_open_discrete _),
-  simp only [set.union_diff_self, ← set.inter_diff_assoc, set.inter_self, set.inter_diff_self,
-    set.inter_empty, ← @set.ne_empty_iff_nonempty _ ∅, eq_self_iff_true, not_true, ne.def] at aux,
+  let U := f ⁻¹' {f x},
+  let V := f ⁻¹' (set.univ \ {f x}),
+  specialize hs U V (hf _) (hf _),
+  simp only [U, V, set.mem_empty_eq, set.inter_empty, set.preimage_diff, ne.def,
+    set.union_diff_self, ← set.inter_diff_assoc, set.inter_self, set.inter_diff_self,
+    ← @set.ne_empty_iff_nonempty _ ∅, not_true, eq_self_iff_true, set.preimage_univ] at hs,
   classical, by_contra hxy,
-  exact aux (set.subset_union_right _ _)
-    ⟨f x, set.mem_inter (set.mem_image_of_mem f hx) (set.mem_singleton _)⟩
-    ⟨f y, set.mem_diff_singleton.mpr ⟨set.mem_image_of_mem f hy, hxy⟩⟩
+  exact hs (λ z hz, or.inr trivial) ⟨x, hx, rfl⟩ ⟨y, ⟨hy, trivial⟩, hxy⟩,
 end
 
 lemma range_finite [compact_space X] {f : X → Y} (hf : is_locally_constant f) :
@@ -124,34 +175,17 @@ lemma one [has_one Y] : is_locally_constant (1 : X → Y) := const 1
 @[to_additive]
 lemma inv [has_inv Y] ⦃f : X → Y⦄ (hf : is_locally_constant f) :
   is_locally_constant f⁻¹ :=
-begin
-  intro s,
-  suffices : f⁻¹ ⁻¹' s = f ⁻¹' (has_inv.inv ⁻¹' s), by { rw this, exact hf _ },
-  ext, simp only [set.mem_preimage, pi.inv_apply],
-end
+hf.comp (λ x, x⁻¹)
 
 @[to_additive]
 lemma mul [has_mul Y] ⦃f g : X → Y⦄ (hf : is_locally_constant f) (hg : is_locally_constant g) :
   is_locally_constant (f * g) :=
-begin
-  letI : topological_space Y := ⊥,
-  haveI : discrete_topology Y := ⟨rfl⟩,
-  rw @iff_continuous X Y ‹_› ‹_› at hf hg ⊢,
-  exact hf.mul hg
-end
+hf.comp₂ hg (*)
 
 @[to_additive]
 lemma div [has_div Y] ⦃f g : X → Y⦄ (hf : is_locally_constant f) (hg : is_locally_constant g) :
   is_locally_constant (f / g) :=
-begin
-  rw iff_exists_open at hf hg ⊢,
-  intro x,
-  obtain ⟨U, hU, hxU, HU⟩ := hf x,
-  obtain ⟨V, hV, hxV, HV⟩ := hg x,
-  use [U ∩ V, is_open_inter hU hV, ⟨hxU, hxV⟩],
-  rintro x' ⟨hx'U, hx'V⟩,
-  simp only [pi.div_apply, HU x' hx'U, HV x' hx'V]
-end
+hf.comp₂ hg (/)
 
 end is_locally_constant
 
@@ -222,8 +256,7 @@ noncomputable
 def comap (f : X → Y) :
   locally_constant Y Z → locally_constant X Z :=
 if hf : continuous f
-then λ g, ⟨g ∘ f, λ s,
-  by { rw set.preimage_comp, apply hf.is_open_preimage, apply g.is_locally_constant }⟩
+then λ g, ⟨g ∘ f, g.is_locally_constant.comp_continuous hf⟩
 else
 begin
   by_cases H : nonempty X,

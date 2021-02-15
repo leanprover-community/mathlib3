@@ -770,9 +770,12 @@ begin
 end
 
 @[simp, to_additive]
-lemma comap_inclusion_eq_inf {H K L : subgroup G} (hH : H ≤ L) (hK : K ≤ L) :
-  comap (inclusion hH) (comap L.subtype K) = comap H.subtype (H ⊓ K) :=
-ext $ λ x, have hx : ↑x ∈ H := x.prop, by simp [hx]
+lemma comap_subtype_inf_left {H K : subgroup G} : comap H.subtype (H ⊓ K) = comap H.subtype K :=
+ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
+
+@[simp, to_additive]
+lemma comap_subtype_inf_right {H K : subgroup G} : comap K.subtype (H ⊓ K) = comap K.subtype H :=
+ext $ λ x, and_iff_left_of_imp (λ _, x.prop)
 
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`

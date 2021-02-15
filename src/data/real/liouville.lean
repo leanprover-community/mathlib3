@@ -71,7 +71,18 @@ end liouville
 
 open polynomial metric set real ring_hom
 
-/-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
+/-- Let `Z, N` be types, let `R` be a metric space, let `α : R` be a point and let
+`j : Z → N → R` be a function.  We aim to estimate how close we can get to `α`, while staying
+in the image of `j`.  The points `j z a` of `R` in the image of `j` come with a "cost" equal to
+`d a`.  As we get closer to `α` while staying in the image of `j`, we are interested in bounding
+the quantity `d a * dist α (j z a)` from below by a strictly positive amount `1 / M`: the intuition
+is that approximating `α` with the points in the image of `j` should come at a high cost.  The
+hypotheses on the function `f : R → R` provide us with sufficient conditions to ensure our goal.
+The first hypothesis is that `f` is Lipschitz at `α`: this yields a bound on the distance.
+The second hypothesis is specific to the Liouville argument and provides the missing bound
+involving the cost function `d`.
+
+This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
 It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
 `R = ℝ`, `d a = a ^ f.nat_degree`, `j z a  = z / (a + 1)`, `f ∈ ℤ[x]`, `α` is an irrational
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
@@ -86,7 +97,7 @@ lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
   (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
 -- clear denominators
   (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) * dist (f α) (f (j z a))) :
-  ∃ e : ℝ, 0 < e ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * e) :=
+  ∃ M : ℝ, 0 < M ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * M) :=
 begin
   -- A useful inequality to keep at hand
   have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),
@@ -104,13 +115,6 @@ begin
     -- remove a common factor and use the Lipschitz assumption `B`
     refine mul_le_mul_of_nonneg_left ((B this).trans _) (zero_le_one.trans (d0 a)),
     exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg }
-end
-
-lemma da {R : Type*} {s t : set R} {x : R} (h : s = t) (hx : x ∈ s) :
-  x ∈ t :=
-begin
-  have : s ⊆ t, exact h.subset,
-  exact h.subset hx,
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)

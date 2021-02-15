@@ -1048,13 +1048,14 @@ lemma default_append {d : fin 0 → ι} (ho : o = m) {i : fin o} :
   append (zero_add _).symm d u = u :=
 funext $ λ x, (default_append rfl).trans (congr_arg _ $ fin.ext rfl)
 
-lemma one_append {x : ι} (i : fin (1 + m)) :
-  append rfl (λ i : fin 1, x) u i = (fin.cons x u : fin m.succ → ι) (cast (add_comm 1 m) i) :=
+lemma append_one_eq_cons (ho : o = 1 + m) {x : ι} (i : fin o) :
+  append ho (λ i : fin 1, x) u i = (fin.cons x u : fin m.succ → ι)
+    (cast (ho.trans $ add_comm 1 m) i) :=
 begin
-  cases classical.em (cast (add_comm _ _) i = 0) with hy hy,
+  cases classical.em (cast (ho.trans $ add_comm _ _) i = 0) with hy hy,
   { rw [hy, cons_zero, append_apply_fst _ i (show (i : ℕ) < 1, by
           erw [(ext_iff _ _).1 hy, coe_zero]; exact succ_pos')] },
-  { rw [←fin.succ_pred (cast (add_comm _ _) i) hy, cons_succ,
+  { rw [←fin.succ_pred (cast (ho.trans $ add_comm _ _) i) hy, cons_succ,
         append_apply_snd _ i (λ h, hy $ fin.ext $ le_antisymm
           (nat.lt_succ_iff.1 h) (nat.zero_le _))],
     congr },
@@ -1274,6 +1275,11 @@ begin
   { rw eq_last_of_not_lt h,
     simp }
 end
+
+lemma append_one_eq_snoc {ι : Type*} {o : ℕ} {u : fin m → ι} (ho : o = m + 1)
+  {x : ι} (i : fin o) :
+  append ho u (λ i : fin 1, x) i = (snoc u x : fin m.succ → ι) (cast ho i) :=
+rfl
 
 /-- Updating the last element of a tuple does not change the beginning. -/
 @[simp] lemma init_update_last : init (update q (last n) z) = init q :=

@@ -877,7 +877,7 @@ def continuous.pi0_map {β : Type*} [topological_space β] {f : α → β} (h : 
   π₀ α → π₀ β :=
 continuous.pi0_lift (continuous_quotient_mk.comp h)
 
-def continuous.pi0_map_continuous {β : Type*} [topological_space β] {f : α → β} (h : continuous f) :
+lemma continuous.pi0_map_continuous {β : Type*} [topological_space β] {f : α → β} (h : continuous f) :
   continuous h.pi0_map :=
 continuous.pi0_lift_continuous (continuous_quotient_mk.comp h)
 

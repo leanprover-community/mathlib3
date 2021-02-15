@@ -76,7 +76,7 @@ open polynomial metric set real ring_hom
 in the image of `j`.  The points `j z a` of `R` in the image of `j` come with a "cost" equal to
 `d a`.  As we get closer to `α` while staying in the image of `j`, we are interested in bounding
 the quantity `d a * dist α (j z a)` from below by a strictly positive amount `1 / M`: the intuition
-is that approximating `α` with the points in the image of `j` should come at a high cost.  The
+is that approximating well `α` with the points in the image of `j` should come at a high cost.  The
 hypotheses on the function `f : R → R` provide us with sufficient conditions to ensure our goal.
 The first hypothesis is that `f` is Lipschitz at `α`: this yields a bound on the distance.
 The second hypothesis is specific to the Liouville argument and provides the missing bound

@@ -91,9 +91,7 @@ begin
     { exact ⟨a, multiset.mem_cons_self a s, ha⟩ },
     { apply (ih hprod).imp _,
       rintros b ⟨hb₁, hb₂⟩,
-      have this : ∃ (hr : b ∈ a ::ₘ s), b = 0,
-      use multiset.mem_cons_of_mem hb₁,
-      exacts [hb₂, this] } },
+      exact ⟨multiset.mem_cons_of_mem hb₁, hb₂⟩, }, },
 end
 
 

@@ -785,20 +785,20 @@ singleton_eq_singleton_iff.1 $
   h.image_connected_component_eq_singleton b ▸ hab ▸ rfl
 
 /-- The lift to `π₀ α` of a continuous map from `α` to a totally disconnected space -/
-def pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
+def continuous.pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
   (h : continuous f) : π₀ α → β :=
 quotient.lift f h.image_eq_of_equiv
 
 @[continuity] lemma continuous.pi0_lift_continuous {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) : continuous (pi0_lift h) :=
+  [totally_disconnected_space β] {f : α → β} (h : continuous f) : continuous h.pi0_lift :=
 continuous_quotient_lift h.image_eq_of_equiv h
 
 @[simp] lemma continuous.pi0_lift_factors {β : Type*} [topological_space β]
   [totally_disconnected_space β] {f : α → β} (h : continuous f) :
-  (pi0_lift h) ∘ quotient.mk = f := rfl
+  h.pi0_lift ∘ quotient.mk = f := rfl
 
 lemma continuous.pi0_lift_unique {β : Type*} [topological_space β] [totally_disconnected_space β]
-  {f : α → β} (h : continuous f) (g : π₀ α → β) (hg : g ∘ quotient.mk = f) : g = pi0_lift h :=
+  {f : α → β} (h : continuous f) (g : π₀ α → β) (hg : g ∘ quotient.mk = f) : g = h.pi0_lift :=
 by { subst hg, ext1 x, exact quotient.induction_on x (λ a, refl _) }
 
 lemma pi0_lift_unique' {β : Type*} (g₁ : π₀ α → β) (g₂ : π₀ α → β)
@@ -861,7 +861,8 @@ begin
 end
 
 /-- Functoriality of `π₀` -/
-def pi0_map {β : Type*} [topological_space β] {f : α → β} (h : continuous f) : π₀ α → π₀ β :=
-pi0_lift (continuous_quotient_mk.comp h)
+def continuous.pi0_map {β : Type*} [topological_space β] {f : α → β} (h : continuous f) :
+  π₀ α → π₀ β :=
+continuous.pi0_lift (continuous_quotient_mk.comp h)
 
 end connected_component_setoid

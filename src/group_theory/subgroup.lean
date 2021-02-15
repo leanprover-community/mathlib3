@@ -764,6 +764,11 @@ begin
   { intros h, rw [h, map_bot], },
 end
 
+@[simp, to_additive]
+lemma comap_inclusion_eq_inf {H K L : subgroup G} (hH : H ≤ L) (hK : K ≤ L) :
+  comap (inclusion hH) (comap L.subtype K) = comap H.subtype (H ⊓ K) :=
+ext $ λ x, have hx : ↑x ∈ H := x.prop, by simp [hx]
+
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
 as an `add_subgroup` of `A × B`."]

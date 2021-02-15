@@ -9,6 +9,7 @@ import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
 import category_theory.adjunction.basic
+import category_theory.adjunction.limits
 
 /-!
 # The category of Profinite Types
@@ -123,12 +124,5 @@ rfl
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite_to_CompHaus.reflective : reflective Profinite_to_CompHaus :=
 { to_is_right_adjoint := ⟨CompHaus_to_Profinite, adjunction.adjunction_of_equiv_left _ _⟩ }
-
-/-- The category of profinite sets is reflective in the category of topological spaces -/
-noncomputable instance : reflective Profinite_to_Top :=
-{ to_is_right_adjoint := by { rw ←Profinite_to_CompHaus_to_Top,
-    exact @adjunction.right_adjoint_of_comp _ _ _ _ _ _ _ _
-      (Profinite_to_CompHaus.reflective.to_is_right_adjoint)
-      (CompHaus_to_Top.reflective.to_is_right_adjoint)}}
 
 end Profinite

@@ -118,20 +118,17 @@ namespace mul_action
 
 variables (α)
 
-/-- The regular action of a monoid on itself by left multiplication. -/
-def regular : mul_action α α :=
-{ smul := λ a₁ a₂, a₁ * a₂,
-  one_smul := λ a, one_mul a,
-  mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
+/-- The regular action of a monoid on itself by left multiplication.
 
-section regular
-
-local attribute [instance] regular
+This is promoted to a semimodule by `semiring.to_semimodule`. -/
+instance monoid.to_mul_action : mul_action α α :=
+{ smul := (*),
+  one_smul := one_mul,
+  mul_smul := mul_assoc }
 
 instance is_scalar_tower.left : is_scalar_tower α α β :=
 ⟨λ x y z, mul_smul x y z⟩
 
-end regular
 
 variables (α β)
 

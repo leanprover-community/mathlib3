@@ -93,8 +93,6 @@ ext $ λ x, by rw [comp_apply, id_apply]
 @[simp] lemma comp_id (f : X →[M'] Y) : f.comp (mul_action_hom.id M') = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
-local attribute [instance] mul_action.regular
-
 variables {G} (H)
 
 /-- The canonical map to the left cosets. -/

@@ -173,7 +173,8 @@ begin
   ext x,
   simp only [set.mem_insert_iff, set.mem_set_of_eq],
   split; intro h,
-  { rcases is_trichotomous.trichotomous x ((is_well_order.wf : well_founded r).succ a) with c1 | c,
+  { rcases (is_trichotomous.trichotomous x ((is_well_order.wf : well_founded r).succ a) :
+      r x _ ∨ _) with c1 | c,
     { exfalso,
       cases (well_founded.lt_succ_iff h_nonempty x).1 c1 with hlt heq,
       { exact is_asymm.asymm _ _ hlt h },
@@ -181,8 +182,7 @@ begin
         have h_irr : is_irrefl α r := infer_instance,
         have h_irr' := h_irr.irrefl,
         exact h_irr' a h, } },
-    { exact c },
-    { apply_instance }, },
+    { exact c } },
   { rcases h with rfl | h,
     { exact (is_well_order.wf : well_founded r).lt_succ h_nonempty },
     { exact is_trans.trans _ _ _ ((is_well_order.wf : well_founded r).lt_succ h_nonempty) h } }
@@ -201,11 +201,10 @@ begin
       convert con.insert m,
       ext x,
       simp only [set.mem_insert_iff, true_iff, set.mem_univ, set.mem_set_of_eq],
-      rcases is_trichotomous.trichotomous x m with c1 | c,
+      rcases (is_trichotomous.trichotomous x m : r x m ∨ _) with c1 | c,
       { exfalso,
         exact well_founded.not_lt_min _ set.univ _ (set.mem_univ x) c1 },
-      { exact c },
-      { apply_instance } },
+      { exact c } },
   rw [rel_embedding.well_founded_iff_no_descending_seq, not_not],
   let f : ℕ → { a : α | ({x : α | r a x}).infinite },
   { apply nat.rec,
@@ -229,7 +228,7 @@ def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
 namespace mul_antidiagonal
 
 @[simp, to_additive]
-lemma mem_mul_antidiagonal_of_is_wf [monoid α] {s t : set α} {a : α} {x : α × α} :
+lemma mem_mul_antidiagonal [monoid α] {s t : set α} {a : α} {x : α × α} :
   x ∈ mul_antidiagonal s t a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
 
 variables [cancel_comm_monoid α] {s t : set α} {a : α}
@@ -279,20 +278,13 @@ def fst_rel_embedding : (lt_left s t a) ↪r ((<) : s → s → Prop) :=
 @[to_additive "`set.add_antidiagonal s t a` ordered by `lt_left` embeds into the dual of `t`"]
 def snd_rel_embedding : (lt_left s t a) ↪r ((>) : t → t → Prop) :=
 ⟨⟨λ x, ⟨(↑x : α × α).2, x.2.2.2⟩, λ x y hxy, eq_of_snd_eq_snd (subtype.mk_eq_mk.1 hxy)⟩,
-  λ x y, begin
-  simp only [lt_left, subtype.mk_lt_mk, gt_iff_lt, function.embedding.coe_fn_mk],
-  split; intro h,
-  { by_contra hle,
-    rw not_lt at hle,
-    have h := mul_lt_mul_of_le_of_lt hle h,
-    rw [← subtype.val_eq_coe, ← subtype.val_eq_coe, x.2.1, y.2.1] at h,
-    exact lt_irrefl a h },
-  { by_contra hle,
-    rw not_lt at hle,
-    have h := mul_lt_mul_of_le_of_lt hle h,
-    rw [← subtype.val_eq_coe, ← subtype.val_eq_coe, mul_comm, x.2.1, mul_comm, y.2.1] at h,
-    exact lt_irrefl a h }
-end⟩
+  begin
+    rintro ⟨⟨x1, x2⟩, rfl, _⟩,
+    rintro ⟨⟨y1, y2⟩, h, _⟩,
+    change x2 > y2 ↔ x1 < y1,
+    change y1 * y2 = x1 * x2 at h,
+    rw [← mul_lt_mul_iff_right x2, ← h, mul_lt_mul_iff_left],
+  end⟩
 
 variables {s} {t}
 

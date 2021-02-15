@@ -91,10 +91,10 @@ variables {A : Type*} [comm_ring A]
 
 /-- Shows that $e^{aX} * e^{bX} = e^{(a + b)X}$ -/
 theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
-  eval_mul_hom a (exp A) * eval_mul_hom b (exp A) = eval_mul_hom (a + b) (exp A) :=
+  rescale a (exp A) * rescale b (exp A) = rescale (a + b) (exp A) :=
 begin
   ext,
-  simp only [coeff_mul, exp, eval_mul_hom, coeff_mk, coe_mk, factorial,
+  simp only [coeff_mul, exp, rescale, coeff_mk, coe_mk, factorial,
     nat.sum_antidiagonal_eq_sum_range_succ_mk, add_pow, sum_mul],
   apply sum_congr rfl,
   rintros x hx,

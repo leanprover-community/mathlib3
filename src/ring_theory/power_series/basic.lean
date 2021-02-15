@@ -1014,7 +1014,7 @@ end
 open finset nat
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
-noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
+noncomputable def rescale (a : R) : power_series R →+* power_series R :=
 { to_fun :=  λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
   map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
   map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
@@ -1028,24 +1028,24 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
     intros b c H,
     rw [←H, pow_add, mul_mul_mul_comm] }, }
 
-@[simp] lemma coeff_eval_mul_hom (f : power_series R) (a : R) (n : ℕ) :
-  coeff R n (eval_mul_hom a f) = a^n * coeff R n f := coeff_mk n _
+@[simp] lemma coeff_rescale (f : power_series R) (a : R) (n : ℕ) :
+  coeff R n (rescale a f) = a^n * coeff R n f := coeff_mk n _
 
-@[simp] lemma eval_mul_hom_zero : eval_mul_hom 0 = (C R).comp (constant_coeff R) :=
+@[simp] lemma rescale_zero : rescale 0 = (C R).comp (constant_coeff R) :=
 begin
   ext,
-  simp only [function.comp_app, ring_hom.coe_comp, eval_mul_hom, ring_hom.coe_mk,
+  simp only [function.comp_app, ring_hom.coe_comp, rescale, ring_hom.coe_mk,
     power_series.coeff_mk _ _, coeff_C],
   split_ifs,
   { simp only [h, one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
   { rw [zero_pow' n h, zero_mul], },
 end
 
-lemma eval_mul_hom_zero_apply : eval_mul_hom 0 X = C R (constant_coeff R X) :=
+lemma rescale_zero_apply : rescale 0 X = C R (constant_coeff R X) :=
 by simp
 
-@[simp] lemma eval_mul_hom_one : eval_mul_hom 1 = ring_hom.id (power_series R) :=
-by { ext, simp only [ring_hom.id_apply, eval_mul_hom, one_pow, coeff_mk, one_mul,
+@[simp] lemma rescale_one : rescale 1 = ring_hom.id (power_series R) :=
+by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
   ring_hom.coe_mk], }
 
 section trunc
@@ -1173,18 +1173,18 @@ end ring
 section comm_ring
 variables {A : Type*} [comm_ring A]
 
-@[simp] lemma eval_mul_hom_neg_one_X : eval_mul_hom (-1 : A) X = -X :=
+@[simp] lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
 begin
-  ext, simp only [linear_map.map_neg, coeff_eval_mul_hom, coeff_X],
+  ext, simp only [linear_map.map_neg, coeff_rescale, coeff_X],
   split_ifs with h; simp [h]
 end
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
-eval_mul_hom (-1 : A)
+rescale (-1 : A)
 
 @[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
-eval_mul_hom_neg_one_X
+rescale_neg_one_X
 
 end comm_ring
 

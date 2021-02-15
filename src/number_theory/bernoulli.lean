@@ -219,7 +219,7 @@ begin
     bernoulli n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
   { rw [mul_eq_mul_right_iff] at h,
     cases h,
-    { simp only [eval_neg_hom, eval_mul_hom, coeff_mk, coe_mk, power_series.ext_iff,
+    { simp only [eval_neg_hom, rescale, coeff_mk, coe_mk, power_series.ext_iff,
         coeff_mk, linear_map.map_sub] at h,
       specialize h n,
       rw coeff_X n at h,

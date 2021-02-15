@@ -43,14 +43,8 @@ free abelian group with generators `x : X`.
 def free : Type u ⥤ AddCommGroup :=
 { obj := λ α, of (free_abelian_group α),
   map := λ X Y, free_abelian_group.map,
-  map_id' := λ X, add_monoid_hom.ext $ by {
-    simp only [free_abelian_group.map, types_id, coe_id, function.comp.right_id],
-    exact free_abelian_group.map_id_apply },
-  map_comp' := λ X Y Z f g, add_monoid_hom.ext $
-    by {
-      intro x,
-      simp [is_lawful_functor.comp_map, free_abelian_group.map, types_comp],
-      exact free_abelian_group.map_comp_apply x } }
+  map_id' := λ X, add_monoid_hom.ext free_abelian_group.map_id_apply,
+  map_comp' := λ X Y Z f g, add_monoid_hom.ext free_abelian_group.map_comp_apply, }
 
 @[simp] lemma free_obj_coe {α : Type u} :
   (free.obj α : Type u) = (free_abelian_group α) := rfl

@@ -7,6 +7,7 @@ import data.set.finite
 import data.fintype.basic
 import order.well_founded
 import order.order_iso_nat
+import algebra.pointwise
 
 /-!
 # Well-founded sets
@@ -338,20 +339,22 @@ section
 
 variables [linear_ordered_cancel_comm_monoid α] {s : set α} {t : set α}
 
-@[to_additive is_partially_well_ordered.sum_set]
+@[to_additive set.is_partially_well_ordered.sum_set]
 theorem is_partially_well_ordered.product_set
   (hs : s.is_partially_well_ordered) (ht : t.is_partially_well_ordered) :
-  is_partially_well_ordered ((λ x : α × α, x.fst * x.snd) '' s.prod t) :=
-(is_partially_well_ordered.prod hs ht).monotone_image (λ _ _ h, mul_le_mul' h.1 h.2)
+  is_partially_well_ordered (s * t) :=
+begin
+  rw ← image_mul_prod,
+  exact (is_partially_well_ordered.prod hs ht).monotone_image (λ _ _ h, mul_le_mul' h.1 h.2),
+end
 
-@[to_additive is_wf.sum_set]
+@[to_additive set.is_wf.sum_set]
 theorem is_wf.product_set
   (hs : s.is_wf) (ht : t.is_wf) :
-  is_wf ((λ x : α × α, x.fst * x.snd) '' s.prod t) :=
+  is_wf (s * t) :=
 (hs.is_partially_well_ordered.product_set ht.is_partially_well_ordered).is_wf
 
 end
-
 
 end set
 
@@ -525,7 +528,7 @@ variables {s t : set α} (hs : s.is_wf) (ht : t.is_wf) (a : α)
 noncomputable def mul_antidiagonal : finset (α × α) :=
 (set.mul_antidiagonal.finite_of_is_wf hs ht a).to_finset
 
-variables {hs} {ht} {a} {x : α × α}
+variables {hs} {ht} {u : set α} {hu : u.is_wf} {a} {x : α × α}
 
 @[simp, to_additive]
 lemma mem_mul_antidiagonal :
@@ -533,12 +536,28 @@ lemma mem_mul_antidiagonal :
 by simp [mul_antidiagonal]
 
 @[to_additive]
+lemma mul_antidiagonal_mono_left (hus : u ⊆ s) :
+  (finset.mul_antidiagonal hu ht a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+λ x hx, begin
+  rw mem_mul_antidiagonal at *,
+  exact ⟨hx.1, hus hx.2.1, hx.2.2⟩,
+end
+
+@[to_additive]
+lemma mul_antidiagonal_mono_right (hut : u ⊆ t) :
+  (finset.mul_antidiagonal hs hu a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+λ x hx, begin
+  rw mem_mul_antidiagonal at *,
+  exact ⟨hx.1, hx.2.1, hut hx.2.2⟩,
+end
+
+@[to_additive]
 theorem is_wf_support_mul_antidiagonal :
   { a : α | (mul_antidiagonal hs ht a).nonempty }.is_wf :=
 (hs.product_set ht).mono (λ x hx, begin
-  obtain ⟨a, ha⟩ := hx,
-  rw mem_mul_antidiagonal at ha,
-  refine ⟨a, ha.2, ha.1⟩,
+  obtain ⟨⟨a1, a2⟩, ha⟩ := hx,
+  obtain ⟨hmul, h1, h2⟩ := mem_mul_antidiagonal.1 ha,
+  exact ⟨a1, a2, h1, h2, hmul⟩,
 end)
 
 end finset

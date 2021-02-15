@@ -220,6 +220,12 @@ theorem eq_of_subset_of_subset {a b : set α} : a ⊆ b → b ⊆ a → a = b :=
 
 theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} (h : s₁ ⊆ s₂) : a ∈ s₁ → a ∈ s₂ := @h _
 
+theorem not_mem_subset {s t : set α} (hsubset : s ⊆ t) (ht : a ∉ t) : a ∉ s :=
+begin
+  by_contra hs,
+  exact absurd (mem_of_subset_of_mem hsubset hs) ht,
+end
+
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subset_def, not_forall]
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/

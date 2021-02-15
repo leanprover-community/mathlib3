@@ -694,6 +694,21 @@ begin
       using h₂ }
 end
 
+lemma indicator_summable {f : α → ℝ≥0} (hf : summable f) (s : set α) :
+  summable (s.indicator f) :=
+begin
+  refine nnreal.summable_of_le (λ a, le_trans (le_of_eq (s.indicator_apply f a)) _) hf,
+  split_ifs,
+  exact le_refl (f a),
+  exact zero_le_coe,
+end
+
+lemma tsum_indicator_ne_zero {f : α → ℝ≥0} (hf : summable f) {s : set α} (h : ∃ a ∈ s, f a ≠ 0) :
+  ∑' x, (s.indicator f) x ≠ 0 :=
+λ h', let ⟨a, ha, hap⟩ := h in
+  hap (trans (set.indicator_apply_eq_self.mpr (absurd ha)).symm
+    (((tsum_eq_zero_iff (indicator_summable hf s)).1 h') a))
+
 open finset
 
 /-- For `f : ℕ → ℝ≥0`, then `∑' k, f (k + i)` tends to zero. This does not require a summability

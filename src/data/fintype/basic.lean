@@ -698,7 +698,7 @@ lemma exists_pair_of_one_lt_card (h : 1 < card α) : ∃ (a b : α), a ≠ b :=
 by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
 
 lemma card_eq_one_of_forall_eq {i : α} (h : ∀ j, j = i) : card α = 1 :=
-le_antisymm (card_le_one_iff.2 (λ a b, eq.trans (h a) (h b).symm)) (card_pos.2 ⟨i, mem_univ _⟩)
+fintype.card_eq_one_iff.2 ⟨i,h⟩
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact

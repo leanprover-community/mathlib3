@@ -2206,6 +2206,10 @@ lemma tendsto_pure_left {f : α → β} {a : α} {l : filter β} :
   tendsto f (pure a) l ↔ ∀ s ∈ l, f a ∈ s :=
 iff.rfl
 
+@[simp] lemma map_inf_principal_preimage {f : α → β} {s : set β} {l : filter α} :
+  map f (l ⊓ 𝓟 (f ⁻¹' s)) = map f l ⊓ 𝓟 s :=
+filter.ext $ λ t, by simp only [mem_map, mem_inf_principal, mem_set_of_eq, mem_preimage]
+
 /-- If two filters are disjoint, then a function cannot tend to both of them along a non-trivial
 filter. -/
 lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β} (hf : tendsto f a b₁)
@@ -2213,20 +2217,23 @@ lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β
   ¬ tendsto f a b₂ :=
 λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot.ne hb.eq_bot
 
-lemma tendsto_if {l₁ : filter α} {l₂ : filter β}
-    {f g : α → β} {p : α → Prop} [decidable_pred p]
-    (h₀ : tendsto f (l₁ ⊓ 𝓟 p) l₂)
-    (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
+lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop} [∀ x, decidable (p x)]
+  (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
   tendsto (λ x, if p x then f x else g x) l₁ l₂ :=
 begin
-  revert h₀ h₁, simp only [tendsto_def, mem_inf_principal],
-  intros h₀ h₁ s hs,
-  apply mem_sets_of_superset (inter_mem_sets (h₀ s hs) (h₁ s hs)),
-  rintros x ⟨hp₀, hp₁⟩, simp only [mem_preimage],
-  by_cases h : p x,
-  { rw if_pos h, exact hp₀ h },
-  rw if_neg h, exact hp₁ h
+  simp only [tendsto_def, mem_inf_principal] at *,
+  intros s hs,
+  filter_upwards [h₀ s hs, h₁ s hs],
+  simp only [mem_preimage], intros x hp₀ hp₁,
+  split_ifs,
+  exacts [hp₀ h, hp₁ h]
 end
+
+lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
+  {s : set α} [∀ x, decidable (x ∈ s)]
+  (h₀ : tendsto f (l₁ ⊓ 𝓟 s) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 sᶜ) l₂) :
+  tendsto (piecewise s f g) l₁ l₂ :=
+h₀.if h₁
 
 /-! ### Products of filters -/
 

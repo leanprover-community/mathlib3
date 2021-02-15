@@ -275,6 +275,10 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   ..cardinal.order_bot,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
 
+noncomputable instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ .. (infer_instance : canonically_ordered_add_monoid cardinal.{u}),
+  .. cardinal.linear_order }
+
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 

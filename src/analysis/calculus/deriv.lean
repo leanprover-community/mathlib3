@@ -192,6 +192,12 @@ protected lemma has_strict_fderiv_at.has_strict_deriv_at {f' : 𝕜 →L[𝕜] F
   has_strict_fderiv_at f f' x → has_strict_deriv_at f (f' 1) x :=
 has_strict_fderiv_at_iff_has_strict_deriv_at.mp
 
+lemma has_strict_deriv_at_iff_has_strict_fderiv_at :
+  has_strict_deriv_at f f' x ↔ has_strict_fderiv_at f (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') x :=
+iff.rfl
+
+alias has_strict_deriv_at_iff_has_strict_fderiv_at ↔ has_strict_deriv_at.has_strict_fderiv_at _
+
 /-- Expressing `has_deriv_at f f' x` in terms of `has_fderiv_at` -/
 lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
   has_deriv_at f f' x ↔
@@ -929,6 +935,10 @@ theorem has_deriv_within_at.const_sub (c : F) (hf : has_deriv_within_at f f' s x
   has_deriv_within_at (λ x, c - f x) (-f') s x :=
 hf.const_sub c
 
+theorem has_strict_deriv_at.const_sub (c : F) (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, c - f x) (-f') x :=
+by simpa only [sub_eq_add_neg] using hf.neg.const_add c
+
 theorem has_deriv_at.const_sub (c : F) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, c - f x) (-f') x :=
 hf.const_sub c
@@ -1054,6 +1064,11 @@ theorem has_deriv_at_filter.comp_has_fderiv_at_filter {f : E → 𝕜} {f' : E �
   (hf : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (h₁ ∘ f) (h₁' • f') x L :=
 by { convert has_fderiv_at_filter.comp x hh₁ hf, ext x, simp [mul_comm] }
+
+theorem has_strict_deriv_at.comp_has_strict_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
+  (hh₁ : has_strict_deriv_at h₁ h₁' (f x)) (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (h₁ ∘ f) (h₁' • f') x :=
+by { rw has_strict_deriv_at at hh₁, convert hh₁.comp x hf, ext x, simp [mul_comm] }
 
 theorem has_deriv_at.comp_has_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
   (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_at f f' x) :
@@ -1263,6 +1278,13 @@ begin
   exact hc.mul_const d
 end
 
+theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : 𝕜) :
+  has_strict_deriv_at (λ y, c y * d) (c' * d) x :=
+begin
+  convert hc.mul (has_strict_deriv_at_const x d),
+  rw [mul_zero, add_zero]
+end
+
 lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
   (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
   deriv_within (λ y, c y * d) s x = deriv_within c s x * d :=
@@ -1284,6 +1306,13 @@ theorem has_deriv_at.const_mul (c : 𝕜) (hd : has_deriv_at d d' x) :
 begin
   rw [← has_deriv_within_at_univ] at *,
   exact hd.const_mul c
+end
+
+theorem has_strict_deriv_at.const_mul (c : 𝕜) (hd : has_strict_deriv_at d d' x) :
+  has_strict_deriv_at (λ y, c * d y) (c * d') x :=
+begin
+  convert (has_strict_deriv_at_const _ _).mul hd,
+  rw [zero_mul, zero_add]
 end
 
 lemma deriv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)
@@ -1416,11 +1445,16 @@ lemma has_deriv_within_at.div
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) (hx : d x ≠ 0) :
   has_deriv_within_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) s x :=
 begin
-  have A : (d x)⁻¹ * (d x)⁻¹ * (c' * d x) = (d x)⁻¹ * c',
-    by rw [← mul_assoc, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel hx, one_mul],
   convert hc.mul ((has_deriv_at_inv hx).comp_has_deriv_within_at x hd),
-  simp [div_eq_inv_mul, pow_two, mul_inv', mul_add, A, sub_eq_add_neg],
-  ring
+  field_simp, ring
+end
+
+lemma has_strict_deriv_at.div (hc : has_strict_deriv_at c c' x) (hd : has_strict_deriv_at d d' x)
+  (hx : d x ≠ 0) :
+  has_strict_deriv_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) x :=
+begin
+  convert hc.mul ((has_strict_deriv_at_inv hx).comp x hd),
+  field_simp, ring
 end
 
 lemma has_deriv_at.div (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) (hx : d x ≠ 0) :
@@ -1512,6 +1546,17 @@ theorem has_strict_deriv_at.of_local_left_inverse {f g : 𝕜 → 𝕜} {f' a : 
   (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
   has_strict_deriv_at g f'⁻¹ a :=
 (hf.has_strict_fderiv_at_equiv hf').of_local_left_inverse hg hfg
+
+/-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has a
+nonzero derivative `f'` at `f.symm a` in the strict sense, then `f.symm` has the derivative `f'⁻¹`
+at `a` in the strict sense.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+lemma local_homeomorph.has_strict_deriv_at_symm (f : local_homeomorph 𝕜 𝕜) {a f' : 𝕜}
+  (ha : a ∈ f.target) (hf' : f' ≠ 0) (htff' : has_strict_deriv_at f f' (f.symm a)) :
+  has_strict_deriv_at f.symm f'⁻¹ a :=
+htff'.of_local_left_inverse (f.symm.continuous_at ha) hf' (f.eventually_right_inverse ha)
 
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
 invertible derivative `f'` at `g a`, then `g` has the derivative `f'⁻¹` at `a`.

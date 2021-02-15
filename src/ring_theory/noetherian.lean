@@ -200,17 +200,7 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
-lemma singleton_span_is_compact_element (x : M) :
-  complete_lattice.is_compact_element (span R {x} : submodule R M) :=
-begin
-  rw complete_lattice.is_compact_element_iff_le_of_directed_Sup_le,
-  intros d hemp hdir hsup,
-  have : x ∈ Sup d, from (le_def.mp hsup) (mem_span_singleton_self x),
-  obtain ⟨y, ⟨hyd, hxy⟩⟩ := (mem_Sup_of_directed hemp hdir).mp this,
-  exact ⟨y, ⟨hyd, by simpa only [span_le, singleton_subset_iff]⟩⟩,
-end
-
-/-- Finitely generated submodules are precisely compact elements in the submodule lattice -/
+/-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
 theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
 begin
   classical,
@@ -237,12 +227,6 @@ begin
       ←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
     exact ⟨t, ssup⟩, },
 end
-
-instance : is_compactly_generated (submodule R M) :=
-⟨λ s, ⟨(λ x, span R {x}) '' s, ⟨λ t ht, begin
-  rcases (set.mem_image _ _ _).1 ht with ⟨x, hx, rfl⟩,
-  apply singleton_span_is_compact_element,
-end, by rw [Sup_eq_supr, supr_image, ←span_eq_supr_of_singleton_spans, span_eq]⟩⟩⟩
 
 end submodule
 
@@ -361,53 +345,10 @@ open is_noetherian submodule function
 theorem is_noetherian_iff_well_founded
   {R M} [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
-⟨λ h, begin
-  refine rel_embedding.well_founded_iff_no_descending_seq.2 _,
-  rintro ⟨⟨N, hN⟩⟩,
-  let Q := ⨆ n, N n,
-  resetI,
-  rcases submodule.fg_def.1 (noetherian Q) with ⟨t, h₁, h₂⟩,
-  have hN' : ∀ {a b}, a ≤ b → N a ≤ N b :=
-    λ a b, (strict_mono.le_iff_le (λ _ _, hN.2)).2,
-  have : t ⊆ ⋃ i, (N i : set M),
-  { rw [← submodule.coe_supr_of_directed N _],
-    { show t ⊆ Q, rw ← h₂,
-      apply submodule.subset_span },
-    { exact λ i j, ⟨max i j,
-        hN' (le_max_left _ _),
-        hN' (le_max_right _ _)⟩ } },
-  simp [subset_def] at this,
-  choose f hf using show ∀ x : t, ∃ (i : ℕ), x.1 ∈ N i, { simpa },
-  cases h₁ with h₁,
-  let A := finset.sup (@finset.univ t h₁) f,
-  have : Q ≤ N A,
-  { rw ← h₂, apply submodule.span_le.2,
-    exact λ x h, hN' (finset.le_sup (@finset.mem_univ t h₁ _))
-      (hf ⟨x, h⟩) },
-  exact not_le_of_lt (hN.2 (nat.lt_succ_self A))
-    (le_trans (le_supr _ _) this)
-  end,
-  begin
-    assume h, split, assume N,
-    suffices : ∀ P ≤ N, ∃ s, finite s ∧ P ⊔ submodule.span R s = N,
-    { rcases this ⊥ bot_le with ⟨s, hs, e⟩,
-      exact submodule.fg_def.2 ⟨s, hs, by simpa using e⟩ },
-    refine λ P, h.induction P _, intros P IH PN,
-    letI := classical.dec,
-    by_cases h : ∀ x, x ∈ N → x ∈ P,
-    { cases le_antisymm PN h, exact ⟨∅, by simp⟩ },
-    { simp [not_forall] at h,
-      rcases h with ⟨x, h, h₂⟩,
-      have : ¬P ⊔ submodule.span R {x} ≤ P,
-      { intro hn, apply h₂,
-        have := le_trans le_sup_right hn,
-        exact submodule.span_le.1 this (mem_singleton x) },
-      rcases IH (P ⊔ submodule.span R {x})
-        ⟨@le_sup_left _ _ P _, this⟩
-        (sup_le PN (submodule.span_le.2 (by simpa))) with ⟨s, hs, hs₂⟩,
-      refine ⟨insert x s, hs.insert x, _⟩,
-      rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
-  end⟩
+begin
+  rw (complete_lattice.well_founded_characterisations $ submodule R M).out 0 3,
+  exact ⟨λ ⟨h⟩, λ k, (fg_iff_compact k).mp (h k), λ h, ⟨λ k, (fg_iff_compact k).mpr (h k)⟩⟩,
+end
 
 lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=

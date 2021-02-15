@@ -119,7 +119,7 @@ lemma read_append_list_left' (b : buffer α) (l : list α) {i : ℕ}
 begin
   induction l with hd tl hl generalizing b,
   { refl },
-  { have hb : i < ((b.push_back hd).append_list tl).size := by convert h,
+  { have hb : i < ((b.push_back hd).append_list tl).size := by convert h using 1,
     have hb' : i < (b.push_back hd).size := by { convert nat.lt_succ_of_lt h', simp },
     have : (append_list b (hd :: tl)).read ⟨i, h⟩ =
       read ((push_back b hd).append_list tl) ⟨i, hb⟩ := rfl,
@@ -142,6 +142,7 @@ begin
     { rw [list.length, nat.succ_lt_succ_iff] at h,
       have : b.size + i.succ = (b.push_back hd).size + i,
         { simp [add_comm, add_left_comm, nat.succ_eq_add_one] },
+      rw list.nth_le,
       convert hl (b.push_back hd) h } }
 end
 
@@ -155,7 +156,8 @@ begin
     cases i,
     { convert read_append_list_left _ _ _,
       simp },
-    { convert read_append_list_right _ _ _,
+    { rw list.nth_le,
+      convert read_append_list_right _ _ _,
       simp [nat.succ_eq_add_one, add_comm] } }
 end
 

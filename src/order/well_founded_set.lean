@@ -339,8 +339,8 @@ section
 
 variables [linear_ordered_cancel_comm_monoid α] {s : set α} {t : set α}
 
-@[to_additive set.is_partially_well_ordered.sum_set]
-theorem is_partially_well_ordered.product_set
+@[to_additive]
+theorem is_partially_well_ordered.mul
   (hs : s.is_partially_well_ordered) (ht : t.is_partially_well_ordered) :
   is_partially_well_ordered (s * t) :=
 begin
@@ -348,11 +348,11 @@ begin
   exact (is_partially_well_ordered.prod hs ht).monotone_image (λ _ _ h, mul_le_mul' h.1 h.2),
 end
 
-@[to_additive set.is_wf.sum_set]
-theorem is_wf.product_set
+@[to_additive]
+theorem is_wf.mul
   (hs : s.is_wf) (ht : t.is_wf) :
   is_wf (s * t) :=
-(hs.is_partially_well_ordered.product_set ht.is_partially_well_ordered).is_wf
+(hs.is_partially_well_ordered.mul ht.is_partially_well_ordered).is_wf
 
 end
 
@@ -537,7 +537,7 @@ by simp [mul_antidiagonal]
 
 @[to_additive]
 lemma mul_antidiagonal_mono_left (hus : u ⊆ s) :
-  (finset.mul_antidiagonal hu ht a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+  (mul_antidiagonal hu ht a) ⊆ (mul_antidiagonal hs ht a) :=
 λ x hx, begin
   rw mem_mul_antidiagonal at *,
   exact ⟨hx.1, hus hx.2.1, hx.2.2⟩,
@@ -545,7 +545,7 @@ end
 
 @[to_additive]
 lemma mul_antidiagonal_mono_right (hut : u ⊆ t) :
-  (finset.mul_antidiagonal hs hu a) ⊆ (finset.mul_antidiagonal hs ht a) :=
+  (mul_antidiagonal hs hu a) ⊆ (mul_antidiagonal hs ht a) :=
 λ x hx, begin
   rw mem_mul_antidiagonal at *,
   exact ⟨hx.1, hx.2.1, hut hx.2.2⟩,
@@ -554,8 +554,7 @@ end
 @[to_additive]
 theorem is_wf_support_mul_antidiagonal :
   { a : α | (mul_antidiagonal hs ht a).nonempty }.is_wf :=
-(hs.product_set ht).mono (λ x hx, begin
-  obtain ⟨⟨a1, a2⟩, ha⟩ := hx,
+(hs.mul ht).mono (λ x ⟨⟨a1, a2⟩, ha⟩, begin
   obtain ⟨hmul, h1, h2⟩ := mem_mul_antidiagonal.1 ha,
   exact ⟨a1, a2, h1, h2, hmul⟩,
 end)

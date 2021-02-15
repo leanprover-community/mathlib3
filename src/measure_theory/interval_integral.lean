@@ -1424,7 +1424,58 @@ end
 /-!
 ### Integration
 -/
-open real
+open real set
+
+lemma not_mem_subset {a : ℝ} {s t : set ℝ} (hsubset : s ⊆ t) (ht : a ∉ t) : a ∉ s :=
+λ hs, ht (mem_of_subset_of_mem hsubset hs)
+
+lemma not_mem_Ici_of_lt {a c : ℝ} (ha : c < a) : c ∉ Ici a :=
+by rwa [mem_Ici, not_le]
+
+lemma not_mem_Iic_of_gt {b c : ℝ} (hb : b < c) : c ∉ Iic b :=
+by rwa [mem_Iic, not_le]
+
+lemma not_mem_Icc_of_lt {a b c : ℝ} (ha : c < a) : c ∉ Icc a b :=
+not_mem_subset Icc_subset_Ici_self (not_mem_Ici_of_lt ha)
+
+lemma not_mem_Icc_of_gt {a b c : ℝ} (hb : b < c) : c ∉ Icc a b :=
+not_mem_subset Icc_subset_Iic_self (not_mem_Iic_of_gt hb)
+
+lemma not_mem_interval_of_lt {a b c : ℝ} (ha : c < a) (hb : c < b) : c ∉ interval a b :=
+by simpa only [interval] using not_mem_Icc_of_lt (lt_min_iff.mpr ⟨ha, hb⟩)
+
+lemma not_mem_interval_of_gt {a b c : ℝ} (ha : a < c) (hb : b < c) : c ∉ interval a b :=
+by simpa only [interval] using not_mem_Icc_of_gt (max_lt_iff.mpr ⟨ha, hb⟩)
+
+lemma log_div {x y:ℝ} (hx : x ≠ 0) (hy : y ≠ 0) : log (x / y) = log x - log y :=
+exp_injective $
+by rw [exp_log_eq_abs (div_ne_zero hx hy), exp_sub, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_div]
+
+@[simp]
+lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+begin
+  have h' := λ x hx, ne_of_mem_of_not_mem hx h,
+  rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
+        (continuous_on_inv'.mono (subset_compl_singleton_iff.mpr h)),
+      log_div (h' b right_mem_interval) (h' a left_mem_interval)],
+end
+
+@[simp]
+lemma integral_inv_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+integral_inv (not_mem_interval_of_lt ha hb)
+
+@[simp]
+lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+integral_inv (not_mem_interval_of_gt ha hb)
+
+@[simp]
+lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
+begin
+  refine integral_deriv_eq_sub' _ _ _ (continuous_const.div _ (λ x, _)).continuous_on;
+  norm_num,
+  continuity,
+  nlinarith,
+end
 
 @[simp]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
@@ -1458,11 +1509,14 @@ lemma integral_one : ∫ x in a..b, (1:ℝ) = b - a :=
 by simpa using integral_pow 0
 
 -- Simple integrals are now computable by `norm_num`. Here are some examples:
-example : ∫ x in 0..real.pi, sin x = 2 := by norm_num
-example : ∫ x in 0..real.pi/4, cos x = sqrt 2 / 2 := by simp
+open_locale real
+example : ∫ x in 0..π, sin x = 2 := by norm_num
+example : ∫ x in 0..π/4, cos x = sqrt 2 / 2 := by simp
 example : ∫ x:ℝ in 2..4, x^(3:ℕ) = 60 := by norm_num
 example : ∫ x in 0..2, exp x = exp 2 - 1 := by simp
 example : ∫ x:ℝ in (-1)..2, x = 3/2 := by norm_num
-example : ∫ x:ℝ in 8..11, (1:ℝ) = 3 := by norm_num
+example : ∫ x:ℝ in 11..8, (1:ℝ) = -3 := by norm_num
+example : ∫ x:ℝ in 2..3, x⁻¹ = log (3/2) := by norm_num
+example : ∫ x:ℝ in 0..1, 1 / (1 + x^2) = π/4 := by norm_num
 
 end interval_integral

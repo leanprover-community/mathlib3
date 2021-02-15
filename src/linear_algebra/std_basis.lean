@@ -65,11 +65,16 @@ to_add_monoid_hom_injective $ add_monoid_hom.functions_ext _ _ _ h
 lemma pi_ext_iff : f = g ↔ ∀ i x, f (pi.single i x) = g (pi.single i x) :=
 ⟨λ h i x, h ▸ rfl, pi_ext⟩
 
+/-- This is used as the ext lemma instead of `linear_map.pi_ext` for reasons explained in
+note [partially-applied ext lemmas]. -/
 @[ext] lemma pi_ext' (h : ∀ i, f.comp (std_basis R φ i) = g.comp (std_basis R φ i)) : f = g :=
 begin
   refine pi_ext (λ i x, _),
   simpa only [comp_apply, coe_std_basis] using linear_map.congr_fun (h i) x
 end
+
+lemma pi_ext'_iff : f = g ↔ ∀ i, f.comp (std_basis R φ i) = g.comp (std_basis R φ i) :=
+⟨λ h i, h ▸ rfl, pi_ext'⟩
 
 end ext
 

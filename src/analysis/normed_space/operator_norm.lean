@@ -820,7 +820,7 @@ variables {𝕜 E F G}
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-/-- Multiplication in normed algebra as a linear isometry to the space of
+/-- Left multiplication in a normed algebra as a linear isometry to the space of
 continuous linear maps. -/
 def lmulₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 { to_linear_map := (algebra.lmul 𝕜 𝕜').to_linear_map.mk_continuous₂ 1 $
@@ -829,7 +829,7 @@ def lmulₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
     (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
     (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] }) }
 
-/-- Multiplication in normed algebra as a continuous bilinear map. -/
+/-- Left multiplication in a normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 (lmulₗᵢ 𝕜 𝕜').to_continuous_linear_map
 

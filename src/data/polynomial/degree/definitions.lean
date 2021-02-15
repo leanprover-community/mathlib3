@@ -939,7 +939,7 @@ end nonzero_ring
 section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : polynomial R}
 
-lemma nat_degree_mul_C_eq_of_no_zero_divisors [no_zero_divisors R] (a0 : a ≠ 0) :
+lemma nat_degree_mul_C_eq_of_no_zero_divisors (a0 : a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
 begin
   by_cases p0 : p = 0,
@@ -947,7 +947,7 @@ begin
   { exact nat_degree_mul_C_eq_of_mul_ne_zero (mul_ne_zero (leading_coeff_ne_zero.mpr p0) a0) }
 end
 
-lemma nat_degree_C_mul_eq_of_no_zero_divisors [no_zero_divisors R] (a0 : a ≠ 0) :
+lemma nat_degree_C_mul_eq_of_no_zero_divisors (a0 : a ≠ 0) :
   (C a * p).nat_degree = p.nat_degree :=
 begin
   by_cases p0 : p = 0,

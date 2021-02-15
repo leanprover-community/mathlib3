@@ -365,7 +365,7 @@ There exists a vertex of minimal degree. Note the assumption of being nonempty i
 the lemma implies there exists a vertex.
 -/
 lemma exists_minimal_degree_vertex [decidable_rel G.adj] [nonempty V] :
-  ∃ v, G.degree v = G.min_degree :=
+  ∃ v, G.min_degree = G.degree v :=
 begin
   obtain ⟨t, ht⟩ := min_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
   have ht₂ := mem_of_min ht,
@@ -411,7 +411,7 @@ There exists a vertex of maximal degree. Note the assumption of being nonempty i
 the lemma implies there exists a vertex.
 -/
 lemma exists_maximal_degree_vertex [decidable_rel G.adj] [nonempty V] :
-  ∃ v, G.degree v = G.max_degree :=
+  ∃ v, G.max_degree = G.degree v :=
 begin
   obtain ⟨t, ht⟩ := max_of_nonempty (univ_nonempty.image (λ v, G.degree v)),
   have ht₂ := mem_of_max ht,

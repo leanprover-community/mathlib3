@@ -6,7 +6,6 @@ Authors: Frédéric Dupuis, Eric Wieser
 
 import group_theory.congruence
 import linear_algebra.multilinear
-import data.equiv.fin
 
 /-!
 # Tensor product of an indexed family of semimodules over commutative semirings
@@ -429,6 +428,7 @@ begin
 end
 
 /-- The tensor product over an empty set of indices is isomorphic to the base ring -/
+@[simps symm_apply]
 def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
 { to_fun := lift ⟨λ (_ : pempty → M), (1 : R), λ v, pempty.elim, λ v, pempty.elim⟩,
   inv_fun := λ r, r • tprod R (λ v, pempty.elim v),
@@ -444,6 +444,10 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
     linear_map.map_smul, pi_tensor_product.lift.tprod],
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
+
+@[simp]
+lemma pempty_equiv_apply_tprod (f : pempty → M) : pempty_equiv (tprod R f) = 1 :=
+lift.tprod _
 
 section tmul
 

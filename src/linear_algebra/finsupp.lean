@@ -296,9 +296,7 @@ variables (S) [semimodule S N] [smul_comm_class R S N]
 /-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
 `N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
 
-When we have `comm_ring R`, `S = R` can be used (via `nat_smul_comm_class`).
-When we don't, this equiv can always be instantiated with `S = ℕ` (via
-`add_comm_monoid.nat_smul_comm_class`).
+See note [bundled maps over different rings] for why separate `R` and `S` semirings are used.
 -/
 def lsum : (α → M →ₗ[R] N) ≃ₗ[S] ((α →₀ M) →ₗ[R] N) :=
 { to_fun := λ F, {

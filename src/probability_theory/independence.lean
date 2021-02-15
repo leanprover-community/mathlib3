@@ -106,7 +106,7 @@ Indep (λ i, generate_from {s i}) μ
 
 /-- Two sets are independent if the two measurable space structures they generate are independent.
 For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
-def indep_set {α} [measurable_space α] {s t : set α} (μ : measure α . volume_tac) : Prop :=
+def indep_set {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) : Prop :=
 indep (generate_from {s}) (generate_from {t}) μ
 
 /-- A family of functions defined on the same space `α` and taking values in possibly different
@@ -121,10 +121,24 @@ Indep (λ x, measurable_space.comap (f x) (m x)) μ
 independent. For a function `f` with codomain having measurable space structure `m`, the generated
 measurable space structure is `measurable_space.comap f m`. -/
 def indep_fun {α β γ} [measurable_space α] (mβ : measurable_space β) (mγ : measurable_space γ)
-  {f : α → β} {g : α → γ} (μ : measure α . volume_tac) : Prop :=
+  (f : α → β) (g : α → γ) (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
 end definitions
+
+lemma indep_sets.probability_measure {α} [measurable_space α] {μ : measure α} [finite_measure μ]
+  {s1 s2 : set (set α)} (hs1 : set.univ ∈ s1) (hs2 : set.univ ∈ s2)
+  (hμ : μ ≠ 0) (h : indep_sets s1 s2 μ) : probability_measure μ :=
+begin
+  have h_univ := (h set.univ set.univ hs1 hs2).symm,
+  rw [←mul_one (μ (set.univ ∩ set.univ)), set.univ_inter,
+    ennreal.mul_eq_mul_left (by simp [hμ]) (measure_ne_top μ set.univ)] at h_univ,
+  exact ⟨h_univ⟩,
+end
+
+lemma indep.probability_measure {α} {m1 m2 : measurable_space α} [measurable_space α]
+  {μ : measure α} [finite_measure μ] (hμ : μ ≠ 0) (h : indep m1 m2 μ) : probability_measure μ :=
+indep_sets.probability_measure (@measurable_set.univ α m1) (@measurable_set.univ α m2) hμ h
 
 section indep
 
@@ -196,6 +210,97 @@ lemma indep_sets.Inter {α ι} [measurable_space α] {s : ι → set (set α)} {
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
 
 end indep
+
+section indep_set
+/-! ### Independence of measurable sets
+
+We prove the following equivalences on `indep_set`, for measurable sets `s,t`.
+* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
+* `indep_set s t μ ↔ indep_sets {s} {t} μ`.
+-/
+
+lemma measure_inter_compl_eq_mul_of_measure_inter_eq_mul {α} [measurable_space α] {s t : set α}
+  (μ : measure α . volume_tac) [probability_measure μ] (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (hst : μ (s ∩ t) = μ s * μ t) :
+  μ (s ∩ tᶜ) = μ s * μ tᶜ :=
+begin
+  have h_inter_compl : s ∩ tᶜ = s \ (s ∩ t),
+  by rw [set.inter_comm, set.inter_comm s, ← set.diff_eq_compl_inter, set.diff_inter_self_eq_diff],
+  rw [measure_compl ht_meas (measure_lt_top μ t), h_inter_compl,
+    measure_diff (set.inter_subset_left s _) hs_meas (hs_meas.inter ht_meas) (measure_lt_top μ _),
+    hst, measure_univ, ennreal.mul_sub (λ _ _ , measure_ne_top μ s), mul_one],
+end
+
+lemma measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul {α} [measurable_space α]
+  {s t : set α} (μ : measure α . volume_tac) [probability_measure μ] (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (hst : μ (s ∩ t) = μ s * μ t) :
+  μ (sᶜ ∩ tᶜ) = μ sᶜ * μ tᶜ :=
+begin
+  have hst' : μ (s ∩ tᶜ) = μ s * μ tᶜ,
+    from measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst,
+  rw [set.inter_comm, mul_comm] at hst' ⊢,
+  exact measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ ht_meas.compl hs_meas hst',
+end
+
+lemma indep_set_of_measure_inter {α} [measurable_space α] {s t : set α}
+  (hs_meas : measurable_set s) (ht_meas : measurable_set t) (μ : measure α . volume_tac)
+  [probability_measure μ] (hst : μ (s ∩ t) = μ s * μ t) :
+  indep_set s t μ :=
+begin
+  rw indep_set,
+  intros s' t' hs' ht',
+  rw generate_from_singleton at hs' ht',
+  cases hs',
+  { simp only [hs', measure_empty, zero_mul, set.empty_inter], },
+  cases hs',
+  { simp only [hs', measure_univ, one_mul, set.univ_inter], },
+  cases ht',
+  { simp only [ht', measure_empty, set.inter_empty, mul_zero], },
+  cases ht',
+  { simp only [ht', measure_univ, mul_one, set.inter_univ], },
+  cases hs',
+  { cases ht',
+    { simp only [hs', ht', hst], },
+    { rw set.mem_singleton_iff at ht',
+      rw [hs', ht'],
+      exact measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst, }, },
+  { rw set.mem_singleton_iff at hs',
+    cases ht',
+    { rw [hs', ht'],
+      rw [set.inter_comm, mul_comm] at hst ⊢,
+      exact measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ ht_meas hs_meas hst, },
+    { rw set.mem_singleton_iff at ht',
+      rw [hs', ht'],
+      exact measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst, }, },
+end
+
+lemma indep_set_iff {α} [measurable_space α] {s t : set α} (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ] :
+  indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+begin
+  refine ⟨λ h_indep, h_indep s t _ _, indep_set_of_measure_inter hs_meas ht_meas μ⟩,
+  { exact measurable_space.measurable_set_generate_from (set.mem_singleton s), },
+  { exact measurable_space.measurable_set_generate_from (set.mem_singleton t), },
+end
+
+lemma indep_set_iff_indep_sets_singleton {α} [measurable_space α] {s t : set α}
+  (μ : measure α . volume_tac) [probability_measure μ] (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) :
+  indep_set s t μ ↔ indep_sets {s} {t} μ :=
+begin
+  rw [indep_set_iff hs_meas ht_meas μ, indep_sets],
+  simp_rw set.mem_singleton_iff,
+  exact ⟨λ h t1 t2 ht1 ht2, by rwa [ht1, ht2], λ h, h s t rfl rfl⟩,
+end
+
+lemma indep_sets.indep_set_of_mem {α} [measurable_space α] {s1 s2 : set (set α)}
+  {t1 t2 : set α} (ht1 : t1 ∈ s1) (ht2 : t2 ∈ s2)
+  (ht1_meas : measurable_set t1) (ht2_meas : measurable_set t2)
+  (μ : measure α . volume_tac) [probability_measure μ] (h_indep : indep_sets s1 s2 μ) :
+  indep_set t1 t2 μ :=
+indep_set_of_measure_inter ht1_meas ht2_meas μ (h_indep t1 t2 ht1 ht2)
+
+end indep_set
 
 /-! ### Deducing `indep` from `Indep` -/
 section from_Indep_to_indep

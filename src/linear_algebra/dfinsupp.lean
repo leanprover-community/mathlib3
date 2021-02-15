@@ -85,24 +85,29 @@ omit dec_ι
 
 section lsum
 
-/-- Typeclass inference has a _really_ bad time finding this instance, so we have to build it
-excruciatingly. This is needed to define `dfinsupp.lsum` below.
+/-- Typeclass inference can't find `dfinsupp.add_comm_monoid` without help for this case.
+This instance allows it to be found where it is needed on the LHS of the colon in
+`dfinsupp.semimodule_of_linear_map`. -/
+instance add_comm_monoid_of_linear_map : add_comm_monoid (Π₀ (i : ι), M i →ₗ[R] N) :=
+@dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _
+
+/-- Typeclass inference can't find `dfinsupp.semimodule` without help for this case.
+This is needed to define `dfinsupp.lsum` below.
 
 The cause seems to be an inability to unify the `Π i, add_comm_monoid (M i →ₗ[R] N)` instance that
 we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a parameter to the
 `dfinsupp` type. -/
 instance semimodule_of_linear_map [semiring S] [semimodule S N] [smul_comm_class R S N] :
-  by haveI : add_comm_monoid (Π₀ i, M i →ₗ[R] N) :=
-    @dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _;
-  exactI semimodule S (Π₀ (i : ι), M i →ₗ[R] N) :=
-  let unused := S in
-  @dfinsupp.semimodule _ (λ i, M i →ₗ[R] N) _ _ _ _
+  semimodule S (Π₀ (i : ι), M i →ₗ[R] N) :=
+@dfinsupp.semimodule _ (λ i, M i →ₗ[R] N) _ _ _ _
 
 variables (S)
 
 include dec_ι
 
-/-- The `dfinsupp` version of `finsupp.lsum`. -/
+/-- The `dfinsupp` version of `finsupp.lsum`.
+
+See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
 @[simps apply symm_apply]
 def lsum [semiring S] [semimodule S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=

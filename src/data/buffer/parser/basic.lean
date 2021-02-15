@@ -644,18 +644,24 @@ begin
       have : n < cb.to_list.length := by simpa using hn,
       rwa [←buffer.nth_le_to_list _ this, ←cons_nth_le_drop_succ this, list.prefix_cons_inj] },
     { rintro ⟨h, rfl⟩,
-      use [n + 1],
-      -- simp [add_comm, add_left_comm, add_assoc, h],
-      -- by_cases hn : n < cb.size,
-      -- {
-      --   rw ←cons_nth_le_drop_succ (show n < cb.to_list.length, by simpa using hn) at h',
-      --   simpa using h' },
-      -- sorry
-    },
-  }
+      rw [list.prefix_cons_iff, tail_drop] at h,
+      by_cases hn : n < cb.size,
+      { have : n < cb.to_list.length := by simpa using hn,
+        rw ←cons_nth_le_drop_succ this at h,
+        use [n + 1, h.right],
+        simpa [add_comm, add_left_comm, add_assoc, hn] using h.left },
+      { have : cb.to_list.length ≤ n := by simpa using hn,
+        rw list.drop_eq_nil_of_le this at h,
+        simpa using h } } }
 end
 
--- TODO: add char_buf_eq_done, and str_eq_done, needs lemmas about matching buffers
+lemma str_eq_done {s : string} : str s cb n = done n' u ↔
+  n + s.length = n' ∧ s.to_list <+: (cb.to_list.drop n) :=
+begin
+  rw [str, ←buffer.to_list_to_buffer s.to_list, decorate_error_eq_done,
+      ←@decorate_error_eq_done _ (λ _, s.to_list.to_buffer.to_string) _ _ _, ←char_buf],
+  simp [char_buf_eq_done]
+end
 
 lemma one_of_eq_done {cs : list char} : one_of cs cb n = done n' c ↔
   ∃ (hn : n < cb.size), c ∈ cs ∧ n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=

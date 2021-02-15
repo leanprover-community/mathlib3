@@ -142,35 +142,35 @@ lemma mul_le_of_le_one_left' (h : b ≤ 1) : b * a ≤ a :=
 by simpa only [one_mul] using mul_le_mul_right' h a
 
 @[to_additive]
-lemma lt_of_mul_lt_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=
+lemma lt_of_mul_lt_of_one_le_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=
 (le_mul_of_one_le_right' hle).trans_lt h
 
 @[to_additive]
-lemma lt_of_mul_lt_right (h : a * b < c) (hle : 1 ≤ a) : b < c :=
+lemma lt_of_mul_lt_of_one_le_right (h : a * b < c) (hle : 1 ≤ a) : b < c :=
 (le_mul_of_one_le_left' hle).trans_lt h
 
 @[to_additive]
-lemma le_of_mul_le_left (h : a * b ≤ c) (hle : 1 ≤ b) : a ≤ c :=
+lemma le_of_mul_le_of_one_le_left (h : a * b ≤ c) (hle : 1 ≤ b) : a ≤ c :=
 (le_mul_of_one_le_right' hle).trans h
 
 @[to_additive]
-lemma le_of_mul_le_right (h : a * b ≤ c) (hle : 1 ≤ a) : b ≤ c :=
+lemma le_of_mul_le_of_one_le_right (h : a * b ≤ c) (hle : 1 ≤ a) : b ≤ c :=
 (le_mul_of_one_le_left' hle).trans h
 
 @[to_additive]
-lemma lt_of_lt_mul_left (h : a < b * c) (hle : c ≤ 1) : a < b :=
+lemma lt_of_lt_mul_of_le_one_left (h : a < b * c) (hle : c ≤ 1) : a < b :=
 h.trans_le (mul_le_of_le_one_right' hle)
 
 @[to_additive]
-lemma lt_of_lt_mul_right (h : a < b * c) (hle : b ≤ 1) : a < c :=
+lemma lt_of_lt_mul_of_le_one_right (h : a < b * c) (hle : b ≤ 1) : a < c :=
 h.trans_le (mul_le_of_le_one_left' hle)
 
 @[to_additive]
-lemma le_of_le_mul_left (h : a ≤ b * c) (hle : c ≤ 1) : a ≤ b :=
+lemma le_of_le_mul_of_le_one_left (h : a ≤ b * c) (hle : c ≤ 1) : a ≤ b :=
 h.trans (mul_le_of_le_one_right' hle)
 
-@[to_additive le_of_le_add_right]
-lemma le_of_le_mul_right' (h : a ≤ b * c) (hle : b ≤ 1) : a ≤ c :=
+@[to_additive]
+lemma le_of_le_mul_of_le_one_right (h : a ≤ b * c) (hle : b ≤ 1) : a ≤ c :=
 h.trans (mul_le_of_le_one_left' hle)
 
 @[to_additive]

@@ -219,7 +219,9 @@ We prove the following equivalences on `indep_set`, for measurable sets `s,t`.
 * `indep_set s t μ ↔ indep_sets {s} {t} μ`.
 -/
 
-lemma measure_inter_compl_eq_mul_of_measure_inter_eq_mul {α} [measurable_space α] {s t : set α}
+variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
+
+lemma measure_inter_compl_eq_mul_of_measure_inter_eq_mul
   (μ : measure α . volume_tac) [probability_measure μ] (hs_meas : measurable_set s)
   (ht_meas : measurable_set t) (hst : μ (s ∩ t) = μ s * μ t) :
   μ (s ∩ tᶜ) = μ s * μ tᶜ :=
@@ -231,8 +233,8 @@ begin
     hst, measure_univ, ennreal.mul_sub (λ _ _ , measure_ne_top μ s), mul_one],
 end
 
-lemma measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul {α} [measurable_space α]
-  {s t : set α} (μ : measure α . volume_tac) [probability_measure μ] (hs_meas : measurable_set s)
+lemma measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul (μ : measure α . volume_tac)
+  [probability_measure μ] (hs_meas : measurable_set s)
   (ht_meas : measurable_set t) (hst : μ (s ∩ t) = μ s * μ t) :
   μ (sᶜ ∩ tᶜ) = μ sᶜ * μ tᶜ :=
 begin
@@ -242,9 +244,8 @@ begin
   exact measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ ht_meas.compl hs_meas hst',
 end
 
-lemma indep_set_of_measure_inter {α} [measurable_space α] {s t : set α}
-  (hs_meas : measurable_set s) (ht_meas : measurable_set t) (μ : measure α . volume_tac)
-  [probability_measure μ] (hst : μ (s ∩ t) = μ s * μ t) :
+lemma indep_set_of_measure_inter (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [probability_measure μ] (hst : μ (s ∩ t) = μ s * μ t) :
   indep_set s t μ :=
 begin
   rw indep_set,
@@ -274,8 +275,8 @@ begin
       exact measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst, }, },
 end
 
-lemma indep_set_iff {α} [measurable_space α] {s t : set α} (hs_meas : measurable_set s)
-  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ] :
+lemma indep_set_iff (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [probability_measure μ] :
   indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
 begin
   refine ⟨λ h_indep, h_indep s t _ _, indep_set_of_measure_inter hs_meas ht_meas μ⟩,
@@ -283,9 +284,8 @@ begin
   { exact measurable_space.measurable_set_generate_from (set.mem_singleton t), },
 end
 
-lemma indep_set_iff_indep_sets_singleton {α} [measurable_space α] {s t : set α}
-  (μ : measure α . volume_tac) [probability_measure μ] (hs_meas : measurable_set s)
-  (ht_meas : measurable_set t) :
+lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probability_measure μ]
+  (hs_meas : measurable_set s) (ht_meas : measurable_set t) :
   indep_set s t μ ↔ indep_sets {s} {t} μ :=
 begin
   rw [indep_set_iff hs_meas ht_meas μ, indep_sets],
@@ -293,12 +293,11 @@ begin
   exact ⟨λ h t1 t2 ht1 ht2, by rwa [ht1, ht2], λ h, h s t rfl rfl⟩,
 end
 
-lemma indep_sets.indep_set_of_mem {α} [measurable_space α] {s1 s2 : set (set α)}
-  {t1 t2 : set α} (ht1 : t1 ∈ s1) (ht2 : t2 ∈ s2)
-  (ht1_meas : measurable_set t1) (ht2_meas : measurable_set t2)
-  (μ : measure α . volume_tac) [probability_measure μ] (h_indep : indep_sets s1 s2 μ) :
-  indep_set t1 t2 μ :=
-indep_set_of_measure_inter ht1_meas ht2_meas μ (h_indep t1 t2 ht1 ht2)
+lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ]
+  (h_indep : indep_sets S T μ) :
+  indep_set s t μ :=
+indep_set_of_measure_inter hs_meas ht_meas μ (h_indep s t hs ht)
 
 end indep_set
 

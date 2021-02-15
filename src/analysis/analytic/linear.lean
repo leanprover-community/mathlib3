@@ -53,7 +53,8 @@ protected theorem analytic_at (f : E →L[𝕜] F) (x : E) : analytic_at 𝕜 f 
 
 /-- Reinterpret a bilinear map `f : E →L[𝕜] F →L[𝕜] G` as a multilinear map
 `(E × F) [×2]→L[𝕜] G`. This multilinear map is the second term in the formal
-multilinear series expansion of `f`. -/
+multilinear series expansion of `uncurry f`. It is given by
+`f.uncurry_bilinear ![(x, y), (x', y')] = f x y'`. -/
 def uncurry_bilinear (f : E →L[𝕜] F →L[𝕜] G) : (E × F) [×2]→L[𝕜] G :=
 @continuous_linear_map.uncurry_left 𝕜 1 (λ _, E × F) G _ _ _ _ _ $
   (continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm.to_continuous_linear_map.comp $

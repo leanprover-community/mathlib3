@@ -2,7 +2,6 @@ archive/miu_language/basic.lean : line 53 : ERR_LIN : Line has more than 100 cha
 src/algebra/continued_fractions/convergents_equiv.lean : line 283 : ERR_LIN : Line has more than 100 characters
 src/algebra/continued_fractions/terminated_stable.lean : line 28 : ERR_LIN : Line has more than 100 characters
 src/algebra/free_monoid.lean : line 59 : ERR_LIN : Line has more than 100 characters
-src/algebra/group/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/algebra/group/with_one.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/algebra/module/submodule.lean : line 14 : ERR_LIN : Line has more than 100 characters
 src/algebra/ordered_group.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -14,7 +13,7 @@ src/algebraic_geometry/sheafed_space.lean : line 82 : ERR_LIN : Line has more th
 src/algebraic_geometry/stalks.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 608 : ERR_LIN : Line has more than 100 characters
-src/analysis/calculus/deriv.lean : line 1165 : ERR_LIN : Line has more than 100 characters
+src/analysis/calculus/deriv.lean : line 1175 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 22 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/tangent_cone.lean : line 250 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/times_cont_diff.lean : line 1423 : ERR_LIN : Line has more than 100 characters
@@ -38,11 +37,10 @@ src/analysis/normed_space/multilinear.lean : line 906 : ERR_LIN : Line has more 
 src/analysis/normed_space/operator_norm.lean : line 221 : ERR_LIN : Line has more than 100 characters
 src/analysis/normed_space/operator_norm.lean : line 34 : ERR_LIN : Line has more than 100 characters
 src/analysis/normed_space/operator_norm.lean : line 91 : ERR_LIN : Line has more than 100 characters
-src/analysis/special_functions/arsinh.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/analysis/special_functions/pow.lean : line 301 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/pow.lean : line 302 : ERR_LIN : Line has more than 100 characters
 src/analysis/special_functions/pow.lean : line 554 : ERR_LIN : Line has more than 100 characters
-src/analysis/special_functions/trigonometric.lean : line 1467 : ERR_LIN : Line has more than 100 characters
+src/analysis/special_functions/trigonometric.lean : line 1562 : ERR_LIN : Line has more than 100 characters
 src/analysis/specific_limits.lean : line 213 : ERR_LIN : Line has more than 100 characters
 src/analysis/specific_limits.lean : line 84 : ERR_LIN : Line has more than 100 characters
 src/category_theory/abelian/exact.lean : line 70 : ERR_LIN : Line has more than 100 characters
@@ -214,8 +212,7 @@ src/data/bitvec/core.lean : line 15 : ERR_LIN : Line has more than 100 character
 src/data/bitvec/core.lean : line 61 : ERR_LIN : Line has more than 100 characters
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/char.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/complex/basic.lean : line 109 : ERR_LIN : Line has more than 100 characters
-src/data/complex/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/data/complex/basic.lean : line 111 : ERR_LIN : Line has more than 100 characters
 src/data/complex/exponential.lean : line 1205 : ERR_LIN : Line has more than 100 characters
 src/data/complex/exponential.lean : line 1207 : ERR_LIN : Line has more than 100 characters
 src/data/complex/exponential.lean : line 1253 : ERR_LIN : Line has more than 100 characters

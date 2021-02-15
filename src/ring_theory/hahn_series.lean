@@ -22,6 +22,8 @@ import algebra.big_operators
 
 open_locale big_operators
 
+/-- If `α` is linearly ordered and `R` has zero, then `hahn_series α R` consists of
+  formal series over `α` with coefficients in `R`, whose supports are well-founded. -/
 @[ext]
 structure hahn_series (α : Type*) (R : Type*) [linear_order α] [has_zero R] :=
 (coeff : α → R)
@@ -296,18 +298,15 @@ begin
   { simp }
 end
 
-theorem support_mul_subset [semiring R] {x y : hahn_series α R} :
+theorem support_mul_subset_mul_support [semiring R] {x y : hahn_series α R} :
   {b : α | (x * y).coeff b ≠ 0} ⊆ {a : α | x.coeff a ≠ 0} + {a : α | y.coeff a ≠ 0} :=
-λ a ha, begin
-  simp only [mul_coeff, ne.def, set.mem_set_of_eq] at ha,
-  by_cases h : (finset.add_antidiagonal x.is_wf_support y.is_wf_support a).nonempty,
-  { obtain ⟨⟨x1, x2⟩, hx⟩ := h,
-    obtain ⟨hadd, h1, h2⟩ := finset.mem_add_antidiagonal.1 hx,
-    exact ⟨_, _, h1, h2, hadd⟩, },
-  { exfalso,
-    rw finset.not_nonempty_iff_eq_empty at h,
-    apply ha,
-    simp [h] }
+begin
+  apply set.subset.trans (λ x hx, _) finset.support_add_antidiagonal_subset_add,
+  { exact x.is_wf_support },
+  { exact y.is_wf_support },
+  contrapose! hx,
+  simp only [finset.not_nonempty_iff_eq_empty, ne.def, set.mem_set_of_eq] at hx,
+  simp [hx],
 end
 
 noncomputable instance [semiring R] : semiring (hahn_series α R) :=
@@ -320,8 +319,8 @@ noncomputable instance [semiring R] : semiring (hahn_series α R) :=
   one_mul := λ x, single_zero_mul_eq_smul.trans (one_smul _ _),
   mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
   mul_assoc := λ x y z, by { ext b,
-    rw [mul_coeff_left' (x.is_wf_support.sum_set y.is_wf_support) support_mul_subset,
-      mul_coeff_right' (y.is_wf_support.sum_set z.is_wf_support) support_mul_subset],
+    rw [mul_coeff_left' (x.is_wf_support.add y.is_wf_support) support_mul_subset_mul_support,
+      mul_coeff_right' (y.is_wf_support.add z.is_wf_support) support_mul_subset_mul_support],
     simp only [mul_coeff, add_coeff, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
     refine finset.sum_bij_ne_zero (λ a has ha0, ⟨⟨a.2.1, a.2.2 + a.1.2⟩, ⟨a.2.2, a.1.2⟩⟩) _ _ _ _,
     { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
@@ -379,4 +378,3 @@ noncomputable instance [comm_ring R] : comm_ring (hahn_series α R) :=
 end multiplication
 
 end hahn_series
-#lint

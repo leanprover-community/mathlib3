@@ -990,7 +990,16 @@ begin
   exact not_of_ne this zero_ne_one
 end
 
--- TODO: add ¬ static.char_buf, needs char_buf_eq_done
+lemma char_buf_iff {cb' : char_buffer} : static (char_buf cb') ↔ cb' = buffer.nil :=
+begin
+  rw ←buffer.size_eq_zero_iff,
+  have : char_buf cb' cb' 0 = done cb'.size () := by simp [char_buf_eq_done],
+  cases hc : cb'.size with n,
+  { simp only [eq_self_iff_true, iff_true],
+    exact ⟨λ _ _ _ _ h, by simpa [hc] using (char_buf_eq_done.mp h).left⟩ },
+  { rw hc at this,
+    simpa [nat.succ_ne_zero] using not_of_ne this (nat.succ_ne_zero n).symm }
+end
 
 lemma one_of_iff {cs : list char} : static (one_of cs) ↔ cs = [] :=
 begin
@@ -1017,15 +1026,7 @@ instance one_of' : static (one_of []) :=
 by { apply one_of_iff.mpr, refl }
 
 lemma str_iff {s : string} : static (str s) ↔ s = "" :=
-begin
-  cases hl : s.to_list with hd tl,
-  { simp [←string.to_list_inj, str, hl, static.decorate_error] },
-  {
-    have : str s s.to_char_buffer 0 = done s.length (),
-      { simp [str, hl, ch_eq_done], },
-
-  },
-end
+by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, ←buffer.ext_iff]
 
 instance remaining : remaining.static :=
 ⟨λ _ _ _ _ h, (remaining_eq_done.mp h).left⟩
@@ -1033,18 +1034,22 @@ instance remaining : remaining.static :=
 instance eof : eof.static :=
 static.decorate_error
 
-instance foldr_core {f : α → β → β} {b : β} [p.static] [p.mono] :
-  ∀ {reps : ℕ}, (foldr_core f p b reps).static
-| 0          := static.failure
-| (reps + 1) := begin
+instance foldr_core {f : α → β → β} [p.static] :
+  ∀ {b : β} {reps : ℕ}, (foldr_core f p b reps).static
+| _ 0          := static.failure
+| _ (reps + 1) := begin
   simp_rw parser.foldr_core,
-  sorry,
-  -- convert static.orelse,
-  -- { apply_instance },
-  -- { exact static.pure }
+  convert static.orelse,
+  { convert static.bind,
+    { apply_instance },
+    { intro,
+      convert static.bind,
+      { exact foldr_core },
+      { apply_instance } } },
+  { exact static.pure }
 end
 
-instance foldr {f : α → β → β} [p.static] [p.mono] : static (foldr f p b) :=
+instance foldr {f : α → β → β} [p.static] : static (foldr f p b) :=
 ⟨λ _ _ _ _, by { dsimp [foldr], exact of_done }⟩
 
 instance foldl_core {f : α → β → α} {p : parser β} [p.static] :
@@ -1061,43 +1066,282 @@ end
 instance foldl {f : α → β → α} {p : parser β} [p.static] : static (foldl f a p) :=
 ⟨λ _ _ _ _, by { dsimp [foldl], exact of_done }⟩
 
-instance many [p.static] [p.mono] : p.many.static :=
+instance many [p.static] : p.many.static :=
 static.foldr
 
-instance many_char {p : parser char} [p.static] [p.mono] : p.many_char.static :=
+instance many_char {p : parser char} [p.static] : p.many_char.static :=
 static.map
 
-instance many' [p.static] [p.mono] : p.many'.static :=
+instance many' [p.static] : p.many'.static :=
 static.and_then
 
-instance many1 [p.static] [p.mono] : p.many1.static :=
+instance many1 [p.static] : p.many1.static :=
 static.seq
 
-instance many_char1 {p : parser char} [p.static] [p.mono] : p.many_char1.static :=
+instance many_char1 {p : parser char} [p.static] : p.many_char1.static :=
 static.map
 
-instance sep_by1 [p.static] [sep.static] [p.mono] [sep.mono] : static (sep_by1 sep p) :=
+instance sep_by1 [p.static] [sep.static] : static (sep_by1 sep p) :=
 static.seq
 
-instance sep_by [p.static] [sep.static] [p.mono] [sep.mono] : static (sep_by sep p) :=
+instance sep_by [p.static] [sep.static] : static (sep_by sep p) :=
 static.orelse
 
-instance fix_core {F : parser α → parser α} [hF : ∀ (p : parser α), p.static → (F p).static] :
-  ∀ {max_depth : ℕ}, static (fix_core F max_depth)
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.static → (F p).static) :
+  ∀ (max_depth : ℕ), static (fix_core F max_depth)
 | 0               := static.failure
-| (max_depth + 1) := hF _ fix_core
+| (max_depth + 1) := hF _ (fix_core _)
 
-instance digit : digit.static :=
-static.decorate_error
+lemma digit : ¬ digit.static :=
+begin
+  have : digit "1".to_char_buffer 0 = done 1 1,
+    { have : 0 < "s".to_char_buffer.size := dec_trivial,
+      simpa [this] },
+  exact not_of_ne this zero_ne_one
+end
 
-instance nat : nat.static :=
-static.decorate_error
+lemma nat : ¬ nat.static :=
+begin
+  have : nat "1".to_char_buffer 0 = done 1 1,
+    { have : 0 < "s".to_char_buffer.size := dec_trivial,
+      simpa [this] },
+  exact not_of_ne this zero_ne_one
+end
 
-instance fix {F : parser α → parser α} [hF : ∀ (p : parser α), p.static → (F p).static] :
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.static → (F p).static) :
   static (fix F) :=
-⟨λ _ _, by { convert static.fix_core.le _ _, exact hF }⟩
+⟨λ cb n _ _ h,
+  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact static.of_done h }⟩
 
 end static
+
+namespace err_static
+
+variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
+  {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
+
+lemma not_of_ne (h : p cb n = fail n' err) (hne : n ≠ n') : ¬ err_static p :=
+by { introI, exact hne (of_fail h) }
+
+instance pure : err_static (pure a) :=
+⟨λ _ _ _ _, by { simp [pure_eq_done] }⟩
+
+instance bind {f : α → parser β} [p.static] [p.err_static] [∀ a, (f a).err_static] :
+  (p >>= f).err_static :=
+⟨λ cb n n' err, begin
+  rw bind_eq_fail,
+  rintro (hp | ⟨_, _, hp, hf⟩),
+  { exact of_fail hp },
+  { exact trans (static.of_done hp) (of_fail hf) }
+end⟩
+
+instance and_then {q : parser β} [p.static] [p.err_static] [q.err_static] : (p >> q).err_static :=
+err_static.bind
+
+instance map [p.err_static] {f : α → β} : (f <$> p).err_static :=
+⟨λ _ _ _ _, by { rw map_eq_fail, exact of_fail }⟩
+
+instance seq {f : parser (α → β)} [f.static] [f.err_static] [p.err_static] : (f <*> p).err_static :=
+err_static.bind
+
+instance mmap : Π {l : list α} {f : α → parser β}, (∀ a, (f a).static) → (∀ a, (f a).err_static) → (l.mmap f).err_static
+| []       _ _ _  := err_static.pure
+| (a :: l) _ h h' := begin
+  convert err_static.bind,
+  { exact h _ },
+  { exact h' _ },
+  { intro,
+    convert err_static.bind,
+    { exact static.mmap h },
+    { exact mmap h h' },
+    { exact λ _, err_static.pure } }
+end
+
+instance mmap' : Π {l : list α} {f : α → parser β}, (∀ a, (f a).static) → (∀ a, (f a).err_static) → (l.mmap' f).err_static
+| []       _ _ _  := err_static.pure
+| (a :: l) _ h h' := begin
+  convert err_static.and_then,
+  { exact h _ },
+  { exact h' _ },
+  { exact mmap' h h' }
+end
+
+instance failure : @parser.err_static α failure :=
+⟨λ _ _ _ _, by { rw [failure_eq_fail, and_comm], simp } ⟩
+
+instance guard {p : Prop} [decidable p] : err_static (guard p) :=
+⟨λ _ _ _ _, by { rw [guard_eq_fail, and.left_comm, and.comm], simp }⟩
+
+instance orelse [p.err_static] [q.mono] : (p <|> q).err_static :=
+⟨λ _ n n' _, begin
+  by_cases hn : n = n',
+  { exact λ _, hn },
+  { rw orelse_eq_fail_of_mono_ne hn,
+    { exact of_fail },
+    { apply_instance } }
+end⟩
+
+instance decorate_errors :
+  (@decorate_errors α msgs p).err_static :=
+⟨λ _ _ _ _, by { rw [decorate_errors_eq_fail, and_comm], simp }⟩
+
+instance decorate_error : (@decorate_error α msg p).err_static :=
+err_static.decorate_errors
+
+instance any_char : err_static any_char :=
+⟨λ _ _ _ _, sorry⟩
+
+lemma sat_iff {p : char → Prop} [decidable_pred p] : err_static (sat p) ↔ ∀ c, ¬ p c :=
+begin
+  split,
+  { introI,
+    intros c hc,
+    have : sat p [c].to_buffer 0 = done 1 c := by simp [sat_eq_done, hc],
+    exact zero_ne_one (of_done this) },
+  { contrapose!,
+    simp only [iff, sat_eq_done, and_imp, exists_prop, exists_and_distrib_right,
+               exists_and_distrib_left, exists_imp_distrib, not_forall],
+    rintros _ _ _ a h hne rfl hp -,
+    exact ⟨a, hp⟩ }
+end
+
+instance sat : err_static (sat (λ _, false)) :=
+by { apply sat_iff.mpr, simp }
+
+instance eps : err_static eps := err_static.pure
+
+lemma ch (c : char) : ¬ err_static (ch c) :=
+begin
+  have : ch c [c].to_buffer 0 = done 1 (),
+    { have : 0 < [c].to_buffer.size := dec_trivial,
+      simp [ch_eq_done, this] },
+  exact not_of_ne this zero_ne_one
+end
+
+lemma char_buf_iff {cb' : char_buffer} : err_static (char_buf cb') ↔ cb' = buffer.nil :=
+begin
+  rw ←buffer.size_eq_zero_iff,
+  have : char_buf cb' cb' 0 = done cb'.size () := by simp [char_buf_eq_done],
+  cases hc : cb'.size with n,
+  { simp only [eq_self_iff_true, iff_true],
+    exact ⟨λ _ _ _ _ h, by simpa [hc] using (char_buf_eq_done.mp h).left⟩ },
+  { rw hc at this,
+    simpa [nat.succ_ne_zero] using not_of_ne this (nat.succ_ne_zero n).symm }
+end
+
+lemma one_of_iff {cs : list char} : err_static (one_of cs) ↔ cs = [] :=
+begin
+  cases cs with hd tl,
+  { simp [one_of, err_static.decorate_errors] },
+  { have : one_of (hd :: tl) (hd :: tl).to_buffer 0 = done 1 hd,
+      { simp [one_of_eq_done] },
+    simpa using not_of_ne this zero_ne_one }
+end
+
+instance one_of : err_static (one_of []) :=
+by { apply one_of_iff.mpr, refl }
+
+lemma one_of'_iff {cs : list char} : err_static (one_of' cs) ↔ cs = [] :=
+begin
+  cases cs with hd tl,
+  { simp [one_of', err_static.bind], },
+  { have : one_of' (hd :: tl) (hd :: tl).to_buffer 0 = done 1 (),
+      { simp [one_of'_eq_done] },
+    simpa using not_of_ne this zero_ne_one }
+end
+
+instance one_of' : err_static (one_of []) :=
+by { apply one_of_iff.mpr, refl }
+
+lemma str_iff {s : string} : err_static (str s) ↔ s = "" :=
+by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, ←buffer.ext_iff]
+
+instance remaining : remaining.err_static :=
+⟨λ _ _ _ _ h, (remaining_eq_done.mp h).left⟩
+
+instance eof : eof.err_static :=
+err_static.decorate_error
+
+instance foldr_core {f : α → β → β} [p.err_static] :
+  ∀ {b : β} {reps : ℕ}, (foldr_core f p b reps).err_static
+| _ 0          := err_static.failure
+| _ (reps + 1) := begin
+  simp_rw parser.foldr_core,
+  convert err_static.orelse,
+  { convert err_static.bind,
+    { apply_instance },
+    { intro,
+      convert err_static.bind,
+      { exact foldr_core },
+      { apply_instance } } },
+  { exact err_static.pure }
+end
+
+instance foldr {f : α → β → β} [p.err_static] : err_static (foldr f p b) :=
+⟨λ _ _ _ _, by { dsimp [foldr], exact of_done }⟩
+
+instance foldl_core {f : α → β → α} {p : parser β} [p.err_static] :
+  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).err_static
+| _ 0          := err_static.failure
+| _ (reps + 1) := begin
+  convert err_static.orelse,
+  { convert err_static.bind,
+    { apply_instance },
+    { exact λ _, foldl_core } },
+  { exact err_static.pure }
+end
+
+instance foldl {f : α → β → α} {p : parser β} [p.err_static] : err_static (foldl f a p) :=
+⟨λ _ _ _ _, by { dsimp [foldl], exact of_done }⟩
+
+instance many [p.err_static] : p.many.err_static :=
+err_static.foldr
+
+instance many_char {p : parser char} [p.err_static] : p.many_char.err_static :=
+err_static.map
+
+instance many' [p.err_static] : p.many'.err_static :=
+err_static.and_then
+
+instance many1 [p.err_static] : p.many1.err_static :=
+err_static.seq
+
+instance many_char1 {p : parser char} [p.err_static] : p.many_char1.err_static :=
+err_static.map
+
+instance sep_by1 [p.err_static] [sep.err_static] : err_static (sep_by1 sep p) :=
+err_static.seq
+
+instance sep_by [p.err_static] [sep.err_static] : err_static (sep_by sep p) :=
+err_static.orelse
+
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.err_static → (F p).err_static) :
+  ∀ (max_depth : ℕ), err_static (fix_core F max_depth)
+| 0               := err_static.failure
+| (max_depth + 1) := hF _ (fix_core _)
+
+lemma digit : ¬ digit.err_static :=
+begin
+  have : digit "1".to_char_buffer 0 = done 1 1,
+    { have : 0 < "s".to_char_buffer.size := dec_trivial,
+      simpa [this] },
+  exact not_of_ne this zero_ne_one
+end
+
+lemma nat : ¬ nat.err_static :=
+begin
+  have : nat "1".to_char_buffer 0 = done 1 1,
+    { have : 0 < "s".to_char_buffer.size := dec_trivial,
+      simpa [this] },
+  exact not_of_ne this zero_ne_one
+end
+
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.err_static → (F p).err_static) :
+  err_static (fix F) :=
+⟨λ cb n _ _ h,
+  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact err_static.of_done h }⟩
+
+end err_static
 
 #exit
 

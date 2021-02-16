@@ -104,19 +104,17 @@ begin
     refl },
 end
 
-lemma of_fn_append {ι : Type*} {m n : ℕ} :
-  ∀ {o : ℕ} {f : fin m → ι} {g : fin n → ι} (ho : o = m + n),
-    of_fn (fin.append ho f g) = of_fn f ++ of_fn g :=
+lemma of_fn_append {β : Type*} {m n : ℕ} {o : ℕ} {f : fin m → β}
+  {g : fin n → β} (ho : o = m + n) :
+  of_fn (fin.append ho f g) = of_fn f ++ of_fn g :=
 begin
-  induction m with j hj,
-  { intros o f g ho,
-    rw zero_add at ho,
+  induction m with j hj generalizing o f g ho,
+  { rw zero_add at ho,
     rw [of_fn_zero, nil_append],
     congr,
     { exact ho },
-    { exact (fin.heq_fun_iff ho).2 (λ i, fin.default_append ho) }},
-  { intros o f g ho,
-    have hjn : o.pred = j + n := by rw [ho, nat.succ_add_eq_succ_add]; refl,
+    { exact (fin.heq_fun_iff ho).2 (λ i, fin.nil_append ho) }},
+  { have hjn : o.pred = j + n := by rw [ho, nat.succ_add_eq_succ_add]; refl,
     rw [of_fn_succ, cons_append],
     erw ←hj hjn,
     rw [of_fn_congr ((nat.succ_add_eq_succ_add _ _).symm.trans ho.symm), of_fn_succ],

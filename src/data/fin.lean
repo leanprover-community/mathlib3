@@ -903,8 +903,8 @@ operations, first about adding or removing elements at the beginning of a tuple.
 -/
 
 /-- There is exactly one tuple of size zero. -/
-instance tuple0_unique (α : fin 0 → Type u) : unique (Π i : fin 0, α i) :=
-{ default := fin_zero_elim, uniq := λ x, funext fin_zero_elim }
+instance tuple0_unique (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
+pi.unique_of_empty fin.elim0 α
 
 @[simp] lemma tuple0_le {α : Π i : fin 0, Type*} [Π i, preorder (α i)] (f g : Π i, α i) : f ≤ g :=
 fin_zero_elim

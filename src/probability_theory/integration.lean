@@ -3,13 +3,8 @@ Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Zinkevich
 -/
-import measure_theory.measure_space
-import measure_theory.borel_space
-import data.indicator_function
-import data.support
 import measure_theory.integration
 import probability_theory.independence
-import tactic.split_ifs
 
 /-!
 # Integration in Probability Theory
@@ -34,7 +29,7 @@ namespace measure_theory
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
   {Mf : measurable_space α} [M : measurable_space α] {μ : measure α}
   (hMf : Mf ≤ M) (c : ℝ≥0∞) {T : set α} (h_meas_T : M.measurable_set' T)
-  (h_ind : indep_sets Mf.measurable_set' {T} μ )
+  (h_ind : indep_sets Mf.measurable_set' {T} μ)
   {f : α → ℝ≥0∞} (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) :
   ∫⁻ a, f a * T.indicator (λ _, c) a ∂μ =
   ∫⁻ a, f a ∂μ * ∫⁻ a, T.indicator (λ _, c) a ∂μ :=

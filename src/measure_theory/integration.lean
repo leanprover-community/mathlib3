@@ -1747,5 +1747,4 @@ begin
     simp [lintegral_supr, ennreal.mul_supr, h_mf.ennreal_mul (h_mea_g _), *] }
 end
 
-
 end measure_theory

@@ -41,20 +41,43 @@ A `ℤ`-indexed chain complex `is_connective` if all objects in negative degrees
 -/
 def is_connective (C : chain_complex V) : Prop := ∀ i : ℤ, i < 0 → is_isomorphic (C.X i) 0
 
-/-- If an object `X` is isomorphic to 0, there's no need to use choice to construct
-an explicit isomorphism: the zero morphism suffices. -/
-def iso_of_is_isomorphic_zero {X : V} (P : is_isomorphic X 0) : X ≅ 0 :=
-{ hom := 0,
-  inv := 0,
-  hom_inv_id' :=
-  begin
-    casesI P,
-    rw ←P.hom_inv_id,
-    rw ←category.id_comp P.inv,
-    rw (show 𝟙 (0 : V) = 0, by simp),
-    simp,
-  end,
-  inv_hom_id' := by simp, }
+lemma is_connective.d_nonpos {C : chain_complex V} (P : is_connective C) {i : ℤ} (h : i ≤ 0) :
+  C.d i = 0 :=
+zero_of_target_iso_zero' (C.d i) (P (i-1) (by linarith))
+
+@[simp]
+lemma is_connective.d_nonpos' (C : { C : chain_complex V // is_connective C }) {i : ℤ} (h : i ≤ 0) :
+  (C : chain_complex V).d i = 0 :=
+is_connective.d_nonpos C.property h
+
+lemma is_connective.d_0 {C : chain_complex V} (P : is_connective C) : C.d 0 = 0 :=
+is_connective.d_nonpos P (le_refl _)
+
+@[simp]
+lemma is_connective.d_0' (C : { C : chain_complex V // is_connective C }) :
+  (C : chain_complex V).d 0 = 0 :=
+is_connective.d_0 C.property
+
+lemma is_connective.f_neg_left {C D : chain_complex V} (P : is_connective C) (f : C ⟶ D)
+  {i : ℤ} (h : i < 0) :
+  f.f i = 0 :=
+zero_of_source_iso_zero' (f.f i) (P i h)
+
+lemma is_connective.f_neg_right {C D : chain_complex V} (P : is_connective D) (f : C ⟶ D)
+  {i : ℤ} (h : i < 0) :
+  f.f i = 0 :=
+zero_of_target_iso_zero' (f.f i) (P i h)
+
+@[simp]
+lemma is_connective.f_neg' {C D : { C : chain_complex V // is_connective C }} (f : C ⟶ D)
+  {i : ℤ} (h : i < 0) :
+  f.f i = 0 :=
+is_connective.f_neg_left C.property f h
+
+@[simp]
+lemma is_connective.id_neg (C : { C : chain_complex V // is_connective C })
+ {i : ℤ} (h : i < 0) : (𝟙 ((C : chain_complex V).X i)) = 0 :=
+zero_of_source_iso_zero' _ (C.property i h)
 
 end
 
@@ -70,6 +93,7 @@ namespace connective_chain_complex
 
 variables {V}
 
+@[reassoc]
 lemma eq_to_hom_d (C : connective_chain_complex V) {n m : ℕ} (h : n = m) :
   eq_to_hom (congr_arg C.X (congr_arg nat.succ h)) ≫ C.d m = C.d n ≫ eq_to_hom (congr_arg C.X h) :=
 begin
@@ -185,12 +209,19 @@ end to_chain_complex
 
 open to_chain_complex
 
-@[simp] lemma int.add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
+@[simp] lemma lt_self_iff_false {α : Sort*} [partial_order α] (a : α) : a < a ↔ false :=
+by simp [lt_irrefl a]
 
-@[simp] lemma int.coe_nat_succ_pos (n : ℕ) : 0 < (n : ℤ) + 1 := sorry
+@[simp] lemma int.add_minus_one (i : ℤ) : i + -1 = i - 1 := rfl
+
+@[simp] lemma int.coe_nat_succ_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
+int.lt_add_one_iff.mpr (by simp)
 
 @[simp] lemma int.neg_succ_not_nonneg (n : ℕ) : 0 ≤ -[1+ n] ↔ false :=
 by { simp only [not_le, iff_false], exact int.neg_succ_lt_zero n, }
+
+@[simp] lemma int.neg_succ_not_pos (n : ℕ) : 0 < -[1+ n] ↔ false :=
+by { simp only [not_lt, iff_false], exact le_of_lt (int.neg_succ_lt_zero n) }
 
 @[simp] lemma int.neg_succ_sub_one (n : ℕ) : -[1+ n] - 1 = -[1+ (n+1)] := rfl
 
@@ -202,6 +233,18 @@ begin
     { simp, }, },
   { simp only [int.neg_succ_sub_one, int.to_nat], }
 end
+
+@[simp]
+lemma int.to_nat_pred_coe_succ_eq_self_of_pos {i : ℤ} (h : 0 < i) :
+  ((i.to_nat - 1 : ℕ) : ℤ) + 1 = i :=
+begin
+  cases i,
+  { cases i,
+    { simpa using h, },
+    { simp, }, },
+  { simpa using h, }
+end
+
 
 variables (V)
 
@@ -228,7 +271,7 @@ def to_chain_complex : connective_chain_complex V ⥤ { C : chain_complex V // i
         { dsimp [X_ℤ, d_ℤ],
           have h'' : 0 < i := by linarith,
           simp only [dif_pos h, dif_pos h', dif_pos h''],
-          simp,
+          simp only [category.assoc, eq_to_hom_trans_assoc],
           have w₁ : i.to_nat = i.to_nat - 1 + 1 :=
             (nat.succ_pred_eq_of_pos (by simp [h''] : 0 < i.to_nat)).symm,
           slice_rhs 2 3 { erw ←eq_to_hom_f f w₁, },
@@ -287,35 +330,164 @@ def to_connective_chain_complex :
       refl,
      end, }, }.
 
-def equivalence_unit_iso :
-  𝟭 (connective_chain_complex V) ≅ to_chain_complex V ⋙ to_connective_chain_complex V :=
-{ hom := { app := λ C,
-  { f := λ n, 𝟙 _, comm' := λ n, by { dsimp [d_ℤ], simp, refl, }, }, },
-  inv := { app := λ C,
-  { f := λ n, 𝟙 _, comm' := λ n, by { dsimp [d_ℤ], simp, refl, }, }, }, }
+/-!
+We now prepare some auxiliary definitions for
+`connective_chain_complex V ≌ { C : chain_complex V // is_connective C }`.
+That these are anything other the identities is dependent-type theory hell,
+coping with identities in `ℕ` or `ℤ` which we can't avoid because of indexing discrepancies
+between the two definitions.
+-/
+namespace equivalence
 
-def equivalence_counit_iso :
-  to_connective_chain_complex V ⋙ to_chain_complex V ≅ 𝟭 _ :=
-{ hom := { app := λ C,
+/-- The unit for the equivalence. -/
+@[simps]
+def unit_hom :
+  𝟭 (connective_chain_complex V) ⟶ to_chain_complex V ⋙ to_connective_chain_complex V :=
+{ app := λ C,
+  { f := λ n, 𝟙 _,
+    comm' := λ n, by { dsimp [d_ℤ], simp, refl, }, }, }
+
+/-- The inverse of the unit for the equivalence. -/
+@[simps]
+def unit_inv :
+  to_chain_complex V ⋙ to_connective_chain_complex V ⟶ 𝟭 (connective_chain_complex V) :=
+{ app := λ C,
+  { f := λ n, 𝟙 _,
+    comm' := λ n, by { dsimp [d_ℤ], simp, refl, }, }, }
+
+/--
+The unit isomorphism for the equivalence
+`connective_chain_complex V ≌ { C : chain_complex V // is_connective C }`.
+-/
+@[simps]
+def unit_iso :
+  𝟭 (connective_chain_complex V) ≅ to_chain_complex V ⋙ to_connective_chain_complex V :=
+{ hom := unit_hom V,
+  inv := unit_inv V, }.
+
+/-- The counit for the equivalence. -/
+@[simps]
+def counit_hom : to_connective_chain_complex V ⋙ to_chain_complex V ⟶ 𝟭 _ :=
+{ app := λ C,
   { f := λ i,
-    begin
-      dsimp [X_ℤ],
-      split_ifs,
-      { refine eq_to_hom (congr_arg C.val.X _),
-        simp [h], },
-      { simp at h,
-        exact (iso_of_is_isomorphic_zero (C.property i h)).inv, },
-    end,
+    if h : 0 ≤ i then eq_to_hom (by simp [X_ℤ, if_pos h, int.to_nat_of_nonneg h]) else
+      eq_to_hom (show ite (0 ≤ i) (C.val.X i.to_nat) 0 = 0, by simp [if_neg h]) ≫
+        (iso_of_is_isomorphic_zero (C.property i (show i < 0, by simpa using h))).inv,
     comm' :=
     begin
       ext i, dsimp [d_ℤ],
-    end, }, },
-  inv := sorry, }
+      by_cases h : 0 ≤ i,
+      { by_cases h' : 0 ≤ i - 1,
+        { have h'' : 0 < i := by linarith,
+          simp only [dif_pos h, dif_pos h', dif_pos h''],
+          simp only [category.id_comp, category.assoc, eq_to_hom_trans],
+          erw ←homological_complex.eq_to_hom_d C.val (int.to_nat_pred_coe_succ_eq_self_of_pos h''),
+          simp, refl, },
+        { rw [dif_pos h, dif_neg h'],
+          have h'' : i = 0 := by linarith,
+          subst h'',
+          simp, }, },
+      { have h' : ¬ 0 ≤ i - 1 := by linarith,
+        have h'' : ¬ 0 < i := by linarith,
+        rw [dif_neg h, dif_neg h', dif_neg h''],
+        simp at h'',
+        simp [h''], },
+    end, },
+  naturality' := λ C D f,
+  begin
+    ext i,
+    dsimp,
+    split_ifs,
+    { simp only [category.assoc, eq_to_hom_trans],
+      rw [←homological_complex.eq_to_hom_f _ (int.to_nat_of_nonneg h)],
+      simp, },
+    { simp at h, simp [h], }
+  end, }.
 
+/-- The inverse of the counit for the equivalence. -/
+@[simps]
+def counit_inv : 𝟭 _ ⟶ to_connective_chain_complex V ⋙ to_chain_complex V :=
+{ app := λ C,
+  { f := λ i,
+    if h : 0 ≤ i then eq_to_hom (by simp [X_ℤ, if_pos h, int.to_nat_of_nonneg h]) else
+      (iso_of_is_isomorphic_zero (C.property i (show i < 0, by simpa using h))).hom ≫
+        eq_to_hom (show 0 = ite (0 ≤ i) (C.val.X (i.to_nat)) 0, by simp [if_neg h]),
+    comm' :=
+    begin
+      ext i, dsimp [d_ℤ],
+      by_cases h : 0 ≤ i,
+      { by_cases h' : 0 ≤ i - 1,
+        { dsimp [X_ℤ],
+          have h'' : 0 < i := by linarith,
+          simp only [dif_pos h, dif_pos h', dif_pos h''],
+          simp only [category.id_comp, category.assoc, eq_to_hom_trans, eq_to_hom_trans_assoc],
+          erw homological_complex.eq_to_hom_d_assoc C.val
+            (int.to_nat_pred_coe_succ_eq_self_of_pos h'').symm,
+          simp, refl, },
+        { rw [dif_pos h, dif_neg h'],
+          have h'' : i = 0 := by linarith,
+          subst h'',
+          simp, }, },
+      { have h' : ¬ 0 ≤ i - 1 := by linarith,
+        have h'' : ¬ 0 < i := by linarith,
+        rw [dif_neg h, dif_neg h', dif_neg h''],
+        simp at h'',
+        simp [h''], },
+    end, },
+  naturality' := λ C D f,
+  begin
+    ext i,
+    dsimp,
+    split_ifs,
+    { simp only [eq_to_hom_trans_assoc],
+      rw [homological_complex.eq_to_hom_f_assoc _ (int.to_nat_of_nonneg h).symm],
+      simp, },
+    { simp at h, simp [h], }
+  end, }.
+
+/--
+The counit isomorphism for the equivalence
+`connective_chain_complex V ≌ { C : chain_complex V // is_connective C }`.
+-/
+@[simps]
+def counit_iso :
+  to_connective_chain_complex V ⋙ to_chain_complex V ≅ 𝟭 _ :=
+{ hom := counit_hom V,
+  inv := counit_inv V,
+  hom_inv_id' := by { ext C i, dsimp, split_ifs; simp, },
+  inv_hom_id' := begin
+    ext C i,
+    dsimp,
+    split_ifs with h,
+    { simp, },
+    { simp at h, simp [h], }
+  end, }.
+
+lemma functor_unit_iso_comp (C : connective_chain_complex V) :
+  (to_chain_complex V).map ((unit_iso V).hom.app C) ≫
+      (counit_iso V).hom.app ((to_chain_complex V).obj C) =
+    𝟙 ((to_chain_complex V).obj C) :=
+begin
+  ext i,
+  dsimp,
+  split_ifs,
+  { simp only [category.id_comp, eq_to_hom_refl, eq_to_hom_trans],
+    simp [if_pos h], refl, },
+  { dsimp [X_ℤ],
+    simp only [limits.zero_comp],
+    refine (zero_of_target_iso_zero _ _).symm,
+    simp [if_neg h], },
+end
+
+end equivalence
+open equivalence
+
+@[simps]
 def equivalence : connective_chain_complex V ≌ { C : chain_complex V // is_connective C } :=
 { functor := to_chain_complex V,
   inverse := to_connective_chain_complex V,
-  unit_iso := equivalence_unit_iso V,
-  counit_iso := sorry, }
+  unit_iso := unit_iso V,
+  counit_iso := counit_iso V,
+  functor_unit_iso_comp' := λ C, functor_unit_iso_comp V C, }
 
 end connective_chain_complex

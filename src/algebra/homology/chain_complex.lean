@@ -84,6 +84,7 @@ congr_fun f.comm i
 lemma comm {C D : homological_complex V b} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d :=
 differential_object.hom.comm _
 
+@[reassoc]
 lemma eq_to_hom_d (C : homological_complex V b) {i j : β} (h : i = j) :
   eq_to_hom (congr_arg C.X h) ≫ C.d j =
   C.d i ≫ eq_to_hom (congr_arg C.X (congr_arg (λ a, a + b) h) : _) :=
@@ -92,6 +93,7 @@ begin
   simp,
 end
 
+@[reassoc]
 lemma eq_to_hom_f {C D : homological_complex V b} (f : C ⟶ D) {n m : β} (h : n = m) :
   eq_to_hom (congr_arg C.X h) ≫ f.f m = f.f n ≫ eq_to_hom (congr_arg D.X h) :=
 begin

@@ -43,13 +43,7 @@ by { cases x₀, cases x₁, exact sigma.mk.inj_iff }
 @[ext]
 lemma subtype_ext {β : Type*} {p : α → β → Prop} :
   ∀ {x₀ x₁ : Σ a, subtype (p a)}, x₀.fst = x₁.fst → (x₀.snd : β) = x₁.snd → x₀ = x₁
-| ⟨a₀, b₀, hb₀⟩ ⟨a₁, b₁, hb₁⟩ h₁ h₂ :=
-begin
-  change a₀ = a₁ at h₁,
-  subst h₁,
-  congr,
-  exact h₂,
-end
+| ⟨a₀, b₀, hb₀⟩ ⟨a₁, b₁, hb₁⟩ rfl rfl := rfl
 
 lemma subtype_ext_iff {β : Type*} {p : α → β → Prop} {x₀ x₁ : Σ a, subtype (p a)} :
   x₀ = x₁ ↔ x₀.fst = x₁.fst ∧ (x₀.snd : β) = x₁.snd :=
@@ -159,13 +153,7 @@ by { cases x₀, cases x₁, exact psigma.mk.inj_iff }
 @[ext]
 lemma subtype_ext {β : Sort*} {p : α → β → Prop} :
   ∀ {x₀ x₁ : Σ' a, subtype (p a)}, x₀.fst = x₁.fst → (x₀.snd : β) = x₁.snd → x₀ = x₁
-| ⟨a₀, b₀, hb₀⟩ ⟨a₁, b₁, hb₁⟩ h₁ h₂ :=
-begin
-  change a₀ = a₁ at h₁,
-  subst h₁,
-  congr,
-  exact h₂,
-end
+| ⟨a₀, b₀, hb₀⟩ ⟨a₁, b₁, hb₁⟩ rfl rfl := rfl
 
 lemma subtype_ext_iff {β : Sort*} {p : α → β → Prop} {x₀ x₁ : Σ' a, subtype (p a)} :
   x₀ = x₁ ↔ x₀.fst = x₁.fst ∧ (x₀.snd : β) = x₁.snd :=

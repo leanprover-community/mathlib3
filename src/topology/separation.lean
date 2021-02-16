@@ -706,7 +706,7 @@ begin
         exact disjoint.left_le_of_le_sup_right hab (huv.mono this hbv) },
       { apply subset.trans _ (inter_subset_right Z u),
         apply Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
-          ⟨Z ∩ u, and.intro H1 (mem_inter H.2.1 h)⟩ } },
+          ⟨Z ∩ u, H1, mem_inter H.2.1 h⟩ } },
     -- If x ∉ u, we get x ∈ v since x ∈ u ∪ v. The rest is then like the x ∈ u case.
     have h1 : x ∈ v,
     { cases (mem_union x u v).1 (mem_of_subset_of_mem (subset.trans hab
@@ -721,7 +721,7 @@ begin
       exact disjoint.left_le_of_le_sup_left hab (huv.mono this hau) },
     { apply subset.trans _ (inter_subset_right Z v),
       apply Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
-        ⟨Z ∩ v, and.intro H2 (mem_inter H.2.1 h1)⟩ } },
+        ⟨Z ∩ v, H2, mem_inter H.2.1 h1⟩ } },
   -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
   -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
@@ -746,34 +746,32 @@ instance pi0.t2 [t2_space α] [compact_space α]: t2_space (π₀ α) :=
 begin
   -- Proof follows that of: https://stacks.math.columbia.edu/tag/0900
   -- Fix 2 distinct connected components, with points a and b
-  split,
-  refine λ x y, quotient.induction_on x (quotient.induction_on y (λ a b ne, _)),
+  refine ⟨λ x y, quotient.induction_on x (quotient.induction_on y (λ a b ne, _))⟩,
   rw connected_component_nrel_iff at ne,
   have h := connected_component_disjoint ne,
   -- write ⟦b⟧ as the intersection of all clopen subsets containing it
   rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
   -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
-  cases is_compact.elim_finite_subfamily_closed
-    (is_closed.compact (is_closed_connected_component)) _ _ h with fin_a ha,
-  swap, { exact (λ Z, Z.2.1.2) },
+  cases is_closed_connected_component.compact.elim_finite_subfamily_closed _ _ h 
+    with fin_a ha,
+  swap, { exact λ Z, Z.2.1.2 },
   set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), ↑i) with hU,
   rw ←hU at ha,
   have hu_clopen : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
   -- This clopen and its complement will separate the points corresponding to ⟦a⟧ and ⟦b⟧
-  use quotient.mk '' U,
-  use quotient.mk '' Uᶜ,
+  use [quotient.mk '' U, quotient.mk '' Uᶜ],
   -- Using the fact that clopens are unions of connected components, we show that
   -- U and Uᶜ is the preimage of a clopen set in the quotient
-  have hu : (quotient.mk ⁻¹' (quotient.mk '' U)) = U :=
-    (pi0_preimage_image U ▸ eq.symm $ clopen_eq_union_connected_components hu_clopen),
-  have huc : (quotient.mk ⁻¹' (quotient.mk '' Uᶜ)) = Uᶜ :=
-    (pi0_preimage_image Uᶜ ▸ eq.symm $ clopen_eq_union_connected_components
-      (is_clopen_compl hu_clopen)),
+  have hu : quotient.mk ⁻¹' (quotient.mk '' U) = U :=
+    (pi0_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
+  have huc : quotient.mk ⁻¹' (quotient.mk '' Uᶜ) = Uᶜ :=
+    (pi0_preimage_image Uᶜ ▸ eq.symm) 
+      (is_clopen_compl hu_clopen).eq_union_connected_components,
   -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
   refine ⟨_,_,_,_,_⟩,
-  { rw [((quotient_map_iff.1 quotient_map_quotient_mk).2 _), hu],
+  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, hu],
     exact hu_clopen.1 },
-  { rw [((quotient_map_iff.1 quotient_map_quotient_mk).2 _), huc],
+  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, huc],
     exact is_open_compl_iff.2 hu_clopen.2 },
   { exact mem_image_of_mem _ (mem_Inter.2 (λ Z, mem_Inter.2 (λ Zmem, Z.2.2))) },
   { apply mem_image_of_mem,

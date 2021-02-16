@@ -512,12 +512,13 @@ begin
   exact h,
 end
 
-/-- A clopen set is the union of its connected components -/
-lemma clopen_eq_union_connected_components {Z : set α} (h : is_clopen Z) :
+/-- A clopen set is the union of its connected components. -/
+lemma is_clopen.eq_union_connected_components {Z : set α} (h : is_clopen Z) :
   Z = (⋃ (x : α) (H : x ∈ Z), connected_component x) :=
 eq_of_subset_of_subset (λ x xZ, mem_Union.2 ⟨x, mem_Union.2 ⟨xZ, mem_connected_component⟩⟩)
   (Union_subset $ λ x, Union_subset $ λ xZ,
-    (by {apply subset.trans connected_component_subset_Inter_clopen (Inter_subset _ ⟨Z, ⟨h, xZ⟩⟩)}))
+    (by { apply subset.trans connected_component_subset_Inter_clopen
+      (Inter_subset _ ⟨Z, ⟨h, xZ⟩⟩) }))
 
 /-- The preimage of a connected component is preconnected if the function has connected fibers
 and a subset is closed iff the preimage is. -/
@@ -779,10 +780,9 @@ lemma connected_component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔
 
 lemma connected_component_nrel_iff {x y : α} : ⟦x⟧ ≠ ⟦y⟧ ↔
   connected_component x ≠ connected_component y :=
-by {rw not_iff_not, exact connected_component_rel_iff}
+by { rw not_iff_not, exact connected_component_rel_iff }
 
-notation `π₀ ` α :max := quotient (connected_component_setoid α)
-/-- The quotient of a space by its connecte components -/
+/-- The quotient of a space by its connected components -/
 def pi0 (α : Type u) [topological_space α] := quotient (connected_component_setoid α)
 
 localized "notation `π₀` := pi0" in topological_space

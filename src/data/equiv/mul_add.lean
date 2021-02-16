@@ -36,6 +36,7 @@ variables {A : Type*} {B : Type*} {M : Type*} {N : Type*} {P : Type*} {G : Type*
 set_option old_structure_cmd true
 
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/
+@[ancestor equiv add_hom]
 structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B, add_hom A B
 
 /-- The `equiv` underlying an `add_equiv`. -/
@@ -44,7 +45,7 @@ add_decl_doc add_equiv.to_equiv
 add_decl_doc add_equiv.to_add_hom
 
 /-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
-@[to_additive]
+@[ancestor equiv mul_hom, to_additive]
 structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, mul_hom M N
 
 /-- The `equiv` underlying a `mul_equiv`. -/
@@ -63,7 +64,7 @@ instance [has_mul M] [has_mul N] : has_coe_to_fun (M ≃* N) := ⟨_, mul_equiv.
 variables [has_mul M] [has_mul N] [has_mul P]
 
 @[simp, to_additive]
-lemma to_fun_eq_coe {f : M ≃* N} : ⇑f.to_fun = f := rfl
+lemma to_fun_eq_coe {f : M ≃* N} : f.to_fun = f := rfl
 
 @[simp, to_additive]
 lemma coe_to_equiv {f : M ≃* N} : ⇑f.to_equiv = f := rfl

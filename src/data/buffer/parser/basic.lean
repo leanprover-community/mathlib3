@@ -610,26 +610,6 @@ lemma eps_eq_done : eps cb n = done n' u ↔ n = n' := by simp [eps, pure_eq_don
 lemma ch_eq_done : ch c cb n = done n' u ↔ ∃ (hn : n < cb.size), n' = n + 1 ∧ cb.read ⟨n, hn⟩ = c :=
 by simp [ch, eps_eq_done, sat_eq_done, and.comm, @eq_comm _ n']
 
-@[simp] lemma tail_drop (l : list α) (n : ℕ) : (l.drop n).tail = l.drop (n + 1) :=
-begin
-  induction l with hd tl hl generalizing n,
-  { simp },
-  { cases n,
-    { simp },
-    { simp [hl] } }
-end
-
-lemma cons_nth_le_drop_succ {l : list α} {n : ℕ} (hn : n < l.length) :
-  l.nth_le n hn :: l.drop (n + 1) = l.drop n :=
-begin
-  induction l with hd tl hl generalizing n,
-  { exact absurd n.zero_le (not_le_of_lt (by simpa using hn)) },
-  { cases n,
-    { simp },
-    { simp only [nat.succ_lt_succ_iff, list.length] at hn,
-      simpa [list.nth_le, list.drop] using hl hn } },
-end
-
 lemma char_buf_eq_done {cb' : char_buffer} : char_buf cb' cb n = done n' u ↔
   n + cb'.size = n' ∧ cb'.to_list <+: (cb.to_list.drop n) :=
 begin
@@ -642,12 +622,12 @@ begin
     { rintro ⟨np, h, rfl, rfl, hn, rfl⟩,
       simp only [add_comm, add_left_comm, h, true_and, eq_self_iff_true, and_true],
       have : n < cb.to_list.length := by simpa using hn,
-      rwa [←buffer.nth_le_to_list _ this, ←cons_nth_le_drop_succ this, list.prefix_cons_inj] },
+      rwa [←buffer.nth_le_to_list _ this, ←list.cons_nth_le_drop_succ this, list.prefix_cons_inj] },
     { rintro ⟨h, rfl⟩,
-      rw [list.prefix_cons_iff, tail_drop] at h,
+      rw [list.prefix_cons_iff, list.tail_drop] at h,
       by_cases hn : n < cb.size,
       { have : n < cb.to_list.length := by simpa using hn,
-        rw ←cons_nth_le_drop_succ this at h,
+        rw ←list.cons_nth_le_drop_succ this at h,
         use [n + 1, h.right],
         simpa [add_comm, add_left_comm, add_assoc, hn] using h.left },
       { have : cb.to_list.length ≤ n := by simpa using hn,
@@ -683,7 +663,6 @@ end
 lemma str_eq_done {s : string} : str s cb n = done n' u ↔
   n + s.length = n' ∧ s.to_list <+: (cb.to_list.drop n) :=
 by simp [str_eq_char_buf, char_buf_eq_done]
-
 
 lemma remaining_eq_done {r : ℕ} : remaining cb n = done n' r ↔ n = n' ∧ cb.size - n = r :=
 by simp [remaining]
@@ -1189,7 +1168,7 @@ instance decorate_error : (@decorate_error α msg p).err_static :=
 err_static.decorate_errors
 
 instance any_char : err_static any_char :=
-⟨λ _ _ _ _, sorry⟩
+⟨λ _ _ _ _, by { rw any_char, }⟩
 
 lemma sat_iff {p : char → Prop} [decidable_pred p] : err_static (sat p) ↔ ∀ c, ¬ p c :=
 begin

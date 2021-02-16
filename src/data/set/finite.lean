@@ -226,6 +226,9 @@ lemma infinite.exists_subset_card_eq {s : set α} (hs : infinite s) (n : ℕ) :
   ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
 ⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
 
+lemma infinite.nonempty {s : set α} (h : s.infinite) : s.nonempty :=
+let a := infinite.nat_embedding s h 37 in ⟨a.1, a.2⟩
+
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
   fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp

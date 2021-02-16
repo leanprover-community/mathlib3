@@ -200,6 +200,41 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
+/-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
+the first morphism is surjective. -/
+lemma fg_ker_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N] [add_comm_group P] [module R P] (f : M →ₗ[R] N)
+  (g : N →ₗ[R] P) (hf1 : f.ker.fg) (hf2 : g.ker.fg) (hsur : function.surjective f) :
+  (g.comp f).ker.fg :=
+begin
+  rw linear_map.ker_comp,
+  apply fg_of_fg_map_of_fg_inf_ker f,
+  { rwa [linear_map.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
+  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
+end
+
+lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+  [add_comm_group M] [module S M] [module R M] [is_scalar_tower R S M] (N : submodule S M)
+  (hfin : N.fg) (h : function.surjective (algebra_map R S)) : (submodule.restrict_scalars R N).fg :=
+begin
+  obtain ⟨X, rfl⟩ := hfin,
+  use X,
+  exact submodule.span_eq_restrict_scalars R S M X h
+end
+
+lemma fg_ker_ring_hom_comp {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+  (f : R →+* S) (g : S →+* A) (hf : f.ker.fg) (hg : g.ker.fg) (hsur : function.surjective f) :
+  (g.comp f).ker.fg :=
+begin
+  letI : algebra R S := ring_hom.to_algebra f,
+  letI : algebra R A := ring_hom.to_algebra (g.comp f),
+  letI : algebra S A := ring_hom.to_algebra g,
+  letI : is_scalar_tower R S A := is_scalar_tower.comap,
+  let f₁ := algebra.linear_map R S,
+  let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
+  exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur
+end
+
 /-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
 theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
 begin

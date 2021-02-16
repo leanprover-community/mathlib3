@@ -162,58 +162,23 @@ theorem fintype.is_wf [fintype α] : s.is_wf := (finite.of_fintype s).is_wf
 
 end set
 
-lemma not_well_founded_swap_of_infinite_of_well_order_aux
-  {r : α → α → Prop} [is_well_order α r] {a : α} (h_inf : ({x : α | r a x}).infinite) :
-  {x : α | r ((is_well_order.wf : well_founded r).succ a) x}.infinite :=
-begin
-  have h_nonempty : ∃ x, r a x := h_inf.nonempty,
-  intro con,
-  apply h_inf,
-  convert con.insert ((is_well_order.wf : well_founded r).succ a),
-  ext x,
-  simp only [set.mem_insert_iff, set.mem_set_of_eq],
-  split; intro h,
-  { rcases (is_trichotomous.trichotomous x ((is_well_order.wf : well_founded r).succ a) :
-      r x _ ∨ _) with c1 | c,
-    { exfalso,
-      cases (well_founded.lt_succ_iff h_nonempty x).1 c1 with hlt heq,
-      { exact is_asymm.asymm _ _ hlt h },
-      { rw heq at h,
-        have h_irr : is_irrefl α r := infer_instance,
-        have h_irr' := h_irr.irrefl,
-        exact h_irr' a h, } },
-    { exact c } },
-  { rcases h with rfl | h,
-    { exact (is_well_order.wf : well_founded r).lt_succ h_nonempty },
-    { exact is_trans.trans _ _ _ ((is_well_order.wf : well_founded r).lt_succ h_nonempty) h } }
-end
-
 theorem not_well_founded_swap_of_infinite_of_well_order
   [infinite α] {r : α → α → Prop} [is_well_order α r] :
   ¬ well_founded (function.swap r) :=
 begin
   haveI : is_strict_order α (function.swap r) := is_strict_order.swap _,
-  let m := (is_well_order.wf : well_founded r).min set.univ (set.univ_nonempty),
-  have hm : { x | r m x }.infinite,
-  { intro con,
-    have h : (set.univ : set α).infinite := set.infinite_univ,
-      apply h,
-      convert con.insert m,
-      ext x,
-      simp only [set.mem_insert_iff, true_iff, set.mem_univ, set.mem_set_of_eq],
-      rcases (is_trichotomous.trichotomous x m : r x m ∨ _) with c1 | c,
-      { exfalso,
-        exact well_founded.not_lt_min _ set.univ _ (set.mem_univ x) c1 },
-      { exact c } },
   rw [rel_embedding.well_founded_iff_no_descending_seq, not_not],
-  let f : ℕ → { a : α | ({x : α | r a x}).infinite },
-  { apply nat.rec,
-    { exact ⟨m, hm⟩ },
-    { exact λ _ x, ⟨_, not_well_founded_swap_of_infinite_of_well_order_aux x.2⟩ } },
-  refine ⟨rel_embedding.swap (rel_embedding.nat_lt (function.comp coe f) _)⟩,
-  intro n,
-  simp only [nat.rec_add_one, function.comp_app, subtype.coe_mk, subtype.val_eq_coe],
-  exact well_founded.lt_succ _ (set.infinite.nonempty (subtype.coe_prop (f n))),
+  obtain ⟨g, h1 | h2⟩ := exists_increasing_or_nonincreasing_subseq' r (infinite.nat_embedding α),
+  { exact ⟨rel_embedding.nat_gt ((infinite.nat_embedding α) ∘ g) h1⟩ },
+  { exfalso,
+    have h : well_founded r := is_well_order.wf,
+    rw [rel_embedding.well_founded_iff_no_descending_seq] at h,
+    refine h ⟨rel_embedding.nat_gt ((infinite.nat_embedding α) ∘ g) (λ n, _)⟩,
+    obtain c1 | c2 | c3 := (is_trichotomous.trichotomous _ _ : r _ _ ∨ _),
+    { exact c1 },
+    { exfalso,
+      exact ne_of_gt n.lt_succ_self (g.injective ((infinite.nat_embedding α).injective c2)) },
+    { exact (h2 n (n + 1) n.lt_succ_self c3).elim } }
 end
 
 namespace set

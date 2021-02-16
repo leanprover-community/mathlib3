@@ -14,7 +14,7 @@ This file contains a proof of Liouville's theorem stating that all Liouville num
 transcendental.
 
 To obtain this result, there is first a proof that Liouville numbers are irrational and two
-technical lemmas.  These lemma exploit the fact that a polynomial with integer coefficients
+technical lemmas.  These lemmas exploit the fact that a polynomial with integer coefficients
 takes integer values at integers.  When evaluating at a rational number, we can clear denominators
 and obtain precise inequalities that ultimately allow us to prove transcendence of
 Liouville numbers.
@@ -25,16 +25,16 @@ A Liouville number is a real number `x` such that for every natural number `n`, 
 `a, b ∈ ℤ` with `1 < b` such that `0 < |x - a/b| < 1/bⁿ`.
 In the implementation, the condition `x ≠ a/b` replaces the traditional equivalent `0 < |x - a/b|`.
 -/
-def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
+def liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
 
 namespace liouville
 
-lemma irrational {x : ℝ} (h : is_liouville x) : irrational x :=
+@[protected] lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
 begin
   -- By contradiction, `x = a / b`, with `a ∈ ℤ`, `0 < b ∈ ℕ` is a Liouville number,
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
   -- clear up the mess of constructions of rationals
-  change (is_liouville (a / b)) at h,
+  change (liouville (a / b)) at h,
   -- Since `a / b` is a Liouville number, there are `p, q ∈ ℤ`, with `q1 : 1 < q`,
   -- `a0 : a / b ≠ p / q` and `a1 : abs (a / b - p / q) < 1 / q ^ (b + 1)`
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
@@ -116,7 +116,7 @@ begin
     exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg }
 end
 
-lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : _root_.irrational α)
+lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
   {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
   ∃ A : ℝ, 0 < A ∧
     ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (abs (α - (a / (b + 1))) * A) :=
@@ -166,8 +166,8 @@ begin
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
 
-theorem transcendental {x : ℝ} (lx : is_liouville x) :
-  is_transcendental ℤ x :=
+theorem transcendental {x : ℝ} (lx : liouville x) :
+  transcendental ℤ x :=
 begin
   -- Proceed by contradiction: if `x` is algebraic, then `x` is the root (`ef0`) of a
   -- non-zero (`f0`) polynomial `f`
@@ -178,7 +178,7 @@ begin
   -- is at least one.  This is obtained from lemma `exists_pos_real_of_irrational_root`.
   obtain ⟨A, hA, h⟩ : ∃ (A : ℝ), 0 < A ∧
     ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (x - a / (b.succ)) * A) :=
-    exists_pos_real_of_irrational_root (irrational lx) f0 ef0,
+    exists_pos_real_of_irrational_root lx.irrational f0 ef0,
   -- Since the real numbers are Archimedean, a power of `2` exceeds `A`: `hn : A < 2 ^ r`.
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
   -- Use the Liouville property, with exponent `r +  deg f`.

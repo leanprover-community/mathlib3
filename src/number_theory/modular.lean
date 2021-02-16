@@ -121,10 +121,7 @@ begin
   have := matrix.special_linear_group.det_coe_matrix g,
   rw det2 at this,
   ring,
-  calc
-  -(g 0 1 * z.im * g 1 0) + z.im * g 0 0 * g 1 1
-  = ( g 0 0 * g 1 1 - g 1 0  * g 0 1  ) * z.im  : by {ring}
-  ... = z.im : by {rw this, simp}
+  convert congr_arg (λ t, t * z.im) this using 1; ring,
 end
 
 lemma isZThenReIm {z : ℂ} : z = 0 → z.im = 0 :=
@@ -253,7 +250,17 @@ instance has_coe_SL : has_coe SL(2,ℤ) SL(2,ℝ) := ⟨λ x, SL_n_insertion (in
     ring_hom.map_det_one (int.cast_ring_hom ℝ) (det_coe_matrix g)⟩ :=
 SL_n_insertion_apply (int.cast_ring_hom ℝ) g
 
-instance has_neg_SL : has_neg SL(2,ℤ) := ⟨λ g, ⟨(-1 : ℤ) • (g.1), by simpa [det2] using g.2⟩⟩
+instance has_neg_SL {R : Type*} [comm_ring R] : has_neg SL(2, R) :=
+⟨λ g, ⟨- g.1, by simpa [det2] using g.2⟩⟩
+
+@[simp] lemma special_linear_group.has_neg_coe_mat {R : Type*} [comm_ring R] (g : SL(2, R)) :
+  @coe _ (matrix (fin 2) (fin 2) R) _ (-g) = - (@coe _ (matrix (fin 2) (fin 2) R) _ g) :=
+rfl
+
+@[simp]
+lemma special_linear_group.has_neg_cast {R : Type*} [comm_ring R] (g : SL(2, ℤ)) :
+  @coe _ SL(2, ℝ) _ (-g) = - (@coe _ SL(2, ℝ) _ g) :=
+subtype.ext $ (@ring_hom.map_matrix (fin 2) _ _ _ _ _ _ (int.cast_ring_hom ℝ)).map_neg g
 
 @[simp]
 lemma bottom_def' {g : SL(2,ℝ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by refl
@@ -330,8 +337,8 @@ end
 lemma mat_one {F : Type*} [comm_ring F] : (![![1,0], ![0,1]] : matrix (fin 2) (fin 2) F)
   = (1 : matrix (fin 2) (fin 2) F) := by {simp}
 
-@[simp]
-lemma mul_congr { x y : SL(2,ℤ)} : x * y = 1 ↔ x.1 * y.1 = 1 := by {simp at *, tauto}
+-- @[simp]
+-- lemma mul_congr { x y : SL(2,ℤ)} : x * y = 1 ↔ x.1 * y.1 = 1 := by simp
 
 lemma T_inv : T⁻¹ = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
 begin
@@ -354,7 +361,6 @@ begin
   rw hn,
   rw T,
   simp,
-  refine ⟨ _ , _, _ , _ ⟩; rw matrix.mul; simp; rw dot_product; unfold_coes; simp [vec_head],
   ring,
 end
 
@@ -370,7 +376,20 @@ begin
   rw hn,
   rw T_inv,
   simp,
-  refine ⟨ _ , _, _ , _ ⟩; rw matrix.mul; simp; rw dot_product; unfold_coes; simp [vec_head],
+end
+
+@[simp]
+lemma smul_def (g : SL(2,ℤ)) (z : H) : ↑(g • z) = smul_aux g z :=
+begin
+  refl,
+end
+
+lemma smul_neg_SL2 (g : SL(2,ℤ)) (z : H) : -g • z = g • z :=
+begin
+  rw subtype.ext_iff,
+  simp only [smul_def, smul_aux_def, top, bottom],
+  rw ← neg_div_neg_eq,
+  congr' 1; simp; ring,
 end
 
 /-
@@ -1153,6 +1172,10 @@ begin
     set b := g.1 0 1,
     set c := g.1 1 0 with ←cdf,
     set d := g.1 1 1 with ←ddf,
+    -- set a := (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g) 0 0,
+    -- set b := (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g) 0 1,
+    -- set c := (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g) 1 0 with ←cdf,
+    -- set d := (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g) 1 1 with ←ddf,
     have hcd : complex.norm_sq (c * z + d) ≤ 1,
     {
       have himzpos : 0 < z.val.im := im_pos_of_in_H',
@@ -1161,6 +1184,8 @@ begin
         rw norm_sq_pos,
         intro hcontra,
         rw [← cdf, ← ddf, ← bottom_def] at hcontra,
+        -- rw [← cdf, ← ddf] at hcontra,
+        -- have := bottom_def'' g z,
         exact czPd_nonZ_CP (ne.symm (ne_of_lt himzpos)) hcontra,
       },
       suffices: z.val.im * complex.norm_sq (c * z + d) ≤ z.val.im, nlinarith,

@@ -73,12 +73,14 @@ instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
   After the group structure on `special_linear_group n R` is defined,
   we show in `to_linear_equiv` that this gives a linear equivalence.
 -/
-def to_lin' (A : special_linear_group n R) := matrix.to_lin' A
+def to_lin' (A : special_linear_group n R) := matrix.to_lin' (@coe _ (matrix n n R) _ A)
 
-lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A i j = B i j) :=
+lemma ext_iff (A B : special_linear_group n R) :
+  A = B ↔ (∀ i j, (@coe _ (matrix n n R) _ A) i j = (@coe _ (matrix n n R) _ B) i j) :=
 iff.trans subtype.ext_iff_val ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
 
-@[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A i j = B i j) → A = B :=
+@[ext] lemma ext (A B : special_linear_group n R) :
+  (∀ i j, (@coe _ (matrix n n R) _ A) i j = (@coe _ (matrix n n R) _ B) i j) → A = B :=
 (special_linear_group.ext_iff A B).mpr
 
 instance has_inv : has_inv (special_linear_group n R) :=
@@ -96,11 +98,11 @@ section coe_lemmas
 
 variables (A B : special_linear_group n R)
 
-@[simp] lemma inv_val : ↑(A⁻¹) = adjugate A := rfl
+@[simp] lemma inv_val : ↑(A⁻¹) = adjugate (@coe _ (matrix n n R) _ A) := rfl
 
 @[simp] lemma inv_apply : ⇑(A⁻¹) = adjugate A := rfl
 
-@[simp] lemma mul_val : ↑(A * B) = A ⬝ B := rfl
+@[simp] lemma mul_val : ↑(A * B) = (@coe _ (matrix n _ _) _ A) ⬝ (@coe _ (matrix n n R) _ B) := rfl
 
 @[simp] lemma mul_apply : ⇑(A * B) = (A ⬝ B) := rfl
 
@@ -108,7 +110,7 @@ variables (A B : special_linear_group n R)
 
 @[simp] lemma one_apply : ⇑(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
 
-@[simp] lemma det_coe_matrix : det A = 1 := A.2
+@[simp] lemma det_coe_matrix : det (@coe _ (matrix n n R) _ A) = 1 := A.2
 
 lemma det_coe_fun : det ⇑A = 1 := A.2
 

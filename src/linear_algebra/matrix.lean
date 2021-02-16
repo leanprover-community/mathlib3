@@ -127,7 +127,7 @@ matrix.to_lin'.apply_symm_apply f
 @[simp] lemma linear_map.to_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) (i j) :
   linear_map.to_matrix' f i j = f (λ j', if j' = j then 1 else 0) i :=
 begin
-  simp only [linear_map.to_matrix', linear_equiv.mk_apply],
+  simp only [linear_map.to_matrix', linear_equiv.coe_mk],
   congr,
   ext j',
   split_ifs with h,

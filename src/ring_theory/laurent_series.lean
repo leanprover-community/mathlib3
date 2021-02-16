@@ -193,8 +193,6 @@ def shift_fun {R : Type*} [has_zero R]: ℕ → (ℕ → R) → (ℕ → R)
           rw [int.coe_nat_lt, not_lt] at hx₁, --uguale a riga 173
           exact hx₁} },--uguale a riga 174
 end
--- @[simp] lemma eq_shift_fun [has_neg R] [has_zero R] (𝕜₁ 𝕜₂ : 𝕄) (f₁ f₂ : ℕ → R) :
---   𝕜₁ = 𝕜₂ → shift_fun 𝕜₁ f₁ = shift_fun 𝕜₂ f₂ ↔ f₁ = f₂ := sorry
 
 
 
@@ -379,7 +377,19 @@ begin
     ring },
 end
 
+/-- The `n`th coefficient of a punctured power series.-/
+def punctured_power_series.coeff (n : ℤ) : (punctured_power_series R) → R :=
+ λ ⟨k, f⟩, if n < - k then 0 else f (int.nat_abs (n + k))
+
+end punctured_power_series
+
+namespace laurent_series
+open punctured_power_series
+
 def laurent_series (R : Type*) [add_comm_monoid R]:= (eqv_punctured.add_con R).quotient
+
+variables {R : Type*} [add_comm_monoid R]
+
 instance inhabited : inhabited (laurent_series R) :=
   begin
     use (eqv_punctured.add_con R).mk' 0,
@@ -390,17 +400,17 @@ instance : add_comm_monoid (laurent_series R) := (eqv_punctured.add_con R).add_c
 instance : has_coe (punctured_power_series R) (laurent_series R) :=
 ⟨@quotient.mk _ (eqv_punctured.add_con R).to_setoid⟩
 
-variables {S : Type*} [comm_ring S]
 
+variables {S : Type*} [comm_ring S]
 
 noncomputable theory
 open classical
 
-def lift_neg : (punctured_power_series S) → (laurent_series S) :=
-  λ ⟨k, f⟩, (eqv_punctured.add_con S).mk' ⟨k, -f⟩
+def lift_neg : (punctured_power_series.punctured_power_series S) → (laurent_series S) :=
+  λ ⟨k, f⟩, (punctured_power_series.eqv_punctured.add_con S).mk' ⟨k, -f⟩
 
-lemma cong_neg : ∀ (F₁ F₂ : punctured_power_series S),  eqv_punctured F₁ F₂ →
-  lift_neg F₁ = lift_neg F₂ :=
+lemma cong_neg : ∀ (F₁ F₂ : punctured_power_series.punctured_power_series S),
+  punctured_power_series.eqv_punctured F₁ F₂ → lift_neg F₁ = lift_neg F₂ :=
 begin
   rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩ ⟨ℓ₁₂, ℓ₂₁, h⟩,
   dsimp [lift_neg],
@@ -435,12 +445,12 @@ begin
   { rw eqv_punctured,
     use [ℓ₁₂ + μ₁₂, ℓ₂₁ + μ₂₁],
     ext,
-    { simp only [*, add_zero, add_snd, shift_fun_of_zero, add_fst] at *,
+    { simp only [*, punctured_power_series.add_zero, add_snd, shift_fun_of_zero, add_fst] at *,
       rw [← nat.add_left_comm, nat.add_assoc k₁ k₂ μ₁₂, hg.left,
         nat.add_assoc m₁, nat.add_comm m₂ (ℓ₂₁ + μ₂₁), nat.add_assoc ℓ₂₁,
         ← nat.add_assoc m₁, ← hf.left],
       ring },
-    { simp only [*, sub_eq_add_neg, add_zero, add_snd, pi.add_apply,
+    { simp only [*, sub_eq_add_neg, punctured_power_series.add_zero, add_snd, pi.add_apply,
         pi.neg_apply, shift_fun_assoc, shift_fun_of_zero, shift_fun_add,
         add_fst, shift_fun_neg, add_monoid.add_zero] at *,
       rw nat.add_assoc,
@@ -470,7 +480,7 @@ def lift_mul : (punctured_power_series S) → (punctured_power_series S) → (la
   λ F₁ F₂, (eqv_punctured.add_con S).mk' (punctured_power_series.mul F₁ F₂)
 
 
-lemma lift_mul_assoc : ∀ (F₁ F₂ F₃ : punctured_power_series S), punctured_power_series.mul
+lemma lift_mul_assoc : ∀ (F₁ F₂ F₃ : punctured_power_series.punctured_power_series S), punctured_power_series.mul
     (punctured_power_series.mul F₁ F₂ ) F₃ = punctured_power_series.mul F₁ (punctured_power_series.mul F₂ F₃) :=
 begin
   intros,
@@ -478,7 +488,7 @@ begin
 end
 
 lemma cong_mul {S : Type*} [comm_ring S] : ∀ (F₁ F₂ G₁ G₂: punctured_power_series S), eqv_punctured.add_con S F₁ G₁ →
-  eqv_punctured.add_con S F₂ G₂ → lift_mul F₁ F₂ = lift_mul G₁ G₂ :=
+  punctured_power_series.eqv_punctured.add_con S F₂ G₂ → lift_mul F₁ F₂ = lift_mul G₁ G₂ :=
 begin
   rintros ⟨k₁, f₁⟩ ⟨k₂, f₂⟩ ⟨m₁, g₁⟩  ⟨m₂, g₂⟩ ⟨ℓ₁₂, ℓ₂₁, hf⟩ ⟨μ₁₂, μ₂₁, hg⟩,
   dsimp [lift_mul],
@@ -518,34 +528,11 @@ begin
   -- apply (add_con.eq (eqv_punctured.add_con S)).mpr h,
 end
 
--- -- #print punctured_power_series.add
--- def a : ℕ → ℤ := λ n, if n < 5 then 4*n+3 else 0
--- def b : ℕ → ℤ := λ n, if n < 7 then 1-2*n else 0
--- -- -- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
--- -- -- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
-
--- def F₁ : punctured_power_series ℤ := (1, a)
--- def F₂ : punctured_power_series ℤ := (3, b)
--- -- #eval a 5
--- #eval F₁.snd 2
--- #eval F₂.snd 9
--- #eval (F₁ + F₂).snd 7
--- #eval (lift_mul F₁ F₂).snd 10
-/-The right answers for F₁ + F₂ are
-0 → 0, 1 → 1, 2 → -1, 3 → 0, 4 → 2, 5 → 4, 6 → 6, 7 → 8, 8 → 10, 9 → 12
-
-def F₃ := (𝟘, b) --check!
---/
-
--- def eqv_punctured_old (F₁ F₂ : punctured_power_series R) : Prop :=
--- ∃ ℓ₁₂ ℓ₂₁ : 𝕄, F₁ + (ℓ₁₂, 0) = F₂ + (ℓ₂₁, 0)
-
-
 instance : comm_ring (laurent_series S) :=
 { add := λ F₁ F₂, F₁ + F₂,
   add_assoc :=  λ F₁ F₂ F₃, quotient.induction_on₃' F₁ F₂ F₃
-                $ λ _ _ _, congr_arg coe $ add_assoc _ _ _,
-  zero := (eqv_punctured.add_con S).mk' 0,
+                $ λ _ _ _, congr_arg coe $ punctured_power_series.add_assoc _ _ _,
+  zero := (punctured_power_series.eqv_punctured.add_con S).mk' 0,
   zero_add := λ _, by simp,
   add_zero := λ _, by simp,
   neg := λ F, add_con.lift_on F lift_neg cong_neg,
@@ -572,7 +559,7 @@ instance : comm_ring (laurent_series S) :=
                 apply quotient.induction_on₂' G₁ G₂,
                 rintros F₁ F₂,
                 apply congr_arg quotient.mk',
-                exact add_comm F₁ F₂,
+                exact punctured_power_series.add_comm F₁ F₂,
               end,
   mul := λ F₁ F₂, add_con.lift_on₂ F₁ F₂ lift_mul cong_mul,
   mul_assoc := λ F₁ F₂ F₃, quotient.induction_on₃' F₁ F₂ F₃
@@ -591,38 +578,56 @@ instance : comm_ring (laurent_series S) :=
                   if_pos],
                 apply one_mul,
                 apply rfl },
-              { rw multiset.nat.antidiagonal_succ,
-              sorry,
-
-              },
+              { rw finset.nat.antidiagonal_succ,
+                sorry },
             end,
   mul_one := sorry,
   left_distrib := begin sorry, end,
   right_distrib := begin sorry, end,
   mul_comm := sorry }
 
+/-- The `n`th coefficient of a laurent power series.-/
+lemma cong_coeff (n : ℤ) (F₁ F₂ : punctured_power_series S) :
+  eqv_punctured.add_con S F₁ F₂ → punctured_power_series.coeff n F₁ = punctured_power_series.coeff n F₂ :=
+begin
+  sorry,
+end
 
-end punctured_power_series--SEE PAG 166 tpil
+
+def coeff (n : ℤ) : (laurent_series S) → S :=
+begin
+  let coeff : (laurent_series S) → S := λ F, add_con.lift_on F (punctured_power_series.coeff n) (cong_coeff n),
+  use coeff,
+end
+
+
+-- -- #print punctured_power_series.add
+def a : ℕ → ℤ := λ n, if n < 5 then 4*n+3 else 0
+def b : ℕ → ℤ := λ n, if n < 7 then 1-2*n else 0
+-- -- -- def 𝕜₁ : 𝕄 := ℘⁻¹ 1
+-- -- -- def 𝕜₂ : 𝕄 := ℘⁻¹ 3
+
+-- def F₁ : punctured_power_series ℤ := (1, a)
+-- def F₂ : punctured_power_series ℤ := (3, b)
+-- def G₁ : laurent_series ℤ := F₁
+-- def F₃ : punctured_power_series ℤ := F₁ + (7, 0)
+-- def G₃ : laurent_series ℤ := F₃
+-- #eval F₁.2 2
+-- #eval punctured_power_series.coeff (-1) F₁
+-- #eval punctured_power_series.coeff (1) F₃
+-- #eval coeff 4 G₃
+-- -- #eval a 5
+-- #eval F₁.snd 2
+-- #eval F₂.snd 9
+-- #eval (F₁ + F₂).snd 7
+-- #eval (lift_mul F₁ F₂).snd 10
+/-The right answers for F₁ + F₂ are
+0 → 0, 1 → 1, 2 → -1, 3 → 0, 4 → 2, 5 → 4, 6 → 6, 7 → 8, 8 → 10, 9 → 12
+
+def F₃ := (𝟘, b) --check!
+--/
 
 
 
--- instance [add_group R]       : add_group       (punctured_power_series R) := pi.add_group
--- instance [add_comm_group R]  : add_comm_group  (punctured_power_series R) := pi.add_comm_group
 
-
--- instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
---   semimodule R (punctured_power_series R) := pi.semimodule _ _ _
-
--- example  {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
---   semimodule R (ℕ → A) :=
---   begin
---     refine pi.semimodule ℕ (λ (_ : ℕ), A) R
---   end
-
--- example  {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
---   semimodule R (ℕ × A) :=
--- begin
-
--- end
-
--- end punctured_power_series
+end laurent_series

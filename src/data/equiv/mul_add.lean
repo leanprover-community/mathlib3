@@ -270,7 +270,7 @@ for multiplicative maps from a monoid to a commutative monoid.
 @[simps apply,
   to_additive "An additive analogue of `equiv.arrow_congr`,
 for additive maps from an additive monoid to a commutative additive monoid."]
-def arrow_congr_mul {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoid Q]
+def monoid_hom_congr {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,
   g.to_monoid_hom.comp (h.comp f.symm.to_monoid_hom),

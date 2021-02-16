@@ -7,6 +7,7 @@ import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
+import category_theory.isomorphism_classes
 
 /-!
 # Zero morphisms and zero objects
@@ -234,6 +235,11 @@ begin
   simpa using h,
 end
 
+lemma zero_of_source_iso_zero' {X Y : C} (f : X ⟶ Y) (i : is_isomorphic X 0) : f = 0 :=
+zero_of_source_iso_zero f (nonempty.some i)
+lemma zero_of_target_iso_zero' {X Y : C} (f : X ⟶ Y) (i : is_isomorphic Y 0) : f = 0 :=
+zero_of_target_iso_zero f (nonempty.some i)
+
 lemma mono_of_source_iso_zero {X Y : C} (f : X ⟶ Y) (i : X ≅ 0) : mono f :=
 ⟨λ Z g h w, by rw [zero_of_target_iso_zero g i, zero_of_target_iso_zero h i]⟩
 
@@ -258,6 +264,20 @@ lemma id_zero_equiv_iso_zero_apply_hom (X : C) (h : 𝟙 X = 0) :
 @[simp]
 lemma id_zero_equiv_iso_zero_apply_inv (X : C) (h : 𝟙 X = 0) :
   ((id_zero_equiv_iso_zero X) h).inv = 0 := rfl
+
+/-- If an object `X` is isomorphic to 0, there's no need to use choice to construct
+an explicit isomorphism: the zero morphism suffices. -/
+def iso_of_is_isomorphic_zero {X : C} (P : is_isomorphic X 0) : X ≅ 0 :=
+{ hom := 0,
+  inv := 0,
+  hom_inv_id' :=
+  begin
+    casesI P,
+    rw ←P.hom_inv_id,
+    rw ←category.id_comp P.inv,
+    simp,
+  end,
+  inv_hom_id' := by simp, }
 
 end
 

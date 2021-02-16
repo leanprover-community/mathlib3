@@ -96,6 +96,10 @@ end complex
 section
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
 
+lemma has_strict_deriv_at.cexp (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
+(complex.has_strict_deriv_at_exp (f x)).comp x hf
+
 lemma has_deriv_at.cexp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
 (complex.has_deriv_at_exp (f x)).comp x hf
@@ -123,6 +127,10 @@ variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' 
 lemma measurable.cexp {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
   measurable (λ x, complex.exp (f x)) :=
 complex.measurable_exp.comp hf
+
+lemma has_strict_fderiv_at.cexp (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') x :=
+(complex.has_strict_deriv_at_exp (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_within_at.cexp (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') s x :=

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Chris Hughes, Shing Tak Lam
 -/
 import analysis.special_functions.trigonometric
-noncomputable theory
 
 /-!
 # Inverse of the sinh function
@@ -23,6 +22,7 @@ inverse, arsinh.
 
 arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 -/
+noncomputable theory
 
 namespace real
 

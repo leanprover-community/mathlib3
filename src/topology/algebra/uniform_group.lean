@@ -252,9 +252,8 @@ instance is_Z_bilin.comp_swap : is_Z_bilin (f ∘ prod.swap) :=
 lemma is_Z_bilin.zero_left : ∀ b, f (0, b) = 0 :=
 begin
   intro b,
-  apply add_self_iff_eq_zero.1,
-  rw ←is_Z_bilin.add_left f,
-  simp
+  apply add_right_eq_self.1,
+  rw [ ←is_Z_bilin.add_left f, zero_add]
 end
 
 lemma is_Z_bilin.zero_right : ∀ a, f (a, 0) = 0 :=

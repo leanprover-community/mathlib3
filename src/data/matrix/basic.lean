@@ -808,6 +808,8 @@ instance : star_ring (matrix n n R) :=
 
 @[simp] lemma star_apply (M : matrix n n R) (i j) : star M i j = star (M j i) := rfl
 
+lemma star_mul (M N : matrix n n R) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
+
 end star_ring
 
 /-- `M.minor row col` is the matrix obtained by reindexing the rows and the lines of

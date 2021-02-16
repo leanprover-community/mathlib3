@@ -5,13 +5,15 @@ Authors: Kevin Buzzard, Mario Carneiro
 -/
 import data.real.sqrt
 
-open_locale big_operators
-
 /-!
 # The complex numbers
 
-The complex numbers are modelled as ℝ^2 in the obvious way.
+The complex numbers are modelled as ℝ^2 in the obvious way and it is shown that they form a field
+of characteristic zero. The result that the complex numbers are algebraically closed, see
+`field_theory.algebraic_closure`.
 -/
+
+open_locale big_operators
 
 /-! ### Definition and basic arithmmetic -/
 

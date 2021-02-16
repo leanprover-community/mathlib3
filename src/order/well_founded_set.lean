@@ -537,7 +537,7 @@ by simp [mul_antidiagonal]
 
 @[to_additive]
 lemma mul_antidiagonal_mono_left (hus : u ⊆ s) :
-  (mul_antidiagonal hu ht a) ⊆ (mul_antidiagonal hs ht a) :=
+  (finset.mul_antidiagonal hu ht a) ⊆ (finset.mul_antidiagonal hs ht a) :=
 λ x hx, begin
   rw mem_mul_antidiagonal at *,
   exact ⟨hx.1, hus hx.2.1, hx.2.2⟩,
@@ -545,7 +545,7 @@ end
 
 @[to_additive]
 lemma mul_antidiagonal_mono_right (hut : u ⊆ t) :
-  (mul_antidiagonal hs hu a) ⊆ (mul_antidiagonal hs ht a) :=
+  (finset.mul_antidiagonal hs hu a) ⊆ (finset.mul_antidiagonal hs ht a) :=
 λ x hx, begin
   rw mem_mul_antidiagonal at *,
   exact ⟨hx.1, hx.2.1, hut hx.2.2⟩,

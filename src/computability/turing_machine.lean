@@ -606,7 +606,7 @@ trans_gen.head'_iff.trans (trans_gen.head'_iff.trans $ by rw h).symm
 theorem reaches_total {σ} {f : σ → option σ}
   {a b c} : reaches f a b → reaches f a c →
   reaches f b c ∨ reaches f c b :=
-refl_trans_gen.total_of_right_unique $ λ _ _ _, option.mem_unique
+refl_trans_gen.total_of_right_unique ⟨λ _ _ _, option.mem_unique⟩
 
 theorem reaches₁_fwd {σ} {f : σ → option σ}
   {a b c} (h₁ : reaches₁ f a c) (h₂ : b ∈ f a) : reaches f b c :=
@@ -1539,7 +1539,8 @@ begin
   { cases list.length_eq_zero.1 e, refl },
   cases l₂' with b l₂'; injection e with e,
   dunfold write step_aux,
-  convert IH _ _ e, simp only [list_blank.head_cons, list_blank.tail_cons,
+  convert IH _ _ e using 1,
+  simp only [list_blank.head_cons, list_blank.tail_cons,
     list_blank.append, tape.move_right_mk', tape.write_mk']
 end
 

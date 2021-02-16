@@ -2,12 +2,36 @@
 Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Natural homomorphism from the natural numbers into a monoid with one.
 -/
+
 import data.nat.cast
 import data.fintype.basic
 import tactic.wlog
+
+/-!
+# Characteristic zero
+
+A ring `R` is called of characteristic zero if every natural number `n` is non-zero when considered
+as an element of `R`. Since this definition doesn't mention the multiplicative structure of `R`
+except for the existence of `1` in this file characteristic zero is defined for additive monoids
+with `1`.
+
+## Main definition
+
+`char_zero` is the typeclass of an additive monoid with one such that the natural homomorphism
+from the natural numbers into it is injective.
+
+## Main statements
+
+* A linearly ordered semiring has characteristic zero.
+* Characteristic zero implies that the additive monoid is infinite.
+
+## TODO
+
+* Once order of a group is defined for infinite additive monoids redefine or at least connect to
+  order of `1` in the additive monoid with one.
+* Unify with `char_p` (possibly using an out-parameter)
+-/
 
 /-- Typeclass for monoids with characteristic zero.
   (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/
@@ -20,14 +44,20 @@ theorem char_zero_of_inj_zero {R : Type*} [add_left_cancel_monoid R] [has_one R]
    assume h,
    wlog hle : m ≤ n,
    rcases nat.le.dest hle with ⟨k, rfl⟩,
-   rw [nat.cast_add, eq_comm, add_eq_left_iff] at h,
+   rw [nat.cast_add, eq_comm, add_right_eq_self] at h,
    rw [H k h, add_zero]
  end⟩
+
+/-- Note this is not an instance as `char_zero` implies `nontrivial`,
+and this would risk forming a loop. -/
+lemma ordered_semiring.to_char_zero {R : Type*} [ordered_semiring R] [nontrivial R] :
+  char_zero R :=
+⟨nat.strict_mono_cast.injective⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_char_zero {R : Type*}
   [linear_ordered_semiring R] : char_zero R :=
-⟨nat.strict_mono_cast.injective⟩
+ordered_semiring.to_char_zero
 
 namespace nat
 variables {R : Type*} [add_monoid R] [has_one R] [char_zero R]

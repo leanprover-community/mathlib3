@@ -215,7 +215,7 @@ galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono
 instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
-instance : canonically_ordered_add_monoid ℝ≥0 :=
+instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
   lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
@@ -246,8 +246,7 @@ instance : linear_ordered_semiring ℝ≥0 :=
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
   zero_le_one                := @zero_le_one ℝ _,
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
-  .. nnreal.linear_order,
-  .. nnreal.canonically_ordered_add_monoid,
+  .. nnreal.canonically_linear_ordered_add_monoid,
   .. nnreal.comm_semiring, }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
@@ -257,7 +256,7 @@ instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
   .. nnreal.comm_group_with_zero }
 
 instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ .. nnreal.canonically_ordered_add_monoid,
+{ .. nnreal.canonically_linear_ordered_add_monoid,
   .. nnreal.comm_semiring,
   .. (show no_zero_divisors ℝ≥0, by apply_instance),
   .. nnreal.comm_group_with_zero }
@@ -325,6 +324,13 @@ begin
   rcases le_iff_exists_add.1 (le_of_lt hxb) with ⟨ε, rfl⟩,
   exact h _ ((lt_add_iff_pos_right b).1 hxb)
 end
+
+-- TODO: generalize to some ordered add_monoids, based on #6145
+lemma le_of_add_le_left {a b c : ℝ≥0} (h : a + b ≤ c) : a ≤ c :=
+by { refine le_trans _ h, simp }
+
+lemma le_of_add_le_right {a b c : ℝ≥0} (h : a + b ≤ c) : b ≤ c :=
+by { refine le_trans _ h, simp }
 
 lemma lt_iff_exists_rat_btwn (a b : ℝ≥0) :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < nnreal.of_real q ∧ nnreal.of_real q < b) :=
@@ -601,10 +607,7 @@ lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 :=
 by simpa using half_lt_self zero_ne_one.symm
 
 lemma div_lt_iff {a b c : ℝ≥0} (hc : c ≠ 0) : b / c < a ↔ b < a * c :=
-begin
-  rw [← nnreal.coe_lt_coe, ← nnreal.coe_lt_coe, nnreal.coe_div, nnreal.coe_mul],
-  exact div_lt_iff (pos_iff_ne_zero.mpr hc)
-end
+lt_iff_lt_of_le_iff_le $ nnreal.le_div_iff_mul_le hc
 
 lemma div_lt_one_of_lt {a b : ℝ≥0} (h : a < b) : a / b < 1 :=
 begin

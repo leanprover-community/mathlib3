@@ -121,27 +121,22 @@ variables [decidable_eq I] (f) [Π i, add_monoid (f i)]
 open pi
 
 /-- The additive monoid homomorphism including a single additive monoid
-into a dependent family of additive monoids, as functions supported at a point. -/
-def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
-{ to_fun := λ x, single i x,
+into a dependent family of additive monoids, as functions supported at a point.
+
+This is the `add_monoid_hom` version of `pi.single`. -/
+@[simps] def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
+{ to_fun := single i,
   map_zero' :=
   begin
     ext i', by_cases h : i' = i,
-    { subst h, simp only [single_eq_same], refl, },
-    { simp only [h, single_eq_of_ne, ne.def, not_false_iff], refl, },
+    { subst h, simp only [single_eq_same, pi.zero_apply], },
+    { simp only [h, single_eq_of_ne, ne.def, not_false_iff, pi.zero_apply], },
   end,
   map_add' := λ x y,
   begin
     ext i', by_cases h : i' = i,
-    -- FIXME in the next two `simp only`s,
-    -- it would be really nice to not have to provide the arguments to `add_apply`.
-    { subst h, simp only [single_eq_same, add_apply (single i' x) (single i' y) i'], },
-    { simp only [h, add_zero, single_eq_of_ne,
-        add_apply (single i x) (single i y) i', ne.def, not_false_iff], },
+    { subst h, simp only [single_eq_same, add_apply], },
+    { simp only [h, add_zero, single_eq_of_ne, add_apply, ne.def, not_false_iff], },
   end, }
-
-@[simp]
-lemma add_monoid_hom.single_apply {i : I} (x : f i) :
-  (add_monoid_hom.single f i) x = single i x := rfl
 
 end add_monoid_single

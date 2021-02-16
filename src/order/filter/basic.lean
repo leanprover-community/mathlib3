@@ -394,15 +394,17 @@ end complete_lattice
 does not belong to the filter. Bourbaki include this assumption in the definition
 of a filter but we prefer to have a `complete_lattice` structure on filter, so
 we use a typeclass argument in lemmas instead. -/
-@[class] def ne_bot (f : filter α) := f ≠ ⊥
+class ne_bot (f : filter α) : Prop := (ne' : f ≠ ⊥)
 
-lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := hf
+lemma ne_bot_iff {f : filter α} : ne_bot f ↔ f ≠ ⊥ := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := ne_bot.ne'
 
 @[simp] lemma not_ne_bot {α : Type*} {f : filter α} : ¬ f.ne_bot ↔ f = ⊥ :=
-not_not
+not_iff_comm.1 ne_bot_iff.symm
 
 lemma ne_bot.mono {f g : filter α} (hf : ne_bot f) (hg : f ≤ g) : ne_bot g :=
-ne_bot_of_le_ne_bot hf hg
+⟨ne_bot_of_le_ne_bot hf.1 hg⟩
 
 lemma ne_bot_of_le {f g : filter α} [hf : ne_bot f] (hg : f ≤ g) : ne_bot g :=
 hf.mono hg
@@ -506,7 +508,7 @@ lemma empty_in_sets_eq_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
 
 lemma nonempty_of_mem_sets {f : filter α} [hf : ne_bot f] {s : set α} (hs : s ∈ f) :
   s.nonempty :=
-s.eq_empty_or_nonempty.elim (λ h, absurd hs (h.symm ▸ mt empty_in_sets_eq_bot.mp hf)) id
+s.eq_empty_or_nonempty.elim (λ h, absurd hs (h.symm ▸ mt empty_in_sets_eq_bot.mp hf.1)) id
 
 lemma ne_bot.nonempty_of_mem {f : filter α} (hf : ne_bot f) {s : set α} (hs : s ∈ f) :
   s.nonempty :=
@@ -526,12 +528,12 @@ empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
 
 lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
-⟨λ h hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot_sets), @nonempty_of_mem_sets _ _⟩
+⟨λ h, ⟨λ hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot_sets)⟩, @nonempty_of_mem_sets _ _⟩
 
 lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
 ⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
   λ h, hfg $ (filter_eq_bot_of_not_nonempty f h).trans (filter_eq_bot_of_not_nonempty g h).symm,
-  λ ⟨x⟩, ⟨⟨⊤, ⊥, forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
+  λ ⟨x⟩, ⟨⟨⊤, ⊥, ne_bot.ne $ forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
     by rwa [mem_top_sets.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
 
 lemma mem_sets_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ 𝓟 sᶜ = ⊥) : s ∈ f :=
@@ -671,8 +673,8 @@ begin
       imp_true_iff, mem_top_sets, true_and, exists_const],
     intros; refl },
   { intros a s has ih t,
-    simp only [ih, finset.forall_mem_insert, finset.inf_insert, mem_inf_sets,
-      exists_prop, iff_iff_implies_and_implies, exists_imp_distrib, and_imp, and_assoc] {contextual := tt},
+    simp only [ih, finset.forall_mem_insert, finset.inf_insert, mem_inf_sets, exists_prop,
+      iff_iff_implies_and_implies, exists_imp_distrib, and_imp, and_assoc] {contextual := tt},
     split,
     { intros t₁ ht₁ t₂ p hp ht₂ ht,
       existsi function.update p a t₁,
@@ -682,7 +684,8 @@ begin
         function.update_noteq this _ _,
       have eq : s.inf (λj, function.update p a t₁ j) = s.inf (λj, p j) :=
         finset.inf_congr rfl this,
-      simp only [this, ht₁, hp, function.update_same, true_and, imp_true_iff, eq] {contextual := tt},
+      simp only [this, ht₁, hp, function.update_same, true_and, imp_true_iff, eq]
+        {contextual := tt},
       exact subset.trans (inter_subset_inter (subset.refl _) ht₂) ht },
     assume p hpa hp ht,
     exact ⟨p a, hpa, (s.inf p), ⟨⟨p, hp, le_refl _⟩, ht⟩⟩ }
@@ -692,26 +695,26 @@ end
 See also `infi_ne_bot_of_directed` for a version assuming `nonempty α` instead of `nonempty ι`. -/
 lemma infi_ne_bot_of_directed' {f : ι → filter α} [nonempty ι]
   (hd : directed (≥) f) (hb : ∀i, ne_bot (f i)) : ne_bot (infi f) :=
-begin
+⟨begin
   intro h,
   have he: ∅  ∈ (infi f), from h.symm ▸ (mem_bot_sets : ∅ ∈ (⊥ : filter α)),
   obtain ⟨i, hi⟩ : ∃i, ∅ ∈ f i,
     from (mem_infi hd ∅).1 he,
-  exact hb i (empty_in_sets_eq_bot.1 hi)
-end
+  exact (hb i).ne (empty_in_sets_eq_bot.1 hi)
+end⟩
 
 /-- If `f : ι → filter α` is directed, `α` is not empty, and `∀ i, f i ≠ ⊥`, then `infi f ≠ ⊥`.
 See also `infi_ne_bot_of_directed'` for a version assuming `nonempty ι` instead of `nonempty α`. -/
 lemma infi_ne_bot_of_directed {f : ι → filter α}
   [hn : nonempty α] (hd : directed (≥) f) (hb : ∀i, ne_bot (f i)) : ne_bot (infi f) :=
 if hι : nonempty ι then @infi_ne_bot_of_directed' _ _ _ hι hd hb else
-assume h : infi f = ⊥,
-have univ ⊆ (∅ : set α),
-begin
-  rw [←principal_mono, principal_univ, principal_empty, ←h],
-  exact (le_infi $ assume i, false.elim $ hι ⟨i⟩)
-end,
-let ⟨x⟩ := hn in this (mem_univ x)
+⟨λ h : infi f = ⊥,
+  have univ ⊆ (∅ : set α),
+  begin
+    rw [←principal_mono, principal_univ, principal_empty, ←h],
+    exact (le_infi $ assume i, false.elim $ hι ⟨i⟩)
+  end,
+  let ⟨x⟩ := hn in this (mem_univ x)⟩
 
 lemma infi_ne_bot_iff_of_directed' {f : ι → filter α} [nonempty ι] (hd : directed (≥) f) :
   ne_bot (infi f) ↔ ∀i, ne_bot (f i) :=
@@ -759,7 +762,7 @@ filter.ext $ assume x, by simp only [mem_supr_sets, mem_principal_sets, Union_su
 empty_in_sets_eq_bot.symm.trans $ mem_principal_sets.trans subset_empty_iff
 
 @[simp] lemma principal_ne_bot_iff {s : set α} : ne_bot (𝓟 s) ↔ s.nonempty :=
-(not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
+ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 ⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
@@ -857,9 +860,9 @@ univ_mem_sets' hp
   (∀ᶠ x in f, false) ↔ f = ⊥ :=
 empty_in_sets_eq_bot
 
-@[simp] lemma eventually_const {f : filter α} [ne_bot f] {p : Prop} :
+@[simp] lemma eventually_const {f : filter α} [t : ne_bot f] {p : Prop} :
   (∀ᶠ x in f, p) ↔ p :=
-classical.by_cases (λ h : p, by simp [h]) (λ h, by simpa [h])
+classical.by_cases (λ h : p, by simp [h]) (λ h, by simpa [h] using t.ne)
 
 lemma eventually_iff_exists_mem {p : α → Prop} {f : filter α} :
   (∀ᶠ x in f, p x) ↔ ∃ v ∈ f, ∀ y ∈ v, p y :=
@@ -1022,7 +1025,7 @@ by simp [filter.frequently]
 by simp only [filter.frequently, not_not]
 
 @[simp] lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ ne_bot f :=
-by simp [filter.frequently, -not_eventually, eventually_false_iff_eq_bot, ne_bot]
+by simp [filter.frequently, -not_eventually, eventually_false_iff_eq_bot, ne_bot_iff]
 
 @[simp] lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
 
@@ -1168,6 +1171,11 @@ lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
 by simpa only [div_eq_mul_inv] using h.mul h'.inv
 
+lemma eventually_eq.div' [group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+  (h' : f' =ᶠ[l] g') :
+  ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
+by simpa only [div_eq_mul_inv] using h.mul h'.inv
+
 lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
@@ -1200,6 +1208,14 @@ iff.rfl
 lemma eventually_eq_inf_principal_iff {F : filter α} {s : set α} {f g : α → β} :
   (f =ᶠ[F ⊓ 𝓟 s] g) ↔ ∀ᶠ x in F, x ∈ s → f x = g x :=
 eventually_inf_principal
+
+lemma eventually_eq.sub_eq [add_group β] {f g : α → β} {l : filter α} (h : f =ᶠ[l] g) :
+  f - g =ᶠ[l] 0 :=
+by simpa using (eventually_eq.sub (eventually_eq.refl l f) h).symm
+
+lemma eventually_eq_iff_sub [add_group β] {f g : α → β} {l : filter α} :
+  f =ᶠ[l] g ↔ f - g =ᶠ[l] 0 :=
+⟨λ h, h.sub_eq, λ h, by simpa using h.add (eventually_eq.refl l g)⟩
 
 section has_le
 
@@ -1380,7 +1396,8 @@ def bind (f : filter α) (m : α → filter β) : filter β := join (map m f)
 /-- The applicative sequentiation operation. This is not induced by the bind operation. -/
 def seq (f : filter (α → β)) (g : filter α) : filter β :=
 ⟨{ s | ∃u∈ f, ∃t∈ g, (∀m∈u, ∀x∈t, (m : α → β) x ∈ s) },
-  ⟨univ, univ_mem_sets, univ, univ_mem_sets, by simp only [forall_prop_of_true, mem_univ, forall_true_iff]⟩,
+  ⟨univ, univ_mem_sets, univ, univ_mem_sets,
+    by simp only [forall_prop_of_true, mem_univ, forall_true_iff]⟩,
   assume s₀ s₁ ⟨t₀, t₁, h₀, h₁, h⟩ hst, ⟨t₀, t₁, h₀, h₁, assume x hx y hy, hst $ h _ hx _ hy⟩,
   assume s₀ s₁ ⟨t₀, ht₀, t₁, ht₁, ht⟩ ⟨u₀, hu₀, u₁, hu₁, hu⟩,
     ⟨t₀ ∩ u₀, inter_mem_sets ht₀ hu₀, t₁ ∩ u₁, inter_mem_sets ht₁ hu₁,
@@ -1520,13 +1537,14 @@ lemma map_comap_le : map m (comap m g) ≤ g := (gc_map_comap m).l_u_le _
 lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
 
 @[simp] lemma comap_bot : comap m ⊥ = ⊥ :=
-bot_unique $ assume s _, ⟨∅, by simp only [mem_bot_sets], by simp only [empty_subset, preimage_empty]⟩
+bot_unique $ λ s _, ⟨∅, by simp only [mem_bot_sets], by simp only [empty_subset, preimage_empty]⟩
 
 lemma comap_supr {ι} {f : ι → filter β} {m : α → β} :
   comap m (supr f) = (⨆i, comap m (f i)) :=
 le_antisymm
   (assume s hs,
-    have ∀i, ∃t, t ∈ f i ∧ m ⁻¹' t ⊆ s, by simpa only [mem_comap_sets, exists_prop, mem_supr_sets] using mem_supr_sets.1 hs,
+    have ∀i, ∃t, t ∈ f i ∧ m ⁻¹' t ⊆ s,
+      by simpa only [mem_comap_sets, exists_prop, mem_supr_sets] using mem_supr_sets.1 hs,
     let ⟨t, ht⟩ := classical.axiom_of_choice this in
     ⟨⋃i, t i, mem_supr_sets.2 $ assume i, (f i).sets_of_superset (ht i).1 (subset_Union _ _),
       begin
@@ -1543,7 +1561,8 @@ lemma comap_sup : comap m (g₁ ⊔ g₂) = comap m g₁ ⊔ comap m g₂ :=
 le_antisymm
   (assume s ⟨⟨t₁, ht₁, hs₁⟩, ⟨t₂, ht₂, hs₂⟩⟩,
     ⟨t₁ ∪ t₂,
-      ⟨g₁.sets_of_superset ht₁ (subset_union_left _ _), g₂.sets_of_superset ht₂ (subset_union_right _ _)⟩,
+      ⟨mem_sets_of_superset ht₁ (subset_union_left _ _),
+        mem_sets_of_superset ht₂ (subset_union_right _ _)⟩,
       union_subset hs₁ hs₂⟩)
   ((@comap_mono _ _ m).le_map_sup _ _)
 
@@ -1675,7 +1694,7 @@ lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
   (hf : ne_bot f) {s : set α} (hs : m '' s ∈ f) :
   ne_bot (comap m f ⊓ 𝓟 s) :=
 begin
-  refine compl_compl s ▸ mt mem_sets_of_eq_bot _,
+  refine ⟨compl_compl s ▸ mt mem_sets_of_eq_bot _⟩,
   rintros ⟨t, ht, hts⟩,
   rcases hf.nonempty_of_mem (inter_mem_sets hs ht) with ⟨_, ⟨x, hxs, rfl⟩, hxt⟩,
   exact absurd hxs (hts hxt)
@@ -1696,7 +1715,7 @@ hf.comap_of_range_mem $ mem_sets_of_superset hs (image_subset_range _ _)
   assume h, by simp only [h, eq_self_iff_true, map_bot]⟩
 
 lemma map_ne_bot_iff (f : α → β) {F : filter α} : ne_bot (map f F) ↔ ne_bot F :=
-not_congr map_eq_bot_iff
+by simp only [ne_bot_iff, ne, map_eq_bot_iff]
 
 lemma ne_bot.map (hf : ne_bot f) (m : α → β) : ne_bot (map m f) :=
 (map_ne_bot_iff m).2 hf
@@ -1811,7 +1830,7 @@ lemma pure_injective : function.injective (pure : α → filter α) :=
 assume a b hab, (filter.ext_iff.1 hab {x | a = x}).1 rfl
 
 instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=
-mt empty_in_sets_eq_bot.2 $ not_mem_empty a
+⟨mt empty_in_sets_eq_bot.2 $ not_mem_empty a⟩
 
 @[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
 ⟨λ h, h singleton_mem_pure_sets,
@@ -1828,8 +1847,8 @@ by simp only [mem_seq_sets_def, seq_subset, exists_prop, iff_self]
 lemma mem_map_seq_iff {f : filter α} {g : filter β} {m : α → β → γ} {s : set γ} :
   s ∈ (f.map m).seq g ↔ (∃t u, t ∈ g ∧ u ∈ f ∧ ∀x∈u, ∀y∈t, m x y ∈ s) :=
 iff.intro
-  (assume ⟨t, ht, s, hs, hts⟩, ⟨s, m ⁻¹' t, hs, ht, assume a, hts _⟩)
-  (assume ⟨t, s, ht, hs, hts⟩, ⟨m '' s, image_mem_map hs, t, ht, assume f ⟨a, has, eq⟩, eq ▸ hts _ has⟩)
+  (λ ⟨t, ht, s, hs, hts⟩, ⟨s, m ⁻¹' t, hs, ht, λ a, hts _⟩)
+  (λ ⟨t, s, ht, hs, hts⟩, ⟨m '' s, image_mem_map hs, t, ht, λ f ⟨a, has, eq⟩, eq ▸ hts _ has⟩)
 
 lemma seq_mem_seq_sets {f : filter (α → β)} {g : filter α} {s : set (α → β)} {t : set α}
   (hs : s ∈ f) (ht : t ∈ g) : s.seq t ∈ f.seq g :=
@@ -1981,7 +2000,8 @@ lemma mem_traverse_sets :
   ∀(fs : list β') (us : list γ'),
     forall₂ (λb c, s c ∈ f b) fs us → traverse s us ∈ traverse f fs
 | []      []      forall₂.nil         := mem_pure_sets.2 $ mem_singleton _
-| (f::fs) (u::us) (forall₂.cons h hs) := seq_mem_seq_sets (image_mem_map h) (mem_traverse_sets fs us hs)
+| (f::fs) (u::us) (forall₂.cons h hs) :=
+  seq_mem_seq_sets (image_mem_map h) (mem_traverse_sets fs us hs)
 
 lemma mem_traverse_sets_iff (fs : list β') (t : set (list α')) :
   t ∈ traverse f fs ↔
@@ -2114,7 +2134,8 @@ by rw [tendsto, ← map_compose]; simp only [(∘), map_comap h, tendsto]
 lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
-  refine le_antisymm (le_trans (comap_mono $ map_le_iff_le_comap.1 hψ) _) (map_le_iff_le_comap.1 hφ),
+  refine le_antisymm (le_trans (comap_mono $ map_le_iff_le_comap.1 hψ) _)
+    (map_le_iff_le_comap.1 hφ),
   rw [comap_comap, eq, comap_id],
   exact le_refl _
 end
@@ -2185,27 +2206,34 @@ lemma tendsto_pure_left {f : α → β} {a : α} {l : filter β} :
   tendsto f (pure a) l ↔ ∀ s ∈ l, f a ∈ s :=
 iff.rfl
 
+@[simp] lemma map_inf_principal_preimage {f : α → β} {s : set β} {l : filter α} :
+  map f (l ⊓ 𝓟 (f ⁻¹' s)) = map f l ⊓ 𝓟 s :=
+filter.ext $ λ t, by simp only [mem_map, mem_inf_principal, mem_set_of_eq, mem_preimage]
+
 /-- If two filters are disjoint, then a function cannot tend to both of them along a non-trivial
 filter. -/
 lemma tendsto.not_tendsto {f : α → β} {a : filter α} {b₁ b₂ : filter β} (hf : tendsto f a b₁)
   [ne_bot a] (hb : disjoint b₁ b₂) :
   ¬ tendsto f a b₂ :=
-λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot hb.eq_bot
+λ hf', (tendsto_inf.2 ⟨hf, hf'⟩).ne_bot.ne hb.eq_bot
 
-lemma tendsto_if {l₁ : filter α} {l₂ : filter β}
-    {f g : α → β} {p : α → Prop} [decidable_pred p]
-    (h₀ : tendsto f (l₁ ⊓ 𝓟 p) l₂)
-    (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
+lemma tendsto.if {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop} [∀ x, decidable (p x)]
+  (h₀ : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 { x | ¬ p x }) l₂) :
   tendsto (λ x, if p x then f x else g x) l₁ l₂ :=
 begin
-  revert h₀ h₁, simp only [tendsto_def, mem_inf_principal],
-  intros h₀ h₁ s hs,
-  apply mem_sets_of_superset (inter_mem_sets (h₀ s hs) (h₁ s hs)),
-  rintros x ⟨hp₀, hp₁⟩, simp only [mem_preimage],
-  by_cases h : p x,
-  { rw if_pos h, exact hp₀ h },
-  rw if_neg h, exact hp₁ h
+  simp only [tendsto_def, mem_inf_principal] at *,
+  intros s hs,
+  filter_upwards [h₀ s hs, h₁ s hs],
+  simp only [mem_preimage], intros x hp₀ hp₁,
+  split_ifs,
+  exacts [hp₀ h, hp₁ h]
 end
+
+lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
+  {s : set α} [∀ x, decidable (x ∈ s)]
+  (h₀ : tendsto f (l₁ ⊓ 𝓟 s) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 sᶜ) l₂) :
+  tendsto (piecewise s f g) l₁ l₂ :=
+h₀.if h₁
 
 /-! ### Products of filters -/
 
@@ -2359,7 +2387,8 @@ by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, inf_left_comm]
 
 @[simp] lemma prod_principal_principal {s : set α} {t : set β} :
   (𝓟 s) ×ᶠ (𝓟 t) = 𝓟 (set.prod s t) :=
-by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal]; refl
+by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal];
+  refl
 
 @[simp] lemma pure_prod {a : α} {f : filter β} : pure a ×ᶠ f = map (prod.mk a) f :=
 by rw [prod_eq, map_pure, pure_seq_eq_map]
@@ -2385,7 +2414,7 @@ begin
 end
 
 lemma prod_ne_bot {f : filter α} {g : filter β} : ne_bot (f ×ᶠ g) ↔ (ne_bot f ∧ ne_bot g) :=
-(not_congr prod_eq_bot).trans not_or_distrib
+by simp only [ne_bot_iff, ne, prod_eq_bot, not_or_distrib]
 
 lemma ne_bot.prod {f : filter α} {g : filter β} (hf : ne_bot f) (hg : ne_bot g) :
   ne_bot (f ×ᶠ g) :=

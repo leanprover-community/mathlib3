@@ -187,6 +187,24 @@ fintype.of_equiv α $ (equiv.set.univ α).symm
 
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
 
+/-- If `(set.univ : set α)` is finite then `α` is a finite type. -/
+noncomputable
+def fintype_of_univ_finite (H : (univ : set α).finite ) :
+  fintype α :=
+begin
+  choose t ht using H.exists_finset,
+  refine ⟨t, _⟩,
+  simpa only [set.mem_univ, iff_true] using ht
+end
+
+lemma univ_finite_iff_nonempty_fintype :
+  (univ : set α).finite ↔ nonempty (fintype α) :=
+begin
+  split,
+  { intro h, exact ⟨fintype_of_univ_finite h⟩ },
+  { rintro ⟨_i⟩, exactI finite_univ }
+end
+
 theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
 ⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
   λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.set.univ _⟩
@@ -207,6 +225,9 @@ by { haveI := h.to_subtype, exact infinite.nat_embedding s }
 lemma infinite.exists_subset_card_eq {s : set α} (hs : infinite s) (n : ℕ) :
   ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
 ⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
+
+lemma infinite.nonempty {s : set α} (h : s.infinite) : s.nonempty :=
+let a := infinite.nat_embedding s h 37 in ⟨a.1, a.2⟩
 
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
   fintype (s ∪ t : set α) :=
@@ -516,18 +537,12 @@ lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pre
 
 lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
   fintype.card s < fintype.card t :=
-begin
-  rw [← s.coe_to_finset, ← t.coe_to_finset, finset.coe_ssubset] at h,
-  rw [fintype.card_of_finset' _ (λ x, mem_to_finset),
-      fintype.card_of_finset' _ (λ x, mem_to_finset)],
-  exact finset.card_lt_card h,
-end
+fintype.card_lt_of_injective_not_surjective (set.inclusion h.1) (set.inclusion_injective h.1) $
+  λ hst, (ssubset_iff_subset_ne.1 h).2 (eq_of_inclusion_surjective hst)
 
 lemma card_le_of_subset {s t : set α} [fintype s] [fintype t] (hsub : s ⊆ t) :
   fintype.card s ≤ fintype.card t :=
-calc fintype.card s = s.to_finset.card : fintype.card_of_finset' _ (by simp)
-... ≤ t.to_finset.card : finset.card_le_of_subset (λ x hx, by simp [set.subset_def, *] at *)
-... = fintype.card t : eq.symm (fintype.card_of_finset' _ (by simp))
+fintype.card_le_of_injective (set.inclusion hsub) (set.inclusion_injective hsub)
 
 lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
    (hsub : s ⊆ t) (hcard : fintype.card t ≤ fintype.card s) : s = t :=
@@ -584,6 +599,15 @@ by ext; simp
 lemma to_finset_union {α : Type*} [fintype α] (s t : set α) :
   (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
+
+lemma to_finset_ne_eq_erase {α : Type*} [fintype α] (a : α) :
+  {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
+by ext; simp
+
+lemma card_ne_eq [fintype α] (a : α) :
+  fintype.card {x : α | x ≠ a} = fintype.card α - 1 :=
+by rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
+       finset.card_univ, nat.pred_eq_sub_one]
 
 end
 

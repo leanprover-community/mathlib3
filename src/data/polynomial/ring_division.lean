@@ -432,13 +432,12 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
   begin
     assume b hbs hbp,
     have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
-    have : coeff p b ≠ 0, rwa finsupp.mem_support_iff at hbs,
+    have : coeff p b ≠ 0,  by rwa finsupp.mem_support_iff at hbs,
     refine coeff_eq_zero_of_degree_lt _,
-    rw [degree_mul], erw degree_C this,
-    rw [degree_pow, zero_add, degree_eq_nat_degree hq0,
-      ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id],
-    rw mul_lt_mul_right, apply lt_of_le_of_ne, assumption', swap, omega,
-    exact le_nat_degree_of_ne_zero this,
+    erw [degree_mul, degree_C this, degree_pow, zero_add, degree_eq_nat_degree hq0,
+      ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id,
+      mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)],
+    exact lt_of_le_of_ne (le_nat_degree_of_ne_zero this) hbp,
   end
   begin
     intro h, contrapose! hp0,
@@ -476,6 +475,22 @@ by rw [←polynomial.C_mul', ←polynomial.eq_C_of_degree_eq_zero (degree_coe_un
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)
 
+lemma comp_eq_zero_iff :
+  p.comp q = 0 ↔ p = 0 ∨ (p.eval (q.coeff 0) = 0 ∧ q = C (q.coeff 0)) :=
+begin
+  split,
+  { intro h,
+    have key : p.nat_degree = 0 ∨ q.nat_degree = 0,
+    { rw [←mul_eq_zero, ←nat_degree_comp, h, nat_degree_zero] },
+    replace key := or.imp eq_C_of_nat_degree_eq_zero eq_C_of_nat_degree_eq_zero key,
+    cases key,
+    { rw [key, C_comp] at h,
+      exact or.inl (key.trans h) },
+    { rw [key, comp_C, C_eq_zero] at h,
+      exact or.inr ⟨h, key⟩ }, },
+  { exact λ h, or.rec (λ h, by rw [h, zero_comp]) (λ h, by rw [h.2, comp_C, h.1, C_0]) h },
+end
+
 lemma zero_of_eval_zero [infinite R] (p : polynomial R) (h : ∀ x, p.eval x = 0) : p = 0 :=
 by classical; by_contradiction hp; exact
 infinite.not_fintype ⟨p.roots.to_finset, λ x, multiset.mem_to_finset.mpr ((mem_roots hp).mpr (h _))⟩
@@ -487,6 +502,21 @@ begin
   intro x,
   rw [eval_sub, sub_eq_zero, ext],
 end
+
+/-- The set of distinct roots of `p` in `E`.
+
+If you have a non-separable polynomial, use `polynomial.roots` for the multiset
+where multiple roots have the appropriate multiplicity. -/
+def root_set (p : polynomial R) (S) [integral_domain S] [algebra R S] : set S :=
+(p.map (algebra_map R S)).roots.to_finset
+
+lemma root_set_def (p : polynomial R) (S) [integral_domain S] [algebra R S] :
+  p.root_set S = (p.map (algebra_map R S)).roots.to_finset :=
+rfl
+
+@[simp] lemma root_set_zero (S) [integral_domain S] [algebra R S] :
+  (0 : polynomial R).root_set S = ∅ :=
+by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
 
 end roots
 
@@ -510,7 +540,7 @@ let ⟨u, hu⟩ := h in by simp [hu.symm]
 lemma degree_eq_one_of_irreducible_of_root (hi : irreducible p) {x : R} (hx : is_root p x) :
   degree p = 1 :=
 let ⟨g, hg⟩ := dvd_iff_is_root.2 hx in
-have is_unit (X - C x) ∨ is_unit g, from hi.2 _ _ hg,
+have is_unit (X - C x) ∨ is_unit g, from hi.is_unit_or_is_unit hg,
 this.elim
   (λ h, have h₁ : degree (X - C x) = 1, from degree_X_sub_C x,
     have h₂ : degree (X - C x) = 0, from degree_eq_zero_of_is_unit h,
@@ -602,7 +632,7 @@ lemma monic.irreducible_of_irreducible_map (f : polynomial R)
 begin
   fsplit,
   { intro h,
-    exact h_irr.1 (is_unit.map (monoid_hom.of (map φ)) h), },
+    exact h_irr.not_unit (is_unit.map (monoid_hom.of (map φ)) h), },
   { intros a b h,
 
     have q := (leading_coeff_mul a b).symm,
@@ -616,7 +646,7 @@ begin
 
     have h' := congr_arg (map φ) h,
     simp only [map_mul] at h',
-    cases h_irr.2 _ _ h' with w w,
+    cases h_irr.is_unit_or_is_unit h' with w w,
     { left,
       exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },
     { right,

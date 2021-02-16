@@ -57,7 +57,11 @@ lemma f_aux_deriv (n : ℕ) (x : ℝ) (hx : x ≠ 0) :
   has_deriv_at (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n))
     ((P_aux (n+1)).eval x * exp (-x⁻¹) / x^(2 * (n + 1))) x :=
 begin
-  have A : ∀k:ℕ, 2 * (k + 1) - 1 = 2 * k + 1, by omega,
+  have A : ∀k:ℕ, 2 * (k + 1) - 1 = 2 * k + 1,
+  { assume k,
+    rw nat.sub_eq_iff_eq_add,
+    { ring },
+    { simpa [mul_add] using add_le_add (zero_le (2 * k)) one_le_two } },
   convert (((P_aux n).has_deriv_at x).mul
                (((has_deriv_at_exp _).comp x (has_deriv_at_inv hx).neg))).div
             (has_deriv_at_pow (2 * n) x) (pow_ne_zero _ hx) using 1,

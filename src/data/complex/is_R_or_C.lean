@@ -3,9 +3,9 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-
-import analysis.normed_space.basic
-import analysis.complex.basic
+import data.real.sqrt
+import field_theory.tower
+import analysis.normed_space.finite_dimension
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -19,6 +19,9 @@ Possible applications include defining inner products and Hilbert spaces for bot
 complex case. One would produce the definitions and proof for an arbitrary field of this
 typeclass, which basically amounts to doing the complex case, and the two cases then fall out
 immediately from the two instances of the class.
+
+The instance for `ℝ` is registered in this file.
+The instance for `ℂ` is declared in `analysis.complex.basic`.
 
 ## Implementation notes
 
@@ -175,6 +178,7 @@ lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z
 @[simp] lemma conj_im (z : K) : im (conj z) = -(im z) := is_R_or_C.conj_im_ax z
+@[simp] lemma conj_I : conj (I : K) = -I := is_R_or_C.conj_I_ax
 @[simp] lemma conj_of_real (r : ℝ) : conj (r : K) = (r : K) :=
 by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_self, neg_zero] }
 
@@ -416,6 +420,12 @@ theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
 begin
   haveI : char_zero K := char_zero_R_or_C,
   rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
+end
+
+theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
+begin
+  rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj],
+  simp [mul_add, sub_eq_add_neg, neg_div']
 end
 
 /-! ### Absolute value -/
@@ -675,31 +685,6 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   inv_def_ax := λ z, by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
 
-noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
-{ re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
-  im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
-  conj := complex.conj,
-  I := complex.I,
-  I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
-  I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
-  re_add_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, complex.re_add_im,
-                                     complex.coe_algebra_map, complex.of_real_eq_coe],
-  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re,
-                                      complex.coe_algebra_map, complex.of_real_eq_coe],
-  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im,
-                                      complex.coe_algebra_map, complex.of_real_eq_coe],
-  mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
-  mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
-  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
-  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
-  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
-  norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
-    add_monoid_hom.coe_mk, complex.norm_eq_abs],
-  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
-    complex.of_real_eq_coe, complex.norm_eq_abs],
-  div_I_ax := complex.div_I }
-
 end instances
 
 namespace is_R_or_C
@@ -713,13 +698,6 @@ local notation `IR` := @is_R_or_C.I ℝ _
 local notation `absR` := @is_R_or_C.abs ℝ _
 local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 
-local notation `reC` := @is_R_or_C.re ℂ _
-local notation `imC` := @is_R_or_C.im ℂ _
-local notation `conjC` := @is_R_or_C.conj ℂ _
-local notation `IC` := @is_R_or_C.I ℂ _
-local notation `absC` := @is_R_or_C.abs ℂ _
-local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
-
 @[simp] lemma re_to_real {x : ℝ} : reR x = x := rfl
 @[simp] lemma im_to_real {x : ℝ} : imR x = 0 := rfl
 @[simp] lemma conj_to_real {x : ℝ} : conjR x = x := rfl
@@ -730,15 +708,27 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 
 @[simp] lemma coe_real_eq_id : @coe ℝ ℝ _ = id := rfl
 
-@[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
-@[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
-@[simp] lemma conj_to_complex {x : ℂ} : conjC x = x.conj := rfl
-@[simp] lemma I_to_complex : IC = complex.I := rfl
-@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
-by simp [is_R_or_C.norm_sq, complex.norm_sq]
-@[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
-by simp [is_R_or_C.abs, complex.abs]
-
 end cleanup_lemmas
 
 end is_R_or_C
+
+section normalization
+variables {K : Type*} [is_R_or_C K]
+variables {E : Type*} [normed_group E] [normed_space K E]
+
+open is_R_or_C
+
+/- Note: one might think the following lemma belongs in `analysis.normed_space.basic`.  But it
+can't be placed there, because that file is an import of `data.complex.is_R_or_C`! -/
+
+/-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
+@[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : K) • x∥ = 1 :=
+begin
+  have h : ∥(∥x∥ : K)∥ = ∥x∥,
+  { rw norm_eq_abs,
+    exact abs_of_nonneg (norm_nonneg _) },
+  have : ∥x∥ ≠ 0 := by simp [hx],
+  field_simp [norm_smul, h]
+end
+
+end normalization

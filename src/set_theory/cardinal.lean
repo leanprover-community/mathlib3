@@ -93,6 +93,9 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
+protected lemma eq_congr : α ≃ β → # α = # β :=
+λ h, quot.sound ⟨h⟩
+
 noncomputable instance : linear_order cardinal.{u} :=
 { le          := (≤),
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
@@ -271,6 +274,10 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   eq_zero_or_eq_zero_of_mul_eq_zero := @cardinal.eq_zero_or_eq_zero_of_mul_eq_zero,
   ..cardinal.order_bot,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
+
+noncomputable instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ .. (infer_instance : canonically_ordered_add_monoid cardinal.{u}),
+  .. cardinal.linear_order }
 
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
@@ -610,14 +617,8 @@ by induction n; simp [pow_succ', -_root_.add_comm, power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
-⟨λ ⟨⟨f, hf⟩⟩, begin
-  have : _ = fintype.card _ := finset.card_image_of_injective finset.univ hf,
-  simp at this,
-  rw [← fintype.card_fin n, ← this],
-  exact finset.card_le_of_subset (finset.subset_univ _)
-end,
-λ h, ⟨⟨λ i, ⟨i.1, lt_of_lt_of_le i.2 h⟩, λ a b h,
-  have _, from fin.veq_of_eq h, fin.eq_of_veq this⟩⟩⟩
+⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
+  λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
 
 @[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, -not_le]
@@ -1087,3 +1088,6 @@ lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
 by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
 
 end cardinal
+
+lemma equiv.cardinal_eq {α β} : α ≃ β → cardinal.mk α = cardinal.mk β :=
+cardinal.eq_congr

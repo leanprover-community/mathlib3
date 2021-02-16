@@ -154,7 +154,8 @@ begin
   intros n,
   simp only,
   rw [nat.fib_succ_succ, add_comm],
-  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ']
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ'],
+  refl,
 end
 
 /-- The geometric sequence `λ n, φ^n` is a solution of `fib_rec`. -/

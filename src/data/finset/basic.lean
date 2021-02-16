@@ -1587,6 +1587,10 @@ set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
 let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
 
+@[simp]
+lemma nonempty.image_iff (f : α → β) : (s.image f).nonempty ↔ s.nonempty :=
+⟨λ ⟨y, hy⟩, let ⟨x, hx, _⟩ := mem_image.mp hy in ⟨x, hx⟩, λ h, h.image f⟩
+
 theorem image_to_finset [decidable_eq α] {s : multiset α} :
   s.to_finset.image f = (s.map f).to_finset :=
 ext $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
@@ -1793,6 +1797,17 @@ theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 
 theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = {a} :=
 by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton_val]
 
+theorem card_le_one {s : finset α} : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|⟨x, hx⟩, { simp },
+  refine (nat.succ_le_of_lt (card_pos.2 ⟨x, hx⟩)).le_iff_eq.trans (card_eq_one.trans ⟨_, _⟩),
+  { rintro ⟨y, rfl⟩, simp },
+  { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
+end
+
+theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
+by { rw ← not_iff_not, push_neg, exact card_le_one }
+
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
 by simpa only [card_cons, card, insert_val] using
@@ -1903,6 +1918,10 @@ iff.intro
 theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
 multiset.card_le_of_le ∘ val_le_iff.mpr
 
+theorem card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
+  card (s.filter p) ≤ card s :=
+card_le_of_subset $ filter_subset _ _
+
 theorem eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : card t ≤ card s) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
@@ -1915,8 +1934,7 @@ lemma card_le_card_of_inj_on {s : finset α} {t : finset β}
 begin
   classical,
   calc card s = card (s.image f) : by rw [card_image_of_inj_on f_inj]
-    ... ≤ card t : card_le_of_subset $
-      assume x hx, match x, finset.mem_image.1 hx with _, ⟨a, ha, rfl⟩ := hf a ha end
+    ... ≤ card t : card_le_of_subset $ image_subset_iff.2 hf
 end
 
 /--
@@ -1932,12 +1950,10 @@ begin
   intros x hx y hy, contrapose, exact hz x hx y hy,
 end
 
-lemma card_le_of_inj_on {n} {s : finset α}
-  (f : ℕ → α) (hf : ∀i<n, f i ∈ s) (f_inj : ∀i j, i<n → j<n → f i = f j → i = j) : n ≤ card s :=
+lemma le_card_of_inj_on_range {n} {s : finset α}
+  (f : ℕ → α) (hf : ∀i<n, f i ∈ s) (f_inj : ∀ (i<n) (j<n), f i = f j → i = j) : n ≤ card s :=
 calc n = card (range n) : (card_range n).symm
-  ... ≤ card s : card_le_card_of_inj_on f
-    (by simpa only [mem_range])
-    (by simp only [mem_range]; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
+  ... ≤ card s : card_le_card_of_inj_on f (by simpa only [mem_range]) (by simpa only [mem_range])
 
 /-- Suppose that, given objects defined on all strict subsets of any finset `s`, one knows how to
 define an object on `s`. Then one can inductively define an object on all finsets, starting from
@@ -2109,15 +2125,15 @@ by { rw bUnion_singleton, exact image_id }
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
   t.bUnion (λa, s.filter $ (λc, f c = a)) = s :=
-begin
-  ext b,
-  suffices : (∃ a ∈ t, b ∈ s ∧ f b = a) ↔ b ∈ s, by simpa,
-  exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨f b, h b hb, hb, rfl⟩⟩
-end
+ext $ λ b, by simpa using h b
 
 lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=
 bUnion_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
+
+lemma erase_bUnion (f : α → finset β) (s : finset α) (b : β) :
+  (s.bUnion f).erase b = s.bUnion (λ x, (f x).erase b) :=
+by { ext, simp only [finset.mem_bUnion, iff_self, exists_and_distrib_left, finset.mem_erase] }
 
 end bUnion
 

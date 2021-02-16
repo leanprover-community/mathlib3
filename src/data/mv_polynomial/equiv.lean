@@ -63,7 +63,8 @@ def pempty_ring_equiv : mv_polynomial pempty R ≃+* R :=
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
 
-/-- The algebra isomorphism between multivariable polynomials in no variables and the ground ring. -/
+/-- The algebra isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
 @[simps]
 def pempty_alg_equiv : mv_polynomial pempty R ≃ₐ[R] R :=
 { to_fun    := mv_polynomial.eval₂ (ring_hom.id _) $ pempty.elim,
@@ -103,7 +104,8 @@ def punit_ring_equiv : mv_polynomial punit R ≃+* polynomial R :=
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
 
-/-- The ring isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
+/-- The ring isomorphism between multivariable polynomials induced by an equivalence
+of the variables.  -/
 @[simps]
 def ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₂ R :=
 { to_fun    := rename e,
@@ -113,7 +115,8 @@ def ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_poly
   map_mul'  := (rename e).map_mul,
   map_add'  := (rename e).map_add }
 
-/-- The algebra isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
+/-- The algebra isomorphism between multivariable polynomials induced by an equivalence
+of the variables.  -/
 @[simps]
 def alg_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃ₐ[R] mv_polynomial S₂ R :=
 { to_fun    := rename e,
@@ -123,9 +126,11 @@ def alg_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃ₐ[R] mv_p
   commutes' := λ p, by simp only [alg_hom.commutes],
   .. rename e }
 
-/-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
+/-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism
+of the ground ring. -/
 @[simps]
-def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₁ S₂ :=
+def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) :
+  mv_polynomial S₁ R ≃+* mv_polynomial S₁ S₂ :=
 { to_fun    := map (e : R →+* S₂),
   inv_fun   := map (e.symm : S₂ →+* R),
   left_inv  := assume p,

@@ -250,6 +250,29 @@ namespace liouville
 lemma number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
 ∃ p : ℕ, number_first_k_terms m k = p / (m ^ k!) :=
 begin
+  refine ⟨∑ i in range (k+1), m ^ (k! - i!), _⟩,
+  refine (div_eq_iff _).mp _,
+  exact inv_ne_zero (pow_ne_zero _ (ne_of_gt (zero_lt_one.trans (nat.one_lt_cast.mpr hm)))),
+  unfold number_first_k_terms,
+  rw [div_eq_mul_inv, inv_inv', sum_mul],
+--  have : ∑ (x : ℕ) in range (k + 1), 1 / (m : ℝ) ^ x! * (m : ℝ) ^ k! =
+--    ∑ (i : ℕ) in range (k + 1), (↑m) ^ (k! - i!),
+
+  change ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) with
+    ∑ (i : ℕ) in range (k + 1), ((m : ℝ) ^ (k! - i!) : ℝ),
+
+ext1,
+  change ∑ (x : ℕ) in range (k + 1), 1 / (m : ℝ) ^ x! * (m : ℝ) ^ k! =
+    ↑ ∑ (i : ℕ) in range (k + 1), m ^ (k! - i!),
+
+  have : ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) =
+    ∑ (i : ℕ) in range (k + 1), (m ^ (k! - i!) : ℝ),
+    simp only [eq_self_iff_true],
+  rw finsupp.sum,
+  congr,
+  have : ∑ (i : ℕ) in range (k + 1), (m ^ (k! - i!) : ℝ) = 0
+     → ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) = 0,
+
   induction k with k h,
   { exact ⟨1, by rw [number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
   { rcases h with ⟨p_k, h_k⟩,
@@ -258,8 +281,12 @@ begin
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
-        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul,
-        one_mul, pow_add], ring },
+        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+      rw [add_comm, mul_comm (m ^ k!)], --ring
+      refine (add_left_inj (m ^ (k * k!) * m ^ k! * m ^ k!)).mpr _,
+      rw [← mul_assoc, ← mul_assoc],
+--      refine mul_eq_mul_right_iff.mpr (or.inl _),
+      rw [mul_comm (p_k * _), mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc] },
     refine mul_ne_zero_iff.mpr ⟨_, _⟩,
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr ((zero_lt_one.trans hm).ne.symm)) } }
 end

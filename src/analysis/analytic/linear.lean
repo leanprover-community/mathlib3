@@ -57,8 +57,8 @@ multilinear series expansion of `uncurry f`. It is given by
 `f.uncurry_bilinear ![(x, y), (x', y')] = f x y'`. -/
 def uncurry_bilinear (f : E →L[𝕜] F →L[𝕜] G) : (E × F) [×2]→L[𝕜] G :=
 @continuous_linear_map.uncurry_left 𝕜 1 (λ _, E × F) G _ _ _ _ _ $
-  (continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm.to_continuous_linear_map.comp $
-  f.bilinear_comp (fst _ _ _) (snd _ _ _)
+  (↑(continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm : (E × F →L[𝕜] G) →L[𝕜] _).comp $
+    f.bilinear_comp (fst _ _ _) (snd _ _ _)
 
 @[simp] lemma uncurry_bilinear_apply (f : E →L[𝕜] F →L[𝕜] G) (m : fin 2 → E × F) :
   f.uncurry_bilinear m = f (m 0).1 (m 1).2 :=
@@ -68,7 +68,7 @@ rfl
 @[simp] def fpower_series_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
   formal_multilinear_series 𝕜 (E × F) G
 | 0 := continuous_multilinear_map.curry0 𝕜 _ (f x.1 x.2)
-| 1 := (continuous_multilinear_curry_fin1 𝕜 _ _).symm (f.deriv₂ x)
+| 1 := (continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm (f.deriv₂ x)
 | 2 := f.uncurry_bilinear
 | _ := 0
 

@@ -67,10 +67,33 @@ def fin_succ_equiv' {n : ℕ} (i : fin n.succ) :
   inv_fun := λ x, x.cases_on' i (fin.succ_above i),
   left_inv := λ x, if h : x = i then by simp [h] else by simp [h, fin.succ_above_ne],
   right_inv := λ x, by { cases x, simp, simp [fin.succ_above_ne], }}
+@[simp] lemma fin_succ_equiv'_at {n : ℕ} (i : fin (n + 1)) :
+  (fin_succ_equiv' i) i = none := by simp [fin_succ_equiv']
 
+lemma fin_succ_equiv'_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+  (fin_succ_equiv' i) m.cast_succ = some m :=
+by simp [fin_succ_equiv', ne_of_lt h, fin.pred_above, h]
+
+lemma fin_succ_equiv'_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+  (fin_succ_equiv' i) m.succ = some m :=
+by simp [fin_succ_equiv', ne_of_gt h, fin.pred_above, not_lt_of_gt h]
+
+@[simp] lemma fin_succ_equiv'_symm_none {n : ℕ} (i : fin (n + 1)) :
+  (fin_succ_equiv' i).symm none = i := rfl
+
+lemma fin_succ_equiv_symm'_some_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+  (fin_succ_equiv' i).symm (some m) = m.cast_succ :=
+by simp [fin_succ_equiv', ne_of_gt h, fin.succ_above, not_le_of_gt h]
+
+lemma fin_succ_equiv_symm'_some_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+  (fin_succ_equiv' i).symm (some m) = m.succ :=
+begin
+  have : ¬ m.cast_succ < i := by simpa [fin.lt_iff_coe_lt_coe, nat.lt_succ_iff] using h,
+  simp [fin_succ_equiv', ne_of_lt h, fin.succ_above, not_le_of_lt h, this]
+end
 /-- The equiv version of `fin.pred_above_zero`. -/
 lemma fin_succ_equiv'_zero {n : ℕ} :
-  fin_succ_equiv' 0 = fin_succ_equiv' n :=
+  fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv' n :=
 begin
   ext1 x,
   simp only [fin_succ_equiv', fin_succ_equiv, equiv.coe_fn_mk,

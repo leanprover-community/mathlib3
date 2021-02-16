@@ -29,7 +29,7 @@ universes u v
 The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
 state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
 
-For the concrete cases of `ℝ` and `𝕜`, this is just `∥x∥` and `↑∥x∥`, respectively.
+For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
 -/
 noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [normed_group E] (x : E) : 𝕜 :=
@@ -138,7 +138,7 @@ begin
   { rw [hg.2, coord_norm'] },
   { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
     ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
-    ... = norm' 𝕜 x : by simp [coord_self] }
+    ... = norm' 𝕜 x : by simp }
 end
 
 /-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing

@@ -158,6 +158,9 @@ e.injective.subsingleton
 protected theorem subsingleton.symm (e : α ≃ β) [subsingleton α] : subsingleton β :=
 e.symm.injective.subsingleton
 
+lemma subsingleton_iff (e : α ≃ β) : subsingleton α ↔ subsingleton β :=
+⟨λ h, by exactI e.symm.subsingleton, λ h, by exactI e.subsingleton⟩
+
 instance equiv_subsingleton_cod [subsingleton β] :
   subsingleton (α ≃ β) :=
 ⟨λ f g, equiv.ext $ λ x, subsingleton.elim _ _⟩

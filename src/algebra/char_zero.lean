@@ -44,7 +44,7 @@ theorem char_zero_of_inj_zero {R : Type*} [add_left_cancel_monoid R] [has_one R]
    assume h,
    wlog hle : m ≤ n,
    rcases nat.le.dest hle with ⟨k, rfl⟩,
-   rw [nat.cast_add, eq_comm, add_eq_left_iff] at h,
+   rw [nat.cast_add, eq_comm, add_right_eq_self] at h,
    rw [H k h, add_zero]
  end⟩
 

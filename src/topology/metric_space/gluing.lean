@@ -29,11 +29,11 @@ to this predistance is the desired space.
 
 This is an instance of a more general construction, where `Φ` and `Ψ` do not have to be isometries,
 but the distances in the image almost coincide, up to `2ε` say. Then one can almost glue the two
-spaces so that the images of a point under `Φ` and `Ψ` are ε-close. If `ε > 0`, this yields a
-metric space structure on `α ⊕ β`, without the need to take a quotient. In particular, when
-`α` and `β` are inhabited, this gives a natural metric space structure on `α ⊕ β`, where the basepoints
-are at distance 1, say, and the distances between other points are obtained by going through the
-two basepoints.
+spaces so that the images of a point under `Φ` and `Ψ` are ε-close. If `ε > 0`, this yields a metric
+space structure on `α ⊕ β`, without the need to take a quotient. In particular, when `α` and `β` are
+inhabited, this gives a natural metric space structure on `α ⊕ β`, where the basepoints are at
+distance 1, say, and the distances between other points are obtained by going through the two
+basepoints.
 
 We also define the inductive limit of metric spaces. Given
 ```
@@ -66,8 +66,8 @@ open sum (inl inr)
 def glue_dist (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) : α ⊕ β → α ⊕ β → ℝ
 | (inl x) (inl y) := dist x y
 | (inr x) (inr y) := dist x y
-| (inl x) (inr y) := infi (λp, dist x (Φ p) + dist y (Ψ p)) + ε
-| (inr x) (inl y) := infi (λp, dist y (Φ p) + dist x (Ψ p)) + ε
+| (inl x) (inr y) := (⨅ p, dist x (Φ p) + dist y (Ψ p)) + ε
+| (inr x) (inl y) := (⨅ p, dist y (Φ p) + dist x (Ψ p)) + ε
 
 private lemma glue_dist_self (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) : ∀x, glue_dist Φ Ψ ε x x = 0
 | (inl x) := dist_self _
@@ -76,7 +76,7 @@ private lemma glue_dist_self (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) : ∀x
 lemma glue_dist_glued_points [nonempty γ] (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) (p : γ) :
   glue_dist Φ Ψ ε (inl (Φ p)) (inr (Ψ p)) = ε :=
 begin
-  have : infi (λq, dist (Φ p) (Φ q) + dist (Ψ p) (Ψ q)) = 0,
+  have : (⨅ q, dist (Φ p) (Φ q) + dist (Ψ p) (Ψ q)) = 0,
   { have A : ∀q, 0 ≤ dist (Φ p) (Φ q) + dist (Ψ p) (Ψ q) :=
       λq, by rw ← add_zero (0 : ℝ); exact add_le_add dist_nonneg dist_nonneg,
     refine le_antisymm _ (le_cinfi A),
@@ -104,8 +104,8 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have B : ∀a b, bdd_below (range (λ (p : γ), dist a (Φ p) + dist b (Ψ p))) :=
       λa b, ⟨0, forall_range_iff.2 (λp, add_nonneg dist_nonneg dist_nonneg)⟩,
     unfold glue_dist,
-    have : infi (λp, dist z (Φ p) + dist x (Ψ p)) ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) + dist y z,
-    { have : infi (λp, dist y (Φ p) + dist x (Ψ p)) + dist y z =
+    have : (⨅ p, dist z (Φ p) + dist x (Ψ p)) ≤ (⨅ p, dist y (Φ p) + dist x (Ψ p)) + dist y z,
+    { have : (⨅ p, dist y (Φ p) + dist x (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist y (Φ p) + dist x (Ψ p))),
       { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
           (B _ _),
@@ -122,8 +122,8 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have B : ∀a b, bdd_below (range (λ (p : γ), dist a (Φ p) + dist b (Ψ p))) :=
       λa b, ⟨0, forall_range_iff.2 (λp, add_nonneg dist_nonneg dist_nonneg)⟩,
     unfold glue_dist,
-    have : infi (λp, dist z (Φ p) + dist x (Ψ p)) ≤ dist x y + infi (λp, dist z (Φ p) + dist y (Ψ p)),
-    { have : dist x y + infi (λp, dist z (Φ p) + dist y (Ψ p)) =
+    have : (⨅ p, dist z (Φ p) + dist x (Ψ p)) ≤ dist x y + ⨅ p, dist z (Φ p) + dist y (Ψ p),
+    { have : dist x y + (⨅ p, dist z (Φ p) + dist y (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist z (Φ p) + dist y (Ψ p))),
       { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
           (B _ _),
@@ -140,8 +140,8 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have B : ∀a b, bdd_below (range (λ (p : γ), dist a (Φ p) + dist b (Ψ p))) :=
       λa b, ⟨0, forall_range_iff.2 (λp, add_nonneg dist_nonneg dist_nonneg)⟩,
     unfold glue_dist,
-    have : infi (λp, dist x (Φ p) + dist z (Ψ p)) ≤ dist x y + infi (λp, dist y (Φ p) + dist z (Ψ p)),
-    { have : dist x y + infi (λp, dist y (Φ p) + dist z (Ψ p)) =
+    have : (⨅ p, dist x (Φ p) + dist z (Ψ p)) ≤ dist x y + ⨅ p, dist y (Φ p) + dist z (Ψ p),
+    { have : dist x y + (⨅ p, dist y (Φ p) + dist z (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist y (Φ p) + dist z (Ψ p))),
       { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
           (B _ _),
@@ -158,8 +158,8 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
     have B : ∀a b, bdd_below (range (λ (p : γ), dist a (Φ p) + dist b (Ψ p))) :=
       λa b, ⟨0, forall_range_iff.2 (λp, add_nonneg dist_nonneg dist_nonneg)⟩,
     unfold glue_dist,
-    have : infi (λp, dist x (Φ p) + dist z (Ψ p)) ≤ infi (λp, dist x (Φ p) + dist y (Ψ p)) + dist y z,
-    { have : infi (λp, dist x (Φ p) + dist y (Ψ p)) + dist y z =
+    have : (⨅ p, dist x (Φ p) + dist z (Ψ p)) ≤ (⨅ p, dist x (Φ p) + dist y (Ψ p)) + dist y z,
+    { have : (⨅ p, dist x (Φ p) + dist y (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist x (Φ p) + dist y (Ψ p))),
       { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
           (B _ _),
@@ -172,59 +172,47 @@ private lemma glue_dist_triangle (Φ : γ → α) (Ψ : γ → β) (ε : ℝ)
         ... = dist x (Φ p) + dist y (Ψ p) + dist y z : by ring },
     linarith
   end
-| (inl x) (inr y) (inl z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
-    have : ∃a ∈ range (λp, dist x (Φ p) + dist y (Ψ p)), a < infi (λp, dist x (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
-    rcases this with ⟨a, arange, ha⟩,
-    rcases mem_range.1 arange with ⟨p, pa⟩,
-    rw ← pa at ha,
-    have : ∃b ∈ range (λp, dist z (Φ p) + dist y (Ψ p)), b < infi (λp, dist z (Φ p) + dist y (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
-    rcases this with ⟨b, brange, hb⟩,
-    rcases mem_range.1 brange with ⟨q, qb⟩,
-    rw ← qb at hb,
+| (inl x) (inr y) (inl z) := le_of_forall_pos_le_add $ λδ δpos, begin
+    obtain ⟨p, hp⟩ : ∃ p, dist x (Φ p) + dist y (Ψ p) < (⨅ p, dist x (Φ p) + dist y (Ψ p)) + δ / 2,
+      from exists_lt_of_cinfi_lt (by linarith),
+    obtain ⟨q, hq⟩ : ∃ q, dist z (Φ q) + dist y (Ψ q) < (⨅ p, dist z (Φ p) + dist y (Ψ p)) + δ / 2,
+      from exists_lt_of_cinfi_lt (by linarith),
     have : dist (Φ p) (Φ q) ≤ dist (Ψ p) (Ψ q) + 2 * ε,
       { have := le_trans (le_abs_self _) (H p q), by linarith },
     calc dist x z ≤ dist x (Φ p) + dist (Φ p) (Φ q) + dist (Φ q) z : dist_triangle4 _ _ _ _
       ... ≤ dist x (Φ p) + dist (Ψ p) (Ψ q) + dist z (Φ q) + 2 * ε : by rw [dist_comm z]; linarith
       ... ≤ dist x (Φ p) + (dist y (Ψ p) + dist y (Ψ q)) + dist z (Φ q) + 2 * ε :
-        add_le_add (add_le_add (add_le_add (le_refl _) (dist_triangle_left _ _ _)) (le_refl _)) (le_refl _)
-      ... ≤ (infi (λp, dist x (Φ p) + dist y (Ψ p)) + ε) + (infi (λp, dist z (Φ p) + dist y (Ψ p)) + ε) + δ :
-        by linarith
+        add_le_add (add_le_add (add_le_add (le_refl _) (dist_triangle_left _ _ _)) le_rfl) le_rfl
+      ... ≤ ((⨅ p, dist x (Φ p) + dist y (Ψ p)) + ε) +
+            ((⨅ p, dist z (Φ p) + dist y (Ψ p)) + ε) + δ : by linarith
   end
-| (inr x) (inl y) (inr z) := real.le_of_forall_epsilon_le $ λδ δpos, begin
-    have : ∃a ∈ range (λp, dist y (Φ p) + dist x (Ψ p)), a < infi (λp, dist y (Φ p) + dist x (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
-    rcases this with ⟨a, arange, ha⟩,
-    rcases mem_range.1 arange with ⟨p, pa⟩,
-    rw ← pa at ha,
-    have : ∃b ∈ range (λp, dist y (Φ p) + dist z (Ψ p)), b < infi (λp, dist y (Φ p) + dist z (Ψ p)) + δ/2 :=
-      exists_lt_of_cInf_lt (range_nonempty _) (by rw [infi]; linarith),
-    rcases this with ⟨b, brange, hb⟩,
-    rcases mem_range.1 brange with ⟨q, qb⟩,
-    rw ← qb at hb,
+| (inr x) (inl y) (inr z) := le_of_forall_pos_le_add $ λδ δpos, begin
+    obtain ⟨p, hp⟩ : ∃ p, dist y (Φ p) + dist x (Ψ p) < (⨅ p, dist y (Φ p) + dist x (Ψ p)) + δ / 2,
+      from exists_lt_of_cinfi_lt (by linarith),
+    obtain ⟨q, hq⟩ : ∃ q, dist y (Φ q) + dist z (Ψ q) < (⨅ p, dist y (Φ p) + dist z (Ψ p)) + δ / 2,
+      from exists_lt_of_cinfi_lt (by linarith),
     have : dist (Ψ p) (Ψ q) ≤ dist (Φ p) (Φ q) + 2 * ε,
       { have := le_trans (neg_le_abs_self _) (H p q), by linarith },
     calc dist x z ≤ dist x (Ψ p) + dist (Ψ p) (Ψ q) + dist (Ψ q) z : dist_triangle4 _ _ _ _
       ... ≤ dist x (Ψ p) + dist (Φ p) (Φ q) + dist z (Ψ q) + 2 * ε : by rw [dist_comm z]; linarith
       ... ≤ dist x (Ψ p) + (dist y (Φ p) + dist y (Φ q)) + dist z (Ψ q) + 2 * ε :
-        add_le_add (add_le_add (add_le_add (le_refl _) (dist_triangle_left _ _ _)) (le_refl _)) (le_refl _)
-      ... ≤ (infi (λp, dist y (Φ p) + dist x (Ψ p)) + ε) + (infi (λp, dist y (Φ p) + dist z (Ψ p)) + ε) + δ :
-        by linarith
+        add_le_add (add_le_add (add_le_add le_rfl (dist_triangle_left _ _ _)) le_rfl) le_rfl
+      ... ≤ ((⨅ p, dist y (Φ p) + dist x (Ψ p)) + ε) +
+            ((⨅ p, dist y (Φ p) + dist z (Ψ p)) + ε) + δ : by linarith
   end
 
 private lemma glue_eq_of_dist_eq_zero (Φ : γ → α) (Ψ : γ → β) (ε : ℝ) (ε0 : 0 < ε) :
   ∀p q : α ⊕ β, glue_dist Φ Ψ ε p q = 0 → p = q
 | (inl x) (inl y) h := by rw eq_of_dist_eq_zero h
 | (inl x) (inr y) h := begin
-    have : 0 ≤ infi (λp, dist x (Φ p) + dist y (Ψ p)) :=
+    have : 0 ≤ (⨅ p, dist x (Φ p) + dist y (Ψ p)) :=
       le_cinfi (λp, by simpa using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inl x) (inr y) := add_le_add this (le_refl ε),
     exfalso,
     linarith
   end
 | (inr x) (inl y) h := begin
-    have : 0 ≤ infi (λp, dist y (Φ p) + dist x (Ψ p)) :=
+    have : 0 ≤ ⨅ p, dist y (Φ p) + dist x (Ψ p) :=
       le_cinfi (λp, by simpa [add_comm]
                          using add_le_add (@dist_nonneg _ _ x _) (@dist_nonneg _ _ y _)),
     have : 0 + ε ≤ glue_dist Φ Ψ ε (inr x) (inl y) := add_le_add this (le_refl ε),
@@ -311,7 +299,7 @@ def metric_space_sum : metric_space (α ⊕ β) :=
   dist_self          := λx, by cases x; simp only [sum.dist, dist_self],
   dist_comm          := sum.dist_comm,
   dist_triangle      := λp q r,
-    by simp only [dist, sum.dist_eq_glue_dist]; exact glue_dist_triangle _ _ _ (by simp; norm_num) _ _ _,
+    by simp only [dist, sum.dist_eq_glue_dist]; exact glue_dist_triangle _ _ _ (by norm_num) _ _ _,
   eq_of_dist_eq_zero := λp q,
     by simp only [dist, sum.dist_eq_glue_dist]; exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _,
   to_uniform_space   := sum.uniform_space,

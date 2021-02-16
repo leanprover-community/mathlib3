@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.invertible
 import algebra.lie.skew_adjoint
-import linear_algebra.matrix
+import algebra.lie.abelian
 
 /-!
 # Classical Lie algebras
@@ -81,7 +81,7 @@ namespace special_linear
 
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl : lie_subalgebra R (matrix n n R) :=
-{ lie_mem := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
+{ lie_mem' := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
   ..linear_map.ker (matrix.trace n R R) }
 
 lemma sl_bracket (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
@@ -207,14 +207,14 @@ noncomputable def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv
     (indefinite_diagonal p q R) (Pso p q R i) (is_unit_Pso p q R hi)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A, rw indefinite_diagonal_transform p q R hi, refl,
 end
 
 lemma so_indefinite_equiv_apply {i : R} (hi : i*i = -1) (A : so' p q R) :
   (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) =
     (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
-by erw [lie_algebra.equiv.trans_apply, lie_algebra.equiv.of_eq_apply,
+by erw [lie_equiv.trans_apply, lie_equiv.of_eq_apply,
         skew_adjoint_matrices_lie_subalgebra_equiv_apply]
 
 /-- A matrix defining a canonical even-rank symmetric bilinear form.
@@ -278,7 +278,7 @@ noncomputable def type_D_equiv_so' [invertible (2 : R)] :
   type_D l R ≃ₗ⁅R⁆ so' l l R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A,
   rw [JD_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
       mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
@@ -359,7 +359,7 @@ begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
     (indefinite_diagonal (unit ⊕ l) l R)
     (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A,
   rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
       lie_subalgebra.mem_coe, mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],

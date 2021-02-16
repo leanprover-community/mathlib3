@@ -140,7 +140,7 @@ begin
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
   rw mem_range at hk,
-  omega
+  rw [add_comm, nat.add_sub_assoc (nat.lt_succ_iff.mp hk), ← add_comm],
 end
 
 section p_prime
@@ -160,7 +160,7 @@ begin
       apply ne_of_gt,
       apply pow_pos hp.pos i } },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, int.nat_cast_eq_coe_nat, bind_singleton_eq_self], },
+  { simp only [this, int.nat_cast_eq_coe_nat, bUnion_singleton_eq_self], },
   { simp only [this, int.nat_cast_eq_coe_nat],
     intros a b h,
     apply singleton_disjoint.mpr,
@@ -241,7 +241,7 @@ begin
   all_goals {
     intro H,
     replace H := vars_sum_subset _ _ H,
-    rw mem_bind at H,
+    rw mem_bUnion at H,
     rcases H with ⟨j, hj, H⟩,
     rw vars_C_mul at H,
     swap,

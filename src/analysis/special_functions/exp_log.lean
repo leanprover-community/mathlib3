@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import data.complex.exponential
-import analysis.complex.basic
-import analysis.calculus.mean_value
+import analysis.calculus.inverse
 import measure_theory.borel_space
+import analysis.complex.real_deriv
 
 /-!
 # Complex and real exponential, real logarithm
@@ -34,6 +34,12 @@ open finset filter metric asymptotics set function
 open_locale classical topological_space
 
 namespace complex
+
+lemma measurable_re : measurable re := continuous_re.measurable
+
+lemma measurable_im : measurable im := continuous_im.measurable
+
+lemma measurable_of_real : measurable (coe : ℝ → ℂ) := continuous_of_real.measurable
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
@@ -77,12 +83,22 @@ begin
     rwa deriv_exp }
 end
 
+lemma has_strict_deriv_at_exp (x : ℂ) : has_strict_deriv_at exp (exp x) x :=
+times_cont_diff_exp.times_cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
+
+lemma is_open_map_exp : is_open_map exp :=
+open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
+
 lemma measurable_exp : measurable exp := continuous_exp.measurable
 
 end complex
 
 section
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
+
+lemma has_strict_deriv_at.cexp (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
+(complex.has_strict_deriv_at_exp (f x)).comp x hf
 
 lemma has_deriv_at.cexp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
@@ -111,6 +127,10 @@ variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' 
 lemma measurable.cexp {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
   measurable (λ x, complex.exp (f x)) :=
 complex.measurable_exp.comp hf
+
+lemma has_strict_fderiv_at.cexp (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') x :=
+(complex.has_strict_deriv_at_exp (f x)).comp_has_strict_fderiv_at x hf
 
 lemma has_fderiv_within_at.cexp (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') s x :=
@@ -399,6 +419,10 @@ lemma log_mul (hx : x ≠ 0) (hy : y ≠ 0) : log (x * y) = log x + log y :=
 exp_injective $
 by rw [exp_log_eq_abs (mul_ne_zero hx hy), exp_add, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_mul]
 
+lemma log_div (hx : x ≠ 0) (hy : y ≠ 0) : log (x / y) = log x - log y :=
+exp_injective $
+by rw [exp_log_eq_abs (div_ne_zero hx hy), exp_sub, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_div]
+
 @[simp] lemma log_inv (x : ℝ) : log (x⁻¹) = -log x :=
 begin
   by_cases hx : x = 0, { simp [hx] },
@@ -645,35 +669,21 @@ namespace real
 /-- The function `exp(x)/x^n` tends to `+∞` at `+∞`, for any natural number `n` -/
 lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
 begin
-  have n_pos : (0 : ℝ) < n + 1 := nat.cast_add_one_pos n,
-  have n_ne_zero : (n : ℝ) + 1 ≠ 0 := ne_of_gt n_pos,
-  have A : ∀x:ℝ, 0 < x → exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n,
-  { assume x hx,
-    let y := x / (n+1),
-    have y_pos : 0 < y := div_pos hx n_pos,
-    have : exp (x / (n+1)) ≤ (n+1)^n * (exp x / x^n), from calc
-      exp y = exp y * 1 : by simp
-      ... ≤ exp y * (exp y / y)^n : begin
-          apply mul_le_mul_of_nonneg_left (one_le_pow_of_one_le _ n) (le_of_lt (exp_pos _)),
-          rw one_le_div y_pos,
-          apply le_trans _ (add_one_le_exp_of_nonneg (le_of_lt y_pos)),
-          exact le_add_of_le_of_nonneg (le_refl _) (zero_le_one)
-        end
-      ... = exp y * exp (n * y) / y^n :
-        by rw [div_pow, exp_nat_mul, mul_div_assoc]
-      ... = exp ((n + 1) * y) / y^n :
-        by rw [← exp_add, add_mul, one_mul, add_comm]
-      ... = exp x / (x / (n+1))^n :
-        by { dsimp [y], rw mul_div_cancel' _ n_ne_zero }
-      ... = (n+1)^n * (exp x / x^n) :
-        by rw [← mul_div_assoc, div_pow, div_div_eq_mul_div, mul_comm],
-    rwa div_le_iff' (pow_pos n_pos n) },
-  have B : ∀ᶠ x in at_top, exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n :=
-    mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,
-  have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top :=
-    (tendsto_exp_at_top.comp (tendsto_id.at_top_div_const
-      (nat.cast_add_one_pos n))).at_top_div_const (pow_pos n_pos n),
-  exact tendsto_at_top_mono' at_top B C
+  refine (at_top_basis_Ioi.tendsto_iff (at_top_basis' 1)).2 (λ C hC₁, _),
+  have hC₀ : 0 < C, from zero_lt_one.trans_le hC₁,
+  have : 0 < (exp 1 * C)⁻¹ := inv_pos.2 (mul_pos (exp_pos _) hC₀),
+  obtain ⟨N, hN⟩ : ∃ N, ∀ k ≥ N, (↑k ^ n : ℝ) / exp 1 ^ k < (exp 1 * C)⁻¹ :=
+    eventually_at_top.1 ((tendsto_pow_const_div_const_pow_of_one_lt n
+      (one_lt_exp_iff.2 zero_lt_one)).eventually (gt_mem_nhds this)),
+  simp only [← exp_nat_mul, mul_one, div_lt_iff, exp_pos, ← div_eq_inv_mul] at hN,
+  refine ⟨N, trivial, λ x hx, _⟩, rw mem_Ioi at hx,
+  have hx₀ : 0 < x, from N.cast_nonneg.trans_lt hx,
+  rw [mem_Ici, le_div_iff (pow_pos hx₀ _), ← le_div_iff' hC₀],
+  calc x ^ n ≤ (nat_ceil x) ^ n : pow_le_pow_of_le_left hx₀.le (le_nat_ceil _) _
+  ... ≤ exp (nat_ceil x) / (exp 1 * C) : (hN _ (lt_nat_ceil.2 hx).le).le
+  ... ≤ exp (x + 1) / (exp 1 * C) : div_le_div_of_le (mul_pos (exp_pos _) hC₀).le
+    (exp_le_exp.2 $ (nat_ceil_lt_add_one hx₀.le).le)
+  ... = exp x / C : by rw [add_comm, exp_add, mul_div_mul_left _ _ (exp_pos _).ne']
 end
 
 /-- The function `x^n * exp(-x)` tends to `0` at `+∞`, for any natural number `n`. -/

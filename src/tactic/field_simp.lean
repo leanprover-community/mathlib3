@@ -87,7 +87,7 @@ meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (cfg : simp_config_ext := {discharger := field_simp.ne_zero}) : tactic unit :=
 let attr_names := `field_simps :: attr_names,
     hs := simp_arg_type.except `one_div :: simp_arg_type.except `mul_eq_zero :: hs in
-propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
+propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat >> skip)
 
 add_tactic_doc
 { name       := "field_simp",

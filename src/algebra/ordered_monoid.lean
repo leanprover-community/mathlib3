@@ -664,54 +664,60 @@ class canonically_linear_ordered_add_monoid (α : Type*)
 
 /-- A canonically linear-ordered monoid is a canonically ordered monoid
     whose ordering is a linear order. -/
-@[protect_proj, ancestor canonically_ordered_monoid linear_order]
+@[protect_proj, ancestor canonically_ordered_monoid linear_order, to_additive]
 class canonically_linear_ordered_monoid (α : Type*)
       extends canonically_ordered_monoid α, linear_order α
 
 section canonically_linear_ordered_monoid
 variables
 
-@[priority 100]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_add_monoid.semilattice_sup_bot
-  [canonically_linear_ordered_add_monoid α] : semilattice_sup_bot α :=
-{ ..lattice_of_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
-
-@[priority 100, to_additive canonically_linear_ordered_add_monoid.semilattice_sup_bot]
--- see Note [lower instance priority]
+@[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_monoid.semilattice_sup_bot
   [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
+
+instance with_top.canonically_linear_ordered_add_monoid
+  (α : Type*) [canonically_linear_ordered_add_monoid α] :
+    canonically_linear_ordered_add_monoid (with_top α) :=
+{ .. (infer_instance : canonically_ordered_add_monoid (with_top α)),
+  .. (infer_instance : linear_order (with_top α)) }
+
+@[to_additive] lemma min_mul_distrib [canonically_linear_ordered_monoid α] (a b c : α) :
+  min a (b * c) = min a (min a b * min a c) :=
+begin
+  cases le_total a b with hb hb,
+  { simp [hb, le_mul_right] },
+  { cases le_total a c with hc hc,
+    { simp [hc, le_mul_left] },
+    { simp [hb, hc] } }
+end
+
+@[to_additive] lemma min_mul_distrib' [canonically_linear_ordered_monoid α] (a b c : α) :
+  min (a * b) c = min (min a c * min b c) c :=
+by simpa [min_comm _ c] using min_mul_distrib c a b
 
 end canonically_linear_ordered_monoid
 
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and monotone. -/
-@[protect_proj, ancestor add_comm_monoid add_left_cancel_semigroup
-  add_right_cancel_semigroup partial_order]
+@[protect_proj, ancestor add_cancel_comm_monoid partial_order]
 class ordered_cancel_add_comm_monoid (α : Type u)
-      extends add_comm_monoid α, add_left_cancel_semigroup α,
-              add_right_cancel_semigroup α, partial_order α :=
+      extends add_cancel_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (le_of_add_le_add_left : ∀ a b c : α, a + b ≤ a + c → b ≤ c)
 
 /-- An ordered cancellative commutative monoid
 is a commutative monoid with a partial order,
 in which multiplication is cancellative and monotone. -/
-@[protect_proj, ancestor comm_monoid left_cancel_semigroup right_cancel_semigroup partial_order,
-  to_additive]
+@[protect_proj, ancestor cancel_comm_monoid partial_order, to_additive]
 class ordered_cancel_comm_monoid (α : Type u)
-      extends comm_monoid α, left_cancel_semigroup α,
-              right_cancel_semigroup α, partial_order α :=
+      extends cancel_comm_monoid α, partial_order α :=
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (le_of_mul_le_mul_left : ∀ a b c : α, a * b ≤ a * c → b ≤ c)
 
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
-
-@[priority 100, to_additive]    -- see Note [lower instance priority]
-instance ordered_cancel_comm_monoid.to_left_cancel_monoid :
-  left_cancel_monoid α := { ..‹ordered_cancel_comm_monoid α› }
 
 @[to_additive le_of_add_le_add_left]
 lemma le_of_mul_le_mul_left' : ∀ {a b c : α}, a * b ≤ a * c → b ≤ c :=

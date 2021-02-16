@@ -2,19 +2,78 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Free abelian groups as abelianization of free groups.
-
--- TODO: rewrite in terms of finsupp
 -/
+
 import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
+import algebra.module.basic -- we use the ℤ-module structure on an add_comm_group in punit_equiv
+
+/-!
+# Free abelian groups
+
+The free abelian group on a type `α`, defined as the abelianisation of
+the free group on `α`.
+
+The free abelian group on `α` can be abstractly defined as the left adjoint of the
+forgetful functor from abelian groups to types. Alternatively, one could define
+it as the functions `α → ℤ` which send all but finitely many `(a : α)` to `0`,
+under pointwise addition. In this file, it is defined as the abelianisation
+of the free group on `α`. All the constructions and theorems required to show
+the adjointness of the construction and the forgetful functor are proved in this
+file, but the category-theoretic adjunction statement is in
+`algebra.category.Group.adjunctions` .
+
+## Main definitions
+
+Here we use the following variables: `(α β : Type*) (A : Type*) [add_comm_group A]`
+
+* `free_abelian_group α` : the free abelian group on a type `α`. As an abelian
+group it is `α →₀ ℤ`, the functions from `α` to `ℤ` such that all but finitely
+many elements get mapped to zero, however this is not how it is implemented.
+
+* `lift (f : α → A) : free_abelian_group α →+ A` : the group homomorphism induced
+by the map `f`.
+
+* `hom_equiv : (free_abelian_group α →+ A) ≃ (α → A)` : the bijection witnessing adjointness.
+
+* `map (f : α → β) : free_abelian_group α →+ free_abelian_group β` : functoriality
+    of `free_abelian_group`
+
+* `instance [monoid α] : semigroup (free_abelian_group α)`
+
+* `instance [comm_monoid α] : comm_ring (free_abelian_group α)`
+
+It has been suggested that we would be better off refactoring this file
+and using `finsupp` instead.
+
+## Implementation issues
+
+The definition is `def free_abelian_group : Type u :=
+additive $ abelianization $ free_group α`
+
+Chris Hughes has suggested that this all be rewritten in terms of `finsupp`.
+Johan Commelin has written all the API relating the definition to `finsupp`
+in the lean-liquid repo.
+
+The lemmas `map_pure`, `map_of`, `map_zero`, `map_add`, `map_neg` and `map_sub`
+are proved about the `functor.map` `<$>` construction, and need `α` and `β` to
+be in the same universe. But
+`free_abelian_group.map (f : α → β)` is defined to be the `add_group`
+homomorphism `free_abelian_group α →+ free_abelian_group β` (with `α` and `β` now
+allowed to be in different universes), so `(map f).map_add`
+etc can be used to prove that `free_abelian_group.map` preserves addition. The
+functions `map_id`, `map_id_apply`, `map_comp`, `map_comp_apply` and `map_of_apply`
+are about `free_abelian_group.map`.
+
+-/
+
 
 universes u v
 
 variables (α : Type u)
 
+/-- The free abelian group on a type. -/
 def free_abelian_group : Type u :=
 additive $ abelianization $ free_group α
 
@@ -27,9 +86,11 @@ variable {α}
 
 namespace free_abelian_group
 
+/-- The canonical map from α to `free_abelian_group α` -/
 def of (x : α) : free_abelian_group α :=
 abelianization.of $ free_group.of x
 
+/-- The map `free_abelian_group α →+ A` induced by a map of types `α → A`. -/
 def lift {β : Type v} [add_comm_group β] (f : α → β) : free_abelian_group α →+ β :=
 (@abelianization.lift _ _ (multiplicative β) _
   (monoid_hom.of (@free_group.to_group _ (multiplicative β) _ f))).to_additive
@@ -137,6 +198,8 @@ instance is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_
   is_add_group_hom (λf, (lift f a : β)) :=
 { map_add := λ f g, lift.add' a f g }
 
+section monad
+
 variables {β : Type u}
 
 instance : monad free_abelian_group.{u} :=
@@ -154,7 +217,7 @@ protected theorem induction_on'
 free_abelian_group.induction_on z C0 C1 Cn Cp
 
 @[simp] lemma map_pure (f : α → β) (x : α) : f <$> (pure x : free_abelian_group α) = pure (f x) :=
-lift.of _ _
+rfl
 
 @[simp] lemma map_zero (f : α → β) : f <$> (0 : free_abelian_group α) = 0 :=
 (lift (of ∘ f)).map_zero
@@ -171,22 +234,6 @@ lift.of _ _
 (lift _).map_sub _ _
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
-
-/-- The additive group homomorphism `free_abelian_group α →+ free_abelian_group β` induced from a
-  map `α → β` -/
-def map (f : α → β) : free_abelian_group α →+ free_abelian_group β :=
-add_monoid_hom.mk' (λ x, f <$> x) $ map_add _
-
-lemma lift_comp {α} {β} {γ} [add_comm_group γ]
-  (f : α → β) (g : β → γ) (x : free_abelian_group α) :
-  lift (g ∘ f) x = lift g (f <$> x) :=
-begin
-  apply free_abelian_group.induction_on x,
-  { simp only [(lift _).map_zero, map_zero], },
-  { intro y, simp [lift.of, map_of, function.comp_app], },
-  { intros x w, simp only [w, neg_inj, (lift _).map_neg, map_neg], },
-  { intros x y w₁ w₂, simp only [w₁, w₂, (lift _).map_add, add_right_inj, map_add], },
-end
 
 @[simp] lemma pure_bind (f : α → free_abelian_group β) (x) : pure x >>= f = f x :=
 lift.of _ _
@@ -263,6 +310,44 @@ instance : is_comm_applicative free_abelian_group.{u} :=
       (λ y₁ y₂ ih1 ih2, by rw [map_add, map_add, add_seq, ih1, ih2]))
     (λ p ih, by rw [map_neg, neg_seq, seq_neg, ih])
     (λ x₁ x₂ ih1 ih2, by rw [map_add, add_seq, seq_add, ih1, ih2]) }
+
+
+end monad
+
+universe w
+
+variables {β : Type v} {γ : Type w}
+
+/-- The additive group homomorphism `free_abelian_group α →+ free_abelian_group β` induced from a
+  map `α → β` -/
+def map (f : α → β) : free_abelian_group α →+ free_abelian_group β :=
+lift (of ∘ f)
+
+lemma lift_comp {α} {β} {γ} [add_comm_group γ]
+  (f : α → β) (g : β → γ) (x : free_abelian_group α) :
+  lift (g ∘ f) x = lift g (map f x) :=
+begin
+  apply free_abelian_group.induction_on x,
+  { exact add_monoid_hom.map_zero _ },
+  { intro y, refl },
+  { intros x h, simp only [h, add_monoid_hom.map_neg] },
+  { intros x y h₁ h₂, simp only [h₁, h₂, add_monoid_hom.map_add] }
+end
+
+lemma map_id : map id = add_monoid_hom.id (free_abelian_group α) :=
+eq.symm $ lift.ext _ _ $ λ x, lift.unique of (add_monoid_hom.id _) $ λ y, add_monoid_hom.id_apply _
+
+lemma map_id_apply (x : free_abelian_group α) : map id x = x := by {rw map_id, refl }
+
+lemma map_comp {f : α → β} {g : β → γ} : map (g ∘ f) = (map g).comp (map f) :=
+eq.symm $ lift.ext _ _ $ λ x, eq.symm $ lift_comp _ _ _
+
+lemma map_comp_apply {f : α → β} {g : β → γ} (x : free_abelian_group α) :
+  map (g ∘ f) x = (map g) ((map f) x) := by { rw map_comp, refl }
+
+-- version of map_of which uses `map`
+lemma map_of_apply {f : α → β} (a : α) : map f (of a) = of (f a) := rfl
+
 variable (α)
 
 instance [monoid α] : semigroup (free_abelian_group α) :=
@@ -332,7 +417,46 @@ instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
       { intros y1 y2 ih1 ih2, rw [mul_add, add_mul, ih1, ih2] } },
     { intros s ih, rw [neg_mul_eq_neg_mul_symm, ih, neg_mul_eq_mul_neg] },
     { intros x1 x2 ih1 ih2, rw [add_mul, mul_add, ih1, ih2] }
-  end
+  end,
   .. free_abelian_group.ring α }
+
+instance pempty_unique : unique (free_abelian_group pempty) :=
+{ default := 0,
+  uniq := λ x, free_abelian_group.induction_on x rfl
+    (λ x, pempty.elim x)
+    (λ x, pempty.elim x)
+    (by { rintros - - rfl rfl, simp })  }
+
+/-- The free abelian group on a type with one term is isomorphic to `ℤ`. -/
+def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
+{ to_fun := free_abelian_group.lift (λ _, (1 : ℤ)),
+  inv_fun := λ n, n • of (inhabited.default T),
+  left_inv := λ z, free_abelian_group.induction_on z
+    (by simp only [zero_smul, add_monoid_hom.map_zero])
+    (unique.forall_iff.2 $ by simp only [one_smul, lift.of])
+    (unique.forall_iff.2 $ by simp)
+    (λ x y hx hy, by { simp only [add_monoid_hom.map_add, add_smul] at *, rw [hx, hy]}),
+  right_inv := λ n,
+  begin
+    rw [add_monoid_hom.map_int_module_smul, lift.of],
+    exact gsmul_int_one n
+  end,
+  map_add' := add_monoid_hom.map_add _ }
+
+/-- Isomorphic types have isomorphic free abelian groups. -/
+def equiv_of_equiv {α β : Type*} (f : α ≃ β) : free_abelian_group α ≃+ free_abelian_group β :=
+{ to_fun := map f,
+  inv_fun := map f.symm,
+  left_inv := begin
+    intros x,
+    rw [← map_comp_apply, equiv.symm_comp_self, map_id],
+    refl,
+  end,
+  right_inv := begin
+    intros x,
+    rw [← map_comp_apply, equiv.self_comp_symm, map_id],
+    refl,
+  end,
+  map_add' := add_monoid_hom.map_add _ }
 
 end free_abelian_group

@@ -309,6 +309,12 @@ lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
 
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
+@[ext] theorem ext_ring [topological_space R] {f g : R →L[R] M} (h : f 1 = g 1) : f = g :=
+coe_inj.1 $ linear_map.ext_ring h
+
+theorem ext_ring_iff [topological_space R] {f g : R →L[R] M} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
 /-- If two continuous linear maps are equal on a set `s`, then they are equal on the closure
 of the `submodule.span` of this set. -/
 lemma eq_on_closure_span [t2_space M₂] {s : set M} {f g : M →L[R] M₂} (h : set.eq_on f g s) :
@@ -439,6 +445,24 @@ rfl
 @[simp, norm_cast] lemma prod_apply (f₁ : M →L[R] M₂) (f₂ : M →L[R] M₃) (x : M) :
   f₁.prod f₂ x = (f₁ x, f₂ x) :=
 rfl
+
+section
+
+variables (R M M₂)
+
+/-- The left injection into a product is a continuous linear map. -/
+def inl : M →L[R] M × M₂ := (id R M).prod 0
+
+/-- The right injection into a product is a continuous linear map. -/
+def inr : M₂ →L[R] M × M₂ := (0 : M₂ →L[R] M).prod (id R M₂)
+
+end
+
+@[simp] lemma inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
+@[simp] lemma inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
+
+@[simp, norm_cast] lemma coe_inl : (inl R M M₂ : M →ₗ[R] M × M₂) = linear_map.inl R M M₂ := rfl
+@[simp, norm_cast] lemma coe_inr : (inr R M M₂ : M₂ →ₗ[R] M × M₂) = linear_map.inr R M M₂ := rfl
 
 instance [topological_space R] [topological_semimodule R M] [topological_semimodule R M₂] :
   topological_semimodule R (M × M₂) :=
@@ -595,10 +619,7 @@ by ext; simp [← continuous_linear_map.map_smul_of_tower]
 @[simp]
 lemma smul_right_one_eq_iff {f f' : M₂} :
   smul_right (1 : R →L[R] R) f = smul_right (1 : R →L[R] R) f' ↔ f = f' :=
-⟨λ h, have (smul_right (1 : R →L[R] R) f : R → M₂) 1 = (smul_right (1 : R →L[R] R) f' : R → M₂) 1,
-        by rw h,
-      by simp at this; assumption,
-  λ h, by rw h⟩
+by simp only [ext_ring_iff, smul_right_apply, one_apply, one_smul]
 
 lemma smul_right_comp [topological_semimodule R R] {x : M₂} {c : R} :
   (smul_right (1 : R →L[R] R) x).comp (smul_right (1 : R →L[R] R) c) =
@@ -772,6 +793,21 @@ lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp] lemma comp_smul [linear_map.compatible_smul M₂ M₃ S R] : h.comp (c • f) = c • (h.comp f) :=
 by { ext x, exact h.map_smul_of_tower c (f x) }
 
+/-- `continuous_linear_map.prod` as an `equiv`. -/
+@[simps apply] def prod_equiv : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ (M →L[R] M₂ × M₃) :=
+{ to_fun := λ f, f.1.prod f.2,
+  inv_fun := λ f, ⟨(fst _ _ _).comp f, (snd _ _ _).comp f⟩,
+  left_inv := λ f, by ext; refl,
+  right_inv := λ f, by ext; refl }
+
+lemma prod_ext_iff {f g : M × M₂ →L[R] M₃} :
+  f = g ↔ f.comp (inl _ _ _) = g.comp (inl _ _ _) ∧ f.comp (inr _ _ _) = g.comp (inr _ _ _) :=
+by { simp only [← coe_inj, linear_map.prod_ext_iff], refl }
+
+@[ext] lemma prod_ext {f g : M × M₂ →L[R] M₃} (hl : f.comp (inl _ _ _) = g.comp (inl _ _ _))
+  (hr : f.comp (inr _ _ _) = g.comp (inr _ _ _)) : f = g :=
+prod_ext_iff.2 ⟨hl, hr⟩
+
 variables [has_continuous_add M₂]
 
 instance : semimodule S (M →L[R] M₂) :=
@@ -785,13 +821,10 @@ instance : semimodule S (M →L[R] M₂) :=
 variables (S) [has_continuous_add M₃]
 
 /-- `continuous_linear_map.prod` as a `linear_equiv`. -/
-def prodₗ : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ₗ[S] (M →L[R] M₂ × M₃) :=
-{ to_fun := λ f, f.1.prod f.2,
-  inv_fun := λ f, ⟨(fst _ _ _).comp f, (snd _ _ _).comp f⟩,
-  map_add' := λ f g, rfl,
+@[simps apply] def prodₗ : ((M →L[R] M₂) × (M →L[R] M₃)) ≃ₗ[S] (M →L[R] M₂ × M₃) :=
+{ map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
-  left_inv := λ f, by ext; refl,
-  right_inv := λ f, by ext; refl }
+  .. prod_equiv }
 
 end smul
 

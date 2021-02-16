@@ -1552,10 +1552,10 @@ unfailing.seq
 instance sep_by [p.unfailing] [sep.unfailing] : unfailing (sep_by sep p) :=
 unfailing.orelse
 
-instance fix_core {F : parser α → parser α} [hF : ∀ (p : parser α), p.unfailing → (F p).unfailing] :
-  ∀ {max_depth : ℕ}, unfailing (fix_core F max_depth)
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.unfailing → (F p).unfailing) :
+  ∀ (max_depth : ℕ), unfailing (fix_core F max_depth)
 | 0               := unfailing.failure
-| (max_depth + 1) := hF _ fix_core
+| (max_depth + 1) := hF _ (fix_core _)
 
 instance digit : digit.unfailing :=
 unfailing.decorate_error
@@ -1563,7 +1563,7 @@ unfailing.decorate_error
 instance nat : nat.unfailing :=
 unfailing.decorate_error
 
-instance fix {F : parser α → parser α} [hF : ∀ (p : parser α), p.unfailing → (F p).unfailing] :
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.unfailing → (F p).unfailing) :
   unfailing (fix F) :=
 ⟨λ _ _, by { convert unfailing.fix_core.le _ _, exact hF }⟩
 
@@ -1738,10 +1738,10 @@ prog.seq
 instance sep_by [p.prog] [sep.prog] : prog (sep_by sep p) :=
 prog.orelse
 
-instance fix_core {F : parser α → parser α} [hF : ∀ (p : parser α), p.prog → (F p).prog] :
-  ∀ {max_depth : ℕ}, prog (fix_core F max_depth)
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
+  ∀ (max_depth : ℕ), prog (fix_core F max_depth)
 | 0               := prog.failure
-| (max_depth + 1) := hF _ fix_core
+| (max_depth + 1) := hF _ (fix_core _)
 
 instance digit : digit.prog :=
 prog.decorate_error
@@ -1749,7 +1749,7 @@ prog.decorate_error
 instance nat : nat.prog :=
 prog.decorate_error
 
-instance fix {F : parser α → parser α} [hF : ∀ (p : parser α), p.prog → (F p).prog] :
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
   prog (fix F) :=
 ⟨λ _ _, by { convert prog.fix_core.le _ _, exact hF }⟩
 

@@ -116,7 +116,7 @@ begin
     exact mul_le_mul_of_nonneg_left (le_max_right _ M) dist_nonneg }
 end
 
-lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
+lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : _root_.irrational α)
   {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
   ∃ A : ℝ, 0 < A ∧
     ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (abs (α - (a / (b + 1))) * A) :=

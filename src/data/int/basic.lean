@@ -166,6 +166,9 @@ theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 @[simp] lemma succ_coe_nat_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
 lt_add_one_iff.mpr (by simp)
 
+@[norm_cast] lemma coe_pred_of_pos (n : ℕ) (h : 0 < n) : ((n - 1 : ℕ) : ℤ) = (n : ℤ) - 1 :=
+by { cases n, cases h, simp, }
+
 lemma le_add_one {a b : ℤ} (h : a ≤ b) : a ≤ b + 1 :=
 le_of_lt (int.lt_add_one_iff.mpr h)
 
@@ -1044,6 +1047,10 @@ begin
     { simp, }, },
   { simpa using h, }
 end
+
+@[simp]
+lemma of_nat_to_nat_pred_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
+by simp [h, le_of_lt h] with push_cast
 
 /-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
 -/

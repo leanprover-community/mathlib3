@@ -2270,6 +2270,20 @@ lemma times_cont_diff.pow {n : with_top ℕ} {f : E → 𝕜}
 | 0 := by simpa using times_cont_diff_const
 | (m + 1) := hf.mul (times_cont_diff.pow m)
 
+lemma times_cont_diff_at.pow {n : with_top ℕ} {f : E → 𝕜} (hf : times_cont_diff_at 𝕜 n f x)
+  (m : ℕ) : times_cont_diff_at 𝕜 n (λ y, f y ^ m) x :=
+(times_cont_diff_id.pow m).times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_within_at.pow {n : with_top ℕ} {f : E → 𝕜}
+  (hf : times_cont_diff_within_at 𝕜 n f s x) (m : ℕ) :
+  times_cont_diff_within_at 𝕜 n (λ y, f y ^ m) s x :=
+(times_cont_diff_id.pow m).times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+lemma times_cont_diff_on.pow {n : with_top ℕ} {f : E → 𝕜}
+  (hf : times_cont_diff_on 𝕜 n f s) (m : ℕ) :
+  times_cont_diff_on 𝕜 n (λ y, f y ^ m) s :=
+λ y hy, (hf y hy).pow m
+
 /-! ### Scalar multiplication -/
 
 /- The scalar multiplication is smooth. -/

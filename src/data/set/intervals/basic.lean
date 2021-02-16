@@ -508,41 +508,37 @@ end order_bot
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
-lemma not_mem_Ici_of_lt (ha : c < a) : c ∉ Ici a :=
-by rwa [mem_Ici, not_le]
+lemma not_mem_Ici : c ∉ Ici a ↔ c < a := not_le
 
-lemma not_mem_Iic_of_gt (hb : b < c) : c ∉ Iic b :=
-by rwa [mem_Iic, not_le]
+lemma not_mem_Iic : c ∉ Iic b ↔ b < c := not_le
 
 lemma not_mem_Icc_of_lt (ha : c < a) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Ici_self (not_mem_Ici_of_lt ha)
+not_mem_subset Icc_subset_Ici_self $ not_mem_Ici.mpr ha
 
 lemma not_mem_Icc_of_gt (hb : b < c) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Iic_self (not_mem_Iic_of_gt hb)
+not_mem_subset Icc_subset_Iic_self $ not_mem_Iic.mpr hb
 
 lemma not_mem_Ico_of_lt (ha : c < a) : c ∉ Ico a b :=
-not_mem_subset Ico_subset_Icc_self (not_mem_Icc_of_lt ha)
+not_mem_subset Ico_subset_Ici_self $ not_mem_Ici.mpr ha
 
 lemma not_mem_Ioc_of_gt (hb : b < c) : c ∉ Ioc a b :=
-not_mem_subset Ioc_subset_Icc_self (not_mem_Icc_of_gt hb)
+not_mem_subset Ioc_subset_Iic_self $ not_mem_Iic.mpr hb
 
-lemma not_mem_Ioi_of_le (ha : c ≤ a) : c ∉ Ioi a :=
-by rwa [mem_Ioi, not_lt]
+lemma not_mem_Ioi : c ∉ Ioi a ↔ c ≤ a := not_lt
 
-lemma not_mem_Iio_of_ge (hb : b ≤ c) : c ∉ Iio b :=
-by rwa [mem_Iio, not_lt]
+lemma not_mem_Iio : c ∉ Iio b ↔ b ≤ c := not_lt
 
 lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b :=
-not_mem_subset Ioc_subset_Ioi_self (not_mem_Ioi_of_le ha)
+not_mem_subset Ioc_subset_Ioi_self $ not_mem_Ioi.mpr ha
 
 lemma not_mem_Ico_of_ge (hb : b ≤ c) : c ∉ Ico a b :=
-not_mem_subset Ico_subset_Iio_self (not_mem_Iio_of_ge hb)
+not_mem_subset Ico_subset_Iio_self $ not_mem_Iio.mpr hb
 
 lemma not_mem_Ioo_of_le (ha : c ≤ a) : c ∉ Ioo a b :=
-not_mem_subset Ioo_subset_Ioc_self (not_mem_Ioc_of_le ha)
+not_mem_subset Ioo_subset_Ioi_self $ not_mem_Ioi.mpr ha
 
 lemma not_mem_Ioo_of_ge (hb : b ≤ c) : c ∉ Ioo a b :=
-not_mem_subset Ioo_subset_Ico_self (not_mem_Ico_of_ge hb)
+not_mem_subset Ioo_subset_Iio_self $ not_mem_Iio.mpr hb
 
 @[simp] lemma compl_Iic : (Iic a)ᶜ = Ioi a := ext $ λ _, not_le
 @[simp] lemma compl_Ici : (Ici a)ᶜ = Iio a := ext $ λ _, not_le

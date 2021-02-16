@@ -822,7 +822,7 @@ begin
   conv { to_lhs, rw ← zneg_zneg n },
   rw [← zneg_bit1, cast_zneg, cast_bit1],
   have : ((-1 + n + n : ℤ) : α) = (n + n + -1 : ℤ), {simp [add_comm, add_left_comm]},
-  simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
+  simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg, -int.add_minus_one]
 end
 
 theorem add_zero (n : znum) : n + 0 = n := by cases n; refl

@@ -197,9 +197,9 @@ while in chain_complex `d i : X i ⟶ X (i-1)`.
 
 def d_ℤ (C : connective_chain_complex V) (i : ℤ) : (X_ℤ C) i ⟶ (X_ℤ C) (i-1) :=
 if h : 0 < i then
-  eq_to_hom (congr_arg (X_ℤ C) (show i = (((i.to_nat - 1) : ℕ) : ℤ) + 1, by simp [h])) ≫
+  eq_to_hom (congr_arg (X_ℤ C) (show i = ((i.to_nat - 1 : ℕ) : ℤ) + 1, by simp [h])) ≫
     C.d _ ≫
-    eq_to_hom (congr_arg (X_ℤ C) (int.of_nat_to_nat_pred_of_pos h))
+    eq_to_hom (congr_arg (X_ℤ C) (show ((i.to_nat - 1 : ℕ) : ℤ) = i - 1, by simp [h]))
 else 0
 
 @[simp] lemma d_ℤ_0 (C : connective_chain_complex V) : d_ℤ C 0 = 0 := rfl

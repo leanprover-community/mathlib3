@@ -87,7 +87,7 @@ section addition
 variable [linear_order Γ]
 
 instance [add_monoid R] : has_add (hahn_series Γ R) :=
-{ add := λ x y, { coeff := λ a, x.coeff a + y.coeff a,
+{ add := λ x y, { coeff := x.coeff + y.coeff,
                   is_wf_support := (x.is_wf_support.union y.is_wf_support).mono (λ a ha, begin
                     contrapose! ha,
                     simp only [not_or_distrib, not_not, set.mem_union_eq, set.mem_set_of_eq] at ha,

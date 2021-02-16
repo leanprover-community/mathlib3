@@ -23,11 +23,7 @@ noncomputable theory
 open set probability_theory
 open_locale ennreal
 
-variables {α β : Type*}
-
-lemma inter_indicator_mul [mul_zero_class β] {t1 t2 : set α} (f g : α → β) (x : α) :
-  (t1 ∩ t2).indicator (λ x, f x * g x) x = t1.indicator f x * t2.indicator g x :=
-by { rw [← set.indicator_indicator], simp [indicator] }
+variables {α : Type*}
 
 namespace measure_theory
 
@@ -77,7 +73,7 @@ end
    independence. See `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_fn` for
    a more common variant of the product of independent variables. -/
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
-  {α : Type*} {Mf : measurable_space α} {Mg : measurable_space α} [M : measurable_space α]
+  {Mf : measurable_space α} {Mg : measurable_space α} [M : measurable_space α]
   {μ : measure α} (hMf : Mf ≤ M) (hMg : Mg ≤ M)
   (h_ind : indep Mf Mg μ)
   (f g : α → ℝ≥0∞) (h_meas_f : @measurable α ℝ≥0∞ Mf _ f)
@@ -113,7 +109,7 @@ end
 
 /-- This proves that if `f` and `g` are independent random variables,
    then `E[f * g] = E[f] * E[g]`. -/
-lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun {α : Type*} [M : measurable_space α]
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun [M : measurable_space α]
   (μ : measure α) (f g : α → ℝ≥0∞) (h_meas_f : measurable f) (h_meas_g : measurable g)
   (h_indep_fun : indep_fun (borel ennreal) (borel ennreal) f g μ) :
   ∫⁻ (a : α), (f * g) a ∂μ = ∫⁻ (a : α), f a ∂μ * ∫⁻ (a : α), g a ∂μ :=

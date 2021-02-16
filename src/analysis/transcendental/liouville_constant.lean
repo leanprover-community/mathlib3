@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import analysis.transcendental.liouville
+--import analysis.transcendental.liouville
+import data.real.liouville
 import data.nat.factorial
 import order.basic
 
@@ -39,10 +40,12 @@ begin
   repeat { exact pow_pos (zero_lt_one.trans hm) _ }
 end
 
-/-- This series is explicitly proven, since it is used twice in the remaining lemmas. -/
+/-
+/-- This series is explicitly proven, since it simplifies remaining lemmas. -/
 lemma summable_inv_pow_n_add_fact (n : ℕ) (hm : 1 < m) :
   summable (λ i, 1 / m ^ (i + (n + 1))!) :=
 summable_inv_pow_ge hm (λ i, (nat.self_le_factorial _).trans (nat.factorial_le (nat.le.intro rfl)))
+-/
 
 end lemmas_about_summability_and_sums
 
@@ -85,48 +88,65 @@ one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ i2)
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
-∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < m / (m - 1) * (1 / m ^ (n + 1)!) :=
+∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=
+-- two useful inequalities
 have m0 : 0 < m := (zero_lt_one.trans m1),
-have mi : abs (1 / m) < 1,
-{ rw abs_of_pos (one_div_pos.mpr m0),
-  exact (div_lt_one m0).mpr m1 },
+have mi : abs (1 / m) < 1 :=
+  (le_of_eq (abs_of_pos (one_div_pos.mpr m0))).trans_lt ((div_lt_one m0).mpr m1),
 calc (∑' i, 1 / m ^ (i + (n + 1))!)
-    < ∑' i, 1 / m ^ (i + (n + 1)!) : tsum_lt_tsum_of_nonneg
--- the first series has non-negative term
+    < ∑' i, 1 / m ^ (i + (n + 1)!) :
+    -- to show the strict inequality between these series, we prove that:
+    tsum_lt_tsum_of_nonneg
+      -- 1. the first series has non-negative term2
       (λ b, one_div_nonneg.mpr (pow_nonneg m0.le _))
--- the second series dominates the first
+      -- 2. the second series dominates the first
       (λ b, one_div_mono_exp m1.le (b.add_factorial_succ_le_factorial_add_succ n))
--- the second term of the first series is strictly smaller than the second term of the first
+      -- 3. the term with index `i = 2` of the first series is strictly smaller than
+      -- the corresponding term of the second series
       (one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ rfl.le))
--- the second series is summable
+      -- 4. the second series is summable, since its terms grow quickly
       (summable_inv_pow_ge m1 (λ j, nat.le.intro rfl))
 ... = ∑' i, (1 / m) ^ i * (1 / m ^ (n + 1)!) :
+    -- split the sum in the exponent and massage
     by { congr, ext i, rw [pow_add, ← div_div_eq_div_mul, div_eq_mul_one_div, ← one_div_pow i] }
+-- factor the constant `(1 / m ^ (n + 1)!)` out of the series
 ... = (∑' i, (1 / m) ^ i) * (1 / m ^ (n + 1)!) : tsum_mul_right
-... = m / (m - 1) * (1 / m ^ (n + 1)!) :
-    by rw [tsum_geometric_of_abs_lt_1 mi, ← @inv_div _ _ _ m, sub_div, div_self (m0.ne.symm)]
+... = (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :
+    -- the series if the geometric series
+    mul_eq_mul_right_iff.mpr (or.inl (tsum_geometric_of_abs_lt_1 mi))
 
-lemma ine (hm : 2 ≤ m) :
-  m / (m - 1) ≤ 2 :=
+lemma sub_one_div_inv_le_two (hm : 2 ≤ m) :
+  (1 - 1 / m)⁻¹ ≤ 2 :=
 begin
-  refine (div_le_iff (sub_pos.mpr (one_lt_two.trans_le hm))).mpr _,
-  rw [mul_sub, mul_one, two_mul m],
-  exact le_sub_iff_add_le.mpr ((add_le_add_iff_left _).mpr hm)
+  refine le_trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : ℝ)).le,
+  refine (one_sub_inv_of_two.symm.le).trans ((sub_le_sub_iff_left 1).mpr _),
+  refine (one_div m).le.trans (inv_le_inv_of_le zero_lt_two hm)
 end
 
 lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
-  m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
+  (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
 begin
-  calc m / (m - 1) * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
-    mul_mono_nonneg (one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _)) (ine hm)
+  calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
+    -- this inequality holds, since it holds for the first factors
+    mul_mono_nonneg (one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _))
+      (sub_one_div_inv_le_two hm)
   ... = 2 / m ^ (n + 1)! : mul_one_div 2 _
   ... = 2 / m ^ (n! * (n + 1)) : by rw [nat.factorial_succ, mul_comm]
   ... ≤ 1 / m ^ (n! * n) :
     begin
+      -- [ NB: in this block, I did not follow the brace convention for subgoals.  The
+      --   reason is that all extraneous goals are solved by
+      --   `exact pow_pos (zero_lt_two.trans_le hm) _`.
+      --   Thus, I waited until the last goal that could be solved by that tactic and
+      -- used `any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ }`. ]
+      -- Clear denominators and massage*
       apply (div_le_div_iff _ _).mpr,
       conv_rhs { rw [one_mul, mul_add, pow_add, mul_one, pow_mul, mul_comm, ← pow_mul] },
+      -- the second factors coincide, so we prove the inequality of the first factors*
       apply (mul_le_mul_right _).mpr,
+      -- solve all the inequalities `0 < m ^ ??`
       any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
+      -- `2 ≤ m ^ n!` is a consequence of monotonicity of exponentiation at `2 ≤ m`.
       refine le_trans (hm.trans _) (pow_mono (one_le_two.trans hm) n.factorial_pos),
       exact (pow_one _).symm.le
     end
@@ -162,7 +182,44 @@ $$
 -/
 def number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
 
-lemma number_terms_after_pos (hm : 1 < m) :
+lemma number_terms_after_pos (hm : 1 < m) (k : ℕ) :
+  0 < number_terms_after_k m k :=
+-- replace `0` with the series `∑ i : ℕ, 0` all of whose terms vanish
+(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt (
+  -- to show that a series with non-negative terms has strictly positive sum it suffices
+  -- to prove that:
+  tsum_lt_tsum_of_nonneg
+    -- 1. the terms of the zero series are indeed non-negative [sic];
+    (λ _, rfl.le)
+    -- 2. the terms of our series are non-negative;
+    (λ i, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
+    -- 3. one term of our series is strictly positive -- they all are, we use the `0`th term;
+    (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!))
+    -- 4. our series converges -- it does since it is the tail ...
+    ((@summable_nat_add_iff ℝ _ _ _ (λ (i : ℕ), 1 / m ^ i!) (k+1)).mpr
+      -- ... of the converging series `∑ 1 / n!`.
+      (summable_inv_pow_ge hm (λ i, i.self_le_factorial))))
+
+/-
+lemma number_terms_after_pos (hm : 1 < m) (k : ℕ) :
+  0 < number_terms_after_k m k :=
+-- replace `0` with the constantly zero series `∑ i : ℕ, 0`
+(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt $
+  -- to show that a series with non-negative terms has strictly positive sum it suffices
+  -- to prove that
+  tsum_lt_tsum_of_nonneg
+    -- 1. the terms are the zero series are indeed non-negative
+    (λ _, rfl.le)
+    -- 2. the terms of our series are non-negative
+    (λ i, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
+    -- 3. one term of our series is strictly positive -- they all are, we use the first term
+    (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!)) $
+    -- 4. our series converges -- it does since it is the tail of a converging series, though
+    -- this is not the argument here.
+    summable_inv_pow_ge hm (λ i, i.self_le_factorial.trans (nat.factorial_le (nat.le.intro rfl)))
+
+/-
+lemma number_terms_after_pos_1 (hm : 1 < m) :
   ∀ k, 0 < number_terms_after_k m k := λ n,
 calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
   ... = 1 / m ^ (0 + (n + 1))! : by rw zero_add
@@ -170,6 +227,8 @@ calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
       (summable_inv_pow_n_add_fact _ hm)
       0
       (λ i i0, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
+-/
+-/
 
 
 lemma number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
@@ -217,7 +276,7 @@ begin
   rcases number_rat_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
-  rw [← hp, mkk, add_sub_cancel', abs_of_pos (number_terms_after_pos m1 _)],
+  rw [← hp, mkk, add_sub_cancel', abs_of_nonneg (number_terms_after_pos m1 _).le],
   exact ⟨((lt_add_iff_pos_right _).mpr (number_terms_after_pos m1 n)).ne.symm,
     (calc_liou_one m1 n).trans_le
     (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
@@ -225,7 +284,7 @@ end
 
 lemma is_transcendental (hm : 2 ≤ m) :
   is_transcendental ℤ (number m) :=
-transcendental (is_number hm)
+liouville.transcendental (is_number hm)
 
 end liouville
 

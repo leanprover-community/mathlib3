@@ -187,13 +187,13 @@ by cases h : p cb n; simp [decorate_errors, h]
 decorate_errors_eq_done
 
 @[simp] lemma decorate_errors_eq_fail :
-  @decorate_errors α msgs p cb n = fail n err ↔
-    err = dlist.lazy_of_list (msgs ()) ∧ ∃ np err', p cb n = fail np err' :=
+  @decorate_errors α msgs p cb n = fail n' err ↔
+    n = n' ∧ err = dlist.lazy_of_list (msgs ()) ∧ ∃ np err', p cb n = fail np err' :=
 by cases h : p cb n; simp [decorate_errors, h, eq_comm]
 
 @[simp] lemma decorate_error_eq_fail :
-  @decorate_error α msg p cb n = fail n err ↔
-    err = dlist.lazy_of_list ([msg ()]) ∧ ∃ np err', p cb n = fail np err' :=
+  @decorate_error α msg p cb n = fail n' err ↔
+    n = n' ∧ err = dlist.lazy_of_list ([msg ()]) ∧ ∃ np err', p cb n = fail np err' :=
 decorate_errors_eq_fail
 
 @[simp] lemma return_eq_pure : (@return parser _ _ a) = pure a := rfl

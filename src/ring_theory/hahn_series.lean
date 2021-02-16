@@ -91,7 +91,7 @@ instance [add_monoid R] : has_add (hahn_series Γ R) :=
                   is_wf_support := (x.is_wf_support.union y.is_wf_support).mono (λ a ha, begin
                     contrapose! ha,
                     simp only [not_or_distrib, not_not, set.mem_union_eq, set.mem_set_of_eq] at ha,
-                    simp only [not_not, set.mem_set_of_eq],
+                    simp only [pi.add_apply, not_not, set.mem_set_of_eq],
                     rw [ha.1, ha.2, add_zero],
                   end) } }
 

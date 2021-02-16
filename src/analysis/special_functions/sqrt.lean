@@ -25,7 +25,7 @@ namespace real
 
 /-- Local homeomorph between `(0, +∞)` and `(0, +∞)` with `to_fun = λ x, x ^ 2` and
 `inv_fun = sqrt`. -/
-noncomputable def sqr_local_homeomorph : local_homeomorph ℝ ℝ :=
+noncomputable def sq_local_homeomorph : local_homeomorph ℝ ℝ :=
 { to_fun := λ x, x ^ 2,
   inv_fun := sqrt,
   source := Ioi 0,
@@ -49,9 +49,9 @@ begin
       λ n, times_cont_diff_at_const.congr_of_eventually_eq this⟩ },
   { have : ↑2 * sqrt x ^ (2 - 1) ≠ 0, by simp [(sqrt_pos.2 hx).ne', @two_ne_zero ℝ],
     split,
-    { simpa using has_strict_deriv_at.of_local_left_inverse continuous_sqrt.continuous_at
-        (has_strict_deriv_at_pow 2 _) this ((lt_mem_nhds hx).mono (λ x hx, sqr_sqrt hx.le)) },
-    { exact λ n, sqr_local_homeomorph.times_cont_diff_at_symm_deriv this hx
+    { simpa using sq_local_homeomorph.has_strict_deriv_at_symm hx this
+        (has_strict_deriv_at_pow 2 _) },
+    { exact λ n, sq_local_homeomorph.times_cont_diff_at_symm_deriv this hx
         (has_deriv_at_pow 2 (sqrt x)) (times_cont_diff_at_id.pow 2) } }
 end
 

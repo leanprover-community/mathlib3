@@ -337,6 +337,30 @@ def applyₗ' : M →+ (M →ₗ[R] M₂) →ₗ[S] M₂ :=
   map_zero' := linear_map.ext $ λ f, f.map_zero,
   map_add' := λ x y, linear_map.ext $ λ f, f.map_add _ _ }
 
+
+section
+variables (R M)
+
+/--
+The equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
+This says that the forgetful functor from `R`-modules to types is representable, by `R`.
+
+This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
+When `R` is commutative, we can take this to be the usual action with `S = R`.
+Otherwise, `S = ℤ` shows that the equivalence is additive.
+See note [bundled maps over different rings].
+-/
+@[simps]
+def ring_lmap_equiv_self [semimodule S M] [smul_comm_class R S M] : (R →ₗ[R] M) ≃ₗ[S] M :=
+{ to_fun := λ f, f 1,
+  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
+  map_add' := by simp,
+  map_smul' := by simp,
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { simp } }
+
+end
+
 end semimodule
 
 section comm_semiring

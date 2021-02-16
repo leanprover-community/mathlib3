@@ -72,6 +72,14 @@ begin
   simp [fin_succ_equiv', ne_of_lt h, fin.succ_above, not_le_of_lt h, this]
 end
 
+lemma fin_succ_equiv_symm'_coe_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+  (fin_succ_equiv' i).symm m = m.cast_succ :=
+fin_succ_equiv_symm'_some_below h
+
+lemma fin_succ_equiv_symm'_coe_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+  (fin_succ_equiv' i).symm m = m.succ :=
+fin_succ_equiv_symm'_some_above h
+
 /-- Equivalence between `fin n.succ` and `option (fin n)`.
 This is a version of `fin.pred` that produces `option (fin n)` instead of
 requiring a proof that the input is not `0`. -/
@@ -90,6 +98,9 @@ by { convert fin_succ_equiv'_above _, simp [fin.lt_iff_coe_lt_coe] }
 
 @[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
   (fin_succ_equiv n).symm (some m) = m.succ := rfl
+
+@[simp] lemma fin_succ_equiv_symm_coe {n : ℕ} (m : fin n) :
+  (fin_succ_equiv n).symm m = m.succ := rfl
 
 /-- The equiv version of `fin.pred_above_zero`. -/
 lemma fin_succ_equiv'_zero {n : ℕ} :

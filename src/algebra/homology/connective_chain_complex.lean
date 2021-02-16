@@ -136,6 +136,9 @@ begin
   simp,
 end
 
+/--
+A morphism between connective chain complexes.
+-/
 @[ext]
 structure hom (C D : connective_chain_complex V) :=
 (f : Π n, C.X n ⟶ D.X n)
@@ -146,12 +149,14 @@ attribute [simp, reassoc] hom.comm
 
 namespace hom
 
+/-- The identity morphism. -/
 @[simps]
 def id (C : connective_chain_complex V) : hom C C :=
 { f := λ n, 𝟙 (C.X n) }
 
 instance (C : connective_chain_complex V) : inhabited (hom C C) := ⟨id C⟩
 
+/-- Composition of morphisms. -/
 @[simps]
 def comp {C D E : connective_chain_complex V} (f : hom C D) (g : hom D E) : hom C E :=
 { f := λ n, f.f n ≫ g.f n, }
@@ -233,56 +238,9 @@ begin
   { simp, },
 end
 
-@[simp] lemma id_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
-  (C : { C : chain_complex V // Z C }) (i : ℤ) :
-  differential_object.hom.f (𝟙 C) i = 𝟙 (C.val.X i) :=
-rfl
-
-@[simp] lemma comp_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
-  {C D E : { C : chain_complex V // Z C }} (f : C ⟶ D) (g : D ⟶ E) (i : ℤ) :
-  differential_object.hom.f (f ≫ g) i = f.f i ≫ g.f i :=
-rfl
-
 end to_chain_complex
 
 open to_chain_complex
-
-@[simp] lemma lt_self_iff_false {α : Sort*} [partial_order α] (a : α) : a < a ↔ false :=
-by simp [lt_irrefl a]
-
-@[simp] lemma int.add_minus_one (i : ℤ) : i + -1 = i - 1 := rfl
-
-@[simp] lemma int.coe_nat_succ_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
-int.lt_add_one_iff.mpr (by simp)
-
-@[simp] lemma int.neg_succ_not_nonneg (n : ℕ) : 0 ≤ -[1+ n] ↔ false :=
-by { simp only [not_le, iff_false], exact int.neg_succ_lt_zero n, }
-
-@[simp] lemma int.neg_succ_not_pos (n : ℕ) : 0 < -[1+ n] ↔ false :=
-by { simp only [not_lt, iff_false], exact le_of_lt (int.neg_succ_lt_zero n) }
-
-@[simp] lemma int.neg_succ_sub_one (n : ℕ) : -[1+ n] - 1 = -[1+ (n+1)] := rfl
-
-lemma int.pred_to_nat (i : ℤ) : (i - 1).to_nat = i.to_nat - 1 :=
-begin
-  cases i,
-  { cases i,
-    { simp, refl, },
-    { simp, }, },
-  { simp only [int.neg_succ_sub_one, int.to_nat], }
-end
-
-@[simp]
-lemma int.to_nat_pred_coe_succ_eq_self_of_pos {i : ℤ} (h : 0 < i) :
-  ((i.to_nat - 1 : ℕ) : ℤ) + 1 = i :=
-begin
-  cases i,
-  { cases i,
-    { simpa using h, },
-    { simp, }, },
-  { simpa using h, }
-end
-
 
 variables (V)
 
@@ -419,7 +377,8 @@ def counit_hom : to_connective_chain_complex V ⋙ to_chain_complex V ⟶ 𝟭 _
         { have h'' : 0 < i := by linarith,
           simp only [dif_pos h, dif_pos h', dif_pos h''],
           simp only [category.id_comp, category.assoc, eq_to_hom_trans],
-          erw ←homological_complex.eq_to_hom_d C.val (int.to_nat_pred_coe_succ_eq_self_of_pos h''),
+          erw ←homological_complex.eq_to_hom_d C.val
+            (show ↑(i.to_nat - 1) + 1 = i, by simp [h'']),
           simp, refl, },
         { rw [dif_pos h, dif_neg h'],
           have h'' : i = 0 := by linarith,
@@ -460,7 +419,7 @@ def counit_inv : 𝟭 _ ⟶ to_connective_chain_complex V ⋙ to_chain_complex V
           simp only [dif_pos h, dif_pos h', dif_pos h''],
           simp only [category.id_comp, category.assoc, eq_to_hom_trans, eq_to_hom_trans_assoc],
           erw homological_complex.eq_to_hom_d_assoc C.val
-            (int.to_nat_pred_coe_succ_eq_self_of_pos h'').symm,
+            (show i = ↑(i.to_nat - 1) + 1, by simp [h'']),
           simp, refl, },
         { rw [dif_pos h, dif_neg h'],
           have h'' : i = 0 := by linarith,
@@ -520,6 +479,10 @@ end
 end equivalence
 open equivalence
 
+/--
+The equivalence between `ℕ`-indexed chain complexes (with `d n : C (n+1) ⟶ C n`)
+and `ℤ`-indexed chain complexes supported in non-negative degrees (with `d i : C i ⟶ C (i-1)`).
+-/
 @[simps]
 def equivalence : connective_chain_complex V ≌ { C : chain_complex V // is_connective C } :=
 { functor := to_chain_complex V,
@@ -529,4 +492,3 @@ def equivalence : connective_chain_complex V ≌ { C : chain_complex V // is_con
   functor_unit_iso_comp' := λ C, functor_unit_iso_comp V C, }
 
 end connective_chain_complex
-#lint

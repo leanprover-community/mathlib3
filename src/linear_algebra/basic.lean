@@ -104,22 +104,6 @@ linear_map.ext $ λ x, rfl
 theorem comp_assoc (g : M₂ →ₗ[R] M₃) (h : M₃ →ₗ[R] M₄) : (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 
-section
-variables (R M)
-
-/--
-The type-level equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
-This says that the forgetful functor from `R`-modules to types is representable, by `R`.
--/
-@[simps]
-def ring_lmap_equiv_self : (R →ₗ[R] M) ≃ M :=
-{ to_fun := λ f, f 1,
-  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
-  left_inv := λ x, by { ext, simp },
-  right_inv := λ x, by { simp } }
-
-end
-
 /-- The restriction of a linear map `f : M → M₂` to a submodule `p ⊆ M` gives a linear map
 `p → M₂`. -/
 def dom_restrict (f : M →ₗ[R] M₂) (p : submodule R M) : p →ₗ[R] M₂ := f.comp p.subtype
@@ -352,6 +336,30 @@ def applyₗ' : M →+ (M →ₗ[R] M₂) →ₗ[S] M₂ :=
     map_smul' := λ x f, f.smul_apply x v },
   map_zero' := linear_map.ext $ λ f, f.map_zero,
   map_add' := λ x y, linear_map.ext $ λ f, f.map_add _ _ }
+
+
+section
+variables (R M)
+
+/--
+The equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
+This says that the forgetful functor from `R`-modules to types is representable, by `R`.
+
+This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
+When `R` is commutative, we can take this to be the usual action with `S = R`.
+Otherwise, `S = ℤ` shows that the equivalence is additive.
+See note [bundled maps over different rings].
+-/
+@[simps]
+def ring_lmap_equiv_self [semimodule S M] [smul_comm_class R S M] : (R →ₗ[R] M) ≃ₗ[S] M :=
+{ to_fun := λ f, f 1,
+  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
+  map_add' := by simp,
+  map_smul' := by simp,
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { simp } }
+
+end
 
 end semimodule
 

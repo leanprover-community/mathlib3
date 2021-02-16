@@ -248,7 +248,11 @@ open_locale classical
 
 variables [topological_space Y]
 
-/-- Pull back of locally constant maps under any map, by pre-composition. -/
+/-- Pull back of locally constant maps under any map, by pre-composition.
+
+This definition only makes sense if `f` is continuous,
+in which case it sends locally constant functions to their precomposistion with `f`.
+See also `locally_constant.coe_comap`. -/
 noncomputable
 def comap (f : X → Y) :
   locally_constant Y Z → locally_constant X Z :=

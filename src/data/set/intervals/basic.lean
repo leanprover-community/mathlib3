@@ -1215,6 +1215,12 @@ lemma sub_mem_Ioc_iff_right : a - b ∈ set.Ioc c d ↔ b ∈ set.Ico (a - d) (a
 lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a - c) :=
 (and_comm _ _).trans $ (and_congr sub_lt lt_sub)
 
+-- I think that symmetric intervals deserve attention and API: they arise all the time,
+-- for instance when considering metric balls in `ℝ`.
+lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
+  abs (x - y) ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
+abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le neg_le_sub_iff_le_add
+
 end ordered_add_comm_group
 
 section linear_ordered_add_comm_group

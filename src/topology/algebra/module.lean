@@ -961,7 +961,7 @@ lemma coe_injective : function.injective (coe : (M ≃L[R] M₂) → (M →L[R] 
 coe_injective.eq_iff
 
 /-- A continuous linear equivalence induces a homeomorphism. -/
-def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
+def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { to_equiv := e.to_linear_equiv.to_equiv, ..e }
 
 @[simp] lemma coe_to_homeomorph (e : M ≃L[R] M₂) : ⇑e.to_homeomorph = e := rfl
 

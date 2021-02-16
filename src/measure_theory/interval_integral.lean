@@ -1426,31 +1426,6 @@ end
 -/
 open real set
 
-lemma not_mem_subset {a : ℝ} {s t : set ℝ} (hsubset : s ⊆ t) (ht : a ∉ t) : a ∉ s :=
-λ hs, ht (mem_of_subset_of_mem hsubset hs)
-
-lemma not_mem_Ici_of_lt {a c : ℝ} (ha : c < a) : c ∉ Ici a :=
-by rwa [mem_Ici, not_le]
-
-lemma not_mem_Iic_of_gt {b c : ℝ} (hb : b < c) : c ∉ Iic b :=
-by rwa [mem_Iic, not_le]
-
-lemma not_mem_Icc_of_lt {a b c : ℝ} (ha : c < a) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Ici_self (not_mem_Ici_of_lt ha)
-
-lemma not_mem_Icc_of_gt {a b c : ℝ} (hb : b < c) : c ∉ Icc a b :=
-not_mem_subset Icc_subset_Iic_self (not_mem_Iic_of_gt hb)
-
-lemma not_mem_interval_of_lt {a b c : ℝ} (ha : c < a) (hb : c < b) : c ∉ interval a b :=
-not_mem_Icc_of_lt (lt_min_iff.mpr ⟨ha, hb⟩)
-
-lemma not_mem_interval_of_gt {a b c : ℝ} (ha : a < c) (hb : b < c) : c ∉ interval a b :=
-not_mem_Icc_of_gt (max_lt_iff.mpr ⟨ha, hb⟩)
-
-lemma log_div {x y:ℝ} (hx : x ≠ 0) (hy : y ≠ 0) : log (x / y) = log x - log y :=
-exp_injective $
-by rw [exp_log_eq_abs (div_ne_zero hx hy), exp_sub, exp_log_eq_abs hx, exp_log_eq_abs hy, abs_div]
-
 @[simp]
 lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
 begin

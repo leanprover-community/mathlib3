@@ -188,82 +188,28 @@ begin
   exact not_lt_of_le hle (f.lt_iff_lt.2 hlt),
 end
 
-theorem is_partially_well_ordered.exists_monotone (h : s.is_partially_well_ordered) :
-  ∀ f : ℕ → α, range f ⊆ s →
-      ∃ (t : set ℕ), t.infinite ∧ monotone (f ∘ (coe : t → ℕ)) ∧ f '' t ⊆ s :=
+theorem is_partially_well_ordered.exists_monotone_subseq (h : s.is_partially_well_ordered) :
+  ∀ f : ℕ → α, range f ⊆ s → ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
 λ f hf, begin
-  classical,
-  let bad : set ℕ := { m | ∀ n, m < n → ¬ f m ≤ f n },
-  have hbad : bad.finite,
-  { by_contra con,
-    haveI := infinite_coe_iff.2 con,
-    have g := nat.subtype.order_iso_of_nat bad,
-    obtain ⟨x, y, hlt, hle⟩ := h (f ∘ (coe ∘ g)) (subset.trans (range_comp_subset_range _ _) hf),
-    exact (g x).2 (g y) (g.lt_iff_lt.2 hlt) hle, },
-  { obtain ⟨m, hm⟩ : ∃ m, ∀ n, n ∈ bad → n < m,
-    { by_cases he : hbad.to_finset.nonempty,
-      { exact ⟨(hbad.to_finset.max' he).succ, λ n hn, nat.lt_succ_iff.2
-          (hbad.to_finset.le_max' n (finite.mem_to_finset.2 hn))⟩ },
-      { exact ⟨0, λ n hn, false.elim (he ⟨n, (finite.mem_to_finset.2 hn)⟩)⟩ } },
-    let g : ℕ → ℕ,
-    { apply nat.rec,
-      { exact m },
-      { intros n gn,
-        apply if hgn : gn ∈ bad then gn else _,
-        simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hgn,
-        exact nat.find hgn } },
-    have hg : ∀ n, m ≤ g n ∧ g n < g (n + 1),
-    { intro n,
-      induction n with n n_ih,
-      { refine ⟨le_refl _, _⟩,
-        simp only [g, nat.rec_add_one],
-        have hmb : ¬ m ∈ bad := (λ con, lt_irrefl m (hm _ con)),
-        rw dif_neg hmb,
-        simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hmb,
-        exact (nat.find_spec hmb).1, },
-      { refine ⟨le_trans n_ih.1 (le_of_lt n_ih.2), _⟩,
-        simp only [g, nat.rec_add_one],
-        have hnb : ¬ (g (n + 1)) ∈ bad :=
-          λ con, not_le_of_lt (hm _ con) (le_trans n_ih.1 (le_of_lt n_ih.2)),
-        apply (lt_of_lt_of_le _ (le_of_eq (dif_neg hnb).symm)),
-        simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hnb,
-        refine (nat.find_spec hnb).1, } },
-    let g' : ℕ ↪o ℕ := (rel_embedding.nat_lt g (λ n, (hg n).2)).order_embedding_of_lt_embedding,
-    { refine ⟨g' '' univ, (infinite_image_iff _).2 infinite_univ, _,
-        subset.trans (subset.trans (image_subset_range _ _) (range_comp_subset_range _ _)) hf⟩,
-      { rw ← injective_iff_inj_on_univ,
-        exact g'.injective },
-      { rintros ⟨_, ⟨x, _, rfl⟩⟩ ⟨_, ⟨y, _, rfl⟩⟩ xy,
-        rw ← nat.add_sub_cancel' (g'.le_iff_le.1 xy),
-        simp only [function.comp_app, subtype.coe_mk],
-        suffices h_ind : ∀ n, f (g' x) ≤ f (g' (x + n)),
-        { apply h_ind },
-        intro n,
-        induction n with n n_ih,
-        { refl },
-        { apply le_trans n_ih,
-          rw [nat.add_succ, nat.succ_eq_add_one],
-          simp only [rel_embedding.order_embedding_of_lt_embedding_apply,
-            rel_embedding.nat_lt_apply, g, nat.rec_add_one],
-          have hb : ¬ (g (x + n)) ∈ bad := λ con, not_le_of_lt (hm _ con) (hg _).1,
-          rw dif_neg hb,
-          simp only [exists_prop, not_not, mem_set_of_eq, not_forall] at hb,
-          exact (nat.find_spec hb).2 } } } }
+  obtain ⟨g, h1 | h2⟩ := exists_increasing_or_nonincreasing_subseq (≤) f,
+  { refine ⟨g, λ m n hle, _⟩,
+    obtain hlt | heq := lt_or_eq_of_le hle,
+    { exact h1 m n hlt, },
+    { rw [heq] } },
+  { exfalso,
+    obtain ⟨m, n, hlt, hle⟩ := h (f ∘ g) (subset.trans (range_comp_subset_range _ _) hf),
+    exact h2 m n hlt hle }
 end
 
-theorem is_partially_well_ordered_iff_exists_monotone :
+theorem is_partially_well_ordered_iff_exists_monotone_subseq :
   s.is_partially_well_ordered ↔
-    ∀ f : ℕ → α, range f ⊆ s →
-      ∃ (t : set ℕ), t.infinite ∧ monotone (f ∘ (coe : t → ℕ)) ∧ f '' t ⊆ s :=
+    ∀ f : ℕ → α, range f ⊆ s → ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
 begin
   classical,
   split; intros h f hf,
-  { exact h.exists_monotone f hf },
-  { obtain ⟨t, t_inf, hmon, range_t⟩ := h f hf,
-    haveI := infinite_coe_iff.2 t_inf,
-    obtain ⟨m, n, hne⟩ := exists_pair_ne t,
-    cases lt_or_gt_of_ne hne with hlt hlt;
-    { exact ⟨_, _, hlt, hmon (le_of_lt hlt)⟩ } }
+  { exact h.exists_monotone_subseq f hf },
+  { obtain ⟨g, gmon⟩ := h f hf,
+    refine ⟨g 0, g 1, g.lt_iff_lt.2 zero_lt_one, gmon zero_le_one⟩, }
 end
 
 lemma is_partially_well_ordered.prod (hs : s.is_partially_well_ordered)
@@ -271,43 +217,23 @@ lemma is_partially_well_ordered.prod (hs : s.is_partially_well_ordered)
   (s.prod t).is_partially_well_ordered :=
 begin
   classical,
-  rw is_partially_well_ordered_iff_exists_monotone at *,
+  rw is_partially_well_ordered_iff_exists_monotone_subseq at *,
   intros f hf,
-  obtain ⟨s', s'_inf, s'_mon, hs'⟩ := hs (prod.fst ∘ f) _,
+  obtain ⟨g1, h1⟩ := hs (prod.fst ∘ f) _,
   swap,
   { rw [range_comp, image_subset_iff],
     refine subset.trans hf _,
     rintros ⟨x1, x2⟩ hx,
     simp only [mem_preimage, hx.1] },
-  haveI := infinite_coe_iff.2 s'_inf,
-  obtain ⟨t', t'_inf, t'_mon, ht'⟩ :=
-    ht (prod.snd ∘ (f ∘ (@nat.order_embedding_of_set s' _ _inst_2))) _,
+  obtain ⟨g2, h2⟩ := ht (prod.snd ∘ f ∘ g1) _,
+  refine ⟨g2.trans g1, λ m n mn, _⟩,
   swap,
   { rw [range_comp, image_subset_iff],
     refine subset.trans (range_comp_subset_range _ _) (subset.trans hf _),
     rintros ⟨x1, x2⟩ hx,
     simp only [mem_preimage, hx.2] },
-  simp only [monotone, function.comp_app] at t'_mon,
-  refine ⟨(@nat.order_embedding_of_set s' _ _inst_2) '' t', _, λ x y xy, _,
-    subset.trans (image_subset_range _ _) hf⟩,
-  { rw infinite_image_iff ((rel_embedding.injective _).inj_on _),
-    exact t'_inf },
-  { simp only [function.comp_app],
-    obtain ⟨x', hx', hxx'⟩ := (mem_image _ _ _).1 x.2,
-    obtain ⟨y', hy', hyy'⟩ := (mem_image _ _ _).1 y.2,
-    rw [← subtype.val_eq_coe, ← hxx', ← subtype.val_eq_coe, ← hyy',
-      ← subtype.coe_mk x' hx', ← subtype.coe_mk y' hy'],
-    rw [← subtype.coe_le_coe, ← subtype.val_eq_coe, ← subtype.val_eq_coe, ← hxx', ← hyy',
-      (@nat.order_embedding_of_set s' _ _inst_2).le_iff_le] at xy,
-    refine ⟨_, t'_mon (subtype.mk_le_mk.2 xy)⟩,
-    simp only [monotone, function.comp_app, set_coe.forall] at s'_mon,
-    simp only [subtype.coe_mk],
-    replace hx' := mem_range_self x',
-    rw @nat.order_embedding_of_set_range s' _ _inst_2 at hx',
-    replace hy' := mem_range_self y',
-    rw @nat.order_embedding_of_set_range s' _ _inst_2 at hy',
-    exact set_coe.forall.1 (s'_mon _ hx') _ hy'
-      (subtype.mk_le_mk.2 ((order_embedding.le_iff_le _).2 xy)) },
+  simp only [rel_embedding.coe_trans, function.comp_app],
+  exact ⟨h1 (g2.le_iff_le.2 mn), h2 mn⟩,
 end
 
 theorem is_partially_well_ordered.monotone_image {β : Type*} [partial_order β]

@@ -1,6 +1,5 @@
 import linear_algebra.special_linear_group
-import data.complex.basic
-import analysis.calculus.deriv
+import analysis.complex.basic
 import data.matrix.notation
 import group_theory.group_action.defs
 import data.int.basic
@@ -461,6 +460,21 @@ notation `𝒟` := fundamental_domain
 
 notation `𝒟°` := interior 𝒟
 
+def fundamental_domain' : set H :=
+{ z | 1 < (complex.norm_sq z) ∧ |(complex.re z)| < (1 :ℝ)/ 2 }
+
+notation `𝒟'` := fundamental_domain'
+
+notation `𝒟'c` := closure 𝒟'
+
+
+lemma whatever : 𝒟'c = 𝒟 :=
+begin
+
+  sorry,
+end
+
+
 lemma M_lt_Mp1 : ∀ M,  M < (⌊M⌋ :ℝ ) +1 :=
 begin
   intros,
@@ -501,7 +515,7 @@ begin
     },
 end
 
---def coprime_ints := { cd :  ℤ × ℤ //  euclidean_domain.gcd cd.1 cd.2 = 1 }
+--def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 
 instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
@@ -752,13 +766,6 @@ begin
   rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
 end
 
-lemma crap (cc dd : ℤ ) : euclidean_domain.gcd cc dd = gcd cc dd :=
-begin
---  library_search, --- just not working at all???
--- NOT NEEDED. Use new int.gcd_a etc...
-  sorry,
-end
-
 lemma exists_g_with_min_bottom (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
@@ -772,24 +779,24 @@ begin
     simp,
   },
   obtain ⟨⟨ cd, hhcd⟩ , cdInS, hcd⟩ := finset.exists_min_image s f this,
-  let a := euclidean_domain.gcd_b cd.1 cd.2,
-  let b := -euclidean_domain.gcd_a cd.1 cd.2,
+  let a := int.gcd_b cd.1 cd.2,
+  let b := -int.gcd_a cd.1 cd.2,
   let g := ![![a,b],![cd.1,cd.2]],
   have : 1 = det g,
   {
     rw det2,
     suffices : 1 = a * cd.2 - cd.1 * b ,
     convert this,
-    ---- Argh this was working before and now it's broken???
-    suffices : 1 = a * cd.snd + cd.fst * euclidean_domain.gcd_a cd.fst cd.snd,
+    suffices : 1 = a * cd.snd + cd.fst * int.gcd_a cd.fst cd.snd,
     {
       simp [g],
-      sorry,
+      exact this,
     },
---    rw ←  hhcd,
---    convert euclidean_domain.gcd_eq_gcd_ab cd.1 cd.2 using 1,
---    ring,
-    sorry,
+
+    convert int.gcd_eq_gcd_ab cd.1 cd.2 using 1,
+    rw  hhcd,
+    simp,
+    ring,
   },
   use ⟨ g, this.symm⟩ ,
   intros,
@@ -806,20 +813,19 @@ begin
       linarith,
     },
   },
-  have : euclidean_domain.gcd  (g'.val 1 0) (g'.val 1 1) = 1,
+  have : int.gcd  (g'.val 1 0) (g'.val 1 1) = 1,
   {
     simp,
     let cc : ℤ  := (g'.val 1 0),
     let dd : ℤ  := (g'.val 1 1),
-    have : euclidean_domain.gcd (g'.val 1 0) (g'.val 1 1) = euclidean_domain.gcd cc dd := rfl,
+    have : int.gcd (g'.val 1 0) (g'.val 1 1) = int.gcd cc dd := rfl,
 
     convert this,
     symmetry,
-    have : euclidean_domain.gcd cc dd = gcd cc dd,
-    {
-      exact crap cc dd,
-    },
-    rw this,
+    convert hhcd,
+    sorry,
+    simp [cc, g', g],
+    simp [dd],
     rw gcd_eq_one_iff_coprime',
     use [(- (g'.val 0 1)) , ((g'.val 0 0))],
 
@@ -1155,6 +1161,18 @@ end
 
 -- Describe closure of D as union of boundary segments and interior.
 -- Then the lemma goes by cases on where z and z'
+
+lemma fundom_no_repeats' (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟') (hz' : z' ∈ 𝒟') :
+  (z = z') :=
+begin
+  sorry,
+end
+
+lemma is_fundom'' {z : H} : ∃ g : SL(2,ℤ), ((g • z):ℂ) ∈ (closure fundamental_domain') :=
+begin
+  sorry,
+end
+
 
 lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :
   (z = z') ∨

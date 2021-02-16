@@ -247,10 +247,30 @@ rfl
   {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
 λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
 
-/-- The multiplicative analogue of `equiv.arrow_congr` (target monoids must be commutative). -/
+
+/--
+A multiplicative analogue of `equiv.arrow_congr`,
+where the equivalence between the targets is multiplicative.
+-/
 @[simps apply,
-  to_additive "The additive analogue of `equiv.arrow_congr` (target monoids must be commutative)."]
-def arrow_congr {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoid Q]
+  to_additive "An additive analogue of `equiv.arrow_congr`,
+where the equivalence between the targets is additive."]
+def arrow_congr {M N P Q : Type*} [monoid P] [monoid Q]
+  (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
+{ to_fun := λ h n, g (h (f.symm n)),
+  inv_fun := λ k m, g.symm (k (f m)),
+  left_inv := λ h, by { ext, simp, },
+  right_inv := λ k, by { ext, simp, },
+  map_mul' := λ h k, by { ext, simp, }, }
+
+/--
+A multiplicative analogue of `equiv.arrow_congr`,
+for multiplicative maps from a monoid to a commutative monoid.
+-/
+@[simps apply,
+  to_additive "An additive analogue of `equiv.arrow_congr`,
+for additive maps from an additive monoid to a commutative additive monoid."]
+def arrow_congr_mul {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,
   { to_fun := λ n, g (h (f.symm n)),

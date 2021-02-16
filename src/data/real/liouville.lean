@@ -25,16 +25,16 @@ A Liouville number is a real number `x` such that for every natural number `n`, 
 `a, b ∈ ℤ` with `1 < b` such that `0 < |x - a/b| < 1/bⁿ`.
 In the implementation, the condition `x ≠ a/b` replaces the traditional equivalent `0 < |x - a/b|`.
 -/
-def liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
+def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧ abs (x - a / b) < 1 / b ^ n
 
 namespace liouville
 
-lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
+lemma irrational {x : ℝ} (h : is_liouville x) : irrational x :=
 begin
   -- By contradiction, `x = a / b`, with `a ∈ ℤ`, `0 < b ∈ ℕ` is a Liouville number,
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
   -- clear up the mess of constructions of rationals
-  change (liouville (a / b)) at h,
+  change (is_liouville (a / b)) at h,
   -- Since `a / b` is a Liouville number, there are `p, q ∈ ℤ`, with `q1 : 1 < q`,
   -- `a0 : a / b ≠ p / q` and `a1 : abs (a / b - p / q) < 1 / q ^ (b + 1)`
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,
@@ -57,7 +57,7 @@ begin
   -- Actually, `q` is a natural number
   lift q to ℕ using (zero_lt_one.trans q1).le,
   -- Looks innocuous, but we now have an integer with non-zero absolute value: this is at
-  --least one away from zero.  The gain here is what gets the proof going.
+  -- least one away from zero.  The gain here is what gets the proof going.
   have ap : 0 < abs (a * ↑q - ↑b * p) := abs_pos.mpr a0,
   -- Actually, the absolute value of an integer is a natural number
   lift (abs (a * ↑q - ↑b * p)) to ℕ using (abs_nonneg (a * ↑q - ↑b * p)),
@@ -92,7 +92,7 @@ lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
 -- denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)
   (e0 : 0 < ε)
---function is Lipschitz at α
+-- function is Lipschitz at α
   (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
 -- clear denominators
   (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) * dist (f α) (f (j z a))) :
@@ -166,8 +166,9 @@ begin
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
 
-theorem transcendental {x : ℝ} (liouville_x : liouville x) :
-  is_transcendental ℤ x :=begin
+theorem transcendental {x : ℝ} (lx : is_liouville x) :
+  is_transcendental ℤ x :=
+begin
   -- Proceed by contradiction: if `x` is algebraic, then `x` is the root (`ef0`) of a
   -- non-zero (`f0`) polynomial `f`
   rintros ⟨f : polynomial ℤ, f0, ef0⟩,
@@ -177,12 +178,12 @@ theorem transcendental {x : ℝ} (liouville_x : liouville x) :
   -- is at least one.  This is obtained from lemma `exists_pos_real_of_irrational_root`.
   obtain ⟨A, hA, h⟩ : ∃ (A : ℝ), 0 < A ∧
     ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (x - a / (b.succ)) * A) :=
-    exists_pos_real_of_irrational_root liouville_x.irrational f0 ef0,
+    exists_pos_real_of_irrational_root (irrational lx) f0 ef0,
   -- Since the real numbers are Archimedean, a power of `2` exceeds `A`: `hn : A < 2 ^ r`.
   rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
   -- Use the Liouville property, with exponent `r +  deg f`.
   obtain ⟨a, b, b1, -, a1⟩ : ∃ (a b : ℤ), 1 < b ∧ x ≠ a / b ∧
-    abs (x - a / b) < 1 / b ^ (r + f.nat_degree) := liouville_x (r + f.nat_degree),
+    abs (x - a / b) < 1 / b ^ (r + f.nat_degree) := lx (r + f.nat_degree),
   have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
   -- Prove that `b ^ f.nat_degree * abs (x - a / b)` is strictly smaller than itself
   -- recall, this is a proof by contradiction!

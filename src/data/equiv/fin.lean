@@ -58,9 +58,7 @@ def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
 
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
-{ to_fun := λ x, sum.rec_on x
-    (λ y, ⟨y.1, nat.lt_of_lt_of_le y.2 $ nat.le_add_right m n⟩)
-    (λ y, ⟨m + y.1, nat.add_lt_add_left y.2 m⟩),
+{ to_fun := λ x, sum.rec_on x (fin.cast_add n) (fin.nat_add m),
   inv_fun := λ x, if H : x.1 < m
     then sum.inl ⟨x.1, H⟩
     else sum.inr ⟨x.1 - m, nat.lt_of_add_lt_add_left $
@@ -77,6 +75,26 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
     { dsimp, rw [dif_pos H], simp },
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
+
+@[simp]
+lemma sum_fin_sum_equiv_inl (x : fin m) :
+  sum_fin_sum_equiv (sum.inl x : fin m ⊕ fin n) = fin.cast_add n x := rfl
+
+@[simp]
+lemma sum_fin_sum_equiv_inr (x : fin n) :
+  sum_fin_sum_equiv (sum.inr x : fin m ⊕ fin n) = fin.nat_add m x := rfl
+
+@[simp]
+lemma sum_fin_sum_equiv_of_lt (x : fin (m + n)) (h : ↑x < m) :
+  sum_fin_sum_equiv.symm x = sum.inl (fin.cast_lt x h) :=
+by { simp [sum_fin_sum_equiv, dif_pos h], refl, }
+
+-- @[simp]
+-- lemma sum_fin_sum_equiv_of_not_lt (x : fin (m + n)) (h : ¬↑x < m) :
+--   sum_fin_sum_equiv.symm x = sum.inr (begin
+--     refine fin.sub_nat _ _ _,
+--   end) :=
+-- by { simp [sum_fin_sum_equiv, dif_pos h], refl, }
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=

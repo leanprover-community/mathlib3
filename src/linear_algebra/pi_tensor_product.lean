@@ -427,14 +427,6 @@ begin
   refl,
 end
 
--- @[simp]
--- lemma cast_symm {α β : Type*} (h : α = β) : (equiv.cast h).symm = equiv.cast h.symm := rfl
-
--- @[simp]
--- lemma cast_refl {α : Type*} : (equiv.cast $ (rfl : α = α)) = equiv.refl α := rfl
-
-#check equiv.cast_apply
-
 lemma heq_of_reindex_cast {ι ι₂ : Type*} [dι : decidable_eq ι] [dι₂ :  decidable_eq ι₂]
   (a : ⨂[R] i : ι, M) (b : ⨂[R] i : ι₂, M) {h : ι = ι₂} :
   reindex R M (equiv.cast h) a = b → a == b :=
@@ -446,7 +438,16 @@ begin
   simp,
 end
 
-#print equiv.cast
+@[ext]
+lemma sigma_eq_of_reindex_cast {ιι : Type*} {ι : ιι → Type*} [dι : ∀ ii, decidable_eq (ι ii)] :
+  ∀ {a b : Σ ii, ⨂[R] i : ι ii, M} (h : a.fst = b.fst),
+    reindex R M (equiv.cast $ congr_arg ι h) a.snd = b.snd → a = b
+| ⟨ai, a⟩ ⟨bi, b⟩ hi h :=
+begin
+  simp only at hi,
+  subst hi,
+  simpa using h,
+end
 
 /-- The tensor product over an empty set of indices is isomorphic to the base ring -/
 @[simps symm_apply]
@@ -456,7 +457,7 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
   left_inv := λ x, by {
     apply x.induction_on,
     { intros r f,
-      have : f = (λ i, pempty.elim i) := funext (λ i, pempty.elim i),
+      have := subsingleton.elim f (λ i, pempty.elim i),
       simp [this], },
     { simp only,
       intros x y hx hy,

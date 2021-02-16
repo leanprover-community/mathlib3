@@ -63,10 +63,13 @@ instance [has_mul M] [has_mul N] : has_coe_to_fun (M ≃* N) := ⟨_, mul_equiv.
 variables [has_mul M] [has_mul N] [has_mul P]
 
 @[simp, to_additive]
-lemma to_fun_apply {f : M ≃* N} {m : M} : f.to_fun m = f m := rfl
+lemma to_fun_eq_coe {f : M ≃* N} : ⇑f.to_fun = f := rfl
 
 @[simp, to_additive]
-lemma to_equiv_apply {f : M ≃* N} {m : M} : f.to_equiv m = f m := rfl
+lemma coe_to_equiv {f : M ≃* N} : ⇑f.to_equiv = f := rfl
+
+@[simp, to_additive]
+lemma coe_to_mul_hom {f : M ≃* N} : ⇑f.to_mul_hom = f := rfl
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[simp, to_additive]
@@ -235,11 +238,6 @@ def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
 @[simp, to_additive]
 lemma coe_to_monoid_hom {M N} [monoid M] [monoid N] (e : M ≃* N) :
   ⇑e.to_monoid_hom = e :=
-rfl
-
-@[to_additive]
-lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
-  e.to_monoid_hom x = e x :=
 rfl
 
 @[to_additive] lemma to_monoid_hom_injective

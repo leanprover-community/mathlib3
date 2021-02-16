@@ -1530,6 +1530,6 @@ example : ∫ x in 0..2, exp x = exp 2 - 1 := by simp
 example : ∫ x:ℝ in (-1)..2, x = 3/2 := by norm_num
 example : ∫ x:ℝ in 8..11, (-1:ℝ) = -3 := by norm_num
 example : ∫ x:ℝ in 2..3, x⁻¹ = log (3/2) := by norm_num
-example : ∫ x:ℝ in 0..1, 1 / (1 + x^2) = pi/4 := by simp
+example : ∫ x:ℝ in 0..1, 1 / (1 + x^2) = π/4 := by simp
 
 end interval_integral

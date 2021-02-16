@@ -189,17 +189,6 @@ The objects of a connective chain complex, extended to a function on `ℤ` by `0
 def X_ℤ (C : connective_chain_complex V) (i : ℤ) : V :=
 if 0 ≤ i then C.X i.to_nat else 0
 
-@[norm_cast] lemma int.coe_pred_of_pos (n : ℕ) (h : 0 < n) : ((n - 1 : ℕ) : ℤ) = (n : ℤ) - 1 :=
-by { cases n, cases h, simp, }
-
-@[simp]
-lemma int.of_nat_to_nat_pred_of_pos {i : ℤ} (h : 0 < i) : int.of_nat (i.to_nat - 1) = i - 1 :=
-by simp [h, le_of_lt h] with push_cast
-
-@[simp]
-lemma int.of_nat_to_nat_pred_succ_of_pos {i : ℤ} (h : 0 < i) : int.of_nat (i.to_nat - 1) + 1 = i :=
-by simp [h]
-
 /--
 The morphisms of a connective chain complex, extended to a function on `ℤ`.
 We also introduce an off-by-one offset, as in connective_chain_complex `d n : X (n+1) ⟶ X n`,
@@ -208,7 +197,7 @@ while in chain_complex `d i : X i ⟶ X (i-1)`.
 
 def d_ℤ (C : connective_chain_complex V) (i : ℤ) : (X_ℤ C) i ⟶ (X_ℤ C) (i-1) :=
 if h : 0 < i then
-  eq_to_hom (congr_arg (X_ℤ C) (int.of_nat_to_nat_pred_succ_of_pos h).symm) ≫
+  eq_to_hom (congr_arg (X_ℤ C) (show i = (((i.to_nat - 1) : ℕ) : ℤ) + 1, by simp [h])) ≫
     C.d _ ≫
     eq_to_hom (congr_arg (X_ℤ C) (int.of_nat_to_nat_pred_of_pos h))
 else 0

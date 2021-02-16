@@ -10,14 +10,15 @@ import ring_theory.algebraic
 import topology.algebra.polynomial
 /-!
 # Liouville's theorem
-This file will contain a proof of Liouville's theorem stating that all Liouville numbers are
+This file contains a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 
-At the moment, it contains the definition of a Liouville number, a proof that Liouville
-numbers are irrational and two technical lemmas.
+To obtain this result, there is first a proof that Liouville numbers are irrational and two
+technical lemmas.  These lemma exploit the fact that a polynomial with integer coefficients
+takes integer values at integers.  When evaluating at a rational number, we can clear denominators
+and obtain precise inequalities that ultimately allow us to prove transcendence of
+Liouville numbers.
 -/
-
-section irrational
 
 /--
 A Liouville number is a real number `x` such that for every natural number `n`, there exist
@@ -66,8 +67,6 @@ begin
   -- we are done.
   exact not_le.mpr a1 (nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
 end
-
-end liouville
 
 open polynomial metric set real ring_hom
 
@@ -209,5 +208,3 @@ begin
 end
 
 end liouville
-
-end irrational

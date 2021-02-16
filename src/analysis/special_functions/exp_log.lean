@@ -178,6 +178,9 @@ namespace real
 
 variables {x y z : ℝ}
 
+lemma has_strict_deriv_at_exp (x : ℝ) : has_strict_deriv_at exp (exp x) x :=
+(complex.has_strict_deriv_at_exp x).real_of_complex
+
 lemma has_deriv_at_exp (x : ℝ) : has_deriv_at exp (exp x) x :=
 (complex.has_deriv_at_exp x).real_of_complex
 
@@ -210,6 +213,10 @@ section
 function, for standalone use and use with `simp`. -/
 
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
+
+lemma has_strict_deriv_at.exp (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, real.exp (f x)) (real.exp (f x) * f') x :=
+(real.has_strict_deriv_at_exp (f x)).comp x hf
 
 lemma has_deriv_at.exp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.exp (f x)) (real.exp (f x) * f') x :=
@@ -259,15 +266,15 @@ real.times_cont_diff_exp.times_cont_diff_at.comp_times_cont_diff_within_at x hf
 
 lemma has_fderiv_within_at.exp (hf : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at (λ x, real.exp (f x)) (real.exp (f x) • f') s x :=
-begin
-  convert (has_deriv_at_iff_has_fderiv_at.1 $
-    real.has_deriv_at_exp (f x)).comp_has_fderiv_within_at x hf,
-  ext y, simp [mul_comm]
-end
+(real.has_deriv_at_exp (f x)).comp_has_fderiv_within_at x hf
 
 lemma has_fderiv_at.exp (hf : has_fderiv_at f f' x) :
   has_fderiv_at (λ x, real.exp (f x)) (real.exp (f x) • f') x :=
-has_fderiv_within_at_univ.1 $ hf.has_fderiv_within_at.exp
+(real.has_deriv_at_exp (f x)).comp_has_fderiv_at x hf
+
+lemma has_strict_fderiv_at.exp (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (λ x, real.exp (f x)) (real.exp (f x) • f') x :=
+(real.has_strict_deriv_at_exp (f x)).comp_has_strict_fderiv_at x hf
 
 lemma differentiable_within_at.exp (hf : differentiable_within_at ℝ f s x) :
   differentiable_within_at ℝ (λ x, real.exp (f x)) s x :=
@@ -279,11 +286,11 @@ hc.has_fderiv_at.exp.differentiable_at
 
 lemma differentiable_on.exp (hc : differentiable_on ℝ f s) :
   differentiable_on ℝ (λx, real.exp (f x)) s :=
-λx h, (hc x h).exp
+λ x h, (hc x h).exp
 
 @[simp] lemma differentiable.exp (hc : differentiable ℝ f) :
   differentiable ℝ (λx, real.exp (f x)) :=
-λx, (hc x).exp
+λ x, (hc x).exp
 
 lemma fderiv_within_exp (hf : differentiable_within_at ℝ f s x)
   (hxs : unique_diff_within_at ℝ s x) :
@@ -511,20 +518,23 @@ begin
     (h.tendsto.mono_left inf_le_left)
 end
 
-lemma has_deriv_at_log_of_pos (hx : 0 < x) : has_deriv_at log x⁻¹ x :=
-have has_deriv_at log (exp $ log x)⁻¹ x,
-from (has_deriv_at_exp $ log x).of_local_left_inverse (continuous_at_log hx.ne')
+lemma has_strict_deriv_at_log_of_pos (hx : 0 < x) : has_strict_deriv_at log x⁻¹ x :=
+have has_strict_deriv_at log (exp $ log x)⁻¹ x,
+from (has_strict_deriv_at_exp $ log x).of_local_left_inverse (continuous_at_log hx.ne')
   (ne_of_gt $ exp_pos _) $ eventually.mono (lt_mem_nhds hx) @exp_log,
 by rwa [exp_log hx] at this
 
-lemma has_deriv_at_log (hx : x ≠ 0) : has_deriv_at log x⁻¹ x :=
+lemma has_strict_deriv_at_log (hx : x ≠ 0) : has_strict_deriv_at log x⁻¹ x :=
 begin
   cases hx.lt_or_lt with hx hx,
-  { convert (has_deriv_at_log_of_pos (neg_pos.mpr hx)).comp x (has_deriv_at_neg x),
+  { convert (has_strict_deriv_at_log_of_pos (neg_pos.mpr hx)).comp x (has_strict_deriv_at_neg x),
     { ext y, exact (log_neg_eq_log y).symm },
     { field_simp [hx.ne] } },
-  { exact has_deriv_at_log_of_pos hx }
+  { exact has_strict_deriv_at_log_of_pos hx }
 end
+
+lemma has_deriv_at_log (hx : x ≠ 0) : has_deriv_at log x⁻¹ x :=
+(has_strict_deriv_at_log hx).has_deriv_at
 
 lemma differentiable_at_log (hx : x ≠ 0) : differentiable_at ℝ log x :=
 (has_deriv_at_log hx).differentiable_at
@@ -554,8 +564,10 @@ begin
   simp [differentiable_on_log, times_cont_diff_on_inv]
 end
 
-lemma times_cont_diff_at_log (hx : x ≠ 0) {n : with_top ℕ} : times_cont_diff_at ℝ n log x :=
-(times_cont_diff_on_log x hx).times_cont_diff_at $ mem_nhds_sets is_open_compl_singleton hx
+lemma times_cont_diff_at_log {n : with_top ℕ} : times_cont_diff_at ℝ n log x ↔ x ≠ 0 :=
+⟨λ h, continuous_at_log_iff.1 h.continuous_at,
+  λ hx, (times_cont_diff_on_log x hx).times_cont_diff_at $
+    mem_nhds_sets is_open_compl_singleton hx⟩
 
 end real
 
@@ -611,6 +623,13 @@ begin
   exact hf.log hx
 end
 
+lemma has_strict_deriv_at.log (hf : has_strict_deriv_at f f' x) (hx : f x ≠ 0) :
+  has_strict_deriv_at (λ y, log (f y)) (f' / f x) x :=
+begin
+  rw div_eq_inv_mul,
+  exact (has_strict_deriv_at_log hx).comp x hf
+end
+
 lemma deriv_within.log (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0)
   (hxs : unique_diff_within_at ℝ s x) :
   deriv_within (λx, log (f x)) s x = (deriv_within f s x) / (f x) :=
@@ -635,6 +654,10 @@ lemma has_fderiv_at.log (hf : has_fderiv_at f f' x) (hx : f x ≠ 0) :
   has_fderiv_at (λ x, log (f x)) ((f x)⁻¹ • f') x :=
 (has_deriv_at_log hx).comp_has_fderiv_at x hf
 
+lemma has_strict_fderiv_at.log (hf : has_strict_fderiv_at f f' x) (hx : f x ≠ 0) :
+  has_strict_fderiv_at (λ x, log (f x)) ((f x)⁻¹ • f') x :=
+(has_strict_deriv_at_log hx).comp_has_strict_fderiv_at x hf
+
 lemma differentiable_within_at.log (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0) :
   differentiable_within_at ℝ (λx, log (f x)) s x :=
 (hf.has_fderiv_within_at.log hx).differentiable_within_at
@@ -642,6 +665,22 @@ lemma differentiable_within_at.log (hf : differentiable_within_at ℝ f s x) (hx
 @[simp] lemma differentiable_at.log (hf : differentiable_at ℝ f x) (hx : f x ≠ 0) :
   differentiable_at ℝ (λx, log (f x)) x :=
 (hf.has_fderiv_at.log hx).differentiable_at
+
+lemma times_cont_diff_at.log {n} (hf : times_cont_diff_at ℝ n f x) (hx : f x ≠ 0) :
+  times_cont_diff_at ℝ n (λ x, log (f x)) x :=
+(times_cont_diff_at_log.2 hx).comp x hf
+
+lemma times_cont_diff_within_at.log {n} (hf : times_cont_diff_within_at ℝ n f s x) (hx : f x ≠ 0) :
+  times_cont_diff_within_at ℝ n (λ x, log (f x)) s x :=
+(times_cont_diff_at_log.2 hx).comp_times_cont_diff_within_at x hf
+
+lemma times_cont_diff_on.log {n} (hf : times_cont_diff_on ℝ n f s) (hs : ∀ x ∈ s, f x ≠ 0) :
+  times_cont_diff_on ℝ n (λ x, log (f x)) s :=
+λ x hx, (hf x hx).log (hs x hx)
+
+lemma times_cont_diff.log {n} (hf : times_cont_diff ℝ n f) (h : ∀ x, f x ≠ 0) :
+  times_cont_diff ℝ n (λ x, log (f x)) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, hf.times_cont_diff_at.log (h x)
 
 lemma differentiable_on.log (hf : differentiable_on ℝ f s) (hx : ∀ x ∈ s, f x ≠ 0) :
   differentiable_on ℝ (λx, log (f x)) s :=

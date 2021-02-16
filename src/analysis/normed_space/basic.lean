@@ -90,6 +90,9 @@ by rw [dist_comm, dist_eq_norm]
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
 
+@[simp] lemma dist_zero_left : dist (0:α) = norm :=
+funext $ λ g, by rw [dist_comm, dist_zero_right]
+
 lemma tendsto_norm_cocompact_at_top [proper_space α] :
   tendsto norm (cocompact α) at_top :=
 by simpa only [dist_zero_right] using tendsto_dist_right_cocompact_at_top (0:α)
@@ -379,6 +382,18 @@ begin
   ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
 end
 
+/-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
+instance add_subgroup.normed_group {E : Type*} [normed_group E] (s : add_subgroup E) :
+  normed_group s :=
+{ norm := λx, norm (x : E),
+  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+/-- If `x` is an element of a subgroup `s` of a normed group `E`, its norm in `s` is equal to its
+norm in `E`. -/
+@[simp] lemma coe_norm_subgroup {E : Type*} [normed_group E] {s : add_subgroup E} (x : s) :
+  ∥x∥ = ∥(x:E)∥ :=
+rfl
+
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 
 See note [implicit instance arguments]. -/
@@ -387,13 +402,18 @@ instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { norm := λx, norm (x : E),
   dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
 
-/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
-norm in `E`.
+/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
+norm in `s`.
 
 See note [implicit instance arguments]. -/
-@[simp] lemma coe_norm {𝕜 : Type*} {_ : ring 𝕜}
+@[simp, norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
   {E : Type*} [normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
-  ∥x∥ = ∥(x:E)∥ :=
+  ∥(x : E)∥ = ∥x∥ :=
+rfl
+
+@[simp] lemma submodule.norm_mk {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : E) (hx : x ∈ s) :
+  ∥(⟨x, hx⟩ : s)∥ = ∥x∥ :=
 rfl
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
@@ -490,18 +510,11 @@ by simpa using continuous_id.dist (continuous_const : continuous (λ g, (0:α)))
 lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
 
+lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : α → ℝ) :=
+by simpa only [dist_zero_left] using lipschitz_with.dist_right (0 : α)
+
 lemma uniform_continuous_norm : uniform_continuous (norm : α → ℝ) :=
-begin
-  rw metric.uniform_continuous_iff,
-  intros ε hε,
-  use [ε, hε],
-  intros x y hxy,
-  rw dist_eq_norm at hxy ⊢,
-  calc ∥∥x∥ - ∥y∥∥
-      = abs(∥x∥ - ∥y∥) : by rw real.norm_eq_abs
-  ... ≤ ∥x - y∥ : abs_norm_sub_norm_le x y
-  ... < ε : hxy
-end
+lipschitz_with_one_norm.uniform_continuous
 
 lemma uniform_continuous_nnnorm : uniform_continuous (nnnorm : α → ℝ≥0) :=
 uniform_continuous_subtype_mk uniform_continuous_norm _

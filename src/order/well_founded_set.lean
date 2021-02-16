@@ -21,6 +21,12 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * `set.is_partially_well_ordered s` indicates that any infinite sequence of elements in `s`
   contains an infinite monotone subsequence.
 
+### Definitions for Hahn Series
+ * `set.add_antidiagonal s t a` and `set.mul_antidiagonal s t a` are the sets of pairs of elements
+  from `s` and `t` that add/multiply to `a`.
+ * `finset.add_antidiagonal` and `finset.mul_antidiagonal` are finite versions of
+  `set.add_antidiagonal` and `set.mul_antidiagonal` defined when `s` and `t` are well-founded.
+
 ## Main Results
  * `set.well_founded_on_iff` relates `well_founded_on` to the well-foundedness of a relation on the
  original type, to avoid dealing with subtypes.
@@ -358,59 +364,23 @@ end
 
 end set
 
-lemma not_well_founded_swap_of_infinite_of_well_order_aux
-  {r : α → α → Prop} [is_well_order α r] {a : α} (h_inf : ({x : α | r a x}).infinite) :
-  {x : α | r ((is_well_order.wf : well_founded r).succ a) x}.infinite :=
-begin
-  have h_nonempty : ∃ x, r a x := h_inf.nonempty,
-  intro con,
-  apply h_inf,
-  convert con.insert ((is_well_order.wf : well_founded r).succ a),
-  ext x,
-  simp only [set.mem_insert_iff, set.mem_set_of_eq],
-  split; intro h,
-  { rcases is_trichotomous.trichotomous x ((is_well_order.wf : well_founded r).succ a) with c1 | c,
-    { exfalso,
-      cases (well_founded.lt_succ_iff h_nonempty x).1 c1 with hlt heq,
-      { exact is_asymm.asymm _ _ hlt h },
-      { rw heq at h,
-        have h_irr : is_irrefl α r := infer_instance,
-        have h_irr' := h_irr.irrefl,
-        exact h_irr' a h, } },
-    { exact c },
-    { apply_instance }, },
-  { rcases h with rfl | h,
-    { exact (is_well_order.wf : well_founded r).lt_succ h_nonempty },
-    { exact is_trans.trans _ _ _ ((is_well_order.wf : well_founded r).lt_succ h_nonempty) h } }
-end
-
 theorem not_well_founded_swap_of_infinite_of_well_order
   [infinite α] {r : α → α → Prop} [is_well_order α r] :
   ¬ well_founded (function.swap r) :=
 begin
   haveI : is_strict_order α (function.swap r) := is_strict_order.swap _,
-  let m := (is_well_order.wf : well_founded r).min set.univ (set.univ_nonempty),
-  have hm : { x | r m x }.infinite,
-  { intro con,
-    have h : (set.univ : set α).infinite := set.infinite_univ,
-      apply h,
-      convert con.insert m,
-      ext x,
-      simp only [set.mem_insert_iff, true_iff, set.mem_univ, set.mem_set_of_eq],
-      rcases is_trichotomous.trichotomous x m with c1 | c,
-      { exfalso,
-        exact well_founded.not_lt_min _ set.univ _ (set.mem_univ x) c1 },
-      { exact c },
-      { apply_instance } },
   rw [rel_embedding.well_founded_iff_no_descending_seq, not_not],
-  let f : ℕ → { a : α | ({x : α | r a x}).infinite },
-  { apply nat.rec,
-    { exact ⟨m, hm⟩ },
-    { exact λ _ x, ⟨_, not_well_founded_swap_of_infinite_of_well_order_aux x.2⟩ } },
-  refine ⟨rel_embedding.swap (rel_embedding.nat_lt (function.comp coe f) _)⟩,
-  intro n,
-  simp only [nat.rec_add_one, function.comp_app, subtype.coe_mk, subtype.val_eq_coe],
-  exact well_founded.lt_succ _ (set.infinite.nonempty (subtype.coe_prop (f n))),
+  obtain ⟨g, h1 | h2⟩ := exists_increasing_or_nonincreasing_subseq' r (infinite.nat_embedding α),
+  { exact ⟨rel_embedding.nat_gt ((infinite.nat_embedding α) ∘ g) h1⟩ },
+  { exfalso,
+    have h : well_founded r := is_well_order.wf,
+    rw [rel_embedding.well_founded_iff_no_descending_seq] at h,
+    refine h ⟨rel_embedding.nat_gt ((infinite.nat_embedding α) ∘ g) (λ n, _)⟩,
+    obtain c1 | c2 | c3 := (is_trichotomous.trichotomous _ _ : r _ _ ∨ _),
+    { exact c1 },
+    { exfalso,
+      exact ne_of_gt n.lt_succ_self (g.injective ((infinite.nat_embedding α).injective c2)) },
+    { exact (h2 n (n + 1) n.lt_succ_self c3).elim } }
 end
 
 namespace set
@@ -425,7 +395,7 @@ def mul_antidiagonal [monoid α] (s t : set α) (a : α) : set (α × α) :=
 namespace mul_antidiagonal
 
 @[simp, to_additive]
-lemma mem_mul_antidiagonal_of_is_wf [monoid α] {s t : set α} {a : α} {x : α × α} :
+lemma mem_mul_antidiagonal [monoid α] {s t : set α} {a : α} {x : α × α} :
   x ∈ mul_antidiagonal s t a ↔ x.1 * x.2 = a ∧ x.1 ∈ s ∧ x.2 ∈ t := iff.refl _
 
 variables [cancel_comm_monoid α] {s t : set α} {a : α}
@@ -475,20 +445,13 @@ def fst_rel_embedding : (lt_left s t a) ↪r ((<) : s → s → Prop) :=
 @[to_additive "`set.add_antidiagonal s t a` ordered by `lt_left` embeds into the dual of `t`"]
 def snd_rel_embedding : (lt_left s t a) ↪r ((>) : t → t → Prop) :=
 ⟨⟨λ x, ⟨(↑x : α × α).2, x.2.2.2⟩, λ x y hxy, eq_of_snd_eq_snd (subtype.mk_eq_mk.1 hxy)⟩,
-  λ x y, begin
-  simp only [lt_left, subtype.mk_lt_mk, gt_iff_lt, function.embedding.coe_fn_mk],
-  split; intro h,
-  { by_contra hle,
-    rw not_lt at hle,
-    have h := mul_lt_mul_of_le_of_lt hle h,
-    rw [← subtype.val_eq_coe, ← subtype.val_eq_coe, x.2.1, y.2.1] at h,
-    exact lt_irrefl a h },
-  { by_contra hle,
-    rw not_lt at hle,
-    have h := mul_lt_mul_of_le_of_lt hle h,
-    rw [← subtype.val_eq_coe, ← subtype.val_eq_coe, mul_comm, x.2.1, mul_comm, y.2.1] at h,
-    exact lt_irrefl a h }
-end⟩
+  begin
+    rintro ⟨⟨x1, x2⟩, rfl, _⟩,
+    rintro ⟨⟨y1, y2⟩, h, _⟩,
+    change x2 > y2 ↔ x1 < y1,
+    change y1 * y2 = x1 * x2 at h,
+    rw [← mul_lt_mul_iff_right x2, ← h, mul_lt_mul_iff_left],
+  end⟩
 
 variables {s} {t}
 

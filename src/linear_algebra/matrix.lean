@@ -760,7 +760,7 @@ end
 types is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
-{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_apply, mul_eq_mul],
+{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_eq_coe, mul_eq_mul],
   commutes' := λ r, by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }
 

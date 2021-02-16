@@ -65,12 +65,12 @@ variables {α β : Type u}
 For a list, foldl f x [y₀,y₁] reduces as follows:
 
 ```
-  calc  foldl f x [y₀,y₁]
-      = foldl f (f x y₀) [y₁]      : rfl
-  ... = foldl f (f (f x y₀) y₁) [] : rfl
-  ... = f (f x y₀) y₁              : rfl
+calc  foldl f x [y₀,y₁]
+    = foldl f (f x y₀) [y₁]      : rfl
+... = foldl f (f (f x y₀) y₁) [] : rfl
+... = f (f x y₀) y₁              : rfl
 ```
-with 
+with
 ```
 f : α → β → α
 x : α
@@ -79,24 +79,24 @@ x : α
 
 We can view the above as a composition of functions:
 ```
-  ... = f (f x y₀) y₁              : rfl
-  ... = flip f y₁ (flip f y₀ x)    : rfl
-  ... = (flip f y₁ ∘ flip f y₀) x  : rfl
+... = f (f x y₀) y₁              : rfl
+... = flip f y₁ (flip f y₀ x)    : rfl
+... = (flip f y₁ ∘ flip f y₀) x  : rfl
 ```
 
 We can use traverse and const to construct this composition:
 ```
-  calc   const.run (traverse (λ y, const.mk' (flip f y)) [y₀,y₁]) x
-       = const.run ((::) <$> const.mk' (flip f y₀) <*> traverse (λ y, const.mk' (flip f y)) [y₁]) x
-  ...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
-           ( (::) <$> const.mk' (flip f y₁) <*> traverse (λ y, const.mk' (flip f y)) [] )) x
-  ...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
-           ( (::) <$> const.mk' (flip f y₁) <*> pure [] )) x
-  ...  = const.run ( ((::) <$> const.mk' (flip f y₁) <*> pure []) ∘
-           ((::) <$> const.mk' (flip f y₀)) ) x
-  ...  = const.run ( const.mk' (flip f y₁) ∘ const.mk' (flip f y₀) ) x
-  ...  = const.run ( flip f y₁ ∘ flip f y₀ ) x
-  ...  = f (f x y₀) y₁
+calc   const.run (traverse (λ y, const.mk' (flip f y)) [y₀,y₁]) x
+     = const.run ((::) <$> const.mk' (flip f y₀) <*> traverse (λ y, const.mk' (flip f y)) [y₁]) x
+...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
+         ( (::) <$> const.mk' (flip f y₁) <*> traverse (λ y, const.mk' (flip f y)) [] )) x
+...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
+         ( (::) <$> const.mk' (flip f y₁) <*> pure [] )) x
+...  = const.run ( ((::) <$> const.mk' (flip f y₁) <*> pure []) ∘
+         ((::) <$> const.mk' (flip f y₀)) ) x
+...  = const.run ( const.mk' (flip f y₁) ∘ const.mk' (flip f y₀) ) x
+...  = const.run ( flip f y₁ ∘ flip f y₀ ) x
+...  = f (f x y₀) y₁
 ```
 
 And this is how `const` turns a monoid into an applicative functor and

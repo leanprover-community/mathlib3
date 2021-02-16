@@ -14,15 +14,19 @@ category of abelian groups.
 
 ## Main definitions
 
-* `free`: constructs the functor associating to a type `X` the free abelian group with generators
-  `x : X`
+* `AddCommGroup.free`: constructs the functor associating to a type `X` the free abelian group with
+  generators `x : X`.
+* `Group.free`: constructs the functor associating to a type `X` the free group with
+  generators `x : X`.
 * `abelianize`: constructs the functor which associates to a group `G` its abelianization `Gᵃᵇ`.
 
 ## Main statements
 
-* `AddCommGroup.adj` proves that `free` is the left adjoint of the forgetful functor from abelian
-  groups to types.
-* `abelianize_adj` proves that `abelianize` is left adjoint to the forgetful functor from
+* `AddCommGroup.adj`: proves that `AddCommGroup.free` is the left adjoint of the forgetful functor
+  from abelian groups to types.
+* `Group.adj`: proves that `Group.free` is the left adjoint of the forgetful functor from groups to
+  types.
+* `abelianize_adj`: proves that `abelianize` is left adjoint to the forgetful functor from
   abelian groups to groups.
 -/
 
@@ -73,6 +77,25 @@ example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :
 
 end AddCommGroup
 
+namespace Group
+
+/-- The free functor `Type u ⥤ Group` sending a type `X` to the free group with generators `x : X`.
+-/
+def free : Type u ⥤ Group :=
+{ obj := λ α, of (free_group α),
+  map := λ X Y, free_group.map,
+  map_id' := by { intros, ext1, refl },
+  map_comp' := by { intros, ext1, refl } }
+
+/-- The free-forgetful adjunction for groups.
+-/
+def adj : free ⊣ forget Group.{u} :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X G, (free_group.lift X G).symm,
+  hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+
+end Group
+
 section abelianization
 
 /-- The abelianization functor `Group ⥤ CommGroup` sending a group `G` to its abelianization `Gᵃᵇ`.
@@ -83,7 +106,7 @@ def abelianize : Group.{u} ⥤ CommGroup.{u} :=
   map_one' := by simp,
   map_mul' := by simp } ),
   map_id' := by { intros, simp only [monoid_hom.mk_coe, coe_id], ext1, refl },
-  map_comp' := by { intros, simp, ext1, refl } }
+  map_comp' := by { intros, simp only [coe_comp], ext1, refl } }
 
 /-- The abelianization-forgetful adjuction from `Group` to `CommGroup`.-/
 def abelianize_adj : abelianize ⊣ forget₂ CommGroup.{u} Group.{u} :=

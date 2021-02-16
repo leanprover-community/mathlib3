@@ -28,6 +28,9 @@ lemma ext : ∀ {b₁ b₂ : buffer α}, to_list b₁ = to_list b₂ → b₁ = 
   rw eq_of_heq (h.trans a₂.to_list_to_array)
 end
 
+lemma ext_iff {b₁ b₂ : buffer α} : to_list b₁ = to_list b₂ ↔ b₁ = b₂ :=
+⟨ext, λ h, h ▸ rfl⟩
+
 lemma size_eq_zero_iff {b : buffer α} : b.size = 0 ↔ b = nil :=
 begin
   rcases b with ⟨_|n, ⟨a⟩⟩,
@@ -40,6 +43,8 @@ end
 
 @[simp] lemma size_nil : (@nil α).size = 0 :=
 by rw size_eq_zero_iff
+
+@[simp] lemma to_list_nil : to_list (@nil α) = [] := rfl
 
 instance (α) [decidable_eq α] : decidable_eq (buffer α) :=
 by tactic.mk_dec_eq_instance
@@ -68,6 +73,9 @@ begin
   simp [list.to_buffer,append_list],
   rw ← hl, refl
 end
+
+@[simp] lemma to_list_to_array (b : buffer α) : b.to_array.to_list = b.to_list :=
+by { cases b, simp [to_list] }
 
 @[simp] lemma append_list_nil (b : buffer α) : b.append_list [] = b := rfl
 

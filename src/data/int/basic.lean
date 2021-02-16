@@ -1038,18 +1038,7 @@ begin
 end
 
 @[simp]
-lemma to_nat_pred_coe_succ_eq_self_of_pos {i : ℤ} (h : 0 < i) :
-  ((i.to_nat - 1 : ℕ) : ℤ) + 1 = i :=
-begin
-  cases i,
-  { cases i,
-    { simpa using h, },
-    { simp, }, },
-  { simpa using h, }
-end
-
-@[simp]
-lemma of_nat_to_nat_pred_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
+lemma to_nat_pred_coe_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
 by simp [h, le_of_lt h] with push_cast
 
 /-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.

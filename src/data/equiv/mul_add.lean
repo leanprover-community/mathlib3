@@ -273,13 +273,9 @@ for additive maps from an additive monoid to a commutative additive monoid."]
 def arrow_congr_mul {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
 { to_fun := λ h,
-  { to_fun := λ n, g (h (f.symm n)),
-    map_one' := by simp,
-    map_mul' := by simp, },
+  g.to_monoid_hom.comp (h.comp f.symm.to_monoid_hom),
   inv_fun := λ k,
-  { to_fun := λ m, g.symm (k (f m)),
-    map_one' := by simp,
-    map_mul' := by simp, },
+  g.symm.to_monoid_hom.comp (k.comp f.to_monoid_hom),
   left_inv := λ h, by { ext, simp, },
   right_inv := λ k, by { ext, simp, },
   map_mul' := λ h k, by { ext, simp, }, }

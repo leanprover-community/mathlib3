@@ -14,7 +14,7 @@ This file contains a proof of Liouville's theorem stating that all Liouville num
 transcendental.
 
 To obtain this result, there is first a proof that Liouville numbers are irrational and two
-technical lemmas.  These lemma exploit the fact that a polynomial with integer coefficients
+technical lemmas.  These lemmas exploit the fact that a polynomial with integer coefficients
 takes integer values at integers.  When evaluating at a rational number, we can clear denominators
 and obtain precise inequalities that ultimately allow us to prove transcendence of
 Liouville numbers.

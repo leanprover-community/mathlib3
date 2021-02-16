@@ -69,11 +69,22 @@ end
 
 end liouville
 
-open polynomial metric set
+open polynomial metric set real ring_hom
 
-/-- This lemma collects the properties needed to prove `exists_pos_real_of_irrational_root`.
+/-- Let `Z, N` be types, let `R` be a metric space, let `α : R` be a point and let
+`j : Z → N → R` be a function.  We aim to estimate how close we can get to `α`, while staying
+in the image of `j`.  The points `j z a` of `R` in the image of `j` come with a "cost" equal to
+`d a`.  As we get closer to `α` while staying in the image of `j`, we are interested in bounding
+the quantity `d a * dist α (j z a)` from below by a strictly positive amount `1 / A`: the intuition
+is that approximating well `α` with the points in the image of `j` should come at a high cost.  The
+hypotheses on the function `f : R → R` provide us with sufficient conditions to ensure our goal.
+The first hypothesis is that `f` is Lipschitz at `α`: this yields a bound on the distance.
+The second hypothesis is specific to the Liouville argument and provides the missing bound
+involving the cost function `d`.
+
+This lemma collects the properties used in the proof of `exists_pos_real_of_irrational_root`.
 It is stated in more general form than needed: in the intended application, `Z = ℤ`, `N = ℕ`,
-`R = ℝ`, `d a = a ^ f.nat_degree`, `j z a  = z / (a + 1)`, `f ∈ ℤ[x]`, `α` is an irrational
+`R = ℝ`, `d a = (a + 1) ^ f.nat_degree`, `j z a  = z / (a + 1)`, `f ∈ ℤ[x]`, `α` is an irrational
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
 the degree of the polynomial `f`.
 -/
@@ -86,7 +97,7 @@ lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
   (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
 -- clear denominators
   (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) * dist (f α) (f (j z a))) :
-  ∃ e : ℝ, 0 < e ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * e) :=
+  ∃ A : ℝ, 0 < A ∧ ∀ (z : Z), ∀ (a : N), 1 ≤ (d a) * (dist α (j z a) * A) :=
 begin
   -- A useful inequality to keep at hand
   have me0 : 0 < max (1 / ε) M := lt_max_iff.mpr (or.inl (one_div_pos.mpr e0)),
@@ -107,9 +118,9 @@ begin
 end
 
 lemma exists_pos_real_of_irrational_root {α : ℝ} (ha : irrational α)
-  {f : polynomial ℤ} (f0 : f ≠ 0) (fa : (f.map (algebra_map ℤ ℝ)).eval α  = 0) :
-  ∃ ε : ℝ, 0 < ε ∧
-    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (α - (a / (b.succ))) * ε) :=
+  {f : polynomial ℤ} (f0 : f ≠ 0) (fa : eval α (map (algebra_map ℤ ℝ) f) = 0):
+  ∃ A : ℝ, 0 < A ∧
+    ∀ (a : ℤ), ∀ (b : ℕ), (1 : ℝ) ≤ (b + 1) ^ f.nat_degree * (abs (α - (a / (b + 1))) * A) :=
 begin
   -- `fR` is `f` viewed as a polynomial with `ℝ` coefficients.
   set fR : polynomial ℝ := map (algebra_map ℤ ℝ) f,
@@ -147,16 +158,14 @@ begin
     -- key observation: the right-hand side of the inequality is an *integer*.  Therefore,
     -- if its absolute value is not at least one, then it vanishes.  Proceed by contradiction
     refine one_le_pow_mul_abs_eval_div (int.coe_nat_succ_pos a) (λ hy, _),
-    -- If the evaluation of the polynomial vanishes, then we found a root of `fR` that is rational.
+    -- As the evaluation of the polynomial vanishes, we found a root of `fR` that is rational.
     -- We know that `α` is the only root of `fR` in our interval, and `α` is irrational:
     -- follow your nose.
     refine (irrational_iff_ne_rational α).mp ha z (a + 1) ((mem_singleton_iff.mp _).symm),
-    rw ← U,
+    refine U.subset _,
     refine ⟨hq, finset.mem_coe.mp (multiset.mem_to_finset.mpr _)⟩,
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
-
-namespace liouville
 
 theorem transcendental {x : ℝ} (liouville_x : liouville x) :
   is_transcendental ℤ x :=

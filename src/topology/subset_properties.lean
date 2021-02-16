@@ -51,8 +51,8 @@ variables {α : Type u} {β : Type v} [topological_space α] {s t : set α}
 /- compact sets -/
 section compact
 
-/-- A set `s` is compact if for every filter `f` that contains `s`,
-    every set of `f` also meets every neighborhood of some `a ∈ s`. -/
+/-- A set `s` is compact if for every nontrivial filter `f` that contains `s`,
+    there exists `a ∈ s` such that every set of `f` meets every neighborhood of `a`. -/
 def is_compact (s : set α) := ∀ ⦃f⦄ [ne_bot f], f ≤ 𝓟 s → ∃a∈s, cluster_pt a f
 
 /-- The complement to a compact set belongs to a filter `f` if it belongs to each filter

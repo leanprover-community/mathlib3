@@ -5,7 +5,6 @@ Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
 import tactic.localized
-import tactic.apply_fun
 import order.rel_iso
 
 /-!
@@ -880,12 +879,7 @@ succ_above_right_injective.eq_iff
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_injective : injective (@succ_above n) :=
-λ x y h, begin
-  apply_fun (λ f : fin n ↪o fin (n + 1), set.range f) at h,
-  rw [range_succ_above, range_succ_above] at h,
-  apply_fun (λ s : set _, sᶜ) at h,
-  simpa using h,
-end
+λ _ _ h, by simpa [range_succ_above] using congr_arg (λ f : fin n ↪o fin (n + 1), (set.range f)ᶜ) h
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_inj {x y : fin (n + 1)} :

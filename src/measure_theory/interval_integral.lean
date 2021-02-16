@@ -1442,10 +1442,10 @@ lemma not_mem_Icc_of_gt {a b c : ℝ} (hb : b < c) : c ∉ Icc a b :=
 not_mem_subset Icc_subset_Iic_self (not_mem_Iic_of_gt hb)
 
 lemma not_mem_interval_of_lt {a b c : ℝ} (ha : c < a) (hb : c < b) : c ∉ interval a b :=
-by simpa only [interval] using not_mem_Icc_of_lt (lt_min_iff.mpr ⟨ha, hb⟩)
+not_mem_Icc_of_lt (lt_min_iff.mpr ⟨ha, hb⟩)
 
 lemma not_mem_interval_of_gt {a b c : ℝ} (ha : a < c) (hb : b < c) : c ∉ interval a b :=
-by simpa only [interval] using not_mem_Icc_of_gt (max_lt_iff.mpr ⟨ha, hb⟩)
+not_mem_Icc_of_gt (max_lt_iff.mpr ⟨ha, hb⟩)
 
 lemma log_div {x y:ℝ} (hx : x ≠ 0) (hy : y ≠ 0) : log (x / y) = log x - log y :=
 exp_injective $
@@ -1468,14 +1468,27 @@ integral_inv (not_mem_interval_of_lt ha hb)
 lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
 integral_inv (not_mem_interval_of_gt ha hb)
 
+lemma integral_one_div (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
+by simp only [one_div, integral_inv h]
+
+lemma integral_one_div_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
+by simp only [one_div, integral_inv_of_pos ha hb]
+
+lemma integral_one_div_of_neg (ha : a < 0) (hb : b < 0) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
+by simp only [one_div, integral_inv_of_neg ha hb]
+
 @[simp]
-lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
+lemma integral_inv_one_add_sq : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=
 begin
+  simp only [← one_div],
   refine integral_deriv_eq_sub' _ _ _ (continuous_const.div _ (λ x, _)).continuous_on;
   norm_num,
   continuity,
   nlinarith,
 end
+
+lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
+by simp
 
 @[simp]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
@@ -1515,8 +1528,8 @@ example : ∫ x in 0..π/4, cos x = sqrt 2 / 2 := by simp
 example : ∫ x:ℝ in 2..4, x^(3:ℕ) = 60 := by norm_num
 example : ∫ x in 0..2, exp x = exp 2 - 1 := by simp
 example : ∫ x:ℝ in (-1)..2, x = 3/2 := by norm_num
-example : ∫ x:ℝ in 11..8, (1:ℝ) = -3 := by norm_num
+example : ∫ x:ℝ in 8..11, (-1:ℝ) = -3 := by norm_num
 example : ∫ x:ℝ in 2..3, x⁻¹ = log (3/2) := by norm_num
-example : ∫ x:ℝ in 0..1, 1 / (1 + x^2) = π/4 := by norm_num
+example : ∫ x:ℝ in 0..1, 1 / (1 + x^2) = pi/4 := by simp
 
 end interval_integral

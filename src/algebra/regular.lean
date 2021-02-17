@@ -62,20 +62,30 @@ lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) :
 lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
 of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
 
+/--  Elements of a left cancel monoid are left regular.
+
+Funny how left and right change positions. -/
 lemma is_left_regular_of_left_cancel_monoid {G : Type*} [left_cancel_monoid G] (g : G) :
   is_left_regular g :=
 ⟨λ {b c : G}, (_root_.mul_right_inj g).mp⟩
 
+/--  Elements of a right cancel monoid are right regular.
+
+Funny how left and right change positions. -/
 lemma is_right_regular_of_right_cancel_monoid {G : Type*} [right_cancel_monoid G] (g : G) :
   is_right_regular g :=
 ⟨λ {b c : G}, (_root_.mul_left_inj g).mp⟩
 
-/--  Funny how left and right change positions. -/
+/--  Elements of a cancel monoid are regular.
+
+Funny how left and right change positions. -/
 lemma is_regular_of_cancel_monoid {G : Type*} [cancel_monoid G] (g : G) :
   is_regular g :=
 ⟨λ {b c : G}, (_root_.mul_right_inj g).mp, λ {b c : G}, (_root_.mul_left_inj g).mp⟩
 
-/--  Funny how left and right change positions. -/
+/--  Non-zero elements of an integral domain are regular.
+
+Funny how left and right change positions. -/
 lemma is_regular_of_integral_domain {D : Type*} [integral_domain D] {a : D} (a0 : a ≠ 0) :
   is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
@@ -84,9 +94,9 @@ end is_regular
 
 open is_regular
 
-/-- A unit is regular. -/
+/-- A unit in a monoid is regular. -/
 lemma is_unit.is_regular [monoid R] {a : R} (ua : is_unit a) : is_regular a :=
 begin
-  rcases ua with ⟨⟨t1, t2⟩, u, v⟩,
-  exact of_mul_eq_one_mul_eq_one ua_w_val_inv ua_w_inv_val
+  rcases ua with ⟨⟨a, b, ab, ba⟩, rfl⟩,
+  exact of_mul_eq_one_mul_eq_one ab ba
 end

@@ -473,7 +473,7 @@ lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
   W.dual_lift φ w = φ ⟨w, hw⟩ :=
 dual_lift_of_subtype ⟨w, hw⟩
 
-lemma dual_lift_left_inverse' (W : subspace K V) :
+@[simp] lemma dual_restrict_comp_dual_lift (W : subspace K V) :
   W.dual_restrict.comp W.dual_lift = 1 :=
 by { ext φ x, simp }
 

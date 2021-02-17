@@ -38,7 +38,6 @@ continues to develop, it should eventually become possible to redefine `disc` an
 to the n-ball.
 -/
 
-section linear_ordered_ring
 variables {R : Type*} [linear_ordered_ring R] {x y : R}
 
 lemma abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
@@ -52,18 +51,6 @@ end
 
 lemma abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
 abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
-
-end linear_ordered_ring
-
-variables {α : Type*} [ordered_comm_monoid α] {a b c d : α}
-
-@[to_additive]
-lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) : a * d < c :=
-lt_of_le_of_lt (mul_le_mul_left' hle a) h
-
-@[to_additive]
-lemma lt_of_mul_lt_of_one_le_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=
-by simpa only [mul_one] using mul_lt_of_mul_lt_left h hle
 
 open set real filter measure_theory interval_integral
 variable {r : ℝ}

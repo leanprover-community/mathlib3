@@ -3,25 +3,52 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.isomorphism_classes
 import algebra.homology.chain_complex
 import tactic.linarith
 
 /-!
 ## Connective chain complexes
 
-Often we want to work with `ℕ`-indexed chain complexes.
-While it is possible to work with `ℤ`-indexed chain complexes which are zero in negative degrees
-(typically called 'connective'), sometimes it is more convenient to actually index by `ℕ`.
+Our definition of `chain_complex V`, as `differential_object (graded_object_with_shift (-1 : ℤ) V)`,
+is intrinsically an `ℤ`-indexed object. (The formulation of `graded_object_with_shift` requires
+that the grading is by an abelian group.)
 
-To this end, we define `connective_chain_complex V`, and aim to prove an equivalence
-`connective_chain_complex V ≌ { C : chain_complex V // is_connective C}`
-(where `is_connective` asserts that the complex is zero in negative degrees).
+Often, however, one encounters chain complexes in the wild which are naturally `ℕ`-indexed.
+(e.g. when working with simplicial topology or simplicial objects).
 
-Note that in `chain_complex V`, `C.d i : C.X i ⟶ C.X (i-1)`,
-while in `connective_chain_complex V`, we have `C.d i : C.X (i+1) ⟶ C.X i`.
-This makes `connective_chain_complex V` nicer to work with,
-but adds to the tedium (lots of monus wrangling) when setting up the equivalence.
+In this file we provide an independent formulation of such chain complexes, as
+```
+structure connective_chain_complex :=
+(X : ℕ → V)
+(d : Π n : ℕ, X (n+1) ⟶ X n)
+(d_squared' : ∀ n, d (n+1) ≫ d n = 0 . obviously)
+```
+
+Notice here that the differential is indexed differently than in `chain_complex`.
+Here `d 0 : X 1 ⟶ X 0`, while in `chain_complex` we have `d 0 : X 0 ⟶ X (-1)`.
+This indexing is very natural for connective complexes.
+It's not hard to find references that switch between these two conventions mid-page.
+
+Sometimes one wants to move between these two worlds!
+We provide a predicate `is_connective` on `chain_complex`,
+which asserts that the complex is zero in all negative `ℤ` degrees,
+and construct the equivalence
+`connective_chain_complex V ≌ { C : chain_complex V // is_connective C}`.
+
+While one might hope this equivalence is easy and straightforward,
+it's rather painful to build.
+Partly this is because we need to define objects via `if` statements
+(or, alternatively, by pattern matching),
+and then find ourselves wanting to use rewriting at the level of objects in a category
+(which is best avoided in favour of explicit `eq_to_hom` morphisms).
+Partly this is because of the natural discrepancy in the indexing of differentials,
+as described above, requiring us to manipulate indentities in `ℕ` and `ℤ` (lots of monus wrangling!)
+which appear in the index of a type family, leading to dependent type theory hell
+(which we again handle through explicit `eq_to_hom` morphisms).
+
+The unpleasantness in the construction of the equivalence is hopefully not actually a problem, and
+one should view it as an unfortunate necessity to guarantee that we've got our definitions correct,
+and then avoid using it.
 -/
 
 universes v u
@@ -32,7 +59,7 @@ open category_theory.limits
 variables (V : Type u) [category.{v} V]
 variables [has_zero_morphisms V]
 
-section
+section is_connective
 variables {V} [has_zero_object V]
 local attribute [instance] has_zero_object.has_zero
 
@@ -79,8 +106,16 @@ lemma is_connective.id_neg (C : { C : chain_complex V // is_connective C })
  {i : ℤ} (h : i < 0) : (𝟙 ((C : chain_complex V).X i)) = 0 :=
 zero_of_source_iso_zero' _ (C.property i h)
 
-end
+end is_connective
 
+/--
+A connective chain complex in `V` is a `ℕ`-indexed collection of objects `X n : V`,
+and differentials `d n : X (n+1) ⟶ X n` satisfying `d (n+1) ≫ d n = 0`.
+
+See `connective_chain_complex.equivalence` for the equivalence with the category
+of `ℤ`-indexed chain complexes which are supported in non-negative degrees.
+-/
+@[nolint has_inhabited_instance]
 structure connective_chain_complex :=
 (X : ℕ → V)
 (d : Π n : ℕ, X (n+1) ⟶ X n)
@@ -101,6 +136,9 @@ begin
   simp,
 end
 
+/--
+A morphism between connective chain complexes.
+-/
 @[ext]
 structure hom (C D : connective_chain_complex V) :=
 (f : Π n, C.X n ⟶ D.X n)
@@ -111,16 +149,23 @@ attribute [simp, reassoc] hom.comm
 
 namespace hom
 
+/-- The identity morphism. -/
 @[simps]
 def id (C : connective_chain_complex V) : hom C C :=
 { f := λ n, 𝟙 (C.X n) }
 
+instance (C : connective_chain_complex V) : inhabited (hom C C) := ⟨id C⟩
+
+/-- Composition of morphisms. -/
 @[simps]
 def comp {C D E : connective_chain_complex V} (f : hom C D) (g : hom D E) : hom C E :=
 { f := λ n, f.f n ≫ g.f n, }
 
 end hom
 
+/--
+The category of connective chain complexes in V.
+-/
 instance : category (connective_chain_complex V) :=
 { hom := hom,
   id := hom.id,
@@ -143,25 +188,23 @@ local attribute [instance] has_zero_object.has_zero
 /-! Auxiliary constructions for the `to_chain_complex` functor. -/
 namespace to_chain_complex
 
+/--
+The objects of a connective chain complex, extended to a function on `ℤ` by `0`.
+-/
 def X_ℤ (C : connective_chain_complex V) (i : ℤ) : V :=
 if 0 ≤ i then C.X i.to_nat else 0
 
-@[norm_cast] lemma int.coe_pred_of_pos (n : ℕ) (h : 0 < n) : ((n - 1 : ℕ) : ℤ) = (n : ℤ) - 1 :=
-by { cases n, cases h, simp, }
-
-@[simp]
-lemma int.of_nat_to_nat_pred_of_pos {i : ℤ} (h : 0 < i) : int.of_nat (i.to_nat - 1) = i - 1 :=
-by simp [h, le_of_lt h] with push_cast
-
-@[simp]
-lemma int.of_nat_to_nat_pred_succ_of_pos {i : ℤ} (h : 0 < i) : int.of_nat (i.to_nat - 1) + 1 = i :=
-by simp [h]
+/--
+The morphisms of a connective chain complex, extended to a function on `ℤ`.
+We also introduce an off-by-one offset, as in connective_chain_complex `d n : X (n+1) ⟶ X n`,
+while in chain_complex `d i : X i ⟶ X (i-1)`.
+-/
 
 def d_ℤ (C : connective_chain_complex V) (i : ℤ) : (X_ℤ C) i ⟶ (X_ℤ C) (i-1) :=
 if h : 0 < i then
-  eq_to_hom (congr_arg (X_ℤ C) (int.of_nat_to_nat_pred_succ_of_pos h).symm) ≫
+  eq_to_hom (congr_arg (X_ℤ C) (show i = ((i.to_nat - 1 : ℕ) : ℤ) + 1, by simp [h])) ≫
     C.d _ ≫
-    eq_to_hom (congr_arg (X_ℤ C) (int.of_nat_to_nat_pred_of_pos h))
+    eq_to_hom (congr_arg (X_ℤ C) (show ((i.to_nat - 1 : ℕ) : ℤ) = i - 1, by simp [h]))
 else 0
 
 @[simp] lemma d_ℤ_0 (C : connective_chain_complex V) : d_ℤ C 0 = 0 := rfl
@@ -195,56 +238,9 @@ begin
   { simp, },
 end
 
-@[simp] lemma id_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
-  (C : { C : chain_complex V // Z C }) (i : ℤ) :
-  differential_object.hom.f (𝟙 C) i = 𝟙 (C.val.X i) :=
-rfl
-
-@[simp] lemma comp_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
-  {C D E : { C : chain_complex V // Z C }} (f : C ⟶ D) (g : D ⟶ E) (i : ℤ) :
-  differential_object.hom.f (f ≫ g) i = f.f i ≫ g.f i :=
-rfl
-
 end to_chain_complex
 
 open to_chain_complex
-
-@[simp] lemma lt_self_iff_false {α : Sort*} [partial_order α] (a : α) : a < a ↔ false :=
-by simp [lt_irrefl a]
-
-@[simp] lemma int.add_minus_one (i : ℤ) : i + -1 = i - 1 := rfl
-
-@[simp] lemma int.coe_nat_succ_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
-int.lt_add_one_iff.mpr (by simp)
-
-@[simp] lemma int.neg_succ_not_nonneg (n : ℕ) : 0 ≤ -[1+ n] ↔ false :=
-by { simp only [not_le, iff_false], exact int.neg_succ_lt_zero n, }
-
-@[simp] lemma int.neg_succ_not_pos (n : ℕ) : 0 < -[1+ n] ↔ false :=
-by { simp only [not_lt, iff_false], exact le_of_lt (int.neg_succ_lt_zero n) }
-
-@[simp] lemma int.neg_succ_sub_one (n : ℕ) : -[1+ n] - 1 = -[1+ (n+1)] := rfl
-
-lemma int.pred_to_nat (i : ℤ) : (i - 1).to_nat = i.to_nat - 1 :=
-begin
-  cases i,
-  { cases i,
-    { simp, refl, },
-    { simp, }, },
-  { simp only [int.neg_succ_sub_one, int.to_nat], }
-end
-
-@[simp]
-lemma int.to_nat_pred_coe_succ_eq_self_of_pos {i : ℤ} (h : 0 < i) :
-  ((i.to_nat - 1 : ℕ) : ℤ) + 1 = i :=
-begin
-  cases i,
-  { cases i,
-    { simpa using h, },
-    { simp, }, },
-  { simpa using h, }
-end
-
 
 variables (V)
 
@@ -381,7 +377,8 @@ def counit_hom : to_connective_chain_complex V ⋙ to_chain_complex V ⟶ 𝟭 _
         { have h'' : 0 < i := by linarith,
           simp only [dif_pos h, dif_pos h', dif_pos h''],
           simp only [category.id_comp, category.assoc, eq_to_hom_trans],
-          erw ←homological_complex.eq_to_hom_d C.val (int.to_nat_pred_coe_succ_eq_self_of_pos h''),
+          erw ←homological_complex.eq_to_hom_d C.val
+            (show ↑(i.to_nat - 1) + 1 = i, by simp [h'']),
           simp, refl, },
         { rw [dif_pos h, dif_neg h'],
           have h'' : i = 0 := by linarith,
@@ -422,7 +419,7 @@ def counit_inv : 𝟭 _ ⟶ to_connective_chain_complex V ⋙ to_chain_complex V
           simp only [dif_pos h, dif_pos h', dif_pos h''],
           simp only [category.id_comp, category.assoc, eq_to_hom_trans, eq_to_hom_trans_assoc],
           erw homological_complex.eq_to_hom_d_assoc C.val
-            (int.to_nat_pred_coe_succ_eq_self_of_pos h'').symm,
+            (show i = ↑(i.to_nat - 1) + 1, by simp [h'']),
           simp, refl, },
         { rw [dif_pos h, dif_neg h'],
           have h'' : i = 0 := by linarith,
@@ -482,6 +479,10 @@ end
 end equivalence
 open equivalence
 
+/--
+The equivalence between `ℕ`-indexed chain complexes (with `d n : C (n+1) ⟶ C n`)
+and `ℤ`-indexed chain complexes supported in non-negative degrees (with `d i : C i ⟶ C (i-1)`).
+-/
 @[simps]
 def equivalence : connective_chain_complex V ≌ { C : chain_complex V // is_connective C } :=
 { functor := to_chain_complex V,

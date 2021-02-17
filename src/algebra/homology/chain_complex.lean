@@ -101,6 +101,16 @@ begin
   simp
 end
 
+@[simp] lemma id_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
+  (C : { C : chain_complex V // Z C }) (i : ℤ) :
+  differential_object.hom.f (𝟙 C) i = 𝟙 (C.val.X i) :=
+rfl
+
+@[simp] lemma comp_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
+  {C D E : { C : chain_complex V // Z C }} (f : C ⟶ D) (g : D ⟶ E) (i : ℤ) :
+  differential_object.hom.f (f ≫ g) i = f.f i ≫ g.f i :=
+rfl
+
 variables (V)
 
 /-- The forgetful functor from cochain complexes to graded objects, forgetting the differential. -/

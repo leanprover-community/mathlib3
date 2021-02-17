@@ -983,6 +983,14 @@ lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 h
 
+lemma continuous_at_congr {f g : α → β} {x : α} (h : f =ᶠ[𝓝 x] g) :
+  continuous_at f x ↔ continuous_at g x :=
+by simp only [continuous_at, tendsto_congr' h, h.eq_of_nhds]
+
+lemma continuous_at.congr {f g : α → β} {x : α} (hf : continuous_at f x) (h : f =ᶠ[𝓝 x] g) :
+  continuous_at g x :=
+(continuous_at_congr h).1 hf
+
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
@@ -1068,43 +1076,6 @@ tendsto_iff_ultrafilter f (𝓝 x) (𝓝 (f x))
 lemma continuous_iff_ultrafilter {f : α → β} :
   continuous f ↔ ∀ x (g : ultrafilter α), ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
-
-/-- A piecewise defined function `if p then f else g` is continuous, if both `f` and `g`
-are continuous, and they coincide on the frontier (boundary) of the set `{a | p a}`. -/
-lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
-  continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=
-continuous_iff_is_closed.mpr $
-assume s hs,
-have (λa, ite (p a) (f a) (g a)) ⁻¹' s =
-    (closure {a | p a} ∩  f ⁻¹' s) ∪ (closure {a | ¬ p a} ∩ g ⁻¹' s),
-  from set.ext $ assume a,
-  classical.by_cases
-    (assume : a ∈ frontier {a | p a},
-      have hac : a ∈ closure {a | p a}, from this.left,
-      have hai : a ∈ closure {a | ¬ p a},
-        from have a ∈ (interior {a | p a})ᶜ, from this.right, by rwa [←closure_compl] at this,
-      by by_cases p a; simp [h, hp a this, hac, hai, iff_def] {contextual := tt})
-    (assume hf : a ∈ (frontier {a | p a})ᶜ,
-      classical.by_cases
-        (assume : p a,
-          have hc : a ∈ closure {a | p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | ¬ p a},
-            by show a ∉ closure {a | p a}ᶜ; rw [closure_compl]; simpa [frontier, hc] using hf,
-          by simp [this, hc, hnc])
-        (assume : ¬ p a,
-          have hc : a ∈ closure {a | ¬ p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | p a},
-            begin
-              have hc : a ∈ closure {a | p a}ᶜ, from hc,
-              simp [closure_compl] at hc,
-              simpa [frontier, hc] using hf
-            end,
-          by simp [this, hc, hnc])),
-by rw [this]; exact is_closed_union
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
-
 
 /-! ### Continuity and partial functions -/
 

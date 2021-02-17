@@ -301,14 +301,14 @@ However, assuming that the inequality above were an equality, one could get a fo
 generating series of the `Qₙ`:
 
 $$
-\begin{align*}
+\begin{align}
 Q(z) & := \sum Q_n z^n = Q_1 z + C' \sum_{2 \leq k \leq n} \sum_{i_1 + \dotsc + i_k = n}
   (r z^{i_1} Q_{i_1}) \dotsm (r z^{i_k} Q_{i_k})
-\\& = Q_1 z + C' \sum_{k = 2}^\infty (\sum_{i_1 \geq 1} r z^{i_1} Q_{i_1})
+\\ & = Q_1 z + C' \sum_{k = 2}^\infty (\sum_{i_1 \geq 1} r z^{i_1} Q_{i_1})
   \dotsm (\sum_{i_k \geq 1} r z^{i_k} Q_{i_k})
-\\& = Q_1 z + C' \sum_{k = 2}^\infty (r Q(z))^k
+\\ & = Q_1 z + C' \sum_{k = 2}^\infty (r Q(z))^k
 = Q_1 z + C' (r Q(z))^2 / (1 - r Q(z)).
-\end{align*}
+\end{align}
 $$
 
 One can solve this formula explicitly. The solution is analytic in a neighborhood of `0` in `ℂ`,
@@ -416,7 +416,7 @@ lemma radius_right_inv_pos_of_radius_pos_aux2
 let I := ∥(i.symm : F →L[𝕜] E)∥ in calc
 ∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥
     = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ∥p.right_inv i k∥ :
-by simp only [continuous_multilinear_curry_fin1_symm_apply_norm, pow_one, right_inv_coeff_one,
+by simp only [linear_isometry_equiv.norm_map, pow_one, right_inv_coeff_one,
               Ico.succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
 ... = a * I + ∑ k in Ico 2 (n + 1), a ^ k *
         ∥(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map

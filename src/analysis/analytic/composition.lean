@@ -819,7 +819,7 @@ let ⟨q, hq⟩ := hg, ⟨p, hp⟩ := hf in (hq.comp hp).analytic_at
 /-!
 ### Associativity of the composition of formal multilinear series
 
-In this paragraph, we us prove the associativity of the composition of formal power series.
+In this paragraph, we prove the associativity of the composition of formal power series.
 By definition,
 ```
 (r.comp q).comp p n v

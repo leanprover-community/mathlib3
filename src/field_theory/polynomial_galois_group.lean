@@ -123,7 +123,7 @@ variables {p E}
 @[simp] lemma restrict_smul [h : fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑((restrict p E ϕ) • x) = ϕ x :=
 begin
-  let ψ := alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F p.splitting_field E),
+  let ψ := alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F p.splitting_field E),
   change ↑(ψ (ψ.symm _)) = ϕ x,
   rw alg_equiv.apply_symm_apply ψ,
   change ϕ (roots_equiv_roots p E ((roots_equiv_roots p E).symm x)) = ϕ x,
@@ -207,6 +207,64 @@ begin
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.2 _) },
   { rwa [ne.def, mul_eq_zero, map_eq_zero, map_eq_zero, ←mul_eq_zero] }
 end
+
+lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : polynomial F}
+  (hq₁ : q₁ ≠ 0) (hq₂ : q₂ ≠ 0) (h₁ : p₁.splits (algebra_map F q₁.splitting_field))
+  (h₂ : p₂.splits (algebra_map F q₂.splitting_field)) :
+  (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
+begin
+  apply splits_mul,
+  { rw ← (splitting_field.lift q₁ (splits_of_splits_of_dvd _
+      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_right q₁ q₂))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₁, },
+  { rw ← (splitting_field.lift q₂ (splits_of_splits_of_dvd _
+      (mul_ne_zero hq₁ hq₂) (splitting_field.splits _) (dvd_mul_left q₂ q₁))).comp_algebra_map,
+    exact splits_comp_of_splits _ _ h₂, },
+end
+
+lemma splits_in_splitting_field_of_comp (hq : q.nat_degree ≠ 0) :
+  p.splits (algebra_map F (p.comp q).splitting_field) :=
+begin
+  let P : polynomial F → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
+  have key1 : ∀ {r : polynomial F}, irreducible r → P r,
+  { intros r hr,
+    by_cases hr' : nat_degree r = 0,
+    { exact splits_of_nat_degree_le_one _ (le_trans (le_of_eq hr') zero_le_one) },
+    obtain ⟨x, hx⟩ := exists_root_of_splits _ (splitting_field.splits (r.comp q))
+      (λ h, hr' ((mul_eq_zero.mp (nat_degree_comp.symm.trans
+        (nat_degree_eq_of_degree_eq_some h))).resolve_right hq)),
+    rw [←aeval_def, aeval_comp] at hx,
+    have h_normal : normal F (r.comp q).splitting_field := splitting_field.normal (r.comp q),
+    have qx_int := normal.is_integral h_normal (aeval x q),
+    exact splits_of_splits_of_dvd _
+      (minpoly.ne_zero qx_int)
+      (normal.splits h_normal _)
+      (dvd_symm_of_irreducible (minpoly.irreducible qx_int) hr (minpoly.dvd F _ hx)) },
+  have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
+  { intros p₁ p₂ hp₁ hp₂,
+    by_cases h₁ : p₁.comp q = 0,
+    { cases comp_eq_zero_iff.mp h₁ with h h,
+      { rw [h, zero_mul],
+        exact splits_zero _ },
+      { exact false.rec _ (hq (by rw [h.2, nat_degree_C])) } },
+    by_cases h₂ : p₂.comp q = 0,
+    { cases comp_eq_zero_iff.mp h₂ with h h,
+      { rw [h, mul_zero],
+        exact splits_zero _ },
+      { exact false.rec _ (hq (by rw [h.2, nat_degree_C])) } },
+    have key := mul_splits_in_splitting_field_of_mul h₁ h₂ hp₁ hp₂,
+    rwa ← mul_comp at key },
+  exact wf_dvd_monoid.induction_on_irreducible p (splits_zero _)
+    (λ _, splits_of_is_unit _) (λ _ _ _ h, key2 (key1 h)),
+end
+
+/-- The restriction homomorphism from the Galois group of a homomorphism -/
+def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
+@restrict F _ p _ _ _ (splits_in_splitting_field_of_comp p q hq)
+
+lemma restrict_comp_surjective (hq : q.nat_degree ≠ 0) :
+  function.surjective (restrict_comp p q hq) :=
+by simp only [restrict_comp, restrict_surjective]
 
 variables {p q}
 

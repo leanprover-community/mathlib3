@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Separation properties of topological spaces.
 -/
 import topology.subset_properties
+import topology.connected
 
 open set filter
 open_locale topological_space filter
@@ -673,7 +674,7 @@ lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] {x : 
 begin
   apply eq_of_subset_of_subset connected_component_subset_Inter_clopen,
   -- Reduce to showing that the clopen intersection is connected.
-  refine subset_connected_component _ (mem_Inter.2 (λ Z, Z.2.2)),
+  refine is_preconnected.subset_connected_component _ (mem_Inter.2 (λ Z, Z.2.2)),
   -- We do this by showing that any disjoint cover by two closed sets implies
   -- that one of these closed sets must contain our whole thing. To reduce to the case
   -- where the cover is disjoint on all of α we need that s is closed:

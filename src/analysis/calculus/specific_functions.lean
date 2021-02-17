@@ -10,11 +10,17 @@ import analysis.normed_space.inner_product
 import topology.algebra.polynomial
 
 /-!
-# Smoothness of specific functions
+# Infinitely smooth bump function
 
-The real function `exp_neg_inv_glue` given by `x ↦ exp (-1/x)` for `x > 0` and `0`
-for `x ≤ 0` is a basic building block to construct smooth partitions of unity. We prove that it
-is `C^∞` in `exp_neg_inv_glue.smooth`.
+In this file we construct several infinitely smooth functions with properties that an analytic
+function cannot have:
+
+* `exp_neg_inv_glue` is equal to zero for `x ≤ 0` and is strictly positive otherwise; it is given by
+  `x ↦ exp (-1/x)` for `x > 0`;
+* `smooth_transition` is equal to zero for `x ≤ 0` and is equal to one for `x ≥ 1`; it is given by
+  `exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))`;
+* `smooth_bump_function` is equal to one on the closed ball of radius `1` and is equal to `0`
+  outside of the open ball of radius `2`.
 -/
 
 noncomputable theory
@@ -189,6 +195,8 @@ end
 
 end exp_neg_inv_glue
 
+/-- An infinitely smooth function `f : ℝ → ℝ` such that `f x = 0` for `x ≤ 0`,
+`f x = 1` for `1 ≤ x`, and `0 < f x < 1` for `0 < x < 1`. -/
 def smooth_transition (x : ℝ) : ℝ :=
 exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))
 
@@ -230,57 +238,7 @@ protected lemma times_cont_diff_at {x n} : times_cont_diff_at ℝ n smooth_trans
 
 end smooth_transition
 
-variables {E F : Type*} [inner_product_space ℝ E] [normed_group F] [normed_space ℝ F]
-
-lemma times_cont_diff_inner {n} : times_cont_diff ℝ n (λ p : E × E, ⟪p.1, p.2⟫_ℝ) :=
-is_bounded_bilinear_map.times_cont_diff
-{ add_left := λ _ _ _, inner_add_left,
-  smul_left := λ _ _ _, inner_smul_left,
-  add_right := λ _ _ _, inner_add_right,
-  smul_right := λ _ _ _, inner_smul_right,
-  bound := ⟨1, zero_lt_one, λ x y, by { rw one_mul, exact abs_real_inner_le_norm x y, }⟩ }
-
-lemma times_cont_diff_at_inner {p : E × E} {n} :
-  times_cont_diff_at ℝ n (λ p : E × E, ⟪p.1, p.2⟫_ℝ) p :=
-times_cont_diff_inner.times_cont_diff_at
-
-lemma times_cont_diff_within_at.inner {f g : F → E} {s : set F} {x : F} {n : with_top ℕ}
-  (hf : times_cont_diff_within_at ℝ n f s x) (hg : times_cont_diff_within_at ℝ n g s x) :
-  times_cont_diff_within_at ℝ n (λ x, ⟪f x, g x⟫_ℝ) s x :=
-times_cont_diff_at_inner.comp_times_cont_diff_within_at x (hf.prod hg)
-
-lemma times_cont_diff_at.inner {f g : F → E} {x : F} {n : with_top ℕ}
-  (hf : times_cont_diff_at ℝ n f x) (hg : times_cont_diff_at ℝ n g x) :
-  times_cont_diff_at ℝ n (λ x, ⟪f x, g x⟫_ℝ) x :=
-hf.inner hg
-
-def local_homeomorph.sqr : local_homeomorph ℝ ℝ :=
-{ to_fun := λ x, x ^ 2,
-  inv_fun := real.sqrt,
-  source := Ioi 0,
-  target := Ioi 0,
-  map_source' := λ x hx, pow_pos (mem_Ioi.1 hx) _,
-  map_target' := λ x hx, real.sqrt_pos.2 hx,
-  open_source := is_open_Ioi,
-  open_target := is_open_Ioi,
-  left_inv' := λ x hx, real.sqrt_sqr (le_of_lt hx),
-  right_inv' := λ x hx, real.sqr_sqrt (le_of_lt hx),
-  continuous_to_fun := (continuous_pow 2).continuous_on,
-  continuous_inv_fun := continuous_sqrt.continuous_on }
-
-lemma real.times_cont_diff_at_sqrt {x : ℝ} (hx : x ≠ 0) {n} :
-  times_cont_diff_at ℝ n real.sqrt x :=
-begin
-  cases hx.lt_or_lt with hx hx,
-  {  }
-end
-
-lemma times_cont_diff_at_norm {x : E} (hx : x ≠ 0) {n} : times_cont_diff_at ℝ n norm x :=
-begin
-  rw [show norm = λ x : E, real.sqrt ⟪x, x⟫_ℝ, from funext norm_eq_sqrt_real_inner],
-  exact (real.times_cont_diff_at_sqrt (mt inner_self_eq_zero.1 hx)).comp x
-    (times_cont_diff_at_id.inner times_cont_diff_at_id)
-end
+variables {E : Type*} [inner_product_space ℝ E]
 
 /-- A function `f : E → ℝ` defined on a real inner product space with the following properties:
 
@@ -307,7 +265,7 @@ begin
   by_cases hx : x = 0,
   { refine times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const
       (eventually_eq_one_of_norm_lt_one _),
-    simp [hx, zero_lt_one] },
+    simp only [hx, norm_zero, zero_lt_one] },
   { exact smooth_transition.times_cont_diff_at.comp x
       (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
 end

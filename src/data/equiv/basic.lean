@@ -261,6 +261,26 @@ begin
   simp only [hxy, function.comp_app, equiv.apply_symm_apply]
 end
 
+@[simp] lemma equiv.surjective_comp {α β γ : Type*} (e : α ≃ β) (f : β → γ) :
+  function.surjective (f ∘ e) ↔ function.surjective f :=
+begin
+  split,
+  { intros h z,
+    obtain ⟨x, rfl⟩ := h z,
+    refine ⟨e x, rfl⟩ },
+  { intro h, exact h.comp e.surjective }
+end
+
+@[simp] lemma equiv.comp_surjective {α β γ : Type*} (f : α → β) (e : β ≃ γ) :
+  function.surjective (e ∘ f) ↔ function.surjective f :=
+begin
+  refine ⟨_, e.surjective.comp⟩,
+  intros h y,
+  obtain ⟨x, hx⟩ := h (e y),
+  refine ⟨x, _⟩,
+  simpa only [apply_eq_iff_eq] using hx
+end
+
 /-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`
 is equivalent to the type of equivalences `β ≃ δ`. -/
 def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=

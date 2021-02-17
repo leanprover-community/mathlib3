@@ -1093,7 +1093,7 @@ def nondegenerate (B : bilin_form R M) : Prop :=
 
 variables {n : Type w} [fintype n]
 
-/-- A bilinear form is nondegenerate if and only if it has a trivial kernel -/
+/-- A bilinear form is nondegenerate if and only if it has a trivial kernel. -/
 theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₂ M₂} :
   B.nondegenerate ↔ B.to_lin.ker = ⊥ :=
 begin
@@ -1104,6 +1104,11 @@ begin
   { intros m hm, apply h,
     ext, exact hm x }
 end
+
+/-- The linear map induced by a nondegenerate bilinear form is injective. -/
+lemma to_lin_injective {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
+  function.injective B.to_lin :=
+B.to_lin.to_add_monoid_hom.injective_iff.2 (λ a ha, hB _ (linear_map.congr_fun ha))
 
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
@@ -1231,9 +1236,9 @@ def to_dual' (B : bilin_form R₃ M₃) : M₃ →ₗ[R₃] module.dual R₃ M�
 @[simp] lemma to_dual'_def {B : bilin_form R₃ M₃} {m n : M₃} :
   B.to_dual' m n = B m n := rfl
 
-lemma to_dual'_injective (B : bilin_form R₃ M₃) (hB : B.nondegenerate) :
-  function.injective (to_dual' B) :=
-B.to_dual'.to_add_monoid_hom.injective_iff.2 (λ a ha, hB _ (linear_map.congr_fun ha))
+lemma to_dual'_injective {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
+  function.injective B.to_lin :=
+to_lin_injective hB
 
 open finite_dimensional
 
@@ -1246,10 +1251,10 @@ lemma to_dual'_bijective (B : bilin_form K V) (hB : B.nondegenerate) :
   function.bijective (to_dual' B) :=
 begin
   classical,
-  refine ⟨B.to_dual'_injective hB, _⟩,
+  refine ⟨to_dual'_injective hB, _⟩,
   change function.surjective B.to_dual',
   refine (linear_map.injective_iff_surjective_of_findim_eq_findim
-    (linear_equiv.findim_eq _)).1 (B.to_dual'_injective hB),
+    (linear_equiv.findim_eq _)).1 (to_dual'_injective hB),
   have hB := classical.some_spec (exists_is_basis_finite K V),
   haveI := classical.choice hB.2,
   exact is_basis.to_dual_equiv _ hB.1

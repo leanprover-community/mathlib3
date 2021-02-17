@@ -240,8 +240,8 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-@[simp] lemma equiv.injective_comp {α β γ : Type*} (e : α ≃ β) (f : β → γ) :
-  function.injective (f ∘ e) ↔ function.injective f :=
+@[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) :
+  injective (f ∘ e) ↔ injective f :=
 begin
   split,
   { intros h x y hxy,
@@ -251,8 +251,8 @@ begin
   { intro h, exact h.comp e.injective }
 end
 
-@[simp] lemma equiv.comp_injective {α β γ : Type*} (f : α → β) (e : β ≃ γ) :
-  function.injective (e ∘ f) ↔ function.injective f :=
+@[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) :
+  injective (e ∘ f) ↔ injective f :=
 begin
   refine ⟨_, e.injective.comp⟩,
   intros h x y hxy,
@@ -261,8 +261,8 @@ begin
   simp only [hxy, function.comp_app, equiv.apply_symm_apply]
 end
 
-@[simp] lemma equiv.surjective_comp {α β γ : Type*} (e : α ≃ β) (f : β → γ) :
-  function.surjective (f ∘ e) ↔ function.surjective f :=
+@[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) :
+  surjective (f ∘ e) ↔ surjective f :=
 begin
   split,
   { intros h z,
@@ -271,8 +271,8 @@ begin
   { intro h, exact h.comp e.surjective }
 end
 
-@[simp] lemma equiv.comp_surjective {α β γ : Type*} (f : α → β) (e : β ≃ γ) :
-  function.surjective (e ∘ f) ↔ function.surjective f :=
+@[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) :
+  surjective (e ∘ f) ↔ surjective f :=
 begin
   refine ⟨_, e.surjective.comp⟩,
   intros h y,

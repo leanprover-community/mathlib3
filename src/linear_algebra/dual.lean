@@ -480,18 +480,18 @@ by { ext φ x, simp }
 lemma dual_restrict_left_inverse (W : subspace K V) :
   function.left_inverse W.dual_restrict W.dual_lift :=
 λ x, show W.dual_restrict.comp W.dual_lift x = x,
-  by { rw [dual_lift_left_inverse'], refl }
+  by { rw [dual_restrict_comp_dual_lift], refl }
 
 lemma dual_lift_right_inverse (W : subspace K V) :
   function.right_inverse W.dual_lift W.dual_restrict :=
-W.dual_lift_left_inverse
+W.dual_restrict_left_inverse
 
 lemma dual_restrict_surjective :
   function.surjective W.dual_restrict :=
 W.dual_lift_right_inverse.surjective
 
 lemma dual_lift_injective : function.injective W.dual_lift :=
-W.dual_lift_left_inverse.injective
+W.dual_restrict_left_inverse.injective
 
 /-- The quotient by the `dual_annihilator` of a subspace is isomorphic to the
   dual of that subspace. -/

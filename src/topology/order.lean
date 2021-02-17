@@ -643,6 +643,9 @@ lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
   continuous_generated_from $ assume s (hs : s ∈ {{true}}),
     by simp at hs; simp [hs, preimage, eq_true, h]⟩
 
+lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
+continuous_Prop.symm
+
 end sierpinski
 
 section infi

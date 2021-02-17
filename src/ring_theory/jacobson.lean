@@ -372,7 +372,7 @@ begin
   introI hI,
   let R' : subring I.quotient := ((quotient.mk I).comp C).range,
   let i : R →+* R' := ((quotient.mk I).comp C).range_restrict,
-  have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).surjective_onto_range,
+  have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).range_restrict_surjective,
   have hi' : (polynomial.map_ring_hom i : polynomial R →+* polynomial R').ker ≤ I,
   { refine λ f hf, polynomial_mem_ideal_of_coeff_mem_ideal I f (λ n, _),
     replace hf := congr_arg (λ (g : polynomial (((quotient.mk I).comp C).range)), g.coeff n) hf,

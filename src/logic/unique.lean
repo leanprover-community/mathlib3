@@ -121,6 +121,10 @@ def pi.unique_of_empty (h : α → false) (β : Π a : α, Sort v) : unique (Π 
 { default := λ a, (h a).elim,
   uniq := λ f, funext $ λ a, (h a).elim }
 
+/-- There is a unique function whose domain is `pempty`. -/
+instance pi.pempty_unique (β : pempty.{u} → Sort v) : unique (Π a, β a) :=
+pi.unique_of_empty pempty.elim β
+
 namespace function
 
 variable {f : α → β}

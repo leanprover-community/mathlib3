@@ -188,9 +188,10 @@ begin
   exact not_lt_of_le hle (f.lt_iff_lt.2 hlt),
 end
 
-theorem is_partially_well_ordered.exists_monotone_subseq (h : s.is_partially_well_ordered) :
-  ∀ f : ℕ → α, range f ⊆ s → ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
-λ f hf, begin
+theorem is_partially_well_ordered.exists_monotone_subseq
+  (h : s.is_partially_well_ordered) (f : ℕ → α) (hf : range f ⊆ s) :
+  ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
+begin
   obtain ⟨g, h1 | h2⟩ := exists_increasing_or_nonincreasing_subseq (≤) f,
   { refine ⟨g, λ m n hle, _⟩,
     obtain hlt | heq := lt_or_eq_of_le hle,

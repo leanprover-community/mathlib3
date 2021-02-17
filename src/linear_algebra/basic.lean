@@ -579,7 +579,7 @@ variables {R}
 instance [subsingleton M] : unique (submodule R M) :=
 ⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
 
-instance [nontrivial M] : nontrivial (submodule R M) := nontrivial_iff.mp ‹_›
+instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
 lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
 λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
 

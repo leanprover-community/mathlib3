@@ -440,8 +440,8 @@ begin
   exact ⟨λ h w hw, h ⟨w, hw⟩, λ h w, h w.1 w.2⟩
 end
 
-lemma dual_restrict_ker_eq_dual_annihilator
-  (W : submodule R M) : W.dual_restrict.ker = W.dual_annihilator :=
+lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
+  W.dual_restrict.ker = W.dual_annihilator :=
 rfl
 
 end submodule

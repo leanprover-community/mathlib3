@@ -1237,7 +1237,7 @@ def to_dual' (B : bilin_form R₃ M₃) : M₃ →ₗ[R₃] module.dual R₃ M�
   B.to_dual' m n = B m n := rfl
 
 lemma to_dual'_injective {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
-  function.injective B.to_lin :=
+  function.injective (to_dual' B) :=
 to_lin_injective hB
 
 open finite_dimensional

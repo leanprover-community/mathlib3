@@ -1086,8 +1086,6 @@ lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
   (W : submodule R M) : sym_bilin_form.is_sym $ B.restrict W :=
 λ x y, hB x y
 
-open_locale classical
-
 /-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
   to every other element is `0`. -/
 def nondegenerate (B : bilin_form R M) : Prop :=
@@ -1135,6 +1133,7 @@ lemma is_ortho_linear_independent
   {n : Type w} (B : bilin_form K V) {v : n → V}
   (hv₁ : B.is_ortho' v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) : linear_independent K v :=
 begin
+  classical,
   rw linear_independent_iff',
   intros s w hs i hi,
   have : B (s.sum $ λ (i : n), w i • v i) (v i) = 0,
@@ -1145,10 +1144,12 @@ begin
     by_cases (i = j),
     { rw [if_pos h] },
     { rw [if_neg h, is_ortho'_def.1 hv₁ _ _ h, mul_zero] } },
-  simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq, if_pos hi, mul_eq_zero] at this,
+  simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
+  rw [if_pos, mul_eq_zero] at this,
   cases this,
   { assumption },
-  { exact false.elim (hv₂ i $ this) }
+  { exact false.elim (hv₂ i $ this) },
+  { assumption }
 end
 
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
@@ -1244,6 +1245,7 @@ variable [finite_dimensional K V]
 lemma to_dual'_bijective (B : bilin_form K V) (hB : B.nondegenerate) :
   function.bijective (to_dual' B) :=
 begin
+  classical,
   refine ⟨B.to_dual'_injective hB, _⟩,
   change function.surjective B.to_dual',
   refine (linear_map.injective_iff_surjective_of_findim_eq_findim

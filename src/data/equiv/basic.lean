@@ -261,21 +261,19 @@ end
 @[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) :
   surjective (f ∘ e) ↔ surjective f :=
 begin
-  split,
-  { intros h z,
-    obtain ⟨x, rfl⟩ := h z,
-    refine ⟨e x, rfl⟩ },
-  { intro h, exact h.comp e.surjective }
+  refine ⟨λ h, _, λ h, h.comp e.surjective⟩,
+  convert h.comp e.symm.surjective,
+  ext,
+  simp only [function.comp_app, equiv.apply_symm_apply],
 end
 
 @[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) :
   surjective (e ∘ f) ↔ surjective f :=
 begin
-  refine ⟨_, e.surjective.comp⟩,
-  intros h y,
-  obtain ⟨x, hx⟩ := h (e y),
-  refine ⟨x, _⟩,
-  simpa only [apply_eq_iff_eq] using hx
+  refine ⟨λ h,_, e.surjective.comp⟩,
+  convert e.symm.surjective.comp h,
+  ext,
+  simp only [function.comp_app, equiv.symm_apply_apply],
 end
 
 /-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`

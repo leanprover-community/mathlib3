@@ -766,7 +766,8 @@ instance {B : C} : semilattice_inf_top (subobject B) :=
   ..category_theory.subobject.order_top }
 
 lemma inf_eq_map_pullback' {A : C} (f₁ : mono_over A) (f₂ : subobject A) :
-  (subobject.inf.obj (quotient.mk' f₁)).obj f₂ = (subobject.map f₁.arrow).obj ((subobject.pullback f₁.arrow).obj f₂) :=
+  (subobject.inf.obj (quotient.mk' f₁)).obj f₂ =
+    (subobject.map f₁.arrow).obj ((subobject.pullback f₁.arrow).obj f₂) :=
 begin
   apply quotient.induction_on' f₂,
   intro f₂,

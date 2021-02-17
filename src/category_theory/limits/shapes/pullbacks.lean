@@ -5,6 +5,8 @@ Authors: Scott Morrison, Markus Himmel, Bhavik Mehta
 -/
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.binary_products
+import category_theory.over
+import category_theory.adjunction.opposites
 
 /-!
 # Pullbacks
@@ -24,9 +26,9 @@ noncomputable theory
 
 open category_theory
 
-namespace category_theory.limits
-
 universes v u u₂
+
+namespace category_theory.limits
 
 local attribute [tidy] tactic.case_bash
 
@@ -624,3 +626,71 @@ lemma has_pushouts_of_has_colimit_span
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
 
 end category_theory.limits
+
+open category_theory.limits
+
+variables {C : Type u} [category.{v} C]
+
+namespace category_theory
+
+section
+variables [has_pullbacks C]
+
+/-- When `C` has pullbacks, a morphism `f : X ⟶ Y` induces a functor `over Y ⥤ over X`,
+by pulling back a morphism along `f`. -/
+@[simps]
+def over.pullback {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
+{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ X),
+  map := λ g h k,
+    over.hom_mk
+      (pullback.lift (pullback.fst ≫ k.left) pullback.snd (by simp [pullback.condition]))
+      (by tidy) }
+
+def over.map_pullback_adj {A B : C} (f : A ⟶ B) :
+  over.map f ⊣ over.pullback f :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ g h,
+  { to_fun := λ X, over.hom_mk (pullback.lift X.left g.hom (over.w X)) (pullback.lift_snd _ _ _),
+    inv_fun := λ Y,
+    begin
+      refine over.hom_mk _ _,
+      refine Y.left ≫ pullback.fst,
+      dsimp,
+      rw [← over.w Y, category.assoc, pullback.condition, category.assoc], refl,
+    end,
+    left_inv := by tidy,
+    right_inv := λ Y, by { ext, dsimp, simp, dsimp, rw [pullback.lift_snd, ← over.w Y], refl } } }
+
+def over.pullback_id {A : C} [has_pullbacks C] : over.pullback (𝟙 A) ≅ 𝟭 _ :=
+adjunction.right_adjoint_uniq
+  (over.map_pullback_adj _)
+  (adjunction.id.of_nat_iso_left over.map_id.symm)
+
+def over.pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_pullbacks C] :
+  over.pullback (f ≫ g) ≅ over.pullback g ⋙ over.pullback f :=
+adjunction.right_adjoint_uniq
+  (over.map_pullback_adj _)
+  (((over.map_pullback_adj _).comp _ _ (over.map_pullback_adj _)).of_nat_iso_left
+    (over.map_comp _ _).symm)
+
+instance over.pullback_is_right_adjoint {A B : C} (f : A ⟶ B) :
+  is_right_adjoint (over.pullback f) :=
+⟨_, over.map_pullback_adj f⟩
+
+end
+
+section
+variables [has_pushouts C]
+
+/-- When `C` has pushouts, a morphism `f : X ⟶ Y` induces a functor `under X ⥤ under Y`,
+by pushing a morphism forward along `f`. -/
+@[simps]
+def under.pushout {X Y : C} (f : X ⟶ Y) : under X ⥤ under Y :=
+{ obj := λ g, under.mk (pushout.inr : Y ⟶ pushout g.hom f),
+  map := λ g h k,
+    under.hom_mk
+      (pushout.desc (k.right ≫ pushout.inl) pushout.inr (by { simp [←pushout.condition], }))
+      (by tidy) }
+end
+
+end category_theory

@@ -188,6 +188,25 @@ noncomputable instance is_skeleton_of_inhabited :
   inhabited (is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C)) :=
 ⟨thin_skeleton_is_skeleton⟩
 
+def lower_adjunction
+  [∀ (X Y : C), subsingleton (X ⟶ Y)] [∀ (X Y : D), subsingleton (X ⟶ Y)]
+  (R : D ⥤ C) (L : C ⥤ D) (h : L ⊣ R) :
+  thin_skeleton.map L ⊣ thin_skeleton.map R :=
+adjunction.mk_of_unit_counit
+{ unit :=
+  { app := λ X,
+    begin
+      letI := is_isomorphic_setoid C,
+      refine quotient.rec_on_subsingleton X (λ x, hom_of_le ⟨h.unit.app x⟩),
+      -- TODO: make quotient.rec_on_subsingleton' so the letI isn't needed
+    end },
+  counit :=
+  { app := λ X,
+    begin
+      letI := is_isomorphic_setoid D,
+      refine quotient.rec_on_subsingleton X (λ x, hom_of_le ⟨h.counit.app x⟩),
+    end } }
+
 end thin_skeleton
 
 end category_theory

@@ -828,6 +828,18 @@ by { unfold findim, simp [dim_top] }
 
 end top
 
+lemma finite_dimensional.is_basis_of_findim_eq_zero [finite_dimensional K V]
+  (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+begin
+  split,
+  { rw linear_independent_iff',
+    intros,
+    exact fin.elim0 i },
+  { rw ← findim_top at hV,
+    rw [eq_top_iff, (@findim_eq_zero K V _ _ _ _ _).1 hV],
+    exact bot_le }
+end
+
 namespace linear_map
 
 theorem injective_iff_surjective_of_findim_eq_findim [finite_dimensional K V]

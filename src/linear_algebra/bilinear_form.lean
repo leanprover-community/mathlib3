@@ -1272,17 +1272,6 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 -- We start proving that symmetric nondegenerat bilinear forms are diagonalisable, or equivilently
 -- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.
 
-lemma is_basis.trivial (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
-begin
-  split,
-  { rw linear_independent_iff',
-    intros,
-    exact fin.elim0 i },
-  { rw ← findim_top at hV,
-    rw [eq_top_iff, (@findim_eq_zero K V _ _ _ _ _).1 hV],
-    exact bot_le }
-end
-
 lemma findim_ortho_span_singleton
   {B : bilin_form K V} (hB : sym_bilin_form.is_sym B)
   {x : V} (hx : ¬ B.is_ortho x x) : findim K V =
@@ -1301,7 +1290,7 @@ lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
 begin
   tactic.unfreeze_local_instances,
   induction hd : findim K V with d ih generalizing V,
-  { refine ⟨λ _, 0, λ _ _ _, zero_left _, is_basis.trivial hd, fin.elim0⟩ },
+  { refine ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_eq_zero hd, fin.elim0⟩ },
   { haveI : nontrivial V :=
     by { apply (@findim_pos_iff K _ _ _ _ _).1,
           rw hd, exact nat.succ_pos _,

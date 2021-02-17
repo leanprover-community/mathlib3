@@ -1240,7 +1240,7 @@ variable [finite_dimensional K V]
 
 -- In order to show that `to_dual` is a surjective map we used the fact that
 -- the dimensions of a vector space equal to the dimensions of its dual.
--- So rather than working with modules over rings, we work with vecotor spaces
+-- So rather than working with modules over rings, we work with vector spaces
 lemma to_dual'_bijective (B : bilin_form K V) (hB : B.nondegenerate) :
   function.bijective (to_dual' B) :=
 begin

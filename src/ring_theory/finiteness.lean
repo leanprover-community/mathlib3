@@ -200,6 +200,8 @@ end finite_type
 
 namespace finitely_presented
 
+variables {R A B}
+
 /-- If `e : A ≃ₐ[R] B` and `A` is finitely presented, then so is `B`. -/
 lemma equiv (hfp : finitely_presented R A) (e : A ≃ₐ[R] B) : finitely_presented R B :=
 begin
@@ -216,6 +218,8 @@ begin
     rw [ring_hom.ker_eq_comap_bot, hco, ← ideal.comap_comap, ← ring_hom.ker_eq_comap_bot,
       ring_hom.ker_coe_equiv (alg_equiv.to_ring_equiv e), ring_hom.ker_eq_comap_bot] }
 end
+
+variable (R)
 
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
 lemma mv_polynomial (ι : Type u_2) [fintype ι] : finitely_presented R (mv_polynomial ι R) :=
@@ -238,6 +242,26 @@ begin
   exact @equiv R (_root_.mv_polynomial pempty R) R _ _ _ _ _ hempty
     (mv_polynomial.pempty_alg_equiv R)
 end
+
+variable {R}
+
+/-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
+presented. -/
+lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finitely_presented R A) :
+  finitely_presented R I.quotient :=
+begin
+  obtain ⟨n, f, hf⟩ := hfp,
+  refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
+  { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
+  { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
+    rwa ideal.quotient.mkₐ_ker R I }
+end
+
+/-- If `f : A →ₐ[R] B` is surjective with finitely generated kernel and `A` is finitely presented,
+then so is `B`. -/
+lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.to_ring_hom.ker.fg)
+  (hfp : finitely_presented R A) : finitely_presented R B :=
+equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
 end finitely_presented
 

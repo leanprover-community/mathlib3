@@ -114,6 +114,12 @@ by rw [← cpow_nat_cast, ← cpow_mul _ h.1 h.2,
 
 end complex
 
+lemma measurable.cpow {α : Type*} [measurable_space α] {f g : α → ℂ}
+  (hf : measurable f) (hg : measurable g) : measurable (λ x, f x ^ g x) :=
+measurable.ite (hf $ measurable_set_singleton _)
+  (measurable_const.ite (hg $ measurable_set_singleton _) measurable_const)
+  (hf.clog.mul hg).cexp
+
 namespace real
 
 /-- The real power function `x^y`, defined as the real part of the complex power function.
@@ -601,58 +607,19 @@ end real
 
 section measurability_real
 
-lemma real.measurable_rpow : measurable (λ p : ℝ × ℝ, p.1 ^ p.2) :=
-begin
-  have h_meas : measurable_set {p : ℝ × ℝ | p.1 = 0} :=
-    (is_closed_singleton.preimage continuous_fst).measurable_set,
-  refine measurable_of_measurable_union_cover {p : ℝ × ℝ | p.1 = 0} {p : ℝ × ℝ | p.1 ≠ 0} h_meas
-    h_meas.compl _ _ _,
-  { intro x, simp [em (x.fst = 0)], },
-  { have h_eq_ite : (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).fst ^ (a:ℝ×ℝ).snd) =
-      λ a : {p : ℝ × ℝ | p.fst = 0}, ite ((a:ℝ×ℝ).snd = 0) 1 0,
-    { ext1 a,
-      have h_fst_zero : (a:ℝ×ℝ).fst = 0, from a.prop,
-      rw h_fst_zero,
-      split_ifs with h_snd,
-      { rw h_snd,
-        exact real.rpow_zero _, },
-      exact real.zero_rpow h_snd, },
-    rw h_eq_ite,
-    change measurable ((λ x : ℝ, ite (x = 0) (1:ℝ) (0:ℝ))
-      ∘ (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).snd)),
-    refine measurable.comp _ (measurable_snd.comp measurable_subtype_coe),
-    exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
-  { refine continuous.measurable _,
-    rw continuous_iff_continuous_at,
-    intro x,
-    change continuous_at ((λ a : ℝ × ℝ, a.fst ^ a.snd)
-      ∘ (λ a : {p : ℝ × ℝ | p.fst ≠ 0}, (a:ℝ×ℝ))) x,
-    refine continuous_at.comp _ continuous_at_subtype_coe,
-    change continuous_at (λ (p : ℝ × ℝ), p.fst ^ p.snd) x.val,
-    have h_x : x.val = (x.val.fst, x.val.snd), by simp,
-    rw h_x,
-    exact real.continuous_at_rpow_of_ne_zero x.prop _, },
-end
+open complex
 
 lemma measurable.rpow {α} [measurable_space α] {f g : α → ℝ} (hf : measurable f)
   (hg : measurable g) :
   measurable (λ a : α, (f a) ^ (g a)) :=
-begin
-  change measurable ((λ p : ℝ × ℝ, p.1 ^ p.2) ∘ (λ a : α, (f a, g a))),
-  exact real.measurable_rpow.comp (measurable.prod hf hg),
-end
-
-lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
-begin
-  change measurable ((λ p : ℝ × ℝ, p.1 ^ p.2) ∘ (λ x : ℝ, (id x, (λ x, y) x))),
-  refine real.measurable_rpow.comp (measurable.prod measurable_id _),
-  change measurable (λ (a : ℝ), y),
-  exact measurable_const,
-end
+measurable_re.comp $ ((measurable_of_real.comp hf).cpow (measurable_of_real.comp hg))
 
 lemma measurable.rpow_const {α} [measurable_space α] {f : α → ℝ} (hf : measurable f) {y : ℝ} :
   measurable (λ a : α, (f a) ^ y) :=
 hf.rpow measurable_const
+
+lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
+measurable_id.rpow_const
 
 end measurability_real
 
@@ -746,69 +713,6 @@ lemma deriv_within_rpow_of_one_le (hf : differentiable_within_at ℝ f s x) (hp 
   deriv (λx, (f x)^p) x = (deriv f x) * p * (f x)^(p-1) :=
 (hf.has_deriv_at.rpow_of_one_le hp).deriv
 
-/- Differentiability statements for the square root of a function, when the function does not
-vanish -/
-
-lemma has_deriv_within_at.sqrt (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
-  has_deriv_within_at (λ y, sqrt (f y)) (f' / (2 * sqrt (f x))) s x :=
-begin
-  simp only [sqrt_eq_rpow],
-  convert hf.rpow (1/2) hx,
-  rcases lt_trichotomy (f x) 0 with H|H|H,
-  { have A : (f x)^((1:ℝ)/2) = 0,
-    { rw rpow_def_of_neg H,
-      have : cos (1/2 * π) = 0, by { convert cos_pi_div_two using 2, ring },
-      rw [this],
-      simp },
-    have B : f x ^ ((1:ℝ) / 2 - 1) = 0,
-    { rw rpow_def_of_neg H,
-      have : cos (π/2 - π) = 0, by simp [cos_sub],
-      have : cos (((1:ℝ)/2 - 1) * π) = 0, by { convert this using 2, ring },
-      rw this,
-      simp },
-    rw [A, B],
-    simp },
-  { exact (hx H).elim },
-  { have A : 0 < (f x)^((1:ℝ)/2) := rpow_pos_of_pos H _,
-    have B : (f x) ^ (-(1:ℝ)) = (f x)^(-((1:ℝ)/2)) * (f x)^(-((1:ℝ)/2)),
-    { rw [← rpow_add H],
-      congr,
-      norm_num },
-    rw [sub_eq_add_neg, rpow_add H, B, rpow_neg (le_of_lt H)],
-    field_simp }
-end
-
-lemma has_deriv_at.sqrt (hf : has_deriv_at f f' x) (hx : f x ≠ 0) :
-  has_deriv_at (λ y, sqrt (f y)) (f' / (2 * sqrt(f x))) x :=
-begin
-  rw ← has_deriv_within_at_univ at *,
-  exact hf.sqrt hx
-end
-
-lemma differentiable_within_at.sqrt (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0) :
-  differentiable_within_at ℝ (λx, sqrt (f x)) s x :=
-(hf.has_deriv_within_at.sqrt hx).differentiable_within_at
-
-@[simp] lemma differentiable_at.sqrt (hf : differentiable_at ℝ f x) (hx : f x ≠ 0) :
-  differentiable_at ℝ (λx, sqrt (f x)) x :=
-(hf.has_deriv_at.sqrt hx).differentiable_at
-
-lemma differentiable_on.sqrt (hf : differentiable_on ℝ f s) (hx : ∀ x ∈ s, f x ≠ 0) :
-  differentiable_on ℝ (λx, sqrt (f x)) s :=
-λx h, (hf x h).sqrt (hx x h)
-
-@[simp] lemma differentiable.sqrt (hf : differentiable ℝ f) (hx : ∀ x, f x ≠ 0) :
-  differentiable ℝ (λx, sqrt (f x)) :=
-λx, (hf x).sqrt (hx x)
-
-lemma deriv_within_sqrt (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0)
-  (hxs : unique_diff_within_at ℝ s x) :
-  deriv_within (λx, sqrt (f x)) s x = (deriv_within f s x) / (2 * sqrt (f x)) :=
-(hf.has_deriv_within_at.sqrt hx).deriv_within hxs
-
-@[simp] lemma deriv_sqrt (hf : differentiable_at ℝ f x) (hx : f x ≠ 0) :
-  deriv (λx, sqrt (f x)) x = (deriv f x) / (2 * sqrt (f x)) :=
-(hf.has_deriv_at.sqrt hx).deriv
 
 end differentiability
 
@@ -1008,40 +912,21 @@ end
 
 end nnreal
 
-section measurability_nnreal
+namespace measurable
 
-lemma nnreal.measurable_rpow : measurable (λ p : ℝ≥0 × ℝ, p.1 ^ p.2) :=
-begin
-  have h_rw : (λ p : ℝ≥0 × ℝ, p.1 ^ p.2) = (λ p : ℝ≥0 × ℝ, nnreal.of_real(↑(p.1) ^ p.2)),
-  { ext1 a,
-    rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
-  rw h_rw,
-  exact (measurable_fst.nnreal_coe.rpow measurable_snd).nnreal_of_real,
-end
+variables {α : Type*} [measurable_space α]
 
-lemma measurable.nnreal_rpow {α} [measurable_space α] {f : α → ℝ≥0} (hf : measurable f)
+lemma nnreal_rpow {f : α → ℝ≥0} (hf : measurable f)
   {g : α → ℝ} (hg : measurable g) :
   measurable (λ a : α, (f a) ^ (g a)) :=
-begin
-  change measurable ((λ p : ℝ≥0 × ℝ, p.1 ^ p.2) ∘ (λ a : α, (f a, g a))),
-  exact nnreal.measurable_rpow.comp (measurable.prod hf hg),
-end
+(hf.nnreal_coe.rpow hg).subtype_mk
 
-lemma nnreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ℝ≥0, a ^ y) :=
-begin
-  have h_rw : (λ a : ℝ≥0, a ^ y) = (λ a : ℝ≥0, nnreal.of_real(↑a ^ y)),
-  { ext1 a,
-    rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
-  rw h_rw,
-  exact nnreal.measurable_coe.rpow_const.nnreal_of_real,
-end
-
-lemma measurable.nnreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0} (hf : measurable f)
+lemma nnreal_rpow_const {f : α → ℝ≥0} (hf : measurable f)
   {y : ℝ} :
   measurable (λ a : α, (f a) ^ y) :=
 hf.nnreal_rpow measurable_const
 
-end measurability_nnreal
+end measurable
 
 open filter
 
@@ -1553,11 +1438,14 @@ end ennreal
 
 section measurability_ennreal
 
+variables {α : Type*} [measurable_space α]
+
 lemma ennreal.measurable_rpow : measurable (λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2) :=
 begin
   refine ennreal.measurable_of_measurable_nnreal_prod _ _,
   { simp_rw ennreal.coe_rpow_def,
-    refine measurable.ite _ measurable_const nnreal.measurable_rpow.ennreal_coe,
+    refine measurable.ite _ measurable_const 
+      (measurable_fst.nnreal_rpow measurable_snd).ennreal_coe,
     exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
       (measurable_snd measurable_set_Iio), },
   { simp_rw ennreal.top_rpow_def,
@@ -1565,26 +1453,19 @@ begin
     exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
 end
 
-lemma measurable.ennreal_rpow {α} [measurable_space α] {f : α → ℝ≥0∞} (hf : measurable f)
-  {g : α → ℝ} (hg : measurable g) :
+lemma measurable.ennreal_rpow {f : α → ℝ≥0∞} (hf : measurable f) {g : α → ℝ} (hg : measurable g) :
   measurable (λ a : α, (f a) ^ (g a)) :=
 begin
   change measurable ((λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2) ∘ (λ a, (f a, g a))),
   exact ennreal.measurable_rpow.comp (measurable.prod hf hg),
 end
 
-lemma ennreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ℝ≥0∞, a ^ y) :=
-begin
-  change measurable ((λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2) ∘ (λ a, (a, y))),
-  refine ennreal.measurable_rpow.comp (measurable.prod measurable_id _),
-  dsimp only,
-  exact measurable_const,
-end
-
-lemma measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞} (hf : measurable f)
-  {y : ℝ} :
+lemma measurable.ennreal_rpow_const {f : α → ℝ≥0∞} (hf : measurable f) {y : ℝ} :
   measurable (λ a : α, (f a) ^ y) :=
 hf.ennreal_rpow measurable_const
+
+lemma ennreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ℝ≥0∞, a ^ y) :=
+measurable_id.ennreal_rpow_const
 
 lemma ae_measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞}
   {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Nicolò Cavalleri.
 -/
 
-import algebra.lie.basic
+import algebra.lie.of_associative
 import ring_theory.algebra_tower
 
 /-!
@@ -71,7 +71,7 @@ coe_injective $ funext H
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
-  rwa [leibniz D 1 1, one_smul, left_eq_add_iff] at h,
+  rwa [leibniz D 1 1, one_smul, self_eq_add_right] at h
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
@@ -156,12 +156,10 @@ section lie_structures
 
 variables (D : derivation R A A) {D1 D2 : derivation R A A} (r : R) (a b : A)
 
-open ring_commutator
-
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
 { leibniz' := λ a b, by
-  { simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app, leibniz,
+  { simp only [ring.lie_def, map_add, id.smul_eq_mul, linear_map.mul_app, leibniz,
                linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring, },
   ..⁅(D1 : module.End R A), (D2 : module.End R A)⁆, }
 

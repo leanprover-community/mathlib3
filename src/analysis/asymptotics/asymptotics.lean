@@ -43,7 +43,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space big_operators classical filter
+open_locale topological_space big_operators classical filter nnreal
 
 namespace asymptotics
 
@@ -160,6 +160,15 @@ theorem is_O.exists_nonneg (h : is_O f g' l) :
   ∃ c (H : 0 ≤ c), is_O_with c f g' l :=
 let ⟨c, hc⟩ := h.is_O_with in hc.exists_nonneg
 
+/-- `f = O(g)` if and only if `is_O_with c f g` for all sufficiently large `c`. -/
+lemma is_O_iff_eventually_is_O_with : is_O f g' l ↔ ∀ᶠ c in at_top, is_O_with c f g' l :=
+is_O_iff_is_O_with.trans
+  ⟨λ ⟨c, hc⟩, mem_at_top_sets.2 ⟨c, λ c' hc', hc.weaken hc'⟩, λ h, h.exists⟩
+
+/-- `f = O(g)` if and only if `∀ᶠ x in l, ∥f x∥ ≤ c * ∥g x∥` for all sufficiently large `c`. -/
+lemma is_O_iff_eventually : is_O f g' l ↔ ∀ᶠ c in at_top, ∀ᶠ x in l, ∥f x∥ ≤ c * ∥g' x∥ :=
+is_O_iff_eventually_is_O_with.trans $ by simp only [is_O_with]
+
 /-! ### Subsingleton -/
 
 @[nontriviality] lemma is_o_of_subsingleton [subsingleton E'] : is_o f' g' l :=
@@ -176,7 +185,7 @@ theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F
 begin
   unfold is_O_with,
   subst c₂,
-  apply filter.congr_sets,
+  apply filter.eventually_congr,
   filter_upwards [hf, hg],
   assume x e₁ e₂,
   rw [e₁, e₂]
@@ -1269,7 +1278,7 @@ by { convert is_o_pow_pow h, simp only [pow_one] }
 
 theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
   is_o (λ(x : E'), ∥x∥^n) (λx, x) (𝓝 0) :=
-by simpa only [pow_one, is_o_norm_right] using is_o_norm_pow_norm_pow h
+by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ h
 
 theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₂ x - f₁ x) l :=
@@ -1326,6 +1335,28 @@ theorem is_O_one_nat_at_top_iff {f : ℕ → E'} :
   is_O f (λ n, 1 : ℕ → ℝ) at_top ↔ ∃ C, ∀ n, ∥f n∥ ≤ C :=
 iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
   by simp only [norm_one, mul_one]
+
+theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
+  is_O_with C f g' l ↔ ∀ i, is_O_with C (λ x, f x i) g' l :=
+have ∀ x, 0 ≤ C * ∥g' x∥, from λ x, mul_nonneg hC (norm_nonneg _),
+by simp only [is_O_with_iff, pi_norm_le_iff (this _), eventually_all]
+
+@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : α → Π i, E' i} :
+  is_O f g' l ↔ ∀ i, is_O (λ x, f x i) g' l :=
+begin
+  simp only [is_O_iff_eventually_is_O_with, ← eventually_all],
+  exact eventually_congr (eventually_at_top.2 ⟨0, λ c, is_O_with_pi⟩)
+end
+
+@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : α → Π i, E' i} :
+  is_o f g' l ↔ ∀ i, is_o (λ x, f x i) g' l :=
+begin
+  simp only [is_o, is_O_with_pi, le_of_lt] { contextual := tt },
+  exact ⟨λ h i c hc, h hc i, λ h c hc i, h i hc⟩
+end
 
 end asymptotics
 

@@ -350,12 +350,12 @@ split,
   exact hy₁ }
 end
 
-lemma is_basis_empty (h_empty : ¬ nonempty ι) [subsingleton M] : is_basis R (λ x : ι, (0 : M)) :=
+variables (M)
+
+lemma is_basis_empty [subsingleton M] (h_empty : ¬ nonempty ι) : is_basis R (λ x : ι, (0 : M)) :=
 ⟨ linear_independent_empty_type h_empty, subsingleton.elim _ _ ⟩
 
-lemma is_basis_empty_bot (h_empty : ¬ nonempty ι) :
-  is_basis R (λ _ : ι, (0 : (⊥ : submodule R M))) :=
-is_basis_empty h_empty
+variables {M}
 
 open fintype
 variables [fintype ι] (h : is_basis R v)

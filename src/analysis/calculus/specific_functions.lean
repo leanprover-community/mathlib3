@@ -238,17 +238,19 @@ protected lemma times_cont_diff_at {x n} : times_cont_diff_at ℝ n smooth_trans
 
 end smooth_transition
 
-variables {E : Type*} [inner_product_space ℝ E]
+variables {E : Type*}
 
 /-- A function `f : E → ℝ` defined on a real inner product space with the following properties:
 
 - `f` is infinitely smooth on `E`;
 - `f` is positive on `ball 0 2` and equals zero otherwise;
 - `f` is equal to `1` on `closed_ball 0 1`. -/
-def smooth_bump_function (x : E) :=
+def smooth_bump_function [inner_product_space ℝ E] (x : E) :=
 smooth_transition (2 - ∥x∥)
 
 namespace smooth_bump_function
+
+variable [inner_product_space ℝ E]
 
 open smooth_transition
 
@@ -260,12 +262,13 @@ lemma eventually_eq_one_of_norm_lt_one {x : E} (hx : ∥x∥ < 1) :
 ((is_open_lt continuous_norm continuous_const).eventually_mem hx).mono $
   λ y hy, one_of_norm_le_one (le_of_lt hy)
 
+lemma eventually_eq_one : smooth_bump_function =ᶠ[𝓝 (0 : E)] (λ _, 1) :=
+eventually_eq_one_of_norm_lt_one (by simp only [norm_zero, zero_lt_one])
+
 protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function x :=
 begin
-  by_cases hx : x = 0,
-  { refine times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const
-      (eventually_eq_one_of_norm_lt_one _),
-    simp only [hx, norm_zero, zero_lt_one] },
+  rcases em (x = 0) with rfl|hx,
+  { exact times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const eventually_eq_one },
   { exact smooth_transition.times_cont_diff_at.comp x
       (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
 end
@@ -303,3 +306,37 @@ end
 
 end smooth_bump_function
 
+open function finite_dimensional metric
+
+/-- If `E` is a finite dimensional normed space over `ℝ`, then for any point `x : E` and its
+neighborhood `s` there exists an infinitely smooth function with the following properties:
+
+* `f y = 1` in a neighborhood of `x`;
+* `f y = 0` outside of `s`;
+* `f y ∈ [0, 1]` for all `y`.
+-/
+lemma exists_times_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :
+  ∃ f : E → ℝ, f =ᶠ[𝓝 x] 1 ∧ times_cont_diff ℝ ⊤ f ∧ support f ⊆ s ∧ ∀ y, f y ∈ Icc (0 : ℝ) 1 :=
+begin
+  have e : E ≃L[ℝ] euclidean_space ℝ (fin $ findim ℝ E) :=
+    continuous_linear_equiv.of_findim_eq findim_euclidean_space_fin.symm,
+  have : e '' s ∈ 𝓝 (e x) := e.to_homeomorph.is_open_map.image_mem_nhds hs,
+  rcases mem_nhds_iff.1 this with ⟨ε, ε0 : 0 < ε, hε⟩,
+  set g : E → euclidean_space ℝ (fin $ findim ℝ E) := λ y, (2 / ε) • (e y - e x),
+  have hg : times_cont_diff ℝ ⊤ g,
+    from times_cont_diff_const.smul (e.times_cont_diff.sub times_cont_diff_const),
+  have hg0 : g x = 0 := by { simp only [g], simp }, -- `simp [g]` fails
+  refine ⟨smooth_bump_function ∘ g, _, _, _, _⟩,
+  { exact (hg.continuous.tendsto' _ _ hg0).eventually smooth_bump_function.eventually_eq_one },
+  { exact smooth_bump_function.times_cont_diff.comp hg },
+  { intros y hy,
+    have : 2 / ε * ∥e y - e x∥ < 2,
+    by simpa [support_comp_eq_preimage, smooth_bump_function.support_eq,
+      ball_0_eq, g, norm_smul, real.norm_of_nonneg ε0.le] using hy,
+    have : ∥e y - e x∥ < ε,
+      by rwa [mul_comm, ← mul_div_assoc, div_lt_iff ε0, mul_comm,
+        mul_lt_mul_left (@zero_lt_two ℝ _ _)] at this,
+    exact (mem_image_of_injective e.injective).1 (hε $ mem_ball_iff_norm.2 this) },
+  { exact λ y, ⟨smooth_bump_function.nonneg _, smooth_bump_function.le_one _⟩ }
+end

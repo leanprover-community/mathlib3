@@ -5,6 +5,7 @@ Author: Kenny Lau
 -/
 import data.fin
 import data.equiv.basic
+import control.equiv_functor.instances
 
 /-!
 # Equivalences for `fin n`
@@ -39,67 +40,74 @@ def fin_two_equiv : fin 2 ≃ bool :=
 
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of
-requiring a proof that the input is not `i`. -/
-def fin_succ_equiv' {n : ℕ} (i : fin (n + 1)) :
-  fin n.succ ≃ option (fin n) :=
-{ to_fun := λ x, if h : x = i then none else some (i.pred_above x h),
-  inv_fun := λ x, x.cases_on' i (fin.succ_above i),
-  left_inv := λ x, if h : x = i then by simp [h] else by simp [h, fin.succ_above_ne],
-  right_inv := λ x, by { cases x, simp, simp [fin.succ_above_ne], }}
+mapping both `i.cast_succ` and `i.succ` to `i`. -/
+def fin_succ_equiv' {n : ℕ} (i : fin n) :
+  fin (n + 1) ≃ option (fin n) :=
+{ to_fun := λ x, if x = i.cast_succ then none else some (i.pred_above x),
+  inv_fun := λ x, x.cases_on' i.cast_succ (fin.succ_above i.cast_succ),
+  left_inv := λ x, if h : x = i.cast_succ then by simp [h]
+                   else by simp [h, fin.succ_above_ne],
+  right_inv := λ x, by { cases x; simp [fin.succ_above_ne] }}
 
 @[simp] lemma fin_succ_equiv'_at {n : ℕ} (i : fin (n + 1)) :
   (fin_succ_equiv' i) i = none := by simp [fin_succ_equiv']
 
-lemma fin_succ_equiv'_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+lemma fin_succ_equiv'_below {n : ℕ} {i m : fin (n + 1)} (h : m < i) :
   (fin_succ_equiv' i) m.cast_succ = some m :=
-by simp [fin_succ_equiv', ne_of_lt h, fin.pred_above, h]
+begin
+  have : m.cast_succ ≤ i.cast_succ := h.le,
+  simp [fin_succ_equiv', h.ne, fin.pred_above_below, this]
+end
 
-lemma fin_succ_equiv'_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+lemma fin_succ_equiv'_above {n : ℕ} {i m : fin (n + 1)} (h : i ≤ m) :
   (fin_succ_equiv' i) m.succ = some m :=
-by simp [fin_succ_equiv', ne_of_gt h, fin.pred_above, not_lt_of_gt h]
+begin
+  have : i.cast_succ < m.succ,
+    { refine (lt_of_le_of_lt _ m.cast_succ_lt_succ), exact h },
+  simp [fin_succ_equiv', this, fin.pred_above_above, ne_of_gt]
+end
 
 @[simp] lemma fin_succ_equiv'_symm_none {n : ℕ} (i : fin (n + 1)) :
-  (fin_succ_equiv' i).symm none = i := rfl
+  (fin_succ_equiv' i).symm none = i.cast_succ := rfl
 
-lemma fin_succ_equiv_symm'_some_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+lemma fin_succ_equiv_symm'_some_below {n : ℕ} {i m : fin (n + 1)} (h : m < i) :
   (fin_succ_equiv' i).symm (some m) = m.cast_succ :=
 by simp [fin_succ_equiv', ne_of_gt h, fin.succ_above, not_le_of_gt h]
 
-lemma fin_succ_equiv_symm'_some_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+lemma fin_succ_equiv_symm'_some_above {n : ℕ} {i m : fin (n + 1)} (h : i ≤ m) :
   (fin_succ_equiv' i).symm (some m) = m.succ :=
-begin
-  have : ¬ m.cast_succ < i := by simpa [fin.lt_iff_coe_lt_coe, nat.lt_succ_iff] using h,
-  simp [fin_succ_equiv', ne_of_lt h, fin.succ_above, not_le_of_lt h, this]
-end
+by simp [fin_succ_equiv', fin.succ_above, h.not_lt]
 
-lemma fin_succ_equiv_symm'_coe_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
+lemma fin_succ_equiv_symm'_coe_below {n : ℕ} {i m : fin (n + 1)} (h : m < i) :
   (fin_succ_equiv' i).symm m = m.cast_succ :=
-fin_succ_equiv_symm'_some_below h
+by { convert fin_succ_equiv_symm'_some_below h; simp }
 
-lemma fin_succ_equiv_symm'_coe_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i < m.succ) :
+lemma fin_succ_equiv_symm'_coe_above {n : ℕ} {i m : fin (n + 1)} (h : i ≤ m) :
   (fin_succ_equiv' i).symm m = m.succ :=
-fin_succ_equiv_symm'_some_above h
+by { convert fin_succ_equiv_symm'_some_above h; simp }
 
-/-- Equivalence between `fin n.succ` and `option (fin n)`.
-This is a version of `fin.pred` that produces `option (fin n)` instead of
+/-- Equivalence between `fin (n + 2)` and `option (fin (n + 1))`.
+This is a version of `fin.pred` that produces `option (fin (n + 1))` instead of
 requiring a proof that the input is not `0`. -/
-def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
+-- TODO: make this work neatly for `fin (n + 1) ≃ option (fin n)`
+def fin_succ_equiv (n : ℕ) : fin (n + 2) ≃ option (fin (n + 1)) :=
 fin_succ_equiv' 0
 
 @[simp] lemma fin_succ_equiv_zero {n : ℕ} :
   (fin_succ_equiv n) 0 = none := rfl
 
-@[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
+@[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin (n + 1)):
   (fin_succ_equiv n) m.succ = some m :=
-by { convert fin_succ_equiv'_above _, simp [fin.lt_iff_coe_lt_coe] }
+by convert fin_succ_equiv'_above m.zero_le
 
 @[simp] lemma fin_succ_equiv_symm_none {n : ℕ} :
   (fin_succ_equiv n).symm none = 0 := by simp [fin_succ_equiv]
 
-@[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
-  (fin_succ_equiv n).symm (some m) = m.succ := rfl
+@[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin (n + 1)) :
+  (fin_succ_equiv n).symm (some m) = m.succ :=
+by convert fin_succ_equiv_symm'_some_above m.zero_le
 
-@[simp] lemma fin_succ_equiv_symm_coe {n : ℕ} (m : fin n) :
+@[simp] lemma fin_succ_equiv_symm_coe {n : ℕ} (m : fin (n + 1)) :
   (fin_succ_equiv n).symm m = m.succ := rfl
 
 /-- The equiv version of `fin.pred_above_zero`. -/

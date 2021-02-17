@@ -17,20 +17,20 @@ variables {R : Type*}
 /-- A regular element is an element `c` such that multiplication by `c` both on the left and
 on the right is injective. -/
 structure is_regular [has_mul R] (c : R) : Prop :=
-( mul_left_inj : ∀ a b : R, c * a = c * b → a = b)
-( mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
+(mul_left_inj : ∀ a b : R, c * a = c * b → a = b)
+(mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
 
 namespace is_regular
 
 /-- A left-regular element is an element `c` such that multiplication on the left by `c`
 is injective on the left. -/
 structure left [has_mul R] (c : R) : Prop :=
-( mul_left_inj : ∀ a b : R, c * a = c * b → a = b)
+(mul_left_inj : ∀ a b : R, c * a = c * b → a = b)
 
 /-- A right-regular element is an element `c` such that multiplication on the right by `c`
 is injective on the left. -/
 structure right [has_mul R] (c : R) : Prop :=
-( mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
+(mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
 
 variables [monoid R]
 

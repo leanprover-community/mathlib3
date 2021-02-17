@@ -562,12 +562,12 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
 
 /-- `cast_succ i` is positive when `i` is positive -/
-lemma cast_succ_pos (i : fin (n + 1)) (h : 0 < i) : 0 < cast_succ i :=
+lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
 
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
-by { simp [fin.ext_iff], }
+by simp [fin.ext_iff]
 
 @[norm_cast, simp] lemma coe_eq_cast_succ : (a : fin (n + 1)) = a.cast_succ :=
 begin
@@ -842,7 +842,7 @@ end
 lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.succ_above i :=
 begin
   by_cases H : i.cast_succ < p,
-  { simpa [succ_above_below _ _ H] using cast_succ_pos _ h },
+  { simpa [succ_above_below _ _ H] using cast_succ_pos h },
   { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos _ },
 end
 

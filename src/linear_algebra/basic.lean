@@ -557,6 +557,28 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 
+variables (R)
+
+@[simp] lemma bot_to_add_submonoid : (⊥ : submodule R M).to_add_submonoid = ⊥ := rfl
+
+@[simp] lemma top_to_add_submonoid : (⊤ : submodule R M).to_add_submonoid = ⊤ := rfl
+
+lemma subsingleton_iff : subsingleton M ↔ subsingleton (submodule R M) :=
+add_submonoid.subsingleton_iff.trans $ begin
+  rw [←subsingleton_iff_bot_eq_top, ←subsingleton_iff_bot_eq_top],
+  convert to_add_submonoid_eq; refl
+end
+
+lemma nontrivial_iff : nontrivial M ↔ nontrivial (submodule R M) :=
+not_iff_not.mp (
+  (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R).trans
+  not_nontrivial_iff_subsingleton.symm)
+
+variables {R}
+
+instance [subsingleton M] : unique (submodule R M) :=
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
+
 lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
 λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
 

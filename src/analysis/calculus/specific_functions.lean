@@ -242,25 +242,23 @@ variables {E : Type*} [inner_product_space ℝ E]
 
 /-- A function `f : E → ℝ` defined on a real inner product space with the following properties:
 
-- `f` is infinitely smooth on `E`;
-- `f` is positive on `ball 0 2` and equals zero otherwise;
-- `f` is equal to `1` on `closed_ball 0 1`. -/
-def smooth_bump_function (x : E) :=
-smooth_transition (2 - ∥x∥)
+TODO -/
+def smooth_bump_function (x : E) (r : ℝ) (y : E) :=
+smooth_transition (2 * (r - ∥y - x∥) / r)
 
-namespace smooth_bump_function
+namespace smooth_bump_function₀
 
 open smooth_transition
 
-lemma one_of_norm_le_one {x : E} (hx : ∥x∥ ≤ 1) : smooth_bump_function x = 1 :=
+lemma one_of_norm_le_one {x : E} (hx : ∥x∥ ≤ 1) : smooth_bump_function₀ x = 1 :=
 one_of_one_le (le_sub.2 $ by { norm_num1, assumption })
 
 lemma eventually_eq_one_of_norm_lt_one {x : E} (hx : ∥x∥ < 1) :
-  smooth_bump_function =ᶠ[𝓝 x] (λ _, 1) :=
+  smooth_bump_function₀ =ᶠ[𝓝 x] (λ _, 1) :=
 ((is_open_lt continuous_norm continuous_const).eventually_mem hx).mono $
   λ y hy, one_of_norm_le_one (le_of_lt hy)
 
-protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function x :=
+protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function₀ x :=
 begin
   by_cases hx : x = 0,
   { refine times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const
@@ -270,23 +268,23 @@ begin
       (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
 end
 
-protected lemma times_cont_diff {n} : times_cont_diff ℝ n (smooth_bump_function : E → ℝ) :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x, smooth_bump_function.times_cont_diff_at
+protected lemma times_cont_diff {n} : times_cont_diff ℝ n (smooth_bump_function₀ : E → ℝ) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, smooth_bump_function₀.times_cont_diff_at
 
 protected lemma times_cont_diff_within_at {x : E} {s n} :
-  times_cont_diff_within_at ℝ n smooth_bump_function s x :=
-smooth_bump_function.times_cont_diff_at.times_cont_diff_within_at
+  times_cont_diff_within_at ℝ n smooth_bump_function₀ s x :=
+smooth_bump_function₀.times_cont_diff_at.times_cont_diff_within_at
 
-lemma nonneg (x : E) : 0 ≤ smooth_bump_function x :=
+lemma nonneg (x : E) : 0 ≤ smooth_bump_function₀ x :=
 nonneg _
 
-lemma le_one (x : E) : smooth_bump_function x ≤ 1 :=
+lemma le_one (x : E) : smooth_bump_function₀ x ≤ 1 :=
 le_one _
 
-lemma pos_of_norm_lt_two {x : E} (hx : ∥x∥ < 2) : 0 < smooth_bump_function x :=
+lemma pos_of_norm_lt_two {x : E} (hx : ∥x∥ < 2) : 0 < smooth_bump_function₀ x :=
 pos_of_pos $ sub_pos.2 hx
 
-lemma lt_one_of_one_lt_norm {x : E} (hx : 1 < ∥x∥) : smooth_bump_function x < 1 :=
+lemma lt_one_of_one_lt_norm {x : E} (hx : 1 < ∥x∥) : smooth_bump_function₀ x < 1 :=
 lt_one_of_lt_one $ sub_lt.2 $ by norm_num [hx]
 
 lemma zero_of_two_le_norm {x : E} (hx : 2 ≤ ∥x∥) : smooth_bump_function x = 0 :=

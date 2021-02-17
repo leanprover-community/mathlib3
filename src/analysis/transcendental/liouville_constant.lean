@@ -289,6 +289,7 @@ end liouville
 
 end m_is_natural
 
+/-
 #exit
 
 lemma liouville_number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
@@ -335,3 +336,4 @@ ext1,
      → ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) = 0,
 
 end
+-/

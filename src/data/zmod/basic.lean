@@ -814,13 +814,13 @@ instance subsingleton_ring_hom [semiring R] : subsingleton ((zmod n) →+* R) :=
 instance subsingleton_ring_equiv [semiring R] : subsingleton (zmod n ≃+* R) :=
 ⟨λ f g, by { rw ring_equiv.coe_ring_hom_inj_iff, apply ring_hom.ext_zmod _ _ }⟩
 
-@[simp] lemma ring_hom_map_coe [ring R] (f : R →+* (zmod n)) (k : zmod n) :
+@[simp] lemma ring_hom_map_cast [ring R] (f : R →+* (zmod n)) (k : zmod n) :
   f k = k :=
 by { cases n; simp }
 
 lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) :
   function.surjective f :=
-function.right_inverse.surjective (ring_hom_map_coe f)
+function.right_inverse.surjective (ring_hom_map_cast f)
 
 lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
   (h : f.ker = g.ker) : f = g :=

@@ -5,6 +5,8 @@ Authors: Johan Commelin, Kevin Buzzard
 -/
 import data.rat
 import data.fintype.card
+import algebra.big_operators.nat_antidiagonal
+import ring_theory.power_series.well_known
 
 /-!
 # Bernoulli numbers
@@ -65,6 +67,8 @@ This formula is true for all $n$ and in particular $B_0=1$.
 -/
 
 open_locale big_operators
+open nat
+open finset
 
 /-!
 
@@ -86,6 +90,24 @@ well_founded.fix_eq _ _ _
 lemma bernoulli_def (n : ℕ) :
   bernoulli n = 1 - ∑ k in finset.range n, (n.choose k) / (n - k + 1) * bernoulli k :=
 by { rw [bernoulli_def', ← fin.sum_univ_eq_sum_range], refl }
+
+lemma bernoulli_spec (n : ℕ) :
+  ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli k = 1 :=
+begin
+  rw [finset.sum_range_succ, bernoulli_def n, nat.sub_self],
+  conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (finset.mem_range.1 H)) },
+  simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
+end
+
+lemma bernoulli_spec' (n : ℕ) :
+  ∑ k in finset.nat.antidiagonal n,
+  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 1 :=
+begin
+  refine ((nat.sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli_spec n),
+  refine sum_congr rfl (λ x hx, _),
+  rw mem_range_succ_iff at hx,
+  simp [nat.add_sub_cancel' hx, cast_sub hx],
+end
 
 /-!
 
@@ -139,8 +161,78 @@ begin
   rw ← cast_sub hk,
   congr',
   field_simp [show ((n - k : ℕ) : ℚ) + 1 ≠ 0, by {norm_cast, simp}],
-  -- down to nat
   norm_cast,
   rw [mul_comm, nat.sub_add_eq_add_sub hk],
   exact choose_mul_succ_eq n k,
+end
+
+open power_series
+
+theorem bernoulli_power_series :
+  power_series.mk (λ n, (bernoulli n / nat.factorial n : ℚ)) * (exp ℚ - 1) = X * exp ℚ :=
+begin
+  ext n,
+  -- constant coefficient is a special case
+  cases n,
+  { simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X,
+      coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul] },
+  rw [coeff_mul, mul_comm X, coeff_succ_mul_X],
+  simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial,
+    rat.algebra_map_rat_rat, nat.sum_antidiagonal_succ', if_pos],
+  simp only [factorial, prod.snd, one_div, cast_succ, cast_one, cast_mul, ring_hom.id_apply,
+    sub_zero, add_eq_zero_iff, if_false, zero_add, one_ne_zero,
+    factorial, div_one, mul_zero, and_false, sub_self],
+  apply eq_inv_of_mul_left_eq_one,
+  rw sum_mul,
+  convert bernoulli_spec' n using 1,
+  apply sum_congr rfl,
+  rintro ⟨i, j⟩ hn,
+  rw nat.mem_antidiagonal at hn,
+  subst hn,
+  dsimp only,
+  have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
+  have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
+  have hnz : (j + 1 : ℚ) * nat.factorial j * nat.factorial i ≠ 0,
+  { norm_cast at *,
+    exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
+  field_simp [hj, hnz],
+  rw [mul_comm _ (bernoulli i), mul_assoc],
+  norm_cast,
+  rw [mul_comm (j + 1) _, mul_div_assoc, ← mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,
+    add_choose, cast_dvd_char_zero],
+  { apply factorial_mul_factorial_dvd_factorial_add, },
+  { exact cast_ne_zero.mpr hj', },
+end
+
+open ring_hom
+
+/-- Odd Bernoulli numbers (greater than 1) are zero. -/
+theorem bernoulli_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli n = 0 :=
+begin
+  have f := bernoulli_power_series,
+  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
+    (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
+  rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
+    mul_comm (eval_neg_hom (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one, eval_neg_hom_X, mul_one,
+    one_mul] at g,
+  suffices h : (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) - eval_neg_hom (mk (λ (n : ℕ),
+    bernoulli n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
+  { rw [mul_eq_mul_right_iff] at h,
+    cases h,
+    { simp only [eval_neg_hom, rescale, coeff_mk, coe_mk, power_series.ext_iff,
+        coeff_mk, linear_map.map_sub] at h,
+      specialize h n,
+      rw coeff_X n at h,
+      split_ifs at h with h2,
+      { rw h2 at hlt, exfalso, exact lt_irrefl _ hlt, },
+      have hn : (n.factorial : ℚ) ≠ 0, { simp [factorial_ne_zero], },
+      rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff hn, div_mul_cancel _ hn,
+        neg_one_pow_of_odd h_odd, neg_mul_eq_neg_mul_symm, one_mul] at h,
+      exact eq_zero_of_neg_eq h.symm, },
+    { exfalso,
+      rw [power_series.ext_iff] at h,
+      specialize h 1,
+      simpa using h, }, },
+  { rw [sub_mul, f, mul_sub X, mul_one, sub_right_inj, ←neg_sub, ←neg_neg X, ←g,
+      neg_mul_eq_mul_neg], },
 end

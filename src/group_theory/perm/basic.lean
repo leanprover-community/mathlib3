@@ -8,6 +8,7 @@ import algebra.group.basic
 import algebra.group.hom
 import algebra.group.pi
 import algebra.group.prod
+
 /-!
 # The group of permutations (self-equivalences) of a type `α`
 
@@ -159,12 +160,32 @@ begin
   simpa using equiv.congr_fun h ⟨a, b⟩,
 end
 
+/-- `equiv.perm.subtype_congr` as a `monoid_hom`. -/
+@[simps] def subtype_congr_hom (p : α → Prop) [decidable_pred p] :
+  (perm {a // p a}) × (perm {a // ¬ p a}) →* perm α :=
+{ to_fun := λ pair, perm.subtype_congr pair.fst pair.snd,
+  map_one' := perm.subtype_congr.refl,
+  map_mul' := λ _ _, (perm.subtype_congr.trans _ _ _ _).symm }
+
+lemma subtype_congr_hom_injective (p : α → Prop) [decidable_pred p] :
+  function.injective (subtype_congr_hom p) :=
+begin
+  rintros ⟨⟩ ⟨⟩ h,
+  rw prod.mk.inj_iff,
+  split;
+  ext i;
+  simpa using equiv.congr_fun h i
+end
+
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
 ⟨λ x, ⟨f x, (h _).1 x.2⟩, λ x, ⟨f⁻¹ x, (h (f⁻¹ x)).2 $ by simpa using x.2⟩,
   λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
   λ _, by simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
+
+@[simp] lemma subtype_perm_apply (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x))
+  (x : {x // p x}) : subtype_perm f h x = ⟨f x, (h _).1 x.2⟩ := rfl
 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) :
   @subtype_perm α 1 p h = 1 :=

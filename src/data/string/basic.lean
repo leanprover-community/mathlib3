@@ -36,7 +36,7 @@ instance decidable_lt : @decidable_rel string (<) := by apply_instance -- short-
     intros,
     induction s₁ with a s₁ IH generalizing p₁ p₂ s₂;
       cases s₂ with b s₂; rw ltb; simp [iterator.has_next],
-    { exact iff_of_false bool.ff_ne_tt (lt_irrefl _) },
+    { refl, },
     { exact iff_of_true rfl list.lex.nil },
     { exact iff_of_false bool.ff_ne_tt (not_lt_of_lt list.lex.nil) },
     { dsimp [iterator.has_next,
@@ -67,14 +67,9 @@ by { cases s, refl }
 
 @[simp] lemma to_list_singleton (c : char) : (string.singleton c).to_list = [c] := rfl
 
-lemma to_list_nonempty {s : string} (h : s ≠ string.empty) :
-  s.to_list = s.head :: (s.popn 1).to_list :=
-begin
-  rcases s with ⟨_ | ⟨hd, tl⟩⟩,
-  { simpa only using h },
-  { simp [to_list, popn, iterator.nextn, mk_iterator, head, iterator.next,
-          iterator.next_to_string, iterator.curr] }
-end
+lemma to_list_nonempty : ∀ {s : string}, s ≠ string.empty →
+  s.to_list = s.head :: (s.popn 1).to_list
+| ⟨s⟩ h := by cases s; [cases h rfl, refl]
 
 @[simp] lemma head_empty : "".head = default _ := rfl
 

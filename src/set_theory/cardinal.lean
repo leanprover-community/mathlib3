@@ -93,6 +93,9 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
+protected lemma eq_congr : α ≃ β → # α = # β :=
+λ h, quot.sound ⟨h⟩
+
 noncomputable instance : linear_order cardinal.{u} :=
 { le          := (≤),
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
@@ -271,6 +274,10 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   eq_zero_or_eq_zero_of_mul_eq_zero := @cardinal.eq_zero_or_eq_zero_of_mul_eq_zero,
   ..cardinal.order_bot,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
+
+noncomputable instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ .. (infer_instance : canonically_ordered_add_monoid cardinal.{u}),
+  .. cardinal.linear_order }
 
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
@@ -1081,3 +1088,6 @@ lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
 by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
 
 end cardinal
+
+lemma equiv.cardinal_eq {α β} : α ≃ β → cardinal.mk α = cardinal.mk β :=
+cardinal.eq_congr

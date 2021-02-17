@@ -57,6 +57,9 @@ variable {R}
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
 (s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
 
+/-- Decomposes the coefficient of the product `p * q` as a sum
+over `nat.antidiagonal`. A version which sums over `range (n + 1)` can be obtained
+by using `finset.nat.sum_antidiagonal_eq_sum_range_succ`. -/
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)

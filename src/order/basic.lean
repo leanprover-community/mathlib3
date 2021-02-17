@@ -56,6 +56,9 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+@[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
+by simp [lt_irrefl a]
+
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
@@ -393,6 +396,10 @@ lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y 
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl
 
+lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y : Π i, α i} :
+  x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
+by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
+
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
@@ -402,6 +409,11 @@ lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [
   {x y : Π i, α i} {i : ι} {a : α i} :
   function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, z ≤ y j)
+
+lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
+  {x y : Π i, α i} {i : ι} {a b : α i} :
+  function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
+by simp [update_le_iff] {contextual := tt}
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
   partial_order (Πi, α i) :=

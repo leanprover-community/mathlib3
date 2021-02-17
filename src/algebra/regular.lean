@@ -32,6 +32,10 @@ is injective on the left. -/
 structure is_right_regular [has_mul R] (c : R) : Prop :=
 (mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
 
+lemma left [has_mul R] {a : R} (hl : is_regular a) : is_left_regular a := ⟨hl.1⟩
+
+lemma right [has_mul R] {a : R} (hl : is_regular a) : is_right_regular a := ⟨hl.2⟩
+
 variables [monoid R]
 
 /-- An element admitting a right inverse is right-regular. -/
@@ -55,8 +59,7 @@ end }
 lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) : is_regular a :=
 ⟨hl.1, hr.1⟩
 
-lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) :
-  is_regular a :=
+lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
 of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
 
 end is_regular

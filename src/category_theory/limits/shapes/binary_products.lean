@@ -827,11 +827,13 @@ namespace category_theory
 
 variables {C : Type u} [category.{v} C]
 
+/-- Auxilliary definition for `over.coprod`. -/
 @[simps]
 def over.coprod_obj [has_binary_coproducts C] {A : C} : over A → over A ⥤ over A := λ f,
 { obj := λ g, over.mk (coprod.desc f.hom g.hom),
   map := λ g₁ g₂ k, over.hom_mk (coprod.map (𝟙 _) k.left) }
 
+/-- A category with binary coproducts has a functorial `sup` operation on over categories. -/
 @[simps]
 def over.coprod [has_binary_coproducts C] {A : C} : over A ⥤ over A ⥤ over A :=
 { obj := λ f, over.coprod_obj f,

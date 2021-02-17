@@ -330,6 +330,20 @@ lemma le_def {H K : subgroup G} : H ≤ K ↔ ∀ ⦃x : G⦄, x ∈ H → x ∈
 @[simp, to_additive]
 lemma coe_subset_coe {H K : subgroup G} : (H : set G) ⊆ K ↔ H ≤ K := iff.rfl
 
+/-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
+@[to_additive "The inclusion homomorphism from a additive subgroup `H` contained in `K` to `K`."]
+def inclusion {H K : subgroup G} (h : H ≤ K) : H →* K :=
+monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
+
+@[simp, to_additive]
+lemma coe_inclusion {H K : subgroup G} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=
+by { cases a, simp only [inclusion, coe_mk, monoid_hom.coe_mk'] }
+
+@[simp, to_additive]
+lemma subtype_comp_inclusion {H K : subgroup G} (hH : H ≤ K) :
+  K.subtype.comp (inclusion hH) = H.subtype :=
+by { ext, simp }
+
 @[to_additive]
 instance : partial_order (subgroup G) :=
 { le := (≤),
@@ -754,6 +768,14 @@ begin
     exact hf (show f x = f 1, by simp only [hfx, monoid_hom.map_one]), },
   { intros h, rw [h, map_bot], },
 end
+
+@[simp, to_additive]
+lemma comap_subtype_inf_left {H K : subgroup G} : comap H.subtype (H ⊓ K) = comap H.subtype K :=
+ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
+
+@[simp, to_additive]
+lemma comap_subtype_inf_right {H K : subgroup G} : comap K.subtype (H ⊓ K) = comap K.subtype H :=
+ext $ λ x, and_iff_left_of_imp (λ _, x.prop)
 
 /-- Given `subgroup`s `H`, `K` of groups `G`, `N` respectively, `H × K` as a subgroup of `G × N`. -/
 @[to_additive prod "Given `add_subgroup`s `H`, `K` of `add_group`s `A`, `B` respectively, `H × K`
@@ -1280,6 +1302,15 @@ instance subgroup.normal_comap {H : subgroup N}
 @[priority 100, to_additive]
 instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
 by rw [monoid_hom.ker]; apply_instance
+
+@[priority 100, to_additive]
+instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :
+  ((H ⊓ N).comap H.subtype).normal :=
+⟨λ x hx g, begin
+  simp only [subgroup.mem_inf, coe_subtype, subgroup.mem_comap] at hx,
+  simp only [subgroup.coe_mul, subgroup.mem_inf, coe_subtype, subgroup.coe_inv, subgroup.mem_comap],
+  exact ⟨H.mul_mem (H.mul_mem g.2 hx.1) (H.inv_mem g.2), hN.1 x hx.2 g⟩,
+end⟩
 
 namespace subgroup
 

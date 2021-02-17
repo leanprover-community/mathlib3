@@ -135,10 +135,8 @@ begin
     else
       classical.arbitrary _,
   intros j' fle,
-  simp only [le_of_hom fle.unop, dif_pos],
-  erw category_theory.functor.map_id,
-  rw (by dec_trivial : fle = (hom_of_le (le_of_hom fle.unop)).op),
-  refl,
+  simp only [dif_pos (le_of_hom fle.unop)],
+  dsimp, simp,
 end
 
 lemma partial_sections.directed : directed (⊇) (partial_sections F) :=

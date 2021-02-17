@@ -236,7 +236,7 @@ begin
   exact ⟨h1 (g2.le_iff_le.2 mn), h2 mn⟩,
 end
 
-theorem is_partially_well_ordered.monotone_image {β : Type*} [partial_order β]
+theorem is_partially_well_ordered.image_of_monotone {β : Type*} [partial_order β]
   (hs : s.is_partially_well_ordered) {f : α → β} (hf : monotone f) :
   is_partially_well_ordered (f '' s) :=
 λ g hg, begin
@@ -281,9 +281,7 @@ begin
 end
 
 @[to_additive]
-theorem is_wf.mul
-  (hs : s.is_wf) (ht : t.is_wf) :
-  is_wf (s * t) :=
+theorem is_wf.mul (hs : s.is_wf) (ht : t.is_wf) : is_wf (s * t) :=
 (hs.is_partially_well_ordered.mul ht.is_partially_well_ordered).is_wf
 
 end

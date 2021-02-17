@@ -10,9 +10,10 @@ import category_theory.limits.shapes.terminal
 universes v u
 
 open category_theory
-namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
+
+namespace category_theory.limits
 
 /--
 A category has finite products if there is a chosen limit for every diagram
@@ -65,3 +66,26 @@ lemma has_finite_coproducts_of_has_coproducts [has_coproducts C] : has_finite_co
 by { dsimp [has_finite_coproducts], apply_instance }
 
 end category_theory.limits
+
+open category_theory.limits
+
+namespace category_theory
+
+noncomputable theory
+
+@[simps]
+def over.coprod_obj [has_finite_coproducts C] {A : C} : over A → over A ⥤ over A := λ f,
+{ obj := λ g, over.mk (coprod.desc f.hom g.hom),
+  map := λ g₁ g₂ k, over.hom_mk (coprod.map (𝟙 _) k.left) }
+
+@[simps]
+def over.coprod [has_finite_coproducts C] {A : C} : over A ⥤ over A ⥤ over A :=
+{ obj := λ f, over.coprod_obj C f,
+  map := λ f₁ f₂ k,
+  { app := λ g, over.hom_mk (coprod.map k.left (𝟙 _))
+      (by { dsimp, rw [coprod.map_desc, category.id_comp, over.w k] }),
+    naturality' := λ f g k, by ext; { dsimp, simp, }, },
+  map_id' := λ X, by ext; { dsimp, simp, },
+  map_comp' := λ X Y Z f g, by ext; { dsimp, simp, }, }.
+
+end category_theory

@@ -278,7 +278,7 @@ theorem is_partially_well_ordered.mul
   is_partially_well_ordered (s * t) :=
 begin
   rw ← image_mul_prod,
-  exact (is_partially_well_ordered.prod hs ht).monotone_image (λ _ _ h, mul_le_mul' h.1 h.2),
+  exact (is_partially_well_ordered.prod hs ht).image_of_monotone (λ _ _ h, mul_le_mul' h.1 h.2),
 end
 
 @[to_additive]

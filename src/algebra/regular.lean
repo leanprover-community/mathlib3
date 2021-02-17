@@ -23,7 +23,7 @@ is injective on the left. -/
 def is_left_regular [has_mul R] (c : R) := function.injective ((*) c)
 
 /-- A right-regular element is an element `c` such that multiplication on the right by `c`
-is injective on the left. -/
+is injective on the right. -/
 def is_right_regular [has_mul R] (c : R) := function.injective (* c)
 
 /-- A regular element is an element `c` such that multiplication by `c` both on the left and
@@ -60,30 +60,22 @@ lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) :
 lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
 of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
 
-/--  Elements of a left cancel semigroup are left regular.
-
-Funny how left and right change positions. -/
+/--  Elements of a left cancel semigroup are left regular. -/
 lemma is_left_regular_of_left_cancel_semigroup {G : Type*} [left_cancel_semigroup G] (g : G) :
   is_left_regular g :=
 mul_right_injective g
 
-/--  Elements of a right cancel semigroup are right regular.
-
-Funny how left and right change positions. -/
+/--  Elements of a right cancel semigroup are right regular. -/
 lemma is_right_regular_of_right_cancel_semigroup {G : Type*} [right_cancel_semigroup G] (g : G) :
   is_right_regular g :=
 mul_left_injective g
 
-/--  Elements of a cancel monoid are regular.  Cancel semigroups do not appear to exist.
-
-Funny how left and right change positions. -/
+/--  Elements of a cancel monoid are regular.  Cancel semigroups do not appear to exist. -/
 lemma is_regular_of_cancel_monoid {G : Type*} [cancel_monoid G] (g : G) :
   is_regular g :=
 ⟨mul_right_injective g, mul_left_injective g⟩
 
-/--  Non-zero elements of an integral domain are regular.
-
-Funny how left and right change positions. -/
+/--  Non-zero elements of an integral domain are regular. -/
 lemma is_regular_of_integral_domain {D : Type*} [integral_domain D] {a : D} (a0 : a ≠ 0) :
   is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
@@ -93,8 +85,5 @@ end is_regular
 open is_regular
 
 /-- A unit in a monoid is regular. -/
-lemma is_unit.is_regular [monoid R] {a : R} (ua : is_unit a) : is_regular a :=
-begin
-  rcases ua with ⟨⟨a, b, ab, ba⟩, rfl⟩,
-  exact of_mul_eq_one_mul_eq_one ab ba
-end
+lemma is_unit.is_regular [monoid R] {a : R} : is_unit a → is_regular a
+| ⟨⟨a, b, ab, ba⟩, rfl⟩ := of_mul_eq_one_mul_eq_one ab ba

@@ -2,12 +2,61 @@
 Copyright (c) 2018 Louis Carlin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
-
-Euclidean domains and Euclidean algorithm (extended to come)
-A lot is based on pre-existing code in mathlib for natural number gcds
 -/
+
 import data.int.basic
 import algebra.field
+
+/-!
+# Euclidean domains
+
+This file introduces Euclidean domains and provides the extended Euclidean algorithm. To be precise,
+a slightly more general version is provided which is sometimes called a transfinite Euclidean domain
+and differs in the fact that the degree function need not take values in `ℕ` but can take values in
+any well-ordered set. Transfinite Euclidean domains were introduced by Motzkin and examples which
+don't satisfy the classical notion were provided independently by Hiblot and Nagata.
+
+## Main definitions
+
+* `euclidean_domain`: Defines Euclidean domain with functions `quotient` and `remainder`. Instances
+  of `has_div` and `has_mod` are provided, so that one can write `a = b * (a / b) + a % b`.
+* `gcd`: defines the greatest common divisors of two elements of a Euclidean domain.
+* `xgcd`: given two elements `a b : R`, `xgcd a b` defines the pair `(x, y)` such that
+  `x * a + y * b = gcd a b`.
+* `lcm`: defines the lowest common multiple of two elements `a` and `b` of a Euclidean domain as
+  `a * b / (gcd a b)`
+
+## Main statements
+
+* `gcd_eq_gcd_ab`: states Bézout's lemma for Euclidean domains.
+* `int.euclidean_domain`: shows that `ℤ` is a Euclidean domain.
+* `field.to_euclidean_domain`: shows that any field is a Euclidean domain.
+
+## Notation
+
+`≺` denotes the well founded relation on the Euclidean domain, e.g. in the example of the polynomial
+ring over a field, `p ≺ q` for polynomials `p` and `q` if and only if the degree of `p` is less than
+the degree of `q`.
+
+## Implementation details
+
+Instead of working with a valuation, `euclidean_domain` is implemented with the existence of a well
+founded relation `r` on the integral domain `R`, which in the example of `ℤ` would correspond to
+setting `i ≺ j` for integers `i` and `j` if the absolute value of `i` is smaller than the absolute
+value of `j`.
+
+## References
+
+* [Th. Motzkin, *The Euclidean algorithm*][MR32592]
+* [J.-J. Hiblot, *Des anneaux euclidiens dont le plus petit algorithme n'est pas à valeurs finies*]
+  [MR399081]
+* [M. Nagata, *On Euclid algorithm*][MR541021]
+
+
+## Tags
+
+Euclidean domain, transfinite Euclidean domain, Bézout's lemma
+-/
 
 universe u
 
@@ -265,6 +314,7 @@ gcd.induction r r' (by intros; simpa only [xgcd_zero_left]) $ λ x y h IH s t s'
     mod_eq_sub_mul_div]
 end
 
+/-- An explicit version of Bézout's lemma for Euclidean domains. -/
 theorem gcd_eq_gcd_ab (a b : R) : (gcd a b : R) = a * gcd_a a b + b * gcd_b a b :=
 by have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]);

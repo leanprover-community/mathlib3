@@ -40,6 +40,9 @@ which are lattices with only two elements, and related ideas.
    of `is_atom` and `is_coatom`.
   * `is_simple_lattice_iff_is_atom_top` and `is_simple_lattice_iff_is_coatom_bot` express the
   connection between atoms, coatoms, and simple lattices
+  * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
+  bounded lattice, a complement of an atom is a coatom and vice versa.
+  * ``is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
 
 -/
 
@@ -213,6 +216,32 @@ instance : is_atomic α :=
   cases s.eq_empty_or_nonempty with h h,
   { simp [h] },
   { exact or.intro_right _ ⟨h.some, hs _ h.some_spec, le_Sup h.some_spec⟩ } } ⟩
+
+end is_atomistic
+
+section is_atomistic
+variables [is_atomistic α]
+
+@[simp]
+theorem Sup_atoms_le_eq (b : α) : Sup {a : α | is_atom a ∧ a ≤ b} = b :=
+begin
+  rcases eq_Sup_atoms b with ⟨s, rfl, hs⟩,
+  exact le_antisymm (Sup_le (λ _, and.right)) (Sup_le_Sup (λ a ha, ⟨hs a ha, le_Sup ha⟩)),
+end
+
+@[simp]
+theorem Sup_atoms_eq_top : Sup {a : α | is_atom a} = ⊤ :=
+begin
+  refine eq.trans (congr rfl (set.ext (λ x, _))) (Sup_atoms_le_eq ⊤),
+  exact (and_iff_left le_top).symm,
+end
+
+theorem le_iff_atom_le_imp {a b : α} :
+  a ≤ b ↔ ∀ c : α, is_atom c → c ≤ a → c ≤ b :=
+⟨λ ab c hc ca, le_trans ca ab, λ h, begin
+  rw [← Sup_atoms_le_eq a, ← Sup_atoms_le_eq b],
+  exact Sup_le_Sup (λ c hc, ⟨hc.1, h c hc.1 hc.2⟩),
+end⟩
 
 end is_atomistic
 
@@ -439,6 +468,26 @@ by rw [is_simple_lattice_iff_is_atom_top, is_simple_lattice_iff_is_atom_top,
 lemma is_simple_lattice [h : is_simple_lattice β] (f : α ≃o β) : is_simple_lattice α :=
 f.is_simple_lattice_iff.mpr h
 
+lemma is_atomic_iff : is_atomic α ↔ is_atomic β :=
+begin
+  suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
+    (∀ b : β, b = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ b),
+  from ⟨λ ⟨p⟩, ⟨this.mp p⟩, λ ⟨p⟩, ⟨this.mpr p⟩⟩,
+  apply f.to_equiv.forall_congr,
+  simp_rw [rel_iso.coe_fn_to_equiv],
+  intro b, apply or_congr,
+  { rw [f.apply_eq_iff_eq_symm_apply, map_bot], },
+  { split,
+    { exact λ ⟨a, ha⟩, ⟨f a, ⟨(f.is_atom_iff a).mpr ha.1, f.le_iff_le.mpr ha.2⟩⟩, },
+    { rintros ⟨b, ⟨hb1, hb2⟩⟩,
+      refine ⟨f.symm b, ⟨(f.symm.is_atom_iff b).mpr hb1, _⟩⟩,
+      rwa [←f.le_iff_le, f.apply_symm_apply], }, },
+end
+
+lemma is_coatomic_iff : is_coatomic α ↔ is_coatomic β :=
+by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
+  exact f.dual.is_atomic_iff, }
+
 end order_iso
 
 section is_modular_lattice
@@ -455,5 +504,27 @@ set.is_simple_lattice_Iic_iff_is_atom.symm.trans $ hc.Iic_order_iso_Ici.is_simpl
 lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_is_coatom.symm
 
 end is_compl
+
+variables [is_complemented α]
+
+lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] : is_coatomic α :=
+⟨λ x, begin
+  rcases exists_is_compl x with ⟨y, xy⟩,
+  apply (eq_bot_or_exists_atom_le y).imp _ _,
+  { rintro rfl,
+    exact eq_top_of_is_compl_bot xy },
+  { rintro ⟨a, ha, ay⟩,
+    rcases exists_is_compl (xy.symm.Iic_order_iso_Ici ⟨a, ay⟩) with ⟨⟨b, xb⟩, hb⟩,
+    refine ⟨↑(⟨b, xb⟩ : set.Ici x), is_coatom.of_is_coatom_coe_Ici _, xb⟩,
+    rw [← hb.is_atom_iff_is_coatom, order_iso.is_atom_iff],
+    apply ha.Iic }
+end⟩
+
+lemma is_atomic_of_is_coatomic_of_is_complemented_of_is_modular [is_coatomic α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_is_complemented_of_is_modular
+
+theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
+⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ h,
+  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ h⟩
 
 end is_modular_lattice

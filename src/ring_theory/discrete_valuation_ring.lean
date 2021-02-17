@@ -168,7 +168,7 @@ begin
   { simpa only [pow_one] using hn.symm, },
   { obtain ⟨n, rfl⟩ : ∃ k, n = 1 + k + 1 := nat.exists_eq_add_of_lt H,
     rw pow_succ at this,
-    rcases this.2 _ _ rfl with H0|H0,
+    rcases this.is_unit_or_is_unit rfl with H0|H0,
     { exact (hϖ.not_unit H0).elim, },
     { rw [add_comm, pow_succ] at H0,
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }

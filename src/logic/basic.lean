@@ -446,6 +446,9 @@ theorem iff_false_left (ha : ¬a) : (a ↔ b) ↔ ¬b :=
 theorem iff_false_right (ha : ¬a) : (b ↔ a) ↔ ¬b :=
 iff.comm.trans (iff_false_left ha)
 
+@[simp]
+lemma iff_mpr_iff_true_intro {P : Prop} (h : P) : iff.mpr (iff_true_intro h) true.intro = h := rfl
+
 -- See Note [decidable namespace]
 protected theorem decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
 if ha : a then or.inr (h ha) else or.inl ha
@@ -1227,6 +1230,11 @@ h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 end nonempty
 
 section ite
+
+/-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
+@[simp]
+lemma dite_eq_ite (P : Prop) [decidable P] {α : Sort*} (x y : α) :
+  dite P (λ h, x) (λ h, y) = ite P x y := rfl
 
 /-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
 lemma apply_dite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :

@@ -57,8 +57,8 @@ lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) :
 ⟨hl, hr⟩
 
 /-- An element admitting a left and a right inverse is regular. -/
-lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
-of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
+lemma unit.is_regular (a : unit R) : is_regular (a : R) :=
+⟨left_of_mul_eq_one sorry, right_of_mul_eq_one sorry⟩
 
 /--  Elements of a left cancel semigroup are left regular.
 
@@ -93,8 +93,5 @@ end is_regular
 open is_regular
 
 /-- A unit in a monoid is regular. -/
-lemma is_unit.is_regular [monoid R] {a : R} (ua : is_unit a) : is_regular a :=
-begin
-  rcases ua with ⟨⟨a, b, ab, ba⟩, rfl⟩,
-  exact of_mul_eq_one_mul_eq_one ab ba
-end
+lemma is_unit.is_regular [monoid R] {a : R} : is_unit a → is_regular a
+| ⟨⟨a, b, ab, ba⟩, rfl⟩ := of_mul_eq_one_mul_eq_one ab ba

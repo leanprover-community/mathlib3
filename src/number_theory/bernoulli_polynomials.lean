@@ -67,7 +67,7 @@ begin
   ring,
 end
 
-lemma choose_mul (n k s : ℕ) (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
+lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
 n.choose s * (n - s).choose (k - s) :=
 begin
   -- write everything as ratios of factorials
@@ -83,7 +83,7 @@ begin
   ring,
 end
 
-open nat
+open nat finset
 
 def bernoulli_neg (n : ℕ) : ℚ := (-1)^n * (bernoulli n)
 
@@ -139,13 +139,27 @@ begin
   },
 end
 
-def bernoulli_poly (n : ℕ) : ℚ → ℚ := λ X, ∑ i in finset.range (n+1),
-  (bernoulli_neg i)*(nat.choose n i)*(X^(n-i))
+variables {A : Type*} [ring A] [algebra ℚ A]
+
+--[decidable_eq]
+
+def bernoulli_poly (n : ℕ) : polynomial ℚ := ∑ i in finset.range (n+1),
+  polynomial.monomial (n-i) ((bernoulli_neg i)*(nat.choose n i))
+
+lemma bernoulli_poly_def (n : ℕ) : bernoulli_poly n = ∑ i in finset.range (n+1),
+  polynomial.monomial i ((bernoulli_neg (n - i))*(nat.choose n i)) := sorry
+
+/-finsupp.on_finset (range n.succ)
+  (λ i, bernoulli_neg (n - i) * nat.choose n i)
+  (begin rintros a, contrapose, simp only [cast_eq_zero, mem_range, not_lt, not_not, mul_eq_zero],
+    rintros h, right, exact choose_eq_zero_of_lt (succ_le_iff.1 h) end)-/
+
+--∑ i in finset.range (n+1), ((bernoulli_neg i)*(nat.choose n i)) * (X^(n-i))
 
 namespace bernoulli_poly
 
-lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1),
-  (bernoulli_neg (n - i))*(nat.choose n i)*(X^i) :=
+/-lemma bernoulli_poly_def (n : ℕ) (X : A) : bernoulli_poly n X = ∑ i in finset.range (n+1),
+  ((bernoulli_neg (n - i))*(nat.choose n i))•(X^i) :=
 begin
   -- flip the sum
   rw [← finset.sum_flip, bernoulli_poly],
@@ -161,7 +175,7 @@ begin
   congr',
   -- there's some stupid easy thing
   omega,
-end
+end -/
 
 --lemma bernoulli_poly_def (n : ℕ) (X : ℚ) : bernoulli_poly n X = ∑ i in finset.range (n+1), (bernoulli_neg i)*(nat.choose n i)*(X^(n-i)) :=
 --by { rw [bernoulli_poly, ← fin.sum_univ_eq_sum_range] }
@@ -174,115 +188,76 @@ section examples
 
 open finset
 
-@[simp] lemma bernoulli_poly_zero (X : ℚ) : bernoulli_poly 0 X = 1 := rfl
-
-@[simp] lemma bernoulli_poly_zero' (n : ℕ) : bernoulli_poly n 0 = bernoulli_neg n :=
+/-@[simp] lemma bernoulli_poly_coeff (n : ℕ) (i ∈ finset.range n.succ) : (bernoulli_poly n).coeff i =
+  bernoulli_neg (n - i) * (nat.choose n i) :=
 begin
-  -- don't need induction
-  -- rewrite the definition
-  rw bernoulli_poly, dsimp only,
-  -- this is a sum to range n.succ. There's a lemma for that. You can guess its name
-  rw sum_range_succ,
-  -- Claim: If we can show that sum is zero, we're done.
-  suffices : ∑ (x : ℕ) in range n, bernoulli_neg x * (n.choose x) * 0 ^ (n - x) = 0,
-  { rw this,
-    -- Proof : the simplifier can do it.
-    simp,
-  },
-  -- a sum is zero if all terms are zero
-  apply sum_eq_zero,
-  -- say k < n
-  intros k hk, rw mem_range at hk,
-  suffices : (0 : ℚ) ^ (n - k) = 0,
-    rw this, simp,
-  -- zero_pow is bound to exist
-  apply zero_pow,
-  -- library_search can now find the way
-  exact nat.sub_pos_of_lt hk,
+  rw bernoulli_poly, rw ←polynomial.apply_eq_coeff,
+end -/
+
+/-@[simp] lemma bernoulli_poly_degree (n : ℕ) : (bernoulli_poly n).degree = n :=
+begin
+rw bernoulli_poly, rw polynomial.degree,
+apply polynomial.card_supp_le_succ_nat_degree,
+sorry
+end -/
+
+/-lemma bernoulli_poly_coeff' (n i : ℕ) (h : n < i) : (bernoulli_poly n).coeff i = 0 :=
+begin
+  rw polynomial.coeff_eq_zero_of_degree_lt, rw bernoulli_poly_degree, norm_cast, assumption,
+end -/
+
+@[simp] lemma bernoulli_poly_zero : bernoulli_poly 0 = 1 :=
+begin
+  rw bernoulli_poly, simp only [mul_one, cast_one, polynomial.monomial_zero_left,
+  bernoulli_neg_zero, sum_singleton, ring_hom.map_one, choose_self, range_one],
 end
 
-@[simp] lemma bernoulli_poly_one (X : ℚ) : bernoulli_poly 1 X = X -1/2 :=
+@[simp] lemma bernoulli_poly_zero' (n : ℕ) : (bernoulli_poly n).eval 0 = bernoulli_neg n :=
 begin
-  simp [bernoulli_poly_def, sum_range_succ], ring,
+  rw bernoulli_poly, rw polynomial.eval_finset_sum, simp,
+  rw sum_range_succ, simp, apply sum_eq_zero, rintros x hx, rw zero_pow', simp,
+  { intros h, apply nat.lt_le_antisymm (mem_range.1 hx) (nat.sub_eq_zero_iff_le.1 h), },
+end
+
+@[simp] lemma bernoulli_poly_one : bernoulli_poly 1 = polynomial.X + (-1)/2 :=
+begin
+  rw bernoulli_poly, rw sum_range_succ, simp, rw ←polynomial.X_pow_eq_monomial 1, rw add_comm, simp,
+  --rw polynomial.C_eq_algebra_map,
+  sorry,
 end
 
 end examples
 
-@[simp] theorem sum_bernoulli_poly (n : ℕ) (X : ℚ) :
-  ∑ k in finset.range (n + 1), ((n + 1).choose k : ℚ) * bernoulli_poly k X = (n + 1) * X^n :=
+@[simp] lemma nat.le_self_add (x y : ℕ) : x ≤ x + y :=
+begin
+  exact le.intro rfl,
+end
+
+@[simp] theorem sum_bernoulli_poly (n : ℕ) :
+  ∑ k in finset.range (n + 1), ((n + 1).choose k : ℚ) • bernoulli_poly k =
+   polynomial.monomial n (n + 1 : ℚ) :=
 begin
   cases n, simp,
   simp_rw [bernoulli_poly_def],
-  simp_rw [finset.mul_sum],
-  suffices f :
-  ∑ (s : ℕ) in finset.range (n.succ + 1),
-    ((n.succ + 1).choose s : ℚ) *  X ^ s *
-      ∑ (y : ℕ) in finset.range (n.succ + 1 - s),
-        ((n.succ + 1 - s).choose y : ℚ) * bernoulli_neg y =
-          (n.succ + 1) * X ^ (n.succ),
-  {
-    simp_rw [finset.range_eq_Ico],
-    rw <-finset.dependent_double_sum,
-    simp_rw [finset.range_eq_Ico] at f,
-    conv_lhs
-    {
-      congr,
-      skip,
-      funext,
-      rw [finset.sum_Ico_eq_sum_range, finset.range_eq_Ico],
-    },
-    rw <-f,
-    rw <-sub_eq_zero_iff_eq,
-    rw <-finset.sum_sub_distrib,
-    rw finset.sum_eq_zero,
-    rintros x hx,
-    rw mul_comm,
-    rw finset.sum_mul,
-    rw <-finset.sum_sub_distrib,
-    rw finset.sum_eq_zero,
-    rintros y hy,
-    rw sub_eq_zero_iff_eq,
-    simp, rw mul_comm, rw mul_comm ((n.succ + 1 - x).choose y : ℚ) (bernoulli_neg y),
-    rw mul_assoc, rw mul_assoc, rw mul_assoc,
-    rw mul_eq_mul_left_iff,
-    left, rw mul_comm, rw mul_comm ((n.succ + 1 - x).choose y : ℚ) (((n.succ + 1).choose x : ℚ) * X^x),
-    rw mul_comm ((n.succ + 1).choose x : ℚ) (X^x),
-    rw mul_assoc, rw mul_assoc,
-    rw mul_eq_mul_left_iff,
-    left,
-    rw choose_mul, simp,
-    {
-      simp at hx, simp at hy,
-      have h:= nat.add_lt_add_left hy x,
-      have h' : x + (n.succ + 1 - x) = n.succ + 1,
-      rw nat.add_sub_cancel',
-      exact le_of_lt hx,
-      rw h' at h,
-      exact le_of_lt h,
-    },
-    simp,
-  },
-  rw [finset.sum_range_succ], simp,
-  rw [finset.sum_range_succ], simp,
-  have g : ↑((n.succ + 1).choose n) * X ^ n * ∑ (y : ℕ) in finset.range (n.succ + 1 - n),
-    ↑((n.succ + 1 - n).choose y) * bernoulli_neg y = 0,
-  {
-    simp,
-    right,
-    have h : n.succ + 1 - n = 2,
-    rw succ_add, rw succ_sub, simp, simp,
-    rw h, simp,
-  },
-  rw g, simp,
-  rw [finset.sum_eq_zero],
-  rintros x hx,
-  rw sum_bernoulli_neg, simp,
-  simp at hx,
-  rw succ_add, rw succ_sub,
-  rw succ_le_succ_iff,
-  rw succ_sub, rw succ_le_succ_iff, simp, exact le_of_lt hx,
-  apply le_succ_of_le,
-  exact le_of_lt hx,
+  simp_rw [finset.smul_sum],
+  simp_rw [finset.range_eq_Ico],
+  rw ←finset.dependent_double_sum,
+  simp_rw [finset.sum_Ico_eq_sum_range], simp,
+  simp_rw [polynomial.smul_monomial], simp_rw [mul_comm (bernoulli_neg _) _],
+  simp_rw [smul_eq_mul, ←mul_assoc],
+  conv_lhs
+  { apply_congr, skip, conv
+  { apply_congr, skip,
+    rw choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le _ _ H)).1 (mem_range_le _ _ H_1))
+      (le.intro rfl),
+    rw add_comm x x_1, rw nat.add_sub_cancel, rw mul_assoc, rw mul_comm, rw ←smul_eq_mul,
+    rw ←polynomial.smul_monomial, },
+    rw [←sum_smul], skip, },
+  rw sum_range_succ, simp,
+  have f : ∀ x ∈ range n.succ, 2 ≤ n.succ + 1 - x, sorry,
+  conv_lhs
+  { apply_congr, skip, rw [sum_bernoulli_neg _ (f x H)], rw zero_smul, skip, },
+  simp,
 end
 
 namespace nat
@@ -303,7 +278,7 @@ end nat
 
 open power_series
 
-theorem exp_bernoulli_neg (f : ℕ → ℚ) (hf : f = λ i : ℕ, (bernoulli_neg i / (nat.factorial i)) )
+/- theorem exp_bernoulli_neg (f : ℕ → ℚ) (hf : f = λ i : ℕ, (bernoulli_neg i / (nat.factorial i)) )
 (g : ℕ → ℚ) (hg : g = λ i : ℕ, if i = 0 then 0 else (1 / (nat.factorial (i) )) ) :
 (power_series.mk f) * (power_series.mk g) = power_series.X :=
 begin
@@ -383,7 +358,7 @@ begin
     rw sum_bernoulli_neg,
     exact h',
   },
-end
+end -/
 
 open finset nat
 
@@ -401,9 +376,9 @@ noncomputable def eval_mul_hom (a : R) : power_series R →+* power_series R :=
               intros b c H, rw [<-H, pow_add], ring, }, }
 
 
-theorem exp_bernoulli_poly' (t : ℚ) :
-  power_series.mk (λ n, (bernoulli_poly n t / nat.factorial n : ℚ)) * (exp ℚ - 1)
-    = X * eval_mul_hom t (exp ℚ) :=
+theorem exp_bernoulli_poly' (t : A) :
+  power_series.mk (λ n, (bernoulli_poly n / nat.factorial n)) * (exp ℚ - 1)
+    = X * eval_mul_hom t (exp A) :=
 begin
   ext, rw coeff_mul, rw coeff_mul, rw finset.nat.sum_antidiagonal_eq_sum_range_succ_mk, rw finset.nat.sum_antidiagonal_eq_sum_range_succ_mk,
   simp only [coeff_mk, coeff_one, coeff_exp, ring_hom.id_apply, linear_map.map_sub, factorial,

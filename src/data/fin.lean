@@ -927,6 +927,23 @@ begin
   simp [cast_pred, pred_above, this]
 end
 
+lemma pred_above_below (p : fin (n + 1)) (i : fin (n + 2)) (h : i ≤ p.cast_succ) :
+  p.pred_above i = i.cast_pred :=
+begin
+  have : i ≤ (last n).cast_succ := h.trans p.le_last,
+  simp [pred_above, cast_pred, h.not_lt, this.not_lt]
+end
+
+@[simp] lemma pred_above_last : pred_above (fin.last n) = cast_pred := rfl
+
+lemma pred_above_last_apply (i : fin n) : pred_above (fin.last n) i = i.cast_pred :=
+by rw pred_above_last
+
+lemma pred_above_above (p : fin n) (i : fin (n + 1)) (h : p.cast_succ < i) :
+  p.pred_above i = i.pred (p.cast_succ.zero_le.trans_lt h).ne.symm :=
+by simp [pred_above, h]
+
+
 /-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
 then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/
 @[simp] lemma succ_above_pred_above {p : fin n} {i : fin (n + 1)} (h : i ≠ p.cast_succ) :

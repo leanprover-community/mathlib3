@@ -752,6 +752,10 @@ def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
 @[simp] lemma coe_sub_nat (i : fin (n + m)) (h : m ≤ i) : (i.sub_nat m h : ℕ) = i - m :=
 rfl
 
+@[simp] lemma pred_cast_succ_succ (i : fin n) :
+  pred (cast_succ i.succ) (ne_of_gt (cast_succ_pos i.succ_pos)) = i.cast_succ :=
+by simp [eq_iff_veq]
+
 end pred
 
 section succ_above

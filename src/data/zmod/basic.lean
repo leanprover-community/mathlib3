@@ -204,8 +204,10 @@ by { cases n; refl }
 
 end
 
+/-- So-named because the coercion is `nat.cast` into `zmod`. For `nat.cast` into an arbitrary ring,
+see `zmod.nat_cast_val`. -/
 @[simp]
-lemma cast_val {n : ℕ} [fact (0 < n)] (a : zmod n) :
+lemma nat_cast_zmod_val {n : ℕ} [fact (0 < n)] (a : zmod n) :
   (a.val : zmod n) = a :=
 begin
   casesI n,
@@ -214,12 +216,14 @@ begin
     rw [val, fin.ext_iff, fin.coe_coe_eq_self] }
 end
 
-lemma nat_cast_surjective [fact (0 < n)] :
+lemma nat_cast_zmod_surjective [fact (0 < n)] :
   function.surjective (coe : ℕ → zmod n) :=
-function.right_inverse.surjective cast_val
+function.right_inverse.surjective nat_cast_zmod_val
 
+/-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
+ring, see `zmod.int_cast_cast`. -/
 @[simp]
-lemma int_cast_coe_zmod (a : zmod n) :
+lemma int_cast_zmod_cast (a : zmod n) :
   ((a : ℤ) : zmod n) = a :=
 begin
   cases n,
@@ -229,18 +233,19 @@ end
 
 lemma int_cast_surjective :
   function.surjective (coe : ℤ → zmod n) :=
-function.right_inverse.surjective int_cast_coe_zmod
+function.right_inverse.surjective int_cast_zmod_cast
 
 @[norm_cast]
 lemma cast_id : ∀ n (i : zmod n), ↑i = i
 | 0     i := int.cast_id i
-| (n+1) i := cast_val i
+| (n+1) i := nat_cast_zmod_val i
 
 @[simp]
 lemma cast_id' : (coe : zmod n → zmod n) = id := funext (cast_id n)
 
 variables (R) [ring R]
 
+/-- The coercions are respectively `nat.cast` and `zmod.cast`. -/
 @[simp] lemma nat_cast_comp_val [fact (0 < n)] :
   (coe : ℕ → R) ∘ (val : zmod n → ℕ) = coe :=
 begin
@@ -249,7 +254,8 @@ begin
   refl
 end
 
-@[simp] lemma int_cast_comp_coe :
+/-- The coercions are respectively `int.cast`, `zmod.cast`, and `zmod.cast`. -/
+@[simp] lemma int_cast_comp_cast :
   (coe : ℤ → R) ∘ (coe : zmod n → ℤ) = coe :=
 begin
   cases n,
@@ -263,9 +269,9 @@ variables {R}
   (i.val : R) = i :=
 congr_fun (nat_cast_comp_val R) i
 
-@[simp] lemma int_cast_coe (i : zmod n) :
+@[simp] lemma int_cast_cast (i : zmod n) :
   ((i : ℤ) : R) = i :=
-congr_fun (int_cast_comp_coe R) i
+congr_fun (int_cast_comp_cast R) i
 
 section char_dvd
 /-! If the characteristic of `R` divides `n`, then `cast` is a homomorphism. -/
@@ -497,7 +503,7 @@ begin
   { set k := n.succ,
     calc a * a⁻¹ = a * a⁻¹ + k * nat.gcd_b (val a) k : by rw [cast_self, zero_mul, add_zero]
              ... = ↑(↑a.val * nat.gcd_a (val a) k + k * nat.gcd_b (val a) k) :
-                     by { push_cast, rw cast_val, refl }
+                     by { push_cast, rw nat_cast_zmod_val, refl }
              ... = nat.gcd a.val k : (congr_arg coe (nat.gcd_eq_gcd_ab a.val k)).symm, }
 end
 
@@ -535,7 +541,7 @@ begin
   have := units.ext_iff.1 (mul_right_inv u),
   rw [units.coe_one] at this,
   rw [← eq_iff_modeq_nat, nat.cast_one, ← this], clear this,
-  rw [← cast_val ((u * u⁻¹ : units (zmod (n+1))) : zmod (n+1))],
+  rw [← nat_cast_zmod_val ((u * u⁻¹ : units (zmod (n+1))) : zmod (n+1))],
   rw [units.coe_mul, val_mul, cast_mod_nat],
 end
 
@@ -567,7 +573,7 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
   units (zmod n) ≃ {x : zmod n // nat.coprime x.val n} :=
 { to_fun := λ x, ⟨x, val_coe_unit_coprime x⟩,
   inv_fun := λ x, unit_of_coprime x.1.val x.2,
-  left_inv := λ ⟨_, _, _, _⟩, units.ext (cast_val _),
+  left_inv := λ ⟨_, _, _, _⟩, units.ext (nat_cast_zmod_val _),
   right_inv := λ ⟨_, _⟩, by simp }
 
 section totient
@@ -614,10 +620,11 @@ begin
     rw [← nat.two_mul_odd_div_two hn, two_mul, ← nat.succ_add, nat.add_sub_cancel], },
   have hxn : (n : ℕ) - x.val < n,
   { rw [nat.sub_lt_iff (le_of_lt x.val_lt) (le_refl _), nat.sub_self],
-    rw ← zmod.cast_val x at hx0,
+    rw ← zmod.nat_cast_zmod_val x at hx0,
     exact nat.pos_of_ne_zero (λ h, by simpa [h] using hx0) },
   by conv {to_rhs, rw [← nat.succ_le_iff, nat.succ_eq_add_one, ← hn2', ← zero_add (- x),
-    ← zmod.cast_self, ← sub_eq_add_neg, ← zmod.cast_val x, ← nat.cast_sub (le_of_lt x.val_lt),
+    ← zmod.cast_self, ← sub_eq_add_neg, ← zmod.nat_cast_zmod_val x,
+    ← nat.cast_sub (le_of_lt x.val_lt),
     zmod.val_cast_nat, nat.mod_eq_of_lt hxn, nat.sub_le_sub_left_iff (le_of_lt x.val_lt)] }
 end
 
@@ -686,8 +693,8 @@ end
 begin
   rw val_min_abs_def_pos,
   split_ifs,
-  { rw [int.cast_coe_nat, cast_val] },
-  { rw [int.cast_sub, int.cast_coe_nat, cast_val, int.cast_coe_nat, cast_self, sub_zero], }
+  { rw [int.cast_coe_nat, nat_cast_zmod_val] },
+  { rw [int.cast_sub, int.cast_coe_nat, nat_cast_zmod_val, int.cast_coe_nat, cast_self, sub_zero] }
 end
 
 lemma nat_abs_val_min_abs_le {n : ℕ} [fact (0 < n)] (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
@@ -731,9 +738,9 @@ begin
     by { erw [sub_nonpos, int.coe_nat_le], exact le_of_lt a.val_lt, },
   rw [zmod.val_min_abs_def_pos],
   split_ifs,
-  { rw [int.nat_abs_of_nat, cast_val] },
+  { rw [int.nat_abs_of_nat, nat_cast_zmod_val] },
   { rw [← int.cast_coe_nat, int.of_nat_nat_abs_of_nonpos this, int.cast_neg, int.cast_sub],
-    rw [int.cast_coe_nat, int.cast_coe_nat, cast_self, sub_zero, cast_val], }
+    rw [int.cast_coe_nat, int.cast_coe_nat, cast_self, sub_zero, nat_cast_zmod_val], }
 end
 
 @[simp] lemma nat_abs_val_min_abs_neg {n : ℕ} (a : zmod n) :
@@ -757,7 +764,7 @@ begin
     { assume h,
       apply lt_of_le_of_ne (le_trans (nat.le_add_left _ _) h),
       contrapose! haa,
-      rw [← zmod.cast_val a, ← haa, neg_eq_iff_add_eq_zero, ← nat.cast_add],
+      rw [← zmod.nat_cast_zmod_val a, ← haa, neg_eq_iff_add_eq_zero, ← nat.cast_add],
       rw [char_p.cast_eq_zero_iff (zmod (n+1)) (n+1)],
       rw [← two_mul, ← zero_add (2 * _), ← hn0, nat.mod_add_div] },
     { rw [hn0, zero_add], exact le_of_lt } },
@@ -781,7 +788,7 @@ variables (p : ℕ) [fact p.prime]
 
 private lemma mul_inv_cancel_aux (a : zmod p) (h : a ≠ 0) : a * a⁻¹ = 1 :=
 begin
-  obtain ⟨k, rfl⟩ := nat_cast_surjective a,
+  obtain ⟨k, rfl⟩ := nat_cast_zmod_surjective a,
   apply coe_mul_inv_eq_one,
   apply nat.coprime.symm,
   rwa [nat.prime.coprime_iff_not_dvd ‹p.prime›, ← char_p.cast_eq_zero_iff (zmod p)]

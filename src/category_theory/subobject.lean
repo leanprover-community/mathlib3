@@ -475,7 +475,7 @@ variables [has_images C] [has_binary_coproducts C]
 which is functorial in both arguments,
 and which on `subobject A` will induce a `semilattice_sup`. -/
 def sup  {A : C} : mono_over A ⥤ mono_over A ⥤ mono_over A :=
-curry_obj ((forget A).prod (forget A) ⋙ uncurry.obj (over.coprod _) ⋙ image)
+curry_obj ((forget A).prod (forget A) ⋙ uncurry.obj over.coprod ⋙ image)
 
 /-- A morphism version of `le_sup_left`. -/
 def le_sup_left {A : C} (f g : mono_over A) :

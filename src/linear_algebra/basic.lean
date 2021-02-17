@@ -497,9 +497,6 @@ instance : has_top (submodule R M) :=
 
 @[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
 
-lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : p = ⊥ :=
-by ext x; simp [semimodule.eq_zero_of_zero_eq_one x zero_eq_one]
-
 instance : order_top (submodule R M) :=
 { top := ⊤,
   le_top := λ p x _, trivial,
@@ -579,9 +576,10 @@ variables {R}
 instance [subsingleton M] : unique (submodule R M) :=
 ⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
 
+instance unique' [subsingleton R] : unique (submodule R M) :=
+⟨⟨⊥⟩, λ a, by haveI := semimodule.subsingleton R M; exactI subsingleton.elim a _⟩
+
 instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
-lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
-λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
 
 @[simp] theorem inf_coe : (p ⊓ p' : set M) = p ∩ p' := rfl
 

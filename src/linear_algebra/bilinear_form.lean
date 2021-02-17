@@ -1172,7 +1172,8 @@ lemma span_sup_ortho_eq_top {B : bilin_form K V}
   (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   submodule.span K ({x} : set V) ⊔ B.orthogonal (submodule.span K ({x} : set V)) = ⊤ :=
 begin
-  refine eq_top_iff.2 (λ y _, _), rw submodule.mem_sup,
+  refine eq_top_iff.2 (λ y _, _),
+  rw submodule.mem_sup,
   refine ⟨(B x y * (B x x)⁻¹) • x, _, y - (B x y * (B x x)⁻¹) • x, _, _⟩,
   { exact submodule.mem_span_singleton.2 ⟨(B x y * (B x x)⁻¹), rfl⟩ },
   { intros z hz,
@@ -1267,10 +1268,12 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 lemma is_basis.trivial (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
 begin
   split,
-  rw linear_independent_iff', intros, exact fin.elim0 i,
-  rw ← findim_top at hV,
-  rw [eq_top_iff, (@findim_eq_zero K V _ _ _ _ _).1 hV],
-  exact bot_le
+  { rw linear_independent_iff',
+    intros,
+    exact fin.elim0 i },
+  { rw ← findim_top at hV,
+    rw [eq_top_iff, (@findim_eq_zero K V _ _ _ _ _).1 hV],
+    exact bot_le }
 end
 
 lemma findim_ortho_span_singleton

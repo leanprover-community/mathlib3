@@ -60,26 +60,26 @@ lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) :
 lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
 of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
 
-/--  Elements of a left cancel monoid are left regular.
+/--  Elements of a left cancel semigroup are left regular.
 
 Funny how left and right change positions. -/
-lemma is_left_regular_of_left_cancel_monoid {G : Type*} [left_cancel_monoid G] (g : G) :
+lemma is_left_regular_of_left_cancel_semigroup {G : Type*} [left_cancel_semigroup G] (g : G) :
   is_left_regular g :=
-λ {b c : G}, (_root_.mul_right_inj g).mp
+mul_right_injective g
 
-/--  Elements of a right cancel monoid are right regular.
+/--  Elements of a right cancel semigroup are right regular.
 
 Funny how left and right change positions. -/
-lemma is_right_regular_of_right_cancel_monoid {G : Type*} [right_cancel_monoid G] (g : G) :
+lemma is_right_regular_of_right_cancel_semigroup {G : Type*} [right_cancel_semigroup G] (g : G) :
   is_right_regular g :=
-λ {b c : G}, (_root_.mul_left_inj g).mp
+mul_left_injective g
 
-/--  Elements of a cancel monoid are regular.
+/--  Elements of a cancel monoid are regular.  Cancel semigroups do not appear to exist.
 
 Funny how left and right change positions. -/
 lemma is_regular_of_cancel_monoid {G : Type*} [cancel_monoid G] (g : G) :
   is_regular g :=
-⟨λ {b c : G}, (_root_.mul_right_inj g).mp, λ {b c : G}, (_root_.mul_left_inj g).mp⟩
+⟨mul_right_injective g, mul_left_injective g⟩
 
 /--  Non-zero elements of an integral domain are regular.
 

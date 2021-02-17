@@ -351,8 +351,7 @@ split,
 end
 
 lemma is_basis_empty (h_empty : ¬ nonempty ι) [subsingleton M] : is_basis R (λ x : ι, (0 : M)) :=
-⟨ linear_independent_empty_type h_empty,
-  eq_top_iff'.2 $ assume x, (subsingleton.elim x 0).symm ▸ submodule.zero_mem _ ⟩
+⟨ linear_independent_empty_type h_empty, subsingleton.elim _ _ ⟩
 
 lemma is_basis_empty_bot (h_empty : ¬ nonempty ι) :
   is_basis R (λ _ : ι, (0 : (⊥ : submodule R M))) :=

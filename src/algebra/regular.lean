@@ -62,19 +62,18 @@ lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) :
 lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
 of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
 
-lemma is_left_regular_of_left_cancel_semigroup {G : Type*} [left_cancel_semigroup G] (g : G) :
+lemma is_left_regular_of_left_cancel_monoid {G : Type*} [left_cancel_monoid G] (g : G) :
   is_left_regular g :=
 ⟨λ {b c : G}, (_root_.mul_right_inj g).mp⟩
 
-lemma is_right_regular_of_right_cancel_semigroup {G : Type*} [right_cancel_semigroup G] (g : G) :
+lemma is_right_regular_of_right_cancel_monoid {G : Type*} [right_cancel_monoid G] (g : G) :
   is_right_regular g :=
 ⟨λ {b c : G}, (_root_.mul_left_inj g).mp⟩
 
-/-  I could not find the correct typeclass that is both left and right cancellative.
-lemma is_regular_of_cancel_semigroup {G : Type*} [cancel_semigroup G] (g : G) :
+/--  Funny how left and right change positions. -/
+lemma is_regular_of_cancel_monoid {G : Type*} [cancel_monoid G] (g : G) :
   is_regular g :=
-⟨λ {b c : G}, (_root_.mul_left_inj g).mp, λ {b c : G}, (_root_.mul_right_inj g).mp⟩
--/
+⟨λ {b c : G}, (_root_.mul_right_inj g).mp, λ {b c : G}, (_root_.mul_left_inj g).mp⟩
 
 /--  Funny how left and right change positions. -/
 lemma is_regular_of_integral_domain {D : Type*} [integral_domain D] {a : D} (a0 : a ≠ 0) :

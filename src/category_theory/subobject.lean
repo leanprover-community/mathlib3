@@ -553,8 +553,11 @@ noncomputable
 def underlying_iso {X Y : C} (f : X ⟶ Y) [mono f] : underlying.obj (subobject.mk f) ≅ X :=
 (mono_over.forget _ ⋙ over.forget _).map_iso (representative_iso (mono_over.mk' f))
 
+instance : has_coe (subobject X) C :=
+{ coe := λ Y, underlying.obj Y, }
+
 noncomputable
-def arrow {X : C} (Y : subobject X) : underlying.obj Y ⟶ X :=
+def arrow {X : C} (Y : subobject X) : (Y : C) ⟶ X :=
 (representative.obj Y).val.hom
 
 @[simp]
@@ -576,7 +579,7 @@ subobject.mk (equalizer.ι f g)
 /-- The underlying object of `equalizer_subobject f g` is (up to isomorphism!)
 the same as the chosen object `equalizer f g`. -/
 def equalizer_subobject_iso {X Y : C} (f g : X ⟶ Y) [has_equalizer f g] :
-  subobject.underlying.obj (equalizer_subobject f g) ≅ equalizer f g :=
+  (equalizer_subobject f g : C) ≅ equalizer f g :=
 subobject.underlying_iso (equalizer.ι f g)
 
 lemma equalizer_subobject_arrow {X Y : C} (f g : X ⟶ Y) [has_equalizer f g] :

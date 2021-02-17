@@ -161,7 +161,7 @@ begin
     { exact pow_order_of_eq_one _ },
     rw r_one_pow at h1,
     injection h1 with h2,
-    rw [←zmod.val_eq_zero, zmod.val_cast_nat, nat.mod_eq_of_lt h] at h2,
+    rw [←zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
     exact absurd h2.symm (ne_of_lt (order_of_pos _)) },
   { exact h }
 end

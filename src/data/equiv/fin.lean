@@ -86,33 +86,45 @@ lemma fin_succ_equiv_symm'_coe_above {n : ℕ} {i m : fin (n + 1)} (h : i ≤ m)
   (fin_succ_equiv' i).symm m = m.succ :=
 by { convert fin_succ_equiv_symm'_some_above h; simp }
 
-/-- Equivalence between `fin (n + 2)` and `option (fin (n + 1))`.
-This is a version of `fin.pred` that produces `option (fin (n + 1))` instead of
+/-- Equivalence between `fin (n + 1)` and `option (fin n)`.
+This is a version of `fin.pred` that produces `option (fin n)` instead of
 requiring a proof that the input is not `0`. -/
--- TODO: make this work neatly for `fin (n + 1) ≃ option (fin n)`
-def fin_succ_equiv (n : ℕ) : fin (n + 2) ≃ option (fin (n + 1)) :=
-fin_succ_equiv' 0
+-- TODO: make the `n = 0` case neater
+def fin_succ_equiv (n : ℕ) : fin (n + 1) ≃ option (fin n) :=
+nat.cases_on n
+({to_fun := λ _, none, inv_fun := λ _, 0,
+  left_inv := λ _, by simp, right_inv := λ x, by { cases x, simp, exact x.elim0 }})
+(λ _, fin_succ_equiv' 0)
 
 @[simp] lemma fin_succ_equiv_zero {n : ℕ} :
-  (fin_succ_equiv n) 0 = none := rfl
+  (fin_succ_equiv n) 0 = none :=
+by cases n; refl
 
-@[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin (n + 1)):
+@[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
   (fin_succ_equiv n) m.succ = some m :=
-by convert fin_succ_equiv'_above m.zero_le
+begin
+  cases n, exact m.elim0,
+  convert fin_succ_equiv'_above m.zero_le
+end
 
 @[simp] lemma fin_succ_equiv_symm_none {n : ℕ} :
-  (fin_succ_equiv n).symm none = 0 := by simp [fin_succ_equiv]
+  (fin_succ_equiv n).symm none = 0 :=
+by cases n; refl
 
-@[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin (n + 1)) :
+@[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
   (fin_succ_equiv n).symm (some m) = m.succ :=
-by convert fin_succ_equiv_symm'_some_above m.zero_le
+begin
+  cases n, exact m.elim0,
+  convert fin_succ_equiv_symm'_some_above m.zero_le
+end
 
-@[simp] lemma fin_succ_equiv_symm_coe {n : ℕ} (m : fin (n + 1)) :
-  (fin_succ_equiv n).symm m = m.succ := rfl
+@[simp] lemma fin_succ_equiv_symm_coe {n : ℕ} (m : fin n) :
+  (fin_succ_equiv n).symm m = m.succ :=
+fin_succ_equiv_symm_some m
 
 /-- The equiv version of `fin.pred_above_zero`. -/
 lemma fin_succ_equiv'_zero {n : ℕ} :
-  fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv n := rfl
+  fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv (n + 1) := rfl
 
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=

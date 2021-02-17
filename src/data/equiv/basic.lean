@@ -243,22 +243,19 @@ theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f :
 @[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) :
   injective (f ∘ e) ↔ injective f :=
 begin
-  split,
-  { intros h x y hxy,
-    apply e.symm.injective,
-    apply h,
-    simp only [hxy, function.comp_app, equiv.apply_symm_apply] },
-  { intro h, exact h.comp e.injective }
+  refine ⟨λ h, _, λ h, h.comp e.injective⟩,
+  convert h.comp e.symm.injective,
+  ext,
+  simp only [function.comp_app, equiv.apply_symm_apply]
 end
 
 @[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) :
   injective (e ∘ f) ↔ injective f :=
 begin
-  refine ⟨_, e.injective.comp⟩,
-  intros h x y hxy,
-  apply h,
-  apply e.symm.injective,
-  simp only [hxy, function.comp_app, equiv.apply_symm_apply]
+  refine ⟨λ h, _, e.injective.comp⟩,
+  convert e.symm.injective.comp h,
+  ext,
+  simp only [function.comp_app, equiv.symm_apply_apply],
 end
 
 @[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) :

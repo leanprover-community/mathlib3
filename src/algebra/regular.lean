@@ -24,18 +24,18 @@ namespace is_regular
 
 /-- A left-regular element is an element `c` such that multiplication on the left by `c`
 is injective on the left. -/
-structure left [has_mul R] (c : R) : Prop :=
+structure is_left_regular [has_mul R] (c : R) : Prop :=
 (mul_left_inj : ∀ a b : R, c * a = c * b → a = b)
 
 /-- A right-regular element is an element `c` such that multiplication on the right by `c`
 is injective on the left. -/
-structure right [has_mul R] (c : R) : Prop :=
+structure is_right_regular [has_mul R] (c : R) : Prop :=
 (mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
 
 variables [monoid R]
 
 /-- An element admitting a right inverse is right-regular. -/
-lemma right_of_mul_eq_one {a ai : R} (h : a * ai = 1) : right a :=
+lemma right_of_mul_eq_one {a ai : R} (h : a * ai = 1) : is_right_regular a :=
 { mul_right_inj :=
 begin
   intros b c bc,
@@ -44,7 +44,7 @@ begin
 end }
 
 /-- An element admitting a left inverse is left-regular. -/
-lemma left_of_mul_eq_one {a ai : R} (h : ai * a = 1) : left a :=
+lemma left_of_mul_eq_one {a ai : R} (h : ai * a = 1) : is_left_regular a :=
 { mul_left_inj :=
 begin
   intros b c bc,
@@ -52,7 +52,7 @@ begin
   exact congr_arg (has_mul.mul ai) bc,
 end }
 
-lemma of_left_right {a : R} (hl : left a) (hr : right a) : is_regular a :=
+lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) : is_regular a :=
 ⟨hl.1, hr.1⟩
 
 lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) :

@@ -96,9 +96,9 @@ lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
 
 lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
 
-@[simp, norm_cast] lemma coe_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
+@[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
 
-@[simp, norm_cast] lemma coe_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
+@[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
 
 /-- The `ring_equiv` between two semirings with a unique element. -/
 def ring_equiv_of_unique_of_unique {M N}
@@ -229,7 +229,7 @@ instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.
 
 lemma to_ring_hom_eq_coe (f : R ≃+* S) : f.to_ring_hom = ↑f := rfl
 
-@[simp, norm_cast] lemma coe_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
+@[simp, norm_cast] lemma coe_to_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
 
 lemma coe_ring_hom_inj_iff {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
   f = g ↔ (f : R →+* S) = g :=

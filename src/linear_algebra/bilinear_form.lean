@@ -65,6 +65,8 @@ namespace bilin_form
 instance : has_coe_to_fun (bilin_form R M) :=
 ⟨_, λ B, B.bilin⟩
 
+initialize_simps_projections bilin_form (bilin -> apply)
+
 @[simp] lemma coe_fn_mk (f : M → M → R) (h₁ h₂ h₃ h₄) :
   (bilin_form.mk f h₁ h₂ h₃ h₄ : M → M → R) = f :=
 rfl
@@ -1072,15 +1074,13 @@ lemma is_ortho'_def {n : Type w} {B : bilin_form R M} {v : n → M} :
   B.is_ortho' v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
 
 /-- The restriction of a bilinear form on a submodule. -/
+@[simps apply]
 def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
 { bilin := λ a b, B a b,
   bilin_add_left := λ _ _ _, add_left _ _ _,
   bilin_smul_left := λ _ _ _, smul_left _ _ _,
   bilin_add_right := λ _ _ _, add_right _ _ _,
   bilin_smul_right := λ _ _ _, smul_right _ _ _}
-
-@[simp] lemma restrict_def (B : bilin_form R M) (W : submodule R M) (x y : W) :
-  B.restrict W x y = B x y := rfl
 
 lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
   (W : submodule R M) : sym_bilin_form.is_sym $ B.restrict W :=
@@ -1218,7 +1218,7 @@ begin
     (span_sup_ortho_eq_top hB₂ hx).symm ▸ submodule.mem_top,
   rcases submodule.mem_sup.1 this with ⟨y, hy, z, hz, rfl⟩,
   specialize hm ⟨z, hz⟩,
-  rw restrict_def at hm,
+  rw restrict at hm,
   erw [add_right, show B m.1 y = 0, by exact m.2 y hy, hm, add_zero]
 end
 

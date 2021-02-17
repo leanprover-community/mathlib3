@@ -658,6 +658,30 @@ by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
 sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
 
+theorem abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
+lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← @sqr_abs _ _ x, ← @sqr_abs _ _ y] at h
+
+theorem abs_lt_of_sqr_lt_sqr (h : x^2 < y^2) (hy : 0 ≤ y) : abs x < y :=
+begin
+  rw [← abs_of_nonneg hy],
+  exact abs_lt_abs_of_sqr_lt_sqr h,
+end
+
+theorem abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
+abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
+
+theorem abs_le_abs_of_sqr_le_sqr (h : x^2 ≤ y^2) : abs x ≤ abs y :=
+le_of_pow_le_pow 2 (abs_nonneg y) (1:ℕ).succ_pos $ by rwa [← @sqr_abs _ _ x, ← @sqr_abs _ _ y] at h
+
+theorem abs_le_of_sqr_le_sqr (h : x^2 ≤ y^2) (hy : 0 ≤ y) : abs x ≤ y :=
+begin
+  rw [← abs_of_nonneg hy],
+  exact abs_le_abs_of_sqr_le_sqr h,
+end
+
+theorem abs_le_of_sqr_le_sqr' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
+abs_le.mp $ abs_le_of_sqr_le_sqr h hy
+
 end linear_ordered_ring
 
 @[simp] lemma eq_of_pow_two_eq_pow_two [linear_ordered_comm_ring R]

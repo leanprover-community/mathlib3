@@ -756,9 +756,10 @@ namespace multilinear_map
 `H : ∀ x m, ∥f x m∥ ≤ C * ∥x∥ * ∏ i, ∥m i∥`, construct a continuous linear
 map from `G` to `continuous_multilinear_map 𝕜 E G'`.
 
-In order to lift, e.g., a map `f : (multilinear_map 𝕜 E G) →ₗ[𝕜] multilinear_map 𝕜 E₁ G'`
-to a map `(continuous_multilinear_map 𝕜 E G) →L[𝕜] continuous_multilinear_map 𝕜 E₁ G'`,
-one can apply this construction to `f.comp continuous_multilinear_map.to_multilinear_map_linear`. -/
+In order to lift, e.g., a map `f : (multilinear_map 𝕜 E G) →ₗ[𝕜] multilinear_map 𝕜 E' G'`
+to a map `(continuous_multilinear_map 𝕜 E G) →L[𝕜] continuous_multilinear_map 𝕜 E' G'`,
+one can apply this construction to `f.comp continuous_multilinear_map.to_multilinear_map_linear`
+which is a linear map from `continuous_multilinear_map 𝕜 E G` to `multilinear_map 𝕜 E' G'`. -/
 def mk_continuous_linear (f : G →ₗ[𝕜] multilinear_map 𝕜 E G') (C : ℝ)
   (H : ∀ x m, ∥f x m∥ ≤ C * ∥x∥ * ∏ i, ∥m i∥) :
   G →L[𝕜] continuous_multilinear_map 𝕜 E G' :=

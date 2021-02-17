@@ -801,7 +801,8 @@ begin
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw as_sum f,
-    suffices : ∀ m ∈ f.support, monomial m (coeff m f) ∈ (ideal.map C I : ideal (mv_polynomial σ R)),
+    suffices : ∀ m ∈ f.support, monomial m (coeff m f) ∈
+      (ideal.map C I : ideal (mv_polynomial σ R)),
     { exact submodule.sum_mem _ this },
     intros m hm,
     rw [← mul_one (coeff m f), ← C_mul_monomial],

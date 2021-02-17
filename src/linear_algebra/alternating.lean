@@ -400,6 +400,10 @@ lemma alternatization_def (m : multilinear_map R (λ i : ι, M) N') :
   ⇑(alternatization m) = (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ : _) :=
 rfl
 
+lemma alternatization_coe (m : multilinear_map R (λ i : ι, M) N') :
+  ↑m.alternatization = (∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ : _) :=
+coe_inj rfl
+
 lemma alternatization_apply (m : multilinear_map R (λ i : ι, M) N') (v : ι → M) :
   alternatization m v = ∑ (σ : perm ι), (σ.sign : ℤ) • m.dom_dom_congr σ v :=
 by simp only [alternatization_def, smul_apply, sum_apply]

@@ -28,6 +28,9 @@ lemma ext : ∀ {b₁ b₂ : buffer α}, to_list b₁ = to_list b₂ → b₁ = 
   rw eq_of_heq (h.trans a₂.to_list_to_array)
 end
 
+lemma ext_iff {b₁ b₂ : buffer α} : to_list b₁ = to_list b₂ ↔ b₁ = b₂ :=
+⟨ext, λ h, h ▸ rfl⟩
+
 lemma size_eq_zero_iff {b : buffer α} : b.size = 0 ↔ b = nil :=
 begin
   rcases b with ⟨_|n, ⟨a⟩⟩,
@@ -40,6 +43,8 @@ end
 
 @[simp] lemma size_nil : (@nil α).size = 0 :=
 by rw size_eq_zero_iff
+
+@[simp] lemma to_list_nil : to_list (@nil α) = [] := rfl
 
 instance (α) [decidable_eq α] : decidable_eq (buffer α) :=
 by tactic.mk_dec_eq_instance
@@ -68,6 +73,9 @@ begin
   simp [list.to_buffer,append_list],
   rw ← hl, refl
 end
+
+@[simp] lemma to_list_to_array (b : buffer α) : b.to_array.to_list = b.to_list :=
+by { cases b, simp [to_list] }
 
 @[simp] lemma append_list_nil (b : buffer α) : b.append_list [] = b := rfl
 
@@ -119,7 +127,7 @@ lemma read_append_list_left' (b : buffer α) (l : list α) {i : ℕ}
 begin
   induction l with hd tl hl generalizing b,
   { refl },
-  { have hb : i < ((b.push_back hd).append_list tl).size := by convert h,
+  { have hb : i < ((b.push_back hd).append_list tl).size := by convert h using 1,
     have hb' : i < (b.push_back hd).size := by { convert nat.lt_succ_of_lt h', simp },
     have : (append_list b (hd :: tl)).read ⟨i, h⟩ =
       read ((push_back b hd).append_list tl) ⟨i, hb⟩ := rfl,
@@ -142,6 +150,7 @@ begin
     { rw [list.length, nat.succ_lt_succ_iff] at h,
       have : b.size + i.succ = (b.push_back hd).size + i,
         { simp [add_comm, add_left_comm, nat.succ_eq_add_one] },
+      rw list.nth_le,
       convert hl (b.push_back hd) h } }
 end
 
@@ -155,7 +164,8 @@ begin
     cases i,
     { convert read_append_list_left _ _ _,
       simp },
-    { convert read_append_list_right _ _ _,
+    { rw list.nth_le,
+      convert read_append_list_right _ _ _,
       simp [nat.succ_eq_add_one, add_comm] } }
 end
 

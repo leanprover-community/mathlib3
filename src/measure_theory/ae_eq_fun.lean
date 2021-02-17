@@ -126,6 +126,9 @@ end
 @[ext] lemma ext {f g : α →ₘ[μ] β} (h : f =ᵐ[μ] g) : f = g :=
 by rwa [← f.mk_coe_fn, ← g.mk_coe_fn, mk_eq_mk]
 
+lemma ext_iff {f g : α →ₘ[μ] β} : f = g ↔ f =ᵐ[μ] g :=
+⟨λ h, by rw h, λ h, ext h⟩
+
 lemma coe_fn_mk (f : α → β) (hf) : (mk f hf : α →ₘ[μ] β) =ᵐ[μ] f :=
 begin
   apply (ae_measurable.ae_eq_mk _).symm.trans,

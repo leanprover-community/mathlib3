@@ -1028,10 +1028,20 @@ of_homothety 𝕜
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
     linear map from the span of `x` to `𝕜`.-/
-abbreviation coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 :=
-  (to_span_nonzero_singleton 𝕜 x h).symm
+def coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 := (to_span_nonzero_singleton 𝕜 x h).symm
 
-lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
+@[simp] lemma coe_to_span_nonzero_singleton_symm {x : E} (h : x ≠ 0) :
+  ⇑(to_span_nonzero_singleton 𝕜 x h).symm = coord 𝕜 x h := rfl
+
+@[simp] lemma coord_to_span_nonzero_singleton {x : E} (h : x ≠ 0) (c : 𝕜) :
+  coord 𝕜 x h (to_span_nonzero_singleton 𝕜 x h c) = c :=
+(to_span_nonzero_singleton 𝕜 x h).symm_apply_apply c
+
+@[simp] lemma to_span_nonzero_singleton_coord {x : E} (h : x ≠ 0) (y : 𝕜 ∙ x) :
+  to_span_nonzero_singleton 𝕜 x h (coord 𝕜 x h y) = y :=
+(to_span_nonzero_singleton 𝕜 x h).apply_symm_apply y
+
+@[simp] lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
   haveI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
@@ -1039,7 +1049,7 @@ begin
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 
-lemma coord_self (x : E) (h : x ≠ 0) :
+@[simp] lemma coord_self (x : E) (h : x ≠ 0) :
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 

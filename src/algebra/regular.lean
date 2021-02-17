@@ -84,7 +84,7 @@ lemma is_regular_of_cancel_monoid {G : Type*} [cancel_monoid G] (g : G) :
 /--  Non-zero elements of an integral domain are regular.
 
 Funny how left and right change positions. -/
-lemma is_regular_of_integral_domain {D : Type*} [integral_domain D] {a : D} (a0 : a ≠ 0) :
+lemma is_regular_of_cancel_monoid_with_zero {D : Type*} [cancel_monoid_with_zero D] {a : D} (a0 : a ≠ 0) :
   is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
 

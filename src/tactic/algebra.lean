@@ -23,7 +23,7 @@ e.app_arg.get_app_args.map expr.const_name
 /-- The `ancestor` attributes is used to record the names of structures which appear in the
 extends clause of a `structure` or `class` declared with `old_structure_cmd` set to true.
 
-As an example::
+As an example:
 ```
 set_option old_structure_cmd true
 
@@ -39,10 +39,16 @@ The list of ancestors should be in the order they appear in the `extends` clause
 contain only the names of the ancestor structures, without any arguments.
 -/
 @[user_attribute]
-private meta def ancestor_attr : user_attribute unit (list name) :=
+meta def ancestor_attr : user_attribute unit (list name) :=
 { name := `ancestor,
   descr := "ancestor of old structures",
   parser := many ident }
+
+add_tactic_doc
+{ name := "ancestor",
+  category := doc_category.attr,
+  decl_names := [`tactic.ancestor_attr],
+  tags := ["transport", "environment"] }
 
 end performance
 

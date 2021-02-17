@@ -61,7 +61,6 @@ begin
   { intro h, exfalso, simpa using h, },
 end
 
-@[ext]
 lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
   [add_comm_monoid G] (g h : (Π i, Z i) →+ G)
   (w : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
@@ -73,6 +72,16 @@ begin
   apply w,
 end
 
+/-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in
+note [partially-applied ext lemmas]. -/
+@[ext]
+lemma add_monoid_hom.functions_ext' [fintype I] (M : Type*) [add_comm_monoid M]
+  (g h : (Π i, Z i) →+ M)
+  (H : ∀ i, g.comp (add_monoid_hom.single Z i) = h.comp (add_monoid_hom.single Z i)) :
+  g = h :=
+have _ := λ i, add_monoid_hom.congr_fun (H i), -- elab without an expected type
+g.functions_ext M h this
+
 end single
 
 section ring_hom
@@ -80,15 +89,11 @@ open pi
 variables {I : Type*} [decidable_eq I] {f : I → Type*}
 variables [Π i, semiring (f i)]
 
--- we need `apply`+`convert` because Lean fails to unify different `add_monoid` instances
--- on `Π i, f i`
 @[ext]
 lemma ring_hom.functions_ext [fintype I] (G : Type*) [semiring G] (g h : (Π i, f i) →+* G)
   (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
-begin
-  apply ring_hom.coe_add_monoid_hom_injective,
-  convert add_monoid_hom.functions_ext _ _ _ _; assumption
-end
+ring_hom.coe_add_monoid_hom_injective $
+ add_monoid_hom.functions_ext G (g : (Π i, f i) →+ G) h w
 
 end ring_hom
 

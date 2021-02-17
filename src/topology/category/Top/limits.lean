@@ -130,7 +130,7 @@ def partial_sections (j : Jᵒᵖ) : set (Π j, F.obj j) :=
 lemma partial_sections.nonempty [Π (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
   (partial_sections F j).nonempty :=
 begin
-  haveI := classical.dec_pred (λ (j' : Jᵒᵖ), j'.unop ≤ j.unop),
+  classical,
   use λ (j' : Jᵒᵖ),
     if h : j'.unop ≤ j.unop then
       F.map (hom_of_le h).op (classical.arbitrary (F.obj j))

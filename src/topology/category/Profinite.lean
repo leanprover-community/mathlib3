@@ -69,15 +69,15 @@ end Profinite
 def Profinite_to_Top : Profinite ⥤ Top := induced_functor _
 
 /-- The fully faithful embedding of `Profinite` in `CompHaus`. -/
-@[simps] def Profinite_to_CompHaus : Profinite ⥤ CompHaus :=
+@[simps] def Profinite.to_CompHaus : Profinite ⥤ CompHaus :=
 { obj := λ X, { to_Top := X.to_Top },
   map := λ _ _ f, f }
 
-instance : full Profinite_to_CompHaus := { preimage := λ _ _ f, f }
-instance : faithful Profinite_to_CompHaus := {}
+instance : full Profinite.to_CompHaus := { preimage := λ _ _ f, f }
+instance : faithful Profinite.to_CompHaus := {}
 
-@[simp] lemma Profinite_to_CompHaus_to_Top :
-  Profinite_to_CompHaus ⋙ CompHaus_to_Top = Profinite_to_Top :=
+@[simp] lemma Profinite.to_CompHaus_to_Top :
+  Profinite.to_CompHaus ⋙ CompHaus_to_Top = Profinite_to_Top :=
 rfl
 
 namespace Profinite
@@ -88,7 +88,7 @@ local attribute [instance] connected_component_setoid
 to Profinite spaces, given by quotienting a space by its connected components.
 See: https://stacks.math.columbia.edu/tag/0900
 -/
-def CompHaus_to_Profinite_obj' (X : CompHaus) : Profinite :=
+def CompHaus.to_Profinite_obj (X : CompHaus) : Profinite :=
 { to_Top := { α := connected_components X.to_Top.α },
   is_compact := quotient.compact_space,
   is_t2 := connected_components.t2,
@@ -98,8 +98,8 @@ def CompHaus_to_Profinite_obj' (X : CompHaus) : Profinite :=
 (Implementation) The bijection of homsets to establish the reflective adjunction of Profinite
 spaces in compact Hausdorff spaces.
 -/
-def Profinite_to_CompHaus_equivalence (X : CompHaus) (Y : Profinite) :
-  (CompHaus_to_Profinite_obj' X ⟶ Y) ≃ (X ⟶ Profinite_to_CompHaus.obj Y) :=
+def Profinite.to_CompHaus_equivalence (X : CompHaus) (Y : Profinite) :
+  (CompHaus.to_Profinite_obj X ⟶ Y) ≃ (X ⟶ Profinite.to_CompHaus.obj Y) :=
 { to_fun := λ f,
   { to_fun := f.1 ∘ quotient.mk,
     continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
@@ -113,17 +113,20 @@ def Profinite_to_CompHaus_equivalence (X : CompHaus) (Y : Profinite) :
 The connected_components functor from compact Hausdorff spaces to profinite spaces,
 left adjoint to the inclusion functor.
 -/
-def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
-adjunction.left_adjoint_of_equiv Profinite_to_CompHaus_equivalence (λ _ _ _ _ _, rfl)
+def CompHaus.to_Profinite : CompHaus ⥤ Profinite :=
+adjunction.left_adjoint_of_equiv Profinite.to_CompHaus_equivalence (λ _ _ _ _ _, rfl)
 
-def CompHaus_to_Profinite.left_adjoint : CompHaus_to_Profinite ⊣ Profinite_to_CompHaus :=
+/--
+The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus
+-/
+def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
 adjunction.adjunction_of_equiv_left _ _
 
-lemma CompHaus_to_Profinite_obj (X : CompHaus) :
-  ↥(CompHaus_to_Profinite.obj X) = connected_components X.to_Top.α := rfl
+lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
+  ↥(CompHaus.to_Profinite.obj X) = connected_components X.to_Top.α := rfl
 
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
-instance Profinite_to_CompHaus.reflective : reflective Profinite_to_CompHaus :=
-{ to_is_right_adjoint := ⟨CompHaus_to_Profinite, CompHaus_to_Profinite.left_adjoint⟩ }
+instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
+{ to_is_right_adjoint := ⟨CompHaus.to_Profinite, to_Profinite_adj_to_CompHaus⟩ }
 
 end Profinite

@@ -8,6 +8,7 @@ import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
+import analysis.special_functions.sqrt
 
 /-!
 # Inner Product Space
@@ -1613,25 +1614,60 @@ lemma times_cont_diff_at.norm_square (hf : times_cont_diff_at ℝ n f x) :
   times_cont_diff_at ℝ n (λ y, ∥f y∥ ^ 2) x :=
 hf.norm_square
 
+lemma times_cont_diff_at_norm {x : E} (hx : x ≠ 0) : times_cont_diff_at ℝ n norm x :=
+have ∥id x∥ ^ 2 ≠ 0, from pow_ne_zero _ (norm_pos_iff.2 hx).ne',
+by simpa only [id, sqrt_sqr, norm_nonneg] using times_cont_diff_at_id.norm_square.sqrt this
+
+lemma times_cont_diff_at.norm (hf : times_cont_diff_at ℝ n f x) (h0 : f x ≠ 0) :
+  times_cont_diff_at ℝ n (λ y, ∥f y∥) x :=
+(times_cont_diff_at_norm h0).comp x hf
+
+lemma times_cont_diff_within_at.norm (hf : times_cont_diff_within_at ℝ n f s x) (h0 : f x ≠ 0) :
+  times_cont_diff_within_at ℝ n (λ y, ∥f y∥) s x :=
+(times_cont_diff_at_norm h0).comp_times_cont_diff_within_at x hf
+
 lemma times_cont_diff_on.norm_square (hf : times_cont_diff_on ℝ n f s) :
   times_cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
 (λ x hx, (hf x hx).norm_square)
 
+lemma times_cont_diff_on.norm (hf : times_cont_diff_on ℝ n f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  times_cont_diff_on ℝ n (λ y, ∥f y∥) s :=
+λ x hx, (hf x hx).norm (h0 x hx)
+
+lemma times_cont_diff.norm (hf : times_cont_diff ℝ n f) (h0 : ∀ x, f x ≠ 0) :
+  times_cont_diff ℝ n (λ y, ∥f y∥) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, hf.times_cont_diff_at.norm (h0 x)
+
 lemma differentiable_at.norm_square (hf : differentiable_at ℝ f x) :
   differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=
-(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp x hf
+(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp x hf
+
+lemma differentiable_at.norm (hf : differentiable_at ℝ f x) (h0 : f x ≠ 0) :
+  differentiable_at ℝ (λ y, ∥f y∥) x :=
+((times_cont_diff_at_norm h0).differentiable_at le_rfl).comp x hf
 
 lemma differentiable.norm_square (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
 λ x, (hf x).norm_square
 
+lemma differentiable.norm (hf : differentiable ℝ f) (h0 : ∀ x, f x ≠ 0) :
+  differentiable ℝ (λ y, ∥f y∥) :=
+λ x, (hf x).norm (h0 x)
+
 lemma differentiable_within_at.norm_square (hf : differentiable_within_at ℝ f s x) :
   differentiable_within_at ℝ (λ y, ∥f y∥ ^ 2) s x :=
-(times_cont_diff_norm_square.differentiable le_rfl).differentiable_at.comp_differentiable_within_at
-  x hf
+(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp_differentiable_within_at x hf
+
+lemma differentiable_within_at.norm (hf : differentiable_within_at ℝ f s x) (h0 : f x ≠ 0) :
+  differentiable_within_at ℝ (λ y, ∥f y∥) s x :=
+((times_cont_diff_at_id.norm h0).differentiable_at le_rfl).comp_differentiable_within_at x hf
 
 lemma differentiable_on.norm_square (hf : differentiable_on ℝ f s) :
   differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=
 λ x hx, (hf x hx).norm_square
+
+lemma differentiable_on.norm (hf : differentiable_on ℝ f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  differentiable_on ℝ (λ y, ∥f y∥) s :=
+λ x hx, (hf x hx).norm (h0 x hx)
 
 end deriv
 

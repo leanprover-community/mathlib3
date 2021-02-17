@@ -7,7 +7,6 @@ import data.complex.exponential
 import analysis.calculus.inverse
 import measure_theory.borel_space
 import analysis.complex.real_deriv
-import measure_theory.interval_integral
 
 /-!
 # Complex and real exponential, real logarithm

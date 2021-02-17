@@ -235,7 +235,7 @@ end
 /-- The set of Lie subalgebras of a Lie algebra form a complete lattice.
 
 We provide explicit values for the fields `bot`, `top`, `inf` to get more convenient definitions
-than we would otherwise obtain from `complete_lattice_of_Inf`.  -/
+than we would otherwise obtain from `complete_lattice_of_Inf`. -/
 instance : complete_lattice (lie_subalgebra R L) :=
 { bot          := ⊥,
   bot_le       := λ N _ h, by { rw mem_bot at h, rw h, exact N.zero_mem', },

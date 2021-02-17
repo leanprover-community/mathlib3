@@ -1277,10 +1277,9 @@ lemma findim_ortho_span_singleton
   {x : V} (hx : ¬ B.is_ortho x x) : findim K V =
     findim K (B.orthogonal (submodule.span K ({x} : set V))) + 1 :=
 begin
+  have : x ≠ 0 := λ hx', hx (hx'.symm ▸ zero_left _)),
   rw [← submodule.findim_quotient_add_findim (submodule.span K ({x} : set V)),
-      findim_span_singleton
-        (show x ≠ 0, by exact λ hx', hx (hx'.symm ▸ zero_left _)),
-      (quotient_equiv_of_ortho_singleton hB hx).findim_eq]
+      findim_span_singleton this, (quotient_equiv_of_ortho_singleton hB hx).findim_eq]
 end
 
 lemma exists_orthogonal_basis' [hK : invertible (2 : K)]

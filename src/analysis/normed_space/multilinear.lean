@@ -782,6 +782,9 @@ lemma mk_continuous_linear_norm_le (f : G →ₗ[𝕜] multilinear_map 𝕜 E G'
   ∥mk_continuous_linear f C H∥ ≤ C :=
 (mk_continuous_linear_norm_le' f C H).trans_eq (max_eq_left hC)
 
+/-- Given a map `f : multilinear_map 𝕜 E (multilinear_map 𝕜 E' G)` and an estimate
+`H : ∀ m m', ∥f m m'∥ ≤ C * ∏ i, ∥m i∥ * ∏ i, ∥m' i∥`, upgrade all `multilinear_map`s in the type to
+`continuous_multilinear_map`s. -/
 def mk_continuous_multilinear (f : multilinear_map 𝕜 E (multilinear_map 𝕜 E' G)) (C : ℝ)
   (H : ∀ m₁ m₂, ∥f m₁ m₂∥ ≤ C * (∏ i, ∥m₁ i∥) * ∏ i, ∥m₂ i∥) :
   continuous_multilinear_map 𝕜 E (continuous_multilinear_map 𝕜 E' G) :=

@@ -1073,18 +1073,18 @@ lemma is_ortho'_def {n : Type w} {B : bilin_form R M} {v : n → M} :
 
 /-- The restriction of a bilinear form on a submodule. -/
 def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
-{ bilin := λ a b, B a.1 b.1,
+{ bilin := λ a b, B a b,
   bilin_add_left := λ _ _ _, add_left _ _ _,
   bilin_smul_left := λ _ _ _, smul_left _ _ _,
   bilin_add_right := λ _ _ _, add_right _ _ _,
   bilin_smul_right := λ _ _ _, smul_right _ _ _}
 
 @[simp] lemma restrict_def (B : bilin_form R M) (W : submodule R M) (x y : W) :
-  B.restrict W x y = B x.1 y.1 := rfl
+  B.restrict W x y = B x y := rfl
 
 lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
   (W : submodule R M) : sym_bilin_form.is_sym $ B.restrict W :=
-λ x y, hB x.1 y.1
+λ x y, hB x y
 
 open_locale classical
 
@@ -1167,7 +1167,7 @@ begin
   { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
 end
 
--- ↓ This lemma only applies in field since we use the inverse
+-- ↓ This lemma only applies in fields since we use the inverse
 lemma span_sup_ortho_eq_top {B : bilin_form K V}
   (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   submodule.span K ({x} : set V) ⊔ B.orthogonal (submodule.span K ({x} : set V)) = ⊤ :=
@@ -1211,7 +1211,7 @@ begin
     (span_sup_ortho_eq_top hB₂ hx).symm ▸ submodule.mem_top,
   rcases submodule.mem_sup.1 this with ⟨y, hy, z, hz, rfl⟩,
   specialize hm ⟨z, hz⟩,
-  rw [restrict_def, subtype.val_eq_coe] at hm,
+  rw restrict_def at hm,
   erw [add_right, show B m.1 y = 0, by exact m.2 y hy, hm, add_zero]
 end
 

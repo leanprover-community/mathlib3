@@ -206,7 +206,6 @@ end
 
 /-- So-named because the coercion is `nat.cast` into `zmod`. For `nat.cast` into an arbitrary ring,
 see `zmod.nat_cast_val`. -/
-@[simp]
 lemma nat_cast_zmod_val {n : ℕ} [fact (0 < n)] (a : zmod n) : (a.val : zmod n) = a :=
 begin
   casesI n,
@@ -220,7 +219,6 @@ function.right_inverse.surjective nat_cast_zmod_val
 
 /-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
 ring, see `zmod.int_cast_cast`. -/
-@[simp]
 lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
 begin
   cases n,

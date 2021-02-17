@@ -766,7 +766,8 @@ begin
   exact ideal.mem_map_of_mem hi
 end
 
-/-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself, multivariate version. -/
+/-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,
+multivariate version. -/
 lemma mem_ideal_of_coeff_mem_ideal (I : ideal (mv_polynomial σ R)) (p : mv_polynomial σ R)
   (hcoe : ∀ (m : σ →₀ ℕ), (p.coeff m) ∈ I.comap C) : p ∈ I :=
 begin

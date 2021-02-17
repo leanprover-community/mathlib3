@@ -5,6 +5,8 @@ Authors: Kexing Ying
 -/
 import group_theory.submonoid
 import algebra.group.conj
+import algebra.pointwise
+import order.modular_lattice
 
 /-!
 # Subgroups
@@ -158,6 +160,10 @@ lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
 -- note that `to_additive` transfers the `simp` attribute over but not the `norm_cast` attribute
 attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
+
+@[to_additive]
+instance (K : subgroup G) [d : decidable_pred K.carrier] [fintype G] : fintype K :=
+show fintype {g : G // g ∈ K.carrier}, from infer_instance
 
 end subgroup
 
@@ -361,10 +367,13 @@ begin
     exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
 end
 
-@[to_additive] lemma eq_top_of_card_eq [fintype G] (h : fintype.card H = fintype.card G) : H = ⊤ :=
+@[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]
+  (h : fintype.card H = fintype.card G) : H = ⊤ :=
 begin
+  classical,
+  rw fintype.card_congr (equiv.refl _) at h, -- this swaps the fintype instance to classical
   change fintype.card H.carrier = _ at h,
-  cases H with S hS1 hS2 hS3,
+  unfreezingI { cases H with S hS1 hS2 hS3, },
   have : S = set.univ,
   { suffices : S.to_finset = finset.univ,
     { rwa [←set.to_finset_univ, set.to_finset_inj] at this, },
@@ -1328,3 +1337,107 @@ def subgroup_congr (h : H = K) : H ≃* K :=
 end mul_equiv
 
 -- TODO : ↥(⊤ : subgroup H) ≃* H ?
+
+namespace subgroup
+
+variables {C : Type*} [comm_group C] {s t : subgroup C} {x : C}
+
+@[to_additive]
+lemma mem_sup : x ∈ s ⊔ t ↔ ∃ (y ∈ s) (z ∈ t), y * z = x :=
+⟨λ h, begin
+  rw [← closure_eq s, ← closure_eq t, ← closure_union] at h,
+  apply closure_induction h,
+  { rintro y (h | h),
+    { exact ⟨y, h, 1, t.one_mem, by simp⟩ },
+    { exact ⟨1, s.one_mem, y, h, by simp⟩ } },
+  { exact ⟨1, s.one_mem, 1, ⟨t.one_mem, mul_one 1⟩⟩ },
+  { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
+    exact ⟨_, mul_mem _ hy₁ hy₂, _, mul_mem _ hz₁ hz₂, by simp [mul_assoc]; cc⟩ },
+  { rintro _ ⟨y, hy, z, hz, rfl⟩,
+    exact ⟨_, inv_mem _ hy, _, inv_mem _ hz, mul_comm z y ▸ (mul_inv_rev z y).symm⟩ }
+end,
+by rintro ⟨y, hy, z, hz, rfl⟩; exact mul_mem _
+  ((le_sup_left : s ≤ s ⊔ t) hy)
+  ((le_sup_right : t ≤ s ⊔ t) hz)⟩
+
+@[to_additive]
+lemma mem_sup' : x ∈ s ⊔ t ↔ ∃ (y : s) (z : t), (y:C) * z = x :=
+mem_sup.trans $ by simp only [subgroup.exists, coe_mk]
+
+@[to_additive]
+instance : is_modular_lattice (subgroup C) :=
+⟨λ x y z xz a ha, begin
+  rw [mem_inf, mem_sup] at ha,
+  rcases ha with ⟨⟨b, hb, c, hc, rfl⟩, haz⟩,
+  rw mem_sup,
+  refine ⟨b, hb, c, mem_inf.2 ⟨hc, _⟩, rfl⟩,
+  rw ← inv_mul_cancel_left b c,
+  apply z.mul_mem (z.inv_mem (xz hb)) haz,
+end⟩
+
+end subgroup
+
+section pointwise
+
+namespace subgroup
+
+@[to_additive]
+lemma closure_mul_le (S T : set G) : closure (S * T) ≤ closure S ⊔ closure T :=
+Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
+    (le_def.mp le_sup_left $ subset_closure hs)
+    (le_def.mp le_sup_right $ subset_closure ht)
+
+@[to_additive]
+lemma sup_eq_closure (H K : subgroup G) : H ⊔ K = closure (H * K) :=
+le_antisymm
+  (sup_le
+    (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
+    (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
+  (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
+
+@[to_additive]
+private def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
+{ carrier := (H : set G) * N,
+  one_mem' := ⟨1, 1, H.one_mem, N.one_mem, by rw mul_one⟩,
+  mul_mem' := λ a b ⟨h, n, hh, hn, ha⟩ ⟨h', n', hh', hn', hb⟩,
+    ⟨h * h', h'⁻¹ * n * h' * n',
+    H.mul_mem hh hh', N.mul_mem (by simpa using hN.conj_mem _ hn h'⁻¹) hn',
+    by simp [← ha, ← hb, mul_assoc]⟩,
+  inv_mem' := λ x ⟨h, n, hh, hn, hx⟩,
+    ⟨h⁻¹, h * n⁻¹ * h⁻¹, H.inv_mem hh, hN.conj_mem _ (N.inv_mem hn) h,
+    by rw [mul_assoc h, inv_mul_cancel_left, ← hx, mul_inv_rev]⟩ }
+
+/-- The carrier of `H ⊔ N` is just `↑H * ↑N` (pointwise set product) when `N` is normal. -/
+@[to_additive "The carrier of `H ⊔ N` is just `↑H + ↑N` (pointwise set addition)
+when `N` is normal."]
+lemma mul_normal (H N : subgroup G) [N.normal] : (↑(H ⊔ N) : set G) = H * N :=
+set.subset.antisymm
+  (show H ⊔ N ≤ mul_normal_aux H N,
+    by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
+  ((sup_eq_closure H N).symm ▸ subset_closure)
+
+@[to_additive]
+private def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
+{ carrier := (N : set G) * H,
+  one_mem' := ⟨1, 1, N.one_mem, H.one_mem, by rw mul_one⟩,
+  mul_mem' := λ a b ⟨n, h, hn, hh, ha⟩ ⟨n', h', hn', hh', hb⟩,
+    ⟨n * (h * n' * h⁻¹), h * h',
+    N.mul_mem hn (hN.conj_mem _ hn' _), H.mul_mem hh hh',
+    by simp [← ha, ← hb, mul_assoc]⟩,
+  inv_mem' := λ x ⟨n, h, hn, hh, hx⟩,
+    ⟨h⁻¹ * n⁻¹ * h, h⁻¹,
+    by simpa using hN.conj_mem _ (N.inv_mem hn) h⁻¹, H.inv_mem hh,
+    by rw [mul_inv_cancel_right, ← mul_inv_rev, hx]⟩ }
+
+/-- The carrier of `N ⊔ H` is just `↑N * ↑H` (pointwise set product) when `N` is normal. -/
+@[to_additive "The carrier of `N ⊔ H` is just `↑N + ↑H` (pointwise set addition)
+when `N` is normal."]
+lemma normal_mul (N H : subgroup G) [N.normal] : (↑(N ⊔ H) : set G) = N * H :=
+set.subset.antisymm
+  (show N ⊔ H ≤ normal_mul_aux N H,
+    by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
+  ((sup_eq_closure N H).symm ▸ subset_closure)
+
+end subgroup
+
+end pointwise

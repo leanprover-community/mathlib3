@@ -7,7 +7,6 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.add_torsor
 import topology.bases
 import linear_algebra.finite_dimensional
-import tactic.omega
 
 /-!
 # Finite dimensional normed spaces over complete fields
@@ -70,7 +69,6 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 [topological_add_group F'] [topological_vector_space 𝕜 F']
 [complete_space 𝕜]
 
-
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
 all norms are equivalent in finite dimension.
@@ -108,15 +106,14 @@ begin
       have : findim 𝕜 f.ker = n ∨ findim 𝕜 f.ker = n.succ,
       { have Z := f.findim_range_add_findim_ker,
         rw [findim_eq_card_basis hξ, hn] at Z,
-        have : findim 𝕜 f.range = 0 ∨ findim 𝕜 f.range = 1,
-        { have I : ∀(k : ℕ), k ≤ 1 ↔ k = 0 ∨ k = 1, by omega manual,
-          have : findim 𝕜 f.range ≤ findim 𝕜 𝕜 := submodule.findim_le _,
-          rwa [findim_of_field, I] at this },
-        cases this,
-        { rw this at Z,
-          right,
+        by_cases H : findim 𝕜 f.range = 0,
+        { right,
+          rw H at Z,
           simpa using Z },
         { left,
+          have : findim 𝕜 f.range = 1,
+          { refine le_antisymm _ (zero_lt_iff.mpr H),
+            simpa [findim_of_field] using f.range.findim_le },
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
@@ -170,11 +167,32 @@ theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
   [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
 affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
 
-/-- The continuous linear map induced by a linear map on a finite dimensional space -/
-def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') : E →L[𝕜] F' :=
-{ cont := f.continuous_of_finite_dimensional, ..f }
+namespace linear_map
 
-/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional space. -/
+variables [finite_dimensional 𝕜 E]
+
+/-- The continuous linear map induced by a linear map on a finite dimensional space -/
+def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' :=
+{ to_fun := λ f, ⟨f, f.continuous_of_finite_dimensional⟩,
+  inv_fun := coe,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  left_inv := λ f, rfl,
+  right_inv := λ f, continuous_linear_map.coe_injective rfl }
+
+@[simp] lemma coe_to_continuous_linear_map' (f : E →ₗ[𝕜] F') :
+  ⇑f.to_continuous_linear_map = f := rfl
+
+@[simp] lemma coe_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
+  (f.to_continuous_linear_map : E →ₗ[𝕜] F') = f := rfl
+
+@[simp] lemma coe_to_continuous_linear_map_symm :
+  ⇑(to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F').symm = coe := rfl
+
+end linear_map
+
+/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
+space. -/
 def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
@@ -287,7 +305,8 @@ begin
   obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
-          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
+          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
+    hv.op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,

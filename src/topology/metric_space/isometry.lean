@@ -100,6 +100,15 @@ by { rw ← image_univ, exact hf.ediam_image univ }
 lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
+lemma isometry.comp_continuous_on_iff {γ} [topological_space γ] (hf : isometry f)
+  {g : γ → α} {s : set γ} :
+  continuous_on (f ∘ g) s ↔ continuous_on g s :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_on_iff.symm
+
+lemma isometry.comp_continuous_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} :
+  continuous (f ∘ g) ↔ continuous g :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+
 end emetric_isometry --section
 
 /-- An isometry preserves the diameter in metric spaces. -/
@@ -110,6 +119,22 @@ by rw [metric.diam, metric.diam, hf.ediam_image]
 lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (hf : isometry f) :
   metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
+
+namespace add_monoid_hom
+
+variables {E F : Type*} [normed_group E] [normed_group F]
+
+lemma isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+begin
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  refine ⟨λ h x, _, λ h x y, h _⟩,
+  simpa using h x 0
+end
+
+lemma isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
+
+end add_monoid_hom
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
@@ -217,7 +242,7 @@ by rw [← image_symm, ediam_image]
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := h.continuous,
   continuous_inv_fun := h.symm.continuous,
-  .. h }
+  to_equiv := h.to_equiv }
 
 @[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
 
@@ -243,18 +268,18 @@ h.to_homeomorph.comp_continuous_iff'
 /-- The group of isometries. -/
 instance : group (α ≃ᵢ α) :=
   { one := isometric.refl _,
-    mul := λ e₁ e₂, e₁.trans e₂,
+    mul := λ e₁ e₂, e₂.trans e₁,
     inv := isometric.symm,
     mul_assoc := λ e₁ e₂ e₃, rfl,
     one_mul := λ e, ext $ λ _, rfl,
     mul_one := λ e, ext $ λ _, rfl,
-    mul_left_inv := λ e, ext e.apply_symm_apply }
+    mul_left_inv := λ e, ext e.symm_apply_apply }
 
 @[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
 
-@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 
-lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
 @[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
 

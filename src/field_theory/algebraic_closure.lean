@@ -63,7 +63,8 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0) (hp : irreducible p) :
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0)
+  (hp : irreducible p) :
   p.degree = 1 :=
 degree_eq_one_of_irreducible_of_splits h_nz hp (polynomial.splits' _)
 
@@ -71,15 +72,19 @@ lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
   function.surjective (algebra_map k K) :=
 begin
-  refine λ x, ⟨-((minpoly (hf x)).coeff 0), _⟩,
-  have hq : (minpoly (hf x)).leading_coeff = 1 := minpoly.monic (hf x),
-  have h : (minpoly (hf x)).degree = 1 := degree_eq_one_of_irreducible k
+  refine λ x, ⟨-((minpoly k x).coeff 0), _⟩,
+  have hq : (minpoly k x).leading_coeff = 1 := minpoly.monic (hf x),
+  have h : (minpoly k x).degree = 1 := degree_eq_one_of_irreducible k
     (minpoly.ne_zero (hf x)) (minpoly.irreducible (hf x)),
-  have : (aeval x (minpoly (hf x))) = 0 := minpoly.aeval (hf x),
+  have : (aeval x (minpoly k x)) = 0 := minpoly.aeval k x,
   rw [eq_X_add_C_of_degree_eq_one h, hq, C_1, one_mul,
     aeval_add, aeval_X, aeval_C, add_eq_zero_iff_eq_neg] at this,
-  exact (ring_hom.map_neg (algebra_map k K) ((minpoly (hf x)).coeff 0)).symm ▸ this.symm,
+  exact (ring_hom.map_neg (algebra_map k K) ((minpoly k x).coeff 0)).symm ▸ this.symm,
 end
+
+lemma algebra_map_surjective_of_is_integral' {k K : Type*} [field k] [integral_domain K]
+  [hk : is_alg_closed k] (f : k →+* K) (hf : f.is_integral) : function.surjective f :=
+@algebra_map_surjective_of_is_integral k K _ _ _ f.to_algebra hf
 
 lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
@@ -92,8 +97,13 @@ instance complex.is_alg_closed : is_alg_closed ℂ :=
 is_alg_closed.of_exists_root _ $ λ p _ hp, complex.exists_root $ degree_pos_of_irreducible hp
 
 /-- Typeclass for an extension being an algebraic closure. -/
-@[class] def is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
-is_alg_closed K ∧ algebra.is_algebraic k K
+class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
+(alg_closed : is_alg_closed K)
+(algebraic : algebra.is_algebraic k K)
+
+theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
+  is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 namespace algebraic_closure
 
@@ -107,7 +117,8 @@ open mv_polynomial
 def eval_X_self (f : monic_irreducible k) : mv_polynomial (monic_irreducible k) k :=
 polynomial.eval₂ mv_polynomial.C (X f) f
 
-/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an indeterminate. -/
+/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an
+indeterminate. -/
 def span_eval : ideal (mv_polynomial (monic_irreducible k) k) :=
 ideal.span $ set.range $ eval_X_self k
 
@@ -255,7 +266,8 @@ instance to_step_of_le.directed_system :
 
 end algebraic_closure
 
-/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for each polynomial over the field. -/
+/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for
+each polynomial over the field. -/
 def algebraic_closure : Type u :=
 ring.direct_limit (algebraic_closure.step k) (λ i j h, algebraic_closure.to_step_of_le k i j h)
 

@@ -7,6 +7,7 @@ import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
+import category_theory.isomorphism_classes
 
 /-!
 # Zero morphisms and zero objects
@@ -64,7 +65,8 @@ variables {C}
 
 /-- This lemma will be immediately superseded by `ext`, below. -/
 private lemma ext_aux (I J : has_zero_morphisms C)
-  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero _ _ I X Y).zero = (@has_zero_morphisms.has_zero _ _ J X Y).zero) : I = J :=
+  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero _ _ I X Y).zero =
+    (@has_zero_morphisms.has_zero _ _ J X Y).zero) : I = J :=
 begin
   casesI I, casesI J,
   congr,
@@ -121,7 +123,8 @@ variables [has_zero_morphisms C] [has_zero_morphisms D]
 lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
 begin
-  have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
+  have t : F.functor.map (0 : X ⟶ Y) =
+    F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
   { apply faithful.map_injective (F.inverse),
     rw [functor.map_comp, equivalence.inv_fun_map],
     dsimp,
@@ -232,6 +235,11 @@ begin
   simpa using h,
 end
 
+lemma zero_of_source_iso_zero' {X Y : C} (f : X ⟶ Y) (i : is_isomorphic X 0) : f = 0 :=
+zero_of_source_iso_zero f (nonempty.some i)
+lemma zero_of_target_iso_zero' {X Y : C} (f : X ⟶ Y) (i : is_isomorphic Y 0) : f = 0 :=
+zero_of_target_iso_zero f (nonempty.some i)
+
 lemma mono_of_source_iso_zero {X Y : C} (f : X ⟶ Y) (i : X ≅ 0) : mono f :=
 ⟨λ Z g h w, by rw [zero_of_target_iso_zero g i, zero_of_target_iso_zero h i]⟩
 
@@ -257,6 +265,20 @@ lemma id_zero_equiv_iso_zero_apply_hom (X : C) (h : 𝟙 X = 0) :
 lemma id_zero_equiv_iso_zero_apply_inv (X : C) (h : 𝟙 X = 0) :
   ((id_zero_equiv_iso_zero X) h).inv = 0 := rfl
 
+/-- If an object `X` is isomorphic to 0, there's no need to use choice to construct
+an explicit isomorphism: the zero morphism suffices. -/
+def iso_of_is_isomorphic_zero {X : C} (P : is_isomorphic X 0) : X ≅ 0 :=
+{ hom := 0,
+  inv := 0,
+  hom_inv_id' :=
+  begin
+    casesI P,
+    rw ←P.hom_inv_id,
+    rw ←category.id_comp P.inv,
+    simp,
+  end,
+  inv_hom_id' := by simp, }
+
 end
 
 section is_iso
@@ -268,7 +290,8 @@ the identities on both `X` and `Y` are zero.
 -/
 @[simps]
 def is_iso_zero_equiv (X Y : C) : is_iso (0 : X ⟶ Y) ≃ (𝟙 X = 0 ∧ 𝟙 Y = 0) :=
-{ to_fun := begin introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y), rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp, end,
+{ to_fun := by { introsI i, rw ←is_iso.hom_inv_id (0 : X ⟶ Y),
+    rw ←is_iso.inv_hom_id (0 : X ⟶ Y), simp },
   inv_fun := λ h, { inv := (0 : Y ⟶ X), },
   left_inv := by tidy,
   right_inv := by tidy, }

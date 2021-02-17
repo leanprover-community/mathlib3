@@ -5,7 +5,7 @@ Author: Johannes Hölzl, Mario Carneiro
 -/
 
 import set_theory.ordinal_arithmetic
-import tactic.omega
+import tactic.linarith
 
 /-!
 # Cardinals and ordinals
@@ -643,7 +643,7 @@ begin
     rcases lt_omega.1 (not_le.1 h) with ⟨n, rfl⟩,
     norm_cast,
     dsimp [bit1, bit0],
-    omega }
+    linarith }
 end
 
 @[simp] theorem bit1_lt_omega {c : cardinal} : bit1 c < omega ↔ c < omega :=

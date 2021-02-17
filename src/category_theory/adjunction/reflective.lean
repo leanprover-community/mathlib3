@@ -34,11 +34,25 @@ class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 variables {i : D ⥤ C}
 
 /--
-When restricted to objects in `D` given by `i : D ⥤ C`, the unit is an isomorphism.
+For a reflective functor `i` (with left adjoint `L`), with unit `η`, we have `η_iL = iL η`.
+-/
+-- TODO: This holds more generally for idempotent adjunctions, not just reflective adjunctions.
+lemma unit_obj_eq_map_unit [reflective i] (X : C) :
+  (adjunction.of_right_adjoint i).unit.app (i.obj ((left_adjoint i).obj X))
+    = i.map ((left_adjoint i).map ((adjunction.of_right_adjoint i).unit.app X)) :=
+begin
+ rw [←cancel_mono (i.map ((adjunction.of_right_adjoint i).counit.app ((left_adjoint i).obj X))),
+     ←i.map_comp],
+ simp,
+end
+
+/--
+When restricted to objects in `D` given by `i : D ⥤ C`, the unit is an isomorphism. In other words,
+`η_iX` is an isomorphism for any `X` in `D`.
 More generally this applies to objects essentially in the reflective subcategory, see
 `functor.ess_image.unit_iso`.
 -/
-instance functor.ess_image.unit_iso_restrict [reflective i] {B : D} :
+instance is_iso_unit_obj [reflective i] {B : D} :
   is_iso ((adjunction.of_right_adjoint i).unit.app (i.obj B)) :=
 begin
   have : (adjunction.of_right_adjoint i).unit.app (i.obj B) =

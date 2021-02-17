@@ -146,21 +146,8 @@ by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
 lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (prime_spectrum R)) (I : ideal R) :
   t ⊆ zero_locus I ↔ I ≤ vanishing_ideal t :=
-begin
-  split; intro h,
-  { intros f hf,
-    rw [mem_vanishing_ideal],
-    intros x hx,
-    have hxI := h hx,
-    rw mem_zero_locus at hxI,
-    exact hxI hf },
-  { intros x hx,
-    rw mem_zero_locus,
-    refine le_trans h _,
-    intros f hf,
-    rw [mem_vanishing_ideal] at hf,
-    exact hf x hx }
-end
+⟨λ h f k, (mem_vanishing_ideal _ _).mpr (λ x j, (mem_zero_locus _ _).mpr (h j) k), λ h,
+  λ x j, (mem_zero_locus _ _).mpr (le_trans h (λ f h, ((mem_vanishing_ideal _ _).mp h) x j))⟩
 
 section gc
 variable (R)
@@ -222,7 +209,7 @@ begin
   rw mem_zero_locus at hx,
   have x_prime : x.as_ideal.is_prime := by apply_instance,
   have eq_top : x.as_ideal = ⊤, { rw ideal.eq_top_iff_one, exact hx h },
-  apply x_prime.1 eq_top,
+  apply x_prime.ne_top eq_top,
 end
 
 lemma zero_locus_empty_iff_eq_top {I : ideal R} :
@@ -305,6 +292,10 @@ begin
   rw mem_vanishing_ideal at hf hg,
   apply submodule.add_mem; solve_by_elim
 end
+
+lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
+  I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
+by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
@@ -414,6 +405,9 @@ section basic_open
 def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
 { val := { x | r ∉ x.as_ideal },
   property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+
+lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
+(basic_open a).property
 
 end basic_open
 

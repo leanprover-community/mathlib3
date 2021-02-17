@@ -359,9 +359,6 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   map_mul' := λ x y, subtype.eq $ f.map_mul x y,
   map_one' := subtype.eq f.map_one }
 
-lemma surjective_onto_range : function.surjective (f.cod_restrict' f.range f.mem_range_self) :=
-λ ⟨y, hy⟩, let ⟨x, hx⟩ := mem_range.mp hy in ⟨x, subtype.ext hx⟩
-
 end ring_hom
 
 namespace subring
@@ -372,12 +369,17 @@ variables {cR : Type u} [comm_ring cR]
 def subset_comm_ring (S : subring cR) : comm_ring S :=
 {mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring S}
 
+/-- A subring of a non-trivial ring is non-trivial. -/
+instance {D : Type*} [ring D] [nontrivial D] (S : subring D) : nontrivial S :=
+S.to_subsemiring.nontrivial
+
+/-- A subring of a ring with no zero divisors has no zero divisors. -/
+instance {D : Type*} [ring D] [no_zero_divisors D] (S : subring D) : no_zero_divisors S :=
+S.to_subsemiring.no_zero_divisors
+
 /-- A subring of an integral domain is an integral domain. -/
 instance subring.domain {D : Type*} [integral_domain D] (S : subring D) : integral_domain S :=
-{ exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.1 zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,
-    by { simp only [subtype.ext_iff_val, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
-  .. S.subset_comm_ring, }
+{ .. S.nontrivial, .. S.no_zero_divisors, .. S.subset_comm_ring }
 
 /-! # bot -/
 
@@ -634,11 +636,16 @@ def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
 @[simp] lemma restrict_apply (f : R →+* S) (x : s) : f.restrict s x = f x := rfl
 
-/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring. -/
+/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
+
+This is the bundled version of `set.range_factorization`. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
 f.cod_restrict' f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
 
 @[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
+
+lemma range_restrict_surjective (f : R →+* S) : function.surjective f.range_restrict :=
+λ ⟨y, hy⟩, let ⟨x, hx⟩ := mem_range.mp hy in ⟨x, subtype.ext hx⟩
 
 lemma range_top_iff_surjective {f : R →+* S} :
   f.range = (⊤ : subring S) ↔ function.surjective f :=
@@ -719,6 +726,26 @@ variables {s t : subring R}
     monoid are equal. -/
 def subring_congr (h : s = t) : s ≃+* t :=
 { map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ subring.ext'_iff.1 h }
+
+/-- Restrict a ring homomorphism with a left inverse to a ring isomorphism to its
+`ring_hom.range`. -/
+def of_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f) :
+  R ≃+* f.range :=
+{ to_fun := λ x, f.range_restrict x,
+  inv_fun := λ x, (g ∘ f.range.subtype) x,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := ring_hom.mem_range.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  ..f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : R) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
 
 end ring_equiv
 

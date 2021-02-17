@@ -853,34 +853,23 @@ end
 /-- The range of `p.succ_above` is everything except `p`. -/
 lemma range_succ_above (p : fin (n + 1)) : set.range (p.succ_above) = { i | i ≠ p } :=
 begin
-  ext, simp,
-  rcases lt_trichotomy p x with H|rfl|H,
-  { split,
-    { rintro ⟨y, rfl⟩,
-      exact (ne_of_lt H).symm, },
-    { rintro h,
-      refine ⟨x.pred _, _⟩,
-      { apply (ne_of_lt (lt_of_le_of_lt (zero_le p) H)).symm, },
-      { rw succ_above_above,
-        { simp, },
-        { rcases p with ⟨p, _⟩, rcases x with ⟨x, _⟩,
-          simp at H,
-          exact nat.le_pred_of_lt H, }, }, }, },
-  { split,
-    { rintro ⟨y, h⟩,
-      cases succ_above_ne _ _ h, },
-    { rintro h,
-      simp at h,
-      cases h, }, },
-  { split,
-    { rintro ⟨y, rfl⟩,
-      exact ne_of_lt H, },
-    { rintro h,
-      refine ⟨x.cast_lt _, _⟩,
-      { exact lt_of_lt_of_le H (le_pred_of_lt p.property), },
+  ext,
+  simp only [set.mem_range, ne.def, set.mem_set_of_eq],
+  split,
+  { rintro ⟨y, rfl⟩,
+    exact succ_above_ne _ _ },
+  { intro h,
+    cases lt_or_gt_of_ne h with H H,
+    { refine ⟨x.cast_lt _, _⟩,
+      { exact lt_of_lt_of_le H p.le_last },
       { rw succ_above_below,
-        { simp, },
-        { exact H, }, }, }, },
+        { simp },
+        { exact H } } },
+    { refine ⟨x.pred _, _⟩,
+      { exact (ne_of_lt (lt_of_le_of_lt p.zero_le H)).symm },
+      { rw succ_above_above,
+        { simp },
+        { simpa [le_iff_coe_le_coe] using nat.le_pred_of_lt H } } } }
 end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
@@ -894,12 +883,7 @@ succ_above_right_injective.eq_iff
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_injective : injective (@succ_above n) :=
-λ x y h, begin
-  apply_fun (λ f : fin n ↪o fin (n + 1), set.range f) at h,
-  rw [range_succ_above, range_succ_above] at h,
-  apply_fun (λ s : set _, sᶜ) at h,
-  simpa using h,
-end
+λ _ _ h, by simpa [range_succ_above] using congr_arg (λ f : fin n ↪o fin (n + 1), (set.range f)ᶜ) h
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_inj {x y : fin (n + 1)} :
@@ -916,30 +900,6 @@ if h : p.cast_succ < i then
   i.pred (ne_of_lt (lt_of_le_of_lt (zero_le p.cast_succ) h)).symm
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
-
-lemma pred_above_right_monotone (p : fin n) : monotone p.pred_above :=
-λ a b H,
-begin
-  dsimp [pred_above],
-  split_ifs with ha hb hb,
-  all_goals { simp only [le_iff_coe_le_coe, coe_pred], },
-  { exact pred_le_pred H, },
-  { calc _ ≤ _ : nat.pred_le _
-        ... ≤ _ : H, },
-  { simp at ha, exact le_pred_of_lt (lt_of_le_of_lt ha hb), },
-  { exact H, },
-end
-
-lemma pred_above_left_monotone (i : fin (n + 1)) : monotone (λ p, pred_above p i) :=
-λ a b H,
-begin
-  dsimp [pred_above],
-  split_ifs with ha hb hb,
-  all_goals { simp only [le_iff_coe_le_coe, coe_pred] },
-  { exact pred_le _, },
-  { have : b < a := cast_succ_lt_cast_succ_iff.mpr (hb.trans_le (le_of_not_gt ha)),
-    exact absurd H this.not_le }
-end
 
 /-- `cast_pred` embeds `i : fin (n + 2)` into `fin (n + 1)`
 by lowering just `last (n + 1)` to `last n`. -/
@@ -966,9 +926,6 @@ begin
     { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
   simp [cast_pred, pred_above, this]
 end
-
-lemma cast_pred_monotone : monotone (@cast_pred n) :=
-pred_above_right_monotone (last _)
 
 /-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
 then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/
@@ -1083,8 +1040,8 @@ operations, first about adding or removing elements at the beginning of a tuple.
 -/
 
 /-- There is exactly one tuple of size zero. -/
-instance tuple0_unique (α : fin 0 → Type u) : unique (Π i : fin 0, α i) :=
-{ default := fin_zero_elim, uniq := λ x, funext fin_zero_elim }
+instance tuple0_unique (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
+pi.unique_of_empty fin.elim0 α
 
 @[simp] lemma tuple0_le {α : Π i : fin 0, Type*} [Π i, preorder (α i)] (f g : Π i, α i) : f ≤ g :=
 fin_zero_elim

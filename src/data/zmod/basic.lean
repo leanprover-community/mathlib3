@@ -207,8 +207,7 @@ end
 /-- So-named because the coercion is `nat.cast` into `zmod`. For `nat.cast` into an arbitrary ring,
 see `zmod.nat_cast_val`. -/
 @[simp]
-lemma nat_cast_zmod_val {n : ℕ} [fact (0 < n)] (a : zmod n) :
-  (a.val : zmod n) = a :=
+lemma nat_cast_zmod_val {n : ℕ} [fact (0 < n)] (a : zmod n) : (a.val : zmod n) = a :=
 begin
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
@@ -216,23 +215,20 @@ begin
     rw [val, fin.ext_iff, fin.coe_coe_eq_self] }
 end
 
-lemma nat_cast_zmod_surjective [fact (0 < n)] :
-  function.surjective (coe : ℕ → zmod n) :=
+lemma nat_cast_zmod_surjective [fact (0 < n)] : function.surjective (coe : ℕ → zmod n) :=
 function.right_inverse.surjective nat_cast_zmod_val
 
 /-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
 ring, see `zmod.int_cast_cast`. -/
 @[simp]
-lemma int_cast_zmod_cast (a : zmod n) :
-  ((a : ℤ) : zmod n) = a :=
+lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
 begin
   cases n,
   { rw [int.cast_id a, int.cast_id a], },
   { rw [coe_coe, int.nat_cast_eq_coe_nat, int.cast_coe_nat, fin.coe_coe_eq_self] }
 end
 
-lemma int_cast_surjective :
-  function.surjective (coe : ℤ → zmod n) :=
+lemma int_cast_surjective : function.surjective (coe : ℤ → zmod n) :=
 function.right_inverse.surjective int_cast_zmod_cast
 
 @[norm_cast]
@@ -255,8 +251,7 @@ begin
 end
 
 /-- The coercions are respectively `int.cast`, `zmod.cast`, and `zmod.cast`. -/
-@[simp] lemma int_cast_comp_cast :
-  (coe : ℤ → R) ∘ (coe : zmod n → ℤ) = coe :=
+@[simp] lemma int_cast_comp_cast : (coe : ℤ → R) ∘ (coe : zmod n → ℤ) = coe :=
 begin
   cases n,
   { exact congr_arg ((∘) int.cast) zmod.cast_id', },
@@ -265,12 +260,10 @@ end
 
 variables {R}
 
-@[simp] lemma nat_cast_val [fact (0 < n)] (i : zmod n) :
-  (i.val : R) = i :=
+@[simp] lemma nat_cast_val [fact (0 < n)] (i : zmod n) : (i.val : R) = i :=
 congr_fun (nat_cast_comp_val R) i
 
-@[simp] lemma int_cast_cast (i : zmod n) :
-  ((i : ℤ) : R) = i :=
+@[simp] lemma int_cast_cast (i : zmod n) : ((i : ℤ) : R) = i :=
 congr_fun (int_cast_comp_cast R) i
 
 section char_dvd

@@ -337,6 +337,30 @@ def applyₗ' : M →+ (M →ₗ[R] M₂) →ₗ[S] M₂ :=
   map_zero' := linear_map.ext $ λ f, f.map_zero,
   map_add' := λ x y, linear_map.ext $ λ f, f.map_add _ _ }
 
+
+section
+variables (R M)
+
+/--
+The equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
+This says that the forgetful functor from `R`-modules to types is representable, by `R`.
+
+This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
+When `R` is commutative, we can take this to be the usual action with `S = R`.
+Otherwise, `S = ℤ` shows that the equivalence is additive.
+See note [bundled maps over different rings].
+-/
+@[simps]
+def ring_lmap_equiv_self [semimodule S M] [smul_comm_class R S M] : (R →ₗ[R] M) ≃ₗ[S] M :=
+{ to_fun := λ f, f 1,
+  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
+  map_add' := by simp,
+  map_smul' := by simp,
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { simp } }
+
+end
+
 end semimodule
 
 section comm_semiring
@@ -1286,7 +1310,9 @@ by rw [range, map_le_iff_le_comap, eq_top_iff]
 lemma map_le_range {f : M →ₗ[R] M₂} {p : submodule R M} : map f p ≤ range f :=
 map_mono le_top
 
-/-- Restrict the codomain of a linear map `f` to `f.range`. -/
+/-- Restrict the codomain of a linear map `f` to `f.range`.
+
+This is the bundled version of `set.range_factorization`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
 
@@ -1848,6 +1874,30 @@ end
 @[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective e.to_equiv.injective
 
+variables {f g}
+
+/-- An linear map `f : M →ₗ[R] M₂` with a left-inverse `g : M₂ →ₗ[R] M` defines a linear equivalence
+between `M` and `f.range`.
+
+This is a computable alternative to `linear_equiv.of_injective`, and a bidirectional version of
+`linear_map.range_restrict`. -/
+def of_left_inverse {g : M₂ → M} (h : function.left_inverse g f) : M ≃ₗ[R] f.range :=
+{ to_fun := f.range_restrict,
+  inv_fun := g ∘ f.range.subtype,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := linear_map.mem_range.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  .. f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply
+  (h : function.left_inverse g f) (x : M) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply
+  (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
+
 end
 
 end add_comm_monoid
@@ -1890,10 +1940,9 @@ variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
 
 /-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
-between `M` and `f.range`. -/
+between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
 noncomputable def of_injective (h : f.ker = ⊥) : M ≃ₗ[R] f.range :=
-{ .. (equiv.set.range f $ linear_map.ker_eq_bot.1 h).trans (equiv.set.of_eq f.range_coe.symm),
-  .. f.cod_restrict f.range (λ x, f.mem_range_self x) }
+of_left_inverse $ classical.some_spec (linear_map.ker_eq_bot.1 h).has_left_inverse
 
 @[simp] theorem of_injective_apply {h : f.ker = ⊥} (x : M) :
   ↑(of_injective f h x) = f x := rfl
@@ -2130,7 +2179,7 @@ begin
 end
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-set of maps $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\}$ is a submodule of `Hom(M, M₂)`. -/
+set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
 def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 { carrier   := {f | p ≤ comap f q},
   zero_mem' := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
@@ -2139,7 +2188,7 @@ def compatible_maps : submodule R (M →ₗ[R] M₂) :=
   smul_mem' := λ c f h, le_trans h (comap_le_comap_smul q f c), }
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-natural map $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\} \to Hom(M/p, M₂/q)$ is linear. -/
+natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
 def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
   map_add'  := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },

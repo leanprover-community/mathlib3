@@ -761,6 +761,10 @@ not_congr mem_singleton_iff
 lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} :=
 ext $ λ x, mem_compl_singleton_iff
 
+@[simp]
+lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} :=
+by { ext, simp, }
+
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = (sᶜ ∩ tᶜ)ᶜ :=
 ext $ λ x, or_iff_not_and_not
 

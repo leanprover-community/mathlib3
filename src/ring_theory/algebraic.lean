@@ -29,6 +29,9 @@ variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 def is_algebraic (x : A) : Prop :=
 ∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
 
+/-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
+def transcendental (x : A) : Prop := ¬ is_algebraic R x
+
 variables {R}
 
 /-- A subalgebra is algebraic if all its elements are algebraic. -/

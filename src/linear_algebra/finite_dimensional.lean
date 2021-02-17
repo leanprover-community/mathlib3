@@ -841,6 +841,30 @@ begin
   exact this b hB,
 end
 
+lemma subsingleton.is_basis (h : subsingleton V) : is_basis K (λ x : fin 0, (0 : V)) :=
+begin
+  split,
+  { rw linear_independent_iff,
+    intros l hl,
+    ext x,
+    exact fin.elim0 x },
+  { rw eq_top_iff,
+    intros x _,
+    rw [subsingleton.elim x 0],
+    exact zero_mem _ }
+end
+
+lemma findim_eq_zero_iff_subsingleton [finite_dimensional K V] :
+  findim K V = 0 ↔ subsingleton V :=
+begin
+  split; intro h,
+  { apply subsingleton.intro,
+    intros x y,
+    rw [eq_zero_of_findim_eq_zero h x, eq_zero_of_findim_eq_zero h y] },
+  { rw findim_eq_card_basis (@subsingleton.is_basis K V _ _ _ h),
+    exact fintype.card_fin 0 }
+end
+
 lemma eq_zero_of_dim_eq_zero (hV : dim K V = 0) (x : V) : x = 0 :=
 begin
   haveI := finite_dimensional_of_dim_eq_zero hV,
@@ -850,16 +874,30 @@ begin
 end
 
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]
-  (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
-is_basis_empty (finset.univ_eq_empty.mp rfl) (eq_zero_of_findim_eq_zero hV)
+  {ι : Type*} (h : ¬ nonempty ι) (hV : findim K V = 0) :
+  is_basis K (λ x : ι, (0 : V)) :=
+is_basis_empty h (eq_zero_of_findim_eq_zero hV)
 
-lemma is_basis_of_dim_eq_zero
+lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
+  (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
+begin
+  haveI := finite_dimensional_of_dim_eq_zero hV,
+  rw ← findim_eq_dim at hV,
+  norm_cast at hV,
+  exact is_basis_of_findim_eq_zero h hV,
+end
+
+lemma is_basis_of_findim_eq_zero' [finite_dimensional K V]
+  (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_of_findim_eq_zero (finset.univ_eq_empty.mp rfl) hV
+
+lemma is_basis_of_dim_eq_zero'
   (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
 begin
   haveI := finite_dimensional_of_dim_eq_zero hV,
   rw ← findim_eq_dim at hV,
   norm_cast at hV,
-  exact is_basis_of_findim_eq_zero hV,
+  exact is_basis_of_findim_eq_zero' hV,
 end
 
 namespace linear_map

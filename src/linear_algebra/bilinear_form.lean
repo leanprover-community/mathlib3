@@ -1289,7 +1289,7 @@ lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
 begin
   tactic.unfreeze_local_instances,
   induction hd : findim K V with d ih generalizing V,
-  { refine ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_eq_zero hd, fin.elim0⟩ },
+  { refine ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_eq_zero' hd, fin.elim0⟩ },
   { haveI : nontrivial V :=
     by { apply (@findim_pos_iff K _ _ _ _ _).1,
           rw hd, exact nat.succ_pos _,

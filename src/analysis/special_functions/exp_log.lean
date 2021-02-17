@@ -7,6 +7,7 @@ import data.complex.exponential
 import analysis.calculus.inverse
 import measure_theory.borel_space
 import analysis.complex.real_deriv
+import measure_theory.interval_integral
 
 /-!
 # Complex and real exponential, real logarithm
@@ -201,6 +202,10 @@ lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
 lemma measurable_exp : measurable exp := continuous_exp.measurable
+
+@[simp]
+lemma integral_exp {a b : ℝ}: ∫ x in a..b, exp x = exp b - exp a :=
+by rw interval_integral.integral_deriv_eq_sub'; norm_num [continuous_exp.continuous_on]
 
 end real
 
@@ -556,6 +561,35 @@ end
 
 lemma times_cont_diff_at_log (hx : x ≠ 0) {n : with_top ℕ} : times_cont_diff_at ℝ n log x :=
 (times_cont_diff_on_log x hx).times_cont_diff_at $ mem_nhds_sets is_open_compl_singleton hx
+
+open interval_integral
+variables {a b : ℝ}
+
+@[simp]
+lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+begin
+  have h' := λ x hx, ne_of_mem_of_not_mem hx h,
+  rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
+        (continuous_on_inv'.mono (subset_compl_singleton_iff.mpr h)),
+      log_div (h' b right_mem_interval) (h' a left_mem_interval)],
+end
+
+@[simp]
+lemma integral_inv_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+integral_inv (not_mem_interval_of_lt ha hb)
+
+@[simp]
+lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+integral_inv (not_mem_interval_of_gt ha hb)
+
+lemma integral_one_div (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
+by simp only [one_div, integral_inv h]
+
+lemma integral_one_div_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
+by simp only [one_div, integral_inv_of_pos ha hb]
+
+lemma integral_one_div_of_neg (ha : a < 0) (hb : b < 0) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
+by simp only [one_div, integral_inv_of_neg ha hb]
 
 end real
 

@@ -875,9 +875,8 @@ instance {B : C} : semilattice_sup (subobject B) :=
   sup_le := λ m n k, quotient.induction_on₃' m n k (λ a b c ⟨i⟩ ⟨j⟩, ⟨mono_over.sup_le _ _ _ i j⟩),
   ..subobject.partial_order B }
 
-
 section
-variables [has_images C] [has_binary_coproducts C] [has_zero_morphisms C] [has_zero_object C]
+variables [has_zero_morphisms C] [has_zero_object C]
 
 instance {B : C} : semilattice_sup_bot (subobject B) :=
 { ..subobject.order_bot,
@@ -886,7 +885,6 @@ instance {B : C} : semilattice_sup_bot (subobject B) :=
 end
 
 end semilattice_sup
-
 
 section lattice
 variables [has_pullbacks C] [has_images C] [has_binary_coproducts C]

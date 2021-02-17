@@ -28,7 +28,7 @@ We provide
 (each first at the level of `mono_over`), and prove their basic properties and relationships.
 
 We also provide the `semilattice_inf_top (subobject X)` instance when `[has_pullback C]`,
-and the `semilattice_inf (subobject X)` instance when `[has_images C] [has_finite_coproducts C]`.
+and the `semilattice_inf (subobject X)` instance when `[has_images C] [has_binary_coproducts C]`.
 
 ## Notes
 
@@ -469,9 +469,9 @@ end
 end inf
 
 section sup
-variables [has_images C] [has_finite_coproducts C]
+variables [has_images C] [has_binary_coproducts C]
 
-/-- When `[has_images C] [has_finite_coproducts C]`, `mono_over A` has a `sup` construction,
+/-- When `[has_images C] [has_binary_coproducts C]`, `mono_over A` has a `sup` construction,
 which is functorial in both arguments,
 and which on `subobject A` will induce a `semilattice_sup`. -/
 def sup  {A : C} : mono_over A ⥤ mono_over A ⥤ mono_over A :=
@@ -862,7 +862,7 @@ end
 end semilattice_inf_top
 
 section semilattice_sup
-variables [has_images C] [has_finite_coproducts C]
+variables [has_images C] [has_binary_coproducts C]
 
 /-- The functorial supremum on `mono_over A` descends to an supremum on `subobject A`. -/
 def sup {A : C} : subobject A ⥤ subobject A ⥤ subobject A :=
@@ -877,7 +877,7 @@ instance {B : C} : semilattice_sup (subobject B) :=
 
 
 section
-variables [has_images C] [has_finite_coproducts C] [has_zero_morphisms C] [has_zero_object C]
+variables [has_images C] [has_binary_coproducts C] [has_zero_morphisms C] [has_zero_object C]
 
 instance {B : C} : semilattice_sup_bot (subobject B) :=
 { ..subobject.order_bot,
@@ -889,23 +889,19 @@ end semilattice_sup
 
 
 section lattice
-variables [has_pullbacks C] [has_images C] [has_finite_coproducts C]
+variables [has_pullbacks C] [has_images C] [has_binary_coproducts C]
 
 instance {B : C} : lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,
   ..subobject.semilattice_sup }
 
-end lattice
-
-section bounded_lattice
-variables [has_pullbacks C] [has_images C] [has_finite_coproducts C]
 variables [has_zero_morphisms C] [has_zero_object C]
 
 instance {B : C} : bounded_lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,
   ..subobject.semilattice_sup_bot }
 
-end bounded_lattice
+end lattice
 
 end subobject
 

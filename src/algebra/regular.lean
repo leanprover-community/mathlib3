@@ -8,59 +8,53 @@ import algebra.group
 /-!
 # Regular elements
 
-We introduce left-regular, right-regular and regular elements.  The final goal is to develop
-part of the API to prove, eventually, results about non-zero-divisors.
+We introduce left-regular, right-regular and regular elements.
 
+By definition, a regular element in a commutative ring is a non-zero divisor.
+Lemma `is_regular_of_integral_domain` shows that every non-zero element of an integral domain
+is regular.
+
+The final goal is to develop part of the API to prove, eventually, results about non-zero-divisors.
 -/
 variables {R : Type*}
+
+/-- A left-regular element is an element `c` such that multiplication on the left by `c`
+is injective on the left. -/
+def is_left_regular [has_mul R] (c : R) := function.injective ((*) c)
+
+/-- A right-regular element is an element `c` such that multiplication on the right by `c`
+is injective on the left. -/
+def is_right_regular [has_mul R] (c : R) := function.injective (* c)
 
 /-- A regular element is an element `c` such that multiplication by `c` both on the left and
 on the right is injective. -/
 structure is_regular [has_mul R] (c : R) : Prop :=
-(mul_left_inj : ∀ a b : R, c * a = c * b → a = b)
-(mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
+(left : is_left_regular c)
+(right : is_right_regular c)
 
 namespace is_regular
-
-/-- A left-regular element is an element `c` such that multiplication on the left by `c`
-is injective on the left. -/
-structure is_left_regular [has_mul R] (c : R) : Prop :=
-(mul_left_inj : ∀ a b : R, c * a = c * b → a = b)
-
-/-- A right-regular element is an element `c` such that multiplication on the right by `c`
-is injective on the left. -/
-structure is_right_regular [has_mul R] (c : R) : Prop :=
-(mul_right_inj : ∀ a b : R, a * c = b * c → a = b)
-
-/-- A regular element is left regular. -/
-lemma left [has_mul R] {a : R} (hl : is_regular a) : is_left_regular a := ⟨hl.1⟩
-
-/-- A regular element is right regular. -/
-lemma right [has_mul R] {a : R} (hl : is_regular a) : is_right_regular a := ⟨hl.2⟩
 
 variables [monoid R]
 
 /-- An element admitting a right inverse is right-regular. -/
 lemma right_of_mul_eq_one {a ai : R} (h : a * ai = 1) : is_right_regular a :=
-{ mul_right_inj :=
 begin
   intros b c bc,
   rw [← mul_one b, ← mul_one c, ← h, ← mul_assoc, ← mul_assoc],
   exact congr_fun (congr_arg has_mul.mul bc) ai,
-end }
+end
 
 /-- An element admitting a left inverse is left-regular. -/
 lemma left_of_mul_eq_one {a ai : R} (h : ai * a = 1) : is_left_regular a :=
-{ mul_left_inj :=
 begin
   intros b c bc,
   rw [← one_mul b, ← one_mul c, ← h, mul_assoc, mul_assoc],
   exact congr_arg (has_mul.mul ai) bc,
-end }
+end
 
 /-- A left and right regular element is regular. -/
 lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) : is_regular a :=
-⟨hl.1, hr.1⟩
+⟨hl, hr⟩
 
 /-- An element admitting a left and a right inverse is regular. -/
 lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
@@ -71,14 +65,14 @@ of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
 Funny how left and right change positions. -/
 lemma is_left_regular_of_left_cancel_monoid {G : Type*} [left_cancel_monoid G] (g : G) :
   is_left_regular g :=
-⟨λ {b c : G}, (_root_.mul_right_inj g).mp⟩
+λ {b c : G}, (_root_.mul_right_inj g).mp
 
 /--  Elements of a right cancel monoid are right regular.
 
 Funny how left and right change positions. -/
 lemma is_right_regular_of_right_cancel_monoid {G : Type*} [right_cancel_monoid G] (g : G) :
   is_right_regular g :=
-⟨λ {b c : G}, (_root_.mul_left_inj g).mp⟩
+λ {b c : G}, (_root_.mul_left_inj g).mp
 
 /--  Elements of a cancel monoid are regular.
 

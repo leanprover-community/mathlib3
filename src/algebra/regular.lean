@@ -34,6 +34,20 @@ structure is_regular [has_mul R] (c : R) : Prop :=
 
 namespace is_regular
 
+/-- If multiplication is associative, then the product of left-regular elements is
+left-regular. -/
+lemma left_mul [has_mul R] (mul_assoc : ∀ x y z : R, x * y * z = x * (y * z)) {a b : R}
+  (lra : is_left_regular a) (lrb : is_left_regular b) :
+  is_left_regular (a * b) :=
+λ c d cd, lrb (lra ((mul_assoc a b c).symm.trans (cd.trans (mul_assoc a b d))))
+
+/-- If multiplication is associative, then the product of right-regular elements is
+right-regular. -/
+lemma right_mul [has_mul R] (mul_assoc : ∀ x y z : R, x * y * z = x * (y * z)) {a b : R}
+  (rra : is_right_regular a) (rrb : is_right_regular b) :
+  is_right_regular (a * b) :=
+λ c d cd, rra (rrb ((mul_assoc c a b).trans (cd.trans (mul_assoc d a b).symm)))
+
 variables [monoid R]
 
 /-- An element admitting a right inverse is right-regular. -/

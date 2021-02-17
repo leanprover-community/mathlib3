@@ -740,7 +740,7 @@ end
 section connected_component_setoid
 local attribute [instance] connected_component_setoid
 
-/-- π₀ α is Hausdorff when α is Hausdorff and compact -/
+/-- `connected_components α` is Hausdorff when `α` is Hausdorff and compact -/
 instance connected_components.t2 [t2_space α] [compact_space α] :
   t2_space (connected_components α) :=
 begin

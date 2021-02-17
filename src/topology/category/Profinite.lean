@@ -116,11 +116,14 @@ left adjoint to the inclusion functor.
 def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
 adjunction.left_adjoint_of_equiv Profinite_to_CompHaus_equivalence (λ _ _ _ _ _, rfl)
 
+def CompHaus_to_Profinite.left_adjoint : CompHaus_to_Profinite ⊣ Profinite_to_CompHaus :=
+adjunction.adjunction_of_equiv_left _ _
+
 lemma CompHaus_to_Profinite_obj (X : CompHaus) :
   ↥(CompHaus_to_Profinite.obj X) = connected_components X.to_Top.α := rfl
 
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite_to_CompHaus.reflective : reflective Profinite_to_CompHaus :=
-{ to_is_right_adjoint := ⟨CompHaus_to_Profinite, adjunction.adjunction_of_equiv_left _ _⟩ }
+{ to_is_right_adjoint := ⟨CompHaus_to_Profinite, CompHaus_to_Profinite.left_adjoint⟩ }
 
 end Profinite

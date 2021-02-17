@@ -658,8 +658,8 @@ begin
   exact le_nhds_Lim ⟨x,h⟩,
 end
 
-theorem exists_minimal_nonempty_closed_subset_of_compact [compact_space α]
-  (S : set α) (hS : is_closed S) (hne : S.nonempty) :
+theorem is_closed.exists_minimal_nonempty_closed_subset [compact_space α]
+  {S : set α} (hS : is_closed S) (hne : S.nonempty) :
   ∃ (V : set α),
     V ⊆ S ∧ V.nonempty ∧ is_closed V ∧
       (∀ (V' : set α), V' ⊆ V → V'.nonempty → is_closed V' → V' = V) :=

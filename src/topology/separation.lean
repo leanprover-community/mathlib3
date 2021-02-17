@@ -59,11 +59,11 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
-theorem exists_closed_singleton_of_compact_in_closed {α : Type*} [topological_space α]
-  [t0_space α] [compact_space α] (S : set α) (hS : is_closed S) (hne : S.nonempty) :
+theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
+  [t0_space α] [compact_space α] {S : set α} (hS : is_closed S) (hne : S.nonempty) :
   ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=
 begin
-  obtain ⟨V, Vsub, Vne, Vcls, hV⟩ := exists_minimal_nonempty_closed_subset_of_compact S hS hne,
+  obtain ⟨V, Vsub, Vne, Vcls, hV⟩ := hS.exists_minimal_nonempty_closed_subset hne,
   by_cases hnt : ∃ (x y : α) (hx : x ∈ V) (hy : y ∈ V), x ≠ y,
   { exfalso,
     obtain ⟨x, y, hx, hy, hne⟩ := hnt,

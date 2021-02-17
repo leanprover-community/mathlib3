@@ -843,15 +843,9 @@ end
 
 lemma subsingleton.is_basis (h : subsingleton V) : is_basis K (λ x : fin 0, (0 : V)) :=
 begin
-  split,
-  { rw linear_independent_iff,
-    intros l hl,
-    ext x,
-    exact fin.elim0 x },
-  { rw eq_top_iff,
-    intros x _,
-    rw [subsingleton.elim x 0],
-    exact zero_mem _ }
+  refine is_basis_empty (finset.univ_eq_empty.mp rfl) _,
+  intro x,
+  rw [subsingleton.elim x 0],
 end
 
 lemma findim_eq_zero_iff_subsingleton [finite_dimensional K V] :

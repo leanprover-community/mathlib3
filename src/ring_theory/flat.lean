@@ -12,7 +12,8 @@ import ring_theory.algebra_tower
 # Flat modules
 
 A module `M` over a commutative ring `R` is *flat*
-if for all finitely generated ideals `I` of `R`, the map `I ⊗ M →ₗ M` is injective.
+if for all finitely generated ideals `I` of `R`,
+the canonical map `I ⊗ M →ₗ M` is injective.
 
 This is equivalent to the claim that for all injective `R`-linear maps `f : M₁ → M₂`
 the induced map `M₁ ⊗ M → M₂ ⊗ M` is injective.
@@ -36,6 +37,11 @@ This result is not yet formalised.
   - Show that composition of flat morphisms is flat
 * Define flat `R`-algebras
 * Show that flatness is stable under base change (aka extension of scalars)
+  For base change, it will be very useful to have a "characteristic predicate"
+  instead of relying on the construction `A ⊗ B`.
+  Indeed, such a predicate should allow us to treat both
+  `polynomial A` and `A ⊗ polynomial R` as the base change of `polynomial R` to `A`.
+  (Similar examples exist with `fin n → R`, `R × R`, `ℤ[i] ⊗ ℝ`, etc...)
 
 -/
 
@@ -46,7 +52,7 @@ open linear_map (lsmul)
 open_locale tensor_product
 
 /-- An `R`-module `M` is flat if for all finitely generated ideals `I` of `R`,
-the map `I ⊗ M →ₗ M` is injective. -/
+the canonical map `I ⊗ M →ₗ M` is injective. -/
 @[class]
 def flat (R M : Type*) [comm_ring R] [add_comm_group M] [module R M] : Prop :=
 ∀ ⦃I : ideal R⦄ (hI : I.fg), injective (tensor_product.lift ((lsmul R M).comp I.subtype))

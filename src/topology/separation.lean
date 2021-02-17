@@ -741,7 +741,8 @@ section connected_component_setoid
 local attribute [instance] connected_component_setoid
 
 /-- π₀ α is Hausdorff when α is Hausdorff and compact -/
-instance pi0.t2 [t2_space α] [compact_space α]: t2_space (π₀ α) :=
+instance connected_components.t2 [t2_space α] [compact_space α] :
+  t2_space (connected_components α) :=
 begin
   -- Proof follows that of: https://stacks.math.columbia.edu/tag/0900
   -- Fix 2 distinct connected components, with points a and b
@@ -762,9 +763,9 @@ begin
   -- Using the fact that clopens are unions of connected components, we show that
   -- U and Uᶜ is the preimage of a clopen set in the quotient
   have hu : quotient.mk ⁻¹' (quotient.mk '' U) = U :=
-    (pi0_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
+    (connected_components_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
   have huc : quotient.mk ⁻¹' (quotient.mk '' Uᶜ) = Uᶜ :=
-    (pi0_preimage_image Uᶜ ▸ eq.symm)
+    (connected_components_preimage_image Uᶜ ▸ eq.symm)
       (is_clopen_compl hu_clopen).eq_union_connected_components,
   -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
   refine ⟨_,_,_,_,_⟩,

@@ -84,15 +84,15 @@ namespace Profinite
 local attribute [instance] connected_component_setoid
 
 /--
-(Implementation) The object part of the π₀ functor from compact Hausdorff spaces
+(Implementation) The object part of the connected_components functor from compact Hausdorff spaces
 to Profinite spaces, given by quotienting a space by its connected components.
 See: https://stacks.math.columbia.edu/tag/0900
 -/
 def CompHaus_to_Profinite_obj' (X : CompHaus) : Profinite :=
-{ to_Top := { α := π₀ X.to_Top.α },
+{ to_Top := { α := connected_components X.to_Top.α },
   is_compact := quotient.compact_space,
-  is_t2 := pi0.t2,
-  is_totally_disconnected := pi0.totally_disconnected_space }
+  is_t2 := connected_components.t2,
+  is_totally_disconnected := connected_components.totally_disconnected_space }
 
 /--
 (Implementation) The bijection of homsets to establish the reflective adjunction of Profinite
@@ -104,20 +104,20 @@ def Profinite_to_CompHaus_equivalence (X : CompHaus) (Y : Profinite) :
   { to_fun := f.1 ∘ quotient.mk,
     continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
   inv_fun := λ g,
-    { to_fun := continuous.pi0_lift g.2,
-      continuous_to_fun := continuous.pi0_lift_continuous g.2},
+    { to_fun := continuous.connected_components_lift g.2,
+      continuous_to_fun := continuous.connected_components_lift_continuous g.2},
   left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
   right_inv := λ f, continuous_map.ext $ λ x, rfl }
 
 /--
-The π₀ functor from compact Hausdorff spaces to profinite spaces,
+The connected_components functor from compact Hausdorff spaces to profinite spaces,
 left adjoint to the inclusion functor.
 -/
 def CompHaus_to_Profinite : CompHaus ⥤ Profinite :=
 adjunction.left_adjoint_of_equiv Profinite_to_CompHaus_equivalence (λ _ _ _ _ _, rfl)
 
-lemma CompHaus_to_Profinite_obj (X : CompHaus) : ↥(CompHaus_to_Profinite.obj X) = π₀ X.to_Top.α :=
-rfl
+lemma CompHaus_to_Profinite_obj (X : CompHaus) :
+  ↥(CompHaus_to_Profinite.obj X) = connected_components X.to_Top.α := rfl
 
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite_to_CompHaus.reflective : reflective Profinite_to_CompHaus :=

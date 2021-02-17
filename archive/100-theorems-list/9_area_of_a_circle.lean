@@ -85,13 +85,11 @@ begin
   simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
-  { split,
-    { rcases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) hr,
-      -- have h' := abs_lt_abs_of_sqr_lt_sqr (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)),
-      -- obtain ⟨h1, h2⟩ := abs_lt.mp (by rwa abs_of_nonneg hr at h'),
-      exact ⟨left, right.le⟩ },
-    { rw [add_comm, ← lt_sub_iff_add_lt] at h,
-      exact sqr_lt.mp h } },
+  { cases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) hr with h1 h2,
+    -- have h' := abs_lt_of_sqr_lt_sqr (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) hr,
+    -- obtain ⟨h1, h2⟩ := abs_lt.mp h',
+    rw [add_comm, ← lt_sub_iff_add_lt] at h,
+    exact ⟨⟨h1, h2.le⟩, sqr_lt.mp h⟩ },
   { rw [add_comm, ← lt_sub_iff_add_lt],
     exact sqr_lt.mpr h.2 },
 end

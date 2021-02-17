@@ -5,6 +5,13 @@ Authors: Damiano Testa
 -/
 import algebra.group
 
+/-!
+# Regular elements
+
+We introduce left-regular, right-regular and regular elements.  The final goal is to develop
+part of the API to prove, eventually, results about non-zero-divisors.
+
+-/
 variables {R : Type*}
 
 /-- A regular element is an element `c` such that multiplication by `c` both on the left and
@@ -52,11 +59,13 @@ lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) :
   is_regular a :=
 of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
 
+end is_regular
+
+open is_regular
+
 /-- A unit is regular. -/
-lemma of_is_unit {a : R} (ua : is_unit a) : is_regular a :=
+lemma is_unit.is_regular [monoid R] {a : R} (ua : is_unit a) : is_regular a :=
 begin
   rcases ua with ⟨⟨t1, t2⟩, u, v⟩,
   exact of_mul_eq_one_mul_eq_one ua_w_val_inv ua_w_inv_val
 end
-
-end is_regular

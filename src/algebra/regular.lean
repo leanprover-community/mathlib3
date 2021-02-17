@@ -52,13 +52,9 @@ begin
   exact congr_arg (has_mul.mul ai) bc,
 end
 
-/-- A left and right regular element is regular. -/
-lemma of_left_right {a : R} (hl : is_left_regular a) (hr : is_right_regular a) : is_regular a :=
-⟨hl, hr⟩
-
 /-- An element admitting a left and a right inverse is regular. -/
-lemma of_mul_eq_one_mul_eq_one {a ai : R} (hr : a * ai = 1) (hl : ai * a = 1) : is_regular a :=
-of_left_right (left_of_mul_eq_one hl) (right_of_mul_eq_one hr)
+lemma unit.is_regular (a : units R) : is_regular (a : R) :=
+⟨left_of_mul_eq_one a.inv_mul,  right_of_mul_eq_one a.mul_inv⟩
 
 /--  Elements of a left cancel semigroup are left regular. -/
 lemma is_left_regular_of_left_cancel_semigroup {G : Type*} [left_cancel_semigroup G] (g : G) :
@@ -76,7 +72,8 @@ lemma is_regular_of_cancel_monoid {G : Type*} [cancel_monoid G] (g : G) :
 ⟨mul_right_injective g, mul_left_injective g⟩
 
 /--  Non-zero elements of an integral domain are regular. -/
-lemma is_regular_of_integral_domain {D : Type*} [integral_domain D] {a : D} (a0 : a ≠ 0) :
+lemma is_regular_of_cancel_monoid_with_zero {D : Type*} [cancel_monoid_with_zero D] {a : D}
+ (a0 : a ≠ 0) :
   is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
 
@@ -85,5 +82,8 @@ end is_regular
 open is_regular
 
 /-- A unit in a monoid is regular. -/
-lemma is_unit.is_regular [monoid R] {a : R} : is_unit a → is_regular a
-| ⟨⟨a, b, ab, ba⟩, rfl⟩ := of_mul_eq_one_mul_eq_one ab ba
+lemma is_unit.is_regular [monoid R] {a : R} : is_unit a → is_regular a :=
+begin
+  rintros ⟨⟨a, b, ab, ba⟩, rfl⟩,
+  exact unit.is_regular _,
+end

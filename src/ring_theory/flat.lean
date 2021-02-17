@@ -6,8 +6,38 @@ Authors: Johan Commelin
 
 import linear_algebra.dimension
 import ring_theory.noetherian
-import category_theory.adjunction.limits
 import ring_theory.algebra_tower
+
+/-!
+# Flat modules
+
+A module `M` over a commutative ring `R` is *flat*
+if for all finitely generated ideals `I` of `R`, the map `I ⊗ M →ₗ M` is injective.
+
+This is equivalent to the claim that for all injective `R`-linear maps `f : M₁ → M₂`
+the induced map `M₁ ⊗ M → M₂ ⊗ M` is injective.
+See <https://stacks.math.columbia.edu/tag/00HD>.
+This result is not yet formalised.
+
+## Main declaration
+
+* `module.flat`: the predicate asserting that an `R`-module `M` is flat.
+
+## TODO
+
+* Show that tensoring with a flat module preserves injective morphisms.
+  Show that this is equivalent to be flat.
+  See <https://stacks.math.columbia.edu/tag/00HD>.
+  To do this, it is probably a good idea to think about a suitable
+  categorical induction principle that should be applied to the category of `R`-modules,
+  and that will take care of the administrative side of the proof.
+* Define flat ring homomorphisms
+  - Show that the identity is flat
+  - Show that composition of flat morphisms is flat
+* Define flat `R`-algebras
+* Show that flatness is stable under base change (aka extension of scalars)
+
+-/
 
 namespace module
 open function (injective)
@@ -23,16 +53,16 @@ def flat (R M : Type*) [comm_ring R] [add_comm_group M] [module R M] : Prop :=
 
 namespace flat
 
-open tensor_product
+open tensor_product linear_map submodule
 
 instance self (R : Type*) [comm_ring R] : flat R R :=
 begin
   intros I hI,
-  -- rw ← equiv.injective_comp (tensor_product.rid R I).symm.to_equiv,
-  -- convert subtype.coe_injective using 1,
-  -- ext x,
-  -- simp only [function.comp_app, linear_equiv.coe_to_equiv, rid_symm_apply, comp_apply,
-  --   mul_one, lift.tmul, subtype_apply, algebra.id.smul_eq_mul, lsmul_apply]
+  rw ← equiv.injective_comp (tensor_product.rid R I).symm.to_equiv,
+  convert subtype.coe_injective using 1,
+  ext x,
+  simp only [function.comp_app, linear_equiv.coe_to_equiv, rid_symm_apply, comp_apply,
+    mul_one, lift.tmul, subtype_apply, algebra.id.smul_eq_mul, lsmul_apply]
 end
 
 end flat

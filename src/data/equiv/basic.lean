@@ -240,6 +240,27 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
+@[simp] lemma equiv.injective_comp {α β γ : Type*} (e : α ≃ β) (f : β → γ) :
+  function.injective (f ∘ e) ↔ function.injective f :=
+begin
+  split,
+  { intros h x y hxy,
+    apply e.symm.injective,
+    apply h,
+    simp only [hxy, function.comp_app, equiv.apply_symm_apply] },
+  { intro h, exact h.comp e.injective }
+end
+
+@[simp] lemma equiv.comp_injective {α β γ : Type*} (f : α → β) (e : β ≃ γ) :
+  function.injective (e ∘ f) ↔ function.injective f :=
+begin
+  refine ⟨_, e.injective.comp⟩,
+  intros h x y hxy,
+  apply h,
+  apply e.symm.injective,
+  simp only [hxy, function.comp_app, equiv.apply_symm_apply]
+end
+
 /-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`
 is equivalent to the type of equivalences `β ≃ δ`. -/
 def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃ δ) :=

@@ -156,7 +156,7 @@ end
 | 0     := rfl
 | (n+1) := rfl
 
-lemma val_cast_nat {n : ℕ} (a : ℕ) : (a : zmod n).val = a % n :=
+lemma val_nat_cast {n : ℕ} (a : ℕ) : (a : zmod n).val = a % n :=
 begin
   casesI n,
   { rw [nat.mod_zero, int.nat_cast_eq_coe_nat],
@@ -173,14 +173,14 @@ instance (n : ℕ) : char_p (zmod n) n :=
     { simp only [int.nat_cast_eq_coe_nat, zero_dvd_iff, int.coe_nat_eq_zero], },
     rw [fin.eq_iff_veq],
     show (k : zmod (n+1)).val = (0 : zmod (n+1)).val ↔ _,
-    rw [val_cast_nat, val_zero, nat.dvd_iff_mod_eq_zero],
+    rw [val_nat_cast, val_zero, nat.dvd_iff_mod_eq_zero],
   end }
 
-@[simp] lemma cast_self (n : ℕ) : (n : zmod n) = 0 :=
+@[simp] lemma nat_cast_self (n : ℕ) : (n : zmod n) = 0 :=
 char_p.cast_eq_zero (zmod n) n
 
-@[simp] lemma cast_self' (n : ℕ) : (n + 1 : zmod (n + 1)) = 0 :=
-by rw [← nat.cast_add_one, cast_self (n + 1)]
+@[simp] lemma nat_cast_self' (n : ℕ) : (n + 1 : zmod (n + 1)) = 0 :=
+by rw [← nat.cast_add_one, nat_cast_self (n + 1)]
 
 section universal_property
 
@@ -423,7 +423,7 @@ begin
 end
 
 @[push_cast, simp]
-lemma cast_mod_int (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
+lemma int_cast_mod (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
 begin
   rw zmod.int_coe_eq_int_coe_iff,
   apply int.modeq.mod_modeq,
@@ -431,7 +431,7 @@ end
 
 local attribute [semireducible] int.nonneg
 
-@[simp] lemma coe_to_nat (p : ℕ) :
+@[simp] lemma nat_cast_to_nat (p : ℕ) :
   ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z
 | (n : ℕ) h := by simp only [int.cast_coe_nat, int.to_nat_coe_nat]
 | -[1+n]  h := false.elim h
@@ -447,7 +447,7 @@ begin
 end
 
 lemma val_one_eq_one_mod (n : ℕ) : (1 : zmod n).val = 1 % n :=
-by rw [← nat.cast_one, val_cast_nat]
+by rw [← nat.cast_one, val_nat_cast]
 
 lemma val_one (n : ℕ) [fact (1 < n)] : (1 : zmod n).val = 1 :=
 by { rw val_one_eq_one_mod, exact nat.mod_eq_of_lt ‹1 < n› }
@@ -494,27 +494,27 @@ begin
              ... = a.nat_abs   : by rw [int.mul_sign, int.nat_cast_eq_coe_nat]
              ... = a.val.gcd 0 : by rw nat.gcd_zero_right; refl },
   { set k := n.succ,
-    calc a * a⁻¹ = a * a⁻¹ + k * nat.gcd_b (val a) k : by rw [cast_self, zero_mul, add_zero]
+    calc a * a⁻¹ = a * a⁻¹ + k * nat.gcd_b (val a) k : by rw [nat_cast_self, zero_mul, add_zero]
              ... = ↑(↑a.val * nat.gcd_a (val a) k + k * nat.gcd_b (val a) k) :
                      by { push_cast, rw nat_cast_zmod_val, refl }
              ... = nat.gcd a.val k : (congr_arg coe (nat.gcd_eq_gcd_ab a.val k)).symm, }
 end
 
-@[simp] lemma cast_mod_nat (n : ℕ) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
+@[simp] lemma nat_cast_mod (n : ℕ) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
 by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
 lemma eq_iff_modeq_nat (n : ℕ) {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MOD n] :=
 begin
   cases n,
   { simp only [nat.modeq, int.coe_nat_inj', nat.mod_zero, int.nat_cast_eq_coe_nat], },
-  { rw [fin.ext_iff, nat.modeq, ← val_cast_nat, ← val_cast_nat], exact iff.rfl, }
+  { rw [fin.ext_iff, nat.modeq, ← val_nat_cast, ← val_nat_cast], exact iff.rfl, }
 end
 
 lemma coe_mul_inv_eq_one {n : ℕ} (x : ℕ) (h : nat.coprime x n) :
   (x * x⁻¹ : zmod n) = 1 :=
 begin
   rw [nat.coprime, nat.gcd_comm, nat.gcd_rec] at h,
-  rw [mul_inv_eq_gcd, val_cast_nat, h, nat.cast_one],
+  rw [mul_inv_eq_gcd, val_nat_cast, h, nat.cast_one],
 end
 
 /-- `unit_of_coprime` makes an element of `units (zmod n)` given
@@ -522,7 +522,7 @@ end
 def unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) : units (zmod n) :=
 ⟨x, x⁻¹, coe_mul_inv_eq_one x h, by rw [mul_comm, coe_mul_inv_eq_one x h]⟩
 
-@[simp] lemma cast_unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) :
+@[simp] lemma coe_unit_of_coprime {n : ℕ} (x : ℕ) (h : nat.coprime x n) :
   (unit_of_coprime x h : zmod n) = x := rfl
 
 lemma val_coe_unit_coprime {n : ℕ} (u : units (zmod n)) :
@@ -535,7 +535,7 @@ begin
   rw [units.coe_one] at this,
   rw [← eq_iff_modeq_nat, nat.cast_one, ← this], clear this,
   rw [← nat_cast_zmod_val ((u * u⁻¹ : units (zmod (n+1))) : zmod (n+1))],
-  rw [units.coe_mul, val_mul, cast_mod_nat],
+  rw [units.coe_mul, val_mul, nat_cast_mod],
 end
 
 @[simp] lemma inv_coe_unit {n : ℕ} (u : units (zmod n)) :
@@ -587,7 +587,7 @@ begin
     { let u := unit_of_coprime b hb.2.symm,
       exact val_coe_unit_coprime u },
     { show zmod.val (b : zmod n) = b,
-      rw [val_cast_nat, nat.mod_eq_of_lt hb.1], } }
+      rw [val_nat_cast, nat.mod_eq_of_lt hb.1], } }
 end
 
 end totient
@@ -616,9 +616,9 @@ begin
     rw ← zmod.nat_cast_zmod_val x at hx0,
     exact nat.pos_of_ne_zero (λ h, by simpa [h] using hx0) },
   by conv {to_rhs, rw [← nat.succ_le_iff, nat.succ_eq_add_one, ← hn2', ← zero_add (- x),
-    ← zmod.cast_self, ← sub_eq_add_neg, ← zmod.nat_cast_zmod_val x,
+    ← zmod.nat_cast_self, ← sub_eq_add_neg, ← zmod.nat_cast_zmod_val x,
     ← nat.cast_sub (le_of_lt x.val_lt),
-    zmod.val_cast_nat, nat.mod_eq_of_lt hxn, nat.sub_le_sub_left_iff (le_of_lt x.val_lt)] }
+    zmod.val_nat_cast, nat.mod_eq_of_lt hxn, nat.sub_le_sub_left_iff (le_of_lt x.val_lt)] }
 end
 
 lemma ne_neg_self (n : ℕ) [hn : fact ((n : ℕ) % 2 = 1)] {a : zmod n} (ha : a ≠ 0) : a ≠ -a :=
@@ -643,7 +643,7 @@ end
 | (n+1) a := by { rw fin.ext_iff, exact iff.rfl }
 
 lemma val_cast_of_lt {n : ℕ} {a : ℕ} (h : a < n) : (a : zmod n).val = a :=
-by rw [val_cast_nat, nat.mod_eq_of_lt h]
+by rw [val_nat_cast, nat.mod_eq_of_lt h]
 
 lemma neg_val' {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = (n - a.val) % n :=
 begin
@@ -687,7 +687,7 @@ begin
   rw val_min_abs_def_pos,
   split_ifs,
   { rw [int.cast_coe_nat, nat_cast_zmod_val] },
-  { rw [int.cast_sub, int.cast_coe_nat, nat_cast_zmod_val, int.cast_coe_nat, cast_self, sub_zero] }
+  { rw [int.cast_sub, int.cast_coe_nat, nat_cast_zmod_val, int.cast_coe_nat, nat_cast_self, sub_zero] }
 end
 
 lemma nat_abs_val_min_abs_le {n : ℕ} [fact (0 < n)] (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
@@ -724,7 +724,7 @@ begin
   { rintro rfl, rw val_min_abs_zero }
 end
 
-lemma cast_nat_abs_val_min_abs {n : ℕ} [fact (0 < n)] (a : zmod n) :
+lemma nat_cast_nat_abs_val_min_abs {n : ℕ} [fact (0 < n)] (a : zmod n) :
   (a.val_min_abs.nat_abs : zmod n) = if a.val ≤ (n : ℕ) / 2 then a else -a :=
 begin
   have : (a.val : ℤ) - n ≤ 0,
@@ -733,7 +733,7 @@ begin
   split_ifs,
   { rw [int.nat_abs_of_nat, nat_cast_zmod_val] },
   { rw [← int.cast_coe_nat, int.of_nat_nat_abs_of_nonpos this, int.cast_neg, int.cast_sub],
-    rw [int.cast_coe_nat, int.cast_coe_nat, cast_self, sub_zero, nat_cast_zmod_val], }
+    rw [int.cast_coe_nat, int.cast_coe_nat, nat_cast_self, sub_zero, nat_cast_zmod_val], }
 end
 
 @[simp] lemma nat_abs_val_min_abs_neg {n : ℕ} (a : zmod n) :

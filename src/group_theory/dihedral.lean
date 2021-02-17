@@ -135,7 +135,7 @@ begin
   { rw pow_zero },
   { rw [r_one_pow, one_def],
     congr' 1,
-    exact zmod.cast_self _, }
+    exact zmod.nat_cast_self _, }
 end
 
 @[simp] lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]

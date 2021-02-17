@@ -828,16 +828,38 @@ by { unfold findim, simp [dim_top] }
 
 end top
 
+lemma eq_zero_of_findim_eq_zero [finite_dimensional K V]
+  (hV : findim K V = 0) (x : V) : x = 0 :=
+begin
+  obtain ⟨B, hB⟩ := exists_is_basis_finset K V,
+  have := (findim_eq_card_finset_basis hB).symm,
+  rw [hV, finset.card_eq_zero, finset.eq_empty_iff_forall_not_mem] at this,
+  rw ← is_basis.equiv_fun_total hB x,
+  convert finset.sum_empty,
+  rw finset.univ_eq_empty,
+  rintro ⟨b, hB⟩,
+  exact this b hB,
+end
+
+lemma eq_zero_of_dim_eq_zero (hV : dim K V = 0) (x : V) : x = 0 :=
+begin
+  haveI := finite_dimensional_of_dim_eq_zero hV,
+  rw ← findim_eq_dim at hV,
+  norm_cast at hV,
+  exact eq_zero_of_findim_eq_zero hV x
+end
+
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]
   (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_empty (finset.univ_eq_empty.mp rfl) (eq_zero_of_findim_eq_zero hV)
+
+lemma is_basis_of_dim_eq_zero
+  (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
 begin
-  split,
-  { rw linear_independent_iff',
-    intros,
-    exact fin.elim0 i },
-  { rw ← findim_top at hV,
-    rw [eq_top_iff, (@findim_eq_zero K V _ _ _ _ _).1 hV],
-    exact bot_le }
+  haveI := finite_dimensional_of_dim_eq_zero hV,
+  rw ← findim_eq_dim at hV,
+  norm_cast at hV,
+  exact is_basis_of_findim_eq_zero hV,
 end
 
 namespace linear_map

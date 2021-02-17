@@ -3,12 +3,7 @@ Copyright (c) 2020 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
-
---import analysis.transcendental.liouville
 import data.real.liouville
-import data.nat.factorial
-import order.basic
-
 /-!
 # Liouville constants
 
@@ -163,7 +158,7 @@ $$
 The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
 if the series does not converge, then the sum of the series is defined to be zero.
 -/
-def number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
+def liouville_number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
 
 /--
 `liouville_constant_first_k_terms` is the sum of the first `k` terms of Liouville's constant, i.e.
@@ -171,7 +166,7 @@ $$
 \sum_{i=0}^k\frac{1}{m^{i!}}.
 $$
 -/
-def number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
+def liouville_number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
 
 /--
 `liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`
@@ -180,10 +175,10 @@ $$
 \sum_{i=k+1}^\infty\frac{1}{m^{i!}}.
 $$
 -/
-def number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
+def liouville_number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
 
-lemma number_terms_after_pos (hm : 1 < m) (k : ℕ) :
-  0 < number_terms_after_k m k :=
+lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
+  0 < liouville_number_terms_after_k m k :=
 -- replace `0` with the series `∑ i : ℕ, 0` all of whose terms vanish
 (@tsum_zero _ ℕ _ _ _).symm.le.trans_lt (
   -- to show that a series with non-negative terms has strictly positive sum it suffices
@@ -201,8 +196,8 @@ lemma number_terms_after_pos (hm : 1 < m) (k : ℕ) :
       (summable_inv_pow_ge hm (λ i, i.self_le_factorial))))
 
 /-
-lemma number_terms_after_pos (hm : 1 < m) (k : ℕ) :
-  0 < number_terms_after_k m k :=
+lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
+  0 < liouville_number_terms_after_k m k :=
 -- replace `0` with the constantly zero series `∑ i : ℕ, 0`
 (@tsum_zero _ ℕ _ _ _).symm.le.trans_lt $
   -- to show that a series with non-negative terms has strictly positive sum it suffices
@@ -219,8 +214,8 @@ lemma number_terms_after_pos (hm : 1 < m) (k : ℕ) :
     summable_inv_pow_ge hm (λ i, i.self_le_factorial.trans (nat.factorial_le (nat.le.intro rfl)))
 
 /-
-lemma number_terms_after_pos_1 (hm : 1 < m) :
-  ∀ k, 0 < number_terms_after_k m k := λ n,
+lemma liouville_number_terms_after_pos_1 (hm : 1 < m) :
+  ∀ k, 0 < liouville_number_terms_after_k m k := λ n,
 calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
   ... = 1 / m ^ (0 + (n + 1))! : by rw zero_add
   ... ≤ ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! : le_tsum
@@ -231,9 +226,9 @@ calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
 -/
 
 
-lemma number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
-  number m = number_first_k_terms m k +
-  number_terms_after_k m k :=
+lemma liouville_number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
+  liouville_number m = liouville_number_first_k_terms m k +
+  liouville_number_terms_after_k m k :=
 (sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm
 
 end liouville
@@ -247,13 +242,77 @@ variable {m : ℕ}
 
 namespace liouville
 
-lemma number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
-∃ p : ℕ, number_first_k_terms m k = p / (m ^ k!) :=
+lemma liouville_number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
+∃ p : ℕ, liouville_number_first_k_terms m k = p / (m ^ k!) :=
 begin
+  induction k with k h,
+  { exact ⟨1, by rw [liouville_number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
+  { rcases h with ⟨p_k, h_k⟩,
+    use p_k * (m ^ ((k + 1)! - k!)) + 1,
+    unfold liouville_number_first_k_terms at h_k ⊢,
+    rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
+    { norm_cast,
+      rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
+        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+      rw [add_comm, mul_comm (m ^ k!)], --ring
+      refine (add_left_inj (m ^ (k * k!) * m ^ k! * m ^ k!)).mpr _,
+      rw [← mul_assoc, ← mul_assoc],
+      rw [mul_comm (p_k * _), mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc] },
+    refine mul_ne_zero_iff.mpr ⟨_, _⟩,
+    all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr ((zero_lt_one.trans hm).ne.symm)) } }
+end
+
+theorem is_liouville (hm : 2 ≤ m) :
+  liouville (liouville_number m) :=
+begin
+  have mZ1 : 1 < (m : ℤ) := nat.cast_one.symm.le.trans_lt
+    (one_lt_two.trans_le (nat.cast_two.symm.le.trans (int.to_nat_le.mp hm))),
+  have m1 : 1 < (m : ℝ) :=
+    one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
+  intro n,
+  have mkk := liouville_number_eq_first_k_terms_add_rest m1 n,
+  rcases liouville_number_rat_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
+  refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
+  push_cast,
+  rw [← hp, mkk, add_sub_cancel', abs_of_nonneg (liouville_number_terms_after_pos m1 _).le],
+  exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_terms_after_pos m1 n)).ne.symm,
+    (calc_liou_one m1 n).trans_le
+    (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
+end
+
+lemma is_transcendental (hm : 2 ≤ m) :
+  _root_.transcendental ℤ (liouville_number m) :=
+liouville.transcendental (is_liouville hm)
+
+end liouville
+
+end m_is_natural
+
+#exit
+
+lemma liouville_number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
+∃ p : ℕ, liouville_number_first_k_terms m k = p / (m ^ k!) :=
+begin
+  induction k with k h,
+  { exact ⟨1, by rw [liouville_number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
+  { rcases h with ⟨p_k, h_k⟩,
+    use p_k * (m ^ ((k + 1)! - k!)) + 1,
+    unfold liouville_number_first_k_terms at h_k ⊢,
+    rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
+    { norm_cast,
+      rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
+        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+      rw [add_comm, mul_comm (m ^ k!)], --ring
+      refine (add_left_inj (m ^ (k * k!) * m ^ k! * m ^ k!)).mpr _,
+      rw [← mul_assoc, ← mul_assoc],
+--      refine mul_eq_mul_right_iff.mpr (or.inl _),
+      rw [mul_comm (p_k * _), mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc] },
+    refine mul_ne_zero_iff.mpr ⟨_, _⟩,
+    all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr ((zero_lt_one.trans hm).ne.symm)) } }
   refine ⟨∑ i in range (k+1), m ^ (k! - i!), _⟩,
   refine (div_eq_iff _).mp _,
   exact inv_ne_zero (pow_ne_zero _ (ne_of_gt (zero_lt_one.trans (nat.one_lt_cast.mpr hm)))),
-  unfold number_first_k_terms,
+  unfold liouville_number_first_k_terms,
   rw [div_eq_mul_inv, inv_inv', sum_mul],
 --  have : ∑ (x : ℕ) in range (k + 1), 1 / (m : ℝ) ^ x! * (m : ℝ) ^ k! =
 --    ∑ (i : ℕ) in range (k + 1), (↑m) ^ (k! - i!),
@@ -273,46 +332,4 @@ ext1,
   have : ∑ (i : ℕ) in range (k + 1), (m ^ (k! - i!) : ℝ) = 0
      → ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) = 0,
 
-  induction k with k h,
-  { exact ⟨1, by rw [number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
-  { rcases h with ⟨p_k, h_k⟩,
-    use p_k * (m ^ ((k + 1)! - k!)) + 1,
-    unfold number_first_k_terms at h_k ⊢,
-    rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
-    { norm_cast,
-      rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
-        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
-      rw [add_comm, mul_comm (m ^ k!)], --ring
-      refine (add_left_inj (m ^ (k * k!) * m ^ k! * m ^ k!)).mpr _,
-      rw [← mul_assoc, ← mul_assoc],
---      refine mul_eq_mul_right_iff.mpr (or.inl _),
-      rw [mul_comm (p_k * _), mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc] },
-    refine mul_ne_zero_iff.mpr ⟨_, _⟩,
-    all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr ((zero_lt_one.trans hm).ne.symm)) } }
 end
-
-theorem is_number (hm : 2 ≤ m) :
-  liouville (number m) :=
-begin
-  have mZ1 : 1 < (m : ℤ) := nat.cast_one.symm.le.trans_lt
-    (one_lt_two.trans_le (nat.cast_two.symm.le.trans (int.to_nat_le.mp hm))),
-  have m1 : 1 < (m : ℝ) :=
-    one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
-  intro n,
-  have mkk := number_eq_first_k_terms_add_rest m1 n,
-  rcases number_rat_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
-  refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
-  push_cast,
-  rw [← hp, mkk, add_sub_cancel', abs_of_nonneg (number_terms_after_pos m1 _).le],
-  exact ⟨((lt_add_iff_pos_right _).mpr (number_terms_after_pos m1 n)).ne.symm,
-    (calc_liou_one m1 n).trans_le
-    (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
-end
-
-lemma is_transcendental (hm : 2 ≤ m) :
-  is_transcendental ℤ (number m) :=
-liouville.transcendental (is_number hm)
-
-end liouville
-
-end m_is_natural

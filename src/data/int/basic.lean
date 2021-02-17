@@ -1031,7 +1031,7 @@ to_nat_add h (zero_le_one)
 lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
 | (0:ℕ)   := rfl
 | (n+1:ℕ) := by simp
-| -[1+ n] := by simp only [neg_succ_sub_one, to_nat]
+| -[1+ n] := rfl
 
 @[simp]
 lemma to_nat_pred_coe_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=

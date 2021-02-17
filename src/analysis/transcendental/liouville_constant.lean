@@ -253,7 +253,8 @@ begin
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
-        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul,
+          one_mul, pow_add],
       rw [add_comm, mul_comm (m ^ k!)], --ring
       refine (add_left_inj (m ^ (k * k!) * m ^ k! * m ^ k!)).mpr _,
       rw [← mul_assoc, ← mul_assoc],
@@ -301,7 +302,8 @@ begin
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
-        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul,
+          one_mul, pow_add],
       rw [add_comm, mul_comm (m ^ k!)], --ring
       refine (add_left_inj (m ^ (k * k!) * m ^ k! * m ^ k!)).mpr _,
       rw [← mul_assoc, ← mul_assoc],

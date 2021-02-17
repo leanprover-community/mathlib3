@@ -828,7 +828,7 @@ by { unfold findim, simp [dim_top] }
 
 end top
 
-lemma finite_dimensional.is_basis_of_findim_eq_zero [finite_dimensional K V]
+lemma is_basis_of_findim_eq_zero [finite_dimensional K V]
   (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
 begin
   split,

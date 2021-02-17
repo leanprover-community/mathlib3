@@ -240,25 +240,36 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-@[simp] lemma equiv.injective_comp {α β γ : Type*} (e : α ≃ β) (f : β → γ) :
-  function.injective (f ∘ e) ↔ function.injective f :=
+@[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) : injective (f ∘ e) ↔ injective f :=
 begin
-  split,
-  { intros h x y hxy,
-    apply e.symm.injective,
-    apply h,
-    simp only [hxy, function.comp_app, equiv.apply_symm_apply] },
-  { intro h, exact h.comp e.injective }
+  refine ⟨λ h, _, λ h, h.comp e.injective⟩,
+  convert h.comp e.symm.injective,
+  ext,
+  simp only [function.comp_app, equiv.apply_symm_apply]
 end
 
-@[simp] lemma equiv.comp_injective {α β γ : Type*} (f : α → β) (e : β ≃ γ) :
-  function.injective (e ∘ f) ↔ function.injective f :=
+@[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) : injective (e ∘ f) ↔ injective f :=
 begin
-  refine ⟨_, e.injective.comp⟩,
-  intros h x y hxy,
-  apply h,
-  apply e.symm.injective,
-  simp only [hxy, function.comp_app, equiv.apply_symm_apply]
+  refine ⟨λ h, _, e.injective.comp⟩,
+  convert e.symm.injective.comp h,
+  ext,
+  simp only [function.comp_app, equiv.symm_apply_apply],
+end
+
+@[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) : surjective (f ∘ e) ↔ surjective f :=
+begin
+  refine ⟨λ h, _, λ h, h.comp e.surjective⟩,
+  convert h.comp e.symm.surjective,
+  ext,
+  simp only [function.comp_app, equiv.apply_symm_apply],
+end
+
+@[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) : surjective (e ∘ f) ↔ surjective f :=
+begin
+  refine ⟨λ h,_, e.surjective.comp⟩,
+  convert e.symm.surjective.comp h,
+  ext,
+  simp only [function.comp_app, equiv.symm_apply_apply],
 end
 
 /-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`

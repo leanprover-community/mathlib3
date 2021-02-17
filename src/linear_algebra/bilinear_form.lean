@@ -1269,7 +1269,7 @@ noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
 lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
   B.to_dual hB m n = B m n := rfl
 
--- We start proving that symmetric nondegenerat bilinear forms are diagonalisable, or equivilently
+-- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
 -- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.
 
 lemma findim_ortho_span_singleton

@@ -577,7 +577,7 @@ instance [subsingleton M] : unique (submodule R M) :=
 ⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
 
 instance unique' [subsingleton R] : unique (submodule R M) :=
-⟨⟨⊥⟩, λ a, by haveI := semimodule.subsingleton R M; exactI subsingleton.elim a _⟩
+by haveI := semimodule.subsingleton R M; apply_instance
 
 instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
 

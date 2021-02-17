@@ -369,7 +369,7 @@ instance {X : C} : has_top (mono_over X) :=
 { top := mk' (𝟙 _) }
 
 /-- The morphism to the top object in `mono_over X`. -/
-def to_top (f : mono_over X) : f ⟶ ⊤ :=
+def le_top (f : mono_over X) : f ⟶ ⊤ :=
 hom_mk f.arrow (comp_id _)
 
 @[simp] lemma top_left (X : C) : (⊤ : mono_over X).val.left = X := rfl
@@ -385,7 +385,7 @@ variable [has_pullbacks C]
 /-- The pullback of the top object in `mono_over Y`
 is (isomorphic to) the top object in `mono_over X`. -/
 def pullback_top (f : X ⟶ Y) : (pullback f).obj ⊤ ≅ ⊤ :=
-iso_of_both_ways (to_top _) (hom_mk (pullback.lift f (𝟙 _) (by tidy)) (pullback.lift_snd _ _ _))
+iso_of_both_ways (le_top _) (hom_mk (pullback.lift f (𝟙 _) (by tidy)) (pullback.lift_snd _ _ _))
 
 /-- There is a morphism from `⊤ : mono_over A` to the pullback of a monomorphism along itself;
 as the category is thin this is an isomorphism. -/
@@ -396,11 +396,32 @@ hom_mk _ (pullback.lift_snd _ _ rfl)
 /-- The pullback of a monomorphism along itself is isomorphic to the top object. -/
 def pullback_self {A B : C} (f : A ⟶ B) [mono f] :
   (pullback f).obj (mk' f) ≅ ⊤ :=
-iso_of_both_ways (to_top _) (top_le_pullback_self _)
+iso_of_both_ways (le_top _) (top_le_pullback_self _)
 
 end
 
 end has_top
+
+section has_bot
+variables [has_zero_morphisms C] [has_zero_object C]
+local attribute [instance] has_zero_object.has_zero
+
+instance {X : C} : has_bot (mono_over X) :=
+{ bot := mk' (0 : 0 ⟶ X) }
+
+@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : over X).left = 0 := rfl
+@[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = 0 :=
+by ext
+
+/-- The (unique) morphism from `⊥ : mono_over X` to any other `f : mono_over X`. -/
+def bot_le {X : C} (f : mono_over X) : ⊥ ⟶ f :=
+hom_mk 0 (by simp)
+
+/-- `map f` sends `⊥ : mono_over X` to `⊥ : mono_over Y`. -/
+def map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ ≅ ⊥ :=
+iso_of_both_ways (hom_mk 0 (by simp)) (hom_mk (𝟙 _) (by simp [id_comp f]))
+
+end has_bot
 
 section inf
 variables [has_pullbacks C]
@@ -699,9 +720,9 @@ instance order_top {X : C} : order_top (subobject X) :=
   le_top :=
   begin
     refine quotient.ind' (λ f, _),
-    exact ⟨mono_over.to_top f⟩,
+    exact ⟨mono_over.le_top f⟩,
   end,
-  ..category_theory.subobject.partial_order X}
+  ..subobject.partial_order X}
 
 lemma top_eq_id {B : C} : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
@@ -721,6 +742,26 @@ quotient.sound' ⟨mono_over.pullback_self f⟩
 end
 
 end order_top
+
+section order_bot
+variables [has_zero_morphisms C] [has_zero_object C]
+local attribute [instance] has_zero_object.has_zero
+
+instance order_bot {X : C} : order_bot (subobject X) :=
+{ bot := quotient.mk' ⊥,
+  bot_le :=
+  begin
+    refine quotient.ind' (λ f, _),
+    exact ⟨mono_over.bot_le f⟩,
+  end,
+  ..subobject.partial_order X}
+
+lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
+
+lemma map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ = ⊥ :=
+quotient.sound' ⟨mono_over.map_bot f⟩
+
+end order_bot
 
 section functor
 variable (C)
@@ -763,7 +804,7 @@ instance {B : C} : semilattice_inf_top (subobject B) :=
   inf_le_left := inf_le_left,
   inf_le_right := inf_le_right,
   le_inf := le_inf,
-  ..category_theory.subobject.order_top }
+  ..subobject.order_top }
 
 lemma inf_eq_map_pullback' {A : C} (f₁ : mono_over A) (f₂ : subobject A) :
   (subobject.inf.obj (quotient.mk' f₁)).obj f₂ =
@@ -790,34 +831,32 @@ le_antisymm
       (hom_of_le _root_.inf_le_right)))
 
 lemma inf_def {B : C} (m m' : subobject B) [has_pullbacks C] :
-  m ⊓ m' = (subobject.inf.obj m).obj m' := rfl
+  m ⊓ m' = (inf.obj m).obj m' := rfl
 
 /-- `⊓` commutes with pullback. -/
 lemma inf_pullback [has_pullbacks C] {X Y : C} (g : X ⟶ Y) (f₁ f₂) :
-  (subobject.pullback g).obj (f₁ ⊓ f₂) =
-    (subobject.pullback g).obj f₁ ⊓ (subobject.pullback g).obj f₂ :=
+  (pullback g).obj (f₁ ⊓ f₂) = (pullback g).obj f₁ ⊓ (pullback g).obj f₂ :=
 begin
   revert f₁,
   apply quotient.ind',
   intro f₁,
-  erw [inf_def, inf_def, subobject.inf_eq_map_pullback',
-       subobject.inf_eq_map_pullback', ← subobject.pullback_comp,
+  erw [inf_def, inf_def, inf_eq_map_pullback', inf_eq_map_pullback', ← pullback_comp,
        ← map_pullback pullback.condition (pullback_is_pullback f₁.arrow g),
-       ← subobject.pullback_comp, pullback.condition],
+       ← pullback_comp, pullback.condition],
   refl,
 end
 
 /-- `⊓` commutes with map. -/
 lemma inf_map [has_pullbacks C] {X Y : C} (g : Y ⟶ X) [mono g] (f₁ f₂) :
-  (subobject.map g).obj (f₁ ⊓ f₂) = (subobject.map g).obj f₁ ⊓ (subobject.map g).obj f₂ :=
+  (map g).obj (f₁ ⊓ f₂) = (map g).obj f₁ ⊓ (map g).obj f₂ :=
 begin
   revert f₁,
   apply quotient.ind',
   intro f₁,
-  erw [inf_def, inf_def, subobject.inf_eq_map_pullback',
-       subobject.inf_eq_map_pullback', ← subobject.map_comp],
+  erw [inf_def, inf_def, inf_eq_map_pullback',
+       inf_eq_map_pullback', ← map_comp],
   dsimp,
-  rw [subobject.pullback_comp, subobject.pullback_map_self],
+  rw [pullback_comp, pullback_map_self],
 end
 
 end semilattice_inf_top
@@ -834,9 +873,39 @@ instance {B : C} : semilattice_sup (subobject B) :=
   le_sup_left := λ m n, quotient.induction_on₂' m n (λ a b, ⟨mono_over.le_sup_left _ _⟩),
   le_sup_right := λ m n, quotient.induction_on₂' m n (λ a b, ⟨mono_over.le_sup_right _ _⟩),
   sup_le := λ m n k, quotient.induction_on₃' m n k (λ a b c ⟨i⟩ ⟨j⟩, ⟨mono_over.sup_le _ _ _ i j⟩),
-  ..category_theory.subobject.partial_order B }
+  ..subobject.partial_order B }
+
+
+section
+variables [has_images C] [has_finite_coproducts C] [has_zero_morphisms C] [has_zero_object C]
+
+instance {B : C} : semilattice_sup_bot (subobject B) :=
+{ ..subobject.order_bot,
+  ..subobject.semilattice_sup }
+
+end
 
 end semilattice_sup
+
+
+section lattice
+variables [has_pullbacks C] [has_images C] [has_finite_coproducts C]
+
+instance {B : C} : lattice (subobject B) :=
+{ ..subobject.semilattice_inf_top,
+  ..subobject.semilattice_sup }
+
+end lattice
+
+section bounded_lattice
+variables [has_pullbacks C] [has_images C] [has_finite_coproducts C]
+variables [has_zero_morphisms C] [has_zero_object C]
+
+instance {B : C} : bounded_lattice (subobject B) :=
+{ ..subobject.semilattice_inf_top,
+  ..subobject.semilattice_sup_bot }
+
+end bounded_lattice
 
 end subobject
 

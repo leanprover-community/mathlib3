@@ -477,7 +477,7 @@ dual_lift_of_subtype ⟨w, hw⟩
   W.dual_restrict.comp W.dual_lift = 1 :=
 by { ext φ x, simp }
 
-lemma dual_lift_left_inverse (W : subspace K V) :
+lemma dual_restrict_left_inverse (W : subspace K V) :
   function.left_inverse W.dual_restrict W.dual_lift :=
 λ x, show W.dual_restrict.comp W.dual_lift x = x,
   by { rw [dual_lift_left_inverse'], refl }

@@ -171,7 +171,7 @@ If `0 < n`, then `i : zmod n` has order `n / gcd n i`
 -/
 lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin
-  conv_lhs { rw ←zmod.cast_val i },
+  conv_lhs { rw ←zmod.nat_cast_zmod_val i },
   rw [←r_one_pow, order_of_pow, order_of_r_one]
 end
 

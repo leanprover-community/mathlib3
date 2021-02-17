@@ -117,15 +117,15 @@ begin
   suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = pi * r ^ 2,
   { have H : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
       λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
-    calc volume (disc r)
-       = volume (region_between (λ x, -f x) (λ x, f x) (Ioc (-r) r)) :
+    calc  volume (disc r)
+        = volume (region_between (λ x, -f x) (λ x, f x) (Ioc (-r) r)) :
           by rw disc_eq_region_between hr
-   ... = ennreal.of_real (∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x) :
+    ... = ennreal.of_real (∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x) :
           by convert volume_region_between_eq_integral (H continuous_sqrt_sub.neg)
               (H continuous_sqrt_sub) measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
-   ... = ennreal.of_real (∫ x in Ioc (-r) r, (λ x, 2 * f x) x) : by simp [two_mul]
-   ... = ennreal.of_real (∫ x in (-r)..r, (λ x, 2 * f x) x) : by rw integral_of_le (neg_le_self hr)
-   ... = ennreal.of_real (pi * r ^ 2) : by rw this },
+    ... = ennreal.of_real (∫ x in Ioc (-r) r, (λ x, 2 * f x) x) : by simp [two_mul]
+    ... = ennreal.of_real (∫ x in (-r)..r, (λ x, 2 * f x) x) : by rw integral_of_le (neg_le_self hr)
+    ... = ennreal.of_real (pi * r ^ 2) : by rw this },
   cases hr.eq_or_lt with heq hlt, { simp [← heq] },
   have hderiv : ∀ x ∈ Ioo (-r) r, has_deriv_at F (2 * f x) x,
   { rintros x ⟨hx1, hx2⟩,
@@ -135,8 +135,7 @@ begin
     { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
       { rw [← sqrt_sqr hr, ← sqrt_mul, sub_mul, sqrt_sqr hr, div_mul_eq_mul_div_comm,
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
-        simpa only [sub_nonneg, sqrt_sqr hr, div_le_one (pow_two_pos_of_ne_zero r hlt.ne')]
-          using (sqr_lt_sqr' hx1 hx2).le },
+        simpa [sqrt_sqr hr, div_le_one (pow_pos hlt 2)] using (sqr_lt_sqr' hx1 hx2).le },
       field_simp,
       rw [h, mul_left_comm, ← pow_two, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
           add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },

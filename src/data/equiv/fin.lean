@@ -50,7 +50,7 @@ def fin_succ_equiv' {n : ℕ} (i : fin n) :
   right_inv := λ x, by { cases x; simp [fin.succ_above_ne] }}
 
 @[simp] lemma fin_succ_equiv'_at {n : ℕ} (i : fin (n + 1)) :
-  (fin_succ_equiv' i) i = none := by simp [fin_succ_equiv']
+  (fin_succ_equiv' i) i.cast_succ = none := by simp [fin_succ_equiv']
 
 lemma fin_succ_equiv'_below {n : ℕ} {i m : fin (n + 1)} (h : m < i) :
   (fin_succ_equiv' i) m.cast_succ = some m :=

@@ -77,6 +77,20 @@ instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
 instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
+instance [unique α] : unique (matrix m n α) := pi.unique
+instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
+instance [inhabited m] [inhabited n] [nontrivial α] : nontrivial (matrix m n α) :=
+function.nontrivial
+
+/--
+A 1 × 1 `matrix` can be considered as a value of the underlying scalar.
+-/
+instance [unique n] [unique m] : has_coe (matrix m n α) α := ⟨λ M, M (default _) (default _)⟩
+
+/--
+A 1 × 1 `matrix` can be considered as a value of the underlying scalar.
+-/
+lemma coe_def [unique n] [unique m] (M : matrix m n α) : (M : α) = M (default _) (default _) := rfl
 
 @[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
 @[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl

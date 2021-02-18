@@ -71,6 +71,20 @@ meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   list.append default <$> get_linters extra
 
 /--
+`xs.to_chunks n` splits the list into sublists of size at most `n`,
+such that `(xs.to_chunks n).join = xs`.
+-/
+meta def list.to_chunks {α} (n : ℕ) : list α → list (list α)
+| [] := []
+| xs := xs.take n :: (xs.drop n).to_chunks
+
+/--
+Asynchronous version of `list.map`.
+-/
+meta def list.map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
+((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
+
+/--
 `lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of
 declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
@@ -82,18 +96,18 @@ meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list 
   tactic (list (name × linter × rb_map name string)) := do
 checks.mmap $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
-  results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
-    tt ← should_be_linted linter_name decl.to_name | pure results,
-    s ← read,
-    let linter_warning : option string :=
+  test_decls ← test_decls.mfilter (λ decl, should_be_linted linter_name decl.to_name),
+  s ← read,
+  let results := test_decls.map_async_chunked $ λ decl, prod.mk decl.to_name $
       match linter.test decl s with
       | result.success w _ := w
       | result.exception msg _ _ :=
         some $ "LINTER FAILED:\n" ++ msg.elim "(no message)" (λ msg, to_string $ msg ())
       end,
-    match linter_warning with
-    | some w := pure $ results.insert decl.to_name w
-    | none := pure results
+  let results := results.foldl (λ (results : rb_map name string) warning,
+    match warning with
+    | (decl_name, some w) := results.insert decl_name w
+    | (_, none) := results
     end) mk_rb_map,
   pure (linter_name, linter, results)
 

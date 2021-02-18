@@ -102,7 +102,7 @@ def CompHaus.to_Profinite_obj (X : CompHaus.{u}) : Profinite.{u} :=
 (Implementation) The bijection of homsets to establish the reflective adjunction of Profinite
 spaces in compact Hausdorff spaces.
 -/
-def Profinite.to_CompHaus_equivalence (X : CompHaus) (Y : Profinite) :
+def Profinite.to_CompHaus_equivalence (X : CompHaus.{u}) (Y : Profinite.{u}) :
   (CompHaus.to_Profinite_obj X ⟶ Y) ≃ (X ⟶ Profinite.to_CompHaus.obj Y) :=
 { to_fun := λ f,
   { to_fun := f.1 ∘ quotient.mk,

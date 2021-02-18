@@ -239,11 +239,7 @@ begin
   haveI : ∀ i, nonempty (F'.obj i) := λ i,
     ⟨ulift.up (classical.arbitrary (F.obj (op i.unop.down)))⟩,
   haveI : ∀ i, fintype (F'.obj i) := λ i,
-    fintype.of_equiv (F.obj (op i.unop.down))
-    { to_fun := λ x, ulift.up x,
-      inv_fun := λ x, x.down,
-      left_inv := by tidy,
-      right_inv := by tidy, },
+    fintype.of_equiv (F.obj (op i.unop.down)) equiv.ulift.symm,
   obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system.init F',
   refine ⟨λ j, (u (op $ ulift.up j.unop)).down, _⟩,
   intros j j' f,

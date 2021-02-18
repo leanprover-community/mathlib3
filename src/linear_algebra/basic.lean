@@ -390,6 +390,16 @@ def applyₗ : M →ₗ[R] (M →ₗ[R] M₂) →ₗ[R] M₂ :=
   map_smul' := λ x y, linear_map.ext $ λ f, f.map_smul _ _,
   ..applyₗ' R }
 
+/-- Alternative version of `dom_restrict` as a linear map. -/
+def dom_restrict'
+  (p : submodule R M) : (M →ₗ[R] M₂) →ₗ[R] (p →ₗ[R] M₂) :=
+{ to_fun := λ φ, φ.dom_restrict p,
+  map_add' := by simp [linear_map.ext_iff],
+  map_smul' := by simp [linear_map.ext_iff] }
+
+@[simp] lemma dom_restrict'_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
+  dom_restrict' p f x = f x := rfl
+
 end comm_semiring
 
 section semiring
@@ -2238,6 +2248,12 @@ noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
 (linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
   submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
   (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
+
+/-- The first isomorphism theorem for surjective linear maps. -/
+noncomputable def quot_ker_equiv_of_surjective
+  (f : M →ₗ[R] M₂) (hf : function.surjective f) : f.ker.quotient ≃ₗ[R] M₂ :=
+f.quot_ker_equiv_range.trans
+  (linear_equiv.of_top f.range (linear_map.range_eq_top.2 hf))
 
 @[simp] lemma quot_ker_equiv_range_apply_mk (x : M) :
   (f.quot_ker_equiv_range (submodule.quotient.mk x) : M₂) = f x :=

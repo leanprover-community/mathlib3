@@ -11,7 +11,7 @@ import logic.embedding
 /-!
 # Definitions of group actions
 
-This file defines a heirarchy of group action type-classes:
+This file defines a hierarchy of group action type-classes:
 
 * `has_scalar α β`
 * `mul_action α β`
@@ -54,6 +54,24 @@ class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Pro
 (smul_comm : ∀ (m : M) (n : N) (a : α), m • n • a = n • m • a)
 
 export mul_action (mul_smul) smul_comm_class (smul_comm)
+
+/--
+Frequently, we find ourselves wanting to express a bilinear map `M →ₗ[R] N →ₗ[R] P` or an
+equivalence between maps `(M →ₗ[R] N) ≃ₗ[R] (M' →ₗ[R] N')` where the maps have an associated ring
+`R`. Unfortunately, using definitions like these requires that `R` satisfy `comm_semiring R`, and
+not just `semiring R`. Using `M →ₗ[R] N →+ P` and `(M →ₗ[R] N) ≃+ (M' →ₗ[R] N')` avoids this
+problem, but throws away structure that is useful for when we _do_ have a commutative (semi)ring.
+
+To avoid making this compromise, we instead state these definitions as `M →ₗ[R] N →ₗ[S] P` or
+`(M →ₗ[R] N) ≃ₗ[S] (M' →ₗ[R] N')` and require `smul_comm_class S R` on the appropriate modules. When
+the caller has `comm_semiring R`, they can set `S = R` and `smul_comm_class_self` will populate the
+instance. If the caller only has `semiring R` they can still set either `R = ℕ` or `S = ℕ`, and
+`add_comm_monoid.nat_smul_comm_class` or `add_comm_monoid.nat_smul_comm_class'` will populate
+the typeclass, which is still sufficient to recover a `≃+` or `→+` structure.
+
+An example of where this is used is `linear_map.prod_equiv`.
+-/
+library_note "bundled maps over different rings"
 
 /-- Commutativity of actions is a symmetric relation. This lemma can't be an instance because this
 would cause a loop in the instance search graph. -/

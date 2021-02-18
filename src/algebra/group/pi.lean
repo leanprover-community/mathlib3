@@ -37,13 +37,19 @@ instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
 @[to_additive]
+instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
+  div_inv_monoid (Π i : I, f i) :=
+{ div_eq_mul_inv := λ x y, funext (λ i, div_eq_mul_inv (x i) (y i)),
+  .. pi.monoid, .. pi.has_div, .. pi.has_inv }
+
+@[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
   tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
-by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
   tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
@@ -64,12 +70,6 @@ instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
   tactic.pi_instance_derive_field
-
-@[to_additive]
-instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
-  div_inv_monoid (Π i : I, f i) :=
-{ div_eq_mul_inv := λ x y, funext (λ i, div_eq_mul_inv (x i) (y i)),
-  .. pi.monoid, .. pi.has_div, .. pi.has_inv }
 
 section instance_lemmas
 open function
@@ -103,6 +103,17 @@ def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
 lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) :
   (monoid_hom.apply f i) g = g i := rfl
 
+/-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
+
+See also `monoid_hom.eval`. -/
+@[simps, to_additive "Coercion of an `add_monoid_hom` into a function is itself a `add_monoid_hom`.
+
+See also `add_monoid_hom.eval`. "]
+def monoid_hom.coe_fn (α β : Type*) [monoid α] [comm_monoid β] : (α →* β) →* (α → β) :=
+{ to_fun := λ g, g,
+  map_one' := rfl,
+  map_mul' := λ x y, rfl, }
+
 end monoid_hom
 
 section add_monoid_single
@@ -110,27 +121,22 @@ variables [decidable_eq I] (f) [Π i, add_monoid (f i)]
 open pi
 
 /-- The additive monoid homomorphism including a single additive monoid
-into a dependent family of additive monoids, as functions supported at a point. -/
-def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
-{ to_fun := λ x, single i x,
+into a dependent family of additive monoids, as functions supported at a point.
+
+This is the `add_monoid_hom` version of `pi.single`. -/
+@[simps] def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
+{ to_fun := single i,
   map_zero' :=
   begin
     ext i', by_cases h : i' = i,
-    { subst h, simp only [single_eq_same], refl, },
-    { simp only [h, single_eq_of_ne, ne.def, not_false_iff], refl, },
+    { subst h, simp only [single_eq_same, pi.zero_apply], },
+    { simp only [h, single_eq_of_ne, ne.def, not_false_iff, pi.zero_apply], },
   end,
   map_add' := λ x y,
   begin
     ext i', by_cases h : i' = i,
-    -- FIXME in the next two `simp only`s,
-    -- it would be really nice to not have to provide the arguments to `add_apply`.
-    { subst h, simp only [single_eq_same, add_apply (single i' x) (single i' y) i'], },
-    { simp only [h, add_zero, single_eq_of_ne,
-        add_apply (single i x) (single i y) i', ne.def, not_false_iff], },
+    { subst h, simp only [single_eq_same, add_apply], },
+    { simp only [h, add_zero, single_eq_of_ne, add_apply, ne.def, not_false_iff], },
   end, }
-
-@[simp]
-lemma add_monoid_hom.single_apply {i : I} (x : f i) :
-  (add_monoid_hom.single f i) x = single i x := rfl
 
 end add_monoid_single

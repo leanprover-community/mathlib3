@@ -212,7 +212,7 @@ have hf : continuous_at f (x, y).fst, from hf,
 have hg : continuous_at g (x, y).snd, from hg,
 hf.prod_map hg
 
-lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (set α)} {t : set (set β)}
+lemma prod_generate_from_generate_from_eq {α β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
   @prod.topological_space α β (generate_from s) (generate_from t) =
   generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} :=
@@ -269,28 +269,43 @@ lemma exists_nhds_square {s : set (α × α)} {x : α} (hx : s ∈ 𝓝 (x, x)) 
   ∃U, is_open U ∧ x ∈ U ∧ set.prod U U ⊆ s :=
 by simpa [nhds_prod_eq, (nhds_basis_opens x).prod_self.mem_iff, and.assoc, and.left_comm] using hx
 
+/-- `prod.fst` maps neighborhood of `x : α × β` within the section `prod.snd ⁻¹' {x.2}`
+to `𝓝 x.1`. -/
+lemma map_fst_nhds_within (x : α × β) : map prod.fst (𝓝[prod.snd ⁻¹' {x.2}] x) = 𝓝 x.1 :=
+begin
+  refine le_antisymm (continuous_at_fst.mono_left inf_le_left) (λ s hs, _),
+  rcases x with ⟨x, y⟩,
+  rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
+  rcases hs with ⟨u, hu, v, hv, H⟩,
+  simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
+  exact mem_sets_of_superset hu (λ z hz, H _ hz _ (mem_of_nhds hv) rfl)
+end
+
+@[simp] lemma map_fst_nhds (x : α × β) : map prod.fst (𝓝 x) = 𝓝 x.1 :=
+le_antisymm continuous_at_fst $ (map_fst_nhds_within x).symm.trans_le (map_mono inf_le_left)
+
 /-- The first projection in a product of topological spaces sends open sets to open sets. -/
 lemma is_open_map_fst : is_open_map (@prod.fst α β) :=
+is_open_map_iff_nhds_le.2 $ λ x, (map_fst_nhds x).ge
+
+/-- `prod.snd` maps neighborhood of `x : α × β` within the section `prod.fst ⁻¹' {x.1}`
+to `𝓝 x.2`. -/
+lemma map_snd_nhds_within (x : α × β) : map prod.snd (𝓝[prod.fst ⁻¹' {x.1}] x) = 𝓝 x.2 :=
 begin
-  rw is_open_map_iff_nhds_le,
-  rintro ⟨x, y⟩ s hs,
-  rcases mem_nhds_prod_iff.1 hs with ⟨tx, htx, ty, hty, ht⟩,
-  simp only [subset_def, prod.forall, mem_prod] at ht,
-  exact mem_sets_of_superset htx (λ x hx, ht x y ⟨hx, mem_of_nhds hty⟩)
+  refine le_antisymm (continuous_at_snd.mono_left inf_le_left) (λ s hs, _),
+  rcases x with ⟨x, y⟩,
+  rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
+  rcases hs with ⟨u, hu, v, hv, H⟩,
+  simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
+  exact mem_sets_of_superset hv (λ z hz, H _ (mem_of_nhds hu) _ hz rfl)
 end
+
+@[simp] lemma map_snd_nhds (x : α × β) : map prod.snd (𝓝 x) = 𝓝 x.2 :=
+le_antisymm continuous_at_snd $ (map_snd_nhds_within x).symm.trans_le (map_mono inf_le_left)
 
 /-- The second projection in a product of topological spaces sends open sets to open sets. -/
 lemma is_open_map_snd : is_open_map (@prod.snd α β) :=
-begin
-  /- This lemma could be proved by composing the fact that the first projection is open, and
-  exchanging coordinates is a homeomorphism, hence open. As the `prod_comm` homeomorphism is defined
-  later, we rather go for the direct proof, copy-pasting the proof for the first projection. -/
-  rw is_open_map_iff_nhds_le,
-  rintro ⟨x, y⟩ s hs,
-  rcases mem_nhds_prod_iff.1 hs with ⟨tx, htx, ty, hty, ht⟩,
-  simp only [subset_def, prod.forall, mem_prod] at ht,
-  exact mem_sets_of_superset hty (λ y hy, ht x y ⟨mem_of_nhds htx, hy⟩)
-end
+is_open_map_iff_nhds_le.2 $ λ x, (map_snd_nhds x).ge
 
 /-- A product set is open in a product space if and only if each factor is open, or one of them is
 empty -/
@@ -627,7 +642,7 @@ by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (cont
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
-by { rw [pi_def], exact Inter_mem_sets hi (λ a ha, (continuous_apply a).continuous_at (hs a ha)) }
+by { rw [pi_def, bInter_mem_sets hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =
@@ -672,6 +687,17 @@ begin
     { have : f ∈ pi {a | a ∉ i} c, { simp [*, pi] at * },
       simpa [pi_if, hf] } }
 end
+
+variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
+
+/-- A finite product of discrete spaces is discrete. -/
+instance Pi.discrete_topology : discrete_topology (Π i, π i) :=
+singletons_open_iff_discrete.mp (λ x,
+begin
+  rw show {x} = ⋂ i, {y : Π i, π i | y i = x i},
+  { ext, simp only [function.funext_iff, set.mem_singleton_iff, set.mem_Inter, set.mem_set_of_eq] },
+  exact is_open_Inter (λ i, (continuous_apply i).is_open_preimage {x i} (is_open_discrete {x i}))
+end)
 
 end pi
 

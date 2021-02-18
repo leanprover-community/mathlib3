@@ -23,11 +23,14 @@ open_locale classical
 open polynomial
 
 section
-variables (R : Type u) {A : Type v} [comm_ring R] [comm_ring A] [algebra R A]
+variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 
 /-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
 def is_algebraic (x : A) : Prop :=
 ∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
+
+/-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
+def transcendental (x : A) : Prop := ¬ is_algebraic R x
 
 variables {R}
 
@@ -65,7 +68,7 @@ end
 end
 
 section zero_ne_one
-variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [comm_ring A] [algebra R A]
+variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [ring A] [algebra R A]
 
 /-- An integral element of an algebra is algebraic.-/
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
@@ -74,7 +77,7 @@ by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 end zero_ne_one
 
 section field
-variables (K : Type u) {A : Type v} [field K] [comm_ring A] [algebra K A]
+variables (K : Type u) {A : Type v} [field K] [ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
@@ -85,6 +88,11 @@ begin
   refine ⟨_, monic_mul_leading_coeff_inv hp, _⟩,
   rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
 end
+
+lemma is_algebraic_iff_is_integral' :
+  algebra.is_algebraic K A ↔ algebra.is_integral K A :=
+⟨λ h x, (is_algebraic_iff_is_integral K).mp (h x),
+  λ h x, (is_algebraic_iff_is_integral K).mpr (h x)⟩
 
 end field
 

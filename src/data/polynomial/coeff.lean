@@ -57,6 +57,9 @@ variable {R}
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
 (s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
 
+/-- Decomposes the coefficient of the product `p * q` as a sum
+over `nat.antidiagonal`. A version which sums over `range (n + 1)` can be obtained
+by using `finset.nat.sum_antidiagonal_eq_sum_range_succ`. -/
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
@@ -139,5 +142,34 @@ begin
 end
 
 end coeff
+
+open submodule polynomial set
+
+variables {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
+
+/--  If the coefficients of a polynomial belong to n ideal contains the submodule span of the
+coefficients of a polynomial. -/
+lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
+  (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
+begin
+  refine bInter_subset_of_mem _,
+  rintros _ ⟨i, rfl⟩,
+  exact (mem_coe _).mpr (cf i),
+end
+
+lemma mem_span_C_coeff :
+  f ∈ span (polynomial R) {g : polynomial R | ∃ i : ℕ, g = (C (coeff f i))} :=
+begin
+  rw [← f.sum_single] {occs := occurrences.pos [1]},
+  refine sum_mem _ (λ i hi, _),
+  change monomial i _ ∈ span _ _,
+  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul],
+  exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
+end
+
+lemma exists_coeff_not_mem_C_inverse :
+  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
+imp_of_not_imp_not _ _
+  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
 
 end polynomial

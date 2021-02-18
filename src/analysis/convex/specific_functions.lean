@@ -18,6 +18,7 @@ In this file we prove that the following functions are convex:
 * `convex_on_pow` : for a natural $n$, the function $f(x)=x^n$ is convex on $[0, +∞)$;
 * `convex_on_fpow` : for an integer $m$, the function $f(x)=x^m$ is convex on $(0, +∞)$.
 * `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on (Ici 0) (λ x, x ^ p)`
+* `concave_on_log_Ioi` and `concave_on_log_Iio`: log is concave on `Ioi 0` and `Iio 0` respectively.
 -/
 
 open real set
@@ -34,7 +35,7 @@ begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
-    rcases nat.even.sub hn (nat.even_bit0 1) with ⟨k, hk⟩,
+    rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
     simp only [iter_deriv_pow, finset.prod_range_succ, finset.prod_range_zero, nat.sub_zero,
       mul_one, hk, pow_mul', pow_two],
     exact mul_nonneg (nat.cast_nonneg _) (mul_self_nonneg _) }
@@ -113,4 +114,40 @@ begin
     suffices : 0 ≤ p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
     apply mul_nonneg (le_trans zero_le_one hp),
     exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
+end
+
+lemma concave_on_log_Ioi : concave_on (Ioi 0) log :=
+begin
+  have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
+  { intros x hx hx',
+    rw [mem_singleton_iff] at hx',
+    rw [hx'] at hx,
+    exact lt_irrefl 0 hx },
+  refine concave_on_open_of_deriv2_nonpos (convex_Ioi 0) is_open_Ioi _ _ _,
+  { exact differentiable_on_log.mono h₁ },
+  { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
+    exact is_open_compl_singleton },
+  { intros x hx,
+    rw [function.iterate_succ, function.iterate_one],
+    change (deriv (deriv log)) x ≤ 0,
+    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
+    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+end
+
+lemma concave_on_log_Iio : concave_on (Iio 0) log :=
+begin
+  have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
+  { intros x hx hx',
+    rw [mem_singleton_iff] at hx',
+    rw [hx'] at hx,
+    exact lt_irrefl 0 hx },
+  refine concave_on_open_of_deriv2_nonpos (convex_Iio 0) is_open_Iio _ _ _,
+  { exact differentiable_on_log.mono h₁ },
+  { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
+    exact is_open_compl_singleton },
+  { intros x hx,
+    rw [function.iterate_succ, function.iterate_one],
+    change (deriv (deriv log)) x ≤ 0,
+    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
+    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
 end

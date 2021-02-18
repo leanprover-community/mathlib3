@@ -117,21 +117,43 @@ protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
 
+@[simp] lemma mk_coe (f : M →ₗ[R] M₂) (h₁ h₂) :
+  (linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) = f := ext $ λ _, rfl
+
 variables (f g)
 
 @[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
 
 @[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
-@[simp, priority 900]
-lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R S] [has_scalar R M]
-  [semimodule S M] [is_scalar_tower R S M] [has_scalar R M₂] [semimodule S M₂]
-  [is_scalar_tower R S M₂] (f : M →ₗ[S] M₂) (c : R) (x : M) :
-  f (c • x) = c • f x :=
-by simp only [← smul_one_smul S c x, ← smul_one_smul S c (f x), map_smul]
-
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
+
+variables (M M₂)
+/--
+A typeclass for `has_scalar` structures which can be moved through a `linear_map`.
+This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
+we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
+`R` does not support negation.
+-/
+class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
+  [semimodule S M] [has_scalar R M₂] [semimodule S M₂] :=
+(map_smul : ∀ (f : M →ₗ[S] M₂) (c : R) (x : M), f (c • x) = c • f x)
+variables {M M₂}
+
+@[priority 100]
+instance compatible_smul.is_scalar_tower
+  {R S : Type*} [semiring S] [has_scalar R S]
+  [has_scalar R M] [semimodule S M] [is_scalar_tower R S M]
+  [has_scalar R M₂] [semimodule S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
+⟨λ f c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (f x), map_smul]⟩
+
+@[simp, priority 900]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
+  [semimodule S M] [has_scalar R M₂] [semimodule S M₂]
+  [compatible_smul M M₂ R S] (f : M →ₗ[S] M₂) (c : R) (x : M) :
+  f (c • x) = c • f x :=
+compatible_smul.map_smul f c x
 
 instance : is_add_monoid_hom f :=
 { map_add := map_add f,
@@ -153,8 +175,8 @@ are defined by an action of `R` on `S` (formally, we have two scalar towers), th
 map from `M` to `M₂` is `R`-linear.
 
 See also `linear_map.map_smul_of_tower`. -/
-def restrict_scalars {S : Type*} [has_scalar R S] [semiring S] [semimodule S M] [semimodule S M₂]
-  [is_scalar_tower R S M] [is_scalar_tower R S M₂] (f : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
+def restrict_scalars {S : Type*} [semiring S] [semimodule S M] [semimodule S M₂]
+  [compatible_smul M M₂ R S] (f : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
 { to_fun := f,
   map_add' := f.map_add,
   map_smul' := f.map_smul_of_tower }
@@ -214,6 +236,16 @@ f.to_add_monoid_hom.map_sub x y
 
 instance : is_add_group_hom f :=
 { map_add := map_add f }
+
+instance compatible_smul.int_module
+  {S : Type*} [semiring S] [semimodule ℤ M]
+  [semimodule S M] [semimodule ℤ M₂] [semimodule S M₂] : compatible_smul M M₂ ℤ S :=
+⟨λ f c x, begin
+  induction c using int.induction_on,
+  case hz : { simp },
+  case hp : n ih { simpa [add_smul] using ih },
+  case hn : n ih { simpa [sub_smul] using ih }
+end⟩
 
 end add_comm_group
 
@@ -391,7 +423,7 @@ def simps.inv_fun [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : 
 
 initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)
 
-@[simp] lemma inv_fun_apply {m : M₂} : e.inv_fun m = e.symm m := rfl
+@[simp] lemma inv_fun_eq_symm : e.inv_fun = e.symm := rfl
 
 variables {semimodule_M₃ : semimodule R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃)
 

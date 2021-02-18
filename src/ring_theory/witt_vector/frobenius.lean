@@ -230,7 +230,7 @@ variables (p)
 
 See also `frobenius_is_poly`. -/
 @[is_poly] lemma frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
-⟨frobenius_poly p, by { introsI, funext n, apply coeff_frobenius_fun }⟩
+⟨⟨frobenius_poly p, by { introsI, funext n, apply coeff_frobenius_fun }⟩⟩
 
 variable {p}
 

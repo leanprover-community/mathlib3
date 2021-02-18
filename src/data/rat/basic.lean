@@ -577,7 +577,7 @@ theorem coe_int_eq_mk : ∀ (z : ℤ), ↑z = z /. 1
   induction n with n IH, {refl},
   show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
   rw [neg_add, IH],
-  simpa [show -1 = (-1) /. 1, from rfl]
+  simp [show -1 = (-1) /. 1, from rfl],
 end
 
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=

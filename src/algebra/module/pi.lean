@@ -48,6 +48,21 @@ instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
   [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc (x i) (y i) (z i)⟩
 
+instance smul_comm_class {α β : Type*}
+  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [∀ i, smul_comm_class α β (f i)] :
+  smul_comm_class α β (Π i : I, f i) :=
+⟨λ x y z, funext $ λ i, smul_comm x y (z i)⟩
+
+instance smul_comm_class' {g : I → Type*} {α : Type*}
+  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
+  smul_comm_class α (Π i : I, f i) (Π i : I, g i) :=
+⟨λ x y z, funext $ λ i, smul_comm x (y i) (z i)⟩
+
+instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
+  [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
+  [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
+⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
+
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=
 { smul := (•),
@@ -60,7 +75,8 @@ instance mul_action' {g : I → Type*} {m : Π i, monoid (f i)} [Π i, mul_actio
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul _ _ }
 
-instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i} [∀ i, distrib_mul_action α $ f i] :
+instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i}
+  [∀ i, distrib_mul_action α $ f i] :
   @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
 { smul_zero := λ c, funext $ λ i, smul_zero _,
   smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
@@ -74,7 +90,8 @@ instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π 
 
 variables (I f)
 
-instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i} [∀ i, semimodule α $ f i] :
+instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
+  [∀ i, semimodule α $ f i] :
   @semimodule α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,

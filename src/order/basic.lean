@@ -56,6 +56,9 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+@[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
+by simp [lt_irrefl a]
+
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
@@ -188,6 +191,21 @@ instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited (order_dual α) := id
+
+theorem preorder.dual_dual (α : Type*) [H : preorder α] :
+  order_dual.preorder (order_dual α) = H :=
+preorder.ext $ λ _ _, iff.rfl
+
+theorem partial_order.dual_dual (α : Type*) [H : partial_order α] :
+  order_dual.partial_order (order_dual α) = H :=
+partial_order.ext $ λ _ _, iff.rfl
+
+theorem linear_order.dual_dual (α : Type*) [H : linear_order α] :
+  order_dual.linear_order (order_dual α) = H :=
+linear_order.ext $ λ _ _, iff.rfl
+
+theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
+  @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
 
 end order_dual
 
@@ -378,15 +396,24 @@ lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y 
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl
 
+lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y : Π i, α i} :
+  x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
+by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
+
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
-function.rel_update_iff (λ i : ι, (≥))
+function.forall_update_iff _ (λ j z, x j ≤ z)
 
 lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
-function.rel_update_iff (λ i : ι, (≤))
+function.forall_update_iff _ (λ j z, z ≤ y j)
+
+lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] [decidable_eq ι]
+  {x y : Π i, α i} {i : ι} {a b : α i} :
+  function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
+by simp [update_le_iff] {contextual := tt}
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
   partial_order (Πi, α i) :=

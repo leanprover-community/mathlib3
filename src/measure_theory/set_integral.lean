@@ -38,7 +38,7 @@ theorem for a locally finite measure `μ` and a function `f` continuous at a poi
 
 ## Notation
 
-`∫ a in s, f a ∂μ` is `measure_theory.integral (μ.restrict s)`
+`∫ a in s, f a ∂μ` is `measure_theory.integral (μ.restrict s) f`
 
 ## TODO
 

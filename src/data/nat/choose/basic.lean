@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta
 -/
 import data.nat.factorial
-import data.rat
 /-!
 # Binomial coefficients
 
@@ -111,23 +110,6 @@ begin
   have : n! = choose n k * (k! * (n - k)!) :=
     by rw ← mul_assoc; exact (choose_mul_factorial_mul_factorial hk).symm,
   exact (nat.div_eq_of_eq_mul_left (mul_pos (factorial_pos _) (factorial_pos _)) this).symm
-end
-
-def choose_eq_factorial_div_factorial' {a b : ℕ}
-  (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
-begin
-  field_simp [mul_ne_zero, factorial_ne_zero], norm_cast,
-  rw ← choose_mul_factorial_mul_factorial hab, ring,
-end
-
-lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
-n.choose s * (n - s).choose (k - s) :=
-begin
-  rw [choose_eq_factorial_div_factorial' hn, choose_eq_factorial_div_factorial' hs,
-      choose_eq_factorial_div_factorial' (le_trans hs hn), choose_eq_factorial_div_factorial' ],
-  swap, exact nat.sub_le_sub_right hn s,
-    field_simp [mul_ne_zero, factorial_ne_zero],
-  rw sub_sub_sub_cancel_right hs, ring,
 end
 
 lemma add_choose (i j : ℕ) : (i + j).choose j = factorial (i + j) / (factorial i * factorial j) :=

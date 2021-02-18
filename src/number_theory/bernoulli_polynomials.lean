@@ -38,6 +38,23 @@ open_locale nat
 
 open nat finset
 
+lemma choose_eq_factorial_div_factorial' {a b : ℕ}
+  (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
+begin
+  field_simp [mul_ne_zero, factorial_ne_zero], norm_cast,
+  rw ← choose_mul_factorial_mul_factorial hab, ring,
+end
+
+lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
+n.choose s * (n - s).choose (k - s) :=
+begin
+  rw [choose_eq_factorial_div_factorial' hn, choose_eq_factorial_div_factorial' hs,
+      choose_eq_factorial_div_factorial' (le_trans hs hn), choose_eq_factorial_div_factorial' ],
+  swap, exact nat.sub_le_sub_right hn s,
+    field_simp [mul_ne_zero, factorial_ne_zero],
+  rw sub_sub_sub_cancel_right hs, ring,
+end
+
 /-- The negative Bernoulli numbers are defined to be the Bernoulli numbers with a parity sign. -/
 def bernoulli_neg (n : ℕ) : ℚ := (-1)^n * (bernoulli n)
 
@@ -77,10 +94,10 @@ end
 
 /-- The Bernoulli polynomials are defined in terms of the negative Bernoulli numbers. -/
 def bernoulli_poly (n : ℕ) : polynomial ℚ :=
-  ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli_neg i) * (nat.choose n i))
+  ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli_neg i) * (choose n i))
 
 lemma bernoulli_poly_def (n : ℕ) : bernoulli_poly n =
-  ∑ i in range (n + 1), polynomial.monomial i ((bernoulli_neg (n - i)) * (nat.choose n i)) :=
+  ∑ i in range (n + 1), polynomial.monomial i ((bernoulli_neg (n - i)) * (choose n i)) :=
 begin
   rw [←sum_range_reflect, add_succ_sub_one, add_zero, bernoulli_poly],
   apply sum_congr, {refl,},

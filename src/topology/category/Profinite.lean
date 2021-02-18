@@ -83,6 +83,7 @@ instance : faithful Profinite.to_CompHaus := {}
 rfl
 
 section Profinite
+open topological_space
 local attribute [instance] connected_component_setoid
 
 /--
@@ -152,7 +153,6 @@ following: https://stacks.math.columbia.edu/tag/08ZY
 -/
 
 open set
-open topological_space
 open category_theory.limits
 
 variable {X : Profinite}

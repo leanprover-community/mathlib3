@@ -252,7 +252,10 @@ inductive types.
 
 For new structures this means that `to_additive` automatically handles
 coercions, and for old structures it does the same, if ancestry
-information is present in `@[ancestor]` attributes.
+information is present in `@[ancestor]` attributes. The `ancestor`
+attribute must come before the `to_additive` attribute, and it is
+essential that the order of the base structures passed to `ancestor` matches
+between the multiplicative and additive versions of the structure.
 
 ### Name generation
 

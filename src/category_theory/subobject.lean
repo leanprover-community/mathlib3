@@ -313,7 +313,8 @@ section «exists»
 variables [has_images C]
 
 /--
-In the case where `f` is not a monomorphism but `C` has images, we can still take the "forward map" under it, which agrees with `mono_over.map f`.
+In the case where `f` is not a monomorphism but `C` has images,
+we can still take the "forward map" under it, which agrees with `mono_over.map f`.
 -/
 def «exists» (f : X ⟶ Y) : mono_over X ⥤ mono_over Y :=
 forget _ ⋙ over.map f ⋙ image
@@ -530,7 +531,8 @@ def lower {Y : D} (F : mono_over X ⥤ mono_over Y) : subobject X ⥤ subobject 
 thin_skeleton.map F
 
 /-- Isomorphic functors become equal when lowered to `subobject`.
-(It's not as evil as usual to talk about equality between functors because the categories are thin and skeletal.-/
+(It's not as evil as usual to talk about equality between functors
+because the categories are thin and skeletal.-/
 lemma lower_iso (F₁ F₂ : mono_over X ⥤ mono_over Y) (h : F₁ ≅ F₂) :
   lower F₁ = lower F₂ :=
 thin_skeleton.map_iso_eq h
@@ -683,9 +685,13 @@ section «exists»
 variables [has_images C]
 
 /--
-The functor from subobjects of `X` to subobjects of `Y` given by sending the subobject `S` to its "image" under `f`, usually denoted $\exists_f$. For instance, when `C` is the category of types, viewing `subobject X` as `set X` this is just `set.image f`.
+The functor from subobjects of `X` to subobjects of `Y` given by
+sending the subobject `S` to its "image" under `f`, usually denoted $\exists_f$.
+For instance, when `C` is the category of types,
+viewing `subobject X` as `set X` this is just `set.image f`.
 
-This functor is left adjoint to the `pullback f` functor (shown in `exists_pullback_adj`) provided both are defined, and generalises the `map f` functor, again provided it is defined.
+This functor is left adjoint to the `pullback f` functor (shown in `exists_pullback_adj`)
+provided both are defined, and generalises the `map f` functor, again provided it is defined.
 -/
 def «exists» (f : X ⟶ Y) : subobject X ⥤ subobject Y :=
 lower (mono_over.exists f)

@@ -152,17 +152,6 @@ begin
   simpa [hp] using h
 end
 
--- lemma prog.of_done [p.prog] (h : p cb n = done n' a) : n < n' := prog.lt' h
-
--- lemma bounded.of_done [p.bounded] (h : p cb n = done n' a) : n < cb.size :=
--- by { by_contra hn, exact bounded.ne' (le_of_not_lt hn) h }
-
--- lemma static.of_done [p.static] (h : p cb n = done n' a) : n = n' :=
--- static.eq' h
-
--- lemma err_static.of_fail [p.err_static] (h : p cb n = fail n' err) : n = n' :=
--- err_static.eq' h
-
 lemma decorate_errors_fail (h : p cb n = fail n' err) :
   @decorate_errors α msgs p cb n = fail n ((dlist.lazy_of_list (msgs ()))) :=
 by simp [decorate_errors, h]
@@ -1226,10 +1215,12 @@ lemma eps : ¬ bounded eps := pure
 instance ch {c : char} : bounded (ch c) :=
 bounded.decorate_error
 
-lemma char_buf_iff {s : char_buffer} : bounded (char_buf s) ↔ s.to_list ≠ [] :=
+lemma char_buf_iff {cb' : char_buffer} : bounded (char_buf cb') ↔ cb' ≠ buffer.nil :=
 begin
-  rw [char_buf, decorate_error_iff],
-  cases s.to_list,
+  have : cb' ≠ buffer.nil ↔ cb'.to_list ≠ [] :=
+      not_iff_not_of_iff ⟨λ h, by simp [h], λ h, by simpa using congr_arg list.to_buffer h⟩,
+  rw [char_buf, decorate_error_iff, this],
+  cases cb'.to_list,
   { simp [pure, ch] },
   { simp only [iff_true, ne.def, not_false_iff],
     apply_instance }
@@ -1362,147 +1353,18 @@ end
 
 end bounded
 
-variables {α β : Type} {msgs : thunk (list string)} {msg : thunk string}
-variables {p q : parser α} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
-variables {a : α} {b : β}
-
-example : nonempty ℕ := ⟨0⟩
-
-lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
-  l.drop k = [] ↔ l.length ≤ k :=
-begin
-  refine ⟨λ h, _, list.drop_eq_nil_of_le⟩,
-  induction k with k hk generalizing l,
-  { simp at h,
-    simp [h] },
-  { cases l,
-    { simp },
-    { simp at h,
-      simpa [nat.succ_le_succ_iff] using hk h } }
-end
--- ⟨λ h, by { induction k, { simp at h, simp [h] }, simp at h, }, list.drop_eq_nil_of_le⟩
--- by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
-
-
-lemma nat_eq_done {k : ℕ} (h : nat cb n = done n' k) :
-  k = (nat.of_digits 10 (list.reverse (((cb.to_list.drop n).take (n' - n)).map (λ c, c.to_nat - '0'.to_nat))))
-  -- ∧ ∃ (h : n' < cb.size), ¬ ((λ c, '0' ≤ c ∧ c ≤ '9') (cb.read ⟨n', h⟩))
-    :=
-begin
-  -- split,
-  -- { intro h,
-  have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
-    { ext1, ext1 ⟨⟩, refl },
-  have hs : ∀ l, list.foldr (λ (x y : ℕ), 10 * y) 1 l = (list.foldr nat._match_1 (0, 1) l).snd,
-    { intro l,
-      rw natm,
-      induction l with hd tl hl,
-      { simp },
-      { simp only [hl, list.foldr],
-        rw mul_comm } },
-  rw nat at h,
-  simp [nat, pure_eq_done, and.comm, and.left_comm, and.assoc, natm] at h,
-  rcases h with ⟨l, hl, rfl⟩,
-    -- simp [digit_eq_done] at hl,
-    -- obtain ⟨rfl, le9, hl⟩ := hl,
-  rw [nat.of_digits_eq_foldr],
-  induction l with hd tl IH generalizing n n',
-  { simpa [many1, seq_eq_done, digit_eq_done] using hl,
-    -- obtain ⟨nf, a, ⟨rfl, l9, hn, rfl, hl⟩, l, hl', rfl⟩ := hl,
-    -- simp [many_eq_done_nil] at hl',
-    -- sorry
-    },
-  {
-    cases tl with hd' tl',
-    { simp [many1_eq_done, many_eq_done_nil, digit_eq_done, and.comm, and.left_comm, and.assoc, digit_eq_fail] at hl,
-      obtain ⟨rfl, l9, ⟨hn, ge0, le9, rfl⟩, hl⟩ := hl,
-      simp [list.foldr_reverse],
-      have hn' : n < cb.to_list.length := by simpa using hn,
-      have : ¬ cb.to_list.drop n = [],
-        { rw drop_eq_nil_iff_le, by simpa using hn },
-      obtain ⟨hd', tl', hl'⟩ := list.exists_cons_of_ne_nil this,
-      rw ←buffer.nth_le_to_list cb hn' at *,
-      rw [hl'],
-      congr,
-      rw ←list.cons_nth_le_drop_succ hn' at hl',
-      simp at hl',
-      simp [hl'.left] },
-    { simp [many1_eq_done, many_eq_done] at hl,
-      obtain ⟨np, hp, np', hp', hl⟩ := hl,
-      obtain ⟨k, hk⟩ : ∃ k, cb.size - np = k + 1,
-        { refine nat.exists_eq_succ_of_ne_zero _,
-          simp [digit_eq_done] at hp hp',
-          obtain ⟨rfl, _, hn, _⟩ := hp',
-          simpa [nat.sub_eq_zero_iff_le] using hn },
-      simp [hk, foldr_core_eq_done, and.comm, and.assoc, and.left_comm] at hl,
-      rcases hl with (⟨np'', x, xs, rfl, hl, hl'⟩ | hl),
-      { have : digit.many1 cb n = done np'' (hd' :: x :: xs),
-          { simp [many1_eq_done, hp], },
-      },
-      {  },
-
-      -- have : digit.many1 cb n = done np' (hd' :: tl'),
-      --   { simp [many1_eq_done], },
-    },
-    -- simp [many1, seq_eq_done] at hl,
-    },
-  -- induction l with hd tl IH generalizing n,
-  -- { simpa using hl },
-  -- { simp [list.foldr_reverse],
-  --   rw [←natm, ←hs, natm],
-  --   simp [list.foldl_eq_foldr],
-  --   cases tl,
-  --   { simp, },
-  --   {  },
-  --   simp [many1_eq_done, many_eq_done] at hl,
-  -- },
-  -- change (∃ (x : list ℕ), _ ∧ prod.fst (list.foldr (λ d p, _) (0, 1) x) = k) at h,
-  -- rw ←buffer.to_buffer_to_list cb at *,
-  -- simp,
-  -- induction hc : cb.to_list with chd ctl hl,
-  -- { simp at this,
-  --   simp,
-  -- },
-  -- { have : n ≤ n' := sorry, },
-  -- {  },
-  -- simp [nat.of_digits_eq_foldr],
-  -- },
-  -- {  },
-  -- induction hn : n' - n with m hm,
-  -- { simp [nat.of_digits_eq_foldr, nat, pure_eq_done, and.left_comm],
-  --   split,
-  --   { rintro ⟨l, h, rfl⟩,
-  --     have : n' = n := le_antisymm (nat.le_of_sub_eq_zero hn) (mono.of_done h),
-  --     subst this,
-  --     rcases l with (_ | ⟨hd, _ | ⟨hd', tl⟩⟩),
-  --     { simp },
-  --     { simpa only [many1_eq_done, digit_eq_done, and.left_comm, many_eq_done_nil, exists_eq_left,
-  --                   exists_and_distrib_left, self_eq_add_right, one_ne_zero, false_and] using h },
-  --     { simp [many1_eq_done, digit_eq_done, and.left_comm, and.comm, and.assoc, many_eq_done] at h,
-  --       rcases h with ⟨lhd, lhd', h, ⟨hlt, ge0, le9, rfl⟩, ⟨hlt', ge0', le9', rfl⟩⟩,
-  --       simp [hlt, ge0, le9.not_lt],
-  --       -- obtain ⟨r, hr⟩ : ∃ r, n' + 1 + r = cb.size := nat.le.dest hlt,
-  --       -- cases r,
-  --       -- { simpa [←hr, lt_irrefl] using hlt' },
-  --       -- { replace hr : r + 1 = cb.size - (n' + 1),
-  --       --     { rw [nat.sub_eq_of_eq_add],
-  --       --       simp [←hr] },
-  --       --   simp [←hr, foldr_core_eq_done, digit_eq_done, and.comm, and.left_comm, and.assoc] at h,
-  --       --   simp,
-  --       -- },
-  --     },
-  --   },
-  --   {  },
-  -- },
-  -- {  },
-end
-
-#exit
-
 namespace unfailing
 
 variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
   {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
+
+lemma of_bounded [p.bounded] : ¬ unfailing p :=
+begin
+  introI,
+  cases h : p buffer.nil 0,
+  { simpa [lt_irrefl] using bounded.of_done h },
+  { exact of_fail h }
+end
 
 instance pure : unfailing (pure a) :=
 ⟨λ _ _, by simp [pure_eq_done]⟩
@@ -1548,7 +1410,7 @@ end
 lemma failure : ¬ @parser.unfailing α failure :=
 begin
   introI h,
-  have : (failure : parser α) ("".to_char_buffer) 0 = fail 0 dlist.empty := by simp,
+  have : (failure : parser α) buffer.nil 0 = fail 0 dlist.empty := by simp,
   exact of_fail this
 end
 
@@ -1613,161 +1475,13 @@ begin
   { simpa [foldr_core_eq_done, h] using (err_static.of_fail h).symm }
 end
 
-instance [has_repr α] : has_repr (parse_result α) :=
-⟨ λ x, match x with
-  | done n a := sformat!"done with {repr a} at {n}"
-  | fail n err := sformat!"fail with {err.to_list} at {n}"
-  end
-⟩
+-- TODO: add foldr and foldl, many, etc, fix_core
 
-#eval parser.foldr list.cons
-  (decorate_error "" $ prod.mk <$> decorate_error ("") any_char <*> any_char)
-  [] "abcdef".to_char_buffer 1
+lemma digit : ¬ digit.unfailing :=
+of_bounded
 
-#eval nat "12345a".to_char_buffer 0
-
-
--- instance foldr_core {f : α → β → β} {b : β} {reps : ℕ} [p.err_static] :
---   (foldr_core f p b (reps + 2)).unfailing :=
--- begin
---   induction reps with reps hr,
---   { constructor,
---     intros cb n,
---     cases hp : p cb n with np a np errp,
---     { cases hf : foldr_core f p b 1 cb np with n' b' n' errf,
---       { have := hf,
---         simp only [foldr_core_eq_done, foldr_core_zero_eq_done, foldr_core_zero_eq_fail, false_or,
---                     exists_and_distrib_right, exists_false, and_false, false_and] at this,
---         rcases this with ⟨rfl, rfl, err', hp' | ⟨n', ⟨a', hp'⟩, rfl, rfl⟩⟩,
---         { simp [foldr_core_eq_done, hp, hp', hf, and.comm, and.left_comm, and.assoc] },
---         { simp [foldr_core_eq_done, hp, hp', hf, and.comm, and.left_comm, and.assoc] } },
---       { have := hf,
---         simp only [foldr_core_succ_eq_fail, foldr_core_zero_eq_fail, ne.def, and.comm, and.left_comm,
---                   exists_eq_left, exists_and_distrib_left] at this,
---         rcases this with ⟨hn, hp' | ⟨rfl, a', hp'⟩⟩,
---         { exact absurd (err_static.of_fail hp') hn },
---         { simp [foldr_core_eq_done, hp, hp', hf, and.comm, and.left_comm, and.assoc, ne.symm hn], },
---       },
---     }
-
-    -- obtain ⟨np, a, h⟩ := p.exists_done cb n,
-    -- obtain ⟨np', a', h'⟩ := p.exists_done cb np,
-    -- simp [foldr_core],
-    -- cases hf : (foldr_core f p b 1) cb np',
-    -- { have := hf,
-    --   simp [foldr_core_eq_done, h', foldr_core_zero_eq_done, foldr_core_zero_eq_fail, false_or,
-    --              exists_and_distrib_right, exists_false, exists_eq_right, exists_eq_right',
-    --              exists_eq_left', and_false, false_and] at this,
-    --   rcases this with ⟨rfl, rfl, rfl⟩,
-    --   simp [foldr_core_eq_done, h, h', hf, and.comm, and.left_comm, and.assoc] },
-    -- { have := hf,
-    --   simp [foldr_core_succ_eq_fail, h'] at this,
-    --   simp [foldr_core_eq_done, hf, h', h, and.comm, and.left_comm, and.assoc],
-    -- },
-    -- -- obtain ⟨n', b, hf⟩ := (foldr_core f p b 1).exists_done cb np',
-    -- simp [foldr_core_eq_done, h, h', and.comm, and.left_comm, and.assoc],
-    -- -- obtain ⟨np', a', h'⟩ := p.exists_done cb np,
-    -- -- rintro _ _ H,
-    -- -- rw foldr_core_succ_eq_fail at H,
-    -- -- rintro _ _ hne hne' rfl rfl,
---   },
---   {  },
--- end
-
-instance foldr {f : α → β → β} [p.bounded] [p.prog] [p.unfailing] : unfailing (foldr f p b) :=
-begin
-  constructor,
-  intros cb n,
-  simp [foldr_eq_done],
-  obtain ⟨np, a, h⟩ := p.exists_done cb n,
-  obtain ⟨k, hk⟩ := nat.exists_eq_add_of_lt (bounded.of_done h),
-  have : cb.size - n = k + 1,
-    { rw [hk, add_assoc, nat.add_sub_cancel_left] },
-  simp_rw [foldr, this, foldr_core_succ_eq_fail],
-  rintro ⟨hne, H | ⟨np, a, hp, hne', H | ⟨np', a', H, hf⟩⟩⟩,
-  { exact false.elim (of_fail H) },
-  { exact false.elim (of_fail H) },
-  {
-    induction k with k IH,
-    {  },
-    {  },
-  },
-
-  -- cases k,
-  -- { simp [hk, foldr_core_succ_eq_fail, h],
-  --   rintros hnp (H | ⟨np', ⟨a', H⟩, rfl, rfl⟩),
-  --   { replace hk : n = cb.size - 1 := by simp [hk],
-  --     subst hk,
-  --     have : cb.size ≤ np := nat.le_of_pred_lt (prog.of_done h),
-  --     exact absurd this (not_le_of_lt (bounded.of_done H)) } },
-  -- { have : n + k.succ + 1 - n = k + 2,
-  --     { rw [add_assoc, nat.add_sub_cancel_left] },
-  --   simp [hk, this, foldr_core_succ_eq_fail, h, and.comm, and.assoc, and.left_comm],
-  --   rintros hnp hnp' (H | ⟨np', hnp'', ⟨a, H⟩, H'⟩),
-  --   { exact false.elim (of_fail H) },
-  --   {  },
-  --   },
-  -- -- rcases hk : cb.size - n with _|_|k,
-  -- -- { exact absurd (nat.le_of_sub_eq_zero hk) (not_le_of_lt (bounded.of_done h)) },
-  -- -- { simp [h, foldr_eq_fail, foldr_core_succ_eq_fail, hk],
-  -- --   rintros hnp (H | ⟨np', ⟨a', H⟩, rfl, rfl⟩),
-  -- --   { exact false.elim (of_fail H) },
-  -- --   {
-  -- --     have : n = cb.size - 1,
-  -- --       { rw nat.sub, },
-  -- --   } },
-  -- -- { sorry } ,
-end
-
-instance foldl_core {f : α → β → α} {p : parser β} [p.unfailing] :
-  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).unfailing
-| _ 0          := unfailing.failure
-| _ (reps + 1) := begin
-  convert unfailing.orelse,
-  { convert unfailing.bind,
-    { apply_instance },
-    { exact λ _, foldl_core } },
-  { exact unfailing.pure }
-end
-
-instance foldl {f : α → β → α} {p : parser β} [p.unfailing] : unfailing (foldl f a p) :=
-⟨λ _ _, unfailing.foldl_core.le _ _⟩
-
-instance many [p.unfailing] : p.many.unfailing :=
-unfailing.foldr
-
-instance many_char {p : parser char} [p.unfailing] : p.many_char.unfailing :=
-unfailing.map
-
-instance many' [p.unfailing] : p.many'.unfailing :=
-unfailing.and_then
-
-instance many1 [p.unfailing] : p.many1.unfailing :=
-unfailing.seq
-
-instance many_char1 {p : parser char} [p.unfailing] : p.many_char1.unfailing :=
-unfailing.map
-
-instance sep_by1 [p.unfailing] [sep.unfailing] : unfailing (sep_by1 sep p) :=
-unfailing.seq
-
-instance sep_by [p.unfailing] [sep.unfailing] : unfailing (sep_by sep p) :=
-unfailing.orelse
-
-lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.unfailing → (F p).unfailing) :
-  ∀ (max_depth : ℕ), unfailing (fix_core F max_depth)
-| 0               := unfailing.failure
-| (max_depth + 1) := hF _ (fix_core _)
-
-instance digit : digit.unfailing :=
-unfailing.decorate_error
-
-instance nat : nat.unfailing :=
-unfailing.decorate_error
-
-lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.unfailing → (F p).unfailing) :
-  unfailing (fix F) :=
-⟨λ _ _, by { convert unfailing.fix_core.le _ _, exact hF }⟩
+lemma nat : ¬ nat.unfailing :=
+of_bounded
 
 end unfailing
 
@@ -1914,118 +1628,25 @@ instance remaining : remaining.err_static :=
 instance eof : eof.err_static :=
 err_static.decorate_error
 
--- lemma foldr_core_err_static_unfailing {f : α → β → β} [p.err_static] :
---   ∀ {b : β} {reps : ℕ}, (foldr_core f p b reps).err_static ∧ (foldr_core f p b reps).unfailing
--- -- | _ 0          := ⟨err_static.failure, _⟩
-
--- instance foldr_core {f : α → β → β} [p.err_static] :
---   ∀ {b : β} {reps : ℕ}, (foldr_core f p b reps).err_static
--- | _ 0          := err_static.failure
--- | _ 1          := begin
---   simp_rw parser.foldr_core,
---   constructor,
---   simp,
---   rintros,
--- end
--- | _ (reps + 2) := begin
---   simp_rw parser.foldr_core,
---   convert err_static.orelse,
---   { convert err_static.bind_of_unfailing,
---     { apply_instance },
---     { intro,
---       convert unfailing.bind,
---       { sorry },
---       { apply_instance } } },
---   { apply_instance }
--- end
-
-instance foldr {f : α → β → β} [p.err_static] : err_static (foldr f p b) :=
--- ⟨λ _ _ _ _, by { dsimp [foldr], exact of_done }⟩
-begin
-  constructor,
-  intros cb n n' err,
-  rw [foldr_eq_fail],
-  rintro ⟨hn, hp | ⟨np, a, hp, hf⟩⟩,
-  { exact of_fail hp },
-  { cases hc : cb.size - n,
-    {  },
-    {  },
-  },
-  intro,
-end
-
-instance foldl_core {f : α → β → α} {p : parser β} [p.err_static] :
-  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).err_static
-| _ 0          := err_static.failure
-| _ (reps + 1) := begin
-  convert err_static.orelse,
-  { convert err_static.bind,
-    { apply_instance },
-    { exact λ _, foldl_core } },
-  { exact err_static.pure }
-end
-
-instance foldl {f : α → β → α} {p : parser β} [p.err_static] : err_static (foldl f a p) :=
-⟨λ _ _ _ _, by { dsimp [foldl], exact of_done }⟩
-
-instance many [p.err_static] : p.many.err_static :=
-err_static.foldr
-
-instance many_char {p : parser char} [p.err_static] : p.many_char.err_static :=
-err_static.map
-
-instance many' [p.err_static] : p.many'.err_static :=
-err_static.and_then
-
-instance many1 [p.err_static] : p.many1.err_static :=
-err_static.seq
-
-instance many_char1 {p : parser char} [p.err_static] : p.many_char1.err_static :=
-err_static.map
-
-instance sep_by1 [p.err_static] [sep.err_static] : err_static (sep_by1 sep p) :=
-err_static.seq
-
-instance sep_by [p.err_static] [sep.err_static] : err_static (sep_by sep p) :=
-err_static.orelse
+-- TODO: add foldr and foldl, many, etc, fix_core
 
 lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.err_static → (F p).err_static) :
   ∀ (max_depth : ℕ), err_static (fix_core F max_depth)
 | 0               := err_static.failure
 | (max_depth + 1) := hF _ (fix_core _)
 
-lemma digit : ¬ digit.err_static :=
-begin
-  have : digit "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
-  exact not_of_ne this zero_ne_one
-end
+instance digit : digit.err_static :=
+err_static.decorate_error
 
-lemma nat : ¬ nat.err_static :=
-begin
-  have : nat "1".to_char_buffer 0 = done 1 1,
-    { have : 0 < "s".to_char_buffer.size := dec_trivial,
-      simpa [this] },
-  exact not_of_ne this zero_ne_one
-end
+instance nat : nat.err_static :=
+err_static.decorate_error
 
 lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.err_static → (F p).err_static) :
   err_static (fix F) :=
 ⟨λ cb n _ _ h,
-  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact err_static.of_done h }⟩
-
-example : (prod.mk <$> any_char <*> any_char).unfailing :=
-begin
-  convert unfailing.seq,
-  { convert unfailing.map,
-    apply_instance
-  },
-end
+  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact err_static.of_fail h }⟩
 
 end err_static
-
-#exit
 
 namespace prog
 
@@ -2035,7 +1656,7 @@ variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : t
 lemma pure (a : α) : ¬ prog (pure a) :=
 begin
   introI h,
-  have : (pure a : parser α) (string.to_char_buffer "") 0 = done 0 a := by simp [pure_eq_done],
+  have : (pure a : parser α) buffer.nil 0 = done 0 a := by simp [pure_eq_done],
   replace this : 0 < 0 := prog.of_done this,
   exact (lt_irrefl _) this
 end
@@ -2081,9 +1702,27 @@ prog.failure
 instance orelse [p.prog] [q.prog] : (p <|> q).prog :=
 ⟨λ _ _ _ _, by { simp_rw orelse_eq_done, rintro (h | ⟨h, -⟩); exact of_done h }⟩
 
+lemma decorate_errors_iff : (@parser.decorate_errors α msgs p).prog ↔ p.prog :=
+begin
+  split,
+  { introI,
+    constructor,
+    intros cb n n' a h,
+    have : (@parser.decorate_errors α msgs p) cb n = done n' a := by simpa using h,
+    exact of_done this },
+  { introI,
+    constructor,
+    intros _ _ _ _ h,
+    rw decorate_errors_eq_done at h,
+    exact of_done h }
+end
+
 instance decorate_errors [p.prog] :
   (@decorate_errors α msgs p).prog :=
 ⟨λ _ _ _ _, by { rw decorate_errors_eq_done, exact of_done }⟩
+
+lemma decorate_error_iff : (@parser.decorate_error α msg p).prog ↔ p.prog :=
+decorate_errors_iff
 
 instance decorate_error [p.prog] : (@decorate_error α msg p).prog :=
 prog.decorate_errors
@@ -2092,29 +1731,34 @@ instance any_char : prog any_char :=
 begin
   constructor,
   intros cb n,
-  by_cases h : n < cb.size,
-  { simp_rw any_char_eq_done h,
-    rintro _ - ⟨rfl, -⟩,
-    exact lt_add_one n },
-  { simp [any_char, h] }
+  simp_rw [any_char_eq_done],
+  rintro _ _ ⟨_, rfl, -⟩,
+  simp
 end
 
 instance sat {p : char → Prop} [decidable_pred p] : prog (sat p) :=
 begin
   constructor,
   intros cb n,
-  by_cases h : n < cb.size,
-  { simp_rw sat_eq_done h,
-    rintro _ - ⟨-, rfl, -⟩,
-    exact lt_add_one n },
-  { simp [sat, h] }
+  simp_rw [sat_eq_done],
+  rintro _ _ ⟨_, _, rfl, -⟩,
+  simp
 end
 
 lemma eps : ¬ prog eps := prog.pure ()
 
 instance ch {c : char} : prog (ch c) := prog.decorate_error
 
--- TODO: add prog.char_buf, needs char_buf_eq_done
+lemma char_buf_iff {cb' : char_buffer} : (char_buf cb').prog ↔ cb' ≠ buffer.nil :=
+begin
+  have : cb' ≠ buffer.nil ↔ cb'.to_list ≠ [] :=
+      not_iff_not_of_iff ⟨λ h, by simp [h], λ h, by simpa using congr_arg list.to_buffer h⟩,
+  rw [char_buf, this, decorate_error_iff],
+  cases cb'.to_list,
+  { simp [pure] },
+  { simp only [iff_true, ne.def, not_false_iff],
+    apply_instance }
+end
 
 instance one_of {cs : list char} : (one_of cs).prog :=
 prog.decorate_errors
@@ -2122,20 +1766,13 @@ prog.decorate_errors
 instance one_of' {cs : list char} : (one_of' cs).prog :=
 prog.and_then
 
-lemma str {s : string} (h : s ≠ "") : (str s).prog :=
-begin
-  obtain ⟨c, s', hs⟩ : ∃ c s', s.to_list = c :: s',
-    { apply list.exists_cons_of_ne_nil,
-      simpa [←string.to_list_empty, string.to_list_inj] using h },
-  convert prog.decorate_error,
-  rw hs,
-  simpa using prog.mmap'
-end
+lemma str_iff {s : string} : (str s).prog ↔ s ≠ "" :=
+by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, ←buffer.ext_iff]
 
 lemma remaining : ¬ remaining.prog :=
 begin
   introI h,
-  have : remaining (string.to_char_buffer "") 0 = done 0 0 := by simpa [remaining_eq_done],
+  have : remaining buffer.nil 0 = done 0 0 := by simp [remaining_eq_done],
   replace this : 0 < 0 := prog.of_done this,
   exact (lt_irrefl _) this
 end
@@ -2143,58 +1780,12 @@ end
 lemma eof : ¬ eof.prog :=
 begin
   introI h,
-  have : eof (string.to_char_buffer "") 0 = done 0 () := by simpa [remaining_eq_done],
+  have : eof buffer.nil 0 = done 0 () := by simpa [remaining_eq_done],
   replace this : 0 < 0 := prog.of_done this,
   exact (lt_irrefl _) this
 end
 
-instance foldr_core {f : α → β → β} {b : β} [p.mono] [p.prog] :
-  ∀ {reps : ℕ}, (foldr_core f p b reps).prog
-| 0          := prog.failure
-| (reps + 1) := begin
-  simp_rw parser.foldr_core,
-  -- convert prog.orelse,
-  -- { apply_instance },
-  -- { exact prog.pure }
-end
-
-instance foldr {f : α → β → β} [p.prog] : prog (foldr f p b) :=
-⟨λ _ _, prog.foldr_core.le _ _⟩
-
-instance foldl_core {f : α → β → α} {p : parser β} [p.prog] :
-  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).prog
-| _ 0          := prog.failure
-| _ (reps + 1) := begin
-  convert prog.orelse,
-  { convert prog.bind,
-    { apply_instance },
-    { exact λ _, foldl_core } },
-  { exact prog.pure }
-end
-
-instance foldl {f : α → β → α} {p : parser β} [p.prog] : prog (foldl f a p) :=
-⟨λ _ _, prog.foldl_core.le _ _⟩
-
-instance many [p.prog] : p.many.prog :=
-prog.foldr
-
-instance many_char {p : parser char} [p.prog] : p.many_char.prog :=
-prog.map
-
-instance many' [p.prog] : p.many'.prog :=
-prog.and_then
-
-instance many1 [p.prog] : p.many1.prog :=
-prog.seq
-
-instance many_char1 {p : parser char} [p.prog] : p.many_char1.prog :=
-prog.map
-
-instance sep_by1 [p.prog] [sep.prog] : prog (sep_by1 sep p) :=
-prog.seq
-
-instance sep_by [p.prog] [sep.prog] : prog (sep_by sep p) :=
-prog.orelse
+-- TODO: add foldr and foldl, many, etc, fix_core
 
 lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
   ∀ (max_depth : ℕ), prog (fix_core F max_depth)
@@ -2204,13 +1795,196 @@ lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog �
 instance digit : digit.prog :=
 prog.decorate_error
 
-instance nat : nat.prog :=
-prog.decorate_error
+-- TODO: add nat
 
 lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
   prog (fix F) :=
-⟨λ _ _, by { convert prog.fix_core.le _ _, exact hF }⟩
+⟨λ cb n _ _ h,
+  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
 
 end prog
+
+variables {α β : Type} {msgs : thunk (list string)} {msg : thunk string}
+variables {p q : parser α} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
+variables {a : α} {b : β}
+
+lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
+  l.drop k = [] ↔ l.length ≤ k :=
+begin
+  refine ⟨λ h, _, list.drop_eq_nil_of_le⟩,
+  induction k with k hk generalizing l,
+  { simp at h,
+    simp [h] },
+  { cases l,
+    { simp },
+    { simp at h,
+      simpa [nat.succ_le_succ_iff] using hk h } }
+end
+
+lemma nat_eq_done {k : ℕ} (h : nat cb n = done n' k) :
+  k = (nat.of_digits 10 (list.reverse (((cb.to_list.drop n).take (n' - n)).map (λ c, c.to_nat - '0'.to_nat))))
+  -- ∧ ∃ (h : n' < cb.size), ¬ ((λ c, '0' ≤ c ∧ c ≤ '9') (cb.read ⟨n', h⟩))
+    :=
+begin
+  -- split,
+  -- { intro h,
+  have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
+    { ext1, ext1 ⟨⟩, refl },
+  have hs : ∀ l, list.foldr (λ (x y : ℕ), 10 * y) 1 l = (list.foldr nat._match_1 (0, 1) l).snd,
+    { intro l,
+      rw natm,
+      induction l with hd tl hl,
+      { simp },
+      { simp only [hl, list.foldr],
+        rw mul_comm } },
+  rw nat at h,
+  simp [nat, pure_eq_done, and.comm, and.left_comm, and.assoc, natm] at h,
+  rcases h with ⟨l, hl, rfl⟩,
+  obtain ⟨k, hk⟩ : ∃ k, n' = n + k := nat.exists_eq_add_of_le (mono.of_done hl),
+  rw [nat.of_digits_eq_foldr, list.foldr_reverse],
+  induction k with k IH generalizing n n' l,
+  { simp at hk,
+    subst hk,
+    cases l,
+    { simp },
+    { simp only [many1, seq_eq_done, exists_eq_right_right, map_eq_done, exists_exists_and_eq_and,
+                 exists_and_distrib_left] at hl,
+      obtain ⟨np, hp, hp'⟩ := hl,
+      exact absurd (prog.of_done hp) (mono.of_done hp').not_lt } },
+  { have : n' = (n + 1) + k := by { simp [hk], ring },
+    cases l with hd tl,
+    { simpa using hl },
+    { cases tl with hd' tl',
+      { simp [many1_eq_done, digit_eq_done, many_eq_done_nil] at hl,
+        obtain ⟨np, ⟨rfl, l9, hn, rfl, ge0, le9⟩, ⟨rfl, hp'⟩⟩ := hl,
+        have : k = 0 := by simpa using this,
+        subst this,
+        have hn' : n < cb.to_list.length := by simpa using hn,
+        rw ←list.cons_nth_le_drop_succ hn',
+        simp },
+      { simp [many1_eq_done] at hl,
+        obtain ⟨np, hp, hp'⟩ := hl,
+        have : digit.many1 cb np = done n' (hd' :: tl'),
+          { rw many1_eq_done,
+            rw many_eq_done at hp',
+            obtain ⟨np', hp', H⟩ := hp',
+            refine ⟨np', hp', _⟩,
+            have : np = n + 1 := by { simp [digit_eq_done] at hp, exact hp.left },
+            subst this,
+            have : np' = n + 1 + 1 := by { simp [digit_eq_done] at hp', exact hp'.left },
+            subst this,
+            simp [digit_eq_done] at hp',
+            obtain ⟨l0, hn, rfl, ge0, le9⟩ := hp',
+            obtain ⟨m, hm⟩ : ∃ m, cb.size = n + 1 + (m + 1) := nat.exists_eq_add_of_lt hn,
+            simp [hm, foldr_core_eq_done] at H,
+            rcases H with (⟨np'', x, hp'', xs, H, rfl⟩ | H),
+            { simp [many_eq_done], },
+            {  },
+            -- cases tl',
+            -- { rw foldr_core_eq_done at H,
+            --   -- simp [foldr
+            --   -- simp [many_eq_done_nil],
+            --   },
+            -- {  },
+            -- convert hp',
+            -- ext,
+            -- simp [many, foldr, digit_eq_done],
+          },
+      },
+    },
+  },
+  --   -- simp [digit_eq_done] at hl,
+  --   -- obtain ⟨rfl, le9, hl⟩ := hl,
+  -- rw [nat.of_digits_eq_foldr],
+  -- induction l with hd tl IH generalizing n n',
+  -- { simpa [many1, seq_eq_done, digit_eq_done] using hl,
+  --   -- obtain ⟨nf, a, ⟨rfl, l9, hn, rfl, hl⟩, l, hl', rfl⟩ := hl,
+  --   -- simp [many_eq_done_nil] at hl',
+  --   -- sorry
+  --   },
+  -- {
+  --   cases tl with hd' tl',
+  --   { simp [many1_eq_done, many_eq_done_nil, digit_eq_done, and.comm, and.left_comm, and.assoc, digit_eq_fail] at hl,
+  --     obtain ⟨rfl, l9, ⟨hn, ge0, le9, rfl⟩, hl⟩ := hl,
+  --     simp [list.foldr_reverse],
+  --     have hn' : n < cb.to_list.length := by simpa using hn,
+  --     have : ¬ cb.to_list.drop n = [],
+  --       { rw drop_eq_nil_iff_le, by simpa using hn },
+  --     obtain ⟨hd', tl', hl'⟩ := list.exists_cons_of_ne_nil this,
+  --     rw ←buffer.nth_le_to_list cb hn' at *,
+  --     rw [hl'],
+  --     congr,
+  --     rw ←list.cons_nth_le_drop_succ hn' at hl',
+  --     simp at hl',
+  --     simp [hl'.left] },
+  --   { simp [many1_eq_done, many_eq_done] at hl,
+  --     obtain ⟨np, hp, np', hp', hl⟩ := hl,
+  --     obtain ⟨k, hk⟩ : ∃ k, cb.size - np = k + 1,
+  --       { refine nat.exists_eq_succ_of_ne_zero _,
+  --         simp [digit_eq_done] at hp hp',
+  --         obtain ⟨rfl, _, hn, _⟩ := hp',
+  --         simpa [nat.sub_eq_zero_iff_le] using hn },
+  --     simp [hk, foldr_core_eq_done, and.comm, and.assoc, and.left_comm] at hl,
+  --     rcases hl with (⟨np'', x, xs, rfl, hl, hl'⟩ | hl),
+  --     { have : digit.many1 cb n = done np'' (hd' :: x :: xs),
+  --         { simp [many1_eq_done, hp], },
+  --     },
+  --     {  },
+
+  --     -- have : digit.many1 cb n = done np' (hd' :: tl'),
+  --     --   { simp [many1_eq_done], },
+  --   },
+  --   -- simp [many1, seq_eq_done] at hl,
+  --   },
+  -- -- induction l with hd tl IH generalizing n,
+  -- -- { simpa using hl },
+  -- -- { simp [list.foldr_reverse],
+  -- --   rw [←natm, ←hs, natm],
+  -- --   simp [list.foldl_eq_foldr],
+  -- --   cases tl,
+  -- --   { simp, },
+  -- --   {  },
+  -- --   simp [many1_eq_done, many_eq_done] at hl,
+  -- -- },
+  -- -- change (∃ (x : list ℕ), _ ∧ prod.fst (list.foldr (λ d p, _) (0, 1) x) = k) at h,
+  -- -- rw ←buffer.to_buffer_to_list cb at *,
+  -- simp,
+  -- induction hc : cb.to_list with chd ctl hl,
+  -- { simp at this,
+  --   simp,
+  -- },
+  -- { have : n ≤ n' := sorry, },
+  -- {  },
+  -- simp [nat.of_digits_eq_foldr],
+  -- },
+  -- {  },
+  -- induction hn : n' - n with m hm,
+  -- { simp [nat.of_digits_eq_foldr, nat, pure_eq_done, and.left_comm],
+  --   split,
+  --   { rintro ⟨l, h, rfl⟩,
+  --     have : n' = n := le_antisymm (nat.le_of_sub_eq_zero hn) (mono.of_done h),
+  --     subst this,
+  --     rcases l with (_ | ⟨hd, _ | ⟨hd', tl⟩⟩),
+  --     { simp },
+  --     { simpa only [many1_eq_done, digit_eq_done, and.left_comm, many_eq_done_nil, exists_eq_left,
+  --                   exists_and_distrib_left, self_eq_add_right, one_ne_zero, false_and] using h },
+  --     { simp [many1_eq_done, digit_eq_done, and.left_comm, and.comm, and.assoc, many_eq_done] at h,
+  --       rcases h with ⟨lhd, lhd', h, ⟨hlt, ge0, le9, rfl⟩, ⟨hlt', ge0', le9', rfl⟩⟩,
+  --       simp [hlt, ge0, le9.not_lt],
+  --       -- obtain ⟨r, hr⟩ : ∃ r, n' + 1 + r = cb.size := nat.le.dest hlt,
+  --       -- cases r,
+  --       -- { simpa [←hr, lt_irrefl] using hlt' },
+  --       -- { replace hr : r + 1 = cb.size - (n' + 1),
+  --       --     { rw [nat.sub_eq_of_eq_add],
+  --       --       simp [←hr] },
+  --       --   simp [←hr, foldr_core_eq_done, digit_eq_done, and.comm, and.left_comm, and.assoc] at h,
+  --       --   simp,
+  --       -- },
+  --     },
+  --   },
+  --   {  },
+  -- },
+  -- {  },
+end
 
 end parser

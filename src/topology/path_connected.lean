@@ -577,7 +577,7 @@ begin
 end
 
 lemma path_component_subset_component (x : X) : path_component x ⊆ connected_component x :=
-λ y h, subset_connected_component (is_connected_range h.some_path.continuous).2
+λ y h, (is_connected_range h.some_path.continuous).subset_connected_component
   ⟨0, by simp⟩ ⟨1, by simp⟩
 
 /-- The path component of `x` in `F` is the set of points that can be joined to `x` in `F`. -/

@@ -3,11 +3,12 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.nat.choose.sum
-import data.equiv.ring
 import algebra.algebra.operations
-import ring_theory.ideal.basic
 import algebra.algebra.tower
+import data.equiv.ring
+import data.nat.choose.sum
+import ring_theory.ideal.basic
+import ring_theory.non_zero_divisors
 /-!
 # More operations on modules and ideals
 -/
@@ -258,6 +259,11 @@ variables {I J K L: ideal R}
 
 instance : has_mul (ideal R) := ⟨(•)⟩
 
+@[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
+@[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
+@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
+by erw [submodule.one_eq_map_top, submodule.map_id]
+
 theorem mul_mem_mul {r s} (hr : r ∈ I) (hs : s ∈ J) : r * s ∈ I * J :=
 submodule.smul_mem_smul hr hs
 
@@ -367,6 +373,14 @@ lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
     or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
  λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
 
+instance {R : Type*} [integral_domain R] : no_zero_divisors (ideal R) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ I J, mul_eq_bot.1 }
+
+/-- A product of ideals in an integral domain is zero if and only if one of the terms is zero. -/
+lemma prod_eq_bot {R : Type*} [integral_domain R]
+  {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
+prod_zero_iff_exists_zero
+
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
@@ -449,11 +463,6 @@ hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J
 eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
 
 instance : comm_semiring (ideal R) := submodule.comm_semiring
-
-@[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
-@[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
-@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
-by erw [submodule.one_eq_map_top, submodule.map_id]
 
 variables (R)
 theorem top_pow (n : ℕ) : (⊤ ^ n : ideal R) = ⊤ :=

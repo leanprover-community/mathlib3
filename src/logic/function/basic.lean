@@ -88,14 +88,9 @@ lemma injective.of_comp_iff {f : α → β} (hf : injective f) (g : γ → α) :
 
 lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) :
   injective (f ∘ g) ↔ injective f :=
-begin
-  refine ⟨λ h x y hf, _, λ h, h.comp hg.injective⟩,
-  cases hg.surjective x with x' hx,
-  cases hg.surjective y with y' hy,
-  subst hx,
-  subst hy,
-  exact congr_arg g (h hf),
-end
+⟨ λ h x y, let ⟨x', hx⟩ := hg.surjective x, ⟨y', hy⟩ := hg.surjective y in
+    hx ▸ hy ▸ λ hf, h hf ▸ rfl,
+  λ h, h.comp hg.injective⟩
 
 lemma injective.dite (p : α → Prop) [decidable_pred p]
   {f : {a : α // p a} → β} {f' : {a : α // ¬ p a} → β}

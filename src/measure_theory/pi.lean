@@ -60,10 +60,12 @@ lemma unique_elim_preimage [unique ι] (t : ∀ i, set (α i)) :
   unique_elim ⁻¹'  pi univ t = t (default ι) :=
 by { ext, simp [unique.forall_iff] }
 
+attribute [simps] equiv.Pi_congr_left
+open equiv
 lemma Pi_congr_left_symm_preimage (f : ι' ≃ ι) (s : set ι) (t : ∀ i, set (α i)) :
   (f.Pi_congr_left α).symm ⁻¹' (f ⁻¹' s).pi (λ i', t $ f i') = s.pi t :=
 begin
-  ext, simp, sorry
+  ext, simp only [mem_preimage, mem_pi, Pi_congr_left_symm_apply], convert f.forall_congr_left, refl
 end
 
 lemma measurable_unique_elim [unique ι] [∀ i, measurable_space (α i)] :
@@ -487,8 +489,10 @@ begin
   all_goals {sorry}
 end
 
-lemma pi_sum {π : ι ⊕ ι' → Type*} [∀ i, measurable_space (π i)] (μ : ∀ i, measure (π i)) :
-  map (equiv.Pi_sum π) ((measure.pi (λ i, μ (sum.inl i))).prod (measure.pi (λ i, μ (sum.inr i)))) = measure.pi μ :=
+lemma pi_sum {π : ι ⊕ ι' → Type*} [∀ i, measurable_space (π i)] (μ : ∀ i, measure (π i))
+  [∀ i, sigma_finite (μ i)] :
+  map (equiv.Pi_sum π) ((measure.pi (λ i, μ (sum.inl i))).prod (measure.pi (λ i, μ (sum.inr i)))) =
+  measure.pi μ :=
 begin
   refine (pi_eq _).symm, intros s hs,
   rw [map_apply],

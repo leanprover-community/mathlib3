@@ -19,7 +19,7 @@ open category_theory
 open category_theory.limits
 open opposite
 
-universe u
+universes u v
 
 noncomputable theory
 
@@ -195,3 +195,65 @@ end
 end topological_konig
 
 end Top
+
+section fintype_konig
+
+/-- This bootstraps `nonempty_sections_of_fintype_inverse_system`. In this version,
+the `F` functor is between categories of the same universe. -/
+lemma nonempty_sections_of_fintype_inverse_system.init
+  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type u)
+  [hf : Π (j : Jᵒᵖ), fintype (F.obj j)] [hne : Π (j : Jᵒᵖ), nonempty (F.obj j)] :
+  F.sections.nonempty :=
+begin
+  let F' : Jᵒᵖ ⥤ Top := F ⋙ Top.discrete,
+  haveI : Π (j : Jᵒᵖ), fintype (F'.obj j) := hf,
+  haveI : Π (j : Jᵒᵖ), nonempty (F'.obj j) := hne,
+  obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_inverse_system F',
+  exact ⟨u, λ j j' f, hu f⟩,
+end
+
+/-- Gives the induced directed order on the `ulift` of a type with a directed order. -/
+def ulift.directed_order {α : Type u} [directed_order α] : directed_order (ulift.{v} α) :=
+{ le := λ i j, i.down ≤ j.down,
+  le_refl := λ i, le_refl i.down,
+  le_trans := λ i j k hij hjk, le_trans hij hjk,
+  directed := λ i j, begin
+    obtain ⟨k, hk⟩ := directed_order.directed i.down j.down,
+    exact ⟨ulift.up k, hk⟩,
+  end }
+local attribute [instance] ulift.directed_order
+
+/-- The inverse limit of nonempty finite types is nonempty.  This may be regarded
+as a generalization of Kőnig's lemma. -/
+theorem nonempty_sections_of_fintype_inverse_system
+  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type v)
+  [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
+  F.sections.nonempty :=
+begin
+  let J' := ulift.{v} J,
+  letI : small_category J' := by apply_instance,
+  let jj : J' ⥤ J :=
+  { obj := λ i, i.down,
+    map := λ i j f, hom_of_le (le_of_hom f : i ≤ j) },
+  let F' : J'ᵒᵖ ⥤ Type (max u v) := (jj.op ⋙ F ⋙ ulift_functor : J'ᵒᵖ ⥤ Type (max v u)),
+  haveI : ∀ i, nonempty (F'.obj i) := λ i,
+    ⟨ulift.up (classical.arbitrary (F.obj (op i.unop.down)))⟩,
+  haveI : ∀ i, fintype (F'.obj i) := λ i,
+    fintype.of_equiv (F.obj (op i.unop.down))
+    { to_fun := λ x, ulift.up x,
+      inv_fun := λ x, x.down,
+      left_inv := by tidy,
+      right_inv := by tidy, },
+  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system.init F',
+  refine ⟨λ j, (u (op $ ulift.up j.unop)).down, _⟩,
+  intros j j' f,
+  let f' : op (ulift.up.{v} j.unop) ⟶ op (ulift.up.{v} j'.unop),
+  { refine (hom_of_le _).op, exact (le_of_hom f.unop : unop j' ≤ unop j), },
+  have h := hu f',
+  simp only [functor.comp_map, functor.op_map, ulift_functor_map] at h,
+  simp only [←h], dsimp,
+  rw hom_of_le_le_of_hom,
+  refl,
+end
+
+end fintype_konig

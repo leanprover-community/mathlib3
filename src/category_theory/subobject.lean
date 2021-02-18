@@ -8,7 +8,7 @@ import category_theory.full_subcategory
 import category_theory.skeletal
 import category_theory.currying
 import category_theory.limits.lattice
-import category_theory.limits.shapes.pullbacks
+import category_theory.limits.over
 import category_theory.limits.shapes.images
 import category_theory.monad.adjunction
 
@@ -683,7 +683,7 @@ section «exists»
 variables [has_images C]
 
 /--
-The functor from subobjects of `X` to subobjects of `Y` given by sending the subobject `S` to its "image" under `f`, usually denoted $\exists_f$. For instance, when `C` is the category of types, viewing `subobject X` as `set X` this is just `set.image f`. 
+The functor from subobjects of `X` to subobjects of `Y` given by sending the subobject `S` to its "image" under `f`, usually denoted $\exists_f$. For instance, when `C` is the category of types, viewing `subobject X` as `set X` this is just `set.image f`.
 
 This functor is left adjoint to the `pullback f` functor (shown in `exists_pullback_adj`) provided both are defined, and generalises the `map f` functor, again provided it is defined.
 -/

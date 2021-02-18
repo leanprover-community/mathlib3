@@ -149,6 +149,45 @@ section has_continuous_mul
 
 variables [topological_space M] [monoid M] [has_continuous_mul M]
 
+@[to_additive]
+lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
+  (closure (s : set M)) * closure (s : set M) ⊆ closure (s : set M) :=
+calc
+(closure (s : set M)) * closure (s : set M)
+    = (λ p : M × M, p.1 * p.2) '' (closure ((s : set M).prod s)) : by simp [closure_prod_eq]
+... ⊆ closure ((λ p : M × M, p.1 * p.2) '' ((s : set M).prod s)) :
+  image_closure_subset_closure_image continuous_mul
+... = closure s : by simp [s.coe_mul_self_eq]
+
+@[to_additive]
+lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
+  (closure (s : set M)) * closure (s : set M) = closure (s : set M) :=
+subset.antisymm
+  s.top_closure_mul_self_subset
+  (λ x hx, ⟨x, 1, hx, subset_closure s.one_mem, mul_one _⟩)
+
+/-- The (topological-space) closure of a submonoid of a space `M` with `has_continuous_mul` is
+itself a submonoid. -/
+@[to_additive "The (topological-space) closure of an additive submonoid of a space `M` with
+`has_continuous_add` is itself an additive submonoid."]
+def submonoid.topological_closure (s : submonoid M) : submonoid M :=
+{ carrier := closure (s : set M),
+  one_mem' := subset_closure s.one_mem,
+  mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
+
+lemma submonoid.submonoid_topological_closure (s : submonoid M) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma submonoid.is_closed_topological_closure (s : submonoid M) :
+  is_closed (s.topological_closure : set M) :=
+by convert is_closed_closure
+
+lemma submonoid.topological_closure_minimal
+  (s : submonoid M) {t : submonoid M} (h : s ≤ t) (ht : is_closed (t : set M)) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
+
 @[to_additive exists_open_nhds_zero_half]
 lemma exists_open_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :
   ∃ V : set M, is_open V ∧ (1 : M) ∈ V ∧ ∀ (v ∈ V) (w ∈ V), v * w ∈ s :=

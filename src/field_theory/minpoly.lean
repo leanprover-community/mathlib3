@@ -3,8 +3,8 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johan Commelin
 -/
-import ring_theory.integral_closure
 import data.polynomial.field_division
+import ring_theory.integral_closure
 import ring_theory.polynomial.gauss_lemma
 
 /-!
@@ -52,6 +52,9 @@ by { delta minpoly, rw dif_pos hx, exact (well_founded.min_mem degree_lt_wf _ hx
 lemma ne_zero [nontrivial A] (hx : is_integral A x) : minpoly A x ≠ 0 :=
 ne_zero_of_monic (monic hx)
 
+lemma eq_zero (hx : ¬ is_integral A x) : minpoly A x = 0 :=
+dif_neg hx
+
 variables (A x)
 
 /--An element is a root of its minimal polynomial.-/
@@ -60,6 +63,18 @@ begin
   delta minpoly, split_ifs with hx,
   { exact (well_founded.min_mem degree_lt_wf _ hx).2 },
   { exact aeval_zero _ }
+end
+
+lemma mem_range_of_degree_eq_one (hx : (minpoly A x).degree = 1) : x ∈ (algebra_map A B).range :=
+begin
+  have h : is_integral A x,
+  { by_contra h,
+    rw [eq_zero h, degree_zero, ←with_bot.coe_one] at hx,
+    exact (ne_of_lt (show ⊥ < ↑1, from with_bot.bot_lt_coe 1) hx) },
+  have key := minpoly.aeval A x,
+  rw [eq_X_add_C_of_degree_eq_one hx, (minpoly.monic h).leading_coeff, C_1, one_mul, aeval_add,
+      aeval_C, aeval_X, ←eq_neg_iff_add_eq_zero, ←ring_hom.map_neg] at key,
+  exact ⟨-(minpoly A x).coeff 0, subring.mem_top (-(minpoly A x).coeff 0), key.symm⟩,
 end
 
 /--The defining property of the minimal polynomial of an element x:
@@ -91,20 +106,20 @@ section ring
 variables [ring B] [algebra A B] [nontrivial B]
 variables {x : B}
 
-/-- The degree of a minimal polynomial is positive. -/
-lemma degree_pos [nontrivial A] (hx : is_integral A x) : 0 < degree (minpoly A x) :=
+/-- The degree of a minimal polynomial, as a natural number, is positive. -/
+lemma nat_degree_pos (hx : is_integral A x) : 0 < nat_degree (minpoly A x) :=
 begin
-  apply lt_of_le_of_ne,
-  { simpa only [zero_le_degree_iff] using ne_zero hx },
-  assume deg_eq_zero,
-  rw eq_comm at deg_eq_zero,
-  have ndeg_eq_zero : nat_degree (minpoly A x) = 0,
-  { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
+  rw pos_iff_ne_zero,
+  intro ndeg_eq_zero,
   have eq_one : minpoly A x = 1,
-  { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
+  { rw eq_C_of_nat_degree_eq_zero ndeg_eq_zero, convert C_1,
     simpa only [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
   simpa only [eq_one, alg_hom.map_one, one_ne_zero] using aeval A x
 end
+
+/-- The degree of a minimal polynomial is positive. -/
+lemma degree_pos (hx : is_integral A x) : 0 < degree (minpoly A x) :=
+nat_degree_pos_iff_degree_pos.mp (nat_degree_pos hx)
 
 /-- If `B/A` is an injective ring extension, and `a` is an element of `A`,
 then the minimal polynomial of `algebra_map A B a` is `X - C a`. -/
@@ -120,8 +135,7 @@ begin
     simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self] },
   have hdeg : (minpoly A (algebra_map A B a)).degree = 1,
   { apply (degree_eq_iff_nat_degree_eq (ne_zero (@is_integral_algebra_map A B _ _ _ a))).2,
-    exact (has_le.le.antisymm hdegle (nat.succ_le_of_lt (with_bot.coe_lt_coe.1
-    (lt_of_lt_of_le (degree_pos (@is_integral_algebra_map A B _ _ _ a)) degree_le_nat_degree)))) },
+    apply le_antisymm hdegle (nat_degree_pos (@is_integral_algebra_map A B _ _ _ a)) },
   have hrw := eq_X_add_C_of_degree_eq_one hdeg,
   simp only [monic (@is_integral_algebra_map A B _ _ _ a), one_mul,
     monic.leading_coeff, ring_hom.map_one] at hrw,

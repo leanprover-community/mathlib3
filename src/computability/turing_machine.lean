@@ -606,7 +606,7 @@ trans_gen.head'_iff.trans (trans_gen.head'_iff.trans $ by rw h).symm
 theorem reaches_total {σ} {f : σ → option σ}
   {a b c} : reaches f a b → reaches f a c →
   reaches f b c ∨ reaches f c b :=
-refl_trans_gen.total_of_right_unique $ λ _ _ _, option.mem_unique
+refl_trans_gen.total_of_right_unique ⟨λ _ _ _, option.mem_unique⟩
 
 theorem reaches₁_fwd {σ} {f : σ → option σ}
   {a b c} (h₁ : reaches₁ f a c) (h₂ : b ∈ f a) : reaches f b c :=
@@ -1134,11 +1134,11 @@ end
 /-- The set of all statements in a turing machine, plus one extra value `none` representing the
 halt state. This is used in the TM1 to TM0 reduction. -/
 noncomputable def stmts (M : Λ → stmt) (S : finset Λ) : finset (option stmt) :=
-(S.bind (λ q, stmts₁ (M q))).insert_none
+(S.bUnion (λ q, stmts₁ (M q))).insert_none
 
 theorem stmts_trans {M : Λ → stmt} {S q₁ q₂}
   (h₁ : q₁ ∈ stmts₁ q₂) : some q₂ ∈ stmts M S → some q₁ ∈ stmts M S :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h₂, ⟨_, ls, stmts₁_trans h₂ h₁⟩
 
@@ -1152,7 +1152,7 @@ default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h, stmts₁_supports_stmt_mono h (ss.2 _ ls)
 
@@ -1292,7 +1292,7 @@ local attribute [simp] TM1.stmts₁_self
 theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
   TM0.supports tr (↑(tr_stmts S)) :=
 ⟨finset.mem_product.2 ⟨finset.some_mem_insert_none.2
-  (finset.mem_bind.2 ⟨_, ss.1, TM1.stmts₁_self⟩),
+  (finset.mem_bUnion.2 ⟨_, ss.1, TM1.stmts₁_self⟩),
   finset.mem_univ _⟩,
  λ q a q' s h₁ h₂, begin
   rcases q with ⟨_|q, v⟩, {cases h₁},
@@ -1325,7 +1325,7 @@ theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
       exact finset.mem_insert_of_mem (finset.mem_union_left _ TM1.stmts₁_self) } },
   case TM1.stmt.goto : l {
     cases h₁, exact finset.some_mem_insert_none.2
-      (finset.mem_bind.2 ⟨_, hs _ _, TM1.stmts₁_self⟩) },
+      (finset.mem_bUnion.2 ⟨_, hs _ _, TM1.stmts₁_self⟩) },
   case TM1.stmt.halt { cases h₁ }
 end⟩
 
@@ -1539,7 +1539,8 @@ begin
   { cases list.length_eq_zero.1 e, refl },
   cases l₂' with b l₂'; injection e with e,
   dunfold write step_aux,
-  convert IH _ _ e, simp only [list_blank.head_cons, list_blank.tail_cons,
+  convert IH _ _ e using 1,
+  simp only [list_blank.head_cons, list_blank.tail_cons,
     list_blank.append, tape.move_right_mk', tape.write_mk']
 end
 
@@ -1629,19 +1630,19 @@ noncomputable def writes : stmt₁ → finset Λ'
 /-- The set of accessible machine states, assuming that the input machine is supported on `S`,
 are the normal states embedded from `S`, plus all write states accessible from these states. -/
 noncomputable def tr_supp (S : finset Λ) : finset Λ' :=
-S.bind (λ l, insert (Λ'.normal l) (writes (M l)))
+S.bUnion (λ l, insert (Λ'.normal l) (writes (M l)))
 
 theorem tr_supports {S} (ss : supports M S) :
   supports tr (tr_supp S) :=
-⟨finset.mem_bind.2 ⟨_, ss.1, finset.mem_insert_self _ _⟩,
+⟨finset.mem_bUnion.2 ⟨_, ss.1, finset.mem_insert_self _ _⟩,
 λ q h, begin
   suffices : ∀ q, supports_stmt S q →
     (∀ q' ∈ writes q, q' ∈ tr_supp M S) →
     supports_stmt (tr_supp M S) (tr_normal dec q) ∧
     ∀ q' ∈ writes q, supports_stmt (tr_supp M S) (tr enc dec M q'),
-  { rcases finset.mem_bind.1 h with ⟨l, hl, h⟩,
+  { rcases finset.mem_bUnion.1 h with ⟨l, hl, h⟩,
     have := this _ (ss.2 _ hl) (λ q' hq,
-      finset.mem_bind.2 ⟨_, hl, finset.mem_insert_of_mem hq⟩),
+      finset.mem_bUnion.2 ⟨_, hl, finset.mem_insert_of_mem hq⟩),
     rcases finset.mem_insert.1 h with rfl | h,
     exacts [this.1, this.2 _ h] },
   intros q hs hw, induction q,
@@ -1673,7 +1674,7 @@ theorem tr_supports {S} (ss : supports M S) :
   case TM1.stmt.goto : l {
     refine ⟨_, λ _, false.elim⟩,
     refine supports_stmt_read _ (λ a _ s, _),
-    exact finset.mem_bind.2 ⟨_, hs _ _, finset.mem_insert_self _ _⟩ },
+    exact finset.mem_bUnion.2 ⟨_, hs _ _, finset.mem_insert_self _ _⟩ },
   case TM1.stmt.halt {
     refine ⟨_, λ _, false.elim⟩,
     simp only [supports_stmt, supports_stmt_move, tr_normal] }
@@ -1903,11 +1904,11 @@ end
 
 /-- The set of statements accessible from initial set `S` of labels. -/
 noncomputable def stmts (M : Λ → stmt) (S : finset Λ) : finset (option stmt) :=
-(S.bind (λ q, stmts₁ (M q))).insert_none
+(S.bUnion (λ q, stmts₁ (M q))).insert_none
 
 theorem stmts_trans {M : Λ → stmt} {S q₁ q₂}
   (h₁ : q₁ ∈ stmts₁ q₂) : some q₂ ∈ stmts M S → some q₁ ∈ stmts M S :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h₂, ⟨_, ls, stmts₁_trans h₂ h₁⟩
 
@@ -1920,7 +1921,7 @@ default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
 theorem stmts_supports_stmt {M : Λ → stmt} {S q}
   (ss : supports M S) : some q ∈ stmts M S → supports_stmt S q :=
-by simp only [stmts, finset.mem_insert_none, finset.mem_bind,
+by simp only [stmts, finset.mem_insert_none, finset.mem_bUnion,
   option.mem_def, forall_eq', exists_imp_distrib];
 exact λ l ls h, stmts₁_supports_stmt_mono h (ss.2 _ ls)
 
@@ -2384,19 +2385,19 @@ end
 
 /-- The support of a set of TM2 states in the TM2 emulator. -/
 noncomputable def tr_supp (S : finset Λ) : finset Λ' :=
-S.bind (λ l, insert (normal l) (tr_stmts₁ (M l)))
+S.bUnion (λ l, insert (normal l) (tr_stmts₁ (M l)))
 
 theorem tr_supports {S} (ss : TM2.supports M S) :
   TM1.supports tr (tr_supp S) :=
-⟨finset.mem_bind.2 ⟨_, ss.1, finset.mem_insert.2 $ or.inl rfl⟩,
+⟨finset.mem_bUnion.2 ⟨_, ss.1, finset.mem_insert.2 $ or.inl rfl⟩,
 λ l' h, begin
   suffices : ∀ q (ss' : TM2.supports_stmt S q)
     (sub : ∀ x ∈ tr_stmts₁ q, x ∈ tr_supp M S),
     TM1.supports_stmt (tr_supp M S) (tr_normal q) ∧
     (∀ l' ∈ tr_stmts₁ q, TM1.supports_stmt (tr_supp M S) (tr M l')),
-  { rcases finset.mem_bind.1 h with ⟨l, lS, h⟩,
+  { rcases finset.mem_bUnion.1 h with ⟨l, lS, h⟩,
     have := this _ (ss.2 l lS) (λ x hx,
-      finset.mem_bind.2 ⟨_, lS, finset.mem_insert_of_mem hx⟩),
+      finset.mem_bUnion.2 ⟨_, lS, finset.mem_insert_of_mem hx⟩),
     rcases finset.mem_insert.1 h with rfl | h;
     [exact this.1, exact this.2 _ h] },
   clear h l', refine stmt_st_rec _ _ _ _ _; intros,
@@ -2434,7 +2435,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- goto
     rw tr_stmts₁, unfold TM2to1.tr_normal TM1.supports_stmt,
     unfold TM2.supports_stmt at ss',
-    exact ⟨λ _ v, finset.mem_bind.2 ⟨_, ss' v, finset.mem_insert_self _ _⟩, λ _, false.elim⟩ },
+    exact ⟨λ _ v, finset.mem_bUnion.2 ⟨_, ss' v, finset.mem_insert_self _ _⟩, λ _, false.elim⟩ },
   { exact ⟨trivial, λ _, false.elim⟩ } -- halt
 end⟩
 

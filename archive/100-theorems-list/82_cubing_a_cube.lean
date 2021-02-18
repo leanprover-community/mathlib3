@@ -12,7 +12,8 @@ Proof that a cube (in dimension n ≥ 3) cannot be cubed:
 There does not exist a partition of a cube into finitely many smaller cubes (at least two)
 of different sizes.
 
-We follow the proof described here: http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
+We follow the proof described here:
+http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 -/
 
 
@@ -218,7 +219,7 @@ begin
     use i,
     split, { apply le_antisymm, rw h0, exact zero_le_b h, exact (hi 0).1 },
     intro j, exact hi _ },
-  { intros i hi h', rw to_set_subset, intro j, convert side_subset h, simp [side_tail] },
+  { intros i hi h', rw to_set_subset, intro j, convert side_subset h using 1, simp [side_tail] },
   { intros i hi, exact w_ne_one h i }
 end
 
@@ -262,7 +263,8 @@ lemma two_le_mk_bcubes : 2 ≤ cardinal.mk (bcubes cs c) :=
 begin
   rw [two_le_iff],
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
-  have h2i : i ∈ bcubes cs c := ⟨hi.1.symm, v.2.1 i hi.1.symm ⟨tail c.b, hi.2, λ j, c.b_mem_side j.succ⟩⟩,
+  have h2i : i ∈ bcubes cs c :=
+    ⟨hi.1.symm, v.2.1 i hi.1.symm ⟨tail c.b, hi.2, λ j, c.b_mem_side j.succ⟩⟩,
   let j : fin (n+1) := ⟨2, h.2.2.2.2⟩,
   have hj : 0 ≠ j := by { simp only [fin.ext_iff, ne.def], contradiction },
   let p : fin (n+1) → ℝ := λ j', if j' = j then c.b j + (cs i).w else c.b j',
@@ -277,8 +279,10 @@ begin
   refine ⟨⟨i, h2i⟩, ⟨i', h2i'⟩, _⟩,
   intro hii', cases congr_arg subtype.val hii',
   apply not_le_of_lt (hi'.2 ⟨1, nat.le_of_succ_le_succ h.2.2.2.2⟩).2,
-  simp only [-add_comm, tail, cube.tail, p], rw [if_pos], simp [-add_comm],
-  exact (hi.2 _).1, refl
+  simp only [-add_comm, tail, cube.tail, p],
+  rw [if_pos, add_le_add_iff_right],
+  { exact (hi.2 _).1 },
+  refl
 end
 
 /-- There is a cube in the valley -/
@@ -291,7 +295,8 @@ end
 /-- There is a smallest cube in the valley -/
 lemma exists_mi : ∃(i : ι), i ∈ bcubes cs c ∧ ∀(i' ∈ bcubes cs c),
   (cs i).w ≤ (cs i').w :=
-by simpa using (bcubes cs c).exists_min_image (λ i, (cs i).w) (finite.of_fintype _) (nonempty_bcubes h v)
+by simpa
+  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (finite.of_fintype _) (nonempty_bcubes h v)
 
 /-- We let `mi` be the (index for the) smallest cube in the valley `c` -/
 def mi : ι := classical.some $ exists_mi h v

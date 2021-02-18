@@ -404,6 +404,11 @@ meta def match_app {elab} : expr elab → option (expr elab × expr elab)
 | (app t u) := some (t, u)
 | _ := none
 
+/-- Match an application of `coe_fn`. -/
+meta def match_app_coe_fn : expr → option (expr × expr × expr × expr)
+| (app `(@coe_fn %%α %%inst %%fexpr) x) := some (α, inst, fexpr, x)
+| _ := none
+
 /-- Match an abstraction. -/
 meta def match_lam {elab} : expr elab →
   option (name × binder_info × expr elab × expr elab)
@@ -551,7 +556,7 @@ pure $ do
 meta def simp (t : expr)
   (cfg : simp_config := {}) (discharger : tactic unit := failed)
   (no_defaults := ff) (attr_names : list name := []) (hs : list simp_arg_type := []) :
-  tactic (expr × expr) :=
+  tactic (expr × expr × name_set) :=
 do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
    simplify s to_unfold t cfg `eq discharger
 

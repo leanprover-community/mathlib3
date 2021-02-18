@@ -25,7 +25,7 @@ probability mass function, discrete probability measure, bernoulli distribution
 -/
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-open_locale classical big_operators nnreal
+open_locale classical big_operators nnreal ennreal
 
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0` such that
   the values have (infinite) sum `1`. -/
@@ -46,6 +46,9 @@ lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 
 /-- The support of a `pmf` is the set where it is nonzero. -/
 def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
+
+@[simp] lemma mem_support_iff (p : pmf α) (a : α) :
+  a ∈ p.support ↔ p a ≠ 0 := iff.rfl
 
 /-- The pure `pmf` is the `pmf` where all the mass lies in one point.
   The value of `pure a` is `1` at `a` and `0` elsewhere. -/
@@ -81,7 +84,7 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 rfl
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
-  (p.bind f b : ennreal) = ∑'a, p a * f a b :=
+  (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
 eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
@@ -147,6 +150,43 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 /-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
 def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
 ⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
+
+/-- Given a `f` with non-zero sum, we get a `pmf` by normalizing `f` by its `tsum` -/
+def normalize (f : α → ℝ≥0) (hf0 : tsum f ≠ 0) : pmf α :=
+⟨λ a, f a * (∑' x, f x)⁻¹,
+  (mul_inv_cancel hf0) ▸ has_sum.mul_right (∑' x, f x)⁻¹
+    (not_not.mp (mt tsum_eq_zero_of_not_summable hf0 : ¬¬summable f)).has_sum⟩
+
+lemma normalize_apply {f : α → ℝ≥0} (hf0 : tsum f ≠ 0) (a : α) :
+  (normalize f hf0) a = f a * (∑' x, f x)⁻¹ := rfl
+
+/-- Create new `pmf` by filtering on a set with non-zero measure and normalizing -/
+def filter (p : pmf α) (s : set α) (h : ∃ a ∈ s, p a ≠ 0) : pmf α :=
+pmf.normalize (s.indicator p) $ nnreal.tsum_indicator_ne_zero p.2.summable h
+
+lemma filter_apply (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) {a : α} :
+  (p.filter s h) a = (s.indicator p a) * (∑' x, (s.indicator p) x)⁻¹ :=
+by rw [filter, normalize_apply]
+
+lemma filter_apply_eq_zero_of_not_mem (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0)
+  {a : α} (ha : a ∉ s) : (p.filter s h) a = 0 :=
+by rw [filter_apply, set.indicator_apply_eq_zero.mpr (λ ha', absurd ha' ha), zero_mul]
+
+lemma filter_apply_eq_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
+  (p.filter s h) a = 0 ↔ a ∉ (p.support ∩ s) :=
+begin
+  rw [set.mem_inter_iff, p.mem_support_iff, not_and_distrib, not_not],
+  split; intro ha,
+  { rw [filter_apply, mul_eq_zero] at ha,
+    refine ha.by_cases
+      (λ ha, (em (a ∈ s)).by_cases (λ h, or.inl ((set.indicator_apply_eq_zero.mp ha) h)) or.inr)
+      (λ ha, absurd (inv_eq_zero.1 ha) (nnreal.tsum_indicator_ne_zero p.2.summable h)) },
+  { rw [filter_apply, set.indicator_apply_eq_zero.2 (λ h, ha.by_cases id (absurd h)), zero_mul] }
+end
+
+lemma filter_apply_ne_zero_iff (p : pmf α) {s : set α} (h : ∃ a ∈ s, p a ≠ 0) (a : α) :
+  (p.filter s h) a ≠ 0 ↔ a ∈ (p.support ∩ s) :=
+by rw [← not_iff, filter_apply_eq_zero_iff, not_iff, not_not]
 
 /-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=

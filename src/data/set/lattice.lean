@@ -485,10 +485,16 @@ Inf_pair
 
 @[simp] theorem sInter_range (f : ι → set β) : ⋂₀ (range f) = ⋂ x, f x := rfl
 
+lemma Union_eq_univ_iff {f : ι → set α} : (⋃ i, f i) = univ ↔ ∀ x, ∃ i, x ∈ f i :=
+by simp only [eq_univ_iff_forall, mem_Union]
+
+lemma bUnion_eq_univ_iff {f : α → set β} {s : set α} :
+  (⋃ x ∈ s, f x) = univ ↔ ∀ y, ∃ x ∈ s, y ∈ f x :=
+by simp only [Union_eq_univ_iff, mem_Union]
+
 lemma sUnion_eq_univ_iff {c : set (set α)} :
-  ⋃₀ c = @set.univ α ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
-⟨λ H a, let ⟨b, hm, hb⟩ := mem_sUnion.1 $ by rw H; exact mem_univ a in ⟨b, hm, hb⟩,
- λ H, set.univ_subset_iff.1 $ λ x hx, let ⟨b, hm, hb⟩ := H x in set.mem_sUnion_of_mem hb hm⟩
+  ⋃₀ c = univ ↔ ∀ a, ∃ b ∈ c, a ∈ b :=
+by simp only [eq_univ_iff_forall, mem_sUnion]
 
 theorem compl_sUnion (S : set (set α)) :
   (⋃₀ S)ᶜ = ⋂₀ (compl '' S) :=

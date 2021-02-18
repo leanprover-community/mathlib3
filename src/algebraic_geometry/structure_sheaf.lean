@@ -89,12 +89,12 @@ consisting of those functions which can locally be expressed as a ratio of
 
 Quoting Hartshorne:
 
-For an open set $$U ⊆ Spec A$$, we define $$𝒪(U)$$ to be the set of functions
-$$s : U → ⨆_{𝔭 ∈ U} A_𝔭$$, such that $s(𝔭) ∈ A_𝔭$$ for each $$𝔭$$,
-and such that $$s$$ is locally a quotient of elements of $$A$$:
-to be precise, we require that for each $$𝔭 ∈ U$$, there is a neighborhood $$V$$ of $$𝔭$$,
-contained in $$U$$, and elements $$a, f ∈ A$$, such that for each $$𝔮 ∈ V, f ∉ 𝔮$$,
-and $$s(𝔮) = a/f$$ in $$A_𝔮$$.
+For an open set $U ⊆ Spec A$, we define $𝒪(U)$ to be the set of functions
+$s : U → ⨆_{𝔭 ∈ U} A_𝔭$, such that $s(𝔭) ∈ A_𝔭$ for each $𝔭$,
+and such that $s$ is locally a quotient of elements of $A$:
+to be precise, we require that for each $𝔭 ∈ U$, there is a neighborhood $V$ of $𝔭$,
+contained in $U$, and elements $a, f ∈ A$, such that for each $𝔮 ∈ V, f ∉ 𝔮$,
+and $s(𝔮) = a/f$ in $A_𝔮$.
 
 Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with

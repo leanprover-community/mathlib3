@@ -681,14 +681,14 @@ end
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
-lemma nth_roots_one_eq_bind_primitive_roots' {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
-  nth_roots_finset n R = (nat.divisors ↑n).bind (λ i, (primitive_roots i R)) :=
+lemma nth_roots_one_eq_bUnion_primitive_roots' {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
+  nth_roots_finset n R = (nat.divisors ↑n).bUnion (λ i, (primitive_roots i R)) :=
 begin
   symmetry,
   apply finset.eq_of_subset_of_card_le,
   { intros x,
     simp only [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h),
-      exists_prop, finset.mem_bind, finset.mem_filter, finset.mem_range, mem_nth_roots,
+      exists_prop, finset.mem_bUnion, finset.mem_filter, finset.mem_range, mem_nth_roots,
       finset.mem_mk, nat.mem_divisors, and_true, ne.def, pnat.ne_zero, pnat.pos, not_false_iff],
     rintro ⟨a, ⟨d, hd⟩, ha⟩,
     have hazero : 0 < a,
@@ -698,7 +698,7 @@ begin
     rw mem_primitive_roots hazero at ha,
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
   { apply le_of_eq,
-    rw [h.card_nth_roots_finset, finset.card_bind],
+    rw [h.card_nth_roots_finset, finset.card_bUnion],
     { rw [← nat.sum_totient n, nat.filter_dvd_eq_divisors (pnat.ne_zero n), sum_congr rfl]
         { occs := occurrences.pos [1] },
       simp only [finset.mem_filter, finset.mem_range, nat.mem_divisors],
@@ -714,10 +714,10 @@ end
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
-lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
+lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   (h : is_primitive_root ζ n) :
-  nth_roots_finset n R = (nat.divisors n).bind (λ i, (primitive_roots i R)) :=
-@nth_roots_one_eq_bind_primitive_roots' _ _ _ ⟨n, hpos⟩ h
+  nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
+@nth_roots_one_eq_bUnion_primitive_roots' _ _ _ ⟨n, hpos⟩ h
 
 end integral_domain
 

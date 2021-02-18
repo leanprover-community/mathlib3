@@ -1,7 +1,8 @@
 /-
-Copyright (c) 2021 Johan Commelin (copied by Damiano Testa). All rights reserved.
+Copyright (c) 2021 Johan Commelin (inspired by Kevin Buzzard, copied by Damiano Testa).
+All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin (copied by Damiano Testa)
+Authors: Johan Commelin (inspired by Kevin Buzzard, copied by Damiano Testa)
 -/
 import algebra.ordered_monoid
 
@@ -11,6 +12,9 @@ elements vanishes.
 
 This is the monoid with 3 elements `0, ε, 1` where `ε ^ 2 = 0` and everything else is forced.
 The order is `0 < ε < 1`.  Since `ε ^ 2 = 0`, the product of strictly positive elements can vanish.
+
+Relevant Zulip chat:
+https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/mul_pos
 -/
 
 @[derive [decidable_eq]]

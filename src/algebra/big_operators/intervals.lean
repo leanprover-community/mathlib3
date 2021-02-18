@@ -7,7 +7,6 @@ Authors: Johannes Hölzl
 import algebra.big_operators.basic
 import data.finset.intervals
 
-
 /-!
 # Results about big operators over intervals
 

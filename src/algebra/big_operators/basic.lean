@@ -7,7 +7,6 @@ Authors: Johannes Hölzl
 import data.finset.fold
 import data.equiv.mul_add
 import tactic.abel
-import tactic.linarith
 
 /-!
 # Big operators
@@ -637,21 +636,6 @@ by { rw [range_one], apply @prod_singleton ℕ β 0 f }
 lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
   (∑ k in range 1, f k) = f 0 :=
 @prod_range_one (multiplicative δ) _ f
-
-lemma dependent_double_sum {M : Type*} [add_comm_monoid M]
-  (a b : ℕ) (f : ℕ → ℕ → M) :
-  ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
-  ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
-begin
-  rw ← @@finset.sum_sigma _ _ _ (λ i, finset.Ico i b) (λ x, f x.1 x.2),
-  rw ← @@finset.sum_sigma _ _ _ (λ j, finset.Ico a (j+1)) (λ x, f x.2 x.1),
-  refine finset.sum_bij'
-    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
-    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
-    (by rintro ⟨⟩ _; refl) (by rintro ⟨⟩ _; refl);
-  simp only [finset.Ico.mem, sigma.forall, finset.mem_sigma];
-  rintros a b ⟨⟨h₁,h₂⟩, ⟨h₃, h₄⟩⟩; refine ⟨⟨_, _⟩, ⟨_, _⟩⟩; linarith
-end
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 

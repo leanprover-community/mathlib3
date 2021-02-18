@@ -562,8 +562,6 @@ lemma interval_integral_mono {μ : measure ℝ} {a b : ℝ}
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 interval_integral_mono_ae hf hg hab (ae_of_all _ h)
 
-#lint
-
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
 

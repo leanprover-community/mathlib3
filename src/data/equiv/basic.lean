@@ -274,8 +274,7 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-@[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) :
-  injective (f ∘ e) ↔ injective f :=
+@[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) : injective (f ∘ e) ↔ injective f :=
 begin
   refine ⟨λ h, _, λ h, h.comp e.injective⟩,
   convert h.comp e.symm.injective,
@@ -283,8 +282,7 @@ begin
   simp only [function.comp_app, equiv.apply_symm_apply]
 end
 
-@[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) :
-  injective (e ∘ f) ↔ injective f :=
+@[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) : injective (e ∘ f) ↔ injective f :=
 begin
   refine ⟨λ h, _, e.injective.comp⟩,
   convert e.symm.injective.comp h,
@@ -292,8 +290,7 @@ begin
   simp only [function.comp_app, equiv.symm_apply_apply],
 end
 
-@[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) :
-  surjective (f ∘ e) ↔ surjective f :=
+@[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) : surjective (f ∘ e) ↔ surjective f :=
 begin
   refine ⟨λ h, _, λ h, h.comp e.surjective⟩,
   convert h.comp e.symm.surjective,
@@ -301,8 +298,7 @@ begin
   simp only [function.comp_app, equiv.apply_symm_apply],
 end
 
-@[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) :
-  surjective (e ∘ f) ↔ surjective f :=
+@[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) : surjective (e ∘ f) ↔ surjective f :=
 begin
   refine ⟨λ h,_, e.surjective.comp⟩,
   convert e.symm.surjective.comp h,

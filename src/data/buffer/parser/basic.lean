@@ -1366,44 +1366,96 @@ variables {α β : Type} {msgs : thunk (list string)} {msg : thunk string}
 variables {p q : parser α} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
 variables {a : α} {b : β}
 
+example : nonempty ℕ := ⟨0⟩
+
+lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
+  l.drop k = [] ↔ l.length ≤ k :=
+begin
+  refine ⟨λ h, _, list.drop_eq_nil_of_le⟩,
+  induction k with k hk generalizing l,
+  { simp at h,
+    simp [h] },
+  { cases l,
+    { simp },
+    { simp at h,
+      simpa [nat.succ_le_succ_iff] using hk h } }
+end
+-- ⟨λ h, by { induction k, { simp at h, simp [h] }, simp at h, }, list.drop_eq_nil_of_le⟩
+-- by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
+
+
 lemma nat_eq_done {k : ℕ} (h : nat cb n = done n' k) :
-  k = (nat.of_digits 10 (((cb.to_list.drop n).take (n' - n)).map (λ c, c.to_nat - '0'.to_nat)))
+  k = (nat.of_digits 10 (list.reverse (((cb.to_list.drop n).take (n' - n)).map (λ c, c.to_nat - '0'.to_nat))))
   -- ∧ ∃ (h : n' < cb.size), ¬ ((λ c, '0' ≤ c ∧ c ≤ '9') (cb.read ⟨n', h⟩))
     :=
 begin
   -- split,
   -- { intro h,
-  have := bounded.of_done h,
   have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
     { ext1, ext1 ⟨⟩, refl },
-  have : ∀ l, list.foldr (λ (x y : ℕ), 10 * y) 1 l = (list.foldr nat._match_1 (0, 1) l).snd,
+  have hs : ∀ l, list.foldr (λ (x y : ℕ), 10 * y) 1 l = (list.foldr nat._match_1 (0, 1) l).snd,
     { intro l,
       rw natm,
       induction l with hd tl hl,
       { simp },
       { simp only [hl, list.foldr],
         rw mul_comm } },
-  have : ∀ l, list.foldr (λ (x y : ℕ), x + 10 * y) 0 l = (list.foldr nat._match_1 (0, 1) l).fst,
-    { intro l,
-      rw natm,
-      induction l with hd tl hl,
-      { simp },
-      { rw list.foldr,
-        rw list.foldr,
-        rw ←natm,
-        rw ←this,
-        rw natm,
-        rw ←hl,
-        simp,
-      },
-    },
   rw nat at h,
-  simp [nat, pure_eq_done, and.comm, and.left_comm, and.assoc, this] at h,
+  simp [nat, pure_eq_done, and.comm, and.left_comm, and.assoc, natm] at h,
   rcases h with ⟨l, hl, rfl⟩,
+    -- simp [digit_eq_done] at hl,
+    -- obtain ⟨rfl, le9, hl⟩ := hl,
   rw [nat.of_digits_eq_foldr],
-  cases l,
-  { simpa using hl },
-  { simp, },
+  induction l with hd tl IH generalizing n n',
+  { simpa [many1, seq_eq_done, digit_eq_done] using hl,
+    -- obtain ⟨nf, a, ⟨rfl, l9, hn, rfl, hl⟩, l, hl', rfl⟩ := hl,
+    -- simp [many_eq_done_nil] at hl',
+    -- sorry
+    },
+  {
+    cases tl with hd' tl',
+    { simp [many1_eq_done, many_eq_done_nil, digit_eq_done, and.comm, and.left_comm, and.assoc, digit_eq_fail] at hl,
+      obtain ⟨rfl, l9, ⟨hn, ge0, le9, rfl⟩, hl⟩ := hl,
+      simp [list.foldr_reverse],
+      have hn' : n < cb.to_list.length := by simpa using hn,
+      have : ¬ cb.to_list.drop n = [],
+        { rw drop_eq_nil_iff_le, by simpa using hn },
+      obtain ⟨hd', tl', hl'⟩ := list.exists_cons_of_ne_nil this,
+      rw ←buffer.nth_le_to_list cb hn' at *,
+      rw [hl'],
+      congr,
+      rw ←list.cons_nth_le_drop_succ hn' at hl',
+      simp at hl',
+      simp [hl'.left] },
+    { simp [many1_eq_done, many_eq_done] at hl,
+      obtain ⟨np, hp, np', hp', hl⟩ := hl,
+      obtain ⟨k, hk⟩ : ∃ k, cb.size - np = k + 1,
+        { refine nat.exists_eq_succ_of_ne_zero _,
+          simp [digit_eq_done] at hp hp',
+          obtain ⟨rfl, _, hn, _⟩ := hp',
+          simpa [nat.sub_eq_zero_iff_le] using hn },
+      simp [hk, foldr_core_eq_done, and.comm, and.assoc, and.left_comm] at hl,
+      rcases hl with (⟨np'', x, xs, rfl, hl, hl'⟩ | hl),
+      { have : digit.many1 cb n = done np'' (hd' :: x :: xs),
+          { simp [many1_eq_done, hp], },
+      },
+      {  },
+
+      -- have : digit.many1 cb n = done np' (hd' :: tl'),
+      --   { simp [many1_eq_done], },
+    },
+    -- simp [many1, seq_eq_done] at hl,
+    },
+  -- induction l with hd tl IH generalizing n,
+  -- { simpa using hl },
+  -- { simp [list.foldr_reverse],
+  --   rw [←natm, ←hs, natm],
+  --   simp [list.foldl_eq_foldr],
+  --   cases tl,
+  --   { simp, },
+  --   {  },
+  --   simp [many1_eq_done, many_eq_done] at hl,
+  -- },
   -- change (∃ (x : list ℕ), _ ∧ prod.fst (list.foldr (λ d p, _) (0, 1) x) = k) at h,
   -- rw ←buffer.to_buffer_to_list cb at *,
   -- simp,

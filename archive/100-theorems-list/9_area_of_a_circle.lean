@@ -38,20 +38,6 @@ continues to develop, it should eventually become possible to redefine `disc` an
 to the n-ball.
 -/
 
-variables {R : Type*} [linear_ordered_ring R] {x y : R}
-
-lemma abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
-lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← @sqr_abs _ _ x, ← @sqr_abs _ _ y] at h
-
-lemma abs_lt_of_sqr_lt_sqr (h : x^2 < y^2) (hy : 0 ≤ y) : abs x < y :=
-begin
-  rw [← abs_of_nonneg hy],
-  exact abs_lt_abs_of_sqr_lt_sqr h,
-end
-
-lemma abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
-abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
-
 open set real measure_theory interval_integral
 open_locale real
 

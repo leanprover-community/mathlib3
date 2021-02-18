@@ -983,6 +983,14 @@ lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 h
 
+lemma continuous_at_congr {f g : α → β} {x : α} (h : f =ᶠ[𝓝 x] g) :
+  continuous_at f x ↔ continuous_at g x :=
+by simp only [continuous_at, tendsto_congr' h, h.eq_of_nhds]
+
+lemma continuous_at.congr {f g : α → β} {x : α} (hf : continuous_at f x) (h : f =ᶠ[𝓝 x] g) :
+  continuous_at g x :=
+(continuous_at_congr h).1 hf
+
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht

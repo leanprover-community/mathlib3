@@ -58,8 +58,9 @@ open_locale classical big_operators
 
 namespace finsupp
 
-variables {α : Type*} {M : Type*} {N : Type*} {R : Type*}
-variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
+variables {α : Type*} {M : Type*} {N : Type*} {R : Type*} {S : Type*}
+variables [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M]
+variables [add_comm_monoid N] [semimodule R N]
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
@@ -288,11 +289,16 @@ begin
   exact linear_map.is_linear _
 end
 
+section lsum
+
+variables (S) [semimodule S N] [smul_comm_class R S N]
+
 /-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
 `N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
-We define this as an additive equivalence. For a commutative `R`, this equivalence can be
-upgraded further to a linear equivalence. -/
-def lsum : (α → M →ₗ[R] N) ≃+ ((α →₀ M) →ₗ[R] N) :=
+
+See note [bundled maps over different rings] for why separate `R` and `S` semirings are used.
+-/
+def lsum : (α → M →ₗ[R] N) ≃ₗ[S] ((α →₀ M) →ₗ[R] N) :=
 { to_fun := λ F, {
     to_fun := λ d, d.sum (λ i, F i),
     map_add' := (lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
@@ -300,23 +306,49 @@ def lsum : (α → M →ₗ[R] N) ≃+ ((α →₀ M) →ₗ[R] N) :=
   inv_fun := λ F x, F.comp (lsingle x),
   left_inv := λ F, by { ext x y, simp },
   right_inv := λ F, by { ext x y, simp },
-  map_add' := λ F G, by { ext x y, simp } }
+  map_add' := λ F G, by { ext x y, simp },
+  map_smul' := λ F G, by { ext x y, simp } }
 
-@[simp] lemma coe_lsum (f : α → M →ₗ[R] N) : (lsum f : (α →₀ M) → N) = λ d, d.sum (λ i, f i) := rfl
+@[simp] lemma coe_lsum (f : α → M →ₗ[R] N) : (lsum S f : (α →₀ M) → N) = λ d, d.sum (λ i, f i) :=
+rfl
 
 theorem lsum_apply (f : α → M →ₗ[R] N) (l : α →₀ M) :
-  finsupp.lsum f l = l.sum (λ b, f b) := rfl
+  finsupp.lsum S f l = l.sum (λ b, f b) := rfl
 
 theorem lsum_single (f : α → M →ₗ[R] N) (i : α) (m : M) :
-  finsupp.lsum f (finsupp.single i m) = f i m :=
+  finsupp.lsum S f (finsupp.single i m) = f i m :=
 finsupp.sum_single_index (f i).map_zero
 
-theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) : lsum.symm f x = f.comp (lsingle x) := rfl
+theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
+  (lsum S).symm f x = f.comp (lsingle x) := rfl
+
+end lsum
+
+section
+variables (M) (R) (X : Type*)
+
+/--
+A slight rearrangement from `lsum` gives us
+the bijection underlying the free-forgetful adjunction for R-modules.
+-/
+noncomputable def lift : (X → M) ≃+ ((X →₀ R) →ₗ[R] M) :=
+(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R M ℕ).to_add_equiv.symm).trans
+  (lsum _ : _ ≃ₗ[ℕ] _).to_add_equiv
+
+@[simp]
+lemma lift_symm_apply (f) (x) : ((lift M R X).symm f) x = f (single x 1) :=
+rfl
+@[simp]
+lemma lift_apply (f) (g) :
+  ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
+rfl
+
+end
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
 
-/-- Interpret `finsupp.lmap_domain` as a linear map. -/
+/-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
 ⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
 
@@ -380,7 +412,7 @@ variables (α) {α' : Type*} (M) {M' : Type*} (R)
 
 /-- Interprets (l : α →₀ R) as linear combination of the elements in the family (v : α → M) and
     evaluates this linear combination. -/
-protected def total : (α →₀ R) →ₗ[R] M := finsupp.lsum (λ i, linear_map.id.smul_right (v i))
+protected def total : (α →₀ R) →ₗ[R] M := finsupp.lsum ℕ (λ i, linear_map.id.smul_right (v i))
 
 variables {α M v}
 

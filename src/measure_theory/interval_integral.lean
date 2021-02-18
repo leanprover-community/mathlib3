@@ -556,7 +556,7 @@ begin
   exact set_integral_mono_on hf.1 hg.1 measurable_set_Ioc (λ x hx, h x (Ioc_subset_Icc_self hx)),
 end
 
-lemma interval_integral_mono {μ : measure ℝ} {a b : ℝ}
+@[mono] lemma interval_integral_mono {μ : measure ℝ} {a b : ℝ}
   {f g : ℝ → ℝ} (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
   (hab : a ≤ b) (h : f ≤ g) :
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=

@@ -1323,11 +1323,11 @@ lemma integral_mono_ae {f g : α → ℝ} (hf : integrable f μ) (hg : integrabl
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 le_of_sub_nonneg $ integral_sub hg hf ▸ integral_nonneg_of_ae $ h.mono (λ a, sub_nonneg_of_le)
 
-lemma integral_mono {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ g) :
+@[mono] lemma integral_mono {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ g) :
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 integral_mono_ae hf hg $ eventually_of_forall h
 
-lemma integral_mono_of_nonneg {f g : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hgi : integrable g μ)
+@[mono] lemma integral_mono_of_nonneg {f g : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hgi : integrable g μ)
   (h : f ≤ᵐ[μ] g) : ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 begin
   by_cases hfm : ae_measurable f μ,

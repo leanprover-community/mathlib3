@@ -166,3 +166,16 @@ begin
 end
 
 end preorder_hom
+
+namespace order_embedding
+
+/-- Convert an `order_embedding` to a `preorder_hom`. -/
+def to_preorder_hom {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) : X →ₘ Y :=
+{ to_fun := f,
+  monotone' := f.monotone }
+
+@[simp]
+lemma to_preorder_hom_coe {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y) :
+  (f.to_preorder_hom : X → Y) = (f : X → Y) := rfl
+
+end order_embedding

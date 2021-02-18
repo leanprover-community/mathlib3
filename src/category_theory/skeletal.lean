@@ -105,7 +105,8 @@ def map (F : C ⥤ D) : thin_skeleton C ⥤ thin_skeleton D :=
   map := λ X Y, quotient.rec_on_subsingleton₂ X Y $
            λ x y k, hom_of_le ((le_of_hom k).elim (λ t, ⟨F.map t⟩)) }
 
-lemma comp_to_thin_skeleton (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F := rfl
+lemma comp_to_thin_skeleton (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F :=
+rfl
 
 /-- Given a natural transformation `F₁ ⟶ F₂`, induce a natural transformation `map F₁ ⟶ map F₂`.-/
 def map_nat_trans {F₁ F₂ : C ⥤ D} (k : F₁ ⟶ F₂) : map F₁ ⟶ map F₂ :=
@@ -188,6 +189,7 @@ noncomputable instance is_skeleton_of_inhabited :
   inhabited (is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C)) :=
 ⟨thin_skeleton_is_skeleton⟩
 
+/-- An adjunction between thin categories gives an adjunction between their thin skeletons. -/
 def lower_adjunction
   [∀ (X Y : C), subsingleton (X ⟶ Y)] [∀ (X Y : D), subsingleton (X ⟶ Y)]
   (R : D ⥤ C) (L : C ⥤ D) (h : L ⊣ R) :

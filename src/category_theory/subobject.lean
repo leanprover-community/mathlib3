@@ -8,7 +8,7 @@ import category_theory.full_subcategory
 import category_theory.skeletal
 import category_theory.currying
 import category_theory.limits.lattice
-import category_theory.limits.shapes.pullbacks
+import category_theory.limits.over
 import category_theory.limits.shapes.images
 import category_theory.limits.shapes.kernels
 import category_theory.monad.adjunction
@@ -35,6 +35,25 @@ and the `semilattice_inf (subobject X)` instance when `[has_images C] [has_binar
 
 This development originally appeared in Bhavik Mehta's "Topos theory for Lean" repository,
 and was ported to mathlib by Scott Morrison.
+
+### Implementation note
+
+Currently we describe `pullback`, `map`, etc., as functors.
+It may be better to just say that they are monotone functions,
+and even avoid using categorical language entirely when describing `subobject X`.
+(It's worth keeping this in mind in future use; it should be a relatively easy change here
+if it looks preferable.)
+
+### Relation to pseudoelements
+
+There is a separate development of pseudoelements in `category_theory.abelian.pseudoelements`,
+as a quotient (but not by isomorphism) of `over X`.
+
+When a morphism `f` has an image, it represents the same pseudoelement.
+In a category with images `pseudoelements X` could be constructed as a quotient of `mono_over X`.
+In fact, in an abelian category (I'm not sure in what generality beyond that),
+`pseudoelements X` agrees with `subobject X`, but we haven't developed this in mathlib yet.
+
 -/
 
 universes v₁ v₂ u₁ u₂
@@ -55,6 +74,21 @@ Later we define `subobject X` as the quotient of this by isomorphisms.
 -/
 @[derive [category, λ t, has_coe t (over X)]]
 def mono_over (X : C) := {f : over X // mono f.hom}
+
+attribute [priority 100] mono_over.has_coe
+-- FIXME
+-- The linter still claims that `mono_over.has_coe` is a dangerous instance:
+/-
+```
+/- The `instance_priority` linter reports: -/
+/- DANGEROUS INSTANCE PRIORITIES.
+The following instances always apply, and therefore should have a priority < 1000.
+If you don't know what priority to choose, use priority 100.
+See note [lower instance priority] for instructions to change the priority.: -/
+#print category_theory.mono_over.has_coe /- LINTER FAILED:
+unknown declaration '[anonymous]' -/
+```
+-/
 
 namespace mono_over
 
@@ -139,7 +173,7 @@ lemma lift_comm (F : over Y ⥤ over X)
 rfl
 
 /--
-monomorphisms over an object `f : over A` in an over category
+Monomorphisms over an object `f : over A` in an over category
 are equivalent to monomorphisms over the source of `f`.
 -/
 def slice {A : C} {f : over A} (h₁ h₂) : mono_over f ≌ mono_over f.left :=
@@ -157,7 +191,7 @@ variables [has_pullbacks C]
 
 /-- When `C` has pullbacks, a morphism `f : X ⟶ Y` induces a functor `mono_over Y ⥤ mono_over X`,
 by pulling back a monomorphism along `f`. -/
-def pullback [has_pullbacks C] (f : X ⟶ Y) : mono_over Y ⥤ mono_over X :=
+def pullback (f : X ⟶ Y) : mono_over Y ⥤ mono_over X :=
 mono_over.lift (over.pullback f)
 begin
   intro g,
@@ -241,7 +275,7 @@ adjunction.restrict_fully_faithful
   (forget X) (forget Y) (over.map_pullback_adj f) (iso.refl _) (iso.refl _)
 
 /-- `mono_over.map f` followed by `mono_over.pullback f` is the identity. -/
-def pullback_map_self (f : X ⟶ Y) [mono f] (g₁ : mono_over X) :
+def pullback_map_self (f : X ⟶ Y) [mono f] :
   map f ⋙ pullback f ≅ 𝟭 _ :=
 (as_iso (mono_over.map_pullback_adj f).unit).symm
 
@@ -314,7 +348,8 @@ section «exists»
 variables [has_images C]
 
 /--
-FIXME: Could someone who actually understands topos theory write a doc-string?
+In the case where `f` is not a monomorphism but `C` has images,
+we can still take the "forward map" under it, which agrees with `mono_over.map f`.
 -/
 def «exists» (f : X ⟶ Y) : mono_over X ⥤ mono_over Y :=
 forget _ ⋙ over.map f ⋙ image
@@ -345,22 +380,11 @@ begin
 end
 
 /-- `exists` is adjoint to `pullback` when images exist -/
--- I really think there should be a high-level proof of this but not sure what it is...
 def exists_pullback_adj (f : X ⟶ Y) [has_pullbacks C] : «exists» f ⊣ pullback f :=
-adjunction.mk_of_hom_equiv
-{ hom_equiv := λ g h,
-  { to_fun := λ k,
-    hom_mk
-      (begin
-        refine pullback.lift (factor_thru_image _ ≫ k.1) g.arrow _,
-        rw [assoc, w k],
-        apply image.fac,
-       end)
-      (pullback.lift_snd _ _ _),
-    inv_fun := λ k, hom_mk (image.lift ⟨_, h.arrow, k.left ≫ pullback.fst,
-      by { rw [assoc, pullback.condition], apply w_assoc, }⟩) (image.lift_fac _),
-    left_inv := λ k, subsingleton.elim _ _,
-    right_inv := λ k, subsingleton.elim _ _ } }
+adjunction.restrict_fully_faithful (forget X) (𝟭 _)
+  ((over.map_pullback_adj f).comp _ _ image_forget_adj)
+  (iso.refl _)
+  (iso.refl _)
 
 end «exists»
 
@@ -369,11 +393,13 @@ section has_top
 instance {X : C} : has_top (mono_over X) :=
 { top := mk' (𝟙 _) }
 
+instance {X : C} : inhabited (mono_over X) := ⟨⊤⟩
+
 /-- The morphism to the top object in `mono_over X`. -/
 def le_top (f : mono_over X) : f ⟶ ⊤ :=
 hom_mk f.arrow (comp_id _)
 
-@[simp] lemma top_left (X : C) : (⊤ : mono_over X).val.left = X := rfl
+@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : over X).left = X := rfl
 @[simp] lemma top_arrow (X : C) : (⊤ : mono_over X).arrow = 𝟙 X := rfl
 
 /-- `map f` sends `⊤ : mono_over X` to `⟨X, f⟩ : mono_over Y`. -/
@@ -662,7 +688,9 @@ namespace subobject
 def lower {Y : D} (F : mono_over X ⥤ mono_over Y) : subobject X ⥤ subobject Y :=
 thin_skeleton.map F
 
-/-- Isomorphism functors become (evil!) equal when lowered to `subobject`. -/
+/-- Isomorphic functors become equal when lowered to `subobject`.
+(It's not as evil as usual to talk about equality between functors
+because the categories are thin and skeletal.) -/
 lemma lower_iso (F₁ F₂ : mono_over X ⥤ mono_over Y) (h : F₁ ≅ F₂) :
   lower F₁ = lower F₂ :=
 thin_skeleton.map_iso_eq h
@@ -764,13 +792,33 @@ end
 def map_iso {A B : C} (e : A ≅ B) : subobject A ≌ subobject B :=
 lower_equivalence (mono_over.map_iso e)
 
-/-- In fact, there's a type level bijection between the subobjects of isomorphic objects. -/
-@[simps]
-def map_iso_to_equiv (e : X ≅ Y) : subobject X ≃ subobject Y :=
+/-- In fact, there's a type level bijection between the subobjects of isomorphic objects,
+which preserves the order. -/
+-- @[simps] here generates a lemma `map_iso_to_order_iso_to_equiv_symm_apply`
+-- whose left hand side is not in simp normal form.
+def map_iso_to_order_iso (e : X ≅ Y) : subobject X ≃o subobject Y :=
 { to_fun := (map e.hom).obj,
   inv_fun := (map e.inv).obj,
   left_inv := λ g, by simp_rw [← map_comp, e.hom_inv_id, map_id],
-  right_inv := λ g, by simp_rw [← map_comp, e.inv_hom_id, map_id] }
+  right_inv := λ g, by simp_rw [← map_comp, e.inv_hom_id, map_id],
+  map_rel_iff' := λ A B, begin
+    dsimp, fsplit,
+    { intro h,
+      apply_fun (map e.inv).obj at h,
+      simp_rw [← map_comp, e.hom_inv_id, map_id] at h,
+      exact h, },
+    { intro h,
+      apply_fun (map e.hom).obj at h,
+      exact h, },
+  end }
+
+@[simp] lemma map_iso_to_order_iso_apply (e : X ≅ Y) (P : subobject X) :
+  map_iso_to_order_iso e P = (map e.hom).obj P :=
+rfl
+
+@[simp] lemma map_iso_to_order_iso_symm_apply (e : X ≅ Y) (Q : subobject Y) :
+  (map_iso_to_order_iso e).symm Q = (map e.inv).obj Q :=
+rfl
 
 /-- `map f : subobject X ⥤ subobject Y` is
 the left adjoint of `pullback f : subobject Y ⥤ subobject X`. -/
@@ -785,7 +833,7 @@ begin
   apply quotient.ind,
   intro g',
   apply quotient.sound,
-  exact ⟨(mono_over.pullback_map_self f g').app _⟩,
+  exact ⟨(mono_over.pullback_map_self f).app _⟩,
 end
 
 lemma map_pullback [has_pullbacks C]
@@ -815,7 +863,13 @@ section «exists»
 variables [has_images C]
 
 /--
-FIXME: Could someone who actually understands topos theory write a doc-string?
+The functor from subobjects of `X` to subobjects of `Y` given by
+sending the subobject `S` to its "image" under `f`, usually denoted $\exists_f$.
+For instance, when `C` is the category of types,
+viewing `subobject X` as `set X` this is just `set.image f`.
+
+This functor is left adjoint to the `pullback f` functor (shown in `exists_pullback_adj`)
+provided both are defined, and generalises the `map f` functor, again provided it is defined.
 -/
 def «exists» (f : X ⟶ Y) : subobject X ⥤ subobject Y :=
 lower (mono_over.exists f)
@@ -845,6 +899,8 @@ instance order_top {X : C} : order_top (subobject X) :=
     exact ⟨mono_over.le_top f⟩,
   end,
   ..subobject.partial_order X}
+
+instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
 lemma top_eq_id {B : C} : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
@@ -941,7 +997,7 @@ lemma inf_eq_map_pullback {A : C} (f₁ : mono_over A) (f₂ : subobject A) :
   (quotient.mk' f₁ ⊓ f₂ : subobject A) = (map f₁.arrow).obj ((pullback f₁.arrow).obj f₂) :=
 inf_eq_map_pullback' f₁ f₂
 
-lemma prod_eq_inf {A : C} [has_pullbacks C] {f₁ f₂ : subobject A} [has_binary_product f₁ f₂] :
+lemma prod_eq_inf {A : C} {f₁ f₂ : subobject A} [has_binary_product f₁ f₂] :
   (f₁ ⨯ f₂) = f₁ ⊓ f₂ :=
 le_antisymm
   (_root_.le_inf
@@ -952,11 +1008,11 @@ le_antisymm
       (hom_of_le _root_.inf_le_left)
       (hom_of_le _root_.inf_le_right)))
 
-lemma inf_def {B : C} (m m' : subobject B) [has_pullbacks C] :
+lemma inf_def {B : C} (m m' : subobject B) :
   m ⊓ m' = (inf.obj m).obj m' := rfl
 
 /-- `⊓` commutes with pullback. -/
-lemma inf_pullback [has_pullbacks C] {X Y : C} (g : X ⟶ Y) (f₁ f₂) :
+lemma inf_pullback {X Y : C} (g : X ⟶ Y) (f₁ f₂) :
   (pullback g).obj (f₁ ⊓ f₂) = (pullback g).obj f₁ ⊓ (pullback g).obj f₂ :=
 begin
   revert f₁,
@@ -969,7 +1025,7 @@ begin
 end
 
 /-- `⊓` commutes with map. -/
-lemma inf_map [has_pullbacks C] {X Y : C} (g : Y ⟶ X) [mono g] (f₁ f₂) :
+lemma inf_map {X Y : C} (g : Y ⟶ X) [mono g] (f₁ f₂) :
   (map g).obj (f₁ ⊓ f₂) = (map g).obj f₁ ⊓ (map g).obj f₂ :=
 begin
   revert f₁,

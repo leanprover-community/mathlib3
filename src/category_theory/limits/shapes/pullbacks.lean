@@ -5,8 +5,6 @@ Authors: Scott Morrison, Markus Himmel, Bhavik Mehta
 -/
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.binary_products
-import category_theory.over
-import category_theory.adjunction.opposites
 
 /-!
 # Pullbacks
@@ -26,9 +24,9 @@ noncomputable theory
 
 open category_theory
 
-universes v u u₂
-
 namespace category_theory.limits
+
+universes v u u₂
 
 local attribute [tidy] tactic.case_bash
 
@@ -96,11 +94,13 @@ variables {C : Type u} [category.{v} C]
 
 /-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan ⥤ C :=
-wide_pullback_shape.wide_cospan Z (λ j, walking_pair.cases_on j X Y) (λ j, walking_pair.cases_on j f g)
+wide_pullback_shape.wide_cospan Z
+  (λ j, walking_pair.cases_on j X Y) (λ j, walking_pair.cases_on j f g)
 
 /-- `span f g` is the functor from the walking span hitting `f` and `g`. -/
 def span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) : walking_span ⥤ C :=
-wide_pushout_shape.wide_span X (λ j, walking_pair.cases_on j Y Z) (λ j, walking_pair.cases_on j f g)
+wide_pushout_shape.wide_span X
+  (λ j, walking_pair.cases_on j Y Z) (λ j, walking_pair.cases_on j f g)
 
 @[simp] lemma cospan_left {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
   (cospan f g).obj walking_cospan.left = X := rfl
@@ -178,7 +178,8 @@ def is_limit_aux (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X
     same `s` for all parts. -/
 def is_limit_aux' (t : pullback_cone f g)
   (create : Π (s : pullback_cone f g),
-    {l // l ≫ t.fst = s.fst ∧ l ≫ t.snd = s.snd ∧ ∀ {m}, m ≫ t.fst = s.fst → m ≫ t.snd = s.snd → m = l}) :
+    {l // l ≫ t.fst = s.fst ∧ l ≫ t.snd = s.snd ∧
+            ∀ {m}, m ≫ t.fst = s.fst → m ≫ t.snd = s.snd → m = l}) :
 limits.is_limit t :=
 pullback_cone.is_limit_aux t
   (λ s, (create s).1)
@@ -239,7 +240,8 @@ def is_limit.mk {W : C} {fst : W ⟶ X} {snd : W ⟶ Y} (eq : fst ≫ f = snd �
   (uniq : ∀ (s : pullback_cone f g) (m : s.X ⟶ W)
     (w_fst : m ≫ fst = s.fst) (w_snd : m ≫ snd = s.snd), m = lift s) :
   is_limit (mk fst snd eq) :=
-is_limit_aux _ lift fac_left fac_right (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
+is_limit_aux _ lift fac_left fac_right
+  (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
 
 /-- The flip of a pullback square is a pullback square. -/
 def flip_is_limit {W : C} {h : W ⟶ X} {k : W ⟶ Y}
@@ -271,7 +273,8 @@ is_limit.mk _
 `f` is a mono if the pullback cone `(𝟙 X, 𝟙 X)` is a limit for the pair `(f, f)`. The converse is
 given in `pullback_cone.is_id_of_mono`.
 -/
-lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y) (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
+lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y)
+  (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
   mono f :=
 ⟨λ Z g h eq, by { rcases pullback_cone.is_limit.lift' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
 
@@ -309,7 +312,8 @@ def is_colimit_aux (t : pushout_cocone f g) (desc : Π (s : pushout_cocone f g),
     same `s` for all parts. -/
 def is_colimit_aux' (t : pushout_cocone f g)
   (create : Π (s : pushout_cocone f g),
-    {l // t.inl ≫ l = s.inl ∧ t.inr ≫ l = s.inr ∧ ∀ {m}, t.inl ≫ m = s.inl → t.inr ≫ m = s.inr → m = l}) :
+    {l // t.inl ≫ l = s.inl ∧ t.inr ≫ l = s.inr ∧
+            ∀ {m}, t.inl ≫ m = s.inl → t.inr ≫ m = s.inr → m = l}) :
 is_colimit t :=
 is_colimit_aux t
   (λ s, (create s).1)
@@ -370,7 +374,8 @@ def is_colimit.mk {W : C} {inl : Y ⟶ W} {inr : Z ⟶ W} (eq : f ≫ inl = g �
   (uniq : ∀ (s : pushout_cocone f g) (m : W ⟶ s.X)
     (w_inl : inl ≫ m = s.inl) (w_inr : inr ≫ m = s.inr), m = desc s) :
   is_colimit (mk inl inr eq) :=
-is_colimit_aux _ desc fac_left fac_right (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
+is_colimit_aux _ desc fac_left fac_right
+  (λ s m w, uniq s m (w walking_cospan.left) (w walking_cospan.right))
 
 /-- The flip of a pushout square is a pushout square. -/
 def flip_is_colimit {W : C} {h : Y ⟶ W} {k : Z ⟶ W}
@@ -626,71 +631,3 @@ lemma has_pushouts_of_has_colimit_span
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
 
 end category_theory.limits
-
-open category_theory.limits
-
-variables {C : Type u} [category.{v} C]
-
-namespace category_theory
-
-section
-variables [has_pullbacks C]
-
-/-- When `C` has pullbacks, a morphism `f : X ⟶ Y` induces a functor `over Y ⥤ over X`,
-by pulling back a morphism along `f`. -/
-@[simps]
-def over.pullback {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
-{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ X),
-  map := λ g h k,
-    over.hom_mk
-      (pullback.lift (pullback.fst ≫ k.left) pullback.snd (by simp [pullback.condition]))
-      (by tidy) }
-
-def over.map_pullback_adj {A B : C} (f : A ⟶ B) :
-  over.map f ⊣ over.pullback f :=
-adjunction.mk_of_hom_equiv
-{ hom_equiv := λ g h,
-  { to_fun := λ X, over.hom_mk (pullback.lift X.left g.hom (over.w X)) (pullback.lift_snd _ _ _),
-    inv_fun := λ Y,
-    begin
-      refine over.hom_mk _ _,
-      refine Y.left ≫ pullback.fst,
-      dsimp,
-      rw [← over.w Y, category.assoc, pullback.condition, category.assoc], refl,
-    end,
-    left_inv := by tidy,
-    right_inv := λ Y, by { ext, dsimp, simp, dsimp, rw [pullback.lift_snd, ← over.w Y], refl } } }
-
-def over.pullback_id {A : C} [has_pullbacks C] : over.pullback (𝟙 A) ≅ 𝟭 _ :=
-adjunction.right_adjoint_uniq
-  (over.map_pullback_adj _)
-  (adjunction.id.of_nat_iso_left over.map_id.symm)
-
-def over.pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_pullbacks C] :
-  over.pullback (f ≫ g) ≅ over.pullback g ⋙ over.pullback f :=
-adjunction.right_adjoint_uniq
-  (over.map_pullback_adj _)
-  (((over.map_pullback_adj _).comp _ _ (over.map_pullback_adj _)).of_nat_iso_left
-    (over.map_comp _ _).symm)
-
-instance over.pullback_is_right_adjoint {A B : C} (f : A ⟶ B) :
-  is_right_adjoint (over.pullback f) :=
-⟨_, over.map_pullback_adj f⟩
-
-end
-
-section
-variables [has_pushouts C]
-
-/-- When `C` has pushouts, a morphism `f : X ⟶ Y` induces a functor `under X ⥤ under Y`,
-by pushing a morphism forward along `f`. -/
-@[simps]
-def under.pushout {X Y : C} (f : X ⟶ Y) : under X ⥤ under Y :=
-{ obj := λ g, under.mk (pushout.inr : Y ⟶ pushout g.hom f),
-  map := λ g h k,
-    under.hom_mk
-      (pushout.desc (k.right ≫ pushout.inl) pushout.inr (by { simp [←pushout.condition], }))
-      (by tidy) }
-end
-
-end category_theory

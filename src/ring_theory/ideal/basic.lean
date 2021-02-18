@@ -255,6 +255,12 @@ let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨�
 theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
 let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
 
+instance [nontrivial α] : nontrivial (ideal α) :=
+begin
+  rcases @exists_maximal α _ _ with ⟨M, hM, _⟩,
+  exact nontrivial_of_ne M ⊤ hM
+end
+
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/
 lemma maximal_of_no_maximal {R : Type u} [comm_semiring R] {P : ideal R}

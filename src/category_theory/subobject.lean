@@ -75,6 +75,21 @@ Later we define `subobject X` as the quotient of this by isomorphisms.
 @[derive [category, λ t, has_coe t (over X)]]
 def mono_over (X : C) := {f : over X // mono f.hom}
 
+attribute [priority 100] mono_over.has_coe
+-- FIXME
+-- The linter still claims that `mono_over.has_coe` is a dangerous instance:
+/-
+```
+/- The `instance_priority` linter reports: -/
+/- DANGEROUS INSTANCE PRIORITIES.
+The following instances always apply, and therefore should have a priority < 1000.
+If you don't know what priority to choose, use priority 100.
+See note [lower instance priority] for instructions to change the priority.: -/
+#print category_theory.mono_over.has_coe /- LINTER FAILED:
+unknown declaration '[anonymous]' -/
+```
+-/
+
 namespace mono_over
 
 /-- Construct a `mono_over X`. -/
@@ -176,7 +191,7 @@ variables [has_pullbacks C]
 
 /-- When `C` has pullbacks, a morphism `f : X ⟶ Y` induces a functor `mono_over Y ⥤ mono_over X`,
 by pulling back a monomorphism along `f`. -/
-def pullback [has_pullbacks C] (f : X ⟶ Y) : mono_over Y ⥤ mono_over X :=
+def pullback (f : X ⟶ Y) : mono_over Y ⥤ mono_over X :=
 mono_over.lift (over.pullback f)
 begin
   intro g,
@@ -260,7 +275,7 @@ adjunction.restrict_fully_faithful
   (forget X) (forget Y) (over.map_pullback_adj f) (iso.refl _) (iso.refl _)
 
 /-- `mono_over.map f` followed by `mono_over.pullback f` is the identity. -/
-def pullback_map_self (f : X ⟶ Y) [mono f] (g₁ : mono_over X) :
+def pullback_map_self (f : X ⟶ Y) [mono f] :
   map f ⋙ pullback f ≅ 𝟭 _ :=
 (as_iso (mono_over.map_pullback_adj f).unit).symm
 
@@ -378,11 +393,13 @@ section has_top
 instance {X : C} : has_top (mono_over X) :=
 { top := mk' (𝟙 _) }
 
+instance {X : C} : inhabited (mono_over X) := ⟨⊤⟩
+
 /-- The morphism to the top object in `mono_over X`. -/
 def le_top (f : mono_over X) : f ⟶ ⊤ :=
 hom_mk f.arrow (comp_id _)
 
-@[simp] lemma top_left (X : C) : (⊤ : mono_over X).val.left = X := rfl
+@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : over X).left = X := rfl
 @[simp] lemma top_arrow (X : C) : (⊤ : mono_over X).arrow = 𝟙 X := rfl
 
 /-- `map f` sends `⊤ : mono_over X` to `⟨X, f⟩ : mono_over Y`. -/
@@ -724,7 +741,7 @@ thin_skeleton.map F
 
 /-- Isomorphic functors become equal when lowered to `subobject`.
 (It's not as evil as usual to talk about equality between functors
-because the categories are thin and skeletal.-/
+because the categories are thin and skeletal.) -/
 lemma lower_iso (F₁ F₂ : mono_over X ⥤ mono_over Y) (h : F₁ ≅ F₂) :
   lower F₁ = lower F₂ :=
 thin_skeleton.map_iso_eq h
@@ -828,7 +845,8 @@ lower_equivalence (mono_over.map_iso e)
 
 /-- In fact, there's a type level bijection between the subobjects of isomorphic objects,
 which preserves the order. -/
-@[simps]
+-- @[simps] here generates a lemma `map_iso_to_order_iso_to_equiv_symm_apply`
+-- whose left hand side is not in simp normal form.
 def map_iso_to_order_iso (e : X ≅ Y) : subobject X ≃o subobject Y :=
 { to_fun := (map e.hom).obj,
   inv_fun := (map e.inv).obj,
@@ -845,6 +863,14 @@ def map_iso_to_order_iso (e : X ≅ Y) : subobject X ≃o subobject Y :=
       exact h, },
   end }
 
+@[simp] lemma map_iso_to_order_iso_apply (e : X ≅ Y) (P : subobject X) :
+  map_iso_to_order_iso e P = (map e.hom).obj P :=
+rfl
+
+@[simp] lemma map_iso_to_order_iso_symm_apply (e : X ≅ Y) (Q : subobject Y) :
+  (map_iso_to_order_iso e).symm Q = (map e.inv).obj Q :=
+rfl
+
 /-- `map f : subobject X ⥤ subobject Y` is
 the left adjoint of `pullback f : subobject Y ⥤ subobject X`. -/
 def map_pullback_adj [has_pullbacks C] (f : X ⟶ Y) [mono f] : map f ⊣ pullback f :=
@@ -858,7 +884,7 @@ begin
   apply quotient.ind,
   intro g',
   apply quotient.sound,
-  exact ⟨(mono_over.pullback_map_self f g').app _⟩,
+  exact ⟨(mono_over.pullback_map_self f).app _⟩,
 end
 
 lemma map_pullback [has_pullbacks C]
@@ -924,6 +950,8 @@ instance order_top {X : C} : order_top (subobject X) :=
     exact ⟨mono_over.le_top f⟩,
   end,
   ..subobject.partial_order X}
+
+instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
 lemma top_eq_id {B : C} : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
@@ -1081,7 +1109,7 @@ lemma inf_eq_map_pullback {A : C} (f₁ : mono_over A) (f₂ : subobject A) :
   (quotient.mk' f₁ ⊓ f₂ : subobject A) = (map f₁.arrow).obj ((pullback f₁.arrow).obj f₂) :=
 inf_eq_map_pullback' f₁ f₂
 
-lemma prod_eq_inf {A : C} [has_pullbacks C] {f₁ f₂ : subobject A} [has_binary_product f₁ f₂] :
+lemma prod_eq_inf {A : C} {f₁ f₂ : subobject A} [has_binary_product f₁ f₂] :
   (f₁ ⨯ f₂) = f₁ ⊓ f₂ :=
 le_antisymm
   (_root_.le_inf
@@ -1092,11 +1120,11 @@ le_antisymm
       (hom_of_le _root_.inf_le_left)
       (hom_of_le _root_.inf_le_right)))
 
-lemma inf_def {B : C} (m m' : subobject B) [has_pullbacks C] :
+lemma inf_def {B : C} (m m' : subobject B) :
   m ⊓ m' = (inf.obj m).obj m' := rfl
 
 /-- `⊓` commutes with pullback. -/
-lemma inf_pullback [has_pullbacks C] {X Y : C} (g : X ⟶ Y) (f₁ f₂) :
+lemma inf_pullback {X Y : C} (g : X ⟶ Y) (f₁ f₂) :
   (pullback g).obj (f₁ ⊓ f₂) = (pullback g).obj f₁ ⊓ (pullback g).obj f₂ :=
 begin
   revert f₁,
@@ -1109,7 +1137,7 @@ begin
 end
 
 /-- `⊓` commutes with map. -/
-lemma inf_map [has_pullbacks C] {X Y : C} (g : Y ⟶ X) [mono g] (f₁ f₂) :
+lemma inf_map {X Y : C} (g : Y ⟶ X) [mono g] (f₁ f₂) :
   (map g).obj (f₁ ⊓ f₂) = (map g).obj f₁ ⊓ (map g).obj f₂ :=
 begin
   revert f₁,

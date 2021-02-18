@@ -1,66 +1,44 @@
+/-
+Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Ashvni Narayanan
+-/
+
 import number_theory.bernoulli
-import data.nat.basic
-import analysis.complex.roots_of_unity
-import topology.algebra.infinite_sum
-import data.real.ereal
-import data.finset.basic
-import tactic.linarith
-import algebra.big_operators.intervals
-import data.set.intervals.basic
-import ring_theory.power_series.basic
-import ring_theory.power_series.well_known
+
+/-!
+# Bernoulli polynomials
+
+The Bernoulli polynomials are an important tool obtained from Bernoulli numbers.
+
+## Mathematical overview
+
+The $n^{th}$ Bernoulli polynomial is defined as
+$$ B_n(X) = ∑_{k = 0}^n {n χoose k} (-1)^k * B_k * X^{n - k} $$
+where $B_k$ is the $k^{th}$ Bernoulli number. The Bernoulli polynomials are generating functions,
+$$ t * e^{tX} / (e^t - 1) = ∑_{n = 0}^{∞} B_n(X) * ¼{t^n}{n!} $$
+
+## Implementation detail
+
+The Bernoulli (negative) numbers are first defined, `bernoulli_neg`, in order to make proving
+theorems using Bernoulli polynomials easier.
+
+## Main theorems
+
+`sum_bernoulli_neg : ∑ k in range n, (n.choose k : ℚ) * bernoulli_neg k = 0`
+`sum_bernoulli_poly : ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli_poly k = `
+  `polynomial.monomial n (n + 1 : ℚ)`
+`exp_bernoulli_poly : power_series.mk (λ n, (polynomial.aeval t ((1 / nat.factorial n : ℚ) • `
+`  bernoulli_poly n))) * (exp A - 1) = X * rescale t (exp A) `
+-/
 
 noncomputable theory
 open_locale big_operators
-
-namespace finset
-
-lemma dependent_double_sum {M : Type*} [add_comm_monoid M]
-  (a b : ℕ) (f : ℕ → ℕ → M) :
-  ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
-  ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
-begin
-  rw ← @@finset.sum_sigma _ _ _ (λ i, finset.Ico i b) (λ x, f x.1 x.2),
-  rw ← @@finset.sum_sigma _ _ _ (λ j, finset.Ico a (j+1)) (λ x, f x.2 x.1),
-  refine finset.sum_bij'
-    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
-    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
-    (by rintro ⟨⟩ _; refl) (by rintro ⟨⟩ _; refl);
-  simp only [finset.Ico.mem, sigma.forall, finset.mem_sigma];
-  rintros a b ⟨⟨h₁,h₂⟩, ⟨h₃, h₄⟩⟩; refine ⟨⟨_, _⟩, ⟨_, _⟩⟩; linarith
-end
-
-lemma mem_range_le {n : ℕ} : ∀ x ∈ finset.range n, x ≤ n :=
-  by {  rintros x hx, apply le_of_lt (finset.mem_range .1 hx), }
-
-lemma sub_ne_zero {n : ℕ} : ∀ x ∈ finset.range n, n - x ≠ 0 :=
-by {rintros x hx h, apply nat.le_lt_antisymm (nat.sub_eq_zero_iff_le.1 h) (finset.mem_range.1 hx),}
-
-end finset
-
 open_locale nat
-
-open nat
-
-def choose_eq_factorial_div_factorial' {a b : ℕ}
-  (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
-begin
-  field_simp [mul_ne_zero, factorial_ne_zero], norm_cast,
-  rw ← choose_mul_factorial_mul_factorial hab, ring,
-end
-
-lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
-n.choose s * (n - s).choose (k - s) :=
-begin
-  rw [choose_eq_factorial_div_factorial' hn, choose_eq_factorial_div_factorial' hs,
-      choose_eq_factorial_div_factorial' (le_trans hs hn), choose_eq_factorial_div_factorial' ],
-  swap, exact nat.sub_le_sub_right hn s,
-    field_simp [mul_ne_zero, factorial_ne_zero],
-  rw sub_sub_sub_cancel_right hs, ring,
-end
 
 open nat finset
 
+/-- The negative Bernoulli numbers are defined to be the Bernoulli numbers with a parity sign. -/
 def bernoulli_neg (n : ℕ) : ℚ := (-1)^n * (bernoulli n)
 
 @[simp] lemma bernoulli_neg_zero  : bernoulli_neg 0 = 1 := rfl
@@ -80,9 +58,6 @@ begin
   simp only [mod_two_ne_one, ne.def] at *, rw k, simp,
 end
 
-lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
-  by { rintros h, rw one_succ_zero at h, simp only at h, apply succ_ne_zero n h, }
-
 @[simp] theorem sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
   ∑ k in range n, (n.choose k : ℚ) * bernoulli_neg k = 0 :=
 begin
@@ -100,6 +75,7 @@ begin
     rw g, ring, },
 end
 
+/-- The Bernoulli polynomials are defined in terms of the negative Bernoulli numbers. -/
 def bernoulli_poly (n : ℕ) : polynomial ℚ :=
   ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli_neg i) * (nat.choose n i))
 
@@ -129,7 +105,7 @@ begin
   rw sum_range_succ,
   simp only [add_right_eq_self, mul_one, cast_one, nat.sub_self, choose_self, pow_zero],
   apply sum_eq_zero, rintros x hx,
-  rw [zero_pow', mul_zero], apply sub_ne_zero _ hx,
+  rw [zero_pow', mul_zero], apply mem_range_sub_ne_zero _ hx,
 end
 
 end examples
@@ -165,11 +141,9 @@ begin
 end
 
 open power_series
-
-open finset nat
 variables {A : Type*} [integral_domain A] [algebra ℚ A] [char_zero A]
 
-theorem exp_bernoulli_poly' (t : A) :
+theorem exp_bernoulli_poly (t : A) :
   power_series.mk (λ n, (polynomial.aeval t ((1 / nat.factorial n : ℚ) • bernoulli_poly n)))
     * (exp A - 1) = X * rescale t (exp A) :=
 begin
@@ -180,7 +154,7 @@ begin
   rw sum_range_succ,
   have f : ∀ x ∈ range n, ite (n - x = 0) 1 0 = (0 : A),
   { rintros x hx, split_ifs,
-    { exfalso, apply sub_ne_zero _ hx h, }, refl, },
+    { exfalso, apply mem_range_sub_ne_zero _ hx h, }, refl, },
   conv_lhs { congr, skip, apply_congr, skip, rw f x H, },
   cases n, { simp only [one_div, alg_hom.map_smul, power_series.coeff_zero_eq_constant_coeff,
     add_zero, polynomial.aeval_one, if_congr, mul_one, nat.nat_zero_eq_zero,
@@ -190,17 +164,17 @@ begin
     div_one, sum_singleton, range_one, mul_zero, pow_zero, power_series.coeff_exp, sum_congr,
     sub_self, algebra.smul_mul_assoc], },
   symmetry, rw [sum_eq_single 1],
-  { simp only [one_div, alg_hom.map_smul, if_congr, one_mul, nat.succ_sub_succ_eq_sub,
-      nat.factorial_zero, if_true, nat.sub_self, power_series.coeff_one_X, eq_self_iff_true,
-      nat.factorial_one, sub_zero, nat.cast_succ, nat.factorial_succ, power_series.coeff_rescale,
-      nat.sub_zero, zero_add, ring_hom.map_one, nat.cast_one, div_one, nat.cast_mul, mul_zero,
-      smul_zero, power_series.coeff_exp, finset.sum_congr, sub_self, algebra.smul_mul_assoc],
-    rw mul_comm,
+  { rw [one_div, alg_hom.map_smul, nat.succ_sub_succ_eq_sub, nat.sub_self, nat.factorial_zero,
+      power_series.coeff_one_X, one_mul, nat.sub_zero, coeff_rescale, coeff_exp, nat.factorial_one,
+      nat.cast_one, div_one],
+    simp only [one_div, alg_hom.map_smul, if_true, eq_self_iff_true, sub_zero, zero_add,
+      ring_hom.map_one, mul_zero, sub_self, algebra.smul_mul_assoc],
+    rw [mul_comm, smul_zero, zero_add],
     suffices g : (algebra_map ℚ A) (↑n!)⁻¹ * (n.succ : ℚ) • t ^ n =
       (n.succ : ℚ) • ∑ (x : ℕ) in range n.succ, (↑x!)⁻¹ • ((polynomial.aeval t) (bernoulli_poly x)
         * (algebra_map ℚ A) (↑(n.succ - x)!)⁻¹),
     { rw [algebra.mul_smul_comm, algebra.smul_def, algebra.smul_def, mul_eq_mul_left_iff] at g,
-      cases g with g1 g2, { exact g1, },
+      cases g with g1 g2, { assumption, },
       { exfalso, apply succ_ne_zero n,
         simp only [ring_hom.map_nat_cast, cast_succ, ring_hom.map_add, ring_hom.map_one] at g2,
         norm_cast at *, }, },

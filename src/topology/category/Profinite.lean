@@ -165,6 +165,33 @@ def skeleton (X : Profinite) :=
 { I : set (set (X.to_Top.α)) // (I.finite) ∧ (∀ U ∈ I, is_clopen U ∧ U.nonempty) ∧
   (⋃₀ I = univ) ∧ (∀ U V ∈ I, (U ∩ V : set X.to_Top.α).nonempty → (U = V) ) }
 
+noncomputable instance : inhabited X.skeleton :=
+begin
+  split,
+  by_cases nonempty X,
+  -- If X is nonempty, we can pick {X}.
+  { refine ⟨{univ},finite_singleton _,λ U hU, _,_,_⟩,
+    { rw mem_singleton_iff at hU,
+      rw hU,
+      refine ⟨is_clopen_univ,_⟩,
+      exactI univ_nonempty },
+    { simp only [sUnion_singleton] },
+    intros U V hU hV hUV,
+    rw mem_singleton_iff at hU,
+    rw mem_singleton_iff at hV,
+    rw [hU, hV] },
+  -- If empty, we can pick {}.
+  refine ⟨{},finite_empty,_,_,_⟩,
+  { rintro _ ⟨⟩ },
+  { simp,
+    symmetry,
+    rw univ_eq_empty_iff,
+    exact h },
+  rintro _ _ ⟨⟩,
+end
+
+instance skeleton_nonempty : nonempty X.skeleton := nonempty_of_inhabited
+
 /--
 The skeleton forms a partial order with respect to refinement.
 This will be the morphisms of the diagram.

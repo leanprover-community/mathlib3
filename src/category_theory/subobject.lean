@@ -10,6 +10,7 @@ import category_theory.currying
 import category_theory.limits.lattice
 import category_theory.limits.over
 import category_theory.limits.shapes.images
+import category_theory.limits.shapes.kernels
 import category_theory.monad.adjunction
 
 /-!
@@ -543,6 +544,127 @@ namespace subobject
 /-- Convenience constructor for a subobject. -/
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
+
+noncomputable
+def representative {X : C} : subobject X ⥤ mono_over X :=
+thin_skeleton.from_thin_skeleton _
+
+noncomputable
+def representative_iso {X : C} (A : mono_over X) :
+  representative.obj ((to_thin_skeleton _).obj A) ≅ A :=
+(thin_skeleton.from_thin_skeleton _).as_equivalence.counit_iso.app A
+
+noncomputable
+def underlying {X : C} : subobject X ⥤ C :=
+representative ⋙ mono_over.forget _ ⋙ over.forget _
+
+noncomputable
+def underlying_iso {X Y : C} (f : X ⟶ Y) [mono f] : underlying.obj (subobject.mk f) ≅ X :=
+(mono_over.forget _ ⋙ over.forget _).map_iso (representative_iso (mono_over.mk' f))
+
+instance : has_coe (subobject X) C :=
+{ coe := λ Y, underlying.obj Y, }
+
+noncomputable
+def arrow {X : C} (Y : subobject X) : (Y : C) ⟶ X :=
+(representative.obj Y).val.hom
+
+@[simp]
+lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
+  underlying.map f ≫ arrow Z = arrow Y :=
+over.w (representative.map f)
+
+end subobject
+
+namespace limits
+
+section equalizer
+variables (f g : X ⟶ Y) [has_equalizer f g]
+
+/-- The equalizer of morphisms `f g : X ⟶ Y` as a `subobject X`. -/
+def equalizer_subobject : subobject X :=
+subobject.mk (equalizer.ι f g)
+
+/-- The underlying object of `equalizer_subobject f g` is (up to isomorphism!)
+the same as the chosen object `equalizer f g`. -/
+def equalizer_subobject_iso : (equalizer_subobject f g : C) ≅ equalizer f g :=
+subobject.underlying_iso (equalizer.ι f g)
+
+lemma equalizer_subobject_arrow :
+  (equalizer_subobject f g).arrow = (equalizer_subobject_iso f g).hom ≫ equalizer.ι f g :=
+(over.w (subobject.representative_iso (mono_over.mk' (equalizer.ι f g))).hom).symm
+
+@[simp] lemma equalizer_subobject_arrow' :
+  (equalizer_subobject_iso f g).inv ≫ (equalizer_subobject f g).arrow = equalizer.ι f g :=
+over.w (subobject.representative_iso (mono_over.mk' (equalizer.ι f g))).inv
+
+lemma equalizer_subobject_arrow_comp :
+  (equalizer_subobject f g).arrow ≫ f = (equalizer_subobject f g).arrow ≫ g :=
+by simp [equalizer_subobject_arrow, equalizer.condition]
+
+end equalizer
+
+section kernel
+variables [has_zero_morphisms C] (f : X ⟶ Y) [has_kernel f]
+
+/-- The kernel of a morphism `f : X ⟶ Y` as a `subobject X`. -/
+def kernel_subobject : subobject X :=
+subobject.mk (kernel.ι f)
+
+/-- The underlying object of `kernel_subobject f` is (up to isomorphism!)
+the same as the chosen object `kernel f`. -/
+def kernel_subobject_iso :
+  (kernel_subobject f : C) ≅ kernel f :=
+subobject.underlying_iso (kernel.ι f)
+
+lemma kernel_subobject_arrow :
+  (kernel_subobject f).arrow = (kernel_subobject_iso f).hom ≫ kernel.ι f :=
+(over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).hom).symm
+
+@[simp] lemma kernel_subobject_arrow' :
+  (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
+over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).inv
+
+lemma kernel_subobject_arrow_comp :
+  (kernel_subobject f).arrow ≫ f = 0 :=
+by simp [kernel_subobject_arrow, kernel.condition]
+
+end kernel
+
+section image
+variables (f : X ⟶ Y) [has_image f]
+
+/-- The image of a morphism `f g : X ⟶ Y` as a `subobject Y`. -/
+def image_subobject : subobject Y :=
+subobject.mk (image.ι f)
+
+/-- The underlying object of `image_subobject f` is (up to isomorphism!)
+the same as the chosen object `image f`. -/
+def image_subobject_iso :
+  (image_subobject f : C) ≅ image f :=
+subobject.underlying_iso (image.ι f)
+
+lemma image_subobject_arrow :
+  (image_subobject f).arrow = (image_subobject_iso f).hom ≫ image.ι f :=
+(over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).hom).symm
+
+@[simp] lemma image_subobject_arrow' :
+  (image_subobject_iso f).inv ≫ (image_subobject f).arrow = image.ι f :=
+over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).inv
+
+/-- A factorisation of `f : X ⟶ Y` through `image_subobject f`. -/
+def factor_thru_image_subobject : X ⟶ image_subobject f :=
+factor_thru_image f ≫ (image_subobject_iso f).inv
+
+lemma image_subobject_arrow_comp :
+  factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
+by simp [factor_thru_image_subobject, image_subobject_arrow]
+
+end image
+
+end limits
+
+namespace subobject
 
 /-- Any functor `mono_over X ⥤ mono_over Y` descends to a functor
 `subobject X ⥤ subobject Y`, because `mono_over Y` is thin. -/

@@ -83,7 +83,7 @@ end
 lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
   by { rintros h, rw one_succ_zero at h, simp only at h, apply succ_ne_zero n h, }
 
-theorem sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
+@[simp] theorem sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
   ∑ k in range n, (n.choose k : ℚ) * bernoulli_neg k = 0 :=
 begin
   cases n, { norm_num at * },
@@ -182,9 +182,20 @@ begin
   { rintros x hx, split_ifs,
     { exfalso, apply sub_ne_zero _ hx h, }, refl, },
   conv_lhs { congr, skip, apply_congr, skip, rw f x H, },
-  cases n, { simp, },
+  cases n, { simp only [one_div, alg_hom.map_smul, power_series.coeff_zero_eq_constant_coeff,
+    add_zero, polynomial.aeval_one, if_congr, mul_one, nat.nat_zero_eq_zero,
+    bernoulli_poly.bernoulli_poly_zero, nat.factorial_zero, if_true, nat.zero_sub,
+    power_series.constant_coeff_X, nat.sub_self, sum_empty, eq_self_iff_true, nat.factorial_one,
+    one_smul, sub_zero, range_zero, power_series.coeff_rescale, ring_hom.map_one, nat.cast_one,
+    div_one, sum_singleton, range_one, mul_zero, pow_zero, power_series.coeff_exp, sum_congr,
+    sub_self, algebra.smul_mul_assoc], },
   symmetry, rw [sum_eq_single 1],
-  { simp, rw mul_comm,
+  { simp only [one_div, alg_hom.map_smul, if_congr, one_mul, nat.succ_sub_succ_eq_sub,
+      nat.factorial_zero, if_true, nat.sub_self, power_series.coeff_one_X, eq_self_iff_true,
+      nat.factorial_one, sub_zero, nat.cast_succ, nat.factorial_succ, power_series.coeff_rescale,
+      nat.sub_zero, zero_add, ring_hom.map_one, nat.cast_one, div_one, nat.cast_mul, mul_zero,
+      smul_zero, power_series.coeff_exp, finset.sum_congr, sub_self, algebra.smul_mul_assoc],
+    rw mul_comm,
     suffices g : (algebra_map ℚ A) (↑n!)⁻¹ * (n.succ : ℚ) • t ^ n =
       (n.succ : ℚ) • ∑ (x : ℕ) in range n.succ, (↑x!)⁻¹ • ((polynomial.aeval t) (bernoulli_poly x)
         * (algebra_map ℚ A) (↑(n.succ - x)!)⁻¹),

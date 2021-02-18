@@ -92,7 +92,7 @@ begin
 end
 
 /--  The "most used" implication of `mul_iff`, with split hypotheses, instead of `∧`. -/
-lemma mul_of_mul_and_mul (ab : is_regular (a * b)) (ba : is_regular (b * a)) :
+lemma and_of_mul_of_mul (ab : is_regular (a * b)) (ba : is_regular (b * a)) :
   is_regular a ∧ is_regular b :=
 mul_and_mul_iff.mp ⟨ab, ba⟩
 

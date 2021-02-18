@@ -78,7 +78,7 @@ by simpa only [disc_eq_region_between hr] using measurable_set_region_between
   continuous_sqrt_sub.neg.measurable continuous_sqrt_sub.measurable measurable_set_Ioc
 
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
-theorem area_disc' (hr : 0 ≤ r) : volume (disc r) = ennreal.of_real (π * r ^ 2) :=
+theorem area_disc (hr : 0 ≤ r) : volume (disc r) = ennreal.of_real (π * r ^ 2) :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
   let F := λ x, r ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),

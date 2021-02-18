@@ -98,6 +98,6 @@ open is_regular
 /-- A unit in a monoid is regular. -/
 lemma is_unit.is_regular [monoid R] {a : R} : is_unit a → is_regular a :=
 begin
-  rintros ⟨⟨a, b, ab, ba⟩, rfl⟩,
+  rintros ⟨u, rfl⟩,
   exact unit.is_regular _,
 end

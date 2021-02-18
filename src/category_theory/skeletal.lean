@@ -188,6 +188,7 @@ noncomputable instance is_skeleton_of_inhabited :
   inhabited (is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C)) :=
 ⟨thin_skeleton_is_skeleton⟩
 
+/-- An adjunction between thin categories gives an adjunction between their thin skeletons. -/
 def lower_adjunction
   [∀ (X Y : C), subsingleton (X ⟶ Y)] [∀ (X Y : D), subsingleton (X ⟶ Y)]
   (R : D ⥤ C) (L : C ⥤ D) (h : L ⊣ R) :

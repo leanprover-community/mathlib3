@@ -6,10 +6,13 @@ Authors: Damiano Testa
 import data.zmod.basic
 import ring_theory.subsemiring
 /-!
+
+A `canonically_ordered_comm_semiring` with two different elements `a` and `b` such that
+`a ≠ b` and `2 * a = 2 * b`.
+
 Reference:
 https://
 leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
-
 -/
 
 namespace from_Bhavik

@@ -66,9 +66,16 @@ begin
   exact congr_arg (has_mul.mul ai) bc,
 end
 
-/-- An element admitting a left and a right inverse is regular. -/
-lemma units.is_regular {G : Type*} [monoid G] (a : units G) : is_regular (a : G) :=
+/-- If `R` is a monoid, an element in `units R` is regular. -/
+lemma units.is_regular (a : units R) : is_regular (a : R) :=
 ⟨left_of_mul_eq_one a.inv_mul,  right_of_mul_eq_one a.mul_inv⟩
+
+/-- A unit in a monoid is regular. -/
+lemma is_unit.is_regular {a : R} (ua : is_unit a) : is_regular a :=
+begin
+  rcases ua with ⟨a, rfl⟩,
+  exact units.is_regular a,
+end
 
 end monoid
 
@@ -111,10 +118,3 @@ end cancel_monoid_with_zero
 end is_regular
 
 open is_regular
-
-/-- A unit in a monoid is regular. -/
-lemma is_unit.is_regular [monoid R] {a : R} : is_unit a → is_regular a :=
-begin
-  rintros ⟨u, rfl⟩,
-  exact units.is_regular u,
-end

@@ -144,12 +144,12 @@ def Fintype.to_Profinite : Fintype ⥤ Profinite :=
 
 end Profinite
 
+namespace Profinite
+
 /-
 In this section we formalize that a profinite set can be seen as a limit of finite sets by
 following: https://stacks.math.columbia.edu/tag/08ZY
 -/
-
-namespace Profinite
 
 open set
 open topological_space
@@ -185,11 +185,6 @@ instance skeleton.preorder : preorder (skeleton X) :=
 The skeleton forms a small category, this will be the codomain of our diagram.
 -/
 instance : small_category (skeleton X) := preorder.small_category _
-
-/-
-To define our diagram we first make a short API in order to work with the associated maps
-on objects and morphisms
--/
 
 /-- Map on objects of the diagram. -/
 noncomputable def diagram_obj (I : skeleton X) : Fintype :=

@@ -11,8 +11,8 @@ import algebra.group
 We introduce left-regular, right-regular and regular elements.
 
 By definition, a regular element in a commutative ring is a non-zero divisor.
-Lemma `is_regular_of_integral_domain` shows that every non-zero element of an integral domain
-is regular.
+Lemma `is_regular_of_cancel_monoid_with_zero` implies that every non-zero element of an integral
+domain is regular.
 
 The final goal is to develop part of the API to prove, eventually, results about non-zero-divisors.
 -/

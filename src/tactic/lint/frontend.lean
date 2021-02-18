@@ -71,20 +71,6 @@ meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   list.append default <$> get_linters extra
 
 /--
-`xs.to_chunks n` splits the list into sublists of size at most `n`,
-such that `(xs.to_chunks n).join = xs`.
--/
-meta def list.to_chunks {α} (n : ℕ) : list α → list (list α)
-| [] := []
-| xs := xs.take n :: (xs.drop n).to_chunks
-
-/--
-Asynchronous version of `list.map`.
--/
-meta def list.map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
-((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
-
-/--
 `lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of
 declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.

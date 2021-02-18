@@ -812,11 +812,9 @@ begin
     exact hf m }
 end
 
-lemma eval₂_C_mk_eq_zero {I : ideal R} :
-  ∀ f ∈ (ideal.map C I : ideal (mv_polynomial σ R)),
-  eval₂_hom (C.comp (ideal.quotient.mk I)) X f = 0 :=
+lemma eval₂_C_mk_eq_zero {I : ideal R} {a} (ha : a ∈ (ideal.map C I : ideal (mv_polynomial σ R)) :
+  eval₂_hom (C.comp (ideal.quotient.mk I)) X a = 0 :=
 begin
-  intros a ha,
   rw as_sum a,
   rw [coe_eval₂_hom, eval₂_sum],
   refine finset.sum_eq_zero (λ n hn, _),

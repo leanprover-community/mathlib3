@@ -34,17 +34,51 @@ structure is_regular [has_mul R] (c : R) : Prop :=
 
 namespace is_regular
 
+section semigroup
+
+variable [semigroup R]
+
 /-- In a semigroup, then the product of left-regular elements is left-regular. -/
-lemma is_left_regular.mul [semigroup R] {a b : R}
+lemma is_left_regular.mul {a b : R}
   (lra : is_left_regular a) (lrb : is_left_regular b) :
   is_left_regular (a * b) :=
 λ c d cd, lrb (lra ((mul_assoc a b c).symm.trans (cd.trans (mul_assoc a b d))))
 
 /-- In a semigroup, then the product of right-regular elements is right-regular. -/
-lemma is_right_regular.mul [semigroup R] {a b : R}
+lemma is_right_regular.mul {a b : R}
   (rra : is_right_regular a) (rrb : is_right_regular b) :
   is_right_regular (a * b) :=
 λ c d cd, rra (rrb ((mul_assoc c a b).trans (cd.trans (mul_assoc d a b).symm)))
+
+/--  If an element `b` becomes left-regular after multiplying it on the left by a left-regular
+element, then `b` is left-regular. -/
+lemma is_left_regular_saturated {a b : R} (ab : is_left_regular (a * b)) :
+  is_left_regular b :=
+function.injective.of_comp (by rwa comp_mul_left a b)
+
+/--  An element is left-regular if and only if multiplying it on the left by a left-regular element
+is left-regular. -/
+lemma mul_is_left_regular_iff {a : R} (b : R) (ha : is_left_regular a) :
+  is_left_regular (a * b) ↔ is_left_regular b :=
+⟨λ ab, is_left_regular_saturated ab, λ ab, is_left_regular.mul ha ab⟩
+
+/--  If an element `b` becomes right-regular after multiplying it on the right by a right-regular
+element, then `b` is right-regular. -/
+lemma is_right_regular_saturated {a b : R} (ab : is_right_regular (b * a)) :
+  is_right_regular b :=
+begin
+  refine λ x y xy, ab (_ : x * (b * a) = y * (b * a)),
+  rw [← mul_assoc, ← mul_assoc],
+  exact congr_fun (congr_arg has_mul.mul xy) a,
+end
+
+/--  An element is right-regular if and only if multiplying it on the right with a right-regular
+element is right-regular. -/
+lemma mul_is_right_regular_iff {a : R} (b : R) (ha : is_right_regular a) :
+  is_right_regular (b * a) ↔ is_right_regular b :=
+⟨λ ab, is_right_regular_saturated ab, λ ab, is_right_regular.mul ab ha⟩
+
+end semigroup
 
 section monoid
 

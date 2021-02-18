@@ -17,23 +17,29 @@ Relevant Zulip chat:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/mul_pos
 -/
 
+/--  The three element monoid. -/
 @[derive [decidable_eq]]
 inductive foo
 | zero
 | eps
 | one
 
+
 namespace foo
+
+instance inhabited : inhabited foo := ⟨zero⟩
 
 instance : has_zero foo := ⟨zero⟩
 instance : has_one foo := ⟨one⟩
 notation `ε` := eps
 
+/-- The order on `foo` is the one induced by the natural order on the image of `aux1`. -/
 def aux1 : foo → ℕ
 | 0 := 0
 | ε := 1
 | 1 := 2
 
+/-- A tactic to prove facts by cases. -/
 meta def boom : tactic unit :=
 `[repeat {rintro ⟨⟩}; dec_trivial]
 
@@ -43,6 +49,7 @@ by boom
 instance : linear_order foo :=
 linear_order.lift aux1 $ aux1_inj
 
+/-- Multiplication on `foo`: the only external input is that `ε ^ 2 = 0`. -/
 def mul : foo → foo → foo
 | 1 x := x
 | x 1 := x

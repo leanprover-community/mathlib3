@@ -5,8 +5,6 @@ Authors: Scott Morrison, Markus Himmel, Bhavik Mehta
 -/
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.binary_products
-import category_theory.over
-import category_theory.adjunction.opposites
 
 /-!
 # Pullbacks
@@ -26,9 +24,9 @@ noncomputable theory
 
 open category_theory
 
-universes v u u₂
-
 namespace category_theory.limits
+
+universes v u u₂
 
 local attribute [tidy] tactic.case_bash
 

@@ -129,12 +129,4 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
 { to_is_right_adjoint := ⟨CompHaus.to_Profinite, Profinite.to_Profinite_adj_to_CompHaus⟩ }
 
-universes v u
-
-set_option pp.universes true
-noncomputable instance Profinte_to_Top.reflective : reflective Profinite_to_Top.{max u v} :=
-reflective.comp Profinite.to_CompHaus CompHaus_to_Top
-
-example : reflective Profinite.to_CompHaus := by apply_instance
-
 end Profinite

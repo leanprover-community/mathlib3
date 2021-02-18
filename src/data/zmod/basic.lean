@@ -214,8 +214,11 @@ begin
     rw [val, fin.ext_iff, fin.coe_coe_eq_self] }
 end
 
+lemma nat_cast_right_inverse [fact (0 < n)] : function.right_inverse val (coe : ℕ → zmod n) :=
+nat_cast_zmod_val
+
 lemma nat_cast_zmod_surjective [fact (0 < n)] : function.surjective (coe : ℕ → zmod n) :=
-function.right_inverse.surjective nat_cast_zmod_val
+nat_cast_right_inverse.surjective
 
 /-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
 ring, see `zmod.int_cast_cast`. -/
@@ -226,8 +229,11 @@ begin
   { rw [coe_coe, int.nat_cast_eq_coe_nat, int.cast_coe_nat, fin.coe_coe_eq_self] }
 end
 
+lemma int_cast_right_inverse : function.right_inverse (coe : zmod n → ℤ) (coe : ℤ → zmod n) :=
+int_cast_zmod_cast
+
 lemma int_cast_surjective : function.surjective (coe : ℤ → zmod n) :=
-function.right_inverse.surjective int_cast_zmod_cast
+int_cast_right_inverse.surjective
 
 @[norm_cast]
 lemma cast_id : ∀ n (i : zmod n), ↑i = i
@@ -818,9 +824,12 @@ instance subsingleton_ring_equiv [semiring R] : subsingleton (zmod n ≃+* R) :=
   f k = k :=
 by { cases n; simp }
 
-lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) :
-  function.surjective f :=
-function.right_inverse.surjective (ring_hom_map_cast f)
+lemma ring_hom_right_inverse [ring R] (f : R →+* (zmod n)) :
+  function.right_inverse (coe : zmod n → R) f :=
+ring_hom_map_cast f
+
+lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) : function.surjective f :=
+(ring_hom_right_inverse f).surjective
 
 lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
   (h : f.ker = g.ker) : f = g :=

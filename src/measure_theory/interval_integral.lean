@@ -526,7 +526,7 @@ lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
   0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
-lemma interval_integral.integral_mono_ae_restrict {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
+lemma integral_mono_ae_restrict {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
   (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
   (hab : a ≤ b) (h : f ≤ᵐ[μ.restrict (interval a b)] g) :
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
@@ -561,6 +561,8 @@ lemma interval_integral_mono {μ : measure ℝ} {a b : ℝ}
   (hab : a ≤ b) (h : f ≤ g) :
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 interval_integral_mono_ae hf hg hab (ae_of_all _ h)
+
+#lint
 
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure

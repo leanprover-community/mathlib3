@@ -636,6 +636,26 @@ lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
 @[simp]
 lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
 
+@[simp] lemma congr_refl_left {α β : Sort*} (f : α → β) {a b : α} (h : a = b) :
+  congr (eq.refl f) h = congr_arg f h :=
+rfl
+
+@[simp] lemma congr_refl_right {α β : Sort*} {f g : α → β} (h : f = g) (a : α) :
+  congr h (eq.refl a) = congr_fun h a :=
+rfl
+
+@[simp] lemma congr_arg_refl {α β : Sort*} (f : α → β) (a : α) :
+  congr_arg f (eq.refl a) = eq.refl (f a) :=
+rfl
+
+@[simp] lemma congr_fun_rfl {α β : Sort*} (f : α → β) (a : α) :
+  congr_fun (eq.refl f) a = eq.refl (f a) :=
+rfl
+
+@[simp] lemma congr_fun_congr_arg {α β γ : Sort*} (f : α → β → γ) {a a' : α} (p : a = a') (b : β) :
+  congr_fun (congr_arg f p) b = congr_arg (λ a, f a b) p :=
+rfl
+
 lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)

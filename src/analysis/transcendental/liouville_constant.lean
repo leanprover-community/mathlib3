@@ -71,7 +71,6 @@ begin
   apply pow_lt_pow,
   refine (one_div_lt_one_div (pow_pos x0 _) _).mpr _,
 end
--/
 
 lemma pre_calc_liou_one_le (m1 : 1 ≤ m) (n : ℕ) (i : ℕ) :
   1 / m ^ (i + (n + 1))! ≤ 1 / m ^ (i + (n + 1)!) :=
@@ -80,6 +79,7 @@ one_div_mono_exp m1 (i.add_factorial_succ_le_factorial_add_succ n)
 lemma pre_calc_liou_one (m1 : 1 < m) (n : ℕ) {i : ℕ} (i2 : 2 ≤ i) :
   1 / m ^ (i + (n + 1))! < 1 / m ^ (i + (n + 1)!) :=
 one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ i2)
+-/
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
@@ -92,7 +92,7 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
     < ∑' i, 1 / m ^ (i + (n + 1)!) :
     -- to show the strict inequality between these series, we prove that:
     tsum_lt_tsum_of_nonneg
-      -- 1. the first series has non-negative term2
+      -- 1. the first series has non-negative terms
       (λ b, one_div_nonneg.mpr (pow_nonneg m0.le _))
       -- 2. the second series dominates the first
       (λ b, one_div_mono_exp m1.le (b.add_factorial_succ_le_factorial_add_succ n))
@@ -113,16 +113,20 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
 lemma sub_one_div_inv_le_two (hm : 2 ≤ m) :
   (1 - 1 / m)⁻¹ ≤ 2 :=
 begin
+  -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / m`
   refine le_trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : ℝ)).le,
+  -- move `1 / m` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / m ≤ ⅟ 2`
   refine (one_sub_inv_of_two.symm.le).trans ((sub_le_sub_iff_left 1).mpr _),
-  refine (one_div m).le.trans (inv_le_inv_of_le zero_lt_two hm)
+  -- take inverses on both sides and use the assumption `2 ≤ m`.
+  exact (one_div m).le.trans (inv_le_inv_of_le zero_lt_two hm)
 end
 
 lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
   (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
 begin
   calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
-    -- this inequality holds, since it holds for the first factors
+    -- the second factors coincide (and are non-negative),
+    -- the first factors, satisfy the inequality `sub_one_div_inv_le_two`
     mul_mono_nonneg (one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _))
       (sub_one_div_inv_le_two hm)
   ... = 2 / m ^ (n + 1)! : mul_one_div 2 _
@@ -131,9 +135,9 @@ begin
     begin
       -- [ NB: in this block, I did not follow the brace convention for subgoals.  The
       --   reason is that all extraneous goals are solved by
-      --   `exact pow_pos (zero_lt_two.trans_le hm) _`.
-      --   Thus, I waited until the last goal that could be solved by that tactic and
-      -- used `any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ }`. ]
+      --   `exact pow_pos (zero_lt_two.trans_le hm) _` and are created also by later tactics.
+      --   Thus, I waited until the last tactic producing a repeated goal and then solve them
+      --   all at once using `any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ }`. ]
       -- Clear denominators and massage*
       apply (div_le_div_iff _ _).mpr,
       conv_rhs { rw [one_mul, mul_add, pow_add, mul_one, pow_mul, mul_comm, ← pow_mul] },
@@ -142,8 +146,7 @@ begin
       -- solve all the inequalities `0 < m ^ ??`
       any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
       -- `2 ≤ m ^ n!` is a consequence of monotonicity of exponentiation at `2 ≤ m`.
-      refine le_trans (hm.trans _) (pow_mono (one_le_two.trans hm) n.factorial_pos),
-      exact (pow_one _).symm.le
+      exact le_trans (hm.trans (pow_one _).symm.le) (pow_mono (one_le_two.trans hm) n.factorial_pos)
     end
   ... = 1 / (m ^ n!) ^ n : by rw pow_mul
 end
@@ -225,7 +228,7 @@ calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
 -/
 -/
 
-
+/--  Split the sum definining a Liouville number into the first `k` term and the rest. -/
 lemma liouville_number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
   liouville_number m = liouville_number_first_k_terms m k +
   liouville_number_terms_after_k m k :=
@@ -242,6 +245,8 @@ variable {m : ℕ}
 
 namespace liouville
 
+/--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
+numbers where the denominator is `m ^ k!`. -/
 lemma liouville_number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
 ∃ p : ℕ, liouville_number_first_k_terms m k = p / (m ^ k!) :=
 begin
@@ -266,16 +271,19 @@ end
 theorem is_liouville (hm : 2 ≤ m) :
   liouville (liouville_number m) :=
 begin
+  -- two useful inequalities
   have mZ1 : 1 < (m : ℤ) := nat.cast_one.symm.le.trans_lt
     (one_lt_two.trans_le (nat.cast_two.symm.le.trans (int.to_nat_le.mp hm))),
   have m1 : 1 < (m : ℝ) :=
     one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
   intro n,
-  have mkk := liouville_number_eq_first_k_terms_add_rest m1 n,
+  -- the first `n` terms sum to `p / m ^ k!`
   rcases liouville_number_rat_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
-  rw [← hp, mkk, add_sub_cancel', abs_of_nonneg (liouville_number_terms_after_pos m1 _).le],
+  -- separate out the sum of the first `n` terms and the rest
+  rw liouville_number_eq_first_k_terms_add_rest m1 n,
+  rw [← hp, add_sub_cancel', abs_of_nonneg (liouville_number_terms_after_pos m1 _).le],
   exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_terms_after_pos m1 n)).ne.symm,
     (calc_liou_one m1 n).trans_le
     (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩

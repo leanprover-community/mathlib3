@@ -5,7 +5,6 @@ Author: Kenny Lau
 -/
 import data.fin
 import data.equiv.basic
-import control.equiv_functor.instances
 
 /-!
 # Equivalences for `fin n`

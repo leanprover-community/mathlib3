@@ -138,7 +138,7 @@ lemma lift_comm (F : over Y ⥤ over X)
 rfl
 
 /--
-monomorphisms over an object `f : over A` in an over category
+Monomorphisms over an object `f : over A` in an over category
 are equivalent to monomorphisms over the source of `f`.
 -/
 def slice {A : C} {f : over A} (h₁ h₂) : mono_over f ≌ mono_over f.left :=
@@ -313,7 +313,7 @@ section «exists»
 variables [has_images C]
 
 /--
-FIXME: Could someone who actually understands topos theory write a doc-string?
+In the case where `f` is not a monomorphism but `C` has images, we can still take the "forward map" under it, which agrees with `mono_over.map f`.
 -/
 def «exists» (f : X ⟶ Y) : mono_over X ⥤ mono_over Y :=
 forget _ ⋙ over.map f ⋙ image
@@ -344,22 +344,11 @@ begin
 end
 
 /-- `exists` is adjoint to `pullback` when images exist -/
--- I really think there should be a high-level proof of this but not sure what it is...
 def exists_pullback_adj (f : X ⟶ Y) [has_pullbacks C] : «exists» f ⊣ pullback f :=
-adjunction.mk_of_hom_equiv
-{ hom_equiv := λ g h,
-  { to_fun := λ k,
-    hom_mk
-      (begin
-        refine pullback.lift (factor_thru_image _ ≫ k.1) g.arrow _,
-        rw [assoc, w k],
-        apply image.fac,
-       end)
-      (pullback.lift_snd _ _ _),
-    inv_fun := λ k, hom_mk (image.lift ⟨_, h.arrow, k.left ≫ pullback.fst,
-      by { rw [assoc, pullback.condition], apply w_assoc, }⟩) (image.lift_fac _),
-    left_inv := λ k, subsingleton.elim _ _,
-    right_inv := λ k, subsingleton.elim _ _ } }
+adjunction.restrict_fully_faithful (forget X) (𝟭 _)
+  ((over.map_pullback_adj f).comp _ _ image_forget_adj)
+  (iso.refl _)
+  (iso.refl _)
 
 end «exists»
 
@@ -540,7 +529,8 @@ abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 def lower {Y : D} (F : mono_over X ⥤ mono_over Y) : subobject X ⥤ subobject Y :=
 thin_skeleton.map F
 
-/-- Isomorphism functors become (evil!) equal when lowered to `subobject`. -/
+/-- Isomorphic functors become equal when lowered to `subobject`.
+(It's not as evil as usual to talk about equality between functors because the categories are thin and skeletal.-/
 lemma lower_iso (F₁ F₂ : mono_over X ⥤ mono_over Y) (h : F₁ ≅ F₂) :
   lower F₁ = lower F₂ :=
 thin_skeleton.map_iso_eq h
@@ -693,7 +683,9 @@ section «exists»
 variables [has_images C]
 
 /--
-FIXME: Could someone who actually understands topos theory write a doc-string?
+The functor from subobjects of `X` to subobjects of `Y` given by sending the subobject `S` to its "image" under `f`, usually denoted $\exists_f$. For instance, when `C` is the category of types, viewing `subobject X` as `set X` this is just `set.image f`. 
+
+This functor is left adjoint to the `pullback f` functor (shown in `exists_pullback_adj`) provided both are defined, and generalises the `map f` functor, again provided it is defined.
 -/
 def «exists» (f : X ⟶ Y) : subobject X ⥤ subobject Y :=
 lower (mono_over.exists f)

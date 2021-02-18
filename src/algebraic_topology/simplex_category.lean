@@ -198,7 +198,7 @@ def skeletal_functor :
 
 namespace skeletal_functor
 
-instance : full.{0 u 0 (u+1)} skeletal_functor.{u} :=
+instance : full skeletal_functor.{u} :=
 { preimage := λ m n f, ⟨λ i, (f ⟨i⟩).down, λ i j h, f.monotone h⟩,
   witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, refl } }
 

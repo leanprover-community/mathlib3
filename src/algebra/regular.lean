@@ -42,13 +42,13 @@ variable [semigroup R]
 lemma is_left_regular.mul {a b : R}
   (lra : is_left_regular a) (lrb : is_left_regular b) :
   is_left_regular (a * b) :=
-λ c d cd, lrb (lra ((mul_assoc a b c).symm.trans (cd.trans (mul_assoc a b d))))
+show function.injective ((*) (a * b)), from (comp_mul_left a b) ▸ lra.comp lrb
 
 /-- In a semigroup, then the product of right-regular elements is right-regular. -/
 lemma is_right_regular.mul {a b : R}
   (rra : is_right_regular a) (rrb : is_right_regular b) :
   is_right_regular (a * b) :=
-λ c d cd, rra (rrb ((mul_assoc c a b).trans (cd.trans (mul_assoc d a b).symm)))
+show function.injective (* (a * b)), from (comp_mul_right b a) ▸ rrb.comp rra
 
 /--  If an element `b` becomes left-regular after multiplying it on the left by a left-regular
 element, then `b` is left-regular. -/

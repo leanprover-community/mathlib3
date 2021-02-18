@@ -77,6 +77,22 @@ lemma measurable_set.univ_pi_fintype {δ} {π : δ → Type*} [∀ i, measurable
   {t : Π i, set (π i)} (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
 measurable_set.pi_fintype (λ i _, ht i)
 
+lemma pred_update {α} {β : α → Type*} (P : ∀ ⦃a⦄, β a → Prop)
+  (f : Π a, β a) (a' : α) (v : β a') (a : α) :
+  P (update f a' v a) ↔ (a = a' ∧ P v) ∨ (a ≠ a' ∧ P (f a)) :=
+by { rw [update], split_ifs, { subst h, simp }, { rw [← ne.def] at h, simp [h] }}
+
+@[simp] lemma imp_and_neg_imp_iff (p q : Prop) [decidable p] : (p → q) ∧ (¬ p → q) ↔ q :=
+by { by_cases p; simp [h] }
+
+#print Union_unpair_prod
+/- rename Union_prod to Union_prod_const.
+Also prove Union_unpair_prod using this or similar -/
+lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
+  (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
+by { ext, simp }
+
+-- done below
 
 /- rename measurable_set.pi_univ -> measurable_set.univ_pi -/
 
@@ -102,23 +118,11 @@ lemma Union_univ_pi {ι ι₂} {α : ι → Type*} (t : ∀ i, ι₂ → set (α
   (⋃ (x : ι → ι₂), pi univ (λ i, t i (x i))) = pi univ (λ i, ⋃ (j : ι₂), t i j) :=
 by { ext, simp [classical.skolem] }
 
-/- rename Union_prod to Union_prod_const.
-Also prove Union_unpair using this or similar -/
-lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
-  (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
-by { ext, simp }
+
 
 lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
   surjective (λ n, (encodable.decode α n).iget) :=
 λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
-
-lemma pred_update {α} {β : α → Type*} (P : ∀ ⦃a⦄, β a → Prop)
-  (f : Π a, β a) (a' : α) (v : β a') (a : α) :
-  P (update f a' v a) ↔ (a = a' ∧ P v) ∨ (a ≠ a' ∧ P (f a)) :=
-by { rw [update], split_ifs, { subst h, simp }, { rw [← ne.def] at h, simp [h] }}
-
-@[simp] lemma imp_and_neg_imp_iff (p q : Prop) [decidable p] : (p → q) ∧ (¬ p → q) ↔ q :=
-by { by_cases p; simp [h] }
 
 lemma eval_preimage {ι} {α : ι → Type*} {i : ι} {s : set (α i)} :
   eval i ⁻¹' s = pi univ (update (λ i, univ) i s) :=

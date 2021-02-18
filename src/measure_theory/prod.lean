@@ -113,7 +113,7 @@ begin
       intro n, apply measurable_set_generate_from,
       exact ⟨s, t n, hs, h1t n, rfl⟩ },
     { rcases hC with ⟨t, h1t, h2t⟩,
-      rw [← univ_prod, ← h2t, Union_prod],
+      rw [← univ_prod, ← h2t, Union_prod_const],
       apply measurable_set.Union,
       rintro n, apply measurable_set_generate_from,
       exact mem_image2_of_mem (h1t n) hs } },

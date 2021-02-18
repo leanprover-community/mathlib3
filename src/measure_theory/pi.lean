@@ -49,97 +49,6 @@ open_locale classical big_operators topological_space ennreal
 
 variables {ι ι' : Type*} {α : ι → Type*}
 
-/-- Given one value over a unique, we get a dependent function. -/
-def unique_elim [unique ι] (x : α (default ι)) (i : ι) : α i :=
-by { rw [unique.eq_default i], exact x }
-
-@[simp] lemma unique_elim_default [unique ι] (x : α (default ι)) : unique_elim x (default ι) = x :=
-rfl
-
-lemma unique_elim_preimage [unique ι] (t : ∀ i, set (α i)) :
-  unique_elim ⁻¹'  pi univ t = t (default ι) :=
-by { ext, simp [unique.forall_iff] }
-
-attribute [simps] equiv.Pi_congr_left
-open equiv
-lemma Pi_congr_left_symm_preimage (f : ι' ≃ ι) (s : set ι) (t : ∀ i, set (α i)) :
-  (f.Pi_congr_left α).symm ⁻¹' (f ⁻¹' s).pi (λ i', t $ f i') = s.pi t :=
-begin
-  ext, simp only [mem_preimage, mem_pi, Pi_congr_left_symm_apply], convert f.forall_congr_left, refl
-end
-
-lemma measurable_unique_elim [unique ι] [∀ i, measurable_space (α i)] :
-  measurable (unique_elim : α (default ι) → Π i, α i) :=
-by { simp_rw [measurable_pi_iff, unique.forall_iff, unique_elim_default], exact measurable_id }
-
-
-lemma measurable_set.univ_pi_fintype {δ} {π : δ → Type*} [∀ i, measurable_space (π i)] [fintype δ]
-  {t : Π i, set (π i)} (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
-measurable_set.pi_fintype (λ i _, ht i)
-
-
-/- rename measurable_set.pi_univ -> measurable_set.univ_pi -/
-
-lemma function.surjective.Union_comp {α ι ι₂} {f : ι → ι₂}
-  (hf : function.surjective f) (g : ι₂ → set α) :
-  (⋃ x, g (f x)) = ⋃ y, g y :=
-hf.supr_comp g
-
-lemma function.surjective.Inter_comp {α ι ι₂} {f : ι → ι₂}
-  (hf : function.surjective f) (g : ι₂ → set α) :
-  (⋂ x, g (f x)) = ⋂ y, g y :=
-hf.infi_comp g
-
-lemma Union_congr {ι ι₂ α : Type*} {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⋃ x, f x) = ⋃ y, g y :=
-supr_congr h h1 h2
-
-lemma Inter_congr {ι ι₂ α : Type*} {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
-infi_congr h h1 h2
-
-lemma Union_univ_pi {ι ι₂} {α : ι → Type*} (t : ∀ i, ι₂ → set (α i)) :
-  (⋃ (x : ι → ι₂), pi univ (λ i, t i (x i))) = pi univ (λ i, ⋃ (j : ι₂), t i j) :=
-by { ext, simp [classical.skolem] }
-
-/- rename Union_prod to Union_prod_const.
-Also prove Union_unpair using this or similar -/
-lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
-  (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
-by { ext, simp }
-
-lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
-  surjective (λ n, (encodable.decode α n).iget) :=
-λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
-
-lemma pred_update {α} {β : α → Type*} (P : ∀ ⦃a⦄, β a → Prop)
-  (f : Π a, β a) (a' : α) (v : β a') (a : α) :
-  P (update f a' v a) ↔ (a = a' ∧ P v) ∨ (a ≠ a' ∧ P (f a)) :=
-by { rw [update], split_ifs, { subst h, simp }, { rw [← ne.def] at h, simp [h] }}
-
-@[simp] lemma imp_and_neg_imp_iff (p q : Prop) [decidable p] : (p → q) ∧ (¬ p → q) ↔ q :=
-by { by_cases p; simp [h] }
-
-lemma eval_preimage {ι} {α : ι → Type*} {i : ι} {s : set (α i)} :
-  eval i ⁻¹' s = pi univ (update (λ i, univ) i s) :=
-by { ext x, simp [@forall_update_iff _ (λ i, set (α i)) _ _ _ _ (λ i' y, x i' ∈ y)] }
-
-lemma eval_preimage' {ι} {α : ι → Type*} {i : ι} {s : set (α i)} :
-  eval i ⁻¹' s = pi {i} (update (λ i, univ) i s) :=
-by { ext, simp }
-
-lemma mem_pi_univ {ι : Type*} {α : ι → Type*} (t : ∀ i, set (α i)) (x : ∀ i, α i) :
-  x ∈ pi univ t ↔ ∀ i, x i ∈ t i :=
-by simp
-
-lemma pi_univ_ite {ι} {α : ι → Type*} (s : set ι) (t : ∀ i, set (α i)) :
-  pi univ (λ i, if i ∈ s then t i else univ) = s.pi t :=
-by { ext, simp_rw [mem_pi], apply forall_congr, intro i, split_ifs; simp [h] }
-
-lemma pi_univ_eq_Inter {ι} {α : ι → Type*} (t : ∀ i, set (α i)) :
-  pi univ t = ⋂ i, eval i ⁻¹' t i :=
-by simp only [pi_def, Inter_pos, mem_univ]
-
 /-! We start with some measurability properties -/
 
 /-- Boxes formed by π-systems form a π-system. -/
@@ -151,7 +60,13 @@ begin
   exact mem_image_of_mem _ (λ i _, hC i _ _ (hs₁ i (mem_univ i)) (hs₂ i (mem_univ i)) (hst i))
 end
 
-variables [fintype ι] [fintype ι'] -- or encodable at the start
+/-- Boxes form a π-system. -/
+lemma is_pi_system_pi [∀ i, measurable_space (α i)] :
+  is_pi_system (pi univ '' pi univ (λ i, { s : set (α i) | measurable_set s})) :=
+is_pi_system.pi (λ i, is_pi_system_measurable_set)
+
+variables [fintype ι] [fintype ι']
+
 /-- Boxes of countably spanning sets are countably spanning. -/
 lemma is_countably_spanning.pi {C : ∀ i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
@@ -188,7 +103,7 @@ begin
     apply mem_image_of_mem, intros j _, dsimp only,
     by_cases h: j = i, subst h, rwa [update_same], rw [update_noteq h], apply h1t },
   { apply generate_from_le, rintro _ ⟨s, hs, rfl⟩,
-    rw [pi_univ_eq_Inter], apply measurable_set.Inter, intro i, apply measurable_pi_apply,
+    rw [univ_pi_eq_Inter], apply measurable_set.Inter, intro i, apply measurable_pi_apply,
     exact measurable_set_generate_from (hs i (mem_univ i)) }
 end
 
@@ -206,11 +121,6 @@ lemma generate_from_pi [∀ i, measurable_space (α i)] :
   generate_from (pi univ '' pi univ (λ i, { s : set (α i) | measurable_set s})) =
   measurable_space.pi :=
 generate_from_eq_pi (λ i, generate_from_measurable_set) (λ i, is_countably_spanning_measurable_set)
-
-/-- Boxes form a π-system. -/
-lemma is_pi_system_pi [∀ i, measurable_space (α i)] :
-  is_pi_system (pi univ '' pi univ (λ i, { s : set (α i) | measurable_set s})) :=
-is_pi_system.pi (λ i, is_pi_system_measurable_set)
 
 namespace measure_theory
 
@@ -430,7 +340,7 @@ begin
     (generate_from_eq_pi hC (λ i, (h3C i).is_countably_spanning)).symm
     (is_pi_system.pi h2C) _,
   rintro _ ⟨s, hs, rfl⟩,
-  rw [mem_pi_univ] at hs,
+  rw [mem_univ_pi] at hs,
   haveI := λ i, (h3C i).sigma_finite (h4C i),
   simp_rw [h₁ s hs, pi_pi μ s (λ i, h4C i _ (hs i))]
 end
@@ -450,54 +360,6 @@ variable (μ)
 instance pi.sigma_finite : sigma_finite (measure.pi μ) :=
 ⟨⟨(finite_spanning_sets_in.pi (λ i, (μ i).to_finite_spanning_sets_in) (λ _ _, id)).mono $
   by { rintro _ ⟨s, hs, rfl⟩, exact measurable_set.pi_fintype hs }⟩⟩
-
-
-lemma pi_empty_left (h : ι → false) : measure.pi μ = dirac (λ i, (h i).elim) :=
-begin
-  apply pi_eq,
-  intros s hs,
-  rw [dirac_apply' _ (measurable_set.univ_pi_fintype hs)], rw [indicator_of_mem],
-  { convert finset.prod_empty.symm, ext i, exact (h i).elim },
-  { intro i, exact (h i).elim }
-end
-
-lemma pi_unique_left [unique ι] : measure.pi μ = map unique_elim (μ (default ι)) :=
-begin
-  apply pi_eq, intros s hs,
-  rw [map_apply measurable_unique_elim (measurable_set.univ_pi_fintype hs), unique_elim_preimage],
-  symmetry, convert finset.prod_singleton, rw [finset.ext_iff, unique.forall_iff], simp
-end
-
-open sum
-/--  The type of dependent functions on a sum type `ι ⊕ ι'` is equivalent to the type of pairs of
-  functions on `ι` and on `ι'`. This is a dependent version of `equiv.sum_arrow_equiv_prod_arrow`. -/
-def equiv.Pi_sum (π : ι ⊕ ι' → Type*) : ((Π i, π (inl i)) × (Π i', π (inr i'))) ≃ Π i, π i :=
-{ to_fun := λ f, sum.rec f.1 f.2,
-  inv_fun := λ g, ⟨λ i, g (inl i), λ i', g (inr i')⟩,
-  left_inv := λ f, prod.ext rfl rfl,
-  right_inv := λ g, by { ext (i|i); refl } }
-
-def equiv.Pi_sum' (π : ι → Type*) (π' : ι' → Type*) :
-  ((Π i, π i) × (Π i', π' i')) ≃ Π i, sum.elim π π' i :=
-equiv.Pi_sum (sum.elim π π')
-
-lemma pi_map_left (f : ι ≃ ι') :
-  map (f.Pi_congr_left' α).symm (measure.pi (λ i', μ (f.symm i'))) = measure.pi μ :=
-begin
-  refine (pi_eq _).symm, intros s hs,
-  rw [map_apply],
-  all_goals {sorry}
-end
-
-lemma pi_sum {π : ι ⊕ ι' → Type*} [∀ i, measurable_space (π i)] (μ : ∀ i, measure (π i))
-  [∀ i, sigma_finite (μ i)] :
-  map (equiv.Pi_sum π) ((measure.pi (λ i, μ (sum.inl i))).prod (measure.pi (λ i, μ (sum.inr i)))) =
-  measure.pi μ :=
-begin
-  refine (pi_eq _).symm, intros s hs,
-  rw [map_apply],
-  all_goals {sorry}
-end
 
 lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
@@ -522,7 +384,6 @@ from pi_eval_preimage_null _ (measure_singleton x)
 lemma ae_eval_ne (i : ι) [has_no_atoms (μ i)] (x : α i) :
   ∀ᵐ y : Π i, α i ∂measure.pi μ, y i ≠ x :=
 compl_mem_ae_iff.2 (pi_hyperplane μ i x)
-
 
 variable {μ}
 
@@ -632,90 +493,5 @@ lemma volume_pi_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : m
   (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
   volume (pi univ s) = ∏ i, volume (s i) :=
 measure.pi_pi (λ i, volume) s hs
-
-section marginal
-
-open finset topological_space
-variables {δ : Type*} {π : δ → Type*} [∀ x, measurable_space (π x)]
-variables {μ : ∀ i, measure (π i)} [∀ i, sigma_finite (μ i)]
-variables {E : Type*} [normed_group E] [second_countable_topology E]
-  [normed_space ℝ E] [complete_space E] [measurable_space E] [borel_space E]
-
-/-- Integrate `f(x₁,…,xₙ)` over all variables `xᵢ` where `i ∈ s`. Return a function in the
-  remaining variables (it will be constant in the `xᵢ` for `i ∈ s`).
-  This is the marginal distribution of all variables not in `s`. -/
--- give better name?
-def marginal (μ : ∀ i, measure (π i)) (s : finset δ) (f : (Π i, π i) → E) (x : Π i, π i) :
-  E :=
-∫ y : Π i : (s : set δ), π i, f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)
-  ∂(measure.pi (λ i : (s : set δ), μ i))
-
-/-- The integrand of `marginal _ _ f` is measurable if `f` is. -/
-lemma measurable.marginal_aux {f : (Π i, π i) → E} (hf : measurable f) {s : finset δ} {x : Π i, π i} :
-  measurable (λ (y : Π i : (s : set δ), π i), f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)) :=
-begin
-  refine hf.comp _,
-  rw measurable_pi_iff, intro i,
-  by_cases h : i ∈ s,
-  { simp [h, measurable_pi_apply] },
-  { simp [h] }
-end
-alias measurable.marginal_aux ← measurable.marginal_aux
-
-/- Note: this notation is not a binder. This is more convenient since it returns a function. -/
-notation `∫⋯∫_` s `, ` f ` ∂` μ:70 := marginal μ s f
-notation `∫⋯∫_` s `, ` f := marginal volume s f
-
-lemma marginal_empty (f : (Π i, π i) → E) : ∫⋯∫_ ∅, f ∂μ = f :=
-begin
-  haveI : subsingleton (Π (i : ((∅ : finset δ) : set δ)), π i) := ⟨λ x y, funext $ λ i, i.2.elim⟩,
-  ext x,
-  simp_rw [marginal, measure.pi_empty_left _ (λ i : ((∅ : finset δ) : set δ), i.prop)],
-  refine (integral_dirac' _ _ subsingleton.measurable).trans (by simp)
-end
-
-lemma marginal_eq {s : finset δ} {x y : Π i, π i} (f : (Π i, π i) → E)
-  (h : ∀ i ∉ s, x i = y i) : (∫⋯∫_ s, f ∂μ) x = (∫⋯∫_ s, f ∂μ) y :=
-by { dsimp [marginal], rcongr, exact h _ ‹_› }
-
-lemma marginal_union (f : (Π i, π i) → E) (s t : finset δ) (hst : disjoint s t) :
-  ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
-begin
-  have : (s : set δ) ∩ (t : set δ) ⊆ ∅, { exact_mod_cast hst },
-  let e : (((s ∪ t : finset δ) : set δ) ≃ (s : set δ) ⊕ (t : set δ) : Type*),
-  { exact_mod_cast equiv.set.union this },
-  ext x,
-  simp_rw [marginal, ← measure.pi_map_left _ e],
-  rw [integral_map],
-  -- congr' with y, congr' with i, simp [e], dsimp [e], refl,
-  -- sorry, sorry
-end
-
-lemma marginal_singleton (f : (Π i, π i) → E) (hf : measurable f) (i : δ) :
-  ∫⋯∫_ {i}, f ∂μ = λ x, ∫ xᵢ, f (function.update x i xᵢ) ∂(μ i) :=
-begin
-  letI : unique (({i} : finset δ) : set δ) :=
-  ⟨⟨⟨i, finset.mem_singleton_self i⟩⟩, λ j, subtype.ext $ finset.mem_singleton.mp j.2⟩,
-  ext x,
-  simp_rw [marginal, measure.pi_unique_left _],
-  rw [integral_map_of_measurable measurable_unique_elim hf.marginal_aux],
-  congr' with y, dsimp only, congr' with j,
-  by_cases hj : j = i,
-  { cases hj.symm, simp only [dif_pos, finset.mem_singleton, update_same],
-    exact @unique_elim_default _ (λ i : (({i} : finset δ) : set δ), π i) _ y },
-  { simp [hj] }
-end
-
-lemma marginal_univ [fintype δ] (f : (Π i, π i) → E) :
-  ∫⋯∫_ finset.univ, f ∂μ = λ _, ∫ x, f x ∂(measure.pi μ) :=
-begin
-  let e : { j // j ∈ finset.univ} ≃ δ := equiv.subtype_univ_equiv finset.mem_univ,
-  ext x,
-  simp_rw [marginal, ← measure.pi_map_left μ e.symm],
-  rw [integral_map], congr' with y, congr' with i, simp [e], dsimp [e], refl,
-  sorry, sorry
-end
-
-end marginal
 
 end measure_theory

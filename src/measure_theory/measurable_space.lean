@@ -783,7 +783,7 @@ lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : countable
   measurable_set (s.pi t) :=
 by { rw [pi_def], exact measurable_set.bInter hs (λ i hi, measurable_pi_apply _ (ht i hi)) }
 
-lemma measurable_set.pi_univ [encodable δ] {t : Π i : δ, set (π i)}
+lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
 measurable_set.pi (countable_encodable _) (λ i _, ht i)
 
@@ -809,6 +809,10 @@ local attribute [instance] fintype.encodable
 lemma measurable_set.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
   (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
 measurable_set.pi (countable_encodable _) ht
+
+lemma measurable_set.univ_pi_fintype [fintype δ] {t : Π i, set (π i)}
+  (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
+measurable_set.pi_fintype (λ i _, ht i)
 
 end fintype
 end pi

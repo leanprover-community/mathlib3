@@ -31,6 +31,10 @@ open encodable
 theorem encode_injective [encodable α] : function.injective (@encode α _)
 | x y e := option.some.inj $ by rw [← encodek, e, encodek]
 
+lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
+  surjective (λ n, (encodable.decode α n).iget) :=
+λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
+
 /- This is not set as an instance because this is usually not the best way
   to infer decidability. -/
 def decidable_eq_of_encodable (α) [encodable α] : decidable_eq α

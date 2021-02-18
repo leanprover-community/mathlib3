@@ -568,7 +568,7 @@ thin_skeleton.map F
 
 /-- Isomorphic functors become equal when lowered to `subobject`.
 (It's not as evil as usual to talk about equality between functors
-because the categories are thin and skeletal.-/
+because the categories are thin and skeletal.) -/
 lemma lower_iso (F₁ F₂ : mono_over X ⥤ mono_over Y) (h : F₁ ≅ F₂) :
   lower F₁ = lower F₂ :=
 thin_skeleton.map_iso_eq h

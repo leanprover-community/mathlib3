@@ -58,7 +58,7 @@ function.injective.of_comp (by rwa comp_mul_left a b)
 
 /--  An element is left-regular if and only if multiplying it on the left by a left-regular element
 is left-regular. -/
-lemma mul_is_left_regular_iff {a : R} (b : R) (ha : is_left_regular a) :
+@[simp] lemma mul_is_left_regular_iff {a : R} (b : R) (ha : is_left_regular a) :
   is_left_regular (a * b) ↔ is_left_regular b :=
 ⟨λ ab, is_left_regular_saturated ab, λ ab, is_left_regular.mul ha ab⟩
 
@@ -74,11 +74,46 @@ end
 
 /--  An element is right-regular if and only if multiplying it on the right with a right-regular
 element is right-regular. -/
-lemma mul_is_right_regular_iff {a : R} (b : R) (ha : is_right_regular a) :
+@[simp] lemma mul_is_right_regular_iff {a : R} (b : R) (ha : is_right_regular a) :
   is_right_regular (b * a) ↔ is_right_regular b :=
 ⟨λ ab, is_right_regular_saturated ab, λ ab, is_right_regular.mul ab ha⟩
 
+/--  Two elements `a` and `b` are regular if and only if both products `a * b` and `b * a`
+are regular. -/
+lemma mul_and_mul_iff {a b : R} :
+  is_regular (a * b) ∧ is_regular (b * a) ↔ is_regular a ∧ is_regular b :=
+begin
+  refine ⟨_, _⟩,
+  { rintros ⟨ab, ba⟩,
+    exact ⟨⟨is_left_regular_saturated ba.left, is_right_regular_saturated ab.right⟩,
+      ⟨is_left_regular_saturated ab.left, is_right_regular_saturated ba.right⟩⟩ },
+  { rintros ⟨ha, hb⟩,
+    exact ⟨⟨(mul_is_left_regular_iff _ ha.left).mpr hb.left,
+        (mul_is_right_regular_iff _ hb.right).mpr ha.right⟩,
+      ⟨(mul_is_left_regular_iff _ hb.left).mpr ha.left,
+        (mul_is_right_regular_iff _ ha.right).mpr hb.right⟩⟩ }
+end
+
+/--  The "most used" implication of `mul_iff`, with split hypotheses, instead of `∧`. -/
+lemma mul_and_mul_if {a b : R} (ab : is_regular (a * b)) (ba : is_regular (b * a)) :
+  is_regular a ∧ is_regular b :=
+mul_and_mul_iff.mp ⟨ab, ba⟩
+
 end semigroup
+
+section comm_semigroup
+
+variable [comm_semigroup R]
+
+/--  A product is regular if and only if the factors are. -/
+lemma mul_iff {a b : R} :
+  is_regular (a * b) ↔ is_regular a ∧ is_regular b :=
+begin
+  refine iff.trans _ mul_and_mul_iff,
+  refine ⟨λ ab, ⟨ab, by rwa mul_comm⟩, λ rab, rab.1⟩
+end
+
+end comm_semigroup
 
 section monoid
 

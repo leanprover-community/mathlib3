@@ -91,7 +91,7 @@ begin
         (mul_is_right_regular_iff _ ha.right).mpr hb.right⟩⟩ }
 end
 
-/--  The "most used" implication of `mul_iff`, with split hypotheses, instead of `∧`. -/
+/--  The "most used" implication of `mul_and_mul_iff`, with split hypotheses, instead of `∧`. -/
 lemma and_of_mul_of_mul (ab : is_regular (a * b)) (ba : is_regular (b * a)) :
   is_regular a ∧ is_regular b :=
 mul_and_mul_iff.mp ⟨ab, ba⟩

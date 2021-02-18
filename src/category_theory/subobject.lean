@@ -34,6 +34,17 @@ and the `semilattice_inf (subobject X)` instance when `[has_images C] [has_binar
 
 This development originally appeared in Bhavik Mehta's "Topos theory for Lean" repository,
 and was ported to mathlib by Scott Morrison.
+
+### Relation to pseudoelements
+
+There is a separate development of pseudoelements in `category_theory.abelian.pseudoelements`,
+as a quotient (but not by isomorphism) of `over X`.
+
+When a morphism `f` has an image, it represents the same pseudoelement.
+In a category with images `pseudoelements X` could be constructed as a quotient of `mono_over X`.
+In fact, in an abelian category (I'm not sure in what generality beyond that),
+`pseudoelements X` agrees with `subobject X`, but we haven't developed this in mathlib yet.
+
 -/
 
 universes v₁ v₂ u₁ u₂

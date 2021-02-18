@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
 import measure_theory.interval_integral
-import analysis.special_functions.pow
+import analysis.special_functions.sqrt
 
 /-!
 # Freek № 9: The Area of a Circle
@@ -52,8 +52,9 @@ end
 lemma abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
 abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
 
-open set real filter measure_theory interval_integral
+open set real measure_theory interval_integral
 open_locale real
+
 variable {r : ℝ}
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
@@ -62,7 +63,7 @@ variable {r : ℝ}
   intentionally because `dist` in `ℝ × ℝ` is defined as the uniform norm, making the `metric.ball`
   in `ℝ × ℝ` a square, not a disc.
   See the module docstring for an explanation of why we don't define the disc in Euclidean space. -/
-def disc (r : ℝ) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
+def disc (r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
 /-- A disc of radius `r` can be represented as the region between the two curves
   `λ x, - sqrt (r ^ 2 - x ^ 2)` and `λ x, sqrt (r ^ 2 - x ^ 2)`. -/
@@ -73,11 +74,9 @@ begin
   simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
-  { cases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) hr with h1 h2,
-    -- have h' := abs_lt_of_sqr_lt_sqr (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) hr,
-    -- obtain ⟨h1, h2⟩ := abs_lt.mp h',
+  { cases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) hr,
     rw [add_comm, ← lt_sub_iff_add_lt] at h,
-    exact ⟨⟨h1, h2.le⟩, sqr_lt.mp h⟩ },
+    exact ⟨⟨left, right.le⟩, sqr_lt.mp h⟩ },
   { rw [add_comm, ← lt_sub_iff_add_lt],
     exact sqr_lt.mpr h.2 },
 end
@@ -89,11 +88,8 @@ lemma continuous_sqrt_sub {a : ℝ} : continuous (λ x, sqrt (a - x ^ 2)) :=
 
 /-- The disc is a `measurable_set`. -/
 theorem measurable_set_disc (hr : 0 ≤ r) : measurable_set (disc r) :=
-begin
-  rw disc_eq_region_between hr,
-  exact measurable_set_region_between continuous_sqrt_sub.neg.measurable
-    continuous_sqrt_sub.measurable measurable_set_Ioc,
-end
+by simpa only [disc_eq_region_between hr] using measurable_set_region_between
+  continuous_sqrt_sub.neg.measurable continuous_sqrt_sub.measurable measurable_set_Ioc
 
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc' (hr : 0 ≤ r) : volume (disc r) = ennreal.of_real (π * r ^ 2) :=
@@ -101,14 +97,13 @@ begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
   let F := λ x, r ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
   suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = π * r ^ 2,
-  { have H : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
+  { have h : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
       λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
+    have H := volume_region_between_eq_integral (h continuous_sqrt_sub.neg) (h continuous_sqrt_sub)
+                measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _)),
     calc  volume (disc r)
-        = volume (region_between (λ x, -f x) (λ x, f x) (Ioc (-r) r)) :
-          by rw disc_eq_region_between hr
-    ... = ennreal.of_real (∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x) :
-          by convert volume_region_between_eq_integral (H continuous_sqrt_sub.neg)
-              (H continuous_sqrt_sub) measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
+        = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between hr
+    ... = ennreal.of_real (∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x) : by convert H
     ... = ennreal.of_real (∫ x in Ioc (-r) r, (λ x, 2 * f x) x) : by simp [two_mul]
     ... = ennreal.of_real (∫ x in (-r)..r, (λ x, 2 * f x) x) : by rw integral_of_le (neg_le_self hr)
     ... = ennreal.of_real (π * r ^ 2) : by rw this },

@@ -960,4 +960,3 @@ end lattice
 end subobject
 
 end category_theory
-#lint

@@ -79,7 +79,7 @@ instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
 instance [unique α] : unique (matrix m n α) := pi.unique
 instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
-instance [inhabited m] [inhabited n] [nontrivial α] : nontrivial (matrix m n α) :=
+instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
 function.nontrivial
 
 /--

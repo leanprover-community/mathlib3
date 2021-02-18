@@ -34,16 +34,14 @@ structure is_regular [has_mul R] (c : R) : Prop :=
 
 namespace is_regular
 
-/-- If multiplication is associative, then the product of left-regular elements is
-left-regular. -/
-lemma left_mul [has_mul R] (mul_assoc : ∀ x y z : R, x * y * z = x * (y * z)) {a b : R}
+/-- In a semigroup, then the product of left-regular elements is left-regular. -/
+lemma is_left_regular.mul [semigroup R] {a b : R}
   (lra : is_left_regular a) (lrb : is_left_regular b) :
   is_left_regular (a * b) :=
 λ c d cd, lrb (lra ((mul_assoc a b c).symm.trans (cd.trans (mul_assoc a b d))))
 
-/-- If multiplication is associative, then the product of right-regular elements is
-right-regular. -/
-lemma right_mul [has_mul R] (mul_assoc : ∀ x y z : R, x * y * z = x * (y * z)) {a b : R}
+/-- In a semigroup, then the product of right-regular elements is right-regular. -/
+lemma is_right_regular.mul [semigroup R] {a b : R}
   (rra : is_right_regular a) (rrb : is_right_regular b) :
   is_right_regular (a * b) :=
 λ c d cd, rra (rrb ((mul_assoc c a b).trans (cd.trans (mul_assoc d a b).symm)))
@@ -99,5 +97,5 @@ open is_regular
 lemma is_unit.is_regular [monoid R] {a : R} : is_unit a → is_regular a :=
 begin
   rintros ⟨u, rfl⟩,
-  exact unit.is_regular _,
+  exact unit.is_regular u,
 end

@@ -758,10 +758,9 @@ begin
   simp only [monomial_eq, ϕ.map_pow, ϕ.map_prod, ϕ.comp_apply, ϕ.map_mul, finsupp.prod_pow],
 end
 
-lemma quotient_map_C_eq_zero {I : ideal R} :
-  ∀ i ∈ I, (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
+lemma quotient_map_C_eq_zero {I : ideal R} {i : R} (hi : i ∈ I) :
+  (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
 begin
-  intros i hi,
   simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient.eq_zero_iff_mem],
   exact ideal.mem_map_of_mem hi
 end

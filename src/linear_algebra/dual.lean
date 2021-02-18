@@ -297,15 +297,6 @@ end
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
 
-instance [H : finite_dimensional K V] : finite_dimensional K (dual K V) :=
-begin
-  classical,
-  refine @linear_equiv.finite_dimensional _ _ _ _ _ _ _ _ _ H,
-  have hB := classical.some_spec (exists_is_basis_finite K V),
-  haveI := classical.choice hB.2,
-  exact is_basis.to_dual_equiv _ hB.1
-end
-
 end vector_space
 
 section dual_pair

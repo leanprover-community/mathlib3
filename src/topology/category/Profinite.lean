@@ -80,7 +80,7 @@ instance : faithful Profinite.to_CompHaus := {}
   Profinite.to_CompHaus ⋙ CompHaus_to_Top = Profinite_to_Top :=
 rfl
 
-namespace Profinite
+section Profinite
 local attribute [instance] connected_component_setoid
 
 /--
@@ -119,7 +119,7 @@ adjunction.left_adjoint_of_equiv Profinite.to_CompHaus_equivalence (λ _ _ _ _ _
 /--
 The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus
 -/
-def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
+def Profinite.to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
 adjunction.adjunction_of_equiv_left _ _
 
 lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
@@ -127,6 +127,6 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
-{ to_is_right_adjoint := ⟨CompHaus.to_Profinite, to_Profinite_adj_to_CompHaus⟩ }
+{ to_is_right_adjoint := ⟨CompHaus.to_Profinite, Profinite.to_Profinite_adj_to_CompHaus⟩ }
 
 end Profinite

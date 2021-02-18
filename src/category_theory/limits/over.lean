@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
 import category_theory.over
+import category_theory.adjunction.opposites
 import category_theory.limits.preserves.basic
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.creates
@@ -192,6 +193,7 @@ def pushout {X Y : C} (f : X ⟶ Y) : under X ⥤ under Y :=
     under.hom_mk
       (pushout.desc (k.right ≫ pushout.inl) pushout.inr (by { simp [←pushout.condition], }))
       (by tidy) }
+
 end
 
 end category_theory.under

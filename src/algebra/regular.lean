@@ -119,21 +119,18 @@ section monoid
 
 variables [monoid R]
 
-/-- An element admitting a right inverse is right-regular. -/
-lemma right_of_mul_eq_one {a ai : R} (h : a * ai = 1) : is_right_regular a :=
-begin
-  intros b c bc,
-  rw [← mul_one b, ← mul_one c, ← h, ← mul_assoc, ← mul_assoc],
-  exact congr_fun (congr_arg has_mul.mul bc) ai,
-end
+/--  In a monoid, `1` is regular. -/
+lemma one : is_regular (1 : R) :=
+⟨λ a b ab, (one_mul a).symm.trans (eq.trans ab (one_mul b)),
+  λ a b ab, (mul_one a).symm.trans (eq.trans ab (mul_one b))⟩
 
 /-- An element admitting a left inverse is left-regular. -/
 lemma left_of_mul_eq_one {a ai : R} (h : ai * a = 1) : is_left_regular a :=
-begin
-  intros b c bc,
-  rw [← one_mul b, ← one_mul c, ← h, mul_assoc, mul_assoc],
-  exact congr_arg (has_mul.mul ai) bc,
-end
+@is_left_regular_saturated R _ ai _ (by { rw h, exact one.left })
+
+/-- An element admitting a right inverse is right-regular. -/
+lemma right_of_mul_eq_one {a ai : R} (h : a * ai = 1) : is_right_regular a :=
+@is_right_regular_saturated R _ ai _ (by { rw h, exact one.right })
 
 /-- If `R` is a monoid, an element in `units R` is regular. -/
 lemma units.is_regular (a : units R) : is_regular (a : R) :=

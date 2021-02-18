@@ -148,12 +148,12 @@ end monoid
 section left_or_right_cancel_semigroup
 
 /--  Elements of a left cancel semigroup are left regular. -/
-lemma is_left_regular_of_left_cancel_semigroup {G : Type*} [left_cancel_semigroup G] (g : G) :
+lemma is_left_regular_of_left_cancel_semigroup [left_cancel_semigroup R] (g : R) :
   is_left_regular g :=
 mul_right_injective g
 
 /--  Elements of a right cancel semigroup are right regular. -/
-lemma is_right_regular_of_right_cancel_semigroup {G : Type*} [right_cancel_semigroup G] (g : G) :
+lemma is_right_regular_of_right_cancel_semigroup [right_cancel_semigroup R] (g : R) :
   is_right_regular g :=
 mul_left_injective g
 

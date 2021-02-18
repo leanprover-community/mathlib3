@@ -281,4 +281,109 @@ noncomputable def cone_profinite (X : Profinite) : cone (diagram X) :=
         exact mem_of_subset_of_mem (sub_of_diagram_map_self f _) (projection_point_mem_of_self I x)
       end }}
 
+/-- Limit object over profinite_diagram -/
+noncomputable def profinite_limit (X : Profinite) : Profinite := (limit_cone (diagram X)).X
+
+/-- Map from X to the limit of profinite_diagram -/
+noncomputable def profinite_limit_map (X : Profinite) : X ⟶ profinite_limit X :=
+(limit_cone_is_limit (profinite_diagram X)).lift (profinite_limit_cone X)
+
+lemma profinite_limit.α (X : Profinite) : ↥(profinite_limit X).to_Top =
+{ u : Π (I : profinite_skeleton X), (profinite_diagram X).obj I // ∀ {I J} (f : I ⟶ J),
+  (profinite_diagram X).map f (u I) = (u J)} := rfl
+
+/-- Explicit form of the map from X to the limit of profinite_diagram -/
+def profinite_limit.image_elem {X : Profinite} (x : X) :
+  (profinite_limit X).to_Top.α :=
+⟨(λ I, X_to_partition_map I x), λ I J f, subtype.ext $ eq.symm $ X_to_partition_map_unique J x
+  (profinite_diagram_map f (X_to_partition_map I x)).1
+  (profinite_diagram_map f (X_to_partition_map I x)).2
+  (mem_of_subset_of_mem (profinite_diagram_map_sub _ _) (X_to_partition_map_point_mem I x))⟩
+
+lemma profinite_limit_map_elem {X : Profinite} (x : X) :
+  (X.profinite_limit_map).1 x = profinite_limit.image_elem x := rfl
+
+/-
+As in https://stacks.math.columbia.edu/tag/08ZY, what remains now is to show
+that profinite_limit_map is a homeomorphism.
+
+First we show injectivity, to do this we make a short API for defining points of.....
+-/
+
+-- TODO: naming
+def profinite_limit_map.obj {X : Profinite} {Z : set X.to_Top.α} (hZ : is_clopen Z)
+  (hZ_ne : Z.nonempty) (hZ_compl : Zᶜ.nonempty) : profinite_skeleton X :=
+begin
+  refine ⟨{Z, Zᶜ}, ⟨_,_,_,_⟩⟩,
+  { simp only [finite.insert, finite_singleton] },
+  { rintros U ⟨hU, _⟩,
+    { refine ⟨hZ, hZ_ne⟩ },
+    rw mem_singleton_iff at H,
+    rw H,
+    refine ⟨is_clopen_compl_iff.2 hZ, hZ_compl⟩ },
+  { simp only [sUnion_singleton, union_compl_self, sUnion_insert] },
+  intros U V hU hV hUV,
+    cases hU with hU hU,
+    { cases hV with hV hV,
+      { rwa [hU, hV] },
+      rw mem_singleton_iff at hV,
+      rw [hU, hV, inter_compl_self] at hUV,
+      exfalso,
+      revert hUV,
+      exact empty_not_nonempty },
+    rw mem_singleton_iff at hU,
+    cases hV with hV hV,
+    { rw [hU, hV, inter_comm, inter_compl_self] at hUV,
+      exfalso,
+      revert hUV,
+      exact empty_not_nonempty },
+    rw mem_singleton_iff at hV,
+    rwa [hU, hV],
+end
+
+lemma profinite_limit_map.obj_val {X : Profinite} {Z : set X.to_Top.α} (hZ : is_clopen Z)
+  (hZ_ne : Z.nonempty) (hZ_compl : Zᶜ.nonempty) :
+  (profinite_limit_map.obj hZ hZ_ne hZ_compl).1 = {Z, Zᶜ} := rfl
+
+
+lemma profinite_limit_map.mem {X : Profinite} {x y : X} {Z : set X.to_Top.α} (hZ : is_clopen Z)
+  (hxy : (X.profinite_limit_map).1 x = (X.profinite_limit_map).1 y) (hx : x ∈ Z) : y ∈ Z :=
+begin
+  rw [profinite_limit_map_elem x, profinite_limit_map_elem y] at hxy,
+  by_cases (Zᶜ).nonempty,
+  { set I := profinite_limit_map.obj hZ (nonempty_of_mem hx) h,
+    have hXY : (X_to_partition_map I x).1 = (X_to_partition_map I y).1,
+    { change ((profinite_limit.image_elem x).1 I).1 = ((profinite_limit.image_elem y).1 I).1,
+      rw hxy },
+    rw X_to_partition_map_unique I x Z (by {left, refl}) hx at hXY,
+    rw hXY, exact X_to_partition_map_point_mem I y,
+  },
+  rw [not_nonempty_iff_eq_empty, compl_empty_iff] at h,
+  rw h,
+  exact mem_univ y,
+end
+
+/-- Injectivity of profinite_limit_map -/
+lemma profinite_limit_map.injective (X : Profinite) : function.injective (profinite_limit_map X) :=
+begin
+  intros x y hxy,
+  rw ←singleton_eq_singleton_iff,
+  rw ←(totally_disconnected_space_iff_connected_component_singleton.1 X.is_totally_disconnected),
+  rw connected_component_eq_Inter_clopen,
+  rw ←(totally_disconnected_space_iff_connected_component_singleton.1 X.is_totally_disconnected),
+  rw connected_component_eq_Inter_clopen,
+  suffices : ∀ Z : set X.to_Top.α, is_clopen Z → (x ∈ Z ↔ y ∈ Z),
+  { apply eq_of_subset_of_subset,
+    -- TODO: symmetry??
+    { apply subset_Inter,
+      rintro ⟨Z, ⟨hZ, hyZ⟩⟩,
+      exact Inter_subset (λ Z : {Z // is_clopen Z ∧ x ∈ Z}, ↑Z) ⟨Z, ⟨hZ, (this Z hZ).2 hyZ⟩⟩ },
+    apply subset_Inter,
+    rintro ⟨Z, ⟨hZ, hxZ⟩⟩,
+    exact Inter_subset (λ Z : {Z // is_clopen Z ∧ y ∈ Z}, ↑Z) ⟨Z, ⟨hZ, (this Z hZ).1 hxZ⟩⟩ },
+  intros Z hZ,
+  refine ⟨λ hx, profinite_limit_map.mem hZ hxy hx, λ hy, profinite_limit_map.mem hZ hxy.symm hy⟩,
+end
+
+
 end Profinite

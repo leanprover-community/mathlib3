@@ -35,6 +35,14 @@ and the `semilattice_inf (subobject X)` instance when `[has_images C] [has_binar
 This development originally appeared in Bhavik Mehta's "Topos theory for Lean" repository,
 and was ported to mathlib by Scott Morrison.
 
+### Implementation note
+
+Currently we describe `pullback`, `map`, etc., as functors.
+It may be better to just say that they are monotone functions,
+and even avoid using categorical language entirely when describing `subobject X`.
+(It's worth keeping this in mind in future use; it should be a relatively easy change here
+if it looks preferable.)
+
 ### Relation to pseudoelements
 
 There is a separate development of pseudoelements in `category_theory.abelian.pseudoelements`,
@@ -645,13 +653,24 @@ end
 def map_iso {A B : C} (e : A ≅ B) : subobject A ≌ subobject B :=
 lower_equivalence (mono_over.map_iso e)
 
-/-- In fact, there's a type level bijection between the subobjects of isomorphic objects. -/
+/-- In fact, there's a type level bijection between the subobjects of isomorphic objects,
+which preserves the order. -/
 @[simps]
-def map_iso_to_equiv (e : X ≅ Y) : subobject X ≃ subobject Y :=
+def map_iso_to_order_iso (e : X ≅ Y) : subobject X ≃o subobject Y :=
 { to_fun := (map e.hom).obj,
   inv_fun := (map e.inv).obj,
   left_inv := λ g, by simp_rw [← map_comp, e.hom_inv_id, map_id],
-  right_inv := λ g, by simp_rw [← map_comp, e.inv_hom_id, map_id] }
+  right_inv := λ g, by simp_rw [← map_comp, e.inv_hom_id, map_id],
+  map_rel_iff' := λ A B, begin
+    dsimp, fsplit,
+    { intro h,
+      apply_fun (map e.inv).obj at h,
+      simp_rw [← map_comp, e.hom_inv_id, map_id] at h,
+      exact h, },
+    { intro h,
+      apply_fun (map e.hom).obj at h,
+      exact h, },
+  end }
 
 /-- `map f : subobject X ⥤ subobject Y` is
 the left adjoint of `pullback f : subobject Y ⥤ subobject X`. -/

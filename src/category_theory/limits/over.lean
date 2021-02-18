@@ -89,6 +89,8 @@ example [has_colimits C] : preserves_colimits (forget X) := infer_instance
 section
 variables [has_pullbacks C]
 
+open tactic
+
 /-- When `C` has pullbacks, a morphism `f : X ⟶ Y` induces a functor `over Y ⥤ over X`,
 by pulling back a morphism along `f`. -/
 @[simps]

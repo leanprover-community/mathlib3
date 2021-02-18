@@ -102,7 +102,7 @@ begin
   exact mem_ess_image_of_unit_is_iso A,
 end
 
-universes u₃ v₃
+universes v₃ u₃
 variables {E : Type u₃} [category.{v₃} E]
 
 /-- Composition of reflective functors. -/

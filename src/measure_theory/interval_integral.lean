@@ -1420,28 +1420,4 @@ begin
   { exact (hcv.mul hcu').interval_integrable },
 end
 
-/-!
-### Integration
--/
-open real set
-
-@[simp]
-lemma integral_pow (n : ℕ) : ∫ x : ℝ in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
-begin
-  have hderiv : deriv (λ x : ℝ, x^(n + 1) / (n + 1)) = λ x, x ^ n,
-  { have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast nat.succ_ne_zero n,
-    ext,
-    simp [mul_div_assoc, mul_div_cancel' _ hne] },
-  rw integral_deriv_eq_sub' _ hderiv;
-  norm_num [div_sub_div_same, (continuous_pow n).continuous_on],
-end
-
-@[simp]
-lemma integral_id : ∫ x in a..b, x = (b^2 - a^2) / 2 :=
-by simpa using integral_pow 1
-
-@[simp]
-lemma integral_one : ∫ x in a..b, (1:ℝ) = b - a :=
-by simpa using integral_pow 0
-
 end interval_integral

@@ -36,7 +36,7 @@ log, sin, cos, tan, arcsin, arccos, arctan, angle, argument
 
 noncomputable theory
 open_locale classical topological_space filter
-open set filter interval_integral
+open set filter
 
 namespace complex
 
@@ -555,10 +555,6 @@ continuous_sin.continuous_on
 
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
-@[simp]
-lemma integral_sin {a b : ℝ}: ∫ x in a..b, sin x = cos a - cos b :=
-by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
-
 lemma has_strict_deriv_at_cos (x : ℝ) : has_strict_deriv_at cos (-sin x) x :=
 (complex.has_strict_deriv_at_cos x).real_of_complex
 
@@ -587,10 +583,6 @@ differentiable_cos.continuous
 lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_on
 
 lemma measurable_cos : measurable cos := continuous_cos.measurable
-
-@[simp]
-lemma integral_cos {a b : ℝ}: ∫ x in a..b, cos x = sin b - sin a :=
-by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 
 lemma has_strict_deriv_at_sinh (x : ℝ) : has_strict_deriv_at sinh (cosh x) x :=
 (complex.has_strict_deriv_at_sinh x).real_of_complex
@@ -3161,20 +3153,6 @@ tan_local_homeomorph.times_cont_diff_at_symm_deriv (by simpa) trivial (has_deriv
   (times_cont_diff_at_tan.2 this)
 
 lemma measurable_arctan : measurable arctan := continuous_arctan.measurable
-
-@[simp]
-lemma integral_inv_one_add_sq {a b : ℝ} : ∫ x : ℝ in a..b, (1 + x^2)⁻¹ = arctan b - arctan a :=
-begin
-  simp only [← one_div],
-  refine integral_deriv_eq_sub' _ _ _ (continuous_const.div _ (λ x, _)).continuous_on;
-  norm_num,
-  continuity,
-  nlinarith,
-end
-
-lemma integral_one_div_one_add_sq {a b : ℝ} :
-  ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
-by simp
 
 end real
 

@@ -22,6 +22,10 @@ We define `subobject X` as the quotient (by isomorphisms) of
 Here `mono_over X` is a thin category (a pair of objects has at most one morphism between them),
 so we can think of it as a preorder. However as it is not skeletal, it is not a partial order.
 
+There is a coercion from `subobject X` back to the ambient category `C`
+(using choice to pick a representative), and for `P : subobject X`,
+`P.arrow : (P : C) ⟶ X` is the inclusion morphism.
+
 We provide
 * `def pullback [has_pullbacks C] (f : X ⟶ Y) : subobject Y ⥤ subobject X`
 * `def map (f : X ⟶ Y) [mono f] : subobject X ⥤ subobject Y`

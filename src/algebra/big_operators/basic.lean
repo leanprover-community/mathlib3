@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import data.finset.fold
 import data.equiv.mul_add
 import tactic.abel
+import tactic.linarith
 
 /-!
 # Big operators

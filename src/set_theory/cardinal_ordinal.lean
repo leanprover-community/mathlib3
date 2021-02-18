@@ -17,10 +17,10 @@ using ordinals.
 
 * The function `cardinal.aleph'` gives the cardinals listed by their ordinal
   index, and is the inverse of `cardinal.aleph_idx`.
-  `aleph' n = n`, `aleph' ω = ω`, `aleph' (ω + 1) = ℵ₁`, etc. It is an order isomorphism
-  between ordinals and cardinals.
+  `aleph' n = n`, `aleph' ω = cardinal.omega = ℵ₀`, `aleph' (ω + 1) = ℵ₁`, etc.
+  It is an order isomorphism between ordinals and cardinals.
 * The function `cardinal.aleph` gives the infinite cardinals listed by their
-  ordinal index. `aleph 0 = ω`, `aleph 1 = succ ω` is the first
+  ordinal index. `aleph 0 = cardinal.omega = ℵ₀`, `aleph 1 = ℵ₁` is the first
   uncountable cardinal, and so on.
 
 ## Main Statements
@@ -257,7 +257,8 @@ begin
   refine lt_of_le_of_lt (_ : _ ≤ card (typein (<) (g p)).succ * card (typein (<) (g p)).succ) _,
   { have : {q|s q p} ⊆ (insert (g p) {x | x < (g p)}).prod (insert (g p) {x | x < (g p)}),
     { intros q h,
-      simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj] at h,
+      simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
+        at h,
       exact max_le_iff.1 (le_iff_lt_or_eq.2 $ h.imp_right and.left) },
     suffices H : (insert (g p) {x | r x (g p)} : set α) ≃ ({x | r x (g p)} ⊕ punit),
     { exact ⟨(set.embedding_of_subset _ _ this).trans

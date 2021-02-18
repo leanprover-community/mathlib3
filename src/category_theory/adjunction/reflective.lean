@@ -102,4 +102,14 @@ begin
   exact mem_ess_image_of_unit_is_iso A,
 end
 
+universes u₃ v₃
+variables {E : Type u₃} [category.{v₃} E]
+
+/-- Composition of reflective functors. -/
+instance reflective.comp (F : C ⥤ D) (G : D ⥤ E) [Fr : reflective F] [Gr : reflective G] :
+  reflective (F ⋙ G) :=
+{ to_is_right_adjoint := ⟨Gr.left ⋙ Fr.left, adjunction.comp _ _ Gr.adj Fr.adj⟩,
+  to_full := full.comp F G,
+  to_faithful := faithful.comp F G, }
+
 end category_theory

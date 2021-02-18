@@ -180,6 +180,24 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
   end,
   to_equiv := e }
 
+/-- If an bijective map `e : α ≃ β` is continuous and closed, then it is a homeomorphism. -/
+def homeomorph_of_continuous_closed (e : α ≃ β) (h₁ : continuous e) (h₂ : is_closed_map e) :
+  α ≃ₜ β :=
+{ continuous_to_fun := h₁,
+  continuous_inv_fun :=
+  begin
+    rw continuous_iff_is_closed,
+    intros s hs,
+    convert ← h₂ s hs using 1,
+    apply e.image_eq_preimage
+  end,
+  .. e }
+
+/-- If an bijective map `e : α ≃ β` between a compact and a Hausdorff space is continuous,
+then it is a homeomorphism.  -/
+def homeomorph_of_continuous_equiv [compact_space α] [t2_space β] (e : α ≃ β) (h : continuous e) :
+  α ≃ₜ β := homeomorph_of_continuous_closed e h (continuous.is_closed_map h)
+
 @[simp] lemma comp_continuous_on_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) :
   continuous_on (h ∘ f) s ↔ continuous_on f s :=
 h.inducing.continuous_on_iff.symm

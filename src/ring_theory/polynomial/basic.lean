@@ -768,7 +768,7 @@ end
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,
 multivariate version. -/
 lemma mem_ideal_of_coeff_mem_ideal (I : ideal (mv_polynomial σ R)) (p : mv_polynomial σ R)
-  (hcoe : ∀ (m : σ →₀ ℕ), (p.coeff m) ∈ I.comap C) : p ∈ I :=
+  (hcoe : ∀ (m : σ →₀ ℕ), p.coeff m ∈ I.comap C) : p ∈ I :=
 begin
   rw as_sum p,
   suffices : ∀ m ∈ p.support, monomial m (mv_polynomial.coeff m p) ∈ I,

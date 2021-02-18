@@ -22,6 +22,10 @@ We define `subobject X` as the quotient (by isomorphisms) of
 Here `mono_over X` is a thin category (a pair of objects has at most one morphism between them),
 so we can think of it as a preorder. However as it is not skeletal, it is not a partial order.
 
+There is a coercion from `subobject X` back to the ambient category `C`
+(using choice to pick a representative), and for `P : subobject X`,
+`P.arrow : (P : C) ⟶ X` is the inclusion morphism.
+
 We provide
 * `def pullback [has_pullbacks C] (f : X ⟶ Y) : subobject Y ⥤ subobject X`
 * `def map (f : X ⟶ Y) [mono f] : subobject X ⥤ subobject Y`
@@ -562,26 +566,50 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+/--
+Use choice to pick a representative `mono_over X` for each `subobject X`.
+-/
 noncomputable
 def representative {X : C} : subobject X ⥤ mono_over X :=
 thin_skeleton.from_thin_skeleton _
 
+
+/--
+Starting with `A : mono_over X`, we can take its equivalence class in `subobject X`
+then pick an arbitrary representative using `representative.obj`.
+This is isomorphic (in `mono_over X`) to the original `A`.
+-/
 noncomputable
 def representative_iso {X : C} (A : mono_over X) :
   representative.obj ((to_thin_skeleton _).obj A) ≅ A :=
 (thin_skeleton.from_thin_skeleton _).as_equivalence.counit_iso.app A
 
+/--
+Use choice to pick a representative underlying object in `C` for any `subobject X`.
+
+Prefer to use the coercion `P : C` rather than explicitly writing `underlying.obj P`.
+-/
 noncomputable
 def underlying {X : C} : subobject X ⥤ C :=
 representative ⋙ mono_over.forget _ ⋙ over.forget _
 
-noncomputable
-def underlying_iso {X Y : C} (f : X ⟶ Y) [mono f] : underlying.obj (subobject.mk f) ≅ X :=
-(mono_over.forget _ ⋙ over.forget _).map_iso (representative_iso (mono_over.mk' f))
-
 instance : has_coe (subobject X) C :=
 { coe := λ Y, underlying.obj Y, }
 
+@[simp] lemma underlying_as_coe {X : C} (P : subobject X) : underlying.obj P = P := rfl
+
+/--
+If we construct a `subobject Y` from an explicit `f : X ⟶ Y` with `[mono f]`,
+then pick an arbitrary choice of underlying object `(subobject.mk f : C)` back in `C`,
+it is isomorphic (in `C`) to the original `X`.
+-/
+noncomputable
+def underlying_iso {X Y : C} (f : X ⟶ Y) [mono f] : (subobject.mk f : C) ≅ X :=
+(mono_over.forget _ ⋙ over.forget _).map_iso (representative_iso (mono_over.mk' f))
+
+/--
+The morphism in `C` from the arbitrarily chosen underlying object to the ambient object.
+-/
 noncomputable
 def arrow {X : C} (Y : subobject X) : (Y : C) ⟶ X :=
 (representative.obj Y).val.hom

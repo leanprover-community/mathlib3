@@ -53,6 +53,7 @@ lemma abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
 abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
 
 open set real filter measure_theory interval_integral
+open_locale real
 variable {r : ℝ}
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
@@ -95,11 +96,11 @@ begin
 end
 
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
-theorem area_disc' (hr : 0 ≤ r) : volume (disc r) = ennreal.of_real (pi * r ^ 2) :=
+theorem area_disc' (hr : 0 ≤ r) : volume (disc r) = ennreal.of_real (π * r ^ 2) :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
   let F := λ x, r ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
-  suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = pi * r ^ 2,
+  suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = π * r ^ 2,
   { have H : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
       λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
     calc  volume (disc r)
@@ -110,7 +111,7 @@ begin
               (H continuous_sqrt_sub) measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
     ... = ennreal.of_real (∫ x in Ioc (-r) r, (λ x, 2 * f x) x) : by simp [two_mul]
     ... = ennreal.of_real (∫ x in (-r)..r, (λ x, 2 * f x) x) : by rw integral_of_le (neg_le_self hr)
-    ... = ennreal.of_real (pi * r ^ 2) : by rw this },
+    ... = ennreal.of_real (π * r ^ 2) : by rw this },
   cases hr.eq_or_lt with heq hlt, { simp [← heq] },
   have hderiv : ∀ x ∈ Ioo (-r) r, has_deriv_at F (2 * f x) x,
   { rintros x ⟨hx1, hx2⟩,
@@ -138,5 +139,5 @@ begin
   have hcont' := (continuous_const.mul continuous_sqrt_sub).continuous_on,
   calc  ∫ x in (-r)..r, (λ x, 2 * f x) x
       = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr) hcont hderiv hcont'
-  ... = pi * r ^ 2 : by simpa [F, inv_mul_cancel hlt.ne', ← mul_div_assoc] using mul_comm (r^2) pi,
+  ... = π * r ^ 2 : by simpa [F, inv_mul_cancel hlt.ne', ← mul_div_assoc] using mul_comm (r^2) π,
 end

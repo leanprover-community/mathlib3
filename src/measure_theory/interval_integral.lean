@@ -1369,7 +1369,7 @@ end
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
   has a derivative at `f' x` for all `x` in `(a, b)`, and `f'` is continuous on `[a, b]`, then
   `∫ y in a..b, f' y` equals `f b - f a`. -/
-theorem integral_eq_sub_of_has_deriv_at'_of_le {f f' : ℝ → E} {a b : ℝ} (hab : a ≤ b)
+theorem integral_eq_sub_of_has_deriv_at'_of_le (hab : a ≤ b)
   (hcont : continuous_on f (interval a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=

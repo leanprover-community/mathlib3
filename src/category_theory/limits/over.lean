@@ -98,6 +98,7 @@ def pullback {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
       (pullback.lift (pullback.fst ≫ k.left) pullback.snd (by simp [pullback.condition]))
       (by tidy) }
 
+/-- `over.map f` is left adjoint to `over.pullback f`. -/
 def map_pullback_adj {A B : C} (f : A ⟶ B) :
   over.map f ⊣ pullback f :=
 adjunction.mk_of_hom_equiv
@@ -110,14 +111,22 @@ adjunction.mk_of_hom_equiv
       dsimp,
       rw [← over.w Y, category.assoc, pullback.condition, category.assoc], refl,
     end,
-    left_inv := by tidy,
-    right_inv := λ Y, by { ext, dsimp, simp, dsimp, rw [pullback.lift_snd, ← over.w Y], refl } } }
+    left_inv := λ X, by { ext, dsimp, simp, },
+    right_inv := λ Y, begin
+      ext, dsimp,
+      simp only [pullback.lift_fst],
+      dsimp,
+      rw [pullback.lift_snd, ← over.w Y],
+      refl,
+    end } }
 
+/-- pullback (𝟙 A) : over A ⥤ over A is the identity functor. -/
 def pullback_id {A : C} [has_pullbacks C] : pullback (𝟙 A) ≅ 𝟭 _ :=
 adjunction.right_adjoint_uniq
   (map_pullback_adj _)
   (adjunction.id.of_nat_iso_left over.map_id.symm)
 
+/-- pullback commutes with composition (up to natural isomorphism). -/
 def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_pullbacks C] :
   pullback (f ≫ g) ≅ pullback g ⋙ pullback f :=
 adjunction.right_adjoint_uniq

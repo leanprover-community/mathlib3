@@ -182,19 +182,14 @@ finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_l
 be `0` if the space is infinite-dimensional. -/
 noncomputable def findim (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] : ℕ :=
-if h : dim K V < omega.{v} then classical.some (lt_omega.1 h) else 0
+(dim K V).to_nat
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
 `findim`. -/
 lemma findim_eq_dim (K : Type u) (V : Type v) [field K]
   [add_comm_group V] [vector_space K V] [finite_dimensional K V] :
   (findim K V : cardinal.{v}) = dim K V :=
-begin
-  have : findim K V = classical.some (lt_omega.1 (dim_lt_omega K V)) :=
-    dif_pos (dim_lt_omega K V),
-  rw this,
-  exact (classical.some_spec (lt_omega.1 (dim_lt_omega K V))).symm
-end
+by rw [findim, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
 
 lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
   (h : ¬finite_dimensional K V) : findim K V = 0 :=

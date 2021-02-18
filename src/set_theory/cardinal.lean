@@ -758,6 +758,28 @@ end
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
 by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
 
+noncomputable def to_nat (c : cardinal) : ℕ :=
+if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0
+
+lemma cast_to_nat_of_lt_omega {c : cardinal} (h : c < omega) :
+  ↑c.to_nat = c :=
+by rw [to_nat, dif_pos h, ← classical.some_spec (lt_omega.1 h)]
+
+@[simp]
+lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
+begin
+  rw [to_nat, dif_pos (nat_lt_omega n), ← nat_cast_inj],
+  exact (classical.some_spec (lt_omega.1 (nat_lt_omega n))).symm,
+end
+
+@[simp]
+lemma mk_to_nat_of_infinite [h : infinite α] : (mk α).to_nat = 0 :=
+dif_neg (not_lt_of_le (infinite_iff.1 h))
+
+@[simp]
+lemma mk_to_nat_eq_card [fintype α] : (mk α).to_nat = fintype.card α :=
+by simp [fintype_card]
+
 lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
 begin
   rw [countable_iff_exists_injective], split,
@@ -1091,3 +1113,18 @@ end cardinal
 
 lemma equiv.cardinal_eq {α β} : α ≃ β → cardinal.mk α = cardinal.mk β :=
 cardinal.eq_congr
+
+section fincard
+open cardinal
+
+noncomputable def fincard (α : Type*) : ℕ := (mk α).to_nat
+
+@[simp]
+lemma infinite.fincard [h : infinite α] : fincard α = 0 :=
+mk_to_nat_of_infinite
+
+@[simp]
+lemma fintype.fincard_eq_card [fintype α] : fincard α = fintype.card α :=
+mk_to_nat_eq_card
+
+end fincard

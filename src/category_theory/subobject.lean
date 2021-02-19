@@ -631,6 +631,13 @@ lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
 
+/-- Two morphisms into a subobject are equal exactly if
+the morphisms into the ambient object are equal -/
+@[ext]
+lemma eq_of_comp_arrow_eq {X Y : C} {P : subobject Y}
+  {f g : X ⟶ P} (h : f ≫ P.arrow = g ≫ P.arrow) : f = g :=
+(cancel_mono P.arrow).mp h
+
 -- TODO surely there is a cleaner proof here
 lemma le_of_comm {B : C} {X Y : subobject B} (f : (X : C) ⟶ (Y : C)) (w : f ≫ Y.arrow = X.arrow) :
   X ≤ Y :=
@@ -658,9 +665,37 @@ given the evidence `h : P.factors f` that such a factorisation exists. -/
 def factor_thru {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P :=
 classical.some h
 
-@[simp] lemma factor_thru_arrow {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) :
+@[simp, reassoc] lemma factor_thru_arrow {X Y : C} (P : subobject Y) (f : X ⟶ Y) (h : factors P f) :
   P.factor_thru f h ≫ P.arrow = f :=
 classical.some_spec h
+
+@[simp] lemma factor_thru_eq_zero [has_zero_morphisms C]
+  {X Y : C} {P : subobject Y} {f : X ⟶ Y} {h : factors P f} :
+  P.factor_thru f h = 0 ↔ f = 0 :=
+begin
+  fsplit,
+  { intro w,
+    replace w := w =≫ P.arrow,
+    simpa using w, },
+  { rintro rfl,
+    apply (cancel_mono P.arrow).mp,
+    simp, },
+end
+
+lemma factors_comp_arrow {X Y : C} {P : subobject Y} (f : X ⟶ P) : P.factors (f ≫ P.arrow) :=
+⟨f, rfl⟩
+
+lemma factors_of_factors_right
+  {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) {g : Y ⟶ Z} (h : P.factors g) : P.factors (f ≫ g) :=
+⟨f ≫ P.factor_thru g h, by simp⟩
+
+@[simp]
+lemma factor_thru_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) (g : Y ⟶ Z) (h : P.factors g) :
+  f ≫ P.factor_thru g h = P.factor_thru (f ≫ g) (factors_of_factors_right f h) :=
+begin
+  apply (cancel_mono P.arrow).mp,
+  simp,
+end
 
 end subobject
 
@@ -724,6 +759,7 @@ lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).inv
 
+@[simp]
 lemma kernel_subobject_arrow_comp :
   (kernel_subobject f).arrow ≫ f = 0 :=
 by simp [kernel_subobject_arrow, kernel.condition]
@@ -1014,16 +1050,20 @@ lemma top_eq_id {B : C} : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 /-- The object underlying `⊤ : subobject B` is (up to isomorphism) `B`. -/
 def top_coe_iso_self {B : C} : ((⊤ : subobject B) : C) ≅ B := underlying_iso _
 
+@[simp]
+lemma underlying_iso_id_eq_top_coe_iso_self {B : C} : underlying_iso (𝟙 B) = top_coe_iso_self :=
+rfl
+
+@[simp, reassoc]
+lemma underlying_iso_inv_top_arrow {B : C} :
+  top_coe_iso_self.inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
+underlying_iso_arrow _
+
 lemma map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ = quotient.mk' (mono_over.mk' f) :=
 quotient.sound' ⟨mono_over.map_top f⟩
 
-@[simp]
-lemma underlying_iso_inv_top_arrow {B : C} :
-  (underlying_iso (𝟙 B)).inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
-underlying_iso_arrow _
-
 lemma top_factors {A B : C} (f : A ⟶ B) : (⊤ : subobject B).factors f :=
-⟨f ≫ (underlying_iso _).inv, by simp⟩
+⟨f ≫ top_coe_iso_self.inv, by simp⟩
 
 section
 variables [has_pullbacks C]
@@ -1111,7 +1151,6 @@ instance {B : C} : semilattice_inf_top (subobject B) :=
   le_inf := le_inf,
   ..subobject.order_top }
 
-
 lemma factors_left_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
   (h : (X ⊓ Y).factors f) : X.factors f :=
 ⟨classical.some h ≫ underlying.map (hom_of_le (inf_le_left X Y)), by simp [classical.some_spec h]⟩
@@ -1133,6 +1172,12 @@ begin
     by simp⟩,
 end⟩
 
+lemma inf_arrow_factors_left {B : C} (X Y : subobject B) : X.factors (X ⊓ Y).arrow :=
+⟨underlying.map (hom_of_le (inf_le_left X Y)), by simp⟩
+
+lemma inf_arrow_factors_right {B : C} (X Y : subobject B) : Y.factors (X ⊓ Y).arrow :=
+⟨underlying.map (hom_of_le (inf_le_right X Y)), by simp⟩
+
 @[simp]
 lemma finset_inf_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}
   (f : A ⟶ B) [has_image f] :
@@ -1141,7 +1186,25 @@ begin
   classical,
   apply finset.induction_on s,
   { simp [top_factors], },
-  { intros X s nm ih, simp [ih], }
+  { intros i s nm ih, simp [ih], }
+end
+
+-- `i` is explicit here because often we'd like to defer a proof of `m`
+lemma finset_inf_arrow_factors {I : Type*} {B : C} (s : finset I) (P : I → subobject B)
+  (i : I) (m : i ∈ s) : (P i).factors (s.inf P).arrow :=
+begin
+  revert i m,
+  classical,
+  apply finset.induction_on s,
+  { rintro _ ⟨⟩, },
+  { intros i s nm ih j m,
+    rw [finset.inf_insert],
+    simp only [finset.mem_insert] at m, rcases m with (rfl|m),
+    { rw ←factor_thru_arrow _ _ (inf_arrow_factors_left _ _),
+      exact factors_comp_arrow _, },
+    { rw ←factor_thru_arrow _ _ (inf_arrow_factors_right _ _),
+      apply factors_of_factors_right,
+      exact ih _ m, } },
 end
 
 lemma inf_eq_map_pullback' {A : C} (f₁ : mono_over A) (f₂ : subobject A) :

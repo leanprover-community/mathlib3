@@ -181,9 +181,13 @@ begin
   simp [←this]
 end
 
-@[simp] lemma nth_le_to_list (b : buffer α) {i : ℕ} (h) :
+lemma nth_le_to_list (b : buffer α) {i : ℕ} (h) :
   b.to_list.nth_le i h = b.read ⟨i, by simpa using h⟩ :=
 nth_le_to_list' _ _ _
+
+lemma read_eq_nth_le_to_list (b : buffer α) (i) :
+  b.read i = b.to_list.nth_le i (by simpa using i.is_lt) :=
+by simp [nth_le_to_list]
 
 lemma read_singleton (c : α) : [c].to_buffer.read ⟨0, by simp⟩ = c :=
 by simp

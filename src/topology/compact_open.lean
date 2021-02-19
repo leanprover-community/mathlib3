@@ -7,6 +7,7 @@ Type of continuous maps and the compact-open topology on them.
 -/
 import topology.subset_properties
 import topology.continuous_map
+import topology.homeomorph
 import tactic.tidy
 
 open set
@@ -104,15 +105,76 @@ end
 
 end coev
 
-section adj
+section curry
 
-/-- If a map α × β → γ is continuous, then its curried form α → C(β, γ) is continuous. -/
-lemma continuous_curry (f : C(α × β, γ)) : continuous (curry f) :=
-have hf : curry f = continuous_map.induced f.continuous_to_fun ∘ coev _ _, by { ext, refl },
+/-- Auxiliary definition, see `continuous_map.curry` and `homeomorph.curry`. -/
+def curry' (f : C(α × β, γ)) (a : α) : C(β, γ) := ⟨function.curry f a⟩
+
+/-- If a map `α × β → γ` is continuous, then its curried form `α → C(β, γ)` is continuous. -/
+lemma continuous_curry' (f : C(α × β, γ)) : continuous (curry' f) :=
+have hf : curry' f = continuous_map.induced f.continuous_to_fun ∘ coev _ _, by { ext, refl },
 hf ▸ continuous.comp (continuous_induced f.continuous_to_fun) continuous_coev
 
-end adj
+/-- To show continuity of a map `α → C(β, γ)`, it suffices to show that its uncurried form
+    `α × β → γ` is continuous. -/
+lemma continuous_of_continuous_uncurry (f : α → C(β, γ))
+  (h : continuous (function.uncurry (λ x y, f x y))) : continuous f :=
+by { convert continuous_curry' ⟨_, h⟩, ext, refl }
+
+/-- The curried form of a continuous map `α × β → γ` as a continuous map `α → C(β, γ)`.
+    If `a × β` is locally compact, this is continuous. If `α` and `β` are both locally
+    compact, then this is a homeomorphism, see `homeomorph.curry`. -/
+def curry (f : C(α × β, γ)) : C(α, C(β, γ)) :=
+⟨_, continuous_curry' f⟩
+
+/-- The currying process is a continuous map between function spaces. -/
+lemma continuous_curry [locally_compact_space (α × β)] :
+  continuous (curry : C(α × β, γ) → C(α, C(β, γ))) :=
+begin
+  apply continuous_of_continuous_uncurry,
+  apply continuous_of_continuous_uncurry,
+  rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm,
+  convert continuous_ev,
+  { ext1, cases x, cases x_snd, refl },
+  apply_instance
+end
+
+/-- The uncurried form of a continuous map `α → C(β, γ)` is a continuous map `α × β → γ`. -/
+lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
+  continuous (function.uncurry (λ x y, f x y)) :=
+have hf : function.uncurry (λ x y, f x y) = ev β γ ∘ prod.map f id, by { ext, refl },
+hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 id.2
+
+/-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
+    locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
+    function spaces, see `homeomorph.curry`. -/
+def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
+⟨_, continuous_uncurry_of_continuous f⟩
+
+/-- The uncurrying process is a continuous map between function spaces. -/
+lemma continuous_uncurry [locally_compact_space α] [locally_compact_space β] :
+  continuous (uncurry : C(α, C(β, γ)) → C(α × β, γ)) :=
+begin
+  apply continuous_of_continuous_uncurry,
+  rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _),
+  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev id.2);
+  apply_instance
+end
+
+end curry
 
 end compact_open
 
 end continuous_map
+
+open continuous_map
+
+namespace homeomorph
+variables {α : Type*} {β : Type*} {γ : Type*}
+variables [topological_space α] [topological_space β] [topological_space γ]
+
+/-- Currying as a homeomorphism between the function spaces `C(α × β, γ)` and `C(α, C(β, γ))`. -/
+def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ) ≃ₜ C(α, C(β, γ)) :=
+⟨⟨curry, uncurry, by tidy, by tidy⟩, continuous_curry, continuous_uncurry⟩
+
+end homeomorph

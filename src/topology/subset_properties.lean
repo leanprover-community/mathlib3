@@ -635,6 +635,21 @@ compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
 (local_compact_nhds : ∀ (x : α) (n ∈ 𝓝 x), ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s)
 
+instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space α]
+  [topological_space β] [locally_compact_space α] [locally_compact_space β] :
+  locally_compact_space (α × β) :=
+{ local_compact_nhds :=
+  begin
+    rintros ⟨x, y⟩ n hn,
+    obtain ⟨u, hu, v, hv, huv⟩ := mem_nhds_prod_iff.1 hn,
+    obtain ⟨a, ha₁, ha₂, ha₃⟩ := locally_compact_space.local_compact_nhds _ _ hu,
+    obtain ⟨b, hb₁, hb₂, hb₃⟩ := locally_compact_space.local_compact_nhds _ _ hv,
+    refine ⟨a.prod b, _, _, _⟩,
+    { exact mem_nhds_prod_iff.2 ⟨_, ha₁, _, hb₁, subset.rfl⟩ },
+    { exact subset.trans (prod_mono ha₂ hb₂) huv },
+    { exact is_compact.prod ha₃ hb₃ }
+  end }
+
 /-- A reformulation of the definition of locally compact space: In a locally compact space,
   every open set containing `x` has a compact subset containing `x` in its interior. -/
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}

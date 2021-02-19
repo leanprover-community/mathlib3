@@ -244,7 +244,7 @@ begin
   exact mul_le_mul' ha hb
 end
 
-lemma prod_le_prod' {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
+lemma prod_le_prod'' {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
   (h1 : ∀(x ∈ s), f x ≤ g x) : (∏ x in s, f x) ≤ (∏ x in s, g x) :=
 begin
   classical,
@@ -258,7 +258,7 @@ end
 lemma prod_le_one' {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
   (h1 : ∀(x ∈ s), f x ≤ 1) : (∏ x in s, f x) ≤ 1 :=
 begin
-  convert ← prod_le_prod' h0 h1,
+  convert ← prod_le_prod'' h0 h1,
   exact finset.prod_const_one
 end
 

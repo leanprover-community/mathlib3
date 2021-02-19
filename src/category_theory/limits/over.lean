@@ -124,13 +124,13 @@ adjunction.mk_of_hom_equiv
     end } }
 
 /-- pullback (𝟙 A) : over A ⥤ over A is the identity functor. -/
-def pullback_id {A : C} [has_pullbacks C] : pullback (𝟙 A) ≅ 𝟭 _ :=
+def pullback_id {A : C} : pullback (𝟙 A) ≅ 𝟭 _ :=
 adjunction.right_adjoint_uniq
   (map_pullback_adj _)
   (adjunction.id.of_nat_iso_left over.map_id.symm)
 
 /-- pullback commutes with composition (up to natural isomorphism). -/
-def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_pullbacks C] :
+def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   pullback (f ≫ g) ≅ pullback g ⋙ pullback f :=
 adjunction.right_adjoint_uniq
   (map_pullback_adj _)

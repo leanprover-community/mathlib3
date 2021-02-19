@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.simplicial_object
+import algebraic_topology.simplicial_object
 import category_theory.abelian.basic
 import category_theory.subobject
 import algebra.homology.connective_chain_complex
@@ -15,7 +15,7 @@ noncomputable theory
 open category_theory category_theory.limits
 open opposite
 
-def fin.rest (n : ℕ) : finset (fin (n+1)) := finset.univ.image (fin.succ : fin n → fin (n+1))
+namespace algebraic_topology
 
 variables {C : Type*} [category C] [abelian C]
 local attribute [instance] abelian.has_pullbacks
@@ -45,3 +45,5 @@ variables (C)
 def normalized_Moore_complex : (simplicial_object C) ⥤ connective_chain_complex C :=
 { obj := λ X, sorry,
   map := sorry, }
+
+end algebraic_topology

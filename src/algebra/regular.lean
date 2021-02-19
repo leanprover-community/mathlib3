@@ -43,8 +43,6 @@ structure is_regular (c : R) : Prop :=
 
 end has_mul
 
-namespace is_regular
-
 section semigroup
 
 variable [semigroup R]
@@ -69,7 +67,7 @@ function.injective.of_comp (by rwa comp_mul_left a b)
 is left-regular. -/
 @[simp] lemma mul_is_left_regular_iff (b : R) (ha : is_left_regular a) :
   is_left_regular (a * b) ↔ is_left_regular b :=
-⟨λ ab, is_left_regular_saturated ab, λ ab, is_left_regular.mul ha ab⟩
+⟨λ ab, is_left_regular_of_mul_left ab, λ ab, is_left_regular.mul ha ab⟩
 
 /--  If an element `b` becomes right-regular after multiplying it on the right by a right-regular
 element, then `b` is right-regular. -/
@@ -85,16 +83,17 @@ end
 element is right-regular. -/
 @[simp] lemma mul_is_right_regular_iff (b : R) (ha : is_right_regular a) :
   is_right_regular (b * a) ↔ is_right_regular b :=
-⟨λ ab, is_right_regular_saturated ab, λ ab, is_right_regular.mul ab ha⟩
+⟨λ ab, is_right_regular_of_mul_right ab, λ ab, is_right_regular.mul ab ha⟩
 
 /--  Two elements `a` and `b` are regular if and only if both products `a * b` and `b * a`
 are regular. -/
-lemma mul_and_mul_iff : is_regular (a * b) ∧ is_regular (b * a) ↔ is_regular a ∧ is_regular b :=
+lemma is_regular_mul_and_mul_iff :
+  is_regular (a * b) ∧ is_regular (b * a) ↔ is_regular a ∧ is_regular b :=
 begin
   refine ⟨_, _⟩,
   { rintros ⟨ab, ba⟩,
-    exact ⟨⟨is_left_regular_saturated ba.left, is_right_regular_saturated ab.right⟩,
-      ⟨is_left_regular_saturated ab.left, is_right_regular_saturated ba.right⟩⟩ },
+    exact ⟨⟨is_left_regular_of_mul_left ba.left, is_right_regular_of_mul_right ab.right⟩,
+      ⟨is_left_regular_of_mul_left ab.left, is_right_regular_of_mul_right ba.right⟩⟩ },
   { rintros ⟨ha, hb⟩,
     exact ⟨⟨(mul_is_left_regular_iff _ ha.left).mpr hb.left,
         (mul_is_right_regular_iff _ hb.right).mpr ha.right⟩,
@@ -103,9 +102,9 @@ begin
 end
 
 /--  The "most used" implication of `mul_and_mul_iff`, with split hypotheses, instead of `∧`. -/
-lemma and_of_mul_of_mul (ab : is_regular (a * b)) (ba : is_regular (b * a)) :
+lemma is_regular.and_of_mul_of_mul (ab : is_regular (a * b)) (ba : is_regular (b * a)) :
   is_regular a ∧ is_regular b :=
-mul_and_mul_iff.mp ⟨ab, ba⟩
+is_regular_mul_and_mul_iff.mp ⟨ab, ba⟩
 
 end semigroup
 
@@ -114,44 +113,53 @@ section mul_zero_class
 variables [mul_zero_class R]
 
 /--  The element `0` is left-regular if and only if `R` is trivial. -/
-lemma subsingleton_of_is_left_regular_zero (h : is_left_regular (0 : R)) : subsingleton R :=
+lemma is_left_regular.subsingleton (h : is_left_regular (0 : R)) : subsingleton R :=
 ⟨λ a b, h $ eq.trans (zero_mul a) (zero_mul b).symm⟩
 
 /--  The element `0` is right-regular if and only if `R` is trivial. -/
-lemma subsingleton_of_is_right_regular_zero (h : is_right_regular (0 : R)) : subsingleton R :=
+lemma is_right_regular.subsingleton (h : is_right_regular (0 : R)) : subsingleton R :=
 ⟨λ a b, h $ eq.trans (mul_zero a) (mul_zero b).symm⟩
 
 /--  The element `0` is regular if and only if `R` is trivial. -/
-lemma zero_iff_forall (h : is_regular (0 : R)) : subsingleton R :=
-subsingleton_of_is_left_regular_zero h.left
+lemma is_regular.subsingleton (h : is_regular (0 : R)) : subsingleton R :=
+h.left.subsingleton
 
 /--  The element `0` is left-regular if and only if `R` is trivial. -/
-lemma zero_left_iff_not : is_left_regular (0 : R) ↔ subsingleton R :=
+lemma is_left_regular_zero_iff_subsingleton : is_left_regular (0 : R) ↔ subsingleton R :=
 begin
-  rw nontrivial_iff,
-  push_neg,
-  exact ⟨λ h, zero_left_iff_forall h, λ h, λ x y xy, h _ _⟩,
+  refine ⟨λ h, h.subsingleton, _⟩,
+  intros H a b h,
+  exact @subsingleton.elim _ H a b
 end
 
 /--  In a non-trivial `mul_zero_class`, the `0` element is not left-regular. -/
-lemma not_zero_left_iff : ¬ is_left_regular (0 : R) ↔ nontrivial R :=
-not_iff_comm.mp zero_left_iff_not.symm
+lemma not_is_left_regular_zero_iff : ¬ is_left_regular (0 : R) ↔ nontrivial R :=
+begin
+  rw [nontrivial_iff, not_iff_comm, is_left_regular_zero_iff_subsingleton, subsingleton_iff],
+  push_neg,
+  exact iff.rfl
+end
 
 /--  The element `0` is right-regular if and only if `R` is trivial. -/
-lemma zero_right_iff_not : is_right_regular (0 : R) ↔ subsingleton R :=
+lemma is_right_regular_zero_iff_subsingleton : is_right_regular (0 : R) ↔ subsingleton R :=
 begin
-  rw nontrivial_iff,
-  push_neg,
-  exact ⟨λ h, zero_right_iff_forall h, λ h, λ x y xy, h _ _⟩,
+  refine ⟨λ h, h.subsingleton, _⟩,
+  intros H a b h,
+  exact @subsingleton.elim _ H a b
 end
 
 /--  In a non-trivial `mul_zero_class`, the `0` element is not right-regular. -/
-lemma not_zero_right_iff : ¬ is_right_regular (0 : R) ↔ nontrivial R :=
-not_iff_comm.mp zero_right_iff_not.symm
+lemma not_is_right_regular_zero_iff : ¬ is_right_regular (0 : R) ↔ nontrivial R :=
+begin
+  rw [nontrivial_iff, not_iff_comm, is_right_regular_zero_iff_subsingleton, subsingleton_iff],
+  push_neg,
+  exact iff.rfl
+end
 
 /--  The element `0` is regular if and only if `R` is trivial. -/
-lemma zero_iff : is_regular (0 : R) ↔ subsingleton R :=
-⟨λ h, zero_left_iff_not.mp h.left, λ h, ⟨zero_left_iff_not.mpr h, zero_right_iff_not.mpr h⟩⟩
+lemma is_regular_iff_subsingleton : is_regular (0 : R) ↔ subsingleton R :=
+⟨λ h, h.left.subsingleton,
+ λ h, ⟨is_left_regular_zero_iff_subsingleton.mpr h, is_right_regular_zero_iff_subsingleton.mpr h⟩⟩
 
 end mul_zero_class
 
@@ -160,9 +168,9 @@ section comm_semigroup
 variable [comm_semigroup R]
 
 /--  A product is regular if and only if the factors are. -/
-lemma mul_iff : is_regular (a * b) ↔ is_regular a ∧ is_regular b :=
+lemma is_regular_mul_iff : is_regular (a * b) ↔ is_regular a ∧ is_regular b :=
 begin
-  refine iff.trans _ mul_and_mul_iff,
+  refine iff.trans _ is_regular_mul_and_mul_iff,
   refine ⟨λ ab, ⟨ab, by rwa mul_comm⟩, λ rab, rab.1⟩
 end
 
@@ -173,21 +181,21 @@ section monoid
 variables [monoid R]
 
 /--  In a monoid, `1` is regular. -/
-lemma one : is_regular (1 : R) :=
+lemma is_regular_one : is_regular (1 : R) :=
 ⟨λ a b ab, (one_mul a).symm.trans (eq.trans ab (one_mul b)),
   λ a b ab, (mul_one a).symm.trans (eq.trans ab (mul_one b))⟩
 
 /-- An element admitting a left inverse is left-regular. -/
 lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
-@is_left_regular_saturated R _ a _ (by { rw h, exact one.left })
+@is_left_regular_of_mul_left R _ a _ (by { rw h, exact is_regular_one.left })
 
 /-- An element admitting a right inverse is right-regular. -/
 lemma is_right_regular_of_mul_eq_one (h : a * b = 1) : is_right_regular a :=
-@is_right_regular_saturated R _ a _ (by { rw h, exact one.right })
+@is_right_regular_of_mul_right R _ a _ (by { rw h, exact is_regular_one.right })
 
 /-- If `R` is a monoid, an element in `units R` is regular. -/
 lemma units.is_regular (a : units R) : is_regular (a : R) :=
-⟨left_of_mul_eq_one a.inv_mul,  right_of_mul_eq_one a.mul_inv⟩
+⟨is_left_regular_of_mul_eq_one a.inv_mul, is_right_regular_of_mul_eq_one a.mul_inv⟩
 
 /-- A unit in a monoid is regular. -/
 lemma is_unit.is_regular (ua : is_unit a) : is_regular a :=
@@ -231,7 +239,3 @@ lemma is_regular_of_cancel_monoid_with_zero (a0 : a ≠ 0) : is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
 
 end cancel_monoid_with_zero
-
-end is_regular
-
-open is_regular

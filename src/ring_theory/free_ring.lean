@@ -30,18 +30,13 @@ free ring
 universes u v
 
 /-- The free ring over a type `α`. -/
+@[derive [ring, inhabited]]
 def free_ring (α : Type u) : Type u :=
 free_abelian_group $ free_monoid α
 
 namespace free_ring
 
-variables (α : Type u)
-
-instance : ring (free_ring α) := free_abelian_group.ring _
-
-instance : inhabited (free_ring α) := ⟨0⟩
-
-variables {α}
+variables {α : Type u}
 
 /-- The canonical map from α to `free_ring α`. -/
 def of (x : α) : free_ring α :=
@@ -78,7 +73,7 @@ def lift : free_ring α →+* R :=
       simp only [free_abelian_group.lift.of, add_monoid_hom.to_fun_eq_coe],
       refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
       { intros L1, iterate 3 { rw free_abelian_group.lift.of },
-        show list.prod (list.map f (_ ++ _)) = _, rw [list.map_append, list.prod_append] },
+        rw (free_monoid.lift _).map_mul },
       { intros L1 ih,
         iterate 3 { rw (free_abelian_group.lift _).map_neg },
         rw [ih, neg_mul_eq_neg_mul] },
@@ -93,7 +88,7 @@ def lift : free_ring α →+* R :=
       simp only [add_monoid_hom.to_fun_eq_coe] at ih1 ih2 ⊢,
       rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
   end,
-  .. free_abelian_group.lift $ λ L, (list.map f L).prod }
+  .. free_abelian_group.lift $ free_monoid.lift f }
 
 @[simp] lemma lift_of (x : α) : lift f (of x) = f x :=
 (free_abelian_group.lift.of _ _).trans $ one_mul _

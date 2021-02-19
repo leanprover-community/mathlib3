@@ -2174,7 +2174,7 @@ update_preimage_pi (mem_univ i) (λ j _, hf j)
 lemma subset_pi_eval_image (s : set ι) (u : set (Π i, α i)) : u ⊆ pi s (λ i, eval i '' u) :=
 λ f hf i hi, ⟨f, hf, rfl⟩
 
-lemma univ_pi_ite (s : set ι) (t : ∀ i, set (α i)) :
+lemma univ_pi_ite (s : set ι) (t : Π i, set (α i)) :
   pi univ (λ i, if i ∈ s then t i else univ) = s.pi t :=
 by { ext, simp_rw [mem_univ_pi], apply forall_congr, intro i, split_ifs; simp [h] }
 

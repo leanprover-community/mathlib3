@@ -52,7 +52,7 @@ variables {ι ι' : Type*} {α : ι → Type*}
 /-! We start with some measurability properties -/
 
 /-- Boxes formed by π-systems form a π-system. -/
-lemma is_pi_system.pi {C : ∀ i, set (set (α i))} (hC : ∀ i, is_pi_system (C i)) :
+lemma is_pi_system.pi {C : Π i, set (set (α i))} (hC : ∀ i, is_pi_system (C i)) :
   is_pi_system (pi univ '' pi univ C) :=
 begin
   rintro _ _ ⟨s₁, hs₁, rfl⟩ ⟨s₂, hs₂, rfl⟩ hst,

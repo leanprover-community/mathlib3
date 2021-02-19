@@ -1098,7 +1098,7 @@ lemma pi_def (i : set α) (s : Πa, set (π a)) :
   pi i s = (⋂ a ∈ i, eval a ⁻¹' s a) :=
 by { ext, simp }
 
-lemma univ_pi_eq_Inter (t : ∀ i, set (π i)) : pi univ t = ⋂ i, eval i ⁻¹' t i :=
+lemma univ_pi_eq_Inter (t : Π i, set (π i)) : pi univ t = ⋂ i, eval i ⁻¹' t i :=
 by simp only [pi_def, Inter_pos, mem_univ]
 
 lemma pi_diff_pi_subset (i : set α) (s t : Πa, set (π a)) :
@@ -1110,7 +1110,7 @@ begin
   exact hx.2 _ ha (hx.1 _ ha)
 end
 
-lemma Union_univ_pi (t : ∀ i, ι → set (π i)) :
+lemma Union_univ_pi (t : Π i, ι → set (π i)) :
   (⋃ (x : α → ι), pi univ (λ i, t i (x i))) = pi univ (λ i, ⋃ (j : ι), t i j) :=
 by { ext, simp [classical.skolem] }
 

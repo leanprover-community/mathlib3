@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import category_theory.simplicial_object
+import algebraic_topology.simplicial_object
 import category_theory.yoneda
 
 /-!
@@ -29,6 +29,8 @@ namespace sType
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sType :=
 yoneda
+
+instance : inhabited sType := ⟨standard_simplex.obj (0 : ℕ)⟩
 
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/

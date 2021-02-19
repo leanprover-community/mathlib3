@@ -25,6 +25,7 @@ open category_theory
 * objects are natural numbers `n : ℕ`
 * morphisms from `n` to `m` are monotone functions `fin (n+1) → fin (m+1)`
 -/
+@[derive inhabited]
 def simplex_category := ℕ
 
 namespace simplex_category
@@ -197,7 +198,7 @@ def skeletal_functor :
 
 namespace skeletal_functor
 
-instance full : full.{0 u 0 (u+1)} skeletal_functor.{u} :=
+instance : full skeletal_functor.{u} :=
 { preimage := λ m n f, ⟨λ i, (f ⟨i⟩).down, λ i j h, f.monotone h⟩,
   witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, refl } }
 
@@ -240,6 +241,7 @@ functor.as_equivalence skeletal_functor.{u}
 
 end skeleton
 
+/-- `simplex_category` is a skeleton of `NonemptyFinLinOrd`. -/
 noncomputable
 def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
 { skel := skeletal,

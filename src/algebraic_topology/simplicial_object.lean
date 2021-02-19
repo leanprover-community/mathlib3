@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import category_theory.simplex_category
+import algebraic_topology.simplex_category
 
 /-!
 # Simplicial objects in a category.
@@ -23,7 +23,7 @@ variables (C : Type u) [category.{v} C]
 /-- The category of simplicial objects valued in a category `C`.
 This is the category of contravariant functors from
 `NonemptyFinLinOrd` to `C`. -/
-@[derive category]
+@[derive category, nolint has_inhabited_instance]
 def simplicial_object := simplex_categoryᵒᵖ ⥤ C
 
 namespace simplicial_object

@@ -1825,6 +1825,61 @@ lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.step → (F
 
 end step
 
+section step
+
+variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
+  {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
+
+lemma many1_eq_done_iff_many_eq_done [p.step] [p.bounded] {x : α} {xs : list α} :
+  many1 p cb n = done n' (x :: xs) ↔ many p cb n = done n' (x :: xs) :=
+begin
+  induction hx : (x :: xs) with hd tl IH generalizing x xs n n',
+  { simpa using hx },
+  split,
+  { simp only [many1_eq_done, and_imp, exists_imp_distrib],
+    intros np hp hm,
+    have : np = n + 1 := step.of_done hp,
+    have hn : n < cb.size := bounded.of_done hp,
+    subst this,
+    obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+    cases k,
+    { cases tl;
+      simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
+    cases tl with hd' tl',
+    { simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
+    { rw ←@IH hd' tl' at hm, swap, refl,
+      simp only [many1_eq_done, many, foldr] at hm,
+      obtain ⟨np, hp', hf⟩ := hm,
+      have : np = n + 1 + 1 := step.of_done hp',
+      subst this,
+      simpa [nat.sub_succ, many_eq_done, hp, hk, foldr_core_eq_done, hp'] using hf } },
+  { simp only [many_eq_done, many1_eq_done, and_imp, exists_imp_distrib],
+    intros np hp hm,
+    have : np = n + 1 := step.of_done hp,
+    have hn : n < cb.size := bounded.of_done hp,
+    subst this,
+    obtain ⟨k, hk⟩ : ∃ k, cb.size - n = k + 1 :=
+      nat.exists_eq_succ_of_ne_zero (ne_of_gt (nat.sub_pos_of_lt hn)),
+    cases k,
+    { cases tl;
+      simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
+    cases tl with hd' tl',
+    { simpa [many_eq_done_nil, nat.sub_succ, hk, many_eq_done, hp, foldr_core_eq_done] using hm },
+    { simp [hp],
+      rw ←@IH hd' tl' (n + 1) n', swap, refl,
+      rw [hk, foldr_core_eq_done, or.comm] at hm,
+      obtain (hm | ⟨np, hd', tl', hp', hf, hm⟩) := hm,
+      { simpa using hm },
+      simp only at hm,
+      obtain ⟨rfl, rfl⟩ := hm,
+      have : np = n + 1 + 1 := step.of_done hp',
+      subst this,
+      simp [nat.sub_succ, many, many1_eq_done, hp, hk, foldr_core_eq_done, hp', ←hf, foldr] } }
+end
+
+end step
+
 namespace prog
 
 variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}

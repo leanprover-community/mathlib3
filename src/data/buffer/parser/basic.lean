@@ -70,6 +70,12 @@ class err_static : Prop :=
 (of_fail : ∀ {cb : char_buffer} {n n' : ℕ} {err : dlist string}, p cb n = fail n' err → n = n')
 
 /--
+A `parser α` is defined to be `step` if it always moves exactly one char forward on success.
+-/
+class step : Prop :=
+(of_done : ∀ {cb : char_buffer} {n n' : ℕ} {a : α}, p cb n = done n' a → n' = n + 1)
+
+/--
 A `parser α` is defined to be `prog` if it always moves forward on success.
 -/
 class prog : Prop :=
@@ -1648,10 +1654,184 @@ lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.err_static 
 
 end err_static
 
+namespace step
+
+variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
+  {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
+
+lemma not_step_of_static_done [static p] (h : ∃ cb n n' a, p cb n = done n' a) : ¬ step p :=
+begin
+  introI,
+  rcases h with ⟨cb, n, n', a, h⟩,
+  have hs := static.of_done h,
+  simpa [←hs] using of_done h
+end
+
+lemma pure (a : α) : ¬ step (pure a) :=
+begin
+  apply not_step_of_static_done,
+  simp [pure_eq_done]
+end
+
+instance bind {f : α → parser β} [p.step] [∀ a, (f a).static] :
+  (p >>= f).step :=
+⟨λ _ _ _ _, by { simp_rw bind_eq_done, rintro ⟨_, _, hp, hf⟩,
+  exact (static.of_done hf) ▸ (of_done hp) }⟩
+
+instance bind' {f : α → parser β} [p.static] [∀ a, (f a).step] :
+  (p >>= f).step :=
+⟨λ _ _ _ _, by { simp_rw bind_eq_done, rintro ⟨_, _, hp, hf⟩,
+  rw static.of_done hp, exact of_done hf }⟩
+
+instance and_then {q : parser β} [p.step] [q.static] : (p >> q).step := step.bind
+
+instance and_then' {q : parser β} [p.static] [q.step] : (p >> q).step := step.bind'
+
+instance map [p.step] {f : α → β} : (f <$> p).step :=
+⟨λ _ _ _ _, by { simp_rw map_eq_done, rintro ⟨_, hp, _⟩, exact of_done hp }⟩
+
+instance seq {f : parser (α → β)} [f.step] [p.static] : (f <*> p).step := step.bind
+
+instance seq' {f : parser (α → β)} [f.static] [p.step] : (f <*> p).step := step.bind'
+
+instance mmap {f : α → parser β} [(f a).step] :
+  ([a].mmap f).step :=
+begin
+  convert step.bind,
+  { apply_instance },
+  { intro,
+    convert static.bind,
+    { exact static.pure },
+    { exact λ _, static.pure } }
+end
+
+instance mmap' {f : α → parser β} [(f a).step] :
+  ([a].mmap' f).step :=
+begin
+  convert step.and_then,
+  { apply_instance },
+  { exact static.pure }
+end
+
+instance failure : @parser.step α failure :=
+⟨λ _ _ _ _, by simp⟩
+
+lemma guard_true : ¬ step (guard true) := pure _
+
+instance guard : step (guard false) :=
+step.failure
+
+instance orelse [p.step] [q.step] : (p <|> q).step :=
+⟨λ _ _ _ _, by { simp_rw orelse_eq_done, rintro (h | ⟨h, -⟩); exact of_done h }⟩
+
+lemma decorate_errors_iff : (@parser.decorate_errors α msgs p).step ↔ p.step :=
+begin
+  split,
+  { introI,
+    constructor,
+    intros cb n n' a h,
+    have : (@parser.decorate_errors α msgs p) cb n = done n' a := by simpa using h,
+    exact of_done this },
+  { introI,
+    constructor,
+    intros _ _ _ _ h,
+    rw decorate_errors_eq_done at h,
+    exact of_done h }
+end
+
+instance decorate_errors [p.step] :
+  (@decorate_errors α msgs p).step :=
+⟨λ _ _ _ _, by { rw decorate_errors_eq_done, exact of_done }⟩
+
+lemma decorate_error_iff : (@parser.decorate_error α msg p).step ↔ p.step :=
+decorate_errors_iff
+
+instance decorate_error [p.step] : (@decorate_error α msg p).step :=
+step.decorate_errors
+
+instance any_char : step any_char :=
+begin
+  constructor,
+  intros cb n,
+  simp_rw [any_char_eq_done],
+  rintro _ _ ⟨_, rfl, -⟩,
+  simp
+end
+
+instance sat {p : char → Prop} [decidable_pred p] : step (sat p) :=
+begin
+  constructor,
+  intros cb n,
+  simp_rw [sat_eq_done],
+  rintro _ _ ⟨_, _, rfl, -⟩,
+  simp
+end
+
+lemma eps : ¬ step eps := step.pure ()
+
+instance ch {c : char} : step (ch c) := step.decorate_error
+
+lemma char_buf_iff {cb' : char_buffer} : (char_buf cb').step ↔ cb'.size = 1 :=
+begin
+  have : char_buf cb' cb' 0 = done cb'.size () := by simp [char_buf_eq_done],
+  split,
+  { introI,
+    simpa using of_done this },
+  { intro h,
+    constructor,
+    intros cb n n' _,
+    rw [char_buf_eq_done, h],
+    rintro ⟨rfl, -⟩,
+    refl }
+end
+
+instance one_of {cs : list char} : (one_of cs).step :=
+step.decorate_errors
+
+instance one_of' {cs : list char} : (one_of' cs).step :=
+step.and_then
+
+lemma str_iff {s : string} : (str s).step ↔ s.length = 1 :=
+by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, ←buffer.ext_iff]
+
+lemma remaining : ¬ remaining.step :=
+begin
+  apply not_step_of_static_done,
+  simp [remaining_eq_done]
+end
+
+lemma eof : ¬ eof.step :=
+begin
+  apply not_step_of_static_done,
+  simp only [eof_eq_done, exists_eq_left', exists_const],
+  use [buffer.nil, 0],
+  simp
+end
+
+-- TODO: add foldr and foldl, many, etc, fix_core
+
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.step → (F p).step) :
+  ∀ (max_depth : ℕ), step (fix_core F max_depth)
+| 0               := step.failure
+| (max_depth + 1) := hF _ (fix_core _)
+
+instance digit : digit.step :=
+step.decorate_error
+
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.step → (F p).step) :
+  step (fix F) :=
+⟨λ cb n _ _ h,
+  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
+
+end step
+
 namespace prog
 
 variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
   {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
+
+instance of_step [step p] : prog p :=
+⟨λ _ _ _ _ h, by { rw step.of_done h, exact nat.lt_succ_self _ }⟩
 
 lemma pure (a : α) : ¬ prog (pure a) :=
 begin
@@ -1692,7 +1872,7 @@ begin
 end
 
 instance failure : @parser.prog α failure :=
-⟨λ _ _ _ _, by simp⟩
+prog.of_step
 
 lemma guard_true : ¬ prog (guard true) := pure _
 
@@ -1728,26 +1908,15 @@ instance decorate_error [p.prog] : (@decorate_error α msg p).prog :=
 prog.decorate_errors
 
 instance any_char : prog any_char :=
-begin
-  constructor,
-  intros cb n,
-  simp_rw [any_char_eq_done],
-  rintro _ _ ⟨_, rfl, -⟩,
-  simp
-end
+prog.of_step
 
 instance sat {p : char → Prop} [decidable_pred p] : prog (sat p) :=
-begin
-  constructor,
-  intros cb n,
-  simp_rw [sat_eq_done],
-  rintro _ _ ⟨_, _, rfl, -⟩,
-  simp
-end
+prog.of_step
 
 lemma eps : ¬ prog eps := prog.pure ()
 
-instance ch {c : char} : prog (ch c) := prog.decorate_error
+instance ch {c : char} : prog (ch c) :=
+prog.of_step
 
 lemma char_buf_iff {cb' : char_buffer} : (char_buf cb').prog ↔ cb' ≠ buffer.nil :=
 begin
@@ -1793,7 +1962,7 @@ lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog �
 | (max_depth + 1) := hF _ (fix_core _)
 
 instance digit : digit.prog :=
-prog.decorate_error
+prog.of_step
 
 -- TODO: add nat
 

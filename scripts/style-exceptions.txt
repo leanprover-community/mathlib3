@@ -1,17 +1,6 @@
-archive/miu_language/basic.lean : line 53 : ERR_LIN : Line has more than 100 characters
-src/algebra/continued_fractions/convergents_equiv.lean : line 283 : ERR_LIN : Line has more than 100 characters
-src/algebra/continued_fractions/terminated_stable.lean : line 28 : ERR_LIN : Line has more than 100 characters
-src/algebra/free_monoid.lean : line 59 : ERR_LIN : Line has more than 100 characters
 src/algebra/group/with_one.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/algebra/module/submodule.lean : line 14 : ERR_LIN : Line has more than 100 characters
-src/algebra/ordered_group.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/algebra/ordered_ring.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/algebraic_geometry/presheafed_space/has_colimits.lean : line 206 : ERR_LIN : Line has more than 100 characters
-src/algebraic_geometry/presheafed_space/has_colimits.lean : line 252 : ERR_LIN : Line has more than 100 characters
-src/algebraic_geometry/sheafed_space.lean : line 50 : ERR_LIN : Line has more than 100 characters
-src/algebraic_geometry/sheafed_space.lean : line 82 : ERR_LIN : Line has more than 100 characters
-src/algebraic_geometry/stalks.lean : line 47 : ERR_LIN : Line has more than 100 characters
-src/algebraic_geometry/stalks.lean : line 48 : ERR_LIN : Line has more than 100 characters
+src/algebraic_geometry/sheafed_space.lean : line 83 : ERR_LIN : Line has more than 100 characters
 src/analysis/analytic/composition.lean : line 608 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/deriv.lean : line 1175 : ERR_LIN : Line has more than 100 characters
 src/analysis/calculus/local_extr.lean : line 22 : ERR_LIN : Line has more than 100 characters
@@ -401,7 +390,8 @@ src/data/sym2.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/vector2.lean : line 334 : ERR_LIN : Line has more than 100 characters
 src/data/vector2.lean : line 357 : ERR_LIN : Line has more than 100 characters
-src/data/zmod/basic.lean : line 360 : ERR_LIN : Line has more than 100 characters
+src/data/zmod/basic.lean : line 374 : ERR_LIN : Line has more than 100 characters
+src/data/zmod/basic.lean : line 688 : ERR_LIN : Line has more than 100 characters
 src/data/zsqrtd/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -498,7 +488,7 @@ src/linear_algebra/char_poly/coeff.lean : line 26 : ERR_LIN : Line has more than
 src/linear_algebra/determinant.lean : line 257 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/direct_sum/finsupp.lean : line 24 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/direct_sum/tensor_product.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/linear_algebra/dual.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/linear_algebra/dual.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/linear_algebra/finsupp_vector_space.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/linear_algebra/matrix.lean : line 476 : ERR_LIN : Line has more than 100 characters
 src/linear_algebra/matrix.lean : line 751 : ERR_LIN : Line has more than 100 characters

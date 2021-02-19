@@ -47,7 +47,8 @@ def sheaf (X : SheafedSpace C) : sheaf C (X : Top.{v}) := ⟨X.presheaf, X.sheaf
 
 @[simp] lemma as_coe (X : SheafedSpace C) : X.carrier = (X : Top.{v}) := rfl
 @[simp] lemma mk_coe (carrier) (presheaf) (h) :
-  (({ carrier := carrier, presheaf := presheaf, sheaf_condition := h } : SheafedSpace.{v} C) : Top.{v}) = carrier :=
+  (({ carrier := carrier, presheaf := presheaf, sheaf_condition := h } : SheafedSpace.{v} C) :
+  Top.{v}) = carrier :=
 rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str

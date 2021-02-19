@@ -324,10 +324,31 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
 
 end lsum
 
+section
+variables (M) (R) (X : Type*)
+
+/--
+A slight rearrangement from `lsum` gives us
+the bijection underlying the free-forgetful adjunction for R-modules.
+-/
+noncomputable def lift : (X → M) ≃+ ((X →₀ R) →ₗ[R] M) :=
+(add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R M ℕ).to_add_equiv.symm).trans
+  (lsum _ : _ ≃ₗ[ℕ] _).to_add_equiv
+
+@[simp]
+lemma lift_symm_apply (f) (x) : ((lift M R X).symm f) x = f (single x 1) :=
+rfl
+@[simp]
+lemma lift_apply (f) (g) :
+  ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
+rfl
+
+end
+
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
 
-/-- Interpret `finsupp.lmap_domain` as a linear map. -/
+/-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
 ⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
 

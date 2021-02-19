@@ -446,6 +446,9 @@ theorem iff_false_left (ha : ¬a) : (a ↔ b) ↔ ¬b :=
 theorem iff_false_right (ha : ¬a) : (b ↔ a) ↔ ¬b :=
 iff.comm.trans (iff_false_left ha)
 
+@[simp]
+lemma iff_mpr_iff_true_intro {P : Prop} (h : P) : iff.mpr (iff_true_intro h) true.intro = h := rfl
+
 -- See Note [decidable namespace]
 protected theorem decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
 if ha : a then or.inr (h ha) else or.inl ha

@@ -10,10 +10,9 @@ import category_theory.limits.shapes.terminal
 universes v u
 
 open category_theory
+namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
-
-namespace category_theory.limits
 
 /--
 A category has finite products if there is a chosen limit for every diagram
@@ -66,5 +65,3 @@ lemma has_finite_coproducts_of_has_coproducts [has_coproducts C] : has_finite_co
 by { dsimp [has_finite_coproducts], apply_instance }
 
 end category_theory.limits
-
-open category_theory.limits

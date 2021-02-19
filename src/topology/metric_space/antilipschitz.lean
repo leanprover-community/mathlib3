@@ -129,6 +129,34 @@ lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :
 
 end antilipschitz_with
 
+namespace antilipschitz_with
+
+open metric
+
+variables [metric_space α] [metric_space β] {K : ℝ≥0} {f : α → β}
+
+lemma bounded_preimage (hf : antilipschitz_with K f)
+  {s : set β} (hs : bounded s) :
+  bounded (f ⁻¹' s) :=
+exists.intro (K * diam s) $ λ x y hx hy,
+calc dist x y ≤ K * dist (f x) (f y) : hf.le_mul_dist x y
+... ≤ K * diam s : mul_le_mul_of_nonneg_left (dist_le_diam_of_mem hs hx hy) K.2
+
+/-- The image of a proper space under an expanding onto map is proper. -/
+protected lemma proper_space [proper_space α] (hK : antilipschitz_with K f) (f_cont : continuous f)
+  (hf : function.surjective f) : proper_space β :=
+begin
+  apply proper_space_of_compact_closed_ball_of_le 0 (λx₀ r hr, _),
+  let K := f ⁻¹' (closed_ball x₀ r),
+  have A : is_closed K := is_closed_ball.preimage f_cont,
+  have B : bounded K := hK.bounded_preimage bounded_closed_ball,
+  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
+  convert this.image f_cont,
+  exact (hf.image_preimage _).symm
+end
+
+end antilipschitz_with
+
 lemma lipschitz_with.to_right_inverse [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β}
   (hf : lipschitz_with K f) {g : β → α} (hg : function.right_inverse g f) :
   antilipschitz_with K g :=

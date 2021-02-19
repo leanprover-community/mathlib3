@@ -535,8 +535,7 @@ def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 
 @[simp] lemma coe_cast_succ (i : fin n) : (i.cast_succ : ℕ) = i := rfl
 
-@[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ :=
-rfl
+@[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ := rfl
 
 lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
 lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
@@ -860,34 +859,23 @@ end
 /-- The range of `p.succ_above` is everything except `p`. -/
 lemma range_succ_above (p : fin (n + 1)) : set.range (p.succ_above) = { i | i ≠ p } :=
 begin
-  ext, simp,
-  rcases lt_trichotomy p x with H|rfl|H,
-  { split,
-    { rintro ⟨y, rfl⟩,
-      exact (ne_of_lt H).symm, },
-    { rintro h,
-      refine ⟨x.pred _, _⟩,
-      { apply (ne_of_lt (lt_of_le_of_lt (zero_le p) H)).symm, },
-      { rw succ_above_above,
-        { simp, },
-        { rcases p with ⟨p, _⟩, rcases x with ⟨x, _⟩,
-          simp at H,
-          exact nat.le_pred_of_lt H, }, }, }, },
-  { split,
-    { rintro ⟨y, h⟩,
-      cases succ_above_ne _ _ h, },
-    { rintro h,
-      simp at h,
-      cases h, }, },
-  { split,
-    { rintro ⟨y, rfl⟩,
-      exact ne_of_lt H, },
-    { rintro h,
-      refine ⟨x.cast_lt _, _⟩,
-      { exact lt_of_lt_of_le H (le_pred_of_lt p.property), },
+  ext,
+  simp only [set.mem_range, ne.def, set.mem_set_of_eq],
+  split,
+  { rintro ⟨y, rfl⟩,
+    exact succ_above_ne _ _ },
+  { intro h,
+    cases lt_or_gt_of_ne h with H H,
+    { refine ⟨x.cast_lt _, _⟩,
+      { exact lt_of_lt_of_le H p.le_last },
       { rw succ_above_below,
-        { simp, },
-        { exact H, }, }, }, },
+        { simp },
+        { exact H } } },
+    { refine ⟨x.pred _, _⟩,
+      { exact (ne_of_lt (lt_of_le_of_lt p.zero_le H)).symm },
+      { rw succ_above_above,
+        { simp },
+        { simpa [le_iff_coe_le_coe] using nat.le_pred_of_lt H } } } }
 end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
@@ -901,12 +889,7 @@ succ_above_right_injective.eq_iff
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_injective : injective (@succ_above n) :=
-λ x y h, begin
-  apply_fun (λ f : fin n ↪o fin (n + 1), set.range f) at h,
-  rw [range_succ_above, range_succ_above] at h,
-  apply_fun (λ s : set _, sᶜ) at h,
-  simpa using h,
-end
+λ _ _ h, by simpa [range_succ_above] using congr_arg (λ f : fin n ↪o fin (n + 1), (set.range f)ᶜ) h
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_left_inj {x y : fin (n + 1)} :

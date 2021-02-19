@@ -132,20 +132,12 @@ set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 lemma Inter_set_of (P : ι → α → Prop) : (⋂ i, {x : α | P i x }) = {x : α | ∀ i, P i x} :=
 by { ext, simp }
 
-lemma function.surjective.Union_comp {f : ι → ι₂} (hf : function.surjective f) (g : ι₂ → set α) :
-  (⋃ x, g (f x)) = ⋃ y, g y :=
-hf.supr_comp g
-
-lemma function.surjective.Inter_comp {f : ι → ι₂} (hf : function.surjective f) (g : ι₂ → set α) :
-  (⋂ x, g (f x)) = ⋂ y, g y :=
-hf.infi_comp g
-
 lemma Union_congr {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⋃ x, f x) = ⋃ y, g y :=
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋃ x, f x) = ⋃ y, g y :=
 supr_congr h h1 h2
 
 lemma Inter_congr {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
 infi_congr h h1 h2
 
 theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s :=
@@ -1125,6 +1117,20 @@ by { ext, simp [classical.skolem] }
 end pi
 
 end set
+
+namespace function
+namespace surjective
+
+lemma Union_comp {f : ι → ι₂} (hf : surjective f) (g : ι₂ → set α) :
+  (⋃ x, g (f x)) = ⋃ y, g y :=
+hf.supr_comp g
+
+lemma Inter_comp {f : ι → ι₂} (hf : surjective f) (g : ι₂ → set α) :
+  (⋂ x, g (f x)) = ⋂ y, g y :=
+hf.infi_comp g
+
+end surjective
+end function
 
 /-! ### Disjoint sets -/
 

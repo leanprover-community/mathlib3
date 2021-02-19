@@ -106,6 +106,7 @@ begin
 end
 
 end nat
+open nat
 
 namespace set
 

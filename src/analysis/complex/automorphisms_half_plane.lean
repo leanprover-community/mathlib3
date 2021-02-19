@@ -176,8 +176,30 @@ begin
 end
 
 
+@[simp]
+lemma bottom_def' {g : SL(2,ℝ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by refl
+
+@[simp]
+lemma top_def' {g : SL(2,ℝ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by refl
+
+
+
 /-- The action of `SL(2, ℝ)` on the upper half-plane by fractional linear transformations. -/
 instance SL2R_action : mul_action SL(2, ℝ) H :=
 { smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH z.2⟩,
   one_smul := λ z, by {ext1, unfold_coes, simp [smul_aux, top, bottom, z.2], norm_num},
   mul_smul := λ g1 g2 z, by simpa using smul_mul z.2 }
+
+lemma im_smul_SL (g : SL(2, ℝ)) (z : H) :
+(g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) := im_smul_mat_complex
+
+@[simp]
+lemma smul_def (g : SL(2,ℝ)) (z : H) : ↑(g • z) = smul_aux g z := rfl
+
+lemma smul_neg_SL2 (g : SL(2,ℝ)) (z : H) : -g • z = g • z :=
+begin
+  rw subtype.ext_iff,
+  simp only [smul_def, smul_aux_def, top, bottom],
+  rw ← neg_div_neg_eq,
+  congr' 1; simp; ring,
+end

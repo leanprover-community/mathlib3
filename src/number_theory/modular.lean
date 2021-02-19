@@ -17,22 +17,26 @@ noncomputable theory
 local notation `|` x `|` := _root_.abs x
 local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
+-- special linear group over ℤ
+
 /-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
 instance SL2Z_action : mul_action SL(2, ℤ) H :=
 mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
-
 @[simp]
-lemma bottom_def' {g : SL(2,ℝ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by refl
+lemma smul_def_int (g : SL(2,ℤ)) (z : H) : ↑(g • z) = smul_aux g z :=
+begin
+  refl,
+end
 
-@[simp]
-lemma top_def' {g : SL(2,ℝ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by refl
+lemma smul_neg_SL2_int (g : SL(2,ℤ)) (z : H) : -g • z = g • z :=
+begin
+  rw subtype.ext_iff,
+  simp only [smul_def_int, smul_aux_def, top, bottom],
+  rw ← neg_div_neg_eq,
+  congr' 1; simp; ring,
+end
 
--- @[simp]
--- lemma coeff_coe {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)).val i j = ((g.val i j) : ℝ) := by refl
-
--- @[simp]
--- lemma coeff_coe' {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)) i j = ((g i j) : ℝ) := by refl
 
 @[simp]
 lemma bottom_def {g : SL(2,ℤ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by simp
@@ -40,14 +44,7 @@ lemma bottom_def {g : SL(2,ℤ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 
 @[simp]
 lemma top_def {g : SL(2,ℤ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by simp
 
-lemma div_eq_mul_conj_div_norm_sq {z w : ℂ} : z / w = (z * (w.conj)) / complex.norm_sq w :=
-begin
-  rw [div_eq_mul_inv, inv_def, div_eq_mul_inv, mul_assoc],
-  norm_num,
-end
 
-lemma im_smul_SL (g : SL(2, ℝ)) (z : H) :
-(g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) := im_smul_mat_complex
 
 lemma im_smul_SL' (g : SL(2, ℤ)) (z : H) :
 (g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
@@ -61,6 +58,8 @@ im_smul_mat_complex
 @[simp]
 lemma smul_sound {g : SL(2,ℤ)} {z : H} : ((g:SL(2,ℝ)) • z).1 = smul_aux g z :=
 rfl
+
+-- T and S
 
 def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property := by simp [det2] }
 
@@ -97,8 +96,6 @@ end
 lemma mat_one {F : Type*} [comm_ring F] : (![![1,0], ![0,1]] : matrix (fin 2) (fin 2) F)
   = (1 : matrix (fin 2) (fin 2) F) := by {simp}
 
--- @[simp]
--- lemma mul_congr { x y : SL(2,ℤ)} : x * y = 1 ↔ x.1 * y.1 = 1 := by simp
 
 lemma T_inv : T⁻¹ = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
 begin
@@ -109,19 +106,12 @@ end
 
 lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n := by {simp [inv_gpow, gpow_neg]}
 
-lemma T_pow_ℕ {n : ℕ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
+lemma T_pow_ℕ {n : ℕ} : T ^ n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
 begin
   induction n with n hn,
-  simp,
-  have : T ^ n.succ = (T^n)* T,
-  {
-    exact pow_succ' T n,
-  },
-  rw this,
-  rw hn,
-  rw T,
-  simp,
-  ring,
+  { simp },
+  { rw [pow_succ', hn, T],
+    simp [add_comm] }
 end
 
 lemma T_inv_pow_ℕ {n : ℕ} : (T⁻¹)^n = { val := ![![1, -n], ![0, 1]], property := by simp [det2] } :=
@@ -138,26 +128,6 @@ begin
   simp,
 end
 
-@[simp]
-lemma smul_def (g : SL(2,ℤ)) (z : H) : ↑(g • z) = smul_aux g z :=
-begin
-  refl,
-end
-
-lemma smul_neg_SL2 (g : SL(2,ℤ)) (z : H) : -g • z = g • z :=
-begin
-  rw subtype.ext_iff,
-  simp only [smul_def, smul_aux_def, top, bottom],
-  rw ← neg_div_neg_eq,
-  congr' 1; simp; ring,
-end
-
-/-
-lemma something (k:ℕ) : T ^ (k:ℤ ) = T ^ k :=
-begin
-    exact gpow_coe_nat T k,
-end
--/
 
 lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
 begin
@@ -281,100 +251,138 @@ def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 
 instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
 
-lemma cdxy_bnd (x y M :ℝ ) (c d :ℤ ) (h : ( (c:ℝ) * x + d)^2+(c * y)^2 ≤ M) (hy : 0< y) (hM : 0 ≤ M) :
-|(c:ℝ)| ≤   real.sqrt (M / y^2) ∧
-|(d:ℝ)| ≤ (real.sqrt M) + real.sqrt (M / y^2) * |x|
-:=
+
+-- (HM) here's a rephasing, I think it's cleaner, do you like it?
+-- lemma cdxy_bnd (x y M : ℝ) (hy : 0 < y) (hM : 0 ≤ M) :
+--   ∃ C : nnreal, ∀ c d : ℤ, ((↑c * x + d) ^ 2 + (c * y) ^ 2 ≤ M) → ∥((c:ℝ), (d:ℝ))∥ ≤ C :=
+lemma cdxy_bnd (x y M : ℝ) (c d : ℤ) (h : (↑c * x + d) ^ 2 + (c * y) ^ 2 ≤ M) (hy : 0 < y)
+  (hM : 0 ≤ M) :
+  |(c:ℝ)| ≤ real.sqrt (M / y ^ 2) ∧ |(d:ℝ)| ≤ real.sqrt M + real.sqrt (M / y ^ 2) * |x| :=
 begin
-  have y_sq_nonneg : 0 ≤ y^2 := pow_two_nonneg y,
-  have y_sq_pos : 0 < y^2 := pow_pos hy 2,
-  have y_sq_nonz : y^2 ≠ 0 := ne_of_gt y_sq_pos,
-
-  have bnd1 : |↑c| ≤ real.sqrt (M / y ^ 2),
-  {
-    have : (↑c * y) ^ 2 ≤ M,
-    {
-      have : 0 ≤  ( (c:ℝ) * x + d)^2,
-      {
-        exact pow_two_nonneg (↑c * x + ↑d),
-      },
-      linarith,
-    },
-    have : (↑c) ^ 2 ≤ M / y^2,
-    {
-      rw (_ : (↑c * y) ^ 2 = (↑c)^2 * y ^ 2 ) at this,
-      rw (_ : M = M / y^2 * y ^ 2 ) at this,
-      convert div_le_div_of_le y_sq_nonneg this,
-      field_simp [y_sq_nonz],
-      field_simp [y_sq_nonz],
-      field_simp [y_sq_nonz],
-      ring,
-    },
-
-    refine real.abs_le_sqrt this,
-  },
-
-  split,
-  exact bnd1,
-
-  have : ((c:ℝ) * x + d) ^ 2 ≤ M,
-  {
-    have : 0 ≤ ( (c:ℝ) * y)^2,
-    {
-      exact pow_two_nonneg _,
-    },
-    linarith,
-  },
-  have := real.abs_le_sqrt this,
-  rw abs_le at this,
-  rw abs_le,
-  have bnd2 := abs_le.1 bnd1,
-  split,
-  {
-    calc
-    -(real.sqrt M + real.sqrt (M / y ^ 2) * |x|)
-    = -real.sqrt M - real.sqrt (M / y ^ 2) * |x| : by ring
-    ... ≤ -real.sqrt M - |c| * |x| : _
-    ... = -real.sqrt M - |c * x| : _
-    ... ≤ -real.sqrt M - c * x : _
-    ... ≤  ↑d : _,
-
-    have : 0 ≤ |x| := abs_nonneg x,
-
-    simp [bnd1, this],
-    exact mul_mono_nonneg this bnd1,
-
-    simp,
-
-    symmetry,
-    refine abs_mul _ _, --- NOT WORKING???
-
-    simp,
-    exact le_abs_self (↑c * x),
-
-    linarith,
-  },
-  calc
-  ↑d ≤ real.sqrt M + - c * x : _
-  ... ≤ real.sqrt M + | -(c:ℝ ) * x| : _
-  ... = real.sqrt M + | ((c:ℝ ) * x)| : _
-  ... = real.sqrt M + |c| * |x| : _
-  ... ≤ real.sqrt M + real.sqrt (M / y ^ 2) * |x| : _,
-
-  linarith,
-
-  have := le_abs_self (-↑c * x),
-  refine add_le_add_left this _,
-
-  simp,
-
-  simp,
-  refine abs_mul _ _,
-
-  simp [bnd1],
-  have : 0 ≤ |x| := abs_nonneg x,
-  exact mul_mono_nonneg this bnd1,
+  have h₁ : ∀ p : ℝ × ℝ, ∥(p.2, y * p.1 - x * p.2)∥ ≤ (max (1:ℝ) (|x| + |y|)) * ∥p∥,
+  { rintros ⟨p₁, p₂⟩,
+    simp only [prod.norm_def, max_le_iff],
+    split,
+    { have := le_max_right (∥p₁∥) (∥p₂∥),
+      have := le_max_left (1:ℝ) (|x| + |y|),
+      have := norm_nonneg p₂,
+      nlinarith },
+    { have := le_max_right (∥p₁∥) (∥p₂∥),
+      have := le_max_left (∥p₁∥) (∥p₂∥),
+      have := le_max_right (1:ℝ) (|x| + |y|),
+      have := _root_.abs_nonneg x,
+      have := _root_.abs_nonneg y,
+      have : 0 ≤ max (∥p₁∥) (∥p₂∥) := le_max_left_of_le (norm_nonneg _),
+      calc ∥y * p₁ - x * p₂∥ ≤ ∥y * p₁∥ + ∥x * p₂∥ : norm_sub_le _ _
+      ... = |y| * ∥p₁∥ + |x| * ∥p₂∥ : by simp [normed_field.norm_mul, _root_.abs_mul, real.norm_eq_abs]
+      ... ≤ max 1 (|x| + |y|) * (max ∥p₁∥ ∥p₂∥) : by nlinarith } },
+  have h₂ : y * ∥((c:ℝ), (d:ℝ))∥ ≤ max 1 (|x| + |y|) * ∥(↑c * x + ↑d, ↑c * y)∥,
+  { have : ∥y∥ = y := abs_of_pos hy,
+    rw [← this, ← norm_smul, prod.smul_mk],
+    convert h₁ (c * x + d, c * y) using 3,
+    { simp [mul_comm] },
+    { simp, ring },
+    { simp [real.norm_eq_abs] },
+    { simp [this] } },
+  have h₃ : ∥(↑c * x + ↑d, ↑c * y)∥ ≤ real.sqrt M,
+  { simp only [prod.norm_def, max_le_iff],
+    split;
+    { rw [real.le_sqrt (norm_nonneg _) hM, real.norm_eq_abs, sqr_abs],
+      nlinarith } },
+  sorry -- now the result is a combination of h₂ and h₃
 end
+
+-- begin
+--   simp at this,
+--   have y_sq_nonneg : 0 ≤ y^2 := pow_two_nonneg y,
+--   have y_sq_pos : 0 < y^2 := pow_pos hy 2,
+--   have y_sq_nonz : y^2 ≠ 0 := ne_of_gt y_sq_pos,
+
+--   have bnd1 : |↑c| ≤ real.sqrt (M / y ^ 2),
+--   {
+--     have : (↑c * y) ^ 2 ≤ M,
+--     {
+--       have : 0 ≤  ( (c:ℝ) * x + d)^2,
+--       {
+--         exact pow_two_nonneg (↑c * x + ↑d),
+--       },
+--       linarith,
+--     },
+--     have : (↑c) ^ 2 ≤ M / y^2,
+--     {
+--       rw (_ : (↑c * y) ^ 2 = (↑c)^2 * y ^ 2 ) at this,
+--       rw (_ : M = M / y^2 * y ^ 2 ) at this,
+--       convert div_le_div_of_le y_sq_nonneg this,
+--       field_simp [y_sq_nonz],
+--       field_simp [y_sq_nonz],
+--       field_simp [y_sq_nonz],
+--       ring,
+--     },
+
+--     refine real.abs_le_sqrt this,
+--   },
+
+--   split,
+--   exact bnd1,
+
+--   have : ((c:ℝ) * x + d) ^ 2 ≤ M,
+--   {
+--     have : 0 ≤ ( (c:ℝ) * y)^2,
+--     {
+--       exact pow_two_nonneg _,
+--     },
+--     linarith,
+--   },
+--   have := real.abs_le_sqrt this,
+--   rw abs_le at this,
+--   rw abs_le,
+--   have bnd2 := abs_le.1 bnd1,
+--   split,
+--   {
+--     calc
+--     -(real.sqrt M + real.sqrt (M / y ^ 2) * |x|)
+--     = -real.sqrt M - real.sqrt (M / y ^ 2) * |x| : by ring
+--     ... ≤ -real.sqrt M - |c| * |x| : _
+--     ... = -real.sqrt M - |c * x| : _
+--     ... ≤ -real.sqrt M - c * x : _
+--     ... ≤  ↑d : _,
+
+--     have : 0 ≤ |x| := abs_nonneg x,
+
+--     simp [bnd1, this],
+--     exact mul_mono_nonneg this bnd1,
+
+--     simp,
+
+--     symmetry,
+--     refine abs_mul _ _, --- NOT WORKING???
+
+--     simp,
+--     exact le_abs_self (↑c * x),
+
+--     linarith,
+--   },
+--   calc
+--   ↑d ≤ real.sqrt M + - c * x : _
+--   ... ≤ real.sqrt M + | -(c:ℝ ) * x| : _
+--   ... = real.sqrt M + | ((c:ℝ ) * x)| : _
+--   ... = real.sqrt M + |c| * |x| : _
+--   ... ≤ real.sqrt M + real.sqrt (M / y ^ 2) * |x| : _,
+
+--   linarith,
+
+--   have := le_abs_self (-↑c * x),
+--   refine add_le_add_left this _,
+
+--   simp,
+
+--   simp,
+--   refine abs_mul _ _,
+
+--   simp [bnd1],
+--   have : 0 ≤ |x| := abs_nonneg x,
+--   exact mul_mono_nonneg this bnd1,
+-- end
 
 /-
 -/
@@ -929,7 +937,7 @@ begin
   sorry,
 end
 
-lemma is_fundom'' {z : H} : ∃ g : SL(2,ℤ), ((g • z):ℂ) ∈ (closure fundamental_domain') :=
+lemma is_fundom'' {z : H} : ∃ g : SL(2,ℤ), g • z ∈ closure fundamental_domain' :=
 begin
   sorry,
 end
@@ -1056,3 +1064,20 @@ end
 /- define Ramanujan delta
 
 -/
+
+
+-- @[simp]
+-- lemma coeff_coe {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)).val i j = ((g.val i j) : ℝ) := by refl
+
+-- @[simp]
+-- lemma coeff_coe' {g : SL(2,ℤ)} {i j : fin 2} : (g : SL(2,ℝ)) i j = ((g i j) : ℝ) := by refl
+
+-- lemma div_eq_mul_conj_div_norm_sq {z w : ℂ} : z / w = (z * (w.conj)) / complex.norm_sq w :=
+-- begin
+--   rw [div_eq_mul_inv, inv_def, div_eq_mul_inv, mul_assoc],
+--   norm_num,
+-- end
+
+
+-- @[simp]
+-- lemma mul_congr { x y : SL(2,ℤ)} : x * y = 1 ↔ x.1 * y.1 = 1 := by simp

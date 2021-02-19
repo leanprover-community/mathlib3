@@ -134,9 +134,8 @@ begin
   apply continuous_of_continuous_uncurry,
   apply continuous_of_continuous_uncurry,
   rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm,
-  convert continuous_ev,
-  { ext1, cases x, cases x_snd, refl },
-  apply_instance
+  convert continuous_ev;
+  tidy
 end
 
 /-- The uncurried form of a continuous map `α → C(β, γ)` is a continuous map `α × β → γ`. -/

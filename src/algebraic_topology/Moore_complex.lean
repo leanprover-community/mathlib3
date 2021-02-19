@@ -8,6 +8,27 @@ import category_theory.abelian.basic
 import category_theory.subobject
 import algebra.homology.connective_chain_complex
 
+/-!
+## Moore complex
+
+We construct the normalized Moore complex, as a functor
+`simplicial_object C ⥤ connective_chain_complex C`,
+for any abelian category `C`.
+
+The `n`-th object is intersection of
+the kernels of `X.δ i : X.obj n ⟶ X.obj (n-1)`, for `i = 1, ..., n`.
+
+The differentials are induced from `X.δ 0`,
+which maps each of these intersections of kernels to the next.
+
+This functor is one direction of the Dold-Kan equivalence, which we're still working towards.
+
+### References
+
+* https://stacks.math.columbia.edu/tag/0194
+* https://ncatlab.org/nlab/show/Moore+complex
+-/
+
 universes v u
 
 noncomputable theory

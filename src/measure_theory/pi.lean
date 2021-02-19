@@ -44,7 +44,7 @@ finitary product measure
 -/
 
 noncomputable theory
-open function set measure_theory.outer_measure filter measurable_space
+open function set measure_theory.outer_measure filter measurable_space encodable
 open_locale classical big_operators topological_space ennreal
 
 variables {ι ι' : Type*} {α : ι → Type*}
@@ -73,8 +73,8 @@ lemma is_countably_spanning.pi {C : ∀ i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  haveI := encodable.fintype.encodable ι,
-  let e : ℕ → (ι → ℕ) := λ n, (encodable.decode (ι → ℕ) n).iget,
+  haveI := fintype.encodable ι,
+  let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
       Union_univ_pi s, h2s, pi_univ]
@@ -86,7 +86,7 @@ lemma generate_from_pi_eq {C : ∀ i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
   @measurable_space.pi _ _ (λ i, generate_from (C i)) = generate_from (pi univ '' pi univ C) :=
 begin
-  haveI := encodable.fintype.encodable ι,
+  haveI := fintype.encodable ι,
   apply le_antisymm,
   { refine supr_le _, intro i, rw [comap_generate_from],
     apply generate_from_le, rintro _ ⟨s, hs, rfl⟩, dsimp,
@@ -239,13 +239,13 @@ variables [encodable ι]
   equivalence `measurable_equiv.pi_measurable_equiv_tprod`.
   The definition `measure_theory.measure.pi` should be used instead of this one. -/
 def pi' : measure (Π i, α i) :=
-measure.map (tprod.elim' encodable.mem_sorted_univ) (measure.tprod (encodable.sorted_univ ι) μ)
+measure.map (tprod.elim' mem_sorted_univ) (measure.tprod (sorted_univ ι) μ)
 
 lemma pi'_pi [∀ i, sigma_finite (μ i)] {s : Π i, set (α i)}
   (hs : ∀ i, measurable_set (s i)) : pi' μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
-  have hl := λ i : ι, encodable.mem_sorted_univ i,
-  have hnd := @encodable.sorted_univ_nodup ι _ _,
+  have hl := λ i : ι, mem_sorted_univ i,
+  have hnd := @sorted_univ_nodup ι _ _,
   rw [pi', map_apply (measurable_tprod_elim' hl) (measurable_set.pi_fintype (λ i _, hs i)),
     elim_preimage_pi hnd, tprod_tprod _ μ hs, ← list.prod_to_finset _ hnd],
   congr' with i, simp [hl]
@@ -254,8 +254,8 @@ end
 lemma pi'_pi_le [∀ i, sigma_finite (μ i)] {s : Π i, set (α i)} :
   pi' μ (pi univ s) ≤ ∏ i, μ i (s i) :=
 begin
-  have hl := λ i : ι, encodable.mem_sorted_univ i,
-  have hnd := @encodable.sorted_univ_nodup ι _ _,
+  have hl := λ i : ι, mem_sorted_univ i,
+  have hnd := @sorted_univ_nodup ι _ _,
   apply ((pi_measurable_equiv_tprod hnd hl).symm.map_apply (pi univ s)).trans_le,
   dsimp only [pi_measurable_equiv_tprod, tprod.pi_equiv_tprod, coe_symm_mk, equiv.coe_fn_symm_mk],
   rw [elim_preimage_pi hnd],
@@ -293,7 +293,7 @@ begin
   refine le_antisymm _ _,
   { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
-  { haveI : encodable ι := encodable.fintype.encodable ι,
+  { haveI : encodable ι := fintype.encodable ι,
     rw [← pi'_pi μ hs],
     simp_rw [← pi'_pi μ hs, measure.pi,
       to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
@@ -314,8 +314,8 @@ def finite_spanning_sets_in.pi {C : ∀ i, set (set (α i))}
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
   haveI := λ i, (hμ i).sigma_finite (hC i),
-  haveI := encodable.fintype.encodable ι,
-  let e : ℕ → (ι → ℕ) := λ n, (encodable.decode (ι → ℕ) n).iget,
+  haveI := fintype.encodable ι,
+  let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
   { refine mem_image_of_mem _ (λ i _, (hμ i).set_mem _) },
   { simp_rw [pi_pi μ (λ i, (hμ i).set (e n i)) (λ i, hC i _ ((hμ i).set_mem _))],

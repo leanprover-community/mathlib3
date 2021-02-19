@@ -62,6 +62,13 @@ instance category : category Profinite := induced_category.category to_Top
 lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
 rfl
 
+def of (X : Type*) [topological_space X]
+  [compact_space X] [t2_space X] [totally_disconnected_space X] : Profinite :=
+{ to_Top := Top.of X,
+  is_compact := ‹_›,
+  is_t2 := ‹_›,
+  is_totally_disconnected := ‹_› }
+
 end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/

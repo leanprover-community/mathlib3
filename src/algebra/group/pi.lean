@@ -32,6 +32,23 @@ by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
+@[simp]
+lemma single_zero [∀ i, add_monoid $ f i] [decidable_eq I] (i : I) :
+  single i (0 : f i) = 0 :=
+begin
+  ext i', by_cases h : i' = i,
+  { subst h, simp only [single_eq_same, pi.zero_apply], },
+  { simp only [h, single_eq_of_ne, ne.def, not_false_iff, pi.zero_apply], },
+end
+
+lemma single_add [∀ i, add_monoid $ f i] [decidable_eq I] (i : I) (x y : f i) :
+  single i (x + y) = single i x + single i y :=
+begin
+  ext i', by_cases h : i' = i,
+  { subst h, simp only [single_eq_same, add_apply], },
+  { simp only [h, add_zero, single_eq_of_ne, add_apply, ne.def, not_false_iff], },
+end
+
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
@@ -46,6 +63,18 @@ instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
   tactic.pi_instance_derive_field
+
+lemma single_neg [∀ i, add_group $ f i] [decidable_eq I] (i : I) (x : f i) :
+  single i (-x) = -single i x :=
+begin
+  ext i', by_cases h : i' = i,
+  { subst h, simp only [single_eq_same, neg_apply], },
+  { simp only [h, neg_zero, single_eq_of_ne, neg_apply, ne.def, not_false_iff], },
+end
+
+lemma single_sub [∀ i, add_group $ f i] [decidable_eq I] (i : I) (x y : f i) :
+  single i (x - y) = single i x - single i y :=
+by simp only [sub_eq_add_neg, single_add, single_neg]
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
@@ -65,6 +94,19 @@ by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
 instance mul_zero_class [∀ i, mul_zero_class $ f i] :
   mul_zero_class (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+
+instance monoid_with_zero [∀ i, monoid_with_zero $ f i] :
+  monoid_with_zero (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
+  tactic.pi_instance_derive_field
+
+lemma single_mul [∀ i, monoid_with_zero $ f i] [decidable_eq I] (i : I) (x y : f i) :
+  single i (x * y) = single i x * single i y :=
+begin
+  ext i', by_cases h : i' = i,
+  { subst h, simp only [single_eq_same, mul_apply], },
+  { simp only [h, mul_zero, single_eq_of_ne, mul_apply, ne.def, not_false_iff], },
+end
 
 instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
@@ -126,17 +168,7 @@ into a dependent family of additive monoids, as functions supported at a point.
 This is the `add_monoid_hom` version of `pi.single`. -/
 @[simps] def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
-  map_zero' :=
-  begin
-    ext i', by_cases h : i' = i,
-    { subst h, simp only [single_eq_same, pi.zero_apply], },
-    { simp only [h, single_eq_of_ne, ne.def, not_false_iff, pi.zero_apply], },
-  end,
-  map_add' := λ x y,
-  begin
-    ext i', by_cases h : i' = i,
-    { subst h, simp only [single_eq_same, add_apply], },
-    { simp only [h, add_zero, single_eq_of_ne, add_apply, ne.def, not_false_iff], },
-  end, }
+  map_zero' := single_zero i,
+  map_add' := single_add i, }
 
 end add_monoid_single

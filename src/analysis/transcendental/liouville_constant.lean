@@ -247,8 +247,8 @@ namespace liouville
 
 /--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
 numbers where the denominator is `m ^ k!`. -/
-lemma liouville_number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
-∃ p : ℕ, liouville_number_first_k_terms m k = p / (m ^ k!) :=
+lemma liouville_number_rat_first_k_terms (hm : 0 < m) (k : ℕ) :
+∃ p : ℕ, liouville_number_first_k_terms m k = p / m ^ k! :=
 begin
   induction k with k h,
   { exact ⟨1, by rw [liouville_number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
@@ -265,8 +265,57 @@ begin
       rw [← mul_assoc, ← mul_assoc],
       rw [mul_comm (p_k * _), mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc] },
     refine mul_ne_zero_iff.mpr ⟨_, _⟩,
-    all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr ((zero_lt_one.trans hm).ne.symm)) } }
+    all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end
+
+lemma add_one_le_two_mul {n : ℕ} (n0 : 0 < n) : n + 1 ≤ 2 * n :=
+by linarith
+
+lemma pre_sum_liouville {f : ℕ → ℕ} {m : ℝ} (hm : 1 < m) (f0 : ∀ n, 0 < f n)
+  (fn1 : ∀ n, 2 * (f n) ^ n ≤ f (n + 1)) :
+  summable (λ i, 1 / m ^ f i) :=
+begin
+  refine @summable_of_nonneg_of_le ℕ ((λ j, 1 / m ^ j)) (λ j, 1 / m ^ (f j)) _ _ _,
+  { exact λ b, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _) },
+  { refine λ b, one_div_mono_exp hm.le _,
+    induction b with b hb,
+    { exact (f0 0).le },
+    { by_cases b0 : b = 0,
+      { rw b0,
+        exact nat.succ_le_iff.mpr (f0 1) },
+      { refine (((nat.succ_le_succ hb).trans (add_one_le_two_mul (f0 _))).trans _).trans (fn1 _),
+        nth_rewrite 0 ← pow_one (f b),
+        refine (mul_le_mul_left zero_lt_two).mpr (pow_le_pow (nat.succ_le_iff.mpr (f0 b)) _),
+        exact (nat.succ_le_iff.mpr (zero_lt_iff.mpr b0)) } } },
+  { simp_rw ← one_div_pow,
+    exact (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
+      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (by rwa one_div_one))) }
+end
+
+
+lemma pre_liouville {f : ℕ → ℝ} (hm : 1 < m)
+  -- the terms of the series are positive
+  (f0 : ∀ n, 0 < f n)
+  (frat : ∀ n, ∃ p : ℕ, ∑ i in range (n + 1), 1 / f n = p / m ^ n!)
+  -- the terms grow really fast
+  (fn1 : ∀ n, 2 * (f n) ^ n ≤ f (n + 1)) :
+  liouville ∑' n : ℕ, 1 / f n :=
+begin
+  have mZ1 : (1 : ℤ) < m := by exact_mod_cast hm,
+  have m1 : (1 : ℝ) < m := by exact_mod_cast hm,
+  intros n,
+  rcases frat n with ⟨p, hp⟩,
+  refine ⟨p, m ^ n!, one_lt_pow (mZ1) n.factorial_pos, _⟩,
+  push_cast,
+  rw ← sum_add_tsum_nat_add n _,
+  work_on_goal 3
+  {
+    library_search,
+    --apply summable_inv_pow_ge m1 _,
+  },
+end
+
+
 
 theorem is_liouville (hm : 2 ≤ m) :
   liouville (liouville_number m) :=
@@ -278,7 +327,7 @@ begin
     one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
   intro n,
   -- the first `n` terms sum to `p / m ^ k!`
-  rcases liouville_number_rat_first_k_terms (one_lt_two.trans_le hm) n with ⟨p, hp⟩,
+  rcases liouville_number_rat_first_k_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
   -- separate out the sum of the first `n` terms and the rest

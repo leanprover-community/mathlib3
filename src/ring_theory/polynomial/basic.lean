@@ -2,7 +2,16 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
+-/
 
+import algebra.char_p.basic
+import data.mv_polynomial.comm_ring
+import data.mv_polynomial.equiv
+import data.polynomial.field_division
+import ring_theory.principal_ideal_domain
+import ring_theory.polynomial.content
+
+/-!
 # Ring-theoretic supplement of data.polynomial.
 
 ## Main results
@@ -15,12 +24,6 @@ Authors: Kenny Lau
 * `polynomial.unique_factorization_monoid`:
   If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
 -/
-import algebra.char_p.basic
-import data.mv_polynomial.comm_ring
-import data.mv_polynomial.equiv
-import data.polynomial.field_division
-import ring_theory.principal_ideal_domain
-import ring_theory.polynomial.content
 
 noncomputable theory
 open_locale classical big_operators

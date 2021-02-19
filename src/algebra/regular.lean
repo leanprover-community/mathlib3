@@ -14,23 +14,34 @@ By definition, a regular element in a commutative ring is a non-zero divisor.
 Lemma `is_regular_of_cancel_monoid_with_zero` implies that every non-zero element of an integral
 domain is regular.
 
+The lemmas in Section `mul_zero_class` show that the `0` element is (left/right-)regular if and
+only if the `mul_zero_class` is trivial.  This is useful when figuring out stopping conditions for
+regular sequences: if `0` is ever an element of a regular sequence, then we can extend the sequence
+by adding one further `0`.
+
 The final goal is to develop part of the API to prove, eventually, results about non-zero-divisors.
 -/
 variables {R : Type*} {a b : R}
 
+section has_mul
+
+variable [has_mul R]
+
 /-- A left-regular element is an element `c` such that multiplication on the left by `c`
 is injective on the left. -/
-def is_left_regular [has_mul R] (c : R) := function.injective ((*) c)
+def is_left_regular (c : R) := function.injective ((*) c)
 
 /-- A right-regular element is an element `c` such that multiplication on the right by `c`
 is injective on the right. -/
-def is_right_regular [has_mul R] (c : R) := function.injective (* c)
+def is_right_regular (c : R) := function.injective (* c)
 
 /-- A regular element is an element `c` such that multiplication by `c` both on the left and
 on the right is injective. -/
-structure is_regular [has_mul R] (c : R) : Prop :=
+structure is_regular (c : R) : Prop :=
 (left : is_left_regular c)
 (right : is_right_regular c)
+
+end has_mul
 
 namespace is_regular
 
@@ -97,6 +108,52 @@ lemma and_of_mul_of_mul (ab : is_regular (a * b)) (ba : is_regular (b * a)) :
 mul_and_mul_iff.mp ⟨ab, ba⟩
 
 end semigroup
+
+section mul_zero_class
+
+variables [mul_zero_class R]
+
+/--  The element `0` is left-regular if and only if all elements are equal. -/
+lemma zero_left_iff_forall (h : is_left_regular (0 : R)) : ∀ (a b : R), a = b :=
+λ a b, h $ eq.trans (zero_mul a) (zero_mul b).symm
+
+/--  The element `0` is right-regular if and only if all elements are equal. -/
+lemma zero_right_iff_forall (h : is_right_regular (0 : R)) : ∀ (a b : R), a = b :=
+λ a b, h $ eq.trans (mul_zero a) (mul_zero b).symm
+
+/--  The element `0` is regular if and only if all elements are equal. -/
+lemma zero_iff_forall (h : is_regular (0 : R)) : ∀ (a b : R), a = b :=
+zero_left_iff_forall h.left
+
+/--  The element `0` is left-regular if and only if the `mul_class_zero` is trivial. -/
+lemma zero_left_iff_not : is_left_regular (0 : R) ↔ ¬ nontrivial R :=
+begin
+  rw nontrivial_iff,
+  push_neg,
+  exact ⟨λ h, zero_left_iff_forall h, λ h, λ x y xy, h _ _⟩,
+end
+
+/--  In a non-trivial `mul_zero_class`, the `0` element is not left-regular. -/
+lemma not_zero_left_iff : ¬ is_left_regular (0 : R) ↔ nontrivial R :=
+not_iff_comm.mp zero_left_iff_not.symm
+
+/--  The element `0` is right-regular if and only if the `mul_class_zero` is trivial. -/
+lemma zero_right_iff_not : is_right_regular (0 : R) ↔ ¬ nontrivial R :=
+begin
+  rw nontrivial_iff,
+  push_neg,
+  exact ⟨λ h, zero_right_iff_forall h, λ h, λ x y xy, h _ _⟩,
+end
+
+/--  In a non-trivial `mul_zero_class`, the `0` element is not right-regular. -/
+lemma not_zero_right_iff : ¬ is_right_regular (0 : R) ↔ nontrivial R :=
+not_iff_comm.mp zero_right_iff_not.symm
+
+/--  The element `0` is regular if and only if the `mul_class_zero` is trivial. -/
+lemma zero_iff : is_regular (0 : R) ↔ ¬ nontrivial R :=
+⟨λ h, zero_left_iff_not.mp h.left, λ h, ⟨zero_left_iff_not.mpr h, zero_right_iff_not.mpr h⟩⟩
+
+end mul_zero_class
 
 section comm_semigroup
 

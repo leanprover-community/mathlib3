@@ -459,10 +459,12 @@ have ∀ x ∉ m, r ∈ radical (m ⊔ span {x}) := λ x hxm, classical.by_contr
     (subset_span $ set.mem_singleton _),
 have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial,
   λ x y hxym, or_iff_not_imp_left.2 $ λ hxm, classical.by_contradiction $ λ hym,
-  let ⟨n, hrn⟩ := this _ hxm, ⟨p, hpm, q, hq, hpqrn⟩ := submodule.mem_sup.1 hrn, ⟨c, hcxq⟩ :=
-  mem_span_singleton'.1 hq in
-  let ⟨k, hrk⟩ := this _ hym, ⟨f, hfm, g, hg, hfgrk⟩ := submodule.mem_sup.1 hrk, ⟨d, hdyg⟩ :=
-  mem_span_singleton'.1 hg in
+  let ⟨n, hrn⟩ := this _ hxm,
+      ⟨p, hpm, q, hq, hpqrn⟩ := submodule.mem_sup.1 hrn,
+      ⟨c, hcxq⟩ := mem_span_singleton'.1 hq in
+  let ⟨k, hrk⟩ := this _ hym,
+      ⟨f, hfm, g, hg, hfgrk⟩ := submodule.mem_sup.1 hrk,
+      ⟨d, hdyg⟩ := mem_span_singleton'.1 hg in
   hrm ⟨n + k, by rw [pow_add, ← hpqrn, ← hcxq, ← hfgrk, ← hdyg, add_mul, mul_add (c*x),
                      mul_assoc c x (d*y), mul_left_comm x, ← mul_assoc];
     refine m.add_mem (m.mul_mem_right _ hpm) (m.add_mem (m.mul_mem_left _ hfm)

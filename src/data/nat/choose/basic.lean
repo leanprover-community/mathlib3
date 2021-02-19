@@ -206,4 +206,9 @@ begin
     apply zero_le }
 end
 
+/-- A polynomial (in `l`) estimate on `choose (k + l) l * k!`-/
+lemma add_choose_mul_factorial_le_pow (k l : ℕ) : (k + l).choose l * k! ≤ (k + l) ^ k :=
+calc choose (k + l) l * k! = (k + l)! / (k! * l!) * k! : by rw [add_choose]
+... ≤ _ : _
+
 end nat

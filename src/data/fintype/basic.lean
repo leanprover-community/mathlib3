@@ -51,7 +51,7 @@ univ_nonempty_iff.2 ‹_›
 lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
 by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
 
-theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
+@[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 instance : order_top (finset α) :=
 { top := univ,
@@ -928,6 +928,14 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
+
+@[simp] lemma fintype.card_finset_len [fintype α] (k : ℕ) :
+  fintype.card {s : finset α // s.card = k} = nat.choose (fintype.card α) k :=
+begin
+  refine (fintype.card_of_subtype (finset.powerset_len k finset.univ) $ λ s, _).trans
+    (finset.card_powerset_len _ _),
+  simp [finset.mem_powerset_len]
+end
 
 @[simp] lemma set.to_finset_univ [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=

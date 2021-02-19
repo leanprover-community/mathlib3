@@ -642,6 +642,20 @@ namespace formal_multilinear_series
 
 variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : ℝ≥0}
 
+def change_origin_series (k : ℕ) : formal_multilinear_series 𝕜 E (E [×k]→L[𝕜] F) :=
+λ l, ∑ s : {s : finset (fin (k + l)) // finset.card s = l},
+  continuous_multilinear_map.curry_fin_finset 𝕜 E F s.coe_prop
+    (by erw [finset.card_compl, fintype.card_fin, s.2, nat.add_sub_cancel])
+    (p $ k + l)
+
+lemma change_origin_series_norm_apply (k l : ℕ) :
+  ∥p.change_origin_series k l∥ ≤ nat.choose (k + l) l * ∥p (k + l)∥ :=
+le_trans (norm_sum_le _ _) $ by simp [finset.card_univ]
+
+lemma change_origin_series_radius_le (k : ℕ) :
+  (p.change_origin_series k).radius ≤ p.radius :=
+_
+
 /--
 Changing the origin of a formal multilinear series `p`, so that
 `p.sum (x+y) = (p.change_origin x).sum y` when this makes sense.
@@ -907,6 +921,8 @@ theorem has_fpower_series_on_ball.change_origin
     simpa only [add_assoc] using hf.sum this
   end }
 
+/-- If a function admits a power series expansion `p` on an open ball `B (x, r)`, then
+it is analytic at every point of this ball. -/
 lemma has_fpower_series_on_ball.analytic_at_of_mem
   (hf : has_fpower_series_on_ball f p x r) (h : y ∈ emetric.ball x r) :
   analytic_at 𝕜 f y :=
@@ -918,13 +934,16 @@ begin
 end
 
 variables (𝕜 f)
+
+/-- For any function `f` from a normed vector space to a Banach space, the set of points `x` such
+that `f` is analytic at `x` is open. -/
 lemma is_open_analytic_at : is_open {x | analytic_at 𝕜 f x} :=
 begin
-  rw is_open_iff_forall_mem_open,
+  rw is_open_iff_mem_nhds,
   rintro x ⟨p, r, hr⟩,
-  refine ⟨emetric.ball x r, λ y hy, hr.analytic_at_of_mem hy, emetric.is_open_ball, _⟩,
-  simp only [edist_self, emetric.mem_ball, hr.r_pos]
+  exact mem_sets_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
 end
+
 variables {𝕜 f}
 
 end

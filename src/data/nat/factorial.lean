@@ -46,7 +46,7 @@ end
 theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!
 | (succ m) n _ h := dvd_of_mul_right_dvd (factorial_dvd_factorial h)
 
-theorem factorial_le {m n} (h : m ≤ n) : m! ≤ n! :=
+@[mono] theorem factorial_le {m n} (h : m ≤ n) : m! ≤ n! :=
 le_of_dvd (factorial_pos _) (factorial_dvd_factorial h)
 
 lemma factorial_mul_pow_le_factorial : ∀ {m n : ℕ}, m! * m.succ ^ n ≤ (m + n)!
@@ -55,6 +55,14 @@ lemma factorial_mul_pow_le_factorial : ∀ {m n : ℕ}, m! * m.succ ^ n ≤ (m +
 by  rw [← add_assoc, nat.factorial_succ, mul_comm (nat.succ _), pow_succ', ← mul_assoc];
   exact mul_le_mul factorial_mul_pow_le_factorial
     (nat.succ_le_succ (nat.le_add_right _ _)) (nat.zero_le _) (nat.zero_le _)
+
+lemma factorial_add_le_mul_pow (m n : ℕ) : (m + n)! ≤ m! * (m + n) ^ n :=
+begin
+  induction n with n ihn, { simp },
+  rw [add_succ, factorial_succ, mul_comm, pow_succ', ← mul_assoc],
+  refine nat.mul_le_mul (ihn.trans _) le_rfl,
+  exact nat.mul_le_mul le_rfl (pow_le_pow_of_le_left (zero_le _) (nat.le_succ _) _)
+end
 
 lemma monotone_factorial : monotone factorial := λ n m, factorial_le
 

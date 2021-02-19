@@ -169,7 +169,7 @@ begin
 end
 
 /-- The function `exp_neg_inv_glue` is smooth. -/
-theorem smooth : times_cont_diff ℝ ⊤ exp_neg_inv_glue :=
+protected theorem times_cont_diff {n} : times_cont_diff ℝ n exp_neg_inv_glue :=
 begin
   rw ← f_aux_zero_eq,
   apply times_cont_diff_of_differentiable_iterated_deriv (λ m hm, _),
@@ -229,12 +229,14 @@ lemma lt_one_of_lt_one (h : x < 1) : smooth_transition x < 1 :=
 lemma pos_of_pos (h : 0 < x) : 0 < smooth_transition x :=
 div_pos (exp_neg_inv_glue.pos_of_pos h) (pos_denom x)
 
-protected lemma times_cont_diff : times_cont_diff ℝ ⊤ smooth_transition :=
-smooth.div (smooth.add $ smooth.comp $ times_cont_diff_const.sub times_cont_diff_id) $
+protected lemma times_cont_diff {n} : times_cont_diff ℝ n smooth_transition :=
+exp_neg_inv_glue.times_cont_diff.div
+  (exp_neg_inv_glue.times_cont_diff.add $ exp_neg_inv_glue.times_cont_diff.comp $
+    times_cont_diff_const.sub times_cont_diff_id) $
   λ x, (pos_denom x).ne'
 
 protected lemma times_cont_diff_at {x n} : times_cont_diff_at ℝ n smooth_transition x :=
-(smooth_transition.times_cont_diff.of_le le_top).times_cont_diff_at
+smooth_transition.times_cont_diff.times_cont_diff_at
 
 end smooth_transition
 
@@ -256,29 +258,6 @@ open smooth_transition
 
 lemma one_of_norm_le_one {x : E} (hx : ∥x∥ ≤ 1) : smooth_bump_function x = 1 :=
 one_of_one_le (le_sub.2 $ by { norm_num1, assumption })
-
-lemma eventually_eq_one_of_norm_lt_one {x : E} (hx : ∥x∥ < 1) :
-  smooth_bump_function =ᶠ[𝓝 x] (λ _, 1) :=
-((is_open_lt continuous_norm continuous_const).eventually_mem hx).mono $
-  λ y hy, one_of_norm_le_one (le_of_lt hy)
-
-lemma eventually_eq_one : smooth_bump_function =ᶠ[𝓝 (0 : E)] (λ _, 1) :=
-eventually_eq_one_of_norm_lt_one (by simp only [norm_zero, zero_lt_one])
-
-protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function x :=
-begin
-  rcases em (x = 0) with rfl|hx,
-  { exact times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const eventually_eq_one },
-  { exact smooth_transition.times_cont_diff_at.comp x
-      (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
-end
-
-protected lemma times_cont_diff {n} : times_cont_diff ℝ n (smooth_bump_function : E → ℝ) :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x, smooth_bump_function.times_cont_diff_at
-
-protected lemma times_cont_diff_within_at {x : E} {s n} :
-  times_cont_diff_within_at ℝ n smooth_bump_function s x :=
-smooth_bump_function.times_cont_diff_at.times_cont_diff_within_at
 
 lemma nonneg (x : E) : 0 ≤ smooth_bump_function x :=
 nonneg _
@@ -303,6 +282,29 @@ begin
   { simp [hx, (pos_of_norm_lt_two hx).ne'] },
   { simp [hx.not_lt, zero_of_two_le_norm hx] }
 end
+
+lemma eventually_eq_one_of_norm_lt_one {x : E} (hx : ∥x∥ < 1) :
+  smooth_bump_function =ᶠ[𝓝 x] (λ _, 1) :=
+((is_open_lt continuous_norm continuous_const).eventually_mem hx).mono $
+  λ y hy, one_of_norm_le_one (le_of_lt hy)
+
+lemma eventually_eq_one : smooth_bump_function =ᶠ[𝓝 (0 : E)] (λ _, 1) :=
+eventually_eq_one_of_norm_lt_one (by simp only [norm_zero, zero_lt_one])
+
+protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function x :=
+begin
+  rcases em (x = 0) with rfl|hx,
+  { exact times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const eventually_eq_one },
+  { exact smooth_transition.times_cont_diff_at.comp x
+      (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
+end
+
+protected lemma times_cont_diff {n} : times_cont_diff ℝ n (smooth_bump_function : E → ℝ) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, smooth_bump_function.times_cont_diff_at
+
+protected lemma times_cont_diff_within_at {x : E} {s n} :
+  times_cont_diff_within_at ℝ n smooth_bump_function s x :=
+smooth_bump_function.times_cont_diff_at.times_cont_diff_within_at
 
 end smooth_bump_function
 

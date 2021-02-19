@@ -26,6 +26,10 @@ There is a coercion from `subobject X` back to the ambient category `C`
 (using choice to pick a representative), and for `P : subobject X`,
 `P.arrow : (P : C) ⟶ X` is the inclusion morphism.
 
+The predicate `h : P.factors f`, for `P : subobject Y` and `f : X ⟶ Y`
+asserts the existence of some `P.factor_thru f : X ⟶ (P : C)` making the obvious diagram commute.
+We provide conditions for `P.factors f`, when `P` is a kernel/equalizer/image/inf/sup subobject.
+
 We provide
 * `def pullback [has_pullbacks C] (f : X ⟶ Y) : subobject Y ⥤ subobject X`
 * `def map (f : X ⟶ Y) [mono f] : subobject X ⥤ subobject Y`

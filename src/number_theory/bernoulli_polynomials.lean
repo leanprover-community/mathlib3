@@ -25,11 +25,9 @@ theorems using Bernoulli polynomials easier.
 
 ## Main theorems
 
-`sum_bernoulli_neg : ∑ k in range n, (n.choose k : ℚ) * bernoulli_neg k = 0`
-`sum_bernoulli_poly : ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli_poly k = `
-  `polynomial.monomial n (n + 1 : ℚ)`
-`exp_bernoulli_poly : power_series.mk (λ n, (polynomial.aeval t ((1 / nat.factorial n : ℚ) • `
-`  bernoulli_poly n))) * (exp A - 1) = X * rescale t (exp A) `
+`sum_bernoulli_poly` : The sum of the $k^ℐrm{th}$ Bernoulli polynomial with binomial coefficients
+  up to n is `(n + 1) * X^n`.
+`exp_bernoulli_poly` : The Bernoulli polynomials act as generating functions for the exponential.
 -/
 
 noncomputable theory

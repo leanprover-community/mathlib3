@@ -41,6 +41,7 @@ to the n-ball.
 open set real measure_theory interval_integral
 open_locale real nnreal
 
+/-- `π` coerced to the nonnegative reals. -/
 noncomputable def nnreal.pi : nnreal := ⟨π, pi_pos.le⟩
 
 @[simp]
@@ -93,8 +94,9 @@ begin
     calc  volume (disc r)
         = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between
     ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) :
-          volume_region_between_eq_integral (h continuous_sqrt_sub.neg)
-            (h continuous_sqrt_sub) measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
+          volume_region_between_eq_integral
+            (h continuous_sqrt_sub.neg) (h continuous_sqrt_sub)
+              measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
     ... = ennreal.of_real (∫ x in (-r:ℝ)..r, (λ x, 2 * f x) x) : by simp [two_mul, integral_of_le]
     ... = nnreal.pi * r ^ 2 : by rw_mod_cast [this, ← ennreal.coe_nnreal_eq] },
   obtain ⟨hle, (heq | hlt)⟩ := ⟨nnreal.coe_nonneg r, hle.eq_or_lt⟩, { simp [← heq] },

@@ -6,6 +6,7 @@ Author: Johannes Hölzl, Mario Carneiro
 import data.set.countable
 import set_theory.schroeder_bernstein
 import data.fintype.card
+import data.nat.enat
 
 /-!
 # Cardinal Numbers
@@ -758,6 +759,17 @@ end
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
 by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
 
+lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
+⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
+ λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+
+lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
+begin
+  rw [countable_iff_exists_injective], split,
+  rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩,
+  rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
+end
+
 noncomputable def to_nat (c : cardinal) : ℕ :=
 if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0
 
@@ -780,16 +792,53 @@ dif_neg (not_lt_of_le (infinite_iff.1 h))
 lemma mk_to_nat_eq_card [fintype α] : (mk α).to_nat = fintype.card α :=
 by simp [fintype_card]
 
-lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
-begin
-  rw [countable_iff_exists_injective], split,
-  rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩,
-  rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
-end
+@[simp]
+lemma zero_to_nat : cardinal.to_nat 0 = 0 :=
+by rw [← to_nat_cast 0, nat.cast_zero]
 
-lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
-⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
- λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+@[simp]
+lemma one_to_nat : cardinal.to_nat 1 = 1 :=
+by rw [← to_nat_cast 1, nat.cast_one]
+
+noncomputable def to_enat : cardinal →+ enat :=
+{ to_fun := λ c, if c < omega.{v} then c.to_nat else ⊤,
+  map_zero' := by simp [if_pos (lt_trans zero_lt_one one_lt_omega)],
+  map_add' := λ x y, begin
+    by_cases hx : x < omega,
+    { obtain ⟨x0, rfl⟩ := lt_omega.1 hx,
+      by_cases hy : y < omega,
+      { obtain ⟨y0, rfl⟩ := lt_omega.1 hy,
+        simp only [add_lt_omega hx hy, hx, hy, to_nat_cast, if_true],
+        rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
+      { rw [if_neg hy, if_neg, enat.add_top],
+        contrapose! hy,
+        apply lt_of_le_of_lt (le_add_left (le_refl y)) hy } },
+    { rw [if_neg hx, if_neg, enat.top_add],
+      contrapose! hx,
+      apply lt_of_le_of_lt (le_add_right (le_refl x)) hx },
+  end }
+
+@[simp]
+lemma to_enat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_enat = c.to_nat :=
+if_pos h
+
+@[simp]
+lemma to_enat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_enat = ⊤ :=
+if_neg (not_lt_of_le h)
+
+@[simp]
+lemma to_enat_cast (n : ℕ) : cardinal.to_enat n = n :=
+by rw [to_enat_apply_of_lt_omega (nat_lt_omega n), to_nat_cast]
+
+@[simp]
+lemma mk_to_enat_of_infinite [h : infinite α] : (mk α).to_enat = ⊤ :=
+to_enat_apply_of_omega_le (infinite_iff.1 h)
+
+@[simp]
+lemma mk_to_enat_eq_card [fintype α] : (mk α).to_enat = fintype.card α :=
+by simp [fintype_card]
 
 lemma mk_int : mk ℤ = omega :=
 denumerable_iff.mp ⟨by apply_instance⟩
@@ -1113,18 +1162,3 @@ end cardinal
 
 lemma equiv.cardinal_eq {α β} : α ≃ β → cardinal.mk α = cardinal.mk β :=
 cardinal.eq_congr
-
-section fincard
-open cardinal
-
-noncomputable def fincard (α : Type*) : ℕ := (mk α).to_nat
-
-@[simp]
-lemma infinite.fincard [h : infinite α] : fincard α = 0 :=
-mk_to_nat_of_infinite
-
-@[simp]
-lemma fintype.fincard_eq_card [fintype α] : fincard α = fintype.card α :=
-mk_to_nat_eq_card
-
-end fincard

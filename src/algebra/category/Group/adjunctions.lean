@@ -110,7 +110,7 @@ def abelianize : Group.{u} ⥤ CommGroup.{u} :=
 /-- The abelianization-forgetful adjuction from `Group` to `CommGroup`.-/
 def abelianize_adj : abelianize ⊣ forget₂ CommGroup.{u} Group.{u} :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ G A, abelianization.hom_equiv,
+{ hom_equiv := λ G A, abelianization.lift.symm,
   hom_equiv_naturality_left_symm' := λ G H A f g, by { ext1, refl } }
 
 end abelianization

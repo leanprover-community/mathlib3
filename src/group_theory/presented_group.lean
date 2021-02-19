@@ -35,7 +35,7 @@ presented_group rels to β
 
 variables {β : Type} [group β] {f : α → β} {rels : set (free_group α)}
 
-local notation `F` := free_group.to_group f
+local notation `F` := free_group.lift f
 
 variable (h : ∀ r ∈ rels, F r = 1)
 
@@ -48,14 +48,14 @@ lemma to_group_eq_one_of_mem_closure : ∀ x ∈ subgroup.normal_closure rels, F
 /-- The extension of a map f : α → β that satisfies the given relations to a group homomorphism
 from presented_group rels → β. -/
 def to_group : presented_group rels →* β :=
-quotient_group.lift (subgroup.normal_closure rels) (monoid_hom.of F) (to_group_eq_one_of_mem_closure h)
+quotient_group.lift (subgroup.normal_closure rels) F (to_group_eq_one_of_mem_closure h)
 
-@[simp] lemma to_group.of {x : α} : to_group h (of x) = f x := free_group.to_group.of
+@[simp] lemma to_group.of {x : α} : to_group h (of x) = f x := free_group.lift.of
 
 theorem to_group.unique (g : presented_group rels →* β)
   (hg : ∀ x : α, g (of x) = f x) : ∀ {x}, g x = to_group h x :=
 λ x, quotient_group.induction_on x
-    (λ _, free_group.to_group.unique (g.comp (quotient_group.mk' _)) hg)
+    (λ _, free_group.lift.unique (g.comp (quotient_group.mk' _)) hg)
 
 end to_group
 

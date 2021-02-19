@@ -93,7 +93,7 @@ abelianization.of $ free_group.of x
 /-- The map `free_abelian_group α →+ A` induced by a map of types `α → A`. -/
 def lift {β : Type v} [add_comm_group β] : (α → β) ≃ (free_abelian_group α →+ β) :=
 (@free_group.lift _ (multiplicative β) _).trans $
-  (@abelianization.hom_equiv _ _ (multiplicative β) _).symm.trans monoid_hom.to_additive
+  (@abelianization.lift _ _ (multiplicative β) _).trans monoid_hom.to_additive
 
 namespace lift
 variables {β : Type v} [add_comm_group β] (f : α → β)

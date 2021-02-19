@@ -228,32 +228,32 @@ def bernoulli (n : ℕ) : ℚ := (-1)^n * (bernoulli' n)
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1 := rfl
 
 @[simp] lemma bernoulli_one   : bernoulli 1 = -1/2 :=
-by { rw [bernoulli, bernoulli'_one], linarith, }
+by norm_num [bernoulli, bernoulli'_one]
 
 theorem bernoulli_eq_bernoulli' {n : ℕ} (hn : n ≠ 1) : bernoulli n = bernoulli' n :=
 begin
   by_cases n = 0,
-  { rw h, simp only [bernoulli'_zero, bernoulli_zero], },
-  rw [bernoulli, neg_one_pow_eq_pow_mod_two], by_cases k : n%2 = 1,
-  { rw k, simp only [neg_mul_eq_neg_mul_symm, one_mul, pow_one],
-    have f : 1 < n := by { apply one_lt_iff_ne_zero_and_ne_one.2 ⟨h, hn⟩, },
-    have g := bernoulli'_odd_eq_zero (odd_iff.2 k) f,
-    rw [g, neg_zero], },
-  simp only [mod_two_ne_one, ne.def] at *, rw k, simp,
+  { rw [h, bernoulli'_zero, bernoulli_zero] },
+  { rw [bernoulli, neg_one_pow_eq_pow_mod_two],
+    by_cases k : n % 2 = 1,
+    { have f : 1 < n := one_lt_iff_ne_zero_and_ne_one.2 ⟨h, hn⟩,
+      simp [bernoulli'_odd_eq_zero (odd_iff.2 k) f] },
+    rw mod_two_ne_one at k, simp [k] }
 end
 
 @[simp] theorem sum_bernoulli (n : ℕ) ( h : 2 ≤ n ) :
   ∑ k in range n, (n.choose k : ℚ) * bernoulli k = 0 :=
 begin
-  cases n, { norm_num at * },
-  rw [sum_range_succ', bernoulli_zero, mul_one, choose_zero_right, cast_one],
-  cases n, { norm_num at * },
-  { rw sum_range_succ', simp only [cast_succ, bernoulli_one, choose_one_right],
-    have f := sum_bernoulli' n.succ.succ,
-    rw [sum_range_succ', sum_range_succ'] at f,
-    simp only [one_div, bernoulli'_one, cast_succ, mul_one, cast_one, add_left_inj,
-      choose_zero_right, bernoulli'_zero, zero_add, choose_one_right] at f,
-    conv_lhs { congr, { congr, { apply_congr, skip,
-      rw bernoulli_eq_bernoulli', skip, apply_congr succ_ne_zero x ∘ succ.inj, }, }, },
-    rw [eq_sub_iff_add_eq.2 f], ring, },
+  cases n, norm_num at h,
+  cases n, norm_num at h,
+  rw [sum_range_succ', bernoulli_zero, mul_one, choose_zero_right, cast_one,
+    sum_range_succ', bernoulli_one, choose_one_right],
+  suffices : ∑ (i : ℕ) in range n, ↑((n + 2).choose (i + 2)) * bernoulli (i + 2) = n/2,
+  { rw [this, cast_succ, cast_succ], ring },
+  have f := sum_bernoulli' n.succ.succ,
+  simp only [sum_range_succ', one_div, bernoulli'_one, cast_succ, mul_one, cast_one, add_left_inj,
+    choose_zero_right, bernoulli'_zero, zero_add, choose_one_right, ← eq_sub_iff_add_eq] at f,
+  convert f,
+  { ext x, rw bernoulli_eq_bernoulli' (succ_ne_zero x ∘ succ.inj) },
+  { ring },
 end

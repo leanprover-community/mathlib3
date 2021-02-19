@@ -477,6 +477,20 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
 
+lemma function.left_inverse.closed_range [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  is_closed (range g) :=
+have eq_on (g ∘ f) id (closure $ range g),
+  from h.right_inv_on_range.eq_on.closure (hg.comp hf) continuous_id,
+is_closed_of_closure_subset $ λ x hx,
+calc x = g (f x) : (this hx).symm
+   ... ∈ _ : mem_range_self _
+
+lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  closed_embedding g :=
+⟨h.embedding hf hg, h.closed_range hf hg⟩
+
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
   (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
@@ -582,11 +596,10 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
   ∃ (U : set α), is_open U ∧ x ∈ U ∧ is_compact (closure U) :=
 begin
-  rcases locally_compact_space.local_compact_nhds x univ filter.univ_mem_sets with
-    ⟨K, h1K, _, h2K⟩,
-  rw [mem_nhds_sets_iff] at h1K, rcases h1K with ⟨t, h1t, h2t, h3t⟩,
-  exact ⟨t, h2t, h3t, compact_of_is_closed_subset h2K is_closed_closure $
-    closure_minimal h1t $ h2K.is_closed⟩
+  rcases exists_compact_mem_nhds x with ⟨K, hKc, hxK⟩,
+  rcases mem_nhds_sets_iff.1 hxK with ⟨t, h1t, h2t, h3t⟩,
+  exact ⟨t, h2t, h3t, compact_of_is_closed_subset hKc is_closed_closure $
+    closure_minimal h1t hKc.is_closed⟩
 end
 
 /-- In a locally compact T₂ space, every compact set is contained in the interior of a compact
@@ -615,7 +628,7 @@ class regular_space (α : Type u) [topological_space α] extends t1_space α : P
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
-  ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
+  ∃ t ∈ 𝓝 a, t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
 have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),

@@ -124,6 +124,11 @@ lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : conti
 { induced := (inducing_of_inducing_compose hf hg hgf.to_inducing).induced,
   inj := assume a₁ a₂ h, hgf.inj $ by simp [h, (∘)] }
 
+protected lemma function.left_inverse.embedding {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  embedding g :=
+embedding_of_embedding_compose hg hf $ h.comp_eq_id.symm ▸ embedding_id
+
 lemma embedding_open {f : α → β} {s : set α}
   (hf : embedding f) (h : is_open (range f)) (hs : is_open s) : is_open (f '' s) :=
 inducing_open hf.1 h hs
@@ -283,7 +288,7 @@ lemma of_inverse {f : α → β} {f' : β → α}
   is_closed_map f :=
 assume s hs,
 have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
-this ▸ continuous_iff_is_closed.mp h s hs
+this ▸ hs.preimage h
 
 lemma of_nonempty {f : α → β} (h : ∀ s, is_closed s → s.nonempty → is_closed (f '' s)) :
   is_closed_map f :=

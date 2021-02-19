@@ -39,12 +39,12 @@ to the n-ball.
 -/
 
 open set real measure_theory interval_integral
---open_locale nnreal
+open_locale real nnreal
 
-noncomputable def nnreal.pi : nnreal := ⟨real.pi, le_of_lt pi_pos⟩
+noncomputable def nnreal.pi : nnreal := ⟨π, pi_pos.le⟩
 
 @[simp]
-lemma real.of_nnreal_pi : (nnreal.pi:ℝ) = real.pi := by simp [nnreal.pi]
+lemma real.of_nnreal_pi : (nnreal.pi : ℝ) = π := by rw [nnreal.pi, subtype.coe_mk]
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
   `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`.
@@ -54,7 +54,7 @@ lemma real.of_nnreal_pi : (nnreal.pi:ℝ) = real.pi := by simp [nnreal.pi]
   See the module docstring for an explanation of why we don't define the disc in Euclidean space. -/
 def disc (r : ℝ) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
 
-variable (r : nnreal)
+variable (r : ℝ≥0)
 
 /-- A disc of radius `r` can be represented as the region between the two curves
   `λ x, - sqrt (r ^ 2 - x ^ 2)` and `λ x, sqrt (r ^ 2 - x ^ 2)`. -/
@@ -90,16 +90,14 @@ begin
   suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = nnreal.pi * r ^ 2,
   { have h : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
       λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
-    have H := volume_region_between_eq_integral (h continuous_sqrt_sub.neg) (h continuous_sqrt_sub)
-                measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _)),
     calc  volume (disc r)
         = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between
-    ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) : H
-    ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (λ x, 2 * f x) x) : by simp [two_mul]
-    ... = ennreal.of_real (∫ x in (-r:ℝ)..r, (λ x, 2 * f x) x) : by simp [integral_of_le]
+    ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) :
+          volume_region_between_eq_integral (h continuous_sqrt_sub.neg)
+            (h continuous_sqrt_sub) measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
+    ... = ennreal.of_real (∫ x in (-r:ℝ)..r, (λ x, 2 * f x) x) : by simp [two_mul, integral_of_le]
     ... = nnreal.pi * r ^ 2 : by rw_mod_cast [this, ← ennreal.coe_nnreal_eq] },
-  have hle := nnreal.coe_nonneg r,
-  cases hle.eq_or_lt with heq hlt, { simp [← heq] },
+  obtain ⟨hle, (heq | hlt)⟩ := ⟨nnreal.coe_nonneg r, hle.eq_or_lt⟩, { simp [← heq] },
   have hderiv : ∀ x ∈ Ioo (-r:ℝ) r, has_deriv_at F (2 * f x) x,
   { rintros x ⟨hx1, hx2⟩,
     convert ((has_deriv_at_const x ((r:ℝ)^2)).mul ((has_deriv_at_arcsin _ _).comp x
@@ -126,5 +124,5 @@ begin
   have hcont' := (continuous_const.mul continuous_sqrt_sub).continuous_on,
   calc  ∫ x in (-r)..r, (λ x, 2 * f x) x
       = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self r.2) hcont hderiv hcont'
-  ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm real.pi],
+  ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end

@@ -20,23 +20,25 @@ def finite_subsets_diagram (X : Type u) : finset X ⥤ Fintype.{u} :=
 { obj := λ x, Fintype.of ((x : set X) : Type u),
   map := λ x y f t, ⟨_, le_of_hom f t.2⟩ }
 
-noncomputable def forward : Type u ⥤ ind Fintype.{u} :=
-{ obj := λ X, colimit (finite_subsets_diagram X ⋙ ind_embed Fintype),
-  map := λ X Y f,
-  begin
-    apply colimit.desc _ ⟨_, _⟩,
-    have := cocone.whisker,
-    -- apply colimit.desc _ ⟨_, λ (Z : finset _), _ ≫ colimit.ι _ (Z.image f), _⟩,
-    -- apply (ind_embed Fintype).map _,
-    -- intro x,
-    -- dsimp at x,
-    -- refine ⟨f x.1, _⟩,
-    -- rw finset.coe_image,
-    -- apply set.mem_image_of_mem _ x.2,
+noncomputable def forward : ind.{u} Fintype.skeleton ⥤ Type u :=
+@ind_extend _ _ _ _ Fintype.incl (λ J 𝒥₁ 𝒥₂, _)
 
-  end
+-- { obj := λ X, colimit (finite_subsets_diagram X ⋙ ind_embed Fintype),
+--   map := λ X Y f,
+--   begin
+--     apply colimit.desc _ ⟨_, _⟩,
+--     have := cocone.whisker,
+--     -- apply colimit.desc _ ⟨_, λ (Z : finset _), _ ≫ colimit.ι _ (Z.image f), _⟩,
+--     -- apply (ind_embed Fintype).map _,
+--     -- intro x,
+--     -- dsimp at x,
+--     -- refine ⟨f x.1, _⟩,
+--     -- rw finset.coe_image,
+--     -- apply set.mem_image_of_mem _ x.2,
 
-}
+--   end
+
+-- }
 
 #exit
 

@@ -24,26 +24,30 @@ equivalence of categories in `Fintype.skeleton.equivalence`.
 We prove that `Fintype.skeleton` is a skeleton of `Fintype` in `Fintype.is_skeleton`.
 -/
 
+universe u
+
 open_locale classical
 open category_theory
 
 /-- The category of finite types. -/
 @[derive has_coe_to_sort]
-def Fintype := bundled fintype
+def Fintype := bundled fintype.{u}
+
+
 
 namespace Fintype
 
 /-- Construct a bundled `Fintype` from the underlying type and typeclass. -/
-def of (X : Type*) [fintype X] : Fintype := bundled.of X
+def of (X : Type u) [fintype X] : Fintype.{u} := bundled.of X
 instance : inhabited Fintype := ⟨⟨pempty⟩⟩
-instance {X : Fintype} : fintype X := X.2
-@[simp] lemma of_α {X : Type*} [fintype X] : (Fintype.of X).α = X := rfl
+instance {X : Fintype.{u}} : fintype X := X.2
+@[simp] lemma of_α {X : Type u} [fintype X] : (Fintype.of X).α = X := rfl
 
-instance : category Fintype := induced_category.category bundled.α
+instance : large_category Fintype.{u} := induced_category.category bundled.α
 
 /-- The fully faithful embedding of `Fintype` into the category of types. -/
 @[derive [full, faithful, reflects_isomorphisms], simps]
-def incl : Fintype ⥤ Type* := induced_functor _
+def incl : Fintype.{u} ⥤ Type u := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩
 
@@ -52,28 +56,37 @@ The "standard" skeleton for `Fintype`. This is the full subcategory of `Fintype`
 of the form `fin n` for `n : ℕ`. We parameterize the objects of `Fintype.skeleton` directly as `ℕ`,
 as the type `fin m ≃ fin n` is nonempty if and only if `n = m`.
 -/
-def skeleton := ℕ
+def skeleton := ulift.{u} ℕ
 
 namespace skeleton
 
 /-- Given any natural number `n`, this creates the associated object of `Fintype.skeleton`. -/
-def mk : ℕ → skeleton := id
+def mk : ℕ → skeleton.{u} := ulift.up
 
-instance : inhabited skeleton := ⟨mk 0⟩
+instance : inhabited skeleton.{0} := ⟨mk 0⟩
 
 /-- Given any object of `Fintype.skeleton`, this returns the associated natural number. -/
-def to_nat : skeleton → ℕ := id
+def to_nat : skeleton → ℕ := ulift.down
 
-instance : category skeleton :=
-{ hom := λ X Y, fin X → fin Y,
-  id := λ _, id,
-  comp := λ _ _ _ f g, g ∘ f }
+instance : small_category skeleton.{u} :=
+{ hom := λ X Y, ulift (fin (ulift.down X) → fin (ulift.down Y)),
+  id := λ X, ulift.up id,
+  comp := λ _ _ _ f g, ulift.up (ulift.down g ∘ ulift.down f) }
 
-lemma is_skeletal : skeletal skeleton := λ X Y ⟨h⟩, fin.equiv_iff_eq.mp $ nonempty.intro $
-{ to_fun := h.1,
-  inv_fun := h.2,
-  left_inv := λ _, by {change (h.hom ≫ h.inv) _ = _, simpa},
-  right_inv := λ _, by {change (h.inv ≫ h.hom) _ = _, simpa} }
+lemma is_skeletal : skeletal skeleton := λ X Y,
+begin
+  rintro ⟨h⟩,
+  apply ulift.ext,
+  apply fin.equiv_iff_eq.mp,
+  apply nonempty.intro,
+  refine ⟨ulift.down h.1, ulift.down h.2, _, _⟩,
+
+end
+-- λ X Y ⟨h⟩, fin.equiv_iff_eq.mp $ nonempty.intro $
+-- { to_fun := h.1,
+--   inv_fun := h.2,
+--   left_inv := λ _, by {change (h.hom ≫ h.inv) _ = _, simpa},
+--   right_inv := λ _, by {change (h.inv ≫ h.hom) _ = _, simpa} }
 
 /-- The canonical fully faithful embedding of `Fintype.skeleton` into `Fintype`. -/
 def incl : skeleton ⥤ Fintype :=

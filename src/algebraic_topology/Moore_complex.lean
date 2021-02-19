@@ -116,6 +116,15 @@ open normalized_Moore_complex
 
 variables (C)
 
+/--
+The (normalized) Moore complex of a simplicial object `X` in an abelian category `C`.
+
+The `n`-th object is intersection of
+the kernels of `X.δ i : X.obj n ⟶ X.obj (n-1)`, for `i = 1, ..., n`.
+
+The differentials are induced from `X.δ 0`,
+which maps each of these intersections of kernels to the next.
+-/
 def normalized_Moore_complex : (simplicial_object C) ⥤ connective_chain_complex C :=
 { obj := obj,
   map := λ X Y f, map f,

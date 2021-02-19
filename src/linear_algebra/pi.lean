@@ -15,8 +15,10 @@ It contains theorems relating these to each other, as well as to `linear_map.ker
 ## Main definitions
 
 - pi types in the codomain:
-  - `linear_map.proj`
   - `linear_map.pi`
+  - `linear_map.single`
+- pi types in the domain:
+  - `linear_map.proj`
 - `linear_map.diag`
 
 -/
@@ -69,6 +71,17 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
+
+/-- The `linear_map` version of `add_monoid_hom.single` and `pi.single`. -/
+@[simps]
+def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
+{ to_fun := pi.single i,
+  map_smul' := λ r x, begin
+    ext i', by_cases h : i' = i,
+    { subst h, simp only [pi.single_eq_same, pi.smul_apply], },
+    { simp only [h, pi.single_eq_of_ne, ne.def, not_false_iff, pi.smul_apply, smul_zero], },
+  end,
+  .. add_monoid_hom.single φ i}
 
 section
 variables (R φ)

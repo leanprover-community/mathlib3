@@ -5,6 +5,7 @@ Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import tactic.split_ifs
 import tactic.simpa
+import tactic.congr
 import algebra.group.to_additive
 /-!
 # Instances and theorems on pi types
@@ -16,7 +17,7 @@ Instances of more sophisticated classes are defined in `pi.lean` files elsewhere
 
 universes u v w
 variable {I : Type u}     -- The indexing type
-variable {f : I → Type v} -- The family of types already equipped with instances
+variables {f : I → Type v} {g : I → Type v} {h : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
 namespace pi
@@ -50,7 +51,7 @@ instance has_mul [∀ i, has_mul $ f i] :
 section
 
 variables [decidable_eq I]
-variables [Π i, has_zero (f i)]
+variables [Π i, has_zero (f i)] [Π i, has_zero (g i)] [Π i, has_zero (h i)]
 
 /-- The function supported at `i`, with value `x` there. -/
 def single (i : I) (x : f i) : Π i, f i :=
@@ -63,6 +64,19 @@ function.update_same i x _
 @[simp]
 lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
 function.update_noteq h x _
+
+lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 0 = 0) (i : I) (x : f i) (j : I):
+  f' j (single i x j) = single i (f' i x) j :=
+by simpa only [pi.zero_apply, hf', single] using function.apply_update f' 0 i x j
+
+lemma apply_single₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 0 0 = 0)
+  (i : I) (x : f i) (y : g i) (j : I):
+  f' j (single i x j) (single i y j) = single i (f' i x y) j :=
+begin
+  by_cases h : j = i,
+  { subst h, simp only [single_eq_same], },
+  { simp only [h, single_eq_of_ne, ne.def, not_false_iff, hf'], },
+end
 
 variables (f)
 

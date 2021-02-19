@@ -93,9 +93,8 @@ lemma single_smul {α} {m : monoid α} {n : Π i, add_monoid $ f i}
   single i (r • x) = r • single i x :=
 begin
   ext j,
-  have := (function.apply_update (λ i, (•) r) 0 i x j).symm,
-  simp only [pi.zero_apply, smul_zero] at this,
-  exact this,
+  refine (apply_single _ (λ _, _) 0 i x j).symm,
+  exact smul_zero _,
 end
 
 variables (I f)

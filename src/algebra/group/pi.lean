@@ -35,18 +35,14 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_
 @[simp]
 lemma single_zero [∀ i, add_monoid $ f i] [decidable_eq I] (i : I) :
   single i (0 : f i) = 0 :=
-begin
-  ext i', by_cases h : i' = i,
-  { subst h, simp only [single_eq_same, pi.zero_apply], },
-  { simp only [h, single_eq_of_ne, ne.def, not_false_iff, pi.zero_apply], },
-end
+function.update_eq_self i 0
 
 lemma single_add [∀ i, add_monoid $ f i] [decidable_eq I] (i : I) (x y : f i) :
   single i (x + y) = single i x + single i y :=
 begin
-  ext i', by_cases h : i' = i,
-  { subst h, simp only [single_eq_same, add_apply], },
-  { simp only [h, add_zero, single_eq_of_ne, add_apply, ne.def, not_false_iff], },
+  ext j,
+  refine (apply_single₂ _ (λ _, _) i x y j).symm,
+  exact zero_add 0,
 end
 
 @[to_additive]
@@ -67,9 +63,9 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div :
 lemma single_neg [∀ i, add_group $ f i] [decidable_eq I] (i : I) (x : f i) :
   single i (-x) = -single i x :=
 begin
-  ext i', by_cases h : i' = i,
-  { subst h, simp only [single_eq_same, neg_apply], },
-  { simp only [h, neg_zero, single_eq_of_ne, neg_apply, ne.def, not_false_iff], },
+  ext j,
+  refine (apply_single _ (λ _, _) i x j).symm,
+  exact neg_zero,
 end
 
 lemma single_sub [∀ i, add_group $ f i] [decidable_eq I] (i : I) (x y : f i) :
@@ -103,9 +99,9 @@ by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), 
 lemma single_mul [∀ i, monoid_with_zero $ f i] [decidable_eq I] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 begin
-  ext i', by_cases h : i' = i,
-  { subst h, simp only [single_eq_same, mul_apply], },
-  { simp only [h, mul_zero, single_eq_of_ne, mul_apply, ne.def, not_false_iff], },
+  ext j,
+  refine (apply_single₂ _ (λ _, _) i x y j).symm,
+  exact zero_mul 0,
 end
 
 instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :

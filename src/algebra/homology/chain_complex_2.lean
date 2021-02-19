@@ -2,6 +2,7 @@ import category_theory.eq_to_hom
 import category_theory.limits.shapes.zero
 import algebra.ring
 import algebra.homology.chain_complex
+import algebra.homology.connective_chain_complex
 import tactic.linarith
 
 open category_theory
@@ -26,7 +27,7 @@ variables {N : Type*} [add_comm_monoid N]
 variables (V)
 
 meta def d_squared_tac : tactic unit :=
-`[{ intros n m h, simp at h, try { subst h}, obviously }]
+`[{ intros n m h, simp at h, try { subst h }, obviously }]
 
 structure hc (a b : N) :=
 (X : N → V)
@@ -80,11 +81,6 @@ instance : category (hc V a b) :=
 
 end hc
 
--- @[simp, reassoc]
--- lemma cochain_complex_d_tra (C : cochain_complex V) {i j : ℤ} (h : i + 1 = j + 1) :
---   C.d i ≫ (tra C.X h : _) = tra C.X begin dsimp, linarith, end ≫ C.d j :=
--- by { sorry, }
-
 @[simp, reassoc]
 lemma cochain_complex_f_tra {C D : cochain_complex V} (f : C ⟶ D) {i j : ℤ} (h : i = j) :
   f.f i ≫ tra D.X h = tra C.X h ≫ f.f j :=
@@ -116,4 +112,36 @@ def quux : hc V (0 : ℤ) (1 : ℤ) ≌ cochain_complex V :=
     (by tidy),
   counit_iso := nat_iso.of_components
     (λ C, { hom := { f := λ i, 𝟙 _, }, inv := { f := λ i, 𝟙 _, }})
-    sorry, }
+    (by tidy), }
+
+@[simp, reassoc]
+lemma blah (C : hc V (1 : ℕ) (0 : ℕ)) (n : ℕ) : C.d (n+1) ≫ C.d n = 0 :=
+by simpa using C.d_squared (n+1) n rfl
+
+@[simps]
+def foo' : hc V (1 : ℕ) (0 : ℕ) ⥤ connective_chain_complex V :=
+{ obj := λ C,
+  { X := λ i, C.X i,
+    d := λ i, tra C.X ≫ C.d i, },
+  map := λ C D f,
+  { f := λ i, f.f i, } }
+
+local attribute [simp] tra
+
+@[simps]
+def bar' : connective_chain_complex V ⥤ hc V (1 : ℕ) (0 : ℕ) :=
+{ obj := λ C,
+  { X := λ i, C.X i,
+    d := λ i, tra C.X ≫ C.d i, },
+  map := λ C D f,
+  { f := λ i, f.f i, } }.
+
+def quux' : hc V (1 : ℕ) (0 : ℕ) ≌ connective_chain_complex V :=
+{ functor := foo' V,
+  inverse := bar' V,
+  unit_iso := nat_iso.of_components
+    (λ C, { hom := { f := λ i, 𝟙 _, }, inv := { f := λ i, 𝟙 _, }})
+    (by tidy),
+  counit_iso := nat_iso.of_components
+    (λ C, { hom := { f := λ i, 𝟙 _, }, inv := { f := λ i, 𝟙 _, }})
+    (by tidy), }

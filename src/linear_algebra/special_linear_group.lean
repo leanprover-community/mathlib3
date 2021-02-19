@@ -8,6 +8,7 @@
 import linear_algebra.matrix
 import linear_algebra.nonsingular_inverse
 import data.matrix.notation
+import data.nat.parity
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -200,6 +201,48 @@ lemma cons_apply_one
 cons_val_one v M
 
 end matrix_notation
+
+section cast
+
+instance has_coe_SL :
+  has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
+⟨λ x, SL_n_insertion (int.cast_ring_hom R) x⟩
+
+@[simp] lemma has_coe_SL_apply (g : special_linear_group n ℤ) :
+  @coe _ (special_linear_group n R) _ g
+  = ⟨map (@coe _ (matrix n n ℤ) _ g) (int.cast_ring_hom R),
+    ring_hom.map_det_one (int.cast_ring_hom R) (det_coe_matrix g)⟩ :=
+SL_n_insertion_apply (int.cast_ring_hom R) g
+
+end cast
+
+section has_neg
+
+def has_neg_SL {R : Type*} [comm_ring R] (h : even (fintype.card n)) :
+  has_neg (special_linear_group n R) :=
+⟨λ g, ⟨- g.1, begin
+  convert @det_smul _ _ _ _ _ g (-1),
+  { simp,
+    refl },
+  { convert (det_coe_fun g).symm,
+    simp [nat.neg_one_pow_of_even h] }
+end⟩⟩
+
+-- add versions of `has_neg_coe_mat` and `has_neg_cast` for the general situation
+
+instance : has_neg (special_linear_group (fin 2) R) := has_neg_SL (by simp)
+
+@[simp] lemma special_linear_group.has_neg_coe_mat {R : Type*} [comm_ring R] (g : (special_linear_group (fin 2) R)) :
+  @coe _ (matrix (fin 2) (fin 2) R) _ (-g) = - (@coe _ (matrix (fin 2) (fin 2) R) _ g) :=
+rfl
+
+@[simp]
+lemma special_linear_group.has_neg_cast {R : Type*} [comm_ring R] (g : (special_linear_group (fin 2) ℤ)) :
+  @coe _ (special_linear_group (fin 2) R) _ (-g) = - (@coe _ (special_linear_group (fin 2) R) _ g) :=
+subtype.ext $ (@ring_hom.map_matrix (fin 2) _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg g
+
+
+end has_neg
 
 end special_linear_group
 

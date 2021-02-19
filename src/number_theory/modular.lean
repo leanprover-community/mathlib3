@@ -1,7 +1,6 @@
-import linear_algebra.special_linear_group
+import analysis.complex.automorphisms_half_plane
 import analysis.complex.basic
 import data.matrix.notation
-import group_theory.group_action.defs
 import data.int.basic
 import data.int.parity
 import data.nat.gcd
@@ -9,257 +8,19 @@ import algebra.ordered_ring
 import ring_theory.int.basic
 import data.real.sqrt
 
-noncomputable theory
-
---set_option profiler true
-
-namespace tactic.interactive
-meta def show_nonzero := `[
-  apply_rules [
-    mul_ne_zero,
-    sub_ne_zero_of_ne,
-    pow_ne_zero,
-    ne_of_gt,
-    ne_of_lt,
-    bottom_nonzero
-    ] 10,
-  all_goals {try {norm_cast}, try {norm_num}}
-]
-
-meta def show_pos := `[
-  apply_rules [
-    nat.succ_pos,
-    mul_pos,
-    div_pos,
-    inv_pos.mpr,
-    pow_pos
-    ] 10,
-  all_goals {try {norm_cast}, try {norm_num}, try {nlinarith}}
-]
-
-
-meta def clear_denoms := `[
-  try {rw div_eq_div_iff},
-  try {rw eq_div_iff},
-  try {symmetry, rw eq_div_iff},
-  try { ring_exp },
-  all_goals {show_nonzero}
-]
-
-meta def discrete_field := `[
-  try {field_simp *},
-  try {clear_denoms},
-  try {ring_exp},
-  try {norm_num},
-  try {linarith}
-]
-
-end tactic.interactive
-
-noncomputable theory
-
-open matrix
 open complex
+open matrix
 open matrix.special_linear_group
+noncomputable theory
 
-open_locale classical
-open_locale big_operators
-
-def H : set ℂ := { z | 0 < z.im }
 
 local notation `|` x `|` := _root_.abs x
-
-notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
-
-def top : --SL2R --
-SL(2, ℝ)  → ℂ → ℂ :=
-λ g, λ z, (g.1 0 0) * z + (g.1 0 1)
-
-def bottom : --SL2R --
-SL(2, ℝ)
- → ℂ → ℂ :=
-λ g, λ z, (g.1 1 0) * z + (g.1 1 1)
-
-def smul_aux : --SL2R --
-SL(2, ℝ) → ℂ → ℂ :=
-λ g, λ z, (top g z) / (bottom g z)
-
-lemma split_fin2 (i : fin 2) : i = 0 ∨ i = 1 :=
-begin
-  fin_cases i; tauto,
-end
-
-
-lemma det2 {F : Type*} [comm_ring F] {g: matrix (fin 2) (fin 2) F} :
-g.det = g 0 0 * g 1 1 - g 1 0 * g 0 1 :=
-begin
-calc g.det = ((0 + 1) * (g 0 0 * (g 1 1 * 1))) + ((_ * (g 1 0 * (g 0 1 * 1))) + 0) : refl g.det
-  ... = g 0 0 * g 1 1 - g 1 0 * g 0 1 : by {simp, ring}
-end
-
-lemma im_smul_mat_complex {g : SL(2, ℝ)} {z: ℂ} :
-(smul_aux g z).im = z.im / (complex.norm_sq (bottom g z)) :=
-begin
-  by_cases bot_zero : bottom g z = 0,
-  {
-    rw smul_aux,
-    simp,
-    simp [bot_zero],
-  },
-  have : complex.norm_sq (bottom g z) ≠ 0,
-  { refine ne.symm (ne_of_lt _),
-    simp [norm_sq_pos, bot_zero] },
-  field_simp,
-  have eq1 : (smul_aux g z).im * norm_sq (bottom g z) = ((smul_aux g z) * norm_sq (bottom g z)).im,
-    by simp,
-  rw [eq1, ← mul_conj (bottom g z), smul_aux],
-  simp only [mul_neg_eq_neg_mul_symm,  sub_neg_eq_add],
-  ring,
-  field_simp [top, bottom],
-  ring,
-  have := matrix.special_linear_group.det_coe_matrix g,
-  rw det2 at this,
-  ring,
-  convert congr_arg (λ t, t * z.im) this using 1; ring,
-end
-
-lemma isZThenReIm {z : ℂ} : z = 0 → z.im = 0 :=
-begin
-  intros h,
-  rw h,
-  exact complex.zero_im,
-end
-
-lemma bottomRowNonZ {g : SL(2, ℝ)} :
-g.val 1 0 = 0 → g.val 1 1 = 0 → false :=
-begin
-  intros h1 h2,
-  have detIs := g.2,
-  rw det2 at detIs,
-  rw [h1, h2] at detIs,
-  simp at detIs,
-  exact detIs,
-end
-
-lemma czPd_nonZ {z : ℂ} {g : SL(2, ℝ)} :
-bottom g z = 0 → z.im = 0 :=
-begin
-  intros h,
-  rw bottom at h,
-  simp at h,
-  have hIm := isZThenReIm h,
-  simp at hIm,
-  cases hIm,
-  {
-    rw hIm at h,
-    simp at h,
-    exfalso,
-    exact bottomRowNonZ hIm h,
-  },
-  exact hIm,
-end
-
-lemma czPd_nonZ_CP {z : ℂ} {g : SL(2, ℝ)} :
- z.im ≠ 0 → bottom g z ≠  0 :=
-begin
-  contrapose,
-  push_neg,
-  exact czPd_nonZ,
-end
-
-lemma bottom_nonzero {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
-  bottom g z ≠  0 := czPd_nonZ_CP (ne_of_gt h)
-
-@[simp] lemma im_pos_of_in_H {z : ℂ} : z ∈ H ↔ 0 < z.im := by refl
-
-lemma im_pos_of_in_H' {z : H} : 0 < z.val.im := im_pos_of_in_H.mp z.2
-
-@[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℂ} : smul_aux g z = top g z / bottom g z := by refl
-
-lemma GactsHtoH {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
-smul_aux g z ∈ H :=
-begin
-  simp at h ⊢,
-  rw [←smul_aux_def, im_smul_mat_complex],
-  exact div_pos h (norm_sq_pos.mpr (bottom_nonzero h)),
-end
-
-@[simp] lemma expand_sum_01 {R : Type*} [ring R] (f : fin 2 → R ) :
-(∑ (x : fin 2), f x) = f 0 + f 1 :=
-calc (∑ (x : fin 2), f x) = _ + _ : by {refl}
-  ... = f 0 + f 1 : by {simp}
-
-lemma bot_cocycle {x y : SL(2,ℝ)} {z : ℂ} (h : z ∈ H) :
-  bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
-begin
-  rw smul_aux_def,
-  have d1 : bottom y z ≠ 0 := bottom_nonzero h,
-  simp [top, bottom],
-  field_simp,
-  simp [matrix.mul, dot_product],
-  unfold_coes,
-  field_simp *,
-  ring,
-end
-
-lemma smul_mul {x y : SL(2, ℝ)} { z : ℂ } (h : z ∈ H) :
-smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
-begin
-  rw smul_aux,
-  simp,
-  rw bot_cocycle,
-  have d1 : bottom ( x * y) z ≠ 0 := bottom_nonzero h,
-  have d2 : bottom y z ≠ 0 := bottom_nonzero h,
-  have hyz : top y z / bottom y z ∈ H,
-  {
-    rw ←smul_aux_def,
-    exact GactsHtoH h,
-  },
-  have d3 : bottom x (top y z / bottom y z) ≠ 0 := bottom_nonzero hyz,
-  field_simp [d3],
-  suffices : top (x * y) z  = top x (top y z / bottom y z) * bottom y z,
-  {
-    simp [this],
-    ring,
-  },
-  rw [top, bottom],
-  simp [matrix.mul, dot_product],
-  unfold_coes,
-  field_simp *,
-  ring,
-  exact h,
-end
-
-
-/-- The action of `SL(2, ℝ)` on the upper half-plane by fractional linear transformations. -/
-instance SL2R_action : mul_action SL(2, ℝ) H :=
-{ smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH z.2⟩,
-  one_smul := λ z, by {ext1, unfold_coes, simp [smul_aux, top, bottom, z.2], norm_num},
-  mul_smul := λ g1 g2 z, by simpa using smul_mul z.2 }
+local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 /-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
 instance SL2Z_action : mul_action SL(2, ℤ) H :=
 mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
 
-instance has_coe_SL : has_coe SL(2,ℤ) SL(2,ℝ) := ⟨λ x, SL_n_insertion (int.cast_ring_hom ℝ) x⟩
-
-@[simp] lemma has_coe_SL_apply (g : SL(2, ℤ)) :
-  @coe _ (special_linear_group (fin 2) ℝ) _ g
-  = ⟨map (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g) (int.cast_ring_hom ℝ),
-    ring_hom.map_det_one (int.cast_ring_hom ℝ) (det_coe_matrix g)⟩ :=
-SL_n_insertion_apply (int.cast_ring_hom ℝ) g
-
-instance has_neg_SL {R : Type*} [comm_ring R] : has_neg SL(2, R) :=
-⟨λ g, ⟨- g.1, by simpa [det2] using g.2⟩⟩
-
-@[simp] lemma special_linear_group.has_neg_coe_mat {R : Type*} [comm_ring R] (g : SL(2, R)) :
-  @coe _ (matrix (fin 2) (fin 2) R) _ (-g) = - (@coe _ (matrix (fin 2) (fin 2) R) _ g) :=
-rfl
-
-@[simp]
-lemma special_linear_group.has_neg_cast {R : Type*} [comm_ring R] (g : SL(2, ℤ)) :
-  @coe _ SL(2, ℝ) _ (-g) = - (@coe _ SL(2, ℝ) _ g) :=
-subtype.ext $ (@ring_hom.map_matrix (fin 2) _ _ _ _ _ _ (int.cast_ring_hom ℝ)).map_neg g
 
 @[simp]
 lemma bottom_def' {g : SL(2,ℝ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 := by refl

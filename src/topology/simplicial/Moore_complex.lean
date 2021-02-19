@@ -23,14 +23,20 @@ local attribute [instance] abelian.has_pullbacks
 /-! The definitions in this namespace are all auxilliary definitions for `normalized_Moore_complex`
 and should usually only be accessed via that. -/
 namespace normalized_Moore_complex
+variables (X : simplicial_object C)
 
-def obj_X (X : simplicial_object C) : Π n : ℕ, subobject (X.obj (op n))
+def obj_X : Π n : ℕ, subobject (X.obj (op n))
 | 0 := ⊤
 | (n+1) := finset.univ.inf (λ k : fin (n+1), kernel_subobject (X.δ k.succ))
 
-def obj (X : simplicial_object C) : connective_chain_complex C :=
-{ X := λ n, obj_X X n,
-  d := sorry, }
+def obj_d : Π n : ℕ, obj_X X (n+1) ⟶ obj_X X n
+| 0 := sorry
+| (n+1) := sorry
+
+def obj : connective_chain_complex C :=
+{ X := obj_X X,
+  d := obj_d X,
+  d_squared' := sorry, }
 
 end normalized_Moore_complex
 

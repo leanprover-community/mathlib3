@@ -25,9 +25,9 @@ theorems using Bernoulli polynomials easier.
 
 ## Main theorems
 
-`sum_bernoulli_poly` : The sum of the $k^ℐrm{th}$ Bernoulli polynomial with binomial coefficients
-  up to n is `(n + 1) * X^n`.
-`exp_bernoulli_poly` : The Bernoulli polynomials act as generating functions for the exponential.
+- `sum_bernoulli_poly`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
+  coefficients up to n is `(n + 1) * X^n`.
+- `exp_bernoulli_poly`: The Bernoulli polynomials act as generating functions for the exponential.
 -/
 
 noncomputable theory

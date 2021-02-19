@@ -40,7 +40,6 @@ to the n-ball.
 
 open set real measure_theory interval_integral
 open_locale real
-local notation `↑`x := ennreal.of_real x
 
 variable {r : ℝ}
 
@@ -79,7 +78,7 @@ by simpa only [disc_eq_region_between hr] using measurable_set_region_between
   continuous_sqrt_sub.neg.measurable continuous_sqrt_sub.measurable measurable_set_Ioc
 
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
-theorem area_disc (hr : 0 ≤ r) : volume (disc r) = ↑(π * r ^ 2) :=
+theorem area_disc (hr : 0 ≤ r) : volume (disc r) = ennreal.of_real (π * r ^ 2) :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
   let F := λ x, r ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
@@ -90,10 +89,10 @@ begin
                 measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _)),
     calc  volume (disc r)
         = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between hr
-    ... = ↑∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x : H
-    ... = ↑∫ x in Ioc (-r) r, (λ x, 2 * f x) x : by simp [two_mul]
-    ... = ↑∫ x in (-r)..r, (λ x, 2 * f x) x : by rw integral_of_le (neg_le_self hr)
-    ... = ↑(π * r ^ 2) : by rw this },
+    ... = ennreal.of_real (∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x) : H
+    ... = ennreal.of_real (∫ x in Ioc (-r) r, (λ x, 2 * f x) x) : by simp [two_mul]
+    ... = ennreal.of_real (∫ x in (-r)..r, (λ x, 2 * f x) x) : by rw integral_of_le (neg_le_self hr)
+    ... = ennreal.of_real (π * r ^ 2) : by rw this },
   cases hr.eq_or_lt with heq hlt, { simp [← heq] },
   have hderiv : ∀ x ∈ Ioo (-r) r, has_deriv_at F (2 * f x) x,
   { rintros x ⟨hx1, hx2⟩,

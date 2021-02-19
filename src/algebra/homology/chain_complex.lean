@@ -65,7 +65,7 @@ namespace homological_complex
 variables {V}
 variables {β : Type} [add_comm_group β] {b : β}
 
-@[simp]
+@[simp, reassoc]
 lemma d_squared (C : homological_complex V b) (i : β) :
   C.d i ≫ C.d (i+b) = 0 :=
 congr_fun (C.d_squared) i
@@ -75,14 +75,41 @@ A convenience lemma for morphisms of cochain complexes,
 picking out one component of the commutation relation.
 -/
 -- I haven't been able to get this to work with projection notation: `f.comm_at i`
-@[simp]
+@[simp, reassoc]
 lemma comm_at {C D : homological_complex V b} (f : C ⟶ D) (i : β) :
     C.d i ≫ f.f (i+b) = f.f i ≫ D.d i :=
 congr_fun f.comm i
 
-@[simp]
+@[simp, reassoc]
 lemma comm {C D : homological_complex V b} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d :=
 differential_object.hom.comm _
+
+@[reassoc]
+lemma eq_to_hom_d (C : homological_complex V b) {i j : β} (h : i = j) :
+  eq_to_hom (congr_arg C.X h) ≫ C.d j =
+  C.d i ≫ eq_to_hom (congr_arg C.X (congr_arg (λ a, a + b) h) : _) :=
+begin
+  induction h,
+  simp,
+end
+
+@[reassoc]
+lemma eq_to_hom_f {C D : homological_complex V b} (f : C ⟶ D) {n m : β} (h : n = m) :
+  eq_to_hom (congr_arg C.X h) ≫ f.f m = f.f n ≫ eq_to_hom (congr_arg D.X h) :=
+begin
+  induction h,
+  simp
+end
+
+@[simp] lemma id_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
+  (C : { C : chain_complex V // Z C }) (i : ℤ) :
+  differential_object.hom.f (𝟙 C) i = 𝟙 (C.val.X i) :=
+rfl
+
+@[simp] lemma comp_chain_complex_subtype_f_apply {Z : chain_complex V → Prop}
+  {C D E : { C : chain_complex V // Z C }} (f : C ⟶ D) (g : D ⟶ E) (i : ℤ) :
+  differential_object.hom.f (f ≫ g) i = f.f i ≫ g.f i :=
+rfl
 
 variables (V)
 

@@ -32,10 +32,8 @@ Here we use the following variables: `(α β : Type*) (A : Type*) [add_comm_grou
 group it is `α →₀ ℤ`, the functions from `α` to `ℤ` such that all but finitely
 many elements get mapped to zero, however this is not how it is implemented.
 
-* `lift (f : α → A) : free_abelian_group α →+ A` : the group homomorphism induced
-by the map `f`.
-
-* `hom_equiv : (free_abelian_group α →+ A) ≃ (α → A)` : the bijection witnessing adjointness.
+* `lift : (α → A) ≃ free_abelian_group α →+ A` : the group homomorphism induced
+  by the map `α → A`; the bijection witnessing adjointness.
 
 * `map (f : α → β) : free_abelian_group α →+ free_abelian_group β` : functoriality
     of `free_abelian_group`

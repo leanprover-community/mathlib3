@@ -38,13 +38,14 @@ open_locale nat
 
 namespace finset
 
+/-- The two ways of summing over `(i,j)` in the range `a<=i<=j<b` are equal. -/
 lemma sum_Ico_Ico_comm {M : Type*} [add_comm_monoid M]
   (a b : ℕ) (f : ℕ → ℕ → M) :
   ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
   ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
 begin
-  rw ← @@finset.sum_sigma _ _ _ (λ i, finset.Ico i b) (λ x, f x.1 x.2),
-  rw ← @@finset.sum_sigma _ _ _ (λ j, finset.Ico a (j+1)) (λ x, f x.2 x.1),
+  rw finset.sum_sigma' _ (λ i, finset.Ico i b) f,
+  rw finset.sum_sigma' _ (λ j, finset.Ico a (j+1)) (λ x y, f y x),
   refine finset.sum_bij'
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
@@ -74,49 +75,12 @@ begin
   rw sub_sub_sub_cancel_right hs, ring,
 end
 
-/-- The negative Bernoulli numbers are defined to be the Bernoulli numbers with a parity sign. -/
-def bernoulli_neg (n : ℕ) : ℚ := (-1)^n * (bernoulli n)
-
-@[simp] lemma bernoulli_neg_zero  : bernoulli_neg 0 = 1 := rfl
-
-@[simp] lemma bernoulli_neg_one   : bernoulli_neg 1 = -1/2 :=
-by { rw [bernoulli_neg, bernoulli_one], linarith, }
-
-theorem ber_neg_eq_ber : ∀ n : ℕ, n ≠ 1 → bernoulli_neg n = bernoulli n :=
-begin
-  rintros n hn, by_cases n = 0,
-  { rw h, simp, },
-  rw [bernoulli_neg, neg_one_pow_eq_pow_mod_two], by_cases k : n%2 = 1,
-  { rw k, simp only [neg_mul_eq_neg_mul_symm, one_mul, pow_one],
-    have f : 1 < n := by { apply one_lt_iff_ne_zero_and_ne_one.2 ⟨h, hn⟩, },
-    have g := bernoulli_odd_eq_zero (odd_iff.2 k) f,
-    rw [g, neg_zero], },
-  simp only [mod_two_ne_one, ne.def] at *, rw k, simp,
-end
-
-@[simp] theorem sum_bernoulli_neg (n : ℕ) ( h : 2 ≤ n ) :
-  ∑ k in range n, (n.choose k : ℚ) * bernoulli_neg k = 0 :=
-begin
-  cases n, { norm_num at * },
-  rw [sum_range_succ', bernoulli_neg_zero, mul_one, choose_zero_right, cast_one],
-  cases n, { norm_num at * },
-  { rw sum_range_succ', simp only [cast_succ, bernoulli_neg_one, choose_one_right],
-    have f := sum_bernoulli n.succ.succ,
-    rw [sum_range_succ', sum_range_succ'] at f,
-    simp only [one_div, bernoulli_one, cast_succ, mul_one, cast_one, add_left_inj,
-      choose_zero_right, bernoulli_zero, zero_add, choose_one_right] at f,
-    conv_lhs { congr, { congr, { apply_congr, skip,
-      rw ber_neg_eq_ber, skip, apply_congr succ_ne_zero x ∘ succ.inj, }, }, },
-    have g := eq_sub_iff_add_eq.2 f,
-    rw g, ring, },
-end
-
 /-- The Bernoulli polynomials are defined in terms of the negative Bernoulli numbers. -/
 def bernoulli_poly (n : ℕ) : polynomial ℚ :=
-  ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli_neg i) * (choose n i))
+  ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli i) * (choose n i))
 
 lemma bernoulli_poly_def (n : ℕ) : bernoulli_poly n =
-  ∑ i in range (n + 1), polynomial.monomial i ((bernoulli_neg (n - i)) * (choose n i)) :=
+  ∑ i in range (n + 1), polynomial.monomial i ((bernoulli (n - i)) * (choose n i)) :=
 begin
   rw [←sum_range_reflect, add_succ_sub_one, add_zero, bernoulli_poly],
   apply sum_congr, {refl,},
@@ -135,7 +99,7 @@ section examples
 @[simp] lemma bernoulli_poly_zero : bernoulli_poly 0 = 1 :=
 by { rw bernoulli_poly, simp, }
 
-@[simp] lemma bernoulli_poly_zero' (n : ℕ) : (bernoulli_poly n).eval 0 = bernoulli_neg n :=
+@[simp] lemma bernoulli_poly_zero' (n : ℕ) : (bernoulli_poly n).eval 0 = bernoulli n :=
 begin
   rw [bernoulli_poly, polynomial.eval_finset_sum], simp only [polynomial.eval_monomial],
   rw sum_range_succ,
@@ -157,7 +121,7 @@ begin
   simp_rw [bernoulli_poly_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
     finset.sum_Ico_eq_sum_range],
   simp only [cast_succ, nat.add_sub_cancel_left, nat.sub_zero, zero_add, linear_map.map_add],
-  simp_rw [polynomial.smul_monomial, mul_comm (bernoulli_neg _) _, smul_eq_mul, ←mul_assoc],
+  simp_rw [polynomial.smul_monomial, mul_comm (bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
       rw [choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
@@ -166,13 +130,13 @@ begin
     rw [←sum_smul], },
   rw sum_range_succ,
   simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, nat.add_sub_cancel_left,
-    choose_succ_self_right, one_smul, bernoulli_neg_zero, sum_singleton, zero_add,
+    choose_succ_self_right, one_smul, bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
   have f : ∀ x ∈ range n.succ, 2 ≤ n.succ + 1 - x,
   { rintros x H,
     rw [succ_sub (ge_iff_le.1 (mem_range_le H)), succ_le_succ_iff,
       succ_sub (ge_iff_le.1 (mem_range_succ_iff.1 H)), succ_le_succ_iff], norm_num, },
-  conv_lhs { apply_congr, skip, rw [sum_bernoulli_neg _ (f x H), zero_smul], },
+  conv_lhs { apply_congr, skip, rw [sum_bernoulli _ (f x H), zero_smul], },
   simp,
 end
 

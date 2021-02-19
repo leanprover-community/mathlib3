@@ -58,6 +58,9 @@ def obj_X : Π n : ℕ, subobject (X.obj (op n))
 | 0 := ⊤
 | (n+1) := finset.univ.inf (λ k : fin (n+1), kernel_subobject (X.δ k.succ))
 
+/--
+The differentials in the normalized Moore complex.
+-/
 @[simp]
 def obj_d : Π n : ℕ, (obj_X X (n+1) : C) ⟶ (obj_X X n : C)
 | 0 := subobject.arrow _ ≫ X.δ (0 : fin 2) ≫ subobject.top_coe_iso_self.inv
@@ -102,6 +105,9 @@ begin
     simp, },
 end
 
+/--
+The normalized Moore complex functor, on objects.
+-/
 @[simps]
 def obj : connective_chain_complex C :=
 { X := λ n, (obj_X X n : C), -- the coercion here picks a representative of the subobject
@@ -110,6 +116,9 @@ def obj : connective_chain_complex C :=
 
 variables {X} {Y : simplicial_object C} (f : X ⟶ Y)
 
+/--
+The normalized Moore complex functor, on morphisms.
+-/
 @[simps]
 def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
 { f := λ n,

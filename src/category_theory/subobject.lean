@@ -627,6 +627,22 @@ lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
 
+-- TODO surely there is a cleaner proof here
+lemma le_of_comm {B : C} {X Y : subobject B} (f : (X : C) ⟶ (Y : C)) (w : f ≫ Y.arrow = X.arrow) :
+  X ≤ Y :=
+begin
+  revert f w,
+  refine quotient.induction_on₂' X Y _,
+  intros P Q f w,
+  fsplit,
+  refine over.hom_mk ((representative_iso P).inv.left ≫ f ≫ (representative_iso Q).hom.left) _,
+  dsimp,
+  simp only [over.w, category.assoc],
+  erw [w, (representative_iso P).inv.w],
+  dsimp,
+  simp only [category.comp_id],
+end
+
 /-- When `f : X ⟶ Y` and `P : subobject Y`,
 `P.factors f` expresses that there exists a factorisation of `f` through `P`.
 Given `h : P.factors f`, you can recover the morphism as `P.factor_thru f h`.
@@ -749,10 +765,18 @@ lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
 
+-- TODO an iff characterisation of `(image_subobject f).factors h`
 lemma image_subobject_factors {W : C} (h : W ⟶ Y) (w : ∃ k : W ⟶ X, k ≫ f = h) :
   (image_subobject f).factors h :=
 ⟨classical.some w ≫ factor_thru_image f ≫ (image_subobject_iso f).inv,
   by simp [classical.some_spec w]⟩
+
+lemma image_subobject_le {A B : C} {X : subobject B} (f : A ⟶ B) [has_image f]
+  (h : A ⟶ X) (w : h ≫ X.arrow = f) :
+  image_subobject f ≤ X :=
+subobject.le_of_comm
+  ((image_subobject_iso f).hom ≫ image.lift { I := (X : C), e := h, m := X.arrow, })
+  (by simp [←image_subobject_arrow f])
 
 end image
 
@@ -983,6 +1007,9 @@ instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
 lemma top_eq_id {B : C} : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
+/-- The object underlying `⊤ : subobject B` is (up to isomorphism) `B`. -/
+def top_coe_iso_self {B : C} : ((⊤ : subobject B) : C) ≅ B := underlying_iso _
+
 lemma map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ = quotient.mk' (mono_over.mk' f) :=
 quotient.sound' ⟨mono_over.map_top f⟩
 
@@ -990,6 +1017,9 @@ quotient.sound' ⟨mono_over.map_top f⟩
 lemma underlying_iso_inv_top_arrow {B : C} :
   (underlying_iso (𝟙 B)).inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
 underlying_iso_arrow _
+
+lemma top_factors {A B : C} (f : A ⟶ B) : (⊤ : subobject B).factors f :=
+⟨f ≫ (underlying_iso _).inv, by simp⟩
 
 section
 variables [has_pullbacks C]
@@ -1020,8 +1050,17 @@ instance order_bot {X : C} : order_bot (subobject X) :=
 
 lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
 
+/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the zero object. -/
+def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ 0 := underlying_iso _
+
+@[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = 0 :=
+zero_of_source_iso_zero _ bot_coe_iso_zero
+
 lemma map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ = ⊥ :=
 quotient.sound' ⟨mono_over.map_bot f⟩
+
+lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
+⟨by { rintro ⟨h, w⟩, simp at w, exact w.symm, }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
 
 end order_bot
 
@@ -1068,44 +1107,20 @@ instance {B : C} : semilattice_inf_top (subobject B) :=
   le_inf := le_inf,
   ..subobject.order_top }
 
-lemma top_factors {A B : C} (f : A ⟶ B) : (⊤ : subobject B).factors f :=
-⟨f ≫ (underlying_iso _).inv, by simp⟩
 
--- FIXME better proof?
-lemma le_of_comm {B : C} {X Y : subobject B} (f : (X : C) ⟶ (Y : C)) (w : f ≫ Y.arrow = X.arrow) :
-  X ≤ Y :=
-begin
-revert f w,
-exact quotient.induction_on₂' X Y
-begin
-  intros P Q f w,
-  fsplit,
-  fsplit, dsimp,
-  refine (representative_iso P).inv.left ≫ f ≫ (representative_iso Q).hom.left,
-  { tidy?, },
-  simp,
-  erw w,
-  erw (representative_iso P).inv.w,
-  dsimp, simp,
-end
-end
+lemma factors_left_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
+  (h : (X ⊓ Y).factors f) : X.factors f :=
+⟨classical.some h ≫ underlying.map (hom_of_le (inf_le_left X Y)), by simp [classical.some_spec h]⟩
 
-lemma image_subobject_le {A B : C} {X : subobject B} (f : A ⟶ B) [has_image f]
-  (h : A ⟶ X) (w : h ≫ X.arrow = f) :
-  image_subobject f ≤ X :=
-le_of_comm
-  ((image_subobject_iso f).hom ≫ image.lift { I := (X : C), e := h, m := X.arrow, })
-  (by simp [←image_subobject_arrow f])
+lemma factors_right_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
+  (h : (X ⊓ Y).factors f) : Y.factors f :=
+⟨classical.some h ≫ underlying.map (hom_of_le (inf_le_right X Y)), by simp [classical.some_spec h]⟩
 
 -- TODO is this true without assuming `f` has an image?
 @[simp]
 lemma inf_factors {A B : C} {X Y : subobject B} (f : A ⟶ B) [has_image f] :
   (X ⊓ Y).factors f ↔ X.factors f ∧ Y.factors f :=
-⟨begin
-  rintro ⟨h, w⟩,
-  exact ⟨⟨h ≫ underlying.map (hom_of_le (inf_le_left X Y)), by simp [w]⟩,
-           ⟨h ≫ underlying.map (hom_of_le (inf_le_right X Y)), by simp [w]⟩⟩,
-end,
+⟨λ h, ⟨factors_left_of_inf_factors h, factors_right_of_inf_factors h⟩,
 begin
   rintro ⟨⟨hX, wX⟩, ⟨hY, wY⟩⟩,
   exact ⟨factor_thru_image f ≫ (image_subobject_iso f).inv ≫
@@ -1115,8 +1130,9 @@ begin
 end⟩
 
 @[simp]
-lemma finset_inf_factors {A B : C} {s : finset (subobject B)} (f : A ⟶ B) [has_image f] :
-  (s.inf id).factors f ↔ ∀ P : subobject B, P ∈ s → P.factors f :=
+lemma finset_inf_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}
+  (f : A ⟶ B) [has_image f] :
+  (s.inf P).factors f ↔ ∀ i ∈ s, (P i).factors f :=
 begin
   classical,
   apply finset.induction_on s,
@@ -1193,12 +1209,35 @@ instance {B : C} : semilattice_sup (subobject B) :=
   sup_le := λ m n k, quotient.induction_on₃' m n k (λ a b c ⟨i⟩ ⟨j⟩, ⟨mono_over.sup_le _ _ _ i j⟩),
   ..subobject.partial_order B }
 
+lemma sup_factors_of_factors_left {A B : C} {X Y : subobject B} {f : A ⟶ B} (P : X.factors f) :
+  (X ⊔ Y).factors f :=
+⟨classical.some P ≫ underlying.map (hom_of_le le_sup_left), by simp [classical.some_spec P]⟩
+
+lemma sup_factors_of_factors_right {A B : C} {X Y : subobject B} {f : A ⟶ B} (P : Y.factors f) :
+  (X ⊔ Y).factors f :=
+⟨classical.some P ≫ underlying.map (hom_of_le le_sup_right), by simp [classical.some_spec P]⟩
+
 section
 variables [has_zero_morphisms C] [has_zero_object C]
 
 instance {B : C} : semilattice_sup_bot (subobject B) :=
 { ..subobject.order_bot,
   ..subobject.semilattice_sup }
+
+lemma finset_sup_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}
+  {f : A ⟶ B} (h : ∃ i ∈ s, (P i).factors f) :
+  (s.sup P).factors f :=
+begin
+  classical,
+  revert h,
+  apply finset.induction_on s,
+  { rintro ⟨_, ⟨⟨⟩, _⟩⟩, },
+  { rintros i s nm ih ⟨j, ⟨m, h⟩⟩,
+    simp only [finset.sup_insert],
+    simp at m, rcases m with (rfl|m),
+    { exact sup_factors_of_factors_left h, },
+    { exact sup_factors_of_factors_right (ih ⟨j, ⟨m, h⟩⟩), }, },
+end
 
 end
 

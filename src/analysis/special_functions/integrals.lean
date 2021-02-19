@@ -21,7 +21,7 @@ open real set interval_integral
 variables {a b : ℝ}
 
 @[simp]
-lemma integral_pow (n : ℕ) : ∫ x : ℝ in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
+lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
 begin
   have hderiv : deriv (λ x : ℝ, x^(n + 1) / (n + 1)) = λ x, x ^ n,
   { have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast nat.succ_ne_zero n,
@@ -44,7 +44,7 @@ lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_exp.continuous_on]
 
 @[simp]
-lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log (b / a) :=
 begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
   rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
@@ -53,11 +53,11 @@ begin
 end
 
 @[simp]
-lemma integral_inv_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+lemma integral_inv_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x in a..b, x⁻¹ = log (b / a) :=
 integral_inv $ not_mem_interval_of_lt ha hb
 
 @[simp]
-lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫ x : ℝ in a..b, x⁻¹ = log (b / a) :=
+lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫ x in a..b, x⁻¹ = log (b / a) :=
 integral_inv $ not_mem_interval_of_gt ha hb
 
 lemma integral_one_div (h : (0:ℝ) ∉ interval a b) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=

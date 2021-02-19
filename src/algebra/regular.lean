@@ -59,7 +59,7 @@ show function.injective (* (a * b)), from (comp_mul_right b a) ▸ rrb.comp rra
 
 /--  If an element `b` becomes left-regular after multiplying it on the left by a left-regular
 element, then `b` is left-regular. -/
-lemma is_left_regular_of_mul_left (ab : is_left_regular (a * b)) :
+lemma is_left_regular.of_mul (ab : is_left_regular (a * b)) :
   is_left_regular b :=
 function.injective.of_comp (by rwa comp_mul_left a b)
 
@@ -67,11 +67,11 @@ function.injective.of_comp (by rwa comp_mul_left a b)
 is left-regular. -/
 @[simp] lemma mul_is_left_regular_iff (b : R) (ha : is_left_regular a) :
   is_left_regular (a * b) ↔ is_left_regular b :=
-⟨λ ab, is_left_regular_of_mul_left ab, λ ab, is_left_regular.mul ha ab⟩
+⟨λ ab, is_left_regular.of_mul ab, λ ab, is_left_regular.mul ha ab⟩
 
 /--  If an element `b` becomes right-regular after multiplying it on the right by a right-regular
 element, then `b` is right-regular. -/
-lemma is_right_regular_of_mul_right (ab : is_right_regular (b * a)) :
+lemma is_right_regular.of_mul (ab : is_right_regular (b * a)) :
   is_right_regular b :=
 begin
   refine λ x y xy, ab (_ : x * (b * a) = y * (b * a)),
@@ -83,7 +83,7 @@ end
 element is right-regular. -/
 @[simp] lemma mul_is_right_regular_iff (b : R) (ha : is_right_regular a) :
   is_right_regular (b * a) ↔ is_right_regular b :=
-⟨λ ab, is_right_regular_of_mul_right ab, λ ab, is_right_regular.mul ab ha⟩
+⟨λ ab, is_right_regular.of_mul ab, λ ab, is_right_regular.mul ab ha⟩
 
 /--  Two elements `a` and `b` are regular if and only if both products `a * b` and `b * a`
 are regular. -/
@@ -92,8 +92,8 @@ lemma is_regular_mul_and_mul_iff :
 begin
   refine ⟨_, _⟩,
   { rintros ⟨ab, ba⟩,
-    exact ⟨⟨is_left_regular_of_mul_left ba.left, is_right_regular_of_mul_right ab.right⟩,
-      ⟨is_left_regular_of_mul_left ab.left, is_right_regular_of_mul_right ba.right⟩⟩ },
+    exact ⟨⟨is_left_regular.of_mul ba.left, is_right_regular.of_mul ab.right⟩,
+      ⟨is_left_regular.of_mul ab.left, is_right_regular.of_mul ba.right⟩⟩ },
   { rintros ⟨ha, hb⟩,
     exact ⟨⟨(mul_is_left_regular_iff _ ha.left).mpr hb.left,
         (mul_is_right_regular_iff _ hb.right).mpr ha.right⟩,
@@ -187,11 +187,11 @@ lemma is_regular_one : is_regular (1 : R) :=
 
 /-- An element admitting a left inverse is left-regular. -/
 lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
-@is_left_regular_of_mul_left R _ a _ (by { rw h, exact is_regular_one.left })
+@is_left_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.left })
 
 /-- An element admitting a right inverse is right-regular. -/
 lemma is_right_regular_of_mul_eq_one (h : a * b = 1) : is_right_regular a :=
-@is_right_regular_of_mul_right R _ a _ (by { rw h, exact is_regular_one.right })
+@is_right_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.right })
 
 /-- If `R` is a monoid, an element in `units R` is regular. -/
 lemma units.is_regular (a : units R) : is_regular (a : R) :=

@@ -7,6 +7,13 @@ Authors: Anne Baanen, Devon Tuma
 import ring_theory.polynomial.basic
 import ring_theory.non_zero_divisors
 
+/-!
+# Scaling the roots of a polynomial
+
+This file defines `scale_roots p s` for a polynomial `p` in one variable and a ring element `s` to
+be the polynomial with root `r * s` for each root `r` of `p` and proves some basic results about it.
+-/
+
 section scale_roots
 
 variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ring S]
@@ -86,10 +93,12 @@ lemma scale_roots_eval₂_eq_zero {p : polynomial S} (f : S →+* R)
   {r : R} {s : S} (hr : eval₂ f r p = 0) :
   eval₂ f (f s * r) (scale_roots p s) = 0 :=
 calc eval₂ f (f s * r) (scale_roots p s) =
-  (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) : eval₂_eq_sum
+  (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
+  eval₂_eq_sum
 ... = p.support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
   finset.sum_subset (support_scale_roots_le p s)
-  (λ i hi hi', let this : coeff p i * s ^ (p.nat_degree - i) = 0 := by simpa using hi' in by simp [this])
+  (λ i hi hi', let this : coeff p i * s ^ (p.nat_degree - i) = 0 :=
+  by simpa using hi' in by simp [this])
 ... = p.support.sum (λ (i : ℕ), f (p.coeff i) * f s ^ (p.nat_degree - i + i) * r ^ i) :
   finset.sum_congr rfl
   (λ i hi, by simp_rw [f.map_mul, f.map_pow, pow_add, mul_pow, mul_assoc])

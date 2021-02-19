@@ -169,6 +169,7 @@ lemma nhds_eq_comap (h : α ≃ₜ β) (x : α) : 𝓝 x = comap h (𝓝 (h x)) 
 by rw [comap_nhds_eq, h.symm_apply_apply]
 
 /-- If a bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/
+@[simp]
 def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : is_open_map e) :
   α ≃ₜ β :=
 { continuous_to_fun := h₁,
@@ -181,6 +182,7 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
   to_equiv := e }
 
 /-- If a bijective map `e : α ≃ β` is continuous and closed, then it is a homeomorphism. -/
+@[simp]
 def homeomorph_of_continuous_closed (e : α ≃ β) (h₁ : continuous e) (h₂ : is_closed_map e) :
   α ≃ₜ β :=
 { continuous_to_fun := h₁,
@@ -195,6 +197,7 @@ def homeomorph_of_continuous_closed (e : α ≃ β) (h₁ : continuous e) (h₂ 
 
 /-- If a bijective map `e : α ≃ β` between a compact and a Hausdorff space is continuous,
 then it is a homeomorphism.  -/
+@[simp]
 def homeomorph_of_continuous_equiv [compact_space α] [t2_space β] (e : α ≃ β) (h : continuous e) :
   α ≃ₜ β := homeomorph_of_continuous_closed e h (continuous.is_closed_map h)
 

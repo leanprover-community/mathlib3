@@ -1305,10 +1305,10 @@ lemma mem_range_succ_iff {a b : ℕ} : a ∈ finset.range b.succ ↔ a ≤ b :=
 finset.mem_range.trans nat.lt_succ_iff
 
 lemma mem_range_le {n x : ℕ} (hx : x ∈ range n) : x ≤ n :=
-  (mem_range.1 hx).le
+(mem_range.1 hx).le
 
 lemma mem_range_sub_ne_zero {n x : ℕ} (hx : x ∈ range n) : n - x ≠ 0 :=
-by { rintros h, apply nat.le_lt_antisymm (nat.sub_eq_zero_iff_le.1 h) (mem_range.1 hx) }
+ne_of_gt $ nat.sub_pos_of_lt $ mem_range.1 hx
 
 end range
 

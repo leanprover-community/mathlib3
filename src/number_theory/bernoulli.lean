@@ -16,7 +16,7 @@ number theory.
 
 ## Mathematical overview
 
-The Bernoulli numbers $(B_0, B_1, B_2, \ldots)=(1, 1/2, 1/6, 0, -1/30, \ldots)$ are
+The Bernoulli numbers $(B_0, B_1, B_2, \ldots)=(1, -1/2, 1/6, 0, -1/30, \ldots)$ are
 a sequence of rational numbers. They show up in the formula for the sums of $k$th
 powers. They are related to the Taylor series expansions of $x/\tan(x)$ and
 of $\coth(x)$, and also show up in the values that the Riemann Zeta function
@@ -34,36 +34,21 @@ $$\sum B_n\frac{t^n}{n!}=\frac{t}{1-e^{-t}}$$
 although that happens to not be the definition in mathlib (this is an *implementation
 detail* though, and need not concern the mathematician).
 
-Note that $B_1=+1/2$, meaning that we are using the $B_n^+$ of
+Note that $B_1=-1/2$, meaning that we are using the $B_n^-$ of
 [from Wikipedia](https://en.wikipedia.org/wiki/Bernoulli_number).
-To get the "minus" convention, just use `(-1)^n * bernoulli n`.
-
-There is no particular reason that the `+` convention was used.
-In some sense it's like choosing whether you want to sum over `fin n`
-(so `j < n`) or sum over `j ≤ n` (or `nat.antidiagonal n`). Indeed
-$$(t+1)\sum_{j\lt n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{-}n^{t+1-k}$$
-and
-$$(t+1)\sum_{j\leq n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{+}n^{t+1-k}.$$
 
 ## Implementation detail
 
 The Bernoulli numbers are defined using well-founded induction, by the formula
 $$B_n=1-\sum_{k\lt n}\frac{\binom{n}{k}}{n-k+1}B_k.$$
-This formula is true for all $n$ and in particular $B_0=1$.
+This formula is true for all $n$ and in particular $B_0=1$. Note that this is the definition
+for positive Bernoulli numbers, which we call `bernoulli'`. The negative Bernoulli numbers are
+then defined as `bernoulli = (-1)^n * bernoulli'`.
 
 ## Main theorems
 
-`sum_bernoulli : ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = n`
+`sum_bernoulli : ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = 0`
 
-## Todo
-
-* `∑ k : fin n, n.binomial k * (-1)^k * bernoulli k = if n = 1 then 1 else 0`
-
-* Bernoulli polynomials
-
-* `∑ k : fin n, k ^ t =` the Bernoulli polynomial B_t evaluated at n
-
-* `∑ k : fin n.succ, n.succ.choose k bernoulli_poly k X = n.succ * X ^ n` as polynomials
 -/
 
 open_locale big_operators

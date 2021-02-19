@@ -100,13 +100,6 @@ variables {A : Type v} [monoid A]
 @[ext]
 theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
-begin
-  ext x,
-  apply quotient_group.induction_on x,
-  intro z,
-  show φ.comp of z = _,
-  rw h,
-  refl,
-end
+monoid_hom.ext $ λ x, quotient_group.induction_on x $ monoid_hom.congr_fun h
 
 end abelianization

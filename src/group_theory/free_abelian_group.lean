@@ -106,19 +106,14 @@ end
 protected theorem unique (g : free_abelian_group α →+ β)
   (hg : ∀ x, g (of x) = f x) {x} :
   g x = lift f x :=
-@abelianization.lift.unique (free_group α) _ (multiplicative β) _
-  (@free_group.lift _ (multiplicative β) _ f) g.to_multiplicative
-  (λ x, @free_group.lift.unique α (multiplicative β) _ _
-    ((add_monoid_hom.to_multiplicative' g).comp abelianization.of)
-    hg x) _
+add_monoid_hom.congr_fun ((lift.symm_apply_eq).mp (funext hg : g ∘ of = f)) _
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext]
 protected theorem ext (g h : free_abelian_group α →+ β)
   (H : ∀ x, g (of x) = h (of x)) :
   g = h :=
-add_monoid_hom.ext $ λ x, (lift.unique (g ∘ of) g (λ _, rfl)).trans $
-eq.symm $ lift.unique _ _ $ λ x, eq.symm $ H x
+lift.symm.injective $ funext H
 
 lemma map_hom {α β γ} [add_comm_group β] [add_comm_group γ]
   (a : free_abelian_group α) (f : α → β) (g : β →+ γ) :

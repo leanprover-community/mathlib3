@@ -275,9 +275,6 @@ theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
-lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
-  by { rintros h, rw one_succ_zero at h, simp only at h, apply succ_ne_zero n h, }
-
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding

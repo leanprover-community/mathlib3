@@ -13,9 +13,9 @@ The Bernoulli polynomials are an important tool obtained from Bernoulli numbers.
 
 ## Mathematical overview
 
-The $n^{th}$ Bernoulli polynomial is defined as
+The $n^ℐrm{th}$ Bernoulli polynomial is defined as
 $$ B_n(X) = ∑_{k = 0}^n {n χoose k} (-1)^k * B_k * X^{n - k} $$
-where $B_k$ is the $k^{th}$ Bernoulli number. The Bernoulli polynomials are generating functions,
+where $B_k$ is the $k^ℐrm{th}$ Bernoulli number. The Bernoulli polynomials are generating functions,
 $$ t * e^{tX} / (e^t - 1) = ∑_{n = 0}^{∞} B_n(X) * ¼{t^n}{n!} $$
 
 ## Implementation detail
@@ -38,7 +38,7 @@ open_locale nat
 
 namespace finset
 
-lemma dependent_double_sum {M : Type*} [add_comm_monoid M]
+lemma sum_Ico_Ico_comm {M : Type*} [add_comm_monoid M]
   (a b : ℕ) (f : ℕ → ℕ → M) :
   ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
   ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
@@ -106,7 +106,7 @@ begin
     simp only [one_div, bernoulli_one, cast_succ, mul_one, cast_one, add_left_inj,
       choose_zero_right, bernoulli_zero, zero_add, choose_one_right] at f,
     conv_lhs { congr, { congr, { apply_congr, skip,
-      rw ber_neg_eq_ber, skip, apply_congr succ_succ_ne_one x, }, }, },
+      rw ber_neg_eq_ber, skip, apply_congr succ_ne_zero x ∘ succ.inj, }, }, },
     have g := eq_sub_iff_add_eq.2 f,
     rw g, ring, },
 end
@@ -141,7 +141,7 @@ begin
   rw sum_range_succ,
   simp only [add_right_eq_self, mul_one, cast_one, nat.sub_self, choose_self, pow_zero],
   apply sum_eq_zero, rintros x hx,
-  rw [zero_pow', mul_zero], apply mem_range_sub_ne_zero _ hx,
+  rw [zero_pow', mul_zero], apply mem_range_sub_ne_zero hx,
 end
 
 end examples
@@ -154,13 +154,13 @@ begin
   { simp only [bernoulli_poly_zero, cast_one, choose_succ_self_right, one_smul,
       polynomial.monomial_zero_left, cast_zero, sum_singleton, zero_add, ring_hom.map_one,
       range_one], },
-  simp_rw [bernoulli_poly_def, finset.smul_sum, finset.range_eq_Ico, ←finset.dependent_double_sum,
+  simp_rw [bernoulli_poly_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
     finset.sum_Ico_eq_sum_range],
   simp only [cast_succ, nat.add_sub_cancel_left, nat.sub_zero, zero_add, linear_map.map_add],
   simp_rw [polynomial.smul_monomial, mul_comm (bernoulli_neg _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
-      rw [choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le _ H)).1 (mem_range_le _ H_1))
+      rw [choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
         (le.intro rfl), add_comm x x_1, nat.add_sub_cancel, mul_assoc, mul_comm, ←smul_eq_mul,
         ←polynomial.smul_monomial], },
     rw [←sum_smul], },
@@ -170,7 +170,7 @@ begin
     linear_map.map_add, range_one],
   have f : ∀ x ∈ range n.succ, 2 ≤ n.succ + 1 - x,
   { rintros x H,
-    rw [succ_sub (ge_iff_le.1 (mem_range_le _ H)), succ_le_succ_iff,
+    rw [succ_sub (ge_iff_le.1 (mem_range_le H)), succ_le_succ_iff,
       succ_sub (ge_iff_le.1 (mem_range_succ_iff.1 H)), succ_le_succ_iff], norm_num, },
   conv_lhs { apply_congr, skip, rw [sum_bernoulli_neg _ (f x H), zero_smul], },
   simp,
@@ -180,7 +180,7 @@ open power_series
 variables {A : Type*} [integral_domain A] [algebra ℚ A] [char_zero A]
 
 theorem exp_bernoulli_poly (t : A) :
-  power_series.mk (λ n, (polynomial.aeval t ((1 / nat.factorial n : ℚ) • bernoulli_poly n)))
+  power_series.mk (λ n, polynomial.aeval t ((1 / nat.factorial n : ℚ) • bernoulli_poly n))
     * (exp A - 1) = X * rescale t (exp A) :=
 begin
   ext, rw [coeff_mul, coeff_mul, nat.sum_antidiagonal_eq_sum_range_succ_mk,
@@ -190,7 +190,7 @@ begin
   rw sum_range_succ,
   have f : ∀ x ∈ range n, ite (n - x = 0) 1 0 = (0 : A),
   { rintros x hx, split_ifs,
-    { exfalso, apply mem_range_sub_ne_zero _ hx h, }, refl, },
+    { exfalso, apply mem_range_sub_ne_zero hx h, }, refl, },
   conv_lhs { congr, skip, apply_congr, skip, rw f x H, },
   cases n, { simp only [one_div, alg_hom.map_smul, power_series.coeff_zero_eq_constant_coeff,
     add_zero, polynomial.aeval_one, if_congr, mul_one, nat.nat_zero_eq_zero,
@@ -227,8 +227,8 @@ begin
         rw [mul_comm ↑(n.succ) _, mul_assoc ((↑x!)⁻¹ * (↑(n + 1 - x)!)⁻¹) _ _, mul_comm ↑(n.succ) _,
          ←mul_assoc (↑n!)⁻¹ _ _, inv_mul_cancel, one_mul],
         { norm_num, apply factorial_ne_zero n, },
-        { apply factorial_mul_factorial_dvd_factorial (mem_range_le _ hx), },
-        { apply mem_range_le _ hx, }, }, }, },
+        { apply factorial_mul_factorial_dvd_factorial (mem_range_le hx), },
+        { apply mem_range_le hx, }, }, }, },
   { rintros b hb h, rw coeff_X b, split_ifs,
     { exfalso, apply h h_1, },
     { norm_num, }, },

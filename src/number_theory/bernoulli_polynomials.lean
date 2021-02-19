@@ -42,8 +42,7 @@ lemma sum_Ico_Ico_comm {M : Type*} [add_comm_monoid M]
   ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
   ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
 begin
-  rw finset.sum_sigma' _ (λ i, finset.Ico i b) f,
-  rw finset.sum_sigma' _ (λ j, finset.Ico a (j+1)) (λ x y, f y x),
+  rw [finset.sum_sigma', finset.sum_sigma'],
   refine finset.sum_bij'
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
     (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _

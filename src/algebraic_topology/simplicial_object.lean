@@ -48,6 +48,62 @@ X.map_iso (eq_to_iso (by rw h))
 @[simp] lemma eq_to_iso_refl {n : ℕ} (h : n = n) : X.eq_to_iso h = iso.refl _ :=
 by { ext, simp [eq_to_iso], }
 
+
+/-- The generic case of the first simplicial identity -/
+lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
+  X.δ j.succ ≫ X.δ i = X.δ i.cast_succ ≫ X.δ j :=
+begin
+  dsimp [δ],
+  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ H],
+end
+
+/-- The special case of the first simplicial identity -/
+lemma δ_comp_δ_self {n} {i : fin (n+2)} : X.δ i.cast_succ ≫ X.δ i = X.δ i.succ ≫ X.δ i :=
+begin
+  dsimp [δ],
+  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ_self],
+end
+
+/-- The second simplicial identity -/
+lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
+  X.σ j.succ ≫ X.δ i.cast_succ = X.δ i ≫ X.σ j :=
+begin
+  dsimp [δ, σ],
+  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_le H],
+end
+
+/-- The first part of the third simplicial identity -/
+lemma δ_comp_σ_self {n} {i : fin (n+1)} :
+  X.σ i ≫ X.δ i.cast_succ = 𝟙 _ :=
+begin
+  dsimp [δ, σ],
+  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_self, op_id, X.map_id],
+end
+
+/-- The second part of the third simplicial identity -/
+lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
+  X.σ i ≫ X.δ i.succ = 𝟙 _ :=
+begin
+  dsimp [δ, σ],
+  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_succ, op_id, X.map_id],
+end
+
+/-- The fourth simplicial identity -/
+lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
+  X.σ j.cast_succ ≫ X.δ i.succ = X.δ i ≫ X.σ j :=
+begin
+  dsimp [δ, σ],
+  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_gt H],
+end
+
+/-- The fifth simplicial identity -/
+lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
+  X.σ j ≫ X.σ i.cast_succ = X.σ i ≫ X.σ j.succ :=
+begin
+  dsimp [δ, σ],
+  simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H],
+end
+
 end simplicial_object
 
 end category_theory

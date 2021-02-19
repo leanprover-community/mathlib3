@@ -39,9 +39,12 @@ to the n-ball.
 -/
 
 open set real measure_theory interval_integral
-open_locale real
+--open_locale nnreal
 
-variable {r : ℝ}
+noncomputable def nnreal.pi : nnreal := ⟨real.pi, le_of_lt pi_pos⟩
+
+@[simp]
+lemma real.of_nnreal_pi : (nnreal.pi:ℝ) = real.pi := by simp [nnreal.pi]
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
   `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`.
@@ -49,18 +52,20 @@ variable {r : ℝ}
   intentionally because `dist` in `ℝ × ℝ` is defined as the uniform norm, making the `metric.ball`
   in `ℝ × ℝ` a square, not a disc.
   See the module docstring for an explanation of why we don't define the disc in Euclidean space. -/
-def disc (r) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
+def disc (r : ℝ) := {p : ℝ × ℝ | p.1 ^ 2 + p.2 ^ 2 < r ^ 2}
+
+variable (r : nnreal)
 
 /-- A disc of radius `r` can be represented as the region between the two curves
   `λ x, - sqrt (r ^ 2 - x ^ 2)` and `λ x, sqrt (r ^ 2 - x ^ 2)`. -/
-lemma disc_eq_region_between (hr : 0 ≤ r) :
+lemma disc_eq_region_between :
   disc r = region_between (λ x, -sqrt (r^2 - x^2)) (λ x, sqrt (r^2 - x^2)) (Ioc (-r) r) :=
 begin
   ext p,
   simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
-  { cases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) hr,
+  { cases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) r.2,
     rw [add_comm, ← lt_sub_iff_add_lt] at h,
     exact ⟨⟨left, right.le⟩, sqr_lt.mp h⟩ },
   { rw [add_comm, ← lt_sub_iff_add_lt],
@@ -73,36 +78,37 @@ lemma continuous_sqrt_sub {a : ℝ} : continuous (λ x, sqrt (a - x ^ 2)) :=
 (continuous_const.sub (continuous_pow 2)).sqrt
 
 /-- The disc is a `measurable_set`. -/
-theorem measurable_set_disc (hr : 0 ≤ r) : measurable_set (disc r) :=
-by simpa only [disc_eq_region_between hr] using measurable_set_region_between
+theorem measurable_set_disc : measurable_set (disc r) :=
+by simpa only [disc_eq_region_between] using measurable_set_region_between
   continuous_sqrt_sub.neg.measurable continuous_sqrt_sub.measurable measurable_set_Ioc
 
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
-theorem area_disc (hr : 0 ≤ r) : volume (disc r) = ennreal.of_real (π * r ^ 2) :=
+theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
-  let F := λ x, r ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
-  suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = π * r ^ 2,
+  let F := λ x, (r:ℝ) ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
+  suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = nnreal.pi * r ^ 2,
   { have h : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
       λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
     have H := volume_region_between_eq_integral (h continuous_sqrt_sub.neg) (h continuous_sqrt_sub)
                 measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _)),
     calc  volume (disc r)
-        = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between hr
-    ... = ennreal.of_real (∫ x in Ioc (-r) r, (f - has_neg.neg ∘ f) x) : H
-    ... = ennreal.of_real (∫ x in Ioc (-r) r, (λ x, 2 * f x) x) : by simp [two_mul]
-    ... = ennreal.of_real (∫ x in (-r)..r, (λ x, 2 * f x) x) : by rw integral_of_le (neg_le_self hr)
-    ... = ennreal.of_real (π * r ^ 2) : by rw this },
-  cases hr.eq_or_lt with heq hlt, { simp [← heq] },
-  have hderiv : ∀ x ∈ Ioo (-r) r, has_deriv_at F (2 * f x) x,
+        = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between
+    ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) : H
+    ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (λ x, 2 * f x) x) : by simp [two_mul]
+    ... = ennreal.of_real (∫ x in (-r:ℝ)..r, (λ x, 2 * f x) x) : by simp [integral_of_le]
+    ... = nnreal.pi * r ^ 2 : by rw_mod_cast [this, ← ennreal.coe_nnreal_eq] },
+  have hle := nnreal.coe_nonneg r,
+  cases hle.eq_or_lt with heq hlt, { simp [← heq] },
+  have hderiv : ∀ x ∈ Ioo (-r:ℝ) r, has_deriv_at F (2 * f x) x,
   { rintros x ⟨hx1, hx2⟩,
-    convert ((has_deriv_at_const x (r^2)).mul ((has_deriv_at_arcsin _ _).comp x
-      ((has_deriv_at_const x r⁻¹).mul (has_deriv_at_id' x)))).add
-        ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub (r^2)).sqrt _)),
+    convert ((has_deriv_at_const x ((r:ℝ)^2)).mul ((has_deriv_at_arcsin _ _).comp x
+      ((has_deriv_at_const x (r:ℝ)⁻¹).mul (has_deriv_at_id' x)))).add
+        ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub ((r:ℝ)^2)).sqrt _)),
     { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
-      { rw [← sqrt_sqr hr, ← sqrt_mul, sub_mul, sqrt_sqr hr, div_mul_eq_mul_div_comm,
+      { rw [← sqrt_sqr hle, ← sqrt_mul, sub_mul, sqrt_sqr hle, div_mul_eq_mul_div_comm,
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
-        simpa [sqrt_sqr hr, div_le_one (pow_pos hlt 2)] using (sqr_lt_sqr' hx1 hx2).le },
+        simpa [sqrt_sqr hle, div_le_one (pow_pos hlt 2)] using (sqr_lt_sqr' hx1 hx2).le },
       field_simp,
       rw [h, mul_left_comm, ← pow_two, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
           add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },
@@ -115,10 +121,10 @@ begin
       exact hx2.ne hnot },
     { simpa only [sub_ne_zero] using (sqr_lt_sqr' hx1 hx2).ne' } },
   have hcont := ((continuous_const.mul (continuous_arcsin.comp
-                  ((@continuous_const _ _ _ _ r⁻¹).mul continuous_id))).add
+                  ((@continuous_const _ _ _ _ (r:ℝ)⁻¹).mul continuous_id))).add
                     (continuous_id.mul continuous_sqrt_sub)).continuous_on,
   have hcont' := (continuous_const.mul continuous_sqrt_sub).continuous_on,
   calc  ∫ x in (-r)..r, (λ x, 2 * f x) x
-      = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self hr) hcont hderiv hcont'
-  ... = π * r ^ 2 : by simpa [F, inv_mul_cancel hlt.ne', ← mul_div_assoc] using mul_comm (r^2) π,
+      = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self r.2) hcont hderiv hcont'
+  ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm real.pi],
 end

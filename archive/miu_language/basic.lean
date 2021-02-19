@@ -50,7 +50,8 @@ natural number' into the nonrecursive constructor `zero` of the inductive type `
 
 ## References
 
-* [Jeremy Avigad, Leonardo de Moura and Soonho Kong, _Theorem Proving in Lean_][avigad_moura_kong-2017]
+* [Jeremy Avigad, Leonardo de Moura and Soonho Kong, _Theorem Proving in Lean_]
+  [avigad_moura_kong-2017]
 * [Douglas R Hofstadter, _Gödel, Escher, Bach_][Hofstadter-1979]
 
 ## Tags

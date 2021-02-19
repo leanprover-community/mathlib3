@@ -8,6 +8,7 @@ import topology.category.CompHaus
 import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
+import category_theory.monad.limits
 
 /-!
 # The category of Profinite Types
@@ -38,7 +39,7 @@ profinite
 
 -/
 
-open category_theory
+open category_theory category_theory.limits
 
 /-- The type of profinite topological spaces. -/
 structure Profinite :=
@@ -62,8 +63,8 @@ instance category : category Profinite := induced_category.category to_Top
 lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
 rfl
 
-def of (X : Type*) [topological_space X]
-  [compact_space X] [t2_space X] [totally_disconnected_space X] : Profinite :=
+def of (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+  [totally_disconnected_space X] : Profinite :=
 { to_Top := Top.of X,
   is_compact := ‹_›,
   is_t2 := ‹_›,
@@ -139,5 +140,21 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
 { to_is_right_adjoint := ⟨CompHaus.to_Profinite, Profinite.to_Profinite_adj_to_CompHaus⟩ }
+
+noncomputable instance Profinite_to_Top.reflective : reflective Profinite_to_Top :=
+reflective.comp Profinite.to_CompHaus CompHaus_to_Top
+
+noncomputable instance Profinite_to_Top.creates_limits : creates_limits Profinite_to_Top :=
+monadic_creates_limits Profinite_to_Top
+
+noncomputable instance Profinite.has_limits : has_limits Profinite :=
+has_limits_of_has_limits_creates_limits Profinite_to_Top
+
+
+/-
+Developing an explicit interface for limits in Profinite
+
+
+-/
 
 end Profinite

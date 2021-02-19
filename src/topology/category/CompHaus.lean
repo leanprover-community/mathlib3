@@ -73,11 +73,13 @@ compact Hausdorff spaces.
 @[simps]
 def StoneCech_obj (X : Top) : CompHaus := CompHaus.of (stone_cech X)
 
+universe u
+
 /--
 (Implementation) The bijection of homsets to establish the reflective adjunction of compact
 Hausdorff spaces in topological spaces.
 -/
-noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
+noncomputable def stone_cech_equivalence (X : Top.{u}) (Y : CompHaus.{u}) :
   (StoneCech_obj X ⟶ Y) ≃ (X ⟶ CompHaus_to_Top.obj Y) :=
 { to_fun := λ f,
   { to_fun := f ∘ stone_cech_unit,

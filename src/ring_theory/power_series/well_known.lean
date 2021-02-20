@@ -123,14 +123,8 @@ by convert exp_mul_exp_eq_exp_add (1 : A) (-1); simp
 theorem exp_pow_eq_rescale_exp  [algebra ℚ A] (k : ℕ) : (exp A)^k = rescale (k : A) (exp A) :=
 begin
   induction k with k h,
-  { rw [rescale],
-  ext,
-  simp only [coeff_mk, coeff_one, nat.cast_zero, pow_zero, one_div,
-    ring_hom.coe_mk, coeff_exp],
-  split_ifs,
-  { simp only [h, mul_one, nat.factorial_zero, nat.factorial_one, inv_one, ring_hom.map_one,
-  nat.cast_one, pow_zero] },
-  { simp only [h, zero_mul, ne.def, not_false_iff, zero_pow'] } },
+  { simp only [rescale_zero, constant_coeff_exp, function.comp_app, map_one, cast_zero,
+  pow_zero, coe_comp], },
   rw [succ_eq_add_one, cast_add, ←exp_mul_exp_eq_exp_add (k : A), ←h],
   simp only [cast_one, id_apply, rescale_one],
   exact pow_succ' (exp A) k,

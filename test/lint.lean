@@ -104,6 +104,12 @@ run_cmd do
   guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
 end
 
+instance beta_redex_test {α} [monoid α] : (λ (X : Type), has_mul X) α := ⟨(*)⟩
+run_cmd do
+  d ← get_decl `beta_redex_test,
+  x ← linter.instance_priority.test d,
+  guard $ x = some "set priority below 1000"
+
 /- test of `apply_to_fresh_variables` -/
 run_cmd do
   e ← mk_const `id,

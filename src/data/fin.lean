@@ -1032,9 +1032,9 @@ dif_neg h
 (append_apply_right ho (cast ho.symm (nat_add m k)) (not_lt.2 $ le_add_right (le_refl _))).trans $
   congr_arg _ (fin.ext $ nat.add_sub_cancel_left _ _)
 
-lemma append_nil {d : fin 0 → β} (ho : o = m + 0) {x : fin o} :
-  append ho u d x = u (cast ho x) :=
-(append_apply_left ho x (ho.trans (add_zero m) ▸ x.2)).trans $ by congr
+lemma append_nil {d : fin 0 → β} (ho : o = m) {x : fin o} :
+  @append 0 m _ o ho u d x = u (cast ho x) :=
+(@append_apply_left 0 m _ o _ _ ho x (ho ▸ x.2)).trans $ by congr
 
 @[simp] lemma append_nil' {d : fin 0 → β} :
   append rfl u d = u :=

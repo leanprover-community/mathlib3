@@ -8,7 +8,7 @@ import ring_theory.polynomial.basic
 /-!
 The morphism `Spec R[x] --> Spec R` induced by the natural inclusion `R --> R[x]` is an open map.
 
-The main result is the part of the statement of Lemma 00FB in the Stacks Project.
+The main result is the first part of the statement of Lemma 00FB in the Stacks Project.
 
 https://stacks.math.columbia.edu/tag/00FB
 -/

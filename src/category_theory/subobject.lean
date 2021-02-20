@@ -30,6 +30,8 @@ The predicate `h : P.factors f`, for `P : subobject Y` and `f : X ⟶ Y`
 asserts the existence of some `P.factor_thru f : X ⟶ (P : C)` making the obvious diagram commute.
 We provide conditions for `P.factors f`, when `P` is a kernel/equalizer/image/inf/sup subobject.
 
+TODO: Add conditions for when `P` is a pullback subobject.
+
 We provide
 * `def pullback [has_pullbacks C] (f : X ⟶ Y) : subobject Y ⥤ subobject X`
 * `def map (f : X ⟶ Y) [mono f] : subobject X ⥤ subobject Y`

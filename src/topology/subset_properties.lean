@@ -658,6 +658,48 @@ begin
   exact le_nhds_Lim ⟨x,h⟩,
 end
 
+theorem is_closed.exists_minimal_nonempty_closed_subset [compact_space α]
+  {S : set α} (hS : is_closed S) (hne : S.nonempty) :
+  ∃ (V : set α),
+    V ⊆ S ∧ V.nonempty ∧ is_closed V ∧
+      (∀ (V' : set α), V' ⊆ V → V'.nonempty → is_closed V' → V' = V) :=
+begin
+  let opens := {U : set α | Sᶜ ⊆ U ∧ is_open U ∧ Uᶜ.nonempty},
+  obtain ⟨U, ⟨Uc, Uo, Ucne⟩, h⟩ := zorn.zorn_subset opens (λ c hc hz, begin
+    by_cases hcne : c.nonempty,
+    { obtain ⟨U₀, hU₀⟩ := hcne,
+      haveI : nonempty {U // U ∈ c} := ⟨⟨U₀, hU₀⟩⟩,
+      obtain ⟨U₀compl, U₀opn, U₀ne⟩ := hc hU₀,
+      use ⋃₀ c,
+      refine ⟨⟨_, _, _⟩, λ U hU a ha, ⟨U, hU, ha⟩⟩,
+      { exact λ a ha, ⟨U₀, hU₀, U₀compl ha⟩ },
+      { exact is_open_sUnion (λ _ h, (hc h).2.1) },
+      { convert_to (⋂(U : {U // U ∈ c}), U.1ᶜ).nonempty,
+        { ext,
+          simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall,
+            set.mem_set_of_eq, set.mem_compl_eq, subtype.val_eq_coe],
+          refl, },
+        apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
+        { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
+          obtain ⟨V, hVc, hVU, hVU'⟩ := zorn.chain.directed_on hz U hU U' hU',
+          exact ⟨⟨V, hVc⟩, set.compl_subset_compl.mpr hVU, set.compl_subset_compl.mpr hVU'⟩, },
+        { exact λ U, (hc U.2).2.2, },
+        { exact λ U, is_closed.compact (is_closed_compl_iff.mpr (hc U.2).2.1), },
+        { exact λ U, (is_closed_compl_iff.mpr (hc U.2).2.1), } } },
+    { use Sᶜ,
+      refine ⟨⟨set.subset.refl _, is_open_compl_iff.mpr hS, _⟩, λ U Uc, (hcne ⟨U, Uc⟩).elim⟩,
+      rw compl_compl,
+      exact hne, }
+  end),
+  refine ⟨Uᶜ, set.compl_subset_comm.mp Uc, Ucne, is_closed_compl_iff.mpr Uo, _⟩,
+  intros V' V'sub V'ne V'cls,
+  have : V'ᶜ = U,
+  { refine h V'ᶜ ⟨_, is_open_compl_iff.mpr V'cls, _⟩ (set.subset_compl_comm.mp V'sub),
+    exact set.subset.trans Uc (set.subset_compl_comm.mp V'sub),
+    simp only [compl_compl, V'ne], },
+  rw [←this, compl_compl],
+end
+
 /-- A σ-compact space is a space that is the union of a countable collection of compact subspaces.
   Note that a locally compact separable T₂ space need not be σ-compact.
   The sequence can be extracted using `topological_space.compact_covering`. -/

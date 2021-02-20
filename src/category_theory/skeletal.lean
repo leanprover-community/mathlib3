@@ -129,7 +129,10 @@ def map₂ (F : C ⥤ D ⥤ E) :
            { app := λ y, quotient.rec_on_subsingleton y
               (λ Y, hom_of_le ((le_of_hom f).elim (λ f', ⟨(F.map f').app Y⟩))) } }
 
-variables (C) [∀ X Y : C, subsingleton (X ⟶ Y)]
+variables (C)
+
+section
+variables [∀ X Y : C, subsingleton (X ⟶ Y)]
 
 instance to_thin_skeleton_faithful : faithful (to_thin_skeleton C) := {}
 
@@ -188,6 +191,10 @@ noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C)
 noncomputable instance is_skeleton_of_inhabited :
   inhabited (is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C)) :=
 ⟨thin_skeleton_is_skeleton⟩
+
+end
+
+variables {C}
 
 /-- An adjunction between thin categories gives an adjunction between their thin skeletons. -/
 def lower_adjunction

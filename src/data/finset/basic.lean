@@ -9,20 +9,18 @@ import tactic.apply
 import tactic.nth_rewrite
 
 /-!
-# Finite sets
+# Finsets
 
-What are `finset`s in mathlib?
-
-Terms of type `finset α` are subsets of `α` which are finite.
-In Lean, `finset α` is implemented to be 2 pieces of data:
+Terms of type `finset α` are one way of talking about finite subsets of `α` in mathlib.
+Below, `finset α` is defined as a structure with 2 fields:
 
   1. `val` is a `multiset α` of elements;
   2. `no_dup` is a proof that `val` has no duplicates.
 
-Finsets in Lean are constructive in that they have
-an underlying list that enumerates their elements.
-In particular, any function that uses the data of the underlying list cannot depend on its ordering.
-This is handled on the multiset level by multiset API, so don't worry about it explicitly.
+Finsets in Lean are constructive in that they have an underlying `list` that enumerates their
+elements. In particular, any function that uses the data of the underlying list cannot depend on its
+ordering. This is handled on the `multiset` level by multiset API, so in most cases one needn't
+worry about it explicitly.
 
 Finsets give a basic foundation for defining finite sums and products over types:
 
@@ -33,14 +31,15 @@ Lean refers to these operations as `big_operator`s.
 More information can be found in `algebra/big_operators/basic`.
 
 Confusingly, there are four different ways to sum over finite things:
-{finset, fintype, finsupp dfinsupp}.
+`finset`, `fintype`, `finsupp`, and `dfinsupp`.
 At their core, all four are operating on finsets!
 
   1. `finset`s: sum over a finite subset of `α`;
   2. `fintype`s : sum over `univ`, (i.e. everything), a finset that contains all of `α`;
-  3. `finsupp`s : given a finitely supported function `f : α → M`, sum over the support  of `f`,
-      which is a finset of `α`.
-  4. `dfinsupp`'s : These are dependent functions with finite support. I haven't a clue.
+  3. `finsupp`s : given a finitely supported function `f : α → M`, sum over the support of `f`,
+     which is a finset of `α`.
+  4. `dfinsupp`'s : A generalization of `finsupp` to finitely-supported dependent functions
+     `f : Π α, ` .
 
 Finsets are directly used to define fintypes in Lean.
 A `fintype α` instance for a type `α` consists of
@@ -124,7 +123,7 @@ Just know `⊥` is called `bot` with `⊥ = ∅` and `⊤` is called `top` with 
   But it's cumbersome to work with at times.
 
 -/
-
+#exit
 open multiset subtype nat function
 
 variables {α : Type*} {β : Type*} {γ : Type*}

@@ -18,7 +18,31 @@ noncomputable theory
 open set measure_theory
 open_locale ennreal
 
-variables {α : Type*}
+variables {α β: Type*}
+
+lemma finset.prod_measurable {α} {β} [measurable_space α]  (f : β → α → ennreal)
+(T : finset β) (h_meas : ∀ b ∈ T, measurable (f b)) :
+(measurable (finset.prod T f)) :=
+begin
+  classical,
+  apply finset.induction_on' T,
+  { have h_const : (λ (a : α), (1 : ennreal)) = 1 := rfl,
+    rw [finset.prod_empty, ← h_const], apply measurable_one },
+  { intros a s h_a_in_T h_s_subset_T h_a_notin_s h_meas_s,
+    rw finset.prod_insert h_a_notin_s,
+    apply measurable.ennreal_mul (h_meas a h_a_in_T) h_meas_s },
+end
+
+lemma finset.prod_measurable' {α} {β}  (f : β → α → ennreal) (T : finset β) :
+(@measurable α ennreal (Sup ((λ b, (measurable_space.comap (f b) (ennreal.measurable_space))) '' T))
+  ennreal.measurable_space (finset.prod T f)) := begin
+  apply finset.prod_measurable,
+  intros b h_b,
+  rw measurable_iff_comap_le,
+  apply @le_Sup (measurable_space α) _,
+  apply exists.intro b,
+  simp [h_b],
+end
 
 namespace probability_theory
 
@@ -113,6 +137,33 @@ begin
     (measurable_iff_comap_le.1 h_meas_f) (measurable_iff_comap_le.1 h_meas_g),
   apply h_indep_fun,
   repeat { apply measurable.of_comap_le le_rfl },
+end
+
+lemma lintegral_prod_eq_prod_lintegral_of_independent_fn {α} {β}
+  [M:measurable_space α] (μ:measure_theory.measure α) [P:probability_measure μ]
+(f:β → α → ennreal) (h_meas_f:∀ b, measurable (f b))
+(h_indep:Indep_fun (λ b, ennreal.measurable_space) f μ)  (T:finset β):
+∫⁻ (a : α), (finset.prod T f) a ∂μ =
+finset.prod T (λ b, ∫⁻ (a : α), f b a ∂μ) :=
+begin
+  classical,
+  apply finset.induction_on T,
+  { simp [P.1] },
+  intros a s h_a_notin_s h_ind,
+  rw [finset.prod_insert h_a_notin_s, finset.prod_insert h_a_notin_s, ← h_ind],
+  apply @lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space _
+   _ (Sup ((λ b, (measurable_space.comap (f b) (ennreal.measurable_space))) '' s)),
+  { apply measurable_iff_comap_le.1, apply h_meas_f a },
+  { apply @Sup_le (measurable_space α) _,
+    intros b h_b, cases h_b with b' h_b,
+    rw  [← h_b.right],
+    apply measurable_iff_comap_le.1 (h_meas_f b') },
+  { apply indep.symm, apply indep_elim',
+    { intros b, rw ← measurable_iff_comap_le, apply h_meas_f },
+    { apply h_indep },
+    { rw finset.mem_coe, apply h_a_notin_s } },
+  { rw measurable_iff_comap_le, apply le_refl _  },
+  { apply finset.prod_measurable' },
 end
 
 end probability_theory

@@ -10,6 +10,31 @@ import topology.continuous_map
 import topology.homeomorph
 import tactic.tidy
 
+/-!
+# The compact-open topology
+
+In this file, we define the compact-open topology on the set of continuous maps between two
+topological spaces.
+
+## Main definitions
+
+* `compact_open` is the compact-open topology on `C(α, β)`. It is declared as an instance.
+* `ev` is the evaluation map `C(α, β) × α → β`. It is continuous as long as `α` is locally compact.
+* `coev` is the coevaluation map `β → C(α, β × α)`. It is always continuous.
+* `continuous_map.curry` is the currying map `C(α × β, γ) → C(α, C(β, γ))`. This map always exists
+  and it is continuous as long as `α × β` is locally compact.
+* `continuous_map.uncurry` is the uncurrying map `C(α, C(β, γ)) → C(α × β, γ)`. For this map to
+  exist, we need `β` to be locally compact. If `α` is also locally compact, then this map is
+  continuous.
+* `homeomorph.curry` combines the currying and uncurrying operations into a homeomorphism
+  `C(α × β, γ) ≃ₜ C(α, C(β, γ))`. This homeomorphism exists if `α` and `β` are locally compact.
+
+
+## Tags
+
+compact-open, curry, function space
+-/
+
 open set
 open_locale topological_space
 

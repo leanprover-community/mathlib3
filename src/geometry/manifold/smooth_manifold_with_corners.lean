@@ -255,6 +255,22 @@ I.unique_diff_preimage e.open_source
 lemma model_with_corners.unique_diff_at_image {x : H} : unique_diff_within_at 𝕜 (range I) (I x) :=
 I.unique_diff _ (mem_range_self _)
 
+lemma model_with_corners.locally_compact [locally_compact_space E] (I : model_with_corners 𝕜 E H) :
+  locally_compact_space H :=
+begin
+  refine ⟨λ x s hs, _⟩,
+  have : I '' s ∈ 𝓝[range I] (I x), from I.image_mem_nhds_within hs,
+  rcases locally_compact_space.local_compact_nhds _ _ (mem_inf_principal.1 this)
+    with ⟨K, hKx, hKs, hKc⟩,
+  refine ⟨I.symm '' (range I ∩ K), _, _, _⟩,
+  { rw ← I.symm_map_nhds_within_range,
+    exact image_mem_map (inter_mem_nhds_within _ hKx) },
+  { rintro _ ⟨y, ⟨hyI, hyK⟩, rfl⟩,
+    rcases hKs hyK hyI with ⟨x', hx's, rfl⟩,
+    rwa I.left_inv },
+  { exact (hKc.inter_left I.closed_range).image I.continuous_symm }
+end
+
 end
 
 section model_with_corners_prod

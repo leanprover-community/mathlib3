@@ -108,7 +108,8 @@ composition of local equivs with `≫`.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
+open filter
 universes u
 
 variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
@@ -491,6 +492,36 @@ by simp [atlas, charted_space.atlas]
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
+section
+
+variables (H) [topological_space H] [topological_space M] [charted_space H M]
+
+lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
+(chart_at H x).map_source (mem_chart_source _ _)
+
+/-- If a topological space admits an atlas with locally compact charts, then the space itself
+is locally compact. -/
+lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
+begin
+  refine ⟨λ x s hs, _⟩,
+  have : chart_at H x '' (s ∩ (chart_at H x).source) ∈ 𝓝 (chart_at H x x),
+    from (chart_at H x).image_mem_nhds (mem_chart_source _ _)
+      (inter_mem_sets hs $ mem_nhds_sets (chart_at H x).open_source (mem_chart_source _ _)),
+  rcases locally_compact_space.local_compact_nhds _ _ this
+    with ⟨K, hKx, hsK, hKc⟩,
+  refine ⟨(chart_at H x).symm '' K, _, _, _⟩,
+  { convert (chart_at H x).symm.image_mem_nhds (mem_chart_target _ _) hKx,
+    exact ((chart_at H x).left_inv (mem_chart_source _ _)).symm },
+  { refine subset.trans (image_subset _ hsK) _,
+    rintro _ ⟨_, ⟨x', ⟨hx's, hx'⟩, rfl⟩, rfl⟩,
+    rwa (chart_at H x).left_inv hx' },
+  { refine hKc.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono _),
+    rw ← (chart_at H x).to_local_equiv.image_source_eq_target,
+    exact subset.trans hsK (image_subset _ (inter_subset_right _ _)) }
+end
+
+end
+
 /-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model `H`
 is a set of local charts from `M` to `H` covering the space. Every space is registered as a charted
 space over itself, using the only chart `id`, in `manifold_model_space`. You can also define a product
@@ -603,7 +634,7 @@ end
 /-- An element of the atlas in a charted space without topology becomes a local homeomorphism
 for the topology constructed from this atlas. The `local_homeomorph` version is given in this
 definition. -/
-def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
+protected def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   @local_homeomorph M H c.to_topological_space _ :=
 { open_source := by convert c.open_source' he,
   open_target := by convert c.open_target he,

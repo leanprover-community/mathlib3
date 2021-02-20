@@ -400,6 +400,14 @@ def dom_restrict'
 @[simp] lemma dom_restrict'_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
   dom_restrict' p f x = f x := rfl
 
+variables (S : Type*) [monoid S] [distrib_mul_action S M₂] [smul_comm_class R S M₂]
+  [mul_action S R] [is_scalar_tower S R M₂]
+
+-- example application of this instance: if S and R are comm_semirings and R is an S-algebra
+-- then the S-actions and R-actions on Hom_R(M,M₂) coincide.
+instance : is_scalar_tower S R (M →ₗ[R] M₂) :=
+{ smul_assoc := λ _ _ _, linear_map.ext $ λ _, by simp only [linear_map.smul_apply, smul_assoc] }
+
 end comm_semiring
 
 section semiring

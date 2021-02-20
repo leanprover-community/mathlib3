@@ -41,11 +41,15 @@ to the n-ball.
 open set real measure_theory interval_integral
 open_locale real nnreal
 
-/-- `π` coerced to the nonnegative reals. -/
+/-- `π` considered as a nonnegative real. -/
 noncomputable def nnreal.pi : nnreal := ⟨π, pi_pos.le⟩
 
 @[simp]
-lemma real.of_nnreal_pi : (nnreal.pi : ℝ) = π := by rw [nnreal.pi, subtype.coe_mk]
+lemma nnreal.coe_real_pi : (nnreal.pi : ℝ) = π := rfl
+
+lemma nnreal.pi_pos : 0 < nnreal.pi := by exact_mod_cast real.pi_pos
+
+lemma nnreal.pi_ne_zero : nnreal.pi ≠ 0 := nnreal.pi_pos.ne'
 
 /-- A disc of radius `r` is defined as the collection of points `(p.1, p.2)` in `ℝ × ℝ` such that
   `p.1 ^ 2 + p.2 ^ 2 < r ^ 2`.

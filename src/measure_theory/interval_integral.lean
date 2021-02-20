@@ -526,9 +526,15 @@ lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
   0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
-lemma integral_mono_ae_restrict {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
+section mono
+
+variables {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
   (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
-  (hab : a ≤ b) (h : f ≤ᵐ[μ.restrict (interval a b)] g) :
+  (hab : a ≤ b)
+
+include hf hg hab
+
+lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (interval a b)] g) :
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 begin
   rw [integral_of_le hab, integral_of_le hab],
@@ -537,18 +543,14 @@ begin
     (h.filter_mono (ae_mono $ measure.restrict_mono Ioc_subset_Icc_self (le_refl μ)))
 end
 
-lemma interval_integral_mono_ae {μ : measure ℝ} {a b : ℝ}
-  {f g : ℝ → ℝ} (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
-  (hab : a ≤ b) (h : f ≤ᵐ[μ] g) :
+lemma interval_integral_mono_ae (h : f ≤ᵐ[μ] g) :
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 begin
   rw [integral_of_le hab, integral_of_le hab],
   exact set_integral_mono_ae hf.1 hg.1 h
 end
 
-lemma interval_integral_mono_on {μ : measure ℝ} {a b : ℝ}
-  {f g : ℝ → ℝ} (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
-  (hab : a ≤ b) (h : ∀ x ∈ interval a b, f x ≤ g x) :
+lemma interval_integral_mono_on (h : ∀ x ∈ interval a b, f x ≤ g x) :
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 begin
   rw [integral_of_le hab, integral_of_le hab],
@@ -556,11 +558,37 @@ begin
   exact set_integral_mono_on hf.1 hg.1 measurable_set_Ioc (λ x hx, h x (Ioc_subset_Icc_self hx)),
 end
 
-@[mono] lemma interval_integral_mono {μ : measure ℝ} {a b : ℝ}
-  {f g : ℝ → ℝ} (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
-  (hab : a ≤ b) (h : f ≤ g) :
+@[mono] lemma interval_integral_mono (h : f ≤ g) :
 ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 interval_integral_mono_ae hf hg hab (ae_of_all _ h)
+
+omit hf
+
+lemma interval_integral_mono_ae_restrict_of_nonneg (h₁ : 0 ≤ᵐ[μ.restrict (interval a b)] f)
+  (h₂ : f ≤ᵐ[μ.restrict (interval a b)] g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+begin
+  rw [integral_of_le hab, integral_of_le hab],
+  rw interval_of_le hab at h₁ h₂,
+  exact set_integral_mono_ae_restrict_of_nonneg hg.1
+    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) h₁)
+    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) h₂)
+end
+
+lemma interval_integral_mono_ae_of_nonneg (h₁ : 0 ≤ᵐ[μ] f)
+  (h₂ : f ≤ᵐ[μ] g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+interval_integral_mono_ae_restrict_of_nonneg hg hab (ae_restrict_of_ae h₁) (ae_restrict_of_ae h₂)
+
+lemma set_integral_mono_on_of_nonneg (h₁ : ∀ x ∈ interval a b, 0 ≤ f x)
+  (h₂ : ∀ x ∈ interval a b, f x ≤ g x) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+interval_integral_mono_ae_restrict_of_nonneg hg hab
+  (by simp [measurable_set_interval, eventually_le, eventually_inf_principal, ae_of_all _ h₁])
+  (by simp [measurable_set_interval, eventually_le, eventually_inf_principal, ae_of_all _ h₂])
+
+@[mono] lemma set_integral_mono_of_nonneg (h₁ : 0 ≤ f)
+  (h₂ : f ≤ g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+interval_integral_mono_ae_of_nonneg hg hab (ae_of_all _ h₁) (ae_of_all _ h₂)
+
+end mono
 
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure

@@ -495,8 +495,7 @@ integral_mono_ae hf hg h
 
 lemma set_integral_mono_ae (h : f ≤ᵐ[μ] g) :
 ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
-set_integral_mono_ae_restrict hf hg
-  (filter.eventually.filter_mono ((ae_mono measure.restrict_le_self)) h)
+set_integral_mono_ae_restrict hf hg (ae_restrict_of_ae h)
 
 lemma set_integral_mono_on (hs : measurable_set s) (h : ∀ x ∈ s, f x ≤ g x) :
 ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
@@ -505,7 +504,25 @@ set_integral_mono_ae_restrict hf hg
 
 @[mono] lemma set_integral_mono (h : f ≤ g) :
 ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
-set_integral_mono_ae hf hg (ae_of_all _ h)
+integral_mono hf hg h
+
+lemma set_integral_mono_ae_restrict_of_nonneg (h₁ : 0 ≤ᵐ[μ.restrict s] f)
+  (h₂ : f ≤ᵐ[μ.restrict s] g) : ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+integral_mono_ae_of_nonneg h₁ hg h₂
+
+lemma set_integral_mono_ae_of_nonneg (h₁ : 0 ≤ᵐ[μ] f)
+  (h₂ : f ≤ᵐ[μ] g) : ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+set_integral_mono_ae_restrict_of_nonneg hg (ae_restrict_of_ae h₁) (ae_restrict_of_ae h₂)
+
+lemma set_integral_mono_on_of_nonneg (hs : measurable_set s) (h₁ : ∀ x ∈ s, 0 ≤ f x)
+  (h₂ : ∀ x ∈ s, f x ≤ g x) : ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+set_integral_mono_ae_restrict_of_nonneg hg
+  (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h₁])
+  (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h₂])
+
+@[mono] lemma set_integral_mono_of_nonneg (h₁ : 0 ≤ f)
+  (h₂ : f ≤ g) : ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+integral_mono_of_nonneg h₁ hg h₂
 
 end mono
 

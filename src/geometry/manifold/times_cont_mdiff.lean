@@ -726,7 +726,7 @@ begin
   { rintros p ⟨⟨hp₁, ⟨hp₂, hp₃⟩⟩, hp₄⟩,
     refine ⟨hp₁, ⟨hp₂, o_subset ⟨hp₄, ⟨hp₂, _⟩⟩⟩⟩,
     have := hp₁.1,
-    rwa model_with_corners.target at this },
+    rwa I.target_eq at this },
   have : times_cont_diff_on 𝕜 n (((ext_chart_at I'' y) ∘ g ∘ (ext_chart_at I' (f x')).symm) ∘
     ((ext_chart_at I' (f x')) ∘ f ∘ (ext_chart_at I x).symm)) u,
   { refine times_cont_diff_on.comp (hg.2 (f x') y) ((hf.2 x (f x')).mono u_subset) (λp hp, _),

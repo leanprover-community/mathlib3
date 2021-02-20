@@ -32,19 +32,6 @@ by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[simp]
-lemma single_zero [∀ i, add_monoid $ f i] [decidable_eq I] (i : I) :
-  single i (0 : f i) = 0 :=
-function.update_eq_self i 0
-
-lemma single_add [∀ i, add_monoid $ f i] [decidable_eq I] (i : I) (x y : f i) :
-  single i (x + y) = single i x + single i y :=
-begin
-  ext j,
-  refine (apply_single₂ _ (λ _, _) i x y j).symm,
-  exact zero_add 0,
-end
-
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
@@ -59,18 +46,6 @@ instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div, .. };
   tactic.pi_instance_derive_field
-
-lemma single_neg [∀ i, add_group $ f i] [decidable_eq I] (i : I) (x : f i) :
-  single i (-x) = -single i x :=
-begin
-  ext j,
-  refine (apply_single _ (λ _, _) i x j).symm,
-  exact neg_zero,
-end
-
-lemma single_sub [∀ i, add_group $ f i] [decidable_eq I] (i : I) (x y : f i) :
-  single i (x - y) = single i x - single i y :=
-by simp only [sub_eq_add_neg, single_add, single_neg]
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
@@ -95,14 +70,6 @@ instance monoid_with_zero [∀ i, monoid_with_zero $ f i] :
   monoid_with_zero (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*), .. };
   tactic.pi_instance_derive_field
-
-lemma single_mul [∀ i, monoid_with_zero $ f i] [decidable_eq I] (i : I) (x y : f i) :
-  single i (x * y) = single i x * single i y :=
-begin
-  ext j,
-  refine (apply_single₂ _ (λ _, _) i x y j).symm,
-  exact zero_mul 0,
-end
 
 instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
@@ -155,16 +122,49 @@ def monoid_hom.coe_fn (α β : Type*) [monoid α] [comm_monoid β] : (α →* β
 end monoid_hom
 
 section add_monoid_single
-variables [decidable_eq I] (f) [Π i, add_monoid (f i)]
+variables [decidable_eq I]
 open pi
+
+@[simp]
+lemma single_zero [Π i, add_monoid $ f i] (i : I) :
+  single i (0 : f i) = 0 :=
+function.update_eq_self i 0
+
+lemma single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
+  single i (x + y) = single i x + single i y :=
+begin
+  ext j,
+  refine (apply_single₂ _ (λ _, _) i x y j).symm,
+  exact zero_add 0,
+end
+
+variables (f)
 
 /-- The additive monoid homomorphism including a single additive monoid
 into a dependent family of additive monoids, as functions supported at a point.
 
 This is the `add_monoid_hom` version of `pi.single`. -/
-@[simps] def add_monoid_hom.single (i : I) : f i →+ Π i, f i :=
+@[simps] def add_monoid_hom.single [Π i, add_monoid $ f i] (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
   map_zero' := single_zero i,
   map_add' := single_add i, }
+
+variables {f}
+
+lemma single_neg [Π i, add_group $ f i] (i : I) (x : f i) :
+  single i (-x) = -single i x :=
+(add_monoid_hom.single f i).map_neg x
+
+lemma single_sub [Π i, add_group $ f i] (i : I) (x y : f i) :
+  single i (x - y) = single i x - single i y :=
+(add_monoid_hom.single f i).map_sub x y
+
+lemma single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
+  single i (x * y) = single i x * single i y :=
+begin
+  ext j,
+  refine (apply_single₂ _ (λ _, _) i x y j).symm,
+  exact zero_mul 0,
+end
 
 end add_monoid_single

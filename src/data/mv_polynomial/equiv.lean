@@ -144,6 +144,24 @@ def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) :
   map_mul'  := ring_hom.map_mul _,
   map_add'  := ring_hom.map_add _ }
 
+/-- If `A` and `B` are isomorphic `R`-algebras, then we get an isomorphism
+`mv_polynomial S₁ A ≃ₐ[R] mv_polynomial B S₂`. -/
+def alg_equiv_congr {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A] [algebra R B]
+  (e : A ≃ₐ[R] B) :
+  algebra.comap R A (mv_polynomial S₁ A) ≃ₐ[R] algebra.comap R B (mv_polynomial S₁ B) :=
+{ commutes' := begin
+    intro r,
+    dsimp,
+    have h₁ : algebra_map R (algebra.comap R A (mv_polynomial S₁ A)) r =
+      C (algebra_map R A r) := rfl,
+    have h₂ : algebra_map R (algebra.comap R B (mv_polynomial S₁ B)) r =
+      C (algebra_map R B r) := rfl,
+    have h : (↑(e.to_ring_equiv) : A →+* B) ((algebra_map R A) r) = e ((algebra_map R A) r) := rfl,
+    rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply, h, alg_equiv.commutes]
+  end,
+  ..ring_equiv_congr A e.to_ring_equiv
+}
+
 section
 variables (S₁ S₂ S₃)
 
@@ -226,6 +244,24 @@ begin
     { rw [sum_to_iter_Xl, iter_to_sum_X] },
     { rw [sum_to_iter_Xr, iter_to_sum_C_X] } },
 end
+
+/--
+The algebra isomorphism between multivariable polynomials in a sum of two types,
+and multivariable polynomials in one of the types,
+with coefficents in multivariable polynomials in the other type.
+-/
+def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
+  algebra.comap R (mv_polynomial S₂ R) (mv_polynomial S₁ (mv_polynomial S₂ R)) :=
+{ commutes' := begin
+    intro r,
+    change algebra_map R (algebra.comap R (mv_polynomial S₂ R)
+      (mv_polynomial S₁ (mv_polynomial S₂ R))) r with C (C r),
+    change algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r with C r,
+    simp only [sum_ring_equiv, sum_to_iter_C, mv_polynomial_equiv_mv_polynomial_apply,
+      ring_equiv.to_fun_eq_coe_fun]
+  end,
+  ..sum_ring_equiv R S₁ S₂
+}
 
 /--
 The ring isomorphism between multivariable polynomials in `option S₁` and

@@ -1189,7 +1189,8 @@ end
 
 /-- The unique maximal ideal of the localization at `P.prime_compl` lies over the ideal `P`. -/
 lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
-  ideal.comap (localization.of P.prime_compl).to_map (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
+  ideal.comap (localization.of P.prime_compl).to_map
+  (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
 begin
   let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
   refine le_antisymm (λ x hx, _)
@@ -1213,7 +1214,8 @@ begin
   refine ⟨f.injective (le_non_zero_divisors_of_domain hM), λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := f.mk'_surjective x,
   obtain ⟨n, hn⟩ := hR.mul_inv_cancel (λ hm0, hM (hm0 ▸ hm) : m ≠ 0),
-  exact ⟨r * n, by erw [f.eq_mk'_iff_mul_eq, ← f.to_map.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+  exact ⟨r * n,
+    by erw [f.eq_mk'_iff_mul_eq, ← f.to_map.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
 
 variables (R) {A : Type*} [integral_domain A]
@@ -1362,7 +1364,8 @@ begin
     exact f.to_map_eq_zero_iff.mp h }
 end
 
-/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
+/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
+-/
 lemma comap_is_algebraic_iff [algebra A L] [algebra f.codomain L] [is_scalar_tower A f.codomain L] :
   algebra.is_algebraic A L ↔ algebra.is_algebraic f.codomain L :=
 begin
@@ -1550,7 +1553,8 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  ((localization.of M).map (M.mem_map_of_mem (f : R →* S)) (localization.of (M.map ↑f))).is_integral :=
+  ((localization.of M).map (M.mem_map_of_mem (f : R →* S))
+  (localization.of (M.map ↑f))).is_integral :=
 @is_integral_localization R _ M S _ _ _ _ _ f.to_algebra _ _ hf
 
 end is_integral

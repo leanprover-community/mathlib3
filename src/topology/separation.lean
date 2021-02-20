@@ -596,10 +596,11 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
   ∃ (U : set α), is_open U ∧ x ∈ U ∧ is_compact (closure U) :=
 begin
-  rcases exists_compact_mem_nhds x with ⟨K, hKc, hxK⟩,
-  rcases mem_nhds_sets_iff.1 hxK with ⟨t, h1t, h2t, h3t⟩,
-  exact ⟨t, h2t, h3t, compact_of_is_closed_subset hKc is_closed_closure $
-    closure_minimal h1t hKc.is_closed⟩
+  rcases locally_compact_space.local_compact_nhds x univ filter.univ_mem_sets with
+    ⟨K, h1K, _, h2K⟩,
+  rw [mem_nhds_sets_iff] at h1K, rcases h1K with ⟨t, h1t, h2t, h3t⟩,
+  exact ⟨t, h2t, h3t, compact_of_is_closed_subset h2K is_closed_closure $
+    closure_minimal h1t $ h2K.is_closed⟩
 end
 
 /-- In a locally compact T₂ space, every compact set is contained in the interior of a compact

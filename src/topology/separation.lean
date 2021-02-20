@@ -59,6 +59,38 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
+theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
+  [t0_space α] [compact_space α] {S : set α} (hS : is_closed S) (hne : S.nonempty) :
+  ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=
+begin
+  obtain ⟨V, Vsub, Vne, Vcls, hV⟩ := hS.exists_minimal_nonempty_closed_subset hne,
+  by_cases hnt : ∃ (x y : α) (hx : x ∈ V) (hy : y ∈ V), x ≠ y,
+  { exfalso,
+    obtain ⟨x, y, hx, hy, hne⟩ := hnt,
+    obtain ⟨U, hU, hsep⟩ := t0_space.t0 _ _ hne,
+    have : ∀ (z w : α) (hz : z ∈ V) (hw : w ∈ V) (hz' : z ∈ U) (hw' : ¬ w ∈ U), false,
+    { intros z w hz hw hz' hw',
+      have uvne : (V ∩ Uᶜ).nonempty,
+      { use w, simp only [hw, hw', set.mem_inter_eq, not_false_iff, and_self, set.mem_compl_eq], },
+      specialize hV (V ∩ Uᶜ) (set.inter_subset_left _ _) uvne
+        (is_closed_inter Vcls (is_closed_compl_iff.mpr hU)),
+      have : V ⊆ Uᶜ,
+      { rw ←hV, exact set.inter_subset_right _ _ },
+      exact this hz hz', },
+    cases hsep,
+    { exact this x y hx hy hsep.1 hsep.2 },
+    { exact this y x hy hx hsep.1 hsep.2 } },
+  { push_neg at hnt,
+    obtain ⟨z, hz⟩ := Vne,
+    refine ⟨z, Vsub hz, _⟩,
+    convert Vcls,
+    ext,
+    simp only [set.mem_singleton_iff, set.mem_compl_eq],
+    split,
+    { rintro rfl, exact hz, },
+    { exact λ hx, hnt x z hx hz, }, },
+end
+
 theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
   (hso : is_open (↑s : set α)) :
   ∃ x ∈ s, is_open ({x} : set α):=

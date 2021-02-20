@@ -145,7 +145,7 @@ def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) :
   map_add'  := ring_hom.map_add _ }
 
 /-- If `A` and `B` are isomorphic `R`-algebras, then we get an isomorphism
-`mv_polynomial S₁ A ≃ₐ[R] mv_polynomial B S₂`. -/
+`mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₁ B`. -/
 def alg_equiv_congr {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A] [algebra R B]
   (e : A ≃ₐ[R] B) :
   algebra.comap R A (mv_polynomial S₁ A) ≃ₐ[R] algebra.comap R B (mv_polynomial S₁ B) :=

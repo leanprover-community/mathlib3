@@ -15,9 +15,10 @@ This file provides basic definitions and notation instances for Pi types.
 Instances of more sophisticated classes are defined in `pi.lean` files elsewhere.
 -/
 
-universes u v w
+universes u v₁ v₂ v₃
 variable {I : Type u}     -- The indexing type
-variables {f : I → Type v} {g : I → Type v} {h : I → Type v} -- The family of types already equipped with instances
+-- The families of types already equipped with instances
+variables {f : I → Type v₁} {g : I → Type v₂} {h : I → Type v₃}
 variables (x y : Π i, f i) (i : I)
 
 namespace pi

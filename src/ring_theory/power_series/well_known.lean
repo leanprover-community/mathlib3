@@ -126,7 +126,7 @@ begin
   { rw [rescale],
   ext,
   simp only [coeff_mk, coeff_one, nat.cast_zero, pow_zero, one_div,
-  ring_hom.coe_mk, coeff_exp],
+    ring_hom.coe_mk, coeff_exp],
   split_ifs,
   { simp only [h, mul_one, nat.factorial_zero, nat.factorial_one, inv_one,ring_hom.map_one,
   nat.cast_one, pow_zero] },

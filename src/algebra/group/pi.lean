@@ -121,16 +121,16 @@ def monoid_hom.coe_fn (α β : Type*) [monoid α] [comm_monoid β] : (α →* β
 
 end monoid_hom
 
-section add_monoid_single
+section single
 variables [decidable_eq I]
 open pi
 
 @[simp]
-lemma single_zero [Π i, add_monoid $ f i] (i : I) :
+lemma pi.single_zero [Π i, add_monoid $ f i] (i : I) :
   single i (0 : f i) = 0 :=
 function.update_eq_self i 0
 
-lemma single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
+lemma pi.single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
   single i (x + y) = single i x + single i y :=
 begin
   ext j,
@@ -146,20 +146,20 @@ into a dependent family of additive monoids, as functions supported at a point.
 This is the `add_monoid_hom` version of `pi.single`. -/
 @[simps] def add_monoid_hom.single [Π i, add_monoid $ f i] (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
-  map_zero' := single_zero i,
-  map_add' := single_add i, }
+  map_zero' := pi.single_zero i,
+  map_add' := pi.single_add i, }
 
 variables {f}
 
-lemma single_neg [Π i, add_group $ f i] (i : I) (x : f i) :
+lemma pi.single_neg [Π i, add_group $ f i] (i : I) (x : f i) :
   single i (-x) = -single i x :=
 (add_monoid_hom.single f i).map_neg x
 
-lemma single_sub [Π i, add_group $ f i] (i : I) (x y : f i) :
+lemma pi.single_sub [Π i, add_group $ f i] (i : I) (x y : f i) :
   single i (x - y) = single i x - single i y :=
 (add_monoid_hom.single f i).map_sub x y
 
-lemma single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
+lemma pi.single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 begin
   ext j,
@@ -167,4 +167,12 @@ begin
   exact zero_mul 0,
 end
 
-end add_monoid_single
+/-- The multiplicative homomorphism including a single `monoid_with_zero`
+into a dependent family of monoid_with_zeros, as functions supported at a point.
+
+This is the `mul_hom` version of `pi.single`. -/
+@[simps] def mul_hom.single [Π i, monoid_with_zero $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
+{ to_fun := single i,
+  map_mul' := pi.single_mul i, }
+
+end single

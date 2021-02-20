@@ -187,7 +187,8 @@ lift (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
-@[simp] lemma restriction_of (p) : restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
+@[simp] lemma restriction_of (p) :
+  restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
 
 end restriction
 
@@ -200,7 +201,8 @@ assume hps : is_supported (of p) s, begin
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
     { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
-    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
+    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul],
+      norm_cast },
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [ring_hom.map_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply ne.symm int.zero_ne_one,
@@ -215,11 +217,13 @@ begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
   { rw ring_hom.map_one, refl },
   { rw [ring_hom.map_neg, ring_hom.map_neg, ring_hom.map_one], refl },
-  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [ring_hom.map_mul, restriction_of, dif_pos hps, ring_hom.map_mul, map_of, ih] },
+  { rintros _ ⟨p, hps, rfl⟩ n ih,
+    rw [ring_hom.map_mul, restriction_of, dif_pos hps, ring_hom.map_mul, map_of, ih] },
   { intros x y ihx ihy, rw [ring_hom.map_add, ring_hom.map_add, ihx, ihy] }
 end
 
-theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
+theorem exists_finite_support (x : free_comm_ring α) :
+  ∃ s : set α, set.finite s ∧ is_supported x s :=
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
   (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ set.mem_singleton _⟩)
@@ -259,11 +263,14 @@ variable {α}
 free_ring.lift_of _ _
 @[simp, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 (free_ring.lift _).map_neg _
-@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
+@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) :
+  ↑(x + y) = (x : free_comm_ring α) + y :=
 (free_ring.lift _).map_add _ _
-@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
+@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) :
+  ↑(x - y) = (x : free_comm_ring α) - y :=
 (free_ring.lift _).map_sub _ _
-@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
+@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) :
+  ↑(x * y) = (x : free_comm_ring α) * y :=
 (free_ring.lift _).map_mul _ _
 
 variable (α)

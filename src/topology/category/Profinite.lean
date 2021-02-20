@@ -83,12 +83,16 @@ rfl
 section Profinite
 local attribute [instance] connected_component_setoid
 
+universes u
+
 /--
 (Implementation) The object part of the connected_components functor from compact Hausdorff spaces
 to Profinite spaces, given by quotienting a space by its connected components.
 See: https://stacks.math.columbia.edu/tag/0900
 -/
-def CompHaus.to_Profinite_obj (X : CompHaus) : Profinite :=
+-- Without explicit universe annotations here, Lean introduces two universe variables and
+-- unhelpfully defines a function `CompHaus.{max u₁ u₂} → Profinite.{max u₁ u₂}`.
+def CompHaus.to_Profinite_obj (X : CompHaus.{u}) : Profinite.{u} :=
 { to_Top := { α := connected_components X.to_Top.α },
   is_compact := quotient.compact_space,
   is_t2 := connected_components.t2,
@@ -98,7 +102,7 @@ def CompHaus.to_Profinite_obj (X : CompHaus) : Profinite :=
 (Implementation) The bijection of homsets to establish the reflective adjunction of Profinite
 spaces in compact Hausdorff spaces.
 -/
-def Profinite.to_CompHaus_equivalence (X : CompHaus) (Y : Profinite) :
+def Profinite.to_CompHaus_equivalence (X : CompHaus.{u}) (Y : Profinite.{u}) :
   (CompHaus.to_Profinite_obj X ⟶ Y) ≃ (X ⟶ Profinite.to_CompHaus.obj Y) :=
 { to_fun := λ f,
   { to_fun := f.1 ∘ quotient.mk,

@@ -125,19 +125,6 @@ section single
 variables [decidable_eq I]
 open pi
 
-@[simp]
-lemma pi.single_zero [Π i, add_monoid $ f i] (i : I) :
-  single i (0 : f i) = 0 :=
-function.update_eq_self i 0
-
-lemma pi.single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
-  single i (x + y) = single i x + single i y :=
-begin
-  ext j,
-  refine (apply_single₂ _ (λ _, _) i x y j).symm,
-  exact zero_add 0,
-end
-
 variables (f)
 
 /-- The additive monoid homomorphism including a single additive monoid
@@ -146,10 +133,33 @@ into a dependent family of additive monoids, as functions supported at a point.
 This is the `add_monoid_hom` version of `pi.single`. -/
 @[simps] def add_monoid_hom.single [Π i, add_monoid $ f i] (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
-  map_zero' := pi.single_zero i,
-  map_add' := pi.single_add i, }
+  map_zero' := function.update_eq_self i 0,
+  map_add' := λ x y, funext $ λ j, begin
+    refine (apply_single₂ _ (λ _, _) i x y j).symm,
+    exact zero_add 0,
+  end, }
+
+/-- The multiplicative homomorphism including a single `monoid_with_zero`
+into a dependent family of monoid_with_zeros, as functions supported at a point.
+
+This is the `mul_hom` version of `pi.single`. -/
+@[simps] def mul_hom.single [Π i, monoid_with_zero $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
+{ to_fun := single i,
+  map_mul' := λ x y, funext $ λ j, begin
+    refine (apply_single₂ _ (λ _, _) i x y j).symm,
+    exact zero_mul 0,
+  end, }
 
 variables {f}
+
+@[simp]
+lemma pi.single_zero [Π i, add_monoid $ f i] (i : I) :
+  single i (0 : f i) = 0 :=
+(add_monoid_hom.single f i).map_zero
+
+lemma pi.single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
+  single i (x + y) = single i x + single i y :=
+(add_monoid_hom.single f i).map_add x y
 
 lemma pi.single_neg [Π i, add_group $ f i] (i : I) (x : f i) :
   single i (-x) = -single i x :=
@@ -161,18 +171,6 @@ lemma pi.single_sub [Π i, add_group $ f i] (i : I) (x y : f i) :
 
 lemma pi.single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
-begin
-  ext j,
-  refine (apply_single₂ _ (λ _, _) i x y j).symm,
-  exact zero_mul 0,
-end
-
-/-- The multiplicative homomorphism including a single `monoid_with_zero`
-into a dependent family of monoid_with_zeros, as functions supported at a point.
-
-This is the `mul_hom` version of `pi.single`. -/
-@[simps] def mul_hom.single [Π i, monoid_with_zero $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
-{ to_fun := single i,
-  map_mul' := pi.single_mul i, }
+(mul_hom.single f i).map_mul x y
 
 end single

@@ -128,7 +128,7 @@ begin
   simp only [coeff_mk, coeff_one, nat.cast_zero, pow_zero, one_div,
     ring_hom.coe_mk, coeff_exp],
   split_ifs,
-  { simp only [h, mul_one, nat.factorial_zero, nat.factorial_one, inv_one,ring_hom.map_one,
+  { simp only [h, mul_one, nat.factorial_zero, nat.factorial_one, inv_one, ring_hom.map_one,
   nat.cast_one, pow_zero] },
   { simp only [h, zero_mul, ne.def, not_false_iff, zero_pow'] } },
   rw [succ_eq_add_one, cast_add, ←exp_mul_exp_eq_exp_add (k : A), ←h],

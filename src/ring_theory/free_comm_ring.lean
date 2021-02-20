@@ -55,15 +55,11 @@ universes u v
 variables (α : Type u)
 
 /-- `free_comm_ring α` is the free commutative ring on the type `α`. -/
+@[derive [comm_ring, inhabited]]
 def free_comm_ring (α : Type u) : Type u :=
 free_abelian_group $ multiplicative $ multiset α
 
 namespace free_comm_ring
-
-/-- The structure of a commutative ring on `free_comm_ring α`. -/
-instance : comm_ring (free_comm_ring α) := free_abelian_group.comm_ring _
-
-instance : inhabited (free_comm_ring α) := ⟨0⟩
 
 variables {α}
 
@@ -289,8 +285,8 @@ lemma coe_eq :
   (coe : free_ring α → free_comm_ring α) =
   @functor.map free_abelian_group _ _ _ (λ (l : list α), (l : multiset α)) :=
 funext $ λ x, free_abelian_group.lift.unique _ _ $ λ L,
-by { simp_rw [free_abelian_group.lift.of, (∘)], exact list.rec_on L rfl
-(λ hd tl ih, by { rw [list.map_cons, list.prod_cons, ih], refl }) }
+by { simp_rw [free_abelian_group.lift.of, (∘)], exact free_monoid.rec_on L rfl
+(λ hd tl ih, by { rw [(free_monoid.lift _).map_mul, free_monoid.lift_eval_of, ih], refl }) }
 
 -- FIXME This was in `deprecated.ring`, but only used here.
 -- It would be good to inline it into the next construction.

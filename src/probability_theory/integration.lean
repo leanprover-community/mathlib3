@@ -15,12 +15,12 @@ reals, `E[X * Y] = E[X] * E[Y]`, and similar results.
 -/
 
 noncomputable theory
-open set probability_theory
+open set measure_theory
 open_locale ennreal
 
 variables {α : Type*}
 
-namespace measure_theory
+namespace probability_theory
 
 /-- This (roughly) proves that if a random variable `f` is independent of an event `T`,
    then if you restrict the random variable to `T`, then
@@ -115,4 +115,4 @@ begin
   repeat { apply measurable.of_comap_le le_rfl },
 end
 
-end measure_theory
+end probability_theory

@@ -7,9 +7,6 @@ Authors: Scott Morrison
 import linear_algebra.tensor_product
 import algebra.algebra.basic
 
-universes u v₁ v₂ v₃ v₄
-
-
 /-!
 # The tensor product of R-algebras
 
@@ -25,6 +22,8 @@ The code for
 is written and compiles, but takes longer than the `-T100000` time limit,
 so is currently commented out.
 -/
+
+universes u v₁ v₂ v₃ v₄
 
 namespace algebra
 

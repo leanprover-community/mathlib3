@@ -55,7 +55,8 @@ end ideal
 
 variables {a b : α}
 
--- A separate namespace definition is needed because the variables were historically in a different order
+-- A separate namespace definition is needed because the variables were historically in a different
+-- order.
 namespace ideal
 variables [comm_semiring α] (I : ideal α)
 

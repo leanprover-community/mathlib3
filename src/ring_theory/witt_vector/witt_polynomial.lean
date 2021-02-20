@@ -10,17 +10,6 @@ import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
 import data.zmod.basic
 
-open mv_polynomial
-open finset (hiding map)
-open finsupp (single)
-
-open_locale big_operators
-
-local attribute [-simp] coe_eval₂_hom
-
-variables (p : ℕ)
-variables (R : Type*) [comm_ring R]
-
 /-!
 # Witt polynomials
 
@@ -60,6 +49,17 @@ In this file we use the following notation
 * `W n` (and `W_ R n` when the ring needs to be explicit) denotes the `n`th Witt polynomial
 
 -/
+
+open mv_polynomial
+open finset (hiding map)
+open finsupp (single)
+
+open_locale big_operators
+
+local attribute [-simp] coe_eval₂_hom
+
+variables (p : ℕ)
+variables (R : Type*) [comm_ring R]
 
 /-- `witt_polynomial p R n` is the `n`-th Witt polynomial
 with respect to a prime `p` with coefficients in a commutative ring `R`.

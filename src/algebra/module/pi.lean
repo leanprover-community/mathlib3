@@ -97,6 +97,15 @@ begin
   exact smul_zero _,
 end
 
+lemma single_smul' {g : I → Type*} {m : Π i, monoid_with_zero (f i)} {n : Π i, add_monoid (g i)}
+  [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
+  single i (r • x) = single i r • single i x :=
+begin
+  ext j,
+  refine (apply_single₂ _ (λ _, _) i r x j).symm,
+  exact smul_zero _,
+end
+
 variables (I f)
 
 instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}

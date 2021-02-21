@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Chris Hughes, Shing Tak Lam
 -/
 import analysis.special_functions.trigonometric
-noncomputable theory
 
 /-!
 # Inverse of the sinh function
@@ -23,6 +22,7 @@ inverse, arsinh.
 
 arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 -/
+noncomputable theory
 
 namespace real
 
@@ -43,8 +43,7 @@ end
 private lemma b_lt_sqrt_b_one_add_sq (b : ℝ) : b < sqrt (1 + b ^ 2) :=
 calc  b
     ≤ sqrt (b ^ 2)     : le_sqrt_of_sqr_le $ le_refl _
-... < sqrt (1 + b ^ 2) : (sqrt_lt (pow_two_nonneg _) (add_nonneg zero_le_one (pow_two_nonneg _))).2
-  (lt_one_add _)
+... < sqrt (1 + b ^ 2) : (sqrt_lt (pow_two_nonneg _)).2 (lt_one_add _)
 
 private lemma add_sqrt_one_add_pow_two_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) :=
 by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, pow_two, neg_mul_neg, ← pow_two],

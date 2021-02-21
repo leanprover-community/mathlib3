@@ -5,7 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import topology.sheaves.presheaf_of_functions
 import topology.sheaves.sheaf
-import category_theory.limits.types
+import category_theory.limits.shapes.types
 import topology.local_homeomorph
 
 /-!
@@ -14,7 +14,11 @@ import topology.local_homeomorph
 We show that
 * `Top.sheaf_condition.to_Type`: not-necessarily-continuous functions into a type form a sheaf
 * `Top.sheaf_condition.to_Types`: in fact, these may be dependent functions into a type family
+
+For
 * `Top.sheaf_condition.to_Top`: continuous functions into a topological space form a sheaf
+please see `topology/sheaves/local_predicate.lean`, where we set up a general framework
+for constructing sub(pre)sheaves of the sheaf of dependent functions.
 
 ## Future work
 Obviously there's more to do:
@@ -36,7 +40,7 @@ variables (X : Top.{u})
 
 open Top
 
-namespace Top.sheaf_condition
+namespace Top.presheaf
 
 /--
 We show that the presheaf of functions to a type `T`
@@ -99,29 +103,31 @@ begin
     -- Now, we assert that the two restrictions of `f` to `U i` and `U j` coincide on `U i ⊓ U j`,
     -- and in particular coincide there after evaluating at `x`.
     have s₀ := s.condition =≫ pi.π _ (j, i),
-    simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
+    simp only [sheaf_condition_equalizer_products.left_res,
+      sheaf_condition_equalizer_products.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
-    have s₂ := congr_fun s₁ ⟨x, _⟩,
+    have s₂ := congr_fun s₁ ⟨x, _⟩, clear s₀ s₁,
     -- Notice at this point we've spun after an additional goal:
-    -- that `x ∈ U j ⊓ U i` to begin with! We'll postpone that.
-
-    -- In the meantime, we can just assert that `s₂` is the droid you are looking for.
-    -- (We relying shamefacedly on Lean's unification understanding this,
-    -- even though the type of the goal is still fairly messy. "It's obvious.")
-    simpa [presheaf_to_Type] using s₂,
-    clear s₀ s₁,
-
-    -- We still need to show `x ∈ U j ⊓ U i`.
-    -- We knew `x ∈ U i` right from the start:
-    refine ⟨_, mem⟩,
-    dsimp,
-
-    -- Notice that when we introduced `j`, we just introduced it as some metavariable.
-    -- However at this point it's received a concrete value,
-    -- because Lean's unification has worked out that this `j` must have been the index
-    -- that we picked using choice back when constructing the lift.
-    -- From this, we can extract the evidence that `x ∈ U j`:
-    convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- that `x ∈ U j ⊓ U i` to begin with! Let's get that out of the way.
+    swap,
+    { -- We knew `x ∈ U i` right from the start:
+      refine ⟨_, mem⟩,
+      -- Notice that when we introduced `j`, we just introduced it as some metavariable.
+      -- However at this point it's received a concrete value,
+      -- because Lean's unification has worked out that this `j` must have been the index
+      -- that we picked using choice back when constructing the lift.
+      -- From this, we can extract the evidence that `x ∈ U j`:
+      convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- Now, we can just assert that `s₂` is the droid you are looking for,
+    -- and do a little patching up afterwards.
+    convert s₂,
+    { simp only [sheaf_condition_equalizer_products.res, presheaf_to_Types_map,
+        types.pi_lift_π_apply, types_comp_apply],
+      dsimp [inf_le_left_apply],
+      simp,
+      refl, },
+    { simp,
+      refl, }, },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
 
@@ -136,11 +142,14 @@ begin
     -- We'll need the later,
     specialize w walking_parallel_pair.zero,
     -- because we're not sure which arbitrary `j : ι` we used to define our lift.
+
     let j : ι := _,
 
     -- Now it's just a matter of plugging in all the values;
     -- `j` gets solved for during unification.
-    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩, }
+    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩,
+    simp [sheaf_condition_equalizer_products.res],
+    refl, }
 end.
 
 -- We verify that the non-dependent version is an immediate consequence:
@@ -151,117 +160,22 @@ a target type `T` satsifies the sheaf condition.
 def to_Type (T : Type u) : sheaf_condition (presheaf_to_Type X T) :=
 to_Types X (λ _, T)
 
-/-!
-Next we to check the sheaf condition for continuous functions.
+end Top.presheaf
 
-The idea, of course, is to first lift to the underlying function,
-using the fact that the presheaf of functions is a sheaf.
-Because continuous functions are determined by their underlying functions,
-this takes care of our factorisation and uniqueness obligations in the sheaf condition.
-
-To show continuity, we already know that our lifted function restricted to any `U i` is the
-original continuous function we had here,
-and since continuity is a local condition we should be done!
-
-In fact, I'd like to do it for any "functions satisfying a local condition",
-for which there's a sketch at https://github.com/leanprover-community/mathlib/issues/1462
--/
+namespace Top
 
 /--
-The natural transformation from the sheaf condition diagram for continuous functions
-to the sheaf condition diagram for arbitrary functions,
-given by forgetting continuity everywhere.
+The sheaf of not-necessarily-continuous functions on `X` with values in type family `T : X → Type u`.
 -/
-def forget_continuity (T : Top.{u}) {ι : Type u} (U : ι → opens X) :
-  diagram (presheaf_to_Top X T) U ⟶ diagram (presheaf_to_Type X T) U :=
-{ app :=
-  begin
-    rintro ⟨_|_⟩,
-    exact (pi.map (λ i f, f.to_fun)),
-    exact (pi.map (λ p f, f.to_fun)),
-  end,
-  naturality' := by rintro ⟨_|_⟩ ⟨_|_⟩ f; cases f; refl, }
+def sheaf_to_Types (T : X → Type u) : sheaf (Type u) X :=
+{ presheaf := presheaf_to_Types X T,
+  sheaf_condition := presheaf.to_Types _ _, }
 
 /--
-The presheaf of continuous functions to a target topological space `T` satsifies the sheaf condition.
+The sheaf of not-necessarily-continuous functions on `X` with values in a type `T`.
 -/
-def to_Top (T : Top.{u}) : sheaf_condition (presheaf_to_Top X T) :=
-λ ι U,
-begin
-  refine fork.is_limit.mk _ _ _ _,
-  { intros s f,
-    fsplit,
-    -- First, we use the fact that not necessarily continuous functions form a sheaf,
-    -- to provide the lift.
-    { let s' := (cones.postcompose (forget_continuity X T U)).obj s,
-      exact (to_Type X T U).lift s' f, },
-    -- Second, we need to do the actual work, proving this lift is continuous.
-    { dsimp,
+def sheaf_to_Type (T : Type u) : sheaf (Type u) X :=
+{ presheaf := presheaf_to_Type X T,
+  sheaf_condition := presheaf.to_Type _ _, }
 
-      -- We prove continuity by proving continuity at each point,
-      apply continuous_iff_continuous_at.2,
-      -- so that once we're at a particular point `x`, we can select some open set `x ∈ U i`.
-      rintro ⟨x, mem⟩,
-      simp at mem,
-      choose i hi using mem,
-
-      -- Now our goal is to show that the previously chosen lift,
-      -- when restricted to that `U i`, is a continuous function.
-      -- This follows from the factorisation condition,
-      -- and the fact that underlying presheaf is a presheaf of continuous functions.
-      let s' := (cones.postcompose (forget_continuity X T U)).obj s,
-      have fac_i := ((to_Type X T U).fac s' walking_parallel_pair.zero) =≫ pi.π _ i,
-      simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π,
-        sheaf_condition.fork_π_app_walking_parallel_pair_zero, fan.mk_π_app,
-        nat_trans.comp_app, category.assoc] at fac_i,
-      have fac_i_f := congr_fun fac_i f,
-      simp only [forget_continuity, discrete.nat_trans_app, types_comp_apply,
-        presheaf_to_Type_map, limit.map_π] at fac_i_f,
-
-      have cts : continuous ((to_Type X ↥T U).lift s' f ∘ ((opens.le_supr U i).op.unop)),
-      { rw fac_i_f, continuity, },
-
-      -- Next, we just remember that this restriction is continuous at `x`.
-      rw continuous_iff_continuous_at at cts,
-      specialize cts ⟨x, hi⟩,
-
-      -- Finally, since the inclusion `U i ≤ supr U` is an open embedding,
-      -- continuity at `x` of the restriction is the same as continuity at `x`.
-      exact (open_embedding_of_le (le_supr U i)).continuous_at_iff.1 cts, }, },
-  { -- Proving the factorisation condition is straightforward:
-    -- we observe that checking equality of continuous functions reduces to
-    -- checking equality of the underlying functions,
-    -- and use the factorisation condition for the sheaf condition for functions.
-    intros s,
-    ext i f : 2,
-    apply continuous_map.coe_inj,
-    exact congr_fun (((to_Type X T U).fac _ walking_parallel_pair.zero) =≫ pi.π _ i) _, },
-  { -- Similarly for proving the uniqueness condition, after a certain amount of bookkeeping.
-    intros s m w,
-    ext f : 1,
-    apply continuous_map.coe_inj,
-    let s' := (cones.postcompose (forget_continuity X T U)).obj s,
-    refine congr_fun ((to_Type X T U).uniq s' _ _) f,
-    -- We "just" need to fix up our `w` to match the missing `w` argument.
-    -- Unfortunately, it's still gross.
-    intro j,
-    specialize w j,
-    dsimp [s'],
-    rw ←w, clear w,
-    simp only [category.assoc],
-    rcases j with ⟨_|_⟩,
-    { apply limit.hom_ext,
-      intro i,
-      simp only [category.assoc, limit.map_π, forget_continuity],
-      ext f' ⟨x, mem⟩,
-      simp [presheaf_to_Top, presheaf_to_Type, res],
-      refl, },
-    { apply limit.hom_ext,
-      intro i,
-      simp only [category.assoc, limit.map_π, forget_continuity],
-      ext f' ⟨x, mem⟩,
-      simp [presheaf_to_Top, presheaf_to_Type, res, left_res],
-      refl, }, },
-end
-
-end Top.sheaf_condition
+end Top

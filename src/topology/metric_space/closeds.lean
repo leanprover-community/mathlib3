@@ -9,8 +9,8 @@ import analysis.specific_limits
 /-!
 # Closed subsets
 
-This file defines the metric and emetric space structure on the types of closed subsets and nonempty compact
-subsets of a metric or emetric space.
+This file defines the metric and emetric space structure on the types of closed subsets and nonempty
+compact subsets of a metric or emetric space.
 
 The Hausdorff distance induces an emetric space structure on the type of closed subsets
 of an emetric space, called `closeds`. Its completeness, resp. compactness, resp.
@@ -22,8 +22,7 @@ always finite in this context.
 -/
 
 noncomputable theory
-open_locale classical
-open_locale topological_space
+open_locale classical topological_space ennreal
 
 universe u
 open classical set function topological_space filter
@@ -89,11 +88,11 @@ begin
   `edist (s n) (s (n+1)) < 2^{-n}`, then it converges. This is enough to guarantee
   completeness, by a standard completeness criterion.
   We use the shorthand `B n = 2^{-n}` in ennreal. -/
-  let B : ℕ → ennreal := λ n, (2⁻¹)^n,
-  have B_pos : ∀ n, (0:ennreal) < B n,
+  let B : ℕ → ℝ≥0∞ := λ n, (2⁻¹)^n,
+  have B_pos : ∀ n, (0:ℝ≥0∞) < B n,
     by simp [B, ennreal.pow_pos],
   have B_ne_top : ∀ n, B n ≠ ⊤,
-    by simp [B, ennreal.div_def, ennreal.pow_ne_top],
+    by simp [B, ennreal.pow_ne_top],
   /- Consider a sequence of closed sets `s n` with `edist (s n) (s (n+1)) < B n`.
   We will show that it converges. The limit set is t0 = ⋂n, closure (⋃m≥n, s m).
   We will have to show that a point in `s n` is close to a point in `t0`, and a point
@@ -119,7 +118,7 @@ begin
       { assume l z,
         obtain ⟨z', z'_mem, hz'⟩ : ∃ z' ∈ (s (n+l+1)).val, edist (z:α) z' < B n / 2^l,
         { apply exists_edist_lt_of_Hausdorff_edist_lt z.2,
-          simp only [B, ennreal.div_def, ennreal.inv_pow],
+          simp only [B, ennreal.inv_pow, div_eq_mul_inv],
           rw [← pow_add],
           apply hs; simp },
         exact ⟨⟨z', z'_mem⟩, le_of_lt hz'⟩ },
@@ -135,7 +134,8 @@ begin
     -- First, we check it belongs to `t0`.
     have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto y_lim
     begin
-      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage, set.preimage_Union],
+      simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage,
+        set.preimage_Union],
       exact ⟨k, λ m hm, ⟨n+m, zero_add k ▸ add_le_add (zero_le n) hm, (z m).2⟩⟩
     end),
     use this,
@@ -167,7 +167,7 @@ begin
   -- Deduce from the above inequalities that the distance between `s n` and `t0` is at most `2 B n`.
   have main : ∀n:ℕ, edist (s n) t ≤ 2 * B n := λn, Hausdorff_edist_le_of_mem_edist (I1 n) (I2 n),
   -- from this, the convergence of `s n` to `t0` follows.
-  refine (tendsto_at_top _).2 (λε εpos, _),
+  refine tendsto_at_top.2 (λε εpos, _),
   have : tendsto (λn, 2 * B n) at_top (𝓝 (2 * 0)),
     from ennreal.tendsto.const_mul
       (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])
@@ -185,10 +185,11 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     i.e., for all ε>0, there is a finite set which is ε-dense.
     start from a set `s` which is ε-dense in α. Then the subsets of `s`
     are finitely many, and ε-dense for the Hausdorff distance. -/
-  refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
-  rcases dense εpos with ⟨δ, δpos, δlt⟩,
-  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
-    with ⟨s, fs, hs⟩,
+  refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _))
+    is_closed_univ,
+  rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
+  rcases emetric.totally_bounded_iff.1
+    (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.
   have main : ∀ u : set α, ∃v ⊆ s, Hausdorff_edist u v ≤ δ,
@@ -262,8 +263,8 @@ begin
     -- pick a nonempty compact set t at distance at most ε/2 of s
     rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
-    rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2) (ennreal.half_pos εpos)
-      with ⟨u, fu, ut⟩,
+    rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2)
+      (ennreal.half_pos εpos) with ⟨u, fu, ut⟩,
     refine ⟨u, ⟨fu, λx hx, _⟩⟩,
     -- u : set α,  fu : finite u,  ut : t.val ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε
@@ -304,8 +305,7 @@ begin
     by total boundedness, any compact set `t` can be covered by finitely many small balls, and
     approximations in `s` of the centers of these balls give the required finite approximation
     of `t`. -/
-    have : separable_space α := by apply_instance,
-    rcases this.exists_countable_closure_eq_univ with ⟨s, cs, s_dense⟩,
+    rcases exists_countable_dense α with ⟨s, cs, s_dense⟩,
     let v0 := {t : set α | finite t ∧ t ⊆ s},
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | t.val ∈ v0},
     refine  ⟨⟨v, ⟨_, _⟩⟩⟩,
@@ -316,14 +316,13 @@ begin
         exact hy },
       apply countable_of_injective_of_countable_image _ this,
       apply subtype.val_injective.inj_on },
-    { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff.2 (λε εpos, _)),
+    { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
-      rcases dense εpos with ⟨δ, δpos, δlt⟩,
+      rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,
-        have : x ∈ closure s := by rw s_dense; exact mem_univ _,
-        rcases mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
+        rcases mem_closure_iff.1 (s_dense x) (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
         exact ⟨y, ⟨ys, hy⟩⟩ },
       let F := λx, some (Exy x),
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),

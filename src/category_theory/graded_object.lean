@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.shift
 import category_theory.concrete_category
 import category_theory.pi.basic
+import algebra.group.basic
 
 /-!
 # The category of graded objects
@@ -44,7 +45,8 @@ A type synonym for `β → C`, used for `β`-graded objects in a category `C`
 with a shift functor given by translation by `s`.
 -/
 @[nolint unused_arguments] -- `s` is here to distinguish type synonyms asking for different shifts
-abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) : Type (max w u) := graded_object β C
+abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) :
+  Type (max w u) := graded_object β C
 
 namespace graded_object
 
@@ -140,7 +142,7 @@ variables [has_coproducts C]
 /--
 The total object of a graded object is the coproduct of the graded components.
 -/
-def total : graded_object β C ⥤ C :=
+noncomputable def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
 
@@ -164,6 +166,8 @@ instance : faithful (total β C) :=
 end graded_object
 
 namespace graded_object
+
+noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]

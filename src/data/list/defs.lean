@@ -15,7 +15,7 @@ proofs about these definitions, those are contained in other files in `data/list
 
 namespace list
 
-open function nat
+open function nat native (rb_map mk_rb_map rb_map.of_list)
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
@@ -92,6 +92,12 @@ def to_array (l : list α) : array l.length α :=
 /-- Apply `f` to the nth element of the list, if it exists. -/
 def modify_nth (f : α → α) : ℕ → list α → list α :=
 modify_nth_tail (modify_head f)
+
+/-- Apply `f` to the last element of `l`, if it exists. -/
+@[simp] def modify_last (f : α → α) : list α → list α
+| [] := []
+| [x] := [f x]
+| (x :: xs) := x :: modify_last xs
 
 /-- `insert_nth n a l` inserts `a` into the list `l` after the first `n` elements of `l`
  `insert_nth 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]`-/
@@ -459,7 +465,7 @@ l :: permutations_aux l []
 
 end permutations
 
-/-- `erase p l` removes all elements of `l` satisfying the predicate `p` -/
+/-- `erasep p l` removes the first element of `l` satisfying the predicate `p`. -/
 def erasep (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then l else a :: erasep l
@@ -528,6 +534,8 @@ variables {R}
 @[simp] theorem pairwise_cons {a : α} {l : list α} :
   pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ pairwise R l :=
 ⟨λ p, by cases p with a l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
+
+attribute [simp] pairwise.nil
 
 instance decidable_pairwise [decidable_rel R] (l : list α) : decidable (pairwise R l) :=
 by induction l with hd tl ih; [exact is_true pairwise.nil,
@@ -598,17 +606,6 @@ def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 /-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/
 def reduce_option {α} : list (option α) → list α :=
 list.filter_map id
-
-/-- Apply `f` to the first element of `l`. -/
-def map_head {α} (f : α → α) : list α → list α
-| [] := []
-| (x :: xs) := f x :: xs
-
-/-- Apply `f` to the last element of `l`. -/
-def map_last {α} (f : α → α) : list α → list α
-| [] := []
-| [x] := [f x]
-| (x :: xs) := x :: map_last xs
 
 /-- `ilast' x xs` returns the last element of `xs` if `xs` is non-empty;
 it returns `x` otherwise -/
@@ -697,5 +694,238 @@ def get_rest [decidable_eq α] : list α → list α → option (list α)
 | l      []      := some l
 | []     _       := none
 | (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
+
+/--
+`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
+-/
+def slice {α} : ℕ → ℕ → list α → list α
+| 0 n xs := xs.drop n
+| (succ n) m [] := []
+| (succ n) m (x :: xs) := x :: slice n m xs
+
+/--
+Left-biased version of `list.map₂`. `map₂_left' f as bs` applies `f` to each
+pair of elements `aᵢ ∈ as` and `bᵢ ∈ bs`. If `bs` is shorter than `as`, `f` is
+applied to `none` for the remaining `aᵢ`. Returns the results of the `f`
+applications and the remaining `bs`.
+
+```
+map₂_left' prod.mk [1, 2] ['a'] = ([(1, some 'a'), (2, none)], [])
+
+map₂_left' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
+```
+-/
+@[simp] def map₂_left' (f : α → option β → γ) : list α → list β → (list γ × list β)
+| [] bs := ([], bs)
+| (a :: as) [] :=
+  ((a :: as).map (λ a, f a none), [])
+| (a :: as) (b :: bs) :=
+  let rec := map₂_left' as bs in
+  (f a (some b) :: rec.fst, rec.snd)
+
+/--
+Right-biased version of `list.map₂`. `map₂_right' f as bs` applies `f` to each
+pair of elements `aᵢ ∈ as` and `bᵢ ∈ bs`. If `as` is shorter than `bs`, `f` is
+applied to `none` for the remaining `bᵢ`. Returns the results of the `f`
+applications and the remaining `as`.
+
+```
+map₂_right' prod.mk [1] ['a', 'b'] = ([(some 1, 'a'), (none, 'b')], [])
+
+map₂_right' prod.mk [1, 2] ['a'] = ([(some 1, 'a')], [2])
+```
+-/
+def map₂_right' (f : option α → β → γ) (as : list α) (bs : list β) : (list γ × list α) :=
+map₂_left' (flip f) bs as
+
+/--
+Left-biased version of `list.zip`. `zip_left' as bs` returns the list of
+pairs `(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `bs` is shorter than `as`, the
+remaining `aᵢ` are paired with `none`. Also returns the remaining `bs`.
+
+```
+zip_left' [1, 2] ['a'] = ([(1, some 'a'), (2, none)], [])
+
+zip_left' [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
+
+zip_left' = map₂_left' prod.mk
+
+```
+-/
+def zip_left' : list α → list β → list (α × option β) × list β :=
+map₂_left' prod.mk
+
+/--
+Right-biased version of `list.zip`. `zip_right' as bs` returns the list of
+pairs `(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `as` is shorter than `bs`, the
+remaining `bᵢ` are paired with `none`. Also returns the remaining `as`.
+
+```
+zip_right' [1] ['a', 'b'] = ([(some 1, 'a'), (none, 'b')], [])
+
+zip_right' [1, 2] ['a'] = ([(some 1, 'a')], [2])
+
+zip_right' = map₂_right' prod.mk
+```
+-/
+def zip_right' : list α → list β → list (option α × β) × list α :=
+map₂_right' prod.mk
+
+/--
+Left-biased version of `list.map₂`. `map₂_left f as bs` applies `f` to each pair
+`aᵢ ∈ as` and `bᵢ ‌∈ bs`. If `bs` is shorter than `as`, `f` is applied to `none`
+for the remaining `aᵢ`.
+
+```
+map₂_left prod.mk [1, 2] ['a'] = [(1, some 'a'), (2, none)]
+
+map₂_left prod.mk [1] ['a', 'b'] = [(1, some 'a')]
+
+map₂_left f as bs = (map₂_left' f as bs).fst
+```
+-/
+@[simp] def map₂_left (f : α → option β → γ) : list α → list β → list γ
+| [] _ := []
+| (a :: as) [] := (a :: as).map (λ a, f a none)
+| (a :: as) (b :: bs) := f a (some b) :: map₂_left as bs
+
+/--
+Right-biased version of `list.map₂`. `map₂_right f as bs` applies `f` to each
+pair `aᵢ ∈ as` and `bᵢ ‌∈ bs`. If `as` is shorter than `bs`, `f` is applied to
+`none` for the remaining `bᵢ`.
+
+```
+map₂_right prod.mk [1, 2] ['a'] = [(some 1, 'a')]
+
+map₂_right prod.mk [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
+
+map₂_right f as bs = (map₂_right' f as bs).fst
+```
+-/
+def map₂_right (f : option α → β → γ) (as : list α) (bs : list β) :
+  list γ :=
+map₂_left (flip f) bs as
+
+/--
+Left-biased version of `list.zip`. `zip_left as bs` returns the list of pairs
+`(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `bs` is shorter than `as`, the
+remaining `aᵢ` are paired with `none`.
+
+```
+zip_left [1, 2] ['a'] = [(1, some 'a'), (2, none)]
+
+zip_left [1] ['a', 'b'] = [(1, some 'a')]
+
+zip_left = map₂_left prod.mk
+```
+-/
+def zip_left : list α → list β → list (α × option β) :=
+map₂_left prod.mk
+
+/--
+Right-biased version of `list.zip`. `zip_right as bs` returns the list of pairs
+`(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `as` is shorter than `bs`, the
+remaining `bᵢ` are paired with `none`.
+
+```
+zip_right [1, 2] ['a'] = [(some 1, 'a')]
+
+zip_right [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
+
+zip_right = map₂_right prod.mk
+```
+-/
+def zip_right : list α → list β → list (option α × β) :=
+map₂_right prod.mk
+
+/--
+If all elements of `xs` are `some xᵢ`, `all_some xs` returns the `xᵢ`. Otherwise
+it returns `none`.
+
+```
+all_some [some 1, some 2] = some [1, 2]
+all_some [some 1, none  ] = none
+```
+-/
+def all_some : list (option α) → option (list α)
+| [] := some []
+| (some a :: as) := cons a <$> all_some as
+| (none :: as) := none
+
+/--
+`fill_nones xs ys` replaces the `none`s in `xs` with elements of `ys`. If there
+are not enough `ys` to replace all the `none`s, the remaining `none`s are
+dropped from `xs`.
+
+```
+fill_nones [none, some 1, none, none] [2, 3] = [2, 1, 3]
+```
+-/
+def fill_nones {α} : list (option α) → list α → list α
+| [] _ := []
+| (some a :: as) as' := a :: fill_nones as as'
+| (none :: as) [] := as.reduce_option
+| (none :: as) (a :: as') := a :: fill_nones as as'
+
+/--
+`take_list as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
+it first takes the `n₁` initial elements from `as`, then the next `n₂` ones,
+etc. It returns the sublists of `as` -- one for each `nᵢ` -- and the remaining
+elements of `as`. If `as` does not have at least as many elements as the sum of
+the `nᵢ`, the corresponding sublists will have less than `nᵢ` elements.
+
+```
+take_list ['a', 'b', 'c', 'd', 'e'] [2, 1, 1] = ([['a', 'b'], ['c'], ['d']], ['e'])
+take_list ['a', 'b'] [3, 1] = ([['a', 'b'], []], [])
+```
+-/
+def take_list {α} : list α → list ℕ → list (list α) × list α
+| xs [] := ([], xs)
+| xs (n :: ns) :=
+  let ⟨xs₁, xs₂⟩ := xs.split_at n in
+  let ⟨xss, rest⟩ := take_list xs₂ ns in
+  (xs₁ :: xss, rest)
+
+/--
+`to_rbmap as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+def to_rbmap : list α → rbmap ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
+
+/--
+`to_rb_map as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
+
+/--
+`xs.to_chunks n` splits the list into sublists of size at most `n`,
+such that `(xs.to_chunks n).join = xs`.
+
+TODO: make non-meta; currently doesn't terminate, e.g.
+```
+#eval [0].to_chunks 0
+```
+-/
+meta def to_chunks {α} (n : ℕ) : list α → list (list α)
+| [] := []
+| xs :=
+  xs.take n :: (xs.drop n).to_chunks
+
+/--
+Asynchronous version of `list.map`.
+-/
+meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
+((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
 
 end list

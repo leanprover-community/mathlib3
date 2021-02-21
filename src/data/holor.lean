@@ -3,7 +3,8 @@ Copyright (c) 2018 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
-import algebra.module.pi algebra.big_operators.basic
+import algebra.module.pi
+import algebra.big_operators.basic
 
 /-!
 # Basic properties of holors
@@ -35,7 +36,8 @@ open list
 
 open_locale big_operators
 
-/-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimensions `ds` -/
+/-- `holor_index ds` is the type of valid index tuples used to identify an entry of a holor
+of dimensions `ds`. -/
 def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index
@@ -62,7 +64,8 @@ cast (congr_arg holor_index (append_assoc ds₁ ds₂ ds₃).symm)
 lemma take_take :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.take = t.take.take
-| ⟨ is , h ⟩ := subtype.eq (by simp [assoc_right,take, cast_type, list.take_take, nat.le_add_right, min_eq_left])
+| ⟨ is , h ⟩ := subtype.eq $ by simp [assoc_right,take, cast_type, list.take_take,
+                                     nat.le_add_right, min_eq_left]
 
 lemma drop_take :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
@@ -148,7 +151,7 @@ funext (λt, left_distrib (x (holor_index.take t)) (y (holor_index.drop t)) (z (
 
 lemma mul_right_distrib [distrib α] (x : holor α ds₁) (y : holor α ds₁) (z : holor α ds₂) :
   (x + y) ⊗ z = x ⊗ z + y ⊗ z :=
-funext (λt, right_distrib (x (holor_index.take t)) (y (holor_index.take t)) (z (holor_index.drop t)))
+funext $ λt, add_mul (x (holor_index.take t)) (y (holor_index.take t)) (z (holor_index.drop t))
 
 @[simp] lemma zero_mul {α : Type} [ring α] (x : holor α ds₂) :
   (0 : holor α ds₁) ⊗ x = 0 :=
@@ -201,7 +204,7 @@ lemma slice_add [has_add α] (i : ℕ) (hid : i < d)  (x : holor α (d :: ds)) (
   slice x i hid + slice y i hid = slice (x + y) i hid := funext (λ t, by simp [slice,(+)])
 
 lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
-  slice (0 : holor α (d :: ds)) i hid = 0 := funext (λ t, by simp [slice]; refl)
+  slice (0 : holor α (d :: ds)) i hid = 0 := rfl
 
 lemma slice_sum [add_comm_monoid α] {β : Type}
   (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)) :
@@ -214,7 +217,8 @@ begin
     rw [finset.sum_insert h_not_in, ih, slice_add, finset.sum_insert h_not_in] }
 end
 
-/-- The original holor can be recovered from its slices by multiplying with unit vectors and summing up. -/
+/-- The original holor can be recovered from its slices by multiplying with unit vectors and
+summing up. -/
 @[simp] lemma sum_unit_vec_mul_slice [ring α] (x : holor α (d :: ds)) :
   ∑ i in (finset.range d).attach,
     unit_vec d i ⊗ slice x i (nat.succ_le_of_lt (finset.mem_range.1 i.prop)) = x :=

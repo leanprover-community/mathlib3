@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.group.prod
 import algebra.ring.basic
+import data.equiv.ring
 
 /-!
 # Semiring, ring etc structures on `R × S`
@@ -103,3 +104,23 @@ rfl
 end prod_map
 
 end ring_hom
+
+namespace ring_equiv
+variables {R S} [semiring R] [semiring S]
+
+/-- Swapping components as an equivalence of (semi)rings. -/
+def prod_comm : R × S ≃+* S × R :=
+{ ..add_equiv.prod_comm, ..mul_equiv.prod_comm }
+
+@[simp] lemma coe_prod_comm : ⇑(prod_comm : R × S ≃+* S × R) = prod.swap := rfl
+@[simp] lemma coe_prod_comm_symm : ⇑((prod_comm : R × S ≃+* S × R).symm) = prod.swap := rfl
+
+@[simp] lemma fst_comp_coe_prod_comm :
+  (ring_hom.fst S R).comp ↑(prod_comm : R × S ≃+* S × R) = ring_hom.snd R S :=
+ring_hom.ext $ λ _, rfl
+
+@[simp] lemma snd_comp_coe_prod_comm :
+  (ring_hom.snd S R).comp ↑(prod_comm : R × S ≃+* S × R) = ring_hom.fst R S :=
+ring_hom.ext $ λ _, rfl
+
+end ring_equiv

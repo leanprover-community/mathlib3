@@ -34,9 +34,6 @@ class has_hom (obj : Type u) : Type (max u (v+1)) :=
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
 /-- A preliminary structure on the way to defining a category,
 containing the data, but none of the axioms. -/
 class category_struct (obj : Type u)
@@ -51,6 +48,8 @@ infixr ` ≫ `:80 := category_struct.comp -- type as \gg
 The typeclass `category C` describes morphisms associated to objects of type `C`.
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
+
+See https://stacks.math.columbia.edu/tag/0014.
 -/
 class category (obj : Type u)
 extends category_struct.{v} obj : Type (max u (v+1)) :=
@@ -58,7 +57,6 @@ extends category_struct.{v} obj : Type (max u (v+1)) :=
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
   (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
-end prio
 
 -- `restate_axiom` is a command that creates a lemma from a structure field,
 -- discarding any auto_param wrappers from the type.
@@ -123,6 +121,8 @@ by { split_ifs; refl }
 /--
 A morphism `f` is an epimorphism if it can be "cancelled" when precomposed:
 `f ≫ g = f ≫ h` implies `g = h`.
+
+See https://stacks.math.columbia.edu/tag/003B.
 -/
 class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
@@ -130,6 +130,8 @@ class epi (f : X ⟶ Y) : Prop :=
 /--
 A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
 `g ≫ f = h ≫ f` implies `g = h`.
+
+See https://stacks.math.columbia.edu/tag/003B.
 -/
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
@@ -222,6 +224,15 @@ namespace preorder
 
 variables (α : Type u)
 
+/--
+The category structure coming from a preorder. There is a morphism `X ⟶ Y` if and only if `X ≤ Y`.
+
+Because we don't allow morphisms to live in `Prop`,
+we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
+See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
+
+See https://stacks.math.columbia.edu/tag/00D3.
+-/
 @[priority 100] -- see Note [lower instance priority]
 instance small_category [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
@@ -239,10 +250,20 @@ Express an inequality as a morphism in the corresponding preorder category.
 -/
 def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
 
+@[simp] lemma hom_of_le_refl {U : α} : hom_of_le (le_refl U) = 𝟙 U := rfl
+@[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
+  hom_of_le h ≫ hom_of_le k = hom_of_le (h.trans k) := rfl
+
 /--
 Extract the underlying inequality from a morphism in a preorder category.
 -/
 lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
+
+@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) :
+  le_of_hom (hom_of_le h) = h := rfl
+@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) :
+  hom_of_le (le_of_hom h) = h :=
+by { cases h, cases h, refl, }
 
 end category_theory
 

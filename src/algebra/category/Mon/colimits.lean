@@ -147,7 +147,8 @@ instance monoid_colimit_type : monoid (colimit_type F) :=
   end }
 
 @[simp] lemma quot_one : quot.mk setoid.r one = (1 : colimit_type F) := rfl
-@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
+@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) =
+  ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
 /-- The bundled monoid giving the colimit of a diagram. -/
 def colimit : Mon := ⟨colimit_type F, by apply_instance⟩
@@ -240,8 +241,8 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
   end }.
 
 instance has_colimits_Mon : has_colimits Mon :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 

@@ -132,6 +132,7 @@ do
   { use_symmetry := false,
     use_exfalso := false,
     lemma_thunks := some (pure eq :: equiv_congr_lemmas),
+    ctx_thunk := pure [],
     max_depth := cfg.max_depth,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.

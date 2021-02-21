@@ -21,8 +21,6 @@ class monad_cont (m : Type u → Type v) :=
 
 open monad_cont
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class is_lawful_monad_cont (m : Type u → Type v) [monad m] [monad_cont m]
 extends is_lawful_monad m :=
 (call_cc_bind_right {α ω γ} (cmd : m α) (next : (label ω m γ) → α → m ω) :
@@ -31,7 +29,6 @@ extends is_lawful_monad m :=
   call_cc (λ f : label α m β, goto f x >>= dead f) = pure x)
 (call_cc_dummy {α β} (dummy : m α) :
   call_cc (λ f : label α m β, dummy) = dummy)
-end prio
 
 export is_lawful_monad_cont
 
@@ -115,7 +112,7 @@ instance {ε} [monad_cont m] : monad_cont (except_t ε m) :=
 
 instance {ε} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (except_t ε m) :=
 { call_cc_bind_right := by { intros, simp [call_cc,except_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr, ext ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
+    congr' with ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros,
     simp [call_cc,except_t.call_cc,call_cc_bind_right,except_t.goto_mk_label,map_eq_bind_pure_comp,
       bind_assoc,@call_cc_bind_left m _], ext, refl },
@@ -136,7 +133,7 @@ instance [monad_cont m] : monad_cont (option_t m) :=
 
 instance [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (option_t m) :=
 { call_cc_bind_right := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr, ext ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
+    congr' with ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right,
     option_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,option_t.call_cc,@call_cc_dummy m _], ext, refl }, }
@@ -169,8 +166,8 @@ instance {σ} [monad_cont m] : monad_cont (state_t σ m) :=
 
 instance {σ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (state_t σ m) :=
 { call_cc_bind_right := by { intros,
-    simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp, congr,
-    ext ⟨x₀,x₁⟩, refl },
+    simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp,
+    congr' with ⟨x₀,x₁⟩, refl },
   call_cc_bind_left  := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_left,(>>=),
     state_t.bind,state_t.goto_mk_label], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),

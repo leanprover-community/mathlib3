@@ -196,6 +196,20 @@ The transport tries to do the right thing in most cases using several
 heuristics described below.  However, in some cases it fails, and
 requires manual intervention.
 
+If the declaration to be transported has attributes which need to be
+copied to the additive version, then `to_additive` should come last:
+
+```
+@[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
+```
+
+The exception to this rule is the `simps` attribute, which should come after `to_additive`:
+
+```
+@[to_additive, simps]
+instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
+```
+
 ## Implementation notes
 
 The transport process generally works by taking all the names of
@@ -238,7 +252,10 @@ inductive types.
 
 For new structures this means that `to_additive` automatically handles
 coercions, and for old structures it does the same, if ancestry
-information is present in `@[ancestor]` attributes.
+information is present in `@[ancestor]` attributes. The `ancestor`
+attribute must come before the `to_additive` attribute, and it is
+essential that the order of the base structures passed to `ancestor` matches
+between the multiplicative and additive versions of the structure.
 
 ### Name generation
 
@@ -301,4 +318,4 @@ add_tactic_doc
 end to_additive
 
 /- map operations -/
-attribute [to_additive] has_mul has_one has_inv
+attribute [to_additive] has_mul has_one has_inv has_div

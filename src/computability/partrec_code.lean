@@ -580,7 +580,7 @@ theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
 | (k+1) c n x h := begin
   suffices : ∀ {o : option ℕ}, x ∈ guard (n ≤ k) >> o → n < k + 1,
   { cases c; rw [evaln] at h; exact this h },
-  simp [(>>)], exact λ _ h _, nat.lt_succ_of_le h
+  simpa [(>>)] using nat.lt_succ_of_le
 end
 
 theorem evaln_mono : ∀ {k₁ k₂ c n x}, k₁ ≤ k₂ → x ∈ evaln k₁ c n → x ∈ evaln k₂ c n

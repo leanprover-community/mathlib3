@@ -7,10 +7,13 @@ import data.list.bag_inter
 import data.list.erase_dup
 import data.list.zip
 import logic.relation
+import data.nat.factorial
 
 /-!
 # List permutations
 -/
+
+open_locale nat
 
 namespace list
 universe variables uu vv
@@ -279,13 +282,13 @@ have (flip (forall₂ r) ∘r (perm ∘r forall₂ r)) b d, from ⟨a, h₁, c, 
 have ((flip (forall₂ r) ∘r forall₂ r) ∘r perm) b d,
   by rwa [← forall₂_comp_perm_eq_perm_comp_forall₂, ← relation.comp_assoc] at this,
 let ⟨b', ⟨c', hbc, hcb⟩, hbd⟩ := this in
-have b' = b, from right_unique_forall₂ @hr hcb hbc,
+have b' = b, from right_unique_forall₂' hr hcb hbc,
 this ▸ hbd
 
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (assume a b c, left_unique_flip hr.1) hab.flip hcd.flip)
+  (rel_perm_imp (left_unique_flip hr.1) hab.flip hcd.flip)
 
 end rel
 
@@ -356,7 +359,7 @@ by rw [countp_eq_length_filter, countp_eq_length_filter];
 
 theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
-| ⟨l, p', s⟩ := p'.countp_eq p ▸ countp_le_of_sublist s
+| ⟨l, p', s⟩ := p'.countp_eq p ▸ countp_le_of_sublist p s
 
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=
@@ -714,6 +717,20 @@ begin
   constructor
 end
 
+theorem perm_insert_nth {α} (x : α) (l : list α) {n} (h : n ≤ l.length) :
+  insert_nth n x l ~ x :: l :=
+begin
+  induction l generalizing n,
+  { cases n, refl, cases h },
+  cases n,
+  { simp [insert_nth] },
+  { simp only [insert_nth, modify_nth_tail],
+    transitivity,
+    { apply perm.cons, apply l_ih,
+      apply nat.le_of_succ_le_succ h },
+    { apply perm.swap } }
+end
+
 theorem perm.union_right {l₁ l₂ : list α} (t₁ : list α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ :=
 begin
   induction h with a _ _ _ ih _ _ _ _ _ _ _ _ ih_1 ih_2; try {simp},
@@ -738,6 +755,27 @@ by { dsimp [(∩), list.inter], congr, funext a, rw [p.mem_iff] }
 -- @[congr]
 theorem perm.inter {l₁ l₂ t₁ t₂ : list α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
 p₂.inter_left l₂ ▸ p₁.inter_right t₁
+
+theorem perm.inter_append {l t₁ t₂ : list α} (h : disjoint t₁ t₂) :
+  l ∩ (t₁ ++ t₂) ~ l ∩ t₁ ++ l ∩ t₂ :=
+begin
+  induction l,
+  case list.nil
+  { simp },
+  case list.cons : x xs l_ih
+  { by_cases h₁ : x ∈ t₁,
+    { have h₂ : x ∉ t₂ := h h₁,
+      simp * },
+    by_cases h₂ : x ∈ t₂,
+    { simp only [*, inter_cons_of_not_mem, false_or, mem_append, inter_cons_of_mem, not_false_iff],
+      transitivity,
+      { apply perm.cons _ l_ih, },
+      change [x] ++ xs ∩ t₁ ++ xs ∩ t₂ ~ xs ∩ t₁ ++ ([x] ++ xs ∩ t₂),
+      rw [← list.append_assoc],
+      solve_by_elim [perm.append_right, perm_append_comm] },
+    { simp * } },
+end
+
 end
 
 theorem perm.pairwise_iff {R : α → α → Prop} (S : symmetric R) :
@@ -823,7 +861,7 @@ begin
   { simp at h, simp [h] },
   { rw [sublists'_cons, reverse_append, zip_append, ← map_reverse,
         zip_map_right, zip_map_left] at h; [simp at h, simp],
-    rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', l₂, h, rfl, rfl⟩,
+    rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', h, rfl⟩,
     { exact perm_middle.trans ((IH _ _ h).cons _) },
     { exact (IH _ _ h).cons _ } }
 end
@@ -864,6 +902,80 @@ begin
     { apply swap } },
   { refine (IH₁ H).trans (IH₂ ((p₁.pairwise_iff _).1 H)),
     exact λ a b h h₁ h₂, h h₂ h₁ }
+end
+
+lemma perm.take_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  xs.take n ~ ys.inter (xs.take n) :=
+begin
+  simp only [list.inter] at *,
+  induction h generalizing n,
+  case list.perm.nil : n
+  { simp only [not_mem_nil, filter_false, take_nil] },
+  case list.perm.cons : h_x h_l₁ h_l₂ h_a h_ih n
+  { cases n; simp only [mem_cons_iff, true_or, eq_self_iff_true, filter_cons_of_pos,
+                        perm_cons, take, not_mem_nil, filter_false],
+    cases h' with _ _ h₁ h₂,
+    convert h_ih h₂ n using 1,
+    apply filter_congr,
+    introv h, simp only [(h₁ x h).symm, false_or], },
+  case list.perm.swap : h_x h_y h_l n
+  { cases h' with _ _ h₁ h₂,
+    cases h₂ with _ _ h₂ h₃,
+    have := h₁ _ (or.inl rfl),
+    cases n; simp only [mem_cons_iff, not_mem_nil, filter_false, take],
+    cases n; simp only [mem_cons_iff, false_or, true_or, filter, *, nat.nat_zero_eq_zero, if_true,
+                        not_mem_nil, eq_self_iff_true, or_false, if_false, perm_cons, take],
+    { rw filter_eq_nil.2, intros, solve_by_elim [ne.symm], },
+    { convert perm.swap _ _ _, rw @filter_congr _ _ (∈ take n h_l),
+      { clear h₁, induction n generalizing h_l; simp only [not_mem_nil, filter_false, take],
+        cases h_l; simp only [mem_cons_iff, true_or, eq_self_iff_true, filter_cons_of_pos,
+                              true_and, take, not_mem_nil, filter_false, take_nil],
+        cases h₃ with _ _ h₃ h₄,
+        rwa [@filter_congr _ _ (∈ take n_n h_l_tl), n_ih],
+        { introv h, apply h₂ _ (or.inr h), },
+        { introv h, simp only [(h₃ x h).symm, false_or], }, },
+      { introv h, simp only [(h₂ x h).symm, (h₁ x (or.inr h)).symm, false_or], } } },
+  case list.perm.trans : h_l₁ h_l₂ h_l₃ h₀ h₁ h_ih₀ h_ih₁ n
+  { transitivity,
+    { apply h_ih₀, rwa h₁.nodup_iff },
+    { apply perm.filter _ h₁, } },
+end
+
+lemma perm.drop_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  xs.drop n ~ ys.inter (xs.drop n) :=
+begin
+  by_cases h'' : n ≤ xs.length,
+  { let n' := xs.length - n,
+    have h₀ : n = xs.length - n',
+    { dsimp [n'], rwa nat.sub_sub_self, } ,
+    have h₁ : n' ≤ xs.length,
+    { apply nat.sub_le_self },
+    have h₂ : xs.drop n = (xs.reverse.take n').reverse,
+    { rw [reverse_take _ h₁, h₀, reverse_reverse], },
+    rw [h₂],
+    apply (reverse_perm _).trans,
+    rw inter_reverse,
+    apply perm.take_inter _ _ h',
+    apply (reverse_perm _).trans; assumption, },
+  { have : drop n xs = [],
+    { apply eq_nil_of_length_eq_zero,
+      rw [length_drop, nat.sub_eq_zero_iff_le],
+      apply le_of_not_ge h'' },
+    simp [this, list.inter], }
+end
+
+lemma perm.slice_inter {α} [decidable_eq α] {xs ys : list α} (n m : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  list.slice n m xs ~ ys ∩ (list.slice n m xs) :=
+begin
+  simp only [slice_eq],
+  have : n ≤ n + m := nat.le_add_right _ _,
+  have := h.nodup_iff.2 h',
+  apply perm.trans _ (perm.inter_append _).symm;
+  solve_by_elim [perm.append, perm.drop_inter, perm.take_inter, disjoint_take_drop, h, h']
+      { max_depth := 7 },
 end
 
 /- enumerating permutations -/
@@ -974,22 +1086,22 @@ theorem perm_of_mem_permutations {l₁ l₂ : list α}
   (λ m, append_nil l₂ ▸ perm_of_mem_permutations_aux m)
 
 theorem length_permutations_aux : ∀ ts is : list α,
-  length (permutations_aux ts is) + is.length.fact = (length ts + length is).fact :=
+  length (permutations_aux ts is) + is.length! = (length ts + length is)! :=
 begin
   refine permutations_aux.rec (by simp) _,
   intros t ts is IH1 IH2,
-  have IH2 : length (permutations_aux is nil) + 1 = is.length.fact,
+  have IH2 : length (permutations_aux is nil) + 1 = is.length!,
   { simpa using IH2 },
-  simp [-add_comm, nat.fact, nat.add_succ, mul_comm] at IH1,
+  simp [-add_comm, nat.factorial, nat.add_succ, mul_comm] at IH1,
   rw [permutations_aux_cons,
       length_foldr_permutations_aux2' _ _ _ _ _
         (λ l m, (perm_of_mem_permutations m).length_eq),
       permutations, length, length, IH2,
-      nat.succ_add, nat.fact_succ, mul_comm (nat.succ _), ← IH1,
+      nat.succ_add, nat.factorial_succ, mul_comm (nat.succ _), ← IH1,
       add_comm (_*_), add_assoc, nat.mul_succ, mul_comm]
 end
 
-theorem length_permutations (l : list α) : length (permutations l) = (length l).fact :=
+theorem length_permutations (l : list α) : length (permutations l) = (length l)! :=
 length_permutations_aux l []
 
 theorem mem_permutations_of_perm_lemma {is l : list α}

@@ -3,16 +3,19 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.group.pi
-import order.rel_classes
+import algebra.ordered_pi
+import order.well_founded
 import algebra.order_functions
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
 
+/-- The lexicographic relation on `Π i : ι, β i`, where `ι` is ordered by `r`,
+  and each `β i` is ordered by `s`. -/
 def pi.lex (x y : Π i, β i) : Prop :=
 ∃ i, (∀ j, r j i → x j = y j) ∧ s (x i) (y i)
 
+/-- The cartesian product of an indexed family, equipped with the lexicographic order. -/
 def pilex (α : Type*) (β : α → Type*) : Type* := Π a, β a
 
 instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=
@@ -24,7 +27,6 @@ by unfold pilex; apply_instance
 set_option eqn_compiler.zeta true
 
 instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=
-let I := classical.DLO ι in
 have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
   from λ x y ⟨⟨i, hi⟩, ⟨j, hj⟩⟩, begin
       rcases lt_trichotomy i j with hij | hij | hji,
@@ -68,8 +70,9 @@ have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
 
 /-- `pilex` is a linear order if the original order is well-founded.
 This cannot be an instance, since it depends on the well-foundedness of `<`. -/
-protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop))
-  [∀ a, linear_order (β a)] : linear_order (pilex ι β) :=
+protected noncomputable def pilex.linear_order [linear_order ι]
+  (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
+  linear_order (pilex ι β) :=
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin
       have := not_or_distrib.1 hxy,
@@ -83,6 +86,7 @@ protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι 
         exact this.1 ⟨i, (λ j hj, (hjiyx j hj).symm),
           lt_of_le_of_ne hyx (well_founded.min_mem _ {i | x i ≠ y i} _)⟩ }
     end),
+  decidable_le := classical.dec_rel _,
   ..pilex.partial_order }
 
 instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] : ordered_add_comm_group (pilex ι β) :=

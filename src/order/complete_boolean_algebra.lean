@@ -12,8 +12,6 @@ set_option old_structure_cmd true
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A complete distributive lattice is a bit stronger than the name might
   suggest; perhaps completely distributive lattice is more descriptive,
   as this class includes a requirement that the lattice join
@@ -21,23 +19,18 @@ set_option default_priority 100 -- see Note [default priority]
 class complete_distrib_lattice α extends complete_lattice α :=
 (infi_sup_le_sup_Inf : ∀a s, (⨅ b ∈ s, a ⊔ b) ≤ a ⊔ Inf s)
 (inf_Sup_le_supr_inf : ∀a s, a ⊓ Sup s ≤ (⨆ b ∈ s, a ⊓ b))
-end prio
 
 section complete_distrib_lattice
 variables [complete_distrib_lattice α] {a b : α} {s t : set α}
 
 theorem sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
-le_antisymm
-  (le_infi $ assume i, le_infi $ assume h, sup_le_sup_left (Inf_le h) _)
-  (complete_distrib_lattice.infi_sup_le_sup_Inf _ _)
+sup_Inf_le_infi_sup.antisymm (complete_distrib_lattice.infi_sup_le_sup_Inf _ _)
 
 theorem Inf_sup_eq : Inf s ⊔ b = (⨅ a ∈ s, a ⊔ b) :=
 by simpa [sup_comm] using @sup_Inf_eq α _ b s
 
 theorem inf_Sup_eq : a ⊓ Sup s = (⨆ b ∈ s, a ⊓ b) :=
-le_antisymm
-  (complete_distrib_lattice.inf_Sup_le_supr_inf _ _)
-  (supr_le $ assume i, supr_le $ assume h, inf_le_inf_left _ (le_Sup h))
+(complete_distrib_lattice.inf_Sup_le_supr_inf _ _).antisymm supr_inf_le_inf_Sup
 
 theorem Sup_inf_eq : Sup s ⊓ b = (⨆ a ∈ s, a ⊓ b) :=
 by simpa [inf_comm] using @inf_Sup_eq α _ b s
@@ -94,11 +87,8 @@ instance complete_distrib_lattice.bounded_distrib_lattice [d : complete_distrib_
 { le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
   ..d }
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A complete boolean algebra is a completely distributive boolean algebra. -/
 class complete_boolean_algebra α extends boolean_algebra α, complete_distrib_lattice α
-end prio
 
 section complete_boolean_algebra
 variables [complete_boolean_algebra α] {a b : α} {s : set α} {f : ι → α}

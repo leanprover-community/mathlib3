@@ -72,7 +72,7 @@ begin
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
 
-lemma apply_single [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
+lemma apply_single [add_comm_monoid M] [semimodule R M] [decidable_eq ι]
   (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :
   f j (pi.single i x j) = pi.single i (f i x) j :=
 by rcases em (j = i) with (rfl|h); simp *

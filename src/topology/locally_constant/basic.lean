@@ -11,7 +11,7 @@ import tactic.tfae
 /-!
 # Locally constant functions
 
-This file setups the theory of locally constant function from a topological space to a type.
+This file sets up the theory of locally constant function from a topological space to a type.
 
 ## Main definitions and constructions
 
@@ -251,7 +251,7 @@ variables [topological_space Y]
 /-- Pull back of locally constant maps under any map, by pre-composition.
 
 This definition only makes sense if `f` is continuous,
-in which case it sends locally constant functions to their precomposistion with `f`.
+in which case it sends locally constant functions to their precomposition with `f`.
 See also `locally_constant.coe_comap`. -/
 noncomputable
 def comap (f : X → Y) :

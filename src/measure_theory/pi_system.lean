@@ -44,68 +44,6 @@ begin
       set.mem_singleton_iff],
 end
 
-lemma is_pi_system_finite_Inter {α} (g : set (set α)) (h_pi : is_pi_system g) 
-  (m : ℕ) (f : fin m.succ → set α) (h_f : ∀ i, f i ∈ g) (h_nonempty : (⋂ i, f i).nonempty) :
-  ((⋂ i, f i) ∈ g) := begin
-  induction m,
-  { have h_eq : set.Inter f = (f 0), 
-    { ext a, simp, split; intros h_eq_1, 
-      apply h_eq_1 0,
-      intros i, cases i,
-      cases i_val,
-      apply h_eq_1,
-      rw nat.succ_lt_succ_iff at i_property,
-      apply false.elim (nat.not_lt_zero _ i_property) },
-   rw h_eq,
-   apply h_f },
- { have h_eq : (⋂ (i : fin m_n.succ.succ), f i) = f 0 ∩ (⋂ (i : fin m_n.succ), f (i.succ)),
-   { ext a, split; intros h_eq_1; simp at h_eq_1; simp [h_eq_1],
-     intros i,  cases (decidable.em (i = 0)),
-     { subst i, apply h_eq_1.left },
-     { have h_eq_2 := h_eq_1.right (i.pred h), simp at h_eq_2, apply h_eq_2 } },
-   rw h_eq,
-   apply h_pi,
-   apply h_f,
-   apply m_ih,
-   { intros i, apply h_f },
-   by_contradiction h_contra,
-   apply h_nonempty.ne_empty,
-   rw h_eq,
-   rw set.not_nonempty_iff_eq_empty.1 h_contra,
-   simp,
-   rw ← h_eq,
-   apply h_nonempty },
-end
-
-lemma exists_fin_intro {α} {β : Type*} (g : set (set α)) [F : fintype β]
-  [N : nonempty β] (f : β → set α) (h : ∀ b, f b ∈ g) 
-: ∃ (m : ℕ) (f' : fin m.succ → set α), (∀ i, f' i ∈ g) ∧ ((⋂ i, f' i) = (⋂ i, f i)) := begin
-  have h5 := classical.choice (nonempty_of_trunc (fintype.equiv_fin β)),
-  apply exists.intro ((fintype.card β).pred),
-  have h6 : (fintype.card β).pred.succ = (fintype.card β),
-  { apply nat.succ_pred_eq_of_pos, rw ← fintype.card_pos_iff at N, apply N },
-  rw [h6],
-  apply exists.intro (f ∘ h5.inv_fun),
-    split,
-    { intros i, apply h, },
-    { ext a, split; intros h7; simp at h7; simp [h7]; intros i,
-      have h8 := h7 (h5.to_fun i),
-      simp at h8, apply h8 },  
-end
-
-lemma is_pi_system_intro {α} {β : Type*} [fintype β] [N : nonempty β] 
-  {g : set (set α)} (h_pi : is_pi_system g) (f : β → set α)
-  (h_f_in : ∀ b, f b ∈ g) (h_nonempty : (set.Inter f).nonempty) :
-  set.Inter f ∈ g :=
-begin
-  have h_exists := exists_fin_intro g f h_f_in,
-  rcases h_exists with ⟨m, ⟨f', h_f'⟩⟩,
-  rw ← h_f'.right,
-  apply is_pi_system_finite_Inter g h_pi _ _ h_f'.left,
-  rw h_f'.right,
-  apply h_nonempty,
-end
-
 inductive generate_pi_system {α} (g : set (set α)) : set (set α)
 | base {s : set α} (h_s : s ∈ g) : generate_pi_system s
 | inter {s t : set α} (h_s : generate_pi_system s)  (h_t : generate_pi_system t) 
@@ -123,20 +61,6 @@ begin
   rw set.subset_def,
   apply generate_pi_system.base,
 end
-
-lemma generate_pi_system_intro {α} {β : Type*} [fintype β] [N : nonempty β] 
-  (g : set (set α)) (f : β → set α)
-  (h_f_in : ∀ b, f b ∈ g) (h_nonempty : (set.Inter f).nonempty) :
-  set.Inter f ∈ generate_pi_system g :=
-begin
-  classical,
-  apply is_pi_system_intro,
-  apply is_pi_system_generate_pi_system,
-  intros b,
-  apply generate_pi_system.base,
-  apply h_f_in,
-  apply h_nonempty,
-end 
 
 lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
   (h_sub : g ⊆ t) : (generate_pi_system g : (set (set α))) ⊆ t := begin
@@ -190,38 +114,6 @@ lemma set.nonempty_of_nonempty_subset {α} (T V : set α)
   cases h_nonempty_T with x h_nonempty_T,
   use x,
   apply h_sub h_nonempty_T,
-end
-
-
-
-lemma generate_pi_system_elim {α} (g : set (set α)) (s : set α)
-  (h : generate_pi_system g s) : (s ∈ g ∧ s = ∅) ∨
-  (s.nonempty ∧ ∃ (m : ℕ) (f : fin m.succ → set α), (∀ i, f i ∈ g) ∧ (s=(⋂ i, f i))) :=
-begin
-  induction h with s' h_s' s' t' h_gen_s' h_gen_t' h_nonempty h_s' h_t',
-  cases (set.eq_empty_or_nonempty s') with h_empty h_nonempty,
-  { left, apply and.intro h_s' h_empty },
-  { right, apply and.intro h_nonempty,
-    use [0, (λ _, s')], apply and.intro (λ _, h_s'),
-    ext a, simp },
-  right,
-  apply and.intro h_nonempty, 
-  cases h_s',
-  { apply false.elim (h_nonempty.left.ne_empty h_s'.right), },
-  cases h_t',
-  { apply false.elim (h_nonempty.right.ne_empty h_t'.right), },
-  rcases h_s' with ⟨h_s'_nonempty, ⟨m_s', ⟨f_s', h_s'⟩⟩⟩,
-  rcases h_t' with ⟨h_t'_nonempty, ⟨m_t', ⟨f_t', h_t'⟩⟩⟩,
-  have h_f'' := exists_fin_intro g (λ x : sum (fin m_s'.succ) (fin m_t'.succ), match x with
-  | (sum.inl i) := f_s' i
-  | (sum.inr i) := f_t' i
-  end) _,
-  rcases h_f'' with ⟨m'', ⟨f'', h_f''⟩⟩,
-  use [m'', f''],
-  apply and.intro h_f''.left,
-  rw [h_f''.right, h_s'.right, h_t'.right],
-  { ext a, simp },
-  { intros b, cases b; simp [h_s'.left, h_t'.left] },
 end
 
 lemma set.nonempty_of_subset {α} {s t:set α} (h : s ⊆ t) (h_nonempty : set.nonempty s) :
@@ -293,6 +185,7 @@ begin
     apply false.elim (h_b.elim h h_1) },
 end
 
+/-
 lemma is_pi_system_union {α} {β : Type*} {g : β → (set (set α))}
   (h_pi : ∀ b : β, is_pi_system (g b))
   (h_nonempty : ∀ b : β, (g b).nonempty)
@@ -449,4 +342,112 @@ begin
       intros b, apply (h_f'' b).left },
 end
 
+
+-/
+
+lemma is_pi_system_finite_Inter {α} (g : set (set α)) (h_pi : is_pi_system g) 
+  (m : ℕ) (f : fin m.succ → set α) (h_f : ∀ i, f i ∈ g) (h_nonempty : (⋂ i, f i).nonempty) :
+  ((⋂ i, f i) ∈ g) := begin
+  induction m,
+  { have h_eq : set.Inter f = (f 0), 
+    { ext a, simp, split; intros h_eq_1, 
+      apply h_eq_1 0,
+      intros i, cases i,
+      cases i_val,
+      apply h_eq_1,
+      rw nat.succ_lt_succ_iff at i_property,
+      apply false.elim (nat.not_lt_zero _ i_property) },
+   rw h_eq,
+   apply h_f },
+ { have h_eq : (⋂ (i : fin m_n.succ.succ), f i) = f 0 ∩ (⋂ (i : fin m_n.succ), f (i.succ)),
+   { ext a, split; intros h_eq_1; simp at h_eq_1; simp [h_eq_1],
+     intros i,  cases (decidable.em (i = 0)),
+     { subst i, apply h_eq_1.left },
+     { have h_eq_2 := h_eq_1.right (i.pred h), simp at h_eq_2, apply h_eq_2 } },
+   rw h_eq,
+   apply h_pi,
+   apply h_f,
+   apply m_ih,
+   { intros i, apply h_f },
+   by_contradiction h_contra,
+   apply h_nonempty.ne_empty,
+   rw h_eq,
+   rw set.not_nonempty_iff_eq_empty.1 h_contra,
+   simp,
+   rw ← h_eq,
+   apply h_nonempty },
+end
+
+lemma exists_fin_intro {α} {β : Type*} (g : set (set α)) [F : fintype β]
+  [N : nonempty β] (f : β → set α) (h : ∀ b, f b ∈ g) 
+: ∃ (m : ℕ) (f' : fin m.succ → set α), (∀ i, f' i ∈ g) ∧ ((⋂ i, f' i) = (⋂ i, f i)) := begin
+  have h5 := classical.choice (nonempty_of_trunc (fintype.equiv_fin β)),
+  apply exists.intro ((fintype.card β).pred),
+  have h6 : (fintype.card β).pred.succ = (fintype.card β),
+  { apply nat.succ_pred_eq_of_pos, rw ← fintype.card_pos_iff at N, apply N },
+  rw [h6],
+  apply exists.intro (f ∘ h5.inv_fun),
+    split,
+    { intros i, apply h, },
+    { ext a, split; intros h7; simp at h7; simp [h7]; intros i,
+      have h8 := h7 (h5.to_fun i),
+      simp at h8, apply h8 },  
+end
+
+lemma is_pi_system_intro {α} {β : Type*} [fintype β] [N : nonempty β] 
+  {g : set (set α)} (h_pi : is_pi_system g) (f : β → set α)
+  (h_f_in : ∀ b, f b ∈ g) (h_nonempty : (set.Inter f).nonempty) :
+  set.Inter f ∈ g :=
+begin
+  have h_exists := exists_fin_intro g f h_f_in,
+  rcases h_exists with ⟨m, ⟨f', h_f'⟩⟩,
+  rw ← h_f'.right,
+  apply is_pi_system_finite_Inter g h_pi _ _ h_f'.left,
+  rw h_f'.right,
+  apply h_nonempty,
+end
+
+lemma generate_pi_system_intro {α} {β : Type*} [fintype β] [N : nonempty β] 
+  (g : set (set α)) (f : β → set α)
+  (h_f_in : ∀ b, f b ∈ g) (h_nonempty : (set.Inter f).nonempty) :
+  set.Inter f ∈ generate_pi_system g :=
+begin
+  classical,
+  apply is_pi_system_intro,
+  apply is_pi_system_generate_pi_system,
+  intros b,
+  apply generate_pi_system.base,
+  apply h_f_in,
+  apply h_nonempty,
+end 
+
+lemma generate_pi_system_elim {α} (g : set (set α)) (s : set α)
+  (h : generate_pi_system g s) : (s ∈ g ∧ s = ∅) ∨
+  (s.nonempty ∧ ∃ (m : ℕ) (f : fin m.succ → set α), (∀ i, f i ∈ g) ∧ (s=(⋂ i, f i))) :=
+begin
+  induction h with s' h_s' s' t' h_gen_s' h_gen_t' h_nonempty h_s' h_t',
+  cases (set.eq_empty_or_nonempty s') with h_empty h_nonempty,
+  { left, apply and.intro h_s' h_empty },
+  { right, apply and.intro h_nonempty,
+    use [0, (λ _, s')], apply and.intro (λ _, h_s'),
+    ext a, simp },
+  right,
+  apply and.intro h_nonempty, 
+  cases h_s',
+  { apply false.elim (h_nonempty.left.ne_empty h_s'.right), },
+  cases h_t',
+  { apply false.elim (h_nonempty.right.ne_empty h_t'.right), },
+  rcases h_s' with ⟨h_s'_nonempty, ⟨m_s', ⟨f_s', h_s'⟩⟩⟩,
+  rcases h_t' with ⟨h_t'_nonempty, ⟨m_t', ⟨f_t', h_t'⟩⟩⟩,
+  have h_f'' := exists_fin_intro g (λ x : sum (fin m_s'.succ) (fin m_t'.succ), match x with
+  | (sum.inl i) := f_s' i
+  | (sum.inr i) := f_t' i
+  end) _,
+  rcases h_f'' with ⟨m'', ⟨f'', h_f''⟩⟩,
+  use [m'', f''],
+  apply and.intro h_f''.left,
+  rw [h_f''.right, h_s'.right, h_t'.right],
+  { ext a, simp },
+  { intros b, cases b; simp [h_s'.left, h_t'.left] },
+end
 

@@ -1580,6 +1580,19 @@ end
   l.drop k = [] :=
 by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
 
+lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
+  l.drop k = [] ↔ l.length ≤ k :=
+begin
+  refine ⟨λ h, _, drop_eq_nil_of_le⟩,
+  induction k with k hk generalizing l,
+  { simp at h,
+    simp [h] },
+  { cases l,
+    { simp },
+    { simp at h,
+      simpa [nat.succ_le_succ_iff] using hk h } }
+end
+
 lemma tail_drop (l : list α) (n : ℕ) : (l.drop n).tail = l.drop (n + 1) :=
 begin
   induction l with hd tl hl generalizing n,

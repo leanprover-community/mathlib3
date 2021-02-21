@@ -115,7 +115,7 @@ lemma support_finite (f : α →₀ β) : (function.support f).finite :=
 by { rw function.support_eq_support, exact f.support.finite_to_set }
 
 @[simp] lemma support_finite.to_finset (f : α →₀ β) : (support_finite f).to_finset = f.support :=
-finset.ext $ λ x, by {simp, refl}
+finset.ext $ λ x, by simp
 
 /-- The natural `finsupp` induced by the function `f` given it has finite support. -/
 noncomputable def of_support_finite
@@ -457,13 +457,13 @@ begin
   rw finsum_in_eq_finset_sum''' _ hs,
   rw finsum_in_eq_finset_sum''' f (set.finite.bUnion hs (λ i _, ht i)),
   conv_rhs { congr, skip, funext, rw finsum_in_eq_finset_sum''' f (ht x) },
-  convert @finset.sum_bind _ _ _ f _ _ hs.to_finset (λ x, (ht x).to_finset)
+  convert @finset.sum_bUnion _ _ _ f _ _ hs.to_finset (λ x, (ht x).to_finset)
     (begin
       intros x hx y hy hxy a ha,
       specialize h x (set.finite.mem_to_finset.1 hx) y (set.finite.mem_to_finset.1 hy) hxy,
       apply @h a, simpa using ha
     end),
-  ext, rw [finset.mem_bind, set.finite.mem_to_finset, set.mem_bUnion_iff],
+  ext, rw [finset.mem_bUnion, set.finite.mem_to_finset, set.mem_bUnion_iff],
   split; intro ha; rcases ha with ⟨x, hx₀, hx₁⟩,
     exact ⟨x, set.finite.mem_to_finset.2 hx₀, set.finite.mem_to_finset.2 hx₁⟩,
     exact ⟨x, set.finite.mem_to_finset.1 hx₀, set.finite.mem_to_finset.1 hx₁⟩

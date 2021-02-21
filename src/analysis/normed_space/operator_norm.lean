@@ -7,6 +7,7 @@ import linear_algebra.finite_dimensional
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
 import analysis.asymptotics.asymptotics
+import algebra.algebra.tower
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -755,6 +756,8 @@ private lemma le_norm_flip (f : E →L[𝕜] F →L[𝕜] G) : ∥f∥ ≤ ∥fl
 f.op_norm_le_bound₂ (norm_nonneg _) $ λ x y,
   by { rw mul_right_comm, exact (flip f).le_op_norm₂ y x }
 
+@[simp] lemma flip_apply (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) : f.flip y x = f x y := rfl
+
 @[simp] lemma flip_flip (f : E →L[𝕜] F →L[𝕜] G) :
   f.flip.flip = f :=
 by { ext, refl }
@@ -802,30 +805,98 @@ variables {𝕜 F}
 
 @[simp] lemma apply_apply (v : E) (f : E →L[𝕜] F) : apply 𝕜 F v f = f v := rfl
 
+variables (𝕜 E F G)
+
+/-- Composition of continuous linear maps as a continuous bilinear map. -/
+def compL : (F →L[𝕜] G) →L[𝕜] (E →L[𝕜] F) →L[𝕜] (E →L[𝕜] G) :=
+linear_map.mk_continuous₂
+  (linear_map.mk₂ _ comp add_comp smul_comp comp_add (λ c f g, comp_smul _ _ _))
+  1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
+
+variables {𝕜 E F G}
+
+@[simp] lemma compL_apply (f : F →L[𝕜] G) (g : E →L[𝕜] F) : compL 𝕜 E F G f g = f.comp g := rfl
+
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-/-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_left : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_left 𝕜 x).mk_continuous ∥x∥
-(λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
+/-- Left multiplication in a normed algebra as a linear isometry to the space of
+continuous linear maps. -/
+def lmulₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+{ to_linear_map := (algebra.lmul 𝕜 𝕜').to_linear_map.mk_continuous₂ 1 $
+    λ x y, by simpa using norm_mul_le x y,
+  norm_map' := λ x, le_antisymm
+    (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
+    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] }) }
+
+/-- Left multiplication in a normed algebra as a continuous bilinear map. -/
+def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+(lmulₗᵢ 𝕜 𝕜').to_continuous_linear_map
+
+@[simp] lemma lmul_apply (x y : 𝕜') : lmul 𝕜 𝕜' x y = x * y := rfl
+
+@[simp] lemma coe_lmulₗᵢ : ⇑(lmulₗᵢ 𝕜 𝕜') = lmul 𝕜 𝕜' := rfl
+
+@[simp] lemma op_norm_lmul_apply (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ = ∥x∥ :=
+(lmulₗᵢ 𝕜 𝕜').norm_map x
+
+@[simp] lemma op_norm_lmul : ∥lmul 𝕜 𝕜'∥ = 1 :=
+by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_right 𝕜 x).mk_continuous ∥x∥
-(λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
+def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').flip
+
+@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
+
+@[simp] lemma op_norm_lmul_right_apply (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
+le_antisymm
+  (op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _)))
+  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] })
+
+@[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
+(op_norm_flip (lmul 𝕜 𝕜')).trans $ op_norm_lmul _ _
+
+/-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
+continuous linear maps. -/
+def lmul_rightₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+{ to_linear_map := lmul_right 𝕜 𝕜',
+  norm_map' := op_norm_lmul_right_apply 𝕜 𝕜' }
+
+@[simp] lemma coe_lmul_rightₗᵢ : ⇑(lmul_rightₗᵢ 𝕜 𝕜') = lmul_right 𝕜 𝕜' := rfl
 
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
-linear map. -/
-def lmul_left_right (vw : 𝕜' × 𝕜') : 𝕜' →L[𝕜] 𝕜' :=
-(lmul_right 𝕜 𝕜' vw.2).comp (lmul_left 𝕜 𝕜' vw.1)
+trilinear map. -/
+def lmul_left_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+((compL 𝕜 𝕜' 𝕜' 𝕜').comp (lmul_right 𝕜 𝕜')).flip.comp (lmul 𝕜 𝕜')
 
-@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
-@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
-@[simp] lemma lmul_left_right_apply (vw : 𝕜' × 𝕜') (x : 𝕜') :
-  lmul_left_right 𝕜 𝕜' vw x = vw.1 * x * vw.2 := rfl
+@[simp] lemma lmul_left_right_apply (x y z : 𝕜') :
+  lmul_left_right 𝕜 𝕜' x y z = x * z * y := rfl
+
+lemma op_norm_lmul_left_right_apply_apply_le (x y : 𝕜') :
+  ∥lmul_left_right 𝕜 𝕜' x y∥ ≤ ∥x∥ * ∥y∥ :=
+(op_norm_comp_le _ _).trans_eq $ by simp [mul_comm]
+
+lemma op_norm_lmul_left_right_apply_le (x : 𝕜') :
+  ∥lmul_left_right 𝕜 𝕜' x∥ ≤ ∥x∥ :=
+op_norm_le_bound _ (norm_nonneg x) (op_norm_lmul_left_right_apply_apply_le 𝕜 𝕜' x)
+
+lemma op_norm_lmul_left_right_le :
+  ∥lmul_left_right 𝕜 𝕜'∥ ≤ 1 :=
+op_norm_le_bound _ zero_le_one (λ x, (one_mul ∥x∥).symm ▸ op_norm_lmul_left_right_apply_le 𝕜 𝕜' x)
 
 end multiplication_linear
+
+section smul_linear
+
+variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+
+/-- Scalar multiplication as a continuous bilinear map. -/
+def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
+((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
+  λ c x, by simpa only [one_mul] using (norm_smul c x).le
+
+end smul_linear
 
 section restrict_scalars
 
@@ -1004,14 +1075,14 @@ begin
   rw [← mul_assoc, inv_mul_cancel (ne_of_lt ha).symm, one_mul],
 end
 
-variable (𝕜)
-
 /-- A linear equivalence which is a homothety is a continuous linear equivalence. -/
 def of_homothety (f : E ≃ₗ[𝕜] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ∥f x∥ = a * ∥x∥) : E ≃L[𝕜] F :=
 { to_linear_equiv := f,
   continuous_to_fun := f.to_linear_map.continuous_of_bound a (λ x, le_of_eq (hf x)),
   continuous_inv_fun := f.symm.to_linear_map.continuous_of_bound a⁻¹
     (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
+
+variable (𝕜)
 
 lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
   ∥linear_equiv.to_span_nonzero_singleton 𝕜 E x h c∥ = ∥x∥ * ∥c∥ :=
@@ -1020,7 +1091,7 @@ continuous_linear_map.to_span_singleton_homothety _ _ _
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural
     continuous linear equivalence from `E` to the span of `x`.-/
 def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (𝕜 ∙ x) :=
-of_homothety 𝕜
+of_homothety
   (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
   ∥x∥
   (norm_pos_iff.mpr h)
@@ -1073,22 +1144,29 @@ def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₗ[𝕜] F) (C_
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-@[simp] lemma lmul_left_norm (v : 𝕜') : ∥lmul_left 𝕜 𝕜' v∥ = ∥v∥ :=
-begin
-  refine le_antisymm _ _,
-  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [normed_algebra.norm_one 𝕜 𝕜'] using le_op_norm (lmul_left 𝕜 𝕜' v) (1:𝕜') }
-end
+variables {𝕜}
 
-@[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 𝕜' v∥ = ∥v∥ :=
-begin
-  refine le_antisymm _ _,
-  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [normed_algebra.norm_one 𝕜 𝕜'] using le_op_norm (lmul_right 𝕜 𝕜' v) (1:𝕜') }
-end
+variables {E' F' : Type*} [normed_group E'] [normed_group F'] [normed_space 𝕜 E'] [normed_space 𝕜 F']
 
-lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') :
-  ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
-by simpa [mul_comm] using op_norm_comp_le (lmul_right 𝕜 𝕜' vw.2) (lmul_left 𝕜 𝕜' vw.1)
+/-- Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`. -/
+def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) : E' →L[𝕜] F' →L[𝕜] G :=
+((f.comp gE).flip.comp gF).flip
+
+@[simp] lemma bilinear_comp_apply (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F)
+  (x : E') (y : F') :
+  f.bilinear_comp gE gF x y = f (gE x) (gF y) :=
+rfl
+
+/-- Derivative of a continuous bilinear map `f : E →L[𝕜] F →L[𝕜] G` interpreted as a map `E × F → G`
+at point `p : E × F` evaluated at `q : E × F`, as a continuous bilinear map. -/
+def deriv₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
+f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst _ _ _)
+
+@[simp] lemma coe_deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) :
+  ⇑(f.deriv₂ p) = λ q : E × F, f p.1 q.2 + f q.1 p.2 := rfl
+
+lemma map_add₂ (f : E →L[𝕜] F →L[𝕜] G) (x x' : E) (y y' : F) :
+  f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
+by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 
 end continuous_linear_map

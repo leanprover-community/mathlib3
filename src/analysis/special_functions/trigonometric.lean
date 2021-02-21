@@ -68,6 +68,7 @@ differentiable_sin x
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
 
+@[continuity]
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
@@ -106,6 +107,7 @@ lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
 @[simp] lemma deriv_cos' : deriv cos = (λ x, -sin x) :=
 funext $ λ x, deriv_cos
 
+@[continuity]
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
@@ -139,6 +141,7 @@ differentiable_sinh x
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
 
+@[continuity]
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
 
@@ -170,6 +173,7 @@ differentiable_cos x
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
 
+@[continuity]
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
@@ -542,6 +546,7 @@ differentiable_sin x
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
 
+@[continuity]
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
@@ -568,6 +573,7 @@ lemma deriv_cos : deriv cos x = - sin x :=
 @[simp] lemma deriv_cos' : deriv cos = (λ x, - sin x) :=
 funext $ λ _, deriv_cos
 
+@[continuity]
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
@@ -593,6 +599,7 @@ differentiable_sinh x
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
 
+@[continuity]
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
 
@@ -616,6 +623,7 @@ differentiable_cosh x
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
 
+@[continuity]
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
@@ -1638,6 +1646,7 @@ lemma arcsin_inj {x y : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) (hy₁ : -1 �
   arcsin x = arcsin y ↔ x = y :=
 inj_on_arcsin.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
 
+@[continuity]
 lemma continuous_arcsin : continuous arcsin :=
 continuous_subtype_coe.comp sin_order_iso.symm.continuous.Icc_extend
 
@@ -1958,6 +1967,7 @@ by rw [← add_halves π, arccos, arcsin_neg, arccos, add_sub_assoc, sub_sub_sel
 lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x) = sqrt (1 - x ^ 2) :=
 by rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
 
+@[continuity]
 lemma continuous_arccos : continuous arccos := continuous_const.sub continuous_arcsin
 
 lemma has_strict_deriv_at_arccos {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
@@ -2682,6 +2692,7 @@ else (has_deriv_at_tan h).deriv
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 continuous_on_sin.div continuous_on_cos $ λ x, id
 
+@[continuity]
 lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 continuous_on_iff_continuous_restrict.1 continuous_on_tan
 
@@ -2969,6 +2980,10 @@ else (has_deriv_at_tan h).deriv
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 λ x hx, (continuous_at_tan.2 hx).continuous_within_at
 
+@[continuity]
+lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
+continuous_on_iff_continuous_restrict.1 continuous_on_tan
+
 lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 has_deriv_at_tan (cos_pos_of_mem_Ioo h).ne'
@@ -3088,6 +3103,7 @@ arctan_eq_of_tan_eq tan_pi_div_four $ by split; linarith [pi_pos]
 @[simp] lemma arctan_neg (x : ℝ) : arctan (-x) = - arctan x :=
 by simp [arctan_eq_arcsin, neg_div]
 
+@[continuity]
 lemma continuous_arctan : continuous arctan :=
 continuous_subtype_coe.comp tan_order_iso.to_homeomorph.continuous_inv_fun
 

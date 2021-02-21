@@ -306,11 +306,6 @@ begin
   exact congr_arg prod.snd (hf.implicit_to_local_homeomorph_of_complemented_self hf' hker).symm
 end
 
-lemma map_nhds_eq_of_complemented
-  (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
-  map f (𝓝 a) = 𝓝 (f a) :=
-(implicit_function_data_of_complemented f f' hf hf' hker).map_nhds_eq
-
 lemma to_implicit_function_of_complemented (hf : has_strict_fderiv_at f f' a)
   (hf' : f'.range = ⊤) (hker : f'.ker.closed_complemented) :
   has_strict_fderiv_at (hf.implicit_function_of_complemented f f' hf' hker (f a))
@@ -414,11 +409,6 @@ lemma eq_implicit_function (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = 
   ∀ᶠ x in 𝓝 a, hf.implicit_function f f' hf' (f x)
     (hf.implicit_to_local_homeomorph f f' hf' x).snd = x :=
 by apply eq_implicit_function_of_complemented
-
-lemma map_nhds_eq (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
-  map f (𝓝 a) = 𝓝 (f a) :=
-by haveI := finite_dimensional.complete 𝕜 F; exact
-hf.map_nhds_eq_of_complemented hf' f'.ker_closed_complemented_of_finite_dimensional_range
 
 lemma to_implicit_function (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :
   has_strict_fderiv_at (hf.implicit_function f f' hf' (f a))

@@ -36,7 +36,7 @@ instance decidable_lt : @decidable_rel string (<) := by apply_instance -- short-
     intros,
     induction s₁ with a s₁ IH generalizing p₁ p₂ s₂;
       cases s₂ with b s₂; rw ltb; simp [iterator.has_next],
-    { exact iff_of_false bool.ff_ne_tt (lt_irrefl _) },
+    { refl, },
     { exact iff_of_true rfl list.lex.nil },
     { exact iff_of_false bool.ff_ne_tt (not_lt_of_lt list.lex.nil) },
     { dsimp [iterator.has_next,

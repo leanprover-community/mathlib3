@@ -129,7 +129,7 @@ begin
     id_apply, rescale_one] using pow_succ' (exp A) k,
 end
 
-theorem coeff_exp_pow_sum [algebra ℚ A] (n : ℕ) : (finset.range n).sum(λ k, (exp A)^k) =
+theorem exp_pow_sum [algebra ℚ A] (n : ℕ) : (finset.range n).sum(λ k, (exp A)^k) =
 power_series.mk (λ p,  (finset.range n).sum(λ k, k^p * ((algebra_map ℚ A) p.factorial⁻¹))) :=
 begin
   simp only [exp_pow_eq_rescale_exp, rescale],

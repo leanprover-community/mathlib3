@@ -127,7 +127,6 @@ begin
       pow_zero, coe_comp], },
   simpa only [succ_eq_add_one, cast_add, ←exp_mul_exp_eq_exp_add (k : A), ←h, cast_one,
     id_apply, rescale_one] using pow_succ' (exp A) k,
-  exact pow_succ' (exp A) k,
 end
 
 end power_series

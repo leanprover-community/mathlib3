@@ -1585,11 +1585,11 @@ lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
 begin
   refine ⟨λ h, _, drop_eq_nil_of_le⟩,
   induction k with k hk generalizing l,
-  { simp at h,
+  { simp only [drop] at h,
     simp [h] },
   { cases l,
     { simp },
-    { simp at h,
+    { simp only [drop] at h,
       simpa [nat.succ_le_succ_iff] using hk h } }
 end
 

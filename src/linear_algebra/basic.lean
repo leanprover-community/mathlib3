@@ -188,6 +188,10 @@ lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
 (t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
 
+@[simp] lemma coe_sum (t : finset ι) (f : ι → M →ₗ[R] M₂) :
+  ⇑(∑ d in t, f d) = ∑ d in t, f d :=
+funext $ λ b, by simp only [sum_apply, finset.sum_apply]
+
 section smul_right
 
 variables {S : Type*} [semiring S] [semimodule R S] [semimodule S M] [is_scalar_tower R S M]
@@ -353,11 +357,10 @@ See note [bundled maps over different rings].
 @[simps]
 def ring_lmap_equiv_self [semimodule S M] [smul_comm_class R S M] : (R →ₗ[R] M) ≃ₗ[S] M :=
 { to_fun := λ f, f 1,
-  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
-  map_add' := by simp,
-  map_smul' := by simp,
-  left_inv := λ x, by { ext, simp },
-  right_inv := λ x, by { simp } }
+  inv_fun := smul_right (1 : R →ₗ[R] R),
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ x, by simp,
+  .. applyₗ' S (1 : R) }
 
 end
 

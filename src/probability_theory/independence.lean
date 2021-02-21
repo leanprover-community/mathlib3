@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Rémy Degenne
 -/
 import measure_theory.measure_space
+import measure_theory.pi_system
 import algebra.big_operators.intervals
 import data.finset.intervals
 
@@ -83,382 +84,6 @@ lemma supr_eq_generate_from {α} {β:Type*} {Mf:β → measurable_space α}:
     simp, simp at h_s,  apply h_s  },
 end
 
-/- TODO: Move to pi_system.lean. Consider changing definition of is_pi_system, because
-   it is difficult to keep saying that intersections don't count if they are
-   disjoint -/
-lemma is_pi_system.singleton {α} (S : set α) : is_pi_system ({S} : set (set α)) :=
-begin
-  intros s t h_s h_t h_ne,
-  rw [set.mem_singleton_iff.1 h_s, set.mem_singleton_iff.1 h_t, set.inter_self,
-      set.mem_singleton_iff],
-end
-
-lemma is_pi_system_finite_Inter {α} (g : set (set α)) (h_pi : is_pi_system g) 
-  (m : ℕ) (f : fin m.succ → set α) (h_f : ∀ i, f i ∈ g) (h_nonempty : (⋂ i, f i).nonempty) :
-  ((⋂ i, f i) ∈ g) := begin
-  induction m,
-  { have h_eq : set.Inter f = (f 0), 
-    { ext a, simp, split; intros h_eq_1, 
-      apply h_eq_1 0,
-      intros i, cases i,
-      cases i_val,
-      apply h_eq_1,
-      rw nat.succ_lt_succ_iff at i_property,
-      apply false.elim (nat.not_lt_zero _ i_property) },
-   rw h_eq,
-   apply h_f },
- { have h_eq : (⋂ (i : fin m_n.succ.succ), f i) = f 0 ∩ (⋂ (i : fin m_n.succ), f (i.succ)),
-   { ext a, split; intros h_eq_1; simp at h_eq_1; simp [h_eq_1],
-     intros i,  cases (decidable.em (i = 0)),
-     { subst i, apply h_eq_1.left },
-     { have h_eq_2 := h_eq_1.right (i.pred h), simp at h_eq_2, apply h_eq_2 } },
-   rw h_eq,
-   apply h_pi,
-   apply h_f,
-   apply m_ih,
-   { intros i, apply h_f },
-   by_contradiction h_contra,
-   apply h_nonempty.ne_empty,
-   rw h_eq,
-   rw set.not_nonempty_iff_eq_empty.1 h_contra,
-   simp,
-   rw ← h_eq,
-   apply h_nonempty },
-end
-
-/-
-inductive generate_pi_system' {α} (g : set (set α)) : (set α) → Prop
-| base {s : set α} (h_s : s ∈ g) : generate_pi_system' s
-| inter {s t : set α} (h_s : generate_pi_system' s)  (h_t : generate_pi_system' t) 
-  (h_nonempty : (s ∩ t).nonempty) : generate_pi_system' (s ∩ t)
-
-lemma is_pi_system_generate_pi_system' {α} (g : set (set α)) :
-  is_pi_system (generate_pi_system' g) :=
-  λ s t h_s h_t h_nonempty, generate_pi_system'.inter h_s h_t h_nonempty
-
-
-lemma exists_fin_intro {α} {β:Type*} (g : set (set α)) [F:fintype β]
-  [N:nonempty β] (f : β → set α) (h : ∀ b, f b ∈ g) 
-: ∃ (m : ℕ) (f' : fin m.succ → set α), (∀ i, f' i ∈ g) ∧ ((⋂ i, f' i) = (⋂ i, f i)) := begin
-  have h5 := classical.choice (nonempty_of_trunc (fintype.equiv_fin β)),
-  apply exists.intro ((fintype.card β).pred),
-  have h6 : (fintype.card β).pred.succ = (fintype.card β),
-  { apply nat.succ_pred_eq_of_pos, rw ← fintype.card_pos_iff at N, apply N },
-  rw [h6],
-  apply exists.intro (f ∘ h5.inv_fun),
-    split,
-    { intros i, apply h, },
-    { ext a, split; intros h7; simp at h7; simp [h7]; intros i,
-      have h8 := h7 (h5.to_fun i),
-      simp at h8, apply h8 },  
-end
-
-lemma generate_pi_system_elim {α} (g : set (set α)) (s : set α)
-  (h : generate_pi_system' g s) : (s ∈ g ∧ s = ∅) ∨
-  (s.nonempty ∧ ∃ (m : ℕ) (f : fin m.succ → set α), (∀ i, f i ∈ g) ∧ (s=(⋂ i, f i))) :=
-begin
-  induction h with s' h_s' s' t' h_gen_s' h_gen_t' h_nonempty h_s' h_t',
-  cases (set.eq_empty_or_nonempty s') with h_empty h_nonempty,
-  { left, apply and.intro h_s' h_empty },
-  { right, apply and.intro h_nonempty,
-    use [0, (λ _, s')], apply and.intro (λ _, h_s'),
-    ext a, simp },
-  right,
-  apply and.intro h_nonempty, 
-  cases h_s',
-  { apply false.elim (h_nonempty.left.ne_empty h_s'.right), },
-  cases h_t',
-  { apply false.elim (h_nonempty.right.ne_empty h_t'.right), },
-  rcases h_s' with ⟨h_s'_nonempty, ⟨m_s', ⟨f_s', h_s'⟩⟩⟩,
-  rcases h_t' with ⟨h_t'_nonempty, ⟨m_t', ⟨f_t', h_t'⟩⟩⟩,
-  let f : sum (fin m_s'.succ) (fin m_t'.succ) → set α :=
-    (λ x, match x with
-    | (sum.inl i) := f_s' i
-    | (sum.inr i) := f_t' i
-    end),
-  begin
-    have h_f'' := exists_fin_intro g f _,
-    rcases h_f'' with ⟨m'', ⟨f'', h_f''⟩⟩,
-    use [m'', f''],
-    apply and.intro h_f''.left,
-    rw h_f''.right,
-    rw h_s'.right,
-    rw h_t'.right,
-    { ext a, simp },
-    { intros b, cases b; simp [h_s'.left, h_t'.left] },
-  end
-end
-
-lemma sub_generate_pi_system {α} (g : set (set α)) :
-  g ⊆ generate_pi_system' g :=
-begin
-  rw set.subset_def,
-  apply generate_pi_system'.base,
-end 
--/
-
-def generate_pi_system {α} (g : set (set α)) : set (set α) :=
-  g ∪ {s|s.nonempty ∧ ∃ (m : ℕ) (f : fin m.succ → set α), (∀ i, f i ∈ g) ∧ (s=(⋂ i, f i)) }
-
-lemma generate_pi_system_intro {α} {β : Type*} [fintype β] [N : nonempty β] 
-  (g : set (set α)) (f : β → set α)
-  (h_f_in : ∀ b, f b ∈ g) (h_nonempty : (set.Inter f).nonempty) :
-  set.Inter f ∈ generate_pi_system g :=
-begin
-  classical,
-  simp [generate_pi_system, h_nonempty],
-  right,
-  have h5 := classical.choice (nonempty_of_trunc (fintype.equiv_fin β)),
-  apply exists.intro ((fintype.card β).pred),
-  have h6 : (fintype.card β).pred.succ = (fintype.card β),
-  { apply nat.succ_pred_eq_of_pos, rw ← fintype.card_pos_iff at N, apply N },
-  rw [h6],
-  apply exists.intro (f ∘ h5.inv_fun),
-    split,
-    { intros i, apply h_f_in, },
-    { ext a, split; intros h7; simp at h7; simp [h7]; intros i,
-      have h8 := h7 (h5.to_fun i),
-      simp at h8, apply h8 },
-end 
-
-lemma sub_generate_pi_system {α} (g : set (set α)) :
-  g ⊆ generate_pi_system g :=
-begin
-  unfold generate_pi_system,
-  simp,
-end 
-
-lemma generate_pi_system_elim {α} (g : set (set α)) (s : set α)
-  (h_gen : s ∈ generate_pi_system g) : (s ∈ g ∧ s = ∅) ∨
-  (s.nonempty ∧ ∃ (m : ℕ) (f : fin m.succ → set α), (∀ i, f i ∈ g) ∧ (s=(⋂ i, f i))) :=
-begin
-  cases h_gen,
-  cases (set.eq_empty_or_nonempty s) with h_empty h_nonempty,
-  left,
-  apply and.intro h_gen h_empty,
-  right,
-  apply and.intro h_nonempty,
-  apply exists.intro 1,
-  apply exists.intro (λ _, s),
-  split,
-  { intros i, simp, apply h_gen },
-  ext a,
-  { simp },
-  simp at h_gen,
-  right,
-  simp [h_gen],
-end
-
-lemma is_pi_system_generate_pi_system {α} (g : set (set α)) :
-  is_pi_system (generate_pi_system g) := begin
-  unfold is_pi_system,
-  intros s t h_s h_t h_nonempty,
-  cases (generate_pi_system_elim _ _ h_s),
-  { cases h, subst s,
-    rw set.empty_inter,
-    apply sub_generate_pi_system, apply h_left },
-  cases (generate_pi_system_elim _ _ h_t),
-  { cases h_1 with h_1 h_2, subst t,
-    rw set.inter_empty,
-    apply sub_generate_pi_system, apply h_1 },
-  cases h with h_s_nonempty h_s_2,
-  cases h_s_2 with m_s h_s_2,
-  cases h_s_2 with f_s h_s_2,
-  cases h_s_2 with h_f_s_in h_s_def,
-  cases h_1 with h_t_nonempty h_t_2,
-  cases h_t_2 with m_t h_t_2,
-  cases h_t_2 with f_t h_t_2,
-  cases h_t_2 with h_f_t_in h_t_def,
-  have h2:s ∩ t = ⋂ (b:sum (fin m_s.succ) (fin m_t.succ)), @sum.cases_on _ _ (λ _, (set α)) b f_s f_t,
-  { rw h_s_def, rw h_t_def,
-    ext a, split; intros h2_1; simp at h2_1; simp [h2_1] },
-  rw h2,
-  apply generate_pi_system_intro, 
-  { intros b, cases b,
-    { simp [h_f_s_in] },
-    { simp [h_f_t_in] } },
-  { rw ← h2, apply h_nonempty },
-end
-
-lemma generate_pi_system_subset {α} {g t:set (set α)} (h_s:is_pi_system t)
-  (h_sub:g ⊆ t):
-  generate_pi_system g ⊆ t := begin
-  rw set.subset_def,
-  rw generate_pi_system,
-  intros x h_x,
-  simp at h_x,
-  cases h_x,
-  apply h_sub h_x,
-  cases h_x with h_x_nonempty h_x,
-  cases h_x with m h_x,
-  cases h_x with f h_x,
-  cases h_x with h_f h_x,
-  subst x,
-  apply is_pi_system_finite_Inter t h_s,
-  { intros i, apply h_sub, apply h_f },
-  { simp, apply h_x_nonempty },
-end
-
-lemma generate_pi_system_eq {α} {g:set (set α)} (h_pi:is_pi_system g)
-  :
-  generate_pi_system g = g := begin
-  apply le_antisymm,
-  apply generate_pi_system_subset,
-  apply h_pi,
-  apply set.subset.refl,
-  apply sub_generate_pi_system,
-end
-
-lemma is_pi_system_intro {α} {β:Type*} [fintype β] [N:nonempty β] 
-  {g:set (set α)} (h_pi:is_pi_system g) (f:β → set α)
-  (h_f_in:∀ b, f b ∈ g) (h_nonempty:(set.Inter f).nonempty):
-  set.Inter f ∈ g :=
-begin
-  rw ← generate_pi_system_eq h_pi,
-  apply generate_pi_system_intro,
-  apply h_f_in,
-  apply h_nonempty,
-end
-
-lemma generate_pi_system_measurable_set {α} [M:measurable_space α] {g:set (set α)} 
-  (h_meas_g:∀ s ∈ g, measurable_set s)
-  (t:set α)
-  (h_in_pi:generate_pi_system g t):measurable_set t :=
-begin
-  cases h_in_pi,
-  { apply h_meas_g _ h_in_pi },
-  { simp at h_in_pi, cases h_in_pi with h_t_nonempty h_t,
-    cases h_t with m h_t,
-    cases h_t with f h_t,
-    cases h_t with h_f_in_g h_t_def,
-    subst t,
-    apply measurable_set.Inter,
-    intros b, apply h_meas_g, 
-    apply h_f_in_g },
-end
-
-lemma generate_from_measurable_set_of_generate_pi_system {α} {g:set (set α)} (t:set α):generate_pi_system g t →
-  (measurable_space.generate_from g).measurable_set' t := begin
-  apply generate_pi_system_measurable_set,
-  intros s h_s_in_g,
-  apply measurable_space.measurable_set_generate_from h_s_in_g,
-end
-
-lemma generate_from_generate_pi_system_eq {α} {g:set (set α)}:
-  (measurable_space.generate_from (generate_pi_system g)) =
-  (measurable_space.generate_from g) := begin
-  apply le_antisymm;apply measurable_space.generate_from_le,
-  { intros t h_t,
-    apply generate_from_measurable_set_of_generate_pi_system,
-    apply h_t },
-  { intros t h_t, apply measurable_space.measurable_set_generate_from, 
-    rw generate_pi_system,
-    apply set.mem_union_left _ h_t },
-end
-
-lemma set.nonempty_of_nonempty_subset {α} (T V:set α)
-  (h_nonempty_T:T.nonempty) (h_sub:T ⊆ V):V.nonempty := begin
-  rw set.nonempty_def,
-  rw set.nonempty_def at h_nonempty_T,
-  cases h_nonempty_T with x h_nonempty_T,
-  apply exists.intro x,
-  apply h_sub,
-  apply h_nonempty_T,
-end
-
-lemma is_pi_system_union {α} {β:Type*} {g:β → (set (set α))}
-  (h_pi:∀ b:β, is_pi_system (g b))
-  (h_nonempty:∀ b:β, (g b).nonempty)
-  (t:set α)
-  (h_t:t ∈ generate_pi_system (⋃ (b:β), g b)):
-  (∃ (T:finset β) (f:β → set α), (t = ⋂ b ∈ T, f b) ∧ (∀ (b:β), f b ∈ (g b))) :=
-begin
-  classical,
-  cases (generate_pi_system_elim _ _ h_t) with h_t_empty h_t_union,
-  { cases h_t_empty with h_t_in h_t_empty,
-    cases h_t_in with g' h_t_in,
-    cases h_t_in with h_t_H h_t_in,
-    cases h_t_H with b h_b_def,
-    simp at h_b_def,
-    subst g',
-    apply exists.intro {b},
-    have h_f:∀ b':β, ∃ (s:set α), (s ∈ g b') ∧ (b' = b → s = t),
-    { intros b', cases classical.em (b' = b) with h_b'_eq_b h_b'_ne_b,
-      { subst b', apply exists.intro t, simp [h_t_in] },
-      { cases (set.nonempty_def.1 (h_nonempty b')) with s h_s,
-        apply exists.intro s, simp [h_s, h_b'_ne_b] } },
-    rw classical.skolem at h_f,
-    cases h_f with f h_f,
-    have h_f_b_eq_t:f b = t,
-    { apply (h_f b).right, refl },
-    apply exists.intro f,
-    split,
-    { ext a, split; intros h1,
-      { simp [h1, h_f], intros b' h_b',
-        rw @finset.mem_singleton β b b' at h_b',
-        subst b', rw h_f_b_eq_t, apply h1 },
-      simp at h1,  rw h_f_b_eq_t at h1, apply h1 },
-    { intros b', apply (h_f b').left } },
-  { cases h_t_union with h_t_nonempty h_t_union,
-    cases h_t_union with m h_t_union,
-    cases h_t_union with f h_t_union,
-    cases h_t_union with h_f_def h_t_def,
-    have h_f':∀ (i:fin m.succ), ∃ (b:β), f i ∈ g b,
-    { intros i, cases (h_f_def i) with t' h_t',
-      cases h_t' with h_t'_in h_f_i_in_t',
-      cases h_t'_in with b h_t'_eq, 
-      subst t',apply exists.intro b,
-      apply h_f_i_in_t' },
-    rw classical.skolem at h_f',
-    cases h_f' with f' h_f',
-    apply exists.intro (finset.image f' (finset.univ)),
-    have h_f'':∀ (b:β), ∃ (s:set α), (s ∈ g b) ∧ (b ∈  (finset.image f' (finset.univ)) →
-      s = ⋂ (i:fin m.succ) (H:f' i = b), f i),
-    { intros b, cases classical.em (b ∈ finset.image f' (finset.univ)) with h_b_in h_b_notin,
-      { apply exists.intro (⋂ (i:subtype (λ (i':fin m.succ), f' i' = b)), f i),
-        split,
-        have h_sub_non:nonempty (subtype (λ (i':fin m.succ), f' i' = b)),
-        { simp at h_b_in, cases  h_b_in with i h_b_in,
-          apply nonempty.intro (subtype.mk i h_b_in) },
-        apply @is_pi_system_intro α _ _ h_sub_non,  
-        apply h_pi,
-        { intros i, cases i,
-          have h_f'_2 := h_f' i_val,
-          rw  i_property at h_f'_2,
-          simp, apply h_f'_2 },
-          have h_sub_t: t ⊆ (⋂ (i : {i' // f' i' = b}), f ↑i),
-          { rw h_t_def, rw set.subset_def, intros x h_x, simp at h_x,
-            simp, intros i h_i_eq, apply h_x },
-        apply set.nonempty_of_nonempty_subset _ _ h_t_nonempty h_sub_t,
-        intros h_2,
-        { ext a, split; intros h_3; simp at h_3; simp [h_3];
-          intros i h_4; apply h_3, apply h_4,
-          simp, apply h_4, }, },
-      { have h_6:= set.nonempty_def.1 (h_nonempty b),
-        cases h_6 with s h_6,
-        apply exists.intro s,
-        apply and.intro h_6, intros h_7,
-        apply absurd h_7 h_b_notin, }  },
-    rw classical.skolem at h_f'',
-    cases h_f'' with f'' h_f'',
-    apply exists.intro f'',
-    split,
-    { rw h_t_def, ext a, split; intros h1; simp at h1; simp [h1]; intros i,
-      { rw (h_f'' (f' i)).right _,
-        intros s h_s,
-        cases h_s with i' h_s,
-        rw ← h_s,
-        simp,
-        intros h_i',
-        apply h1, simp },
-      { have h1_i := h1 i,
-        rw (h_f'' (f' i)).right _ at h1_i,
-        simp at h1_i,
-        apply h1_i,
-        refl, 
-        simp } },
-      intros b, apply (h_f'' b).left },
-end
 
 namespace probability_theory
 
@@ -812,12 +437,46 @@ begin
     { intros n, apply h_meas_g', apply h_meas_f } },
 end
 
--- Probably not unique.
+-- Probably already in mathlib.
 lemma nonempty_measurable_set' {α} [M:measurable_space α]:
   set.nonempty (M.measurable_set') := begin
   rw set.nonempty_def,
   apply exists.intro ∅,
   apply M.measurable_set_empty,
+end
+
+#check 3
+
+lemma supr_independent_event_pair' {α} {β:Type*} [M:measurable_space α] (μ:measure α) (s:set α)
+  (h_meas_s:measurable_set s)
+  [P:probability_measure μ] {Mf:β → measurable_space α}
+  (h_meas_Mf:∀ b, Mf b ≤ M)
+  (h_ind_pair:∀ (T:finset β) (f:β → set α), (∀ (b ∈ T), (Mf b).measurable_set' (f b)) →
+   indep_set s (⋂ b∈ T, f b) μ):
+  (∀ (t:set α), (supr Mf).measurable_set' t → indep_set s t μ) := begin
+  have h2:∀ t' ∈ (generate_pi_system (⋃ (b:β), (Mf b).measurable_set')),
+    M.measurable_set' t',
+  { have h2_1:(supr Mf) ≤ M,
+    { apply @supr_le (measurable_space α) _ _,
+      intros b, apply h_meas_Mf },
+    intros t' h_t', apply h2_1, rw supr_eq_generate_from,
+    apply generate_pi_system_measurable_set,
+    apply measurable_space.measurable_set_generate_from,
+    apply h_t' },
+  intros t h_t,
+  rw supr_eq_generate_from at h_t,
+  rw ← generate_from_generate_pi_system_eq at h_t,
+  apply generate_from_independent_space _ _ _ h_meas_s,
+  apply h2,
+  apply is_pi_system_generate_pi_system,
+  intros t h_t,
+  have h3 := is_pi_system_union' _ t h_t,
+  rcases h3 with ⟨T, ⟨f, rfl, h_meas_f⟩ ⟩,
+  apply h_ind_pair,
+  apply h_meas_f,
+  { intros b, apply is_pi_system_measurable_set },
+  apply h_t,
+  apply P,
 end
 
 lemma supr_independent_event_pair {α} {β:Type*} [M:measurable_space α] (μ:measure α) (s:set α)
@@ -862,12 +521,12 @@ lemma Sup_indep_set {α} {β:Type*} [M:measurable_space α] (μ:measure α) (s:s
   (S:set β)
   [P:probability_measure μ] {Mf:β → measurable_space α}
   (h_meas_Mf:∀ b, Mf b ≤ M)
-  (h_ind_pair:∀ (T:finset β) (f:β → set α), (↑T ⊆ S) → (∀ (b:β), (Mf b).measurable_set' (f b)) →
+  (h_ind_pair:∀ (T:finset β) (f:β → set α), (↑T ⊆ S) → (∀ (b ∈ T), (Mf b).measurable_set' (f b)) →
    indep_set s (⋂ b∈ T, f b) μ) :
   (∀ (t:set α), (Sup (Mf '' S)).measurable_set' t → indep_set s t μ) := begin
   classical,
   intros t h_t,
-  apply @supr_independent_event_pair α (subtype S) M μ s h_meas_s P
+  apply @supr_independent_event_pair' α (subtype S) M μ s h_meas_s P
   (λ b, Mf b.val) (λ b, h_meas_Mf b.val) _ _,
   { unfold supr, have h1:Mf '' S = (set.range (λ (b:subtype S), Mf b.val)),
     { simp, ext1 M'; split; intros h2; simp at h2; simp [h2]; cases h2 with x h2;
@@ -880,11 +539,12 @@ lemma Sup_indep_set {α} {β:Type*} [M:measurable_space α] (μ:measure α) (s:s
     rw h3, apply h_ind_pair,
     { rw set.subset_def, intros x h_x_in_T, simp at h_x_in_T,
       cases h_x_in_T with h_x_in_S h_x_in_T, apply h_x_in_S },
-    { intros b, cases (classical.em (b ∈ S)) with h_b_in_S h_b_notin_S,
-      { rw dif_pos h_b_in_S, have h4 := h_sub ⟨b, h_b_in_S⟩, simp at h4, apply h4 },
+    { intros b h_b, simp at h_b, cases (classical.em (b ∈ S)) with h_b_in_S h_b_notin_S,
+      { rw dif_pos h_b_in_S, have h4 := h_sub ⟨b, h_b_in_S⟩, simp at h4, apply h4,
+        cases h_b with x h_b, have h_eq : subtype.mk b x = subtype.mk b h_b_in_S := rfl,
+        rw ← h_eq, apply h_b },
       { rw dif_neg h_b_notin_S, apply measurable_set.empty } } }, 
 end
-
 
 lemma Inter_finset_congr {α} {β:Type*} {T:finset β} (f g:β → set α) 
   (h_congr:∀ (i ∈ T), f i = g i):(⋂ (i∈ T), f i) = (⋂ (i ∈ T), g i) := begin
@@ -895,6 +555,7 @@ lemma Inter_finset_congr {α} {β:Type*} {T:finset β} (f g:β → set α)
   apply h1 i h_i
 end
 
+#check 3
 
 
 lemma indep_Sup_Sup {α} {β:Type*} [M:measurable_space α] (μ:measure α)
@@ -902,8 +563,8 @@ lemma indep_Sup_Sup {α} {β:Type*} [M:measurable_space α] (μ:measure α)
   (h_meas_Mf:∀ b, Mf b ≤ M)
   (S1 S2:set β) (h_disj:disjoint S1 S2)
   (h_ind_pair:∀ (T1 T2:finset β) (f:β → set α), 
-  ↑T1 ⊆ S1 → (↑T2 ⊆ S2) → (∀ (b:β), (Mf b).measurable_set' (f b)) →
-   indep_set (⋂ b ∈ T1, f b) (⋂ b∈ T2, f b) μ):
+  ↑T1 ⊆ S1 → (↑T2 ⊆ S2) → (∀ (b ∈ (T1 ∪ T2)), (Mf b).measurable_set' (f b)) →
+   indep_set (⋂ b ∈ T1, f b) (⋂ b ∈ T2, f b) μ):
    indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ := begin
   classical,
   have h_measM:∀ s (S:set β), (Sup (Mf '' S)).measurable_set' s → M.measurable_set' s,
@@ -943,14 +604,15 @@ lemma indep_Sup_Sup {α} {β:Type*} [M:measurable_space α] (μ:measure α)
         rw ← hf_f1,
         rw ← hf_f2,
         apply h_ind_pair T1 T2 f h_T1 h_T2 _,
-        intros b, rw h_f_def, cases classical.em (b ∈ T1),
-        { rw if_pos h, apply h_meas_f1 },
-        { rw if_neg h, apply h_meas_f2 },
+        intros b h_b, rw finset.mem_union at h_b,
+        rw h_f_def, cases classical.em (b ∈ T1),
+        { rw if_pos h, apply h_meas_f1, apply h },
+        { rw if_neg h, apply h_meas_f2, simp [h] at h_b, apply h_b },
       end
        }, apply h_s, 
     { apply finset.measurable_set_bInter,
       intros b h_b,  apply h_meas_Mf b,
-      apply h_meas_f2 } },
+      apply h_meas_f2, apply h_b } },
   apply h_t,
   repeat { apply set.mem_singleton },
   apply h_measM _ S1 h_s,
@@ -993,7 +655,12 @@ begin
         apply h_T2, apply h_b' }, 
   repeat {apply h_meas_f},
   repeat { intros b h_b, apply h_meas_f },
+  { simp at h_b, cases h_b; simp [h_b] },
+  simp [h_b],
+  simp [h_b],
 end
+
+
 
 lemma indep_elim' {α} {β} [M:measurable_space α] (μ:measure α) [probability_measure μ] (Mf:β → measurable_space α) (h_le:∀ b, Mf b ≤ M) (h_ind:Indep Mf μ) (s:set β) (t:β) (h_t_notin_s:t ∉ s):(indep (Sup (Mf '' s)) (Mf t) μ) :=
 begin

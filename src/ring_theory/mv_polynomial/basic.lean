@@ -18,8 +18,8 @@ that the monomials form a basis.
 
 * `restrict_total_degree σ R m`: the subspace of multivariate polynomials indexed by `σ` over the
   commutative ring `R` of total degree at most `m`.
-* `restrict_degree σ R m`: the subspace of multivariate polynomials indexed by `σ` over the commutative
-  ring `R` such that the degree in each individual variable is at most `m`.
+* `restrict_degree σ R m`: the subspace of multivariate polynomials indexed by `σ` over the
+  commutative ring `R` such that the degree in each individual variable is at most `m`.
 
 ## Main statements
 

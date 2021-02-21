@@ -266,6 +266,9 @@ theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
 | _ ⟨x, hx⟩ rfl := hx
 
+@[simp] theorem not_nonempty_empty : ¬(∅ : set α).nonempty :=
+λ h, h.ne_empty rfl
+
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
 protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h

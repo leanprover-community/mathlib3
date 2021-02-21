@@ -823,7 +823,7 @@ namespace finsupp
 section nat_sub
 instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
 
-@[simp] lemma coe_nat_sub {g₁ g₂ : α →₀ ℕ} : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+@[simp] lemma coe_nat_sub (g₁ g₂ : α →₀ ℕ) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
@@ -901,10 +901,10 @@ lemma prod_neg_index [add_group G] [comm_monoid M] {g : α →₀ G} {h : α →
   (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
 
-@[simp] lemma coe_neg [add_group G] {g : α →₀ G} : ⇑(-g) = -g := rfl
+@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
 lemma neg_apply [add_group G] {g : α →₀ G} {a : α} : (- g) a = - g a := rfl
 
-@[simp] lemma coe_sub [add_group G] {g₁ g₂ : α →₀ G} : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] {g₁ g₂ : α →₀ G} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma support_neg [add_group G] {f : α →₀ G} : support (-f) = support f :=
@@ -1672,7 +1672,7 @@ See note [implicit instance arguments].
 -/
 
 @[simp] lemma coe_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
-  {b : R} {v : α →₀ M} : ⇑(b • v) = b • v := rfl
+  (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply {_ : semiring R} [add_comm_monoid M] [semimodule R M]
   {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) := rfl
 

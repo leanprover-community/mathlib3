@@ -138,6 +138,15 @@ begin
   { intros h, use { lie_mem := h, ..p }, exact lie_submodule.coe_to_submodule_mk p _, },
 end
 
+lemma lie_subalgebra.exists_lie_ideal_coe_eq_iff (K : lie_subalgebra R L):
+  (∃ (I : lie_ideal R L), ↑I = K) ↔ ∀ (x y : L), y ∈ K → ⁅x, y⁆ ∈ K :=
+begin
+  simp only [← lie_subalgebra.coe_to_submodule_eq_iff,
+    lie_ideal.coe_to_lie_subalgebra_to_submodule,
+    submodule.exists_lie_submodule_coe_eq_iff L],
+  exact iff.rfl,
+end
+
 end lie_submodule
 
 namespace lie_submodule

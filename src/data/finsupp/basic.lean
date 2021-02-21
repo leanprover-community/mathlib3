@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.group.pi
 import algebra.big_operators.order
 import algebra.module.basic
+import algebra.module.pi
 import group_theory.submonoid.basic
 import data.fintype.card
 import data.finset.preimage
@@ -901,11 +902,11 @@ lemma prod_neg_index [add_group G] [comm_monoid M] {g : α →₀ G} {h : α →
   (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
 
-@[simp] lemma neg_apply [add_group G] {g : α →₀ G} {a : α} : (- g) a = - g a :=
-rfl
+@[simp] lemma coe_neg [add_group G] {g : α →₀ G} : ⇑(-g) = -g := rfl
+lemma neg_apply [add_group G] {g : α →₀ G} {a : α} : (- g) a = - g a := rfl
 
-@[simp] lemma sub_apply [add_group G] {g₁ g₂ : α →₀ G} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a :=
-rfl
+@[simp] lemma coe_sub [add_group G] {g₁ g₂ : α →₀ G} : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+lemma sub_apply [add_group G] {g₁ g₂ : α →₀ G} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma support_neg [add_group G] {f : α →₀ G} : support (-f) = support f :=
 finset.subset.antisymm
@@ -1671,9 +1672,10 @@ Throughout this section, some `semiring` arguments are specified with `{}` inste
 See note [implicit instance arguments].
 -/
 
-@[simp] lemma smul_apply' {_:semiring R} [add_comm_monoid M] [semimodule R M]
-  {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) :=
-rfl
+@[simp] lemma coe_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+  {b : R} {v : α →₀ M} : ⇑(b • v) = b • v := rfl
+lemma smul_apply {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+  {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) := rfl
 
 instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α →₀ M) :=
 { smul      := (•),
@@ -1688,7 +1690,7 @@ variables {α M} {R}
 
 lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
-λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
+λ a, by simp only [smul_apply, mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
 
 section
 
@@ -1723,10 +1725,6 @@ lemma smul_single_one [semiring R] (a : α) (b : R) : b • single a 1 = single 
 by rw [smul_single, smul_eq_mul, mul_one]
 
 end
-
-@[simp] lemma smul_apply [semiring R] {a : α} {b : R} {v : α →₀ R} :
-  (b • v) a = b • (v a) :=
-rfl
 
 lemma sum_smul_index [semiring R] [add_comm_monoid M] {g : α →₀ R} {b : R} {h : α → R → M}
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=

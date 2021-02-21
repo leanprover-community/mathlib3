@@ -474,13 +474,18 @@ by cases n; refl
 @[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
 by induction n; [refl, simp only [*, repeat, join, append_nil]]
 
-lemma repeat_inj_left {a b : α} {n : ℕ}
-  (h : repeat a (n + 1) = repeat b (n + 1)) : a = b :=
-by { simp at h, exact h.left }
+lemma repeat_inj_left {a b : α} {n : ℕ} (npos : 0 < n)
+  (h : repeat a n = repeat b n) : a = b :=
+begin
+  cases n,
+  { exact absurd npos (lt_irrefl _) },
+  { simp at h,
+    exact h.left }
+end
 
-@[simp] lemma repeat_inj_left_iff {a b : α} {n : ℕ} :
-  repeat a (n + 1) = repeat b (n + 1) ↔ a = b :=
-⟨repeat_inj_left, λ h, h ▸ rfl⟩
+@[simp] lemma repeat_inj_left_iff {a b : α} {n : ℕ} (npos: 0 < n) :
+  repeat a n = repeat b n ↔ a = b :=
+⟨repeat_inj_left npos, λ h, h ▸ rfl⟩
 
 lemma repeat_inj_right {a : α} {n m : ℕ} (h : repeat a n = repeat a m) :
   n = m :=

@@ -2010,24 +2010,26 @@ lemma swap_mem_antidiagonal_support {n : α →₀ ℕ} {f : (α →₀ ℕ) × 
   f.swap ∈ (antidiagonal n).support ↔ f ∈ (antidiagonal n).support :=
 by simp only [mem_antidiagonal_support, add_comm, prod.swap]
 
-lemma antidiagonal_support_filter_fst_eq [decidable_eq (α →₀ ℕ)] (f g : α →₀ ℕ) :
+lemma antidiagonal_support_filter_fst_eq (f g : α →₀ ℕ)
+  [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.1 = g)] :
   (antidiagonal f).support.filter (λ p, p.1 = g) = if g ≤ f then {(g, f - g)} else ∅ :=
 begin
   ext ⟨a, b⟩,
   suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, @and.right_comm _ (a = _), and.congr_left_iff] },
-  rintro rfl, split,
+  unfreezingI {rintro rfl}, split,
   { rintro rfl, exact ⟨le_add_right le_rfl, (nat_add_sub_cancel_left _ _).symm⟩ },
   { rintro ⟨h, rfl⟩, exact nat_add_sub_of_le h }
 end
 
-lemma antidiagonal_support_filter_snd_eq [decidable_eq (α →₀ ℕ)] (f g : α →₀ ℕ) :
+lemma antidiagonal_support_filter_snd_eq (f g : α →₀ ℕ)
+  [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.2 = g)] :
   (antidiagonal f).support.filter (λ p, p.2 = g) = if g ≤ f then {(f - g, g)} else ∅ :=
 begin
   ext ⟨a, b⟩,
   suffices : b = g → (a + b = f ↔ g ≤ f ∧ a = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, and.congr_left_iff] },
-  rintro rfl, split,
+  unfreezingI {rintro rfl}, split,
   { rintro rfl, exact ⟨le_add_left le_rfl, (nat_add_sub_cancel _ _).symm⟩ },
   { rintro ⟨h, rfl⟩, exact nat_sub_add_cancel h }
 end

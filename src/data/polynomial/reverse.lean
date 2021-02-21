@@ -209,14 +209,6 @@ begin
       if_neg (not_le_of_gt hn), coeff_eq_zero_of_nat_degree_lt hn],
 end
 
-lemma nat_trailing_degree_le_nat_degree (f : polynomial R) :
-  f.nat_trailing_degree ≤ f.nat_degree :=
-begin
-  by_cases hp : f = 0,
-  { rw [hp, nat_degree_zero, nat_trailing_degree_zero] },
-  { exact le_nat_degree_of_ne_zero (mt trailing_coeff_eq_zero.mp hp) },
-end
-
 lemma nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree (f : polynomial R) :
   f.nat_degree = f.reverse.nat_degree + f.nat_trailing_degree :=
 begin

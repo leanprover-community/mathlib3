@@ -1035,7 +1035,7 @@ end
 /-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
   `to_block M p q` is the corresponding block matrix. -/
 def to_block (M : matrix m n α) (p : m → Prop) [decidable_pred p]
-  (q : n → Prop) [decidable_pred q] : matrix {a // p a} {a // q a} α := λ i j, M ↑i ↑j
+  (q : n → Prop) [decidable_pred q] : matrix {a // p a} {a // q a} α := M.minor coe coe
 
 @[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) [decidable_pred p]
   (q : n → Prop) [decidable_pred q] (i : {a // p a}) (j : {a // q a}) :
@@ -1043,19 +1043,27 @@ def to_block (M : matrix m n α) (p : m → Prop) [decidable_pred p]
 
 /-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
   `to_square_block M b k` is the block `k` matrix. -/
-def to_square_block (M : matrix m m α) (b : m → ℕ) (k : ℕ) :
-  matrix {a // b a = k} {a // b a = k} α := λ i j, M ↑i ↑j
+def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
+  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
 
-@[simp] lemma to_square_block_def (M : matrix m m α) (b : m → ℕ) (k : ℕ) :
+@[simp] lemma to_square_block_def (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
   to_square_block M b k = λ i j, M ↑i ↑j := rfl
 
-/-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
-  `to_square_block M p` is the corresponding block matrix. -/
-def to_square_block' (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
-  matrix {a // p a} {a // p a} α := λ i j, M ↑i ↑j
+/-- Alternate version with `b : m → nat`. Let `b` map rows and columns of a square matrix `M` to
+  blocks. Then `to_square_block' M b k` is the block `k` matrix. -/
+def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
+  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
 
-@[simp] lemma to_square_block_def' (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
-  to_square_block' M p = λ i j, M ↑i ↑j := rfl
+@[simp] lemma to_square_block_def' (M : matrix m m α) (b : m → nat) (k : nat) :
+  to_square_block' M b k = λ i j, M ↑i ↑j := rfl
+
+/-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
+  `to_square_block_prop M p` is the corresponding block matrix. -/
+def to_square_block_prop (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  matrix {a // p a} {a // p a} α := M.minor coe coe
+
+@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
+  to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
 
 variables [semiring α]
 

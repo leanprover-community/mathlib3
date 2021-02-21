@@ -1188,6 +1188,15 @@ rescale (-1 : A)
 @[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
 rescale_neg_one_X
 
+lemma sum_geo_seq (φ : power_series A) (n : ℕ) :
+((finset.range n).sum(λ k, φ^k) * (φ - 1)) = (φ^n - 1) :=
+begin
+  induction n with n h,
+  { simp only [finset.sum_empty, zero_mul, finset.range_zero, pow_zero, sub_self] },
+  simp only [finset.sum_range_succ, pow_succ', add_mul, h],
+  ring,
+end
+
 end comm_ring
 
 section integral_domain

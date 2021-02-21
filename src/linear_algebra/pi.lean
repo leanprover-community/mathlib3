@@ -75,7 +75,7 @@ end
 lemma apply_single [add_comm_monoid M] [semimodule R M] [decidable_eq ι]
   (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :
   f j (pi.single i x j) = pi.single i (f i x) j :=
-by rcases em (j = i) with (rfl|h); simp *
+pi.apply_single (λ i, f i) (λ i, (f i).map_zero) _ _ _
 
 /-- The `linear_map` version of `add_monoid_hom.single` and `pi.single`. -/
 def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=

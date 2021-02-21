@@ -140,9 +140,6 @@ def range : lie_subalgebra R L₂ :=
          rw [←hx, ←hy], change f ⁅x', y'⁆ = ⁅f x', f y'⁆, rw map_lie, },
   ..(f : L →ₗ[R] L₂).range }
 
-@[simp] lemma range_bracket (x y : f.range) :
-  (↑⁅x, y⁆ : L₂) = ⁅(↑x : L₂), ↑y⁆ := rfl
-
 @[simp] lemma range_coe : (f.range : set L₂) = set.range f :=
 linear_map.range_coe ↑f
 
@@ -353,9 +350,7 @@ variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [li
 noncomputable def of_injective (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) :
   L₁ ≃ₗ⁅R⁆ f.range :=
 have h' : (f : L₁ →ₗ[R] L₂).ker = ⊥ := linear_map.ker_eq_bot_of_injective h,
-{ map_lie' := λ x y, by { apply set_coe.ext,
-    simp only [linear_equiv.of_injective_apply, lie_hom.range_bracket],
-    apply f.map_lie, },
+{ map_lie' := λ x y, by { apply set_coe.ext, simpa, },
 ..(linear_equiv.of_injective ↑f h')}
 
 @[simp] lemma of_injective_apply (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) (x : L₁) :

@@ -76,11 +76,7 @@ end
 @[simps]
 def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
 { to_fun := pi.single i,
-  map_smul' := λ r x, begin
-    ext i', by_cases h : i' = i,
-    { subst h, simp only [pi.single_eq_same, pi.smul_apply], },
-    { simp only [h, pi.single_eq_of_ne, ne.def, not_false_iff, pi.smul_apply, smul_zero], },
-  end,
+  map_smul' := pi.single_smul i,
   .. add_monoid_hom.single φ i}
 
 section

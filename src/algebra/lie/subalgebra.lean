@@ -328,7 +328,7 @@ begin
   { intros h, use ⟨(x : L), h⟩, simp, },
 end
 
-@[simp] lemma of_le_eq_comap_incl : of_le h = K.comap K'.incl :=
+lemma of_le_eq_comap_incl : of_le h = K.comap K'.incl :=
 by { ext, rw mem_of_le, refl, }
 
 end nested_subalgebras

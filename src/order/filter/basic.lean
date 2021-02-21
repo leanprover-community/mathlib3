@@ -1578,6 +1578,10 @@ end
 lemma map_comap_of_mem {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap m).map m = f :=
 by rw [map_comap, inf_eq_left.2 (le_principal_iff.2 hf)]
 
+lemma comap_le_comap_iff {f g : filter β} {m : α → β} (hf : range m ∈ f) :
+  comap m f ≤ comap m g ↔ f ≤ g :=
+⟨λ h, map_comap_of_mem hf ▸ (map_mono h).trans map_comap_le, λ h, comap_mono h⟩
+
 theorem map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l : filter β) :
   map f (comap f l) = l :=
 map_comap_of_mem $ by simp only [hf.range_eq, univ_mem_sets]
@@ -1633,7 +1637,7 @@ le_antisymm
   (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
   (le_of_map_le_map_inj' hsg hsf hm $ le_of_eq h.symm)
 
-lemma map_inj {f g : filter α} {m : α → β} (hm : ∀ x y, m x = m y → x = y) (h : map m f = map m g) :
+lemma map_inj {f g : filter α} {m : α → β} (hm : function.injective m) (h : map m f = map m g) :
   f = g :=
 have comap m (map m f) = comap m (map m g), by rw h,
 by rwa [comap_map hm, comap_map hm] at this

@@ -474,30 +474,6 @@ by cases n; refl
 @[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
 by induction n; [refl, simp only [*, repeat, join, append_nil]]
 
-lemma repeat_inj_left {a b : α} {n : ℕ}
-  (h : repeat a (n + 1) = repeat b (n + 1)) : a = b :=
-by { simp at h, exact h.left }
-
-@[simp] lemma repeat_inj_left_iff {a b : α} {n : ℕ} :
-  repeat a (n + 1) = repeat b (n + 1) ↔ a = b :=
-⟨repeat_inj_left, λ h, h ▸ rfl⟩
-
-lemma repeat_inj_right {a : α} {n m : ℕ} (h : repeat a n = repeat a m) :
-  n = m :=
-begin
-  induction n with n hn generalizing m;
-  cases m,
-  { refl },
-  { simpa using h },
-  { simpa using h },
-  { simp only [true_and, repeat_succ, eq_self_iff_true] at h,
-    simp [hn h] }
-end
-
-@[simp] lemma repeat_inj_right_iff {a : α} {n m : ℕ} :
-  repeat a n = repeat a m ↔ n = m :=
-⟨repeat_inj_right, λ h, h ▸ rfl⟩
-
 /-! ### pure -/
 
 @[simp] theorem mem_pure {α} (x y : α) :
@@ -1603,19 +1579,6 @@ end
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
 by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
-
-lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
-  l.drop k = [] ↔ l.length ≤ k :=
-begin
-  refine ⟨λ h, _, drop_eq_nil_of_le⟩,
-  induction k with k hk generalizing l,
-  { simp at h,
-    simp [h] },
-  { cases l,
-    { simp },
-    { simp at h,
-      simpa [nat.succ_le_succ_iff] using hk h } }
-end
 
 lemma tail_drop (l : list α) (n : ℕ) : (l.drop n).tail = l.drop (n + 1) :=
 begin
@@ -3402,19 +3365,6 @@ exists_congr $ λ r, by rw [append_assoc, append_right_inj]
 
 theorem prefix_cons_inj {l₁ l₂ : list α} (a) : a :: l₁ <+: a :: l₂ ↔ l₁ <+: l₂ :=
 prefix_append_right_inj [a]
-
-@[simp] lemma prefix_cons_iff {hd : α} {tl l : list α} :
-  (hd :: tl) <+: l ↔ l = hd :: l.tail ∧ tl <+: l.tail :=
-begin
-  split,
-  { rintro ⟨_, h⟩,
-    rw cons_append at h,
-    simp [←h] },
-  { rw and_imp,
-    intro h,
-    rw h,
-    simp [prefix_cons_inj] }
-end
 
 theorem take_prefix (n) (l : list α) : take n l <+: l := ⟨_, take_append_drop _ _⟩
 

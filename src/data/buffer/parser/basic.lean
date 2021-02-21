@@ -144,6 +144,7 @@ begin
   simpa [hp] using h
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance conditionally_unfailing_of_unfailing [p.unfailing] : conditionally_unfailing p :=
 ⟨λ _ _ _, p.exists_done _ _⟩
 
@@ -442,7 +443,7 @@ begin
     simpa [h] using of_done h },
   { by_cases h : n = posx,
     { simp [hx, h] },
-    { simp [orelse_eq_fail_of_mono_ne h, of_fail] at hx,
+    { simp only [orelse_eq_fail_of_mono_ne h] at hx,
       exact of_fail hx } }
 end
 
@@ -636,12 +637,11 @@ begin
       have : n < cb.to_list.length := by simpa using hn,
       rwa [←buffer.nth_le_to_list _ this, ←list.cons_nth_le_drop_succ this, list.prefix_cons_inj] },
     { rintro ⟨h, rfl⟩,
-      rw [list.prefix_cons_iff, list.tail_drop] at h,
       by_cases hn : n < cb.size,
       { have : n < cb.to_list.length := by simpa using hn,
-        rw ←list.cons_nth_le_drop_succ this at h,
+        rw [←list.cons_nth_le_drop_succ this, list.cons_prefix_iff] at h,
         use [n + 1, h.right],
-        simpa [buffer.nth_le_to_list, add_comm, add_left_comm, add_assoc, hn] using h.left },
+        simpa [buffer.nth_le_to_list, add_comm, add_left_comm, add_assoc, hn] using h.left.symm },
       { have : cb.to_list.length ≤ n := by simpa using hn,
         rw list.drop_eq_nil_of_le this at h,
         simpa using h } } }
@@ -919,23 +919,25 @@ instance map [p.static] {f : α → β} : (f <$> p).static :=
 
 instance seq {f : parser (α → β)} [f.static] [p.static] : (f <*> p).static := static.bind
 
-instance mmap : Π {l : list α} {f : α → parser β}, (∀ a, (f a).static) → (l.mmap f).static
+instance mmap : Π {l : list α} {f : α → parser β} [∀ a, (f a).static], (l.mmap f).static
 | []       _ _ := static.pure
 | (a :: l) _ h := begin
   convert static.bind,
   { exact h _ },
   { intro,
     convert static.bind,
-    { exact mmap h },
+    { convert mmap,
+      exact h },
     { exact λ _, static.pure } }
 end
 
-instance mmap' : Π {l : list α} {f : α → parser β}, (∀ a, (f a).static) → (l.mmap' f).static
+instance mmap' : Π {l : list α} {f : α → parser β} [∀ a, (f a).static], (l.mmap' f).static
 | []       _ _ := static.pure
 | (a :: l) _ h := begin
   convert static.and_then,
   { exact h _ },
-  { exact mmap' h }
+  { convert mmap',
+    exact h }
 end
 
 instance failure : @parser.static α failure :=
@@ -1318,9 +1320,11 @@ end
 lemma many : p.many.bounded :=
 foldr he
 
+omit hpb
 lemma many_char {pc : parser char} [pc.bounded]
   (he : ∀ cb n n' err, pc cb n = fail n' err → n ≠ n'): pc.many_char.bounded :=
 by { convert bounded.map, exact many he }
+include hpb
 
 lemma many' : p.many'.bounded :=
 by { convert bounded.and_then, exact many he }
@@ -1471,7 +1475,7 @@ begin
     simp [h, hf, and.comm, and.left_comm, and.assoc] }
 end
 
-instance foldr_core_one_of_err_static {f : α → β → β} {b : β} {reps : ℕ} [p.static] [p.err_static] :
+instance foldr_core_one_of_err_static {f : α → β → β} {b : β} [p.static] [p.err_static] :
   (foldr_core f p b 1).unfailing :=
 begin
   constructor,
@@ -1536,8 +1540,8 @@ instance seq_of_unfailing {f : parser (α → β)} [f.err_static] [p.unfailing] 
   (f <*> p).err_static :=
 err_static.bind_of_unfailing
 
-instance mmap : Π {l : list α} {f : α → parser β},
-  (∀ a, (f a).static) → (∀ a, (f a).err_static) → (l.mmap f).err_static
+instance mmap : Π {l : list α} {f : α → parser β}
+  [∀ a, (f a).static] [∀ a, (f a).err_static], (l.mmap f).err_static
 | []       _ _ _  := err_static.pure
 | (a :: l) _ h h' := begin
   convert err_static.bind,
@@ -1545,13 +1549,16 @@ instance mmap : Π {l : list α} {f : α → parser β},
   { exact h' _ },
   { intro,
     convert err_static.bind,
-    { exact static.mmap h },
-    { exact mmap h h' },
+    { convert static.mmap,
+      exact h },
+    { apply mmap,
+      { exact h },
+      { exact h' } },
     { exact λ _, err_static.pure } }
 end
 
-instance mmap_of_unfailing : Π {l : list α} {f : α → parser β},
-  (∀ a, (f a).unfailing) → (∀ a, (f a).err_static) → (l.mmap f).err_static
+instance mmap_of_unfailing : Π {l : list α} {f : α → parser β}
+  [∀ a, (f a).unfailing] [∀ a, (f a).err_static], (l.mmap f).err_static
 | []       _ _ _  := err_static.pure
 | (a :: l) _ h h' := begin
   convert err_static.bind_of_unfailing,
@@ -1563,18 +1570,20 @@ instance mmap_of_unfailing : Π {l : list α} {f : α → parser β},
     { exact λ _, unfailing.pure } }
 end
 
-instance mmap' : Π {l : list α} {f : α → parser β},
-  (∀ a, (f a).static) → (∀ a, (f a).err_static) → (l.mmap' f).err_static
+instance mmap' : Π {l : list α} {f : α → parser β}
+  [∀ a, (f a).static] [∀ a, (f a).err_static], (l.mmap' f).err_static
 | []       _ _ _  := err_static.pure
 | (a :: l) _ h h' := begin
   convert err_static.and_then,
   { exact h _ },
   { exact h' _ },
-  { exact mmap' h h' }
+  { convert mmap',
+    { exact h },
+    { exact h' } }
 end
 
-instance mmap'_of_unfailing : Π {l : list α} {f : α → parser β},
-  (∀ a, (f a).unfailing) → (∀ a, (f a).err_static) → (l.mmap' f).err_static
+instance mmap'_of_unfailing : Π {l : list α} {f : α → parser β}
+  [∀ a, (f a).unfailing] [∀ a, (f a).err_static], (l.mmap' f).err_static
 | []       _ _ _  := err_static.pure
 | (a :: l) _ h h' := begin
   convert err_static.and_then_of_unfailing,
@@ -1885,6 +1894,7 @@ namespace prog
 variables {α β : Type} {p q : parser α} {msgs : thunk (list string)} {msg : thunk string}
   {cb : char_buffer} {n' n : ℕ} {err : dlist string} {a : α} {b : β} {sep : parser unit}
 
+@[priority 100] -- see Note [lower instance priority]
 instance of_step [step p] : prog p :=
 ⟨λ _ _ _ _ h, by { rw step.of_done h, exact nat.lt_succ_self _ }⟩
 
@@ -2046,7 +2056,7 @@ variables {a : α} {b : β}
 section many
 
 -- TODO: generalize to p.prog instead of p.step
-lemma many_sublist_of_done [p.mono] [p.step] [p.bounded] {l : list α}
+lemma many_sublist_of_done [p.step] [p.bounded] {l : list α}
   (h : p.many cb n = done n' l) :
   ∀ k < n' - n, p.many cb (n + k) = done n' (l.drop k) :=
 begin
@@ -2065,7 +2075,7 @@ begin
   { exact nat.lt_pred_iff.mpr hm },
 end
 
-lemma many_eq_nil_of_done [p.mono] [p.step] [p.bounded] {l : list α}
+lemma many_eq_nil_of_done [p.step] [p.bounded] {l : list α}
   (h : p.many cb n = done n' l) :
   p.many cb n' = done n' [] :=
 begin
@@ -2098,12 +2108,12 @@ begin
   { simpa using h },
   { obtain ⟨k, hk⟩ : ∃ k, n' = n + k + 1 := nat.exists_eq_add_of_lt (prog.of_done h),
     subst hk,
-    simp [many1_eq_done] at h,
+    simp only [many1_eq_done] at h,
     obtain ⟨_, hp, h⟩ := h,
     have := step.of_done hp,
     subst this,
     cases tl,
-    { simp [many_eq_done_nil] at h,
+    { simp only [many_eq_done_nil, add_left_inj, exists_and_distrib_right, self_eq_add_right] at h,
       rcases h with ⟨rfl, -⟩,
       simp },
     rw ←many1_eq_done_iff_many_eq_done at h,
@@ -2111,18 +2121,18 @@ begin
     simp [hl, add_comm, add_assoc, nat.sub_succ] }
 end
 
-lemma many1_bounded_of_done [p.mono] [p.step] [p.bounded] {l : list α}
+lemma many1_bounded_of_done [p.step] [p.bounded] {l : list α}
   (h : many1 p cb n = done n' l) :
   n' ≤ cb.size :=
 begin
   induction l with hd tl hl generalizing n n',
   { simpa using h },
-  { simp [many1_eq_done] at h,
+  { simp only [many1_eq_done] at h,
     obtain ⟨np, hp, h⟩ := h,
     have := step.of_done hp,
     subst this,
     cases tl,
-    { simp [many_eq_done_nil] at h,
+    { simp only [many_eq_done_nil, exists_and_distrib_right] at h,
       simpa [←h.left] using bounded.of_done hp },
     { rw ←many1_eq_done_iff_many_eq_done at h,
       exact hl h } }

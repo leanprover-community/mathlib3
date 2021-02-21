@@ -158,7 +158,7 @@ begin
     intros b h_b, cases h_b with b' h_b,
     rw  [← h_b.right],
     apply measurable_iff_comap_le.1 (h_meas_f b') },
-  { apply indep.symm, apply indep_elim',
+  { apply indep.symm, apply Indep_elim',
     { intros b, rw ← measurable_iff_comap_le, apply h_meas_f },
     { apply h_indep },
     { rw finset.mem_coe, apply h_a_notin_s } },

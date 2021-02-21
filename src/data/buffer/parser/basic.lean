@@ -2021,7 +2021,77 @@ begin
     exact (of_done hp).trans_le (mono.of_done h) }
 end
 
-lemma of_many1_done [p.mono] [p.step] [p.bounded] {l : list α} (h : many1 p cb n = done n' l) :
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
+  ∀ (max_depth : ℕ), prog (fix_core F max_depth)
+| 0               := prog.failure
+| (max_depth + 1) := hF _ (fix_core _)
+
+instance digit : digit.prog :=
+prog.of_step
+
+instance nat : nat.prog :=
+prog.decorate_error
+
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
+  prog (fix F) :=
+⟨λ cb n _ _ h,
+  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
+
+end prog
+
+variables {α β : Type} {msgs : thunk (list string)} {msg : thunk string}
+variables {p q : parser α} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
+variables {a : α} {b : β}
+
+section many
+
+-- TODO: generalize to p.prog instead of p.step
+lemma many_sublist_of_done [p.mono] [p.step] [p.bounded] {l : list α}
+  (h : p.many cb n = done n' l) :
+  ∀ k < n' - n, p.many cb (n + k) = done n' (l.drop k) :=
+begin
+  induction l with hd tl hl generalizing n,
+  { rw many_eq_done_nil at h,
+    simp [h.left] },
+  intros m hm,
+  cases m,
+  { exact h },
+  rw [list.drop, nat.add_succ, ←nat.succ_add],
+  apply hl,
+  { rw [←many1_eq_done_iff_many_eq_done, many1_eq_done] at h,
+    obtain ⟨_, hp, h⟩ := h,
+    convert h,
+    exact (step.of_done hp).symm },
+  { exact nat.lt_pred_iff.mpr hm },
+end
+
+lemma many_eq_nil_of_done [p.mono] [p.step] [p.bounded] {l : list α}
+  (h : p.many cb n = done n' l) :
+  p.many cb n' = done n' [] :=
+begin
+  induction l with hd tl hl generalizing n,
+  { convert h,
+    rw many_eq_done_nil at h,
+    exact h.left.symm },
+  { rw [←many1_eq_done_iff_many_eq_done, many1_eq_done] at h,
+    obtain ⟨_, -, h⟩ := h,
+    exact hl h }
+end
+
+lemma many_eq_nil_of_out_of_bound [p.bounded] {l : list α}
+  (h : p.many cb n = done n' l) (hn : cb.size < n) :
+  n' = n ∧ l = [] :=
+begin
+  cases l,
+  { rw many_eq_done_nil at h,
+    exact ⟨h.left.symm, rfl⟩ },
+  { rw many_eq_done at h,
+    obtain ⟨np, hp, -⟩ := h,
+    exact absurd (bounded.of_done hp) hn.not_lt }
+end
+
+lemma many1_length_of_done [p.mono] [p.step] [p.bounded] {l : list α}
+  (h : many1 p cb n = done n' l) :
   l.length = n' - n :=
 begin
   induction l with hd tl hl generalizing n n',
@@ -2041,7 +2111,8 @@ begin
     simp [hl, add_comm, add_assoc, nat.sub_succ] }
 end
 
-lemma of_many1_bounded [p.mono] [p.step] [p.bounded] {l : list α} (h : many1 p cb n = done n' l) :
+lemma many1_bounded_of_done [p.mono] [p.step] [p.bounded] {l : list α}
+  (h : many1 p cb n = done n' l) :
   n' ≤ cb.size :=
 begin
   induction l with hd tl hl generalizing n n',
@@ -2057,46 +2128,18 @@ begin
       exact hl h } }
 end
 
-lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
-  ∀ (max_depth : ℕ), prog (fix_core F max_depth)
-| 0               := prog.failure
-| (max_depth + 1) := hF _ (fix_core _)
+end many
 
-instance digit : digit.prog :=
-prog.of_step
-
--- TODO: add nat
-
-lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.prog → (F p).prog) :
-  prog (fix F) :=
-⟨λ cb n _ _ h,
-  by { haveI := fix_core hF (cb.size - n + 1), dsimp [fix] at h, exact of_done h }⟩
-
-end prog
-
-variables {α β : Type} {msgs : thunk (list string)} {msg : thunk string}
-variables {p q : parser α} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
-variables {a : α} {b : β}
-
-lemma list.drop_eq_nil_iff_le {l : list α} {k : ℕ} :
-  l.drop k = [] ↔ l.length ≤ k :=
-begin
-  refine ⟨λ h, _, list.drop_eq_nil_of_le⟩,
-  induction k with k hk generalizing l,
-  { simp at h,
-    simp [h] },
-  { cases l,
-    { simp },
-    { simp at h,
-      simpa [nat.succ_le_succ_iff] using hk h } }
-end
+section nat
 
 lemma nat_of_done {val : ℕ} (h : nat cb n = done n' val) :
-  val = (nat.of_digits 10 (list.reverse (((cb.to_list.drop n).take (n' - n)).map (λ c, c.to_nat - '0'.to_nat)))) :=
+  val = (nat.of_digits 10 ((((cb.to_list.drop n).take (n' - n)).reverse.map
+          (λ c, c.to_nat - '0'.to_nat)))) :=
 begin
   have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
     { ext1, ext1 ⟨⟩, refl },
-  have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (_x : ℕ × ℕ), (_x.fst + digit * _x.snd, _x.snd * 10)) (0, 1) l).snd = 10 ^ l.length,
+  have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (_x : ℕ × ℕ), (_x.fst + digit * _x.snd, _x.snd * 10))
+    (0, 1) l).snd = 10 ^ l.length,
     { intro l,
       induction l with hd tl hl,
       { simp },
@@ -2126,7 +2169,8 @@ begin
     rw ←list.cons_nth_le_drop_succ hn' at hx,
     simp at hx,
     simp [hx] },
-  have rearr : list.take (n + (k + 1) - (n + 1)) (list.drop (n + 1) (buffer.to_list cb)) = ctl.take k,
+  have rearr :
+    list.take (n + (k + 1) - (n + 1)) (list.drop (n + 1) (buffer.to_list cb)) = ctl.take k,
     { simp [←list.tail_drop, hx, nat.sub_succ, hk] },
   have chdh : chd.to_nat - '0'.to_nat = lhd,
     { simp [many1_eq_done] at hp,
@@ -2141,15 +2185,15 @@ begin
       simp [hx] },
   have ltll : min k ctl.length = ltl.length,
     { have : (ctl.take k).length = min k ctl.length := by simp,
-      rw [←this, ←rearr, prog.of_many1_done hdm],
+      rw [←this, ←rearr, many1_length_of_done hdm],
       have : k = n' - n - 1,
-        { simp [hk, add_assoc], },
+        { simp [hk, add_assoc] },
       subst this,
       simp only [nat.sub_succ, add_comm, ←nat.pred_sub, buffer.length_to_list, nat.pred_one_add,
                  min_eq_left_iff, list.length_drop, nat.add_sub_cancel_left, list.length_take,
                  nat.sub_zero],
       rw [nat.sub_le_sub_right_iff, nat.pred_le_iff],
-      { convert prog.of_many1_bounded hp,
+      { convert many1_bounded_of_done hp,
         cases hc : cb.size,
         { have := bounded.of_done hp,
           rw hc at this,
@@ -2159,48 +2203,65 @@ begin
   simp [IH _ hdm, hx, hk, rearr, ←chdh, ←ltll, hpow, add_assoc, nat.of_digits_append, mul_comm]
 end
 
+lemma nat_of_done_as_digit {val : ℕ} (h : nat cb n = done n' val) :
+  ∀ (hn : n' ≤ cb.size) k (hk : k < n'), n ≤ k →
+    '0' ≤ cb.read ⟨k, hk.trans_le hn⟩ ∧ cb.read ⟨k, hk.trans_le hn⟩ ≤ '9' :=
+begin
+  simp only [nat, pure_eq_done, and.left_comm, decorate_error_eq_done, bind_eq_done,
+             exists_eq_left, exists_and_distrib_left] at h,
+  obtain ⟨xs, h, -⟩ := h,
+  induction xs with hd tl hl generalizing n n',
+  { simpa using h },
+  cases tl,
+  { simp only [many1_eq_done, many_eq_done_nil, and.left_comm, exists_and_distrib_right,
+               exists_eq_left] at h,
+    obtain ⟨h, -⟩ := h,
+    simp only [digit_eq_done, and.comm, and.left_comm, digit_eq_fail, true_and, exists_eq_left,
+               eq_self_iff_true, exists_and_distrib_left] at h,
+    obtain ⟨rfl, -, hn, ge0, le9, rfl⟩ := h,
+    intros hn' k hk hk',
+    have : k = n := le_antisymm (nat.le_of_lt_succ hk) hk',
+    subst this,
+    exact ⟨ge0, le9⟩ },
+  { rw many1_eq_done at h,
+    obtain ⟨_, hp, h⟩ := h,
+    have := step.of_done hp,
+    subst this,
+    rw ←many1_eq_done_iff_many_eq_done at h,
+    intros hn k hk hk',
+    rcases hk'.eq_or_lt with rfl|hk',
+    { simp [digit_eq_done] at hp,
+      obtain ⟨-, hx, rfl, ge0, le9⟩ := hp,
+      exact ⟨ge0, le9⟩ },
+    { apply hl h,
+      exact nat.succ_le_of_lt hk' } }
+end
+
 lemma nat_of_done_bounded {val : ℕ} (h : nat cb n = done n' val) :
   ∀ (hn : n' < cb.size), '0' ≤ cb.read ⟨n', hn⟩ → '9' < cb.read ⟨n', hn⟩ :=
 begin
-  have : ∀ n n' err (h : foldr_core list.cons digit list.nil (buffer.size cb - n) cb n' = parse_result.fail n err),
-    ∀ (hn : n' < cb.size), '0' ≤ cb.read ⟨n', hn⟩ → '9' < cb.read ⟨n', hn⟩,
-    sorry,
-    -- { intros n n' err hf,
-    --   induction hc : (cb.size - n) with c IH generalizing n n' cb,
-    --   { intro hn,
-    --     refine absurd _ hn.not_le,
-    --     exact nat.le_of_sub_eq_zero hc
-    --     },
-    --   { specialize IH _ _ h hf, },
-    -- },
-
-  simp only [nat, pure_eq_done, decorate_error_eq_done, bind_eq_done] at h,
-  obtain ⟨n', l, hp, rfl, rfl⟩ := h,
-  induction l with lhd ltl IH generalizing n n' cb,
-  { simpa using hp },
-  cases hx : (list.drop n (buffer.to_list cb)) with chd ctl,
-  { have : cb.size ≤ n := by simpa using list.drop_eq_nil_iff_le.mp hx,
-    exact absurd (bounded.of_done hp) this.not_lt },
-  obtain ⟨k, hk⟩ : ∃ k, n' = n + k + 1 := nat.exists_eq_add_of_lt (prog.of_done hp),
-  have hdm : ltl = [] ∨ digit.many1 cb (n + 1) = done n' ltl,
-    { cases ltl,
-      { simp },
-      { rw many1_eq_done at hp,
-        obtain ⟨_, hp, hp'⟩ := hp,
-        simpa [step.of_done hp, many1_eq_done_iff_many_eq_done] using hp' } },
-  rcases hdm with rfl|hdm,
-  { simp [many1_eq_done, many_eq_done_nil] at hp,
-    obtain ⟨_, hp, rfl, hp'⟩ := hp,
-    have := step.of_done hp,
-    subst this,
-    simp [digit_eq_done, buffer.read_eq_nth_le_to_list, hx] at hp,
-    rcases hp with ⟨h', hn, rfl, ge0, le9⟩,
-    sorry
-    -- have hn' : n < cb.to_list.length := by simpa using hn,
-    -- rw ←list.cons_nth_le_drop_succ hn' at hx,
-    -- simp at hx,
-    },
-  exact IH _ hdm
+  simp only [nat, pure_eq_done, and.left_comm, decorate_error_eq_done, bind_eq_done,
+             exists_eq_left, exists_and_distrib_left] at h,
+  obtain ⟨xs, h, -⟩ := h,
+  induction xs with hd tl hl generalizing n,
+  { simpa using h },
+  obtain ⟨k, hk⟩ : ∃ k, cb.size = n + k + 1 := nat.exists_eq_add_of_lt (bounded.of_done h),
+  cases tl,
+  { simp only [many1_eq_done, many_eq_done_nil, and.left_comm, exists_and_distrib_right,
+               exists_eq_left] at h,
+    obtain ⟨-, _, h⟩ := h,
+    simp only [digit_eq_done, and.comm, and.left_comm, digit_eq_fail, true_and, exists_eq_left,
+               eq_self_iff_true, exists_and_distrib_left] at h,
+    obtain (⟨rfl, h⟩ | ⟨h, -⟩) := h,
+    { intro hn,
+      simpa using h hn },
+    { simpa using mono.of_fail h } },
+  { rw many1_eq_done at h,
+    obtain ⟨_, -, h⟩ := h,
+    rw ←many1_eq_done_iff_many_eq_done at h,
+    exact hl h }
 end
+
+end nat
 
 end parser

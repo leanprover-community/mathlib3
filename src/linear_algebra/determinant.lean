@@ -10,6 +10,30 @@ import algebra.algebra.basic
 import tactic.ring
 import linear_algebra.alternating
 
+/-!
+# Determinant of a matrix
+
+This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
+
+## Main definitions
+
+ - `matrix.det`: the determinant of a square matrix, as a sum over permutations
+ - `matrix.det_row_multilinear`: the determinant, as an `alternating_map` in the rows of the matrix
+
+## Main results
+
+ - `det_mul`: the determinant of `A ⬝ B` is the product of determinants
+ - `det_zero_of_row_eq`: the determinant is zero if there is a repeated row
+ - `det_block_diagonal`: the determinant of a block diagonal matrix is a product
+   of the blocks' determinants
+
+## Implementation notes
+
+It is possible to configure `simp` to compute determinants. See the file
+`test/matrix.lean` for some examples.
+
+-/
+
 universes u v w z
 open equiv equiv.perm finset function
 

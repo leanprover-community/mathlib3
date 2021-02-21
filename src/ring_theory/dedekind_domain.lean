@@ -22,7 +22,8 @@ giving three equivalent definitions (TODO: and shows that they are equivalent).
    is not a field, Noetherian, and the localization at every nonzero prime ideal is a DVR.
  - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain that
    is not a field, and every nonzero fractional ideal is invertible.
- - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of fractions.
+ - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of
+   fractions.
 
 ## Implementation notes
 

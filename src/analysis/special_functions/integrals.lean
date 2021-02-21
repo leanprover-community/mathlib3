@@ -37,7 +37,7 @@ by simpa using integral_pow 1
 
 @[simp]
 lemma integral_one : ∫ x in a..b, (1:ℝ) = b - a :=
-by simpa using integral_pow 0
+by simp
 
 @[simp]
 lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=

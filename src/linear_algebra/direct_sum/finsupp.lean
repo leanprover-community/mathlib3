@@ -21,7 +21,8 @@ noncomputable theory
 open_locale classical direct_sum
 
 open set linear_map submodule
-variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N]
 
 section finsupp_lequiv_direct_sum
 
@@ -31,7 +32,7 @@ variables (R M) (ι : Type*) [decidable_eq ι]
 copies of M indexed by ι. -/
 def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] ⨁ i : ι, M :=
 linear_equiv.of_linear
-  (finsupp.lsum (show ι → (M →ₗ[R] ⨁ i, M), from direct_sum.lof R ι _))
+  (finsupp.lsum ℕ (show ι → (M →ₗ[R] ⨁ i, M), from direct_sum.lof R ι _))
   (direct_sum.to_module _ _ _ finsupp.lsingle)
   (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
     linear_map.ext $ λ x, by simp [finsupp.sum_single_index])

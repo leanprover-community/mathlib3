@@ -9,6 +9,7 @@ import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
 import tactic.linarith
+import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Formal power series
@@ -120,11 +121,11 @@ by rw [coeff, monomial, linear_map.proj_apply, linear_map.std_basis_apply, funct
 
 @[simp] lemma coeff_monomial_same (n : σ →₀ ℕ) (a : R) :
   coeff R n (monomial R n a) = a :=
-linear_map.std_basis_same _ _ _ _
+linear_map.std_basis_same R _ n a
 
 lemma coeff_monomial_ne {m n : σ →₀ ℕ} (h : m ≠ n) (a : R) :
   coeff R m (monomial R n a) = 0 :=
-linear_map.std_basis_ne  _ _ _ _ h a
+linear_map.std_basis_ne R _ _ _ h a
 
 lemma eq_of_coeff_monomial_ne_zero {m n : σ →₀ ℕ} {a : R} (h : coeff R m (monomial R n a) ≠ 0) :
   m = n :=
@@ -1012,6 +1013,43 @@ begin
   { intros m hm, rwa nat.eq_zero_of_le_zero (nat.le_of_succ_le_succ hm) }
 end
 
+open finset nat
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
+noncomputable def rescale (a : R) : power_series R →+* power_series R :=
+{ to_fun :=  λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
+  map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
+  map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
+                split_ifs, { rw [h, pow_zero], }, refl, },
+  map_add' := by { intros, ext, exact mul_add _ _ _, },
+  map_mul' := λ f g, by {
+    ext,
+    rw [power_series.coeff_mul, power_series.coeff_mk, power_series.coeff_mul, finset.mul_sum],
+    apply sum_congr rfl,
+    simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
+    intros b c H,
+    rw [←H, pow_add, mul_mul_mul_comm] }, }
+
+@[simp] lemma coeff_rescale (f : power_series R) (a : R) (n : ℕ) :
+  coeff R n (rescale a f) = a^n * coeff R n f := coeff_mk n _
+
+@[simp] lemma rescale_zero : rescale 0 = (C R).comp (constant_coeff R) :=
+begin
+  ext,
+  simp only [function.comp_app, ring_hom.coe_comp, rescale, ring_hom.coe_mk,
+    power_series.coeff_mk _ _, coeff_C],
+  split_ifs,
+  { simp only [h, one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
+  { rw [zero_pow' n h, zero_mul], },
+end
+
+lemma rescale_zero_apply : rescale 0 X = C R (constant_coeff R X) :=
+by simp
+
+@[simp] lemma rescale_one : rescale 1 = ring_hom.id (power_series R) :=
+by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
+  ring_hom.coe_mk], }
+
 section trunc
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
@@ -1133,6 +1171,24 @@ lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R 
 mv_power_series.mul_inv_of_unit φ u $ h
 
 end ring
+
+section comm_ring
+variables {A : Type*} [comm_ring A]
+
+@[simp] lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+begin
+  ext, simp only [linear_map.map_neg, coeff_rescale, coeff_X],
+  split_ifs with h; simp [h]
+end
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
+noncomputable def eval_neg_hom : power_series A →+* power_series A :=
+rescale (-1 : A)
+
+@[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
+rescale_neg_one_X
+
+end comm_ring
 
 section integral_domain
 variable [integral_domain R]

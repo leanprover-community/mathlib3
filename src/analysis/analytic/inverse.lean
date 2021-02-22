@@ -10,7 +10,7 @@ import analysis.analytic.composition
 # Inverse of analytic functions
 
 We construct the left and right inverse of a formal multilinear series with invertible linear term,
-and we prove that they coincide.
+we prove that they coincide and study their properties (notably convergence).
 
 ## Main statements
 
@@ -21,6 +21,8 @@ and we prove that they coincide.
 * `p.left_inv_comp` says that `p.left_inv i` is indeed a left inverse to `p` when `p₁ = i`.
 * `p.right_inv_comp` says that `p.right_inv i` is indeed a right inverse to `p` when `p₁ = i`.
 * `p.left_inv_eq_right_inv`: the two inverses coincide.
+* `p.radius_right_inv_pos_of_radius_pos`: if a power series has a positive radius of convergence,
+  then so does its inverse.
 
 -/
 
@@ -267,5 +269,270 @@ theorem left_inv_eq_right_inv (p : formal_multilinear_series 𝕜 E F) (i : E �
 left_inv p i = left_inv p.remove_zero i : by rw left_inv_remove_zero
 ... = right_inv p.remove_zero i : by { apply left_inv_eq_right_inv_aux; simp [h] }
 ... = right_inv p i : by rw right_inv_remove_zero
+
+/-!
+### Convergence of the inverse of a power series
+
+Assume that `p` is a convergent multilinear series, and let `q` be its (left or right) inverse.
+Using the left-inverse formula gives
+$$
+q_n = - (p_1)^{-n} \sum_{k=0}^{n-1} \sum_{i_1 + \dotsc + i_k = n} q_k (p_{i_1}, \dotsc, p_{i_k}).
+$$
+Assume for simplicity that we are in dimension `1` and `p₁ = 1`. In the formula for `qₙ`, the term
+`q_{n-1}` appears with a multiplicity of `n-1` (choosing the index `i_j` for which `i_j = 2` while
+all the other indices are equal to `1`), which indicates that `qₙ` might grow like `n!`. This is
+bad for summability properties.
+
+It turns out that the right-inverse formula is better behaved, and should instead be used for this
+kind of estimate. It reads
+$$
+q_n = - (p_1)^{-1} \sum_{k=2}^n \sum_{i_1 + \dotsc + i_k = n} p_k (q_{i_1}, \dotsc, q_{i_k}).
+$$
+Here, `q_{n-1}` can only appear in the term with `k = 2`, and it only appears twice, so there is
+hope this formula can lead to an at most geometric behavior.
+
+Let `Qₙ = ∥qₙ∥`. Bounding `∥pₖ∥` with `C r^k` gives an inequality
+$$
+Q_n ≤ C' \sum_{k=2}^n r^k \sum_{i_1 + \dotsc + i_k = n} Q_{i_1} \dotsm Q_{i_k}.
+$$
+
+This formula is not enough to prove by naive induction on `n` a bound of the form `Qₙ ≤ D R^n`.
+However, assuming that the inequality above were an equality, one could get a formula for the
+generating series of the `Qₙ`:
+
+$$
+\begin{align}
+Q(z) & := \sum Q_n z^n = Q_1 z + C' \sum_{2 \leq k \leq n} \sum_{i_1 + \dotsc + i_k = n}
+  (r z^{i_1} Q_{i_1}) \dotsm (r z^{i_k} Q_{i_k})
+\\ & = Q_1 z + C' \sum_{k = 2}^\infty (\sum_{i_1 \geq 1} r z^{i_1} Q_{i_1})
+  \dotsm (\sum_{i_k \geq 1} r z^{i_k} Q_{i_k})
+\\ & = Q_1 z + C' \sum_{k = 2}^\infty (r Q(z))^k
+= Q_1 z + C' (r Q(z))^2 / (1 - r Q(z)).
+\end{align}
+$$
+
+One can solve this formula explicitly. The solution is analytic in a neighborhood of `0` in `ℂ`,
+hence its coefficients grow at most geometrically (by a contour integral argument), and therefore
+the original `Qₙ`, which are bounded by these ones, are also at most geometric.
+
+This classical argument is not really satisfactory, as it requires an a priori bound on a complex
+analytic function. Another option would be to compute explicitly its terms (with binomial
+coefficients) to obtain an explicit geometric bound, but this would be very painful.
+
+Instead, we will use the above intuition, but in a slightly different form, with finite sums and an
+induction. I learnt this trick in [pöschel2017siegelsternberg]. Let
+$S_n = \sum_{k=1}^n Q_k a^k$ (where `a` is a positive real parameter to be chosen suitably small).
+The above computation but with finite sums shows that
+
+$$
+S_n \leq Q_1 a + C' \sum_{k=2}^n (r S_{n-1})^k.
+$$
+
+In particular, $S_n \leq Q_1 a + C' (r S_{n-1})^2 / (1- r S_{n-1})$.
+Assume that $S_{n-1} \leq K a$, where `K > Q₁` is fixed and `a` is small enough so that
+`r K a ≤ 1/2` (to control the denominator). Then this equation gives a bound
+$S_n \leq Q_1 a + 2 C' r^2 K^2 a^2$.
+If `a` is small enough, this is bounded by `K a` as the second term is quadratic in `a`, and
+therefore negligible.
+
+By induction, we deduce `Sₙ ≤ K a` for all `n`, which gives in particular the fact that `aⁿ Qₙ`
+remains bounded.
+-/
+
+/-- First technical lemma to control the growth of coefficients of the inverse. Bound the explicit
+expression for `∑_{k<n+1} aᵏ Qₖ` in terms of a sum of powers of the same sum one step before,
+in a general abstract setup. -/
+lemma radius_right_inv_pos_of_radius_pos_aux1
+  (n : ℕ) (p : ℕ → ℝ) (hp : ∀ k, 0 ≤ p k) {r a : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) :
+  ∑ k in Ico 2 (n + 1), a ^ k *
+      (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+          r ^ c.length * ∏ j, p (c.blocks_fun j))
+  ≤ ∑ j in Ico 2 (n + 1), r ^ j * (∑ k in Ico 1 n, a ^ k * p k) ^ j :=
+calc
+∑ k in Ico 2 (n + 1), a ^ k *
+  (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+      r ^ c.length * ∏ j, p (c.blocks_fun j))
+= ∑ k in Ico 2 (n + 1),
+  (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+      ∏ j, r * (a ^ (c.blocks_fun j) * p (c.blocks_fun j))) :
+begin
+  simp_rw [mul_sum],
+  apply sum_congr rfl (λ k hk, _),
+  apply sum_congr rfl (λ c hc, _),
+  rw [prod_mul_distrib, prod_mul_distrib, prod_pow_eq_pow_sum, composition.sum_blocks_fun,
+      prod_const, card_fin],
+  ring,
+end
+... ≤ ∑ d in comp_partial_sum_target 2 (n + 1) n,
+        ∏ (j : fin d.2.length), r * (a ^ d.2.blocks_fun j * p (d.2.blocks_fun j)) :
+begin
+  rw sum_sigma',
+  refine sum_le_sum_of_subset_of_nonneg _ (λ x hx1 hx2,
+    prod_nonneg (λ j hj, mul_nonneg hr (mul_nonneg (pow_nonneg ha _) (hp _)))),
+  rintros ⟨k, c⟩ hd,
+  simp only [set.mem_to_finset, Ico.mem, mem_sigma, set.mem_set_of_eq] at hd,
+  simp only [mem_comp_partial_sum_target_iff],
+  refine ⟨hd.2, c.length_le.trans_lt hd.1.2, λ j, _⟩,
+  have : c ≠ composition.single k (zero_lt_two.trans_le hd.1.1),
+    by simp [composition.eq_single_iff_length, ne_of_gt hd.2],
+  rw composition.ne_single_iff at this,
+  exact (this j).trans_le (nat.lt_succ_iff.mp hd.1.2)
+end
+... = ∑ e in comp_partial_sum_source 2 (n+1) n, ∏ (j : fin e.1), r * (a ^ e.2 j * p (e.2 j)) :
+begin
+  symmetry,
+  apply comp_change_of_variables_sum,
+  rintros ⟨k, blocks_fun⟩ H,
+  have K : (comp_change_of_variables 2 (n + 1) n ⟨k, blocks_fun⟩ H).snd.length = k, by simp,
+  congr' 2; try { rw K },
+  rw fin.heq_fun_iff K.symm,
+  assume j,
+  rw comp_change_of_variables_blocks_fun,
+end
+... = ∑ j in Ico 2 (n+1), r ^ j * (∑ k in Ico 1 n, a ^ k * p k) ^ j :
+begin
+  rw [comp_partial_sum_source, ← sum_sigma' (Ico 2 (n + 1))
+    (λ (k : ℕ), (fintype.pi_finset (λ (i : fin k), Ico 1 n) : finset (fin k → ℕ)))
+    (λ n e, ∏ (j : fin n), r * (a ^ e j * p (e j)))],
+  apply sum_congr rfl (λ j hj, _),
+  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ _ ℝ],
+  simp only [← multilinear_map.map_sum_finset (multilinear_map.mk_pi_algebra ℝ (fin j) ℝ)
+    (λ k (m : ℕ), r * (a ^ m * p m))],
+  simp only [multilinear_map.mk_pi_algebra_apply],
+  dsimp,
+  simp [prod_const, ← mul_sum, mul_pow],
+end
+
+/-- Second technical lemma to control the growth of coefficients of the inverse. Bound the explicit
+expression for `∑_{k<n+1} aᵏ Qₖ` in terms of a sum of powers of the same sum one step before,
+in the specific setup we are interesting in, by reducing to the general bound in
+`radius_right_inv_pos_of_radius_pos_aux1`. -/
+lemma radius_right_inv_pos_of_radius_pos_aux2
+  {n : ℕ} (hn : 2 ≤ n + 1) (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
+  {r a C : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) (hC : 0 ≤ C) (hp : ∀ n, ∥p n∥ ≤ C * r ^ n) :
+   (∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥) ≤
+     ∥(i.symm : F →L[𝕜] E)∥ * a + ∥(i.symm : F →L[𝕜] E)∥ * C * ∑ k in Ico 2 (n + 1),
+      (r * ((∑ j in Ico 1 n, a ^ j * ∥p.right_inv i j∥))) ^ k :=
+let I := ∥(i.symm : F →L[𝕜] E)∥ in calc
+∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥
+    = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ∥p.right_inv i k∥ :
+by simp only [linear_isometry_equiv.norm_map, pow_one, right_inv_coeff_one,
+              Ico.succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
+... = a * I + ∑ k in Ico 2 (n + 1), a ^ k *
+        ∥(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
+          (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+            p.comp_along_composition (p.right_inv i) c)∥ :
+begin
+  congr' 1,
+  apply sum_congr rfl (λ j hj, _),
+  rw [right_inv_coeff _ _ _ (Ico.mem.1 hj).1, norm_neg],
+end
+... ≤ a * ∥(i.symm : F →L[𝕜] E)∥ + ∑ k in Ico 2 (n + 1), a ^ k * (I *
+      (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+        C * r ^ c.length * ∏ j, ∥p.right_inv i (c.blocks_fun j)∥)) :
+begin
+  apply_rules [add_le_add, le_refl, sum_le_sum (λ j hj, _), mul_le_mul_of_nonneg_left,
+    pow_nonneg, ha],
+  apply (continuous_linear_map.norm_comp_continuous_multilinear_map_le _ _).trans,
+  apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+  apply (norm_sum_le _ _).trans,
+  apply sum_le_sum (λ c hc, _),
+  apply (comp_along_composition_norm _ _ _).trans,
+  apply mul_le_mul_of_nonneg_right (hp _),
+  exact prod_nonneg (λ j hj, norm_nonneg _),
+end
+... = I * a + I * C * ∑ k in Ico 2 (n + 1), a ^ k *
+  (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
+      r ^ c.length * ∏ j, ∥p.right_inv i (c.blocks_fun j)∥) :
+begin
+  simp_rw [mul_assoc C, ← mul_sum, ← mul_assoc, mul_comm _ (∥↑i.symm∥), mul_assoc, ← mul_sum,
+    ← mul_assoc, mul_comm _ C, mul_assoc, ← mul_sum],
+  ring,
+end
+... ≤ I * a + I * C * ∑ k in Ico 2 (n+1), (r * ((∑ j in Ico 1 n, a ^ j * ∥p.right_inv i j∥))) ^ k :
+begin
+  apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, norm_nonneg, hC, mul_nonneg],
+  simp_rw [mul_pow],
+  apply radius_right_inv_pos_of_radius_pos_aux1 n (λ k, ∥p.right_inv i k∥)
+    (λ k, norm_nonneg _) hr ha,
+end
+
+/-- If a a formal multilinear series has a positive radius of convergence, then its right inverse
+also has a positive radius of convergence. -/
+theorem radius_right_inv_pos_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
+  (hp : 0 < p.radius) : 0 < (p.right_inv i).radius :=
+begin
+  obtain ⟨C, r, Cpos, rpos, ple⟩ : ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ (n : ℕ), ∥p n∥ ≤ C * r ^ n :=
+    le_mul_pow_of_radius_pos p hp,
+  let I := ∥(i.symm : F →L[𝕜] E)∥,
+  -- choose `a` small enough to make sure that `∑_{k ≤ n} aᵏ Qₖ` will be controllable by
+  -- induction
+  obtain ⟨a, apos, ha1, ha2⟩ : ∃ a (apos : 0 < a),
+    (2 * I * C * r^2 * (I + 1) ^ 2 * a ≤ 1) ∧ (r * (I + 1) * a ≤ 1/2),
+  { have : tendsto (λ a, 2 * I * C * r^2 * (I + 1) ^ 2 * a) (𝓝 0)
+      (𝓝 (2 * I * C * r^2 * (I + 1) ^ 2 * 0)) := tendsto_const_nhds.mul tendsto_id,
+    have A : ∀ᶠ a in 𝓝 0, 2 * I * C * r^2 * (I + 1) ^ 2 * a < 1,
+      by { apply (tendsto_order.1 this).2, simp [zero_lt_one] },
+    have : tendsto (λ a, r * (I + 1) * a) (𝓝 0)
+      (𝓝 (r * (I + 1) * 0)) := tendsto_const_nhds.mul tendsto_id,
+    have B : ∀ᶠ a in 𝓝 0, r * (I + 1) * a < 1/2,
+      by { apply (tendsto_order.1 this).2, simp [zero_lt_one] },
+    have C : ∀ᶠ a in 𝓝[set.Ioi (0 : ℝ)] (0 : ℝ), (0 : ℝ) < a,
+      by { filter_upwards [self_mem_nhds_within], exact λ a ha, ha },
+    rcases (C.and ((A.and B).filter_mono inf_le_left)).exists with ⟨a, ha⟩,
+    exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },
+  -- check by induction that the partial sums are suitably bounded, using the choice of `a` and the
+  -- inductive control from Lemma `radius_right_inv_pos_of_radius_pos_aux2`.
+  let S := λ n, ∑ k in Ico 1 n, a ^ k * ∥p.right_inv i k∥,
+  have IRec : ∀ n, 1 ≤ n → S n ≤ (I + 1) * a,
+  { apply nat.le_induction,
+    { simp only [S],
+      rw [Ico.eq_empty_of_le (le_refl 1), sum_empty],
+      exact mul_nonneg (add_nonneg (norm_nonneg _) zero_le_one) apos.le },
+    { assume n one_le_n hn,
+      have In : 2 ≤ n + 1, by linarith,
+      have Snonneg : 0 ≤ S n :=
+        sum_nonneg (λ x hx, mul_nonneg (pow_nonneg apos.le _) (norm_nonneg _)),
+      have rSn : r * S n ≤ 1/2 := calc
+        r * S n ≤ r * ((I+1) * a) : mul_le_mul_of_nonneg_left hn rpos.le
+        ... ≤ 1/2 : by rwa [← mul_assoc],
+      calc S (n + 1) ≤ I * a + I * C * ∑ k in Ico 2 (n + 1), (r * S n)^k :
+         radius_right_inv_pos_of_radius_pos_aux2 In p i rpos.le apos.le Cpos.le ple
+      ... = I * a + I * C * (((r * S n) ^ 2 - (r * S n) ^ (n + 1)) / (1 - r * S n)) :
+        by { rw geom_sum_Ico' _ In, exact ne_of_lt (rSn.trans_lt (by norm_num)) }
+      ... ≤ I * a + I * C * ((r * S n) ^ 2 / (1/2)) :
+        begin
+          apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, mul_nonneg, norm_nonneg,
+            Cpos.le],
+          refine div_le_div (pow_two_nonneg _) _ (by norm_num) (by linarith),
+          simp only [sub_le_self_iff],
+          apply pow_nonneg (mul_nonneg rpos.le Snonneg),
+        end
+      ... = I * a + 2 * I * C * (r * S n) ^ 2 : by ring
+      ... ≤ I * a + 2 * I * C * (r * ((I + 1) * a)) ^ 2 :
+        by apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, mul_nonneg, norm_nonneg,
+            Cpos.le, zero_le_two, pow_le_pow_of_le_left, rpos.le]
+      ... = (I + 2 * I * C * r^2 * (I + 1) ^ 2 * a) * a : by ring
+      ... ≤ (I + 1) * a :
+        by apply_rules [mul_le_mul_of_nonneg_right, apos.le, add_le_add, le_refl] } },
+  -- conclude that all coefficients satisfy `aⁿ Qₙ ≤ (I + 1) a`.
+  let a' : nnreal := ⟨a, apos.le⟩,
+  suffices H : (a' : ennreal) ≤ (p.right_inv i).radius,
+    by { apply lt_of_lt_of_le _ H, exact_mod_cast apos },
+  apply le_radius_of_bound _ ((I + 1) * a) (λ n, _),
+  by_cases hn : n = 0,
+  { have : ∥p.right_inv i n∥ = ∥p.right_inv i 0∥, by congr; try { rw hn },
+    simp only [this, norm_zero, zero_mul, right_inv_coeff_zero],
+    apply_rules [mul_nonneg, add_nonneg, norm_nonneg, zero_le_one, apos.le] },
+  { have one_le_n : 1 ≤ n := bot_lt_iff_ne_bot.2 hn,
+    calc ∥p.right_inv i n∥ * ↑a' ^ n = a ^ n * ∥p.right_inv i n∥ : mul_comm _ _
+    ... ≤ ∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥ :
+      begin
+        have : ∀ k ∈ Ico 1 (n + 1), 0 ≤ a ^ k * ∥p.right_inv i k∥ :=
+          λ k hk, mul_nonneg (pow_nonneg apos.le _) (norm_nonneg _),
+        exact single_le_sum this (by simp [one_le_n]),
+      end
+    ... ≤ (I + 1) * a : IRec (n + 1) (by dec_trivial) }
+end
 
 end formal_multilinear_series

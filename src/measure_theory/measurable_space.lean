@@ -395,6 +395,21 @@ begin
   simp,
 end
 
+lemma Sup_eq_generate_from {α} {Mf : set (measurable_space α)} : 
+  (Sup Mf) = measurable_space.generate_from (⋃₀ (set.image measurable_set' Mf)) := begin
+  apply le_antisymm,
+  { rw Sup_le_iff, intros b h_b s h_s,
+    apply measurable_set_generate_from,
+    simp only [exists_prop, set.mem_Union, set.sUnion_image],
+    use b, apply and.intro h_b h_s },
+  { apply measurable_space.generate_from_le,
+    intros s h_s,
+    apply (@measurable_space.measurable_set_Sup α Mf s).2,
+    apply measurable_space.generate_measurable.basic,
+    simp only [exists_prop, set.mem_Union, set.sUnion_image] at h_s,
+    simp only [exists_prop, set.mem_set_of_eq], apply h_s },
+end
+
 end complete_lattice
 
 section functors

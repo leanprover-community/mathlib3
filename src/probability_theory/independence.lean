@@ -67,39 +67,14 @@ Part A, Chapter 4.
 open measure_theory measurable_space
 open_locale big_operators classical
 
---- Move to measurable_space. ----
-lemma supr_eq_generate_from {α} {β : Type*} {Mf : β → measurable_space α} : 
-  (supr Mf) = measurable_space.generate_from (⋃ (b : β), (Mf b).measurable_set') := begin
-  apply le_antisymm,
-  { apply @supr_le (measurable_space α) _ _,
-    intros b, intros s h, 
-    apply measurable_space.measurable_set_generate_from,
-    simp,
-    apply exists.intro b,
-    apply h },
-  { apply measurable_space.generate_from_le,
-    intros s h_s,
-    apply (@measurable_space.measurable_set_supr α β Mf s).2,
-    apply measurable_space.generate_measurable.basic,
-    rw set.mem_Union at h_s, rw set.mem_set_of_eq, apply h_s },
+lemma set.Inter_finset_congr {α} {β : Type*} {T : finset β} (f g : β → set α)
+  (h_congr : ∀ (i ∈ T), f i = g i) : (⋂ (i∈ T), f i) = (⋂ (i ∈ T), g i) := begin
+  ext a, split; simp only [set.mem_Inter]; intros h1 i h_i,
+  rw  ← h_congr i h_i,
+  apply h1 i h_i,
+  rw h_congr i h_i,
+  apply h1 i h_i
 end
-
-lemma Sup_eq_generate_from {α} {Mf : set (measurable_space α)} : 
-  (Sup Mf) = measurable_space.generate_from (⋃₀ (set.image measurable_set' Mf)) := begin
-  apply le_antisymm,
-  { rw Sup_le_iff, intros b h_b s h_s,
-    apply measurable_set_generate_from,
-    simp only [exists_prop, set.mem_Union, set.sUnion_image],
-    use b, apply and.intro h_b h_s },
-  { apply measurable_space.generate_from_le,
-    intros s h_s,
-    apply (@measurable_space.measurable_set_Sup α Mf s).2,
-    apply measurable_space.generate_measurable.basic,
-    simp only [exists_prop, set.mem_Union, set.sUnion_image] at h_s,
-    simp only [exists_prop, set.mem_set_of_eq], apply h_s },
-end
-
-
 
 namespace probability_theory
 
@@ -173,7 +148,7 @@ lemma indep.symm {α} {m₁ m₂ : measurable_space α} [measurable_space α] {�
   indep m₂ m₁ μ :=
 indep_sets.symm h
 
-lemma indep_set.symm {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) : 
+lemma indep_set.symm {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) :
 indep_set s t μ → indep_set t s μ := begin
   intros h,
   apply indep_sets.symm,
@@ -351,7 +326,7 @@ end
 
 #check indep_sets.indep
 
-lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α} 
+lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
   {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t := begin
   unfold indep_set,
   unfold indep_sets,
@@ -361,7 +336,7 @@ lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
   intros s1 t1 h_s1 h_t1,
   substs s1 t1,
   apply h,
-end 
+end
 
 lemma indep_sets.indep_set {α} {m : measurable_space α}
   {μ : measure α} {p1 p2 : set (set α)} (hyp : indep_sets p1 p2 μ)
@@ -372,16 +347,15 @@ begin
   apply hyp _ _ h1 h2,
 end
 
-
-lemma indep_Sup_Sup'' {α} {β : Type*} [M : measurable_space α] {μ : measure α}
+lemma indep_Sup_Sup {α} {β : Type*} [M : measurable_space α] {μ : measure α}
   [P : probability_measure μ] {Mf : β → measurable_space α}
   (h_meas_Mf : ∀ b, Mf b ≤ M)
   {S1 S2 : set β} (h_disj : disjoint S1 S2)
-  (h_ind_pair : ∀ (T1 T2 : finset β) (f1 f2 : β → set α), 
-  ↑T1 ⊆ S1 → (↑T2 ⊆ S2) → 
+  (h_ind_pair : ∀ (T1 T2 : finset β) (f1 f2 : β → set α),
+  ↑T1 ⊆ S1 → (↑T2 ⊆ S2) →
     (∀ b ∈ T1, (Mf b).measurable_set' (f1 b)) →
     (∀ b ∈ T2, (Mf b).measurable_set' (f2 b)) →
-   indep_set (⋂ b ∈ T1, f1 b) (⋂ b ∈ T2, f2 b) μ) : 
+   indep_set (⋂ b ∈ T1, f1 b) (⋂ b ∈ T2, f2 b) μ) :
    indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ := begin
   have h_set_union : ∀ (S:set β), ⋃₀ (measurable_set' '' (Mf '' S)) =
     (⋃ (b∈ S), (Mf b).measurable_set'),
@@ -391,7 +365,6 @@ lemma indep_Sup_Sup'' {α} {β : Type*} [M : measurable_space α] {μ : measure 
   apply indep_sets.indep,
   repeat { apply @Sup_le (measurable_space α) _,
     intros M' h_M', rcases h_M' with ⟨b', ⟨h_b', rfl⟩⟩, apply h_meas_Mf b' },
-  --apply is_pi_system_generate_pi_system (⋃₀ (Mf.measurable_set'),
   apply is_pi_system_generate_pi_system (⋃₀ (measurable_set' '' (Mf '' S1))),
   apply is_pi_system_generate_pi_system (⋃₀ (measurable_set' '' (Mf '' S2))),
   repeat { rw [Sup_eq_generate_from, generate_from_generate_pi_system_eq] },
@@ -399,20 +372,19 @@ lemma indep_Sup_Sup'' {α} {β : Type*} [M : measurable_space α] {μ : measure 
   rw ← indep_set_iff,
   rw h_set_union S1 at h_s1,
   rw h_set_union S2 at h_s2,
-  have h_union_s1 := is_pi_system_union'' (λ b (h:b∈ S1), h_is_pi_system b) s1 h_s1,
-  have h_union_s2 := is_pi_system_union'' (λ b (h:b∈ S2), h_is_pi_system b) s2 h_s2,
+  have h_union_s1 := mem_generate_pi_system_Union_elim' (λ b (h:b∈ S1), h_is_pi_system b) s1 h_s1,
+  have h_union_s2 := mem_generate_pi_system_Union_elim' (λ b (h:b∈ S2), h_is_pi_system b) s2 h_s2,
   rcases h_union_s1 with ⟨T1, ⟨f1, ⟨h_T1_sub, ⟨rfl, h_union_s1⟩⟩⟩⟩,
   rcases h_union_s2 with ⟨T2, ⟨f2, ⟨h_T2_sub, ⟨rfl, h_union_s2⟩⟩⟩⟩,
   apply h_ind_pair T1 T2 f1 f2 h_T1_sub h_T2_sub h_union_s1 h_union_s2,
 end
 
-#check finset.mem_coe
-lemma Indep_elim {α} {β} [M : measurable_space α] {μ : measure α} [P : probability_measure μ] 
+lemma Indep_elim {α} {β} [M : measurable_space α] {μ : measure α} [P : probability_measure μ]
   {Mf : β → measurable_space α} (h_le : ∀ b, Mf b ≤ M) (h_ind : Indep Mf μ) {S1 S2 : set β}
   (h_disj : disjoint S1 S2) : (indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ) :=
 begin
   classical,
-  apply indep_Sup_Sup'' h_le h_disj,
+  apply indep_Sup_Sup h_le h_disj,
   intros T1 T2 f1 f2 h_T1_sub h_T2_sub h_T1_meas h_T2_meas,
   rw indep_set_iff,
   unfold Indep Indep_sets at h_ind,
@@ -449,7 +421,9 @@ begin
   apply P,
 end
 
-lemma Indep_elim' {α} {β} [M : measurable_space α] (μ : measure α) [probability_measure μ] (Mf : β → measurable_space α) (h_le : ∀ b, Mf b ≤ M) (h_ind : Indep Mf μ) (s : set β) (t : β) (h_t_notin_s : t ∉ s) : (indep (Sup (Mf '' s)) (Mf t) μ) :=
+lemma Indep_elim' {α} {β} [M : measurable_space α] (μ : measure α) [probability_measure μ]
+  (Mf : β → measurable_space α) (h_le : ∀ b, Mf b ≤ M) (h_ind : Indep Mf μ) (s : set β)
+  (t : β) (h_t_notin_s : t ∉ s) : (indep (Sup (Mf '' s)) (Mf t) μ) :=
 begin
   have h1 : Mf t = (Sup (Mf '' {t})),
   { simp },

@@ -367,8 +367,8 @@ src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/set/basic.lean : line 2337 : ERR_LIN : Line has more than 100 characters
-src/data/set/basic.lean : line 884 : ERR_LIN : Line has more than 100 characters
+src/data/set/basic.lean : line 2340 : ERR_LIN : Line has more than 100 characters
+src/data/set/basic.lean : line 887 : ERR_LIN : Line has more than 100 characters
 src/data/set/countable.lean : line 143 : ERR_LIN : Line has more than 100 characters
 src/data/set/countable.lean : line 159 : ERR_LIN : Line has more than 100 characters
 src/data/set/disjointed.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -852,5 +852,5 @@ src/topology/uniform_space/separation.lean : line 421 : ERR_LIN : Line has more 
 src/topology/uniform_space/separation.lean : line 423 : ERR_LIN : Line has more than 100 characters
 src/topology/uniform_space/uniform_convergence.lean : line 320 : ERR_LIN : Line has more than 100 characters
 src/topology/uniform_space/uniform_embedding.lean : line 348 : ERR_LIN : Line has more than 100 characters
-src/topology/uniform_space/uniform_embedding.lean : line 394 : ERR_LIN : Line has more than 100 characters
-src/topology/uniform_space/uniform_embedding.lean : line 401 : ERR_LIN : Line has more than 100 characters
+src/topology/uniform_space/uniform_embedding.lean : line 393 : ERR_LIN : Line has more than 100 characters
+src/topology/uniform_space/uniform_embedding.lean : line 400 : ERR_LIN : Line has more than 100 characters

@@ -213,320 +213,99 @@ begin
 end
 
 
-lemma finite_integers {M : ℝ} :
-  set.finite {c : ℤ | |(c : ℝ)| ≤ M } :=
-begin
-    let s:= finset.Ico_ℤ (⌊-M⌋) (⌊M⌋+1),
-    suffices : {c : ℤ | |↑c| ≤ M} ⊆  s,
-    {
-      refine set.finite.subset s.finite_to_set this,
-    },
-    intros c,
-    simp [s],
-    intros h,
-    rw abs_le at h,
-    have h1 := h.1,
-    have h2 := h.2,
-    split,
-    {
-      have : (⌊-M⌋ :ℝ ) ≤ -M :=  floor_le (-M),
-      have := le_trans this h1,
-      exact_mod_cast this,
-    },
-    {
-      have : (c:ℝ ) < (⌊M⌋:ℝ) + 1,
-      {
-        calc
-        (c:ℝ) ≤ M           : h2
-        ...   < (⌊M⌋:ℝ) + 1 : M_lt_Mp1 M,
-      },
-
-      norm_cast at this,
-      exact this,
-    },
-end
-
---def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 
 instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
 
+section finite_pairs
 
--- (HM) here's a rephasing, I think it's cleaner, do you like it?
--- lemma cdxy_bnd (x y M : ℝ) (hy : 0 < y) (hM : 0 ≤ M) :
---   ∃ C : nnreal, ∀ c d : ℤ, ((↑c * x + d) ^ 2 + (c * y) ^ 2 ≤ M) → ∥((c:ℝ), (d:ℝ))∥ ≤ C :=
-lemma cdxy_bnd (x y M : ℝ) (c d : ℤ) (h : (↑c * x + d) ^ 2 + (c * y) ^ 2 ≤ M) (hy : 0 < y)
-  (hM : 0 ≤ M) :
-  |(c:ℝ)| ≤ real.sqrt (M / y ^ 2) ∧ |(d:ℝ)| ≤ real.sqrt M + real.sqrt (M / y ^ 2) * |x| :=
+open filter continuous_linear_map
+
+lemma tendsto_at_top_sum_sq :
+  tendsto (λ x : ℝ × ℝ, x.1 ^ 2 + x.2 ^ 2) (cocompact (ℝ × ℝ)) at_top :=
 begin
-  have h₁ : ∀ p : ℝ × ℝ, ∥(p.2, y * p.1 - x * p.2)∥ ≤ (max (1:ℝ) (|x| + |y|)) * ∥p∥,
-  { rintros ⟨p₁, p₂⟩,
-    simp only [prod.norm_def, max_le_iff],
-    split,
-    { have := le_max_right (∥p₁∥) (∥p₂∥),
-      have := le_max_left (1:ℝ) (|x| + |y|),
-      have := norm_nonneg p₂,
-      nlinarith },
-    { have := le_max_right (∥p₁∥) (∥p₂∥),
-      have := le_max_left (∥p₁∥) (∥p₂∥),
-      have := le_max_right (1:ℝ) (|x| + |y|),
-      have := _root_.abs_nonneg x,
-      have := _root_.abs_nonneg y,
-      have : 0 ≤ max (∥p₁∥) (∥p₂∥) := le_max_left_of_le (norm_nonneg _),
-      calc ∥y * p₁ - x * p₂∥ ≤ ∥y * p₁∥ + ∥x * p₂∥ : norm_sub_le _ _
-      ... = |y| * ∥p₁∥ + |x| * ∥p₂∥ : by simp [normed_field.norm_mul, _root_.abs_mul, real.norm_eq_abs]
-      ... ≤ max 1 (|x| + |y|) * (max ∥p₁∥ ∥p₂∥) : by nlinarith } },
-  have h₂ : y * ∥((c:ℝ), (d:ℝ))∥ ≤ max 1 (|x| + |y|) * ∥(↑c * x + ↑d, ↑c * y)∥,
-  { have : ∥y∥ = y := abs_of_pos hy,
-    rw [← this, ← norm_smul, prod.smul_mk],
-    convert h₁ (c * x + d, c * y) using 3,
-    { simp [mul_comm] },
-    { simp, ring },
-    { simp [real.norm_eq_abs] },
-    { simp [this] } },
-  have h₃ : ∥(↑c * x + ↑d, ↑c * y)∥ ≤ real.sqrt M,
-  { simp only [prod.norm_def, max_le_iff],
-    split;
-    { rw [real.le_sqrt (norm_nonneg _) hM, real.norm_eq_abs, sqr_abs],
-      nlinarith } },
-  sorry -- now the result is a combination of h₂ and h₃
+  refine tendsto_at_top_mono _
+    (tendsto_norm_cocompact_at_top.at_top_mul_at_top tendsto_norm_cocompact_at_top),
+  rintros ⟨x₁, x₂⟩,
+  simp only [prod.norm_def, real.norm_eq_abs],
+  cases max_choice (|x₁|) (|x₂|);
+  { rw [h, abs_mul_abs_self],
+    nlinarith },
 end
 
--- begin
---   simp at this,
---   have y_sq_nonneg : 0 ≤ y^2 := pow_two_nonneg y,
---   have y_sq_pos : 0 < y^2 := pow_pos hy 2,
---   have y_sq_nonz : y^2 ≠ 0 := ne_of_gt y_sq_pos,
-
---   have bnd1 : |↑c| ≤ real.sqrt (M / y ^ 2),
---   {
---     have : (↑c * y) ^ 2 ≤ M,
---     {
---       have : 0 ≤  ( (c:ℝ) * x + d)^2,
---       {
---         exact pow_two_nonneg (↑c * x + ↑d),
---       },
---       linarith,
---     },
---     have : (↑c) ^ 2 ≤ M / y^2,
---     {
---       rw (_ : (↑c * y) ^ 2 = (↑c)^2 * y ^ 2 ) at this,
---       rw (_ : M = M / y^2 * y ^ 2 ) at this,
---       convert div_le_div_of_le y_sq_nonneg this,
---       field_simp [y_sq_nonz],
---       field_simp [y_sq_nonz],
---       field_simp [y_sq_nonz],
---       ring,
---     },
-
---     refine real.abs_le_sqrt this,
---   },
-
---   split,
---   exact bnd1,
-
---   have : ((c:ℝ) * x + d) ^ 2 ≤ M,
---   {
---     have : 0 ≤ ( (c:ℝ) * y)^2,
---     {
---       exact pow_two_nonneg _,
---     },
---     linarith,
---   },
---   have := real.abs_le_sqrt this,
---   rw abs_le at this,
---   rw abs_le,
---   have bnd2 := abs_le.1 bnd1,
---   split,
---   {
---     calc
---     -(real.sqrt M + real.sqrt (M / y ^ 2) * |x|)
---     = -real.sqrt M - real.sqrt (M / y ^ 2) * |x| : by ring
---     ... ≤ -real.sqrt M - |c| * |x| : _
---     ... = -real.sqrt M - |c * x| : _
---     ... ≤ -real.sqrt M - c * x : _
---     ... ≤  ↑d : _,
-
---     have : 0 ≤ |x| := abs_nonneg x,
-
---     simp [bnd1, this],
---     exact mul_mono_nonneg this bnd1,
-
---     simp,
-
---     symmetry,
---     refine abs_mul _ _, --- NOT WORKING???
-
---     simp,
---     exact le_abs_self (↑c * x),
-
---     linarith,
---   },
---   calc
---   ↑d ≤ real.sqrt M + - c * x : _
---   ... ≤ real.sqrt M + | -(c:ℝ ) * x| : _
---   ... = real.sqrt M + | ((c:ℝ ) * x)| : _
---   ... = real.sqrt M + |c| * |x| : _
---   ... ≤ real.sqrt M + real.sqrt (M / y ^ 2) * |x| : _,
-
---   linarith,
-
---   have := le_abs_self (-↑c * x),
---   refine add_le_add_left this _,
-
---   simp,
-
---   simp,
---   refine abs_mul _ _,
-
---   simp [bnd1],
---   have : 0 ≤ |x| := abs_nonneg x,
---   exact mul_mono_nonneg this bnd1,
--- end
-
-/-
--/
-
-lemma cdxy_bnd' (z:H) (M :ℝ ) (c d :ℤ ) (h : norm_sq (c*z + d) ≤ M)
-(hM : 0 ≤ M) :
-(⌊-real.sqrt (M / z.val.im ^ 2)⌋ ≤ c
-∧ c < ⌊real.sqrt (M / z.val.im ^ 2)⌋ + 1)
-∧ ⌊-(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M⌋ ≤ d
-∧ d < ⌊real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re|⌋ + 1
-:=
+lemma filter.tendsto.finite_preimage {α : Type*} {f : α → ℝ} (hf : tendsto f cofinite at_top) (M : ℝ) :
+  set.finite {c : α | f c ≤ M} :=
 begin
-  have : norm_sq (↑c * ↑z + ↑d) = (c*z.val.re + d)^2 + (c*z.val.im)^2,
-  {
-    rw norm_sq,
-    simp,
-    ring,
-  },
-  rw this at h,
-  have y_pos : 0<z.val.im := im_pos_of_in_H.mp z.2,
-  have bnd1 := cdxy_bnd (z.val.re) (z.val.im) M c d h y_pos hM,
-  have bnd11 := bnd1.1,
-  have bnd12 := bnd1.2,
-  clear bnd1,
-  rw abs_le at bnd11,
-  rw abs_le at bnd12,
-  split,
-  split,
-  {
+  obtain ⟨v, hv, hvM⟩ : ∃ v ∈ cofinite, ∀ y ∈ v, M + 1 ≤ f y,
+  { rw tendsto_at_top at hf,
+    have := hf (M + 1),
+    rwa eventually_iff_exists_mem at this },
+  rw mem_cofinite at hv,
+  refine hv.subset _,
+  rintros y (hy : f y ≤ M) hy',
+  have : M + 1 ≤ f y := hvM y hy',
+  linarith
+end
 
-    suffices :
-    (⌊ - real.sqrt (M / z.val.im ^ 2) ⌋:ℝ )  ≤ (c:ℝ )   ,
-    {
-      norm_cast at this,
-      exact this,
-    },
+lemma embedding_coe_int : embedding (coe : ℤ → ℝ) :=
+begin
+  sorry
+end
 
-    calc
-    (⌊ - real.sqrt (M / z.val.im ^ 2) ⌋:ℝ )  ≤
-     - real.sqrt (M / z.val.im ^ 2)  : _
-    ... ≤ (c:ℝ ) : _,
+lemma tendsto_cocompact_of_embedding {α β : Type*} [topological_space α] [topological_space β]
+  {f : α → β} (hf : embedding f) :
+  tendsto f (cocompact α) (cocompact β) :=
+begin
+  sorry
+end
 
-    refine floor_le _,
-
-    exact bnd11.1,
-  },
-
-  {
-    suffices :
-    (c:ℝ ) < ⌊real.sqrt (M / z.val.im ^ 2)⌋ + 1,
-    {
-      norm_cast at this,
-      exact this,
-    },
-
-
-    calc
-    (c:ℝ ) ≤
-    real.sqrt (M / z.val.im ^ 2) : bnd11.2
-    ... < ⌊real.sqrt (M / z.val.im ^ 2)⌋ + 1 : _,
-
-    refine lt_floor_add_one _,
-  },
-
-  split,
-
-  {
-    suffices :
-    (⌊-(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M⌋:ℝ ) ≤ d,
-    {
-      norm_cast at this,
-      exact this,
-    },
-    calc
-    (⌊-(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M⌋:ℝ ) ≤
-    -(real.sqrt (M / z.val.im ^ 2) * |z.val.re|) + -real.sqrt M : _
-    ... ≤ d : _,
-
-    refine floor_le _,
-
-    convert bnd12.1 using 1,
-    ring,
-  },
-
-  suffices :
-  (d:ℝ ) < ⌊real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re|⌋ + 1,
-  {
-    norm_cast at this,
-    exact this,
-  },
-  calc
-  (d:ℝ ) ≤ real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re| : bnd12.2
-  ... < ⌊real.sqrt M + real.sqrt (M / z.val.im ^ 2) * |z.val.re|⌋ + 1 : _,
-
-  refine lt_floor_add_one _,
+lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
+  {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
+  tendsto f (cocompact α) (cocompact β) :=
+begin
+  rw tendsto_iff_eventually,
+  simp only [mem_cocompact, eventually_iff_exists_mem],
+  rintros p ⟨v, hv, hvp⟩,
+  rw mem_cocompact at hv,
+  obtain ⟨t, ht, htv⟩ := hv,
+  refine ⟨(g '' t)ᶜ, _, _⟩,
+  { rw mem_cocompact,
+    refine ⟨g '' t, ht.image hg, rfl.subset⟩ },
+  intros x hx,
+  have : f x ∈ v,
+  { apply htv,
+    intros h,
+    apply hx,
+    have h₁ : g (f x) ∈ g '' t := ⟨f x, h, rfl⟩,
+    convert h₁,
+    calc x = id x : by simp
+    ... = (g ∘ f) x : by { congr, rw hfg } },
+  exact hvp (f x) this
 end
 
 lemma finite_pairs (M : ℝ) (z : H) :
-  set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} :=
+  set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq ≤ M} :=
 begin
-  by_cases M_nonneg : M < 0,
-  {
-    have : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} ⊆ ∅ ,
-    {
-      intros cd,
-      intros h,
-      simp at h,
-      exfalso,
-      have : 0 ≤  (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ,
-      {
-        refine norm_sq_nonneg _,
-      },
-      linarith,
-    },
-    have : {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M} = ∅,
-    {
-      refine set.eq_empty_of_subset_empty  this,
-    },
-    rw this,
-    simp,
-  },
-  {
-    simp at M_nonneg,
-    let s1 := finset.Ico_ℤ (⌊-real.sqrt (M / (z.val.im)^2)⌋) (⌊real.sqrt (M / z.val.im^2)⌋+1),
-    let s2 := finset.Ico_ℤ (⌊- ((real.sqrt M) + real.sqrt (M / z.val.im^2) * |z.val.re|)⌋) (⌊(real.sqrt M) + real.sqrt (M / z.val.im^2) * |z.val.re|⌋+1),
-    let s : finset (ℤ × ℤ ):= s1.product s2,
-
-    suffices : (coe '' {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M}) ⊆  (s : set (ℤ × ℤ)),
---    suffices : ({cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ ).2 : ℂ)).norm_sq ≤ M}) ⊆  (((coe ⁻¹' (s : set (ℤ × ℤ))  : set coprime_ints))),
-    {
-      have := set.finite.subset s.finite_to_set this,
-      refine set.finite_of_finite_image _ this,
-      apply set.inj_on_of_injective,
-      refine subtype.coe_injective,
-    },
-    intros x hx,
-    simp at hx,
-    rcases hx with ⟨ w, ⟨nhw1, nhw2⟩⟩ ,
-    rw nhw2 at nhw1,
-    simp [s, s1, s2],
-
-    exact cdxy_bnd' z M x.1 x.2 nhw1 M_nonneg,
-  },
+  have h₁ : tendsto (λ c : ℝ × ℝ, (c.1 * (z:ℂ).re + c.2, c.1 * (z:ℂ).im)) (cocompact _) (cocompact _),
+  { let g : ℝ × ℝ →L[ℝ] ℝ × ℝ := (snd ℝ ℝ ℝ).prod ((z:ℂ).im • (fst ℝ ℝ ℝ) - (z:ℂ).re • (snd ℝ ℝ ℝ)),
+    apply tendsto_cocompact_of_left_inverse ((z:ℂ).im⁻¹ • g).continuous,
+    rintros ⟨c₁, c₂⟩,
+    have hz : 0 < (z:ℂ).im := z.2,
+    have : (z:ℂ).im ≠ 0 := hz.ne.symm,
+    field_simp [g],
+    ring },
+  have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
+  { convert tendsto_cocompact_of_embedding (embedding_coe_int.prod_mk embedding_coe_int),
+    rw cocompact_eq_cofinite },
+  have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
+  { convert tendsto_at_top_sum_sq.comp (h₁.comp h₂),
+    ext,
+    simp [norm_sq_apply],
+    ring },
+  exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))).finite_preimage M,
 end
+
+end finite_pairs
 
 variables {g : SL(2,ℤ)} {z : H}
 
@@ -1081,3 +860,155 @@ end
 
 -- @[simp]
 -- lemma mul_congr { x y : SL(2,ℤ)} : x * y = 1 ↔ x.1 * y.1 = 1 := by simp
+
+
+
+
+-- lemma e14 : at_top ≤ cocompact ℝ :=
+-- begin
+--   intros s hs,
+--   simp only [mem_at_top_sets],
+--   simp only [mem_cocompact] at hs,
+--   obtain ⟨t, ht, hts⟩ := hs,
+--   obtain ⟨r, hr⟩ := e7 ht.bounded,
+--   use r + 1,
+--   intros b hb,
+--   apply hts,
+--   intros hb',
+--   have := hr _ hb',
+--   simp only [real.norm_eq_abs, abs_le] at this,
+--   linarith
+-- end
+
+-- lemma e16 {E : Type*} [normed_group E] [normed_space ℝ E] [proper_space E] [nontrivial E] (s : set ℝ) :
+--   norm ⁻¹' s ∈ cocompact E ↔ s ∈ (at_top : filter ℝ) :=
+-- begin
+--   rw [mem_at_top_sets, mem_cocompact],
+--   split,
+--   { rintros ⟨t, ht, hts⟩,
+--     obtain ⟨r, hr⟩ := e7 ht.bounded,
+--     use r + 1,
+--     intros b hb,
+--     obtain ⟨x, hx⟩ : ∃ x : E, x ≠ 0 := exists_ne 0,
+--     have h_norm : ∥b • (∥x∥)⁻¹ • x∥ = b := sorry,
+--     have : b • (∥x∥)⁻¹ • x ∈ tᶜ,
+--     { have := mt (hr (b • (∥x∥)⁻¹ • x)),
+--       apply this,
+--       linarith },
+--     simpa [h_norm] using hts this },
+--   { rintros ⟨r, hr⟩,
+--     refine ⟨metric.closed_ball 0 r, proper_space.compact_ball 0 r, _⟩,
+--     intros x hx,
+--     simp at hx,
+--     exact hr (∥x∥) hx.le },
+-- end
+
+-- lemma e17 {E : Type*} [normed_group E] [normed_space ℝ E] [proper_space E] [nontrivial E] :
+--   map norm (cocompact E) = (at_top : filter ℝ) :=
+-- begin
+--   ext s,
+--   exact e16 s
+-- end
+
+-- lemma e15 {α : Type*} {E : Type*} [normed_group E] [normed_space ℝ E] [proper_space E] [nontrivial E] (l : filter α) {f : α → E} :
+--   tendsto f l (cocompact E) ↔ tendsto (norm ∘ f) l at_top :=
+-- begin
+--   split,
+--   { exact tendsto_norm_cocompact_at_top.comp },
+--   sorry
+-- end
+
+
+-- lemma finite_integers {M : ℝ} :
+--   set.finite {c : ℤ | |(c : ℝ)| ≤ M } :=
+-- begin
+--     let s:= finset.Ico_ℤ (⌊-M⌋) (⌊M⌋+1),
+--     suffices : {c : ℤ | |↑c| ≤ M} ⊆  s,
+--     {
+--       refine set.finite.subset s.finite_to_set this,
+--     },
+--     intros c,
+--     simp [s],
+--     intros h,
+--     rw abs_le at h,
+--     have h1 := h.1,
+--     have h2 := h.2,
+--     split,
+--     {
+--       have : (⌊-M⌋ :ℝ ) ≤ -M :=  floor_le (-M),
+--       have := le_trans this h1,
+--       exact_mod_cast this,
+--     },
+--     {
+--       have : (c:ℝ ) < (⌊M⌋:ℝ) + 1,
+--       {
+--         calc
+--         (c:ℝ) ≤ M           : h2
+--         ...   < (⌊M⌋:ℝ) + 1 : M_lt_Mp1 M,
+--       },
+
+--       norm_cast at this,
+--       exact this,
+--     },
+-- end
+
+-- -- for `normed_space.basic`
+-- lemma metric.bounded.exists_norm_le {α : Type*} [normed_group α] {s : set α} (hs : metric.bounded s) :
+--   ∃ R, ∀ x ∈ s, ∥x∥ ≤ R :=
+-- begin
+--   rcases s.eq_empty_or_nonempty with (rfl | hs'),
+--   { simp },
+--   obtain ⟨R₁, hR₁⟩ := hs,
+--   obtain ⟨x, hx⟩ := hs',
+--   use ∥x∥ + R₁,
+--   intros y hy,
+--   have : ∥x - y∥ ≤ R₁ := by simpa [dist_eq_norm] using hR₁ x y hx hy,
+--   have := norm_le_insert x y,
+--   linarith
+-- end
+
+-- -- for `order.filter.basic`
+-- lemma e9 {α : Type*} (l : filter α) {s t : set α} (hst : s ∪ tᶜ ∈ l) (ht : t ∈ l) : s ∈ l :=
+-- begin
+--   refine mem_sets_of_superset _ (s.inter_subset_left t),
+--   convert inter_mem_sets hst ht using 1,
+--   ext,
+--   simp only [set.mem_inter_eq, set.mem_union_eq, set.mem_compl_eq],
+--   finish
+-- end
+
+
+-- lemma e10 {α : Type*} {l : filter α} {E F : Type*} [normed_group E] [normed_group F] [proper_space E]
+--   {f : α → E} {g : α → F} (h : asymptotics.is_O f g l) (hf : tendsto f l (cocompact E)) :
+--   tendsto g l (cocompact F) :=
+-- begin
+--   rw tendsto_def at ⊢ hf,
+--   intros s hs,
+--   simp [filter.mem_cocompact'] at hs,
+--   obtain ⟨t, ht, hts⟩ := hs,
+--   obtain ⟨r, hr⟩ : ∃ r, ∀ p ∈ sᶜ, ∥p∥ ≤ r := (ht.bounded.subset hts).exists_norm_le,
+--   rw asymptotics.is_O_iff at h,
+--   obtain ⟨c, hc⟩ := h,
+--   rw eventually_iff_exists_mem at hc,
+--   obtain ⟨v, hv, hvfg⟩ := hc,
+--   have : ∀ x ∈ v ∩ g ⁻¹' sᶜ, x ∈ f ⁻¹' metric.closed_ball (0:E) (c * r),
+--   { rintros x ⟨hxv, hxgs⟩,
+--     have := hr (g x) hxgs,
+--     have := hvfg x hxv,
+--     simp,
+--     sorry },
+--   have h₂ : f ⁻¹' (metric.closed_ball (0:E) (c * r))ᶜ ⊆ g ⁻¹' s ∪ vᶜ,
+--   { intros x,
+--     have := this x,
+--     simp only [set.mem_preimage, set.mem_inter_eq, set.mem_compl_eq] at this,
+--     simp only [set.mem_preimage, set.mem_union_eq, set.mem_compl_eq],
+--     contrapose!,
+--     finish },
+--   have h₃ : f ⁻¹' (metric.closed_ball 0 (c * r))ᶜ ∈ l,
+--   { apply hf (metric.closed_ball (0:E) (c * r))ᶜ,
+--     simp only [mem_cocompact'],
+--     refine ⟨metric.closed_ball (0:E) (c * r), proper_space.compact_ball 0 (c * r), _⟩,
+--     simp },
+--   have : g ⁻¹' s ∪ vᶜ ∈ l := mem_sets_of_superset h₃ h₂,
+--   refine e9 l this hv
+-- end

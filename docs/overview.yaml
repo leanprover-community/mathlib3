@@ -53,12 +53,11 @@ General algebra:
     ideal of a commutative ring: 'ideal'
     quotient ring: 'ideal.quotient'
     prime ideal: 'ideal.is_prime'
-    prime spectrum: 'prime_spectrum'
-    Zariski topology: 'prime_spectrum.zariski_topology'
     maximal ideal: 'ideal.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
     localization: 'localization'
     fractional ideal: 'ring.fractional_ideal'
+    first isomorphism theorem for commutative rings: 'ring_hom.quotient_ker_equiv_of_surjective'
 
   Divisibility in integral domains:
     irreducible element: 'irreducible'
@@ -70,9 +69,6 @@ General algebra:
     Euclidean domain: 'euclidean_domain'
     Euclid's' algorithm: 'nat.xgcd'
     Euler's totient function ($\varphi$): 'nat.totient'
-    sum of two squares: 'nat.prime.sum_two_squares'
-    sum of four squares: 'nat.sum_four_squares'
-    quadratic reciprocity: 'zmod.quadratic_reciprocity'
     Lucas-Lehmer primality test: 'lucas_lehmer_sufficiency'
 
   Polynomials and power series:
@@ -87,9 +83,7 @@ General algebra:
     irreducible polynomial: 'irreducible'
     Eisenstein's criterion: 'polynomial.irreducible_of_eisenstein_criterion'
     polynomial in several indeterminates: 'mv_polynomial'
-    Chevalley-Warning theorem: 'char_dvd_card_solutions'
     power series: 'power_series'
-    Hensel's lemma: 'hensels_lemma'
 
   Algebras over a ring:
     associative algebra over a commutative ring: 'algebra'
@@ -121,6 +115,19 @@ General algebra:
     chain complex: 'chain_complex'
     functorial homology: 'homological_complex.homology'
 
+  Number theory:
+    sum of two squares: 'nat.prime.sum_two_squares'
+    sum of four squares: 'nat.sum_four_squares'
+    quadratic reciprocity: 'zmod.quadratic_reciprocity'
+    "solutions to Pell's equation": 'pell.pell'
+    "Matiyasevič's theorem": 'pell.matiyasevic'
+    arithmetic functions: 'nat.arithmetic_function'
+    Bernoulli numbers: 'bernoulli'
+    Chevalley-Warning theorem: 'char_dvd_card_solutions'
+    "Hensel's lemma (for $\\mathbb{Z}_p$)": 'hensels_lemma'
+    ring of Witt vectors: 'witt_vector'
+    perfection of a ring: 'ring.perfection'
+
 Linear algebra:
   Fundamentals:
     module: 'module'
@@ -147,7 +154,7 @@ Linear algebra:
     determinant: 'matrix.det'
     invertibility: 'matrix.nonsing_inv'
   Endomorphism polynomials:
-    minimal polynomial: 'minimal_polynomial'
+    minimal polynomial: 'minpoly'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -277,7 +284,7 @@ Analysis:
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
     Fatou's lemma: 'measure_theory.lintegral_liminf_le'
     vector-valued integrable function (Bochner integral): 'measure_theory.integrable'
-    $L^1$ space: 'measure_theory.l1'
+    $L^p$ space: 'measure_theory.Lp'
     Bochner integral: 'measure_theory.integral'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
@@ -301,12 +308,14 @@ Geometry:
     tangent bundle: 'tangent_bundle'
     tangent map: 'tangent_map'
     Lie group: 'lie_group'
+    sphere: 'metric.sphere.smooth_manifold_with_corners'
 
   Algebraic geometry:
     prime spectrum: 'prime_spectrum'
     Zariski topology: 'prime_spectrum.zariski_topology'
     locally ringed space: 'algebraic_geometry.LocallyRingedSpace'
     scheme: 'algebraic_geometry.Scheme'
+    Nullstellensatz : 'mv_polynomial.vanishing_ideal_zero_locus_eq_radical'
 
 Combinatorics:
   Graph theory:
@@ -318,6 +327,8 @@ Combinatorics:
     finite: 'fintype.exists_ne_map_eq_of_card_lt'
     infinite: 'fintype.exists_infinite_fiber'
     strong pigeonhole principle: 'fintype.exists_lt_card_fiber_of_mul_lt_card'
+  Transversals:
+    Hall's marriage theorem: 'finset.all_card_le_bUnion_card_iff_exists_injective'
 
 Dynamics:
   Circle dynamics:

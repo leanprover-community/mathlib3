@@ -19,6 +19,10 @@ protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
 
+/-- Computationally friendlier cast than `nat.cast`, using binary representation. -/
+protected def bin_cast (n : ℕ) : α :=
+@nat.binary_rec (λ _, α) 0 (λ odd k a, cond odd (a + a + 1) (a + a)) n
+
 /--
 Coercions such as `nat.cast_coe` that go from a concrete structure such as
 `ℕ` to an arbitrary ring `α` should be set up as follows:
@@ -59,6 +63,7 @@ theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
 @[simp, norm_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
   (((ite P m n) : ℕ) : α) = ite P (m : α) (n : α) :=
 by { split_ifs; refl, }
+
 end
 
 @[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
@@ -66,6 +71,18 @@ end
 @[simp, norm_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm
 | (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]
+
+@[simp] lemma bin_cast_eq [add_monoid α] [has_one α] (n : ℕ) :
+  (nat.bin_cast n : α) = ((n : ℕ) : α) :=
+begin
+  rw nat.bin_cast,
+  apply binary_rec _ _ n,
+  { rw [binary_rec_zero, cast_zero] },
+  { intros b k h,
+    rw [binary_rec_eq, h],
+    { cases b; simp [bit, bit0, bit1] },
+    { simp } },
+end
 
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α :=
@@ -98,7 +115,8 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
 
-@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
+@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) :
+  ((m / n : ℕ) : α) = m / n :=
 begin
   rcases n_dvd with ⟨k, rfl⟩,
   have : n ≠ 0, {rintro rfl, simpa using n_nonzero},

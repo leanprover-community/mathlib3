@@ -68,8 +68,8 @@ end
 @[simp] lemma map_prod_comm_prod :
   map ↑(ring_equiv.prod_comm : R × S ≃+* S × R) (prod I J) = prod J I :=
 begin
-  rw [ideal_prod_eq (map _ _)],
-  simp [map_map]
+  refine trans (ideal_prod_eq _) _,
+  simp [map_map],
 end
 
 /-- Ideals of `R × S` are in one-to-one correspondence with pairs of ideals of `R` and ideals of
@@ -91,7 +91,7 @@ lemma is_prime_of_is_prime_prod_top {I : ideal R} (h : (ideal.prod I (⊤ : idea
 begin
   split,
   { unfreezingI { contrapose! h },
-    simp [is_prime, h] },
+    simp [is_prime_iff, h] },
   { intros x y hxy,
     have : (⟨x, 1⟩ : R × S) * ⟨y, 1⟩ ∈ prod I ⊤,
     { rw [prod.mk_mul_mk, mul_one, mem_prod],
@@ -130,7 +130,7 @@ lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} : (ideal.prod I J).is_pri
   I = ⊤ ∨ J = ⊤ :=
 begin
   contrapose!,
-  simp only [ne_top_iff_one, is_prime, not_and, not_forall, not_or_distrib],
+  simp only [ne_top_iff_one, is_prime_iff, not_and, not_forall, not_or_distrib],
   exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
 end
 
@@ -174,8 +174,8 @@ begin
   { rintros (⟨I, hI⟩|⟨J, hJ⟩) (⟨I',  hI'⟩|⟨J', hJ'⟩) h;
     simp [prod.ext_iff] at h,
     { simp [h] },
-    { exact false.elim (hI.1 h.1) },
-    { exact false.elim (hJ.1 h.2) },
+    { exact false.elim (hI.ne_top h.1) },
+    { exact false.elim (hJ.ne_top h.2) },
     { simp [h] } },
   { rintro ⟨I, hI⟩,
     rcases (ideal_prod_prime I).1 hI with (⟨p, ⟨hp, rfl⟩⟩|⟨p, ⟨hp, rfl⟩⟩),

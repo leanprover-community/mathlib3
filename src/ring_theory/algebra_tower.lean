@@ -7,7 +7,8 @@ Authors: Kenny Lau
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
-import ring_theory.adjoin
+import ring_theory.adjoin.basic
+import ring_theory.polynomial.tower
 
 /-!
 # Towers of algebras
@@ -37,15 +38,7 @@ variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra S B] [algebra R A] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
-variables (R) {S A B}
-
-instance polynomial : is_scalar_tower R S (polynomial A) :=
-of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R S A x
-
-variables (R S A)
-theorem aeval_apply (x : A) (p : polynomial R) : polynomial.aeval x p =
-  polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
-by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]
+variables (R S A B)
 
 /-- Suppose that `R -> S -> A` is a tower of algebras.
 If an element `r : R` is invertible in `S`, then it is invertible in `A`. -/
@@ -66,25 +59,6 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
 
-lemma algebra_map_aeval (x : A) (p : polynomial R) :
-  algebra_map A B (polynomial.aeval x p) = polynomial.aeval (algebra_map A B x) p :=
-by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.hom_eval₂,
-  ←is_scalar_tower.algebra_map_eq]
-
-lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero {x : A} {p : polynomial R}
-  (h : function.injective (algebra_map A B)) (hp : polynomial.aeval (algebra_map A B x) p = 0) :
-  polynomial.aeval x p = 0 :=
-begin
-  rw [← algebra_map_aeval, ← (algebra_map A B).map_zero] at hp,
-  exact h hp,
-end
-
-lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero_field {R A B : Type*} [comm_semiring R] [field A]
-  [comm_semiring B] [nontrivial B] [algebra R A] [algebra R B] [algebra A B] [is_scalar_tower R A B]
-  {x : A} {p : polynomial R} (h : polynomial.aeval (algebra_map A B x) p = 0) :
-  polynomial.aeval x p = 0 :=
-aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B (algebra_map A B).injective h
-
 end comm_semiring
 
 end is_scalar_tower
@@ -100,28 +74,38 @@ le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin h
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
   [is_scalar_tower R S A] (s : set S) :
-  adjoin R (algebra_map S A '' s) = subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
+  adjoin R (algebra_map S A '' s) =
+    subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
+lemma adjoin_res (C D E : Type*) [comm_semiring C] [comm_semiring D] [comm_semiring E]
+  [algebra C D] [algebra C E] [algebra D E] [is_scalar_tower C D E] (S : set E) :
+(algebra.adjoin D S).res C = ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)).under
+  (algebra.adjoin ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) S) :=
+begin
+  suffices : set.range (algebra_map D E) =
+    set.range (algebra_map ((⊤ : subalgebra C D).map (is_scalar_tower.to_alg_hom C D E)) E),
+  { ext x, change x ∈ subsemiring.closure (_ ∪ S) ↔ x ∈ subsemiring.closure (_ ∪ S), rw this },
+  ext x,
+  split,
+  { rintros ⟨y, hy⟩,
+    exact ⟨⟨algebra_map D E y, ⟨y, ⟨algebra.mem_top, rfl⟩⟩⟩, hy⟩ },
+  { rintros ⟨⟨y, ⟨z, ⟨h0, h1⟩⟩⟩, h2⟩,
+    exact ⟨z, eq.trans h1 h2⟩ },
+end
+
+lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semiring D]
+  [comm_semiring E] [comm_semiring F] [algebra C D] [algebra C E] [algebra C F] [algebra D F]
+  [algebra E F] [is_scalar_tower C D F] [is_scalar_tower C E F] {S : set D} {T : set E}
+  (hS : algebra.adjoin C S = ⊤) (hT : algebra.adjoin C T = ⊤) :
+(algebra.adjoin E (algebra_map D F '' S)).res C =
+  (algebra.adjoin D (algebra_map E F '' T)).res C :=
+by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
+  ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
+  is_scalar_tower.coe_to_alg_hom, ←algebra.adjoin_union, ←algebra.adjoin_union, set.union_comm] }
+
 end algebra
-
-namespace subalgebra
-
-open is_scalar_tower
-
-section comm_semiring
-
-variables (R) {S A} [comm_semiring R] [comm_semiring S] [comm_semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
-
-@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : polynomial R} :
-  polynomial.aeval (x : A) p = polynomial.aeval x p :=
-(algebra_map_aeval R S A x p).symm
-
-end comm_semiring
-
-end subalgebra
 
 section
 open_locale classical
@@ -216,7 +200,8 @@ begin
   have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi yj yk hyi hyj hyk,
     show function.uncurry f (yi * yj, yk) ∈ s,
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
-  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) :=
+  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
+               (↑(insert 1 y : finset C) : set C) :=
     λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj, smul_mem
       (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
       ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩

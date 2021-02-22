@@ -557,7 +557,8 @@ begin
     exact ⟨h x, by { rintros rfl, exact S.one_mem }⟩ },
 end
 
-@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) : nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
+@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) :
+  nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
 begin
   split,
   { introI h,

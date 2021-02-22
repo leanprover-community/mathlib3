@@ -117,6 +117,9 @@ protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
 
+@[simp] lemma mk_coe (f : M →ₗ[R] M₂) (h₁ h₂) :
+  (linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) = f := ext $ λ _, rfl
+
 variables (f g)
 
 @[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
@@ -420,7 +423,7 @@ def simps.inv_fun [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : 
 
 initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)
 
-@[simp] lemma inv_fun_apply {m : M₂} : e.inv_fun m = e.symm m := rfl
+@[simp] lemma inv_fun_eq_symm : e.inv_fun = e.symm := rfl
 
 variables {semimodule_M₃ : semimodule R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃)
 

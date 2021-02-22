@@ -3,9 +3,9 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-
-import analysis.normed_space.basic
-import analysis.complex.basic
+import data.real.sqrt
+import field_theory.tower
+import analysis.normed_space.finite_dimension
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -19,6 +19,9 @@ Possible applications include defining inner products and Hilbert spaces for bot
 complex case. One would produce the definitions and proof for an arbitrary field of this
 typeclass, which basically amounts to doing the complex case, and the two cases then fall out
 immediately from the two instances of the class.
+
+The instance for `ℝ` is registered in this file.
+The instance for `ℂ` is declared in `analysis.complex.basic`.
 
 ## Implementation notes
 
@@ -41,7 +44,8 @@ local notation `𝓚` := algebra_map ℝ _
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
-class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra ℝ K, complete_space K :=
+class is_R_or_C (K : Type*)
+  extends nondiscrete_normed_field K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
@@ -167,10 +171,14 @@ noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
 @[simp] lemma I_im' (z : K) : im (I : K) * im z = im z :=
 by rw [mul_comm, I_im _]
 
+lemma I_mul_re (z : K) : re (I * z) = - im z :=
+by simp only [I_re, zero_sub, I_im', zero_mul, mul_re]
+
 lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z
 @[simp] lemma conj_im (z : K) : im (conj z) = -(im z) := is_R_or_C.conj_im_ax z
+@[simp] lemma conj_I : conj (I : K) = -I := is_R_or_C.conj_I_ax
 @[simp] lemma conj_of_real (r : ℝ) : conj (r : K) = (r : K) :=
 by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_self, neg_zero] }
 
@@ -345,7 +353,7 @@ by { have := I_mul_I_ax, tauto }
 begin
   by_cases h : (I : K) = 0,
   { simp [h] },
-  { field_simp [h], simp [mul_assoc, I_mul_I_of_nonzero h] }
+  { field_simp [mul_assoc, I_mul_I_of_nonzero h] }
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
@@ -414,6 +422,11 @@ begin
   rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
 end
 
+theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
+begin
+  rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj],
+  simp [mul_add, sub_eq_add_neg, neg_div']
+end
 
 /-! ### Absolute value -/
 
@@ -660,53 +673,17 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   re_add_im_ax := λ z, by unfold_coes; simp [add_zero, id.def, mul_zero],
   of_real_re_ax := λ r, by simp only [add_monoid_hom.id_apply, algebra.id.map_eq_self],
   of_real_im_ax := λ r, by simp only [add_monoid_hom.zero_apply],
-  mul_re_ax := λ z w, by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  mul_re_ax := λ z w,
+    by simp only [sub_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_ax := λ z w, by simp only [add_zero, zero_mul, mul_zero, add_monoid_hom.zero_apply],
   conj_re_ax := λ z, by simp only [ring_hom.id_apply],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero,
+    add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax :=
-    begin
-      intro z,
-      unfold_coes,
-      have H : z ≠ 0 → 1 / z = z / (z * z) := λ h,
-        calc
-          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
-            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self h).symm
-            ... = z / (z * z)           : by field_simp,
-      rcases lt_trichotomy z 0 with hlt|heq|hgt,
-      { field_simp [norm, abs, max_eq_right_of_lt (show z < -z, by linarith), pow_two, mul_inv', ←H (ne_of_lt hlt)] },
-      { simp [heq] },
-      { field_simp [norm, abs, max_eq_left_of_lt (show -z < z, by linarith), pow_two, mul_inv', ←H (ne_of_gt hgt)] },
-    end,
+  inv_def_ax := λ z, by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
-
-noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
-{ re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
-  im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
-  conj := complex.conj,
-  I := complex.I,
-  I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
-  I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
-  re_add_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, complex.re_add_im,
-                                     complex.coe_algebra_map, complex.of_real_eq_coe],
-  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re,
-                                      complex.coe_algebra_map, complex.of_real_eq_coe],
-  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im,
-                                      complex.coe_algebra_map, complex.of_real_eq_coe],
-  mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
-  mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
-  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
-  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
-  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
-  norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq_apply,
-    add_monoid_hom.coe_mk, complex.norm_eq_abs],
-  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
-    complex.of_real_eq_coe, complex.norm_eq_abs],
-  div_I_ax := complex.div_I }
 
 end instances
 
@@ -721,13 +698,6 @@ local notation `IR` := @is_R_or_C.I ℝ _
 local notation `absR` := @is_R_or_C.abs ℝ _
 local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 
-local notation `reC` := @is_R_or_C.re ℂ _
-local notation `imC` := @is_R_or_C.im ℂ _
-local notation `conjC` := @is_R_or_C.conj ℂ _
-local notation `IC` := @is_R_or_C.I ℂ _
-local notation `absC` := @is_R_or_C.abs ℂ _
-local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
-
 @[simp] lemma re_to_real {x : ℝ} : reR x = x := rfl
 @[simp] lemma im_to_real {x : ℝ} : imR x = 0 := rfl
 @[simp] lemma conj_to_real {x : ℝ} : conjR x = x := rfl
@@ -738,15 +708,27 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 
 @[simp] lemma coe_real_eq_id : @coe ℝ ℝ _ = id := rfl
 
-@[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
-@[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
-@[simp] lemma conj_to_complex {x : ℂ} : conjC x = x.conj := rfl
-@[simp] lemma I_to_complex : IC = complex.I := rfl
-@[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
-by simp [is_R_or_C.norm_sq, complex.norm_sq]
-@[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
-by simp [is_R_or_C.abs, complex.abs]
-
 end cleanup_lemmas
 
 end is_R_or_C
+
+section normalization
+variables {K : Type*} [is_R_or_C K]
+variables {E : Type*} [normed_group E] [normed_space K E]
+
+open is_R_or_C
+
+/- Note: one might think the following lemma belongs in `analysis.normed_space.basic`.  But it
+can't be placed there, because that file is an import of `data.complex.is_R_or_C`! -/
+
+/-- Lemma to normalize a vector in a normed space `E` over either `ℂ` or `ℝ` to unit length. -/
+@[simp] lemma norm_smul_inv_norm {x : E} (hx : x ≠ 0) : ∥(∥x∥⁻¹ : K) • x∥ = 1 :=
+begin
+  have h : ∥(∥x∥ : K)∥ = ∥x∥,
+  { rw norm_eq_abs,
+    exact abs_of_nonneg (norm_nonneg _) },
+  have : ∥x∥ ≠ 0 := by simp [hx],
+  field_simp [norm_smul, h]
+end
+
+end normalization

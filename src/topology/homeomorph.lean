@@ -30,25 +30,37 @@ rfl
 
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
+lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
+| ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
+
+@[ext] lemma ext {h h' : α ≃ₜ β} (H : ∀ x, h x = h' x) : h = h' :=
+to_equiv_injective $ equiv.ext H
+
 /-- Identity map as a homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
-{ continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
+{ continuous_to_fun := continuous_id,
+  continuous_inv_fun := continuous_id,
+  to_equiv := equiv.refl α }
+
+@[simp] lemma coe_refl : ⇑(homeomorph.refl α) = id := rfl
 
 /-- Composition of two homeomorphisms. -/
 protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :=
 { continuous_to_fun  := h₂.continuous_to_fun.comp h₁.continuous_to_fun,
   continuous_inv_fun := h₁.continuous_inv_fun.comp h₂.continuous_inv_fun,
-  .. equiv.trans h₁.to_equiv h₂.to_equiv }
+  to_equiv := equiv.trans h₁.to_equiv h₂.to_equiv }
 
 /-- Inverse of a homeomorphism. -/
 protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
 { continuous_to_fun  := h.continuous_inv_fun,
   continuous_inv_fun := h.continuous_to_fun,
-  .. h.to_equiv.symm }
+  to_equiv := h.to_equiv.symm }
 
 @[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
   ((homeomorph.mk a b c).symm : β → α) = a.symm :=
 rfl
+
+@[simp] lemma refl_symm : (homeomorph.refl α).symm = homeomorph.refl α := rfl
 
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
@@ -148,13 +160,13 @@ protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
-h.embedding.map_nhds_eq _ (by simp)
-
-@[simp] lemma comap_nhds_eq (h : α ≃ₜ β) (y : β) : comap h (𝓝 y) = 𝓝 (h.symm y) :=
-by rw [h.embedding.to_inducing.nhds_eq_comap, h.apply_symm_apply]
+h.embedding.map_nhds_of_mem _ (by simp)
 
 lemma nhds_eq_comap (h : α ≃ₜ β) (x : α) : 𝓝 x = comap h (𝓝 (h x)) :=
-by rw [comap_nhds_eq, h.symm_apply_apply]
+h.embedding.to_inducing.nhds_eq_comap x
+
+@[simp] lemma comap_nhds_eq (h : α ≃ₜ β) (y : β) : comap h (𝓝 y) = 𝓝 (h.symm y) :=
+by rw [h.nhds_eq_comap, h.apply_symm_apply]
 
 /-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/
 def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : is_open_map e) :
@@ -166,27 +178,25 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
     convert ← h₂ s hs using 1,
     apply e.image_eq_preimage
   end,
-  .. e }
+  to_equiv := e }
 
 @[simp] lemma comp_continuous_on_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) :
   continuous_on (h ∘ f) s ↔ continuous_on f s :=
-⟨λ H, by simpa only [(∘), h.symm_apply_apply] using h.symm.continuous.comp_continuous_on H,
-  λ H, h.continuous.comp_continuous_on H⟩
+h.inducing.continuous_on_iff.symm
 
 @[simp] lemma comp_continuous_iff (h : α ≃ₜ β) {f : γ → α} :
   continuous (h ∘ f) ↔ continuous f :=
-by simp [continuous_iff_continuous_on_univ, comp_continuous_on_iff]
+h.inducing.continuous_iff.symm
 
 @[simp] lemma comp_continuous_iff' (h : α ≃ₜ β) {f : β → γ} :
   continuous (f ∘ h) ↔ continuous f :=
-⟨λ H, by simpa only [(∘), h.apply_symm_apply] using H.comp h.symm.continuous,
-  λ H, H.comp h.continuous⟩
+h.quotient_map.continuous_iff.symm
 
 /-- If two sets are equal, then they are homeomorphic. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
 { continuous_to_fun := continuous_subtype_mk _ continuous_subtype_val,
   continuous_inv_fun := continuous_subtype_mk _ continuous_subtype_val,
-  .. equiv.set_congr h }
+  to_equiv := equiv.set_congr h }
 
 /-- Sum of two homeomorphisms. -/
 def sum_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α ⊕ γ ≃ₜ β ⊕ δ :=
@@ -202,7 +212,7 @@ def sum_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α ⊕ γ ≃ₜ β 
       (continuous_inr.comp h₂.symm.continuous),
     ext x, cases x; refl
   end,
-  .. h₁.to_equiv.sum_congr h₂.to_equiv }
+  to_equiv := h₁.to_equiv.sum_congr h₂.to_equiv }
 
 /-- Product of two homeomorphisms. -/
 def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α × γ ≃ₜ β × δ :=
@@ -210,7 +220,13 @@ def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α × γ ≃ₜ β 
     (h₂.continuous.comp continuous_snd),
   continuous_inv_fun := (h₁.symm.continuous.comp continuous_fst).prod_mk
     (h₂.symm.continuous.comp continuous_snd),
-  .. h₁.to_equiv.prod_congr h₂.to_equiv }
+  to_equiv := h₁.to_equiv.prod_congr h₂.to_equiv }
+
+@[simp] lemma prod_congr_symm (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) :
+  (h₁.prod_congr h₂).symm = h₁.symm.prod_congr h₂.symm := rfl
+
+@[simp] lemma coe_prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) :
+  ⇑(h₁.prod_congr h₂) = prod.map h₁ h₂ := rfl
 
 section
 variables (α β γ)
@@ -219,7 +235,10 @@ variables (α β γ)
 def prod_comm : α × β ≃ₜ β × α :=
 { continuous_to_fun  := continuous_snd.prod_mk continuous_fst,
   continuous_inv_fun := continuous_snd.prod_mk continuous_fst,
-  .. equiv.prod_comm α β }
+  to_equiv := equiv.prod_comm α β }
+
+@[simp] lemma prod_comm_symm : (prod_comm α β).symm = prod_comm β α := rfl
+@[simp] lemma coe_prod_comm : ⇑(prod_comm α β) = prod.swap := rfl
 
 /-- `(α × β) × γ` is homeomorphic to `α × (β × γ)`. -/
 def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
@@ -227,7 +246,21 @@ def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
     ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
   continuous_inv_fun := (continuous_fst.prod_mk (continuous_fst.comp continuous_snd)).prod_mk
     (continuous_snd.comp continuous_snd),
-  .. equiv.prod_assoc α β γ }
+  to_equiv := equiv.prod_assoc α β γ }
+
+/-- `α × {*}` is homeomorphic to `α`. -/
+def prod_punit : α × punit ≃ₜ α :=
+{ to_equiv := equiv.prod_punit α,
+  continuous_to_fun := continuous_fst,
+  continuous_inv_fun := continuous_id.prod_mk continuous_const }
+
+@[simp] lemma coe_prod_punit : ⇑(prod_punit α) = prod.fst := rfl
+
+/-- `{*} × α` is homeomorphic to `α`. -/
+def punit_prod : punit × α ≃ₜ α :=
+(prod_comm _ _).trans (prod_punit _)
+
+@[simp] lemma coe_punit_prod : ⇑(punit_prod α) = prod.snd := rfl
 
 end
 
@@ -235,7 +268,7 @@ end
 def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
 { continuous_to_fun := continuous_ulift_down,
   continuous_inv_fun := continuous_ulift_up,
-  .. equiv.ulift }
+  to_equiv := equiv.ulift }
 
 section distrib
 

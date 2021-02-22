@@ -564,6 +564,17 @@ theorem option_map {f : α → option β} {g : α → β → σ}
   (hf : computable f) (hg : computable₂ g) : computable (λ a, (f a).map (g a)) :=
 option_bind hf (option_some.comp₂ hg)
 
+theorem option_get_or_else {f : α → option β} {g : α → β}
+  (hf : computable f) (hg : computable g) :
+  computable (λ a, (f a).get_or_else (g a)) :=
+(computable.option_cases hf hg (show computable₂ (λ a b, b), from computable.snd)).of_eq $
+λ a, by cases f a; refl
+
+theorem subtype_mk {f : α → β} {p : β → Prop} [decidable_pred p] {h : ∀ a, p (f a)}
+    (hp : primrec_pred p) (hf : computable f) :
+  @computable _ _ _ (primcodable.subtype hp) (λ a, (⟨f a, h a⟩ : subtype p)) :=
+hf
+
 theorem sum_cases
   {f : α → β ⊕ γ} {g : α → β → σ} {h : α → γ → σ}
   (hf : computable f) (hg : computable₂ g) (hh : computable₂ h) :
@@ -590,7 +601,7 @@ option_some_iff.1 $
     (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
 λ a, begin
   simp, induction a.2 with n IH, {refl},
-  simp [IH, H, list.range_concat]
+  simp [IH, H, list.range_succ]
 end
 
 theorem list_of_fn : ∀ {n} {f : fin n → α → σ},

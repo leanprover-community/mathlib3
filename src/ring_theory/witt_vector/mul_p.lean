@@ -17,6 +17,11 @@ and Verschiebung is equal to multiplication by `p`.
 
 * `mul_n_is_poly`: multiplication by `n` is a polynomial function
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector
@@ -59,7 +64,7 @@ variables (p)
 
 /-- Multiplication by `n` is a polynomial function. -/
 @[is_poly] lemma mul_n_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI x * n) :=
-⟨witt_mul_n p n, λ R _Rcr x, by { funext k, exactI mul_n_coeff n x k }⟩
+⟨⟨witt_mul_n p n, λ R _Rcr x, by { funext k, exactI mul_n_coeff n x k }⟩⟩
 
 @[simp] lemma bind₁_witt_mul_n_witt_polynomial (n k : ℕ) :
   bind₁ (witt_mul_n p n) (witt_polynomial p ℤ k) = n * witt_polynomial p ℤ k :=

@@ -5,8 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
 
-set_option old_structure_cmd true
-
 /-!
 # Ordered groups
 
@@ -19,6 +17,8 @@ may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
 
 -/
+
+set_option old_structure_cmd true
 
 universe u
 variable {α : Type u}
@@ -282,11 +282,11 @@ lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ b * a :=
 lemma inv_le_iff_one_le_mul' : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
 (mul_le_mul_iff_left a).symm.trans $ by rw mul_inv_self
 
-@[to_additive neg_lt_iff_add_nonneg]
+@[to_additive]
 lemma inv_lt_iff_one_lt_mul : a⁻¹ < b ↔ 1 < b * a :=
 (mul_lt_mul_iff_right a).symm.trans $ by rw inv_mul_self
 
-@[to_additive neg_lt_iff_add_nonneg']
+@[to_additive]
 lemma inv_lt_iff_one_lt_mul' : a⁻¹ < b ↔ 1 < a * b :=
 (mul_lt_mul_iff_left a).symm.trans $ by rw mul_inv_self
 
@@ -576,6 +576,11 @@ lemma linear_ordered_add_comm_group.add_lt_add_left
   (a b : α) (h : a < b) (c : α) : c + a < c + b :=
 ordered_add_comm_group.add_lt_add_left a b h c
 
+lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
+le_of_forall_le_of_dense $ λ c hc,
+calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
+   ... = c           : add_sub_cancel'_right _ _
+
 lemma min_neg_neg (a b : α) : min (-a) (-b) = -max a b :=
 eq.symm $ @monotone.map_max α (order_dual α) _ _ has_neg.neg a b $ λ a b, neg_le_neg
 
@@ -637,10 +642,16 @@ lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
 by rw [← neg_sub, abs_neg]
 
-theorem abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
+lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
 
-theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
+lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 by rw [abs_le', and.comm, neg_le]
+
+lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
+
+lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
+
+lemma le_abs : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
 
 lemma le_abs_self (a : α) : a ≤ abs a := le_max_left _ _
 
@@ -658,10 +669,14 @@ not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
-lemma abs_lt {a b : α} : abs a < b ↔ - b < a ∧ a < b :=
+lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
 
-lemma lt_abs {a b : α} : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
+lemma neg_lt_of_abs_lt (h : abs a < b) : -b < a := (abs_lt.mp h).1
+
+lemma lt_of_abs_lt (h : abs a < b) : a < b := (abs_lt.mp h).2
+
+lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
 
 lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=
 begin

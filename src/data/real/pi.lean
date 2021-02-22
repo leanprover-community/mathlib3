@@ -8,16 +8,17 @@ import analysis.special_functions.pow
 # Pi
 
 This file contains lemmas which establish bounds on or approximations of `real.pi`. Notably, these
-include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`, which bound `pi` using series;
-numerical bounds on `pi` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too);
-and `tendsto_sum_pi_div_four`, Leibniz's series for `pi`.
+include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`, which bound `π` using series;
+numerical bounds on `π` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too);
+and `tendsto_sum_pi_div_four`, Leibniz's series for `π`.
 -/
 
+open_locale real
 namespace real
 
-lemma pi_gt_sqrt_two_add_series (n : ℕ) : 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) < pi :=
+lemma pi_gt_sqrt_two_add_series (n : ℕ) : 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) < π :=
 begin
-  have : sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2) < pi,
+  have : sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2) < π,
   { rw [← lt_div_iff, ←sin_pi_over_two_pow_succ], apply sin_lt, apply div_pos pi_pos,
     all_goals { apply pow_pos, norm_num } },
   apply lt_of_le_of_lt (le_of_eq _) this,
@@ -25,9 +26,9 @@ begin
 end
 
 lemma pi_lt_sqrt_two_add_series (n : ℕ) :
-  pi < 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) + 1 / 4 ^ n :=
+  π < 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) + 1 / 4 ^ n :=
 begin
-  have : pi < (sqrt (2 - sqrt_two_add_series 0 n) / 2 + 1 / (2 ^ n) ^ 3 / 4) * 2 ^ (n+2),
+  have : π < (sqrt (2 - sqrt_two_add_series 0 n) / 2 + 1 / (2 ^ n) ^ 3 / 4) * 2 ^ (n+2),
   { rw [← div_lt_iff, ← sin_pi_over_two_pow_succ],
     refine lt_of_lt_of_le (lt_add_of_sub_right_lt (sin_gt_sub_cube _ _)) _,
     { apply div_pos pi_pos, apply pow_pos, norm_num },
@@ -54,11 +55,11 @@ begin
   apply pow_ne_zero, norm_num, norm_num
 end
 
-/-- From an upper bound on `sqrt_two_add_series 0 n = 2 cos (pi / 2 ^ (n+1))` of the form
-`sqrt_two_add_series 0 n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2)`, one can deduce the lower bound `a < pi`
+/-- From an upper bound on `sqrt_two_add_series 0 n = 2 cos (π / 2 ^ (n+1))` of the form
+`sqrt_two_add_series 0 n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2)`, one can deduce the lower bound `a < π`
 thanks to basic trigonometric inequalities as expressed in `pi_gt_sqrt_two_add_series`. -/
 theorem pi_lower_bound_start (n : ℕ) {a}
-  (h : sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2) : a < pi :=
+  (h : sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2) : a < π :=
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
   refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sqr_le _),
@@ -77,7 +78,7 @@ begin
   exact_mod_cast h
 end
 
-/-- Create a proof of `a < pi` for a fixed rational number `a`, given a witness, which is a
+/-- Create a proof of `a < π` for a fixed rational number `a`, given a witness, which is a
 sequence of rational numbers `sqrt 2 < r 1 < r 2 < ... < r n < 2` satisfying the property that
 `sqrt (2 + r i) ≤ r(i+1)`, where `r 0 = 0` and `sqrt (2 - r n) ≥ a/2^(n+1)`. -/
 meta def pi_lower_bound (l : list ℚ) : tactic unit :=
@@ -90,12 +91,12 @@ do let n := l.length,
   `[simp only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
   `[norm_num1]
 
-/-- From a lower bound on `sqrt_two_add_series 0 n = 2 cos (pi / 2 ^ (n+1))` of the form
+/-- From a lower bound on `sqrt_two_add_series 0 n = 2 cos (π / 2 ^ (n+1))` of the form
 `2 - ((a - 1 / 4 ^ n) / 2 ^ (n + 1)) ^ 2 ≤ sqrt_two_add_series 0 n`, one can deduce the upper bound
-`pi < a` thanks to basic trigonometric formulas as expressed in `pi_lt_sqrt_two_add_series`. -/
+`π < a` thanks to basic trigonometric formulas as expressed in `pi_lt_sqrt_two_add_series`. -/
 theorem pi_upper_bound_start (n : ℕ) {a}
   (h : 2 - ((a - 1 / 4 ^ n) / 2 ^ (n + 1)) ^ 2 ≤ sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n)
-  (h₂ : 1 / 4 ^ n ≤ a) : pi < a :=
+  (h₂ : 1 / 4 ^ n ≤ a) : π < a :=
 begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
   rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
@@ -116,7 +117,7 @@ begin
   exact_mod_cast h
 end
 
-/-- Create a proof of `pi < a` for a fixed rational number `a`, given a witness, which is a
+/-- Create a proof of `π < a` for a fixed rational number `a`, given a witness, which is a
 sequence of rational numbers `sqrt 2 < r 1 < r 2 < ... < r n < 2` satisfying the property that
 `sqrt (2 + r i) ≥ r(i+1)`, where `r 0 = 0` and `sqrt (2 - r n) ≥ (a - 1/4^n) / 2^(n+1)`. -/
 meta def pi_upper_bound (l : list ℚ) : tactic unit :=
@@ -129,24 +130,24 @@ do let n := l.length,
   `[simp only [sqrt_two_add_series, nat.cast_bit0, nat.cast_bit1, nat.cast_one, nat.cast_zero]],
   `[norm_num]
 
-lemma pi_gt_three : 3 < pi := by pi_lower_bound [23/16]
+lemma pi_gt_three : 3 < π := by pi_lower_bound [23/16]
 
-lemma pi_gt_314 : 3.14 < pi := by pi_lower_bound [99/70, 874/473, 1940/989, 1447/727]
+lemma pi_gt_314 : 3.14 < π := by pi_lower_bound [99/70, 874/473, 1940/989, 1447/727]
 
-lemma pi_lt_315 : pi < 3.15 := by pi_upper_bound [140/99, 279/151, 51/26, 412/207]
+lemma pi_lt_315 : π < 3.15 := by pi_upper_bound [140/99, 279/151, 51/26, 412/207]
 
-lemma pi_gt_31415 : 3.1415 < pi := by pi_lower_bound [
+lemma pi_gt_31415 : 3.1415 < π := by pi_lower_bound [
   11482/8119, 5401/2923, 2348/1197, 11367/5711, 25705/12868, 23235/11621]
 
-lemma pi_lt_31416 : pi < 3.1416 := by pi_upper_bound [
+lemma pi_lt_31416 : π < 3.1416 := by pi_upper_bound [
   4756/3363, 101211/54775, 505534/257719, 83289/41846,
   411278/205887, 438142/219137, 451504/225769, 265603/132804, 849938/424971]
 
-lemma pi_gt_3141592 : 3.141592 < pi := by pi_lower_bound [
+lemma pi_gt_3141592 : 3.141592 < π := by pi_lower_bound [
   11482/8119, 7792/4217, 54055/27557, 949247/476920, 3310126/1657059,
   2635492/1318143, 1580265/790192, 1221775/610899, 3612247/1806132, 849943/424972]
 
-lemma pi_lt_3141593 : pi < 3.141593 := by pi_upper_bound [
+lemma pi_lt_3141593 : π < 3.141593 := by pi_upper_bound [
   27720/19601, 56935/30813, 49359/25163, 258754/130003, 113599/56868, 1101994/551163,
   8671537/4336095, 3877807/1938940, 52483813/26242030, 56946167/28473117, 23798415/11899211]
 
@@ -154,7 +155,7 @@ lemma pi_lt_3141593 : pi < 3.141593 := by pi_upper_bound [
 /-! ### Leibniz's Series for Pi -/
 
 open filter set
-open_locale real classical big_operators topological_space
+open_locale classical big_operators topological_space
 local notation `|`x`|` := abs x
 
 /-- This theorem establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the

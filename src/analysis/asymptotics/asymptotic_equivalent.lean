@@ -3,7 +3,7 @@ Copyright (c) 2020 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 import analysis.normed_space.ordered
 import analysis.normed_space.bounded_linear_maps
 
@@ -91,6 +91,14 @@ end
 @[trans] lemma is_equivalent.trans (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
 (huv.is_o.trans_is_O hvw.is_O).triangle hvw.is_o
 
+lemma is_equivalent.congr_left {u v w : α → β} {l : filter α} (huv : u ~[l] v)
+  (huw : u =ᶠ[l] w) : w ~[l] v :=
+is_o.congr' (huw.sub (eventually_eq.refl _ _)) (eventually_eq.refl _ _) huv
+
+lemma is_equivalent.congr_right {u v w : α → β} {l : filter α} (huv : u ~[l] v)
+  (hvw : v =ᶠ[l] w) : u ~[l] w :=
+(huv.symm.congr_left hvw).symm
+
 lemma is_equivalent_zero_iff_eventually_zero : u ~[l] 0 ↔ u =ᶠ[l] 0 :=
 begin
   rw [is_equivalent, sub_zero],
@@ -126,6 +134,24 @@ end
 
 lemma is_equivalent.tendsto_nhds_iff {c : β} (huv : u ~[l] v) :
   tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c) := ⟨huv.tendsto_nhds, huv.symm.tendsto_nhds⟩
+
+lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : is_o w v l) : (w + u) ~[l] v :=
+begin
+  rw is_equivalent at *,
+  convert hwv.add huv,
+  ext,
+  simp [add_sub],
+end
+
+lemma is_o.is_equivalent (huv : is_o (u - v) v l) : u ~[l] v := huv
+
+lemma is_equivalent.neg (huv : u ~[l] v) : (λ x, - u x) ~[l] (λ x, - v x) :=
+begin
+  rw is_equivalent,
+  convert huv.is_o.neg_left.neg_right,
+  ext,
+  simp,
+end
 
 end normed_group
 
@@ -191,7 +217,7 @@ begin
   { convert (habφ.comp₂ (•) $ eventually_eq.refl _ u).sub (eventually_eq.refl _ (λ x, b x • v x)),
     ext,
     rw [pi.mul_apply, mul_comm, mul_smul, ← smul_sub] },
-  refine (is_o_congr this.symm $ eventually_eq.refl _ _).mp ((is_O_refl b l).smul_is_o _),
+  refine (is_o_congr this.symm $ eventually_eq.rfl).mp ((is_O_refl b l).smul_is_o _),
 
   rcases huv.is_O.exists_pos with ⟨C, hC, hCuv⟩,
   rw is_equivalent at *,
@@ -256,6 +282,26 @@ tendsto.congr' h.symm ((mul_comm u φ) ▸ (hu.at_top_mul zero_lt_one hφ))
 lemma is_equivalent.tendsto_at_top_iff [order_topology β] (huv : u ~[l] v) :
   tendsto u l at_top ↔ tendsto v l at_top := ⟨huv.tendsto_at_top, huv.symm.tendsto_at_top⟩
 
+lemma is_equivalent.tendsto_at_bot [order_topology β] (huv : u ~[l] v) (hu : tendsto u l at_bot) :
+  tendsto v l at_bot :=
+begin
+  convert tendsto_neg_at_top_at_bot.comp
+    (huv.neg.tendsto_at_top $ tendsto_neg_at_bot_at_top.comp hu),
+  ext,
+  simp
+end
+
+lemma is_equivalent.tendsto_at_bot_iff [order_topology β] (huv : u ~[l] v) :
+  tendsto u l at_bot ↔ tendsto v l at_bot := ⟨huv.tendsto_at_bot, huv.symm.tendsto_at_bot⟩
+
 end normed_linear_ordered_field
 
 end asymptotics
+
+open filter asymptotics
+open_locale asymptotics
+
+variables {α β : Type*} [normed_group β]
+
+lemma filter.eventually_eq.is_equivalent {u v : α → β} {l : filter α} (h : u =ᶠ[l] v) : u ~[l] v :=
+is_o.congr' h.sub_eq.symm (eventually_eq.refl _ _) (is_o_zero v l)

@@ -68,14 +68,15 @@ begin
   refine ⟨λ S hSo hSc, _⟩,
   set K := compact_covering X,
   have : ∀ n, ∃ T ⊆ S, finite T ∧ K (n + 2) \ interior (K (n + 1)) ⊆
-    ⋃ t ∈ T, t ∩ interior (K (n + 3)) \ K n,
+    ⋃ t ∈ T, (t ∩ interior (K (n + 3)) \ K n),
   { intro n,
     apply (compact_diff (is_compact_compact_covering X (n + 2))
       is_open_interior).elim_finite_subcover_image,
     { exact λ s hs, is_open_diff (is_open_inter (hSo s hs) is_open_interior)
         (is_compact_compact_covering X n).is_closed },
-    { calc K (n + 2) \ interior (K (n + 1)) ⊆ K (n + 2) \ K n : _
-      ... ⊆ _ : _ } }
+    { simp_rw [← Union_diff, ← Union_inter, ← sUnion_eq_bUnion],
+      rw [hSc, univ_inter], -- `simp_rw` fails to rewrite this
+      exact diff_subset_diff (compact_covering_sub_ _ } }
 end
 
 lemma normal_of_paracompact_t2 {X : Type u} [topological_space X] [t2_space X]

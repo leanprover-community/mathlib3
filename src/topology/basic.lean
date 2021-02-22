@@ -922,7 +922,7 @@ le_nhds_Lim h
 end lim
 
 /-!
-### Locally finite families
+### Locally finite families
 -/
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
@@ -933,8 +933,8 @@ section locally_finite
 def locally_finite (f : β → set α) :=
 ∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
 
-lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
-assume x, ⟨univ, univ_mem_sets, h.subset $ subset_univ _⟩
+lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
+assume x, ⟨univ, univ_mem_sets, finite.of_fintype _⟩
 
 lemma locally_finite_subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=

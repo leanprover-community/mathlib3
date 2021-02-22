@@ -21,6 +21,11 @@ of the inverse limit of `zmod (p^n)`.
 * `witt_vector.to_zmod_pow`: a family of compatible ring homs `𝕎 (zmod p) → zmod (p^k)`
 * `witt_vector.equiv`: the isomorphism
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 noncomputable theory

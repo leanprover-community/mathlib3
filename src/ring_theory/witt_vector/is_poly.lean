@@ -82,6 +82,12 @@ begin
   ghost_simp
 end
 ```
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 /-

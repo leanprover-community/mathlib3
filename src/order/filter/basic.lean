@@ -1566,15 +1566,39 @@ le_antisymm
       union_subset hs₁ hs₂⟩)
   ((@comap_mono _ _ m).le_map_sup _ _)
 
-lemma map_comap {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap m).map m = f :=
-le_antisymm
-  map_comap_le
-  (assume t' ⟨t, ht, sub⟩, by filter_upwards [ht, hf]; rintros x hxt ⟨y, rfl⟩; exact sub hxt)
+lemma map_comap (f : filter β) (m : α → β) : (f.comap m).map m = f ⊓ 𝓟 (range m) :=
+begin
+  refine le_antisymm (le_inf map_comap_le $ le_principal_iff.2 range_mem_map) _,
+  rintro t' ⟨t, ht, sub⟩,
+  refine mem_inf_principal.2 (mem_sets_of_superset ht _),
+  rintro _ hxt ⟨x, rfl⟩,
+  exact sub hxt
+end
+
+lemma map_comap_of_mem {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap m).map m = f :=
+by rw [map_comap, inf_eq_left.2 (le_principal_iff.2 hf)]
+
+lemma comap_le_comap_iff {f g : filter β} {m : α → β} (hf : range m ∈ f) :
+  comap m f ≤ comap m g ↔ f ≤ g :=
+⟨λ h, map_comap_of_mem hf ▸ (map_mono h).trans map_comap_le, λ h, comap_mono h⟩
+
+theorem map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l : filter β) :
+  map f (comap f l) = l :=
+map_comap_of_mem $ by simp only [hf.range_eq, univ_mem_sets]
+
+lemma subtype_coe_map_comap (s : set α) (f : filter α) :
+  map (coe : s → α) (comap (coe : s → α) f) = f ⊓ 𝓟 s :=
+by rw [map_comap, subtype.range_coe]
+
+lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
+  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s.prod s) :=
+have (coe : s × s → α × α) = (λ x, (x.1, x.2)), by ext ⟨x, y⟩; refl,
+by simp [this, map_comap, ← prod_range_range_eq]
 
 lemma image_mem_sets {f : filter α} {c : β → α} (h : range c ∈ f) {W : set β}
   (W_in : W ∈ comap c f) : c '' W ∈ f :=
 begin
-  rw ← map_comap h,
+  rw ← map_comap_of_mem h,
   exact image_mem_map W_in
 end
 
@@ -1591,7 +1615,7 @@ le_antisymm
 
 lemma mem_comap_iff {f : filter β} {m : α → β} (inj : function.injective m)
   (large : set.range m ∈ f) {S : set α} : S ∈ comap m f ↔ m '' S ∈ f :=
-by rw [← image_mem_map_iff inj, map_comap large]
+by rw [← image_mem_map_iff inj, map_comap_of_mem large]
 
 lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
@@ -1613,60 +1637,10 @@ le_antisymm
   (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
   (le_of_map_le_map_inj' hsg hsf hm $ le_of_eq h.symm)
 
-lemma map_inj {f g : filter α} {m : α → β} (hm : ∀ x y, m x = m y → x = y) (h : map m f = map m g) :
+lemma map_inj {f g : filter α} {m : α → β} (hm : function.injective m) (h : map m f = map m g) :
   f = g :=
 have comap m (map m f) = comap m (map m g), by rw h,
 by rwa [comap_map hm, comap_map hm] at this
-
-theorem le_map_comap_of_surjective' {f : α → β} {l : filter β} {u : set β} (ul : u ∈ l)
-    (hf : ∀ y ∈ u, ∃ x, f x = y) :
-  l ≤ map f (comap f l) :=
-assume s ⟨t, tl, ht⟩,
-have t ∩ u ⊆ s, from
-  assume x ⟨xt, xu⟩,
-  exists.elim (hf x xu) $ λ a faeq,
-  by { rw ←faeq, apply ht, change f a ∈ t, rw faeq, exact xt },
-mem_sets_of_superset (inter_mem_sets tl ul) this
-
-theorem map_comap_of_surjective' {f : α → β} {l : filter β} {u : set β} (ul : u ∈ l)
-    (hf : ∀ y ∈ u, ∃ x, f x = y)  :
-  map f (comap f l) = l :=
-le_antisymm map_comap_le (le_map_comap_of_surjective' ul hf)
-
-theorem le_map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l : filter β) :
-  l ≤ map f (comap f l) :=
-le_map_comap_of_surjective' univ_mem_sets (λ y _, hf y)
-
-theorem map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l : filter β) :
-  map f (comap f l) = l :=
-le_antisymm map_comap_le (le_map_comap_of_surjective hf l)
-
-lemma subtype_coe_map_comap (s : set α) (f : filter α) :
-  map (coe : s → α) (comap (coe : s → α) f) = f ⊓ 𝓟 s :=
-begin
-  apply le_antisymm,
-  { rw [map_le_iff_le_comap, comap_inf, comap_principal],
-    have : (coe : s → α) ⁻¹' s = univ, by { ext x, simp },
-    rw [this, principal_univ],
-    simp [le_refl _] },
-  { intros V V_in,
-    rcases V_in with ⟨W, W_in, H⟩,
-    rw mem_inf_sets,
-    use [W, W_in, s, mem_principal_self s],
-    erw [← image_subset_iff, subtype.image_preimage_coe] at H,
-    exact H }
-end
-
-lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
-  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s.prod s) :=
-let φ (x : s × s) : s.prod s := ⟨⟨x.1.1, x.2.1⟩, ⟨x.1.2, x.2.2⟩⟩ in
-begin
-  rw show (coe : s × s → α × α) = coe ∘ φ, by ext x; cases x; refl,
-  rw [← filter.map_map, ← filter.comap_comap],
-  rw map_comap_of_surjective,
-  exact subtype_coe_map_comap _ _,
-  exact λ ⟨⟨a, b⟩, ⟨ha, hb⟩⟩, ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩
-end
 
 lemma comap_ne_bot_iff {f : filter β} {m : α → β} : ne_bot (comap m f) ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
 begin
@@ -2129,7 +2103,7 @@ lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : fil
 
 lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ → α}
   (h : range i ∈ f) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
-by rw [tendsto, ← map_compose]; simp only [(∘), map_comap h, tendsto]
+by rw [tendsto, ← map_compose]; simp only [(∘), map_comap_of_mem h, tendsto]
 
 lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=

@@ -147,7 +147,8 @@ is_cyclic_of_subgroup_integral_domain ((units.coe_hom R).comp (roots_of_unity k 
 
 lemma card_roots_of_unity : fintype.card (roots_of_unity k R) ≤ k :=
 calc  fintype.card (roots_of_unity k R)
-    = fintype.card {x // x ∈ nth_roots k (1 : R)} : fintype.card_congr (roots_of_unity_equiv_nth_roots R k)
+    = fintype.card {x // x ∈ nth_roots k (1 : R)} :
+          fintype.card_congr (roots_of_unity_equiv_nth_roots R k)
 ... ≤ (nth_roots k (1 : R)).attach.card           : multiset.card_le_of_le (multiset.erase_dup_le _)
 ... = (nth_roots k (1 : R)).card                  : multiset.card_attach
 ... ≤ k                                           : card_nth_roots k 1

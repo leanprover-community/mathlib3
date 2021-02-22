@@ -187,7 +187,7 @@ end
 
 lemma lie_submodule.lie_abelian_iff_lie_self_eq_bot : is_lie_abelian I ↔ ⁅I, I⁆ = ⊥ :=
 begin
-  simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_span_le, bot_coe,
+  simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_span_le, lie_submodule.bot_coe,
     set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
   split; intros h,
   { intros z x y hz, rw [← hz, ← coe_bracket, coe_zero_iff_zero], apply h.trivial, },

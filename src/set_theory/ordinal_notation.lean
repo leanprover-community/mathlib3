@@ -7,9 +7,18 @@ Author: Mario Carneiro
 import set_theory.ordinal_arithmetic
 
 /-!
-# Ordinal notations
+# Ordinal notation
 
-constructive ordinal arithmetic for ordinals `< ε₀`.
+Constructive ordinal arithmetic for ordinals below `ε₀`.
+
+We define a type `onote`, with constructors `0 : onote` and `onote.oadd e n a` representing
+`ω ^ e * n + a`.
+We say that `o` is in Cantor normal form - `onote.NF o` - if either `o = 0` or
+`o = ω ^ e * n + a` with `a < ω ^ e` and `a` in Cantor normal form.
+
+The type `nonote` is the type of ordinals below `ε₀` in Cantor normal form.
+Various operations (addition, subtraction, multiplication, power function)
+are defined on `onote` and `nonote`.
 -/
 
 open ordinal

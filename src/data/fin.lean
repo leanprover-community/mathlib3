@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
 import tactic.localized
+import tactic.apply_fun
 import order.rel_iso
 
 /-!
@@ -551,6 +552,9 @@ fin.eq_of_veq rfl
   cast_lt (cast_succ a) h = a :=
 by cases a; refl
 
+@[simp] lemma cast_succ_lt_cast_succ_iff : a.cast_succ < b.cast_succ ↔ a < b :=
+(@cast_succ n).lt_iff_lt
+
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
 (cast_succ : fin n ↪o _).injective
 
@@ -897,6 +901,30 @@ if h : p.cast_succ < i then
 else
   i.cast_lt (lt_of_le_of_lt (le_of_not_lt h) p.2)
 
+lemma pred_above_right_monotone (p : fin n) : monotone p.pred_above :=
+λ a b H,
+begin
+  dsimp [pred_above],
+  split_ifs with ha hb hb,
+  all_goals { simp only [le_iff_coe_le_coe, coe_pred], },
+  { exact pred_le_pred H, },
+  { calc _ ≤ _ : nat.pred_le _
+        ... ≤ _ : H, },
+  { simp at ha, exact le_pred_of_lt (lt_of_le_of_lt ha hb), },
+  { exact H, },
+end
+
+lemma pred_above_left_monotone (i : fin (n + 1)) : monotone (λ p, pred_above p i) :=
+λ a b H,
+begin
+  dsimp [pred_above],
+  split_ifs with ha hb hb,
+  all_goals { simp only [le_iff_coe_le_coe, coe_pred] },
+  { exact pred_le _, },
+  { have : b < a := cast_succ_lt_cast_succ_iff.mpr (hb.trans_le (le_of_not_gt ha)),
+    exact absurd H this.not_le }
+end
+
 /-- `cast_pred` embeds `i : fin (n + 2)` into `fin (n + 1)`
 by lowering just `last (n + 1)` to `last n`. -/
 def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
@@ -922,6 +950,9 @@ begin
     { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
   simp [cast_pred, pred_above, this]
 end
+
+lemma cast_pred_monotone : monotone (@cast_pred n) :=
+pred_above_right_monotone (last _)
 
 /-- Sending `fin (n+1)` to `fin n` by subtracting one from anything above `p`
 then back to `fin (n+1)` with a gap around `p` is the identity away from `p`. -/

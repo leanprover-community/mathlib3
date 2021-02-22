@@ -122,7 +122,7 @@ set.ext $ λ x, mem_support_iff.symm
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-lemma coe_fn_injective : function.injective (λ (f : α →₀ M) (x : α), f x)
+lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
     change f = g at h, subst h,

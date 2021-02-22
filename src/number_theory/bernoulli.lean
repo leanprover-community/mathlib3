@@ -191,7 +191,7 @@ end
 
 open ring_hom
 
-/-- Odd bernoulli numbers (greater than 1) are zero. -/
+/-- Odd Bernoulli numbers (greater than 1) are zero. -/
 theorem bernoulli'_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli' n = 0 :=
 begin
   have f := bernoulli'_power_series,
@@ -222,7 +222,7 @@ begin
       neg_mul_eq_mul_neg], },
 end
 
-/-- The (negative) Bernoulli numbers are defined to be the Bernoulli numbers with a parity sign. -/
+/-- The Bernoulli numbers are defined to be `bernoulli'` with a parity sign. -/
 def bernoulli (n : ℕ) : ℚ := (-1)^n * (bernoulli' n)
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1 := rfl

@@ -419,12 +419,13 @@ instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α 
 end, λ _, and.left⟩⟩
 
 /-- See Theorem 6.6, Călugăreanu -/
-theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
+theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) : is_complemented α :=
 ⟨λ b, begin
-  rcases zorn.zorn_subset
-    {s : set α | complete_lattice.independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _ with
-      ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩,
-  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, le_iff_atom_le_imp.2 (λ a ha _, _)⟩,
+  obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn.zorn_subset
+    {s : set α | complete_lattice.independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
+  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, _⟩,
+    rw [← h, Sup_le_iff],
+    intros a ha,
     rw ← inf_eq_left,
     refine (eq_bot_or_eq_of_le_atom ha inf_le_left).resolve_left (λ con, ha.1 _),
     rw [eq_bot_iff, ← con],
@@ -468,6 +469,10 @@ theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :
     { rcases set.mem_sUnion.1 ha with ⟨s, sc, as⟩,
       exact (hc1 sc).2.2 a as } }
 end⟩
+
+/-- See Theorem 6.6, Călugăreanu -/
+theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=
+is_complemented_of_Sup_atoms_eq_top Sup_atoms_eq_top
 
 theorem is_complemented_iff_is_atomistic : is_complemented α ↔ is_atomistic α :=
 begin

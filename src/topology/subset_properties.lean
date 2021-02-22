@@ -481,6 +481,46 @@ def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
   fintype α :=
 fintype_of_univ_finite $ finite_of_is_compact_of_discrete _ compact_univ
 
+lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
+let ⟨t, ht⟩ := compact_univ.elim_finite_subcover (λ x, interior (U x)) (λ x, is_open_interior)
+  (λ x _, mem_Union.2 ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩)
+in ⟨t, univ_subset_iff.1 ht⟩
+
+lemma finite_cover_nhds [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, U x) = univ :=
+let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $
+  ht ▸ bUnion_subset_bUnion_right (λ x hx, interior_subset)⟩
+
+/-- If `α` is a compact space, then a locally finite family of sets of `α` can have only finitely
+many nonempty elements. -/
+lemma locally_finite.finite_nonempty_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
+  (hf : locally_finite f) :
+  finite {i | (f i).nonempty} :=
+begin
+  choose U hxU hUf using hf,
+  rcases finite_cover_nhds hxU with ⟨t, ht⟩,
+  refine (t.finite_to_set.bUnion (λ x _, hUf x)).subset _,
+  rintro i ⟨x, hx⟩,
+  simp only [eq_univ_iff_forall, mem_Union] at ht ⊢,
+  rcases ht x with ⟨j, hjt, hjx⟩,
+  exact ⟨j, hjt, x, hx, hjx⟩
+end
+
+/-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
+finitely many elements, `set.finite` version. -/
+lemma locally_finite.finite_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
+  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
+  finite (univ : set ι) :=
+by simpa only [hne] using hf.finite_nonempty_of_compact
+
+/-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
+finitely many elements, `fintype` version. -/
+noncomputable def locally_finite.fintype_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
+  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
+  fintype ι :=
+fintype_of_univ_finite (hf.finite_of_compact hne)
+
 variables [topological_space β]
 
 lemma is_compact.image_of_continuous_on {f : α → β} (hs : is_compact s) (hf : continuous_on f s) :
@@ -635,6 +675,21 @@ compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
 (local_compact_nhds : ∀ (x : α) (n ∈ 𝓝 x), ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s)
 
+instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space α]
+  [topological_space β] [locally_compact_space α] [locally_compact_space β] :
+  locally_compact_space (α × β) :=
+{ local_compact_nhds :=
+  begin
+    rintros ⟨x, y⟩ n hn,
+    obtain ⟨u, hu, v, hv, huv⟩ := mem_nhds_prod_iff.1 hn,
+    obtain ⟨a, ha₁, ha₂, ha₃⟩ := locally_compact_space.local_compact_nhds _ _ hu,
+    obtain ⟨b, hb₁, hb₂, hb₃⟩ := locally_compact_space.local_compact_nhds _ _ hv,
+    refine ⟨a.prod b, _, _, _⟩,
+    { exact mem_nhds_prod_iff.2 ⟨_, ha₁, _, hb₁, subset.rfl⟩ },
+    { exact subset.trans (prod_mono ha₂ hb₂) huv },
+    { exact is_compact.prod ha₃ hb₃ }
+  end }
+
 /-- A reformulation of the definition of locally compact space: In a locally compact space,
   every open set containing `x` has a compact subset containing `x` in its interior. -/
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
@@ -656,6 +711,48 @@ lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
 begin
   rcases compact_univ.ultrafilter_le_nhds F (by simp) with ⟨x, -, h⟩,
   exact le_nhds_Lim ⟨x,h⟩,
+end
+
+theorem is_closed.exists_minimal_nonempty_closed_subset [compact_space α]
+  {S : set α} (hS : is_closed S) (hne : S.nonempty) :
+  ∃ (V : set α),
+    V ⊆ S ∧ V.nonempty ∧ is_closed V ∧
+      (∀ (V' : set α), V' ⊆ V → V'.nonempty → is_closed V' → V' = V) :=
+begin
+  let opens := {U : set α | Sᶜ ⊆ U ∧ is_open U ∧ Uᶜ.nonempty},
+  obtain ⟨U, ⟨Uc, Uo, Ucne⟩, h⟩ := zorn.zorn_subset opens (λ c hc hz, begin
+    by_cases hcne : c.nonempty,
+    { obtain ⟨U₀, hU₀⟩ := hcne,
+      haveI : nonempty {U // U ∈ c} := ⟨⟨U₀, hU₀⟩⟩,
+      obtain ⟨U₀compl, U₀opn, U₀ne⟩ := hc hU₀,
+      use ⋃₀ c,
+      refine ⟨⟨_, _, _⟩, λ U hU a ha, ⟨U, hU, ha⟩⟩,
+      { exact λ a ha, ⟨U₀, hU₀, U₀compl ha⟩ },
+      { exact is_open_sUnion (λ _ h, (hc h).2.1) },
+      { convert_to (⋂(U : {U // U ∈ c}), U.1ᶜ).nonempty,
+        { ext,
+          simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall,
+            set.mem_set_of_eq, set.mem_compl_eq, subtype.val_eq_coe],
+          refl, },
+        apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
+        { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
+          obtain ⟨V, hVc, hVU, hVU'⟩ := zorn.chain.directed_on hz U hU U' hU',
+          exact ⟨⟨V, hVc⟩, set.compl_subset_compl.mpr hVU, set.compl_subset_compl.mpr hVU'⟩, },
+        { exact λ U, (hc U.2).2.2, },
+        { exact λ U, is_closed.compact (is_closed_compl_iff.mpr (hc U.2).2.1), },
+        { exact λ U, (is_closed_compl_iff.mpr (hc U.2).2.1), } } },
+    { use Sᶜ,
+      refine ⟨⟨set.subset.refl _, is_open_compl_iff.mpr hS, _⟩, λ U Uc, (hcne ⟨U, Uc⟩).elim⟩,
+      rw compl_compl,
+      exact hne, }
+  end),
+  refine ⟨Uᶜ, set.compl_subset_comm.mp Uc, Ucne, is_closed_compl_iff.mpr Uo, _⟩,
+  intros V' V'sub V'ne V'cls,
+  have : V'ᶜ = U,
+  { refine h V'ᶜ ⟨_, is_open_compl_iff.mpr V'cls, _⟩ (set.subset_compl_comm.mp V'sub),
+    exact set.subset.trans Uc (set.subset_compl_comm.mp V'sub),
+    simp only [compl_compl, V'ne], },
+  rw [←this, compl_compl],
 end
 
 /-- A σ-compact space is a space that is the union of a countable collection of compact subspaces.

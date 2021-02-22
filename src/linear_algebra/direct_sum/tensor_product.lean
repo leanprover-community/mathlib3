@@ -8,9 +8,9 @@ import linear_algebra.tensor_product
 import linear_algebra.direct_sum_module
 
 /-!
-# Tensor products of directs sums
+# Tensor products of direct sums
 
-This file shows that taking tensor products commutes with taking direct sums in both arguments.
+This file shows that taking `tensor_product`s commutes with taking `direct_sum`s in both arguments.
 -/
 
 section ring

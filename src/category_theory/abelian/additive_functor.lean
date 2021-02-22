@@ -17,13 +17,9 @@ groups.
 # Implementation details
 
 `functor.additive` is a `Prop`-valued class, defined by saying that
-for every two objects `X` and `Y`, there exists a morphism of additive
-groups `f : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)` whose underlying function
-agrees with `F.map`.
-
-To construct an instance of `functor.additive G` from proofs that
-`G.map` sends `0` to `0` and is compatible with addition of morphisms,
-use `functor.additive.of_is_hom`.
+for every two objects `X` and `Y`, the map
+`F.map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)` is a morphism of abelian
+groups.
 
 # Projects (in the case of abelian categories):
 

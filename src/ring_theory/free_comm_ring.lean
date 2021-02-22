@@ -120,6 +120,11 @@ ring_hom.ext $ λ x, free_comm_ring.induction_on x
   (λ x y ihx ihy, by rw [ring_hom.map_add, f.map_add, ihx, ihy])
   (λ x y ihx ihy, by rw [ring_hom.map_mul, f.map_mul, ihx, ihy])
 
+@[ext]
+lemma hom_ext [comm_ring R] ⦃f g : free_comm_ring α →+* R⦄ (h : ∀ x, f (of x) = g (of x)) :
+  f = g :=
+lift.symm.injective (funext h)
+
 end lift
 
 variables {β : Type v} (f : α → β)
@@ -317,53 +322,11 @@ end free_ring
     variables in `α` -/
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃+* mv_polynomial α ℤ :=
-{ to_fun  := free_comm_ring.lift $ λ a, mv_polynomial.X a,
-  inv_fun := mv_polynomial.eval₂ (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of,
-  left_inv :=
-  begin
-    intro x,
-    haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      (int.cast_ring_hom _).is_semiring_hom,
-    refine free_abelian_group.induction_on x rfl _ _ _,
-    { intro s,
-      refine multiset.induction_on s _ _,
-      { unfold free_comm_ring.lift,
-        simp only [free_abelian_group.lift.of, ring_hom.coe_mk, add_monoid_hom.to_fun_eq_coe],
-        exact mv_polynomial.eval₂_one _ _ },
-      { intros hd tl ih,
-        show mv_polynomial.eval₂ (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of
-          (free_comm_ring.lift (λ a, mv_polynomial.X a)
-          (free_comm_ring.of hd * free_abelian_group.of tl)) =
-          free_comm_ring.of hd * free_abelian_group.of tl,
-        rw [ring_hom.map_mul, free_comm_ring.lift_of,
-          mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] } },
-    { intros s ih,
-      rw [ring_hom.map_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
-        ← mv_polynomial.C_1, ← mv_polynomial.C_neg, mv_polynomial.eval₂_C,
-        ring_hom.map_neg, ring_hom.map_one, neg_one_mul, ih] },
-    { intros x₁ x₂ ih₁ ih₂, rw [ring_hom.map_add, mv_polynomial.eval₂_add, ih₁, ih₂] }
-  end,
-  right_inv :=
-  begin
-    intro x,
-    haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      (int.cast_ring_hom _).is_semiring_hom,
-    have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) (int.cast_ring_hom _ i) =
-      mv_polynomial.C i,
-    { exact λ i, int.induction_on i
-      (by rw [ring_hom.map_zero, ring_hom.map_zero, mv_polynomial.C_0])
-      (λ i ih, by rw [ring_hom.map_add, ring_hom.map_one, ring_hom.map_add,
-        ring_hom.map_one, ih, mv_polynomial.C_add, mv_polynomial.C_1])
-      (λ i ih, by rw [ring_hom.map_sub, ring_hom.map_one, ring_hom.map_sub,
-        ring_hom.map_one, ih, mv_polynomial.C_sub, mv_polynomial.C_1]) },
-    apply mv_polynomial.induction_on x,
-    { intro i, rw [mv_polynomial.eval₂_C, this] },
-    { intros p q ihp ihq, rw [mv_polynomial.eval₂_add, ring_hom.map_add, ihp, ihq] },
-    { intros p a ih,
-      rw [mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X,
-        ring_hom.map_mul, free_comm_ring.lift_of, ih] }
-  end,
-  .. free_comm_ring.lift $ λ a, mv_polynomial.X a }
+ring_equiv.of_hom_inv
+  (free_comm_ring.lift $ λ a, mv_polynomial.X a)
+  (mv_polynomial.eval₂_hom (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of)
+  (by { ext, simp })
+  (by ext; simp )
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=

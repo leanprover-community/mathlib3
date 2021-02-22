@@ -327,19 +327,16 @@ lemma coe_dom_dom_congr [fintype ι] (σ : equiv.perm ι) :
     = (σ.sign : ℤ) • (g : multilinear_map R (λ _ : ι, M) N') :=
 multilinear_map.ext $ λ v, g.map_perm v σ
 
-/-- If the arguments are linearly dependent then the result is `0`.
-
-TODO: Can the `division_ring` requirement be relaxed? -/
+/-- If the arguments are linearly dependent then the result is `0`. -/
 lemma map_linear_dependent
-  {K : Type*} [division_ring K]
+  {K : Type*} [ring K]
   {M : Type*} [add_comm_group M] [semimodule K M]
-  {N : Type*} [add_comm_group N] [semimodule K N]
+  {N : Type*} [add_comm_group N] [semimodule K N] [no_zero_smul_divisors K N]
   (f : alternating_map K M N ι) (v : ι → M)
   (h : ¬linear_independent K v) :
   f v = 0 :=
 begin
   obtain ⟨s, g, h, i, hi, hz⟩ := linear_dependent_iff.mp h,
-  -- the part that uses `division_ring`
   suffices : f (update v i (g i • v i)) = 0,
   { rw [f.map_smul, function.update_eq_self, smul_eq_zero] at this,
     exact or.resolve_left this hz, },

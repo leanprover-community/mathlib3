@@ -71,7 +71,7 @@ coe_injective $ funext H
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
-  rwa [leibniz D 1 1, one_smul, left_eq_add_iff] at h,
+  rwa [leibniz D 1 1, one_smul, self_eq_add_right] at h
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
@@ -202,7 +202,8 @@ def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
 { to_fun := λ a, f (D a),
   map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
   map_smul' := λ r a, by rw [derivation.map_smul, map_smul_of_tower],
-  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
+  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add,
+                                   add_comm] }
 
 @[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :
   f.comp_der D a = f (D a) := rfl

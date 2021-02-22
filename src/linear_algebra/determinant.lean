@@ -10,6 +10,30 @@ import algebra.algebra.basic
 import tactic.ring
 import linear_algebra.alternating
 
+/-!
+# Determinant of a matrix
+
+This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
+
+## Main definitions
+
+ - `matrix.det`: the determinant of a square matrix, as a sum over permutations
+ - `matrix.det_row_multilinear`: the determinant, as an `alternating_map` in the rows of the matrix
+
+## Main results
+
+ - `det_mul`: the determinant of `A ⬝ B` is the product of determinants
+ - `det_zero_of_row_eq`: the determinant is zero if there is a repeated row
+ - `det_block_diagonal`: the determinant of a block diagonal matrix is a product
+   of the blocks' determinants
+
+## Implementation notes
+
+It is possible to configure `simp` to compute determinants. See the file
+`test/matrix.lean` for some examples.
+
+-/
+
 universes u v w z
 open equiv equiv.perm finset function
 
@@ -230,7 +254,8 @@ lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_column M j $ s • u) = s * det (update_column M j u) :=
 begin
   simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i = s * ∏ i, M.update_column j u (σ i) i,
+  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i =
+    s * ∏ i, M.update_column j u (σ i) i,
   { intros σ,
     simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
                if_true, algebra.id.smul_eq_mul, pi.smul_apply],

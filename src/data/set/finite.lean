@@ -188,14 +188,9 @@ fintype.of_equiv α $ (equiv.set.univ α).symm
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
 
 /-- If `(set.univ : set α)` is finite then `α` is a finite type. -/
-noncomputable
-def fintype_of_univ_finite (H : (univ : set α).finite ) :
+noncomputable def fintype_of_univ_finite (H : (univ : set α).finite ) :
   fintype α :=
-begin
-  choose t ht using H.exists_finset,
-  refine ⟨t, _⟩,
-  simpa only [set.mem_univ, iff_true] using ht
-end
+@fintype.of_equiv _ (univ : set α) H.fintype (equiv.set.univ _)
 
 lemma univ_finite_iff_nonempty_fintype :
   (univ : set α).finite ↔ nonempty (fintype α) :=
@@ -206,8 +201,7 @@ begin
 end
 
 theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
-⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
-  λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.set.univ _⟩
+⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩, λ ⟨h₁⟩ h₂, h₁ (fintype_of_univ_finite h₂)⟩
 
 theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
 infinite_univ_iff.2 h
@@ -226,12 +220,23 @@ lemma infinite.exists_subset_card_eq {s : set α} (hs : infinite s) (n : ℕ) :
   ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
 ⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
 
+lemma infinite.nonempty {s : set α} (h : s.infinite) : s.nonempty :=
+let a := infinite.nat_embedding s h 37 in ⟨a.1, a.2⟩
+
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
   fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
 
 theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 | ⟨hs⟩ ⟨ht⟩ := ⟨@set.fintype_union _ (classical.dec_eq α) _ _ hs ht⟩
+
+lemma infinite_of_finite_compl {α : Type} [_root_.infinite α] {s : set α}
+  (hs : sᶜ.finite) : s.infinite :=
+λ h, set.infinite_univ (by simpa using hs.union h)
+
+lemma finite.infinite_compl {α : Type} [_root_.infinite α] {s : set α}
+  (hs : s.finite) : sᶜ.infinite :=
+λ h, set.infinite_univ (by simpa using hs.union h)
 
 instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred p] :
   fintype ({a ∈ s | p a} : set α) :=

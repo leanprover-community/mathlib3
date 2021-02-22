@@ -345,12 +345,8 @@ explicitly when needed. -/
 variables (𝕜 E)
 lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E :=
 begin
-  rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := finite.fintype b_finite,
-  have : uniform_embedding b_basis.equiv_fun.symm :=
-    linear_equiv.uniform_embedding _ (linear_map.continuous_of_finite_dimensional _)
-    (linear_map.continuous_of_finite_dimensional _),
-  change uniform_embedding b_basis.equiv_fun.symm.to_equiv at this,
+  set e := continuous_linear_equiv.of_findim_eq (@findim_fin_fun 𝕜 _ (findim 𝕜 E)).symm,
+  have : uniform_embedding e.to_linear_equiv.to_equiv.symm := e.symm.uniform_embedding,
   exact (complete_space_congr this).1 (by apply_instance)
 end
 
@@ -403,19 +399,8 @@ properness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Decl
 explicitly when needed. -/
 lemma finite_dimensional.proper [finite_dimensional 𝕜 E] : proper_space E :=
 begin
-  rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := finite.fintype b_finite,
-  let e := b_basis.equiv_fun,
-  let f : E →L[𝕜] (b → 𝕜) :=
-    { cont := linear_map.continuous_of_finite_dimensional _, ..e.to_linear_map },
-  refine metric.proper_image_of_proper e.symm
-    (linear_map.continuous_of_finite_dimensional _) _ (∥f∥)  (λx y, _),
-  { exact equiv.range_eq_univ e.symm.to_equiv },
-  { have A : e (e.symm x) = x := linear_equiv.apply_symm_apply _ _,
-    have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
-    conv_lhs { rw [← A, ← B] },
-    change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    unfreezingI { exact f.lipschitz.dist_le_mul _ _ } }
+  set e := continuous_linear_equiv.of_findim_eq (@findim_fin_fun 𝕜 _ (findim 𝕜 E)).symm,
+  exact e.symm.antilipschitz.proper_space e.symm.continuous e.symm.surjective
 end
 
 end proper_field

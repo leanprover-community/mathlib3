@@ -434,8 +434,8 @@ def lift_monoid : (α →* R) ≃ (free_abelian_group α →+* R) :=
 
 @[simp] lemma lift_monoid_coe (f : α →* R) : ⇑(lift_monoid f) = lift f := rfl
 
-@[simp] lemma lift_monoid_symm_apply (f : free_abelian_group α →+* R) (x : α) :
-  lift_monoid.symm f x = f (of x) := rfl
+@[simp] lemma lift_monoid_symm_coe (f : free_abelian_group α →+* R) :
+  ⇑(lift_monoid.symm f) = lift.symm ↑f := rfl
 
 lemma one_def : (1 : free_abelian_group α) = of 1 := rfl
 lemma of_one : (of 1 : free_abelian_group α) = 1 := rfl

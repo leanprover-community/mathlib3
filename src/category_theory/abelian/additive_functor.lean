@@ -36,7 +36,7 @@ namespace category_theory
 /-- A functor `F` is additive provided `F.map` is an additive homomorphism. -/
 class functor.additive {C D : Type*} [category C] [category D]
   [preadditive C] [preadditive D] (F : C ⥤ D) : Prop :=
-(exists_hom' : ∀ (X Y : C), ∃ f : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y),
+(exists_hom [] : ∀ (X Y : C), ∃ f : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y),
   ∀ g : X ⟶ Y, F.map g = f g)
 
 section preadditive
@@ -44,9 +44,6 @@ variables {C D : Type*} [category C] [category D] [preadditive C]
   [preadditive D] (F : C ⥤ D) [functor.additive F]
 
 namespace functor.additive
-
-lemma exists_hom (X Y : C) : ∃ f : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y),
-  ∀ g : X ⟶ Y, F.map g = f g := functor.additive.exists_hom' _ _
 
 /--
 Construct an additive instance for `G` from proofs that `G.map` sends `0` to `0`

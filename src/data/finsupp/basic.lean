@@ -640,7 +640,7 @@ variables [add_monoid M]
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 
 @[simp] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
-lemma add_apply {g₁ g₂ : α →₀ M} {a : α} : (g₁ + g₂) a = g₁ a + g₂ a := rfl
+lemma add_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
 lemma support_add {g₁ g₂ : α →₀ M} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
@@ -683,7 +683,7 @@ See `finsupp.lsingle` for the stronger version as a linear map.
 
 See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
-def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
 lemma single_add_erase (a : α) (f : α →₀ M) : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -824,7 +824,7 @@ section nat_sub
 instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
 
 @[simp] lemma coe_nat_sub (g₁ g₂ : α →₀ ℕ) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+lemma nat_sub_apply (g₁ g₂ : α →₀ ℕ) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin
@@ -902,7 +902,7 @@ lemma prod_neg_index [add_group G] [comm_monoid M] {g : α →₀ G} {h : α →
 prod_map_range_index h0
 
 @[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
-lemma neg_apply [add_group G] {g : α →₀ G} {a : α} : (- g) a = - g a := rfl
+lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
 @[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] {g₁ g₂ : α →₀ G} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a := rfl
@@ -1664,8 +1664,6 @@ section
 instance [semiring R] [add_comm_monoid M] [semimodule R M] : has_scalar R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
-variables (α M)
-
 /-!
 Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
 See note [implicit instance arguments].
@@ -1674,7 +1672,9 @@ See note [implicit instance arguments].
 @[simp] lemma coe_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply {_ : semiring R} [add_comm_monoid M] [semimodule R M]
-  {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) := rfl
+  (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
+
+variables (α M)
 
 instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α →₀ M) :=
 { smul      := (•),

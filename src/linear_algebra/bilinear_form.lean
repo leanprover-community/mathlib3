@@ -1068,7 +1068,7 @@ end orthogonal
 /-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only if for
   all `i ≠ j`, `B (v i) (v j) = 0`. -/
 def is_ortho' {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
-  ∀ i j : n, i ≠ j → B.is_ortho (v j) (v i)
+∀ i j : n, i ≠ j → B.is_ortho (v j) (v i)
 
 lemma is_ortho'_def {n : Type w} {B : bilin_form R M} {v : n → M} :
   B.is_ortho' v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl

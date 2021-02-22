@@ -217,6 +217,25 @@ def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
 lemma eval_eq_sum : p.eval x = sum p (λ e a, a * x ^ e) :=
 rfl
 
+lemma eval_eq_finset_sum (P : polynomial R) (x : R) :
+  eval x P = ∑ i in range (P.nat_degree + 1), P.coeff i * x ^ i :=
+begin
+  rw eval_eq_sum,
+  refine P.sum_of_support_subset _ _ _,
+  { intros a,
+    rw [mem_range, nat.lt_add_one_iff],
+    exact le_nat_degree_of_mem_supp a },
+  { intros,
+    exact zero_mul _ }
+end
+
+lemma eval_eq_finset_sum' (P : polynomial R) :
+  (λ x, eval x P) = (λ x, ∑ i in range (P.nat_degree + 1), P.coeff i * x ^ i) :=
+begin
+  ext,
+  exact P.eval_eq_finset_sum x
+end
+
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
 @[simp] lemma eval_nat_cast {n : ℕ} : (n : polynomial R).eval x = n :=

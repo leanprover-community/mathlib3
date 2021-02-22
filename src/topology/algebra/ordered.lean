@@ -537,10 +537,26 @@ lemma frontier_lt_subset_eq (hf : continuous f) (hg : continuous g) :
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
+lemma continuous_if_le [topological_space γ] [Π x, decidable (f x ≤ g x)]
+  {f' g' : β → γ} (hf : continuous f) (hg : continuous g)
+  (hf' : continuous_on f' {x | f x ≤ g x}) (hg' : continuous_on g' {x | g x ≤ f x})
+  (hfg : ∀ x, f x = g x → f' x = g' x) :
+  continuous (λ x, if f x ≤ g x then f' x else g' x) :=
+begin
+  refine continuous_if (λ a ha, hfg _ (frontier_le_subset_eq hf hg ha)) _ (hg'.mono _),
+  { rwa [(is_closed_le hf hg).closure_eq] },
+  { simp only [not_le], exact closure_lt_subset_le hg hf }
+end
+
+lemma continuous.if_le [topological_space γ] [Π x, decidable (f x ≤ g x)] {f' g' : β → γ}
+  (hf' : continuous f') (hg' : continuous g') (hf : continuous f) (hg : continuous g)
+  (hfg : ∀ x, f x = g x → f' x = g' x) :
+  continuous (λ x, if f x ≤ g x then f' x else g' x) :=
+continuous_if_le hf hg hf'.continuous_on hg'.continuous_on hfg
+
 @[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
   continuous (λb, min (f b) (g b)) :=
-have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
-continuous_if this hf hg
+hf.if_le hg hf hg (λ x, id)
 
 @[continuity] lemma continuous.max (hf : continuous f) (hg : continuous g) :
   continuous (λb, max (f b) (g b)) :=
@@ -1594,6 +1610,15 @@ A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
 tendsto.congr (λ x, (fpow_neg x n).symm) (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
+lemma tendsto_fpow_at_top_zero {n : ℤ} (hn : n < 0) :
+  tendsto (λ x : α, x^n) at_top (𝓝 0) :=
+begin
+  have : 1 ≤ -n, by linarith,
+  apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
+  lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
+  exact tendsto_pow_neg_at_top (by exact_mod_cast this)
+end
+
 end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
@@ -1923,7 +1948,7 @@ begin
   rcases eq_empty_or_nonempty (Iio b) with (hb'|⟨a, ha⟩),
   { rw [filter_eq_bot_of_not_nonempty at_top, map_bot, hb', nhds_within_empty],
     exact λ ⟨⟨x, hx⟩⟩, not_nonempty_iff_eq_empty.2 hb' ⟨x, hb hx⟩ },
-  { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap],
+  { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap_of_mem],
     rw subtype.range_coe,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' ha).2 (hs a ha) },
 end
@@ -2634,7 +2659,7 @@ theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : �
   (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a) :
   tendsto u f (𝓝 a) :=
 if hf : f = ⊥ then hf.symm ▸ tendsto_bot
-else by haveI : ne_bot f := hf; exact tendsto_of_liminf_eq_limsup
+else by haveI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
   (le_antisymm (le_trans liminf_le_limsup hsup) hinf)
   (le_antisymm hsup (le_trans hinf liminf_le_limsup))
 

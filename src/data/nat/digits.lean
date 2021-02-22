@@ -288,6 +288,13 @@ lemma digits_last {b m : ℕ} (h : 2 ≤ b) (hm : 0 < m) (p q) :
   (digits b m).last p = (digits b (m/b)).last q :=
 by { simp only [digits_last_aux h hm], rw list.last_cons }
 
+lemma digits.injective (b : ℕ) : function.injective b.digits :=
+function.left_inverse.injective (of_digits_digits b)
+
+@[simp] lemma digits_inj_iff {b n m : ℕ} :
+  b.digits n = b.digits m ↔ n = m :=
+(digits.injective b).eq_iff
+
 lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
 begin

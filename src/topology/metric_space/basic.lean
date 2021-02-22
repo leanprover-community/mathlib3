@@ -1370,6 +1370,15 @@ begin
   exact closure_mono (subset_Union _ _) h
 end
 
+/-- The product of two proper spaces is proper. -/
+instance [proper_space α] [metric_space β] [proper_space β] : proper_space (α × β) :=
+begin
+  refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
+  convert (proper_space.compact_ball x.fst r).prod (proper_space.compact_ball x.snd r),
+  rw closed_ball_prod_same x.1 x.2 r,
+  simp
+end
+
 /-- A finite product of proper spaces is proper. -/
 instance pi_proper_space {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
   [h : ∀b, proper_space (π b)] : proper_space (Πb, π b) :=

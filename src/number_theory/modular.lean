@@ -247,17 +247,69 @@ begin
   linarith
 end
 
-lemma embedding_coe_int : embedding (coe : ℤ → ℝ) :=
+-- next three lemmas cover basically the same territory as the old `finite_integers`
+
+lemma int.finite_closed_ball_zero (r : ℝ) : (metric.closed_ball (0:ℤ) r).finite :=
 begin
-  sorry
+  let s := finset.Ico_ℤ (- (floor r) - 1) (floor r + 1),
+  refine s.finite_to_set.subset _,
+  intros y,
+  simp only [int.dist_eq, int.cast_zero, sub_zero, metric.mem_closed_ball, finset.mem_coe, abs_le,
+    finset.Ico_ℤ.mem],
+  rintros ⟨h₁, h₂⟩,
+  have := lt_floor_add_one r,
+  rw [← @int.cast_le ℝ, ← @int.cast_lt ℝ],
+  push_cast,
+  split; linarith
 end
 
-lemma tendsto_cocompact_of_embedding {α β : Type*} [topological_space α] [topological_space β]
-  {f : α → β} (hf : embedding f) :
+lemma int.finite_closed_ball (x : ℤ) (r : ℝ) : (metric.closed_ball x r).finite :=
+begin
+  refine (int.finite_closed_ball_zero (r + (dist x 0))).subset _,
+  intros y,
+  simp only [metric.closed_ball, set.mem_set_of_eq],
+  intros hy,
+  have := dist_triangle y x 0,
+  linarith
+end
+
+instance : proper_space ℤ := ⟨λ x r, (int.finite_closed_ball x r).is_compact⟩
+
+lemma tendsto_cocompact_of_antilipschitz {α β : Type*} [metric_space α] [proper_space α]
+  [metric_space β] {c : nnreal} {f : α → β} (hf : antilipschitz_with c f) :
   tendsto f (cocompact α) (cocompact β) :=
 begin
-  sorry
+  rw tendsto_iff_eventually,
+  simp only [mem_cocompact, eventually_iff_exists_mem],
+  rintros p ⟨v, hv, hvp⟩,
+  rw mem_cocompact' at hv,
+  obtain ⟨t, ht, htv⟩ := hv,
+  obtain ⟨r, hr⟩ := ht.bounded,
+  by_cases h : ∃ x, ¬ p (f x),
+  { obtain ⟨x, hx⟩ := h,
+    have hxt : f x ∈ t := htv (mt (hvp (f x)) hx),
+    refine ⟨(metric.closed_ball x (c * r))ᶜ, _, _⟩,
+    { rw mem_cocompact,
+      refine ⟨metric.closed_ball x (c * r), proper_space.compact_ball x (↑c * r), rfl.subset⟩ },
+    intros x' hx',
+    have hxx'r : r < dist (f x) (f x'),
+    { simp at hx',
+      rw dist_comm at hx',
+      rw antilipschitz_with_iff_le_mul_dist at hf,
+      have : dist x x' ≤ c * dist (f x) (f x') := hf x x',
+      have := lt_of_lt_of_le hx' this,
+      sorry }, -- this follows from the previous line except with a special case for `c = 0`
+    have := mt (hr (f x) (f x') hxt),
+    push_neg at this,
+    have := (mt (@htv (f x'))) (this hxx'r),
+    apply hvp,
+    simpa using this },
+  { push_neg at h,
+    refine ⟨set.univ, univ_mem_sets, _⟩,
+    intros x hx,
+    exact h x },
 end
+
 
 lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
   {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
@@ -295,7 +347,12 @@ begin
     field_simp [g],
     ring },
   have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
-  { convert tendsto_cocompact_of_embedding (embedding_coe_int.prod_mk embedding_coe_int),
+  { have : antilipschitz_with 1 (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))),
+    { rw antilipschitz_with_iff_le_mul_dist,
+      intros x y,
+      refine le_of_eq _,
+      simp [prod.dist_eq] },
+    convert tendsto_cocompact_of_antilipschitz this,
     rw cocompact_eq_cofinite },
   have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
   { convert tendsto_at_top_sum_sq.comp (h₁.comp h₂),

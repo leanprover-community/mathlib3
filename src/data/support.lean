@@ -156,3 +156,19 @@ set.ext $ λ x, by simp only [support, not_and_distrib, mem_union_eq, mem_set_of
   prod.mk_eq_zero, ne.def]
 
 end function
+
+lemma set.image_inter_support_eq {α β M : Type*} {f : α → M} [has_zero M] {s : set β} {g : β → α} :
+  (g '' s ∩ function.support f) = g '' (s ∩ function.support (f ∘ g)) :=
+begin
+  ext y, split; intro hy,
+    { rcases hy with ⟨⟨x, hx₀, rfl⟩, hy⟩,
+      exact ⟨x, ⟨hx₀, hy⟩, rfl⟩ },
+    { rcases hy with ⟨y, ⟨hys, hyfg⟩, rfl⟩, exact ⟨⟨y, hys, rfl⟩, hyfg⟩ }
+end
+
+lemma set.image_inter_support_finite_iff {α β M : Type*} {f : α → M} [has_zero M] {s : set β} {g : β → α} (hg : set.inj_on g s) :
+  (g '' s ∩ function.support f).finite ↔ (s ∩ function.support (f ∘ g)).finite :=
+begin
+  rw [set.image_inter_support_eq, set.finite_image_iff],
+  exact set.inj_on.mono (set.inter_subset_left s _) hg
+end

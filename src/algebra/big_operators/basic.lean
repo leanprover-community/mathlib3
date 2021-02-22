@@ -683,6 +683,29 @@ begin
 end
 
 /--
+To prove a property of a product, it suffices to prove that
+the property is multiplicative and holds on factors.
+-/
+@[to_additive "To prove a property of a sum, it suffices to prove that
+the property is additive and holds on summands."]
+lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
+(p_mul : ∀ a b, p a → p b → p (a * b)) (hs_nonempty : s.nonempty) (p_s : ∀ x ∈ s, p $ f x) :
+p $ ∏ x in s, f x :=
+begin
+  haveI : decidable_eq α := classical.dec_eq α,
+  revert s,
+  refine finset.induction _ _,
+  { exact λ h, absurd h set.empty_not_nonempty, },
+  intros a s ha h h_nonempty hpsa,
+  by_cases hs_empty : s = ∅,
+  { simp [hs_empty, hpsa a _], },
+  { rw finset.prod_insert ha,
+    rw [← ne.def, ← nonempty_iff_ne_empty] at hs_empty,
+    exact p_mul _ _ (hpsa a (finset.mem_insert_self a s))
+      (h hs_empty (λ x hx, hpsa x (finset.mem_insert_of_mem hx))), },
+end
+
+/--
 For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/

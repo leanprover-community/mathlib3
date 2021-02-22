@@ -898,12 +898,13 @@ lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] {m : multiset α} :
   m.sum = 0 ↔ ∀ x ∈ m, x = (0 : α) :=
 quotient.induction_on m $ λ l, by simpa using list.sum_eq_zero_iff l
 
-lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
-  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
-  f s.sum ≤ (s.map f).sum :=
+@[to_additive le_sum_of_subadditive]
+lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_zero : f 1 = 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : multiset α) :
+  f s.prod ≤ (s.map f).prod :=
 multiset.induction_on s (le_of_eq h_zero) $
-  assume a s ih, by rw [sum_cons, map_cons, sum_cons];
-    from le_trans (h_add a s.sum) (add_le_add_left ih _)
+  assume a s ih, by rw [prod_cons, map_cons, prod_cons];
+    from le_trans (h_mul a s.prod) (mul_le_mul_left' ih _)
 
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=

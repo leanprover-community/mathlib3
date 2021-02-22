@@ -28,7 +28,7 @@ use `functor.additive.of_is_hom`.
 # Projects (in the case of abelian categories):
 
 - Prove that an additive functor preserves finite biproducts
-- Prove that a functor is additive it it preserves finite biproducts
+- Prove that a functor is additive if it preserves finite biproducts
 -/
 
 namespace category_theory

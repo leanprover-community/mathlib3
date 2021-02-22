@@ -166,7 +166,8 @@ begin
     { rcases hy with ⟨y, ⟨hys, hyfg⟩, rfl⟩, exact ⟨⟨y, hys, rfl⟩, hyfg⟩ }
 end
 
-lemma set.image_inter_support_finite_iff {α β M : Type*} {f : α → M} [has_zero M] {s : set β} {g : β → α} (hg : set.inj_on g s) :
+lemma set.image_inter_support_finite_iff {α β M : Type*} {f : α → M} [has_zero M]
+  {s : set β} {g : β → α} (hg : set.inj_on g s) :
   (g '' s ∩ function.support f).finite ↔ (s ∩ function.support (f ∘ g)).finite :=
 begin
   rw [set.image_inter_support_eq, set.finite_image_iff],

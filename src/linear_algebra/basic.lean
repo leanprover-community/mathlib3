@@ -217,7 +217,7 @@ ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
 @[simp] theorem zero_comp : (0 : M₂ →ₗ[R] M₃).comp f = 0 :=
 rfl
 
-@[norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
+@[simp, norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
   ⇑(∑ i in t, f i) = ∑ i in t, (f i : M → M₂) :=
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
@@ -353,11 +353,10 @@ See note [bundled maps over different rings].
 @[simps]
 def ring_lmap_equiv_self [semimodule S M] [smul_comm_class R S M] : (R →ₗ[R] M) ≃ₗ[S] M :=
 { to_fun := λ f, f 1,
-  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
-  map_add' := by simp,
-  map_smul' := by simp,
-  left_inv := λ x, by { ext, simp },
-  right_inv := λ x, by { simp } }
+  inv_fun := smul_right (1 : R →ₗ[R] R),
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ x, by simp,
+  .. applyₗ' S (1 : R) }
 
 end
 

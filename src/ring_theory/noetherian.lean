@@ -176,7 +176,8 @@ begin
   have : f x ∈ map f s, { rw mem_map, exact ⟨x, hx, rfl⟩ },
   rw [← ht1,← set.image_id ↑t1, finsupp.mem_span_iff_total] at this,
   rcases this with ⟨l, hl1, hl2⟩,
-  refine mem_sup.2 ⟨(finsupp.total M M R id).to_fun ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l), _,
+  refine mem_sup.2 ⟨(finsupp.total M M R id).to_fun
+    ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l), _,
     x - finsupp.total M M R id ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l),
     _, add_sub_cancel'_right _ _⟩,
   { rw [← set.image_id (g '' ↑t1), finsupp.mem_span_iff_total], refine ⟨_, _, rfl⟩,
@@ -198,6 +199,41 @@ begin
     unfold id,
     rw [f.map_smul, (hg y (hl1 hy)).2],
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
+end
+
+/-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
+the first morphism is surjective. -/
+lemma fg_ker_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N] [add_comm_group P] [module R P] (f : M →ₗ[R] N)
+  (g : N →ₗ[R] P) (hf1 : f.ker.fg) (hf2 : g.ker.fg) (hsur : function.surjective f) :
+  (g.comp f).ker.fg :=
+begin
+  rw linear_map.ker_comp,
+  apply fg_of_fg_map_of_fg_inf_ker f,
+  { rwa [linear_map.map_comap_eq, linear_map.range_eq_top.2 hsur, top_inf_eq] },
+  { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono (@bot_le _ _ g.ker))] }
+end
+
+lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+  [add_comm_group M] [module S M] [module R M] [is_scalar_tower R S M] (N : submodule S M)
+  (hfin : N.fg) (h : function.surjective (algebra_map R S)) : (submodule.restrict_scalars R N).fg :=
+begin
+  obtain ⟨X, rfl⟩ := hfin,
+  use X,
+  exact submodule.span_eq_restrict_scalars R S M X h
+end
+
+lemma fg_ker_ring_hom_comp {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+  (f : R →+* S) (g : S →+* A) (hf : f.ker.fg) (hg : g.ker.fg) (hsur : function.surjective f) :
+  (g.comp f).ker.fg :=
+begin
+  letI : algebra R S := ring_hom.to_algebra f,
+  letI : algebra R A := ring_hom.to_algebra (g.comp f),
+  letI : algebra S A := ring_hom.to_algebra g,
+  letI : is_scalar_tower R S A := is_scalar_tower.comap,
+  let f₁ := algebra.linear_map R S,
+  let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
+  exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur
 end
 
 /-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
@@ -354,8 +390,9 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M] [module R M]
-  [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
+lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M]
+  [module R M] [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) :
+  s.finite :=
 begin
   refine classical.by_contradiction (λ hf, rel_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M) ⟨_⟩),
@@ -374,9 +411,11 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
-/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them. -/
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them.
+-/
 theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
-  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔ is_noetherian R M :=
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔
+  is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
@@ -481,8 +520,8 @@ end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
   [is_noetherian_ring R] : is_noetherian_ring f.range :=
-is_noetherian_ring_of_surjective R f.range (f.cod_restrict' f.range f.mem_range_self)
-  f.surjective_onto_range
+is_noetherian_ring_of_surjective R f.range f.range_restrict
+  f.range_restrict_surjective
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃+* S) [is_noetherian_ring R] : is_noetherian_ring S :=
@@ -543,11 +582,12 @@ end
 variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
 
 /--In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
-  product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as product
-  or prime ideals ([samuel, § 3.3, Lemma 3])
+  product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as
+  product or prime ideals ([samuel, § 3.3, Lemma 3])
 -/
 
-lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) {I : ideal A} (h_nzI: I ≠ ⊥) :
+lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) {I : ideal A}
+  (h_nzI: I ≠ ⊥) :
   ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧
     multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
 begin

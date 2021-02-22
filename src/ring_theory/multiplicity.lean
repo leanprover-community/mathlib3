@@ -7,6 +7,20 @@ import algebra.associated
 import algebra.big_operators.basic
 import data.nat.enat
 
+/-!
+# Multiplicity of a divisor
+
+For a commutative monoid, this file introduces the notion of multiplicity of a divisor and proves
+several basic results on it.
+
+## Main definitions
+
+* `multiplicity a b`: for two elements `a` and `b` of a commutative monoid returns the largest
+  number `n` such that `a ^ n ∣ b` or infinity, written `⊤`, if `a ^ n ∣ b` for all natural numbers
+  `n`.
+* `multiplicity.finite a b`: a predicate denoting that the multiplicity of `a` in `b` is finite.
+-/
+
 variables {α : Type*}
 
 open nat roption
@@ -310,8 +324,10 @@ protected lemma mul' {p a b : α} (hp : prime p)
   get (multiplicity p (a * b)) h =
   get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   get (multiplicity p b) ((finite_mul_iff hp).1 h).2 :=
-have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a, from pow_multiplicity_dvd _,
-have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b, from pow_multiplicity_dvd _,
+have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a,
+  from pow_multiplicity_dvd _,
+have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b,
+  from pow_multiplicity_dvd _,
 have hpoweq : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) =
     p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 *

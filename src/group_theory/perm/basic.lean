@@ -8,6 +8,7 @@ import algebra.group.basic
 import algebra.group.hom
 import algebra.group.pi
 import algebra.group.prod
+
 /-!
 # The group of permutations (self-equivalences) of a type `α`
 
@@ -182,6 +183,9 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
 ⟨λ x, ⟨f x, (h _).1 x.2⟩, λ x, ⟨f⁻¹ x, (h (f⁻¹ x)).2 $ by simpa using x.2⟩,
   λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
   λ _, by simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
+
+@[simp] lemma subtype_perm_apply (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x))
+  (x : {x // p x}) : subtype_perm f h x = ⟨f x, (h _).1 x.2⟩ := rfl
 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) :
   @subtype_perm α 1 p h = 1 :=

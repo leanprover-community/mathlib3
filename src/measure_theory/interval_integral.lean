@@ -357,7 +357,7 @@ lemma integral_const' (c : E) :
   ∫ x in a..b, c ∂μ = ((μ $ Ioc a b).to_real - (μ $ Ioc b a).to_real) • c :=
 by simp only [interval_integral, set_integral_const, sub_smul]
 
-lemma integral_const {a b : ℝ} (c : E) : (∫ (x : ℝ) in a..b, c) = (b - a) • c :=
+@[simp] lemma integral_const {a b : ℝ} (c : E) : ∫ x in a..b, c = (b - a) • c :=
 by simp only [integral_const', real.volume_Ioc, ennreal.to_real_of_real', ← neg_sub b,
   max_zero_sub_eq_self]
 
@@ -644,7 +644,7 @@ begin
   simp only [integral_const'],
   convert (A.trans_le _).sub (B.trans_le _),
   { ext t,
-    simp_rw [(∘), interval_integral, sub_smul],
+    simp_rw [interval_integral, sub_smul],
     abel },
   all_goals { intro t, cases le_total (u t) (v t) with huv huv; simp [huv] }
 end

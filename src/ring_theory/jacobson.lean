@@ -44,14 +44,21 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] {I : ideal R}
 /-- A ring is a Jacobson ring if for every radical ideal `I`,
  the Jacobson radical of `I` is equal to `I`.
  See `is_jacobson_iff_prime_eq` and `is_jacobson_iff_Inf_maximal` for equivalent definitions. -/
-@[class] def is_jacobson (R : Type*) [comm_ring R] :=
-  ∀ (I : ideal R), I.radical = I → I.jacobson = I
+class is_jacobson (R : Type*) [comm_ring R] : Prop :=
+(out' : ∀ (I : ideal R), I.radical = I → I.jacobson = I)
+
+theorem is_jacobson_iff {R} [comm_ring R] :
+  is_jacobson R ↔ ∀ (I : ideal R), I.radical = I → I.jacobson = I :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+theorem is_jacobson.out {R} [comm_ring R] :
+  is_jacobson R → ∀ {I : ideal R}, I.radical = I → I.jacobson = I := is_jacobson_iff.1
 
 /--  A ring is a Jacobson ring if and only if for all prime ideals `P`,
  the Jacobson radical of `P` is equal to `P`. -/
 lemma is_jacobson_iff_prime_eq : is_jacobson R ↔ ∀ P : ideal R, is_prime P → P.jacobson = P :=
 begin
-  refine ⟨λ h I hI, h I (is_prime.radical hI), _⟩,
+  refine is_jacobson_iff.trans ⟨λ h I hI, h I (is_prime.radical hI), _⟩,
   refine λ h I hI, le_antisymm (λ x hx, _) (λ x hx, mem_Inf.mpr (λ _ hJ, hJ.left hx)),
   rw [← hI, radical_eq_Inf I, mem_Inf],
   intros P hP,
@@ -66,26 +73,27 @@ end
  Allowing ⊤ in the set `M` of maximal ideals is equivalent, but makes some proofs cleaner. -/
 lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
   ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R), (∀ J ∈ M, is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
-⟨λ H I h, eq_jacobson_iff_Inf_maximal.1 (H _ (is_prime.radical h)),
-  λ H , is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal.2 (H hP))⟩
+⟨λ H I h, eq_jacobson_iff_Inf_maximal.1 (H.out (is_prime.radical h)),
+  λ H, is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal.2 (H hP))⟩
 
 lemma is_jacobson_iff_Inf_maximal' : is_jacobson R ↔
-  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R), (∀ (J ∈ M) (K : ideal R), J < K → K = ⊤) ∧ I = Inf M :=
-⟨λ H I h, eq_jacobson_iff_Inf_maximal'.1 (H _ (is_prime.radical h)),
-  λ H , is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal'.2 (H hP))⟩
+  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R),
+  (∀ (J ∈ M) (K : ideal R), J < K → K = ⊤) ∧ I = Inf M :=
+⟨λ H I h, eq_jacobson_iff_Inf_maximal'.1 (H.out (is_prime.radical h)),
+  λ H, is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal'.2 (H hP))⟩
 
 lemma radical_eq_jacobson [H : is_jacobson R] (I : ideal R) : I.radical = I.jacobson :=
 le_antisymm (le_Inf (λ J ⟨hJ, hJ_max⟩, (is_prime.radical_le_iff hJ_max.is_prime).mpr hJ))
-            ((H I.radical (radical_idem I)) ▸ (jacobson_mono le_radical))
+            ((H.out (radical_idem I)) ▸ (jacobson_mono le_radical))
 
 /-- Fields have only two ideals, and the condition holds for both of them.  -/
 @[priority 100]
 instance is_jacobson_field {K : Type*} [field K] : is_jacobson K :=
-λ I hI, or.rec_on (eq_bot_or_top I)
+⟨λ I hI, or.rec_on (eq_bot_or_top I)
 (λ h, le_antisymm
   (Inf_le ⟨le_of_eq rfl, (eq.symm h) ▸ bot_is_maximal⟩)
   ((eq.symm h) ▸ bot_le))
-(λ h, by rw [h, jacobson_eq_top_iff])
+(λ h, by rw [h, jacobson_eq_top_iff])⟩
 
 theorem is_jacobson_of_surjective [H : is_jacobson R] :
   (∃ (f : R →+* S), function.surjective f) → is_jacobson S :=
@@ -96,7 +104,7 @@ begin
   use map f '' {J : ideal R | comap f p ≤ J ∧ J.is_maximal },
   use λ j ⟨J, hJ, hmap⟩, hmap ▸ or.symm (map_eq_top_or_is_maximal_of_surjective f hf hJ.right),
   have : p = map f ((comap f p).jacobson),
-  from (H (comap f p) (by rw [← comap_radical, is_prime.radical hp])).symm
+  from (is_jacobson.out' (comap f p) (by rw [← comap_radical, is_prime.radical hp])).symm
     ▸ (map_comap_of_surjective f hf p).symm,
   exact eq.trans this (map_Inf hf (λ J ⟨hJ, _⟩, le_trans (ideal.ker_le_comap f) hJ)),
 end
@@ -157,13 +165,13 @@ lemma is_maximal_iff_is_maximal_disjoint [H : is_jacobson R] (J : ideal S) :
   J.is_maximal ↔ (comap f.to_map J).is_maximal ∧ y ∉ ideal.comap f.to_map J :=
 begin
   split,
-  { refine λ h, ⟨_, λ hy, h.1 (ideal.eq_top_of_is_unit_mem _ hy
+  { refine λ h, ⟨_, λ hy, h.ne_top (ideal.eq_top_of_is_unit_mem _ hy
       (map_units f ⟨y, submonoid.mem_powers _⟩))⟩,
     have hJ : J.is_prime := is_maximal.is_prime h,
     rw is_prime_iff_is_prime_disjoint f at hJ,
     have : y ∉ (comap f.to_map J).1 :=
       set.disjoint_left.1 hJ.right (submonoid.mem_powers _),
-    erw [← H (comap f.to_map J) (is_prime.radical hJ.left), mem_Inf] at this,
+    erw [← H.out (is_prime.radical hJ.left), mem_Inf] at this,
     push_neg at this,
     rcases this with ⟨I, hI, hI'⟩,
     convert hI.right,
@@ -174,10 +182,10 @@ begin
       { refine is_prime_of_is_prime_disjoint f I hI.right.is_prime _,
         rwa disjoint_powers_iff_not_mem (is_maximal.is_prime hI.right).radical },
       have : J ≤ map f.to_map I := (map_comap f J) ▸ (map_mono hI.left),
-      exact absurd (h.right _ (lt_of_le_of_ne this hJ)) hI_p.left } },
-  { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), λ I hI, _⟩,
+      exact absurd (h.1.2 _ (lt_of_le_of_ne this hJ)) hI_p.1 } },
+  { refine λ h, ⟨⟨λ hJ, h.1.ne_top (eq_top_iff.2 _), λ I hI, _⟩⟩,
     { rwa [eq_top_iff, ← f.order_embedding.le_iff_le] at hJ },
-    { have := congr_arg (map f.to_map) (h.left.right _ ⟨comap_mono (le_of_lt hI), _⟩),
+    { have := congr_arg (map f.to_map) (h.1.1.2 _ ⟨comap_mono (le_of_lt hI), _⟩),
       rwa [map_comap f I, map_top f.to_map] at this,
       refine λ hI', hI.right _,
       rw [← map_comap f I, ← map_comap f J],
@@ -209,14 +217,15 @@ def order_iso_of_maximal [is_jacobson R] :
   map_rel_iff' := λ I I', ⟨λ h, (show I.val ≤ I'.val,
     from (map_comap f I.val) ▸ (map_comap f I'.val) ▸ (ideal.map_mono h)), λ h x hx, h hx⟩ }
 
-/-- If `S` is the localization of the Jacobson ring `R` at the submonoid generated by `y : R`, then `S` is Jacobson. -/
+/-- If `S` is the localization of the Jacobson ring `R` at the submonoid generated by `y : R`, then
+`S` is Jacobson. -/
 lemma is_jacobson_localization [H : is_jacobson R]
   (f : away_map y S) : is_jacobson S :=
 begin
   rw is_jacobson_iff_prime_eq,
   refine λ P' hP', le_antisymm _ le_jacobson,
   obtain ⟨hP', hPM⟩ := (localization_map.is_prime_iff_is_prime_disjoint f P').mp hP',
-  have hP := H (comap f.to_map P') (is_prime.radical hP'),
+  have hP := H.out (is_prime.radical hP'),
   refine le_trans (le_trans (le_of_eq (localization_map.map_comap f P'.jacobson).symm) (map_mono _))
     (le_of_eq (localization_map.map_comap f P')),
   have : Inf { I : ideal R | comap f.to_map P' ≤ I ∧ I.is_maximal ∧ y ∉ I } ≤ comap f.to_map P',
@@ -228,7 +237,7 @@ begin
       { exact J.smul_mem x h },
       { exact (mul_comm y x) ▸ J.smul_mem y ((mem_Inf.1 hx) ⟨hJ.left, ⟨hJ.right, h⟩⟩) } },
     rw hP at hxy,
-    cases hP'.right hxy with hxy hxy,
+    cases hP'.mem_or_mem hxy with hxy hxy,
     { exact hxy },
     { exact (hPM ⟨submonoid.mem_powers _, hxy⟩).elim } },
   refine le_trans _ this,
@@ -262,7 +271,8 @@ lemma is_integral_localization_map_polynomial_quotient
       (quotient_map P C le_rfl : (P.comap C : ideal R).quotient →* P.quotient)) ϕ').is_integral :=
 begin
   let P' : ideal R := P.comap C,
-  let M : submonoid P'.quotient := submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff,
+  let M : submonoid P'.quotient :=
+  submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff,
   let φ : P'.quotient →+* P.quotient := quotient_map P C le_rfl,
   let φ' := (ϕ.map (M.mem_map_of_mem (φ : P'.quotient →* P.quotient)) ϕ'),
   have hφ' : φ.comp (quotient.mk P') = (quotient.mk P).comp C := rfl,
@@ -314,7 +324,7 @@ begin
     { simpa [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_comap_bot] using ϕ'.injective hM },
     refine eq_bot_iff.2 (le_trans _ (le_of_eq hϕ')),
     have hSₘ : is_jacobson Sₘ := is_jacobson_of_is_integral' φ' hφ' (is_jacobson_localization ϕ),
-    rw [← hSₘ ⊥ radical_bot_of_integral_domain, comap_jacobson],
+    rw [← hSₘ.out radical_bot_of_integral_domain, comap_jacobson],
     exact Inf_le_Inf (λ j hj, ⟨bot_le, let ⟨J, hJ⟩ := hj in hJ.2 ▸ this J hJ.1.2⟩) },
   introsI I hI,
   -- Remainder of the proof is pulling and pushing ideals around the square and the quotient square
@@ -324,8 +334,9 @@ begin
   have hcomm: φ'.comp ϕ.to_map = ϕ'.to_map.comp φ := ϕ.map_comp _,
   let f := quotient_map (I.comap ϕ'.to_map) φ le_rfl,
   let g := quotient_map I ϕ'.to_map le_rfl,
-  have := ((is_maximal_iff_is_maximal_disjoint ϕ _).1
-    (is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I hI)).left,
+  have := is_maximal_comap_of_is_integral_of_is_maximal' φ' hφ' I
+    (by convert hI; casesI _inst_4; refl),
+  have := ((is_maximal_iff_is_maximal_disjoint ϕ _).1 this).left,
   have : ((I.comap ϕ'.to_map).comap φ).is_maximal,
   { rwa [comap_comap, hcomm, ← comap_comap] at this },
   rw ← bot_quotient_is_maximal_iff at this ⊢,
@@ -346,7 +357,8 @@ private lemma is_jacobson_polynomial_of_domain (R : Type*) [integral_domain R] [
   P.jacobson = P :=
 begin
   by_cases Pb : (P = ⊥),
-  { exact Pb.symm ▸ jacobson_bot_polynomial_of_jacobson_bot (hR ⊥ radical_bot_of_integral_domain) },
+  { exact Pb.symm ▸ jacobson_bot_polynomial_of_jacobson_bot
+      (hR.out radical_bot_of_integral_domain) },
   { refine jacobson_eq_iff_jacobson_quotient_eq_bot.mpr _,
     haveI : (P.comap (C : R →+* polynomial R)).is_prime := comap_is_prime C P,
     obtain ⟨p, pP, p0⟩ := exists_nonzero_mem_of_ne_bot Pb hP,
@@ -363,7 +375,7 @@ begin
   introI hI,
   let R' : subring I.quotient := ((quotient.mk I).comp C).range,
   let i : R →+* R' := ((quotient.mk I).comp C).range_restrict,
-  have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).surjective_onto_range,
+  have hi : function.surjective (i : R → R') := ((quotient.mk I).comp C).range_restrict_surjective,
   have hi' : (polynomial.map_ring_hom i : polynomial R →+* polynomial R').ker ≤ I,
   { refine λ f hf, polynomial_mem_ideal_of_coeff_mem_ideal I f (λ n, _),
     replace hf := congr_arg (λ (g : polynomial (((quotient.mk I).comp C).range)), g.coeff n) hf,
@@ -489,7 +501,7 @@ begin
   apply quotient_mk_comp_C_is_integral_of_jacobson' _ _ (λ x hx, _),
   any_goals { exact ideal.is_jacobson_quotient },
   { exact or.rec_on (map_eq_top_or_is_maximal_of_surjective f hf hP)
-    (λ h, absurd (trans (h ▸ hPJ : P = comap f ⊤) comap_top : P = ⊤) hP.1) id },
+    (λ h, absurd (trans (h ▸ hPJ : P = comap f ⊤) comap_top : P = ⊤) hP.ne_top) id },
   { obtain ⟨z, rfl⟩ := quotient.mk_surjective x,
     rwa [quotient.eq_zero_iff_mem, mem_comap, hPJ, mem_comap, coe_map_ring_hom, map_C] }
 end

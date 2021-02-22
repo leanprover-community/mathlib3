@@ -1580,6 +1580,26 @@ end
   l.drop k = [] :=
 by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
 
+lemma tail_drop (l : list α) (n : ℕ) : (l.drop n).tail = l.drop (n + 1) :=
+begin
+  induction l with hd tl hl generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simp [hl] } }
+end
+
+lemma cons_nth_le_drop_succ {l : list α} {n : ℕ} (hn : n < l.length) :
+  l.nth_le n hn :: l.drop (n + 1) = l.drop n :=
+begin
+  induction l with hd tl hl generalizing n,
+  { exact absurd n.zero_le (not_le_of_lt (by simpa using hn)) },
+  { cases n,
+    { simp },
+    { simp only [nat.succ_lt_succ_iff, list.length] at hn,
+      simpa [list.nth_le, list.drop] using hl hn } }
+end
+
 theorem drop_nil : ∀ n, drop n [] = ([] : list α) :=
 λ _, drop_eq_nil_of_le (nat.zero_le _)
 
@@ -3278,11 +3298,20 @@ length_le_of_sublist $ sublist_of_infix s
 theorem eq_nil_of_infix_nil {l : list α} (s : l <:+: []) : l = [] :=
 eq_nil_of_sublist_nil $ sublist_of_infix s
 
+@[simp] theorem eq_nil_iff_infix_nil {l : list α} : l <:+: [] ↔ l = [] :=
+⟨eq_nil_of_infix_nil, λ h, h ▸ infix_refl _⟩
+
 theorem eq_nil_of_prefix_nil {l : list α} (s : l <+: []) : l = [] :=
 eq_nil_of_infix_nil $ infix_of_prefix s
 
+@[simp] theorem eq_nil_iff_prefix_nil {l : list α} : l <+: [] ↔ l = [] :=
+⟨eq_nil_of_prefix_nil, λ h, h ▸ prefix_refl _⟩
+
 theorem eq_nil_of_suffix_nil {l : list α} (s : l <:+ []) : l = [] :=
 eq_nil_of_infix_nil $ infix_of_suffix s
+
+@[simp] theorem eq_nil_iff_suffix_nil {l : list α} : l <:+ [] ↔ l = [] :=
+⟨eq_nil_of_suffix_nil, λ h, h ▸ suffix_refl _⟩
 
 theorem infix_iff_prefix_suffix (l₁ l₂ : list α) : l₁ <:+: l₂ ↔ ∃ t, l₁ <+: t ∧ t <:+ l₂ :=
 ⟨λ⟨s, t, e⟩, ⟨l₁ ++ t, ⟨_, rfl⟩, by rw [← e, append_assoc]; exact ⟨_, rfl⟩⟩,

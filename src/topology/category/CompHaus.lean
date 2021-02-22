@@ -48,6 +48,18 @@ instance category : category CompHaus := induced_category.category to_Top
 lemma coe_to_Top {X : CompHaus} : (X.to_Top : Type*) = X :=
 rfl
 
+variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+
+/-- A constructor for objects of the category `CompHaus`,
+taking a type, and bundling the compact Hausdorff topology
+found by typeclass inference. -/
+def of : CompHaus :=
+{ to_Top := Top.of X,
+  is_compact := ‹_›,
+  is_hausdorff := ‹_› }
+
+@[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
+
 end CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/
@@ -59,10 +71,7 @@ def CompHaus_to_Top : CompHaus ⥤ Top := induced_functor _
 compact Hausdorff spaces.
 -/
 @[simps]
-def StoneCech_obj (X : Top) : CompHaus :=
-{ to_Top := { α := stone_cech X },
-  is_compact := stone_cech.compact_space,
-  is_hausdorff := @stone_cech.t2_space X _ }
+def StoneCech_obj (X : Top) : CompHaus := CompHaus.of (stone_cech X)
 
 /--
 (Implementation) The bijection of homsets to establish the reflective adjunction of compact
@@ -105,5 +114,5 @@ rfl
 /--
 The category of compact Hausdorff spaces is reflective in the category of topological spaces.
 -/
-noncomputable instance : reflective CompHaus_to_Top :=
+noncomputable instance CompHaus_to_Top.reflective : reflective CompHaus_to_Top :=
 { to_is_right_adjoint := ⟨Top_to_CompHaus, adjunction.adjunction_of_equiv_left _ _⟩ }

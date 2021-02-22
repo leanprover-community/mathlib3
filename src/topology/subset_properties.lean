@@ -481,6 +481,46 @@ def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
   fintype α :=
 fintype_of_univ_finite $ finite_of_is_compact_of_discrete _ compact_univ
 
+lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
+let ⟨t, ht⟩ := compact_univ.elim_finite_subcover (λ x, interior (U x)) (λ x, is_open_interior)
+  (λ x _, mem_Union.2 ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩)
+in ⟨t, univ_subset_iff.1 ht⟩
+
+lemma finite_cover_nhds [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, U x) = univ :=
+let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $
+  ht ▸ bUnion_subset_bUnion_right (λ x hx, interior_subset)⟩
+
+/-- If `α` is a compact space, then a locally finite family of sets of `α` can have only finitely
+many nonempty elements. -/
+lemma locally_finite.finite_nonempty_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
+  (hf : locally_finite f) :
+  finite {i | (f i).nonempty} :=
+begin
+  choose U hxU hUf using hf,
+  rcases finite_cover_nhds hxU with ⟨t, ht⟩,
+  refine (t.finite_to_set.bUnion (λ x _, hUf x)).subset _,
+  rintro i ⟨x, hx⟩,
+  simp only [eq_univ_iff_forall, mem_Union] at ht ⊢,
+  rcases ht x with ⟨j, hjt, hjx⟩,
+  exact ⟨j, hjt, x, hx, hjx⟩
+end
+
+/-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
+finitely many elements, `set.finite` version. -/
+lemma locally_finite.finite_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
+  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
+  finite (univ : set ι) :=
+by simpa only [hne] using hf.finite_nonempty_of_compact
+
+/-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
+finitely many elements, `fintype` version. -/
+noncomputable def locally_finite.fintype_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
+  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
+  fintype ι :=
+fintype_of_univ_finite (hf.finite_of_compact hne)
+
 variables [topological_space β]
 
 lemma is_compact.image_of_continuous_on {f : α → β} (hs : is_compact s) (hf : continuous_on f s) :

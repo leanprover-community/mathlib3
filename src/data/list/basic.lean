@@ -437,8 +437,12 @@ end
 
 @[simp] theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
 
-theorem eq_of_mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n → b = a
-| (n+1) h := or.elim h id $ @eq_of_mem_repeat _
+theorem mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n ↔ n ≠ 0 ∧ b = a
+| 0 := by simp
+| (n + 1) := by simp [mem_repeat]
+
+theorem eq_of_mem_repeat {a b : α} {n} (h :  b ∈ repeat a n) : b = a :=
+(mem_repeat.1 h).2
 
 theorem eq_repeat_of_mem {a : α} : ∀ {l : list α}, (∀ b ∈ l, b = a) → l = repeat a l.length
 | []     H := rfl
@@ -474,29 +478,25 @@ by cases n; refl
 @[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
 by induction n; [refl, simp only [*, repeat, join, append_nil]]
 
-lemma repeat_inj_left {a b : α} {n : ℕ}
-  (h : repeat a (n + 1) = repeat b (n + 1)) : a = b :=
-by { simp at h, exact h.left }
+lemma repeat_left_injective {n : ℕ} (hn : n ≠ 0) :
+  function.injective (λ a : α, repeat a n) :=
+λ a b h, (eq_repeat.1 h).2 _ $ mem_repeat.2 ⟨hn, rfl⟩
 
-@[simp] lemma repeat_inj_left_iff {a b : α} {n : ℕ} :
-  repeat a (n + 1) = repeat b (n + 1) ↔ a = b :=
-⟨repeat_inj_left, λ h, h ▸ rfl⟩
+lemma repeat_left_inj {a b : α} {n : ℕ} (hn : n ≠ 0) :
+  repeat a n = repeat b n ↔ a = b :=
+(repeat_left_injective hn).eq_iff
 
-lemma repeat_inj_right {a : α} {n m : ℕ} (h : repeat a n = repeat a m) :
-  n = m :=
-begin
-  induction n with n hn generalizing m;
-  cases m,
-  { refl },
-  { simpa using h },
-  { simpa using h },
-  { simp only [true_and, repeat_succ, eq_self_iff_true] at h,
-    simp [hn h] }
-end
+@[simp] lemma repeat_left_inj' {a b : α} :
+  ∀ {n}, repeat a n = repeat b n ↔ n = 0 ∨ a = b
+| 0 := by simp
+| (n + 1) := (repeat_left_inj n.succ_ne_zero).trans $ by simp only [n.succ_ne_zero, false_or]
 
-@[simp] lemma repeat_inj_right_iff {a : α} {n m : ℕ} :
+lemma repeat_right_injective (a : α) : function.injective (repeat a) :=
+function.left_inverse.injective (length_repeat a)
+
+@[simp] lemma repeat_right_inj {a : α} {n m : ℕ} :
   repeat a n = repeat a m ↔ n = m :=
-⟨repeat_inj_right, λ h, h ▸ rfl⟩
+(repeat_right_injective a).eq_iff
 
 /-! ### pure -/
 

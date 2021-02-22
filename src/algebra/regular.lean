@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group
+import algebra.group_power.basic
 
 /-!
 # Regular elements
@@ -107,6 +108,58 @@ lemma is_regular.and_of_mul_of_mul (ab : is_regular (a * b)) (ba : is_regular (b
 is_regular_mul_and_mul_iff.mp ⟨ab, ba⟩
 
 end semigroup
+
+section monoid
+
+variable [monoid R]
+
+/--  Any power of a left-regular element is left-regular. -/
+lemma is_left_regular.pow (n : ℕ) (rla : is_left_regular a) : is_left_regular (a ^ n) :=
+begin
+  induction n with n hn,
+  { rw pow_zero,
+    exact λ x y xy, (one_mul x).symm.trans (xy.trans (one_mul y)) },
+  { exact is_left_regular.mul rla hn }
+end
+
+/--  Any power of a right-regular element is right-regular. -/
+lemma is_right_regular.pow (n : ℕ) (rra : is_right_regular a) : is_right_regular (a ^ n) :=
+begin
+  induction n with n hn,
+  { rw pow_zero,
+    exact λ x y xy, (mul_one x).symm.trans (xy.trans (mul_one y)) },
+  { exact is_right_regular.mul rra hn }
+end
+
+/--  Any power of a regular element is regular. -/
+lemma is_regular.pow (n : ℕ) (ra : is_regular a) : is_regular (a ^ n) :=
+⟨is_left_regular.pow n ra.left, is_right_regular.pow n ra.right⟩
+
+/--  An element `a` is left-regular if and only if a positive power of `a` is left-regular. -/
+lemma is_left_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
+  is_left_regular (a ^ n) ↔ is_left_regular a :=
+begin
+  refine ⟨_, is_left_regular.pow n⟩,
+  rw [← nat.succ_pred_eq_of_pos n0, pow_succ'],
+  exact is_left_regular.of_mul,
+end
+
+/--  An element `a` is right-regular if and only if a positive power of `a` is right-regular. -/
+lemma is_right_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
+  is_right_regular (a ^ n) ↔ is_right_regular a :=
+begin
+  refine ⟨_, is_right_regular.pow n⟩,
+  rw [← nat.succ_pred_eq_of_pos n0, pow_succ],
+  exact is_right_regular.of_mul,
+end
+
+/--  An element `a` is regular if and only if a positive power of `a` is regular. -/
+lemma is_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
+  is_regular (a ^ n) ↔ is_regular a :=
+⟨λ h, ⟨(is_left_regular.pow_iff n0).mp h.left, (is_right_regular.pow_iff n0).mp h.right⟩,
+  λ h, ⟨is_left_regular.pow n h.left, is_right_regular.pow n h.right⟩⟩
+
+end monoid
 
 section mul_zero_class
 

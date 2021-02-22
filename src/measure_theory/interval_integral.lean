@@ -590,6 +590,31 @@ interval_integral_mono_ae_of_nonneg hg hab (ae_of_all _ h₁) (ae_of_all _ h₂)
 
 end mono
 
+section nonneg
+
+variables {μ : measure ℝ} {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+
+include hab
+
+lemma interval_integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (interval a b)] f) :
+  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+begin
+  rw integral_of_le hab,
+  rw interval_of_le hab at hf,
+  exact set_integral_nonneg_of_ae_restrict
+    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) hf)
+end
+
+lemma interval_integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+interval_integral_nonneg_of_ae_restrict hab (ae_restrict_of_ae hf)
+
+lemma interval_integral_nonneg (hf : ∀ u, u ∈ interval a b → 0 ≤ f u) :
+  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+interval_integral_nonneg_of_ae_restrict hab
+  ((ae_restrict_iff' measurable_set_interval).mpr (ae_of_all μ hf))
+
+end nonneg
+
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure
 

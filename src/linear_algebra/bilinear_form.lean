@@ -1206,7 +1206,7 @@ submodule.quotient_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
   and the whole space. -/
 noncomputable def prod_equiv_of_ortho_singleton
   {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
-  submodule.prod_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
+submodule.prod_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
 
 lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V) (hB₁ : nondegenerate B)
   (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :

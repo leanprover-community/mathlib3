@@ -121,7 +121,7 @@ ring_hom.ext $ λ x, free_comm_ring.induction_on x
   (λ x y ihx ihy, by rw [ring_hom.map_mul, f.map_mul, ihx, ihy])
 
 @[ext]
-lemma hom_ext [comm_ring R] ⦃f g : free_comm_ring α →+* R⦄ (h : ∀ x, f (of x) = g (of x)) :
+lemma hom_ext ⦃f g : free_comm_ring α →+* R⦄ (h : ∀ x, f (of x) = g (of x)) :
   f = g :=
 lift.symm.injective (funext h)
 

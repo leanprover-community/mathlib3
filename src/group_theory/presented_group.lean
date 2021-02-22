@@ -14,11 +14,11 @@ given by generators `x : α` and relations `r ∈ rels`.
 
 ## Main definitions
 
-* `presented group rels`: the quotient group of the free group on a type `α` by a subset `rels` of
+* `presented_group rels`: the quotient group of the free group on a type `α` by a subset `rels` of
   relations of the free group on `α`.
 * `of`: The canonical map from `α` to a presented group with generators `α`.
-* `to_group f`: the canonical group homomorphsim `presented_group rels → G`, given a function
-`f : α → G` from a type `α` to a group `G` which satisfies the relations `rels`.
+* `to_group f`: the canonical group homomorphism `presented_group rels → G`, given a function
+  `f : α → G` from a type `α` to a group `G` which satisfies the relations `rels`.
 
 ## Tags
 

@@ -64,23 +64,34 @@ the multiplication be an `add_monoid_hom`. Multiplication combines grades additi
 class ghas_mul [add_monoid ι] [∀ i, add_comm_monoid (A i)] :=
 (mul {i j} : A i →+ A j →+ A (i + j))
 
-end defs
+variables {A}
 
-local notation `ᵍ1` := ghas_one.one
-local infix `ᵍ*`:70 := ghas_mul.mul
+/-- `direct_sum.ghas_one` implies a `has_one (Σ i, A i)`, although this is only used as an instance
+locally to define notation in `direct_sum.gmonoid`. -/
+def ghas_one.to_sigma_has_one [has_zero ι] [ghas_one A] : has_one (Σ i, A i) := ⟨⟨_, ghas_one.one⟩⟩
+
+/-- `direct_sum.ghas_mul` implies a `has_mul (Σ i, A i)`, although this is only used as an instance
+locally to define notation in `direct_sum.gmonoid`. -/
+def ghas_mul.to_sigma_has_mul [add_monoid ι] [∀ i, add_comm_monoid (A i)] [ghas_mul A] :
+  has_mul (Σ i, A i) :=
+⟨λ (x y : Σ i, A i), ⟨_, ghas_mul.mul x.snd y.snd⟩⟩
+
+end defs
 
 section defs
 
+local attribute [instance] ghas_one.to_sigma_has_one
+local attribute [instance] ghas_mul.to_sigma_has_mul
+
 /-- A graded version of `monoid`. -/
 class gmonoid [add_monoid ι] [∀ i, add_comm_monoid (A i)] extends ghas_mul A, ghas_one A :=
-(one_mul {i} (a : A i) : (⟨_, ᵍ1 ᵍ* a⟩ : Σ i, A i) = ⟨i, a⟩)
-(mul_one {i} (a : A i) : (⟨_, a ᵍ* ᵍ1⟩ : Σ i, A i) = ⟨i, a⟩)
-(mul_assoc {i j k} (a : A i) (b : A j) (c : A k) :
-  (⟨_, a ᵍ* b ᵍ* c⟩ : Σ i, A i) = ⟨_, a ᵍ* (b ᵍ* c)⟩)
+(one_mul (a : Σ i, A i) : 1 * a = a)
+(mul_one (a : Σ i, A i) : a * 1 = a)
+(mul_assoc (a : Σ i, A i) (b : Σ i, A i) (c : Σ i, A i) : a * b * c = a * (b * c))
 
 /-- A graded version of `comm_monoid`. -/
 class gcomm_monoid [add_comm_monoid ι] [∀ i, add_comm_monoid (A i)] extends gmonoid A :=
-(mul_comm {i j} (a : A i) (b : A j) : (⟨_, a ᵍ* b⟩ : Σ i, A i) = ⟨_, b ᵍ* a⟩)
+(mul_comm (a : Σ i, A i) (b : Σ i, A i) : a * b = b * a)
 
 end defs
 
@@ -128,32 +139,10 @@ def gmonoid.of_submonoids {R : Type*} [semiring R] [add_monoid ι]
   (one_mem : (1 : R) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   gmonoid (λ i, carriers i) :=
-{ one_mul := λ i a,
-  begin
-    have h := zero_add i,
-    congr,
-    exact h,
-    rw subtype.heq_iff_coe_eq,
-    { exact one_mul _ },
-    { exact λ x, h.symm ▸ iff.rfl, }
-  end,
-  mul_one := λ i a,
-  begin
-    have h := add_zero i,
-    congr,
-    exact h,
-    rw subtype.heq_iff_coe_eq,
-    exact mul_one _,
-    exact λ x, h.symm ▸ iff.rfl,
-  end,
-  mul_assoc := λ i j k a b c, begin
-    have h := add_assoc i j k,
-    congr,
-    exact h,
-    rw subtype.heq_iff_coe_eq,
-    exact mul_assoc _ _ _,
-    exact λ x, h.symm ▸ iff.rfl,
-  end,
+{ one_mul := λ ⟨i, a, h⟩, sigma.subtype_ext (zero_add _) (one_mul _),
+  mul_one := λ ⟨i, a, h⟩, sigma.subtype_ext (add_zero _) (mul_one _),
+  mul_assoc := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩ ⟨k, c, hc⟩,
+    sigma.subtype_ext (add_assoc _ _ _) (mul_assoc _ _ _),
   ..ghas_one.of_submonoids carriers one_mem,
   ..ghas_mul.of_submonoids carriers mul_mem }
 
@@ -180,15 +169,7 @@ def gcomm_monoid.of_submonoids {R : Type*} [comm_semiring R] [add_comm_monoid ι
   (one_mem : (1 : R) ∈ carriers 0)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   gcomm_monoid (λ i, carriers i) :=
-{ mul_comm := λ i j a b,
-  begin
-    have h := add_comm i j,
-    congr,
-    exact h,
-    rw subtype.heq_iff_coe_eq,
-    exact mul_comm _ _,
-    exact λ x, h.symm ▸ iff.rfl,
-  end,
+{ mul_comm := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩, sigma.subtype_ext (add_comm _ _) (mul_comm _ _),
   ..gmonoid.of_submonoids carriers one_mem mul_mem}
 
 /-- Build a `gcomm_monoid` instance for a collection of `add_subgroup`s. -/
@@ -216,7 +197,7 @@ section one
 variables [has_zero ι] [ghas_one A] [∀ i, add_comm_monoid (A i)]
 
 instance : has_one (⨁ i, A i) :=
-{ one := direct_sum.of (λ i, A i) 0 ᵍ1}
+{ one := direct_sum.of (λ i, A i) 0 ghas_one.one}
 
 end one
 
@@ -231,7 +212,7 @@ instance : has_mul (⨁ i, A i) :=
         (add_monoid_hom.comp_hom (direct_sum.of A $ i + j)).comp _
       ) a
     ) b,
-    exact (ᵍ*),
+    exact ghas_mul.mul,
   end }
 
 instance : mul_zero_class (⨁ i, A i) :=
@@ -258,9 +239,9 @@ begin
   unfold has_one.one has_mul.mul,
   simp only [add_monoid_hom.coe_mk, to_add_monoid_of, add_monoid_hom.comp_hom_apply_apply],
   simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
-  convert add_monoid_hom.congr_fun (dfinsupp.sum_add_hom_single_add_hom) x,
-  ext1 i, ext1 xi,
-  exact dfinsupp.single_eq_of_sigma_eq (gmonoid.one_mul xi),
+  convert add_monoid_hom.congr_fun dfinsupp.sum_add_hom_single_add_hom x,
+  ext i xi : 2,
+  exact dfinsupp.single_eq_of_sigma_eq (gmonoid.one_mul ⟨i, xi⟩),
 end
 
 private lemma mul_one (x : ⨁ i, A i) : x * 1 = x :=
@@ -269,9 +250,9 @@ begin
   simp only [add_monoid_hom.coe_mk, to_add_monoid_of, add_monoid_hom.comp_hom_apply_apply],
   simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
   rw add_monoid_hom.dfinsupp_sum_add_hom_apply x _,
-  convert add_monoid_hom.congr_fun (dfinsupp.sum_add_hom_single_add_hom ) x,
-  ext1 i, ext1 xi,
-  simp [dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one xi)],
+  convert add_monoid_hom.congr_fun dfinsupp.sum_add_hom_single_add_hom x,
+  ext i xi : 2,
+  exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one ⟨i, xi⟩),
 end
 
 private lemma mul_assoc (a b c : ⨁ i, A i) : a * b * c = a * (b * c) :=
@@ -283,7 +264,7 @@ begin
 
   -- unpack `c`
   refine add_monoid_hom.congr_fun _ c,
-  congr' 1, ext1 ci, ext1 cx,
+  congr' 1, ext ci cx : 2,
 
   erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
   rw add_monoid_hom.comp_apply,
@@ -293,20 +274,20 @@ begin
 
   -- unpack `b`
   refine add_monoid_hom.congr_fun _ b,
-  congr' 1, ext1 bi, ext1 bx,
+  congr' 1, ext bi bx : 2,
 
   simp only [add_monoid_hom.comp_apply, add_monoid_hom.eval_apply, add_monoid_hom.coe_mk],
-  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
-  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
+  erw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply],
   simp only [add_monoid_hom.map_dfinsupp_sum_add_hom, dfinsupp.single_add_hom_apply,
     dfinsupp.sum_add_hom_single, add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply],
   erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
 
   -- unpack `a`
   refine add_monoid_hom.congr_fun _ a,
-  congr' 1, ext1 ai, ext1 ax,
+  congr' 1, ext ai ax : 2,
 
-  simp [dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_assoc ax bx cx)],
+  have := dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_assoc ⟨ai, ax⟩ ⟨bi, bx⟩ ⟨ci, cx⟩),
+  simpa using this,
 end
 
 /-- The `semiring` structure derived from `gmonoid A`. -/
@@ -347,13 +328,18 @@ begin
   unfold has_one.one has_mul.mul,
   simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
   rw sum_add_hom_comm,
+
+  -- unpack `a`
   refine add_monoid_hom.congr_fun _ a,
-  congr' 1, ext1 ai, ext1 ax,
-  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
-  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
+  congr' 1, ext ai ax : 2,
+
+  erw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply],
+
+  -- unpack `b`
   refine add_monoid_hom.congr_fun _ b,
-  congr' 1, ext1 bi, ext1 bx,
-  simp [dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ax bx)],
+  congr' 1, ext bi bx : 2,
+
+  simp [dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ⟨_, ax⟩ ⟨_, bx⟩)],
 end
 
 /-- The `comm_semiring` structure derived from `gcomm_monoid A`. -/

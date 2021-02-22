@@ -3,7 +3,36 @@ Copyright (c) 2018 Mitchell Rowett. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mitchell Rowett, Scott Morrison
 -/
+
 import group_theory.subgroup
+
+/-!
+# Cosets
+
+This file develops the basic theory of left and right cosets.
+
+## Main definitions
+
+* `left_coset a s`: the left coset `a * s` corresponding to an element `a : α` and a subset `s ⊆ α`.
+* `right_coset s a`: the right coset `s * a` corresponding to an element `a : α` and a subset
+  `s ⊆ α`.
+* `quotient s`: the quotient type corresponding to the left cosets with respect to a subgroup `s`.
+* `mk`: the canonical map from `α` to `α/s` for a subgroup `s` of `α`.
+* `left_coset_equiv_subgroup`: the natural bijection between a left coset and the subgroup.
+
+## Notation
+
+* `a *l s`: for a `has_mul α` , i.e. a magma, `a : α` and `s ⊆ α`, the left coset `a * s`.
+* `a +l s`: for a `has_add α`, i.e. an additively written magma, `a : α` and `s ⊆ α` the left coset
+  `a + s`.
+* `s *r a`: for a `has_mul α`, i.e. a magma, `a : α` and `s ⊆ α`, the right coset `s * a`.
+* `s +r a`: for a `has_add α`, i.e. an additively written magma, `a : α` and `s ⊆ α` the right coset
+  `s + a`.
+
+## TODO
+
+Add `to_additive` to `preimage_mk_equiv_subgroup_times_set`.
+-/
 
 open set function
 
@@ -35,13 +64,21 @@ mem_image_of_mem (λ b : α, a * b) hxS
 lemma mem_right_coset {s : set α} {x : α} (a : α) (hxS : x ∈ s) : x * a ∈ s *r a :=
 mem_image_of_mem (λ b : α, b * a) hxS
 
-/-- Equality of two left cosets `a*s` and `b*s` -/
-@[to_additive left_add_coset_equiv "Equality of two left cosets `a+s` and `b+s`"]
+/-- Equality of two left cosets `a * s` and `b * s`. -/
+@[to_additive left_add_coset_equiv "Equality of two left cosets `a + s` and `b + s`."]
 def left_coset_equiv (s : set α) (a b : α) := a *l s = b *l s
 
 @[to_additive left_add_coset_equiv_rel]
 lemma left_coset_equiv_rel (s : set α) : equivalence (left_coset_equiv s) :=
 mk_equivalence (left_coset_equiv s) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.trans)
+
+/-- Equality of two right cosets `s * a` and `s * b`. -/
+@[to_additive right_add_coset_equiv "Equality of two right cosets `s + a` and `s + b`."]
+def right_coset_equiv (s : set α) (a b : α) := s *r a = s *r b
+
+@[to_additive right_add_coset_equiv_rel]
+lemma right_coset_equiv_rel (s : set α) : equivalence (right_coset_equiv s) :=
+mk_equivalence (right_coset_equiv s) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.trans)
 
 end coset_mul
 
@@ -170,6 +207,24 @@ instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ
   If `s` is a normal subgroup, `quotient s` is a group -/
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
 
+/-- The equivalence relation corresponding to the partition of a group by right cosets of a
+subgroup.-/
+@[to_additive "The equivalence relation corresponding to the partition of a group by right cosets of
+a subgroup."]
+def right_rel [group α] (s : subgroup α) : setoid α :=
+⟨λ x y, y * x⁻¹ ∈ s,
+  assume x, by simp [s.one_mem],
+  assume x y hxy,
+  have (y * x⁻¹)⁻¹ ∈ s, from s.inv_mem hxy,
+  by simpa using this,
+  assume x y z hxy hyz,
+  have (z * y⁻¹) * (y * x⁻¹) ∈ s, from s.mul_mem hyz hxy,
+  by simpa [mul_assoc] using this⟩
+
+@[to_additive]
+instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
+  decidable_rel (left_rel s).r := λ _ _, d _
+
 end quotient_group
 
 namespace quotient_add_group
@@ -238,11 +293,18 @@ namespace subgroup
 open quotient_group
 variables [group α] {s : subgroup α}
 
-/-- The natural bijection between the cosets `g*s` and `s` -/
+/-- The natural bijection between a left coset `g * s` and `s`. -/
 @[to_additive "The natural bijection between the cosets `g+s` and `s`"]
 def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 ⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
+ λ ⟨x, hx⟩, subtype.eq $ by simp,
+ λ ⟨g, hg⟩, subtype.eq $ by simp⟩
+
+/-- The natural bijection between a right coset `s * g` and `s`.-/
+def right_coset_equiv_subgroup (g : α) : right_coset ↑s g ≃ s :=
+⟨λ x, ⟨x.1 * g⁻¹, (mem_right_coset_iff _).1 x.2⟩,
+ λ x, ⟨x.1 * g, x.1, x.2, rfl⟩,
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
 

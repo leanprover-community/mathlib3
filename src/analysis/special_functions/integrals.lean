@@ -24,16 +24,16 @@ namespace interval_integral
 variable {f : ℝ → ℝ}
 
 @[simp]
-lemma integral_mul_left (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
+lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
 integral_smul c
 
 @[simp]
-lemma integral_mul_right (c : ℝ) : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
-by simp only [mul_comm, integral_mul_left]
+lemma integral_mul_const (c : ℝ) : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
+by simp only [mul_comm, integral_const_mul]
 
 @[simp]
 lemma integral_div' (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) * c⁻¹ :=
-integral_mul_right c⁻¹
+integral_mul_const c⁻¹
 
 lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
 integral_div' c

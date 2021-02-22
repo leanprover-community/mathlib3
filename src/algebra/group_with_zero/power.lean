@@ -25,7 +25,7 @@ by { contrapose!, rintro rfl, exact zero_pow' n hn }
 @[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
 begin
   split; intro h,
-  { rw [nat.pos_iff_ne_zero], rintro rfl, simpa using h },
+  { rw [pos_iff_ne_zero], rintro rfl, simpa using h },
   { exact zero_pow' n h.ne.symm }
 end
 
@@ -150,7 +150,8 @@ theorem commute.fpow_self (a : G₀) (n : ℤ) : commute (a^n) a := (commute.ref
 
 theorem commute.self_fpow (a : G₀) (n : ℤ) : commute a (a^n) := (commute.refl a).fpow_right n
 
-theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) := (commute.refl a).fpow_fpow m n
+theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) :=
+(commute.refl a).fpow_fpow m n
 
 theorem fpow_bit0 (a : G₀) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n :=
 begin

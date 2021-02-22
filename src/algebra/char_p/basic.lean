@@ -123,7 +123,7 @@ begin
   intros b h1 h2,
   suffices : (p.choose b : R) = 0, { rw this, simp },
   rw char_p.cast_eq_zero_iff R p,
-  apply nat.prime.dvd_choose_self, assumption', { omega },
+  refine nat.prime.dvd_choose_self (pos_iff_ne_zero.mpr h2) _ (by assumption),
   rwa ← finset.mem_range
 end
 
@@ -275,7 +275,8 @@ end comm_ring
 
 end frobenius
 
-theorem frobenius_inj (α : Type u) [integral_domain α] (p : ℕ) [fact p.prime] [char_p α p] :
+theorem frobenius_inj (α : Type u) [comm_ring α] [no_zero_divisors α]
+  (p : ℕ) [fact p.prime] [char_p α p] :
   function.injective (frobenius α p) :=
 λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
 
@@ -335,7 +336,7 @@ match p, hc with
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
-(char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 h)
+(char_p.char_is_prime_or_zero α _).resolve_right (pos_iff_ne_zero.1 h)
 
 theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : p.prime :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)

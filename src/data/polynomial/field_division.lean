@@ -83,7 +83,7 @@ by rw [degree_mul, degree_C h₁, add_zero]
 
 theorem irreducible_of_monic {p : polynomial R} (hp1 : p.monic) (hp2 : p ≠ 1) :
   irreducible p ↔ (∀ f g : polynomial R, f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
-⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.2 f g hfg.symm)
+⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.is_unit_or_is_unit hfg.symm)
   (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
   (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
 λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
@@ -275,6 +275,10 @@ begin
   dsimp only [is_root],
   rw polynomial.eval_map,
 end
+
+lemma mem_root_set [field k] [algebra R k] {x : k} (hp : p ≠ 0) :
+  x ∈ p.root_set k ↔ aeval x p = 0 :=
+iff.trans multiset.mem_to_finset (mem_roots_map hp)
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),

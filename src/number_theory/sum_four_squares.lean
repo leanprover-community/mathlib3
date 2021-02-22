@@ -2,21 +2,24 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
-
-## Lagrange's four square theorem
-
-The main result in this file is `sum_four_squares`,
-a proof that every natural number is the sum of four square numbers.
-
-# Implementation Notes
-
-The proof used is close to Lagrange's original proof.
 -/
+
 import algebra.group_power.identities
 import data.zmod.basic
 import field_theory.finite.basic
 import data.int.parity
 import data.fintype.card
+
+/-!
+# Lagrange's four square theorem
+
+The main result in this file is `sum_four_squares`,
+a proof that every natural number is the sum of four square numbers.
+
+## Implementation Notes
+
+The proof used is close to Lagrange's original proof.
+-/
 
 open finset polynomial finite_field equiv
 open_locale big_operators
@@ -151,7 +154,7 @@ m.mod_two_eq_zero_or_one.elim
           ((a^2 + b^2 + c^2 + d^2 : ℤ) : zmod m),
         by simp [w, x, y, z, pow_two],
       have hwxyz0 : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod m) = 0,
-        by rw [hwxyzabcd, habcd, int.cast_mul, cast_coe_nat, zmod.cast_self, zero_mul],
+        by rw [hwxyzabcd, habcd, int.cast_mul, cast_coe_nat, zmod.nat_cast_self, zero_mul],
       let ⟨n, hn⟩ := ((char_p.int_cast_eq_zero_iff _ m _).1 hwxyz0) in
       have hn0 : 0 < n.nat_abs, from int.nat_abs_pos_of_ne_zero (λ hn0,
         have hwxyz0 : (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs^2 + z.nat_abs^2 : ℕ) = 0,

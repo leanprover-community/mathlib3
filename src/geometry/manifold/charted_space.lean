@@ -120,6 +120,12 @@ the arrow. -/
 localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
 localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
 
+/- `simp` looks for subsingleton instances at every call. This turns out to be very
+inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
+Disable two such instances to speed up things.
+NB: this is just a hack. TODO: fix `simp` properly. -/
+localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
+
 open set local_homeomorph
 
 /-! ### Structure groupoids-/
@@ -297,15 +303,15 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
     { apply PG.locality e.open_source (λx xu, _),
       rcases he x xu with ⟨s, s_open, xs, hs⟩,
       refine ⟨s, s_open, xs, _⟩,
-      convert hs.1,
-      exact s_open.interior_eq.symm },
+      convert hs.1 using 1,
+      dsimp [local_homeomorph.restr], rw s_open.interior_eq },
     { apply PG.locality e.open_target (λx xu, _),
       rcases he (e.symm x) (e.map_target xu) with ⟨s, s_open, xs, hs⟩,
       refine ⟨e.target ∩ e.symm ⁻¹' s, _, ⟨xu, xs⟩, _⟩,
       { exact continuous_on.preimage_open_of_open e.continuous_inv_fun e.open_target s_open },
       { rw [← inter_assoc, inter_self],
-        convert hs.2,
-        exact s_open.interior_eq.symm } },
+        convert hs.2 using 1,
+        dsimp [local_homeomorph.restr], rw s_open.interior_eq } },
   end,
   eq_on_source' := λe e' he ee', begin
     split,

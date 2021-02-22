@@ -67,7 +67,8 @@ lemma isometry_id : isometry (id : α → α) :=
 λx y, rfl
 
 /-- The composition of isometries is an isometry -/
-theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=
+theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) :
+  isometry (g ∘ f) :=
 assume x y, calc
   edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
                             ... = edist x y : hf _ _
@@ -99,6 +100,15 @@ by { rw ← image_univ, exact hf.ediam_image univ }
 lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
+lemma isometry.comp_continuous_on_iff {γ} [topological_space γ] (hf : isometry f)
+  {g : γ → α} {s : set γ} :
+  continuous_on (f ∘ g) s ↔ continuous_on g s :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_on_iff.symm
+
+lemma isometry.comp_continuous_iff {γ} [topological_space γ] (hf : isometry f) {g : γ → α} :
+  continuous (f ∘ g) ↔ continuous g :=
+hf.uniform_embedding.to_uniform_inducing.inducing.continuous_iff.symm
+
 end emetric_isometry --section
 
 /-- An isometry preserves the diameter in metric spaces. -/
@@ -109,6 +119,22 @@ by rw [metric.diam, metric.diam, hf.ediam_image]
 lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (hf : isometry f) :
   metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
+
+namespace add_monoid_hom
+
+variables {E F : Type*} [normed_group E] [normed_group F]
+
+lemma isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+begin
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  refine ⟨λ h x, _, λ h x y, h _⟩,
+  simpa using h x 0
+end
+
+lemma isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
+
+end add_monoid_hom
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
@@ -137,6 +163,9 @@ protected lemma dist_eq {α β : Type*} [metric_space α] [metric_space β] (h :
 h.isometry.dist_eq x y
 
 protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
+
+@[simp] lemma ediam_image (h : α ≃ᵢ β) (s : set α) : emetric.diam (h '' s) = emetric.diam s :=
+h.isometry.ediam_image s
 
 lemma to_equiv_inj : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (h₁.to_equiv = h₂.to_equiv) → h₁ = h₂
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := by { dsimp at H, subst e₁ }
@@ -191,7 +220,7 @@ funext $ assume a, h.to_equiv.left_inv a
 lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
-lemma range_coe (h : α ≃ᵢ β) : range h = univ :=
+@[simp] lemma range_eq_univ (h : α ≃ᵢ β) : range h = univ :=
 eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
 
 lemma image_symm (h : α ≃ᵢ β) : image h.symm = preimage h :=
@@ -203,11 +232,17 @@ lemma preimage_symm (h : α ≃ᵢ β) : preimage h.symm = image h :=
 @[simp] lemma symm_trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : γ) :
   (h₁.trans h₂).symm x = h₁.symm (h₂.symm x) := rfl
 
+lemma ediam_univ (h : α ≃ᵢ β) : emetric.diam (univ : set α) = emetric.diam (univ : set β) :=
+by rw [← h.range_eq_univ, h.isometry.ediam_range]
+
+@[simp] lemma ediam_preimage (h : α ≃ᵢ β) (s : set β) : emetric.diam (h ⁻¹' s) = emetric.diam s :=
+by rw [← image_symm, ediam_image]
+
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := h.continuous,
   continuous_inv_fun := h.symm.continuous,
-  .. h }
+  to_equiv := h.to_equiv }
 
 @[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
 
@@ -217,21 +252,34 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl
 
+@[simp] lemma comp_continuous_on_iff {γ} [topological_space γ] (h : α ≃ᵢ β)
+  {f : γ → α} {s : set γ} :
+  continuous_on (h ∘ f) s ↔ continuous_on f s :=
+h.to_homeomorph.comp_continuous_on_iff _ _
+
+@[simp] lemma comp_continuous_iff {γ} [topological_space γ] (h : α ≃ᵢ β) {f : γ → α} :
+  continuous (h ∘ f) ↔ continuous f :=
+h.to_homeomorph.comp_continuous_iff
+
+@[simp] lemma comp_continuous_iff' {γ} [topological_space γ] (h : α ≃ᵢ β) {f : β → γ} :
+  continuous (f ∘ h) ↔ continuous f :=
+h.to_homeomorph.comp_continuous_iff'
+
 /-- The group of isometries. -/
 instance : group (α ≃ᵢ α) :=
   { one := isometric.refl _,
-    mul := λ e₁ e₂, e₁.trans e₂,
+    mul := λ e₁ e₂, e₂.trans e₁,
     inv := isometric.symm,
     mul_assoc := λ e₁ e₂ e₃, rfl,
     one_mul := λ e, ext $ λ _, rfl,
     mul_one := λ e, ext $ λ _, rfl,
-    mul_left_inv := λ e, ext e.apply_symm_apply }
+    mul_left_inv := λ e, ext e.symm_apply_apply }
 
 @[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
 
-@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
 
-lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
 @[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
 
@@ -290,6 +338,21 @@ end normed_group
 
 end isometric
 
+namespace isometric
+
+variables [metric_space α] [metric_space β] (h : α ≃ᵢ β)
+
+@[simp] lemma diam_image (s : set α) : metric.diam (h '' s) = metric.diam s :=
+h.isometry.diam_image s
+
+@[simp] lemma diam_preimage (s : set β) : metric.diam (h ⁻¹' s) = metric.diam s :=
+by rw [← image_symm, diam_image]
+
+lemma diam_univ : metric.diam (univ : set α) = metric.diam (univ : set β) :=
+congr_arg ennreal.to_real h.ediam_univ
+
+end isometric
+
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
 def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
@@ -323,7 +386,8 @@ variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ �
 a fixed countable set, if this set is dense. This map is given in the next definition,
 without density assumptions. -/
 def embedding_of_subset : ℓ_infty_ℝ :=
-of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0)) (λ_, abs_dist_sub_le _ _ _)
+of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0))
+  (λ_, abs_dist_sub_le _ _ _)
 
 lemma embedding_of_subset_coe : embedding_of_subset x a n = dist a (x n) - dist (x 0) (x n) := rfl
 
@@ -341,7 +405,7 @@ end
 lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
   refine isometry_emetric_iff_metric.2 (λa b, _),
-  refine le_antisymm (embedding_of_subset_dist_le x a b) (real.le_of_forall_epsilon_le (λe epos, _)),
+  refine (embedding_of_subset_dist_le x a b).antisymm (le_of_forall_pos_le_add (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
   rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
@@ -353,9 +417,9 @@ begin
     ...    ≤ 2 * dist a (x n) + abs (dist b (x n) - dist a (x n)) :
       by apply_rules [add_le_add_left, le_abs_self]
     ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
-      begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hn, le_refl], norm_num end
+      begin rw C, apply_rules [add_le_add, mul_le_mul_of_nonneg_left, hn.le, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      begin rw [← sub_apply], apply add_le_add_left, rw [sub_apply, ←real.dist_eq], apply dist_coe_le_dist end
+      by simp [← real.dist_eq, dist_coe_le_dist]
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
   simpa [dist_comm] using this
 end
@@ -389,7 +453,8 @@ protected lemma Kuratowski_embedding.isometry (α : Type u) [metric_space α] [s
 classical.some_spec (exists_isometric_embedding α)
 
 /-- Version of the Kuratowski embedding for nonempty compacts -/
-def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α] [nonempty α] :
+def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α]
+  [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
 ⟨range (Kuratowski_embedding α), range_nonempty _,
   compact_range (Kuratowski_embedding.isometry α).continuous⟩

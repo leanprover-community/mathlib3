@@ -129,7 +129,7 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id _) = S :=
 ext (by simp)
 
@@ -557,7 +557,8 @@ begin
     exact ⟨h x, by { rintros rfl, exact S.one_mem }⟩ },
 end
 
-@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) : nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
+@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) :
+  nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
 begin
   split,
   { introI h,

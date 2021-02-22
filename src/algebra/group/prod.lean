@@ -250,16 +250,30 @@ end coprod
 end monoid_hom
 
 namespace mul_equiv
-variables (M N) [monoid M] [monoid N]
+variables {M N} [monoid M] [monoid N]
 
-/-- The equivalence between `M × N` and `N × M` given by swapping the components is multiplicative. -/
-@[to_additive prod_comm "The equivalence between `M × N` and `N × M` given by swapping the components is
-additive."]
+/-- The equivalence between `M × N` and `N × M` given by swapping the components
+is multiplicative. -/
+@[to_additive prod_comm "The equivalence between `M × N` and `N × M` given by swapping the
+components is additive."]
 def prod_comm : M × N ≃* N × M :=
 { map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, rfl, ..equiv.prod_comm M N }
 
-@[simp, to_additive coe_prod_comm] lemma coe_prod_comm : ⇑(prod_comm M N) = prod.swap := rfl
+@[simp, to_additive coe_prod_comm] lemma coe_prod_comm :
+  ⇑(prod_comm : M × N ≃* N × M) = prod.swap := rfl
+
 @[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
-  ⇑((prod_comm M N).symm) = prod.swap := rfl
+  ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
+
+/-- The monoid equivalence between units of a product of two monoids, and the product of the
+    units of each monoid. -/
+@[to_additive prod_add_units "The additive monoid equivalence between additive units of a product
+of two additive monoids, and the product of the additive units of each additive monoid."]
+def prod_units : units (M × N) ≃* units M × units N :=
+{ to_fun := (units.map (monoid_hom.fst M N)).prod (units.map (monoid_hom.snd M N)),
+  inv_fun := λ u, ⟨(u.1, u.2), (↑u.1⁻¹, ↑u.2⁻¹), by simp, by simp⟩,
+  left_inv := λ u, by simp,
+  right_inv := λ ⟨u₁, u₂⟩, by simp [units.map],
+  map_mul' := monoid_hom.map_mul _ }
 
 end mul_equiv

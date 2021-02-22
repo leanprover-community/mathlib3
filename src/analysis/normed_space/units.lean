@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.specific_limits
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 
 /-!
 # The group of units of a complete normed ring
@@ -38,7 +38,7 @@ namespace units
 from `1` is a unit.  Here we construct its `units` structure.  -/
 def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 { val := 1 - t,
-  inv := ∑' (n : ℕ), t ^ n,
+  inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
 
@@ -171,7 +171,7 @@ begin
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
   simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
-  change ∥(∑' (n : ℕ), t ^ n)∥ ≤ _,
+  change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
   { rw ← inv_inv' (2:ℝ),

@@ -170,7 +170,7 @@ lemma trailing_degree_one_le : (0 : with_top ℕ) ≤ trailing_degree (1 : polyn
 by rw [← C_1]; exact le_trailing_degree_C
 
 @[simp] lemma nat_trailing_degree_C (a : R) : nat_trailing_degree (C a) = 0 :=
-le_zero_iff_eq.1 nat_trailing_degree_monomial_le
+nonpos_iff_eq_zero.1 nat_trailing_degree_monomial_le
 
 @[simp] lemma nat_trailing_degree_one : nat_trailing_degree (1 : polynomial R) = 0 :=
 nat_trailing_degree_C 1
@@ -241,8 +241,15 @@ begin
     exact mem_support_iff_coeff_ne_zero.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
 end
 
-end semiring
+lemma nat_trailing_degree_le_nat_degree (p : polynomial R) :
+  p.nat_trailing_degree ≤ p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, nat_degree_zero, nat_trailing_degree_zero] },
+  { exact le_nat_degree_of_ne_zero (mt trailing_coeff_eq_zero.mp hp) },
+end
 
+end semiring
 
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}

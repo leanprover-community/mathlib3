@@ -9,7 +9,7 @@ Linear algebra:
     vector subspace: 'subspace'
     quotient space: 'submodule.quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: ''
+    direct sum: '' # this is supposed to be the internal direct sum
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
@@ -52,7 +52,7 @@ Linear algebra:
     row-reduced matrices: ''
   Endomorphism polynomials:
     annihilating polynomials: ''
-    minimal polynomial: 'minimal_polynomial'
+    minimal polynomial: 'minpoly'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -98,15 +98,15 @@ Group Theory:
   Permutation group:
     permutation group of a type: 'equiv.perm'
     decomposition into transpositions: ''
-    decomposition into cycles with disjoint support: ''
+    decomposition into cycles with disjoint support: 'equiv.perm.cycle_factors'
     signature: 'equiv.perm.sign'
     alternating group: ''
   Classical automorphism groups:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'
-    orthogonal group: ''
+    orthogonal group: 'matrix.orthogonal_group '
     special orthogonal group: ''
-    unitary group: ''
+    unitary group: 'matrix.unitary_group'
     special unitary group: ''
   Representation theory of finite groups:
     representations of abelian groups: ''
@@ -166,7 +166,7 @@ Ring Theory:
     Newton's identities:
     polynomial derivative: 'polynomial.derivative'
     decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'
-    symmetric polynomials:
+    symmetric polynomials: 'mv_polynomial.is_symmetric'
   Field Theory:
     fields: 'field'
     characteristic of a ring: 'ring_char'
@@ -212,12 +212,12 @@ Bilinear and Quadratic Forms Over a Vector Space:
     Gram-Schmidt orthogonalisation:
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
-    Hermitian vector spaces:
-    dual isomorphism in the euclidean case:
+    Hermitian vector spaces: 'inner_product_space'
+    dual isomorphism in the euclidean case: 'inner_product_space.isometric.to_dual'
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'
-    orthonormal bases:
+    orthonormal bases: 'maximal_orthonormal_iff_is_basis_of_finite_dimensional'
   Endomorphisms:
     orthogonal group:
     unitary group:
@@ -340,13 +340,12 @@ Single Variable Real Analysis:
     integral over a segment of piecewise continuous functions:
     antiderivatives:
     Riemann sums:
-    antiderivative of a continuous function:
+    antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
     change of variable:
-    integration by parts:
-    generalized integrals:
-    absolutely convergent integrals:
-    integration of asymptotic comparison relationships:
-    semi-convergent integrals:
+    integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
+    improper integrals:
+    absolute vs conditional convergence of improper integrals:
+    comparison test for improper integrals:
   Sequences and series of functions:
     pointwise convergence:
     uniform convergence: 'tendsto_uniformly'
@@ -367,7 +366,7 @@ Single Variable Complex Analysis:
     radius of convergence: 'formal_multilinear_series.radius'
 #    properties of sums of complex valued series on their disks of convergence: (this is a heading?)
     continuity: 'has_fpower_series_on_ball.continuous_on'
-    differentiability with respect to the complex variable:
+    differentiability with respect to the complex variable: 'has_fpower_series_on_ball.differentiable_on'
     antiderivative:
     complex exponential: 'complex.exp'
     extension of trigonometric functions to the complex plane: 'complex.sin'
@@ -375,7 +374,7 @@ Single Variable Complex Analysis:
   Functions on one complex variable:
     holomorphic functions:
     Cauchy-Riemann conditions:
-    line integrals of continuous functions in $\C$:
+    contour integrals of continuous functions in $\C$:
     antiderivatives of a holomorphic function:
     representations of the $\log$ function on $\C$:
     theorem of holomorphic functions under integral domains:
@@ -383,8 +382,6 @@ Single Variable Complex Analysis:
     Cauchy formulas:
     analyticity of a holomorphic function:
     principle of isolated zeros:
-    Cauchy formulas:
-    analyticity of a holomorphic function:
     principle of analytic continuation:
     maximum principle:
     isolated singularities:
@@ -432,10 +429,10 @@ Topology:
   Hilbert Spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
-    dual space: 'normed_space.dual.inst'
+    dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
     $l^2$ and $L^2$ cases:
-    Hilbert (orthonormal) bases (in the separable case):
+    Hilbert (orthonormal) bases (in the separable case): 'exists_is_orthonormal_dense_span'
     Hilbert basis of trigonometric polynomials:
     Hilbert bases of orthogonal polynomials:
     Lax-Milgram theorem:
@@ -510,12 +507,13 @@ Measures and integral Calculus:
     finite dimensional vector-valued integrable functions: 'measure_theory.integrable'
     continuity of integrals with respect to parameters:
     differentiability of integrals with respect to parameters:
-    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
+    $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
     Completeness of $\mathrm{L}^p$ spaces:
-    Holder's inequality:
+    Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
-    integration by parts:
+    change of variables to polar co-ordinates:
+    change of variables to spherical co-ordinates:
     convolution:
     regularization and approximation by convolution:
   Fourier Analysis:
@@ -533,9 +531,9 @@ Probability Theory:
   Definitions of a probability space:
     probability measure: 'measure_theory.probability_measure'
     events:
-    independent events:
+    independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'
-    independent sigma-algebra:
+    independent sigma-algebra: 'probability_theory.Indep'
     $0$-$1$ law:
     Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
     Borel-Cantelli lemma (difficult direction):
@@ -546,7 +544,7 @@ Probability Theory:
     absolute continuity of probability laws:
     probability density function:
     law of joint probability:
-    independence of random variables:
+    independence of random variables: 'probability_theory.Indep_fun'
     mean and variance of a real-valued random variable:
     transfer theorem:
     moments:
@@ -611,7 +609,7 @@ Distribution calculus:
     Poisson’s formula:
     using convolution and Fourier-Laplace transform to solve one dimensional linear differential equations:
     weak solution of partial derivative equation:
-    elementary solution of the Laplacian:
+    fundamental solution of the Laplacian:
     solving the Laplace equations:
     heat equations:
     wave equations:

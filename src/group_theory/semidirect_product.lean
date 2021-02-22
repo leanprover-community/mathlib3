@@ -49,7 +49,8 @@ variables {N G} {φ : G →* mul_aut N}
 private def one_aux : N ⋊[φ] G := ⟨1, 1⟩
 private def mul_aux (a b : N ⋊[φ] G) : N ⋊[φ] G := ⟨a.1 * φ a.2 b.1, a.right * b.right⟩
 private def inv_aux (a : N ⋊[φ] G) : N ⋊[φ] G := let i := a.2⁻¹ in ⟨φ i a.1⁻¹, i⟩
-private lemma mul_assoc_aux (a b c : N ⋊[φ] G) : mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
+private lemma mul_assoc_aux (a b c : N ⋊[φ] G) :
+  mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
 by simp [mul_aux, mul_assoc, mul_equiv.map_mul]
 private lemma mul_one_aux (a : N ⋊[φ] G) : mul_aux a one_aux = a :=
 by cases a; simp [mul_aux, one_aux]

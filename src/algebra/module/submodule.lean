@@ -11,8 +11,8 @@ import group_theory.group_action.sub_mul_action
 
 In this file we define
 
-* `submodule R M` : a subset of a `module` `M` that contains zero and is closed with respect to addition and
-  scalar multiplication.
+* `submodule R M` : a subset of a `module` `M` that contains zero and is closed with respect to
+  addition and scalar multiplication.
 
 * `subspace k M` : an abbreviation for `submodule` assuming that `k` is a `field`.
 

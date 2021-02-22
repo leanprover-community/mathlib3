@@ -115,17 +115,6 @@ def ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_poly
   map_mul'  := (rename e).map_mul,
   map_add'  := (rename e).map_add }
 
-/-- The algebra isomorphism between multivariable polynomials induced by an equivalence
-of the variables.  -/
-@[simps]
-def alg_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃ₐ[R] mv_polynomial S₂ R :=
-{ to_fun    := rename e,
-  inv_fun   := rename e.symm,
-  left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
-  right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
-  commutes' := λ p, by simp only [alg_hom.commutes],
-  .. rename e }
-
 /-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism
 of the ground ring. -/
 @[simps]
@@ -144,23 +133,36 @@ def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) :
   map_mul'  := ring_hom.map_mul _,
   map_add'  := ring_hom.map_add _ }
 
-/-- If `A` and `B` are isomorphic `R`-algebras, then we get an isomorphism
-`mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₁ B`. -/
+/-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas and `e_var : S₁ ≃ S₂` is an isomorphism of
+types, the induced isomorphism `mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₂ B`. -/
 def alg_equiv_congr {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A] [algebra R B]
-  (e : A ≃ₐ[R] B) :
-  algebra.comap R A (mv_polynomial S₁ A) ≃ₐ[R] algebra.comap R B (mv_polynomial S₁ B) :=
+  (e : A ≃ₐ[R] B) (e_var : S₁ ≃ S₂) :
+  algebra.comap R A (mv_polynomial S₁ A) ≃ₐ[R] algebra.comap R B (mv_polynomial S₂ B) :=
 { commutes' := begin
-    intro r,
-    dsimp,
-    have h₁ : algebra_map R (algebra.comap R A (mv_polynomial S₁ A)) r =
-      C (algebra_map R A r) := rfl,
-    have h₂ : algebra_map R (algebra.comap R B (mv_polynomial S₁ B)) r =
-      C (algebra_map R B r) := rfl,
-    have h : (↑(e.to_ring_equiv) : A →+* B) ((algebra_map R A) r) = e ((algebra_map R A) r) := rfl,
-    rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply, h, alg_equiv.commutes]
+  intro r,
+  dsimp,
+  have h₁ : algebra_map R (algebra.comap R A (mv_polynomial S₁ A)) r =
+    C (algebra_map R A r) := rfl,
+  have h₂ : algebra_map R (algebra.comap R B (mv_polynomial S₂ B)) r =
+    C (algebra_map R B r) := rfl,
+  have h : (↑(e.to_ring_equiv) : A →+* B) ((algebra_map R A) r) = e ((algebra_map R A) r) := rfl,
+  rw [h₁, h₂, map, rename_C, eval₂_hom_C, ring_hom.comp_apply, h, alg_equiv.commutes],
   end,
-  ..ring_equiv_congr A e.to_ring_equiv
+  .. (ring_equiv_of_equiv A e_var).trans (ring_equiv_congr A e.to_ring_equiv)
 }
+
+/-- The algebra isomorphism between multivariable polynomials induced by an equivalence
+of the variables.  -/
+@[simps]
+def alg_equiv_congr_left (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃ₐ[R] mv_polynomial S₂ R :=
+alg_equiv_congr R alg_equiv.refl e
+
+/-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas, the induced isomorphism
+`mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₁ B`. -/
+def alg_equiv_congr_right {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A]
+  [algebra R B] (e : A ≃ₐ[R] B) :
+  algebra.comap R A (mv_polynomial S₁ A) ≃ₐ[R] algebra.comap R B (mv_polynomial S₁ B) :=
+alg_equiv_congr R e (equiv.cast rfl)
 
 section
 variables (S₁ S₂ S₃)

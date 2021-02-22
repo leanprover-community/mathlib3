@@ -247,6 +247,20 @@ begin
   linarith
 end
 
+
+lemma filter.tendsto.finite_preimage_compact {α : Type*} {β : Type*} [topological_space β]
+  {f : α → β} (hf : tendsto f cofinite (cocompact _)) {s : set β} (hs : is_compact s) :
+  set.finite (f ⁻¹' s) :=
+begin
+  rw [tendsto_def] at hf,
+  have := hf sᶜ,
+  rw mem_cofinite at this,
+  convert this _,
+  simp,
+  rw mem_cocompact,
+  refine ⟨s, hs, rfl.subset⟩
+end
+
 -- next three lemmas cover basically the same territory as the old `finite_integers`
 
 lemma int.finite_closed_ball_zero (r : ℝ) : (metric.closed_ball (0:ℤ) r).finite :=
@@ -273,43 +287,54 @@ begin
   linarith
 end
 
-instance : proper_space ℤ := ⟨λ x r, (int.finite_closed_ball x r).is_compact⟩
-
-lemma tendsto_cocompact_of_antilipschitz {α β : Type*} [metric_space α] [proper_space α]
-  [metric_space β] {c : nnreal} {f : α → β} (hf : antilipschitz_with c f) :
-  tendsto f (cocompact α) (cocompact β) :=
+lemma int.finite_of_bounded {s : set ℤ} (hs : metric.bounded s) : s.finite :=
 begin
-  rw tendsto_iff_eventually,
-  simp only [mem_cocompact, eventually_iff_exists_mem],
-  rintros p ⟨v, hv, hvp⟩,
-  rw mem_cocompact' at hv,
-  obtain ⟨t, ht, htv⟩ := hv,
-  obtain ⟨r, hr⟩ := ht.bounded,
-  by_cases h : ∃ x, ¬ p (f x),
-  { obtain ⟨x, hx⟩ := h,
-    have hxt : f x ∈ t := htv (mt (hvp (f x)) hx),
-    refine ⟨(metric.closed_ball x (c * r))ᶜ, _, _⟩,
-    { rw mem_cocompact,
-      refine ⟨metric.closed_ball x (c * r), proper_space.compact_ball x (↑c * r), rfl.subset⟩ },
-    intros x' hx',
-    have hxx'r : r < dist (f x) (f x'),
-    { simp at hx',
-      rw dist_comm at hx',
-      rw antilipschitz_with_iff_le_mul_dist at hf,
-      have : dist x x' ≤ c * dist (f x) (f x') := hf x x',
-      have := lt_of_lt_of_le hx' this,
-      sorry }, -- this follows from the previous line except with a special case for `c = 0`
-    have := mt (hr (f x) (f x') hxt),
-    push_neg at this,
-    have := (mt (@htv (f x'))) (this hxx'r),
-    apply hvp,
-    simpa using this },
-  { push_neg at h,
-    refine ⟨set.univ, univ_mem_sets, _⟩,
-    intros x hx,
-    exact h x },
+  rw metric.bounded_iff_subset_ball (0:ℤ) at hs,
+  obtain ⟨r, hr⟩ := hs,
+  exact (int.finite_closed_ball (0:ℤ) r).subset hr
 end
 
+lemma int.tendsto_cofinite_coe : tendsto (coe : ℤ → ℝ) cofinite (cocompact _) :=
+begin
+  simp only [tendsto_def, mem_cofinite, mem_cocompact'],
+  rintros s ⟨t, ht, hts⟩,
+  have : metric.bounded (coe ⁻¹' t : set ℤ),
+  { obtain ⟨r, hr⟩ := ht.bounded,
+    use r,
+    intros x y hx hy,
+    exact hr x y hx hy },
+  refine int.finite_of_bounded _,
+  refine this.subset _,
+  rw ← set.preimage_compl,
+  exact set.preimage_mono hts
+end
+
+lemma tendsto_cofinite_prod {α β γ δ} [topological_space γ] [topological_space δ]
+  {f : α → γ} {g : β → δ}
+  (hf : tendsto f cofinite (cocompact _)) (hg : tendsto g cofinite (cocompact _)) :
+  tendsto (λ x : α × β, (f x.1, g x.2)) cofinite (cocompact _) :=
+begin
+  simp only [tendsto_def, mem_cofinite, mem_cocompact'],
+  rintros s ⟨t, ht, hts⟩,
+  let t₁ : set γ := prod.fst '' t,
+  let t₂ : set δ := prod.snd '' t,
+  have ht₁ : is_compact t₁ := ht.image continuous_fst,
+  have ht₂ : is_compact t₂ := ht.image continuous_snd,
+  have hft : (f ⁻¹' t₁).finite := hf.finite_preimage_compact ht₁,
+  have hgt : (g ⁻¹' t₂).finite := hg.finite_preimage_compact ht₂,
+  refine (hft.prod hgt).subset _,
+  have : (λ x : α × β, (f x.1, g x.2)) ⁻¹' (t₁.prod t₂) = (f ⁻¹' t₁).prod (g ⁻¹' t₂),
+  { ext,
+    simp },
+  rw ← this,
+  rw ← set.preimage_compl,
+  have ht' : t ⊆ t₁.prod t₂,
+  { intros x hx,
+    exact ⟨⟨x, hx, rfl⟩, ⟨x, hx, rfl⟩⟩ },
+  refine set.preimage_mono (set.subset.trans hts ht'),
+end
+
+-- instance : proper_space ℤ := ⟨λ x r, (int.finite_closed_ball x r).is_compact⟩
 
 lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
   {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
@@ -347,13 +372,7 @@ begin
     field_simp [g],
     ring },
   have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
-  { have : antilipschitz_with 1 (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))),
-    { rw antilipschitz_with_iff_le_mul_dist,
-      intros x y,
-      refine le_of_eq _,
-      simp [prod.dist_eq] },
-    convert tendsto_cocompact_of_antilipschitz this,
-    rw cocompact_eq_cofinite },
+  { exact tendsto_cofinite_prod int.tendsto_cofinite_coe int.tendsto_cofinite_coe },
   have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
   { convert tendsto_at_top_sum_sq.comp (h₁.comp h₂),
     ext,
@@ -1068,4 +1087,41 @@ end
 --     simp },
 --   have : g ⁻¹' s ∪ vᶜ ∈ l := mem_sets_of_superset h₃ h₂,
 --   refine e9 l this hv
+-- end
+
+
+-- lemma tendsto_cocompact_of_antilipschitz {α β : Type*} [metric_space α] [proper_space α]
+--   [metric_space β] {c : nnreal} {f : α → β} (hf : antilipschitz_with c f) :
+--   tendsto f (cocompact α) (cocompact β) :=
+-- begin
+--   rw tendsto_iff_eventually,
+--   simp only [mem_cocompact, eventually_iff_exists_mem],
+--   rintros p ⟨v, hv, hvp⟩,
+--   rw mem_cocompact' at hv,
+--   obtain ⟨t, ht, htv⟩ := hv,
+--   obtain ⟨r, hr⟩ := ht.bounded,
+--   -- have := hf.bounded_preimage ht.bounded,
+--   by_cases h : ∃ x, ¬ p (f x),
+--   { obtain ⟨x, hx⟩ := h,
+--     have hxt : f x ∈ t := htv (mt (hvp (f x)) hx),
+--     refine ⟨(metric.closed_ball x (c * r))ᶜ, _, _⟩,
+--     { rw mem_cocompact,
+--       refine ⟨metric.closed_ball x (c * r), proper_space.compact_ball x (↑c * r), rfl.subset⟩ },
+--     intros x' hx',
+--     have hxx'r : r < dist (f x) (f x'),
+--     { simp at hx',
+--       rw dist_comm at hx',
+--       rw antilipschitz_with_iff_le_mul_dist at hf,
+--       have : dist x x' ≤ c * dist (f x) (f x') := hf x x',
+--       have := lt_of_lt_of_le hx' this,
+--       sorry }, -- this follows from the previous line except with a special case for `c = 0`
+--     have := mt (hr (f x) (f x') hxt),
+--     push_neg at this,
+--     have := (mt (@htv (f x'))) (this hxx'r),
+--     apply hvp,
+--     simpa using this },
+--   { push_neg at h,
+--     refine ⟨set.univ, univ_mem_sets, _⟩,
+--     intros x hx,
+--     exact h x },
 -- end

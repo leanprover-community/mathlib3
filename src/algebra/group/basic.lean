@@ -66,6 +66,16 @@ end semigroup
 section monoid
 variables {M : Type u} [monoid M]
 
+variables (M)
+
+@[simp, to_additive]
+lemma mul_left_one : ((*) (1 : M)) = id := funext one_mul
+
+@[simp, to_additive]
+lemma mul_right_one : (* (1 : M)) = id := funext mul_one
+
+variables {M}
+
 @[to_additive]
 lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
   ite P (a * b) 1 = ite P a 1 * ite P b 1 :=

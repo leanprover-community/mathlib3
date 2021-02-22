@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 import algebra.ordered_ring
 import tactic.monotonicity.basic
 import deprecated.group
+import logic.function.iterate
 
 /-!
 # Power operations on monoids and groups

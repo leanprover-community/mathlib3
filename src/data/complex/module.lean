@@ -51,7 +51,7 @@ lemma complex_ordered_semimodule : ordered_semimodule ℝ ℂ :=
   begin
     obtain ⟨y, l, e⟩ := lt_def.mp h₁,
     by_cases h : x = 0,
-    { subst h, simp at h₁, exfalso, exact lt_irrefl 0 h₁, },
+    { subst h, exfalso, apply lt_irrefl 0 h₂, },
     { refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
       replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
       simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,

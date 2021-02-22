@@ -138,7 +138,7 @@ variable {B}
 omit de
 
 /-- `h.coord_fun i` sends vectors to their `i`'th coordinate with respect to the basis `h`. -/
-def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (finsupp.lapply i) h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := (finsupp.lapply i).comp h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 

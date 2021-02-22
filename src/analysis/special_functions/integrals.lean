@@ -20,10 +20,30 @@ This file is incomplete; we are working on expanding it.
 open real set interval_integral
 variables {a b : ℝ}
 
+namespace interval_integral
+variable {f : ℝ → ℝ}
+
+@[simp]
+lemma integral_mul_left (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
+integral_smul c
+
+@[simp]
+lemma integral_mul_right (c : ℝ) : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
+by simp only [mul_comm, integral_mul_left]
+
+@[simp]
+lemma integral_div' (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) * c⁻¹ :=
+integral_mul_right c⁻¹
+
+lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
+integral_div' c
+
+end interval_integral
+
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
 begin
-  have hderiv : deriv (λ x : ℝ, x^(n + 1) / (n + 1)) = λ x, x ^ n,
+  have hderiv : deriv (λ x:ℝ, x^(n + 1) / (n + 1)) = λ x, x ^ n,
   { have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast nat.succ_ne_zero n,
     ext,
     simp [mul_div_assoc, mul_div_cancel' _ hne] },
@@ -94,10 +114,11 @@ by simp
 -- Simple integrals are now computable by `norm_num`. Here are some examples:
 open_locale real
 example : ∫ x in 0..π, sin x = 2 := by norm_num
-example : ∫ x in 0..π/4, cos x = sqrt 2 / 2 := by simp
+example : ∫ x in 0..π/4, cos x = sqrt 2 / 2:= by simp
 example : ∫ x:ℝ in 2..4, x^(3:ℕ) = 60 := by norm_num
 example : ∫ x in 0..2, -exp x = 1 - exp 2 := by simp
-example : ∫ x:ℝ in (-1)..4, x = 15/2 := by norm_num
+example : ∫ x:ℝ in (-1)..4, 2 * x = 15 := by norm_num
 example : ∫ x:ℝ in 8..11, (1:ℝ) = 3 := by norm_num
 example : ∫ x:ℝ in 2..3, x⁻¹ = log (3/2) := by norm_num
 example : ∫ x:ℝ in 0..1, 1 / (1 + x^2) = π/4 := by simp
+example : ∫ x in 0..π/2, cos x / 2 = 1 / 2 := by simp

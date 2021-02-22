@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 import algebra.group
 import algebra.group_power.basic
+import logic.function.iterate
 
 /-!
 # Regular elements

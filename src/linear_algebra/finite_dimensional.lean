@@ -863,9 +863,6 @@ begin
   exact this b hB,
 end
 
-lemma subsingleton.is_basis (h : subsingleton V) : is_basis K (λ x : fin 0, (0 : V)) :=
-is_basis_empty _ (λ hzero, nonempty.elim hzero fin.elim0)
-
 lemma findim_eq_zero_iff_subsingleton [finite_dimensional K V] :
   findim K V = 0 ↔ subsingleton V :=
 begin
@@ -891,9 +888,9 @@ end
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]
   {ι : Type*} (h : ¬ nonempty ι) (hV : findim K V = 0) :
   is_basis K (λ x : ι, (0 : V)) :=
--- is_basis_empty h (eq_zero_of_findim_eq_zero hV)
 begin
-  convert is_basis_empty _ _,
+  haveI : subsingleton V := findim_eq_zero_iff_subsingleton.1 hV,
+  exact is_basis_empty _ h
 end
 
 lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)

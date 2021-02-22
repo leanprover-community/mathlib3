@@ -1058,7 +1058,7 @@ variables {N L : submodule R M}
   m ∈ B.orthogonal N ↔ ∀ n ∈ N, is_ortho B m n := iff.rfl
 
 lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
-  λ _ hn l hl, hn l (h hl)
+λ _ hn l hl, hn l (h hl)
 
 lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
   N ≤ B.orthogonal (B.orthogonal N) := λ n hn m hm, hB _ _ (hm n hn)

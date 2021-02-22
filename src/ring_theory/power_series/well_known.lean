@@ -130,7 +130,7 @@ begin
 end
 
 /-- Shows that
-$\sum_{k = 0}^{n - 1} (e^{X})^k = \sum_{p = 0}^{\inf} \sum_{k = 0}^{n - 1} \frac{k^p}{p!}X^p$. -/
+$\sum_{k = 0}^{n - 1} (e^{X})^k = \sum_{p = 0}^{\infty} \sum_{k = 0}^{n - 1} \frac{k^p}{p!}X^p$. -/
 theorem exp_pow_sum [algebra ℚ A] (n : ℕ) : (finset.range n).sum(λ k, (exp A)^k) =
 power_series.mk (λ p,  (finset.range n).sum(λ k, k^p * ((algebra_map ℚ A) p.factorial⁻¹))) :=
 begin

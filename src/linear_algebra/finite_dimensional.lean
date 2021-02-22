@@ -864,11 +864,7 @@ begin
 end
 
 lemma subsingleton.is_basis (h : subsingleton V) : is_basis K (λ x : fin 0, (0 : V)) :=
-begin
-  refine is_basis_empty (finset.univ_eq_empty.mp rfl) _,
-  intro x,
-  rw [subsingleton.elim x 0],
-end
+is_basis_empty _ (λ hzero, nonempty.elim hzero fin.elim0)
 
 lemma findim_eq_zero_iff_subsingleton [finite_dimensional K V] :
   findim K V = 0 ↔ subsingleton V :=
@@ -877,7 +873,10 @@ begin
   { apply subsingleton.intro,
     intros x y,
     rw [eq_zero_of_findim_eq_zero h x, eq_zero_of_findim_eq_zero h y] },
-  { rw findim_eq_card_basis (@subsingleton.is_basis K V _ _ _ h),
+  { have : is_basis K (λ x : fin 0, (0 : V)),
+      { apply is_basis_empty _ (λ hzero, nonempty.elim hzero fin.elim0),
+        assumption },
+    rw findim_eq_card_basis this,
     exact fintype.card_fin 0 }
 end
 
@@ -892,7 +891,10 @@ end
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]
   {ι : Type*} (h : ¬ nonempty ι) (hV : findim K V = 0) :
   is_basis K (λ x : ι, (0 : V)) :=
-is_basis_empty h (eq_zero_of_findim_eq_zero hV)
+-- is_basis_empty h (eq_zero_of_findim_eq_zero hV)
+begin
+  convert is_basis_empty _ _,
+end
 
 lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
   (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=

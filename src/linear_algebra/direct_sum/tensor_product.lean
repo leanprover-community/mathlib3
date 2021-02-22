@@ -3,8 +3,15 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro
 -/
+
 import linear_algebra.tensor_product
 import linear_algebra.direct_sum_module
+
+/-!
+# Tensor products of directs sums
+
+This file shows that taking tensor products commutes with taking direct sums in both arguments.
+-/
 
 section ring
 

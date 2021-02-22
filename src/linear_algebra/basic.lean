@@ -407,9 +407,6 @@ def dom_restrict'
 @[simp] lemma dom_restrict'_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
   dom_restrict' p f x = f x := rfl
 
-variables (S : Type*) [monoid S] [distrib_mul_action S M₂] [smul_comm_class R S M₂]
-  [mul_action S R] [is_scalar_tower S R M₂]
-
 end comm_semiring
 
 section semiring

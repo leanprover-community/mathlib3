@@ -68,10 +68,10 @@ variables {M : Type u} [monoid M]
 
 variables (M)
 
-@[simp, to_additive]
+@[to_additive]
 lemma mul_left_one : ((*) (1 : M)) = id := funext one_mul
 
-@[simp, to_additive]
+@[to_additive]
 lemma mul_right_one : (* (1 : M)) = id := funext mul_one
 
 variables {M}

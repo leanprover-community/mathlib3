@@ -91,6 +91,10 @@ F.add_map.map_neg _
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 F.add_map.map_sub _ _
 
+-- sanity check
+example (G : C ⥤ D) [functor.additive G] {X Y : C} {f g : X ⟶ Y} :
+  G.map (f - f + 0 - g) = - G.map g := by simp
+
 end functor
 end preadditive
 

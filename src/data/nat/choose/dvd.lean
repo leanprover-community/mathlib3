@@ -42,14 +42,15 @@ begin
   rw ← choose_mul_factorial_mul_factorial hab, ring,
 end
 
-lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
-n.choose s * (n - s).choose (k - s) :=
+lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) :
+  (n.choose k : ℚ) * k.choose s = n.choose s * (n - s).choose (k - s) :=
 begin
   rw [choose_eq_factorial_div_factorial' hn, choose_eq_factorial_div_factorial' hs,
       choose_eq_factorial_div_factorial' (le_trans hs hn), choose_eq_factorial_div_factorial' ],
-  swap, exact nat.sub_le_sub_right hn s,
-    field_simp [mul_ne_zero, factorial_ne_zero],
-  rw sub_sub_sub_cancel_right hs, ring,
+  swap,
+  { exact nat.sub_le_sub_right hn s, },
+  { field_simp [mul_ne_zero, factorial_ne_zero],
+    rw sub_sub_sub_cancel_right hs, ring, },
 end
 
 end prime

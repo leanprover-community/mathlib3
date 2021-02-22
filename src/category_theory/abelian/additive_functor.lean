@@ -77,6 +77,8 @@ def add_map {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
 
 lemma add_map_spec {X Y : C} {f : X ⟶ Y} : F.add_map f = F.map f := rfl
 
+lemma add_map_spec' {X Y : C} : ⇑(F.add_map : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
+
 @[simp]
 lemma map_zero {X Y : C} : F.map (0 : X ⟶ Y) = 0 := F.add_map.map_zero
 

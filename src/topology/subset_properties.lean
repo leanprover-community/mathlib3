@@ -377,6 +377,23 @@ filter.mem_cocompact.trans $ exists_congr $ λ t, and_congr_right $ λ ht, compl
 lemma is_compact.compl_mem_cocompact (hs : is_compact s) : sᶜ ∈ filter.cocompact α :=
 filter.has_basis_cocompact.mem_of_mem hs
 
+lemma filter.coprod_cofinite {β : Type*} :
+  filter.coprod (cocompact α) (cocompact β) = cocompact (α × β) :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cocompact],
+  split,
+  { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
+    rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
+    exact (hAf.prod hBf).subset (subset_inter hAS hBS) },
+  { intro hS,
+    refine ⟨⟨(prod.fst '' Sᶜ)ᶜ, _, _⟩, ⟨(prod.snd '' Sᶜ)ᶜ, _, _⟩⟩,
+    { simpa using hS.image prod.fst },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.fst Sᶜ },
+    { simpa using hS.image prod.snd },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.snd Sᶜ } },
+end
+
 section tube_lemma
 
 variables [topological_space β]

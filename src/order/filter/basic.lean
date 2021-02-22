@@ -2405,6 +2405,44 @@ by simp only [tendsto_def, mem_prod_iff, prod_sub_preimage_iff, exists_prop, iff
 
 end prod
 
+/-! ### Coproducts of filters -/
+
+section coprod
+variables {s : set α} {t : set β} {f : filter α} {g : filter β}
+
+/-- Coproduct of filters. -/
+protected def coprod (f : filter α) (g : filter β) : filter (α × β) :=
+f.comap prod.fst ⊔ g.comap prod.snd
+
+lemma mem_coprod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
+  s ∈ f.coprod g ↔ ((∃ t₁ ∈ f, prod.fst ⁻¹' t₁ ⊆ s) ∧ (∃ t₂ ∈ g, prod.snd ⁻¹' t₂ ⊆ s)) :=
+by simp [filter.coprod]
+
+@[mono] lemma coprod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
+  f₁.coprod g₁ ≤ f₂.coprod g₂ :=
+sup_le_sup (comap_mono hf) (comap_mono hg)
+
+-- is this an equality?  The corresponding fact for `filter.map` is
+lemma map_prod_map_coprod_le {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
+  {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :
+  map (prod.map m₁ m₂) (f₁.coprod f₂) ≤ (map m₁ f₁).coprod (map m₂ f₂) :=
+begin
+  intros s,
+  simp only [mem_map, mem_coprod_iff],
+  rintros ⟨⟨u₁, hu₁, h₁⟩, ⟨u₂, hu₂, h₂⟩⟩,
+  refine ⟨⟨m₁ ⁻¹' u₁, hu₁, λ _ hx, h₁ _⟩, ⟨m₂ ⁻¹' u₂, hu₂, λ _ hx, h₂ _⟩⟩; convert hx
+end
+
+lemma tendsto.prod_map_coprod {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
+  {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :
+  tendsto (prod.map f g) (a.coprod b) (c.coprod d) :=
+begin
+  rw tendsto,
+  exact le_trans map_prod_map_coprod_le (coprod_mono hf hg)
+end
+
+end coprod
+
 end filter
 
 open_locale filter

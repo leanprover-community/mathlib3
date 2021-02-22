@@ -72,6 +72,7 @@ structure add_hom (M : Type*) (N : Type*) [has_add M] [has_add N] :=
 (map_add' : ∀ x y, to_fun (x + y) = to_fun x + to_fun y)
 
 /-- Bundled add_monoid homomorphisms; use this for bundled add_group homomorphisms too. -/
+@[ancestor zero_hom add_hom]
 structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N]
   extends zero_hom M N, add_hom M N
 
@@ -93,16 +94,17 @@ structure mul_hom (M : Type*) (N : Type*) [has_mul M] [has_mul N] :=
 (map_mul' : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
 
 /-- Bundled monoid homomorphisms; use this for bundled group homomorphisms too. -/
-@[to_additive]
+@[ancestor one_hom mul_hom, to_additive]
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] extends one_hom M N, mul_hom M N
 
 /-- Bundled monoid with zero homomorphisms; use this for bundled group with zero homomorphisms
 too. -/
+@[ancestor zero_hom monoid_hom]
 structure monoid_with_zero_hom (M : Type*) (N : Type*) [monoid_with_zero M] [monoid_with_zero N]
   extends zero_hom M N, monoid_hom M N
 
-attribute [nolint doc_blame, to_additive] monoid_hom.to_mul_hom
-attribute [nolint doc_blame, to_additive] monoid_hom.to_one_hom
+attribute [nolint doc_blame] monoid_hom.to_mul_hom
+attribute [nolint doc_blame] monoid_hom.to_one_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_monoid_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_zero_hom
 

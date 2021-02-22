@@ -377,7 +377,7 @@ filter.mem_cocompact.trans $ exists_congr $ λ t, and_congr_right $ λ ht, compl
 lemma is_compact.compl_mem_cocompact (hs : is_compact s) : sᶜ ∈ filter.cocompact α :=
 filter.has_basis_cocompact.mem_of_mem hs
 
-lemma filter.coprod_cofinite {β : Type*} :
+lemma filter.coprod_cocompact {β : Type*} :
   filter.coprod (cocompact α) (cocompact β) = cocompact (α × β) :=
 begin
   ext S,

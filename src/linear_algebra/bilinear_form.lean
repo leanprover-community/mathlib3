@@ -1199,7 +1199,7 @@ lemma is_compl_singleton {B : bilin_form K V}
 
 /-- The natural isomorphism between a singleton and the quotient by its orthogonal complement. -/
 noncomputable def quotient_equiv_of_ortho_singleton
-{B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
+  {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
 submodule.quotient_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
 
 /-- The natural isomorphism from the product between a singleton and its orthogonal component

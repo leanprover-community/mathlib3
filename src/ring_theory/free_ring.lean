@@ -72,6 +72,11 @@ congr_fun (lift.left_inv f) x
 @[simp] lemma lift_comp_of (f : free_ring α →+* R) : lift (f ∘ of) = f :=
 lift.right_inv f
 
+@[ext]
+lemma hom_ext ⦃f g : free_ring α →+* R⦄ (h : ∀ x, f (of x) = g (of x)) :
+  f = g :=
+lift.symm.injective (funext h)
+
 end lift
 
 variables {β : Type v} (f : α → β)

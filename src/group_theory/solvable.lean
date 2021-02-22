@@ -6,6 +6,8 @@ Authors: Jordan Brown, Thomas Browning and Patrick Lutz
 
 import group_theory.abelianization
 import data.bracket
+import set_theory.cardinal
+import data.equiv.basic
 
 /-!
 # Solvable Groups
@@ -490,6 +492,265 @@ mt (is_solvable_def _).mp (not_exists_of_forall_not (λ n, mt subgroup.ext'_iff.
 lemma weekday_perm_unsolvable : ¬ is_solvable (equiv.perm weekday) :=
  not_solvable_of_mem_derived_series (mt equiv.ext_iff.mp
   (not_forall_of_exists_not ⟨wednesday, by trivial⟩)) alternating_stability
+
+
+open cardinal
+universes u
+lemma five_le_iff (α: Type u): (5 : cardinal) ≤ mk α ↔ ∃x₀ x₁ x₂ x₃ x₄  : α, x₀ ≠ x₁ ∧ x₀ ≠ x₂ ∧ x₀ ≠ x₃ ∧ x₀ ≠ x₄ ∧
+x₁ ≠ x₂  ∧ x₁ ≠ x₃ ∧ x₁ ≠ x₄ ∧ x₂ ≠ x₃ ∧ x₃ ≠ x₄:=
+begin
+  split,
+  rintro ⟨f⟩, refine ⟨f $ sum.inr punit.star, _⟩,
+  refine ⟨f $ (sum.inl (sum.inr (sum.inr  punit.star))),_⟩,
+  refine ⟨f $ (sum.inl (sum.inr (sum.inl  punit.star))),_⟩,
+  refine ⟨f $ (sum.inl (sum.inl (sum.inl  punit.star))),_⟩,
+  refine ⟨f $ (sum.inl (sum.inl (sum.inr  punit.star))),_⟩,
+  split,
+  intro h,
+  cases f.2 h,
+  split,
+  intro h,
+  cases f.2 h,
+  split,
+  intro h,
+  cases f.2 h,
+  split,
+  intro h,
+  cases f.2 h,
+  split,
+  intro h,
+  cases f.2 h,
+  split,
+  intro h,
+  cases f.2 h,
+  split,
+  intro h,
+  cases f.2 h,
+  split,
+  intro h,
+  cases f.2 h,
+
+  intro h,
+  cases f.2 h,
+  rintro ⟨ a,β,γ,δ,ε,hs ⟩ ,
+  let five:=((punit ⊕ punit) ⊕ punit ⊕ punit) ⊕ punit,
+  --have u: ∃g: five → α,function.injective g,
+  let h : five → α := λ s₀, sum.rec_on s₀  (λ s₁, sum.rec_on s₁  (λ s₂ ,sum.rec_on s₂   (λ x,a)(λx,β )) (λ s₃  ,sum.rec_on s₃   (λ x,γ )(λx,δ ) ))(λ x,ε ),
+  --(λ s₁, sum.rec_on s₁ ((λ s₂, (sum.rec_on s₂ ((λ x,a) (λ x,β)))(λ s₃, sum.rec_on s₃((λ x,γ) (λ x,δ) ) )))) (λ x,ε),
+  have h_inj: function.injective h,
+
+  intros x y,
+  induction x,
+  induction y,
+  induction x,
+  induction y,
+  induction x,
+  induction y,
+  have w: x=y,
+  exact unit.ext,
+  rw w,
+  exact λ u, refl _,
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inl x)))=a,
+  refl,
+
+  have ξ : h(sum.inl (sum.inl (sum.inr y)))=β ,
+  refl,
+  rw [t,ξ ] at k,
+  exact hs.1 k,
+
+  induction y,
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
+  refl,
+  have ξ : h(sum.inl (sum.inl (sum.inr x)))=β ,
+  refl,
+  rw [t,ξ ] at k,
+  exact hs.1 k.symm,
+  have w: x=y,
+  exact unit.ext,
+  rw w,
+  exact λ u, refl _,
+
+  induction x,
+  induction y,
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ,
+  refl,
+  rw [t,ξ ] at k,
+  exact (hs.2).1 k,
+
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ ,
+  refl,
+  rw [t,ξ ] at k,
+  exact ((hs.2).2).1 k,
+
+  induction y,
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inr (sum.inl y)))=γ ,
+  refl,
+  have ξ : h(sum.inl (sum.inl (sum.inr x)))=β  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact ((((hs.2).2).2).2).1 k,
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inr (sum.inr y)))=δ  ,
+  refl,
+  have ξ : h(sum.inl (sum.inl (sum.inr x)))=β  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact (((((hs.2).2).2).2).2).1 k,
+
+  induction x,
+  induction y,
+  induction y,
+
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact (hs.2).1 k.symm,
+
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inr y)))=β ,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact ((((hs.2).2).2).2).1 k.symm,
+
+  induction y,
+  have w: x=y,
+  exact unit.ext,
+  rw w,
+  exact λ u, refl _,
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inr (sum.inr y)))=δ ,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inl x)))=γ  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact (((((((hs.2).2).2).2).2).2).2).1 k,
+
+  induction y,
+  induction y,
+
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inl y)))=a,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact ((hs.2).2).1 k.symm,
+
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inl (sum.inr y)))=β ,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact (((((hs.2).2).2).2).2).1 k.symm,
+
+  induction y,
+  intro k,
+  exfalso,
+  have t:h(sum.inl (sum.inr (sum.inl y)))=γ  ,
+  refl,
+  have ξ : h(sum.inl (sum.inr (sum.inr x)))=δ  ,
+  refl,
+  rw [t,ξ ] at k,
+  exact (((((((hs.2).2).2).2).2).2).2).1 k.symm,
+
+
+
+  --have v:=five.cases_on a β γ δ ε ,
+
+
+  --apply cardinal.mk_le_of_injective,
+
+    --rintro ⟨x, y, h⟩, by_contra h',
+    --rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
+    --apply h, exactI subsingleton.elim _ _
+  all_goals {sorry},
+
+end
+
+def equiv.perm.of_embedding {α β : Type*} [fintype α] [decidable_eq β]
+  (e : equiv.perm α) (f : α ↪ β) : equiv.perm β := equiv.perm.subtype_congr (e.of_embedding_subtype f) (equiv.refl _)
+
+lemma equiv.perm_of_embedding_injective {α β : Type*} [fintype α] [decidable_eq β]
+   (f : α ↪ β) : function.injective (λ e, equiv.perm.of_embedding e f):=sorry
+
+
+
+lemma unsolvability_of_S_5 (X:Type u)(big:5≤ cardinal.mk X)[fintype X]:¬ is_solvable (equiv.perm X):=
+begin
+  --have x:=X.elems.val.to_list,
+  have x:=(five_le_iff X).1 big,
+  rcases x with ⟨ x₀,x₁, x₂, x₃, x₄ , s⟩,
+  let map:weekday→ X:=λ x, weekday.cases_on x x₀ x₁ x₂ x₃ x₄,
+  by_contradiction,
+  --apply solvable_of_solvable_injective,
+
+
+  unfold is_solvable,
+  push_neg,
+  have moscow:=_inst_3.elems,
+  have russia:=_inst_3.complete,
+  let delhi:=fintype.elems X,
+  let paris:=(delhi).val,
+  have france:=(delhi).nodup,
+  have u: list X,
+  exact list.nil,
+
+
+  rw cardinal.le_mk_iff_exists_set at big,
+  cases big with big_subset florida,
+  --have v:cardinal.mk big_subset<cardinal.omega,
+  --apply cardinal.lt_omega.2,
+  --use 5,
+
+  --exact florida,
+
+  --have u: fintype big_subset,
+  --apply fintype.of_equiv,
+  have w:fintype.card ↥big_subset=5,
+
+  --library_search,
+
+
+  have equiv: nonempty((fin 5)≃ big_subset),
+
+  apply fintype.card_eq.1,
+
+
+  --library_search!,
+  --have first: ∃ x_1,x_1∈ big_subset,
+  sorry,
+
+end
+
+
+end solvable
+
 
 end  symmetric_unsolvable
 

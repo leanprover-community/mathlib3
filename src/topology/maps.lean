@@ -96,6 +96,10 @@ by simp [continuous_iff_continuous_at, continuous_at, inducing.tendsto_nhds_iff 
 
 lemma inducing.continuous {f : α → β} (hf : inducing f) : continuous f :=
 hf.continuous_iff.mp continuous_id
+
+lemma inducing.closure_eq_preimage_closure_image {f : α → β} (hf : inducing f) (s : set α) :
+  closure s = f ⁻¹' closure (f '' s) :=
+by { ext x, rw [set.mem_preimage, ← closure_induced, hf.induced] }
 end inducing
 section embedding
 
@@ -150,7 +154,7 @@ inducing.continuous hf.1
 
 lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embedding e) (s : set α) :
   closure s = e ⁻¹' closure (e '' s) :=
-by { ext x, rw [set.mem_preimage, ← closure_induced he.inj, he.induced] }
+he.1.closure_eq_preimage_closure_image s
 
 end embedding
 

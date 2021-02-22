@@ -309,7 +309,7 @@ begin
     { assume i,
       have pos : finset.card (A i) ≠ 0, by simp [finset.card_eq_zero, Ai_empty i],
       have : finset.card (A i) ≤ 1 := Ai_singleton i,
-      exact le_antisymm this (pos_iff_ne_zero.mpr pos), },
+      exact le_antisymm this (nat.succ_le_of_lt (_root_.pos_iff_ne_zero.mpr pos)) },
     have : ∀ (r : Π i, α i), r ∈ pi_finset A → f (λ i, g i (r i)) = f (λ i, ∑ j in A i, g i j),
     { assume r hr,
       unfold_coes,

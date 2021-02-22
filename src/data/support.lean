@@ -146,6 +146,10 @@ lemma support_comp_eq [has_zero A] [has_zero B] (g : A → B) (hg : ∀ {x}, g x
   support (g ∘ f) = support f :=
 set.ext $ λ x, not_congr hg
 
+lemma support_comp_eq_preimage [has_zero B] (g : A → B) (f : α → A) :
+  support (g ∘ f) = f ⁻¹' support g :=
+rfl
+
 lemma support_prod_mk [has_zero A] [has_zero B] (f : α → A) (g : α → B) :
   support (λ x, (f x, g x)) = support f ∪ support g :=
 set.ext $ λ x, by simp only [support, not_and_distrib, mem_union_eq, mem_set_of_eq,

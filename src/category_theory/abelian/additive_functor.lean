@@ -3,6 +3,7 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
+
 import category_theory.preadditive
 import category_theory.abelian.basic
 
@@ -24,7 +25,7 @@ To construct an instance of `functor.additive G` from proofs that
 `G.map` sends `0` to `0` and is compatible with addition of morphisms,
 use `functor.additive.of_is_hom`.
 
-# Projects:
+# Projects (in the case of abelian categories):
 
 - Prove that an additive functor preserves finite biproducts
 - Prove that a functor is additive it it preserves finite biproducts

@@ -319,7 +319,28 @@ begin
       mul_assoc, ih, ←mul_assoc], }
 end
 
+/-- If `algebra_map R A` is injective and `A` has no zero divisors,
+`R`-multiples in `A` are zero only if one of the factors is zero.
+
+Cannot be an instance because there is no `injective (algebra_map R A)` typeclass.
+-/
+lemma no_zero_smul_divisors.of_algebra_map_injective
+  [semiring A] [algebra R A] [no_zero_divisors A]
+  (h : function.injective (algebra_map R A)) : no_zero_smul_divisors R A :=
+⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
+  ((algebra_map R A).injective_iff.mp h _)⟩
+
 end ring
+
+section field
+
+variables [field R] [semiring A] [algebra R A]
+
+@[priority 100] -- see note [lower instance priority]
+instance [nontrivial A] [no_zero_divisors A] : no_zero_smul_divisors R A :=
+no_zero_smul_divisors.of_algebra_map_injective (algebra_map R A).injective
+
+end field
 
 end algebra
 

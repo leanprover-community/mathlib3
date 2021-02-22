@@ -271,7 +271,7 @@ lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β
 iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
-  @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
+  @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 ⟨assume ⟨t, ht, heq⟩, ⟨tᶜ, is_closed_compl_iff.2 ht,
     by simp only [preimage_compl, heq, compl_compl]⟩,
   assume ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
@@ -602,9 +602,12 @@ iff.rfl
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
-lemma map_nhds_induced_eq {a : α} (h : range f ∈ 𝓝 (f a)) :
+lemma map_nhds_induced_eq (a : α) : map f (@nhds α (induced f t) a) = 𝓝[range f] (f a) :=
+by rw [nhds_induced, filter.map_comap, nhds_within]
+
+lemma map_nhds_induced_of_mem {a : α} (h : range f ∈ 𝓝 (f a)) :
   map f (@nhds α (induced f t) a) = 𝓝 (f a) :=
-by rw [nhds_induced, filter.map_comap h]
+by rw [nhds_induced, filter.map_comap_of_mem h]
 
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α} :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=

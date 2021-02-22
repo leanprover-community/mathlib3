@@ -200,7 +200,7 @@ lemma frobenius_poly_zmod (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=
 begin
   rw [frobenius_poly, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_mul, map_X, map_C],
-  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.cast_self, zero_mul, C_0],
+  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.nat_cast_self, zero_mul, C_0],
 end
 
 @[simp]
@@ -230,7 +230,7 @@ variables (p)
 
 See also `frobenius_is_poly`. -/
 @[is_poly] lemma frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
-⟨frobenius_poly p, by { introsI, funext n, apply coeff_frobenius_fun }⟩
+⟨⟨frobenius_poly p, by { introsI, funext n, apply coeff_frobenius_fun }⟩⟩
 
 variable {p}
 

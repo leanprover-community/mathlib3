@@ -60,7 +60,10 @@ not_imp_comm.1 (λ hn, indicator_of_not_mem hn f) h
 
 lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
 
-lemma support_indicator : function.support (s.indicator f) ⊆ s :=
+@[simp] lemma support_indicator : function.support (s.indicator f) = s ∩ function.support f :=
+ext $ λ x, by simp [function.mem_support]
+
+lemma support_indicator_subset : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
 
 @[simp] lemma indicator_apply_eq_self : s.indicator f a = f a ↔ (a ∉ s → f a = 0) :=
@@ -272,7 +275,7 @@ begin
   assume a I haI ih hI,
   funext,
   simp only [haI, finset.sum_insert, not_false_iff],
-  rw [finset.bUnion_insert, indicator_union_of_not_mem_inter, ih _],
+  rw [finset.set_bUnion_insert, indicator_union_of_not_mem_inter, ih _],
   { assume i hi j hj hij,
     exact hI i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj) hij },
   simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and],

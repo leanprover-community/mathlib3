@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.polynomial.chebyshev.defs
+import ring_theory.polynomial.chebyshev.dickson
 import analysis.special_functions.trigonometric
 import ring_theory.localization
 import data.zmod.basic
@@ -17,14 +18,15 @@ The Chebyshev polynomials are two families of polynomials indexed by `ℕ`,
 with integral coefficients.
 In this file, we only consider Chebyshev polynomials of the first kind.
 
-## Main declarations
+## Main statements
 
 * `polynomial.chebyshev₁_mul`, the `(m * n)`-th Chebyshev polynomial is the composition
   of the `m`-th and `n`-th Chebyshev polynomials.
-* `polynomial.lambdashev_mul`, the `(m * n)`-th lambdashev polynomial is the composition
-  of the `m`-th and `n`-th lambdashev polynomials.
-* `polynomial.lambdashev_char_p`, for a prime number `p`, the `p`-th lambdashev polynomial
-  is congruent to `X ^ p` modulo `p`.
+* `polynomial.dickson_one_one_mul`, the `(m * n)`-th Dickson polynomial of the first kind for
+  parameter `1 : R` is the composition of the `m`-th and `n`-th Dickson polynomials of the first
+  kind for `1 : R`.
+* `polynomial.dickson_one_one_char_p`, for a prime number `p`, the `p`-th Dickson polynomial of the
+  first kind associated to parameter `1 : R` is congruent to `X ^ p` modulo `p`.
 
 ## Implementation details
 
@@ -54,67 +56,72 @@ begin
   apply polynomial.funext,
   intro z,
   obtain ⟨θ, rfl⟩ := cos_surjective z,
-  simp only [chebyshev₁_complex_cos, nat.cast_mul, eval_comp, mul_assoc],
+  simp only [chebyshev₁_complex_cos, nat.cast_mul, eval_comp, mul_assoc]
 end
 
-section lambdashev
+section dickson
 /-!
 
 ### A Lambda structure on `polynomial ℤ`
 
 Mathlib doesn't currently know what a Lambda ring is.
 But once it does, we can endow `polynomial ℤ` with a Lambda structure
-in terms of the `lambdashev` polynomials defined below.
+in terms of the `dickson 1 1` polynomials defined below.
 There is exactly one other Lambda structure on `polynomial ℤ` in terms of binomial polynomials.
 
 -/
 
 variables {R}
 
-lemma lambdashev_eval_add_inv (x y : R) (h : x * y = 1) :
-  ∀ n, (lambdashev R n).eval (x + y) = x ^ n + y ^ n
-| 0       := by simp only [bit0, eval_one, eval_add, pow_zero, lambdashev_zero]
-| 1       := by simp only [eval_X, lambdashev_one, pow_one]
+lemma dickson_one_one_eval_add_inv (x y : R) (h : x * y = 1) :
+  ∀ n, (dickson 1 (1 : R) n).eval (x + y) = x ^ n + y ^ n
+| 0       := by { simp only [bit0, eval_one, eval_add, pow_zero, dickson_zero], norm_num }
+| 1       := by simp only [eval_X, dickson_one, pow_one]
 | (n + 2) :=
 begin
-  simp only [eval_sub, eval_mul, lambdashev_eval_add_inv, eval_X, lambdashev_add_two],
+  simp only [eval_sub, eval_mul, dickson_one_one_eval_add_inv, eval_X, dickson_add_two, C_1,
+    eval_one],
   conv_lhs { simp only [pow_succ, add_mul, mul_add, h, ← mul_assoc, mul_comm y x, one_mul] },
   ring_exp
 end
 
 variables (R)
 
-lemma lambdashev_eq_chebyshev₁ [invertible (2 : R)] :
-  ∀ n, lambdashev R n = 2 * (chebyshev₁ R n).comp (C (⅟2) * X)
-| 0       := by simp only [chebyshev₁_zero, mul_one, one_comp, lambdashev_zero]
-| 1       := by rw [lambdashev_one, chebyshev₁_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
+lemma dickson_one_one_eq_chebyshev₁ [invertible (2 : R)] :
+  ∀ n, dickson 1 (1 : R) n = 2 * (chebyshev₁ R n).comp (C (⅟2) * X)
+| 0       := by { simp only [chebyshev₁_zero, mul_one, one_comp, dickson_zero], norm_num }
+| 1       := by rw [dickson_one, chebyshev₁_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
                     mul_inv_of_self, C_1, one_mul]
 | (n + 2) :=
 begin
-  simp only [lambdashev_add_two, chebyshev₁_add_two, lambdashev_eq_chebyshev₁ (n + 1),
-    lambdashev_eq_chebyshev₁ n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
+  simp only [dickson_add_two, chebyshev₁_add_two, dickson_one_one_eq_chebyshev₁ (n + 1),
+    dickson_one_one_eq_chebyshev₁ n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
   simp only [← C_1, ← C_bit0, ← mul_assoc, ← C_mul, mul_inv_of_self],
   rw [C_1, one_mul],
   ring
 end
 
-lemma chebyshev₁_eq_lambdashev [invertible (2 : R)] (n : ℕ) :
-  chebyshev₁ R n = C (⅟2) * (lambdashev R n).comp (2 * X) :=
+lemma chebyshev₁_eq_dickson_one_one [invertible (2 : R)] (n : ℕ) :
+  chebyshev₁ R n = C (⅟2) * (dickson 1 1 n).comp (2 * X) :=
 begin
-  rw lambdashev_eq_chebyshev₁,
+  rw dickson_one_one_eq_chebyshev₁,
   simp only [comp_assoc, mul_comp, C_comp, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul],
   rw [inv_of_mul_self, C_1, one_mul, one_mul, comp_X]
 end
 
-/-- the `(m * n)`-th lambdashev polynomial is the composition of the `m`-th and `n`-th -/
-lemma lambdashev_mul (m n : ℕ) :
-  lambdashev R (m * n) = (lambdashev R m).comp (lambdashev R n) :=
+/-- The `(m * n)`-th Dickson polynomial of the first kind is the composition of the `m`-th and
+`n`-th. -/
+lemma dickson_one_one_mul (m n : ℕ) :
+  dickson 1 (1 : R) (m * n) = (dickson 1 1 m).comp (dickson 1 1 n) :=
 begin
-  simp only [← map_lambdashev (int.cast_ring_hom R), ← map_comp],
+  have h : (1 : R) = int.cast_ring_hom R (1),
+    simp only [ring_hom.eq_int_cast, int.cast_one],
+  rw h,
+  simp only [← map_dickson (int.cast_ring_hom R), ← map_comp],
   congr' 1,
   apply map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-  simp only [map_lambdashev, map_comp, lambdashev_eq_chebyshev₁, chebyshev₁_mul, two_mul,
-    ← add_comp],
+  simp only [map_dickson, map_comp, ring_hom.eq_int_cast, int.cast_one,
+    dickson_one_one_eq_chebyshev₁, chebyshev₁_mul, two_mul, ← add_comp],
   simp only [← two_mul, ← comp_assoc],
   apply eval₂_congr rfl rfl,
   rw [comp_assoc],
@@ -123,14 +130,14 @@ begin
       inv_of_mul_self, C_1, one_mul]
 end
 
-lemma lambdashev_comp_comm (m n : ℕ) :
-  (lambdashev R m).comp (lambdashev R n) = (lambdashev R n).comp (lambdashev R m) :=
-by rw [← lambdashev_mul, mul_comm, lambdashev_mul]
+lemma dickson_one_one_comp_comm (m n : ℕ) :
+  (dickson 1 (1 : R) m).comp (dickson 1 1 n) = (dickson 1 1 n).comp (dickson 1 1 m) :=
+by rw [← dickson_one_one_mul, mul_comm, dickson_one_one_mul]
 
-lemma lambdashev_zmod_p (p : ℕ) [fact p.prime] :
-  lambdashev (zmod p) p = X ^ p :=
+lemma dickson_one_one_zmod_p (p : ℕ) [fact p.prime] :
+  dickson 1 (1 : zmod p) p = X ^ p :=
 begin
-  -- Recall that `lambdashev_eval_add_inv` characterises `lambdashev R p`
+  -- Recall that `dickson_eval_add_inv` characterises `dickson 1 1 p`
   -- as a polynomial that maps `x + x⁻¹` to `x ^ p + (x⁻¹) ^ p`.
   -- Since `X ^ p` also satisfies this property in characteristic `p`,
   -- we can use a variant on `polynomial.funext` to conclude that these polynomials are equal.
@@ -144,13 +151,14 @@ begin
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,
   apply map_injective (zmod.cast_hom (dvd_refl p) K) (ring_hom.injective _),
-  rw [map_lambdashev, map_pow, map_X],
+  rw [map_dickson, map_pow, map_X],
   apply eq_of_infinite_eval_eq,
   -- The two polynomials agree on all `x` of the form `x = y + y⁻¹`.
   apply @set.infinite_mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
   { rintro _ ⟨x, rfl, hx⟩,
     simp only [eval_X, eval_pow, set.mem_set_of_eq, @add_pow_char K _ p,
-      lambdashev_eval_add_inv _ _ (mul_inv_cancel hx)] },
+      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow', zmod.cast_hom_apply,
+      zmod.cast_one'] },
   -- Now we need to show that the set of such `x` is infinite.
   -- If the set is finite, then we will show that `K` is also finite.
   { intro h,
@@ -163,7 +171,7 @@ begin
     suffices : (set.univ : set K) =
       {x : K | ∃ (y : K), x = y + y⁻¹ ∧ y ≠ 0} >>= (λ x, {y | x = y + y⁻¹ ∨ y = 0}),
     { rw this, clear this,
-      apply set.finite_bind h,
+      apply set.finite_bUnion h,
       rintro x hx,
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
       let φ : polynomial K := X ^ 2 - C x * X + 1,
@@ -195,10 +203,14 @@ begin
         exact ⟨_, rfl, hx⟩ } } }
 end
 
-lemma lambdashev_char_p (p : ℕ) [fact p.prime] [char_p R p] :
-  lambdashev R p = X ^ p :=
-by rw [← map_lambdashev (zmod.cast_hom (dvd_refl p) R), lambdashev_zmod_p, map_pow, map_X]
+lemma dickson_one_one_char_p (p : ℕ) [fact p.prime] [char_p R p] :
+  dickson 1 (1 : R) p = X ^ p :=
+begin
+  have h : (1 : R) = zmod.cast_hom (dvd_refl p) R (1),
+    simp only [zmod.cast_hom_apply, zmod.cast_one'],
+  rw [h, ← map_dickson (zmod.cast_hom (dvd_refl p) R), dickson_one_one_zmod_p, map_pow, map_X]
+end
 
-end lambdashev
+end dickson
 
 end polynomial

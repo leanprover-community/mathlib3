@@ -591,15 +591,25 @@ lemma prod_comm (f : α →₀ M) (g : β →₀ M') (h : α → M → β → M'
 finset.prod_comm
 
 @[simp, to_additive]
-lemma prod_ite_eq (f : α →₀ M) (a : α) (b : α → M → N) :
+lemma prod_ite_eq [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
   f.prod (λ x v, ite (a = x) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 
+@[simp] lemma sum_ite_self_eq
+  [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
+  f.sum (λ x v, ite (a = x) v 0) = f a :=
+by { convert f.sum_ite_eq a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
+
 /-- A restatement of `prod_ite_eq` with the equality test reversed. -/
 @[simp, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
-lemma prod_ite_eq' (f : α →₀ M) (a : α) (b : α → M → N) :
+lemma prod_ite_eq' [decidable_eq α] (f : α →₀ M) (a : α) (b : α → M → N) :
   f.prod (λ x v, ite (x = a) (b x v) 1) = ite (a ∈ f.support) (b a (f a)) 1 :=
 by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
+
+@[simp] lemma sum_ite_self_eq'
+  [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
+  f.sum (λ x v, ite (x = a) v 0) = f a :=
+by { convert f.sum_ite_eq' a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
 
 @[simp] lemma prod_pow [fintype α] (f : α →₀ ℕ) (g : α → N) :
   f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
@@ -722,6 +732,11 @@ begin
     rw [support_erase, hf, finset.erase_insert has] }
 end
 
+lemma induction_linear {p : (α →₀ M) → Prop} (f : α →₀ M)
+  (h0 : p 0) (hadd : ∀ f g : α →₀ M, p f → p g → p (f + g)) (hsingle : ∀ a b, p (single a b)) :
+  p f :=
+induction₂ f h0 (λ a b f _ _ w, hadd _ _ w (hsingle _ _))
+
 @[simp] lemma add_closure_Union_range_single :
   add_submonoid.closure (⋃ a : α, set.range (single a : M → α →₀ M)) = ⊤ :=
 top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
@@ -789,6 +804,18 @@ h.map_sum _ _
 lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
 h.map_prod _ _
+
+@[to_additive]
+lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) :
+  ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
+monoid_hom.coe_prod _ _
+
+@[simp, to_additive]
+lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
+  (f : α →₀ β) (g : α → β → N →* P) (x : N) :
+  f.prod g x = f.prod (λ i fi, g i fi x) :=
+monoid_hom.finset_prod_apply _ _ _
 
 namespace finsupp
 
@@ -893,12 +920,12 @@ finset.subset.antisymm
 
 lemma support_sum [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
-  (f.sum g).support ⊆ f.support.bind (λa, (g a (f a)).support) :=
+  (f.sum g).support ⊆ f.support.bUnion (λa, (g a (f a)).support) :=
 have ∀ c, f.sum (λ a b, g a b c) ≠ 0 → (∃ a, f a ≠ 0 ∧ ¬ (g a (f a)) c = 0),
   from assume a₁ h,
   let ⟨a, ha, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
   ⟨a, mem_support_iff.mp ha, ne⟩,
-by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bind, sum_apply, exists_prop]
+by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply, exists_prop]
 
 @[simp] lemma sum_zero [has_zero M] [add_comm_monoid N] {f : α →₀ M} :
   f.sum (λa b, (0 : N)) = 0 :=
@@ -1125,14 +1152,29 @@ eq.symm $ sum_finset_sum_index (λ _, single_zero) (λ _ _ _, single_add)
 lemma map_domain_support {f : α → β} {s : α →₀ M} :
   (s.map_domain f).support ⊆ s.support.image f :=
 finset.subset.trans support_sum $
-  finset.subset.trans (finset.bind_mono $ assume a ha, support_single_subset) $
-  by rw [finset.bind_singleton]; exact subset.refl _
+  finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
+  by rw [finset.bUnion_singleton]; exact subset.refl _
 
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
-  {h : β → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  (map_domain f s).prod h = s.prod (λa b, h (f a) b) :=
+  {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :
+  (map_domain f s).prod h = s.prod (λa m, h (f a) m) :=
 (prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+
+/--
+A version of `sum_map_domain_index` that takes a bundled `add_monoid_hom`,
+rather than separate linearity hypotheses.
+-/
+-- Note that in `prod_map_domain_index`, `M` is still an additive monoid,
+-- so there is no analogous version in terms of `monoid_hom`.
+@[simp]
+lemma sum_map_domain_index_add_monoid_hom [add_comm_monoid N] {f : α → β}
+  {s : α →₀ M} (h : β → M →+ N) :
+  (map_domain f s).sum (λ b m, h b m) = s.sum (λ a m, h (f a) m) :=
+@sum_map_domain_index _ _ _ _ _ _ _ _
+  (λ b m, h b m)
+  (λ b, (h b).map_zero)
+  (λ b m₁ m₂, (h b).map_add _ _)
 
 lemma emb_domain_eq_map_domain (f : α ↪ β) (v : α →₀ M) :
   emb_domain f v = map_domain f v :=
@@ -1552,9 +1594,9 @@ end
 
 lemma support_curry (f : α × β →₀ M) : f.curry.support ⊆ f.support.image prod.fst :=
 begin
-  rw ← finset.bind_singleton,
+  rw ← finset.bUnion_singleton,
   refine finset.subset.trans support_sum _,
-  refine finset.bind_mono (assume a _, support_single_subset)
+  refine finset.bUnion_mono (assume a _, support_single_subset)
 end
 
 end curry_uncurry

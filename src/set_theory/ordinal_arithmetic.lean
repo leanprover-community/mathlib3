@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Author: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.ordinal
 
@@ -1344,7 +1344,7 @@ le_antisymm
 
 @[simp] theorem nat_cast_mod {m n : ℕ} : ((m % n : ℕ) : ordinal) = m % n :=
 by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cast_mul, ← nat.cast_add,
-       add_comm, nat.mod_add_div]
+       nat.div_add_mod]
 
 @[simp] theorem nat_le_card {o} {n : ℕ} : (n : cardinal) ≤ card o ↔ (n : ordinal) ≤ o :=
 ⟨λ h, by rwa [← cardinal.ord_le, cardinal.ord_nat] at h,

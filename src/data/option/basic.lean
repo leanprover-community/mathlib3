@@ -36,6 +36,9 @@ by cases x; [contradiction, rw get_or_else_some]
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
+theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
+⟨λ a o b, mem_unique⟩
+
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
 
@@ -92,6 +95,9 @@ lemma join_eq_some {x : option (option α)} {a : α} : x.join = some a ↔ x = s
 lemma join_ne_none {x : option (option α)} : x.join ≠ none ↔ ∃ z, x = some (some z) := by simp
 
 lemma join_ne_none' {x : option (option α)} : ¬(x.join = none) ↔ ∃ z, x = some (some z) := by simp
+
+lemma join_eq_none {o : option (option α)} : o.join = none ↔ o = none ∨ o = some none :=
+by rcases o with _|_|_; simp
 
 lemma bind_id_eq_join {x : option (option α)} : x >>= id = x.join := by simp
 

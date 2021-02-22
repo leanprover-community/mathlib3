@@ -73,7 +73,7 @@ end,
 assume hd : disjoint _ _,
 lt_irrefl (2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card) $
 calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card
-    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_univ _)
 ... = fintype.card R + fintype.card R : two_mul _
 ... < nat_degree f * (univ.image (λ x : R, eval x f)).card +
       nat_degree (-g) * (univ.image (λ x : R, eval x (-g))).card :
@@ -288,7 +288,7 @@ begin
   have := zmod.pow_totient x',
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
-    nat.cast_one, cast_unit_of_coprime, units.coe_pow],
+    nat.cast_one, coe_unit_of_coprime, units.coe_pow],
 end
 
 open finite_field

@@ -7,6 +7,13 @@ import algebra.category.CommRing.basic
 import topology.category.Top.basic
 import topology.algebra.ring
 
+/-!
+# Category of topological commutative rings
+
+We introduce the category `TopCommRing` of topological commutative rings together with the relevant
+forgetful functors to topological spaces and commutative rings.
+-/
+
 universes u
 
 open category_theory

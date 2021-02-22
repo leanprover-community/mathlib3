@@ -282,13 +282,13 @@ have (flip (forall₂ r) ∘r (perm ∘r forall₂ r)) b d, from ⟨a, h₁, c, 
 have ((flip (forall₂ r) ∘r forall₂ r) ∘r perm) b d,
   by rwa [← forall₂_comp_perm_eq_perm_comp_forall₂, ← relation.comp_assoc] at this,
 let ⟨b', ⟨c', hbc, hcb⟩, hbd⟩ := this in
-have b' = b, from right_unique_forall₂ @hr hcb hbc,
+have b' = b, from right_unique_forall₂' hr hcb hbc,
 this ▸ hbd
 
 lemma rel_perm (hr : bi_unique r) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp (assume a b c, left_unique_flip hr.1) hab.flip hcd.flip)
+  (rel_perm_imp (left_unique_flip hr.1) hab.flip hcd.flip)
 
 end rel
 
@@ -756,7 +756,8 @@ by { dsimp [(∩), list.inter], congr, funext a, rw [p.mem_iff] }
 theorem perm.inter {l₁ l₂ t₁ t₂ : list α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
 p₂.inter_left l₂ ▸ p₁.inter_right t₁
 
-theorem perm.inter_append {l t₁ t₂ : list α} (h : disjoint t₁ t₂) : l ∩ (t₁ ++ t₂) ~ l ∩ t₁ ++ l ∩ t₂ :=
+theorem perm.inter_append {l t₁ t₂ : list α} (h : disjoint t₁ t₂) :
+  l ∩ (t₁ ++ t₂) ~ l ∩ t₁ ++ l ∩ t₂ :=
 begin
   induction l,
   case list.nil

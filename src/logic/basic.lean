@@ -297,6 +297,13 @@ imp.swap
 
 /-! ### Declarations about `and` -/
 
+theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
+and.comm.trans $ (and_congr_right h).trans and.comm
+
+theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h iff.rfl
+
+theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr iff.rfl h
+
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
 mt and.left
 
@@ -346,6 +353,10 @@ by simp only [and.comm, ← and.congr_right_iff]
 ⟨λ h, ⟨h.1.1, h.2⟩, λ h, ⟨⟨h.1, h.2⟩, h.2⟩⟩
 
 /-! ### Declarations about `or` -/
+
+theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := or_congr h iff.rfl
+
+theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := or_congr iff.rfl h
 
 theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, or_assoc, or_comm b]
 
@@ -434,6 +445,9 @@ theorem iff_false_left (ha : ¬a) : (a ↔ b) ↔ ¬b :=
 
 theorem iff_false_right (ha : ¬a) : (b ↔ a) ↔ ¬b :=
 iff.comm.trans (iff_false_left ha)
+
+@[simp]
+lemma iff_mpr_iff_true_intro {P : Prop} (h : P) : iff.mpr (iff_true_intro h) true.intro = h := rfl
 
 -- See Note [decidable namespace]
 protected theorem decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
@@ -621,6 +635,26 @@ lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
 
 @[simp]
 lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
+
+@[simp] lemma congr_refl_left {α β : Sort*} (f : α → β) {a b : α} (h : a = b) :
+  congr (eq.refl f) h = congr_arg f h :=
+rfl
+
+@[simp] lemma congr_refl_right {α β : Sort*} {f g : α → β} (h : f = g) (a : α) :
+  congr h (eq.refl a) = congr_fun h a :=
+rfl
+
+@[simp] lemma congr_arg_refl {α β : Sort*} (f : α → β) (a : α) :
+  congr_arg f (eq.refl a) = eq.refl (f a) :=
+rfl
+
+@[simp] lemma congr_fun_rfl {α β : Sort*} (f : α → β) (a : α) :
+  congr_fun (eq.refl f) a = eq.refl (f a) :=
+rfl
+
+@[simp] lemma congr_fun_congr_arg {α β γ : Sort*} (f : α → β → γ) {a a' : α} (p : a = a') (b : β) :
+  congr_fun (congr_arg f p) b = congr_arg (λ a, f a b) p :=
+rfl
 
 lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
@@ -971,7 +1005,7 @@ We make decidability results that depends on `classical.choice` noncomputable le
 * We make them lemmas, and not definitions, because otherwise later definitions will raise
   \"failed to generate bytecode\" errors when writing something like
   `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>
+Cf. <https://leanprover-community.github.io/archive/stream/113488-general/topic/noncomputable.20theorem.html>
 -/
 library_note "classical lemma"
 
@@ -1020,6 +1054,9 @@ forall_congr $ λ x, forall_congr (H x)
 theorem bex_congr (H : ∀ x h, P x h ↔ Q x h) :
   (∃ x h, P x h) ↔ (∃ x h, Q x h) :=
 exists_congr $ λ x, exists_congr (H x)
+
+theorem bex_eq_left {a : α} : (∃ x (_ : x = a), p x) ↔ p a :=
+by simp only [exists_prop, exists_eq_left]
 
 theorem ball.imp_right (H : ∀ x h, (P x h → Q x h))
   (h₁ : ∀ x h, P x h) (x h) : Q x h :=
@@ -1074,6 +1111,14 @@ iff.trans (forall_congr $ λ x, forall_and_distrib) forall_and_distrib
 
 theorem bex_or_distrib : (∃ x h, P x h ∨ Q x h) ↔ (∃ x h, P x h) ∨ (∃ x h, Q x h) :=
 iff.trans (exists_congr $ λ x, exists_or_distrib) exists_or_distrib
+
+theorem ball_or_left_distrib : (∀ x, p x ∨ q x → r x) ↔ (∀ x, p x → r x) ∧ (∀ x, q x → r x) :=
+iff.trans (forall_congr $ λ x, or_imp_distrib) forall_and_distrib
+
+theorem bex_or_left_distrib :
+  (∃ x (_ : p x ∨ q x), r x) ↔ (∃ x (_ : p x), r x) ∨ (∃ x (_ : q x), r x) :=
+by simp only [exists_prop]; exact
+iff.trans (exists_congr $ λ x, or_and_distrib_right) exists_or_distrib
 
 end bounded_quantifiers
 
@@ -1205,6 +1250,11 @@ h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 end nonempty
 
 section ite
+
+/-- A `dite` whose results do not actually depend on the condition may be reduced to an `ite`. -/
+@[simp]
+lemma dite_eq_ite (P : Prop) [decidable P] {α : Sort*} (x y : α) :
+  dite P (λ h, x) (λ h, y) = ite P x y := rfl
 
 /-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
 lemma apply_dite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :

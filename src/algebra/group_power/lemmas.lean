@@ -366,23 +366,41 @@ end linear_ordered_semiring
 
 section linear_ordered_ring
 
-variables [linear_ordered_ring R]
+variables [linear_ordered_ring R] {a : R} {n : ℕ}
 
 @[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
 abs_hom.to_monoid_hom.map_pow a n
 
-@[simp] theorem pow_bit1_neg_iff {a : R} {n : ℕ} : a ^ bit1 n < 0 ↔ a < 0 :=
+@[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
   λ h, mul_neg_of_neg_of_pos h (pow_bit0_pos h.ne _)⟩
 
-@[simp] theorem pow_bit1_nonneg_iff {a : R} {n : ℕ} : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
+@[simp] theorem pow_bit1_nonneg_iff : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
 le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
 
-@[simp] theorem pow_bit1_nonpos_iff {a : R} {n : ℕ} : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
+@[simp] theorem pow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
 by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n))]
 
-@[simp] theorem pow_bit1_pos_iff {a : R} {n : ℕ} : 0 < a ^ bit1 n ↔ 0 < a :=
+@[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
+
+theorem pow_even_nonneg (a : R) (hn : even n) : 0 ≤ a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
+
+theorem pow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
+
+theorem pow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonneg_iff.mpr ha
+
+theorem pow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_pos_iff.mpr ha
+
+theorem pow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
+
+theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
 
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
 begin
@@ -396,18 +414,19 @@ begin
 end
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
-theorem one_add_mul_le_pow {a : R} (H : -2 ≤ a) (n : ℕ) : 1 + (n : R) * a ≤ (1 + a) ^ n :=
+theorem one_add_mul_le_pow (H : -2 ≤ a) (n : ℕ) : 1 + (n : R) * a ≤ (1 + a) ^ n :=
 one_add_mul_le_pow' (mul_self_nonneg _) (mul_self_nonneg _) (neg_le_iff_add_nonneg'.1 H) _
 
 /-- Bernoulli's inequality reformulated to estimate `a^n`. -/
-theorem one_add_mul_sub_le_pow {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + (n : R) * (a - 1) ≤ a ^ n :=
+theorem one_add_mul_sub_le_pow (H : -1 ≤ a) (n : ℕ) : 1 + (n : R) * (a - 1) ≤ a ^ n :=
 have -2 ≤ a - 1, by rwa [bit0, neg_add, ← sub_eq_add_neg, sub_le_sub_iff_right],
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
 end linear_ordered_ring
 
 /-- Bernoulli's inequality reformulated to estimate `(n : K)`. -/
-theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a) (n : ℕ) :
+theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a)
+  (n : ℕ) :
   (n : K) ≤ (a ^ n - 1) / (a - 1) :=
 (le_div_iff (sub_pos.2 H)).2 $ le_sub_left_of_add_le $
   one_add_mul_sub_le_pow ((neg_le_self $ @zero_le_one K _).trans H.le) _
@@ -584,7 +603,8 @@ section
 
 variables [semiring R] {a x y : R}
 
-@[simp] lemma cast_nat_mul_right (h : semiconj_by a x y) (n : ℕ) : semiconj_by a ((n : R) * x) (n * y) :=
+@[simp] lemma cast_nat_mul_right (h : semiconj_by a x y) (n : ℕ) :
+  semiconj_by a ((n : R) * x) (n * y) :=
 semiconj_by.mul_right (nat.commute_cast _ _) h
 
 @[simp] lemma cast_nat_mul_left (h : semiconj_by a x y) (n : ℕ) : semiconj_by ((n : R) * a) x y :=
@@ -697,7 +717,7 @@ by induction b; simp [*, mul_add, pow_succ, add_comm]
 @[simp] lemma int.to_add_gpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
 int.induction_on b (by simp)
   (by simp [gpow_add, mul_add] {contextual := tt})
-  (by simp [gpow_add, mul_add, sub_eq_add_neg] {contextual := tt})
+  (by simp [gpow_add, mul_add, sub_eq_add_neg, -int.add_minus_one] {contextual := tt})
 
 @[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
 (int.to_add_gpow _ _).symm

@@ -18,7 +18,7 @@ in `α`
 ## Main definitions
 
 * `free_comm_ring α`     : the free commutative ring on a type α
-* `lift_hom (f : α → R)` : the ring hom `free_comm_ring α →+* R` induced by functoriality from `f`.
+* `lift (f : α → R)` : the ring hom `free_comm_ring α →+* R` induced by functoriality from `f`.
 * `map (f : α → β)`      : the ring hom `free_comm_ring α →*+ free_comm_ring β` induced by
                            functoriality from f.
 
@@ -28,7 +28,7 @@ in `α`
 In this file we have:
 
 * `of : α → free_comm_ring α`
-* `lift_hom (f : α → R) : free_comm_ring α →+* R`
+* `lift (f : α → R) : free_comm_ring α →+* R`
 * `map (f : α → β) : free_comm_ring α →+* free_comm_ring β`
 
 * `free_comm_ring_equiv_mv_polynomial_int : free_comm_ring α ≃+* mv_polynomial α ℤ` :
@@ -65,7 +65,7 @@ variables {α}
 
 /-- The canonical map from `α` to the free commutative ring on `α`. -/
 def of (x : α) : free_comm_ring α :=
-free_abelian_group.of ([x] : multiset α)
+free_abelian_group.of $ multiplicative.of_add ({x} : multiset α)
 
 lemma of_injective : function.injective (of : α → free_comm_ring α) :=
 free_abelian_group.of_injective.comp (λ x y,
@@ -87,33 +87,28 @@ section lift
 
 variables {R : Type v} [comm_ring R] (f : α → R)
 
+/-- A helper to implement `lift`. This is essentially `free_comm_monoid.lift`, but this does not
+currently exist. -/
+private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →* R) :=
+{ to_fun := λ f,
+  { to_fun := λ s, (s.to_add.map f).prod,
+    map_mul' := λ x y, calc _ = multiset.prod ((multiset.map f x) + (multiset.map f y)) :
+                                    by {congr' 1, exact multiset.map_add _ _ _}
+                          ... = _ : multiset.prod_add _ _,
+    map_one' := rfl},
+  inv_fun := λ F x, F (multiplicative.of_add ({x} : multiset α)),
+  left_inv := λ f, funext $ λ x, show (multiset.map f (x ::ₘ 0)).prod = _, by simp,
+  right_inv := λ F, monoid_hom.ext $ λ x,
+    let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
+    begin
+      rw [←multiset.map_map, ←add_monoid_hom.map_multiset_sum],
+      exact F.congr_arg (multiset.sum_map_singleton x'),
+    end }
+
 /-- Lift a map `α → R` to a additive group homomorphism `free_comm_ring α → R`.
 For a version producing a bundled homomorphism, see `lift_hom`. -/
-def lift : free_comm_ring α →+* R :=
-{ map_one' := free_abelian_group.lift.of _ _,
-  map_mul' := λ x y,
-  begin
-    refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-    { intros s2, conv_lhs { dsimp only [free_abelian_group.mul_def] },
-      simp only [free_abelian_group.lift.of, add_monoid_hom.to_fun_eq_coe],
-      refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
-      { intros s1, iterate 3 { rw free_abelian_group.lift.of },
-        calc _ = multiset.prod ((multiset.map f s1) + (multiset.map f s2)) :
-            by {congr' 1, exact multiset.map_add _ _ _}
-          ... = _ : multiset.prod_add _ _ },
-      { intros s1 ih, iterate 3 { rw (free_abelian_group.lift _).map_neg },
-        rw [ih, neg_mul_eq_neg_mul] },
-      { intros x1 x2 ih1 ih2, iterate 3 { rw (free_abelian_group.lift _).map_add },
-        rw [ih1, ih2, add_mul] } },
-    { intros s2 ih,
-      simp only [add_monoid_hom.to_fun_eq_coe] at ih ⊢,
-      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
-        mul_neg_eq_neg_mul_symm, ih] },
-    { intros y1 y2 ih1 ih2,
-      simp only [add_monoid_hom.to_fun_eq_coe] at ih1 ih2 ⊢,
-      rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
-  end,
-  ..free_abelian_group.lift $ λ s : multiplicative (multiset α), (s.to_add.map f).prod }
+def lift : (α → R) ≃ (free_comm_ring α →+* R) :=
+equiv.trans lift_to_multiset free_abelian_group.lift_monoid
 
 @[simp] lemma lift_of (x : α) : lift f (of x) = f x :=
 (free_abelian_group.lift.of _ _).trans $ mul_one _
@@ -179,7 +174,7 @@ end is_supported
 /-- The restriction map from `free_comm_ring α` to `free_comm_ring s` where `s : set α`, defined
   by sending all variables not in `s` to zero. -/
 def restriction (s : set α) [decidable_pred s] : free_comm_ring α →+* free_comm_ring s :=
-lift (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
+lift (λ p, if H : p ∈ s then of (⟨p, H⟩ : s) else 0)
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)

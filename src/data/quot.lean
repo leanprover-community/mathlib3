@@ -404,6 +404,13 @@ protected lemma induction_on₃' {p : quotient s₁ → quotient s₂ → quotie
   (h : ∀ a₁ a₂ a₃, p (quotient.mk' a₁) (quotient.mk' a₂) (quotient.mk' a₃)) : p q₁ q₂ q₃ :=
 quotient.induction_on₃ q₁ q₂ q₃ h
 
+/-- A version of `quotient.rec_on_subsingleton` taking `{s₁ : setoid α}` as an implicit argument
+instead of an instance argument. -/
+@[elab_as_eliminator]
+protected def rec_on_subsingleton' {φ : quotient s₁ → Sort*}
+  [h : ∀ a, subsingleton (φ ⟦a⟧)] (q : quotient s₁) (f : Π a, φ (quotient.mk' a)) : φ q :=
+quotient.rec_on_subsingleton q f
+
 /-- Recursion on a `quotient` argument `a`, result type depends on `⟦a⟧`. -/
 protected def hrec_on' {φ : quotient s₁ → Sort*} (qa : quotient s₁) (f : Π a, φ (quotient.mk' a))
   (c : ∀ a₁ a₂, a₁ ≈ a₂ → f a₁ == f a₂) : φ qa :=

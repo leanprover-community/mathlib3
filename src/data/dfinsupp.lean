@@ -64,8 +64,11 @@ instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
 @[simp] lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
+lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn :=
+λ f g H, quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) (congr_fun H)
+
 @[ext] lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
-quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) H
+coe_fn_injective (funext H)
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
   `map_range f hf g : Π₀ i, β₂ i`, well defined when `f 0 = 0`. -/
@@ -106,9 +109,13 @@ section algebra
 instance [Π i, add_monoid (β i)] : has_add (Π₀ i, β i) :=
 ⟨zip_with (λ _, (+)) (λ _, add_zero 0)⟩
 
-@[simp] lemma add_apply [Π i, add_monoid (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
+lemma add_apply [Π i, add_monoid (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ + g₂) i = g₁ i + g₂ i :=
 zip_with_apply _ _ g₁ g₂ i
+
+@[simp] lemma coe_add [Π i, add_monoid (β i)] (g₁ g₂ : Π₀ i, β i) :
+  ⇑(g₁ + g₂) = g₁ + g₂ :=
+funext $ add_apply g₁ g₂
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
 { add_monoid .
@@ -129,17 +136,24 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   .. dfinsupp.add_monoid }
 
-@[simp] lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
+lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i
+
+@[simp] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
+funext $ neg_apply g
 
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
 { add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
   .. dfinsupp.add_monoid,
   .. (infer_instance : has_neg (Π₀ i, β i)) }
 
-@[simp] lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
+lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
 by rw [sub_eq_add_neg]; simp [sub_eq_add_neg]
+
+@[simp] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
+  ⇑(g₁ - g₂) = g₁ - g₂ :=
+funext $ sub_apply g₁ g₂
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
@@ -151,10 +165,15 @@ instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semim
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 
-@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
+lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
   [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
 map_range_apply _ _ v i
+
+@[simp] lemma coe_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
+  [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) :
+  ⇑(b • v) = b • v :=
+funext $ smul_apply b v
 
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/

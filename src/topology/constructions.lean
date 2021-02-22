@@ -570,7 +570,7 @@ continuous_iff_is_closed.mpr $
 
 lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
-closure_induced $ assume x y, subtype.eq
+closure_induced
 
 end subtype
 

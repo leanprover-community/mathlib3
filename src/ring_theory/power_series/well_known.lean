@@ -120,7 +120,7 @@ theorem exp_mul_exp_neg_eq_one [algebra ℚ A] : exp A * eval_neg_hom (exp A) = 
 by convert exp_mul_exp_eq_exp_add (1 : A) (-1); simp
 
 /-- Shows that $(e^{X})^k = e^{kX}$. -/
-theorem exp_pow_eq_rescale_exp  [algebra ℚ A] (k : ℕ) : (exp A)^k = rescale (k : A) (exp A) :=
+theorem exp_pow_eq_rescale_exp [algebra ℚ A] (k : ℕ) : (exp A)^k = rescale (k : A) (exp A) :=
 begin
   induction k with k h,
   { simp only [rescale_zero, constant_coeff_exp, function.comp_app, map_one, cast_zero,

@@ -324,8 +324,6 @@ begin
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
-#check indep_sets.indep
-
 lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
   {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t := begin
   unfold indep_set,

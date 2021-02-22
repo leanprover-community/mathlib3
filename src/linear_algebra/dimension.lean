@@ -204,7 +204,7 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq : nonempty (V ≃ₗ[K] V₁) ↔
 
 @[simp] lemma dim_bot : dim K (⊥ : submodule K V) = 0 :=
 by letI := classical.dec_eq V;
-  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty K V _ _ _ not_nonempty_pempty).mk_eq_dim,
+  rw [← cardinal.lift_inj, ← (is_basis_empty (⊥ : submodule K V) not_nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
 
 @[simp] lemma dim_top : dim K (⊤ : submodule K V) = dim K V :=

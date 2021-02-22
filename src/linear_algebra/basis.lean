@@ -350,18 +350,12 @@ split,
   exact hy₁ }
 end
 
-lemma is_basis_empty (h_empty : ¬ nonempty ι) (h : ∀x:M, x = 0) : is_basis R (λ x : ι, (0 : M)) :=
-⟨ linear_independent_empty_type h_empty,
-  eq_top_iff'.2 $ assume x, (h x).symm ▸ submodule.zero_mem _ ⟩
+variables (M)
 
-lemma is_basis_empty_bot (h_empty : ¬ nonempty ι) :
-  is_basis R (λ _ : ι, (0 : (⊥ : submodule R M))) :=
-begin
-  apply is_basis_empty h_empty,
-  intro x,
-  apply subtype.ext_iff_val.2,
-  exact (submodule.mem_bot R).1 (subtype.mem x),
-end
+lemma is_basis_empty [subsingleton M] (h_empty : ¬ nonempty ι) : is_basis R (λ x : ι, (0 : M)) :=
+⟨ linear_independent_empty_type h_empty, subsingleton.elim _ _ ⟩
+
+variables {M}
 
 open fintype
 variables [fintype ι] (h : is_basis R v)

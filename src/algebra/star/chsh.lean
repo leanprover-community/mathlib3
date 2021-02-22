@@ -63,14 +63,10 @@ There is a CHSH tuple in 4-by-4 matrices such that
 
 ## References
 
-* J.F. Clauser; M.A. Horne; A. Shimony; R.A. Holt (1969),
-  "Proposed experiment to test local hidden-variable theories",
-  Phys. Rev. Lett., 23 (15): 880–4, doi:10.1103/PhysRevLett.23.880
-* J.S. Bell (1964), "On the Einstein Podolsky Rosen Paradox",
-  Physics Physique Физика, 1 (3): 195–200, doi:10.1103/PhysicsPhysiqueFizika.1.195,
-  reproduced as Ch. 2 of J. S. Bell (1987), "Speakable and Unspeakable in Quantum Mechanics", CUP
-* B. S. Tsirelson, (1980), "Quantum generalizations of Bell's inequality".
-  Letters in Mathematical Physics. 4 (2): 93–100. doi:10.1007/bf00417500.
+* [Clauser, Horne, Shimony, Holt,
+  *Proposed experiment to test local hidden-variable theories*][zbMATH06785026]
+* [Bell, *On the Einstein Podolsky Rosen Paradox*][MR3790629]
+* [Tsirelson, *Quantum generalizations of Bell's inequality*][MR577178]
 
 -/
 

@@ -220,6 +220,22 @@ by rw [pow_bit0', neg_mul_neg, pow_bit0']
 @[simp] theorem neg_pow_bit1 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
 by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 
+theorem iterate_mul_right (a : M) : ∀ n, (* a)^[n] = (* a^n)
+| 0 := funext $ λ x, by simp
+| (n + 1) := funext $ λ x, by simp [pow_succ, iterate_mul_right n]
+
+theorem iterate_add_right (a : A) : ∀ n, (+ a)^[n] = (+ (n •ℕ a))
+| 0 := funext $ λ x, by simp
+| (n + 1) := funext $ λ x, by simp [succ_nsmul, iterate_add_right n]
+
+theorem iterate_mul_left (a : M) : ∀ n, ((*) a)^[n] = ((*) (a^n))
+| 0 := funext $ λ x, by simp
+| (n + 1) := funext $ λ x, by simp [pow_succ', iterate_mul_left n]
+
+theorem iterate_add_left (a : A) : ∀ n, ((+) a)^[n] = ((+) (n •ℕ a))
+| 0 := funext $ λ x, by simp
+| (n + 1) := funext $ λ x, by simp [succ_nsmul', iterate_add_left n]
+
 end monoid
 
 /-!

@@ -11,7 +11,7 @@ import algebra.char_p.basic
 /-!
 # Multivariate polynomials over commutative rings
 
-This file contains basic facts over multivariate polynomials over commutative rings, for example
+This file contains basic facts about multivariate polynomials over commutative rings, for example
 that the monomials form a basis.
 
 ## Main definitions
@@ -26,7 +26,7 @@ that the monomials form a basis.
 * The multivariate polynomial ring over a commutative ring of positive characteristic has positive
   characteristic.
 * `is_basis_monomials`: shows that the monomials form a basis of the vector space of multivariate
-  polynomials
+  polynomials.
 
 ## TODO
 

@@ -60,7 +60,10 @@ not_imp_comm.1 (λ hn, indicator_of_not_mem hn f) h
 
 lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem hx f
 
-lemma support_indicator : function.support (s.indicator f) ⊆ s :=
+@[simp] lemma support_indicator : function.support (s.indicator f) = s ∩ function.support f :=
+ext $ λ x, by simp [function.mem_support]
+
+lemma support_indicator_subset : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
 
 @[simp] lemma indicator_apply_eq_self : s.indicator f a = f a ↔ (a ∉ s → f a = 0) :=

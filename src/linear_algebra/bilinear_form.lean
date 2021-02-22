@@ -1231,7 +1231,7 @@ end
 /-- Given a bilinear form `B` on the modual `M`, `to_dual' B` is the linear map
   from `M` to its dual such that `to_dual B m` is the functional `λ x, B m x`. -/
 def to_dual' (B : bilin_form R₃ M₃) : M₃ →ₗ[R₃] module.dual R₃ M₃ :=
-  B.to_lin
+B.to_lin
 
 @[simp] lemma to_dual'_def {B : bilin_form R₃ M₃} {m n : M₃} :
   B.to_dual' m n = B m n := rfl

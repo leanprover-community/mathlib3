@@ -82,7 +82,7 @@ theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
   let F := λ x, (r:ℝ) ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
-  suffices : ∫ x in (-r)..r, (λ x, 2 * f x) x = nnreal.pi * r ^ 2,
+  suffices : ∫ x in -r..r, (λ x, 2 * f x) x = nnreal.pi * r ^ 2,
   { have h : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
       λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
     calc  volume (disc r)
@@ -102,23 +102,22 @@ begin
     { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
       { rw [← sqrt_sqr hle, ← sqrt_mul, sub_mul, sqrt_sqr hle, div_mul_eq_mul_div_comm,
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
-        simpa [sqrt_sqr hle, div_le_one (pow_pos hlt 2)] using (sqr_lt_sqr' hx1 hx2).le },
+        simpa [sqrt_sqr hle, div_le_one (pow_pos hlt 2)] using sqr_le_sqr' hx1.le hx2.le },
       field_simp,
       rw [h, mul_left_comm, ← pow_two, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
           add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },
-    { by_contra hnot,
-      rw [not_not, eq_neg_iff_eq_neg, ← one_div, div_mul_eq_mul_div, one_mul,
-          ← div_neg_eq_neg_div, eq_comm, div_eq_one_iff_eq (neg_ne_zero.mpr hlt.ne')] at hnot,
-      exact hx1.ne' hnot },
-    { by_contra hnot,
-      rw [not_not, ← one_div, div_mul_eq_mul_div, one_mul, div_eq_one_iff_eq hlt.ne'] at hnot,
-      exact hx2.ne hnot },
-    { simpa only [sub_ne_zero] using (sqr_lt_sqr' hx1 hx2).ne' } },
+    { suffices : -(1:ℝ) < r⁻¹ * x, by exact this.ne',
+      calc -(1:ℝ) = r⁻¹ * -r : by simp [hlt.ne']
+              ... < r⁻¹ * x : by nlinarith [inv_pos.mpr hlt] },
+    { suffices : (r:ℝ)⁻¹ * x < 1, by exact this.ne,
+      calc (r:ℝ)⁻¹ * x < r⁻¹ * r : by nlinarith [inv_pos.mpr hlt]
+                   ... = 1 : inv_mul_cancel hlt.ne' },
+    { nlinarith } },
   have hcont := ((continuous_const.mul (continuous_arcsin.comp
                   ((@continuous_const _ _ _ _ (r:ℝ)⁻¹).mul continuous_id))).add
                     (continuous_id.mul continuous_sqrt_sub)).continuous_on,
   have hcont' := (continuous_const.mul continuous_sqrt_sub).continuous_on,
-  calc  ∫ x in (-r)..r, (λ x, 2 * f x) x
+  calc  ∫ x in -r..r, (λ x, 2 * f x) x
       = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self r.2) hcont hderiv hcont'
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end

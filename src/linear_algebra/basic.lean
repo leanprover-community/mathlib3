@@ -300,6 +300,13 @@ instance {T : Type*} [monoid T] [distrib_mul_action T M₂] [smul_comm_class R T
   smul_comm_class S T (M →ₗ[R] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
+-- example application of this instance: if S and R are comm_semirings and R is an S-algebra
+-- then the S-actions and R-actions on Hom_R(M,M₂) coincide.
+instance {T : Type*} [monoid T] [has_scalar S T] [distrib_mul_action T M₂] [smul_comm_class R T M₂]
+  [is_scalar_tower S T M₂] :
+  is_scalar_tower S T (M →ₗ[R] M₂) :=
+{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
 instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,
   mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
@@ -402,11 +409,6 @@ def dom_restrict'
 
 variables (S : Type*) [monoid S] [distrib_mul_action S M₂] [smul_comm_class R S M₂]
   [mul_action S R] [is_scalar_tower S R M₂]
-
--- example application of this instance: if S and R are comm_semirings and R is an S-algebra
--- then the S-actions and R-actions on Hom_R(M,M₂) coincide.
-instance : is_scalar_tower S R (M →ₗ[R] M₂) :=
-{ smul_assoc := λ _ _ _, linear_map.ext $ λ _, by simp only [linear_map.smul_apply, smul_assoc] }
 
 end comm_semiring
 

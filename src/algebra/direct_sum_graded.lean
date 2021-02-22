@@ -266,11 +266,9 @@ begin
   refine add_monoid_hom.congr_fun _ c,
   congr' 1, ext ci cx : 2,
 
-  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
-  rw add_monoid_hom.comp_apply,
-  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
-  rw ←add_monoid_hom.comp_apply,
-  erw dfinsupp.comp_sum_add_hom,
+  erw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.comp_apply,
+    add_monoid_hom.dfinsupp_sum_add_hom_apply, ←add_monoid_hom.comp_apply,
+    dfinsupp.comp_sum_add_hom],
 
   -- unpack `b`
   refine add_monoid_hom.congr_fun _ b,

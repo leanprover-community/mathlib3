@@ -288,35 +288,12 @@ lemma digits_last {b m : ℕ} (h : 2 ≤ b) (hm : 0 < m) (p q) :
   (digits b m).last p = (digits b (m/b)).last q :=
 by { simp only [digits_last_aux h hm], rw list.last_cons }
 
-lemma digits_inj {b : ℕ} : ∀ {n m : ℕ}, b.digits n = b.digits m → n = m :=
-begin
-  intro n,
-  apply nat.strong_induction_on n,
-  clear n,
-  intros n IH m h,
-  cases n;
-  cases m,
-  { refl },
-  { rcases b with _|_|b;
-    simpa using h },
-  { rcases b with _|_|b;
-    simpa using h },
-  { rcases b with _|_|b,
-    { simpa using h },
-    { simpa using h },
-    { simp only [nat.digits_add_two_add_one] at h,
-      specialize IH _ (nat.div_lt_self' _ _) h.right,
-      have key := and.intro IH h.left,
-      rw [nat.div_mod_unique nat.succ_pos', nat.mod_add_div] at key,
-      exact key.left.symm } }
-end
+lemma digits.injective (b : ℕ) : function.injective b.digits :=
+function.left_inverse.injective (of_digits_digits b)
 
 @[simp] lemma digits_inj_iff {b n m : ℕ} :
   b.digits n = b.digits m ↔ n = m :=
-⟨digits_inj, λ h, h ▸ rfl⟩
-
-lemma digits.injective (b : ℕ) : function.injective (digits b) :=
-λ _ _, digits_inj
+(digits.injective b).eq_iff
 
 lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=

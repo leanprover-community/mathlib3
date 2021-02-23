@@ -1198,7 +1198,7 @@ rescale_neg_one_X
 
 /-- Two ways of removing the constant coefficient of a power series are the same. -/
 lemma sub_const_eq_shift_mul_X (φ : power_series A) :
-  φ - C A (constant_coeff A φ) = power_series.mk (λ p, coeff A p.succ φ) * X :=
+  φ - C A (constant_coeff A φ) = power_series.mk (λ p, coeff A (p + 1) φ) * X :=
 begin
   ext, cases n,
   { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
@@ -1207,10 +1207,10 @@ begin
   simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false],
 end
 
-lemma sub_const_eq_x_mul_shift (φ : power_series A) :
-  (φ - C A (constant_coeff A φ)) = X * power_series.mk (λ p, coeff A p.succ φ) :=
+lemma sub_const_eq_X_mul_shift (φ : power_series A) :
+  (φ - C A (constant_coeff A φ)) = X * power_series.mk (λ p, coeff A (p + 1) φ) :=
 begin
-  simp only [mul_comm,  minus_const_eq_shift_mul_x],
+  simp only [mul_comm,  sub_const_eq_shift_mul_X],
 end
 
 end comm_ring

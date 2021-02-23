@@ -160,7 +160,7 @@ def lift (f₁ : N →* H) (f₂ : G →* H)
   map_one' := by simp,
   map_mul' := λ a b, begin
     have := λ n g, monoid_hom.ext_iff.1 (h n) g,
-    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.to_monoid_hom_apply] at this,
+    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom] at this,
     simp [this, mul_assoc]
   end }
 

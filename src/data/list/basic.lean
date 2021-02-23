@@ -1718,22 +1718,14 @@ lemma nth_le_drop' (L : list α) {i j : ℕ} (h : j < (L.drop i).length) :
   nth_le (L.drop i) j h = nth_le L (i + j) (nat.add_lt_of_lt_sub_left ((length_drop i L) ▸ h)) :=
 by rw nth_le_drop
 
-lemma nth_drop' (L : list α) (i j : ℕ) :
+lemma nth_drop (L : list α) (i j : ℕ) :
   nth (L.drop i) j = nth L (i + j) :=
 begin
   ext,
   simp only [nth_eq_some, nth_le_drop', option.mem_def],
-  split,
-  { rintro ⟨h, rfl⟩,
-    simp only [length_drop] at h,
-    simpa using nat.add_lt_of_lt_sub_left h },
-  { rintro ⟨h, rfl⟩,
-    simpa using nat.lt_sub_left_of_add_lt h }
+  split;
+  exact λ ⟨h, ha⟩, ⟨by simpa [nat.lt_sub_left_iff_add_lt] using h, ha⟩
 end
-
-lemma nth_drop (L : list α) (i j : ℕ) :
-  nth L (i + j) = nth (L.drop i) j :=
-by rw nth_drop'
 
 @[simp] theorem drop_drop (n : ℕ) : ∀ (m) (l : list α), drop n (drop m l) = drop (n + m) l
 | m     []     := by simp

@@ -296,7 +296,7 @@ open quotient_group
 variables [group α] {s : subgroup α}
 
 /-- The natural bijection between a left coset `g * s` and `s`. -/
-@[to_additive "The natural bijection between the cosets `g+s` and `s`"]
+@[to_additive "The natural bijection between the cosets `g + s` and `s`"]
 def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 ⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
@@ -304,6 +304,7 @@ def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
 
 /-- The natural bijection between a right coset `s * g` and `s`.-/
+@[to_additive "The natural bijection between the cosets `s + g` and `s`"]
 def right_coset_equiv_subgroup (g : α) : right_coset ↑s g ≃ s :=
 ⟨λ x, ⟨x.1 * g⁻¹, (mem_right_coset_iff _).1 x.2⟩,
  λ x, ⟨x.1 * g, x.1, x.2, rfl⟩,

@@ -51,11 +51,6 @@ def of (M : Type u) [has_mul M] : Magma := bundled.of M
 add_decl_doc AddMagma.of
 
 @[to_additive]
-instance : semigroup empty :=
-{ mul := λ x y, by cases x,
-  mul_assoc := λ x y z, by cases x }
-
-@[to_additive]
 instance : inhabited Magma := ⟨Magma.of empty⟩
 
 @[to_additive]

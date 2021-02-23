@@ -264,7 +264,7 @@ begin
     dsimp [ring_equiv.coe_to_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
     simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp] },
   { intro i,
-    dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
+    dsimp [fin_succ_equiv, option_equiv_left, sum_ring_equiv],
     refine fin.cases _ (λ _, _) i,
     { simp only [fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
                  equiv.sum_comm_apply, comp_app, sum_to_iter_Xl, eval₂_X, fin_succ_equiv_zero] },

@@ -119,22 +119,22 @@ end
 lemma function.injective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L'] {f : L →ₗ⁅R⁆ L'}
   (h₂ : function.injective f) : is_nilpotent R L :=
 { nilpotent :=
-    begin
-      tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
-      use k,
-      apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
-      apply lie_ideal.lower_central_series_map_le,
-    end, }
+  begin
+    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    use k,
+    apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
+    apply lie_ideal.lower_central_series_map_le,
+  end, }
 
 lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f : L →ₗ⁅R⁆ L'}
   (h₂ : function.surjective f) : is_nilpotent R L' :=
 { nilpotent :=
-    begin
-      tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
-      use k,
-      rw [← lie_ideal.lower_central_series_map_eq k h₂, hk],
-      simp only [lie_hom.map_bot_iff, bot_le],
-    end, }
+  begin
+    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+    use k,
+    rw [← lie_ideal.lower_central_series_map_eq k h₂, hk],
+    simp only [lie_hom.map_bot_iff, bot_le],
+  end, }
 
 lemma lie_algebra.nilpotent_iff_equiv_nilpotent (e : L ≃ₗ⁅R⁆ L') :
   is_nilpotent R L ↔ is_nilpotent R L' :=

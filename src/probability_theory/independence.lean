@@ -106,7 +106,7 @@ Indep (λ i, generate_from {s i}) μ
 
 /-- Two sets are independent if the two measurable space structures they generate are independent.
 For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
-def indep_set {α} [measurable_space α] {s t : set α} (μ : measure α . volume_tac) : Prop :=
+def indep_set {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) : Prop :=
 indep (generate_from {s}) (generate_from {t}) μ
 
 /-- A family of functions defined on the same space `α` and taking values in possibly different
@@ -121,7 +121,7 @@ Indep (λ x, measurable_space.comap (f x) (m x)) μ
 independent. For a function `f` with codomain having measurable space structure `m`, the generated
 measurable space structure is `measurable_space.comap f m`. -/
 def indep_fun {α β γ} [measurable_space α] (mβ : measurable_space β) (mγ : measurable_space γ)
-  {f : α → β} {g : α → γ} (μ : measure α . volume_tac) : Prop :=
+  (f : α → β) (g : α → γ) (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
 end definitions

@@ -302,6 +302,10 @@ lemma indicator_mul_right (s : set α) (f g : α → β) :
   indicator s (λa, f a * g a) a = f a * indicator s g a :=
 by { simp only [indicator], split_ifs, { refl }, rw [mul_zero] }
 
+lemma inter_indicator_mul {t1 t2 : set α} (f g : α → β) (x : α) :
+  (t1 ∩ t2).indicator (λ x, f x * g x) x = t1.indicator f x * t2.indicator g x :=
+by { rw [← set.indicator_indicator], simp [indicator] }
+
 end mul_zero_class
 
 section monoid_with_zero

@@ -176,7 +176,8 @@ begin
   have : f x ∈ map f s, { rw mem_map, exact ⟨x, hx, rfl⟩ },
   rw [← ht1,← set.image_id ↑t1, finsupp.mem_span_iff_total] at this,
   rcases this with ⟨l, hl1, hl2⟩,
-  refine mem_sup.2 ⟨(finsupp.total M M R id).to_fun ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l), _,
+  refine mem_sup.2 ⟨(finsupp.total M M R id).to_fun
+    ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l), _,
     x - finsupp.total M M R id ((finsupp.lmap_domain R R g : (P →₀ R) → M →₀ R) l),
     _, add_sub_cancel'_right _ _⟩,
   { rw [← set.image_id (g '' ↑t1), finsupp.mem_span_iff_total], refine ⟨_, _, rfl⟩,
@@ -389,8 +390,9 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M] [module R M]
-  [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
+lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M]
+  [module R M] [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) :
+  s.finite :=
 begin
   refine classical.by_contradiction (λ hf, rel_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M) ⟨_⟩),
@@ -409,9 +411,11 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
-/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them. -/
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them.
+-/
 theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
-  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔ is_noetherian R M :=
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔
+  is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
@@ -578,11 +582,12 @@ end
 variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
 
 /--In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
-  product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as product
-  or prime ideals ([samuel, § 3.3, Lemma 3])
+  product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as
+  product or prime ideals ([samuel, § 3.3, Lemma 3])
 -/
 
-lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) {I : ideal A} (h_nzI: I ≠ ⊥) :
+lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain (h_fA : ¬ is_field A) {I : ideal A}
+  (h_nzI: I ≠ ⊥) :
   ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧
     multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
 begin

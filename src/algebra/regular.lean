@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import algebra.group
 import algebra.group_power.basic
-import logic.function.iterate
+import algebra.iterate_hom
 
 /-!
 # Regular elements
@@ -116,21 +116,11 @@ variable [monoid R]
 
 /--  Any power of a left-regular element is left-regular. -/
 lemma is_left_regular.pow (n : ℕ) (rla : is_left_regular a) : is_left_regular (a ^ n) :=
-begin
-  induction n with n hn,
-  { rw pow_zero,
-    exact λ x y xy, (one_mul x).symm.trans (xy.trans (one_mul y)) },
-  { exact is_left_regular.mul rla hn }
-end
+by simp [is_left_regular, ← mul_left_iterate, rla.iterate n]
 
 /--  Any power of a right-regular element is right-regular. -/
 lemma is_right_regular.pow (n : ℕ) (rra : is_right_regular a) : is_right_regular (a ^ n) :=
-begin
-  induction n with n hn,
-  { rw pow_zero,
-    exact λ x y xy, (mul_one x).symm.trans (xy.trans (mul_one y)) },
-  { exact is_right_regular.mul rra hn }
-end
+by simp [is_right_regular, ← mul_right_iterate, rra.iterate n]
 
 /--  Any power of a regular element is regular. -/
 lemma is_regular.pow (n : ℕ) (ra : is_regular a) : is_regular (a ^ n) :=

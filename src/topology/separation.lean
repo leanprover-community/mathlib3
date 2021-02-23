@@ -589,21 +589,6 @@ begin
     closure_minimal h1t $ h2K.is_closed⟩
 end
 
-/-- In a locally compact T₂ space, every compact set is contained in the interior of a compact
-  set. -/
-lemma exists_compact_superset [locally_compact_space α] [t2_space α] {K : set α}
-  (hK : is_compact K) : ∃ (K' : set α), is_compact K' ∧ K ⊆ interior K' :=
-begin
-  choose U hU using λ x : K, exists_open_with_compact_closure (x : α),
-  rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩)
-    with ⟨s, hs⟩,
-  refine ⟨⋃ (i : K) (H : i ∈ s), closure (U i), _, _⟩,
-  exact (finite_mem_finset s).compact_bUnion (λ x hx, (hU x).2.2),
-  refine subset.trans hs _, rw subset_interior_iff_subset_of_open,
-  exact bUnion_subset_bUnion_right (λ x hx, subset_closure),
-  exact is_open_bUnion (λ x hx, (hU x).1)
-end
-
 end separation
 
 section regularity

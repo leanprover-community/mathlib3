@@ -82,6 +82,12 @@ begin
   ghost_simp
 end
 ```
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 /-
@@ -257,7 +263,7 @@ begin
   convert h,
   all_goals {
     funext i,
-    rw [← ring_equiv.coe_ring_hom],
+    rw [← ring_equiv.coe_to_ring_hom],
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
@@ -582,7 +588,7 @@ begin
   convert h; clear h,
   all_goals {
     funext i,
-    rw [← ring_equiv.coe_ring_hom],
+    rw [← ring_equiv.coe_to_ring_hom],
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,

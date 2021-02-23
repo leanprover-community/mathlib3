@@ -183,23 +183,14 @@ lemma is_complete_image_iff {m : α → β} {s : set α} (hm : uniform_embedding
 begin
   refine ⟨is_complete_of_complete_image hm.to_uniform_inducing, λ c f hf fs, _⟩,
   rw filter.le_principal_iff at fs,
+  have hfm : range m ∈ f, from mem_sets_of_superset fs (image_subset_range _ _),
   let f' := comap m f,
-  have cf' : cauchy f',
-  { haveI : ne_bot (comap m f) := by
-    { refine comap_ne_bot (λt ht, _),
-      have A : t ∩ m '' s ∈ f := filter.inter_mem_sets ht fs,
-      obtain ⟨x, ⟨xt, ⟨y, ys, rfl⟩⟩⟩ : (t ∩ m '' s).nonempty,
-        from hf.1.nonempty_of_mem A,
-      exact ⟨y, xt⟩ },
-    exact hf.comap (le_of_eq hm.comap_uniformity) },
+  have cf' : cauchy f' := hf.comap' hm.comap_uniformity.le (ne_bot.comap_of_range_mem hf.1 hfm),
   have : f' ≤ 𝓟 s := by simp [f']; exact
     ⟨m '' s, by simpa using fs, by simp [preimage_image_eq s hm.inj]⟩,
   rcases c f' cf' this with ⟨x, xs, hx⟩,
   existsi [m x, mem_image_of_mem m xs],
-  rw [(uniform_embedding.embedding hm).induced, nhds_induced] at hx,
-  calc f = map m f' : (map_comap $ filter.mem_sets_of_superset fs $ image_subset_range _ _).symm
-    ... ≤ map m (comap m (𝓝 (m x))) : map_mono hx
-    ... ≤ 𝓝 (m x) : map_comap_le
+  rwa [(uniform_embedding.embedding hm).to_inducing.nhds_eq_comap, comap_le_comap_iff hfm] at hx
 end
 
 lemma complete_space_iff_is_complete_range {f : α → β} (hf : uniform_embedding f) :

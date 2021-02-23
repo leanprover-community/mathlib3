@@ -94,7 +94,7 @@ lie_module.is_nilpotent R L L
 variables {R L L'}
 open lie_algebra
 
-lemma lie_ideal.lower_central_series_map_le_lower_central_series (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
+lemma lie_ideal.lower_central_series_map_le (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
   lie_ideal.map f (lie_module.lower_central_series R L L k) ≤
   lie_module.lower_central_series R L' L' k :=
 begin

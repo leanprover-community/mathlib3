@@ -868,9 +868,8 @@ end top
 lemma eq_zero_of_findim_eq_zero [finite_dimensional K V]
   (hV : findim K V = 0) (x : V) : x = 0 :=
 begin
-  rw findim_eq_zero_iff_subsingleton at hV,
-  cases hV,
-  exact hV x 0,
+  haveI := findim_eq_zero_iff_subsingleton.mp hV,
+  exact subsingleton.elim x 0,
 end
 
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]

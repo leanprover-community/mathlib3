@@ -177,43 +177,43 @@ end
 
 end
 section
-lemma rising_factorial_eq_fact {n : ℕ} :
-  rising_factorial 1 n = n.fact :=
+lemma rising_factorial_eq_factorial {n : ℕ} :
+  rising_factorial 1 n = n.factorial :=
 begin
   induction n with n ih,
   { refl, },
-  { rw [rising_factorial_eq_mul_right, nat.fact, ih, mul_comm, add_comm], push_cast, }
+  { rw [rising_factorial_eq_mul_right, nat.factorial, ih, mul_comm, add_comm], push_cast, }
 end
 
-lemma fact_mul_rising_factorial {r n : ℕ} :
-  r.fact * rising_factorial (r+1) n = (r + n).fact :=
+lemma factorial_mul_rising_factorial {r n : ℕ} :
+  r.factorial * rising_factorial (r+1) n = (r + n).factorial :=
 begin
-  rw [←rising_factorial_eq_fact, add_comm, ←rising_factorial_eq_fact],
+  rw [←rising_factorial_eq_factorial, add_comm, ←rising_factorial_eq_factorial],
   convert rising_factorial_mul_rising_factorial,
   simp,
 end
 
-lemma rising_factorial_eq_fact_div_fact {r n : ℕ} :
-  rising_factorial (r+1) n = (r + n).fact / r.fact :=
-(nat.div_eq_of_eq_mul_right (nat.fact_pos _) fact_mul_rising_factorial.symm).symm
+lemma rising_factorial_eq_factorial_div_factorial {r n : ℕ} :
+  rising_factorial (r+1) n = (r + n).factorial / r.factorial :=
+(nat.div_eq_of_eq_mul_right (nat.factorial_pos _) factorial_mul_rising_factorial.symm).symm
 
-lemma rising_factorial_eq_choose_mul_fact {r n : ℕ} :
-  rising_factorial (r+1) n = (r + n).choose n * n.fact :=
+lemma rising_factorial_eq_choose_mul_factorial {r n : ℕ} :
+  rising_factorial (r+1) n = (r + n).choose n * n.factorial :=
 begin
-  rw rising_factorial_eq_fact_div_fact,
+  rw rising_factorial_eq_factorial_div_factorial,
   -- TODO we need a `clear_denominators` tactic!
-  apply nat.div_eq_of_eq_mul_right (nat.fact_pos _),
+  apply nat.div_eq_of_eq_mul_right (nat.factorial_pos _),
   rw [mul_comm],
-  convert (nat.choose_mul_fact_mul_fact (nat.le_add_left n r)).symm,
+  convert (nat.choose_mul_factorial_mul_factorial (nat.le_add_left n r)).symm,
   simp,
 end
 
-lemma choose_eq_rising_factorial_div_fact {r n : ℕ} :
-  (r + n).choose n = rising_factorial (r+1) n / n.fact :=
+lemma choose_eq_rising_factorial_div_factorial {r n : ℕ} :
+  (r + n).choose n = rising_factorial (r+1) n / n.factorial :=
 begin
   symmetry,
-  apply nat.div_eq_of_eq_mul_right (nat.fact_pos _),
-  rw [mul_comm, rising_factorial_eq_choose_mul_fact],
+  apply nat.div_eq_of_eq_mul_right (nat.factorial_pos _),
+  rw [mul_comm, rising_factorial_eq_choose_mul_factorial],
 end
 end
 

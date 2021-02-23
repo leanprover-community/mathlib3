@@ -158,9 +158,6 @@ polynomial.induction_on p
       derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
       map_mul, map_C, map_mul, map_pow, map_add, map_nat_cast, map_one, map_X])
 
-lemma derivative_eval (p : polynomial R) (x : R) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
-by simp [derivative, eval_sum, eval_pow]
-
 /-- Chain rule for formal derivative of polynomials. -/
 theorem derivative_eval₂_C (p q : polynomial R) :
   (p.eval₂ C q).derivative = p.derivative.eval₂ C q * q.derivative :=

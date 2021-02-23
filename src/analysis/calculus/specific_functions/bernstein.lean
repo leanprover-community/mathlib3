@@ -7,6 +7,8 @@ import data.polynomial.derivative
 import data.nat.choose
 import linear_algebra.basis
 import data.nat.pochhammer
+import tactic.omega
+import tactic.slim_check
 
 noncomputable theory
 
@@ -48,7 +50,7 @@ begin
   { by_cases w : 0 < n - ν,
     { simp [zero_pow w], },
     { simp [(show n < ν, by omega), nat.choose_eq_zero_of_lt], }, },
-end
+end.
 
 lemma derivative' (n ν : ℕ) :
   (bernstein_polynomial (n+1) (ν+1)).derivative =
@@ -56,21 +58,26 @@ lemma derivative' (n ν : ℕ) :
 begin
   dsimp [bernstein_polynomial],
   suffices :
-    ↑((n + 1).choose (ν + 1)) * ((↑ν + 1) * X ^ ν) * (1 - X) ^ (n - ν) +
+    ↑((n + 1).choose (ν + 1)) * ((↑ν + 1) * X ^ ν) * (1 - X) ^ (n - ν)
       -(↑((n + 1).choose (ν + 1)) * X ^ (ν + 1) * (↑(n - ν) * (1 - X) ^ (n - ν - 1))) =
     (↑n + 1) * (↑(n.choose ν) * X ^ ν * (1 - X) ^ (n - ν) -
          ↑(n.choose (ν + 1)) * X ^ (ν + 1) * (1 - X) ^ (n - (ν + 1))),
-  { simpa, },
-  change _ - _ = _,
+  { simpa [polynomial.derivative_pow, ←sub_eq_add_neg], }, -- make this a simp lemma?
   conv_rhs { rw mul_sub, },
-  -- We'll prove the two terms match up separately.
+  -- -- We'll prove the two terms match up separately.
   refine congr (congr_arg has_sub.sub _) _,
   { simp only [←mul_assoc],
     refine congr (congr_arg (*) (congr (congr_arg (*) _) rfl)) rfl,
     -- Now it's just about binomial coefficients
     norm_cast,
     convert (nat.succ_mul_choose_eq _ _).symm, },
-  sorry,
+  { rw nat.sub_sub, rw [←mul_assoc,←mul_assoc], congr' 1,
+    rw mul_comm , rw [←mul_assoc,←mul_assoc],  congr' 1,
+    norm_cast,
+    convert (nat.choose_mul_succ_eq n (ν + 1)).symm using 1,
+    { convert mul_comm _ _ using 2,
+      simp, },
+    { apply mul_comm, }, },
 end
 
 lemma derivative (n ν : ℕ) :
@@ -78,7 +85,7 @@ lemma derivative (n ν : ℕ) :
     n * (bernstein_polynomial (n-1) ν - bernstein_polynomial (n-1) (ν+1)) :=
 begin
   cases n,
-  { simp, sorry, },
+  { simp [bernstein_polynomial], },
   { apply derivative', }
 end
 
@@ -87,15 +94,15 @@ lemma iterate_derivative_at_zero_eq_zero_of_le (n : ℕ) {ν k : ℕ} :
 begin
   induction k with k ih generalizing n ν,
   { simp [eval_at_0], },
-  { simp [derivative],
+  { simp only [derivative, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
+      function.comp_app, function.iterate_succ,
+      polynomial.iterate_derivative_sub, polynomial.iterate_derivative_coe_nat_mul,
+      polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
     intro h,
     right,
     rw ih,
-    simp,
-    have := @ih (n-1) (ν-1) _,
-    -- all easy from here.
-    sorry, sorry, sorry,
-     }
+    simp only [sub_zero],
+    convert @ih (n-1) (ν-1) _; omega, }
 end
 
 @[simp]

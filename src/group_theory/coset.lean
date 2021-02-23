@@ -21,8 +21,8 @@ This file develops the basic theory of left and right cosets.
   subgroup `s`, for an `add_group` this is `quotient_add_group.quotient s`.
 * `quotient_group.mk`: the canonical map from `α` to `α/s` for a subgroup `s` of `α`, for an
   `add_group` this is `quotient_add_group.mk`.
-* `subgroup.left_coset_equiv_subgroup`: the natural bijection between a left coset and the subgroup, for an
-  `add_group` this is `add_subgroup.left_coset_equiv_add_subgroup`.
+* `subgroup.left_coset_equiv_subgroup`: the natural bijection between a left coset and the subgroup,
+  for an `add_group` this is `add_subgroup.left_coset_equiv_add_subgroup`.
 
 ## Notation
 

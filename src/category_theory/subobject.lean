@@ -28,7 +28,7 @@ We provide
 (each first at the level of `mono_over`), and prove their basic properties and relationships.
 
 We also provide the `semilattice_inf_top (subobject X)` instance when `[has_pullback C]`,
-and the `semilattice_inf (subobject X)` instance when `[has_images C] [has_binary_coproducts C]`.
+and the `semilattice_sup (subobject X)` instance when `[has_images C] [has_binary_coproducts C]`.
 
 ## Notes
 

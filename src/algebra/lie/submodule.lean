@@ -574,7 +574,7 @@ begin
   exact linear_map.range_eq_top,
 end
 
-lemma ideal_range_eq_top_of_surjective (h : function.surjective f) : f.ideal_range = ⊤ :=
+@[simp] lemma ideal_range_eq_top_of_surjective (h : function.surjective f) : f.ideal_range = ⊤ :=
 begin
   rw ← f.range_eq_top at h,
   rw [ideal_range_eq_lie_span_range, h, ← lie_subalgebra.coe_to_submodule,

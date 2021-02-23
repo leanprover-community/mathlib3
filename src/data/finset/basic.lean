@@ -28,23 +28,14 @@ Finsets give a basic foundation for defining finite sums and products over types
   2. `∏ i in (s : finset α), f i`.
 
 Lean refers to these operations as `big_operator`s.
-More information can be found in `algebra/big_operators/basic`.
-
-TOOD: edit and move to `algebra.big_operators.basic`?
-Confusingly, there are four different ways to sum or multiply a finite collection of items:
-`finset`, `fintype`, `finsupp`, and `dfinsupp`.
-At their core, all four are operating on finsets!
-
-  1. `finset`: sum over a finite subset of `α`;
-  2. `fintype` : sum over `univ`, (i.e. everything), a finset that contains all of `α`;
-  3. `finsupp` : given a finitely supported function `f : α → M`, sum over the support of `f`,
-     which is a finset of `α`. These are used e.g. to define polynomials in mathlib.
-  4. `dfinsupp` : A generalization of `finsupp` to finitely-supported dependent functions
-     `f : Π i, β i`.
+More information can be found in `algebra.big_operators.basic`.
 
 Finsets are directly used to define fintypes in Lean.
 A `fintype α` instance for a type `α` consists of
-a universal `finset α` containing every term of `α`, called `univ`.
+a universal `finset α` containing every term of `α`, called `univ`. See `data.fintype.basic`.
+There is also `univ'`, the noncomputable partner to `univ`,
+which is defined to be `α` as a finset if `α` is finite,
+and the empty finset otherwise. See `data.finsum`.
 
 ## Main declarations
 
@@ -52,7 +43,7 @@ a universal `finset α` containing every term of `α`, called `univ`.
 
 * `finset`: The whole point of this file.
 * `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
-* `finset.has_coe`: Coercion to sets in the natural way.
+* `finset.has_coe`: Coerces `s : finset α` to `s : set α`.
 * `finset.induction_on`: Induction on finsets.
   To prove a statement `P s` for some predicate `P` on `s : finset α`,
   it suffices to prove the base case `P ∅` and the induction step
@@ -61,6 +52,7 @@ a universal `finset α` containing every term of `α`, called `univ`.
   `choose s h` returns the element of `s` satisfying that predicate.
 * `finset.card`: `card s : ℕ` returns the cardinalilty of `s : finset α`.
   The API for `card`'s interaction with operations on finsets is extensive.
+  TODO: The noncomputable sister `fincard` is about to be added into mathlib.
 
 ### Finset constructions
 
@@ -70,7 +62,8 @@ a universal `finset α` containing every term of `α`, called `univ`.
   This convention is consistent with other languages and normalizes `card (range n) = n`.
   Beware, `n` is not in `range n`.
 * `finset.diag`: Given `s`, `diag s` is the set of pairs `(a, a)` with `a ∈ s`. See also
-  `finset.off_diag`: the set of pairs `(a, b)` with `a ≠ b`.
+  `finset.off_diag`: Given a finite set `s`, the off-diagonal,
+  `s.off_diag` is the set of pairs `(a, b)` with `a ≠ b` for `a, b ∈ s`.
 * `finset.attach`: Given `s : finset α`, `attach s` forms a finset of elements of the subtype
   `{a // a ∈ s}`; in other words, it attaches elements to a proof of membership in the set.
 
@@ -99,9 +92,9 @@ called `top` with `⊤ = univ`.
 
 ### Operations on two or more finsets
 
-* `finset.cons` and `finset.insert`: For any `a : α`, `insert s a` returns `s ∪ {a}`. `cons s a h`
-  returns the same except that it requires a hypothesis stating that `a` is not already in `s`. This
-  does not require decidable equality on the type `α`.
+* `finset.insert` and `finset.cons`: For any `a : α`, `insert s a` returns `s ∪ {a}`. `cons s a h`
+  returns the same except that it requires a hypothesis stating that `a` is not already in `s`.
+  This does not require decidable equality on the type `α`.
 * `finset.union`: see "The lattice structure on subsets of finsets"
 * `finset.inter`: see "The lattice structure on subsets of finsets"
 * `finset.erase`: For any `a : α`, `erase s a` returns `s` with the element `a` removed.
@@ -111,6 +104,7 @@ called `top` with `⊤ = univ`.
 * `finset.sigma`: Given finsets of `α` and `β`, defines finsets of the dependent sum type `Σ α, β`
 * `finset.bUnion`: Finite unions of finsets; given an indexing function `f : α → finset β` and a
   `s : finset α`, `s.bUnion f` is the union of all finsets of the form `f a` for `a ∈ s`.
+* `finset.bInter`: TODO: Implemement finite intersections.
 
 ### Maps constructed using finsets
 
@@ -122,7 +116,7 @@ called `top` with `⊤ = univ`.
 * `disjoint`: defined via the lattice structure on finsets; two sets are disjoint if their
   intersection is empty.
 * `finset.nonempty`: A finset is nonempty if it has elements.
-  This is equivalent to saying `s ≠ ∅`. TODO: In Lean the simp normal form is _____?
+  This is equivalent to saying `s ≠ ∅`. TODO: Decide on the simp norm form.
 
 ### Equivalences between finsets
 

@@ -2318,7 +2318,7 @@ begin
       specialize IH this H.right,
       obtain ⟨l, hdl, hvl⟩ := IH,
       use (hd.to_nat - '0'.to_nat) :: l,
-      cases l,
+      cases l with lhd ltl,
       { simpa using hdl },
       simp [natm] at hvl,
       simp [natm, hvl, many1_eq_done, hdigit, many1_eq_done_iff_many_eq_done.mp hdl],
@@ -2327,8 +2327,17 @@ begin
       have : n + m + 1 - n = m + 1,
         { rw [add_assoc, nat.sub_eq_iff_eq_add, add_comm],
           exact nat.le_add_right _ _ },
-      simp [nat.of_digits_eq_foldr, this],
-      sorry },
+      have hpow : ∀ l, (list.foldr (λ (digit : ℕ) (_x : ℕ × ℕ),
+        (_x.fst + digit * _x.snd, _x.snd * 10)) (0, 1) l).snd = 10 ^ l.length,
+        { intro l,
+          induction l with hd tl hl,
+          { simp },
+          { simp [hl, pow_succ, mul_comm] } },
+      have hml : ltl.length + 1 = m := by simpa using many1_length_of_done hdl,
+      have ltll : min m tl.length = m,
+      { simpa [←H.right, ←nat.add_le_to_le_sub _ (hn''.trans_le hn').le, add_comm, add_assoc,
+               add_left_comm] using hn' },
+      simp [this, hpow, nat.of_digits_append, mul_comm, ←pow_succ 10, hml, ltll] },
     { have : n' = n + 1 := le_antisymm hn'' (nat.succ_le_of_lt hn),
       subst this,
       use [[hd.to_nat - '0'.to_nat]],
@@ -2338,7 +2347,7 @@ begin
                  list.reverse_singleton, zero_add, list.foldr, list.map],
       refine ⟨_, or.inl ⟨rfl, _⟩⟩,
       intros H,
-      simpa using hb H } },
+      simpa using hb H } }
 end
 
 end nat

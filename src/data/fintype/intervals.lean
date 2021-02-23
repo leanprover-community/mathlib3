@@ -39,6 +39,16 @@ fintype.of_finset (finset.Ico_ℤ l u) $
 calc fintype.card (Ico l u) = (finset.Ico_ℤ l u).card : fintype.card_of_finset _ _
                         ... = (u - l).to_nat          : finset.Ico_ℤ.card l u
 
+lemma Ico_ℤ_finite (l u : ℤ) : set.finite (Ico l u) := ⟨set.Ico_ℤ_fintype l u⟩
+lemma Ioo_ℤ_finite (l u : ℤ) : set.finite (Ioo l u) := Ico_ℤ_finite (l + 1) u
+lemma Icc_ℤ_finite (l u : ℤ) : set.finite (Icc l u) :=
+begin
+  convert Ico_ℤ_finite l (u + 1),
+  ext,
+  simp only [int.lt_add_one_iff, iff_self, mem_Ico, mem_Icc],
+end
+lemma Ioc_ℤ_finite (l u : ℤ) : set.finite (Ioc l u) := Icc_ℤ_finite (l + 1) u
+
 -- TODO other useful instances: fin n, zmod?
 
 end set

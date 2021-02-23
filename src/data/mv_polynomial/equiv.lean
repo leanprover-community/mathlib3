@@ -261,10 +261,10 @@ lemma fin_succ_equiv_eq (n : ℕ) :
 begin
   apply ring_hom_ext,
   { intro r,
-    dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
+    dsimp [ring_equiv.coe_to_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
     simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp] },
   { intro i,
-    dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv,
+    dsimp [ring_equiv.coe_to_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv,
       _root_.fin_succ_equiv],
     by_cases hi : i = 0,
     { simp only [hi, fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,

@@ -112,6 +112,18 @@ lemma Union_basis_of_is_open {B : set (set α)}
 let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
 ⟨S, subtype.val, su.trans set.sUnion_eq_Union, λ ⟨b, h⟩, sb h⟩
 
+lemma is_topological_basis.mem_closure_iff {b : set (set α)} (hb : is_topological_basis b)
+  {s : set α} {a : α} :
+  a ∈ closure s ↔ ∀ o ∈ b, a ∈ o → (o ∩ s).nonempty :=
+(mem_closure_iff_nhds_basis' hb.nhds_has_basis).trans $ by simp only [and_imp]
+
+lemma is_topological_basis.dense_iff {b : set (set α)} (hb : is_topological_basis b) {s : set α} :
+  dense s ↔ ∀ o ∈ b, set.nonempty o → (o ∩ s).nonempty :=
+begin
+  simp only [dense, hb.mem_closure_iff],
+  exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
+end
+
 variables (α)
 
 /-- A separable space is one with a countable dense subset, available through
@@ -267,34 +279,12 @@ end
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
 begin
-  rcases is_open_generated_countable_inter α with  ⟨b, hbc, hbne, hb, hbU, eq⟩,
-  set S : α → set (set α) := λ a, {s : set α | a ∈ s ∧ s ∈ b},
-  have nhds_eq : ∀a, 𝓝 a = (⨅ s ∈ S a, 𝓟 s),
-  { intro a, rw [eq, nhds_generate_from] },
-  have : ∀ s ∈ b, set.nonempty s :=
-    assume s hs, ne_empty_iff_nonempty.1 $ λ eq, absurd hs (eq.symm ▸ hbne),
-  choose f hf,
-  refine ⟨⟨⋃ s ∈ b, {f s ‹_›}, hbc.bUnion (λ _ _, countable_singleton _), λ a, _⟩⟩,
-  suffices : (⨅ s ∈ S a, 𝓟 (s ∩ ⋃ t ∈ b, {f t ‹_›})).ne_bot,
-  { obtain ⟨t, htb, hta⟩ : a ∈ ⋃₀ b, { simp only [hbU] },
-    have A : ∃ s, s ∈ S a := ⟨t, hta, htb⟩,
-    simpa only [← inf_principal, mem_closure_iff_cluster_pt,
-      cluster_pt, nhds_eq, binfi_inf A] using this },
-  rw [infi_subtype'],
-  haveI : nonempty α := ⟨a⟩,
-  refine infi_ne_bot_of_directed _ _,
-  { rintros ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
-    obtain ⟨t, htb, hta, ht⟩ : ∃ t ∈ b, a ∈ t ∧ t ⊆ s₁ ∩ s₂,
-      from hb _ hs₁ _ hs₂ a ⟨has₁, has₂⟩,
-    refine ⟨⟨t, hta, htb⟩, _⟩,
-    simp only [subset_inter_iff] at ht,
-    simp only [principal_mono, subtype.coe_mk, (≥)],
-    exact ⟨inter_subset_inter_left _ ht.1, inter_subset_inter_left _ ht.2⟩ },
-  rintros ⟨s, hsa, hsb⟩,
-  suffices : (s ∩ ⋃ t ∈ b, {f t ‹_›}).nonempty, { simpa [principal_ne_bot_iff] },
-  refine ⟨_, hf _ hsb, _⟩,
-  simp only [mem_Union],
-  exact ⟨s, hsb, rfl⟩
+  rcases is_open_generated_countable_inter α with  ⟨b, hbc, hbne, hb⟩,
+  haveI := hbc.to_encodable,
+  have : ∀ s : b, (s : set α).nonempty := λ ⟨s, hs⟩, ne_empty_iff_nonempty.1 (λ h, hbne $ h ▸ hs),
+  choose p hp,
+  exact ⟨⟨range p, countable_range _,
+    hb.dense_iff.2 $ λ o ho _, ⟨p ⟨o, ho⟩, hp _, mem_range_self _⟩⟩⟩
 end
 
 variables {α}

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal
 
@@ -22,18 +22,19 @@ initial segment (or, equivalently, in any way). This total order is well founded
   `r ≺i s`.
 
 * `ordinal`: the type of ordinals (in a given universe)
-* `type r`: given a well-founded order `r`, this is the corresponding ordinal
-* `typein r a`: given a well-founded order `r` on a type `α`, and `a : α`, the ordinal
+* `ordinal.type r`: given a well-founded order `r`, this is the corresponding ordinal
+* `ordinal.typein r a`: given a well-founded order `r` on a type `α`, and `a : α`, the ordinal
   corresponding to all elements smaller than `a`.
 * `enum r o h`: given a well-order `r` on a type `α`, and an ordinal `o` strictly smaller than
   the ordinal corresponding to `r` (this is the assumption `h`), returns the `o`-th element of `α`.
   In other words, the elements of `α` can be enumerated using ordinals up to `type r`.
-* `card o`: the cardinality of an ordinal `o`.
-* `lift` lifts an ordinal in universe `u` to an ordinal in universe `max u v`. For a version
-  registering additionally that this is an initial segment embedding, see `lift.initial_seg`. For
-  a version regiserting that it is a principal segment embedding if `u < v`, see
-  `lift.principal_seg`.
-* `omega` is the first infinite ordinal. It is the order type of `ℕ`.
+* `ordinal.card o`: the cardinality of an ordinal `o`.
+* `ordinal.lift` lifts an ordinal in universe `u` to an ordinal in universe `max u v`.
+  For a version registering additionally that this is an initial segment embedding, see
+  `ordinal.lift.initial_seg`.
+  For a version regiserting that it is a principal segment embedding if `u < v`, see
+  `ordinal.lift.principal_seg`.
+* `ordinal.omega` is the first infinite ordinal. It is the order type of `ℕ`.
 
 * `o₁ + o₂` is the order on the disjoint union of `o₁` and `o₂` obtained by declaring that
   every element of `o₁` is smaller than every element of `o₂`. The main properties of addition
@@ -42,16 +43,16 @@ initial segment (or, equivalently, in any way). This total order is well founded
   is total (and well founded).
 * `succ o` is the successor of the ordinal `o`.
 
-* `min`: the minimal element of a nonempty indexed family of ordinals
-* `omin` : the minimal element of a nonempty set of ordinals
+* `ordinal.min`: the minimal element of a nonempty indexed family of ordinals
+* `ordinal.omin` : the minimal element of a nonempty set of ordinals
 
-* `ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality. It is
-  the canonical way to represent a cardinal with an ordinal.
+* `cardinal.ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality.
+  It is the canonical way to represent a cardinal with an ordinal.
 
 ## Notations
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
 * `r ≺i s`: the type of principal segment embeddings of `r` into `s`.
-* `ω` is a notation for the first infinite ordinal in the locale ordinal.
+* `ω` is a notation for the first infinite ordinal in the locale `ordinal`.
 -/
 
 noncomputable theory
@@ -1128,9 +1129,9 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
-def ord_eq_min (α : Type u) : ord (mk α) =
-  @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
+lemma ord_eq_min (α : Type u) : ord (mk α) =
+  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+    (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (mk α) = @type α r wo :=

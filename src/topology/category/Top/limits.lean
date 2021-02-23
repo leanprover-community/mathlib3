@@ -17,6 +17,7 @@ underlying types are just the limits in the category of types.
 open topological_space
 open category_theory
 open category_theory.limits
+open opposite
 
 universe u
 
@@ -99,5 +100,98 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
   { preserves_colimit := λ F,
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
+
+end Top
+
+namespace Top
+
+section topological_konig
+
+/-!
+## Topological Kőnig's lemma
+
+A topological version of Kőnig's lemma is that the inverse limit of nonempty compact Hausdorff
+spaces is nonempty.  (Note: this can be generalized further to inverse limits of nonempty compact
+T0 spaces, where all the maps are closed maps; see [Stone1979] --- however there is an erratum
+for Theorem 4 that the element in the inverse limit can have cofinally many components that are
+not closed points.)
+-/
+
+variables {J : Type u} [directed_order J]
+variables (F : Jᵒᵖ ⥤ Top.{u})
+
+/--
+The partial sections of an inverse system of topological spaces from an index `j` are sections
+when restricted to all objects less than or equal to `j`.
+-/
+def partial_sections (j : Jᵒᵖ) : set (Π j, F.obj j) :=
+{ u | ∀ {j'} (f : j ⟶ j'), F.map f (u j) = u j'}
+
+lemma partial_sections.nonempty [Π (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
+  (partial_sections F j).nonempty :=
+begin
+  classical,
+  use λ (j' : Jᵒᵖ),
+    if h : j'.unop ≤ j.unop then
+      F.map (hom_of_le h).op (classical.arbitrary (F.obj j))
+    else
+      classical.arbitrary _,
+  intros j' fle,
+  simp only [dif_pos (le_of_hom fle.unop)],
+  dsimp, simp,
+end
+
+lemma partial_sections.directed : directed (⊇) (partial_sections F) :=
+begin
+  intros j j',
+  obtain ⟨j'', hj''⟩ := directed_order.directed j.unop j'.unop,
+  use op j'',
+  split,
+  { intros u hu j''' f''',
+    rw [←hu ((hom_of_le hj''.1).op ≫ f'''), ←hu],
+    simp only [Top.comp_app, functor.map_comp] },
+  { intros u hu j''' f''',
+    rw [←hu ((hom_of_le hj''.2).op ≫ f'''), ←hu],
+    simp only [Top.comp_app, functor.map_comp] },
+end
+
+lemma partial_sections.closed [Π (j : Jᵒᵖ), t2_space (F.obj j)] (j : Jᵒᵖ) :
+  is_closed (partial_sections F j) :=
+begin
+  have hps : partial_sections F j =
+    ⋂ (f : Σ j', j ⟶ j'), {u : Π (j : Jᵒᵖ), F.obj j | F.map f.2 (u j) = u f.1},
+  { ext u,
+    simp only [set.mem_Inter, sigma.forall, set.mem_set_of_eq],
+    exact ⟨λ hu j' f, hu f, λ hu j' f, hu j' f⟩ },
+  rw hps,
+  apply is_closed_Inter,
+  rintros ⟨j', f⟩,
+  let proj : Π (j' : Jᵒᵖ), C((Π (j : Jᵒᵖ), F.obj j), F.obj j') :=
+    λ j', ⟨λ u, u j', continuous_apply j'⟩,
+  exact is_closed_eq
+    (((F.map f).continuous.comp (proj j).continuous).comp continuous_id)
+    ((proj j').continuous.comp continuous_id),
+end
+
+lemma nonempty_limit_cone_of_compact_t2_inverse_system
+  [Π (j : Jᵒᵖ), nonempty (F.obj j)]
+  [Π (j : Jᵒᵖ), compact_space (F.obj j)]
+  [Π (j : Jᵒᵖ), t2_space (F.obj j)] :
+  nonempty (Top.limit_cone F).X :=
+begin
+  by_cases h : nonempty Jᵒᵖ,
+  { haveI := h,
+    obtain ⟨u, hu⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
+      (partial_sections F) (partial_sections.directed F) (partial_sections.nonempty F)
+      (λ j, is_closed.compact (partial_sections.closed F j)) (partial_sections.closed F),
+    use u,
+    intros j j' f,
+    specialize hu (partial_sections F j),
+    simp only [forall_prop_of_true, set.mem_range_self] at hu,
+    exact hu f, },
+  { exact ⟨⟨λ j, (h ⟨j⟩).elim, λ j, (h ⟨j⟩).elim⟩⟩, },
+end
+
+end topological_konig
 
 end Top

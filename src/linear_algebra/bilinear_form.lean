@@ -533,7 +533,7 @@ rfl
 begin
   ext i j,
   simp only [bilin_form.to_matrix'_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
-    linear_map.to_matrix', linear_equiv.mk_apply, sum_mul],
+    linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
   conv_lhs { rw ← sum_repr_mul_repr_mul (pi.is_basis_fun R₃ n) (l _) (r _) },
   rw finsupp.sum_fintype,
@@ -661,7 +661,7 @@ lemma bilin_form.to_matrix_comp
 begin
   ext i j,
   simp only [bilin_form.to_matrix_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
-    linear_map.to_matrix', linear_equiv.mk_apply, sum_mul],
+    linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
   conv_lhs { rw ← sum_repr_mul_repr_mul hb },
   rw finsupp.sum_fintype,

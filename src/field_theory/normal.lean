@@ -216,13 +216,13 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
 
 /-- Restrict algebra homomorphism to normal subfield -/
 def alg_hom.restrict_normal [normal F E] : E →ₐ[F] E :=
-((alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).symm.to_alg_hom.comp
+((alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).symm.to_alg_hom.comp
   (ϕ.restrict_normal_aux E)).comp
-    (alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).to_alg_hom
+    (alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F E K)).to_alg_hom
 
 @[simp] lemma alg_hom.restrict_normal_commutes [normal F E] (x : E) :
   algebra_map E K (ϕ.restrict_normal E x) = ϕ (algebra_map E K x) :=
-subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_hom.alg_equiv.of_injective_field
+subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_equiv.of_injective_field
   (is_scalar_tower.to_alg_hom F E K)) (ϕ.restrict_normal_aux E
     ⟨is_scalar_tower.to_alg_hom F E K x, ⟨x, ⟨subsemiring.mem_top x, rfl⟩⟩⟩))
 

@@ -188,14 +188,9 @@ fintype.of_equiv α $ (equiv.set.univ α).symm
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
 
 /-- If `(set.univ : set α)` is finite then `α` is a finite type. -/
-noncomputable
-def fintype_of_univ_finite (H : (univ : set α).finite ) :
+noncomputable def fintype_of_univ_finite (H : (univ : set α).finite ) :
   fintype α :=
-begin
-  choose t ht using H.exists_finset,
-  refine ⟨t, _⟩,
-  simpa only [set.mem_univ, iff_true] using ht
-end
+@fintype.of_equiv _ (univ : set α) H.fintype (equiv.set.univ _)
 
 lemma univ_finite_iff_nonempty_fintype :
   (univ : set α).finite ↔ nonempty (fintype α) :=
@@ -206,8 +201,7 @@ begin
 end
 
 theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
-⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
-  λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.set.univ _⟩
+⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩, λ ⟨h₁⟩ h₂, h₁ (fintype_of_univ_finite h₂)⟩
 
 theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
 infinite_univ_iff.2 h
@@ -235,6 +229,14 @@ fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
 
 theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 | ⟨hs⟩ ⟨ht⟩ := ⟨@set.fintype_union _ (classical.dec_eq α) _ _ hs ht⟩
+
+lemma infinite_of_finite_compl {α : Type} [_root_.infinite α] {s : set α}
+  (hs : sᶜ.finite) : s.infinite :=
+λ h, set.infinite_univ (by simpa using hs.union h)
+
+lemma finite.infinite_compl {α : Type} [_root_.infinite α] {s : set α}
+  (hs : s.finite) : sᶜ.infinite :=
+λ h, set.infinite_univ (by simpa using hs.union h)
 
 instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred p] :
   fintype ({a ∈ s | p a} : set α) :=
@@ -584,32 +586,33 @@ lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
 by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
      rw set.finite.mem_to_finset }
 
-section
+section decidable_eq
 
-local attribute [instance, priority 1] classical.prop_decidable
-
-lemma to_finset_compl {α : Type*} [fintype α] (s : set α) :
-  sᶜ.to_finset = (s.to_finset)ᶜ :=
+lemma to_finset_compl {α : Type*} [fintype α] [decidable_eq α]
+  (s : set α) [fintype (sᶜ : set α)] [fintype s] : sᶜ.to_finset = (s.to_finset)ᶜ :=
 by ext; simp
 
-lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) :
-  (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
+  [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by ext; simp
 
-lemma to_finset_union {α : Type*} [fintype α] (s t : set α) :
-  (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
+  [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
 
-lemma to_finset_ne_eq_erase {α : Type*} [fintype α] (a : α) :
-  {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
+lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
+  [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
 by ext; simp
 
-lemma card_ne_eq [fintype α] (a : α) :
+lemma card_ne_eq [fintype α] (a : α) [fintype {x : α | x ≠ a}] :
   fintype.card {x : α | x ≠ a} = fintype.card α - 1 :=
-by rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
-       finset.card_univ, nat.pred_eq_sub_one]
-
+begin
+  haveI := classical.dec_eq α,
+  rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
+      finset.card_univ, nat.pred_eq_sub_one],
 end
+
+end decidable_eq
 
 section
 

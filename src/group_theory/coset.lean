@@ -15,7 +15,7 @@ This file develops the basic theory of left and right cosets.
 
 * `left_coset a s`: the left coset `a * s` for an element `a : α` and a subset `s ⊆ α`.
 * `right_coset s a`: the right coset `s * a` for an element `a : α` and a subset `s ⊆ α`.
-* `quotient s`: the quotient type corresponding to the left cosets with respect to a subgroup `s`.
+* `quotient s`: the quotient type representing the left cosets with respect to a subgroup `s`.
 * `mk`: the canonical map from `α` to `α/s` for a subgroup `s` of `α`.
 * `left_coset_equiv_subgroup`: the natural bijection between a left coset and the subgroup.
 
@@ -35,13 +35,13 @@ open set function
 
 variable {α : Type*}
 
-/-- The left coset `a*s` corresponding to an element `a : α` and a subset `s : set α` -/
-@[to_additive left_add_coset "The left coset `a+s` corresponding to an element `a : α`
+/-- The left coset `a * s` for an element `a : α` and a subset `s : set α` -/
+@[to_additive left_add_coset "The left coset `a+s` for an element `a : α`
 and a subset `s : set α`"]
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
 
-/-- The right coset `s*a` corresponding to an element `a : α` and a subset `s : set α` -/
-@[to_additive right_add_coset "The right coset `s+a` corresponding to an element `a : α`
+/-- The right coset `s * a` for an element `a : α` and a subset `s : set α` -/
+@[to_additive right_add_coset "The right coset `s+a` for an element `a : α`
 and a subset `s : set α`"]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
 

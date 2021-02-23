@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Rémy Degenne
 -/
 import measure_theory.measure_space
+import measure_theory.pi_system
 import algebra.big_operators.intervals
 import data.finset.intervals
 
@@ -66,6 +67,16 @@ Part A, Chapter 4.
 open measure_theory measurable_space
 open_locale big_operators classical
 
+lemma set.Inter_finset_congr {α} {β : Type*} {T : finset β} (f g : β → set α)
+  (h_congr : ∀ (i ∈ T), f i = g i) : (⋂ (i∈ T), f i) = (⋂ (i ∈ T), g i) :=
+begin
+  ext a, split; simp only [set.mem_Inter]; intros h1 i h_i,
+  rw  ← h_congr i h_i,
+  apply h1 i h_i,
+  rw h_congr i h_i,
+  apply h1 i h_i
+end
+
 namespace probability_theory
 
 section definitions
@@ -102,12 +113,12 @@ indep_sets (m₁.measurable_set') (m₂.measurable_set') μ
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
 def Indep_set {α ι} [measurable_space α] (s : ι → set α) (μ : measure α . volume_tac) : Prop :=
-Indep (λ i, generate_from {s i}) μ
+Indep_sets (λ i, {s i}) μ
 
 /-- Two sets are independent if the two measurable space structures they generate are independent.
 For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
-def indep_set {α} [measurable_space α] {s t : set α} (μ : measure α . volume_tac) : Prop :=
-indep (generate_from {s}) (generate_from {t}) μ
+def indep_set {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) : Prop :=
+indep_sets {s} {t} μ
 
 /-- A family of functions defined on the same space `α` and taking values in possibly different
 spaces, each with a measurable space structure, is independent if the family of measurable space
@@ -121,7 +132,7 @@ Indep (λ x, measurable_space.comap (f x) (m x)) μ
 independent. For a function `f` with codomain having measurable space structure `m`, the generated
 measurable space structure is `measurable_space.comap f m`. -/
 def indep_fun {α β γ} [measurable_space α] (mβ : measurable_space β) (mγ : measurable_space γ)
-  {f : α → β} {g : α → γ} (μ : measure α . volume_tac) : Prop :=
+  (f : α → β) (g : α → γ) (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
 end definitions
@@ -138,22 +149,30 @@ lemma indep.symm {α} {m₁ m₂ : measurable_space α} [measurable_space α] {�
   indep m₂ m₁ μ :=
 indep_sets.symm h
 
-lemma indep_sets_of_indep_sets_of_le_left {α} {s₁ s₂ s₃: set (set α)} [measurable_space α]
+lemma indep_set.symm {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) :
+indep_set s t μ → indep_set t s μ :=
+begin
+  intros h,
+  apply indep_sets.symm,
+  apply h,
+end
+
+lemma indep_sets_of_indep_sets_of_le_left {α} {s₁ s₂ s₃ : set (set α)} [measurable_space α]
   {μ : measure α} (h_indep : indep_sets s₁ s₂ μ) (h31 : s₃ ⊆ s₁) :
   indep_sets s₃ s₂ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (set.mem_of_subset_of_mem h31 ht1) ht2
 
-lemma indep_sets_of_indep_sets_of_le_right {α} {s₁ s₂ s₃: set (set α)} [measurable_space α]
+lemma indep_sets_of_indep_sets_of_le_right {α} {s₁ s₂ s₃ : set (set α)} [measurable_space α]
   {μ : measure α} (h_indep : indep_sets s₁ s₂ μ) (h32 : s₃ ⊆ s₂) :
   indep_sets s₁ s₃ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 ht1 (set.mem_of_subset_of_mem h32 ht2)
 
-lemma indep_of_indep_of_le_left {α} {m₁ m₂ m₃: measurable_space α} [measurable_space α]
+lemma indep_of_indep_of_le_left {α} {m₁ m₂ m₃ : measurable_space α} [measurable_space α]
   {μ : measure α} (h_indep : indep m₁ m₂ μ) (h31 : m₃ ≤ m₁) :
   indep m₃ m₂ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (h31 _ ht1) ht2
 
-lemma indep_of_indep_of_le_right {α} {m₁ m₂ m₃: measurable_space α} [measurable_space α]
+lemma indep_of_indep_of_le_right {α} {m₁ m₂ m₃ : measurable_space α} [measurable_space α]
   {μ : measure α} (h_indep : indep m₁ m₂ μ) (h32 : m₃ ≤ m₂) :
   indep m₁ m₃ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 ht1 (h32 _ ht2)
@@ -305,6 +324,126 @@ begin
     exact measurable_set_generate_from ht, },
   rw [measure.restrict_apply ht1, measure.smul_apply, mul_comm],
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
+end
+
+lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
+  {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+begin
+  unfold indep_set,
+  unfold indep_sets,
+  simp_rw set.mem_singleton_iff,
+  split; intros h,
+  apply h s t (eq.refl _) (eq.refl _),
+  intros s1 t1 h_s1 h_t1,
+  substs s1 t1,
+  apply h,
+end
+
+lemma indep_set_iff_of_probability_measure {α} [m :measurable_space α] {μ : measure α}
+  [probability_measure μ] {s t : set α} : indep_set s t μ ↔ indep_sets {s} {t} :=
+begin
+  unfold indep_set,
+  unfold indep_sets,
+  simp_rw set.mem_singleton_iff,
+  split; intros h,
+  apply h s t (eq.refl _) (eq.refl _),
+  intros s1 t1 h_s1 h_t1,
+  substs s1 t1,
+  apply h,
+end
+
+lemma indep_sets.indep_set {α} {m : measurable_space α}
+  {μ : measure α} {p1 p2 : set (set α)} (hyp : indep_sets p1 p2 μ)
+  {s1 s2 : set α} (h1 : s1 ∈ p1) (h2 : s2 ∈ p2) :
+  indep_set s1 s2 μ :=
+begin
+  rw indep_set_iff,
+  apply hyp _ _ h1 h2,
+end
+
+lemma indep_Sup_Sup {α} {β : Type*} [M : measurable_space α] {μ : measure α}
+  [P : probability_measure μ] {Mf : β → measurable_space α}
+  (h_meas_Mf : ∀ b, Mf b ≤ M)
+  {S1 S2 : set β} (h_disj : disjoint S1 S2)
+  (h_ind_pair : ∀ (T1 T2 : finset β) (f1 f2 : β → set α),
+  ↑T1 ⊆ S1 → (↑T2 ⊆ S2) →
+    (∀ b ∈ T1, (Mf b).measurable_set' (f1 b)) →
+    (∀ b ∈ T2, (Mf b).measurable_set' (f2 b)) →
+   indep_set (⋂ b ∈ T1, f1 b) (⋂ b ∈ T2, f2 b) μ) :
+   indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ :=
+begin
+  have h_set_union : ∀ (S:set β), ⋃₀ (measurable_set' '' (Mf '' S)) =
+    (⋃ (b∈ S), (Mf b).measurable_set'),
+  { intros S, ext a, split; intros h1; simp at h1; simp [h1], },
+  have h_is_pi_system : ∀ (b:β), is_pi_system (Mf b).measurable_set',
+  { intros b, apply is_pi_system_measurable_set },
+  apply indep_sets.indep,
+  repeat { apply @Sup_le (measurable_space α) _,
+    intros M' h_M', rcases h_M' with ⟨b', ⟨h_b', rfl⟩⟩, apply h_meas_Mf b' },
+  apply is_pi_system_generate_pi_system (⋃₀ (measurable_set' '' (Mf '' S1))),
+  apply is_pi_system_generate_pi_system (⋃₀ (measurable_set' '' (Mf '' S2))),
+  repeat { rw [Sup_eq_generate_from, generate_from_generate_pi_system_eq] },
+  intros s1 s2 h_s1 h_s2,
+  rw ← indep_set_iff,
+  rw h_set_union S1 at h_s1,
+  rw h_set_union S2 at h_s2,
+  have h_union_s1 := mem_generate_pi_system_Union_elim' (λ b (h:b∈ S1), h_is_pi_system b) s1 h_s1,
+  have h_union_s2 := mem_generate_pi_system_Union_elim' (λ b (h:b∈ S2), h_is_pi_system b) s2 h_s2,
+  rcases h_union_s1 with ⟨T1, ⟨f1, ⟨h_T1_sub, ⟨rfl, h_union_s1⟩⟩⟩⟩,
+  rcases h_union_s2 with ⟨T2, ⟨f2, ⟨h_T2_sub, ⟨rfl, h_union_s2⟩⟩⟩⟩,
+  apply h_ind_pair T1 T2 f1 f2 h_T1_sub h_T2_sub h_union_s1 h_union_s2,
+end
+
+lemma Indep_elim {α} {β} [M : measurable_space α] {μ : measure α} [P : probability_measure μ]
+  {Mf : β → measurable_space α} (h_le : ∀ b, Mf b ≤ M) (h_ind : Indep Mf μ) {S1 S2 : set β}
+  (h_disj : disjoint S1 S2) : (indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ) :=
+begin
+  classical,
+  apply indep_Sup_Sup h_le h_disj,
+  intros T1 T2 f1 f2 h_T1_sub h_T2_sub h_T1_meas h_T2_meas,
+  rw indep_set_iff,
+  unfold Indep Indep_sets at h_ind,
+  let f := (λ b, if (b ∈ T1) then f1 b else f2 b),
+  begin
+    have h_T_disj : disjoint T1 T2,
+    { rw finset.disjoint_right,
+      intros b h_T2 h_T1,
+      apply (set.disjoint_right.1 h_disj) (h_T2_sub (finset.mem_coe.2 h_T2))
+        (h_T1_sub (finset.mem_coe.2 h_T1)), },
+    have h_f_def : f = λ b, if (b ∈ T1) then f1 b else f2 b := rfl,
+    have h_f1_eq_f: ∀ (b∈ T1), f1 b = f b,
+    { intros b h_b, simp [h_f_def], rw if_pos h_b },
+    have h_f2_eq_f: ∀ (b∈ T2), f2 b = f b,
+    { intros b h_b, simp [h_f_def], rw if_neg,
+      apply (finset.disjoint_right.1 h_T_disj) h_b },
+    have h_T1_f_meas : ∀ (b : β), b ∈ T1 → (Mf b).measurable_set' (f b),
+    { intros b h_b, rw ← h_f1_eq_f b h_b, apply h_T1_meas b h_b },
+    have h_T2_f_meas : ∀ (b : β), b ∈ T2 → (Mf b).measurable_set' (f b),
+    { intros b h_b, rw ← h_f2_eq_f b h_b, apply h_T2_meas b h_b },
+    have h_eq : ((⋂ (b ∈ T1), f b) ∩ ⋂ (b ∈ T2), f b) =
+       ((⋂ (b ∈ (T1 ∪ T2)), f b)),
+    { ext a, split; simp only [finset.mem_union, set.mem_inter_eq, set.mem_Inter],
+      { intros h_1 i h_3,
+        apply h_3.elim (h_1.left i) (h_1.right i) },
+      intros h_1, split,
+      { intros b h_b, apply h_1 b (or.inl h_b) },
+      { intros b h_b, apply h_1 b (or.inr h_b) } },
+    rw [set.Inter_finset_congr _ _ h_f1_eq_f, set.Inter_finset_congr _ _ h_f2_eq_f,
+        h_ind T1 h_T1_f_meas, h_ind T2 h_T2_f_meas, h_eq, ← finset.prod_union h_T_disj,
+        h_ind (T1 ∪ T2)],
+    intros b h_b, apply (finset.mem_union.1 h_b).elim (h_T1_f_meas b) (h_T2_f_meas b),
+  end,
+  apply P,
+end
+
+lemma Indep_elim' {α} {β} [M : measurable_space α] (μ : measure α) [probability_measure μ]
+  (Mf : β → measurable_space α) (h_le : ∀ b, Mf b ≤ M) (h_ind : Indep Mf μ) (s : set β)
+  (t : β) (h_t_notin_s : t ∉ s) : (indep (Sup (Mf '' s)) (Mf t) μ) :=
+begin
+  have h1 : Mf t = (Sup (Mf '' {t})),
+  { simp },
+  rw h1,
+  apply Indep_elim h_le h_ind (set.disjoint_singleton_right.2 h_t_notin_s),
 end
 
 end from_pi_systems_to_measurable_spaces

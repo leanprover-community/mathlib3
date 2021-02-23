@@ -14,7 +14,7 @@ The standard example is the set of diagonal matrices in the Lie algebra of matri
 ## Main definitions
 
   * `lie_subalgebra.normalizer`
-  * `lie_subalgebra.le_normalizer_of_exists_ideal`
+  * `lie_subalgebra.le_normalizer_of_ideal`
   * `lie_subalgebra.is_cartan_subalgebra`
 
 ## Tags
@@ -50,22 +50,20 @@ begin
 end
 
 /-- A Lie subalgebra is an ideal of its normalizer. -/
-lemma ideal_in_normalizer : ∃ (I : lie_ideal R H.normalizer), ↑I = of_le H.le_normalizer :=
+lemma ideal_in_normalizer : ∀ (x y : L), x ∈ H.normalizer → y ∈ H → ⁅x,y⁆ ∈ H :=
 begin
-  simp only [exists_nested_lie_ideal_coe_eq_iff, mem_normalizer_iff],
-  intros x y h hy, exact h y hy,
+  simp only [mem_normalizer_iff],
+  intros x y h, exact h y,
 end
 
 /-- The normalizer of a Lie subalgebra `H` is the maximal Lie subalgebra in which `H` is a Lie
 ideal. -/
-lemma le_normalizer_of_exists_ideal {N : lie_subalgebra R L}
-  (h₁ : H ≤ N) (h₂ : ∃ (I : lie_ideal R N), ↑I = of_le h₁) : N ≤ H.normalizer :=
+lemma le_normalizer_of_ideal {N : lie_subalgebra R L}
+  (h₁ : H ≤ N) (h₂ : ∀ (x y : L), x ∈ N → y ∈ H → ⁅x,y⁆ ∈ H) : N ≤ H.normalizer :=
 begin
   intros x hx,
   rw mem_normalizer_iff,
-  intros y hy,
-  rw exists_nested_lie_ideal_coe_eq_iff at h₂,
-  exact h₂ x y hx hy,
+  exact λ y, h₂ x y hx,
 end
 
 variables (R L)

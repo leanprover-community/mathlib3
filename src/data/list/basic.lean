@@ -1600,6 +1600,30 @@ begin
     { simp only [hl, cons_append, nth, eq_self_iff_true, and_self, take] } }
 end
 
+@[simp] lemma take_eq_nil_iff {l : list α} {k : ℕ} :
+  l.take k = [] ↔ l = [] ∨ k = 0 :=
+by { cases l; cases k; simp [nat.succ_ne_zero] }
+
+lemma init_take {n : ℕ} {l : list α} (h : n < l.length) :
+  (l.take n).init = l.take n.pred :=
+begin
+  induction n with n hn generalizing l,
+  { simp [init] },
+  { cases l with hd tl,
+    { simpa using h },
+    { cases ht : tl.take n,
+      { rw [take_eq_nil_iff] at ht,
+        rcases ht with (rfl | rfl),
+        { simp only [nat.succ_lt_succ_iff, length_singleton] at h,
+          exact absurd n.zero_le h.not_le },
+        { simp [init] } },
+      { rw [take, ht, init, ←ht, hn, ←take, nat.succ_pred_eq_of_pos, nat.pred_succ],
+        { contrapose! ht,
+          rw [nonpos_iff_eq_zero] at ht,
+          simp [ht] },
+        { simpa [nat.succ_lt_succ_iff] using h } } } }
+end
+
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
 by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h

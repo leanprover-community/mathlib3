@@ -102,7 +102,10 @@ begin
     right,
     rw ih,
     simp only [sub_zero],
-    convert @ih (n-1) (ν-1) _; omega, }
+    convert @ih (n-1) (ν-1) _,
+    { omega, },
+    { omega, },
+    { exact le_of_lt h, }, },
 end
 
 @[simp]
@@ -120,26 +123,19 @@ begin
     push_cast, }
 end
 
-/-
-lemma linear_independent.fin_succ (n : ℕ) (ι : fin (n+1) → V)
-  (hι : linear_independent K (ι ∘ fin.cast_succ))
-  (hx : ι (fin.last n) ∉ span K (set.range (ι ∘ @fin.cast_succ n))) :
-  linear_independent K ι :=
-sorry
--/
-
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
 begin
   induction k with k ih,
   { apply linear_independent_empty_type,
-    sorry, },
-  { apply linear_independent.fin_succ, -- use linear_independent_fin_succ instead?
-    { exact ih (le_of_lt h) },
+    rintro ⟨⟨n, ⟨⟩⟩⟩, },
+  { apply linear_independent_fin_succ'.mpr,
+    fsplit, -- use linear_independent_fin_succ instead?
+    exact ih (le_of_lt h),
     { -- The actual work!
       -- We show that the k-th derivate at 1 doesn't vanish,
       -- but vanishes for everything in the span.
-
+      sorry,
       } }
   -- library_search,
 end

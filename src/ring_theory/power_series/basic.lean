@@ -1190,7 +1190,7 @@ begin
 end
 
 lemma sub_const_eq_X_mul_shift (φ : power_series R) :
-  (φ - C R (constant_coeff R φ)) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=
+  φ - C R (constant_coeff R φ) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=
 begin
  ext, cases n,
   { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,

@@ -82,15 +82,6 @@ instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
 instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
 function.nontrivial
 
-/--
-A 1 × 1 `matrix` can be considered as a value of the underlying scalar.
--/
-instance [unique n] [unique m] : has_coe (matrix m n α) α := ⟨λ M, M (default _) (default _)⟩
-
-/--
-A 1 × 1 `matrix` can be considered as a value of the underlying scalar.
--/
-lemma coe_def [unique n] [unique m] (M : matrix m n α) : (M : α) = M (default _) (default _) := rfl
 
 @[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
 @[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl

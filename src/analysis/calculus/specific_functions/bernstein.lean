@@ -10,6 +10,39 @@ import data.nat.pochhammer
 import tactic.omega
 import tactic.slim_check
 
+namespace linear_map
+
+universes u v
+
+def iterate {R : Type u} [semiring R]
+   {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) : ℕ → (M →ₗ[R] M)
+| 0 := linear_map.id
+| (n+1) := (iterate n).comp f
+
+@[simp] lemma iterate_apply {R : Type u} [semiring R]
+   {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
+  f.iterate n m = ((f : M → M)^[n] m) :=
+begin
+  induction n with n ih generalizing m,
+  { refl, },
+  { apply ih, },
+end
+
+instance {R : Type u} [semiring R] {M : Type v} [add_comm_monoid M] [semimodule R M] :
+  has_pow (M →ₗ[R] M) ℕ :=
+{ pow := λ f n, f.iterate n, }
+
+@[simp] lemma pow_apply {R : Type u} [semiring R]
+   {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
+  (f^n) m = ((f : M → M)^[n] m) :=
+iterate_apply f n m
+
+end linear_map
+
+@[simp] lemma polynomial.derivative_lhom_coe {R : Type*} [comm_ring R] :
+  (polynomial.derivative_lhom R : polynomial R → polynomial R) = polynomial.derivative :=
+rfl
+
 noncomputable theory
 
 meta def tactic.interactive.ls := tactic.interactive.library_search
@@ -123,6 +156,30 @@ begin
     push_cast, }
 end
 
+@[simp] lemma fin.init_lambda {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  fin.init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
+
+open submodule
+
+lemma apply_mem_span_of_mem_span {R : Type*} [semiring R]
+   {M : Type*} [add_comm_monoid M] [semimodule R M]
+   {N : Type*} [add_comm_monoid N] [semimodule R N]
+   (f : M →ₗ[R] N) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
+   f x ∈ submodule.span R (f '' s) :=
+begin
+  simp only [submodule.mem_span, submodule.mem_map, submodule.span_image] at h ⊢,
+  exact ⟨x, ⟨h, rfl⟩⟩,
+end
+
+lemma not_mem_span_of_apply_not_mem_span {R : Type*} [semiring R]
+   {M : Type*} [add_comm_monoid M] [semimodule R M]
+   {N : Type*} [add_comm_monoid N] [semimodule R N]
+   (f : M →ₗ[R] N) {x : M} {s : set M} (h : f x ∉ submodule.span R (f '' s)) :
+   x ∉ submodule.span R s :=
+not.imp h (apply_mem_span_of_mem_span f)
+
+
+
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
 begin
@@ -130,11 +187,18 @@ begin
   { apply linear_independent_empty_type,
     rintro ⟨⟨n, ⟨⟩⟩⟩, },
   { apply linear_independent_fin_succ'.mpr,
-    fsplit, -- use linear_independent_fin_succ instead?
+    fsplit,
     exact ih (le_of_lt h),
     { -- The actual work!
       -- We show that the k-th derivate at 1 doesn't vanish,
       -- but vanishes for everything in the span.
+      clear ih,
+      simp only [fin.coe_last, fin.init_lambda],
+      dsimp,
+      apply not_mem_span_of_apply_not_mem_span ((polynomial.derivative_lhom ℚ)^k),
+      simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
+      intros p h,
+      simp,
       sorry,
       } }
   -- library_search,

@@ -10,12 +10,12 @@ import topology.sequences
 /-!
 # Normed groups homomorphisms
 
-This file gathers definitions and elementary constructions about bounded group homormorphisms
-between normed groups (abbreviated to "normed group homs").
+This file gathers definitions and elementary constructions about bounded group homomorphisms
+between normed (abelian) groups (abbreviated to "normed group homs").
 
 The main lemmas relate the boundedness condition to continuity and Lispschitzness.
 
-The main construction is to endow the type of normed group homs between two given normed group
+The main construction is to endow the type of normed group homs between two given normed groups
 with a group structure and a norm (we haven't proved yet that these two make a normed group
 structure).
 
@@ -46,7 +46,7 @@ instance : has_coe_to_fun (normed_group_hom V₁ V₂) := ⟨_, normed_group_hom
 
 @[simp] lemma coe_mk (f) (h₁) (h₂) (h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂) = f := rfl
 
-@[simp] lemma mk_to_monoid_hom (f) (h₁) (h₂) (h₃) :
+@[simp] lemma mk_to_add_monoid_hom (f) (h₁) (h₂) (h₃) :
   (⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂).to_add_monoid_hom = ⟨f, h₁, h₂⟩ := rfl
 
 @[simp] lemma map_zero : f 0 = 0 := f.to_add_monoid_hom.map_zero

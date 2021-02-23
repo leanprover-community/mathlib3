@@ -29,6 +29,11 @@ of the summands. This effectively simulates a “carrying” operation.
 
 We use notation `𝕎 R`, entered `\bbW`, for the Witt vectors over `R`.
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 noncomputable theory

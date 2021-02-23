@@ -397,7 +397,8 @@ begin
   congr',
 end
 
-@[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) : nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
+@[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
+  nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 begin
   split,
   { introI h,
@@ -515,7 +516,8 @@ not_iff_not.mp (
   not_nontrivial_iff_subsingleton.symm)
 
 @[to_additive]
-instance [subsingleton G] : subsingleton (subgroup G) := subsingleton_iff.mp ‹_›
+instance [subsingleton G] : unique (subgroup G) :=
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ (subsingleton_iff.mp ‹_›) a _⟩
 
 @[to_additive]
 instance [nontrivial G] : nontrivial (subgroup G) := nontrivial_iff.mp ‹_›
@@ -873,7 +875,8 @@ instance top_normal : normal (⊤ : subgroup G) := ⟨λ _ _, mem_top⟩
 
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
-@[to_additive "The center of a group `G` is the set of elements that commute with everything in `G`"]
+@[to_additive "The center of a group `G` is the set of elements that commute with everything in
+`G`"]
 def center : subgroup G :=
 { carrier := {z | ∀ g, g * z = z * g},
   one_mem' := by simp,
@@ -908,7 +911,8 @@ def normalizer : subgroup G :=
 -- variant for sets.
 -- TODO should this replace `normalizer`?
 /-- The `set_normalizer` of `S` is the subgroup of `G` whose elements satisfy `g*S*g⁻¹=S` -/
-@[to_additive "The `set_normalizer` of `S` is the subgroup of `G` whose elements satisfy `g+S-g=S`."]
+@[to_additive "The `set_normalizer` of `S` is the subgroup of `G` whose elements satisfy
+`g+S-g=S`."]
 def set_normalizer (S : set G) : subgroup G :=
 { carrier := {g : G | ∀ n, n ∈ S ↔ g * n * g⁻¹ ∈ S},
   one_mem' := by simp,

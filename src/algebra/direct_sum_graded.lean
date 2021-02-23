@@ -249,6 +249,13 @@ instance : distrib (⨁ i, A i) :=
   left_distrib := by { unfold has_mul.mul, simp, },
   right_distrib := by { unfold has_mul.mul, simp [direct_sum.to_add_monoid, direct_sum.of], } }
 
+lemma of_mul_of {i j} (a : A i) (b : A j) :
+  of _ i a * of _ j b = of _ (i + j) (ghas_mul.mul a b) :=
+begin
+  unfold has_one.one has_mul.mul,
+  simp,
+end
+
 end mul
 
 /-! The various semiring fields are proved separately because the proofs are slow. -/

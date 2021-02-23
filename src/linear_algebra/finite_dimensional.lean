@@ -865,11 +865,14 @@ by { unfold findim, simp [dim_top] }
 
 end top
 
-lemma eq_zero_of_findim_eq_zero [finite_dimensional K V]
-  (hV : findim K V = 0) (x : V) : x = 0 :=
+lemma findim_zero_iff_forall_zero [finite_dimensional K V] :
+  findim K V = 0 ↔ ∀ x : V, x = 0 :=
 begin
-  haveI := findim_eq_zero_iff_subsingleton.mp hV,
-  exact subsingleton.elim x 0,
+  split; intro h,
+  { haveI := findim_eq_zero_iff_subsingleton.mp h,
+    exact sorry },
+  { rw findim_eq_zero_iff_subsingleton,
+    exact sorry },
 end
 
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]

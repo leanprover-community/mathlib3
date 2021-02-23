@@ -980,6 +980,29 @@ lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :
   is_unit (constant_coeff R φ) :=
 mv_power_series.is_unit_constant_coeff φ h
 
+/-- Split off the constant coefficient. -/
+lemma eq_shift_mul_X_add_const (φ : power_series R) :
+  φ = mk (λ p, coeff R (p + 1) φ) * X + C R (constant_coeff R φ) :=
+begin
+  ext,
+  cases n,
+  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+    zero_add, mul_zero, ring_hom.map_mul], },
+  simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_add],
+  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false, add_zero],
+end
+
+lemma eq_X_mul_shift_add_const (φ : power_series R) :
+  φ = X * mk (λ p, coeff R (p + 1) φ) + C R (constant_coeff R φ) :=
+begin
+  ext,
+  cases n,
+  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+    zero_add, zero_mul, ring_hom.map_mul], },
+  simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_add],
+  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false, add_zero],
+end
+
 section map
 variables {S : Type*} {T : Type*} [semiring S] [semiring T]
 variables (f : R →+* S) (g : S →+* T)
@@ -1182,21 +1205,15 @@ mv_power_series.mul_inv_of_unit φ u $ h
 lemma sub_const_eq_shift_mul_X (φ : power_series R) :
   φ - C R (constant_coeff R φ) = power_series.mk (λ p, coeff R (p + 1) φ) * X :=
 begin
-  ext, cases n,
-  { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
-    mul_zero, sub_self, ring_hom.map_mul] },
-  simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_sub],
-  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false],
+  rw [sub_eq_iff_eq_add],
+  exact eq_shift_mul_X_add_const φ,
 end
 
 lemma sub_const_eq_X_mul_shift (φ : power_series R) :
   φ - C R (constant_coeff R φ) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=
 begin
-  ext, cases n,
-  { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
-    zero_mul, sub_self, ring_hom.map_mul] },
-  simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_sub],
-  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false],
+  rw [sub_eq_iff_eq_add],
+  exact eq_X_mul_shift_add_const φ,
 end
 
 end ring

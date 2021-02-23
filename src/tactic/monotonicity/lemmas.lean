@@ -68,9 +68,10 @@ end
 
 open set
 
-attribute [mono] monotone_inter monotone_union
+attribute [mono] inter_subset_inter union_subset_union
                  sUnion_mono bUnion_mono sInter_subset_sInter bInter_mono
                  image_subset preimage_mono prod_mono monotone_prod seq_mono
+                 image2_subset order_embedding.monotone
 attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
                  upper_bounds_mono_mem  lower_bounds_mono_mem
                  upper_bounds_mono  lower_bounds_mono

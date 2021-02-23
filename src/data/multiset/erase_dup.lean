@@ -29,11 +29,11 @@ quot.lift_on s (λ l, (l.erase_dup : multiset α))
 quot.induction_on s $ λ l, mem_erase_dup
 
 @[simp] theorem erase_dup_cons_of_mem {a : α} {s : multiset α} : a ∈ s →
-  erase_dup (a::s) = erase_dup s :=
+  erase_dup (a ::ₘ s) = erase_dup s :=
 quot.induction_on s $ λ l m, @congr_arg _ _ _ _ coe $ erase_dup_cons_of_mem m
 
 @[simp] theorem erase_dup_cons_of_not_mem {a : α} {s : multiset α} : a ∉ s →
-  erase_dup (a::s) = a :: erase_dup s :=
+  erase_dup (a ::ₘ s) = a ::ₘ erase_dup s :=
 quot.induction_on s $ λ l m, congr_arg coe $ erase_dup_cons_of_not_mem m
 
 theorem erase_dup_le (s : multiset α) : erase_dup s ≤ s :=
@@ -62,7 +62,7 @@ theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
 ⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_erase_dup _,
  λ h, h.symm ▸ erase_dup_zero⟩
 
-@[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
+@[simp] theorem erase_dup_singleton {a : α} : erase_dup (a ::ₘ 0) = a ::ₘ 0 :=
 erase_dup_eq_self.2 $ nodup_singleton _
 
 theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=
@@ -75,4 +75,26 @@ by simp [nodup_ext]
 theorem erase_dup_map_erase_dup_eq [decidable_eq β] (f : α → β) (s : multiset α) :
   erase_dup (map f (erase_dup s)) = erase_dup (map f s) := by simp [erase_dup_ext]
 
+@[simp]
+lemma erase_dup_nsmul {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
+  (n •ℕ s).erase_dup = s.erase_dup :=
+begin
+  ext a,
+  by_cases h : a ∈ s;
+  simp [h,h0]
+end
+
+lemma nodup.le_erase_dup_iff_le {s t : multiset α} (hno : s.nodup) :
+  s ≤ t.erase_dup ↔ s ≤ t :=
+by simp [le_erase_dup, hno]
+
 end multiset
+
+lemma multiset.nodup.le_nsmul_iff_le {α : Type*} {s t : multiset α}
+  {n : ℕ} (h : s.nodup) (hn : n ≠ 0) :
+  s ≤ n •ℕ t ↔ s ≤ t :=
+begin
+  classical,
+  rw [← h.le_erase_dup_iff_le, iff.comm, ← h.le_erase_dup_iff_le],
+  simp [hn]
+end

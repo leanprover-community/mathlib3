@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2019 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston, Bryan Gin-ge Chen
+-/
+
 import data.setoid.basic
 import data.set.lattice
 
@@ -176,12 +182,13 @@ variables (α)
 
 /-- The order-preserving bijection between equivalence relations and partitions of sets. -/
 def partition.rel_iso :
-  ((≤) : setoid α → setoid α → Prop) ≃r (@setoid.partition.partial_order α).le :=
+  setoid α ≃o subtype (@is_partition α) :=
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := mk_classes_classes,
   right_inv := λ x, by rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2],
-  map_rel_iff' := λ x y, by conv {to_lhs, rw [←mk_classes_classes x, ←mk_classes_classes y]}; refl }
+  map_rel_iff' := λ x y,
+    by { conv_rhs { rw [←mk_classes_classes x, ←mk_classes_classes y] }, refl } }
 
 variables {α}
 

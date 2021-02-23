@@ -3,7 +3,7 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import algebra.gcd_monoid
+import ring_theory.int.basic
 import algebra.field_power
 import ring_theory.multiplicity
 import data.real.cau_seq
@@ -282,8 +282,6 @@ have hqn : q.num ≠ 0, from rat.num_ne_zero_of_ne_zero hq,
 have hqd : (q.denom : ℤ) ≠ 0, by exact_mod_cast rat.denom_ne_zero _,
 have hrn : r.num ≠ 0, from rat.num_ne_zero_of_ne_zero hr,
 have hrd : (r.denom : ℤ) ≠ 0, by exact_mod_cast rat.denom_ne_zero _,
-have hqdv : q.num /. q.denom ≠ 0, from rat.mk_ne_zero_of_ne_zero hqn hqd,
-have hrdv : r.num /. r.denom ≠ 0, from rat.mk_ne_zero_of_ne_zero hrn hrd,
 have hqreq : q + r = (((q.num * r.denom + q.denom * r.num : ℤ)) /. (↑q.denom * ↑r.denom : ℤ)),
   from rat.add_num_denom _ _,
 have hqrd : q.num * ↑(r.denom) + ↑(q.denom) * r.num ≠ 0,
@@ -314,6 +312,28 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
   (λ h, by rw [min_eq_left h]; exact le_padic_val_rat_add_of_le _ hq hr hqr h)
   (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le _ hr hq
     (by rwa add_comm) h)
+
+open_locale big_operators
+
+/-- A finite sum of rationals with positive p-adic valuation has positive p-adic valuation
+  (if the sum is non-zero). -/
+theorem sum_pos_of_pos {n : ℕ} {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → 0 < padic_val_rat p (F i)) (hn0 : ∑ i in finset.range n, F i ≠ 0) :
+  0 < padic_val_rat p (∑ i in finset.range n, F i) :=
+begin
+  induction n with d hd,
+  { exact false.elim (hn0 rfl) },
+  { rw finset.sum_range_succ at hn0 ⊢,
+    by_cases h : ∑ (x : ℕ) in finset.range d, F x = 0,
+    { rw [h, add_zero],
+      exact hF d (lt_add_one _) },
+    { refine lt_of_lt_of_le _ (min_le_padic_val_rat_add p (λ h1, _) h hn0),
+      { refine lt_min (hF d (lt_add_one _)) (hd (λ i hi, _) h),
+        exact hF _ (lt_trans hi (lt_add_one _)) },
+      { have h2 := hF d (lt_add_one _),
+        rw h1 at h2,
+        exact lt_irrefl _ h2 } } }
+end
 
 end padic_val_rat
 
@@ -363,6 +383,14 @@ begin
   { rw padic_val_nat_def hn,
     exact (@multiplicity.unique' _ _ _ p n 0 (by simp) (by simpa using not_dvd)).symm,
     assumption, },
+end
+
+lemma dvd_of_one_le_padic_val_nat {n p : nat} [prime : fact p.prime] (hp : 1 ≤ padic_val_nat p n) :
+  p ∣ n :=
+begin
+  by_contra h,
+  rw padic_val_nat_of_not_dvd h at hp,
+  exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp),
 end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime] (neq : p ≠ q) :
@@ -418,7 +446,7 @@ open_locale big_operators
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
 begin
-  rw ← nat.pos_iff_ne_zero at hn,
+  rw ← pos_iff_ne_zero at hn,
   have H : (factors n : multiset ℕ).prod = n,
   { rw [multiset.coe_prod, prod_factors hn], },
   rw finset.prod_multiset_count at H,
@@ -429,7 +457,7 @@ begin
     haveI Hp : fact p.prime := hp.2,
     rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn Hp],
     contrapose! hpn,
-    rw [padic_val_nat_of_not_dvd hpn, nat.pow_zero], },
+    rw [padic_val_nat_of_not_dvd hpn, pow_zero], },
   { intros, assumption },
   { intros p hp hpn,
     rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
@@ -438,12 +466,11 @@ begin
     refine ⟨p, ⟨_, Hp⟩, ⟨_, rfl⟩⟩,
     { rw mem_factors_iff_dvd hn Hp at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },
     { rw padic_val_nat_eq_factors_count,
-      simp only [pow_eq_pow, ne.def, multiset.coe_count] at hpn,
-      convert hpn } },
+      simpa [ne.def, multiset.coe_count] using hpn } },
   { intros p hp hpn,
     rw [finset.mem_filter, finset.mem_range] at hp,
     haveI Hp : fact p.prime := hp.2,
-    rw [padic_val_nat_eq_factors_count, multiset.coe_count, pow_eq_pow] }
+    rw [padic_val_nat_eq_factors_count, multiset.coe_count] }
 end
 
 end padic_val_nat
@@ -532,6 +559,13 @@ padic_norm_p_lt_one $ nat.prime.one_lt ‹_›
 protected theorem values_discrete {q : ℚ} (hq : q ≠ 0) : ∃ z : ℤ, padic_norm p q = p ^ (-z) :=
 ⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
+/--
+`padic_norm p` is symmetric.
+-/
+@[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
+if hq : q = 0 then by simp [hq]
+else by simp [padic_norm, hq]
+
 variable [hp : fact p.prime]
 include hp
 
@@ -544,13 +578,6 @@ begin
   apply fpow_ne_zero_of_ne_zero,
   exact_mod_cast ne_of_gt hp.pos
 end
-
-/--
-`padic_norm p` is symmetric.
--/
-@[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
-if hq : q = 0 then by simp [hq]
-else by simp [padic_norm, hq, hp.one_lt]
 
 /--
 If the p-adic norm of `q` is 0, then `q` is 0.
@@ -693,23 +720,20 @@ instance : is_absolute_value (padic_norm p) :=
   abv_add := padic_norm.triangle_ineq p,
   abv_mul := padic_norm.mul p }
 
-/--
-If `p^n` divides an integer `z`, then the p-adic norm of `z` is at most `p^(-n)`.
--/
-lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
+variable {p}
+
+lemma dvd_iff_norm_le {n : ℕ} {z : ℤ} : ↑(p^n) ∣ z ↔ padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
 begin
-  unfold padic_norm, split_ifs with hz hz,
-  { apply fpow_nonneg_of_nonneg,
-    exact_mod_cast le_of_lt hp.pos },
-  { apply fpow_le_of_le,
-    exact_mod_cast le_of_lt hp.one_lt,
-    apply neg_le_neg,
-    rw padic_val_rat_of_int _ hp.ne_one _,
+  unfold padic_norm, split_ifs with hz,
+  { norm_cast at hz,
+    have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.pos },
+    simp [hz, this] },
+  { rw [fpow_le_iff_le, neg_le_neg_iff, padic_val_rat_of_int _ hp.ne_one _],
     { norm_cast,
-      rw [← enat.coe_le_coe, enat.coe_get],
-      apply multiplicity.le_multiplicity_of_pow_dvd,
-      exact_mod_cast hd },
-    { exact_mod_cast hz }},
+      rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
+      simp },
+    { exact_mod_cast hz },
+    { exact_mod_cast hp.one_lt } }
 end
 
 end padic_norm

@@ -23,6 +23,7 @@ and the appropriate definition of instances:
    to `[nonempty α]`
  * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
    in the statement, and could thus be removed by using `classical` in the proof.
+ * `linter.has_coe_to_fun` checks whether necessary `has_coe_to_fun` instances are declared
 -/
 
 open tactic
@@ -44,7 +45,9 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   (is_persistent, prio) ← has_attribute `instance nm,
   /- return `none` if `d` is has low priority -/
   if prio < 1000 then return none else do
-  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
+  (_, tp) ← open_pis d.type,
+  tp ← whnf tp transparency.none,
+  let (fn, args) := tp.get_app_fn_args,
   cls ← get_decl fn.const_name,
   let (pi_args, _) := cls.type.pi_binders,
   guard (args.length = pi_args.length),
@@ -54,8 +57,20 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   let relevant_args := (args.zip pi_args).filter_map $ λ⟨e, ⟨_, info, tp⟩⟩,
     if info = binder_info.inst_implicit ∨ tp.get_app_fn.is_constant_of `out_param
     then none else some e,
-  let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
+  let always_applies := relevant_args.all expr.is_local_constant ∧ relevant_args.nodup,
   if always_applies then return $ some "set priority below 1000" else return none
+
+/--
+There are places where typeclass arguments are specified with implicit `{}` brackets instead of
+the usual `[]` brackets. This is done when the instances can be inferred because they are implicit
+arguments to the type of one of the other arguments. When they can be inferred from these other
+arguments,  it is faster to use this method than to use type class inference.
+
+For example, when writing lemmas about `(f : α →+* β)`, it is faster to specify the fact that `α`
+and `β` are `semiring`s as `{rα : semiring α} {rβ : semiring β}` rather than the usual
+`[semiring α] [semiring β]`.
+-/
+library_note "implicit instance arguments"
 
 /--
 Certain instances always apply during type-class resolution. For example, the instance
@@ -75,18 +90,6 @@ Therefore, if we create an instance that always applies, we set the priority of 
 -/
 library_note "lower instance priority"
 
-/--
-Instances that always apply should be applied after instances that only apply in specific cases,
-see note [lower instance priority] above.
-
-Classes that use the `extends` keyword automatically generate instances that always apply.
-Therefore, we set the priority of these instances to 100 (or something similar, which is below the
-default value of 1000) using `set_option default_priority 100`.
-We have to put this option inside a section, so that the default priority is the default
-1000 outside the section.
--/
-library_note "default priority"
-
 /-- A linter object for checking instance priorities of instances that always apply.
 This is in the default linter set. -/
 @[linter] meta def linter.instance_priority : linter :=
@@ -95,9 +98,7 @@ This is in the default linter set. -/
   errors_found := "DANGEROUS INSTANCE PRIORITIES.
 The following instances always apply, and therefore should have a priority < 1000.
 If you don't know what priority to choose, use priority 100.
-
-If this is an automatically generated instance (using the keywords `class` and `extends`),
-see note [lower instance priority] and see note [default priority] for instructions to change the priority",
+See note [lower instance priority] for instructions to change the priority.",
   auto_decls := tt }
 
 /-- Reports declarations of types that do not have an associated `inhabited` instance. -/
@@ -105,7 +106,7 @@ private meta def has_inhabited_instance (d : declaration) : tactic (option strin
 tt ← pure d.is_trusted | pure none,
 ff ← has_attribute' `reducible d.to_name | pure none,
 ff ← has_attribute' `class d.to_name | pure none,
-(_, ty) ← mk_local_pis d.type,
+(_, ty) ← open_pis d.type,
 ty ← whnf ty,
 if ty = `(Prop) then pure none else do
 `(Sort _) ← whnf ty | pure none,
@@ -133,7 +134,7 @@ attribute [nolint has_inhabited_instance] pempty
 /-- Checks whether an instance can never be applied. -/
 private meta def impossible_instance (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
-  (binders, _) ← get_pi_binders_dep d.type,
+  (binders, _) ← get_pi_binders_nondep d.type,
   let bad_arguments := binders.filter $ λ nb, nb.2.info ≠ binder_info.inst_implicit,
   _ :: _ ← return bad_arguments | return none,
   (λ s, some $ "Impossible to infer " ++ s) <$> print_arguments bad_arguments
@@ -155,7 +156,7 @@ private meta def incorrect_type_class_argument (d : declaration) : tactic (optio
   A local constant is allowed, because that could be a class when applied to the
   proper arguments. -/
   bad_arguments ← instance_arguments.mfilter (λ ⟨_, b⟩, do
-    (_, head) ← mk_local_pis b.type,
+    (_, head) ← open_pis b.type,
     if head.get_app_fn.is_local_constant then return ff else do
     bnot <$> is_class head),
   _ :: _ ← return bad_arguments | return none,
@@ -173,7 +174,7 @@ Some declarations have non-classes between [square brackets]" }
 arguments. -/
 private meta def dangerous_instance (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
-  (local_constants, target) ← mk_local_pis d.type,
+  (local_constants, target) ← open_pis d.type,
   let instance_arguments := local_constants.indexes_values $
     λ e : expr, e.local_binding_info = binder_info.inst_implicit,
   let bad_arguments := local_constants.indexes_values $ λ x,
@@ -198,7 +199,7 @@ private meta def dangerous_instance (d : declaration) : tactic (option string) :
   `Type`-valued sorts. -/
 meta def apply_to_fresh_variables (e : expr) : tactic expr := do
 t ← infer_type e,
-(xs, b) ← mk_local_pis t,
+(xs, b) ← open_pis t,
 xs.mmap' $ λ x, try $ do {
   u ← mk_meta_univ,
   tx ← infer_type x,
@@ -260,7 +261,7 @@ Make the following declarations instances of the class `has_coe_t` instead of `h
 elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/
 private meta def inhabited_nonempty (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
-   (binders, _) ← get_pi_binders_dep d.type,
+   (binders, _) ← get_pi_binders_nondep d.type,
    let inhd_binders := binders.filter $ λ pr, pr.2.type.is_app_of `inhabited,
    if inhd_binders.length = 0 then return none
    else (λ s, some $ "The following `inhabited` instances should be `nonempty`. " ++ s) <$>
@@ -279,7 +280,7 @@ Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    ff ← pure $ (`decidable).is_prefix_of d.to_name | return none,
-   (binders, _) ← get_pi_binders_dep d.type,
+   (binders, _) ← get_pi_binders_nondep d.type,
    let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
      ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
      ∨ pr.2.type.is_app_of `decidable,
@@ -302,6 +303,7 @@ attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
+tt ← return d.is_trusted | pure none,
 mk_meta_var d.type >>= set_goals ∘ pure,
 args ← unfreezing intros,
 expr.sort _ ← target | pure none,
@@ -327,4 +329,4 @@ pure $ format.to_string $
   no_errors_found := "has_coe_to_fun is used correctly",
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.
-See Note function coercions]." }
+See Note [function coercion]." }

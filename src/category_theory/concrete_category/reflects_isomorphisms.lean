@@ -18,8 +18,8 @@ open category_theory
 instance : reflects_isomorphisms (forget (Type u)) :=
 { reflects := λ X Y f i, i }
 
-variables (C : Type (u+1)) [large_category C] [concrete_category C]
-variables (D : Type (u+1)) [large_category D] [concrete_category D]
+variables (C : Type (u+1)) [category C] [concrete_category.{u} C]
+variables (D : Type (u+1)) [category D] [concrete_category.{u} D]
 
 /--
 A `forget₂ C D` forgetful functor between concrete categories `C` and `D`

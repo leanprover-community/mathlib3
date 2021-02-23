@@ -79,8 +79,8 @@ lemma agree_children {n : ℕ} (x : cofix_a F (succ n)) (y : cofix_a F (succ n+1
     {i j} (h₀ : i == j) (h₁ : agree x y) :
   agree (children' x i) (children' y j) :=
 begin
-  cases h₁, cases h₀,
-  apply h₁_a_1,
+  cases h₁ with _ _ _ _ _ _ hagree, cases h₀,
+  apply hagree,
 end
 
 /-- `truncate a` turns `a` into a more limited approximation -/
@@ -145,10 +145,10 @@ begin
     rw [h₀,h₂] at H,
     apply n_ih (truncate ∘ f₀),
     rw h₂,
-    cases H,
+    cases H with _ _ _ _ _ _ hagree,
     congr, funext j, dsimp only [comp_app],
     rw truncate_eq_of_agree,
-    apply H_a_1 }
+    apply hagree }
 end
 
 end approx
@@ -177,12 +177,8 @@ show inhabited (M F), by apply_instance
 
 namespace M
 
-lemma ext' (x y : M F) (H : ∀ i : ℕ, x.approx i = y.approx i) :
-  x = y :=
-begin
-  cases x, cases y,
-  congr, ext, apply H,
-end
+lemma ext' (x y : M F) (H : ∀ i : ℕ, x.approx i = y.approx i) : x = y :=
+by { cases x, cases y, congr' with n, apply H }
 
 variables {X : Type*}
 variables (f : X → F.obj X)
@@ -278,7 +274,7 @@ lemma dest_mk (x : F.obj $ M F) :
 begin
   funext i,
   dsimp only [M.mk,dest],
-  cases x with x ch, congr, ext i,
+  cases x with x ch, congr' with i,
   cases h : ch i,
   simp  only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
@@ -342,17 +338,17 @@ begin
   { induction n generalizing x y, constructor,
     { induction x using pfunctor.M.cases_on',
       induction y using pfunctor.M.cases_on',
-      simp only [approx_mk] at h, cases h,
+      simp only [approx_mk] at h, cases h with _ _ _ _ _ _ hagree,
       constructor; try { refl },
-      intro i, apply n_ih, apply h_a_1 } },
+      intro i, apply n_ih, apply hagree } },
   { induction n generalizing x y, constructor,
     { cases h,
       induction x using pfunctor.M.cases_on',
       induction y using pfunctor.M.cases_on',
       simp only [approx_mk],
-      replace h_a_1 := mk_inj h_a_1, cases h_a_1,
-      replace h_a_2 := mk_inj h_a_2, cases h_a_2,
-      constructor, intro i, apply n_ih, apply h_a_3 } },
+      have h_a_1 := mk_inj ‹M.mk ⟨x_a, x_f⟩ = M.mk ⟨h_a, h_x⟩›, cases h_a_1,
+      replace h_a_2 := mk_inj ‹M.mk ⟨y_a, y_f⟩ = M.mk ⟨h_a, h_y⟩›, cases h_a_2,
+      constructor, intro i, apply n_ih, simp * } },
 end
 
 @[simp]
@@ -362,12 +358,10 @@ begin
   dsimp only [M.mk,pfunctor.M.cases,dest,head,approx.s_mk,head'],
   cases x, dsimp only [approx.s_mk],
   apply eq_of_heq,
-  apply rec_heq_of_heq, congr,
-  ext, dsimp only [children,approx.s_mk,children'],
+  apply rec_heq_of_heq, congr' with x,
+  dsimp only [children,approx.s_mk,children'],
   cases h : x_snd x, dsimp only [head],
-  congr, ext,
-  change (x_snd (x)).approx x_1 = _,
-  rw h
+  congr' with n, change (x_snd (x)).approx n = _, rw h
 end
 
 @[simp]
@@ -394,7 +388,7 @@ lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'}
 begin
   revert h, generalize h : (M.mk ⟨a,f⟩) = x,
   intros h', cases h', subst x,
-  cases mk_inj h'_a_1, refl,
+  cases mk_inj ‹_›, refl,
 end
 
 lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a}
@@ -403,7 +397,8 @@ lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a}
 begin
   revert h, generalize h : (M.mk ⟨a,f⟩) = x,
   intros h', cases h', subst x,
-  cases mk_inj h'_a_1, exact h'_a_2,
+  have := mk_inj ‹_›, cases this, cases this,
+  assumption,
 end
 
 /-- follow a path through a value of `M F` and return the subtree
@@ -452,7 +447,7 @@ by apply ext'; intro n; refl
 lemma ichildren_mk [decidable_eq F.A] [inhabited (M F)] (x : F.obj (M F)) (i : F.Idx) :
   ichildren i (M.mk x) = x.iget i :=
 by { dsimp only [ichildren,pfunctor.obj.iget],
-     congr, ext, apply ext',
+     congr' with h, apply ext',
      dsimp only [children',M.mk,approx.s_mk],
      intros, refl }
 
@@ -475,7 +470,7 @@ lemma corec_def {X} (f : X → F.obj X) (x₀ : X) :
   M.corec f x₀ = M.mk (M.corec f <$> f x₀)  :=
 begin
   dsimp only [M.corec,M.mk],
-  congr, ext n,
+  congr' with n,
   cases n with n,
   { dsimp only [s_corec,approx.s_mk], refl, },
   { dsimp only [s_corec,approx.s_mk], cases h : (f x₀),
@@ -500,12 +495,11 @@ begin
   { cases hx, cases hy,
     induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
     subst z,
-    replace hx_a_2 := mk_inj hx_a_2, cases hx_a_2,
-    replace hy_a_1 := mk_inj hy_a_1, cases hy_a_1,
-    replace hy_a_2 := mk_inj hy_a_2, cases hy_a_2,
+    iterate 3 { have := mk_inj ‹_›, repeat { cases this } },
     simp only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
     ext i, apply n_ih,
-    { apply hx_a_3 }, { apply hy_a_3 },
+    { solve_by_elim },
+    { solve_by_elim },
     introv h, specialize hrec (⟨_,i⟩ :: ps) (congr_arg _ h),
     simp only [iselect_cons] at hrec, exact hrec }
 end

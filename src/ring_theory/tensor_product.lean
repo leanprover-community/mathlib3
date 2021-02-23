@@ -5,13 +5,10 @@ Authors: Scott Morrison
 -/
 
 import linear_algebra.tensor_product
-import ring_theory.algebra
-
-universes u v₁ v₂ v₃ v₄
-
+import algebra.algebra.basic
 
 /-!
-The tensor product of R-algebras.
+# The tensor product of R-algebras
 
 We construct the R-algebra structure on `A ⊗[R] B`, when `A` and `B` are both `R`-algebras,
 and provide the structure isomorphisms
@@ -25,6 +22,8 @@ The code for
 is written and compiles, but takes longer than the `-T100000` time limit,
 so is currently commented out.
 -/
+
+universes u v₁ v₂ v₃ v₄
 
 namespace algebra
 
@@ -371,7 +370,8 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
     f ((a₁ * a₂) ⊗ₜ (b₁ * b₂) ⊗ₜ (c₁ * c₂)) = f (a₁ ⊗ₜ b₁ ⊗ₜ c₁) * f (a₂ ⊗ₜ b₂ ⊗ₜ c₂))
   (w₂ : ∀ r, f (((algebra_map R A) r ⊗ₜ[R] (1 : B)) ⊗ₜ[R] (1 : C)) = (algebra_map R D) r) :
   (A ⊗[R] B) ⊗[R] C ≃ₐ[R] D :=
-{ map_mul' := λ x y,
+{ to_fun := f,
+  map_mul' := λ x y,
   begin
     apply tensor_product.induction_on x,
     { simp, },
@@ -386,16 +386,14 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
           { simp, },
           { simp [w₁], },
           { intros x₁ x₂ h₁ h₂,
-            simp at h₁, simp at h₂,
+            simp at h₁ h₂,
             simp [mul_add, add_tmul, h₁, h₂], }, },
         { intros x₁ x₂ h₁ h₂,
-          simp at h₁, simp at h₂,
+          simp at h₁ h₂,
           simp [add_mul, add_tmul, h₁, h₂], }, },
       { intros x₁ x₂ h₁ h₂,
-        simp at h₁, simp at h₂,
         simp [mul_add, add_mul, h₁, h₂], }, },
     { intros x₁ x₂ h₁ h₂,
-      simp at h₁, simp at h₂,
       simp [mul_add, add_mul, h₁, h₂], }
   end,
   commutes' := λ r, by simp [w₂],
@@ -464,7 +462,7 @@ section
 variables {R A B C}
 
 lemma assoc_aux_1 (a₁ a₂ : A) (b₁ b₂ : B) (c₁ c₂ : C) :
-  (tensor_product.assoc R A B C) (((a₁ * a₂) ⊗ₜ[R] b₁ * b₂) ⊗ₜ[R] c₁ * c₂) =
+  (tensor_product.assoc R A B C) (((a₁ * a₂) ⊗ₜ[R] (b₁ * b₂)) ⊗ₜ[R] (c₁ * c₂)) =
     (tensor_product.assoc R A B C) ((a₁ ⊗ₜ[R] b₁) ⊗ₜ[R] c₁) *
       (tensor_product.assoc R A B C) ((a₂ ⊗ₜ[R] b₂) ⊗ₜ[R] c₂) :=
 rfl
@@ -487,7 +485,8 @@ lemma assoc_aux_2 (r : R) :
 -- variables {R A B C}
 
 -- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) : (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+--   ((tensor_product.assoc R A B C) :
+--   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
 -- rfl
 
 end

@@ -54,9 +54,7 @@ def map_add_hom {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
   map_zero' := additive.map_zero,
   map_add' := λ _ _, additive.map_add }
 
-lemma map_add_hom_spec {X Y : C} {f : X ⟶ Y} : F.map_add_hom f = F.map f := rfl
-
-lemma map_add_hom_spec' {X Y : C} : ⇑(F.map_add_hom : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
+lemma coe_map_add_hom {X Y : C} : ⇑(F.map_add_hom : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
 
 @[simp]
 lemma additive.map_neg {X Y : C} {f : X ⟶ Y} : F.map (-f) = - F.map f :=

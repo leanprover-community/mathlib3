@@ -252,9 +252,13 @@ theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨⟨hm.1⟩, hm.2⟩⟩
 
+variables (α)
+
 /-- Krull's theorem: a nontrivial ring has a maximal ideal. -/
 theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
-let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
+let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) bot_ne_top in ⟨I, hI⟩
+
+variables {α}
 
 instance [nontrivial α] : nontrivial (ideal α) :=
 begin

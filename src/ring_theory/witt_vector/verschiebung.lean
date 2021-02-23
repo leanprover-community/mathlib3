@@ -8,7 +8,15 @@ import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
 
 
-/-! ## The Verschiebung operator -/
+/-!
+## The Verschiebung operator
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
+-/
 
 namespace witt_vector
 open mv_polynomial

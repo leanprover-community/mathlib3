@@ -49,22 +49,22 @@ namespace functor
 
 /-- `F.add_map` is an additive homomorphism whose underlying function is `F.map`. -/
 @[simps]
-def add_map {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
+def map_add_hom {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
 { to_fun := λ f, F.map f,
   map_zero' := additive.map_zero,
   map_add' := λ _ _, additive.map_add }
 
-lemma add_map_spec {X Y : C} {f : X ⟶ Y} : F.add_map f = F.map f := rfl
+lemma map_add_hom_spec {X Y : C} {f : X ⟶ Y} : F.map_add_hom f = F.map f := rfl
 
-lemma add_map_spec' {X Y : C} : ⇑(F.add_map : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
+lemma map_add_hom_spec' {X Y : C} : ⇑(F.map_add_hom : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
 
 @[simp]
 lemma additive.map_neg {X Y : C} {f : X ⟶ Y} : F.map (-f) = - F.map f :=
-F.add_map.map_neg _
+F.map_add_hom.map_neg _
 
 @[simp]
 lemma additive.map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
-F.add_map.map_sub _ _
+F.map_add_hom.map_sub _ _
 
 end functor
 end preadditive

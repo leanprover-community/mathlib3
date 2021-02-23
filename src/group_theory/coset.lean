@@ -76,11 +76,11 @@ mk_equivalence (left_coset_equiv s) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.
 
 /-- Equality of two right cosets `s * a` and `s * b`. -/
 @[to_additive right_add_coset_equiv "Equality of two right cosets `s + a` and `s + b`."]
-def right_coset_equiv (s : set α) (a b : α) := s *r a = s *r b
+def right_coset_equivalence (s : set α) (a b : α) := s *r a = s *r b
 
-@[to_additive right_add_coset_equiv_rel]
-lemma right_coset_equiv_rel (s : set α) : equivalence (right_coset_equiv s) :=
-mk_equivalence (right_coset_equiv s) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.trans)
+@[to_additive right_add_coset_equivalence_rel]
+lemma right_coset_equivalence_rel (s : set α) : equivalence (right_coset_equivalence s) :=
+mk_equivalence (right_coset_equivalence s) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.trans)
 
 end coset_mul
 
@@ -210,18 +210,18 @@ instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
 
 /-- The equivalence relation corresponding to the partition of a group by right cosets of a
-subgroup.-/
+subgroup. -/
 @[to_additive "The equivalence relation corresponding to the partition of a group by right cosets of
 a subgroup."]
 def right_rel [group α] (s : subgroup α) : setoid α :=
 ⟨λ x y, y * x⁻¹ ∈ s,
   assume x, by simp [s.one_mem],
   assume x y hxy,
-  have (y * x⁻¹)⁻¹ ∈ s, from s.inv_mem hxy,
-  by simpa using this,
+    have (y * x⁻¹)⁻¹ ∈ s, from s.inv_mem hxy,
+    by simpa using this,
   assume x y z hxy hyz,
-  have (z * y⁻¹) * (y * x⁻¹) ∈ s, from s.mul_mem hyz hxy,
-  by simpa [mul_assoc] using this⟩
+    have (z * y⁻¹) * (y * x⁻¹) ∈ s, from s.mul_mem hyz hxy,
+    by simpa [mul_assoc] using this⟩
 
 @[to_additive]
 instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
@@ -296,15 +296,15 @@ open quotient_group
 variables [group α] {s : subgroup α}
 
 /-- The natural bijection between a left coset `g * s` and `s`. -/
-@[to_additive "The natural bijection between the cosets `g + s` and `s`"]
+@[to_additive "The natural bijection between the cosets `g + s` and `s`."]
 def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 ⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
 
-/-- The natural bijection between a right coset `s * g` and `s`.-/
-@[to_additive "The natural bijection between the cosets `s + g` and `s`"]
+/-- The natural bijection between a right coset `s * g` and `s`. -/
+@[to_additive "The natural bijection between the cosets `s + g` and `s`."]
 def right_coset_equiv_subgroup (g : α) : right_coset ↑s g ≃ s :=
 ⟨λ x, ⟨x.1 * g⁻¹, (mem_right_coset_iff _).1 x.2⟩,
  λ x, ⟨x.1 * g, x.1, x.2, rfl⟩,

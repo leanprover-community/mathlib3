@@ -1197,8 +1197,8 @@ rescale (-1 : A)
 rescale_neg_one_X
 
 /-- Two ways of truncating a power series are the same. -/
-lemma minus_const_eq_shift_mul_x (φ: power_series A) :
-  (φ - C A (constant_coeff A φ)) = power_series.mk (λ p, coeff A p.succ φ) * X:=
+lemma sub_const_eq_shift_mul_X (φ : power_series A) :
+  φ - C A (constant_coeff A φ) = power_series.mk (λ p, coeff A p.succ φ) * X :=
 begin
   ext, cases n,
   { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,

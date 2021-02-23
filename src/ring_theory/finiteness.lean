@@ -284,27 +284,18 @@ lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u
 begin
   split,
   { rintro ⟨n, ⟨f, hf⟩⟩,
-    refine ⟨ulift (fin n), by apply_instance, f.comp (mv_polynomial.rename equiv.ulift),
-      hf.1.comp (λ x, _), _⟩,
     have h : ulift.down ∘ ulift.up = (id : fin n → fin n) := rfl,
+    refine ⟨ulift (fin n), by apply_instance, f.comp
+      (mv_polynomial.alg_equiv_of_equiv R equiv.ulift).to_alg_hom, hf.1.comp (λ x, _), _⟩,
     { use (mv_polynomial.rename equiv.ulift.symm) x,
-      simp only [h, alg_hom.coe_to_ring_hom, equiv.ulift_symm_apply, mv_polynomial.rename_id,
-        equiv.ulift_apply, mv_polynomial.rename_rename] },
-    suffices : (f.to_ring_hom.comp (mv_polynomial.ring_equiv_of_equiv R
-      equiv.ulift).to_ring_hom).ker.fg, { exact this },
+      simp [h] },
     have hfg : (↑(mv_polynomial.ring_equiv_of_equiv R equiv.ulift)
       : _root_.mv_polynomial (ulift (fin n)) R →+* _root_.mv_polynomial (fin n) R).ker.fg,
     { rw [ring_hom.ker_coe_equiv],
       exact submodule.fg_bot },
     refine submodule.fg_ker_ring_hom_comp _ _ hfg hf.2 (λ x, _),
     use (mv_polynomial.rename equiv.ulift.symm) x,
-    simp,
-    have h : ((mv_polynomial.ring_equiv_of_equiv R equiv.ulift).to_ring_hom)
-      ((mv_polynomial.rename ulift.up) x) = (mv_polynomial.ring_equiv_of_equiv R equiv.ulift)
-      ((mv_polynomial.rename ulift.up) x) := rfl,
-    have hid : equiv.ulift ∘ ulift.up = (id : fin n → fin n) := rfl,
-    rw [h, mv_polynomial.ring_equiv_of_equiv_apply, mv_polynomial.rename_rename, hid,
-      mv_polynomial.rename_id] },
+    simp [h] },
   { rintro ⟨ι, ⟨hfintype, ⟨f, hf⟩⟩⟩,
     letI : fintype ι := hfintype,
     obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι hfintype,

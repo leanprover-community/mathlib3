@@ -32,7 +32,7 @@ open category_theory
 @[to_additive AddMagma]
 def Magma : Type (u+1) := bundled has_mul
 
-/-- The category of additive magmas and magma morphisms. -/
+/-- The category of additive magmas and additive magma morphisms. -/
 add_decl_doc AddMagma
 
 namespace Magma

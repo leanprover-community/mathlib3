@@ -377,23 +377,6 @@ filter.mem_cocompact.trans $ exists_congr $ λ t, and_congr_right $ λ ht, compl
 lemma is_compact.compl_mem_cocompact (hs : is_compact s) : sᶜ ∈ filter.cocompact α :=
 filter.has_basis_cocompact.mem_of_mem hs
 
-lemma filter.coprod_cocompact {β : Type*} :
-  filter.coprod (cocompact α) (cocompact β) = cocompact (α × β) :=
-begin
-  ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cocompact],
-  split,
-  { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
-    rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
-    exact (hAf.prod hBf).subset (subset_inter hAS hBS) },
-  { intro hS,
-    refine ⟨⟨(prod.fst '' Sᶜ)ᶜ, _, _⟩, ⟨(prod.snd '' Sᶜ)ᶜ, _, _⟩⟩,
-    { simpa using hS.image prod.fst },
-    { simpa [compl_subset_comm] using subset_preimage_image prod.fst Sᶜ },
-    { simpa using hS.image prod.snd },
-    { simpa [compl_subset_comm] using subset_preimage_image prod.snd Sᶜ } },
-end
-
 section tube_lemma
 
 variables [topological_space β]
@@ -649,6 +632,35 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   rw ← range_inl_union_range_inr,
   exact (compact_range continuous_inl).union (compact_range continuous_inr)
 end⟩
+
+/-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
+their product. -/
+lemma filter.coprod_cocompact {β : Type*} [topological_space β]:
+  filter.coprod (filter.cocompact α) (filter.cocompact β) = filter.cocompact (α × β) :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  split,
+  { rintro ⟨⟨A, ⟨t, ht, hAt⟩, hAS⟩, B, ⟨t', ht', hBt'⟩, hBS⟩,
+    refine ⟨t.prod t', (ht.prod ht'), _⟩,
+    refine subset.trans _ (union_subset hAS hBS),
+    rw compl_subset_comm at ⊢ hAt hBt',
+    refine subset.trans _ (set.prod_mono hAt hBt'),
+    intros x,
+    simp only [compl_union, mem_inter_eq, mem_prod, mem_preimage, mem_compl_eq],
+    tauto },
+  { intro hS,
+    obtain ⟨t, ht, htS⟩ := hS,
+    refine ⟨⟨(prod.fst '' t)ᶜ, _, _⟩, ⟨(prod.snd '' t)ᶜ, _, _⟩⟩,
+    { exact ⟨prod.fst '' t, ht.image continuous_fst, subset.rfl⟩ },
+    { rw preimage_compl,
+      rw compl_subset_comm at ⊢ htS,
+      exact subset.trans htS (subset_preimage_image prod.fst _) },
+    { exact ⟨prod.snd '' t, ht.image continuous_snd, subset.rfl⟩ },
+    { rw preimage_compl,
+      rw compl_subset_comm at ⊢ htS,
+      exact subset.trans htS (subset_preimage_image prod.snd _) } }
+end
 
 section tychonoff
 variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]

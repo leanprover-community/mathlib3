@@ -48,6 +48,7 @@ lemma frequently_cofinite_iff_infinite {p : α → Prop} :
 by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
   set.infinite]
 
+/-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
 lemma filter.coprod_cofinite {β : Type*} :
   filter.coprod (cofinite : filter α) (cofinite : filter β) = cofinite :=
 begin

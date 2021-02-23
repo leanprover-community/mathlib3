@@ -7,6 +7,7 @@ import category_theory.limits.limits
 import category_theory.limits.shapes.terminal
 import category_theory.discrete_category
 import category_theory.epi_mono
+import category_theory.over
 
 /-!
 # Binary (co)products
@@ -819,3 +820,28 @@ def prod_comparison_nat_iso [has_binary_products C] [has_binary_products D]
 end prod_comparison
 
 end category_theory.limits
+
+open category_theory.limits
+
+namespace category_theory
+
+variables {C : Type u} [category.{v} C]
+
+/-- Auxilliary definition for `over.coprod`. -/
+@[simps]
+def over.coprod_obj [has_binary_coproducts C] {A : C} : over A → over A ⥤ over A := λ f,
+{ obj := λ g, over.mk (coprod.desc f.hom g.hom),
+  map := λ g₁ g₂ k, over.hom_mk (coprod.map (𝟙 _) k.left) }
+
+/-- A category with binary coproducts has a functorial `sup` operation on over categories. -/
+@[simps]
+def over.coprod [has_binary_coproducts C] {A : C} : over A ⥤ over A ⥤ over A :=
+{ obj := λ f, over.coprod_obj f,
+  map := λ f₁ f₂ k,
+  { app := λ g, over.hom_mk (coprod.map k.left (𝟙 _))
+      (by { dsimp, rw [coprod.map_desc, category.id_comp, over.w k] }),
+    naturality' := λ f g k, by ext; { dsimp, simp, }, },
+  map_id' := λ X, by ext; { dsimp, simp, },
+  map_comp' := λ X Y Z f g, by ext; { dsimp, simp, }, }.
+
+end category_theory

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
 import category_theory.over
+import category_theory.adjunction.opposites
 import category_theory.limits.preserves.basic
+import category_theory.limits.shapes.pullbacks
 import category_theory.limits.creates
 
 /-!
@@ -84,6 +86,63 @@ instance has_colimits [has_colimits C] : has_colimits (over X) :=
 -- We can automatically infer that the forgetful functor preserves colimits
 example [has_colimits C] : preserves_colimits (forget X) := infer_instance
 
+section
+variables [has_pullbacks C]
+
+open tactic
+
+/-- When `C` has pullbacks, a morphism `f : X ⟶ Y` induces a functor `over Y ⥤ over X`,
+by pulling back a morphism along `f`. -/
+@[simps]
+def pullback {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
+{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ X),
+  map := λ g h k,
+    over.hom_mk
+      (pullback.lift (pullback.fst ≫ k.left) pullback.snd (by simp [pullback.condition]))
+      (by tidy) }
+
+/-- `over.map f` is left adjoint to `over.pullback f`. -/
+def map_pullback_adj {A B : C} (f : A ⟶ B) :
+  over.map f ⊣ pullback f :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ g h,
+  { to_fun := λ X, over.hom_mk (pullback.lift X.left g.hom (over.w X)) (pullback.lift_snd _ _ _),
+    inv_fun := λ Y,
+    begin
+      refine over.hom_mk _ _,
+      refine Y.left ≫ pullback.fst,
+      dsimp,
+      rw [← over.w Y, category.assoc, pullback.condition, category.assoc], refl,
+    end,
+    left_inv := λ X, by { ext, dsimp, simp, },
+    right_inv := λ Y, begin
+      ext, dsimp,
+      simp only [pullback.lift_fst],
+      dsimp,
+      rw [pullback.lift_snd, ← over.w Y],
+      refl,
+    end } }
+
+/-- pullback (𝟙 A) : over A ⥤ over A is the identity functor. -/
+def pullback_id {A : C} : pullback (𝟙 A) ≅ 𝟭 _ :=
+adjunction.right_adjoint_uniq
+  (map_pullback_adj _)
+  (adjunction.id.of_nat_iso_left over.map_id.symm)
+
+/-- pullback commutes with composition (up to natural isomorphism). -/
+def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  pullback (f ≫ g) ≅ pullback g ⋙ pullback f :=
+adjunction.right_adjoint_uniq
+  (map_pullback_adj _)
+  (((map_pullback_adj _).comp _ _ (map_pullback_adj _)).of_nat_iso_left
+    (over.map_comp _ _).symm)
+
+instance pullback_is_right_adjoint {A B : C} (f : A ⟶ B) :
+  is_right_adjoint (pullback f) :=
+⟨_, map_pullback_adj f⟩
+
+end
+
 end category_theory.over
 
 namespace category_theory.under
@@ -122,5 +181,21 @@ instance has_limits [has_limits C] : has_limits (under X) :=
 
 -- We can automatically infer that the forgetful functor preserves limits
 example [has_limits C] : preserves_limits (forget X) := infer_instance
+
+
+section
+variables [has_pushouts C]
+
+/-- When `C` has pushouts, a morphism `f : X ⟶ Y` induces a functor `under X ⥤ under Y`,
+by pushing a morphism forward along `f`. -/
+@[simps]
+def pushout {X Y : C} (f : X ⟶ Y) : under X ⥤ under Y :=
+{ obj := λ g, under.mk (pushout.inr : Y ⟶ pushout g.hom f),
+  map := λ g h k,
+    under.hom_mk
+      (pushout.desc (k.right ≫ pushout.inl) pushout.inr (by { simp [←pushout.condition], }))
+      (by tidy) }
+
+end
 
 end category_theory.under

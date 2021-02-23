@@ -437,8 +437,12 @@ end
 
 @[simp] theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
 
-theorem eq_of_mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n → b = a
-| (n+1) h := or.elim h id $ @eq_of_mem_repeat _
+theorem mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n ↔ n ≠ 0 ∧ b = a
+| 0 := by simp
+| (n + 1) := by simp [mem_repeat]
+
+theorem eq_of_mem_repeat {a b : α} {n} (h :  b ∈ repeat a n) : b = a :=
+(mem_repeat.1 h).2
 
 theorem eq_repeat_of_mem {a : α} : ∀ {l : list α}, (∀ b ∈ l, b = a) → l = repeat a l.length
 | []     H := rfl
@@ -473,6 +477,26 @@ by cases n; refl
 
 @[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
 by induction n; [refl, simp only [*, repeat, join, append_nil]]
+
+lemma repeat_left_injective {n : ℕ} (hn : n ≠ 0) :
+  function.injective (λ a : α, repeat a n) :=
+λ a b h, (eq_repeat.1 h).2 _ $ mem_repeat.2 ⟨hn, rfl⟩
+
+lemma repeat_left_inj {a b : α} {n : ℕ} (hn : n ≠ 0) :
+  repeat a n = repeat b n ↔ a = b :=
+(repeat_left_injective hn).eq_iff
+
+@[simp] lemma repeat_left_inj' {a b : α} :
+  ∀ {n}, repeat a n = repeat b n ↔ n = 0 ∨ a = b
+| 0 := by simp
+| (n + 1) := (repeat_left_inj n.succ_ne_zero).trans $ by simp only [n.succ_ne_zero, false_or]
+
+lemma repeat_right_injective (a : α) : function.injective (repeat a) :=
+function.left_inverse.injective (length_repeat a)
+
+@[simp] lemma repeat_right_inj {a : α} {n m : ℕ} :
+  repeat a n = repeat a m ↔ n = m :=
+(repeat_right_injective a).eq_iff
 
 /-! ### pure -/
 
@@ -1579,6 +1603,39 @@ end
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
 by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
+
+lemma drop_eq_nil_iff_le {l : list α} {k : ℕ} :
+  l.drop k = [] ↔ l.length ≤ k :=
+begin
+  refine ⟨λ h, _, drop_eq_nil_of_le⟩,
+  induction k with k hk generalizing l,
+  { simp only [drop] at h,
+    simp [h] },
+  { cases l,
+    { simp },
+    { simp only [drop] at h,
+      simpa [nat.succ_le_succ_iff] using hk h } }
+end
+
+lemma tail_drop (l : list α) (n : ℕ) : (l.drop n).tail = l.drop (n + 1) :=
+begin
+  induction l with hd tl hl generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simp [hl] } }
+end
+
+lemma cons_nth_le_drop_succ {l : list α} {n : ℕ} (hn : n < l.length) :
+  l.nth_le n hn :: l.drop (n + 1) = l.drop n :=
+begin
+  induction l with hd tl hl generalizing n,
+  { exact absurd n.zero_le (not_le_of_lt (by simpa using hn)) },
+  { cases n,
+    { simp },
+    { simp only [nat.succ_lt_succ_iff, list.length] at hn,
+      simpa [list.nth_le, list.drop] using hl hn } }
+end
 
 theorem drop_nil : ∀ n, drop n [] = ([] : list α) :=
 λ _, drop_eq_nil_of_le (nat.zero_le _)

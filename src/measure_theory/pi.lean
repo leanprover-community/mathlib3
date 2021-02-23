@@ -92,9 +92,15 @@ lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
   (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
 by { ext, simp }
 
--- done below
+set_option trace.simps.verbose true
+attribute [simps apply symm_apply] subtype_equiv_right
+/-- `s ∪ t` (using finset union) is equivalent to `s ∪ t` (using set union) -/
+@[simps apply symm_apply] -- apply symm_apply
+def equiv.finset_union {α} (s t : finset α) : ((s ∪ t : finset α) : set α) ≃ (s ∪ t : set α) :=
+subtype_equiv_right $ by simp
 
-/- rename measurable_set.pi_univ -> measurable_set.univ_pi -/
+open equiv
+-- done below
 
 lemma function.surjective.Union_comp {α ι ι₂} {f : ι → ι₂}
   (hf : function.surjective f) (g : ι₂ → set α) :
@@ -475,6 +481,7 @@ end
 open sum
 /--  The type of dependent functions on a sum type `ι ⊕ ι'` is equivalent to the type of pairs of
   functions on `ι` and on `ι'`. This is a dependent version of `equiv.sum_arrow_equiv_prod_arrow`. -/
+@[simps]
 def equiv.Pi_sum (π : ι ⊕ ι' → Type*) : ((Π i, π (inl i)) × (Π i', π (inr i'))) ≃ Π i, π i :=
 { to_fun := λ f, sum.rec f.1 f.2,
   inv_fun := λ g, ⟨λ i, g (inl i), λ i', g (inr i')⟩,
@@ -682,15 +689,39 @@ lemma marginal_eq {s : finset δ} {x y : Π i, π i} (f : (Π i, π i) → E)
   (h : ∀ i ∉ s, x i = y i) : (∫⋯∫_ s, f ∂μ) x = (∫⋯∫_ s, f ∂μ) y :=
 by { dsimp [marginal], rcongr, exact h _ ‹_› }
 
+lemma mpr_refl {α} (h : α = α) (y : α) : h.mpr y = y :=
+by simp only [eq_mpr_rfl, eq_self_iff_true]
+
+lemma set.union_apply_left' {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H : s ∩ t ⊆ ∅)
+  {a : α} (ha : a ∈ s) : equiv.set.union H ⟨a, set.mem_union_left _ ha⟩ = sum.inl ⟨a, ha⟩ :=
+dif_pos ha
+
+lemma set.union_apply_right' {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H : s ∩ t ⊆ ∅)
+  {a : α} (ha : a ∈ t) : equiv.set.union H ⟨a, set.mem_union_right _ ha⟩ = sum.inr ⟨a, ha⟩ :=
+dif_neg $ λ h, H ⟨h, ha⟩
+
 lemma marginal_union (f : (Π i, π i) → E) (s t : finset δ) (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
 begin
   have : (s : set δ) ∩ (t : set δ) ⊆ ∅, { exact_mod_cast hst },
-  let e : (((s ∪ t : finset δ) : set δ) ≃ (s : set δ) ⊕ (t : set δ) : Type*),
-  { exact_mod_cast equiv.set.union this },
+  let e : ((s ∪ t : finset δ) : set δ) ≃ (s : set δ) ⊕ (t : set δ) :=
+  (finset_union s t).trans (equiv.set.union this),
   ext x,
   simp_rw [marginal, ← measure.pi_map_left _ e],
-  rw [integral_map],
+  rw [integral_map, ← measure.pi_sum, integral_map, integral_prod_symm],
+  sorry,
+
+  -- congr' with x, congr' with y, congr' with i,
+  -- { by_cases his : i ∈ s; by_cases hit : i ∈ t,
+  --   { exact false.elim (this ⟨his, hit⟩) },
+  --   all_goals { simp only [his, hit, Pi_congr_left'_symm_apply, dif_pos, or_false, false_or,
+  --     measure.equiv.Pi_sum_apply, dif_neg, not_false_iff, finset.mem_union] },
+  --   all_goals { dsimp only [e, trans_apply, finset_union_apply, set.union_apply_left,
+  --   set.union_apply_right, subtype.coe_mk], rw [← heq_iff_eq], refine (eq_mpr_heq _ _).trans _ },
+  --   exact congr_arg_heq _ (set.union_apply_left' this his),
+  --   exact congr_arg_heq _ (set.union_apply_right' this hit)
+  --   },
+  -- dsimp [e],
   -- congr' with y, congr' with i, simp [e], dsimp [e], refl,
   -- sorry, sorry
 end

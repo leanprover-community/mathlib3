@@ -73,7 +73,7 @@ end examples
 
 @[simp] theorem sum_bernoulli_poly (n : ℕ) :
   ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli_poly k =
-   polynomial.monomial n (n + 1 : ℚ) :=
+    polynomial.monomial n (n + 1 : ℚ) :=
 begin
   cases n,
   { simp only [bernoulli_poly_zero, cast_one, choose_succ_self_right, one_smul,

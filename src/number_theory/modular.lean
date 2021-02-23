@@ -205,14 +205,6 @@ begin
   sorry,
 end
 
-
-lemma M_lt_Mp1 : ∀ M,  M < (⌊M⌋ :ℝ ) +1 :=
-begin
-  intros,
-  exact lt_floor_add_one M,
-end
-
-
 def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 
 instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
@@ -228,9 +220,19 @@ begin
     (tendsto_norm_cocompact_at_top.at_top_mul_at_top tendsto_norm_cocompact_at_top),
   rintros ⟨x₁, x₂⟩,
   simp only [prod.norm_def, real.norm_eq_abs],
-  cases max_choice (|x₁|) (|x₂|);
+  cases max_choice (|x₁|) (|x₂|) with h h;
   { rw [h, abs_mul_abs_self],
     nlinarith },
+end
+
+lemma tendsto_at_top_norm_sq :
+  tendsto norm_sq (cocompact (ℂ)) at_top :=
+begin
+  convert tendsto_norm_cocompact_at_top.at_top_mul_at_top tendsto_norm_cocompact_at_top,
+  ext,
+  sorry,
+  apply_instance,
+  apply_instance,
 end
 
 lemma filter.tendsto.finite_preimage {α : Type*} {f : α → ℝ} (hf : tendsto f cofinite at_top) (M : ℝ) :
@@ -340,6 +342,49 @@ begin
     ext,
     simp [norm_sq_apply],
     ring },
+  exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))).finite_preimage M
+end
+
+/-- Linear map version of the conj function, from `ℂ` to `ℂ`. -/
+def linear_map.conj : ℂ →ₗ[ℝ] ℂ :=
+{ to_fun := conj,
+  map_add' := conj.map_add,
+  map_smul' :=
+  begin
+    intros,
+    convert conj.map_mul m x,
+    simp,
+    refl,
+  end,
+}
+
+/-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/
+def continuous_linear_map.conj : ℂ →L[ℝ] ℂ := linear_map.conj.to_continuous_linear_map
+
+
+lemma finite_pairs' (M : ℝ) (z : H) :
+  set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq ≤ M} :=
+begin
+  have h₁ : tendsto (λ c : ℝ × ℝ, ↑c.1 * (z:ℂ) + c.2) (cocompact _) (cocompact _),
+  {
+    let g : ℂ →L[ℝ] ℝ×ℝ := (continuous_linear_map.im).prod
+     (continuous_linear_map.im.comp (((z:ℂ)• continuous_linear_map.conj ))),
+    apply tendsto_cocompact_of_left_inverse ((z:ℂ).im⁻¹ • g).continuous,
+    rintros ⟨c₁, c₂⟩,
+    have hz : 0 < (z:ℂ).im := z.2,
+    have : (z:ℂ).im ≠ 0 := hz.ne.symm,
+    field_simp [g, conj, im, continuous_linear_map.conj, linear_map.conj],
+    ring,
+  },
+  have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
+  { convert int.tendsto_cofinite_coe.prod_map_coprod int.tendsto_cofinite_coe;
+    simp [coprod_cocompact, coprod_cofinite] },
+  have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
+  {
+    convert tendsto_at_top_norm_sq.comp (h₁.comp h₂),
+    ext,
+    simp,
+  },
   exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))).finite_preimage M,
 end
 

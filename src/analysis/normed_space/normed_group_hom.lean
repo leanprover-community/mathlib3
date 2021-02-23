@@ -61,7 +61,7 @@ variables (f g)
 
 lemma to_add_monoid_hom_injective :
   function.injective (@normed_group_hom.to_add_monoid_hom V₁ V₂ _ _) :=
-λ f g h, ext $ show ⇑f.to_add_monoid_hom = g, by { rw h, refl }
+λ f g h, coe_inj $ show ⇑f.to_add_monoid_hom = g, by { rw h, refl }
 
 @[simp] lemma mk_to_add_monoid_hom (f) (h₁) (h₂) (h₃) :
   (⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂).to_add_monoid_hom = ⟨f, h₁, h₂⟩ := rfl
@@ -127,9 +127,6 @@ instance : has_zero (normed_group_hom V₁ V₂) :=
    .. (0 : V₁ →+ V₂) }⟩
 
 instance : inhabited (normed_group_hom V₁ V₂) := ⟨0⟩
-
-lemma coe_inj ⦃f g : normed_group_hom V₁ V₂⦄ (h : (f : V₁ → V₂) = g) : f = g :=
-by cases f; cases g; cases h; refl
 
 /-- The identity as a continuous normed group hom. -/
 @[simps]

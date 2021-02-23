@@ -2272,6 +2272,75 @@ begin
     exact hl h }
 end
 
+lemma nat_eq_done {val : ℕ} : nat cb n = done n' val ↔ ∃ (hn : n < n'),
+  val = (nat.of_digits 10 ((((cb.to_list.drop n).take (n' - n)).reverse.map
+          (λ c, c.to_nat - '0'.to_nat)))) ∧ (∀ (hn' : n' < cb.size),
+          ('0' ≤ cb.read ⟨n', hn'⟩ → '9' < cb.read ⟨n', hn'⟩)) ∧ ∃ (hn'' : n' ≤ cb.size),
+          (∀ k (hk : k < n'), n ≤ k →
+          '0' ≤ cb.read ⟨k, hk.trans_le hn''⟩ ∧ cb.read ⟨k, hk.trans_le hn''⟩ ≤ '9') :=
+begin
+  refine ⟨λ h, ⟨prog.of_done h, nat_of_done h, nat_of_done_bounded h, _⟩, _⟩,
+  { have H := h,
+    rw [nat] at h,
+    simp only [decorate_error_eq_done, bind_eq_done, pure_eq_done, and.left_comm, exists_eq_left,
+               exists_and_distrib_left] at h,
+    obtain ⟨_, h, -⟩ := h,
+    replace h := many1_bounded_of_done h,
+    exact ⟨h, nat_of_done_as_digit H h⟩ },
+  rintro ⟨hn, hv, hb, hn', ho⟩,
+  rw nat,
+  simp only [and.left_comm, pure_eq_done, hv, decorate_error_eq_done, list.map_reverse,
+             bind_eq_done, exists_eq_left, exists_and_distrib_left],
+  clear hv val,
+  have natm : nat._match_1 = (λ (d : ℕ) p, ⟨p.1 + d * p.2, p.2 * 10⟩),
+    { ext1, ext1 ⟨⟩, refl },
+  induction H : (cb.to_list.drop n) with hd tl IH generalizing n,
+  { rw list.drop_eq_nil_iff_le at H,
+    refine absurd ((lt_of_le_of_lt H hn).trans_le hn') _,
+    simp },
+  { specialize @IH (n + 1),
+    simp only [←list.cons_nth_le_drop_succ
+      (show n < cb.to_list.length, by simpa using hn.trans_le hn')] at H,
+    have hdigit : digit cb n = done (n + 1) (hd.to_nat - '0'.to_nat),
+      { specialize ho n hn (le_refl _),
+        have : (buffer.read cb ⟨n, hn.trans_le hn'⟩).to_nat - '0'.to_nat ≤ 9,
+        { rw [show 9 = '9'.to_nat - '0'.to_nat, from dec_trivial, nat.sub_le_sub_right_iff],
+          { exact ho.right },
+          { dec_trivial } },
+        simp [digit_eq_done, this, ←H.left, buffer.nth_le_to_list, hn.trans_le hn', ho] },
+    cases lt_or_ge (n + 1) n' with hn'' hn'',
+    { specialize IH hn'',
+      have : ∀ (k : ℕ) (hk : k < n'), n + 1 ≤ k →
+        '0' ≤ buffer.read cb ⟨k, hk.trans_le hn'⟩ ∧ buffer.read cb ⟨k, hk.trans_le hn'⟩ ≤ '9',
+        { intros k hk hk',
+          apply ho,
+          exact nat.le_of_succ_le hk' },
+      specialize IH this H.right,
+      obtain ⟨l, hdl, hvl⟩ := IH,
+      use (hd.to_nat - '0'.to_nat) :: l,
+      cases l,
+      { simpa using hdl },
+      simp [natm] at hvl,
+      simp [natm, hvl, many1_eq_done, hdigit, many1_eq_done_iff_many_eq_done.mp hdl],
+      obtain ⟨m, hm⟩ : ∃ m, n' = n + m + 1 := nat.exists_eq_add_of_lt hn,
+      subst hm,
+      have : n + m + 1 - n = m + 1,
+        { rw [add_assoc, nat.sub_eq_iff_eq_add, add_comm],
+          exact nat.le_add_right _ _ },
+      simp [nat.of_digits_eq_foldr, this],
+      sorry },
+    { have : n' = n + 1 := le_antisymm hn'' (nat.succ_le_of_lt hn),
+      subst this,
+      use [[hd.to_nat - '0'.to_nat]],
+      simp only [many1_eq_done, many_eq_done_nil, digit_eq_fail, natm, and.comm, and.left_comm,
+                 hdigit, true_and, mul_one, nat.of_digits_singleton, list.take, exists_eq_left,
+                 exists_and_distrib_right, nat.add_sub_cancel_left, eq_self_iff_true,
+                 list.reverse_singleton, zero_add, list.foldr, list.map],
+      refine ⟨_, or.inl ⟨rfl, _⟩⟩,
+      intros H,
+      simpa using hb H } },
+end
+
 end nat
 
 end parser

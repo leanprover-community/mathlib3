@@ -104,7 +104,7 @@ begin
     exact le_trans (lie_ideal.map_bracket_le f) (lie_submodule.mono_lie _ _ _ _ le_top ih), },
 end
 
-lemma lie_ideal.lower_central_series_map_eq_lower_central_series (k : ℕ) {f : L →ₗ⁅R⁆ L'}
+lemma lie_ideal.lower_central_series_map_eq (k : ℕ) {f : L →ₗ⁅R⁆ L'}
   (h : function.surjective f) :
   lie_ideal.map f (lie_module.lower_central_series R L L k) =
   lie_module.lower_central_series R L' L' k :=

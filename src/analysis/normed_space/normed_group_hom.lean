@@ -114,10 +114,7 @@ antilipschitz_with.of_le_mul_dist $
 
 protected lemma uniform_continuous (f : normed_group_hom V₁ V₂) :
   uniform_continuous f :=
-begin
-  obtain ⟨C, C_pos, hC⟩ := f.bound,
-  exact (lipschitz_of_bound_by f C hC).uniform_continuous
-end
+let ⟨C, C_pos, hC⟩ := f.bound in (lipschitz_of_bound_by f C hC).uniform_continuous
 
 @[continuity]
 protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=

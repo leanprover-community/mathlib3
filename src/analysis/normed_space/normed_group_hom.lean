@@ -31,7 +31,6 @@ structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W]
   extends add_monoid_hom V W :=
 (bound' : ∃ C, ∀ v, ∥to_fun v∥ ≤ C * ∥v∥)
 
-attribute [nolint doc_blame] normed_group_hom.mk
 attribute [nolint doc_blame] normed_group_hom.to_add_monoid_hom
 
 namespace normed_group_hom
@@ -44,7 +43,18 @@ variables (f g : normed_group_hom V₁ V₂)
 
 instance : has_coe_to_fun (normed_group_hom V₁ V₂) := ⟨_, normed_group_hom.to_fun⟩
 
+@[ext] theorem ext {f g : normed_group_hom V₁ V₂} (H : ⇑f = g) : f = g :=
+by cases f; cases g; congr'; exact funext H
+
+@[simp] lemma to_fun_eq_coe : f.to_fun = f := rfl
+
 @[simp] lemma coe_mk (f) (h₁) (h₂) (h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂) = f := rfl
+
+@[simp] lemma coe_to_add_monoid_hom : ⇑f.to_add_monoid_hom = f := rfl
+
+lemma to_add_monoid_hom_injective :
+  function.injective (@normed_group_hom.to_add_monoid_hom V₁ V₂ _ _) :=
+λ f g h, ext $ show ⇑f.to_add_monoid_hom = g, by { rw h, refl }
 
 @[simp] lemma mk_to_add_monoid_hom (f) (h₁) (h₂) (h₃) :
   (⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂).to_add_monoid_hom = ⟨f, h₁, h₂⟩ := rfl
@@ -107,9 +117,6 @@ protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=
 f.uniform_continuous.continuous
 
 variables {f g}
-
-@[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; congr'; exact funext H
 
 instance : has_zero (normed_group_hom V₁ V₂) :=
 ⟨{ bound' := ⟨0, λ v, show ∥(0 : V₂)∥ ≤ 0 * _, by rw [norm_zero, zero_mul]⟩,

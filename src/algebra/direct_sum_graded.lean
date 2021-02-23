@@ -237,19 +237,18 @@ variables [∀ i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
 private lemma one_mul (x : ⨁ i, A i) : 1 * x = x :=
 begin
   unfold has_one.one has_mul.mul,
-  simp only [add_monoid_hom.coe_mk, to_add_monoid_of, add_monoid_hom.comp_hom_apply_apply],
-  simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
+  rw [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
   convert add_monoid_hom.congr_fun dfinsupp.sum_add_hom_single_add_hom x,
   ext i xi : 2,
+  rw to_add_monoid_of,
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.one_mul ⟨i, xi⟩),
 end
 
 private lemma mul_one (x : ⨁ i, A i) : x * 1 = x :=
 begin
   unfold has_one.one has_mul.mul,
-  simp only [add_monoid_hom.coe_mk, to_add_monoid_of, add_monoid_hom.comp_hom_apply_apply],
-  simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
-  rw add_monoid_hom.dfinsupp_sum_add_hom_apply x _,
+  rw [to_add_monoid_of, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply,
+    add_monoid_hom.dfinsupp_sum_add_hom_apply x _],
   convert add_monoid_hom.congr_fun dfinsupp.sum_add_hom_single_add_hom x,
   ext i xi : 2,
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one ⟨i, xi⟩),

@@ -36,14 +36,22 @@ namespace normed_group_hom
 
 variables {V V₁ V₂ V₃ : Type*}
 variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
-variables (f g : normed_group_hom V₁ V₂)
+variables {f g : normed_group_hom V₁ V₂}
 
 instance : has_coe_to_fun (normed_group_hom V₁ V₂) := ⟨_, normed_group_hom.to_fun⟩
 
 initialize_simps_projections normed_group_hom (to_fun → apply)
 
-@[ext] theorem ext {f g : normed_group_hom V₁ V₂} (H : ⇑f = g) : f = g :=
+lemma coe_inj (H : ⇑f = g) : f = g :=
 by cases f; cases g; congr'; exact funext H
+
+lemma coe_inj_iff : f = g ↔ ⇑f = g := ⟨congr_arg _, coe_inj⟩
+
+@[ext] lemma ext (H : ∀ x, f x = g x) : f = g := coe_inj $ funext H
+
+lemma ext_iff : f = g ↔ ∀ x, f x = g x := ⟨by rintro rfl x; refl, ext⟩
+
+variables (f g)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = f := rfl
 

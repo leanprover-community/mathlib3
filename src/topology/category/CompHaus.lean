@@ -114,5 +114,5 @@ rfl
 /--
 The category of compact Hausdorff spaces is reflective in the category of topological spaces.
 -/
-noncomputable instance : reflective CompHaus_to_Top :=
+noncomputable instance CompHaus_to_Top.reflective : reflective CompHaus_to_Top :=
 { to_is_right_adjoint := ⟨Top_to_CompHaus, adjunction.adjunction_of_equiv_left _ _⟩ }

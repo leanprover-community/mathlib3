@@ -121,11 +121,11 @@ by rw [coeff, monomial, linear_map.proj_apply, linear_map.std_basis_apply, funct
 
 @[simp] lemma coeff_monomial_same (n : σ →₀ ℕ) (a : R) :
   coeff R n (monomial R n a) = a :=
-linear_map.std_basis_same _ _ _ _
+linear_map.std_basis_same R _ n a
 
 lemma coeff_monomial_ne {m n : σ →₀ ℕ} (h : m ≠ n) (a : R) :
   coeff R m (monomial R n a) = 0 :=
-linear_map.std_basis_ne  _ _ _ _ h a
+linear_map.std_basis_ne R _ _ _ h a
 
 lemma eq_of_coeff_monomial_ne_zero {m n : σ →₀ ℕ} {a : R} (h : coeff R m (monomial R n a) ≠ 0) :
   m = n :=
@@ -955,6 +955,14 @@ begin
   simp only [coeff, finsupp.single_add],
   convert φ.coeff_add_mul_monomial (single () n) (single () 1) _,
   rw mul_one
+end
+
+@[simp] lemma coeff_succ_X_mul (n : ℕ) (φ : power_series R) :
+  coeff R (n + 1) (X * φ) = coeff R n φ :=
+begin
+  simp only [coeff, finsupp.single_add, add_comm n 1],
+  convert φ.coeff_add_monomial_mul (single () 1) (single () n) _,
+  rw one_mul,
 end
 
 @[simp] lemma constant_coeff_C (a : R) : constant_coeff R (C R a) = a := rfl

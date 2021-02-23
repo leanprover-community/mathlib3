@@ -68,7 +68,8 @@ open measure_theory measurable_space
 open_locale big_operators classical
 
 lemma set.Inter_finset_congr {α} {β : Type*} {T : finset β} (f g : β → set α)
-  (h_congr : ∀ (i ∈ T), f i = g i) : (⋂ (i∈ T), f i) = (⋂ (i ∈ T), g i) := begin
+  (h_congr : ∀ (i ∈ T), f i = g i) : (⋂ (i∈ T), f i) = (⋂ (i ∈ T), g i) :=
+begin
   ext a, split; simp only [set.mem_Inter]; intros h1 i h_i,
   rw  ← h_congr i h_i,
   apply h1 i h_i,
@@ -149,7 +150,8 @@ lemma indep.symm {α} {m₁ m₂ : measurable_space α} [measurable_space α] {�
 indep_sets.symm h
 
 lemma indep_set.symm {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) :
-indep_set s t μ → indep_set t s μ := begin
+indep_set s t μ → indep_set t s μ :=
+begin
   intros h,
   apply indep_sets.symm,
   apply h,
@@ -325,7 +327,21 @@ begin
 end
 
 lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
-  {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t := begin
+  {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+begin
+  unfold indep_set,
+  unfold indep_sets,
+  simp_rw set.mem_singleton_iff,
+  split; intros h,
+  apply h s t (eq.refl _) (eq.refl _),
+  intros s1 t1 h_s1 h_t1,
+  substs s1 t1,
+  apply h,
+end
+
+lemma indep_set_iff_of_probability_measure {α} [m :measurable_space α] {μ : measure α}
+  [probability_measure μ] {s t : set α} : indep_set s t μ ↔ indep_sets {s} {t} :=
+begin
   unfold indep_set,
   unfold indep_sets,
   simp_rw set.mem_singleton_iff,
@@ -354,7 +370,8 @@ lemma indep_Sup_Sup {α} {β : Type*} [M : measurable_space α] {μ : measure α
     (∀ b ∈ T1, (Mf b).measurable_set' (f1 b)) →
     (∀ b ∈ T2, (Mf b).measurable_set' (f2 b)) →
    indep_set (⋂ b ∈ T1, f1 b) (⋂ b ∈ T2, f2 b) μ) :
-   indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ := begin
+   indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ :=
+begin
   have h_set_union : ∀ (S:set β), ⋃₀ (measurable_set' '' (Mf '' S)) =
     (⋃ (b∈ S), (Mf b).measurable_set'),
   { intros S, ext a, split; intros h1; simp at h1; simp [h1], },

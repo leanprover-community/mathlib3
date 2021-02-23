@@ -6,6 +6,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
 import algebra.group.hom
 import algebra.module.basic
 import algebra.group_action_hom
+import logic.function.iterate
 
 /-!
 # Linear maps and linear equivalences
@@ -224,8 +225,17 @@ variables [semimodule R M] (f : M →ₗ[R] M)
 
 /-- Iteration of a linear map is a linear map -/
 def iterate : ℕ → (M →ₗ[R] M)
-| 0       := id
-| (n + 1) := comp (iterate n) f
+| n := ⟨f^[n], by {
+    intros x y,
+    induction n with n ih,
+    { simp only [id.def, iterate_zero] },
+    { simp only [map_add, iterate_succ', comp_app, ih] },
+  }, by {
+    intros x y,
+    induction n with n ih,
+    { simp only [id.def, iterate_zero] },
+    { simp only [map_smul, iterate_succ', comp_app, ih] },
+  }⟩
 
 lemma iterate_succ (n) : (iterate f (n + 1)) = comp (iterate f n) f := rfl
 
@@ -234,7 +244,7 @@ lemma iterate_one : f.iterate 1 = f :=
 by rw [iterate_succ, iterate_zero, id_comp]
 
 theorem iterate_add : ∀ (m n : ℕ), iterate f (m + n) = comp (iterate f m) (iterate f n)
-| m 0       := by rw [add_zero, iterate, comp_id]
+| m 0       := by rw [add_zero, iterate, iterate_zero, comp_id]
 | m (n + 1) := by { rw [← add_assoc, iterate_succ, iterate_add m n], refl }
 
 lemma iterate_succ' (n) : (iterate f (n + 1)) = comp f (iterate f n) :=
@@ -251,15 +261,15 @@ variables {f}
 
 lemma iterate_surj (h : surjective f) : ∀ n, surjective (iterate f n)
 | 0       := surjective_id
-| (n + 1) := surjective.comp (iterate_surj n) h
+| (n + 1) := by { rw [iterate_succ], exact surjective.comp (iterate_surj n) h, }
 
 lemma iterate_inj (h : injective f) : ∀ n, injective (iterate f n)
 | 0       := injective_id
-| (n + 1) := injective.comp (iterate_inj n) h
+| (n + 1) := by { rw [iterate_succ], exact injective.comp (iterate_inj n) h, }
 
 lemma iterate_bij (h : bijective f) : ∀ n, bijective (iterate f n)
 | 0       := bijective_id
-| (n + 1) := bijective.comp (iterate_bij n) h
+| (n + 1) := by { rw [iterate_succ], exact bijective.comp (iterate_bij n) h, }
 
 lemma inj_of_iterate_inj {n : ℕ} (hn : n ≠ 0) (h : injective (iterate f n)) : injective f :=
 begin

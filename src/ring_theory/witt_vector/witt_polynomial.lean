@@ -48,6 +48,11 @@ In this file we use the following notation
 * `R` and `S` are commutative rings
 * `W n` (and `W_ R n` when the ring needs to be explicit) denotes the `n`th Witt polynomial
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open mv_polynomial
@@ -134,8 +139,8 @@ by expanding the `n`th witt polynomial by `p`.
   W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
 begin
   simp only [witt_polynomial_eq_sum_C_mul_X_pow],
-  rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul, zero_add,
-      alg_hom.map_sum, sum_congr rfl],
+  rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul,
+      zero_add, alg_hom.map_sum, sum_congr rfl],
   intros k hk,
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
@@ -229,7 +234,8 @@ lemma X_in_terms_of_W_vars_aux (n : ℕ) :
 begin
   apply nat.strong_induction_on n, clear n,
   intros n ih,
-  rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X, range_succ, insert_eq],
+  rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X, range_succ,
+      insert_eq],
   swap 3, { apply nonzero_of_invertible },
   work_on_goal 0 {
     simp only [true_and, true_or, eq_self_iff_true,
@@ -280,7 +286,8 @@ end
 begin
   apply nat.strong_induction_on n,
   clear n, intros n H,
-  rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C, alg_hom.map_sum],
+  rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C,
+      alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
   by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ,
     pow_one, add_sub_cancel, pow_zero],

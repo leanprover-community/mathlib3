@@ -7,6 +7,10 @@ import algebraic_geometry.prime_spectrum
 import ring_theory.polynomial.basic
 /-!
 The morphism `Spec R[x] --> Spec R` induced by the natural inclusion `R --> R[x]` is an open map.
+
+The main result is the first part of the statement of Lemma 00FB in the Stacks Project.
+
+https://stacks.math.columbia.edu/tag/00FB
 -/
 
 open ideal polynomial prime_spectrum set
@@ -54,7 +58,11 @@ begin
     exact comap_C_mem_image_of_Df complement }
 end
 
-/--  The morphism `C⁺ : Spec R[x] → Spec R` is open. -/
+/--  The morphism `C⁺ : Spec R[x] → Spec R` is open.
+Stacks Project "Lemma 00FB", first part.
+
+https://stacks.math.columbia.edu/tag/00FB
+-/
 theorem is_open_map_comap_C :
   is_open_map (comap (C : R →+* polynomial R)) :=
 begin

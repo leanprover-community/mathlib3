@@ -37,7 +37,7 @@ We provide
 (each first at the level of `mono_over`), and prove their basic properties and relationships.
 
 We also provide the `semilattice_inf_top (subobject X)` instance when `[has_pullback C]`,
-and the `semilattice_inf (subobject X)` instance when `[has_images C] [has_binary_coproducts C]`.
+and the `semilattice_sup (subobject X)` instance when `[has_images C] [has_binary_coproducts C]`.
 
 ## Notes
 
@@ -84,19 +84,6 @@ Later we define `subobject X` as the quotient of this by isomorphisms.
 def mono_over (X : C) := {f : over X // mono f.hom}
 
 attribute [priority 100] mono_over.has_coe
--- FIXME
--- The linter still claims that `mono_over.has_coe` is a dangerous instance:
-/-
-```
-/- The `instance_priority` linter reports: -/
-/- DANGEROUS INSTANCE PRIORITIES.
-The following instances always apply, and therefore should have a priority < 1000.
-If you don't know what priority to choose, use priority 100.
-See note [lower instance priority] for instructions to change the priority.: -/
-#print category_theory.mono_over.has_coe /- LINTER FAILED:
-unknown declaration '[anonymous]' -/
-```
--/
 
 namespace mono_over
 

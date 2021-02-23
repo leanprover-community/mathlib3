@@ -80,7 +80,8 @@ local attribute [simp] id comp
 
 lemma id_c (X : SheafedSpace C) :
   ((𝟙 X) : X ⟶ X).c =
-  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
+  (((functor.left_unitor _).inv) ≫
+  (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
 
 @[simp] lemma id_c_app (X : SheafedSpace C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { op_induction U, cases U, refl }) :=

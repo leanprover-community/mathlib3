@@ -485,7 +485,8 @@ lemma assoc_aux_2 (r : R) :
 -- variables {R A B C}
 
 -- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) : (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+--   ((tensor_product.assoc R A B C) :
+--   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
 -- rfl
 
 end

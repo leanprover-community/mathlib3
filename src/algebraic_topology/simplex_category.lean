@@ -44,7 +44,7 @@ section generators
 /-!
 ## Generating maps for the simplex category
 
-PROJECT: prove that the simplex category is equivalent to
+TODO: prove that the simplex category is equivalent to
 one given by the following generators and relations.
 -/
 
@@ -133,9 +133,10 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp at H,
-  -- rw apply_dite fin.cast_succ,
-  simp [apply_dite fin.cast_succ] with push_cast, -- `simp?` doesn't work here
+  simp only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
+  -- I don't know how to remove this non-terminal simp,
+  -- because neither `simp?` or `squeeze_simp` report the lemmas used from `push_cast`:
+  simp [apply_dite fin.cast_succ] with push_cast,
   split_ifs,
   -- Hope for the best from `linarith`:
   any_goals { simp at *, try { linarith }, },
@@ -160,17 +161,26 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp at H,
+  simp only [subtype.mk_le_mk] at H,
+  -- I don't know how to remove this non-terminal simp,
+  -- because neither `simp?` or `squeeze_simp` report the lemmas used from `push_cast`:
   simp with push_cast,
   split_ifs,
-  -- Hope for the best from `linarith`:
-  any_goals { simp at *, try { linarith }, },
-  { exact false.elim
+  -- `split_ifs` created 12 goals.
+  -- Most of them are dealt with `by simp at *; linarith`,
+  -- but we pull out two harder ones to do by hand.
+  swap 3,
+  { simp only [not_lt] at h_2,
+    exact false.elim
     (lt_irrefl (k - 1)
       (lt_of_lt_of_le (nat.pred_lt (id (ne_of_lt (lt_of_le_of_lt (zero_le i) h)).symm))
         (le_trans h_2 (nat.succ_le_of_lt h_1)))) },
-  { exact false.elim
+  swap 3,
+  { simp only [subtype.mk_lt_mk, not_lt] at h_1,
+    exact false.elim
     (lt_irrefl j (lt_of_lt_of_le (nat.pred_lt_pred (nat.succ_ne_zero j) h_2) h_1)) },
+  -- Deal with the rest automatically.
+  all_goals { simp at *; linarith, },
 end
 
 end generators

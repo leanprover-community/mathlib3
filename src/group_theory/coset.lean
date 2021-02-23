@@ -67,15 +67,15 @@ lemma mem_right_coset {s : set α} {x : α} (a : α) (hxS : x ∈ s) : x * a ∈
 mem_image_of_mem (λ b : α, b * a) hxS
 
 /-- Equality of two left cosets `a * s` and `b * s`. -/
-@[to_additive left_add_coset_equiv "Equality of two left cosets `a + s` and `b + s`."]
-def left_coset_equiv (s : set α) (a b : α) := a *l s = b *l s
+@[to_additive left_add_coset_equivalence "Equality of two left cosets `a + s` and `b + s`."]
+def left_coset_equivalence (s : set α) (a b : α) := a *l s = b *l s
 
-@[to_additive left_add_coset_equiv_rel]
-lemma left_coset_equiv_rel (s : set α) : equivalence (left_coset_equiv s) :=
-mk_equivalence (left_coset_equiv s) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.trans)
+@[to_additive left_add_coset_equivalence_rel]
+lemma left_coset_equivalence_rel (s : set α) : equivalence (left_coset_equivalence s) :=
+mk_equivalence (left_coset_equivalence s) (λ a, rfl) (λ a b, eq.symm) (λ a b c, eq.trans)
 
 /-- Equality of two right cosets `s * a` and `s * b`. -/
-@[to_additive right_add_coset_equiv "Equality of two right cosets `s + a` and `s + b`."]
+@[to_additive right_add_coset_equivalence "Equality of two right cosets `s + a` and `s + b`."]
 def right_coset_equivalence (s : set α) (a b : α) := s *r a = s *r b
 
 @[to_additive right_add_coset_equivalence_rel]
@@ -195,11 +195,11 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
 ⟨λ x y, x⁻¹ * y ∈ s,
   assume x, by simp [s.one_mem],
   assume x y hxy,
-  have (x⁻¹ * y)⁻¹ ∈ s, from s.inv_mem hxy,
-  by simpa using this,
+    have (x⁻¹ * y)⁻¹ ∈ s, from s.inv_mem hxy,
+    by simpa using this,
   assume x y z hxy hyz,
-  have x⁻¹ * y * (y⁻¹ * z) ∈ s, from s.mul_mem hxy hyz,
-  by simpa [mul_assoc] using this⟩
+    have x⁻¹ * y * (y⁻¹ * z) ∈ s, from s.mul_mem hxy hyz,
+    by simpa [mul_assoc] using this⟩
 
 @[to_additive]
 instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :

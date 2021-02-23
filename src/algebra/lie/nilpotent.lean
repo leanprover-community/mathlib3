@@ -93,10 +93,10 @@ lie_module.is_nilpotent R L L
 
 variables {R L L'}
 open lie_algebra
+open lie_module (lower_central_series)
 
 lemma lie_ideal.lower_central_series_map_le (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
-  lie_ideal.map f (lie_module.lower_central_series R L L k) ≤
-  lie_module.lower_central_series R L' L' k :=
+  lie_ideal.map f (lower_central_series R L L k) ≤ lower_central_series R L' L' k :=
 begin
   induction k with k ih,
   { simp only [lie_module.lower_central_series_zero, le_top], },
@@ -106,8 +106,7 @@ end
 
 lemma lie_ideal.lower_central_series_map_eq (k : ℕ) {f : L →ₗ⁅R⁆ L'}
   (h : function.surjective f) :
-  lie_ideal.map f (lie_module.lower_central_series R L L k) =
-  lie_module.lower_central_series R L' L' k :=
+  lie_ideal.map f (lower_central_series R L L k) = lower_central_series R L' L' k :=
 begin
   have h' : (⊤ : lie_ideal R L).map f = ⊤, { exact f.ideal_range_eq_top_of_surjective h, },
   induction k with k ih,
@@ -122,7 +121,7 @@ lemma function.injective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L'] {f 
       tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
       use k,
       apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
-      apply lie_ideal.lower_central_series_map_le_lower_central_series,
+      apply lie_ideal.lower_central_series_map_le,
     end, }
 
 lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f : L →ₗ⁅R⁆ L'}
@@ -131,7 +130,7 @@ lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f 
     begin
       tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
       use k,
-      rw [← lie_ideal.lower_central_series_map_eq_lower_central_series k h₂, hk],
+      rw [← lie_ideal.lower_central_series_map_eq k h₂, hk],
       simp only [lie_hom.map_bot_iff, bot_le],
     end, }
 

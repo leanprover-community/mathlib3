@@ -868,13 +868,7 @@ end top
 
 lemma findim_zero_iff_forall_zero [finite_dimensional K V] :
   findim K V = 0 ↔ ∀ x : V, x = 0 :=
-begin
-  split; intro h,
-  { haveI := findim_zero_iff.1 h,
-    exact λ x, subsingleton.elim x _ },
-  { rw findim_zero_iff,
-    exact subsingleton_of_forall_eq _ h },
-end
+findim_zero_iff.trans (subsingleton_iff_forall_eq 0)
 
 lemma is_basis_of_findim_zero [finite_dimensional K V]
   {ι : Type*} (h : ¬ nonempty ι) (hV : findim K V = 0) :

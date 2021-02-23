@@ -524,13 +524,7 @@ begin
 end
 
 lemma dim_zero_iff : vector_space.dim K V = 0 ↔ subsingleton V :=
-begin
-  rw dim_zero_iff_forall_zero,
-  split; intro h,
-  { exact subsingleton_of_forall_eq _ h },
-  { haveI : subsingleton V := h,
-    exact λ x, subsingleton.elim x 0 }
-end
+dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
 lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
   (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=

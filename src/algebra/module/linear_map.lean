@@ -250,7 +250,7 @@ theorem iterate_add : ∀ (m n : ℕ), iterate f (m + n) = comp (iterate f m) (i
 lemma iterate_succ' (n) : (iterate f (n + 1)) = comp f (iterate f n) :=
 by rw [add_comm, iterate_add, iterate_one]
 
-@[simp] lemma iterate_to_fun : ∀ n, iterate f n = (⇑f)^[n]
+@[simp] lemma iterate_to_fun : ∀ n, (iterate f n).to_fun = nat.iterate f.to_fun n
 | 0       := rfl
 | (n + 1) := by {
     change (iterate f n).to_fun ∘ f.to_fun = (nat.iterate f.to_fun n) ∘ f.to_fun,

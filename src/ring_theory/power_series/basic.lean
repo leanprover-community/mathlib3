@@ -1196,7 +1196,7 @@ rescale (-1 : A)
 @[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
 rescale_neg_one_X
 
-/-- Two ways of truncating a power series are the same. -/
+/-- Two ways of removing the constant coefficient of a power series are the same. -/
 lemma sub_const_eq_shift_mul_X (φ : power_series A) :
   φ - C A (constant_coeff A φ) = power_series.mk (λ p, coeff A p.succ φ) * X :=
 begin

@@ -1207,7 +1207,7 @@ begin
   simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false],
 end
 
-lemma minus_const_eq_x_mul_shift (φ: power_series A) :
+lemma sub_const_eq_x_mul_shift (φ : power_series A) :
   (φ - C A (constant_coeff A φ)) = X * power_series.mk (λ p, coeff A p.succ φ) :=
 begin
   simp only [mul_comm,  minus_const_eq_shift_mul_x],

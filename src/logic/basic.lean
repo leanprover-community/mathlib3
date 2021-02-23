@@ -63,7 +63,7 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   x = y ↔ true :=
 by cc
 
-lemma subsingleton_of_forall_eq (x : α) (h : ∀ y, y = x) : subsingleton α :=
+lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
 ⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because

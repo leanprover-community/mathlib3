@@ -276,37 +276,49 @@ begin
   exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_one ⟨i, xi⟩),
 end
 
+-- In this proof, we use `conv` even when not necessary, because otherwise it's hard to see which
+-- side the rewrite takes place on.
 private lemma mul_assoc (a b c : ⨁ i, A i) : a * b * c = a * (b * c) :=
 begin
   unfold has_one.one has_mul.mul,
   simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
-  simp only [←add_monoid_hom.comp_apply],
-  simp only [dfinsupp.comp_sum_add_hom],
+  rw [←add_monoid_hom.comp_apply, dfinsupp.comp_sum_add_hom],
 
   -- unpack `c`
   refine add_monoid_hom.congr_fun _ c,
   congr' 1, ext ci cx : 2,
+  rw add_monoid_hom.comp_apply,
 
-  erw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.comp_apply,
-    add_monoid_hom.dfinsupp_sum_add_hom_apply, ←add_monoid_hom.comp_apply,
-    dfinsupp.comp_sum_add_hom],
+  conv_lhs {
+    rw [add_monoid_hom.dfinsupp_sum_add_hom_apply, ←add_monoid_hom.comp_apply,
+      dfinsupp.comp_sum_add_hom], },
+  conv_rhs {
+    rw [add_monoid_hom.dfinsupp_sum_add_hom_apply, ←add_monoid_hom.comp_apply,
+      dfinsupp.comp_sum_add_hom], },
 
   -- unpack `b`
   refine add_monoid_hom.congr_fun _ b,
   congr' 1, ext bi bx : 2,
 
-  simp only [add_monoid_hom.comp_apply, add_monoid_hom.eval_apply, add_monoid_hom.coe_mk],
-  erw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply],
-  simp only [add_monoid_hom.map_dfinsupp_sum_add_hom, dfinsupp.single_add_hom_apply,
-    dfinsupp.sum_add_hom_single, add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply],
-  erw add_monoid_hom.dfinsupp_sum_add_hom_apply,
+  conv_lhs {
+    rw [add_monoid_hom.comp_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply,
+      ←add_monoid_hom.comp_apply, dfinsupp.comp_sum_add_hom], },
+  conv_rhs {
+    rw [add_monoid_hom.comp_apply, add_monoid_hom.comp_apply, add_monoid_hom.comp_apply,
+      add_monoid_hom.eval_apply, add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
+      dfinsupp.single_add_hom_apply, dfinsupp.sum_add_hom_single,
+      add_monoid_hom.dfinsupp_sum_add_hom_apply], },
 
   -- unpack `a`
   refine add_monoid_hom.congr_fun _ a,
   congr' 1, ext ai ax : 2,
 
-  have := dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_assoc ⟨ai, ax⟩ ⟨bi, bx⟩ ⟨ci, cx⟩),
-  simpa using this,
+  conv_lhs {
+    rw [add_monoid_hom.comp_apply, add_monoid_hom.comp_apply, add_monoid_hom.comp_apply,
+      add_monoid_hom.eval_apply, add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
+      dfinsupp.single_add_hom_apply, dfinsupp.sum_add_hom_single], },
+
+  exact dfinsupp.single_eq_of_sigma_eq (gmonoid.mul_assoc ⟨ai, ax⟩ ⟨bi, bx⟩ ⟨ci, cx⟩),
 end
 
 /-- The `semiring` structure derived from `gmonoid A`. -/
@@ -338,7 +350,7 @@ begin
   refine add_monoid_hom.congr_fun _ a,
   congr' 1, ext ai ax : 2,
 
-  erw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply],
+  rw [add_monoid_hom.dfinsupp_sum_add_hom_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply],
 
   -- unpack `b`
   refine add_monoid_hom.congr_fun _ b,

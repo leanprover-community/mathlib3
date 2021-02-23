@@ -870,9 +870,9 @@ lemma findim_zero_iff_forall_zero [finite_dimensional K V] :
 begin
   split; intro h,
   { haveI := findim_eq_zero_iff_subsingleton.mp h,
-    exact sorry },
+    exact λ x, subsingleton.elim x _ },
   { rw findim_eq_zero_iff_subsingleton,
-    exact sorry },
+    exact subsingleton_of_forall_eq _ h },
 end
 
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]

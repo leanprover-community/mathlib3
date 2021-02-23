@@ -523,6 +523,15 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
+lemma dim_zero_iff_subsingleton : vector_space.dim K V = 0 ↔ subsingleton V :=
+begin
+  rw dim_zero_iff_forall_zero,
+  split; intro h,
+  { exact subsingleton_of_forall_eq _ h },
+  { haveI : subsingleton V := h,
+    exact λ x, subsingleton.elim x 0 }
+end
+
 lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,

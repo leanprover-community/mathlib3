@@ -116,7 +116,7 @@ called `top` with `⊤ = univ`.
 * `disjoint`: defined via the lattice structure on finsets; two sets are disjoint if their
   intersection is empty.
 * `finset.nonempty`: A finset is nonempty if it has elements.
-  This is equivalent to saying `s ≠ ∅`. TODO: Decide on the simp norm form.
+  This is equivalent to saying `s ≠ ∅`. TODO: Decide on the simp normal form.
 
 ### Equivalences between finsets
 

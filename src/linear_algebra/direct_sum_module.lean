@@ -74,7 +74,7 @@ variables (φ : Π i, M i →ₗ[R] N)
 variables (R ι N φ)
 /-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : (⨁ i, M i) →ₗ[R] N :=
-dfinsupp.lsum φ
+dfinsupp.lsum ℕ φ
 
 variables {ι N φ}
 

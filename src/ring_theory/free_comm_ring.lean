@@ -55,15 +55,11 @@ universes u v
 variables (α : Type u)
 
 /-- `free_comm_ring α` is the free commutative ring on the type `α`. -/
+@[derive [comm_ring, inhabited]]
 def free_comm_ring (α : Type u) : Type u :=
 free_abelian_group $ multiplicative $ multiset α
 
 namespace free_comm_ring
-
-/-- The structure of a commutative ring on `free_comm_ring α`. -/
-instance : comm_ring (free_comm_ring α) := free_abelian_group.comm_ring _
-
-instance : inhabited (free_comm_ring α) := ⟨0⟩
 
 variables {α}
 
@@ -105,11 +101,14 @@ def lift : free_comm_ring α →+* R :=
         calc _ = multiset.prod ((multiset.map f s1) + (multiset.map f s2)) :
             by {congr' 1, exact multiset.map_add _ _ _}
           ... = _ : multiset.prod_add _ _ },
-      { intros s1 ih, iterate 3 { rw free_abelian_group.lift.neg }, rw [ih, neg_mul_eq_neg_mul] },
-      { intros x1 x2 ih1 ih2, iterate 3 { rw free_abelian_group.lift.add }, rw [ih1, ih2, add_mul] } },
+      { intros s1 ih, iterate 3 { rw (free_abelian_group.lift _).map_neg },
+        rw [ih, neg_mul_eq_neg_mul] },
+      { intros x1 x2 ih1 ih2, iterate 3 { rw (free_abelian_group.lift _).map_add },
+        rw [ih1, ih2, add_mul] } },
     { intros s2 ih,
       simp only [add_monoid_hom.to_fun_eq_coe] at ih ⊢,
-      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg, mul_neg_eq_neg_mul_symm, ih] },
+      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
+        mul_neg_eq_neg_mul_symm, ih] },
     { intros y1 y2 ih1 ih2,
       simp only [add_monoid_hom.to_fun_eq_coe] at ih1 ih2 ⊢,
       rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
@@ -184,7 +183,8 @@ lift (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
-@[simp] lemma restriction_of (p) : restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
+@[simp] lemma restriction_of (p) :
+  restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
 
 end restriction
 
@@ -197,7 +197,8 @@ assume hps : is_supported (of p) s, begin
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
     { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
-    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
+    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul],
+      norm_cast },
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [ring_hom.map_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply ne.symm int.zero_ne_one,
@@ -212,11 +213,13 @@ begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
   { rw ring_hom.map_one, refl },
   { rw [ring_hom.map_neg, ring_hom.map_neg, ring_hom.map_one], refl },
-  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [ring_hom.map_mul, restriction_of, dif_pos hps, ring_hom.map_mul, map_of, ih] },
+  { rintros _ ⟨p, hps, rfl⟩ n ih,
+    rw [ring_hom.map_mul, restriction_of, dif_pos hps, ring_hom.map_mul, map_of, ih] },
   { intros x y ihx ihy, rw [ring_hom.map_add, ring_hom.map_add, ihx, ihy] }
 end
 
-theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
+theorem exists_finite_support (x : free_comm_ring α) :
+  ∃ s : set α, set.finite s ∧ is_supported x s :=
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
   (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ set.mem_singleton _⟩)
@@ -256,11 +259,14 @@ variable {α}
 free_ring.lift_of _ _
 @[simp, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 (free_ring.lift _).map_neg _
-@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
+@[simp, norm_cast] protected lemma coe_add (x y : free_ring α) :
+  ↑(x + y) = (x : free_comm_ring α) + y :=
 (free_ring.lift _).map_add _ _
-@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
+@[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) :
+  ↑(x - y) = (x : free_comm_ring α) - y :=
 (free_ring.lift _).map_sub _ _
-@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
+@[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) :
+  ↑(x * y) = (x : free_comm_ring α) * y :=
 (free_ring.lift _).map_mul _ _
 
 variable (α)
@@ -279,8 +285,8 @@ lemma coe_eq :
   (coe : free_ring α → free_comm_ring α) =
   @functor.map free_abelian_group _ _ _ (λ (l : list α), (l : multiset α)) :=
 funext $ λ x, free_abelian_group.lift.unique _ _ $ λ L,
-by { simp_rw [free_abelian_group.lift.of, (∘)], exact list.rec_on L rfl
-(λ hd tl ih, by { rw [list.map_cons, list.prod_cons, ih], refl }) }
+by { simp_rw [free_abelian_group.lift.of, (∘)], exact free_monoid.rec_on L rfl
+(λ hd tl ih, by { rw [(free_monoid.lift _).map_mul, free_monoid.lift_eval_of, ih], refl }) }
 
 -- FIXME This was in `deprecated.ring`, but only used here.
 -- It would be good to inline it into the next construction.

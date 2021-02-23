@@ -360,7 +360,6 @@ begin
           nhds_induced, ← de.to_dense_inducing.nhds_eq_comap,
           ← mem_closure_iff_nhds_ne_bot, hs.closure_eq],
       exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
-      exact de.inj
     end⟩
 end
 

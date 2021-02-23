@@ -48,6 +48,21 @@ instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
   [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc (x i) (y i) (z i)⟩
 
+instance smul_comm_class {α β : Type*}
+  [Π i, has_scalar α $ f i] [Π i, has_scalar β $ f i] [∀ i, smul_comm_class α β (f i)] :
+  smul_comm_class α β (Π i : I, f i) :=
+⟨λ x y z, funext $ λ i, smul_comm x y (z i)⟩
+
+instance smul_comm_class' {g : I → Type*} {α : Type*}
+  [Π i, has_scalar α $ g i] [Π i, has_scalar (f i) (g i)] [∀ i, smul_comm_class α (f i) (g i)] :
+  smul_comm_class α (Π i : I, f i) (Π i : I, g i) :=
+⟨λ x y z, funext $ λ i, smul_comm x (y i) (z i)⟩
+
+instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
+  [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
+  [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
+⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
+
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=
 { smul := (•),
@@ -72,6 +87,24 @@ instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π 
   @distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) (@pi.add_monoid I g n) :=
 { smul_add := by { intros, ext x, apply smul_add },
   smul_zero := by { intros, ext x, apply smul_zero } }
+
+lemma single_smul {α} {m : monoid α} {n : Π i, add_monoid $ f i}
+  [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :
+  single i (r • x) = r • single i x :=
+begin
+  ext j,
+  refine (apply_single _ (λ _, _) i x j).symm,
+  exact smul_zero _,
+end
+
+lemma single_smul' {g : I → Type*} {m : Π i, monoid_with_zero (f i)} {n : Π i, add_monoid (g i)}
+  [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
+  single i (r • x) = single i r • single i x :=
+begin
+  ext j,
+  refine (apply_single₂ _ (λ _, _) i r x j).symm,
+  exact smul_zero _,
+end
 
 variables (I f)
 

@@ -6,9 +6,6 @@ Author: Martin Zinkevich
 import measure_theory.measure_space
 import tactic.fin_cases
 
---import algebra.big_operators.intervals
---import data.finset.intervals
-
 /-!
 # Lemmas regarding `is_pi_system`.
 
@@ -84,8 +81,8 @@ begin
   apply measurable_set.inter h_s h_u,
 end
 
-lemma generate_from_measurable_set_of_generate_pi_system {α} {g : set (set α)} (t : set α) : generate_pi_system g t →
-  (measurable_space.generate_from g).measurable_set' t := begin
+lemma generate_from_measurable_set_of_generate_pi_system {α} {g : set (set α)} (t : set α) :
+  generate_pi_system g t → (measurable_space.generate_from g).measurable_set' t := begin
   apply generate_pi_system_measurable_set,
   intros s h_s_in_g,
   apply measurable_space.measurable_set_generate_from h_s_in_g,

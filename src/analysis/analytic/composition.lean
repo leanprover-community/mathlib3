@@ -457,7 +457,7 @@ begin
     ... ≤ Cq : hCq _,
     have B,
     calc ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n)
-        ≤ ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
+        = ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
       by simp only [finset.prod_mul_distrib, finset.prod_pow_eq_pow_sum, c.sum_blocks_fun]
     ... ≤ ∏ i : fin c.length, Cp : finset.prod_le_prod' (λ i _, hCp _)
     ... = Cp ^ c.length : by simp
@@ -563,7 +563,7 @@ begin
   dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
   simp only [map_of_fn, nth_le_of_fn', function.comp_app],
   apply congr_arg,
-  rw [fin.ext_iff, fin.mk_coe]
+  exact fin.eta _ _
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal
@@ -819,7 +819,7 @@ let ⟨q, hq⟩ := hg, ⟨p, hp⟩ := hf in (hq.comp hp).analytic_at
 /-!
 ### Associativity of the composition of formal multilinear series
 
-In this paragraph, we us prove the associativity of the composition of formal power series.
+In this paragraph, we prove the associativity of the composition of formal power series.
 By definition,
 ```
 (r.comp q).comp p n v

@@ -61,7 +61,7 @@ class ghas_one [has_zero ι] :=
 /-- A graded version of `has_one` that also subsumes `distrib` and `mul_zero_class` by requiring
 the multiplication be an `add_monoid_hom`. Multiplication combines grades additively, like
 `add_monoid_algebra`. -/
-class ghas_mul [add_monoid ι] [∀ i, add_comm_monoid (A i)] :=
+class ghas_mul [add_monoid ι] [Π i, add_comm_monoid (A i)] :=
 (mul {i j} : A i →+ A j →+ A (i + j))
 
 variables {A}
@@ -72,7 +72,7 @@ def ghas_one.to_sigma_has_one [has_zero ι] [ghas_one A] : has_one (Σ i, A i) :
 
 /-- `direct_sum.ghas_mul` implies a `has_mul (Σ i, A i)`, although this is only used as an instance
 locally to define notation in `direct_sum.gmonoid`. -/
-def ghas_mul.to_sigma_has_mul [add_monoid ι] [∀ i, add_comm_monoid (A i)] [ghas_mul A] :
+def ghas_mul.to_sigma_has_mul [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A] :
   has_mul (Σ i, A i) :=
 ⟨λ (x y : Σ i, A i), ⟨_, ghas_mul.mul x.snd y.snd⟩⟩
 
@@ -84,13 +84,13 @@ local attribute [instance] ghas_one.to_sigma_has_one
 local attribute [instance] ghas_mul.to_sigma_has_mul
 
 /-- A graded version of `monoid`. -/
-class gmonoid [add_monoid ι] [∀ i, add_comm_monoid (A i)] extends ghas_mul A, ghas_one A :=
+class gmonoid [add_monoid ι] [Π i, add_comm_monoid (A i)] extends ghas_mul A, ghas_one A :=
 (one_mul (a : Σ i, A i) : 1 * a = a)
 (mul_one (a : Σ i, A i) : a * 1 = a)
 (mul_assoc (a : Σ i, A i) (b : Σ i, A i) (c : Σ i, A i) : a * b * c = a * (b * c))
 
 /-- A graded version of `comm_monoid`. -/
-class gcomm_monoid [add_comm_monoid ι] [∀ i, add_comm_monoid (A i)] extends gmonoid A :=
+class gcomm_monoid [add_comm_monoid ι] [Π i, add_comm_monoid (A i)] extends gmonoid A :=
 (mul_comm (a : Σ i, A i) (b : Σ i, A i) : a * b = b * a)
 
 end defs
@@ -216,7 +216,7 @@ end shorthands
 /-! ### Instances for `⨁ i, A i` -/
 
 section one
-variables [has_zero ι] [ghas_one A] [∀ i, add_comm_monoid (A i)]
+variables [has_zero ι] [ghas_one A] [Π i, add_comm_monoid (A i)]
 
 instance : has_one (⨁ i, A i) :=
 { one := direct_sum.of (λ i, A i) 0 ghas_one.one}
@@ -224,7 +224,7 @@ instance : has_one (⨁ i, A i) :=
 end one
 
 section mul
-variables [add_monoid ι] [∀ i, add_comm_monoid (A i)] [ghas_mul A]
+variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [ghas_mul A]
 
 instance : has_mul (⨁ i, A i) :=
 { mul := λ a b, begin
@@ -254,7 +254,7 @@ end mul
 /-! The various semiring fields are proved separately because the proofs are slow. -/
 
 section semiring
-variables [∀ i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
+variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A]
 
 private lemma one_mul (x : ⨁ i, A i) : 1 * x = x :=
 begin
@@ -326,27 +326,13 @@ end semiring
 
 section comm_semiring
 
-variables [∀ i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
-
-private lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}
-  [decidable_eq ι₁] [decidable_eq ι₂] [Π i, add_monoid (β₁ i)] [Π i, add_monoid (β₂ i)]
-  [add_comm_monoid γ]
-  (f₁ : Π₀ i, β₁ i) (f₂ : Π₀ i, β₂ i) (h : Π i j, β₁ i →+ β₂ j →+ γ) :
-  dfinsupp.sum_add_hom (λ i₂, dfinsupp.sum_add_hom (λ i₁, h i₁ i₂) f₁) f₂ =
-  dfinsupp.sum_add_hom (λ i₁, dfinsupp.sum_add_hom (λ i₂, (h i₁ i₂).flip) f₂) f₁ :=
-quotient.induction_on f₁ $ λ x₁,
-quotient.induction_on f₂ $ λ x₂,
-begin
-  simp only [dfinsupp.sum_add_hom, add_monoid_hom.finset_sum_apply, quotient.lift_on_mk,
-    add_monoid_hom.coe_mk, add_monoid_hom.flip_apply],
-  exact finset.sum_comm,
-end
+variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 private lemma mul_comm (a b : ⨁ i, A i) : a * b = b * a :=
 begin
   unfold has_one.one has_mul.mul,
   simp only [direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply, direct_sum.of],
-  rw sum_add_hom_comm,
+  rw dfinsupp.sum_add_hom_comm,
 
   -- unpack `a`
   refine add_monoid_hom.congr_fun _ a,
@@ -358,7 +344,7 @@ begin
   refine add_monoid_hom.congr_fun _ b,
   congr' 1, ext bi bx : 2,
 
-  simp [dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ⟨_, ax⟩ ⟨_, bx⟩)],
+  exact dfinsupp.single_eq_of_sigma_eq (gcomm_monoid.mul_comm ⟨ai, ax⟩ ⟨bi, bx⟩),
 end
 
 /-- The `comm_semiring` structure derived from `gcomm_monoid A`. -/
@@ -373,7 +359,7 @@ instance comm_semiring : comm_semiring (⨁ i, A i) := {
 end comm_semiring
 
 section ring
-variables [∀ i, add_comm_group (A i)] [add_comm_monoid ι] [gmonoid A]
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gmonoid A]
 
 /-- The `ring` derived from `gmonoid A`. -/
 instance ring : ring (⨁ i, A i) := {
@@ -389,7 +375,7 @@ instance ring : ring (⨁ i, A i) := {
 end ring
 
 section comm_ring
-variables [∀ i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
+variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_ring` derived from `gcomm_monoid A`. -/
 instance comm_ring : ring (⨁ i, A i) := {

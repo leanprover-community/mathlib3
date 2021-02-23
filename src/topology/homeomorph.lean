@@ -160,13 +160,13 @@ protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
-h.embedding.map_nhds_eq _ (by simp)
-
-@[simp] lemma comap_nhds_eq (h : α ≃ₜ β) (y : β) : comap h (𝓝 y) = 𝓝 (h.symm y) :=
-by rw [h.embedding.to_inducing.nhds_eq_comap, h.apply_symm_apply]
+h.embedding.map_nhds_of_mem _ (by simp)
 
 lemma nhds_eq_comap (h : α ≃ₜ β) (x : α) : 𝓝 x = comap h (𝓝 (h x)) :=
-by rw [comap_nhds_eq, h.symm_apply_apply]
+h.embedding.to_inducing.nhds_eq_comap x
+
+@[simp] lemma comap_nhds_eq (h : α ≃ₜ β) (y : β) : comap h (𝓝 y) = 𝓝 (h.symm y) :=
+by rw [h.nhds_eq_comap, h.apply_symm_apply]
 
 /-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/
 def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : is_open_map e) :

@@ -241,8 +241,15 @@ begin
     exact mem_support_iff_coeff_ne_zero.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
 end
 
-end semiring
+lemma nat_trailing_degree_le_nat_degree (p : polynomial R) :
+  p.nat_trailing_degree ≤ p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, nat_degree_zero, nat_trailing_degree_zero] },
+  { exact le_nat_degree_of_ne_zero (mt trailing_coeff_eq_zero.mp hp) },
+end
 
+end semiring
 
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}

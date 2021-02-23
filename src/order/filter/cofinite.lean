@@ -49,7 +49,7 @@ by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, 
   set.infinite]
 
 /-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
-lemma filter.coprod_cofinite {β : Type*} :
+lemma coprod_cofinite {β : Type*} :
   filter.coprod (cofinite : filter α) (cofinite : filter β) = cofinite :=
 begin
   ext S,

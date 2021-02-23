@@ -34,43 +34,7 @@ noncomputable theory
 open_locale big_operators
 open_locale nat
 
-namespace finset
-
-/-- The two ways of summing over `(i,j)` in the range `a<=i<=j<b` are equal. -/
-lemma sum_Ico_Ico_comm {M : Type*} [add_comm_monoid M]
-  (a b : ℕ) (f : ℕ → ℕ → M) :
-  ∑ i in finset.Ico a b, ∑ j in finset.Ico i b, f i j =
-  ∑ j in finset.Ico a b, ∑ i in finset.Ico a (j+1), f i j :=
-begin
-  rw [finset.sum_sigma', finset.sum_sigma'],
-  refine finset.sum_bij'
-    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _ (λ _ _, rfl)
-    (λ (x : Σ (i : ℕ), ℕ) _, (⟨x.2, x.1⟩ : Σ (i : ℕ), ℕ)) _
-    (by rintro ⟨⟩ _; refl) (by rintro ⟨⟩ _; refl);
-  simp only [finset.Ico.mem, sigma.forall, finset.mem_sigma];
-  rintros a b ⟨⟨h₁,h₂⟩, ⟨h₃, h₄⟩⟩; refine ⟨⟨_, _⟩, ⟨_, _⟩⟩; linarith
-end
-
-end finset
-
 open nat finset
-
-lemma choose_eq_factorial_div_factorial' {a b : ℕ}
-  (hab : a ≤ b) : (b.choose a : ℚ) = b! / (a! * (b - a)!) :=
-begin
-  field_simp [mul_ne_zero, factorial_ne_zero], norm_cast,
-  rw ← choose_mul_factorial_mul_factorial hab, ring,
-end
-
-lemma choose_mul {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) : (n.choose k : ℚ) * k.choose s =
-n.choose s * (n - s).choose (k - s) :=
-begin
-  rw [choose_eq_factorial_div_factorial' hn, choose_eq_factorial_div_factorial' hs,
-      choose_eq_factorial_div_factorial' (le_trans hs hn), choose_eq_factorial_div_factorial' ],
-  swap, exact nat.sub_le_sub_right hn s,
-    field_simp [mul_ne_zero, factorial_ne_zero],
-  rw sub_sub_sub_cancel_right hs, ring,
-end
 
 /-- The Bernoulli polynomials are defined in terms of the negative Bernoulli numbers. -/
 def bernoulli_poly (n : ℕ) : polynomial ℚ :=
@@ -121,7 +85,7 @@ begin
   simp_rw [polynomial.smul_monomial, mul_comm (bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
-      rw [choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
+      rw [nat.prime.choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
         (le.intro rfl), add_comm x x_1, nat.add_sub_cancel, mul_assoc, mul_comm, ←smul_eq_mul,
         ←polynomial.smul_monomial], },
     rw [←sum_smul], },

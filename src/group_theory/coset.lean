@@ -13,11 +13,16 @@ This file develops the basic theory of left and right cosets.
 
 ## Main definitions
 
-* `left_coset a s`: the left coset `a * s` for an element `a : α` and a subset `s ⊆ α`.
-* `right_coset s a`: the right coset `s * a` for an element `a : α` and a subset `s ⊆ α`.
-* `quotient s`: the quotient type representing the left cosets with respect to a subgroup `s`.
-* `mk`: the canonical map from `α` to `α/s` for a subgroup `s` of `α`.
-* `left_coset_equiv_subgroup`: the natural bijection between a left coset and the subgroup.
+* `left_coset a s`: the left coset `a * s` for an element `a : α` and a subset `s ⊆ α`, for an
+  `add_group` this is `left_add_coset a s`.
+* `right_coset s a`: the right coset `s * a` for an element `a : α` and a subset `s ⊆ α`, for an
+  `add_group` this is `right_add_coset s a`.
+* `quotient_group.quotient s`: the quotient type representing the left cosets with respect to a
+  subgroup `s`, for an `add_group` this is `quotient_add_group.quotient s`.
+* `quotient_group.mk`: the canonical map from `α` to `α/s` for a subgroup `s` of `α`, for an
+  `add_group` this is `quotient_add_group.mk`.
+* `subgroup.left_coset_equiv_subgroup`: the natural bijection between a left coset and the subgroup, for an
+  `add_group` this is `add_subgroup.left_coset_equiv_add_subgroup`.
 
 ## Notation
 

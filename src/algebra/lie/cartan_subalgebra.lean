@@ -29,7 +29,7 @@ variables [comm_ring R] [lie_ring L] [lie_algebra R L] (H : lie_subalgebra R L)
 
 namespace lie_subalgebra
 
-/-- The normalizer of a Lie subalgebra `H` is the set of elements of the Lie algebra whose product
+/-- The normalizer of a Lie subalgebra `H` is the set of elements of the Lie algebra whose bracket
 with any element of `H` lies in `H`. It is the Lie algebra equivalent of the group-theoretic
 normalizer (see `subgroup.normalizer`) and is an idealizer in the sense of abstract algebra. -/
 def normalizer : lie_subalgebra R L :=

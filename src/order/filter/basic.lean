@@ -2436,10 +2436,7 @@ end
 lemma tendsto.prod_map_coprod {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
   {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :
   tendsto (prod.map f g) (a.coprod b) (c.coprod d) :=
-begin
-  rw tendsto,
-  exact le_trans map_prod_map_coprod_le (coprod_mono hf hg)
-end
+le_trans map_prod_map_coprod_le (coprod_mono hf hg)
 
 end coprod
 

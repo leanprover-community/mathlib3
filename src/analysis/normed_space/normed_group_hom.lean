@@ -6,7 +6,6 @@ Authors: Johan Commelin
 
 import analysis.normed_space.basic
 import topology.sequences
-open_locale nnreal big_operators
 
 /-!
 # Normed groups homomorphisms
@@ -22,6 +21,8 @@ structure).
 
 Some easy other constructions are related to subgroups of normed groups.
 -/
+
+open_locale nnreal big_operators
 
 set_option old_structure_cmd true
 

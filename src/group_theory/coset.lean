@@ -13,21 +13,18 @@ This file develops the basic theory of left and right cosets.
 
 ## Main definitions
 
-* `left_coset a s`: the left coset `a * s` corresponding to an element `a : α` and a subset `s ⊆ α`.
-* `right_coset s a`: the right coset `s * a` corresponding to an element `a : α` and a subset
-  `s ⊆ α`.
+* `left_coset a s`: the left coset `a * s` for an element `a : α` and a subset `s ⊆ α`.
+* `right_coset s a`: the right coset `s * a` for an element `a : α` and a subset `s ⊆ α`.
 * `quotient s`: the quotient type corresponding to the left cosets with respect to a subgroup `s`.
 * `mk`: the canonical map from `α` to `α/s` for a subgroup `s` of `α`.
 * `left_coset_equiv_subgroup`: the natural bijection between a left coset and the subgroup.
 
 ## Notation
 
-* `a *l s`: for a `has_mul α` , i.e. a magma, `a : α` and `s ⊆ α`, the left coset `a * s`.
-* `a +l s`: for a `has_add α`, i.e. an additively written magma, `a : α` and `s ⊆ α` the left coset
-  `a + s`.
-* `s *r a`: for a `has_mul α`, i.e. a magma, `a : α` and `s ⊆ α`, the right coset `s * a`.
-* `s +r a`: for a `has_add α`, i.e. an additively written magma, `a : α` and `s ⊆ α` the right coset
-  `s + a`.
+* `a *l s`: for `left_coset a s`.
+* `a +l s`: for `left_add_coset a s`.
+* `s *r a`: for `right_coset s a`.
+* `s +r a`: for `right_add_coset s a`.
 
 ## TODO
 

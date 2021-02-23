@@ -850,31 +850,21 @@ by { unfold findim, simp [dim_top] }
 
 end top
 
-lemma eq_zero_of_findim_eq_zero [finite_dimensional K V]
-  (hV : findim K V = 0) (x : V) : x = 0 :=
-begin
-  obtain ⟨B, hB⟩ := exists_is_basis_finset K V,
-  have := (findim_eq_card_finset_basis hB).symm,
-  rw [hV, finset.card_eq_zero, finset.eq_empty_iff_forall_not_mem] at this,
-  rw ← is_basis.equiv_fun_total hB x,
-  convert finset.sum_empty,
-  rw finset.univ_eq_empty,
-  rintro ⟨b, hB⟩,
-  exact this b hB,
-end
-
 lemma findim_eq_zero_iff_subsingleton [finite_dimensional K V] :
   findim K V = 0 ↔ subsingleton V :=
 begin
-  split; intro h,
-  { apply subsingleton.intro,
-    intros x y,
-    rw [eq_zero_of_findim_eq_zero h x, eq_zero_of_findim_eq_zero h y] },
-  { have : is_basis K (λ x : fin 0, (0 : V)),
-      { apply is_basis_empty _ (λ hzero, nonempty.elim hzero fin.elim0),
-        assumption },
-    rw findim_eq_card_basis this,
-    exact fintype.card_fin 0 }
+  rw [← not_iff_not, ← not_nontrivial_iff_subsingleton, not_not],
+  change findim K V ≠ 0 ↔ _,
+  rw ← pos_iff_ne_zero,
+  exact findim_pos_iff
+end
+
+lemma eq_zero_of_findim_eq_zero [finite_dimensional K V]
+  (hV : findim K V = 0) (x : V) : x = 0 :=
+begin
+  rw findim_eq_zero_iff_subsingleton at hV,
+  cases hV,
+  exact hV x 0,
 end
 
 lemma eq_zero_of_dim_eq_zero (hV : dim K V = 0) (x : V) : x = 0 :=

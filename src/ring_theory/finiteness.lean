@@ -279,7 +279,7 @@ equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
-lemma iff_quotient_mv_polynomial : finite_presentation R A ↔ ∃ (ι : Type) [fintype ι]
+lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type) [fintype ι]
   (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
 begin
   split,

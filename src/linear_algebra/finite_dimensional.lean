@@ -330,6 +330,21 @@ iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V 
 lemma findim_pos [finite_dimensional K V] [h : nontrivial V] : 0 < findim K V :=
 findim_pos_iff.mpr h
 
+/-- A finite dimensional space has zero `findim` iff it is a subsingleton. -/
+lemma findim_eq_zero_iff_subsingleton [finite_dimensional K V] :
+  findim K V = 0 ↔ subsingleton V :=
+begin
+  rw [← not_iff_not, ← not_nontrivial_iff_subsingleton, not_not],
+  change findim K V ≠ 0 ↔ _,
+  rw ← pos_iff_ne_zero,
+  exact findim_pos_iff
+end
+
+/-- A finite dimensional space that is a subsingleton has zero `findim`. -/
+lemma findim_eq_zero_of_subsingleton [finite_dimensional K V] [h : subsingleton V] :
+  findim K V = 0 :=
+findim_eq_zero_iff_subsingleton.2 h
+
 section
 open_locale big_operators
 open finset
@@ -850,29 +865,12 @@ by { unfold findim, simp [dim_top] }
 
 end top
 
-lemma findim_eq_zero_iff_subsingleton [finite_dimensional K V] :
-  findim K V = 0 ↔ subsingleton V :=
-begin
-  rw [← not_iff_not, ← not_nontrivial_iff_subsingleton, not_not],
-  change findim K V ≠ 0 ↔ _,
-  rw ← pos_iff_ne_zero,
-  exact findim_pos_iff
-end
-
 lemma eq_zero_of_findim_eq_zero [finite_dimensional K V]
   (hV : findim K V = 0) (x : V) : x = 0 :=
 begin
   rw findim_eq_zero_iff_subsingleton at hV,
   cases hV,
   exact hV x 0,
-end
-
-lemma eq_zero_of_dim_eq_zero (hV : dim K V = 0) (x : V) : x = 0 :=
-begin
-  haveI := finite_dimensional_of_dim_eq_zero hV,
-  rw ← findim_eq_dim at hV,
-  norm_cast at hV,
-  exact eq_zero_of_findim_eq_zero hV x
 end
 
 lemma is_basis_of_findim_eq_zero [finite_dimensional K V]

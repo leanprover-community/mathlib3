@@ -532,6 +532,17 @@ begin
     exact λ x, subsingleton.elim x 0 }
 end
 
+lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
+  (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
+begin
+  haveI : subsingleton V := dim_zero_iff_subsingleton.1 hV,
+  exact is_basis_empty _ h
+end
+
+lemma is_basis_of_dim_eq_zero'
+  (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
+
 lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,

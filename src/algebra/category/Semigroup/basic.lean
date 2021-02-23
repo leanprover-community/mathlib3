@@ -128,8 +128,6 @@ def mul_equiv.to_Magma_iso (e : X ≃* Y) : Magma.of X ≅ Magma.of Y :=
 { hom := e.to_mul_hom,
   inv := e.symm.to_mul_hom }
 
-variables [has_add X] [has_add Y]
-
 @[simp, to_additive add_equiv.to_AddMagma_iso_hom]
 lemma mul_equiv.to_Magma_iso_hom {e : X ≃* Y} : e.to_Magma_iso.hom = e.to_mul_hom := rfl
 @[simp, to_additive add_equiv.to_AddMagma_iso_inv]

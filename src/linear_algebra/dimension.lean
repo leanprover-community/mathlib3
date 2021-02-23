@@ -523,7 +523,7 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
-lemma dim_zero_iff_subsingleton : vector_space.dim K V = 0 ↔ subsingleton V :=
+lemma dim_zero_iff : vector_space.dim K V = 0 ↔ subsingleton V :=
 begin
   rw dim_zero_iff_forall_zero,
   split; intro h,
@@ -535,7 +535,7 @@ end
 lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
   (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
 begin
-  haveI : subsingleton V := dim_zero_iff_subsingleton.1 hV,
+  haveI : subsingleton V := dim_zero_iff.1 hV,
   exact is_basis_empty _ h
 end
 

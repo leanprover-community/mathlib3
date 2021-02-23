@@ -1289,7 +1289,7 @@ lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
 begin
   tactic.unfreeze_local_instances,
   induction hd : findim K V with d ih generalizing V,
-  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_eq_zero' hd, fin.elim0⟩ },
+  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_zero' hd, fin.elim0⟩ },
   { haveI := findim_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < findim K V),
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,

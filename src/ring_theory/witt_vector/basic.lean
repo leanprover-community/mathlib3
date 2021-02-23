@@ -36,6 +36,13 @@ As we prove that the ghost components respect the ring operations, we face a num
 proofs. To avoid duplicating code we factor these proofs into a custom tactic, only slightly more
 powerful than a tactic macro. This tactic is not particularly useful outside of its applications
 in this file.
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
+
 -/
 
 noncomputable theory

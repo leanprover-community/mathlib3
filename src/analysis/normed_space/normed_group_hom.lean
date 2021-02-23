@@ -27,21 +27,20 @@ open_locale nnreal big_operators
 set_option old_structure_cmd true
 
 /-- A morphism of normed abelian groups is a bounded group homomorphism. -/
-structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W]
-  extends add_monoid_hom V W :=
+structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W] extends V →+ W :=
 (bound' : ∃ C, ∀ v, ∥to_fun v∥ ≤ C * ∥v∥)
 
 attribute [nolint doc_blame] normed_group_hom.to_add_monoid_hom
 
 namespace normed_group_hom
 
--- initialize_simps_projections normed_group_hom (to_fun → apply)
-
 variables {V V₁ V₂ V₃ : Type*}
 variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
 variables (f g : normed_group_hom V₁ V₂)
 
 instance : has_coe_to_fun (normed_group_hom V₁ V₂) := ⟨_, normed_group_hom.to_fun⟩
+
+initialize_simps_projections normed_group_hom (to_fun → apply)
 
 @[ext] theorem ext {f g : normed_group_hom V₁ V₂} (H : ⇑f = g) : f = g :=
 by cases f; cases g; congr'; exact funext H
@@ -206,6 +205,20 @@ by refine_struct
 { intros, ext, simp [add_assoc, add_comm, add_left_comm, sub_eq_add_neg] }
 .
 
+lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
+  (∑ i in s, f i) v = ∑ i in s, (f i v) :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { simp only [coe_zero, finset.sum_empty, pi.zero_apply] },
+  { intros i s his IH,
+    simp only [his, IH, pi.add_apply, finset.sum_insert, not_false_iff, coe_add] }
+end
+
+@[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) :
+  ⇑(∑ i in s, f i) = ∑ i in s, (f i) :=
+by { ext v, rw [finset.sum_apply, sum_apply] }
+
 /-- The norm of a normed groups hom. -/
 noncomputable instance : has_norm (normed_group_hom V₁ V₂) :=
 ⟨λ f, ↑(⨅ (r : ℝ≥0) (h : f.bound_by r), r)⟩
@@ -221,16 +234,6 @@ by { ext, exact f.map_zero' }
 
 @[simp] lemma zero_comp (f : normed_group_hom V₁ V₂) : (0 : normed_group_hom V₂ V₃).comp f = 0 :=
 by { ext, refl }
-
-@[simp] lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
-  (∑ i in s, f i) v = ∑ i in s, (f i v) :=
-begin
-  classical,
-  apply finset.induction_on s,
-  { simp only [coe_zero, finset.sum_empty, pi.zero_apply] },
-  { intros i s his IH,
-    simp only [his, IH, pi.add_apply, finset.sum_insert, not_false_iff, coe_add] }
-end
 
 end normed_group_hom
 

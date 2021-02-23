@@ -38,6 +38,11 @@ that `witt_vector.frobenius_fun` is equal to `witt_vector.map (frobenius R p)`.
 TODO: Show that `witt_vector.frobenius_fun` is a ring homomorphism,
 and bundle it into `witt_vector.frobenius`.
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector

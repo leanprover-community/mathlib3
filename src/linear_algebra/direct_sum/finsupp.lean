@@ -21,7 +21,8 @@ noncomputable theory
 open_locale classical direct_sum
 
 open set linear_map submodule
-variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M]
+  [add_comm_group N] [module R N]
 
 section finsupp_lequiv_direct_sum
 

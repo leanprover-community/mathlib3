@@ -516,7 +516,8 @@ not_iff_not.mp (
   not_nontrivial_iff_subsingleton.symm)
 
 @[to_additive]
-instance [subsingleton G] : subsingleton (subgroup G) := subsingleton_iff.mp ‹_›
+instance [subsingleton G] : unique (subgroup G) :=
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ (subsingleton_iff.mp ‹_›) a _⟩
 
 @[to_additive]
 instance [nontrivial G] : nontrivial (subgroup G) := nontrivial_iff.mp ‹_›

@@ -957,6 +957,14 @@ begin
   rw mul_one
 end
 
+@[simp] lemma coeff_succ_X_mul (n : ℕ) (φ : power_series R) :
+  coeff R (n + 1) (X * φ) = coeff R n φ :=
+begin
+  simp only [coeff, finsupp.single_add, add_comm n 1],
+  convert φ.coeff_add_monomial_mul (single () 1) (single () n) _,
+  rw one_mul,
+end
+
 @[simp] lemma constant_coeff_C (a : R) : constant_coeff R (C R a) = a := rfl
 @[simp] lemma constant_coeff_comp_C :
   (constant_coeff R).comp (C R) = ring_hom.id R := rfl

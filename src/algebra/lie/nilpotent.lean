@@ -87,6 +87,8 @@ section nilpotent_algebras
 variables (R : Type u) (L : Type v) (L' : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
 
+/-- We say a Lie algebra is nilpotent when it is nilpotent as a Lie module over itself via the
+adjoint representation. -/
 abbreviation lie_algebra.is_nilpotent (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] : Prop :=
 lie_module.is_nilpotent R L L

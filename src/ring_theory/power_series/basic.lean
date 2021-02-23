@@ -1178,6 +1178,27 @@ lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R 
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u $ h
 
+/-- Two ways of removing the constant coefficient of a power series are the same. -/
+lemma sub_const_eq_shift_mul_X (φ : power_series R) :
+  φ - C R (constant_coeff R φ) = power_series.mk (λ p, coeff R (p + 1) φ) * X :=
+begin
+  ext, cases n,
+  { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+    mul_zero, sub_self, ring_hom.map_mul] },
+  simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_sub],
+  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false],
+end
+
+lemma sub_const_eq_X_mul_shift (φ : power_series R) :
+  (φ - C R (constant_coeff R φ)) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=
+begin
+ ext, cases n,
+  { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+    zero_mul, sub_self, ring_hom.map_mul] },
+  simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_sub],
+  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false],
+end
+
 end ring
 
 section comm_ring
@@ -1195,23 +1216,6 @@ rescale (-1 : A)
 
 @[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
 rescale_neg_one_X
-
-/-- Two ways of removing the constant coefficient of a power series are the same. -/
-lemma sub_const_eq_shift_mul_X (φ : power_series A) :
-  φ - C A (constant_coeff A φ) = power_series.mk (λ p, coeff A (p + 1) φ) * X :=
-begin
-  ext, cases n,
-  { simp only [ring_hom.map_sub, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
-    mul_zero, sub_self, ring_hom.map_mul] },
-  simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_sub],
-  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false],
-end
-
-lemma sub_const_eq_X_mul_shift (φ : power_series A) :
-  (φ - C A (constant_coeff A φ)) = X * power_series.mk (λ p, coeff A (p + 1) φ) :=
-begin
-  simp only [mul_comm,  sub_const_eq_shift_mul_X],
-end
 
 end comm_ring
 

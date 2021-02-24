@@ -353,6 +353,30 @@ protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
 
+@[simp] lemma symm_preimage_preimage {α β} (e : α ≃ β) (s : set β) :
+  e.symm ⁻¹' (e ⁻¹' s) = s :=
+by ext; simp
+
+@[simp] lemma preimage_symm_preimage {α β} (e : α ≃ β) (s : set α) :
+  e ⁻¹' (e.symm ⁻¹' s) = s :=
+by ext; simp
+
+@[simp] lemma preimage_subset {α β} (e : α ≃ β) (s t : set β) : e ⁻¹' s ⊆ e ⁻¹' t ↔ s ⊆ t :=
+⟨by simpa using @set.preimage_mono _ _ e.symm (e ⁻¹' s) (e ⁻¹' t),
+ set.preimage_mono⟩
+
+@[simp] lemma image_subset {α β} (e : α ≃ β) (s t : set α) : e '' s ⊆ e '' t ↔ s ⊆ t :=
+⟨by { rw ← e.preimage_subset, simp }, set.image_subset _⟩
+
+@[simp] lemma image_eq_iff_eq {α β} (e : α ≃ β) (s t : set α) : e '' s = e '' t ↔ s = t :=
+by simp [set.subset.antisymm_iff, e.image_subset]
+
+lemma preimage_eq_iff_eq_image {α β} (e : α ≃ β) (s t) : e ⁻¹' s = t ↔ s = e '' t :=
+by { rw ← e.image_eq_iff_eq, simp }
+
+lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
+by { rw ← e.image_eq_iff_eq, simp }
+
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (h : α → false) : α ≃ empty :=
 ⟨λ x, (h x).elim, λ e, e.rec _, λ x, (h x).elim, λ e, e.rec _⟩
@@ -1631,6 +1655,7 @@ begin
 end
 
 /-- If `α` is equivalent to `β`, then `set α` is equivalent to `set β`. -/
+@[simps]
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 ⟨λ s, e '' s, λ t, e.symm '' t, symm_image_image e, symm_image_image e.symm⟩
 
@@ -1875,6 +1900,18 @@ equiv.forall_congr f (λx, by simp)
 protected lemma forall_congr_left {p : β → Prop} (f : α ≃ β) :
   (∀x, p (f x)) ↔ (∀y, p y) :=
 (equiv.forall_congr_left' f.symm).symm
+
+protected lemma exists_congr_left {α β} (f : α ≃ β) {p : α → Prop} :
+  (∃ a, p a) ↔ (∃ b, p (f.symm b)) :=
+⟨λ ⟨a, h⟩, ⟨f a, by simpa using h⟩, λ ⟨b, h⟩, ⟨_, h⟩⟩
+
+protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
+  (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=
+by simpa [equiv.image_eq_preimage] using (equiv.set.congr e).forall_congr_left'
+
+@[simp] protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
+  f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
+by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 
 section
 variables (P : α → Sort w) (e : α ≃ β)

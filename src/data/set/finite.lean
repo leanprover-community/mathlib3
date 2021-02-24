@@ -338,6 +338,11 @@ finite_of_finite_image I (h.subset (image_preimage_subset f s))
 theorem finite.preimage_embedding {s : set β} (f : α ↪ β) (h : s.finite) : (f ⁻¹' s).finite :=
 finite.preimage (λ _ _ _ _ h', f.injective h') h
 
+lemma finite_option {s : set (option α)} : finite s ↔ finite {x : α | some x ∈ s} :=
+⟨λ h, h.preimage_embedding embedding.some,
+  λ h, ((h.image some).union (finite_singleton none)).subset $
+    λ x, option.cases_on x (λ _, or.inr rfl) (λ x hx, or.inl $ mem_image_of_mem _ hx)⟩
+
 instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
 fintype.of_finset (finset.univ.bUnion (λ i, (f i).to_finset)) $ by simp

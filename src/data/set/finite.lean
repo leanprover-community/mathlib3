@@ -176,6 +176,9 @@ fintype.card_of_subsingleton _
 @[simp] theorem finite_singleton (a : α) : finite ({a} : set α) :=
 ⟨set.fintype_singleton _⟩
 
+lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
+h.induction_on finite_empty finite_singleton
+
 instance fintype_pure : ∀ a : α, fintype (pure a : set α) :=
 set.fintype_singleton
 

@@ -250,6 +250,12 @@ emetric.mk_uniformity_basis
   (λ n _, ennreal.inv_pos.2 $ ennreal.nat_ne_top n)
   (λ ε ε₀, let ⟨n, hn⟩ := ennreal.exists_inv_nat_lt (ne_of_gt ε₀) in ⟨n, trivial, le_of_lt hn⟩)
 
+theorem uniformity_basis_edist_inv_two_pow :
+  (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | edist p.1 p.2 < 2⁻¹ ^ n}) :=
+emetric.mk_uniformity_basis
+  (λ n _, ennreal.pow_pos (ennreal.inv_pos.2 ennreal.two_ne_top) _)
+  (λ ε ε₀, let ⟨n, hn⟩ := ennreal.exists_inv_two_pow_lt (ne_of_gt ε₀) in ⟨n, trivial, le_of_lt hn⟩)
+
 /-- Fixed size neighborhoods of the diagonal belong to the uniform structure -/
 theorem edist_mem_uniformity {ε:ℝ≥0∞} (ε0 : 0 < ε) :
   {p:α×α | edist p.1 p.2 < ε} ∈ 𝓤 α :=

@@ -222,7 +222,7 @@ instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α 
 /-- Construct a decidable linear order from a well-founded linear order. -/
 noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
   linear_order α :=
-by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
+@linear_order_of_STO' α r _ (λ x y, classical.dec _)
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,

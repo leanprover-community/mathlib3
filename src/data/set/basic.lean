@@ -1735,6 +1735,10 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
+lemma coe_image' (p q : α → Prop) :
+  coe '' {x : subtype p | q x} = {x | p x ∧ q x} :=
+by simp [coe_image]
+
 lemma range_coe {s : set α} :
   range (coe : s → α) = s :=
 by { rw ← set.image_univ, simp [-set.image_univ, coe_image] }

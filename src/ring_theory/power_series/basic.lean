@@ -986,9 +986,9 @@ lemma eq_shift_mul_X_add_const (φ : power_series R) :
 begin
   ext (_ | n),
   { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
-    zero_add, mul_zero, ring_hom.map_mul], },
-  simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_add],
-  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false, add_zero],
+      zero_add, mul_zero, ring_hom.map_mul], },
+  { simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+      if_false, add_zero], }
 end
 
 /-- Split off the constant coefficient. -/
@@ -997,9 +997,9 @@ lemma eq_X_mul_shift_add_const (φ : power_series R) :
 begin
   ext (_ | n),
   { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
-    zero_add, zero_mul, ring_hom.map_mul], },
-  simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_add],
-  simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false, add_zero],
+      zero_add, zero_mul, ring_hom.map_mul], },
+  { simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+      if_false, add_zero], }
 end
 
 section map

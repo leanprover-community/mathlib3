@@ -991,6 +991,7 @@ begin
   simp only [coeff_C, n.succ_ne_zero, sub_zero, if_false, add_zero],
 end
 
+/-- Split off the constant coefficient. -/
 lemma eq_X_mul_shift_add_const (φ : power_series R) :
   φ = X * mk (λ p, coeff R (p + 1) φ) + C R (constant_coeff R φ) :=
 begin

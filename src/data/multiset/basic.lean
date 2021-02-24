@@ -2136,12 +2136,20 @@ end choose
 variable (α)
 
 /-- The equivalence between lists and multisets of a subsingleton type. -/
+@[simps]
 def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
 { to_fun := coe,
   inv_fun := quot.lift id $ λ (a b : list α) (h : a ~ b),
     list.ext_le h.length_eq $ λ n h₁ h₂, subsingleton.elim _ _,
   left_inv := λ l, rfl,
   right_inv := λ m, quot.induction_on m $ λ l, rfl }
+
+variable {α}
+
+@[simp]
+lemma subsingleton_equiv_apply' [subsingleton α] :
+  (subsingleton_equiv α : list α → multiset α) = coe :=
+rfl
 
 end multiset
 

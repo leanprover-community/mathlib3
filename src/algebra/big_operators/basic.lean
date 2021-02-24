@@ -217,6 +217,16 @@ lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β) :
   (∏ x in (s.map e), f x) = ∏ x in s, f (e x) :=
 by rw [finset.prod, finset.map_val, multiset.map_map]; refl
 
+@[simp, to_additive]
+lemma prod_map' {γ} [∀ P, decidable P] (s : finset α) (e : α ↪ γ) (f : γ → β) :
+  (∏ x in e <$> s, f x) = ∏ x in s, f (e x) :=
+by { unfold functor.map, rw [← map_eq_image, prod_map] }
+
+@[simp, to_additive]
+lemma prod_map'' {γ} [∀ P, decidable P] (s : finset α) (e : α ≃ γ) (f : γ → β) :
+  (∏ x in e <$> s, f x) = ∏ x in s, f (e x) :=
+prod_map' s e.to_embedding f
+
 @[congr, to_additive]
 lemma prod_congr (h : s₁ = s₂) : (∀x∈s₂, f x = g x) → s₁.prod f = s₂.prod g :=
 by rw [h]; exact fold_congr

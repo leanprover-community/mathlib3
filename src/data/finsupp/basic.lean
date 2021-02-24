@@ -1102,6 +1102,10 @@ begin
   { assume h, rw [not_mem_support_iff.1 h, single_zero, zero_apply] }
 end
 
+@[simp] lemma map_domain_apply_equiv (f : α ≃ β) (x : α →₀ M) (b : β) :
+  map_domain f x b = x (f.symm b) :=
+by rw [← f.apply_symm_apply b, map_domain_apply f.injective, f.apply_symm_apply]
+
 lemma map_domain_notin_range {f : α → β} (x : α →₀ M) (a : β) (h : a ∉ set.range f) :
   map_domain f x a = 0 :=
 begin

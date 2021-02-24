@@ -65,6 +65,9 @@ lemma to_fun_apply {f : M ≃* N} {m : M} : f.to_fun m = f m := rfl
 @[simp, to_additive]
 lemma to_equiv_apply {f : M ≃* N} {m : M} : f.to_equiv m = f m := rfl
 
+@[simp, to_additive]
+lemma coe_fn_to_equiv {f : M ≃* N} : (f.to_equiv : M → N) = f := rfl
+
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[simp, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'

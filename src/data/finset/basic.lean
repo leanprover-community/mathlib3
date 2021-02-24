@@ -2444,12 +2444,23 @@ protected def finset_congr (e : α ≃ β) : finset α ≃ finset β :=
   left_inv := λ s, by simp [finset.map_map],
   right_inv := λ s, by simp [finset.map_map] }
 
-@[simp] lemma finset_congr_apply (e : α ≃ β) (s : finset α) :
+lemma finset_congr_apply (e : α ≃ β) (s : finset α) :
   e.finset_congr s = s.map e.to_embedding :=
 rfl
-@[simp] lemma finset_congr_symm_apply (e : α ≃ β) (s : finset β) :
+lemma finset_congr_symm_apply (e : α ≃ β) (s : finset β) :
   e.finset_congr.symm s = s.map e.symm.to_embedding :=
 rfl
+
+@[simp] lemma finset_congr_symm (e : α ≃ β) :
+  e.finset_congr.symm = e.symm.finset_congr :=
+rfl
+
+@[simp] lemma mem_finset_congr (e : α ≃ β) (s : finset α) (x : β) :
+  x ∈ e.finset_congr s ↔ e.symm x ∈ s :=
+begin
+  rw [finset_congr_apply, finset.mem_map],
+  exact ⟨by rintro ⟨a, H, rfl⟩; simpa, λ h, ⟨_, h, by simp⟩⟩
+end
 
 end equiv
 

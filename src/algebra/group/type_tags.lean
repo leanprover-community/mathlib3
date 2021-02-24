@@ -50,6 +50,11 @@ to_mul.apply_eq_iff_eq.mp
 protected lemma ext_iff {x y : additive α} : x = y ↔ x.to_mul = y.to_mul :=
 ⟨congr_arg _, additive.ext⟩
 
+@[elab_as_eliminator]
+protected lemma ind_on {C : additive α → Prop} (x : additive α) :
+  (∀ x, C (of_mul x)) → C x :=
+λ h, by rw ← additive.of_mul.right_inv x; apply h
+
 end additive
 
 namespace multiplicative
@@ -70,6 +75,11 @@ to_add.apply_eq_iff_eq.mp
 
 protected lemma ext_iff {x y : multiplicative α} : x = y ↔ x.to_add = y.to_add :=
 ⟨congr_arg _, multiplicative.ext⟩
+
+@[elab_as_eliminator]
+protected lemma ind_on {C : multiplicative α → Prop} (x : multiplicative α) :
+  (∀ x, C (of_add x)) → C x :=
+λ h, by rw ← multiplicative.of_add.right_inv x; apply h
 
 end multiplicative
 

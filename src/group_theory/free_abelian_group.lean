@@ -139,6 +139,17 @@ begin
   { intros a b, apply Cp }
 end
 
+@[elab_as_eliminator]
+protected theorem induction_on_sub
+  {C : free_abelian_group α → Prop}
+  (z : free_abelian_group α)
+  (C0 : C 0)
+  (C1 : ∀ x, C (of x))
+  (Cs : ∀ x y, C x → C y → C (x - y)) : C z :=
+free_abelian_group.induction_on z C0 C1
+  (λ x, by { rw ← zero_sub, exact Cs _ _ C0 })
+  (λ x y hx hy, by { rw [← sub_neg_eq_add, ← zero_sub], exact Cs _ _ hx (Cs _ _ C0 hy) })
+
 theorem lift.add' {α β} [add_comm_group β] (a : free_abelian_group α) (f g : α → β) :
   lift (f + g) a = lift f a + lift g a :=
 begin
@@ -340,6 +351,22 @@ instance [monoid α] : ring (free_abelian_group α) :=
 
 lemma one_def [monoid α] : (1 : free_abelian_group α) = of 1 := rfl
 lemma of_one [monoid α] : (of 1 : free_abelian_group α) = 1 := rfl
+
+lemma lift.mul [monoid α] [ring β] (f : α →* β) (x y : free_abelian_group α) :
+  lift f (x * y) = lift f x * lift f y :=
+begin
+  refine free_abelian_group.induction_on_sub x (by simp) (λ a, _) (by { simp [sub_mul], cc }),
+  refine free_abelian_group.induction_on_sub y (by simp) (λ b, _) (by { simp [mul_sub], cc }),
+  simp [← of_mul, lift.of],
+end
+
+/-- `free_abelian_group.of` as a monoid homomorphism. -/
+@[simps] def of_hom [monoid α] : α →* free_abelian_group α :=
+⟨of, of_one _, of_mul _⟩
+
+@[simp] lemma map_mul [monoid α] [monoid β] (f : α →* β) (x y : free_abelian_group α) :
+  f <$> (x * y) = (f <$> x) * (f <$> y) :=
+show lift ((of_hom _).comp f) _ = _, by { rw lift.mul, refl }
 
 instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
 { mul_comm := λ x y, begin

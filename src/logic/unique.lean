@@ -81,7 +81,7 @@ lemma eq_default (a : α) : a = default α := uniq _ a
 lemma default_eq (a : α) : default α = a := (uniq _ a).symm
 
 @[priority 100] -- see Note [lower instance priority]
-instance : subsingleton α := ⟨λ a b, by rw [eq_default a, eq_default b]⟩
+instance : subsingleton α := subsingleton_of_forall_eq _ eq_default
 
 lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=
 ⟨λ h, h _, λ h x, by rwa [unique.eq_default x]⟩

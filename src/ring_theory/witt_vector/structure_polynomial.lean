@@ -79,6 +79,11 @@ dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
   (We also define `witt_vector.witt_sub`, and later we will prove that it describes subtraction,
   which is defined as `λ a b, a + -b`. See `witt_vector.sub_coeff` for this proof.)
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open mv_polynomial

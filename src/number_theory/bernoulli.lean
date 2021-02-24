@@ -16,7 +16,7 @@ number theory.
 
 ## Mathematical overview
 
-The Bernoulli numbers $(B_0, B_1, B_2, \ldots)=(1, 1/2, 1/6, 0, -1/30, \ldots)$ are
+The Bernoulli numbers $(B_0, B_1, B_2, \ldots)=(1, -1/2, 1/6, 0, -1/30, \ldots)$ are
 a sequence of rational numbers. They show up in the formula for the sums of $k$th
 powers. They are related to the Taylor series expansions of $x/\tan(x)$ and
 of $\coth(x)$, and also show up in the values that the Riemann Zeta function
@@ -34,36 +34,21 @@ $$\sum B_n\frac{t^n}{n!}=\frac{t}{1-e^{-t}}$$
 although that happens to not be the definition in mathlib (this is an *implementation
 detail* though, and need not concern the mathematician).
 
-Note that $B_1=+1/2$, meaning that we are using the $B_n^+$ of
+Note that $B_1=-1/2$, meaning that we are using the $B_n^-$ of
 [from Wikipedia](https://en.wikipedia.org/wiki/Bernoulli_number).
-To get the "minus" convention, just use `(-1)^n * bernoulli n`.
-
-There is no particular reason that the `+` convention was used.
-In some sense it's like choosing whether you want to sum over `fin n`
-(so `j < n`) or sum over `j ≤ n` (or `nat.antidiagonal n`). Indeed
-$$(t+1)\sum_{j\lt n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{-}n^{t+1-k}$$
-and
-$$(t+1)\sum_{j\leq n}j^t=\sum_{k\leq t}\binom{t+1}{k}B_k^{+}n^{t+1-k}.$$
 
 ## Implementation detail
 
 The Bernoulli numbers are defined using well-founded induction, by the formula
 $$B_n=1-\sum_{k\lt n}\frac{\binom{n}{k}}{n-k+1}B_k.$$
-This formula is true for all $n$ and in particular $B_0=1$.
+This formula is true for all $n$ and in particular $B_0=1$. Note that this is the definition
+for positive Bernoulli numbers, which we call `bernoulli'`. The negative Bernoulli numbers are
+then defined as `bernoulli = (-1)^n * bernoulli'`.
 
 ## Main theorems
 
-`sum_bernoulli : ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = n`
+`sum_bernoulli : ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = 0`
 
-## Todo
-
-* `∑ k : fin n, n.binomial k * (-1)^k * bernoulli k = if n = 1 then 1 else 0`
-
-* Bernoulli polynomials
-
-* `∑ k : fin n, k ^ t =` the Bernoulli polynomial B_t evaluated at n
-
-* `∑ k : fin n.succ, n.succ.choose k bernoulli_poly k X = n.succ * X ^ n` as polynomials
 -/
 
 open_locale big_operators
@@ -79,31 +64,31 @@ open finset
 /-- The Bernoulli numbers:
 the $n$-th Bernoulli number $B_n$ is defined recursively via
 $$B_n = 1 - \sum_{k < n} \binom{n}{k}\frac{B_k}{n+1-k}$$ -/
-def bernoulli : ℕ → ℚ :=
+def bernoulli' : ℕ → ℚ :=
 well_founded.fix nat.lt_wf
-  (λ n bernoulli, 1 - ∑ k : fin n, n.choose k / (n - k + 1) * bernoulli k k.2)
+  (λ n bernoulli', 1 - ∑ k : fin n, n.choose k / (n - k + 1) * bernoulli' k k.2)
 
-lemma bernoulli_def' (n : ℕ) :
-  bernoulli n = 1 - ∑ k : fin n, (n.choose k) / (n - k + 1) * bernoulli k :=
+lemma bernoulli'_def' (n : ℕ) :
+  bernoulli' n = 1 - ∑ k : fin n, (n.choose k) / (n - k + 1) * bernoulli' k :=
 well_founded.fix_eq _ _ _
 
-lemma bernoulli_def (n : ℕ) :
-  bernoulli n = 1 - ∑ k in finset.range n, (n.choose k) / (n - k + 1) * bernoulli k :=
-by { rw [bernoulli_def', ← fin.sum_univ_eq_sum_range], refl }
+lemma bernoulli'_def (n : ℕ) :
+  bernoulli' n = 1 - ∑ k in finset.range n, (n.choose k) / (n - k + 1) * bernoulli' k :=
+by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 
-lemma bernoulli_spec (n : ℕ) :
-  ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli k = 1 :=
+lemma bernoulli'_spec (n : ℕ) :
+  ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [finset.sum_range_succ, bernoulli_def n, nat.sub_self],
+  rw [finset.sum_range_succ, bernoulli'_def n, nat.sub_self],
   conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (finset.mem_range.1 H)) },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
 
-lemma bernoulli_spec' (n : ℕ) :
+lemma bernoulli'_spec' (n : ℕ) :
   ∑ k in finset.nat.antidiagonal n,
-  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 1 :=
+  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli' k.1 = 1 :=
 begin
-  refine ((nat.sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli_spec n),
+  refine ((nat.sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
   refine sum_congr rfl (λ x hx, _),
   rw mem_range_succ_iff at hx,
   simp [nat.add_sub_cancel' hx, cast_sub hx],
@@ -119,26 +104,26 @@ section examples
 
 open finset
 
-@[simp] lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
+@[simp] lemma bernoulli'_zero  : bernoulli' 0 = 1   := rfl
 
-@[simp] lemma bernoulli_one   : bernoulli 1 = 1/2 :=
+@[simp] lemma bernoulli'_one   : bernoulli' 1 = 1/2 :=
 begin
-    rw [bernoulli_def, sum_range_one], norm_num
+    rw [bernoulli'_def, sum_range_one], norm_num
 end
 
-@[simp] lemma bernoulli_two   : bernoulli 2 = 1/6 :=
+@[simp] lemma bernoulli'_two   : bernoulli' 2 = 1/6 :=
 begin
-  rw [bernoulli_def, sum_range_succ, sum_range_one], norm_num
+  rw [bernoulli'_def, sum_range_succ, sum_range_one], norm_num
 end
 
-@[simp] lemma bernoulli_three : bernoulli 3 = 0   :=
+@[simp] lemma bernoulli'_three : bernoulli' 3 = 0   :=
 begin
-  rw [bernoulli_def, sum_range_succ, sum_range_succ, sum_range_one], norm_num
+  rw [bernoulli'_def, sum_range_succ, sum_range_succ, sum_range_one], norm_num
 end
 
-@[simp] lemma bernoulli_four  : bernoulli 4 = -1/30 :=
+@[simp] lemma bernoulli'_four  : bernoulli' 4 = -1/30 :=
 begin
-  rw [bernoulli_def, sum_range_succ, sum_range_succ, sum_range_succ, sum_range_one],
+  rw [bernoulli'_def, sum_range_succ, sum_range_succ, sum_range_succ, sum_range_one],
   rw (show nat.choose 4 2 = 6, from dec_trivial), -- shrug
   norm_num,
 end
@@ -147,13 +132,13 @@ end examples
 
 open nat finset
 
-@[simp] lemma sum_bernoulli (n : ℕ) :
-  ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli k = n :=
+@[simp] lemma sum_bernoulli' (n : ℕ) :
+  ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli' k = n :=
 begin
   cases n with n, { simp },
-  rw [sum_range_succ, bernoulli_def],
-  suffices : (n + 1 : ℚ) * ∑ k in range n, (n.choose k : ℚ) / (n - k + 1) * bernoulli k =
-    ∑ x in range n, (n.succ.choose x : ℚ) * bernoulli x,
+  rw [sum_range_succ, bernoulli'_def],
+  suffices : (n + 1 : ℚ) * ∑ k in range n, (n.choose k : ℚ) / (n - k + 1) * bernoulli' k =
+    ∑ x in range n, (n.succ.choose x : ℚ) * bernoulli' x,
   { rw [← this, choose_succ_self_right], norm_cast, ring},
   simp_rw [mul_sum, ← mul_assoc],
   apply sum_congr rfl,
@@ -168,8 +153,8 @@ end
 
 open power_series
 
-theorem bernoulli_power_series :
-  power_series.mk (λ n, (bernoulli n / nat.factorial n : ℚ)) * (exp ℚ - 1) = X * exp ℚ :=
+theorem bernoulli'_power_series :
+  power_series.mk (λ n, (bernoulli' n / nat.factorial n : ℚ)) * (exp ℚ - 1) = X * exp ℚ :=
 begin
   ext n,
   -- constant coefficient is a special case
@@ -184,7 +169,7 @@ begin
     factorial, div_one, mul_zero, and_false, sub_self],
   apply eq_inv_of_mul_left_eq_one,
   rw sum_mul,
-  convert bernoulli_spec' n using 1,
+  convert bernoulli'_spec' n using 1,
   apply sum_congr rfl,
   rintro ⟨i, j⟩ hn,
   rw nat.mem_antidiagonal at hn,
@@ -196,7 +181,7 @@ begin
   { norm_cast at *,
     exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
   field_simp [hj, hnz],
-  rw [mul_comm _ (bernoulli i), mul_assoc],
+  rw [mul_comm _ (bernoulli' i), mul_assoc],
   norm_cast,
   rw [mul_comm (j + 1) _, mul_div_assoc, ← mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,
     add_choose, cast_dvd_char_zero],
@@ -207,16 +192,16 @@ end
 open ring_hom
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
-theorem bernoulli_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli n = 0 :=
+theorem bernoulli'_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli' n = 0 :=
 begin
-  have f := bernoulli_power_series,
-  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
+  have f := bernoulli'_power_series,
+  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
     mul_comm (eval_neg_hom (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one, eval_neg_hom_X, mul_one,
     one_mul] at g,
-  suffices h : (mk (λ (n : ℕ), bernoulli n / ↑(n.factorial)) - eval_neg_hom (mk (λ (n : ℕ),
-    bernoulli n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
+  suffices h : (mk (λ (n : ℕ), bernoulli' n / ↑(n.factorial)) - eval_neg_hom (mk (λ (n : ℕ),
+    bernoulli' n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
   { rw [mul_eq_mul_right_iff] at h,
     cases h,
     { simp only [eval_neg_hom, rescale, coeff_mk, coe_mk, power_series.ext_iff,
@@ -235,4 +220,40 @@ begin
       simpa using h, }, },
   { rw [sub_mul, f, mul_sub X, mul_one, sub_right_inj, ←neg_sub, ←neg_neg X, ←g,
       neg_mul_eq_mul_neg], },
+end
+
+/-- The Bernoulli numbers are defined to be `bernoulli'` with a parity sign. -/
+def bernoulli (n : ℕ) : ℚ := (-1)^n * (bernoulli' n)
+
+@[simp] lemma bernoulli_zero  : bernoulli 0 = 1 := rfl
+
+@[simp] lemma bernoulli_one   : bernoulli 1 = -1/2 :=
+by norm_num [bernoulli, bernoulli'_one]
+
+theorem bernoulli_eq_bernoulli' {n : ℕ} (hn : n ≠ 1) : bernoulli n = bernoulli' n :=
+begin
+  by_cases n = 0,
+  { rw [h, bernoulli'_zero, bernoulli_zero] },
+  { rw [bernoulli, neg_one_pow_eq_pow_mod_two],
+    by_cases k : n % 2 = 1,
+    { have f : 1 < n := one_lt_iff_ne_zero_and_ne_one.2 ⟨h, hn⟩,
+      simp [bernoulli'_odd_eq_zero (odd_iff.2 k) f] },
+    rw mod_two_ne_one at k, simp [k] }
+end
+
+@[simp] theorem sum_bernoulli (n : ℕ) ( h : 2 ≤ n ) :
+  ∑ k in range n, (n.choose k : ℚ) * bernoulli k = 0 :=
+begin
+  cases n, norm_num at h,
+  cases n, norm_num at h,
+  rw [sum_range_succ', bernoulli_zero, mul_one, choose_zero_right, cast_one,
+    sum_range_succ', bernoulli_one, choose_one_right],
+  suffices : ∑ (i : ℕ) in range n, ↑((n + 2).choose (i + 2)) * bernoulli (i + 2) = n/2,
+  { rw [this, cast_succ, cast_succ], ring },
+  have f := sum_bernoulli' n.succ.succ,
+  simp only [sum_range_succ', one_div, bernoulli'_one, cast_succ, mul_one, cast_one, add_left_inj,
+    choose_zero_right, bernoulli'_zero, zero_add, choose_one_right, ← eq_sub_iff_add_eq] at f,
+  convert f,
+  { ext x, rw bernoulli_eq_bernoulli' (succ_ne_zero x ∘ succ.inj) },
+  { ring },
 end

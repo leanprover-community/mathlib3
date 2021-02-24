@@ -122,7 +122,7 @@ set.ext $ λ x, mem_support_iff.symm
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-lemma coe_fn_injective : function.injective (λ (f : α →₀ M) (x : α), f x)
+lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
     change f = g at h, subst h,
@@ -1736,6 +1736,11 @@ lemma sum_smul_index' [semiring R] [add_comm_monoid M] [semimodule R M] [add_com
   {g : α →₀ M} {b : R} {h : α → M → N} (h0 : ∀i, h i 0 = 0) :
   (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
+
+instance [semiring R] [add_comm_monoid M] [semimodule R M] {ι : Type*}
+  [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=
+⟨λ c f h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext
+  (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩
 
 section
 variables [semiring R] [semiring S]

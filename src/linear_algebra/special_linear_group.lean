@@ -50,7 +50,8 @@ section
 
 variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
 
-/-- `special_linear_group n R` is the group of `n` by `n` `R`-matrices with determinant equal to 1. -/
+/-- `special_linear_group n R` is the group of `n` by `n` `R`-matrices with determinant equal to 1.
+-/
 def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end

@@ -177,8 +177,8 @@ lemma pi.single_sub [Π i, add_group $ f i] (i : I) (x y : f i) :
   single i (x - y) = single i x - single i y :=
 (add_monoid_hom.single f i).map_sub x y
 
-lemma pi.single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
-  single i (x * y) = single i x * single i y :=
-(mul_hom.single f i).map_mul x y
+lemma pi.single_mul_single [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
+  single i x * single i y = single i (x * y) :=
+((mul_hom.single f i).map_mul x y).symm
 
 end single

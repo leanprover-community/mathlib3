@@ -7,6 +7,37 @@ This file is to a certain extent based on `quotient_module.lean` by Johannes Hö
 -/
 import group_theory.coset
 
+/-!
+# Quotients of groups by normal subgroups
+
+This files develops the basic theory of quotients of groups by normal subgroups. In particular it
+proves Noether's first and second isomorphism theorems.
+
+## Main definitions
+
+* `mk'`: the canonical group homomorphism `G →* G/N` given a normal subgroup `N` of `G`.
+* `lift φ`: the group homomorphism `G/N →* H` given a group homomorphism `φ : G →* H` such that
+  `N ⊆ ker φ`.
+* `map f`: the group homomorphism `G/N →* H/M` given a group homomorphism `f : G →* H` such that
+  `N ⊆ f⁻¹(M)`.
+
+## Main statements
+
+* `quotient_ker_equiv_range`: Noether's first isomorphism theorem, an explicit isomorphism
+  `G/ker φ → range φ` for every group homomorphism `φ : G →* H`.
+* `quotient_inf_equiv_prod_normal_quotient`: Noether's second isomorphism theorem, an explicit
+  isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
+  group `G`.
+
+## Tags
+
+isomorphism theorems, quotient groups
+
+## TODO
+
+Noether's third isomorphism theorem
+-/
+
 universes u v
 
 namespace quotient_group
@@ -205,7 +236,7 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   right_inv := λ x, x.induction_on' $ by { intro, refl },
   map_mul' := λ x y, by rw map_mul }
 
-  section snd_isomorphism_thm
+section snd_isomorphism_thm
 
 open subgroup
 

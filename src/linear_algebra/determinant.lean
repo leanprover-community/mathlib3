@@ -254,7 +254,8 @@ lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_column M j $ s • u) = s * det (update_column M j u) :=
 begin
   simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i = s * ∏ i, M.update_column j u (σ i) i,
+  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i =
+    s * ∏ i, M.update_column j u (σ i) i,
   { intros σ,
     simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
                if_true, algebra.id.smul_eq_mul, pi.smul_apply],

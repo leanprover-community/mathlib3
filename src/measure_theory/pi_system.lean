@@ -50,6 +50,10 @@ inductive generate_pi_system {α} (g : set (set α)) : set (set α)
 | inter {s t : set α} (h_s : generate_pi_system s)  (h_t : generate_pi_system t)
   (h_nonempty : (s ∩ t).nonempty) : generate_pi_system (s ∩ t)
 
+lemma is_pi_system_generate_pi_system {α} (g : set (set α)) :
+  is_pi_system (generate_pi_system g) :=
+λ s t h_s h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
+
 lemma subset_generate_pi_system_self {α} (g : set (set α)) : g ⊆ generate_pi_system g :=
 λ s, generate_pi_system.base
 
@@ -80,9 +84,6 @@ lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
   (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
 set.subset.trans (generate_pi_system_mono h_sub) (generate_pi_system_subset_self h_t)
 
-lemma is_pi_system_generate_pi_system {α} (g : set (set α)) :
-  is_pi_system (generate_pi_system g) :=
-λ s t h_s h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
 
 lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {g : set (set α)}
   (h_meas_g : ∀ s ∈ g, measurable_set s) (t : set α)

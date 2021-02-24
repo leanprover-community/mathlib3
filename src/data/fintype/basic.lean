@@ -868,7 +868,8 @@ finset `fintype.pi_finset t` of all functions taking values in `t a` for all `a`
 analogue of `finset.pi` where the base finset is `univ` (but formally they are not the same, as
 there is an additional condition `i ∈ finset.univ` in the `finset.pi` definition). -/
 def pi_finset (t : Πa, finset (δ a)) : finset (Πa, δ a) :=
-(finset.univ.pi t).map ⟨λ f a, f a (mem_univ a), λ _ _, by simp [function.funext_iff]⟩
+(finset.univ.pi t).map
+  ⟨λ f a, f a (mem_univ a), λ _ _, by simp [function.funext_iff, forall_prop_of_true]⟩
 
 @[simp] lemma mem_pi_finset {t : Πa, finset (δ a)} {f : Πa, δ a} :
   f ∈ pi_finset t ↔ (∀a, f a ∈ t a) :=
@@ -971,12 +972,13 @@ end⟩
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, fintype (α hp)] : fintype (Π hp : p, α hp) :=
 if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
-          else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
+          else ⟨singleton (λ h, (hp h).elim),
+                by simp [hp, function.funext_iff, forall_prop_of_false]⟩
 
 @[simp] lemma finset.univ_pi_univ {α : Type*} {β : α → Type*}
   [decidable_eq α] [fintype α] [∀a, fintype (β a)] :
   finset.univ.pi (λ a : α, (finset.univ : finset (β a))) = finset.univ :=
-by { ext, simp }
+by { ext, simp [forall_prop_of_true] }
 
 lemma mem_image_univ_iff_mem_range
   {α β : Type*} [fintype α] [decidable_eq β] {f : α → β} {b : β} :

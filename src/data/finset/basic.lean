@@ -2459,9 +2459,17 @@ protected def finset_congr (e : α ≃ β) : finset α ≃ finset β :=
   e.finset_congr s = s.map e.to_embedding :=
 rfl
 
+@[simp] lemma finset_congr_refl :
+  (equiv.refl α).finset_congr = equiv.refl _ :=
+by { ext, simp }
+
 @[simp] lemma finset_congr_symm (e : α ≃ β) :
   e.finset_congr.symm = e.symm.finset_congr :=
 rfl
+
+@[simp] lemma finset_congr_trans (e : α ≃ β) (e' : β ≃ γ) :
+  e.finset_congr.trans (e'.finset_congr) = (e.trans e').finset_congr :=
+by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
 
 end equiv
 

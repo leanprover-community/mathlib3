@@ -94,23 +94,6 @@ instance has_forget_to_Magma : has_forget₂ Semigroup Magma := bundled_hom.forg
 
 end Semigroup
 
--- We verify that the coercions of morphisms to functions work correctly:
-example {R S : Magma}     (f : R ⟶ S) : (R : Type) → (S : Type) := f
-example {R S : Semigroup} (f : R ⟶ S) : (R : Type) → (S : Type) := f
-
--- We verify that when constructing a morphism in `Semigroup`,
--- when we construct the `to_fun` field, the types are presented as `↥R`,
--- rather than `R.α` or (as we used to have) `↥(bundled.map semigroup.to_has_mul R)`.
-example (R : Semigroup.{u}) : R ⟶ R :=
-{ to_fun := λ X,
-  begin
-    match_target (R : Type u),
-    exact X
-  end ,
-  map_mul' := λ x y,
-  rfl, }
-
-
 variables {X Y : Type u}
 
 section

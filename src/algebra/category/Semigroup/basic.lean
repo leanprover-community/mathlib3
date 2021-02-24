@@ -129,8 +129,8 @@ section
 variables [semigroup X] [semigroup Y]
 
 /-- Build an isomorphism in the category `Semigroup` from a `mul_equiv` between `semigroup`s. -/
-@[simps, to_additive add_equiv.to_AddSemigroup_iso "Build an isomorphism in the category `AddSemigroup`
-from an `add_equiv` between `add_semigroup`s."]
+@[simps, to_additive add_equiv.to_AddSemigroup_iso "Build an isomorphism in the category
+`AddSemigroup` from an `add_equiv` between `add_semigroup`s."]
 def mul_equiv.to_Semigroup_iso (e : X ≃* Y) : Semigroup.of X ≅ Semigroup.of Y :=
 { hom := e.to_mul_hom,
   inv := e.symm.to_mul_hom }

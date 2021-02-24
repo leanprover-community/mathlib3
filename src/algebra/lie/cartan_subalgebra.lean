@@ -66,8 +66,6 @@ begin
   exact λ y, h x y hx,
 end
 
-variables (R L)
-
 /-- A Cartan subalgebra is a nilpotent, self-normalizing subalgebra. -/
 class is_cartan_subalgebra :=
 (nilpotent : lie_algebra.is_nilpotent R H)
@@ -87,7 +85,7 @@ open lie_ideal
 
 /-- A nilpotent Lie algebra is its own Cartan subalgebra. -/
 instance lie_algebra.top_is_cartan_subalgebra_of_nilpotent [lie_algebra.is_nilpotent R L] :
-  lie_subalgebra.is_cartan_subalgebra R L ⊤ :=
+  lie_subalgebra.is_cartan_subalgebra ⊤ :=
 { nilpotent        :=
     by { rwa lie_algebra.nilpotent_iff_equiv_nilpotent lie_subalgebra.top_equiv_self, },
   self_normalizing :=

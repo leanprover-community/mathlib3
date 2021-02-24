@@ -984,8 +984,7 @@ mv_power_series.is_unit_constant_coeff φ h
 lemma eq_shift_mul_X_add_const (φ : power_series R) :
   φ = mk (λ p, coeff R (p + 1) φ) * X + C R (constant_coeff R φ) :=
 begin
-  ext,
-  cases n,
+  ext (_ | n),
   { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
     zero_add, mul_zero, ring_hom.map_mul], },
   simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_add],
@@ -995,8 +994,7 @@ end
 lemma eq_X_mul_shift_add_const (φ : power_series R) :
   φ = X * mk (λ p, coeff R (p + 1) φ) + C R (constant_coeff R φ) :=
 begin
-  ext,
-  cases n,
+  ext (_ | n),
   { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
     zero_add, zero_mul, ring_hom.map_mul], },
   simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_add],
@@ -1204,17 +1202,11 @@ mv_power_series.mul_inv_of_unit φ u $ h
 /-- Two ways of removing the constant coefficient of a power series are the same. -/
 lemma sub_const_eq_shift_mul_X (φ : power_series R) :
   φ - C R (constant_coeff R φ) = power_series.mk (λ p, coeff R (p + 1) φ) * X :=
-begin
-  rw [sub_eq_iff_eq_add],
-  exact eq_shift_mul_X_add_const φ,
-end
+sub_eq_iff_eq_add.mpr  (exact eq_shift_mul_X_add_const φ)
 
 lemma sub_const_eq_X_mul_shift (φ : power_series R) :
   φ - C R (constant_coeff R φ) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=
-begin
-  rw [sub_eq_iff_eq_add],
-  exact eq_X_mul_shift_add_const φ,
-end
+sub_eq_iff_eq_add.mpr (eq_X_mul_shift_add_const φ)
 
 end ring
 

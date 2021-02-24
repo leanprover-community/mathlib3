@@ -235,6 +235,13 @@ begin
   linarith
 end
 
+lemma filter.tendsto.exists_forall_le {α β : Type*} [linear_order β] {f : α → β}
+  (hf : tendsto f cofinite at_top) :
+  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+begin
+  sorry
+end
+
 -- next three lemmas cover basically the same territory as the old `finite_integers`
 
 lemma int.finite_closed_ball_zero (r : ℝ) : (metric.closed_ball (0:ℤ) r).finite :=

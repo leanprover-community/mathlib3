@@ -192,6 +192,10 @@ lemma map_nhds_eq (e : local_homeomorph α β) {x} (hx : x ∈ e.source) :
 le_antisymm (e.continuous_at hx) $
   le_map_of_right_inverse (e.eventually_right_inverse' hx) (e.tendsto_symm hx)
 
+lemma image_mem_nhds (e : local_homeomorph α β) {x} (hx : x ∈ e.source) {s : set α} (hs : s ∈ 𝓝 x) :
+  e '' s ∈ 𝓝 (e x) :=
+e.map_nhds_eq hx ▸ filter.image_mem_map hs
+
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
 lemma preimage_interior (s : set β) :

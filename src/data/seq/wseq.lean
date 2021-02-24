@@ -1157,7 +1157,7 @@ begin
   let ⟨o, m, k, rs1, rs2, en⟩ := of_results_bind ra,
       ⟨p, mT, rop⟩ := computation.exists_of_lift_rel_left (lift_rel_destruct ST) rs1.mem in
   by exact match o, p, rop, rs1, rs2, mT with
-  | none, none, _, rs1, rs2, mT := by simp [destruct_join]; exact
+  | none, none, _, rs1, rs2, mT := by simp only [destruct_join]; exact
     ⟨none, mem_bind mT (ret_mem _), by rw eq_of_ret_mem rs2.mem; trivial⟩
   | some (s, S'), some (t, T'), ⟨st, ST'⟩, rs1, rs2, mT :=
     by simp [destruct_append] at rs2; exact

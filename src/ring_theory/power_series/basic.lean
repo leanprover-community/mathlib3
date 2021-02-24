@@ -1203,7 +1203,7 @@ mv_power_series.mul_inv_of_unit φ u $ h
 /-- Two ways of removing the constant coefficient of a power series are the same. -/
 lemma sub_const_eq_shift_mul_X (φ : power_series R) :
   φ - C R (constant_coeff R φ) = power_series.mk (λ p, coeff R (p + 1) φ) * X :=
-sub_eq_iff_eq_add.mpr  (exact eq_shift_mul_X_add_const φ)
+sub_eq_iff_eq_add.mpr (eq_shift_mul_X_add_const φ)
 
 lemma sub_const_eq_X_mul_shift (φ : power_series R) :
   φ - C R (constant_coeff R φ) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=

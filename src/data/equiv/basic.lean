@@ -371,10 +371,10 @@ set.image_subset_image_iff e.injective
 set.image_eq_image e.injective
 
 lemma preimage_eq_iff_eq_image {α β} (e : α ≃ β) (s t) : e ⁻¹' s = t ↔ s = e '' t :=
-by { rw ← e.image_eq_iff_eq, simp }
+set.preimage_eq_iff_eq_image e.bijective
 
 lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
-by { rw ← e.image_eq_iff_eq, simp }
+set.eq_preimage_iff_image_eq e.bijective
 
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (h : α → false) : α ≃ empty :=

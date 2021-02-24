@@ -59,11 +59,11 @@ end
 /-- The normalizer of a Lie subalgebra `H` is the maximal Lie subalgebra in which `H` is a Lie
 ideal. -/
 lemma le_normalizer_of_ideal {N : lie_subalgebra R L}
-  (h₁ : H ≤ N) (h₂ : ∀ (x y : L), x ∈ N → y ∈ H → ⁅x,y⁆ ∈ H) : N ≤ H.normalizer :=
+  (h : ∀ (x y : L), x ∈ N → y ∈ H → ⁅x,y⁆ ∈ H) : N ≤ H.normalizer :=
 begin
   intros x hx,
   rw mem_normalizer_iff,
-  exact λ y, h₂ x y hx,
+  exact λ y, h x y hx,
 end
 
 variables (R L)

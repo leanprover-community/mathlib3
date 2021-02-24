@@ -326,7 +326,11 @@ lemma map_of_apply {f : α → β} (a : α) : map f (of a) = of (f a) := rfl
 
 variable (α)
 
-instance [monoid α] : semigroup (free_abelian_group α) :=
+section monoid
+
+variables {R : Type*} [monoid α] [ring R]
+
+instance : semigroup (free_abelian_group α) :=
 { mul := λ x, lift $ λ x₂, lift (λ x₁, of $ x₁ * x₂) x,
   mul_assoc := λ x y z, begin
     unfold has_mul.mul,
@@ -345,13 +349,17 @@ instance [monoid α] : semigroup (free_abelian_group α) :=
       exact ((lift _).map_add _ _).symm }
   end }
 
-lemma mul_def [monoid α] (x y : free_abelian_group α) :
+variable {α}
+
+lemma mul_def (x y : free_abelian_group α) :
   x * y = lift (λ x₂, lift (λ x₁, of (x₁ * x₂)) x) y := rfl
 
-lemma of_mul_of [monoid α] (x y : α) : of x * of y = of (x * y) := rfl
-lemma of_mul [monoid α] (x y : α) : of (x * y) = of x * of y := rfl
+lemma of_mul_of (x y : α) : of x * of y = of (x * y) := rfl
+lemma of_mul (x y : α) : of (x * y) = of x * of y := rfl
 
-instance [monoid α] : ring (free_abelian_group α) :=
+variable (α)
+
+instance : ring (free_abelian_group α) :=
 { one := free_abelian_group.of 1,
   mul_one := λ x, begin
     unfold has_mul.mul semigroup.mul has_one.one,
@@ -380,8 +388,59 @@ instance [monoid α] : ring (free_abelian_group α) :=
   .. free_abelian_group.add_comm_group α,
   .. free_abelian_group.semigroup α }
 
-lemma one_def [monoid α] : (1 : free_abelian_group α) = of 1 := rfl
-lemma of_one [monoid α] : (of 1 : free_abelian_group α) = 1 := rfl
+variable {α}
+
+/-- `free_abelian_group.of` is a `monoid_hom` when `α` is a `monoid`. -/
+def of_mul_hom : α →* free_abelian_group α :=
+{ to_fun := of,
+  map_one' := rfl,
+  map_mul' := of_mul }
+
+@[simp] lemma of_mul_hom_coe : (of_mul_hom : α → free_abelian_group α) = of := rfl
+
+/-- If `f` preserves multiplication, then so does `lift f`. -/
+def lift_monoid : (α →* R) ≃ (free_abelian_group α →+* R) :=
+{ to_fun := λ f,
+  { map_one' := (lift.of f _).trans f.map_one,
+    map_mul' := λ x y,
+    begin
+      simp only [add_monoid_hom.to_fun_eq_coe],
+      refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
+      { intros L2,
+        rw mul_def x,
+        simp only [lift.of],
+        refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
+        { intros L1, iterate 3 { rw lift.of },
+          exact f.map_mul _ _ },
+        { intros L1 ih,
+          iterate 3 { rw (lift _).map_neg },
+          rw [ih, neg_mul_eq_neg_mul] },
+        { intros x1 x2 ih1 ih2,
+          iterate 3 { rw (lift _).map_add },
+          rw [ih1, ih2, add_mul] } },
+      { intros L2 ih,
+        rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
+          mul_neg_eq_neg_mul_symm, ih] },
+      { intros y1 y2 ih1 ih2,
+        rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
+    end,
+    .. lift f },
+  inv_fun := λ F, monoid_hom.comp ↑F of_mul_hom,
+  left_inv := λ f, monoid_hom.ext $ lift.of _,
+  right_inv := λ F, ring_hom.coe_add_monoid_hom_injective $
+    lift.apply_symm_apply (↑F : free_abelian_group α →+ R) }
+
+@[simp] lemma lift_monoid_coe_add_monoid_hom (f : α →* R) : ↑(lift_monoid f) = lift f := rfl
+
+@[simp] lemma lift_monoid_coe (f : α →* R) : ⇑(lift_monoid f) = lift f := rfl
+
+@[simp] lemma lift_monoid_symm_coe (f : free_abelian_group α →+* R) :
+  ⇑(lift_monoid.symm f) = lift.symm ↑f := rfl
+
+lemma one_def : (1 : free_abelian_group α) = of 1 := rfl
+lemma of_one : (of 1 : free_abelian_group α) = 1 := rfl
+
+end monoid
 
 instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
 { mul_comm := λ x y, begin

@@ -123,6 +123,7 @@ nnreal.sqrt (nnreal.of_real x)
 
 variables {x y : ℝ}
 
+@[continuity]
 lemma continuous_sqrt : continuous sqrt :=
 nnreal.continuous_coe.comp $ nnreal.sqrt.continuous.comp nnreal.continuous_of_real
 
@@ -280,4 +281,5 @@ lemma continuous_at.sqrt (h : continuous_at f x) : continuous_at (λ x, sqrt (f 
 lemma continuous_on.sqrt (h : continuous_on f s) : continuous_on (λ x, sqrt (f x)) s :=
 λ x hx, (h x hx).sqrt
 
+@[continuity]
 lemma continuous.sqrt (h : continuous f) : continuous (λ x, sqrt (f x)) := continuous_sqrt.comp h

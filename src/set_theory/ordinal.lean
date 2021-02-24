@@ -1129,10 +1129,9 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-@[nolint def_lemma doc_blame]
--- TODO: This should be a theorem but Lean fails to synthesize the placeholder
-def ord_eq_min (α : Type u) : ord (mk α) =
-  @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
+lemma ord_eq_min (α : Type u) : ord (mk α) =
+  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+    (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (mk α) = @type α r wo :=

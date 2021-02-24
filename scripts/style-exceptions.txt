@@ -58,8 +58,8 @@ src/category_theory/filtered.lean : line 184 : ERR_LIN : Line has more than 100 
 src/category_theory/full_subcategory.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/fully_faithful.lean : line 9 : ERR_LIN : Line has more than 100 characters
 src/category_theory/fully_faithful.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/functor.lean : line 17 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/functor.lean : line 19 : ERR_LIN : Line has more than 100 characters
+src/category_theory/functor.lean : line 18 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/functor.lean : line 20 : ERR_LIN : Line has more than 100 characters
 src/category_theory/functor_category.lean : line 10 : ERR_LIN : Line has more than 100 characters
 src/category_theory/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/functor_category.lean : line 83 : ERR_LIN : Line has more than 100 characters
@@ -92,12 +92,6 @@ src/category_theory/limits/shapes/products.lean : line 56 : ERR_LIN : Line has m
 src/category_theory/limits/shapes/products.lean : line 59 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/products.lean : line 60 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/products.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/shapes/pullbacks.lean : line 179 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 240 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 272 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 310 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 371 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 97 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/regular_mono.lean : line 166 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/regular_mono.lean : line 196 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/types.lean : line 40 : ERR_LIN : Line has more than 100 characters

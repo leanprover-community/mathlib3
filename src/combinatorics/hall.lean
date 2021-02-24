@@ -69,7 +69,8 @@ begin
   rw [nonempty.image_iff, finset.card_image_of_injective s' subtype.coe_injective] at ha,
   by_cases he : s'.nonempty,
   { have ha' : s'.card < (s'.bUnion (λ x, t x)).card,
-    { specialize ha he (λ h, by { have h' := mem_univ x, rw ←h at h', simpa using h' }),
+    { specialize ha he
+        (λ h, by { have h' := mem_univ x, rw ←h at h', simpa [exists_prop_of_false] using h' }),
       convert ha using 2,
       ext x,
       simp only [mem_image, mem_bUnion, exists_prop, set_coe.exists,

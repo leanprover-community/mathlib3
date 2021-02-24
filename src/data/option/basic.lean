@@ -240,7 +240,7 @@ lemma pbind_eq_some {f : Π (a : α), a ∈ x → option β} {y : β} :
   x.pbind f = some y ↔ ∃ (z ∈ x), f z H = some y :=
 begin
   cases x,
-  { simp },
+  { simp [exists_prop_of_false] },
   { simp only [pbind],
     split,
     { intro h,
@@ -307,7 +307,7 @@ by cases a; simp
 
 lemma eq_some_iff_get_eq {o : option α} {a : α} :
   o = some a ↔ ∃ h : o.is_some, option.get h = a :=
-by cases o; simp
+by cases o; simp [exists_prop_of_false]
 
 lemma not_is_some_iff_eq_none {o : option α} :  ¬o.is_some ↔ o = none :=
 by cases o; simp

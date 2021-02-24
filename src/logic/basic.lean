@@ -928,17 +928,17 @@ theorem Exists.fst {p : b → Prop} : Exists p → b
 theorem Exists.snd {p : b → Prop} : ∀ h : Exists p, p h.fst
 | ⟨_, h⟩ := h
 
-@[simp] theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
+theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
 @forall_const (q h) p ⟨h⟩
 
-@[simp] theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
+theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
 
-@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
+theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
   (∀ h' : p, q h') ↔ true :=
 iff_true_intro $ λ h, hn.elim h
 
-@[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
+theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
 mt Exists.fst
 
 lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=

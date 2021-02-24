@@ -1301,7 +1301,7 @@ by simp_rw [← not_lt, not_iff_comm, not_forall, not_not, find_lt_iff]
 by simp only [← succ_le_iff, le_find_iff, succ_le_succ_iff]
 
 @[simp] lemma find_eq_zero (h : ∃ n : ℕ, p n) : nat.find h = 0 ↔ p 0 :=
-by simp [find_eq_iff]
+by simp [find_eq_iff, forall_prop_of_false]
 
 @[simp] lemma find_pos (h : ∃ n : ℕ, p n) : 0 < nat.find h ↔ ¬ p 0 :=
 by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
@@ -1637,7 +1637,7 @@ ball_congr $ λ x hl, imp_congr lt_succ_iff iff.rfl
 
 instance decidable_exists_lt {P : ℕ → Prop} [h : decidable_pred P] :
   decidable_pred (λ n, ∃ (m : ℕ), m < n ∧ P m)
-| 0 := is_false (by simp)
+| 0 := is_false (by simp [forall_prop_of_false])
 | (n + 1) := decidable_of_decidable_of_iff (@or.decidable _ _ (decidable_exists_lt n) (h n))
   (by simp only [lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, exists_eq_left])
 

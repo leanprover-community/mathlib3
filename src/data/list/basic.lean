@@ -1477,7 +1477,7 @@ begin
   { apply (hl rfl).elim },
   { cases l_tl,
     { simp },
-    { simpa using l_ih } }
+    { simpa [forall_prop_of_true] using l_ih } }
 end
 
 /-! ### map₂ -/

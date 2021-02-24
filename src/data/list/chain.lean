@@ -114,7 +114,7 @@ end, chain_of_pairwise⟩
 theorem chain_iff_nth_le {R} : ∀ {a : α} {l : list α},
   chain R a l ↔ (∀ h : 0 < length l, R a (nth_le l 0 h)) ∧ (∀ i (h : i < length l - 1),
     R (nth_le l i (lt_of_lt_pred h)) (nth_le l (i+1) (lt_pred_iff.mp h)))
-| a [] := by simp
+| a [] := by simp [forall_prop_of_false]
 | a (b :: t) :=
 begin
   rw [chain_cons, chain_iff_nth_le],
@@ -236,8 +236,8 @@ theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
 theorem chain'_iff_nth_le {R} : ∀ {l : list α},
   chain' R l ↔ ∀ i (h : i < length l - 1),
     R (nth_le l i (lt_of_lt_pred h)) (nth_le l (i+1) (lt_pred_iff.mp h))
-| [] := by simp
-| (a :: nil) := by simp
+| [] := by simp [forall_prop_of_false]
+| (a :: nil) := by simp [forall_prop_of_false]
 | (a :: b :: t) :=
 begin
   rw [chain'_cons, chain'_iff_nth_le],

@@ -105,7 +105,7 @@ lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
   ∀f:Πa∈m, δ a, (f ∈ pi m t) ↔ (∀a (h : a ∈ m), f a h ∈ t a) :=
 begin
   refine multiset.induction_on m (λ f, _) (λ a m ih f, _),
-  { simpa using show f = pi.empty δ, by funext a ha; exact ha.elim },
+  { simpa [forall_prop_of_false] using show f = pi.empty δ, by funext a ha; exact ha.elim },
   simp, split,
   { rintro ⟨b, hb, f', hf', rfl⟩ a' ha',
     rw [ih] at hf',

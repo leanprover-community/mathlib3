@@ -1262,7 +1262,7 @@ lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
   nonempty ↥(Ico x (x + dx) \ Ico y (y + dy)) :=
 begin
   cases lt_or_le x y with h' h',
-  { use x, simp* },
+  { use x, simp [*, forall_prop_of_false] },
   { use max x (x + dy), simp [*, le_refl] }
 end
 

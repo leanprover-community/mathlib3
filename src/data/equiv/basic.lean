@@ -1611,7 +1611,7 @@ lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set 
 begin
   ext ⟨b, a, has, rfl⟩,
   have : ∀(h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a := λ h, (classical.some_spec h).2,
-  simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this],
+  simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
 end
 
 /-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/

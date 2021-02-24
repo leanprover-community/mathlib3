@@ -1908,7 +1908,7 @@ protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
   (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=
 by simpa [equiv.image_eq_preimage] using (equiv.set.congr e).forall_congr_left'
 
-@[simp] protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
+protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
   f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
 by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 

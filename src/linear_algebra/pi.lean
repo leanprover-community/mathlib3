@@ -15,8 +15,10 @@ It contains theorems relating these to each other, as well as to `linear_map.ker
 ## Main definitions
 
 - pi types in the codomain:
-  - `linear_map.proj`
   - `linear_map.pi`
+  - `linear_map.single`
+- pi types in the domain:
+  - `linear_map.proj`
 - `linear_map.diag`
 
 -/
@@ -27,8 +29,8 @@ variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
 namespace linear_map
 
-open function
-open submodule
+open function submodule
+open_locale big_operators
 
 universe i
 variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
@@ -69,6 +71,67 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
+
+lemma apply_single [add_comm_monoid M] [semimodule R M] [decidable_eq ι]
+  (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :
+  f j (pi.single i x j) = pi.single i (f i x) j :=
+pi.apply_single (λ i, f i) (λ i, (f i).map_zero) _ _ _
+
+/-- The `linear_map` version of `add_monoid_hom.single` and `pi.single`. -/
+def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
+{ to_fun := pi.single i,
+  map_smul' := pi.single_smul i,
+  .. add_monoid_hom.single φ i}
+
+@[simp] lemma coe_single [decidable_eq ι] (i : ι) :
+  ⇑(single i : φ i →ₗ[R] (Π i, φ i)) = pi.single i := rfl
+
+/-- The linear equivalence between linear functions on a finite product of modules and
+families of functions on these modules. See note [bundled maps over different rings]. -/
+def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
+  [semiring S] [semimodule S M]  [smul_comm_class R S M] :
+  (Π i, φ i →ₗ[R] M) ≃ₗ[S] ((Π i, φ i) →ₗ[R] M) :=
+{ to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
+  inv_fun := λ f i, f.comp (single i),
+  map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
+  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum],
+  left_inv := λ f,
+    begin
+      ext i x,
+      suffices : ∑ j, pi.single i (f i x) j = f i x, by simpa [apply_single],
+      exact (finset.sum_dite_eq' _ _ _).trans (if_pos $ finset.mem_univ i)
+    end,
+  right_inv := λ f,
+    begin
+      ext,
+      suffices : f (∑ j, pi.single j (x j)) = f x, by simpa [apply_single],
+      rw finset.univ_sum_single
+    end }
+
+section ext
+
+variables [fintype ι] [decidable_eq ι] [add_comm_monoid M] [semimodule R M]
+  {f g : (Π i, φ i) →ₗ[R] M}
+
+lemma pi_ext (h : ∀ i x, f (pi.single i x) = g (pi.single i x)) :
+  f = g :=
+to_add_monoid_hom_injective $ add_monoid_hom.functions_ext _ _ _ h
+
+lemma pi_ext_iff : f = g ↔ ∀ i x, f (pi.single i x) = g (pi.single i x) :=
+⟨λ h i x, h ▸ rfl, pi_ext⟩
+
+/-- This is used as the ext lemma instead of `linear_map.pi_ext` for reasons explained in
+note [partially-applied ext lemmas]. -/
+@[ext] lemma pi_ext' (h : ∀ i, f.comp (single i) = g.comp (single i)) : f = g :=
+begin
+  refine pi_ext (λ i x, _),
+  convert linear_map.congr_fun (h i) x
+end
+
+lemma pi_ext'_iff : f = g ↔ ∀ i, f.comp (single i) = g.comp (single i) :=
+⟨λ h i, h ▸ rfl, pi_ext'⟩
+
+end ext
 
 section
 variables (R φ)

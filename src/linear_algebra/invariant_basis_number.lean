@@ -141,7 +141,7 @@ local attribute [instance, priority 1] ideal.quotient.field
 @[priority 100]
 instance invariant_basis_number_of_nontrivial_of_comm_ring {R : Type u} [comm_ring R]
   [nontrivial R] : invariant_basis_number R :=
-⟨λ n m e, let ⟨I, ⟨hI, hI'⟩⟩ := ideal.exists_le_maximal (⊥ : ideal R) submodule.bot_ne_top in
+⟨λ n m e, let ⟨I, hI⟩ := ideal.exists_maximal R in
   by exactI eq_of_fin_equiv I.quotient
     ((ideal.pi_quot_equiv _ _).symm.trans ((induced_equiv _ e).trans (ideal.pi_quot_equiv _ _)))⟩
 

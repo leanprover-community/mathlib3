@@ -336,6 +336,10 @@ lemma finset.compact_bUnion (s : finset β) {f : β → set α} (hf : ∀i ∈ s
   is_compact (⋃i ∈ s, f i) :=
 s.finite_to_set.compact_bUnion hf
 
+lemma compact_accumulate {K : ℕ → set α} (hK : ∀ n, is_compact (K n)) (n : ℕ) :
+  is_compact (accumulate K n) :=
+(finite_le_nat n).compact_bUnion $ λ k _, hK k
+
 lemma compact_Union {f : β → set α} [fintype β]
   (h : ∀i, is_compact (f i)) : is_compact (⋃i, f i) :=
 by rw ← bUnion_univ; exact finite_univ.compact_bUnion (λ i _, h i)
@@ -799,53 +803,29 @@ end
 variables (α) [sigma_compact_space α]
 open sigma_compact_space
 
-/-- A monotone compact covering of a σ-compact space. If possible (e.g., if `α` is a locally compact
-space), the sequence is chosen so that `K n ⊆ interior (K $ n + 1)`. -/
+/-- A monotone compact covering of a σ-compact space. -/
 def compact_covering : ℕ → set α :=
-if h : ∃ K : ℕ → set α, (∀ n, is_compact (K n)) ∧
-  (∀ n, K n ⊆ interior (K (n + 1))) ∧ (⋃ n, K n) = univ
-then h.some else accumulate exists_compact_covering.some
+accumulate exists_compact_covering.some
 
 lemma is_compact_compact_covering (n : ℕ) : is_compact (compact_covering α n) :=
-begin
-  rw compact_covering,
-  split_ifs,
-  { exact h.some_spec.1 n },
-  { exact (finite_le_nat n).compact_bUnion
-      (λ n _, (classical.some_spec sigma_compact_space.exists_compact_covering).1 n) }
-end
+compact_accumulate (classical.some_spec sigma_compact_space.exists_compact_covering).1 n
 
 lemma Union_compact_covering : (⋃ n, compact_covering α n) = univ :=
 begin
-  rw compact_covering,
-  split_ifs,
-  { exact h.some_spec.2.2 },
-  { rw [Union_accumulate],
-    exact (classical.some_spec sigma_compact_space.exists_compact_covering).2 }
+  rw [compact_covering, Union_accumulate],
+  exact (classical.some_spec sigma_compact_space.exists_compact_covering).2
 end
 
 @[mono] lemma compact_covering_subset ⦃m n : ℕ⦄ (h : m ≤ n) :
   compact_covering α m ⊆ compact_covering α n :=
-begin
-  rw compact_covering,
-  split_ifs with H,
-  { suffices : monotone H.some, from this h,
-    refine monotone_of_monotone_nat (λ n, _),
-    exact subset.trans (H.some_spec.2.1 n) interior_subset },
-  { exact monotone_accumulate h }
-end
+monotone_accumulate h
 
-/-- In a locally compact sigma compact space, the sequence `compact_covering` is strictly monotone
-in the following sense: each set is included in the interior of the next set. -/
-lemma compact_covering_subset_interior [locally_compact_space α] ⦃m n : ℕ⦄ (h : m < n) :
-  compact_covering α m ⊆ interior (compact_covering α n) :=
+variables [locally_compact_space α]
+
+/-- A locally compact sigma compact space admits an exhaustion by compact sets. -/
+lemma exists_compact_exhaustion : ∃ K : ℕ → set α, (∀ n, is_compact (K n)) ∧
+  (∀ n, K n ⊆ interior (K (n + 1))) ∧ (⋃ n, K n) = univ :=
 begin
-  suffices : ∃ K : ℕ → set α, (∀ n, is_compact (K n)) ∧
-    (∀ n, K n ⊆ interior (K (n + 1))) ∧ (⋃ n, K n) = univ,
-  { refine subset.trans _ (interior_mono $ compact_covering_subset α h),
-    rw [compact_covering, dif_pos this],
-    exact this.some_spec.2.1 m },
-  clear h m n,
   let K : ℕ → {s : set α // is_compact s} :=
     λ n, nat.rec_on n ⟨∅, compact_empty⟩
       (λ n s, ⟨(exists_compact_superset s.2).some ∪ compact_covering α n,
@@ -856,6 +836,30 @@ begin
   { refine univ_subset_iff.1 (Union_compact_covering α ▸ _),
     exact Union_subset_Union2 (λ n, ⟨n + 1, subset_union_right _ _⟩) }
 end
+
+/-- [Exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
+of a locally compact sigma compact space. -/
+def compact_exhaustion : ℕ → set α := (exists_compact_exhaustion α).some
+
+lemma is_compact_compact_exhaustion (n : ℕ) : is_compact (compact_exhaustion α n) :=
+(exists_compact_exhaustion α).some_spec.1 n
+
+lemma Union_compact_exhaustion : (⋃ n, compact_exhaustion α n) = univ :=
+(exists_compact_exhaustion α).some_spec.2.2
+
+lemma compact_exhaustion_subset_interior_succ (n : ℕ) :
+  compact_exhaustion α n ⊆ interior (compact_exhaustion α (n + 1)) :=
+(exists_compact_exhaustion α).some_spec.2.1 n
+
+lemma compact_exhaustion_subset ⦃m n : ℕ⦄ (h : m ≤ n) :
+  compact_exhaustion α m ⊆ compact_exhaustion α n :=
+@monotone_of_monotone_nat (set α) _ (compact_exhaustion α)
+  (λ n, subset.trans (compact_exhaustion_subset_interior_succ α n) interior_subset) _ _ h
+
+lemma compact_exhaustion_subset_interior ⦃m n : ℕ⦄ (h : m < n) :
+  compact_exhaustion α m ⊆ interior (compact_exhaustion α n) :=
+subset.trans (compact_exhaustion_subset_interior_succ α m) $
+  interior_mono (compact_exhaustion_subset α h)
 
 end compact
 

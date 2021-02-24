@@ -334,12 +334,7 @@ findim_pos_iff.mpr h
 This is the `findim` version of `dim_zero_iff`. -/
 lemma findim_zero_iff [finite_dimensional K V] :
   findim K V = 0 ↔ subsingleton V :=
-begin
-  rw [← not_iff_not, ← not_nontrivial_iff_subsingleton, not_not],
-  change findim K V ≠ 0 ↔ _,
-  rw ← pos_iff_ne_zero,
-  exact findim_pos_iff
-end
+iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
 
 /-- A finite dimensional space that is a subsingleton has zero `findim`. -/
 lemma findim_zero_of_subsingleton [finite_dimensional K V] [h : subsingleton V] :

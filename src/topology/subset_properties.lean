@@ -148,8 +148,8 @@ end
 
 alias compact_iff_ultrafilter_le_nhds ↔ is_compact.ultrafilter_le_nhds _
 
-/-- For every open directed cover of a compact set, there exists an elements that includes
-the set. -/
+/-- For every open directed cover of a compact set, there exists a single element of the 
+cover which itself includes the set. -/
 lemma is_compact.elim_directed_cover {ι : Type v} [hι : nonempty ι] (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) (hdU : directed (⊆) U) :
   ∃ i, s ⊆ U i :=
@@ -803,7 +803,7 @@ end
 variables (α) [sigma_compact_space α]
 open sigma_compact_space
 
-/-- A monotone compact covering of a σ-compact space. -/
+/-- A choice of compact covering for a σ-compact space, chosen to be monotone. -/
 def compact_covering : ℕ → set α :=
 accumulate exists_compact_covering.some
 
@@ -837,7 +837,8 @@ begin
     exact Union_subset_Union2 (λ n, ⟨n + 1, subset_union_right _ _⟩) }
 end
 
-/-- [Exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
+/-- A choice of an 
+[exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
 of a locally compact sigma compact space. -/
 def compact_exhaustion : ℕ → set α := (exists_compact_exhaustion α).some
 

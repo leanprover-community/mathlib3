@@ -81,23 +81,31 @@ begin
   split_ifs; { simp at *; linarith },
 end
 
+#check @fin.cast_lt
+
 /-- The second simplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
 begin
   ext k,
-  dsimp [δ, σ, fin.succ_above, fin.pred_above],
+  suffices : ite (j.succ.cast_succ < ite (k < i) k.cast_succ k.succ)
+    (ite (k < i) (k:ℕ) (k + 1) - 1) (ite (k < i) k (k + 1)) =
+      ite ((if h : (j:ℕ) < k
+        then k.pred (by { rintro rfl, exact nat.not_lt_zero _ h })
+        else k.cast_lt (by { cases j, cases k, linarith })).cast_succ < i)
+          (ite (j.cast_succ < k) (k - 1) k) (ite (j.cast_succ < k) (k - 1) k + 1),
+  { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
   simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
-  simp with push_cast, -- `simp?` doesn't work here
+  dsimp, simp only [if_congr, subtype.mk_lt_mk, dif_ctx_congr],
   split_ifs,
   -- Hope for the best from `linarith`:
-  all_goals { simp at *, try { linarith }, },
+  all_goals { try { refl <|> simp at * }, try { linarith }, },
   -- Two of the goals need special handling:
-  { replace h_3 := nat.le_of_pred_lt h_3, change k ≤ i at h_3, linarith, },
-  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_1)).symm, },
+  { have : k ≤ i := nat.le_of_pred_lt ‹_›, linarith, },
+  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) ‹_›)).symm, },
 end
 
 /-- The first part of the third simplicial identity -/
@@ -105,10 +113,12 @@ lemma δ_comp_σ_self {n} {i : fin (n+1)} :
   δ i.cast_succ ≫ σ i = 𝟙 _ :=
 begin
   ext j,
+  suffices : ite (fin.cast_succ i < ite (j < i) (fin.cast_succ j) j.succ)
+    (ite (j < i) (j:ℕ) (j + 1) - 1) (ite (j < i) j (j + 1)) = j,
+  { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
-  dsimp [δ, σ, fin.succ_above, fin.pred_above],
-  simp with push_cast,
+  dsimp, simp only [if_congr, subtype.mk_lt_mk],
   split_ifs; { simp at *; linarith, },
 end
 

@@ -362,14 +362,13 @@ by ext; simp
 by ext; simp
 
 @[simp] lemma preimage_subset {α β} (e : α ≃ β) (s t : set β) : e ⁻¹' s ⊆ e ⁻¹' t ↔ s ⊆ t :=
-⟨by simpa using @set.preimage_mono _ _ e.symm (e ⁻¹' s) (e ⁻¹' t),
- set.preimage_mono⟩
+e.surjective.preimage_subset_preimage_iff
 
 @[simp] lemma image_subset {α β} (e : α ≃ β) (s t : set α) : e '' s ⊆ e '' t ↔ s ⊆ t :=
-⟨by { rw ← e.preimage_subset, simp }, set.image_subset _⟩
+set.image_subset_image_iff e.injective
 
 @[simp] lemma image_eq_iff_eq {α β} (e : α ≃ β) (s t : set α) : e '' s = e '' t ↔ s = t :=
-by simp [set.subset.antisymm_iff, e.image_subset]
+set.image_eq_image e.injective
 
 lemma preimage_eq_iff_eq_image {α β} (e : α ≃ β) (s t) : e ⁻¹' s = t ↔ s = e '' t :=
 by { rw ← e.image_eq_iff_eq, simp }

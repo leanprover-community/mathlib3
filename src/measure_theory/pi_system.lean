@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Martin Zinkevich
 -/
 import measure_theory.measure_space
-import tactic.fin_cases
 
 /-!
 # Lemmas regarding `is_pi_system`.

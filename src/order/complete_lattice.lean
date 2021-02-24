@@ -1073,17 +1073,30 @@ variables [complete_lattice α]
   from the `Sup` of the rest. -/
 def independent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
 
+variables {s : set α} (hs : independent s)
+
 @[simp]
 lemma independent_empty : independent (∅ : set α) :=
 λ x hx, (set.not_mem_empty x hx).elim
 
-theorem independent.mono {t : set α} (ht : independent t) {s : set α} (hst : s ⊆ t) :
-  independent s :=
-λ a ha, (ht (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
+theorem independent.mono {t : set α} (hst : t ⊆ s) :
+  independent t :=
+λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
 
-/-- If the elements of a set are independent then any pair within that set is disjoint. -/
-lemma independent.disjoint {s : set α} (hs : independent s)
-  {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
+/-- If the elements of a set are independent, then any pair within that set is disjoint. -/
+lemma independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
 disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
+
+include hs
+
+/-- If the elements of a set are independent, then any element is disjoint from the `Sup` of some
+subset of the rest. -/
+lemma independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
+  disjoint x (Sup y) :=
+begin
+  have := (hs.mono $ insert_subset.mpr ⟨hx, hy⟩) (mem_insert x _),
+  rw [insert_diff_of_mem _ (mem_singleton _), diff_singleton_eq_self hxy] at this,
+  exact this,
+end
 
 end complete_lattice

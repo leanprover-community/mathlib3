@@ -62,6 +62,7 @@ instance (α) [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)
 
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
+@[protect_proj]
 class complete_lattice (α : Type*) extends bounded_lattice α, has_Sup α, has_Inf α :=
 (le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
 (Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)

@@ -340,16 +340,9 @@ begin
 end
 
 lemma indep_set_iff_of_probability_measure {α} [m :measurable_space α] {μ : measure α}
-  [probability_measure μ] {s t : set α} : indep_set s t μ ↔ indep_sets {s} {t} :=
+  [probability_measure μ] {s t : set α} : indep_set s t μ ↔ indep_sets {s} {t} μ :=
 begin
   unfold indep_set,
-  unfold indep_sets,
-  simp_rw set.mem_singleton_iff,
-  split; intros h,
-  apply h s t (eq.refl _) (eq.refl _),
-  intros s1 t1 h_s1 h_t1,
-  substs s1 t1,
-  apply h,
 end
 
 lemma indep_sets.indep_set {α} {m : measurable_space α}

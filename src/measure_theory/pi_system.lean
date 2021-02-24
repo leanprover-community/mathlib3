@@ -45,6 +45,7 @@ begin
       set.mem_singleton_iff],
 end
 
+/-- The minimal π-system including g -/
 inductive generate_pi_system {α} (g : set (set α)) : set (set α)
 | base {s : set α} (h_s : s ∈ g) : generate_pi_system s
 | inter {s t : set α} (h_s : generate_pi_system s)  (h_t : generate_pi_system t)

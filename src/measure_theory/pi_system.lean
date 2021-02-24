@@ -50,26 +50,39 @@ inductive generate_pi_system {α} (g : set (set α)) : set (set α)
 | inter {s t : set α} (h_s : generate_pi_system s)  (h_t : generate_pi_system t)
   (h_nonempty : (s ∩ t).nonempty) : generate_pi_system (s ∩ t)
 
-lemma is_pi_system_generate_pi_system {α} (g : set (set α)) :
-  is_pi_system (generate_pi_system g) :=
-λ s t h_s h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
+lemma subset_generate_pi_system_self {α} (g : set (set α)) : g ⊆ generate_pi_system g :=
+λ s, generate_pi_system.base
 
-lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
-  (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
-begin
+lemma generate_pi_system_subset_self {α} {g : set (set α)} (h_g : is_pi_system g) :
+  generate_pi_system g ⊆ g :=
+ begin
   intros x h,
   induction h with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
-  { apply h_sub h_s, },
-  { apply h_t _ _ h_s h_u h_nonempty, },
+  { exact h_s, },
+  { exact h_g _ _ h_s h_u h_nonempty, },
 end
 
 lemma generate_pi_system_eq {α} {g : set (set α)} (h_pi : is_pi_system g) :
   generate_pi_system g = g :=
+set.subset.antisymm (generate_pi_system_subset_self h_pi) (subset_generate_pi_system_self g)
+
+lemma generate_pi_system_mono {α} {S T : set (set α)} (hST : S ⊆ T) :
+  generate_pi_system S ⊆ generate_pi_system T :=
 begin
-  apply le_antisymm,
-  { exact generate_pi_system_subset h_pi set.subset.rfl, },
-  { apply generate_pi_system.base, },
+  intros t ht,
+  induction ht with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
+  { exact generate_pi_system.base (set.mem_of_subset_of_mem hST h_s),},
+  { exact is_pi_system_generate_pi_system T _ _ h_s h_u h_nonempty, },
 end
+
+--Necessary?
+lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
+  (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
+set.subset.trans (generate_pi_system_mono h_sub) (generate_pi_system_subset_self h_t)
+
+lemma is_pi_system_generate_pi_system {α} (g : set (set α)) :
+  is_pi_system (generate_pi_system g) :=
+λ s t h_s h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
 
 lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {g : set (set α)}
   (h_meas_g : ∀ s ∈ g, measurable_set s) (t : set α)

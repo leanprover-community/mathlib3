@@ -67,7 +67,7 @@ begin
 end
 
 /-- A Cartan subalgebra is a nilpotent, self-normalizing subalgebra. -/
-class is_cartan_subalgebra :=
+class is_cartan_subalgebra : Prop :=
 (nilpotent : lie_algebra.is_nilpotent R H)
 (self_normalizing : H.normalizer = H)
 

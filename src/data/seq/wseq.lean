@@ -1238,9 +1238,9 @@ begin
   { exact λ c1 c2 h, match c1, c2, h with
     | ._, ._, ⟨s, rfl, rfl⟩ := begin
       clear h _match,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret],
-      { refine ⟨_, ret_mem _, _⟩, simp },
-      { exact ⟨s, rfl, rfl⟩ }
+      have : ∀ s, ∃ s' : wseq α, (map ret s).join.destruct = (map ret s').join.destruct ∧
+        destruct s = s'.destruct, from λ s, ⟨s, rfl, rfl⟩,
+      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this]
     end end },
   { exact ⟨s, rfl, rfl⟩ }
 end

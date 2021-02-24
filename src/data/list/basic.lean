@@ -1604,25 +1604,18 @@ end
   l.take k = [] ↔ l = [] ∨ k = 0 :=
 by { cases l; cases k; simp [nat.succ_ne_zero] }
 
+lemma init_eq_take (l : list α) : l.init = l.take l.length.pred :=
+begin
+  cases l with x l,
+  { simp [init] },
+  { induction l with hd tl hl generalizing x,
+    { simp [init], },
+    { simp [init, hl] } }
+end
+
 lemma init_take {n : ℕ} {l : list α} (h : n < l.length) :
   (l.take n).init = l.take n.pred :=
-begin
-  induction n with n hn generalizing l,
-  { simp [init] },
-  { cases l with hd tl,
-    { simpa using h },
-    { cases ht : tl.take n,
-      { rw [take_eq_nil_iff] at ht,
-        rcases ht with (rfl | rfl),
-        { simp only [nat.succ_lt_succ_iff, length_singleton] at h,
-          exact absurd n.zero_le h.not_le },
-        { simp [init] } },
-      { rw [take, ht, init, ←ht, hn, ←take, nat.succ_pred_eq_of_pos, nat.pred_succ],
-        { contrapose! ht,
-          rw [nonpos_iff_eq_zero] at ht,
-          simp [ht] },
-        { simpa [nat.succ_lt_succ_iff] using h } } } }
-end
+by simp [init_eq_take, min_eq_left_of_lt h, take_take, pred_le]
 
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=

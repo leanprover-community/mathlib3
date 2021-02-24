@@ -227,8 +227,14 @@ begin
   { rw [inter_comm, I.target_eq, I.to_local_equiv_coe_symm] }
 end
 
+protected lemma model_with_corners.closed_embedding : closed_embedding I :=
+I.left_inverse.closed_embedding I.continuous_symm I.continuous
+
+lemma model_with_corners.closed_range : is_closed (range I) :=
+I.closed_embedding.closed_range
+
 lemma model_with_corners.map_nhds_eq (x : H) : map I (𝓝 x) = 𝓝[range I] (I x) :=
-I.left_inverse.map_nhds_eq I.continuous_symm.continuous_within_at I.continuous.continuous_at
+I.closed_embedding.to_embedding.map_nhds_eq x
 
 lemma model_with_corners.image_mem_nhds_within {x : H} {s : set H} (hs : s ∈ 𝓝 x) :
   I '' s ∈ 𝓝[range I] (I x) :=
@@ -237,12 +243,6 @@ I.map_nhds_eq x ▸ image_mem_map hs
 lemma model_with_corners.symm_map_nhds_within_range (x : H) :
   map I.symm (𝓝[range I] (I x)) = 𝓝 x :=
 by rw [← I.map_nhds_eq, map_map, I.symm_comp_self, map_id]
-
-protected lemma model_with_corners.closed_embedding : closed_embedding I :=
-I.left_inverse.closed_embedding I.continuous_symm I.continuous
-
-lemma model_with_corners.closed_range : is_closed (range I) :=
-I.closed_embedding.closed_range
 
 lemma model_with_corners.unique_diff_preimage {s : set H} (hs : is_open s) :
   unique_diff_on 𝕜 (I.symm ⁻¹' s ∩ range I) :=

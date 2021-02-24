@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import data.int.basic
 import category_theory.graded_object
 import category_theory.differential_object
+import category_theory.abelian.additive_functor
 
 /-!
 # Chain complexes
@@ -112,6 +113,31 @@ local attribute [instance] has_zero_object.has_zero
 
 instance : inhabited (homological_complex (discrete punit) b) := ⟨0⟩
 end
+
+/-- Map a `homological_complex` with respect to an additive functor. -/
+@[simps]
+def map {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
+  (Cs : homological_complex C b) (F : C ⥤ D) [functor.additive F] : homological_complex D b :=
+{ X := λ i, F.obj $ Cs.X i,
+  d := λ i, F.map $ Cs.d i,
+  d_squared' := begin
+    ext i,
+    dsimp,
+    simp [← F.map_comp]
+  end }
+
+/-- A functorial version of `homological_complex.map`. -/
+@[simps]
+def pushforward {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
+  (F : C ⥤ D) [functor.additive F] : homological_complex C b ⥤ homological_complex D b :=
+{ obj := λ Cs, Cs.map F,
+  map := λ X Y f,
+  { f := λ i, F.map $ f.f _,
+    comm' := begin
+      ext i,
+      dsimp,
+      simp_rw [← F.map_comp, comm_at],
+    end } }
 
 end homological_complex
 

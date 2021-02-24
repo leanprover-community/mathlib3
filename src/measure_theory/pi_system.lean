@@ -5,6 +5,7 @@ Author: Martin Zinkevich
 -/
 import measure_theory.measure_space
 import tactic.fin_cases
+import order.galois_connection
 
 /-!
 # Lemmas regarding `is_pi_system`.
@@ -160,3 +161,30 @@ begin
         subtype.coe_mk], refl },
     rw h1, apply h_t },
 end
+
+
+def pi_system (α:Type*) : Type := subtype (@is_pi_system α) 
+
+def to_pi_system {α:Type*} (s : set (set α)) : pi_system α := subtype.mk (generate_pi_system s) (is_pi_system_generate_pi_system s)
+
+ 
+#check subtype.preorder
+instance pi_system.preorder {α:Type*} : preorder (pi_system α) := subtype.preorder _
+
+
+
+
+
+lemma pi_system.galois_connection {α:Type*} : @galois_connection (pi_system α) (set (set α)) _ _ subtype.val to_pi_system  := begin
+  apply galois_connection.monotone_intro,
+  
+
+  intros s t, split,
+  { intros h_s_val_le_t, unfold to_pi_system,   },
+
+end
+--(@subtype.val _ (@is_pi_system α)) (generate_pi_system 
+
+
+#check galois_connection
+#check galois_insertion

@@ -260,7 +260,7 @@ def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
       (mv_polynomial S₁ (mv_polynomial S₂ R))) r with C (C r),
     change algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r with C r,
     simp only [sum_ring_equiv, sum_to_iter_C, mv_polynomial_equiv_mv_polynomial_apply,
-      ring_equiv.to_fun_eq_coe_fun]
+      ring_equiv.to_fun_eq_coe]
   end,
   ..sum_ring_equiv R S₁ S₂
 }

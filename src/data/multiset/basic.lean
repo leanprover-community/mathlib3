@@ -2138,7 +2138,7 @@ def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
 variable {α}
 
 @[simp]
-lemma subsingleton_equiv_apply' [subsingleton α] :
+lemma coe_subsingleton_equiv [subsingleton α] :
   (subsingleton_equiv α : list α → multiset α) = coe :=
 rfl
 

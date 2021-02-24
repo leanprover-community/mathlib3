@@ -127,17 +127,25 @@ open pi
 
 variables (f)
 
+/-- The zero-preserving homomorphism including a single value
+into a dependent family of values, as functions supported at a point.
+
+This is the `zero_hom` version of `pi.single`. -/
+@[simps] def zero_hom.single [Π i, has_zero $ f i] (i : I) : zero_hom (f i) (Π i, f i) :=
+{ to_fun := single i,
+  map_zero' := function.update_eq_self i 0 }
+
 /-- The additive monoid homomorphism including a single additive monoid
 into a dependent family of additive monoids, as functions supported at a point.
 
 This is the `add_monoid_hom` version of `pi.single`. -/
 @[simps] def add_monoid_hom.single [Π i, add_monoid $ f i] (i : I) : f i →+ Π i, f i :=
 { to_fun := single i,
-  map_zero' := function.update_eq_self i 0,
   map_add' := λ x y, funext $ λ j, begin
     refine (apply_single₂ _ (λ _, _) i x y j).symm,
     exact zero_add 0,
-  end, }
+  end,
+  .. (zero_hom.single f i) }
 
 /-- The multiplicative homomorphism including a single `monoid_with_zero`
 into a dependent family of monoid_with_zeros, as functions supported at a point.
@@ -153,9 +161,9 @@ This is the `mul_hom` version of `pi.single`. -/
 variables {f}
 
 @[simp]
-lemma pi.single_zero [Π i, add_monoid $ f i] (i : I) :
+lemma pi.single_zero [Π i, has_zero $ f i] (i : I) :
   single i (0 : f i) = 0 :=
-(add_monoid_hom.single f i).map_zero
+(zero_hom.single f i).map_zero
 
 lemma pi.single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
   single i (x + y) = single i x + single i y :=

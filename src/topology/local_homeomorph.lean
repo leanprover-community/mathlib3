@@ -194,7 +194,7 @@ le_antisymm (e.continuous_at hx) $
 
 lemma image_mem_nhds (e : local_homeomorph α β) {x} (hx : x ∈ e.source) {s : set α} (hs : s ∈ 𝓝 x) :
   e '' s ∈ 𝓝 (e x) :=
-by { rw ← e.map_nhds_eq hx, exact filter.image_mem_map hs }
+e.map_nhds_eq hx ▸ filter.image_mem_map hs
 
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/

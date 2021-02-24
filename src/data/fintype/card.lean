@@ -197,7 +197,7 @@ by rw fintype.of_equiv_card; simp
 @[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
-prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp)
+prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp [forall_prop_of_true])
   (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
@@ -213,9 +213,9 @@ lemma finset.prod_univ_pi [decidable_eq α] [fintype α] [comm_monoid β]
   (f : (Π (a : α), a ∈ (univ : finset α) → δ a) → β) :
   ∏ x in univ.pi t, f x = ∏ x in fintype.pi_finset t, f (λ a _, x a) :=
 prod_bij (λ x _ a, x a (mem_univ _))
+  (by simp [forall_prop_of_true])
   (by simp)
-  (by simp)
-  (by simp [function.funext_iff] {contextual := tt})
+  (by simp [function.funext_iff, forall_prop_of_true] {contextual := tt})
   (λ x hx, ⟨λ a _, x a, by simp * at *⟩)
 
 /-- The product over `univ` of a sum can be written as a sum over the product of sets,

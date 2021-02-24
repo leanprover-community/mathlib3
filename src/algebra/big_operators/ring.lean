@@ -115,7 +115,7 @@ calc ∏ a in s, (f a + g a)
   { finish [function.funext_iff, finset.ext_iff, subset_iff] },
   { assume f hf,
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
-      by simp, by funext; intros; simp *⟩ }
+      by simp, by funext; intros; simp [*, exists_prop_of_true]⟩ }
 end
 
 /--  Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a `finset`

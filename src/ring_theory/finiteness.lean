@@ -298,7 +298,7 @@ begin
       hf.1.comp (alg_equiv.symm equiv).surjective,
       submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
     convert submodule.fg_bot,
-    exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv),
+    exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
 end
 
 end finite_presentation

@@ -118,8 +118,8 @@ namespace cone
 def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
 { hom := λ c, ⟨op c.X, c.π⟩,
   inv := λ c, { X := unop c.1, π := c.2 },
-  hom_inv_id' := begin ext, cases x, refl, end,
-  inv_hom_id' := begin ext, cases x, refl, end }
+  hom_inv_id' := begin ext1, cases x, refl, end,
+  inv_hom_id' := begin ext1, cases x, refl, end }
 
 /-- A map to the vertex of a cone naturally induces a cone by composition. -/
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
@@ -147,8 +147,8 @@ namespace cocone
 def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
 { hom := λ c, ⟨c.X, c.ι⟩,
   inv := λ c, { X := c.1, ι := c.2 },
-  hom_inv_id' := begin ext, cases x, refl, end,
-  inv_hom_id' := begin ext, cases x, refl, end }
+  hom_inv_id' := begin ext1, cases x, refl, end,
+  inv_hom_id' := begin ext1, cases x, refl, end }
 
 /-- A map from the vertex of a cocone naturally induces a cocone by composition. -/
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=

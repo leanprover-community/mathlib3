@@ -426,15 +426,14 @@ begin
   rw [hpseq],
   clear hpseq,
   simp only [finset.sum_mul],
-  refine finset.sum_congr _ _,
-  { refl, },
-  { intros x hx,
-    ring,
-    have hfrac : ↑(p.factorial) * (↑(p + 1).factorial)⁻¹ = ((p + 1 : ℚ))⁻¹,
-    { simp only [←one_div, mul_one_div],
-      rw [eq_comm, div_eq_iff hp, eq_comm, div_mul_eq_mul_div, div_eq_iff hne_zero'],
-      simp only [cast_succ, one_mul, cast_mul, factorial_succ, mul_comm], },
-    rw [hfrac], },
+  refine finset.sum_congr rfl _,
+  intros x hx,
+  ring,
+  have hfrac : ↑(p.factorial) * (↑(p + 1).factorial)⁻¹ = ((p + 1 : ℚ))⁻¹,
+  { simp only [←one_div, mul_one_div],
+    rw [eq_comm, div_eq_iff hp, eq_comm, div_mul_eq_mul_div, div_eq_iff hne_zero'],
+    simp only [cast_succ, one_mul, cast_mul, factorial_succ, mul_comm], },
+  rw [hfrac], },
 end
 
 end faulhaber

@@ -674,15 +674,23 @@ class normal_space (α : Type u) [topological_space α] extends t1_space α : Pr
 (normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
 
-theorem normal_separation [normal_space α] (s t : set α)
+theorem normal_separation [normal_space α] {s t : set α}
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 normal_space.normal s t H1 H2 H3
 
+theorem normal_shrink_left [normal_space α] {s t : set α}
+  (hs : is_open s) (ht : is_open t) (hst : s ∪ t = univ) :
+  ∃ u, is_open u ∧ closure u ⊆ s ∧ u ∪ t = univ :=
+have disjoint sᶜ tᶜ, by rwa [set.disjoint_iff_inter_eq_empty, ← compl_union, compl_empty_iff],
+let ⟨s', t', hs', ht', hss', htt', hs't'⟩ :=
+  normal_separation (is_closed_compl_iff.2 hs) (is_closed_compl_iff.2 ht) this
+in ⟨s', hs', subset.trans (closure_minimal (compl_subset_comm.1 _) _) _, _⟩
+
 @[priority 100] -- see Note [lower instance priority]
 instance normal_space.regular_space [normal_space α] : regular_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ :=
-    normal_separation s {x} hs is_closed_singleton
+    normal_separation hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ mem_of_eq_of_mem (eq_of_mem_singleton hy).symm hx) in
     ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
       ⟨v, mem_nhds_sets hv (singleton_subset_iff.1 hxv), u, filter.mem_principal_self u,

@@ -30,6 +30,11 @@ theorem chain.total_of_refl [is_refl α r]
   x ≺ y ∨ y ≺ x :=
 if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
 
+theorem chain.trichotomy {c} (hc : chain c) {x y} (hx : x ∈ c) (hy : y ∈ c) :
+  x ≺ y ∨ x = y ∨ y ≺ x :=
+(classical.em (x = y)).elim (λ h, or.inr $ or.inl h) $
+  λ h, (hc _ hx _ hy h).elim or.inl (λ h, or.inr $ or.inr h)
+
 theorem chain.mono {c c'} : c' ⊆ c → chain c → chain c' :=
 pairwise_on.mono
 
@@ -221,6 +226,18 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
     classical.by_contradiction $ assume h : a ∉ max_chain,
     max_chain_spec.right $ ⟨insert a max_chain, this, ssubset_insert h⟩,
   hub a this⟩
+
+/-- Zorn's lemma
+
+If every nonempty chain has an upper bound, then there is a maximal element -/
+theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
+  (h : ∀c, chain c → ∀ x ∈ c, ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  ∃m, ∀a, m ≺ a → a ≺ m :=
+begin
+  refine exists_maximal_of_chains_bounded (λ c hc, _) @trans,
+  rcases eq_empty_or_nonempty c with rfl|⟨x, hx⟩,
+  exacts [nonempty.elim ‹_› (λ x, ⟨x, λ a, false.elim⟩), h c hc x hx]
+end
 
 end chain
 

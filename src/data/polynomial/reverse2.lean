@@ -69,19 +69,6 @@ begin
     exact congr_arg nat_degree (subsingleton.elim p.reverse' p) },
 end
 
---TODO : Move to same spot as `coeff_mul_X_pow`
-lemma coeff_mul_X_pow' (n : ℕ) (d : ℕ) :
-  (p * X ^ n).coeff d = ite (n ≤ d) (p.coeff (d - n)) 0 :=
-begin
-  by_cases h : n ≤ d,
-  { rw [if_pos h, ←@nat.sub_add_cancel d n h, coeff_mul_X_pow, nat.add_sub_cancel] },
-  { rw [if_neg h, coeff_mul],
-    refine finset.sum_eq_zero (λ x hx, _),
-    rw [coeff_X_pow, if_neg, mul_zero],
-    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
-      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
-end
-
 --TODO : Move to trailing file
 lemma nat_trailing_degree_mul_X_pow {p : polynomial R} (hp : p ≠ 0) (n : ℕ) :
   (p * X ^ n).nat_trailing_degree = p.nat_trailing_degree + n :=

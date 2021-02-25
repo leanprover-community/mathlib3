@@ -83,6 +83,11 @@ add_monoid_algebra.single_zero_mul_apply p a n
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
 ext $ λ n, coeff_C_mul f
 
+lemma smul_mul_smul {R : Type*} [comm_semiring R] (r s : R) (p q : polynomial R) :
+  (r • p) * (s • q) = (r * s) • (p * q) :=
+by rw [←C_mul', ←C_mul', ←C_mul', C_mul, ←mul_assoc,
+  mul_assoc (C r), mul_comm p, ←mul_assoc, ←mul_assoc]
+
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
 add_monoid_algebra.mul_single_zero_apply p a n
@@ -103,6 +108,18 @@ begin
   { rintros ⟨i,j⟩ h1 h2, rw [coeff_X_pow, if_neg, mul_zero], rintro rfl, apply h2,
     rw [nat.mem_antidiagonal, add_right_cancel_iff] at h1, subst h1 },
   { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
+end
+
+lemma coeff_mul_X_pow' (p : polynomial R) (n d : ℕ) :
+  (p * X ^ n).coeff d = ite (n ≤ d) (p.coeff (d - n)) 0 :=
+begin
+  by_cases h : n ≤ d,
+  { rw [if_pos h, ←@nat.sub_add_cancel d n h, coeff_mul_X_pow, nat.add_sub_cancel] },
+  { rw [if_neg h, coeff_mul],
+    refine finset.sum_eq_zero (λ x hx, _),
+    rw [coeff_X_pow, if_neg, mul_zero],
+    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
+      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
 end
 
 @[simp] theorem coeff_mul_X (p : polynomial R) (n : ℕ) :

@@ -363,7 +363,6 @@ begin
     rw h },
 end
 
---TODO: see if there's a cleaner way
 lemma monomial_add_monomial_eq_monomial_add_monomial_iff {R : Type*} [ring R]
   {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) {i j k l : ℕ} :
   (monomial i a) + (monomial j b) = (monomial k a) + (monomial l b) ↔
@@ -422,7 +421,6 @@ begin
   { exact not_and_of_not_left _ (not_lt_of_gt (add_lt_add_right p.hik p.i)) },
 end
 
---TODO : clean up
 lemma key_lemma_aux2 {R : Type*} [integral_domain R] (p q : trinomial R) (hpqa : p.a = q.a)
   (hpqb : p.b = q.b) (hpqc : p.c = q.c)
   (hpq : p.to_polynomial * p.to_polynomial.reverse' = q.to_polynomial * q.to_polynomial.reverse') :
@@ -447,17 +445,12 @@ begin
   { exact or.inl (ext hpqa hpqb hpqc hpqi h2 hpqk).symm },
   { rw [mul_right_inj' q.hb] at h1,
     rw [add_comm, ←hpqi, ←hpqk] at h2,
-    refine or.inr (or.inr (or.inl _)),
-    symmetry,
-    refine ext (hpqc.trans h1) hpqb (hpqa.trans h1.symm) hpqi h2 hpqk },
-  { rw [nat.sub_eq_iff_eq_add, ←two_mul] at h2,
-    rw [nat.sub_eq_iff_eq_add, ←two_mul] at h3,
-    have key := h2.symm.trans h3,
-    rw [nat.mul_right_inj zero_lt_two] at key,
-    exact or.inl (ext hpqa hpqb hpqc hpqi key hpqk).symm,
-    exact (le_of_lt q.hjk).trans (nat.le_add_right _ _),
-    rw [←hpqi, ←hpqk],
-    exact (le_of_lt p.hjk).trans (nat.le_add_right _ _) },
+    exact or.inr (or.inr (or.inl (eq.symm
+      (ext (hpqc.trans h1) hpqb (hpqa.trans h1.symm) hpqi h2 hpqk)))) },
+  { rw [nat.sub_eq_iff_eq_add ((le_of_lt q.hjk).trans (nat.le_add_right _ _)), ←two_mul] at h3,
+    rw [nat.sub_eq_iff_eq_add, ←two_mul, h3, nat.mul_right_inj zero_lt_two, eq_comm] at h2,
+    exact or.inl (ext hpqa hpqb hpqc hpqi h2 hpqk).symm,
+    exact (le_of_lt p.hjk).trans ((le_of_eq hpqk).trans (nat.le_add_right _ _)) },
 end
 
 /- I don't expect anyone to want to use this lemma in positive characteristic, but this lemma
@@ -491,14 +484,6 @@ begin
     { exact hpqc.trans ((neg_one_mul q.a).trans (add_eq_zero_iff_neg_eq.mp hqac)).symm },
     { rw [neg_to_polynomial, reverse'_neg, neg_mul_neg, reverse_to_polynomial, reverse'_reverse',
           hpq, mul_comm] } },
-end
-
---TODO: move
-lemma smul_mul_smul {R : Type*} [comm_semiring R] (r s : R) (p q : polynomial R) :
-  (r • p) * (s • q) = (r * s) • (p * q) :=
-begin
-  rw [←C_mul', ←C_mul', ←C_mul', C_mul, ←mul_assoc, ←mul_assoc,
-      mul_assoc (C r), mul_comm p, ←mul_assoc],
 end
 
 lemma key_lemma {p q : trinomial ℤ}

@@ -9,18 +9,24 @@ import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Reverse of a univariate polynomial
+
 In this file we define an alternate version of `reverse`.
 The difference between the old `reverse` and the new `reverse'` is that the old
 `reverse` will decrease the degree if the polynomial is divisible by `X`.
 We also define `norm2`, which is the sum of the squares of the coefficients of a polynomial.
 It is also a coefficient of `p * p.reverse'`.
+
 ## Main definitions
+
 - `p.reverse'`
 - `p.norm2`
+
 ## Main results
+
 - `reverse'_mul_of_domain`: `reverse'` preserves multiplication.
 - `reverse'_irreducible_test`: an irreducibility criterion involving `reverse'`
 - `norm2_eq_mul_reverse_coeff`: `norm2` is a coefficient of `p * p.reverse'`
+
 -/
 
 namespace polynomial

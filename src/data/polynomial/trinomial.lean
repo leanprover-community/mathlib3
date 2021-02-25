@@ -206,8 +206,6 @@ by rw [trailing_coeff, nat_trailing_degree, to_polynomial, coeff_add, coeff_add,
   coeff_monomial, coeff_monomial, coeff_monomial,
   if_pos rfl, if_neg (ne_of_gt t.hik), if_neg (ne_of_gt t.hij), add_zero, add_zero]
 
-end trinomial
-
 /-- twist a trinomial by a unit -/
 def twist (u : units R) : trinomial R :=
 { a := u * t.a,
@@ -354,5 +352,7 @@ begin
 end
 
 end rel
+
+end trinomial
 
 end polynomial

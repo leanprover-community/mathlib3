@@ -820,6 +820,15 @@ end
   compact_covering α m ⊆ compact_covering α n :=
 monotone_accumulate h
 
+end compact
+
+/-- An [exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets) of a
+topological space is a sequence of compact sets `K n` such that `K n ⊆ interior (K (n + 1))` and
+`(⋃ n, K n) = univ`.
+
+If `X` is a locally compact sigma compact space, then `compact_exhaustion.some X` provides a choice
+of an exhaustion by compact sets. This choice is also available as
+`(default : compact_exhaustion X)`. -/
 structure compact_exhaustion (X : Type*) [topological_space X] :=
 (to_fun : ℕ → set X)
 (is_compact' : ∀ n, is_compact (to_fun n))
@@ -850,6 +859,7 @@ lemma Union_eq : (⋃ n, K n) = univ := K.Union_eq'
 
 lemma exists_mem (x : α) : ∃ n, x ∈ K n := Union_eq_univ_iff.1 K.Union_eq x
 
+/-- The minimal `n` such that `x ∈ K n`. -/
 protected noncomputable def find (x : α) : ℕ := nat.find (K.exists_mem x)
 
 lemma mem_find (x : α) : x ∈ K (K.find x) := nat.find_spec (K.exists_mem x)
@@ -874,23 +884,26 @@ lemma mem_diff_shiftr_find (x : α) : x ∈ K.shiftr (K.find x + 1) \ K.shiftr (
 /-- A choice of an 
 [exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
 of a locally compact sigma compact space. -/
-noncomputable def choice [locally_compact_space α] : compact_exhaustion α :=
+noncomputable def choice (X : Type*) [topological_space X] [locally_compact_space X]
+  [sigma_compact_space X] : compact_exhaustion X :=
 begin
   apply classical.choice,
-  let K : ℕ → {s : set α // is_compact s} :=
+  let K : ℕ → {s : set X // is_compact s} :=
     λ n, nat.rec_on n ⟨∅, compact_empty⟩
-      (λ n s, ⟨(exists_compact_superset s.2).some ∪ compact_covering α n,
+      (λ n s, ⟨(exists_compact_superset s.2).some ∪ compact_covering X n,
         (exists_compact_superset s.2).some_spec.1.union (is_compact_compact_covering _ _)⟩),
   refine ⟨⟨λ n, K n, λ n, (K n).2, λ n, _, _⟩⟩,
   { exact subset.trans (exists_compact_superset (K n).2).some_spec.2
       (interior_mono $ subset_union_left _ _) },
-  { refine univ_subset_iff.1 (Union_compact_covering α ▸ _),
+  { refine univ_subset_iff.1 (Union_compact_covering X ▸ _),
     exact Union_subset_Union2 (λ n, ⟨n + 1, subset_union_right _ _⟩) }
 end
 
-end compact_exhaustion
+noncomputable instance [locally_compact_space α] [sigma_compact_space α] :
+  inhabited (compact_exhaustion α) :=
+⟨compact_exhaustion.choice α⟩
 
-end compact
+end compact_exhaustion
 
 section clopen
 

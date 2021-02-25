@@ -297,8 +297,8 @@ begin
     use (mv_polynomial.rename equiv.ulift.symm) x,
     simp [h] },
   { rintro ⟨ι, ⟨hfintype, ⟨f, hf⟩⟩⟩,
-    letI : fintype ι := hfintype,
-    obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι hfintype,
+    haveI : fintype ι := hfintype,
+    obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,
     replace equiv := mv_polynomial.alg_equiv_of_equiv R (nonempty.some equiv),
     use [n, alg_hom.comp f equiv.symm, function.surjective.comp hf.1
       (alg_equiv.symm equiv).surjective],

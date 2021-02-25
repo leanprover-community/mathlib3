@@ -6,14 +6,21 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
 import analysis.special_functions.exp_log
+import analysis.normed_space.inner_product
 import topology.algebra.polynomial
 
 /-!
-# Smoothness of specific functions
+# Infinitely smooth bump function
 
-The real function `exp_neg_inv_glue` given by `x ↦ exp (-1/x)` for `x > 0` and `0`
-for `x ≤ 0` is a basic building block to construct smooth partitions of unity. We prove that it
-is `C^∞` in `exp_neg_inv_glue.smooth`.
+In this file we construct several infinitely smooth functions with properties that an analytic
+function cannot have:
+
+* `exp_neg_inv_glue` is equal to zero for `x ≤ 0` and is strictly positive otherwise; it is given by
+  `x ↦ exp (-1/x)` for `x > 0`;
+* `smooth_transition` is equal to zero for `x ≤ 0` and is equal to one for `x ≥ 1`; it is given by
+  `exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))`;
+* `smooth_bump_function` is equal to one on the closed ball of radius `1` and is equal to `0`
+  outside of the open ball of radius `2`.
 -/
 
 noncomputable theory
@@ -22,7 +29,7 @@ open_locale classical topological_space
 open polynomial real filter set
 
 /-- `exp_neg_inv_glue` is the real function given by `x ↦ exp (-1/x)` for `x > 0` and `0`
-for `x ≤ 0`. is a basic building block to construct smooth partitions of unity. Its main property
+for `x ≤ 0`. It is a basic building block to construct smooth partitions of unity. Its main property
 is that it vanishes for `x ≤ 0`, it is positive for `x > 0`, and the junction between the two
 behaviors is flat enough to retain smoothness. The fact that this function is `C^∞` is proved in
 `exp_neg_inv_glue.smooth`. -/
@@ -162,7 +169,7 @@ begin
 end
 
 /-- The function `exp_neg_inv_glue` is smooth. -/
-theorem smooth : times_cont_diff ℝ ⊤ (exp_neg_inv_glue) :=
+protected theorem times_cont_diff {n} : times_cont_diff ℝ n exp_neg_inv_glue :=
 begin
   rw ← f_aux_zero_eq,
   apply times_cont_diff_of_differentiable_iterated_deriv (λ m hm, _),
@@ -187,3 +194,157 @@ begin
 end
 
 end exp_neg_inv_glue
+
+/-- An infinitely smooth function `f : ℝ → ℝ` such that `f x = 0` for `x ≤ 0`,
+`f x = 1` for `1 ≤ x`, and `0 < f x < 1` for `0 < x < 1`. -/
+def smooth_transition (x : ℝ) : ℝ :=
+exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))
+
+namespace smooth_transition
+
+variables {x : ℝ}
+
+open exp_neg_inv_glue
+
+lemma pos_denom (x) : 0 < exp_neg_inv_glue x + exp_neg_inv_glue (1 - x) :=
+((@zero_lt_one ℝ _ _).lt_or_lt x).elim
+  (λ hx, add_pos_of_pos_of_nonneg (pos_of_pos hx) (nonneg _))
+  (λ hx, add_pos_of_nonneg_of_pos (nonneg _) (pos_of_pos $ sub_pos.2 hx))
+
+lemma one_of_one_le (h : 1 ≤ x) : smooth_transition x = 1 :=
+(div_eq_one_iff_eq $ (pos_denom x).ne').2 $ by rw [zero_of_nonpos (sub_nonpos.2 h), add_zero]
+
+lemma zero_of_nonpos (h : x ≤ 0) : smooth_transition x = 0 :=
+by rw [smooth_transition, zero_of_nonpos h, zero_div]
+
+lemma le_one (x : ℝ) : smooth_transition x ≤ 1 :=
+(div_le_one (pos_denom x)).2 $ le_add_of_nonneg_right (nonneg _)
+
+lemma nonneg (x : ℝ) : 0 ≤ smooth_transition x :=
+div_nonneg (exp_neg_inv_glue.nonneg _) (pos_denom x).le
+
+lemma lt_one_of_lt_one (h : x < 1) : smooth_transition x < 1 :=
+(div_lt_one $ pos_denom x).2 $ lt_add_of_pos_right _ $ pos_of_pos $ sub_pos.2 h
+
+lemma pos_of_pos (h : 0 < x) : 0 < smooth_transition x :=
+div_pos (exp_neg_inv_glue.pos_of_pos h) (pos_denom x)
+
+protected lemma times_cont_diff {n} : times_cont_diff ℝ n smooth_transition :=
+exp_neg_inv_glue.times_cont_diff.div
+  (exp_neg_inv_glue.times_cont_diff.add $ exp_neg_inv_glue.times_cont_diff.comp $
+    times_cont_diff_const.sub times_cont_diff_id) $
+  λ x, (pos_denom x).ne'
+
+protected lemma times_cont_diff_at {x n} : times_cont_diff_at ℝ n smooth_transition x :=
+smooth_transition.times_cont_diff.times_cont_diff_at
+
+end smooth_transition
+
+variables {E : Type*}
+
+/-- A function `f : E → ℝ` defined on a real inner product space with the following properties:
+
+- `f` is infinitely smooth on `E`;
+- `f` is positive on `ball 0 2` and equals zero otherwise;
+- `f` is equal to `1` on `closed_ball 0 1`. -/
+def smooth_bump_function [inner_product_space ℝ E] (x : E) :=
+smooth_transition (2 - ∥x∥)
+
+namespace smooth_bump_function
+
+variable [inner_product_space ℝ E]
+
+open smooth_transition
+
+lemma one_of_norm_le_one {x : E} (hx : ∥x∥ ≤ 1) : smooth_bump_function x = 1 :=
+one_of_one_le (le_sub.2 $ by { norm_num1, assumption })
+
+lemma nonneg (x : E) : 0 ≤ smooth_bump_function x :=
+nonneg _
+
+lemma le_one (x : E) : smooth_bump_function x ≤ 1 :=
+le_one _
+
+lemma pos_of_norm_lt_two {x : E} (hx : ∥x∥ < 2) : 0 < smooth_bump_function x :=
+pos_of_pos $ sub_pos.2 hx
+
+lemma lt_one_of_one_lt_norm {x : E} (hx : 1 < ∥x∥) : smooth_bump_function x < 1 :=
+lt_one_of_lt_one $ sub_lt.2 $ by norm_num [hx]
+
+lemma zero_of_two_le_norm {x : E} (hx : 2 ≤ ∥x∥) : smooth_bump_function x = 0 :=
+zero_of_nonpos $ sub_nonpos.2 hx
+
+lemma support_eq : function.support (smooth_bump_function : E → ℝ) = metric.ball 0 2 :=
+begin
+  ext x,
+  suffices : smooth_bump_function x ≠ 0 ↔ ∥x∥ < 2, by simpa [function.mem_support],
+  cases lt_or_le (∥x∥) 2 with hx hx,
+  { simp [hx, (pos_of_norm_lt_two hx).ne'] },
+  { simp [hx.not_lt, zero_of_two_le_norm hx] }
+end
+
+lemma eventually_eq_one_of_norm_lt_one {x : E} (hx : ∥x∥ < 1) :
+  smooth_bump_function =ᶠ[𝓝 x] (λ _, 1) :=
+((is_open_lt continuous_norm continuous_const).eventually_mem hx).mono $
+  λ y hy, one_of_norm_le_one (le_of_lt hy)
+
+lemma eventually_eq_one : smooth_bump_function =ᶠ[𝓝 (0 : E)] (λ _, 1) :=
+eventually_eq_one_of_norm_lt_one (by simp only [norm_zero, zero_lt_one])
+
+protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function x :=
+begin
+  rcases em (x = 0) with rfl|hx,
+  { exact times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const eventually_eq_one },
+  { exact smooth_transition.times_cont_diff_at.comp x
+      (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
+end
+
+protected lemma times_cont_diff {n} : times_cont_diff ℝ n (smooth_bump_function : E → ℝ) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, smooth_bump_function.times_cont_diff_at
+
+protected lemma times_cont_diff_within_at {x : E} {s n} :
+  times_cont_diff_within_at ℝ n smooth_bump_function s x :=
+smooth_bump_function.times_cont_diff_at.times_cont_diff_within_at
+
+end smooth_bump_function
+
+open function finite_dimensional metric
+
+/-- If `E` is a finite dimensional normed space over `ℝ`, then for any point `x : E` and its
+neighborhood `s` there exists an infinitely smooth function with the following properties:
+
+* `f y = 1` in a neighborhood of `x`;
+* `f y = 0` outside of `s`;
+*  moreover, `closure (support f) ⊆ s` and `closure (support f)` is a compact set;
+* `f y ∈ [0, 1]` for all `y`.
+-/
+lemma exists_times_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :
+  ∃ f : E → ℝ, f =ᶠ[𝓝 x] 1 ∧ (∀ y, f y ∈ Icc (0 : ℝ) 1) ∧ times_cont_diff ℝ ⊤ f ∧
+    is_compact (closure $ support f) ∧ closure (support f) ⊆ s :=
+begin
+  have e : E ≃L[ℝ] euclidean_space ℝ (fin $ findim ℝ E) :=
+    continuous_linear_equiv.of_findim_eq findim_euclidean_space_fin.symm,
+  have : e '' s ∈ 𝓝 (e x) := e.to_homeomorph.is_open_map.image_mem_nhds hs,
+  rcases nhds_basis_closed_ball.mem_iff.1 this with ⟨ε, ε0 : 0 < ε, hε⟩,
+  set g : E → euclidean_space ℝ (fin $ findim ℝ E) := λ y, (2 / ε) • (e y - e x),
+  have hg : times_cont_diff ℝ ⊤ g,
+    from times_cont_diff_const.smul (e.times_cont_diff.sub times_cont_diff_const),
+  have hg0 : g x = 0 := by { simp only [g], simp }, -- `simp [g]` fails
+  have hsupp : closure (support (smooth_bump_function ∘ g)) ⊆ e.symm '' closed_ball (e x) ε,
+  { simp only [support_comp_eq_preimage, smooth_bump_function.support_eq, preimage, ball_0_eq,
+      mem_set_of_eq, e.image_symm_eq_preimage],
+    refine subset.trans (closure_lt_subset_le hg.continuous.norm continuous_const) _,
+    intros y hy,
+    have : 2 / ε * ∥e y - e x∥ ≤ 2, by simpa [g, norm_smul, real.norm_of_nonneg ε0.le] using hy,
+    rwa [mul_comm, ← mul_div_assoc, div_le_iff ε0, mul_comm, mul_le_mul_left (@zero_lt_two ℝ _ _),
+      ← dist_eq_norm] at this },
+  refine ⟨smooth_bump_function ∘ g, _, _, _, _, _⟩,
+  { exact (hg.continuous.tendsto' _ _ hg0).eventually smooth_bump_function.eventually_eq_one },
+  { exact λ y, ⟨smooth_bump_function.nonneg _, smooth_bump_function.le_one _⟩ },
+  { exact smooth_bump_function.times_cont_diff.comp hg },
+  { exact compact_of_is_closed_subset ((proper_space.compact_ball _ _).image e.symm.continuous)
+      is_closed_closure hsupp },
+  { refine subset.trans hsupp _,
+    rwa [image_subset_iff, ← e.image_eq_preimage] }
+end

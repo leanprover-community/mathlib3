@@ -59,7 +59,7 @@ if it looks preferable.)
 There is a separate development of pseudoelements in `category_theory.abelian.pseudoelements`,
 as a quotient (but not by isomorphism) of `over X`.
 
-When a morphism `f` has an image, it represents the same pseudoelement.
+When a morphism `f` has an image, the image represents the same pseudoelement.
 In a category with images `pseudoelements X` could be constructed as a quotient of `mono_over X`.
 In fact, in an abelian category (I'm not sure in what generality beyond that),
 `pseudoelements X` agrees with `subobject X`, but we haven't developed this in mathlib yet.
@@ -82,10 +82,8 @@ This isn't skeletal, so it's not a partial order.
 
 Later we define `subobject X` as the quotient of this by isomorphisms.
 -/
-@[derive [category, λ t, has_coe t (over X)]]
+@[derive [category]]
 def mono_over (X : C) := {f : over X // mono f.hom}
-
-attribute [priority 100] mono_over.has_coe
 
 namespace mono_over
 
@@ -96,8 +94,11 @@ def mk' {X A : C} (f : A ⟶ X) [hf : mono f] : mono_over X := { val := over.mk 
 /-- The inclusion from monomorphisms over X to morphisms over X. -/
 def forget (X : C) : mono_over X ⥤ over X := full_subcategory_inclusion _
 
+instance : has_coe (mono_over X) C :=
+{ coe := λ Y, Y.val.left, }
+
 @[simp]
-lemma forget_obj_left {f} : ((forget X).obj f).left = f.val.left := rfl
+lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
 
 /-- Convenience notation for the underlying arrow of a monomorphism over X. -/
 abbreviation arrow (f : mono_over X) : _ ⟶ X := ((forget X).obj f).hom
@@ -217,11 +218,11 @@ def pullback_id : pullback (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.pullback_id ≪≫ lift_id
 
 @[simp] lemma pullback_obj_left (f : X ⟶ Y) (g : mono_over Y) :
-(↑((pullback f).obj g) : over X).left = limits.pullback g.arrow f :=
+  (((pullback f).obj g) : C) = limits.pullback g.arrow f :=
 rfl
 
 @[simp] lemma pullback_obj_arrow (f : X ⟶ Y) (g : mono_over Y) :
-((pullback f).obj g).arrow = pullback.snd :=
+  ((pullback f).obj g).arrow = pullback.snd :=
 rfl
 
 end pullback
@@ -248,12 +249,13 @@ def map_id : map (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.map_id ≪≫ lift_id
 
 @[simp] lemma map_obj_left (f : X ⟶ Y) [mono f] (g : mono_over X) :
-(↑((map f).obj g) : over Y).left = g.val.left :=
+  (((map f).obj g) : C) = g.val.left :=
 rfl
 
 @[simp]
 lemma map_obj_arrow (f : X ⟶ Y) [mono f] (g : mono_over X) :
-((map f).obj g).arrow = g.arrow ≫ f := rfl
+  ((map f).obj g).arrow = g.arrow ≫ f :=
+rfl
 
 instance full_map (f : X ⟶ Y) [mono f] : full (map f) :=
 { preimage := λ g h e,
@@ -292,6 +294,16 @@ end
 end map
 
 section image
+variables (f : X ⟶ Y) [has_image f]
+
+/--
+The `mono_over Y` for the image inclusion for a morphism `f : X ⟶ Y`.
+-/
+def image_mono_over (f : X ⟶ Y) [has_image f] : mono_over Y := mono_over.mk' (image.ι f)
+
+end image
+
+section image
 
 variables [has_images C]
 
@@ -300,7 +312,7 @@ Taking the image of a morphism gives a functor `over X ⥤ mono_over X`.
 -/
 @[simps]
 def image : over X ⥤ mono_over X :=
-{ obj := λ f, mk' (image.ι f.hom),
+{ obj := λ f, image_mono_over f.hom,
   map := λ f g k,
   begin
     apply (forget X).preimage _,
@@ -407,7 +419,7 @@ instance {X : C} : inhabited (mono_over X) := ⟨⊤⟩
 def le_top (f : mono_over X) : f ⟶ ⊤ :=
 hom_mk f.arrow (comp_id _)
 
-@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : over X).left = X := rfl
+@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : C) = X := rfl
 @[simp] lemma top_arrow (X : C) : (⊤ : mono_over X).arrow = 𝟙 X := rfl
 
 /-- `map f` sends `⊤ : mono_over X` to `⟨X, f⟩ : mono_over Y`. -/
@@ -444,7 +456,7 @@ local attribute [instance] has_zero_object.has_zero
 instance {X : C} : has_bot (mono_over X) :=
 { bot := mk' (0 : 0 ⟶ X) }
 
-@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : over X).left = 0 := rfl
+@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = 0 := rfl
 @[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = 0 :=
 by ext
 
@@ -841,7 +853,7 @@ variables (f : X ⟶ Y) [has_image f]
 
 /-- The image of a morphism `f g : X ⟶ Y` as a `subobject Y`. -/
 def image_subobject : subobject Y :=
-subobject.mk (image.ι f)
+(to_thin_skeleton _).obj (mono_over.image_mono_over f)
 
 /-- The underlying object of `image_subobject f` is (up to isomorphism!)
 the same as the chosen object `image f`. -/

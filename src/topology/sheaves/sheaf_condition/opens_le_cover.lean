@@ -207,7 +207,7 @@ def pairwise_cocone_iso :
   (pairwise.cocone U).op ≅
   (cones.postcompose_equivalence (nat_iso.op (pairwise_diagram_iso U : _) : _)).functor.obj
     ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op) :=
-cones.ext (iso.refl _) (by {sorry})
+cones.ext (iso.refl _) (by tidy)
 
 end sheaf_condition
 

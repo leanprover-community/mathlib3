@@ -139,8 +139,7 @@ let F : discrete α ⥤ (discrete α)ᵒᵖ := discrete.functor (λ x, op x) in
 begin
   refine equivalence.mk (functor.left_op F) F _ (discrete.nat_iso $ λ X, by simp [F]),
   refine nat_iso.of_components (λ X, by simp [F]) _,
-  intros,
-  sorry
+  tidy
 end
 
 variables {C : Type u₂} [category.{v₂} C]

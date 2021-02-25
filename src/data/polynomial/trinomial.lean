@@ -6,6 +6,7 @@ Authors: Thomas Browning
 
 import data.polynomial.reverse2
 import analysis.complex.polynomial
+import ring_theory.polynomial.gauss_lemma
 
 /-!
 # Bundled Trinomials
@@ -624,6 +625,23 @@ begin
   replace hz2 : z ^ n + z ^ 2 = 0,
   { rw [←nat.sub_add_cancel (le_of_lt hn), pow_succ, pow_two, ←mul_add, hz2, mul_zero] },
   exact selmer_coprime_lemma n z ⟨hz1, hz2⟩,
+end
+
+lemma selmer_irreducible' {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : polynomial ℚ) :=
+begin
+  by_cases hn0 : n = 0,
+  { rw [hn0, pow_zero, sub_sub, add_comm, ←sub_sub, sub_self, zero_sub],
+    exact irreducible_of_associated ⟨-1, mul_neg_one X⟩ irreducible_X },
+  have hn : 1 < n := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn0, hn1⟩,
+  let p := mk (-(1 : ℤ)) (-(1 : ℤ)) (1 : ℤ) (neg_ne_zero.mpr one_ne_zero)
+    (neg_ne_zero.mpr one_ne_zero) (one_ne_zero) 0 1 n zero_lt_one hn,
+  have hp : p.to_polynomial = X ^ n - X - 1,
+  { simp_rw [to_polynomial, ←C_mul_X_pow_eq_monomial, C_neg, C_1],
+    ring },
+  have h := (is_primitive.int.irreducible_iff_irreducible_map_cast _).mp (selmer_irreducible hn1),
+  { rwa [map_sub, map_sub, map_pow, map_one, map_X] at h },
+  { rw ← hp,
+    exact monic.is_primitive p.leading_coeff },
 end
 
 end main_proof

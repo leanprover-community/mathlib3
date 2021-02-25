@@ -59,7 +59,7 @@ lemma subset_generate_pi_system_self {α} (S : set (set α)) : S ⊆ generate_pi
 
 lemma generate_pi_system_subset_self {α} {S : set (set α)} (h_S : is_pi_system S) :
   generate_pi_system S ⊆ S :=
- begin
+begin
   intros x h,
   induction h with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
   { exact h_s, },
@@ -141,30 +141,30 @@ lemma mem_generate_pi_system_Union_elim' {α β} {g : β → set (set α)} {s: s
   (h_pi : ∀ b ∈ s, is_pi_system (g b)) (t : set α) (h_t : t ∈ generate_pi_system (⋃ b ∈ s, g b)) :
   (∃ (T : finset β) (f : β → set α), (↑T ⊆ s) ∧ (t = ⋂ b ∈ T, f b) ∧ (∀ b ∈ T, f b ∈ (g b))) :=
 begin
-  classical,
   have h1 := @mem_generate_pi_system_Union_elim α (subtype s) (g ∘ subtype.val) _ t _,
   rcases h1 with ⟨T, ⟨f,⟨ rfl, h_t'⟩ ⟩⟩,
-  use (T.image subtype.val),
-  use (function.extend subtype.val f (λ (b:β), (∅ : set α))),
+  use [T.image subtype.val, function.extend subtype.val f (λ (b:β), (∅ : set α))],
   split,
   { simp },
   split,
   { ext a, split;
     { simp only [set.mem_Inter, subtype.forall, finset.set_bInter_finset_image],
       intros h1 b h_b h_b_in_T,
-      have h2 := h1 b h_b h_b_in_T, revert h2,
-      rw function.extend_apply subtype.val_injective, apply id } },
+      have h2 := h1 b h_b h_b_in_T,
+      revert h2,
+      rw function.extend_apply subtype.val_injective,
+      apply id } },
   { intros b h_b,
     simp_rw [finset.mem_image, exists_prop, subtype.exists,
              exists_and_distrib_right, exists_eq_right] at h_b,
     cases h_b,
     have h_b_alt : b = (subtype.mk b h_b_w).val := rfl,
-    rw h_b_alt,
-    rw function.extend_apply subtype.val_injective,
-    apply h_t', apply h_b_h },
+    rw [h_b_alt, function.extend_apply subtype.val_injective],
+    apply h_t',
+    apply h_b_h },
   { intros b, apply h_pi b.val b.property, },
-  { have h1 : (⋃ (b : subtype s), (g ∘ subtype.val) b) = (⋃ (b : β) (H : b ∈ s), g b),
-    { ext x, simp only [exists_prop, set.mem_Union, function.comp_app, subtype.exists,
-        subtype.coe_mk], refl },
-    rw h1, apply h_t },
+  { suffices h1 : (⋃ (b : subtype s), (g ∘ subtype.val) b) = (⋃ b (H : b ∈ s), g b), by rwa h1,
+    ext x,
+    simp only [exists_prop, set.mem_Union, function.comp_app, subtype.exists, subtype.coe_mk],
+    refl, },
 end

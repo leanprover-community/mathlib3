@@ -161,8 +161,8 @@ lemma ring_equiv_congr_right_apply [comm_semiring S₂] (e : R ≃+* S₂) (p : 
 by simp [ring_equiv_congr_right]
 
 @[simp]
-lemma ring_equiv_congr_right_symm_apply [comm_semiring S₂] (e : R ≃+* S₂) (p : mv_polynomial S₁ S₂) :
-  (ring_equiv_congr_right R e).symm p = map (e.symm : S₂ →+* R) p :=
+lemma ring_equiv_congr_right_symm_apply [comm_semiring S₂] (e : R ≃+* S₂)
+  (p : mv_polynomial S₁ S₂) : (ring_equiv_congr_right R e).symm p = map (e.symm : S₂ →+* R) p :=
 by simp [ring_equiv_congr_right]
 
 /-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas and `e_var : S₁ ≃ S₂` is an isomorphism of
@@ -179,8 +179,8 @@ def alg_equiv_congr {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R
   have h₂ : algebra_map R (algebra.comap R B (mv_polynomial S₂ B)) r =
     C (algebra_map R B r) := rfl,
   have h : (↑(e.to_ring_equiv) : A →+* B) ((algebra_map R A) r) = e ((algebra_map R A) r) := rfl,
-  simp [h₁, h₂, ring_equiv_congr_left_apply, ring_equiv_congr_right_apply, map, rename_C, eval₂_hom_C,
-    ring_hom.comp_apply, h, alg_equiv.commutes],
+  simp [h₁, h₂, ring_equiv_congr_left_apply, ring_equiv_congr_right_apply, map, rename_C,
+    eval₂_hom_C, ring_hom.comp_apply, h, alg_equiv.commutes],
   end,
   .. ring_equiv_congr e.to_ring_equiv e_var }
 
@@ -221,8 +221,8 @@ lemma alg_equiv_congr_right_apply {A B : Type*} [comm_semiring A] [comm_semiring
 by simpa [alg_equiv_congr_right]
 
 @[simp]
-lemma alg_equiv_congr_right_symm_apply {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A]
-  [algebra R B] (e : A ≃ₐ[R] B) (p : mv_polynomial S₁ B) :
+lemma alg_equiv_congr_right_symm_apply {A B : Type*} [comm_semiring A] [comm_semiring B]
+  [algebra R A] [algebra R B] (e : A ≃ₐ[R] B) (p : mv_polynomial S₁ B) :
   (alg_equiv_congr_right R e).symm p = map (↑e.symm : B →+* A ) p :=
 by simpa [alg_equiv_congr_right, ring_equiv_congr]
 

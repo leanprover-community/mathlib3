@@ -636,7 +636,7 @@ end⟩
 /-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
 their product. -/
 lemma filter.coprod_cocompact {β : Type*} [topological_space β]:
-  filter.coprod (filter.cocompact α) (filter.cocompact β) = filter.cocompact (α × β) :=
+  (filter.cocompact α).coprod (filter.cocompact β) = filter.cocompact (α × β) :=
 begin
   ext S,
   simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],

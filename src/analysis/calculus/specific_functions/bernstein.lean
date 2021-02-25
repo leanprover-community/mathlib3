@@ -89,8 +89,23 @@ meta def tactic.interactive.ls := tactic.interactive.library_search
 lemma fin.succ_coe (n : ℕ) (i : fin n) : (i.cast_succ : ℕ) = (i : ℕ) :=
 rfl
 
-@[simp, norm_cast] theorem polynomial.coe_nat_inj' {m n : ℕ} : (↑m : polynomial ℤ) = ↑n ↔ m = n :=
-sorry
+@[simp] lemma polynomial.nat_cast_coeff_zero {n : ℕ} {R : Type*} [semiring R] :
+  (n : polynomial R).coeff 0 = n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih], },
+end
+
+@[simp, norm_cast] theorem polynomial.nat_cast_inj'
+  {m n : ℕ} {R : Type*} [semiring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
+begin
+  fsplit,
+  { intro h,
+    apply_fun (λ p, p.coeff 0) at h,
+    simpa using h, },
+  { rintro rfl, refl, },
+end
 
 open nat (choose)
 open polynomial (X)
@@ -252,16 +267,19 @@ begin
   simp [polynomial.eval_comp],
 end
 
+@[simp] lemma int.neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n = 0 ↔ false :=
+begin
+  simp only [iff_false],
+  exact pow_ne_zero _ (by norm_num)
+end
+
 lemma iterate_derivative_at_1_ne_zero (n ν : ℕ) (h : ν ≤ n) :
   (polynomial.derivative^[n-ν] (bernstein_polynomial n ν)).eval 1 ≠ 0 :=
 begin
-  simp only [int.coe_nat_eq_zero, bernstein_polynomial.iterate_derivative_at_1 _ _ h, ne.def],
-  simp [not_or_distrib],
-  fsplit,
-  { sorry, },
-  { exact nat.falling_factorial_ne_zero (nat.sub_le _ _), },
+  simp only [int.coe_nat_eq_zero, bernstein_polynomial.iterate_derivative_at_1 _ _ h, ne.def,
+    false_or, int.coe_nat_eq_zero, int.neg_one_pow_ne_zero, mul_eq_zero],
+  exact nat.falling_factorial_ne_zero (nat.sub_le _ _),
 end
-
 
 @[simp] lemma fin.init_lambda {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
   fin.init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
@@ -290,18 +308,27 @@ lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} {h : f x ≠ f y
 
 lemma eval_zero {R : Type*} [semiring R] (p : polynomial R) : p.eval 0 = p.coeff 0 :=
 begin
-  sorry,
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, cases n; simp [pow_succ], }
 end
 
 @[simp]
-lemma eval_zero_map {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S) (p : polynomial R) :
+lemma eval_zero_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
   (p.map f).eval 0 = f (p.eval 0) :=
 by simp [eval_zero]
 
 @[simp]
-lemma eval_one_map {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S) (p : polynomial R) :
+lemma eval_one_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
   (p.map f).eval 1 = f (p.eval 1) :=
-sorry
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
+-- We could probably also add `eval_bit0_map` and `eval_bit1_map`, as well as
+-- `eval_nat_cast_map` and `eval_int_cast_map`.
 
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
@@ -313,25 +340,31 @@ begin
     fsplit,
     { exact ih (le_of_lt h), },
     { -- The actual work!
-      -- We show that the k-th derivative at 1 doesn't vanish,
+      -- We show that the (n-k)-th derivative at 1 doesn't vanish,
       -- but vanishes for everything in the span.
       clear ih,
+      simp only [nat.succ_eq_add_one, add_le_add_iff_right] at h,
       simp only [fin.coe_last, fin.init_lambda],
       dsimp,
-      apply not_mem_span_of_apply_not_mem_span ((polynomial.derivative_lhom ℚ)^k),
+      apply not_mem_span_of_apply_not_mem_span ((polynomial.derivative_lhom ℚ)^(n-k)),
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
-      intros p h,
-      simp,
+      intros p m,
       apply ne_of_apply_ne (polynomial.eval (1 : ℚ)),
-      simp,
-      suffices : (polynomial.derivative^[k] p).eval 1 = 0,
-      sorry,
-      apply span_induction h,
-      { simp, rintro ⟨a, w⟩, rw [iterate_derivative_at_one_eq_zero_of_lt _ _], },
+      simp only [ne.def, polynomial.derivative_lhom_coe, polynomial.iterate_derivative_map,
+        ring_hom.eq_int_cast, linear_map.pow_apply, bernstein_polynomial.eval_one_map],
+      -- The right hand side is nonzero,
+      -- so it will suffice to show the left hand side is always zero.
+      suffices : (polynomial.derivative^[n-k] p).eval 1 = 0,
+      { rw [this],
+        norm_cast,
+        refine (iterate_derivative_at_1_ne_zero n k h).symm, },
+      apply span_induction m,
+      { simp,
+        rintro ⟨a, w⟩, simp only [fin.coe_mk],
+        rw [iterate_derivative_at_one_eq_zero_of_lt _ (show n - k < n - a, by omega)], },
       { simp, },
       { intros x y hx hy, simp [hx, hy], },
-      { intros a x h, simp [h], },
-      } }
+      { intros a x h, simp [h], }, }, },
 end
 
 lemma linear_independent (n : ℕ) :

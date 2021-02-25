@@ -158,6 +158,10 @@ begin
   rw [← pow_one X, support_X_pow H 1],
 end
 
+lemma monomial_left_inj {R : Type*} [semiring R] {a : R} (ha : a ≠ 0) {i j : ℕ} :
+  (monomial i a) = (monomial j a) ↔ i = j :=
+finsupp.single_left_inj ha
+
 end semiring
 
 section comm_semiring

@@ -353,16 +353,6 @@ end
 
 end rel
 
-lemma monomial_eq_monomial_iff {R : Type*} [semiring R] {a : R} (ha : a ≠ 0) {i j : ℕ} :
-  (monomial i a) = (monomial j a) ↔ i = j :=
-begin
-  split,
-  { intro h,
-    rw [←nat_degree_monomial i a ha, ←nat_degree_monomial j a ha, h] },
-  { intro h,
-    rw h },
-end
-
 lemma monomial_add_monomial_eq_monomial_add_monomial_iff {R : Type*} [ring R]
   {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) {i j k l : ℕ} :
   (monomial i a) + (monomial j b) = (monomial k a) + (monomial l b) ↔
@@ -371,7 +361,7 @@ begin
   split,
   { intro h,
     by_cases hjl : j = l,
-    { exact or.inl ⟨by rwa [hjl, add_left_inj, monomial_eq_monomial_iff ha] at h, hjl⟩ },
+    { exact or.inl ⟨by rwa [hjl, add_left_inj, monomial_left_inj ha] at h, hjl⟩ },
     { have key := congr_arg (λ x : polynomial R, x.coeff l) h,
       simp_rw [coeff_add, coeff_monomial, if_pos rfl, if_neg hjl, add_zero] at key,
       by_cases hil : i = l,
@@ -379,12 +369,12 @@ begin
         { rw [if_pos hil, if_pos hkl, self_eq_add_right] at key,
           exact false.elim (hb key) },
         { rw [if_pos hil, if_neg hkl, zero_add] at key,
-          rw [key, hil, add_comm, add_left_inj, monomial_eq_monomial_iff hb] at h,
+          rw [key, hil, add_comm, add_left_inj, monomial_left_inj hb] at h,
           exact or.inr (or.inl ⟨key, hil, h⟩) } },
       { by_cases hkl : k = l,
         { rw [if_neg hil, if_pos hkl, eq_comm] at key,
           rw [hkl, ←monomial_add, key, monomial_zero_right, add_eq_zero_iff_eq_neg,
-              ←monomial_neg, ←add_eq_zero_iff_eq_neg.mp key, monomial_eq_monomial_iff ha] at h,
+              ←monomial_neg, ←add_eq_zero_iff_eq_neg.mp key, monomial_left_inj ha] at h,
           exact or.inr (or.inr ⟨key, h, hkl⟩) },
         { rw [if_neg hil, if_neg hkl, zero_add, eq_comm] at key,
           exact false.elim (hb key) } } } },

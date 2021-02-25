@@ -218,17 +218,6 @@ end generators
 
 section skeleton
 
-lemma skeletal : skeletal simplex_category :=
-λ X Y I,
-begin
-  rcases I with ⟨I⟩,
-  suffices : fintype.card (fin (X+1)) = fintype.card (fin (Y+1)),
-  { simpa, },
-  { apply fintype.card_congr,
-    refine ⟨I.hom, I.inv, _, _⟩,
-    intro x, exact congr_fun (congr_arg (preorder_hom.to_fun) I.hom_inv_id : _) x,
-    intro y, exact congr_fun (congr_arg (preorder_hom.to_fun) I.inv_hom_id : _) y, }
-end
 
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
@@ -236,6 +225,16 @@ def skeletal_functor :
   simplex_category ⥤ NonemptyFinLinOrd.{u} :=
 { obj := λ n, NonemptyFinLinOrd.of $ ulift (fin (n+1)),
   map := λ m n f, ⟨λ i, ⟨f i.down⟩, λ ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, from f.monotone h⟩, }
+
+lemma skeletal : skeletal simplex_category :=
+λ X Y ⟨I⟩,
+begin
+  suffices : fintype.card (fin (X+1)) = fintype.card (fin (Y+1)),
+  { simpa, },
+  { apply fintype.card_congr,
+    refine equiv.ulift.symm.trans (((skeletal_functor ⋙ forget _).map_iso I).to_equiv.trans _),
+    apply equiv.ulift }
+end
 
 namespace skeletal_functor
 
@@ -246,7 +245,7 @@ instance : full skeletal_functor.{u} :=
 instance : faithful skeletal_functor.{u} :=
 { map_injective' := λ m n f g h,
   begin
-    ext1 i, apply equiv.ulift.symm.injective,
+    ext1 i, apply ulift.up.inj,
     show skeletal_functor.map f ⟨i⟩ = skeletal_functor.map g ⟨i⟩,
     rw h,
   end }
@@ -288,6 +287,6 @@ end skeleton
 noncomputable
 def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
 { skel := skeletal,
-  eqv := is_equivalence.of_equivalence skeletal_equivalence }
+  eqv := skeletal_functor.is_equivalence }
 
 end simplex_category

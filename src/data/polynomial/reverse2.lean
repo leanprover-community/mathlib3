@@ -176,3 +176,114 @@ begin
 end
 
 end reverse'
+
+section norm2
+
+/-- the sum of the square of the coefficients of a polynomial -/
+def norm2 := p.support.sum (λ k, (p.coeff k) ^ 2)
+
+lemma norm2_eq_sum_of_support {s : finset ℕ}
+  (h : p.support ⊆ s) : p.norm2 = s.sum (λ k, (p.coeff k) ^ 2) :=
+finset.sum_subset h (λ k h1 h2, by rw [not_mem_support_iff_coeff_zero.mp h2, pow_two, zero_mul])
+
+lemma norm2_monomial (k : ℕ) (a : R) : (monomial k a).norm2 = a ^ 2 :=
+by rw [norm2_eq_sum_of_support _ (support_monomial' k a),
+  finset.sum_singleton, coeff_monomial, if_pos rfl]
+
+lemma norm2_C (a : R) : (C a).norm2 = a ^ 2 := norm2_monomial 0 a
+
+lemma norm2_zero : (0 : polynomial R).norm2 = 0 := by rw [←C_0, norm2_C, pow_two, zero_mul]
+
+lemma norm2_eq_zero {R : Type*} [linear_ordered_ring R] {p : polynomial R} :
+  p.norm2 = 0 ↔ p = 0 :=
+begin
+  split,
+  { rw [norm2, finset.sum_eq_zero_iff_of_nonneg (λ k hk, pow_two_nonneg (p.coeff k))],
+    simp_rw [pow_eq_zero_iff zero_lt_two, mem_support_iff_coeff_ne_zero, not_imp_self],
+    rw polynomial.ext_iff,
+    exact id },
+  { intro hp,
+    rw [hp, norm2_zero] },
+end
+
+lemma norm2_eq_mul_reverse_coeff :
+  p.norm2 = (p * p.reverse').coeff (p.nat_degree + p.nat_trailing_degree) :=
+begin
+  have h : p.support ⊆ finset.range (p.nat_degree + p.nat_trailing_degree).succ :=
+  λ x hx, finset.mem_range_succ_iff.mpr ((le_nat_degree_of_ne_zero
+    (mem_support_iff_coeff_ne_zero.mp hx)).trans (nat.le_add_right _ _)),
+  rw [eq_comm, p.norm2_eq_sum_of_support h, coeff_mul,
+      finset.nat.sum_antidiagonal_eq_sum_range_succ_mk],
+  apply finset.sum_congr rfl,
+  intros k hk,
+  rw [pow_two, coeff_reverse', ←rev_at_le (finset.mem_range_succ_iff.mp hk), rev_at_invol],
+end
+
+-- `p.nat_degree` can be recovered from `p * p.reverse'`
+lemma nat_degree_mul_reverse' {R : Type*} [integral_domain R] (p : polynomial R) :
+  (p * p.reverse').nat_degree = 2 * p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
+  { rw [nat_degree_mul hp (mt p.reverse'_eq_zero.mp hp), reverse'_nat_degree, two_mul] },
+end
+
+-- `p.nat_trailing_degree` can be recovered from `p * p.reverse'`
+lemma nat_trailing_degree_mul_reverse' {R : Type*} [integral_domain R] (p : polynomial R) :
+  (p * p.reverse').nat_trailing_degree = 2 * p.nat_trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_trailing_degree_zero, mul_zero] },
+  { rw [nat_trailing_degree_mul hp (mt p.reverse'_eq_zero.mp hp),
+        reverse'_nat_trailing_degree, two_mul] },
+end
+
+-- `p.norm2` can be recovered from `p * p.reverse'`
+lemma central_coeff_mul_reverse' {R : Type*} [integral_domain R] (p : polynomial R) :
+  (p * p.reverse').coeff (((p * p.reverse').nat_degree +
+    (p * p.reverse').nat_trailing_degree) / 2) = p.norm2 :=
+by rw [nat_degree_mul_reverse', nat_trailing_degree_mul_reverse',  ←mul_add,
+  nat.mul_div_cancel_left _ zero_lt_two, norm2_eq_mul_reverse_coeff]
+
+lemma norm2_nonneg {R : Type*} [linear_ordered_ring R] (p : polynomial R) :
+  0 ≤ norm2 p :=
+finset.sum_nonneg (λ _ _, pow_two_nonneg _)
+
+lemma coeff_sq_le_norm2 {R : Type*} [linear_ordered_ring R] (p : polynomial R) (k : ℕ) :
+  p.coeff k ^ 2 ≤ p.norm2 :=
+begin
+  rw [norm2, ←finset.sum_insert_of_eq_zero_if_not_mem],
+  exact (le_of_eq (finset.sum_singleton.symm)).trans (finset.sum_le_sum_of_subset_of_nonneg
+    (finset.singleton_subset_iff.mpr (finset.mem_insert_self k p.support))
+    (λ j _ _, pow_two_nonneg (p.coeff j))),
+  exact λ h, (pow_eq_zero_iff zero_lt_two).mpr (not_mem_support_iff_coeff_zero.mp h),
+end
+
+lemma norm2_eq_card_support (hp : ∀ k, p.coeff k ≠ 0 → p.coeff k ^ 2 = 1) :
+  p.norm2 = p.support.card :=
+begin
+  rw [←ring_hom.eq_nat_cast (nat.cast_ring_hom R), finset.card_eq_sum_ones, ring_hom.map_sum],
+  simp only [ring_hom.map_one],
+  exact finset.sum_congr rfl (λ k hk, hp k (mem_support_iff_coeff_ne_zero.mp hk)),
+end
+
+lemma coeff_sq_eq_one_of_norm2_le_three (p : polynomial ℤ) (hp : p.norm2 ≤ 3) (k : ℕ)
+  (hk : p.coeff k ≠ 0) : p.coeff k ^ 2 = 1 :=
+begin
+  replace hp := (p.coeff_sq_le_norm2 k).trans hp,
+  rw [←int.nat_abs_pow_two, ←int.coe_nat_pow, ←int.coe_nat_one, int.coe_nat_inj',
+      pow_two, nat.mul_eq_one_iff, and_self],
+  apply le_antisymm,
+  { rwa [←nat.lt_succ_iff, ←nat.pow_lt_iff_lt_left one_le_two, ←int.coe_nat_lt_coe_nat_iff,
+        int.coe_nat_pow, int.nat_abs_pow_two, ←int.le_sub_one_iff] },
+  { rwa [nat.succ_le_iff, pos_iff_ne_zero, ne, int.nat_abs_eq_zero] },
+end
+
+lemma card_support_eq_three_of_norm2_eq_three (p : polynomial ℤ) (hp : p.norm2 = 3) :
+  p.support.card = 3 :=
+nat.cast_inj.mp
+  ((p.norm2_eq_card_support (p.coeff_sq_eq_one_of_norm2_le_three (le_of_eq hp))).symm.trans hp)
+
+end norm2
+
+end polynomial

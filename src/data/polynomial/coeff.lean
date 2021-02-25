@@ -83,6 +83,11 @@ add_monoid_algebra.single_zero_mul_apply p a n
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
 ext $ λ n, coeff_C_mul f
 
+lemma smul_mul_smul {R : Type*} [comm_semiring R] (r s : R) (p q : polynomial R) :
+  (r • p) * (s • q) = (r * s) • (p * q) :=
+by rw [←C_mul', ←C_mul', ←C_mul', C_mul, ←mul_assoc,
+  mul_assoc (C r), mul_comm p, ←mul_assoc, ←mul_assoc]
+
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
 add_monoid_algebra.mul_single_zero_apply p a n

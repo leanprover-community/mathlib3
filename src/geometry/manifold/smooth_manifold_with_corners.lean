@@ -258,7 +258,8 @@ I.unique_diff _ (mem_range_self _)
 lemma model_with_corners.locally_compact [locally_compact_space E] (I : model_with_corners 𝕜 E H) :
   locally_compact_space H :=
 begin
-  have : ∀ x : H, (𝓝 x).has_basis _ _,
+  have : ∀ (x : H), (𝓝 x).has_basis (λ s, s ∈ 𝓝 (I x) ∧ is_compact s)
+    (λ s, I.symm '' (s ∩ range ⇑I)),
   { intro x,
     rw ← I.symm_map_nhds_within_range,
     exact ((compact_basis_nhds (I x)).inf_principal _).map _ },

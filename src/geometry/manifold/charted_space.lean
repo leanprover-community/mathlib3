@@ -503,7 +503,9 @@ lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 is locally compact. -/
 lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
 begin
-  have : ∀ x : M, (𝓝 x).has_basis _ _,
+  have : ∀ (x : M), (𝓝 x).has_basis
+      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
+      (λ s, (chart_at H x).symm '' s),
   { intro x,
     rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
     exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset

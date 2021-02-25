@@ -394,6 +394,8 @@ begin
   rw [h_r, ←bernoulli_power_series, mul_assoc, aux_cauchy_prod],
 end
 
+
+/-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p:ℕ):
 (finset.range n).sum(λk, (k:ℚ)^p) =
 (finset.range (p + 1)).sum(λ i,

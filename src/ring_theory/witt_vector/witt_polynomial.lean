@@ -48,6 +48,11 @@ In this file we use the following notation
 * `R` and `S` are commutative rings
 * `W n` (and `W_ R n` when the ring needs to be explicit) denotes the `n`th Witt polynomial
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open mv_polynomial

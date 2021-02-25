@@ -648,13 +648,18 @@ def change_origin_series (k : ℕ) : formal_multilinear_series 𝕜 E (E [×k]�
     (by erw [finset.card_compl, fintype.card_fin, s.2, nat.add_sub_cancel])
     (p $ k + l)
 
-lemma change_origin_series_norm_apply (k l : ℕ) :
+lemma change_origin_series_norm_apply_le (k l : ℕ) :
   ∥p.change_origin_series k l∥ ≤ nat.choose (k + l) l * ∥p (k + l)∥ :=
 le_trans (norm_sum_le _ _) $ by simp [finset.card_univ]
 
-lemma change_origin_series_radius_le (k : ℕ) :
-  (p.change_origin_series k).radius ≤ p.radius :=
-_
+lemma le_change_origin_series_radius (k : ℕ) :
+  p.radius ≤ (p.change_origin_series k).radius :=
+begin
+  refine ennreal.le_of_forall_nnreal_lt (λ r hr, _),
+  rcases p.is_o_of_lt_radius hr with ⟨a, ha01, ha⟩,
+  refine le_radius_of_is_O _ _,
+  have : ∀ᶠ n in at_top, ∥p.change_origin_series k n∥ * r ^ n ≤ 
+end
 
 /--
 Changing the origin of a formal multilinear series `p`, so that

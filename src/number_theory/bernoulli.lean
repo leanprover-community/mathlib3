@@ -199,6 +199,8 @@ begin
   { exact cast_ne_zero.mpr hj', },
 end
 
+
+
 open ring_hom
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
@@ -328,3 +330,114 @@ begin
   rw [cast_mul, cast_mul, mul_div_mul_right _ _ hj, add_choose, cast_dvd_char_zero],
   exact factorial_mul_factorial_dvd_factorial_add i j,
 end
+
+
+section faulhaber
+
+lemma aux_cauchy_prod (n:ℕ):
+mk (λ (p : ℕ), bernoulli p / ↑(p.factorial)) *
+ mk (λ (q : ℕ), (coeff ℚ (q + 1)) (exp ℚ ^ n))
+ = mk (λ (p : ℕ), (finset.range (p + 1)).sum (λ (i : ℕ),
+ bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / (↑(p + 1).factorial))) :=
+begin
+  ext q,
+  rw [power_series.coeff_mul],
+  simp only [coeff_mk, coeff_mk, nat.cast_mul],
+  let f: ℕ →  ℕ → ℚ := λ (a : ℕ), λ (b: ℕ),
+  bernoulli a / ↑(a.factorial) * (coeff ℚ (b + 1)) (exp ℚ ^ n),
+  rw [finset.nat.sum_antidiagonal_eq_sum_range_succ f],
+  refine finset.sum_congr _ _,
+  { refl, },
+  { intros m h,
+    simp only [f, exp_pow_eq_rescale_exp, rescale, one_div, coeff_mk, ring_hom.coe_mk, coeff_exp,
+      ring_hom.id_apply, nat.cast_mul, rat.algebra_map_rat_rat],
+    simp only [finset.mem_range] at h,
+    rw [nat.choose_eq_factorial_div_factorial (le_of_lt h)],
+    have hq: (q.succ.factorial:ℚ) ≠ 0,
+    { by_contradiction g,
+      simp only [not_not, nat.cast_succ, nat.factorial_succ, nat.cast_eq_zero,
+        nat.cast_mul, mul_eq_zero] at g,
+      cases g,
+      { exact nat.cast_add_one_ne_zero q g,},
+      { exact nat.factorial_ne_zero q g, }, },
+    rw [eq_comm],
+    rw [div_eq_iff hq],
+    have hqm1: q - m + 1 = q + 1 - m,
+    { rw [nat.sub_add_comm],
+      apply nat.le_of_lt_succ,
+      exact h, },
+    rw [nat.succ_eq_add_one, mul_assoc _ _ ↑(q.succ.factorial),
+      mul_comm  _ ↑(q.succ.factorial), ←mul_assoc, div_mul_eq_mul_div,
+      mul_comm (n ^ (q -m + 1):ℚ) _, ←mul_assoc _ _ (n ^ (q - m + 1):ℚ), ←one_div, mul_one_div,
+      div_div_eq_div_mul, hqm1],
+    rw [nat.cast_dvd],
+    { rw [nat.cast_mul],
+      ring, },
+    { simp only [nat.factorial_mul_factorial_dvd_factorial (le_of_lt h)], },
+    { simp only [ne.def, nat.cast_eq_zero, mul_eq_zero, nat.factorial_ne_zero, not_false_iff,
+        or_self], },
+  },
+end
+
+lemma aux_power_series_equal (n:ℕ):
+  (exp ℚ - 1) * power_series.mk (λ p, (finset.range n).sum (λ k,
+  (k:ℚ)^p * algebra_map ℚ ℚ p.factorial⁻¹)) =
+  (exp ℚ - 1) * power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
+  (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial))) :=
+begin
+  rw [←exp_pow_sum n],
+  have h_geom_sum: (geom_series (exp ℚ) n) * (exp ℚ - 1) = (exp ℚ)^n - 1 := geom_sum_mul _ _,
+  simp [geom_series] at h_geom_sum,
+  rw [mul_comm, h_geom_sum],
+  have h_const:  C ℚ (constant_coeff ℚ ((exp ℚ)^n))  = 1,
+    { simp only [one_pow, constant_coeff_exp, ring_hom.map_pow, ring_hom.map_one],},
+  have h_r: (exp ℚ)^n - 1 = X * mk (λ (p : ℕ), (coeff ℚ (p + 1)) (exp ℚ ^ n)),
+    { rw [←h_const], rw [sub_const_eq_X_mul_shift],},
+  rw [h_r, ←bernoulli_power_series, mul_assoc, aux_cauchy_prod],
+end
+
+theorem faulhaber (n p:ℕ):
+(finset.range n).sum(λk, (k:ℚ)^p) =
+(finset.range (p + 1)).sum(λ i,
+ (-1)^i*(bernoulli' i)*((p + 1).choose i)*n^(p + 1 - i)/(p + 1)) :=
+begin
+  have hpseq: power_series.mk (λ p, (finset.range n).sum (λ k,
+    (k:ℚ)^p * algebra_map ℚ ℚ p.factorial⁻¹)) =
+    power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
+      (-1)^i*(bernoulli' i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial))),
+  { have hexp: exp ℚ - 1 ≠ 0,
+    { rw [exp],
+      simp only [power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
+      ring_hom.id_apply, linear_map.map_sub, ne.def, not_forall,
+      rat.algebra_map_rat_rat],
+      use 1,
+      simp only [nat.factorial_one, sub_zero, if_false, inv_one, not_false_iff,
+      one_ne_zero, nat.cast_one], },
+    apply mul_left_cancel' hexp (aux_power_series_equal n), },
+  simp only [power_series.ext_iff, cast_succ, coeff_mk, cast_mul, id_apply, rat.algebra_map_rat_rat]
+    at hpseq,
+  have h: (finset.range n).sum (λ k, (k:ℚ)^p * p.factorial⁻¹) = (finset.range (p + 1)).sum(λ i,
+  (-1)^i*(bernoulli' i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial)) := hpseq p,
+  clear hpseq,
+  simp only [←finset.sum_mul] at h,
+  have hne_zero: ((p.factorial):ℚ) ≠ 0,
+  { simp only [p.factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
+  have hne_zero': (((p+1).factorial):ℚ) ≠ 0,
+  { simp only [(p + 1).factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
+  have hp: ((((p:ℚ) + (1:ℚ))):ℚ) ≠ 0 := nat.cast_add_one_ne_zero p,
+  simp only [←one_div, mul_one_div, div_eq_iff hne_zero] at h,
+  rw [h],
+  clear h,
+  simp only [finset.sum_mul],
+  refine finset.sum_congr _ _,
+  { refl, },
+  { intros x hx,
+    ring,
+    have hfrac: ↑(p.factorial) * (↑(p + 1).factorial)⁻¹ = ((p + 1:ℚ))⁻¹,
+    { simp only [←one_div, mul_one_div],
+      rw [eq_comm, div_eq_iff hp, eq_comm, div_mul_eq_mul_div, div_eq_iff hne_zero'],
+      simp only [cast_succ, one_mul, cast_mul, factorial_succ, mul_comm], },
+    rw [hfrac], },
+end
+
+end faulhaber

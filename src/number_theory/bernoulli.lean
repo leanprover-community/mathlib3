@@ -199,8 +199,6 @@ begin
   { exact cast_ne_zero.mpr hj', },
 end
 
-
-
 open ring_hom
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/

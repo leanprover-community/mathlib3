@@ -300,12 +300,11 @@ begin
     haveI : fintype ι := hfintype,
     obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,
     replace equiv := mv_polynomial.alg_equiv_of_equiv R (nonempty.some equiv),
-    use [n, alg_hom.comp f equiv.symm, function.surjective.comp hf.1
-      (alg_equiv.symm equiv).surjective],
-    have hfg : (↑equiv.symm.to_ring_equiv : _root_.mv_polynomial (fin n) R →+*
-      _root_.mv_polynomial ι R).ker.fg,
-    { simpa [ring_hom.ker_coe_equiv] using submodule.fg_bot },
-    exact submodule.fg_ker_ring_hom_comp _ f hfg hf.2 (λ x, ⟨equiv x, by simp⟩) }
+    refine ⟨n, f.comp equiv.symm,
+      hf.1.comp (alg_equiv.symm equiv).surjective,
+      submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
+    convert submodule.fg_bot,
+    exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv),
 end
 
 end finite_presentation

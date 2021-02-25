@@ -176,3 +176,5 @@ begin
 end
 
 end reverse'
+
+end polynomial

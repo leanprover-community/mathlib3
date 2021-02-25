@@ -91,8 +91,10 @@ requiring a proof that the input is not `0`. -/
 -- TODO: make the `n = 0` case neater
 def fin_succ_equiv (n : ℕ) : fin (n + 1) ≃ option (fin n) :=
 nat.cases_on n
-({to_fun := λ _, none, inv_fun := λ _, 0,
-  left_inv := λ _, by simp, right_inv := λ x, by { cases x, simp, exact x.elim0 }})
+{ to_fun := λ _, none,
+  inv_fun := λ _, 0,
+  left_inv := λ _, by simp,
+  right_inv := λ x, by { cases x, simp, exact x.elim0 } }
 (λ _, fin_succ_equiv' 0)
 
 @[simp] lemma fin_succ_equiv_zero {n : ℕ} :
@@ -102,7 +104,7 @@ by cases n; refl
 @[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
   (fin_succ_equiv n) m.succ = some m :=
 begin
-  cases n, exact m.elim0,
+  cases n, { exact m.elim0 },
   convert fin_succ_equiv'_above m.zero_le
 end
 
@@ -113,7 +115,7 @@ by cases n; refl
 @[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
   (fin_succ_equiv n).symm (some m) = m.succ :=
 begin
-  cases n, exact m.elim0,
+  cases n, { exact m.elim0 },
   convert fin_succ_equiv_symm'_some_above m.zero_le
 end
 

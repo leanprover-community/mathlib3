@@ -252,7 +252,7 @@ begin
     { exact hp _ (IH n.succ_pos) } }
 end
 
-@[simp] theorem rec_on_one (n : pnat) {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
+@[simp] theorem rec_on_one {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
 
 @[simp] theorem rec_on_succ (n : pnat) {p : pnat → Sort*} (p1 hp) :
   @pnat.rec_on (n + 1) p p1 hp = hp n (@pnat.rec_on n p p1 hp) :=

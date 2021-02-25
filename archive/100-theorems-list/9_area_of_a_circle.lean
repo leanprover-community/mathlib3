@@ -32,7 +32,7 @@ of calculus with those facts. Some simple algebra then completes the proof.
 Note that we choose to define `disc` as a set of points in `ℝ ⨯ ℝ`. This is admittedly not ideal; it
 would be more natural to define `disc` as a `metric.ball` in `euclidean_space ℝ (fin 2)` (as well as
 to provide a more general proof in higher dimensions). However, our proof indirectly relies on a
-number of theorems (particularly `measure_theory.prod.prod_apply`) which do not yet exist for
+number of theorems (particularly `measure_theory.measure.prod_apply`) which do not yet exist for
 Euclidean space, thus forcing us to use this less-preferable definition. As `measure_theory.pi`
 continues to develop, it should eventually become possible to redefine `disc` and extend our proof
 to the n-ball.
@@ -67,32 +67,26 @@ begin
     exact sqr_lt.mpr h.2 },
 end
 
-/-- For convenience we show a fact we will need multiple times throughout the following proofs:
-  For any real `a`, `λ x, sqrt (a - x ^ 2)` is a continuous function. -/
-lemma continuous_sqrt_sub {a : ℝ} : continuous (λ x, sqrt (a - x ^ 2)) :=
-(continuous_const.sub (continuous_pow 2)).sqrt
-
 /-- The disc is a `measurable_set`. -/
 theorem measurable_set_disc : measurable_set (disc r) :=
-by simpa only [disc_eq_region_between] using measurable_set_region_between
-  continuous_sqrt_sub.neg.measurable continuous_sqrt_sub.measurable measurable_set_Ioc
+by apply measurable_set_lt; apply continuous.measurable; continuity
 
 /-- The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
   let F := λ x, (r:ℝ) ^ 2 * arcsin (r⁻¹ * x) + x * sqrt (r ^ 2 - x ^ 2),
-  suffices : ∫ x in -r..r, (λ x, 2 * f x) x = nnreal.pi * r ^ 2,
-  { have h : ∀ {g : ℝ → ℝ}, continuous g → integrable_on g (Ioc (-r) r) :=
-      λ g hg, (hg.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
+  have hf : continuous f := by continuity,
+  suffices : ∫ x in -r..r, 2 * f x = nnreal.pi * r ^ 2,
+  { have h : integrable_on f (Ioc (-r) r) :=
+      (hf.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
     calc  volume (disc r)
         = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between
     ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) :
           volume_region_between_eq_integral
-            (h continuous_sqrt_sub.neg) (h continuous_sqrt_sub)
-              measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
-    ... = ennreal.of_real (∫ x in (-r:ℝ)..r, (λ x, 2 * f x) x) : by simp [two_mul, integral_of_le]
-    ... = nnreal.pi * r ^ 2 : by rw_mod_cast [this, ← ennreal.coe_nnreal_eq] },
+            h.neg h measurable_set_Ioc (λ x hx, neg_le_self (sqrt_nonneg _))
+    ... = ennreal.of_real (∫ x in (-r:ℝ)..r, 2 * f x) : by simp [two_mul, integral_of_le]
+    ... = nnreal.pi * r ^ 2 : by rw_mod_cast [this, ← ennreal.coe_nnreal_eq], },
   obtain ⟨hle, (heq | hlt)⟩ := ⟨nnreal.coe_nonneg r, hle.eq_or_lt⟩, { simp [← heq] },
   have hderiv : ∀ x ∈ Ioo (-r:ℝ) r, has_deriv_at F (2 * f x) x,
   { rintros x ⟨hx1, hx2⟩,
@@ -113,11 +107,9 @@ begin
       calc (r:ℝ)⁻¹ * x < r⁻¹ * r : by nlinarith [inv_pos.mpr hlt]
                    ... = 1 : inv_mul_cancel hlt.ne' },
     { nlinarith } },
-  have hcont := ((continuous_const.mul (continuous_arcsin.comp
-                  ((@continuous_const _ _ _ _ (r:ℝ)⁻¹).mul continuous_id))).add
-                    (continuous_id.mul continuous_sqrt_sub)).continuous_on,
-  have hcont' := (continuous_const.mul continuous_sqrt_sub).continuous_on,
-  calc  ∫ x in -r..r, (λ x, 2 * f x) x
+  have hcont := (by continuity : continuous F).continuous_on,
+  have hcont' := (continuous_const.mul hf).continuous_on,
+  calc  ∫ x in -r..r, 2 * f x
       = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self r.2) hcont hderiv hcont'
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end

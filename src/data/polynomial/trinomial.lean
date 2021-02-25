@@ -353,6 +353,8 @@ end
 
 end rel
 
+end main_proof
+
 end trinomial
 
 end polynomial

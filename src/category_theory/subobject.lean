@@ -53,7 +53,7 @@ if it looks preferable.)
 There is a separate development of pseudoelements in `category_theory.abelian.pseudoelements`,
 as a quotient (but not by isomorphism) of `over X`.
 
-When a morphism `f` has an image, it represents the same pseudoelement.
+When a morphism `f` has an image, the image represents the same pseudoelement.
 In a category with images `pseudoelements X` could be constructed as a quotient of `mono_over X`.
 In fact, in an abelian category (I'm not sure in what generality beyond that),
 `pseudoelements X` agrees with `subobject X`, but we haven't developed this in mathlib yet.
@@ -92,7 +92,7 @@ instance : has_coe (mono_over X) C :=
 { coe := λ Y, Y.val.left, }
 
 @[simp]
-lemma forget_obj_left {f} : ((forget X).obj f).left = f := rfl
+lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
 
 /-- Convenience notation for the underlying arrow of a monomorphism over X. -/
 abbreviation arrow (f : mono_over X) : _ ⟶ X := ((forget X).obj f).hom
@@ -277,6 +277,16 @@ end
 end map
 
 section image
+variables (f : X ⟶ Y) [has_image f]
+
+/--
+The `mono_over Y` for the image inclusion for a morphism `f : X ⟶ Y`.
+-/
+def image_mono_over (f : X ⟶ Y) [has_image f] : mono_over Y := mono_over.mk' (image.ι f)
+
+end image
+
+section image
 
 variables [has_images C]
 
@@ -285,7 +295,7 @@ Taking the image of a morphism gives a functor `over X ⥤ mono_over X`.
 -/
 @[simps]
 def image : over X ⥤ mono_over X :=
-{ obj := λ f, mk' (image.ι f.hom),
+{ obj := λ f, image_mono_over f.hom,
   map := λ f g k,
   begin
     apply (forget X).preimage _,
@@ -670,7 +680,7 @@ variables (f : X ⟶ Y) [has_image f]
 
 /-- The image of a morphism `f g : X ⟶ Y` as a `subobject Y`. -/
 def image_subobject : subobject Y :=
-subobject.mk (image.ι f)
+(to_thin_skeleton _).obj (mono_over.image_mono_over f)
 
 /-- The underlying object of `image_subobject f` is (up to isomorphism!)
 the same as the chosen object `image f`. -/

@@ -78,12 +78,6 @@ begin
   { exact is_pi_system_generate_pi_system T _ _ h_s h_u h_nonempty, },
 end
 
---Necessary?
-lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
-  (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
-set.subset.trans (generate_pi_system_mono h_sub) (generate_pi_system_subset_self h_t)
-
-
 lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {g : set (set α)}
   (h_meas_g : ∀ s ∈ g, measurable_set s) (t : set α)
   (h_in_pi : generate_pi_system g t) : measurable_set t :=

@@ -37,19 +37,14 @@ namespace linear_map
 section semiring
 
 variables {R : Type*} [semiring R] {S : Type*} [semiring S]
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
-variables {M' : Type*} {N' : Type*} {P' : Type*} {Q' : Type*}
+variables {M : Type*} {N : Type*} {P : Type*}
+variables {M' : Type*} {N' : Type*} {P' : Type*}
 
-variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
-variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P'] [add_comm_group Q']
-variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q]
-variables [semimodule S M] [semimodule S N] [semimodule S P] [semimodule S Q]
-variables [semimodule R M'] [semimodule R N'] [semimodule R P'] [semimodule R Q']
-variables [semimodule S M'] [semimodule S N'] [semimodule S P'] [semimodule S Q']
-variables [smul_comm_class S R M] [smul_comm_class S R N] [smul_comm_class S R P]
-  [smul_comm_class S R Q]
-variables [smul_comm_class S R M'] [smul_comm_class S R N'] [smul_comm_class S R P']
-  [smul_comm_class S R Q']
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P']
+variables [semimodule R M] [semimodule S N] [semimodule R P] [semimodule S P]
+variables [semimodule R M'] [semimodule S N'] [semimodule R P'] [semimodule S P']
+variables [smul_comm_class S R P] [smul_comm_class S R P']
 include R
 
 variables (R S)

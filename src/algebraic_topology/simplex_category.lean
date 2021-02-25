@@ -36,9 +36,12 @@ instance : small_category simplex_category :=
   comp := λ _ _ _ f g, preorder_hom.comp g f, }
 
 @[simp] lemma id_apply {n : simplex_category} (i : fin (n+1)) :
-  (𝟙 n : fin _ → fin _) i = i := rfl
+  (𝟙 n : fin (n+1) → fin (n+1)) i = i := rfl
 @[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l+1)) :
   (f ≫ g) i = g (f i) := rfl
+
+@[reducible] def mk (n : ℕ) : simplex_category := n
+local notation `[`n`]` := mk n
 
 section generators
 /-!
@@ -50,12 +53,12 @@ one given by the following generators and relations.
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) :
-  @has_hom.hom simplex_category _ n (n+1 : ℕ) :=
+  [n] ⟶ [n+1] :=
 (fin.succ_above i).to_preorder_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
 def σ {n} (i : fin (n+1)) :
-  @has_hom.hom simplex_category _ (n+1 : ℕ) n :=
+  [n+1] ⟶ [n] :=
 { to_fun := fin.pred_above i,
   monotone' := fin.pred_above_right_monotone i }
 
@@ -81,8 +84,6 @@ begin
   split_ifs; { simp at *; linarith },
 end
 
-#check @fin.cast_lt
-
 /-- The second simplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
@@ -101,16 +102,19 @@ begin
   simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
   dsimp, simp only [if_congr, subtype.mk_lt_mk, dif_ctx_congr],
   split_ifs,
-  -- Hope for the best from `linarith`:
-  all_goals { try { refl <|> simp at * }, try { linarith }, },
-  -- Two of the goals need special handling:
-  { have : k ≤ i := nat.le_of_pred_lt ‹_›, linarith, },
+  -- Most of the goals can now be handled by `linarith`,
+  -- but we have to deal with two of them by hand.
+  swap 8,
   { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) ‹_›)).symm, },
+  swap 7,
+  { have : k ≤ i := nat.le_of_pred_lt ‹_›, linarith, },
+  -- Hope for the best from `linarith`:
+  all_goals { try { refl <|> simp at * }; linarith, },
 end
 
 /-- The first part of the third simplicial identity -/
 lemma δ_comp_σ_self {n} {i : fin (n+1)} :
-  δ i.cast_succ ≫ σ i = 𝟙 _ :=
+  δ i.cast_succ ≫ σ i = 𝟙 [n] :=
 begin
   ext j,
   suffices : ite (fin.cast_succ i < ite (j < i) (fin.cast_succ j) j.succ)
@@ -124,7 +128,7 @@ end
 
 /-- The second part of the third simplicial identity -/
 lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
-  δ i.succ ≫ σ i = 𝟙 _ :=
+  δ i.succ ≫ σ i = 𝟙 [n] :=
 begin
   ext j,
   rcases i with ⟨i, _⟩,
@@ -144,20 +148,32 @@ begin
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
   simp only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
-  -- I don't know how to remove this non-terminal simp,
-  -- because neither `simp?` or `squeeze_simp` report the lemmas used from `push_cast`:
-  simp [apply_dite fin.cast_succ] with push_cast,
+  suffices : ite (_ < ite (k < i + 1) _ _) _ _ =
+    ite _ (ite (j < k) (k - 1) k) (ite (j < k) (k - 1) k + 1),
+  { simpa [apply_dite fin.cast_succ] with push_cast, },
   split_ifs,
-  -- Hope for the best from `linarith`:
-  any_goals { simp at *, try { linarith }, },
-  -- Four of the goals need special handling:
-  { simp at h_1,
+  -- Most of the goals can now be handled by `linarith`,
+  -- but we have to deal with three of them by hand.
+  swap 2,
+  { simp only [subtype.mk_lt_mk] at h_1,
+    simp only [not_lt] at h_2,
+    simp only [self_eq_add_right, one_ne_zero],
     exact lt_irrefl (k - 1) (lt_of_lt_of_le
-     (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
-     (le_trans (nat.le_of_lt_succ h) h_2)) },
-  { simp at h_1, linarith, },
-  { exfalso, exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
-  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
+      (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
+      (le_trans (nat.le_of_lt_succ h) h_2)) },
+  swap 4,
+  { simp only [subtype.mk_lt_mk] at h_1,
+    simp only [not_lt] at h,
+    simp only [nat.add_succ_sub_one, add_zero],
+    exfalso,
+    exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
+  swap 4,
+  { simp only [subtype.mk_lt_mk] at h_1,
+    simp only [not_lt] at h_3,
+    simp only [nat.add_succ_sub_one, add_zero],
+    exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
+  -- Hope for the best from `linarith`:
+  all_goals { simp at h_1 h_2 ⊢; linarith, },
 end
 
 local attribute [simp] fin.pred_mk
@@ -172,9 +188,14 @@ begin
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
   simp only [subtype.mk_le_mk] at H,
-  -- I don't know how to remove this non-terminal simp,
-  -- because neither `simp?` or `squeeze_simp` report the lemmas used from `push_cast`:
-  simp with push_cast,
+  -- At this point `simp with push_cast` makes good progress, but neither `simp?` nor `squeeze_simp`
+  -- return usable sets of lemmas.
+  -- To avoid using a non-terminal simp, we make a `suffices` statement indicating the shape
+  -- of the goal we're looking for, and then use `simpa with push_cast`.
+  -- I'm not sure this is actually much more robust that a non-terminal simp.
+  suffices : ite (_ < dite (i < k) _ _) _ _ =
+    ite (_ < dite (j + 1 < k) _ _) _ _,
+  { simpa with push_cast, },
   split_ifs,
   -- `split_ifs` created 12 goals.
   -- Most of them are dealt with `by simp at *; linarith`,

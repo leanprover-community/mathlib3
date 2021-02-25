@@ -82,7 +82,7 @@ def of (M : Type u) [semigroup M] : Semigroup := bundled.of M
 add_decl_doc AddSemigroup.of
 
 @[to_additive]
-instance : inhabited Semigroup := ⟨Semigroup.of empty⟩
+instance : inhabited Semigroup := ⟨Semigroup.of pempty⟩
 
 @[to_additive]
 instance (M : Semigroup) : semigroup M := M.str

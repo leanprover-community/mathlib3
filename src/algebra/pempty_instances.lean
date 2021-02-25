@@ -16,6 +16,6 @@ that it is a semigroup.
 universes u
 
 @[to_additive]
-instance : semigroup (pempty.{u}) :=
+instance : semigroup (pempty) :=
 { mul := λ x y, by cases x,
   mul_assoc := λ x y z, by cases x }

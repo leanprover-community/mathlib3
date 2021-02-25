@@ -12,6 +12,15 @@ import data.set.finite
 
 Properties of sets `s` such that for `x, y ∈ s`, `x ⊔ y ∈ s`.
 
+## Main definition
+
+* `sup_closed s := ∀ x1 x2, x1 ∈ s → x2 ∈ s → x1 ⊔ x2 ∈ s`
+
+## Highlighted results
+
+* `supr_mem_of_sup_closed_of_finite`: a finite sup_closed set `s` is such that for all `f : ℕ → α`,
+  `(⨆ n, f n) ∈ s`.
+
 -/
 
 namespace set

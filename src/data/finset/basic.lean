@@ -41,7 +41,9 @@ and the empty finset otherwise. See `data.finsum`.
 
 ### Main definitions
 
-* `finset`: Defines a type for the finite subsets of `α`.
+* `finset`: Defines a type for the finite subsets of `α`. \
+  Constructing a `finset` requires two pieces of data: `val`, a `multiset α` of elements,
+  and `nodup`, a proof that `val` has no duplicates.
 * `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
 * `finset.has_coe`: Coerces `s : finset α` to `s : set α`.
 * `finset.induction_on`: Induction on finsets. To prove a proposition about an arbitrary finset α,

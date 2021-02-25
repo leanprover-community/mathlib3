@@ -1,11 +1,40 @@
+/-
+Copyright (c) 2020 Thomas Browning. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning
+-/
+
 import data.polynomial.reverse'
 import analysis.complex.polynomial
+
+/-!
+# Bundled Trinomials
+
+In this file we define an bundled trinomial, which are easier to
+work with than a sum of monomials.
+
+## Main definitions
+
+- `polynomial.trinomial`
+- `trinomial.of_polynomial`: unbundle a trinomial
+- `polynomial.to_trinomial`: bundle a trinomial
+
+## Main results
+
+- `reverse'_irreducible_test'`: an irreducibility criterion for unit trinomials
+- `reverse'_irreducible_test''`: an irreducibility criterion for unit trinomials
+- `selmer_irreducible`: the polynomial `X ^ n - X - 1` is irreducible for all `n ≠ 1`
+
+-/
 
 namespace polynomial
 
 /-- bundled trinomial -/
 structure trinomial (R : Type*) [semiring R] :=
 (a b c : R) (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) (i j k : ℕ) (hij : i < j) (hjk : j < k)
+
+instance (R : Type*) [semiring R] [nontrivial R] : inhabited (trinomial R) :=
+⟨trinomial.mk 1 1 1 one_ne_zero one_ne_zero one_ne_zero 0 1 2 zero_lt_one one_lt_two⟩
 
 namespace trinomial
 
@@ -177,6 +206,7 @@ by rw [trailing_coeff, nat_trailing_degree, to_polynomial, coeff_add, coeff_add,
   coeff_monomial, coeff_monomial, coeff_monomial,
   if_pos rfl, if_neg (ne_of_gt t.hik), if_neg (ne_of_gt t.hij), add_zero, add_zero]
 
+/-- twist a trinomial by a unit -/
 def twist (u : units R) : trinomial R :=
 { a := u * t.a,
   b := u * t.b,

@@ -1,5 +1,34 @@
+/-
+Copyright (c) 2020 Thomas Browning. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning
+-/
+
 import data.polynomial.ring_division
 import algebra.big_operators.nat_antidiagonal
+
+/-!
+# Reverse of a univariate polynomial
+
+In this file we define an alternate version of `reverse`.
+The difference between the old `reverse` and the new `reverse'` is that the old
+`reverse` will decrease the degree if the polynomial is divisible by `X`.
+
+We also define `norm2`, which is the sum of the squares of the coefficients of a polynomial.
+It is also a coefficient of `p * p.reverse'`.
+
+## Main definitions
+
+- `p.reverse'`
+- `p.norm2`
+
+## Main results
+
+- `reverse'_mul_of_domain`: `reverse'` preserves multiplication.
+- `reverse'_irreducible_test`: an irreducibility criterion involving `reverse'`
+- `norm2_eq_mul_reverse_coeff`: `norm2` is a coefficient of `p * p.reverse'`
+
+-/
 
 namespace polynomial
 
@@ -7,6 +36,7 @@ variables {R : Type*} [semiring R] (p : polynomial R)
 
 section reverse'
 
+/-- reverse of a polynomial -/
 noncomputable def reverse' := p.reverse * X ^ p.nat_trailing_degree
 
 lemma reverse'_zero : (0 : polynomial R).reverse' = 0 := rfl
@@ -187,6 +217,7 @@ end reverse'
 
 section norm2
 
+/-- the sum of the square of the coefficients of a polynomial-/
 def norm2 := p.support.sum (λ k, (p.coeff k) ^ 2)
 
 lemma norm2_eq_sum_of_support {s : finset ℕ}

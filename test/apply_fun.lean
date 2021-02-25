@@ -47,3 +47,10 @@ begin
   guard_hyp' h : f (A * B) = f 0,
   exact h,
 end
+
+-- Verify that `apply_fun` works with `fin.cast_succ`, even though it has an implicit argument.
+example (n : ℕ) (a b : fin n) (H : a ≤ b) : a.cast_succ ≤ b.cast_succ :=
+begin
+  apply_fun fin.cast_succ at H,
+  exact H,
+end

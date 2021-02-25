@@ -713,69 +713,6 @@ lemma deriv_within_rpow_of_one_le (hf : differentiable_within_at ℝ f s x) (hp 
   deriv (λx, (f x)^p) x = (deriv f x) * p * (f x)^(p-1) :=
 (hf.has_deriv_at.rpow_of_one_le hp).deriv
 
-/- Differentiability statements for the square root of a function, when the function does not
-vanish -/
-
-lemma has_deriv_within_at.sqrt (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
-  has_deriv_within_at (λ y, sqrt (f y)) (f' / (2 * sqrt (f x))) s x :=
-begin
-  simp only [sqrt_eq_rpow],
-  convert hf.rpow (1/2) hx,
-  rcases lt_trichotomy (f x) 0 with H|H|H,
-  { have A : (f x)^((1:ℝ)/2) = 0,
-    { rw rpow_def_of_neg H,
-      have : cos (1/2 * π) = 0, by { convert cos_pi_div_two using 2, ring },
-      rw [this],
-      simp },
-    have B : f x ^ ((1:ℝ) / 2 - 1) = 0,
-    { rw rpow_def_of_neg H,
-      have : cos (π/2 - π) = 0, by simp [cos_sub],
-      have : cos (((1:ℝ)/2 - 1) * π) = 0, by { convert this using 2, ring },
-      rw this,
-      simp },
-    rw [A, B],
-    simp },
-  { exact (hx H).elim },
-  { have A : 0 < (f x)^((1:ℝ)/2) := rpow_pos_of_pos H _,
-    have B : (f x) ^ (-(1:ℝ)) = (f x)^(-((1:ℝ)/2)) * (f x)^(-((1:ℝ)/2)),
-    { rw [← rpow_add H],
-      congr,
-      norm_num },
-    rw [sub_eq_add_neg, rpow_add H, B, rpow_neg (le_of_lt H)],
-    field_simp }
-end
-
-lemma has_deriv_at.sqrt (hf : has_deriv_at f f' x) (hx : f x ≠ 0) :
-  has_deriv_at (λ y, sqrt (f y)) (f' / (2 * sqrt(f x))) x :=
-begin
-  rw ← has_deriv_within_at_univ at *,
-  exact hf.sqrt hx
-end
-
-lemma differentiable_within_at.sqrt (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0) :
-  differentiable_within_at ℝ (λx, sqrt (f x)) s x :=
-(hf.has_deriv_within_at.sqrt hx).differentiable_within_at
-
-@[simp] lemma differentiable_at.sqrt (hf : differentiable_at ℝ f x) (hx : f x ≠ 0) :
-  differentiable_at ℝ (λx, sqrt (f x)) x :=
-(hf.has_deriv_at.sqrt hx).differentiable_at
-
-lemma differentiable_on.sqrt (hf : differentiable_on ℝ f s) (hx : ∀ x ∈ s, f x ≠ 0) :
-  differentiable_on ℝ (λx, sqrt (f x)) s :=
-λx h, (hf x h).sqrt (hx x h)
-
-@[simp] lemma differentiable.sqrt (hf : differentiable ℝ f) (hx : ∀ x, f x ≠ 0) :
-  differentiable ℝ (λx, sqrt (f x)) :=
-λx, (hf x).sqrt (hx x)
-
-lemma deriv_within_sqrt (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 0)
-  (hxs : unique_diff_within_at ℝ s x) :
-  deriv_within (λx, sqrt (f x)) s x = (deriv_within f s x) / (2 * sqrt (f x)) :=
-(hf.has_deriv_within_at.sqrt hx).deriv_within hxs
-
-@[simp] lemma deriv_sqrt (hf : differentiable_at ℝ f x) (hx : f x ≠ 0) :
-  deriv (λx, sqrt (f x)) x = (deriv f x) / (2 * sqrt (f x)) :=
-(hf.has_deriv_at.sqrt hx).deriv
 
 end differentiability
 

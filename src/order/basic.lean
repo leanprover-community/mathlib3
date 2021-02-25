@@ -56,6 +56,9 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+@[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
+by simp [lt_irrefl a]
+
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin

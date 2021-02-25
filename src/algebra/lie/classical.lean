@@ -44,7 +44,7 @@ For the algebras of type `B` and `D`, there are two natural definitions. For exa
 the `2l × 2l` matrix:
 $$
   J = \left[\begin{array}{cc}
-              0_l & 1_l\\\\
+              0_l & 1_l\\
               1_l & 0_l
             \end{array}\right]
 $$
@@ -221,7 +221,7 @@ by erw [lie_equiv.trans_apply, lie_equiv.of_eq_apply,
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
 
-   [ 0 1 ]  
+   [ 0 1 ]
    [ 1 0 ]
 -/
 def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
@@ -235,7 +235,7 @@ diagonal matrix.
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
 
-   [ 1 -1 ]  
+   [ 1 -1 ]
    [ 1  1 ]
 -/
 def PD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 1 (-1) 1 1
@@ -289,14 +289,14 @@ end
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
 
-   [ 2 0 0 ]  
-   [ 0 0 1 ]  
+   [ 2 0 0 ]
+   [ 0 0 1 ]
    [ 0 1 0 ]
 
 where sizes of the blocks are:
 
-   [`1 x 1` `1 x l` `1 x l`]  
-   [`l x 1` `l x l` `l x l`]  
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
    [`l x 1` `l x l` `l x l`]
 -/
 def JB := matrix.from_blocks ((2 : R) • 1 : matrix unit unit R) 0 0 (JD l R)
@@ -310,14 +310,14 @@ almost-split-signature diagonal matrix.
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
 
-   [ 1 0  0 ]  
-   [ 0 1 -1 ]  
+   [ 1 0  0 ]
+   [ 0 1 -1 ]
    [ 0 1  1 ]
 
 where sizes of the blocks are:
 
-   [`1 x 1` `1 x l` `1 x l`]  
-   [`l x 1` `l x l` `l x l`]  
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
    [`l x 1` `l x l` `l x l`]
 -/
 def PB := matrix.from_blocks (1 : matrix unit unit R) 0 0 (PD l R)

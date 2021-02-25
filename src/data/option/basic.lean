@@ -96,6 +96,9 @@ lemma join_ne_none {x : option (option α)} : x.join ≠ none ↔ ∃ z, x = som
 
 lemma join_ne_none' {x : option (option α)} : ¬(x.join = none) ↔ ∃ z, x = some (some z) := by simp
 
+lemma join_eq_none {o : option (option α)} : o.join = none ↔ o = none ∨ o = some none :=
+by rcases o with _|_|_; simp
+
 lemma bind_id_eq_join {x : option (option α)} : x >>= id = x.join := by simp
 
 lemma join_eq_join : mjoin = @join α :=

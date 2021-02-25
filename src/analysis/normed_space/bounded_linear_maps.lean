@@ -201,6 +201,16 @@ structure is_bounded_bilinear_map (f : E × F → G) : Prop :=
 variable {𝕜}
 variable {f : E × F → G}
 
+lemma continuous_linear_map.is_bounded_bilinear_map (f : E →L[𝕜] F →L[𝕜] G) :
+  is_bounded_bilinear_map 𝕜 (λ x : E × F, f x.1 x.2) :=
+{ add_left := λ x₁ x₂ y, by rw [f.map_add, continuous_linear_map.add_apply],
+  smul_left := λ c x y, by rw [f.map_smul _, continuous_linear_map.smul_apply],
+  add_right := λ x, (f x).map_add,
+  smul_right := λ c x y, (f x).map_smul c y,
+  bound := ⟨max ∥f∥ 1, zero_lt_one.trans_le (le_max_right _ _),
+    λ x y, (f.le_op_norm₂ x y).trans $
+      by apply_rules [mul_le_mul_of_nonneg_right, norm_nonneg, le_max_left]⟩ }
+
 protected lemma is_bounded_bilinear_map.is_O (h : is_bounded_bilinear_map 𝕜 f) :
   asymptotics.is_O f (λ p : E × F, ∥p.1∥ * ∥p.2∥) ⊤ :=
 let ⟨C, Cpos, hC⟩ := h.bound in asymptotics.is_O.of_bound _ $
@@ -379,17 +389,8 @@ variables (𝕜)
 /-- The function `lmul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear map. -/
 lemma continuous_linear_map.lmul_left_right_is_bounded_bilinear
   (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
-  is_bounded_bilinear_map 𝕜 (continuous_linear_map.lmul_left_right 𝕜 𝕜') :=
-{ add_left := λ v₁ v₂ w, by {ext t, simp [add_comm, add_mul]},
-  smul_left := λ c v w, by {ext, simp },
-  add_right := λ v w₁ w₂, by {ext t, simp [add_comm, mul_add]},
-  smul_right := λ c v w, by {ext, simp },
-  bound := begin
-    refine ⟨1, by linarith, _⟩,
-    intros v w,
-    rw one_mul,
-    apply continuous_linear_map.lmul_left_right_norm_le,
-  end }
+  is_bounded_bilinear_map 𝕜 (λ p : 𝕜' × 𝕜', continuous_linear_map.lmul_left_right 𝕜 𝕜' p.1 p.2) :=
+(continuous_linear_map.lmul_left_right 𝕜 𝕜').is_bounded_bilinear_map
 
 variables {𝕜}
 
@@ -420,6 +421,6 @@ by { simp_rw [←dist_zero_right, ←f.map_zero], exact isometry.dist_eq hf _ _ 
 /-- Construct a continuous linear equiv from a linear map that is also an isometry with full range. -/
 def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
   E ≃L[𝕜] F :=
-continuous_linear_equiv.of_homothety 𝕜
+continuous_linear_equiv.of_homothety
 (linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)
 1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])

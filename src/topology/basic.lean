@@ -648,6 +648,12 @@ def cluster_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝 x ⊓ F)
 
 lemma cluster_pt.ne_bot {x : α} {F : filter α} (h : cluster_pt x F) : ne_bot (𝓝 x ⊓ F) := h
 
+lemma filter.has_basis.cluster_pt_iff {ιa ιF} {pa : ιa → Prop} {sa : ιa → set α}
+  {pF : ιF → Prop} {sF : ιF → set α} {F : filter α}
+  (ha : (𝓝 a).has_basis pa sa) (hF : F.has_basis pF sF) :
+  cluster_pt a F ↔ ∀ ⦃i⦄ (hi : pa i) ⦃j⦄ (hj : pF j), (sa i ∩ sF j).nonempty :=
+ha.inf_basis_ne_bot_iff hF
+
 lemma cluster_pt_iff {x : α} {F : filter α} :
   cluster_pt x F ↔ ∀ ⦃U : set α⦄ (hU : U ∈ 𝓝 x) ⦃V⦄ (hV : V ∈ F), (U ∩ V).nonempty :=
 inf_ne_bot_iff
@@ -784,13 +790,17 @@ theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
   x ∈ closure A ↔ ne_bot (comap (coe : A → α) (𝓝 x)) :=
 by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.nonempty_inter_iff_exists_right]
 
+theorem mem_closure_iff_nhds_basis' {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
+  {t : set α} :
+  a ∈ closure t ↔ ∀ i, p i → (s i ∩ t).nonempty :=
+mem_closure_iff_cluster_pt.trans $ (h.cluster_pt_iff (has_basis_principal _)).trans $
+  by simp only [exists_prop, forall_const]
+
 theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
-mem_closure_iff_nhds.trans
-  ⟨λ H i hi, let ⟨x, hx⟩ := (H _ $ h.mem_of_mem hi) in ⟨x, hx.2, hx.1⟩,
-    λ H t' ht', let ⟨i, hi, hit⟩ := h.mem_iff.1 ht', ⟨x, xt, hx⟩ := H i hi in
-    ⟨x, hit hx, xt⟩⟩
+(mem_closure_iff_nhds_basis' h).trans $
+  by simp only [set.nonempty, mem_inter_eq, exists_prop, and_comm]
 
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/
@@ -912,7 +922,7 @@ le_nhds_Lim h
 end lim
 
 /-!
-### Locally finite families
+### Locally finite families
 -/
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
@@ -923,8 +933,8 @@ section locally_finite
 def locally_finite (f : β → set α) :=
 ∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
 
-lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
-assume x, ⟨univ, univ_mem_sets, h.subset $ subset_univ _⟩
+lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
+assume x, ⟨univ, univ_mem_sets, finite.of_fintype _⟩
 
 lemma locally_finite_subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
@@ -982,6 +992,14 @@ def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
 lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 h
+
+lemma continuous_at_congr {f g : α → β} {x : α} (h : f =ᶠ[𝓝 x] g) :
+  continuous_at f x ↔ continuous_at g x :=
+by simp only [continuous_at, tendsto_congr' h, h.eq_of_nhds]
+
+lemma continuous_at.congr {f g : α → β} {x : α} (hf : continuous_at f x) (h : f =ᶠ[𝓝 x] g) :
+  continuous_at g x :=
+(continuous_at_congr h).1 hf
 
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=

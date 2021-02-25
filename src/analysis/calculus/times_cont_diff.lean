@@ -2270,6 +2270,20 @@ lemma times_cont_diff.pow {n : with_top ℕ} {f : E → 𝕜}
 | 0 := by simpa using times_cont_diff_const
 | (m + 1) := hf.mul (times_cont_diff.pow m)
 
+lemma times_cont_diff_at.pow {n : with_top ℕ} {f : E → 𝕜} (hf : times_cont_diff_at 𝕜 n f x)
+  (m : ℕ) : times_cont_diff_at 𝕜 n (λ y, f y ^ m) x :=
+(times_cont_diff_id.pow m).times_cont_diff_at.comp x hf
+
+lemma times_cont_diff_within_at.pow {n : with_top ℕ} {f : E → 𝕜}
+  (hf : times_cont_diff_within_at 𝕜 n f s x) (m : ℕ) :
+  times_cont_diff_within_at 𝕜 n (λ y, f y ^ m) s x :=
+(times_cont_diff_id.pow m).times_cont_diff_at.comp_times_cont_diff_within_at x hf
+
+lemma times_cont_diff_on.pow {n : with_top ℕ} {f : E → 𝕜}
+  (hf : times_cont_diff_on 𝕜 n f s) (m : ℕ) :
+  times_cont_diff_on 𝕜 n (λ y, f y ^ m) s :=
+λ y hy, (hf y hy).pow m
+
 /-! ### Scalar multiplication -/
 
 /- The scalar multiplication is smooth. -/
@@ -2386,18 +2400,16 @@ begin
     { use (ftaylor_series_within 𝕜 inverse univ),
       rw [le_antisymm hm bot_le, has_ftaylor_series_up_to_on_zero_iff],
       split,
-      { rintros _ ⟨x', hx'⟩,
-        rw ← hx',
+      { rintros _ ⟨x', rfl⟩,
         exact (inverse_continuous_at x').continuous_within_at },
       { simp [ftaylor_series_within] } } },
   { apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
-    refine ⟨λ (x : R), - lmul_left_right 𝕜 R (inverse x, inverse x), _, _⟩,
+    refine ⟨λ (x : R), - lmul_left_right 𝕜 R (inverse x) (inverse x), _, _⟩,
     { refine ⟨{y : R | is_unit y}, x.nhds, _⟩,
-      intros y hy,
-      cases mem_set_of_eq.mp hy with y' hy',
-      rw [← hy', inverse_unit],
-      exact @has_fderiv_at_ring_inverse 𝕜 _ _ _ _ _ y' },
-    { exact (lmul_left_right_is_bounded_bilinear 𝕜 R).times_cont_diff.neg.comp_times_cont_diff_at
+      rintros _ ⟨y, rfl⟩,
+      rw [inverse_unit],
+      exact has_fderiv_at_ring_inverse y },
+    { convert (lmul_left_right_is_bounded_bilinear 𝕜 R).times_cont_diff.neg.comp_times_cont_diff_at
         (x : R) (IH.prod IH) } },
   { exact times_cont_diff_at_top.mpr Itop }
 end

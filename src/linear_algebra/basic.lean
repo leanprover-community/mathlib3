@@ -217,7 +217,7 @@ ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
 @[simp] theorem zero_comp : (0 : M₂ →ₗ[R] M₃).comp f = 0 :=
 rfl
 
-@[norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
+@[simp, norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
   ⇑(∑ i in t, f i) = ∑ i in t, (f i : M → M₂) :=
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
@@ -337,6 +337,29 @@ def applyₗ' : M →+ (M →ₗ[R] M₂) →ₗ[S] M₂ :=
   map_zero' := linear_map.ext $ λ f, f.map_zero,
   map_add' := λ x y, linear_map.ext $ λ f, f.map_add _ _ }
 
+
+section
+variables (R M)
+
+/--
+The equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
+This says that the forgetful functor from `R`-modules to types is representable, by `R`.
+
+This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
+When `R` is commutative, we can take this to be the usual action with `S = R`.
+Otherwise, `S = ℤ` shows that the equivalence is additive.
+See note [bundled maps over different rings].
+-/
+@[simps]
+def ring_lmap_equiv_self [semimodule S M] [smul_comm_class R S M] : (R →ₗ[R] M) ≃ₗ[S] M :=
+{ to_fun := λ f, f 1,
+  inv_fun := smul_right (1 : R →ₗ[R] R),
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ x, by simp,
+  .. applyₗ' S (1 : R) }
+
+end
+
 end semimodule
 
 section comm_semiring
@@ -365,6 +388,16 @@ def applyₗ : M →ₗ[R] (M →ₗ[R] M₂) →ₗ[R] M₂ :=
 { to_fun := λ v, { to_fun := λ f, f v, ..applyₗ' R v },
   map_smul' := λ x y, linear_map.ext $ λ f, f.map_smul _ _,
   ..applyₗ' R }
+
+/-- Alternative version of `dom_restrict` as a linear map. -/
+def dom_restrict'
+  (p : submodule R M) : (M →ₗ[R] M₂) →ₗ[R] (p →ₗ[R] M₂) :=
+{ to_fun := λ φ, φ.dom_restrict p,
+  map_add' := by simp [linear_map.ext_iff],
+  map_smul' := by simp [linear_map.ext_iff] }
+
+@[simp] lemma dom_restrict'_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
+  dom_restrict' p f x = f x := rfl
 
 end comm_semiring
 
@@ -471,6 +504,9 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
+instance unique_bot : unique (⊥ : submodule R M) :=
+⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
+
 lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
 begin
   have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
@@ -496,9 +532,6 @@ instance : has_top (submodule R M) :=
 @[simp] lemma top_coe : ((⊤ : submodule R M) : set M) = univ := rfl
 
 @[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
-
-lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : p = ⊥ :=
-by ext x; simp [semimodule.eq_zero_of_zero_eq_one x zero_eq_one]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
@@ -557,8 +590,32 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 
-lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
-λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
+variables (R)
+
+@[simp] lemma bot_to_add_submonoid : (⊥ : submodule R M).to_add_submonoid = ⊥ := rfl
+
+@[simp] lemma top_to_add_submonoid : (⊤ : submodule R M).to_add_submonoid = ⊤ := rfl
+
+lemma subsingleton_iff : subsingleton M ↔ subsingleton (submodule R M) :=
+add_submonoid.subsingleton_iff.trans $ begin
+  rw [←subsingleton_iff_bot_eq_top, ←subsingleton_iff_bot_eq_top],
+  convert to_add_submonoid_eq; refl
+end
+
+lemma nontrivial_iff : nontrivial M ↔ nontrivial (submodule R M) :=
+not_iff_not.mp (
+  (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R).trans
+  not_nontrivial_iff_subsingleton.symm)
+
+variables {R}
+
+instance [subsingleton M] : unique (submodule R M) :=
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
+
+instance unique' [subsingleton R] : unique (submodule R M) :=
+by haveI := semimodule.subsingleton R M; apply_instance
+
+instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
 
 @[simp] theorem inf_coe : (p ⊓ p' : set M) = p ∩ p' := rfl
 
@@ -1286,7 +1343,9 @@ by rw [range, map_le_iff_le_comap, eq_top_iff]
 lemma map_le_range {f : M →ₗ[R] M₂} {p : submodule R M} : map f p ≤ range f :=
 map_mono le_top
 
-/-- Restrict the codomain of a linear map `f` to `f.range`. -/
+/-- Restrict the codomain of a linear map `f` to `f.range`.
+
+This is the bundled version of `set.range_factorization`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
 
@@ -1848,6 +1907,30 @@ end
 @[simp] protected theorem ker : (e : M →ₗ[R] M₂).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective e.to_equiv.injective
 
+variables {f g}
+
+/-- An linear map `f : M →ₗ[R] M₂` with a left-inverse `g : M₂ →ₗ[R] M` defines a linear equivalence
+between `M` and `f.range`.
+
+This is a computable alternative to `linear_equiv.of_injective`, and a bidirectional version of
+`linear_map.range_restrict`. -/
+def of_left_inverse {g : M₂ → M} (h : function.left_inverse g f) : M ≃ₗ[R] f.range :=
+{ to_fun := f.range_restrict,
+  inv_fun := g ∘ f.range.subtype,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := linear_map.mem_range.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  .. f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply
+  (h : function.left_inverse g f) (x : M) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply
+  (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
+
 end
 
 end add_comm_monoid
@@ -1890,10 +1973,9 @@ variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
 
 /-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
-between `M` and `f.range`. -/
+between `M` and `f.range`. See also `linear_map.of_left_inverse`. -/
 noncomputable def of_injective (h : f.ker = ⊥) : M ≃ₗ[R] f.range :=
-{ .. (equiv.set.range f $ linear_map.ker_eq_bot.1 h).trans (equiv.set.of_eq f.range_coe.symm),
-  .. f.cod_restrict f.range (λ x, f.mem_range_self x) }
+of_left_inverse $ classical.some_spec (linear_map.ker_eq_bot.1 h).has_left_inverse
 
 @[simp] theorem of_injective_apply {h : f.ker = ⊥} (x : M) :
   ↑(of_injective f h x) = f x := rfl
@@ -2130,7 +2212,7 @@ begin
 end
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-set of maps $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\}$ is a submodule of `Hom(M, M₂)`. -/
+set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
 def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 { carrier   := {f | p ≤ comap f q},
   zero_mem' := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
@@ -2139,7 +2221,7 @@ def compatible_maps : submodule R (M →ₗ[R] M₂) :=
   smul_mem' := λ c f h, le_trans h (comap_le_comap_smul q f c), }
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-natural map $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\} \to Hom(M/p, M₂/q)$ is linear. -/
+natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
 def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
   map_add'  := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
@@ -2189,6 +2271,12 @@ noncomputable def quot_ker_equiv_range : f.ker.quotient ≃ₗ[R] f.range :=
 (linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
   submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
   (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
+
+/-- The first isomorphism theorem for surjective linear maps. -/
+noncomputable def quot_ker_equiv_of_surjective
+  (f : M →ₗ[R] M₂) (hf : function.surjective f) : f.ker.quotient ≃ₗ[R] M₂ :=
+f.quot_ker_equiv_range.trans
+  (linear_equiv.of_top f.range (linear_map.range_eq_top.2 hf))
 
 @[simp] lemma quot_ker_equiv_range_apply_mk (x : M) :
   (f.quot_ker_equiv_range (submodule.quotient.mk x) : M₂) = f x :=

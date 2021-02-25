@@ -49,8 +49,6 @@ rfl
 end finset
 
 /--
-## Operator precedence of `∏` and `∑`
-
 There is no established mathematical convention
 for the operator precedence of big operators like `∏` and `∑`.
 We will have to make a choice.

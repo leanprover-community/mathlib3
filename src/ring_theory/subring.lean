@@ -359,9 +359,6 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   map_mul' := λ x y, subtype.eq $ f.map_mul x y,
   map_one' := subtype.eq f.map_one }
 
-lemma surjective_onto_range : function.surjective (f.cod_restrict' f.range f.mem_range_self) :=
-λ ⟨y, hy⟩, let ⟨x, hx⟩ := mem_range.mp hy in ⟨x, subtype.ext hx⟩
-
 end ring_hom
 
 namespace subring
@@ -410,14 +407,16 @@ instance : has_inf (subring R) :=
 @[simp] lemma mem_inf {p p' : subring R} {x : R} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 instance : has_Inf (subring R) :=
-⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t ) (⨅ t ∈ s, subring.to_add_subgroup t) (by simp) (by simp)⟩
+⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t )
+  (⨅ t ∈ s, subring.to_add_subgroup t) (by simp) (by simp)⟩
 
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
 
-@[simp] lemma Inf_to_submonoid (s : set (subring R)) : (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
+@[simp] lemma Inf_to_submonoid (s : set (subring R)) :
+  (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
 
 @[simp] lemma Inf_to_add_subgroup (s : set (subring R)) :
   (Inf s).to_add_subgroup = ⨅ t ∈ s, subring.to_add_subgroup t := mk'_to_add_subgroup _ _
@@ -461,8 +460,8 @@ lemma closure_eq_of_le {s : set R} {t : subring R} (h₁ : s ⊆ t) (h₂ : t �
 le_antisymm (closure_le.2 h₁) h₂
 
 /-- An induction principle for closure membership. If `p` holds for `0`, `1`, and all elements
-of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all elements
-of the closure of `s`. -/
+of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all
+elements of the closure of `s`. -/
 @[elab_as_eliminator]
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
@@ -483,10 +482,12 @@ lemma mem_closure_iff {s : set R} {x} :
     ( λ p hp, add_subgroup.subset_closure ((submonoid.closure s).mul_mem hp hq) )
     ( begin rw zero_mul q, apply add_subgroup.zero_mem _, end )
     ( λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end )
-    ( λ x hx, begin have f : -x * q = -(x*q) := by simp, rw f, apply add_subgroup.neg_mem _ hx, end ) )
+    ( λ x hx, begin have f : -x * q = -(x*q) :=
+      by simp, rw f, apply add_subgroup.neg_mem _ hx, end ) )
   ( begin rw mul_zero x, apply add_subgroup.zero_mem _, end )
   ( λ q₁ q₂ ihq₁ ihq₂, begin rw mul_add x q₁ q₂, apply add_subgroup.add_mem _ ihq₁ ihq₂ end )
-  ( λ z hz, begin have f : x * -z = -(x*z) := by simp, rw f, apply add_subgroup.neg_mem _ hz, end ) ),
+  ( λ z hz, begin have f : x * -z = -(x*z) := by simp,
+            rw f, apply add_subgroup.neg_mem _ hz, end ) ),
  λ h, add_subgroup.closure_induction h
  ( λ x hx, submonoid.closure_induction hx
   ( λ x hx, subset_closure hx )
@@ -639,11 +640,16 @@ def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
 @[simp] lemma restrict_apply (f : R →+* S) (x : s) : f.restrict s x = f x := rfl
 
-/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring. -/
+/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
+
+This is the bundled version of `set.range_factorization`. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
 f.cod_restrict' f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
 
 @[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
+
+lemma range_restrict_surjective (f : R →+* S) : function.surjective f.range_restrict :=
+λ ⟨y, hy⟩, let ⟨x, hx⟩ := mem_range.mp hy in ⟨x, subtype.ext hx⟩
 
 lemma range_top_iff_surjective {f : R →+* S} :
   f.range = (⊤ : subring S) ↔ function.surjective f :=
@@ -725,6 +731,26 @@ variables {s t : subring R}
 def subring_congr (h : s = t) : s ≃+* t :=
 { map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ subring.ext'_iff.1 h }
 
+/-- Restrict a ring homomorphism with a left inverse to a ring isomorphism to its
+`ring_hom.range`. -/
+def of_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f) :
+  R ≃+* f.range :=
+{ to_fun := λ x, f.range_restrict x,
+  inv_fun := λ x, (g ∘ f.range.subtype) x,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := ring_hom.mem_range.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  ..f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : R) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
+
 end ring_equiv
 
 namespace subring
@@ -745,7 +771,8 @@ begin
   { rw [list.map_cons, list.sum_cons],
     exact ha this (ih HL.2) },
   replace HL := HL.1, clear ih tl,
-  suffices : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧ (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
+  suffices : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧
+    (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
   { rcases this with ⟨L, HL', HP | HP⟩,
     { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
       rw list.forall_mem_cons at HL',

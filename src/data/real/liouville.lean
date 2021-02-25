@@ -10,14 +10,15 @@ import ring_theory.algebraic
 import topology.algebra.polynomial
 /-!
 # Liouville's theorem
-This file will contain a proof of Liouville's theorem stating that all Liouville numbers are
+This file contains a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 
-At the moment, it contains the definition of a Liouville number, a proof that Liouville
-numbers are irrational and two technical lemmas.
+To obtain this result, there is first a proof that Liouville numbers are irrational and two
+technical lemmas.  These lemmas exploit the fact that a polynomial with integer coefficients
+takes integer values at integers.  When evaluating at a rational number, we can clear denominators
+and obtain precise inequalities that ultimately allow us to prove transcendence of
+Liouville numbers.
 -/
-
-section irrational
 
 /--
 A Liouville number is a real number `x` such that for every natural number `n`, there exist
@@ -28,7 +29,7 @@ def liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, 1 < b ∧ x ≠ a / b ∧
 
 namespace liouville
 
-lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
+@[protected] lemma irrational {x : ℝ} (h : liouville x) : irrational x :=
 begin
   -- By contradiction, `x = a / b`, with `a ∈ ℤ`, `0 < b ∈ ℕ` is a Liouville number,
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
@@ -56,7 +57,7 @@ begin
   -- Actually, `q` is a natural number
   lift q to ℕ using (zero_lt_one.trans q1).le,
   -- Looks innocuous, but we now have an integer with non-zero absolute value: this is at
-  --least one away from zero.  The gain here is what gets the proof going.
+  -- least one away from zero.  The gain here is what gets the proof going.
   have ap : 0 < abs (a * ↑q - ↑b * p) := abs_pos.mpr a0,
   -- Actually, the absolute value of an integer is a natural number
   lift (abs (a * ↑q - ↑b * p)) to ℕ using (abs_nonneg (a * ↑q - ↑b * p)),
@@ -66,8 +67,6 @@ begin
   -- we are done.
   exact not_le.mpr a1 (nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
 end
-
-end liouville
 
 open polynomial metric set real ring_hom
 
@@ -93,7 +92,7 @@ lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
 -- denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)
   (e0 : 0 < ε)
---function is Lipschitz at α
+-- function is Lipschitz at α
   (B : ∀ ⦃y : R⦄, y ∈ closed_ball α ε → dist (f α) (f y) ≤ (dist α y) * M)
 -- clear denominators
   (L : ∀ ⦃z : Z⦄, ∀ ⦃a : N⦄, j z a ∈ closed_ball α ε → 1 ≤ (d a) * dist (f α) (f (j z a))) :
@@ -167,4 +166,45 @@ begin
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
 
-end irrational
+theorem transcendental {x : ℝ} (lx : liouville x) :
+  transcendental ℤ x :=
+begin
+  -- Proceed by contradiction: if `x` is algebraic, then `x` is the root (`ef0`) of a
+  -- non-zero (`f0`) polynomial `f`
+  rintros ⟨f : polynomial ℤ, f0, ef0⟩,
+  -- Change `aeval x f = 0` to `eval (map _ f) = 0`, who knew.
+  replace ef0 : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rwa [aeval_def, ← eval_map] at ef0 },
+  -- There is a "large" real number `A` such that `(b + 1) ^ (deg f) * |f (x - a / (b + 1))| * A`
+  -- is at least one.  This is obtained from lemma `exists_pos_real_of_irrational_root`.
+  obtain ⟨A, hA, h⟩ : ∃ (A : ℝ), 0 < A ∧
+    ∀ (a : ℤ) (b : ℕ), (1 : ℝ) ≤ (b.succ) ^ f.nat_degree * (abs (x - a / (b.succ)) * A) :=
+    exists_pos_real_of_irrational_root lx.irrational f0 ef0,
+  -- Since the real numbers are Archimedean, a power of `2` exceeds `A`: `hn : A < 2 ^ r`.
+  rcases pow_unbounded_of_one_lt A (lt_add_one 1) with ⟨r, hn⟩,
+  -- Use the Liouville property, with exponent `r +  deg f`.
+  obtain ⟨a, b, b1, -, a1⟩ : ∃ (a b : ℤ), 1 < b ∧ x ≠ a / b ∧
+    abs (x - a / b) < 1 / b ^ (r + f.nat_degree) := lx (r + f.nat_degree),
+  have b0 : (0 : ℝ) < b := zero_lt_one.trans (by { rw ← int.cast_one, exact int.cast_lt.mpr b1 }),
+  -- Prove that `b ^ f.nat_degree * abs (x - a / b)` is strictly smaller than itself
+  -- recall, this is a proof by contradiction!
+  refine lt_irrefl ((b : ℝ) ^ f.nat_degree * abs (x - ↑a / ↑b)) _,
+  -- clear denominators at `a1`
+  rw [lt_div_iff' (pow_pos b0 _), pow_add, mul_assoc] at a1,
+  -- split the inequality via `1 / A`.
+  refine ((_  : (b : ℝ) ^ f.nat_degree * abs (x - a / b) < 1 / A).trans_le _),
+  -- This branch of the proof uses the Liouville condition and the Archimedean property
+  { refine (lt_div_iff' hA).mpr _,
+    refine lt_of_le_of_lt _ a1,
+    refine mul_le_mul_of_nonneg_right _ (mul_nonneg (pow_nonneg b0.le _) (abs_nonneg _)),
+    refine hn.le.trans _,
+    refine pow_le_pow_of_le_left zero_le_two _ _,
+    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)) },
+  -- this branch of the proof exploits the "integrality" of evaluations of polynomials
+  -- at ratios of integers.
+  { lift b to ℕ using zero_le_one.trans b1.le,
+    specialize h a b.pred,
+    rwa [nat.succ_pred_eq_of_pos (zero_lt_one.trans _), ← mul_assoc, ← (div_le_iff hA)] at h,
+    exact int.coe_nat_lt.mp b1 }
+end
+
+end liouville

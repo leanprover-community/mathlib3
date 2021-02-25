@@ -27,13 +27,6 @@ It contains theorems relating these to each other, as well as to `submodule.prod
   - `linear_map.prod_map`
   - `linear_equiv.prod_map`
   - `linear_equiv.skew_prod`
-
-## Implementation notes
-
-`linear_map.prod_equiv` and `linear_map.coprod_equiv` are `linear_equiv`s in `S` between
-`linear_map`s in `R`. When we have `comm_ring R`, `S = R` can be used (via `nat_smul_comm_class`).
-When we don't, these equivs can always be instantiated with `S = ℕ` (via
-`add_comm_monoid.nat_smul_comm_class`).
 -/
 
 universes u v w x y z u' v' w' y'
@@ -80,7 +73,9 @@ end
 by ext; refl
 
 /-- Taking the product of two maps with the same domain is equivalent to taking the product of
-their codomains. -/
+their codomains.
+
+See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
 @[simps] def prod_equiv
   [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃] :
   ((M →ₗ[R] M₂) × (M →ₗ[R] M₃)) ≃ₗ[S] (M →ₗ[R] M₂ × M₃) :=
@@ -142,8 +137,15 @@ theorem fst_eq_coprod : fst R M M₂ = coprod linear_map.id 0 := by ext; simp
 
 theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simp
 
+@[simp] theorem coprod_comp_prod (f : M₂ →ₗ[R] M₄) (g : M₃ →ₗ[R] M₄)
+  (f' : M →ₗ[R] M₂) (g' : M →ₗ[R] M₃) :
+  (f.coprod g).comp (f'.prod g') = f.comp f' + g.comp g' :=
+rfl
+
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
-their domains. -/
+their domains.
+
+See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
 @[simps] def coprod_equiv [semimodule S M₃] [smul_comm_class R S M₃] :
   ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃ₗ[S] (M × M₂ →ₗ[R] M₃) :=
 { to_fun := λ f, f.1.coprod f.2,

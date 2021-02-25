@@ -715,6 +715,28 @@ lemma eq_of_le_of_findim_eq {S₁ S₂ : submodule K V} [finite_dimensional K S�
   (hd : findim K S₁ = findim K S₂) : S₁ = S₂ :=
 eq_of_le_of_findim_le hle hd.ge
 
+variables [finite_dimensional K V] [finite_dimensional K V₂]
+
+/-- Given isomorphic subspaces `p q` of vector spaces `V` and `V₁` respectively,
+  `p.quotient` is isomorphic to `q.quotient`. -/
+noncomputable def linear_equiv.quot_equiv_of_equiv
+  {p : subspace K V} {q : subspace K V₂}
+  (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : p.quotient ≃ₗ[K] q.quotient :=
+linear_equiv.of_findim_eq _ _
+begin
+  rw [← @add_right_cancel_iff _ _ (findim K p), submodule.findim_quotient_add_findim,
+      linear_equiv.findim_eq f₁, submodule.findim_quotient_add_findim, linear_equiv.findim_eq f₂],
+end
+
+/-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
+noncomputable def linear_equiv.quot_equiv_of_quot_equiv
+  {p q : subspace K V} (f : p.quotient ≃ₗ[K] q) : q.quotient ≃ₗ[K] p :=
+linear_equiv.of_findim_eq _ _
+begin
+  rw [← @add_right_cancel_iff _ _ (findim K q), submodule.findim_quotient_add_findim,
+      ← linear_equiv.findim_eq f, add_comm, submodule.findim_quotient_add_findim]
+end
+
 end finite_dimensional
 
 namespace linear_map

@@ -22,14 +22,20 @@ do {
       to_expr ``(congr_arg (%%e : %%ltp → %%mv) %%hyp)
   | `(%%l ≤ %%r) := do
        Hmono ← match mono_lem with
-               | some mono_lem :=
-                 tactic.i_to_expr mono_lem
-               | none := do
-                 n ← get_unused_name `mono,
-                 to_expr ``(monotone %%e) >>= assert n,
-                 do { intro_lst [`x, `y, `h], `[dsimp, mono], skip } <|> swap,
-                 get_local n
-               end,
+        | some mono_lem :=
+          tactic.i_to_expr mono_lem
+        | none := do
+          n ← get_unused_name `mono,
+          to_expr ``(monotone %%e) >>= assert n,
+          -- In order to resolve implicit arguments in `%%e`,
+          -- we build (and discard) the expression `%%n %%hyp` before calling the `mono` tactic.
+          swap,
+          n ← get_local n,
+          to_expr ``(%%n %%hyp),
+          swap,
+          do { intro_lst [`x, `y, `h], `[try { dsimp }, mono] } <|> swap,
+          return n
+        end,
        to_expr ``(%%Hmono %%hyp)
   | _ := fail ("failed to apply " ++ to_string e ++ " at " ++ to_string hyp.local_pp_name)
   end,

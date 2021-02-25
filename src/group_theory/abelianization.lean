@@ -75,8 +75,11 @@ end
 
 /-- If `f : G → A` is a group homomorphism to an abelian group, then `lift f` is the unique map from
   the abelianization of a `G` to `A` that factors through `f`. -/
-def lift : abelianization G →* A :=
-quotient_group.lift _ f (λ x h, f.mem_ker.2 $ commutator_subset_ker _ h)
+def lift : (G →* A) ≃ (abelianization G →* A) :=
+{ to_fun := λ f, quotient_group.lift _ f (λ x h, f.mem_ker.2 $ commutator_subset_ker _ h),
+  inv_fun := λ F, F.comp of,
+  left_inv := λ f, monoid_hom.ext $ λ x, rfl,
+  right_inv := λ F, monoid_hom.ext $ λ x, quotient_group.induction_on x $ λ z, rfl }
 
 @[simp] lemma lift.of (x : G) : lift f (of x) = f x :=
 rfl
@@ -97,30 +100,6 @@ variables {A : Type v} [monoid A]
 @[ext]
 theorem hom_ext (φ ψ : abelianization G →* A)
   (h : φ.comp of = ψ.comp of) : φ = ψ :=
-begin
-  ext x,
-  apply quotient_group.induction_on x,
-  intro z,
-  show φ.comp of z = _,
-  rw h,
-  refl,
-end
-
-section lift
-
-variables {B : Type v} [comm_group B]
-
-/-- The bijection underlying the abelianization-forgetful adjuction from groups to abelian groups.
--/
-@[simps]
-def hom_equiv : (abelianization G →* B) ≃ (G →* B) :=
-{ to_fun := λ f, { to_fun := f.1 ∘ abelianization.of ,
-  map_one' := by simp,
-  map_mul' := by simp } ,
-  inv_fun := λ g, abelianization.lift g,
-  left_inv := by { intro x, ext, simp },
-  right_inv := by { intro x, ext, simp } }
-
-end lift
+monoid_hom.ext $ λ x, quotient_group.induction_on x $ monoid_hom.congr_fun h
 
 end abelianization

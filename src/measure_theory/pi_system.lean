@@ -45,6 +45,7 @@ begin
       set.mem_singleton_iff],
 end
 
+/-- The smallest superset of g that is_pi_system. -/
 inductive generate_pi_system {α} (g : set (set α)) : set (set α)
 | base {s : set α} (h_s : s ∈ g) : generate_pi_system s
 | inter {s t : set α} (h_s : generate_pi_system s)  (h_t : generate_pi_system t)
@@ -78,12 +79,6 @@ begin
   { exact generate_pi_system.base (set.mem_of_subset_of_mem hST h_s),},
   { exact is_pi_system_generate_pi_system T _ _ h_s h_u h_nonempty, },
 end
-
---Necessary?
-lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
-  (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
-set.subset.trans (generate_pi_system_mono h_sub) (generate_pi_system_subset_self h_t)
-
 
 lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {g : set (set α)}
   (h_meas_g : ∀ s ∈ g, measurable_set s) (t : set α)

@@ -826,8 +826,8 @@ end compact
 topological space is a sequence of compact sets `K n` such that `K n ⊆ interior (K (n + 1))` and
 `(⋃ n, K n) = univ`.
 
-If `X` is a locally compact sigma compact space, then `compact_exhaustion.some X` provides a choice
-of an exhaustion by compact sets. This choice is also available as
+If `X` is a locally compact sigma compact space, then `compact_exhaustion.choice X` provides
+a choice of an exhaustion by compact sets. This choice is also available as
 `(default : compact_exhaustion X)`. -/
 structure compact_exhaustion (X : Type*) [topological_space X] :=
 (to_fun : ℕ → set X)
@@ -881,7 +881,7 @@ lemma mem_diff_shiftr_find (x : α) : x ∈ K.shiftr (K.find x + 1) \ K.shiftr (
 ⟨K.mem_find _, mt K.shiftr.mem_iff_find_le.1 $
   by simp only [find_shiftr, not_le, nat.lt_succ_self]⟩
 
-/-- A choice of an 
+/-- A choice of an
 [exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
 of a locally compact sigma compact space. -/
 noncomputable def choice (X : Type*) [topological_space X] [locally_compact_space X]

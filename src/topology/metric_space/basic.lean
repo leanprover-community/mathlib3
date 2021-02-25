@@ -11,6 +11,7 @@ topological spaces. For example:
 -/
 import topology.metric_space.emetric_space
 import topology.algebra.ordered
+import data.fintype.intervals
 
 open set filter classical topological_space
 noncomputable theory
@@ -1575,6 +1576,25 @@ lemma compact_iff_closed_bounded [proper_space α] :
 end⟩
 
 end bounded
+
+section tendsto_cofinite
+
+/-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
+lemma int.tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
+begin
+  simp only [filter.has_basis_cocompact.tendsto_right_iff, eventually_iff_exists_mem],
+  intros s hs,
+  obtain ⟨r, hr⟩ : ∃ r, s ⊆ closed_ball (0:ℝ) r,
+  { rw ← bounded_iff_subset_ball,
+    exact hs.bounded },
+  refine ⟨(coe ⁻¹' closed_ball (0:ℝ) r)ᶜ, _, _⟩,
+  { simp [mem_cofinite, closed_ball_Icc, set.Icc_ℤ_finite] },
+  { rw ← compl_subset_compl at hr,
+    intros y hy,
+    exact hr hy }
+end
+
+end tendsto_cofinite
 
 section diam
 variables {s : set α} {x y z : α}

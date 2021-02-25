@@ -423,7 +423,7 @@ begin
   { simp only [p.factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
   have hne_zero': (((p+1).factorial):ℚ) ≠ 0,
   { simp only [(p + 1).factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
-  have hp: ((((p:ℚ) + (1:ℚ))):ℚ) ≠ 0 := nat.cast_add_one_ne_zero p,
+  have hp : (p + 1 : ℚ) ≠ 0 := nat.cast_add_one_ne_zero p,
   simp only [←one_div, mul_one_div, div_eq_iff hne_zero] at h,
   rw [h],
   clear h,

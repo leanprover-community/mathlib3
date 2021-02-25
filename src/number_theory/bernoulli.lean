@@ -366,7 +366,7 @@ begin
       exact h, },
     rw [nat.succ_eq_add_one, mul_assoc _ _ ↑(q.succ.factorial),
       mul_comm _ ↑(q.succ.factorial), ←mul_assoc, div_mul_eq_mul_div,
-      mul_comm (n ^ (q -m + 1) : ℚ) _, ←mul_assoc _ _ (n ^ (q - m + 1) : ℚ), ←one_div, mul_one_div,
+      mul_comm (n ^ (q - m + 1) : ℚ) _, ←mul_assoc _ _ (n ^ (q - m + 1) : ℚ), ←one_div, mul_one_div,
       div_div_eq_div_mul, hqm1],
     rw [nat.cast_dvd],
     { rw [nat.cast_mul],
@@ -381,7 +381,7 @@ lemma aux_power_series_equal (n : ℕ) :
   (exp ℚ - 1) * power_series.mk (λ p, (finset.range n).sum (λ k,
   (k : ℚ)^p * algebra_map ℚ ℚ p.factorial⁻¹)) =
   (exp ℚ - 1) * power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
-  (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial))) :=
+  (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/((p + 1).factorial))) :=
 begin
   rw [←exp_pow_sum n],
   have h_geom_sum : (geom_series (exp ℚ) n) * (exp ℚ - 1) = (exp ℚ)^n - 1 := geom_sum_mul _ _,
@@ -398,12 +398,12 @@ end
 /-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p : ℕ) :
 (finset.range n).sum(λk, (k : ℚ)^p) =
-(finset.range (p + 1)).sum(λ i, (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/(p + 1)) :=
+(finset.range (p + 1)).sum(λ i, (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/(p + 1)) :=
 begin
   have hpseq : power_series.mk (λ p, (finset.range n).sum (λ k,
     (k : ℚ)^p * algebra_map ℚ ℚ p.factorial⁻¹)) =
     power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
-      (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial))),
+      (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/((p + 1).factorial))),
   { have hexp : exp ℚ - 1 ≠ 0,
     { rw [exp],
       simp only [power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
@@ -419,7 +419,7 @@ begin
   simp only [←finset.sum_mul] at hpseq,
   have hne_zero : (p.factorial : ℚ) ≠ 0,
   { simp only [p.factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
-  have hne_zero' : ((p+1).factorial : ℚ) ≠ 0,
+  have hne_zero' : ((p + 1).factorial : ℚ) ≠ 0,
   { simp only [(p + 1).factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
   have hp : (p + 1 : ℚ) ≠ 0 := nat.cast_add_one_ne_zero p,
   simp only [←one_div, mul_one_div, div_eq_iff hne_zero] at hpseq,

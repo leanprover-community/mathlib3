@@ -283,19 +283,13 @@ lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u
   (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
 begin
   split,
-  { rintro ⟨n, ⟨f, hf⟩⟩,
-    have h : ulift.down ∘ ulift.up = (id : fin n → fin n) := rfl,
-    refine ⟨ulift (fin n), by apply_instance, f.comp
-      (mv_polynomial.alg_equiv_of_equiv R equiv.ulift).to_alg_hom, hf.1.comp (λ x, _), _⟩,
-    { use (mv_polynomial.rename equiv.ulift.symm) x,
-      simp [h] },
-    have hfg : (↑(mv_polynomial.ring_equiv_of_equiv R equiv.ulift)
-      : _root_.mv_polynomial (ulift (fin n)) R →+* _root_.mv_polynomial (fin n) R).ker.fg,
-    { rw [ring_hom.ker_coe_equiv],
-      exact submodule.fg_bot },
-    refine submodule.fg_ker_ring_hom_comp _ _ hfg hf.2 (λ x, _),
-    use (mv_polynomial.rename equiv.ulift.symm) x,
-    simp [h] },
+  { rintro ⟨n, f, hf⟩,
+    set ulift_var := mv_polynomial.alg_equiv_of_equiv R equiv.ulift,
+    refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
+      hf.1.comp ulift_var.surjective,
+      submodule.fg_ker_ring_hom_comp _ _ _ hf.2 ulift_var.surjective⟩,
+    convert submodule.fg_bot,
+    exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
   { rintro ⟨ι, hfintype, f, hf⟩,
     haveI : fintype ι := hfintype,
     obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,

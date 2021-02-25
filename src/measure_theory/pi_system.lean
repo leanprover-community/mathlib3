@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Martin Zinkevich
 -/
 import measure_theory.measure_space
-import tactic.fin_cases
 import order.galois_connection
 
 /-!
@@ -55,22 +54,36 @@ lemma is_pi_system_generate_pi_system {α} (g : set (set α)) :
   is_pi_system (generate_pi_system g) :=
 λ s t h_s h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
 
-lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
-  (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
-begin
+lemma subset_generate_pi_system_self {α} (g : set (set α)) : g ⊆ generate_pi_system g :=
+λ s, generate_pi_system.base
+
+lemma generate_pi_system_subset_self {α} {g : set (set α)} (h_g : is_pi_system g) :
+  generate_pi_system g ⊆ g :=
+ begin
   intros x h,
   induction h with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
-  { apply h_sub h_s, },
-  { apply h_t _ _ h_s h_u h_nonempty, },
+  { exact h_s, },
+  { exact h_g _ _ h_s h_u h_nonempty, },
 end
 
 lemma generate_pi_system_eq {α} {g : set (set α)} (h_pi : is_pi_system g) :
   generate_pi_system g = g :=
+set.subset.antisymm (generate_pi_system_subset_self h_pi) (subset_generate_pi_system_self g)
+
+lemma generate_pi_system_mono {α} {S T : set (set α)} (hST : S ⊆ T) :
+  generate_pi_system S ⊆ generate_pi_system T :=
 begin
-  apply le_antisymm,
-  { exact generate_pi_system_subset h_pi set.subset.rfl, },
-  { apply generate_pi_system.base, },
+  intros t ht,
+  induction ht with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
+  { exact generate_pi_system.base (set.mem_of_subset_of_mem hST h_s),},
+  { exact is_pi_system_generate_pi_system T _ _ h_s h_u h_nonempty, },
 end
+
+--Necessary?
+lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
+  (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
+set.subset.trans (generate_pi_system_mono h_sub) (generate_pi_system_subset_self h_t)
+
 
 lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {g : set (set α)}
   (h_meas_g : ∀ s ∈ g, measurable_set s) (t : set α)
@@ -162,29 +175,30 @@ begin
     rw h1, apply h_t },
 end
 
+def pi_system (α : Type*) : Type := subtype (@is_pi_system α) 
 
-def pi_system (α:Type*) : Type := subtype (@is_pi_system α) 
+def to_pi_system {α : Type*} (s : set (set α)) : pi_system α :=
+subtype.mk (generate_pi_system s) (is_pi_system_generate_pi_system s)
 
-def to_pi_system {α:Type*} (s : set (set α)) : pi_system α := subtype.mk (generate_pi_system s) (is_pi_system_generate_pi_system s)
+instance pi_system.partial_order {α:Type*} : partial_order (pi_system α) := subtype.partial_order _
 
- 
-#check subtype.preorder
-instance pi_system.preorder {α:Type*} : preorder (pi_system α) := subtype.preorder _
-
-
-
-
-
-lemma pi_system.galois_connection {α:Type*} : @galois_connection (pi_system α) (set (set α)) _ _ subtype.val to_pi_system  := begin
-  apply galois_connection.monotone_intro,
-  
-
-  intros s t, split,
-  { intros h_s_val_le_t, unfold to_pi_system,   },
-
+lemma subtype.val_mono {α : Type*} [preorder α] {P : α → Prop} : monotone (@subtype.val α P) :=
+begin
+  intros x y h_le, cases x, cases y, rw subtype.mk_le_mk at h_le, apply h_le
 end
---(@subtype.val _ (@is_pi_system α)) (generate_pi_system 
 
+def pi_system.galois_insertion (α : Type*) : 
+  @galois_insertion (set (set α)) (pi_system α) _ _ to_pi_system subtype.val :=
+begin
+  apply galois_insertion.monotone_intro,
+  { refine subtype.val_mono },
+  { apply generate_pi_system_mono },     
+  { intros a, rw [to_pi_system, set.le_eq_subset], 
+    apply subset_generate_pi_system_self  },
+  { intros a, cases a, rw [to_pi_system, subtype.mk_eq_mk, generate_pi_system_eq],
+    apply a_property },
+end
 
-#check galois_connection
-#check galois_insertion
+instance pi_system.complete_lattice (α:Type*) : complete_lattice (pi_system α) :=
+galois_insertion.lift_complete_lattice (pi_system.galois_insertion α)
+

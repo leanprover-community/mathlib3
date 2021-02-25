@@ -67,9 +67,15 @@ begin
   { simp [ih], },
 end
 
+@[simp]
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
 (derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
 
+@[simp]
+lemma derivative_C_mul (a : R) (p : polynomial R) : derivative (C a * p) = C a * derivative p :=
+sorry
+
+@[simp]
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
@@ -104,7 +110,11 @@ sorry
   derivative (-f) = - derivative f :=
 linear_map.map_neg derivative f
 
-@[simp] lemma derivative_sub {R : Type*} [ring R] (f g : polynomial R) :
+@[simp] lemma iterate_derivative_neg {R : Type*} [ring R] {f : polynomial R} {k : ℕ} :
+  derivative^[k] (-f) = - (derivative^[k] f) :=
+sorry
+
+@[simp] lemma derivative_sub {R : Type*} [ring R] {f g : polynomial R} :
   derivative (f - g) = derivative f - derivative g :=
 linear_map.map_sub derivative f g
 

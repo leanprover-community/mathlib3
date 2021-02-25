@@ -4,11 +4,49 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.polynomial.derivative
+import data.polynomial.algebra_map
 import data.nat.choose
 import linear_algebra.basis
 import data.nat.pochhammer
 import tactic.omega
-import tactic.slim_check
+
+namespace polynomial
+section
+variables {R : Type*} [comm_semiring R]
+
+lemma derivative_comp (p q : polynomial R) :
+  (p.comp q).derivative = q.derivative * p.derivative.comp q :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p₁ p₂ h₁ h₂, simp [h₁, h₂, mul_add], },
+  { intros n r,
+    simp [derivative_mul, derivative_pow],
+    -- isn't there a tactic for this?:
+    rw [mul_comm (derivative q)],
+    simp only [mul_assoc], }
+end
+end
+
+section
+variables {R : Type*} [comm_ring R]
+
+lemma derivative_comp_one_sub_X (p : polynomial R) :
+  (p.comp (1-X)).derivative = -p.derivative.comp (1-X) :=
+begin
+  simp [derivative_comp],
+end
+
+@[simp]
+lemma iterate_derivative_comp_one_sub_X (p : polynomial R) (k : ℕ) :
+  derivative^[k] (p.comp (1-X)) = (-1)^k * (derivative^[k] p).comp (1-X) :=
+begin
+  induction k with k ih generalizing p,
+  { simp, },
+  { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
+end
+end
+
+end polynomial
 
 namespace linear_map
 
@@ -66,7 +104,22 @@ begin
   ring,
 end
 
+
 namespace bernstein_polynomial
+
+lemma flip (n ν : ℕ) (h : ν ≤ n) :
+  (bernstein_polynomial n ν).comp (1-X) = bernstein_polynomial n (n-ν) :=
+begin
+  dsimp [bernstein_polynomial],
+  simp [h, nat.sub_sub_assoc, mul_right_comm],
+end
+
+lemma flip' (n ν : ℕ) (h : ν ≤ n) :
+  bernstein_polynomial n ν = (bernstein_polynomial n (n-ν)).comp (1-X) :=
+begin
+  rw [←flip _ _ h, polynomial.comp_assoc],
+  simp,
+end
 
 lemma eval_at_0 (n ν : ℕ) : (bernstein_polynomial n ν).eval 0 = if ν = 0 then 1 else 0 :=
 begin
@@ -96,7 +149,7 @@ begin
       -(↑((n + 1).choose (ν + 1)) * X ^ (ν + 1) * (↑(n - ν) * (1 - X) ^ (n - ν - 1))) =
     (↑n + 1) * (↑(n.choose ν) * X ^ ν * (1 - X) ^ (n - ν) -
          ↑(n.choose (ν + 1)) * X ^ (ν + 1) * (1 - X) ^ (n - (ν + 1))),
-  { simpa [polynomial.derivative_pow, ←sub_eq_add_neg], }, -- make this a simp lemma?
+  { simpa [polynomial.derivative_pow, ←sub_eq_add_neg], }, -- make `derivative_pow` a simp lemma?
   conv_rhs { rw mul_sub, },
   -- -- We'll prove the two terms match up separately.
   refine congr (congr_arg has_sub.sub _) _,
@@ -160,7 +213,7 @@ lemma iterate_derivative_succ_at_zero_eq_zero (n ν : ℕ) :
 iterate_derivative_at_zero_eq_zero_of_lt n (lt_add_one ν)
 
 @[simp]
-lemma iterate_derivative_self_at_0 (n ν : ℕ) :
+lemma iterate_derivative_at_0 (n ν : ℕ) :
   (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n.falling_factorial ν :=
 begin
   induction ν with ν ih generalizing n,
@@ -170,31 +223,44 @@ begin
     push_cast, }
 end
 
--- lemma iterate_derivative_at_one_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
---   ν < k → (polynomial.derivative^[k] (bernstein_polynomial n ν)).eval 1 = 0 :=
--- begin
---   induction k with k ih,
---   { rintro ⟨⟩, },
---   { induction ν,
+lemma iterate_derivative_at_0_ne_zero (n ν : ℕ) (h : ν ≤ n) :
+  (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 ≠ 0 :=
+begin
+  simp only [int.coe_nat_eq_zero, bernstein_polynomial.iterate_derivative_at_0, ne.def],
+  exact nat.falling_factorial_ne_zero h,
+end
 
---     simp [derivative_zero], },
--- end
+/--
+Rather than redoing the work of evaluating the derivatives at 1,
+we use the symmetry of the Bernstein polynomials.
+-/
+lemma iterate_derivative_at_one_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
+  k < n - ν → (polynomial.derivative^[k] (bernstein_polynomial n ν)).eval 1 = 0 :=
+begin
+  intro w,
+  rw flip' _ _ (show ν ≤ n, by omega),
+  simp [polynomial.eval_comp, iterate_derivative_at_zero_eq_zero_of_lt n w],
+end
 
--- @[simp]
--- lemma iterate_derivative_succ_at_zero_eq_zero (n ν : ℕ) :
---   (polynomial.derivative^[ν] (bernstein_polynomial n (ν+1))).eval 0 = 0 :=
--- iterate_derivative_at_zero_eq_zero_of_lt n (lt_add_one ν)
 
--- @[simp]
--- lemma iterate_derivative_self_at_0 (n ν : ℕ) :
---   (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n.falling_factorial ν :=
--- begin
---   induction ν with ν ih generalizing n,
---   { simp [eval_at_0], },
---   { simp [derivative, ih],
---     rw [nat.falling_factorial_eq_mul_left],
---     push_cast, }
--- end
+@[simp]
+lemma iterate_derivative_at_1 (n ν : ℕ) (h : ν ≤ n) :
+  (polynomial.derivative^[n-ν] (bernstein_polynomial n ν)).eval 1 =
+    (-1)^(n-ν) * n.falling_factorial (n-ν) :=
+begin
+  rw flip' _ _ h,
+  simp [polynomial.eval_comp],
+end
+
+lemma iterate_derivative_at_1_ne_zero (n ν : ℕ) (h : ν ≤ n) :
+  (polynomial.derivative^[n-ν] (bernstein_polynomial n ν)).eval 1 ≠ 0 :=
+begin
+  simp only [int.coe_nat_eq_zero, bernstein_polynomial.iterate_derivative_at_1 _ _ h, ne.def],
+  simp [not_or_distrib],
+  fsplit,
+  { sorry, },
+  { exact nat.falling_factorial_ne_zero (nat.sub_le _ _), },
+end
 
 
 @[simp] lemma fin.init_lambda {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
@@ -232,6 +298,11 @@ lemma eval_zero_map {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S) (p
   (p.map f).eval 0 = f (p.eval 0) :=
 by simp [eval_zero]
 
+@[simp]
+lemma eval_one_map {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 1 = f (p.eval 1) :=
+sorry
+
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
 begin
@@ -242,7 +313,7 @@ begin
     fsplit,
     { exact ih (le_of_lt h), },
     { -- The actual work!
-      -- We show that the k-th derivative at 0 doesn't vanish,
+      -- We show that the k-th derivative at 1 doesn't vanish,
       -- but vanishes for everything in the span.
       clear ih,
       simp only [fin.coe_last, fin.init_lambda],
@@ -251,12 +322,12 @@ begin
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
       intros p h,
       simp,
-      apply ne_of_apply_ne (polynomial.eval (0 : ℚ)),
+      apply ne_of_apply_ne (polynomial.eval (1 : ℚ)),
       simp,
-      suffices : (polynomial.derivative^[k] p).eval 0 = 0,
+      suffices : (polynomial.derivative^[k] p).eval 1 = 0,
       sorry,
       apply span_induction h,
-      { simp, rintro ⟨a, w⟩, rw [iterate_derivative_at_zero_eq_zero_of_lt _ w], },
+      { simp, rintro ⟨a, w⟩, rw [iterate_derivative_at_one_eq_zero_of_lt _ _], },
       { simp, },
       { intros x y hx hy, simp [hx, hy], },
       { intros a x h, simp [h], },

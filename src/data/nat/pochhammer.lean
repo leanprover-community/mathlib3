@@ -149,6 +149,15 @@ begin
     rw [mul_assoc, add_comm n 1, ←nat.sub_sub], }
 end
 
+@[simp]
+lemma nat.falling_factorial_eq_factorial {n : ℕ} :
+  n.falling_factorial n = n.factorial :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [nat.falling_factorial_eq_mul_left, ih], }
+end
+
 lemma nat.falling_factorial_mul_falling_factorial {r n m : ℕ} :
   r.falling_factorial n * (r - n).falling_factorial m = r.falling_factorial (n + m) :=
 begin
@@ -156,6 +165,15 @@ begin
   { simp, },
   { rw [nat.falling_factorial_eq_mul_right, ←mul_assoc, ih, nat.add_succ,
       nat.falling_factorial_eq_mul_right, nat.sub_sub], }
+end
+
+lemma nat.falling_factorial_ne_zero {n m : ℕ} (h : n ≤ m) :
+  m.falling_factorial n ≠ 0 :=
+begin
+  intro w,
+  have := @nat.falling_factorial_mul_falling_factorial m n (m-n),
+  rw [w, nat.add_sub_cancel' h, zero_mul, nat.falling_factorial_eq_factorial] at this,
+  exact ne_of_lt m.factorial_pos this,
 end
 
 end

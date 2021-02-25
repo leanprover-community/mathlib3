@@ -1476,6 +1476,10 @@ variables {f : α ↪ β} {s : finset α}
 @[simp] theorem mem_map {b : β} : b ∈ s.map f ↔ ∃ a ∈ s, f a = b :=
 mem_map.trans $ by simp only [exists_prop]; refl
 
+@[simp] theorem mem_map_equiv {f : α ≃ β} {b : β} :
+  b ∈ s.map f.to_embedding ↔ f.symm b ∈ s :=
+by { rw mem_map, exact ⟨by { rintro ⟨a, H, rfl⟩, simpa }, λ h, ⟨_, h, by simp⟩⟩ }
+
 theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
 mem_map_of_injective f.2
 
@@ -2454,9 +2458,18 @@ protected def finset_congr (e : α ≃ β) : finset α ≃ finset β :=
 @[simp] lemma finset_congr_apply (e : α ≃ β) (s : finset α) :
   e.finset_congr s = s.map e.to_embedding :=
 rfl
-@[simp] lemma finset_congr_symm_apply (e : α ≃ β) (s : finset β) :
-  e.finset_congr.symm s = s.map e.symm.to_embedding :=
+
+@[simp] lemma finset_congr_refl :
+  (equiv.refl α).finset_congr = equiv.refl _ :=
+by { ext, simp }
+
+@[simp] lemma finset_congr_symm (e : α ≃ β) :
+  e.finset_congr.symm = e.symm.finset_congr :=
 rfl
+
+@[simp] lemma finset_congr_trans (e : α ≃ β) (e' : β ≃ γ) :
+  e.finset_congr.trans (e'.finset_congr) = (e.trans e').finset_congr :=
+by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
 
 end equiv
 

@@ -296,7 +296,7 @@ begin
     refine submodule.fg_ker_ring_hom_comp _ _ hfg hf.2 (λ x, _),
     use (mv_polynomial.rename equiv.ulift.symm) x,
     simp [h] },
-  { rintro ⟨ι, ⟨hfintype, ⟨f, hf⟩⟩⟩,
+  { rintro ⟨ι, hfintype, f, hf⟩,
     haveI : fintype ι := hfintype,
     obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,
     replace equiv := mv_polynomial.alg_equiv_of_equiv R (nonempty.some equiv),

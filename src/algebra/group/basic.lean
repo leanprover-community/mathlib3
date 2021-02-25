@@ -39,11 +39,6 @@ end associative
 section semigroup
 variables {α : Type*}
 
-@[to_additive]
-instance : semigroup empty :=
-{ mul := λ x y, by cases x,
-  mul_assoc := λ x y z, by cases x }
-
 /--
 Composing two multiplications on the left by `y` then `x`
 is equal to a multiplication on the left by `x * y`.

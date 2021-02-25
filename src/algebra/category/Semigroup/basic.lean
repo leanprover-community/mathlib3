@@ -5,7 +5,7 @@ Authors: Julian Kuelshammer (heavily based on `Mon.basic` by Scott Morrison)
 -/
 import category_theory.concrete_category.bundled_hom
 import category_theory.concrete_category.reflects_isomorphisms
-import algebra.punit_instances
+import algebra.pempty_instances
 
 /-!
 # Category instances for has_mul, has_add, semigroup and add_semigroup
@@ -51,7 +51,7 @@ def of (M : Type u) [has_mul M] : Magma := bundled.of M
 add_decl_doc AddMagma.of
 
 @[to_additive]
-instance : inhabited Magma := ⟨Magma.of empty⟩
+instance : inhabited Magma := ⟨Magma.of pempty⟩
 
 @[to_additive]
 instance (M : Magma) : has_mul M := M.str

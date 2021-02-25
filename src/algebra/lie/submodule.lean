@@ -707,18 +707,26 @@ end lie_ideal
 
 end lie_submodule_map_and_comap
 
-namespace lie_algebra
+section top_equiv_self
 
 variables {R : Type u} {L : Type v}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-/-- The natural equivalence between the 'top' Lie submodule and the enclosing Lie algebra. -/
-def top_equiv_self : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
+/-- The natural equivalence between the 'top' Lie subalgebra and the enclosing Lie algebra. -/
+def lie_subalgebra.top_equiv_self : (⊤ : lie_subalgebra R L) ≃ₗ⁅R⁆ L :=
 { inv_fun   := λ x, ⟨x, set.mem_univ x⟩,
   left_inv  := λ x, by { ext, refl, },
   right_inv := λ x, rfl,
-  ..(⊤ : lie_ideal R L).incl, }
+  ..(⊤ : lie_subalgebra R L).incl, }
 
-@[simp] lemma top_equiv_self_apply (x : (⊤ : lie_ideal R L)) : top_equiv_self x = x := rfl
+@[simp] lemma lie_subalgebra.top_equiv_self_apply (x : (⊤ : lie_subalgebra R L)) :
+  lie_subalgebra.top_equiv_self x = x := rfl
 
-end lie_algebra
+/-- The natural equivalence between the 'top' Lie ideal and the enclosing Lie algebra. -/
+def lie_ideal.top_equiv_self : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
+lie_subalgebra.top_equiv_self
+
+@[simp] lemma lie_ideal.top_equiv_self_apply (x : (⊤ : lie_ideal R L)) :
+  lie_ideal.top_equiv_self x = x := rfl
+
+end top_equiv_self

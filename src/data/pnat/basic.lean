@@ -241,8 +241,6 @@ end
 
 /-- An induction principle for `pnat`: it takes values in `Sort*`, so it applies also to Types,
 not only to `Prop`. -/
--- Proof by Mario Carnerio
--- https://tinyurl.com/4m9r5yf8
 @[elab_as_eliminator]
 def pnat.rec_on (n : pnat) {p : pnat → Sort*} (p1 : p 1) (hp : ∀ n, p n → p (n + 1)) : p n :=
 begin
@@ -254,9 +252,9 @@ begin
     { exact hp _ (IH n.succ_pos) } }
 end
 
-theorem pnat.rec_on_one (n : pnat) {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
+@[simp] theorem pnat.rec_on_one (n : pnat) {p} (p1 hp) : @pnat.rec_on 1 p p1 hp = p1 := rfl
 
-theorem pnat.rec_on_succ (n : pnat) {p : pnat → Sort*} (p1 hp) :
+@[simp] theorem pnat.rec_on_succ (n : pnat) {p : pnat → Sort*} (p1 hp) :
   @pnat.rec_on (n + 1) p p1 hp = hp n (@pnat.rec_on n p p1 hp) :=
 by { cases n with n h, cases n; [exact absurd h dec_trivial, refl] }
 

@@ -283,11 +283,11 @@ lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u
   (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
 begin
   split,
-  { rintro ⟨n, f, hf⟩,
+  { rintro ⟨n, f, hfs, hfk⟩,
     set ulift_var := mv_polynomial.alg_equiv_of_equiv R equiv.ulift,
     refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
-      hf.1.comp ulift_var.surjective,
-      submodule.fg_ker_ring_hom_comp _ _ _ hf.2 ulift_var.surjective⟩,
+      hfs.comp ulift_var.surjective,
+      submodule.fg_ker_ring_hom_comp _ _ _ hfk ulift_var.surjective⟩,
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
   { rintro ⟨ι, hfintype, f, hf⟩,

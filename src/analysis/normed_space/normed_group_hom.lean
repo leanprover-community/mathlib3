@@ -120,6 +120,10 @@ let ⟨C, C_pos, hC⟩ := f.bound in (lipschitz_of_bound_by f C hC).uniform_cont
 protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=
 f.uniform_continuous.continuous
 
+/-- The norm of a normed group hom. -/
+noncomputable instance : has_norm (normed_group_hom V₁ V₂) :=
+⟨λ f, ↑(⨅ (r : ℝ≥0) (h : f.bound_by r), r)⟩
+
 variables {f g}
 
 instance : has_zero (normed_group_hom V₁ V₂) :=
@@ -220,10 +224,6 @@ end
 @[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) :
   ⇑(∑ i in s, f i) = ∑ i in s, (f i) :=
 by { ext v, rw [finset.sum_apply, sum_apply] }
-
-/-- The norm of a normed groups hom. -/
-noncomputable instance : has_norm (normed_group_hom V₁ V₂) :=
-⟨λ f, ↑(⨅ (r : ℝ≥0) (h : f.bound_by r), r)⟩
 
 /-- Composition of normed groups hom as an additive group morphism. -/
 def comp_hom : (normed_group_hom V₂ V₃) →+ (normed_group_hom V₁ V₂) →+ (normed_group_hom V₁ V₃) :=

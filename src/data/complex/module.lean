@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel
 -/
 import data.complex.basic
+import algebra.algebra.ordered
 import data.matrix.notation
 import field_theory.tower
 import linear_algebra.finite_dimensional
@@ -33,11 +34,41 @@ namespace complex
 
 instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
 
+@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z := rfl
+
+section
+open_locale complex_order
+
+lemma complex_ordered_semimodule : ordered_semimodule ℝ ℂ :=
+{ smul_lt_smul_of_pos := λ z w x h₁ h₂,
+  begin
+    obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
+    refine lt_def.mpr ⟨x * y, _, _⟩,
+    exact mul_pos h₂ l,
+    ext; simp [mul_add],
+  end,
+  lt_of_smul_lt_smul_of_pos := λ z w x h₁ h₂,
+  begin
+    obtain ⟨y, l, e⟩ := lt_def.mp h₁,
+    by_cases h : x = 0,
+    { subst h, exfalso, apply lt_irrefl 0 h₂, },
+    { refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
+      replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
+      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
+        not_false_iff, inv_mul_cancel] at e,
+      convert e,
+      simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
+      norm_cast,
+      simp [mul_comm _ y, mul_assoc, h],
+    },
+  end }
+
+localized "attribute [instance] complex_ordered_semimodule" in complex_order
+
+end
+
+
 @[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
-
-@[simp] lemma re_smul (a : ℝ) (z : ℂ) : re (a • z) = a * re z := by simp [algebra.smul_def]
-
-@[simp] lemma im_smul (a : ℝ) (z : ℂ) : im (a • z) = a * im z := by simp [algebra.smul_def]
 
 open submodule finite_dimensional
 
@@ -45,7 +76,7 @@ lemma is_basis_one_I : is_basis ℝ ![1, I] :=
 begin
   refine ⟨linear_independent_fin2.2 ⟨I_ne_zero, λ a, mt (congr_arg re) $ by simp⟩,
     eq_top_iff'.2 $ λ z, _⟩,
-  suffices : ∃ a b, z = a • I + b • 1,
+  suffices : ∃ a b : ℝ, z = a • I + b • 1,
     by simpa [mem_span_insert, mem_span_singleton, -set.singleton_one],
   use [z.im, z.re],
   simp [algebra.smul_def, add_comm]
@@ -94,7 +125,7 @@ namespace complex
 def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
   map_add' := add_re,
-  map_smul' := re_smul }
+  map_smul' := by simp, }
 
 @[simp] lemma linear_map.coe_re : ⇑linear_map.re = re := rfl
 
@@ -102,7 +133,7 @@ def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
 def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
   map_add' := add_im,
-  map_smul' := im_smul }
+  map_smul' := by simp, }
 
 @[simp] lemma linear_map.coe_im : ⇑linear_map.im = im := rfl
 

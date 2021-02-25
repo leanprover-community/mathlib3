@@ -13,8 +13,8 @@ import algebra.iterate_hom
 We introduce left-regular, right-regular and regular elements.
 
 By definition, a regular element in a commutative ring is a non-zero divisor.
-Lemma `is_regular_of_cancel_monoid_with_zero` implies that every non-zero element of an integral
-domain is regular.
+Lemma `is_regular_of_ne_zero` implies that every non-zero element of an integral domain is regular.
+Since it assumes that the ring is a `cancel_monoid_with_zero` it applies also, for instance, to `ℕ`.
 
 The lemmas in Section `mul_zero_class` show that the `0` element is (left/right-)regular if and
 only if the `mul_zero_class` is trivial.  This is useful when figuring out stopping conditions for
@@ -279,7 +279,7 @@ section cancel_monoid_with_zero
 variables  [cancel_monoid_with_zero R]
 
 /--  Non-zero elements of an integral domain are regular. -/
-lemma is_regular_of_cancel_monoid_with_zero (a0 : a ≠ 0) : is_regular a :=
+lemma is_regular_of_ne_zero (a0 : a ≠ 0) : is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
 
 end cancel_monoid_with_zero

@@ -183,7 +183,7 @@ begin
   { rw iff_quotient_mv_polynomial',
     rintro ⟨ι, hfintype, ⟨f, hsur⟩⟩,
     obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι hfintype,
-    replace equiv := mv_polynomial.alg_equiv_of_equiv R (nonempty.some equiv),
+    replace equiv := mv_polynomial.alg_equiv_congr_left R (nonempty.some equiv),
     use [n, alg_hom.comp f equiv.symm, function.surjective.comp hsur
       (alg_equiv.symm equiv).surjective] },
   { rintro ⟨n, ⟨f, hsur⟩⟩,
@@ -239,7 +239,7 @@ variable (R)
 lemma mv_polynomial (ι : Type u_2) [fintype ι] : finite_presentation R (mv_polynomial ι R) :=
 begin
   obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι _,
-  replace equiv := mv_polynomial.alg_equiv_of_equiv R (nonempty.some equiv),
+  replace equiv := mv_polynomial.alg_equiv_congr_left R (nonempty.some equiv),
   use [n, alg_equiv.to_alg_hom equiv.symm],
   split,
   { exact (alg_equiv.symm equiv).surjective },

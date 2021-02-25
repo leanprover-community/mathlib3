@@ -477,6 +477,20 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
 
+lemma function.left_inverse.closed_range [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  is_closed (range g) :=
+have eq_on (g ∘ f) id (closure $ range g),
+  from h.right_inv_on_range.eq_on.closure (hg.comp hf) continuous_id,
+is_closed_of_closure_subset $ λ x hx,
+calc x = g (f x) : (this hx).symm
+   ... ∈ _ : mem_range_self _
+
+lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  closed_embedding g :=
+⟨h.embedding hf hg, h.closed_range hf hg⟩
+
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
   (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
@@ -600,7 +614,7 @@ class regular_space (α : Type u) [topological_space α] extends t1_space α : P
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
-  ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
+  ∃ t ∈ 𝓝 a, t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
 have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),

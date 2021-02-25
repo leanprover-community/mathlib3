@@ -316,14 +316,6 @@ begin
   exact hvp (f x) this
 end
 
-/-- Linear map version of the conj function, from `ℂ` to `ℂ`. -/
-def linear_map.conj : ℂ →ₗ[ℝ] ℂ :=
-{ map_smul' := by simp [restrict_scalars_smul_def],
-  ..conj }
-
-/-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/
-def continuous_linear_map.conj : ℂ →L[ℝ] ℂ := linear_map.conj.to_continuous_linear_map
-
 lemma finite_pairs (M : ℝ) (z : H) :
   set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq ≤ M} :=
 begin

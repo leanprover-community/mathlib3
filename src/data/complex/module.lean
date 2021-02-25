@@ -114,4 +114,11 @@ def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
 
 @[simp] lemma linear_map.coe_of_real : ⇑linear_map.of_real = coe := rfl
 
+/-- `ℝ`-linear map version of the complex conjugation function from `ℂ` to `ℂ`. -/
+def linear_map.conj : ℂ →ₗ[ℝ] ℂ :=
+{ map_smul' := by simp [restrict_scalars_smul_def],
+  ..conj }
+
+@[simp] lemma linear_map.coe_conj : ⇑linear_map.conj = conj := rfl
+
 end complex

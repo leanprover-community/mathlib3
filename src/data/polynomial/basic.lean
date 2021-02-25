@@ -177,7 +177,7 @@ instance : ring (polynomial R) := add_monoid_algebra.ring
 @[simp]
 lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
 
-lemma monomial_neg (n : ℕ) (a : R) : monomial n (-a) = -(monomial n a) :=
+@[simp] lemma monomial_neg (n : ℕ) (a : R) : monomial n (-a) = -(monomial n a) :=
 by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_right]
 
 end ring

@@ -646,6 +646,55 @@ lemma finite.bdd_below_bUnion {I : set β} {S : β → set α} (H : finite I) :
 
 end
 
+section function_into_finite_set
+
+lemma supr_eq_bsupr_le_of_finite {α} [complete_lattice α] {s : set α} (hs : finite s) (f : ℕ → α)
+  (hfs : ∀ i, f i ∈ s ∨ f i = ⊥) :
+  ∃ m : ℕ, (⨆ i, f i) = ⨆ i (him : i ≤ m), f i :=
+begin
+  have hfs' : ∀ (i : ℕ), f i ∈ hs.to_finset ∨ f i = ⊥,
+  { intro i,
+    cases hfs i,
+    { refine or.inl _, rwa finite.mem_to_finset, },
+    { exact or.inr h, }, },
+  haveI : decidable_eq α := classical.dec_eq α,
+  exact finset.supr_eq_bsupr_le hs.to_finset f hfs',
+end
+
+lemma supr_eq_bsupr_le_of_finite_range {α} [complete_lattice α] (f : ℕ → α)
+  (hf : (range f).finite) :
+  ∃ m : ℕ, (⨆ i, f i) = ⨆ i (him : i ≤ m), f i :=
+begin
+  have hfs' : ∀ (i : ℕ), f i ∈ hf.to_finset ∨ f i = ⊥,
+    from λ i, or.inl (finite.mem_to_finset.mpr (mem_range_self i)),
+  haveI : decidable_eq α := classical.dec_eq α,
+  exact finset.supr_eq_bsupr_le hf.to_finset f hfs',
+end
+
+lemma bsupr_nat_succ {α} [complete_lattice α] (f : ℕ → α) (m : ℕ) :
+  (⨆ i ≤ m.succ, f i) = (⨆ i ≤ m, f i) ⊔ f m.succ :=
+begin
+  refine le_antisymm _ _,
+  { refine bsupr_le (λ i him_succ, _),
+    cases nat.of_le_succ him_succ,
+    { exact le_trans (le_bsupr i h) le_sup_left, },
+    { refine le_trans _ le_sup_right,
+      rw h, }, },
+  { refine sup_le _ _,
+    { refine supr_le_supr_of_subset (λ i hi, _),
+      change i ≤ m at hi,
+      change i ≤ m.succ,
+      exact hi.trans (nat.le_succ m), },
+    { exact @le_bsupr _ _ _ (λ i, i ≤ m.succ) (λ i _, f i) m.succ (le_refl m.succ)}, },
+end
+
+lemma binfi_nat_succ {α} [complete_lattice α] (f : ℕ → α) (m : ℕ) :
+  (⨅ i ≤ m.succ, f i) = (⨅ i ≤ m, f i) ⊓ f m.succ :=
+@bsupr_nat_succ (order_dual α) _ f m
+
+
+end function_into_finite_set
+
 end set
 
 namespace finset

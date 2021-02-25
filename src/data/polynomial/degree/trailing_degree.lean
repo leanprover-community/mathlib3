@@ -253,9 +253,7 @@ lemma nat_trailing_degree_mul_X_pow {p : polynomial R} (hp : p ≠ 0) (n : ℕ) 
   (p * X ^ n).nat_trailing_degree = p.nat_trailing_degree + n :=
 begin
   apply le_antisymm,
-  { apply nat_trailing_degree_le_of_ne_zero,
-    intro h,
-    apply mt trailing_coeff_eq_zero.mp hp,
+  { refine nat_trailing_degree_le_of_ne_zero (λ h, mt trailing_coeff_eq_zero.mp hp _),
     rwa [trailing_coeff, ←coeff_mul_X_pow] },
   { rw [nat_trailing_degree_eq_support_min' (λ h, hp (mul_X_pow_eq_zero h)), finset.le_min'_iff],
     intros y hy,

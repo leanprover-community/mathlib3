@@ -315,8 +315,11 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
-  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
-by simp only [has_basis_iff, exists_prop, id, and_assoc]
+  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
+begin
+  simp only [has_basis_iff, exists_prop, id, and_assoc],
+  exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_sets_of_superset hl hts⟩⟩)
+end
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
 `p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/

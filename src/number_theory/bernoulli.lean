@@ -398,13 +398,12 @@ end
 /-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p:ℕ):
 (finset.range n).sum(λk, (k:ℚ)^p) =
-(finset.range (p + 1)).sum(λ i,
- (-1)^i*(bernoulli' i)*((p + 1).choose i)*n^(p + 1 - i)/(p + 1)) :=
+(finset.range (p + 1)).sum(λ i, (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/(p + 1)) :=
 begin
   have hpseq: power_series.mk (λ p, (finset.range n).sum (λ k,
     (k:ℚ)^p * algebra_map ℚ ℚ p.factorial⁻¹)) =
     power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
-      (-1)^i*(bernoulli' i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial))),
+      (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial))),
   { have hexp: exp ℚ - 1 ≠ 0,
     { rw [exp],
       simp only [power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
@@ -417,7 +416,7 @@ begin
   simp only [power_series.ext_iff, cast_succ, coeff_mk, cast_mul, id_apply, rat.algebra_map_rat_rat]
     at hpseq,
   have h: (finset.range n).sum (λ k, (k:ℚ)^p * p.factorial⁻¹) = (finset.range (p + 1)).sum(λ i,
-  (-1)^i*(bernoulli' i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial)) := hpseq p,
+  (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial)) := hpseq p,
   clear hpseq,
   simp only [←finset.sum_mul] at h,
   have hne_zero: ((p.factorial):ℚ) ≠ 0,

@@ -40,6 +40,7 @@ instance : small_category simplex_category :=
 @[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l+1)) :
   (f ≫ g) i = g (f i) := rfl
 
+/-- Interpet a natural number as an object of the simplex category. -/
 @[reducible] def mk (n : ℕ) : simplex_category := n
 local notation `[`n`]` := mk n
 

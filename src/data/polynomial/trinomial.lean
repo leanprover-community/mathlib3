@@ -208,4 +208,151 @@ by rw [trailing_coeff, nat_trailing_degree, to_polynomial, coeff_add, coeff_add,
 
 end trinomial
 
+/-- twist a trinomial by a unit -/
+def twist (u : units R) : trinomial R :=
+{ a := u * t.a,
+  b := u * t.b,
+  c := u * t.c,
+  ha := mt u.mul_right_eq_zero.mp t.ha,
+  hb := mt u.mul_right_eq_zero.mp t.hb,
+  hc := mt u.mul_right_eq_zero.mp t.hc,
+  i := t.i,
+  j := t.j,
+  k := t.k,
+  hij := t.hij,
+  hjk := t.hjk }
+
+lemma twist_one : t.twist 1 = t :=
+ext (one_mul _) (one_mul _) (one_mul _) rfl rfl rfl
+
+lemma twist_twist (u v : units R) : (t.twist v).twist u = t.twist (u * v) :=
+ext (mul_assoc _ _ _).symm (mul_assoc _ _ _).symm (mul_assoc _ _ _).symm rfl rfl rfl
+
+instance : mul_action (units R) (trinomial R) :=
+{ smul := λ u t, t.twist u,
+  one_smul := twist_one,
+  mul_smul := λ u v t, (t.twist_twist u v).symm }
+
+lemma smul_to_polynomial (u : units R) : (u • t).to_polynomial = (u : R) • t.to_polynomial :=
+by { simp_rw [to_polynomial, smul_add, smul_monomial], refl }
+
+lemma neg_to_polynomial {R : Type*} [ring R] (t : trinomial R) :
+  ((-1 : units R) • t).to_polynomial = -t.to_polynomial :=
+by rw [smul_to_polynomial, units.coe_neg_one, ←C_mul', C_neg, C_1, neg_one_mul]
+
+lemma neg_neg {R : Type*} [ring R] (t : trinomial R) : (-1 : units R) • (-1 : units R) • t = t :=
+by rw [smul_smul, units.neg_mul_neg, one_mul, one_smul]
+
+/-- reverse a trinomial -/
+def reverse : trinomial R :=
+{ a := t.c,
+  b := t.b,
+  c := t.a,
+  ha := t.hc,
+  hb := t.hb,
+  hc := t.ha,
+  i := t.i,
+  j := t.i + t.k - t.j,
+  k := t.k,
+  hij := nat.lt_sub_right_of_add_lt (nat.add_lt_add_left t.hjk t.i),
+  hjk := (nat.sub_lt_left_iff_lt_add ((le_of_lt t.hjk).trans (nat.le_add_left t.k t.i))).mpr
+    (nat.add_lt_add_right t.hij t.k) }
+
+lemma reverse_smul (u : units R) : (u • t).reverse = u • t.reverse := rfl
+
+lemma reverse_to_polynomial : t.reverse.to_polynomial = t.to_polynomial.reverse' :=
+begin
+  rw [reverse', t.nat_trailing_degree, polynomial.reverse, t.nat_degree],
+  simp_rw [to_polynomial, reflect_add, ←C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow,
+    C_mul_X_pow_eq_monomial, X_pow_eq_monomial t.i, add_mul, monomial_mul_monomial, mul_one],
+  rw [rev_at_le (le_of_lt t.hik), nat.sub_add_cancel (le_of_lt t.hik)],
+  rw [rev_at_le (le_of_lt t.hjk), nat.sub_add_eq_add_sub (le_of_lt t.hjk), nat.add_comm t.k t.i],
+  rw [rev_at_le (le_refl t.k), nat.sub_self, zero_add],
+  rw [add_assoc (monomial t.k t.a), add_comm (monomial t.k t.a), add_comm _ (monomial t.i t.c)],
+  refl,
+end
+
+lemma reverse_reverse : t.reverse.reverse = t :=
+by rw [←to_polynomial_inj, reverse_to_polynomial, reverse_to_polynomial, reverse'_reverse']
+
+section main_proof
+
+section rel
+
+variables {S : Type*} [ring S] (q r s : trinomial S)
+
+/-- two trinomial are related if they are the same up to negation and reverse -/
+def rel :=
+s = r ∨ s = (-1 : units S) • r ∨ s = r.reverse ∨ s = (-1 : units S) • r.reverse
+
+@[refl] lemma rel_refl : rel s s := or.inl rfl
+
+lemma rel_of_neg_rel : rel ((-1 : units S) • r) s → rel r s :=
+begin
+  rintro (h | h | h | h),
+  { exact or.inr (or.inl h) },
+  { exact or.inl (by rw [h, neg_neg]) },
+  { exact or.inr (or.inr (or.inr (by rw [h, reverse_smul]))) },
+  { exact or.inr (or.inr (or.inl (by rw [h, reverse_smul, neg_neg]))) },
+end
+
+lemma neg_rel : rel ((-1 : units S) • r) s ↔ rel r s :=
+begin
+  split,
+  { exact rel_of_neg_rel r s },
+  { exact λ h, rel_of_neg_rel ((-1 : units S) • r) s (by rwa neg_neg) },
+end
+
+lemma rel_of_reverse_rel : rel r.reverse s → rel r s :=
+begin
+  rintro (h | h | h | h),
+  { exact or.inr (or.inr (or.inl h)) },
+  { exact or.inr (or.inr (or.inr h)) },
+  { exact or.inl (h.trans r.reverse_reverse) },
+  { exact or.inr (or.inl (h.trans (congr_arg _ r.reverse_reverse))) },
+end
+
+lemma reverse_rel : rel r.reverse s ↔ rel r s :=
+begin
+  split,
+  { exact rel_of_reverse_rel r s },
+  { exact λ h, rel_of_reverse_rel r.reverse s (by rwa r.reverse_reverse) },
+end
+
+@[symm] lemma rel_symm : rel r s → rel s r :=
+begin
+  rintro (h | h | h | h),
+  all_goals { simp only [h, neg_rel, reverse_rel] },
+end
+
+@[trans] lemma rel_trans : rel q r → rel r s → rel q s :=
+begin
+  rintros (h | h | h | h),
+  all_goals { simp only [h, neg_rel, reverse_rel], exact id },
+end
+
+lemma rel_comm : rel r s ↔ rel s r := ⟨rel_symm r s, rel_symm s r⟩
+
+lemma rel_neg : rel r ((-1 : units S) • s) ↔ rel r s :=
+by rw [rel_comm, neg_rel, rel_comm]
+
+lemma rel_reverse : rel r s.reverse ↔ rel r s :=
+by rw [rel_comm, reverse_rel, rel_comm]
+
+lemma unit_rel (r s : trinomial ℤ) (u : units ℤ) : rel (u • r) s ↔ rel r s :=
+begin
+  cases int.units_eq_one_or u with hu hu,
+  { rw [hu, one_smul] },
+  { rw [hu, neg_rel] },
+end
+
+lemma rel_unit (r s : trinomial ℤ) (u : units ℤ) : rel r (u • s) ↔ rel r s :=
+begin
+  cases int.units_eq_one_or u with hu hu,
+  { rw [hu, one_smul] },
+  { rw [hu, rel_neg] },
+end
+
+end rel
+
 end polynomial

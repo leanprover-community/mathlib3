@@ -55,7 +55,8 @@ end ideal
 
 variables {a b : α}
 
--- A separate namespace definition is needed because the variables were historically in a different order
+-- A separate namespace definition is needed because the variables were historically in a different
+-- order.
 namespace ideal
 variables [comm_semiring α] (I : ideal α)
 
@@ -251,9 +252,19 @@ theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨⟨hm.1⟩, hm.2⟩⟩
 
+variables (α)
+
 /-- Krull's theorem: a nontrivial ring has a maximal ideal. -/
 theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
-let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
+let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) bot_ne_top in ⟨I, hI⟩
+
+variables {α}
+
+instance [nontrivial α] : nontrivial (ideal α) :=
+begin
+  rcases @exists_maximal α _ _ with ⟨M, hM, _⟩,
+  exact nontrivial_of_ne M ⊤ hM
+end
 
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/

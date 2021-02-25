@@ -75,9 +75,46 @@ ordered_comm_monoid.mul_le_mul_left a b h c
 lemma mul_le_mul_right' (h : a ≤ b) (c) : a * c ≤ b * c :=
 by { convert mul_le_mul_left' h c using 1; rw mul_comm }
 
+@[to_additive]
+lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) : a * d < c :=
+(mul_le_mul_left' hle a).trans_lt h
+
+@[to_additive]
+lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) : d * b < c :=
+(mul_le_mul_right' hle b).trans_lt h
+
+@[to_additive]
+lemma mul_le_of_mul_le_left (h : a * b ≤ c) (hle : d ≤ b) : a * d ≤ c :=
+(mul_le_mul_left' hle a).trans h
+
+@[to_additive]
+lemma mul_le_of_mul_le_right (h : a * b ≤ c) (hle : d ≤ a) : d * b ≤ c :=
+(mul_le_mul_right' hle b).trans h
+
+@[to_additive]
+lemma lt_mul_of_lt_mul_left (h : a < b * c) (hle : c ≤ d) : a < b * d :=
+h.trans_le (mul_le_mul_left' hle b)
+
+@[to_additive]
+lemma lt_mul_of_lt_mul_right (h : a < b * c) (hle : b ≤ d) : a < d * c :=
+h.trans_le (mul_le_mul_right' hle c)
+
+@[to_additive]
+lemma le_mul_of_le_mul_left (h : a ≤ b * c) (hle : c ≤ d) : a ≤ b * d :=
+h.trans (mul_le_mul_left' hle b)
+
+@[to_additive]
+lemma le_mul_of_le_mul_right (h : a ≤ b * c) (hle : b ≤ d) : a ≤ d * c :=
+h.trans (mul_le_mul_right' hle c)
+
 @[to_additive lt_of_add_lt_add_left]
 lemma lt_of_mul_lt_mul_left' : a * b < a * c → b < c :=
 ordered_comm_monoid.lt_of_mul_lt_mul_left a b c
+
+@[to_additive lt_of_add_lt_add_right]
+lemma lt_of_mul_lt_mul_right' (h : a * b < c * b) : a < c :=
+lt_of_mul_lt_mul_left'
+  (show b * a < b * c, begin rw [mul_comm b a, mul_comm b c], assumption end)
 
 @[to_additive add_le_add]
 lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
@@ -87,22 +124,55 @@ lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
 lemma mul_le_mul_three {e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) : a * b * c ≤ d * e * f :=
 mul_le_mul' (mul_le_mul' h₁ h₂) h₃
 
+-- here we start using properties of one.
 @[to_additive le_add_of_nonneg_right]
 lemma le_mul_of_one_le_right' (h : 1 ≤ b) : a ≤ a * b :=
-have a * 1 ≤ a * b, from mul_le_mul_left' h _,
-by rwa mul_one at this
+by simpa only [mul_one] using mul_le_mul_left' h a
 
 @[to_additive le_add_of_nonneg_left]
 lemma le_mul_of_one_le_left' (h : 1 ≤ b) : a ≤ b * a :=
-have 1 * a ≤ b * a, from mul_le_mul_right' h a,
-by rwa one_mul at this
+by simpa only [one_mul] using mul_le_mul_right' h a
 
-@[to_additive lt_of_add_lt_add_right]
-lemma lt_of_mul_lt_mul_right' (h : a * b < c * b) : a < c :=
-lt_of_mul_lt_mul_left'
-  (show b * a < b * c, begin rw [mul_comm b a, mul_comm b c], assumption end)
+@[to_additive add_le_of_nonpos_right]
+lemma mul_le_of_le_one_right' (h : b ≤ 1) : a * b ≤ a :=
+by simpa only [mul_one] using mul_le_mul_left' h a
 
--- here we start using properties of one.
+@[to_additive add_le_of_nonpos_left]
+lemma mul_le_of_le_one_left' (h : b ≤ 1) : b * a ≤ a :=
+by simpa only [one_mul] using mul_le_mul_right' h a
+
+@[to_additive]
+lemma lt_of_mul_lt_of_one_le_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=
+(le_mul_of_one_le_right' hle).trans_lt h
+
+@[to_additive]
+lemma lt_of_mul_lt_of_one_le_right (h : a * b < c) (hle : 1 ≤ a) : b < c :=
+(le_mul_of_one_le_left' hle).trans_lt h
+
+@[to_additive]
+lemma le_of_mul_le_of_one_le_left (h : a * b ≤ c) (hle : 1 ≤ b) : a ≤ c :=
+(le_mul_of_one_le_right' hle).trans h
+
+@[to_additive]
+lemma le_of_mul_le_of_one_le_right (h : a * b ≤ c) (hle : 1 ≤ a) : b ≤ c :=
+(le_mul_of_one_le_left' hle).trans h
+
+@[to_additive]
+lemma lt_of_lt_mul_of_le_one_left (h : a < b * c) (hle : c ≤ 1) : a < b :=
+h.trans_le (mul_le_of_le_one_right' hle)
+
+@[to_additive]
+lemma lt_of_lt_mul_of_le_one_right (h : a < b * c) (hle : b ≤ 1) : a < c :=
+h.trans_le (mul_le_of_le_one_left' hle)
+
+@[to_additive]
+lemma le_of_le_mul_of_le_one_left (h : a ≤ b * c) (hle : c ≤ 1) : a ≤ b :=
+h.trans (mul_le_of_le_one_right' hle)
+
+@[to_additive]
+lemma le_of_le_mul_of_le_one_right (h : a ≤ b * c) (hle : b ≤ 1) : a ≤ c :=
+h.trans (mul_le_of_le_one_left' hle)
+
 @[to_additive]
 lemma le_mul_of_one_le_of_le (ha : 1 ≤ a) (hbc : b ≤ c) : b ≤ a * c :=
 one_mul b ▸ mul_le_mul' ha hbc

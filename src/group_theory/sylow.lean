@@ -163,7 +163,7 @@ have hx : x ≠ list.repeat (1 : G) p, from λ h, by simpa [h, vector.repeat] us
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
   have list.rotate x (n : zmod p).val = x :=
     subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p))),
-  by rwa [zmod.val_cast_nat, ← hx₁, rotate_mod] at this),
+  by rwa [zmod.val_nat_cast, ← hx₁, rotate_mod] at this),
 let ⟨a, ha⟩ := this in
 ⟨a, have hx1 : x.prod = 1 := hx₂,
   have ha1: a ≠ 1, from λ h, hx (ha.symm ▸ h ▸ hx₁ ▸ rfl),

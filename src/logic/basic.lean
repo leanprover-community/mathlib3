@@ -63,6 +63,12 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   x = y ↔ true :=
 by cc
 
+lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
+⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
+
+lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
+⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
+
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
    part of a chain. -/
@@ -636,6 +642,26 @@ lemma eq_mp_rfl {α : Sort*} {a : α} : eq.mp (eq.refl α) a = a := rfl
 @[simp]
 lemma eq_mpr_rfl {α : Sort*} {a : α} : eq.mpr (eq.refl α) a = a := rfl
 
+@[simp] lemma congr_refl_left {α β : Sort*} (f : α → β) {a b : α} (h : a = b) :
+  congr (eq.refl f) h = congr_arg f h :=
+rfl
+
+@[simp] lemma congr_refl_right {α β : Sort*} {f g : α → β} (h : f = g) (a : α) :
+  congr h (eq.refl a) = congr_fun h a :=
+rfl
+
+@[simp] lemma congr_arg_refl {α β : Sort*} (f : α → β) (a : α) :
+  congr_arg f (eq.refl a) = eq.refl (f a) :=
+rfl
+
+@[simp] lemma congr_fun_rfl {α β : Sort*} (f : α → β) (a : α) :
+  congr_fun (eq.refl f) a = eq.refl (f a) :=
+rfl
+
+@[simp] lemma congr_fun_congr_arg {α β γ : Sort*} (f : α → β → γ) {a a' : α} (p : a = a') (b : β) :
+  congr_fun (congr_arg f p) b = congr_arg (λ a, f a b) p :=
+rfl
+
 lemma heq_of_eq_mp :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : (eq.mp e a) = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
@@ -985,7 +1011,7 @@ We make decidability results that depends on `classical.choice` noncomputable le
 * We make them lemmas, and not definitions, because otherwise later definitions will raise
   \"failed to generate bytecode\" errors when writing something like
   `letI := classical.dec_eq _`.
-Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>
+Cf. <https://leanprover-community.github.io/archive/stream/113488-general/topic/noncomputable.20theorem.html>
 -/
 library_note "classical lemma"
 

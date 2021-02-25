@@ -5,8 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
 
-set_option old_structure_cmd true
-
 /-!
 # Ordered groups
 
@@ -19,6 +17,8 @@ may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
 
 -/
+
+set_option old_structure_cmd true
 
 universe u
 variable {α : Type u}

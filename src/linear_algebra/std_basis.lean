@@ -39,10 +39,10 @@ variables (R : Type*) {ι : Type*} [semiring R] (φ : ι → Type*)
   [Π i, add_comm_monoid (φ i)] [Π i, semimodule R (φ i)] [decidable_eq ι]
 
 /-- The standard basis of the product of `φ`. -/
-def std_basis (i : ι) : φ i →ₗ[R] (Πi, φ i) := pi (diag i)
+def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
-by ext j; rw [std_basis, pi_apply, diag, update_apply]; refl
+rfl
 
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
 funext $ std_basis_apply R φ i
@@ -53,30 +53,12 @@ by rw [std_basis_apply, update_same]
 lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis R φ i b j = 0 :=
 by rw [std_basis_apply, update_noteq h]; refl
 
-section ext
-
-variables {R φ} {M : Type*} [fintype ι] [add_comm_monoid M] [semimodule R M]
-  {f g : (Π i, φ i) →ₗ[R] M}
-
-lemma pi_ext (h : ∀ i x, f (pi.single i x) = g (pi.single i x)) :
-  f = g :=
-to_add_monoid_hom_injective $ add_monoid_hom.functions_ext _ _ _ h
-
-lemma pi_ext_iff : f = g ↔ ∀ i x, f (pi.single i x) = g (pi.single i x) :=
-⟨λ h i x, h ▸ rfl, pi_ext⟩
-
-/-- This is used as the ext lemma instead of `linear_map.pi_ext` for reasons explained in
-note [partially-applied ext lemmas]. -/
-@[ext] lemma pi_ext' (h : ∀ i, f.comp (std_basis R φ i) = g.comp (std_basis R φ i)) : f = g :=
+lemma std_basis_eq_pi_diag (i : ι) : std_basis R φ i = pi (diag i) :=
 begin
-  refine pi_ext (λ i x, _),
-  simpa only [comp_apply, coe_std_basis] using linear_map.congr_fun (h i) x
+  ext x j,
+  convert (update_apply 0 x i j _).symm,
+  refl,
 end
-
-lemma pi_ext'_iff : f = g ↔ ∀ i, f.comp (std_basis R φ i) = g.comp (std_basis R φ i) :=
-⟨λ h i, h ▸ rfl, pi_ext'⟩
-
-end ext
 
 lemma ker_std_basis (i : ι) : ker (std_basis R φ i) = ⊥ :=
 ker_eq_bot_of_injective $ assume f g hfg,
@@ -84,7 +66,7 @@ ker_eq_bot_of_injective $ assume f g hfg,
   by simpa only [std_basis_same]
 
 lemma proj_comp_std_basis (i j : ι) : (proj i).comp (std_basis R φ j) = diag j i :=
-by rw [std_basis, proj_pi]
+by rw [std_basis_eq_pi_diag, proj_pi]
 
 lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis R φ i) = id :=
 by ext b; simp

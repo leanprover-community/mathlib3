@@ -36,26 +36,30 @@ instance : small_category simplex_category :=
   comp := λ _ _ _ f g, preorder_hom.comp g f, }
 
 @[simp] lemma id_apply {n : simplex_category} (i : fin (n+1)) :
-  (𝟙 n : fin _ → fin _) i = i := rfl
+  (𝟙 n : fin (n+1) → fin (n+1)) i = i := rfl
 @[simp] lemma comp_apply {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) (i : fin (l+1)) :
   (f ≫ g) i = g (f i) := rfl
+
+/-- Interpet a natural number as an object of the simplex category. -/
+@[reducible] def mk (n : ℕ) : simplex_category := n
+local notation `[`n`]` := mk n
 
 section generators
 /-!
 ## Generating maps for the simplex category
 
-PROJECT: prove that the simplex category is equivalent to
+TODO: prove that the simplex category is equivalent to
 one given by the following generators and relations.
 -/
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
 def δ {n} (i : fin (n+2)) :
-  @has_hom.hom simplex_category _ n (n+1 : ℕ) :=
+  [n] ⟶ [n+1] :=
 (fin.succ_above i).to_preorder_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
 def σ {n} (i : fin (n+1)) :
-  @has_hom.hom simplex_category _ (n+1 : ℕ) n :=
+  [n+1] ⟶ [n] :=
 { to_fun := fin.pred_above i,
   monotone' := fin.pred_above_right_monotone i }
 
@@ -86,35 +90,46 @@ lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_suc
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
 begin
   ext k,
-  dsimp [δ, σ, fin.succ_above, fin.pred_above],
+  suffices : ite (j.succ.cast_succ < ite (k < i) k.cast_succ k.succ)
+    (ite (k < i) (k:ℕ) (k + 1) - 1) (ite (k < i) k (k + 1)) =
+      ite ((if h : (j:ℕ) < k
+        then k.pred (by { rintro rfl, exact nat.not_lt_zero _ h })
+        else k.cast_lt (by { cases j, cases k, linarith })).cast_succ < i)
+          (ite (j.cast_succ < k) (k - 1) k) (ite (j.cast_succ < k) (k - 1) k + 1),
+  { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
   simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
-  simp with push_cast, -- `simp?` doesn't work here
+  dsimp, simp only [if_congr, subtype.mk_lt_mk, dif_ctx_congr],
   split_ifs,
+  -- Most of the goals can now be handled by `linarith`,
+  -- but we have to deal with two of them by hand.
+  swap 8,
+  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) ‹_›)).symm, },
+  swap 7,
+  { have : k ≤ i := nat.le_of_pred_lt ‹_›, linarith, },
   -- Hope for the best from `linarith`:
-  all_goals { simp at *, try { linarith }, },
-  -- Two of the goals need special handling:
-  { replace h_3 := nat.le_of_pred_lt h_3, change k ≤ i at h_3, linarith, },
-  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_1)).symm, },
+  all_goals { try { refl <|> simp at * }; linarith, },
 end
 
 /-- The first part of the third simplicial identity -/
 lemma δ_comp_σ_self {n} {i : fin (n+1)} :
-  δ i.cast_succ ≫ σ i = 𝟙 _ :=
+  δ i.cast_succ ≫ σ i = 𝟙 [n] :=
 begin
   ext j,
+  suffices : ite (fin.cast_succ i < ite (j < i) (fin.cast_succ j) j.succ)
+    (ite (j < i) (j:ℕ) (j + 1) - 1) (ite (j < i) j (j + 1)) = j,
+  { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
-  dsimp [δ, σ, fin.succ_above, fin.pred_above],
-  simp with push_cast,
+  dsimp, simp only [if_congr, subtype.mk_lt_mk],
   split_ifs; { simp at *; linarith, },
 end
 
 /-- The second part of the third simplicial identity -/
 lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
-  δ i.succ ≫ σ i = 𝟙 _ :=
+  δ i.succ ≫ σ i = 𝟙 [n] :=
 begin
   ext j,
   rcases i with ⟨i, _⟩,
@@ -133,20 +148,33 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp at H,
-  -- rw apply_dite fin.cast_succ,
-  simp [apply_dite fin.cast_succ] with push_cast, -- `simp?` doesn't work here
+  simp only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
+  suffices : ite (_ < ite (k < i + 1) _ _) _ _ =
+    ite _ (ite (j < k) (k - 1) k) (ite (j < k) (k - 1) k + 1),
+  { simpa [apply_dite fin.cast_succ] with push_cast, },
   split_ifs,
-  -- Hope for the best from `linarith`:
-  any_goals { simp at *, try { linarith }, },
-  -- Four of the goals need special handling:
-  { simp at h_1,
+  -- Most of the goals can now be handled by `linarith`,
+  -- but we have to deal with three of them by hand.
+  swap 2,
+  { simp only [subtype.mk_lt_mk] at h_1,
+    simp only [not_lt] at h_2,
+    simp only [self_eq_add_right, one_ne_zero],
     exact lt_irrefl (k - 1) (lt_of_lt_of_le
-     (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
-     (le_trans (nat.le_of_lt_succ h) h_2)) },
-  { simp at h_1, linarith, },
-  { exfalso, exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
-  { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
+      (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
+      (le_trans (nat.le_of_lt_succ h) h_2)) },
+  swap 4,
+  { simp only [subtype.mk_lt_mk] at h_1,
+    simp only [not_lt] at h,
+    simp only [nat.add_succ_sub_one, add_zero],
+    exfalso,
+    exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
+  swap 4,
+  { simp only [subtype.mk_lt_mk] at h_1,
+    simp only [not_lt] at h_3,
+    simp only [nat.add_succ_sub_one, add_zero],
+    exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
+  -- Hope for the best from `linarith`:
+  all_goals { simp at h_1 h_2 ⊢; linarith, },
 end
 
 local attribute [simp] fin.pred_mk
@@ -160,34 +188,37 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp at H,
-  simp with push_cast,
+  simp only [subtype.mk_le_mk] at H,
+  -- At this point `simp with push_cast` makes good progress, but neither `simp?` nor `squeeze_simp`
+  -- return usable sets of lemmas.
+  -- To avoid using a non-terminal simp, we make a `suffices` statement indicating the shape
+  -- of the goal we're looking for, and then use `simpa with push_cast`.
+  -- I'm not sure this is actually much more robust that a non-terminal simp.
+  suffices : ite (_ < dite (i < k) _ _) _ _ =
+    ite (_ < dite (j + 1 < k) _ _) _ _,
+  { simpa with push_cast, },
   split_ifs,
-  -- Hope for the best from `linarith`:
-  any_goals { simp at *, try { linarith }, },
-  { exact false.elim
+  -- `split_ifs` created 12 goals.
+  -- Most of them are dealt with `by simp at *; linarith`,
+  -- but we pull out two harder ones to do by hand.
+  swap 3,
+  { simp only [not_lt] at h_2,
+    exact false.elim
     (lt_irrefl (k - 1)
       (lt_of_lt_of_le (nat.pred_lt (id (ne_of_lt (lt_of_le_of_lt (zero_le i) h)).symm))
         (le_trans h_2 (nat.succ_le_of_lt h_1)))) },
-  { exact false.elim
+  swap 3,
+  { simp only [subtype.mk_lt_mk, not_lt] at h_1,
+    exact false.elim
     (lt_irrefl j (lt_of_lt_of_le (nat.pred_lt_pred (nat.succ_ne_zero j) h_2) h_1)) },
+  -- Deal with the rest automatically.
+  all_goals { simp at *; linarith, },
 end
 
 end generators
 
 section skeleton
 
-lemma skeletal : skeletal simplex_category :=
-λ X Y I,
-begin
-  rcases I with ⟨I⟩,
-  suffices : fintype.card (fin (X+1)) = fintype.card (fin (Y+1)),
-  { simpa, },
-  { apply fintype.card_congr,
-    refine ⟨I.hom, I.inv, _, _⟩,
-    intro x, exact congr_fun (congr_arg (preorder_hom.to_fun) I.hom_inv_id : _) x,
-    intro y, exact congr_fun (congr_arg (preorder_hom.to_fun) I.inv_hom_id : _) y, }
-end
 
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
@@ -195,6 +226,16 @@ def skeletal_functor :
   simplex_category ⥤ NonemptyFinLinOrd.{u} :=
 { obj := λ n, NonemptyFinLinOrd.of $ ulift (fin (n+1)),
   map := λ m n f, ⟨λ i, ⟨f i.down⟩, λ ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, from f.monotone h⟩, }
+
+lemma skeletal : skeletal simplex_category :=
+λ X Y ⟨I⟩,
+begin
+  suffices : fintype.card (fin (X+1)) = fintype.card (fin (Y+1)),
+  { simpa, },
+  { apply fintype.card_congr,
+    refine equiv.ulift.symm.trans (((skeletal_functor ⋙ forget _).map_iso I).to_equiv.trans _),
+    apply equiv.ulift }
+end
 
 namespace skeletal_functor
 
@@ -205,7 +246,7 @@ instance : full skeletal_functor.{u} :=
 instance : faithful skeletal_functor.{u} :=
 { map_injective' := λ m n f g h,
   begin
-    ext1 i, apply equiv.ulift.symm.injective,
+    ext1 i, apply ulift.up.inj,
     show skeletal_functor.map f ⟨i⟩ = skeletal_functor.map g ⟨i⟩,
     rw h,
   end }
@@ -245,6 +286,6 @@ end skeleton
 noncomputable
 def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
 { skel := skeletal,
-  eqv := is_equivalence.of_equivalence skeletal_equivalence }
+  eqv := skeletal_functor.is_equivalence }
 
 end simplex_category

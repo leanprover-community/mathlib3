@@ -74,7 +74,8 @@ le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin h
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
   [is_scalar_tower R S A] (s : set S) :
-  adjoin R (algebra_map S A '' s) = subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
+  adjoin R (algebra_map S A '' s) =
+    subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
@@ -199,7 +200,8 @@ begin
   have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi yj yk hyi hyj hyk,
     show function.uncurry f (yi * yj, yk) ∈ s,
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
-  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) :=
+  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
+               (↑(insert 1 y : finset C) : set C) :=
     λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj, smul_mem
       (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
       ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩

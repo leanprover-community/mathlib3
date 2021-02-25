@@ -82,18 +82,18 @@ meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list 
   tactic (list (name × linter × rb_map name string)) := do
 checks.mmap $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
-  results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
-    tt ← should_be_linted linter_name decl.to_name | pure results,
-    s ← read,
-    let linter_warning : option string :=
+  test_decls ← test_decls.mfilter (λ decl, should_be_linted linter_name decl.to_name),
+  s ← read,
+  let results := test_decls.map_async_chunked $ λ decl, prod.mk decl.to_name $
       match linter.test decl s with
       | result.success w _ := w
       | result.exception msg _ _ :=
         some $ "LINTER FAILED:\n" ++ msg.elim "(no message)" (λ msg, to_string $ msg ())
       end,
-    match linter_warning with
-    | some w := pure $ results.insert decl.to_name w
-    | none := pure results
+  let results := results.foldl (λ (results : rb_map name string) warning,
+    match warning with
+    | (decl_name, some w) := results.insert decl_name w
+    | (_, none) := results
     end) mk_rb_map,
   pure (linter_name, linter, results)
 

@@ -512,7 +512,15 @@ begin
   exact h,
 end
 
-/-- The preimage of a connected component is connected if the function has connected fibers
+/-- A clopen set is the union of its connected components. -/
+lemma is_clopen.eq_union_connected_components {Z : set α} (h : is_clopen Z) :
+  Z = (⋃ (x : α) (H : x ∈ Z), connected_component x) :=
+eq_of_subset_of_subset (λ x xZ, mem_Union.2 ⟨x, mem_Union.2 ⟨xZ, mem_connected_component⟩⟩)
+  (Union_subset $ λ x, Union_subset $ λ xZ,
+    (by { apply subset.trans connected_component_subset_Inter_clopen
+      (Inter_subset _ ⟨Z, ⟨h, xZ⟩⟩) }))
+
+/-- The preimage of a connected component is preconnected if the function has connected fibers
 and a subset is closed iff the preimage is. -/
 lemma preimage_connected_component_connected {β : Type*} [topological_space β] {f : α → β}
   (connected_fibers : ∀ t : β, is_connected (f ⁻¹' {t}))
@@ -770,13 +778,17 @@ lemma connected_component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔
   connected_component x = connected_component y :=
 ⟨λ h, quotient.exact h, λ h, quotient.sound h⟩
 
+lemma connected_component_nrel_iff {x y : α} : ⟦x⟧ ≠ ⟦y⟧ ↔
+  connected_component x ≠ connected_component y :=
+by { rw not_iff_not, exact connected_component_rel_iff }
+
 /-- The quotient of a space by its connected components -/
-def pi0 (α : Type u) [topological_space α] := quotient (connected_component_setoid α)
+def connected_components (α : Type u) [topological_space α] :=
+  quotient (connected_component_setoid α)
 
-localized "notation `π₀` := pi0" in topological_space
-
-instance [inhabited α] : inhabited (π₀ α) := ⟨quotient.mk (default _)⟩
-instance pi0.topological_space : topological_space (π₀ α) := quotient.topological_space
+instance [inhabited α] : inhabited (connected_components α) := ⟨quotient.mk (default _)⟩
+instance connected_components.topological_space : topological_space (connected_components α) :=
+  quotient.topological_space
 
 lemma continuous.image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β]
   {f : α → β} (h : continuous f) (a b : α) (hab : a ≈ b) : f a = f b :=
@@ -784,25 +796,29 @@ singleton_eq_singleton_iff.1 $
   h.image_connected_component_eq_singleton a ▸
   h.image_connected_component_eq_singleton b ▸ hab ▸ rfl
 
-/-- The lift to `π₀ α` of a continuous map from `α` to a totally disconnected space -/
-def continuous.pi0_lift {β : Type*} [topological_space β] [totally_disconnected_space β] {f : α → β}
-  (h : continuous f) : π₀ α → β :=
+/--
+The lift to `connected_components α` of a continuous map from `α` to a totally disconnected space
+-/
+def continuous.connected_components_lift {β : Type*} [topological_space β]
+  [totally_disconnected_space β] {f : α → β} (h : continuous f) : connected_components α → β :=
 quotient.lift f h.image_eq_of_equiv
 
-@[continuity] lemma continuous.pi0_lift_continuous {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) : continuous h.pi0_lift :=
+@[continuity] lemma continuous.connected_components_lift_continuous {β : Type*}
+  [topological_space β] [totally_disconnected_space β] {f : α → β} (h : continuous f) :
+  continuous h.connected_components_lift :=
 continuous_quotient_lift h.image_eq_of_equiv h
 
-@[simp] lemma continuous.pi0_lift_factors {β : Type*} [topological_space β]
+@[simp] lemma continuous.connected_components_lift_factors {β : Type*} [topological_space β]
   [totally_disconnected_space β] {f : α → β} (h : continuous f) :
-  h.pi0_lift ∘ quotient.mk = f := rfl
+  h.connected_components_lift ∘ quotient.mk = f := rfl
 
-lemma continuous.pi0_lift_unique {β : Type*} [topological_space β] [totally_disconnected_space β]
-  {f : α → β} (h : continuous f) (g : π₀ α → β) (hg : g ∘ quotient.mk = f) : g = h.pi0_lift :=
+lemma continuous.connected_components_lift_unique {β : Type*} [topological_space β]
+  [totally_disconnected_space β] {f : α → β} (h : continuous f) (g : connected_components α → β)
+  (hg : g ∘ quotient.mk = f) : g = h.connected_components_lift :=
 by { subst hg, ext1 x, exact quotient.induction_on x (λ a, refl _) }
 
-lemma pi0_lift_unique' {β : Type*} (g₁ : π₀ α → β) (g₂ : π₀ α → β)
-  (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ :=
+lemma connected_components_lift_unique' {β : Type*} (g₁ : connected_components α → β)
+  (g₂ : connected_components α → β) (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ :=
 begin
   ext1 x,
   refine quotient.induction_on x (λ a, _),
@@ -810,9 +826,10 @@ begin
   rw hg,
 end
 
-/-- The preimage of a singleton in `π₀` is the connected component of an element in the
-equivalence class. -/
-lemma pi0_preimage_singleton {t : α} : connected_component t = quotient.mk ⁻¹' {⟦t⟧} :=
+/-- The preimage of a singleton in `connected_components` is the connected component
+of an element in the equivalence class. -/
+lemma connected_components_preimage_singleton {t : α} :
+  connected_component t = quotient.mk ⁻¹' {⟦t⟧} :=
 begin
   apply set.eq_of_subset_of_subset; intros a ha,
   { have H : ⟦a⟧ = ⟦t⟧ := quotient.sound (connected_component_eq ha).symm,
@@ -824,9 +841,9 @@ begin
   exact mem_connected_component,
 end
 
-/-- The preimage of the image of a set under the quotient map to `π₀ α` is the union of the
-connected components of the elements in it. -/
-lemma pi0_preimage_image (U : set α) :
+/-- The preimage of the image of a set under the quotient map to `connected_components α`
+is the union of the connected components of the elements in it. -/
+lemma connected_components_preimage_image (U : set α) :
   quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ (x : α) (h : x ∈ U), connected_component x :=
 begin
   apply set.eq_of_subset_of_subset,
@@ -835,13 +852,13 @@ begin
     rw connected_component_rel_iff.1 hab,
     exact mem_connected_component },
   refine Union_subset (λ a, Union_subset (λ ha, _)),
-  rw [pi0_preimage_singleton, (surjective_quotient_mk _).preimage_subset_preimage_iff,
-    singleton_subset_iff],
+  rw [connected_components_preimage_singleton,
+    (surjective_quotient_mk _).preimage_subset_preimage_iff, singleton_subset_iff],
   exact ⟨a, ha, refl _⟩,
 end
 
-instance pi0.totally_disconnected_space :
-  totally_disconnected_space (π₀ α) :=
+instance connected_components.totally_disconnected_space :
+  totally_disconnected_space (connected_components α) :=
 begin
   rw totally_disconnected_space_iff_connected_component_singleton,
   refine λ x, quotient.induction_on x (λ a, _),
@@ -854,15 +871,19 @@ begin
     exact mem_preimage.2 mem_connected_component },
   apply (@preimage_connected_component_connected _ _ _ _ _ _ _ _).2,
   { refine λ t, quotient.induction_on t (λ s, _),
-    rw ←pi0_preimage_singleton,
+    rw ←connected_components_preimage_singleton,
     exact is_connected_connected_component },
   refine λ T, ⟨λ hT, hT.preimage continuous_quotient_mk, λ hT, _⟩,
   rwa [←is_open_compl_iff, ←preimage_compl, quotient_map_quotient_mk.is_open_preimage] at hT,
 end
 
-/-- Functoriality of `π₀` -/
-def continuous.pi0_map {β : Type*} [topological_space β] {f : α → β} (h : continuous f) :
-  π₀ α → π₀ β :=
-continuous.pi0_lift (continuous_quotient_mk.comp h)
+/-- Functoriality of `connected_components` -/
+def continuous.connected_components_map {β : Type*} [topological_space β] {f : α → β}
+  (h : continuous f) : connected_components α → connected_components β :=
+continuous.connected_components_lift (continuous_quotient_mk.comp h)
+
+lemma continuous.connected_components_map_continuous {β : Type*} [topological_space β] {f : α → β}
+  (h : continuous f) : continuous h.connected_components_map :=
+continuous.connected_components_lift_continuous (continuous_quotient_mk.comp h)
 
 end connected_component_setoid

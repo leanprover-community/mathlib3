@@ -433,7 +433,7 @@ begin
   { simp only [←one_div, mul_one_div],
     rw [eq_comm, div_eq_iff hp, eq_comm, div_mul_eq_mul_div, div_eq_iff hne_zero'],
     simp only [cast_succ, one_mul, cast_mul, factorial_succ, mul_comm], },
-  rw [hfrac], },
+  rw [hfrac],
 end
 
 end faulhaber

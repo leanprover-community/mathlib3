@@ -15,7 +15,7 @@ Terms of type `finset α` are one way of talking about finite subsets of `α` in
 Below, `finset α` is defined as a structure with 2 fields:
 
   1. `val` is a `multiset α` of elements;
-  2. `no_dup` is a proof that `val` has no duplicates.
+  2. `nodup` is a proof that `val` has no duplicates.
 
 Finsets in Lean are constructive in that they have an underlying `list` that enumerates their
 elements. In particular, any function that uses the data of the underlying list cannot depend on its
@@ -41,15 +41,14 @@ and the empty finset otherwise. See `data.finsum`.
 
 ### Main definitions
 
-* `finset`: The whole point of this file.
+* `finset`: Defines a type for the finite subsets of `α`.
 * `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
 * `finset.has_coe`: Coerces `s : finset α` to `s : set α`.
-* `finset.induction_on`: Induction on finsets.
-  To prove a statement `P s` for some predicate `P` on `s : finset α`,
-  it suffices to prove the base case `P ∅` and the induction step
-  "for any `t ⊆ s` and `a ∈ s`, `P t` implies `P (t ∪ {a})`, or equivalently, `P (insert t a)`."
-* `finset.choose`: Given a proof `h` of uniqueness of a certain element satisfying a predicate,
-  `choose s h` returns the element of `s` satisfying that predicate.
+* `finset.induction_on`: Induction on finsets. To prove a proposition about an arbitrary finset α,
+  it suffices to prove it for the empty finset, and to show that if it holds for some finset α,
+  then it holds for the finset obtained by inserting a new element.
+* `finset.choose`: Given a proof `h` of existence and uniqueness of a certain element
+  satisfying a predicate, `choose s h` returns the element of `s` satisfying that predicate.
 * `finset.card`: `card s : ℕ` returns the cardinalilty of `s : finset α`.
   The API for `card`'s interaction with operations on finsets is extensive.
   TODO: The noncomputable sister `fincard` is about to be added into mathlib.
@@ -57,7 +56,7 @@ and the empty finset otherwise. See `data.finsum`.
 ### Finset constructions
 
 * `singleton`: Denoted by `{a}`; the finset consisting of one element.
-* `finset.empty`: Denoted by `∅`. Behaves exactly as one would expect.
+* `finset.empty`: Denoted by `∅`. The finset associated to any type consisting of no elements.
 * `finset.range`: For any `n : ℕ`, `range n` is equal to `{0, 1, ... , n - 1} ⊆ ℕ`.
   This convention is consistent with other languages and normalizes `card (range n) = n`.
   Beware, `n` is not in `range n`.
@@ -72,7 +71,7 @@ and the empty finset otherwise. See `data.finsum`.
 * `finset.image`: Given a function `f : α → β`, `s.image f` is the image finset in `β`.
 * `finset.map`: Given an embedding `f : α ↪ β`, `s.map f` is the image finset in `β`.
 * `finset.filter`: Given a predicate `p : α → Prop`, `s.filter p` is
-  the finset `{ x ∈ s : p x }`.
+  the finset consisting of those elements in `s` satisfying the predicate `p`.
 
 ### The lattice structure on subsets of finsets
 
@@ -84,8 +83,8 @@ called `top` with `⊤ = univ`.
 * `finset.subset`: Lots of API about lattices, otherwise behaves exactly as one would expect.
 * `finset.union`: Defines `s ∪ t` (or `s ⊔ t`) as the union of `s` and `t`.
   See `finset.bUnion` for finite unions.
-* `finset.inter`: Defines `s ∩ t` (or `s ⊓ t`) as the intersection of `s` and `t`. Still missing:
-  `finset.bInter` for finite intersections.
+* `finset.inter`: Defines `s ∩ t` (or `s ⊓ t`) as the intersection of `s` and `t`.
+  TODO: `finset.bInter` for finite intersections.
 * `finset.disj_union`: Given a hypothesis `h` which states that finsets `s` and `t` are disjoint,
   `s.disj_union t h` is the set such that `a ∈ disj_union s t h` iff `a ∈ s` or `a ∈ t`; this does
   not require decidable equality on the type `α`.

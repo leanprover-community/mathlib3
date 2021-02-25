@@ -258,17 +258,13 @@ I.unique_diff _ (mem_range_self _)
 lemma model_with_corners.locally_compact [locally_compact_space E] (I : model_with_corners 𝕜 E H) :
   locally_compact_space H :=
 begin
-  refine ⟨λ x s hs, _⟩,
-  have : I '' s ∈ 𝓝[range I] (I x), from I.image_mem_nhds_within hs,
-  rcases locally_compact_space.local_compact_nhds _ _ (mem_inf_principal.1 this)
-    with ⟨K, hKx, hKs, hKc⟩,
-  refine ⟨I.symm '' (range I ∩ K), _, _, _⟩,
-  { rw ← I.symm_map_nhds_within_range,
-    exact image_mem_map (inter_mem_nhds_within _ hKx) },
-  { rintro _ ⟨y, ⟨hyI, hyK⟩, rfl⟩,
-    rcases hKs hyK hyI with ⟨x', hx's, rfl⟩,
-    rwa I.left_inv },
-  { exact (hKc.inter_left I.closed_range).image I.continuous_symm }
+  have : ∀ x : H, (𝓝 x).has_basis _ _,
+  { intro x,
+    rw ← I.symm_map_nhds_within_range,
+    exact ((compact_basis_nhds (I x)).inf_principal _).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨-, hsc⟩,
+  exact (hsc.inter_right I.closed_range).image I.continuous_symm
 end
 
 end

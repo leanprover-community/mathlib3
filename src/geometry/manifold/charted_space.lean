@@ -503,21 +503,14 @@ lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 is locally compact. -/
 lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
 begin
-  refine ⟨λ x s hs, _⟩,
-  have : chart_at H x '' (s ∩ (chart_at H x).source) ∈ 𝓝 (chart_at H x x),
-    from (chart_at H x).image_mem_nhds (mem_chart_source _ _)
-      (inter_mem_sets hs $ mem_nhds_sets (chart_at H x).open_source (mem_chart_source _ _)),
-  rcases locally_compact_space.local_compact_nhds _ _ this
-    with ⟨K, hKx, hsK, hKc⟩,
-  refine ⟨(chart_at H x).symm '' K, _, _, _⟩,
-  { convert (chart_at H x).symm.image_mem_nhds (mem_chart_target _ _) hKx,
-    exact ((chart_at H x).left_inv (mem_chart_source _ _)).symm },
-  { refine subset.trans (image_subset _ hsK) _,
-    rintro _ ⟨_, ⟨x', ⟨hx's, hx'⟩, rfl⟩, rfl⟩,
-    rwa (chart_at H x).left_inv hx' },
-  { refine hKc.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono _),
-    rw ← (chart_at H x).to_local_equiv.image_source_eq_target,
-    exact subset.trans hsK (image_subset _ (inter_subset_right _ _)) }
+  have : ∀ x : M, (𝓝 x).has_basis _ _,
+  { intro x,
+    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
+    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
+      (mem_nhds_sets (chart_at H x).open_target (mem_chart_target H x))).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨h₁, h₂, h₃⟩,
+  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
 end
 
 end

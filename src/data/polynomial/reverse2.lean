@@ -217,7 +217,7 @@ end reverse'
 
 section norm2
 
-/-- the sum of the square of the coefficients of a polynomial-/
+/-- the sum of the square of the coefficients of a polynomial -/
 def norm2 := p.support.sum (λ k, (p.coeff k) ^ 2)
 
 lemma norm2_eq_sum_of_support {s : finset ℕ}

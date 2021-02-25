@@ -55,8 +55,17 @@ begin
     { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } }
 end
 
+@[simp]
 lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
 derivative.map_zero
+
+@[simp]
+lemma iterate_derivative_zero {k : ℕ} : derivative^[k] (0 : polynomial R) = 0 :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp [ih], },
+end
 
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
 (derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
@@ -87,6 +96,10 @@ by simp [bit1]
   derivative (f + g) = derivative f + derivative g :=
 derivative.map_add f g
 
+@[simp] lemma iterate_derivative_add {f g : polynomial R} {k : ℕ} :
+  derivative^[k] (f + g) = (derivative^[k] f) + (derivative^[k] g) :=
+sorry
+
 @[simp] lemma derivative_neg {R : Type*} [ring R] (f : polynomial R) :
   derivative (-f) = - derivative f :=
 linear_map.map_neg derivative f
@@ -101,6 +114,10 @@ derivative.map_sum
 
 @[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
 derivative.map_smul _ _
+
+@[simp] lemma iterate_derivative_smul (r : R) (p : polynomial R) (k : ℕ) :
+  derivative^[k] (r • p) = r • (derivative^[k] p) :=
+sorry
 
 end semiring
 
@@ -148,6 +165,7 @@ theorem derivative_pow (p : polynomial R) (n : ℕ) :
 nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_mul]) $ λ n,
 by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
 
+@[simp]
 theorem derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) :
   (p.map f).derivative = p.derivative.map f :=
 polynomial.induction_on p
@@ -157,6 +175,15 @@ polynomial.induction_on p
       derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
       derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
       map_mul, map_C, map_mul, map_pow, map_add, map_nat_cast, map_one, map_X])
+
+@[simp]
+theorem iterate_derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) (k : ℕ):
+  polynomial.derivative^[k] (p.map f) = (polynomial.derivative^[k] p).map f :=
+begin
+  induction k with k ih generalizing p,
+  simp,
+  simp [ih],
+end
 
 /-- Chain rule for formal derivative of polynomials. -/
 theorem derivative_eval₂_C (p q : polynomial R) :

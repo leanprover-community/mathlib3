@@ -75,6 +75,7 @@ begin
   { subst h, simp, },
   { simp [zero_pow (nat.pos_of_ne_zero h)], },
 end
+
 lemma eval_at_1 (n ν : ℕ) : (bernstein_polynomial n ν).eval 1 = if ν = n then 1 else 0 :=
 begin
   dsimp [bernstein_polynomial],
@@ -122,30 +123,43 @@ begin
   { apply derivative', }
 end
 
-lemma iterate_derivative_at_zero_eq_zero_of_le (n : ℕ) {ν k : ℕ} :
-  k ≤ ν → (polynomial.derivative^[k] (bernstein_polynomial n (ν+1))).eval 0 = 0 :=
+lemma derivative_zero (n : ℕ) :
+  (bernstein_polynomial n 0).derivative = -n * bernstein_polynomial (n-1) 0 :=
 begin
-  induction k with k ih generalizing n ν,
-  { simp [eval_at_0], },
-  { simp only [derivative, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
-      function.comp_app, function.iterate_succ,
-      polynomial.iterate_derivative_sub, polynomial.iterate_derivative_coe_nat_mul,
-      polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
-    intro h,
-    right,
-    rw ih,
-    simp only [sub_zero],
-    convert @ih (n-1) (ν-1) _,
-    { omega, },
-    { omega, },
-    { exact le_of_lt h, }, },
+  dsimp [bernstein_polynomial],
+  simp [polynomial.derivative_pow],
+end
+
+lemma iterate_derivative_at_zero_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
+  k < ν → (polynomial.derivative^[k] (bernstein_polynomial n ν)).eval 0 = 0 :=
+begin
+  cases ν,
+  { rintro ⟨⟩, },
+  { intro w,
+    replace w := nat.lt_succ_iff.mp w,
+    revert w,
+    induction k with k ih generalizing n ν,
+    { simp [eval_at_0], rintro ⟨⟩, },
+    { simp only [derivative, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
+        function.comp_app, function.iterate_succ,
+        polynomial.iterate_derivative_sub, polynomial.iterate_derivative_coe_nat_mul,
+        polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
+      intro h,
+      right,
+      rw ih,
+      simp only [sub_zero],
+      convert @ih (n-1) (ν-1) _,
+      { omega, },
+      { omega, },
+      { exact le_of_lt h, }, }, },
 end
 
 @[simp]
 lemma iterate_derivative_succ_at_zero_eq_zero (n ν : ℕ) :
   (polynomial.derivative^[ν] (bernstein_polynomial n (ν+1))).eval 0 = 0 :=
-iterate_derivative_at_zero_eq_zero_of_le n (le_refl _)
+iterate_derivative_at_zero_eq_zero_of_lt n (lt_add_one ν)
 
+@[simp]
 lemma iterate_derivative_self_at_0 (n ν : ℕ) :
   (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n.falling_factorial ν :=
 begin
@@ -155,6 +169,33 @@ begin
     rw [nat.falling_factorial_eq_mul_left],
     push_cast, }
 end
+
+-- lemma iterate_derivative_at_one_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
+--   ν < k → (polynomial.derivative^[k] (bernstein_polynomial n ν)).eval 1 = 0 :=
+-- begin
+--   induction k with k ih,
+--   { rintro ⟨⟩, },
+--   { induction ν,
+
+--     simp [derivative_zero], },
+-- end
+
+-- @[simp]
+-- lemma iterate_derivative_succ_at_zero_eq_zero (n ν : ℕ) :
+--   (polynomial.derivative^[ν] (bernstein_polynomial n (ν+1))).eval 0 = 0 :=
+-- iterate_derivative_at_zero_eq_zero_of_lt n (lt_add_one ν)
+
+-- @[simp]
+-- lemma iterate_derivative_self_at_0 (n ν : ℕ) :
+--   (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n.falling_factorial ν :=
+-- begin
+--   induction ν with ν ih generalizing n,
+--   { simp [eval_at_0], },
+--   { simp [derivative, ih],
+--     rw [nat.falling_factorial_eq_mul_left],
+--     push_cast, }
+-- end
+
 
 @[simp] lemma fin.init_lambda {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
   fin.init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
@@ -178,7 +219,18 @@ lemma not_mem_span_of_apply_not_mem_span {R : Type*} [semiring R]
    x ∉ submodule.span R s :=
 not.imp h (apply_mem_span_of_mem_span f)
 
+lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} {h : f x ≠ f y} : x ≠ y :=
+λ (w : x = y), h (congr_arg f w)
 
+lemma eval_zero {R : Type*} [semiring R] (p : polynomial R) : p.eval 0 = p.coeff 0 :=
+begin
+  sorry,
+end
+
+@[simp]
+lemma eval_zero_map {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 0 = f (p.eval 0) :=
+by simp [eval_zero]
 
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
@@ -188,9 +240,9 @@ begin
     rintro ⟨⟨n, ⟨⟩⟩⟩, },
   { apply linear_independent_fin_succ'.mpr,
     fsplit,
-    exact ih (le_of_lt h),
+    { exact ih (le_of_lt h), },
     { -- The actual work!
-      -- We show that the k-th derivate at 1 doesn't vanish,
+      -- We show that the k-th derivative at 0 doesn't vanish,
       -- but vanishes for everything in the span.
       clear ih,
       simp only [fin.coe_last, fin.init_lambda],
@@ -199,9 +251,16 @@ begin
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
       intros p h,
       simp,
+      apply ne_of_apply_ne (polynomial.eval (0 : ℚ)),
+      simp,
+      suffices : (polynomial.derivative^[k] p).eval 0 = 0,
       sorry,
+      apply span_induction h,
+      { simp, rintro ⟨a, w⟩, rw [iterate_derivative_at_zero_eq_zero_of_lt _ w], },
+      { simp, },
+      { intros x y hx hy, simp [hx, hy], },
+      { intros a x h, simp [h], },
       } }
-  -- library_search,
 end
 
 lemma linear_independent (n : ℕ) :

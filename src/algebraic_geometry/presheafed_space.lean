@@ -226,8 +226,7 @@ def restrict_top_iso (X : PresheafedSpace C) :
         whisker_right_app, comp_base, nat_trans.op_app, opens.map_iso_inv_app],
     erw [← X.presheaf.map_comp, ← X.presheaf.map_comp, ← X.presheaf.map_comp, id_c_app],
     convert eq_to_hom_map X.presheaf _, swap,
-    { erw [op_obj, id_base, opens.map_id_obj], refl },
-    { refine has_hom.hom.unop_inj _, exact subsingleton.elim _ _ } } }
+    { erw [op_obj, id_base, opens.map_id_obj], refl }, } }
 
 /--
 The global sections, notated Gamma.

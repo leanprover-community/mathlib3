@@ -148,8 +148,8 @@ end
 
 alias compact_iff_ultrafilter_le_nhds ↔ is_compact.ultrafilter_le_nhds _
 
-/-- For every open directed cover of a compact set, there exists an elements that includes
-the set. -/
+/-- For every open directed cover of a compact set, there exists a single element of the 
+cover which itself includes the set. -/
 lemma is_compact.elim_directed_cover {ι : Type v} [hι : nonempty ι] (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) (hdU : directed (⊆) U) :
   ∃ i, s ⊆ U i :=
@@ -803,7 +803,7 @@ end
 variables (α) [sigma_compact_space α]
 open sigma_compact_space
 
-/-- A monotone compact covering of a σ-compact space. -/
+/-- A choice of compact covering for a σ-compact space, chosen to be monotone. -/
 def compact_covering : ℕ → set α :=
 accumulate exists_compact_covering.some
 
@@ -820,46 +820,75 @@ end
   compact_covering α m ⊆ compact_covering α n :=
 monotone_accumulate h
 
-variables [locally_compact_space α]
+structure compact_exhaustion (X : Type*) [topological_space X] :=
+(to_fun : ℕ → set X)
+(is_compact' : ∀ n, is_compact (to_fun n))
+(subset_interior_succ' : ∀ n, to_fun n ⊆ interior (to_fun (n + 1)))
+(Union_eq' : (⋃ n, to_fun n) = univ)
 
-/-- A locally compact sigma compact space admits an exhaustion by compact sets. -/
-lemma exists_compact_exhaustion : ∃ K : ℕ → set α, (∀ n, is_compact (K n)) ∧
-  (∀ n, K n ⊆ interior (K (n + 1))) ∧ (⋃ n, K n) = univ :=
+namespace compact_exhaustion
+
+instance : has_coe_to_fun (compact_exhaustion α) := ⟨_, to_fun⟩
+
+variables {α} (K : compact_exhaustion α)
+
+protected lemma is_compact (n : ℕ) : is_compact (K n) := K.is_compact' n
+
+lemma subset_interior_succ (n : ℕ) : K n ⊆ interior (K (n + 1)) :=
+K.subset_interior_succ' n
+
+lemma subset_succ (n : ℕ) : K n ⊆ K (n + 1) :=
+subset.trans (K.subset_interior_succ n) interior_subset
+
+@[mono] protected lemma subset ⦃m n : ℕ⦄ (h : m ≤ n) : K m ⊆ K n :=
+show K m ≤ K n, from monotone_of_monotone_nat K.subset_succ h
+
+lemma subset_interior ⦃m n : ℕ⦄ (h : m < n) : K m ⊆ interior (K n) :=
+subset.trans (K.subset_interior_succ m) $ interior_mono $ K.subset h
+
+lemma Union_eq : (⋃ n, K n) = univ := K.Union_eq'
+
+lemma exists_mem (x : α) : ∃ n, x ∈ K n := Union_eq_univ_iff.1 K.Union_eq x
+
+protected noncomputable def find (x : α) : ℕ := nat.find (K.exists_mem x)
+
+lemma mem_find (x : α) : x ∈ K (K.find x) := nat.find_spec (K.exists_mem x)
+
+lemma mem_iff_find_le {x : α} {n : ℕ} : x ∈ K n ↔ K.find x ≤ n :=
+⟨λ h, nat.find_min' (K.exists_mem x) h, λ h, K.subset h $ K.mem_find x⟩
+
+/-- Prepend the empty set to a compact exhaustion `K n`. -/
+def shiftr : compact_exhaustion α :=
+{ to_fun := λ n, nat.cases_on n ∅ K,
+  is_compact' := λ n, nat.cases_on n compact_empty K.is_compact,
+  subset_interior_succ' := λ n, nat.cases_on n (empty_subset _) K.subset_interior_succ,
+  Union_eq' := Union_eq_univ_iff.2 $ λ x, ⟨K.find x + 1, K.mem_find x⟩ }
+
+@[simp] lemma find_shiftr (x : α) : K.shiftr.find x = K.find x + 1 :=
+nat.find_comp_succ _ _ (not_mem_empty _)
+
+lemma mem_diff_shiftr_find (x : α) : x ∈ K.shiftr (K.find x + 1) \ K.shiftr (K.find x) :=
+⟨K.mem_find _, mt K.shiftr.mem_iff_find_le.1 $
+  by simp only [find_shiftr, not_le, nat.lt_succ_self]⟩
+
+/-- A choice of an 
+[exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
+of a locally compact sigma compact space. -/
+noncomputable def choice [locally_compact_space α] : compact_exhaustion α :=
 begin
+  apply classical.choice,
   let K : ℕ → {s : set α // is_compact s} :=
     λ n, nat.rec_on n ⟨∅, compact_empty⟩
       (λ n s, ⟨(exists_compact_superset s.2).some ∪ compact_covering α n,
         (exists_compact_superset s.2).some_spec.1.union (is_compact_compact_covering _ _)⟩),
-  refine ⟨λ n, K n, λ n, (K n).2, λ n, _, _⟩,
+  refine ⟨⟨λ n, K n, λ n, (K n).2, λ n, _, _⟩⟩,
   { exact subset.trans (exists_compact_superset (K n).2).some_spec.2
       (interior_mono $ subset_union_left _ _) },
   { refine univ_subset_iff.1 (Union_compact_covering α ▸ _),
     exact Union_subset_Union2 (λ n, ⟨n + 1, subset_union_right _ _⟩) }
 end
 
-/-- [Exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
-of a locally compact sigma compact space. -/
-def compact_exhaustion : ℕ → set α := (exists_compact_exhaustion α).some
-
-lemma is_compact_compact_exhaustion (n : ℕ) : is_compact (compact_exhaustion α n) :=
-(exists_compact_exhaustion α).some_spec.1 n
-
-lemma Union_compact_exhaustion : (⋃ n, compact_exhaustion α n) = univ :=
-(exists_compact_exhaustion α).some_spec.2.2
-
-lemma compact_exhaustion_subset_interior_succ (n : ℕ) :
-  compact_exhaustion α n ⊆ interior (compact_exhaustion α (n + 1)) :=
-(exists_compact_exhaustion α).some_spec.2.1 n
-
-lemma compact_exhaustion_subset ⦃m n : ℕ⦄ (h : m ≤ n) :
-  compact_exhaustion α m ⊆ compact_exhaustion α n :=
-@monotone_of_monotone_nat (set α) _ (compact_exhaustion α)
-  (λ n, subset.trans (compact_exhaustion_subset_interior_succ α n) interior_subset) _ _ h
-
-lemma compact_exhaustion_subset_interior ⦃m n : ℕ⦄ (h : m < n) :
-  compact_exhaustion α m ⊆ interior (compact_exhaustion α n) :=
-subset.trans (compact_exhaustion_subset_interior_succ α m) $
-  interior_mono (compact_exhaustion_subset α h)
+end compact_exhaustion
 
 end compact
 

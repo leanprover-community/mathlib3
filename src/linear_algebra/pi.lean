@@ -182,3 +182,19 @@ end
 end
 
 end linear_map
+
+namespace linear_equiv
+
+variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+  [∀i, add_comm_monoid (ψ i)] [∀i, semimodule R (ψ i)]
+
+/-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
+@[simps] def pi (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
+{ to_fun := λ f i, e i (f i),
+  inv_fun := λ f i, (e i).symm (f i),
+  map_add' := λ f g, by { ext, simp },
+  map_smul' := λ c f, by { ext, simp },
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ f, by { ext, simp } }
+
+end linear_equiv

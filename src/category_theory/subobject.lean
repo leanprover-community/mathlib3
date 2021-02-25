@@ -59,7 +59,7 @@ if it looks preferable.)
 There is a separate development of pseudoelements in `category_theory.abelian.pseudoelements`,
 as a quotient (but not by isomorphism) of `over X`.
 
-When a morphism `f` has an image, it represents the same pseudoelement.
+When a morphism `f` has an image, the image represents the same pseudoelement.
 In a category with images `pseudoelements X` could be constructed as a quotient of `mono_over X`.
 In fact, in an abelian category (I'm not sure in what generality beyond that),
 `pseudoelements X` agrees with `subobject X`, but we haven't developed this in mathlib yet.
@@ -82,10 +82,8 @@ This isn't skeletal, so it's not a partial order.
 
 Later we define `subobject X` as the quotient of this by isomorphisms.
 -/
-@[derive [category, λ t, has_coe t (over X)]]
+@[derive [category]]
 def mono_over (X : C) := {f : over X // mono f.hom}
-
-attribute [priority 100] mono_over.has_coe
 
 namespace mono_over
 
@@ -96,8 +94,11 @@ def mk' {X A : C} (f : A ⟶ X) [hf : mono f] : mono_over X := { val := over.mk 
 /-- The inclusion from monomorphisms over X to morphisms over X. -/
 def forget (X : C) : mono_over X ⥤ over X := full_subcategory_inclusion _
 
+instance : has_coe (mono_over X) C :=
+{ coe := λ Y, Y.val.left, }
+
 @[simp]
-lemma forget_obj_left {f} : ((forget X).obj f).left = f.val.left := rfl
+lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
 
 /-- Convenience notation for the underlying arrow of a monomorphism over X. -/
 abbreviation arrow (f : mono_over X) : _ ⟶ X := ((forget X).obj f).hom
@@ -217,11 +218,11 @@ def pullback_id : pullback (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.pullback_id ≪≫ lift_id
 
 @[simp] lemma pullback_obj_left (f : X ⟶ Y) (g : mono_over Y) :
-(↑((pullback f).obj g) : over X).left = limits.pullback g.arrow f :=
+  (((pullback f).obj g) : C) = limits.pullback g.arrow f :=
 rfl
 
 @[simp] lemma pullback_obj_arrow (f : X ⟶ Y) (g : mono_over Y) :
-((pullback f).obj g).arrow = pullback.snd :=
+  ((pullback f).obj g).arrow = pullback.snd :=
 rfl
 
 end pullback
@@ -248,12 +249,13 @@ def map_id : map (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.map_id ≪≫ lift_id
 
 @[simp] lemma map_obj_left (f : X ⟶ Y) [mono f] (g : mono_over X) :
-(↑((map f).obj g) : over Y).left = g.val.left :=
+  (((map f).obj g) : C) = g.val.left :=
 rfl
 
 @[simp]
 lemma map_obj_arrow (f : X ⟶ Y) [mono f] (g : mono_over X) :
-((map f).obj g).arrow = g.arrow ≫ f := rfl
+  ((map f).obj g).arrow = g.arrow ≫ f :=
+rfl
 
 instance full_map (f : X ⟶ Y) [mono f] : full (map f) :=
 { preimage := λ g h e,
@@ -292,6 +294,20 @@ end
 end map
 
 section image
+variables (f : X ⟶ Y) [has_image f]
+
+/--
+The `mono_over Y` for the image inclusion for a morphism `f : X ⟶ Y`.
+-/
+def image_mono_over (f : X ⟶ Y) [has_image f] : mono_over Y := mono_over.mk' (image.ι f)
+
+@[simp] lemma image_mono_over_arrow (f : X ⟶ Y) [has_image f] :
+  (image_mono_over f).arrow = image.ι f :=
+rfl
+
+end image
+
+section image
 
 variables [has_images C]
 
@@ -300,7 +316,7 @@ Taking the image of a morphism gives a functor `over X ⥤ mono_over X`.
 -/
 @[simps]
 def image : over X ⥤ mono_over X :=
-{ obj := λ f, mk' (image.ι f.hom),
+{ obj := λ f, image_mono_over f.hom,
   map := λ f g k,
   begin
     apply (forget X).preimage _,
@@ -407,7 +423,7 @@ instance {X : C} : inhabited (mono_over X) := ⟨⊤⟩
 def le_top (f : mono_over X) : f ⟶ ⊤ :=
 hom_mk f.arrow (comp_id _)
 
-@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : over X).left = X := rfl
+@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : C) = X := rfl
 @[simp] lemma top_arrow (X : C) : (⊤ : mono_over X).arrow = 𝟙 X := rfl
 
 /-- `map f` sends `⊤ : mono_over X` to `⟨X, f⟩ : mono_over Y`. -/
@@ -444,7 +460,7 @@ local attribute [instance] has_zero_object.has_zero
 instance {X : C} : has_bot (mono_over X) :=
 { bot := mk' (0 : 0 ⟶ X) }
 
-@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : over X).left = 0 := rfl
+@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = 0 := rfl
 @[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = 0 :=
 by ext
 
@@ -622,6 +638,16 @@ instance arrow_mono {X : C} (Y : subobject X) : mono (Y.arrow) :=
 (representative.obj Y).property
 
 @[simp]
+lemma representative_coe (Y : subobject X) :
+  (representative.obj Y : C) = (Y : C) :=
+rfl
+
+@[simp]
+lemma representative_arrow (Y : subobject X) :
+  (representative.obj Y).arrow = Y.arrow :=
+rfl
+
+@[simp]
 lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
@@ -671,7 +697,7 @@ begin
 end
 
 lemma factors_iff {X Y : C} (P : subobject Y) (f : X ⟶ Y) :
-  P.factors f ↔ ∃ g : X ⟶ P, g ≫ P.arrow = f :=
+  P.factors f ↔ (representative.obj P).factors f :=
 begin
   induction P,
   { rcases P with ⟨⟨P, ⟨⟩, g⟩, hg⟩,
@@ -717,9 +743,27 @@ end
 lemma factors_comp_arrow {X Y : C} {P : subobject Y} (f : X ⟶ P) : P.factors (f ≫ P.arrow) :=
 (factors_iff _ _).mpr ⟨f, rfl⟩
 
-lemma factors_of_factors_right
-  {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) {g : Y ⟶ Z} (h : P.factors g) : P.factors (f ≫ g) :=
-(factors_iff _ _).mpr ⟨f ≫ P.factor_thru g h, by simp⟩
+lemma factors_of_factors_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) {g : Y ⟶ Z}
+  (h : P.factors g) : P.factors (f ≫ g) :=
+begin
+  revert P,
+  refine quotient.ind' _,
+  intro P,
+  rintro ⟨g, rfl⟩,
+  exact ⟨f ≫ g, by simp⟩,
+end
+
+lemma factors_of_le {Y Z : C} {P Q : subobject Y} (f : Z ⟶ Y) (h : P ≤ Q) :
+  P.factors f → Q.factors f :=
+begin
+  revert P Q,
+  refine quotient.ind₂' _,
+  rintro P Q ⟨h⟩ ⟨g, rfl⟩,
+  refine ⟨g ≫ h.left, _⟩,
+  rw assoc,
+  congr' 1,
+  apply over.w h,
+end
 
 @[simp]
 lemma factor_thru_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) (g : Y ⟶ Z) (h : P.factors g) :
@@ -760,7 +804,7 @@ by simp [equalizer_subobject_arrow, equalizer.condition]
 
 lemma equalizer_subobject_factors {W : C} (h : W ⟶ X) (w : h ≫ f = h ≫ g) :
   (equalizer_subobject f g).factors h :=
-(subobject.factors_iff _ _).mpr ⟨equalizer.lift h w ≫ (equalizer_subobject_iso f g).inv, (by simp)⟩
+⟨equalizer.lift h w, by simp⟩
 
 lemma equalizer_subobject_factors_iff {W : C} (h : W ⟶ X) :
   (equalizer_subobject f g).factors h ↔ h ≫ f = h ≫ g :=
@@ -798,7 +842,7 @@ by simp [kernel_subobject_arrow, kernel.condition]
 
 lemma kernel_subobject_factors {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
   (kernel_subobject f).factors h :=
-(subobject.factors_iff _ _).mpr ⟨kernel.lift _ h w ≫ (kernel_subobject_iso f).inv, (by simp)⟩
+⟨kernel.lift _ h w, by simp⟩
 
 lemma kernel_subobject_factors_iff {W : C} (h : W ⟶ X) :
   (kernel_subobject f).factors h ↔ h ≫ f = 0 :=
@@ -813,7 +857,7 @@ variables (f : X ⟶ Y) [has_image f]
 
 /-- The image of a morphism `f g : X ⟶ Y` as a `subobject Y`. -/
 def image_subobject : subobject Y :=
-subobject.mk (image.ι f)
+(to_thin_skeleton _).obj (mono_over.image_mono_over f)
 
 /-- The underlying object of `image_subobject f` is (up to isomorphism!)
 the same as the chosen object `image f`. -/
@@ -838,11 +882,9 @@ lemma image_subobject_arrow_comp :
 by simp [factor_thru_image_subobject, image_subobject_arrow]
 
 -- TODO an iff characterisation of `(image_subobject f).factors h`
-lemma image_subobject_factors {W : C} (h : W ⟶ Y) (w : ∃ k : W ⟶ X, k ≫ f = h) :
+lemma image_subobject_factors {W : C} (h : W ⟶ Y) (k : W ⟶ X) (w : k ≫ f = h) :
   (image_subobject f).factors h :=
-(subobject.factors_iff _ _).mpr
-⟨classical.some w ≫ factor_thru_image f ≫ (image_subobject_iso f).inv,
-  by simp [classical.some_spec w]⟩
+⟨k ≫ factor_thru_image f, by simp [w]⟩
 
 lemma image_subobject_le {A B : C} {X : subobject B} (f : A ⟶ B) [has_image f]
   (h : A ⟶ X) (w : h ≫ X.arrow = f) :
@@ -1096,8 +1138,7 @@ lemma map_top (f : X ⟶ Y) [mono f] : (map f).obj ⊤ = quotient.mk' (mono_over
 quotient.sound' ⟨mono_over.map_top f⟩
 
 lemma top_factors {A B : C} (f : A ⟶ B) : (⊤ : subobject B).factors f :=
-(subobject.factors_iff _ _).mpr
-⟨f ≫ top_coe_iso_self.inv, by simp⟩
+⟨f, comp_id _⟩
 
 section
 variables [has_pullbacks C]
@@ -1187,47 +1228,38 @@ instance {B : C} : semilattice_inf_top (subobject B) :=
 
 lemma factors_left_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
   (h : (X ⊓ Y).factors f) : X.factors f :=
-(subobject.factors_iff _ _).mpr
-⟨factor_thru _ _ h ≫
-  underlying.map (hom_of_le (inf_le_left X Y)), by simp [factor_thru_arrow _ _ h]⟩
+factors_of_le _ (inf_le_left _ _) h
 
 lemma factors_right_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
   (h : (X ⊓ Y).factors f) : Y.factors f :=
-(subobject.factors_iff _ _).mpr
-⟨factor_thru _ _ h ≫
-  underlying.map (hom_of_le (inf_le_right X Y)), by simp [factor_thru_arrow _ _ h]⟩
+factors_of_le _ (inf_le_right _ _) h
 
--- TODO is this true without assuming `f` has an image?
 @[simp]
-lemma inf_factors {A B : C} {X Y : subobject B} (f : A ⟶ B) [has_image f] :
+lemma inf_factors {A B : C} {X Y : subobject B} (f : A ⟶ B) :
   (X ⊓ Y).factors f ↔ X.factors f ∧ Y.factors f :=
 ⟨λ h, ⟨factors_left_of_inf_factors h, factors_right_of_inf_factors h⟩,
-begin
-  simp only [factors_iff],
-  rintro ⟨⟨hX, wX⟩, ⟨hY, wY⟩⟩,
-  exact ⟨factor_thru_image f ≫ (image_subobject_iso f).inv ≫
-    underlying.map
-      (hom_of_le (_root_.le_inf (image_subobject_le f hX wX) (image_subobject_le f hY wY))),
-    by simp⟩,
-end⟩
+  begin
+    revert X Y,
+    refine quotient.ind₂' _,
+    rintro X Y ⟨⟨g₁, rfl⟩, ⟨g₂, hg₂⟩⟩,
+    exact ⟨_, pullback.lift_snd_assoc _ _ hg₂ _⟩,
+  end⟩
 
 lemma inf_arrow_factors_left {B : C} (X Y : subobject B) : X.factors (X ⊓ Y).arrow :=
-(subobject.factors_iff _ _).mpr
-⟨underlying.map (hom_of_le (inf_le_left X Y)), by simp⟩
+(factors_iff _ _).mpr ⟨underlying.map (hom_of_le (inf_le_left X Y)), by simp⟩
 
 lemma inf_arrow_factors_right {B : C} (X Y : subobject B) : Y.factors (X ⊓ Y).arrow :=
-(subobject.factors_iff _ _).mpr
-⟨underlying.map (hom_of_le (inf_le_right X Y)), by simp⟩
+(factors_iff _ _).mpr ⟨underlying.map (hom_of_le (inf_le_right X Y)), by simp⟩
 
 @[simp]
 lemma finset_inf_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}
-  (f : A ⟶ B) [has_image f] :
+  (f : A ⟶ B) :
   (s.inf P).factors f ↔ ∀ i ∈ s, (P i).factors f :=
 begin
   classical,
   apply finset.induction_on s,
-  { simp [top_factors], },
-  { intros i s nm ih, simp [ih], }
+  { simp [top_factors] },
+  { intros i s nm ih, simp [ih] },
 end
 
 -- `i` is explicit here because often we'd like to defer a proof of `m`
@@ -1319,13 +1351,11 @@ instance {B : C} : semilattice_sup (subobject B) :=
 
 lemma sup_factors_of_factors_left {A B : C} {X Y : subobject B} {f : A ⟶ B} (P : X.factors f) :
   (X ⊔ Y).factors f :=
-(subobject.factors_iff _ _).mpr
-⟨factor_thru _ _ P ≫ underlying.map (hom_of_le le_sup_left), by simp [factor_thru_arrow _ _ P]⟩
+factors_of_le f le_sup_left P
 
 lemma sup_factors_of_factors_right {A B : C} {X Y : subobject B} {f : A ⟶ B} (P : Y.factors f) :
   (X ⊔ Y).factors f :=
-(subobject.factors_iff _ _).mpr
-⟨factor_thru _ _ P ≫ underlying.map (hom_of_le le_sup_right), by simp [factor_thru_arrow _ _ P]⟩
+factors_of_le f le_sup_right P
 
 section
 variables [has_zero_morphisms C] [has_zero_object C]

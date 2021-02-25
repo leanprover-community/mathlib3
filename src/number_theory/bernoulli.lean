@@ -341,7 +341,7 @@ begin
   ext q,
   rw [power_series.coeff_mul],
   simp only [coeff_mk, coeff_mk, nat.cast_mul],
-  let f: ℕ →  ℕ → ℚ := λ (a : ℕ), λ (b: ℕ),
+  let f: ℕ →  ℕ → ℚ := λ (a : ℕ), λ (b : ℕ),
   bernoulli a / ↑(a.factorial) * (coeff ℚ (b + 1)) (exp ℚ ^ n),
   rw [finset.nat.sum_antidiagonal_eq_sum_range_succ f],
   refine finset.sum_congr _ _,
@@ -377,7 +377,7 @@ begin
   },
 end
 
-lemma aux_power_series_equal (n:ℕ):
+lemma aux_power_series_equal (n : ℕ):
   (exp ℚ - 1) * power_series.mk (λ p, (finset.range n).sum (λ k,
   (k:ℚ)^p * algebra_map ℚ ℚ p.factorial⁻¹)) =
   (exp ℚ - 1) * power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
@@ -396,8 +396,8 @@ end
 
 
 /-- Faulhabers' theorem: sum of powers. -/
-theorem faulhaber (n p:ℕ):
-(finset.range n).sum(λk, (k:ℚ)^p) =
+theorem faulhaber (n p : ℕ):
+(finset.range n).sum(λk, (k : ℚ)^p) =
 (finset.range (p + 1)).sum(λ i, (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/(p + 1)) :=
 begin
   have hpseq: power_series.mk (λ p, (finset.range n).sum (λ k,
@@ -415,18 +415,16 @@ begin
     apply mul_left_cancel' hexp (aux_power_series_equal n), },
   simp only [power_series.ext_iff, cast_succ, coeff_mk, cast_mul, id_apply, rat.algebra_map_rat_rat]
     at hpseq,
-  have h: (finset.range n).sum (λ k, (k:ℚ)^p * p.factorial⁻¹) = (finset.range (p + 1)).sum(λ i,
-  (bernoulli i)*((p + 1).choose i)*n^(p + 1 - i)/((p + 1).factorial)) := hpseq p,
-  clear hpseq,
-  simp only [←finset.sum_mul] at h,
+  specialize hpseq p,
+  simp only [←finset.sum_mul] at hpseq,
   have hne_zero: ((p.factorial):ℚ) ≠ 0,
   { simp only [p.factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
   have hne_zero': (((p+1).factorial):ℚ) ≠ 0,
   { simp only [(p + 1).factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
   have hp : (p + 1 : ℚ) ≠ 0 := nat.cast_add_one_ne_zero p,
-  simp only [←one_div, mul_one_div, div_eq_iff hne_zero] at h,
-  rw [h],
-  clear h,
+  simp only [←one_div, mul_one_div, div_eq_iff hne_zero] at hpseq,
+  rw [hpseq],
+  clear hpseq,
   simp only [finset.sum_mul],
   refine finset.sum_congr _ _,
   { refl, },

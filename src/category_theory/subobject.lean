@@ -301,6 +301,10 @@ The `mono_over Y` for the image inclusion for a morphism `f : X ⟶ Y`.
 -/
 def image_mono_over (f : X ⟶ Y) [has_image f] : mono_over Y := mono_over.mk' (image.ι f)
 
+@[simp] lemma image_mono_over_arrow (f : X ⟶ Y) [has_image f] :
+  (image_mono_over f).arrow = image.ι f :=
+rfl
+
 end image
 
 section image
@@ -634,8 +638,8 @@ instance arrow_mono {X : C} (Y : subobject X) : mono (Y.arrow) :=
 (representative.obj Y).property
 
 @[simp]
-lemma representative_val_left (Y : subobject X) :
-  (representative.obj Y).val.left = Y :=
+lemma representative_coe (Y : subobject X) :
+  (representative.obj Y : C) = (Y : C) :=
 rfl
 
 @[simp]

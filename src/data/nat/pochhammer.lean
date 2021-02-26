@@ -123,7 +123,7 @@ variables [ring R]
 
 @[norm_cast]
 lemma falling_factorial_coe {r n : ℕ} :
-  (falling_factorial r n : R) = falling_factorial (r : R) n :=
+  (falling_factorial r n : R) = _root_.falling_factorial (r : R) n :=
 begin
   induction n with n ih generalizing r,
   { simp, },

@@ -185,7 +185,7 @@ begin
   ⟨(ι R).cod_restrict s.to_submodule h_grade1,
     λ m, subtype.eq $ ι_square_zero m ⟩,
   -- the mapping through the subalgebra is the identity
-  have of_id : alg_hom.id R (exterior_algebra R M) = s.val.comp (lift Q of),
+  have of_id : alg_hom.id R (exterior_algebra R M) = s.val.comp (lift R of),
   { ext,
     simp [of], },
   -- finding a proof is finding an element of the subalgebra

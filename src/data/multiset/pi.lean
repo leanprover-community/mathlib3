@@ -106,7 +106,7 @@ lemma mem_pi (m : multiset α) (t : Πa, multiset (δ a)) :
 begin
   refine multiset.induction_on m (λ f, _) (λ a m ih f, _),
   { simpa using show f = pi.empty δ, by funext a ha; exact ha.elim },
-  simp, split,
+  simp only [mem_bind, exists_prop, mem_cons, pi_cons, mem_map], split,
   { rintro ⟨b, hb, f', hf', rfl⟩ a' ha',
     rw [ih] at hf',
     by_cases a' = a,

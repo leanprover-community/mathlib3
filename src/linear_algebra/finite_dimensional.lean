@@ -330,6 +330,17 @@ iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V 
 lemma findim_pos [finite_dimensional K V] [h : nontrivial V] : 0 < findim K V :=
 findim_pos_iff.mpr h
 
+/-- A finite dimensional space has zero `findim` iff it is a subsingleton.
+This is the `findim` version of `dim_zero_iff`. -/
+lemma findim_zero_iff [finite_dimensional K V] :
+  findim K V = 0 ↔ subsingleton V :=
+iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
+
+/-- A finite dimensional space that is a subsingleton has zero `findim`. -/
+lemma findim_zero_of_subsingleton [finite_dimensional K V] [h : subsingleton V] :
+  findim K V = 0 :=
+findim_zero_iff.2 h
+
 section
 open_locale big_operators
 open finset
@@ -849,6 +860,22 @@ theorem findim_top : findim K (⊤ : submodule K V) = findim K V :=
 by { unfold findim, simp [dim_top] }
 
 end top
+
+lemma findim_zero_iff_forall_zero [finite_dimensional K V] :
+  findim K V = 0 ↔ ∀ x : V, x = 0 :=
+findim_zero_iff.trans (subsingleton_iff_forall_eq 0)
+
+lemma is_basis_of_findim_zero [finite_dimensional K V]
+  {ι : Type*} (h : ¬ nonempty ι) (hV : findim K V = 0) :
+  is_basis K (λ x : ι, (0 : V)) :=
+begin
+  haveI : subsingleton V := findim_zero_iff.1 hV,
+  exact is_basis_empty _ h
+end
+
+lemma is_basis_of_findim_zero' [finite_dimensional K V]
+  (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_of_findim_zero (finset.univ_eq_empty.mp rfl) hV
 
 namespace linear_map
 

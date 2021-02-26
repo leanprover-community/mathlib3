@@ -130,11 +130,7 @@ end
  -/
 meta def apply_fun (q : parse texpr) (locs : parse location) (lem : parse (tk "using" *> texpr)?)
   : tactic unit :=
-match locs with
-| (loc.ns [none]) := apply_fun_to_goal q lem
-| (loc.ns l) := l.mmap' $ option.mmap $ λ h, get_local h >>= apply_fun_to_hyp q lem
-| wildcard   := local_context >>= list.mmap' (apply_fun_to_hyp q lem)
-end
+locs.apply (apply_fun_to_hyp q lem) (apply_fun_to_goal q lem)
 
 add_tactic_doc
 { name       := "apply_fun",

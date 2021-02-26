@@ -279,7 +279,7 @@ begin
     field_simp [g],
     ring },
   have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
-  { convert int.tendsto_cofinite_coe.prod_map_coprod int.tendsto_coe_cofinite;
+  { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
     simp [coprod_cocompact, coprod_cofinite] },
   have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
   { convert tendsto_at_top_norm_sq.comp (h₁.comp h₂),

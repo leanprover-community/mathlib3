@@ -37,7 +37,7 @@ by simpa using integral_pow 1
 
 @[simp]
 lemma integral_one : ∫ x in a..b, (1:ℝ) = b - a :=
-by simpa using integral_pow 0
+by simp
 
 @[simp]
 lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
@@ -89,15 +89,3 @@ end
 
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
-
-
--- Simple integrals are now computable by `norm_num`. Here are some examples:
-open_locale real
-example : ∫ x in 0..π, sin x = 2 := by norm_num
-example : ∫ x in 0..π/4, cos x = sqrt 2 / 2 := by simp
-example : ∫ x:ℝ in 2..4, x^(3:ℕ) = 60 := by norm_num
-example : ∫ x in 0..2, -exp x = 1 - exp 2 := by simp
-example : ∫ x:ℝ in (-1)..4, x = 15/2 := by norm_num
-example : ∫ x:ℝ in 8..11, (1:ℝ) = 3 := by norm_num
-example : ∫ x:ℝ in 2..3, x⁻¹ = log (3/2) := by norm_num
-example : ∫ x:ℝ in 0..1, 1 / (1 + x^2) = π/4 := by simp

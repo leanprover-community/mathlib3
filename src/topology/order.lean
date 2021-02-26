@@ -271,7 +271,7 @@ lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β
 iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
-  @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
+  @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 ⟨assume ⟨t, ht, heq⟩, ⟨tᶜ, is_closed_compl_iff.2 ht,
     by simp only [preimage_compl, heq, compl_compl]⟩,
   assume ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
@@ -602,29 +602,16 @@ iff.rfl
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
-lemma map_nhds_induced_eq {a : α} (h : range f ∈ 𝓝 (f a)) :
-  map f (@nhds α (induced f t) a) = 𝓝 (f a) :=
-by rw [nhds_induced, filter.map_comap h]
+lemma map_nhds_induced_eq (a : α) : map f (@nhds α (induced f t) a) = 𝓝[range f] (f a) :=
+by rw [nhds_induced, filter.map_comap, nhds_within]
 
-lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
-  (hf : ∀x y, f x = f y → x = y) :
+lemma map_nhds_induced_of_mem {a : α} (h : range f ∈ 𝓝 (f a)) :
+  map f (@nhds α (induced f t) a) = 𝓝 (f a) :=
+by rw [nhds_induced, filter.map_comap_of_mem h]
+
+lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α} :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-have comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ 𝓟 (f '' s) ≠ ⊥,
-  from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
-    assume h,
-    ne_bot.ne $ forall_sets_nonempty_iff_ne_bot.mp $
-      assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
-      have f '' s ∈ 𝓝 (f a) ⊓ 𝓟 (f '' s),
-        from mem_inf_sets_of_right $ by simp [subset.refl],
-      have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ 𝓟 (f '' s),
-        from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := (ne_bot.mk h).nonempty_of_mem this in
-      ⟨_, hs $ by rwa [←ha₂] at hb₁⟩⟩,
-calc a ∈ @closure α (topological_space.induced f t) s
-      ↔ (@nhds α (topological_space.induced f t) a) ⊓ 𝓟 s ≠ ⊥ : by rw [mem_closure_iff_nhds_ne_bot]
-  ... ↔ comap f (𝓝 (f a)) ⊓ 𝓟 (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
-  ... ↔ comap f (𝓝 (f a) ⊓ 𝓟 (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
-  ... ↔ _ : by simpa only [mem_closure_iff_nhds_ne_bot]
+by simp only [mem_closure_iff_frequently, nhds_induced, frequently_comap, mem_image, and_comm]
 
 end induced
 

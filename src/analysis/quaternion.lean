@@ -82,7 +82,8 @@ instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩
 @[simp, norm_cast] lemma coe_complex_mul (z w : ℂ) : ↑(z * w) = (z * w : ℍ) := by ext; simp
 @[simp, norm_cast] lemma coe_complex_zero : ((0 : ℂ) : ℍ) = 0 := rfl
 @[simp, norm_cast] lemma coe_complex_one : ((1 : ℂ) : ℍ) = 1 := rfl
-@[simp, norm_cast] lemma coe_complex_smul (r : ℝ) (z : ℂ) : ↑(r • z) = (r • z : ℍ) := by ext; simp
+@[simp, norm_cast] lemma coe_real_complex_mul (r : ℝ) (z : ℂ) : (r • z : ℍ) = ↑r * ↑z :=
+by ext; simp
 @[simp, norm_cast] lemma coe_complex_coe (r : ℝ) : ((r : ℂ) : ℍ) = r := rfl
 
 /-- Coercion `ℂ →ₐ[ℝ] ℍ` as an algebra homomorphism. -/

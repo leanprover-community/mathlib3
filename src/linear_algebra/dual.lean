@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Fabian Glöckle
 -/
 import linear_algebra.finite_dimensional
-import tactic.apply_fun
+import linear_algebra.projection
+
 noncomputable theory
 
 /-!
@@ -18,12 +19,14 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 * Given a basis for a K-vector space `V`, `is_basis.to_dual` produces a map from `V` to `dual K V`.
 * Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
   characteristic properties of a basis and a dual.
+* `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
 
 ## Main results
 
 * `to_dual_equiv` : the dual space is linearly equivalent to the primal space.
 * `dual_pair.is_basis` and `dual_pair.eq_dual`: if `e` and `ε` form a dual pair, `e` is a basis and
   `ε` is its dual basis.
+* `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.
 
 ## Notation
 
@@ -32,6 +35,7 @@ We sometimes use `V'` as local notation for `dual K V`.
 -/
 
 namespace module
+
 variables (R : Type*) (M : Type*)
 variables [comm_ring R] [add_comm_group M] [module R M]
 
@@ -69,12 +73,16 @@ lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
 
 end dual
+
 end module
 
 namespace is_basis
+
 universes u v w
+
 variables {K : Type u} {V : Type v} {ι : Type w}
 variables [field K] [add_comm_group V] [vector_space K V]
+
 open vector_space module module.dual submodule linear_map cardinal function
 
 variables [de : decidable_eq ι]
@@ -226,7 +234,7 @@ h.to_dual_apply_right i v
   (h.dual_basis_is_basis.to_dual _).comp (h.to_dual B) = eval K V :=
 begin
   refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
-  suffices : @ite _ (classical.prop_decidable _) K 1 0 = @ite _ (de j i) K 1 0,
+  suffices : @ite K _ (classical.prop_decidable _) 1 0 = @ite K _ (de j i) 1 0,
     by simpa [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
   split_ifs; refl
 end
@@ -296,6 +304,7 @@ section dual_pair
 open vector_space module module.dual linear_map function
 
 universes u v w
+
 variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
 variables [field K] [add_comm_group V] [vector_space K V]
 
@@ -398,3 +407,149 @@ begin
 end
 
 end dual_pair
+
+namespace submodule
+
+universes u v w
+
+variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+variable {W : submodule R M}
+
+/-- The `dual_restrict` of a submodule `W` of `M` is the linear map from the
+  dual of `M` to the dual of `W` such that the domain of each linear map is
+  restricted to `W`. -/
+def dual_restrict (W : submodule R M) :
+  module.dual R M →ₗ[R] module.dual R W :=
+linear_map.dom_restrict' W
+
+@[simp] lemma dual_restrict_apply
+  (W : submodule R M) (φ : module.dual R M) (x : W) :
+  W.dual_restrict φ x = φ (x : M) := rfl
+
+/-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
+  that `φ w = 0` for all `w ∈ W`. -/
+def dual_annihilator {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M]
+  [module R M] (W : submodule R M) : submodule R $ module.dual R M :=
+W.dual_restrict.ker
+
+@[simp] lemma mem_dual_annihilator (φ : module.dual R M) :
+  φ ∈ W.dual_annihilator ↔ ∀ w ∈ W, φ w = 0 :=
+begin
+  refine linear_map.mem_ker.trans _,
+  simp_rw [linear_map.ext_iff, dual_restrict_apply],
+  exact ⟨λ h w hw, h ⟨w, hw⟩, λ h w, h w.1 w.2⟩
+end
+
+lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
+  W.dual_restrict.ker = W.dual_annihilator :=
+rfl
+
+end submodule
+
+namespace subspace
+
+open submodule linear_map
+
+universes u v w
+
+-- We work in vector spaces because `exists_is_compl` only hold for vector spaces
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
+
+/-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
+the natural extension of `φ` to an element of the dual of `V`.
+That is, `dual_lift W φ` sends `w ∈ W` to `φ x` and `x` in the complement of `W` to `0`. -/
+noncomputable def dual_lift (W : subspace K V) :
+  module.dual K W →ₗ[K] module.dual K V :=
+let h := classical.indefinite_description _ W.exists_is_compl in
+  (linear_map.of_is_compl_prod h.2).comp (linear_map.inl _ _ _)
+
+variable {W : subspace K V}
+
+@[simp] lemma dual_lift_of_subtype {φ : module.dual K W} (w : W) :
+  W.dual_lift φ (w : V) = φ w :=
+by { erw of_is_compl_left_apply _ w, refl }
+
+lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
+  W.dual_lift φ w = φ ⟨w, hw⟩ :=
+dual_lift_of_subtype ⟨w, hw⟩
+
+@[simp] lemma dual_restrict_comp_dual_lift (W : subspace K V) :
+  W.dual_restrict.comp W.dual_lift = 1 :=
+by { ext φ x, simp }
+
+lemma dual_restrict_left_inverse (W : subspace K V) :
+  function.left_inverse W.dual_restrict W.dual_lift :=
+λ x, show W.dual_restrict.comp W.dual_lift x = x,
+  by { rw [dual_restrict_comp_dual_lift], refl }
+
+lemma dual_lift_right_inverse (W : subspace K V) :
+  function.right_inverse W.dual_lift W.dual_restrict :=
+W.dual_restrict_left_inverse
+
+lemma dual_restrict_surjective :
+  function.surjective W.dual_restrict :=
+W.dual_lift_right_inverse.surjective
+
+lemma dual_lift_injective : function.injective W.dual_lift :=
+W.dual_restrict_left_inverse.injective
+
+/-- The quotient by the `dual_annihilator` of a subspace is isomorphic to the
+  dual of that subspace. -/
+noncomputable def quot_annihilator_equiv (W : subspace K V) :
+  W.dual_annihilator.quotient ≃ₗ[K] module.dual K W :=
+(quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_annihilator).symm.trans $
+  W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
+
+/-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
+noncomputable def dual_equiv_dual (W : subspace K V) :
+  module.dual K W ≃ₗ[K] W.dual_lift.range :=
+linear_equiv.of_injective _ $ ker_eq_bot.2 dual_lift_injective
+
+lemma dual_equiv_dual_def (W : subspace K V) :
+  W.dual_equiv_dual.to_linear_map = W.dual_lift.range_restrict := rfl
+
+@[simp] lemma dual_equiv_dual_apply (φ : module.dual K W) :
+  W.dual_equiv_dual φ = ⟨W.dual_lift φ, mem_range.2 ⟨φ, rfl⟩⟩ := rfl
+
+section
+
+open_locale classical
+
+open finite_dimensional
+
+variables {V₁ : Type*} [add_comm_group V₁] [vector_space K V₁]
+
+instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
+begin
+  refine @linear_equiv.finite_dimensional _ _ _ _ _ _ _ _ _ H,
+  have hB := classical.some_spec (exists_is_basis_finite K V),
+  haveI := classical.choice hB.2,
+  exact is_basis.to_dual_equiv _ hB.1
+end
+
+variables [finite_dimensional K V] [finite_dimensional K V₁]
+
+/-- The quotient by the dual is isomorphic to its dual annihilator.  -/
+noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :
+  W.dual_lift.range.quotient ≃ₗ[K] W.dual_annihilator :=
+linear_equiv.quot_equiv_of_quot_equiv $
+  linear_equiv.trans W.quot_annihilator_equiv W.dual_equiv_dual
+
+/-- The quotient by a subspace is isomorphic to its dual annihilator. -/
+noncomputable def quot_equiv_annihilator (W : subspace K V) :
+  W.quotient ≃ₗ[K] W.dual_annihilator :=
+begin
+  refine linear_equiv.trans _ W.quot_dual_equiv_annihilator,
+  refine linear_equiv.quot_equiv_of_equiv _ _,
+  { refine linear_equiv.trans _ W.dual_equiv_dual,
+    have hB := classical.some_spec (exists_is_basis_finite K W),
+    haveI := classical.choice hB.2,
+    exact is_basis.to_dual_equiv _ hB.1 },
+  { have hB := classical.some_spec (exists_is_basis_finite K V),
+    haveI := classical.choice hB.2,
+    exact is_basis.to_dual_equiv _ hB.1 },
+end
+
+end
+
+end subspace

@@ -1310,17 +1310,8 @@ instance proper_of_compact [compact_space α] : proper_space α :=
 @[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
-begin
-  apply locally_compact_of_compact_nhds,
-  intros x,
-  existsi closed_ball x 1,
-  split,
-  { apply mem_nhds_iff.2,
-    existsi (1 : ℝ),
-    simp,
-    exact ⟨zero_lt_one, ball_subset_closed_ball⟩ },
-  { apply proper_space.compact_ball }
-end
+locally_compact_space_of_has_basis (λ x, nhds_basis_closed_ball) $
+  λ x ε ε0, proper_space.compact_ball _ _
 
 /-- A proper space is complete -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1573,31 +1564,6 @@ lemma compact_iff_closed_bounded [proper_space α] :
   rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
 end⟩
-
-/-- The image of a proper space under an expanding onto map is proper. -/
-lemma proper_image_of_proper [proper_space α] [metric_space β] (f : α → β)
-  (f_cont : continuous f) (hf : range f = univ) (C : ℝ)
-  (hC : ∀x y, dist x y ≤ C * dist (f x) (f y)) : proper_space β :=
-begin
-  apply proper_space_of_compact_closed_ball_of_le 0 (λx₀ r hr, _),
-  let K := f ⁻¹' (closed_ball x₀ r),
-  have A : is_closed K :=
-    continuous_iff_is_closed.1 f_cont (closed_ball x₀ r) is_closed_ball,
-  have B : bounded K := ⟨max C 0 * (r + r), λx y hx hy, calc
-    dist x y ≤ C * dist (f x) (f y) : hC x y
-    ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left _ _) (dist_nonneg)
-    ... ≤ max C 0 * (dist (f x) x₀ + dist (f y) x₀) :
-      mul_le_mul_of_nonneg_left (dist_triangle_right (f x) (f y) x₀) (le_max_right _ _)
-    ... ≤ max C 0 * (r + r) : begin
-      simp only [mem_closed_ball, mem_preimage] at hx hy,
-      exact mul_le_mul_of_nonneg_left (add_le_add hx hy) (le_max_right _ _)
-    end⟩,
-  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
-  have C : is_compact (f '' K) := this.image f_cont,
-  have : f '' K = closed_ball x₀ r,
-    by { rw image_preimage_eq_of_subset, rw hf, exact subset_univ _ },
-  rwa this at C
-end
 
 end bounded
 

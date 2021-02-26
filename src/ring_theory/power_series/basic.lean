@@ -121,11 +121,11 @@ by rw [coeff, monomial, linear_map.proj_apply, linear_map.std_basis_apply, funct
 
 @[simp] lemma coeff_monomial_same (n : σ →₀ ℕ) (a : R) :
   coeff R n (monomial R n a) = a :=
-linear_map.std_basis_same _ _ _ _
+linear_map.std_basis_same R _ n a
 
 lemma coeff_monomial_ne {m n : σ →₀ ℕ} (h : m ≠ n) (a : R) :
   coeff R m (monomial R n a) = 0 :=
-linear_map.std_basis_ne  _ _ _ _ h a
+linear_map.std_basis_ne R _ _ _ h a
 
 lemma eq_of_coeff_monomial_ne_zero {m n : σ →₀ ℕ} {a : R} (h : coeff R m (monomial R n a) ≠ 0) :
   m = n :=
@@ -957,6 +957,14 @@ begin
   rw mul_one
 end
 
+@[simp] lemma coeff_succ_X_mul (n : ℕ) (φ : power_series R) :
+  coeff R (n + 1) (X * φ) = coeff R n φ :=
+begin
+  simp only [coeff, finsupp.single_add, add_comm n 1],
+  convert φ.coeff_add_monomial_mul (single () 1) (single () n) _,
+  rw one_mul,
+end
+
 @[simp] lemma constant_coeff_C (a : R) : constant_coeff R (C R a) = a := rfl
 @[simp] lemma constant_coeff_comp_C :
   (constant_coeff R).comp (C R) = ring_hom.id R := rfl
@@ -971,6 +979,28 @@ lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
 lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :
   is_unit (constant_coeff R φ) :=
 mv_power_series.is_unit_constant_coeff φ h
+
+/-- Split off the constant coefficient. -/
+lemma eq_shift_mul_X_add_const (φ : power_series R) :
+  φ = mk (λ p, coeff R (p + 1) φ) * X + C R (constant_coeff R φ) :=
+begin
+  ext (_ | n),
+  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+      zero_add, mul_zero, ring_hom.map_mul], },
+  { simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+      if_false, add_zero], }
+end
+
+/-- Split off the constant coefficient. -/
+lemma eq_X_mul_shift_add_const (φ : power_series R) :
+  φ = X * mk (λ p, coeff R (p + 1) φ) + C R (constant_coeff R φ) :=
+begin
+  ext (_ | n),
+  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+      zero_add, zero_mul, ring_hom.map_mul], },
+  { simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+      if_false, add_zero], }
+end
 
 section map
 variables {S : Type*} {T : Type*} [semiring S] [semiring T]
@@ -1169,6 +1199,15 @@ by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
 lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R φ = u) :
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u $ h
+
+/-- Two ways of removing the constant coefficient of a power series are the same. -/
+lemma sub_const_eq_shift_mul_X (φ : power_series R) :
+  φ - C R (constant_coeff R φ) = power_series.mk (λ p, coeff R (p + 1) φ) * X :=
+sub_eq_iff_eq_add.mpr (eq_shift_mul_X_add_const φ)
+
+lemma sub_const_eq_X_mul_shift (φ : power_series R) :
+  φ - C R (constant_coeff R φ) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=
+sub_eq_iff_eq_add.mpr (eq_X_mul_shift_add_const φ)
 
 end ring
 

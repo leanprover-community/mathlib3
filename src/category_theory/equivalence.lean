@@ -367,7 +367,7 @@ instance : has_pow (C ≌ C) ℤ := ⟨pow⟩
 
 @[simp] lemma pow_zero (e : C ≌ C) : e^(0 : ℤ) = equivalence.refl := rfl
 @[simp] lemma pow_one (e : C ≌ C) : e^(1 : ℤ) = e := rfl
-@[simp] lemma pow_minus_one (e : C ≌ C) : e^(-1 : ℤ) = e.symm := rfl
+@[simp] lemma pow_neg_one (e : C ≌ C) : e^(-1 : ℤ) = e.symm := rfl
 
 -- TODO as necessary, add the natural isomorphisms `(e^a).trans e^b ≅ e^(a+b)`.
 -- At this point, we haven't even defined the category of equivalences.

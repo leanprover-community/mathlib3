@@ -113,8 +113,8 @@ noncomputable theory
 
 universes u v w u' v' w'
 
-open set
-open_locale manifold
+open set filter
+open_locale manifold filter topological_space
 
 localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
 
@@ -201,34 +201,48 @@ variables (𝕜 E)
 
 end
 
-@[simp, mfld_simps] lemma model_with_corners.target : I.target = range (I : H → E) :=
+@[simp, mfld_simps] lemma model_with_corners.target_eq : I.target = range (I : H → E) :=
 by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
 
 @[simp, mfld_simps] lemma model_with_corners.left_inv (x : H) : I.symm (I x) = x :=
-by { convert I.left_inv' _, simp }
+by { refine I.left_inv' _, simp }
 
-@[simp, mfld_simps] lemma model_with_corners.left_inv' : I.symm ∘ I = id :=
-by { ext x, exact model_with_corners.left_inv _ _ }
+protected lemma model_with_corners.left_inverse : function.left_inverse I.symm I := I.left_inv
+
+@[simp, mfld_simps] lemma model_with_corners.symm_comp_self : I.symm ∘ I = id :=
+I.left_inverse.comp_eq_id
+
+protected lemma model_with_corners.right_inv_on : right_inv_on I.symm I (range I) :=
+I.left_inverse.right_inv_on_range
 
 @[simp, mfld_simps] lemma model_with_corners.right_inv {x : E} (hx : x ∈ range I) :
   I (I.symm x) = x :=
-by { apply I.right_inv', simp [hx] }
+I.right_inv_on hx
 
 lemma model_with_corners.image (s : set H) :
   I '' s = I.symm ⁻¹' s ∩ range I :=
 begin
-  ext x,
-  simp only [mem_image, mem_inter_eq, mem_range, mem_preimage],
-  split,
-  { rintros ⟨y, ⟨ys, hy⟩⟩,
-    rw ← hy,
-    simp only [ys, true_and, model_with_corners.left_inv],
-    exact ⟨y, rfl⟩ },
-  { rintros ⟨xs, ⟨y, yx⟩⟩,
-    rw ← yx at xs,
-    simp only [model_with_corners.left_inv] at xs,
-    exact ⟨y, ⟨xs, yx⟩⟩ }
+  refine (I.to_local_equiv.image_eq_target_inter_inv_preimage _).trans _,
+  { rw I.source_eq, exact subset_univ _ },
+  { rw [inter_comm, I.target_eq, I.to_local_equiv_coe_symm] }
 end
+
+protected lemma model_with_corners.closed_embedding : closed_embedding I :=
+I.left_inverse.closed_embedding I.continuous_symm I.continuous
+
+lemma model_with_corners.closed_range : is_closed (range I) :=
+I.closed_embedding.closed_range
+
+lemma model_with_corners.map_nhds_eq (x : H) : map I (𝓝 x) = 𝓝[range I] (I x) :=
+I.closed_embedding.to_embedding.map_nhds_eq x
+
+lemma model_with_corners.image_mem_nhds_within {x : H} {s : set H} (hs : s ∈ 𝓝 x) :
+  I '' s ∈ 𝓝[range I] (I x) :=
+I.map_nhds_eq x ▸ image_mem_map hs
+
+lemma model_with_corners.symm_map_nhds_within_range (x : H) :
+  map I.symm (𝓝[range I] (I x)) = 𝓝 x :=
+by rw [← I.map_nhds_eq, map_map, I.symm_comp_self, map_id]
 
 lemma model_with_corners.unique_diff_preimage {s : set H} (hs : is_open s) :
   unique_diff_on 𝕜 (I.symm ⁻¹' s ∩ range I) :=
@@ -240,6 +254,19 @@ I.unique_diff_preimage e.open_source
 
 lemma model_with_corners.unique_diff_at_image {x : H} : unique_diff_within_at 𝕜 (range I) (I x) :=
 I.unique_diff _ (mem_range_self _)
+
+lemma model_with_corners.locally_compact [locally_compact_space E] (I : model_with_corners 𝕜 E H) :
+  locally_compact_space H :=
+begin
+  have : ∀ (x : H), (𝓝 x).has_basis (λ s, s ∈ 𝓝 (I x) ∧ is_compact s)
+    (λ s, I.symm '' (s ∩ range ⇑I)),
+  { intro x,
+    rw ← I.symm_map_nhds_within_range,
+    exact ((compact_basis_nhds (I x)).inf_principal _).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨-, hsc⟩,
+  exact (hsc.inter_right I.closed_range).image I.continuous_symm
+end
 
 end
 
@@ -646,7 +673,7 @@ lemma ext_chart_at_target_mem_nhds_within :
   (ext_chart_at I x).target ∈ 𝓝[range I] ((ext_chart_at I x) x) :=
 begin
   rw [ext_chart_at, local_equiv.trans_target],
-  simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
+  simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target_eq],
   refine inter_mem_nhds_within _
     (mem_nhds_sets ((chart_at H x).open_target.preimage I.continuous_symm) _),
   simp only with mfld_simps

@@ -609,7 +609,7 @@ begin
   suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
   { simp only [eval_X, eval_one, eval_pow, eval_sub, ring_hom.eq_nat_cast] at hpow,
     apply units.coe_eq_one.1,
-    simp only [sub_eq_zero.mp hpow, zmod.cast_unit_of_coprime, units.coe_pow] },
+    simp only [sub_eq_zero.mp hpow, zmod.coe_unit_of_coprime, units.coe_pow] },
   rw [is_root.def] at hroot,
   rw [← prod_cyclotomic_eq_X_pow_sub_one hpos (zmod p),
     nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
@@ -635,7 +635,7 @@ begin
     { exact dvd_trans hdivm (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
         (order_of_root_cyclotomic_dvd hpos hroot) hdiff) },
     rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
-      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.cast_unit_of_coprime a ha, ← units.coe_pow,
+      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.coe_unit_of_coprime a ha, ← units.coe_pow,
       units.coe_eq_one],
     exact pow_order_of_eq_one (zmod.unit_of_coprime a ha) },
   have habs : (map (int.cast_ring_hom (zmod p)) (X - a)) ^ 2 ∣ X ^ n - 1,

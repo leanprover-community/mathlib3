@@ -54,6 +54,7 @@ then defined as `bernoulli = (-1)^n * bernoulli'`.
 open_locale big_operators
 open nat
 open finset
+open_locale nat
 
 /-!
 
@@ -154,7 +155,7 @@ end
 open power_series
 
 theorem bernoulli'_power_series :
-  power_series.mk (λ n, (bernoulli' n / nat.factorial n : ℚ)) * (exp ℚ - 1) = X * exp ℚ :=
+  power_series.mk (λ n, (bernoulli' n / n! : ℚ)) * (exp ℚ - 1) = X * exp ℚ :=
 begin
   ext n,
   -- constant coefficient is a special case
@@ -177,7 +178,7 @@ begin
   dsimp only,
   have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
   have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
-  have hnz : (j + 1 : ℚ) * nat.factorial j * nat.factorial i ≠ 0,
+  have hnz : (j + 1 : ℚ) * j! * i! ≠ 0,
   { norm_cast at *,
     exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
   field_simp [hj, hnz],
@@ -195,13 +196,13 @@ open ring_hom
 theorem bernoulli'_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli' n = 0 :=
 begin
   have f := bernoulli'_power_series,
-  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n.factorial)) * (exp ℚ - 1)) * (exp ℚ) =
+  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n!)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
     mul_comm (eval_neg_hom (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one, eval_neg_hom_X, mul_one,
     one_mul] at g,
-  suffices h : (mk (λ (n : ℕ), bernoulli' n / ↑(n.factorial)) - eval_neg_hom (mk (λ (n : ℕ),
-    bernoulli' n / ↑(n.factorial))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
+  suffices h : (mk (λ (n : ℕ), bernoulli' n / ↑(n!)) - eval_neg_hom (mk (λ (n : ℕ),
+    bernoulli' n / ↑(n!))) ) * (exp ℚ - 1) = X * (exp ℚ - 1),
   { rw [mul_eq_mul_right_iff] at h,
     cases h,
     { simp only [eval_neg_hom, rescale, coeff_mk, coe_mk, power_series.ext_iff,
@@ -210,7 +211,7 @@ begin
       rw coeff_X n at h,
       split_ifs at h with h2,
       { rw h2 at hlt, exfalso, exact lt_irrefl _ hlt, },
-      have hn : (n.factorial : ℚ) ≠ 0, { simp [factorial_ne_zero], },
+      have hn : (n! : ℚ) ≠ 0, { simp [factorial_ne_zero], },
       rw [←mul_div_assoc, sub_eq_zero_iff_eq, div_eq_iff hn, div_mul_cancel _ hn,
         neg_one_pow_of_odd h_odd, neg_mul_eq_neg_mul_symm, one_mul] at h,
       exact eq_zero_of_neg_eq h.symm, },

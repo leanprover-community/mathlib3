@@ -477,18 +477,12 @@ begin
           hpq, mul_comm] } },
 end
 
-/- `algebra.smul_mul_smul` doesn't work for `R = ℤ` and `A = polynomial ℤ`, presumably because
-  of conflicting `algebra ℤ (polynomial ℤ)` instances. This lemma fixes the issue -/
--- TODO: Find a better fix
-lemma smul_mul_smul {R : Type*} [comm_semiring R] (r s : R) (p q : polynomial R) :
-  (r • p) * (s • q) = (r * s) • (p * q) :=
-algebra.smul_mul_smul r s p q
-
 lemma key_lemma {p q : trinomial ℤ}
   (hp : is_unit (p.a * p.c) ∨ irreducible (p.a * p.c))
   (hpq : p.to_polynomial * p.to_polynomial.reverse' = q.to_polynomial * q.to_polynomial.reverse') :
   rel p q :=
 begin
+  have h := @algebra.smul_mul_smul _ _ _ _ (@polynomial.algebra_of_algebra ℤ ℤ _ _ (algebra.id ℤ)),
   have hp' : ∀ x y, p.a * p.c = x * y → is_unit x ∨ is_unit y := or.elim hp (λ h1 x y h2, or.inl
     (is_unit_of_mul_is_unit_left ((congr_arg is_unit h2).mp h1))) irreducible.is_unit_or_is_unit,
   have key : p.a * p.c = q.a * q.c,
@@ -500,23 +494,23 @@ begin
     { have key' := key_lemma_aux1 (u1 • p.reverse) (u2 • q.reverse)
         (by rwa [←hu1, ←hu2] at key)
         (by simp_rw [smul_to_polynomial, reverse_to_polynomial, reverse'_smul, reverse'_reverse',
-          smul_mul_smul, int.units_coe_mul_self, mul_comm, hpq]),
+          h, int.units_coe_mul_self, mul_comm, hpq]),
       rwa [unit_rel, rel_unit, reverse_rel, rel_reverse] at key' },
     { have key' := key_lemma_aux1 (u1 • p.reverse) (u2 • q)
         (by rwa [←hu1, ←hu2, mul_comm q.a] at key)
         (by simp_rw [smul_to_polynomial, reverse_to_polynomial, reverse'_smul, reverse'_reverse',
-          smul_mul_smul, int.units_coe_mul_self, mul_comm, hpq]),
+          h, int.units_coe_mul_self, mul_comm, hpq]),
       rwa [unit_rel, rel_unit, reverse_rel] at key' } },
   { rcases (hp' q.a q.c key) with ⟨u2, hu2⟩ | ⟨u2, hu2⟩,
     { have key' := key_lemma_aux1 (u1 • p) (u2 • q.reverse)
         (by rwa [←hu1, ←hu2, mul_comm p.a] at key)
         (by simp_rw [smul_to_polynomial, reverse_to_polynomial, reverse'_smul, reverse'_reverse',
-          smul_mul_smul, int.units_coe_mul_self, mul_comm, hpq]),
+          h, int.units_coe_mul_self, mul_comm, hpq]),
       rwa [unit_rel, rel_unit, rel_reverse] at key' },
     { have key' := key_lemma_aux1 (u1 • p) (u2 • q)
         (by rwa [←hu1, ←hu2, mul_comm p.a, mul_comm q.a] at key)
         (by simp_rw [smul_to_polynomial, reverse'_smul,
-          smul_mul_smul, int.units_coe_mul_self, hpq]),
+          h, int.units_coe_mul_self, hpq]),
       rwa [unit_rel, rel_unit] at key' } },
 end
 

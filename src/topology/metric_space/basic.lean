@@ -1310,17 +1310,8 @@ instance proper_of_compact [compact_space α] : proper_space α :=
 @[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
-begin
-  apply locally_compact_of_compact_nhds,
-  intros x,
-  existsi closed_ball x 1,
-  split,
-  { apply mem_nhds_iff.2,
-    existsi (1 : ℝ),
-    simp,
-    exact ⟨zero_lt_one, ball_subset_closed_ball⟩ },
-  { apply proper_space.compact_ball }
-end
+locally_compact_space_of_has_basis (λ x, nhds_basis_closed_ball) $
+  λ x ε ε0, proper_space.compact_ball _ _
 
 /-- A proper space is complete -/
 @[priority 100] -- see Note [lower instance priority]

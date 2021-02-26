@@ -90,7 +90,7 @@ a.hom ≫ f
 
 @[simp] lemma app_hom {P Q : C} (f : P ⟶ Q) (a : over P) : (app f a).hom = a.hom ≫ f := rfl
 
-/-- Two arrows `f : X ⟶ P` and `g : Y ⟶ P are called pseudo-equal if there is some object
+/-- Two arrows `f : X ⟶ P` and `g : Y ⟶ P` are called pseudo-equal if there is some object
     `R` and epimorphisms `p : R ⟶ X` and `q : R ⟶ Y` such that `p ≫ f = q ≫ g`. -/
 def pseudo_equal (P : C) (f g : over P) : Prop :=
 ∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) [epi p] [epi q], p ≫ f.hom = q ≫ g.hom

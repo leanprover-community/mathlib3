@@ -341,6 +341,13 @@ begin
   simp only [X, coeff_mul_monomial, if_neg this]
 end
 
+lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
+  coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
+begin
+  have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
+  simp only [X, coeff_monomial_mul, if_neg this]
+end
+
 variables (σ) (R)
 
 /-- The constant coefficient of a formal power series.-/
@@ -974,6 +981,8 @@ end
 @[simp] lemma constant_coeff_X : constant_coeff R X = 0 := mv_power_series.coeff_zero_X _
 
 lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
+
+lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
 
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :

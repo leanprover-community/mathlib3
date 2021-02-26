@@ -53,6 +53,7 @@ then defined as `bernoulli = (-1)^n * bernoulli'`.
 
 open_locale big_operators
 open_locale nat
+open nat
 open finset
 open_locale nat
 

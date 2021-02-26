@@ -848,10 +848,7 @@ end
 lemma linear_independent_fin_snoc {n} {v : fin n → V} :
   linear_independent K (fin.snoc v x : fin (n + 1) → V) ↔
     linear_independent K v ∧ x ∉ submodule.span K (range v) :=
-begin
-  -- prove this using `linear_independent_equiv` and rotating a tuple?
-  sorry
-end
+by rw [fin.snoc_eq_cons_rotate, linear_independent_equiv, linear_independent_fin_cons]
 
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
   (hx : x ∉ submodule.span K (range v)) :

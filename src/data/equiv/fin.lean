@@ -37,6 +37,19 @@ def fin_two_equiv : fin 2 ≃ bool :=
   end,
   assume b, match b with tt := rfl | ff := rfl end⟩
 
+/-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
+@[simps]
+def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=
+⟨λ k, ⟨k.1, by { subst h, exact k.2 }⟩, λ k, ⟨k.1, by { subst h, exact k.2}⟩, by tidy, by tidy⟩
+
+@[simp] lemma fin_congr_apply {n m : ℕ} (h : n = m) (k : fin n) :
+  fin_congr h k = ⟨k.1, by { subst h, exact k.2 }⟩ :=
+rfl
+
+@[simp] lemma fin_congr_symm_apply {n m : ℕ} (h : n = m) (k : fin m) :
+  (fin_congr h).symm k = ⟨k.1, by { subst h, exact k.2 }⟩ :=
+rfl
+
 /-- Equivalence between `fin n.succ` and `option (fin n)` -/
 def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
 ⟨λ x, fin.cases none some x, λ x, option.rec_on x 0 fin.succ,
@@ -77,6 +90,69 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
     { dsimp, rw [dif_pos H], simp },
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
+
+/-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
+def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
+  (sum_fin_sum_equiv.symm.trans (equiv.sum_comm _ _)).trans sum_fin_sum_equiv
+
+@[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m) :
+  fin_add_flip (⟨k, nat.lt_add_right k m n h⟩ : fin (m + n)) = ⟨n + k, add_lt_add_left h n⟩ :=
+begin
+  dsimp [fin_add_flip, sum_fin_sum_equiv],
+  rw [dif_pos h],
+  refl,
+end
+
+@[simp] lemma fin_add_flip_apply_right {k : ℕ} (h₁ : m ≤ k) (h₂ : k < m + n) :
+  fin_add_flip (⟨k, h₂⟩ : fin (m + n)) =
+    ⟨k - m, lt_of_le_of_lt (nat.sub_le _ _) (by { convert h₂ using 1, simp [add_comm] })⟩ :=
+begin
+  dsimp [fin_add_flip, sum_fin_sum_equiv],
+  rw [dif_neg (not_lt.mpr h₁)],
+  refl,
+end
+
+/-- Rotate `fin n` one step to the right. -/
+def fin_rotate : Π n, fin n ≃ fin n
+| 0 := equiv.refl _
+| (n+1) := fin_add_flip.trans (fin_congr (add_comm _ _))
+
+@[simp] lemma fin_rotate_of_lt {k : ℕ} (h : k < n) :
+  fin_rotate (n+1) ⟨k, lt_of_lt_of_le h (nat.le_succ _)⟩ = ⟨k + 1, nat.succ_lt_succ h⟩ :=
+begin
+  dsimp [fin_rotate],
+  simp [h, add_comm],
+end
+
+@[simp] lemma fin_rotate_last' :
+  fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
+begin
+  dsimp [fin_rotate],
+  rw fin_add_flip_apply_right,
+  simp,
+end
+
+@[simp] lemma fin_rotate_last :
+  fin_rotate (n+1) (fin.last _) = 0 :=
+fin_rotate_last'
+
+-- FIXME find a home
+lemma nat.squeeze {n m : ℕ} (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
+nat.le_antisymm (nat.lt_succ_iff.mp h₂) h₁
+
+lemma fin.snoc_eq_cons_rotate {α : Type*} (v : fin n → α) (a : α) :
+  @fin.snoc _ (λ _, α) v a = (λ i, @fin.cons _ (λ _, α) a v (fin_rotate _ i)) :=
+begin
+  ext ⟨i, h⟩,
+  by_cases h' : i < n,
+  { rw [fin_rotate_of_lt h', fin.snoc, fin.cons, dif_pos h'],
+    refl, },
+  { have h'' : n = i,
+    { simp only [not_lt] at h', exact (nat.squeeze h' h).symm, },
+    subst h'',
+    rw [fin_rotate_last', fin.snoc, fin.cons, dif_neg (lt_irrefl _)],
+    refl, }
+end
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=

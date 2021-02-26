@@ -29,12 +29,6 @@ def smul_aux : --SL2R --
 SL(2, ℝ) → ℂ → ℂ :=
 λ g, λ z, (top g z) / (bottom g z)
 
-lemma split_fin2 (i : fin 2) : i = 0 ∨ i = 1 :=
-begin
-  fin_cases i; tauto,
-end
-
-
 lemma det2 {F : Type*} [comm_ring F] {g: matrix (fin 2) (fin 2) F} :
 g.det = g 0 0 * g 1 1 - g 1 0 * g 0 1 :=
 begin

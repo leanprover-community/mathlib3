@@ -62,6 +62,10 @@ do t ← target,
       e' ← to_expr ``(ne_of_apply_ne %%e),
       apply e',
       skip)
+  | `(¬%%l = %%r) := (do
+      e' ← to_expr ``(ne_of_apply_ne %%e),
+      apply e',
+      skip)
   | `(%%l = %%r) := (do
       to_expr ``(%%e %%l), -- build and discard an application, to fill in implicit arguments
       n ← get_unused_name `inj,

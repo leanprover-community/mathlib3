@@ -10,9 +10,6 @@ import linear_algebra.basis
 import data.nat.pochhammer
 import tactic.omega
 
-lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} {h : f x ≠ f y} : x ≠ y :=
-λ (w : x = y), h (congr_arg f w)
-
 @[simp] lemma int.neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n = 0 ↔ false :=
 begin
   simp only [iff_false],
@@ -237,7 +234,7 @@ begin
       apply not_mem_span_of_apply_not_mem_span_image ((polynomial.derivative_lhom ℚ)^(n-k)),
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
       intros p m,
-      apply ne_of_apply_ne (polynomial.eval (1 : ℚ)),
+      apply_fun (polynomial.eval (1 : ℚ)),
       simp only [ne.def, polynomial.derivative_lhom_coe, polynomial.iterate_derivative_map,
         ring_hom.eq_int_cast, linear_map.pow_apply, polynomial.eval_one_map],
       -- The right hand side is nonzero,

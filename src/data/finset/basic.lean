@@ -35,19 +35,19 @@ A `fintype α` instance for a type `α` consists of
 a universal `finset α` containing every term of `α`, called `univ`. See `data.fintype.basic`.
 There is also `univ'`, the noncomputable partner to `univ`,
 which is defined to be `α` as a finset if `α` is finite,
-and the empty finset otherwise. See `data.finsum`.
+and the empty finset otherwise. See `data.fintype.basic`.
 
 ## Main declarations
 
 ### Main definitions
 
-* `finset`: Defines a type for the finite subsets of `α`. \
+* `finset`: Defines a type for the finite subsets of `α`.
   Constructing a `finset` requires two pieces of data: `val`, a `multiset α` of elements,
   and `nodup`, a proof that `val` has no duplicates.
 * `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
-* `finset.has_coe`: Coerces `s : finset α` to `s : set α`.
-* `finset.induction_on`: Induction on finsets. To prove a proposition about an arbitrary finset α,
-  it suffices to prove it for the empty finset, and to show that if it holds for some finset α,
+* `finset.has_coe`: Provides a coercion `s : finset α` to `s : set α`.
+* `finset.induction_on`: Induction on finsets. To prove a proposition about an arbitrary `finset α`,
+  it suffices to prove it for the empty finset, and to show that if it holds for some `finset α`,
   then it holds for the finset obtained by inserting a new element.
 * `finset.choose`: Given a proof `h` of existence and uniqueness of a certain element
   satisfying a predicate, `choose s h` returns the element of `s` satisfying that predicate.

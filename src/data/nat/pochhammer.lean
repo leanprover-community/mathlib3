@@ -127,11 +127,11 @@ lemma falling_factorial_coe {r n : ℕ} :
 begin
   induction n with n ih generalizing r,
   { simp, },
-  { push_cast,
+  { simp only [falling_factorial, falling_factorial_eq_mul_left, nat.cast_mul],
     rw [ih],
     { by_cases w : r = 0,
       { subst w, simp, },
-      { replace w : 0 < r := pos_of_ne_zero w,
+      { replace w : 0 < r := nat.pos_of_ne_zero w,
         push_cast [w], }, }, },
 end
 
@@ -150,7 +150,7 @@ begin
   induction n with n ih generalizing r,
   { simp, },
   { rw [falling_factorial, ih, falling_factorial, succ_eq_add_one],
-    rw [mul_assoc, add_comm n 1, ←sub_sub], }
+    rw [mul_assoc, add_comm n 1, ←nat.sub_sub], }
 end
 
 @[simp]
@@ -168,7 +168,7 @@ begin
   induction m with m ih,
   { simp, },
   { rw [falling_factorial_eq_mul_right, ←mul_assoc, ih, add_succ,
-      falling_factorial_eq_mul_right, sub_sub], }
+      falling_factorial_eq_mul_right, nat.sub_sub], }
 end
 
 lemma falling_factorial_ne_zero {n m : ℕ} (h : n ≤ m) :
@@ -176,7 +176,7 @@ lemma falling_factorial_ne_zero {n m : ℕ} (h : n ≤ m) :
 begin
   intro w,
   have := @falling_factorial_mul_falling_factorial m n (m-n),
-  rw [w, add_sub_cancel' h, zero_mul, falling_factorial_eq_factorial] at this,
+  rw [w, nat.add_sub_cancel' h, zero_mul, falling_factorial_eq_factorial] at this,
   exact ne_of_lt m.factorial_pos this,
 end
 

@@ -239,6 +239,8 @@ lemma filter.tendsto.exists_forall_le {α β : Type*} [linear_order β] {f : α 
   (hf : tendsto f cofinite at_top) :
   ∃ a₀, ∀ a, f a₀ ≤ f a :=
 begin
+  -- take the inverse image of some bounded set, it's finite, functions on finite sets have minima
+  -- `finset.exists_min_image`
   sorry
 end
 
@@ -290,6 +292,20 @@ end
 
 end finite_pairs
 
+
+lemma bottom_row_coprime (g : SL(2, ℤ)) : int.gcd (g 1 0) (g 1 1) = 1 := sorry
+
+def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨(g 1 0, g 1 1), bottom_row_coprime g⟩
+
+lemma bottom_row_surj : function.surjective bottom_row := sorry
+
+lemma exists_g_with_min_bottom (z : H) :
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
+begin
+
+
+end
+
 variables {g : SL(2,ℤ)} {z : H}
 
 lemma gcd_eq_one_iff_coprime' (a b : ℤ) : gcd a b = 1 ↔ is_coprime a b :=
@@ -297,7 +313,7 @@ begin
   rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
 end
 
-lemma exists_g_with_min_bottom (z : H) :
+lemma exists_g_with_min_bottom' (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
   let f : coprime_ints → ℝ := λ cd,  (((cd : ℤ×ℤ).1:ℂ) * z + (cd : ℤ×ℤ).2).norm_sq,

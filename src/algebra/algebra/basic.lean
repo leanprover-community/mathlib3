@@ -172,6 +172,10 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+lemma smul_mul_smul (r s : R) (x y : A) :
+  (r • x) * (s • y) = (r * s) • (x * y) :=
+by rw [algebra.smul_mul_assoc, algebra.mul_smul_comm, smul_smul]
+
 section
 variables {r : R} {a : A}
 

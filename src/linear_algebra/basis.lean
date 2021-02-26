@@ -179,7 +179,7 @@ begin
   { intro i,
     ext j,
     haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
-    simp [hv.range_repr_self, finsupp.single_apply, hv.injective] }
+    simp [hv.range_repr_self, finsupp.single_apply, hv.injective.eq_iff] }
 end
 
 /-- Construct a linear map given the value at the basis. -/

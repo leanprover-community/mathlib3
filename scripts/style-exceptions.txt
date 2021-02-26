@@ -58,8 +58,8 @@ src/category_theory/filtered.lean : line 184 : ERR_LIN : Line has more than 100 
 src/category_theory/full_subcategory.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/fully_faithful.lean : line 9 : ERR_LIN : Line has more than 100 characters
 src/category_theory/fully_faithful.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/functor.lean : line 17 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/functor.lean : line 19 : ERR_LIN : Line has more than 100 characters
+src/category_theory/functor.lean : line 18 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/functor.lean : line 20 : ERR_LIN : Line has more than 100 characters
 src/category_theory/functor_category.lean : line 10 : ERR_LIN : Line has more than 100 characters
 src/category_theory/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/functor_category.lean : line 83 : ERR_LIN : Line has more than 100 characters
@@ -92,12 +92,6 @@ src/category_theory/limits/shapes/products.lean : line 56 : ERR_LIN : Line has m
 src/category_theory/limits/shapes/products.lean : line 59 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/products.lean : line 60 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/products.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/shapes/pullbacks.lean : line 179 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 240 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 272 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 310 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 371 : ERR_LIN : Line has more than 100 characters
-src/category_theory/limits/shapes/pullbacks.lean : line 97 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/regular_mono.lean : line 166 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/regular_mono.lean : line 196 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/shapes/types.lean : line 40 : ERR_LIN : Line has more than 100 characters
@@ -264,7 +258,7 @@ src/data/mv_polynomial/variables.lean : line 31 : ERR_LIN : Line has more than 1
 src/data/mv_polynomial/variables.lean : line 34 : ERR_LIN : Line has more than 100 characters
 src/data/mv_polynomial/variables.lean : line 624 : ERR_LIN : Line has more than 100 characters
 src/data/nat/basic.lean : line 113 : ERR_LIN : Line has more than 100 characters
-src/data/nat/basic.lean : line 879 : ERR_LIN : Line has more than 100 characters
+src/data/nat/basic.lean : line 881 : ERR_LIN : Line has more than 100 characters
 src/data/nat/cast.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/dist.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/enat.lean : line 373 : ERR_LIN : Line has more than 100 characters
@@ -367,13 +361,13 @@ src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/set/basic.lean : line 2340 : ERR_LIN : Line has more than 100 characters
+src/data/set/basic.lean : line 2349 : ERR_LIN : Line has more than 100 characters
 src/data/set/basic.lean : line 887 : ERR_LIN : Line has more than 100 characters
 src/data/set/countable.lean : line 143 : ERR_LIN : Line has more than 100 characters
 src/data/set/countable.lean : line 159 : ERR_LIN : Line has more than 100 characters
 src/data/set/disjointed.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/set/enumerate.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/data/set/function.lean : line 423 : ERR_LIN : Line has more than 100 characters
+src/data/set/function.lean : line 428 : ERR_LIN : Line has more than 100 characters
 src/data/set/lattice.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/data/set/lattice.lean : line 470 : ERR_LIN : Line has more than 100 characters
 src/data/set/lattice.lean : line 472 : ERR_LIN : Line has more than 100 characters
@@ -389,8 +383,8 @@ src/data/sym2.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/vector2.lean : line 334 : ERR_LIN : Line has more than 100 characters
 src/data/vector2.lean : line 357 : ERR_LIN : Line has more than 100 characters
-src/data/zmod/basic.lean : line 374 : ERR_LIN : Line has more than 100 characters
-src/data/zmod/basic.lean : line 688 : ERR_LIN : Line has more than 100 characters
+src/data/zmod/basic.lean : line 380 : ERR_LIN : Line has more than 100 characters
+src/data/zmod/basic.lean : line 694 : ERR_LIN : Line has more than 100 characters
 src/data/zsqrtd/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -466,7 +460,6 @@ src/geometry/manifold/times_cont_mdiff.lean : line 468 : ERR_LIN : Line has more
 src/geometry/manifold/times_cont_mdiff.lean : line 567 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/times_cont_mdiff.lean : line 593 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/times_cont_mdiff.lean : line 990 : ERR_LIN : Line has more than 100 characters
-src/group_theory/coset.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/group_theory/sylow.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/linear_algebra/dual.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/linear_algebra/finsupp_vector_space.lean : line 12 : ERR_MOD : Module docstring missing, or too late
@@ -502,8 +495,8 @@ src/order/bounded_lattice.lean : line 231 : ERR_LIN : Line has more than 100 cha
 src/order/bounded_lattice.lean : line 235 : ERR_LIN : Line has more than 100 characters
 src/order/bounded_lattice.lean : line 239 : ERR_LIN : Line has more than 100 characters
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/complete_lattice.lean : line 201 : ERR_LIN : Line has more than 100 characters
-src/order/complete_lattice.lean : line 204 : ERR_LIN : Line has more than 100 characters
+src/order/complete_lattice.lean : line 202 : ERR_LIN : Line has more than 100 characters
+src/order/complete_lattice.lean : line 205 : ERR_LIN : Line has more than 100 characters
 src/order/conditionally_complete_lattice.lean : line 526 : ERR_LIN : Line has more than 100 characters
 src/order/conditionally_complete_lattice.lean : line 748 : ERR_LIN : Line has more than 100 characters
 src/order/conditionally_complete_lattice.lean : line 760 : ERR_LIN : Line has more than 100 characters
@@ -594,7 +587,7 @@ src/tactic/core.lean : line 17 : ERR_MOD : Module docstring missing, or too late
 src/tactic/core.lean : line 2147 : ERR_LIN : Line has more than 100 characters
 src/tactic/core.lean : line 2308 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 67 : ERR_LIN : Line has more than 100 characters
-src/tactic/delta_instance.lean : line 73 : ERR_LIN : Line has more than 100 characters
+src/tactic/delta_instance.lean : line 75 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/elide.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/equiv_rw.lean : line 174 : ERR_LIN : Line has more than 100 characters
@@ -770,7 +763,6 @@ src/tactic/wlog.lean : line 95 : ERR_LIN : Line has more than 100 characters
 src/tactic/wlog.lean : line 97 : ERR_LIN : Line has more than 100 characters
 src/testing/slim_check/gen.lean : line 133 : ERR_LIN : Line has more than 100 characters
 src/testing/slim_check/gen.lean : line 144 : ERR_LIN : Line has more than 100 characters
-src/testing/slim_check/gen.lean : line 156 : ERR_LIN : Line has more than 100 characters
 src/testing/slim_check/gen.lean : line 83 : ERR_LIN : Line has more than 100 characters
 src/testing/slim_check/testable.lean : line 273 : ERR_LIN : Line has more than 100 characters
 src/testing/slim_check/testable.lean : line 372 : ERR_LIN : Line has more than 100 characters
@@ -801,8 +793,8 @@ src/topology/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too la
 src/topology/category/Top/open_nhds.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/topology/homeomorph.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/topology/instances/real.lean : line 128 : ERR_LIN : Line has more than 100 characters
-src/topology/local_homeomorph.lean : line 525 : ERR_LIN : Line has more than 100 characters
-src/topology/local_homeomorph.lean : line 536 : ERR_LIN : Line has more than 100 characters
+src/topology/local_homeomorph.lean : line 533 : ERR_LIN : Line has more than 100 characters
+src/topology/local_homeomorph.lean : line 544 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/basic.lean : line 15 : ERR_MOD : Module docstring missing, or too late
 src/topology/metric_space/gromov_hausdorff.lean : line 61 : ERR_LIN : Line has more than 100 characters
 src/topology/metric_space/isometry.lean : line 381 : ERR_LIN : Line has more than 100 characters

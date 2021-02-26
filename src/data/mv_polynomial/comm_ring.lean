@@ -61,10 +61,10 @@ variables (σ a a')
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ R) = -C a := is_ring_hom.map_neg _
 
 @[simp] lemma coeff_neg (m : σ →₀ ℕ) (p : mv_polynomial σ R) :
-  coeff m (-p) = -coeff m p := finsupp.neg_apply
+  coeff m (-p) = -coeff m p := finsupp.neg_apply _ _
 
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
-  coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply
+  coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply _ _ _
 
 instance coeff.is_add_group_hom (m : σ →₀ ℕ) :
   is_add_group_hom (coeff m : mv_polynomial σ R → R) :=

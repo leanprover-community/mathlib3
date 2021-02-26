@@ -641,7 +641,10 @@ it produces a continuous linear function into a family of topological modules. -
 def pi (f : Πi, M →L[R] φ i) : M →L[R] (Πi, φ i) :=
 ⟨linear_map.pi (λ i, f i), continuous_pi (λ i, (f i).continuous)⟩
 
-@[simp] lemma coe_pi (f : Π i, M →L[R] φ i) : ⇑(pi f) = λ c i, f i c := rfl
+@[simp] lemma coe_pi' (f : Π i, M →L[R] φ i) : ⇑(pi f) = λ c i, f i c := rfl
+@[simp] lemma coe_pi (f : Π i, M →L[R] φ i) :
+  (pi f : M →ₗ[R] Π i, φ i) = linear_map.pi (λ i, f i) :=
+rfl
 
 lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
   pi f c i = f i c := rfl

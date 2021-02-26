@@ -121,7 +121,7 @@ begin
   simp only [list.nodup_iff_nth_le_inj],
   split,
   { intros h i j hij,
-    cases i, cases j, simp [nth_eq_nth_le] at *, tauto },
+    cases i, cases j, ext, apply h, simpa },
   { intros h i j hi hj hij,
     have := @h ⟨i, hi⟩ ⟨j, hj⟩, simp [nth_eq_nth_le] at *, tauto }
 end

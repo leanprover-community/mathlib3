@@ -29,7 +29,7 @@ open_locale big_operators
 @[ext]
 structure hahn_series (Γ : Type*) (R : Type*) [linear_order Γ] [has_zero R] :=
 (coeff : Γ → R)
-(is_wf_support : {a | coeff a ≠ 0}.is_wf)
+(is_wf_support' : {a | coeff a ≠ 0}.is_wf)
 
 variables {Γ : Type*} {R : Type*}
 
@@ -38,19 +38,32 @@ namespace hahn_series
 section zero
 variables [linear_order Γ] [has_zero R]
 
+/-- The support of a Hahn series is just the set of indices whose coefficients are nonzero.
+  Notably, it is well-founded. -/
+def support (x : hahn_series Γ R) : set Γ := {a | x.coeff a ≠ 0}
+
+@[simp]
+lemma is_wf_support (x : hahn_series Γ R) : x.support.is_wf := x.is_wf_support'
+
+@[simp]
+lemma mem_support (x : hahn_series Γ R) (a : Γ) : a ∈ x.support ↔ x.coeff a ≠ 0 := iff.refl _
+
 instance : has_zero (hahn_series Γ R) :=
 ⟨{ coeff := 0,
-   is_wf_support := by simp }⟩
+   is_wf_support' := by simp }⟩
 
 instance : inhabited (hahn_series Γ R) := ⟨0⟩
 
 @[simp]
 lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
 
+@[simp]
+lemma support_zero : support (0 : hahn_series Γ R) = ∅ := by { ext, simp }
+
 /-- `single a r` is the Hahn series which has coefficient `r` at `a` and zero otherwise. -/
 def single (a : Γ) (r : R) : hahn_series Γ R := {
   coeff := λ b, if a = b then r else 0,
-  is_wf_support := (set.is_wf_singleton a).mono (λ b, begin
+  is_wf_support' := (set.is_wf_singleton a).mono (λ b, begin
     simp only [and_imp, exists_prop, set.mem_singleton_iff, ite_eq_right_iff,
       ne.def, set.mem_set_of_eq, not_forall],
     exact λ h1 _, h1.symm,
@@ -67,10 +80,10 @@ theorem single_coeff_same : (single a r).coeff a = r := if_pos rfl
 theorem single_coeff_of_ne (h : a ≠ b) : (single a r).coeff b = 0 := if_neg h
 
 @[simp]
-lemma single_support_of_ne (h : r ≠ 0) : {b | (single a r).coeff b ≠ 0} = {a} :=
+lemma support_single_of_ne (h : r ≠ 0) : support (single a r) = {a} :=
 begin
   ext b,
-  simp only [set.mem_singleton_iff, ne.def, set.mem_set_of_eq],
+  simp only [set.mem_singleton_iff, ne.def, mem_support],
   split,
   { contrapose!,
     exact λ h', single_coeff_of_ne (ne.symm h') },
@@ -88,9 +101,9 @@ variable [linear_order Γ]
 
 instance [add_monoid R] : has_add (hahn_series Γ R) :=
 { add := λ x y, { coeff := x.coeff + y.coeff,
-                  is_wf_support := (x.is_wf_support.union y.is_wf_support).mono (λ a ha, begin
+                  is_wf_support' := (x.is_wf_support.union y.is_wf_support).mono (λ a ha, begin
                     contrapose! ha,
-                    simp only [not_or_distrib, not_not, set.mem_union_eq, set.mem_set_of_eq] at ha,
+                    simp only [not_or_distrib, not_not, set.mem_union, mem_support] at ha,
                     simp only [pi.add_apply, not_not, set.mem_set_of_eq],
                     rw [ha.1, ha.2, add_zero],
                   end) } }
@@ -112,7 +125,7 @@ instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
 
 instance [add_group R] : add_group (hahn_series Γ R) :=
 { neg := λ x, { coeff := λ a, - x.coeff a,
-                is_wf_support := by { convert x.is_wf_support,
+                is_wf_support' := by { convert x.is_wf_support,
                   ext a,
                   simp }, },
   add_left_neg := λ x, by { ext, apply add_left_neg },
@@ -135,11 +148,10 @@ variables [monoid R] [add_monoid V] [distrib_mul_action R V]
 
 instance : has_scalar R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := λ a, r • x.coeff a,
-          is_wf_support := x.is_wf_support.mono (λ a ha con, ha (by { rw [con, smul_zero] })) }⟩
+          is_wf_support' := x.is_wf_support.mono (λ a ha con, ha (by { rw [con, smul_zero] })) }⟩
 
 @[simp]
-lemma smul_coeff [monoid R] [add_monoid V] [distrib_mul_action R V]
-  {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl
+lemma smul_coeff {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl
 
 instance : distrib_mul_action R (hahn_series Γ V) :=
 { smul := (•),
@@ -176,7 +188,7 @@ noncomputable instance [semiring R] : has_mul (hahn_series Γ R) :=
 { mul := λ x y, { coeff := λ a,
     ∑ ij in (finset.add_antidiagonal x.is_wf_support y.is_wf_support a),
     x.coeff ij.fst * y.coeff ij.snd,
-    is_wf_support := begin
+    is_wf_support' := begin
       have h : {a : Γ | ∑ (ij : Γ × Γ) in finset.add_antidiagonal x.is_wf_support
         y.is_wf_support a, x.coeff ij.fst * y.coeff ij.snd ≠ 0} ⊆
         {a : Γ | (finset.add_antidiagonal x.is_wf_support y.is_wf_support a).nonempty},
@@ -213,7 +225,7 @@ begin
   apply finset.sum_subset_zero_on_sdiff (finset.add_antidiagonal_mono_left hxs) _ (λ _ _, rfl),
   intros b hb,
   simp only [not_and, not_not, finset.mem_sdiff, finset.mem_add_antidiagonal,
-      ne.def, set.mem_set_of_eq] at hb,
+      ne.def, set.mem_set_of_eq, mem_support] at hb,
   rw [not_not.1 (λ con, hb.1.2.2 (hb.2 hb.1.1 con)), zero_mul],
 end
 
@@ -225,7 +237,7 @@ noncomputable instance [semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_right' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, mul_add, finset.sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], }
@@ -237,7 +249,7 @@ noncomputable instance [semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_left' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, add_mul, finset.sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], },
@@ -252,7 +264,7 @@ begin
   ext a,
   by_cases hr : r = 0,
   { simp [hr] },
-  simp only [hr, smul_coeff, mul_coeff, single_support_of_ne, ne.def, not_false_iff, smul_eq_mul],
+  simp only [hr, smul_coeff, mul_coeff, support_single_of_ne, ne.def, not_false_iff, smul_eq_mul],
   by_cases hx : x.coeff a = 0,
   { simp only [hx, mul_zero],
     rw [finset.sum_congr _ (λ _ _, rfl), finset.sum_empty],
@@ -260,7 +272,7 @@ begin
     simp only [finset.not_mem_empty, not_and, set.mem_singleton_iff, not_not,
       finset.mem_add_antidiagonal, set.mem_set_of_eq, iff_false],
     rintro rfl rfl,
-    rw [← hx, zero_add] },
+    rw [mem_support, not_not, ← hx, zero_add] },
   transitivity ∑ (ij : Γ × Γ) in {((0 : Γ),a)}, (single 0 r).coeff ij.fst * x.coeff ij.snd,
   { apply finset.sum_congr _ (λ _ _, rfl),
     ext ⟨a1, a2⟩,
@@ -279,7 +291,7 @@ lemma mul_single_zero_coeff [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ}
 begin
   by_cases hr : r = 0,
   { simp [hr] },
-  simp only [hr, smul_coeff, mul_coeff, single_support_of_ne, ne.def, not_false_iff, smul_eq_mul],
+  simp only [hr, smul_coeff, mul_coeff, support_single_of_ne, ne.def, not_false_iff, smul_eq_mul],
   by_cases hx : x.coeff a = 0,
   { simp only [hx, zero_mul],
     rw [finset.sum_congr _ (λ _ _, rfl), finset.sum_empty],

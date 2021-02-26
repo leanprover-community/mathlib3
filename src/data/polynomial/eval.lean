@@ -510,6 +510,40 @@ lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 eq.symm $ sum_hom _ _
 
+@[simp]
+lemma eval_zero_map (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 0 = f (p.eval 0) :=
+by simp [←coeff_zero_eq_eval_zero]
+
+@[simp]
+lemma eval_one_map (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 1 = f (p.eval 1) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
+@[simp]
+lemma eval_nat_cast_map
+  (f : R →+* S) (p : polynomial R) (n : ℕ) :
+  (p.map f).eval n = f (p.eval n) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
+@[simp]
+lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
+  (f : R →+* S) (p : polynomial R) (i : ℤ) :
+  (p.map f).eval i = f (p.eval i) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
 end map
 
 /-!

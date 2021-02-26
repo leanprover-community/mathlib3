@@ -617,10 +617,6 @@ end comm_semiring
 section ring
 variables [ring R] {p q r : polynomial R}
 
--- @[simp]
--- lemma C_eq_int_cast (n : ℤ) : C ↑n = (n : polynomial R) :=
--- (C : R →+* _).map_int_cast n
-
 lemma C_neg : C (-a) = -C a := ring_hom.map_neg C a
 
 lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
@@ -664,8 +660,7 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
 @[simp] lemma sub_comp : (p - q).comp r = p.comp r - q.comp r := eval₂_sub _
 
-@[simp] lemma cast_int_comp (i : ℤ) :
-  comp (i : polynomial R) p = i :=
+@[simp] lemma cast_int_comp (i : ℤ) : comp (i : polynomial R) p = i :=
 by cases i; simp
 
 end ring

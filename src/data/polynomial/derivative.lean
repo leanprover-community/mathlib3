@@ -258,13 +258,13 @@ def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomia
   (polynomial.derivative_lhom R : polynomial R → polynomial R) = polynomial.derivative :=
 rfl
 
-@[simp] lemma derivative_coe_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
+@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
 begin
   rw ← C.map_nat_cast n,
   exact derivative_C,
 end
 
-@[simp] lemma iterate_derivative_coe_nat_mul {n k : ℕ} {f : polynomial R} :
+@[simp] lemma iterate_derivative_cast_nat_mul {n k : ℕ} {f : polynomial R} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
 begin
   induction k with k ih generalizing f,

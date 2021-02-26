@@ -507,8 +507,7 @@ begin
 end
 
 @[simp]
-lemma eval_nat_cast_map
-  (f : R →+* S) (p : polynomial R) (n : ℕ) :
+lemma eval_nat_cast_map (f : R →+* S) (p : polynomial R) (n : ℕ) :
   (p.map f).eval n = f (p.eval n) :=
 begin
   apply polynomial.induction_on' p,

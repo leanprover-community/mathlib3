@@ -11,21 +11,6 @@ import data.nat.pochhammer
 import tactic.omega
 
 namespace polynomial
-section
-variables {R : Type*} [comm_semiring R]
-
-lemma derivative_comp (p q : polynomial R) :
-  (p.comp q).derivative = q.derivative * p.derivative.comp q :=
-begin
-  apply polynomial.induction_on' p,
-  { intros p₁ p₂ h₁ h₂, simp [h₁, h₂, mul_add], },
-  { intros n r,
-    simp [derivative_mul, derivative_pow],
-    -- isn't there a tactic for this?:
-    rw [mul_comm (derivative q)],
-    simp only [mul_assoc], }
-end
-end
 
 section
 variables {R : Type*} [comm_ring R]
@@ -77,17 +62,9 @@ iterate_apply f n m
 
 end linear_map
 
-@[simp] lemma polynomial.derivative_lhom_coe {R : Type*} [comm_ring R] :
-  (polynomial.derivative_lhom R : polynomial R → polynomial R) = polynomial.derivative :=
-rfl
 
 noncomputable theory
 
-meta def tactic.interactive.ls := tactic.interactive.library_search
-
-@[simp]
-lemma fin.succ_coe (n : ℕ) (i : fin n) : (i.cast_succ : ℕ) = (i : ℕ) :=
-rfl
 
 @[simp] lemma polynomial.nat_cast_coeff_zero {n : ℕ} {R : Type*} [semiring R] :
   (n : polynomial R).coeff 0 = n :=
@@ -182,7 +159,7 @@ begin
     { apply mul_comm, }, },
 end
 
-lemma derivative (n ν : ℕ) :
+lemma derivative_succ (n ν : ℕ) :
   (bernstein_polynomial n (ν+1)).derivative =
     n * (bernstein_polynomial (n-1) ν - bernstein_polynomial (n-1) (ν+1)) :=
 begin
@@ -208,7 +185,7 @@ begin
     revert w,
     induction k with k ih generalizing n ν,
     { simp [eval_at_0], rintro ⟨⟩, },
-    { simp only [derivative, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
+    { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
         function.comp_app, function.iterate_succ,
         polynomial.iterate_derivative_sub, polynomial.iterate_derivative_coe_nat_mul,
         polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
@@ -233,7 +210,7 @@ lemma iterate_derivative_at_0 (n ν : ℕ) :
 begin
   induction ν with ν ih generalizing n,
   { simp [eval_at_0], },
-  { simp [derivative, ih],
+  { simp [derivative_succ, ih],
     rw [nat.falling_factorial_eq_mul_left],
     push_cast, }
 end

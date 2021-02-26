@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
+import algebra.iterate_hom
 
 /-!
 # The derivative map on polynomials
@@ -72,10 +73,6 @@ lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomi
 (derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
 
 @[simp]
-lemma derivative_C_mul (a : R) (p : polynomial R) : derivative (C a * p) = C a * derivative p :=
-sorry
-
-@[simp]
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
@@ -104,7 +101,7 @@ derivative.map_add f g
 
 @[simp] lemma iterate_derivative_add {f g : polynomial R} {k : ℕ} :
   derivative^[k] (f + g) = (derivative^[k] f) + (derivative^[k] g) :=
-sorry
+derivative.to_add_monoid_hom.iterate_map_add _ _ _
 
 @[simp] lemma derivative_neg {R : Type*} [ring R] (f : polynomial R) :
   derivative (-f) = - derivative f :=
@@ -112,7 +109,7 @@ linear_map.map_neg derivative f
 
 @[simp] lemma iterate_derivative_neg {R : Type*} [ring R] {f : polynomial R} {k : ℕ} :
   derivative^[k] (-f) = - (derivative^[k] f) :=
-sorry
+(@derivative R _).to_add_monoid_hom.iterate_map_neg _ _
 
 @[simp] lemma derivative_sub {R : Type*} [ring R] {f g : polynomial R} :
   derivative (f - g) = derivative f - derivative g :=
@@ -127,7 +124,22 @@ derivative.map_smul _ _
 
 @[simp] lemma iterate_derivative_smul (r : R) (p : polynomial R) (k : ℕ) :
   derivative^[k] (r • p) = r • (derivative^[k] p) :=
-sorry
+begin
+  induction k with k ih generalizing p,
+  { simp, },
+  { simp [ih], },
+end
+
+/-- We can't use `derivative_mul` here because
+we want to prove this statement also for noncommutative rings.-/
+@[simp]
+lemma derivative_C_mul (a : R) (p : polynomial R) : derivative (C a * p) = C a * derivative p :=
+by convert derivative_smul a p; apply C_mul'
+
+@[simp]
+lemma iterate_derivative_C_mul (a : R) (p : polynomial R) (k : ℕ) :
+  derivative^[k] (C a * p) = C a * (derivative^[k] p) :=
+by convert iterate_derivative_smul a p k; apply C_mul'
 
 end semiring
 
@@ -174,6 +186,19 @@ theorem derivative_pow (p : polynomial R) (n : ℕ) :
   (p ^ n).derivative = n * (p ^ (n - 1)) * p.derivative :=
 nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_mul]) $ λ n,
 by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
+
+lemma derivative_comp (p q : polynomial R) :
+  (p.comp q).derivative = q.derivative * p.derivative.comp q :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p₁ p₂ h₁ h₂, simp [h₁, h₂, mul_add], },
+  { intros n r,
+    simp only [derivative_pow, derivative_mul, monomial_comp, derivative_monomial, derivative_C,
+      zero_mul, C_eq_nat_cast, zero_add, ring_hom.map_mul],
+    -- is there a tactic for this? (a multiplicative `abel`):
+    rw [mul_comm (derivative q)],
+    simp only [mul_assoc], }
+end
 
 @[simp]
 theorem derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) :
@@ -228,6 +253,10 @@ def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomia
 { to_fun    := derivative,
   map_add'  := λ p q, derivative_add,
   map_smul' := λ r p, derivative_smul r p }
+
+@[simp] lemma derivative_lhom_coe {R : Type*} [comm_ring R] :
+  (polynomial.derivative_lhom R : polynomial R → polynomial R) = polynomial.derivative :=
+rfl
 
 @[simp] lemma derivative_coe_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
 begin

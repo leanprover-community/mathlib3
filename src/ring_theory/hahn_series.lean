@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import order.well_founded_set
 import algebra.big_operators
+import algebra.module.pi
 
 /-!
 # Hahn Series
@@ -90,11 +91,8 @@ variable [linear_order Γ]
 
 instance [add_monoid R] : has_add (hahn_series Γ R) :=
 { add := λ x y, { coeff := x.coeff + y.coeff,
-                  is_wf_support' := (x.is_wf_support.union y.is_wf_support).mono (λ a ha, begin
-                    contrapose! ha,
-                    simp only [not_or_distrib, not_not, set.mem_union, mem_support] at ha,
-                    simp [ha.1, ha.2],
-                  end) } }
+                  is_wf_support' := (x.is_wf_support.union y.is_wf_support).mono
+                    (function.support_add _ _) } }
 
 instance [add_monoid R] : add_monoid (hahn_series Γ R) :=
 { zero := 0,
@@ -116,7 +114,8 @@ instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
 
 instance [add_group R] : add_group (hahn_series Γ R) :=
 { neg := λ x, { coeff := λ a, - x.coeff a,
-                is_wf_support' := x.is_wf_support.mono (λ a, by simp), },
+                is_wf_support' := by { rw function.support_neg,
+                  exact x.is_wf_support }, },
   add_left_neg := λ x, by { ext, apply add_left_neg },
   .. hahn_series.add_monoid }
 
@@ -145,8 +144,8 @@ section distrib_mul_action
 variables [monoid R] [add_monoid V] [distrib_mul_action R V]
 
 instance : has_scalar R (hahn_series Γ V) :=
-⟨λ r x, { coeff := λ a, r • x.coeff a,
-          is_wf_support' := x.is_wf_support.mono (λ a ha con, ha (by simp [con])) }⟩
+⟨λ r x, { coeff := r • x.coeff,
+          is_wf_support' := x.is_wf_support.mono (function.support_smul_subset r x.coeff) }⟩
 
 @[simp]
 lemma smul_coeff {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl

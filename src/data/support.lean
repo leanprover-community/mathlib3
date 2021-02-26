@@ -7,6 +7,7 @@ import order.conditionally_complete_lattice
 import algebra.big_operators.basic
 import algebra.group.prod
 import algebra.group.pi
+import algebra.module.pi
 
 /-!
 # Support of a function
@@ -74,6 +75,15 @@ support_binop_subset (has_sub.sub) (sub_self _) f g
   support (λ x, f x * g x) = support f ∩ support g :=
 set.ext $ λ x, by simp only [support, ne.def, mul_eq_zero, mem_set_of_eq,
   mem_inter_iff, not_or_distrib]
+
+lemma support_smul_subset [add_monoid A] [monoid B] [distrib_mul_action B A]
+  (b : B) (f : α → A) :
+  support (b • f) ⊆ support f :=
+begin
+  simp_rw [support_subset_iff, mem_support],
+  refine λ x hbf hf, hbf _,
+  rw [pi.smul_apply, hf, smul_zero],
+end
 
 @[simp] lemma support_inv [division_ring A] (f : α → A) :
   support (λ x, (f x)⁻¹) = support f :=

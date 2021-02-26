@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import analysis.normed_space.operator_norm
+import analysis.normed_space.basic
 import topology.sequences
 
 /-!
@@ -36,6 +36,13 @@ def add_monoid_hom.mk_continuous {V W : Type*} [normed_group V] [normed_group W]
 { bound' := ⟨C, h⟩, ..f }
 
 attribute [nolint doc_blame] normed_group_hom.to_add_monoid_hom
+
+lemma exists_pos_bound_of_bound {V W : Type*} [normed_group V] [normed_group W]
+  {f : V → W} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
+  ∃ N, 0 < N ∧ ∀x, ∥f x∥ ≤ N * ∥x∥ :=
+⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
+  ∥f x∥ ≤ M * ∥x∥ : h x
+  ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
 namespace normed_group_hom
 
@@ -118,6 +125,9 @@ let ⟨C, C_pos, hC⟩ := f.bound in (lipschitz_of_bound_by f C hC).uniform_cont
 protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=
 f.uniform_continuous.continuous
 
+/-! ### The operator norm -/
+
+/-- The operator norm of a normed group homomorphism is the inf of all its bounds. -/
 def op_norm (f : normed_group_hom V₁ V₂) := Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥}
 instance has_op_norm : has_norm (normed_group_hom V₁ V₂) := ⟨op_norm⟩
 
@@ -185,6 +195,8 @@ op_norm_le_bound _ (le_max_right _ _) $ λ x, (h x).trans $
 alias mk_continuous_norm_le ← add_monoid_hom.mk_continuous_norm_le
 alias mk_continuous_norm_le' ← add_monoid_hom.mk_continuous_norm_le'
 
+/-! ### Addition of normed group homs -/
+
 /-- Addition of normed group homs. -/
 instance : has_add (normed_group_hom V₁ V₂) :=
 ⟨λ f g, (f.to_add_monoid_hom + g.to_add_monoid_hom).mk_continuous (∥f∥ + ∥g∥) $ λ v, calc
@@ -196,6 +208,12 @@ instance : has_add (normed_group_hom V₁ V₂) :=
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 mk_continuous_norm_le _ (add_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
+
+@[simp] lemma coe_add (f g : normed_group_hom V₁ V₂) : ⇑(f + g) = f + g := rfl
+lemma add_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
+  ((f + g : normed_group_hom V₁ V₂)) v = f v + g v := rfl
+
+/-! ### The zero normed group hom -/
 
 instance : has_zero (normed_group_hom V₁ V₂) :=
 ⟨(0 : V₁ →+ V₂).mk_continuous 0 (by simp)⟩
@@ -212,7 +230,12 @@ iff.intro
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
+@[simp] lemma coe_zero : ⇑(0 : normed_group_hom V₁ V₂) = 0 := rfl
+lemma zero_apply (v : V₁) : ((0 : normed_group_hom V₁ V₂)) v = 0 := rfl
+
 variables {f g}
+
+/-! ### The identity normed group hom -/
 
 /-- The identity as a continuous normed group hom. -/
 @[simps]
@@ -230,9 +253,20 @@ le_antisymm norm_id_le $ let ⟨x, hx⟩ := exists_ne (0 : V) in
 have _ := (id : normed_group_hom V V).ratio_le_op_norm x,
 by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
+/-! ### The negation of a normed group hom -/
+
 /-- Opposite of a normed group hom. -/
 instance : has_neg (normed_group_hom V₁ V₂) :=
 ⟨λ f, (-f.to_add_monoid_hom).mk_continuous (∥f∥) (λ v, by simp [le_op_norm f v])⟩
+
+@[simp] lemma coe_neg (f : normed_group_hom V₁ V₂) : ⇑(-f) = -f := rfl
+lemma neg_apply (f : normed_group_hom V₁ V₂) (v : V₁) :
+  ((-f : normed_group_hom V₁ V₂)) v = - (f v) := rfl
+
+lemma op_norm_neg (f : normed_group_hom V₁ V₂) : ∥-f∥ = ∥f∥ :=
+by simp only [norm_def, coe_neg, norm_neg, pi.neg_apply]
+
+/-! ### Subtraction of normed group homs -/
 
 /-- Subtraction of normed group homs. -/
 instance : has_sub (normed_group_hom V₁ V₂) :=
@@ -244,16 +278,11 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
   end,
   .. (f.to_add_monoid_hom - g.to_add_monoid_hom) }⟩
 
-@[simp] lemma coe_zero : ⇑(0 : normed_group_hom V₁ V₂) = 0 := rfl
-
-@[simp] lemma coe_neg (f : normed_group_hom V₁ V₂) : ⇑(-f) = -f := rfl
-
-@[simp] lemma coe_add (f g : normed_group_hom V₁ V₂) : ⇑(f + g) = f + g := rfl
-
 @[simp] lemma coe_sub (f g : normed_group_hom V₁ V₂) : ⇑(f - g) = f - g := rfl
+@[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
+  ((f - g : normed_group_hom V₁ V₂)) v = f v - g v := rfl
 
-lemma op_norm_neg (f : normed_group_hom V₁ V₂) : ∥-f∥ = ∥f∥ :=
-by simp only [norm_def, coe_neg, norm_neg, pi.neg_apply]
+/-! ### Normed group structure on normed group homs -/
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
@@ -279,6 +308,8 @@ def coe_fn_add_hom : normed_group_hom V₁ V₂ →+ (V₁ → V₂) :=
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=
 by simp only [coe_sum, finset.sum_apply]
+
+/-! ### Composition of normed group homs -/
 
 /-- The composition of continuous normed group homs. -/
 @[simps]
@@ -310,6 +341,7 @@ end normed_group_hom
 
 namespace normed_group_hom
 
+/-!### Kernel -/
 section kernels
 
 variables {V V₁ V₂ V₃ : Type*}
@@ -330,7 +362,7 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
   bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
 
 /-- Given a normed group hom `f : V₁ → V₂` satisfying `g.comp f = 0` for some `g : V₂ → V₃`,
-    the corestriction of `f` to the kernel of `g`. -/
+    the coreisometryion of `f` to the kernel of `g`. -/
 @[simps] def ker.lift (h : g.comp f = 0) :
   normed_group_hom V₁ g.ker :=
 { to_fun := λ v, ⟨f v, by { erw g.mem_ker, show (g.comp f) v = 0, rw h, refl }⟩,
@@ -344,6 +376,7 @@ by { ext, refl }
 
 end kernels
 
+/-! ### Range -/
 section range
 
 variables {V V₁ V₂ V₃ : Type*}
@@ -367,8 +400,8 @@ variables {f : normed_group_hom V W}
 def norm_noninc (f : normed_group_hom V W) : Prop :=
 ∀ v, ∥f v∥ ≤ ∥v∥
 
-/-- A strict `normed_group_hom` is a `normed_group_hom` that preserves the norm. -/
-def is_strict (f : normed_group_hom V W) : Prop :=
+/-- A isometry `normed_group_hom` is a `normed_group_hom` that preserves the norm. -/
+def is_isometry (f : normed_group_hom V W) : Prop :=
 ∀ v, ∥f v∥ = ∥v∥
 
 namespace norm_noninc
@@ -386,9 +419,9 @@ lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
 
 end norm_noninc
 
-namespace is_strict
+namespace is_isometry
 
-lemma injective (hf : f.is_strict) :
+lemma injective (hf : f.is_isometry) :
   function.injective f :=
 begin
   intros x y h,
@@ -398,20 +431,20 @@ begin
   simpa,
 end
 
-lemma norm_noninc (hf : f.is_strict) : f.norm_noninc :=
+lemma norm_noninc (hf : f.is_isometry) : f.norm_noninc :=
 λ v, le_of_eq $ hf v
 
-lemma bound_by_one (hf : f.is_strict) : f.bound_by 1 :=
+lemma bound_by_one (hf : f.is_isometry) : f.bound_by 1 :=
 hf.norm_noninc.bound_by_one
 
-lemma id : (id : normed_group_hom V V).is_strict :=
+lemma id : (id : normed_group_hom V V).is_isometry :=
 λ v, rfl
 
 lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
-  (hg : g.is_strict) (hf : f.is_strict) :
-  (g.comp f).is_strict :=
+  (hg : g.is_isometry) (hf : f.is_isometry) :
+  (g.comp f).is_isometry :=
 λ v, (hg (f v)).trans (hf v)
 
-end is_strict
+end is_isometry
 
 end normed_group_hom

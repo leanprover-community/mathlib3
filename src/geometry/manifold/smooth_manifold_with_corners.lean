@@ -255,6 +255,19 @@ I.unique_diff_preimage e.open_source
 lemma model_with_corners.unique_diff_at_image {x : H} : unique_diff_within_at 𝕜 (range I) (I x) :=
 I.unique_diff _ (mem_range_self _)
 
+lemma model_with_corners.locally_compact [locally_compact_space E] (I : model_with_corners 𝕜 E H) :
+  locally_compact_space H :=
+begin
+  have : ∀ (x : H), (𝓝 x).has_basis (λ s, s ∈ 𝓝 (I x) ∧ is_compact s)
+    (λ s, I.symm '' (s ∩ range ⇑I)),
+  { intro x,
+    rw ← I.symm_map_nhds_within_range,
+    exact ((compact_basis_nhds (I x)).inf_principal _).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨-, hsc⟩,
+  exact (hsc.inter_right I.closed_range).image I.continuous_symm
+end
+
 end
 
 section model_with_corners_prod

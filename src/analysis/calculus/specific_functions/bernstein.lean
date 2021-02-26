@@ -10,7 +10,60 @@ import linear_algebra.basis
 import data.nat.pochhammer
 import tactic.omega
 
+lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} {h : f x ≠ f y} : x ≠ y :=
+λ (w : x = y), h (congr_arg f w)
+
+@[simp] lemma int.neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n = 0 ↔ false :=
+begin
+  simp only [iff_false],
+  exact pow_ne_zero _ (by norm_num)
+end
+
+@[simp] lemma fin.init_lambda {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+  fin.init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
+
 namespace polynomial
+
+lemma eval_zero_right {R : Type*} [semiring R] (p : polynomial R) : p.eval 0 = p.coeff 0 :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, cases n; simp [pow_succ], }
+end
+
+@[simp]
+lemma eval_zero_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 0 = f (p.eval 0) :=
+by simp [eval_zero_right]
+
+@[simp]
+lemma eval_one_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 1 = f (p.eval 1) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
+@[simp]
+lemma eval_nat_cast_map {R S : Type*} [semiring R] [semiring S]
+  (f : R →+* S) (p : polynomial R) (n : ℕ) :
+  (p.map f).eval n = f (p.eval n) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
+@[simp]
+lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
+  (f : R →+* S) (p : polynomial R) (i : ℤ) :
+  (p.map f).eval i = f (p.eval i) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
 
 section
 variables {R : Type*} [comm_ring R]
@@ -32,35 +85,6 @@ end
 end
 
 end polynomial
-#check linear_map.monoid
--- namespace linear_map
-
--- universes u v
-
--- def iterate {R : Type u} [semiring R]
---    {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) : ℕ → (M →ₗ[R] M)
--- | 0 := linear_map.id
--- | (n+1) := (iterate n).comp f
-
--- @[simp] lemma iterate_apply {R : Type u} [semiring R]
---    {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
---   f.iterate n m = ((f : M → M)^[n] m) :=
--- begin
---   induction n with n ih generalizing m,
---   { refl, },
---   { apply ih, },
--- end
-
--- instance {R : Type u} [semiring R] {M : Type v} [add_comm_monoid M] [semimodule R M] :
---   has_pow (M →ₗ[R] M) ℕ :=
--- { pow := λ f n, f.iterate n, }
-
--- @[simp] lemma pow_apply {R : Type u} [semiring R]
---    {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
---   (f^n) m = ((f : M → M)^[n] m) :=
--- iterate_apply f n m
-
--- end linear_map
 
 
 noncomputable theory
@@ -216,7 +240,6 @@ begin
   simp [polynomial.eval_comp, iterate_derivative_at_zero_eq_zero_of_lt n w],
 end
 
-
 @[simp]
 lemma iterate_derivative_at_1 (n ν : ℕ) (h : ν ≤ n) :
   (polynomial.derivative^[n-ν] (bernstein_polynomial n ν)).eval 1 =
@@ -226,11 +249,6 @@ begin
   simp [polynomial.eval_comp],
 end
 
-@[simp] lemma int.neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n = 0 ↔ false :=
-begin
-  simp only [iff_false],
-  exact pow_ne_zero _ (by norm_num)
-end
 
 lemma iterate_derivative_at_1_ne_zero (n ν : ℕ) (h : ν ≤ n) :
   (polynomial.derivative^[n-ν] (bernstein_polynomial n ν)).eval 1 ≠ 0 :=
@@ -240,54 +258,8 @@ begin
   exact nat.falling_factorial_ne_zero (nat.sub_le _ _),
 end
 
-@[simp] lemma fin.init_lambda {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
-  fin.init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
 
-open submodule
 
-lemma apply_mem_span_of_mem_span {R : Type*} [semiring R]
-   {M : Type*} [add_comm_monoid M] [semimodule R M]
-   {N : Type*} [add_comm_monoid N] [semimodule R N]
-   (f : M →ₗ[R] N) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
-   f x ∈ submodule.span R (f '' s) :=
-begin
-  simp only [submodule.mem_span, submodule.mem_map, submodule.span_image] at h ⊢,
-  exact ⟨x, ⟨h, rfl⟩⟩,
-end
-
-lemma not_mem_span_of_apply_not_mem_span {R : Type*} [semiring R]
-   {M : Type*} [add_comm_monoid M] [semimodule R M]
-   {N : Type*} [add_comm_monoid N] [semimodule R N]
-   (f : M →ₗ[R] N) {x : M} {s : set M} (h : f x ∉ submodule.span R (f '' s)) :
-   x ∉ submodule.span R s :=
-not.imp h (apply_mem_span_of_mem_span f)
-
-lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} {h : f x ≠ f y} : x ≠ y :=
-λ (w : x = y), h (congr_arg f w)
-
-lemma eval_zero {R : Type*} [semiring R] (p : polynomial R) : p.eval 0 = p.coeff 0 :=
-begin
-  apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, cases n; simp [pow_succ], }
-end
-
-@[simp]
-lemma eval_zero_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
-  (p.map f).eval 0 = f (p.eval 0) :=
-by simp [eval_zero]
-
-@[simp]
-lemma eval_one_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
-  (p.map f).eval 1 = f (p.eval 1) :=
-begin
-  apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, simp, }
-end
-
--- We could probably also add `eval_bit0_map` and `eval_bit1_map`, as well as
--- `eval_nat_cast_map` and `eval_int_cast_map`.
 
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
@@ -305,20 +277,19 @@ begin
       simp only [nat.succ_eq_add_one, add_le_add_iff_right] at h,
       simp only [fin.coe_last, fin.init_lambda],
       dsimp,
-      apply not_mem_span_of_apply_not_mem_span ((polynomial.derivative_lhom ℚ)^(n-k)),
+      apply not_mem_span_of_apply_not_mem_span_image ((polynomial.derivative_lhom ℚ)^(n-k)),
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
       intros p m,
       apply ne_of_apply_ne (polynomial.eval (1 : ℚ)),
-      -- simp only [ne.def, polynomial.derivative_lhom_coe, polynomial.iterate_derivative_map,
-      --   ring_hom.eq_int_cast, linear_map.pow_apply, bernstein_polynomial.eval_one_map],
-        squeeze_simp,
+      simp only [ne.def, polynomial.derivative_lhom_coe, polynomial.iterate_derivative_map,
+        ring_hom.eq_int_cast, linear_map.pow_apply, polynomial.eval_one_map],
       -- The right hand side is nonzero,
       -- so it will suffice to show the left hand side is always zero.
       suffices : (polynomial.derivative^[n-k] p).eval 1 = 0,
       { rw [this],
         norm_cast,
         refine (iterate_derivative_at_1_ne_zero n k h).symm, },
-      apply span_induction m,
+      apply submodule.span_induction m,
       { simp,
         rintro ⟨a, w⟩, simp only [fin.coe_mk],
         rw [iterate_derivative_at_one_eq_zero_of_lt _ (show n - k < n - a, by omega)], },

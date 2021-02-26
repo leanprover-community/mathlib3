@@ -996,6 +996,20 @@ span_eq_bot.trans $ by simp
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
 
+lemma apply_mem_span_iamge_of_mem_span
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
+   f x ∈ submodule.span R (f '' s) :=
+begin
+  simp only [submodule.mem_span, submodule.mem_map, submodule.span_image] at h ⊢,
+  exact ⟨x, ⟨h, rfl⟩⟩,
+end
+
+/-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/
+lemma not_mem_span_of_apply_not_mem_span_image
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : f x ∉ submodule.span R (f '' s)) :
+   x ∉ submodule.span R s :=
+not.imp h (apply_mem_span_iamge_of_mem_span f)
+
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm

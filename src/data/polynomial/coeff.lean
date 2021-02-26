@@ -172,4 +172,40 @@ lemma exists_coeff_not_mem_C_inverse :
 imp_of_not_imp_not _ _
   (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
 
+section cast
+
+@[simp] lemma nat_cast_coeff_zero {n : ℕ} {R : Type*} [semiring R] :
+  (n : polynomial R).coeff 0 = n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih], },
+end
+
+@[simp, norm_cast] theorem nat_cast_inj
+  {m n : ℕ} {R : Type*} [semiring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
+begin
+  fsplit,
+  { intro h,
+    apply_fun (λ p, p.coeff 0) at h,
+    simpa using h, },
+  { rintro rfl, refl, },
+end
+
+@[simp] lemma int_cast_coeff_zero {i : ℤ} {R : Type*} [ring R] :
+  (i : polynomial R).coeff 0 = i :=
+by cases i; simp
+
+@[simp, norm_cast] theorem int_cast_inj
+  {m n : ℤ} {R : Type*} [ring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
+begin
+  fsplit,
+  { intro h,
+    apply_fun (λ p, p.coeff 0) at h,
+    simpa using h, },
+  { rintro rfl, refl, },
+end
+
+end cast
+
 end polynomial

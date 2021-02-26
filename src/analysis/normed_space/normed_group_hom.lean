@@ -13,7 +13,7 @@ import topology.sequences
 This file gathers definitions and elementary constructions about bounded group homomorphisms
 between normed (abelian) groups (abbreviated to "normed group homs").
 
-The main lemmas relate the boundedness condition to continuity and Lispschitzness.
+The main lemmas relate the boundedness condition to continuity and Lipschitzness.
 
 The main construction is to endow the type of normed group homs between two given normed groups
 with a group structure and a norm, giving rise to a normed group structure.

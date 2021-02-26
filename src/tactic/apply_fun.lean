@@ -59,12 +59,10 @@ meta def apply_fun_to_goal (e : pexpr) (lem : option pexpr) : tactic unit :=
 do t ← target,
   match t with
   | `(%%l ≠ %%r) := (do
-      e' ← to_expr ``(ne_of_apply_ne %%e),
-      apply e',
+      to_expr ``(ne_of_apply_ne %%e) >>= apply,
       skip)
   | `(¬%%l = %%r) := (do
-      e' ← to_expr ``(ne_of_apply_ne %%e),
-      apply e',
+      to_expr ``(ne_of_apply_ne %%e) >>= apply,
       skip)
   | `(%%l = %%r) := (do
       to_expr ``(%%e %%l), -- build and discard an application, to fill in implicit arguments

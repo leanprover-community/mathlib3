@@ -1240,7 +1240,7 @@ begin
       clear h _match,
       have : ∀ s, ∃ s' : wseq α, (map ret s).join.destruct = (map ret s').join.destruct ∧
         destruct s = s'.destruct, from λ s, ⟨s, rfl, rfl⟩,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this]
+      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this, option.exists]
     end end },
   { exact ⟨s, rfl, rfl⟩ }
 end

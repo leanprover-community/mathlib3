@@ -12,10 +12,10 @@ lemma coe_def : (coe : α → option α) = some := rfl
 
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
-@[simp] lemma «forall» {p : option α → Prop} : (∀ x, p x) ↔ p none ∧ ∀ x, p (some x) :=
+protected lemma «forall» {p : option α → Prop} : (∀ x, p x) ↔ p none ∧ ∀ x, p (some x) :=
 ⟨λ h, ⟨h _, λ x, h _⟩, λ h x, option.cases_on x h.1 h.2⟩
 
-@[simp] lemma «exists» {p : option α → Prop} : (∃ x, p x) ↔ p none ∨ ∃ x, p (some x) :=
+protected lemma «exists» {p : option α → Prop} : (∃ x, p x) ↔ p none ∨ ∃ x, p (some x) :=
 ⟨λ ⟨x, hx⟩, (option.cases_on x or.inl $ λ x hx, or.inr ⟨x, hx⟩) hx,
   λ h, h.elim (λ h, ⟨_, h⟩) (λ ⟨x, hx⟩, ⟨_, hx⟩)⟩
 

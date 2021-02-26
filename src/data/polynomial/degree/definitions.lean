@@ -215,7 +215,7 @@ coeff_eq_zero_of_nat_degree_lt (lt_add_one _)
 
 -- We need the explicit `decidable` argument here because an exotic one shows up in a moment!
 lemma ite_le_nat_degree_coeff (p : polynomial R) (n : ℕ) (I : decidable (n < 1 + nat_degree p)) :
-  @ite (n < 1 + nat_degree p) I _ (coeff p n) 0 = coeff p n :=
+  @ite _ (n < 1 + nat_degree p) I (coeff p n) 0 = coeff p n :=
 begin
   split_ifs,
   { refl },

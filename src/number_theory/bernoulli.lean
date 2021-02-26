@@ -55,7 +55,6 @@ open_locale big_operators
 open_locale nat
 open nat
 open finset
-open_locale nat
 
 /-!
 

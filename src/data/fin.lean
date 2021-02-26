@@ -566,12 +566,12 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
 
 /-- `cast_succ i` is positive when `i` is positive -/
-lemma cast_succ_pos (i : fin (n + 1)) (h : 0 < i) : 0 < cast_succ i :=
+lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
 
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
-by { simp [fin.ext_iff], }
+by simp [fin.ext_iff]
 
 @[norm_cast, simp] lemma coe_eq_cast_succ : (a : fin (n + 1)) = a.cast_succ :=
 begin
@@ -762,6 +762,10 @@ def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
 @[simp] lemma coe_sub_nat (i : fin (n + m)) (h : m ≤ i) : (i.sub_nat m h : ℕ) = i - m :=
 rfl
 
+@[simp] lemma pred_cast_succ_succ (i : fin n) :
+  pred (cast_succ i.succ) (ne_of_gt (cast_succ_pos i.succ_pos)) = i.cast_succ :=
+by simp [eq_iff_veq]
+
 end pred
 
 section succ_above
@@ -852,7 +856,7 @@ end
 lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.succ_above i :=
 begin
   by_cases H : i.cast_succ < p,
-  { simpa [succ_above_below _ _ H] using cast_succ_pos _ h },
+  { simpa [succ_above_below _ _ H] using cast_succ_pos h },
   { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos _ },
 end
 
@@ -956,6 +960,22 @@ begin
     { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
   simp [cast_pred, pred_above, this]
 end
+
+lemma pred_above_below (p : fin (n + 1)) (i : fin (n + 2)) (h : i ≤ p.cast_succ) :
+  p.pred_above i = i.cast_pred :=
+begin
+  have : i ≤ (last n).cast_succ := h.trans p.le_last,
+  simp [pred_above, cast_pred, h.not_lt, this.not_lt]
+end
+
+@[simp] lemma pred_above_last : pred_above (fin.last n) = cast_pred := rfl
+
+lemma pred_above_last_apply (i : fin n) : pred_above (fin.last n) i = i.cast_pred :=
+by rw pred_above_last
+
+lemma pred_above_above (p : fin n) (i : fin (n + 1)) (h : p.cast_succ < i) :
+  p.pred_above i = i.pred (p.cast_succ.zero_le.trans_lt h).ne.symm :=
+by simp [pred_above, h]
 
 lemma cast_pred_monotone : monotone (@cast_pred n) :=
 pred_above_right_monotone (last _)

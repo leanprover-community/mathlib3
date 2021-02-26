@@ -48,7 +48,8 @@ variables [smul_comm_class S R P] [smul_comm_class S R P']
 include R
 
 variables (R S)
-/-- Create a bilinear map from a function that is linear in each component. -/
+/-- Create a bilinear map from a function that is linear in each component. 
+See `mk₂` for the special case where both arguments come from modules over the same ring. -/
 def mk₂' (f : M → N → P)
   (H1 : ∀ m₁ m₂ n, f (m₁ + m₂) n = f m₁ n + f m₂ n)
   (H2 : ∀ (c:R) m n, f (c • m) n = c • f m n)

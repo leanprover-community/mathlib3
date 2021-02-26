@@ -169,7 +169,7 @@ begin
     { simp [eval_at_0], rintro ⟨⟩, },
     { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
         function.comp_app, function.iterate_succ,
-        polynomial.iterate_derivative_sub, polynomial.iterate_derivative_coe_nat_mul,
+        polynomial.iterate_derivative_sub, polynomial.iterate_derivative_cast_nat_mul,
         polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
       intro h,
       right,

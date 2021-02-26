@@ -171,7 +171,6 @@ end function
 namespace pi
 variables {A : Type*} {B : Type*} [decidable_eq A] [has_zero B] {a : A} {b : B}
 
-@[simp]
 lemma support_single_zero : function.support (pi.single a (0 : B)) = ∅ := by { ext, simp }
 
 @[simp]

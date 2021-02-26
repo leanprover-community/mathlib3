@@ -477,6 +477,13 @@ begin
           hpq, mul_comm] } },
 end
 
+/- `algebra.smul_mul_smul` doesn't work for `R = ℤ` and `A = polynomial ℤ`, presumably because
+  of conflicting `algebra ℤ (polynomial ℤ)` instances. This lemma fixes the issue -/
+-- TODO: Find a better fix
+lemma smul_mul_smul {R : Type*} [comm_semiring R] (r s : R) (p q : polynomial R) :
+  (r • p) * (s • q) = (r * s) • (p * q) :=
+algebra.smul_mul_smul r s p q
+
 lemma key_lemma {p q : trinomial ℤ}
   (hp : is_unit (p.a * p.c) ∨ irreducible (p.a * p.c))
   (hpq : p.to_polynomial * p.to_polynomial.reverse' = q.to_polynomial * q.to_polynomial.reverse') :

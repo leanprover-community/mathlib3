@@ -224,6 +224,18 @@ add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 instance : monoid (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..}; { intros, apply linear_map.ext, simp {proj := ff} }
 
+@[simp] lemma mul_apply (f g : M →ₗ[R] M) (m : M) :
+  (f * g) m = f (g m) := rfl
+
+@[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
+  (f^n) m = ((f : M → M)^[n] m) :=
+begin
+  induction n with n ih,
+  { refl, },
+  { simp only [function.comp_app, function.iterate_succ, linear_map.mul_app, pow_succ, ih],
+    exact (function.commute.iterate_self _ _ m).symm, },
+end
+
 section
 open_locale classical
 

@@ -32,35 +32,35 @@ end
 end
 
 end polynomial
+#check linear_map.monoid
+-- namespace linear_map
 
-namespace linear_map
+-- universes u v
 
-universes u v
+-- def iterate {R : Type u} [semiring R]
+--    {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) : ℕ → (M →ₗ[R] M)
+-- | 0 := linear_map.id
+-- | (n+1) := (iterate n).comp f
 
-def iterate {R : Type u} [semiring R]
-   {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) : ℕ → (M →ₗ[R] M)
-| 0 := linear_map.id
-| (n+1) := (iterate n).comp f
+-- @[simp] lemma iterate_apply {R : Type u} [semiring R]
+--    {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
+--   f.iterate n m = ((f : M → M)^[n] m) :=
+-- begin
+--   induction n with n ih generalizing m,
+--   { refl, },
+--   { apply ih, },
+-- end
 
-@[simp] lemma iterate_apply {R : Type u} [semiring R]
-   {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
-  f.iterate n m = ((f : M → M)^[n] m) :=
-begin
-  induction n with n ih generalizing m,
-  { refl, },
-  { apply ih, },
-end
+-- instance {R : Type u} [semiring R] {M : Type v} [add_comm_monoid M] [semimodule R M] :
+--   has_pow (M →ₗ[R] M) ℕ :=
+-- { pow := λ f n, f.iterate n, }
 
-instance {R : Type u} [semiring R] {M : Type v} [add_comm_monoid M] [semimodule R M] :
-  has_pow (M →ₗ[R] M) ℕ :=
-{ pow := λ f n, f.iterate n, }
+-- @[simp] lemma pow_apply {R : Type u} [semiring R]
+--    {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
+--   (f^n) m = ((f : M → M)^[n] m) :=
+-- iterate_apply f n m
 
-@[simp] lemma pow_apply {R : Type u} [semiring R]
-   {M : Type v} [add_comm_monoid M] [semimodule R M] (f : M →ₗ[R] M) (n : ℕ) (m : M) :
-  (f^n) m = ((f : M → M)^[n] m) :=
-iterate_apply f n m
-
-end linear_map
+-- end linear_map
 
 
 noncomputable theory
@@ -309,8 +309,9 @@ begin
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
       intros p m,
       apply ne_of_apply_ne (polynomial.eval (1 : ℚ)),
-      simp only [ne.def, polynomial.derivative_lhom_coe, polynomial.iterate_derivative_map,
-        ring_hom.eq_int_cast, linear_map.pow_apply, bernstein_polynomial.eval_one_map],
+      -- simp only [ne.def, polynomial.derivative_lhom_coe, polynomial.iterate_derivative_map,
+      --   ring_hom.eq_int_cast, linear_map.pow_apply, bernstein_polynomial.eval_one_map],
+        squeeze_simp,
       -- The right hand side is nonzero,
       -- so it will suffice to show the left hand side is always zero.
       suffices : (polynomial.derivative^[n-k] p).eval 1 = 0,

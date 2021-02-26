@@ -260,6 +260,7 @@ end
 
 
 
+open submodule
 
 lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
@@ -289,7 +290,7 @@ begin
       { rw [this],
         norm_cast,
         refine (iterate_derivative_at_1_ne_zero n k h).symm, },
-      apply submodule.span_induction m,
+      apply span_induction m,
       { simp,
         rintro ⟨a, w⟩, simp only [fin.coe_mk],
         rw [iterate_derivative_at_one_eq_zero_of_lt _ (show n - k < n - a, by omega)], },

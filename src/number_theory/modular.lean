@@ -183,23 +183,15 @@ begin
   ring,
 end
 
-
 def fundamental_domain : set H :=
-{ z | 1 ≤ (complex.norm_sq z) ∧ |(complex.re z)| ≤ (1 :ℝ)/ 2 }
+{ z | 1 < (complex.norm_sq z) ∧ |(complex.re z)| < (1 :ℝ)/ 2 }
 
 notation `𝒟` := fundamental_domain
 
-notation `𝒟°` := interior 𝒟
-
-def fundamental_domain' : set H :=
-{ z | 1 < (complex.norm_sq z) ∧ |(complex.re z)| < (1 :ℝ)/ 2 }
-
-notation `𝒟'` := fundamental_domain'
-
-notation `𝒟'c` := closure 𝒟'
+notation `𝒟c` := closure 𝒟
 
 
-lemma whatever : 𝒟'c = 𝒟 :=
+lemma whatever : 𝒟c = { z | 1 ≤ (complex.norm_sq z) ∧ |(complex.re z)| ≤ (1 :ℝ)/ 2 } :=
 begin
 
   sorry,
@@ -221,37 +213,12 @@ begin
   { apply_instance }
 end
 
-lemma filter.tendsto.finite_preimage {α : Type*} {f : α → ℝ} (hf : tendsto f cofinite at_top) (M : ℝ) :
-  set.finite {c : α | f c ≤ M} :=
-begin
-  obtain ⟨v, hv, hvM⟩ : ∃ v ∈ cofinite, ∀ y ∈ v, M + 1 ≤ f y,
-  { rw tendsto_at_top at hf,
-    have := hf (M + 1),
-    rwa eventually_iff_exists_mem at this },
-  rw mem_cofinite at hv,
-  refine hv.subset _,
-  rintros y (hy : f y ≤ M) hy',
-  have : M + 1 ≤ f y := hvM y hy',
-  linarith
-end
-
 lemma filter.tendsto.exists_forall_le {α β : Type*} [linear_order β] {f : α → β}
   (hf : tendsto f cofinite at_top) :
   ∃ a₀, ∀ a, f a₀ ≤ f a :=
 begin
   -- take the inverse image of some bounded set, it's finite, functions on finite sets have minima
   -- `finset.exists_min_image`
-  sorry
-end
-
-
-lemma filter.tendsto.exists_forall_ge {α β : Type*} [linear_order β] {f : α → β}
-  (hf : tendsto f cofinite at_bot) :
-  ∃ a₀, ∀ a, f a₀ ≥ f a :=
-begin
-  -- take the inverse image of some bounded set, it's finite, functions on finite sets have minima
-  -- `finset.exists_min_image`
-  -- DONT DO!
   sorry
 end
 
@@ -279,8 +246,6 @@ begin
   exact hvp (f x) this
 end
 
-
-
 lemma finite_pairs (z : H) :
   filter.tendsto (λ cd : coprime_ints , (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq)
   cofinite at_top
@@ -305,45 +270,18 @@ begin
   exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))),
 end
 
---(g' • z).val.im
-lemma finite_pairs' (z : H) :
-  filter.tendsto (λ cd : coprime_ints , (z.val.im) / (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq)
-  cofinite at_bot
-:=
-begin
--- DONT DO
-  sorry,
-end
-
-/-
-lemma finite_pairs' (M : ℝ) (z : H) :
-  set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq ≤ M} :=
-begin
-  have h₁ : tendsto (λ c : ℝ × ℝ, ↑c.1 * (z:ℂ) + c.2) (cocompact _) (cocompact _),
-  { let g : ℂ →L[ℝ] ℝ×ℝ := (continuous_linear_map.im).prod
-      (continuous_linear_map.im.comp (((z:ℂ)• continuous_linear_map.conj ))),
-    apply tendsto_cocompact_of_left_inverse ((z:ℂ).im⁻¹ • g).continuous,
-    rintros ⟨c₁, c₂⟩,
-    have hz : 0 < (z:ℂ).im := z.2,
-    have : (z:ℂ).im ≠ 0 := hz.ne.symm,
-    field_simp [g],
-    ring },
-  have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
-  { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
-    simp [coprod_cocompact, coprod_cofinite] },
-  have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
-  { convert tendsto_at_top_norm_sq.comp (h₁.comp h₂),
-    ext,
-    simp },
-  exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))).finite_preimage M,
-end
--/
 end finite_pairs
 
+lemma gcd_eq_one_iff_coprime' (a b : ℤ) : gcd a b = 1 ↔ is_coprime a b :=
+begin
+  rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
+end
 
 lemma bottom_row_coprime (g : SL(2, ℤ)) : int.gcd (g 1 0) (g 1 1) = 1 :=
 begin
+--- ALEX HOMEWORK
   have := @det2 _ _ g,
+  have := int.gcd_eq_one_iff_coprime,
   sorry,
 end
 
@@ -368,8 +306,6 @@ begin
   rw bottom_row,
   simp [A],
 end
-
-
 
 lemma exists_g_with_min_bottom (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
@@ -398,215 +334,15 @@ begin
   { exact norm_sq_pos.mpr (@bottom_nonzero g z z.2) },
 end
 
+lemma somehting (z:H) (cd : coprime_ints) :
+∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ),  bottom_row g = bottom_row g' →
+_root_.abs ((g • z).val.re) ≤ _root_.abs ((g' • z).val.re)) :=
+begin
+
+  sorry,
+end
+
 variables {g : SL(2,ℤ)} {z : H}
-
-lemma gcd_eq_one_iff_coprime' (a b : ℤ) : gcd a b = 1 ↔ is_coprime a b :=
-begin
-  rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
-end
-
-
-
-
-
-
-
-
-
-
-/-
-lemma exists_g_with_min_bottom' (z : H) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
-begin
-  let f : coprime_ints → ℝ := λ cd,  (((cd : ℤ×ℤ).1:ℂ) * z + (cd : ℤ×ℤ).2).norm_sq,
-  let s : finset coprime_ints := set.finite.to_finset (finite_pairs (1) z),
-  have in_s_then_ge_1 : ∀ x, x ∈ s ↔ f x ≤ 1 := by simp [s],
-  have : s.nonempty,
-  {
-    use (0,1),
-    simp,
-    simp,
-  },
-  obtain ⟨⟨ cd, hhcd⟩ , cdInS, hcd⟩ := finset.exists_min_image s f this,
-  let a := int.gcd_b cd.1 cd.2,
-  let b := -int.gcd_a cd.1 cd.2,
-  let g := ![![a,b],![cd.1,cd.2]],
-  have : 1 = det g,
-  {
-    rw det2,
-    suffices : 1 = a * cd.2 - cd.1 * b ,
-    convert this,
-    suffices : 1 = a * cd.snd + cd.fst * int.gcd_a cd.fst cd.snd,
-    {
-      simp [g],
-      exact this,
-    },
-
-    convert int.gcd_eq_gcd_ab cd.1 cd.2 using 1,
-    rw  hhcd,
-    simp,
-    ring,
-  },
-  use ⟨ g, this.symm⟩ ,
-  intros,
-  have hcd' : ∀ (x' : coprime_ints), f ⟨cd,hhcd⟩ ≤ f x',
-  {
-    intros ,
-    by_cases hx' : x' ∈ s,
-    {
-      exact hcd x' hx',
-    },
-    {
-      rw in_s_then_ge_1  at hx',
-      rw in_s_then_ge_1  at cdInS,
-      linarith,
-    },
-  },
-  have : int.gcd  (g'.val 1 0) (g'.val 1 1) = 1,
-  {
-    simp,
-    let cc : ℤ  := (g'.val 1 0),
-    let dd : ℤ  := (g'.val 1 1),
-    have : int.gcd (g'.val 1 0) (g'.val 1 1) = int.gcd cc dd := rfl,
-
-    convert this,
-    symmetry,
-    convert hhcd,
-    sorry,
-    simp [cc, g', g],
-    simp [dd],
-    rw gcd_eq_one_iff_coprime',
-    use [(- (g'.val 0 1)) , ((g'.val 0 0))],
-
-    have := g'.2,
-    rw det2 at this,
-    convert this using 1,
-    simp [cc, dd],
-    ring,
-  },
-  convert hcd' ⟨ (g'.val 1 0 , g'.val 1 1) , this ⟩ ,
-  {
-    rw bottom,
-    simp [g],
-  },
-  rw bottom,
-  simp,
-end
--/
-
-lemma exists_g_with_max_Im' (z : H) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).val.im ≤ (g • z).val.im :=
-begin
-  have := exists_g_with_min_bottom z,
-  have im_z_pos : 0 < (z:ℂ ).im := im_pos_of_in_H.mp z.2,
-  cases this with gg hg,
-  use gg,
-  intros g',
-  rw im_smul_SL'',
-  rw im_smul_SL'',
-  have bg_n_pos : (bottom gg z).norm_sq > 0,
-  {
-    have bg : (bottom gg z) ≠ 0,
-    {
-      refine bottom_nonzero im_z_pos,
-    },
-    exact norm_sq_pos.mpr bg,
-  },
-  have bg'_n_pos : (bottom g' z).norm_sq > 0,
-  {
-    have bg' : (bottom g' z) ≠ 0,
-    {
-      refine bottom_nonzero im_z_pos,
-    },
-    exact norm_sq_pos.mpr bg',
-  },
-  have hgg' := hg g',
-  have : 1/ norm_sq (bottom g' z) ≤ 1/ norm_sq (bottom gg z) ,
-  {
-    exact (one_div_le_one_div bg'_n_pos bg_n_pos).mpr (hg g'),
-  },
-  exact (div_le_div_left im_z_pos bg'_n_pos bg_n_pos).mpr (hg g'),
-end
-
-def G' : subgroup SL(2,ℤ) := subgroup.closure {S, T}
-
-/-
-lemma exists_g_with_max_Im' (z : H) :
-  ∃ g : SL(2,ℤ), (g ∈ G') ∧  ∀ g' : SL(2,ℤ), g' ∈ G' → ((g' : SL(2,ℤ)) • z).val.im ≤ ((g : SL(2,ℤ)) • z).val.im :=
-begin
-  -- Alex, can you do this one as well?
-  -- I don't understand; how am I supposed to show g ∈ G' without proving S,T generate SL(2,Z)?...
-  sorry
-end
--/
-
-example : T ∈ (subgroup.closure ({S, T} : set SL(2,ℤ))) :=
-begin
-  apply subgroup.mem_closure',
-  simp only [set.mem_insert_iff, true_or, set.mem_singleton, or_true, eq_self_iff_true],
-end
-
-example {G' : subgroup SL(2,ℤ)} {x y : SL(2,ℤ)} (hx : x ∈ G') (hy : y ∈ G') : x * y ∈ G' :=
-begin
-  exact subgroup.mul_mem G' hx hy,
-end
-
-example {n : ℤ} {g : SL(2,ℤ)} (hg : g ∈ G') : S * T^n * g ∈ G' :=
-begin
-  have hS : S ∈ G' :=
-    by {apply subgroup.mem_closure', simp},
-  have hT : T ∈ G' :=
-    by {apply subgroup.mem_closure', simp},
-  have hTn : T^n ∈ G' :=
-    by {apply subgroup.gpow_mem G' hT},
-  apply subgroup.mul_mem G',
-  { apply subgroup.mul_mem G' hS hTn },
-  exact hg,
-end
-
-example {g : SL(2,ℤ)} {z z' : H} : g • z = z' ↔ z = g⁻¹ • z' :=
-begin
-  exact eq_inv_smul_iff.symm,
-end
-
-lemma abs_floor_ineq (a : ℝ) : |a + -⌊a + 2⁻¹⌋| ≤ 2⁻¹ :=
-begin
-  rw abs_le,
-  split,
-  {
-    calc
-    -2⁻¹ = a - (a + 2⁻¹)    : by ring
-    ... ≤ a - ↑⌊a + 2⁻¹⌋    : _
-    ... = a + -↑⌊a + 2⁻¹⌋  : by ring,
-
-    simp,
-    exact floor_le _,
-  },
-
-  calc
-  a + -↑⌊a + 2⁻¹⌋ = a - ↑⌊a + 2⁻¹⌋ : by ring
-  ... ≤ a - a + 2⁻¹ : _
-  ... = 2⁻¹ : by ring,
-
-  simp,
-  apply le_of_lt,
-  suffices : a - 2⁻¹ < ↑⌊a + 2⁻¹⌋,
-  {
-    linarith,
-  },
-  have := sub_one_lt_floor (a + 2⁻¹),
-  convert this using 1,
-  ring,
-end
-
-lemma find_appropriate_T (z : H) : ∃ (n : ℤ), | (T^n • z).val.re | ≤ 1/2 :=
-begin
-  let n := -floor ((z:ℂ ).re+1/2),
-  use n,
-  rw Tn_action,
-  simp,
-  apply abs_floor_ineq,
-end
 
 lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=
 begin
@@ -614,15 +350,6 @@ begin
   rw bottom,
   simp,
   rw S,
-  simp,
-end
-
-lemma im_Tn_z {z : H} {n : ℤ} : (T^n • z).val.im = z.val.im :=
-begin
-  rw im_smul_SL'',
-  rw bottom,
-  simp,
-  rw T_pow,
   simp,
 end
 
@@ -654,96 +381,24 @@ begin
   linarith,
 end
 
-example {a b : ℤ} (ha : 0 ≤ a) (hp : a * b = 1) : a = 1 :=
+lemma re_ge_half_of_act_T {z : H}
+(h: 1/2 < _root_.abs z.val.re )
+:
+((_root_.abs (T • z).val.re) < _root_.abs z.val.re) ∨
+((_root_.abs (T⁻¹ • z).val.re) < _root_.abs z.val.re)
+:=
 begin
-  exact int.eq_one_of_mul_eq_one_right ha hp,
-end
-
-/- By choosing from g or -g, we can impose conditions on the coefficients of g -/
-lemma sign_coef { z z' : H } (h : ∃ g : SL(2, ℤ), z' = g • z) :
-  ∃ g : SL(2, ℤ), 0 ≤ g.1 1 0 ∧ (g.1 1 0 = 0 → g.1 1 1 = 1 ∧ g.1 0 0 = 1) ∧ z' = g • z :=
-begin
-  obtain ⟨g, hg⟩ := h,
-  by_cases hc : g.val 1 0 = 0,
-  {
-    have hdet := g.2,
-    rw det2 at hdet,
-    simp [hc] at hdet,
-    by_cases hdsgn : 0 ≤ g.val 1 1,
-    {
-      use g,
-      have hd := int.eq_one_of_mul_eq_one_left hdsgn hdet,
-      have ha : g.val 0 0 = 1,
-      {
-        replace hdet : g.val 0 0 * g.val 1 1 = 1, by tauto,
-        simpa [hd] using hdet,
-      },
-      exact ⟨eq.ge hc, λ _, ⟨hd, ha⟩, hg⟩,
-    },
-    {
-      use -g,
-      have hd : (-g).val 1 1 = 1,
-      {
-        suffices : g.val 1 1 = -1,
-        {
-          simp [this],
-          sorry,
-        },
-        sorry,
-      },
-      sorry
-    },
-  },
-  {
-    by_cases hcpos : 0 < g.val 1 0,
-    {
-      use g,
-      repeat{split},
-      { linarith }, { tauto }, { exact hg }
-    },
-    {
-      use -g,
-      repeat {split},
-      {
-        sorry
-      },
-      {
-        sorry
-      },
-      {
-        sorry
-      },
-    }
-  }
-end
-
-lemma is_fundom {z : H} : ∃ g : SL(2,ℤ), g ∈ G' ∧ g • z ∈ 𝒟 :=
-begin
-  obtain ⟨g, hg1, hg2⟩ := exists_g_with_max_Im' z,
-  obtain ⟨n, hn⟩ := find_appropriate_T ((g : SL(2,ℤ)) • z),
-  use (T^n * g),
-  have hS : S ∈ G' := by {apply subgroup.mem_closure', simp},
-  have hT : T ∈ G' := by {apply subgroup.mem_closure', simp},
-  have hTn : T^n ∈ G' := by {apply subgroup.gpow_mem G' hT},
-  have hTng : T^n * g ∈ G' := G'.mul_mem hTn hg1,
-  have hSTg : S * T^n * g ∈ G' := G'.mul_mem (G'.mul_mem hS hTn) hg1,
-  replace hg2 := hg2 (S * T^n * g) hSTg,
-  set z' := (T^n * g) • z with z'df,
-  have imz' : z'.val.im = ((g : SL(2,ℤ)) • z).val.im,
-  { rw [z'df, ← smul_smul, im_Tn_z] },
-  rw smul_smul at hn,
-  change |z'.val.re| ≤ 1 / 2 at hn,
-  suffices : 1 ≤ z'.1.norm_sq, by exact ⟨hTng,⟨this, hn⟩⟩,
-  set w := (S * T^n * g) • z with hw,
-  apply norm_sq_ge_one_of_act_S,
-  replace hw : w = S•z',
-  {rw [hw, z'df, smul_smul, mul_assoc]},
-  rw [imz', ← hw],
-  exact hg2,
+  -- ALEX HOMEWORK
+  by_contradiction hcontra,
+  push_neg at hcontra,
+  have := im_lt_im_S hcontra,
+  linarith,
 end
 
 
-lemma is_fundom' {z : H} : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
+
+
+lemma is_fundom {z : H} : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
 begin
   obtain ⟨g, hg2⟩ := exists_g_with_max_Im z,
   obtain ⟨n, hn⟩ := find_appropriate_T ((g : SL(2,ℤ)) • z),

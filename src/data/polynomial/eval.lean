@@ -328,29 +328,11 @@ by rw [← C_1, C_comp]
 @[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : polynomial R) :
   (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
 
-@[simp] lemma pow_comp {R : Type*} [comm_semiring R] (p q : polynomial R) (n : ℕ) :
-  (p^n).comp q = (p.comp q)^n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
-
-@[simp] lemma monomial_comp (n : ℕ) : (monomial n a).comp p = C a * p^n :=
-eval₂_monomial _ _
-
 @[simp] lemma bit0_comp : comp (bit0 p : polynomial R) q = bit0 (p.comp q) :=
 by simp only [bit0, add_comp]
 
 @[simp] lemma bit1_comp : comp (bit1 p : polynomial R) q = bit1 (p.comp q) :=
 by simp only [bit1, add_comp, bit0_comp, one_comp]
-
-@[simp] lemma cast_nat_comp (n : ℕ) : comp (n : polynomial R) p = n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih], },
-end
 
 lemma comp_assoc {R : Type*} [comm_semiring R] (φ ψ χ : polynomial R) :
   (φ.comp ψ).comp χ = φ.comp (ψ.comp χ) :=
@@ -617,6 +599,10 @@ end comm_semiring
 section ring
 variables [ring R] {p q r : polynomial R}
 
+-- @[simp]
+-- lemma C_eq_int_cast (n : ℤ) : C ↑n = (n : polynomial R) :=
+-- (C : R →+* _).map_int_cast n
+
 lemma C_neg : C (-a) = -C a := ring_hom.map_neg C a
 
 lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
@@ -659,9 +645,6 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 @[simp] lemma neg_comp : (-p).comp q = -p.comp q := eval₂_neg _
 
 @[simp] lemma sub_comp : (p - q).comp r = p.comp r - q.comp r := eval₂_sub _
-
-@[simp] lemma cast_int_comp (i : ℤ) : comp (i : polynomial R) p = i :=
-by cases i; simp
 
 end ring
 

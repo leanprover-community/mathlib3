@@ -490,20 +490,20 @@ variables {μ : measure α} {f g : α → ℝ} {s : set α}
   (hf : integrable_on f s μ) (hg : integrable_on g s μ)
 
 lemma set_integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict s] g) :
-∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 integral_mono_ae hf hg h
 
 lemma set_integral_mono_ae (h : f ≤ᵐ[μ] g) :
-∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 set_integral_mono_ae_restrict hf hg (ae_restrict_of_ae h)
 
 lemma set_integral_mono_on (hs : measurable_set s) (h : ∀ x ∈ s, f x ≤ g x) :
-∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 set_integral_mono_ae_restrict hf hg
   (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h])
 
 @[mono] lemma set_integral_mono (h : f ≤ g) :
-∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 integral_mono hf hg h
 
 lemma set_integral_mono_ae_restrict_of_nonneg (h₁ : 0 ≤ᵐ[μ.restrict s] f)

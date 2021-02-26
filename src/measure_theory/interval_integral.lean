@@ -535,7 +535,7 @@ variables {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
 include hf hg hab
 
 lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (interval a b)] g) :
-∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 begin
   rw [integral_of_le hab, integral_of_le hab],
   rw interval_of_le hab at h,
@@ -543,28 +543,28 @@ begin
     (h.filter_mono (ae_mono $ measure.restrict_mono Ioc_subset_Icc_self (le_refl μ)))
 end
 
-lemma interval_integral_mono_ae (h : f ≤ᵐ[μ] g) :
-∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+lemma integral_mono_ae (h : f ≤ᵐ[μ] g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 begin
   rw [integral_of_le hab, integral_of_le hab],
   exact set_integral_mono_ae hf.1 hg.1 h
 end
 
-lemma interval_integral_mono_on (h : ∀ x ∈ interval a b, f x ≤ g x) :
-∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+lemma integral_mono_on (h : ∀ x ∈ interval a b, f x ≤ g x) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 begin
   rw [integral_of_le hab, integral_of_le hab],
   rw interval_of_le hab at h,
   exact set_integral_mono_on hf.1 hg.1 measurable_set_Ioc (λ x hx, h x (Ioc_subset_Icc_self hx)),
 end
 
-@[mono] lemma interval_integral_mono (h : f ≤ g) :
-∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-interval_integral_mono_ae hf hg hab (ae_of_all _ h)
+@[mono] lemma integral_mono (h : f ≤ g) :
+  ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
+integral_mono_ae hf hg hab (ae_of_all _ h)
 
 omit hf
 
-lemma interval_integral_mono_ae_restrict_of_nonneg (h₁ : 0 ≤ᵐ[μ.restrict (interval a b)] f)
+lemma integral_mono_ae_restrict_of_nonneg (h₁ : 0 ≤ᵐ[μ.restrict (interval a b)] f)
   (h₂ : f ≤ᵐ[μ.restrict (interval a b)] g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 begin
   rw [integral_of_le hab, integral_of_le hab],
@@ -574,19 +574,19 @@ begin
     (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) h₂)
 end
 
-lemma interval_integral_mono_ae_of_nonneg (h₁ : 0 ≤ᵐ[μ] f)
+lemma integral_mono_ae_of_nonneg (h₁ : 0 ≤ᵐ[μ] f)
   (h₂ : f ≤ᵐ[μ] g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-interval_integral_mono_ae_restrict_of_nonneg hg hab (ae_restrict_of_ae h₁) (ae_restrict_of_ae h₂)
+integral_mono_ae_restrict_of_nonneg hg hab (ae_restrict_of_ae h₁) (ae_restrict_of_ae h₂)
 
-lemma set_integral_mono_on_of_nonneg (h₁ : ∀ x ∈ interval a b, 0 ≤ f x)
+lemma integral_mono_of_nonneg_on (h₁ : ∀ x ∈ interval a b, 0 ≤ f x)
   (h₂ : ∀ x ∈ interval a b, f x ≤ g x) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-interval_integral_mono_ae_restrict_of_nonneg hg hab
+integral_mono_ae_restrict_of_nonneg hg hab
   (by simp [measurable_set_interval, eventually_le, eventually_inf_principal, ae_of_all _ h₁])
   (by simp [measurable_set_interval, eventually_le, eventually_inf_principal, ae_of_all _ h₂])
 
-@[mono] lemma set_integral_mono_of_nonneg (h₁ : 0 ≤ f)
+@[mono] lemma integral_mono_of_nonneg (h₁ : 0 ≤ f)
   (h₂ : f ≤ g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-interval_integral_mono_ae_of_nonneg hg hab (ae_of_all _ h₁) (ae_of_all _ h₂)
+integral_mono_ae_of_nonneg hg hab (ae_of_all _ h₁) (ae_of_all _ h₂)
 
 end mono
 
@@ -596,7 +596,7 @@ variables {μ : measure ℝ} {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
 
 include hab
 
-lemma interval_integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (interval a b)] f) :
+lemma integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (interval a b)] f) :
   (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
 begin
   rw integral_of_le hab,
@@ -605,12 +605,12 @@ begin
     (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) hf)
 end
 
-lemma interval_integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
-interval_integral_nonneg_of_ae_restrict hab (ae_restrict_of_ae hf)
+lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae_restrict hab (ae_restrict_of_ae hf)
 
-lemma interval_integral_nonneg (hf : ∀ u, u ∈ interval a b → 0 ≤ f u) :
+lemma integral_nonneg (hf : ∀ u, u ∈ interval a b → 0 ≤ f u) :
   (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
-interval_integral_nonneg_of_ae_restrict hab
+integral_nonneg_of_ae_restrict hab
   ((ae_restrict_iff' measurable_set_interval).mpr (ae_of_all μ hf))
 
 end nonneg

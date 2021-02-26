@@ -225,6 +225,10 @@ end
 
 end function
 
+lemma lie_hom.is_solvable_range (f : L' →ₗ⁅R⁆ L) [h : lie_algebra.is_solvable R L'] :
+  lie_algebra.is_solvable R f.range :=
+f.surjective_range_restrict.lie_algebra_is_solvable
+
 namespace lie_algebra
 
 lemma solvable_iff_equiv_solvable (e : L' ≃ₗ⁅R⁆ L) : is_solvable R L' ↔ is_solvable R L :=

@@ -129,11 +129,6 @@ begin
   exact div_pos h (norm_sq_pos.mpr (bottom_nonzero h)),
 end
 
-@[simp] lemma expand_sum_01 {R : Type*} [ring R] (f : fin 2 → R ) :
-(∑ (x : fin 2), f x) = f 0 + f 1 :=
-calc (∑ (x : fin 2), f x) = _ + _ : by {refl}
-  ... = f 0 + f 1 : by {simp}
-
 lemma bot_cocycle {x y : SL(2,ℝ)} {z : ℂ} (h : z ∈ H) :
   bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
 begin
@@ -141,9 +136,7 @@ begin
   have d1 : bottom y z ≠ 0 := bottom_nonzero h,
   simp [top, bottom],
   field_simp,
-  simp [matrix.mul, dot_product],
-  unfold_coes,
-  field_simp *,
+  simp [matrix.mul, dot_product, fin.sum_univ_succ],
   ring,
 end
 
@@ -168,8 +161,7 @@ begin
     ring,
   },
   rw [top, bottom],
-  simp [matrix.mul, dot_product],
-  unfold_coes,
+  simp [matrix.mul, dot_product, fin.sum_univ_succ],
   field_simp *,
   ring,
   exact h,

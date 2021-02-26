@@ -1044,3 +1044,7 @@ end
 --   { rw [h, abs_mul_abs_self],
 --     nlinarith },
 -- end
+
+-- @[simp] lemma expand_sum_01 {R : Type*} [ring R] (f : fin 2 → R ) :
+-- (∑ (x : fin 2), f x) = f 0 + f 1 :=
+-- by simp [fin.sum_univ_succ]

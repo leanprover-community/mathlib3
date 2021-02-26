@@ -23,49 +23,6 @@ end
   fin.init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
 
 namespace polynomial
-
-lemma eval_zero_right {R : Type*} [semiring R] (p : polynomial R) : p.eval 0 = p.coeff 0 :=
-begin
-  apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, cases n; simp [pow_succ], }
-end
-
-@[simp]
-lemma eval_zero_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
-  (p.map f).eval 0 = f (p.eval 0) :=
-by simp [eval_zero_right]
-
-@[simp]
-lemma eval_one_map {R S : Type*} [semiring R] [semiring S] (f : R →+* S) (p : polynomial R) :
-  (p.map f).eval 1 = f (p.eval 1) :=
-begin
-  apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, simp, }
-end
-
-@[simp]
-lemma eval_nat_cast_map {R S : Type*} [semiring R] [semiring S]
-  (f : R →+* S) (p : polynomial R) (n : ℕ) :
-  (p.map f).eval n = f (p.eval n) :=
-begin
-  apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, simp, }
-end
-
-@[simp]
-lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
-  (f : R →+* S) (p : polynomial R) (i : ℤ) :
-  (p.map f).eval i = f (p.eval i) :=
-begin
-  apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, simp, }
-end
-
-section
 variables {R : Type*} [comm_ring R]
 
 lemma derivative_comp_one_sub_X (p : polynomial R) :
@@ -81,7 +38,6 @@ begin
   induction k with k ih generalizing p,
   { simp, },
   { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
-end
 end
 
 end polynomial

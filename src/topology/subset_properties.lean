@@ -683,20 +683,21 @@ compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
 (local_compact_nhds : ∀ (x : α) (n ∈ 𝓝 x), ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s)
 
+lemma compact_basis_nhds [locally_compact_space α] (x : α) :
+  (𝓝 x).has_basis (λ s, s ∈ 𝓝 x ∧ is_compact s) (λ s, s) :=
+has_basis_self.2 $ by simpa only [and_comm] using locally_compact_space.local_compact_nhds x
+
+lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x → Prop}
+  {s : Π x, ι x → set α} (h : ∀ x, (𝓝 x).has_basis (p x) (s x))
+  (hc : ∀ x i, p x i → is_compact (s x i)) :
+  locally_compact_space α :=
+⟨λ x t ht, let ⟨i, hp, ht⟩ := (h x).mem_iff.1 ht in ⟨s x i, (h x).mem_of_mem hp, ht, hc x i hp⟩⟩
+
 instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space α]
   [topological_space β] [locally_compact_space α] [locally_compact_space β] :
   locally_compact_space (α × β) :=
-{ local_compact_nhds :=
-  begin
-    rintros ⟨x, y⟩ n hn,
-    obtain ⟨u, hu, v, hv, huv⟩ := mem_nhds_prod_iff.1 hn,
-    obtain ⟨a, ha₁, ha₂, ha₃⟩ := locally_compact_space.local_compact_nhds _ _ hu,
-    obtain ⟨b, hb₁, hb₂, hb₃⟩ := locally_compact_space.local_compact_nhds _ _ hv,
-    refine ⟨a.prod b, _, _, _⟩,
-    { exact mem_nhds_prod_iff.2 ⟨_, ha₁, _, hb₁, subset.rfl⟩ },
-    { exact subset.trans (prod_mono ha₂ hb₂) huv },
-    { exact is_compact.prod ha₃ hb₃ }
-  end }
+have _ := λ x : α × β, (compact_basis_nhds x.1).prod_nhds' (compact_basis_nhds x.2),
+locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h₁.prod h₂
 
 /-- A reformulation of the definition of locally compact space: In a locally compact space,
   every open set containing `x` has a compact subset containing `x` in its interior. -/

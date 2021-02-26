@@ -176,8 +176,8 @@ begin
       by_cases hf : f = f',
       { subst hf,
         apply coeq_condition, },
-      { rw w' _ _ (by finish), }, },
-    { rw w' _ _ (by finish), }, },
+      { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
+    { rw @w' _ _ mX' mY' f' (by finish), }, },
 end
 
 /--

@@ -113,6 +113,8 @@ instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
   mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
+attribute [simp] nat.not_lt_zero
+
 /-!
 Inject some simple facts into the type class system.
 This `fact` should not be confused with the factorial function `nat.fact`!

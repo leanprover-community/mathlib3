@@ -65,6 +65,7 @@ begin
 end
 
 /-- A compact space is paracompact. -/
+@[priority 100] -- See note [lower instance priority]
 instance paracompact_of_compact [compact_space X] : paracompact_space X :=
 begin
   refine ⟨λ S hSo hSu, _⟩,
@@ -80,6 +81,7 @@ end
 The formalization is based on
 [these handouts](http://math.stanford.edu/~conrad/diffgeomPage/handouts/paracompact.pdf)
 by Brian Conrad. -/
+@[priority 100] -- See note [lower instance priority]
 instance paracompact_of_locally_compact_sigma_compact [locally_compact_space X]
   [sigma_compact_space X] [t2_space X] : paracompact_space X :=
 begin

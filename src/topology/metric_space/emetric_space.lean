@@ -652,11 +652,8 @@ theorem totally_bounded_iff' {s : set α} :
 
 section compact
 
-/-
-See Mary Ellen Rudin, A new proof that metric spaces are paracompact.
-https://www.ams.org/journals/proc/1969-020-02/S0002-9939-1969-0236876-3/S0002-9939-1969-0236876-3.pdf
--/
-
+/-- An `emetric_space` is always a paracompact space. Formalization is based on [MR0236876]. -/
+@[priority 100] -- See note [lower instance priority]
 instance : paracompact_space α :=
 begin
   have pow_pos : ∀ k : ℕ, (0 : ℝ≥0∞) < 2⁻¹ ^ k,

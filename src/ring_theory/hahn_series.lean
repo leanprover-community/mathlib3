@@ -130,30 +130,32 @@ section smul
 
 variables [linear_order Γ] {V : Type*}
 
-variables [semiring R] [add_comm_monoid V] [semimodule R V]
+section distrib_mul_action
+variables [monoid R] [add_monoid V] [distrib_mul_action R V]
 
 instance : has_scalar R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := λ a, r • x.coeff a,
-          is_wf_support := begin
-            by_cases hr : r = 0,
-            { simp [hr] },
-            { apply x.is_wf_support.mono,
-              intros a ha h,
-              apply ha,
-              simp [h] }
-          end }⟩
+          is_wf_support := x.is_wf_support.mono (λ a ha con, ha (by { rw [con, smul_zero] })) }⟩
 
 @[simp]
-lemma smul_coeff {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl
+lemma smul_coeff [monoid R] [add_monoid V] [distrib_mul_action R V]
+  {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl
 
-instance : semimodule R (hahn_series Γ V) :=
+instance : distrib_mul_action R (hahn_series Γ V) :=
 { smul := (•),
-  zero_smul := λ _, by { ext, simp },
   one_smul := λ _, by { ext, simp },
   smul_zero := λ _, by { ext, simp },
   smul_add := λ _ _ _, by { ext, simp [smul_add] },
-  add_smul := λ _ _ _, by { ext, simp [add_smul] },
   mul_smul := λ _ _ _, by { ext, simp [mul_smul] } }
+
+end distrib_mul_action
+
+variables [semiring R] [add_comm_monoid V] [semimodule R V]
+
+instance : semimodule R (hahn_series Γ V) :=
+{ zero_smul := λ _, by { ext, simp },
+  add_smul := λ _ _ _, by { ext, simp [add_smul] },
+  .. hahn_series.distrib_mul_action }
 
 end smul
 section multiplication
@@ -311,6 +313,36 @@ begin
   simp [hx],
 end
 
+private lemma mul_assoc' [semiring R] (x y z : hahn_series Γ R) :
+  x * y * z = x * (y * z) :=
+begin
+  ext b,
+  rw [mul_coeff_left' (x.is_wf_support.add y.is_wf_support) support_mul_subset_mul_support,
+      mul_coeff_right' (y.is_wf_support.add z.is_wf_support) support_mul_subset_mul_support],
+  simp only [mul_coeff, add_coeff, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
+  refine finset.sum_bij_ne_zero (λ a has ha0, ⟨⟨a.2.1, a.2.2 + a.1.2⟩, ⟨a.2.2, a.1.2⟩⟩) _ _ _ _,
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
+    simp only [true_and, set.image2_add, eq_self_iff_true, finset.mem_add_antidiagonal, ne.def,
+      set.image_prod, finset.mem_sigma, set.mem_set_of_eq] at H1 H2 ⊢,
+    obtain ⟨⟨rfl, ⟨H3, nz⟩⟩, ⟨rfl, nx, ny⟩⟩ := H1,
+    refine ⟨⟨(add_assoc _ _ _).symm, nx, set.add_mem_add ny nz⟩, ny, nz⟩ },
+  { rintros ⟨⟨i1,j1⟩, ⟨k1,l1⟩⟩ ⟨⟨i2,j2⟩, ⟨k2,l2⟩⟩ H1 H2 H3 H4 H5,
+    simp only [set.image2_add, prod.mk.inj_iff, finset.mem_add_antidiagonal, ne.def,
+      set.image_prod, finset.mem_sigma, set.mem_set_of_eq, heq_iff_eq] at H1 H3 H5,
+    obtain ⟨⟨rfl, H⟩, rfl, rfl⟩ := H5,
+    simp only [and_true, prod.mk.inj_iff, eq_self_iff_true, heq_iff_eq],
+    exact add_right_cancel (H1.1.1.trans H3.1.1.symm) },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
+    simp only [exists_prop, set.image2_add, prod.mk.inj_iff, finset.mem_add_antidiagonal,
+      sigma.exists, ne.def, set.image_prod, finset.mem_sigma, set.mem_set_of_eq, heq_iff_eq,
+      prod.exists] at H1 H2 ⊢,
+    obtain ⟨⟨rfl, nx, H⟩, rfl, ny, nz⟩ := H1,
+    exact ⟨i + k, l, i, k, ⟨⟨add_assoc _ _ _, set.add_mem_add nx ny, nz⟩, rfl, nx, ny⟩,
+      λ con, H2 ((mul_assoc _ _ _).symm.trans con), ⟨rfl, rfl⟩, rfl, rfl⟩ },
+  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
+    simp [mul_assoc], }
+end
+
 noncomputable instance [semiring R] : semiring (hahn_series Γ R) :=
 { zero := 0,
   one := 1,
@@ -320,31 +352,7 @@ noncomputable instance [semiring R] : semiring (hahn_series Γ R) :=
   mul_zero := λ _, by { ext, simp },
   one_mul := λ x, single_zero_mul_eq_smul.trans (one_smul _ _),
   mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
-  mul_assoc := λ x y z, by { ext b,
-    rw [mul_coeff_left' (x.is_wf_support.add y.is_wf_support) support_mul_subset_mul_support,
-      mul_coeff_right' (y.is_wf_support.add z.is_wf_support) support_mul_subset_mul_support],
-    simp only [mul_coeff, add_coeff, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
-    refine finset.sum_bij_ne_zero (λ a has ha0, ⟨⟨a.2.1, a.2.2 + a.1.2⟩, ⟨a.2.2, a.1.2⟩⟩) _ _ _ _,
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
-      simp only [true_and, set.image2_add, eq_self_iff_true, finset.mem_add_antidiagonal, ne.def,
-        set.image_prod, finset.mem_sigma, set.mem_set_of_eq] at H1 H2 ⊢,
-      obtain ⟨⟨rfl, ⟨H3, nz⟩⟩, ⟨rfl, nx, ny⟩⟩ := H1,
-      refine ⟨⟨(add_assoc _ _ _).symm, nx, set.add_mem_add ny nz⟩, ny, nz⟩ },
-    { rintros ⟨⟨i1,j1⟩, ⟨k1,l1⟩⟩ ⟨⟨i2,j2⟩, ⟨k2,l2⟩⟩ H1 H2 H3 H4 H5,
-      simp only [set.image2_add, prod.mk.inj_iff, finset.mem_add_antidiagonal, ne.def,
-        set.image_prod, finset.mem_sigma, set.mem_set_of_eq, heq_iff_eq] at H1 H3 H5,
-      obtain ⟨⟨rfl, H⟩, rfl, rfl⟩ := H5,
-      simp only [and_true, prod.mk.inj_iff, eq_self_iff_true, heq_iff_eq],
-      exact add_right_cancel (H1.1.1.trans H3.1.1.symm) },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
-      simp only [exists_prop, set.image2_add, prod.mk.inj_iff, finset.mem_add_antidiagonal,
-        sigma.exists, ne.def, set.image_prod, finset.mem_sigma, set.mem_set_of_eq, heq_iff_eq,
-        prod.exists] at H1 H2 ⊢,
-      obtain ⟨⟨rfl, nx, H⟩, rfl, ny, nz⟩ := H1,
-      exact ⟨i + k, l, i, k, ⟨⟨add_assoc _ _ _, set.add_mem_add nx ny, nz⟩, rfl, nx, ny⟩,
-        λ con, H2 ((mul_assoc _ _ _).symm.trans con), ⟨rfl, rfl⟩, rfl, rfl⟩ },
-    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
-      simp [mul_assoc], } },
+  mul_assoc := mul_assoc',
   .. hahn_series.add_comm_monoid,
   .. hahn_series.distrib }
 

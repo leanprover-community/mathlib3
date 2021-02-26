@@ -13,7 +13,6 @@ import algebra.big_operators.nat_antidiagonal
 In this file we define an alternate version of `reverse`.
 The difference between the old `reverse` and the new `reverse'` is that the old
 `reverse` will decrease the degree if the polynomial is divisible by `X`.
-
 We also define `norm2`, which is the sum of the squares of the coefficients of a polynomial.
 It is also a coefficient of `p * p.reverse'`.
 

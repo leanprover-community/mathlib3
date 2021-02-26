@@ -6,7 +6,10 @@ Authors: Thomas Browning
 
 import data.polynomial.reverse2
 import analysis.complex.polynomial
+<<<<<<< HEAD
 import ring_theory.polynomial.gauss_lemma
+=======
+>>>>>>> selmer9
 
 /-!
 # Bundled Trinomials

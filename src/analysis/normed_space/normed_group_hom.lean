@@ -267,19 +267,18 @@ by refine_struct
 instance to_normed_group : normed_group (normed_group_hom V₁ V₂) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
-  (∑ i in s, f i) v = ∑ i in s, (f i v) :=
-begin
-  classical,
-  apply finset.induction_on s,
-  { simp only [coe_zero, finset.sum_empty, pi.zero_apply] },
-  { intros i s his IH,
-    simp only [his, IH, pi.add_apply, finset.sum_insert, not_false_iff, coe_add] }
-end
+/-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+@[simps]
+def coe_fn_add_hom : normed_group_hom V₁ V₂ →+ (V₁ → V₂) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add}
 
 @[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) :
   ⇑(∑ i in s, f i) = ∑ i in s, (f i) :=
-by { ext v, rw [finset.sum_apply, sum_apply] }
+(coe_fn_add_hom : _ →+ (V₁ → V₂)).map_sum f s
+
+lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
+  (∑ i in s, f i) v = ∑ i in s, (f i v) :=
+by simp only [coe_sum, finset.sum_apply]
 
 /-- The composition of continuous normed group homs. -/
 @[simps]

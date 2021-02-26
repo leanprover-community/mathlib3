@@ -244,6 +244,17 @@ begin
   sorry
 end
 
+
+lemma filter.tendsto.exists_forall_ge {α β : Type*} [linear_order β] {f : α → β}
+  (hf : tendsto f cofinite at_bot) :
+  ∃ a₀, ∀ a, f a₀ ≥ f a :=
+begin
+  -- take the inverse image of some bounded set, it's finite, functions on finite sets have minima
+  -- `finset.exists_min_image`
+  -- DONT DO!
+  sorry
+end
+
 lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
   {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
   tendsto f (cocompact α) (cocompact β) :=
@@ -268,7 +279,44 @@ begin
   exact hvp (f x) this
 end
 
-lemma finite_pairs (M : ℝ) (z : H) :
+
+
+lemma finite_pairs (z : H) :
+  filter.tendsto (λ cd : coprime_ints , (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq)
+  cofinite at_top
+:=
+begin
+  have h₁ : tendsto (λ c : ℝ × ℝ, ↑c.1 * (z:ℂ) + c.2) (cocompact _) (cocompact _),
+  { let g : ℂ →L[ℝ] ℝ×ℝ := (continuous_linear_map.im).prod
+      (continuous_linear_map.im.comp (((z:ℂ)• continuous_linear_map.conj ))),
+    apply tendsto_cocompact_of_left_inverse ((z:ℂ).im⁻¹ • g).continuous,
+    rintros ⟨c₁, c₂⟩,
+    have hz : 0 < (z:ℂ).im := z.2,
+    have : (z:ℂ).im ≠ 0 := hz.ne.symm,
+    field_simp [g],
+    ring },
+  have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
+  { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
+    simp [coprod_cocompact, coprod_cofinite] },
+  have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
+  { convert tendsto_at_top_norm_sq.comp (h₁.comp h₂),
+    ext,
+    simp },
+  exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))),
+end
+
+--(g' • z).val.im
+lemma finite_pairs' (z : H) :
+  filter.tendsto (λ cd : coprime_ints , (z.val.im) / (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq)
+  cofinite at_bot
+:=
+begin
+-- DONT DO
+  sorry,
+end
+
+/-
+lemma finite_pairs' (M : ℝ) (z : H) :
   set.finite {cd : coprime_ints | (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq ≤ M} :=
 begin
   have h₁ : tendsto (λ c : ℝ × ℝ, ↑c.1 * (z:ℂ) + c.2) (cocompact _) (cocompact _),
@@ -289,21 +337,65 @@ begin
     simp },
   exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))).finite_preimage M,
 end
-
+-/
 end finite_pairs
 
 
-lemma bottom_row_coprime (g : SL(2, ℤ)) : int.gcd (g 1 0) (g 1 1) = 1 := sorry
+lemma bottom_row_coprime (g : SL(2, ℤ)) : int.gcd (g 1 0) (g 1 1) = 1 :=
+begin
+  have := @det2 _ _ g,
+  sorry,
+end
 
-def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨(g 1 0, g 1 1), bottom_row_coprime g⟩
+def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨(g.1 1 0, g.1 1 1), bottom_row_coprime g⟩
 
-lemma bottom_row_surj : function.surjective bottom_row := sorry
+lemma bottom_row_surj : function.surjective bottom_row :=
+begin
+  intros cd,
+  have cop : int.gcd (cd:ℤ×ℤ).1 (cd:ℤ×ℤ).2  = 1 := cd.2,
+  let a := int.gcd_b (cd:ℤ×ℤ).1 (cd:ℤ×ℤ).2,
+  let b := - int.gcd_a (cd:ℤ×ℤ).1 (cd:ℤ×ℤ).2,
+  let A := ![![a ,b ], ![(cd:ℤ×ℤ).1, (cd:ℤ×ℤ).2]],
+  have det_A_1 : det A = 1,
+  { rw det2,
+    simp [a, b, A],
+    have := int.gcd_eq_gcd_ab (cd:ℤ×ℤ).1 (cd:ℤ×ℤ).2,
+    rw cop at this,
+    symmetry,
+    convert this using 1,
+    ring },
+  use ⟨A, det_A_1⟩,
+  rw bottom_row,
+  simp [A],
+end
+
+
 
 lemma exists_g_with_min_bottom (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
+  obtain ⟨cd, hcd⟩  := filter.tendsto.exists_forall_le (finite_pairs z),
+  obtain ⟨g, hg⟩  := bottom_row_surj cd,
+  use g,
+  intros g',
+  convert hcd (bottom_row g'),
+  { simp [bottom_row] at hg,
+    simp [bottom, ← hg], },
+  simp [bottom_row],
+end
 
-
+lemma exists_g_with_max_Im (z : H) :
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).val.im ≤ (g • z).val.im :=
+begin
+  obtain ⟨g, hg⟩  := exists_g_with_min_bottom z,
+  use g,
+  intros g',
+  have hgg := hg g',
+  rw [im_smul_SL'', im_smul_SL''],
+  rwa div_le_div_left,
+  { exact im_pos_of_in_H' },
+  { exact norm_sq_pos.mpr (@bottom_nonzero g' z z.2) },
+  { exact norm_sq_pos.mpr (@bottom_nonzero g z z.2) },
 end
 
 variables {g : SL(2,ℤ)} {z : H}
@@ -313,6 +405,16 @@ begin
   rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
 end
 
+
+
+
+
+
+
+
+
+
+/-
 lemma exists_g_with_min_bottom' (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
@@ -390,8 +492,9 @@ begin
   rw bottom,
   simp,
 end
+-/
 
-lemma exists_g_with_max_Im (z : H) :
+lemma exists_g_with_max_Im' (z : H) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ),  (g' • z).val.im ≤ (g • z).val.im :=
 begin
   have := exists_g_with_min_bottom z,
@@ -427,6 +530,7 @@ end
 
 def G' : subgroup SL(2,ℤ) := subgroup.closure {S, T}
 
+/-
 lemma exists_g_with_max_Im' (z : H) :
   ∃ g : SL(2,ℤ), (g ∈ G') ∧  ∀ g' : SL(2,ℤ), g' ∈ G' → ((g' : SL(2,ℤ)) • z).val.im ≤ ((g : SL(2,ℤ)) • z).val.im :=
 begin
@@ -434,7 +538,7 @@ begin
   -- I don't understand; how am I supposed to show g ∈ G' without proving S,T generate SL(2,Z)?...
   sorry
 end
-
+-/
 
 example : T ∈ (subgroup.closure ({S, T} : set SL(2,ℤ))) :=
 begin

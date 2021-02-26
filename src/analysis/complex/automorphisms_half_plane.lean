@@ -14,6 +14,10 @@ open_locale big_operators
 
 def H : set ℂ := { z | 0 < z.im }
 
+lemma im_pos_H (z:H) : 0< (z:ℂ).im := z.2
+
+lemma im_nonzero_H (z:H) : (z:ℂ).im ≠ 0 :=  (im_pos_H z).ne'
+
 local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 def top : --SL2R --
@@ -61,6 +65,9 @@ begin
   ring,
   convert congr_arg (λ t, t * z.im) this using 1; ring,
 end
+
+
+----- TIDY THIS UP LATER...
 
 lemma isZThenReIm {z : ℂ} : z = 0 → z.im = 0 :=
 begin

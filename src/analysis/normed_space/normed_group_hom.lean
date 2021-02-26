@@ -362,7 +362,7 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
   bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
 
 /-- Given a normed group hom `f : V₁ → V₂` satisfying `g.comp f = 0` for some `g : V₂ → V₃`,
-    the coreisometryion of `f` to the kernel of `g`. -/
+    the corestriction of `f` to the kernel of `g`. -/
 @[simps] def ker.lift (h : g.comp f = 0) :
   normed_group_hom V₁ g.ker :=
 { to_fun := λ v, ⟨f v, by { erw g.mem_ker, show (g.comp f) v = 0, rw h, refl }⟩,

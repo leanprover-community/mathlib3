@@ -10,12 +10,12 @@ import tactic.abel
 
 We define and prove some basic relations about
 `rising_factorial x n = x * (x+1) * ... * (x + n - 1)`
+which is also known as the Pochhammer function
 and its cousin `falling_factorial`.
 
 ## TODO
 There is lots more in this direction:
-* Pochhammer symbols.
-* q-factorials, q-binomials.
+* q-factorials, q-binomials, q-Pochhammer.
 * Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
@@ -104,81 +104,85 @@ end
 
 end
 
-section
+namespace nat
 
-def nat.falling_factorial : ℕ → ℕ → ℕ
+/--
+A version of `falling_factorial` specific to `ℕ`.
+We need this because `ℕ` isn't a ring, and the general definition doesn't work for a semiring,
+but nevertheless this is the most important special case!
+-/
+def falling_factorial : ℕ → ℕ → ℕ
 | r 0 := 1
-| r (n+1) := r * nat.falling_factorial (r-1) n
+| r (n+1) := r * falling_factorial (r-1) n
 
 @[simp]
-lemma nat.falling_factorial_zero {r : ℕ} : r.falling_factorial 0 = 1 := rfl
+lemma falling_factorial_zero {r : ℕ} : r.falling_factorial 0 = 1 := rfl
 
 section
 variables [ring R]
 
 @[norm_cast]
-lemma nat.falling_factorial_coe {r n : ℕ} :
-  (nat.falling_factorial r n : R) = falling_factorial (r : R) n :=
+lemma falling_factorial_coe {r n : ℕ} :
+  (falling_factorial r n : R) = falling_factorial (r : R) n :=
 begin
   induction n with n ih generalizing r,
   { simp, },
-  { dsimp [nat.falling_factorial, falling_factorial],
-    push_cast,
+  { push_cast,
     rw [ih],
     { by_cases w : r = 0,
       { subst w, simp, },
-      { replace w : 0 < r := nat.pos_of_ne_zero w,
+      { replace w : 0 < r := pos_of_ne_zero w,
         push_cast [w], }, }, },
 end
 
 @[simp]
-lemma nat.falling_factorial_one {r : ℕ} : r.falling_factorial 1 = r :=
-by simp [nat.falling_factorial]
+lemma falling_factorial_one {r : ℕ} : r.falling_factorial 1 = r :=
+by simp [falling_factorial]
 
-lemma nat.falling_factorial_eq_mul_left {r n : ℕ} :
+lemma falling_factorial_eq_mul_left {r n : ℕ} :
   r.falling_factorial (n + 1) = r * (r-1).falling_factorial n := rfl
 
-lemma nat.falling_factorial_eq_mul_right {r n : ℕ} :
+lemma falling_factorial_eq_mul_right {r n : ℕ} :
   r.falling_factorial (n + 1) = r.falling_factorial n * (r - n) :=
 begin
   -- We could prove this from the ring case by using the injectivity of `ℕ → ℤ`,
   -- but it involves casing on `n ≤ r`, so it's easier to just redo it from scratch.
   induction n with n ih generalizing r,
   { simp, },
-  { rw [nat.falling_factorial, ih, nat.falling_factorial, nat.succ_eq_add_one],
-    rw [mul_assoc, add_comm n 1, ←nat.sub_sub], }
+  { rw [falling_factorial, ih, falling_factorial, succ_eq_add_one],
+    rw [mul_assoc, add_comm n 1, ←sub_sub], }
 end
 
 @[simp]
-lemma nat.falling_factorial_eq_factorial {n : ℕ} :
+lemma falling_factorial_eq_factorial {n : ℕ} :
   n.falling_factorial n = n.factorial :=
 begin
   induction n with n ih,
   { simp, },
-  { simp [nat.falling_factorial_eq_mul_left, ih], }
+  { simp [falling_factorial_eq_mul_left, ih], }
 end
 
-lemma nat.falling_factorial_mul_falling_factorial {r n m : ℕ} :
+lemma falling_factorial_mul_falling_factorial {r n m : ℕ} :
   r.falling_factorial n * (r - n).falling_factorial m = r.falling_factorial (n + m) :=
 begin
   induction m with m ih,
   { simp, },
-  { rw [nat.falling_factorial_eq_mul_right, ←mul_assoc, ih, nat.add_succ,
-      nat.falling_factorial_eq_mul_right, nat.sub_sub], }
+  { rw [falling_factorial_eq_mul_right, ←mul_assoc, ih, add_succ,
+      falling_factorial_eq_mul_right, sub_sub], }
 end
 
-lemma nat.falling_factorial_ne_zero {n m : ℕ} (h : n ≤ m) :
+lemma falling_factorial_ne_zero {n m : ℕ} (h : n ≤ m) :
   m.falling_factorial n ≠ 0 :=
 begin
   intro w,
-  have := @nat.falling_factorial_mul_falling_factorial m n (m-n),
-  rw [w, nat.add_sub_cancel' h, zero_mul, nat.falling_factorial_eq_factorial] at this,
+  have := @falling_factorial_mul_falling_factorial m n (m-n),
+  rw [w, add_sub_cancel' h, zero_mul, falling_factorial_eq_factorial] at this,
   exact ne_of_lt m.factorial_pos this,
 end
 
 end
 
-end
+end nat
 
 section
 variables [comm_ring R]

@@ -149,6 +149,8 @@ begin
   simp only [ring_equiv_congr_left, h, map_id, ring_equiv_congr_symm_apply, comp_app]
 end
 
+variable (S₁)
+
 /-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism
 of the ground ring. -/
 def ring_equiv_congr_right [comm_semiring S₂] (e : R ≃+* S₂) :
@@ -157,13 +159,15 @@ ring_equiv_congr e (equiv.cast rfl)
 
 @[simp]
 lemma ring_equiv_congr_right_apply [comm_semiring S₂] (e : R ≃+* S₂) (p : mv_polynomial S₁ R) :
-  ring_equiv_congr_right R e p = map (e : R →+* S₂) p :=
+  ring_equiv_congr_right R S₁ e p = map (e : R →+* S₂) p :=
 by simp [ring_equiv_congr_right]
 
 @[simp]
 lemma ring_equiv_congr_right_symm_apply [comm_semiring S₂] (e : R ≃+* S₂)
-  (p : mv_polynomial S₁ S₂) : (ring_equiv_congr_right R e).symm p = map (e.symm : S₂ →+* R) p :=
+  (p : mv_polynomial S₁ S₂) : (ring_equiv_congr_right R S₁ e).symm p = map (e.symm : S₂ →+* R) p :=
 by simp [ring_equiv_congr_right]
+
+variable {S₁}
 
 /-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas and `e_var : S₁ ≃ S₂` is an isomorphism of
 types, the induced isomorphism `mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₂ B`. -/
@@ -207,6 +211,8 @@ begin
     comp_app],
 end
 
+variable (S₁)
+
 /-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas, the induced isomorphism
 `mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₁ B`. -/
 def alg_equiv_congr_right {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A]
@@ -217,13 +223,13 @@ alg_equiv_congr R e (equiv.cast rfl)
 @[simp]
 lemma alg_equiv_congr_right_apply {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A]
   [algebra R B] (e : A ≃ₐ[R] B) (p : mv_polynomial S₁ A) :
-  alg_equiv_congr_right R e p = map (↑e : A →+* B) p :=
+  alg_equiv_congr_right R S₁ e p = map (↑e : A →+* B) p :=
 by simpa [alg_equiv_congr_right]
 
 @[simp]
 lemma alg_equiv_congr_right_symm_apply {A B : Type*} [comm_semiring A] [comm_semiring B]
   [algebra R A] [algebra R B] (e : A ≃ₐ[R] B) (p : mv_polynomial S₁ B) :
-  (alg_equiv_congr_right R e).symm p = map (↑e.symm : B →+* A ) p :=
+  (alg_equiv_congr_right R S₁ e).symm p = map (↑e.symm : B →+* A ) p :=
 by simpa [alg_equiv_congr_right, ring_equiv_congr]
 
 section
@@ -343,7 +349,7 @@ multivariable polynomials with coefficients in polynomials.
 def option_equiv_right : mv_polynomial (option S₁) R ≃+* mv_polynomial S₁ (polynomial R) :=
 (ring_equiv_congr_left R $ equiv.option_equiv_sum_punit.{0} S₁).trans $
 (sum_ring_equiv R S₁ unit).trans $
-ring_equiv_congr_right (mv_polynomial unit R) (punit_ring_equiv R)
+ring_equiv_congr_right (mv_polynomial unit R) _ (punit_ring_equiv R)
 
 /--
 The ring isomorphism between multivariable polynomials in `fin (n + 1)` and

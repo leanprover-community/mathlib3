@@ -29,6 +29,7 @@ lemma nmem_support [has_zero A] {f : α → A} {x : α} :
   x ∉ support f ↔ f x = 0 :=
 not_not
 
+@[simp]
 lemma mem_support [has_zero A] {f : α → A} {x : α} :
   x ∈ support f ↔ f x ≠ 0 :=
 iff.rfl
@@ -156,3 +157,36 @@ set.ext $ λ x, by simp only [support, not_and_distrib, mem_union_eq, mem_set_of
   prod.mk_eq_zero, ne.def]
 
 end function
+
+namespace pi
+variables {A : Type*} {B : Type*} [decidable_eq A] [has_zero B] {a : A} {b : B}
+
+@[simp]
+lemma support_single_zero : function.support (pi.single a (0 : B)) = ∅ := by { ext, simp }
+
+@[simp]
+lemma support_single_of_ne (h : b ≠ 0) :
+  function.support (pi.single a b) = {a} :=
+begin
+  ext,
+  simp only [mem_singleton_iff, ne.def, function.mem_support],
+  split,
+  { contrapose!,
+    exact λ h', single_eq_of_ne h' b },
+  { rintro rfl,
+    rw single_eq_same,
+    exact h }
+end
+
+lemma support_single [decidable_eq B] :
+  function.support (pi.single a b) = if b = 0 then ∅ else {a} := by { split_ifs with h; simp [h] }
+
+lemma support_single_subset : function.support (pi.single a b) ⊆ {a} :=
+begin
+  classical,
+  rw support_single,
+  split_ifs;
+  simp
+end
+
+end pi

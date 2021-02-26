@@ -2135,6 +2135,13 @@ def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
   left_inv := λ l, rfl,
   right_inv := λ m, quot.induction_on m $ λ l, rfl }
 
+variable {α}
+
+@[simp]
+lemma coe_subsingleton_equiv [subsingleton α] :
+  (subsingleton_equiv α : list α → multiset α) = coe :=
+rfl
+
 end multiset
 
 @[to_additive]

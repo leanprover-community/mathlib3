@@ -150,6 +150,7 @@ linear_map.range_coe ↑f
 
 lemma mem_range_self (x : L) : f x ∈ f.range := linear_map.mem_range_self f x
 
+/-- We can restrict a morphism to a (surjective) map to its range. -/
 def range_restrict : L →ₗ⁅R⁆ f.range :=
 { map_lie' := λ x y, by { apply subtype.ext, exact f.map_lie x y, },
   ..(f : L →ₗ[R] L₂).range_restrict, }

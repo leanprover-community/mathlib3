@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Johan Commelin
 import algebra.ring.basic
 import data.equiv.basic
 
-universes u v
+universes u v w
 variable {α : Type u}
 
 /-- Add an extra element `1` to a type -/
@@ -127,6 +127,15 @@ variables {β : Type v} [semigroup α] [semigroup β]
   from `with_zero α` to `with_zero β`"]
 def map (f : mul_hom α β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
+
+@[simp, to_additive]
+lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
+by { ext, cases x; refl }
+
+@[simp, to_additive]
+lemma map_comp {γ : Type w} [semigroup γ] (f : mul_hom α β) (g : mul_hom β γ) :
+map (g.comp f) = (map g).comp (map f) :=
+by { ext, cases x; refl }
 
 end map
 

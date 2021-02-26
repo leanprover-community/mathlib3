@@ -114,10 +114,18 @@ local attribute [instance] has_zero_object.has_zero
 instance : inhabited (homological_complex (discrete punit) b) := ⟨0⟩
 end
 
+end homological_complex
+
+open homological_complex
+
+namespace category_theory.functor
+
+variables {β : Type} [add_comm_group β] {b : β} {C D : Type*} [category C]
+  [category D] [preadditive C] [preadditive D] (F : C ⥤ D) [functor.additive F]
+
 /-- Map a `homological_complex` with respect to an additive functor. -/
 @[simps]
-def map {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
-  (Cs : homological_complex C b) (F : C ⥤ D) [functor.additive F] : homological_complex D b :=
+def map_homological_complex (Cs : homological_complex C b) : homological_complex D b :=
 { X := λ i, F.obj $ Cs.X i,
   d := λ i, F.map $ Cs.d i,
   d_squared' := begin
@@ -126,11 +134,10 @@ def map {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
     simp [← F.map_comp]
   end }
 
-/-- A functorial version of `homological_complex.map`. -/
+/-- A functorial version of `map_homological_complex`. -/
 @[simps]
-def pushforward {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
-  (F : C ⥤ D) [functor.additive F] : homological_complex C b ⥤ homological_complex D b :=
-{ obj := λ Cs, Cs.map F,
+def pushforward_homological_complex : homological_complex C b ⥤ homological_complex D b :=
+{ obj := λ Cs, F.map_homological_complex Cs,
   map := λ X Y f,
   { f := λ i, F.map $ f.f _,
     comm' := begin
@@ -139,9 +146,7 @@ def pushforward {C D : Type*} [category C] [category D] [preadditive C] [preaddi
       simp_rw [← F.map_comp, comm_at],
     end } }
 
-end homological_complex
-
-open homological_complex
+end category_theory.functor
 
 -- The components of a cochain map `f : C ⟶ D` are accessed as `f.f i`.
 example {C D : cochain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5

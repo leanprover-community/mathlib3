@@ -53,13 +53,11 @@ one given by the following generators and relations.
 -/
 
 /-- The `i`-th face map from `[n]` to `[n+1]` -/
-def δ {n} (i : fin (n+2)) :
-  [n] ⟶ [n+1] :=
+def δ {n} (i : fin (n+2)) : [n] ⟶ [n+1] :=
 (fin.succ_above i).to_preorder_hom
 
 /-- The `i`-th degeneracy map from `[n+1]` to `[n]` -/
-def σ {n} (i : fin (n+1)) :
-  [n+1] ⟶ [n] :=
+def σ {n} (i : fin (n+1)) : [n+1] ⟶ [n] :=
 { to_fun := fin.pred_above i,
   monotone' := fin.pred_above_right_monotone i }
 
@@ -222,8 +220,7 @@ section skeleton
 
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
-def skeletal_functor :
-  simplex_category ⥤ NonemptyFinLinOrd.{u} :=
+def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd.{u} :=
 { obj := λ n, NonemptyFinLinOrd.of $ ulift (fin (n+1)),
   map := λ m n f, ⟨λ i, ⟨f i.down⟩, λ ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, from f.monotone h⟩, }
 
@@ -276,13 +273,14 @@ end skeletal_functor
 
 /-- The equivalence that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
-noncomputable def skeletal_equivalence :
-  simplex_category ≌ NonemptyFinLinOrd.{u} :=
+noncomputable def skeletal_equivalence : simplex_category ≌ NonemptyFinLinOrd.{u} :=
 functor.as_equivalence skeletal_functor.{u}
 
 end skeleton
 
-/-- `simplex_category` is a skeleton of `NonemptyFinLinOrd`. -/
+/--
+`simplex_category` is a skeleton of `NonemptyFinLinOrd`.
+-/
 noncomputable
 def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd.{u} simplex_category skeletal_functor.{u} :=
 { skel := skeletal,

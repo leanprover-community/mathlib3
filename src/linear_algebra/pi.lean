@@ -95,12 +95,7 @@ def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
   inv_fun := λ f i, f.comp (single i),
   map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
   map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum],
-  left_inv := λ f,
-    begin
-      ext i x,
-      suffices : ∑ j, pi.single i (f i x) j = f i x, by simpa [apply_single],
-      exact (finset.sum_dite_eq' _ _ _).trans (if_pos $ finset.mem_univ i)
-    end,
+  left_inv := λ f, by { ext i x, simp [apply_single] },
   right_inv := λ f,
     begin
       ext,
@@ -182,3 +177,19 @@ end
 end
 
 end linear_map
+
+namespace linear_equiv
+
+variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+  [∀i, add_comm_monoid (ψ i)] [∀i, semimodule R (ψ i)]
+
+/-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
+@[simps] def pi (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
+{ to_fun := λ f i, e i (f i),
+  inv_fun := λ f i, (e i).symm (f i),
+  map_add' := λ f g, by { ext, simp },
+  map_smul' := λ c f, by { ext, simp },
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ f, by { ext, simp } }
+
+end linear_equiv

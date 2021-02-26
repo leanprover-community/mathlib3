@@ -114,6 +114,7 @@ le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥continuous_linear_map.im I∥ : by simp
    ... ≤ ∥continuous_linear_map.im∥ : unit_le_op_norm _ _ (by simp)
 
+/-- The complex-conjugation function from `ℂ` to itself is an isometric linear map. -/
 def linear_isometry.conj : ℂ →ₗᵢ[ℝ] ℂ := ⟨linear_map.conj, λ x, by simp⟩
 
 /-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/

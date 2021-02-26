@@ -37,7 +37,7 @@ lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
 
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+coeff (r • p) n = r * coeff p n := finsupp.smul_apply _ _ _
 
 lemma mem_support_iff_coeff_ne_zero : n ∈ p.support ↔ p.coeff n ≠ 0 :=
 by { rw mem_support_to_fun, refl }

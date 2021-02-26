@@ -242,56 +242,6 @@ begin
   sorry
 end
 
--- next three lemmas cover basically the same territory as the old `finite_integers`
-
-lemma int.finite_closed_ball_zero (r : ℝ) : (metric.closed_ball (0:ℤ) r).finite :=
-begin
-  let s := finset.Ico_ℤ (- (floor r) - 1) (floor r + 1),
-  refine s.finite_to_set.subset _,
-  intros y,
-  simp only [int.dist_eq, int.cast_zero, sub_zero, metric.mem_closed_ball, finset.mem_coe, abs_le,
-    finset.Ico_ℤ.mem],
-  rintros ⟨h₁, h₂⟩,
-  have := lt_floor_add_one r,
-  rw [← @int.cast_le ℝ, ← @int.cast_lt ℝ],
-  push_cast,
-  split; linarith
-end
-
-lemma int.finite_closed_ball (x : ℤ) (r : ℝ) : (metric.closed_ball x r).finite :=
-begin
-  refine (int.finite_closed_ball_zero (r + (dist x 0))).subset _,
-  intros y,
-  simp only [metric.closed_ball, set.mem_set_of_eq],
-  intros hy,
-  have := dist_triangle y x 0,
-  linarith
-end
-
-lemma int.finite_of_bounded {s : set ℤ} (hs : metric.bounded s) : s.finite :=
-begin
-  rw metric.bounded_iff_subset_ball (0:ℤ) at hs,
-  obtain ⟨r, hr⟩ := hs,
-  exact (int.finite_closed_ball (0:ℤ) r).subset hr
-end
-
-lemma int.tendsto_cofinite_coe : tendsto (coe : ℤ → ℝ) cofinite (cocompact _) :=
-begin
-  simp only [tendsto_def, mem_cofinite, mem_cocompact'],
-  rintros s ⟨t, ht, hts⟩,
-  have : metric.bounded (coe ⁻¹' t : set ℤ),
-  { obtain ⟨r, hr⟩ := ht.bounded,
-    use r,
-    intros x y hx hy,
-    exact hr x y hx hy },
-  refine int.finite_of_bounded _,
-  refine this.subset _,
-  rw ← set.preimage_compl,
-  exact set.preimage_mono hts
-end
-
--- instance : proper_space ℤ := ⟨λ x r, (int.finite_closed_ball x r).is_compact⟩
-
 lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
   {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
   tendsto f (cocompact α) (cocompact β) :=
@@ -326,10 +276,10 @@ begin
     rintros ⟨c₁, c₂⟩,
     have hz : 0 < (z:ℂ).im := z.2,
     have : (z:ℂ).im ≠ 0 := hz.ne.symm,
-    field_simp [g, conj, im, continuous_linear_map.conj, linear_map.conj],
+    field_simp [g],
     ring },
   have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
-  { convert int.tendsto_cofinite_coe.prod_map_coprod int.tendsto_cofinite_coe;
+  { convert int.tendsto_cofinite_coe.prod_map_coprod int.tendsto_coe_cofinite;
     simp [coprod_cocompact, coprod_cofinite] },
   have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
   { convert tendsto_at_top_norm_sq.comp (h₁.comp h₂),

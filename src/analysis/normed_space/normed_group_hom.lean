@@ -261,7 +261,7 @@ instance : has_neg (normed_group_hom V₁ V₂) :=
 
 @[simp] lemma coe_neg (f : normed_group_hom V₁ V₂) : ⇑(-f) = -f := rfl
 lemma neg_apply (f : normed_group_hom V₁ V₂) (v : V₁) :
-  ((-f : normed_group_hom V₁ V₂)) v = - (f v) := rfl
+  (-f : normed_group_hom V₁ V₂) v = - (f v) := rfl
 
 lemma op_norm_neg (f : normed_group_hom V₁ V₂) : ∥-f∥ = ∥f∥ :=
 by simp only [norm_def, coe_neg, norm_neg, pi.neg_apply]

@@ -66,24 +66,6 @@ end linear_map
 noncomputable theory
 
 
-@[simp] lemma polynomial.nat_cast_coeff_zero {n : ℕ} {R : Type*} [semiring R] :
-  (n : polynomial R).coeff 0 = n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih], },
-end
-
-@[simp, norm_cast] theorem polynomial.nat_cast_inj'
-  {m n : ℕ} {R : Type*} [semiring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
-begin
-  fsplit,
-  { intro h,
-    apply_fun (λ p, p.coeff 0) at h,
-    simpa using h, },
-  { rintro rfl, refl, },
-end
-
 open nat (choose)
 open polynomial (X)
 

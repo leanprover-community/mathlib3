@@ -209,7 +209,6 @@ by refine_struct
 { .. normed_group_hom.has_add, .. normed_group_hom.has_zero,
   .. normed_group_hom.has_neg, ..normed_group_hom.has_sub };
 { intros, ext, simp [add_assoc, add_comm, add_left_comm, sub_eq_add_neg] }
-.
 
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=

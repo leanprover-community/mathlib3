@@ -56,7 +56,6 @@ begin
   exact H,
 end
 
-
 example (n m : ℕ) (f : ℕ → ℕ) (h : f n ≠ f m) : n ≠ m :=
 begin
   apply_fun f,

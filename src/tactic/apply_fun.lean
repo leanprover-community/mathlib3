@@ -37,7 +37,8 @@ do {
           return n
         end,
        to_expr ``(%%Hmono %%hyp)
-  | _ := fail ("failed to apply " ++ to_string e ++ " at " ++ to_string hyp.local_pp_name)
+  | _ := (do pp ← pp e,
+             fail ("failed to apply " ++ to_string pp ++ " at " ++ to_string hyp.local_pp_name))
   end,
   clear hyp,
   hyp ← note hyp.local_pp_name none prf,
@@ -59,25 +60,25 @@ meta def apply_fun_to_goal (e : pexpr) (lem : option pexpr) : tactic unit :=
 do t ← target,
   match t with
   | `(%%l ≠ %%r) := to_expr ``(ne_of_apply_ne %%e) >>= apply >> skip
-  | `(¬%%l = %%r) := (do
-      to_expr ``(ne_of_apply_ne %%e) >>= apply,
-      skip)
-  | `(%%l = %%r) := (do
+  | `(¬%%l = %%r) := to_expr ``(ne_of_apply_ne %%e) >>= apply >> skip
+  | `(%%l ≤ %%r) := to_expr ``((order_iso.le_iff_le %%e).mp) >>= apply >> skip
+  | `(%%l < %%r) := to_expr ``((order_iso.lt_iff_lt %%e).mp) >>= apply >> skip
+  | `(%%l = %%r) := focus1 (do
       to_expr ``(%%e %%l), -- build and discard an application, to fill in implicit arguments
       n ← get_unused_name `inj,
       to_expr ``(function.injective %%e) >>= assert n,
       -- Attempt to discharge the `injective f` goal
+      focus1 $
       assumption <|>
-        (to_expr ``(equiv.injective) >>= apply >> skip) <|>
-        (lem.mmap (λ l, to_expr l >>= apply) >> skip),
-      -- Return to the main goal
+        (to_expr ``(equiv.injective) >>= apply >> done) <|>
+        -- We require that applying the lemma closes the goal, not just makes progress:
+        (lem.mmap (λ l, to_expr l >>= apply) >> done),
+      -- Return to the main goal, or noop if we successfully discharged the `injective f` goal:
       swap,
       n ← get_local n,
       apply n,
       clear n)
-  | `(%%l ≤ %%r) := to_expr ``((order_iso.le_iff_le %%e).mp) >>= apply >> skip
-  | `(%%l < %%r) := to_expr ``((order_iso.lt_iff_lt %%e).mp) >>= apply e' >> skip
-  | _ := fail ("failed to apply " ++ to_string e ++ " to the goal")
+  | _ := (do pp ← pp e, fail ("failed to apply " ++ to_string pp ++ " to the goal"))
   end
 
 namespace interactive

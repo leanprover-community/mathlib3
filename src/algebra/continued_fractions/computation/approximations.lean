@@ -19,8 +19,8 @@ In particular, we derive the so-called *determinant formula* for `gcf.of`:
 Moreover, we derive some upper bounds for the error term when computing a continued fraction up a
 given position, i.e. bounds for the term `|v - (gcf.of v).convergents n|`.
 The derived bounds will show us that the error term indeed gets smaller.
-As a corollary, we will be able to show that, in the limit, `(gcf.of v).convergents` exactly
-computes `v`. (TODO add reference to convergence lemma in next PR)
+As a corollary, we will be able to show that `(gcf.of v).convergents` converges to `v`.
+(TODO add reference to convergence lemma in next PR)
 
 ## Main Theorems
 

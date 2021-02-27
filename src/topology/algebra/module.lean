@@ -383,13 +383,17 @@ instance : add_comm_monoid (M →L[R] M₂) :=
 by { refine {zero := 0, add := (+), ..}; intros; ext;
   apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
 
+@[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) :
+  ↑(∑ d in t, f d) = (∑ d in t, f d : M →ₗ[R] M₂) :=
+(add_monoid_hom.mk (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) rfl (λ _ _, rfl)).map_sum _ _
+
+@[simp, norm_cast] lemma coe_sum' {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) :
+  ⇑(∑ d in t, f d) = ∑ d in t, f d :=
+by simp only [← coe_coe, coe_sum, linear_map.coe_fn_sum]
+
 lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
-begin
-  haveI : is_add_monoid_hom (λ (g : M →L[R] M₂), g b) :=
-    { map_add := λ f g, continuous_linear_map.add_apply f g b, map_zero := by simp },
-  exact (finset.sum_hom t (λ g : M →L[R] M₂, g b)).symm
-end
+by simp only [coe_sum', finset.sum_apply]
 
 end add
 

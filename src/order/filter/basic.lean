@@ -2458,7 +2458,7 @@ begin
   tauto,
 end
 
-/-- Characterization of the `filter.map`s of the coproduct of two principal filters `𝓟 {a}` and
+/-- Characterization of the `filter.map` of the coproduct of two principal filters `𝓟 {a}` and
 `𝓟 {i}`, under the `prod.map` of two functions, respectively the constant function `λ a, b` and the
 identity function.  Together with the previous lemma,
 `map_const_principal_coprod_map_id_principal`, this provides an example showing that the inequality

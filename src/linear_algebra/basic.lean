@@ -807,7 +807,7 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
 The implementation uses `finsupp.sum`.  -/
 lemma span_as_sum {R M : Type*} [semiring R] [add_comm_group M] [semimodule R M]
   {m : M} {s : set M} (hm : m ∈ submodule.span R s) :
-  ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ m, (smul_add_hom R M).flip m)) = m :=
+  ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ i, (smul_add_hom R M).flip i)) = m :=
 begin
   classical,
   refine span_induction hm (λ x hx, _) ⟨0, by simp⟩ _ _; clear hm m,

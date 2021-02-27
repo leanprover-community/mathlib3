@@ -113,6 +113,8 @@ instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
   mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
+attribute [simp] nat.not_lt_zero
+
 /-!
 Inject some simple facts into the type class system.
 This `fact` should not be confused with the factorial function `nat.fact`!
@@ -1308,7 +1310,15 @@ by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
 theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
   nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
+nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
+  nat.find h₁ = nat.find h₂ + 1 :=
+begin
+  refine (find_eq_iff _).2 ⟨nat.find_spec h₂, λ n hn, _⟩,
+  cases n with n,
+  exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (succ_lt_succ_iff.1 hn)]
+end
 
 end find
 

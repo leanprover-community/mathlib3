@@ -172,6 +172,10 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+lemma smul_mul_smul (r s : R) (x y : A) :
+  (r • x) * (s • y) = (r * s) • (x * y) :=
+by rw [algebra.smul_mul_assoc, algebra.mul_smul_comm, smul_smul]
+
 section
 variables {r : R} {a : A}
 
@@ -1406,15 +1410,3 @@ rfl
 end semimodule
 
 end restrict_scalars
-
-namespace linear_map
-
-variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
-  (V : Type*) [add_comm_monoid V] [semimodule R V]
-  (W : Type*) [add_comm_monoid W] [semimodule R W] [semimodule S W] [is_scalar_tower R S W]
-
-instance is_scalar_tower_extend_scalars :
-  is_scalar_tower R S (V →ₗ[R] W) :=
-{ smul_assoc := λ r s f, by simp only [(•), coe_mk, smul_assoc] }
-
-end linear_map

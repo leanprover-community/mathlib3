@@ -211,7 +211,7 @@ mk_continuous_norm_le _ (add_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
 @[simp] lemma coe_add (f g : normed_group_hom V₁ V₂) : ⇑(f + g) = f + g := rfl
 lemma add_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
-  ((f + g : normed_group_hom V₁ V₂)) v = f v + g v := rfl
+  (f + g : normed_group_hom V₁ V₂) v = f v + g v := rfl
 
 /-! ### The zero normed group hom -/
 
@@ -231,7 +231,7 @@ iff.intro
     (op_norm_nonneg _))
 
 @[simp] lemma coe_zero : ⇑(0 : normed_group_hom V₁ V₂) = 0 := rfl
-lemma zero_apply (v : V₁) : ((0 : normed_group_hom V₁ V₂)) v = 0 := rfl
+lemma zero_apply (v : V₁) : (0 : normed_group_hom V₁ V₂) v = 0 := rfl
 
 variables {f g}
 
@@ -280,7 +280,7 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 
 @[simp] lemma coe_sub (f g : normed_group_hom V₁ V₂) : ⇑(f - g) = f - g := rfl
 @[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
-  ((f - g : normed_group_hom V₁ V₂)) v = f v - g v := rfl
+  (f - g : normed_group_hom V₁ V₂) v = f v - g v := rfl
 
 /-! ### Normed group structure on normed group homs -/
 

@@ -11,13 +11,14 @@ import category_theory.thin
 
 Define skeletal categories as categories in which any two isomorphic objects are equal.
 
-Construct the skeleton of a thin category as a partial ordering, and (noncomputably) show it is
-a skeleton of the original category. The advantage of this special case being handled separately
-is that lemmas and definitions about orderings can be used directly, for example for the subobject
-lattice (TODO). In addition, some of the commutative diagrams about the functors commute
-definitionally on the nose which is convenient in practice.
+Construct the skeleton of an arbitrary category by taking isomorphism classes, and show it is a
+skeleton of the original category.
 
-(TODO): Construct the skeleton of a general category using choice, and show it is a skeleton.
+In addition, construct the skeleton of a thin category as a partial ordering, and (noncomputably)
+show it is a skeleton of the original category. The advantage of this special case being handled
+separately is that lemmas and definitions about orderings can be used directly, for example for the
+subobject lattice. In addition, some of the commutative diagrams about the functors commute
+definitionally on the nose which is convenient in practice.
 -/
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
@@ -58,8 +59,38 @@ lemma functor_skeletal [∀ X Y : C, subsingleton (X ⟶ Y)] (hC : skeletal C) :
 variables (C D)
 
 /--
+Construct the skeleton category as the induced category on the isomorphism classes, and derive
+its category structure.
+-/
+@[derive category]
+def skeleton : Type u₁ := induced_category C quotient.out
+
+instance [inhabited C] : inhabited (skeleton C) := ⟨⟦default C⟧⟩
+
+/-- The functor from the skeleton of `C` to `C`. -/
+@[simps, derive [full, faithful]]
+noncomputable def from_skeleton : skeleton C ⥤ C := induced_functor _
+
+instance : ess_surj (from_skeleton C) :=
+{ mem_ess_image := λ X, ⟨quotient.mk X, quotient.mk_out X⟩ }
+
+noncomputable instance : is_equivalence (from_skeleton C) :=
+equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
+
+/-- The `skeleton` of `C` given by choice is a skeleton of `C`. -/
+noncomputable def skeleton_is_skeleton : is_skeleton_of C (skeleton C) (from_skeleton C) :=
+{ skel :=
+  begin
+    rintro X Y ⟨h⟩,
+    have : X.out ≈ Y.out := ⟨(from_skeleton C).map_iso h⟩,
+    simpa using quotient.sound this,
+  end,
+  eqv := from_skeleton.is_equivalence C }
+
+/--
 Construct the skeleton category by taking the quotient of objects. This construction gives a
 preorder with nice definitional properties, but is only really appropriate for thin categories.
+If your original category is not thin, you probably want to be using `skeleton` instead of this.
 -/
 def thin_skeleton : Type u₁ := quotient (is_isomorphic_setoid C)
 

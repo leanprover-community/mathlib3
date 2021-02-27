@@ -953,19 +953,13 @@ begin
   exact (h_mul a _ hp_a hp_sup).trans (mul_le_mul_left' (hs hs_empty hsa_restrict) _),
 end
 
-@[to_additive le_sum_of_subadditive']
-lemma le_prod_of_submultiplicative' [comm_monoid α] [ordered_comm_monoid β]
-  (f : α → β) (h_one : f 1 ≤ 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : multiset α) :
-  f s.prod ≤ (s.map f).prod :=
-multiset.induction_on s h_one $
-  assume a s ih, by rw [prod_cons, map_cons, prod_cons];
-    from le_trans (h_mul a s.prod) (mul_le_mul_left' ih _)
-
 @[to_additive le_sum_of_subadditive]
 lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_one : f 1 = 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : multiset α) :
   f s.prod ≤ (s.map f).prod :=
-le_prod_of_submultiplicative' f (le_of_eq h_one) h_mul s
+multiset.induction_on s (le_of_eq h_one) $
+  assume a s ih, by rw [prod_cons, map_cons, prod_cons];
+    from le_trans (h_mul a s.prod) (mul_le_mul_left' ih _)
 
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=

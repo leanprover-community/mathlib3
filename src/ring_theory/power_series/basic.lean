@@ -1289,11 +1289,10 @@ begin
   rw power_series.ext_iff at *,
   intros n,
   specialize h n,
-  rw [coeff_rescale, coeff_rescale] at h,
-  rw mul_eq_mul_left_iff at h,
-  cases h,
-  { assumption, },
-  { exfalso, apply ha, apply pow_eq_zero h, },
+  rw [coeff_rescale, coeff_rescale, mul_eq_mul_left_iff] at h,
+  apply h.resolve_right,
+  intro h',
+  exact ha (pow_eq_zero h'),
 end
 
 end integral_domain

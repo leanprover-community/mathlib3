@@ -226,7 +226,7 @@ end
 /-- The Bernoulli numbers are defined to be `bernoulli'` with a parity sign. -/
 def bernoulli (n : ℕ) : ℚ := (-1)^n * (bernoulli' n)
 
-@[simp] lemma bernoulli'_of_bernoulli (n : ℕ): bernoulli' n  = (-1)^n * bernoulli n :=
+lemma bernoulli'_eq_neg_one_pow_mul_bernoulli (n : ℕ) : bernoulli' n = (-1)^n * bernoulli n :=
 begin
   rw [bernoulli],
   ring,

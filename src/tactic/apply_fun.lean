@@ -68,13 +68,12 @@ do t ← target,
       n ← get_unused_name `inj,
       to_expr ``(function.injective %%e) >>= assert n,
       -- Attempt to discharge the `injective f` goal
-      focus1 $
+      (focus1 $
       assumption <|>
         (to_expr ``(equiv.injective) >>= apply >> done) <|>
         -- We require that applying the lemma closes the goal, not just makes progress:
-        (lem.mmap (λ l, to_expr l >>= apply) >> done),
-      -- Return to the main goal, or noop if we successfully discharged the `injective f` goal:
-      swap,
+        (lem.mmap (λ l, to_expr l >>= apply) >> done))
+        <|> swap, -- return to the main goal if we couldn't discharge `injective f`.
       n ← get_local n,
       apply n,
       clear n)

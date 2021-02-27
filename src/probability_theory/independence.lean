@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Rémy Degenne
 -/
 import measure_theory.measure_space
+import measure_theory.pi_system
 import algebra.big_operators.intervals
 import data.finset.intervals
 
@@ -102,12 +103,33 @@ indep_sets (m₁.measurable_set') (m₂.measurable_set') μ
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
 def Indep_set {α ι} [measurable_space α] (s : ι → set α) (μ : measure α . volume_tac) : Prop :=
-Indep (λ i, generate_from {s i}) μ
+Indep_sets (λ i, {s i}) μ
 
 /-- Two sets are independent if the two measurable space structures they generate are independent.
 For a set `s`, the generated measurable space structure has measurable sets `∅, s, sᶜ, univ`. -/
 def indep_set {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) : Prop :=
-indep (generate_from {s}) (generate_from {t}) μ
+indep_sets {s} {t} μ
+
+lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
+  {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+begin
+  unfold indep_set indep_sets,
+  simp_rw set.mem_singleton_iff,
+  split; intros h,
+  apply h s t (eq.refl _) (eq.refl _),
+  intros s1 t1 h_s1 h_t1,
+  substs s1 t1,
+  apply h,
+end
+
+lemma indep_sets.indep_set {α} {m : measurable_space α}
+  {μ : measure α} {p1 p2 : set (set α)} (hyp : indep_sets p1 p2 μ)
+  {s1 s2 : set α} (h1 : s1 ∈ p1) (h2 : s2 ∈ p2) :
+  indep_set s1 s2 μ :=
+begin
+  rw indep_set_iff,
+  apply hyp _ _ h1 h2,
+end
 
 /-- A family of functions defined on the same space `α` and taking values in possibly different
 spaces, each with a measurable space structure, is independent if the family of measurable space
@@ -138,22 +160,30 @@ lemma indep.symm {α} {m₁ m₂ : measurable_space α} [measurable_space α] {�
   indep m₂ m₁ μ :=
 indep_sets.symm h
 
-lemma indep_sets_of_indep_sets_of_le_left {α} {s₁ s₂ s₃: set (set α)} [measurable_space α]
+lemma indep_set.symm {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) :
+indep_set s t μ → indep_set t s μ :=
+begin
+  intros h,
+  apply indep_sets.symm,
+  apply h,
+end
+
+lemma indep_sets_of_indep_sets_of_le_left {α} {s₁ s₂ s₃ : set (set α)} [measurable_space α]
   {μ : measure α} (h_indep : indep_sets s₁ s₂ μ) (h31 : s₃ ⊆ s₁) :
   indep_sets s₃ s₂ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (set.mem_of_subset_of_mem h31 ht1) ht2
 
-lemma indep_sets_of_indep_sets_of_le_right {α} {s₁ s₂ s₃: set (set α)} [measurable_space α]
+lemma indep_sets_of_indep_sets_of_le_right {α} {s₁ s₂ s₃ : set (set α)} [measurable_space α]
   {μ : measure α} (h_indep : indep_sets s₁ s₂ μ) (h32 : s₃ ⊆ s₂) :
   indep_sets s₁ s₃ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 ht1 (set.mem_of_subset_of_mem h32 ht2)
 
-lemma indep_of_indep_of_le_left {α} {m₁ m₂ m₃: measurable_space α} [measurable_space α]
+lemma indep_of_indep_of_le_left {α} {m₁ m₂ m₃ : measurable_space α} [measurable_space α]
   {μ : measure α} (h_indep : indep m₁ m₂ μ) (h31 : m₃ ≤ m₁) :
   indep m₃ m₂ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 (h31 _ ht1) ht2
 
-lemma indep_of_indep_of_le_right {α} {m₁ m₂ m₃: measurable_space α} [measurable_space α]
+lemma indep_of_indep_of_le_right {α} {m₁ m₂ m₃ : measurable_space α} [measurable_space α]
   {μ : measure α} (h_indep : indep m₁ m₂ μ) (h32 : m₃ ≤ m₂) :
   indep m₁ m₃ μ :=
 λ t1 t2 ht1 ht2, h_indep t1 t2 ht1 (h32 _ ht2)
@@ -307,6 +337,26 @@ begin
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
+lemma indep_set_iff_of_probability_measure {α} [m : measurable_space α] {μ : measure α}
+  [probability_measure μ] {s t : set α} (h_s : measurable_set s) (h_t : measurable_set t) : 
+  indep_set s t μ ↔ 
+  indep (generate_from {s}) (generate_from {t}) μ :=
+begin
+  unfold indep,
+  have h1 : ∀ u (h_u : measurable_set u), generate_from {u} ≤ m,
+  { intros u h_u, apply generate_from_le, intros s' h_s', simp at h_s', subst s',
+    apply h_u,  }, 
+  split; intros h_indep,
+  { apply indep_sets.indep (h1 s h_s) (h1 t h_t) (is_pi_system.singleton _)
+      (is_pi_system.singleton _) (by refl) (by refl) h_indep },
+  { apply indep_sets.indep_set h_indep,
+    apply measurable_set_generate_from,
+    apply set.mem_singleton,
+    apply measurable_set_generate_from,
+    apply set.mem_singleton },
+end
+
 end from_pi_systems_to_measurable_spaces
 
 end probability_theory
+

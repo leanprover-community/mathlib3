@@ -533,7 +533,7 @@ lemma same_coeffs [field α] (n m : ℕ) (h : m ≤ n) :
   coeff α m (partial_odd_gf n) = coeff α m (partial_distinct_gf n) :=
 begin
   rw ← same_gf,
-  rw coeff_big_prod_one_sub_of_lt_order,
+  rw coeff_mul_prod_one_sub_of_lt_order,
   simp only [mem_range, order_X_pow],
   intros i hi,
   norm_cast,

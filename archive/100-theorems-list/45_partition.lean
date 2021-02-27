@@ -125,12 +125,12 @@ end
 
 lemma cut_insert {ι : Type*} (n : ℕ) (a : ι) (s : finset ι) (h : a ∉ s) :
   cut (insert a s) n =
-  (nat.antidiagonal n).bind
+  (nat.antidiagonal n).bUnion
     (λ (p : ℕ × ℕ), (cut s p.snd).map
       ⟨λ f, f + λ t, if t = a then p.fst else 0, add_left_injective _⟩) :=
 begin
   ext f,
-  rw [mem_cut, mem_bind, sum_insert h],
+  rw [mem_cut, mem_bUnion, sum_insert h],
   split,
   { rintro ⟨rfl, h₁⟩,
     simp only [exists_prop, function.embedding.coe_fn_mk, mem_map,
@@ -172,7 +172,7 @@ begin
       simp,
     simp [cut_empty_succ, if_neg (nat.succ_ne_zero _)],
   intros a s hi ih n,
-  rw [cut_insert _ _ _ hi, prod_insert hi, coeff_mul, sum_bind],
+  rw [cut_insert _ _ _ hi, prod_insert hi, coeff_mul, sum_bUnion],
   { apply sum_congr rfl _,
     simp only [prod.forall, sum_map, pi.add_apply,
                function.embedding.coe_fn_mk, nat.mem_antidiagonal],
@@ -316,7 +316,7 @@ lemma sum_sum {β : Type*} [add_comm_monoid β] (f : α → multiset β) (s : fi
 lemma partial_gf_prop
   (α : Type*) [comm_semiring α] (n : ℕ) (s : finset ℕ)
   (hs : ∀ i ∈ s, 0 < i) (c : ℕ → set ℕ) (hc : ∀ i ∉ s, 0 ∈ c i) :
-  (finset.card 
+  (finset.card
     ((univ : finset (partition n)).filter
       (λ p, (∀ j, p.parts.count j ∈ c j) ∧ ∀ j ∈ p.parts, j ∈ s)) : α) =
         (coeff α n) (∏ (i : ℕ) in s, indicator_series α ((* i) '' c i)) :=

@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Michael Jendrusch, Scott Morrison
+Authors: Michael Jendrusch, Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monoidal.category
+import category_theory.adjunction.basic
 
 /-!
 # (Lax) monoidal functors
@@ -85,7 +86,7 @@ attribute [simp] lax_monoidal_functor.left_unitality
 restate_axiom lax_monoidal_functor.right_unitality'
 attribute [simp] lax_monoidal_functor.right_unitality
 restate_axiom lax_monoidal_functor.associativity'
-attribute [simp] lax_monoidal_functor.associativity
+attribute [simp, reassoc] lax_monoidal_functor.associativity
 
 -- When `rewrite_search` lands, add @[search] attributes to
 -- lax_monoidal_functor.μ_natural lax_monoidal_functor.left_unitality
@@ -251,5 +252,66 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
 infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
 
 end monoidal_functor
+
+/--
+If we have a right adjoint functor `G` to a monoidal functor `F`, then `G` has a lax monoidal
+structure as well.
+-/
+@[simps]
+def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor ⊣ G) :
+  lax_monoidal_functor D C :=
+{ to_functor := G,
+  ε := h.hom_equiv _ _ (inv F.ε),
+  μ := λ X Y,
+    h.hom_equiv _ (X ⊗ Y) (inv (F.μ (G.obj X) (G.obj Y)) ≫ (h.counit.app X ⊗ h.counit.app Y)),
+  μ_natural' := λ X Y X' Y' f g,
+  begin
+    rw [←h.hom_equiv_naturality_left, ←h.hom_equiv_naturality_right, equiv.apply_eq_iff_eq, assoc,
+      is_iso.eq_inv_comp, ←F.to_lax_monoidal_functor.μ_natural_assoc, is_iso.hom_inv_id_assoc,
+      ←tensor_comp, adjunction.counit_naturality, adjunction.counit_naturality, tensor_comp],
+  end,
+  associativity' := λ X Y Z,
+  begin
+    rw [←h.hom_equiv_naturality_right, ←h.hom_equiv_naturality_left, ←h.hom_equiv_naturality_left,
+      ←h.hom_equiv_naturality_left, equiv.apply_eq_iff_eq,
+      ← cancel_epi (F.to_lax_monoidal_functor.μ (G.obj X ⊗ G.obj Y) (G.obj Z)),
+      ← cancel_epi (F.to_lax_monoidal_functor.μ (G.obj X) (G.obj Y) ⊗ 𝟙 (F.obj (G.obj Z))),
+      F.to_lax_monoidal_functor.associativity_assoc (G.obj X) (G.obj Y) (G.obj Z),
+      ←F.to_lax_monoidal_functor.μ_natural_assoc, assoc, is_iso.hom_inv_id_assoc,
+      ←F.to_lax_monoidal_functor.μ_natural_assoc, is_iso.hom_inv_id_assoc, ←tensor_comp,
+      ←tensor_comp, id_comp, functor.map_id, functor.map_id, id_comp, ←tensor_comp_assoc,
+      ←tensor_comp_assoc, id_comp, id_comp, h.hom_equiv_unit, h.hom_equiv_unit, functor.map_comp,
+      assoc, assoc, h.counit_naturality, h.left_triangle_components_assoc, is_iso.hom_inv_id_assoc,
+      functor.map_comp, assoc, h.counit_naturality, h.left_triangle_components_assoc,
+      is_iso.hom_inv_id_assoc],
+    exact associator_naturality (h.counit.app X) (h.counit.app Y) (h.counit.app Z),
+  end,
+  left_unitality' := λ X,
+  begin
+    rw [←h.hom_equiv_naturality_right, ←h.hom_equiv_naturality_left, ←equiv.symm_apply_eq,
+      h.hom_equiv_counit, F.map_left_unitor, h.hom_equiv_unit, assoc, assoc, assoc, F.map_tensor,
+      assoc, assoc, is_iso.hom_inv_id_assoc, ←tensor_comp_assoc, functor.map_id, id_comp,
+      functor.map_comp, assoc, h.counit_naturality, h.left_triangle_components_assoc,
+      ←left_unitor_naturality, ←tensor_comp_assoc, id_comp, comp_id],
+  end,
+  right_unitality' := λ X,
+  begin
+    rw [←h.hom_equiv_naturality_right, ←h.hom_equiv_naturality_left, ←equiv.symm_apply_eq,
+      h.hom_equiv_counit, F.map_right_unitor, assoc, assoc, ←right_unitor_naturality,
+      ←tensor_comp_assoc, comp_id, id_comp, h.hom_equiv_unit, F.map_tensor, assoc, assoc, assoc,
+      is_iso.hom_inv_id_assoc, functor.map_comp, functor.map_id, ←tensor_comp_assoc, assoc,
+      h.counit_naturality, h.left_triangle_components_assoc, id_comp],
+  end }.
+
+/-- If a monoidal functor `F` is an equivalence of categories then its inverse is also monoidal. -/
+def monoidal_inverse (F : monoidal_functor C D) [is_equivalence F.to_functor] :
+  monoidal_functor D C :=
+{ to_lax_monoidal_functor := monoidal_adjoint F (as_equivalence _).to_adjunction,
+  ε_is_iso := by { dsimp [equivalence.to_adjunction], apply_instance },
+  μ_is_iso := λ X Y, by { dsimp [equivalence.to_adjunction], apply_instance } }
+
+@[simp]
+lemma monoidal_inverse_to_functor (F : monoidal_functor C D) [is_equivalence F.to_functor] :
+  (monoidal_inverse F).to_functor = F.to_functor.inv := rfl
 
 end category_theory

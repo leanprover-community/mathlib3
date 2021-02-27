@@ -545,10 +545,7 @@ end
 
 lemma integral_mono_ae (h : f ≤ᵐ[μ] g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-begin
-  rw [integral_of_le hab, integral_of_le hab],
-  exact set_integral_mono_ae hf.1 hg.1 h
-end
+by simpa [integral_of_le hab] using set_integral_mono_ae hf.1 hg.1 h
 
 lemma integral_mono_on (h : ∀ x ∈ interval a b, f x ≤ g x) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=

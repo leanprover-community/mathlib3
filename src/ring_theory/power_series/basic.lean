@@ -334,14 +334,14 @@ by simpa using coeff_add_mul_monomial n 0 φ a
   coeff R n (C σ R a * φ) = a * coeff R n φ :=
 by simpa using coeff_add_monomial_mul 0 n φ a
 
-lemma coeff_zero_mul_X (φ : mv_power_series σ R) (s : σ) :
+@[simp] lemma coeff_zero_mul_X (φ : mv_power_series σ R) (s : σ) :
   coeff R (0 : σ →₀ ℕ) (φ * X s) = 0 :=
 begin
   have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
   simp only [X, coeff_mul_monomial, if_neg this]
 end
 
-lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
+@[simp] lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
   coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
 begin
   have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,

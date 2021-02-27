@@ -627,7 +627,7 @@ theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
 
-lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} {h : f x ≠ f y} : x ≠ y :=
+lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
 λ (w : x = y), h (congr_arg f w)
 
 theorem eq_equivalence : equivalence (@eq α) :=

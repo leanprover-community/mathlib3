@@ -37,7 +37,8 @@ do {
           return n
         end,
        to_expr ``(%%Hmono %%hyp)
-  | _ := fail ("failed to apply " ++ to_string e ++ " at " ++ to_string hyp.local_pp_name)
+  | _ := (do pp ← pp e,
+             fail ("failed to apply " ++ to_string pp ++ " at " ++ to_string hyp.local_pp_name))
   end,
   clear hyp,
   hyp ← note hyp.local_pp_name none prf,
@@ -58,37 +59,25 @@ we obtain a new goal `f a ≤ f b`.
 meta def apply_fun_to_goal (e : pexpr) (lem : option pexpr) : tactic unit :=
 do t ← target,
   match t with
-  | `(%%l ≠ %%r) := (do
-      e' ← to_expr ``(ne_of_apply_ne %%e),
-      apply e',
-      skip)
-  | `(¬%%l = %%r) := (do
-      e' ← to_expr ``(ne_of_apply_ne %%e),
-      apply e',
-      skip)
-  | `(%%l = %%r) := (do
+  | `(%%l ≠ %%r) := to_expr ``(ne_of_apply_ne %%e) >>= apply >> skip
+  | `(¬%%l = %%r) := to_expr ``(ne_of_apply_ne %%e) >>= apply >> skip
+  | `(%%l ≤ %%r) := to_expr ``((order_iso.le_iff_le %%e).mp) >>= apply >> skip
+  | `(%%l < %%r) := to_expr ``((order_iso.lt_iff_lt %%e).mp) >>= apply >> skip
+  | `(%%l = %%r) := focus1 (do
       to_expr ``(%%e %%l), -- build and discard an application, to fill in implicit arguments
       n ← get_unused_name `inj,
       to_expr ``(function.injective %%e) >>= assert n,
       -- Attempt to discharge the `injective f` goal
+      (focus1 $
       assumption <|>
-        (to_expr ``(equiv.injective) >>= apply >> skip) <|>
-        (lem.mmap (λ l, to_expr l >>= apply) >> skip),
-      -- Return to the main goal
-      swap,
+        (to_expr ``(equiv.injective) >>= apply >> done) <|>
+        -- We require that applying the lemma closes the goal, not just makes progress:
+        (lem.mmap (λ l, to_expr l >>= apply) >> done))
+        <|> swap, -- return to the main goal if we couldn't discharge `injective f`.
       n ← get_local n,
       apply n,
-      clear n,
-      skip)
-  | `(%%l ≤ %%r) := (do
-      e' ← to_expr ``((order_iso.le_iff_le %%e).mp),
-      apply e',
-      skip)
-  | `(%%l < %%r) := (do
-      e' ← to_expr ``((order_iso.lt_iff_lt %%e).mp),
-      apply e',
-      skip)
-  | _ := fail ("failed to apply " ++ to_string e ++ " to the goal")
+      clear n)
+  | _ := (do pp ← pp e, fail ("failed to apply " ++ to_string pp ++ " to the goal"))
   end
 
 namespace interactive
@@ -130,11 +119,7 @@ end
  -/
 meta def apply_fun (q : parse texpr) (locs : parse location) (lem : parse (tk "using" *> texpr)?)
   : tactic unit :=
-match locs with
-| (loc.ns [none]) := apply_fun_to_goal q lem
-| (loc.ns l) := l.mmap' $ option.mmap $ λ h, get_local h >>= apply_fun_to_hyp q lem
-| wildcard   := local_context >>= list.mmap' (apply_fun_to_hyp q lem)
-end
+locs.apply (apply_fun_to_hyp q lem) (apply_fun_to_goal q lem)
 
 add_tactic_doc
 { name       := "apply_fun",

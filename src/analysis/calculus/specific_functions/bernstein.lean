@@ -24,20 +24,10 @@ The basic identities
 * `(finset.univ : finset (fin (n+1))).sum (λ ν, ((ν : ℕ) * (ν-1 : ℕ)) • bernstein_polynomial n ν) =
      n * (n-1) * X^2`
 and the fact that the Bernstein approximations
-`XXX`
 of a continuous function `f` on `[0,1]` converge uniformly.
 This will give a constructive proof of Weierstrass' theorem that
 polynomials are dense in `C([0,1], ℝ)`.
 -/
-
-@[simp] lemma int.neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n = 0 ↔ false :=
-begin
-  simp only [iff_false],
-  exact pow_ne_zero _ (by norm_num)
-end
-
-@[simp] lemma fin.init_lambda {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
-  fin.init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
 
 /-!
 Two lemmas about polynomials that do not seem widely useful
@@ -70,15 +60,16 @@ noncomputable theory
 open nat (choose)
 open polynomial (X)
 
+/--
+`bernstein_polynomial n ν` is `(choose n ν) * X^ν * (1 - X)^(n - ν)`
+-/
 def bernstein_polynomial (n ν : ℕ) : polynomial ℤ := (choose n ν) * X^ν * (1 - X)^(n - ν)
 
--- Sanity check
 example : bernstein_polynomial 3 2 = 3 * X^2 - 3 * X^3 :=
 begin
   norm_num [bernstein_polynomial, choose],
   ring,
 end
-
 
 namespace bernstein_polynomial
 
@@ -114,7 +105,7 @@ begin
     { simp [(show n < ν, by omega), nat.choose_eq_zero_of_lt], }, },
 end.
 
-lemma derivative' (n ν : ℕ) :
+lemma derivative_succ_aux (n ν : ℕ) :
   (bernstein_polynomial (n+1) (ν+1)).derivative =
     (n+1) * (bernstein_polynomial n ν - bernstein_polynomial n (ν + 1)) :=
 begin
@@ -124,9 +115,9 @@ begin
       -(↑((n + 1).choose (ν + 1)) * X ^ (ν + 1) * (↑(n - ν) * (1 - X) ^ (n - ν - 1))) =
     (↑n + 1) * (↑(n.choose ν) * X ^ ν * (1 - X) ^ (n - ν) -
          ↑(n.choose (ν + 1)) * X ^ (ν + 1) * (1 - X) ^ (n - (ν + 1))),
-  { simpa [polynomial.derivative_pow, ←sub_eq_add_neg], }, -- make `derivative_pow` a simp lemma?
+  { simpa [polynomial.derivative_pow, ←sub_eq_add_neg], },
   conv_rhs { rw mul_sub, },
-  -- -- We'll prove the two terms match up separately.
+  -- We'll prove the two terms match up separately.
   refine congr (congr_arg has_sub.sub _) _,
   { simp only [←mul_assoc],
     refine congr (congr_arg (*) (congr (congr_arg (*) _) rfl)) rfl,
@@ -148,7 +139,7 @@ lemma derivative_succ (n ν : ℕ) :
 begin
   cases n,
   { simp [bernstein_polynomial], },
-  { apply derivative', }
+  { apply derivative_succ_aux, }
 end
 
 lemma derivative_zero (n : ℕ) :
@@ -273,11 +264,17 @@ begin
       { intros a x h, simp [h], }, }, },
 end
 
+/--
+The Bernstein polynomials are linearly independent.
+
+We prove by induction that the collection of `bernstein_polynomial n ν` for `ν = 0, ..., k`
+are linearly independent.
+The inductive step relies on the observation that the `(n-k)`-th derivative, evaluated at 1,
+annihilates `bernstein_polynomial n ν` for `ν < k`, but has a nonzero value at `ν = k`.
+-/
+
 lemma linear_independent (n : ℕ) :
   linear_independent ℚ (λ ν : fin (n+1), (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
 linear_independent_aux n (n+1) (le_refl _)
-
-
-
 
 end bernstein_polynomial

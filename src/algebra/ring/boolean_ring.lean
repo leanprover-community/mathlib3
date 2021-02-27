@@ -5,10 +5,21 @@ import tactic.abel
 /-!
 # Boolean rings
 
+A Boolean ring is a ring where multiplication is idempotent. They are equivalent to Boolean
+algebras.
+
+## Main declarations
+
+* `boolean_ring`
+* `boolean_ring.to_boolean_algebra`: every Boolean ring is a Boolean algebra
+
+## Tags
+
+boolean ring, boolean algebra
 
 -/
 
-/-- A Boolean ring is a ring where every element is idempotent. -/
+/-- A Boolean ring is a ring where multiplication is idempotent. -/
 class boolean_ring α extends ring α :=
 (mul_idem : ∀ a : α, a * a = a)
 

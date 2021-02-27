@@ -38,9 +38,8 @@ def fin_two_equiv : fin 2 ≃ bool :=
   assume b, match b with tt := rfl | ff := rfl end⟩
 
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
-
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=
-⟨λ k, ⟨k.1, by { subst h, exact k.2 }⟩, λ k, ⟨k.1, by { subst h, exact k.2}⟩, by tidy, by tidy⟩
+equiv.subtype_equiv_right (λ x, by subst h)
 
 @[simp] lemma fin_congr_apply_mk {n m : ℕ} (h : n = m) (k : ℕ) (w : k < n) :
   fin_congr h ⟨k, w⟩ = ⟨k, by { subst h, exact w }⟩ :=

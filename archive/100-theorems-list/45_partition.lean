@@ -51,7 +51,7 @@ TODO: As `n` tends to infinity, this converges (in the `X`-adic topology).
 
 If `n` is sufficiently large, the `i`th coefficient gives the number of distinct partitions of the
 natural number `i`: proved in `distinct_gf_prop`.
-It is stated for an arbitrary commutuative semiring `α`, though it usually suffices to use `ℕ`, `ℚ`
+It is stated for an arbitrary commutative semiring `α`, though it usually suffices to use `ℕ`, `ℚ`
 or `ℝ`.
 -/
 def partial_distinct_gf (n : ℕ) [comm_semiring α] :=
@@ -529,46 +529,11 @@ begin
   simp [zero_pow],
 end
 
--- TODO: move me to power_series.lean
-lemma coeff_prod_one_add [comm_semiring α] {n : ℕ} {φ ψ : power_series α} (h : ↑n < ψ.order) :
-  coeff α n (φ * ψ) = 0 :=
-begin
-  suffices : coeff α n (φ * ψ) = ∑ p in nat.antidiagonal n, 0,
-    rw [this, sum_const_zero],
-  rw [coeff_mul],
-  apply sum_congr rfl _,
-  intros pq hpq,
-  apply mul_eq_zero_of_right,
-  apply coeff_of_lt_order,
-  apply lt_of_le_of_lt _ h,
-  rw nat.mem_antidiagonal at hpq,
-  norm_cast,
-  linarith,
-end
-
--- TODO: move me to power_series.lean
-lemma coeff_prod_one_sub [comm_ring α] (n : ℕ) {φ ψ : power_series α} (h : ↑n < ψ.order) :
-  coeff α n (φ * (1 - ψ)) = coeff α n φ :=
-by simp only [mul_sub, mul_one, coeff_prod_one_add h, sub_zero, linear_map.map_sub]
-
--- TODO: move me to power_series.lean
-lemma coeff_big_prod_one_sub {ι : Type*} [comm_ring α] (k : ℕ) (s : finset ι) (φ : power_series α)
-  (f : ι → power_series α) :
-  (∀ i ∈ s, ↑k < (f i).order) → coeff α k (φ * ∏ i in s, (1 - f i)) = coeff α k φ :=
-begin
-  apply finset.induction_on s,
-  { simp },
-  { intros a s ha ih t,
-    simp only [mem_insert, forall_eq_or_imp] at t,
-    rw [finset.prod_insert ha, ← mul_assoc, mul_right_comm, coeff_prod_one_sub _ t.1],
-    exact ih t.2 },
-end
-
 lemma same_coeffs [field α] (n m : ℕ) (h : m ≤ n) :
   coeff α m (partial_odd_gf n) = coeff α m (partial_distinct_gf n) :=
 begin
   rw ← same_gf,
-  rw coeff_big_prod_one_sub,
+  rw coeff_big_prod_one_sub_of_lt_order,
   simp only [mem_range, order_X_pow],
   intros i hi,
   norm_cast,

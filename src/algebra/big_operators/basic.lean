@@ -1092,17 +1092,9 @@ lemma mem_sum {f : α → multiset β} (s : finset α) (b : β) :
   b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
 begin
   classical,
-  apply finset.induction_on s,
-  { simp },
+  refine s.induction_on (by simp) _,
   { intros a t hi ih,
-    simp only [sum_insert ‹a ∉ t›, ih, multiset.mem_add, exists_prop, mem_insert],
-    split,
-    { rintro (hb | ⟨i, hi, hb⟩),
-      { exact ⟨a, or.inl rfl, hb⟩ },
-      { exact ⟨i, or.inr hi, hb⟩ } },
-    { rintro ⟨i, (rfl | ht), hb⟩,
-      { exact or.inl hb },
-      { exact or.inr ⟨_, ht, hb⟩, } } }
+    simp [sum_insert hi, ih, or_and_distrib_right, exists_or_distrib] }
 end
 
 section prod_eq_zero

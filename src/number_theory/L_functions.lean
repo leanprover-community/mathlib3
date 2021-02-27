@@ -30,9 +30,9 @@ def weight_space : group ({ χ : mul_hom (units ℤ_[p]) (units A) // continuous
 
 structure dir_sys ( α : Type* ) :=
 (h : ℕ → finset α )
-(sys : ∀ i j : ℕ, j ≤ i → ∃ f : (h i : set α) → (h j : set α), function.surjective f )
-(lam := λ (i : ℕ) (j : ℕ) (h : j ≤ i), classical.some (sys i j h) )
-(maps : ∀ i j k (h1 : k ≤ j) (h2 : j ≤ i), lam j k h1 ∘ lam i j h2  = lam i k (trans h1 h2) )
+(sys : ∀ (i j : ℕ), (hji : j ≤ i), (h i : set α) → (h j : set α))
+(hsys : function.surjective (sys i j hji) )
+(maps : ∀ i j k (h1 : k ≤ j) (h2 : j ≤ i), sys j k h1 ∘ sys i j h2  = sys i k (trans h1 h2) )
 
 variables {G : Type*} [comm_group G] {α : Type*} [ϕ : dir_sys α]
 

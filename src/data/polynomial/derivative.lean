@@ -72,7 +72,6 @@ end
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
 (derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
 
-@[simp]
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 

@@ -181,7 +181,7 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
   { reflects_limit := λ K,
     { reflects := λ c t,
       begin
-        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.fun_inv_id,
+        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.as_equivalence.unit_iso.symm,
         refine (((is_limit.postcompose_hom_equiv K.left_unitor _).symm) this).of_iso_limit _,
         tidy,
       end } } }
@@ -209,7 +209,7 @@ lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit 
   has_limit K :=
 @has_limit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
 (@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
-((iso_whisker_left K (fun_inv_id E)) ≪≫ (functor.right_unitor _))
+((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
 
 end preservation_limits
 

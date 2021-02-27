@@ -341,6 +341,13 @@ begin
   simp only [X, coeff_mul_monomial, if_neg this]
 end
 
+lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
+ coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
+begin
+  have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
+  simp only [X, coeff_monomial_mul, if_neg this]
+end
+
 variables (σ) (R)
 
 /-- The constant coefficient of a formal power series.-/
@@ -975,6 +982,8 @@ end
 
 lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
 
+lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
+
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :
   is_unit (constant_coeff R φ) :=
@@ -1281,6 +1290,18 @@ begin
   rw ← ideal.span_singleton_prime,
   { exact span_X_is_prime },
   { intro h, simpa using congr_arg (coeff R 1) h }
+end
+
+lemma rescale_injective {a : R} (ha : a ≠ 0) : function.injective (rescale a) :=
+begin
+  intros p q h,
+  rw power_series.ext_iff at *,
+  intros n,
+  specialize h n,
+  rw [coeff_rescale, coeff_rescale, mul_eq_mul_left_iff] at h,
+  apply h.resolve_right,
+  intro h',
+  exact ha (pow_eq_zero h'),
 end
 
 end integral_domain

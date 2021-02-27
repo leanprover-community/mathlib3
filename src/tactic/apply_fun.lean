@@ -37,8 +37,7 @@ do {
           return n
         end,
        to_expr ``(%%Hmono %%hyp)
-  | _ := (do pp ← pp e,
-             fail ("failed to apply " ++ to_string pp ++ " at " ++ to_string hyp.local_pp_name))
+  | _ := fail!"failed to apply {e} at {hyp}"
   end,
   clear hyp,
   hyp ← note hyp.local_pp_name none prf,
@@ -77,7 +76,7 @@ do t ← target,
       n ← get_local n,
       apply n,
       clear n)
-  | _ := (do pp ← pp e, fail ("failed to apply " ++ to_string pp ++ " to the goal"))
+  | _ := fail!"failed to apply {e} to the goal"
   end
 
 namespace interactive

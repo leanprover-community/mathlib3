@@ -269,34 +269,31 @@ end
 theorem bernoulli_power_series :
   power_series.mk (λ n, (bernoulli n / n! : ℚ)) * (exp ℚ - 1) = X :=
 begin
-    suffices f : eval_neg_hom (power_series.mk (λ n, (bernoulli n / nat.factorial n : ℚ)) *
+    suffices f : eval_neg_hom (power_series.mk (λ n, (bernoulli n / n! : ℚ)) *
     (exp ℚ - 1)) = eval_neg_hom X,
   { suffices g : function.injective eval_neg_hom,
     { rwa g.eq_iff at f, },
     apply rescale_injective,
     norm_num, },
   simp only [map_one, map_mul, eval_neg_hom_X, map_sub],
-  suffices h:
+  suffices h :
     eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑n!)) * (eval_neg_hom (exp ℚ) - 1) * (- exp ℚ)
     = -X * (- exp ℚ),
-  { have hexp : - exp ℚ ≠ 0, {
-    rw [exp],
-    simp only [power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
-    ring_hom.id_apply, linear_map.map_sub, ne.def, not_forall,
-    rat.algebra_map_rat_rat],
-    use 1,
-    simp only [factorial_one, coeff_mk, linear_map.map_neg, cast_one, inv_one, not_false_iff,
-      neg_eq_zero, one_ne_zero],
-  },
-   apply mul_right_cancel' hexp h, },
+  { have hexp : - exp ℚ ≠ 0,
+    { simp only [exp, power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
+        ring_hom.id_apply, linear_map.map_sub, ne.def, not_forall,
+        rat.algebra_map_rat_rat],
+      use 1,
+      simp only [factorial_one, coeff_mk, linear_map.map_neg, cast_one, inv_one, not_false_iff,
+        neg_eq_zero, one_ne_zero], },
+    apply mul_right_cancel' hexp h, },
   { rw [mul_assoc],
-    have he: (eval_neg_hom (exp ℚ) - 1) * (- exp ℚ) = ((exp ℚ) - 1),
+    have he : (eval_neg_hom (exp ℚ) - 1) * (- exp ℚ) = ((exp ℚ) - 1),
     { ring,
       simp [exp_mul_exp_neg_eq_one],
-      ring,
-    },
+      ring, },
     rw [he],
     simp only [eval_neg_hom, rescale, neg_mul_eq_neg_mul_symm, coeff_mk, coe_mk,
-      mul_neg_eq_neg_mul_symm, neg_neg, ←mul_div_assoc, ←bernoulli'_of_bernoulli,
+      mul_neg_eq_neg_mul_symm, neg_neg, ←mul_div_assoc, ←bernoulli'_eq_neg_one_pow_mul_bernoulli,
       bernoulli'_power_series], },
 end

@@ -329,20 +329,13 @@ end
 lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
   {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
 begin
-  unfold indep_set,
-  unfold indep_sets,
+  unfold indep_set indep_sets,
   simp_rw set.mem_singleton_iff,
   split; intros h,
   apply h s t (eq.refl _) (eq.refl _),
   intros s1 t1 h_s1 h_t1,
   substs s1 t1,
   apply h,
-end
-
-lemma indep_set_iff_of_probability_measure {α} [m :measurable_space α] {μ : measure α}
-  [probability_measure μ] {s t : set α} : indep_set s t μ ↔ indep_sets {s} {t} μ :=
-begin
-  unfold indep_set,
 end
 
 lemma indep_sets.indep_set {α} {m : measurable_space α}
@@ -354,10 +347,29 @@ begin
   apply hyp _ _ h1 h2,
 end
 
+lemma indep_set_iff_of_probability_measure {α} [m : measurable_space α] {μ : measure α}
+  [probability_measure μ] {s t : set α} {h_s : measurable_set s} {h_t : measurable_set t} : 
+  indep_set s t μ ↔ 
+  indep (generate_from {s}) (generate_from {t}) μ :=
+begin
+  unfold indep,
+  have h1 : ∀ u (h_u : measurable_set u), generate_from {u} ≤ m,
+  { intros u h_u, apply generate_from_le, intros s' h_s', simp at h_s', subst s',
+    apply h_u,  }, 
+  split; intros h_indep,
+  { apply indep_sets.indep (h1 s h_s) (h1 t h_t) (is_pi_system.singleton _)
+      (is_pi_system.singleton _) (by refl) (by refl) h_indep },
+  { apply indep_sets.indep_set h_indep,
+    apply measurable_set_generate_from,
+    apply set.mem_singleton,
+    apply measurable_set_generate_from,
+    apply set.mem_singleton },
+end
+
+
 lemma indep_Sup_Sup {α} {β : Type*} [M : measurable_space α] {μ : measure α}
   [P : probability_measure μ] {Mf : β → measurable_space α}
-  (h_meas_Mf : ∀ b, Mf b ≤ M)
-  {S1 S2 : set β} (h_disj : disjoint S1 S2)
+  (h_meas_Mf : ∀ b, Mf b ≤ M) {S1 S2 : set β} 
   (h_ind_pair : ∀ (T1 T2 : finset β) (f1 f2 : β → set α),
   ↑T1 ⊆ S1 → (↑T2 ⊆ S2) →
     (∀ b ∈ T1, (Mf b).measurable_set' (f1 b)) →
@@ -392,7 +404,7 @@ lemma Indep_elim {α} {β} [M : measurable_space α] {μ : measure α} [P : prob
   (h_disj : disjoint S1 S2) : (indep (Sup (Mf '' S1)) (Sup (Mf '' S2)) μ) :=
 begin
   classical,
-  apply indep_Sup_Sup h_le h_disj,
+  apply indep_Sup_Sup h_le,
   intros T1 T2 f1 f2 h_T1_sub h_T2_sub h_T1_meas h_T2_meas,
   rw indep_set_iff,
   unfold Indep Indep_sets at h_ind,
@@ -442,3 +454,4 @@ end
 end from_pi_systems_to_measurable_spaces
 
 end probability_theory
+

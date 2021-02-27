@@ -272,17 +272,53 @@ end
 
 end finite_pairs
 
+---- delete later
+lemma gcd_cast (a b : ℤ) : gcd a b = a.gcd b := (int.coe_gcd a b).symm
+
 lemma gcd_eq_one_iff_coprime' (a b : ℤ) : gcd a b = 1 ↔ is_coprime a b :=
 begin
   rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
 end
 
+lemma gcd_eq_one_iff_coprime'' (a b : ℤ) : (∃ c d , a*d-b*c=1) ↔ is_coprime a b :=
+begin
+  split,
+  { rintros ⟨c, d, h⟩,
+    rw is_coprime,
+    use d,
+    use (-c),
+    convert h using 1,
+    ring },
+  { rintros ⟨c, d, h⟩,
+    use (-d),
+    use c,
+    convert h using 1,
+    ring },
+end
+
+lemma gcd_eq_one_iff_coprime''' (a b : ℤ) : (∃ c d , a*d-b*c=1) ↔ gcd a b = 1 :=
+ iff.trans (gcd_eq_one_iff_coprime'' a b) (iff.symm (gcd_eq_one_iff_coprime' a b))
+
+
 lemma bottom_row_coprime (g : SL(2, ℤ)) : int.gcd (g 1 0) (g 1 1) = 1 :=
 begin
 --- ALEX HOMEWORK
   have := @det2 _ _ g,
-  have := int.gcd_eq_one_iff_coprime,
-  sorry,
+  have detIs := g.2,
+  have e1 :  (∃ (c d : ℤ), (g 1 0) * d - (g 1 1) * c = 1),
+  {
+    use -(g 0 0),
+    use -(g 0 1),
+    symmetry,
+    convert this using 1,
+    symmetry,
+    convert detIs,
+    ring,
+  },
+  have := (gcd_eq_one_iff_coprime''' (g 1 0) (g 1 1)).mp e1,
+  rw ←int.coe_gcd at this,
+  norm_cast at this,
+  exact this,
 end
 
 def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨(g.1 1 0, g.1 1 1), bottom_row_coprime g⟩
@@ -381,18 +417,50 @@ begin
   linarith,
 end
 
+lemma T_inv_action {z : H} : (T⁻¹ • z).1 = z - 1 :=
+begin
+  convert @smul_sound (T⁻¹) z,
+  rw smul_aux,
+  rw T_inv,
+  simp,
+  ring,
+end
+
+lemma half_ge_x_T_inv (x : ℝ) (h : 1/2 < x) : |x - 1| < x :=
+begin
+  have : -(x) < x-1 ∧ x-1 < x := by split; linarith,
+  exact abs_lt.mpr this,
+end
+
+lemma half_le_neg_x_T (x : ℝ) (h : 1/2 < -x) : |x + 1| < |x| :=
+begin
+  have : -|x| < x+1 ∧ x+1 < |x|,
+  { have : |x| = -x,
+    { refine _root_.abs_of_neg _,
+      linarith },
+    rw this,
+    split; linarith },
+  exact abs_lt.mpr this,
+end
+
 lemma re_ge_half_of_act_T {z : H}
-(h: 1/2 < _root_.abs z.val.re )
+(h: 1/2 < _root_.abs (z:ℂ).re)
 :
 ((_root_.abs (T • z).val.re) < _root_.abs z.val.re) ∨
 ((_root_.abs (T⁻¹ • z).val.re) < _root_.abs z.val.re)
 :=
 begin
-  -- ALEX HOMEWORK
-  by_contradiction hcontra,
-  push_neg at hcontra,
-  have := im_lt_im_S hcontra,
-  linarith,
+  rw T_action,
+  rw T_inv_action,
+  let x := z.val.re,
+  simp,
+  rw lt_abs at h,
+  cases h,
+  { right,
+    convert (half_ge_x_T_inv ((z:ℂ).re) h),
+    exact _root_.abs_of_nonneg (by linarith) },
+  { left,
+    exact half_le_neg_x_T (z:ℂ).re h },
 end
 
 

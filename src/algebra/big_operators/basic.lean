@@ -337,11 +337,6 @@ lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} (g : β → γ) 
 ((monoid_hom.of g).map_prod f s).symm
 
 @[to_additive]
-lemma prod_hom' [comm_monoid γ] (s : finset α) {f : α → β} (g : β →* γ) :
-  (∏ x in s, g (f x)) = g (∏ x in s, f x) :=
-((monoid_hom.of g).map_prod f s).symm
-
-@[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
   (h₁ : r 1 1) (h₂ : ∀a b c, r b c → r (f a * b) (g a * c)) : r (∏ x in s, f x) (∏ x in s, g x) :=
 by { delta finset.prod, apply multiset.prod_hom_rel; assumption }

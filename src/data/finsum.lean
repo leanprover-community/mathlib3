@@ -605,7 +605,7 @@ end
 lemma finsum_in_hom [add_comm_monoid β] (f : α → β) (g : β →+ M) (hs : s.finite) :
   ∑ᶠ i in s, (g ∘ f) i = g (∑ᶠ j in s, f j) :=
 by rw [finsum_in_eq_finset_sum''' _ hs, finsum_in_eq_finset_sum''' _ hs,
-       set.finite.to_finset, finset.sum_hom']
+       set.finite.to_finset, add_monoid_hom.map_sum]
 
 lemma finsum_in_hom'' [add_comm_monoid β] (f : α → β) (g : β →+ M) (hs : s.finite) :
   ∑ᶠ i in s, g (f i) = g (∑ᶠ j in s, f j) :=

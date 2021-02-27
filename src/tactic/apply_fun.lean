@@ -58,9 +58,7 @@ we obtain a new goal `f a ≤ f b`.
 meta def apply_fun_to_goal (e : pexpr) (lem : option pexpr) : tactic unit :=
 do t ← target,
   match t with
-  | `(%%l ≠ %%r) := (do
-      to_expr ``(ne_of_apply_ne %%e) >>= apply,
-      skip)
+  | `(%%l ≠ %%r) := to_expr ``(ne_of_apply_ne %%e) >>= apply >> skip
   | `(¬%%l = %%r) := (do
       to_expr ``(ne_of_apply_ne %%e) >>= apply,
       skip)
@@ -76,16 +74,9 @@ do t ← target,
       swap,
       n ← get_local n,
       apply n,
-      clear n,
-      skip)
-  | `(%%l ≤ %%r) := (do
-      e' ← to_expr ``((order_iso.le_iff_le %%e).mp),
-      apply e',
-      skip)
-  | `(%%l < %%r) := (do
-      e' ← to_expr ``((order_iso.lt_iff_lt %%e).mp),
-      apply e',
-      skip)
+      clear n)
+  | `(%%l ≤ %%r) := to_expr ``((order_iso.le_iff_le %%e).mp) >>= apply >> skip
+  | `(%%l < %%r) := to_expr ``((order_iso.lt_iff_lt %%e).mp) >>= apply e' >> skip
   | _ := fail ("failed to apply " ++ to_string e ++ " to the goal")
   end
 

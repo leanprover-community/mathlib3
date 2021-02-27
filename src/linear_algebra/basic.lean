@@ -805,7 +805,6 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
 /-- If `m ∈ M` is contained in the `R`-submodule spanned by a set `s ⊆ M`, then we can write
 `m` as a finite `R`-linear combination of elements of `s`.
 The implementation uses `finsupp.sum`.  -/
-
 lemma span_as_sum {R M : Type*} [semiring R] [add_comm_group M] [semimodule R M]
   {m : M} {s : set M} (hm : m ∈ submodule.span R s) :
   ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ m, (smul_add_hom R M).flip m)) = m :=

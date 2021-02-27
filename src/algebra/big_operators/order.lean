@@ -25,24 +25,18 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 @[to_additive le_sum_nonempty_of_subadditive_on_pred]
 lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (p : α → Prop) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
-  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) :
-  ∀ (s : finset γ) (hs_nonempty : s.nonempty) (hs : ∀ x, x ∈ s → p (g x)),
-    f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) (s : finset γ) (hs_nonempty : s.nonempty)
+  (hs : ∀ x, x ∈ s → p (g x)) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 begin
-  haveI : decidable_eq γ := classical.dec_eq γ,
-  refine finset.induction _ _,
-  { exact λ h, absurd h set.empty_not_nonempty, },
-  rintros a s ha hs hsa_nonempty hsa_prop,
-  simp_rw finset.prod_insert ha,
-  by_cases hs_empty : s = ∅,
-  { simp only [hs_empty, insert_emptyc_eq, mul_one, finset.prod_empty, forall_eq,
-      finset.mem_singleton, finset.prod_singleton], },
-  rw [← ne.def, ← nonempty_iff_ne_empty] at hs_empty,
-  have hsa_restrict : (∀ x, x ∈ s → p (g x)), from λ x hx, hsa_prop x (finset.mem_insert_of_mem hx),
-  have hp_sup : p ∏ x in s, g x,
-    from finset.prod_induction_nonempty g p hp_mul hs_empty hsa_restrict,
-  have hp_ga : p (g a), from hsa_prop a (finset.mem_insert_self a s),
-  exact le_trans (h_mul (g a) _ hp_ga hp_sup) (mul_le_mul_left' (hs hs_empty hsa_restrict) _),
+  refine le_trans (multiset.le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul _ _ _) _,
+  { simp [nonempty_iff_ne_empty.mp hs_nonempty], },
+  { intros y hy,
+    obtain ⟨x, hxs, hxy⟩ := multiset.mem_map.mp hy,
+    rw ← hxy,
+    exact hs x hxs, },
+  rw multiset.map_map,
+  refl,
 end
 
 @[to_additive le_sum_nonempty_of_subadditive]

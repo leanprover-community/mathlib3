@@ -933,10 +933,11 @@ end
 @[to_additive le_sum_nonempty_of_subadditive_on_pred]
 lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (p : α → Prop) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
-  (hp_mul : ∀ x y, p x → p y → p (x * y)) :
-  ∀ (s : multiset α) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p x),
-    f s.prod ≤ (s.map f).prod :=
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (s : multiset α) (hs_nonempty : s ≠ ∅)
+  (hs : ∀ x, x ∈ s → p x) :
+  f s.prod ≤ (s.map f).prod :=
 begin
+  revert s,
   refine multiset.induction _ _,
   { intro h,
     exfalso,

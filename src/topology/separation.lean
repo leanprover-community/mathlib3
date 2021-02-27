@@ -682,10 +682,15 @@ normal_space.normal s t H1 H2 H3
 theorem normal_shrink_left [normal_space α] {s t : set α}
   (hs : is_open s) (ht : is_open t) (hst : s ∪ t = univ) :
   ∃ u, is_open u ∧ closure u ⊆ s ∧ u ∪ t = univ :=
-have disjoint sᶜ tᶜ, by rwa [set.disjoint_iff_inter_eq_empty, ← compl_union, compl_empty_iff],
-let ⟨s', t', hs', ht', hss', htt', hs't'⟩ :=
-  normal_separation (is_closed_compl_iff.2 hs) (is_closed_compl_iff.2 ht) this
-in ⟨s', hs', subset.trans (closure_minimal (compl_subset_comm.1 _) _) _, _⟩
+begin
+  have : disjoint sᶜ tᶜ, by rwa [set.disjoint_iff_inter_eq_empty, ← compl_union, compl_empty_iff],
+  rcases normal_separation (is_closed_compl_iff.2 hs) (is_closed_compl_iff.2 ht) this
+    with ⟨s', t', hs', ht', hss', htt', hs't'⟩,
+  refine ⟨t', ht',
+    subset.trans (closure_minimal _ (is_closed_compl_iff.2 hs')) (compl_subset_comm.1 hss'), _⟩,
+  { exact λ x hxt hxs, hs't' ⟨hxs, hxt⟩ },
+  { rwa [union_comm, ← compl_subset_iff_union] }
+end
 
 @[priority 100] -- see Note [lower instance priority]
 instance normal_space.regular_space [normal_space α] : regular_space α :=
@@ -725,7 +730,7 @@ begin
   -- Since our space is normal, we get two larger disjoint open sets containing the disjoint
   -- closed sets. If we can show that our intersection is a subset of any of these we can then
   -- "descend" this to show that it is a subset of either a or b.
-  rcases normal_separation a b ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
+  rcases normal_separation ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
   -- If we can find a clopen set around x, contained in u ∪ v, we get a disjoint decomposition
   -- Z = Z ∩ u ∪ Z ∩ v of clopen sets. The intersection of all clopen neighbourhoods will then lie
   -- in whichever of u or v x lies in and hence will be a subset of either a or b.

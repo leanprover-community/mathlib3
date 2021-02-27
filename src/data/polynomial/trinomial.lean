@@ -29,7 +29,7 @@ work with than a sum of monomials.
 
 namespace polynomial
 
-/-- bundled trinomial -/
+/-- bundled trinomial $aX^i + bX^j + cX^k$ -/
 structure trinomial (R : Type*) [semiring R] :=
 (a b c : R) (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) (i j k : ℕ) (hij : i < j) (hjk : j < k)
 

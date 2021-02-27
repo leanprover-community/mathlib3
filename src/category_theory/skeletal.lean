@@ -65,6 +65,8 @@ its category structure.
 @[derive category]
 def skeleton : Type u₁ := induced_category C quotient.out
 
+instance [inhabited C] : inhabited (skeleton C) := ⟨⟦default C⟧⟩
+
 /-- The functor from the skeleton of `C` to `C`. -/
 @[simps, derive [full, faithful]]
 noncomputable def from_skeleton : skeleton C ⥤ C := induced_functor _
@@ -75,6 +77,7 @@ instance : ess_surj (from_skeleton C) :=
 noncomputable instance : is_equivalence (from_skeleton C) :=
 equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
 
+/-- The `skeleton` of `C` given by choice is a skeleton of `C`. -/
 noncomputable def skeleton_is_skeleton : is_skeleton_of C (skeleton C) (from_skeleton C) :=
 { skel :=
   begin

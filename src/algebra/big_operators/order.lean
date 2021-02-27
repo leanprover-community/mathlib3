@@ -75,8 +75,6 @@ lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
   f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 le_prod_of_submultiplicative' f (le_of_eq h_one) h_mul s g
 
-#print axioms le_prod_of_submultiplicative
-
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
 le_sum_of_subadditive _ abs_zero abs_add s f

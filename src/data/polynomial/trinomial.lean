@@ -54,22 +54,22 @@ end
 noncomputable def to_polynomial : polynomial R :=
 (monomial t.i t.a) + (monomial t.j t.b) + (monomial t.k t.c)
 
-lemma coeff_i : t.to_polynomial.coeff t.i = t.a :=
+@[simp] lemma coeff_i : t.to_polynomial.coeff t.i = t.a :=
 by rw [to_polynomial, coeff_add, coeff_add, coeff_monomial, coeff_monomial, coeff_monomial,
   if_neg (ne_of_gt t.hij), add_zero, if_neg (ne_of_gt t.hik), add_zero, if_pos rfl]
 
-lemma coeff_j : t.to_polynomial.coeff t.j = t.b :=
+@[simp] lemma coeff_j : t.to_polynomial.coeff t.j = t.b :=
 by rw [to_polynomial, coeff_add, coeff_add, coeff_monomial, coeff_monomial, coeff_monomial,
   if_neg (ne_of_lt t.hij), zero_add, if_neg (ne_of_gt t.hjk), add_zero, if_pos rfl]
 
-lemma coeff_k : t.to_polynomial.coeff t.k = t.c :=
+@[simp] lemma coeff_k : t.to_polynomial.coeff t.k = t.c :=
 by rw [to_polynomial, coeff_add, coeff_add, coeff_monomial, coeff_monomial, coeff_monomial,
   if_neg (ne_of_lt t.hik), zero_add, if_neg (ne_of_lt t.hjk), zero_add, if_pos rfl]
 
-lemma eval_one : t.to_polynomial.eval 1 = t.a + t.b + t.c :=
+@[simp] lemma eval_one : t.to_polynomial.eval 1 = t.a + t.b + t.c :=
 by simp_rw [to_polynomial, eval_add, eval_monomial, one_pow, mul_one]
 
-lemma support : t.to_polynomial.support = {t.i, t.j, t.k} :=
+@[simp] lemma support : t.to_polynomial.support = {t.i, t.j, t.k} :=
 begin
   apply finset.subset.antisymm,
   { apply finset.subset.trans finsupp.support_add,
@@ -88,12 +88,12 @@ begin
     exact ⟨t.ha, t.hb, t.hc⟩ },
 end
 
-lemma norm2 : t.to_polynomial.norm2 = t.a ^ 2 + t.b ^ 2 + t.c ^ 2 :=
+@[simp] lemma norm2 : t.to_polynomial.norm2 = t.a ^ 2 + t.b ^ 2 + t.c ^ 2 :=
 by rw [norm2, support, finset.sum_insert (mt finset.mem_insert.mp (not_or (ne_of_lt t.hij)
   (mt finset.mem_singleton.mp (ne_of_lt t.hik)))), finset.sum_insert (mt finset.mem_singleton.mp
   (ne_of_lt t.hjk)), finset.sum_singleton, t.coeff_i, t.coeff_j, t.coeff_k, add_assoc]
 
-lemma card_support : t.to_polynomial.support.card = 3 :=
+@[simp] lemma card_support : t.to_polynomial.support.card = 3 :=
 by rw [t.support, finset.card_insert_of_not_mem (mt finset.mem_insert.mp (not_or (ne_of_lt t.hij)
   (mt finset.mem_singleton.mp (ne_of_lt t.hik)))), finset.card_insert_of_not_mem
   (mt finset.mem_singleton.mp (ne_of_lt t.hjk)), finset.card_singleton]
@@ -135,7 +135,7 @@ begin
   refl,
 end
 
-lemma to_polynomial_of_polynomial : of_polynomial t.card_support = t :=
+@[simp] lemma to_polynomial_of_polynomial : of_polynomial t.card_support = t :=
 begin
   have h1 : t.to_polynomial = (monomial t.i t.a) + (monomial t.j t.b) + (monomial t.k t.c) := rfl,
   have h2 : t.to_polynomial.nat_degree = t.k,
@@ -168,7 +168,7 @@ begin
   exact ext h9 h6 h3 h8 h5 h2,
 end
 
-lemma to_polynomial_inj {s t : trinomial R} :
+@[simp] lemma to_polynomial_inj {s t : trinomial R} :
   s.to_polynomial = t.to_polynomial ↔ s = t :=
 begin
   split,
@@ -188,20 +188,20 @@ begin
     exact t.card_support },
 end
 
-lemma nat_degree : t.to_polynomial.nat_degree = t.k :=
+@[simp] lemma nat_degree : t.to_polynomial.nat_degree = t.k :=
 congr_arg k t.to_polynomial_of_polynomial
 
-lemma leading_coeff : t.to_polynomial.leading_coeff = t.c :=
+@[simp] lemma leading_coeff : t.to_polynomial.leading_coeff = t.c :=
 congr_arg c t.to_polynomial_of_polynomial
 
-lemma nat_trailing_degree : t.to_polynomial.nat_trailing_degree = t.i :=
+@[simp] lemma nat_trailing_degree : t.to_polynomial.nat_trailing_degree = t.i :=
 begin
   simp_rw [nat_trailing_degree_eq_support_min' t.ne_zero, t.support],
   rw [finset.min'_insert, finset.min'_insert, finset.min'_singleton],
   rw [min_eq_right (le_of_lt t.hjk), min_eq_right (le_of_lt t.hij)],
 end
 
-lemma trailing_coeff : t.to_polynomial.trailing_coeff = t.a :=
+@[simp] lemma trailing_coeff : t.to_polynomial.trailing_coeff = t.a :=
 by rw [trailing_coeff, nat_trailing_degree, to_polynomial, coeff_add, coeff_add,
   coeff_monomial, coeff_monomial, coeff_monomial,
   if_pos rfl, if_neg (ne_of_gt t.hik), if_neg (ne_of_gt t.hij), add_zero, add_zero]

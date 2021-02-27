@@ -63,6 +63,12 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   x = y ↔ true :=
 by cc
 
+lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
+⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
+
+lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
+⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
+
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
    part of a chain. -/
@@ -213,7 +219,7 @@ iff_def.trans and.comm
 theorem imp_true_iff {α : Sort*} : (α → true) ↔ true :=
 iff_true_intro $ λ_, trivial
 
-@[simp] theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
+theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
 /-! ### Declarations about `not` -/
@@ -922,18 +928,32 @@ theorem Exists.fst {p : b → Prop} : Exists p → b
 theorem Exists.snd {p : b → Prop} : ∀ h : Exists p, p h.fst
 | ⟨_, h⟩ := h
 
-@[simp] theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
+theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q h') ↔ q h :=
 @forall_const (q h) p ⟨h⟩
 
-@[simp] theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
+theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
 
-@[simp] theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
+theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
   (∀ h' : p, q h') ↔ true :=
 iff_true_intro $ λ h, hn.elim h
 
-@[simp] theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
+theorem exists_prop_of_false {p : Prop} {q : p → Prop} : ¬ p → ¬ (∃ h' : p, q h') :=
 mt Exists.fst
+
+@[congr] lemma exists_prop_congr {p p' : Prop} {q q' : p → Prop}
+  (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : Exists q ↔ ∃ h : p', q' (hp.2 h) :=
+⟨λ ⟨_, _⟩, ⟨hp.1 ‹_›, (hq _).1 ‹_›⟩, λ ⟨_, _⟩, ⟨_, (hq _).2 ‹_›⟩⟩
+
+@[congr] lemma exists_prop_congr' {p p' : Prop} {q q' : p → Prop}
+  (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : Exists q = ∃ h : p', q' (hp.2 h) :=
+propext (exists_prop_congr hq _)
+
+@[simp] lemma exists_true_left (p : true → Prop) : (∃ x, p x) ↔ p true.intro :=
+exists_prop_of_true _
+
+@[simp] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
+exists_prop_of_false not_false
 
 lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
 exists.elim h (λ x hx, ⟨x, and.left hx⟩)
@@ -941,6 +961,20 @@ exists.elim h (λ x hx, ⟨x, and.left hx⟩)
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
   {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
 unique_of_exists_unique h py₁ py₂
+
+@[congr] lemma forall_prop_congr {p p' : Prop} {q q' : p → Prop}
+  (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : (∀ h, q h) ↔ ∀ h : p', q' (hp.2 h) :=
+⟨λ h1 h2, (hq _).1 (h1 (hp.2 _)), λ h1 h2, (hq _).2 (h1 (hp.1 h2))⟩
+
+@[congr] lemma forall_prop_congr' {p p' : Prop} {q q' : p → Prop}
+  (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : (∀ h, q h) = ∀ h : p', q' (hp.2 h) :=
+propext (forall_prop_congr hq _)
+
+@[simp] lemma forall_true_left (p : true → Prop) : (∀ x, p x) ↔ p true.intro :=
+forall_prop_of_true _
+
+@[simp] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
+forall_prop_of_false not_false
 
 @[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
   (∃! x, p x) ↔ ∃ x, p x :=

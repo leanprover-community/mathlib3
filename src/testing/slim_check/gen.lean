@@ -153,7 +153,8 @@ def freq (xs : list (ℕ+ × gen α)) (pos : 0 < xs.length) : gen α :=
 let s := (xs.map (subtype.val ∘ prod.fst)).sum in
 have ha : 1 ≤ s, from
   (le_trans pos $
-    list.length_map (subtype.val ∘ prod.fst) xs ▸ (list.length_le_sum_of_one_le _ (λ i, by simp; intros h _; exact h))),
+    list.length_map (subtype.val ∘ prod.fst) xs ▸
+      (list.length_le_sum_of_one_le _ (λ i, by { simp, intros, assumption }))),
 have 0 ≤ s - 1, from nat.le_sub_right_of_add_le ha,
 uliftable.adapt_up gen.{0} gen.{u} (choose_nat 0 (s-1) this) $ λ i,
 freq_aux xs i.1 (by rcases i with ⟨i,h₀,h₁⟩; rwa nat.le_sub_right_iff_add_le at h₁; exact ha)

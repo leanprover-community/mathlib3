@@ -172,6 +172,10 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+lemma smul_mul_smul (r s : R) (x y : A) :
+  (r • x) * (s • y) = (r * s) • (x * y) :=
+by rw [algebra.smul_mul_assoc, algebra.mul_smul_comm, smul_smul]
+
 section
 variables {r : R} {a : A}
 
@@ -319,7 +323,28 @@ begin
       mul_assoc, ih, ←mul_assoc], }
 end
 
+/-- If `algebra_map R A` is injective and `A` has no zero divisors,
+`R`-multiples in `A` are zero only if one of the factors is zero.
+
+Cannot be an instance because there is no `injective (algebra_map R A)` typeclass.
+-/
+lemma no_zero_smul_divisors.of_algebra_map_injective
+  [semiring A] [algebra R A] [no_zero_divisors A]
+  (h : function.injective (algebra_map R A)) : no_zero_smul_divisors R A :=
+⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
+  ((algebra_map R A).injective_iff.mp h _)⟩
+
 end ring
+
+section field
+
+variables [field R] [semiring A] [algebra R A]
+
+@[priority 100] -- see note [lower instance priority]
+instance [nontrivial A] [no_zero_divisors A] : no_zero_smul_divisors R A :=
+no_zero_smul_divisors.of_algebra_map_injective (algebra_map R A).injective
+
+end field
 
 end algebra
 
@@ -1385,15 +1410,3 @@ rfl
 end semimodule
 
 end restrict_scalars
-
-namespace linear_map
-
-variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
-  (V : Type*) [add_comm_monoid V] [semimodule R V]
-  (W : Type*) [add_comm_monoid W] [semimodule R W] [semimodule S W] [is_scalar_tower R S W]
-
-instance is_scalar_tower_extend_scalars :
-  is_scalar_tower R S (V →ₗ[R] W) :=
-{ smul_assoc := λ r s f, by simp only [(•), coe_mk, smul_assoc] }
-
-end linear_map

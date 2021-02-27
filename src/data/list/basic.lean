@@ -1600,6 +1600,23 @@ begin
     { simp only [hl, cons_append, nth, eq_self_iff_true, and_self, take] } }
 end
 
+@[simp] lemma take_eq_nil_iff {l : list α} {k : ℕ} :
+  l.take k = [] ↔ l = [] ∨ k = 0 :=
+by { cases l; cases k; simp [nat.succ_ne_zero] }
+
+lemma init_eq_take (l : list α) : l.init = l.take l.length.pred :=
+begin
+  cases l with x l,
+  { simp [init] },
+  { induction l with hd tl hl generalizing x,
+    { simp [init], },
+    { simp [init, hl] } }
+end
+
+lemma init_take {n : ℕ} {l : list α} (h : n < l.length) :
+  (l.take n).init = l.take n.pred :=
+by simp [init_eq_take, min_eq_left_of_lt h, take_take, pred_le]
+
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
 by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
@@ -1717,6 +1734,15 @@ dropping the first `i` elements. Version designed to rewrite from the small list
 lemma nth_le_drop' (L : list α) {i j : ℕ} (h : j < (L.drop i).length) :
   nth_le (L.drop i) j h = nth_le L (i + j) (nat.add_lt_of_lt_sub_left ((length_drop i L) ▸ h)) :=
 by rw nth_le_drop
+
+lemma nth_drop (L : list α) (i j : ℕ) :
+  nth (L.drop i) j = nth L (i + j) :=
+begin
+  ext,
+  simp only [nth_eq_some, nth_le_drop', option.mem_def],
+  split;
+  exact λ ⟨h, ha⟩, ⟨by simpa [nat.lt_sub_left_iff_add_lt] using h, ha⟩
+end
 
 @[simp] theorem drop_drop (n : ℕ) : ∀ (m) (l : list α), drop n (drop m l) = drop (n + m) l
 | m     []     := by simp

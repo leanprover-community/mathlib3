@@ -33,7 +33,7 @@ variables {J C} (F : J ⥤ C)
 natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ yoneda.obj F
 
 /--
@@ -41,7 +41,7 @@ def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ yoneda.obj F
 natural transformations from `F` to the constant functor with value `X`.
 An object corepresenting this functor is a colimit of `F`.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def cocones : C ⥤ Type v := const J ⋙ coyoneda.obj (op F)
 
 end functor

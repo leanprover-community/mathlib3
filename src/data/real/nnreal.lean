@@ -112,13 +112,11 @@ max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
 instance : comm_semiring ℝ≥0 :=
-begin
-  refine { zero := 0, add := (+), one := 1, mul := (*), ..};
-  { intros;
-    apply nnreal.eq;
-    simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,
-          add_comm_monoid.zero, add_comm, add_left_comm] }
-end
+{ zero := 0,
+  add := (+),
+  one := 1,
+  mul := (*),
+  .. nnreal.injective_coe.comm_semiring _ rfl rfl (λ _ _, rfl) (λ _ _, rfl) }
 
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/
 def to_real_hom : ℝ≥0 →+* ℝ :=
@@ -127,12 +125,11 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=
-{ exists_pair_ne := ⟨0, 1, assume h, zero_ne_one $ nnreal.eq_iff.2 h⟩,
-  inv_zero       := nnreal.eq $ show (0⁻¹ : ℝ) = 0, from inv_zero,
-  mul_inv_cancel := assume x h, nnreal.eq $ mul_inv_cancel $ ne_iff.2 h,
-  .. (by apply_instance : has_inv ℝ≥0),
-  .. (_ : comm_semiring ℝ≥0),
-  .. (_ : semiring ℝ≥0) }
+{ zero := 0,
+  mul := (*),
+  one := 1,
+  inv := has_inv.inv,
+  .. nnreal.injective_coe.comm_group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) }
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=

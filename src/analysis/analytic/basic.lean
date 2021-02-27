@@ -88,19 +88,22 @@ def radius (p : formal_multilinear_series 𝕜 E F) : ℝ≥0∞ :=
 ⨆ (r : ℝ≥0) (C : ℝ) (hr : ∀ n, ∥p n∥ * r ^ n ≤ C), (r : ℝ≥0∞)
 
 /-- If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : ℝ) {r : ℝ≥0}
-  (h : ∀ (n : ℕ), ∥p n∥ * r^n ≤ C) : (r : ℝ≥0∞) ≤ p.radius :=
+lemma le_radius_of_bound (C : ℝ) {r : ℝ≥0} (h : ∀ (n : ℕ), ∥p n∥ * r^n ≤ C) :
+  (r : ℝ≥0∞) ≤ p.radius :=
 le_supr_of_le r $ le_supr_of_le C $ (le_supr (λ _, (r : ℝ≥0∞)) h)
 
 /-- If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_bound_nnreal (p : formal_multilinear_series 𝕜 E F) (C : ℝ≥0) {r : ℝ≥0}
-  (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ℝ≥0∞) ≤ p.radius :=
+lemma le_radius_of_bound_nnreal (C : ℝ≥0) {r : ℝ≥0} (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) :
+  (r : ℝ≥0∞) ≤ p.radius :=
 p.le_radius_of_bound C $ λ n, by exact_mod_cast (h n)
 
 /-- If `∥pₙ∥ rⁿ = O(1)`, as `n → ∞`, then the radius of `p` is at least `r`. -/
 lemma le_radius_of_is_O (h : is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : ↑r ≤ p.radius :=
 exists.elim (is_O_one_nat_at_top_iff.1 h) $ λ C hC, p.le_radius_of_bound C $
   λ n, (le_abs_self _).trans (hC n)
+
+lemma le_radius_of_eventually_le (C) (h : ∀ᶠ n in at_top, ∥p n∥ * r ^ n ≤ C) : ↑r ≤ p.radius :=
+p.le_radius_of_is_O $ is_O.of_bound C $ h.mono $ λ n hn, by simpa
 
 lemma radius_eq_top_of_forall_nnreal_is_O
   (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ⊤ :=
@@ -652,26 +655,67 @@ lemma change_origin_series_norm_apply_le (k l : ℕ) :
   ∥p.change_origin_series k l∥ ≤ nat.choose (k + l) l * ∥p (k + l)∥ :=
 le_trans (norm_sum_le _ _) $ by simp [finset.card_univ]
 
+lemma change_origin_series_nnnorm_apply_le (k l : ℕ) :
+  nnnorm (p.change_origin_series k l) ≤ nat.choose (k + l) l * nnnorm (p (k + l)) :=
+begin
+  have := p.change_origin_series_norm_apply_le k l,
+  simp only [← coe_nnnorm] at this,
+  exact_mod_cast this
+end
+
 lemma le_change_origin_series_radius (k : ℕ) :
   p.radius ≤ (p.change_origin_series k).radius :=
 begin
   refine ennreal.le_of_forall_nnreal_lt (λ r hr, _),
+  rcases ennreal.lt_iff_exists_nnreal_btwn.1 hr with ⟨R, hrR, hR⟩,
+  rw [ennreal.coe_lt_coe] at hrR, clear hr,
+  have hR0 : 0 < R, from (zero_le r).trans_lt hrR,
+  obtain ⟨C, C0, hC⟩ : ∃ C > 0, ∀ n, nnnorm (p n) * R ^ n ≤ C,
+    from p.nnnorm_mul_pow_le_of_lt_radius hR,
+  refine le_radius_of_bound_nnreal _ C (λ l, _),
+  calc nnnorm (p.change_origin_series k l) * r ^ l
+      ≤ nat.choose (k + l) l * nnnorm (p (k + l)) * r ^ l :
+    mul_le_mul' (p.change_origin_series_nnnorm_apply_le k l) le_rfl
+  ... ≤ nat.choose (k + l) l * (C / R ^ (k + l)) * r ^ l :
+    mul_le_mul_three le_rfl ((nnreal.le_div_iff_mul_le (pow_ne_zero _ hR0.ne')).2 (hC _)) le_rfl
+  ... = (r ^ l * (R - r) ^ (k + l - l) * nat.choose (k + l) l / R ^ (k + l)) * (C / (R - r) ^ k) :
+    by { field_simp [hR0.ne', (nnreal.sub_pos.2 hrR).ne'], ac_refl }
+  ... ≤ ((r + (R - r)) ^ (k + l) / R ^ (k + l)) * (C / (R - r) ^ k) :
+    begin
+      refine mul_le_mul_three _ le_rfl le_rfl,
+      convert  (pow_mul_pow_mul_choose_le _ _ _); try { refl },
+    end
+  ... ≤ _ : _
+/-  
+  have : is_O (λ l, ∥p.change_origin_series k l∥ * r ^ l)
+    (λ l, ↑l ^ k * (∥p (k + l)∥ * r ^ l)) at_top,
+  { refine is_O.of_bound (2 ^ k) ((eventually_ge_at_top k).mono $ λ l hl, _),
+    suffices : ∥p.change_origin_series k l∥ * ↑(r ^ l) ≤ 2 ^ k * l ^ k * ∥p (k + l)∥ * ↑(r ^ l),
+      by simpa [mul_assoc],
+    refine mul_le_mul_of_nonneg_right _ (nnreal.coe_nonneg _),
+    refine (p.change_origin_series_norm_apply_le k l).trans _,
+    refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+    exact_mod_cast nat.add_choose_le_pow_of_le hl },
+  refine le_radius_of_is_O _ (this.trans _), clear this,
   rcases p.is_o_of_lt_radius hr with ⟨a, ha01, ha⟩,
-  refine le_radius_of_is_O _ _,
-  have : ∀ᶠ n in at_top, ∥p.change_origin_series k n∥ * r ^ n ≤ 
+  rw ← map_add_at_top_eq_nat k at ha,
+  simp_rw [add_comm _ k, is_o_map, (∘), pow_add, mul_left_comm ∥_∥,
+    is_o_const_mul_left_iff (pow_pos hr0 k).ne', is_o_const_mul_right_iff (pow_pos ha01.1 k).ne']
+    at ha,
+  refine ((is_O_refl (λ l, l ^ k : ℕ → ℝ) at_top).mul ha.is_O).trans _,
+  have : ∥a∥ < 1, by simp only [real.norm_eq_abs, abs_of_pos ha01.1, ha01.2],
+  simpa only [one_pow] using (is_o_pow_const_mul_const_pow_const_pow_of_norm_lt k this).is_O-/
 end
 
 /--
 Changing the origin of a formal multilinear series `p`, so that
 `p.sum (x+y) = (p.change_origin x).sum y` when this makes sense.
-
-Here, we don't use the bracket notation `⟨n, s, hs⟩` in place of the argument `i` in the lambda,
-as this leads to a bad definition with auxiliary `_match` statements,
-but we will try to use pattern matching in lambdas as much as possible in the proofs below
-to increase readability.
 -/
 def change_origin (x : E) : formal_multilinear_series 𝕜 E F :=
-λ k, ∑' i : Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}, (p i.1).restr i.2 i.2.2 x
+λ k, (p.change_origin_series k).sum x
+
+lemma change_origin_norm_le {r : ℝ≥0} {x : E} (h : (nnnorm x + r : ℝ≥0∞) < p.radius) :
+  
 
 /-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
 `p.change_origin`, first version. -/

@@ -12,7 +12,8 @@ open group
 
 variables {R : Type u} [ring R]
 
-/-- `S` is a subring: a set containing 1 and closed under multiplication, addition and and additive inverse. -/
+/-- `S` is a subring: a set containing 1 and closed under multiplication, addition and additive
+inverse. -/
 class is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
 
 /-- The ring structure on a subring coerced to a type. -/
@@ -130,7 +131,8 @@ begin
   { rw [list.map_cons, list.sum_cons],
     exact ha this (ih HL.2) },
   replace HL := HL.1, clear ih tl,
-  suffices : ∃ L : list R, (∀ x ∈ L, x ∈ s) ∧ (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
+  suffices : ∃ L : list R,
+    (∀ x ∈ L, x ∈ s) ∧ (list.prod hd = list.prod L ∨ list.prod hd = -list.prod L),
   { rcases this with ⟨L, HL', HP | HP⟩,
     { rw HP, clear HP HL hd, induction L with hd tl ih, { exact h1 },
       rw list.forall_mem_cons at HL',

@@ -1283,12 +1283,17 @@ begin
   { intro h, simpa using congr_arg (coeff R 1) h }
 end
 
-lemma rescale_inj {a : R} (ha : a ≠ 0) : function.injective (rescale a) :=
+lemma rescale_injective {a : R} (ha : a ≠ 0) : function.injective (rescale a) :=
 begin
-  rw function.injective,
-  rintros p q h, rw power_series.ext_iff at *, rintros n, specialize h n,
-  rw [coeff_rescale, coeff_rescale] at h, rw mul_eq_mul_left_iff at h, cases h,
-  { assumption, }, { exfalso, apply ha, apply pow_eq_zero h, },
+  intros p q h,
+  rw power_series.ext_iff at *,
+  intros n,
+  specialize h n,
+  rw [coeff_rescale, coeff_rescale] at h,
+  rw mul_eq_mul_left_iff at h,
+  cases h,
+  { assumption, },
+  { exfalso, apply ha, apply pow_eq_zero h, },
 end
 
 end integral_domain

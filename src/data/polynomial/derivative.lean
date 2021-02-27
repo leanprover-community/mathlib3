@@ -114,6 +114,14 @@ linear_map.map_neg derivative f
   derivative (f - g) = derivative f - derivative g :=
 linear_map.map_sub derivative f g
 
+@[simp] lemma iterate_derivative_sub {R : Type*} [ring R] {k : ℕ} {f g : polynomial R} :
+  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
+begin
+  induction k with k ih generalizing f g,
+  { simp [nat.iterate], },
+  { simp [nat.iterate, ih], }
+end
+
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
 derivative.map_sum
@@ -272,19 +280,6 @@ begin
 end
 
 end comm_semiring
-
-section comm_ring
-variables [comm_ring R]
-
-@[simp] lemma iterate_derivative_sub {k : ℕ} {f g : polynomial R} :
-  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
-begin
-  induction k with k ih generalizing f g,
-  { simp [nat.iterate], },
-  { simp [nat.iterate, ih], }
-end
-
-end comm_ring
 
 section domain
 variables [integral_domain R]

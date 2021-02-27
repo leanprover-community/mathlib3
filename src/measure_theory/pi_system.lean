@@ -44,31 +44,31 @@ begin
       set.mem_singleton_iff],
 end
 
-/-- The minimal π-system including g -/
-inductive generate_pi_system {α} (g : set (set α)) : set (set α)
-| base {s : set α} (h_s : s ∈ g) : generate_pi_system s
+/-- The smallest superset of g that is_pi_system. -/
+inductive generate_pi_system {α} (S : set (set α)) : set (set α)
+| base {s : set α} (h_s : s ∈ S) : generate_pi_system s
 | inter {s t : set α} (h_s : generate_pi_system s)  (h_t : generate_pi_system t)
   (h_nonempty : (s ∩ t).nonempty) : generate_pi_system (s ∩ t)
 
-lemma is_pi_system_generate_pi_system {α} (g : set (set α)) :
-  is_pi_system (generate_pi_system g) :=
+lemma is_pi_system_generate_pi_system {α} (S : set (set α)) :
+  is_pi_system (generate_pi_system S) :=
 λ s t h_s h_t h_nonempty, generate_pi_system.inter h_s h_t h_nonempty
 
-lemma subset_generate_pi_system_self {α} (g : set (set α)) : g ⊆ generate_pi_system g :=
+lemma subset_generate_pi_system_self {α} (S : set (set α)) : S ⊆ generate_pi_system S :=
 λ s, generate_pi_system.base
 
-lemma generate_pi_system_subset_self {α} {g : set (set α)} (h_g : is_pi_system g) :
-  generate_pi_system g ⊆ g :=
+lemma generate_pi_system_subset_self {α} {S : set (set α)} (h_S : is_pi_system S) :
+  generate_pi_system S ⊆ S :=
  begin
   intros x h,
   induction h with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
   { exact h_s, },
-  { exact h_g _ _ h_s h_u h_nonempty, },
+  { exact h_S _ _ h_s h_u h_nonempty, },
 end
 
-lemma generate_pi_system_eq {α} {g : set (set α)} (h_pi : is_pi_system g) :
-  generate_pi_system g = g :=
-set.subset.antisymm (generate_pi_system_subset_self h_pi) (subset_generate_pi_system_self g)
+lemma generate_pi_system_eq {α} {S : set (set α)} (h_pi : is_pi_system S) :
+  generate_pi_system S = S :=
+set.subset.antisymm (generate_pi_system_subset_self h_pi) (subset_generate_pi_system_self S)
 
 lemma generate_pi_system_mono {α} {S T : set (set α)} (hST : S ⊆ T) :
   generate_pi_system S ⊆ generate_pi_system T :=
@@ -79,18 +79,12 @@ begin
   { exact is_pi_system_generate_pi_system T _ _ h_s h_u h_nonempty, },
 end
 
---Necessary?
-lemma generate_pi_system_subset {α} {g t : set (set α)} (h_t : is_pi_system t)
-  (h_sub : g ⊆ t) : generate_pi_system g ⊆ t :=
-set.subset.trans (generate_pi_system_mono h_sub) (generate_pi_system_subset_self h_t)
-
-
-lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {g : set (set α)}
-  (h_meas_g : ∀ s ∈ g, measurable_set s) (t : set α)
-  (h_in_pi : generate_pi_system g t) : measurable_set t :=
+lemma generate_pi_system_measurable_set {α} [M : measurable_space α] {S : set (set α)}
+  (h_meas_S : ∀ s ∈ S, measurable_set s) (t : set α)
+  (h_in_pi : t ∈ generate_pi_system S) : measurable_set t :=
 begin
   induction h_in_pi with s h_s s u h_gen_s h_gen_u h_nonempty h_s h_u,
-  { apply h_meas_g _ h_s, },
+  { apply h_meas_S _ h_s, },
   { apply measurable_set.inter h_s h_u, },
 end
 

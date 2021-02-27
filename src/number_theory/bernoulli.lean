@@ -272,8 +272,7 @@ begin
     suffices f : eval_neg_hom (power_series.mk (λ n, (bernoulli n / nat.factorial n : ℚ)) *
     (exp ℚ - 1)) = eval_neg_hom X,
   { suffices g : function.injective eval_neg_hom,
-    { rw function.injective.eq_iff g at f,
-      assumption, },
+    { rwa g.eq_iff at f, },
     apply rescale_injective,
     norm_num, },
   simp only [map_one, map_mul, eval_neg_hom_X, map_sub],

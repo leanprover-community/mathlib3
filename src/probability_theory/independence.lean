@@ -120,6 +120,27 @@ For a set `s`, the generated measurable space structure has measurable sets `∅
 def indep_set {α} [measurable_space α] (s t : set α) (μ : measure α . volume_tac) : Prop :=
 indep_sets {s} {t} μ
 
+lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
+  {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+begin
+  unfold indep_set indep_sets,
+  simp_rw set.mem_singleton_iff,
+  split; intros h,
+  apply h s t (eq.refl _) (eq.refl _),
+  intros s1 t1 h_s1 h_t1,
+  substs s1 t1,
+  apply h,
+end
+
+lemma indep_sets.indep_set {α} {m : measurable_space α}
+  {μ : measure α} {p1 p2 : set (set α)} (hyp : indep_sets p1 p2 μ)
+  {s1 s2 : set α} (h1 : s1 ∈ p1) (h2 : s2 ∈ p2) :
+  indep_set s1 s2 μ :=
+begin
+  rw indep_set_iff,
+  apply hyp _ _ h1 h2,
+end
+
 /-- A family of functions defined on the same space `α` and taking values in possibly different
 spaces, each with a measurable space structure, is independent if the family of measurable space
 structures they generate on `α` is independent. For a function `g` with codomain having measurable
@@ -326,27 +347,6 @@ begin
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
-lemma indep_set_iff {α} [m :measurable_space α] {μ : measure α}
-  {s t : set α} : indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
-begin
-  unfold indep_set indep_sets,
-  simp_rw set.mem_singleton_iff,
-  split; intros h,
-  apply h s t (eq.refl _) (eq.refl _),
-  intros s1 t1 h_s1 h_t1,
-  substs s1 t1,
-  apply h,
-end
-
-lemma indep_sets.indep_set {α} {m : measurable_space α}
-  {μ : measure α} {p1 p2 : set (set α)} (hyp : indep_sets p1 p2 μ)
-  {s1 s2 : set α} (h1 : s1 ∈ p1) (h2 : s2 ∈ p2) :
-  indep_set s1 s2 μ :=
-begin
-  rw indep_set_iff,
-  apply hyp _ _ h1 h2,
-end
-
 lemma indep_set_iff_of_probability_measure {α} [m : measurable_space α] {μ : measure α}
   [probability_measure μ] {s t : set α} {h_s : measurable_set s} {h_t : measurable_set t} : 
   indep_set s t μ ↔ 
@@ -365,7 +365,6 @@ begin
     apply measurable_set_generate_from,
     apply set.mem_singleton },
 end
-
 
 lemma indep_Sup_Sup {α} {β : Type*} [M : measurable_space α] {μ : measure α}
   [P : probability_measure μ] {Mf : β → measurable_space α}

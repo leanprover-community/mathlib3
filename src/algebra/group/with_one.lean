@@ -81,7 +81,7 @@ instance [comm_semigroup α] : comm_monoid (with_one α) :=
   ..with_one.monoid }
 
 /-- `coe` as a bundled morphism -/
-@[simps apply, to_additive "`coe` as a bundled morphism"]
+@[to_additive "`coe` as a bundled morphism", simps apply]
 def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
 { to_fun := coe, map_mul' := λ x y, rfl }
 

@@ -10,6 +10,8 @@ import algebra.group.with_one
 /-!
 # Adjunctions regarding the category of (commutative) monoids
 
+This file proves the adjunction between adjoining a unit to a semigroup and the forgetful functor
+from monoids to semigroups.
 -/
 
 universe u
@@ -18,7 +20,7 @@ open category_theory
 
 /-- The functor of adjoining a neutral element `one` to a semigroup.
  -/
-@[simps]
+@[to_additive, simps]
 def adjoin_one : Semigroup.{u} ⥤ Mon.{u} :=
 { obj := λ S, Mon.of (with_one S),
   map := λ X Y, with_one.map,
@@ -33,7 +35,18 @@ instance has_forget_to_Semigroup : has_forget₂ Mon Semigroup :=
 }
 
 /-- The adjoin_one-forgetful adjunction from `Semigroup` to `Mon`.-/
+@[to_additive]
 def adjoin_one_adj : adjoin_one ⊣ forget₂ Mon.{u} Semigroup.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ S M, with_one.lift.symm,
-  hom_equiv_naturality_left_symm' := begin intros, ext1, simp, sorry end }
+  hom_equiv_naturality_left_symm' :=
+  begin
+    intros S T M f g,
+    ext1,
+    simp only [equiv.symm_symm, adjoin_one_map, coe_comp],
+    simp_rw with_one.map,
+    apply with_one.cases_on x,
+    { refl },
+    { simp }
+  end
+}

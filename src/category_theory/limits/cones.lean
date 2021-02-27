@@ -146,11 +146,11 @@ def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
   inv_hom_id' := begin ext1, cases x, refl, end }
 
 /-- A map from the vertex of a cocone naturally induces a cocone by composition. -/
-@[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
+@[simps] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
 { app := λ X f, c.ι ≫ (const J).map f }
 
 /-- A map from the vertex of a cocone induces a cocone by composition. -/
-@[simp] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
+@[simps] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
 { X := X,
   ι := c.extensions.app X f }
 
@@ -210,11 +210,13 @@ Functorially postcompose a cone for `F` by a natural transformation `F ⟶ G` to
 
 /-- Postcomposing a cone by the composite natural transformation `α ≫ β` is the same as
 postcomposing by `α` and then by `β`. -/
+@[simps]
 def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
 nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy)
 
 /-- Postcomposing by the identity does not change the cone up to isomorphism. -/
+@[simps]
 def postcompose_id : postcompose (𝟙 F) ≅ 𝟭 (cone F) :=
 nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy)
 
@@ -259,7 +261,7 @@ def whiskering_equivalence (e : K ≌ J) :
 The categories of cones over `F` and `G` are equivalent if `F` and `G` are naturally isomorphic
 (possibly after changing the indexing category by an equivalence).
 -/
-@[simps functor_obj]
+@[simps functor inverse unit_iso counit_iso]
 def equivalence_of_reindexing {G : K ⥤ C}
   (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cone F ≌ cone G :=
 (whiskering_equivalence e).trans (postcompose_equivalence α)

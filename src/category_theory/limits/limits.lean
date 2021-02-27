@@ -480,7 +480,8 @@ def of_nat_iso {X : C} (h : yoneda.obj X ≅ F.cones) :
     rw ←hom_of_cone_of_hom h m,
     congr,
     rw cone_of_hom_fac,
-    dsimp, cases s, congr' with j, exact w j,
+    dsimp [cone.extend],
+    cases s, congr' with j, exact w j,
   end }
 end
 
@@ -897,7 +898,7 @@ def of_nat_iso {X : C} (h : coyoneda.obj (op X) ≅ F.cocones) :
     rw ←hom_of_cocone_of_hom h m,
     congr,
     rw cocone_of_hom_fac,
-    dsimp, cases s, congr' with j, exact w j,
+    dsimp [cocone.extend], cases s, congr' with j, exact w j,
   end }
 end
 

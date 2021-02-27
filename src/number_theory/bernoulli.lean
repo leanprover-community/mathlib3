@@ -290,7 +290,7 @@ begin
   { rw [mul_assoc],
     have he : (eval_neg_hom (exp ℚ) - 1) * (- exp ℚ) = ((exp ℚ) - 1),
     { ring,
-      simp [exp_mul_exp_neg_eq_one],
+      simp only [exp_mul_exp_neg_eq_one],
       ring, },
     rw [he],
     simp only [eval_neg_hom, rescale, neg_mul_eq_neg_mul_symm, coeff_mk, coe_mk,

@@ -82,10 +82,7 @@ structure cone (F : J ⥤ C) :=
 
 instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
 ⟨{ X := F.obj punit.star,
-  π :=
-  { app := λ X, match X with
-    | punit.star := 𝟙 _
-    end } }⟩
+   π := { app := λ ⟨⟩, 𝟙 _ } }⟩
 
 @[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
@@ -104,10 +101,7 @@ structure cocone (F : J ⥤ C) :=
 
 instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
 ⟨{ X := F.obj punit.star,
-  ι :=
-  { app := λ X, match X with
-    | punit.star := 𝟙 _
-    end } }⟩
+   ι := { app := λ ⟨⟩, 𝟙 _ } }⟩
 
 @[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=

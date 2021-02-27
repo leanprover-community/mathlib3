@@ -6,6 +6,18 @@ Authors: Mario Carneiro, Johan Commelin
 import algebra.ring.basic
 import data.equiv.basic
 
+/-!
+# Adjoining a zero/one to semigroups and related algebraic structures
+
+This file contains different results about adjoining an element to an algebraic structure which then
+behaves like a zero or a one. An example is adjoining a one to a semigroup to obtain a monoid. That
+this provides an example of an adjunction is proved in `algebra.category.Mon.adjunctions`.
+
+Another result says that adjoining to a group an element `zero` gives a `group_with_zero`. For more
+information about these structures (which are not that standard in informal mathematics, see
+`algebra.group_with_zero.basic`)
+-/
+
 universes u v w
 variable {α : Type u}
 

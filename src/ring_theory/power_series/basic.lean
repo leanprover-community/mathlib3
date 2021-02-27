@@ -1559,22 +1559,19 @@ begin
   suffices : coeff R n (φ * ψ) = ∑ p in finset.nat.antidiagonal n, 0,
     rw [this, finset.sum_const_zero],
   rw [coeff_mul],
-  apply finset.sum_congr rfl _,
-  intros pq hpq,
-  apply mul_eq_zero_of_right,
-  apply coeff_of_lt_order,
-  apply lt_of_le_of_lt _ h,
-  rw finset.nat.mem_antidiagonal at hpq,
+  apply finset.sum_congr rfl (λ x hx, _),
+  refine mul_eq_zero_of_right (coeff R x.fst φ) (ψ.coeff_of_lt_order x.snd (lt_of_le_of_lt _ h)),
+  rw finset.nat.mem_antidiagonal at hx,
   norm_cast,
   linarith,
 end
 
-lemma coeff_prod_one_sub_of_lt_order {R : Type*} [comm_ring R] {φ ψ : power_series R}
+lemma coeff_mul_one_sub_of_lt_order {R : Type*} [comm_ring R] {φ ψ : power_series R}
   (n : ℕ) (h : ↑n < ψ.order) :
   coeff R n (φ * (1 - ψ)) = coeff R n φ :=
 by simp [coeff_mul_of_lt_order h, mul_sub]
 
-lemma coeff_big_prod_one_sub_of_lt_order {R ι : Type*} [comm_ring R] (k : ℕ) (s : finset ι)
+lemma coeff_mul_prod_one_sub_of_lt_order {R ι : Type*} [comm_ring R] (k : ℕ) (s : finset ι)
   (φ : power_series R) (f : ι → power_series R) :
   (∀ i ∈ s, ↑k < (f i).order) → coeff R k (φ * ∏ i in s, (1 - f i)) = coeff R k φ :=
 begin
@@ -1582,7 +1579,7 @@ begin
   { simp },
   { intros a s ha ih t,
     simp only [finset.mem_insert, forall_eq_or_imp] at t,
-    rw [finset.prod_insert ha, ← mul_assoc, mul_right_comm, coeff_prod_one_sub_of_lt_order _ t.1],
+    rw [finset.prod_insert ha, ← mul_assoc, mul_right_comm, coeff_mul_one_sub_of_lt_order _ t.1],
     exact ih t.2 },
 end
 

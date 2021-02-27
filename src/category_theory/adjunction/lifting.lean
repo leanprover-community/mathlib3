@@ -205,7 +205,7 @@ begin
     { resetI,
       apply_instance },
     { let : R' ⋙ (monad.comparison (adjunction.of_right_adjoint U)).inv ≅ R :=
-        (iso_whisker_left R (monad.comparison _).fun_inv_id : _) ≪≫ R.right_unitor,
+        (iso_whisker_left R (monad.comparison _).as_equivalence.unit_iso.symm : _) ≪≫ R.right_unitor,
       exactI adjunction.right_adjoint_of_nat_iso this } },
   let : is_right_adjoint (R' ⋙ monad.forget (adjunction.of_right_adjoint U).to_monad) :=
     adjunction.right_adjoint_of_nat_iso

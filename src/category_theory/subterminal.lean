@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
+import category_theory.subobject
 
 /-!
 # Subterminal objects
@@ -121,11 +122,56 @@ to the lattice of open subsets of `X`. More generally, if `C` is a topos, this i
 def subterminals (C : Type u₁) [category.{v₁} C] :=
 {A : C // is_subterminal A}
 
+instance subterminals_thin (X Y : subterminals C) : subsingleton (X ⟶ Y) :=
+⟨λ f g, Y.2 f g⟩
+
 instance [has_terminal C] : inhabited (subterminals C) :=
 ⟨⟨⊤_ C, is_subterminal_of_terminal⟩⟩
 
 /-- The inclusion of the subterminal objects into the original category. -/
 @[derive [full, faithful]]
 def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
+
+@[simps]
+def subterminals_to_mono_over_terminal [has_terminal C] :
+  subterminals C ⥤ mono_over (⊤_ C) :=
+{ obj := λ X, ⟨over.mk (terminal.from X.1), X.2.mono_terminal_from⟩,
+  map := λ X Y f, mono_over.hom_mk f (by ext1 ⟨⟩) }
+
+@[simps]
+def mono_over_terminal_to_subterminals [has_terminal C] :
+  mono_over (⊤_ C) ⥤ subterminals C :=
+{ obj := λ X, ⟨X.val.left, λ Z f g, by { rw ← cancel_mono X.arrow, apply subsingleton.elim }⟩,
+  map := λ X Y f, f.1 }
+
+lemma subterminals_to_mono_over_terminal_comp_forget [has_terminal C] :
+  subterminals_to_mono_over_terminal C ⋙ mono_over.forget _ ⋙ over.forget _ =
+    subterminal_inclusion C :=
+rfl
+
+lemma mono_over_terminal_to_subterminals_comp [has_terminal C] :
+  mono_over_terminal_to_subterminals C ⋙ subterminal_inclusion C =
+    mono_over.forget _ ⋙ over.forget _ :=
+rfl
+
+def subterminals_equiv_mono_over_terminal [has_terminal C] :
+  subterminals C ≌ mono_over (⊤_ C) :=
+{ functor :=
+  { obj := λ X, ⟨over.mk (terminal.from X.1), X.2.mono_terminal_from⟩,
+    map := λ X Y f, mono_over.hom_mk f (by ext1 ⟨⟩) },
+  inverse :=
+  { obj := λ X, ⟨X.val.left, λ Z f g, by { rw ← cancel_mono X.arrow, apply subsingleton.elim }⟩,
+    map := λ X Y f, f.1 },
+  unit_iso :=
+    nat_iso.of_components
+      (λ X, @preimage_iso _ _ _ _ (subterminal_inclusion C) _ _ _ _ (iso.refl _))
+      (subsingleton.elim _ _),
+  counit_iso := nat_iso.of_components (λ X, begin  end) (subsingleton.elim _ _),
+}
+-- equivalence.mk
+--   (subterminals_to_mono_over_terminal C)
+--   (mono_over_terminal_to_subterminals C)
+--   (nat_iso.of_components (λ X, begin dsimp, end) _)
+--   _
 
 end category_theory

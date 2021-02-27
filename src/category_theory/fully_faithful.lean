@@ -60,6 +60,8 @@ F.map_injective (by simp)
   F.preimage (F.map f) = f :=
 F.map_injective (by simp)
 
+variables (F)
+
 /-- If `F : C ⥤ D` is fully faithful, every isomorphism `F.obj X ≅ F.obj Y` has a preimage. -/
 def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 { hom := F.preimage f.hom,
@@ -68,13 +70,11 @@ def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
   inv_hom_id' := F.map_injective (by simp), }
 
 @[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) :
-  (preimage_iso f).hom = F.preimage f.hom := rfl
+  (preimage_iso F f).hom = F.preimage f.hom := rfl
 @[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) :
-  (preimage_iso f).inv = F.preimage (f.inv) := rfl
-@[simp] lemma preimage_iso_map_iso (f : X ≅ Y) : preimage_iso (F.map_iso f) = f :=
+  (preimage_iso F f).inv = F.preimage (f.inv) := rfl
+@[simp] lemma preimage_iso_map_iso (f : X ≅ Y) : preimage_iso F (F.map_iso f) = f :=
 by tidy
-
-variables (F)
 
 /--
 If the image of a morphism under a fully faithful functor in an isomorphism,
@@ -206,19 +206,19 @@ Given a natural isomorphism between `F ⋙ H` and `G ⋙ H` for a fully faithful
 can 'cancel' it to give a natural iso between `F` and `G`.
 -/
 def fully_faithful_cancel_right {F G : C ⥤ D} (H : D ⥤ E)
-  [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) : F ≅ G :=
+  [full H] [faithful H] (comp_iso : F ⋙ H ≅ G ⋙ H) : F ≅ G :=
 nat_iso.of_components
-  (λ X, preimage_iso (comp_iso.app X))
+  (λ X, preimage_iso H (comp_iso.app X))
   (λ X Y f, H.map_injective (by simpa using comp_iso.hom.naturality f))
 
 @[simp]
 lemma fully_faithful_cancel_right_hom_app {F G : C ⥤ D} {H : D ⥤ E}
-  [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
+  [full H] [faithful H] (comp_iso : F ⋙ H ≅ G ⋙ H) (X : C) :
   (fully_faithful_cancel_right H comp_iso).hom.app X = H.preimage (comp_iso.hom.app X) :=
 rfl
 @[simp]
 lemma fully_faithful_cancel_right_inv_app {F G : C ⥤ D} {H : D ⥤ E}
-  [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
+  [full H] [faithful H] (comp_iso : F ⋙ H ≅ G ⋙ H) (X : C) :
   (fully_faithful_cancel_right H comp_iso).inv.app X = H.preimage (comp_iso.inv.app X) :=
 rfl
 

@@ -209,11 +209,10 @@ instance : has_mul (M →ₗ[R] M) := ⟨linear_map.comp⟩
 lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 
 @[simp] lemma one_apply (x : M) : (1 : M →ₗ[R] M) x = x := rfl
-@[simp] lemma mul_apply (A B : M →ₗ[R] M) (x : M) : (A * B) x = A (B x) := rfl
+@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
-@[simp] lemma coe_one : ((1 : M →ₗ[R] M) : M → M) = id := rfl
-@[simp] lemma coe_mul (A B : M →ₗ[R] M) :
-  ((A * B : M →ₗ[R] M) : M → M) = (A : M → M) ∘ (B : M → M) := rfl
+lemma coe_one : ⇑(1 : M →ₗ[R] M) = _root_.id := rfl
+lemma coe_mul (f g : M →ₗ[R] M) : ⇑(f * g) = f ∘ g := rfl
 
 @[simp] theorem comp_zero : f.comp (0 : M₃ →ₗ[R] M) = 0 :=
 ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
@@ -229,7 +228,7 @@ instance : monoid (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..}; { intros, apply linear_map.ext, simp {proj := ff} }
 
 @[simp] lemma pow_apply (f : M →ₗ[R] M) (n : ℕ) (m : M) :
-  (f^n) m = ((f : M → M)^[n] m) :=
+  (f^n) m = (f^[n] m) :=
 begin
   induction n with n ih,
   { refl, },
@@ -237,7 +236,7 @@ begin
     exact (function.commute.iterate_self _ _ m).symm, },
 end
 
-@[simp] lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ((f^n : M →ₗ[R] M) : M → M) = ((f : M → M)^[n]) :=
+lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 
 section

@@ -38,17 +38,25 @@ def fin_two_equiv : fin 2 ≃ bool :=
   assume b, match b with tt := rfl | ff := rfl end⟩
 
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
-@[simps]
+
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=
 ⟨λ k, ⟨k.1, by { subst h, exact k.2 }⟩, λ k, ⟨k.1, by { subst h, exact k.2}⟩, by tidy, by tidy⟩
 
-@[simp] lemma fin_congr_apply {n m : ℕ} (h : n = m) (k : fin n) :
-  fin_congr h k = ⟨k.1, by { subst h, exact k.2 }⟩ :=
+@[simp] lemma fin_congr_apply_mk {n m : ℕ} (h : n = m) (k : ℕ) (w : k < n) :
+  fin_congr h ⟨k, w⟩ = ⟨k, by { subst h, exact w }⟩ :=
 rfl
 
-@[simp] lemma fin_congr_symm_apply {n m : ℕ} (h : n = m) (k : fin m) :
-  (fin_congr h).symm k = ⟨k.1, by { subst h, exact k.2 }⟩ :=
+@[simp] lemma fin_congr_symm_apply_mk {n m : ℕ} (h : n = m) (k : ℕ) (w : k < m) :
+  (fin_congr h).symm ⟨k, w⟩ = ⟨k, by { subst h, exact w }⟩ :=
 rfl
+
+@[simp] lemma fin_congr_apply_coe {n m : ℕ} (h : n = m) (k : fin n) :
+  (fin_congr h k : ℕ) = k :=
+by { cases k, refl, }
+
+@[simp] lemma fin_congr_symm_apply_coe {n m : ℕ} (h : n = m) (k : fin m) :
+  ((fin_congr h).symm k : ℕ) = k :=
+by { cases k, refl, }
 
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of
@@ -195,21 +203,15 @@ begin
   simp [h, add_comm],
 end
 
-@[simp] lemma fin_rotate_last' :
-  fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
+@[simp] lemma fin_rotate_last' : fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
 begin
   dsimp [fin_rotate],
   rw fin_add_flip_apply_right,
   simp,
 end
 
-@[simp] lemma fin_rotate_last :
-  fin_rotate (n+1) (fin.last _) = 0 :=
+@[simp] lemma fin_rotate_last : fin_rotate (n+1) (fin.last _) = 0 :=
 fin_rotate_last'
-
--- FIXME find a home
-lemma nat.squeeze {n m : ℕ} (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
-nat.le_antisymm (nat.lt_succ_iff.mp h₂) h₁
 
 lemma fin.snoc_eq_cons_rotate {α : Type*} (v : fin n → α) (a : α) :
   @fin.snoc _ (λ _, α) v a = (λ i, @fin.cons _ (λ _, α) a v (fin_rotate _ i)) :=
@@ -219,7 +221,7 @@ begin
   { rw [fin_rotate_of_lt h', fin.snoc, fin.cons, dif_pos h'],
     refl, },
   { have h'' : n = i,
-    { simp only [not_lt] at h', exact (nat.squeeze h' h).symm, },
+    { simp only [not_lt] at h', exact (nat.eq_of_le_of_lt_succ h' h).symm, },
     subst h'',
     rw [fin_rotate_last', fin.snoc, fin.cons, dif_neg (lt_irrefl _)],
     refl, }

@@ -222,6 +222,9 @@ theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
 
+lemma eq_of_le_of_lt_succ {n m : ℕ} (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
+nat.le_antisymm (le_of_succ_le_succ h₂) h₁
+
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n

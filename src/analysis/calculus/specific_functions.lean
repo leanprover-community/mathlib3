@@ -242,69 +242,80 @@ end smooth_transition
 
 variables {E : Type*}
 
-/-- A function `f : E → ℝ` defined on a real inner product space with the following properties:
+/-- Let `x` be apoint of a real inenr product space; let `0 < r < R` be real numbers.
+Then `smooth_bump_function x r R` is a function `E → ℝ` with the following properties:
 
-- `f` is infinitely smooth on `E`;
-- `f` is positive on `ball 0 2` and equals zero otherwise;
-- `f` is equal to `1` on `closed_ball 0 1`. -/
-def smooth_bump_function [inner_product_space ℝ E] (x : E) :=
-smooth_transition (2 - ∥x∥)
+- `smooth_bump_function x r R` is infinitely smooth on `E`;
+- `smooth_bump_function x r R` is equal to `1` on `closed_ball x r`;
+- `0 < smooth_bump_function x r R y < 1` if `r < dist y x < R`;
+- `smooth_bump_function x r R y = 0` if `R ≤ dist y x.
+
+We define this function for any `x`, `r`, and `R`  -/
+def smooth_bump_function [inner_product_space ℝ E] (x : E) (r R : ℝ) (y : E) : ℝ :=
+smooth_transition ((R - dist y x) / (R - r))
 
 namespace smooth_bump_function
 
-variable [inner_product_space ℝ E]
+variables [inner_product_space ℝ E] {r R : ℝ} {x y : E}
 
-open smooth_transition
+open smooth_transition metric
 
-lemma one_of_norm_le_one {x : E} (hx : ∥x∥ ≤ 1) : smooth_bump_function x = 1 :=
-one_of_one_le (le_sub.2 $ by { norm_num1, assumption })
+lemma one_of_mem_closed_ball (hy : y ∈ closed_ball x r) (hrR : r < R) :
+  smooth_bump_function x r R y = 1 :=
+one_of_one_le $ (one_le_div (sub_pos.2 hrR)).2 $ sub_le_sub_left hy _
 
-lemma nonneg (x : E) : 0 ≤ smooth_bump_function x :=
+lemma nonneg : 0 ≤ smooth_bump_function x r R y :=
 nonneg _
 
-lemma le_one (x : E) : smooth_bump_function x ≤ 1 :=
+lemma le_one : smooth_bump_function x r R y ≤ 1 :=
 le_one _
 
-lemma pos_of_norm_lt_two {x : E} (hx : ∥x∥ < 2) : 0 < smooth_bump_function x :=
-pos_of_pos $ sub_pos.2 hx
+lemma pos_of_mem_ball (hx : y ∈ ball x R) (hrR : r < R) :
+  0 < smooth_bump_function x r R y :=
+pos_of_pos $ div_pos (sub_pos.2 hx) (sub_pos.2 hrR)
 
-lemma lt_one_of_one_lt_norm {x : E} (hx : 1 < ∥x∥) : smooth_bump_function x < 1 :=
-lt_one_of_lt_one $ sub_lt.2 $ by norm_num [hx]
+lemma lt_one_of_lt_dist (h : r < dist y x) (hrR : r < R) : smooth_bump_function x r R y < 1 :=
+lt_one_of_lt_one $ (div_lt_one (sub_pos.2 hrR)).2 $ sub_lt_sub_left h _
 
-lemma zero_of_two_le_norm {x : E} (hx : 2 ≤ ∥x∥) : smooth_bump_function x = 0 :=
-zero_of_nonpos $ sub_nonpos.2 hx
+lemma zero_of_le_dist (hx : R ≤ dist y x) (hrR : r ≤ R) : smooth_bump_function x r R y = 0 :=
+zero_of_nonpos $ div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 hx) (sub_nonneg.2 hrR)
 
-lemma support_eq : function.support (smooth_bump_function : E → ℝ) = metric.ball 0 2 :=
+lemma support_eq (hrR : r < R) :
+  function.support (smooth_bump_function x r R : E → ℝ) = metric.ball x R :=
 begin
-  ext x,
-  suffices : smooth_bump_function x ≠ 0 ↔ ∥x∥ < 2, by simpa [function.mem_support],
-  cases lt_or_le (∥x∥) 2 with hx hx,
-  { simp [hx, (pos_of_norm_lt_two hx).ne'] },
-  { simp [hx.not_lt, zero_of_two_le_norm hx] }
+  ext y,
+  suffices : smooth_bump_function x r R y ≠ 0 ↔ dist y x < R, by simpa [function.mem_support],
+  cases lt_or_le (dist y x) R with hx hx,
+  { simp [hx, (pos_of_mem_ball hx hrR).ne'] },
+  { simp [hx.not_lt, zero_of_le_dist hx hrR.le] }
 end
 
-lemma eventually_eq_one_of_norm_lt_one {x : E} (hx : ∥x∥ < 1) :
-  smooth_bump_function =ᶠ[𝓝 x] (λ _, 1) :=
-((is_open_lt continuous_norm continuous_const).eventually_mem hx).mono $
-  λ y hy, one_of_norm_le_one (le_of_lt hy)
+lemma eventually_eq_one_of_mem_ball (h : y ∈ ball x r) (hrR : r < R) :
+  smooth_bump_function x r R =ᶠ[𝓝 y] (λ _, 1) :=
+((is_open_lt (continuous_id.dist continuous_const) continuous_const).eventually_mem h).mono $
+  λ z hz, one_of_mem_closed_ball (le_of_lt hz) hrR
 
-lemma eventually_eq_one : smooth_bump_function =ᶠ[𝓝 (0 : E)] (λ _, 1) :=
-eventually_eq_one_of_norm_lt_one (by simp only [norm_zero, zero_lt_one])
+lemma eventually_eq_one (h0 : 0 < r) (hrR : r < R) :
+  smooth_bump_function x r R =ᶠ[𝓝 (x : E)] (λ _, 1) :=
+eventually_eq_one_of_mem_ball (mem_ball_self h0) hrR
 
-protected lemma times_cont_diff_at {x : E} {n} : times_cont_diff_at ℝ n smooth_bump_function x :=
+protected lemma times_cont_diff_at (h0 : 0 < r) (hrR : r < R) {n} :
+  times_cont_diff_at ℝ n (smooth_bump_function x r R) y :=
 begin
-  rcases em (x = 0) with rfl|hx,
-  { exact times_cont_diff_at.congr_of_eventually_eq times_cont_diff_at_const eventually_eq_one },
-  { exact smooth_transition.times_cont_diff_at.comp x
-      (times_cont_diff_at_const.sub $ times_cont_diff_at_norm hx) }
+  rcases em (y = x) with rfl|hx,
+  { exact times_cont_diff_at_const.congr_of_eventually_eq (eventually_eq_one h0 hrR) },
+  { exact smooth_transition.times_cont_diff_at.comp y
+      (times_cont_diff_at.div_const $ times_cont_diff_at_const.sub $
+        times_cont_diff_at_id.dist times_cont_diff_at_const hx) }
 end
 
-protected lemma times_cont_diff {n} : times_cont_diff ℝ n (smooth_bump_function : E → ℝ) :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x, smooth_bump_function.times_cont_diff_at
+protected lemma times_cont_diff (h0 : 0 < r) (hrR : r < R) {n} :
+  times_cont_diff ℝ n (smooth_bump_function x r R) :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ y, smooth_bump_function.times_cont_diff_at h0 hrR
 
-protected lemma times_cont_diff_within_at {x : E} {s n} :
-  times_cont_diff_within_at ℝ n smooth_bump_function s x :=
-smooth_bump_function.times_cont_diff_at.times_cont_diff_within_at
+protected lemma times_cont_diff_within_at (h0 : 0 < r) (hrR : r < R) {s n} :
+  times_cont_diff_within_at ℝ n (smooth_bump_function x r R) s y :=
+(smooth_bump_function.times_cont_diff_at h0 hrR).times_cont_diff_within_at
 
 end smooth_bump_function
 
@@ -325,26 +336,19 @@ lemma exists_times_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_
 begin
   have e : E ≃L[ℝ] euclidean_space ℝ (fin $ findim ℝ E) :=
     continuous_linear_equiv.of_findim_eq findim_euclidean_space_fin.symm,
-  have : e '' s ∈ 𝓝 (e x) := e.to_homeomorph.is_open_map.image_mem_nhds hs,
-  rcases nhds_basis_closed_ball.mem_iff.1 this with ⟨ε, ε0 : 0 < ε, hε⟩,
-  set g : E → euclidean_space ℝ (fin $ findim ℝ E) := λ y, (2 / ε) • (e y - e x),
-  have hg : times_cont_diff ℝ ⊤ g,
-    from times_cont_diff_const.smul (e.times_cont_diff.sub times_cont_diff_const),
-  have hg0 : g x = 0 := by { simp only [g], simp }, -- `simp [g]` fails
-  have hsupp : closure (support (smooth_bump_function ∘ g)) ⊆ e.symm '' closed_ball (e x) ε,
-  { simp only [support_comp_eq_preimage, smooth_bump_function.support_eq, preimage, ball_0_eq,
-      mem_set_of_eq, e.image_symm_eq_preimage],
-    refine subset.trans (closure_lt_subset_le hg.continuous.norm continuous_const) _,
-    intros y hy,
-    have : 2 / ε * ∥e y - e x∥ ≤ 2, by simpa [g, norm_smul, real.norm_of_nonneg ε0.le] using hy,
-    rwa [mul_comm, ← mul_div_assoc, div_le_iff ε0, mul_comm, mul_le_mul_left (@zero_lt_two ℝ _ _),
-      ← dist_eq_norm] at this },
-  refine ⟨smooth_bump_function ∘ g, _, _, _, _, _⟩,
-  { exact (hg.continuous.tendsto' _ _ hg0).eventually smooth_bump_function.eventually_eq_one },
-  { exact λ y, ⟨smooth_bump_function.nonneg _, smooth_bump_function.le_one _⟩ },
-  { exact smooth_bump_function.times_cont_diff.comp hg },
-  { exact compact_of_is_closed_subset ((proper_space.compact_ball _ _).image e.symm.continuous)
-      is_closed_closure hsupp },
-  { refine subset.trans hsupp _,
-    rwa [image_subset_iff, ← e.image_eq_preimage] }
+  rcases locally_compact_space.local_compact_nhds _ _ hs with ⟨K, hxK, hKs, hKc⟩,
+  rw [← e.symm_map_nhds_eq, mem_map] at hxK,
+  obtain ⟨R, hR₀, hR⟩ : ∃ R > 0, ∀ y ∈ ball (e x) R, e.symm y ∈ K, from mem_nhds_iff.1 hxK,
+  have Hpos : 0 < R / 2 := half_pos hR₀,
+  have Hlt : R / 2 < R := half_lt_self hR₀,
+  have : closure (support (smooth_bump_function (e x) (R / 2) R ∘ e)) ⊆ K,
+  { refine closure_minimal (λ y hy, _) hKc.is_closed,
+    rw [support_comp_eq_preimage, smooth_bump_function.support_eq Hlt] at hy,
+    simpa only [e.symm_apply_apply] using (hR _ hy) },
+  exact ⟨smooth_bump_function (e x) (R / 2) R ∘ e,
+    e.continuous_at.eventually (smooth_bump_function.eventually_eq_one Hpos Hlt),
+    λ y, ⟨smooth_bump_function.nonneg, smooth_bump_function.le_one⟩,
+    (smooth_bump_function.times_cont_diff Hpos Hlt).comp e.times_cont_diff,
+    compact_of_is_closed_subset hKc is_closed_closure this,
+    subset.trans this hKs⟩
 end

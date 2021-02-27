@@ -971,6 +971,9 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { to_equiv := e.to_lin
 lemma image_closure (e : M ≃L[R] M₂) (s : set M) : e '' closure s = closure (e '' s) :=
 e.to_homeomorph.image_closure s
 
+lemma map_nhds_eq (e : M ≃L[R] M₂) (x : M) : map e (𝓝 x) = 𝓝 (e x) :=
+e.to_homeomorph.map_nhds_eq x
+
 -- Make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
 @[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
@@ -1038,6 +1041,9 @@ by { ext, refl }
 
 @[simp] lemma symm_to_homeomorph (e : M ≃L[R] M₂) : e.to_homeomorph.symm = e.symm.to_homeomorph :=
 rfl
+
+lemma symm_map_nhds_eq (e : M ≃L[R] M₂) (x : M) : map e.symm (𝓝 (e x)) = 𝓝 x :=
+e.to_homeomorph.symm_map_nhds_eq x
 
 /-- The composition of two continuous linear equivalences as a continuous linear equivalence. -/
 @[trans] protected def trans (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) : M ≃L[R] M₃ :=

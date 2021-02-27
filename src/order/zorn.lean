@@ -8,6 +8,7 @@ Zorn's lemmas.
 Ported from Isabelle/HOL (written by Jacques D. Fleuriot, Tobias Nipkow, and Christian Sternagel).
 -/
 import data.set.lattice
+import logic.relation
 noncomputable theory
 
 universes u
@@ -222,12 +223,31 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
     max_chain_spec.right $ ⟨insert a max_chain, this, ssubset_insert h⟩,
   hub a this⟩
 
+/--
+If every nonempty chain of a nonempty type has an upper bound, then there is a maximal element.
+-/
+theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
+  (h : ∀c, chain c → c.nonempty → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  ∃m, ∀a, m ≺ a → a ≺ m :=
+exists_maximal_of_chains_bounded
+  (λ c hc,
+    (eq_empty_or_nonempty c).elim
+      (λ h, ⟨classical.arbitrary α, λ x hx, (h ▸ hx : x ∈ (∅ : set α)).elim⟩)
+      (h c hc))
+  (λ a b c, trans)
+
 end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, chain (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
+
+theorem zorn_nonempty_partial_order {α : Type u} [partial_order α] [nonempty α]
+  (h : ∀ (c : set α), chain (≤) c → c.nonempty → ∃ub, ∀ a ∈ c, a ≤ ub) :
+  ∃ (m : α), ∀ a, m ≤ a → a = m :=
+let ⟨m, hm⟩ := @exists_maximal_of_nonempty_chains_bounded α (≤) _ h (λ a b c, le_trans) in
+⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
   (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)
@@ -271,6 +291,87 @@ begin
       refine ⟨ub, ⟨us, _⟩, h⟩,
       rcases c0 with ⟨s, hs⟩,
       exact subset.trans (cT hs).2 (h _ hs) } }
+end
+
+theorem extend_partial_order {α : Type u} (r : α → α → Prop) [is_partial_order α r] :
+  ∃ (s : α → α → Prop) [is_linear_order α s], ∀ x y, r x y → s x y :=
+begin
+  let S : set (set (α × α)) :=
+    λ R, is_partial_order α (λ x y, (x, y) ∈ R) ∧ ∀ (x y : α), r x y → (x, y) ∈ R,
+  let R : set (α × α) := λ t, r t.1 t.2,
+  have hR : R ∈ S := ⟨‹is_partial_order α r›, λ x y h, h⟩,
+  have hS : ∀c ⊆ S, chain (⊆) c → c.nonempty → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub,
+  { rintro c hc₁ hc₂ ⟨R', hR'⟩,
+    refine ⟨⋃₀ c, ⟨_, λ x y rxy, ⟨R', hR', (hc₁ hR').2 x y rxy⟩⟩, λ s hs T hT, ⟨s, hs, hT⟩⟩,
+    refine { refl := λ x, ⟨R', hR', (hc₁ hR').2 x x (refl x)⟩, trans := _, antisymm := _ },
+    { rintro x y z ⟨S₁, h₁S₁, h₂S₁⟩ ⟨S₂, h₁S₂, h₂S₂⟩,
+      cases hc₂.total_of_refl h₁S₁ h₁S₂,
+      { refine ⟨S₂, h₁S₂, _⟩,
+        have z := (hc₁ h₁S₂).1.trans,
+        apply z _ _ _ (h h₂S₁) h₂S₂ },
+      { refine ⟨S₁, h₁S₁, _⟩,
+        have z := (hc₁ h₁S₁).1.trans,
+        apply z _ _ _ h₂S₁ (h h₂S₂) } },
+    { rintro x y ⟨S₁, h₁S₁, h₂S₁⟩ ⟨S₂, h₁S₂, h₂S₂⟩,
+      cases hc₂.total_of_refl h₁S₁ h₁S₂,
+      { have z := (hc₁ h₁S₂).1.antisymm,
+        apply z x y (h h₂S₁) h₂S₂ },
+      { have z := (hc₁ h₁S₁).1.antisymm,
+        apply z x y h₂S₁ (h h₂S₂) } } },
+  rcases zorn_subset₀ S hS _ hR with ⟨T, ⟨hT₁, TR⟩, -, hT₃⟩,
+  let Tt : ∀ {a b c : α}, (a, b) ∈ T → (b, c) ∈ T → (a, c) ∈ T,
+  { apply hT₁.trans },
+  let Ta : ∀ {a b : α}, (a, b) ∈ T → (b, a) ∈ T → a = b,
+  { apply hT₁.antisymm },
+  refine ⟨λ x y, (x, y) ∈ T, { to_is_partial_order := hT₁, total := _ }, TR⟩,
+  intros x y,
+  by_contra h,
+  push_neg at h,
+  let T' : α × α → Prop := λ p, p ∈ T ∨ p = (x, y) ∨ ((p.1, x) ∈ T ∧ (y, p.2) ∈ T),
+  have T'S : T' ∈ S,
+  { refine ⟨_, λ x y rxy, or.inl (TR _ _ rxy)⟩,
+    refine
+      { refl := λ x, or.inl (TR _ _ (refl _)),
+        trans := _,
+        antisymm := _ },
+    { rintro a b c
+        (ab | abxy | ⟨ax : (a, x) ∈ T, yb : (y, b) ∈ T⟩)
+        (bc | bcxy | ⟨bx : (b, x) ∈ T, yc : (y, c) ∈ T⟩),
+      { apply or.inl (Tt ab bc) },
+      { cases bcxy,
+        exact or.inr (or.inr ⟨ab, TR _ _ (refl _)⟩) },
+      { exact or.inr (or.inr ⟨Tt ab bx, yc⟩) },
+      { cases abxy,
+        exact or.inr (or.inr ⟨TR _ _ (refl _), bc⟩) },
+      { cases abxy,
+        cases bcxy,
+        exact or.inl (TR _ _ (refl _)) },
+      { cases abxy,
+        exact or.inr (or.inr ⟨TR _ _ (refl _), yc⟩) },
+      { exact or.inr (or.inr ⟨ax, Tt yb bc⟩) },
+      { cases bcxy,
+        exact or.inr (or.inr ⟨ax, TR _ _ (refl _)⟩) },
+      { exact or.inr (or.inr ⟨ax, yc⟩) } },
+    { rintro a b
+        (ab | abxy | ⟨ax : (a, x) ∈ T, yb : (y, b) ∈ T⟩)
+        (ba | baxy | ⟨bx : (b, x) ∈ T, ya : (y, a) ∈ T⟩),
+      { exact Ta ab ba },
+      { cases baxy,
+        apply (h.2 ab).elim },
+      { apply (h.2 (Tt ya (Tt ab bx))).elim },
+      { cases abxy,
+        apply (h.2 ba).elim },
+      { cases abxy,
+        cases baxy,
+        refl },
+      { cases abxy,
+        apply (h.2 ya).elim },
+      { apply (h.2 (Tt (Tt yb ba) ax)).elim },
+      { cases baxy,
+        apply (h.2 yb).elim },
+      { apply (h.2 (Tt yb bx)).elim } } },
+  rw ←hT₃ _ T'S (λ x, or.inl) at h,
+  apply h.1 (or.inr (or.inl rfl)),
 end
 
 theorem chain.total {α : Type u} [preorder α]

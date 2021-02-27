@@ -11,9 +11,19 @@ import tactic.abel
 We define and prove some basic relations about
 `rising_factorial x n = x * (x+1) * ... * (x + n - 1)`
 which is also known as the Pochhammer function
-and its cousin `falling_factorial`.
+and its cousin
+`falling_factorial x n = x * (x-1) * ... * (x - (n-1))`.
+
+## Implementation
+
+In a commutative ring we have `rising_factorial r n = falling_factorial (r + n - 1) n`,
+but for the sake of (perhaps needless?) generality
+we give separate inductive definitions in a `[semiring R]`,
+additionally requiring `[has_sub R]` for `falling_factorial`.
+A few of the theorems require separate proofs assuming either `[ring R]` or `R = ℕ`.
 
 ## TODO
+
 There is lots more in this direction:
 * q-factorials, q-binomials, q-Pochhammer.
 * Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
@@ -64,7 +74,7 @@ end
 end
 
 section
-variables [ring R]
+variables [semiring R] [has_sub R]
 
 /--
 The falling factorial function: `falling_factorial x n = x * (x-1) * ... * (x - (n - 1))`.
@@ -80,6 +90,13 @@ lemma falling_factorial_one {r : R} : falling_factorial r 1 = r := by simp [fall
 
 lemma falling_factorial_eq_mul_left {r : R} {n : ℕ} :
   falling_factorial r (n + 1) = r * falling_factorial (r-1) n := rfl
+end
+
+section
+-- In fact, the lemmas in this section apply to `ℕ` as well:
+-- they only use `n - 0 = n` and `n - m - k = n - (m + k)`.
+-- Without a `[monus R]` typeclass, we just prove them separately below in the `nat` namespace.
+variables [ring R]
 
 lemma falling_factorial_eq_mul_right {r : R} {n : ℕ} :
   falling_factorial r (n + 1) = falling_factorial r n * (r - n) :=
@@ -106,24 +123,12 @@ end
 
 namespace nat
 
-/--
-A version of `falling_factorial` specific to `ℕ`.
-We need this because `ℕ` isn't a ring, and the general definition doesn't work for a semiring,
-but nevertheless this is the most important special case!
--/
-def falling_factorial : ℕ → ℕ → ℕ
-| r 0 := 1
-| r (n+1) := r * falling_factorial (r-1) n
-
-@[simp]
-lemma falling_factorial_zero {r : ℕ} : r.falling_factorial 0 = 1 := rfl
-
 section
 variables [ring R]
 
 @[norm_cast]
 lemma falling_factorial_coe {r n : ℕ} :
-  (falling_factorial r n : R) = _root_.falling_factorial (r : R) n :=
+  ((falling_factorial r n : ℕ) : R) = falling_factorial (r : R) n :=
 begin
   induction n with n ih generalizing r,
   { simp, },
@@ -135,15 +140,10 @@ begin
         push_cast [w], }, }, },
 end
 
-@[simp]
-lemma falling_factorial_one {r : ℕ} : r.falling_factorial 1 = r :=
-by simp [falling_factorial]
-
-lemma falling_factorial_eq_mul_left {r n : ℕ} :
-  r.falling_factorial (n + 1) = r * (r-1).falling_factorial n := rfl
-
+/-- We already have this theorem for `r : R` with `[ring R]`,
+but need to prove it separately for `ℕ`.-/
 lemma falling_factorial_eq_mul_right {r n : ℕ} :
-  r.falling_factorial (n + 1) = r.falling_factorial n * (r - n) :=
+  falling_factorial r (n + 1) = falling_factorial r n * (r - n) :=
 begin
   -- We could prove this from the ring case by using the injectivity of `ℕ → ℤ`,
   -- but it involves casing on `n ≤ r`, so it's easier to just redo it from scratch.
@@ -155,15 +155,17 @@ end
 
 @[simp]
 lemma falling_factorial_eq_factorial {n : ℕ} :
-  n.falling_factorial n = n.factorial :=
+  falling_factorial n n = n.factorial :=
 begin
   induction n with n ih,
   { simp, },
   { simp [falling_factorial_eq_mul_left, ih], }
 end
 
+/-- We already have this theorem for `r : R` with `[ring R]`,
+but need to prove it separately for `ℕ`.-/
 lemma falling_factorial_mul_falling_factorial {r n m : ℕ} :
-  r.falling_factorial n * (r - n).falling_factorial m = r.falling_factorial (n + m) :=
+  falling_factorial r n * falling_factorial (r - n) m = falling_factorial r (n + m) :=
 begin
   induction m with m ih,
   { simp, },
@@ -172,7 +174,7 @@ begin
 end
 
 lemma falling_factorial_ne_zero {n m : ℕ} (h : n ≤ m) :
-  m.falling_factorial n ≠ 0 :=
+  falling_factorial m n ≠ 0 :=
 begin
   intro w,
   have := @falling_factorial_mul_falling_factorial m n (m-n),
@@ -198,6 +200,7 @@ begin
 end
 
 end
+
 section
 lemma rising_factorial_eq_factorial {n : ℕ} :
   rising_factorial 1 n = n.factorial :=

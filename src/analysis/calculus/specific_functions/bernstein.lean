@@ -165,12 +165,12 @@ iterate_derivative_at_zero_eq_zero_of_lt n (lt_add_one ν)
 
 @[simp]
 lemma iterate_derivative_at_0 (n ν : ℕ) :
-  (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = n.falling_factorial ν :=
+  (polynomial.derivative^[ν] (bernstein_polynomial n ν)).eval 0 = (falling_factorial n ν : ℕ) :=
 begin
   induction ν with ν ih generalizing n,
   { simp [eval_at_0], },
   { simp [derivative_succ, ih],
-    rw [nat.falling_factorial_eq_mul_left],
+    rw [falling_factorial_eq_mul_left],
     push_cast, }
 end
 
@@ -196,12 +196,11 @@ end
 @[simp]
 lemma iterate_derivative_at_1 (n ν : ℕ) (h : ν ≤ n) :
   (polynomial.derivative^[n-ν] (bernstein_polynomial n ν)).eval 1 =
-    (-1)^(n-ν) * n.falling_factorial (n-ν) :=
+    (-1)^(n-ν) * (falling_factorial n (n-ν) : ℕ) :=
 begin
   rw flip' _ _ h,
   simp [polynomial.eval_comp],
 end
-
 
 lemma iterate_derivative_at_1_ne_zero (n ν : ℕ) (h : ν ≤ n) :
   (polynomial.derivative^[n-ν] (bernstein_polynomial n ν)).eval 1 ≠ 0 :=
@@ -210,8 +209,6 @@ begin
     false_or, int.coe_nat_eq_zero, int.neg_one_pow_ne_zero, mul_eq_zero],
   exact nat.falling_factorial_ne_zero (nat.sub_le _ _),
 end
-
-
 
 open submodule
 

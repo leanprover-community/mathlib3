@@ -76,7 +76,7 @@ do t ← target,
       n ← get_local n,
       apply n,
       clear n)
-  | _ := fail!"failed to apply {pp} to the goal"
+  | _ := fail!"failed to apply {e} to the goal"
   end
 
 namespace interactive

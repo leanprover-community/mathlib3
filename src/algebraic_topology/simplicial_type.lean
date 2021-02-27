@@ -27,8 +27,7 @@ namespace sType
 
 /-- The `n`-th standard simplex associated with a nonempty finite linear order `n`
 is the Yoneda embedding of `n`. -/
-def standard_simplex : simplex_category ⥤ sType :=
-yoneda
+def standard_simplex : simplex_category ⥤ sType := yoneda
 
 instance : inhabited sType := ⟨standard_simplex.obj (0 : ℕ)⟩
 

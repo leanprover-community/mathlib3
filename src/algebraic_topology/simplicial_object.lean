@@ -52,25 +52,16 @@ by { ext, simp [eq_to_iso], }
 /-- The generic case of the first simplicial identity -/
 lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
   X.δ j.succ ≫ X.δ i = X.δ i.cast_succ ≫ X.δ j :=
-begin
-  dsimp [δ],
-  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ H],
-end
+by { dsimp [δ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ H] }
 
 /-- The special case of the first simplicial identity -/
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : X.δ i.cast_succ ≫ X.δ i = X.δ i.succ ≫ X.δ i :=
-begin
-  dsimp [δ],
-  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ_self],
-end
+by { dsimp [δ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_δ_self] }
 
 /-- The second simplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   X.σ j.succ ≫ X.δ i.cast_succ = X.δ i ≫ X.σ j :=
-begin
-  dsimp [δ, σ],
-  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_le H],
-end
+by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_le H] }
 
 /-- The first part of the third simplicial identity -/
 lemma δ_comp_σ_self {n} {i : fin (n+1)} :
@@ -91,18 +82,12 @@ end
 /-- The fourth simplicial identity -/
 lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
   X.σ j.cast_succ ≫ X.δ i.succ = X.δ i ≫ X.σ j :=
-begin
-  dsimp [δ, σ],
-  simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_gt H],
-end
+by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.δ_comp_σ_of_gt H] }
 
 /-- The fifth simplicial identity -/
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   X.σ j ≫ X.σ i.cast_succ = X.σ i ≫ X.σ j.succ :=
-begin
-  dsimp [δ, σ],
-  simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H],
-end
+by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
 
 end simplicial_object
 

@@ -63,16 +63,8 @@ def semilattice_sup.mk' {α : Type*} {h : has_sup α}
       dsimp only [(≤)] at *,
       rwa [←hba, sup_comm],
     end,
-  le_sup_left := λ a b,
-    begin
-      change a ⊔ (a ⊔ b) = (a ⊔ b),
-      rw [←sup_assoc, sup_idem],
-    end,
-  le_sup_right := λ a b,
-    begin
-      change b ⊔ (a ⊔ b) = (a ⊔ b),
-      rw [sup_comm, sup_assoc, sup_idem],
-    end,
+  le_sup_left  := λ a b, show a ⊔ (a ⊔ b) = (a ⊔ b), by rw [←sup_assoc, sup_idem],
+  le_sup_right := λ a b, show b ⊔ (a ⊔ b) = (a ⊔ b), by rw [sup_comm, sup_assoc, sup_idem],
   sup_le := λ a b c hac hbc,
     begin
       dsimp only [(≤), preorder.le] at *,
@@ -246,16 +238,8 @@ def semilattice_inf.mk' {α : Type*} {h : has_inf α}
       dsimp only [(≤)] at *,
       rw [hba, inf_comm, ←hab],
     end,
-  inf_le_left := λ a b,
-    begin
-      change a ⊓ b = a ⊓ b ⊓ a,
-      rw [inf_comm, inf_assoc, inf_idem],
-    end,
-  inf_le_right := λ a b,
-    begin
-      change a ⊓ b = a ⊓ b ⊓ b,
-      rw [inf_assoc, inf_idem],
-    end,
+  inf_le_left  := λ a b, show a ⊓ b = a ⊓ b ⊓ a, by rw [inf_comm, inf_assoc, inf_idem],
+  inf_le_right := λ a b, show a ⊓ b = a ⊓ b ⊓ b, by rw [inf_assoc, inf_idem],
   le_inf := λ a b c hac hbc,
     begin
       dsimp only [(≤), preorder.le] at *,
@@ -416,21 +400,13 @@ have sup_eq_iff_inf_eq : ∀ (a b : α), a ⊔ b = b ↔ a ⊓ b = a := λ a b,
    λ h, by rw [←h, sup_comm, inf_comm, sup_inf_self]⟩,
 { /- Lean doesn't know that the `partial_order` instances from `semilattice_sup` and
     `semilattice_inf` agree, so we have to provide these fields explicitly. -/
-  inf_le_left := λ a b,
-    begin
-      change a ⊓ b ⊔ a = a,
-      rw [sup_comm, sup_inf_self],
-    end,
-  inf_le_right := λ a b,
-    begin
-      change a ⊓ b ⊔ b = b,
-      rw [sup_comm, inf_comm, sup_inf_self],
-    end,
+  inf_le_left  := λ a b, show a ⊓ b ⊔ a = a, by rw [sup_comm, sup_inf_self],
+  inf_le_right := λ a b, show a ⊓ b ⊔ b = b, by rw [sup_comm, inf_comm, sup_inf_self],
   le_inf := λ a b c hab hac,
     begin
-      change _ = _ at hab,
-      change _ = _ at hac,
-      change _ = _,
+      change a ⊔ b = b at hab,
+      change a ⊔ c = c at hac,
+      change a ⊔ b ⊓ c = b ⊓ c,
       rw sup_eq_iff_inf_eq at ⊢ hab hac,
       calc a ⊓ (b ⊓ c) = a ⊓ b ⊓ c : by rw inf_assoc
                    ... = a ⊓ c     : by rw hab

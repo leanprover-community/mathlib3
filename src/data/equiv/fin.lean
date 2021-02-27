@@ -38,17 +38,25 @@ def fin_two_equiv : fin 2 ≃ bool :=
   assume b, match b with tt := rfl | ff := rfl end⟩
 
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
-@[simps]
+
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=
 ⟨λ k, ⟨k.1, by { subst h, exact k.2 }⟩, λ k, ⟨k.1, by { subst h, exact k.2}⟩, by tidy, by tidy⟩
 
-@[simp] lemma fin_congr_apply {n m : ℕ} (h : n = m) (k : fin n) :
-  fin_congr h k = ⟨k.1, by { subst h, exact k.2 }⟩ :=
+@[simp] lemma fin_congr_apply_mk {n m : ℕ} (h : n = m) (k : ℕ) (w : k < n) :
+  fin_congr h ⟨k, w⟩ = ⟨k, by { subst h, exact w }⟩ :=
 rfl
 
-@[simp] lemma fin_congr_symm_apply {n m : ℕ} (h : n = m) (k : fin m) :
-  (fin_congr h).symm k = ⟨k.1, by { subst h, exact k.2 }⟩ :=
+@[simp] lemma fin_congr_symm_apply_mk {n m : ℕ} (h : n = m) (k : ℕ) (w : k < m) :
+  (fin_congr h).symm ⟨k, w⟩ = ⟨k, by { subst h, exact w }⟩ :=
 rfl
+
+@[simp] lemma fin_congr_apply_coe {n m : ℕ} (h : n = m) (k : fin n) :
+  (fin_congr h k : ℕ) = k :=
+by { cases k, refl, }
+
+@[simp] lemma fin_congr_symm_apply_coe {n m : ℕ} (h : n = m) (k : fin m) :
+  ((fin_congr h).symm k : ℕ) = k :=
+by { cases k, refl, }
 
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of

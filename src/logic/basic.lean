@@ -219,7 +219,7 @@ iff_def.trans and.comm
 theorem imp_true_iff {α : Sort*} : (α → true) ↔ true :=
 iff_true_intro $ λ_, trivial
 
-@[simp] theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
+theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
 /-! ### Declarations about `not` -/

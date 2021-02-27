@@ -84,7 +84,7 @@ instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : ref
   { reflects_colimit := λ K,
     { reflects := λ c t,
       begin
-        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.fun_inv_id,
+        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.as_equivalence.unit_iso.symm,
         refine (((is_colimit.precompose_inv_equiv K.right_unitor _).symm) l).of_iso_colimit _,
         tidy,
       end } } }
@@ -112,7 +112,7 @@ lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_coli
   has_colimit K :=
 @has_colimit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
 (@adjunction.has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
-((functor.right_unitor _).symm ≪≫ (iso_whisker_left K (fun_inv_id E)).symm)
+((functor.right_unitor _).symm ≪≫ iso_whisker_left K (E.as_equivalence.unit_iso))
 
 end preservation_colimits
 

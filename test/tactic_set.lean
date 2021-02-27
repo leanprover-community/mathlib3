@@ -1,14 +1,18 @@
+/-
+Copyright (c) 2021 Martin Zinkevich. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Martin Zinkevich
+-/
 import tactic.set
 import tactic.ext
 import tactic.tauto
 import data.set.default
 import data.finset.default
 
---#check set.top_eq_univ
---#check nat.succ_inj
---#check nat.succ_le_succ
---#check eq
---lemma 
+/-! The set equality lemmas from the file data.set.basic, reproven with set_taut or set_taut'.
+
+  Did not include iff lemmas nor those that had additional
+  conditions that didn't work. -/
 open set
 
 namespace set_tests
@@ -361,28 +365,6 @@ by set_taut
 
 lemma Inter_inter_eq_Inter_inter_of_nonempty {κ : Type*} [nonempty κ]
   (f : κ → set α) : (⋂ b, f b) ∩ s = ⋂ b, f b ∩ s  := by set_taut
-
-/- It would be good to have a pattern like this, but it doesn't work
-   well. Need to add intros or set.subset_def. -/
-meta def solve_subsetsh : tactic unit :=
-do lemmas ← simp_lemmas.mk_default,
-do (tactic.simp_all lemmas []),
-do tactic.tautology
-
-lemma Inter_inter_subset_Inter_inter : (⋂ b, f b) ∩ s ⊆ ⋂ b, f b ∩ s  := begin
-  rw set.subset_def, solve_subsetsh,
-end 
- 
-lemma subset_trans (h_st : s ⊆ t) (h_tu : t ⊆ u)  : s ⊆ u := begin
-  rw set.subset_def, 
-  --intros x h1,
-  tautology,
-end 
-
-lemma imp_trans' (P Q R : α → Prop) (h_PQ : ∀ a, P a → Q a) (h_QR : ∀ a, Q a → R a) (a' : α) (h_P : P a') : R a' := begin
-  tautology,
-end 
-
 
 end set_tests
 

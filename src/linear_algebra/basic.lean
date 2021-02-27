@@ -802,6 +802,36 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
+/-- If `m ∈ M` is contained in the `R`-submodule spanned by a set `s ⊆ M`, then we can write
+`m` as a finite `R`-linear combination of elements of `s`.
+The implementation uses `finsupp.sum`.  -/
+
+lemma span_as_sum {R M : Type*} [semiring R] [add_comm_group M] [semimodule R M]
+  {m : M} {s : set M} (hm : m ∈ submodule.span R s) :
+  ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ m, (smul_add_hom R M).flip m)) = m :=
+begin
+  classical,
+  refine span_induction hm (λ x hx, _) ⟨0, by simp⟩ _ _; clear hm m,
+  { refine ⟨finsupp.single x 1, λ y hy, _, by simp⟩,
+    rw [finset.mem_coe, finsupp.mem_support_single] at hy,
+    rwa hy.1 },
+  { rintros x y ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩,
+    refine ⟨c + d, _, by simp⟩,
+    refine set.subset.trans _ (set.union_subset hc hd),
+    rw [← finset.coe_union, finset.coe_subset],
+    convert finsupp.support_add },
+  { rintros r m ⟨c, hc, rfl⟩,
+    refine ⟨r • c, λ x hx, hc _, _⟩,
+    { rw [finset.mem_coe, finsupp.mem_support_iff] at hx ⊢,
+      rw [finsupp.coe_smul] at hx,
+      exact right_ne_zero_of_mul hx },
+    { rw finsupp.sum_smul_index' (λ (m : M), _),
+      { convert (add_monoid_hom.map_finsupp_sum (smul_add_hom R M r) _ _).symm,
+        ext m s,
+        simp [mul_smul r s m] },
+      { exact (((smul_add_hom R M).flip) m).map_zero } } }
+end
+
 section
 variables (R M)
 

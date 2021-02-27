@@ -669,9 +669,20 @@ begin
   rintro rfl, exact has hx
 end
 
+lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
+  {M : Type*} [add_comm_monoid M] (f : α → M) :
+  (s.map f).sum = ∑ m in s.to_finset, s.count m •ℕ f m :=
+@prod_multiset_map_count _ _ _ (multiplicative M) _ f
+attribute [to_additive] prod_multiset_map_count
+
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
+
+lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
+  s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
+@prod_multiset_count (multiplicative α) _ _ s
+attribute [to_additive] prod_multiset_count
 
 /--
 To prove a property of a product, it suffices to prove that

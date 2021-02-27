@@ -675,11 +675,11 @@ lemma prod_induction {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
 (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
 p $ ∏ x in s, f x :=
 begin
-  classical,
-  induction s using finset.induction with x hx s hs, simpa,
-  rw finset.prod_insert, swap, assumption,
-  apply p_mul, apply p_s, simp,
-  apply hs, intros a ha, apply p_s, simp [ha],
+  refine multiset.prod_induction _ _ p_mul p_one _,
+  intros y hy,
+  obtain ⟨x, hxs, hxy⟩ := multiset.mem_map.mp hy,
+  rw ← hxy,
+  exact p_s x hxs,
 end
 
 /--
@@ -689,20 +689,15 @@ the property is multiplicative and holds on factors.
 @[to_additive "To prove a property of a sum, it suffices to prove that
 the property is additive and holds on summands."]
 lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
-(p_mul : ∀ a b, p a → p b → p (a * b)) (hs_nonempty : s.nonempty) (p_s : ∀ x ∈ s, p $ f x) :
-p $ ∏ x in s, f x :=
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (hs_nonempty : s.nonempty) (p_s : ∀ x ∈ s, p $ f x) :
+  p $ ∏ x in s, f x :=
 begin
-  haveI : decidable_eq α := classical.dec_eq α,
-  revert s,
-  refine finset.induction _ _,
-  { exact λ h, absurd h set.empty_not_nonempty, },
-  intros a s ha h h_nonempty hpsa,
-  by_cases hs_empty : s = ∅,
-  { simp [hs_empty, hpsa a _], },
-  { rw finset.prod_insert ha,
-    rw [← ne.def, ← nonempty_iff_ne_empty] at hs_empty,
-    exact p_mul _ _ (hpsa a (finset.mem_insert_self a s))
-      (h hs_empty (λ x hx, hpsa x (finset.mem_insert_of_mem hx))), },
+  refine multiset.prod_induction_nonempty p p_mul _ _,
+  { simp [nonempty_iff_ne_empty.mp hs_nonempty], },
+  intros y hy,
+  obtain ⟨x, hxs, hxy⟩ := multiset.mem_map.mp hy,
+  rw ← hxy,
+  exact p_s x hxs,
 end
 
 /--

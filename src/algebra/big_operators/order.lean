@@ -69,13 +69,19 @@ end
 lemma le_prod_of_submultiplicative' [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_one : f 1 ≤ 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : finset γ) (g : γ → α) :
   f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
-le_prod_of_submultiplicative_on_pred f h_one (λ i, true) (by simp [h_mul]) (by simp) g (by simp)
+begin
+  refine le_trans (multiset.le_prod_of_submultiplicative' f h_one h_mul _) _,
+  rw [multiset.map_map],
+  refl,
+end
 
 @[to_additive le_sum_of_subadditive]
 lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_one : f 1 = 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : finset γ) (g : γ → α) :
   f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 le_prod_of_submultiplicative' f (le_of_eq h_one) h_mul s g
+
+#print axioms le_prod_of_submultiplicative
 
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=

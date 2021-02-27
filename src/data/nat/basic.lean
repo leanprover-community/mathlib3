@@ -94,6 +94,10 @@ instance : canonically_ordered_comm_semiring ℕ :=
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
+instance : canonically_linear_ordered_add_monoid ℕ :=
+{ .. (infer_instance : canonically_ordered_add_monoid ℕ),
+  .. nat.linear_order }
+
 instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
   semilattice_sup_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
@@ -108,6 +112,8 @@ instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
 { mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
   mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
+
+attribute [simp] nat.not_lt_zero
 
 /-!
 Inject some simple facts into the type class system.
@@ -339,6 +345,13 @@ begin
   rw add_assoc,
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
+
+-- TODO: generalize to some ordered add_monoids, based on #6145
+lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
+by { refine le_trans _ h, simp }
+
+lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
+by { refine le_trans _ h, simp }
 
 /-! ### `pred` -/
 
@@ -619,6 +632,14 @@ This section is here due to dependencies -- the lemmas here require some of the 
 proved above, and some of the results in later sections depend on the definitions in this section.
 -/
 
+@[simp] lemma rec_zero {C : ℕ → Sort u} (h0 : C 0) (h : ∀ n, C n → C (n + 1)) :
+  (nat.rec h0 h : Π n, C n) 0 = h0 :=
+rfl
+
+@[simp] lemma rec_add_one {C : ℕ → Sort u} (h0 : C 0) (h : ∀ n, C n → C (n + 1)) (n : ℕ) :
+  (nat.rec h0 h : Π n, C n) (n + 1) = h n ((nat.rec h0 h : Π n, C n) n) :=
+rfl
+
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]
@@ -748,33 +769,14 @@ lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
 nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
-begin
-  revert x, refine nat.strong_rec' _ y,
-  clear y, intros y IH x,
-  cases decidable.lt_or_le y k with h h,
-  { rw [div_eq_of_lt h],
-    cases x with x,
-    { simp [zero_mul, zero_le] },
-    { rw succ_mul,
-      exact iff_of_false (not_succ_le_zero _)
-        (not_le_of_lt $ lt_of_lt_of_le h (le_add_left _ _)) } },
-  { rw [div_eq_sub_div k0 h],
-    cases x with x,
-    { simp [zero_mul, zero_le] },
-    { rw [← add_one, nat.add_le_add_iff_le_right, succ_mul,
-        IH _ (sub_lt_of_pos_le _ _ k0 h), add_le_to_le_sub _ h] } }
-end
-
-theorem div_mul_le_self' (m n : ℕ) : m / n * n ≤ m :=
-(nat.eq_zero_or_pos n).elim (λ n0, by simp [n0, zero_le]) $ λ n0,
-(le_div_iff_mul_le' n0).1 (le_refl _)
+le_div_iff_mul_le x y k0
 
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
-(le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self' _ _) h
+(le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self _ _) h
 
 lemma lt_of_div_lt_div {m n k : ℕ} (h : m / k < n / k) : m < n :=
 by_contradiction $ λ h₁, absurd h (not_lt_of_ge (nat.div_le_div_right (not_lt.1 h₁)))
@@ -843,6 +845,15 @@ protected theorem mul_div_cancel_left' {a b : ℕ} (Hd :  a ∣ b) : a * (b / a)
 by rw [mul_comm,nat.div_mul_cancel Hd]
 
 /-! ### `mod`, `dvd` -/
+
+lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=
+(nat.add_comm _ _).trans (mod_add_div _ _)
+
+lemma mod_add_div' (m k : ℕ) : m % k + (m / k) * k = m :=
+by { rw mul_comm, exact mod_add_div _ _ }
+
+lemma div_add_mod' (m k : ℕ) : (m / k) * k + m % k = m :=
+by { rw mul_comm, exact div_add_mod _ _ }
 
 protected theorem div_mod_unique {n k m d : ℕ} (h : 0 < k) :
   n / k = d ∧ n % k = m ↔ m + k * d = n ∧ m < k :=
@@ -990,9 +1001,9 @@ by rw [add_comm, add_mod_eq_add_mod_right _ H, add_comm]
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
   conv_lhs {
-    rw [←mod_add_div a n, ←mod_add_div b n, right_distrib, left_distrib, left_distrib,
-        mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left,
-        mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
+    rw [←mod_add_div a n, ←mod_add_div' b n, right_distrib, left_distrib, left_distrib,
+        mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left, ← mul_assoc,
+        add_mul_mod_self_right] }
 end
 
 lemma dvd_div_of_mul_dvd {a b c : ℕ} (h : a * b ∣ c) : b ∣ c / a :=
@@ -1155,6 +1166,13 @@ strict_mono.injective (pow_right_strict_mono k)
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
 
+lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
+  n * q < a * q ^ (n + 1) :=
+begin
+  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
+  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+end
+
 end nat
 
 lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
@@ -1186,7 +1204,7 @@ begin
     { rw [div_lt_iff_lt_mul p _ b_pos],
       simpa [pow_succ'] using h₁ },
     rw [mod_eq_of_lt h₁, mod_eq_of_lt h₂],
-    simp [mod_add_div, nat.add_comm] },
+    simp [div_add_mod] },
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
@@ -1243,6 +1261,9 @@ dvd_trans this hdiv
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
+lemma pow_div {x m n : ℕ} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) :=
+by rw [nat.div_eq_iff_eq_mul_left (pow_pos hx n) (pow_dvd_pow _ h), pow_sub_mul_pow _ h]
+
 /-- `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)` for some `k`. -/
 lemma exists_lt_and_lt_iff_not_dvd (m : ℕ) {n : ℕ} (hn : 0 < n) :
   (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=
@@ -1259,8 +1280,9 @@ end
 /-! ### `find` -/
 section find
 
-lemma find_eq_iff {p : ℕ → Prop} [decidable_pred p] (h : ∃ n, p n) {m} :
-  nat.find h = m ↔ p m ∧ ∀ n < m, ¬ p n :=
+variables  {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
+
+lemma find_eq_iff (h : ∃ n : ℕ, p n) : nat.find h = m ↔ p m ∧ ∀ n < m, ¬ p n :=
 begin
   split,
   { rintro rfl, exact ⟨nat.find_spec h, λ _, nat.find_min h⟩ },
@@ -1268,13 +1290,35 @@ begin
     exact le_antisymm (nat.find_min' h hm) (not_lt.1 $ imp_not_comm.1 (hlt _) $ nat.find_spec h) }
 end
 
-@[simp] lemma find_eq_zero {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
-  nat.find h = 0 ↔ p 0 :=
+@[simp] lemma find_lt_iff (h : ∃ n : ℕ, p n) (n : ℕ) : nat.find h < n ↔ ∃ m < n, p m :=
+⟨λ h2, ⟨nat.find h, h2, nat.find_spec h⟩, λ ⟨m, hmn, hm⟩, (nat.find_min' h hm).trans_lt hmn⟩
+
+@[simp] lemma find_le_iff (h : ∃ n : ℕ, p n) (n : ℕ) : nat.find h ≤ n ↔ ∃ m ≤ n, p m :=
+by simp only [exists_prop, ← lt_succ_iff, find_lt_iff]
+
+@[simp] lemma le_find_iff (h : ∃ (n : ℕ), p n) (n : ℕ) : n ≤ nat.find h ↔ ∀ m < n, ¬ p m :=
+by simp_rw [← not_lt, not_iff_comm, not_forall, not_not, find_lt_iff]
+
+@[simp] lemma lt_find_iff (h : ∃ n : ℕ, p n) (n : ℕ) : n < nat.find h ↔ ∀ m ≤ n, ¬ p m :=
+by simp only [← succ_le_iff, le_find_iff, succ_le_succ_iff]
+
+@[simp] lemma find_eq_zero (h : ∃ n : ℕ, p n) : nat.find h = 0 ↔ p 0 :=
 by simp [find_eq_iff]
 
-@[simp] lemma find_pos {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
-  0 < nat.find h ↔ ¬ p 0 :=
+@[simp] lemma find_pos (h : ∃ n : ℕ, p n) : 0 < nat.find h ↔ ¬ p 0 :=
 by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
+
+theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
+  nat.find hp ≤ nat.find hq :=
+nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
+  nat.find h₁ = nat.find h₂ + 1 :=
+begin
+  refine (find_eq_iff _).2 ⟨nat.find_spec h₂, λ n hn, _⟩,
+  cases n with n,
+  exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (succ_lt_succ_iff.1 hn)]
+end
 
 end find
 
@@ -1601,11 +1645,10 @@ instance decidable_lo_hi_le (lo hi : ℕ) (P : ℕ → Prop) [H : decidable_pred
 decidable_of_iff (∀x, lo ≤ x → x < hi + 1 → P x) $
 ball_congr $ λ x hl, imp_congr lt_succ_iff iff.rfl
 
-/-! ### find -/
-
-theorem find_le {p q : ℕ → Prop} [decidable_pred p] [decidable_pred q]
-  (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
-  nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
+instance decidable_exists_lt {P : ℕ → Prop} [h : decidable_pred P] :
+  decidable_pred (λ n, ∃ (m : ℕ), m < n ∧ P m)
+| 0 := is_false (by simp)
+| (n + 1) := decidable_of_decidable_of_iff (@or.decidable _ _ (decidable_exists_lt n) (h n))
+  (by simp only [lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, exists_eq_left])
 
 end nat

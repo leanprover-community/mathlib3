@@ -48,9 +48,7 @@ rfl
 
 end finset
 
-/-
-## Operator precedence of `∏` and `∑`
-
+/--
 There is no established mathematical convention
 for the operator precedence of big operators like `∏` and `∑`.
 We will have to make a choice.
@@ -68,6 +66,7 @@ In practice, this means that parentheses should be placed as follows:
 ```
 (Example taken from page 490 of Knuth's *Concrete Mathematics*.)
 -/
+library_note "operator precedence of big operators"
 
 localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r"
   in big_operators
@@ -131,6 +130,16 @@ lemma ring_hom.map_sum [semiring β] [semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
+
+@[to_additive]
+lemma monoid_hom.coe_prod [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
+  ⇑(∏ x in s, f x) = ∏ x in s, f x :=
+(monoid_hom.coe_fn β γ).map_prod _ _
+
+@[simp, to_additive]
+lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β →* γ) (s : finset α)
+  (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
+(monoid_hom.eval b).map_prod _ _
 
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
@@ -217,24 +226,23 @@ by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 @[simp, to_additive]
 lemma prod_sum_elim [decidable_eq (α ⊕ γ)]
   (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
-  ∏ x in s.image sum.inl ∪ t.image sum.inr, sum.elim f g x = (∏ x in s, f x) * (∏ x in t, g x) :=
+  ∏ x in s.map function.embedding.inl ∪ t.map function.embedding.inr, sum.elim f g x =
+    (∏ x in s, f x) * (∏ x in t, g x) :=
 begin
-  rw [prod_union, prod_image, prod_image],
-  { simp only [sum.elim_inl, sum.elim_inr] },
-  { exact λ _ _ _ _, sum.inr.inj },
-  { exact λ _ _ _ _, sum.inl.inj },
-  { rintros i hi,
-    erw [finset.mem_inter, finset.mem_image, finset.mem_image] at hi,
-    rcases hi with ⟨⟨i, hi, rfl⟩, ⟨j, hj, H⟩⟩,
+  rw [prod_union, prod_map, prod_map],
+  { simp only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,
+      sum.elim_inr] },
+  { simp only [disjoint_left, finset.mem_map, finset.mem_map],
+    rintros _ ⟨i, hi, rfl⟩ ⟨j, hj, H⟩,
     cases H }
 end
 
 @[to_additive]
-lemma prod_bind [decidable_eq α] {s : finset γ} {t : γ → finset α} :
+lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α} :
   (∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) →
-  (∏ x in (s.bind t), f x) = ∏ x in s, ∏ i in t x, f i :=
+  (∏ x in (s.bUnion t), f x) = ∏ x in s, ∏ i in t x, f i :=
 by haveI := classical.dec_eq γ; exact
-finset.induction_on s (λ _, by simp only [bind_empty, prod_empty])
+finset.induction_on s (λ _, by simp only [bUnion_empty, prod_empty])
   (assume x s hxs ih hd,
   have hd' : ∀x∈s, ∀y∈s, x ≠ y → disjoint (t x) (t y),
     from assume _ hx _ hy, hd _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy),
@@ -242,16 +250,16 @@ finset.induction_on s (λ _, by simp only [bind_empty, prod_empty])
     from assume _ hy h, by rw [←h] at hy; contradiction,
   have ∀y∈s, disjoint (t x) (t y),
     from assume _ hy, hd _ (mem_insert_self _ _) _ (mem_insert_of_mem hy) (this _ hy),
-  have disjoint (t x) (finset.bind s t),
-    from (disjoint_bind_right _ _ _).mpr this,
-  by simp only [bind_insert, prod_insert hxs, prod_union this, ih hd'])
+  have disjoint (t x) (finset.bUnion s t),
+    from (disjoint_bUnion_right _ _ _).mpr this,
+  by simp only [bUnion_insert, prod_insert hxs, prod_union this, ih hd'])
 
 @[to_additive]
 lemma prod_product {s : finset γ} {t : finset α} {f : γ×α → β} :
   (∏ x in s.product t, f x) = ∏ x in s, ∏ y in t, f (x, y) :=
 begin
   haveI := classical.dec_eq α, haveI := classical.dec_eq γ,
-  rw [product_eq_bind, prod_bind],
+  rw [product_eq_bUnion, prod_bUnion],
   { congr, funext, exact prod_image (λ _ _ _ _ H, (prod.mk.inj H).2) },
   simp only [disjoint_iff_ne, mem_image],
   rintros _ _ _ _ h ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ ⟨_, _⟩ ⟨_, _, ⟨_, _⟩⟩ _,
@@ -273,9 +281,9 @@ lemma prod_sigma {σ : α → Type*}
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
 by classical;
 calc (∏ x in s.sigma t, f x) =
-       ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
+       ∏ x in s.bUnion (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bUnion
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
-    prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
+    prod_bUnion $ assume a₁ ha a₂ ha₂ h x hx,
     by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
@@ -293,8 +301,8 @@ lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ
   (∏ y in t, ∏ x in s.filter (λ x, g x = y), f x) = ∏ x in s, f x :=
 begin
   letI := classical.dec_eq α,
-  rw [← bind_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
-  refine (prod_bind $ λ x' hx y' hy hne, _).symm,
+  rw [← bUnion_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
+  refine (prod_bUnion $ λ x' hx y' hy hne, _).symm,
   rw [disjoint_filter],
   rintros x hx rfl,
   exact hne
@@ -516,6 +524,16 @@ prod_dite_eq' s a (λ x _, b x)
 lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) :
   (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
 apply_ite (λ s, ∏ x in s, f x) _ _ _
+
+@[simp] lemma sum_pi_single' {ι M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (i : ι) (x : M) (s : finset ι) :
+  ∑ j in s, pi.single i x j = if i ∈ s then x else 0 :=
+sum_dite_eq' _ _ _
+
+@[simp] lemma sum_pi_single {ι : Type*} {M : ι → Type*}
+  [decidable_eq ι] [Π i, add_comm_monoid (M i)] (i : ι) (f : Π i, M i) (s : finset ι) :
+  ∑ j in s, pi.single j (f j) i = if i ∈ s then f i else 0 :=
+sum_dite_eq _ _ _
 
 /--
   Reorder a product.
@@ -1036,20 +1054,20 @@ end comm_group
   card (s.sigma t) = ∑ a in s, card (t a) :=
 multiset.card_sigma _ _
 
-lemma card_bind [decidable_eq β] {s : finset α} {t : α → finset β}
+lemma card_bUnion [decidable_eq β] {s : finset α} {t : α → finset β}
   (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
-  (s.bind t).card = ∑ u in s, card (t u) :=
-calc (s.bind t).card = ∑ i in s.bind t, 1 : by simp
-... = ∑ a in s, ∑ i in t a, 1 : finset.sum_bind h
+  (s.bUnion t).card = ∑ u in s, card (t u) :=
+calc (s.bUnion t).card = ∑ i in s.bUnion t, 1 : by simp
+... = ∑ a in s, ∑ i in t a, 1 : finset.sum_bUnion h
 ... = ∑ u in s, card (t u) : by simp
 
-lemma card_bind_le [decidable_eq β] {s : finset α} {t : α → finset β} :
-  (s.bind t).card ≤ ∑ a in s, (t a).card :=
+lemma card_bUnion_le [decidable_eq β] {s : finset α} {t : α → finset β} :
+  (s.bUnion t).card ≤ ∑ a in s, (t a).card :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp)
   (λ a s has ih,
-    calc ((insert a s).bind t).card ≤ (t a).card + (s.bind t).card :
-    by rw bind_insert; exact finset.card_union_le _ _
+    calc ((insert a s).bUnion t).card ≤ (t a).card + (s.bUnion t).card :
+    by rw bUnion_insert; exact finset.card_union_le _ _
     ... ≤ ∑ a in insert a s, card (t a) :
     by rw sum_insert has; exact add_le_add_left ih _)
 

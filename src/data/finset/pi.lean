@@ -70,7 +70,7 @@ assume e₁ e₂ eq,
 
 @[simp] lemma pi_insert [∀a, decidable_eq (δ a)]
   {s : finset α} {t : Πa:α, finset (δ a)} {a : α} (ha : a ∉ s) :
-  pi (insert a s) t = (t a).bind (λb, (pi s t).image (pi.cons s a b)) :=
+  pi (insert a s) t = (t a).bUnion (λb, (pi s t).image (pi.cons s a b)) :=
 begin
   apply eq_of_veq,
   rw ← multiset.erase_dup_eq_self.2 (pi (insert a s) t).2,

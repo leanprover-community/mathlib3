@@ -29,9 +29,6 @@ class simple (X : C) : Type (max u v) :=
 begin
   casesI a, casesI b,
   congr,
-  funext Y f m,
-  ext,
-  refl,
 end
 
 instance subsingleton_simple (X : C) : subsingleton (simple X) :=

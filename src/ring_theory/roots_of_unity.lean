@@ -147,7 +147,8 @@ is_cyclic_of_subgroup_integral_domain ((units.coe_hom R).comp (roots_of_unity k 
 
 lemma card_roots_of_unity : fintype.card (roots_of_unity k R) ≤ k :=
 calc  fintype.card (roots_of_unity k R)
-    = fintype.card {x // x ∈ nth_roots k (1 : R)} : fintype.card_congr (roots_of_unity_equiv_nth_roots R k)
+    = fintype.card {x // x ∈ nth_roots k (1 : R)} :
+          fintype.card_congr (roots_of_unity_equiv_nth_roots R k)
 ... ≤ (nth_roots k (1 : R)).attach.card           : multiset.card_le_of_le (multiset.erase_dup_le _)
 ... = (nth_roots k (1 : R)).card                  : multiset.card_attach
 ... ≤ k                                           : card_nth_roots k 1
@@ -681,14 +682,14 @@ end
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
-lemma nth_roots_one_eq_bind_primitive_roots' {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
-  nth_roots_finset n R = (nat.divisors ↑n).bind (λ i, (primitive_roots i R)) :=
+lemma nth_roots_one_eq_bUnion_primitive_roots' {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
+  nth_roots_finset n R = (nat.divisors ↑n).bUnion (λ i, (primitive_roots i R)) :=
 begin
   symmetry,
   apply finset.eq_of_subset_of_card_le,
   { intros x,
     simp only [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h),
-      exists_prop, finset.mem_bind, finset.mem_filter, finset.mem_range, mem_nth_roots,
+      exists_prop, finset.mem_bUnion, finset.mem_filter, finset.mem_range, mem_nth_roots,
       finset.mem_mk, nat.mem_divisors, and_true, ne.def, pnat.ne_zero, pnat.pos, not_false_iff],
     rintro ⟨a, ⟨d, hd⟩, ha⟩,
     have hazero : 0 < a,
@@ -698,7 +699,7 @@ begin
     rw mem_primitive_roots hazero at ha,
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
   { apply le_of_eq,
-    rw [h.card_nth_roots_finset, finset.card_bind],
+    rw [h.card_nth_roots_finset, finset.card_bUnion],
     { rw [← nat.sum_totient n, nat.filter_dvd_eq_divisors (pnat.ne_zero n), sum_congr rfl]
         { occs := occurrences.pos [1] },
       simp only [finset.mem_filter, finset.mem_range, nat.mem_divisors],
@@ -714,16 +715,16 @@ end
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
-lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
+lemma nth_roots_one_eq_bUnion_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   (h : is_primitive_root ζ n) :
-  nth_roots_finset n R = (nat.divisors n).bind (λ i, (primitive_roots i R)) :=
-@nth_roots_one_eq_bind_primitive_roots' _ _ _ ⟨n, hpos⟩ h
+  nth_roots_finset n R = (nat.divisors n).bUnion (λ i, (primitive_roots i R)) :=
+@nth_roots_one_eq_bUnion_primitive_roots' _ _ _ ⟨n, hpos⟩ h
 
 end integral_domain
 
-section minimal_polynomial
+section minpoly
 
-open minimal_polynomial
+open minpoly
 
 variables {n : ℕ} {K : Type*} [field K] {μ : K} (h : is_primitive_root μ n) (hpos : 0 < n)
 
@@ -742,8 +743,7 @@ end
 variables [char_zero K]
 
 /--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
-lemma minimal_polynomial_dvd_X_pow_sub_one :
-  minimal_polynomial (is_integral h hpos) ∣ X ^ n - 1 :=
+lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   apply integer_dvd (is_integral h hpos) (polynomial.monic.is_primitive
   (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
@@ -752,79 +752,76 @@ begin
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is separable. -/
-lemma separable_minimal_polynomial_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
-  separable (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
+lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
+  separable (map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ)) :=
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
-    (minimal_polynomial (is_integral h hpos))) ∣ X ^ n - 1,
+    (minpoly ℤ μ)) ∣ X ^ n - 1,
   { simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using
       ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p))))
-        (minimal_polynomial_dvd_X_pow_sub_one h hpos) },
+        (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,
   by_contra hzero,
   exact hdiv ((zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 (not_not.1 hzero))
 end
 
 /-- The reduction modulo `p` of the minimal polynomial of a root of unity `μ` is squarefree. -/
-lemma squarefree_minimal_polynomial_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
-  squarefree (map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos))) :=
-(separable_minimal_polynomial_mod h hpos hdiv).squarefree
+lemma squarefree_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
+  squarefree (map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ)) :=
+(separable_minpoly_mod h hpos hdiv).squarefree
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
-lemma minimal_polynomial_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
-  minimal_polynomial (is_integral h hpos) ∣
-  expand ℤ p (minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos)) :=
+lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
+  minpoly ℤ μ ∣
+  expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
-  apply minimal_polynomial.integer_dvd,
+  apply minpoly.integer_dvd (h.is_integral hpos),
   { apply monic.is_primitive,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
-    exact minimal_polynomial.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
+    exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
   { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, map_pow, map_X, eval_comp,
       eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
-    exact minimal_polynomial.aeval (is_integral (pow_of_prime h hprime hdiv) hpos) }
+    exact minpoly.aeval _ _ }
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `Q ^ p` modulo `p`. -/
-lemma minimal_polynomial_dvd_pow_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
-  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos)) ∣
-  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral
-    (pow_of_prime h hprime hdiv) hpos)) ^ p :=
+lemma minpoly_dvd_pow_mod {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ) ∣
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ (μ ^ p)) ^ p :=
 begin
-  set Q := minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos),
+  set Q := minpoly ℤ (μ ^ p),
   have hfrob : map (int.cast_ring_hom (zmod p)) Q ^ p =
     map (int.cast_ring_hom (zmod p)) (expand ℤ p Q),
   by rw [← zmod.expand_card, map_expand (nat.prime.pos hprime)],
   rw [hfrob],
   apply ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))),
-  exact minimal_polynomial_dvd_expand h hpos hprime hdiv
+  exact minpoly_dvd_expand h hpos hprime hdiv
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `Q` modulo `p`. -/
-lemma minimal_polynomial_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
-  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral h hpos)) ∣
-  map (int.cast_ring_hom (zmod p)) (minimal_polynomial (is_integral
-    (pow_of_prime h hprime hdiv) hpos)) :=
-(unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minimal_polynomial_mod h
-  hpos hdiv) (nat.prime.ne_zero hprime)).1 (minimal_polynomial_dvd_pow_mod h hpos hdiv)
+lemma minpoly_dvd_mod_p {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ μ) ∣
+  map (int.cast_ring_hom (zmod p)) (minpoly ℤ (μ ^ p)) :=
+(unique_factorization_monoid.dvd_pow_iff_dvd_of_squarefree (squarefree_minpoly_mod h
+  hpos hdiv) (nat.prime.ne_zero hprime)).1 (minpoly_dvd_pow_mod h hpos hdiv)
 
 /-- If `p` is a prime that does not divide `n`,
 then the minimal polynomials of a primitive `n`-th root of unity `μ`
 and of `μ ^ p` are the same. -/
-lemma minimal_polynomial_eq_pow {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
-  minimal_polynomial (is_integral h hpos) =
-  minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos) :=
+lemma minpoly_eq_pow {p : ℕ} [hprime : fact p.prime] (hdiv : ¬ p ∣ n) :
+  minpoly ℤ μ = minpoly ℤ (μ ^ p) :=
 begin
   by_contra hdiff,
-  set P := minimal_polynomial (is_integral h hpos),
-  set Q := minimal_polynomial (is_integral (pow_of_prime h hprime hdiv) hpos),
-  have Pmonic : P.monic := minimal_polynomial.monic _,
-  have Qmonic : Q.monic := minimal_polynomial.monic _,
-  have Pirr : irreducible P := minimal_polynomial.irreducible _,
-  have Qirr : irreducible Q := minimal_polynomial.irreducible _,
+  set P := minpoly ℤ μ,
+  set Q := minpoly ℤ (μ ^ p),
+  have Pmonic : P.monic := minpoly.monic (h.is_integral hpos),
+  have Qmonic : Q.monic := minpoly.monic ((h.pow_of_prime hprime hdiv).is_integral hpos),
+  have Pirr : irreducible P := minpoly.irreducible (h.is_integral hpos),
+  have Qirr : irreducible Q := minpoly.irreducible ((h.pow_of_prime hprime hdiv).is_integral hpos),
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
   { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
@@ -838,12 +835,12 @@ begin
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
       exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
-      exact minimal_polynomial_dvd_X_pow_sub_one h hpos },
+      exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,
-      exact minimal_polynomial_dvd_X_pow_sub_one (pow_of_prime h hprime hdiv) hpos } },
+      exact minpoly_dvd_X_pow_sub_one (pow_of_prime h hprime hdiv) hpos } },
   replace prod := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))) prod,
   rw [ring_hom.coe_of, map_mul, map_sub, map_one, map_pow, map_X] at prod,
-  obtain ⟨R, hR⟩ := minimal_polynomial_dvd_mod_p h hpos hdiv,
+  obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hpos hdiv,
   rw [hR, ← mul_assoc, ← map_mul, ← pow_two, map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
@@ -858,17 +855,16 @@ begin
   { exact not_lt_of_le hle habs },
   { replace hunit := degree_eq_zero_of_is_unit hunit,
     rw degree_map_eq_of_leading_coeff_ne_zero _ _ at hunit,
-    { exact (ne_of_lt (minimal_polynomial.degree_pos (is_integral h hpos))).symm hunit },
+    { exact (ne_of_lt (minpoly.degree_pos (is_integral h hpos))).symm hunit },
     simp only [Pmonic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-      not_false_iff, one_ne_zero] }
+      not_false_iff, one_ne_zero] },
 end
 
 /-- If `m : ℕ` is coprime with `n`,
 then the minimal polynomials of a primitive `n`-th root of unity `μ`
 and of `μ ^ m` are the same. -/
-lemma minimal_polynomial_eq_pow_coprime {m : ℕ} (hcop : nat.coprime m n) :
-  minimal_polynomial (is_integral h hpos) = minimal_polynomial
-  (is_integral (h.pow_of_coprime m hcop) hpos) :=
+lemma minpoly_eq_pow_coprime {m : ℕ} (hcop : nat.coprime m n) :
+  minpoly ℤ μ = minpoly ℤ (μ ^ m) :=
 begin
   revert n hcop,
   refine unique_factorization_monoid.induction_on_prime m _ _ _,
@@ -883,7 +879,7 @@ begin
     replace hprime := nat.prime_iff_prime.2 hprime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     letI : fact p.prime := hprime,
-    rw [minimal_polynomial_eq_pow
+    rw [minpoly_eq_pow
       (h.pow_of_coprime a (nat.coprime.coprime_mul_left hcop)) hpos hdiv],
     congr' 1,
     ring_exp }
@@ -892,36 +888,35 @@ end
 /-- If `m : ℕ` is coprime with `n`,
 then the minimal polynomial of a primitive `n`-th root of unity `μ`
 has `μ ^ m` as root. -/
-lemma pow_is_root_minimal_polynomial {m : ℕ} (hcop : nat.coprime m n) :
-  is_root (map (int.cast_ring_hom K) (minimal_polynomial (is_integral h hpos))) (μ ^ m) :=
-by simpa [minimal_polynomial_eq_pow_coprime h hpos hcop, eval_map, aeval_def (μ ^ m) _]
-  using minimal_polynomial.aeval (is_integral (h.pow_of_coprime m hcop) hpos)
+lemma pow_is_root_minpoly {m : ℕ} (hcop : nat.coprime m n) :
+  is_root (map (int.cast_ring_hom K) (minpoly ℤ μ)) (μ ^ m) :=
+by simpa [minpoly_eq_pow_coprime h hpos hcop, eval_map, aeval_def (μ ^ m) _]
+  using minpoly.aeval ℤ (μ ^ m)
 
 /-- `primitive_roots n K` is a subset of the roots of the minimal polynomial of a primitive
 `n`-th root of unity `μ`. -/
-lemma is_roots_of_minimal_polynomial : primitive_roots n K ⊆ (map (int.cast_ring_hom K)
-  (minimal_polynomial (is_integral h hpos))).roots.to_finset :=
+lemma is_roots_of_minpoly : primitive_roots n K ⊆ (map (int.cast_ring_hom K)
+  (minpoly ℤ μ)).roots.to_finset :=
 begin
   intros x hx,
   obtain ⟨m, hle, hcop, rfl⟩ := (is_primitive_root_iff h hpos).1 ((mem_primitive_roots hpos).1 hx),
   simpa [multiset.mem_to_finset,
-    mem_roots (map_monic_ne_zero $ minimal_polynomial.monic $ is_integral h hpos)]
-    using pow_is_root_minimal_polynomial h hpos hcop
+    mem_roots (map_monic_ne_zero $ minpoly.monic $ is_integral h hpos)]
+    using pow_is_root_minpoly h hpos hcop
 end
 
 /-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
-lemma totient_le_degree_minimal_polynomial : nat.totient n ≤ (minimal_polynomial
-  (is_integral h hpos)).nat_degree :=
-let P : polynomial ℤ := minimal_polynomial (is_integral h hpos),-- minimal polynomial of `μ`
+lemma totient_le_degree_minpoly : nat.totient n ≤ (minpoly ℤ μ).nat_degree :=
+let P : polynomial ℤ := minpoly ℤ μ,-- minimal polynomial of `μ`
     P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc
 n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm
-... ≤ P_K.roots.to_finset.card : finset.card_le_of_subset (is_roots_of_minimal_polynomial h hpos)
+... ≤ P_K.roots.to_finset.card : finset.card_le_of_subset (is_roots_of_minpoly h hpos)
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
 ... ≤ P_K.nat_degree : (card_roots' $ map_monic_ne_zero
-        (minimal_polynomial.monic $ is_integral h hpos))
+        (minpoly.monic $ is_integral h hpos))
 ... ≤ P.nat_degree : nat_degree_map_le _
 
-end minimal_polynomial
+end minpoly
 
 end is_primitive_root

@@ -937,7 +937,7 @@ lemma finset.center_mass_segment'
   (s : finset ι) (t : finset ι') (ws : ι → ℝ) (zs : ι → E) (wt : ι' → ℝ) (zt : ι' → E)
   (hws : ∑ i in s, ws i = 1) (hwt : ∑ i in t, wt i = 1) (a b : ℝ) (hab : a + b = 1) :
   a • s.center_mass ws zs + b • t.center_mass wt zt =
-    (s.image sum.inl ∪ t.image sum.inr).center_mass
+    (s.map function.embedding.inl ∪ t.map function.embedding.inr).center_mass
       (sum.elim (λ i, a * ws i) (λ j, b * wt j))
       (sum.elim zs zt) :=
 begin
@@ -1148,15 +1148,14 @@ begin
     rw [finset.center_mass_segment' _ _ _ _ _ _ hwx₁ hwy₁ _ _ hab],
     refine ⟨_, _, _, _, _, _, _, rfl⟩,
     { rintros i hi,
-      rw [finset.mem_union, finset.mem_image, finset.mem_image] at hi,
+      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩;
         simp only [sum.elim_inl, sum.elim_inr];
         apply_rules [mul_nonneg, hwx₀, hwy₀] },
     { simp [finset.sum_sum_elim, finset.mul_sum.symm, *] },
     { intros i hi,
-      rw [finset.mem_union, finset.mem_image, finset.mem_image] at hi,
-      rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩;
-        simp only [sum.elim_inl, sum.elim_inr]; apply_rules [hzx, hzy] } },
+      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
+      rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩; apply_rules [hzx, hzy] } },
   { rintros _ ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
     exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hz }
 end

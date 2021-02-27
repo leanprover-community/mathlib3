@@ -86,32 +86,26 @@ lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segme
 begin
   let c := λn:ℕ, (2:ℝ)^n,
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
-  refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
+  refine ⟨c, d, filter.univ_mem_sets' (λn, h _),
+    tendsto_pow_at_top_at_top_of_one_lt one_lt_two, _⟩,
   show x + d n ∈ segment x y,
-  { rw segment_eq_image,
-    refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
-    { rw inv_nonneg, apply pow_nonneg, norm_num },
-    { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
-    { simp only [d, sub_smul, smul_sub, one_smul], abel } },
-  show tendsto c at_top at_top,
-  { exact tendsto_pow_at_top_at_top_of_one_lt one_lt_two },
-  show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
-  { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
-    { ext n,
-      simp only [d, smul_smul],
-      rw [mul_inv_cancel, one_smul],
-      exact pow_ne_zero _ (by norm_num) },
-    rw this,
-    apply tendsto_const_nhds }
+  { rw segment_eq_image',
+    refine ⟨(c n)⁻¹, ⟨_, _⟩, rfl⟩,
+    exacts [inv_nonneg.2 (pow_nonneg zero_le_two _),
+      inv_le_one (one_le_pow_of_one_le one_le_two _)] },
+  show tendsto (λ n, c n • d n) at_top (𝓝 (y - x)),
+  { convert tendsto_const_nhds, ext n,
+    simp only [d, smul_smul],
+    rw [mul_inv_cancel, one_smul],
+    exact pow_ne_zero _ two_ne_zero }
 end
 
+lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E} (h : segment x (x + y) ⊆ s) :
+  y ∈ pos_tangent_cone_at s x :=
+by simpa only [add_sub_cancel'] using mem_pos_tangent_cone_at_of_segment_subset h
+
 lemma pos_tangent_cone_at_univ : pos_tangent_cone_at univ a = univ :=
-eq_univ_iff_forall.2
-begin
-  assume x,
-  rw [← add_sub_cancel x a],
-  exact mem_pos_tangent_cone_at_of_segment_subset (subset_univ _)
-end
+eq_univ_of_forall $ λ x, mem_pos_tangent_cone_at_of_segment_subset' (subset_univ _)
 
 /-- If `f` has a local max on `s` at `a`, `f'` is the derivative of `f` at `a` within `s`, and
 `y` belongs to the positive tangent cone of `s` at `a`, then `f' y ≤ 0`. -/
@@ -268,13 +262,12 @@ end real
 
 section Rolle
 
-variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b)
-
-include hab hfc hfI
+variables (f f' : ℝ → ℝ) {a b : ℝ}
 
 /-- A continuous function on a closed interval with `f a = f b` takes either its maximum
 or its minimum value at a point in the interior of the interval. -/
-lemma exists_Ioo_extr_on_Icc : ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
+lemma exists_Ioo_extr_on_Icc (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
+  ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
 begin
   have ne : (Icc a b).nonempty, from nonempty_Icc.2 (le_of_lt hab),
   -- Consider absolute min and max points
@@ -300,26 +293,30 @@ end
 
 /-- A continuous function on a closed interval with `f a = f b` has a local extremum at some
 point of the corresponding open interval. -/
-lemma exists_local_extr_Ioo : ∃ c ∈ Ioo a b, is_local_extr f c :=
+lemma exists_local_extr_Ioo (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
+  ∃ c ∈ Ioo a b, is_local_extr f c :=
 let ⟨c, cmem, hc⟩ := exists_Ioo_extr_on_Icc f hab hfc hfI
-in ⟨c, cmem, hc.is_local_extr $ mem_nhds_sets_iff.2 ⟨Ioo a b, Ioo_subset_Icc_self, is_open_Ioo, cmem⟩⟩
+in ⟨c, cmem, hc.is_local_extr $ Icc_mem_nhds cmem.1 cmem.2⟩
 
 /-- Rolle's Theorem `has_deriv_at` version -/
-lemma exists_has_deriv_at_eq_zero (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
+lemma exists_has_deriv_at_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b)
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
   ∃ c ∈ Ioo a b, f' c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
   ⟨c, cmem, hc.has_deriv_at_eq_zero $ hff' c cmem⟩
 
 /-- Rolle's Theorem `deriv` version -/
-lemma exists_deriv_eq_zero : ∃ c ∈ Ioo a b, deriv f c = 0 :=
+lemma exists_deriv_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
+  ∃ c ∈ Ioo a b, deriv f c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
   ⟨c, cmem, hc.deriv_eq_zero⟩
 
-omit hfc hfI
+variables {f f'} {l : ℝ}
 
-variables {f f'}
-
-lemma exists_has_deriv_at_eq_zero' {l : ℝ}
+/-- Rolle's Theorem, a version for a function on an open interval: if `f` has derivative `f'`
+on `(a, b)` and has the same limit `l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `f' c = 0`
+for some `c ∈ (a, b)`.  -/
+lemma exists_has_deriv_at_eq_zero' (hab : a < b)
   (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l))
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
   ∃ c ∈ Ioo a b, f' c = 0 :=
@@ -336,7 +333,11 @@ begin
   exact ⟨Ioo a b, Ioo_mem_nhds hc.1 hc.2, extend_from_extends this⟩
 end
 
-lemma exists_deriv_eq_zero' {l : ℝ}
+/-- Rolle's Theorem, a version for a function on an open interval: if `f` has the same limit `l` at
+`𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version does not
+require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
+differentiable at `c`. -/
+lemma exists_deriv_eq_zero' (hab : a < b)
   (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :
   ∃ c ∈ Ioo a b, deriv f c = 0 :=
 classical.by_cases

@@ -270,6 +270,13 @@ def fst_hom [comm_semiring R] [add_comm_monoid M] [semimodule R M] : tsze R M �
   map_add' := fst_add R M,
   commutes' := fst_inl }
 
+/-- The canonical `R`-module projection `triv_sq_zero_ext R M → M`. -/
+@[simps apply]
+def snd_hom [semiring R] [add_comm_monoid M] [semimodule R M] : tsze R M →ₗ[R] M :=
+{ to_fun := snd,
+  map_add' := snd_add R M,
+  map_smul' := snd_smul R M}
+
 end algebra
 
 end triv_sq_zero_ext

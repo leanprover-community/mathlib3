@@ -7,7 +7,7 @@ import combinatorics.simple_graph.basic
 import algebra.big_operators.basic
 import data.nat.parity
 import data.zmod.parity
-import tactic.omega
+
 /-!
 # Degree-sum formula and handshaking lemma
 
@@ -177,12 +177,12 @@ G.dart_card_eq_sum_degrees.symm.trans G.dart_card_eq_twice_card_edges
 end degree_sum
 
 /-- The handshaking lemma.  See also `simple_graph.sum_degrees_eq_twice_card_edges`. -/
-theorem even_card_odd_degree_vertices [fintype V] :
+theorem even_card_odd_degree_vertices [fintype V] [decidable_rel G.adj] :
   even (univ.filter (λ v, odd (G.degree v))).card :=
 begin
   classical,
   have h := congr_arg ((λ n, ↑n) : ℕ → zmod 2) G.sum_degrees_eq_twice_card_edges,
-  simp only [zmod.cast_self, zero_mul, nat.cast_mul] at h,
+  simp only [zmod.nat_cast_self, zero_mul, nat.cast_mul] at h,
   rw [sum_nat_cast, ←sum_filter_ne_zero] at h,
   rw @sum_congr _ (zmod 2) _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
   { simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
@@ -197,7 +197,7 @@ begin
     trivial }
 end
 
-lemma odd_card_odd_degree_vertices_ne [fintype V] [decidable_eq V]
+lemma odd_card_odd_degree_vertices_ne [fintype V] [decidable_eq V] [decidable_rel G.adj]
   (v : V) (h : odd (G.degree v)) :
   odd (univ.filter (λ w, w ≠ v ∧ odd (G.degree w))).card :=
 begin
@@ -215,12 +215,15 @@ begin
   simp only [hc, filter_congr_decidable],
   rw [←filter_filter, filter_ne', card_erase_of_mem],
   { use k - 1,
-    rw [nat.pred_eq_succ_iff, hg, nat.mul_sub_left_distrib],
-    omega, },
+    rw [nat.pred_eq_succ_iff, hg, nat.mul_sub_left_distrib, ← nat.sub_add_comm, eq_comm,
+      ← (nat.sub_eq_iff_eq_add _).symm],
+    { ring },
+    { exact add_le_add_right (zero_le (2 * k)) 2 },
+    { exact nat.mul_le_mul_left _ hk } },
   { simpa only [true_and, mem_filter, mem_univ] },
 end
 
-lemma exists_ne_odd_degree_of_exists_odd_degree [fintype V]
+lemma exists_ne_odd_degree_of_exists_odd_degree [fintype V] [decidable_rel G.adj]
   (v : V) (h : odd (G.degree v)) :
   ∃ (w : V), w ≠ v ∧ odd (G.degree w) :=
 begin

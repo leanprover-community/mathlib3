@@ -7,6 +7,7 @@ import category_theory.limits.limits
 import category_theory.limits.shapes.terminal
 import category_theory.discrete_category
 import category_theory.epi_mono
+import category_theory.over
 
 /-!
 # Binary (co)products
@@ -81,15 +82,18 @@ discrete.functor (λ j, walking_pair.cases_on j X Y)
 @[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj right = Y := rfl
 
 section
-variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj left ⟶ G.obj left) (g : F.obj right ⟶ G.obj right)
+variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj left ⟶ G.obj left)
+  (g : F.obj right ⟶ G.obj right)
 
-/-- The natural transformation between two functors out of the walking pair, specified by its components. -/
+/-- The natural transformation between two functors out of the walking pair, specified by its
+components. -/
 def map_pair : F ⟶ G := { app := λ j, walking_pair.cases_on j f g }
 
 @[simp] lemma map_pair_left : (map_pair f g).app left = f := rfl
 @[simp] lemma map_pair_right : (map_pair f g).app right = g := rfl
 
-/-- The natural isomorphism between two functors out of the walking pair, specified by its components. -/
+/-- The natural isomorphism between two functors out of the walking pair, specified by its
+components. -/
 @[simps]
 def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
 nat_iso.of_components (λ j, walking_pair.cases_on j f g) (by tidy)
@@ -247,7 +251,8 @@ prod.lift (𝟙 _) (𝟙 _)
 
 /-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
     `g : Y ⟶ W` induces a morphism `coprod.desc f g : X ⨿ Y ⟶ W`. -/
-abbreviation coprod.desc {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿ Y ⟶ W :=
+abbreviation coprod.desc {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
+  X ⨿ Y ⟶ W :=
 colimit.desc _ (binary_cofan.mk f g)
 
 /-- codiagonal arrow of the binary coproduct -/
@@ -347,13 +352,13 @@ by { ext; simp }
   prod.lift prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
 by { ext; simp }
 
-@[simp, reassoc] lemma prod.lift_map {V W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
-  (f : V ⟶ W) (g : V ⟶ X) (h : W ⟶ Y) (k : X ⟶ Z) :
+@[simp, reassoc] lemma prod.lift_map {V W X Y Z : C} [has_binary_product W X]
+  [has_binary_product Y Z] (f : V ⟶ W) (g : V ⟶ X) (h : W ⟶ Y) (k : X ⟶ Z) :
   prod.lift f g ≫ prod.map h k = prod.lift (f ≫ h) (g ≫ k) :=
 by { ext; simp }
 
-@[simp] lemma prod.lift_fst_comp_snd_comp {W X Y Z : C} [has_binary_product W Y] [has_binary_product X Z]
-  (g : W ⟶ X) (g' : Y ⟶ Z) :
+@[simp] lemma prod.lift_fst_comp_snd_comp {W X Y Z : C} [has_binary_product W Y]
+  [has_binary_product X Z] (g : W ⟶ X) (g' : Y ⟶ Z) :
   prod.lift (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by { rw ← prod.lift_map, simp }
 
@@ -369,7 +374,8 @@ by { ext; simp }
 
 -- TODO: is it necessary to weaken the assumption here?
 @[reassoc]
-lemma prod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y) [has_limits_of_shape (discrete walking_pair) C] :
+lemma prod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
+  [has_limits_of_shape (discrete walking_pair) C] :
   prod.map (𝟙 X) f ≫ prod.map g (𝟙 B) = prod.map g (𝟙 A) ≫ prod.map (𝟙 Y) f :=
 by simp
 
@@ -401,7 +407,8 @@ lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary
 by simp
 
 @[simp, reassoc]
-lemma prod.diag_map_fst_snd {X Y : C} [has_binary_product X Y] [has_binary_product (X ⨯ Y) (X ⨯ Y)] :
+lemma prod.diag_map_fst_snd {X Y : C} [has_binary_product X Y]
+  [has_binary_product (X ⨯ Y) (X ⨯ Y)] :
   diag (X ⨯ Y) ≫ prod.map prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
 by simp
 
@@ -419,7 +426,8 @@ end prod_lemmas
 section coprod_lemmas
 
 @[simp, reassoc]
-lemma coprod.desc_comp {V W X Y : C} [has_binary_coproduct X Y] (f : V ⟶ W) (g : X ⟶ V) (h : Y ⟶ V) :
+lemma coprod.desc_comp {V W X Y : C} [has_binary_coproduct X Y] (f : V ⟶ W) (g : X ⟶ V)
+  (h : Y ⟶ V) :
   coprod.desc g h ≫ f = coprod.desc (g ≫ f) (h ≫ f) :=
 by { ext; simp }
 
@@ -473,7 +481,8 @@ by { ext; simp }
 
 -- I don't think it's a good idea to make any of the following three simp lemmas.
 @[reassoc]
-lemma coprod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y) [has_colimits_of_shape (discrete walking_pair) C] :
+lemma coprod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
+  [has_colimits_of_shape (discrete walking_pair) C] :
   coprod.map (𝟙 X) f ≫ coprod.map g (𝟙 B) = coprod.map g (𝟙 A) ≫ coprod.map (𝟙 Y) f :=
 by simp
 
@@ -501,13 +510,15 @@ is_iso.of_iso (coprod.map_iso (as_iso f) (as_iso g))
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]
-lemma coprod.map_codiag {X Y : C} (f : X ⟶ Y) [has_binary_coproduct X X] [has_binary_coproduct Y Y] :
+lemma coprod.map_codiag {X Y : C} (f : X ⟶ Y) [has_binary_coproduct X X]
+  [has_binary_coproduct Y Y] :
   coprod.map f f ≫ codiag Y = codiag X ≫ f :=
 by simp
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]
-lemma coprod.map_inl_inr_codiag {X Y : C} [has_binary_coproduct X Y] [has_binary_coproduct (X ⨿ Y) (X ⨿ Y)] :
+lemma coprod.map_inl_inr_codiag {X Y : C} [has_binary_coproduct X Y]
+  [has_binary_coproduct (X ⨿ Y) (X ⨿ Y)] :
   coprod.map coprod.inl coprod.inr ≫ codiag (X ⨿ Y) = 𝟙 (X ⨿ Y) :=
 by simp
 
@@ -672,7 +683,8 @@ lemma coprod.pentagon (W X Y Z : C) :
     (coprod.associator (W ⨿ X) Y Z).hom ≫ (coprod.associator W X (Y ⨿ Z)).hom :=
 by simp
 
-lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
+lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂)
+  (f₃ : X₃ ⟶ Y₃) :
   coprod.map (coprod.map f₁ f₂) f₃ ≫ (coprod.associator Y₁ Y₂ Y₃).hom =
     (coprod.associator X₁ X₂ X₃).hom ≫ coprod.map f₁ (coprod.map f₂ f₃) :=
 by simp
@@ -701,7 +713,6 @@ end
 section prod_functor
 variables {C} [has_binary_products C]
 
--- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
 def prod.functor : C ⥤ C ⥤ C :=
@@ -714,6 +725,22 @@ def prod.functor_left_comp (X Y : C) :
 nat_iso.of_components (prod.associator _ _) (by tidy)
 
 end prod_functor
+
+section coprod_functor
+variables {C} [has_binary_coproducts C]
+
+/-- The binary coproduct functor. -/
+@[simps]
+def coprod.functor : C ⥤ C ⥤ C :=
+{ obj := λ X, { obj := λ Y, X ⨿ Y, map := λ Y Z, coprod.map (𝟙 X) },
+  map := λ Y Z f, { app := λ T, coprod.map f (𝟙 T) }}
+
+/-- The coproduct functor can be decomposed. -/
+def coprod.functor_left_comp (X Y : C) :
+  coprod.functor.obj (X ⨿ Y) ≅ coprod.functor.obj Y ⋙ coprod.functor.obj X :=
+nat_iso.of_components (coprod.associator _ _) (by tidy)
+
+end coprod_functor
 
 section prod_comparison
 
@@ -743,7 +770,8 @@ prod.lift_snd _ _
 
 /-- Naturality of the prod_comparison morphism in both arguments. -/
 @[reassoc] lemma prod_comparison_natural (f : A ⟶ A') (g : B ⟶ B') :
-  F.map (prod.map f g) ≫ prod_comparison F A' B' = prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
+  F.map (prod.map f g) ≫ prod_comparison F A' B' =
+    prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
 begin
   rw [prod_comparison, prod_comparison, prod.lift_map, ← F.map_comp, ← F.map_comp,
       prod.comp_lift, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
@@ -792,3 +820,28 @@ def prod_comparison_nat_iso [has_binary_products C] [has_binary_products D]
 end prod_comparison
 
 end category_theory.limits
+
+open category_theory.limits
+
+namespace category_theory
+
+variables {C : Type u} [category.{v} C]
+
+/-- Auxilliary definition for `over.coprod`. -/
+@[simps]
+def over.coprod_obj [has_binary_coproducts C] {A : C} : over A → over A ⥤ over A := λ f,
+{ obj := λ g, over.mk (coprod.desc f.hom g.hom),
+  map := λ g₁ g₂ k, over.hom_mk (coprod.map (𝟙 _) k.left) }
+
+/-- A category with binary coproducts has a functorial `sup` operation on over categories. -/
+@[simps]
+def over.coprod [has_binary_coproducts C] {A : C} : over A ⥤ over A ⥤ over A :=
+{ obj := λ f, over.coprod_obj f,
+  map := λ f₁ f₂ k,
+  { app := λ g, over.hom_mk (coprod.map k.left (𝟙 _))
+      (by { dsimp, rw [coprod.map_desc, category.id_comp, over.w k] }),
+    naturality' := λ f g k, by ext; { dsimp, simp, }, },
+  map_id' := λ X, by ext; { dsimp, simp, },
+  map_comp' := λ X Y Z f g, by ext; { dsimp, simp, }, }.
+
+end category_theory

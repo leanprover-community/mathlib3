@@ -43,7 +43,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space big_operators classical
+open_locale topological_space big_operators classical filter nnreal
 
 namespace asymptotics
 
@@ -63,72 +63,85 @@ section defs
 a type `α` and `l` is a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by `C * ∥g∥`.
 In other words, `∥f∥ / ∥g∥` is eventually bounded by `C`, modulo division by zero issues that are
 avoided by this definition. Probably you want to use `is_O` instead of this relation. -/
+@[irreducible]
 def is_O_with (c : ℝ) (f : α → E) (g : α → F) (l : filter α) : Prop :=
 ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥
 
 /-- Definition of `is_O_with`. We record it in a lemma as we will set `is_O_with` to be irreducible
 at the end of this file. -/
 lemma is_O_with_iff {c : ℝ} {f : α → E} {g : α → F} {l : filter α} :
-  is_O_with c f g l ↔ ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+  is_O_with c f g l ↔ ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := by rw is_O_with
 
-lemma is_O_with.of_bound {c : ℝ} {f : α → E} {g : α → F} {l : filter α}
-  (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O_with c f g l := h
+alias is_O_with_iff ↔ asymptotics.is_O_with.bound asymptotics.is_O_with.of_bound
 
 /-- The Landau notation `is_O f g l` where `f` and `g` are two functions on a type `α` and `l` is
 a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by a constant multiple of `∥g∥`.
 In other words, `∥f∥ / ∥g∥` is eventually bounded, modulo division by zero issues that are avoided
 by this definition. -/
+@[irreducible]
 def is_O (f : α → E) (g : α → F) (l : filter α) : Prop := ∃ c : ℝ, is_O_with c f g l
 
 /-- Definition of `is_O` in terms of `is_O_with`. We record it in a lemma as we will set
 `is_O` to be irreducible at the end of this file. -/
 lemma is_O_iff_is_O_with {f : α → E} {g : α → F} {l : filter α} :
-  is_O f g l ↔ ∃ c : ℝ, is_O_with c f g l := iff.rfl
+  is_O f g l ↔ ∃ c : ℝ, is_O_with c f g l := by rw is_O
 
 /-- Definition of `is_O` in terms of filters. We record it in a lemma as we will set
 `is_O` to be irreducible at the end of this file. -/
 lemma is_O_iff {f : α → E} {g : α → F} {l : filter α} :
-  is_O f g l ↔ ∃ c : ℝ, ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+  is_O f g l ↔ ∃ c : ℝ, ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := by simp [is_O, is_O_with]
 
 lemma is_O.of_bound (c : ℝ) {f : α → E} {g : α → F} {l : filter α}
-  (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O f g l := ⟨c, h⟩
+  (h : ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥) : is_O f g l := is_O_iff.2 ⟨c, h⟩
+
+lemma is_O.bound {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l → ∃ c : ℝ, ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := is_O_iff.1
 
 /-- The Landau notation `is_o f g l` where `f` and `g` are two functions on a type `α` and `l` is
 a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by an arbitrarily small constant
 multiple of `∥g∥`. In other words, `∥f∥ / ∥g∥` tends to `0` along `l`, modulo division by zero
 issues that are avoided by this definition. -/
+@[irreducible]
 def is_o (f : α → E) (g : α → F) (l : filter α) : Prop := ∀ ⦃c : ℝ⦄, 0 < c → is_O_with c f g l
 
 /-- Definition of `is_o` in terms of `is_O_with`. We record it in a lemma as we will set
 `is_o` to be irreducible at the end of this file. -/
 lemma is_o_iff_forall_is_O_with {f : α → E} {g : α → F} {l : filter α} :
-  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → is_O_with c f g l := iff.rfl
+  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → is_O_with c f g l := by rw is_o
+
+alias is_o_iff_forall_is_O_with ↔ asymptotics.is_o.forall_is_O_with asymptotics.is_o.of_is_O_with
 
 /-- Definition of `is_o` in terms of filters. We record it in a lemma as we will set
 `is_o` to be irreducible at the end of this file. -/
 lemma is_o_iff {f : α → E} {g : α → F} {l : filter α} :
-  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ := iff.rfl
+  is_o f g l ↔ ∀ ⦃c : ℝ⦄, 0 < c → ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ :=
+by simp only [is_o, is_O_with]
+
+alias is_o_iff ↔ asymptotics.is_o.bound asymptotics.is_o.of_bound
 
 lemma is_o.def {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
   ∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥ :=
-h hc
+is_o_iff.1 h hc
 
 lemma is_o.def' {f : α → E} {g : α → F} {l : filter α} (h : is_o f g l) {c : ℝ} (hc : 0 < c) :
   is_O_with c f g l :=
-h hc
+is_O_with_iff.2 $ is_o_iff.1 h hc
 
 end defs
 
 /-! ### Conversions -/
 
-theorem is_O_with.is_O (h : is_O_with c f g l) : is_O f g l := ⟨c, h⟩
+theorem is_O_with.is_O (h : is_O_with c f g l) : is_O f g l := by rw is_O; exact ⟨c, h⟩
 
-theorem is_o.is_O_with (hgf : is_o f g l) : is_O_with 1 f g l := hgf zero_lt_one
+theorem is_o.is_O_with (hgf : is_o f g l) : is_O_with 1 f g l := hgf.def' zero_lt_one
 
 theorem is_o.is_O (hgf : is_o f g l) : is_O f g l := hgf.is_O_with.is_O
 
+lemma is_O.is_O_with {f : α → E} {g : α → F} {l : filter α} :
+  is_O f g l → ∃ c : ℝ, is_O_with c f g l := is_O_iff_is_O_with.1
+
 theorem is_O_with.weaken (h : is_O_with c f g' l) (hc : c ≤ c') : is_O_with c' f g' l :=
-mem_sets_of_superset h $ λ x hx,
+is_O_with.of_bound $ mem_sets_of_superset h.bound $ λ x hx,
 calc ∥f x∥ ≤ c * ∥g' x∥ : hx
 ... ≤ _ : mul_le_mul_of_nonneg_right hc (norm_nonneg _)
 
@@ -137,7 +150,7 @@ theorem is_O_with.exists_pos (h : is_O_with c f g' l) :
 ⟨max c 1, lt_of_lt_of_le zero_lt_one (le_max_right c 1), h.weaken $ le_max_left c 1⟩
 
 theorem is_O.exists_pos (h : is_O f g' l) : ∃ c (H : 0 < c), is_O_with c f g' l :=
-let ⟨c, hc⟩ := h in hc.exists_pos
+let ⟨c, hc⟩ := h.is_O_with in hc.exists_pos
 
 theorem is_O_with.exists_nonneg (h : is_O_with c f g' l) :
   ∃ c' (H : 0 ≤ c'), is_O_with c' f g' l :=
@@ -145,12 +158,21 @@ let ⟨c, cpos, hc⟩ := h.exists_pos in ⟨c, le_of_lt cpos, hc⟩
 
 theorem is_O.exists_nonneg (h : is_O f g' l) :
   ∃ c (H : 0 ≤ c), is_O_with c f g' l :=
-let ⟨c, hc⟩ := h in hc.exists_nonneg
+let ⟨c, hc⟩ := h.is_O_with in hc.exists_nonneg
+
+/-- `f = O(g)` if and only if `is_O_with c f g` for all sufficiently large `c`. -/
+lemma is_O_iff_eventually_is_O_with : is_O f g' l ↔ ∀ᶠ c in at_top, is_O_with c f g' l :=
+is_O_iff_is_O_with.trans
+  ⟨λ ⟨c, hc⟩, mem_at_top_sets.2 ⟨c, λ c' hc', hc.weaken hc'⟩, λ h, h.exists⟩
+
+/-- `f = O(g)` if and only if `∀ᶠ x in l, ∥f x∥ ≤ c * ∥g x∥` for all sufficiently large `c`. -/
+lemma is_O_iff_eventually : is_O f g' l ↔ ∀ᶠ c in at_top, ∀ᶠ x in l, ∥f x∥ ≤ c * ∥g' x∥ :=
+is_O_iff_eventually_is_O_with.trans $ by simp only [is_O_with]
 
 /-! ### Subsingleton -/
 
 @[nontriviality] lemma is_o_of_subsingleton [subsingleton E'] : is_o f' g' l :=
-λ c hc, is_O_with.of_bound $ by simp [subsingleton.elim (f' _) 0, mul_nonneg hc.le]
+is_o.of_bound $ λ c hc, by simp [subsingleton.elim (f' _) 0, mul_nonneg hc.le]
 
 @[nontriviality] lemma is_O_of_subsingleton [subsingleton E'] : is_O f' g' l :=
 is_o_of_subsingleton.is_O
@@ -161,8 +183,9 @@ theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F
   (hc : c₁ = c₂) (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O_with c₁ f₁ g₁ l ↔ is_O_with c₂ f₂ g₂ l :=
 begin
+  unfold is_O_with,
   subst c₂,
-  apply filter.congr_sets,
+  apply filter.eventually_congr,
   filter_upwards [hf, hg],
   assume x e₁ e₂,
   rw [e₁, e₂]
@@ -193,7 +216,7 @@ is_O_with.congr hc (λ _, rfl) (λ _, rfl)
 theorem is_O_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
-exists_congr $ λ c, is_O_with_congr rfl hf hg
+by { unfold is_O, exact exists_congr (λ c, is_O_with_congr rfl hf hg) }
 
 theorem is_O.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
@@ -216,7 +239,7 @@ is_O.congr (λ _, rfl) hg
 theorem is_o_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
-ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg)
+by { unfold is_o, exact ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg) }
 
 theorem is_o.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
     (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
@@ -241,28 +264,41 @@ is_o.congr (λ _, rfl) hg
 theorem is_O_with.comp_tendsto (hcfg : is_O_with c f g l)
   {k : β → α} {l' : filter β} (hk : tendsto k l' l):
   is_O_with c (f ∘ k) (g ∘ k) l' :=
-hk hcfg
+is_O_with.of_bound $ hk hcfg.bound
 
 theorem is_O.comp_tendsto (hfg : is_O f g l) {k : β → α} {l' : filter β} (hk : tendsto k l' l) :
   is_O (f ∘ k) (g ∘ k) l' :=
-hfg.imp (λ c h, h.comp_tendsto hk)
+is_O_iff_is_O_with.2 $ hfg.is_O_with.imp (λ c h, h.comp_tendsto hk)
 
 theorem is_o.comp_tendsto (hfg : is_o f g l) {k : β → α} {l' : filter β} (hk : tendsto k l' l) :
   is_o (f ∘ k) (g ∘ k) l' :=
-λ c cpos, (hfg cpos).comp_tendsto hk
+is_o.of_is_O_with $ λ c cpos, (hfg.forall_is_O_with cpos).comp_tendsto hk
+
+@[simp] theorem is_O_with_map {k : β → α} {l : filter β} :
+  is_O_with c f g (map k l) ↔ is_O_with c (f ∘ k) (g ∘ k) l :=
+by { unfold is_O_with, exact mem_map }
+
+@[simp] theorem is_O_map {k : β → α} {l : filter β} :
+  is_O f g (map k l) ↔ is_O (f ∘ k) (g ∘ k) l :=
+by simp only [is_O, is_O_with_map]
+
+@[simp] theorem is_o_map {k : β → α} {l : filter β} :
+  is_o f g (map k l) ↔ is_o (f ∘ k) (g ∘ k) l :=
+by simp only [is_o, is_O_with_map]
 
 theorem is_O_with.mono (h : is_O_with c f g l') (hl : l ≤ l') : is_O_with c f g l :=
-hl h
+is_O_with.of_bound $ hl h.bound
 
 theorem is_O.mono (h : is_O f g l') (hl : l ≤ l') : is_O f g l :=
-h.imp (λ c h, h.mono hl)
+is_O_iff_is_O_with.2 $ h.is_O_with.imp (λ c h, h.mono hl)
 
 theorem is_o.mono (h : is_o f g l') (hl : l ≤ l') : is_o f g l :=
-λ c cpos, (h cpos).mono hl
+is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).mono hl
 
 theorem is_O_with.trans (hfg : is_O_with c f g l) (hgk : is_O_with c' g k l) (hc : 0 ≤ c) :
   is_O_with (c * c') f k l :=
 begin
+  unfold is_O_with at *,
   filter_upwards [hfg, hgk],
   assume x hx hx',
   calc ∥f x∥ ≤ c * ∥g x∥ : hx
@@ -271,11 +307,13 @@ begin
 end
 
 theorem is_O.trans (hfg : is_O f g' l) (hgk : is_O g' k l) : is_O f k l :=
-let ⟨c, cnonneg, hc⟩ := hfg.exists_nonneg, ⟨c', hc'⟩ := hgk in (hc.trans hc' cnonneg).is_O
+let ⟨c, cnonneg, hc⟩ := hfg.exists_nonneg, ⟨c', hc'⟩ := hgk.is_O_with in
+(hc.trans hc' cnonneg).is_O
 
 theorem is_o.trans_is_O_with (hfg : is_o f g l) (hgk : is_O_with c g k l) (hc : 0 < c) :
   is_o f k l :=
 begin
+  unfold is_o at *,
   intros c' c'pos,
   have : 0 < c' / c, from div_pos c'pos hc,
   exact ((hfg this).trans hgk (le_of_lt this)).congr_const (div_mul_cancel _ (ne_of_gt hc))
@@ -287,6 +325,7 @@ let ⟨c, cpos, hc⟩ := hgk.exists_pos in hfg.trans_is_O_with hc cpos
 theorem is_O_with.trans_is_o (hfg : is_O_with c f g l) (hgk : is_o g k l) (hc : 0 < c) :
   is_o f k l :=
 begin
+  unfold is_o at *,
   intros c' c'pos,
   have : 0 < c' / c, from div_pos c'pos hc,
   exact (hfg.trans (hgk this) (le_of_lt hc)).congr_const (mul_div_cancel' _ (ne_of_gt hc))
@@ -306,7 +345,7 @@ section
 variable (l)
 
 theorem is_O_with_of_le' (hfg : ∀ x, ∥f x∥ ≤ c * ∥g x∥) : is_O_with c f g l :=
-univ_mem_sets' hfg
+is_O_with.of_bound $ univ_mem_sets' hfg
 
 theorem is_O_with_of_le (hfg : ∀ x, ∥f x∥ ≤ ∥g x∥) : is_O_with 1 f g l :=
 is_O_with_of_le' l $ λ x, by { rw one_mul, exact hfg x }
@@ -340,28 +379,30 @@ section bot
 
 variables (c f g)
 
-theorem is_O_with_bot : is_O_with c f g ⊥ := trivial
+@[simp] theorem is_O_with_bot : is_O_with c f g ⊥ := is_O_with.of_bound $ trivial
 
-theorem is_O_bot : is_O f g ⊥ := (is_O_with_bot c f g).is_O
+@[simp] theorem is_O_bot : is_O f g ⊥ := (is_O_with_bot 1 f g).is_O
 
-theorem is_o_bot : is_o f g ⊥ := λ c _, is_O_with_bot c f g
+@[simp] theorem is_o_bot : is_o f g ⊥ := is_o.of_is_O_with $ λ c _, is_O_with_bot c f g
 
 end bot
 
 theorem is_O_with.join (h : is_O_with c f g l) (h' : is_O_with c f g l') :
   is_O_with c f g (l ⊔ l') :=
-mem_sup_sets.2 ⟨h, h'⟩
+is_O_with.of_bound $ mem_sup_sets.2 ⟨h.bound, h'.bound⟩
 
 theorem is_O_with.join' (h : is_O_with c f g' l) (h' : is_O_with c' f g' l') :
   is_O_with (max c c') f g' (l ⊔ l') :=
-mem_sup_sets.2 ⟨(h.weaken $ le_max_left c c'), (h'.weaken $ le_max_right c c')⟩
+is_O_with.of_bound $
+mem_sup_sets.2 ⟨(h.weaken $ le_max_left c c').bound, (h'.weaken $ le_max_right c c').bound⟩
 
 theorem is_O.join (h : is_O f g' l) (h' : is_O f g' l') : is_O f g' (l ⊔ l') :=
-let ⟨c, hc⟩ := h, ⟨c', hc'⟩ := h' in (hc.join' hc').is_O
+let ⟨c, hc⟩ := h.is_O_with, ⟨c', hc'⟩ := h'.is_O_with in (hc.join' hc').is_O
 
 theorem is_o.join (h : is_o f g l) (h' : is_o f g l') :
   is_o f g (l ⊔ l') :=
-λ c cpos, (h cpos).join (h' cpos)
+is_o.of_is_O_with $
+λ c cpos, (h.forall_is_O_with cpos).join (h'.forall_is_O_with cpos)
 
 /-! ### Simplification : norm -/
 
@@ -371,12 +412,12 @@ by simp only [is_O_with, norm_norm]
 alias is_O_with_norm_right ↔ asymptotics.is_O_with.of_norm_right asymptotics.is_O_with.norm_right
 
 @[simp] theorem is_O_norm_right : is_O f (λ x, ∥g' x∥) l ↔ is_O f g' l :=
-exists_congr $ λ _,  is_O_with_norm_right
+by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_right) }
 
 alias is_O_norm_right ↔ asymptotics.is_O.of_norm_right asymptotics.is_O.norm_right
 
 @[simp] theorem is_o_norm_right : is_o f (λ x, ∥g' x∥) l ↔ is_o f g' l :=
-forall_congr $ λ _, forall_congr $ λ _, is_O_with_norm_right
+by { unfold is_o, exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_right) }
 
 alias is_o_norm_right ↔ asymptotics.is_o.of_norm_right asymptotics.is_o.norm_right
 
@@ -386,12 +427,12 @@ by simp only [is_O_with, norm_norm]
 alias is_O_with_norm_left ↔ asymptotics.is_O_with.of_norm_left asymptotics.is_O_with.norm_left
 
 @[simp] theorem is_O_norm_left : is_O (λ x, ∥f' x∥) g l ↔ is_O f' g l :=
-exists_congr $ λ _, is_O_with_norm_left
+by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_left) }
 
 alias is_O_norm_left ↔ asymptotics.is_O.of_norm_left asymptotics.is_O.norm_left
 
 @[simp] theorem is_o_norm_left : is_o (λ x, ∥f' x∥) g l ↔ is_o f' g l :=
-forall_congr $ λ _, forall_congr $ λ _, is_O_with_norm_left
+by { unfold is_o,  exact forall_congr (λ _, forall_congr $ λ _, is_O_with_norm_left) }
 
 alias is_o_norm_left ↔ asymptotics.is_o.of_norm_left asymptotics.is_o.norm_left
 
@@ -421,12 +462,12 @@ by simp only [is_O_with, norm_neg]
 alias is_O_with_neg_right ↔ asymptotics.is_O_with.of_neg_right asymptotics.is_O_with.neg_right
 
 @[simp] theorem is_O_neg_right : is_O f (λ x, -(g' x)) l ↔ is_O f g' l :=
-exists_congr $ λ _, is_O_with_neg_right
+by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_right) }
 
 alias is_O_neg_right ↔ asymptotics.is_O.of_neg_right asymptotics.is_O.neg_right
 
 @[simp] theorem is_o_neg_right : is_o f (λ x, -(g' x)) l ↔ is_o f g' l :=
-forall_congr $ λ _, forall_congr $ λ _, is_O_with_neg_right
+by { unfold is_o, exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_right))) }
 
 alias is_o_neg_right ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_right
 
@@ -436,12 +477,12 @@ by simp only [is_O_with, norm_neg]
 alias is_O_with_neg_left ↔ asymptotics.is_O_with.of_neg_left asymptotics.is_O_with.neg_left
 
 @[simp] theorem is_O_neg_left : is_O (λ x, -(f' x)) g l ↔ is_O f' g l :=
-exists_congr $ λ _, is_O_with_neg_left
+by { unfold is_O, exact exists_congr (λ _, is_O_with_neg_left) }
 
 alias is_O_neg_left ↔ asymptotics.is_O.of_neg_left asymptotics.is_O.neg_left
 
 @[simp] theorem is_o_neg_left : is_o (λ x, -(f' x)) g l ↔ is_o f' g l :=
-forall_congr $ λ _, forall_congr $ λ _, is_O_with_neg_left
+by { unfold is_o, exact forall_congr (λ _, (forall_congr (λ _, is_O_with_neg_left))) }
 
 alias is_o_neg_left ↔ asymptotics.is_o.of_neg_right asymptotics.is_o.neg_left
 
@@ -458,10 +499,10 @@ lemma is_O_fst_prod : is_O f' (λ x, (f' x, g' x)) l := is_O_with_fst_prod.is_O
 lemma is_O_snd_prod : is_O g' (λ x, (f' x, g' x)) l := is_O_with_snd_prod.is_O
 
 lemma is_O_fst_prod' {f' : α → E' × F'} : is_O (λ x, (f' x).1) f' l :=
-is_O_fst_prod
+by simpa [is_O, is_O_with] using is_O_fst_prod
 
 lemma is_O_snd_prod' {f' : α → E' × F'} : is_O (λ x, (f' x).2) f' l :=
-is_O_snd_prod
+by simpa [is_O, is_O_with] using is_O_snd_prod
 
 section
 
@@ -475,7 +516,8 @@ lemma is_O.prod_rightl (h : is_O f g' l) : is_O f (λx, (g' x, k' x)) l :=
 let ⟨c, cnonneg, hc⟩ := h.exists_nonneg in (hc.prod_rightl k' cnonneg).is_O
 
 lemma is_o.prod_rightl (h : is_o f g' l) : is_o f (λ x, (g' x, k' x)) l :=
-λ c cpos, (h cpos).prod_rightl k' (le_of_lt cpos)
+is_o.of_is_O_with $
+λ c cpos, (h.forall_is_O_with cpos).prod_rightl k' (le_of_lt cpos)
 
 lemma is_O_with.prod_rightr (h : is_O_with c f g' l) (hc : 0 ≤ c) :
   is_O_with c f (λ x, (f' x, g' x)) l :=
@@ -485,13 +527,14 @@ lemma is_O.prod_rightr (h : is_O f g' l) : is_O f (λx, (f' x, g' x)) l :=
 let ⟨c, cnonneg, hc⟩ := h.exists_nonneg in (hc.prod_rightr f' cnonneg).is_O
 
 lemma is_o.prod_rightr (h : is_o f g' l) : is_o f (λx, (f' x, g' x)) l :=
-λ c cpos, (h cpos).prod_rightr f' (le_of_lt cpos)
+is_o.of_is_O_with $
+λ c cpos, (h.forall_is_O_with cpos).prod_rightr f' (le_of_lt cpos)
 
 end
 
 lemma is_O_with.prod_left_same (hf : is_O_with c f' k' l) (hg : is_O_with c g' k' l) :
   is_O_with c (λ x, (f' x, g' x)) k' l :=
-by filter_upwards [hf, hg] λ x, max_le
+by rw is_O_with_iff at *; filter_upwards [hf, hg] λ x, max_le
 
 lemma is_O_with.prod_left (hf : is_O_with c f' k' l) (hg : is_O_with c' g' k' l) :
   is_O_with (max c c') (λ x, (f' x, g' x)) k' l :=
@@ -510,7 +553,7 @@ lemma is_O_with_prod_left :
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left_same h.2⟩
 
 lemma is_O.prod_left (hf : is_O f' k' l) (hg : is_O g' k' l) : is_O (λ x, (f' x, g' x)) k' l :=
-let ⟨c, hf⟩ := hf, ⟨c', hg⟩ := hg in (hf.prod_left hg).is_O
+let ⟨c, hf⟩ := hf.is_O_with, ⟨c', hg⟩ := hg.is_O_with in (hf.prod_left hg).is_O
 
 lemma is_O.prod_left_fst (h : is_O (λ x, (f' x, g' x)) k' l) : is_O f' k' l :=
 is_O_fst_prod.trans h
@@ -523,7 +566,8 @@ is_O_snd_prod.trans h
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩
 
 lemma is_o.prod_left (hf : is_o f' k' l) (hg : is_o g' k' l) : is_o (λ x, (f' x, g' x)) k' l :=
-λ c hc, (hf hc).prod_left_same (hg hc)
+is_o.of_is_O_with $
+λ c hc, (hf.forall_is_O_with hc).prod_left_same (hg.forall_is_O_with hc)
 
 lemma is_o.prod_left_fst (h : is_o (λ x, (f' x, g' x)) k' l) : is_o f' k' l :=
 is_O_fst_prod.trans_is_o h
@@ -536,10 +580,10 @@ is_O_snd_prod.trans_is_o h
 ⟨λ h, ⟨h.prod_left_fst, h.prod_left_snd⟩, λ h, h.1.prod_left h.2⟩
 
 lemma is_O_with.eq_zero_imp (h : is_O_with c f' g' l) : ∀ᶠ x in l, g' x = 0 → f' x = 0 :=
-eventually.mono h $ λ x hx hg, norm_le_zero_iff.1 $ by simpa [hg] using hx
+eventually.mono h.bound $ λ x hx hg, norm_le_zero_iff.1 $ by simpa [hg] using hx
 
 lemma is_O.eq_zero_imp (h : is_O f' g' l) : ∀ᶠ x in l, g' x = 0 → f' x = 0 :=
-let ⟨C, hC⟩ := h in hC.eq_zero_imp
+let ⟨C, hC⟩ := h.is_O_with in hC.eq_zero_imp
 
 /-! ### Addition and subtraction -/
 
@@ -549,15 +593,16 @@ variables {c₁ c₂ : ℝ} {f₁ f₂ : α → E'}
 
 theorem is_O_with.add (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_O_with c₂ f₂ g l) :
   is_O_with (c₁ + c₂) (λ x, f₁ x + f₂ x) g l :=
-by filter_upwards [h₁, h₂] λ x hx₁ hx₂,
+by rw is_O_with at *; filter_upwards [h₁, h₂] λ x hx₁ hx₂,
 calc ∥f₁ x + f₂ x∥ ≤ c₁ * ∥g x∥ + c₂ * ∥g x∥ : norm_add_le_of_le hx₁ hx₂
                ... = (c₁ + c₂) * ∥g x∥       : (add_mul _ _ _).symm
 
-theorem is_O.add : is_O f₁ g l → is_O f₂ g l → is_O (λ x, f₁ x + f₂ x) g l
-| ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := (hc₁.add hc₂).is_O
+theorem is_O.add (h₁ : is_O f₁ g l) (h₂ : is_O f₂ g l) : is_O (λ x, f₁ x + f₂ x) g l :=
+let ⟨c₁, hc₁⟩ := h₁.is_O_with, ⟨c₂, hc₂⟩ := h₂.is_O_with in (hc₁.add hc₂).is_O
 
 theorem is_o.add (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) : is_o (λ x, f₁ x + f₂ x) g l :=
-λ c cpos, ((h₁ $ half_pos cpos).add (h₂ $ half_pos cpos)).congr_const (add_halves c)
+is_o.of_is_O_with $ λ c cpos, ((h₁.forall_is_O_with $ half_pos cpos).add
+  (h₂.forall_is_O_with $ half_pos cpos)).congr_const (add_halves c)
 
 theorem is_o.add_add {g₁ g₂ : α → F'} (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x + f₂ x) (λ x, ∥g₁ x∥ + ∥g₂ x∥) l :=
@@ -572,7 +617,7 @@ h₁.is_O.add h₂
 
 theorem is_O_with.add_is_o (h₁ : is_O_with c₁ f₁ g l) (h₂ : is_o f₂ g l) (hc : c₁ < c₂) :
   is_O_with c₂ (λx, f₁ x + f₂ x) g l :=
-(h₁.add (h₂ (sub_pos.2 hc))).congr_const (add_sub_cancel'_right _ _)
+(h₁.add (h₂.forall_is_O_with (sub_pos.2 hc))).congr_const (add_sub_cancel'_right _ _)
 
 theorem is_o.add_is_O_with (h₁ : is_o f₁ g l) (h₂ : is_O_with c₁ f₂ g l) (hc : c₁ < c₂) :
   is_O_with c₂ (λx, f₁ x + f₂ x) g l :=
@@ -652,15 +697,17 @@ section zero_const
 variables (g g' l)
 
 theorem is_o_zero : is_o (λ x, (0 : E')) g' l :=
-λ c hc, univ_mem_sets' $ λ x, by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
+is_o.of_bound $ λ c hc, univ_mem_sets' $ λ x,
+by simpa using mul_nonneg (le_of_lt hc) (norm_nonneg $ g' x)
 
 theorem is_O_with_zero (hc : 0 ≤ c) : is_O_with c (λ x, (0 : E')) g' l :=
-univ_mem_sets' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
+is_O_with.of_bound $ univ_mem_sets' $ λ x, by simpa using mul_nonneg hc (norm_nonneg $ g' x)
 
 theorem is_O_with_zero' : is_O_with 0 (λ x, (0 : E')) g l :=
-univ_mem_sets' $ λ x, by simp
+is_O_with.of_bound $ univ_mem_sets' $ λ x, by simp
 
-theorem is_O_zero : is_O (λ x, (0 : E')) g l := ⟨0, is_O_with_zero' _ _⟩
+theorem is_O_zero : is_O (λ x, (0 : E')) g l :=
+is_O_iff_is_O_with.2 ⟨0, is_O_with_zero' _ _⟩
 
 theorem is_O_refl_left : is_O (λ x, f' x - f' x) g' l :=
 (is_O_zero g' l).congr_left $ λ x, (sub_self _).symm
@@ -675,17 +722,18 @@ variables {g g' l}
 by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zero_iff]
 
 @[simp] theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
-⟨λ h, let ⟨c, hc⟩ := h in  (is_O_with_zero_right_iff).1 hc,
+⟨λ h, let ⟨c, hc⟩ := h.is_O_with in is_O_with_zero_right_iff.1 hc,
   λ h, (is_O_with_zero_right_iff.2 h : is_O_with 1 _ _ _).is_O⟩
 
 @[simp] theorem is_o_zero_right_iff :
   is_o f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 ⟨λ h, is_O_zero_right_iff.1 h.is_O,
-  λ h c hc, is_O_with_zero_right_iff.2 h⟩
+  λ h, is_o.of_is_O_with $ λ c hc, is_O_with_zero_right_iff.2 h⟩
 
 theorem is_O_with_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α) :
   is_O_with (∥c∥ / ∥c'∥) (λ x : α, c) (λ x, c') l :=
 begin
+  unfold is_O_with,
   apply univ_mem_sets',
   intro x,
   rw [mem_set_of_eq, div_mul_cancel],
@@ -698,9 +746,9 @@ theorem is_O_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α) :
 
 end zero_const
 
-@[simp] lemma is_O_with_top : is_O_with c f g ⊤ ↔ ∀ x, ∥f x∥ ≤ c * ∥g x∥ := iff.rfl
+@[simp] lemma is_O_with_top : is_O_with c f g ⊤ ↔ ∀ x, ∥f x∥ ≤ c * ∥g x∥ := by rw is_O_with; refl
 
-@[simp] lemma is_O_top : is_O f g ⊤ ↔ ∃ C, ∀ x, ∥f x∥ ≤ C * ∥g x∥ := iff.rfl
+@[simp] lemma is_O_top : is_O f g ⊤ ↔ ∃ C, ∀ x, ∥f x∥ ≤ C * ∥g x∥ := by rw is_O_iff; refl
 
 @[simp] lemma is_o_top : is_o f' g' ⊤ ↔ ∀ x, f' x = 0 :=
 begin
@@ -712,6 +760,14 @@ begin
   exact le_of_tendsto_of_tendsto tendsto_const_nhds this
     (eventually_nhds_within_iff.2 $ eventually_of_forall $ λ c hc, h hc x)
 end
+
+@[simp] lemma is_O_with_principal {s : set α} :
+  is_O_with c f g (𝓟 s) ↔ ∀ x ∈ s, ∥f x∥ ≤ c * ∥g x∥ :=
+by rw is_O_with; refl
+
+lemma is_O_principal {s : set α} :
+  is_O f g (𝓟 s) ↔ ∃ c, ∀ x ∈ s, ∥f x∥ ≤ c * ∥g x∥ :=
+by rw is_O_iff; refl
 
 theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ (λ x : α, c) (λ x, (1 : 𝕜)) l :=
 begin
@@ -750,7 +806,7 @@ theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc 
   is_O f' (λ x, c) l :=
 begin
   refine is_O.trans _ (is_O_const_const (∥y∥ + 1) hc l),
-  use 1,
+  refine is_O.of_bound 1 _,
   simp only [is_O_with, one_mul],
   have : tendsto (λx, ∥f' x∥) l (𝓝 ∥y∥), from (continuous_norm.tendsto _).comp h,
   have Iy : ∥y∥ < ∥∥y∥ + 1∥, from lt_of_lt_of_le (lt_add_one _) (le_abs_self _),
@@ -798,7 +854,7 @@ theorem is_O_with.const_mul_left {f : α → R} (h : is_O_with c f g l) (c' : R)
 
 theorem is_O.const_mul_left {f : α → R} (h : is_O f g l) (c' : R) :
   is_O (λ x, c' * f x) g l :=
-let ⟨c, hc⟩ := h in (hc.const_mul_left c').is_O
+let ⟨c, hc⟩ := h.is_O_with in (hc.const_mul_left c').is_O
 
 theorem is_O_with_self_const_mul' (u : units R) (f : α → R) (l : filter α) :
   is_O_with ∥(↑u⁻¹:R)∥ f (λ x, ↑u * f x) l :=
@@ -899,6 +955,7 @@ theorem is_O_with.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜} {c₁ c�
   (h₁ : is_O_with c₁ f₁ g₁ l) (h₂ : is_O_with c₂ f₂ g₂ l) :
   is_O_with (c₁ * c₂) (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
+  unfold is_O_with at *,
   filter_upwards [h₁, h₂],
   intros x hx₁ hx₂,
   apply le_trans (norm_mul_le _ _),
@@ -910,12 +967,13 @@ end
 theorem is_O.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜}
   (h₁ : is_O f₁ g₁ l) (h₂ : is_O f₂ g₂ l) :
   is_O (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
-let ⟨c, hc⟩ := h₁, ⟨c', hc'⟩ := h₂ in (hc.mul hc').is_O
+let ⟨c, hc⟩ := h₁.is_O_with, ⟨c', hc'⟩ := h₂.is_O_with in (hc.mul hc').is_O
 
 theorem is_O.mul_is_o {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜}
   (h₁ : is_O f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
+  unfold is_o at *,
   intros c cpos,
   rcases h₁.exists_pos with ⟨c', c'pos, hc'⟩,
   exact (hc'.mul (h₂ (div_pos cpos c'pos))).congr_const (mul_div_cancel' _ (ne_of_gt c'pos))
@@ -925,6 +983,7 @@ theorem is_o.mul_is_O {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜}
   (h₁ : is_o f₁ g₁ l) (h₂ : is_O f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
+  unfold is_o at *,
   intros c cpos,
   rcases h₂.exists_pos with ⟨c', c'pos, hc'⟩,
   exact ((h₁ (div_pos cpos c'pos)).mul hc').congr_const (div_mul_cancel _ (ne_of_gt c'pos))
@@ -933,6 +992,29 @@ end
 theorem is_o.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜} (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 h₁.mul_is_O h₂.is_O
+
+theorem is_O_with.pow' {f : α → R} {g : α → 𝕜} (h : is_O_with c f g l) :
+  ∀ n : ℕ, is_O_with (nat.cases_on n ∥(1 : R)∥ (λ n, c ^ (n + 1))) (λ x, f x ^ n) (λ x, g x ^ n) l
+| 0 := by simpa using is_O_with_const_const (1 : R) (@one_ne_zero 𝕜 _ _) l
+| 1 := by simpa
+| (n + 2) := by simpa [pow_succ] using h.mul (is_O_with.pow' (n + 1))
+
+theorem is_O_with.pow [norm_one_class R] {f : α → R} {g : α → 𝕜} (h : is_O_with c f g l) :
+  ∀ n : ℕ, is_O_with (c ^ n) (λ x, f x ^ n) (λ x, g x ^ n) l
+| 0 := by simpa using h.pow' 0
+| (n + 1) := h.pow' (n + 1)
+
+theorem is_O.pow {f : α → R} {g : α → 𝕜} (h : is_O f g l) (n : ℕ) :
+  is_O (λ x, f x ^ n) (λ x, g x ^ n) l :=
+let ⟨C, hC⟩ := h.is_O_with in is_O_iff_is_O_with.2 ⟨_, hC.pow' n⟩
+
+theorem is_o.pow {f : α → R} {g : α → 𝕜} (h : is_o f g l) {n : ℕ} (hn : 0 < n) :
+  is_o (λ x, f x ^ n) (λ x, g x ^ n) l :=
+begin
+  cases n, exact hn.false.elim, clear hn,
+  induction n with n ihn, { simpa only [pow_one] },
+  exact h.mul ihn
+end
 
 /-! ### Scalar multiplication -/
 
@@ -1089,19 +1171,15 @@ variables {u v : α → 𝕜}
 
 lemma is_O_with.eventually_mul_div_cancel (h : is_O_with c u v l) :
   (u / v) * v =ᶠ[l] u :=
-begin
-  refine eventually.mono h (λ y hy, div_mul_cancel_of_imp $ λ hv, _),
-  rw hv at *,
-  simpa using hy
-end
+eventually.mono h.bound (λ y hy, div_mul_cancel_of_imp $ λ hv, by simpa [hv] using hy)
 
 /-- If `u = O(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
 lemma is_O.eventually_mul_div_cancel (h : is_O u v l) :  (u / v) * v =ᶠ[l] u :=
-let ⟨c, hc⟩ := h in hc.eventually_mul_div_cancel
+let ⟨c, hc⟩ := h.is_O_with in hc.eventually_mul_div_cancel
 
 /-- If `u = o(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
 lemma is_o.eventually_mul_div_cancel (h : is_o u v l) : (u / v) * v =ᶠ[l] u :=
-(h zero_lt_one).eventually_mul_div_cancel
+(h.forall_is_O_with zero_lt_one).eventually_mul_div_cancel
 
 end eventually_mul_div_cancel
 
@@ -1117,6 +1195,7 @@ variables {u v : α → 𝕜}
 lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c) (h : u =ᶠ[l] φ * v) :
   is_O_with c u v l :=
 begin
+  unfold is_O_with,
   refine h.symm.rw (λ x a, ∥a∥ ≤ c * ∥v x∥) (hφ.mono $ λ x hx, _),
   simp only [normed_field.norm_mul, pi.mul_apply],
   exact mul_le_mul_of_nonneg_right hx (norm_nonneg _)
@@ -1128,8 +1207,8 @@ begin
   split,
   { intro h,
     use (λ x, u x / v x),
-    refine ⟨eventually.mono h (λ y hy, _), h.eventually_mul_div_cancel.symm⟩,
-    simpa using div_le_iff_of_nonneg_of_le (norm_nonneg _) hc hy },
+    refine ⟨eventually.mono h.bound (λ y hy, _), h.eventually_mul_div_cancel.symm⟩,
+    simpa using div_le_of_nonneg_of_le_mul (norm_nonneg _) hc hy },
   { rintros ⟨φ, hφ, h⟩,
     exact is_O_with_of_eq_mul φ hφ h }
 end
@@ -1147,7 +1226,7 @@ begin
     rcases hc.exists_eq_mul hnnc with ⟨φ, hφ, huvφ⟩,
     exact ⟨φ, ⟨c, hφ⟩, huvφ⟩ },
   { rintros ⟨φ, ⟨c, hφ⟩, huvφ⟩,
-    exact ⟨c, is_O_with_of_eq_mul φ hφ huvφ⟩ }
+    exact is_O_iff_is_O_with.2 ⟨c, is_O_with_of_eq_mul φ hφ huvφ⟩ }
 end
 
 alias is_O_iff_exists_eq_mul ↔ asymptotics.is_O.exists_eq_mul _
@@ -1157,7 +1236,7 @@ lemma is_o_iff_exists_eq_mul :
 begin
   split,
   { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, h.eventually_mul_div_cancel.symm⟩ },
-  { rintros ⟨φ, hφ, huvφ⟩ c hpos,
+  { unfold is_o, rintros ⟨φ, hφ, huvφ⟩ c hpos,
     rw normed_group.tendsto_nhds_zero at hφ,
     exact is_O_with_of_eq_mul _ ((hφ c hpos).mono $ λ x, le_of_lt)  huvφ }
 end
@@ -1167,6 +1246,15 @@ alias is_o_iff_exists_eq_mul ↔ asymptotics.is_o.exists_eq_mul _
 end exists_mul_eq
 
 /-! ### Miscellanous lemmas -/
+
+lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
+  {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
+  tendsto u l (𝓝 0) :=
+begin
+  suffices h : is_o u (λ x, (1 : 𝕜)) l,
+  { rwa is_o_one_iff at h },
+  exact huv.trans_is_O (is_O_one_of_tendsto 𝕜 hv),
+end
 
 theorem is_o_pow_pow {m n : ℕ} (h : m < n) :
   is_o (λ(x : 𝕜), x^n) (λx, x^m) (𝓝 0) :=
@@ -1180,13 +1268,21 @@ begin
   exact (zero_pow (nat.sub_pos_of_lt h)).symm
 end
 
+theorem is_o_norm_pow_norm_pow {m n : ℕ} (h : m < n) :
+  is_o (λ(x : E'), ∥x∥^n) (λx, ∥x∥^m) (𝓝 (0 : E')) :=
+(is_o_pow_pow h).comp_tendsto tendsto_norm_zero
+
 theorem is_o_pow_id {n : ℕ} (h : 1 < n) :
   is_o (λ(x : 𝕜), x^n) (λx, x) (𝓝 0) :=
 by { convert is_o_pow_pow h, simp only [pow_one] }
 
+theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
+  is_o (λ(x : E'), ∥x∥^n) (λx, x) (𝓝 0) :=
+by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ h
+
 theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c f₁ f₂ l) (hc : c < 1) :
   is_O_with (1 / (1 - c)) f₂ (λx, f₂ x - f₁ x) l :=
-mem_sets_of_superset h $ λ x hx,
+is_O_with.of_bound $ mem_sets_of_superset h.bound $ λ x hx,
 begin
   simp only [mem_set_of_eq] at hx ⊢,
   rw [mul_comm, one_div, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
@@ -1240,15 +1336,46 @@ theorem is_O_one_nat_at_top_iff {f : ℕ → E'} :
 iff.trans (is_O_nat_at_top_iff (λ n h, (one_ne_zero h).elim)) $
   by simp only [norm_one, mul_one]
 
+theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
+  is_O_with C f g' l ↔ ∀ i, is_O_with C (λ x, f x i) g' l :=
+have ∀ x, 0 ≤ C * ∥g' x∥, from λ x, mul_nonneg hC (norm_nonneg _),
+by simp only [is_O_with_iff, pi_norm_le_iff (this _), eventually_all]
+
+@[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : α → Π i, E' i} :
+  is_O f g' l ↔ ∀ i, is_O (λ x, f x i) g' l :=
+begin
+  simp only [is_O_iff_eventually_is_O_with, ← eventually_all],
+  exact eventually_congr (eventually_at_top.2 ⟨0, λ c, is_O_with_pi⟩)
+end
+
+@[simp] theorem is_o_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_group (E' i)]
+  {f : α → Π i, E' i} :
+  is_o f g' l ↔ ∀ i, is_o (λ x, f x i) g' l :=
+begin
+  simp only [is_o, is_O_with_pi, le_of_lt] { contextual := tt },
+  exact ⟨λ h i c hc, h hc i, λ h c hc i, h i hc⟩
+end
+
 end asymptotics
+
+open asymptotics
+
+lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} (g : ι → ℝ)
+  (hg : summable g) (h : is_O f g cofinite) : summable f :=
+let ⟨C, hC⟩ := h.is_O_with in
+summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) (hg.abs.mul_left _) hC.bound
+
+lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} (g : ℕ → ℝ)
+  (hg : summable g) (h : is_O f g at_top) : summable f :=
+summable_of_is_O g hg $ nat.cofinite_eq_at_top.symm ▸ h
 
 namespace local_homeomorph
 
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 variables {E : Type*} [has_norm E] {F : Type*} [has_norm F]
-
-open asymptotics
 
 /-- Transfer `is_O_with` over a `local_homeomorph`. -/
 lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target)
@@ -1263,12 +1390,12 @@ lemma is_O_with_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target
 /-- Transfer `is_O` over a `local_homeomorph`. -/
 lemma is_O_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
   is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-exists_congr $ λ C, e.is_O_with_congr hb
+by { unfold is_O, exact exists_congr (λ C, e.is_O_with_congr hb) }
 
 /-- Transfer `is_o` over a `local_homeomorph`. -/
 lemma is_o_congr (e : local_homeomorph α β) {b : β} (hb : b ∈ e.target) {f : β → E} {g : β → F} :
   is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb
+by { unfold is_o, exact (forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr hb) }
 
 end local_homeomorph
 
@@ -1288,13 +1415,11 @@ e.to_local_homeomorph.is_O_with_congr trivial
 /-- Transfer `is_O` over a `homeomorph`. -/
 lemma is_O_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
   is_O f g (𝓝 b) ↔ is_O (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-exists_congr $ λ C, e.is_O_with_congr
+by { unfold is_O, exact exists_congr (λ C, e.is_O_with_congr) }
 
 /-- Transfer `is_o` over a `homeomorph`. -/
 lemma is_o_congr (e : α ≃ₜ β) {b : β} {f : β → E} {g : β → F} :
   is_o f g (𝓝 b) ↔ is_o (f ∘ e) (g ∘ e) (𝓝 (e.symm b)) :=
-forall_congr $ λ c, forall_congr $ λ hc, e.is_O_with_congr
+by { unfold is_o, exact forall_congr (λ c, forall_congr (λ hc, e.is_O_with_congr)) }
 
 end homeomorph
-
-attribute [irreducible] asymptotics.is_o asymptotics.is_O asymptotics.is_O_with

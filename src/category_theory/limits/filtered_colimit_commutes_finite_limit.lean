@@ -203,12 +203,12 @@ begin
   -- picking some place to the right of all of
   -- the morphisms `gf f : k' ⟶ kh f` and `hf f : k' ⟶ kf f`.
   -- At this point we're relying on there being only finitely morphisms in `J`.
-  let O := finset.univ.bind (λ j, finset.univ.bind (λ j', finset.univ.image (@kf j j'))) ∪ {k'},
+  let O := finset.univ.bUnion (λ j, finset.univ.bUnion (λ j', finset.univ.image (@kf j j'))) ∪ {k'},
   have kfO : ∀ {j j'} (f : j ⟶ j'), kf f ∈ O := λ j j' f, finset.mem_union.mpr (or.inl (
   begin
-    rw [finset.mem_bind],
+    rw [finset.mem_bUnion],
     refine ⟨j, finset.mem_univ j, _⟩,
-    rw [finset.mem_bind],
+    rw [finset.mem_bUnion],
     refine ⟨j', finset.mem_univ j', _⟩,
     rw [finset.mem_image],
     refine ⟨f, finset.mem_univ _, _⟩,
@@ -216,7 +216,7 @@ begin
   end)),
   have k'O : k' ∈ O := finset.mem_union.mpr (or.inr (finset.mem_singleton.mpr rfl)),
   let H : finset (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
-    finset.univ.bind (λ j : J, finset.univ.bind (λ j' : J, finset.univ.bind (λ f : j ⟶ j',
+    finset.univ.bUnion (λ j : J, finset.univ.bUnion (λ j' : J, finset.univ.bUnion (λ f : j ⟶ j',
       {⟨k', kf f, k'O, kfO f, gf f⟩, ⟨k', kf f, k'O, kfO f, hf f⟩}))),
 
   obtain ⟨k'', i', s'⟩ := is_filtered.sup_exists O H,
@@ -230,18 +230,18 @@ begin
     swap 2,
     exact k'O,
     swap 2,
-    { rw [finset.mem_bind],
+    { rw [finset.mem_bUnion],
       refine ⟨j₁, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨j₂, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨f, finset.mem_univ _, _⟩,
       simp only [true_or, eq_self_iff_true, and_self, finset.mem_insert, heq_iff_eq], },
-    { rw [finset.mem_bind],
+    { rw [finset.mem_bUnion],
       refine ⟨j₃, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨j₄, finset.mem_univ _, _⟩,
-      rw [finset.mem_bind],
+      rw [finset.mem_bUnion],
       refine ⟨f', finset.mem_univ _, _⟩,
       simp only [eq_self_iff_true, or_true, and_self, finset.mem_insert, finset.mem_singleton,
         heq_iff_eq], }

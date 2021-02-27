@@ -9,6 +9,14 @@ import algebra.free_algebra
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
 
+/-!
+# Category instance for algebras over a commutative ring
+
+We introduce the bundled category `Algebra` of algebras over a fixed commutative ring `R ` along
+with the forgetful functors to `Ring` and `Module`. We furthermore show that the functor associating
+to a type the free `R`-algebra on that type is left adjoint to the forgetful functor.
+-/
+
 open category_theory
 open category_theory.limits
 
@@ -16,7 +24,7 @@ universes v u
 
 variables (R : Type u) [comm_ring R]
 
-/-- The category of R-modules and their morphisms. -/
+/-- The category of R-algebras and their morphisms. -/
 structure Algebra :=
 (carrier : Type v)
 [is_ring : ring carrier]

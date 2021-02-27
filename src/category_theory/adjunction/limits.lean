@@ -47,7 +47,8 @@ The counit for the adjunction for `cocones.functoriality K F : cocone K ⥤ coco
 
 Auxiliary definition for `functoriality_is_left_adjoint`.
 -/
-@[simps] def functoriality_counit : functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
+@[simps] def functoriality_counit :
+  functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
 { app := λ c, { hom := adj.counit.app c.X } }
 
 /-- The functor `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)` is a left adjoint. -/
@@ -134,7 +135,8 @@ The unit for the adjunction for`cones.functoriality K G : cone K ⥤ cone (K ⋙
 
 Auxiliary definition for `functoriality_is_right_adjoint`.
 -/
-@[simps] def functoriality_unit' : 𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
+@[simps] def functoriality_unit' :
+  𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
 { app := λ c, { hom := adj.unit.app c.X, } }
 
 /--
@@ -142,7 +144,8 @@ The counit for the adjunction for`cones.functoriality K G : cone K ⥤ cone (K �
 
 Auxiliary definition for `functoriality_is_right_adjoint`.
 -/
-@[simps] def functoriality_counit' : cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
+@[simps] def functoriality_counit' :
+  cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
 { app := λ c, { hom := adj.counit.app c.X, } }
 
 /-- The functor `cones.functoriality K G : cone K ⥤ cone (K ⋙ G)` is a right adjoint. -/

@@ -49,18 +49,25 @@ protected structure generalized_continued_fraction.pair := (a : α) (b : α)
 namespace generalized_continued_fraction.pair
 open generalized_continued_fraction as gcf
 
-/-- Make a gcf.pair printable. -/
+variable {α}
+
+/-- Make a `gcf.pair` printable. -/
 instance [has_repr α] : has_repr (gcf.pair α) :=
 ⟨λ p, "(a : " ++ (repr p.a) ++ ", b : " ++ (repr p.b) ++ ")"⟩
 
+/-- Maps a function `f` on both components of a given pair. -/
+def map {β : Type*} (f : α → β) (gp : gcf.pair α) : gcf.pair β :=
+⟨f gp.a, f gp.b⟩
+
 section coe
 /-! Interlude: define some expected coercions. -/
-/- Fix another type `β` and assume `α` can be converted to `β`. -/
-variables {α} {β : Type*} [has_coe α β]
+/- Fix another type `β` which we will convert to. -/
+variables {β : Type*} [has_coe α β]
 
 /-- Coerce a pair by elementwise coercion. -/
-instance has_coe_to_generalized_continued_fraction_pair : has_coe (gcf.pair α) (gcf.pair β) :=
-⟨λ ⟨a, b⟩, ⟨(a : β), (b : β)⟩⟩
+instance has_coe_to_generalized_continued_fraction_pair :
+  has_coe (gcf.pair α) (gcf.pair β) :=
+⟨map coe⟩
 
 @[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction_pair {a b : α} :
@@ -69,6 +76,8 @@ rfl
 
 end coe
 end generalized_continued_fraction.pair
+
+variable (α)
 
 /--
 A *generalised continued fraction* (gcf) is a potentially infinite expression of the form
@@ -120,22 +129,17 @@ def terminates (g : gcf α) : Prop := g.s.terminates
 
 section coe
 /-! Interlude: define some expected coercions. -/
--- Fix another type `β` and assume `α` can be converted to `β`.
+/- Fix another type `β` which we will convert to. -/
 variables {β : Type*} [has_coe α β]
-
-/-- Coerce a sequence by elementwise coercion. -/
-def seq.coe_to_seq : has_coe (seq α) (seq β) := ⟨seq.map (λ a, (a : β))⟩
-
-local attribute [instance] seq.coe_to_seq
 
 /-- Coerce a gcf by elementwise coercion. -/
 instance has_coe_to_generalized_continued_fraction : has_coe (gcf α) (gcf β) :=
-⟨λ ⟨h, s⟩, ⟨(h : β), (s : seq $ gcf.pair β)⟩⟩
+⟨λ g, ⟨(g.h : β), (g.s.map coe : seq $ gcf.pair β)⟩⟩
 
 @[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction {g : gcf α} :
-  (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩ :=
-by { cases g, refl }
+  (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s.map coe : seq $ gcf.pair β)⟩ :=
+rfl
 
 end coe
 end generalized_continued_fraction

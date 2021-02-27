@@ -23,7 +23,8 @@ In a category with zero morphisms, we model the (binary) biproduct of `P Q : C`
 using a `binary_bicone`, which has a cone point `X`,
 and morphisms `fst : X ⟶ P`, `snd : X ⟶ Q`, `inl : P ⟶ X` and `inr : X ⟶ Q`,
 such that `inl ≫ fst = 𝟙 P`, `inl ≫ snd = 0`, `inr ≫ fst = 0`, and `inr ≫ snd = 𝟙 Q`.
-Such a `binary_bicone` is a biproduct if the cone is a limit cone, and the cocone is a colimit cocone.
+Such a `binary_bicone` is a biproduct if the cone is a limit cone, and the cocone is a colimit
+cocone.
 
 In a preadditive category,
 * any `binary_biproduct` satisfies `total : fst ≫ inl + snd ≫ inr = 𝟙 X`
@@ -125,7 +126,8 @@ def biproduct.is_limit (F : J → C) [has_biproduct F] : is_limit (biproduct.bic
 (get_biproduct_data F).is_limit
 
 /-- `biproduct.bicone F` is a colimit cocone. -/
-def biproduct.is_colimit (F : J → C) [has_biproduct F] : is_colimit (biproduct.bicone F).to_cocone :=
+def biproduct.is_colimit (F : J → C) [has_biproduct F] :
+  is_colimit (biproduct.bicone F).to_cocone :=
 (get_biproduct_data F).is_colimit
 
 @[priority 100]
@@ -431,7 +433,8 @@ simultaneously a limit and a colimit of the diagram `pair P Q`.
 class has_binary_biproduct (P Q : C) : Prop :=
 mk' :: (exists_binary_biproduct : nonempty (binary_biproduct_data P Q))
 
-lemma has_binary_biproduct.mk {P Q : C} (d : binary_biproduct_data P Q) : has_binary_biproduct P Q :=
+lemma has_binary_biproduct.mk {P Q : C} (d : binary_biproduct_data P Q) :
+  has_binary_biproduct P Q :=
 ⟨nonempty.intro d⟩
 
 /--
@@ -628,8 +631,8 @@ lemma biprod.map_eq_map' {W X Y Z : C} [has_binary_biproduct W X] [has_binary_bi
   (f : W ⟶ Y) (g : X ⟶ Z) : biprod.map f g = biprod.map' f g :=
 begin
   ext,
-  { simp only [map_pair_left, is_colimit.ι_map, is_limit.map_π, biprod.inl_fst_assoc, category.assoc,
-    ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
+  { simp only [map_pair_left, is_colimit.ι_map, is_limit.map_π, biprod.inl_fst_assoc,
+    category.assoc, ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
     ←binary_bicone.to_cocone_ι_app_left, ←binary_biproduct.bicone_inl],
     simp },
   { simp only [map_pair_left, is_colimit.ι_map, is_limit.map_π, zero_comp,
@@ -642,8 +645,8 @@ begin
       ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
       ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
     simp },
-  { simp only [map_pair_right, is_colimit.ι_map, is_limit.map_π, biprod.inr_snd_assoc, category.assoc,
-      ←binary_bicone.to_cone_π_app_right, ←binary_biproduct.bicone_snd,
+  { simp only [map_pair_right, is_colimit.ι_map, is_limit.map_π, biprod.inr_snd_assoc,
+      category.assoc, ←binary_bicone.to_cone_π_app_right, ←binary_biproduct.bicone_snd,
       ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
     simp }
 end

@@ -64,7 +64,8 @@ variable {I : Type*}     -- The indexing type
 variable (f : I → Type*) -- The family of types already equipped with instances
 variables [Π i, semiring (f i)]
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+homomorphism. -/
 def ring_hom.apply (i : I) : (Π i, f i) →+* f i :=
 { ..(monoid_hom.apply f i),
   ..(add_monoid_hom.apply f i) }

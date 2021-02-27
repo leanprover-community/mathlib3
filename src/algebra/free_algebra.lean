@@ -33,8 +33,8 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
 
 ## Implementation details
 
-We construct the free algebra on `X` as a quotient of an inductive type `free_algebra.pre` by an inductively defined relation `free_algebra.rel`.
-Explicitly, the construction involves three steps:
+We construct the free algebra on `X` as a quotient of an inductive type `free_algebra.pre` by an
+inductively defined relation `free_algebra.rel`. Explicitly, the construction involves three steps:
 1. We construct an inductive type `free_algebra.pre R X`, the terms of which should be thought
   of as representatives for the elements of `free_algebra R X`.
   It is the free type with maps from `R` and `X`, and with two binary operations `add` and `mul`.
@@ -274,9 +274,13 @@ theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
 (lift R).symm_apply_eq
 
 /-!
-At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one should only use the universal properties of the free algebra, and consider the actual implementation as a quotient of an inductive type as completely hidden.
+At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one
+should only use the universal properties of the free algebra, and consider the actual implementation
+as a quotient of an inductive type as completely hidden.
 
-Of course, one still has the option to locally make these definitions `semireducible` if so desired, and Lean is still willing in some circumstances to do unification based on the underlying definition.
+Of course, one still has the option to locally make these definitions `semireducible` if so desired,
+and Lean is still willing in some circumstances to do unification based on the underlying
+definition.
 -/
 attribute [irreducible] ι lift
 -- Marking `free_algebra` irreducible makes `ring` instances inaccessible on quotients.
@@ -322,6 +326,14 @@ equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
 section
 open_locale classical
 
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : free_algebra R X →ₐ[R] R :=
+lift R (0 : X → R)
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ free_algebra R X) :=
+λ x, by simp [algebra_map_inv]
+
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
 λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
@@ -335,8 +347,8 @@ end
 
 end free_algebra
 
--- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
--- Closing it and reopening it fixes it...
+/- There is something weird in the above namespace that breaks the typeclass resolution of
+`has_coe_to_sort` below. Closing it and reopening it fixes it... -/
 namespace free_algebra
 
 /-- An induction principle for the free algebra.

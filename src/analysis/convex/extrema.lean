@@ -47,7 +47,7 @@ begin
       ... ≤ ya • f a + yx • f x
                 : h_conv.2 (left_mem_Icc.mpr (le_of_lt a_lt_b)) ⟨h_ax, h_xb⟩ (ya_pos)
                     (le_of_lt yx_pos) yax
-      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) (ya • f a)
+      ... < ya • f a + yx • f a       : add_lt_add_left (smul_lt_smul_of_pos fx_lt_fa yx_pos) _
       ... = f a                       : by rw [←add_smul, yax, one_smul] },
   by_cases h_xz : x ≤ z,
   { exact not_lt_of_ge (ge_on_nhd x (show x ∈ Icc a z, by exact ⟨h_ax, h_xz⟩)) fx_lt_fa, },

@@ -81,11 +81,10 @@ by rw [bit0, eval₂_add, bit0]
 by rw [bit1, eval₂_add, eval₂_bit0, eval₂_one, bit1]
 
 @[simp] lemma eval₂_smul (g : R →+* S) (p : polynomial R) (x : S) {s : R} :
-  eval₂ g x (s • p) = g s • eval₂ g x p :=
+  eval₂ g x (s • p) = g s * eval₂ g x p :=
 begin
   simp only [eval₂, sum_smul_index, forall_const, zero_mul, g.map_zero, g.map_mul, mul_assoc],
-  -- Why doesn't `rw [←finsupp.mul_sum]` work?
-  convert (@finsupp.mul_sum _ _ _ _ _ (g s) p (λ i a, (g a * x ^ i))).symm,
+  rw [←finsupp.mul_sum],
 end
 
 @[simp] lemma eval₂_C_X : eval₂ C X p = p :=
@@ -218,6 +217,25 @@ def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
 lemma eval_eq_sum : p.eval x = sum p (λ e a, a * x ^ e) :=
 rfl
 
+lemma eval_eq_finset_sum (P : polynomial R) (x : R) :
+  eval x P = ∑ i in range (P.nat_degree + 1), P.coeff i * x ^ i :=
+begin
+  rw eval_eq_sum,
+  refine P.sum_of_support_subset _ _ _,
+  { intros a,
+    rw [mem_range, nat.lt_add_one_iff],
+    exact le_nat_degree_of_mem_supp a },
+  { intros,
+    exact zero_mul _ }
+end
+
+lemma eval_eq_finset_sum' (P : polynomial R) :
+  (λ x, eval x P) = (λ x, ∑ i in range (P.nat_degree + 1), P.coeff i * x ^ i) :=
+begin
+  ext,
+  exact P.eval_eq_finset_sum x
+end
+
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
 @[simp] lemma eval_nat_cast {n : ℕ} : (n : polynomial R).eval x = n :=
@@ -239,7 +257,7 @@ eval₂_monomial _ _
 @[simp] lemma eval_bit1 : (bit1 p).eval x = bit1 (p.eval x) := eval₂_bit1 _ _
 
 @[simp] lemma eval_smul (p : polynomial R) (x : R) {s : R} :
-  (s • p).eval x = s • p.eval x :=
+  (s • p).eval x = s * p.eval x :=
 eval₂_smul (ring_hom.id _) _ _
 
 lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
@@ -473,6 +491,39 @@ eval₂_map f (ring_hom.id _) x
 lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 eq.symm $ sum_hom _ _
+
+@[simp]
+lemma eval_zero_map (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 0 = f (p.eval 0) :=
+by simp [←coeff_zero_eq_eval_zero]
+
+@[simp]
+lemma eval_one_map (f : R →+* S) (p : polynomial R) :
+  (p.map f).eval 1 = f (p.eval 1) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
+@[simp]
+lemma eval_nat_cast_map (f : R →+* S) (p : polynomial R) (n : ℕ) :
+  (p.map f).eval n = f (p.eval n) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
+
+@[simp]
+lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
+  (f : R →+* S) (p : polynomial R) (i : ℤ) :
+  (p.map f).eval i = f (p.eval i) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq], },
+  { intros n r, simp, }
+end
 
 end map
 

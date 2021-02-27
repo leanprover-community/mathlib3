@@ -3,8 +3,18 @@ from json import loads
 from pathlib import Path
 import sys
 
+def encode_msg_text_for_github(msg):
+    # even though this is probably url quoting, we match the implementation at
+    # https://github.com/actions/toolkit/blob/af821474235d3c5e1f49cee7c6cf636abb0874c4/packages/core/src/command.ts#L36-L94
+    return msg.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+
 def format_msg(msg):
-    return f"{msg['file_name']}:{msg.get('pos_line')}:{msg.get('pos_col')}: {msg.get('severity')}: {msg.get('text')}\n"
+    # Formatted for https://github.com/actions/toolkit/blob/master/docs/commands.md#log-level
+    # We include the filename / line number information as both message and metadata, to ensure
+    # that github shows it.
+    msg_text = f"{msg['file_name']}:{msg.get('pos_line')}:{msg.get('pos_col')}:\n{msg.get('text')}"
+    msg_text = encode_msg_text_for_github(msg_text)
+    return f"::{msg.get('severity')} file={msg['file_name']},line={msg.get('pos_line')},col={msg.get('pos_col')}::{msg_text}"
 
 def write_and_print_noisy_files(noisy_files):
     with open('src/.noisy_files', 'w') as f:

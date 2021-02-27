@@ -5,6 +5,7 @@ Author: Adam Topaz.
 -/
 import algebra.free_algebra
 import algebra.ring_quot
+import algebra.triv_sq_zero_ext
 
 /-!
 # Tensor Algebras
@@ -121,4 +122,36 @@ begin
   exact (lift R).symm.injective w,
 end
 
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : tensor_algebra R M →ₐ[R] R :=
+lift R (0 : M →ₗ[R] R)
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ tensor_algebra R M) :=
+λ x, by simp [algebra_map_inv]
+
+/-- The left-inverse of `ι`.
+
+As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
+algebra structure. -/
+def ι_inv : tensor_algebra R M →ₗ[R] M :=
+(triv_sq_zero_ext.snd_hom R M).comp (lift R (triv_sq_zero_ext.inr_hom R M)).to_linear_map
+
+lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → tensor_algebra R M) :=
+λ x, by simp [ι_inv]
+
 end tensor_algebra
+
+namespace free_algebra
+
+variables {R M}
+
+/-- The canonical image of the `free_algebra` in the `tensor_algebra`, which maps
+`free_algebra.ι R x` to `tensor_algebra.ι R x`. -/
+def to_tensor : free_algebra R M →ₐ[R] tensor_algebra R M :=
+free_algebra.lift R (tensor_algebra.ι R)
+
+@[simp] lemma to_tensor_ι (m : M) : (free_algebra.ι R m).to_tensor = tensor_algebra.ι R m :=
+by simp [to_tensor]
+
+end free_algebra

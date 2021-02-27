@@ -6,9 +6,10 @@ Authors: Mario Carneiro, Chris Hughes
 Adjoining roots of polynomials
 -/
 import data.polynomial.field_division
-import ring_theory.adjoin
-import ring_theory.principal_ideal_domain
 import linear_algebra.finite_dimensional
+import ring_theory.adjoin.basic
+import ring_theory.power_basis
+import ring_theory.principal_ideal_domain
 
 /-!
 # Adjoining roots of polynomials
@@ -180,13 +181,16 @@ def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf
 
 end comm_ring
 
+section irreducible
+
 variables [field K] {f : polynomial K} [irreducible f]
 
 instance is_maximal_span : is_maximal (span {f} : ideal (polynomial K)) :=
 principal_ideal_ring.is_maximal_of_irreducible ‹irreducible f›
 
 noncomputable instance field : field (adjoin_root f) :=
-ideal.quotient.field (span {f} : ideal (polynomial K))
+{ ..adjoin_root.comm_ring f,
+  ..ideal.quotient.field (span {f} : ideal (polynomial K)) }
 
 lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
 (of f).injective
@@ -197,5 +201,57 @@ lemma mul_div_root_cancel :
   ((X - C (root f)) * (f.map (of f) / (X - C (root f))) : polynomial (adjoin_root f)) =
     f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
+
+end irreducible
+
+section power_basis
+
+variables [field K] {f : polynomial K}
+
+lemma power_basis_is_basis (hf : f ≠ 0) : is_basis K (λ (i : fin f.nat_degree), (root f ^ i.val)) :=
+begin
+  set f' := f * C (f.leading_coeff⁻¹) with f'_def,
+  have deg_f' : f'.nat_degree = f.nat_degree,
+  { rw [nat_degree_mul hf, nat_degree_C, add_zero],
+    { rwa [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] } },
+  have f'_monic : monic f' := monic_mul_leading_coeff_inv hf,
+  have aeval_f' : aeval (root f) f' = 0,
+  { rw [f'_def, alg_hom.map_mul, aeval_eq, mk_self, zero_mul] },
+  have hx : is_integral K (root f) := ⟨f', f'_monic, aeval_f'⟩,
+  have minpoly_eq : f' = minpoly K (root f),
+  { apply minpoly.unique K _ f'_monic aeval_f',
+    intros q q_monic q_aeval,
+    have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
+    { ext,
+      { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
+      { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
+    rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
+        with_bot.coe_le_coe, deg_f'],
+    apply nat_degree_le_of_dvd,
+    { rw [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem],
+      change mk f q = 0,
+      rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero] },
+    { exact q_monic.ne_zero } },
+  refine ⟨_, eq_top_iff.mpr _⟩,
+  { rw [←deg_f', minpoly_eq],
+    exact hx.linear_independent_pow },
+  { rintros y -,
+    rw [←deg_f', minpoly_eq],
+    apply hx.mem_span_pow,
+    obtain ⟨g⟩ := y,
+    use g,
+    rw aeval_eq,
+    refl }
+end
+
+/-- The power basis `1, root f, ..., root f ^ (d - 1)` for `adjoin_root f`,
+where `f` is an irreducible polynomial over a field of degree `d`. -/
+noncomputable def power_basis (hf : f ≠ 0) :
+  power_basis K (adjoin_root f) :=
+{ gen := root f,
+  dim := f.nat_degree,
+  is_basis := power_basis_is_basis hf }
+
+end power_basis
 
 end adjoin_root

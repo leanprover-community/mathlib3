@@ -45,7 +45,7 @@ finitary product measure
 
 noncomputable theory
 open function set measure_theory.outer_measure filter
-open_locale classical big_operators topological_space
+open_locale classical big_operators topological_space ennreal
 
 namespace measure_theory
 
@@ -55,7 +55,7 @@ variables {ι : Type*} [fintype ι] {α : ι → Type*} {m : Π i, outer_measure
   It is defined to by taking the image of the set under all projections, and taking the product
   of the measures of these images.
   For measurable boxes it is equal to the correct measure. -/
-@[simp] def pi_premeasure (m : Π i, outer_measure (α i)) (s : set (Π i, α i)) : ennreal :=
+@[simp] def pi_premeasure (m : Π i, outer_measure (α i)) (s : set (Π i, α i)) : ℝ≥0∞ :=
 ∏ i, m i (eval i '' s)
 
 lemma pi_premeasure_pi {s : Π i, set (α i)} (hs : (pi univ s).nonempty) :
@@ -69,7 +69,7 @@ begin
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
     have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
     simpa [h, finset.card_univ, zero_pow (fintype.card_pos_iff.mpr _inst_2),
-      @eq_comm _ (0 : ennreal), finset.prod_eq_zero_iff] },
+      @eq_comm _ (0 : ℝ≥0∞), finset.prod_eq_zero_iff] },
   { simp [h] }
 end
 
@@ -137,11 +137,11 @@ begin
 end
 
 lemma tprod_tprod (l : list δ) (μ : Π i, measure (π i)) [∀ i, sigma_finite (μ i)]
-  {s : Π i, set (π i)} (hs : ∀ i, is_measurable (s i)) :
+  {s : Π i, set (π i)} (hs : ∀ i, measurable_set (s i)) :
   measure.tprod l μ (set.tprod l s) = (l.map (λ i, (μ i) (s i))).prod :=
 begin
   induction l with i l ih, { simp },
-  simp_rw [tprod_cons, set.tprod, prod_prod (hs i) (is_measurable.tprod l hs), map_cons,
+  simp_rw [tprod_cons, set.tprod, prod_prod (hs i) (measurable_set.tprod l hs), map_cons,
     prod_cons, ih]
 end
 
@@ -167,11 +167,11 @@ def pi' : measure (Π i, α i) :=
 measure.map (tprod.elim' encodable.mem_sorted_univ) (measure.tprod (encodable.sorted_univ ι) μ)
 
 lemma pi'_pi [∀ i, sigma_finite (μ i)] {s : Π i, set (α i)}
-  (hs : ∀ i, is_measurable (s i)) : pi' μ (pi univ s) = ∏ i, μ i (s i) :=
+  (hs : ∀ i, measurable_set (s i)) : pi' μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   have hl := λ i : ι, encodable.mem_sorted_univ i,
   have hnd := @encodable.sorted_univ_nodup ι _ _,
-  rw [pi', map_apply (measurable_tprod_elim' hl) (is_measurable.pi_fintype (λ i _, hs i)),
+  rw [pi', map_apply (measurable_tprod_elim' hl) (measurable_set.pi_fintype (λ i _, hs i)),
     elim_preimage_pi hnd, tprod_tprod _ μ hs, ← list.prod_to_finset _ hnd],
   congr' with i, simp [hl]
 end
@@ -214,16 +214,16 @@ to_measure (outer_measure.pi (λ i, (μ i).to_outer_measure)) (pi_caratheodory �
 
 variables [∀ i, sigma_finite (μ i)]
 
-lemma pi_pi (s : Π i, set (α i)) (hs : ∀ i, is_measurable (s i)) :
+lemma pi_pi (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
   measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
   refine le_antisymm _ _,
-  { rw [measure.pi, to_measure_apply _ _ (is_measurable.pi_fintype (λ i _, hs i))],
+  { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
   { haveI : encodable ι := encodable.fintype.encodable ι,
     rw [← pi'_pi μ hs],
     simp_rw [← pi'_pi μ hs, measure.pi,
-      to_measure_apply _ _ (is_measurable.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
+      to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
     suffices : (pi' μ).to_outer_measure ≤ outer_measure.pi (λ i, (μ i).to_outer_measure),
     { exact this _ },
     clear hs s,
@@ -237,7 +237,7 @@ lemma pi_eval_preimage_null {i : ι} {s : set (α i)} (hs : μ i s = 0) :
   measure.pi μ (eval i ⁻¹' s) = 0 :=
 begin
   /- WLOG, `s` is measurable -/
-  rcases exists_is_measurable_superset_of_null hs with ⟨t, hst, htm, hμt⟩,
+  rcases exists_measurable_superset_of_null hs with ⟨t, hst, htm, hμt⟩,
   suffices : measure.pi μ (eval i ⁻¹' t) = 0,
     from measure_mono_null (preimage_mono hst) this,
   clear_dependent s,
@@ -349,7 +349,7 @@ begin
   choose s hxs ho hμ using λ i, (μ i).exists_is_open_measure_lt_top (x i),
   refine ⟨pi univ s, set_pi_mem_nhds finite_univ (λ i hi, mem_nhds_sets (ho i) (hxs i)), _⟩,
   rw [pi_pi],
-  exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).is_measurable]
+  exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).measurable_set]
 end
 
 end measure
@@ -357,12 +357,12 @@ end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
 ⟨measure.pi (λ i, volume)⟩
 
-lemma measure_space.pi_def [Π i, measure_space (α i)] :
+lemma volume_pi [Π i, measure_space (α i)] :
   (volume : measure (Π i, α i)) = measure.pi (λ i, volume) :=
 rfl
 
-lemma volume_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
-  (s : Π i, set (α i)) (hs : ∀ i, is_measurable (s i)) :
+lemma volume_pi_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
   volume (pi univ s) = ∏ i, volume (s i) :=
 measure.pi_pi (λ i, volume) s hs
 

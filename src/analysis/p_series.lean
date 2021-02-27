@@ -89,10 +89,10 @@ end finset
 
 namespace ennreal
 
-variable {f : ℕ → ennreal}
+variable {f : ℕ → ℝ≥0∞}
 
 lemma le_tsum_condensed (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) :
-  (∑' k, f k) ≤ f 0 + ∑' k : ℕ, (2 ^ k) * f (2 ^ k) :=
+  ∑' k, f k ≤ f 0 + ∑' k : ℕ, (2 ^ k) * f (2 ^ k) :=
 begin
   rw [ennreal.tsum_eq_supr_nat' (nat.tendsto_pow_at_top_at_top_of_one_lt _root_.one_lt_two)],
   refine supr_le (λ n, (finset.le_sum_condensed hf n).trans (add_le_add_left _ _)),
@@ -101,7 +101,7 @@ begin
 end
 
 lemma tsum_condensed_le (hf : ∀ ⦃m n⦄, 1 < m → m ≤ n → f n ≤ f m) :
-  (∑' k : ℕ, (2 ^ k) * f (2 ^ k)) ≤ f 1 + 2 * ∑' k, f k :=
+  ∑' k : ℕ, (2 ^ k * f (2 ^ k)) ≤ f 1 + 2 * ∑' k, f k :=
 begin
   rw [ennreal.tsum_eq_supr_nat' (tendsto_at_top_mono nat.le_succ tendsto_id), two_mul, ← two_nsmul],
   refine supr_le (λ n, le_trans _ (add_le_add_left (nsmul_le_nsmul_of_le_right
@@ -120,10 +120,10 @@ begin
   simp only [← ennreal.tsum_coe_ne_top_iff_summable, ne.def, not_iff_not, ennreal.coe_mul,
     ennreal.coe_pow, ennreal.coe_two],
   split; intro h,
-  { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ennreal) ≤ f m :=
+  { replace hf : ∀ m n, 1 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf (zero_lt_one.trans hm) hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.tsum_condensed_le hf) },
-  { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ennreal) ≤ f m :=
+  { replace hf : ∀ m n, 0 < m → m ≤ n → (f n : ℝ≥0∞) ≤ f m :=
       λ m n hm hmn, ennreal.coe_le_coe.2 (hf hm hmn),
     simpa [h, ennreal.add_eq_top] using (ennreal.le_tsum_condensed hf) }
 end

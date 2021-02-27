@@ -150,3 +150,17 @@ local attribute [instance] star_ring_of_comm
 @[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
 
 end
+
+/--
+An ordered *-ring is a ring which is both an ordered ring and a *-ring,
+and `0 ≤ star r * r` for every `r`.
+
+(In a Banach algebra, the natural ordering is given by the positive cone
+which is the closure of the sums of elements `star r * r`.
+This ordering makes the Banach algebra an ordered *-ring.)
+-/
+class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
+(star_mul_self_nonneg : ∀ r : R, 0 ≤ star r * r)
+
+lemma star_mul_self_nonneg [ordered_semiring R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
+star_ordered_ring.star_mul_self_nonneg r

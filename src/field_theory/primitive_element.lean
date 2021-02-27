@@ -93,10 +93,10 @@ variables [algebra F E]
 lemma primitive_element_inf_aux (F_sep : is_separable F E) :
   ∃ γ : E, F⟮α, β⟯ = F⟮γ⟯ :=
 begin
-  obtain ⟨hα, hf⟩ := F_sep α,
-  obtain ⟨hβ, hg⟩ := F_sep β,
-  let f := minimal_polynomial hα,
-  let g := minimal_polynomial hβ,
+  have hα := F_sep.is_integral α,
+  have hβ := F_sep.is_integral β,
+  let f := minpoly F α,
+  let g := minpoly F β,
   let ιFE := algebra_map F E,
   let ιEE' := algebra_map E (splitting_field (g.map ιFE)),
   obtain ⟨c, hc⟩ := primitive_element_inf_aux_exists_c (ιEE'.comp ιFE) (ιEE' α) (ιEE' β) f g,
@@ -118,7 +118,7 @@ begin
   let p := euclidean_domain.gcd ((f.map (algebra_map F F⟮γ⟯)).comp
     (C (adjoin_simple.gen F γ) - (C ↑c * X))) (g.map (algebra_map F F⟮γ⟯)),
   let h := euclidean_domain.gcd ((f.map ιFE).comp (C γ - (C (ιFE c) * X))) (g.map ιFE),
-  have map_g_ne_zero : g.map ιFE ≠ 0 := map_ne_zero (minimal_polynomial.ne_zero hβ),
+  have map_g_ne_zero : g.map ιFE ≠ 0 := map_ne_zero (minpoly.ne_zero hβ),
   have h_ne_zero : h ≠ 0 :=  mt euclidean_domain.gcd_eq_zero_iff.mp
     (not_and.mpr (λ _, map_g_ne_zero)),
   suffices p_linear : p.map (algebra_map F⟮γ⟯ E) = (C h.leading_coeff) * (X - C β),
@@ -127,12 +127,12 @@ begin
       simp [mul_sub, coeff_C, mul_div_cancel_left β (mt leading_coeff_eq_zero.mp h_ne_zero)] },
     rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },
-  have h_sep : h.separable := separable_gcd_right _ (separable.map hg),
+  have h_sep : h.separable := separable_gcd_right _ (separable.map (F_sep.separable β)),
   have h_root : h.eval β = 0,
   { apply eval_gcd_eq_zero,
     { rw [eval_comp, eval_sub, eval_mul, eval_C, eval_C, eval_X, eval_map, ←aeval_def,
-          ←algebra.smul_def, add_sub_cancel, minimal_polynomial.aeval] },
-    { rw [eval_map, ←aeval_def, minimal_polynomial.aeval] } },
+          ←algebra.smul_def, add_sub_cancel, minpoly.aeval] },
+    { rw [eval_map, ←aeval_def, minpoly.aeval] } },
   have h_splits : splits ιEE' h := splits_of_splits_gcd_right ιEE' map_g_ne_zero
     (splitting_field.splits _),
   have h_roots : ∀ x ∈ (h.map ιEE').roots, x = ιEE' β,
@@ -141,10 +141,10 @@ begin
     specialize hc ((ιEE' γ) - (ιEE' (ιFE c)) * x) (begin
       have f_root := root_left_of_root_gcd hx,
       rw [eval₂_comp, eval₂_sub, eval₂_mul,eval₂_C, eval₂_C, eval₂_X, eval₂_map] at f_root,
-      exact (mem_roots_map (minimal_polynomial.ne_zero hα)).mpr f_root,
+      exact (mem_roots_map (minpoly.ne_zero hα)).mpr f_root,
     end),
     specialize hc x (begin
-      rw [mem_roots_map (minimal_polynomial.ne_zero hβ), ←eval₂_map],
+      rw [mem_roots_map (minpoly.ne_zero hβ), ←eval₂_map],
       exact root_right_of_root_gcd hx,
     end),
     by_contradiction a,

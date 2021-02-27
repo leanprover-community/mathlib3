@@ -55,7 +55,7 @@ lemma irreducible.squarefree [comm_monoid R] {x : R} (h : irreducible x) :
 begin
   rintros y ⟨z, hz⟩,
   rw mul_assoc at hz,
-  rcases h.2 _ _ hz with hu | hu,
+  rcases h.is_unit_or_is_unit hz with hu | hu,
   { exact hu },
   { apply is_unit_of_mul_is_unit_left hu },
 end

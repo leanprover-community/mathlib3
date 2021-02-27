@@ -250,10 +250,20 @@ Express an inequality as a morphism in the corresponding preorder category.
 -/
 def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
 
+@[simp] lemma hom_of_le_refl {U : α} : hom_of_le (le_refl U) = 𝟙 U := rfl
+@[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
+  hom_of_le h ≫ hom_of_le k = hom_of_le (h.trans k) := rfl
+
 /--
 Extract the underlying inequality from a morphism in a preorder category.
 -/
 lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
+
+@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) :
+  le_of_hom (hom_of_le h) = h := rfl
+@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) :
+  hom_of_le (le_of_hom h) = h :=
+by { cases h, cases h, refl, }
 
 end category_theory
 

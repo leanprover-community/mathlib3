@@ -182,10 +182,6 @@ s.fold (pure mk_name_set) (λ a m,
      b ← f a,
      (pure $ x.insert b))
 
-/-- `union s t` returns an rb_set containing every element that appears in either `s` or `t`. -/
-meta def union (s t : name_set) : name_set :=
-s.fold t (λ a t, t.insert a)
-
 /-- `insert_list s l` inserts every element of `l` into `s`. -/
 meta def insert_list (s : name_set) (l : list name) : name_set :=
 l.foldr (λ n s', s'.insert n) s

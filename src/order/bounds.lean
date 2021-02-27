@@ -606,6 +606,12 @@ lemma is_lub_lt_iff (ha : is_lub s a) : a < b ↔ ∃ c ∈ upper_bounds s, c < 
 lemma lt_is_glb_iff (ha : is_glb s a) : b < a ↔ ∃ c ∈ lower_bounds s, b < c :=
 @is_lub_lt_iff (order_dual α) _ s _ _ ha
 
+lemma le_of_is_lub_le_is_glb {x y} (ha : is_glb s a) (hb : is_lub s b) (hab : b ≤ a)
+  (hx : x ∈ s) (hy : y ∈ s) : x ≤ y :=
+calc x ≤ b : hb.1 hx
+   ... ≤ a : hab
+   ... ≤ y : ha.1 hy
+
 end preorder
 
 section partial_order
@@ -628,6 +634,18 @@ Ha.unique Hb
 
 lemma is_glb.unique (Ha : is_glb s a) (Hb : is_glb s b) : a = b :=
 Ha.unique Hb
+
+lemma set.subsingleton_of_is_lub_le_is_glb (Ha : is_glb s a) (Hb : is_lub s b) (hab : b ≤ a) :
+  s.subsingleton :=
+λ x hx y hy, le_antisymm (le_of_is_lub_le_is_glb Ha Hb hab hx hy)
+  (le_of_is_lub_le_is_glb Ha Hb hab hy hx)
+
+lemma is_glb_lt_is_lub_of_ne (Ha : is_glb s a) (Hb : is_lub s b)
+  {x y} (Hx : x ∈ s) (Hy : y ∈ s) (Hxy : x ≠ y) :
+  a < b :=
+lt_iff_le_not_le.2
+  ⟨lower_bounds_le_upper_bounds Ha.1 Hb.1 ⟨x, Hx⟩,
+    λ hab, Hxy $ set.subsingleton_of_is_lub_le_is_glb Ha Hb hab Hx Hy⟩
 
 end partial_order
 

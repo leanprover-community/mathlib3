@@ -84,8 +84,8 @@ end subtype
 section continuous_map
 
 @[to_additive]
-instance continuous_map_semigroup {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [semigroup β] [has_continuous_mul β] : semigroup C(α, β) :=
+instance continuous_map_semigroup {α : Type*} {β : Type*} [topological_space α]
+  [topological_space β] [semigroup β] [has_continuous_mul β] : semigroup C(α, β) :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..continuous_map.has_mul}
 
@@ -114,8 +114,8 @@ instance continuous_map_group {α : Type*} {β : Type*} [topological_space α] [
   ..continuous_map_monoid }
 
 @[to_additive]
-instance continuous_map_comm_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [comm_group β] [topological_group β] : comm_group C(α, β) :=
+instance continuous_map_comm_group {α : Type*} {β : Type*} [topological_space α]
+  [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
 { ..continuous_map_group,
   ..continuous_map_comm_monoid }
 
@@ -241,8 +241,8 @@ section algebra_structure
 ### Algebra structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a ring
-`R` inherit the structure of an algebra. Note that the hypothesis that `A` is a topological algebra is
-obtained by requiring that `A` be both a `topological_semimodule` and a `topological_semiring`
+`R` inherit the structure of an algebra. Note that the hypothesis that `A` is a topological algebra
+is obtained by requiring that `A` be both a `topological_semimodule` and a `topological_semiring`
 (by now we require `topological_ring`: see TODO below).-/
 
 section subtype

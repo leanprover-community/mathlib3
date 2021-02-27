@@ -270,7 +270,7 @@ lemma comp_comp {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
 @[simp] lemma comp_right_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_right f v w = B v (f w) := rfl
 
-lemma comp_injective (B₁ B₂ : bilin_form R M') (l r : M →ₗ[R] M')
+lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
   B₁.comp l r = B₂.comp l r ↔ B₁ = B₂ :=
 begin
@@ -533,7 +533,7 @@ rfl
 begin
   ext i j,
   simp only [bilin_form.to_matrix'_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
-    linear_map.to_matrix', linear_equiv.mk_apply, sum_mul],
+    linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
   conv_lhs { rw ← sum_repr_mul_repr_mul (pi.is_basis_fun R₃ n) (l _) (r _) },
   rw finsupp.sum_fintype,
@@ -661,7 +661,7 @@ lemma bilin_form.to_matrix_comp
 begin
   ext i j,
   simp only [bilin_form.to_matrix_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
-    linear_map.to_matrix', linear_equiv.mk_apply, sum_mul],
+    linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
   conv_lhs { rw ← sum_repr_mul_repr_mul hb },
   rw finsupp.sum_fintype,
@@ -863,7 +863,7 @@ begin
   have he : function.surjective (⇑(↑e : M₃' →ₗ[R₃] M₃) : M₃' → M₃) := e.surjective,
   show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
   rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
-      hᵣ, hₗ, comp_injective _ _ ↑e ↑e he he],
+      hᵣ, hₗ, comp_injective _ _ he he],
 end
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an

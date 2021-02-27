@@ -193,7 +193,7 @@ end
 /-- A ring homomorphism S → R induces a map valuation R Γ₀ → valuation S Γ₀ -/
 def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   valuation S Γ₀ :=
-{ to_fun := v ∘ f, 
+{ to_fun := v ∘ f,
   map_add' := λ x y, by simp only [comp_app, map_add, f.map_add],
   .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
@@ -349,7 +349,7 @@ def on_quot {J : ideal R} (hJ : J ≤ supp v) :
   (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
 ext $ λ r,
 begin
-  refine @quotient.lift_on_beta _ _ (J.quotient_rel) v (λ a b h, _) _,
+  refine @quotient.lift_on_mk _ _ (J.quotient_rel) v (λ a b h, _) _,
   calc v a = v (b + (a - b)) : by simp
        ... = v b             : v.map_add_supp b (hJ h)
 end

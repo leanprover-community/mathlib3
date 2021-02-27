@@ -35,7 +35,7 @@ begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
-    rcases nat.even.sub hn (nat.even_bit0 1) with ⟨k, hk⟩,
+    rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
     simp only [iter_deriv_pow, finset.prod_range_succ, finset.prod_range_zero, nat.sub_zero,
       mul_one, hk, pow_mul', pow_two],
     exact mul_nonneg (nat.cast_nonneg _) (mul_self_nonneg _) }

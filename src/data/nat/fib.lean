@@ -79,8 +79,8 @@ end
 
 lemma fib_le_fib_succ {n : ℕ} : fib n ≤ fib (n + 1) := by { cases n; simp [fib_succ_succ] }
 
-lemma fib_mono {n m : ℕ} (n_le_m : n ≤ m) : fib n ≤ fib m :=
-by { induction n_le_m with m n_le_m IH, { refl }, { exact (le_trans IH fib_le_fib_succ) }}
+@[mono] lemma fib_mono : monotone fib :=
+monotone_of_monotone_nat $ λ _, fib_le_fib_succ
 
 lemma le_fib_self {n : ℕ} (five_le_n : 5 ≤ n) : n ≤ fib n :=
 begin
@@ -152,8 +152,8 @@ begin
     { simp },
     intros m n mpos h,
     rw ← gcd_rec m n at h,
-    conv_rhs { rw ← mod_add_div n m },
-    rwa [mul_comm, gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
+    conv_rhs { rw ← mod_add_div' n m },
+    rwa [gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
   rwa [gcd_comm, gcd_comm (fib m)]
 end
 

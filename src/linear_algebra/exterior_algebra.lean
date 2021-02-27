@@ -162,6 +162,25 @@ begin
   simp only [h],
 end
 
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : exterior_algebra R M →ₐ[R] R :=
+exterior_algebra.lift R ⟨(0 : M →ₗ[R] R), λ m, by simp⟩
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ exterior_algebra R M) :=
+λ x, by simp [algebra_map_inv]
+
+/-- The left-inverse of `ι`.
+
+As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
+algebra structure. -/
+def ι_inv : exterior_algebra R M →ₗ[R] M :=
+(triv_sq_zero_ext.snd_hom R M).comp
+  (lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R _ m m⟩).to_linear_map
+
+lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → exterior_algebra R M) :=
+λ x, by simp [ι_inv]
+
 @[simp]
 lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
 calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]
@@ -217,3 +236,17 @@ lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
   ι_multi R n v = (list.of_fn $ λ i, ι R (v i)).prod := rfl
 
 end exterior_algebra
+
+namespace tensor_algebra
+
+variables {R M}
+
+/-- The canonical image of the `tensor_algebra` in the `exterior_algebra`, which maps
+`tensor_algebra.ι R x` to `exterior_algebra.ι R x`. -/
+def to_exterior : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
+tensor_algebra.lift R (exterior_algebra.ι R)
+
+@[simp] lemma to_exterior_ι (m : M) : (tensor_algebra.ι R m).to_exterior = exterior_algebra.ι R m :=
+by simp [to_exterior]
+
+end tensor_algebra

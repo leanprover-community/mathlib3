@@ -285,7 +285,8 @@ class add_cancel_comm_monoid (M : Type u)
   extends add_left_cancel_comm_monoid M, add_right_cancel_comm_monoid M
 
 /-- Commutative version of cancel_monoid. -/
-@[protect_proj, ancestor right_cancel_comm_monoid left_cancel_comm_monoid, to_additive add_cancel_comm_monoid]
+@[protect_proj, ancestor left_cancel_comm_monoid right_cancel_comm_monoid,
+  to_additive add_cancel_comm_monoid]
 class cancel_comm_monoid (M : Type u) extends left_cancel_comm_monoid M, right_cancel_comm_monoid M
 
 end cancel_monoid
@@ -364,10 +365,12 @@ attribute [to_additive] group
 Useful because it corresponds to the fact that `Grp` is a subcategory of `Mon`.
 Not an instance since it duplicates `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
 -/
-@[to_additive "Abbreviation for `@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`.
+@[to_additive
+"Abbreviation for `@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`.
 
 Useful because it corresponds to the fact that `AddGroup` is a subcategory of `AddMon`.
-Not an instance since it duplicates `@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`."]
+Not an instance since it duplicates
+`@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`."]
 def group.to_monoid (G : Type u) [group G] : monoid G :=
 @div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)
 

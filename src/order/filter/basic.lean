@@ -2422,7 +2422,17 @@ by simp [filter.coprod]
   f₁.coprod g₁ ≤ f₂.coprod g₂ :=
 sup_le_sup (comap_mono hf) (comap_mono hg)
 
--- is this an equality?  The corresponding fact for `filter.map` is
+lemma principal_coprod_principal (s : set α) (t : set β) :
+  (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ.prod tᶜ)ᶜ :=
+begin
+  rw [filter.coprod, comap_principal, comap_principal, sup_principal],
+  congr,
+  ext x,
+  simp ; tauto,
+end
+
+-- to see that this can be a strict inequality, consider `m₁` a bijection, `m₂` a constant map,
+-- and `f₁`,`f₂` the principal filters of singletons.
 lemma map_prod_map_coprod_le {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :
   map (prod.map m₁ m₂) (f₁.coprod f₂) ≤ (map m₁ f₁).coprod (map m₂ f₂) :=

@@ -95,7 +95,8 @@ else by rw [degree_mul, degree_eq_nat_degree hp,
     degree_eq_nat_degree hq];
   exact with_bot.coe_le_coe.2 (nat.le_add_right _ _)
 
-theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) : p.nat_degree ≤ q.nat_degree :=
+theorem nat_degree_le_of_dvd {p q : polynomial R} (h1 : p ∣ q) (h2 : q ≠ 0) :
+  p.nat_degree ≤ q.nat_degree :=
 begin
   rcases h1 with ⟨q, rfl⟩, rw mul_ne_zero_iff at h2,
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _

@@ -110,7 +110,8 @@ section eval₂
 variables [comm_ring S]
 variables (f : R →+* S) (g : σ → S)
 
-@[simp] lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := (eval₂_hom f g).map_sub _ _
+@[simp] lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g :=
+(eval₂_hom f g).map_sub _ _
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := (eval₂_hom f g).map_neg _
 

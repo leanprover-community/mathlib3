@@ -66,7 +66,8 @@ blanks (`default Γ`) to the end of `l₁`. -/
 def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
 ∃ n, l₂ = l₁ ++ list.repeat (default Γ) n
 
-@[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l := ⟨0, by simp⟩
+@[refl] theorem blank_extends.refl {Γ} [inhabited Γ] (l : list Γ) : blank_extends l l :=
+⟨0, by simp⟩
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=

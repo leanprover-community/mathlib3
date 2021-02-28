@@ -16,7 +16,9 @@ algebras.
 ## Main declarations
 
 * `boolean_ring`
-* `boolean_ring.to_boolean_algebra`: every Boolean ring is a Boolean algebra
+* `boolean_ring.to_boolean_algebra`: every Boolean ring is a Boolean algebra; this definition and
+  the `sup` and `inf` notations for `boolean_ring` are localized as instances in the
+  `boolean_algebra_of_boolean_ring` locale.
 
 ## Tags
 

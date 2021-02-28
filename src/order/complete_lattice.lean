@@ -936,38 +936,6 @@ begin
   { simp_rw [infi_ge_eq_infi_nat_add, ←nat.add_assoc], },
 end
 
-lemma bsupr_eq_sup_bsupr_if [decidable_eq α] (f : ℕ → α) (p : ℕ → Prop) (a : α) (n : ℕ)
-  (hfan : f n = a ∧ p n) :
-  (⨆ (i : ℕ) (hp : p i), f i) = a ⊔ (⨆ (i : ℕ) (hp : p i), ite (f i = a) ⊥ (f i)) :=
-begin
-  haveI : decidable_pred p := classical.dec_pred p,
-  have hf : ∀ i, f i = ite (f i = a) a ⊥ ⊔ ite (f i = a) ⊥ (f i),
-  { intro i, split_ifs; simp [h], },
-  have hf_supr : (⨆ i (hp : p i), f i)
-    = (⨆ i, ite (f i = a ∧ p i) a ⊥) ⊔ (⨆ i (hp : p i), ite (f i = a) ⊥ (f i)),
-  { rw ← supr_sup_eq,
-    congr' 1 with i,
-    by_cases hi : f i = a ∧ p i,
-    { simp [hi], },
-    { simp only [bot_sup_eq, if_congr, if_false, hi],
-      by_cases hp : p i,
-      { have hi' : ¬ f i = a, by simpa only [hp, and_true] using hi,
-        simp [hp, hi'], },
-      { simp [hp], }, }, },
-  rw hf_supr,
-  congr,
-  rw ←bsupr_eq_supr_if,
-  exact (bsupr_le (λ i hi, le_refl a)).antisymm (le_bsupr n hfan),
-end
-
-lemma supr_eq_sup_supr_if [decidable_eq α] (f : ℕ → α) (a : α) (n : ℕ) (hfan : f n = a) :
-  (⨆ i, f i) = a ⊔ (⨆ i, ite (f i = a) ⊥ (f i)) :=
-begin
-  have h_true : (⨆ (i : ℕ), f i) = (⨆ (i : ℕ) (hp : true), f i), by simp only [supr_true],
-  rw [h_true, bsupr_eq_sup_bsupr_if f (λ i, true) a n (by simp [hfan])],
-  simp,
-end
-
 end
 
 section complete_linear_order

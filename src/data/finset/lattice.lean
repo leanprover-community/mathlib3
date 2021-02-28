@@ -671,40 +671,6 @@ lemma infi_bUnion (s : finset γ) (t : γ → finset α) (f : α → β) :
 
 end lattice
 
-section function_into_a_finset
-
-lemma supr_eq_bsupr_le {α} [complete_lattice α] (s : finset α) (f : ℕ → α)
-  (hfs : ∀ i, f i ∈ s ∨ f i = ⊥) :
-  ∃ m : ℕ, (⨆ i, f i) = ⨆ i (him : i ≤ m), f i :=
-begin
-  revert s f hfs,
-  haveI : decidable_eq α := classical.dec_eq α,
-  refine finset.induction _ _,
-  { intros f h, simp only [finset.not_mem_empty, false_or] at h, simp [h], },
-  intros a s ha_notin_s hs f hf,
-  by_cases h_exists_a : ∃ i, f i = a,
-  swap, { exact hs f (λ i, by simpa [not_exists.mp h_exists_a i] using hf i), },
-  cases h_exists_a with i_a hia,
-  let g := λ i, ite (f i = a) ⊥ (f i),
-  have hg : ∀ i, g i ∈ s ∨ g i = ⊥,
-    by { intro i, simp_rw g, split_ifs, simp, simpa [h] using hf i, },
-  cases hs g hg with m hs,
-  use max i_a m,
-  calc (⨆ (i : ℕ), f i) = a ⊔ (⨆ (i : ℕ), g i) : by rw supr_eq_sup_supr_if f a i_a hia
-    ... = a ⊔ (⨆ i ≤ m, g i) : by rw hs
-    ... = a ⊔ (⨆ i ≤ max i_a m, g i) :
-  begin
-    congr' 1,
-    refine le_antisymm _ (by { rw ← hs, exact bsupr_le_supr _ _, }),
-    exact bsupr_le (λ i him,
-      @le_bsupr _ _ _ (λ i, i ≤ max i_a m) (λ i _, g i) i (him.trans (le_max_right i_a m))),
-  end
-    ... = (⨆ i ≤ max i_a m, f i) :
-  by rw bsupr_eq_sup_bsupr_if f (λ i, i ≤ max i_a m) a i_a ⟨hia, le_max_left _ _⟩,
-end
-
-end function_into_a_finset
-
 @[simp] theorem set_bUnion_coe (s : finset α) (t : α → set β) :
   (⋃ x ∈ (↑s : set α), t x) = ⋃ x ∈ s, t x :=
 rfl

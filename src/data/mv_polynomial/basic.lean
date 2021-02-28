@@ -87,10 +87,12 @@ variables {R : Type u} {S₁ : Type v} {S₂ : Type w} {S₃ : Type x}
 
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `R` is the coefficient ring -/
-def mv_polynomial (σ : Type*) (R : Type*) [comm_semiring R] := add_monoid_algebra R (σ →₀ ℕ)
+def mv_polynomial (σ : Type*) (R : Type*) [semiring R] := add_monoid_algebra R (σ →₀ ℕ)
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+
+instance [semiring R]: semiring (mv_polynomial σ R) := add_monoid_algebra.semiring
 
 section comm_semiring
 variables [comm_semiring R] {p q : mv_polynomial σ R}

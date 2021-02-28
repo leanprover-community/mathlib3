@@ -60,7 +60,7 @@ have a + b = a + b + (a*b + b*a) :=
          ... = a + b + (a*b + b*a)     : by abel,
 by rwa self_eq_add_right at this
 
-lemma sub_eq_add : a - b = a + b :=
+@[simp] lemma sub_eq_add : a - b = a + b :=
 by rw [sub_eq_add_neg, add_right_inj, neg_eq]
 
 end boolean_ring

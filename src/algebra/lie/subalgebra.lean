@@ -148,6 +148,23 @@ linear_map.range_coe ↑f
 
 @[simp] lemma mem_range (x : L₂) : x ∈ f.range ↔ ∃ (y : L), f y = x := linear_map.mem_range
 
+lemma mem_range_self (x : L) : f x ∈ f.range := linear_map.mem_range_self f x
+
+/-- We can restrict a morphism to a (surjective) map to its range. -/
+def range_restrict : L →ₗ⁅R⁆ f.range :=
+{ map_lie' := λ x y, by { apply subtype.ext, exact f.map_lie x y, },
+  ..(f : L →ₗ[R] L₂).range_restrict, }
+
+@[simp] lemma range_restrict_apply (x : L) : f.range_restrict x = ⟨f x, f.mem_range_self x⟩ := rfl
+
+lemma surjective_range_restrict : function.surjective (f.range_restrict) :=
+begin
+  rintros ⟨y, hy⟩,
+  erw mem_range at hy, obtain ⟨x, rfl⟩ := hy,
+  use x,
+  simp only [subtype.mk_eq_mk, range_restrict_apply],
+end
+
 end lie_hom
 
 namespace lie_subalgebra

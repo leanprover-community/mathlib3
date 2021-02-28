@@ -249,6 +249,21 @@ begin
   { exact le_nat_degree_of_ne_zero (mt trailing_coeff_eq_zero.mp hp) },
 end
 
+lemma nat_trailing_degree_mul_X_pow {p : polynomial R} (hp : p ≠ 0) (n : ℕ) :
+  (p * X ^ n).nat_trailing_degree = p.nat_trailing_degree + n :=
+begin
+  apply le_antisymm,
+  { refine nat_trailing_degree_le_of_ne_zero (λ h, mt trailing_coeff_eq_zero.mp hp _),
+    rwa [trailing_coeff, ←coeff_mul_X_pow] },
+  { rw [nat_trailing_degree_eq_support_min' (λ h, hp (mul_X_pow_eq_zero h)), finset.le_min'_iff],
+    intros y hy,
+    have key : n ≤ y,
+    { rw [mem_support_iff_coeff_ne_zero, coeff_mul_X_pow'] at hy,
+      exact by_contra (λ h, hy (if_neg h)) },
+    rw [mem_support_iff_coeff_ne_zero, coeff_mul_X_pow', if_pos key] at hy,
+    exact (nat.add_le_to_le_sub _ key).mpr (nat_trailing_degree_le_of_ne_zero hy) },
+end
+
 end semiring
 
 section nonzero_semiring

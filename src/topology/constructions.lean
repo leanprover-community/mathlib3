@@ -176,6 +176,12 @@ lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb
   (𝓝 (a, b)).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
 by { rw nhds_prod_eq, exact ha.prod hb }
 
+lemma filter.has_basis.prod_nhds' {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
+  {sa : ιa → set α} {sb : ιb → set β} {ab : α × β} (ha : (𝓝 ab.1).has_basis pa sa)
+  (hb : (𝓝 ab.2).has_basis pb sb) :
+  (𝓝 ab).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+by { cases ab, exact ha.prod_nhds hb }
+
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
 ⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩

@@ -525,6 +525,16 @@ lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) 
   (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
 apply_ite (λ s, ∏ x in s, f x) _ _ _
 
+@[simp] lemma sum_pi_single' {ι M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (i : ι) (x : M) (s : finset ι) :
+  ∑ j in s, pi.single i x j = if i ∈ s then x else 0 :=
+sum_dite_eq' _ _ _
+
+@[simp] lemma sum_pi_single {ι : Type*} {M : ι → Type*}
+  [decidable_eq ι] [Π i, add_comm_monoid (M i)] (i : ι) (f : Π i, M i) (s : finset ι) :
+  ∑ j in s, pi.single j (f j) i = if i ∈ s then f i else 0 :=
+sum_dite_eq _ _ _
+
 /--
   Reorder a product.
 

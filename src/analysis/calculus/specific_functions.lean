@@ -242,7 +242,7 @@ end smooth_transition
 
 variables {E : Type*}
 
-/-- Let `x` be apoint of a real inenr product space; let `0 < r < R` be real numbers.
+/-- Let `x` be a point of a real inner product space; let `0 < r < R` be real numbers.
 Then `smooth_bump_function x r R` is a function `E → ℝ` with the following properties:
 
 - `smooth_bump_function x r R` is infinitely smooth on `E`;

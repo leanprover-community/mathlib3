@@ -327,8 +327,8 @@ We prove the following equivalences on `indep_set`, for measurable sets `s,t`.
 
 variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
 
-lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probability_measure μ]
-  (hs_meas : measurable_set s) (ht_meas : measurable_set t) :
+lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [probability_measure μ] :
   indep_set s t μ ↔ indep_sets {s} {t} μ :=
 ⟨indep.indep_sets,  λ h, indep_sets.indep
   (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu))
@@ -338,7 +338,7 @@ lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probabi
 lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure α . volume_tac) [probability_measure μ] :
   indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
-by rw [indep_set_iff_indep_sets_singleton μ hs_meas ht_meas, indep_sets_singleton]
+by rw [indep_set_iff_indep_sets_singleton hs_meas ht_meas μ, indep_sets_singleton]
 
 lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
   (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ]

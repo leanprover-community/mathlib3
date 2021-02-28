@@ -573,7 +573,7 @@ def comp_partial_sum_target_set (m M N : ℕ) : set (Σ n, composition n) :=
 
 lemma comp_partial_sum_target_subset_image_comp_partial_sum_source
   (m M N : ℕ) (i : Σ n, composition n) (hi : i ∈ comp_partial_sum_target_set m M N) :
-  ∃ j (hj : j ∈ comp_partial_sum_source m M N), i = comp_change_of_variables m M N j hj :=
+  ∃ j (hj : j ∈ comp_partial_sum_source m M N), comp_change_of_variables m M N j hj = i :=
 begin
   rcases i with ⟨n, c⟩,
   refine ⟨⟨c.length, c.blocks_fun⟩, _, _⟩,
@@ -583,15 +583,15 @@ begin
   { dsimp [comp_change_of_variables],
     rw composition.sigma_eq_iff_blocks_eq,
     simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, nth_le_map'],
-    conv_lhs { rw ← of_fn_nth_le c.blocks } }
+    conv_rhs { rw ← of_fn_nth_le c.blocks } }
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal
 power series, here given a a finset.
 See also `comp_partial_sum`. -/
 def comp_partial_sum_target (m M N : ℕ) : finset (Σ n, composition n) :=
-set.finite.to_finset $ (finset.finite_to_set _).dependent_image
-  (comp_partial_sum_target_subset_image_comp_partial_sum_source m M N)
+set.finite.to_finset $ ((finset.finite_to_set _).dependent_image _).subset $
+  comp_partial_sum_target_subset_image_comp_partial_sum_source m M N
 
 @[simp] lemma mem_comp_partial_sum_target_iff {m M N : ℕ} {a : Σ n, composition n} :
   a ∈ comp_partial_sum_target m M N ↔
@@ -637,7 +637,7 @@ begin
         end
       ... = blocks_fun' i : comp_change_of_variables_blocks_fun m M N H' i },
   -- 4 - show that the map is surjective
-  { assume i hi,
+  { assume i hi, simp only [@eq_comm _ i],
     apply comp_partial_sum_target_subset_image_comp_partial_sum_source m M N i,
     simpa [comp_partial_sum_target] using hi }
 end

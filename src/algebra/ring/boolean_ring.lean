@@ -61,12 +61,15 @@ by rwa self_eq_add_right at this
 
 namespace boolean_ring
 
+@[priority 100] -- Note [lower instance priority]
 instance : comm_ring α :=
 { mul_comm := λ a b, by rw [←add_eq_zero, mul_add_mul],
   .. (infer_instance : boolean_ring α) }
 
+@[priority 100] -- Note [lower instance priority]
 instance : has_sup α := ⟨λ x y, x + y + x*y⟩
 
+@[priority 100] -- Note [lower instance priority]
 instance : has_inf α := ⟨(*)⟩
 
 lemma sup_comm (a b : α) : a ⊔ b = b ⊔ a := by { dsimp only [(⊔)], ring }
@@ -179,45 +182,26 @@ boolean_algebra.compl : Π {α : Type u_1} [c : boolean_algebra α], α → α
 boolean_algebra.sdiff : Π {α : Type u_1} [c : boolean_algebra α], α → α → α
 -/
 
-lemma blah2 (α : Type*) [boolean_algebra α] (a b : α) : a ⊔ b = a ⊔ b ⊓ aᶜ :=
-by rw [sup_inf_left, sup_compl_eq_top, inf_top_eq]
-
-lemma blah (α : Type*) [boolean_algebra α] (a b : α) : a ⊔ b = a ⊓ b ⊔ a ⊓ bᶜ ⊔ b ⊓ aᶜ :=
-by rw [←inf_sup_left, sup_compl_eq_top, inf_top_eq, blah2]
-
-lemma foo (α : Type*) [boolean_algebra α] (a b : α) :
-  a ⊔ b = a Δ b Δ (a ⊓ b) :=
-by rw [symm_diff_assoc, symm_diff_eq, compl_symm_diff, symm_diff_eq, @inf_comm _ _ a b, ←inf_assoc,
-  inf_idem, @inf_comm _ _ b a, inf_assoc, inf_compl_eq_bot, inf_bot_eq, sup_bot_eq,
-  compl_inf, @sup_comm _ _ aᶜ, inf_sup_self, inf_assoc, @inf_comm _ _ _ aᶜ, @sup_comm _ _ bᶜ,
-  inf_sup_self, inf_sup_left, ←inf_assoc, inf_idem, blah]
-
 lemma to_boolean_ring.sup_eq (α : Type*) (BA : boolean_algebra α) :
-  BA.sup = (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).sup :=
-foo _ _ _
+  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).sup = BA.sup :=
+symm_diff_symm_diff_sup _ _
 
 lemma to_boolean_ring.le_iff (α : Type*) (BA : boolean_algebra α) :
-  BA.le = (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).le :=
+  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).le = BA.le :=
 begin
   ext a b,
-  change a ≤ b ↔ a Δ b Δ (a ⊓ b) = b,
-  simp [←foo],
+  change a Δ b Δ (a ⊓ b) = b ↔ a ≤ b,
+  simp [symm_diff_symm_diff_sup],
 end
 
 lemma to_boolean_ring.lt_iff (α : Type*) (BA : boolean_algebra α) :
-  BA.lt = (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).lt :=
+  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).lt = BA.lt :=
 begin
   ext a b,
-  change a < b ↔ a Δ b Δ (a ⊓ b) = b ∧ b Δ a Δ (b ⊓ a) ≠ a,
-  simp [←foo, lt_iff_le_not_le],
+  change a Δ b Δ (a ⊓ b) = b ∧ b Δ a Δ (b ⊓ a) ≠ a ↔ a < b,
+  simp [symm_diff_symm_diff_sup, lt_iff_le_not_le],
   refl,
 end
-
-lemma blah3 (α : Type*) [boolean_algebra α] (a b : α) : a ⊓ b = a ⊓ (b ⊔ aᶜ) :=
-by rw [inf_sup_left, inf_compl_eq_bot, sup_bot_eq]
-
-lemma blah4 (α : Type*) [boolean_algebra α] (a b : α) : a ⊓ b = (a ⊔ b) ⊓ (a ⊔ bᶜ) ⊓ (b ⊔ aᶜ) :=
-by rw [←sup_inf_left, inf_compl_eq_bot, sup_bot_eq, blah3]
 
 -- lemma foo2 (α : Type*) [boolean_algebra α] (a b : α) :
 --   a ⊓ b = a Δ b Δ (a ⊓ b) :=
@@ -238,19 +222,16 @@ lemma to_boolean_ring.bot_eq (α : Type*) (BA : boolean_algebra α) :
   BA.bot = (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).bot :=
 rfl
 
-lemma blah5 (α : Type*) (BA : boolean_algebra α) (a : α) : aᶜ = ⊤ Δ a :=
-by rw [symm_diff_eq, compl_top, top_inf_eq, inf_bot_eq, sup_bot_eq]
-
 lemma to_boolean_ring.compl_eq (α : Type*) (BA : boolean_algebra α) :
-  BA.compl = (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).compl :=
-blah5 _ _ _
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).compl = BA.compl :=
+top_symm_diff _
 
 lemma to_boolean_ring.sdiff_eq (α : Type*) (BA : boolean_algebra α) :
   BA.sdiff = (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).sdiff :=
 begin
   ext a b,
   change a \ b = a ⊓ (⊤ Δ b),
-  rw [←blah5, sdiff_eq],
+  rw [top_symm_diff, sdiff_eq],
   refl,
 end
 

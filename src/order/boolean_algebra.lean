@@ -112,6 +112,18 @@ is_compl_top_bot.compl_eq_iff
 @[simp] theorem compl_sup : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
 (is_compl_compl.sup_inf is_compl_compl).compl_eq
 
+@[simp] lemma sup_inf_compl (a b : α) : a ⊔ b ⊓ aᶜ = a ⊔ b :=
+by rw [sup_inf_left, sup_compl_eq_top, inf_top_eq]
+
+@[simp] lemma inf_sup_compl (a b : α) : a ⊓ (b ⊔ aᶜ) = a ⊓ b :=
+by rw [inf_sup_left, inf_compl_eq_bot, sup_bot_eq]
+
+@[simp] lemma inf_sup_inf_compl_sup_inf_compl (a b : α) : a ⊓ b ⊔ a ⊓ bᶜ ⊔ b ⊓ aᶜ = a ⊔ b :=
+by rw [←inf_sup_left, sup_compl_eq_top, inf_top_eq, sup_inf_compl]
+
+@[simp] lemma sup_inf_sup_compl_inf_sup_compl (a b : α) : (a ⊔ b) ⊓ (a ⊔ bᶜ) ⊓ (b ⊔ aᶜ) = a ⊓ b :=
+by rw [←sup_inf_left, inf_compl_eq_bot, sup_bot_eq, inf_sup_compl]
+
 theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
 is_compl_compl.antimono is_compl_compl h
 

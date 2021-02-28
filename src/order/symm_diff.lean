@@ -84,6 +84,15 @@ eq.symm $ calc a Δ (b Δ c) = (a ⊓ b ⊓ c) ⊔ (a ⊓ bᶜ ⊓ cᶜ) ⊔
                        ... = c Δ (b Δ a)                     : by rw symm_diff_symm_diff
                        ... = a Δ b Δ c                    : by rw [symm_diff_comm a, symm_diff_comm]
 
+lemma symm_diff_symm_diff_sup : a Δ b Δ (a ⊓ b) = a ⊔ b :=
+by rw [symm_diff_assoc, symm_diff_eq, compl_symm_diff, symm_diff_eq, @inf_comm _ _ a b, ←inf_assoc,
+  inf_idem, @inf_comm _ _ b a, inf_assoc, inf_compl_eq_bot, inf_bot_eq, sup_bot_eq,
+  compl_inf, @sup_comm _ _ aᶜ, inf_sup_self, inf_assoc, @inf_comm _ _ _ aᶜ, @sup_comm _ _ bᶜ,
+  inf_sup_self, inf_sup_left, ←inf_assoc, inf_idem, inf_sup_inf_compl_sup_inf_compl]
+
+lemma top_symm_diff : ⊤ Δ a = aᶜ :=
+by rw [symm_diff_eq, compl_top, top_inf_eq, inf_bot_eq, sup_bot_eq]
+
 end boolean_algebra
 
 lemma symm_diff_eq_xor (p q : Prop) : p Δ q = xor p q := rfl

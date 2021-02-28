@@ -126,20 +126,6 @@ indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
 end definitions
 
-lemma indep_sets.probability_measure {α} [measurable_space α] {μ : measure α} [finite_measure μ]
-  {s1 s2 : set (set α)} (hs1 : set.univ ∈ s1) (hs2 : set.univ ∈ s2)
-  (hμ : μ ≠ 0) (h : indep_sets s1 s2 μ) : probability_measure μ :=
-begin
-  have h_univ := (h set.univ set.univ hs1 hs2).symm,
-  rw [←mul_one (μ (set.univ ∩ set.univ)), set.univ_inter,
-    ennreal.mul_eq_mul_left (by simp [hμ]) (measure_ne_top μ set.univ)] at h_univ,
-  exact ⟨h_univ⟩,
-end
-
-lemma indep.probability_measure {α} {m1 m2 : measurable_space α} [measurable_space α]
-  {μ : measure α} [finite_measure μ] (hμ : μ ≠ 0) (h : indep m1 m2 μ) : probability_measure μ :=
-indep_sets.probability_measure (@measurable_set.univ α m1) (@measurable_set.univ α m2) hμ h
-
 section indep
 
 lemma indep_sets.symm {α} {s₁ s₂ : set (set α)} [measurable_space α] {μ : measure α}

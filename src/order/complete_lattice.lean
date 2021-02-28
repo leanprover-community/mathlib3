@@ -574,14 +574,6 @@ lemma infi_eq_if {p : Prop} [decidable p] (a : α) :
   (⨅h:p, a) = (if p then a else ⊤) :=
 infi_eq_dif (λ _, a)
 
-lemma bsupr_eq_supr_if (p : ι → Prop) [decidable_pred p] (f : ι → α) :
-  (⨆ i (h : p i), f i) = ⨆ i, ite (p i) (f i) ⊥ :=
-by { congr' 1 with i, rw supr_eq_if, }
-
-lemma binfi_eq_infi_if (p : ι → Prop) [decidable_pred p] (f : ι → α) :
-  (⨅ i (h : p i), f i) = ⨅ i, ite (p i) (f i) ⊤ :=
-by { congr' 1 with i, rw infi_eq_if, }
-
 -- TODO: should this be @[simp]?
 theorem infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=
 le_antisymm

@@ -40,6 +40,37 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
 
+/--
+A type with a commutative, associative and idempotent binary `sup` operation has the structure of a
+join-semilattice.
+
+The partial order is defined so that `a ≤ b` unfolds to `a ⊔ b = b`; cf. `sup_eq_right`.
+-/
+def semilattice_sup.mk' {α : Type*} {h : has_sup α}
+  (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
+  (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
+  (sup_idem : ∀ (a : α), a ⊔ a = a) : semilattice_sup α :=
+{ sup := (⊔),
+  le := λ a b, a ⊔ b = b,
+  le_refl := sup_idem,
+  le_trans := λ a b c hab hbc,
+    begin
+      dsimp only [(≤)] at *,
+      rwa [←hbc, ←sup_assoc, hab],
+    end,
+  le_antisymm := λ a b hab hba,
+    begin
+      dsimp only [(≤)] at *,
+      rwa [←hba, sup_comm],
+    end,
+  le_sup_left  := λ a b, show a ⊔ (a ⊔ b) = (a ⊔ b), by rw [←sup_assoc, sup_idem],
+  le_sup_right := λ a b, show b ⊔ (a ⊔ b) = (a ⊔ b), by rw [sup_comm, sup_assoc, sup_idem],
+  sup_le := λ a b c hac hbc,
+    begin
+      dsimp only [(≤), preorder.le] at *,
+      rwa [sup_assoc, hbc],
+    end }
+
 instance (α : Type*) [has_inf α] : has_sup (order_dual α) := ⟨((⊓) : α → α → α)⟩
 instance (α : Type*) [has_sup α] : has_inf (order_dual α) := ⟨((⊔) : α → α → α)⟩
 
@@ -186,6 +217,38 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)
 
+-- TODO: deduplicate this with semilattice_sup.mk' using `order_dual` / automation
+/--
+A type with a commutative, associative and idempotent binary `inf` operation has the structure of a
+meet-semilattice.
+
+The partial order is defined so that `a ≤ b` unfolds to `a = a ⊓ b`; cf. `left_eq_inf`.
+-/
+def semilattice_inf.mk' {α : Type*} {h : has_inf α}
+  (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
+  (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
+  (inf_idem : ∀ (a : α), a ⊓ a = a) : semilattice_inf α :=
+{ inf := (⊓),
+  le := λ a b, a = a ⊓ b,
+  le_refl := λ a, (inf_idem a).symm,
+  le_trans := λ a b c hab hbc,
+    begin
+      dsimp only [(≤)] at *,
+      rw [hab, inf_assoc, ←hbc],
+    end,
+  le_antisymm := λ a b hab hba,
+    begin
+      dsimp only [(≤)] at *,
+      rw [hba, inf_comm, ←hab],
+    end,
+  inf_le_left  := λ a b, show a ⊓ b = a ⊓ b ⊓ a, by rw [inf_comm, inf_assoc, inf_idem],
+  inf_le_right := λ a b, show a ⊓ b = a ⊓ b ⊓ b, by rw [inf_assoc, inf_idem],
+  le_inf := λ a b c hac hbc,
+    begin
+      dsimp only [(≤), preorder.le] at *,
+      rwa [←inf_assoc, ←hac],
+    end }
+
 instance (α) [semilattice_inf α] : semilattice_sup (order_dual α) :=
 { le_sup_left  := semilattice_inf.inf_le_left,
   le_sup_right := semilattice_inf.inf_le_right,
@@ -319,6 +382,45 @@ class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
 
+/--
+A type with a pair of commutative and associative binary operations which satisfy two absorption
+laws relating the two operations has the structure of a lattice.
+
+The partial order is defined so that `a ≤ b` unfolds to `a ⊔ b = b`; cf. `sup_eq_right`.
+-/
+def lattice.mk' {α : Type*} {hs : has_sup α} {hi : has_inf α}
+  (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
+  (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
+  (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
+  (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
+  (sup_inf_self : ∀ (a b : α), a ⊔ a ⊓ b = a)
+  (inf_sup_self : ∀ (a b : α), a ⊓ (a ⊔ b) = a) : lattice α :=
+have sup_idem : ∀ (b : α), b ⊔ b = b := λ b,
+  calc b ⊔ b = b ⊔ b ⊓ (b ⊔ b) : by rw inf_sup_self
+         ... = b               : by rw sup_inf_self,
+have inf_idem : ∀ (b : α), b ⊓ b = b := λ b,
+  calc b ⊓ b = b ⊓ (b ⊔ b ⊓ b) : by rw sup_inf_self
+         ... = b               : by rw inf_sup_self,
+have sup_eq_iff_inf_eq : ∀ (a b : α), a ⊔ b = b ↔ a ⊓ b = a := λ a b,
+  ⟨λ h, by rw [←h, inf_sup_self],
+   λ h, by rw [←h, sup_comm, inf_comm, sup_inf_self]⟩,
+{ /- Lean doesn't know that the `partial_order` instances from `semilattice_sup` and
+    `semilattice_inf` agree, so we have to provide these fields explicitly. -/
+  inf_le_left  := λ a b, show a ⊓ b ⊔ a = a, by rw [sup_comm, sup_inf_self],
+  inf_le_right := λ a b, show a ⊓ b ⊔ b = b, by rw [sup_comm, inf_comm, sup_inf_self],
+  le_inf := λ a b c hab hac,
+    begin
+      change a ⊔ b = b at hab,
+      change a ⊔ c = c at hac,
+      change a ⊔ b ⊓ c = b ⊓ c,
+      rw sup_eq_iff_inf_eq at ⊢ hab hac,
+      calc a ⊓ (b ⊓ c) = a ⊓ b ⊓ c : by rw inf_assoc
+                   ... = a ⊓ c     : by rw hab
+                   ... = a         : by rw hac
+    end,
+  ..semilattice_sup.mk' sup_comm sup_assoc sup_idem,
+  ..semilattice_inf.mk' inf_comm inf_assoc inf_idem, }
+
 section lattice
 variables [lattice α] {a b c d : α}
 
@@ -335,6 +437,9 @@ by simp
 
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
 by simp
+
+theorem sup_eq_iff_inf_eq : a ⊔ b = b ↔ a ⊓ b = a :=
+by rw [sup_eq_right, ←inf_eq_left]
 
 theorem lattice.ext {α} {A B : lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=

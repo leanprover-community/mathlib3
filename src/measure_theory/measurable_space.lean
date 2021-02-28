@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.disjointed
 import data.set.countable
+import data.set.sup_closed
 import data.indicator_function
 import data.equiv.encodable.lattice
 import data.tprod
@@ -472,89 +473,6 @@ le_antisymm
   (comap_le_iff_le_map.2 $ generate_from_le $ assume t hts,
     generate_measurable.basic _ $ mem_image_of_mem _ $ hts)
   (generate_from_le $ assume t ⟨u, hu, eq⟩, eq ▸ ⟨u, generate_measurable.basic _ hu, rfl⟩)
-
-lemma generate_from_set {α} (s : set α) :
-  (generate_from ({∅, set.univ, s, sᶜ} : set (set α))).measurable_set'
-    = ({∅, set.univ, s, sᶜ} : set (set α)) :=
-begin
-  refine le_antisymm (λ t ht, _) (λ t ht, measurable_set_generate_from ht),
-  induction ht,
-  { exact ht_H, },
-  { change ∅ ∈ ({∅, set.univ, s, sᶜ} : set (set α)),
-    simp, },
-  { change ht_sᶜ ∈ ({∅, set.univ, s, sᶜ} : set (set α)),
-    cases ht_ih,
-    { simp only [ht_ih, set.mem_insert_iff, true_or, eq_self_iff_true, or_true, set.compl_empty], },
-    cases ht_ih,
-    { simp only [ht_ih, set.compl_univ, set.mem_insert_iff, true_or, eq_self_iff_true], },
-    cases ht_ih,
-    { simp only [ht_ih, set.mem_insert_iff, set.mem_singleton, or_true], },
-    rw set.mem_singleton_iff at ht_ih,
-    simp only [ht_ih, set.mem_insert_iff, compl_compl, true_or, eq_self_iff_true, or_true], },
-  { change (⋃ (i : ℕ), ht_f i) ∈ ({∅, set.univ, s, sᶜ} : set (set α)),
-    change ∀ i, ht_f i ∈ ({∅, set.univ, s, sᶜ} : set (set α)) at ht_ih,
-    by_cases huniv : ∃ n, ht_f n = set.univ,
-    { have huniv' : (⋃ (n : ℕ), ht_f n) = set.univ,
-      { refine set.eq_univ_of_univ_subset (set.subset.trans _ (set.subset_Union _ huniv.some)),
-        rw huniv.some_spec, },
-      simp only [huniv', set.mem_insert_iff, true_or, eq_self_iff_true, or_true], },
-    have ht_ih': ∀ (i : ℕ), ht_f i ∈ ({∅, s, sᶜ} : set (set α)),
-      by { intro i, simpa [not_exists.mp huniv i] using ht_ih i, },
-    by_cases hs : ∃ n, ht_f n = s,
-    { cases hs with n hs,
-      by_cases hsc : ∃ n, ht_f n = sᶜ,
-      { have huniv' : (⋃ (n : ℕ), ht_f n) = set.univ,
-        { refine set.eq_univ_of_univ_subset _,
-          cases hsc with m hsc,
-          have hf_univ : ht_f n ∪ ht_f m = set.univ, by rw [hs, hsc, set.union_compl_self],
-          rw [←hf_univ, set.union_subset_iff],
-          exact ⟨set.subset_Union _ n, set.subset_Union _ m⟩, },
-        simp only [huniv', set.mem_insert_iff, true_or, eq_self_iff_true, or_true], },
-      { have ht_ih'': ∀ (i : ℕ), ht_f i ∈ ({∅, s} : set (set α)),
-          by { intro i, simpa [not_exists.mp hsc i] using ht_ih' i, },
-        have hfs : (⋃ (n : ℕ), ht_f n) = s,
-        { rw not_exists at huniv hsc,
-          refine set.subset.antisymm _ (by { rw ← hs, exact set.subset_Union _ n, }),
-          refine set.Union_subset (λ i, _),
-          cases ht_ih'' i,
-          { rw h, exact set.empty_subset s, },
-          { rw set.mem_singleton_iff.mp h, }, },
-        simp only [hfs, set.mem_insert_iff, true_or, eq_self_iff_true, or_true], }, },
-    { have ht_ih'': ∀ (i : ℕ), ht_f i ∈ ({∅, sᶜ} : set (set α)),
-        by { intro i, simpa [not_exists.mp hs i] using ht_ih' i, },
-      by_cases hsc : ∃ n, ht_f n = sᶜ,
-      { have hfs : (⋃ (n : ℕ), ht_f n) = sᶜ,
-        { cases hsc with n hsc,
-          refine set.subset.antisymm _ (by { rw ← hsc, exact set.subset_Union _ n, }),
-          refine set.Union_subset (λ i, _),
-          cases ht_ih'' i,
-          { rw h, exact set.empty_subset sᶜ, },
-          { rw set.mem_singleton_iff.mp h,
-            exact set.subset.rfl, }, },
-        simp only [hfs, set.mem_insert_iff, set.mem_singleton, or_true], },
-      { have hf_empty : (⋃ (n : ℕ), ht_f n) = ∅,
-          from set.Union_eq_empty.mpr (λ n, by simpa [not_exists.mp hsc n] using ht_ih'' n),
-        simp only [hf_empty, set.mem_insert_iff, true_or, eq_self_iff_true], }, }, },
-end
-
-lemma generate_from_singleton {α} (s : set α) :
-  (generate_from {s}).measurable_set' = ({∅, set.univ, s, sᶜ} : set (set α)) :=
-begin
-  ext1 t,
-  split; intro h,
-  { rw ← generate_from_set,
-    refine set.mem_of_subset_of_mem (generate_from_le_generate_from (λ t ht, _)) h,
-    simp [set.mem_singleton_iff.mp ht], },
-  { cases h,
-    { rw h, exact @measurable_set.empty α (generate_from {s}), },
-    cases h,
-    { rw h, exact @measurable_set.univ α (generate_from {s}), },
-    cases h,
-    { rw h, exact measurable_set_generate_from (set.mem_singleton s), },
-    rw set.mem_singleton_iff.mp h,
-    exact @measurable_set.compl α s (generate_from {s})
-      (measurable_set_generate_from (set.mem_singleton s)), },
-end
 
 end measurable_space
 

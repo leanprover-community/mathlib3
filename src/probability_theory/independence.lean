@@ -209,97 +209,14 @@ lemma indep_sets.Inter {α ι} [measurable_space α] {s : ι → set (set α)} {
   indep_sets (⋂ n, s n) s' μ :=
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
 
+lemma indep_sets_singleton {α} [measurable_space α] {s t : set α} {μ : measure α} :
+  indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
+begin
+  simp_rw [indep_sets, set.mem_singleton_iff],
+  exact ⟨λ h, h s t rfl rfl, λ h s1 t1 hs1 ht1, by rwa [hs1, ht1]⟩,
+end
+
 end indep
-
-section indep_set
-/-! ### Independence of measurable sets
-
-We prove the following equivalences on `indep_set`, for measurable sets `s,t`.
-* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
-* `indep_set s t μ ↔ indep_sets {s} {t} μ`.
--/
-
-variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
-
-lemma measure_inter_compl_eq_mul_of_measure_inter_eq_mul
-  (μ : measure α . volume_tac) [probability_measure μ] (hs_meas : measurable_set s)
-  (ht_meas : measurable_set t) (hst : μ (s ∩ t) = μ s * μ t) :
-  μ (s ∩ tᶜ) = μ s * μ tᶜ :=
-begin
-  have h_inter_compl : s ∩ tᶜ = s \ (s ∩ t),
-  by rw [set.inter_comm, set.inter_comm s, ← set.diff_eq_compl_inter, set.diff_inter_self_eq_diff],
-  rw [measure_compl ht_meas (measure_lt_top μ t), h_inter_compl,
-    measure_diff (set.inter_subset_left s _) hs_meas (hs_meas.inter ht_meas) (measure_lt_top μ _),
-    hst, measure_univ, ennreal.mul_sub (λ _ _ , measure_ne_top μ s), mul_one],
-end
-
-lemma measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul (μ : measure α . volume_tac)
-  [probability_measure μ] (hs_meas : measurable_set s)
-  (ht_meas : measurable_set t) (hst : μ (s ∩ t) = μ s * μ t) :
-  μ (sᶜ ∩ tᶜ) = μ sᶜ * μ tᶜ :=
-begin
-  have hst' : μ (s ∩ tᶜ) = μ s * μ tᶜ,
-    from measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst,
-  rw [set.inter_comm, mul_comm] at hst' ⊢,
-  exact measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ ht_meas.compl hs_meas hst',
-end
-
-lemma indep_set_of_measure_inter (hs_meas : measurable_set s) (ht_meas : measurable_set t)
-  (μ : measure α . volume_tac) [probability_measure μ] (hst : μ (s ∩ t) = μ s * μ t) :
-  indep_set s t μ :=
-begin
-  rw indep_set,
-  intros s' t' hs' ht',
-  rw generate_from_singleton at hs' ht',
-  cases hs',
-  { simp only [hs', measure_empty, zero_mul, set.empty_inter], },
-  cases hs',
-  { simp only [hs', measure_univ, one_mul, set.univ_inter], },
-  cases ht',
-  { simp only [ht', measure_empty, set.inter_empty, mul_zero], },
-  cases ht',
-  { simp only [ht', measure_univ, mul_one, set.inter_univ], },
-  cases hs',
-  { cases ht',
-    { simp only [hs', ht', hst], },
-    { rw set.mem_singleton_iff at ht',
-      rw [hs', ht'],
-      exact measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst, }, },
-  { rw set.mem_singleton_iff at hs',
-    cases ht',
-    { rw [hs', ht'],
-      rw [set.inter_comm, mul_comm] at hst ⊢,
-      exact measure_inter_compl_eq_mul_of_measure_inter_eq_mul μ ht_meas hs_meas hst, },
-    { rw set.mem_singleton_iff at ht',
-      rw [hs', ht'],
-      exact measure_compl_inter_compl_eq_mul_of_measure_inter_eq_mul μ hs_meas ht_meas hst, }, },
-end
-
-lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
-  (μ : measure α . volume_tac) [probability_measure μ] :
-  indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
-begin
-  refine ⟨λ h_indep, h_indep s t _ _, indep_set_of_measure_inter hs_meas ht_meas μ⟩,
-  { exact measurable_space.measurable_set_generate_from (set.mem_singleton s), },
-  { exact measurable_space.measurable_set_generate_from (set.mem_singleton t), },
-end
-
-lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probability_measure μ]
-  (hs_meas : measurable_set s) (ht_meas : measurable_set t) :
-  indep_set s t μ ↔ indep_sets {s} {t} μ :=
-begin
-  rw [indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ, indep_sets],
-  simp_rw set.mem_singleton_iff,
-  exact ⟨λ h t1 t2 ht1 ht2, by rwa [ht1, ht2], λ h, h s t rfl rfl⟩,
-end
-
-lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
-  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ]
-  (h_indep : indep_sets S T μ) :
-  indep_set s t μ :=
-indep_set_of_measure_inter hs_meas ht_meas μ (h_indep s t hs ht)
-
-end indep_set
 
 /-! ### Deducing `indep` from `Indep` -/
 section from_Indep_to_indep
@@ -412,5 +329,38 @@ begin
 end
 
 end from_pi_systems_to_measurable_spaces
+
+section indep_set
+/-! ### Independence of measurable sets
+
+We prove the following equivalences on `indep_set`, for measurable sets `s,t`.
+* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
+* `indep_set s t μ ↔ indep_sets {s} {t} μ`.
+-/
+
+variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
+
+lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probability_measure μ]
+  (hs_meas : measurable_set s) (ht_meas : measurable_set t) :
+  indep_set s t μ ↔ indep_sets {s} {t} μ :=
+begin
+  refine ⟨indep.indep_sets, λ h, _⟩,
+  have hpi : ∀ s : set α, is_pi_system {s}, by sorry,
+  refine indep_sets.indep _ _ (hpi s) (hpi t) rfl rfl h;
+    exact generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu),
+end
+
+lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [probability_measure μ] :
+  indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+by rw [indep_set_iff_indep_sets_singleton μ hs_meas ht_meas, indep_sets_singleton]
+
+lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ]
+  (h_indep : indep_sets S T μ) :
+  indep_set s t μ :=
+(indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
+
+end indep_set
 
 end probability_theory

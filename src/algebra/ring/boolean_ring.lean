@@ -20,6 +20,8 @@ algebras.
 * `boolean_ring.to_boolean_algebra`: every Boolean ring is a Boolean algebra; this definition and
   the `sup` and `inf` notations for `boolean_ring` are localized as instances in the
   `boolean_algebra_of_boolean_ring` locale.
+* `boolean_algebra.to_boolean_ring`: every Boolean algebra is a Boolean ring; this definition is
+  localized as an instance in the `boolean_ring_of_boolean_algebra` locale.
 
 ## Tags
 
@@ -31,28 +33,29 @@ boolean ring, boolean algebra
 class boolean_ring α extends ring α :=
 (mul_idem : ∀ a : α, a * a = a)
 
+section boolean_ring
 open boolean_ring
-variables {α : Type*} [boolean_ring α]
+variables {α : Type*} [boolean_ring α] (a b : α)
 
 instance : is_idempotent α (*) := ⟨mul_idem⟩
 
-@[simp] lemma add_self (a : α) : a + a = 0 :=
+@[simp] lemma add_self : a + a = 0 :=
 have a + a = a + a + (a + a) :=
   calc a + a = (a+a) * (a+a)           : by rw mul_idem
          ... = a*a + a*a + (a*a + a*a) : by rw [add_mul, mul_add]
          ... = a + a + (a + a)         : by rw mul_idem,
 by rwa self_eq_add_left at this
 
-@[simp] lemma neg_eq (a : α) : -a = a :=
+@[simp] lemma neg_eq : -a = a :=
 calc -a = -a + 0      : by rw add_zero
     ... = -a + -a + a : by rw [←neg_add_self, add_assoc]
     ... = a           : by rw [add_self, zero_add]
 
-lemma add_eq_zero (a b : α) : a + b = 0 ↔ a = b :=
+lemma add_eq_zero : a + b = 0 ↔ a = b :=
 calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
            ... ↔ a = b  : by rw neg_eq
 
-lemma mul_add_mul (a b : α) : a*b + b*a = 0 :=
+lemma mul_add_mul : a*b + b*a = 0 :=
 have a + b = a + b + (a*b + b*a) :=
   calc a + b = (a + b) * (a + b)       : by rw mul_idem
          ... = a*a + a*b + (b*a + b*b) : by rw [add_mul, mul_add, mul_add]
@@ -60,7 +63,13 @@ have a + b = a + b + (a*b + b*a) :=
          ... = a + b + (a*b + b*a)     : by abel,
 by rwa self_eq_add_right at this
 
+lemma sub_eq_add : a - b = a + b :=
+by rw [sub_eq_add_neg, add_right_inj, neg_eq]
+
+end boolean_ring
+
 namespace boolean_ring
+variables {α : Type*} [boolean_ring α]
 
 @[priority 100] -- Note [lower instance priority]
 instance : comm_ring α :=
@@ -139,8 +148,14 @@ end boolean_ring
 
 namespace boolean_algebra
 
-/-- Every Boolean algebra has the structure of a Boolean ring, with `inf` as multiplication
-and symmetric difference as addition. -/
+/-- Every Boolean algebra has the structure of a Boolean ring with the following data:
+
+* `a + b` unfolds to `a Δ b` (symmetric difference),
+* `a * b` unfolds to `a ⊓ b`
+* `-a` unfolds to `a`
+* `0` unfolds to `⊥`
+* `1` unfolds to `⊥`
+-/
 def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
 { add := (Δ),
   add_assoc := symm_diff_assoc,
@@ -175,27 +190,16 @@ def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
     end,
   mul_idem := λ b, inf_idem }
 
--------------------------------
+localized "attribute [instance, priority 100] boolean_algebra.to_boolean_ring" in
+  boolean_ring_of_boolean_algebra
 
-/-
-@[class]
-structure boolean_algebra : Type u_1 → Type u_1
-fields:
-boolean_algebra.sup : Π {α : Type u_1} [c : boolean_algebra α], α → α → α
-boolean_algebra.le : Π {α : Type u_1} [c : boolean_algebra α], α → α → Prop
-boolean_algebra.lt : Π {α : Type u_1} [c : boolean_algebra α], α → α → Prop
-boolean_algebra.inf : Π {α : Type u_1} [c : boolean_algebra α], α → α → α
-boolean_algebra.top : Π {α : Type u_1} [c : boolean_algebra α], α
-boolean_algebra.bot : Π {α : Type u_1} [c : boolean_algebra α], α
-boolean_algebra.compl : Π {α : Type u_1} [c : boolean_algebra α], α → α
-boolean_algebra.sdiff : Π {α : Type u_1} [c : boolean_algebra α], α → α → α
--/
+variables {α : Type*} (BA : boolean_algebra α)
 
-lemma to_boolean_ring.sup_eq (α : Type*) (BA : boolean_algebra α) :
+lemma to_boolean_ring.sup_eq :
   (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).sup = BA.sup :=
 symm_diff_symm_diff_sup _ _
 
-lemma to_boolean_ring.le_iff (α : Type*) (BA : boolean_algebra α) :
+lemma to_boolean_ring.le_iff :
   (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).le = BA.le :=
 begin
   ext a b,
@@ -203,7 +207,7 @@ begin
   simp [symm_diff_symm_diff_sup],
 end
 
-lemma to_boolean_ring.lt_iff (α : Type*) (BA : boolean_algebra α) :
+lemma to_boolean_ring.lt_iff :
   (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).lt = BA.lt :=
 begin
   ext a b,
@@ -212,89 +216,71 @@ begin
   refl,
 end
 
--- lemma foo2 (α : Type*) [boolean_algebra α] (a b : α) :
---   a ⊓ b = a Δ b Δ (a ⊓ b) :=
--- by rw [symm_diff_assoc, symm_diff_eq, compl_symm_diff, symm_diff_eq, @inf_comm _ _ a b, ←inf_assoc,
---   inf_idem, @inf_comm _ _ b a, inf_assoc, inf_compl_eq_bot, inf_bot_eq, sup_bot_eq,
---   compl_inf, @sup_comm _ _ aᶜ, inf_sup_self, inf_assoc, @inf_comm _ _ _ aᶜ, @sup_comm _ _ bᶜ,
---   inf_sup_self, inf_sup_left, ←inf_assoc, inf_idem, blah]
-
-lemma to_boolean_ring.inf_eq (α : Type*) (BA : boolean_algebra α) :
-  BA.inf = (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).inf :=
+lemma to_boolean_ring.inf_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).inf = BA.inf :=
 rfl
 
-lemma to_boolean_ring.top_eq (α : Type*) (BA : boolean_algebra α) :
-  BA.top = (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).top :=
+lemma to_boolean_ring.top_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).top = BA.top :=
 rfl
 
-lemma to_boolean_ring.bot_eq (α : Type*) (BA : boolean_algebra α) :
-  BA.bot = (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).bot :=
+lemma to_boolean_ring.bot_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).bot = BA.bot :=
 rfl
 
-lemma to_boolean_ring.compl_eq (α : Type*) (BA : boolean_algebra α) :
+lemma to_boolean_ring.compl_eq :
   (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).compl = BA.compl :=
 top_symm_diff _
 
-lemma to_boolean_ring.sdiff_eq (α : Type*) (BA : boolean_algebra α) :
-  BA.sdiff = (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).sdiff :=
+lemma to_boolean_ring.sdiff_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).sdiff = BA.sdiff :=
 begin
   ext a b,
-  change a \ b = a ⊓ (⊤ Δ b),
+  change a ⊓ (⊤ Δ b) = a \ b,
   rw [top_symm_diff, sdiff_eq],
   refl,
 end
 
 end boolean_algebra
 
-
 namespace boolean_ring
-/-
-ring.add : Π {α : Type u} [c : ring α], α → α → α
-ring.zero : Π {α : Type u} [c : ring α], α
-ring.neg : Π {α : Type u} [c : ring α], α → α
-ring.sub : Π {α : Type u} [c : ring α], α → α → α
-ring.mul : Π {α : Type u} [c : ring α], α → α → α
-ring.one : Π {α : Type u} [c : ring α], α
--/
 
-lemma blah (α : Type*) (BR : boolean_ring α) (a b : α) :
+variables {α : Type*} (BR : boolean_ring α)
+
+lemma to_boolean_algebra.add_eq_aux [boolean_ring α] (a b : α) :
   (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) = a + b :=
 calc (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) =
     a + b + (a * b + a * b) + (a * b + (a * a)*b) + (a * (b * b) + (a*a)*(b*b)) : by ring
   ... = a+b : by simp only [mul_idem, add_self, add_zero]
 
-lemma to_boolean_algebra.add_eq (α : Type*) (BR : boolean_ring α) :
+lemma to_boolean_algebra.add_eq :
   BR.add = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).add :=
 begin
   ext a b,
-  exact (boolean_ring.blah _ _ _ _).symm
+  exact (to_boolean_algebra.add_eq_aux _ _).symm
 end
 
-lemma to_boolean_algebra.zero_eq (α : Type*) (BR : boolean_ring α) :
+lemma to_boolean_algebra.zero_eq :
   BR.zero = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).zero :=
 rfl
 
-lemma to_boolean_algebra.neg_eq (α : Type*) (BR : boolean_ring α) :
+lemma to_boolean_algebra.neg_eq :
   BR.neg = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).neg :=
 funext $ neg_eq
 
-lemma blah2 (α : Type*) (BR : boolean_ring α) (a b : α) :
-  a - b = a + b :=
-by rw [sub_eq_add_neg, add_right_inj, neg_eq]
-
-lemma to_boolean_algebra.sub_eq (α : Type*) (BR : boolean_ring α) :
+lemma to_boolean_algebra.sub_eq :
   BR.sub = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).sub :=
 begin
   ext a b,
   change a - b = (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)),
-  rw [blah, boolean_ring.blah2],
+  rw [to_boolean_algebra.add_eq_aux, sub_eq_add],
 end
 
-lemma to_boolean_algebra.mul_eq (α : Type*) (BR : boolean_ring α) :
+lemma to_boolean_algebra.mul_eq :
   BR.mul = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).mul :=
 rfl
 
-lemma to_boolean_algebra.one_eq (α : Type*) (BR : boolean_ring α) :
+lemma to_boolean_algebra.one_eq :
   BR.one = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).one :=
 rfl
 

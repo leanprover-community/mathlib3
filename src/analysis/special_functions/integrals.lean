@@ -69,7 +69,7 @@ lemma interval_integrable_one_div (hf : continuous_on f (interval a b))
 @[simp]
 lemma interval_integrable_inv (hf : continuous_on f (interval a b))
   (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
-  interval_integrable (λ x, f⁻¹ x) volume a b :=
+  interval_integrable (λ x, (f x)⁻¹) volume a b :=
 by simpa only [one_div] using interval_integrable_one_div hf h
 
 @[simp]

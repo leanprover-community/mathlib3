@@ -198,7 +198,7 @@ lemma free.map_eq_map (f : α → β) (xs : list α) :
 
 instance (f : α → β) : is_monoid_hom (free.map f) :=
 { map_mul := λ x y,
-  by simp only [free.map, free_monoid.mul_def, list.map_append, free_add_monoid.add_def],
+    by simp only [free.map, free_monoid.mul_def, list.map_append, free_add_monoid.add_def],
   map_one := by simp only [free.map, free_monoid.one_def, list.map, free_add_monoid.zero_def] }
 
 instance fold_foldl (f : β → α → β) :
@@ -214,11 +214,11 @@ instance fold_foldr (f : α → β → β) :
   is_monoid_hom (foldr.of_free_monoid f) :=
 { map_one := rfl,
   map_mul :=
-  begin
-    intros,
-    simp only [free_monoid.mul_def, foldr.of_free_monoid, list.foldr_append, flip],
-    refl
-  end }
+    begin
+      intros,
+      simp only [free_monoid.mul_def, foldr.of_free_monoid, list.foldr_append, flip],
+      refl
+    end }
 
 variables (m : Type u → Type u) [monad m] [is_lawful_monad m]
 

@@ -249,10 +249,10 @@ end curry
 
 instance pi.lawful_fix' [lawful_fix $ Π x : sigma β, γ x.1 x.2] : lawful_fix (Π x y, γ x y) :=
 { fix_eq := λ f hc,
-  begin
-    dsimp [fix],
-    conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] },
-    refl,
-  end, }
+    begin
+      dsimp [fix],
+      conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] },
+      refl,
+    end, }
 
 end pi

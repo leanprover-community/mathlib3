@@ -111,7 +111,7 @@ instance [is_lawful_traversable F]  [is_lawful_traversable G] [is_lawful_bitrave
   is_lawful_bitraversable (bicompl t F G) :=
 begin
   constructor; introsI;
-    simp [bitraverse,bicompl.bitraverse,bimap,traverse_id,bitraverse_id_id,comp_bitraverse]
+    simp [bitraverse, bicompl.bitraverse, bimap, traverse_id, bitraverse_id_id, comp_bitraverse]
       with functor_norm,
   { simp [traverse_eq_map_id',bitraverse_eq_bimap_id], },
   { revert x, dunfold bicompl,

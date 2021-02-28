@@ -869,7 +869,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
     by norm_num [this]
   else
     begin
-      have hnz' : {rat . num := n, denom := d, pos := hn, cop := hd} ≠ 0,
+      have hnz' : { rat . num := n, denom := d, pos := hn, cop := hd } ≠ 0,
         from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,

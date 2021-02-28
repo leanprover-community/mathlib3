@@ -298,12 +298,12 @@ end
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
 begin
   iterate 3 { rw real.rpow_def_of_nonneg }, split_ifs; simp * at *,
-  { have hx : 0 < x, cases lt_or_eq_of_le h with h₂ h₂,
-    exact h₂,
-    exfalso, apply h_2, exact eq.symm h₂,
-    have hy : 0 < y, cases lt_or_eq_of_le h₁ with h₂ h₂,
-    exact h₂,
-    exfalso, apply h_3, exact eq.symm h₂,
+  { have hx : 0 < x, 
+    { cases lt_or_eq_of_le h with h₂ h₂, { exact h₂ },
+      exfalso, apply h_2, exact eq.symm h₂ },
+    have hy : 0 < y, 
+    { cases lt_or_eq_of_le h₁ with h₂ h₂, { exact h₂ },
+      exfalso, apply h_3, exact eq.symm h₂ },
     rw [log_mul (ne_of_gt hx) (ne_of_gt hy), add_mul, exp_add]},
   { exact h₁ },
   { exact h },

@@ -31,7 +31,7 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
   ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
 section normed_field
-/- Most statements in this file require the field to be non-discrete,
+/-! Most statements in this file require the field to be non-discrete,
 as this is necessary to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f.
 However, the other direction always holds.
 In this section, we just assume that `𝕜` is a normed field.

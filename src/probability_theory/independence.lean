@@ -196,7 +196,7 @@ lemma indep_sets.Inter {α ι} [measurable_space α] {s : ι → set (set α)} {
   indep_sets (⋂ n, s n) s' μ :=
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
 
-lemma indep_sets_singleton {α} [measurable_space α] {s t : set α} {μ : measure α} :
+lemma indep_sets_singleton_iff {α} [measurable_space α] {s t : set α} {μ : measure α} :
   indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
 ⟨λ h, h s t rfl rfl,
   λ h s1 t1 hs1 ht1, by rwa [set.mem_singleton_iff.mp hs1, set.mem_singleton_iff.mp ht1]⟩
@@ -336,7 +336,7 @@ lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas :
 lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure α . volume_tac) [probability_measure μ] :
   indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
-(indep_set_iff_indep_sets_singleton hs_meas ht_meas μ).trans indep_sets_singleton
+(indep_set_iff_indep_sets_singleton hs_meas ht_meas μ).trans indep_sets_singleton_iff
 
 lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
   (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ]

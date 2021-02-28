@@ -556,10 +556,9 @@ lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul �
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
   measurable (λ a, ∏ i in s, f i a) :=
 begin
-  convert @finset.prod_induction ι s (δ → α) _ f measurable
-    (λ f g , λ hf' hg', measurable.mul' hf' hg') (@measurable_one α δ _ _ _) (λ i _, hf i),
-  ext1 x,
-  rw finset.prod_apply,
+  simp_rw ← finset.prod_apply,
+  exact finset.prod_induction f measurable (λ f g , λ hf' hg', measurable.mul' hf' hg')
+    (@measurable_one α δ _ _ _) (λ i _, hf i),
 end
 
 @[to_additive]
@@ -568,11 +567,10 @@ lemma finset.ae_measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mu
   (hf : ∀i, ae_measurable (f i) μ) :
   ae_measurable (λ a, ∏ i in s, f i a) μ :=
 begin
-  convert @finset.prod_induction ι s (δ → α) _ f (λ f, ae_measurable f μ)
+  simp_rw ← finset.prod_apply,
+  exact finset.prod_induction f (λ f, ae_measurable f μ)
     (λ f g , λ hf' hg', ae_measurable.mul hf' hg') (@measurable_one α δ _ _ _).ae_measurable
     (λ i _, hf i),
-  ext1 x,
-  rw finset.prod_apply,
 end
 
 @[to_additive]

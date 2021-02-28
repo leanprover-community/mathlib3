@@ -28,14 +28,14 @@ In Boolean algebras, the symmetric difference operator is:
 
 ## Notations
 
-* `a Δ b` is `symm_diff a b`.
+* `a Δ b`: `symm_diff a b`
 
 ## Tags
-boolean ring, boolean algebra
+boolean ring, boolean algebra, symmetric differences
 -/
 
-/-- The symmetric difference of a structure with `⊔` and `\` is `(A \ B) ⊔ (B \ A)`. -/
-def symm_diff {α : Type*} [has_sup α] [has_sdiff α] (A B : α) := (A \ B) ⊔ (B \ A)
+/-- The symmetric difference operator of a structure with `⊔` and `\` is `(A \ B) ⊔ (B \ A)`. -/
+def symm_diff {α : Type*} [has_sup α] [has_sdiff α] (A B : α) : α := (A \ B) ⊔ (B \ A)
 
 infix ` Δ `:100 := symm_diff
 
@@ -85,3 +85,5 @@ eq.symm $ calc a Δ (b Δ c) = (a ⊓ b ⊓ c) ⊔ (a ⊓ bᶜ ⊓ cᶜ) ⊔
                        ... = a Δ b Δ c                    : by rw [symm_diff_comm a, symm_diff_comm]
 
 end boolean_algebra
+
+lemma symm_diff_eq_xor (p q : Prop) : p Δ q = xor p q := rfl

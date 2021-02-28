@@ -333,7 +333,7 @@ lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probabi
 ⟨indep.indep_sets,  λ h, indep_sets.indep
   (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu))
   (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu)) (is_pi_system.singleton s)
-  (is_pi_system.singleton t) rfl rfl h
+  (is_pi_system.singleton t) rfl rfl h⟩
 
 lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure α . volume_tac) [probability_measure μ] :

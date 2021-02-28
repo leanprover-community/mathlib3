@@ -3,8 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.nat.choose.sum
 import data.polynomial.derivative
 import data.polynomial.algebra_map
+import data.mv_polynomial.pderiv
 import linear_algebra.basis
 import data.nat.pochhammer
 import tactic.omega
@@ -19,15 +21,23 @@ and the fact that for `ν : fin (n+1)` these are linearly independent over `ℚ`
 ## Future work
 
 The basic identities
-* `(finset.univ : finset (fin (n+1))).sum (λ ν, bernstein_polynomial n ν) = 1`
-* `(finset.univ : finset (fin (n+1))).sum (λ ν, (ν : ℕ) • bernstein_polynomial n ν) = n * X`
-* `(finset.univ : finset (fin (n+1))).sum (λ ν, ((ν : ℕ) * (ν-1 : ℕ)) • bernstein_polynomial n ν) =
+* `(finset.range (n + 1)).sum (λ ν, bernstein_polynomial n ν) = 1`
+* `(finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial n ν) = n * X`
+* `(finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial n ν) =
      n * (n-1) * X^2`
 and the fact that the Bernstein approximations
 of a continuous function `f` on `[0,1]` converge uniformly.
 This will give a constructive proof of Weierstrass' theorem that
 polynomials are dense in `C([0,1], ℝ)`.
 -/
+
+
+lemma polynomial.nat_smul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) : n • p = n * p :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
+end
 
 /-!
 Two lemmas about polynomials that do not seem widely useful
@@ -276,5 +286,124 @@ annihilates `bernstein_polynomial n ν` for `ν < k`, but has a nonzero value at
 lemma linear_independent (n : ℕ) :
   linear_independent ℚ (λ ν : fin (n+1), (bernstein_polynomial n ν).map (algebra_map ℤ ℚ)) :=
 linear_independent_aux n (n+1) (le_refl _)
+
+lemma sum (n : ℕ) : (finset.range (n + 1)).sum (λ ν, bernstein_polynomial n ν) = 1 :=
+begin
+  -- We calculate `(x + (1-x))^n` in two different ways.
+  conv { congr, congr, skip, funext, dsimp [bernstein_polynomial], rw [mul_assoc, mul_comm], },
+  rw ←add_pow,
+  simp,
+end
+
+
+open polynomial
+open mv_polynomial
+
+lemma sum_smul (n : ℕ) :
+  (finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial n ν) = n • X :=
+begin
+  -- We calculate the `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
+  -- either directly or by using the binomial theorem.
+
+  -- We'll work in `mv_polynomial bool ℤ`.
+  let x : mv_polynomial bool ℤ := mv_polynomial.X tt,
+  let y : mv_polynomial bool ℤ := mv_polynomial.X ff,
+
+  have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
+  have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
+
+  let e : bool → polynomial ℤ := λ i, cond i X (1-X),
+
+  -- Start with `(x+y)^n = (x+y)^n`,
+  -- take the `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
+  have h : (x+y)^n = (x+y)^n := rfl,
+  apply_fun (pderiv tt) at h,
+  apply_fun (aeval e) at h,
+  apply_fun (λ p, p * X) at h,
+
+  -- On the left hand side we'll use the binomial theorem, then simplify.
+
+  -- We first prepare a tedious rewrite:
+  have w : ∀ k : ℕ,
+    ↑k * polynomial.X ^ (k - 1) * (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X =
+      k • bernstein_polynomial n k,
+  { rintro (_|k),
+    { simp, },
+    { dsimp [bernstein_polynomial],
+      simp only [nat_smul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
+      push_cast,
+      ring, }, },
+
+  conv at h {
+    to_lhs,
+    rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
+    -- Step inside the sum:
+    apply_congr, skip,
+    simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w], },
+  -- On the right hand side, we'll just simplify.
+  conv at h {
+    to_rhs,
+    rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    simp [e, ←polynomial.nat_smul], },
+  exact h,
+end
+
+lemma sum_mul_smul (n : ℕ) :
+  (finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial n ν) =
+    (n * (n-1)) • X^2 :=
+begin
+  -- We calculate the second `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
+  -- either directly or by using the binomial theorem.
+
+  -- We'll work in `mv_polynomial bool ℤ`.
+  let x : mv_polynomial bool ℤ := mv_polynomial.X tt,
+  let y : mv_polynomial bool ℤ := mv_polynomial.X ff,
+
+  have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
+  have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
+
+  let e : bool → polynomial ℤ := λ i, cond i X (1-X),
+
+  -- Start with `(x+y)^n = (x+y)^n`,
+  -- take the second `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
+  have h : (x+y)^n = (x+y)^n := rfl,
+  apply_fun (pderiv tt) at h,
+  apply_fun (pderiv tt) at h,
+  apply_fun (aeval e) at h,
+  apply_fun (λ p, p * X^2) at h,
+
+  -- On the left hand side we'll use the binomial theorem, then simplify.
+
+  -- We first prepare a tedious rewrite:
+  have w : ∀ k : ℕ,
+    ↑k * (↑(k-1) * polynomial.X ^ (k - 1 - 1)) *
+      (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X^2 =
+      (k * (k-1)) • bernstein_polynomial n k,
+  { rintro (_|k),
+    { simp, },
+    { rcases k with (_|k),
+      { simp, },
+      { dsimp [bernstein_polynomial],
+        simp only [nat_smul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
+        push_cast,
+        ring, }, }, },
+
+  conv at h {
+    to_lhs,
+    rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
+      finset.sum_mul],
+    -- Step inside the sum:
+    apply_congr, skip,
+    simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w],
+  },
+  -- On the right hand side, we'll just simplify.
+  conv at h {
+    to_rhs,
+    simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
+      pderiv_tt_x, pderiv_tt_y],
+    simp [e, ←polynomial.nat_smul, smul_smul],
+  },
+  exact h,
+end
 
 end bernstein_polynomial

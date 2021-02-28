@@ -752,6 +752,18 @@ theorem foldl_swap (f : β → α → β) (H : right_commutative f) (b : β) (s 
   foldl f H b s = foldr (λ x y, f y x) (λ x y z, (H _ _ _).symm) b s :=
 (foldr_swap _ _ _ _).symm
 
+lemma foldr_induction (f : α → α → α) (H : left_commutative f) (x : α) (p : α → Prop)
+  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f a b)) (p_b : p x) (p_s : ∀ y ∈ s, p y) :
+  p (foldr f H x s) :=
+begin
+  revert s,
+  refine multiset.induction (by simp [p_b]) _,
+  intros a s hs hsa,
+  rw foldr_cons,
+  have hps : ∀ (x : α), x ∈ s → p x, from λ x hxs, hsa x (mem_cons_of_mem hxs),
+  exact p_f a (foldr f H x s) (hsa a (mem_cons_self a s)) (hs hps),
+end
+
 /-- Product of a multiset given a commutative monoid structure on `α`.
   `prod {a, b, c} = a * b * c` -/
 @[to_additive]
@@ -903,13 +915,33 @@ lemma prod_induction {M : Type*} [comm_monoid M] (p : M → Prop) (s : multiset 
   (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p x) :
   p s.prod :=
 begin
-  revert s,
-  refine multiset.induction (by simp [p_one]) _,
-  intros a s hs hsa,
-  rw prod_cons,
-  have hps : ∀ (x : M), x ∈ s → p x, from λ x hxs, hsa x (mem_cons.mpr (or.inr hxs)),
-  exact p_mul a s.prod (hsa a (mem_cons.mpr (or.inl rfl))) (hs hps),
+  rw prod_eq_foldr,
+  exact foldr_induction (*) (λ x y z, by simp [mul_left_comm]) 1 p s p_mul p_one p_s,
 end
+
+@[to_additive le_sum_of_subadditive_on_pred]
+lemma le_prod_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (p : α → Prop) (h_one : f 1 = 1) (hp_one : p 1)
+  (h_mul : ∀x y, p x → p y → f (x * y) ≤ f x * f y)
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (s : multiset α) (hps : ∀ x, x ∈ s → p x) :
+  f s.prod ≤ (s.map f).prod :=
+begin
+  revert s,
+  refine multiset.induction _ _,
+  { simp [le_of_eq h_one], },
+  intros a s hs hpsa,
+  have hps : ∀ x, x ∈ s → p x, from λ x hx, hpsa x (mem_cons_of_mem hx),
+  have hp_prod : p s.prod, from prod_induction p s hp_mul hp_one hps,
+  rw [prod_cons, map_cons, prod_cons],
+  exact (h_mul a s.prod (hpsa a (mem_cons_self a s)) hp_prod).trans (mul_le_mul_left' (hs hps) _),
+end
+
+@[to_additive le_sum_of_subadditive]
+lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : multiset α) :
+  f s.prod ≤ (s.map f).prod :=
+le_prod_of_submultiplicative_on_pred f (λ i, true) h_one trivial (λ x y _ _ , h_mul x y) (by simp)
+  s (by simp)
 
 @[to_additive]
 lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (p : M → Prop)
@@ -926,8 +958,8 @@ begin
   rw prod_cons,
   by_cases hs_empty : s = ∅,
   { simp [hs_empty, hpsa a], },
-  have hps : ∀ (x : M), x ∈ s → p x, from λ x hxs, hpsa x (mem_cons.mpr (or.inr hxs)),
-  exact p_mul a s.prod (hpsa a (mem_cons.mpr (or.inl rfl))) (hs hs_empty hps),
+  have hps : ∀ (x : M), x ∈ s → p x, from λ x hxs, hpsa x (mem_cons_of_mem hxs),
+  exact p_mul a s.prod (hpsa a (mem_cons_self a s)) (hs hs_empty hps),
 end
 
 @[to_additive le_sum_nonempty_of_subadditive_on_pred]
@@ -946,20 +978,19 @@ begin
   rw [prod_cons, map_cons, prod_cons],
   by_cases hs_empty : s = ∅,
   { simp [hs_empty], },
-  have hsa_restrict : (∀ x, x ∈ s → p x), from λ x hx, hsa_prop x (mem_cons.mpr (or.inr hx)),
+  have hsa_restrict : (∀ x, x ∈ s → p x), from λ x hx, hsa_prop x (mem_cons_of_mem hx),
   have hp_sup : p s.prod,
     from prod_induction_nonempty p hp_mul hs_empty hsa_restrict,
-  have hp_a : p a, from hsa_prop a (mem_cons.mpr (or.inl rfl)),
+  have hp_a : p a, from hsa_prop a (mem_cons_self a s),
   exact (h_mul a _ hp_a hp_sup).trans (mul_le_mul_left' (hs hs_empty hsa_restrict) _),
 end
 
-@[to_additive le_sum_of_subadditive]
-lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
-  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : multiset α) :
+@[to_additive le_sum_nonempty_of_subadditive]
+lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (s : multiset α) (hs_nonempty : s ≠ ∅) :
   f s.prod ≤ (s.map f).prod :=
-multiset.induction_on s (le_of_eq h_one) $
-  assume a s ih, by rw [prod_cons, map_cons, prod_cons];
-    from le_trans (h_mul a s.prod) (mul_le_mul_left' ih _)
+le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) s
+  hs_nonempty (by simp)
 
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=

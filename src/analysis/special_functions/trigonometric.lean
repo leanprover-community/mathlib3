@@ -1024,6 +1024,26 @@ half_pos pi_pos
 lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
 
+end real
+
+namespace nnreal
+open real
+open_locale real nnreal
+
+/-- `π` considered as a nonnegative real. -/
+noncomputable def pi : ℝ≥0 := ⟨π, real.pi_pos.le⟩
+
+@[simp] lemma coe_real_pi : (pi : ℝ) = π := rfl
+
+lemma pi_pos : 0 < pi := by exact_mod_cast real.pi_pos
+
+lemma pi_ne_zero : pi ≠ 0 := pi_pos.ne'
+
+end nnreal
+
+namespace real
+open_locale real
+
 @[simp] lemma sin_pi : sin π = 0 :=
 by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp

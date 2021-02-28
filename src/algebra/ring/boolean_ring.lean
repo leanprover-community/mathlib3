@@ -66,11 +66,16 @@ instance : comm_ring α :=
 { mul_comm := λ a b, by rw [←add_eq_zero, mul_add_mul],
   .. (infer_instance : boolean_ring α) }
 
-@[priority 100] -- Note [lower instance priority]
-instance : has_sup α := ⟨λ x y, x + y + x*y⟩
+/-- The join operation in a Boolean ring is `x + y + x*y`. -/
+def has_sup : has_sup α := ⟨λ x y, x + y + x*y⟩
+/-- The meet operation in a Boolean ring is `x * y`. -/
+def has_inf : has_inf α := ⟨(*)⟩
 
-@[priority 100] -- Note [lower instance priority]
-instance : has_inf α := ⟨(*)⟩
+-- Note [lower instance priority]
+localized "attribute [instance, priority 100] boolean_ring.has_sup" in
+  boolean_algebra_of_boolean_ring
+localized "attribute [instance, priority 100] boolean_ring.has_inf" in
+  boolean_algebra_of_boolean_ring
 
 lemma sup_comm (a b : α) : a ⊔ b = b ⊔ a := by { dsimp only [(⊔)], ring }
 lemma inf_comm (a b : α) : a ⊓ b = b ⊓ a := by { dsimp only [(⊓)], ring }
@@ -125,6 +130,9 @@ def to_boolean_algebra : boolean_algebra α :=
     end,
   sdiff_eq := λ a b, rfl,
   .. lattice.mk' sup_comm sup_assoc inf_comm inf_assoc sup_inf_self inf_sup_self }
+
+localized "attribute [instance, priority 100] boolean_ring.to_boolean_algebra" in
+  boolean_algebra_of_boolean_ring
 
 end boolean_ring
 

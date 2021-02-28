@@ -756,6 +756,9 @@ begin
     exact ⟨s, s.2, HDS _ _⟩ }
 end
 
+@[priority 100] -- see Note [lower instance priority]
+instance normal_of_emetric : normal_space α := normal_of_paracompact_t2
+
 /-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set -/
 lemma countable_closure_of_compact {α : Type u} [emetric_space α] {s : set α} (hs : is_compact s) :
   ∃ t ⊆ s, (countable t ∧ s = closure t) :=

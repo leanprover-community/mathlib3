@@ -329,12 +329,10 @@ variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
 lemma indep_set_iff_indep_sets_singleton (μ : measure α . volume_tac) [probability_measure μ]
   (hs_meas : measurable_set s) (ht_meas : measurable_set t) :
   indep_set s t μ ↔ indep_sets {s} {t} μ :=
-begin
-  refine ⟨indep.indep_sets, λ h, _⟩,
-  have hpi : ∀ s : set α, is_pi_system {s}, by sorry,
-  refine indep_sets.indep _ _ (hpi s) (hpi t) rfl rfl h;
-    exact generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu),
-end
+⟨indep.indep_sets,  λ h, indep_sets.indep
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu))
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu)) (is_pi_system.singleton s)
+  (is_pi_system.singleton t) rfl rfl h
 
 lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure α . volume_tac) [probability_measure μ] :

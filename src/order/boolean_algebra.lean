@@ -41,9 +41,10 @@ export has_compl (compl)
 
 postfix `ᶜ`:(max+1) := compl
 
-/-- A Boolean algebra is a bounded distributive lattice with:
-1. A complement operator `ᶜ` such that `x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`, and
-2. A set difference operation `\` such that `x \ y = x ⊓ yᶜ`.
+/-- A Boolean algebra is a bounded distributive lattice with
+a complement operator `ᶜ` such that `x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`.
+For convenience, it must also provide a set difference operation `\`
+satisfying `x \ y = x ⊓ yᶜ`.
 
 This is a generalization of (classical) logic of propositions, or
 the powerset lattice. -/

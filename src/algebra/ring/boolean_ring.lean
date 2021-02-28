@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen
 -/
 
-import algebra.ring.basic
 import order.symm_diff
 import tactic.ring
 import tactic.abel
@@ -17,8 +16,10 @@ algebras.
 
 ## Main declarations
 
-* `boolean_ring`
-* `boolean_ring.to_boolean_algebra`: every Boolean ring is a Boolean algebra
+* `boolean_ring`: a typeclass for rings where multiplication is idempotent.
+* `boolean_ring.to_boolean_algebra`: every Boolean ring is a Boolean algebra; this definition and
+  the `sup` and `inf` notations for `boolean_ring` are localized as instances in the
+  `boolean_algebra_of_boolean_ring` locale.
 
 ## Tags
 

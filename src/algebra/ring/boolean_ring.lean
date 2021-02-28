@@ -293,4 +293,21 @@ lemma to_boolean_algebra.one_eq :
   (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).one = BR.one :=
 rfl
 
+/-- Boolean rings and Boolean algebras are equivalent. -/
+def boolean_ring_equiv_boolean_algebra (α : Type*) : boolean_ring α ≃ boolean_algebra α :=
+{ to_fun := @to_boolean_algebra α,
+  inv_fun := @boolean_algebra.to_boolean_ring α,
+  left_inv := λ BR,
+    begin
+      rcases BR with ⟨⟨⟩⟩,
+      dsimp [to_boolean_algebra, boolean_algebra.to_boolean_ring],
+      sorry
+    end,
+  right_inv := λ BA,
+    begin
+      rcases BA with ⟨⟩,
+      dsimp [to_boolean_algebra, boolean_algebra.to_boolean_ring],
+      sorry
+    end, }
+
 end boolean_ring

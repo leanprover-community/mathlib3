@@ -31,7 +31,7 @@ lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_co
 begin
   refine le_trans (multiset.le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul _ _ _) _,
   { simp [nonempty_iff_ne_empty.mp hs_nonempty], },
-  { exact (multiset.forall_mem_map_iff).mpr hs, },
+  { exact multiset.forall_mem_map_iff.mpr hs, },
   rw multiset.map_map,
   refl,
 end

@@ -273,8 +273,8 @@ begin
     norm_num, },
   simp only [map_one, map_mul, eval_neg_hom_X, map_sub],
   suffices h :
-    eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑n!)) * (eval_neg_hom (exp ℚ) - 1) * (- exp ℚ)
-    = -X * (- exp ℚ),
+      eval_neg_hom (mk (λ (n : ℕ), bernoulli n / ↑n!)) * (eval_neg_hom (exp ℚ) - 1) * -exp ℚ
+    = -X * -exp ℚ,
   { have hexp : - exp ℚ ≠ 0,
     { simp only [exp, power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
         ring_hom.id_apply, linear_map.map_sub, ne.def, not_forall,

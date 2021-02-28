@@ -198,10 +198,8 @@ by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 
 
 lemma indep_sets_singleton {α} [measurable_space α] {s t : set α} {μ : measure α} :
   indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
-begin
-  simp_rw [indep_sets, set.mem_singleton_iff],
-  exact ⟨λ h, h s t rfl rfl, λ h s1 t1 hs1 ht1, by rwa [hs1, ht1]⟩,
-end
+⟨λ h, h s t rfl rfl,
+  λ h s1 t1 hs1 ht1, by rwa [set.mem_singleton_iff.mp hs1, set.mem_singleton_iff.mp ht1]⟩
 
 end indep
 

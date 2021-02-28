@@ -39,7 +39,8 @@ The unit for the adjunction for `cocones.functoriality K F : cocone K ⥤ cocone
 
 Auxiliary definition for `functoriality_is_left_adjoint`.
 -/
-@[simps] def functoriality_unit : 𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
+@[simps] def functoriality_unit :
+  𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
 { app := λ c, { hom := adj.unit.app c.X } }
 
 /--

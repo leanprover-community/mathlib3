@@ -564,7 +564,7 @@ continuous_iff_is_closed.mpr $
     (closed_embedding_subtype_coe (h_is_closed _)).is_closed_map _ (hs.preimage (f_cont i)),
   have is_closed (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
     from is_closed_Union_of_locally_finite
-      (locally_finite_subset h_lf $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
+      (h_lf.subset $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
       this,
   have f ⁻¹' s = (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
   begin

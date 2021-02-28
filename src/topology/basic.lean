@@ -936,11 +936,15 @@ def locally_finite (f : β → set α) :=
 lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
 assume x, ⟨univ, univ_mem_sets, finite.of_fintype _⟩
 
-lemma locally_finite_subset
+lemma locally_finite.subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
 ⟨t, ht₁, ht₂.subset $ assume i hi, hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
+
+lemma locally_finite.comp_injective {ι} {f : β → set α} {g : ι → β} (hf : locally_finite f)
+  (hg : function.injective g) : locally_finite (f ∘ g) :=
+λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage (hg.inj_on _)⟩
 
 lemma is_closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=

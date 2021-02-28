@@ -1,2 +1,9 @@
 image:
   file: .gitpod.Dockerfile
+
+vscode:
+  extensions:
+    - jroesch.lean@0.16.24:wYErjZXBf8vkagq/BhUHJA==
+
+tasks:
+  - command: source /home/gitpod/.profile && leanproject get-mathlib-cache

@@ -902,7 +902,7 @@ end
 @[simp] lemma multilinear_map.uncurry_curry_left
   (f : multilinear_map R M M₂) :
   f.curry_left.uncurry_left = f :=
-by { ext m, simp }
+by { ext m, simp, }
 
 variables (R M M₂)
 

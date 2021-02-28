@@ -223,8 +223,8 @@ theorem iterate_derivative_map [comm_semiring S] (p : polynomial R) (f : R →+*
   polynomial.derivative^[k] (p.map f) = (polynomial.derivative^[k] p).map f :=
 begin
   induction k with k ih generalizing p,
-  simp,
-  simp [ih],
+  { simp, },
+  { simp [ih], },
 end
 
 /-- Chain rule for formal derivative of polynomials. -/

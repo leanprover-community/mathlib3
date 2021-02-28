@@ -15,11 +15,12 @@ import data.finset.lattice
 
 ## Implementation note
 
-In mathematics, an indicator function or a characteristic function is a function used to indicate
-membership of an element in a set `s`, having the value `1` for all elements of `s` and the value `0`
-otherwise. But since it is usually used to restrict a function to a certain set `s`, we let the
-indicator function take the value `f x` for some function `f`, instead of `1`. If the usual indicator
-function is needed, just set `f` to be the constant function `λx, 1`.
+In mathematics, an indicator function or a characteristic function is a function
+used to indicate membership of an element in a set `s`,
+having the value `1` for all elements of `s` and the value `0` otherwise.
+But since it is usually used to restrict a function to a certain set `s`,
+we let the indicator function take the value `f x` for some function `f`, instead of `1`.
+If the usual indicator function is needed, just set `f` to be the constant function `λx, 1`.
 
 ## Tags
 indicator, characteristic
@@ -257,7 +258,8 @@ show indicator s (f - g) = indicator s f - indicator s g, from is_add_group_hom.
 lemma indicator_compl (s : set α) (f : α → β) : indicator sᶜ f = f - indicator s f :=
 eq_sub_of_add_eq $ s.indicator_compl_add_self f
 
-lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
+lemma indicator_finset_sum
+  {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
   indicator s (∑ i in I, f i) = ∑ i in I, indicator s (f i) :=
 begin
   convert (finset.sum_hom _ _).symm,

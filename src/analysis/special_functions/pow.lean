@@ -298,12 +298,16 @@ end
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
 begin
   iterate 3 { rw real.rpow_def_of_nonneg }, split_ifs; simp * at *,
-  { have hx : 0 < x, cases lt_or_eq_of_le h with h₂ h₂, exact h₂, exfalso, apply h_2, exact eq.symm h₂,
-    have hy : 0 < y, cases lt_or_eq_of_le h₁ with h₂ h₂, exact h₂, exfalso, apply h_3, exact eq.symm h₂,
+  { have hx : 0 < x, cases lt_or_eq_of_le h with h₂ h₂,
+    exact h₂,
+    exfalso, apply h_2, exact eq.symm h₂,
+    have hy : 0 < y, cases lt_or_eq_of_le h₁ with h₂ h₂,
+    exact h₂,
+    exfalso, apply h_3, exact eq.symm h₂,
     rw [log_mul (ne_of_gt hx) (ne_of_gt hy), add_mul, exp_add]},
-  { exact h₁},
-  { exact h},
-  { exact mul_nonneg h h₁},
+  { exact h₁ },
+  { exact h },
+  { exact mul_nonneg h h₁ },
 end
 
 lemma inv_rpow (hx : 0 ≤ x) (y : ℝ) : (x⁻¹)^y = (x^y)⁻¹ :=
@@ -551,7 +555,8 @@ begin
   have : has_deriv_at (λ x, exp (log x * p) * cos (p * π)) (p * x^(p-1)) x,
   { convert ((has_deriv_at_exp _).comp x ((has_deriv_at_log (ne_of_lt h)).mul_const p)).mul_const _
       using 1,
-    field_simp [rpow_def_of_neg h, mul_sub, exp_sub, sub_mul, cos_sub, exp_log_of_neg h, ne_of_lt h],
+    field_simp [rpow_def_of_neg h, mul_sub, exp_sub, sub_mul, cos_sub, exp_log_of_neg h,
+      ne_of_lt h],
     ring },
   apply this.congr_of_eventually_eq,
   have : set.Iio (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Iio h,
@@ -1444,7 +1449,7 @@ lemma ennreal.measurable_rpow : measurable (λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2)
 begin
   refine ennreal.measurable_of_measurable_nnreal_prod _ _,
   { simp_rw ennreal.coe_rpow_def,
-    refine measurable.ite _ measurable_const 
+    refine measurable.ite _ measurable_const
       (measurable_fst.nnreal_rpow measurable_snd).ennreal_coe,
     exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
       (measurable_snd measurable_set_Iio), },

@@ -1007,8 +1007,8 @@ lemma apply_mem_span_image_of_mem_span
    (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
    f x ∈ submodule.span R (f '' s) :=
 begin
-  simp only [submodule.mem_span, submodule.mem_map, submodule.span_image] at h ⊢,
-  exact ⟨x, ⟨h, rfl⟩⟩,
+  rw submodule.span_image,
+  exact submodule.mem_map_of_mem h
 end
 
 /-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/

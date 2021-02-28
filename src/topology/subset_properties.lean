@@ -167,6 +167,19 @@ lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
 hs.elim_directed_cover _ (λ t, is_open_bUnion $ λ i _, hUo i) (Union_eq_Union_finset U ▸ hsU)
   (directed_of_sup $ λ t₁ t₂ h, bUnion_subset_bUnion_left h)
 
+lemma is_compact.elim_nhds_subcover' (hs : is_compact s) (U : Π x ∈ s, set α)
+  (hU : ∀ x ∈ s, U x ‹x ∈ s› ∈ 𝓝 x) :
+  ∃ t : finset s, s ⊆ ⋃ x ∈ t, U (x : s) x.2 :=
+(hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open_interior)
+  (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 $ hU _ _⟩)).imp $ λ t ht,
+subset.trans ht $ bUnion_subset_bUnion_right $ λ _ _, interior_subset
+
+lemma is_compact.elim_nhds_subcover (hs : is_compact s) (U : α → set α) (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (∀ x ∈ t, x ∈ s) ∧ s ⊆ ⋃ x ∈ t, U x :=
+let ⟨t, ht⟩ := hs.elim_nhds_subcover' (λ x _, U x) hU
+in ⟨t.image coe, λ x hx, let ⟨y, hyt, hyx⟩ := finset.mem_image.1 hx in hyx ▸ y.2,
+  by rwa finset.set_bUnion_finset_image⟩
+
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
 lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : is_compact s)

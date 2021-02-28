@@ -338,7 +338,7 @@ lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas :
 lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
   (μ : measure α . volume_tac) [probability_measure μ] :
   indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
-by rw [indep_set_iff_indep_sets_singleton hs_meas ht_meas μ, indep_sets_singleton]
+(indep_set_iff_indep_sets_singleton hs_meas ht_meas μ).trans indep_sets_singleton
 
 lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
   (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ]

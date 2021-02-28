@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.disjointed
 import data.set.countable
-import data.set.sup_closed
 import data.indicator_function
 import data.equiv.encodable.lattice
 import data.tprod

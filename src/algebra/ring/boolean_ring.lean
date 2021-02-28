@@ -60,12 +60,15 @@ by rwa self_eq_add_right at this
 
 namespace boolean_ring
 
+@[priority 100] -- Note [lower instance priority]
 instance : comm_ring α :=
 { mul_comm := λ a b, by rw [←add_eq_zero, mul_add_mul],
   .. (infer_instance : boolean_ring α) }
 
+@[priority 100] -- Note [lower instance priority]
 instance : has_sup α := ⟨λ x y, x + y + x*y⟩
 
+@[priority 100] -- Note [lower instance priority]
 instance : has_inf α := ⟨(*)⟩
 
 lemma sup_comm (a b : α) : a ⊔ b = b ⊔ a := by { dsimp only [(⊔)], ring }

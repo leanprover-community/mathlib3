@@ -28,7 +28,7 @@ instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv�
   ((homeomorph.mk a b c) : α → β) = a :=
 rfl
 
-lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
+@[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
 | ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl

@@ -219,6 +219,11 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
 @[to_additive]
+lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) :
+  (∏ x in s, f x) * (∏ x in sᶜ, f x) = (∏ x, f x) :=
+by { rw [←prod_union], { simp, }, { exact disjoint_sdiff, }, }
+
+@[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
   (∏ x in (s₂ \ s₁), f x) * (∏ x in s₁, f x) = (∏ x in s₂, f x) :=
 by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]

@@ -26,7 +26,7 @@ def bounded_continuous_function (α : Type u) (β : Type v) [topological_space �
   Type (max u v) :=
 {f : α → β // continuous f ∧ ∃C, ∀x y:α, dist (f x) (f y) ≤ C}
 
-local infixr ` →ᵇ `:25 := bounded_continuous_function
+localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
 
 namespace bounded_continuous_function
 section basics
@@ -43,11 +43,20 @@ and therefore gives rise to an element of the type of bounded continuous functio
 def mk_of_compact [compact_space α] (f : α → β) (hf : continuous f) : α →ᵇ β :=
 ⟨f, hf, bounded_range_iff.1 $ bounded_of_compact $ compact_range hf⟩
 
+@[simp] lemma mk_of_compact_apply [compact_space α] (f : α → β) (hf : continuous f) (a : α) :
+  mk_of_compact f hf a = f a :=
+rfl
+
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
 def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) :
   α →ᵇ β :=
 ⟨f, continuous_of_discrete_topology, hf⟩
+
+@[simp] lemma mk_of_discrete_apply
+  [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) (a : α) :
+  mk_of_discrete f hf a = f a :=
+rfl
 
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
@@ -464,6 +473,19 @@ instance : add_comm_group (α →ᵇ β) :=
 
 @[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
+
+open_locale big_operators
+@[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) :
+  ⇑(∑ i in s, f i) = (∑ i in s, (f i : α → β)) :=
+begin
+  ext a,
+  apply finset.induction_on s,
+  { simp, },
+  { intros i s nm h, simp [h, finset.sum_insert nm], },
+end
+lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
+  (∑ i in s, f i) a = (∑ i in s, f i a) :=
+by simp
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }

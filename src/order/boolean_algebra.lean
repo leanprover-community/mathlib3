@@ -2,11 +2,33 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Type class hierarchy for Boolean algebras.
 -/
 import order.bounded_lattice
+/-!
+# Boolean algebras
 
+A Boolean algebra is a bounded distributive lattice with a complement operator. Boolean algebras
+generalize the (classical) logic of propositions and the lattice of subsets of a set.
+
+For convenience, the `boolean_algebra` type class is also bundled with a set difference operator
+`sdiff`, written `\`.
+
+## Main declarations
+
+* `has_compl`: a type class for the complement operator
+* `boolean_algebra`: a type class for Boolean algebras
+* `boolean_algebra_Prop`: the Boolean algebra instance on `Prop`
+
+## Notations
+
+* `xᶜ` is notation for `compl x`
+* `x \ y` is notation for `sdiff x y`.
+
+## Tags
+
+Boolean algebras, lattices
+
+-/
 set_option old_structure_cmd true
 
 universes u v
@@ -19,10 +41,12 @@ export has_compl (compl)
 
 postfix `ᶜ`:(max+1) := compl
 
-/-- A boolean algebra is a bounded distributive lattice with a
-  complementation operation `-` such that `x ⊓ - x = ⊥` and `x ⊔ - x = ⊤`.
-  This is a generalization of (classical) logic of propositions, or
-  the powerset lattice. -/
+/-- A Boolean algebra is a bounded distributive lattice with:
+1. A complement operator `ᶜ` such that `x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`, and
+2. A set difference operation `\` such that `x \ y = x ⊓ yᶜ`.
+
+This is a generalization of (classical) logic of propositions, or
+the powerset lattice. -/
 class boolean_algebra α extends bounded_distrib_lattice α, has_compl α, has_sdiff α :=
 (inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)
 (top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)

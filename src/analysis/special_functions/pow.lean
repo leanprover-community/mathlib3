@@ -21,7 +21,8 @@ We also prove basic properties of these functions.
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal
+open_locale classical real topological_space nnreal ennreal filter
+open filter
 
 namespace complex
 
@@ -46,6 +47,8 @@ lemma cpow_def (x y : ℂ) : x ^ y =
       else 0
     else exp (log x * y) := rfl
 
+lemma cpow_def_of_ne_zero {x : ℂ} (hx : x ≠ 0) (y : ℂ) : x ^ y = exp (log x * y) := if_neg hx
+
 @[simp] lemma cpow_zero (x : ℂ) : x ^ (0 : ℂ) = 1 := by simp [cpow_def]
 
 @[simp] lemma cpow_eq_zero_iff (x y : ℂ) : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
@@ -67,13 +70,16 @@ by simp [cpow_def]; split_ifs; simp [*, exp_add, mul_add] at *
 lemma cpow_mul {x y : ℂ} (z : ℂ) (h₁ : -π < (log x * y).im) (h₂ : (log x * y).im ≤ π) :
   x ^ (y * z) = (x ^ y) ^ z :=
 begin
-  simp [cpow_def],
+  simp only [cpow_def],
   split_ifs;
   simp [*, exp_ne_zero, log_exp h₁ h₂, mul_assoc] at *
 end
 
 lemma cpow_neg (x y : ℂ) : x ^ -y = (x ^ y)⁻¹ :=
 by simp [cpow_def]; split_ifs; simp [exp_neg]
+
+lemma cpow_sub {x : ℂ} (y z : ℂ) (hx : x ≠ 0) : x ^ (y - z) = x ^ y / x ^ z :=
+by rw [sub_eq_add_neg, cpow_add _ _ hx, cpow_neg, div_eq_mul_inv]
 
 lemma cpow_neg_one (x : ℂ) : x ^ (-1 : ℂ) = x⁻¹ :=
 by simpa using cpow_neg x 1
@@ -91,34 +97,246 @@ by simpa using cpow_neg x 1
     int.cast_coe_nat, cpow_nat_cast]
 
 lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : 0 < n) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
-have (log x * (↑n)⁻¹).im = (log x).im / n,
-  by rw [div_eq_mul_inv, ← of_real_nat_cast, ← of_real_inv, mul_im,
-                of_real_re, of_real_im]; simp,
-have h : -π < (log x * (↑n)⁻¹).im ∧ (log x * (↑n)⁻¹).im ≤ π,
-  from (le_total (log x).im 0).elim
-    (λ h, ⟨calc -π < (log x).im : by simp [log, neg_pi_lt_arg]
-            ... ≤ ((log x).im * 1) / n : (le_div_iff (nat.cast_pos.2 hn : (0 : ℝ) < _)).mpr
-              (mul_le_mul_of_nonpos_left (by rw ← nat.cast_one; exact nat.cast_le.2 hn) h)
-            ... = (log x * (↑n)⁻¹).im : by simp [this],
-          this.symm ▸ le_trans (div_nonpos_of_nonpos_of_nonneg h n.cast_nonneg)
-            (le_of_lt real.pi_pos)⟩)
-    (λ h, ⟨this.symm ▸ lt_of_lt_of_le (neg_neg_of_pos real.pi_pos)
-            (div_nonneg h n.cast_nonneg),
-          calc (log x * (↑n)⁻¹).im = (1 * (log x).im) / n : by simp [this]
-            ... ≤ (log x).im : (div_le_iff' (nat.cast_pos.2 hn : (0 : ℝ) < _)).mpr
-              (mul_le_mul_of_nonneg_right (by rw ← nat.cast_one; exact nat.cast_le.2 hn) h)
-            ... ≤ _ : by simp [log, arg_le_pi]⟩),
-by rw [← cpow_nat_cast, ← cpow_mul _ h.1 h.2,
-    inv_mul_cancel (show (n : ℂ) ≠ 0, from nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
-    cpow_one]
+begin
+  suffices : im (log x * n⁻¹) ∈ set.Ioc (-π) π,
+  { rw [← cpow_nat_cast, ← cpow_mul _ this.1 this.2, inv_mul_cancel, cpow_one],
+    exact_mod_cast hn.ne' },
+  rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, smul_im, ← div_eq_inv_mul],
+  have hn' : 0 < (n : ℝ), by assumption_mod_cast,
+  have hn1 : 1 ≤ (n : ℝ), by exact_mod_cast (nat.succ_le_iff.2 hn),
+  split,
+  { rw lt_div_iff hn',
+    calc -π * n ≤ -π * 1 : mul_le_mul_of_nonpos_left hn1 (neg_nonpos.2 real.pi_pos.le)
+    ... = -π : mul_one _
+    ... < im (log x) : neg_pi_lt_log_im _ },
+  { rw div_le_iff hn',
+    calc im (log x) ≤ π : log_im_le_pi _
+    ... = π * 1 : (mul_one π).symm
+    ... ≤ π * n : mul_le_mul_of_nonneg_left hn1 real.pi_pos.le }
+end
+
+lemma has_strict_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :
+  has_strict_fderiv_at (λ x : ℂ × ℂ, x.1 ^ x.2)
+    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℂ ℂ ℂ +
+      (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℂ ℂ ℂ) p :=
+begin
+  have A : p.1 ≠ 0, by { intro h, simpa [h, lt_irrefl] using hp },
+  have : (λ x : ℂ × ℂ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2)),
+    from ((is_open_ne.preimage continuous_fst).eventually_mem A).mono
+      (λ p hp, cpow_def_of_ne_zero hp _),
+  rw [cpow_sub _ _ A, cpow_one, mul_div_comm, mul_smul, mul_smul, ← smul_add],
+  refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
+  simpa only [cpow_def_of_ne_zero A, div_eq_mul_inv, smul_smul, add_comm]
+    using ((has_strict_fderiv_at_fst.clog hp).mul has_strict_fderiv_at_snd).cexp
+end
+
+lemma has_strict_deriv_at_const_cpow {x y : ℂ} (h : x ≠ 0 ∨ y ≠ 0) :
+  has_strict_deriv_at (λ y, x ^ y) (x ^ y * log x) y :=
+begin
+  rcases em (x = 0) with rfl|hx,
+  { replace h := h.neg_resolve_left rfl,
+    rw [log_zero, mul_zero],
+    refine (has_strict_deriv_at_const _ 0).congr_of_eventually_eq _,
+    exact (is_open_ne.eventually_mem h).mono (λ y hy, (zero_cpow hy).symm) },
+  { simpa only [cpow_def_of_ne_zero hx, mul_one] 
+      using ((has_strict_deriv_at_id y).const_mul (log x)).cexp }
+end
+
+lemma has_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :
+  has_fderiv_at (λ x : ℂ × ℂ, x.1 ^ x.2)
+    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℂ ℂ ℂ +
+      (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℂ ℂ ℂ) p :=
+(has_strict_fderiv_at_cpow hp).has_fderiv_at
 
 end complex
 
-lemma measurable.cpow {α : Type*} [measurable_space α] {f g : α → ℂ}
-  (hf : measurable f) (hg : measurable g) : measurable (λ x, f x ^ g x) :=
+section lim
+
+open complex
+
+variables {α : Type*}
+
+lemma measurable.cpow [measurable_space α] {f g : α → ℂ} (hf : measurable f) (hg : measurable g) :
+  measurable (λ x, f x ^ g x) :=
 measurable.ite (hf $ measurable_set_singleton _)
-  (measurable_const.ite (hg $ measurable_set_singleton _) measurable_const)
+  (measurable.ite (hg $ measurable_set_singleton _) measurable_const measurable_const)
   (hf.clog.mul hg).cexp
+
+lemma filter.tendsto.cpow {l : filter α} {f g : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 a))
+  (hg : tendsto g l (𝓝 b)) (ha : 0 < a.re ∨ a.im ≠ 0) :
+  tendsto (λ x, f x ^ g x) l (𝓝 (a ^ b)) :=
+(@has_fderiv_at_cpow (a, b) ha).continuous_at.tendsto.comp (hf.prod_mk_nhds hg)
+
+lemma filter.tendsto.const_cpow {l : filter α} {f : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 b))
+  (h : a ≠ 0 ∨ b ≠ 0) :
+  tendsto (λ x, a ^ f x) l (𝓝 (a ^ b)) :=
+(has_strict_deriv_at_const_cpow h).continuous_at.tendsto.comp hf
+
+variables [topological_space α] {f g : α → ℂ} {s : set α} {a : α}
+
+lemma continuous_within_at.cpow (hf : continuous_within_at f s a) (hg : continuous_within_at g s a)
+  (h0 : 0 < (f a).re ∨ (f a).im ≠ 0) :
+  continuous_within_at (λ x, f x ^ g x) s a :=
+hf.cpow hg h0
+
+lemma continuous_within_at.const_cpow {b : ℂ} (hf : continuous_within_at f s a)
+  (h : b ≠ 0 ∨ f a ≠ 0) :
+  continuous_within_at (λ x, b ^ f x) s a :=
+hf.const_cpow h
+
+lemma continuous_at.cpow (hf : continuous_at f a) (hg : continuous_at g a)
+  (h0 : 0 < (f a).re ∨ (f a).im ≠ 0) :
+  continuous_at (λ x, f x ^ g x) a :=
+hf.cpow hg h0
+
+lemma continuous_at.const_cpow {b : ℂ} (hf : continuous_at f a) (h : b ≠ 0 ∨ f a ≠ 0) :
+  continuous_at (λ x, b ^ f x) a :=
+hf.const_cpow h
+
+lemma continuous_on.cpow (hf : continuous_on f s) (hg : continuous_on g s)
+  (h0 : ∀ a ∈ s, 0 < (f a).re ∨ (f a).im ≠ 0) :
+  continuous_on (λ x, f x ^ g x) s :=
+λ a ha, (hf a ha).cpow (hg a ha) (h0 a ha)
+
+lemma continuous_on.const_cpow {b : ℂ} (hf : continuous_on f s) (h : b ≠ 0 ∨ ∀ a ∈ s, f a ≠ 0) :
+  continuous_on (λ x, b ^ f x) s :=
+λ a ha, (hf a ha).const_cpow (h.imp id $ λ h, h a ha)
+
+lemma continuous.cpow (hf : continuous f) (hg : continuous g)
+  (h0 : ∀ a, 0 < (f a).re ∨ (f a).im ≠ 0) :
+  continuous (λ x, f x ^ g x) :=
+continuous_iff_continuous_at.2 $ λ a, (hf.continuous_at.cpow hg.continuous_at (h0 a))
+
+lemma continuous.const_cpow {b : ℂ} (hf : continuous f) (h : b ≠ 0 ∨ ∀ a, f a ≠ 0) :
+  continuous (λ x, b ^ f x) :=
+continuous_iff_continuous_at.2 $ λ a, (hf.continuous_at.const_cpow $ h.imp id $ λ h, h a)
+
+end lim
+
+section fderiv
+
+open complex
+
+variables {E : Type*} [normed_group E] [normed_space ℂ E] {f g : E → ℂ} {f' g' : E →L[ℂ] ℂ}
+  {x : E} {s : set E} {c : ℂ}
+
+lemma has_strict_fderiv_at.cpow (hf : has_strict_fderiv_at f f' x)
+  (hg : has_strict_fderiv_at g g' x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_strict_fderiv_at (λ x, f x ^ g x)
+    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') x :=
+by convert (@has_strict_fderiv_at_cpow ((λ x, (f x, g x)) x) h0).comp x (hf.prod hg)
+
+lemma has_strict_fderiv_at.const_cpow (hf : has_strict_fderiv_at f f' x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
+  has_strict_fderiv_at (λ x, c ^ f x) ((c ^ f x * log c) • f') x :=
+(has_strict_deriv_at_const_cpow h0).comp_has_strict_fderiv_at x hf
+
+lemma has_fderiv_at.cpow (hf : has_fderiv_at f f' x) (hg : has_fderiv_at g g' x)
+  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_fderiv_at (λ x, f x ^ g x)
+    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') x :=
+by convert (@complex.has_fderiv_at_cpow ((λ x, (f x, g x)) x) h0).comp x (hf.prod hg)
+
+lemma has_fderiv_at.const_cpow (hf : has_fderiv_at f f' x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
+  has_fderiv_at (λ x, c ^ f x) ((c ^ f x * log c) • f') x :=
+(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp_has_fderiv_at x hf
+
+lemma has_fderiv_within_at.cpow (hf : has_fderiv_within_at f f' s x)
+  (hg : has_fderiv_within_at g g' s x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_fderiv_within_at (λ x, f x ^ g x)
+    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') s x :=
+by convert (@complex.has_fderiv_at_cpow ((λ x, (f x, g x)) x) h0).comp_has_fderiv_within_at x
+  (hf.prod hg)
+
+lemma has_fderiv_within_at.const_cpow (hf : has_fderiv_within_at f f' s x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
+  has_fderiv_within_at (λ x, c ^ f x) ((c ^ f x * log c) • f') s x :=
+(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp_has_fderiv_within_at x hf
+
+lemma differentiable_at.cpow (hf : differentiable_at ℂ f x) (hg : differentiable_at ℂ g x)
+  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  differentiable_at ℂ (λ x, f x ^ g x) x :=
+(hf.has_fderiv_at.cpow hg.has_fderiv_at h0).differentiable_at
+
+lemma differentiable_at.const_cpow (hf : differentiable_at ℂ f x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
+  differentiable_at ℂ (λ x, c ^ f x) x :=
+(hf.has_fderiv_at.const_cpow h0).differentiable_at
+
+lemma differentiable_within_at.cpow (hf : differentiable_within_at ℂ f s x)
+  (hg : differentiable_within_at ℂ g s x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  differentiable_within_at ℂ (λ x, f x ^ g x) s x :=
+(hf.has_fderiv_within_at.cpow hg.has_fderiv_within_at h0).differentiable_within_at
+
+lemma differentiable_within_at.const_cpow (hf : differentiable_within_at ℂ f s x)
+  (h0 : c ≠ 0 ∨ f x ≠ 0) :
+  differentiable_within_at ℂ (λ x, c ^ f x) s x :=
+(hf.has_fderiv_within_at.const_cpow h0).differentiable_within_at
+
+end fderiv
+
+section deriv
+
+open complex
+
+variables {f g : ℂ → ℂ} {s : set ℂ} {f' g' x c : ℂ}
+
+/-- A private lemma that rewrites the output of lemmas like `has_fderiv_at.cpow` to the form
+expected by lemmas like `has_deriv_at.cpow`. -/
+private lemma aux :
+  ((g x * f x ^ (g x - 1)) • (1 : ℂ →L[ℂ] ℂ).smul_right f' +
+    (f x ^ g x * log (f x)) • (1 : ℂ →L[ℂ] ℂ).smul_right g') 1 =
+    g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g' :=
+by simp only [algebra.id.smul_eq_mul, one_mul, continuous_linear_map.one_apply,
+  continuous_linear_map.smul_right_apply, continuous_linear_map.add_apply, pi.smul_apply,
+  continuous_linear_map.coe_smul']
+
+lemma has_strict_deriv_at.cpow (hf : has_strict_deriv_at f f' x) (hg : has_strict_deriv_at g g' x)
+  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_strict_deriv_at (λ x, f x ^ g x)
+    (g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g') x :=
+by simpa only [aux] using (hf.cpow hg h0).has_strict_deriv_at
+
+lemma has_strict_deriv_at.const_cpow (hf : has_strict_deriv_at f f' x) (h : c ≠ 0 ∨ f x ≠ 0) :
+  has_strict_deriv_at (λ x, c ^ f x) (c ^ f x * log c * f') x :=
+(has_strict_deriv_at_const_cpow h).comp x hf
+
+lemma complex.has_strict_deriv_at_cpow_const (h : 0 < x.re ∨ x.im ≠ 0) :
+  has_strict_deriv_at (λ z : ℂ, z ^ c) (c * x ^ (c - 1)) x :=
+by simpa only [mul_zero, add_zero, mul_one]
+  using (has_strict_deriv_at_id x).cpow (has_strict_deriv_at_const x c) h
+
+lemma has_strict_deriv_at.cpow_const (hf : has_strict_deriv_at f f' x)
+  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_strict_deriv_at (λ x, f x ^ c) (c * f x ^ (c - 1) * f') x :=
+(complex.has_strict_deriv_at_cpow_const h0).comp x hf
+
+lemma has_deriv_at.cpow (hf : has_deriv_at f f' x) (hg : has_deriv_at g g' x)
+  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_deriv_at (λ x, f x ^ g x) (g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g') x :=
+by simpa only [aux] using (hf.has_fderiv_at.cpow hg h0).has_deriv_at
+
+lemma has_deriv_at.const_cpow (hf : has_deriv_at f f' x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
+  has_deriv_at (λ x, c ^ f x) (c ^ f x * log c * f') x :=
+(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp x hf
+
+lemma has_deriv_at.cpow_const (hf : has_deriv_at f f' x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_deriv_at (λ x, f x ^ c) (c * f x ^ (c - 1) * f') x :=
+(complex.has_strict_deriv_at_cpow_const h0).has_deriv_at.comp x hf
+
+lemma has_deriv_within_at.cpow (hf : has_deriv_within_at f f' s x)
+  (hg : has_deriv_within_at g g' s x) (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_deriv_within_at (λ x, f x ^ g x)
+    (g x * f x ^ (g x - 1) * f' + f x ^ g x * log (f x) * g') s x :=
+by simpa only [aux] using (hf.has_fderiv_within_at.cpow hg h0).has_deriv_within_at
+
+lemma has_deriv_within_at.const_cpow (hf : has_deriv_within_at f f' s x) (h0 : c ≠ 0 ∨ f x ≠ 0) :
+  has_deriv_within_at (λ x, c ^ f x) (c ^ f x * log c * f') s x :=
+(has_strict_deriv_at_const_cpow h0).has_deriv_at.comp_has_deriv_within_at x hf
+
+lemma has_deriv_within_at.cpow_const (hf : has_deriv_within_at f f' s x)
+  (h0 : 0 < (f x).re ∨ (f x).im ≠ 0) :
+  has_deriv_within_at (λ x, f x ^ c) (c * f x ^ (c - 1) * f') s x :=
+(complex.has_strict_deriv_at_cpow_const h0).has_deriv_at.comp_has_deriv_within_at x hf
+
+end deriv
 
 namespace real
 
@@ -160,8 +378,8 @@ lemma rpow_def_of_neg {x : ℝ} (hx : x < 0) (y : ℝ) : x ^ y = exp (log x * y)
 begin
   rw [rpow_def, complex.cpow_def, if_neg],
   have : complex.log x * y = ↑(log(-x) * y) + ↑(y * π) * complex.I,
-    simp only [complex.log, abs_of_neg hx, complex.arg_of_real_of_neg hx,
-      complex.abs_of_real, complex.of_real_mul], ring,
+  { simp only [complex.log, abs_of_neg hx, complex.arg_of_real_of_neg hx,
+      complex.abs_of_real, complex.of_real_mul], ring },
   { rw [this, complex.exp_add_mul_I, ← complex.of_real_exp, ← complex.of_real_cos,
       ← complex.of_real_sin, mul_add, ← complex.of_real_mul, ← mul_assoc, ← complex.of_real_mul,
       complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, complex.of_real_im,
@@ -298,12 +516,16 @@ end
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
 begin
   iterate 3 { rw real.rpow_def_of_nonneg }, split_ifs; simp * at *,
-  { have hx : 0 < x, cases lt_or_eq_of_le h with h₂ h₂, exact h₂, exfalso, apply h_2, exact eq.symm h₂,
-    have hy : 0 < y, cases lt_or_eq_of_le h₁ with h₂ h₂, exact h₂, exfalso, apply h_3, exact eq.symm h₂,
+  { have hx : 0 < x, 
+    { cases lt_or_eq_of_le h with h₂ h₂, { exact h₂ },
+      exfalso, apply h_2, exact eq.symm h₂ },
+    have hy : 0 < y, 
+    { cases lt_or_eq_of_le h₁ with h₂ h₂, { exact h₂ },
+      exfalso, apply h_3, exact eq.symm h₂ },
     rw [log_mul (ne_of_gt hx) (ne_of_gt hy), add_mul, exp_add]},
-  { exact h₁},
-  { exact h},
-  { exact mul_nonneg h h₁},
+  { exact h₁ },
+  { exact h },
+  { exact mul_nonneg h h₁ },
 end
 
 lemma inv_rpow (hx : 0 ≤ x) (y : ℝ) : (x⁻¹)^y = (x^y)⁻¹ :=
@@ -551,7 +773,8 @@ begin
   have : has_deriv_at (λ x, exp (log x * p) * cos (p * π)) (p * x^(p-1)) x,
   { convert ((has_deriv_at_exp _).comp x ((has_deriv_at_log (ne_of_lt h)).mul_const p)).mul_const _
       using 1,
-    field_simp [rpow_def_of_neg h, mul_sub, exp_sub, sub_mul, cos_sub, exp_log_of_neg h, ne_of_lt h],
+    field_simp [rpow_def_of_neg h, mul_sub, exp_sub, sub_mul, cos_sub, exp_log_of_neg h,
+      ne_of_lt h],
     ring },
   apply this.congr_of_eventually_eq,
   have : set.Iio (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Iio h,
@@ -1444,7 +1667,7 @@ lemma ennreal.measurable_rpow : measurable (λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2)
 begin
   refine ennreal.measurable_of_measurable_nnreal_prod _ _,
   { simp_rw ennreal.coe_rpow_def,
-    refine measurable.ite _ measurable_const 
+    refine measurable.ite _ measurable_const
       (measurable_fst.nnreal_rpow measurable_snd).ennreal_coe,
     exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
       (measurable_snd measurable_set_Iio), },

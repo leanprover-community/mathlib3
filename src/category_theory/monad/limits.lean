@@ -104,7 +104,8 @@ instance forget_creates_limits : creates_limits (forget T) :=
       makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _ } ) } }
 
 /-- `D ⋙ forget T` has a limit, then `D` has a limit. -/
-lemma has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
+lemma has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] :
+  has_limit D :=
 has_limit_of_created D (forget T)
 
 namespace forget_creates_colimits
@@ -185,7 +186,8 @@ algebra T :=
     rw ← category.assoc,
     erw [← functor.map_comp, commuting],
     dsimp,
-    erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc, commuting],
+    erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc,
+      commuting],
     apply_instance, apply_instance
   end }
 
@@ -212,7 +214,8 @@ def lifted_cocone_is_colimit : is_colimit (lifted_cocone c t) :=
       apply algebra.hom.h,
       apply_instance
     end },
-  uniq' := λ s m J, by { ext1, apply t.hom_ext, intro j, simpa using congr_arg algebra.hom.f (J j) } }
+  uniq' := λ s m J,
+  by { ext1, apply t.hom_ext, intro j, simpa using congr_arg algebra.hom.f (J j) } }
 
 end forget_creates_colimits
 
@@ -290,7 +293,8 @@ begin
   apply category_theory.comp_creates_colimit _ _,
   apply_instance,
   let i : ((K ⋙ monad.comparison (adjunction.of_right_adjoint R)) ⋙ monad.forget _) ≅ K ⋙ R :=
-    functor.associator _ _ _ ≪≫ iso_whisker_left K (monad.comparison_forget (adjunction.of_right_adjoint R)),
+    functor.associator _ _ _ ≪≫
+      iso_whisker_left K (monad.comparison_forget (adjunction.of_right_adjoint R)),
   apply category_theory.monad.forget_creates_colimit _,
   { dsimp,
     refine preserves_colimit_of_iso_diagram _ i.symm },

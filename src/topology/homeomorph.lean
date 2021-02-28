@@ -162,6 +162,9 @@ closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
 h.embedding.map_nhds_of_mem _ (by simp)
 
+lemma symm_map_nhds_eq (h : α ≃ₜ β) (x : α) : map h.symm (𝓝 (h x)) = 𝓝 x :=
+by rw [h.symm.map_nhds_eq, h.symm_apply_apply]
+
 lemma nhds_eq_comap (h : α ≃ₜ β) (x : α) : 𝓝 x = comap h (𝓝 (h x)) :=
 h.embedding.to_inducing.nhds_eq_comap x
 

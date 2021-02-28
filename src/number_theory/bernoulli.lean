@@ -269,7 +269,7 @@ end
 theorem bernoulli_power_series :
   power_series.mk (λ n, (bernoulli n / n! : ℚ)) * (exp ℚ - 1) = X :=
 begin
-    suffices f : eval_neg_hom (power_series.mk (λ n, (bernoulli n / n! : ℚ)) *
+  suffices f : eval_neg_hom (power_series.mk (λ n, (bernoulli n / n! : ℚ)) *
     (exp ℚ - 1)) = eval_neg_hom X,
   { suffices g : function.injective eval_neg_hom,
     { rwa g.eq_iff at f, },

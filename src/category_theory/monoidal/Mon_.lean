@@ -53,7 +53,7 @@ def trivial : Mon_ C :=
   one := 𝟙 _,
   mul := (λ_ _).hom,
   mul_assoc' :=
-  by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
+    by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
   mul_one' := by simp [unitors_equal] }
 
 instance : inhabited (Mon_ C) := ⟨trivial C⟩

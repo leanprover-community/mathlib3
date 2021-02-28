@@ -95,12 +95,12 @@ nat_iso.of_components (λ A,
     { hom := { app := λ _, 𝟙 _ },
       one_hom' := by { ext X, dsimp, simp only [category.comp_id], },
       mul_hom' :=
-      by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, },
+        by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, },
     inv :=
     { hom := { app := λ _, 𝟙 _ },
       one_hom' := by { ext X, dsimp, simp only [category.comp_id], },
       mul_hom' :=
-      by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, }, })
+        by { ext X, dsimp, simp only [tensor_id, category.id_comp, category.comp_id], }, }, })
   (λ A B f,
   begin
     ext X,

@@ -29,7 +29,7 @@ If `α : G ⟶ H` then
 @[simps] def whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) : (G ⋙ F) ⟶ (H ⋙ F) :=
 { app := λ X, F.map (α.app X),
   naturality' := λ X Y f,
-  by rw [functor.comp_map, functor.comp_map, ←F.map_comp, ←F.map_comp, α.naturality] }
+    by rw [functor.comp_map, functor.comp_map, ←F.map_comp, ←F.map_comp, α.naturality] }
 
 variables (C D E)
 

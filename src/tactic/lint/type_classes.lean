@@ -316,7 +316,11 @@ do (binders, body) ← open_pis d.type,
   if matches.length = 0 then do
     return none
   else do
-    return (some (format.to_string (format!"There are bad decidable arguments: {matches}")))
+    msg_items ← matches.mmap (λ i : prod _ _, do
+      e ← tactic.pp i.1,
+      t ← tactic.pp i.2,
+      return (format!"  {e} : {t}\n")),
+    return (some (format.to_string (format!"There are bad decidable arguments:\n{format.join msg_items}")))
 
 /-- A linter object for `decidable_classical`. -/
 @[linter] meta def linter.decidable_exact : linter :=

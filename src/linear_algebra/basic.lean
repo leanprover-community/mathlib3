@@ -807,30 +807,37 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
 The implementation uses `finsupp.sum`.
 The Type `M` has an explicit universe, since otherwise it gets assigned `Type (max u_2 u_3)`.
   -/
-lemma span_as_sum {R : Type*} {M : Type u} [semiring R] [add_comm_group M] [semimodule R M]
-  {m : M} {s : set M} (hm : m ∈ submodule.span R s) :
+lemma span_as_sum {M : Type u} [add_comm_group M] [semimodule R M] {m : M} {s : set M} :
+  m ∈ submodule.span R s ↔
   ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ i, (smul_add_hom R M).flip i)) = m :=
 begin
-  classical,
-  refine span_induction hm (λ x hx, _) ⟨0, by simp⟩ _ _; clear hm m,
-  { refine ⟨finsupp.single x 1, λ y hy, _, by simp⟩,
-    rw [finset.mem_coe, finsupp.mem_support_single] at hy,
-    rwa hy.1 },
-  { rintros x y ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩,
-    refine ⟨c + d, _, by simp⟩,
-    refine set.subset.trans _ (set.union_subset hc hd),
-    rw [← finset.coe_union, finset.coe_subset],
-    convert finsupp.support_add },
-  { rintros r m ⟨c, hc, rfl⟩,
-    refine ⟨r • c, λ x hx, hc _, _⟩,
-    { rw [finset.mem_coe, finsupp.mem_support_iff] at hx ⊢,
-      rw [finsupp.coe_smul] at hx,
-      exact right_ne_zero_of_mul hx },
-    { rw finsupp.sum_smul_index' (λ (m : M), _),
-      { convert (add_monoid_hom.map_finsupp_sum (smul_add_hom R M r) _ _).symm,
-        ext m s,
-        simp [mul_smul r s m] },
-      { exact (((smul_add_hom R M).flip) m).map_zero } } }
+  refine ⟨λ hm, _, λ hx, _⟩,
+  { classical,
+    refine span_induction hm (λ x hx, _) ⟨0, by simp⟩ _ _; clear hm m,
+    { refine ⟨finsupp.single x 1, λ y hy, _, by simp⟩,
+      rw [finset.mem_coe, finsupp.mem_support_single] at hy,
+      rwa hy.1 },
+    { rintros x y ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩,
+      refine ⟨c + d, _, by simp⟩,
+      refine set.subset.trans _ (set.union_subset hc hd),
+      rw [← finset.coe_union, finset.coe_subset],
+      convert finsupp.support_add },
+    { rintros r m ⟨c, hc, rfl⟩,
+      refine ⟨r • c, λ x hx, hc _, _⟩,
+      { rw [finset.mem_coe, finsupp.mem_support_iff] at hx ⊢,
+        rw [finsupp.coe_smul] at hx,
+        exact right_ne_zero_of_mul hx },
+      { rw finsupp.sum_smul_index' (λ (m : M), _),
+        { convert (add_monoid_hom.map_finsupp_sum (smul_add_hom R M r) _ _).symm,
+          ext m s,
+          simp [mul_smul r s m] },
+        { exact (((smul_add_hom R M).flip) m).map_zero } } } },
+  { rcases hx with ⟨c, cM, rfl⟩,
+    refine sum_mem (span R s) _,
+    rintros d ds S ⟨h1, rfl⟩,
+    rintros g ⟨h1m : s ⊆ ↑h1, rfl⟩,
+    refine h1.smul_mem (c d) _,
+    exact @set.mem_of_mem_of_subset M d _ _ ((finset.mem_coe).mpr ds) (set.subset.trans cM h1m) }
 end
 
 section

@@ -30,28 +30,29 @@ boolean ring, boolean algebra
 class boolean_ring α extends ring α :=
 (mul_idem : ∀ a : α, a * a = a)
 
+section boolean_ring
 open boolean_ring
-variables {α : Type*} [boolean_ring α]
+variables {α : Type*} [boolean_ring α] (a b : α)
 
 instance : is_idempotent α (*) := ⟨mul_idem⟩
 
-@[simp] lemma add_self (a : α) : a + a = 0 :=
+@[simp] lemma add_self : a + a = 0 :=
 have a + a = a + a + (a + a) :=
   calc a + a = (a+a) * (a+a)           : by rw mul_idem
          ... = a*a + a*a + (a*a + a*a) : by rw [add_mul, mul_add]
          ... = a + a + (a + a)         : by rw mul_idem,
 by rwa self_eq_add_left at this
 
-@[simp] lemma neg_eq (a : α) : -a = a :=
+@[simp] lemma neg_eq : -a = a :=
 calc -a = -a + 0      : by rw add_zero
     ... = -a + -a + a : by rw [←neg_add_self, add_assoc]
     ... = a           : by rw [add_self, zero_add]
 
-lemma add_eq_zero (a b : α) : a + b = 0 ↔ a = b :=
+lemma add_eq_zero : a + b = 0 ↔ a = b :=
 calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
            ... ↔ a = b  : by rw neg_eq
 
-lemma mul_add_mul (a b : α) : a*b + b*a = 0 :=
+lemma mul_add_mul : a*b + b*a = 0 :=
 have a + b = a + b + (a*b + b*a) :=
   calc a + b = (a + b) * (a + b)       : by rw mul_idem
          ... = a*a + a*b + (b*a + b*b) : by rw [add_mul, mul_add, mul_add]
@@ -59,7 +60,13 @@ have a + b = a + b + (a*b + b*a) :=
          ... = a + b + (a*b + b*a)     : by abel,
 by rwa self_eq_add_right at this
 
+lemma sub_eq_add : a - b = a + b :=
+by rw [sub_eq_add_neg, add_right_inj, neg_eq]
+
+end boolean_ring
+
 namespace boolean_ring
+variables {α : Type*} [boolean_ring α]
 
 @[priority 100] -- Note [lower instance priority]
 instance : comm_ring α :=

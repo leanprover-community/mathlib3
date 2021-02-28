@@ -14,18 +14,18 @@ import tactic.omega
 /-!
 # Bernstein polynomials
 
-The definition of the Bernstein polynomials
+We define the Bernstein polynomials
 `bernstein_polynomial (n ν : ℕ) : polynomial ℤ := (choose n ν) * X^ν * (1 - X)^(n - ν)`
-and the fact that for `ν : fin (n+1)` these are linearly independent over `ℚ`.
+and show that for `ν : fin (n+1)` these are linearly independent over `ℚ`.
+
+We prove the basic identities
+* `(finset.range (n + 1)).sum (λ ν, bernstein_polynomial n ν) = 1`
+* `(finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial n ν) = n • X`
+* `(finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial n ν) = (n * (n-1)) • X^2`
 
 ## Future work
 
-The basic identities
-* `(finset.range (n + 1)).sum (λ ν, bernstein_polynomial n ν) = 1`
-* `(finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial n ν) = n * X`
-* `(finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial n ν) =
-     n * (n-1) * X^2`
-and the fact that the Bernstein approximations
+The fact that the Bernstein approximations
 of a continuous function `f` on `[0,1]` converge uniformly.
 This will give a constructive proof of Weierstrass' theorem that
 polynomials are dense in `C([0,1], ℝ)`.

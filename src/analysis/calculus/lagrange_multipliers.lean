@@ -52,7 +52,7 @@ end
 
 /-- Lagrange multipliers theorem: if `φ : E → ℝ` has a local extremum on the set `{x | f x = f x₀}`
 at `x₀`, both `f : E → F` and `φ` are strictly differentiable at `x₀`, and the codomain of `f` is
-a complete space, then there exists `Λ : dual ℝ F` and `Λ₀ : ℝ` such that `(Λ, Λ₀) ≠ 0` and
+a complete space, then there exist `Λ : dual ℝ F` and `Λ₀ : ℝ` such that `(Λ, Λ₀) ≠ 0` and
 `Λ (f' x) + Λ₀ • φ' x = 0` for all `x`. -/
 lemma is_local_extr_on.exists_linear_map_of_has_strict_fderiv_at
   (hextr : is_local_extr_on φ {x | f x = f x₀} x₀) (hf' : has_strict_fderiv_at f f' x₀)
@@ -79,10 +79,10 @@ end
 Suppose that `φ : E → ℝ` has a local extremum on the set `{x | ∀ i, f i x = f i x₀}` at `x₀`.
 Suppose that all functions `f i` as well as `φ` are strictly differentiable at `x₀`.
 Then the derivatives `f' i : E → L[ℝ] ℝ` and `φ' : E →L[ℝ] ℝ` are linearly dependent:
-there exists `Λ : ι → ℝ` and `Λ₀ : ℝ`, `(Λ, Λ₀) ≠ 0`, such that `∑ i, Λ i • f' i + Λ₀ • φ' = 0`.
+there exist `Λ : ι → ℝ` and `Λ₀ : ℝ`, `(Λ, Λ₀) ≠ 0`, such that `∑ i, Λ i • f' i + Λ₀ • φ' = 0`.
 
 See also `is_local_extr_on.linear_dependent_of_has_strict_fderiv_at` for a version that
-that states `¬linear_independent ℝ _` instead of existence of `Λ` and `Λ₀`. -/
+states `¬linear_independent ℝ _` instead of existence of `Λ` and `Λ₀`. -/
 lemma is_local_extr_on.exists_multipliers_of_has_strict_fderiv_at {ι : Type*} [fintype ι]
   {f : ι → E → ℝ} {f' : ι → E →L[ℝ] ℝ}
   (hextr : is_local_extr_on φ {x | ∀ i, f i x = f i x₀} x₀)

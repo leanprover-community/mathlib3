@@ -86,7 +86,7 @@ instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
 
 @[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
-by { rw ← (c.π.naturality f), apply id_comp }
+by { rw ← c.π.naturality f, apply id_comp }
 
 /--
 A `c : cocone F` is
@@ -105,7 +105,7 @@ instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
 
 @[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
-by { rw (c.ι.naturality f), apply comp_id }
+by { rw c.ι.naturality f, apply comp_id }
 
 variables {F : J ⥤ C}
 
@@ -142,8 +142,8 @@ namespace cocone
 def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
 { hom := λ c, ⟨c.X, c.ι⟩,
   inv := λ c, { X := c.1, ι := c.2 },
-  hom_inv_id' := begin ext1, cases x, refl, end,
-  inv_hom_id' := begin ext1, cases x, refl, end }
+  hom_inv_id' := by { ext1, cases x, refl },
+  inv_hom_id' := by { ext1, cases x, refl } }
 
 /-- A map from the vertex of a cocone naturally induces a cocone by composition. -/
 @[simps] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
@@ -174,7 +174,7 @@ restate_axiom cone_morphism.w'
 attribute [simp, reassoc] cone_morphism.w
 
 instance inhabited_cone_morphism (A : cone F) : inhabited (cone_morphism A A) :=
-⟨{ hom := 𝟙 _}⟩
+⟨{ hom := 𝟙 _ }⟩
 
 /-- The category of cones on a given diagram. -/
 @[simps] instance cone.category : category (cone F) :=
@@ -246,14 +246,12 @@ Whiskering by an equivalence gives an equivalence between categories of cones.
 def whiskering_equivalence (e : K ≌ J) :
   cone F ≌ cone (e.functor ⋙ F) :=
 { functor := whiskering e.functor,
-  inverse := whiskering e.inverse ⋙
-    postcompose ((functor.associator _ _ _).inv ≫ (whisker_right (e.counit_iso).hom F) ≫
-      (functor.left_unitor F).hom),
+  inverse := whiskering e.inverse ⋙ postcompose (e.inv_fun_id_assoc F).hom,
   unit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _)
   (begin
     intro k,
-    dsimp,
+    dsimp, -- See library note [dsimp, simp]
     simpa [e.counit_app_functor] using s.w (e.unit_inv.app k),
   end)) (by tidy), }
 
@@ -283,12 +281,12 @@ variables (G : C ⥤ D)
     π := { app := λ j, G.map (A.π.app j), naturality' := by intros; erw ←G.map_comp; tidy } },
   map := λ X Y f,
   { hom := G.map f.hom,
-    w'  := by intros; rw [←functor.map_comp, f.w] } }
+    w' := λ j, by simp [-cone_morphism.w, ←f.w j] } }
 
 instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
 { preimage := λ X Y t,
   { hom := G.preimage t.hom,
-    w' := λ j, G.map_injective (by simpa using t.w j) } }
+    w' := λ j, G.map_injective begin simp [-cone.w, ←t.w j], have := t.w j, dsimp at this, end } }
 
 instance functoriality_faithful [faithful G] : faithful (cones.functoriality F G) :=
 { map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }

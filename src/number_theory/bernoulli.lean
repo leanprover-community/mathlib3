@@ -227,11 +227,7 @@ end
 def bernoulli (n : ℕ) : ℚ := (-1)^n * (bernoulli' n)
 
 lemma bernoulli'_eq_neg_one_pow_mul_bernoulli (n : ℕ) : bernoulli' n = (-1)^n * bernoulli n :=
-begin
-  rw [bernoulli],
-  ring,
-  simp only [←pow_mul, mul_comm n 2, pow_mul, one_pow, neg_one_pow_two, mul_one],
-end
+by simp [bernoulli, ← mul_assoc, ← pow_two, ← pow_mul, mul_comm n 2, pow_mul]
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1 := rfl
 

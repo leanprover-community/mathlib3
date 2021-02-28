@@ -138,8 +138,8 @@ begin
     rw [log_zero, mul_zero],
     refine (has_strict_deriv_at_const _ 0).congr_of_eventually_eq _,
     exact (is_open_ne.eventually_mem h).mono (λ y hy, (zero_cpow hy).symm) },
-  { simp only [cpow_def_of_ne_zero hx],
-    simpa only [mul_one] using ((has_strict_deriv_at_id y).const_mul (log x)).cexp }
+  { simpa only [cpow_def_of_ne_zero hx, mul_one] 
+      using ((has_strict_deriv_at_id y).const_mul (log x)).cexp }
 end
 
 lemma has_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :

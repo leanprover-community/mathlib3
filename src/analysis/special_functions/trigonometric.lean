@@ -2327,7 +2327,7 @@ lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]
 lemma log_im (x : ℂ) : x.log.im = x.arg := by simp [log]
 
 lemma neg_pi_lt_log_im (x : ℂ) : -π < (log x).im := by simp only [log_im, neg_pi_lt_arg]
-lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π:= by simp only [log_im, arg_le_pi]
+lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π := by simp only [log_im, arg_le_pi]
 
 lemma exp_log {x : ℂ} (hx : x ≠ 0) : exp (log x) = x :=
 by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx,

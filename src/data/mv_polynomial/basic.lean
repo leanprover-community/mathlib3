@@ -92,25 +92,30 @@ def mv_polynomial (σ : Type*) (R : Type*) [semiring R] := add_monoid_algebra R 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
-instance [semiring R]: semiring (mv_polynomial σ R) := add_monoid_algebra.semiring
+section semiring
+variables [semiring R]
+
+instance : semiring (mv_polynomial σ R) := add_monoid_algebra.semiring
+instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
+  decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
+instance : inhabited (mv_polynomial σ R) := ⟨0⟩
+instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
+instance : semimodule R (mv_polynomial σ R) := add_monoid_algebra.semimodule
+
+def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ R) :=
+finsupp.has_coe_to_fun
+
+/-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
+of a given monomial. -/
+local attribute [instance] coeff_coe_to_fun
+
+end semiring
 
 section comm_semiring
 variables [comm_semiring R] {p q : mv_polynomial σ R}
 
-instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
-  decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
 instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
-instance : inhabited (mv_polynomial σ R) := ⟨0⟩
-instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
-instance : semimodule R (mv_polynomial σ R) := add_monoid_algebra.semimodule
 instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
-
-/-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
-of a given monomial. -/
-def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ R) :=
-finsupp.has_coe_to_fun
-
-local attribute [instance] coeff_coe_to_fun
 
 /-- `monomial s a` is the monomial with coefficient `a` and exponents given by `s`  -/
 def monomial (s : σ →₀ ℕ) (a : R) : mv_polynomial σ R := single s a
@@ -647,7 +652,7 @@ by apply mv_polynomial.induction_on p; simp [
   eval₂_mul, k.map_mul] {contextual := tt}
 end
 
-@[simp] lemma eval₂_eta (p : mv_polynomial σ R) : eval₂ C X p = p :=
+@[simp] lemma eval₂_eta (p : mv_polynomial σ R) : eval₂ (C : R →+* mv_polynomial σ R) X p = p :=
 by apply mv_polynomial.induction_on p;
    simp [eval₂_add, eval₂_mul] {contextual := tt}
 
@@ -747,8 +752,8 @@ theorem map_map [comm_semiring S₂]
   (g : S₁ →+* S₂)
   (p : mv_polynomial σ R) :
   map g (map f p) = map (g.comp f) p :=
-(eval₂_comp_left (map g) (C.comp f) X p).trans $
 begin
+  refine eq.trans (eval₂_comp_left (map g) (C.comp f) X p) _,
   congr,
   { ext1 a, simp only [map_C, comp_app, ring_hom.coe_comp], },
   { ext1 n, simp only [map_X, comp_app], }
@@ -758,7 +763,7 @@ theorem eval₂_eq_eval_map (g : σ → S₁) (p : mv_polynomial σ R) :
   p.eval₂ f g = eval g (map f p) :=
 begin
   unfold map eval, simp only [coe_eval₂_hom],
-  have h := eval₂_comp_left (eval₂_hom _ g),
+  have h := eval₂_comp_left (eval₂_hom _ g : mv_polynomial σ S₁ →+* _),
   dsimp at h,
   rw h,
   congr,
@@ -778,7 +783,7 @@ begin
 end
 
 lemma map_eval₂ (f : R →+* S₁) (g : S₂ → mv_polynomial S₃ R) (p : mv_polynomial S₂ R) :
-  map f (eval₂ C g p) = eval₂ C (map f ∘ g) (map f p) :=
+  map f (eval₂ (C : R →+* mv_polynomial S₃ R) g p) = eval₂ C (map f ∘ g) (map f p) :=
 begin
   apply mv_polynomial.induction_on p,
   { intro r, rw [eval₂_C, map_C, map_C, eval₂_C] },

@@ -154,7 +154,7 @@ namespace boolean_algebra
 * `a * b` unfolds to `a ⊓ b`
 * `-a` unfolds to `a`
 * `0` unfolds to `⊥`
-* `1` unfolds to `⊥`
+* `1` unfolds to `⊤`
 -/
 def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
 { add := (Δ),
@@ -193,6 +193,11 @@ def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
 localized "attribute [instance, priority 100] boolean_algebra.to_boolean_ring" in
   boolean_ring_of_boolean_algebra
 
+/-!
+The following lemmas amount to a proof that applying `boolean_algebra.to_boolean_ring` and then
+`boolean_ring.to_boolean_algebra` to a Boolean algebra results in the same Boolean algebra.
+-/
+
 variables {α : Type*} (BA : boolean_algebra α)
 
 lemma to_boolean_ring.sup_eq :
@@ -212,7 +217,7 @@ lemma to_boolean_ring.lt_iff :
 begin
   ext a b,
   change a Δ b Δ (a ⊓ b) = b ∧ b Δ a Δ (b ⊓ a) ≠ a ↔ a < b,
-  simp [symm_diff_symm_diff_sup, lt_iff_le_not_le],
+  simp only [symm_diff_symm_diff_sup, lt_iff_le_not_le, sup_eq_right, ne.def],
   refl,
 end
 
@@ -243,8 +248,12 @@ end
 
 end boolean_algebra
 
-namespace boolean_ring
+/-!
+The following lemmas amount to a proof that applying `boolean_ring.to_boolean_algebra` and then
+`boolean_algebra.to_boolean_ring` to a Boolean ring results in the same Boolean ring.
+-/
 
+namespace boolean_ring
 variables {α : Type*} (BR : boolean_ring α)
 
 lemma to_boolean_algebra.add_eq_aux [boolean_ring α] (a b : α) :
@@ -254,34 +263,34 @@ calc (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) =
   ... = a+b : by simp only [mul_idem, add_self, add_zero]
 
 lemma to_boolean_algebra.add_eq :
-  BR.add = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).add :=
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).add = BR.add :=
 begin
   ext a b,
-  exact (to_boolean_algebra.add_eq_aux _ _).symm
+  exact to_boolean_algebra.add_eq_aux _ _
 end
 
 lemma to_boolean_algebra.zero_eq :
-  BR.zero = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).zero :=
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).zero = BR.zero :=
 rfl
 
 lemma to_boolean_algebra.neg_eq :
-  BR.neg = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).neg :=
-funext $ neg_eq
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).neg = BR.neg :=
+funext $ λ a, (neg_eq a).symm
 
 lemma to_boolean_algebra.sub_eq :
-  BR.sub = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).sub :=
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).sub = BR.sub :=
 begin
   ext a b,
-  change a - b = (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)),
+  change  (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) = a - b,
   rw [to_boolean_algebra.add_eq_aux, sub_eq_add],
 end
 
 lemma to_boolean_algebra.mul_eq :
-  BR.mul = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).mul :=
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).mul = BR.mul :=
 rfl
 
 lemma to_boolean_algebra.one_eq :
-  BR.one = (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).one :=
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).one = BR.one :=
 rfl
 
 end boolean_ring

@@ -1379,7 +1379,9 @@ end
 
 variables [proper_space α] {x : α} {r : ℝ} {s : set α}
 
-lemma exists_shrink_ball_pos (hr : 0 < r) (hs : is_closed s) (h : s ⊆ ball x r) :
+/-- If a nonempty ball in a proper space includes a closed set `s`, then there exists a nonempty
+ball with the same center and a strictly smaller radius that includes `s`. -/
+lemma exists_pos_lt_subset_ball (hr : 0 < r) (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' ∈ Ioo 0 r, s ⊆ ball x r' :=
 begin
   rcases eq_empty_or_nonempty s with rfl|hne,
@@ -1394,24 +1396,16 @@ begin
   exact ⟨r', ⟨dist_nonneg.trans_lt hyr', hrr'⟩, subset.trans hy $ closed_ball_subset_ball hyr'⟩
 end
 
-lemma exists_shrink_ball (hs : is_closed s) (h : s ⊆ ball x r) :
+/-- If a ball in a proper space includes a closed set `s`, then there exists a ball with the same
+center and a strictly smaller radius that includes `s`. -/
+lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' < r, s ⊆ ball x r' :=
 begin
   cases le_or_lt r 0 with hr hr,
   { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, subst s,
     exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
-  { exact (exists_shrink_ball_pos hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
+  { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end
-
-/-- In a proper metric space open balls are “shrinkable”: they satisfy the assumptions
-of `shrinking_lemma_data.exists_subset_Union_closure_subset`. -/
-def shrinking_lemma_data.balls {ι} (x : ι → α) : shrinking_lemma_data ι ℝ α :=
-{ to_fun := λ i, ball (x i),
-  is_open' := λ i r, is_open_ball,
-  rel := (<),
-  subset' := λ i r r' h, ball_subset_ball h.le,
-  exists_shrink' := λ i r s hrs hs,
-    let ⟨r', hr'r, hsr'⟩ := exists_shrink_ball hs hrs in ⟨r', hr'r, hsr'⟩ }
 
 variables {ι : Type*} {c : ι → α}
 
@@ -1420,24 +1414,22 @@ cover by open balls so that each of the new balls has strictly smaller radius th
 lemma exists_subset_Union_ball_radius_lt {r : ι → ℝ} (hs : is_closed s)
   (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i < r i :=
-(shrinking_lemma_data.balls c).exists_subset_Union_forall_rel hs _ uf us
+begin
+  haveI : normal_space α := sorry,
+  choose v hsv hvo hcv
+    using exists_subset_Union_closure_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us,
+  have := λ i, exists_lt_subset_ball is_closed_closure (hcv i),
+  choose r' hlt hsub,
+  exact ⟨r', subset.trans hsv $ Union_subset_Union $ λ i, subset.trans subset_closure (hsub i), hlt⟩
+end
 
 /-- A point-finite open cover of a proper metric space by open balls to a new cover by open balls so
 that each of the new balls has strictly smaller radius than the old one. -/
 lemma exists_Union_ball_eq_radius_lt {r : ι → ℝ} (uf : ∀ x, finite {i | x ∈ ball (c i) (r i)})
   (uU : (⋃ i, ball (c i) (r i)) = univ) :
   ∃ r' : ι → ℝ, (⋃ i, ball (c i) (r' i)) = univ ∧ ∀ i, r' i < r i :=
-(shrinking_lemma_data.balls c).exists_Union_eq_forall_rel _ uf uU
-
-/-- In a proper metric space nonempty open balls are “shrinkable”: they satisfy the assumptions
-of `shrinking_lemma_data.exists_subset_Union_closure_subset`. -/
-def shrinking_lemma_data.pos_balls {ι} (x : ι → α) : shrinking_lemma_data ι (Ioi (0 : ℝ)) α :=
-{ to_fun := λ i r, ball (x i) r,
-  is_open' := λ i r, is_open_ball,
-  rel := (<),
-  subset' := λ i r r' h, ball_subset_ball h.le,
-  exists_shrink' := λ i r s hrs hs,
-    let ⟨r', hr'r, hsr'⟩ := exists_shrink_ball_pos r.2 hs hrs in ⟨⟨r', hr'r.1⟩, hr'r.2, hsr'⟩ }
+let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_lt is_closed_univ (λ x _, uf x) uU.ge
+in ⟨r', univ_subset_iff.1 hU, hv⟩
 
 /-- A point-finite open cover of a closed subset of a proper metric space by nonempty open balls
 to a new cover by nonempty open balls so that each of the new balls has strictly smaller radius
@@ -1445,18 +1437,22 @@ than the old one. -/
 lemma exists_subset_Union_ball_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i) (hs : is_closed s)
   (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
-let ⟨r', hsub, hr'⟩ :=
-  (shrinking_lemma_data.pos_balls c).exists_subset_Union_forall_rel hs (λ i, ⟨r i, hr i⟩) uf us
-in ⟨λ i, r' i, hsub, λ i, ⟨(r' i).2, hr' i⟩⟩
+begin
+  haveI : normal_space α := sorry,
+  choose v hsv hvo hcv
+    using exists_subset_Union_closure_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us,
+  have := λ i, exists_pos_lt_subset_ball (hr i) is_closed_closure (hcv i),
+  choose r' hlt hsub,
+  exact ⟨r', subset.trans hsv $ Union_subset_Union $ λ i, subset.trans subset_closure (hsub i), hlt⟩
+end
 
 /-- A point-finite open cover of a proper metric space by nonempty open balls to a new cover by
 nonempty open balls so that each of the new balls has strictly smaller radius than the old one. -/
 lemma exists_Union_ball_eq_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i)
   (uf : ∀ x, finite {i | x ∈ ball (c i) (r i)}) (uU : (⋃ i, ball (c i) (r i)) = univ) :
   ∃ r' : ι → ℝ, (⋃ i, ball (c i) (r' i)) = univ ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
-let ⟨r', hsub, hr'⟩ :=
-  (shrinking_lemma_data.pos_balls c).exists_Union_eq_forall_rel (λ i, ⟨r i, hr i⟩) uf uU
-in ⟨λ i, r' i, hsub, λ i, ⟨(r' i).2, hr' i⟩⟩
+let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_pos_lt hr is_closed_univ (λ x _, uf x) uU.ge
+in ⟨r', univ_subset_iff.1 hU, hv⟩
 
 end proper_space
 

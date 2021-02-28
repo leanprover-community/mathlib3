@@ -679,17 +679,16 @@ theorem normal_separation [normal_space α] {s t : set α}
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 normal_space.normal s t H1 H2 H3
 
-theorem normal_shrink_left [normal_space α] {s t : set α}
-  (hs : is_open s) (ht : is_open t) (hst : s ∪ t = univ) :
-  ∃ u, is_open u ∧ closure u ⊆ s ∧ u ∪ t = univ :=
+theorem normal_exists_closure_subset [normal_space α] {s t : set α} (hs : is_closed s)
+  (ht : is_open t) (hst : s ⊆ t) :
+  ∃ u, is_open u ∧ s ⊆ u ∧ closure u ⊆ t :=
 begin
-  have : disjoint sᶜ tᶜ, by rwa [set.disjoint_iff_inter_eq_empty, ← compl_union, compl_empty_iff],
-  rcases normal_separation (is_closed_compl_iff.2 hs) (is_closed_compl_iff.2 ht) this
+  have : disjoint s tᶜ, from λ x ⟨hxs, hxt⟩, hxt (hst hxs),
+  rcases normal_separation hs (is_closed_compl_iff.2 ht) this
     with ⟨s', t', hs', ht', hss', htt', hs't'⟩,
-  refine ⟨t', ht',
-    subset.trans (closure_minimal _ (is_closed_compl_iff.2 hs')) (compl_subset_comm.1 hss'), _⟩,
-  { exact λ x hxt hxs, hs't' ⟨hxs, hxt⟩ },
-  { rwa [union_comm, ← compl_subset_iff_union] }
+  refine ⟨s', hs', hss',
+    subset.trans (closure_minimal _ (is_closed_compl_iff.2 ht')) (compl_subset_comm.1 htt')⟩,
+  exact λ x hxs hxt, hs't' ⟨hxs, hxt⟩
 end
 
 @[priority 100] -- see Note [lower instance priority]

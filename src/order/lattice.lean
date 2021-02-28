@@ -2,11 +2,52 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 -/
 import order.rel_classes
 
+/-!
+# (Semi-)lattices
+
+Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or
+meet (least upper bound, or `inf`) operations. Lattices are posets that are both
+join-semilattices and meet-semilattices.
+
+Distributive lattices are lattices which satisfy any of four equivalent distributivity properties,
+of `sup` over `inf`, on the left or on the right.
+
+## Main declarations
+
+* `has_sup`: type class for the `⊔` notation
+* `has_inf`: type class for the `⊓` notation
+
+* `semilattice_sup`: a type class for join semilattices
+* `semilattice_sup.mk'`: an alternative constructor for `semilattice_sup` via proofs that `⊔` is
+  commutative, associative and idempotent.
+* `semilattice_inf`: a type class for meet semilattices
+* `semilattice_sup.mk'`: an alternative constructor for `semilattice_inf` via proofs that `⊓` is
+  commutative, associative and idempotent.
+
+* `lattice`: a type class for lattices
+* `lattice.mk'`: an alternative constructor for `lattice` via profs that `⊔` and `⊓` are
+  commutative, associative and satisfy a pair of "absorption laws".
+
+* `distrib_lattice`: a type class for distributive lattices.
+
+## Notations
+
+* `a ⊔ b`: the supremum or join of `a` and `b`
+* `a ⊓ b`: the infimum or meet of `a` and `b`
+
+## TODO
+
+* (Semi-)lattice homomorphisms
+* Alternative constructors for distributive lattices from the other distributive properties
+
+## Tags
+
+semilattice, lattice
+
+-/
 set_option old_structure_cmd true
 
 universes u v w
@@ -31,6 +72,10 @@ class has_inf (α : Type u) := (inf : α → α → α)
 
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
+
+/-!
+### Join-semilattices
+-/
 
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
@@ -206,6 +251,10 @@ end
 
 end semilattice_sup
 
+/-!
+### Meet-semilattices
+-/
+
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
@@ -368,7 +417,9 @@ end
 
 end semilattice_inf
 
-/-! ### Lattices -/
+/-!
+### Lattices
+-/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
@@ -418,7 +469,9 @@ have sup_eq_iff_inf_eq : ∀ (a b : α), a ⊔ b = b ↔ a ⊓ b = a := λ a b,
 section lattice
 variables [lattice α] {a b c d : α}
 
-/- Distributivity laws -/
+/-!
+#### Distributivity laws
+-/
 /- TODO: better names? -/
 theorem sup_inf_le : a ⊔ (b ⊓ c) ≤ (a ⊔ b) ⊓ (a ⊔ c) :=
 le_inf (sup_le_sup_left inf_le_left _) (sup_le_sup_left inf_le_right _)
@@ -447,14 +500,24 @@ end
 
 end lattice
 
+/-!
+### Distributive lattices
+-/
+
 /-- A distributive lattice is a lattice that satisfies any of four
-  equivalent distribution properties (of sup over inf or inf over sup,
-  on the left or right). A classic example of a distributive lattice
-  is the lattice of subsets of a set, and in fact this example is
-  generic in the sense that every distributive lattice is realizable
-  as a sublattice of a powerset lattice. -/
+equivalent distributive properties (of `sup` over `inf` or `inf` over `sup`,
+on the left or right).
+
+The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`.
+
+A classic example of a distributive lattice
+is the lattice of subsets of a set, and in fact this example is
+generic in the sense that every distributive lattice is realizable
+as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
+
+/- TODO: alternative constructors from the other distributive properties -/
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}
@@ -533,6 +596,9 @@ instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
+/-!
+### Monotone functions and lattices
+-/
 namespace monotone
 
 lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
@@ -558,6 +624,10 @@ lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f :
 @monotone.map_sup (order_dual α) _ _ _ _ _ hf.order_dual x y
 
 end monotone
+
+/-!
+### Products of (semi-)lattices
+-/
 
 namespace prod
 variables (α β)
@@ -585,6 +655,10 @@ instance [distrib_lattice α] [distrib_lattice β] : distrib_lattice (α × β) 
   .. prod.lattice α β }
 
 end prod
+
+/-!
+### Subtypes of (semi-)lattices
+-/
 
 namespace subtype
 

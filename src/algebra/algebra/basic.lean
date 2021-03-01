@@ -857,6 +857,10 @@ variables (l : A₁ ≃ₗ[R] A₂)
   (map_mul : ∀ x y : A₁, l (x * y) = l x * l y)
   (commutes : ∀ r : R, l (algebra_map R A₁ r) = algebra_map R A₂ r)
 
+/--
+Upgrade a linear equivalence to an algebra equivalence,
+given that it distributes over multiplication and action of scalars.
+-/
 def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
 { to_fun := l,
   inv_fun := l.symm,

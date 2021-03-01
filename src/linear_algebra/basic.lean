@@ -217,7 +217,7 @@ ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
 @[simp] theorem zero_comp : (0 : M₂ →ₗ[R] M₃).comp f = 0 :=
 rfl
 
-@[norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
+@[simp, norm_cast] lemma coe_fn_sum {ι : Type*} (t : finset ι) (f : ι → M →ₗ[R] M₂) :
   ⇑(∑ i in t, f i) = ∑ i in t, (f i : M → M₂) :=
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
@@ -300,6 +300,13 @@ instance {T : Type*} [monoid T] [distrib_mul_action T M₂] [smul_comm_class R T
   smul_comm_class S T (M →ₗ[R] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
+-- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
+-- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
+instance {T : Type*} [monoid T] [has_scalar S T] [distrib_mul_action T M₂] [smul_comm_class R T M₂]
+  [is_scalar_tower S T M₂] :
+  is_scalar_tower S T (M →ₗ[R] M₂) :=
+{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
 instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,
   mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
@@ -347,17 +354,16 @@ This says that the forgetful functor from `R`-modules to types is representable,
 
 This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
 When `R` is commutative, we can take this to be the usual action with `S = R`.
-Otherwise, `S = ℤ` shows that the equivalence is additive.
+Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings].
 -/
 @[simps]
 def ring_lmap_equiv_self [semimodule S M] [smul_comm_class R S M] : (R →ₗ[R] M) ≃ₗ[S] M :=
 { to_fun := λ f, f 1,
-  inv_fun := λ m, { map_smul' := λ r r', by simp [mul_smul], ..(smul_add_hom R M).flip m },
-  map_add' := by simp,
-  map_smul' := by simp,
-  left_inv := λ x, by { ext, simp },
-  right_inv := λ x, by { simp } }
+  inv_fun := smul_right (1 : R →ₗ[R] R),
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ x, by simp,
+  .. applyₗ' S (1 : R) }
 
 end
 
@@ -505,6 +511,9 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
+instance unique_bot : unique (⊥ : submodule R M) :=
+⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
+
 lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
 begin
   have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
@@ -530,9 +539,6 @@ instance : has_top (submodule R M) :=
 @[simp] lemma top_coe : ((⊤ : submodule R M) : set M) = univ := rfl
 
 @[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
-
-lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : p = ⊥ :=
-by ext x; simp [semimodule.eq_zero_of_zero_eq_one x zero_eq_one]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
@@ -591,8 +597,32 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 
-lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
-λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
+variables (R)
+
+@[simp] lemma bot_to_add_submonoid : (⊥ : submodule R M).to_add_submonoid = ⊥ := rfl
+
+@[simp] lemma top_to_add_submonoid : (⊤ : submodule R M).to_add_submonoid = ⊤ := rfl
+
+lemma subsingleton_iff : subsingleton M ↔ subsingleton (submodule R M) :=
+add_submonoid.subsingleton_iff.trans $ begin
+  rw [←subsingleton_iff_bot_eq_top, ←subsingleton_iff_bot_eq_top],
+  convert to_add_submonoid_eq; refl
+end
+
+lemma nontrivial_iff : nontrivial M ↔ nontrivial (submodule R M) :=
+not_iff_not.mp (
+  (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R).trans
+  not_nontrivial_iff_subsingleton.symm)
+
+variables {R}
+
+instance [subsingleton M] : unique (submodule R M) :=
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
+
+instance unique' [subsingleton R] : unique (submodule R M) :=
+by haveI := semimodule.subsingleton R M; apply_instance
+
+instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
 
 @[simp] theorem inf_coe : (p ⊓ p' : set M) = p ∩ p' := rfl
 
@@ -962,6 +992,20 @@ span_eq_bot.trans $ by simp
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
+
+lemma apply_mem_span_image_of_mem_span
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
+   f x ∈ submodule.span R (f '' s) :=
+begin
+  rw submodule.span_image,
+  exact submodule.mem_map_of_mem h
+end
+
+/-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/
+lemma not_mem_span_of_apply_not_mem_span_image
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : f x ∉ submodule.span R (f '' s)) :
+   x ∉ submodule.span R s :=
+not.imp h (apply_mem_span_image_of_mem_span f)
 
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=

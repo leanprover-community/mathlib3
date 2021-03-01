@@ -56,7 +56,7 @@ iff.intro (assume h a, h ▸ rfl) funext
 protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
 protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
 
-@[simp] theorem injective.eq_iff (I : injective f) {a b : α} :
+theorem injective.eq_iff (I : injective f) {a b : α} :
   f a = f b ↔ a = b :=
 ⟨@I _ _, congr_arg f⟩
 

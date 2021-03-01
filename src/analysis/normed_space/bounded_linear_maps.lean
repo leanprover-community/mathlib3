@@ -145,7 +145,8 @@ end is_bounded_linear_map
 section
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
-/-- Taking the cartesian product of two continuous multilinear maps is a bounded linear operation. -/
+/-- Taking the cartesian product of two continuous multilinear maps
+is a bounded linear operation. -/
 lemma is_bounded_linear_map_prod_multilinear
   {E : ι → Type*} [∀i, normed_group (E i)] [∀i, normed_space 𝕜 (E i)] :
   is_bounded_linear_map 𝕜
@@ -251,7 +252,8 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinea
     ... = C * (∥y∥ + 1) * ∥x∥ : by ring
   end }
 
-lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_bilinear_map 𝕜 f) (x : E) :
+lemma is_bounded_bilinear_map.is_bounded_linear_map_right
+  (h : is_bounded_bilinear_map 𝕜 f) (x : E) :
   is_bounded_linear_map 𝕜 (λ y, f (x, y)) :=
 { map_add  := λ y y', h.add_right _ _ _,
   map_smul := λ c y, h.smul_right _ _ _,
@@ -374,7 +376,8 @@ def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E ×
     ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : norm_add_le_of_le (hC _ _) (hC _ _)
   ... ≤ C * ∥p.1∥ * ∥q∥ + C * ∥q∥ * ∥p.2∥ : begin
       apply add_le_add,
-      exact mul_le_mul_of_nonneg_left (le_max_right _ _) (mul_nonneg (le_of_lt Cpos) (norm_nonneg _)),
+      exact mul_le_mul_of_nonneg_left
+        (le_max_right _ _) (mul_nonneg (le_of_lt Cpos) (norm_nonneg _)),
       apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
       exact mul_le_mul_of_nonneg_left (le_max_left _ _) (le_of_lt Cpos),
   end
@@ -418,7 +421,8 @@ end bilinear_map
 lemma linear_map.norm_apply_of_isometry (f : E →ₗ[𝕜] F) {x : E} (hf : isometry f) : ∥f x∥ = ∥x∥ :=
 by { simp_rw [←dist_zero_right, ←f.map_zero], exact isometry.dist_eq hf _ _ }
 
-/-- Construct a continuous linear equiv from a linear map that is also an isometry with full range. -/
+/-- Construct a continuous linear equiv from
+a linear map that is also an isometry with full range. -/
 def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
   E ≃L[𝕜] F :=
 continuous_linear_equiv.of_homothety

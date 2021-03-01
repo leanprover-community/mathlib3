@@ -63,11 +63,13 @@ def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_po
 aeval f
 
 /--
-`bind₂` is the "right hand side" bind operation on `mv_polynomial`, operating on the coefficient type.
-Given a polynomial `p : mv_polynomial σ R` and a map `f : R → mv_polynomial σ S` taking coefficients
-in `p` to polynomials over a new ring `S`, `bind₂ f p` replaces each coefficient in `p` with its
-value under `f`, producing a new polynomial over `S`. The variable type remains the same.
-This operation is a ring hom.
+`bind₂` is the "right hand side" bind operation on `mv_polynomial`,
+operating on the coefficient type.
+Given a polynomial `p : mv_polynomial σ R` and
+a map `f : R → mv_polynomial σ S` taking coefficients in `p` to polynomials over a new ring `S`,
+`bind₂ f p` replaces each coefficient in `p` with its value under `f`,
+producing a new polynomial over `S`.
+The variable type remains the same. This operation is a ring hom.
 -/
 def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
 eval₂_hom f X

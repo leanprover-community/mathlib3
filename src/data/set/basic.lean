@@ -266,6 +266,9 @@ theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
 | _ ⟨x, hx⟩ rfl := hx
 
+@[simp] theorem not_nonempty_empty : ¬(∅ : set α).nonempty :=
+λ h, h.ne_empty rfl
+
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
 protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h
@@ -2243,6 +2246,15 @@ begin
   rw [← singleton_eq_singleton_iff], apply h,
   rw [image_singleton, image_singleton, hx]
 end
+
+lemma preimage_eq_iff_eq_image {f : α → β} (hf : bijective f) {s t} :
+  f ⁻¹' s = t ↔ s = f '' t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
+lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
+  s = f ⁻¹' t ↔ f '' s = t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
 end image_preimage
 
 /-! ### Lemmas about images of binary and ternary functions -/

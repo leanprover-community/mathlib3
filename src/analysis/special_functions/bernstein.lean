@@ -118,18 +118,19 @@ meta def unit_interval : tactic unit :=
 
 end tactic.interactive
 
-namespace unit_interval
-
 instance : nonempty I := ⟨⟨0, ⟨le_refl _, le_of_lt real.zero_lt_one⟩⟩⟩
 
 -- FIXME Where do these lemmas belong?
 -- Should they become part of a public API, or remain hidden here?
 
+section
+variables {α β : Type*} [metric_space α] [compact_space α] [metric_space β]
+
 /-!
 We now set up some abbreviations for the various components of
 uniform continuity for a continuous function on a compact metric space.
 -/
-lemma uniform_continuity_εδ {α β : Type*} [metric_space α] [compact_space α] [metric_space β]
+lemma uniform_continuity_εδ
   (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) :
   ∃ δ > 0, ∀ {x y}, dist x y < δ → dist (f x) (f y) < ε :=
 metric.uniform_continuous_iff.mp
@@ -138,17 +139,17 @@ metric.uniform_continuous_iff.mp
 /--
 The (noncomputable) modulus of uniform continuity for a given function `f` and `ε > 0`.
 -/
-def δ (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) : ℝ :=
+def δ (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) : ℝ :=
 classical.some (uniform_continuity_εδ f ε h)
 
-lemma δ_pos {f : I →ᵇ ℝ} {ε : ℝ} {h : 0 < ε} : 0 < δ f ε h :=
+lemma δ_pos {f : α →ᵇ β} {ε : ℝ} {h : 0 < ε} : 0 < δ f ε h :=
 classical.some (classical.some_spec (uniform_continuity_εδ f ε h))
 
-lemma uniform_continuity (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) {a b : I} (w : dist a b < δ f ε h) :
+lemma uniform_continuity (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) {a b : α} (w : dist a b < δ f ε h) :
   dist (f a) (f b) < ε :=
 classical.some_spec (classical.some_spec (uniform_continuity_εδ f ε h)) w
 
-end unit_interval
+end
 
 
 /--
@@ -297,7 +298,7 @@ and reproduced on wikipedia.
 theorem bernstein_approximation_uniform (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) :
   ∃ n : ℕ, ∥bernstein_approximation n f - f∥ < ε :=
 begin
-  let δ := unit_interval.δ f (ε/2) (half_pos h),
+  let δ := δ f (ε/2) (half_pos h),
   let n : ℕ := _, use n, -- We postpone choosing `n` until we've obtained an explicit estimate.
   suffices npos : 0 < (n : ℝ), -- However we do assume right away that it won't be `n = 0`!
   -- Four easy inequalities we'll need later:

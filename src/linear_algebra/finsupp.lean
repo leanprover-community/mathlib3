@@ -638,9 +638,9 @@ universe u
 
 /-- An element `m ∈ M` is contained in the `R`-submodule spanned by a set `s ⊆ M`, if and only if
 `m` can be written as a finite `R`-linear combination of elements of `s`.
-The implementation uses `finsupp.sum`.
-The Type `M` has an explicit universe, since otherwise it gets assigned `Type (max u_2 u_3)`. -/
-lemma mem_span_set {M : Type u} [add_comm_group M] [semimodule R M] {m : M} {s : set M} :
+The implementation uses `finsupp.sum`. -/
+-- The Type `M` has an explicit universe, since otherwise it gets assigned `Type (max u_2 u_3)`.
+lemma mem_span_set {m : M} {s : set M} :
   m ∈ submodule.span R s ↔
   ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ i, (smul_add_hom R M).flip i)) = m :=
 begin

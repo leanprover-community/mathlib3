@@ -91,17 +91,14 @@ begin
 end
 
 
-example {X : Type*} [topological_space X] : has_norm (X →ᵇ ℝ) := by apply_instance
-
--- example {X : Type*} [topological_space X] [compact_space X] : has_norm C(X, ℝ) := by apply_instance
-
 /--
 The Bernstein polynomials, as continuous functions on ℝ.
 -/
 def bernstein' (n ν : ℕ) : C(ℝ, ℝ) :=
 ⟨λ x, polynomial.aeval x (bernstein_polynomial n ν), by continuity⟩
 
-local notation `I` := set.Icc (0 : ℝ) (1 : ℝ) -- there's some orphaned development in `path_connected`.
+-- TODO there's some orphaned development in `path_connected`; perhaps this should be consolidated.
+local notation `I` := set.Icc (0 : ℝ) (1 : ℝ)
 
 namespace unit_interval
 
@@ -125,9 +122,12 @@ namespace unit_interval
 
 instance : nonempty I := ⟨⟨0, ⟨le_refl _, le_of_lt real.zero_lt_one⟩⟩⟩
 
+-- FIXME Where do these lemmas belong?
+-- Should they become part of a public API, or remain hidden here?
+
 /-!
 We now set up some abbreviations for the various components of
-uniform continuity for a continuous function on `[0,1]`.
+uniform continuity for a continuous function on a compact metric space.
 -/
 lemma uniform_continuity_εδ {α β : Type*} [metric_space α] [compact_space α] [metric_space β]
   (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) :

@@ -17,7 +17,7 @@ are an important tool obtained from Bernoulli numbers.
 The $n$-th Bernoulli polynomial is defined as
 $$ B_n(X) = ∑_{k = 0}^n {n χoose k} (-1)^k * B_k * X^{n - k} $$
 where $B_k$ is the $k$-th Bernoulli number. The Bernoulli polynomials are generating functions,
-$$ t * e^{tX} / (e^t - 1) = ∑_{n = 0}^{∞} B_n(X) * ¼{t^n}{n!} $$
+$$ t * e^{tX} / (e^t - 1) = ∑_{n = 0}^{∞} B_n(X) * \frac{t^n}{n!} $$
 
 ## Implementation detail
 

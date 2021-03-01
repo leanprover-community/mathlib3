@@ -12,7 +12,7 @@ import algebra.floor
 
 We prove that the Bernstein approximations
 ```
-∑ k : fin (n+1), f (k/n : ℝ) • bernstein n k
+∑ k : fin (n+1), f (k/n : ℝ) * n.choose k * x^k * (1-x)^(n-k)
 ```
 for a continuous function `f : C([0,1], ℝ)` converge uniformly to `f`.
 
@@ -30,9 +30,9 @@ but can also be given a probabilistic account.
   such a coin gives exactly `k` heads in a sequence of `n` tosses.
 * If such an appearance of `k` heads results in a payoff of `f(k / n)`,
   the `n`-th Bernstein approximation for `f` evaluated at `x` is the expected payoff.
-* The main estimate in the proof establishes how small the probability is that
-  the observed frequency of heads differs from `x` by more than some `δ`.
-  We find that it is at most `(4 * n * δ^2)⁻¹`, irrespective of `x`.
+* The main estimate in the proof bounds the probability that
+  the observed frequency of heads differs from `x` by more than some `δ`,
+  obtaining `(4 * n * δ^2)⁻¹`, irrespective of `x`.
 * This ensures that for `n` large, the Bernstein approximation is (uniformly) close to the
   payoff function `f`.
 
@@ -123,14 +123,26 @@ begin
   exact this,
 end
 
-lemma real.mul_injective_of_ne_zero {x : ℝ} (h : x ≠ 0) : function.injective (λ y, y * x) := sorry
+lemma division_ring.mul_left_injective {α : Type*} [division_ring α] {x : α} (h : x ≠ 0) :
+  function.injective (λ y, x * y) :=
+λ y y' w, begin
+  apply_fun (λ y, x⁻¹ * y) at w,
+  simpa only [←mul_assoc, inv_mul_cancel h, one_mul] using w,
+end
+
+lemma division_ring.mul_right_injective {α : Type*} [division_ring α] {x : α} (h : x ≠ 0) :
+  function.injective (λ y, y * x) :=
+λ y y' w, begin
+  apply_fun (λ y, y * x⁻¹) at w,
+  simpa only [mul_assoc, mul_inv_cancel h, mul_one] using w,
+end
 
 lemma variance {n : ℕ} (h : 0 < (n : ℝ)) (x : I) :
   ∑ k : fin (n+1), (x - Z k : ℝ)^2 * bernstein n k x = x * (1-x) / n :=
 begin
   have h' : (n : ℝ) ≠ 0 := (ne_of_lt h).symm,
-  apply_fun (λ x : ℝ, x * n) using real.mul_injective_of_ne_zero h',
-  apply_fun (λ x : ℝ, x * n) using real.mul_injective_of_ne_zero h',
+  apply_fun (λ x : ℝ, x * n) using division_ring.mul_right_injective h',
+  apply_fun (λ x : ℝ, x * n) using division_ring.mul_right_injective h',
   dsimp,
   conv_lhs { simp only [finset.sum_mul, Z], },
   conv_rhs { rw div_mul_cancel _ h', },
@@ -169,6 +181,9 @@ end
 def δ (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) : ℝ :=
 classical.some (metric.uniform_continuous_iff.mp begin apply compact_space.uniform_continuous_of_continuous f.2.1, end (ε/2) (half_pos h))
 
+lemma δ_pos {f : I →ᵇ ℝ} {ε : ℝ} {h : 0 < ε} : 0 < δ f ε h :=
+classical.some (classical.some_spec (metric.uniform_continuous_iff.mp begin apply compact_space.uniform_continuous_of_continuous f.2.1, end (ε/2) (half_pos h)))
+
 lemma uniform_continuity (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) {a b : I} (w : dist a b < δ f ε h) : dist (f a) (f b) < ε/2 :=
 classical.some_spec (classical.some_spec (metric.uniform_continuous_iff.mp begin apply compact_space.uniform_continuous_of_continuous f.2.1, end (ε/2) (half_pos h))) w
 
@@ -182,12 +197,22 @@ begin
   simpa [S] using m,
 end
 
+theorem sqr_pos_of_pos {x : ℝ} (h : 0 < x) : 0 < x^2 :=
+begin
+  rw pow_two,
+  exact mul_pos h h,
+end
+
 lemma le_of_mem_S_compl {f : I →ᵇ ℝ} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ (S f ε h n x)ᶜ) :
  (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - (Z k)) ^ 2 :=
 begin
-  simp [S] at m,
-  simp,
-  sorry,
+  simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
+  field_simp,
+  erw [le_div_iff (sqr_pos_of_pos δ_pos), one_mul],
+  apply sqr_le_sqr,
+  rw abs_eq_self.mpr (le_of_lt δ_pos),
+  rw [dist_comm] at m,
+  exact m,
 end
 
 end bernstein_approximation
@@ -230,8 +255,9 @@ theorem bernstein_approximation_uniform (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < �
   ∃ n : ℕ, ∥bernstein_approximation n f - f∥ < ε :=
 begin
   let δ := δ f ε h,
-  let n : ℕ := _, use n,
-  suffices npos : 0 < (n : ℝ),
+  let n : ℕ := _, use n, -- We postpone choosing `n` until we've obtained an explicit estimate.
+  suffices npos : 0 < (n : ℝ), -- However we do assume right away that it won't be `n = 0`!
+  -- Four easy inequalities we'll need later:
   have w₀ : 0 ≤ ε / 2 := div_nonneg (le_of_lt h) (by norm_num),
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
   have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ (pow_minus_two_nonneg _),
@@ -241,8 +267,11 @@ begin
       ... = ∥f x∥ + ∥f y∥ : by rw [abs_neg, real.norm_eq_abs, real.norm_eq_abs]
       ... ≤ ∥f∥ + ∥f∥ : add_le_add (norm_coe_le_norm _ _) (norm_coe_le_norm _ _)
       ... = 2 * ∥f∥ : by ring,
+  -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
   apply bounded_continuous_function.norm_lt_of_compact,
   intro x,
+  -- The idea is to split up the sum over `k` into two sets,
+  -- `S`, where `x - k/n < δ`, and its complement.
   let S := S f ε h n x,
   calc
     abs ((bernstein_approximation n f - f) x)
@@ -268,6 +297,8 @@ begin
     ... = ∑ k in S, abs (f (Z k) - f x) * bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
                               : (finset.sum_add_sum_compl S).symm
+    -- We now work on the terms in `S`, where uniform continuity and `bernstein.probability`
+    -- quickly give us a bound.
     ... ≤ ∑ k in S, (ε/2) * bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
                               : add_le_add_right (finset.sum_le_sum
@@ -276,10 +307,15 @@ begin
     ... = (ε/2) * ∑ k in S, bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
                               : by rw finset.mul_sum
+    -- In this step we increase the sum of `S` back to a sum over all of `fin (n+1)`,
+    -- so that we can use `bernstein.probability`.
     ... ≤ (ε/2) * ∑ k : fin (n+1), bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
                               : add_le_add_right (mul_le_mul_of_nonneg_left
                                   (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg)) w₀) _
+    -- We now turn to working on `Sᶜ`, we control the difference term just using `∥f∥`,
+    -- and then insert a `δ^(-2) * (x - k/n)^2` factor
+    -- (which is at least one because we are not in `S`).
     ... = (ε/2) + ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
                               : by rw [bernstein.probability, mul_one]
     ... ≤ (ε/2) + ∑ k in Sᶜ, (2 * ∥f∥) * bernstein n k x
@@ -294,6 +330,7 @@ begin
                                     exact mul_le_mul_of_nonneg_right
                                       (le_of_mem_S_compl m) bernstein_nonneg,
                                   end)) w₁) _
+    -- Again enlarging the sum from `Sᶜ` to all of `fin (n+1)`
     ... ≤ (ε/2) + (2 * ∥f∥) * ∑ k : fin (n+1), δ^(-2 : ℤ) * (x - Z k)^2 * bernstein n k x
                               : add_le_add_left (mul_le_mul_of_nonneg_left
                                   (finset.sum_le_univ_sum_of_nonneg
@@ -303,6 +340,7 @@ begin
     ... = (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - Z k)^2 * bernstein n k x
                               : by conv_rhs {
                                   rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
+    -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
     ... = (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
                               : by { rw variance npos, ring, }
     ... ≤ (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) / n
@@ -313,12 +351,14 @@ begin
                                   all_goals { unit_interval, },
                                 end) _
     ... < ε : _, -- We postpone this final step for a moment, in order to actually choose `n`!
-  swap 3,
-  { exact nat_ceil (2 * (2 * ∥f∥ * δ^(-2 : ℤ)) / ε) + 1, },
-  { dsimp [n] at npos ⊢,
+  -- Choose `n` to make the inequality work.
+  show ℕ, { exact nat_ceil (2 * (2 * ∥f∥ * δ^(-2 : ℤ)) / ε) + 1, },
+  { -- And a final inequality bash gets us to the end.
+    dsimp [n] at npos ⊢,
     rw [show ∀ z, ε/2 + z < ε ↔ z < ε/2, from λ z, by fsplit; { intro, linarith, }],
     rw [lt_div_iff (show (0 : ℝ) < 2, by norm_num), mul_comm],
     rw [←mul_div_assoc, div_lt_iff npos, mul_comm ε, ←div_lt_iff h],
     exact lt_of_le_of_lt (le_nat_ceil _) (lt_add_one _), },
-  { exact lt_of_le_of_lt (nat.cast_nonneg _) (lt_add_one _), }
+  { -- Oops: we promised earlier to check `0 < n`.
+    exact lt_of_le_of_lt (nat.cast_nonneg _) (lt_add_one _), }
 end

@@ -652,11 +652,11 @@ by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).suc
 theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
 sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
 
-theorem sqr_le_sqr (h : abs x ≤ y) : x ^ 2 ≤ y ^ 2 :=
+theorem sqr_le_sqr (h : abs x ≤ abs y) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
 theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
-sqr_le_sqr (abs_le.mpr ⟨h1, h2⟩)
+sqr_le_sqr (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
 
 theorem abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
 lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sqr_abs x, ← sqr_abs y] at h

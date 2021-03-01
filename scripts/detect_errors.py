@@ -12,7 +12,9 @@ def format_msg(msg):
     # Formatted for https://github.com/actions/toolkit/blob/master/docs/commands.md#log-level
     
     # mapping between lean severity levels and github levels.
-    severity_map = {'information': 'info'}
+    # github does not support info levels, which are emitted by `#check` etc:
+    # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-debug-message
+    severity_map = {'information': 'warning'}
     severity = msg.get('severity')
     severity = severity_map.get(severity, severity)
     

@@ -6,14 +6,13 @@ Authors: Eric Wieser
 import linear_algebra.clifford_algebra.basic
 import algebra.module.opposites
 
-variables {R : Type*} [comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
-variables {Q : quadratic_form R M}
 /-!
 # Conjugations
 
 This file defines the grade reversal and grade involution functions on multivectors, `reverse` and
 `involute`.
+
+https://en.wikipedia.org/wiki/Clifford_algebra#Antiautomorphisms
 
 ## Main definitions
 
@@ -26,6 +25,10 @@ This file defines the grade reversal and grade involution functions on multivect
 * `clifford_algebra.reverse_involutive`
 * `clifford_algebra.reverse_involute_commute`
 -/
+
+variables {R : Type*} [comm_ring R]
+variables {M : Type*} [add_comm_group M] [module R M]
+variables {Q : quadratic_form R M}
 
 namespace clifford_algebra
 

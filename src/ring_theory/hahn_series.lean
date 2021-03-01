@@ -85,6 +85,7 @@ pi.support_single_of_ne h
 lemma single_eq_zero : (single a (0 : R)) = 0 := ext _ _ (pi.single_zero _)
 
 end zero
+
 section addition
 
 variable [linear_order Γ]
@@ -167,6 +168,7 @@ instance : semimodule R (hahn_series Γ V) :=
   .. hahn_series.distrib_mul_action }
 
 end smul
+
 section multiplication
 
 variable [linear_ordered_cancel_add_comm_monoid Γ]

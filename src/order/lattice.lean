@@ -427,6 +427,23 @@ class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
 
+/-- The partial orders from `semilattice_sup_mk'` and `semilattice_inf_mk'` agree. -/
+lemma semilattice_sup_mk'_partial_order_eq_semilattice_inf_mk'_partial_order {α : Type*}
+  [has_sup α] [has_inf α]
+  (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
+  (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
+  (sup_idem : ∀ (a : α), a ⊔ a = a)
+  (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
+  (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
+  (inf_idem : ∀ (a : α), a ⊓ a = a)
+  (sup_inf_self : ∀ (a b : α), a ⊔ a ⊓ b = a)
+  (inf_sup_self : ∀ (a b : α), a ⊓ (a ⊔ b) = a) :
+  @semilattice_sup.to_partial_order _ (semilattice_sup.mk' sup_comm sup_assoc sup_idem) =
+    @semilattice_inf.to_partial_order _ (semilattice_inf.mk' inf_comm inf_assoc inf_idem) :=
+partial_order.ext $ λ a b, show a ⊔ b = b ↔ a = a ⊓ b, from
+  ⟨λ h, by rw [←h, inf_sup_self],
+   λ h, by rw [h, sup_comm, inf_comm, sup_inf_self]⟩
+
 /--
 A type with a pair of commutative and associative binary operations which satisfy two absorption
 laws relating the two operations has the structure of a lattice.
@@ -446,25 +463,20 @@ have sup_idem : ∀ (b : α), b ⊔ b = b := λ b,
 have inf_idem : ∀ (b : α), b ⊓ b = b := λ b,
   calc b ⊓ b = b ⊓ (b ⊔ b ⊓ b) : by rw sup_inf_self
          ... = b               : by rw inf_sup_self,
-have sup_eq_iff_inf_eq : ∀ (a b : α), a ⊔ b = b ↔ a ⊓ b = a := λ a b,
-  ⟨λ h, by rw [←h, inf_sup_self],
-   λ h, by rw [←h, sup_comm, inf_comm, sup_inf_self]⟩,
-{ /- Lean doesn't know that the `partial_order` instances from `semilattice_sup` and
-    `semilattice_inf` agree, so we have to provide these fields explicitly. -/
-  inf_le_left  := λ a b, show a ⊓ b ⊔ a = a, by rw [sup_comm, sup_inf_self],
-  inf_le_right := λ a b, show a ⊓ b ⊔ b = b, by rw [sup_comm, inf_comm, sup_inf_self],
-  le_inf := λ a b c hab hac,
-    begin
-      change a ⊔ b = b at hab,
-      change a ⊔ c = c at hac,
-      change a ⊔ b ⊓ c = b ⊓ c,
-      rw sup_eq_iff_inf_eq at ⊢ hab hac,
-      calc a ⊓ (b ⊓ c) = a ⊓ b ⊓ c : by rw inf_assoc
-                   ... = a ⊓ c     : by rw hab
-                   ... = a         : by rw hac
-    end,
-  ..semilattice_sup.mk' sup_comm sup_assoc sup_idem,
-  ..semilattice_inf.mk' inf_comm inf_assoc inf_idem, }
+let inf_instance := semilattice_inf.mk' inf_comm inf_assoc inf_idem in
+let sup_instance := semilattice_sup.mk' sup_comm sup_assoc sup_idem in
+-- here we help Lean to see that the two partial orders are equal
+let partial_order_inst := @semilattice_sup.to_partial_order _ sup_instance in
+have partial_order_eq :
+  partial_order_inst = @semilattice_inf.to_partial_order _ inf_instance :=
+  semilattice_sup_mk'_partial_order_eq_semilattice_inf_mk'_partial_order _ _ _ _ _ _
+    sup_inf_self inf_sup_self,
+{ inf_le_left  := λ a b, by { rw partial_order_eq, apply inf_le_left },
+  inf_le_right := λ a b, by { rw partial_order_eq, apply inf_le_right },
+  le_inf := λ a b c, by { rw partial_order_eq, apply le_inf },
+  ..partial_order_inst,
+  ..sup_instance,
+  ..inf_instance, }
 
 section lattice
 variables [lattice α] {a b c d : α}
@@ -517,7 +529,8 @@ as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
 
-/- TODO: alternative constructors from the other distributive properties -/
+/- TODO: alternative constructors from the other distributive properties,
+and perhaps a `tfae` statement -/
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}

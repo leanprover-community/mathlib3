@@ -67,104 +67,120 @@ def Koszul : cochain_complex (Module R) :=
 
 variables {M}
 
+@[reducible] def int_pair (n : ℤ) := { i : ℤ × ℤ // i.1 + i.2 = n }
+def int_pair_mk (n i j : ℤ) (h : i + j = n) : int_pair n :=
+⟨(i, j), h⟩
+
+@[simp] lemma int_pair_fst_eq_sub {n : ℤ} (i : int_pair n) :
+  n - i.1.2 = i.1.1 :=
+by rw [sub_eq_iff_eq_add, i.2]
+
+@[simp] lemma int_pair_snd_eq_sub {n : ℤ} (i : int_pair n) :
+  n - i.1.1 = i.1.2 :=
+by rw [sub_eq_iff_eq_add', i.2]
+
+lemma int_pair_ext_iff_fst {n : ℤ} {i j : int_pair n} :
+  i = j ↔ i.1.1 = j.1.1 :=
+⟨λ h, by cc, λ h, subtype.ext $ prod.ext h $
+  by erw [←int_pair_snd_eq_sub i, ←int_pair_snd_eq_sub j, h]⟩
+
+lemma int_pair_ext_iff_snd {n : ℤ} {i j : int_pair n} :
+  i = j ↔ i.1.2 = j.1.2 :=
+⟨λ h, by cc, λ h, subtype.ext $ prod.ext
+  (by erw [←int_pair_fst_eq_sub i, ←int_pair_fst_eq_sub j, h]) h⟩
+
 instance aux_acg (n : ℤ) (F G : cochain_complex (Module R)) :
-  add_comm_group (direct_sum ({i : ℤ × ℤ // i.1 + i.2 = n})
+  add_comm_group (direct_sum (int_pair n)
   (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2))) :=
-@direct_sum.add_comm_group ({i : ℤ × ℤ // i.1 + i.2 = n})
+@direct_sum.add_comm_group (int_pair n)
   (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2)) _
 
 instance aux_module (n : ℤ) (F G : cochain_complex (Module R)) :=
-@direct_sum.semimodule R _ ({i : ℤ × ℤ // i.1 + i.2 = n})
+@direct_sum.semimodule R _ (int_pair n)
   (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2)) _ _
 
-variables (F G : cochain_complex (Module R)) (n : ℤ)
+variables (F G : cochain_complex (Module R)) {n : ℤ}
 
-lemma aux_succ_eq (i : {i : ℤ × ℤ // i.1 + i.2 = n}) :
+lemma int_pair_add_one (i : int_pair n) :
   i.1.1 + 1 + i.1.2 = n + 1 :=
 by {rw [add_comm, ←add_assoc, add_left_inj, add_comm], exact i.2 }
 
-def tensor_d_fst (i : {i : ℤ × ℤ // i.1 + i.2 = n}) :=
-(direct_sum.lof R ({i : ℤ × ℤ // i.1 + i.2 = n.succ})
+def tensor_d_fst (i : int_pair n) :=
+(direct_sum.lof R (int_pair (n + 1))
   (λ j, tensor_product R (F.X j.1.1) (G.X j.1.2))
-    ⟨⟨i.1.1.succ, i.1.2⟩,
-    show i.1.1 + 1 + i.1.2 = n + 1, by
-      {rw [add_comm, ←add_assoc, add_left_inj, add_comm], exact i.2 }⟩).comp $
-    (tensor_product.map (F.d i.1.1 : F.X i.1.1 →ₗ[R] F.X i.1.1.succ) linear_map.id)
+    (int_pair_mk (n + 1) (i.1.1 + 1) i.1.2 (int_pair_add_one _))).comp $
+    (tensor_product.map (F.d i.1.1 : F.X i.1.1 →ₗ[R] F.X $ i.1.1 + 1) linear_map.id)
 
-def tensor_d_snd (i : {i : ℤ × ℤ // i.1 + i.2 = n}) :=
-(direct_sum.lof R ({i : ℤ × ℤ // i.1 + i.2 = n.succ})
+def tensor_d_snd (i : int_pair n) :=
+(direct_sum.lof R (int_pair (n + 1))
   (λ j, tensor_product R (F.X j.1.1) (G.X j.1.2))
-      ⟨⟨i.1.1, i.1.2.succ⟩,
-       show i.1.1 + (i.1.2 + 1) = n + 1, by {rw [←add_assoc, add_left_inj], exact i.2}⟩).comp $
+      (int_pair_mk (n + 1) i.1.1 (i.1.2 + 1) (by rw [←add_assoc, i.2]))).comp $
   (tensor_product.map ((-1 : R)^(int.nat_abs i.1.1) • linear_map.id)
-  (G.d i.1.2 : G.X i.1.2 →ₗ[R] G.X i.1.2.succ))
+  (G.d i.1.2 : G.X i.1.2 →ₗ[R] G.X $ i.1.2 + 1))
 
-def tensor_d : direct_sum {i : ℤ × ℤ // i.fst + i.snd = n}
+def tensor_d : direct_sum (int_pair n)
   (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2)) →ₗ[R]
-    direct_sum {i : ℤ × ℤ // i.fst + i.snd = n.succ}
+    direct_sum (int_pair (n + 1))
   (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2)) :=
-direct_sum.to_module R ({i : ℤ × ℤ // i.1 + i.2 = n}) _ $
-λ (i : {i : ℤ × ℤ // i.1 + i.2 = n}), @tensor_d_fst R _ F G n i + tensor_d_snd R F G n i
+direct_sum.to_module R (int_pair n) _ $
+λ (i : int_pair n), tensor_d_fst R F G i + tensor_d_snd R F G i
 
-def succ_fst (i : {i : ℤ × ℤ // i.1 + i.2 = n}) : {i : ℤ × ℤ // i.1 + i.2 = n.succ} :=
- ⟨⟨i.1.1.succ, i.1.2⟩,
-    show i.1.1 + 1 + i.1.2 = n + 1, by
-    {rw [add_comm, ←add_assoc, add_left_inj, add_comm], exact i.2 }⟩
+def int_pair_add_one_fst (i : int_pair n) : int_pair (n + 1) :=
+int_pair_mk (n + 1) (i.1.1 + 1) i.1.2 (int_pair_add_one i)
 
-def succ_snd (i : {i : ℤ × ℤ // i.1 + i.2 = n}) : {i : ℤ × ℤ // i.1 + i.2 = n.succ} :=
- ⟨⟨i.1.1, i.1.2.succ⟩,
-       show i.1.1 + (i.1.2 + 1) = n + 1, by {rw [←add_assoc, add_left_inj], exact i.2}⟩
+def int_pair_add_one_snd (i : int_pair n) : int_pair (n + 1) :=
+int_pair_mk (n + 1) i.1.1 (i.1.2 + 1) (by rw [←add_assoc, i.2])
 
-lemma tensor_d_fst_apply (i : {i : ℤ × ℤ // i.1 + i.2 = n})
+lemma tensor_d_fst_apply (i : int_pair n)
   (x : F.X i.1.1) (y : G.X i.1.2) :
-  tensor_d_fst R F G n i (tensor_product.mk R _ _ x y) (succ_fst n i) =
-  (tensor_product.mk R (F.X i.1.1.succ) (G.X i.1.2) (F.d i.1.1 x) y) :=
+  tensor_d_fst R F G i (tensor_product.mk R _ _ x y) (int_pair_add_one_fst i) =
+  (tensor_product.mk R (F.X $ i.1.1 + 1) (G.X i.1.2) (F.d i.1.1 x) y) :=
 direct_sum.lof_apply R _ _
 
-lemma tensor_d_fst_of_ne (i : {i : ℤ × ℤ // i.1 + i.2 = n})
-  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : succ_fst n i ≠ j) :
-  tensor_d_fst R F G n i (tensor_product.mk R _ _ x y) j = 0 :=
+lemma tensor_d_fst_of_ne (i : int_pair n)
+  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : int_pair_add_one_fst i ≠ j) :
+  tensor_d_fst R F G i (tensor_product.mk R _ _ x y) j = 0 :=
 dfinsupp.single_eq_of_ne hj
 
-lemma tensor_d_fst_of_eq (i : {i : ℤ × ℤ // i.1 + i.2 = n})
-  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : succ_fst n i = j) :
-  tensor_d_fst R F G n i (tensor_product.mk R (F.X i.1.1) (G.X i.1.2) x y) j =
+lemma tensor_d_fst_of_eq (i : int_pair n)
+  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : int_pair_add_one_fst i = j) :
+  tensor_d_fst R F G i (tensor_product.mk R (F.X i.1.1) (G.X i.1.2) x y) j =
   tensor_product.mk R (F.X j.1.1) (G.X j.1.2)
-    (eq.rec (F.d i.1.1 x) $ show i.1.1.succ = j.1.1, by rw ←hj; refl)
+    (eq.rec (F.d i.1.1 x) $ show i.1.1 + 1 = j.1.1, by rw ←hj; refl)
     (eq.rec y $ show i.1.2 = j.1.2, by rw ←hj; refl) :=
 begin
   cases hj,
-  convert tensor_d_fst_apply R F G n i x y,
+  convert tensor_d_fst_apply R F G i x y,
 end
 
-lemma tensor_d_snd_apply (i : {i : ℤ × ℤ // i.1 + i.2 = n})
+lemma tensor_d_snd_apply (i : int_pair n)
   (x : F.X i.1.1) (y : G.X i.1.2) :
-  tensor_d_snd R F G n i (tensor_product.mk R _ _ x y) (succ_snd n i) =
-  (tensor_product.mk R (F.X i.1.1) (G.X i.1.2.succ)
+  tensor_d_snd R F G i (tensor_product.mk R _ _ x y) (int_pair_add_one_snd i) =
+  (tensor_product.mk R (F.X i.1.1) (G.X $ i.1.2 + 1)
     ((-1 : R)^(int.nat_abs i.1.1) • x) (G.d i.1.2 y)) :=
 direct_sum.lof_apply R _ _
 
-lemma tensor_d_snd_of_ne (i : {i : ℤ × ℤ // i.1 + i.2 = n})
-  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : succ_snd n i ≠ j) :
-  tensor_d_snd R F G n i (tensor_product.mk R _ _ x y) j = 0 :=
+lemma tensor_d_snd_of_ne (i : int_pair n)
+  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : int_pair_add_one_snd i ≠ j) :
+  tensor_d_snd R F G i (tensor_product.mk R _ _ x y) j = 0 :=
 dfinsupp.single_eq_of_ne hj
 
-lemma tensor_d_snd_of_eq (i : {i : ℤ × ℤ // i.1 + i.2 = n})
-  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : succ_snd n i = j) :
-  tensor_d_snd R F G n i (tensor_product.mk R (F.X i.1.1) (G.X i.1.2) x y) j =
+lemma tensor_d_snd_of_eq (i : int_pair n)
+  (x : F.X i.1.1) (y : G.X i.1.2) (j) (hj : int_pair_add_one_snd i = j) :
+  tensor_d_snd R F G i (tensor_product.mk R (F.X i.1.1) (G.X i.1.2) x y) j =
   tensor_product.mk R (F.X j.1.1) (G.X j.1.2)
     (eq.rec ((-1 : R)^(int.nat_abs i.1.1) • x) $ show i.1.1 = j.1.1, by rw ←hj; refl)
-    (eq.rec (G.d i.1.2 y) $ show i.1.2.succ = j.1.2, by rw ←hj; refl) :=
+    (eq.rec (G.d i.1.2 y) $ show i.1.2 + 1 = j.1.2, by rw ←hj; refl) :=
 begin
   cases hj,
-  convert tensor_d_snd_apply R F G n i x y,
+  convert tensor_d_snd_apply R F G i x y,
 end
 
-lemma succ_fst_succ_snd (i : {i : ℤ × ℤ // i.1 + i.2 = n}) :
-  succ_fst n.succ (succ_snd n i) = succ_snd n.succ (succ_fst n i) :=
+lemma int_pair_add_one_comm (i : int_pair n) :
+  int_pair_add_one_fst (int_pair_add_one_snd i) = int_pair_add_one_snd (int_pair_add_one_fst i) :=
 subtype.ext rfl
 
-lemma neg_one_pow_nat_abs (i : ℤ) : (-1 : R) ^ i.succ.nat_abs = -(-1 : R) ^ i.nat_abs :=
+lemma neg_one_pow_nat_abs (i : ℤ) : (-1 : R) ^ (i + 1).nat_abs = -(-1 : R) ^ i.nat_abs :=
 begin
   rw neg_eq_neg_one_mul ((-1 : R) ^ _),
   induction i,
@@ -173,19 +189,19 @@ begin
   { rw [int.nat_abs, pow_succ, ←mul_assoc],
     simp only [neg_mul_neg, one_mul],
     congr,
-    rw ←int.neg_of_nat_of_succ,
-    erw int.succ_neg_nat_succ,
-    simp only [int.nat_abs_of_nat, int.nat_abs_neg] },
+    show int.nat_abs (-(i + 1 : ℤ) + 1) = _,
+    simp only [int.nat_abs_of_nat, neg_add_cancel_comm, int.nat_abs_neg,
+      neg_add_rev] },
 end
 
 lemma neg_one_pow_aux {N : Type v} [add_comm_group N] [module R N] (x : N) (i : ℤ) :
-  (-1 : R) ^ i.succ.nat_abs • x + (-1 : R) ^ i.nat_abs • x = 0 :=
+  (-1 : R) ^ (i + 1).nat_abs • x + (-1 : R) ^ i.nat_abs • x = 0 :=
 begin
   cases @neg_one_pow_eq_or R _ i.nat_abs,
   any_goals {simp only [neg_one_pow_nat_abs, h, add_left_neg, neg_smul]},
 end
 
-lemma tensor_d_squared : (tensor_d R F G n.succ).comp (tensor_d R F G n) = 0 :=
+lemma tensor_d_squared : (tensor_d R F G).comp (@tensor_d R _ F G n) = 0 :=
 begin
   ext i x y j,
   rw [linear_map.zero_comp, linear_map.zero_apply, linear_map.comp_apply, linear_map.comp_apply],
@@ -194,14 +210,16 @@ begin
   rw [linear_map.add_apply, linear_map.add_apply],
   repeat {rw tensor_product.map_tmul},
   repeat {rw dfinsupp.add_apply},
-  cases classical.em (succ_fst n.succ (succ_fst n i) = j),
-  { have hj1 : succ_fst n.succ (succ_snd n i) ≠ j := λ hnot, succ_ne_self i.1.1.succ $
+  cases classical.em (int_pair_add_one_fst (int_pair_add_one_fst i) = j),
+  { have hj1 : int_pair_add_one_fst (int_pair_add_one_snd i) ≠ j :=
+    λ hnot, succ_ne_self (i.1.1 + 1) $
       (prod.ext_iff.1 $ subtype.ext_iff.1 (h.trans hnot.symm)).1,
-    have hj2 : succ_snd n.succ (succ_snd n i) ≠ j := λ hnot, by {
+    have hj2 : int_pair_add_one_snd (int_pair_add_one_snd i) ≠ j := λ hnot, by {
       obtain ⟨h1, h2⟩ := prod.ext_iff.1 (subtype.ext_iff.1 $ h.trans hnot.symm),
       change i.1.1 + 1 + 1 = i.1.1 at h1,
-      linarith},
-    have hj3 : succ_snd n.succ (succ_fst n i) ≠ j := λ hnot, succ_ne_self i.1.1.succ $
+      linarith },
+    have hj3 : int_pair_add_one_snd (int_pair_add_one_fst i) ≠ j :=
+    λ hnot, succ_ne_self (i.1.1 + 1) $
       (prod.ext_iff.1 $ subtype.ext_iff.1 (h.trans hnot.symm)).1,
     erw [dfinsupp.single_eq_of_ne hj1, dfinsupp.single_eq_of_ne hj2,
       dfinsupp.single_eq_of_ne hj3],
@@ -211,25 +229,25 @@ begin
     rw ←linear_map.comp_apply,
     convert linear_map.zero_apply _,
     exact F.d_squared _ },
-  { cases classical.em (succ_fst n.succ (succ_snd n i) = j) with hj hj,
-    { have hj1 : succ_snd n.succ (succ_snd n i) ≠ j := λ hnot, succ_ne_self i.1.1 $
+  { cases classical.em (int_pair_add_one_fst (int_pair_add_one_snd i) = j) with hj hj,
+    { have hj1 : int_pair_add_one_snd (int_pair_add_one_snd i) ≠ j := λ hnot, succ_ne_self i.1.1 $
         (prod.ext_iff.1 $ subtype.ext_iff.1 (hj.trans hnot.symm)).1,
       erw [dfinsupp.single_eq_of_ne h, dfinsupp.single_eq_of_ne hj1],
       rw [zero_add, add_zero, ←hj],
-      erw [tensor_d_fst_apply, tensor_d_snd_of_eq _ _ _ _ _ _ _
-        (succ_fst n.succ (succ_snd n i)) (succ_fst_succ_snd n i).symm],
-      show tensor_product.mk R (F.X i.1.1.succ) (G.X i.1.2.succ)
-        ((-1 : R) ^ i.1.1.succ.nat_abs • F.d i.1.1 x) (G.d i.1.2 y) +
-        tensor_product.mk R (F.X i.1.1.succ) (G.X i.1.2.succ)
+      erw [tensor_d_fst_apply, tensor_d_snd_of_eq _ _ _ _ _ _
+        (int_pair_add_one_fst (int_pair_add_one_snd i)) (int_pair_add_one_comm i).symm],
+      show tensor_product.mk R (F.X $ i.1.1 + 1) (G.X $ i.1.2 + 1)
+        ((-1 : R) ^ (i.1.1 + 1).nat_abs • F.d i.1.1 x) (G.d i.1.2 y) +
+        tensor_product.mk R (F.X $ i.1.1 + 1) (G.X $ i.1.2 + 1)
           (F.d i.1.1 ((-1 : R) ^ (i.1.1.nat_abs) • x)) (G.d i.1.2 y) = 0,
       rw ←linear_map.add_apply,
       convert linear_map.zero_apply _,
       rw ←linear_map.map_add,
       convert linear_map.map_zero _,
       rw [linear_map.map_smul, neg_one_pow_aux] },
-    { cases classical.em (succ_snd n.succ (succ_snd n i) = j) with hj1 hj1,
+    { cases classical.em (int_pair_add_one_snd (int_pair_add_one_snd i) = j) with hj1 hj1,
       { erw [dfinsupp.single_eq_of_ne hj, dfinsupp.single_eq_of_ne h,
-          dfinsupp.single_eq_of_ne (λ hnot, hj $ (succ_fst_succ_snd _ _).trans hnot)],
+          dfinsupp.single_eq_of_ne (λ hnot, hj $ (int_pair_add_one_comm _).trans hnot)],
         simp only [zero_add],
         rw ←hj1,
         erw tensor_d_snd_apply,
@@ -238,7 +256,7 @@ begin
         convert linear_map.zero_apply _,
         exact G.d_squared _ },
       { erw [dfinsupp.single_eq_of_ne hj, dfinsupp.single_eq_of_ne h,
-          dfinsupp.single_eq_of_ne (λ hnot, hj $ (succ_fst_succ_snd _ _).trans hnot),
+          dfinsupp.single_eq_of_ne (λ hnot, hj $ (int_pair_add_one_comm _).trans hnot),
           dfinsupp.single_eq_of_ne hj1],
         simp only [zero_add, dfinsupp.zero_apply] }}},
 end
@@ -247,10 +265,10 @@ variables {M}
 
 def cochain_complex.tensor_product (F G : cochain_complex.{u u+1} (Module.{u u} R)) :
   cochain_complex (Module R) :=
-{ X := λ n, Module.of R (direct_sum ({i : ℤ × ℤ // i.1 + i.2 = n})
+{ X := λ n, Module.of R (direct_sum (int_pair n)
     (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2))),
-  d := λ n, tensor_d R F G n,
-  d_squared' := by {ext1 n, dsimp, convert tensor_d_squared R F G n} }
+  d := λ n, tensor_d R F G,
+  d_squared' := by {ext1 n, dsimp, convert tensor_d_squared R F G }}
 
 def cochain_complex.tensor_single (F : cochain_complex.{u u+1} (Module.{u u} R))
   (M : Module R) : cochain_complex (Module R) :=

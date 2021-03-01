@@ -167,7 +167,7 @@ begin
       apply_instance }},
 end
 
-lemma subsingleton_free_Koszul_neg' {n : ℕ} (j : ℤ) {x : fin n.succ → R} (hj : j < 0):
+lemma subsingleton_free_Koszul_neg' {n : ℕ} (j : ℤ) {x : fin n.succ → R} (hj : j < 0) :
   subsingleton ((free_Koszul R n x).X j) :=
 @equiv.subsingleton _ _ (cx_cast _ j -[1+ (int.nat_abs (j + 1))]
 begin
@@ -179,6 +179,20 @@ begin
     { congr }},
 end).to_linear_equiv.to_equiv
 (subsingleton_free_Koszul_neg R _ _ _)
+
+lemma subsingleton_smul_cx (j : ℤ) (x : R) (hj : ¬(j = 0 ∨ j = 1)) :
+  subsingleton ((smul_cx R x).X j) :=
+begin
+  induction j with j j,
+  { induction j with j hj,
+    { contrapose! hj,
+      exact or.inl rfl },
+    { induction j with j hj',
+      { contrapose! hj,
+        exact or.inr rfl },
+      { show subsingleton (Module.of R punit), by apply_instance }}},
+  { exact subsingleton_free_Koszul_neg R 0 j (λ i, x) }
+end
 
 def of_fin_one_equiv : (fin 1 → R) ≃ₗ[R] R :=
 { to_fun := λ f, f 0,
@@ -367,72 +381,71 @@ def cochain_complex.hom (F G : cochain_complex.{u u+1} (Module.{u u} R)) :
   d := _,
   d_squared' := _ }-/
 
-variables (n : ℕ) (fn : Π (x : fin n.succ → R), (free_Koszul R n x).X 0 ≅ Module.of R R)
-(x : fin n.succ.succ → R) (j : ℤ) (h0 : (int.of_nat 0, j).fst + (int.of_nat 0, j).snd = 0) (m : ℕ)
+variables (n : ℕ)
 
 @[simp] lemma to_linear_map_apply {M N : Type u} [add_comm_group M] [module R M]
   [add_comm_group N] [module R N] (f : M ≃ₗ[R] N) (x : M) :
   f.to_linear_map x = f x := rfl
-#check direct_sum.component R
-#check direct_sum.lof
+
+lemma direct_sum.component.lof_ne {ι : Type v} [dec_ι : decidable_eq ι]
+  {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
+  {i j : ι} (h : j ≠ i) (b : M j) :
+  direct_sum.component R ι M i ((direct_sum.lof R ι M j) b) = 0 :=
+dfinsupp.single_eq_of_ne h
+
+/-lemma direct_sum.lof_congr {ι : Type v} [dec_ι : decidable_eq ι]
+  {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
+  {i j : ι} (h : j = i) (b : M j) :
+  direct_sum.lof R _ M j b = direct_sum.lof R _ M i (eq.rec b h) :=
+begin
+  cases h,
+  refl,
+end-/
+
+open_locale classical
 
 def free_Koszul_zero {n : ℕ} : Π (x : fin n.succ → R),
   (free_Koszul R n x).X 0 ≅ Module.of R R :=
 nat.rec_on n (λ x, category_theory.iso.refl _) $ λ n fn x,
-{ hom := (fn (fin.init x)).hom.comp  (linear_map.comp (tensor_product.lid R ((free_Koszul R n (fin.init x)).X 0)).to_linear_map
-  (direct_sum.component R {k : ℤ × ℤ // k.1 + k.2 = 0} _
-   (⟨(0, 0), zero_add _⟩ : {k : ℤ × ℤ // k.1 + k.2 = 0}) : (free_Koszul R n.succ x).X 0 →ₗ[R] tensor_product R (Module.of R R) ((free_Koszul R n (fin.init x)).X 0))),
-  inv := (direct_sum.lof R _ _ (⟨(0, 0), zero_add _⟩ : {i : ℤ × ℤ // i.1 + i.2 = 0})).comp $
+{ hom := (fn (fin.init x)).hom.comp  (linear_map.comp (tensor_product.lid R
+  ((free_Koszul R n (fin.init x)).X 0)).to_linear_map
+  (direct_sum.component R (int_pair 0) _
+   (int_pair_mk 0 0 0 $ zero_add _) : (free_Koszul R n.succ x).X 0
+     →ₗ[R] tensor_product R (Module.of R R) ((free_Koszul R n (fin.init x)).X 0))),
+  inv := (direct_sum.lof R _ _ (int_pair_mk 0 0 0 $ zero_add _)).comp $
     (tensor_product.lid R _).symm.to_linear_map.comp (fn _).symm.hom,
   hom_inv_id' :=
-    begin
-      ext1 i,
-      cases i with i hi,
-      cases i with i j,
-      induction i with i i,
-      { induction i with i hi,
-        { induction j with j j,
-          { induction j with j hj,
-            { ext1 X Y,
-              dsimp,
-              simp only [linear_map.comp_apply, ←tensor_product.lid_symm_apply],
-              erw linear_map.ext_iff.1 (fn _).hom_inv_id,
-              rw Module.id_apply,
-              rw linear_equiv.symm_apply_apply,
-              rw direct_sum.single_eq_lof R,
-              erw direct_sum.component.lof_self R,
-              refl, },
-            { have hj0 : int.of_nat j.succ = 0,
-                { dsimp at hi,
-                  rwa zero_add at hi, },
-              exfalso,
-              refine nat.succ_ne_zero j _,
-              exact int.of_nat.inj hj0 } },
-          { have hj0 : -[1+ j] = 0,
-              { dsimp at hi,
-                rwa zero_add at hi },
-            exfalso,
-            refine nat.succ_ne_zero j _,
-            rw [int.neg_succ_of_nat_coe, neg_eq_zero] at hj0,
-            exact int.of_nat.inj hj0 }},
-        { ext1 X Y,
-          haveI : subsingleton ((free_Koszul R n (fin.init x)).X j) := subsingleton_free_Koszul_neg' R j (by
-           { simp only [int.coe_nat_succ, int.of_nat_eq_coe, add_eq_zero_iff_neg_eq] at hi,
-             rw ←hi,
-             exact int.neg_succ_of_nat_lt_zero _ }),
-          rw subsingleton.elim Y 0,
-          simp only [dfinsupp.single_zero, linear_map.map_zero, tensor_product.tmul_zero]}, },
-      { ext1 X Y,
-        rw @subsingleton.elim _ (subsingleton_free_Koszul_neg R 0 i (λ k, x n.succ)) X 0,
-        simp only [dfinsupp.single_zero, linear_map.map_zero, tensor_product.zero_tmul], }
-    end,
+  begin
+    ext1 i,
+    ext1 X Y,
+    simp only [category_theory.coe_hom_inv_id, to_linear_map_apply, dfinsupp.lsingle_apply,
+      function.comp_app, category_theory.iso.symm_hom, -tensor_product.lid_symm_apply,
+      Module.coe_comp, Module.id_apply, linear_map.comp_apply],
+    erw linear_equiv.symm_apply_apply,
+    rcases classical.em (i = int_pair_mk 0 0 0 (zero_add _)) with ⟨rfl, h⟩,
+    { erw [direct_sum.component.lof_self],
+      refl },
+    { erw direct_sum.component.lof_ne R h,
+      rw [←direct_sum.single_eq_lof, dfinsupp.single_zero],
+      convert dfinsupp.single_zero.symm,
+      refine decidable.lt_by_cases i.1.1 0 (λ H, _) (λ H, _) (λ H, _),
+      { rw [@subsingleton.elim _ (@subsingleton_free_Koszul_neg' R _ 0 i.1.1 (λ k, x n.succ) H) X 0,
+        tensor_product.zero_tmul] },
+      { contrapose! h,
+        rw [int_pair_ext_iff_fst, H],
+        refl },
+      { have : i.1.2 < 0 := by {rw ←int_pair_snd_eq_sub i, linarith},
+        rw [@subsingleton.elim _ (@subsingleton_free_Koszul_neg' R _ n i.1.2 (fin.init x) this) Y 0,
+        tensor_product.tmul_zero] },
+      { apply_instance }}
+  end,
   inv_hom_id' :=
     begin
       ext,
       dsimp,
       simp only [linear_map.comp_apply, ←tensor_product.lid_symm_apply],
-      rw [direct_sum.component.lof_self, linear_equiv.apply_symm_apply],
-      erw linear_map.ext_iff.1 (fn _).inv_hom_id,
+      erw [direct_sum.component.lof_self, linear_equiv.apply_symm_apply,
+        linear_map.ext_iff.1 (fn _).inv_hom_id],
       refl,
     end }
 
@@ -480,99 +493,74 @@ def equiv_of_eq_rk (i j : ℕ) (h : i = j) :
       refl,
     end, }
 
-def hom_aux {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
-  (free_Koszul R n.succ x).X (int.of_nat i.succ) →ₗ[R]
-  ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ) ×
-  (free_Koszul R n (fin.init x)).X (int.of_nat i)) :=
-@linear_map.prod R ((free_Koszul R n.succ x).X (int.of_nat i.succ)) ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ)) ((free_Koszul R n (fin.init x)).X (int.of_nat i)) _ _ _ _ _ _ _
-((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R {k : ℤ × ℤ // k.1 + k.2 = i.succ} _
-   (⟨(0, i.succ), zero_add _⟩ : {k : ℤ × ℤ // k.1 + k.2 = i.succ}) :
-   (free_Koszul R n.succ x).X (int.of_nat i.succ) →ₗ[R] tensor_product R (Module.of R R)
-     ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ))))
-((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R _ _ (⟨(1, i), add_comm 1 i⟩ : {k : ℤ × ℤ // k.1 + k.2 = i.succ})))
-  --refine linear_map.comp (tensor_product.lid R ((free_Koszul R n.succ x).X (int.of_nat i.succ))) _,
-
-  /-((free_Koszul R n (fin.init x)).X (int.of_nat i))).to_linear_map.comp (direct_sum.component R {k : ℤ × ℤ // k.1 + k.2 = i.succ}
-  (λ j, tensor_product R ((smul_cx R (x n.succ)).X j.1.1) ((free_Koszul R n (fin.init x)).X j.1.2))
-   (⟨(1, i), add_comm 1 i⟩ : {k : ℤ × ℤ // k.1 + k.2 = i.succ}) :
-   (free_Koszul R n.succ x).X (int.of_nat i) →ₗ[R] tensor_product R (Module.of R R)
-     ((free_Koszul R n (fin.init x)).X (int.of_nat i))))-/
-
-/- (direct_sum.lof R _ _ (⟨(0, i.succ), zero_add _⟩ : {k : ℤ × ℤ // k.1 + k.2 = i.succ}) $
-    (direct_sum.component R {k : ℤ × ℤ // k.1 + k.2 = i.succ} _
-   (⟨(0, i.succ), zero_add _⟩ : {k : ℤ × ℤ // k.1 + k.2 = i.succ}) : (free_Koszul R n.succ x).X (int.of_nat i.succ) →ₗ[R] tensor_product R (Module.of R R) ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ))).comp _)
- ((direct_sum.component R {k : ℤ × ℤ // k.1 + k.2 = i.succ} _
-   (⟨(1, i), add_comm _ _⟩ : {k : ℤ × ℤ // k.1 + k.2 = i.succ}) : (free_Koszul R n.succ x).X (int.of_nat i.succ) →ₗ[R] tensor_product R (Module.of R R) ((free_Koszul R n (fin.init x)).X (int.of_nat i))).comp _)-/
-
-   /-direct_sum.to_module R _ (((free_Koszul R n (fin.init x)).X
-     (int.of_nat i.succ)) ×
-  (free_Koszul R n (fin.init x)).X (int.of_nat i))
-    (λ (j : {j : ℤ × ℤ // j.1 + j.2 = int.of_nat i.succ}),
-  (subtype.cases_on j (λ j, prod.cases_on j $ λ j k,
-  int.rec_on j (λ j, nat.rec_on j (λ hj, (linear_map.inl R _ _).comp
-    ((cx_cast _ _ _ (by dsimp at hj; rwa zero_add at hj)).hom.comp
-    (tensor_product.lid R _).to_linear_map))
-    (λ k, nat.rec_on k (λ hj hk, (linear_map.inr R _ _).comp $
-      (cx_cast _ _ _ (by dsimp at *; omega)).hom.comp
-    (tensor_product.lid R _).to_linear_map) (λ _ _ _ _, 0)) )
-  (λ _ _, 0)) :
-    tensor_product R ((smul_cx R (x n.succ)).X j.1.1)
-      ((free_Koszul R n (fin.init x)).X j.1.2) →ₗ[R]
-      ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ)
-        × (free_Koszul R n (fin.init x)).X (int.of_nat i))))-/
-
-lemma direct_sum.component.lof_ne {ι : Type v} [dec_ι : decidable_eq ι]
-  {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
-  {i j : ι} (h : j ≠ i) (b : M j) :
-  direct_sum.component R ι M i ((direct_sum.lof R ι M j) b) = 0 :=
-dfinsupp.single_eq_of_ne h
-
 def free_Koszul_prod {n : ℕ} (i : ℕ) (x : fin n.succ.succ → R) :
-  (free_Koszul R n.succ x).X (int.of_nat i.succ) ≃ₗ[R]
-  ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ) ×
-  (free_Koszul R n (fin.init x)).X (int.of_nat i)) :=
-{ to_fun := @linear_map.prod R ((free_Koszul R n.succ x).X (int.of_nat i.succ))
-  ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ))
-  ((free_Koszul R n (fin.init x)).X (int.of_nat i)) _ _ _ _ _ _ _
-  ((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R
-  {k : ℤ × ℤ // k.1 + k.2 = i.succ} _ (⟨(0, i.succ), zero_add _⟩ :
-  {k : ℤ × ℤ // k.1 + k.2 = i.succ}) : (free_Koszul R n.succ x).X (int.of_nat i.succ)
-    →ₗ[R] tensor_product R (Module.of R R)
-     ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ))))
-  ((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R _ _ (⟨(1, i), add_comm 1 i⟩ :
-    {k : ℤ × ℤ // k.1 + k.2 = i.succ}))),
+  (free_Koszul R n.succ x).X i.succ ≃ₗ[R]
+  ((free_Koszul R n (fin.init x)).X i.succ × (free_Koszul R n (fin.init x)).X i) :=
+{ to_fun := @linear_map.prod R ((free_Koszul R n.succ x).X i.succ)
+    ((free_Koszul R n (fin.init x)).X i.succ) ((free_Koszul R n (fin.init x)).X i) _ _ _ _ _ _ _
+  ((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R (int_pair i.succ) _
+    (int_pair_mk i.succ 0 i.succ $ zero_add _) : (free_Koszul R n.succ x).X i.succ
+      →ₗ[R] tensor_product R (Module.of R R) ((free_Koszul R n (fin.init x)).X i.succ)))
+  ((tensor_product.lid R _).to_linear_map.comp (direct_sum.component R _ _
+    (int_pair_mk i.succ 1 i $ add_comm _ _))),
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _,
-  inv_fun := @linear_map.coprod R ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ))
-    ((free_Koszul R n (fin.init x)).X (int.of_nat i))
-      ((free_Koszul R n.succ x).X (int.of_nat i.succ)) _ _ _ _ _ _ _
-   ((direct_sum.lof R {j : ℤ × ℤ // j.1 + j.2 = int.of_nat i.succ} _
-     ⟨(0, int.of_nat i.succ), zero_add _⟩).comp
-   (tensor_product.lid R ((free_Koszul R n (fin.init x)).X (int.of_nat i.succ))).symm.to_linear_map)
-   ((direct_sum.lof R {j : ℤ × ℤ // j.1 + j.2 = int.of_nat i.succ} _
-     ⟨(1, int.of_nat i), by dsimp; rw add_comm⟩).comp
-   (tensor_product.lid R ((free_Koszul R n (fin.init x)).X (int.of_nat i))).symm.to_linear_map),
+  inv_fun := @linear_map.coprod R ((free_Koszul R n (fin.init x)).X i.succ)
+     ((free_Koszul R n (fin.init x)).X i) ((free_Koszul R n.succ x).X i.succ) _ _ _ _ _ _ _
+   ((direct_sum.lof R (int_pair i.succ) _ (int_pair_mk i.succ 0 i.succ $ zero_add _)).comp
+     (tensor_product.lid R ((free_Koszul R n (fin.init x)).X i.succ)).symm.to_linear_map)
+   ((direct_sum.lof R (int_pair i.succ) _ (int_pair_mk i.succ 1 i $ add_comm _ _)).comp
+     (tensor_product.lid R ((free_Koszul R n (fin.init x)).X i)).symm.to_linear_map),
   left_inv := λ y,
     begin
       refine direct_sum.linduction_on R y _ _ _,
       { simp only [linear_map.map_zero] },
       { intros j z,
-        cases classical.em (j.1 = (0, i.succ)) with hj hj,
-        { dsimp,
-          convert add_zero _,
+        dsimp,
+        rcases classical.em (j = int_pair_mk i.succ 0 i.succ (zero_add _)) with ⟨rfl, _⟩,
+        { convert add_zero _,
           { convert linear_map.map_zero _,
-            convert tensor_product.tmul_zero _ _,
-            rw [direct_sum.component.lof_ne, linear_equiv.map_zero],
-            intro hnot,
-            exact one_ne_zero ((prod.ext_iff.1 (subtype.ext_iff.1 hnot)).1.symm.trans
-              (prod.ext_iff.1 hj).1) },
-          { sorry }},
-        { sorry }},
-      { sorry },
+            convert tensor_product.tmul_zero _ _ },
+          { rw [←tensor_product.lid_symm_apply, linear_equiv.symm_apply_apply],
+            erw direct_sum.component.lof_self }},
+        { rcases classical.em (j = int_pair_mk i.succ 1 i (add_comm _ _)) with ⟨rfl, _⟩,
+          { convert zero_add _,
+            { convert linear_map.map_zero _,
+              convert tensor_product.tmul_zero _ _, },
+            { rw [←tensor_product.lid_symm_apply, linear_equiv.symm_apply_apply],
+              erw direct_sum.component.lof_self, }},
+          { rw @subsingleton.elim _ (@tensor_product.subsingleton_left R _ _ _ _ _ _ _ $
+              subsingleton_smul_cx R j.1.1 _ (λ hnot,
+              begin
+                cases hnot with h0 h1,
+                { contrapose! h,
+                  exact int_pair_ext_iff_fst.2 h0 },
+                { contrapose! h_1,
+                  exact int_pair_ext_iff_fst.2 h1 }
+              end)) z 0,
+              simp only [linear_map.map_zero, tensor_product.tmul_zero,
+                linear_equiv.map_zero, zero_add] }}},
+      { intros w z hw hz,
+        simp only [to_linear_map_apply, linear_map.coprod_apply, linear_equiv.map_add, tensor_product.lid_symm_apply, zero_add,
+          linear_map.prod_apply, linear_map.map_add, linear_map.comp_apply] at hw hz ⊢,
+        rw [hw, hz], },
     end,
-  right_inv := sorry }
-
-example : 1 + 1 = 2 := rfl
+  right_inv := λ y,
+  begin
+    erw linear_map.coprod_apply,
+    rw linear_map.map_add,
+    ext,
+    { simp only [add_right_eq_self, prod.mk_add_mk, linear_equiv.map_eq_zero_iff,
+        to_linear_map_apply, one_smul, tensor_product.lid_tmul, direct_sum.component.lof_self,
+        tensor_product.lid_symm_apply, linear_map.prod_apply, linear_map.comp_apply],
+      erw direct_sum.component.lof_ne,
+      exact (λ H, one_ne_zero (int_pair_ext_iff_fst.1 H)) },
+    { simp only [add_left_eq_self, prod.mk_add_mk, linear_equiv.map_eq_zero_iff,
+        to_linear_map_apply, one_smul, tensor_product.lid_tmul, direct_sum.component.lof_self,
+        tensor_product.lid_symm_apply, linear_map.prod_apply, linear_map.comp_apply],
+      erw direct_sum.component.lof_ne,
+      exact (λ H, zero_ne_one (int_pair_ext_iff_fst.1 H)) }
+  end }
 
 def rk_free_prod_eq_add (i j : ℕ) :
   ((fin i → R) × (fin j → R)) ≃ₗ[R] (fin (i + j) → R) :=
@@ -604,7 +592,7 @@ def rk_free_prod_eq_add (i j : ℕ) :
     end }
 
 def free_Koszul_isom_choose {n : ℕ} : Π (i : ℕ) (x : fin n.succ → R),
-  (free_Koszul R n x).X (int.of_nat i) ≅ Module.of R (fin (n.succ.choose i) → R) :=
+  (free_Koszul R n x).X i ≅ Module.of R (fin (n.succ.choose i) → R) :=
 nat.rec_on n (λ i x, nat.rec_on i (of_fin_one_equiv R).symm.to_Module_iso
     (λ j fj, nat.rec_on j (of_fin_one_equiv R).symm.to_Module_iso (λ k fk,
     (equiv_punit_of_rk_eq_zero R (nat.choose 1 k.succ.succ)
@@ -784,4 +772,3 @@ def hmmm :
 
     end,
   right_inv := _ }
-

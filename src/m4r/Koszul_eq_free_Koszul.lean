@@ -89,7 +89,6 @@ def alternating_map.of_fin_one {N : Type u}
 { map_eq_zero_of_eq' := λ v i j hv hij, false.elim $ hij $ subsingleton.elim _ _,
   ..multilinear_map.of_fin_one R M f }
 
-instance grrr : module R (tpow_aux R M 0).1 := infer_instance
 def epow.one_isom :
   epow R M 1 ≃ₗ[R] M :=
 { to_fun := epow_lift R $ alternating_map.of_fin_one R M linear_map.id,
@@ -200,14 +199,16 @@ def smul_cx_isom (x : R) :
         { induction n with n hn,
           { simp only [function.comp_app, category_theory.pi.comp_apply, Module.coe_comp],
             show (epow.one_isom R R).symm (x • (y : R)) = wedge_d R x 0 ((epow_ker R R 0).mkq y),
+
             erw linear_map.comp_apply,
             rw to_linear_map_apply,
             rw tensor_product.lid_symm_apply,
-            conv_rhs {rw tpow_zero_mk R R y},
-            rw linear_map.map_smul,
-            rw linear_map.map_smul,
-            erw epow_lift_mk,
-            sorry,
+            rw tensor_product.tmul_smul,
+            rw tensor_product.smul_tmul',
+            rw algebra.id.smul_eq_mul,
+            rw mul_one,
+            --have hy : (epow_ker R R 0).mkq y = y • epow.mk R R 0 (default (fin 0 → R))
+
             sorry },
             { sorry }},
         { sorry },
@@ -266,4 +267,3 @@ def Koszul_succ_isom_aux {n : ℕ} (x : fin n.succ → R) (i : ℤ) :
   inv := _,
   hom_inv_id' := _,
   inv_hom_id' := _ }
-

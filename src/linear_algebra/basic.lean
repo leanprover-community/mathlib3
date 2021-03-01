@@ -369,7 +369,7 @@ This says that the forgetful functor from `R`-modules to types is representable,
 
 This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
 When `R` is commutative, we can take this to be the usual action with `S = R`.
-Otherwise, `S = ℤ` shows that the equivalence is additive.
+Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings].
 -/
 @[simps]

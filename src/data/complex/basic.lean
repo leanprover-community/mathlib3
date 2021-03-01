@@ -108,7 +108,8 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 
 lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
 lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
-lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ := ext (smul_re _ _) (smul_im _ _)
+lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
+ext (smul_re _ _) (smul_im _ _)
 
 /-! ### The imaginary unit, `I` -/
 

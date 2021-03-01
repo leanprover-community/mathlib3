@@ -679,8 +679,8 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   conj_re_ax := λ z, by simp only [ring_hom.id_apply],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero,
-    add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero,
+    mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
   inv_def_ax := λ z, by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}

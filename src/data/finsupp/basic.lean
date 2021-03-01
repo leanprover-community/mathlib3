@@ -1640,7 +1640,7 @@ Scalar multiplication by a group element on finitely supported functions on a gr
 given by precomposition with the action of g⁻¹. -/
 def comap_distrib_mul_action_self :
   distrib_mul_action G (G →₀ M) :=
-@finsupp.comap_distrib_mul_action G M G _ (mul_action.regular G) _
+@finsupp.comap_distrib_mul_action G M G _ (monoid.to_mul_action G) _
 
 @[simp]
 lemma comap_smul_single (g : G) (a : α) (b : M) :

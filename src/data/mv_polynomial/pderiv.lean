@@ -130,7 +130,7 @@ end
 @[simp]
 lemma pderiv_C_mul {f : mv_polynomial σ R} {i : σ} :
   pderiv i (C a * f) = C a * pderiv i f :=
-by convert linear_map.map_smul (pderiv i) a f; rw C_mul'
+by simp [C_mul']
 
 end pderiv
 

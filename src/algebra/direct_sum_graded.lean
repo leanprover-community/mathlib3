@@ -10,7 +10,7 @@ import group_theory.subgroup
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
 
-This module provides a set of heterogenous typeclasses for defining a multiplicative structure
+This module provides a set of heterogeneous typeclasses for defining a multiplicative structure
 over `⨁ i, A i` such that `(*) : A i → A j → A (i + j)`; that is to say, `A` forms an
 additively-graded ring. The typeclasses are:
 
@@ -61,7 +61,7 @@ section defs
 class ghas_one [has_zero ι] :=
 (one : A 0)
 
-/-- A graded version of `has_one` that also subsumes `distrib` and `mul_zero_class` by requiring
+/-- A graded version of `has_mul` that also subsumes `distrib` and `mul_zero_class` by requiring
 the multiplication be an `add_monoid_hom`. Multiplication combines grades additively, like
 `add_monoid_algebra`. -/
 class ghas_mul [add_monoid ι] [Π i, add_comm_monoid (A i)] :=

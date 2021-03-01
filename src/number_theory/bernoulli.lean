@@ -388,16 +388,6 @@ begin
   rw [←exp_pow_sum n, mul_comm, h_geom_sum, h_r, ←bernoulli_power_series, mul_assoc,
     aux_cauchy_prod],
 end
-/--
-begin
-  have h_geom_sum : (geom_series (exp ℚ) n) * (exp ℚ - 1) = (exp ℚ)^n - 1 := geom_sum_mul _ _,
-  have h_const : C ℚ (constant_coeff ℚ ((exp ℚ)^n)) = 1,
-  { simp only [one_pow, constant_coeff_exp, ring_hom.map_pow, ring_hom.map_one], },
-  have h_r : (exp ℚ)^n - 1 = X * mk (λ (p : ℕ), (coeff ℚ (p + 1)) (exp ℚ ^ n)),
-  { rw [←h_const], rw [sub_const_eq_X_mul_shift], },
-  rw [h_r, ←bernoulli_power_series, mul_assoc, aux_cauchy_prod],
-end -/
-
 
 /-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p : ℕ) :

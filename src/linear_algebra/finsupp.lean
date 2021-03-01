@@ -644,8 +644,8 @@ lemma mem_span_set {m : M} {s : set M} :
   m ∈ submodule.span R s ↔
   ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ i, (smul_add_hom R M).flip i)) = m :=
 begin
-  convert finsupp.mem_span_iff_total R,
-  exact (set.image_id s).symm,
-  ext,
-  split; exact λ ⟨hsub, hsum⟩, ⟨hsub, hsum⟩,
+  convert @finsupp.mem_span_iff_total _ M R _ _ _ id s m,
+  { exact (set.image_id s).symm },
+  { ext,
+    split; exact λ ⟨hsub, hsum⟩, ⟨hsub, hsum⟩ }
 end

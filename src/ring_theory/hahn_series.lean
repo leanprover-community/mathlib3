@@ -137,12 +137,9 @@ instance [add_comm_group R] : add_comm_group (hahn_series Γ R) :=
   .. hahn_series.add_group }
 
 end addition
-section smul
-
-variables [linear_order Γ] {V : Type*}
 
 section distrib_mul_action
-variables [monoid R] [add_monoid V] [distrib_mul_action R V]
+variables [linear_order Γ] {V : Type*} [monoid R] [add_monoid V] [distrib_mul_action R V]
 
 instance : has_scalar R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := r • x.coeff,
@@ -160,14 +157,11 @@ instance : distrib_mul_action R (hahn_series Γ V) :=
 
 end distrib_mul_action
 
-variables [semiring R] [add_comm_monoid V] [semimodule R V]
-
-instance : semimodule R (hahn_series Γ V) :=
+instance [linear_order Γ] {V : Type*} [semiring R] [add_comm_monoid V] [semimodule R V] :
+  semimodule R (hahn_series Γ V) :=
 { zero_smul := λ _, by { ext, simp },
   add_smul := λ _ _ _, by { ext, simp [add_smul] },
   .. hahn_series.distrib_mul_action }
-
-end smul
 
 section multiplication
 

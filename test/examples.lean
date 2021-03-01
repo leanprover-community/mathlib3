@@ -14,6 +14,8 @@ belong in `src/` near the definitions.
 TODO: remove or move the remaining content of this file.
 -/
 
+#check 1
+
 open tactic
 
 universe u

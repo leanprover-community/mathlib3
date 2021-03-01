@@ -1336,7 +1336,7 @@ end
 lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
 begin
   refine le_antisymm (le_comap_of_map_le (le_of_eq (map_of_equiv I f))) _,
-  exact le_map_of_comap_le_of_surjective _ (ring_equiv.surjective f) (le_of_eq (comap_of_equiv I f))
+  exact le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le
 end
 
 /-- The ring equiv `R/I ≃+* S/J` induced by a ring equiv `f : R ≃+** S`,  where `J = f(I)`. -/

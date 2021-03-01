@@ -87,6 +87,9 @@ lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
        ... = x : sup_inf_sdiff x y
 
+lemma sdiff_self : x \ x = ⊥ :=
+by rw [←inf_inf_sdiff x x, inf_idem, inf_of_le_right (@sdiff_le _ x x _)]
+
 theorem sup_inf_sdiff' (x y : α) : (x ⊔ (x \ y)) ⊓ (y ⊔ (x \ y)) = x :=
 by rw [←sup_inf_right, sup_inf_sdiff]
 
@@ -136,18 +139,20 @@ theorem sdiff_le_sdiff (h₁ : w ≤ y) (h₂ : z ≤ x) : w \ x ≤ y \ z :=
 sorry
 -- by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
-lemma sdiff_sdiff_eq_self (h : y ≤ x) : x \ (x \ y) = y := sorry
+lemma mccuan1c : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) := sorry
 
-@[simp] lemma sdiff_idem_right : x \ y \ y = x \ y :=
-sorry
+lemma sdiff_sdiff : x \ (x \ y) = x ⊓ y := by rw [mccuan1c, inf_idem, sdiff_self, bot_sup_eq]
+
+lemma sdiff_sdiff_eq_self (h : y ≤ x) : x \ (x \ y) = y := by rw [sdiff_sdiff, inf_of_le_right h]
+
+lemma mccuan1b : (x \ y) \ z = x \ (y ⊔ z) := sorry
+
+@[simp] lemma sdiff_idem_right : x \ y \ y = x \ y := by rw [mccuan1b, sup_idem]
 -- by rw [sdiff_eq, sdiff_eq, inf_assoc, inf_idem]
 
 lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = (z \ x ⊔ y) ⊓ (z \ y ⊔ x) := sorry
 
 lemma mccuan1a : (x ⊔ y) \ z = (x \ z) ⊔ (y \ z) := sorry
-lemma mccuan1b : (x \ y) \ z = x \ (y ⊔ z) := sorry
-lemma mccuan1c : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) := sorry
-
 
 end generalized_boolean_algebra
 

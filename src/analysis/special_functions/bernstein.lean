@@ -110,8 +110,12 @@ def Z {n : ℕ} (k : fin (n+1)) : I :=
     fsplit,
     { simp only [fin.coe_mk, coe_coe],
       exact div_nonneg (nat.cast_nonneg k) (nat.cast_nonneg n), },
-    { simp,
-      sorry, }
+    { simp only [fin.coe_mk, coe_coe],
+      cases n,
+      norm_num,
+      rw div_le_iff,
+      { simp only [one_mul, nat.cast_succ], norm_cast, exact nat.le_of_lt_succ w, },
+      { norm_cast, exact nat.succ_pos _, }, }
   end⟩
 
 lemma probability (n : ℕ) (x : I) :

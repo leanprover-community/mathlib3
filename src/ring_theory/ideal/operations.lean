@@ -1301,11 +1301,47 @@ noncomputable def quotient_ker_alg_equiv_of_surjective
   {f : A →ₐ[R] B} (hf : function.surjective f) : f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
 quotient_ker_alg_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 
-/-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
+/-- The ring hom `R/I →+* S/J` induced by a ring hom `f : R →+* S` with `I ≤ f⁻¹(J)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
   I.quotient →+* J.quotient :=
 (quotient.lift I ((quotient.mk J).comp f) (λ _ ha,
   by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using hIJ ha))
+
+@[simp]
+lemma quotient_map.apply {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) (r : R) :
+  quotient_map J f hIJ (quotient.mk I r) = quotient.mk J (f r) := rfl
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I` -/
+lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map ↑f.symm = I :=
+begin
+  have h : (f.symm : S →+* R).comp (f : R →+* S) = ring_hom.id _,
+  { ext r, simp },
+  rw [map_map, h, map_id]
+end
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I` -/
+lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) : (I.comap (f.symm : S →+* R)).comap ↑f = I :=
+begin
+  have h : (f.symm : S →+* R).comp (f : R →+* S) = ring_hom.id _,
+  { ext r, simp },
+  rw [comap_comap, h, comap_id]
+end
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I` -/
+lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
+begin
+  refine le_antisymm (le_comap_of_map_le (le_of_eq (map_of_equiv I f))) _,
+  exact le_map_of_comap_le_of_surjective _ (ring_equiv.surjective f) (le_of_eq (comap_of_equiv I f))
+end
+
+/-- The ring equiv `R/I ≃+* S/J` induced by a ring equiv `f : R ≃+** S` with `J = f(I)` -/
+@[simps]
+def quotient_equiv {I : ideal R} (f : R ≃+* S) :
+  I.quotient ≃+* (map ↑f I).quotient :=
+{ inv_fun := quotient_map I ↑f.symm (le_of_eq (map_comap_of_equiv I f)),
+  left_inv := by {rintro ⟨r⟩, simp},
+  right_inv := by {rintro ⟨s⟩, simp},
+  ..quotient_map (map ↑f I) ↑f (@le_comap_map _ S _ _ _ _) }
 
 @[simp]
 lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}

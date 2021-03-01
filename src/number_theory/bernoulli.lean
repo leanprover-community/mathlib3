@@ -277,7 +277,6 @@ begin
     { rwa g.eq_iff at f, },
     apply rescale_injective,
     norm_num, },
-  simp only [map_one, map_mul, eval_neg_hom_X, map_sub],
   suffices h :
     eval_neg_hom (mk (λ (n : ℕ),algebra_map ℚ A (bernoulli n / ↑n!))) * (eval_neg_hom (exp A) - 1)
     * -exp A = -X * -exp A,
@@ -288,7 +287,7 @@ begin
       use 1,
       simp only [factorial_one, coeff_mk, linear_map.map_neg, cast_one, inv_one, not_false_iff,
         neg_eq_zero, map_one, one_ne_zero],},
-    apply mul_right_cancel' hexp h, },
+    simpa using mul_right_cancel' hexp h, },
   rw [mul_assoc],
   have he : (eval_neg_hom (exp A) - 1) * -exp A = exp A - 1,
   { simp [sub_mul, mul_comm (eval_neg_hom (exp A)), exp_mul_exp_neg_eq_one] },

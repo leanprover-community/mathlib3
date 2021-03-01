@@ -104,7 +104,8 @@ instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
   decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
 instance : inhabited (mv_polynomial σ R) := ⟨0⟩
 instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
-instance : semimodule R (mv_polynomial σ R) := add_monoid_algebra.semimodule
+instance {S} [semiring S] [semimodule S R] : semimodule S (mv_polynomial σ R) :=
+add_monoid_algebra.semimodule
 
 end semiring
 

@@ -293,9 +293,9 @@ begin
   { simp [sub_mul, mul_comm (eval_neg_hom (exp A)), exp_mul_exp_neg_eq_one] },
   rw [he],
   simp only [eval_neg_hom, rescale, neg_mul_eq_neg_mul_symm, coeff_mk, coe_mk,
-  mul_neg_eq_neg_mul_symm, neg_neg],
+    mul_neg_eq_neg_mul_symm, neg_neg],
   convert bernoulli'_power_series A,
   rw [←map_one (algebra_map ℚ A), ←map_neg (algebra_map ℚ A)],
   simp only [←map_pow (algebra_map ℚ A) (-1), ←map_mul (algebra_map ℚ A), ←mul_div_assoc,
-  ←bernoulli'_eq_neg_one_pow_mul_bernoulli],
+    ←bernoulli'_eq_neg_one_pow_mul_bernoulli],
 end

@@ -141,8 +141,9 @@ lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β �
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
 (monoid_hom.eval b).map_prod _ _
 
-namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
+
+namespace finset
 
 section comm_monoid
 variables [comm_monoid β]
@@ -218,10 +219,33 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
+end comm_monoid
+
+end finset
+
+section
+variables [fintype α] [decidable_eq α] [comm_monoid β]
+
 @[to_additive]
-lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) :
-  (∏ x in s, f x) * (∏ x in sᶜ, f x) = (∏ x, f x) :=
-by { rw [←prod_union], { simp, }, { exact disjoint_sdiff, }, }
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+end
+
+namespace finset
+
+section comm_monoid
+variables [comm_monoid β]
+
+@[to_additive]
+lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :

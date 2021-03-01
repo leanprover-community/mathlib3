@@ -39,20 +39,29 @@ def symm_diff {α : Type*} [has_sup α] [has_sdiff α] (A B : α) : α := (A \ B
 
 infix ` Δ `:100 := symm_diff
 
+section generalized_boolean_algebra
+variables {α : Type*} [generalized_boolean_algebra α] (a b c : α)
+
+lemma symm_diff_comm : a Δ b = b Δ a := by simp only [(Δ), sup_comm]
+
+lemma sdiff_symm_diff : c \ (a Δ b) = (a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b)) :=
+calc c \ (a Δ b) = ((c \ a) ⊔ b) ⊓ ((c \ b) ⊔ a)         : by simp only [(Δ), sdiff_sdiff_sup_sdiff]
+-- by simp only [symm_diff_eq, compl_sup, compl_inf, compl_compl]
+          ... = (((c \ a) ⊓ (c \ b)) ⊔ (b ⊓ (c \ b))) ⊔ (((c \ a) ⊔ b) ⊓ a) :
+                                                                 by rw [inf_sup_left, inf_sup_right]
+          ... = ((c \ a) ⊓ (c \ b)) ⊔ (((c \ a) ⊔ b) ⊓ a)       : by rw [inf_sdiff_same, sup_bot_eq]
+          ... = ((c \ a) ⊓ (c \ b)) ⊔ (((c \ a) ⊓ a) ⊔ (b ⊓ a)) : by rw [inf_sup_right]
+          ... = ((c \ a) ⊓ (c \ b)) ⊔ (b ⊓ a)                   : by rw [sdiff_inf_same, bot_sup_eq]
+          ... = (a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b))                  : by rw [@inf_comm _ _ b a, sup_comm]
+
+end generalized_boolean_algebra
+
 section boolean_algebra
 variables {α : Type*} [boolean_algebra α] (a b c : α)
 
 lemma symm_diff_eq : a Δ b = (a ⊓ bᶜ) ⊔ (b ⊓ aᶜ) := by simp only [(Δ), sdiff_eq]
-lemma symm_diff_comm : a Δ b = b Δ a := by simp only [symm_diff_eq, sup_comm]
 
-lemma compl_symm_diff : (a Δ b)ᶜ = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) :=
-calc (a Δ b)ᶜ = (aᶜ ⊔ b) ⊓ (bᶜ ⊔ a)                     : by simp only [symm_diff_eq, compl_sup,
-                                                                        compl_inf, compl_compl]
-          ... = ((aᶜ ⊓ bᶜ) ⊔ (b ⊓ bᶜ)) ⊔ ((aᶜ ⊔ b) ⊓ a) : by rw [inf_sup_left, inf_sup_right]
-          ... = (aᶜ ⊓ bᶜ) ⊔ ((aᶜ ⊔ b) ⊓ a)              : by rw [inf_compl_eq_bot, sup_bot_eq]
-          ... = (aᶜ ⊓ bᶜ) ⊔ ((aᶜ ⊓ a) ⊔ (b ⊓ a))        : by rw [inf_sup_right]
-          ... = (aᶜ ⊓ bᶜ) ⊔ (b ⊓ a)                     : by rw [compl_inf_eq_bot, bot_sup_eq]
-          ... = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ)                     : by rw [@inf_comm _ _ b a, sup_comm]
+lemma compl_symm_diff : (a Δ b)ᶜ = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) := by simp only [←top_sdiff, sdiff_symm_diff]
 
 lemma symm_diff_symm_diff :
   a Δ (b Δ c) = (a ⊓ b ⊓ c) ⊔ (a ⊓ bᶜ ⊓ cᶜ) ⊔ (aᶜ ⊓ b ⊓ cᶜ) ⊔ (aᶜ ⊓ bᶜ ⊓ c) :=

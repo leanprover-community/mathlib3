@@ -634,8 +634,6 @@ lemma mem_span_finset {s : finset M} {x : M} :
   ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
 λ ⟨f, hf⟩, hf ▸ sum_mem _ (λ i hi, smul_mem _ _ $ subset_span hi)⟩
 
-universe u
-
 /-- An element `m ∈ M` is contained in the `R`-submodule spanned by a set `s ⊆ M`, if and only if
 `m` can be written as a finite `R`-linear combination of elements of `s`.
 The implementation uses `finsupp.sum`. -/

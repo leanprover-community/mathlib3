@@ -103,10 +103,25 @@ by rw [sup_sdiff_same, sup_comm, sup_eq_left.2 h]
 
 lemma sup_sdiff_left : x ⊔ (x \ y) = x := by { rw [sup_eq_left], exact sdiff_le }
 
+lemma foo : x \ y ⊓ (y \ x) = ⊥ :=
+eq.symm $
+  calc ⊥ = (x ⊓ y) ⊓ (x \ y) : by rw inf_inf_sdiff
+     ... = (x ⊓ (y ⊓ x ⊔ y \ x)) ⊓ (x \ y) : by rw sup_inf_sdiff
+     ... = (x ⊓ (y ⊓ x) ⊔ x ⊓ (y \ x)) ⊓ (x \ y) : by rw inf_sup_left
+     ... = (y ⊓ x ⊔ x ⊓ (y \ x)) ⊓ (x \ y) : by conv_lhs { congr, congr,
+                                                  rw [@inf_comm _ _, inf_assoc, inf_idem], }
+     ... = (x ⊓ y ⊓ (x \ y)) ⊔ (x ⊓ (y \ x) ⊓ (x \ y)) : by rw [inf_sup_right, @inf_comm _ _ x y]
+     ... = x ⊓ (y \ x) ⊓ (x \ y) : by rw [inf_inf_sdiff, bot_sup_eq]
+     ... = x ⊓ (x \ y) ⊓ (y \ x) : by rw [inf_assoc, @inf_comm _ _ (y \ x), ←inf_assoc]
+     ... = (x \ y) ⊓ (y \ x) : by rw [inf_of_le_right (@sdiff_le _ x y _)]
+
 /-!
 Cf. <https://ncatlab.org/nlab/show/relative+complement>
 -/
-theorem inf_sdiff_same : x ⊓ (y \ x) = ⊥ := sorry
+theorem inf_sdiff_same : x ⊓ (y \ x) = ⊥ :=
+calc x ⊓ (y \ x) = ((x ⊓ y) ⊔ (x \ y)) ⊓ (y \ x) : by rw [sup_inf_sdiff]
+... = (x ⊓ y) ⊓ (y \ x) ⊔ (x \ y) ⊓ (y \ x) : by rw [inf_sup_right]
+... = ⊥ : by rw [@inf_comm _ _ x y, inf_inf_sdiff, foo, bot_sup_eq]
 theorem sdiff_inf_same : (y \ x) ⊓ x = ⊥ := by rw [inf_comm, inf_sdiff_same]
 
 theorem le_sup_sdiff : x ≤ y ⊔ (x \ y) :=

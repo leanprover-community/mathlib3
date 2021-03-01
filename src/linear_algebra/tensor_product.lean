@@ -502,7 +502,7 @@ begin
   simp,
 end
 
-@[simp] lemma lid_symm_apply (m : M) :
+lemma lid_symm_apply (m : M) :
   (tensor_product.lid R M).symm m = 1 ⊗ₜ m := rfl
 
 section

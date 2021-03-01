@@ -122,7 +122,7 @@ def epow.one_isom :
     begin
       intro y,
       dsimp,
-      rw tpow.mk_one_fin,
+      rw [tensor_product.lid_symm_apply, tpow.mk_one_fin],
       erw epow_lift_mk,
       simp only [one_smul],
       refl,
@@ -188,73 +188,146 @@ begin
   rw mul_one,
 end
 
+lemma epow.mkq_one_eq_mk :
+  (epow_ker R R 0).mkq 1 = epow.mk R R 0 (default (fin 0 → R)) :=
+begin
+  refl,
+end
+
+--must be in mathlib cant be bothered to find it
+lemma eq_zero_of_triv_cod {N : Type u} [add_comm_group N] [module R N]
+  (f : M →ₗ[R] N) (F : N ≃ₗ[R] punit) : f = 0 :=
+begin
+  ext,
+  rw [←F.symm_apply_apply (f x), subsingleton.elim (F (f x)) (0 : punit), linear_equiv.map_zero],
+  refl,
+end
+
+lemma smul_cx_isom_comm (x : R) (i : ℤ) (y) :
+  (smul_cx_isom_aux R x (i + 1)).hom ((smul_cx R x).d i y) =
+  (Koszul R R x).d i ((smul_cx_isom_aux R x i).hom y) :=
+begin
+  induction i with n n,
+  { induction n with n hn,
+    { show (epow.one_isom R R).symm (x • (y : R)) = wedge_d R x 0 ((epow_ker R R 0).mkq y),
+      erw linear_map.comp_apply,
+      rw [to_linear_map_apply, tensor_product.lid_symm_apply, algebra.id.smul_eq_mul,
+          mul_comm, ←algebra.id.smul_eq_mul, tensor_product.tmul_smul, linear_map.map_smul],
+      conv_rhs {rw ←@mul_one R _ y},
+      rw [←algebra.id.smul_eq_mul, linear_map.map_smul, linear_map.map_smul],
+      erw epow_lift_mk,
+      { refl },
+      { exact default _}},
+      { show (epow.ring_isom_zero R n).symm 0 = wedge_d R x _ _,
+        rw [linear_equiv.map_zero, eq_zero_of_triv_cod R (epow R R n.succ)
+            (wedge_d R x _) (epow.ring_isom_zero R n)],
+        refl }},
+  { exact linear_map.map_zero _ },
+end
+
 def smul_cx_isom (x : R) :
   (smul_cx R x) ≅ (Koszul R R x) :=
 { hom :=
   { f := λ i, (smul_cx_isom_aux R x i).hom,
-    comm' :=
-      begin
-        ext n y,
-        induction n with n n,
-        { induction n with n hn,
-          { simp only [function.comp_app, category_theory.pi.comp_apply, Module.coe_comp],
-            show (epow.one_isom R R).symm (x • (y : R)) = wedge_d R x 0 ((epow_ker R R 0).mkq y),
-
-            erw linear_map.comp_apply,
-            rw to_linear_map_apply,
-            rw tensor_product.lid_symm_apply,
-            rw tensor_product.tmul_smul,
-            rw tensor_product.smul_tmul',
-            rw algebra.id.smul_eq_mul,
-            rw mul_one,
-            --have hy : (epow_ker R R 0).mkq y = y • epow.mk R R 0 (default (fin 0 → R))
-
-            sorry },
-            { sorry }},
-        { sorry },
-      end },
+    comm' := by ext n y; exact smul_cx_isom_comm R x n y },
   inv :=
   { f := λ i, (smul_cx_isom_aux R x i).inv,
     comm' :=
       begin
         ext n y,
         dsimp,
-          sorry,
+        rw ←linear_equiv.symm_apply_apply (smul_cx_isom_aux R x (n + 1)).to_linear_equiv
+          ((smul_cx R x).d n ((smul_cx_isom_aux R x n).inv y)),
+        erw smul_cx_isom_comm R x n,
+        simp only [category_theory.iso.to_linear_equiv_symm_apply, category_theory.coe_inv_hom_id],
       end },
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry }
+  hom_inv_id' := by ext; simp,
+  inv_hom_id' := by ext; simp }
+
+lemma subsingleton_Koszul_one (j : ℤ) (x : R) (hj : ¬(j = 0 ∨ j = 1)) :
+  subsingleton ((Koszul R R x).X j) :=
+@equiv.subsingleton _ _ (smul_cx_isom_aux R x j).to_linear_equiv.symm.to_equiv
+(subsingleton_smul_cx R j x hj)
+
+@[simp] lemma lid_lid_symm (m : tensor_product R R M) :
+  (tensor_product.lid R M).symm (tensor_product.lid R M m) = m :=
+linear_equiv.symm_apply_apply _ _
 
 def tensor_Koszul_isom_prod (x : R) (y : M) (i : ℤ) :
-  (cochain_complex.tensor_product R (Koszul R R x) (Koszul R M y)).X i ≅
-  Module.of R ((Koszul R M y).X i × (Koszul R M y).X i.pred) :=
-{ hom := direct_sum.to_module R _ _ $ λ j, subtype.rec_on j $ λ j, prod.rec_on j $ λ j k,
-    by dsimp; exact
-    int.rec_on j (λ j, nat.rec_on j (λ Hj, (linear_map.inl R _ ((Koszul R M y).X i.pred)).comp
-    ((Koszul.congr R y k i (zero_add k ▸ Hj)).to_linear_map.comp
-      ((tensor_product.lid R _).to_linear_map.comp (linear_map.rtensor ((Koszul R M y).X k)
-        (epow.zero_isom R R).to_linear_map))))
-    (λ j, nat.rec_on j (λ hj Hj, (linear_map.inr R ((Koszul R M y).X i)
-      ((Koszul R M y).X i.pred)).comp ((Koszul.congr R y k i.pred (by
-      simp only [int.pred, add_comm _ k, zero_add] at Hj;
-      rw ←Hj; simp only [int.pred, int.coe_nat_zero, int.coe_nat_succ, int.of_nat_eq_coe,
-          add_sub_cancel, zero_add])).to_linear_map.comp
-      ((tensor_product.lid R _).to_linear_map.comp (linear_map.rtensor ((Koszul R M y).X k)
-        (epow.one_isom R R).to_linear_map))))
-    (λ l hl h h', 0))) (λ j hj, 0),
-  inv := linear_map.coprod ((direct_sum.lof R _ _ (⟨(0, i), zero_add i⟩ :
-    {j : ℤ × ℤ // j.1 + j.2 = i})).comp
-   ((linear_map.rtensor ((Koszul R M y).X i) (epow.zero_isom R R).symm.to_linear_map).comp $
-   (tensor_product.lid _ _).symm.to_linear_map)) $
-   (direct_sum.lof R _ _ (⟨(1, i.pred), add_sub_cancel'_right 1 i⟩ :
-     {j : ℤ × ℤ // j.1 + j.2 = i})).comp
-     ((linear_map.rtensor ((Koszul R M y).X i.pred) (epow.one_isom R R).symm.to_linear_map).comp $
-        (tensor_product.lid _ _).symm.to_linear_map),
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry }
+  (cochain_complex.tensor_product R (Koszul R R x) (Koszul R M y)).X (i + 1) ≅
+  Module.of R ((Koszul R M y).X (i + 1) × (Koszul R M y).X i) :=
+{ hom := linear_map.prod (((tensor_product.lid R _).to_linear_map.comp
+    (linear_map.rtensor _ (epow.zero_isom R R).to_linear_map)).comp $
+    direct_sum.component R _ _ (int_pair_mk (i + 1) 0 (i + 1) $ zero_add _))
+  (((tensor_product.lid R _).to_linear_map.comp
+    (linear_map.rtensor _ (epow.one_isom R R).to_linear_map)).comp $
+    direct_sum.component R _ _ (int_pair_mk (i + 1) 1 i $ add_comm _ _)),
+  inv := linear_map.coprod
+    ((direct_sum.lof R _ _ (int_pair_mk (i + 1) 0 (i + 1) $ zero_add _)).comp $
+      (linear_map.rtensor _ (epow.zero_isom R R).symm.to_linear_map).comp
+        (tensor_product.lid R _).symm.to_linear_map)
+    ((direct_sum.lof R _ _ (int_pair_mk (i + 1) 1 i $ add_comm _ _)).comp $
+      (linear_map.rtensor _ (epow.one_isom R R).symm.to_linear_map).comp
+        (tensor_product.lid R _).symm.to_linear_map),
+  hom_inv_id' :=
+  begin
+    ext j X Y k,
+    dsimp,
+    simp only [linear_map.comp_apply, to_linear_map_apply, lid_lid_symm],
+    rcases classical.em (j = int_pair_mk (i + 1) 0 (i + 1) (zero_add _)) with ⟨rfl, H⟩,
+    { erw [direct_sum.component.lof_self, direct_sum.component.lof_ne],
+      { simp only [linear_map.map_zero, add_zero, to_linear_map_apply,
+          linear_map.rtensor_tmul, linear_equiv.symm_apply_apply],
+        refl },
+      { exact (λ hnot, zero_ne_one $ int_pair_ext_iff_fst.1 hnot) }},
+    { rcases classical.em (j = int_pair_mk (i + 1) 1 i (add_comm _ _)) with ⟨rfl, H'⟩,
+      { erw [direct_sum.component.lof_self, direct_sum.component.lof_ne],
+        { simp only [linear_map.map_zero, to_linear_map_apply, linear_map.rtensor_tmul, zero_add,
+            linear_equiv.symm_apply_apply],
+          refl },
+        {exact (λ hnot, one_ne_zero $ int_pair_ext_iff_fst.1 hnot) } },
+      { erw [direct_sum.component.lof_ne R h_1, direct_sum.component.lof_ne R h],
+        { simp only [linear_map.map_zero, add_zero, zero_add, direct_sum.zero_apply],
+          rw [@subsingleton.elim _ (@tensor_product.subsingleton_left R _ _ _ _ _ _ _ $
+              subsingleton_Koszul_one R j.1.1 _ (λ hnot,
+              begin
+                cases hnot with h0 h1,
+                { contrapose! h,
+                  exact int_pair_ext_iff_fst.2 h0 },
+                { contrapose! h_1,
+                  exact int_pair_ext_iff_fst.2 h1 }
+              end)) (X ⊗ₜ[R] Y) 0, dfinsupp.single_zero],
+          refl }}},
+  end,
+  inv_hom_id' :=
+  begin
+    ext,
+    { simp only [to_linear_map_apply, function.comp_app, linear_map.prod_apply, Module.coe_comp,
+        Module.id_apply, linear_map.comp_apply],
+      erw linear_map.coprod_apply,
+      simp only [linear_map.map_add, linear_equiv.map_add],
+      erw [direct_sum.component.lof_self, direct_sum.component.lof_ne, linear_map.rtensor_tmul],
+      { simp only [linear_map.map_zero, linear_equiv.map_zero, linear_map.id_coe, add_zero,
+        to_linear_map_apply, id.def, one_smul, tensor_product.lid_tmul,
+        linear_equiv.apply_symm_apply] },
+      { exact (λ hnot, one_ne_zero $ int_pair_ext_iff_fst.1 hnot) }},
+    { simp only [to_linear_map_apply, function.comp_app, linear_map.prod_apply, Module.coe_comp,
+        Module.id_apply, linear_map.comp_apply],
+      erw linear_map.coprod_apply,
+      simp only [linear_map.map_add, linear_equiv.map_add],
+      erw [direct_sum.component.lof_self, direct_sum.component.lof_ne, linear_map.rtensor_tmul],
+      { simp only [linear_map.map_zero, linear_equiv.map_zero, linear_map.id_coe, zero_add,
+          to_linear_map_apply, id.def, one_smul, tensor_product.lid_tmul,
+          linear_equiv.apply_symm_apply] },
+      { exact (λ hnot, zero_ne_one $ int_pair_ext_iff_fst.1 hnot) }}
+  end }
+
+#exit
 
 def Koszul_isom_prod {n : ℕ} (x : fin n.succ → R) (i : ℤ) :
-  (Koszul R (fin n.succ → R) x).X i ≅ Module.of R ((Koszul R (fin n → R) (fin.init x)).X i
-    × (Koszul R (fin n → R) (fin.init x)).X i.pred) :=
+  (Koszul R (fin n.succ → R) x).X (i + 1) ≅
+  Module.of R ((Koszul R (fin n → R) (fin.init x)).X (i + 1)
+    × (Koszul R (fin n → R) (fin.init x)).X i) :=
 { hom := int.rec_on i (λ i, nat.rec_on n _ _) (λ i, 0),
   inv := _,
   hom_inv_id' := sorry,

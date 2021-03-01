@@ -107,14 +107,6 @@ instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
 instance {S} [semiring S] [semimodule S R] : semimodule S (mv_polynomial σ R) :=
 add_monoid_algebra.semimodule
 
-end semiring
-
-section comm_semiring
-variables [comm_semiring R] {p q : mv_polynomial σ R}
-
-instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
-instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
-
 /-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
 of a given monomial. -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ R) :=
@@ -134,6 +126,14 @@ def C : R →+* mv_polynomial σ R :=
   map_one' := rfl,
   map_add' := λ a a', single_add,
   map_mul' := λ a a', by simp [monomial, single_mul_single] }
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R] {p q : mv_polynomial σ R}
+
+instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
+instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
 
 variables (R σ)
 theorem algebra_map_eq : algebra_map R (mv_polynomial σ R) = C := rfl

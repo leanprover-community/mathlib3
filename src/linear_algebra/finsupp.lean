@@ -642,7 +642,7 @@ The implementation uses `finsupp.sum`. -/
 -- The Type `M` has an explicit universe, since otherwise it gets assigned `Type (max u_2 u_3)`.
 lemma mem_span_set {m : M} {s : set M} :
   m ∈ submodule.span R s ↔
-  ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ i, (smul_add_hom R M).flip i)) = m :=
+  ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ c.sum (λ mi r, r • mi) = m :=
 begin
   convert @finsupp.mem_span_iff_total _ M R _ _ _ id s m,
   { exact (set.image_id s).symm },

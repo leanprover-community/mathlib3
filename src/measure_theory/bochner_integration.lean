@@ -115,8 +115,8 @@ Use `is_closed_property` or `dense_range.induction_on` for this argument.
 * `α →₁ₛ[μ] E` : simple functions in L1 space, i.e., equivalence classes of integrable simple
                  functions
 * `∫ a, f a ∂μ` : integral of `f` with respect to a measure `μ`
-* `∫ a in s, f a` : integral of `f` with respect to `volume`, the default measure on the
-                    ambiant type
+* `∫ a, f a` : integral of `f` with respect to `volume`, the default measure on the
+                    ambient type
 
 We also define notations for integral on a set, which are described in the file
 `measure_theory/set_integral`.

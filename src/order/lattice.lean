@@ -91,7 +91,7 @@ join-semilattice.
 
 The partial order is defined so that `a ≤ b` unfolds to `a ⊔ b = b`; cf. `sup_eq_right`.
 -/
-def semilattice_sup.mk' {α : Type*} {h : has_sup α}
+def semilattice_sup.mk' {α : Type*} [has_sup α]
   (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
   (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
   (sup_idem : ∀ (a : α), a ⊔ a = a) : semilattice_sup α :=

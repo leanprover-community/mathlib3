@@ -467,6 +467,11 @@ lemma times_cont_diff_within_at.congr {n : with_top ℕ}
   times_cont_diff_within_at 𝕜 n f₁ s x :=
 h.congr_of_eventually_eq (filter.eventually_eq_of_mem self_mem_nhds_within h₁) hx
 
+lemma times_cont_diff_within_at.congr' {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : ∀ y ∈ s, f₁ y = f y) (hx : x ∈ s) :
+  times_cont_diff_within_at 𝕜 n f₁ s x :=
+h.congr h₁ (h₁ _ hx)
+
 lemma times_cont_diff_within_at.mono_of_mem {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : s ∈ 𝓝[t] x) :
   times_cont_diff_within_at 𝕜 n f t x :=

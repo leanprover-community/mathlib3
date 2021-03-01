@@ -67,10 +67,10 @@ mv_polynomial.induction_on p
 
 @[simp] lemma rename_rename (f : σ → τ) (g : τ → α) (p : mv_polynomial σ R) :
   rename g (rename f p) = rename (g ∘ f) p :=
-show rename g (eval₂ C (X ∘ f) p) = _,
+show rename g (eval₂ (C : R →+* mv_polynomial τ R) (X ∘ f) p) = _,
 begin
   simp only [rename, aeval_eq_eval₂_hom],
-  simp [eval₂_comp_left _ C (X ∘ f) p, (∘), eval₂_C, eval_X],
+  simp [eval₂_comp_left _ (C : R →+* mv_polynomial τ R) (X ∘ f) p, (∘), eval₂_C, eval_X],
   apply eval₂_hom_congr _ rfl rfl,
   ext1, simp only [comp_app, ring_hom.coe_comp, eval₂_hom_C],
 end
@@ -126,7 +126,8 @@ lemma rename_eval₂ (g : τ → mv_polynomial σ R) :
 by apply mv_polynomial.induction_on p; { intros, simp [*] }
 
 lemma rename_prodmk_eval₂ (j : τ) (g : σ → mv_polynomial σ R) :
-  rename (prod.mk j) (p.eval₂ C g) = p.eval₂ C (λ x, rename (prod.mk j) (g x)) :=
+  rename (prod.mk j) (p.eval₂ (C : R →+* mv_polynomial σ R) g) =
+  p.eval₂ C (λ x, rename (prod.mk j) (g x)) :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }
 
 lemma eval₂_rename_prodmk (g : σ × τ → S) (i : σ) (p : mv_polynomial τ R) :

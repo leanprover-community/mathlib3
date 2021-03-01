@@ -12,7 +12,7 @@ import topology.bounded_continuous_function
 import topology.uniform_space.compact_separated
 import algebra.floor
 
-/--
+/-!
 # Bernstein approximations and Weierstrass' theorem
 
 We prove that the Bernstein approximations

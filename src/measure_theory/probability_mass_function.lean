@@ -170,7 +170,7 @@ by simp only [bind_on_support_apply, ennreal.coe_tsum (bind_on_support.summable 
 begin
   simp only [mem_support_iff, bind_on_support_apply,
     tsum_ne_zero_iff (bind_on_support.summable p f b), mul_ne_zero_iff],
-  split; rintro ⟨a, ha, haf⟩; refine ⟨a, ha, ne_of_eq_of_ne _ haf⟩; simp [ha],
+  split; { rintro ⟨a, ha, haf⟩, refine ⟨a, ha, ne_of_eq_of_ne _ haf⟩, simp [ha], },
 end
 
 lemma bind_on_support_eq_zero_iff (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :

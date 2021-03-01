@@ -153,7 +153,7 @@ begin
 end
 
 open power_series
-variables (A : Type*) [ring A] [no_zero_divisors A] [nontrivial A] [algebra ℚ A]
+variables (A : Type*) [comm_ring A] [no_zero_divisors A] [nontrivial A] [algebra ℚ A]
 
 theorem bernoulli'_power_series :
   power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!)) * (exp A - 1) = X * exp A :=
@@ -275,8 +275,9 @@ begin
    (exp A - 1)) = eval_neg_hom X,
   { suffices g : function.injective eval_neg_hom,
     { rwa g.eq_iff at f, },
-    apply rescale_injective,
-    norm_num, },
+    -- apply rescale_injective,  <-- gives "deterministic timeout"
+    -- norm_num,
+    sorry, },
   suffices h :
     eval_neg_hom (mk (λ (n : ℕ),algebra_map ℚ A (bernoulli n / ↑n!))) * (eval_neg_hom (exp A) - 1)
     * -exp A = -X * -exp A,
@@ -287,7 +288,8 @@ begin
       use 1,
       simp only [factorial_one, coeff_mk, linear_map.map_neg, cast_one, inv_one, not_false_iff,
         neg_eq_zero, map_one, one_ne_zero],},
-    simpa using mul_right_cancel' hexp h, },
+    --simpa using mul_right_cancel' hexp h, },
+    sorry, },
   rw [mul_assoc],
   have he : (eval_neg_hom (exp A) - 1) * -exp A = exp A - 1,
   { simp [sub_mul, mul_comm (eval_neg_hom (exp A)), exp_mul_exp_neg_eq_one] },

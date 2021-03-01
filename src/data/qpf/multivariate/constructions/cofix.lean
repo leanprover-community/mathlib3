@@ -139,7 +139,8 @@ cofix.corec (λ x, g id) x
 
 /-- More flexible corecursor for `cofix F`. Allows the return of a fully formed
 value instead of making a recursive call -/
-def cofix.corec' {α : typevec n} {β : Type u} (g : β → F (α.append1 (cofix F α ⊕ β))) (x : β) : cofix F α :=
+def cofix.corec' {α : typevec n} {β : Type u} (g : β → F (α.append1 (cofix F α ⊕ β))) (x : β) :
+  cofix F α :=
 let f : α ::: cofix F α ⟹ α ::: (cofix F α ⊕ β) := id ::: sum.inl in
 cofix.corec
 (sum.elim (mvfunctor.map f ∘ cofix.dest) g)

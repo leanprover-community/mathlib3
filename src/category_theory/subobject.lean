@@ -10,6 +10,7 @@ import category_theory.currying
 import category_theory.limits.lattice
 import category_theory.limits.over
 import category_theory.limits.shapes.images
+import category_theory.limits.shapes.kernels
 import category_theory.monad.adjunction
 
 /-!
@@ -20,6 +21,10 @@ We define `subobject X` as the quotient (by isomorphisms) of
 
 Here `mono_over X` is a thin category (a pair of objects has at most one morphism between them),
 so we can think of it as a preorder. However as it is not skeletal, it is not a partial order.
+
+There is a coercion from `subobject X` back to the ambient category `C`
+(using choice to pick a representative), and for `P : subobject X`,
+`P.arrow : (P : C) ⟶ X` is the inclusion morphism.
 
 We provide
 * `def pullback [has_pullbacks C] (f : X ⟶ Y) : subobject Y ⥤ subobject X`
@@ -48,7 +53,7 @@ if it looks preferable.)
 There is a separate development of pseudoelements in `category_theory.abelian.pseudoelements`,
 as a quotient (but not by isomorphism) of `over X`.
 
-When a morphism `f` has an image, it represents the same pseudoelement.
+When a morphism `f` has an image, the image represents the same pseudoelement.
 In a category with images `pseudoelements X` could be constructed as a quotient of `mono_over X`.
 In fact, in an abelian category (I'm not sure in what generality beyond that),
 `pseudoelements X` agrees with `subobject X`, but we haven't developed this in mathlib yet.
@@ -71,10 +76,8 @@ This isn't skeletal, so it's not a partial order.
 
 Later we define `subobject X` as the quotient of this by isomorphisms.
 -/
-@[derive [category, λ t, has_coe t (over X)]]
+@[derive [category]]
 def mono_over (X : C) := {f : over X // mono f.hom}
-
-attribute [priority 100] mono_over.has_coe
 
 namespace mono_over
 
@@ -85,8 +88,11 @@ def mk' {X A : C} (f : A ⟶ X) [hf : mono f] : mono_over X := { val := over.mk 
 /-- The inclusion from monomorphisms over X to morphisms over X. -/
 def forget (X : C) : mono_over X ⥤ over X := full_subcategory_inclusion _
 
+instance : has_coe (mono_over X) C :=
+{ coe := λ Y, Y.val.left, }
+
 @[simp]
-lemma forget_obj_left {f} : ((forget X).obj f).left = f.val.left := rfl
+lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
 
 /-- Convenience notation for the underlying arrow of a monomorphism over X. -/
 abbreviation arrow (f : mono_over X) : _ ⟶ X := ((forget X).obj f).hom
@@ -195,11 +201,11 @@ def pullback_id : pullback (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.pullback_id ≪≫ lift_id
 
 @[simp] lemma pullback_obj_left (f : X ⟶ Y) (g : mono_over Y) :
-(↑((pullback f).obj g) : over X).left = limits.pullback g.arrow f :=
+  (((pullback f).obj g) : C) = limits.pullback g.arrow f :=
 rfl
 
 @[simp] lemma pullback_obj_arrow (f : X ⟶ Y) (g : mono_over Y) :
-((pullback f).obj g).arrow = pullback.snd :=
+  ((pullback f).obj g).arrow = pullback.snd :=
 rfl
 
 end pullback
@@ -226,12 +232,13 @@ def map_id : map (𝟙 X) ≅ 𝟭 _ :=
 lift_iso _ _ over.map_id ≪≫ lift_id
 
 @[simp] lemma map_obj_left (f : X ⟶ Y) [mono f] (g : mono_over X) :
-(↑((map f).obj g) : over Y).left = g.val.left :=
+  (((map f).obj g) : C) = g.val.left :=
 rfl
 
 @[simp]
 lemma map_obj_arrow (f : X ⟶ Y) [mono f] (g : mono_over X) :
-((map f).obj g).arrow = g.arrow ≫ f := rfl
+  ((map f).obj g).arrow = g.arrow ≫ f :=
+rfl
 
 instance full_map (f : X ⟶ Y) [mono f] : full (map f) :=
 { preimage := λ g h e,
@@ -270,6 +277,16 @@ end
 end map
 
 section image
+variables (f : X ⟶ Y) [has_image f]
+
+/--
+The `mono_over Y` for the image inclusion for a morphism `f : X ⟶ Y`.
+-/
+def image_mono_over (f : X ⟶ Y) [has_image f] : mono_over Y := mono_over.mk' (image.ι f)
+
+end image
+
+section image
 
 variables [has_images C]
 
@@ -278,7 +295,7 @@ Taking the image of a morphism gives a functor `over X ⥤ mono_over X`.
 -/
 @[simps]
 def image : over X ⥤ mono_over X :=
-{ obj := λ f, mk' (image.ι f.hom),
+{ obj := λ f, image_mono_over f.hom,
   map := λ f g k,
   begin
     apply (forget X).preimage _,
@@ -385,7 +402,7 @@ instance {X : C} : inhabited (mono_over X) := ⟨⊤⟩
 def le_top (f : mono_over X) : f ⟶ ⊤ :=
 hom_mk f.arrow (comp_id _)
 
-@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : over X).left = X := rfl
+@[simp] lemma top_left (X : C) : ((⊤ : mono_over X) : C) = X := rfl
 @[simp] lemma top_arrow (X : C) : (⊤ : mono_over X).arrow = 𝟙 X := rfl
 
 /-- `map f` sends `⊤ : mono_over X` to `⟨X, f⟩ : mono_over Y`. -/
@@ -422,7 +439,7 @@ local attribute [instance] has_zero_object.has_zero
 instance {X : C} : has_bot (mono_over X) :=
 { bot := mk' (0 : 0 ⟶ X) }
 
-@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : over X).left = 0 := rfl
+@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = 0 := rfl
 @[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = 0 :=
 by ext
 
@@ -547,6 +564,151 @@ namespace subobject
 /-- Convenience constructor for a subobject. -/
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
+
+/--
+Use choice to pick a representative `mono_over X` for each `subobject X`.
+-/
+noncomputable
+def representative {X : C} : subobject X ⥤ mono_over X :=
+thin_skeleton.from_thin_skeleton _
+
+
+/--
+Starting with `A : mono_over X`, we can take its equivalence class in `subobject X`
+then pick an arbitrary representative using `representative.obj`.
+This is isomorphic (in `mono_over X`) to the original `A`.
+-/
+noncomputable
+def representative_iso {X : C} (A : mono_over X) :
+  representative.obj ((to_thin_skeleton _).obj A) ≅ A :=
+(thin_skeleton.from_thin_skeleton _).as_equivalence.counit_iso.app A
+
+/--
+Use choice to pick a representative underlying object in `C` for any `subobject X`.
+
+Prefer to use the coercion `P : C` rather than explicitly writing `underlying.obj P`.
+-/
+noncomputable
+def underlying {X : C} : subobject X ⥤ C :=
+representative ⋙ mono_over.forget _ ⋙ over.forget _
+
+instance : has_coe (subobject X) C :=
+{ coe := λ Y, underlying.obj Y, }
+
+@[simp] lemma underlying_as_coe {X : C} (P : subobject X) : underlying.obj P = P := rfl
+
+/--
+If we construct a `subobject Y` from an explicit `f : X ⟶ Y` with `[mono f]`,
+then pick an arbitrary choice of underlying object `(subobject.mk f : C)` back in `C`,
+it is isomorphic (in `C`) to the original `X`.
+-/
+noncomputable
+def underlying_iso {X Y : C} (f : X ⟶ Y) [mono f] : (subobject.mk f : C) ≅ X :=
+(mono_over.forget _ ⋙ over.forget _).map_iso (representative_iso (mono_over.mk' f))
+
+/--
+The morphism in `C` from the arbitrarily chosen underlying object to the ambient object.
+-/
+noncomputable
+def arrow {X : C} (Y : subobject X) : (Y : C) ⟶ X :=
+(representative.obj Y).val.hom
+
+@[simp]
+lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
+  underlying.map f ≫ arrow Z = arrow Y :=
+over.w (representative.map f)
+
+end subobject
+
+namespace limits
+
+section equalizer
+variables (f g : X ⟶ Y) [has_equalizer f g]
+
+/-- The equalizer of morphisms `f g : X ⟶ Y` as a `subobject X`. -/
+def equalizer_subobject : subobject X :=
+subobject.mk (equalizer.ι f g)
+
+/-- The underlying object of `equalizer_subobject f g` is (up to isomorphism!)
+the same as the chosen object `equalizer f g`. -/
+def equalizer_subobject_iso : (equalizer_subobject f g : C) ≅ equalizer f g :=
+subobject.underlying_iso (equalizer.ι f g)
+
+lemma equalizer_subobject_arrow :
+  (equalizer_subobject f g).arrow = (equalizer_subobject_iso f g).hom ≫ equalizer.ι f g :=
+(over.w (subobject.representative_iso (mono_over.mk' (equalizer.ι f g))).hom).symm
+
+@[simp] lemma equalizer_subobject_arrow' :
+  (equalizer_subobject_iso f g).inv ≫ (equalizer_subobject f g).arrow = equalizer.ι f g :=
+over.w (subobject.representative_iso (mono_over.mk' (equalizer.ι f g))).inv
+
+lemma equalizer_subobject_arrow_comp :
+  (equalizer_subobject f g).arrow ≫ f = (equalizer_subobject f g).arrow ≫ g :=
+by simp [equalizer_subobject_arrow, equalizer.condition]
+
+end equalizer
+
+section kernel
+variables [has_zero_morphisms C] (f : X ⟶ Y) [has_kernel f]
+
+/-- The kernel of a morphism `f : X ⟶ Y` as a `subobject X`. -/
+def kernel_subobject : subobject X :=
+subobject.mk (kernel.ι f)
+
+/-- The underlying object of `kernel_subobject f` is (up to isomorphism!)
+the same as the chosen object `kernel f`. -/
+def kernel_subobject_iso :
+  (kernel_subobject f : C) ≅ kernel f :=
+subobject.underlying_iso (kernel.ι f)
+
+lemma kernel_subobject_arrow :
+  (kernel_subobject f).arrow = (kernel_subobject_iso f).hom ≫ kernel.ι f :=
+(over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).hom).symm
+
+@[simp] lemma kernel_subobject_arrow' :
+  (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
+over.w (subobject.representative_iso (mono_over.mk' (kernel.ι f))).inv
+
+lemma kernel_subobject_arrow_comp :
+  (kernel_subobject f).arrow ≫ f = 0 :=
+by simp [kernel_subobject_arrow, kernel.condition]
+
+end kernel
+
+section image
+variables (f : X ⟶ Y) [has_image f]
+
+/-- The image of a morphism `f g : X ⟶ Y` as a `subobject Y`. -/
+def image_subobject : subobject Y :=
+(to_thin_skeleton _).obj (mono_over.image_mono_over f)
+
+/-- The underlying object of `image_subobject f` is (up to isomorphism!)
+the same as the chosen object `image f`. -/
+def image_subobject_iso :
+  (image_subobject f : C) ≅ image f :=
+subobject.underlying_iso (image.ι f)
+
+lemma image_subobject_arrow :
+  (image_subobject f).arrow = (image_subobject_iso f).hom ≫ image.ι f :=
+(over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).hom).symm
+
+@[simp] lemma image_subobject_arrow' :
+  (image_subobject_iso f).inv ≫ (image_subobject f).arrow = image.ι f :=
+over.w (subobject.representative_iso (mono_over.mk' (image.ι f))).inv
+
+/-- A factorisation of `f : X ⟶ Y` through `image_subobject f`. -/
+def factor_thru_image_subobject : X ⟶ image_subobject f :=
+factor_thru_image f ≫ (image_subobject_iso f).inv
+
+lemma image_subobject_arrow_comp :
+  factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
+by simp [factor_thru_image_subobject, image_subobject_arrow]
+
+end image
+
+end limits
+
+namespace subobject
 
 /-- Any functor `mono_over X ⥤ mono_over Y` descends to a functor
 `subobject X ⥤ subobject Y`, because `mono_over Y` is thin. -/

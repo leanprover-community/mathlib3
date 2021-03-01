@@ -300,6 +300,13 @@ instance {T : Type*} [monoid T] [distrib_mul_action T M₂] [smul_comm_class R T
   smul_comm_class S T (M →ₗ[R] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
 
+-- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
+-- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
+instance {T : Type*} [monoid T] [has_scalar S T] [distrib_mul_action T M₂] [smul_comm_class R T M₂]
+  [is_scalar_tower S T M₂] :
+  is_scalar_tower S T (M →ₗ[R] M₂) :=
+{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
 instance : distrib_mul_action S (M →ₗ[R] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,
   mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
@@ -347,7 +354,7 @@ This says that the forgetful functor from `R`-modules to types is representable,
 
 This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
 When `R` is commutative, we can take this to be the usual action with `S = R`.
-Otherwise, `S = ℤ` shows that the equivalence is additive.
+Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings].
 -/
 @[simps]
@@ -985,6 +992,20 @@ span_eq_bot.trans $ by simp
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
+
+lemma apply_mem_span_image_of_mem_span
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : x ∈ submodule.span R s) :
+   f x ∈ submodule.span R (f '' s) :=
+begin
+  rw submodule.span_image,
+  exact submodule.mem_map_of_mem h
+end
+
+/-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/
+lemma not_mem_span_of_apply_not_mem_span_image
+   (f : M →ₗ[R] M₂) {x : M} {s : set M} (h : f x ∉ submodule.span R (f '' s)) :
+   x ∉ submodule.span R s :=
+not.imp h (apply_mem_span_image_of_mem_span f)
 
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=

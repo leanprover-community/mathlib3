@@ -68,7 +68,8 @@ by simp [reverse]
 @[simp] lemma reverse.map_one  : reverse (1 : clifford_algebra Q) = 1 :=
 reverse.commutes 1
 
-@[simp] lemma reverse.map_mul (a b : clifford_algebra Q) : reverse (a * b) = reverse b * reverse a :=
+@[simp] lemma reverse.map_mul (a b : clifford_algebra Q) :
+  reverse (a * b) = reverse b * reverse a :=
 by simp [reverse]
 
 @[simp] lemma reverse_comp_reverse :
@@ -88,7 +89,8 @@ end
 linear_map.congr_fun reverse_comp_reverse
 
 lemma reverse_comp_involute :
-  reverse.comp involute.to_linear_map = (involute.to_linear_map.comp reverse : _ →ₗ[R] clifford_algebra Q) :=
+  reverse.comp involute.to_linear_map =
+    (involute.to_linear_map.comp reverse : _ →ₗ[R] clifford_algebra Q) :=
 begin
   ext,
   simp only [linear_map.comp_apply, alg_hom.to_linear_map_apply],
@@ -125,6 +127,6 @@ lemma involute_prod_map_ι : ∀ l : list M,
 | [] := by simp
 | (x :: xs) := by simp [pow_add, involute_prod_map_ι xs]
 
-end
+end list
 
 end clifford_algebra

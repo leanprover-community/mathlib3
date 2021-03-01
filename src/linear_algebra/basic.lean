@@ -817,8 +817,7 @@ begin
       rw [finset.mem_coe, finsupp.mem_support_single] at hy,
       rwa hy.1 },
     { rintros x y ⟨c, hc, rfl⟩ ⟨d, hd, rfl⟩,
-      refine ⟨c + d, _, by simp⟩,
-      refine set.subset.trans _ (set.union_subset hc hd),
+      refine ⟨c + d, trans _ (set.union_subset hc hd), by simp⟩,
       rw [← finset.coe_union, finset.coe_subset],
       convert finsupp.support_add },
     { rintros r m ⟨c, hc, rfl⟩,
@@ -830,13 +829,12 @@ begin
         { convert (add_monoid_hom.map_finsupp_sum (smul_add_hom R M r) _ _).symm,
           ext m s,
           simp [mul_smul r s m] },
-        { exact (((smul_add_hom R M).flip) m).map_zero } } } },
+        { exact ((smul_add_hom R M).flip m).map_zero } } } },
   { rcases hx with ⟨c, cM, rfl⟩,
     refine sum_mem (span R s) _,
-    rintros d ds S ⟨h1, rfl⟩,
-    rintros g ⟨h1m : s ⊆ ↑h1, rfl⟩,
-    refine h1.smul_mem (c d) _,
-    exact @set.mem_of_mem_of_subset M d _ _ ((finset.mem_coe).mpr ds) (set.subset.trans cM h1m) }
+    simp only [add_monoid_hom.flip_apply, smul_add_hom_apply],
+    intros d hd,
+    exact smul_mem _ _ (subset_span (cM hd)) }
 end
 
 section

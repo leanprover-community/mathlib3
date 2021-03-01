@@ -638,8 +638,7 @@ lemma mem_span_finset {s : finset M} {x : M} :
 `m` can be written as a finite `R`-linear combination of elements of `s`.
 The implementation uses `finsupp.sum`. -/
 lemma mem_span_set {m : M} {s : set M} :
-  m ∈ submodule.span R s ↔
-  ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ c.sum (λ mi r, r • mi) = m :=
+  m ∈ submodule.span R s ↔ ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ c.sum (λ mi r, r • mi) = m :=
 begin
   conv_lhs { rw ←set.image_id s },
   simp_rw ←exists_prop,

@@ -56,8 +56,7 @@ def pure (a : α) : pmf α := ⟨λ a', if a' = a then 1 else 0, has_sum_ite_eq 
 
 @[simp] lemma pure_apply (a a' : α) : pure a a' = (if a' = a then 1 else 0) := rfl
 
-@[simp] lemma mem_support_pure_iff (a a' : α) :
-  a' ∈ (pure a).support ↔ a' = a :=
+lemma mem_support_pure_iff (a a' : α) : a' ∈ (pure a).support ↔ a' = a :=
 by simp
 
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
@@ -155,11 +154,10 @@ end⟩
   p.bind_on_support (λ a _, f a) = p.bind f :=
 begin
   ext b,
-  simp [p.bind_on_support_apply (λ a _, f a), p.bind_apply f],
+  simp only [p.bind_on_support_apply (λ a _, f a), p.bind_apply f,
+    dite_eq_ite, nnreal.coe_eq, mul_ite, mul_zero],
   refine congr_arg _ (funext (λ a, _)),
-  split_ifs,
-  { simp [h] },
-  { exact rfl },
+  split_ifs with h; simp [h],
 end
 
 lemma coe_bind_on_support_apply (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
@@ -192,7 +190,7 @@ begin
   by_cases h : (a' = a); simp [h],
 end
 
-@[simp] lemma bind_on_support_pure (p : pmf α) :
+lemma bind_on_support_pure (p : pmf α) :
   p.bind_on_support (λ a _, pure a) = p :=
 by simp only [pmf.bind_pure, pmf.bind_on_support_eq_bind]
 

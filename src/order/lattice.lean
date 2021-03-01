@@ -427,7 +427,9 @@ class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
 
-/-- The partial orders from `semilattice_sup_mk'` and `semilattice_inf_mk'` agree. -/
+/-- The partial orders from `semilattice_sup_mk'` and `semilattice_inf_mk'` agree
+if `sup` and `inf` satisfy the lattice absorption laws `sup_inf_self` (`a ⊔ a ⊓ b = a`)
+and `inf_sup_self` (`a ⊓ (a ⊔ b) = a`). -/
 lemma semilattice_sup_mk'_partial_order_eq_semilattice_inf_mk'_partial_order {α : Type*}
   [has_sup α] [has_inf α]
   (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)

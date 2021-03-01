@@ -66,7 +66,7 @@ open finset
 the $n$-th Bernoulli number $B_n$ is defined recursively via
 $$B_n = 1 - \sum_{k < n} \binom{n}{k}\frac{B_k}{n+1-k}$$ -/
 def bernoulli' : ℕ → ℚ :=
-well_founded.fix nat.lt_wf
+well_founded.fix lt_wf
   (λ n bernoulli', 1 - ∑ k : fin n, n.choose k / (n - k + 1) * bernoulli' k k.2)
 
 lemma bernoulli'_def' (n : ℕ) :
@@ -80,7 +80,7 @@ by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli'_spec (n : ℕ) :
   ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [sum_range_succ, bernoulli'_def n, nat.sub_self],
+  rw [sum_range_succ, bernoulli'_def n, sub_self],
   conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (mem_range.1 H)) },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
@@ -148,7 +148,7 @@ begin
   congr',
   field_simp [show ((n - k : ℕ) : ℚ) + 1 ≠ 0, by {norm_cast, simp}],
   norm_cast,
-  rw [mul_comm, nat.sub_add_eq_add_sub hk],
+  rw [mul_comm, sub_add_eq_add_sub hk],
   exact choose_mul_succ_eq n k,
 end
 
@@ -414,14 +414,14 @@ begin
       ring_hom.id_apply, linear_map.map_sub, ne.def, not_forall,
       rat.algebra_map_rat_rat],
       use 1,
-      simp only [nat.factorial_one, sub_zero, if_false, inv_one, not_false_iff,
-      one_ne_zero, nat.cast_one], },
+      simp only [factorial_one, sub_zero, if_false, inv_one, not_false_iff, one_ne_zero,
+        cast_one], },
     apply mul_left_cancel' hexp (aux_power_series_equal n), },
   have hne_zero : (p.factorial : ℚ) ≠ 0,
-  { simp only [p.factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
+  { simp only [p.factorial_ne_zero, ne.def, cast_eq_zero, not_false_iff], },
   have hne_zero' : ((p + 1).factorial : ℚ) ≠ 0,
-  { simp only [(p + 1).factorial_ne_zero, ne.def, nat.cast_eq_zero, not_false_iff], },
-  have hp : (p + 1 : ℚ) ≠ 0 := nat.cast_add_one_ne_zero p,
+  { simp only [(p + 1).factorial_ne_zero, ne.def, cast_eq_zero, not_false_iff], },
+  have hp : (p + 1 : ℚ) ≠ 0 := cast_add_one_ne_zero p,
   have hfrac : ↑(p!) * (↑(p + 1)!)⁻¹ = ((p + 1 : ℚ))⁻¹,
   { simp only [←one_div, mul_one_div],
     rw [eq_comm, div_eq_iff hp, eq_comm, div_mul_eq_mul_div, div_eq_iff hne_zero'],

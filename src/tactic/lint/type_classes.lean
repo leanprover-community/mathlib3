@@ -274,6 +274,7 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
+/-- Determine if `type` is of the form `decidable p` or some variant. -/
 private meta abbreviation is_decidable_instance (type : expr) : Prop :=
 type.is_app_of `decidable_eq ∨
 type.is_app_of `decidable_pred ∨

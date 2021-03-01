@@ -85,13 +85,10 @@ end
 
 lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
-       ... = x : sup_inf_sdiff x y
+       ... = x                 : sup_inf_sdiff x y
 
 lemma sdiff_self : x \ x = ⊥ :=
 by rw [←inf_inf_sdiff x x, inf_idem, inf_of_le_right (@sdiff_le _ x x _)]
-
-theorem sup_inf_sdiff' (x y : α) : (x ⊔ (x \ y)) ⊓ (y ⊔ (x \ y)) = x :=
-by rw [←sup_inf_right, sup_inf_sdiff]
 
 theorem sup_sdiff_same : x ⊔ (y \ x) = x ⊔ y :=
 calc x ⊔ (y \ x) = (x ⊔ (x ⊓ y)) ⊔ (y \ x) : by rw sup_inf_self

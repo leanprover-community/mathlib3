@@ -302,25 +302,36 @@ do tt ← is_prop d.type | return none,
 
 /-- Checks whether `decidable` arguments to lemmas exist that violate "Yury's rule of thumb"-/
 private meta def decidable_exact (d : declaration) : tactic (option string) :=
-do (binders, body) ← open_pis d.type,
+do
+  -- definitions are free to use whatever decidable arguments they like
+  tt ← is_prop d.type | return none,
+
+  (binders, body) ← open_pis d.type,
+
+  -- find decidable binders
+  decidable_binders ← binders.mmap_filter (λ binder, do
+    some t ← try_core (infer_type binder) | return none,
+    tt ← pure (is_decidable_instance t : bool) | return none,
+    return (some binder)),
+
+  -- find `decidable` expressions in the body
   matches ← body.mfold [] (λ e depth so_far, do
     let head := e.get_app_fn,
-    if head.is_local_constant then do
-      return so_far
-    else do
-      (infer_type e >>= λ t, do
-      if is_decidable_instance t ∧ ¬head.is_local_constant then do
-        return (so_far ++ [(e, t)])
-      else
-        return so_far) <|> return so_far),
-  if matches.length = 0 then do
-    return none
-  else do
-    msg_items ← matches.mmap (λ i : prod _ _, do
-      e ← tactic.pp i.1,
-      t ← tactic.pp i.2,
-      return (format!"  {e} : {t}\n")),
-    return (some (format.to_string (format!"There are bad decidable arguments:\n{format.join msg_items}")))
+    ff ← pure (head.is_local_constant) | return so_far,
+    some t ← try_core (infer_type e) | return so_far,
+    -- which should only ever be the binders themselves, never objects derived from those binders
+    tt ← pure (is_decidable_instance t ∧ ¬head.is_local_constant : bool) | return so_far,
+    let relevant_binders := decidable_binders.filter (λ b, e.contains_expr_or_mvar b),
+    return (so_far ++ [(e, t, relevant_binders)])),
+
+  ff ← pure (matches.length = 0 : bool) | return none,
+
+  msg_items ← matches.mmap (λ i : prod _ _, do
+    e ← tactic.pp i.1,
+    e_type ← tactic.pp i.2.1,
+    let e_args := format.join $ (i.2.2.map $ λ e, format!"{expr.to_binder e}").intersperse format.space,
+    return (format!" missing [{e_type}], synthesized using {e_args} (via {e})\n")),
+  return (some (format.to_string (format!"There are bad decidable arguments:\n{format.join msg_items}")))
 
 /-- A linter object for `decidable_classical`. -/
 @[linter] meta def linter.decidable_exact : linter :=

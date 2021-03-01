@@ -10,9 +10,10 @@ import analysis.normed_space.basic
 /-!
 # p-adic numbers
 
-This file defines the p-adic numbers (rationals) `ℚ_p` as the completion of `ℚ` with respect to the
-p-adic norm. We show that the p-adic norm on ℚ extends to `ℚ_p`, that `ℚ` is embedded in `ℚ_p`, and that
-`ℚ_p` is Cauchy complete.
+This file defines the p-adic numbers (rationals) `ℚ_p` as
+the completion of `ℚ` with respect to the p-adic norm.
+We show that the p-adic norm on ℚ extends to `ℚ_p`, that `ℚ` is embedded in `ℚ_p`,
+and that `ℚ_p` is Cauchy complete.
 
 ## Important definitions
 
@@ -28,16 +29,17 @@ We introduce the notation `ℚ_[p]` for the p-adic numbers.
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
 by taking `[fact (prime p)]` as a type class argument.
 
-We use the same concrete Cauchy sequence construction that is used to construct ℝ. `ℚ_p` inherits a
-field structure from this construction. The extension of the norm on ℚ to `ℚ_p` is *not* analogous to
-extending the absolute value to ℝ, and hence the proof that `ℚ_p` is complete is different from the
-proof that ℝ is complete.
+We use the same concrete Cauchy sequence construction that is used to construct ℝ.
+`ℚ_p` inherits a field structure from this construction.
+The extension of the norm on ℚ to `ℚ_p` is *not* analogous to extending the absolute value to ℝ,
+and hence the proof that `ℚ_p` is complete is different from the proof that ℝ is complete.
 
 A small special-purpose simplification tactic, `padic_index_simp`, is used to manipulate sequence
 indices in the proof that the norm extends.
 
-`padic_norm_e` is the rational-valued p-adic norm on `ℚ_p`. To instantiate `ℚ_p` as a normed field,
-we must cast this into a ℝ-valued norm. The `ℝ`-valued norm, using notation `∥ ∥` from normed spaces,
+`padic_norm_e` is the rational-valued p-adic norm on `ℚ_p`.
+To instantiate `ℚ_p` as a normed field, we must cast this into a ℝ-valued norm.
+The `ℝ`-valued norm, using notation `∥ ∥` from normed spaces,
 is the canonical representation of this norm.
 
 `simp` prefers `padic_norm` to `padic_norm_e` when possible.
@@ -102,8 +104,8 @@ lemma stationary_point_spec {f : padic_seq p} (hf : ¬ f ≈ 0) :
     padic_norm p (f n) = padic_norm p (f m) :=
 classical.some_spec $ stationary hf
 
-/-- Since the norm of the entries of a Cauchy sequence is eventually stationary, we can lift the norm
-to sequences. -/
+/-- Since the norm of the entries of a Cauchy sequence is eventually stationary,
+we can lift the norm to sequences. -/
 def norm (f : padic_seq p) : ℚ :=
 if hf : f ≈ 0 then 0 else padic_norm p (f (stationary_point hf))
 
@@ -867,7 +869,8 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
     by norm_num [this]
   else
     begin
-      have hnz' : {rat . num := n, denom := d, pos := hn, cop := hd} ≠ 0, from mt rat.zero_iff_num_zero.1 hnz,
+      have hnz' : { rat . num := n, denom := d, pos := hn, cop := hd } ≠ 0,
+        from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
       rw [padic_norm.eq_fpow_of_nonzero p hnz', padic_val_rat_def p hnz'],

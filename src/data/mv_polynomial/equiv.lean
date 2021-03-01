@@ -370,16 +370,14 @@ begin
     dsimp [ring_equiv.coe_to_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
     simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp, ring_equiv_congr_left_apply] },
   { intro i,
-    dsimp [ring_equiv.coe_to_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv,
-      _root_.fin_succ_equiv],
-    by_cases hi : i = 0,
-    { simp only [hi, fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
-        equiv.sum_comm_apply, comp_app, sum_to_iter_Xl, eval₂_X, equiv.coe_fn_mk,
-        ring_equiv_congr_left_apply, equiv.coe_trans] },
-    { rw [← fin.succ_pred i hi],
-      simp only [equiv.coe_fn_mk, ring_equiv_congr_left_apply, equiv.coe_trans, rename_X,
-        equiv.sum_comm_apply, comp_app, eval₂_X, equiv.option_equiv_sum_punit_some, sum.swap,
-        fin.cases_succ, sum_to_iter_Xr, eval₂_C] } }
+    dsimp [fin_succ_equiv, option_equiv_left, sum_ring_equiv],
+    refine fin.cases _ (λ _, _) i,
+    { simp only [fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
+      equiv.sum_comm_apply, ring_equiv_congr_left_apply, comp_app, sum_to_iter_Xl, equiv.coe_trans,
+      fin_succ_equiv_zero, eval₂_X]},
+    { simp only [equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, rename_X,
+        equiv.sum_comm_apply, ring_equiv_congr_left_apply, sum_to_iter_Xr, comp_app, eval₂_C,
+        equiv.coe_trans, fin_succ_equiv_succ, eval₂_X]} }
 end
 
 @[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) R) :

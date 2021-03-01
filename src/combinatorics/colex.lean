@@ -107,7 +107,7 @@ begin
   simp only [colex.lt_def, not_exists, mem_image, exists_prop, not_and],
   split,
   { rintro ⟨k, z, q, k', _, rfl⟩,
-    exact ⟨k', λ x hx, by simpa [h₁.injective] using z (h₁ hx), λ t, q _ t rfl, ‹k' ∈ B›⟩ },
+    exact ⟨k', λ x hx, by simpa [h₁.injective.eq_iff] using z (h₁ hx), λ t, q _ t rfl, ‹k' ∈ B›⟩ },
   rintro ⟨k, z, ka, _⟩,
   refine ⟨f k, λ x hx, _, _, k, ‹k ∈ B›, rfl⟩,
   { split,

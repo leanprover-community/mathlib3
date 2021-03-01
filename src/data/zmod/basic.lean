@@ -377,7 +377,8 @@ begin
   rw ring_hom.injective_iff,
   intro x,
   obtain ⟨k, rfl⟩ := zmod.int_cast_surjective x,
-  rw [ring_hom.map_int_cast, char_p.int_cast_eq_zero_iff R n, char_p.int_cast_eq_zero_iff (zmod n) n],
+  rw [ring_hom.map_int_cast, char_p.int_cast_eq_zero_iff R n,
+    char_p.int_cast_eq_zero_iff (zmod n) n],
   exact id
 end
 
@@ -691,7 +692,8 @@ begin
   rw val_min_abs_def_pos,
   split_ifs,
   { rw [int.cast_coe_nat, nat_cast_zmod_val] },
-  { rw [int.cast_sub, int.cast_coe_nat, nat_cast_zmod_val, int.cast_coe_nat, nat_cast_self, sub_zero] }
+  { rw [int.cast_sub, int.cast_coe_nat, nat_cast_zmod_val, int.cast_coe_nat, nat_cast_self,
+      sub_zero] }
 end
 
 lemma nat_abs_val_min_abs_le {n : ℕ} [fact (0 < n)] (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=

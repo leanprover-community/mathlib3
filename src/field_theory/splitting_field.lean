@@ -29,7 +29,7 @@ section splits
 
 variables (i : α →+* β)
 
-/-- a polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1 -/
+/-- A polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1. -/
 def splits (f : polynomial α) : Prop :=
 f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g = 1
 
@@ -80,8 +80,10 @@ else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.
 
 lemma splits_of_splits_mul {f g : polynomial α} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
-⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
- or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
+⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
+   (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
+ or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
+   (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
 
 lemma splits_of_splits_of_dvd {f g : polynomial α} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
   splits i g :=
@@ -381,12 +383,14 @@ begin
   { have hcoeff : p.leading_coeff ≠ 0,
     { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
     have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-    { rw [roots_normalize, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
-        nat_degree_C, add_zero], },
-    have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
+    { rw [roots_normalize, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots,
+          coe_norm_unit, nat_degree_C, add_zero], },
+    have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero)
+                    hrootsnorm,
     rw [roots_normalize, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
     calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
-        = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
+        = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) :
+        by rw [hprod, mul_comm, mul_assoc, ← C_mul]
     ... = p * C 1 : by field_simp
     ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
@@ -495,7 +499,8 @@ end
 theorem factor_dvd_of_degree_ne_zero {f : polynomial α} (hf : f.degree ≠ 0) : factor f ∣ f :=
 factor_dvd_of_not_is_unit (mt degree_eq_zero_of_is_unit hf)
 
-theorem factor_dvd_of_nat_degree_ne_zero {f : polynomial α} (hf : f.nat_degree ≠ 0) : factor f ∣ f :=
+theorem factor_dvd_of_nat_degree_ne_zero {f : polynomial α} (hf : f.nat_degree ≠ 0) :
+  factor f ∣ f :=
 factor_dvd_of_degree_ne_zero (mt nat_degree_eq_of_degree_eq_some hf)
 
 /-- Divide a polynomial f by X - C r where r is a root of f in a bigger field extension. -/
@@ -510,7 +515,8 @@ mul_div_by_monic_eq_iff_is_root.2 $ by rw [is_root.def, eval_map, hg, eval₂_mu
 
 theorem nat_degree_remove_factor (f : polynomial α) :
   f.remove_factor.nat_degree = f.nat_degree - 1 :=
-by rw [remove_factor, nat_degree_div_by_monic _ (monic_X_sub_C _), nat_degree_map, nat_degree_X_sub_C]
+by rw [remove_factor, nat_degree_div_by_monic _ (monic_X_sub_C _), nat_degree_map,
+       nat_degree_X_sub_C]
 
 theorem nat_degree_remove_factor' {f : polynomial α} {n : ℕ} (hfn : f.nat_degree = n+1) :
   f.remove_factor.nat_degree = n :=
@@ -586,7 +592,8 @@ nat.rec_on n (λ α _ _ _ β _ j _, by exactI ⟨j, j.comp_id⟩) $ λ n ih α _
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hf, cases hf },
 have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
 let ⟨r, hr⟩ := exists_root_of_splits _ (splits_of_splits_of_dvd j hfn0 hj
-  (factor_dvd_of_nat_degree_ne_zero hndf)) (mt is_unit_iff_degree_eq_zero.2 f.irreducible_factor.1) in
+  (factor_dvd_of_nat_degree_ne_zero hndf))
+  (mt is_unit_iff_degree_eq_zero.2 f.irreducible_factor.1) in
 have hmf0 : map (adjoin_root.of f.factor) f ≠ 0, from map_ne_zero hfn0,
 have hsf : splits (adjoin_root.lift j r hr) f.remove_factor,
 by { rw ← X_sub_C_mul_remove_factor _ hndf at hmf0, refine (splits_of_splits_mul _ hmf0 _).2,

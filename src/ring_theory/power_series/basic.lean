@@ -341,6 +341,13 @@ begin
   simp only [X, coeff_mul_monomial, if_neg this]
 end
 
+lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
+ coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
+begin
+  have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
+  simp only [X, coeff_monomial_mul, if_neg this]
+end
+
 variables (σ) (R)
 
 /-- The constant coefficient of a formal power series.-/
@@ -975,6 +982,8 @@ end
 
 lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
 
+lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
+
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :
   is_unit (constant_coeff R φ) :=
@@ -1550,6 +1559,38 @@ end
 lemma order_monomial_of_ne_zero (n : ℕ) (a : R) (h : a ≠ 0) :
   order (monomial R n a) = n :=
 by rw [order_monomial, if_neg h]
+
+/-- If `n` is strictly smaller than the order of `ψ`, then the `n`th coefficient of its product
+with any other power series is `0`. -/
+lemma coeff_mul_of_lt_order {φ ψ : power_series R} {n : ℕ} (h : ↑n < ψ.order) :
+  coeff R n (φ * ψ) = 0 :=
+begin
+  suffices : coeff R n (φ * ψ) = ∑ p in finset.nat.antidiagonal n, 0,
+    rw [this, finset.sum_const_zero],
+  rw [coeff_mul],
+  apply finset.sum_congr rfl (λ x hx, _),
+  refine mul_eq_zero_of_right (coeff R x.fst φ) (ψ.coeff_of_lt_order x.snd (lt_of_le_of_lt _ h)),
+  rw finset.nat.mem_antidiagonal at hx,
+  norm_cast,
+  linarith,
+end
+
+lemma coeff_mul_one_sub_of_lt_order {R : Type*} [comm_ring R] {φ ψ : power_series R}
+  (n : ℕ) (h : ↑n < ψ.order) :
+  coeff R n (φ * (1 - ψ)) = coeff R n φ :=
+by simp [coeff_mul_of_lt_order h, mul_sub]
+
+lemma coeff_mul_prod_one_sub_of_lt_order {R ι : Type*} [comm_ring R] (k : ℕ) (s : finset ι)
+  (φ : power_series R) (f : ι → power_series R) :
+  (∀ i ∈ s, ↑k < (f i).order) → coeff R k (φ * ∏ i in s, (1 - f i)) = coeff R k φ :=
+begin
+  apply finset.induction_on s,
+  { simp },
+  { intros a s ha ih t,
+    simp only [finset.mem_insert, forall_eq_or_imp] at t,
+    rw [finset.prod_insert ha, ← mul_assoc, mul_right_comm, coeff_mul_one_sub_of_lt_order _ t.1],
+    exact ih t.2 },
+end
 
 end order_basic
 

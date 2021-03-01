@@ -36,7 +36,6 @@ X.map (simplex_category.δ i).op
 def σ {n} (i : fin (n+1)) : X.obj (op n) ⟶ X.obj (op (n+1 : ℕ)) :=
 X.map (simplex_category.σ i).op
 
--- PROJECT: transfer the simplicial identities over to simplicial objects.
 
 /-- Isomorphisms from identities in ℕ. -/
 def eq_to_iso {n m : ℕ} (h : n = m) : X.obj (op n) ≅ X.obj (op m) :=

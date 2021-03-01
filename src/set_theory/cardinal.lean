@@ -770,6 +770,8 @@ begin
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
 
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to 0. -/
 noncomputable def to_nat (c : cardinal) : ℕ :=
 if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0
 
@@ -800,6 +802,8 @@ by rw [← to_nat_cast 0, nat.cast_zero]
 lemma one_to_nat : cardinal.to_nat 1 = 1 :=
 by rw [← to_nat_cast 1, nat.cast_one]
 
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to `⊤`. -/
 noncomputable def to_enat : cardinal →+ enat :=
 { to_fun := λ c, if c < omega.{v} then c.to_nat else ⊤,
   map_zero' := by simp [if_pos (lt_trans zero_lt_one one_lt_omega)],

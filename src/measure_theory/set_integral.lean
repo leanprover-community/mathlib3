@@ -36,13 +36,13 @@ as `s` tends to `l.lift' powerset`, i.e. for any `ε>0` there exists `t ∈ l` s
 `∥∫ x in s, f x ∂μ - μ s • c∥ ≤ ε * μ s` whenever `s ⊆ t`. We also formulate a version of this
 theorem for a locally finite measure `μ` and a function `f` continuous at a point `a`.
 
-## Notations
+## Notation
 
 We provide the following notations for expressing the integral of a function on a set :
 * `∫ a in s, f a ∂μ` is `measure_theory.integral (μ.restrict s) f`
 * `∫ a in s, f a` is `∫ a in s, f a ∂volume`
 
-Note that the se notations are defined in the file `measure_theory/bochner_integration`,
+Note that the set notations are defined in the file `measure_theory/bochner_integration`,
 but we reference them here because all theorems about set integrals are in this file.
 
 ## TODO

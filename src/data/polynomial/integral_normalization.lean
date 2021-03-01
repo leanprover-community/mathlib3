@@ -53,7 +53,8 @@ lemma integral_normalization_coeff_ne_degree {f : polynomial R} {i : ℕ} (hi : 
   coeff (integral_normalization f) i = coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i) :=
 if_neg hi
 
-lemma integral_normalization_coeff_ne_nat_degree {f : polynomial R} {i : ℕ} (hi : i ≠ nat_degree f) :
+lemma integral_normalization_coeff_ne_nat_degree
+  {f : polynomial R} {i : ℕ} (hi : i ≠ nat_degree f) :
   coeff (integral_normalization f) i = coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i) :=
 integral_normalization_coeff_ne_degree (degree_ne_of_nat_degree_ne hi.symm)
 

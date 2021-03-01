@@ -49,7 +49,8 @@ begin
   simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
   rw [finsupp.sum, finset.sum_eq_single (n + 1)],
   simp only [nat.add_succ_sub_one, add_zero, mul_one, if_true, eq_self_iff_true], norm_cast,
-  swap, { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
+  swap,
+  { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
     intro h, push_neg at h, simp [h], },
   { assume b, cases b,
     { intros, rw [nat.cast_zero, mul_zero, zero_mul], },
@@ -241,8 +242,12 @@ theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.de
 theorem nat_degree_derivative_lt {p : polynomial R} (hp : p.derivative ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=
 have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
-with_bot.some_lt_some.1 $ by { rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp,
-  nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1], exact degree_derivative_lt hp1 }
+with_bot.some_lt_some.1 $
+begin
+  rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp, nat_degree,
+    option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1],
+  exact degree_derivative_lt hp1
+end
 
 theorem degree_derivative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
 if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
@@ -315,7 +320,8 @@ begin
     exact hp }
 end
 
-theorem nat_degree_eq_zero_of_derivative_eq_zero [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
+theorem nat_degree_eq_zero_of_derivative_eq_zero
+  [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
   f.nat_degree = 0 :=
 begin
   by_cases hf : f = 0,

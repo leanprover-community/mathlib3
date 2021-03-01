@@ -176,6 +176,9 @@ fintype.card_of_subsingleton _
 @[simp] theorem finite_singleton (a : α) : finite ({a} : set α) :=
 ⟨set.fintype_singleton _⟩
 
+lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
+h.induction_on finite_empty finite_singleton
+
 instance fintype_pure : ∀ a : α, fintype (pure a : set α) :=
 set.fintype_singleton
 
@@ -334,6 +337,11 @@ finite_of_finite_image I (h.subset (image_preimage_subset f s))
 
 theorem finite.preimage_embedding {s : set β} (f : α ↪ β) (h : s.finite) : (f ⁻¹' s).finite :=
 finite.preimage (λ _ _ _ _ h', f.injective h') h
+
+lemma finite_option {s : set (option α)} : finite s ↔ finite {x : α | some x ∈ s} :=
+⟨λ h, h.preimage_embedding embedding.some,
+  λ h, ((h.image some).union (finite_singleton none)).subset $
+    λ x, option.cases_on x (λ _, or.inr rfl) (λ x hx, or.inl $ mem_image_of_mem _ hx)⟩
 
 instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=

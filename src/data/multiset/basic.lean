@@ -752,17 +752,37 @@ theorem foldl_swap (f : β → α → β) (H : right_commutative f) (b : β) (s 
   foldl f H b s = foldr (λ x y, f y x) (λ x y z, (H _ _ _).symm) b s :=
 (foldr_swap _ _ _ _).symm
 
-lemma foldr_induction (f : α → α → α) (H : left_commutative f) (x : α) (p : α → Prop)
-  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f a b)) (p_b : p x) (p_s : ∀ y ∈ s, p y) :
+lemma foldr_induction' (f : α → β → β) (H : left_commutative f) (x : β) (q : α → Prop)
+  (p : β → Prop) (s : multiset α) (hpqf : ∀ a b, q a → p b → p (f a b)) (px : p x)
+  (q_s : ∀ y ∈ s, q y) :
   p (foldr f H x s) :=
 begin
   revert s,
-  refine multiset.induction (by simp [p_b]) _,
+  refine multiset.induction (by simp [px]) _,
   intros a s hs hsa,
   rw foldr_cons,
-  have hps : ∀ (x : α), x ∈ s → p x, from λ x hxs, hsa x (mem_cons_of_mem hxs),
-  exact p_f a (foldr f H x s) (hsa a (mem_cons_self a s)) (hs hps),
+  have hps : ∀ (x : α), x ∈ s → q x, from λ x hxs, hsa x (mem_cons_of_mem hxs),
+  exact hpqf a (foldr f H x s) (hsa a (mem_cons_self a s)) (hs hps),
 end
+
+lemma foldr_induction (f : α → α → α) (H : left_commutative f) (x : α) (p : α → Prop)
+  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f a b)) (px : p x) (p_s : ∀ y ∈ s, p y) :
+  p (foldr f H x s) :=
+foldr_induction' f H x p p s p_f px p_s
+
+lemma foldl_induction' (f : β → α → β) (H : right_commutative f) (x : β) (q : α → Prop)
+  (p : β → Prop) (s : multiset α) (hpqf : ∀ a b, q a → p b → p (f b a)) (px : p x)
+  (q_s : ∀ y ∈ s, q y) :
+  p (foldl f H x s) :=
+begin
+  rw foldl_swap,
+  exact foldr_induction' (λ x y, f y x) (λ x y z, (H _ _ _).symm) x q p s hpqf px q_s,
+end
+
+lemma foldl_induction (f : α → α → α) (H : right_commutative f) (x : α) (p : α → Prop)
+  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f b a)) (px : p x) (p_s : ∀ y ∈ s, p y) :
+  p (foldl f H x s) :=
+foldl_induction' f H x p p s p_f px p_s
 
 /-- Product of a multiset given a commutative monoid structure on `α`.
   `prod {a, b, c} = a * b * c` -/

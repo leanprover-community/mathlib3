@@ -463,7 +463,7 @@ def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
 
 lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
-  extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b := rfl
+  extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b := by convert rfl
 
 @[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=

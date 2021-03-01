@@ -114,6 +114,12 @@ Use `is_closed_property` or `dense_range.induction_on` for this argument.
                 `measure_theory/lp_space`)
 * `α →₁ₛ[μ] E` : simple functions in L1 space, i.e., equivalence classes of integrable simple
                  functions
+* `∫ a, f a ∂μ` : integral of `f` with respect to a measure `μ`
+* `∫ a in s, f a` : integral of `f` with respect to `volume`, the default measure on the
+                    ambiant type
+
+We also define notations for integral on a set, which are described in the file
+`measure_theory/set_integral`.
 
 Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missing.
 
@@ -1327,7 +1333,7 @@ le_of_sub_nonneg $ integral_sub hg hf ▸ integral_nonneg_of_ae $ h.mono (λ a, 
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 integral_mono_ae hf hg $ eventually_of_forall h
 
-lemma integral_mono_ae_of_nonneg {f g : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hgi : integrable g μ)
+lemma integral_mono_of_nonneg {f g : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hgi : integrable g μ)
   (h : f ≤ᵐ[μ] g) : ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 begin
   by_cases hfm : ae_measurable f μ,
@@ -1337,10 +1343,6 @@ begin
   { rw [integral_non_ae_measurable hfm],
     exact integral_nonneg_of_ae (hf.trans h) }
 end
-
-@[mono] lemma integral_mono_of_nonneg {f g : α → ℝ} (hf : 0 ≤ f) (hgi : integrable g μ)
-  (h : f ≤ g) : ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
-integral_mono_ae_of_nonneg (ae_of_all _ hf) hgi (ae_of_all _ h)
 
 lemma norm_integral_le_integral_norm (f : α → E) : ∥(∫ a, f a ∂μ)∥ ≤ ∫ a, ∥f a∥ ∂μ :=
 have le_ae : ∀ᵐ a ∂μ, 0 ≤ ∥f a∥ := eventually_of_forall (λa, norm_nonneg _),
@@ -1359,7 +1361,7 @@ lemma norm_integral_le_of_norm_le {f : α → E} {g : α → ℝ} (hg : integrab
   (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ g x) : ∥∫ x, f x ∂μ∥ ≤ ∫ x, g x ∂μ :=
 calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ : norm_integral_le_integral_norm f
                ... ≤ ∫ x, g x ∂μ   :
-  integral_mono_ae_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hg h
+  integral_mono_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hg h
 
 lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
   ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=

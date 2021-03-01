@@ -559,32 +559,6 @@ end
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 integral_mono_ae hf hg hab (ae_of_all _ h)
 
-omit hf
-
-lemma integral_mono_ae_restrict_of_nonneg (h₁ : 0 ≤ᵐ[μ.restrict (interval a b)] f)
-  (h₂ : f ≤ᵐ[μ.restrict (interval a b)] g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-begin
-  rw [integral_of_le hab, integral_of_le hab],
-  rw interval_of_le hab at h₁ h₂,
-  exact set_integral_mono_ae_restrict_of_nonneg hg.1
-    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) h₁)
-    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) h₂)
-end
-
-lemma integral_mono_ae_of_nonneg (h₁ : 0 ≤ᵐ[μ] f)
-  (h₂ : f ≤ᵐ[μ] g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-integral_mono_ae_restrict_of_nonneg hg hab (ae_restrict_of_ae h₁) (ae_restrict_of_ae h₂)
-
-lemma integral_mono_of_nonneg_on (h₁ : ∀ x ∈ interval a b, 0 ≤ f x)
-  (h₂ : ∀ x ∈ interval a b, f x ≤ g x) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-integral_mono_ae_restrict_of_nonneg hg hab
-  (by simp [measurable_set_interval, eventually_le, eventually_inf_principal, ae_of_all _ h₁])
-  (by simp [measurable_set_interval, eventually_le, eventually_inf_principal, ae_of_all _ h₂])
-
-@[mono] lemma integral_mono_of_nonneg (h₁ : 0 ≤ f)
-  (h₂ : f ≤ g) : ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-integral_mono_ae_of_nonneg hg hab (ae_of_all _ h₁) (ae_of_all _ h₂)
-
 end mono
 
 section nonneg

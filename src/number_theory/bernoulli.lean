@@ -153,7 +153,7 @@ begin
 end
 
 open power_series
-variables (A : Type*) [integral_domain A] [algebra ℚ A]
+variables (A : Type*) [ring A] [no_zero_divisors A] [nontrivial A] [algebra ℚ A]
 
 theorem bernoulli'_power_series :
   power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!)) * (exp A - 1) = X * exp A :=

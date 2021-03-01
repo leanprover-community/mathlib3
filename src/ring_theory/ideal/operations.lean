@@ -1317,27 +1317,18 @@ lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J �
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
-lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map ↑f.symm = I :=
-begin
-  have h : (f.symm : S →+* R).comp (f : R →+* S) = ring_hom.id _,
-  { ext r, simp },
-  rw [map_map, h, map_id]
-end
+lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map f.to_ring_hom).map f.symm.to_ring_hom = I :=
+by simp [map_map, map_id]
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
-lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) : (I.comap (f.symm : S →+* R)).comap ↑f = I :=
-begin
-  have h : (f.symm : S →+* R).comp (f : R →+* S) = ring_hom.id _,
-  { ext r, simp },
-  rw [comap_comap, h, comap_id]
-end
+lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :
+  (I.comap f.symm.to_ring_hom).comap f.to_ring_hom = I :=
+by simp [comap_comap, comap_id]
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I`. -/
 lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
-begin
-  refine le_antisymm (le_comap_of_map_le (le_of_eq (map_of_equiv I f))) _,
-  exact le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le
-end
+le_antisymm (le_comap_of_map_le (le_of_eq (map_of_equiv I f)))
+  (le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le)
 
 /-- The ring equiv `R/I ≃+* S/J` induced by a ring equiv `f : R ≃+** S`,  where `J = f(I)`. -/
 @[simps]

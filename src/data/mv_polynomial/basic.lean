@@ -92,17 +92,26 @@ def mv_polynomial (σ : Type*) (R : Type*) [semiring R] := add_monoid_algebra R 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
-instance [semiring R]: semiring (mv_polynomial σ R) := add_monoid_algebra.semiring
+section semiring
+variable [semiring R]
+
+-- setting priority 90<100 so Lean prefers to find this instance when R is commutative
+-- via comm_semiring R -> comm_semiring (mv_polynomial σ R) -> semiring (mv_polynomial σ R)
+def semiring' : semiring (mv_polynomial σ R) := add_monoid_algebra.semiring
+attribute [instance, priority 90] semiring'
+
+instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
+  decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
+instance : inhabited (mv_polynomial σ R) := ⟨0⟩
+instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
+instance : semimodule R (mv_polynomial σ R) := add_monoid_algebra.semimodule
+
+end semiring
 
 section comm_semiring
 variables [comm_semiring R] {p q : mv_polynomial σ R}
 
-instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
-  decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
 instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
-instance : inhabited (mv_polynomial σ R) := ⟨0⟩
-instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
-instance : semimodule R (mv_polynomial σ R) := add_monoid_algebra.semimodule
 instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
 
 /-- The coercion turning an `mv_polynomial` into the function which reports the coefficient

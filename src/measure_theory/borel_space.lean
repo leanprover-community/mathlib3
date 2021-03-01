@@ -557,7 +557,7 @@ lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul �
   measurable (λ a, ∏ i in s, f i a) :=
 begin
   simp_rw ← finset.prod_apply,
-  exact finset.prod_induction f measurable (λ f g , λ hf' hg', measurable.mul' hf' hg')
+  exact finset.prod_induction f measurable (λ f g hf' hg', measurable.mul' hf' hg')
     (@measurable_one α δ _ _ _) (λ i _, hf i),
 end
 
@@ -569,7 +569,7 @@ lemma finset.ae_measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mu
 begin
   simp_rw ← finset.prod_apply,
   exact finset.prod_induction f (λ f, ae_measurable f μ)
-    (λ f g , λ hf' hg', ae_measurable.mul hf' hg') (@measurable_one α δ _ _ _).ae_measurable
+    (λ f g hf' hg', ae_measurable.mul hf' hg') (@measurable_one α δ _ _ _).ae_measurable
     (λ i _, hf i),
 end
 

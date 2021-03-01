@@ -7,15 +7,45 @@ import topology.bounded_continuous_function
 import topology.uniform_space.compact_separated
 import algebra.floor
 
-open_locale big_operators
+/--
+# Bernstein approximations and Weierstrass' theorem
+
+We prove that the Bernstein approximations
+```
+∑ k : fin (n+1), f (k/n : ℝ) • bernstein n k
+```
+for a continuous function `f : C([0,1], ℝ)` converge uniformly to `f`.
+
+The proof follows [Richard Beals' *Analysis, an introduction*][beals-analysis], §7D.
+The original proof, due to [Bernstein](bernstein1912) in 1912, is probabilistic,
+and relies on Bernoulli's theorem,
+which gives bounds for how quickly the observed frequencies in a
+Bernoulli trial approach the underlying probability.
+
+The proof here does not directly rely on Bernoulli's theorem,
+but can also be given a probabilistic account.
+* Consider a weighted coin which with probability `x` produces heads,
+  and with probability `1-x` produces tails.
+* The value of `bernstein n k x` is the probability that
+  such a coin gives exactly `k` heads in a sequence of `n` tosses.
+* If such an appearance of `k` heads results in a payoff of `f(k / n)`,
+  the `n`-th Bernstein approximation for `f` evaluated at `x` is the expected payoff.
+* The main estimate in the proof establishes how small the probability is that
+  the observed frequency of heads differs from `x` by more than some `δ`.
+  We find that it is at most `(4 * n * δ^2)⁻¹`, irrespective of `x`.
+* This ensures that for `n` large, the Bernstein approximation is (uniformly) close to the
+  payoff function `f`.
+
+(You don't need to think in these terms to follow the proof below: it's a giant `calc` block!)
+
+This result proves Weierstrass' theorem that polynomials are dense in `C([0,1], ℝ)`,
+although we defer an abstract statement of this until later.
+-/
 
 noncomputable theory
 
 open_locale classical
-
-instance {α : Type*} [fintype α] : has_coe (set α) (finset α) :=
-⟨λ S, S.to_finset⟩
-
+open_locale big_operators
 open_locale bounded_continuous_function
 
 example {X : Type*} [topological_space X] : has_norm (X →ᵇ ℝ) := by apply_instance
@@ -29,6 +59,22 @@ def bernstein' (n ν : ℕ) : C(ℝ, ℝ) :=
 ⟨λ x, polynomial.aeval x (bernstein_polynomial n ν), by continuity⟩
 
 local notation `I` := set.Icc (0 : ℝ) (1 : ℝ) -- there's some orphaned development in `path_connected`.
+
+namespace unit_interval
+
+lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
+lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
+lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
+lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+
+end unit_interval
+
+namespace tactic.interactive
+meta def unit_interval : tactic unit :=
+`[apply unit_interval.nonneg] <|> `[apply unit_interval.one_minus_nonneg] <|>
+`[apply unit_interval.le_one] <|> `[apply unit_interval.one_minus_le_one]
+
+end tactic.interactive
 
 example : compact_space I := by apply_instance
 
@@ -46,17 +92,59 @@ begin
   simp,
 end
 
+lemma bernstein_nonneg {n ν : ℕ} {x : I} :
+  0 ≤ bernstein n ν x :=
+begin
+  simp only [bernstein_apply],
+  exact mul_nonneg
+    (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (by unit_interval) _))
+    (pow_nonneg (by unit_interval) _),
+end
+
 namespace bernstein
 
-def Z {n : ℕ} (k : fin (n+1)) : I := ⟨(k : ℝ) / n, begin sorry, end⟩
+def Z {n : ℕ} (k : fin (n+1)) : I :=
+⟨(k : ℝ) / n,
+  begin
+    rcases k with ⟨k,w⟩,
+    fsplit,
+    { simp only [fin.coe_mk, coe_coe],
+      exact div_nonneg (nat.cast_nonneg k) (nat.cast_nonneg n), },
+    { simp,
+      sorry, }
+  end⟩
 
 lemma probability (n : ℕ) (x : I) :
   ∑ k : fin (n+1), bernstein n k x = 1 :=
-sorry
+begin
+  have := bernstein_polynomial.sum n,
+  apply_fun (λ p, polynomial.aeval (x : ℝ) p) at this,
+  simp [alg_hom.map_sum, finset.sum_range] at this,
+  exact this,
+end
 
-lemma variance (n : ℕ) (x : I) :
+lemma real.mul_injective_of_ne_zero {x : ℝ} (h : x ≠ 0) : function.injective (λ y, y * x) := sorry
+
+lemma variance {n : ℕ} (h : 0 < (n : ℝ)) (x : I) :
   ∑ k : fin (n+1), (x - Z k : ℝ)^2 * bernstein n k x = x * (1-x) / n :=
-sorry
+begin
+  have h' : (n : ℝ) ≠ 0 := (ne_of_lt h).symm,
+  apply_fun (λ x : ℝ, x * n) using real.mul_injective_of_ne_zero h',
+  apply_fun (λ x : ℝ, x * n) using real.mul_injective_of_ne_zero h',
+  dsimp,
+  conv_lhs { simp only [finset.sum_mul, Z], },
+  conv_rhs { rw div_mul_cancel _ h', },
+  have := bernstein_polynomial.variance n,
+  apply_fun (λ p, polynomial.aeval (x : ℝ) p) at this,
+  simp [alg_hom.map_sum, finset.sum_range, polynomial.nat_smul] at this,
+  convert this using 1,
+  { congr' 1, funext k,
+    rw [mul_comm _ (n : ℝ), mul_comm _ (n : ℝ), ←mul_assoc, ←mul_assoc],
+    congr' 1,
+    field_simp [h],
+    ring, },
+  { ring, },
+end
 
 end bernstein
 
@@ -94,89 +182,143 @@ begin
   simpa [S] using m,
 end
 
+lemma le_of_mem_S_compl {f : I →ᵇ ℝ} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ (S f ε h n x)ᶜ) :
+ (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - (Z k)) ^ 2 :=
+begin
+  simp [S] at m,
+  simp,
+  sorry,
+end
+
 end bernstein_approximation
 
 open bernstein_approximation
 
-lemma norm_le_of_bound {X Y : Type*} [topological_space X] [nonempty X] [normed_group Y]
-  {f : X →ᵇ Y} {M : ℝ} (w : ∀ x, ∥f x∥ ≤ M) : ∥f∥ ≤ M :=
+instance : nonempty I := ⟨⟨0, ⟨le_refl _, le_of_lt real.zero_lt_one⟩⟩⟩
+
+open tactic.interactive
+
+lemma mul_unit_interval_le {α : Type*} [ordered_semiring α] {a b c : α}
+  (h₁ : 0 ≤ c) (h₂ : a ≤ c) (h₃ : 0 ≤ b) (h₄ : b ≤ 1) : a * b ≤ c :=
 begin
-  have z : 0 ≤ M := le_trans (norm_nonneg _) (w (nonempty.some ‹_›)),
-  apply real.Inf_le _,
-  exact ⟨0, λ y p, p.1⟩,
-  exact ⟨z, λ x, by { convert w x, exact dist_zero_right _, }⟩,
+  conv_rhs { rw ←mul_one c, },
+  exact mul_le_mul h₂ h₄ h₃ h₁,
 end
 
-lemma norm_lt_of_bound
-  {X Y : Type*} [topological_space X] [compact_space X] [nonempty X] [normed_group Y]
-  {f : X →ᵇ Y} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=
+lemma finset.sum_le_univ_sum_of_nonneg
+  {α β : Type*} [fintype α] {s : finset α} [ordered_cancel_add_comm_monoid β] {f : α → β}
+  (w : ∀ a, 0 ≤ f a) :
+∑ a in s, f a ≤ ∑ a, f a :=
 begin
-  have c : continuous (λ x, ∥f x∥), { have := f.2.1, continuity, },
-  obtain ⟨x, -, le⟩ :=
-    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
-  exact lt_of_le_of_lt (norm_le_of_bound (λ y, le y trivial)) (h x),
+  rw ←finset.sum_add_sum_compl s,
+  exact le_add_of_nonneg_right (finset.sum_nonneg (λ x m, w x)),
 end
 
-instance : nonempty I := sorry
+lemma pow_minus_two_nonneg {α : Type*} [linear_ordered_field α] (a : α) : 0 ≤ a^(-2 : ℤ) :=
+begin
+  simp only [inv_nonneg, fpow_neg],
+  apply pow_two_nonneg,
+end
 
+open bounded_continuous_function
+
+/--
+This is the proof given in [Richard Beals' *Analysis, an introduction*][beals-analysis], §7D,
+and reproduced on wikipedia.
+-/
 theorem bernstein_approximation_uniform (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) :
   ∃ n : ℕ, ∥bernstein_approximation n f - f∥ < ε :=
 begin
   let δ := δ f ε h,
   let n : ℕ := _, use n,
-  apply norm_lt_of_bound,
+  suffices npos : 0 < (n : ℝ),
+  have w₀ : 0 ≤ ε / 2 := div_nonneg (le_of_lt h) (by norm_num),
+  have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
+  have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ (pow_minus_two_nonneg _),
+  have w₃ : ∀ x y, abs (f x - f y) ≤ 2 * ∥f∥ := λ x y,
+    calc abs (f x - f y) = abs (f x + -(f y)) : by rw sub_eq_add_neg
+      ... ≤ abs (f x) + abs (-f y) : abs_add _ _
+      ... = ∥f x∥ + ∥f y∥ : by rw [abs_neg, real.norm_eq_abs, real.norm_eq_abs]
+      ... ≤ ∥f∥ + ∥f∥ : add_le_add (norm_coe_le_norm _ _) (norm_coe_le_norm _ _)
+      ... = 2 * ∥f∥ : by ring,
+  apply bounded_continuous_function.norm_lt_of_compact,
   intro x,
   let S := S f ε h n x,
   calc
     abs ((bernstein_approximation n f - f) x)
         = abs (bernstein_approximation n f x - f x)
-            : rfl
+                              : rfl
     ... = abs (bernstein_approximation n f x - f x * 1)
-            : by rw mul_one
+                              : by rw mul_one
     ... = abs (bernstein_approximation n f x - f x * (∑ k : fin (n+1), bernstein n k x))
-            : by rw bernstein.probability
+                              : by rw bernstein.probability
     ... = abs (bernstein_approximation n f x - (∑ k : fin (n+1), f x * bernstein n k x))
-            : by rw finset.mul_sum
-    ... = abs (∑ k : fin (n+1), (f (Z k) - f x) * bernstein n k x) :
-            begin
-              dsimp [bernstein_approximation],
-              simp only [bounded_continuous_function.coe_sum, finset.sum_apply,
-                ←finset.sum_sub_distrib, bounded_continuous_function.coe_smul,
-                algebra.id.smul_eq_mul, ←sub_mul],
-            end
-    ... ≤ ∑ k : fin (n+1), abs (f (Z k) - f x) * bernstein n k x
-            : sorry
+                              : by rw finset.mul_sum
+    ... = abs (∑ k : fin (n+1), (f (Z k) - f x) * bernstein n k x)
+                              : begin
+                                  dsimp [bernstein_approximation],
+                                  simp only [coe_sum, coe_smul, finset.sum_apply,
+                                    ←finset.sum_sub_distrib,
+                                    algebra.id.smul_eq_mul, ←sub_mul],
+                                end
+    ... ≤ ∑ k : fin (n+1), abs ((f (Z k) - f x) * bernstein n k x)
+                              : finset.abs_sum_le_sum_abs
+    ... = ∑ k : fin (n+1), abs (f (Z k) - f x) * bernstein n k x
+                              : by simp_rw [abs_mul, abs_eq_self.mpr bernstein_nonneg]
     ... = ∑ k in S, abs (f (Z k) - f x) * bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
-            : (finset.sum_add_sum_compl S).symm
-    ... < ∑ k in S, (ε/2) * bernstein n k x +
+                              : (finset.sum_add_sum_compl S).symm
+    ... ≤ ∑ k in S, (ε/2) * bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
-            : add_lt_add_right sorry _
+                              : add_le_add_right (finset.sum_le_sum
+                                  (λ k m, (mul_le_mul_of_nonneg_right (le_of_lt (lt_of_mem_S m))
+                                    bernstein_nonneg))) _
     ... = (ε/2) * ∑ k in S, bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
-            : by rw finset.mul_sum
+                              : by rw finset.mul_sum
     ... ≤ (ε/2) * ∑ k : fin (n+1), bernstein n k x +
           ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
-            : add_le_add_right sorry _
+                              : add_le_add_right (mul_le_mul_of_nonneg_left
+                                  (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg)) w₀) _
     ... = (ε/2) + ∑ k in Sᶜ, abs (f (Z k) - f x) * bernstein n k x
-            : by rw [bernstein.probability, mul_one]
+                              : by rw [bernstein.probability, mul_one]
     ... ≤ (ε/2) + ∑ k in Sᶜ, (2 * ∥f∥) * bernstein n k x
-            : add_le_add_left sorry _
+                              : add_le_add_left (finset.sum_le_sum
+                                  (λ k m, mul_le_mul_of_nonneg_right (w₃ _ _) bernstein_nonneg)) _
     ... = (ε/2) + (2 * ∥f∥) * ∑ k in Sᶜ, bernstein n k x
-            : by rw finset.mul_sum
-    ... ≤ (ε/2) + (2 * ∥f∥) * ∑ k in Sᶜ, (x - Z k)^2 / δ^2 * bernstein n k x
-            : add_le_add_left sorry _
-    ... ≤ (ε/2) + (2 * ∥f∥) * ∑ k : fin (n+1), (x - Z k)^2 / δ^2 * bernstein n k x
-            : add_le_add_left sorry _
-    ... = (ε/2) + (2 * ∥f∥) / δ^2 * ∑ k : fin (n+1), (x - Z k)^2 * bernstein n k x
-            : sorry
-    ... = (ε/2) + (2 * ∥f∥) / δ^2 * x * (1-x) / n
-            : by { rw variance, ring, }
-    ... ≤ (ε/2) + (2 * ∥f∥) / δ^2 / n
-            : add_le_add_left sorry _
-    ... < ε : _, -- We postpone this step for a moment, in order to choose `n`.
-  swap,
-  exact nat_ceil (4 * ∥f∥ / (δ^2 * ε)),
-  dsimp [n],
-  sorry,
+                              : by rw finset.mul_sum
+    ... ≤ (ε/2) + (2 * ∥f∥) * ∑ k in Sᶜ, δ^(-2 : ℤ) * (x - Z k)^2 * bernstein n k x
+                              : add_le_add_left (mul_le_mul_of_nonneg_left
+                                  (finset.sum_le_sum (λ k m, begin
+                                    conv_lhs { rw ←one_mul (bernstein _ _ _), },
+                                    exact mul_le_mul_of_nonneg_right
+                                      (le_of_mem_S_compl m) bernstein_nonneg,
+                                  end)) w₁) _
+    ... ≤ (ε/2) + (2 * ∥f∥) * ∑ k : fin (n+1), δ^(-2 : ℤ) * (x - Z k)^2 * bernstein n k x
+                              : add_le_add_left (mul_le_mul_of_nonneg_left
+                                  (finset.sum_le_univ_sum_of_nonneg
+                                    (λ k, mul_nonneg
+                                      (mul_nonneg (pow_minus_two_nonneg _) (pow_two_nonneg _))
+                                      bernstein_nonneg)) w₁) _
+    ... = (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - Z k)^2 * bernstein n k x
+                              : by conv_rhs {
+                                  rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
+    ... = (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
+                              : by { rw variance npos, ring, }
+    ... ≤ (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) / n
+                              : add_le_add_left ((div_le_div_right npos).mpr
+                                begin
+                                  apply mul_unit_interval_le w₂,
+                                  apply mul_unit_interval_le w₂ (le_refl _),
+                                  all_goals { unit_interval, },
+                                end) _
+    ... < ε : _, -- We postpone this final step for a moment, in order to actually choose `n`!
+  swap 3,
+  { exact nat_ceil (2 * (2 * ∥f∥ * δ^(-2 : ℤ)) / ε) + 1, },
+  { dsimp [n] at npos ⊢,
+    rw [show ∀ z, ε/2 + z < ε ↔ z < ε/2, from λ z, by fsplit; { intro, linarith, }],
+    rw [lt_div_iff (show (0 : ℝ) < 2, by norm_num), mul_comm],
+    rw [←mul_div_assoc, div_lt_iff npos, mul_comm ε, ←div_lt_iff h],
+    exact lt_of_le_of_lt (le_nat_ceil _) (lt_add_one _), },
+  { exact lt_of_le_of_lt (nat.cast_nonneg _) (lt_add_one _), }
 end

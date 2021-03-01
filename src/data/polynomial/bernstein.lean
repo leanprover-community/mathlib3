@@ -406,4 +406,31 @@ begin
   exact h,
 end
 
+/--
+A certain linear combination of the previous three identities,
+which we'll want later.
+-/
+lemma variance (n : ℕ) :
+  (finset.range (n + 1)).sum (λ ν, (n • polynomial.X - ν)^2 * bernstein_polynomial n ν) =
+    n • polynomial.X * (1 - polynomial.X) :=
+begin
+  have p :
+    (finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial n ν) +
+    (1 - (2 * n) • polynomial.X) * (finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial n ν) +
+    (n^2 • X^2) * (finset.range (n + 1)).sum (λ ν, bernstein_polynomial n ν) = _ := rfl,
+  conv at p { to_lhs,
+    rw [finset.mul_sum, finset.mul_sum, ←finset.sum_add_distrib, ←finset.sum_add_distrib],
+    simp only [polynomial.nat_smul],
+    simp only [←mul_assoc],
+    simp only [←add_mul], },
+  conv at p { to_rhs,
+    rw [sum, sum_smul, sum_mul_smul],
+    simp only [polynomial.nat_smul], },
+  convert p using 1,
+  { congr' 1, funext k, congr' 1, simp only [polynomial.nat_smul] with push_cast,
+    cases k; { simp, ring, }, },
+  { simp only [polynomial.nat_smul] with push_cast,
+    cases n; { simp, ring, }, },
+end
+
 end bernstein_polynomial

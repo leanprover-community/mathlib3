@@ -53,7 +53,7 @@ rfl
   (fin_congr h k : ℕ) = k :=
 by { cases k, refl, }
 
-@[simp] lemma fin_congr_symm_apply_coe {n m : ℕ} (h : n = m) (k : fin m) :
+lemma fin_congr_symm_apply_coe {n m : ℕ} (h : n = m) (k : fin m) :
   ((fin_congr h).symm k : ℕ) = k :=
 by { cases k, refl, }
 

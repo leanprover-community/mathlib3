@@ -153,9 +153,10 @@ begin
 end
 
 open power_series
+variables (A : Type*) [comm_ring A] [algebra ℚ A]
 
 theorem bernoulli'_power_series :
-  power_series.mk (λ n, (bernoulli' n / n! : ℚ)) * (exp ℚ - 1) = X * exp ℚ :=
+  power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!)) * (exp A - 1) = X * exp A :=
 begin
   ext n,
   -- constant coefficient is a special case
@@ -168,6 +169,10 @@ begin
   simp only [factorial, prod.snd, one_div, cast_succ, cast_one, cast_mul, ring_hom.id_apply,
     sub_zero, add_eq_zero_iff, if_false, zero_add, one_ne_zero,
     factorial, div_one, mul_zero, and_false, sub_self],
+  suffices : ∑ (p : ℕ × ℕ) in nat.antidiagonal n, (bernoulli' p.fst / ↑(p.fst)!)
+                * ((↑(p.snd) + 1) * ↑(p.snd)!)⁻¹ = (↑n!)⁻¹,
+  { convert congr_arg (algebra_map ℚ A) this,
+    simp [ring_hom.map_sum] },
   apply eq_inv_of_mul_left_eq_one,
   rw sum_mul,
   convert bernoulli'_spec' n using 1,
@@ -195,7 +200,8 @@ open ring_hom
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
 theorem bernoulli'_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli' n = 0 :=
 begin
-  have f := bernoulli'_power_series,
+  have f : mk (λ (n : ℕ), bernoulli' n / ↑n!) * (exp ℚ - 1) = X * exp ℚ,
+  { simpa using bernoulli'_power_series ℚ },
   have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n!)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
@@ -288,6 +294,7 @@ begin
     { simp [sub_mul, mul_comm (eval_neg_hom (exp ℚ)), exp_mul_exp_neg_eq_one] },
     rw [he],
     simp only [eval_neg_hom, rescale, neg_mul_eq_neg_mul_symm, coeff_mk, coe_mk,
-      mul_neg_eq_neg_mul_symm, neg_neg, ←mul_div_assoc, ←bernoulli'_eq_neg_one_pow_mul_bernoulli,
-      bernoulli'_power_series], },
+      mul_neg_eq_neg_mul_symm, neg_neg, ←mul_div_assoc, ←bernoulli'_eq_neg_one_pow_mul_bernoulli],
+    convert bernoulli'_power_series ℚ,
+    simp }
 end

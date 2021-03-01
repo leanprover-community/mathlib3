@@ -270,7 +270,7 @@ meet-semilattice.
 
 The partial order is defined so that `a ≤ b` unfolds to `a = a ⊓ b`; cf. `left_eq_inf`.
 -/
-def semilattice_inf.mk' {α : Type*} {h : has_inf α}
+def semilattice_inf.mk' {α : Type*} [has_inf α]
   (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
   (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
   (inf_idem : ∀ (a : α), a ⊓ a = a) : semilattice_inf α :=
@@ -433,7 +433,7 @@ laws relating the two operations has the structure of a lattice.
 
 The partial order is defined so that `a ≤ b` unfolds to `a ⊔ b = b`; cf. `sup_eq_right`.
 -/
-def lattice.mk' {α : Type*} {hs : has_sup α} {hi : has_inf α}
+def lattice.mk' {α : Type*} [has_sup α] [has_inf α]
   (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
   (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
   (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)

@@ -278,7 +278,7 @@ begin
     apply rescale_injective,
     norm_num, },
   suffices h :
-    eval_neg_hom (mk (λ (n : ℕ),algebra_map ℚ A (bernoulli n / ↑n!))) * (eval_neg_hom (exp A) - 1)
+    eval_neg_hom (mk (λ n, algebra_map ℚ A (bernoulli n / ↑n!))) * (eval_neg_hom (exp A) - 1)
     * -exp A = -X * -exp A,
   { have hexp : - exp A ≠ 0,
     { simp only [exp, power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,

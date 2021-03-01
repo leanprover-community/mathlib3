@@ -39,6 +39,8 @@ variables {α : Type u} {w x y z : α}
 
 /-!
 ### Generalized Boolean algebras
+
+Sectionally complemented
 -/
 
 /-- A generalized Boolean algebra is a distributive lattice with `⊥`
@@ -81,24 +83,34 @@ begin
   exact (eq_of_inf_eq_sup_eq i s).symm,
 end
 
-theorem sup_sdiff_same : x ⊔ (y \ x) = x ⊔ y :=
-begin
-  conv_rhs { congr, skip, rw [←sup_inf_sdiff y x], },
-  rw [sup_inf_right, inf_sup_left],
-  sorry
-end
+lemma sdiff_le : x \ y ≤ x :=
+calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
+       ... = x : sup_inf_sdiff x y
 
+theorem sup_inf_sdiff' (x y : α) : (x ⊔ (x \ y)) ⊓ (y ⊔ (x \ y)) = x :=
+by rw [←sup_inf_right, sup_inf_sdiff]
+
+theorem sup_sdiff_same : x ⊔ (y \ x) = x ⊔ y :=
+calc x ⊔ (y \ x) = (x ⊔ (x ⊓ y)) ⊔ (y \ x) : by rw sup_inf_self
+             ... = x ⊔ ((y ⊓ x) ⊔ (y \ x)) : by rw [sup_assoc, inf_comm]
+             ... = x ⊔ y                   : by rw sup_inf_sdiff
+
+/--
+Grätzer 2011, I.6.1
+-/
+lemma bleh (h : x ≤ y) : x ⊔ (y \ x) = y :=
+by rw [sup_sdiff_same, sup_comm, sup_eq_left.2 h]
+
+lemma sup_sdiff_left : x ⊔ (x \ y) = x := by { rw [sup_eq_left], exact sdiff_le }
+
+/-!
+Cf. <https://ncatlab.org/nlab/show/relative+complement>
+-/
 theorem inf_sdiff_same : x ⊓ (y \ x) = ⊥ := sorry
 theorem sdiff_inf_same : (y \ x) ⊓ x = ⊥ := by rw [inf_comm, inf_sdiff_same]
 
 theorem le_sup_sdiff : x ≤ y ⊔ (x \ y) :=
-by rw [←left_eq_inf, sup_sdiff_same, sup_comm, inf_sup_self]
-
-lemma sup_sdiff_left : x ⊔ (x \ y) = x :=
-begin
-  conv_rhs { rw [←sup_inf_sdiff x y, sup_inf_right] },
-  sorry
-end
+by { rw [sup_sdiff_same], exact le_sup_right }
 
 theorem sdiff_eq_left (h : x ⊓ y = ⊥) : x \ y = x :=
 by conv_rhs { rw [←sup_inf_sdiff x y, h, bot_sup_eq] }
@@ -109,13 +121,18 @@ theorem sdiff_le_sdiff (h₁ : w ≤ y) (h₂ : z ≤ x) : w \ x ≤ y \ z :=
 sorry
 -- by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
-lemma sdiff_idem_left : x \ (x \ y) = y := sorry
+lemma sdiff_sdiff_eq_self (h : y ≤ x) : x \ (x \ y) = y := sorry
 
 @[simp] lemma sdiff_idem_right : x \ y \ y = x \ y :=
 sorry
 -- by rw [sdiff_eq, sdiff_eq, inf_assoc, inf_idem]
 
 lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = (z \ x ⊔ y) ⊓ (z \ y ⊔ x) := sorry
+
+lemma mccuan1a : (x ⊔ y) \ z = (x \ z) ⊔ (y \ z) := sorry
+lemma mccuan1b : (x \ y) \ z = x \ (y ⊔ z) := sorry
+lemma mccuan1c : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) := sorry
+
 
 end generalized_boolean_algebra
 

@@ -501,6 +501,7 @@ theorem mem_span_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by rw span_eq_map_total; simp
 
+
 variables (α) (M) (v)
 
 /-- `finsupp.total_on M v s` interprets `p : α →₀ R` as a linear combination of a
@@ -632,3 +633,19 @@ lemma mem_span_finset {s : finset M} {x : M} :
     (show x ∈ span R (id '' (↑s : set M)), by rwa set.image_id) in
   ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
 λ ⟨f, hf⟩, hf ▸ sum_mem _ (λ i hi, smul_mem _ _ $ subset_span hi)⟩
+
+universe u
+
+/-- An element `m ∈ M` is contained in the `R`-submodule spanned by a set `s ⊆ M`, if and only if
+`m` can be written as a finite `R`-linear combination of elements of `s`.
+The implementation uses `finsupp.sum`.
+The Type `M` has an explicit universe, since otherwise it gets assigned `Type (max u_2 u_3)`. -/
+lemma mem_span_set {M : Type u} [add_comm_group M] [semimodule R M] {m : M} {s : set M} :
+  m ∈ submodule.span R s ↔
+  ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ (c.sum (λ i, (smul_add_hom R M).flip i)) = m :=
+begin
+  convert finsupp.mem_span_iff_total R,
+  exact (set.image_id s).symm,
+  ext,
+  split; exact λ ⟨hsub, hsum⟩, ⟨hsub, hsum⟩,
+end

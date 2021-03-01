@@ -11,9 +11,12 @@ Results about "big operations" over a `fintype`, and consequent
 results about cardinalities of certain types.
 
 ## Implementation note
-This content had previously been in `data.fintype`, but was moved here to avoid
+This content had previously been in `data.fintype.basic`, but was moved here to avoid
 requiring `algebra.big_operators` (and hence many other imports) as a
 dependency of `fintype`.
+
+However many of the results here really belong in `algebra.big_operators.basic`
+and should be moved at some point.
 -/
 
 universes u v
@@ -76,6 +79,20 @@ finset.eq_of_card_le_one_of_prod_eq (finset.card_le_one_of_subsingleton s) h
 end
 
 end fintype
+
+open finset
+
+section
+
+variables {M : Type*} [fintype α] [comm_monoid M]
+
+@[simp, to_additive]
+lemma fintype.prod_option (f : option α → M) : ∏ i, f i = f none * ∏ i, f (some i) :=
+show ((finset.insert_none _).1.map f).prod = _,
+by simp only [finset.prod, finset.insert_none, multiset.map_cons, multiset.prod_cons,
+  multiset.map_map]
+
+end
 
 @[to_additive]
 theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :

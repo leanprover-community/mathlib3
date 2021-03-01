@@ -74,19 +74,19 @@ lemma bernoulli'_def' (n : ℕ) :
 well_founded.fix_eq _ _ _
 
 lemma bernoulli'_def (n : ℕ) :
-  bernoulli' n = 1 - ∑ k in finset.range n, (n.choose k) / (n - k + 1) * bernoulli' k :=
+  bernoulli' n = 1 - ∑ k in range n, (n.choose k) / (n - k + 1) * bernoulli' k :=
 by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 
 lemma bernoulli'_spec (n : ℕ) :
-  ∑ k in finset.range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
+  ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [finset.sum_range_succ, bernoulli'_def n, nat.sub_self],
-  conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (finset.mem_range.1 H)) },
+  rw [sum_range_succ, bernoulli'_def n, nat.sub_self],
+  conv in (nat.choose _ (_ - _)) { rw choose_symm (le_of_lt (mem_range.1 H)) },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
 
 lemma bernoulli'_spec' (n : ℕ) :
-  ∑ k in finset.nat.antidiagonal n,
+  ∑ k in nat.antidiagonal n,
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli' k.1 = 1 :=
 begin
   refine ((nat.sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
@@ -134,7 +134,7 @@ end examples
 open nat finset
 
 @[simp] lemma sum_bernoulli' (n : ℕ) :
-  ∑ k in finset.range n, (n.choose k : ℚ) * bernoulli' k = n :=
+  ∑ k in range n, (n.choose k : ℚ) * bernoulli' k = n :=
 begin
   cases n with n, { simp },
   rw [sum_range_succ, bernoulli'_def],
@@ -350,10 +350,9 @@ end
 section faulhaber
 
 lemma aux_cauchy_prod (n : ℕ) :
-  mk (λ (p : ℕ), bernoulli p / ↑p!) *
-  mk (λ (q : ℕ), (coeff ℚ (q + 1)) (exp ℚ ^ n))
-  = mk (λ (p : ℕ), (finset.range (p + 1)).sum (λ (i : ℕ),
-  bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)) :=
+mk (λ (p : ℕ), bernoulli p / ↑p!) * mk (λ (q : ℕ), (coeff ℚ (q + 1)) (exp ℚ ^ n))
+ = mk (λ (p : ℕ), (range (p + 1)).sum (λ (i : ℕ),
+ bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)) :=
 begin
   let f := λ a, λ b, bernoulli a / ↑a! * (coeff ℚ (b + 1)) (exp ℚ ^ n),
   ext q,
@@ -376,9 +375,8 @@ begin
 end
 
 lemma aux_power_series_equal (n : ℕ) :
-  (exp ℚ - 1) * power_series.mk (λ p, (finset.range n).sum (λ k,
-  (k : ℚ)^p * algebra_map ℚ ℚ p!⁻¹)) =
-  (exp ℚ - 1) * power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
+  (exp ℚ - 1) * power_series.mk (λ p, (range n).sum (λ k, (k : ℚ)^p * algebra_map ℚ ℚ p!⁻¹)) =
+  (exp ℚ - 1) * power_series.mk (λ p, (range (p + 1)).sum(λ i,
   (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/((p + 1)!))) :=
 begin
   have h_geom_sum : (geom_series (exp ℚ) n) * (exp ℚ - 1) = (exp ℚ)^n - 1 := geom_sum_mul _ _,
@@ -403,12 +401,12 @@ end -/
 
 /-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p : ℕ) :
-  (finset.range n).sum (λk, (k : ℚ)^p) =
-  (finset.range (p + 1)).sum (λ i, (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i) / (p + 1)) :=
+(range n).sum(λk, (k : ℚ)^p) =
+(range (p + 1)).sum (λ i, (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i) / (p + 1)) :=
 begin
-  have hpseq : power_series.mk (λ p, (finset.range n).sum (λ k,
+  have hpseq : power_series.mk (λ p, (range n).sum (λ k,
     (k : ℚ)^p * algebra_map ℚ ℚ p!⁻¹)) =
-    power_series.mk (λ p, (finset.range (p + 1)).sum(λ i,
+    power_series.mk (λ p, (range (p + 1)).sum(λ i,
       (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/((p + 1)!))),
   { have hexp : exp ℚ - 1 ≠ 0,
     { rw [exp],
@@ -431,12 +429,12 @@ begin
   simp only [power_series.ext_iff, cast_succ, coeff_mk, cast_mul, id_apply, rat.algebra_map_rat_rat]
     at hpseq,
   specialize hpseq p,
-  simp only [←finset.sum_mul] at hpseq,
+  simp only [←sum_mul] at hpseq,
   simp only [←one_div, mul_one_div, div_eq_iff hne_zero] at hpseq,
   rw [hpseq],
   clear hpseq,
-  simp only [finset.sum_mul],
-  refine finset.sum_congr rfl _,
+  simp only [sum_mul],
+  refine sum_congr rfl _,
   intros x hx,
   ring,
   rw [hfrac],

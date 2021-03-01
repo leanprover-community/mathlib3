@@ -138,13 +138,15 @@ lemma finset.sum_fin_succ_above {α : Type*} [add_comm_monoid α] {n : ℕ} (i :
   (f : fin n.succ → α) : ∑ j, f j = f i + ∑ (j : fin n), f (i.succ_above j) :=
 begin
   rw [← finset.insert_erase (finset.mem_univ i), finset.sum_insert (finset.not_mem_erase i _),
-      finset.sum_bij (λ j hj, i.pred_above _ (finset.ne_of_mem_erase hj))],
-  { intros j hj, exact finset.mem_univ _ },
+      finset.sum_bij (λ (j : fin n) (hj : j ∈ finset.univ), i.succ_above j)],
+  { intros j hj, simpa using fin.succ_above_ne i j },
   { intros j hj, simp },
-  { intros j j' hj hj' h, simpa using congr_arg i.succ_above h },
+  { intros j j' hj hj' h, simpa using h },
   { intros j hj,
-    refine ⟨i.succ_above j, finset.mem_erase.mpr ⟨i.succ_above_ne j, finset.mem_univ _⟩, _⟩,
-    simp },
+    have hj : j ∈ { j | j ≠ i } := (finset.mem_erase.mp hj).1,
+    rw ← i.range_succ_above at hj,
+    obtain ⟨j', rfl⟩ := hj,
+    exact ⟨j', finset.mem_univ _, rfl⟩ },
 end
 
 /-- In an `n`-dimensional space, the rank is at most `m`. -/
@@ -289,7 +291,7 @@ begin
   -- If `a` is zero, then the submodule is trivial. So let's assume `a ≠ 0`, `N ≠ ⊥`
   by_cases N_bot : N = ⊥,
   { rw N_bot,
-    refine ⟨0, λ _, 0, is_basis_empty_bot _⟩,
+    refine ⟨0, λ _, 0, is_basis_empty _ _⟩,
     rintro ⟨i, ⟨⟩⟩ },
   by_cases a_zero : generator (N.map ϕ) = 0,
   { have := eq_bot_of_generator_maximal_map_eq_zero hb ϕ_max a_zero,

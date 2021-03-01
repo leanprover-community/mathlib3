@@ -350,10 +350,10 @@ end
 section faulhaber
 
 lemma aux_cauchy_prod (n : ℕ) :
-mk (λ (p : ℕ), bernoulli p / ↑p!) *
- mk (λ (q : ℕ), (coeff ℚ (q + 1)) (exp ℚ ^ n))
- = mk (λ (p : ℕ), (finset.range (p + 1)).sum (λ (i : ℕ),
- bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)) :=
+  mk (λ (p : ℕ), bernoulli p / ↑p!) *
+  mk (λ (q : ℕ), (coeff ℚ (q + 1)) (exp ℚ ^ n))
+  = mk (λ (p : ℕ), (finset.range (p + 1)).sum (λ (i : ℕ),
+  bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)) :=
 begin
   ext q,
   rw [power_series.coeff_mul],
@@ -395,17 +395,17 @@ begin
   simp [geom_series] at h_geom_sum,
   rw [mul_comm, h_geom_sum],
   have h_const : C ℚ (constant_coeff ℚ ((exp ℚ)^n)) = 1,
-    { simp only [one_pow, constant_coeff_exp, ring_hom.map_pow, ring_hom.map_one],},
+  { simp only [one_pow, constant_coeff_exp, ring_hom.map_pow, ring_hom.map_one], },
   have h_r : (exp ℚ)^n - 1 = X * mk (λ (p : ℕ), (coeff ℚ (p + 1)) (exp ℚ ^ n)),
-    { rw [←h_const], rw [sub_const_eq_X_mul_shift],},
+  { rw [←h_const], rw [sub_const_eq_X_mul_shift], },
   rw [h_r, ←bernoulli_power_series, mul_assoc, aux_cauchy_prod],
 end
 
 
 /-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p : ℕ) :
-(finset.range n).sum(λk, (k : ℚ)^p) =
-(finset.range (p + 1)).sum(λ i, (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/(p + 1)) :=
+  (finset.range n).sum (λk, (k : ℚ)^p) =
+  (finset.range (p + 1)).sum (λ i, (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i) / (p + 1)) :=
 begin
   have hpseq : power_series.mk (λ p, (finset.range n).sum (λ k,
     (k : ℚ)^p * algebra_map ℚ ℚ p!⁻¹)) =

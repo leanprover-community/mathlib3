@@ -772,19 +772,38 @@ end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/
-noncomputable def to_nat (c : cardinal) : ℕ :=
-if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0
+noncomputable def to_nat : zero_hom cardinal ℕ :=
+⟨λ c, if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0,
+  begin
+    have h : 0 < omega := nat_lt_omega 0,
+    rw [dif_pos h, ← cardinal.nat_cast_inj, ← classical.some_spec (lt_omega.1 h), nat.cast_zero],
+  end⟩
 
+lemma to_nat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_nat = classical.some (lt_omega.1 h) :=
+dif_pos h
+
+@[simp]
+lemma to_nat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_nat = 0 :=
+dif_neg (not_lt_of_le h)
+
+@[simp]
 lemma cast_to_nat_of_lt_omega {c : cardinal} (h : c < omega) :
   ↑c.to_nat = c :=
-by rw [to_nat, dif_pos h, ← classical.some_spec (lt_omega.1 h)]
+by rw [to_nat_apply_of_lt_omega h, ← classical.some_spec (lt_omega.1 h)]
 
 @[simp]
 lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
 begin
-  rw [to_nat, dif_pos (nat_lt_omega n), ← nat_cast_inj],
+  rw [to_nat_apply_of_lt_omega (nat_lt_omega n), ← nat_cast_inj],
   exact (classical.some_spec (lt_omega.1 (nat_lt_omega n))).symm,
 end
+
+/-- `to_nat` has a right-inverse: coercion. -/
+lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
+
+lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
 
 @[simp]
 lemma mk_to_nat_of_infinite [h : infinite α] : (mk α).to_nat = 0 :=
@@ -840,8 +859,15 @@ by rw [to_enat_apply_of_lt_omega (nat_lt_omega n), to_nat_cast]
 lemma mk_to_enat_of_infinite [h : infinite α] : (mk α).to_enat = ⊤ :=
 to_enat_apply_of_omega_le (infinite_iff.1 h)
 
+lemma to_enat_surjective : surjective to_enat :=
+begin
+  intro x,
+  exact enat.cases_on x ⟨omega, to_enat_apply_of_omega_le (le_refl omega)⟩
+    (λ n, ⟨n, to_enat_cast n⟩),
+end
+
 @[simp]
-lemma mk_to_enat_eq_card [fintype α] : (mk α).to_enat = fintype.card α :=
+lemma mk_to_enat_eq_coe_card [fintype α] : (mk α).to_enat = fintype.card α :=
 by simp [fintype_card]
 
 lemma mk_int : mk ℤ = omega :=

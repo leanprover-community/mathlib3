@@ -153,7 +153,7 @@ begin
 end
 
 open power_series
-variables (A : Type*) [integral_domain A] [algebra ℚ A]
+variables (A : Type*) [comm_ring A] [algebra ℚ A]
 
 theorem bernoulli'_power_series :
   power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!)) * (exp A - 1) = X * exp A :=
@@ -268,33 +268,57 @@ begin
   { ring },
 end
 
+lemma bernoulli_spec' (n: ℕ) :
+  ∑ k in finset.nat.antidiagonal n,
+  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 0 :=
+begin
+  sorry,
+end
+
 theorem bernoulli_power_series :
   power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!)) * (exp A - 1) = X :=
 begin
-  suffices f : eval_neg_hom (power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!)) *
-   (exp A - 1)) = eval_neg_hom X,
-  { suffices g : function.injective eval_neg_hom,
-    { rwa g.eq_iff at f, },
-    apply rescale_injective,
-    norm_num, },
-  suffices h :
-    eval_neg_hom (mk (λ n, algebra_map ℚ A (bernoulli n / ↑n!))) * (eval_neg_hom (exp A) - 1)
-    * -exp A = -X * -exp A,
-  { have hexp : - exp A ≠ 0,
-    { simp only [exp, power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
-        ring_hom.id_apply, linear_map.map_sub, ne.def, not_forall,
-        rat.algebra_map_rat_rat],
-      use 1,
-      simp only [factorial_one, coeff_mk, linear_map.map_neg, cast_one, inv_one, not_false_iff,
-        neg_eq_zero, map_one, one_ne_zero],},
-    simpa using mul_right_cancel' hexp h, },
-  have he : (eval_neg_hom (exp A) - 1) * -exp A = exp A - 1,
-  { simp [sub_mul, mul_comm (eval_neg_hom (exp A)), exp_mul_exp_neg_eq_one] },
-  rw [mul_assoc, he],
-  simp only [eval_neg_hom, rescale, neg_mul_eq_neg_mul_symm, coeff_mk, coe_mk,
-    mul_neg_eq_neg_mul_symm, neg_neg],
-  convert bernoulli'_power_series A,
-  rw [←map_one (algebra_map ℚ A), ←map_neg (algebra_map ℚ A)],
-  simp only [←map_pow (algebra_map ℚ A) (-1), ←map_mul (algebra_map ℚ A), ←mul_div_assoc,
-    ←bernoulli'_eq_neg_one_pow_mul_bernoulli],
+  ext n,
+  -- constant cofficient is a special case
+  cases n,
+  { simp only [constant_coeff_one, constant_coeff_exp, constant_coeff_X,
+  coeff_zero_eq_constant_coeff, map_mul, mul_zero, sub_self, map_sub], },
+  rw [coeff_mul],
+  rw [coeff_X],
+  simp only [coeff_mk, nat.sum_antidiagonal_succ', one_div, coeff_mk, coeff_one, coeff_exp,
+  linear_map.map_sub, factorial, if_pos],
+  simp only [cast_succ, cast_one, cast_mul, sub_zero, map_one, add_eq_zero_iff, if_false, inv_one,
+  zero_add, one_ne_zero, factorial, mul_zero, and_false, sub_self],
+  simp only [←map_mul],
+  simp only [←map_sum],
+  suffices f:  ∑ (x : ℕ × ℕ) in nat.antidiagonal n, bernoulli x.fst /
+       ↑(x.fst)! * ((↑(x.snd) + 1) * ↑(x.snd)!)⁻¹ = ite (n.succ = 1) 1 0,
+  { by_cases n.succ = 1,
+    { simp only [h, f, if_true, eq_self_iff_true, map_one], },
+    { simp only [h, f, if_false, map_zero], } },
+  cases n,
+  { simp, },
+  have hn' : ¬ n.succ.succ = 1, by { show n + 2 ≠ 1, by linarith },
+  simp only [hn'],
+  rw [if_false, ←zero_div ((n.succ)! : ℚ)], --or n.succ!?
+  have hfacn: ((n.succ)! : ℚ) ≠ 0,
+  { simp only [cast_succ, cast_eq_zero, cast_mul, ne.def, factorial_succ, mul_eq_zero], },
+  rw [eq_comm, div_eq_iff hfacn, sum_mul, ←bernoulli_spec' n.succ],
+  apply sum_congr rfl,
+  rintro ⟨i, j⟩ hn,
+  rw nat.mem_antidiagonal at hn,
+  rw ←hn,
+  dsimp only,
+  have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
+  have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
+  have hnz : (j + 1 : ℚ) * j! * i! ≠ 0,
+ { norm_cast at *,
+    exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
+     field_simp [hj, hnz],
+  rw [mul_comm _ (bernoulli i), mul_assoc],
+  norm_cast,
+  rw [mul_comm (j + 1) _, mul_div_assoc, ← mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,
+    add_choose, cast_dvd_char_zero],
+  { apply factorial_mul_factorial_dvd_factorial_add, },
+  { exact cast_ne_zero.mpr hj', },
 end

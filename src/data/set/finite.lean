@@ -272,11 +272,11 @@ theorem infinite_of_infinite_image (f : α → β) {s : set α} (hs : (f '' s).i
 mt (finite.image f) hs
 
 lemma finite.dependent_image {s : set α} (hs : finite s) (F : Π i ∈ s, β) :
-  finite {y : β | ∃ x (hx : x ∈ s), F x hx = y} :=
+  finite {y : β | ∃ x (hx : x ∈ s), y = F x hx} :=
 begin
   letI : fintype s := hs.fintype,
   convert finite_range (λ x : s, F x x.2),
-  simp only [set_coe.exists, subtype.coe_mk]
+  simp only [set_coe.exists, subtype.coe_mk, eq_comm],
 end
 
 instance fintype_map {α β} [decidable_eq β] :

@@ -573,7 +573,7 @@ def comp_partial_sum_target_set (m M N : ℕ) : set (Σ n, composition n) :=
 
 lemma comp_partial_sum_target_subset_image_comp_partial_sum_source
   (m M N : ℕ) (i : Σ n, composition n) (hi : i ∈ comp_partial_sum_target_set m M N) :
-  ∃ j (hj : j ∈ comp_partial_sum_source m M N), comp_change_of_variables m M N j hj = i :=
+  ∃ j (hj : j ∈ comp_partial_sum_source m M N), i = comp_change_of_variables m M N j hj :=
 begin
   rcases i with ⟨n, c⟩,
   refine ⟨⟨c.length, c.blocks_fun⟩, _, _⟩,
@@ -583,7 +583,7 @@ begin
   { dsimp [comp_change_of_variables],
     rw composition.sigma_eq_iff_blocks_eq,
     simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, nth_le_map'],
-    conv_rhs { rw ← of_fn_nth_le c.blocks } }
+    conv_lhs { rw ← of_fn_nth_le c.blocks } }
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal
@@ -637,7 +637,7 @@ begin
         end
       ... = blocks_fun' i : comp_change_of_variables_blocks_fun m M N H' i },
   -- 4 - show that the map is surjective
-  { assume i hi, simp only [@eq_comm _ i],
+  { assume i hi,
     apply comp_partial_sum_target_subset_image_comp_partial_sum_source m M N i,
     simpa [comp_partial_sum_target] using hi }
 end

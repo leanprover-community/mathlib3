@@ -277,6 +277,16 @@ lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.t
   (hfp : finite_presentation R A) : finite_presentation R B :=
 equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
+lemma iff : finite_presentation R A ↔
+  ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
+begin
+  refine ⟨λ h,_, λ h, _⟩,
+  { obtain ⟨n, f, hf⟩ := h,
+    use [n, f.to_ring_hom.ker, ideal.quotient_ker_alg_equiv_of_surjective hf.1, hf.2] },
+  { obtain ⟨n, I, e, hfg⟩ := h,
+    exact equiv (quotient hfg (mv_polynomial R _)) e }
+end
+
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
 lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) [fintype ι]
@@ -299,6 +309,25 @@ begin
       submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
+end
+
+/-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
+as `R`-algebra. -/
+lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (n : ℕ) :
+  finite_presentation R (algebra.comap R A (_root_.mv_polynomial (fin n) A)) :=
+begin
+  obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
+  refine equiv _ (mv_polynomial.alg_equiv_congr_right R e),
+  have epol₁ := alg_equiv.comap R
+    (@mv_polynomial.quotient_alg_equiv_quotient_mv_polynomial _ (fin n) _ I),
+  let S := _root_.mv_polynomial (fin m) R,
+  refine equiv _ epol₁.symm,
+  let epol₂ := (mv_polynomial.sum_alg_equiv R (fin n) (fin m)).symm.trans
+    (mv_polynomial.alg_equiv_congr_left R (@sum_fin_sum_equiv n m)),
+  let J := (I.map mv_polynomial.C : ideal (_root_.mv_polynomial (fin n) S)),
+  letI : algebra R J.quotient := ring_hom.to_algebra ((algebra_map S _).comp (algebra_map R S)),
+  refine equiv (quotient _ (mv_polynomial R (fin (n + m)))) (ideal.quotient_equiv_alg J epol₂).symm,
+  exact submodule.map_fg_of_fg _ (submodule.map_fg_of_fg _ hfg _) _,
 end
 
 end finite_presentation

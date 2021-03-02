@@ -201,6 +201,30 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
+/-- The image of a finitely generated ideal is finitely generated. -/
+lemma map_fg_of_fg {R S : Type*} [comm_ring R] [comm_ring S] (I : ideal R) (h : submodule.fg I)
+  (f : R →+* S) : (I.map f).fg :=
+begin
+  obtain ⟨X, hXfin, hXgen⟩ := fg_def.1 h,
+  apply fg_def.2,
+  refine ⟨set.image f X, finite.image ⇑f hXfin, _⟩,
+  rw [ideal.map, ideal.span, ← hXgen],
+  refine le_antisymm (submodule.span_mono (image_subset _ ideal.subset_span)) _,
+  rw [submodule.span_le, image_subset_iff],
+  intros i hi,
+  refine submodule.span_induction hi (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
+  { simp only [mem_coe, mem_preimage],
+    suffices : f x ∈ f '' X,  { exact (ideal.subset_span ) this },
+    exact mem_image_of_mem ⇑f hx },
+  { simp only [mem_coe, ring_hom.map_zero, mem_preimage, zero_mem] },
+  { simp only [mem_coe, mem_preimage] at hx hy,
+    simp only [ring_hom.map_add, mem_coe, mem_preimage],
+    exact submodule.add_mem _ hx hy  },
+  { simp only [mem_coe, mem_preimage] at hx,
+    simp only [algebra.id.smul_eq_mul, mem_coe, mem_preimage, ring_hom.map_mul],
+    exact submodule.smul_mem _ _ hx }
+end
+
 /-- The kernel of the composition of two linear maps is finitely generated if both kernels are and
 the first morphism is surjective. -/
 lemma fg_ker_comp {R M N P : Type*} [ring R] [add_comm_group M] [module R M]

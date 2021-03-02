@@ -1007,6 +1007,19 @@ def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
 
 end alg_hom
 
+namespace alg_equiv
+
+variables (R : Type u) {S : Type v} {A : Type w} {B : Type u₁}
+variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
+variables [algebra R S] [algebra S A] [algebra S B] (φ : A ≃ₐ[S] B)
+
+/-- `A ≃ₐ[S] B` induces `algebra.comap R S A ≃ₐ[R] algebra.comap R S B`. -/
+def comap : algebra.comap R S A ≃ₐ[R] algebra.comap R S B :=
+{ commutes' := λ r, φ.commutes (algebra_map R S r),
+  .. φ.to_ring_equiv }
+
+end alg_equiv
+
 namespace ring_hom
 
 variables {R S : Type*}

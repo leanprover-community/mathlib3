@@ -17,6 +17,13 @@ homotopy type theory.)
 We define the standard simplices `Δ[n]` as simplicial sets,
 and their boundaries `∂Δ[n]` and horns `Λ[n, i]`.
 (The notations are available via `open_locale sSet`.)
+
+## Future work
+
+There isn't yet a complete API for simplices, boundaries, and horns.
+As an example, we should have a function that constructs
+from a non-surjective order preserving function `fin n → fin n`
+a morphism `Δ[n] ⟶ ∂Δ[n]`.
 -/
 
 universes v u
@@ -47,7 +54,6 @@ def as_preorder_hom {n} {m} (α : Δ[n].obj m) :
 /-- The boundary `∂Δ[n]` of the `n`-th standard simplex consists of
 all `m`-simplices of `standard_simplex n` that are not surjective
 (when viewed as monotone function `m → n`). -/
-@[simps]
 def boundary (n : ℕ) : sSet :=
 { obj := λ m, {α : Δ[n].obj m // ¬ function.surjective (as_preorder_hom α)},
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),

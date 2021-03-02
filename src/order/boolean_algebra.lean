@@ -87,6 +87,9 @@ lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
        ... = x                 : sup_inf_sdiff x y
 
+lemma inf_sdiff_right : x ⊓ (x \ y) = x \ y := by rw [inf_of_le_right (@sdiff_le _ x y _)]
+lemma sdiff_inf_right : (x \ y) ⊓ x = x \ y := by rw [inf_comm, inf_sdiff_right]
+
 lemma sdiff_self : x \ x = ⊥ :=
 by rw [←inf_inf_sdiff x x, inf_idem, inf_of_le_right (@sdiff_le _ x x _)]
 
@@ -113,7 +116,7 @@ eq.symm $
      ... = (x ⊓ y ⊓ (x \ y)) ⊔ (x ⊓ (y \ x) ⊓ (x \ y)) : by rw [inf_sup_right, @inf_comm _ _ x y]
      ... = x ⊓ (y \ x) ⊓ (x \ y)                       : by rw [inf_inf_sdiff, bot_sup_eq]
      ... = x ⊓ (x \ y) ⊓ (y \ x)              : by rw [inf_assoc, @inf_comm _ _ (y \ x), ←inf_assoc]
-     ... = (x \ y) ⊓ (y \ x)                           : by rw [inf_of_le_right (@sdiff_le _ x y _)]
+     ... = (x \ y) ⊓ (y \ x)                           : by rw [inf_sdiff_right]
 
 /-!
 Cf. <https://ncatlab.org/nlab/show/relative+complement>
@@ -136,7 +139,15 @@ theorem sdiff_le_sdiff (h₁ : w ≤ y) (h₂ : z ≤ x) : w \ x ≤ y \ z :=
 sorry
 -- by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
-lemma mccuan1c : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) := sorry
+lemma sdiff_le_sdiff_same (h : z ≤ x) : w \ x ≤ w \ z := sdiff_le_sdiff le_rfl h
+
+lemma mccuan1c : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) :=
+eq.symm $
+calc (x \ y) ⊔ (x ⊓ y ⊓ z) = z ⊓ (x ⊓ y) ⊔ (x \ y) : by rw [sup_comm, inf_comm]
+... = (z ⊔ (x \ y)) ⊓ ((x ⊓ y) ⊔ (x \ y)) : by rw [sup_inf_right]
+... = (z ⊔ (x \ y)) ⊓ x : by rw [sup_inf_sdiff]
+... = (z ⊓ x) ⊔ (x \ y) : by rw [inf_sup_right, sdiff_inf_right]
+... = _ : sorry
 
 lemma sdiff_sdiff : x \ (x \ y) = x ⊓ y := by rw [mccuan1c, inf_idem, sdiff_self, bot_sup_eq]
 

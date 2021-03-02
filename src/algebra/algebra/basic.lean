@@ -864,6 +864,7 @@ given that it distributes over multiplication and action of scalars.
 def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
 { to_fun := l,
   inv_fun := l.symm,
+  map_mul' := map_mul,
   commutes' := commutes,
   ..l }
 

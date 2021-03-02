@@ -84,6 +84,16 @@ lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix
   det A = A (default n) (default n) :=
 by simp [det, univ_unique]
 
+lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
+  det A = A k k :=
+begin
+  have h1 : (univ : finset (perm n)) = {1},
+  { apply univ_eq_singleton_of_card_one (1 : perm n),
+    simp [card_univ, fintype.card_perm, h] },
+  have h2 := univ_eq_singleton_of_card_one k h,
+  simp [det, h1, h2],
+end
+
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin

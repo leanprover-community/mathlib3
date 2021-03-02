@@ -12,11 +12,6 @@ on:
       - 'lean-3.*'
 
 jobs:
-  cancel:
-    name: Cancel stale jobs
-    steps:
-      - uses: technote-space/auto-cancel-redundant-workflow@v1.6.3
-
   lint_self_test:
     name: Ensure the linter works
     runs-on: ${{ matrix.os }}

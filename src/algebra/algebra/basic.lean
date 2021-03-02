@@ -754,6 +754,13 @@ initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply
 @[simp] lemma symm_symm {e : A₁ ≃ₐ[R] A₂} : e.symm.symm = e :=
 by { ext, refl, }
 
+lemma symm_bijective : function.bijective (symm : (M ≃* N) → (N ≃* M)) :=
+equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
+
+@[simp] lemma mk_coe' (e : A₁ ≃ₐ[R] A₂) (f h₁ h₂ h₃ h₄ h₅) :
+  (⟨f, e, h₁, h₂, h₃, h₄, h₅⟩ : A₂ ≃ₐ[R] A₁) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
 @[simp] theorem symm_mk (f f') (h₁ h₂ h₃ h₄ h₅) :
   (⟨f, f', h₁, h₂, h₃, h₄, h₅⟩ : A₁ ≃ₐ[R] A₂).symm =
   { to_fun := f', inv_fun := f,

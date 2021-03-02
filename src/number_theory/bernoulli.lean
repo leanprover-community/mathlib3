@@ -273,9 +273,41 @@ lemma bernoulli_spec' (n: ℕ) :
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = if n = 0 then 1 else 0 :=
 begin
   cases n,
-  { simp, },
+  { simp only [nat.antidiagonal_zero, mul_one, cast_one, if_true, eq_self_iff_true, bernoulli_zero,
+    cast_zero, sum_singleton, zero_add, div_one, choose_self], },
   have hone: (1, n) ∈ finset.nat.antidiagonal n.succ, { simp only [nat.mem_antidiagonal], ring, },
-  sorry,
+  rw [succ_eq_add_one, nat.sum_antidiagonal_succ],
+  cases n,
+  { simp only [nat.antidiagonal_zero, one_div, bernoulli_one, add_zero, mul_one, one_mul, cast_one,
+    choose_succ_self_right, eq_self_iff_true, bernoulli_zero, cast_zero, add_eq_zero_iff, if_false,
+    sum_singleton, zero_add, one_ne_zero, div_one, and_false, nat_zero_eq_zero, choose_one_right],
+    norm_num, },
+  rw [succ_eq_add_one, nat.sum_antidiagonal_succ],
+  have hb1:  bernoulli ((0, n + 1).fst + 1, (0, n + 1).snd).fst =
+             bernoulli' ((0, n + 1).fst + 1, (0, n + 1).snd).fst - 1,
+  { simp only [one_div, bernoulli_one, bernoulli'_one],
+    norm_num, },
+  rw [hb1, mul_sub, sub_add_eq_add_sub],
+  have hb2: ∀ p : ℕ × ℕ,   bernoulli ((p.fst + 1, p.snd).fst + 1, (p.fst + 1, p.snd).snd).fst =
+    bernoulli' ((p.fst + 1, p.snd).fst + 1, (p.fst + 1, p.snd).snd).fst,
+  { simp only [prod.forall],
+    intros a b,
+    have ha: a + 1 + 1 ≠ 1,
+    { simp only [add_left_eq_self, add_eq_zero_iff, ne.def, not_false_iff,
+      one_ne_zero, and_false], },
+    simp only [bernoulli_eq_bernoulli' ha], },
+  simp only [hb2],
+  have hn: ¬ n + 1 + 1 = 0, {simp only [add_eq_zero_iff, not_false_iff, one_ne_zero, and_false], },
+  simp only [hn, if_false],
+  let h := bernoulli'_spec' n.succ.succ,
+  rw [nat.sum_antidiagonal_succ, nat.sum_antidiagonal_succ] at h,
+  simp only [one_div, bernoulli_one, cast_succ, prod.forall, mul_one, bernoulli'_one,
+   bernoulli'_zero, cast_one, cast_add, bernoulli_zero, add_eq_zero_iff, nat.mem_antidiagonal,
+   zero_add, not_false_iff, one_ne_zero, and_self, choose_self, and_false] at *,
+  rw [←add_sub_assoc, h, add_comm 1 (n + 1)],
+  simp only [choose_succ_self_right],
+  norm_cast,
+  norm_num,
 end
 
 

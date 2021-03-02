@@ -124,6 +124,13 @@ theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 @[simp, to_additive]
 theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
 
+@[simp]
+lemma symm_symm : ∀ (f : M ≃* N), f.symm.symm = f
+| ⟨f, g, h₁, h₂, h₃⟩ := rfl
+
+lemma symm_bijective : function.bijective (symm : (M ≃* N) → (N ≃* M)) :=
+equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
+
 @[simp, to_additive]
 theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
   (mul_equiv.mk f g h₁ h₂ h₃).symm =
@@ -187,6 +194,10 @@ lemma ext_iff {f g : mul_equiv M N} : f = g ↔ ∀ x, f x = g x :=
 
 @[simp, to_additive] lemma mk_coe (e : M ≃* N) (e' h₁ h₂ h₃) :
   (⟨e, e', h₁, h₂, h₃⟩ : M ≃* N) = e := ext $ λ _, rfl
+
+@[simp] lemma mk_coe' (e : M ≃* N) (f h₁ h₂ h₃) :
+  (mul_equiv.mk f ⇑e h₁ h₂ h₃ : N ≃* M) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
 
 @[to_additive]
 protected lemma congr_arg {f : mul_equiv M N} : Π {x x' : M}, x = x' → f x = f x'

@@ -1172,7 +1172,7 @@ end
 end composition
 
 section composition_vector
-/-! ### Derivative of the composition of a function between vector spaces and of a function defined on `𝕜` -/
+/-! ### Derivative of the composition of a function between vector spaces and a function on `𝕜` -/
 
 variables {l : F → E} {l' : F →L[𝕜] E}
 variable (x)

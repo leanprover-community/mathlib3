@@ -19,7 +19,8 @@ This set is used in the proof of Fermat's Theorem (see below), and can be used t
 
 ## Main statements
 
-For each theorem name listed below, we also prove similar theorems for `min`, `extr` (if applicable)`,
+For each theorem name listed below,
+we also prove similar theorems for `min`, `extr` (if applicable)`,
 and `(f)deriv` instead of `has_fderiv`.
 
 * `is_local_max_on.has_fderiv_within_at_nonpos` : `f' y ≤ 0` whenever `a` is a local maximum

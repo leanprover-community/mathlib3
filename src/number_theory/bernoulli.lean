@@ -350,9 +350,9 @@ end
 section faulhaber
 
 lemma aux_cauchy_prod (n : ℕ) :
-mk (λ (p : ℕ), bernoulli p / ↑p!) * mk (λ (q : ℕ), (coeff ℚ (q + 1)) (exp ℚ ^ n))
- = mk (λ (p : ℕ), (range (p + 1)).sum (λ (i : ℕ),
- bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)) :=
+    mk (λ p, bernoulli p / ↑p!) * mk (λ q, (coeff ℚ (q + 1)) (exp ℚ ^ n))
+  = mk (λ p, (range (p + 1)).sum
+        (λ i, bernoulli i * ↑((p + 1).choose i) * ↑n ^ (p + 1 - i) / ↑(p + 1)!)) :=
 begin
   let f := λ a, λ b, bernoulli a / ↑a! * (coeff ℚ (b + 1)) (exp ℚ ^ n),
   ext q,
@@ -375,59 +375,36 @@ begin
 end
 
 lemma aux_power_series_equal (n : ℕ) :
-  (exp ℚ - 1) * power_series.mk (λ p, (range n).sum (λ k, (k : ℚ)^p * algebra_map ℚ ℚ p!⁻¹)) =
-  (exp ℚ - 1) * power_series.mk (λ p, (range (p + 1)).sum(λ i,
-  (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/((p + 1)!))) :=
+    power_series.mk (λ p, (range n).sum (λ k, (k : ℚ) ^ p * algebra_map ℚ ℚ p!⁻¹))
+  = power_series.mk (λ p, (range (p + 1)).sum
+      (λ i, bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1)!)) :=
 begin
-  have h_geom_sum : (geom_series (exp ℚ) n) * (exp ℚ - 1) = (exp ℚ)^n - 1 := geom_sum_mul _ _,
-  have h_const : C ℚ (constant_coeff ℚ ((exp ℚ)^n)) = 1,
-    { simp only [one_pow, constant_coeff_exp, ring_hom.map_pow, ring_hom.map_one], },
-  have h_r : (exp ℚ)^n - 1 = X * mk (λ (p : ℕ), (coeff ℚ (p + 1)) (exp ℚ ^ n)),
-    { rw [←h_const], rw [sub_const_eq_X_mul_shift], },
-  simp [geom_series] at h_geom_sum,
-  rw [←exp_pow_sum n, mul_comm, h_geom_sum, h_r, ←bernoulli_power_series, mul_assoc,
-    aux_cauchy_prod],
+  have hexp : exp ℚ - 1 ≠ 0,
+  { simp only [exp, power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
+    id_apply, linear_map.map_sub, ne, not_forall, rat.algebra_map_rat_rat],
+    use 1,
+    simp only [factorial_one, sub_zero, if_false, inv_one, not_false_iff, one_ne_zero, cast_one], },
+  have h_r : exp ℚ ^ n - 1 = X * mk (λ p, coeff ℚ (p + 1) (exp ℚ ^ n)),
+  { have h_const : C ℚ (constant_coeff ℚ (exp ℚ ^ n)) = 1 := by simp,
+    rw [←h_const, sub_const_eq_X_mul_shift], },
+  rw [← mul_right_inj' hexp, ←exp_pow_sum n, mul_comm],
+  simpa [h_r, ←bernoulli_power_series, mul_assoc, aux_cauchy_prod] using geom_sum_mul (exp ℚ) n,
 end
 
 /-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p : ℕ) :
-(range n).sum(λk, (k : ℚ)^p) =
-(range (p + 1)).sum (λ i, (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i) / (p + 1)) :=
+    (range n).sum (λ k, (k : ℚ) ^ p)
+  = (range (p + 1)).sum (λ i, bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1)) :=
 begin
-  have hpseq : power_series.mk (λ p, (range n).sum (λ k,
-    (k : ℚ)^p * algebra_map ℚ ℚ p!⁻¹)) =
-    power_series.mk (λ p, (range (p + 1)).sum(λ i,
-      (bernoulli i) * ((p + 1).choose i) * n^(p + 1 - i)/((p + 1)!))),
-  { have hexp : exp ℚ - 1 ≠ 0,
-    { rw [exp],
-      simp only [power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
-      ring_hom.id_apply, linear_map.map_sub, ne.def, not_forall,
-      rat.algebra_map_rat_rat],
-      use 1,
-      simp only [factorial_one, sub_zero, if_false, inv_one, not_false_iff, one_ne_zero,
-        cast_one], },
-    apply mul_left_cancel' hexp (aux_power_series_equal n), },
-  have hne_zero : (p.factorial : ℚ) ≠ 0,
-  { simp only [p.factorial_ne_zero, ne.def, cast_eq_zero, not_false_iff], },
-  have hne_zero' : ((p + 1).factorial : ℚ) ≠ 0,
-  { simp only [(p + 1).factorial_ne_zero, ne.def, cast_eq_zero, not_false_iff], },
-  have hp : (p + 1 : ℚ) ≠ 0 := cast_add_one_ne_zero p,
-  have hfrac : ↑(p!) * (↑(p + 1)!)⁻¹ = ((p + 1 : ℚ))⁻¹,
-  { simp only [←one_div, mul_one_div],
-    rw [eq_comm, div_eq_iff hp, eq_comm, div_mul_eq_mul_div, div_eq_iff hne_zero'],
-    simp only [cast_succ, one_mul, cast_mul, factorial_succ, mul_comm], },
+  have hpseq := aux_power_series_equal n,
+  have hne_zero : (p.factorial : ℚ) ≠ 0 := by simp [factorial_ne_zero],
   simp only [power_series.ext_iff, cast_succ, coeff_mk, cast_mul, id_apply, rat.algebra_map_rat_rat]
     at hpseq,
   specialize hpseq p,
-  simp only [←sum_mul] at hpseq,
-  simp only [←one_div, mul_one_div, div_eq_iff hne_zero] at hpseq,
-  rw [hpseq],
-  clear hpseq,
-  simp only [sum_mul],
-  refine sum_congr rfl _,
-  intros x hx,
-  ring,
-  rw [hfrac],
+  rw [←sum_mul, ←one_div, mul_one_div, div_eq_iff hne_zero] at hpseq,
+  simp only [hpseq, sum_mul],
+  refine sum_congr rfl (λ x hx, _),
+  field_simp [← mul_assoc _ _ (↑p!), mul_right_comm _ (↑p!), cast_add_one_ne_zero p],
 end
 
 end faulhaber

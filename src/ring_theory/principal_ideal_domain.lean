@@ -122,7 +122,8 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
           by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
       λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ S.mul_mem_right _ hmin.1⟩⟩
-    else ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot];
+    else ⟨0, submodule.ext $ λ a,
+           by rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot];
       exact ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 end
 

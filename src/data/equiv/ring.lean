@@ -62,7 +62,7 @@ variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add 
 
 instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe_fun (f : R ≃+* S) : f.to_fun = f := rfl
+@[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 
 /-- A ring isomorphism preserves multiplication. -/
 @[simp] lemma map_mul (e : R ≃+* S) (x y : R) : e (x * y) = e x * e y := e.map_mul' x y
@@ -92,11 +92,13 @@ instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
-@[norm_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
-  (f : R ≃* S) a = f a := rfl
+lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
 
-@[norm_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
-  (f : R ≃+ S) a = f a := rfl
+lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
+
+@[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
+
+@[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
 
 /-- The `ring_equiv` between two semirings with a unique element. -/
 def ring_equiv_of_unique_of_unique {M N}
@@ -225,8 +227,9 @@ lemma to_ring_hom_injective : function.injective (to_ring_hom : (R ≃+* S) → 
 
 instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.to_ring_hom⟩
 
-@[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :
-  (f : R →+* S) a = f a := rfl
+lemma to_ring_hom_eq_coe (f : R ≃+* S) : f.to_ring_hom = ↑f := rfl
+
+@[simp, norm_cast] lemma coe_to_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
 
 lemma coe_ring_hom_inj_iff {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
   f = g ↔ (f : R →+* S) = g :=

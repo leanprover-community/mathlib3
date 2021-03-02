@@ -22,6 +22,8 @@ set_option old_structure_cmd true
 structure subalgebra (R : Type u) (A : Type v)
   [comm_semiring R] [semiring A] [algebra R A] extends subsemiring A : Type v :=
 (algebra_map_mem' : ∀ r, algebra_map R A r ∈ carrier)
+(zero_mem' := (algebra_map R A).map_zero ▸ algebra_map_mem' 0)
+(one_mem' := (algebra_map R A).map_one ▸ algebra_map_mem' 1)
 
 /-- Reinterpret a `subalgebra` as a `subsemiring`. -/
 add_decl_doc subalgebra.to_subsemiring
@@ -168,6 +170,12 @@ algebra.of_subsemiring A₀
 instance nontrivial [nontrivial A] : nontrivial S :=
 subsemiring.nontrivial S
 
+instance no_zero_smul_divisors_bot [no_zero_smul_divisors R A] : no_zero_smul_divisors R S :=
+⟨λ c x h,
+  have c = 0 ∨ (x : A) = 0,
+  from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
+  this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype
 
@@ -270,6 +278,13 @@ instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divi
   [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
 S.to_subsemiring.no_zero_divisors
 
+instance no_zero_smul_divisors_top {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+  [no_zero_divisors A] (S : subalgebra R A) : no_zero_smul_divisors S A :=
+⟨λ c x h,
+  have (c : A) = 0 ∨ x = 0,
+  from eq_zero_or_eq_zero_of_mul_eq_zero h,
+  this.imp_left (@subtype.ext_iff _ _ c 0).mpr⟩
+
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _
@@ -320,13 +335,11 @@ f.cod_restrict f.range f.mem_range_self
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
-  zero_mem' := by { change ϕ 0 = ψ 0, rw [alg_hom.map_zero, alg_hom.map_zero] },
   add_mem' := λ x y hx hy, by
   { change ϕ x = ψ x at hx,
     change ϕ y = ψ y at hy,
     change ϕ (x + y) = ψ (x + y),
     rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
-  one_mem' := by { change ϕ 1 = ψ 1, rw [alg_hom.map_one, alg_hom.map_one] },
   mul_mem' := λ x y hx hy, by
   { change ϕ x = ψ x at hx,
     change ϕ y = ψ y at hy,

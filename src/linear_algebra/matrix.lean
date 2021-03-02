@@ -393,7 +393,7 @@ by simp_rw [linear_map.to_matrix_alg_equiv, alg_equiv.of_linear_equiv_apply,
 lemma matrix.to_lin_alg_equiv_one : matrix.to_lin_alg_equiv hv₁ 1 = id :=
 by rw [← linear_map.to_matrix_alg_equiv_id hv₁, matrix.to_lin_alg_equiv_to_matrix_alg_equiv]
 
-theorem linear_map.to_matrix_alg_equiv_range [decidable_eq M₁] [decidable_eq M₂]
+theorem linear_map.to_matrix_alg_equiv_range [decidable_eq M₁]
   (f : M₁ →ₗ[R] M₁) (k i : n) :
   linear_map.to_matrix_alg_equiv hv₁.range f ⟨v₁ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
     linear_map.to_matrix_alg_equiv hv₁ f k i :=
@@ -411,7 +411,7 @@ lemma linear_map.to_matrix_alg_equiv_mul (f g : M₁ →ₗ[R] M₁) :
 by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl,
          linear_map.to_matrix_alg_equiv_comp hv₁ f g] }
 
-lemma matrix.to_lin_alg_equiv_mul [decidable_eq m] (A B : matrix n n R) :
+lemma matrix.to_lin_alg_equiv_mul (A B : matrix n n R) :
   matrix.to_lin_alg_equiv hv₁ (A ⬝ B) =
   (matrix.to_lin_alg_equiv hv₁ A).comp (matrix.to_lin_alg_equiv hv₁ B) :=
 by convert matrix.to_lin_mul hv₁ hv₁ hv₁ A B

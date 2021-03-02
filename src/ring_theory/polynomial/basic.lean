@@ -817,7 +817,7 @@ end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} {a : mv_polynomial σ R}
   (ha : a ∈ (ideal.map C I : ideal (mv_polynomial σ R))) :
-  eval₂_hom (C.comp (ideal.quotient.mk I)) X a = 0 :=
+  eval₂_hom ((C : I.quotient →+* mv_polynomial σ I.quotient).comp (ideal.quotient.mk I)) X a = 0 :=
 begin
   rw as_sum a,
   rw [coe_eval₂_hom, eval₂_sum],

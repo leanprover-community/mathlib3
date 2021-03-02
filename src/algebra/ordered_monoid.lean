@@ -49,10 +49,24 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 
 attribute [to_additive] ordered_comm_monoid
 
-/-- A linearly ordered commutative monoid with a zero element. -/
-class linear_ordered_comm_monoid_with_zero (α : Type*)
-  extends linear_order α, comm_monoid_with_zero α, ordered_comm_monoid α :=
-(zero_le_one : (0:α) ≤ 1)
+/-- A linearly ordered additive commutative monoid. -/
+@[protect_proj, ancestor ordered_add_comm_monoid linear_order]
+class linear_ordered_add_comm_monoid (α : Type*)
+  extends linear_order α, ordered_add_comm_monoid α :=
+(lt_of_add_lt_add_left := λ x y z, by {
+  apply imp_of_not_imp_not,
+  intro h,
+  apply not_lt_of_le,
+  apply add_le_add_left,
+  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
+  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
+  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
+  exact le_of_not_lt h })
+
+/-- A linearly ordered commutative monoid. -/
+@[protect_proj, ancestor ordered_comm_monoid linear_order, to_additive]
+class linear_ordered_comm_monoid (α : Type*)
+  extends linear_order α, ordered_comm_monoid α :=
 (lt_of_mul_lt_mul_left := λ x y z, by {
   apply imp_of_not_imp_not,
   intro h,
@@ -63,6 +77,9 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
   letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
   exact le_of_not_lt h })
 
+/-- A linearly ordered commutative monoid with a zero element. -/
+class linear_ordered_comm_monoid_with_zero (α : Type*)
+  extends linear_ordered_comm_monoid α, comm_monoid_with_zero α
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}
@@ -1089,6 +1106,12 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
 
+@[to_additive]
+instance linear_ordered_cancel_comm_monoid.linear_ordered_comm_monoid :
+  linear_ordered_comm_monoid α :=
+{ .. (infer_instance : ordered_comm_monoid α),
+  .. (infer_instance : linear_order α) }
+
 end linear_ordered_cancel_comm_monoid
 
 namespace order_dual
@@ -1161,6 +1184,14 @@ instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (addit
 { le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
   ..additive.add_right_cancel_semigroup,
   ..additive.add_left_cancel_semigroup,
+  ..additive.ordered_add_comm_monoid }
+
+instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multiplicative α) :=
+{ ..multiplicative.linear_order,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
+{ ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
 
 end type_tags

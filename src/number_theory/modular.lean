@@ -370,14 +370,6 @@ begin
   { exact norm_sq_pos.mpr (@bottom_nonzero g z z.2) },
 end
 
-lemma somehting (z:H) (cd : coprime_ints) :
-∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ),  bottom_row g = bottom_row g' →
-_root_.abs ((g • z).val.re) ≤ _root_.abs ((g' • z).val.re)) :=
-begin
-
-  sorry,
-end
-
 variables {g : SL(2,ℤ)} {z : H}
 
 lemma im_S_z {z : H} : (S • z).val.im = z.val.im / z.val.norm_sq :=
@@ -463,6 +455,38 @@ begin
     exact half_le_neg_x_T (z:ℂ).re h },
 end
 
+lemma bot_row_eq_diff_by_T_n (g g' : SL(2,ℤ)) (h : bottom_row g = bottom_row g') :
+∃ (n:ℤ), g = T^n * g' :=
+begin
+  -- human proof: g= a,b,c,d, g' = a' b' c d (same c d!)
+  -- then g*g⁻¹ = (a b c d)(d -b' -c a') = (1 * 0 1)
+
+--  let ![![a,b],![c,d]] := g.1,
+  let Tn := g * g⁻¹,
+  sorry,
+
+end
+
+lemma find_g_with_min_re (z:H) (cd : coprime_ints) :
+∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ),  bottom_row g = bottom_row g' →
+_root_.abs ((g • z).val.re) ≤ _root_.abs ((g' • z).val.re)) :=
+begin
+/-  -- Argh this is all wrong;
+-- Need to look somehow at the set of all preimages of cd
+-- among those, choose g with minimal real part
+-- the rest is tautological
+  obtain ⟨g, hg⟩ := bottom_row_surj cd,
+  use g,
+  split,
+  exact hg,
+  intros g' hg',
+  by_contradiction hcontra,
+  push_neg at hcontra,
+  obtain ⟨n, hn⟩ := bot_row_eq_diff_by_T_n g g' hg',
+  rw hn at hcontra,
+  -/
+  sorry,
+end
 
 
 

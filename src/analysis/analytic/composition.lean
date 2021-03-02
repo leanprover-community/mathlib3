@@ -605,7 +605,8 @@ that it is a bijection is not directly possible, but the consequence on sums can
 more easily. -/
 lemma comp_change_of_variables_sum {α : Type*} [add_comm_monoid α] (m M N : ℕ)
   (f : (Σ (n : ℕ), fin n → ℕ) → α) (g : (Σ n, composition n) → α)
-  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N), f e = g (comp_change_of_variables m M N e he)) :
+  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N),
+    f e = g (comp_change_of_variables m M N e he)) :
   ∑ e in comp_partial_sum_source m M N, f e = ∑ e in comp_partial_sum_target m M N, g e :=
 begin
   apply finset.sum_bij (comp_change_of_variables m M N),

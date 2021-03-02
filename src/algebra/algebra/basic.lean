@@ -1410,15 +1410,3 @@ rfl
 end semimodule
 
 end restrict_scalars
-
-namespace linear_map
-
-variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
-  (V : Type*) [add_comm_monoid V] [semimodule R V]
-  (W : Type*) [add_comm_monoid W] [semimodule R W] [semimodule S W] [is_scalar_tower R S W]
-
-instance is_scalar_tower_extend_scalars :
-  is_scalar_tower R S (V →ₗ[R] W) :=
-{ smul_assoc := λ r s f, by simp only [(•), coe_mk, smul_assoc] }
-
-end linear_map

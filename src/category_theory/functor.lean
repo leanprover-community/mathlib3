@@ -17,7 +17,8 @@ import tactic.monotonicity
 
 namespace category_theory
 
-universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
 /--
 `functor C D` represents a functor between categories `C` and `D`.

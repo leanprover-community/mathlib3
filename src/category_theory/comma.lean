@@ -44,7 +44,8 @@ comma, slice, coslice, over, under, arrow
 
 namespace category_theory
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ u₁ u₂ u₃
 variables {A : Type u₁} [category.{v₁} A]
 variables {B : Type u₂} [category.{v₂} B]
 variables {T : Type u₃} [category.{v₃} T]

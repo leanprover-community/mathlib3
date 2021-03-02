@@ -599,7 +599,7 @@ by simp only [div_eq_mul_inv, min_mul_mul_left, min_inv_inv']
 lemma max_div_div_left' (a b c : α) : max (a / b) (a / c) = a / min b c :=
 by simp only [div_eq_mul_inv, max_mul_mul_left, max_inv_inv']
 
-@[to_additive]
+@[to_additive max_zero_sub_eq_self]
 lemma max_one_div_eq_self' (a : α) : max a 1 / max (a⁻¹) 1 = a :=
 begin
   rcases le_total a 1,

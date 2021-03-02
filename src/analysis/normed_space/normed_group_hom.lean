@@ -209,8 +209,8 @@ instance : has_add (normed_group_hom V₁ V₂) :=
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 mk_continuous_norm_le _ (add_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
-@[simp] lemma coe_add (f g : normed_group_hom V₁ V₂) : ⇑(f + g) = f + g := rfl
-lemma add_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
+@[simp] lemma coe_add (f g : normed_group_hom V₁ V₂) : ⇑(f + g) = (f + g : V₁ → V₂) := rfl
+@[simp] lemma add_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f + g : normed_group_hom V₁ V₂) v = f v + g v := rfl
 
 /-! ### The zero normed group hom -/
@@ -230,8 +230,8 @@ iff.intro
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
-@[simp] lemma coe_zero : ⇑(0 : normed_group_hom V₁ V₂) = 0 := rfl
-lemma zero_apply (v : V₁) : (0 : normed_group_hom V₁ V₂) v = 0 := rfl
+@[simp] lemma coe_zero : ⇑(0 : normed_group_hom V₁ V₂) = (0 : V₁ → V₂) := rfl
+@[simp] lemma zero_apply (v : V₁) : (0 : normed_group_hom V₁ V₂) v = 0 := rfl
 
 variables {f g}
 
@@ -259,8 +259,8 @@ by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 instance : has_neg (normed_group_hom V₁ V₂) :=
 ⟨λ f, (-f.to_add_monoid_hom).mk_continuous (∥f∥) (λ v, by simp [le_op_norm f v])⟩
 
-@[simp] lemma coe_neg (f : normed_group_hom V₁ V₂) : ⇑(-f) = -f := rfl
-lemma neg_apply (f : normed_group_hom V₁ V₂) (v : V₁) :
+@[simp] lemma coe_neg (f : normed_group_hom V₁ V₂) : ⇑(-f) = (-f : V₁ → V₂) := rfl
+@[simp] lemma neg_apply (f : normed_group_hom V₁ V₂) (v : V₁) :
   (-f : normed_group_hom V₁ V₂) v = - (f v) := rfl
 
 lemma op_norm_neg (f : normed_group_hom V₁ V₂) : ∥-f∥ = ∥f∥ :=
@@ -278,7 +278,7 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
   end,
   .. (f.to_add_monoid_hom - g.to_add_monoid_hom) }⟩
 
-@[simp] lemma coe_sub (f g : normed_group_hom V₁ V₂) : ⇑(f - g) = f - g := rfl
+@[simp] lemma coe_sub (f g : normed_group_hom V₁ V₂) : ⇑(f - g) = (f - g : V₁ → V₂) := rfl
 @[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f - g : normed_group_hom V₁ V₂) v = f v - g v := rfl
 
@@ -287,12 +287,12 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
 { add := (+), zero := 0, neg := has_neg.neg, sub := has_sub.sub,
-  add_assoc := λ x y z, ext $ λ w, by rw [add_apply, add_apply, add_apply, add_apply, add_assoc],
-  add_comm := λ x y, ext $ λ z, by rw [add_apply, add_apply, add_comm],
-  zero_add := λ x, ext $ λ y, by rw [add_apply, zero_apply, zero_add],
-  add_zero := λ x, ext $ λ y, by rw [add_apply, zero_apply, add_zero],
-  sub_eq_add_neg := λ x y, ext $ λ z, by rw [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
-  add_left_neg := λ x, ext $ λ y, by rw [add_apply, neg_apply, add_left_neg, zero_apply] }
+  add_assoc := by { intros, ext, simp [add_assoc] },
+  add_comm := by { intros, ext, simp [add_comm] },
+  zero_add := by { intros, ext, simp },
+  add_zero := by { intros, ext, simp },
+  sub_eq_add_neg := by { intros, ext, simp [sub_eq_add_neg] },
+  add_left_neg := by { intros, ext, simp } }
 
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/

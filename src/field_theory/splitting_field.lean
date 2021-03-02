@@ -224,9 +224,7 @@ begin
     by rwa hs at map_ne_zero,
 
   have zero_nmem : (0 : polynomial β) ∉ s.map (λ a, X - C a),
-  { intro mem,
-    obtain ⟨a, -, ha⟩ := multiset.mem_map.mp mem,
-    exact X_sub_C_ne_zero _ ha },
+    from zero_nmem_multiset_map_X_sub_C _ _,
   have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
   { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
     intros a s ih,

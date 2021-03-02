@@ -110,8 +110,8 @@ begin
     obtain ⟨m, hm⟩ : ∃ m, ∀ n, m ≤ n → ¬ n ∈ bad,
     { by_cases he : hbad.to_finset.nonempty,
       { refine ⟨(hbad.to_finset.max' he).succ, λ n hn nbad, nat.not_succ_le_self _
-        (hn.trans (hbad.to_finset.le_max' n (set.finite.mem_to_finset.2 nbad)))⟩ },
-      { exact ⟨0, λ n hn nbad, he ⟨n, set.finite.mem_to_finset.2 nbad⟩⟩ } },
+        (hn.trans (hbad.to_finset.le_max' n (hbad.mem_to_finset.2 nbad)))⟩ },
+      { exact ⟨0, λ n hn nbad, he ⟨n, hbad.mem_to_finset.2 nbad⟩⟩ } },
     have h : ∀ (n : ℕ), ∃ (n' : ℕ), n < n' ∧ r (f (n + m)) (f (n' + m)),
     { intro n,
       have h := hm _ (le_add_of_nonneg_left n.zero_le),

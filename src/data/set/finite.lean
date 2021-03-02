@@ -36,13 +36,13 @@ classical.choice h
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @set.to_finset _ _ h.fintype
 
-@[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
+@[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 
 @[simp] theorem finite.to_finset.nonempty {s : set α} (h : finite s) :
   h.to_finset.nonempty ↔ s.nonempty :=
 show (∃ x, x ∈ h.to_finset) ↔ (∃ x, x ∈ s),
-from exists_congr (λ _, finite.mem_to_finset)
+from exists_congr (λ _, h.mem_to_finset)
 
 @[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
 @set.coe_to_finset _ s h.fintype
@@ -433,12 +433,12 @@ end
 lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
 | ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
-  using (finite.to_finset h1).exists_min_image f ⟨x, finite.mem_to_finset.2 hx⟩
+  using h1.to_finset.exists_min_image f ⟨x, h1.mem_to_finset.2 hx⟩
 
 lemma exists_max_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f b ≤ f a
 | ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
-  using (finite.to_finset h1).exists_max_image f ⟨x, finite.mem_to_finset.2 hx⟩
+  using h1.to_finset.exists_max_image f ⟨x, h1.mem_to_finset.2 hx⟩
 
 end set
 

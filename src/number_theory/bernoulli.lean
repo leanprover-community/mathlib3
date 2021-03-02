@@ -274,32 +274,25 @@ lemma bernoulli_spec' (n: ℕ) :
 begin
   cases n,
   { simp },
-  have hone: (1, n) ∈ finset.nat.antidiagonal n.succ, { simp only [nat.mem_antidiagonal], ring, },
-  rw [succ_eq_add_one, nat.sum_antidiagonal_succ],
-  cases n,
-  { norm_num },
-  rw [succ_eq_add_one, nat.sum_antidiagonal_succ],
-  have hb1:  bernoulli ((0, n + 1).fst + 1, (0, n + 1).snd).fst =
-             bernoulli' ((0, n + 1).fst + 1, (0, n + 1).snd).fst - 1,
-  { norm_num },
-  rw [hb1, mul_sub, sub_add_eq_add_sub],
-  have hb2: ∀ p : ℕ × ℕ,   bernoulli ((p.fst + 1, p.snd).fst + 1, (p.fst + 1, p.snd).snd).fst =
-    bernoulli' ((p.fst + 1, p.snd).fst + 1, (p.fst + 1, p.snd).snd).fst,
-  { simp [bernoulli_eq_bernoulli'] },
-  simp only [hb2],
-  have hn: ¬ n + 1 + 1 = 0, {simp only [add_eq_zero_iff, not_false_iff, one_ne_zero, and_false], },
-  simp only [hn, if_false],
-  let h := bernoulli'_spec' n.succ.succ,
-  rw [nat.sum_antidiagonal_succ, nat.sum_antidiagonal_succ] at h,
-  simp only [one_div, bernoulli_one, cast_succ, prod.forall, mul_one, bernoulli'_one,
-   bernoulli'_zero, cast_one, cast_add, bernoulli_zero, add_eq_zero_iff, nat.mem_antidiagonal,
-   zero_add, not_false_iff, one_ne_zero, and_self, choose_self, and_false] at *,
-  rw [←add_sub_assoc, h, add_comm 1 (n + 1)],
-  simp only [choose_succ_self_right],
-  norm_cast,
-  norm_num,
+  rw if_neg (succ_ne_zero _),
+  -- algebra facts
+  have h₁ : (1, n) ∈ nat.antidiagonal n.succ := by simp [nat.mem_antidiagonal, add_comm],
+  have h₂ : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast succ_ne_zero _,
+  have h₃ : (1 + n).choose n = n + 1 := by simp [add_comm],
+  -- key equation:  the corresponding fact for `bernoulli'`
+  have H := bernoulli'_spec' n.succ,
+  -- massage it to match the structure of the goal, then convert piece by piece
+  rw ← finset.add_sum_diff_singleton h₁ at H ⊢,
+  apply add_eq_of_eq_sub',
+  convert eq_sub_of_add_eq' H using 1,
+  { apply sum_congr rfl,
+    intros p h,
+    obtain ⟨h', h''⟩ : p ∈ _ ∧ p ≠ _ := by rwa [mem_sdiff, mem_singleton] at h,
+    have : p.fst ≠ (1, n).fst := by simpa [h''] using nat.antidiagonal_congr h' h₁,
+    simp [this, bernoulli_eq_bernoulli'] },
+  { field_simp [h₃],
+    norm_num }
 end
-
 
 theorem bernoulli_power_series :
   power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!)) * (exp A - 1) = X :=

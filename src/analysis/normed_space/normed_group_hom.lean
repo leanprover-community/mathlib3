@@ -286,10 +286,13 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
-by refine_struct
-{ .. normed_group_hom.has_add, .. normed_group_hom.has_zero,
-  .. normed_group_hom.has_neg, ..normed_group_hom.has_sub };
-{ intros, ext, simp [add_assoc, add_comm, add_left_comm, sub_eq_add_neg] }
+{ add := (+), zero := 0, neg := has_neg.neg, sub := has_sub.sub,
+  add_assoc := λ x y z, ext $ λ w, by rw [add_apply, add_apply, add_apply, add_apply, add_assoc],
+  add_comm := λ x y, ext $ λ z, by rw [add_apply, add_apply, add_comm],
+  zero_add := λ x, ext $ λ y, by rw [add_apply, zero_apply, zero_add],
+  add_zero := λ x, ext $ λ y, by rw [add_apply, zero_apply, add_zero],
+  sub_eq_add_neg := λ x y, ext $ λ z, by rw [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
+  add_left_neg := λ x, ext $ λ y, by rw [add_apply, neg_apply, add_left_neg, zero_apply] }
 
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/

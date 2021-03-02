@@ -20,7 +20,6 @@ along with the relevant forgetful functors between them.
 ## TODO
 
 * Limits in these categories
-* adjoining a unit adjunction to Mon
 * free/forgetful adjunctions
 -/
 

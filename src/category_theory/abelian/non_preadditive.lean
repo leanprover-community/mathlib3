@@ -187,11 +187,13 @@ has_colimit.mk
   (λ s, (cancel_epi a).1 $
     by { rw cokernel_cofork.π_of_π at ha', simp [reassoc_of ha', pushout_cocone.condition s] })
   (λ s, (cancel_epi b).1 $ by { rw cokernel_cofork.π_of_π at hb', simp [reassoc_of hb'] })
-  (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $ calc cokernel.π (coprod.desc f g) ≫ m
+  (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $
+  calc cokernel.π (coprod.desc f g) ≫ m
         = (a ≫ a') ≫ m : by { congr, exact ha'.symm }
     ... = a ≫ pushout_cocone.inl s : by rw [category.assoc, h₁]
     ... = b ≫ pushout_cocone.inr s : pushout_cocone.condition s
-    ... = cokernel.π (coprod.desc f g) ≫ cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) _ :
+    ... = cokernel.π (coprod.desc f g) ≫
+            cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) _ :
       by rw cokernel.π_desc) }
 
 section

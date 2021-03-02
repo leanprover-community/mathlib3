@@ -867,14 +867,12 @@ given that it distributes over multiplication and action of scalars.
 def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
 { to_fun := l,
   inv_fun := l.symm,
-  left_inv := l.left_inv,
-  right_inv := l.right_inv,
   map_mul' := map_mul,
-  map_add' := l.map_add',
-  commutes' := commutes }
+  commutes' := commutes,
+  ..l }
 
-@[simp] lemma of_linear_equiv_to_linear_equiv :
-  of_linear_equiv (e.to_linear_equiv) e.map_mul e.commutes = e :=
+@[simp] lemma of_linear_equiv_to_linear_equiv (map_mul) (commutes) :
+  of_linear_equiv e.to_linear_equiv map_mul commutes = e :=
 by { ext, refl }
 
 @[simp] lemma to_linear_equiv_of_linear_equiv :

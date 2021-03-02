@@ -575,32 +575,32 @@ lemma linear_ordered_comm_group.mul_lt_mul_left'
   (a b : α) (h : a < b) (c : α) : c * a < c * b :=
 ordered_comm_group.mul_lt_mul_left' a b h c
 
-@[to_additive]
-lemma min_inv_inv (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
+@[to_additive min_neg_neg]
+lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
 eq.symm $ @monotone.map_max α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
 
-@[to_additive]
-lemma max_inv_inv (a b : α) : max (a⁻¹) (b⁻¹) = (min a b)⁻¹ :=
+@[to_additive max_neg_neg]
+lemma max_inv_inv' (a b : α) : max (a⁻¹) (b⁻¹) = (min a b)⁻¹ :=
 eq.symm $ @monotone.map_min α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
 
-@[to_additive]
-lemma min_div_div_right (a b c : α) : min (a / c) (b / c) = min a b / c :=
+@[to_additive min_sub_sub_right]
+lemma min_div_div_right' (a b c : α) : min (a / c) (b / c) = min a b / c :=
 by simpa only [div_eq_mul_inv] using min_mul_mul_right a b (c⁻¹)
 
-@[to_additive]
-lemma max_div_div_right (a b c : α) : max (a / c) (b / c) = max a b / c :=
+@[to_additive max_sub_sub_right]
+lemma max_div_div_right' (a b c : α) : max (a / c) (b / c) = max a b / c :=
 by simpa only [div_eq_mul_inv] using max_mul_mul_right a b (c⁻¹)
 
-@[to_additive]
-lemma min_div_div_left (a b c : α) : min (a / b) (a / c) = a / max b c :=
-by simp only [div_eq_mul_inv, min_mul_mul_left, min_inv_inv]
+@[to_additive min_sub_sub_left]
+lemma min_div_div_left' (a b c : α) : min (a / b) (a / c) = a / max b c :=
+by simp only [div_eq_mul_inv, min_mul_mul_left, min_inv_inv']
+
+@[to_additive max_sub_sub_left]
+lemma max_div_div_left' (a b c : α) : max (a / b) (a / c) = a / min b c :=
+by simp only [div_eq_mul_inv, max_mul_mul_left, max_inv_inv']
 
 @[to_additive]
-lemma max_div_div_left (a b c : α) : max (a / b) (a / c) = a / min b c :=
-by simp only [div_eq_mul_inv, max_mul_mul_left, max_inv_inv]
-
-@[to_additive]
-lemma max_one_div_eq_self (a : α) : max a 1 / max (a⁻¹) 1 = a :=
+lemma max_one_div_eq_self' (a : α) : max a 1 / max (a⁻¹) 1 = a :=
 begin
   rcases le_total a 1,
   { rw [max_eq_right h, max_eq_left, one_div, inv_inv], { rwa [le_inv', one_inv] } },
@@ -608,8 +608,8 @@ begin
     { rwa [inv_le', one_inv] }, exact h }
 end
 
-@[to_additive]
-lemma eq_one_of_inv_eq (h : a⁻¹ = a) : a = 1 :=
+@[to_additive eq_zero_of_neg_eq]
+lemma eq_one_of_inv_eq' (h : a⁻¹ = a) : a = 1 :=
 match lt_trichotomy a 1 with
 | or.inl h₁ :=
   have 1 < a, from h ▸ one_lt_inv_of_inv h₁,
@@ -621,7 +621,7 @@ match lt_trichotomy a 1 with
 end
 
 @[to_additive exists_zero_lt]
-lemma exists_one_lt [nontrivial α] : ∃ (a:α), 1 < a :=
+lemma exists_one_lt' [nontrivial α] : ∃ (a:α), 1 < a :=
 begin
   obtain ⟨y, hy⟩ := exists_ne (1 : α),
   cases hy.lt_or_lt,
@@ -633,14 +633,14 @@ end
 instance linear_ordered_comm_group.to_no_top_order [nontrivial α] :
   no_top_order α :=
 ⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt,
+    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a * y, lt_mul_of_one_lt_right' a hy⟩
   end ⟩
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
 ⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt,
+    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
   end ⟩
 

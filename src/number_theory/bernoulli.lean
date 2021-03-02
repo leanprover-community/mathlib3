@@ -270,10 +270,14 @@ end
 
 lemma bernoulli_spec' (n: ℕ) :
   ∑ k in finset.nat.antidiagonal n,
-  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = 0 :=
+  ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = if n = 0 then 1 else 0 :=
 begin
+  cases n,
+  { simp, },
+  have hone: (1, n) ∈ finset.nat.antidiagonal n.succ, { simp only [nat.mem_antidiagonal], ring, },
   sorry,
 end
+
 
 theorem bernoulli_power_series :
   power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!)) * (exp A - 1) = X :=
@@ -298,12 +302,15 @@ begin
     { simp only [h, f, if_false, map_zero], } },
   cases n,
   { simp, },
+  have hn : n.succ ≠ 0, by { show n + 1 ≠ 0, by linarith },
   have hn' : ¬ n.succ.succ = 1, by { show n + 2 ≠ 1, by linarith },
   simp only [hn'],
   rw [if_false, ←zero_div ((n.succ)! : ℚ)], --or n.succ!?
-  have hfacn: ((n.succ)! : ℚ) ≠ 0,
-  { simp only [cast_succ, cast_eq_zero, cast_mul, ne.def, factorial_succ, mul_eq_zero], },
-  rw [eq_comm, div_eq_iff hfacn, sum_mul, ←bernoulli_spec' n.succ],
+  have hfacn: (n.succ! : ℚ) ≠ 0,
+  { norm_cast, simp only [factorial_ne_zero n.succ, not_false_iff], },
+  have hite: (0:ℚ) = if n.succ = 0 then 1 else 0, { simp [hn], },
+  rw [eq_comm, div_eq_iff hfacn, sum_mul, hite],
+  rw [←bernoulli_spec' n.succ],
   apply sum_congr rfl,
   rintro ⟨i, j⟩ hn,
   rw nat.mem_antidiagonal at hn,

@@ -223,10 +223,10 @@ begin
   have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
     by rwa hs at map_ne_zero,
 
-  have ne_zero_of_mem : ∀ (p : polynomial β), p ∈ s.map (λ a, X - C a) → p ≠ 0,
-  { intros p mem,
-    obtain ⟨a, _, rfl⟩ := multiset.mem_map.mp mem,
-    apply X_sub_C_ne_zero },
+  have zero_nmem : (0 : polynomial β) ∉ s.map (λ a, X - C a),
+  { intro mem,
+    obtain ⟨a, -, ha⟩ := multiset.mem_map.mp mem,
+    exact X_sub_C_ne_zero _ ha },
   have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
   { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
     intros a s ih,
@@ -234,7 +234,7 @@ begin
         multiset.cons_add, zero_add] },
 
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
-      roots_multiset_prod _ ne_zero_of_mem,
+      roots_multiset_prod _ zero_nmem,
       map_bind_roots_eq]
 end
 

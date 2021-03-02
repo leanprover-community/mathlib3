@@ -1396,7 +1396,8 @@ alg_hom.ext (λ x, by simp only [quotient_map_mkₐ, quotient.mkₐ_eq_mk, alg_h
 
 /-- The algebra equiv `A/I ≃ₐ[R] S/J` induced by an algebra equiv `f : A ≃ₐ[R] S`,
 where`J = f(I)`. -/
-def quotient_equiv_alg (I : ideal A) (f : A ≃ₐ[R] S) : I.quotient ≃ₐ[R] (map (f : A →+* S) I).quotient :=
+def quotient_equiv_alg (I : ideal A) (f : A ≃ₐ[R] S) : I.quotient ≃ₐ[R]
+  (map (f : A →+* S) I).quotient :=
 { commutes' := λ r,
   begin
     have h : (algebra_map R I.quotient) r = (quotient.mk I) (algebra_map R A r) := rfl,

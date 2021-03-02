@@ -59,7 +59,7 @@ set_option old_structure_cmd true
 section
 variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
 
-/-- The type of Γ₀-valued valuations on R. -/
+/-- The type of `Γ₀`-valued valuations on `R`. -/
 @[nolint has_inhabited_instance]
 structure valuation extends monoid_with_zero_hom R Γ₀ :=
 (map_add' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
@@ -71,7 +71,7 @@ end
 
 namespace valuation
 
-variables variables {Γ₀   : Type*}
+variables {Γ₀   : Type*}
 variables {Γ'₀  : Type*}
 variables {Γ''₀ : Type*} [linear_ordered_comm_group_with_zero Γ''₀]
 
@@ -82,7 +82,7 @@ variables (R) (Γ₀) [ring R]
 section monoid
 variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 
-/-- A valuation is coerced to the underlying function R → Γ₀. -/
+/-- A valuation is coerced to the underlying function `R → Γ₀`. -/
 instance : has_coe_to_fun (valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
@@ -142,7 +142,7 @@ lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = 
 def to_preorder : preorder R := preorder.lift v
 
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
-@[simp] lemma zero_iff [nontrivial Γ₀] {K : Type*}  [division_ring K]
+@[simp] lemma zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x = 0 ↔ x = 0 :=
 v.to_monoid_with_zero_hom.map_eq_zero
 
@@ -153,7 +153,7 @@ v.to_monoid_with_zero_hom.map_ne_zero
 theorem unit_map_eq (u : units R) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
-/-- A ring homomorphism S → R induces a map valuation R Γ₀ → valuation S Γ₀ -/
+/-- A ring homomorphism `S → R` induces a map `valuation R Γ₀ → valuation S Γ₀`. -/
 def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   valuation S Γ₀ :=
 { to_fun := v ∘ f,
@@ -166,7 +166,8 @@ lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁
   v.comap (g.comp f) = (v.comap g).comap f :=
 ext $ λ r, rfl
 
-/-- A ≤-preserving group homomorphism Γ₀ → Γ'₀ induces a map valuation R Γ₀ → valuation R Γ'₀. -/
+/-- A `≤`-preserving group homomorphism `Γ₀ → Γ'₀` induces a map `valuation R Γ₀ → valuation R Γ'₀`.
+-/
 def map (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
   valuation R Γ'₀ :=
 { to_fun := f ∘ v,
@@ -175,7 +176,7 @@ def map (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f) (v : valuation
                    ... = max (f (v r)) (f (v s)) : hf.map_max,
   .. monoid_with_zero_hom.comp f v.to_monoid_with_zero_hom }
 
-/-- Two valuations on R are defined to be equivalent if they induce the same preorder on R. -/
+/-- Two valuations on `R` are defined to be equivalent if they induce the same preorder on `R`. -/
 def is_equiv (v₁ : valuation R Γ₀) (v₂ : valuation R Γ'₀) : Prop :=
 ∀ r s, v₁ r ≤ v₁ s ↔ v₂ r ≤ v₂ s
 

@@ -209,6 +209,15 @@ instance : has_add (normed_group_hom V₁ V₂) :=
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 mk_continuous_norm_le _ (add_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
+/--
+Terms containing `@has_add.add (has_coe_to_fun.F ...) pi.has_add`
+seem to cause leanchecker to [crash due to an out-of-memory
+condition](https://github.com/leanprover-community/lean/issues/543).
+As a workaround, we add a type annotation: `(f + g : V₁ → V₂)`
+-/
+library_note "addition on function coercions"
+
+-- see Note [addition on function coercions]
 @[simp] lemma coe_add (f g : normed_group_hom V₁ V₂) : ⇑(f + g) = (f + g : V₁ → V₂) := rfl
 @[simp] lemma add_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f + g : normed_group_hom V₁ V₂) v = f v + g v := rfl
@@ -230,6 +239,7 @@ iff.intro
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul, hf], exact norm_zero })⟩)
     (op_norm_nonneg _))
 
+-- see Note [addition on function coercions]
 @[simp] lemma coe_zero : ⇑(0 : normed_group_hom V₁ V₂) = (0 : V₁ → V₂) := rfl
 @[simp] lemma zero_apply (v : V₁) : (0 : normed_group_hom V₁ V₂) v = 0 := rfl
 
@@ -259,6 +269,7 @@ by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 instance : has_neg (normed_group_hom V₁ V₂) :=
 ⟨λ f, (-f.to_add_monoid_hom).mk_continuous (∥f∥) (λ v, by simp [le_op_norm f v])⟩
 
+-- see Note [addition on function coercions]
 @[simp] lemma coe_neg (f : normed_group_hom V₁ V₂) : ⇑(-f) = (-f : V₁ → V₂) := rfl
 @[simp] lemma neg_apply (f : normed_group_hom V₁ V₂) (v : V₁) :
   (-f : normed_group_hom V₁ V₂) v = - (f v) := rfl
@@ -278,6 +289,7 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
   end,
   .. (f.to_add_monoid_hom - g.to_add_monoid_hom) }⟩
 
+-- see Note [addition on function coercions]
 @[simp] lemma coe_sub (f g : normed_group_hom V₁ V₂) : ⇑(f - g) = (f - g : V₁ → V₂) := rfl
 @[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f - g : normed_group_hom V₁ V₂) v = f v - g v := rfl

@@ -165,8 +165,7 @@ def to_add_monoid_hom : M →+ M₂ :=
   map_zero' := f.map_zero,
   map_add' := f.map_add }
 
-@[simp] lemma to_add_monoid_hom_coe :
-  (f.to_add_monoid_hom : M → M₂) = f := rfl
+@[simp] lemma to_add_monoid_hom_coe : ⇑f.to_add_monoid_hom = f := rfl
 
 variable (R)
 
@@ -194,6 +193,10 @@ theorem to_add_monoid_hom_injective :
 /-- If two `R`-linear maps from `R` are equal on `1`, then they are equal. -/
 @[ext] theorem ext_ring {f g : R →ₗ[R] M} (h : f 1 = g 1) : f = g :=
 ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smul, g.map_smul, h]
+
+theorem ext_ring_iff {f g : R →ₗ[R] M} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
 end
 
 section

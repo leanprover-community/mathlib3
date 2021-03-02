@@ -169,7 +169,8 @@ rfl
     with each morphism. Sadly, this is not a definitional equality, but at least it is
     true. -/
 theorem comp_apply {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (a : P) : (f ≫ g) a = g (f a) :=
-quotient.induction_on a $ λ x, quotient.sound $ by { unfold app, rw [←category.assoc, over.coe_hom] }
+quotient.induction_on a $ λ x, quotient.sound $
+by { unfold app, rw [←category.assoc, over.coe_hom] }
 
 /-- Composition of functions on pseudoelements is composition of morphisms. -/
 theorem comp_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : g ∘ f = f ≫ g :=

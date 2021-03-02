@@ -277,6 +277,7 @@ lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.t
   (hfp : finite_presentation R A) : finite_presentation R B :=
 equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
+
 lemma iff : finite_presentation R A ↔
   ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
 begin

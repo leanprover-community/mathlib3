@@ -14,6 +14,7 @@ on:
 jobs:
   cancel:
     name: Cancel stale jobs
+    runs-on: ubuntu-latest
     steps:
       - uses: technote-space/auto-cancel-redundant-workflow@v1.6.3
 

@@ -240,6 +240,12 @@ else by simp [h, of_subtype_apply_of_not_mem f h]
 equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
   simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
 
+instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
+{ default := 1,
+uniq := λ σ, equiv.ext (λ i, subsingleton.elim _ _) }
+
+@[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
+
 end perm
 
 section swap

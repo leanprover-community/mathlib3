@@ -76,6 +76,14 @@ begin
   simp [det, card_eq_zero.mp h, perm_eq],
 end
 
+/-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
+Although `unique` implies `decidable_eq` and `fintype`, the instances might
+not be syntactically equal. Thus, we need to fill in the args explicitly. -/
+@[simp]
+lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix n n R) :
+  det A = A (default n) (default n) :=
+by simp [det, univ_unique]
+
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin

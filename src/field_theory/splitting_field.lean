@@ -268,9 +268,7 @@ begin
 
   conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_splits hsplit] },
   have : (0 : polynomial β) ∉ (map i p).roots.map (λ a, X - C a),
-  { intro mem,
-    obtain ⟨a, -, ha⟩ := multiset.mem_map.mp mem,
-    exact X_sub_C_ne_zero _ ha },
+    from zero_nmem_multiset_map_X_sub_C _ _,
   simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
         nat_degree_multiset_prod this]
 end

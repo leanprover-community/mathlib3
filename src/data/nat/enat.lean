@@ -370,7 +370,8 @@ by convert to_with_top_zero
 
 lemma to_with_top_coe (n : ℕ) : to_with_top n = n := rfl
 
-@[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} : to_with_top (n : enat) = n :=
+@[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} :
+  to_with_top (n : enat) = n :=
 by convert to_with_top_coe n
 
 @[simp] lemma to_with_top_le {x y : enat} : Π [decidable x.dom]

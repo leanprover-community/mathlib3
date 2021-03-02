@@ -216,15 +216,10 @@ theorem semimodule.subsingleton (R M : Type*) [semiring R] [subsingleton R] [add
 
 @[priority 910] -- see Note [lower instance priority]
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
-{ smul := (*),
-  smul_add := mul_add,
+{ smul_add := mul_add,
   add_smul := add_mul,
-  mul_smul := mul_assoc,
-  one_smul := one_mul,
   zero_smul := zero_mul,
   smul_zero := mul_zero }
-
-@[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodule R S :=

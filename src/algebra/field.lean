@@ -326,3 +326,15 @@ noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
 { .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
 
 end noncomputable_defs
+
+/-- Pullback a `field` class along an injective function. -/
+protected def function.injective.field [field K] {K'}
+  [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
+  [has_div K']
+  (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  field K' :=
+{ .. hf.group_with_zero_div f zero one mul inv div,
+  .. hf.comm_ring_sub f zero one add mul neg sub }

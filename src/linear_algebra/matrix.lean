@@ -1156,10 +1156,8 @@ begin
   convert block_triangular_det M id h,
   ext i,
   have h2 : ∀ (j : {a // id a = i}), j = ⟨i, rfl⟩ := λ (j : {a // id a = i}), subtype.ext j.property,
-  have h3 : (M.to_square_block id i).det = M.to_square_block id i ⟨i, rfl⟩ ⟨i, rfl⟩ :=
-    det_eq_elem_of_card_eq_one (fintype.card_eq_one_of_forall_eq h2) _,
-  rw h3,
-  simp only [to_square_block_def, subtype.coe_mk]
+  haveI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, h2⟩,
+  simp [h2 (default {a // id a = i})]
 end
 
 lemma lower_triangular_det {n : ℕ} (M : matrix (fin n) (fin n) R)

@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import data.int.basic
 import category_theory.graded_object
 import category_theory.differential_object
+import category_theory.abelian.additive_functor
 
 /-!
 # Chain complexes
@@ -126,6 +127,36 @@ end
 end homological_complex
 
 open homological_complex
+
+namespace category_theory.functor
+
+variables {β : Type} [add_comm_group β] {b : β} {C D : Type*} [category C]
+  [category D] [preadditive C] [preadditive D] (F : C ⥤ D) [functor.additive F]
+
+/-- Map a `homological_complex` with respect to an additive functor. -/
+@[simps]
+def map_homological_complex (Cs : homological_complex C b) : homological_complex D b :=
+{ X := λ i, F.obj $ Cs.X i,
+  d := λ i, F.map $ Cs.d i,
+  d_squared' := begin
+    ext i,
+    dsimp,
+    simp [← F.map_comp]
+  end }
+
+/-- A functorial version of `map_homological_complex`. -/
+@[simps]
+def pushforward_homological_complex : homological_complex C b ⥤ homological_complex D b :=
+{ obj := λ Cs, F.map_homological_complex Cs,
+  map := λ X Y f,
+  { f := λ i, F.map $ f.f _,
+    comm' := begin
+      ext i,
+      dsimp,
+      simp_rw [← F.map_comp, comm_at],
+    end } }
+
+end category_theory.functor
 
 -- The components of a cochain map `f : C ⟶ D` are accessed as `f.f i`.
 example {C D : cochain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5

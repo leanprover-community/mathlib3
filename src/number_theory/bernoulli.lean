@@ -148,7 +148,7 @@ begin
   congr',
   field_simp [show ((n - k : ℕ) : ℚ) + 1 ≠ 0, by {norm_cast, simp}],
   norm_cast,
-  rw [mul_comm, sub_add_eq_add_sub hk],
+  rw [mul_comm, nat.sub_add_eq_add_sub hk],
   exact choose_mul_succ_eq n k,
 end
 

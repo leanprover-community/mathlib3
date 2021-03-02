@@ -91,7 +91,8 @@ begin
       g j⟩),
   obtain ⟨S, T, W⟩ := is_filtered.sup_exists O H,
 
-  have fH : ∀ j, (⟨kx, k j, kxO, kjO j, f j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
+  have fH :
+    ∀ j, (⟨kx, k j, kxO, kjO j, f j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inl
     begin
       simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
@@ -100,7 +101,8 @@ begin
       simp only [heq_iff_eq],
       exact ⟨rfl, rfl, rfl⟩,
     end)),
-  have gH : ∀ j, (⟨ky, k j, kyO, kjO j, g j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
+  have gH :
+    ∀ j, (⟨ky, k j, kyO, kjO j, g j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inr
     begin
       simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,

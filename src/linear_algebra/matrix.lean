@@ -129,7 +129,7 @@ matrix.to_lin'.apply_symm_apply f
 @[simp] lemma linear_map.to_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) (i j) :
   linear_map.to_matrix' f i j = f (λ j', if j' = j then 1 else 0) i :=
 begin
-  simp only [linear_map.to_matrix', linear_equiv.mk_apply],
+  simp only [linear_map.to_matrix', linear_equiv.coe_mk],
   congr,
   ext j',
   split_ifs with h,
@@ -142,7 +142,7 @@ end
 
 @[simp] lemma matrix.to_lin'_one :
   matrix.to_lin' (1 : matrix n n R) = id :=
-by { ext, simp [one_apply, std_basis_apply] }
+by { ext, simp [linear_map.one_apply, std_basis_apply] }
 
 @[simp] lemma linear_map.to_matrix'_id :
   (linear_map.to_matrix' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
@@ -475,7 +475,8 @@ lemma is_basis.iff_det {v : ι → M} : is_basis R v ↔ is_unit (he.det v) :=
 begin
   split,
   { intro hv,
-    suffices : is_unit (linear_map.to_matrix he he (linear_equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    suffices :
+      is_unit (linear_map.to_matrix he he (linear_equiv_of_is_basis he hv $ equiv.refl ι)).det,
     { rw [is_basis.det_apply, is_basis.to_matrix_eq_to_matrix_constr],
       exact this },
     apply linear_equiv.is_unit_det },
@@ -750,7 +751,8 @@ reindex_refl_refl A
 
 lemma reindex_mul [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
-  (reindex_linear_equiv eₘ eₙ M) ⬝ (reindex_linear_equiv eₙ eₗ N) = reindex_linear_equiv eₘ eₗ (M ⬝ N) :=
+  (reindex_linear_equiv eₘ eₙ M) ⬝ (reindex_linear_equiv eₙ eₗ N) =
+  reindex_linear_equiv eₘ eₗ (M ⬝ N) :=
 begin
   ext i j,
   dsimp only [matrix.mul, matrix.dot_product],
@@ -762,8 +764,9 @@ end
 types is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
-{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_apply, mul_eq_mul],
-  commutes' := λ r, by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
+{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_eq_coe, mul_eq_mul],
+  commutes' := λ r,
+                 by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }
 
 @[simp] lemma coe_reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
@@ -918,9 +921,9 @@ if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M)
 then trace_aux R (classical.some_spec H)
 else 0
 
-theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
-  trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
+theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M]
+  [module R M] {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
+  (f : M →ₗ[R] M) : trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),
 from ⟨finset.univ.image b,
   by { rw [finset.coe_image, finset.coe_univ, set.image_univ], exact hb.range }⟩,

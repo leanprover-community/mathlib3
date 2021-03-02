@@ -203,8 +203,7 @@ theorem filter.tendsto.if_nhds_within {f g : α → β} {p : α → Prop} [decid
 h₀.piecewise_nhds_within h₁
 
 lemma map_nhds_within (f : α → β) (a : α) (s : set α) :
-  map f (𝓝[s] a) =
-    ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (set.image f (t ∩ s)) :=
+  map f (𝓝[s] a) = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (f  '' (t ∩ s)) :=
 ((nhds_within_basis_open a s).map f).eq_binfi
 
 theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
@@ -262,10 +261,15 @@ lemma eventually_nhds_with_of_forall {s : set α} {a : α} {p : α → Prop} (h 
   ∀ᶠ x in 𝓝[s] a, p x :=
 mem_inf_sets_of_right h
 
-lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {β : Type*} {a : α} {l : filter β}
-  {s : set α} (f : β → α) (h1 : tendsto f l (nhds a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
+lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {a : α} {l : filter β}
+  {s : set α} (f : β → α) (h1 : tendsto f l (𝓝 a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
   tendsto f l (𝓝[s] a) :=
 tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
+
+@[simp] lemma tendsto_nhds_within_range {a : α} {l : filter β} {f : β → α} :
+  tendsto f l (𝓝[range f] a) ↔ tendsto f l (𝓝 a) :=
+⟨λ h, h.mono_right inf_le_left, λ h, tendsto_inf.2
+  ⟨h, tendsto_principal.2 $ eventually_of_forall mem_range_self⟩⟩
 
 lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a : α}
   (h : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : f a = g a :=
@@ -290,14 +294,7 @@ filter.ext $ λ u, mem_nhds_within_subtype
 
 theorem nhds_within_eq_map_subtype_coe {s : set α} {a : α} (h : a ∈ s) :
   𝓝[s] a = map (coe : s → α) (𝓝 ⟨a, h⟩) :=
-have h₀ : s ∈ 𝓝[s] a,
-  by { rw [mem_nhds_within], existsi set.univ, simp [set.diff_eq] },
-have h₁ : ∀ y ∈ s, ∃ x : s, ↑x = y,
-  from λ y h, ⟨⟨y, h⟩, rfl⟩,
-begin
-  conv_rhs { rw [← nhds_within_univ, nhds_within_subtype, subtype.coe_image_univ] },
-  exact (map_comap_of_surjective' h₀ h₁).symm,
-end
+by simpa only [subtype.range_coe] using (embedding_subtype_coe.map_nhds_eq ⟨a, h⟩).symm
 
 theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
   tendsto f (𝓝[s] a) l ↔ tendsto (s.restrict f) (𝓝 ⟨a, h⟩) l :=
@@ -386,7 +383,7 @@ have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u 
   begin
     intro t,
     rw [is_closed_induced_iff, set.restrict_eq, set.preimage_comp],
-    simp only [subtype.preimage_coe_eq_preimage_coe_iff]
+    simp only [subtype.preimage_coe_eq_preimage_coe_iff, eq_comm]
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
 

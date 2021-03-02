@@ -406,6 +406,12 @@ rfl
 lemma op_equiv_symm_apply (A B : Cᵒᵖ) (f : B.unop ⟶ A.unop) : (op_equiv _ _).symm f = f.op :=
 rfl
 
+instance subsingleton_of_unop (A B : Cᵒᵖ) [subsingleton (unop B ⟶ unop A)] : subsingleton (A ⟶ B) :=
+(op_equiv A B).subsingleton
+
+instance decidable_eq_of_unop (A B : Cᵒᵖ) [decidable_eq (unop B ⟶ unop A)] : decidable_eq (A ⟶ B) :=
+(op_equiv A B).decidable_eq
+
 universes v
 variables {α : Type v} [preorder α]
 

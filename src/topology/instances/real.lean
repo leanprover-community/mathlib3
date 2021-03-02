@@ -52,6 +52,14 @@ theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 @[norm_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
 
+instance : proper_space ℤ :=
+⟨ begin
+    intros x r,
+    apply set.finite.is_compact,
+    have : closed_ball x r = coe ⁻¹' (closed_ball (x:ℝ) r) := rfl,
+    simp [this, closed_ball_Icc, set.Icc_ℤ_finite],
+  end ⟩
+
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
 uniform_continuous_comap
 

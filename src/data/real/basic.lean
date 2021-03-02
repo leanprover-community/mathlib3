@@ -218,6 +218,10 @@ noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : domain ℝ                     :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
 
+/-- The real numbers are an ordered *-ring, with the trivial *-structure. -/
+instance : star_ordered_ring ℝ :=
+{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
+
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
 lemma inv_cauchy {f} : (⟨f⟩ : ℝ)⁻¹ = ⟨f⁻¹⟩ := show inv' _ = _, by rw inv'

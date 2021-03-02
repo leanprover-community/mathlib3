@@ -78,7 +78,7 @@ begin
     use (hs.to_finset.sup id) + 1,
     assume b hb,
     by_contradiction hbs,
-    have := hs.to_finset.subset_range_sup_succ (finite.mem_to_finset.2 hbs),
+    have := hs.to_finset.subset_range_sup_succ (hs.mem_to_finset.2 hbs),
     exact not_lt_of_le hb (finset.mem_range.1 this) },
   { rintros ⟨N, hN⟩,
     apply (finite_lt_nat N).subset,

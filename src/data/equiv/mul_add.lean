@@ -125,7 +125,9 @@ theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
 
 @[simp, to_additive]
-theorem coe_symm_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃).symm = g := rfl
+theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
+  (mul_equiv.mk f g h₁ h₂ h₃).symm =
+  { to_fun := g, inv_fun := f, ..(mul_equiv.mk f g h₁ h₂ h₃).symm} := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
@@ -182,6 +184,9 @@ attribute [ext] add_equiv.ext
 @[to_additive]
 lemma ext_iff {f g : mul_equiv M N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, ext⟩
+
+@[simp, to_additive] lemma mk_coe (e : M ≃* N) (e' h₁ h₂ h₃) :
+  (⟨e, e', h₁, h₂, h₃⟩ : M ≃* N) = e := ext $ λ _, rfl
 
 @[to_additive]
 protected lemma congr_arg {f : mul_equiv M N} : Π {x x' : M}, x = x' → f x = f x'

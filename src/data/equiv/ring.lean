@@ -80,6 +80,12 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+@[simp] theorem coe_mk (e e' h₁ h₂ h₃ h₄) :
+  ⇑(⟨e, e', h₁, h₂, h₃, h₄⟩ : R ≃+* S) = e := rfl
+
+@[simp] theorem mk_coe (e : R ≃+* S) (e' h₁ h₂ h₃ h₄) :
+  (⟨e, e', h₁, h₂, h₃, h₄⟩ : R ≃+* S) = e := ext $ λ _, rfl
+
 protected lemma congr_arg {f : R ≃+* S} : Π {x x' : R}, x = x' → f x = f x'
 | _ _ rfl := rfl
 
@@ -137,7 +143,9 @@ initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_appl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 
-@[simp] lemma coe_symm_mk (f : R → S) (g h₁ h₂ h₃ h₄) : ⇑(mk f g h₁ h₂ h₃ h₄).symm = g := rfl
+@[simp] lemma symm_mk (f : R → S) (g h₁ h₂ h₃ h₄) :
+  (mk f g h₁ h₂ h₃ h₄).symm =
+  { to_fun := g, inv_fun := f, ..(mk f g h₁ h₂ h₃ h₄).symm} := rfl
 
 /-- Transitivity of `ring_equiv`. -/
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=

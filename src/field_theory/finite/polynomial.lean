@@ -178,6 +178,19 @@ calc vector_space.dim K (R σ K) =
   end
   ... = fintype.card (σ → K) : cardinal.fintype_card _
 
+lemma findim_R : finite_dimensional.findim K (R σ K) = fintype.card (σ → K) :=
+begin
+  suffices : vector_space.dim K (R σ K) = fintype.card (σ → K),
+    { haveI : finite_dimensional K (R σ K) :=
+  begin
+    rw [finite_dimensional.finite_dimensional_iff_dim_lt_omega, dim_R],
+    exact cardinal.nat_lt_omega _
+  end,
+  rw ← finite_dimensional.findim_eq_dim at this,
+  exact_mod_cast this },
+  rw dim_R
+end
+
 def evalᵢ : R σ K →ₗ[K] (σ → K) → K :=
 ((evalₗ K σ).comp (restrict_degree σ K (fintype.card K - 1)).subtype)
 
@@ -195,13 +208,8 @@ begin
     exact cardinal.nat_lt_omega _ },
   { rw [finite_dimensional.finite_dimensional_iff_dim_lt_omega, dim_fun, dim_of_field, mul_one],
     exact cardinal.nat_lt_omega _ },
-  { sorry },
+  { rw [finite_dimensional.findim_fintype_fun_eq_card, findim_R] }
 end
-/-begin
-  refine injective_of_surjective _ _ _ (range_evalᵢ _ _),
-  { rw [dim_R], exact cardinal.nat_lt_omega _ },
-  { rw [dim_R, dim_fun, dim_of_field, mul_one] }
-end-/
 
 lemma eq_zero_of_eval_eq_zero (p : mv_polynomial σ K)
   (h : ∀v:σ → K, eval v p = 0) (hp : p ∈ restrict_degree σ K (fintype.card K - 1)) :

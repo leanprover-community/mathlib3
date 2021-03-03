@@ -2,13 +2,19 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
-
-Linear structures on function with finite support `ι →₀ β`.
 -/
+
 import data.mv_polynomial
 import linear_algebra.dimension
 import linear_algebra.direct_sum.finsupp
 import linear_algebra.finite_dimensional
+
+/-!
+# Linear structures on function with finite support `ι →₀ M`
+
+This file contains results on the `R`-module structure on functions of finite support from a type
+`ι` to an `R`-module `M`, in particular in the case that `R` is a field.
+-/
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -146,20 +152,6 @@ begin
   rw this at hn,
   rw ←@dim_fin_fun K _ n at hn,
   exact classical.choice (equiv_of_dim_eq_lift_dim hn),
-end
-
-lemma injective_of_surjective (f : V₁ →ₗ[K] V₂)
-  (hV₁ : dim K V₁ < cardinal.omega) (heq : dim K V₂ = dim K V₁) (hf : f.range = ⊤) : f.ker = ⊥ :=
-have hk : dim K f.ker < cardinal.omega := lt_of_le_of_lt (dim_submodule_le _) hV₁,
-begin
-  rcases cardinal.lt_omega.1 hV₁ with ⟨d₁, eq₁⟩,
-  rcases cardinal.lt_omega.1 hk with ⟨d₂, eq₂⟩,
-  have : 0 = d₂,
-  { have := dim_eq_of_surjective f (linear_map.range_eq_top.1 hf),
-    rw [heq, eq₁, eq₂, ← nat.cast_add, cardinal.nat_cast_inj] at this,
-    exact nat.add_left_cancel this },
-  rw ← dim_eq_zero,
-  rw [eq₂, ← this, nat.cast_zero]
 end
 
 end vector_space

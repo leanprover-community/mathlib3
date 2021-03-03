@@ -174,8 +174,8 @@ def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
 
 @[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m)
   (hk : k < m + n := nat.lt_add_right k m n h)
-  (hnk : n + k < m + n := add_lt_add_left h n) :
-  fin_add_flip (⟨k, nk⟩ : fin (m + n)) = ⟨n + k, hnk⟩ :=
+  (hnk : n + k < n + m := add_lt_add_left h n) :
+  fin_add_flip (⟨k, hk⟩ : fin (m + n)) = ⟨n + k, hnk⟩ :=
 begin
   dsimp [fin_add_flip, sum_fin_sum_equiv],
   rw [dif_pos h],

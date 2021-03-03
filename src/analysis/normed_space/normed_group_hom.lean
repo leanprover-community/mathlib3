@@ -57,6 +57,9 @@ initialize_simps_projections normed_group_hom (to_fun → apply)
 lemma coe_inj (H : ⇑f = g) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
+lemma coe_injective : @function.injective (normed_group_hom V₁ V₂) (V₁ → V₂) coe_fn :=
+by apply coe_inj
+
 lemma coe_inj_iff : f = g ↔ ⇑f = g := ⟨congr_arg _, coe_inj⟩
 
 @[ext] lemma ext (H : ∀ x, f x = g x) : f = g := coe_inj $ funext H
@@ -298,13 +301,7 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
-{ add := (+), zero := 0, neg := has_neg.neg, sub := has_sub.sub,
-  add_assoc := by { intros, ext, simp [add_assoc] },
-  add_comm := by { intros, ext, simp [add_comm] },
-  zero_add := by { intros, ext, simp },
-  add_zero := by { intros, ext, simp },
-  sub_eq_add_neg := by { intros, ext, simp [sub_eq_add_neg] },
-  add_left_neg := by { intros, ext, simp } }
+coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl)
 
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/

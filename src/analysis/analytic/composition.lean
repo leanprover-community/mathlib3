@@ -590,8 +590,8 @@ end
 power series, here given a a finset.
 See also `comp_partial_sum`. -/
 def comp_partial_sum_target (m M N : ℕ) : finset (Σ n, composition n) :=
-set.finite.to_finset $ (finset.finite_to_set _).dependent_image
-  (comp_partial_sum_target_subset_image_comp_partial_sum_source m M N)
+set.finite.to_finset $ ((finset.finite_to_set _).dependent_image _).subset $
+  comp_partial_sum_target_subset_image_comp_partial_sum_source m M N
 
 @[simp] lemma mem_comp_partial_sum_target_iff {m M N : ℕ} {a : Σ n, composition n} :
   a ∈ comp_partial_sum_target m M N ↔

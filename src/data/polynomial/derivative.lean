@@ -115,6 +115,14 @@ linear_map.map_neg derivative f
   derivative (f - g) = derivative f - derivative g :=
 linear_map.map_sub derivative f g
 
+@[simp] lemma iterate_derivative_sub {R : Type*} [ring R] {k : ℕ} {f g : polynomial R} :
+  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
+begin
+  induction k with k ih generalizing f g,
+  { simp [nat.iterate], },
+  { simp [nat.iterate, ih], }
+end
+
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
 derivative.map_sum
@@ -216,8 +224,8 @@ theorem iterate_derivative_map [comm_semiring S] (p : polynomial R) (f : R →+*
   polynomial.derivative^[k] (p.map f) = (polynomial.derivative^[k] p).map f :=
 begin
   induction k with k ih generalizing p,
-  simp,
-  simp [ih],
+  { simp, },
+  { simp [ih], },
 end
 
 /-- Chain rule for formal derivative of polynomials. -/

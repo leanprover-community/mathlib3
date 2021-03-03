@@ -550,6 +550,9 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma continuous_on_sin {s} : continuous_on sin s :=
+continuous_sin.continuous_on
+
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 lemma has_strict_deriv_at_cos (x : ℝ) : has_strict_deriv_at cos (-sin x) x :=

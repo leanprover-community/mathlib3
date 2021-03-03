@@ -285,7 +285,7 @@ begin
   intros n nh,
   have npos : 0 < (n : ℝ) := by exact_mod_cast (pos_of_gt nh),
   -- Three easy inequalities we'll need later:
-  have w₀ : 0 ≤ ε / 2 := div_nonneg (le_of_lt h) (by norm_num),
+  have w₀ : 0 ≤ ε / 2 := le_of_lt (half_pos h),
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
   have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
@@ -308,8 +308,7 @@ begin
                               : begin
                                   dsimp [bernstein_approximation],
                                   simp only [coe_sum, coe_smul, finset.sum_apply,
-                                    ←finset.sum_sub_distrib,
-                                    algebra.id.smul_eq_mul, ←sub_mul],
+                                    ←finset.sum_sub_distrib, algebra.id.smul_eq_mul, ←sub_mul],
                                 end
     ... ≤ ∑ k : fin (n+1), abs ((f k/ₙ - f x) * bernstein n k x)
                               : finset.abs_sum_le_sum_abs

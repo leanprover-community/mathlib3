@@ -530,7 +530,7 @@ end
 lemma alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
-  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm.symm)
+  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm
     (by rw [subsingleton.elim f.symm g.symm, alg_equiv.symm_symm])⟩
 end
 

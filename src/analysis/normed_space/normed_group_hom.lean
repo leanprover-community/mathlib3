@@ -301,7 +301,7 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
-coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl)
+coe_injective.add_comm_group_sub _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/

@@ -317,65 +317,65 @@ begin
     ... = ∑ k in S, abs (f k/ₙ - f x) * bernstein n k x +
           ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
                               : (S.sum_add_sum_compl _).symm
-    -- We now work on the terms in `S`, where uniform continuity and `bernstein.probability`
-    -- quickly give us a bound.
-    ... ≤ ∑ k in S, (ε/2) * bernstein n k x +
-          ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
-                              : add_le_add_right (finset.sum_le_sum
-                                  (λ k m, (mul_le_mul_of_nonneg_right (le_of_lt (lt_of_mem_S m))
-                                    bernstein_nonneg))) _
-    ... = (ε/2) * ∑ k in S, bernstein n k x +
-          ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
-                              : by rw finset.mul_sum
-    -- In this step we increase the sum of `S` back to a sum over all of `fin (n+1)`,
-    -- so that we can use `bernstein.probability`.
-    ... ≤ (ε/2) * ∑ k : fin (n+1), bernstein n k x +
-          ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
-                              : add_le_add_right (mul_le_mul_of_nonneg_left
-                                  (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg)) w₀) _
-    -- We now turn to working on `Sᶜ`, we control the difference term just using `∥f∥`,
-    -- and then insert a `δ^(-2) * (x - k/n)^2` factor
-    -- (which is at least one because we are not in `S`).
-    ... = (ε/2) + ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
-                              : by rw [bernstein.probability, mul_one]
-    ... ≤ (ε/2) + ∑ k in Sᶜ, (2 * ∥f∥) * bernstein n k x
-                              : add_le_add_left (finset.sum_le_sum
-                                  (λ k m, mul_le_mul_of_nonneg_right (w₃ _ _) bernstein_nonneg)) _
-    ... = (ε/2) + (2 * ∥f∥) * ∑ k in Sᶜ, bernstein n k x
-                              : by rw finset.mul_sum
-    ... ≤ (ε/2) + (2 * ∥f∥) * ∑ k in Sᶜ, δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
-                              : add_le_add_left (mul_le_mul_of_nonneg_left
-                                  (finset.sum_le_sum (λ k m, begin
-                                    conv_lhs { rw ←one_mul (bernstein _ _ _), },
-                                    exact mul_le_mul_of_nonneg_right
-                                      (le_of_mem_S_compl m) bernstein_nonneg,
-                                  end)) w₁) _
-    -- Again enlarging the sum from `Sᶜ` to all of `fin (n+1)`
-    ... ≤ (ε/2) + (2 * ∥f∥) * ∑ k : fin (n+1), δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
-                              : add_le_add_left (mul_le_mul_of_nonneg_left
-                                  (finset.sum_le_univ_sum_of_nonneg
-                                    (λ k, mul_nonneg
-                                      (mul_nonneg pow_minus_two_nonneg (pow_two_nonneg _))
-                                      bernstein_nonneg)) w₁) _
-    ... = (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
-                              : by conv_rhs {
-                                  rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
-    -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
-    ... = (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
-                              : by { rw variance npos, ring, }
-    ... ≤ (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) / n
-                              : add_le_add_left ((div_le_div_right npos).mpr
-                                begin
-                                  apply mul_unit_interval_le w₂,
-                                  apply mul_unit_interval_le w₂ (le_refl _),
-                                  all_goals { unit_interval, },
-                                end) _
-    ... < ε : _, -- We postpone this final step for a moment, in order to actually choose `n`!
+    -- We'll now deal with the terms in `S` and the terms in `Sᶜ` in separate calc blocks.
+    ... < ε/2 + ε/2 : add_lt_add_of_le_of_lt _ _
+    ... = ε : add_halves ε,
+    { -- We now work on the terms in `S`: uniform continuity and `bernstein.probability`
+      -- quickly give us a bound.
+      calc ∑ k in S, abs (f k/ₙ - f x) * bernstein n k x
+          ≤ ∑ k in S, (ε/2) * bernstein n k x
+                                :  finset.sum_le_sum
+                                    (λ k m, (mul_le_mul_of_nonneg_right (le_of_lt (lt_of_mem_S m))
+                                      bernstein_nonneg))
+      ... = (ε/2) * ∑ k in S, bernstein n k x
+                                : by rw finset.mul_sum
+      -- In this step we increase the sum of `S` back to a sum over all of `fin (n+1)`,
+      -- so that we can use `bernstein.probability`.
+      ... ≤ (ε/2) * ∑ k : fin (n+1), bernstein n k x
+                                : mul_le_mul_of_nonneg_left
+                                    (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg)) w₀
+      ... = ε/2 : by rw [bernstein.probability, mul_one] },
+      -- We now turn to working on `Sᶜ`: we control the difference term just using `∥f∥`,
+      -- and then insert a `δ^(-2) * (x - k/n)^2` factor
+      -- (which is at least one because we are not in `S`).
+      calc ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
+          ≤ ∑ k in Sᶜ, (2 * ∥f∥) * bernstein n k x
+                                : finset.sum_le_sum
+                                    (λ k m, mul_le_mul_of_nonneg_right (w₃ _ _) bernstein_nonneg)
+      ... = (2 * ∥f∥) * ∑ k in Sᶜ, bernstein n k x
+                                : by rw finset.mul_sum
+      ... ≤ (2 * ∥f∥) * ∑ k in Sᶜ, δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
+                                : mul_le_mul_of_nonneg_left
+                                    (finset.sum_le_sum (λ k m, begin
+                                      conv_lhs { rw ←one_mul (bernstein _ _ _), },
+                                      exact mul_le_mul_of_nonneg_right
+                                        (le_of_mem_S_compl m) bernstein_nonneg,
+                                    end)) w₁
+      -- Again enlarging the sum from `Sᶜ` to all of `fin (n+1)`
+      ... ≤ (2 * ∥f∥) * ∑ k : fin (n+1), δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
+                                : mul_le_mul_of_nonneg_left
+                                    (finset.sum_le_univ_sum_of_nonneg
+                                      (λ k, mul_nonneg
+                                        (mul_nonneg pow_minus_two_nonneg (pow_two_nonneg _))
+                                        bernstein_nonneg)) w₁
+      ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
+                                : by conv_rhs {
+                                    rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
+      -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
+      ... = (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
+                                : by { rw variance npos, ring, }
+      ... ≤ (2 * ∥f∥) * δ^(-2 : ℤ) / n
+                                : (div_le_div_right npos).mpr
+                                  begin
+                                    apply mul_unit_interval_le w₂,
+                                    apply mul_unit_interval_le w₂ (le_refl _),
+                                    all_goals { unit_interval, },
+                                  end
+      ... < ε/2 : _, -- We postpone this final step for a moment, in order to actually choose `n`!
   -- Choose `n` to make the inequality work.
   show ℕ, { exact nat_ceil (2 * (2 * ∥f∥ * δ^(-2 : ℤ)) / ε) + 1, },
   { -- And a final inequality bash gets us to the end.
     dsimp [n] at npos ⊢,
-    rw [show ∀ z, ε/2 + z < ε ↔ z < ε/2, from λ z, by fsplit; { intro, linarith, }],
     rw [lt_div_iff (show (0 : ℝ) < 2, by norm_num), mul_comm],
     rw [←mul_div_assoc, div_lt_iff npos, mul_comm ε, ←div_lt_iff h],
     exact lt_of_le_of_lt (le_nat_ceil _) (lt_add_one _), },

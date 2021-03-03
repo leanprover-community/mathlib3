@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
-import ring_theory.polynomial.chebyshev.defs
+import ring_theory.polynomial.chebyshev
 import analysis.calculus.times_cont_diff
 
 /-!
@@ -549,6 +549,9 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 @[continuity]
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
+
+lemma continuous_on_sin {s} : continuous_on sin s :=
+continuous_sin.continuous_on
 
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 

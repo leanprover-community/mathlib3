@@ -615,9 +615,9 @@ begin
   rw submodule.mem_sup,
   rcases hpq with ⟨p', q', hpq'⟩,
   use aeval f (p * p') v,
-  use linear_map.mem_range.2 ⟨aeval f p' v, by simp only [linear_map.mul_app, aeval_mul]⟩,
+  use linear_map.mem_range.2 ⟨aeval f p' v, by simp only [linear_map.mul_apply, aeval_mul]⟩,
   use aeval f (q * q') v,
-  use linear_map.mem_range.2 ⟨aeval f q' v, by simp only [linear_map.mul_app, aeval_mul]⟩,
+  use linear_map.mem_range.2 ⟨aeval f q' v, by simp only [linear_map.mul_apply, aeval_mul]⟩,
   simpa only [mul_comm p p', mul_comm q q', aeval_one, aeval_add]
     using congr_arg (λ p : polynomial R, aeval f p v) hpq'
 end

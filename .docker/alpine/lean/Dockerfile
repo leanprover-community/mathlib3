@@ -55,7 +55,7 @@ FROM alpine
 
 USER root
 # install prerequisites
-# (leanproject assumes bash)
+# (leanpkg assumes bash)
 RUN apk update && apk add --no-cache bash curl git openssh
 # create a non-root user
 RUN adduser -D lean

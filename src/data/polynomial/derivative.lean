@@ -286,6 +286,26 @@ end
 
 end comm_semiring
 
+section comm_ring
+variables [comm_ring R]
+
+lemma derivative_comp_one_sub_X (p : polynomial R) :
+  (p.comp (1-X)).derivative = -p.derivative.comp (1-X) :=
+begin
+  simp [derivative_comp],
+end
+
+@[simp]
+lemma iterate_derivative_comp_one_sub_X (p : polynomial R) (k : ℕ) :
+  derivative^[k] (p.comp (1-X)) = (-1)^k * (derivative^[k] p).comp (1-X) :=
+begin
+  induction k with k ih generalizing p,
+  { simp, },
+  { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
+end
+
+end comm_ring
+
 section domain
 variables [integral_domain R]
 

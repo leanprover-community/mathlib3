@@ -28,31 +28,6 @@ This will give a constructive proof of Weierstrass' theorem that
 polynomials are dense in `C([0,1], ℝ)`.
 -/
 
-/-!
-Two lemmas about polynomials that do not seem widely useful
-outside their application here to Bernstein polynomials.
--/
-namespace polynomial
-variables {R : Type*} [comm_ring R]
-
-lemma derivative_comp_one_sub_X (p : polynomial R) :
-  (p.comp (1-X)).derivative = -p.derivative.comp (1-X) :=
-begin
-  simp [derivative_comp],
-end
-
-@[simp]
-lemma iterate_derivative_comp_one_sub_X (p : polynomial R) (k : ℕ) :
-  derivative^[k] (p.comp (1-X)) = (-1)^k * (derivative^[k] p).comp (1-X) :=
-begin
-  induction k with k ih generalizing p,
-  { simp, },
-  { simp [ih p.derivative, iterate_derivative_neg, derivative_comp, pow_succ], },
-end
-
-end polynomial
-
-
 noncomputable theory
 
 

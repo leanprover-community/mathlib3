@@ -9,6 +9,14 @@ FROM clux/muslrust as elan-builder
 RUN git clone https://github.com/Kha/elan.git .
 RUN cargo build
 
+FROM alpine as elan-install
+
+RUN adduser -D lean
+USER lean
+WORKDIR /home/lean
+COPY --from=elan-builder /volume/target/x86_64-unknown-linux-musl/debug/elan-init .
+RUN ./elan-init -y && rm elan-init
+
 # We start with a temporary `builder` container, from https://github.com/six8/pyinstaller-alpine
 # in which we install `python` and prepare a standalone version of `leanproject`.
 FROM six8/pyinstaller-alpine:alpine-3.6-pyinstaller-v3.4 as leanproject-builder
@@ -51,8 +59,7 @@ SHELL ["/bin/ash", "-c"]
 ENTRYPOINT ["/bin/ash", "-l"]
 
 # install elan
-COPY --from=elan-builder /volume/target/x86_64-unknown-linux-musl/debug/elan-init .
-RUN ./elan-init -y && rm elan-init
+COPY --from=elan-install /home/lean/.elan /home/lean/.elan
 
 COPY .profile .
 

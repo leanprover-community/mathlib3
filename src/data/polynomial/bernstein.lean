@@ -13,15 +13,18 @@ import tactic.omega
 # Bernstein polynomials
 
 The definition of the Bernstein polynomials
-`bernstein_polynomial (n ν : ℕ) : polynomial ℤ := (choose n ν) * X^ν * (1 - X)^(n - ν)`
+```
+bernstein_polynomial (R : Type*) [ring R] (n ν : ℕ) : polynomial R :=
+(choose n ν) * X^ν * (1 - X)^(n - ν)
+```
 and the fact that for `ν : fin (n+1)` these are linearly independent over `ℚ`.
 
 ## Future work
 
 The basic identities
-* `(finset.range (n + 1)).sum (λ ν, bernstein_polynomial n ν) = 1`
-* `(finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial n ν) = n • X`
-* `(finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial n ν) = (n * (n-1)) • X^2`
+* `(finset.range (n + 1)).sum (λ ν, bernstein_polynomial R n ν) = 1`
+* `(finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial R n ν) = n • X`
+* `(finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial R n ν) = (n * (n-1)) • X^2`
 and the fact that the Bernstein approximations
 of a continuous function `f` on `[0,1]` converge uniformly.
 This will give a constructive proof of Weierstrass' theorem that
@@ -37,7 +40,9 @@ open polynomial (X)
 variables (R : Type*) [comm_ring R]
 
 /--
-`bernstein_polynomial n ν` is `(choose n ν) * X^ν * (1 - X)^(n - ν)`
+`bernstein_polynomial R n ν` is `(choose n ν) * X^ν * (1 - X)^(n - ν)`
+
+Although the coefficients are integers, it is convenient to work over an arbitrary commutative ring.
 -/
 def bernstein_polynomial (n ν : ℕ) : polynomial R := choose n ν * X^ν * (1 - X)^(n - ν)
 
@@ -48,6 +53,16 @@ begin
 end
 
 namespace bernstein_polynomial
+
+section
+variables {R} {S : Type*} [comm_ring S]
+
+@[simp] lemma map (f : R →+* S) (n ν : ℕ) :
+  (bernstein_polynomial R n ν).map f = bernstein_polynomial S n ν :=
+by simp [bernstein_polynomial]
+
+end
+
 
 lemma flip (n ν : ℕ) (h : ν ≤ n) :
   (bernstein_polynomial R n ν).comp (1-X) = bernstein_polynomial R n (n-ν) :=

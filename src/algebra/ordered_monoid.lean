@@ -79,7 +79,34 @@ class linear_ordered_comm_monoid (α : Type*)
 
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
-  extends linear_ordered_comm_monoid α, comm_monoid_with_zero α
+  extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=
+(zero_le_one : (0 : α) ≤ 1)
+(lt_of_mul_lt_mul_left := λ x y z, by {
+  apply imp_of_not_imp_not,
+  intro h,
+  apply not_lt_of_le,
+  apply mul_le_mul_left,
+  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
+  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
+  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
+  exact le_of_not_lt h })
+
+@[protect_proj, ancestor order_top linear_ordered_add_comm_monoid nontrivial]
+class linear_ordered_add_comm_monoid_with_top (α : Type*)
+  extends linear_ordered_add_comm_monoid α, nontrivial α, order_top α :=
+(top_add' : ∀ x : α, ⊤ + x = ⊤)
+
+section linear_ordered_add_comm_monoid_with_top
+variables [linear_ordered_add_comm_monoid_with_top α] {a b : α}
+
+@[simp]
+lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_top.top_add' a
+
+@[simp]
+lemma add_top (a : α) : a + ⊤ = ⊤ :=
+by rw [add_comm, top_add]
+
+end linear_ordered_add_comm_monoid_with_top
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}
@@ -553,6 +580,14 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
       exact lt_of_add_lt_add_left (coe_lt_coe.1 hlt)
     end,
   ..with_top.partial_order, ..with_top.add_comm_monoid }
+
+instance [linear_ordered_add_comm_monoid α] :
+  linear_ordered_add_comm_monoid_with_top (with_top α) :=
+{ top_add' := λ x, with_top.top_add,
+  ..with_top.order_top,
+  ..with_top.linear_order,
+  ..with_top.ordered_add_comm_monoid,
+  ..option.nontrivial }
 
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=

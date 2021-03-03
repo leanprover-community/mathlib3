@@ -90,8 +90,8 @@ meta def unit_interval : tactic unit :=
 
 end tactic.interactive
 
-instance : has_zero I := ⟨0, ⟨le_refl _, le_of_lt real.zero_lt_one⟩⟩
-instance : has_one I := ⟨1, ⟨le_of_lt real.zero_lt_one, le_refl _⟩⟩
+instance : has_zero I := ⟨⟨0, ⟨le_refl _, le_of_lt real.zero_lt_one⟩⟩⟩
+instance : has_one I := ⟨⟨1, ⟨le_of_lt real.zero_lt_one, le_refl _⟩⟩⟩
 instance : nonempty I := ⟨0⟩
 
 -- FIXME Where do these lemmas belong?
@@ -280,7 +280,7 @@ begin
   -- Four easy inequalities we'll need later:
   have w₀ : 0 ≤ ε / 2 := div_nonneg (le_of_lt h) (by norm_num),
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
-  have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ (pow_minus_two_nonneg _),
+  have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
   have w₃ : ∀ x y, abs (f x - f y) ≤ 2 * ∥f∥ := λ x y,
     calc abs (f x - f y) = abs (f x + -(f y)) : by rw sub_eq_add_neg
       ... ≤ abs (f x) + abs (-f y) : abs_add _ _
@@ -355,7 +355,7 @@ begin
                               : add_le_add_left (mul_le_mul_of_nonneg_left
                                   (finset.sum_le_univ_sum_of_nonneg
                                     (λ k, mul_nonneg
-                                      (mul_nonneg (pow_minus_two_nonneg _) (pow_two_nonneg _))
+                                      (mul_nonneg pow_minus_two_nonneg (pow_two_nonneg _))
                                       bernstein_nonneg)) w₁) _
     ... = (ε/2) + (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
                               : by conv_rhs {

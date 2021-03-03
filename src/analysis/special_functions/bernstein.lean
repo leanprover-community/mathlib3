@@ -55,7 +55,7 @@ open_locale classical
 open_locale big_operators
 open_locale bounded_continuous_function
 
-
+-- FIXME find a home for this
 lemma mul_unit_interval_le {α : Type*} [ordered_semiring α] {a b c : α}
   (h₁ : 0 ≤ c) (h₂ : a ≤ c) (h₃ : 0 ≤ b) (h₄ : b ≤ 1) : a * b ≤ c :=
 begin
@@ -67,7 +67,7 @@ end
 The Bernstein polynomials, as continuous functions on ℝ.
 -/
 def bernstein' (n ν : ℕ) : C(ℝ, ℝ) :=
-⟨λ x, polynomial.aeval x (bernstein_polynomial n ν), by continuity⟩
+⟨λ x : ℝ, (bernstein_polynomial ℝ n ν).eval x, by continuity⟩
 
 -- TODO there's some orphaned development regarding `[0,1]` in `topology.path_connected`;
 -- perhaps this should be consolidated.
@@ -134,7 +134,7 @@ The Bernstein polynomials, as bounded continuous functions on `[0,1]`.
 -/
 def bernstein (n ν : ℕ) : I →ᵇ ℝ :=
 bounded_continuous_function.mk_of_compact
-(λ x, bernstein' n ν x) (by continuity)
+  (λ x, bernstein' n ν x) (by continuity)
 
 @[simp] lemma bernstein_apply (n ν : ℕ) (x : I) :
   bernstein n ν x = n.choose ν * x^ν * (1-x)^(n-ν) :=
@@ -177,7 +177,7 @@ local postfix `/ₙ`:90 := z
 lemma probability (n : ℕ) (x : I) :
   ∑ k : fin (n+1), bernstein n k x = 1 :=
 begin
-  have := bernstein_polynomial.sum n,
+  have := bernstein_polynomial.sum ℝ n,
   apply_fun (λ p, polynomial.aeval (x : ℝ) p) at this,
   simp [alg_hom.map_sum, finset.sum_range] at this,
   exact this,
@@ -192,7 +192,7 @@ begin
   dsimp,
   conv_lhs { simp only [finset.sum_mul, z], },
   conv_rhs { rw div_mul_cancel _ h', },
-  have := bernstein_polynomial.variance n,
+  have := bernstein_polynomial.variance ℝ n,
   apply_fun (λ p, polynomial.aeval (x : ℝ) p) at this,
   simp [alg_hom.map_sum, finset.sum_range, polynomial.nat_smul] at this,
   convert this using 1,
@@ -221,13 +221,7 @@ namespace bernstein_approximation
 
 @[simp] lemma apply (n : ℕ) (f : I →ᵇ ℝ) (x : I) :
   bernstein_approximation n f x = ∑ k : fin (n+1), f k/ₙ * bernstein n k x :=
-begin
-  dsimp [bernstein_approximation],
-  simp,
-end
-
-
-open unit_interval
+by simp [bernstein_approximation]
 
 /--
 The set of points `k` so `k/n` is within `δ` of `x`.

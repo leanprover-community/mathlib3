@@ -123,7 +123,7 @@ begin
   simp only [coeff_mk, coeff_one, coeff_exp, ring_hom.id_apply, linear_map.map_sub, factorial,
     rat.algebra_map_rat_rat],
   rw sum_range_succ, -- the `succ` term is 0
-  conv_lhs { congr, skip, apply_congr, skip, rw @mem_range_ite_sub_zero A _ _ _ _ _ H, }, --making LHS sum clean
+  conv_lhs { congr, skip, apply_congr, skip, rw @mem_range_ite_sub_zero A _ _ _ _ _ H, },
   cases n, { simp only [one_div, alg_hom.map_smul, power_series.coeff_zero_eq_constant_coeff,
     add_zero, polynomial.aeval_one, if_congr, mul_one, nat.nat_zero_eq_zero,
     bernoulli_poly.bernoulli_poly_zero, nat.factorial_zero, if_true, nat.zero_sub,

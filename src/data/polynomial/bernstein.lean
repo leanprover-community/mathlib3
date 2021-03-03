@@ -295,14 +295,14 @@ begin
   -- We calculate the `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
 
-  -- We'll work in `mv_polynomial bool ℤ`.
-  let x : mv_polynomial bool ℤ := mv_polynomial.X tt,
-  let y : mv_polynomial bool ℤ := mv_polynomial.X ff,
+  -- We'll work in `mv_polynomial bool R`.
+  let x : mv_polynomial bool R := mv_polynomial.X tt,
+  let y : mv_polynomial bool R := mv_polynomial.X ff,
 
   have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
   have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
 
-  let e : bool → polynomial ℤ := λ i, cond i X (1-X),
+  let e : bool → polynomial R := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
@@ -316,7 +316,7 @@ begin
   -- We first prepare a tedious rewrite:
   have w : ∀ k : ℕ,
     ↑k * polynomial.X ^ (k - 1) * (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X =
-      k • bernstein_polynomial n k,
+      k • bernstein_polynomial R n k,
   { rintro (_|k),
     { simp, },
     { dsimp [bernstein_polynomial],
@@ -345,14 +345,14 @@ begin
   -- We calculate the second `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
 
-  -- We'll work in `mv_polynomial bool ℤ`.
-  let x : mv_polynomial bool ℤ := mv_polynomial.X tt,
-  let y : mv_polynomial bool ℤ := mv_polynomial.X ff,
+  -- We'll work in `mv_polynomial bool R`.
+  let x : mv_polynomial bool R := mv_polynomial.X tt,
+  let y : mv_polynomial bool R := mv_polynomial.X ff,
 
   have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
   have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
 
-  let e : bool → polynomial ℤ := λ i, cond i X (1-X),
+  let e : bool → polynomial R := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the second `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
@@ -368,7 +368,7 @@ begin
   have w : ∀ k : ℕ,
     ↑k * (↑(k-1) * polynomial.X ^ (k - 1 - 1)) *
       (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X^2 =
-      (k * (k-1)) • bernstein_polynomial n k,
+      (k * (k-1)) • bernstein_polynomial R n k,
   { rintro (_|k),
     { simp, },
     { rcases k with (_|k),

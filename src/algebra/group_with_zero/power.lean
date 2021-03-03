@@ -257,3 +257,17 @@ lemma monoid_with_zero_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] 
   ∀ n : ℤ, f (x ^ n) = f x ^ n
 | (n : ℕ) := f.to_monoid_hom.map_pow x n
 | -[1+n] := (f.map_inv' _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _
+
+-- I haven't been able to find a better home for this:
+-- it belongs with other lemmas on `linear_ordered_field`, but
+-- we need to wait until `fpow` has been defined in this file.
+section
+variables {R : Type*} [linear_ordered_field R] {a : R}
+
+lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
+begin
+  simp only [inv_nonneg, fpow_neg],
+  apply pow_two_nonneg,
+end
+
+end

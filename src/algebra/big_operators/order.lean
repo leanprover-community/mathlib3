@@ -91,6 +91,12 @@ calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x)
   ... = ∑ x in s₂ \ s₁ ∪ s₁, f x : (sum_union sdiff_disjoint).symm
   ... = (∑ x in s₂, f x)         : by rw [sdiff_union_of_subset h]
 
+lemma sum_le_univ_sum_of_nonneg
+  [fintype α] {s : finset α} {f : α → β}
+  (w : ∀ a, 0 ≤ f a) :
+∑ a in s, f a ≤ ∑ a, f a :=
+sum_le_sum_of_subset_of_nonneg (subset_univ s) (λ a _ _, w a)
+
 lemma sum_mono_set_of_nonneg (hf : ∀ x, 0 ≤ f x) : monotone (λ s, ∑ x in s, f x) :=
 λ s₁ s₂ hs, sum_le_sum_of_subset_of_nonneg hs $ λ x _ _, hf x
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Heather Macbeth
+Authors: Johan Commelin, Julian Kuelshammer, Heather Macbeth
 -/
 
 import data.polynomial.derivative
@@ -218,19 +218,14 @@ begin
   ring },
   calc ((n : polynomial R) + 1) * T R (n + 1)
       = ((n : polynomial R) + 1 + 1) * (X * U R n + T R (n + 1))
-        - X * ((n + 1) * U R n) - (X * U R n + T R (n + 1)) :
-            by ring
-  ... = derivative (T R (n + 2)) - X * derivative (T R (n + 1))
-                                          - U R (n + 1) :
-            by rw [←U_eq_X_mul_U_add_T,
-                  ←T_derivative_eq_U, ←nat.cast_one, ←nat.cast_add,
+        - X * ((n + 1) * U R n) - (X * U R n + T R (n + 1)) : by ring
+  ... = derivative (T R (n + 2)) - X * derivative (T R (n + 1)) - U R (n + 1) :
+            by rw [←U_eq_X_mul_U_add_T, ←T_derivative_eq_U, ←nat.cast_one, ←nat.cast_add,
                   nat.cast_one, ←T_derivative_eq_U (n + 1)]
   ... = (U R (n + 1) - X * U R n) + X * derivative (T R (n + 1))
         + 2 * X * U R n - (1 - X ^ 2) * derivative (U R n)
-        - X * derivative (T R (n + 1)) - U R (n + 1) :
-            by rw h
-  ... = X * U R n - (1 - X ^ 2) * derivative (U R n) :
-            by ring,
+        - X * derivative (T R (n + 1)) - U R (n + 1) : by rw h
+  ... = X * U R n - (1 - X ^ 2) * derivative (U R n) : by ring,
 end
 
 variables (R)
@@ -244,21 +239,18 @@ lemma mul_T :
 | (m + 2) := begin
   intros k,
   -- clean up the `T` nat indices in the goal
-  suffices : 2 * T R (m + 2) * T R (m + k + 2)
-    = T R (2 * m + k + 4) + T R k,
+  suffices : 2 * T R (m + 2) * T R (m + k + 2) = T R (2 * m + k + 4) + T R k,
   { have h_nat₁ : 2 * (m + 2) + k = 2 * m + k + 4 := by ring,
     have h_nat₂ : m + 2 + k = m + k + 2 := by simp [add_comm, add_assoc],
     simpa [h_nat₁, h_nat₂] using this },
   -- clean up the `T` nat indices in the inductive hypothesis applied to `m + 1` and
   -- `k + 1`
-  have H₁ : 2 * T R (m + 1) * T R (m + k + 2)
-    = T R (2 * m + k + 3) + T R (k + 1),
+  have H₁ : 2 * T R (m + 1) * T R (m + k + 2) = T R (2 * m + k + 3) + T R (k + 1),
   { have h_nat₁ : m + 1 + (k + 1) = m + k + 2 := by ring,
     have h_nat₂ : 2 * (m + 1) + (k + 1) = 2 * m + k + 3 := by ring,
     simpa [h_nat₁, h_nat₂] using mul_T (m + 1) (k + 1) },
   -- clean up the `T` nat indices in the inductive hypothesis applied to `m` and `k + 2`
-  have H₂ : 2 * T R m * T R (m + k + 2)
-    = T R (2 * m + k + 2) + T R (k + 2),
+  have H₂ : 2 * T R m * T R (m + k + 2) = T R (2 * m + k + 2) + T R (k + 2),
   { have h_nat₁ : 2 * m + (k + 2) = 2 * m + k + 2 := by simp [add_assoc],
     have h_nat₂ : m + (k + 2) = m + k + 2 := by simp [add_assoc],
     simpa [h_nat₁, h_nat₂] using mul_T m (k + 2) },
@@ -286,8 +278,7 @@ lemma T_mul :
 | 1 := by simp
 | (m + 2) := begin
   intros n,
-  have : 2 * T R n * T R ((m + 1) * n)
-    = T R ((m + 2) * n) + T R (m * n),
+  have : 2 * T R n * T R ((m + 1) * n) = T R ((m + 2) * n) + T R (m * n),
   { convert mul_T R n (m * n); ring },
   simp [this, T_mul m, ← T_mul (m + 1)]
 end

@@ -7,8 +7,11 @@
 FROM clux/muslrust as elan-builder
 
 RUN git clone https://github.com/Kha/elan.git .
-RUN cargo build
+RUN cargo build --release
 
+# To save some space, we make another intermediate container in which we install
+# elan and whichever toolchain mathlib currently needs.
+# We later COPY out just the ~/.elan directory into our final container.
 FROM alpine as elan-install
 
 RUN apk update && apk add --no-cache curl
@@ -16,14 +19,15 @@ RUN apk update && apk add --no-cache curl
 RUN adduser -D lean
 USER lean
 WORKDIR /home/lean
-COPY --from=elan-builder /volume/target/x86_64-unknown-linux-musl/debug/elan-init .
+COPY --from=elan-builder /volume/target/x86_64-unknown-linux-musl/release/elan-init .
 RUN ./elan-init -y && rm elan-init && \
     . ~/.profile && \
     elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}') && \
     elan toolchain uninstall stable
 
-# We start with a temporary `builder` container, from https://github.com/six8/pyinstaller-alpine
+# We make another temporary `builder` container, from https://github.com/six8/pyinstaller-alpine
 # in which we install `python` and prepare a standalone version of `leanproject`.
+# This saves including a huge layer containing a python environment.
 FROM six8/pyinstaller-alpine:alpine-3.6-pyinstaller-v3.4 as leanproject-builder
 
 USER root

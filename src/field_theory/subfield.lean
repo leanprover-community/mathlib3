@@ -190,18 +190,28 @@ lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
 
-instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
-instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
+/- Unification is significantly faster if we define these using `.1` instead of `↑`. See gh-6514
+for an extreme example. It doesn't matter really anyway, as the simp lemmas below all use the
+coercion form. -/
+instance : has_zero s := ⟨⟨0, s.zero_mem⟩⟩
+instance : has_add s := ⟨λ x y, ⟨x.1 + y.1, s.add_mem x.2 y.2⟩⟩
+instance : has_sub s := ⟨λ x y, ⟨x.1 - y.1, s.sub_mem x.2 y.2⟩⟩
+instance : has_neg s := ⟨λ x, ⟨-x.1, s.neg_mem x.2⟩⟩
+instance : has_one s := ⟨⟨1, s.one_mem⟩⟩
+instance : has_mul s := ⟨λ x y, ⟨x.1 * y.1, s.mul_mem x.2 y.2⟩⟩
+instance : has_div s := ⟨λ x y, ⟨x.1 / y.1, s.div_mem x.2 y.2⟩⟩
+instance : has_inv s := ⟨λ x, ⟨x.1⁻¹, s.inv_mem x.2⟩⟩
 
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
-let i : comm_ring s := s.to_subring.to_comm_ring in by exactI
 subtype.coe_injective.field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
 @[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl

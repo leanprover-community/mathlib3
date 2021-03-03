@@ -50,7 +50,7 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 attribute [to_additive] ordered_comm_monoid
 
 /-- A linearly ordered additive commutative monoid. -/
-@[protect_proj, ancestor ordered_add_comm_monoid linear_order]
+@[protect_proj, ancestor linear_order ordered_add_comm_monoid]
 class linear_ordered_add_comm_monoid (α : Type*)
   extends linear_order α, ordered_add_comm_monoid α :=
 (lt_of_add_lt_add_left := λ x y z, by {
@@ -64,7 +64,7 @@ class linear_ordered_add_comm_monoid (α : Type*)
   exact le_of_not_lt h })
 
 /-- A linearly ordered commutative monoid. -/
-@[protect_proj, ancestor ordered_comm_monoid linear_order, to_additive]
+@[protect_proj, ancestor linear_order ordered_comm_monoid, to_additive]
 class linear_ordered_comm_monoid (α : Type*)
   extends linear_order α, ordered_comm_monoid α :=
 (lt_of_mul_lt_mul_left := λ x y z, by {
@@ -93,7 +93,7 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
-@[protect_proj, ancestor order_top linear_ordered_add_comm_monoid]
+@[protect_proj, ancestor linear_ordered_add_comm_monoid order_top]
 class linear_ordered_add_comm_monoid_with_top (α : Type*)
   extends linear_ordered_add_comm_monoid α, order_top α :=
 (top_add' : ∀ x : α, ⊤ + x = ⊤)

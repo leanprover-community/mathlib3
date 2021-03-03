@@ -11,11 +11,16 @@ RUN cargo build
 
 FROM alpine as elan-install
 
+RUN apk update && apk add --no-cache curl
+
 RUN adduser -D lean
 USER lean
 WORKDIR /home/lean
 COPY --from=elan-builder /volume/target/x86_64-unknown-linux-musl/debug/elan-init .
-RUN ./elan-init -y && rm elan-init
+RUN ./elan-init -y && rm elan-init && \
+    . ~/.profile && \
+    elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}') && \
+    elan toolchain uninstall stable
 
 # We start with a temporary `builder` container, from https://github.com/six8/pyinstaller-alpine
 # in which we install `python` and prepare a standalone version of `leanproject`.

@@ -13,7 +13,10 @@ WORKDIR /home/gitpod
 
 SHELL ["/bin/bash", "-c"]
 
+# install elan
 RUN curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- -y
+# install whichever toolchain mathlib is currently using
+RUN . ~/.profile && elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}')
 # install `leanproject` using `pip`
 # RUN python3 -m pip install --user mathlibtools
 RUN python3 -m pip install --user pipx && python3 -m pipx ensurepath && source ~/.profile && pipx install mathlibtools
@@ -25,5 +28,3 @@ ENV VSCODE_API_VERSION="1.50.0"
 
 # ssh to github once to bypass the unknown fingerprint warning
 RUN ssh -o StrictHostKeyChecking=no github.com || true
-# clone a copy of mathlib, and download precompiled oleans
-RUN leanproject get mathlib

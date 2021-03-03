@@ -23,6 +23,9 @@ ENV PATH="/home/gitpod/.local/bin:/home/gitpod/.elan/bin:${PATH}"
 # fix the infoview when the container is used on gitpod:
 ENV VSCODE_API_VERSION="1.50.0"
 
+# suppress an error message in the terminal:
+RUN mkdir /home/gitpod/.bashrc.d/
+
 # ssh to github once to bypass the unknown fingerprint warning
 RUN ssh -o StrictHostKeyChecking=no github.com || true
 # clone a copy of mathlib, and download precompiled oleans

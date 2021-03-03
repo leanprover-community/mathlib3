@@ -190,17 +190,14 @@ lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
 
-/- Unification is significantly faster if we define these using `.1` instead of `↑`. See gh-6514
-for an extreme example. It doesn't matter really anyway, as the simp lemmas below all use the
-coercion form. -/
 instance : has_zero s := ⟨⟨0, s.zero_mem⟩⟩
-instance : has_add s := ⟨λ x y, ⟨x.1 + y.1, s.add_mem x.2 y.2⟩⟩
-instance : has_sub s := ⟨λ x y, ⟨x.1 - y.1, s.sub_mem x.2 y.2⟩⟩
-instance : has_neg s := ⟨λ x, ⟨-x.1, s.neg_mem x.2⟩⟩
+instance : has_add s := ⟨λ x y, ⟨x + y, s.add_mem x.2 y.2⟩⟩
+instance : has_sub s := ⟨λ x y, ⟨x - y, s.sub_mem x.2 y.2⟩⟩
+instance : has_neg s := ⟨λ x, ⟨-x, s.neg_mem x.2⟩⟩
 instance : has_one s := ⟨⟨1, s.one_mem⟩⟩
-instance : has_mul s := ⟨λ x y, ⟨x.1 * y.1, s.mul_mem x.2 y.2⟩⟩
-instance : has_div s := ⟨λ x y, ⟨x.1 / y.1, s.div_mem x.2 y.2⟩⟩
-instance : has_inv s := ⟨λ x, ⟨x.1⁻¹, s.inv_mem x.2⟩⟩
+instance : has_mul s := ⟨λ x y, ⟨x * y, s.mul_mem x.2 y.2⟩⟩
+instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
+instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
 
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=

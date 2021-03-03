@@ -14,7 +14,7 @@ import tactic.omega
 
 The definition of the Bernstein polynomials
 ```
-bernstein_polynomial (R : Type*) [ring R] (n ν : ℕ) : polynomial R :=
+bernstein_polynomial (R : Type*) [comm_ring R] (n ν : ℕ) : polynomial R :=
 (choose n ν) * X^ν * (1 - X)^(n - ν)
 ```
 and the fact that for `ν : fin (n+1)` these are linearly independent over `ℚ`.

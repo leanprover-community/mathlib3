@@ -13,18 +13,19 @@ This will result in the creation of two containers:
 
 In fact, for each container you'll get three different tags, `:debian`, `:alpine` and `:latest`.
 `:debian` and `:alpine` use those respective distributions, and `:latest` just points at `:debian`.
-Finally, there is also a `leanprover/mathlib:gitpod` for use at `https://gitpod.io/`.
+Finally, there is also a `leanprover/mathlib:gitpod` for use at
+[https://gitpod.io/](https://gitpod.io/).
 
 ## Usage
 
 ### gitpod.io
 
 There is a container based on `gitpod/workspace-base`
-enabling `https://gitpod.io/` to create in-browser VSCode sessions
+enabling [https://gitpod.io/](https://gitpod.io/) to create in-browser VSCode sessions
 with elan/lean/leanproject/mathlib already set up.
 
 Either prepend `https://gitpod.io/#` to basically any URL at github, e.g.
-`https://gitpod.io/#https://github.com/leanprover-community/mathlib/tree/docker`,
+[https://gitpod.io/#https://github.com/leanprover-community/mathlib/tree/docker](https://gitpod.io/#https://github.com/leanprover-community/mathlib/tree/docker),
 or install a [gitpod browser extension](https://www.gitpod.io/docs/browser-extension/)
 which will add buttons directly on github.
 

@@ -185,6 +185,18 @@ theorem maps_to_preimage (f : α → β) (t : set β) : maps_to f (f ⁻¹' t) t
 theorem maps_to_range (f : α → β) (s : set α) : maps_to f s (range f) :=
 (maps_to_image f s).mono (subset.refl s) (image_subset_range _ _)
 
+@[simp] lemma maps_image_to (f : α → β) (g : γ → α) (s : set γ) (t : set β) :
+  maps_to f (g '' s) t ↔ maps_to (f ∘ g) s t :=
+⟨λ h c hc, h ⟨c, hc, rfl⟩, λ h d ⟨c, hc⟩, hc.2 ▸ h hc.1⟩
+
+@[simp] lemma maps_univ_to (f : α → β) (s : set β) :
+  set.maps_to f set.univ s ↔ set.range f ⊆ s :=
+⟨λ h b ⟨a, ha⟩, ha ▸ h (mem_univ a), λ h x _, h ⟨x, rfl⟩⟩
+
+@[simp] lemma maps_range_to (f : α → β) (g : γ → α) (s : set β) :
+  maps_to f (range g) s ↔ range (f ∘ g) ⊆ s :=
+by simp [←image_univ]
+
 theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
   surjective ((maps_to_image f s).restrict f s (f '' s)) :=
 λ ⟨y, x, hs, hxy⟩, ⟨⟨x, hs⟩, subtype.ext hxy⟩

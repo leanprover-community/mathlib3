@@ -65,6 +65,9 @@ end multiplicative
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 
+instance [h : nontrivial α] : nontrivial (additive α) := h
+instance [h : nontrivial α] : nontrivial (multiplicative α) := h
+
 instance additive.has_add [has_mul α] : has_add (additive α) :=
 { add := λ x y, additive.of_mul (x.to_mul * y.to_mul) }
 

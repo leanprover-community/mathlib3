@@ -286,19 +286,6 @@ end
 
 end comm_semiring
 
-section comm_ring
-variables [comm_ring R]
-
-@[simp] lemma iterate_derivative_sub {k : ℕ} {f g : polynomial R} :
-  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
-begin
-  induction k with k ih generalizing f g,
-  { simp [nat.iterate], },
-  { simp [nat.iterate, ih], }
-end
-
-end comm_ring
-
 section domain
 variables [integral_domain R]
 

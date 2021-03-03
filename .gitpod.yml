@@ -3,7 +3,7 @@ image:
 
 vscode:
   extensions:
-    - jroesch.lean@0.16.24:wYErjZXBf8vkagq/BhUHJA==
+    - jroesch.lean
 
 tasks:
   - command: . /home/gitpod/.profile && leanproject get-mathlib-cache

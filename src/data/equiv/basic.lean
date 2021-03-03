@@ -1299,9 +1299,9 @@ def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
 (subtype_subtype_equiv_subtype_exists p _).trans $
 subtype_equiv_right $ λ x, exists_prop
 
-@[simp] lemma subtype_subtype_equiv_subtype_inter_apply {α : Type u} (p q : α → Prop) (a : _) :
-  (subtype_subtype_equiv_subtype_inter p q a).val = a.val.val :=
-by { cases a, cases a_val, simp only [subtype.val_eq_coe], refl }
+@[simp] lemma subtype_subtype_equiv_subtype_inter_apply {α : Type u} (p q : α → Prop) (a) :
+  (subtype_subtype_equiv_subtype_inter p q a : α) = a :=
+by { cases a, cases a_val, refl }
 
 /-- If the outer subtype has more restrictive predicate than the inner one,
 then we can drop the latter. -/

@@ -91,9 +91,11 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
   letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
   exact le_of_not_lt h })
 
-@[protect_proj, ancestor order_top linear_ordered_add_comm_monoid nontrivial]
+/-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
+  Instances should include number systems with an infinite element adjoined.` -/
+@[protect_proj, ancestor order_top linear_ordered_add_comm_monoid]
 class linear_ordered_add_comm_monoid_with_top (α : Type*)
-  extends linear_ordered_add_comm_monoid α, nontrivial α, order_top α :=
+  extends linear_ordered_add_comm_monoid α, order_top α :=
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
 
 section linear_ordered_add_comm_monoid_with_top
@@ -1099,16 +1101,16 @@ fn_min_mul_fn_max id n m
 /-- A linearly ordered cancellative additive commutative monoid
 is an additive commutative monoid with a decidable linear order
 in which addition is cancellative and monotone. -/
-@[protect_proj, ancestor ordered_cancel_add_comm_monoid linear_order]
+@[protect_proj, ancestor ordered_cancel_add_comm_monoid linear_ordered_add_comm_monoid]
 class linear_ordered_cancel_add_comm_monoid (α : Type u)
-  extends ordered_cancel_add_comm_monoid α, linear_order α
+  extends ordered_cancel_add_comm_monoid α, linear_ordered_add_comm_monoid α
 
 /-- A linearly ordered cancellative commutative monoid
 is a commutative monoid with a linear order
 in which multiplication is cancellative and monotone. -/
-@[protect_proj, ancestor ordered_cancel_comm_monoid linear_order, to_additive]
+@[protect_proj, ancestor ordered_cancel_comm_monoid linear_ordered_comm_monoid, to_additive]
 class linear_ordered_cancel_comm_monoid (α : Type u)
-  extends ordered_cancel_comm_monoid α, linear_order α
+  extends ordered_cancel_comm_monoid α, linear_ordered_comm_monoid α
 
 section linear_ordered_cancel_comm_monoid
 
@@ -1140,12 +1142,6 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 @[to_additive]
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
-
-@[to_additive]
-instance linear_ordered_cancel_comm_monoid.linear_ordered_comm_monoid :
-  linear_ordered_comm_monoid α :=
-{ .. (infer_instance : ordered_comm_monoid α),
-  .. (infer_instance : linear_order α) }
 
 end linear_ordered_cancel_comm_monoid
 
@@ -1228,5 +1224,14 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multi
 instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
+
+instance [linear_ordered_add_comm_monoid_with_top α] :
+  linear_ordered_comm_monoid_with_zero (multiplicative (order_dual α)) :=
+{ zero := (⊤ : α),
+  zero_mul := top_add,
+  mul_zero := add_top,
+  zero_le_one := (le_top : (0 : α) ≤ ⊤),
+  ..multiplicative.ordered_comm_monoid,
+  ..multiplicative.linear_order }
 
 end type_tags

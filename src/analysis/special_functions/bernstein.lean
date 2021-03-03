@@ -277,16 +277,10 @@ begin
   let δ := f.modulus (ε/2) (half_pos h),
   let n : ℕ := _, use n, -- We postpone choosing `n` until we've obtained an explicit estimate.
   suffices npos : 0 < (n : ℝ), -- However we do assume right away that it won't be `n = 0`!
-  -- Four easy inequalities we'll need later:
+  -- Three easy inequalities we'll need later:
   have w₀ : 0 ≤ ε / 2 := div_nonneg (le_of_lt h) (by norm_num),
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
   have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
-  have w₃ : ∀ x y, abs (f x - f y) ≤ 2 * ∥f∥ := λ x y,
-    calc abs (f x - f y) = abs (f x + -(f y)) : by rw sub_eq_add_neg
-      ... ≤ abs (f x) + abs (-f y) : abs_add _ _
-      ... = ∥f x∥ + ∥f y∥ : by rw [abs_neg, real.norm_eq_abs, real.norm_eq_abs]
-      ... ≤ ∥f∥ + ∥f∥ : add_le_add (norm_coe_le_norm _ _) (norm_coe_le_norm _ _)
-      ... = 2 * ∥f∥ : by ring,
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
   apply bounded_continuous_function.norm_lt_of_compact,
   intro x,
@@ -341,7 +335,8 @@ begin
       calc ∑ k in Sᶜ, abs (f k/ₙ - f x) * bernstein n k x
           ≤ ∑ k in Sᶜ, (2 * ∥f∥) * bernstein n k x
                                 : finset.sum_le_sum
-                                    (λ k m, mul_le_mul_of_nonneg_right (w₃ _ _) bernstein_nonneg)
+                                    (λ k m, mul_le_mul_of_nonneg_right (f.dist_le_two_norm _ _)
+                                      bernstein_nonneg)
       ... = (2 * ∥f∥) * ∑ k in Sᶜ, bernstein n k x
                                 : by rw finset.mul_sum
       ... ≤ (2 * ∥f∥) * ∑ k in Sᶜ, δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x

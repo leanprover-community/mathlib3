@@ -28,8 +28,8 @@ lemma ext : ∀ {b₁ b₂ : buffer α}, to_list b₁ = to_list b₂ → b₁ = 
   rw eq_of_heq (h.trans a₂.to_list_to_array)
 end
 
-lemma ext_iff {b₁ b₂ : buffer α} : to_list b₁ = to_list b₂ ↔ b₁ = b₂ :=
-⟨ext, λ h, h ▸ rfl⟩
+lemma ext_iff {b₁ b₂ : buffer α} : b₁ = b₂ ↔ to_list b₁ = to_list b₂ :=
+⟨λ h, h ▸ rfl, ext⟩
 
 lemma size_eq_zero_iff {b : buffer α} : b.size = 0 ↔ b = nil :=
 begin
@@ -180,7 +180,7 @@ lemma nth_le_to_list' (b : buffer α) {i : ℕ} (h h') :
   b.to_list.nth_le i h = b.read ⟨i, h'⟩ :=
 begin
   have : b.to_list.to_buffer.read ⟨i, (by simpa using h')⟩ = b.read ⟨i, h'⟩,
-    { congr' 1; simp [fin.heq_ext_iff] },
+  { congr' 1; simp [fin.heq_ext_iff] },
   simp [←this]
 end
 

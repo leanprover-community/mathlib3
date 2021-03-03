@@ -14,6 +14,13 @@ import linear_algebra.finite_dimensional
 
 This file contains results on the `R`-module structure on functions of finite support from a type
 `ι` to an `R`-module `M`, in particular in the case that `R` is a field.
+
+Furthermore, it contains some facts about isomorphisms of vector spaces from equality of dimension
+as well as the cardinality of finite dimensional vector spaces.
+
+## TODO
+
+Move the second half of this file to more appropriate other files.
 -/
 
 noncomputable theory
@@ -176,7 +183,7 @@ begin
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
-lemma cardinal_lt_omega_of_dim_lt_omega [fintype K] [finite_dimensional K V] :
+lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
   cardinal.mk V < cardinal.omega :=
 begin
   rw [cardinal_mk_eq_cardinal_mk_field_pow_dim],

@@ -155,15 +155,25 @@ end
 open power_series
 variables (A : Type*) [comm_ring A] [algebra ℚ A]
 
-theorem bernoulli'_power_series :
-  power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!)) * (exp A - 1) = X * exp A :=
+
+/-- The exponential generating function of the with `bernoulli' n`. -/
+def bernoulli'_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!))
+
+/-- I don't want to have this lemma, but wasn't able to substitute the definition when proving
+    bernoulli'_odd_eq_zero below. -/
+lemma bernoulli'_power_series_def:
+  bernoulli'_power_series A = power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!))
+  := eq.refl (bernoulli'_power_series A)
+
+theorem bernoulli'_power_series_mul_exp_sub_one_eq_X_mul_exp :
+  bernoulli'_power_series A * (exp A - 1) = X * exp A :=
 begin
   ext n,
   -- constant coefficient is a special case
   cases n,
   { simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X,
       coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul] },
-  rw [coeff_mul, mul_comm X, coeff_succ_mul_X],
+  rw [bernoulli'_power_series, coeff_mul, mul_comm X, coeff_succ_mul_X],
   simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial,
     rat.algebra_map_rat_rat, nat.sum_antidiagonal_succ', if_pos],
   simp only [factorial, prod.snd, one_div, cast_succ, cast_one, cast_mul, ring_hom.id_apply,
@@ -200,8 +210,9 @@ open ring_hom
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
 theorem bernoulli'_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli' n = 0 :=
 begin
-  have f : mk (λ (n : ℕ), bernoulli' n / ↑n!) * (exp ℚ - 1) = X * exp ℚ,
-  { simpa using bernoulli'_power_series ℚ },
+  have f : power_series.mk (λ n, (bernoulli' n / n!)) * (exp ℚ - 1) = X * exp ℚ,
+  { simpa [bernoulli'_power_series_def ℚ] using
+    bernoulli'_power_series_mul_exp_sub_one_eq_X_mul_exp ℚ, },
   have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n!)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
@@ -294,22 +305,22 @@ begin
     norm_num }
 end
 
-theorem bernoulli_power_series :
-  power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!)) * (exp A - 1) = X :=
+/-- The exponential generating function of the with `bernoulli n`. -/
+def bernoulli_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!))
+
+theorem bernoulli_power_series_mul_exp_sub_one_eq_X :
+ bernoulli_power_series A * (exp A - 1) = X :=
 begin
   ext n,
   -- constant cofficient is a special case
   cases n,
   { simp only [constant_coeff_one, constant_coeff_exp, constant_coeff_X,
   coeff_zero_eq_constant_coeff, map_mul, mul_zero, sub_self, map_sub], },
-  rw [coeff_mul],
-  rw [coeff_X],
+  rw [bernoulli_power_series, coeff_mul, coeff_X],
   simp only [coeff_mk, nat.sum_antidiagonal_succ', one_div, coeff_mk, coeff_one, coeff_exp,
-  linear_map.map_sub, factorial, if_pos],
-  simp only [cast_succ, cast_one, cast_mul, sub_zero, map_one, add_eq_zero_iff, if_false, inv_one,
-  zero_add, one_ne_zero, factorial, mul_zero, and_false, sub_self],
-  simp only [←map_mul],
-  simp only [←map_sum],
+    linear_map.map_sub, factorial, if_pos, cast_succ, cast_one, cast_mul, sub_zero, map_one,
+    add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero, factorial, mul_zero, and_false,
+    sub_self, ←map_mul, ←map_sum],
   suffices f:  ∑ (x : ℕ × ℕ) in nat.antidiagonal n, bernoulli x.fst /
        ↑(x.fst)! * ((↑(x.snd) + 1) * ↑(x.snd)!)⁻¹ = ite (n.succ = 1) 1 0,
   { by_cases n.succ = 1,
@@ -334,9 +345,9 @@ begin
   have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
   have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
   have hnz : (j + 1 : ℚ) * j! * i! ≠ 0,
- { norm_cast at *,
+  { norm_cast at *,
     exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
-     field_simp [hj, hnz],
+  field_simp [hj, hnz],
   rw [mul_comm _ (bernoulli i), mul_assoc],
   norm_cast,
   rw [mul_comm (j + 1) _, mul_div_assoc, ← mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,

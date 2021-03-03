@@ -92,19 +92,14 @@ theorem is_integral_of_submodule_noetherian (S : subalgebra R A)
   (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
   is_integral R x :=
 begin
-  letI : algebra R S := S.algebra,
-  letI : ring S := S.ring R A,
-  suffices : is_integral R (⟨x, hx⟩ : S),
+  suffices : is_integral R (show S, from ⟨x, hx⟩),
   { rcases this with ⟨p, hpm, hpx⟩,
-    replace hpx := congr_arg subtype.val hpx,
+    replace hpx := congr_arg S.val hpx,
     refine ⟨p, hpm, eq.trans _ hpx⟩,
     simp only [aeval_def, eval₂, finsupp.sum],
-    rw ← p.support.sum_hom subtype.val,
-    { refine finset.sum_congr rfl (λ n hn, _),
-      change _ = _ * _,
-      rw is_monoid_hom.map_pow coe, refl,
-      split; intros; refl },
-    refine { map_add := _, map_zero := _ }; intros; refl },
+    rw S.val.map_sum,
+    refine finset.sum_congr rfl (λ n hn, _),
+    rw [S.val.map_mul, S.val.map_pow, S.val.commutes, S.val_apply, subtype.coe_mk], },
   refine is_integral_of_noetherian H ⟨x, hx⟩
 end
 
@@ -562,10 +557,6 @@ section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]
 
 instance : integral_domain (integral_closure R S) :=
-{ exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.mp zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨a, ha⟩ ⟨b, hb⟩ h,
-    or.imp subtype.ext_iff_val.mpr subtype.ext_iff_val.mpr
-    (eq_zero_or_eq_zero_of_mul_eq_zero (subtype.ext_iff_val.mp h)),
-  ..(integral_closure R S).comm_ring R S }
+infer_instance
 
 end integral_domain

@@ -52,6 +52,10 @@ rfl
   (fin_congr h k : ℕ) = k :=
 by { cases k, refl, }
 
+lemma fin_congr_symm_apply_coe {n m : ℕ} (h : n = m) (k : fin m) :
+  ((fin_congr h).symm k : ℕ) = k :=
+by { cases k, refl, }
+
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of
 mapping both `i.cast_succ` and `i.succ` to `i`. -/
@@ -166,7 +170,7 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
-  (sum_fin_sum_equiv.symm.trans (equiv.sum_comm _ _)).trans sum_fin_sum_equiv
+(sum_fin_sum_equiv.symm.trans (equiv.sum_comm _ _)).trans sum_fin_sum_equiv
 
 @[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m)
   (hk : k < m + n := nat.lt_add_right k m n h)

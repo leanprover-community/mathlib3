@@ -109,8 +109,10 @@ theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
 instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
-{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
-  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
+{ mul_left_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
+  mul_right_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
 attribute [simp] nat.not_lt_zero

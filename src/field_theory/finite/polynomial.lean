@@ -8,6 +8,7 @@ import field_theory.finite.basic
 import field_theory.mv_polynomial
 import data.mv_polynomial.expand
 import linear_algebra.basic
+import linear_algebra.finite_dimensional
 
 /-!
 ## Polynomials over finite fields
@@ -188,10 +189,19 @@ end
 
 lemma ker_evalₗ : (evalᵢ σ K).ker = ⊥ :=
 begin
+  rw ker_eq_bot_iff_range_eq_top_of_findim_eq_findim _,
+  refine range_evalᵢ _ _,
+  { rw [finite_dimensional.finite_dimensional_iff_dim_lt_omega, dim_R],
+    exact cardinal.nat_lt_omega _ },
+  { rw [finite_dimensional.finite_dimensional_iff_dim_lt_omega, dim_fun, dim_of_field, mul_one],
+    exact cardinal.nat_lt_omega _ },
+  { sorry },
+end
+/-begin
   refine injective_of_surjective _ _ _ (range_evalᵢ _ _),
   { rw [dim_R], exact cardinal.nat_lt_omega _ },
   { rw [dim_R, dim_fun, dim_of_field, mul_one] }
-end
+end-/
 
 lemma eq_zero_of_eval_eq_zero (p : mv_polynomial σ K)
   (h : ∀v:σ → K, eval v p = 0) (hp : p ∈ restrict_degree σ K (fintype.card K - 1)) :

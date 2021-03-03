@@ -8,6 +8,7 @@ Linear structures on function with finite support `ι →₀ β`.
 import data.mv_polynomial
 import linear_algebra.dimension
 import linear_algebra.direct_sum.finsupp
+import linear_algebra.finite_dimensional
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -147,13 +148,6 @@ begin
   exact classical.choice (equiv_of_dim_eq_lift_dim hn),
 end
 
-lemma eq_bot_iff_dim_eq_zero (p : submodule K V) (h : dim K p = 0) : p = ⊥ :=
-begin
-  have : dim K p = dim K (⊥ : submodule K V) := by rwa [dim_bot],
-  let e := equiv_of_dim_eq_dim this,
-  exact e.eq_bot_of_equiv _
-end
-
 lemma injective_of_surjective (f : V₁ →ₗ[K] V₂)
   (hV₁ : dim K V₁ < cardinal.omega) (heq : dim K V₂ = dim K V₁) (hf : f.range = ⊤) : f.ker = ⊥ :=
 have hk : dim K f.ker < cardinal.omega := lt_of_le_of_lt (dim_submodule_le _) hV₁,
@@ -164,7 +158,7 @@ begin
   { have := dim_eq_of_surjective f (linear_map.range_eq_top.1 hf),
     rw [heq, eq₁, eq₂, ← nat.cast_add, cardinal.nat_cast_inj] at this,
     exact nat.add_left_cancel this },
-  refine eq_bot_iff_dim_eq_zero _ _,
+  rw ← dim_eq_zero,
   rw [eq₂, ← this, nat.cast_zero]
 end
 

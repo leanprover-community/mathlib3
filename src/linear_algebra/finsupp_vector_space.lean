@@ -163,23 +163,26 @@ open vector_space
 
 variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
 
-lemma cardinal_mk_eq_cardinal_mk_field_pow_dim (h : dim K V < cardinal.omega) :
+lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
   cardinal.mk V = cardinal.mk K ^ dim K V :=
 begin
   rcases exists_is_basis K V with ⟨s, hs⟩,
   have : nonempty (fintype s),
-  { rwa [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim] },
+  { rw [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim],
+    exact finite_dimensional.dim_lt_omega K V },
   cases this with hsf, letI := hsf,
   calc cardinal.mk V = cardinal.mk (s →₀ K) : quotient.sound ⟨(module_equiv_finsupp hs).to_equiv⟩
     ... = cardinal.mk (s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
-lemma cardinal_lt_omega_of_dim_lt_omega [fintype K] (h : dim K V < cardinal.omega) :
+lemma cardinal_lt_omega_of_dim_lt_omega [fintype K] [finite_dimensional K V] :
   cardinal.mk V < cardinal.omega :=
 begin
-  rw [cardinal_mk_eq_cardinal_mk_field_pow_dim h],
-  exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩) h
+  rw [cardinal_mk_eq_cardinal_mk_field_pow_dim],
+  exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
+    (finite_dimensional.dim_lt_omega K V),
+  apply_instance
 end
 
 end vector_space

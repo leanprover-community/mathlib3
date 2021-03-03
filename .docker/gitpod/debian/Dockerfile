@@ -1,18 +1,18 @@
 # This is the Dockerfile for `leanprover/mathlib:gitpod`.
-FROM leanprover/lean:alpine
+FROM leanprover/lean:debian
 
 USER root
 
-RUN adduser -D gitpod
+RUN useradd -m gitpod
 
 RUN rm -rf /home/gitpod && mv /home/lean /home/gitpod && chown -R gitpod:gitpod /home/gitpod
 
 USER gitpod
 WORKDIR /home/gitpod
 
-SHELL ["/bin/ash", "-c"]
+SHELL ["/bin/bash", "-c"]
 # set the entrypoint to be a login shell, so everything is on the PATH
-ENTRYPOINT ["/bin/ash", "-l"]
+ENTRYPOINT ["/bin/bash", "-l"]
 
 ENV PATH="/home/gitpod/.local/bin:/home/gitpod/.elan/bin:${PATH}"
 

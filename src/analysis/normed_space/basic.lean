@@ -926,21 +926,10 @@ by simp only [nnnorm, norm_norm]
 lemma normed_group.tendsto_at_top {β : Type*} [normed_group β] {f : ℕ → β} {b : β} :
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=
 begin
-  rw tendsto_iff_norm_tendsto_zero,
-  rw metric.tendsto_at_top,
-  fsplit,
-  { intros h ε εpos,
-    obtain ⟨N, h⟩ := h ε εpos,
-    use N,
-    intros n nh,
-    specialize h n (le_of_lt nh),
-    simpa using h, },
-  { intros h ε εpos,
-    obtain ⟨N, h⟩ := h ε εpos,
-    use N+1,
-    intros n nh,
-    specialize h n nh,
-    simpa using h, },
+  rw at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball,
+  { simp [dist_eq_norm] },
+  { apply_instance },
+  { apply_instance }
 end
 
 instance : normed_comm_ring ℤ :=

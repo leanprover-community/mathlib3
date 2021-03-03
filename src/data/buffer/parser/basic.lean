@@ -1026,7 +1026,7 @@ instance one_of' : static (one_of []) :=
 by { apply one_of_iff.mpr, refl }
 
 lemma str_iff {s : string} : static (str s) ↔ s = "" :=
-by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, ←buffer.ext_iff]
+by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, buffer.ext_iff]
 
 instance remaining : remaining.static :=
 ⟨λ _ _ _ _ h, (remaining_eq_done.mp h).left⟩
@@ -1800,7 +1800,7 @@ instance one_of' {cs : list char} : (one_of' cs).step :=
 step.and_then
 
 lemma str_iff {s : string} : (str s).step ↔ s.length = 1 :=
-by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, ←buffer.ext_iff]
+by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, buffer.ext_iff]
 
 lemma remaining : ¬ remaining.step :=
 begin
@@ -2000,7 +2000,7 @@ instance one_of' {cs : list char} : (one_of' cs).prog :=
 prog.and_then
 
 lemma str_iff {s : string} : (str s).prog ↔ s ≠ "" :=
-by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, ←buffer.ext_iff]
+by simp [str_eq_char_buf, char_buf_iff, ←string.to_list_inj, buffer.ext_iff]
 
 lemma remaining : ¬ remaining.prog :=
 begin

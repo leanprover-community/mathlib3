@@ -104,11 +104,18 @@ begin
 end
 
 open power_series
+open polynomial (aeval)
 variables {A : Type*} [integral_domain A] [algebra ℚ A] [char_zero A]
 
+lemma mem_range_ite_sub_zero {n x : ℕ} (hx : x ∈ range n) : ite (n - x = 0) 1 0 = (0 : A) :=
+begin
+  split_ifs,
+   { exfalso, apply mem_range_sub_ne_zero hx h, },
+   { refl, },
+end
+
 theorem exp_bernoulli_poly (t : A) :
-  power_series.mk (λ n, polynomial.aeval t ((1 / nat.factorial n : ℚ) • bernoulli_poly n))
-    * (exp A - 1) = X * rescale t (exp A) :=
+  mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) = X * rescale t (exp A) :=
 begin
 --opening and splitting sums
   ext, rw [coeff_mul, coeff_mul, nat.sum_antidiagonal_eq_sum_range_succ_mk,
@@ -116,10 +123,7 @@ begin
   simp only [coeff_mk, coeff_one, coeff_exp, ring_hom.id_apply, linear_map.map_sub, factorial,
     rat.algebra_map_rat_rat],
   rw sum_range_succ, -- the `succ` term is 0
-  have f : ∀ x ∈ range n, ite (n - x = 0) 1 0 = (0 : A),
-  { rintros x hx, split_ifs,
-    { exfalso, apply mem_range_sub_ne_zero hx h, }, refl, },
-  conv_lhs { congr, skip, apply_congr, skip, rw f x H, }, --making LHS sum clean
+  conv_lhs { congr, skip, apply_congr, skip, rw @mem_range_ite_sub_zero A _ _ _ _ _ H, }, --making LHS sum clean
   cases n, { simp only [one_div, alg_hom.map_smul, power_series.coeff_zero_eq_constant_coeff,
     add_zero, polynomial.aeval_one, if_congr, mul_one, nat.nat_zero_eq_zero,
     bernoulli_poly.bernoulli_poly_zero, nat.factorial_zero, if_true, nat.zero_sub,

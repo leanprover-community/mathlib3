@@ -11,6 +11,7 @@ import analysis.normed_space.basic
 import topology.bounded_continuous_function
 import topology.uniform_space.compact_separated
 import algebra.floor
+import analysis.specific_limits
 
 /-!
 # Bernstein approximations and Weierstrass' theorem
@@ -266,17 +267,23 @@ end bernstein_approximation
 
 open bernstein_approximation
 open bounded_continuous_function
+open filter
+
+open_locale topological_space
 
 /--
 This is the proof given in [Richard Beals' *Analysis, an introduction*][beals-analysis], §7D,
 and reproduced on wikipedia.
 -/
-theorem bernstein_approximation_uniform (f : I →ᵇ ℝ) (ε : ℝ) (h : 0 < ε) :
-  ∃ n : ℕ, ∥bernstein_approximation n f - f∥ < ε :=
+theorem bernstein_approximation_uniform (f : I →ᵇ ℝ) :
+  tendsto (λ n : ℕ, bernstein_approximation n f) at_top (𝓝 f) :=
 begin
+  apply normed_group.tendsto_at_top.mpr,
+  intros ε h,
   let δ := f.modulus (ε/2) (half_pos h),
-  let n : ℕ := _, use n, -- We postpone choosing `n` until we've obtained an explicit estimate.
-  suffices npos : 0 < (n : ℝ), -- However we do assume right away that it won't be `n = 0`!
+  let N : ℕ := _, use N, -- We postpone choosing `n` until we've obtained an explicit estimate.
+  intros n nh,
+  have npos : 0 < (n : ℝ) := by exact_mod_cast (pos_of_gt nh),
   -- Three easy inequalities we'll need later:
   have w₀ : 0 ≤ ε / 2 := div_nonneg (le_of_lt h) (by norm_num),
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
@@ -368,12 +375,10 @@ begin
                                   end
       ... < ε/2 : _, -- We postpone this final step for a moment, in order to actually choose `n`!
   -- Choose `n` to make the inequality work.
-  show ℕ, { exact nat_ceil (2 * (2 * ∥f∥ * δ^(-2 : ℤ)) / ε) + 1, },
+  show ℕ, { exact nat_ceil (2 * (2 * ∥f∥ * δ^(-2 : ℤ)) / ε), },
   { -- And a final inequality bash gets us to the end.
-    dsimp [n] at npos ⊢,
     rw [lt_div_iff (show (0 : ℝ) < 2, by norm_num), mul_comm],
     rw [←mul_div_assoc, div_lt_iff npos, mul_comm ε, ←div_lt_iff h],
-    exact lt_of_le_of_lt (le_nat_ceil _) (lt_add_one _), },
-  { -- Oops: we promised earlier to check `0 < n`.
-    exact lt_of_le_of_lt (nat.cast_nonneg _) (lt_add_one _), }
+    replace nh : (N : ℝ) < (n : ℝ) := by exact_mod_cast nh,
+    apply lt_of_le_of_lt (le_nat_ceil _) nh, },
 end

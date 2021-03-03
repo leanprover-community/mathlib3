@@ -1,5 +1,5 @@
 image:
-  file: .docker/gitpod/mathlib/Dockerfile
+  file: .docker/gitpod/alpine/Dockerfile
 
 vscode:
   extensions:

@@ -171,7 +171,7 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
-  (sum_fin_sum_equiv.symm.trans (equiv.sum_comm _ _)).trans sum_fin_sum_equiv
+(sum_fin_sum_equiv.symm.trans (equiv.sum_comm _ _)).trans sum_fin_sum_equiv
 
 @[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m) :
   fin_add_flip (⟨k, nat.lt_add_right k m n h⟩ : fin (m + n)) = ⟨n + k, add_lt_add_left h n⟩ :=

@@ -1390,6 +1390,12 @@ theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_a
   ∫ y in a..b, deriv f y = f b - f a :=
 integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hcont'
 
+theorem integral_deriv_eq_sub' (f) (hderiv : deriv f = f')
+  (hdiff : ∀ x ∈ interval a b, differentiable_at ℝ f x)
+  (hcont' : continuous_on f' (interval a b)) :
+  ∫ y in a..b, f' y = f b - f a :=
+by rw [← hderiv, integral_deriv_eq_sub hdiff]; cc
+
 /-!
 ### Integration by parts
 -/

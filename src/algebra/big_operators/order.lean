@@ -237,8 +237,9 @@ end
 
 end linear_ordered_cancel_comm_monoid
 
-section linear_ordered_comm_ring
-variables [linear_ordered_comm_ring β]
+section ordered_comm_ring
+
+variables [ordered_comm_ring β]
 open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -246,9 +247,9 @@ lemma prod_nonneg {s : finset α} {f : α → β}
   (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
 prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 
-
 /- this is also true for a ordered commutative multiplicative monoid -/
-lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
+lemma prod_pos [nontrivial β] {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) :
+  0 < (∏ x in s, f x) :=
 prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -287,7 +288,7 @@ begin
     intros j h1j h2j, refine le_trans (hg j h1j) (hgf j h1j h2j) }
 end
 
-end linear_ordered_comm_ring
+end ordered_comm_ring
 
 section canonically_ordered_comm_semiring
 

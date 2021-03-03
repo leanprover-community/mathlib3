@@ -1,12 +1,11 @@
 /-
 Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Heather Macbeth
 -/
 
 import ring_theory.polynomial.chebyshev.defs
 import ring_theory.polynomial.chebyshev.dickson
-import analysis.special_functions.trigonometric
 import ring_theory.localization
 import data.zmod.basic
 import algebra.invertible
@@ -20,6 +19,8 @@ In this file, we only consider Chebyshev polynomials of the first kind.
 
 ## Main statements
 
+* `polynomial.mul_chebyshev₁`, the product of the `m`-th and `(m + k)`-th Chebyshev polynomials is
+  the sum of the `(2 * m + k)`-th and `k`-th Chebyshev polynomials
 * `polynomial.chebyshev₁_mul`, the `(m * n)`-th Chebyshev polynomial is the composition
   of the `m`-th and `n`-th Chebyshev polynomials.
 * `polynomial.dickson_one_one_mul`, the `(m * n)`-th Dickson polynomial of the first kind for
@@ -42,21 +43,63 @@ and do not have `map (int.cast_ring_hom R)` interfering all the time.
 noncomputable theory
 
 namespace polynomial
-open complex
 variables (R S : Type*) [comm_ring R] [comm_ring S]
 
+/-- The product of two Chebyshev polynomials is the sum of two other Chebyshev polynomials. -/
+lemma mul_chebyshev₁ :
+  ∀ m : ℕ, ∀ k,
+  2 * chebyshev₁ R m * chebyshev₁ R (m + k) = chebyshev₁ R (2 * m + k) + chebyshev₁ R k
+| 0 := by simp [two_mul, add_mul]
+| 1 := by simp [add_comm]
+| (m + 2) := begin
+  intros k,
+  -- clean up the `chebyshev₁` nat indices in the goal
+  suffices : 2 * chebyshev₁ R (m + 2) * chebyshev₁ R (m + k + 2)
+    = chebyshev₁ R (2 * m + k + 4) + chebyshev₁ R k,
+  { have h_nat₁ : 2 * (m + 2) + k = 2 * m + k + 4 := by ring,
+    have h_nat₂ : m + 2 + k = m + k + 2 := by simp [add_comm, add_assoc],
+    simpa [h_nat₁, h_nat₂] using this },
+  -- clean up the `chebyshev₁` nat indices in the inductive hypothesis applied to `m + 1` and
+  -- `k + 1`
+  have H₁ : 2 * chebyshev₁ R (m + 1) * chebyshev₁ R (m + k + 2)
+    = chebyshev₁ R (2 * m + k + 3) + chebyshev₁ R (k + 1),
+  { have h_nat₁ : m + 1 + (k + 1) = m + k + 2 := by ring,
+    have h_nat₂ : 2 * (m + 1) + (k + 1) = 2 * m + k + 3 := by ring,
+    simpa [h_nat₁, h_nat₂] using mul_chebyshev₁ (m + 1) (k + 1) },
+  -- clean up the `chebyshev₁` nat indices in the inductive hypothesis applied to `m` and `k + 2`
+  have H₂ : 2 * chebyshev₁ R m * chebyshev₁ R (m + k + 2)
+    = chebyshev₁ R (2 * m + k + 2) + chebyshev₁ R (k + 2),
+  { have h_nat₁ : 2 * m + (k + 2) = 2 * m + k + 2 := by simp [add_assoc],
+    have h_nat₂ : m + (k + 2) = m + k + 2 := by simp [add_assoc],
+    simpa [h_nat₁, h_nat₂] using mul_chebyshev₁ m (k + 2) },
+  -- state the `chebyshev₁` recurrence relation for a few useful indices
+  have h₁ := chebyshev₁_add_two R m,
+  have h₂ := chebyshev₁_add_two R (2 * m + k + 2),
+  have h₃ := chebyshev₁_add_two R k,
+  -- the desired identity is an appropriate linear combination of H₁, H₂, h₁, h₂, h₃
+  -- it would be really nice here to have a linear algebra tactic!!
+  apply_fun (λ p, 2 * X * p) at H₁,
+  apply_fun (λ p, 2 * chebyshev₁ R (m + k + 2) * p) at h₁,
+  have e₁ := congr (congr_arg has_add.add H₁) h₁,
+  have e₂ := congr (congr_arg has_sub.sub e₁) H₂,
+  have e₃ := congr (congr_arg has_sub.sub e₂) h₂,
+  have e₄ := congr (congr_arg has_sub.sub e₃) h₃,
+  rw ← sub_eq_zero at e₄ ⊢,
+  rw ← e₄,
+  ring,
+end
+
 /-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/
-lemma chebyshev₁_mul (m n : ℕ) :
-  chebyshev₁ R (m * n) = (chebyshev₁ R m).comp (chebyshev₁ R n) :=
-begin
-  simp only [← map_comp, ← map_chebyshev₁ (int.cast_ring_hom R)],
-  congr' 1,
-  apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
-  simp only [map_comp, map_chebyshev₁],
-  apply polynomial.funext,
-  intro z,
-  obtain ⟨θ, rfl⟩ := cos_surjective z,
-  simp only [chebyshev₁_complex_cos, nat.cast_mul, eval_comp, mul_assoc]
+lemma chebyshev₁_mul :
+  ∀ m : ℕ, ∀ n : ℕ, chebyshev₁ R (m * n) = (chebyshev₁ R m).comp (chebyshev₁ R n)
+| 0 := by simp
+| 1 := by simp
+| (m + 2) := begin
+  intros n,
+  have : 2 * chebyshev₁ R n * chebyshev₁ R ((m + 1) * n)
+    = chebyshev₁ R ((m + 2) * n) + chebyshev₁ R (m * n),
+  { convert mul_chebyshev₁ R n (m * n); ring },
+  simp [this, chebyshev₁_mul m, ← chebyshev₁_mul (m + 1)]
 end
 
 section dickson

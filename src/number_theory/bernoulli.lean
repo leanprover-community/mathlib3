@@ -240,7 +240,7 @@ end
 /-- The Bernoulli numbers are defined to be `bernoulli'` with a parity sign. -/
 def bernoulli (n : ℕ) : ℚ := (-1)^n * (bernoulli' n)
 
-lemma bernoulli'_eq_neg_one_pow_mul_bernoulli (n : ℕ) : bernoulli' n = (-1)^n * bernoulli n :=
+lemma bernoulli'_eq_bernoulli (n : ℕ) : bernoulli' n = (-1)^n * bernoulli n :=
 by simp [bernoulli, ← mul_assoc, ← pow_two, ← pow_mul, mul_comm n 2, pow_mul]
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1 := rfl
@@ -248,7 +248,7 @@ by simp [bernoulli, ← mul_assoc, ← pow_two, ← pow_mul, mul_comm n 2, pow_m
 @[simp] lemma bernoulli_one   : bernoulli 1 = -1/2 :=
 by norm_num [bernoulli, bernoulli'_one]
 
-theorem bernoulli_eq_bernoulli' {n : ℕ} (hn : n ≠ 1) : bernoulli n = bernoulli' n :=
+theorem bernoulli_eq_bernoulli'_of_ne_one {n : ℕ} (hn : n ≠ 1) : bernoulli n = bernoulli' n :=
 begin
   by_cases n = 0,
   { rw [h, bernoulli'_zero, bernoulli_zero] },
@@ -272,7 +272,7 @@ begin
   simp only [sum_range_succ', one_div, bernoulli'_one, cast_succ, mul_one, cast_one, add_left_inj,
     choose_zero_right, bernoulli'_zero, zero_add, choose_one_right, ← eq_sub_iff_add_eq] at f,
   convert f,
-  { ext x, rw bernoulli_eq_bernoulli' (succ_ne_zero x ∘ succ.inj) },
+  { ext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
   { ring },
 end
 
@@ -297,7 +297,7 @@ begin
     intros p h,
     obtain ⟨h', h''⟩ : p ∈ _ ∧ p ≠ _ := by rwa [mem_sdiff, mem_singleton] at h,
     have : p.fst ≠ (1, n).fst := by simpa [h''] using nat.antidiagonal_congr h' h₁,
-    simp [this, bernoulli_eq_bernoulli'] },
+    simp [this, bernoulli_eq_bernoulli'_of_ne_one] },
   { field_simp [h₃],
     norm_num }
 end

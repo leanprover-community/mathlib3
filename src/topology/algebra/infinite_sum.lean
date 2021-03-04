@@ -329,11 +329,11 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
 (has_sum_ite_eq b a).tsum_eq
 
 lemma tsum_dite_right (P : Prop) [decidable P] (x : β → ¬ P → α) :
-  ∑' (b : β), dite P (λ h, (0 : α)) (x b) = dite P (λ h, 0) (λ h, ∑' (b : β), x b h) :=
+  ∑' (b : β), (if h : P then (0 : α) else x b h) = if h : P then (0 : α) else ∑' (b : β), x b h :=
 by by_cases hP : P; simp [hP]
 
 lemma tsum_dite_left (P : Prop) [decidable P] (x : β → P → α) :
-  ∑' (b : β), dite P (x b) (λ h, 0) = dite P (λ h, ∑' (b : β), x b h) (λ h, 0) :=
+  ∑' (b : β), (if h : P then x b h else 0) = if h : P then (∑' (b : β), x b h) else 0 :=
 by by_cases hP : P; simp [hP]
 
 lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']

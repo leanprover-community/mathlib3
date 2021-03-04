@@ -76,6 +76,9 @@ by simp [compl_eq_univ_sdiff]
 @[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
 set.ext $ λ x, mem_compl
 
+@[simp] theorem union_compl [decidable_eq α] (s : finset α) : s ∪ sᶜ = finset.univ :=
+sup_compl_eq_top
+
 @[simp] lemma compl_filter [decidable_eq α] (p : α → Prop) [decidable_pred p]
   [Π x, decidable (¬p x)] :
   (univ.filter p)ᶜ = univ.filter (λ x, ¬p x) :=

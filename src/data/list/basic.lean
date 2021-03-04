@@ -2170,10 +2170,33 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
 
-theorem prod_ne_zero {R : Type*} [domain R] {L : list R} :
-  (∀ x ∈ L, (x : _) ≠ 0) → L.prod ≠ 0 :=
-list.rec_on L (λ _, one_ne_zero) $ λ hd tl ih H,
-  by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
+/-- If zero is an element of a list `L`, then `list.prod L = 0`. If the domain is a nontrivial
+monoid with zero with no divisors, then this implication becomes an `iff`, see
+`list.prod_eq_zero_iff`. -/
+theorem prod_eq_zero {M₀ : Type*} [monoid_with_zero M₀] {L : list M₀} (h : (0 : M₀) ∈ L) :
+  L.prod = 0 :=
+begin
+  induction L with a L ihL,
+  { exact absurd h (not_mem_nil _) },
+  { rw prod_cons,
+    cases (mem_cons_iff _ _ _).1 h with ha hL,
+    exacts [mul_eq_zero_of_left ha.symm _, mul_eq_zero_of_right _ (ihL hL)] }
+end
+
+/-- Product of elements of a list `L` equals zero if and only if `0 ∈ L`. See also
+`list.prod_eq_zero` for an implication that needs weaker typeclass assumptions. -/
+@[simp] theorem prod_eq_zero_iff {M₀ : Type*} [monoid_with_zero M₀] [nontrivial M₀]
+  [no_zero_divisors M₀] {L : list M₀} :
+  L.prod = 0 ↔ (0 : M₀) ∈ L :=
+begin
+  induction L with a L ihL,
+  { simp },
+  { rw [prod_cons, mul_eq_zero, ihL, mem_cons_iff, eq_comm] }
+end
+
+theorem prod_ne_zero {M₀ : Type*} [monoid_with_zero M₀] [nontrivial M₀] [no_zero_divisors M₀]
+  {L : list M₀} (hL : (0 : M₀) ∉ L) : L.prod ≠ 0 :=
+mt prod_eq_zero_iff.1 hL
 
 @[to_additive]
 theorem prod_eq_foldr : l.prod = foldr (*) 1 l :=

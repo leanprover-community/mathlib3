@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
-import ring_theory.polynomial.chebyshev.defs
+import ring_theory.polynomial.chebyshev
 import analysis.calculus.times_cont_diff
 
 /-!
@@ -2695,8 +2695,8 @@ begin
   { refine tendsto_inf.2 ⟨tendsto.mono_left _ inf_le_left, tendsto_principal.2 _⟩,
     exacts [continuous_cos.tendsto' x 0 hx,
       hx ▸ (has_deriv_at_cos _).eventually_ne (neg_ne_zero.2 A)] },
-  exact tendsto.mul_at_top (norm_pos_iff.2 A) continuous_sin.continuous_within_at.norm
-    (tendsto.inv_tendsto_zero $ tendsto_norm_nhds_within_zero.comp B),
+  exact continuous_sin.continuous_within_at.norm.mul_at_top (norm_pos_iff.2 A)
+    (tendsto_norm_nhds_within_zero.comp B).inv_tendsto_zero,
 end
 
 lemma tendsto_abs_tan_at_top (k : ℤ) :
@@ -3038,7 +3038,7 @@ end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
 begin
-  convert (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two).at_top_mul zero_lt_one
+  convert tendsto_cos_pi_div_two.inv_tendsto_zero.at_top_mul zero_lt_one
             tendsto_sin_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
@@ -3056,7 +3056,7 @@ end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
 begin
-  convert (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two).at_top_mul_neg (by norm_num)
+  convert tendsto_cos_neg_pi_div_two.inv_tendsto_zero.at_top_mul_neg (by norm_num)
             tendsto_sin_neg_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end

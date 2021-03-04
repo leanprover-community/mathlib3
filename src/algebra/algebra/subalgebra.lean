@@ -148,14 +148,25 @@ instance {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S : sub
 { neg_mem := λ _, S.neg_mem }
 
 instance : inhabited S := ⟨0⟩
-instance (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [algebra R A] (S : subalgebra R A) : semiring S := subsemiring.to_semiring S
-instance (R : Type u) (A : Type v) [comm_semiring R] [comm_semiring A]
-  [algebra R A] (S : subalgebra R A) : comm_semiring S := subsemiring.to_comm_semiring S
-instance (R : Type u) (A : Type v) [comm_ring R] [ring A]
-  [algebra R A] (S : subalgebra R A) : ring S := @@subtype.ring _ S.is_subring
-instance (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
-  [algebra R A] (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
+
+section
+
+/-! `subalgebra`s inherit structure from their `subsemiring` / `semiring` coercions. -/
+
+instance to_semiring {R A}
+  [comm_semiring R] [semiring A] [algebra R A] (S : subalgebra R A) :
+  semiring S := S.to_subsemiring.to_semiring
+instance to_comm_semiring {R A}
+  [comm_semiring R] [comm_semiring A] [algebra R A] (S : subalgebra R A) :
+  comm_semiring S := S.to_subsemiring.to_comm_semiring
+instance to_ring {R A}
+  [comm_ring R] [ring A] [algebra R A] (S : subalgebra R A) :
+  ring S := S.to_subring.to_ring
+instance to_comm_ring {R A}
+  [comm_ring R] [comm_ring A] [algebra R A] (S : subalgebra R A) :
+  comm_ring S := S.to_subring.to_comm_ring
+
+end
 
 instance algebra : algebra R S :=
 { smul := λ (c:R) x, ⟨c • x.1, S.smul_mem x.2 c⟩,
@@ -519,7 +530,7 @@ end
 lemma alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
-  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm.symm)
+  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm
     (by rw [subsingleton.elim f.symm g.symm, alg_equiv.symm_symm])⟩
 end
 

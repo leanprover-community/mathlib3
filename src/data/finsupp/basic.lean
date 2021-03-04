@@ -147,6 +147,12 @@ lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x �
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
+lemma support_nonempty_iff {f : α →₀ M} : f.support.nonempty ↔ f ≠ 0 :=
+by simp only [finsupp.support_eq_empty, finset.nonempty_iff_ne_empty, ne.def]
+
+lemma nonzero_iff_exists {f : α →₀ M} : f ≠ 0 ↔ ∃ a : α, f a ≠ 0 :=
+by simp [finsupp.support_eq_empty.symm, finset.eq_empty_iff_forall_not_mem]
+
 lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 

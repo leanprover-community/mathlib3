@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
-import ring_theory.polynomial.chebyshev.defs
+import ring_theory.polynomial.chebyshev
 import analysis.calculus.times_cont_diff
 
 /-!
@@ -550,6 +550,9 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma continuous_on_sin {s} : continuous_on sin s :=
+continuous_sin.continuous_on
+
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 lemma has_strict_deriv_at_cos (x : ℝ) : has_strict_deriv_at cos (-sin x) x :=
@@ -1023,6 +1026,26 @@ half_pos pi_pos
 
 lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
+
+end real
+
+namespace nnreal
+open real
+open_locale real nnreal
+
+/-- `π` considered as a nonnegative real. -/
+noncomputable def pi : ℝ≥0 := ⟨π, real.pi_pos.le⟩
+
+@[simp] lemma coe_real_pi : (pi : ℝ) = π := rfl
+
+lemma pi_pos : 0 < pi := by exact_mod_cast real.pi_pos
+
+lemma pi_ne_zero : pi ≠ 0 := pi_pos.ne'
+
+end nnreal
+
+namespace real
+open_locale real
 
 @[simp] lemma sin_pi : sin π = 0 :=
 by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,

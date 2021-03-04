@@ -38,6 +38,7 @@ structure triangulation (s : set E) (n : ℕ) :=
 (covering : s = ⋃ (k ∈ faces), convex_hull (simplex.point_set k))
 (disjoint : ∀ (X Y : affine.simplex ℝ E n), X ∈ faces → Y ∈ faces →
     convex_hull X.point_set ∩ convex_hull Y.point_set ⊆ convex_hull (X.point_set ∩ Y.point_set))
+(different : ∀ (X Y : affine.simplex ℝ E n), X ∈ faces → Y ∈ faces → X.point_set = Y.point_set → X = Y)
 
 def std_basis (n : ℕ) : fin n → fin n → ℝ :=
 λ i, (linear_map.std_basis ℝ (λ i, ℝ) i) 1
@@ -120,6 +121,13 @@ def trivial {m : ℕ} :
     subst X, subst Y,
     simp,
     exact set.subset.refl _,
+  end,
+  different := λ X Y hX hY,
+  begin
+    simp only [set.mem_singleton_iff] at hX hY,
+    subst X, subst Y,
+    intro,
+    refl,
   end }
 
 lemma point_set_subset_convex_hull {s : set E} {n : ℕ} {S : triangulation s n}
@@ -414,6 +422,107 @@ begin
     apply le_of_eq h }
 end
 
+lemma lowerable_simplex.eq {X : simplex ℝ (fin (m+2) → ℝ) (m+1)}
+  (hX : lowerable_simplex X) :
+(finset.univ.filter (λ (t : fin (m+2)), X.points t 0 = 0)).card = m+1 :=
+(lowerable_simplex_eq.1 hX).symm
+
+def edge_of_std_simplex (m) : set (fin (m+1) → ℝ) :=
+std_simplex (fin (m+1)) ∩ {x | x 0 = 0}
+
+#check finset.sum_eq_zero_iff_of_nonneg
+
+lemma convex_hull_ne_zero_points (X : set (fin (m+1) → ℝ)) (x : fin (m+1) → ℝ)
+  (hX : ∀ (y : fin (m+1) → ℝ), y ∈ X → 0 ≤ y 0)
+  (hx : x 0 = 0)
+  (hXx : x ∈ convex_hull X) :
+x ∈ convex_hull {y : fin (m+1) → ℝ | y ∈ X ∧ y 0 = 0} :=
+begin
+  rw convex_hull_eq.{37} at hXx,
+  rcases hXx with ⟨ι, t, w, z, hw₀, hw₁, hz, x_eq⟩,
+  have x_zero : t.center_mass w z 0 = 0,
+  { rw [x_eq, hx] },
+  rw finset.center_mass_eq_of_sum_1 _ _ hw₁ at x_zero,
+  dsimp only at x_zero,
+  rw finset.sum_apply 0 t (λ i, w i • z i) at x_zero,
+  dsimp at x_zero,
+  have : ∀ (x : ι), x ∈ t → 0 ≤ w x * z x 0,
+  { intros y hy,
+    exact mul_nonneg (hw₀ y hy) (hX (z y) (hz y hy)) },
+  rw finset.sum_eq_zero_iff_of_nonneg this at x_zero,
+  dsimp only at x_zero,
+  rw convex_hull_eq.{37},
+  refine ⟨ι, t.filter (λ i, w i ≠ 0), w, z, _, _, _, _⟩,
+  { simp_intros i hi only [finset.mem_filter],
+    apply hw₀ _ hi.1 },
+  { rw ←hw₁,
+    exact finset.sum_filter_ne_zero },
+  { simp_intros i hi only [finset.mem_filter, mem_set_of_eq],
+    refine ⟨hz i hi.1, _⟩,
+    have := x_zero i hi.1,
+    simp only [mul_eq_zero] at this,
+    apply or.resolve_left this hi.2 },
+  rw ← x_eq,
+  exact finset.center_mass_filter_ne_zero z,
+end
+
+lemma face_point_set_subset {X : simplex ℝ E n} (fs : finset (fin (n+1))) (h : fs.card = m+1) :
+  (X.face h).point_set ⊆ X.point_set :=
+by simp [simplex.point_set]
+
+def lower_triangulation (S : triangulation (std_simplex (fin (m+2))) (m+1)) :
+  triangulation (edge_of_std_simplex (m+1)) m :=
+{ faces := { X | ∃ (Y ∈ S.faces) (HY : lowerable_simplex Y), X = Y.face HY.eq},
+  covering :=
+  begin
+    ext x,
+    split,
+    { simp_intros hx,
+      simp only [←exists_and_distrib_right],
+      rw exists_comm,
+      simp only [←exists_and_distrib_left],
+
+    },
+
+    -- rw edge_of_std_simplex,
+    -- conv_lhs {rw S.covering},
+    -- ext x,
+    -- simp only [exists_prop, mem_Union, mem_inter_eq, mem_set_of_eq],
+    -- split,
+    -- { simp only [and_imp, exists_imp_distrib],
+    --   intros X hX hx₁ hx₂,
+    --   have lX : lowerable_simplex X,
+    --   { change _ ≤ _,
+
+    --   },
+    --   refine ⟨_, ⟨X, hX, lX, rfl⟩, _⟩,
+    --   rw simplex.point_set,
+    --   simp only [sep_univ, simplex.range_face_points, finset.coe_univ, finset.coe_filter],
+    --   have : X.points '' {a : fin (m+2) | X.points a 0 = 0} = {y ∈ X.point_set | y 0 = 0},
+    --   { ext y,
+    --     simp only [simplex.point_set, mem_image, mem_sep_eq, mem_range, mem_set_of_eq],
+    --     split,
+    --     { rintro ⟨y, hy, rfl⟩,
+    --       exact ⟨⟨y, rfl⟩, hy⟩ },
+    --     { rintro ⟨⟨y, rfl⟩, hy⟩,
+    --       exact ⟨y, hy, rfl⟩ } },
+    --   rw this,
+    --   apply convex_hull_ne_zero_points,
+    --   { intros y hy, sorry, },
+    --   { apply hx₂ },
+    --   { apply hx₁ } },
+    -- { simp only [and_imp, exists_imp_distrib],
+    --   rintro _ X₂ hX₂ hX rfl hx,
+    --   refine ⟨⟨X₂, hX₂, _⟩, _⟩,
+    --   -- { apply convex_hull_mono _ hx,
+    --   --   apply face_point_set_subset }
+    -- }
+  end,
+  disjoint := sorry,
+  different := sorry
+
+}
+
 theorem strong_sperner (S : triangulation (std_simplex (fin (m+1))) m) [S.finite]
   {f} (hf : is_sperner_colouring S f) :
   odd (S.faces_finset.filter (panchromatic f)).card :=
@@ -422,7 +531,8 @@ begin
   induction m with n ih generalizing f,
   { apply strong_sperner_zero _ },
   have := S.faces_finset,
-  have := S.faces_finset.filter (λ (X : simplex _ _ _), finset.card _ = n),
+  have := S.faces_finset.filter lowerable_simplex,
+
 end
 
 theorem sperner (S : triangulation (std_simplex (fin (m+1))) m) [S.finite]

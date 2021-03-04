@@ -26,7 +26,7 @@ Many basic inequalities on trigonometric functions are established.
 The continuity and differentiability of the usual trigonometric functions are proved, and their
 derivatives are computed.
 
-* `polynomial.chebyshev_T_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
+* `polynomial.chebyshev.T_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
   to the value `n * complex.cos θ`.
 
 ## Tags

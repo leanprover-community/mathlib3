@@ -15,17 +15,17 @@ with integral coefficients.
 
 ## Main definitions
 
-* `polynomial.T`: the Chebyshev polynomials of the first kind.
-* `polynomial.U`: the Chebyshev polynomials of the second kind.
+* `chebyshev.T`: the Chebyshev polynomials of the first kind.
+* `chebyshev.U`: the Chebyshev polynomials of the second kind.
 
 ## Main statements
 
 * The formal derivative of the Chebyshev polynomials of the first kind is a scalar multiple of the
   Chebyshev polynomials of the second kind.
-* `polynomial.mul_T`, the product of the `m`-th and `(m + k)`-th Chebyshev polynomials of
+* `chebyshev.mul_T`, the product of the `m`-th and `(m + k)`-th Chebyshev polynomials of
   the first kind is the sum of the `(2 * m + k)`-th and `k`-th Chebyshev polynomials of the first
   kind.
-* `polynomial.T_mul`, the `(m * n)`-th Chebyshev polynomial of the first kind is the
+* `chebyshev.T_mul`, the `(m * n)`-th Chebyshev polynomial of the first kind is the
   composition of the `m`-th and `n`-th Chebyshev polynomials of the first kind.
 
 ## Implementation details

@@ -147,6 +147,12 @@ lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x �
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
+lemma support_nonempty_iff {f : α →₀ M} : f.support.nonempty ↔ f ≠ 0 :=
+by simp only [finsupp.support_eq_empty, finset.nonempty_iff_ne_empty, ne.def]
+
+lemma nonzero_iff_exists {f : α →₀ M} : f ≠ 0 ↔ ∃ a : α, f a ≠ 0 :=
+by simp [finsupp.support_eq_empty.symm, finset.eq_empty_iff_forall_not_mem]
+
 lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 
@@ -1640,7 +1646,7 @@ Scalar multiplication by a group element on finitely supported functions on a gr
 given by precomposition with the action of g⁻¹. -/
 def comap_distrib_mul_action_self :
   distrib_mul_action G (G →₀ M) :=
-@finsupp.comap_distrib_mul_action G M G _ (mul_action.regular G) _
+@finsupp.comap_distrib_mul_action G M G _ (monoid.to_mul_action G) _
 
 @[simp]
 lemma comap_smul_single (g : G) (a : α) (b : M) :

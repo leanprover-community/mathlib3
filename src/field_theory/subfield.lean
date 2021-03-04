@@ -190,17 +190,20 @@ lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
 
+instance : ring s := s.to_subring.to_ring
+instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
+instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
+
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
-{ inv := λ x, ⟨x⁻¹, s.inv_mem x.2⟩,
-  inv_zero := subtype.ext inv_zero,
-  mul_inv_cancel := λ x hx, subtype.ext (mul_inv_cancel (mt s.to_subring.coe_eq_zero_iff.mp hx)),
-  exists_pair_ne := ⟨⟨0, s.zero_mem⟩, ⟨1, s.one_mem⟩, mt subtype.mk_eq_mk.mp zero_ne_one⟩,
-  ..subring.subring.domain s.to_subring }
+subtype.coe_injective.field coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_div (x y : s) : (↑(x / y) : K) = ↑x / ↑y := rfl
 @[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
@@ -446,8 +449,8 @@ lemma closure_eq_of_le {s : set K} {t : subfield K} (h₁ : s ⊆ t) (h₂ : t �
 le_antisymm (closure_le.2 h₁) h₂
 
 /-- An induction principle for closure membership. If `p` holds for `1`, and all elements
-of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all elements
-of the closure of `s`. -/
+of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all
+elements of the closure of `s`. -/
 @[elab_as_eliminator]
 lemma closure_induction {s : set K} {p : K → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)

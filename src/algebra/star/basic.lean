@@ -55,7 +55,7 @@ lemma star_injective [has_involutive_star R] : function.injective (star : R → 
 has_involutive_star.star_involutive.injective
 
 /--
-A *-monoid is a monoid `R` with an involutive operations `star`
+A `*`-monoid is a monoid `R` with an involutive operations `star`
 so `star (r * s) = star s * star r`.
 -/
 class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
@@ -82,8 +82,8 @@ end
 variables {R}
 
 /--
-A *-ring `R` is a (semi)ring with an involutive `star` operation which is additive
-which makes `R` with its multiplicative structure into a *-monoid
+A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
+which makes `R` with its multiplicative structure into a `*`-monoid
 (i.e. `star (r * s) = star s * star r`).
 -/
 class star_ring (R : Type u) [semiring R] extends star_monoid R :=
@@ -136,7 +136,7 @@ by simp [bit0]
 by simp [bit1]
 
 /--
-Any commutative semiring admits the trivial *-structure.
+Any commutative semiring admits the trivial `*`-structure.
 -/
 def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 { star := id,
@@ -152,12 +152,12 @@ local attribute [instance] star_ring_of_comm
 end
 
 /--
-An ordered *-ring is a ring which is both an ordered ring and a *-ring,
+An ordered `*`-ring is a ring which is both an ordered ring and a `*`-ring,
 and `0 ≤ star r * r` for every `r`.
 
 (In a Banach algebra, the natural ordering is given by the positive cone
 which is the closure of the sums of elements `star r * r`.
-This ordering makes the Banach algebra an ordered *-ring.)
+This ordering makes the Banach algebra an ordered `*`-ring.)
 -/
 class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
 (star_mul_self_nonneg : ∀ r : R, 0 ≤ star r * r)

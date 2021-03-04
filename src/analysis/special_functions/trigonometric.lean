@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
-import ring_theory.polynomial.chebyshev.defs
+import ring_theory.polynomial.chebyshev
 import analysis.calculus.times_cont_diff
 
 /-!
@@ -550,6 +550,9 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma continuous_on_sin {s} : continuous_on sin s :=
+continuous_sin.continuous_on
+
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 lemma has_strict_deriv_at_cos (x : ℝ) : has_strict_deriv_at cos (-sin x) x :=
@@ -1024,6 +1027,26 @@ half_pos pi_pos
 lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
 
+end real
+
+namespace nnreal
+open real
+open_locale real nnreal
+
+/-- `π` considered as a nonnegative real. -/
+noncomputable def pi : ℝ≥0 := ⟨π, real.pi_pos.le⟩
+
+@[simp] lemma coe_real_pi : (pi : ℝ) = π := rfl
+
+lemma pi_pos : 0 < pi := by exact_mod_cast real.pi_pos
+
+lemma pi_ne_zero : pi ≠ 0 := pi_pos.ne'
+
+end nnreal
+
+namespace real
+open_locale real
+
 @[simp] lemma sin_pi : sin π = 0 :=
 by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
@@ -1054,8 +1077,11 @@ by simp [sub_eq_add_neg, sin_add]
 lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
 by simp [cos_add]
 
+lemma cos_sub_pi (x : ℝ) : cos (x - π) = -cos x :=
+by simp [cos_sub]
+
 lemma cos_pi_sub (x : ℝ) : cos (π - x) = -cos x :=
-by simp [sub_eq_add_neg, cos_add]
+by simp [cos_sub]
 
 lemma sin_pos_of_pos_of_lt_pi {x : ℝ} (h0x : 0 < x) (hxp : x < π) : 0 < sin x :=
 if hx2 : x ≤ 2 then sin_pos_of_pos_of_le_two h0x hx2
@@ -1567,7 +1593,8 @@ begin
   { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k,
-        mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],
+         mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero,
+         zero_mul],
     have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add,
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
     rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π,
@@ -2323,6 +2350,9 @@ lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]
 
 lemma log_im (x : ℂ) : x.log.im = x.arg := by simp [log]
 
+lemma neg_pi_lt_log_im (x : ℂ) : -π < (log x).im := by simp only [log_im, neg_pi_lt_arg]
+lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π := by simp only [log_im, arg_le_pi]
+
 lemma exp_log {x : ℂ} (hx : x ≠ 0) : exp (log x) = x :=
 by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx,
   ← of_real_exp, real.exp_log (abs_pos.2 hx), mul_add, of_real_div, of_real_div,
@@ -2432,7 +2462,7 @@ local_homeomorph.of_continuous_open
     end,
   map_target' := λ z h,
     suffices 0 ≤ z.re ∨ z.im ≠ 0,
-      by simpa [log, neg_pi_lt_arg, (arg_le_pi _).lt_iff_ne, arg_eq_pi_iff, not_and_distrib],
+      by simpa [log_im, neg_pi_lt_arg, (arg_le_pi _).lt_iff_ne, arg_eq_pi_iff, not_and_distrib],
     h.imp (λ h, le_of_lt h) id,
   left_inv' := λ x hx, log_exp hx.1 (le_of_lt hx.2),
   right_inv' := λ x hx, exp_log $ by { rintro rfl, simpa [lt_irrefl] using hx } }
@@ -2665,8 +2695,8 @@ begin
   { refine tendsto_inf.2 ⟨tendsto.mono_left _ inf_le_left, tendsto_principal.2 _⟩,
     exacts [continuous_cos.tendsto' x 0 hx,
       hx ▸ (has_deriv_at_cos _).eventually_ne (neg_ne_zero.2 A)] },
-  exact tendsto.mul_at_top (norm_pos_iff.2 A) continuous_sin.continuous_within_at.norm
-    (tendsto.inv_tendsto_zero $ tendsto_norm_nhds_within_zero.comp B),
+  exact continuous_sin.continuous_within_at.norm.mul_at_top (norm_pos_iff.2 A)
+    (tendsto_norm_nhds_within_zero.comp B).inv_tendsto_zero,
 end
 
 lemma tendsto_abs_tan_at_top (k : ℤ) :
@@ -3008,7 +3038,7 @@ end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
 begin
-  convert (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two).at_top_mul zero_lt_one
+  convert tendsto_cos_pi_div_two.inv_tendsto_zero.at_top_mul zero_lt_one
             tendsto_sin_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
@@ -3026,7 +3056,7 @@ end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
 begin
-  convert (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two).at_top_mul_neg (by norm_num)
+  convert tendsto_cos_neg_pi_div_two.inv_tendsto_zero.at_top_mul_neg (by norm_num)
             tendsto_sin_neg_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end

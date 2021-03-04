@@ -87,7 +87,8 @@ Construct an isomorphism in the over category given isomorphisms of the objects 
 direction gives a commutative triangle.
 -/
 @[simps]
-def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) : f ≅ g :=
+def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) :
+  f ≅ g :=
 comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
 
 section

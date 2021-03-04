@@ -841,7 +841,7 @@ lemma tsum_eq_zero_iff (hf : summable f) : ∑' i, f i = 0 ↔ ∀ x, f x = 0 :=
 by rw [←has_sum_zero_iff, hf.has_sum_iff]
 
 lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 0 :=
-by rw [ne.def, ← not_iff, tsum_eq_zero_iff hf, not_iff, not_forall]
+by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
 end canonically_ordered
 

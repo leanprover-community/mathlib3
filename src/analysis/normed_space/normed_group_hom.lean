@@ -23,10 +23,10 @@ Some easy other constructions are related to subgroups of normed groups.
 noncomputable theory
 open_locale nnreal big_operators
 
-set_option old_structure_cmd true
-
 /-- A morphism of normed abelian groups is a bounded group homomorphism. -/
-structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W] extends V →+ W :=
+structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W] :=
+(to_fun : V → W)
+(map_add' : ∀ v₁ v₂, to_fun (v₁ + v₂) = to_fun v₁ + to_fun v₂)
 (bound' : ∃ C, ∀ v, ∥to_fun v∥ ≤ C * ∥v∥)
 
 /-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
@@ -34,8 +34,6 @@ structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W] exten
 def add_monoid_hom.mk_continuous {V W : Type*} [normed_group V] [normed_group W] (f : V →+ W)
   (C : ℝ) (h : ∀ v, ∥f v∥ ≤ C * ∥v∥) : normed_group_hom V W :=
 { bound' := ⟨C, h⟩, ..f }
-
-attribute [nolint doc_blame] normed_group_hom.to_add_monoid_hom
 
 lemma exists_pos_bound_of_bound {V W : Type*} [normed_group V] [normed_group W]
   {f : V → W} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
@@ -72,14 +70,18 @@ variables (f g)
 
 @[simp] lemma coe_mk (f) (h₁) (h₂) (h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂) = f := rfl
 
+/-- The group homomorphism underlying a bounded group homomorphism. -/
+def to_add_monoid_hom (f : normed_group_hom V₁ V₂) : V₁ →+ V₂ :=
+add_monoid_hom.mk' f f.map_add'
+
 @[simp] lemma coe_to_add_monoid_hom : ⇑f.to_add_monoid_hom = f := rfl
 
 lemma to_add_monoid_hom_injective :
   function.injective (@normed_group_hom.to_add_monoid_hom V₁ V₂ _ _) :=
 λ f g h, coe_inj $ show ⇑f.to_add_monoid_hom = g, by { rw h, refl }
 
-@[simp] lemma mk_to_add_monoid_hom (f) (h₁) (h₂) (h₃) :
-  (⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂).to_add_monoid_hom = ⟨f, h₁, h₂⟩ := rfl
+@[simp] lemma mk_to_add_monoid_hom (f) (h₁) (h₂) :
+  (⟨f, h₁, h₂⟩ : normed_group_hom V₁ V₂).to_add_monoid_hom = add_monoid_hom.mk' f h₁ := rfl
 
 @[simp] lemma map_zero : f 0 = 0 := f.to_add_monoid_hom.map_zero
 
@@ -344,7 +346,7 @@ add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
                                 add_monoid_hom.add_apply, add_monoid_hom.coe_mk', coe_add] })
 
 @[simp] lemma comp_zero (f : normed_group_hom V₂ V₃) : f.comp (0 : normed_group_hom V₁ V₂) = 0 :=
-by { ext, exact f.map_zero' }
+by { ext, exact f.map_zero }
 
 @[simp] lemma zero_comp (f : normed_group_hom V₁ V₂) : (0 : normed_group_hom V₂ V₃).comp f = 0 :=
 by { ext, refl }
@@ -369,7 +371,6 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
 /-- The inclusion of the kernel, as bounded group homomorphism. -/
 @[simps] def ker.incl : normed_group_hom f.ker V₁ :=
 { to_fun := (coe : f.ker → V₁),
-  map_zero' := add_subgroup.coe_zero _,
   map_add' := λ v w, add_subgroup.coe_add _ _ _,
   bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
 
@@ -378,7 +379,6 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
 @[simps] def ker.lift (h : g.comp f = 0) :
   normed_group_hom V₁ g.ker :=
 { to_fun := λ v, ⟨f v, by { erw g.mem_ker, show (g.comp f) v = 0, rw h, refl }⟩,
-  map_zero' := by { simp only [map_zero], refl },
   map_add' := λ v w, by { simp only [map_add], refl },
   bound' := f.bound' }
 

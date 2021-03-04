@@ -224,6 +224,7 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
 
 /--
 If every nonempty chain of a nonempty type has an upper bound, then there is a maximal element.
+(A variant of Zorn's lemma.)
 -/
 theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
   (h : ∀c, chain c → c.nonempty → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :

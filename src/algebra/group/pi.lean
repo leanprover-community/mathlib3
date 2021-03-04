@@ -163,22 +163,22 @@ variables {f}
 @[simp]
 lemma pi.single_zero [Π i, has_zero $ f i] (i : I) :
   single i (0 : f i) = 0 :=
-(zero_hom.single f i).map_zero
+show zero_hom.single f i 0 = 0, from map_zero _
 
 lemma pi.single_add [Π i, add_monoid $ f i] (i : I) (x y : f i) :
   single i (x + y) = single i x + single i y :=
-(add_monoid_hom.single f i).map_add x y
+show add_monoid_hom.single f i (x + y) = _ + _, from map_add _ _ _
 
 lemma pi.single_neg [Π i, add_group $ f i] (i : I) (x : f i) :
   single i (-x) = -single i x :=
-(add_monoid_hom.single f i).map_neg x
+show add_monoid_hom.single f i (-x) = _, from map_neg _ _
 
 lemma pi.single_sub [Π i, add_group $ f i] (i : I) (x y : f i) :
   single i (x - y) = single i x - single i y :=
-(add_monoid_hom.single f i).map_sub x y
+show add_monoid_hom.single f i (x - y) = _ - _, from map_sub _ _ _
 
 lemma pi.single_mul [Π i, monoid_with_zero $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
-(mul_hom.single f i).map_mul x y
+show mul_hom.single f i (x * y) = _ * _, from map_mul _ _ _
 
 end single

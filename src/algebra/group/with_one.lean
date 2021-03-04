@@ -110,10 +110,10 @@ def lift : mul_hom α β ≃ (with_one α →* β) :=
     map_mul' := λ x y,
       with_one.cases_on x (by { rw one_mul, exact (one_mul _).symm }) $ λ x,
       with_one.cases_on y (by { rw mul_one, exact (mul_one _).symm }) $ λ y,
-      f.map_mul x y },
+      map_mul f x y },
   inv_fun := λ F, F.to_mul_hom.comp coe_mul_hom,
   left_inv := λ f, mul_hom.ext $ λ x, rfl,
-  right_inv := λ F, monoid_hom.ext $ λ x, with_one.cases_on x F.map_one.symm $ λ x, rfl }
+  right_inv := λ F, monoid_hom.ext $ λ x, with_one.cases_on x (map_one F).symm $ λ x, rfl }
 
 variables (f : mul_hom α β)
 

@@ -171,8 +171,8 @@ variable (β)
 def comp_hom [monoid γ] (g : γ →* α) :
   mul_action γ β :=
 { smul := λ x b, (g x) • b,
-  one_smul := by simp [g.map_one, mul_action.one_smul],
-  mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
+  one_smul := by simp [map_one, mul_action.one_smul],
+  mul_smul := by simp [map_mul, mul_action.mul_smul] }
 
 end mul_action
 
@@ -208,8 +208,8 @@ protected def function.injective.distrib_mul_action [add_monoid γ] [has_scalar 
   (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
   distrib_mul_action α γ :=
 { smul := (•),
-  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
-  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  smul_add := λ c x y, hf $ by simp only [smul, map_add, smul_add],
+  smul_zero := λ c, hf $ by simp only [smul, map_zero, smul_zero],
   .. hf.mul_action f smul }
 
 /-- Pushforward a distributive multiplicative action along a surjective additive monoid
@@ -219,8 +219,8 @@ protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar
   distrib_mul_action α γ :=
 { smul := (•),
   smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
-    simp only [smul_add, ← smul, ← f.map_add] },
-  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+    simp only [smul_add, ← smul, ← map_add] },
+  smul_zero := λ c, by rw [← map_zero f, ← smul, smul_zero],
   .. hf.mul_action f smul }
 
 variable (β)

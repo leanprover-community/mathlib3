@@ -197,12 +197,6 @@ section semiring
 
 variables [semiring R] [semiring S] (f : R ≃+* S) (x y : R)
 
-/-- A ring isomorphism sends one to one. -/
-@[simp] lemma map_one : f 1 = 1 := (f : R ≃* S).map_one
-
-/-- A ring isomorphism sends zero to zero. -/
-@[simp] lemma map_zero : f 0 = 0 := (f : R ≃+ S).map_zero
-
 variable {x}
 
 @[simp] lemma map_eq_one_iff : f x = 1 ↔ x = 1 := (f : R ≃* S).map_eq_one_iff
@@ -225,7 +219,7 @@ variables [ring R] [ring S] (f : R ≃+* S) (x y : R)
 
 @[simp] lemma map_sub : f (x - y) = f x - f y := (f : R ≃+ S).map_sub x y
 
-@[simp] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
+#check map_bit0
 
 end
 
@@ -333,7 +327,7 @@ protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]
   (hB : is_integral_domain B) (e : A ≃+* B) : is_integral_domain A :=
 { mul_comm := λ x y, have e.symm (e x * e y) = e.symm (e y * e x), by rw hB.mul_comm, by simpa,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
-    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
+    have e x * e y = 0, by rw [← map_mul e, hxy, map_zero e],
     (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
       (λ hy, by simpa using congr_arg e.symm hy),
   exists_pair_ne := ⟨e.symm 0, e.symm 1,

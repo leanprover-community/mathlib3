@@ -49,6 +49,12 @@ add_decl_doc add_equiv.to_add_hom
 @[ancestor equiv mul_hom, to_additive]
 structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, mul_hom M N
 
+@[to_additive]
+instance mul_equiv.is_mul_hom (M N : Type*) [has_mul M] [has_mul N] :
+  is_mul_hom (mul_equiv M N) M N :=
+{ coe := mul_equiv.to_fun,
+  map_mul := mul_equiv.map_mul' }
+
 /-- The `equiv` underlying a `mul_equiv`. -/
 add_decl_doc mul_equiv.to_equiv
 /-- The `mul_hom` underlying a `mul_equiv`. -/
@@ -72,10 +78,6 @@ lemma coe_to_equiv {f : M ≃* N} : ⇑f.to_equiv = f := rfl
 
 @[simp, to_additive]
 lemma coe_to_mul_hom {f : M ≃* N} : ⇑f.to_mul_hom = f := rfl
-
-/-- A multiplicative isomorphism preserves multiplication (canonical form). -/
-@[simp, to_additive]
-lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
 
 /-- Makes a multiplicative isomorphism from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive isomorphism from a bijection which preserves addition."]
@@ -105,7 +107,7 @@ def symm (h : M ≃* N) : N ≃* M :=
 { map_mul' := λ n₁ n₂, h.injective $
     begin
       have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
-      simp only [this, h.map_mul]
+      simp only [this, map_mul]
     end,
   .. h.to_equiv.symm}
 
@@ -141,7 +143,7 @@ theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
 @[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
 { map_mul' := λ x y, show h2 (h1 (x * y)) = h2 (h1 x) * h2 (h1 y),
-    by rw [h1.map_mul, h2.map_mul],
+    by rw [map_mul, map_mul],
   ..h1.to_equiv.trans h2.to_equiv }
 
 /-- e.right_inv in canonical form -/
@@ -224,14 +226,20 @@ def mul_equiv_of_unique_of_unique {M N}
 -/
 
 /-- A multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism). -/
-@[simp, to_additive]
-lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
-by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
+@[to_additive]
+instance (M N) [monoid M] [monoid N] : is_one_hom (M ≃* N) M N :=
+{ coe := to_fun,
+  map_one := λ h, by rw [← mul_one (h 1), ← h.apply_symm_apply 1, ← map_mul, one_mul] }
+
+@[to_additive]
+instance {M N} [monoid M] [monoid N] : is_monoid_hom (M ≃* N) M N :=
+{ .. mul_equiv.is_mul_hom M N,
+  .. mul_equiv.is_one_hom M N }
 
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
   h x = 1 ↔ x = 1 :=
-h.map_one ▸ h.to_equiv.apply_eq_iff_eq
+(map_one _ : h 1 = 1) ▸ h.to_equiv.apply_eq_iff_eq
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
@@ -245,6 +253,7 @@ noncomputable def of_bijective {M N} [monoid M] [monoid N] (f : M →* N)
 { map_mul' := f.map_mul',
   ..equiv.of_bijective f hf }
 
+
 /--
 Extract the forward direction of a multiplicative equivalence
 as a multiplication-preserving function.
@@ -252,7 +261,7 @@ as a multiplication-preserving function.
 @[to_additive "Extract the forward direction of an additive equivalence
 as an addition-preserving function."]
 def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
-{ map_one' := h.map_one, .. h }
+↑h
 
 @[simp, to_additive]
 lemma coe_to_monoid_hom {M N} [monoid M] [monoid N] (e : M ≃* N) :
@@ -296,15 +305,6 @@ def monoid_hom_congr {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoi
   right_inv := λ k, by { ext, simp, },
   map_mul' := λ h k, by { ext, simp, }, }
 
-/-!
-# Groups
--/
-
-/-- A multiplicative equivalence of groups preserves inversion. -/
-@[simp, to_additive]
-lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
-h.to_monoid_hom.map_inv x
-
 end mul_equiv
 
 -- We don't use `to_additive` to generate definition because it fails to tell Lean about
@@ -321,7 +321,7 @@ def add_monoid_hom.to_add_equiv [add_monoid M] [add_monoid N] (f : M →+ N) (g 
   inv_fun := g,
   left_inv := add_monoid_hom.congr_fun h₁,
   right_inv := add_monoid_hom.congr_fun h₂,
-  map_add' := f.map_add }
+  map_add' := map_add f }
 
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
@@ -334,16 +334,11 @@ def monoid_hom.to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M)
   inv_fun := g,
   left_inv := monoid_hom.congr_fun h₁,
   right_inv := monoid_hom.congr_fun h₂,
-  map_mul' := f.map_mul }
+  map_mul' := map_mul f }
 
 @[simp, to_additive]
 lemma monoid_hom.coe_to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M) (h₁ h₂) :
   ⇑(f.to_mul_equiv g h₁ h₂) = f := rfl
-
-/-- An additive equivalence of additive groups preserves subtraction. -/
-lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
-  h (x - y) = h x - h y :=
-h.to_add_monoid_hom.map_sub x y
 
 instance add_equiv.inhabited {M : Type*} [has_add M] : inhabited (M ≃+ M) := ⟨add_equiv.refl M⟩
 

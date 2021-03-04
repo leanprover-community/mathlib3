@@ -574,6 +574,10 @@ calc
   (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
               ... = d                   : begin rw h, simp [@add_sub_cancel α] end
 
+@[simp] lemma map_neg_one {R S F} [ring R] [ring S] [is_ring_hom F R S] (f : F) :
+  f (-1) = -1 :=
+by rw [map_neg, map_one]
+
 end ring
 
 namespace units

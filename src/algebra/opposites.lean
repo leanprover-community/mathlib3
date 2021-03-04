@@ -272,7 +272,7 @@ open opposite
 a ring homomorphism to `Sᵒᵖ`. -/
 def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   (hf : ∀ x y, commute (f x) (f y)) : R →+* Sᵒᵖ :=
-{ map_one' := congr_arg op f.map_one,
+{ map_one' := congr_arg op (map_one _ : f 1 = 1),
   map_mul' := λ x y, by simp [(hf x y).eq],
   .. (opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f }
 

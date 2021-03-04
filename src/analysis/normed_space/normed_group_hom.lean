@@ -6,6 +6,7 @@ Authors: Johan Commelin
 
 import analysis.normed_space.basic
 import topology.sequences
+import topology.metric_space.isometry
 
 /-!
 # Normed groups homomorphisms
@@ -412,10 +413,6 @@ variables {f : normed_group_hom V W}
 def norm_noninc (f : normed_group_hom V W) : Prop :=
 ∀ v, ∥f v∥ ≤ ∥v∥
 
-/-- A isometry `normed_group_hom` is a `normed_group_hom` that preserves the norm. -/
-def is_isometry (f : normed_group_hom V W) : Prop :=
-∀ v, ∥f v∥ = ∥v∥
-
 namespace norm_noninc
 
 lemma bound_by_one (hf : f.norm_noninc) : f.bound_by 1 :=
@@ -431,32 +428,34 @@ lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
 
 end norm_noninc
 
-namespace is_isometry
+section isometry
 
-lemma injective (hf : f.is_isometry) :
-  function.injective f :=
-begin
-  intros x y h,
-  rw ← sub_eq_zero at *,
-  suffices : ∥ x - y ∥ = 0, by simpa,
-  rw ← hf,
-  simpa,
-end
+lemma isometry_iff_norm (f : normed_group_hom V W) :
+  isometry f ↔ ∀ v, ∥f v∥ = ∥v∥ :=
+add_monoid_hom.isometry_iff_norm f.to_add_monoid_hom
 
-lemma norm_noninc (hf : f.is_isometry) : f.norm_noninc :=
-λ v, le_of_eq $ hf v
+lemma isometry_of_norm (f : normed_group_hom V W) (hf : ∀ v, ∥f v∥ = ∥v∥) :
+  isometry f :=
+f.isometry_iff_norm.mpr hf
 
-lemma bound_by_one (hf : f.is_isometry) : f.bound_by 1 :=
-hf.norm_noninc.bound_by_one
+lemma norm_eq_of_isometry {f : normed_group_hom V W} (hf : isometry f) (v : V) :
+  ∥f v∥ = ∥v∥ :=
+f.isometry_iff_norm.mp hf v
 
-lemma id : (id : normed_group_hom V V).is_isometry :=
-λ v, rfl
+lemma isometry_id : @isometry V V _ _ (id : normed_group_hom V V) :=
+isometry_id
 
-lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
-  (hg : g.is_isometry) (hf : f.is_isometry) :
-  (g.comp f).is_isometry :=
-λ v, (hg (f v)).trans (hf v)
+lemma isometry_comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
+  (hg : isometry g) (hf : isometry f) :
+  isometry (g.comp f) :=
+hg.comp hf
 
-end is_isometry
+lemma norm_noninc_of_isometry (hf : isometry f) : f.norm_noninc :=
+λ v, le_of_eq $ norm_eq_of_isometry hf v
+
+lemma bound_by_one_of_isometry (hf : isometry f) : f.bound_by 1 :=
+(norm_noninc_of_isometry hf).bound_by_one
+
+end isometry
 
 end normed_group_hom

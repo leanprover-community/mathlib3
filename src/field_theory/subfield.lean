@@ -196,7 +196,7 @@ instance to_field : field s :=
   inv_zero := subtype.ext inv_zero,
   mul_inv_cancel := λ x hx, subtype.ext (mul_inv_cancel (mt s.to_subring.coe_eq_zero_iff.mp hx)),
   exists_pair_ne := ⟨⟨0, s.zero_mem⟩, ⟨1, s.one_mem⟩, mt subtype.mk_eq_mk.mp zero_ne_one⟩,
-  ..subring.subring.domain s.to_subring }
+  ..s.to_subring.integral_domain }
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
@@ -446,8 +446,8 @@ lemma closure_eq_of_le {s : set K} {t : subfield K} (h₁ : s ⊆ t) (h₂ : t �
 le_antisymm (closure_le.2 h₁) h₂
 
 /-- An induction principle for closure membership. If `p` holds for `1`, and all elements
-of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all elements
-of the closure of `s`. -/
+of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all
+elements of the closure of `s`. -/
 @[elab_as_eliminator]
 lemma closure_induction {s : set K} {p : K → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)

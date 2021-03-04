@@ -203,8 +203,7 @@ theorem filter.tendsto.if_nhds_within {f g : α → β} {p : α → Prop} [decid
 h₀.piecewise_nhds_within h₁
 
 lemma map_nhds_within (f : α → β) (a : α) (s : set α) :
-  map f (𝓝[s] a) =
-    ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (set.image f (t ∩ s)) :=
+  map f (𝓝[s] a) = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (f  '' (t ∩ s)) :=
 ((nhds_within_basis_open a s).map f).eq_binfi
 
 theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
@@ -262,10 +261,15 @@ lemma eventually_nhds_with_of_forall {s : set α} {a : α} {p : α → Prop} (h 
   ∀ᶠ x in 𝓝[s] a, p x :=
 mem_inf_sets_of_right h
 
-lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {β : Type*} {a : α} {l : filter β}
-  {s : set α} (f : β → α) (h1 : tendsto f l (nhds a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
+lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {a : α} {l : filter β}
+  {s : set α} (f : β → α) (h1 : tendsto f l (𝓝 a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
   tendsto f l (𝓝[s] a) :=
 tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
+
+@[simp] lemma tendsto_nhds_within_range {a : α} {l : filter β} {f : β → α} :
+  tendsto f l (𝓝[range f] a) ↔ tendsto f l (𝓝 a) :=
+⟨λ h, h.mono_right inf_le_left, λ h, tendsto_inf.2
+  ⟨h, tendsto_principal.2 $ eventually_of_forall mem_range_self⟩⟩
 
 lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a : α}
   (h : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : f a = g a :=

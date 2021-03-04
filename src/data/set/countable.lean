@@ -140,7 +140,8 @@ lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (
 by haveI := (λ a, (ht a).to_encodable);
    rw Union_eq_range_sigma; apply countable_range
 
-lemma countable.bUnion {s : set α} {t : Π x ∈ s, set β} (hs : countable s) (ht : ∀a∈s, countable (t a ‹_›)) :
+lemma countable.bUnion
+  {s : set α} {t : Π x ∈ s, set β} (hs : countable s) (ht : ∀a∈s, countable (t a ‹_›)) :
   countable (⋃a∈s, t a ‹_›) :=
 begin
   rw bUnion_eq_Union,
@@ -156,7 +157,8 @@ lemma countable_Union_Prop {p : Prop} {t : p → set β} (ht : ∀h:p, countable
   countable (⋃h:p, t h) :=
 by by_cases p; simp [h, ht]
 
-lemma countable.union {s₁ s₂ : set α} (h₁ : countable s₁) (h₂ : countable s₂) : countable (s₁ ∪ s₂) :=
+lemma countable.union
+  {s₁ s₂ : set α} (h₁ : countable s₁) (h₂ : countable s₂) : countable (s₁ ∪ s₂) :=
 by rw union_eq_Union; exact
 countable_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 

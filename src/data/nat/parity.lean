@@ -183,6 +183,13 @@ end
 theorem even.sub_odd (h : n ≤ m) (hm : even m) (hn : odd n) : odd (m - n) :=
 (odd_sub' h).mpr (iff_of_true hn hm)
 
+lemma even_mul_succ_self (n : ℕ) : even (n * (n + 1)) :=
+begin
+  rw even_mul,
+  convert n.even_or_odd,
+  simp with parity_simps
+end
+
 variables {R : Type*} [ring R]
 
 theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=

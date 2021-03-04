@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group
+import algebra.group_power.basic
+import algebra.iterate_hom
 
 /-!
 # Regular elements
@@ -11,8 +13,8 @@ import algebra.group
 We introduce left-regular, right-regular and regular elements.
 
 By definition, a regular element in a commutative ring is a non-zero divisor.
-Lemma `is_regular_of_cancel_monoid_with_zero` implies that every non-zero element of an integral
-domain is regular.
+Lemma `is_regular_of_ne_zero` implies that every non-zero element of an integral domain is regular.
+Since it assumes that the ring is a `cancel_monoid_with_zero` it applies also, for instance, to `ℕ`.
 
 The lemmas in Section `mul_zero_class` show that the `0` element is (left/right-)regular if and
 only if the `mul_zero_class` is trivial.  This is useful when figuring out stopping conditions for
@@ -107,6 +109,48 @@ lemma is_regular.and_of_mul_of_mul (ab : is_regular (a * b)) (ba : is_regular (b
 is_regular_mul_and_mul_iff.mp ⟨ab, ba⟩
 
 end semigroup
+
+section monoid
+
+variable [monoid R]
+
+/--  Any power of a left-regular element is left-regular. -/
+lemma is_left_regular.pow (n : ℕ) (rla : is_left_regular a) : is_left_regular (a ^ n) :=
+by simp [is_left_regular, ← mul_left_iterate, rla.iterate n]
+
+/--  Any power of a right-regular element is right-regular. -/
+lemma is_right_regular.pow (n : ℕ) (rra : is_right_regular a) : is_right_regular (a ^ n) :=
+by simp [is_right_regular, ← mul_right_iterate, rra.iterate n]
+
+/--  Any power of a regular element is regular. -/
+lemma is_regular.pow (n : ℕ) (ra : is_regular a) : is_regular (a ^ n) :=
+⟨is_left_regular.pow n ra.left, is_right_regular.pow n ra.right⟩
+
+/--  An element `a` is left-regular if and only if a positive power of `a` is left-regular. -/
+lemma is_left_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
+  is_left_regular (a ^ n) ↔ is_left_regular a :=
+begin
+  refine ⟨_, is_left_regular.pow n⟩,
+  rw [← nat.succ_pred_eq_of_pos n0, pow_succ'],
+  exact is_left_regular.of_mul,
+end
+
+/--  An element `a` is right-regular if and only if a positive power of `a` is right-regular. -/
+lemma is_right_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
+  is_right_regular (a ^ n) ↔ is_right_regular a :=
+begin
+  refine ⟨_, is_right_regular.pow n⟩,
+  rw [← nat.succ_pred_eq_of_pos n0, pow_succ],
+  exact is_right_regular.of_mul,
+end
+
+/--  An element `a` is regular if and only if a positive power of `a` is regular. -/
+lemma is_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
+  is_regular (a ^ n) ↔ is_regular a :=
+⟨λ h, ⟨(is_left_regular.pow_iff n0).mp h.left, (is_right_regular.pow_iff n0).mp h.right⟩,
+  λ h, ⟨is_left_regular.pow n h.left, is_right_regular.pow n h.right⟩⟩
+
+end monoid
 
 section mul_zero_class
 
@@ -235,7 +279,7 @@ section cancel_monoid_with_zero
 variables  [cancel_monoid_with_zero R]
 
 /--  Non-zero elements of an integral domain are regular. -/
-lemma is_regular_of_cancel_monoid_with_zero (a0 : a ≠ 0) : is_regular a :=
+lemma is_regular_of_ne_zero (a0 : a ≠ 0) : is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
 
 end cancel_monoid_with_zero

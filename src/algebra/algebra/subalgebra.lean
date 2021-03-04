@@ -22,6 +22,8 @@ set_option old_structure_cmd true
 structure subalgebra (R : Type u) (A : Type v)
   [comm_semiring R] [semiring A] [algebra R A] extends subsemiring A : Type v :=
 (algebra_map_mem' : ∀ r, algebra_map R A r ∈ carrier)
+(zero_mem' := (algebra_map R A).map_zero ▸ algebra_map_mem' 0)
+(one_mem' := (algebra_map R A).map_one ▸ algebra_map_mem' 1)
 
 /-- Reinterpret a `subalgebra` as a `subsemiring`. -/
 add_decl_doc subalgebra.to_subsemiring
@@ -333,13 +335,11 @@ f.cod_restrict f.range f.mem_range_self
 /-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
-  zero_mem' := by { change ϕ 0 = ψ 0, rw [alg_hom.map_zero, alg_hom.map_zero] },
   add_mem' := λ x y hx hy, by
   { change ϕ x = ψ x at hx,
     change ϕ y = ψ y at hy,
     change ϕ (x + y) = ψ (x + y),
     rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
-  one_mem' := by { change ϕ 1 = ψ 1, rw [alg_hom.map_one, alg_hom.map_one] },
   mul_mem' := λ x y hx hy, by
   { change ϕ x = ψ x at hx,
     change ϕ y = ψ y at hy,
@@ -519,7 +519,7 @@ end
 lemma alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
-  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm.symm)
+  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm
     (by rw [subsingleton.elim f.symm g.symm, alg_equiv.symm_symm])⟩
 end
 

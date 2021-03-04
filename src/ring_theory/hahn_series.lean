@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import order.well_founded_set
 import algebra.big_operators
 import algebra.module.pi
+import ring_theory.power_series.basic
 
 /-!
 # Hahn Series
@@ -391,5 +392,32 @@ noncomputable instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
   .. hahn_series.ring }
 
 end multiplication
+
+
+section power_series
+variables [comm_semiring R]
+
+noncomputable def to_power_series : (hahn_series ℕ R) ≃+* power_series R :=
+{ to_fun := λ f, power_series.mk f.coeff,
+  inv_fun := λ f, ⟨λ n, power_series.coeff R n f, nat.lt_wf.is_wf _⟩,
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ f, by { ext, simp },
+  map_add' := λ f g, by { ext, simp },
+  map_mul' := λ f g, begin
+    ext n,
+    simp only [power_series.coeff_mul, power_series.coeff_mk, mul_coeff, is_wf_support],
+    classical,
+    refine finset.sum_filter_ne_zero.symm.trans
+      ((finset.sum_congr _ (λ _ _, rfl)).trans finset.sum_filter_ne_zero),
+    ext m,
+    simp only [finset.nat.mem_antidiagonal, and.congr_left_iff, finset.mem_add_antidiagonal, ne.def,
+      and_iff_left_iff_imp, finset.mem_filter, mem_support],
+    intros h1 h2,
+    contrapose h1,
+    rw ← decidable.or_iff_not_and_not at h1,
+    cases h1; simp [h1]
+  end }
+
+end power_series
 
 end hahn_series

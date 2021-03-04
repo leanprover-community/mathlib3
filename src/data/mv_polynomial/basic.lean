@@ -101,6 +101,12 @@ instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semirin
 instance : inhabited (mv_polynomial σ R) := ⟨0⟩
 instance [semimodule R S₁] : semimodule R (mv_polynomial σ S₁) := add_monoid_algebra.semimodule
 instance [algebra R S₁] : algebra R (mv_polynomial σ S₁) := add_monoid_algebra.algebra
+/-
+TODO: add `add_monoid_algebra.is_scalar_tower` so that we have
+instance [comm_semiring S₂] [has_scalar R S₁] [semimodule R S₂] [semimodule S₁ S₂]
+  [is_scalar_tower R S₁ S₂] : is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
+  add_monoid_algebra.is_scalar_tower
+-/
 
 /-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
 of a given monomial. -/

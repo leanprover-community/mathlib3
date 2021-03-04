@@ -272,12 +272,13 @@ and reproduced on wikipedia.
 theorem bernstein_approximation_uniform (f : I →ᵇ ℝ) :
   tendsto (λ n : ℕ, bernstein_approximation n f) at_top (𝓝 f) :=
 begin
-  apply normed_group.tendsto_at_top.mpr,
+  simp only [metric.nhds_basis_ball.tendsto_right_iff, metric.mem_ball, dist_eq_norm],
   intros ε h,
   let δ := f.modulus (ε/2) (half_pos h),
-  let N : ℕ := _, use N, -- We postpone choosing `n` until we've obtained an explicit estimate.
-  intros n nh,
-  have npos : 0 < (n : ℝ) := by exact_mod_cast (pos_of_gt nh),
+  have nhds_zero := tendsto_const_div_at_top_nhds_0_nat (2 * ∥f∥ * δ ^ (-2 : ℤ)),
+  filter_upwards [nhds_zero.eventually (gt_mem_nhds (half_pos h)), eventually_gt_at_top 0],
+  intros n nh npos',
+  have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
   -- Three easy inequalities we'll need later:
   have w₀ : 0 ≤ ε / 2 := le_of_lt (half_pos h),
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),

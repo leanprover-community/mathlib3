@@ -59,6 +59,38 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
+theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
+  [t0_space α] [compact_space α] {S : set α} (hS : is_closed S) (hne : S.nonempty) :
+  ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=
+begin
+  obtain ⟨V, Vsub, Vne, Vcls, hV⟩ := hS.exists_minimal_nonempty_closed_subset hne,
+  by_cases hnt : ∃ (x y : α) (hx : x ∈ V) (hy : y ∈ V), x ≠ y,
+  { exfalso,
+    obtain ⟨x, y, hx, hy, hne⟩ := hnt,
+    obtain ⟨U, hU, hsep⟩ := t0_space.t0 _ _ hne,
+    have : ∀ (z w : α) (hz : z ∈ V) (hw : w ∈ V) (hz' : z ∈ U) (hw' : ¬ w ∈ U), false,
+    { intros z w hz hw hz' hw',
+      have uvne : (V ∩ Uᶜ).nonempty,
+      { use w, simp only [hw, hw', set.mem_inter_eq, not_false_iff, and_self, set.mem_compl_eq], },
+      specialize hV (V ∩ Uᶜ) (set.inter_subset_left _ _) uvne
+        (is_closed_inter Vcls (is_closed_compl_iff.mpr hU)),
+      have : V ⊆ Uᶜ,
+      { rw ←hV, exact set.inter_subset_right _ _ },
+      exact this hz hz', },
+    cases hsep,
+    { exact this x y hx hy hsep.1 hsep.2 },
+    { exact this y x hy hx hsep.1 hsep.2 } },
+  { push_neg at hnt,
+    obtain ⟨z, hz⟩ := Vne,
+    refine ⟨z, Vsub hz, _⟩,
+    convert Vcls,
+    ext,
+    simp only [set.mem_singleton_iff, set.mem_compl_eq],
+    split,
+    { rintro rfl, exact hz, },
+    { exact λ hx, hnt x z hx hz, }, },
+end
+
 theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
   (hso : is_open (↑s : set α)) :
   ∃ x ∈ s, is_open ({x} : set α):=
@@ -445,6 +477,20 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
 
+lemma function.left_inverse.closed_range [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  is_closed (range g) :=
+have eq_on (g ∘ f) id (closure $ range g),
+  from h.right_inv_on_range.eq_on.closure (hg.comp hf) continuous_id,
+is_closed_of_closure_subset $ λ x hx,
+calc x = g (f x) : (this hx).symm
+   ... ∈ _ : mem_range_self _
+
+lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  closed_embedding g :=
+⟨h.embedding hf hg, h.closed_range hf hg⟩
+
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
   (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
@@ -557,21 +603,6 @@ begin
     closure_minimal h1t $ h2K.is_closed⟩
 end
 
-/-- In a locally compact T₂ space, every compact set is contained in the interior of a compact
-  set. -/
-lemma exists_compact_superset [locally_compact_space α] [t2_space α] {K : set α}
-  (hK : is_compact K) : ∃ (K' : set α), is_compact K' ∧ K ⊆ interior K' :=
-begin
-  choose U hU using λ x : K, exists_open_with_compact_closure (x : α),
-  rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩)
-    with ⟨s, hs⟩,
-  refine ⟨⋃ (i : K) (H : i ∈ s), closure (U i), _, _⟩,
-  exact (finite_mem_finset s).compact_bUnion (λ x hx, (hU x).2.2),
-  refine subset.trans hs _, rw subset_interior_iff_subset_of_open,
-  exact bUnion_subset_bUnion_right (λ x hx, subset_closure),
-  exact is_open_bUnion (λ x hx, (hU x).1)
-end
-
 end separation
 
 section regularity
@@ -583,7 +614,7 @@ class regular_space (α : Type u) [topological_space α] extends t1_space α : P
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
-  ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
+  ∃ t ∈ 𝓝 a, t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
 have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
@@ -674,13 +705,13 @@ lemma connected_component_eq_Inter_clopen [t2_space α] [compact_space α] {x : 
 begin
   apply eq_of_subset_of_subset connected_component_subset_Inter_clopen,
   -- Reduce to showing that the clopen intersection is connected.
-  refine subset_connected_component _ (mem_Inter.2 (λ Z, Z.2.2)),
+  refine is_preconnected.subset_connected_component _ (mem_Inter.2 (λ Z, Z.2.2)),
   -- We do this by showing that any disjoint cover by two closed sets implies
-  -- that one of these closed sets must contain our whole thing. To reduce to the case
-  -- where the cover is disjoint on all of α we need that s is closed:
-  have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z),
-  { exact is_closed_Inter (λ Z, Z.2.1.2) },
-  apply (is_preconnected_iff_subset_of_fully_disjoint_closed hs).2,
+  -- that one of these closed sets must contain our whole thing.
+  -- To reduce to the case where the cover is disjoint on all of `α` we need that `s` is closed
+  have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) :=
+    is_closed_Inter (λ Z, Z.2.1.2),
+  rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_empty,
   haveI := @normal_of_compact_t2 α _ _ _,
   -- Since our space is normal, we get two larger disjoint open sets containing the disjoint
@@ -689,45 +720,43 @@ begin
   rcases normal_separation a b ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
   -- If we can find a clopen set around x, contained in u ∪ v, we get a disjoint decomposition
   -- Z = Z ∩ u ∪ Z ∩ v of clopen sets. The intersection of all clopen neighbourhoods will then lie
-  -- in whatever component x lies in and hence will be a subset of either u or v.
+  -- in whichever of u or v x lies in and hence will be a subset of either a or b.
   suffices : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
   { cases this with Z H,
     rw [disjoint_iff_inter_eq_empty] at huv,
     have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
     rw [union_comm] at H,
-    rw [inter_comm] at huv,
-    have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu huv,
+    have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu (inter_comm u v ▸ huv),
     by_cases (x ∈ u),
     -- The x ∈ u case.
     { left,
       suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ u,
-      { rw [inter_comm, ←set.disjoint_iff_inter_eq_empty] at huv,
+      { rw ←set.disjoint_iff_inter_eq_empty at huv,
         replace hab : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ a ∪ b := hab,
         replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ u := this,
         exact disjoint.left_le_of_le_sup_right hab (huv.mono this hbv) },
       { apply subset.trans _ (inter_subset_right Z u),
         apply Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
-        ⟨Z ∩ u, by {split, exact H1, apply mem_inter H.2.1 h}⟩ } },
+          ⟨Z ∩ u, H1, mem_inter H.2.1 h⟩ } },
     -- If x ∉ u, we get x ∈ v since x ∈ u ∪ v. The rest is then like the x ∈ u case.
     have h1 : x ∈ v,
     { cases (mem_union x u v).1 (mem_of_subset_of_mem (subset.trans hab
         (union_subset_union hau hbv)) (mem_Inter.2 (λ i, i.2.2))) with h1 h1,
-      { exfalso, apply h, exact h1},
+      { exfalso, exact h h1},
       { exact h1} },
     right,
     suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ v,
-    { rw [←set.disjoint_iff_inter_eq_empty] at huv,
+    { rw [inter_comm, ←set.disjoint_iff_inter_eq_empty] at huv,
       replace hab : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ a ∪ b := hab,
       replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ v := this,
       exact disjoint.left_le_of_le_sup_left hab (huv.mono this hau) },
     { apply subset.trans _ (inter_subset_right Z v),
       apply Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
-      ⟨Z ∩ v, by {split, exact H2, apply mem_inter H.2.1 h1}⟩ } },
+        ⟨Z ∩ v, H2, mem_inter H.2.1 h1⟩ } },
   -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
   -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
-  have H1 := (is_compact.inter_Inter_nonempty (is_closed.compact
-    (is_closed_compl_iff.2 (is_open_union hu hv)))
+  have H1 := ((is_closed_compl_iff.2 (is_open_union hu hv)).compact.inter_Inter_nonempty
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
@@ -738,3 +767,48 @@ begin
   { exact mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
   { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
 end
+
+section connected_component_setoid
+local attribute [instance] connected_component_setoid
+
+/-- `connected_components α` is Hausdorff when `α` is Hausdorff and compact -/
+instance connected_components.t2 [t2_space α] [compact_space α] :
+  t2_space (connected_components α) :=
+begin
+  -- Proof follows that of: https://stacks.math.columbia.edu/tag/0900
+  -- Fix 2 distinct connected components, with points a and b
+  refine ⟨λ x y, quotient.induction_on x (quotient.induction_on y (λ a b ne, _))⟩,
+  rw connected_component_nrel_iff at ne,
+  have h := connected_component_disjoint ne,
+  -- write ⟦b⟧ as the intersection of all clopen subsets containing it
+  rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
+  -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
+  cases is_closed_connected_component.compact.elim_finite_subfamily_closed _ _ h
+    with fin_a ha,
+  swap, { exact λ Z, Z.2.1.2 },
+  set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), ↑i) with hU,
+  rw ←hU at ha,
+  have hu_clopen : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
+  -- This clopen and its complement will separate the points corresponding to ⟦a⟧ and ⟦b⟧
+  use [quotient.mk '' U, quotient.mk '' Uᶜ],
+  -- Using the fact that clopens are unions of connected components, we show that
+  -- U and Uᶜ is the preimage of a clopen set in the quotient
+  have hu : quotient.mk ⁻¹' (quotient.mk '' U) = U :=
+    (connected_components_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
+  have huc : quotient.mk ⁻¹' (quotient.mk '' Uᶜ) = Uᶜ :=
+    (connected_components_preimage_image Uᶜ ▸ eq.symm)
+      (is_clopen_compl hu_clopen).eq_union_connected_components,
+  -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
+  refine ⟨_,_,_,_,_⟩,
+  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, hu],
+    exact hu_clopen.1 },
+  { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, huc],
+    exact is_open_compl_iff.2 hu_clopen.2 },
+  { exact mem_image_of_mem _ (mem_Inter.2 (λ Z, mem_Inter.2 (λ Zmem, Z.2.2))) },
+  { apply mem_image_of_mem,
+    exact mem_of_subset_of_mem (subset_compl_iff_disjoint.2 ha) (@mem_connected_component _ _ a) },
+  apply preimage_injective.2 (@surjective_quotient_mk _ _),
+  rw [preimage_inter, preimage_empty, hu, huc, inter_compl_self _],
+end
+
+end connected_component_setoid

@@ -843,18 +843,19 @@ lemma continuous_integral_integral :
   continuous (λ (f : α × β →₁[μ.prod ν] E), ∫ x, ∫ y, f (x, y) ∂ν ∂μ) :=
 begin
   rw [continuous_iff_continuous_at], intro g,
-  refine tendsto_integral_of_l1 _ g.integrable.integral_prod_left
-    (eventually_of_forall $ λ h, h.integrable.integral_prod_left) _,
+  refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
+    (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
   simp_rw [edist_eq_coe_nnnorm_sub,
-    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (l1.integrable _) g.integrable],
+    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
+    (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
   { exact λ i, ∫⁻ x, ∫⁻ y, nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ },
   swap, { exact λ i, lintegral_mono (λ x, ennnorm_integral_le_lintegral_ennnorm _) },
   show tendsto (λ (i : α × β →₁[μ.prod ν] E),
     ∫⁻ x, ∫⁻ (y : β), nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ) (𝓝 g) (𝓝 0),
   have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (nnnorm (i z - g z) : ℝ≥0∞)) :=
-  λ i, (i.measurable.sub g.measurable).ennnorm,
-  simp_rw [← lintegral_prod_of_measurable _ (this _), ← l1.of_real_norm_sub_eq_lintegral,
+  λ i, ((Lp.measurable i).sub (Lp.measurable g)).ennnorm,
+  simp_rw [← lintegral_prod_of_measurable _ (this _), ← L1.of_real_norm_sub_eq_lintegral,
     ← of_real_zero],
   refine (continuous_of_real.tendsto 0).comp _,
   rw [← tendsto_iff_norm_tendsto_zero], exact tendsto_id

@@ -28,7 +28,7 @@ namespace continuous_linear_map
 `f y = f x + f (y - x)`. -/
 @[simp] def fpower_series (f : E →L[𝕜] F) (x : E) : formal_multilinear_series 𝕜 E F
 | 0 := continuous_multilinear_map.curry0 𝕜 _ (f x)
-| 1 := (continuous_multilinear_curry_fin1 𝕜 _ _).symm f
+| 1 := (continuous_multilinear_curry_fin1 𝕜 E F).symm f
 | _ := 0
 
 @[simp] lemma fpower_series_radius (f : E →L[𝕜] F) (x : E) : (f.fpower_series x).radius = ∞ :=
@@ -48,19 +48,24 @@ protected theorem has_fpower_series_at (f : E →L[𝕜] F) (x : E) :
 protected theorem analytic_at (f : E →L[𝕜] F) (x : E) : analytic_at 𝕜 f x :=
 (f.has_fpower_series_at x).analytic_at
 
+/-- Reinterpret a bilinear map `f : E →L[𝕜] F →L[𝕜] G` as a multilinear map
+`(E × F) [×2]→L[𝕜] G`. This multilinear map is the second term in the formal
+multilinear series expansion of `uncurry f`. It is given by
+`f.uncurry_bilinear ![(x, y), (x', y')] = f x y'`. -/
 def uncurry_bilinear (f : E →L[𝕜] F →L[𝕜] G) : (E × F) [×2]→L[𝕜] G :=
 @continuous_linear_map.uncurry_left 𝕜 1 (λ _, E × F) G _ _ _ _ _ $
-  (continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm.to_continuous_linear_map.comp $
-  f.on_prod₂
+  (↑(continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm : (E × F →L[𝕜] G) →L[𝕜] _).comp $
+    f.bilinear_comp (fst _ _ _) (snd _ _ _)
 
 @[simp] lemma uncurry_bilinear_apply (f : E →L[𝕜] F →L[𝕜] G) (m : fin 2 → E × F) :
   f.uncurry_bilinear m = f (m 0).1 (m 1).2 :=
 rfl
 
+/-- Formal multilinear series expansion of a bilinear function `f : E →L[𝕜] F →L[𝕜] G`. -/
 @[simp] def fpower_series_bilinear (f : E →L[𝕜] F →L[𝕜] G) (x : E × F) :
   formal_multilinear_series 𝕜 (E × F) G
 | 0 := continuous_multilinear_map.curry0 𝕜 _ (f x.1 x.2)
-| 1 := (continuous_multilinear_curry_fin1 𝕜 _ _).symm (f.deriv₂ x)
+| 1 := (continuous_multilinear_curry_fin1 𝕜 (E × F) G).symm (f.deriv₂ x)
 | 2 := f.uncurry_bilinear
 | _ := 0
 

@@ -72,6 +72,12 @@ noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_nor
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
              ... = ∥y - x∥ : by { rw [C.norm_neg] } }
 
+instance : normed_group ℝ :=
+{ norm := λ x, abs x,
+  dist_eq := assume x y, rfl }
+
+lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
+
 section normed_group
 variables [normed_group α] [normed_group β]
 
@@ -83,6 +89,9 @@ by rw [dist_comm, dist_eq_norm]
 
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
+
+@[simp] lemma dist_zero_left : dist (0:α) = norm :=
+funext $ λ g, by rw [dist_comm, dist_zero_right]
 
 lemma tendsto_norm_cocompact_at_top [proper_space α] :
   tendsto norm (cocompact α) at_top :=
@@ -373,6 +382,18 @@ begin
   ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
 end
 
+/-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
+instance add_subgroup.normed_group {E : Type*} [normed_group E] (s : add_subgroup E) :
+  normed_group s :=
+{ norm := λx, norm (x : E),
+  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+/-- If `x` is an element of a subgroup `s` of a normed group `E`, its norm in `s` is equal to its
+norm in `E`. -/
+@[simp] lemma coe_norm_subgroup {E : Type*} [normed_group E] {s : add_subgroup E} (x : s) :
+  ∥x∥ = ∥(x:E)∥ :=
+rfl
+
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 
 See note [implicit instance arguments]. -/
@@ -381,13 +402,18 @@ instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { norm := λx, norm (x : E),
   dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
 
-/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
-norm in `E`.
+/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
+norm in `s`.
 
 See note [implicit instance arguments]. -/
-@[simp] lemma coe_norm {𝕜 : Type*} {_ : ring 𝕜}
+@[simp, norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
   {E : Type*} [normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
-  ∥x∥ = ∥(x:E)∥ :=
+  ∥(x : E)∥ = ∥x∥ :=
+rfl
+
+@[simp] lemma submodule.norm_mk {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : E) (hx : x ∈ s) :
+  ∥(⟨x, hx⟩ : s)∥ = ∥x∥ :=
 rfl
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
@@ -448,7 +474,7 @@ by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }
 
 lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
   tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥f e∥) a (𝓝 0) :=
-by simp [tendsto_iff_norm_tendsto_zero]
+by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
 
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `g` which tends to `0`, then `f` tends to `0`.
@@ -483,6 +509,15 @@ by simpa using continuous_id.dist (continuous_const : continuous (λ g, (0:α)))
 
 lemma continuous_nnnorm : continuous (nnnorm : α → ℝ≥0) :=
 continuous_subtype_mk _ continuous_norm
+
+lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : α → ℝ) :=
+by simpa only [dist_zero_left] using lipschitz_with.dist_right (0 : α)
+
+lemma uniform_continuous_norm : uniform_continuous (norm : α → ℝ) :=
+lipschitz_with_one_norm.uniform_continuous
+
+lemma uniform_continuous_nnnorm : uniform_continuous (nnnorm : α → ℝ≥0) :=
+uniform_continuous_subtype_mk uniform_continuous_norm _
 
 lemma tendsto_norm_nhds_within_zero : tendsto (norm : α → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
 (continuous_norm.tendsto' (0 : α) 0 norm_zero).inf $ tendsto_principal_principal.2 $
@@ -838,16 +873,13 @@ by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 end normed_field
 
 instance : normed_field ℝ :=
-{ norm := λ x, abs x,
-  dist_eq := assume x y, rfl,
-  norm_mul' := abs_mul }
+{ norm_mul' := abs_mul,
+  .. real.normed_group }
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 namespace real
-
-lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
 lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
 abs_of_nonneg hx

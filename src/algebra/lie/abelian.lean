@@ -53,7 +53,7 @@ lemma function.injective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Typ
   {f : L₁ →ₗ⁅R⁆ L₂} (h₁ : function.injective f) (h₂ : is_lie_abelian L₂) :
   is_lie_abelian L₁ :=
 { trivial := λ x y,
-    by { apply h₁, rw [lie_algebra.map_lie, trivial_lie_zero, lie_algebra.map_zero], } }
+    by { apply h₁, rw [lie_hom.map_lie, trivial_lie_zero, lie_hom.map_zero], } }
 
 lemma function.surjective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Type w}
   [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [lie_algebra R L₂]
@@ -63,7 +63,7 @@ lemma function.surjective.is_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Ty
     begin
       obtain ⟨u, hu⟩ := h₁ x, rw ← hu,
       obtain ⟨v, hv⟩ := h₁ y, rw ← hv,
-      rw [← lie_algebra.map_lie, trivial_lie_zero, lie_algebra.map_zero],
+      rw [← lie_hom.map_lie, trivial_lie_zero, lie_hom.map_zero],
     end }
 
 lemma lie_abelian_iff_equiv_lie_abelian {R : Type u} {L₁ : Type v} {L₂ : Type w}
@@ -101,7 +101,7 @@ protected def ker : lie_ideal R L := (to_endomorphism R L M).ker
 @[simp] protected lemma mem_ker (x : L) : x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
 begin
   dunfold lie_module.ker,
-  simp only [lie_algebra.morphism.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
+  simp only [lie_hom.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
     to_endomorphism_apply_apply],
 end
 
@@ -187,7 +187,7 @@ end
 
 lemma lie_submodule.lie_abelian_iff_lie_self_eq_bot : is_lie_abelian I ↔ ⁅I, I⁆ = ⊥ :=
 begin
-  simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_span_le, bot_coe,
+  simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_span_le, lie_submodule.bot_coe,
     set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
   split; intros h,
   { intros z x y hz, rw [← hz, ← coe_bracket, coe_zero_iff_zero], apply h.trivial, },

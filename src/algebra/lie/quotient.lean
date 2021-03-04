@@ -59,7 +59,7 @@ variables (N)
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural Lie algebra morphism from `L` to the linear endomorphism of the quotient `M/N`. -/
 def action_as_endo_map : L →ₗ⁅R⁆ module.End R N.quotient :=
-{ map_lie := λ x y, by { ext n, apply quotient.induction_on' n, intros m,
+{ map_lie' := λ x y, by { ext n, apply quotient.induction_on' n, intros m,
                          change mk ⁅⁅x, y⁆, m⁆ = mk (⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆),
                          congr, apply lie_lie, },
   ..linear_map.comp (submodule.mapq_linear (N : submodule R M) ↑N) lie_submodule_invariant }
@@ -73,8 +73,8 @@ instance lie_quotient_lie_ring_module : lie_ring_module L N.quotient :=
   add_lie     := λ x y n, by { simp only [linear_map.map_add, linear_map.add_apply], },
   lie_add     := λ x m n, by { simp only [linear_map.map_add, linear_map.add_apply], },
   leibniz_lie := λ x y m, show action_as_endo_map _ _ _ = _,
-  { simp only [lie_algebra.map_lie, lie_ring.of_associative_ring_bracket, sub_add_cancel,
-      lie_algebra.coe_to_linear_map, linear_map.mul_app, linear_map.sub_apply], } }
+  { simp only [lie_hom.map_lie, lie_ring.of_associative_ring_bracket, sub_add_cancel,
+      lie_hom.coe_to_linear_map, linear_map.mul_apply, linear_map.sub_apply], } }
 
 /-- The quotient of a Lie module by a Lie submodule, is a Lie module. -/
 instance lie_quotient_lie_module : lie_module R L N.quotient :=

@@ -52,7 +52,8 @@ lemma alg_hom_eval₂_algebra_map
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
   dsimp [eval₂, finsupp.sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast, alg_hom.commutes],
+  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast,
+    alg_hom.commutes],
 end
 
 @[simp]
@@ -177,9 +178,6 @@ alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
-
-lemma pow_comp (p q : polynomial R) (k : ℕ) : (p ^ k).comp q = (p.comp q) ^ k :=
-by { unfold comp, rw ← coe_eval₂_ring_hom, apply ring_hom.map_pow }
 
 variables [comm_ring S] {f : R →+* S}
 

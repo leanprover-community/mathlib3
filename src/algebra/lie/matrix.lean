@@ -35,7 +35,7 @@ variables {n : Type w} [decidable_eq n] [fintype n]
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
 is compatible with the Lie algebra structures. -/
 def lie_equiv_matrix' : module.End R (n → R) ≃ₗ⁅R⁆ matrix n n R :=
-{ map_lie := λ T S,
+{ map_lie' := λ T S,
   begin
     let f := @linear_map.to_matrix' R _ n n _ _ _,
     change f (T.comp S - S.comp T) = (f T) * (f S) - (f S) * (f T),
@@ -69,8 +69,8 @@ by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, linear_map.to_matrix'_co
 types is an equivalence of Lie algebras. -/
 def matrix.reindex_lie_equiv {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
-{ map_lie := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
-    matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_apply],
+{ map_lie' := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
+    matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_eq_coe],
 ..(matrix.reindex_linear_equiv e e) }
 
 @[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [decidable_eq m] [fintype m]

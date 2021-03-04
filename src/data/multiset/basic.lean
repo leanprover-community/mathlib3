@@ -833,18 +833,21 @@ lemma sum_map_mul_right [semiring β] {b : β} {s : multiset α} {f : α → β}
   sum (s.map (λa, f a * b)) = sum (s.map f) * b :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
 
-theorem prod_ne_zero {R : Type*} [comm_semiring R] [no_zero_divisors R] [nontrivial R]
-  {m : multiset R} :
-  (∀ x ∈ m, (x : _) ≠ 0) → m.prod ≠ 0 :=
-multiset.induction_on m (λ _, one_ne_zero) $ λ hd tl ih H,
-  by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
-
-lemma prod_eq_zero {α : Type*} [comm_semiring α] {s : multiset α} (h : (0 : α) ∈ s) :
+lemma prod_eq_zero {M₀ : Type*} [comm_monoid_with_zero M₀] {s : multiset M₀} (h : (0 : M₀) ∈ s) :
   multiset.prod s = 0 :=
 begin
   rcases multiset.exists_cons_of_mem h with ⟨s', hs'⟩,
   simp [hs', multiset.prod_cons]
 end
+
+lemma prod_eq_zero_iff {M₀ : Type*} [comm_monoid_with_zero M₀] [no_zero_divisors M₀] [nontrivial M₀]
+  {s : multiset M₀} :
+  multiset.prod s = 0 ↔ (0 : M₀) ∈ s :=
+by { rcases s with ⟨l⟩, simp }
+
+theorem prod_ne_zero {M₀ : Type*} [comm_monoid_with_zero M₀] [no_zero_divisors M₀] [nontrivial M₀]
+  {m : multiset M₀} (h : (0 : M₀) ∉ m) : m.prod ≠ 0 :=
+mt prod_eq_zero_iff.1 h
 
 @[to_additive]
 lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α →* β) :
@@ -867,12 +870,6 @@ begin
   rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
   simp,
 end
-
-theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
-  {s : multiset α} :
-  s.prod = 0 ↔ (0 : α) ∈ s :=
-multiset.induction_on s (by simp) $
-  assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
 @[to_additive sum_nonneg]
 lemma one_le_prod_of_one_le [ordered_comm_monoid α] {m : multiset α} :
@@ -2134,6 +2131,13 @@ def subsingleton_equiv [subsingleton α] : list α ≃ multiset α :=
     list.ext_le h.length_eq $ λ n h₁ h₂, subsingleton.elim _ _,
   left_inv := λ l, rfl,
   right_inv := λ m, quot.induction_on m $ λ l, rfl }
+
+variable {α}
+
+@[simp]
+lemma coe_subsingleton_equiv [subsingleton α] :
+  (subsingleton_equiv α : list α → multiset α) = coe :=
+rfl
 
 end multiset
 

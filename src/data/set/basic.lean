@@ -220,6 +220,9 @@ theorem eq_of_subset_of_subset {a b : set α} : a ⊆ b → b ⊆ a → a = b :=
 
 theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} (h : s₁ ⊆ s₂) : a ∈ s₁ → a ∈ s₂ := @h _
 
+theorem not_mem_subset (h : s ⊆ t) : a ∉ t → a ∉ s :=
+mt $ mem_of_subset_of_mem h
+
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subset_def, not_forall]
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
@@ -262,6 +265,9 @@ theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 
 theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
 | _ ⟨x, hx⟩ rfl := hx
+
+@[simp] theorem not_nonempty_empty : ¬(∅ : set α).nonempty :=
+λ h, h.ne_empty rfl
 
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
@@ -467,6 +473,10 @@ subset.trans h (subset_union_right t u)
 
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 by simp only [← subset_empty_iff]; exact union_subset_iff
+
+@[simp] lemma union_univ {s : set α} : s ∪ univ = univ := sup_top_eq
+
+@[simp] lemma univ_union {s : set α} : univ ∪ s = univ := top_sup_eq
 
 /-! ### Lemmas about intersection -/
 
@@ -753,6 +763,10 @@ not_congr mem_singleton_iff
 
 lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} :=
 ext $ λ x, mem_compl_singleton_iff
+
+@[simp]
+lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} :=
+by { ext, simp, }
 
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = (sᶜ ∩ tᶜ)ᶜ :=
 ext $ λ x, or_iff_not_and_not
@@ -2232,6 +2246,15 @@ begin
   rw [← singleton_eq_singleton_iff], apply h,
   rw [image_singleton, image_singleton, hx]
 end
+
+lemma preimage_eq_iff_eq_image {f : α → β} (hf : bijective f) {s t} :
+  f ⁻¹' s = t ↔ s = f '' t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
+lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
+  s = f ⁻¹' t ↔ f '' s = t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
 end image_preimage
 
 /-! ### Lemmas about images of binary and ternary functions -/

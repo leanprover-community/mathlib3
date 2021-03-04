@@ -25,6 +25,13 @@ and shows how that polynomial interacts with `mv_polynomial.bind₁`.
 * `witt_vector.coeff_add_of_disjoint`: if `x` and `y` are Witt vectors such that for every `n`
   the `n`-th coefficient of `x` or of `y` is `0`, then the coefficients of `x + y`
   are just `x.coeff n + y.coeff n`.
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
+
 -/
 
 variables {p : ℕ} [hp : fact p.prime] (n : ℕ) {R : Type*} [comm_ring R]

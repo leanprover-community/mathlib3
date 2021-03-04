@@ -34,6 +34,10 @@ already appears in the input.
 ## Notations
 
 The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons b vec_empty)`.
+
+## Examples
+
+Examples of usage can be found in the `test/matrix.lean` file.
 -/
 
 namespace matrix

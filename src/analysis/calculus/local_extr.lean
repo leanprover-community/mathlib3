@@ -19,7 +19,8 @@ This set is used in the proof of Fermat's Theorem (see below), and can be used t
 
 ## Main statements
 
-For each theorem name listed below, we also prove similar theorems for `min`, `extr` (if applicable)`,
+For each theorem name listed below,
+we also prove similar theorems for `min`, `extr` (if applicable)`,
 and `(f)deriv` instead of `has_fderiv`.
 
 * `is_local_max_on.has_fderiv_within_at_nonpos` : `f' y ≤ 0` whenever `a` is a local maximum
@@ -85,23 +86,19 @@ lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segme
   y - x ∈ pos_tangent_cone_at s x :=
 begin
   let c := λn:ℕ, (2:ℝ)^n,
-  let d := λn:ℕ, (c n)⁻¹ • (y - x),
-  refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
+  let d := λn:ℕ, (c n)⁻¹ • (y-x),
+  refine ⟨c, d, filter.univ_mem_sets' (λn, h _),
+    tendsto_pow_at_top_at_top_of_one_lt one_lt_two, _⟩,
   show x + d n ∈ segment x y,
   { rw segment_eq_image',
     refine ⟨(c n)⁻¹, ⟨_, _⟩, rfl⟩,
-    { rw inv_nonneg, apply pow_nonneg, norm_num },
-    { apply inv_le_one, apply one_le_pow_of_one_le, norm_num } },
-  show tendsto c at_top at_top,
-  { exact tendsto_pow_at_top_at_top_of_one_lt one_lt_two },
-  show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
-  { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
-    { ext n,
-      simp only [d, smul_smul],
-      rw [mul_inv_cancel, one_smul],
-      exact pow_ne_zero _ (by norm_num) },
-    rw this,
-    apply tendsto_const_nhds }
+    exacts [inv_nonneg.2 (pow_nonneg zero_le_two _),
+      inv_le_one (one_le_pow_of_one_le one_le_two _)] },
+  show tendsto (λ n, c n • d n) at_top (𝓝 (y - x)),
+  { convert tendsto_const_nhds, ext n,
+    simp only [d, smul_smul],
+    rw [mul_inv_cancel, one_smul],
+    exact pow_ne_zero _ two_ne_zero }
 end
 
 lemma mem_pos_tangent_cone_at_of_segment_subset' {s : set E} {x y : E} (h : segment x (x + y) ⊆ s) :

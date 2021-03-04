@@ -31,10 +31,11 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
   ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
 section normed_field
-/- Most statements in this file require the field to be non-discrete, as this is necessary
-to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f. However, the other direction always
-holds. In this section, we just assume that `𝕜` is a normed field. In the remainder of the file,
-it will be non-discrete. -/
+/-! Most statements in this file require the field to be non-discrete,
+as this is necessary to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f.
+However, the other direction always holds.
+In this section, we just assume that `𝕜` is a normed field.
+In the remainder of the file, it will be non-discrete. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
@@ -89,7 +90,8 @@ let φ : E →ₗ[𝕜] F := ⟨f, h_add, h_smul⟩ in φ.continuous_of_bound C 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
-@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
+  (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
@@ -219,7 +221,8 @@ f.mk_continuous a (λ x, le_of_eq (hf x))
 
 variable (𝕜)
 
-lemma to_span_singleton_homothety (x : E) (c : 𝕜) : ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
+lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
+  ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
 by {rw mul_comm, exact norm_smul _ _}
 
 /-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
@@ -756,6 +759,8 @@ private lemma le_norm_flip (f : E →L[𝕜] F →L[𝕜] G) : ∥f∥ ≤ ∥fl
 f.op_norm_le_bound₂ (norm_nonneg _) $ λ x y,
   by { rw mul_right_comm, exact (flip f).le_op_norm₂ y x }
 
+@[simp] lemma flip_apply (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) : f.flip y x = f x y := rfl
+
 @[simp] lemma flip_flip (f : E →L[𝕜] F →L[𝕜] G) :
   f.flip.flip = f :=
 by { ext, refl }
@@ -818,28 +823,28 @@ variables {𝕜 E F G}
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-/-- Multiplication in normed algebra as a linear isometry to the space of
+/-- Left multiplication in a normed algebra as a linear isometry to the space of
 continuous linear maps. -/
-def lmulᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+def lmulₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 { to_linear_map := (algebra.lmul 𝕜 𝕜').to_linear_map.mk_continuous₂ 1 $
     λ x y, by simpa using norm_mul_le x y,
   norm_map' := λ x, le_antisymm
     (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
     (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'] }) }
 
-/-- Multiplication in normed algebra as a continuous bilinear map. -/
+/-- Left multiplication in a normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
-(lmulᵢ 𝕜 𝕜').to_continuous_linear_map
+(lmulₗᵢ 𝕜 𝕜').to_continuous_linear_map
 
 @[simp] lemma lmul_apply (x y : 𝕜') : lmul 𝕜 𝕜' x y = x * y := rfl
 
-@[simp] lemma coe_lmulᵢ : ⇑(lmulᵢ 𝕜 𝕜') = lmul 𝕜 𝕜' := rfl
+@[simp] lemma coe_lmulₗᵢ : ⇑(lmulₗᵢ 𝕜 𝕜') = lmul 𝕜 𝕜' := rfl
 
 @[simp] lemma op_norm_lmul_apply (x : 𝕜') : ∥lmul 𝕜 𝕜' x∥ = ∥x∥ :=
-(lmulᵢ 𝕜 𝕜').norm_map x
+(lmulₗᵢ 𝕜 𝕜').norm_map x
 
 @[simp] lemma op_norm_lmul : ∥lmul 𝕜 𝕜'∥ = 1 :=
-by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulᵢ 𝕜 𝕜').norm_to_continuous_linear_map
+by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').flip
@@ -856,11 +861,11 @@ le_antisymm
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
 continuous linear maps. -/
-def lmul_rightᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
+def lmul_rightₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
 { to_linear_map := lmul_right 𝕜 𝕜',
   norm_map' := op_norm_lmul_right_apply 𝕜 𝕜' }
 
-@[simp] lemma coe_lmul_rightᵢ : ⇑(lmul_rightᵢ 𝕜 𝕜') = lmul_right 𝕜 𝕜' := rfl
+@[simp] lemma coe_lmul_rightₗᵢ : ⇑(lmul_rightₗᵢ 𝕜 𝕜') = lmul_right 𝕜 𝕜' := rfl
 
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
 trilinear map. -/
@@ -1097,10 +1102,20 @@ of_homothety
 
 /-- Given a nonzero element `x` of a normed space `E` over a field `𝕜`, the natural continuous
     linear map from the span of `x` to `𝕜`.-/
-abbreviation coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 :=
-  (to_span_nonzero_singleton 𝕜 x h).symm
+def coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 := (to_span_nonzero_singleton 𝕜 x h).symm
 
-lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
+@[simp] lemma coe_to_span_nonzero_singleton_symm {x : E} (h : x ≠ 0) :
+  ⇑(to_span_nonzero_singleton 𝕜 x h).symm = coord 𝕜 x h := rfl
+
+@[simp] lemma coord_to_span_nonzero_singleton {x : E} (h : x ≠ 0) (c : 𝕜) :
+  coord 𝕜 x h (to_span_nonzero_singleton 𝕜 x h c) = c :=
+(to_span_nonzero_singleton 𝕜 x h).symm_apply_apply c
+
+@[simp] lemma to_span_nonzero_singleton_coord {x : E} (h : x ≠ 0) (y : 𝕜 ∙ x) :
+  to_span_nonzero_singleton 𝕜 x h (coord 𝕜 x h y) = y :=
+(to_span_nonzero_singleton 𝕜 x h).apply_symm_apply y
+
+@[simp] lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
   haveI : nontrivial (𝕜 ∙ x) := submodule.nontrivial_span_singleton h,
@@ -1108,7 +1123,7 @@ begin
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 
-lemma coord_self (x : E) (h : x ≠ 0) :
+@[simp] lemma coord_self (x : E) (h : x ≠ 0) :
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 
@@ -1134,16 +1149,25 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 variables {𝕜}
 
-def on_prod₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
-((f.comp $ fst 𝕜 E F).flip.comp (snd 𝕜 E F)).flip
+variables {E' F' : Type*} [normed_group E'] [normed_group F']
+  [normed_space 𝕜 E'] [normed_space 𝕜 F']
 
-@[simp] lemma on_prod₂_apply (f : E →L[𝕜] F →L[𝕜] G) (x y : E × F) :
-  f.on_prod₂ x y = f x.1 y.2 := rfl
+/--
+Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`.
+-/
+def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) :
+  E' →L[𝕜] F' →L[𝕜] G :=
+((f.comp gE).flip.comp gF).flip
+
+@[simp] lemma bilinear_comp_apply (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F)
+  (x : E') (y : F') :
+  f.bilinear_comp gE gF x y = f (gE x) (gF y) :=
+rfl
 
 /-- Derivative of a continuous bilinear map `f : E →L[𝕜] F →L[𝕜] G` interpreted as a map `E × F → G`
 at point `p : E × F` evaluated at `q : E × F`, as a continuous bilinear map. -/
 def deriv₂ (f : E →L[𝕜] F →L[𝕜] G) : (E × F) →L[𝕜] (E × F) →L[𝕜] G :=
-f.on_prod₂ + f.on_prod₂.flip
+f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst _ _ _)
 
 @[simp] lemma coe_deriv₂ (f : E →L[𝕜] F →L[𝕜] G) (p : E × F) :
   ⇑(f.deriv₂ p) = λ q : E × F, f p.1 q.2 + f q.1 p.2 := rfl

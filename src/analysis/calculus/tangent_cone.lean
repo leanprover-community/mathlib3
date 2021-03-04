@@ -246,7 +246,8 @@ section unique_diff
 /-!
 ### Properties of `unique_diff_within_at` and `unique_diff_on`
 
-This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
+This section is devoted to properties of the predicates
+`unique_diff_within_at` and `unique_diff_on`. -/
 
 lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
   unique_diff_within_at 𝕜 s x :=

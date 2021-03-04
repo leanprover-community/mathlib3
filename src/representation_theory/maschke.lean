@@ -7,6 +7,7 @@ import algebra.monoid_algebra
 import algebra.invertible
 import algebra.char_p.basic
 import linear_algebra.basis
+import ring_theory.simple_module
 
 /-!
 # Maschke's theorem
@@ -175,4 +176,9 @@ theorem is_complemented (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
   is_complemented (submodule (monoid_algebra k G) V) := ⟨exists_is_compl not_dvd⟩
 
 end submodule
+
+theorem is_semisimple_module (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
+  is_semisimple_module (monoid_algebra k G) V :=
+submodule.is_complemented not_dvd
+
 end monoid_algebra

@@ -81,15 +81,6 @@ class linear_ordered_comm_monoid (α : Type*)
 class linear_ordered_comm_monoid_with_zero (α : Type*)
   extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=
 (zero_le_one : (0 : α) ≤ 1)
-(lt_of_mul_lt_mul_left := λ x y z, by {
-  apply imp_of_not_imp_not,
-  intro h,
-  apply not_lt_of_le,
-  apply mul_le_mul_left,
-  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
-  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
-  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
-  exact le_of_not_lt h })
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/

@@ -336,6 +336,17 @@ end mono
 
 end ordered_comm_monoid
 
+/-- Pullback a `linear_ordered_comm_monoid` under an injective map. -/
+@[to_additive function.injective.linear_ordered_add_comm_monoid
+"Pullback an `ordered_add_comm_monoid` under an injective map."]
+def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α] {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  linear_ordered_comm_monoid β :=
+{ .. hf.ordered_comm_monoid f one mul,
+  .. linear_order.lift f hf }
+
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos h h
 

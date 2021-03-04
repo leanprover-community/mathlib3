@@ -782,6 +782,13 @@ lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
 by simp [mul_def, finsupp.single_apply]
 
+@[simp]
+lemma finset.mem_image_prod_map_equiv {α β α' β'} [decidable_eq (α' × β')]
+    (s : finset (α × β)) (f : α ≃ α') (g : β ≃ β') (x : α' × β') :
+  x ∈ s.image (prod.map f g) ↔ (f.symm x.1, g.symm x.2) ∈ s :=
+finset.mem_image.trans ⟨by rintros ⟨⟨a,b⟩, hab, rfl⟩; simpa using hab,
+  λ h, ⟨_, h, by simp⟩⟩
+
 lemma mul_apply_antidiagonal (f g : add_monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ p : G × G, p ∈ s ↔ p.1 + p.2 = x) :
   (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
@@ -796,16 +803,10 @@ begin
   equiv_rw @of_add G at s,
   rw monoid_algebra.mul_apply_antidiagonal f g _ s,
   { rw [finset.sum_map''] {md := tactic.transparency.semireducible}, simp, },
-  { equiv_rw @to_add G, simpa using hs },
+  { equiv_rw @to_add G, simpa [multiplicative.ext_iff, (<$>), -finset.mem_image] using hs, },
   apply_instance,
   apply_instance,
 end
--- let s' := (of_add.prod_congr of_add).finset_congr s in
--- have h : _, from monoid_algebra.mul_apply_antidiagonal f.to_multiplicative g.to_multiplicative
---   (of_add x) s' (λ ⟨p1, p2⟩, by simp [s', hs, multiplicative.ext_iff]),
--- by simpa using h
--- by simpa using monoid_algebra.mul_apply_antidiagonal f.to_multiplicative g.to_multiplicative
---   (of_add x) (s.map ⟨λ x : G × G, (of_add x.1, of_add x.2), _⟩)
 
 lemma support_mul (a b : add_monoid_algebra k G) :
   (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ + a₂}) :=

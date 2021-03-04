@@ -25,8 +25,8 @@ We also prove the following facts.
 * Every compact space is paracompact, see instance `paracompact_of_compact`.
 
 * A locally compact sigma compact Hausdorff space is paracompact, see instance
-  `paracompact_of_locally_compact_sigma_compact`. Moreover, we can choose a locally finite refinement
-  with sets in a given collection of filter bases of `𝓝 x, `x : X`, see
+  `paracompact_of_locally_compact_sigma_compact`. Moreover, we can choose a locally finite
+  refinement with sets in a given collection of filter bases of `𝓝 x, `x : X`, see
   `refinement_of_locally_compact_sigma_compact_of_nhds_basis`. For example, in a proper metric space
   every open covering `⋃ i, s i` admits a refinement `⋃ i, metric.ball (c i) (r i)`.
 

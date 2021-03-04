@@ -27,7 +27,7 @@ structure bounded_continuous_function
   Type (max u v) :=
 (bounded' : ∃C, ∀x y:α, dist (to_fun x) (to_fun y) ≤ C)
 
-local infixr ` →ᵇ `:25 := bounded_continuous_function
+localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
 
 namespace bounded_continuous_function
 section basics
@@ -53,11 +53,20 @@ rfl
 def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
 ⟨f, bounded_range_iff.1 $ bounded_of_compact $ compact_range f.continuous⟩
 
+@[simp] lemma mk_of_compact_apply [compact_space α] (f : C(α, β)) (a : α) :
+  mk_of_compact f a = f a :=
+rfl
+
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
 def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) :
   α →ᵇ β :=
 ⟨⟨f, continuous_of_discrete_topology⟩, hf⟩
+
+@[simp] lemma mk_of_discrete_apply
+  [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) (a : α) :
+  mk_of_discrete f hf a = f a :=
+rfl
 
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=

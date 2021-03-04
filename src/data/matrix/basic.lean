@@ -77,6 +77,10 @@ instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
 instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
+instance [unique α] : unique (matrix m n α) := pi.unique
+instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
+instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
+function.nontrivial
 
 @[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
 @[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
@@ -249,17 +253,17 @@ by simp [dot_product, mul_add, finset.sum_add_distrib]
 @[simp] lemma diagonal_dot_product [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product (diagonal v i) w = v i * w i :=
 have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma dot_product_diagonal [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product v (diagonal w i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma dot_product_diagonal' [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product v (λ j, diagonal w j i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma neg_dot_product [ring α] (v w : m → α) : dot_product (-v) w = - dot_product v w :=
 by simp [dot_product]
@@ -370,7 +374,7 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
--- TODO: there should be a way to avoid restating these for each `foo_hom`. 
+-- TODO: there should be a way to avoid restating these for each `foo_hom`.
 /-- A version of `one_map` where `f` is a ring hom. -/
 @[simp] lemma ring_hom_map_one [decidable_eq n]
   {β : Type w} [semiring β] (f : α →+* β) :
@@ -797,7 +801,7 @@ section star_ring
 variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
 
 /--
-When `R` is a *-(semi)ring, `matrix n n R` becomes a *-(semi)ring with
+When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance : star_ring (matrix n n R) :=
@@ -807,6 +811,8 @@ instance : star_ring (matrix n n R) :=
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
 
 @[simp] lemma star_apply (M : matrix n n R) (i j) : star M i j = star (M j i) := rfl
+
+lemma star_mul (M N : matrix n n R) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 
 end star_ring
 

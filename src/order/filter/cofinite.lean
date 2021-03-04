@@ -41,7 +41,7 @@ def cofinite : filter α :=
   (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
 
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
-mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }
+⟨mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
@@ -78,7 +78,7 @@ begin
     use (hs.to_finset.sup id) + 1,
     assume b hb,
     by_contradiction hbs,
-    have := hs.to_finset.subset_range_sup_succ (finite.mem_to_finset.2 hbs),
+    have := hs.to_finset.subset_range_sup_succ (hs.mem_to_finset.2 hbs),
     exact not_lt_of_le hb (finset.mem_range.1 this) },
   { rintros ⟨N, hN⟩,
     apply (finite_lt_nat N).subset,

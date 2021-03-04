@@ -158,6 +158,9 @@ e.injective.subsingleton
 protected theorem subsingleton.symm (e : α ≃ β) [subsingleton α] : subsingleton β :=
 e.symm.injective.subsingleton
 
+lemma subsingleton_iff (e : α ≃ β) : subsingleton α ↔ subsingleton β :=
+⟨λ h, by exactI e.symm.subsingleton, λ h, by exactI e.subsingleton⟩
+
 instance equiv_subsingleton_cod [subsingleton β] :
   subsingleton (α ≃ β) :=
 ⟨λ f g, equiv.ext $ λ x, subsingleton.elim _ _⟩
@@ -234,6 +237,17 @@ end
 
 @[simp] theorem cast_apply {α β} (h : α = β) (x : α) : equiv.cast h x = cast h x := rfl
 
+@[simp] theorem cast_symm {α β} (h : α = β) : (equiv.cast h).symm = equiv.cast h.symm := rfl
+
+@[simp] theorem cast_refl {α} (h : α = α := rfl) : equiv.cast h = equiv.refl α := rfl
+
+@[simp] theorem cast_trans {α β γ} (h : α = β) (h2 : β = γ) :
+  (equiv.cast h).trans (equiv.cast h2) = equiv.cast (h.trans h2) :=
+ext $ λ x, by { substs h h2, refl }
+
+lemma cast_eq_iff_heq {α β} (h : α = β) {a : α} {b : β} : equiv.cast h a = b ↔ a == b :=
+by { subst h, simp }
+
 lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=
 ⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
 
@@ -259,6 +273,24 @@ equiv.ext $ assume a, rfl
 theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
+
+@[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) : injective (f ∘ e) ↔ injective f :=
+injective.of_comp_iff' f e.bijective
+
+@[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) : injective (e ∘ f) ↔ injective f :=
+e.injective.of_comp_iff f
+
+@[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) : surjective (f ∘ e) ↔ surjective f :=
+e.surjective.of_comp_iff f
+
+@[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) : surjective (e ∘ f) ↔ surjective f :=
+surjective.of_comp_iff' e.bijective f
+
+@[simp] lemma bijective_comp (e : α ≃ β) (f : β → γ) : bijective (f ∘ e) ↔ bijective f :=
+e.bijective.of_comp_iff f
+
+@[simp] lemma comp_bijective (f : α → β) (e : β ≃ γ) : bijective (e ∘ f) ↔ bijective f :=
+bijective.of_comp_iff' e.bijective f
 
 /-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`
 is equivalent to the type of equivalences `β ≃ δ`. -/
@@ -330,25 +362,19 @@ by ext; simp
 by ext; simp
 
 @[simp] lemma preimage_subset {α β} (e : α ≃ β) (s t : set β) : e ⁻¹' s ⊆ e ⁻¹' t ↔ s ⊆ t :=
-⟨by simpa using @set.preimage_mono _ _ e.symm (e ⁻¹' s) (e ⁻¹' t),
- set.preimage_mono⟩
+e.surjective.preimage_subset_preimage_iff
 
 @[simp] lemma image_subset {α β} (e : α ≃ β) (s t : set α) : e '' s ⊆ e '' t ↔ s ⊆ t :=
-⟨by { rw ← e.preimage_subset, simp }, set.image_subset _⟩
+set.image_subset_image_iff e.injective
 
 @[simp] lemma image_eq_iff_eq {α β} (e : α ≃ β) (s t : set α) : e '' s = e '' t ↔ s = t :=
-by simp [set.subset.antisymm_iff, e.image_subset]
+set.image_eq_image e.injective
 
 lemma preimage_eq_iff_eq_image {α β} (e : α ≃ β) (s t) : e ⁻¹' s = t ↔ s = e '' t :=
-by { rw ← e.image_eq_iff_eq, simp }
+set.preimage_eq_iff_eq_image e.bijective
 
 lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
-by { rw ← e.image_eq_iff_eq, simp }
-
-@[simp] protected lemma image_univ {α β} (e : α ≃ β) : e '' set.univ = set.univ :=
-by { ext, simp }
-@[simp] protected lemma preimage_univ {α β} (e : α ≃ β) : e ⁻¹' set.univ = set.univ :=
-by { ext, simp }
+set.eq_preimage_iff_image_eq e.bijective
 
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (h : α → false) : α ≃ empty :=
@@ -780,6 +806,63 @@ def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
   (a : α) (h : ¬ p a) :
   (sum_compl p).symm a = sum.inr ⟨a, h⟩ := dif_neg h
 
+open equiv
+
+variables {ε : Type*} {p : ε → Prop} [decidable_pred p]
+variables (ep ep' : perm {a // p a}) (en en' : perm {a // ¬ p a})
+
+/-- Combining permutations on `ε` that permute only inside or outside the subtype
+split induced by `p : ε → Prop` constructs a permutation on `ε`. -/
+def perm.subtype_congr : equiv.perm ε :=
+perm_congr (sum_compl p) (sum_congr ep en)
+
+lemma perm.subtype_congr.apply (a : ε) :
+  ep.subtype_congr en a = if h : p a then ep ⟨a, h⟩ else en ⟨a, h⟩ :=
+by { by_cases h : p a; simp [perm.subtype_congr, h] }
+
+@[simp] lemma perm.subtype_congr.left_apply {a : ε} (h : p a) :
+  ep.subtype_congr en a = ep ⟨a, h⟩ :=
+by simp [perm.subtype_congr.apply, h]
+
+@[simp] lemma perm.subtype_congr.left_apply_subtype (a : {a // p a}) :
+  ep.subtype_congr en a = ep a :=
+by { convert perm.subtype_congr.left_apply _ _ a.property, simp }
+
+@[simp] lemma perm.subtype_congr.right_apply {a : ε} (h : ¬ p a) :
+  ep.subtype_congr en a = en ⟨a, h⟩ :=
+by simp [perm.subtype_congr.apply, h]
+
+@[simp] lemma perm.subtype_congr.right_apply_subtype (a : {a // ¬ p a}) :
+  ep.subtype_congr en a = en a :=
+by { convert perm.subtype_congr.right_apply _ _ a.property, simp }
+
+@[simp] lemma perm.subtype_congr.refl :
+  perm.subtype_congr (equiv.refl {a // p a}) (equiv.refl {a // ¬ p a}) = equiv.refl ε :=
+by { ext x, by_cases h : p x; simp [h] }
+
+@[simp] lemma perm.subtype_congr.symm :
+  (ep.subtype_congr en).symm = perm.subtype_congr ep.symm en.symm :=
+begin
+  ext x,
+  by_cases h : p x,
+  { have : p (ep.symm ⟨x, h⟩) := subtype.property _,
+    simp [perm.subtype_congr.apply, h, symm_apply_eq, this] },
+  { have : ¬ p (en.symm ⟨x, h⟩) := subtype.property (en.symm _),
+    simp [perm.subtype_congr.apply, h, symm_apply_eq, this] }
+end
+
+@[simp] lemma perm.subtype_congr.trans :
+  (ep.subtype_congr en).trans (ep'.subtype_congr en') =
+    perm.subtype_congr (ep.trans ep') (en.trans en') :=
+begin
+  ext x,
+  by_cases h : p x,
+  { have : p (ep ⟨x, h⟩) := subtype.property _,
+    simp [perm.subtype_congr.apply, h, this] },
+  { have : ¬ p (en ⟨x, h⟩) := subtype.property (en _),
+    simp [perm.subtype_congr.apply, h, symm_apply_eq, this] }
+end
+
 end sum_compl
 
 section subtype_preimage
@@ -1137,7 +1220,8 @@ section
 open subtype
 
 /-- If `α` is equivalent to `β` and the predicates `p : α → Prop` and `q : β → Prop` are equivalent
-at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`. -/
+at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`.
+For the statement where `α = β`, that is, `e : perm α`, see `perm.subtype_perm`. -/
 def subtype_equiv {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
 ⟨λ x, ⟨e x, (h _).1 x.2⟩,
@@ -1145,14 +1229,29 @@ def subtype_equiv {p : α → Prop} {q : β → Prop}
  λ ⟨x, h⟩, subtype.ext_val $ by simp,
  λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
 
+@[simp] lemma subtype_equiv_refl {p : α → Prop}
+  (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :
+  (equiv.refl α).subtype_equiv h = equiv.refl {a : α // p a} :=
+by { ext, refl }
+
+@[simp] lemma subtype_equiv_symm {p : α → Prop} {q : β → Prop} (e : α ≃ β)
+  (h : ∀ (a : α), p a ↔ q (e a)) :
+  (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
+    convert (h $ e.symm a).symm,
+    exact (e.apply_symm_apply a).symm,
+  }) :=
+rfl
+
+@[simp] lemma subtype_equiv_trans {p : α → Prop} {q : β → Prop} {r : γ → Prop}
+  (e : α ≃ β) (f : β ≃ γ)
+  (h : ∀ (a : α), p a ↔ q (e a)) (h' : ∀ (b : β), q b ↔ r (f b)):
+  (e.subtype_equiv h).trans (f.subtype_equiv h') =
+    (e.trans f).subtype_equiv (λ a, (h a).trans (h' $ e a)) :=
+rfl
+
 @[simp] lemma subtype_equiv_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
   (h : ∀ (a : α), p a ↔ q (e a)) (x : {x // p x}) :
   e.subtype_equiv h x = ⟨e x, (h _).1 x.2⟩ :=
-rfl
-
-@[simp] lemma subtype_equiv_symm_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
-  (h : ∀ (a : α), p a ↔ q (e a)) (y : {y // q y}) :
-  (e.subtype_equiv h).symm y = ⟨e.symm y, (h _).2 $ (e.apply_symm_apply y).symm ▸ y.2⟩ :=
 rfl
 
 /-- If two predicates `p` and `q` are pointwise equivalent, then `{x // p x}` is equivalent to
@@ -1550,7 +1649,7 @@ lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set 
 begin
   ext ⟨b, a, has, rfl⟩,
   have : ∀(h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a := λ h, (classical.some_spec h).2,
-  simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this],
+  simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
 end
 
 /-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
@@ -1824,7 +1923,7 @@ protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
   (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=
 by simpa [equiv.image_eq_preimage] using (equiv.set.congr e).forall_congr_left'
 
-@[simp] protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
+protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
   f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
 by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 

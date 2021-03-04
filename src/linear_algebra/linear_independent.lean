@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
 import linear_algebra.finsupp
+import linear_algebra.prod
 import order.zorn
 import data.finset.order
 import data.equiv.fin
@@ -312,7 +313,7 @@ begin
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
     rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
     exact (h i).mono (subset.trans hI $ bUnion_subset $
-      λ j hj, hi j (finite.mem_to_finset.2 hj)) },
+      λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { refine (linear_independent_empty _ _).mono _,
     rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
 end
@@ -841,7 +842,13 @@ lemma linear_independent_fin_cons {n} {v : fin n → V} :
     linear_independent K v ∧ x ∉ submodule.span K (range v) :=
 begin
   rw [← linear_independent_equiv (fin_succ_equiv n).symm, linear_independent_option],
-  simp [(∘), fin_succ_equiv, option.coe_def, fin.cons_succ, *]
+  convert iff.rfl,
+  { ext,
+    -- TODO: why doesn't simp use `fin_succ_equiv_symm_coe` here?
+    rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] },
+  { rw [comp_app, fin_succ_equiv_symm_none, fin.cons_zero] },
+  { ext,
+    rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] }
 end
 
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)

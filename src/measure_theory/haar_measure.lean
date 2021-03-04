@@ -54,7 +54,7 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical
+open_locale nnreal classical ennreal
 
 variables {G : Type*} [group G]
 
@@ -412,8 +412,8 @@ begin
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
 end
 
-/-- The function `chaar` interpreted in `ennreal` -/
-@[reducible] def echaar (K₀ : positive_compacts G) (K : compacts G) : ennreal :=
+/-- The function `chaar` interpreted in `ℝ≥0∞` -/
+@[reducible] def echaar (K₀ : positive_compacts G) (K : compacts G) : ℝ≥0∞ :=
 show nnreal, from ⟨chaar K₀ K, chaar_nonneg _ _⟩
 
 /-! We only prove the properties for `echaar` that we use at least twice below. -/
@@ -470,12 +470,12 @@ lemma haar_outer_measure_le_echaar {K₀ : positive_compacts G} {U : set G} (hU 
 (outer_measure.of_content_le echaar_sup_le echaar_mono ⟨U, hU⟩ K h : _)
 
 lemma haar_outer_measure_exists_open {K₀ : positive_compacts G} {A : set G}
-  (hA : haar_outer_measure K₀ A < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hA : haar_outer_measure K₀ A < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ U : opens G, A ⊆ U ∧ haar_outer_measure K₀ U ≤ haar_outer_measure K₀ A + ε :=
 outer_measure.of_content_exists_open echaar_sup_le hA hε
 
 lemma haar_outer_measure_exists_compact {K₀ : positive_compacts G} {U : opens G}
-  (hU : haar_outer_measure K₀ U < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
+  (hU : haar_outer_measure K₀ U < ∞) {ε : ℝ≥0} (hε : 0 < ε) :
   ∃ K : compacts G, K.1 ⊆ U ∧ haar_outer_measure K₀ U ≤ haar_outer_measure K₀ K.1 + ε :=
 outer_measure.of_content_exists_compact echaar_sup_le hU hε
 
@@ -502,7 +502,7 @@ lemma haar_outer_measure_self_pos {K₀ : positive_compacts G} :
   ((haar_outer_measure K₀).mono interior_subset)
 
 lemma haar_outer_measure_lt_top_of_is_compact [locally_compact_space G] {K₀ : positive_compacts G}
-  {K : set G} (hK : is_compact K) : haar_outer_measure K₀ K < ⊤ :=
+  {K : set G} (hK : is_compact K) : haar_outer_measure K₀ K < ∞ :=
 begin
   rcases exists_compact_superset hK with ⟨F, h1F, h2F⟩,
   refine ((haar_outer_measure K₀).mono h2F).trans_lt _,
@@ -612,7 +612,7 @@ begin
 end
 
 theorem regular_of_left_invariant (hμ : is_mul_left_invariant μ) {K} (hK : is_compact K)
-  (h2K : (interior K).nonempty) (hμK : μ K < ⊤) : regular μ :=
+  (h2K : (interior K).nonempty) (hμK : μ K < ∞) : regular μ :=
 begin
   rw [haar_measure_unique hμ ⟨K, hK, h2K⟩],
   exact regular.smul regular_haar_measure hμK

@@ -32,14 +32,14 @@ uniformly continuous.
 ## Implementation notes
 
 The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
-coercions both to `ℝ` and `ennreal`. Constructors whose names end with `'` take `K : ℝ` as an
+coercions both to `ℝ` and `ℝ≥0∞`. Constructors whose names end with `'` take `K : ℝ` as an
 argument, and return `lipschitz_with (nnreal.of_real K) f`.
 -/
 
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal
+open_locale topological_space nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
@@ -95,7 +95,7 @@ lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
 lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
 
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
-  (K⁻¹ : ennreal) * edist (f x) (f y) ≤ edist x y :=
+  (K⁻¹ : ℝ≥0∞) * edist (f x) (f y) ≤ edist x y :=
 begin
   have := h x y,
   rw [mul_comm] at this,

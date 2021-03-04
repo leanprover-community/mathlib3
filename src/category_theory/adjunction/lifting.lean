@@ -199,23 +199,25 @@ noncomputable def monadic_adjoint_triangle_lift (U : B ⥤ C) [monadic_right_adj
   [is_right_adjoint (R ⋙ U)] :
   is_right_adjoint R :=
 begin
-  let R' : A ⥤ _ := R ⋙ monad.comparison U,
+  let R' : A ⥤ _ := R ⋙ monad.comparison (adjunction.of_right_adjoint U),
   suffices : is_right_adjoint R',
-  { let : is_right_adjoint (R' ⋙ (monad.comparison U).inv),
+  { let : is_right_adjoint (R' ⋙ (monad.comparison (adjunction.of_right_adjoint U)).inv),
     { resetI,
       apply_instance },
-    { let : R' ⋙ (monad.comparison U).inv ≅ R :=
-        (iso_whisker_left R (monad.comparison U).fun_inv_id : _) ≪≫ R.right_unitor,
+    { let : R' ⋙ (monad.comparison (adjunction.of_right_adjoint U)).inv ≅ R :=
+        (iso_whisker_left R (monad.comparison _).as_equivalence.unit_iso.symm : _) ≪≫
+          R.right_unitor,
       exactI adjunction.right_adjoint_of_nat_iso this } },
-  let : is_right_adjoint (R' ⋙ monad.forget (left_adjoint U ⋙ U)) :=
-    adjunction.right_adjoint_of_nat_iso (iso_whisker_left R (monad.comparison_forget U).symm : _),
-  letI : Π X, regular_epi ((monad.adj (left_adjoint U ⋙ U)).counit.app X),
+  let : is_right_adjoint (R' ⋙ monad.forget (adjunction.of_right_adjoint U).to_monad) :=
+    adjunction.right_adjoint_of_nat_iso
+      (iso_whisker_left R (monad.comparison_forget (adjunction.of_right_adjoint U)).symm : _),
+  letI : Π X, regular_epi ((monad.adj (adjunction.of_right_adjoint U).to_monad).counit.app X),
   { intro X,
     dsimp only [monad.adj_counit, functor.comp_map, monad.forget_obj, functor.id_obj,
                 functor.comp_obj, monad.free_obj_A],
     simp only [functor.map_id, id_comp],
     exact ⟨_, _, _, _, monad.beck_algebra_coequalizer X⟩ },
-  exact adjoint_triangle_lift R' (monad.adj (left_adjoint U ⋙ U)),
+  exact adjoint_triangle_lift R' (monad.adj _),
 end
 
 variables {D : Type u₄}

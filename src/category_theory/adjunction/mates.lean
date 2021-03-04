@@ -113,7 +113,7 @@ def transfer_nat_trans : (G ⋙ L₂ ⟶ L₁ ⋙ H) ≃ (R₁ ⋙ G ⟶ H ⋙ R
 lemma transfer_nat_trans_counit (f : G ⋙ L₂ ⟶ L₁ ⋙ H) (Y : D) :
   L₂.map ((transfer_nat_trans adj₁ adj₂ f).app _) ≫ adj₂.counit.app _ =
     f.app _ ≫ H.map (adj₁.counit.app Y) :=
-by simp [transfer_nat_trans]
+by { erw functor.map_comp, simp }
 
 lemma unit_transfer_nat_trans (f : G ⋙ L₂ ⟶ L₁ ⋙ H) (X : C) :
   G.map (adj₁.unit.app X) ≫ (transfer_nat_trans adj₁ adj₂ f).app _ =

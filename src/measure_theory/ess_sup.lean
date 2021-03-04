@@ -12,7 +12,7 @@ We define the essential supremum and infimum of a function `f : α → β` with 
 `μ` on `α`. The essential supremum is the infimum of the constants `c : β` such that `f x ≤ c`
 almost everywhere.
 
-TODO: The essential supremum of functions `α → ennreal` is used in particular to define the norm in
+TODO: The essential supremum of functions `α → ℝ≥0∞` is used in particular to define the norm in
 the `L∞` space (see measure_theory/lp_space.lean).
 
 There is a different quantity which is sometimes also called essential supremum: the least
@@ -27,6 +27,7 @@ sense). We do not define that quantity here, which is simply the supremum of a m
 -/
 
 open measure_theory
+open_locale ennreal
 
 variables {α β : Type*} [measurable_space α] {μ : measure α}
 
@@ -66,7 +67,7 @@ filter.liminf_le_liminf hfg
 
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
 begin
-  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [filter.ne_bot, ne.def, ae_eq_bot],
+  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [filter.ne_bot_iff, ne.def, ae_eq_bot],
   exact filter.limsup_const c,
 end
 
@@ -107,17 +108,17 @@ end complete_linear_order
 
 namespace ennreal
 
-lemma ae_le_ess_sup (f : α → ennreal) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
+lemma ae_le_ess_sup (f : α → ℝ≥0∞) : ∀ᵐ y ∂μ, f y ≤ ess_sup f μ :=
 eventually_le_limsup f
 
-lemma ess_sup_eq_zero_iff {f : α → ennreal} : ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
+@[simp] lemma ess_sup_eq_zero_iff {f : α → ℝ≥0∞} : ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
 limsup_eq_zero_iff
 
-lemma ess_sup_const_mul {f : α → ennreal} {a : ennreal} :
+lemma ess_sup_const_mul {f : α → ℝ≥0∞} {a : ℝ≥0∞} :
   ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
 limsup_const_mul
 
-lemma ess_sup_add_le (f g : α → ennreal) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
+lemma ess_sup_add_le (f g : α → ℝ≥0∞) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
 limsup_add_le f g
 
 end ennreal

@@ -195,7 +195,8 @@ section
     exact IH _ h'
   end
 
-  theorem lex_acc_inr (aca : ∀ a, acc (lex ra rb) (inl a)) {b} (acb : acc rb b) : acc (lex ra rb) (inr b) :=
+  theorem lex_acc_inr (aca : ∀ a, acc (lex ra rb) (inl a)) {b} (acb : acc rb b) :
+    acc (lex ra rb) (inr b) :=
   begin
     induction acb with b H IH,
     constructor, intros y h,

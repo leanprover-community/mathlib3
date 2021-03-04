@@ -713,7 +713,7 @@ def prime_compl :
   submonoid R :=
 { carrier := (Iᶜ : set R),
   one_mem' := by convert I.ne_top_iff_one.1 hp.1; refl,
-  mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.2 hxy) hnx hny }
+  mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.mem_or_mem hxy) hnx hny }
 
 end ideal
 
@@ -844,11 +844,11 @@ begin
   have : a * s ∈ I,
   { rw zero_mul at hc,
     let this : (a * ↑s - ↑b) * ↑c ∈ I := hc.symm ▸ I.zero_mem,
-    cases hI.right this with h1 h2,
+    cases hI.mem_or_mem this with h1 h2,
     { simpa using I.add_mem h1 b.2 },
     { exfalso,
       refine hM ⟨c.2, h2⟩ } },
-  cases hI.right this with h1 h2,
+  cases hI.mem_or_mem this with h1 h2,
   { exact h1 },
   { exfalso,
     refine hM ⟨s.2, h2⟩ }
@@ -870,21 +870,22 @@ lemma is_prime_iff_is_prime_disjoint (J : ideal S) :
   J.is_prime ↔ (ideal.comap f.to_map J).is_prime ∧ disjoint (M : set R) ↑(ideal.comap f.to_map J) :=
 begin
   split,
-  { refine λ h, ⟨⟨_, _⟩, λ m hm, h.1 (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
-    { refine λ hJ, h.left _,
+  { refine λ h, ⟨⟨_, _⟩, λ m hm,
+      h.ne_top (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
+    { refine λ hJ, h.ne_top _,
       rw [eq_top_iff, ← f.order_embedding.le_iff_le],
       exact le_of_eq hJ.symm },
     { intros x y hxy,
       rw [ideal.mem_comap, ring_hom.map_mul] at hxy,
-      exact h.right hxy } },
-  { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), _⟩,
+      exact h.mem_or_mem hxy } },
+  { refine λ h, ⟨λ hJ, h.left.ne_top (eq_top_iff.2 _), _⟩,
     { rwa [eq_top_iff, ← f.order_embedding.le_iff_le] at hJ },
     { intros x y hxy,
       obtain ⟨a, s, ha⟩ := mk'_surjective f x,
       obtain ⟨b, t, hb⟩ := mk'_surjective f y,
       have : f.mk' (a * b) (s * t) ∈ J := by rwa [mk'_mul, ha, hb],
       rw [mk'_mem_iff, ← ideal.mem_comap] at this,
-      replace this := h.left.right this,
+      replace this := h.left.mem_or_mem this,
       rw [ideal.mem_comap, ideal.mem_comap] at this,
       rwa [← ha, ← hb, mk'_mem_iff, mk'_mem_iff] } }
 end
@@ -1004,7 +1005,7 @@ by rw [ring_hom.map_mul, map_eq]
 
 lemma is_noetherian_ring (h : is_noetherian_ring R) : is_noetherian_ring f.codomain :=
 begin
-  rw [is_noetherian_ring, is_noetherian_iff_well_founded] at h ⊢,
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at h ⊢,
   exact order_embedding.well_founded (f.order_embedding.dual) h
 end
 
@@ -1176,7 +1177,7 @@ begin
   ext x,
   split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
   { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
-      disjoint_compl_left).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
+      disjoint_compl_left).ne_top (ideal.eq_top_of_is_unit_mem _ hx h) },
   { obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
     contrapose! hx,
     rw is_unit_iff_exists_inv,
@@ -1188,7 +1189,8 @@ end
 
 /-- The unique maximal ideal of the localization at `P.prime_compl` lies over the ideal `P`. -/
 lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
-  ideal.comap (localization.of P.prime_compl).to_map (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
+  ideal.comap (localization.of P.prime_compl).to_map
+  (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
 begin
   let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
   refine le_antisymm (λ x hx, _)
@@ -1212,7 +1214,8 @@ begin
   refine ⟨f.injective (le_non_zero_divisors_of_domain hM), λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := f.mk'_surjective x,
   obtain ⟨n, hn⟩ := hR.mul_inv_cancel (λ hm0, hM (hm0 ▸ hm) : m ≠ 0),
-  exact ⟨r * n, by erw [f.eq_mk'_iff_mul_eq, ← f.to_map.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+  exact ⟨r * n,
+    by erw [f.eq_mk'_iff_mul_eq, ← f.to_map.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
 
 variables (R) {A : Type*} [integral_domain A]
@@ -1361,7 +1364,8 @@ begin
     exact f.to_map_eq_zero_iff.mp h }
 end
 
-/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
+/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
+-/
 lemma comap_is_algebraic_iff [algebra A L] [algebra f.codomain L] [is_scalar_tower A f.codomain L] :
   algebra.is_algebraic A L ↔ algebra.is_algebraic f.codomain L :=
 begin
@@ -1549,7 +1553,8 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  ((localization.of M).map (M.mem_map_of_mem (f : R →* S)) (localization.of (M.map ↑f))).is_integral :=
+  ((localization.of M).map (M.mem_map_of_mem (f : R →* S))
+  (localization.of (M.map ↑f))).is_integral :=
 @is_integral_localization R _ M S _ _ _ _ _ f.to_algebra _ _ hf
 
 end is_integral

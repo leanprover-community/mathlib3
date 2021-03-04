@@ -55,7 +55,8 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
-instance : inhabited (Module R) := ⟨of R punit⟩
+instance : has_zero (Module R) := ⟨of R punit⟩
+instance : inhabited (Module R) := ⟨0⟩
 
 @[simp]
 lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
@@ -72,7 +73,7 @@ instance : subsingleton (of R punit) :=
 by { rw coe_of R punit, apply_instance }
 
 instance : has_zero_object (Module.{v} R) :=
-{ zero := of R punit,
+{ zero := 0,
   unique_to := λ X,
   { default := (0 : punit →ₗ[R] X),
     uniq := λ _, linear_map.ext $ λ x,

@@ -231,8 +231,9 @@ end
 
 end linear_ordered_cancel_comm_monoid
 
-section linear_ordered_comm_ring
-variables [linear_ordered_comm_ring β]
+section ordered_comm_ring
+
+variables [ordered_comm_ring β]
 open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -240,9 +241,9 @@ lemma prod_nonneg {s : finset α} {f : α → β}
   (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
 prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 
-
 /- this is also true for a ordered commutative multiplicative monoid -/
-lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
+lemma prod_pos [nontrivial β] {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) :
+  0 < (∏ x in s, f x) :=
 prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -281,7 +282,7 @@ begin
     intros j h1j h2j, refine le_trans (hg j h1j) (hgf j h1j h2j) }
 end
 
-end linear_ordered_comm_ring
+end ordered_comm_ring
 
 section canonically_ordered_comm_semiring
 
@@ -316,6 +317,19 @@ end
 end canonically_ordered_comm_semiring
 
 end finset
+
+namespace fintype
+
+variables [fintype α]
+
+@[mono] lemma sum_mono [ordered_add_comm_monoid β] : monotone (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, finset.sum_le_sum $ λ x _, hfg x
+
+lemma sum_strict_mono [ordered_cancel_add_comm_monoid β] : strict_mono (λ f : α → β, ∑ x, f x) :=
+λ f g hfg, let ⟨hle, i, hlt⟩ := pi.lt_def.mp hfg in
+  finset.sum_lt_sum (λ i _, hle i) ⟨i, finset.mem_univ i, hlt⟩
+
+end fintype
 
 namespace with_top
 open finset

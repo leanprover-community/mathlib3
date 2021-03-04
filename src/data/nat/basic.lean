@@ -94,6 +94,10 @@ instance : canonically_ordered_comm_semiring ℕ :=
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
+instance : canonically_linear_ordered_add_monoid ℕ :=
+{ .. (infer_instance : canonically_ordered_add_monoid ℕ),
+  .. nat.linear_order }
+
 instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
   semilattice_sup_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
@@ -105,9 +109,13 @@ theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
 instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
-{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
-  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
+{ mul_left_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
+  mul_right_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
+
+attribute [simp] nat.not_lt_zero
 
 /-!
 Inject some simple facts into the type class system.
@@ -215,6 +223,9 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
+
+lemma eq_of_le_of_lt_succ {n m : ℕ} (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
+nat.le_antisymm (le_of_succ_le_succ h₂) h₁
 
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
@@ -339,6 +350,13 @@ begin
   rw add_assoc,
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
+
+-- TODO: generalize to some ordered add_monoids, based on #6145
+lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
+by { refine le_trans _ h, simp }
+
+lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
+by { refine le_trans _ h, simp }
 
 /-! ### `pred` -/
 
@@ -1153,6 +1171,13 @@ strict_mono.injective (pow_right_strict_mono k)
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
 
+lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
+  n * q < a * q ^ (n + 1) :=
+begin
+  rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
+  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+end
+
 end nat
 
 lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
@@ -1241,6 +1266,9 @@ dvd_trans this hdiv
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
+lemma pow_div {x m n : ℕ} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) :=
+by rw [nat.div_eq_iff_eq_mul_left (pow_pos hx n) (pow_dvd_pow _ h), pow_sub_mul_pow _ h]
+
 /-- `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)` for some `k`. -/
 lemma exists_lt_and_lt_iff_not_dvd (m : ℕ) {n : ℕ} (hn : 0 < n) :
   (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=
@@ -1287,7 +1315,15 @@ by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
 theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
   nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
+nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
+  nat.find h₁ = nat.find h₂ + 1 :=
+begin
+  refine (find_eq_iff _).2 ⟨nat.find_spec h₂, λ n hn, _⟩,
+  cases n with n,
+  exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (succ_lt_succ_iff.1 hn)]
+end
 
 end find
 

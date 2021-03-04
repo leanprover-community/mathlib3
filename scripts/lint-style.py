@@ -46,7 +46,7 @@ ROOT_DIR = SCRIPTS_DIR.parent
 RESERVED_NOTATION = ROOT_DIR / 'src/tactic/reserved_notation.lean'
 
 
-with SCRIPTS_DIR.joinpath("style-exceptions.txt").open() as f:
+with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
     for line in f:
         filename, _, _, _, _, errno, *_ = line.split()
         path = ROOT_DIR / filename
@@ -227,7 +227,7 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_OPT", "Forbidden set_option command")
 
 def lint(path):
-    with path.open() as f:
+    with path.open(encoding="utf-8") as f:
         lines = f.readlines()
         errs = long_lines_check(lines, path)
         format_errors(errs)

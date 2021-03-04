@@ -203,9 +203,9 @@ end
 lemma is_maximal_of_is_integral_of_is_maximal_comap
   (hRS : algebra.is_integral R S) (I : ideal S) [I.is_prime]
   (hI : is_maximal (I.comap (algebra_map R S))) : is_maximal I :=
-⟨ mt comap_eq_top_iff.mpr hI.1,
-  λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J
-  in comap_eq_top_iff.mp (hI.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))) ⟩
+⟨⟨mt comap_eq_top_iff.mpr hI.1.1,
+  λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J in
+  comap_eq_top_iff.1 $ hI.1.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))⟩⟩
 
 lemma is_maximal_of_is_integral_of_is_maximal_comap' {R S : Type*} [comm_ring R] [integral_domain S]
   (f : R →+* S) (hf : f.is_integral) (I : ideal S) [hI' : I.is_prime]
@@ -260,7 +260,7 @@ begin
   let g := localization.of (algebra.algebra_map_submonoid S P.prime_compl),
   letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
     localization_map.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
-  obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := @exists_maximal Sₚ _ (by apply_instance),
+  obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
   haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
     (localization_algebra P.prime_compl f g)
     (is_integral_localization f g H) _ Qₚ_maximal,

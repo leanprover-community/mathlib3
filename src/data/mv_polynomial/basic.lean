@@ -317,7 +317,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 ⟨ λ h m, by rw h, ext p q⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
-  coeff m (p + q) = coeff m p + coeff m q := add_apply
+  coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
 @[simp] lemma coeff_zero (m : σ →₀ ℕ) :
   coeff m (0 : mv_polynomial σ R) = 0 := rfl

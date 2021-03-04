@@ -3,9 +3,52 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+
 import data.nat.modeq
 import data.zsqrtd.basic
-import tactic.omega
+
+/-!
+# Pell's equation and Matiyasevic's theorem
+
+This file solves Pell's equation, i.e. integer solutions to `x ^ 2 - d * y ^ 2 = 1` in the special
+case that `d = a ^ 2 - 1`. This is then applied to prove Matiyasevic's theorem that the power
+function is Diophantine, which is the last key ingredient in the solution to Hilbert's tenth
+problem. For the definition of Diophantine function, see `dioph.lean`.
+
+## Main definition
+
+* `pell` is a function assigning to a natural number `n` the `n`-th solution to Pell's equation
+  constructed recursively from the intial solution `(0,1)`.
+
+## Main statements
+
+* `eq_pell` shows that every solution to Pell's equation is recursively obtained using `pell`
+* `matiyasevic` shows that a certain system of Diophantine equations has a solution if and only if
+  the first variable is the `x`-component in a solution to Pell's equation - the key step towards
+  Hilbert's tenth problem in Davis' version of Matiyasevic's theorem.
+* `eq_pow_of_pell` shows that the power function is Diophantine.
+
+## Implementation notes
+
+The proof of Matiyasevic's theorem doesn't follow Matiyasevic's original account of using Fibonacci
+numbers but instead Davis' variant of using solutions to Pell's equation.
+
+## References
+
+* [M. Carneiro, _A Lean formalization of Matiyasiv's theorem_][carneiro2018matiysevic]
+* [M. Davis, _Hilbert's tenth problem is unsolvable_][MR317916]
+
+## Tags
+
+Pell's equation, Matiyasevic's theorem, Hilbert's tenth problem
+
+## TODO
+
+* Please the unused arguments linter.
+* Provide solutions to Pell's equation for the case of arbitrary `d` (not just `d = a ^ 2 - 1` like
+  in the current version) and furthermore also for `x ^ 2 - d * y ^ 2 = -1`.
+* Connect solutions to the continued fraction expansion of `√d`.
+-/
 
 namespace pell
 open nat
@@ -19,7 +62,8 @@ section
   @[simp] theorem d_pos : 0 < d :=
   nat.sub_pos_of_lt (mul_lt_mul a1 (le_of_lt a1) dec_trivial dec_trivial : 1*1<a*a)
 
-  /-- The Pell sequences, defined together in mutual recursion. -/
+  /-- The Pell sequences, i.e. the sequence of integer solutions to `x ^ 2 - d * y ^ 2 = 1`, where
+  `d = a ^ 2 - 1`, defined together in mutual recursion. -/
   -- TODO(lint): Fix double namespace issue
   @[nolint dup_namespace] def pell : ℕ → ℕ × ℕ :=
   λn, nat.rec_on n (1, 0) (λn xy, (xy.1*a + d*xy.2, xy.1 + xy.2*a))
@@ -41,8 +85,11 @@ section
   @[simp] theorem xn_one : xn 1 = a := by simp
   @[simp] theorem yn_one : yn 1 = 1 := by simp
 
+  /-- The Pell `x` sequence, considered as an integer sequence.-/
   def xz (n : ℕ) : ℤ := xn n
+  /-- The Pell `y` sequence, considered as an integer sequence.-/
   def yz (n : ℕ) : ℤ := yn n
+  /-- The element `a` such that `d = a ^ 2 - 1`, considered as an integer.-/
   def az : ℤ := a
 
   theorem asq_pos : 0 < a*a :=
@@ -65,8 +112,10 @@ section
   def is_pell : ℤ√d → Prop | ⟨x, y⟩ := x*x - d*y*y = 1
 
   theorem is_pell_nat {x y : ℕ} : is_pell ⟨x, y⟩ ↔ x*x - d*y*y = 1 :=
-  ⟨λh, int.coe_nat_inj (by rw int.coe_nat_sub (int.le_of_coe_nat_le_coe_nat $ int.le.intro_sub h); exact h),
-  λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1, by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
+  ⟨λh, int.coe_nat_inj
+    (by rw int.coe_nat_sub (int.le_of_coe_nat_le_coe_nat $ int.le.intro_sub h); exact h),
+  λh, show ((x*x : ℕ) - (d*y*y:ℕ) : ℤ) = 1,
+    by rw [← int.coe_nat_sub $ le_of_lt $ nat.lt_of_sub_eq_succ h, h]; refl⟩
 
   theorem is_pell_norm : Π {b : ℤ√d}, is_pell b ↔ b * b.conj = 1
   | ⟨x, y⟩ := by simp [zsqrtd.ext, is_pell, mul_comm]; ring
@@ -103,7 +152,7 @@ section
     have na : n < a, from nat.mul_self_lt_mul_self_iff.2 (by rw ← this; exact nat.lt_succ_self _),
     have (n+1)*(n+1) ≤ n*n + 1, by rw this; exact nat.mul_self_le_mul_self na,
     have n+n ≤ 0, from @nat.le_of_add_le_add_right (n*n + 1) _ _ (by ring at this ⊢; assumption),
-    ne_of_gt d_pos $ by rw nat.eq_zero_of_le_zero (le_trans (nat.le_add_left _ _) this) at h; exact h⟩
+    ne_of_gt d_pos $ by rwa nat.eq_zero_of_le_zero ((nat.le_add_left _ _).trans this) at h⟩
 
   theorem xn_ge_a_pow : ∀ (n : ℕ), a^n ≤ xn n
   | 0     := le_refl 1
@@ -167,6 +216,8 @@ section
   zsqrtd.le_of_le_le
     (int.coe_nat_le_coe_nat_of_le $ le_of_lt $ n_lt_xn _ _) (int.coe_zero_le _)
 
+  /-- Every solution to Pell's equation is recursively obtained from the initial solution `(1,0)`
+    using the recursion `pell`-/
   theorem eq_pell {x y : ℕ} (hp : x*x - d*y*y = 1) : ∃n, x = xn n ∧ y = yn n :=
   have (1:ℤ√d) ≤ ⟨x, y⟩, from match x, hp with
   | 0,    (hp : 0 - _ = 1) := by rw nat.zero_sub at hp; contradiction
@@ -400,7 +451,8 @@ section
      (lt_or_eq_of_le (nat.le_of_succ_le_succ ij)).elim
         (λh, lt_trans (eq_of_xn_modeq_lem1 h (le_of_lt jn)) this)
         (λh, by rw h; exact this),
-    by rw [nat.mod_eq_of_lt (x_increasing _ (nat.lt_of_succ_lt jn)), nat.mod_eq_of_lt (x_increasing _ jn)];
+    by rw [nat.mod_eq_of_lt (x_increasing _ (nat.lt_of_succ_lt jn)),
+           nat.mod_eq_of_lt (x_increasing _ jn)];
        exact x_increasing _ (nat.lt_succ_self _)
 
   theorem eq_of_xn_modeq_lem2 {n} (h : 2 * xn n = xn (n + 1)) : a = 2 ∧ n = 0 :=
@@ -437,23 +489,25 @@ section
       cases (lt_or_eq_of_le $ nat.le_of_succ_le_succ ij) with lin ein,
       { rw nat.mod_eq_of_lt (x_increasing _ lin),
         have ll : xn a1 (n-1) + xn a1 (n-1) ≤ xn a1 n,
-        { rw [← two_mul, mul_comm, show xn a1 n = xn a1 (n-1+1), by rw [nat.sub_add_cancel npos], xn_succ],
+        { rw [← two_mul, mul_comm, show xn a1 n = xn a1 (n-1+1),
+                                   by rw [nat.sub_add_cancel npos], xn_succ],
           exact le_trans (nat.mul_le_mul_left _ a1) (nat.le_add_right _ _) },
         have npm : (n-1).succ = n := nat.succ_pred_eq_of_pos npos,
-        have il : i ≤ n - 1 := by apply nat.le_of_succ_le_succ; rw npm; exact lin,
+        have il : i ≤ n - 1, { apply nat.le_of_succ_le_succ, rw npm, exact lin },
         cases lt_or_eq_of_le il with ill ile,
         { exact lt_of_lt_of_le (nat.add_lt_add_left (x_increasing a1 ill) _) ll },
         { rw ile,
           apply lt_of_le_of_ne ll,
           rw ← two_mul,
           exact λe, ntriv $
-            let ⟨a2, s1⟩ := @eq_of_xn_modeq_lem2 _ a1 (n-1) (by rw[nat.sub_add_cancel npos]; exact e) in
+            let ⟨a2, s1⟩ := @eq_of_xn_modeq_lem2 _ a1 (n-1) (by rwa [nat.sub_add_cancel npos]) in
             have n1 : n = 1, from le_antisymm (nat.le_of_sub_eq_zero s1) npos,
             by rw [ile, a2, n1]; exact ⟨rfl, rfl, rfl, rfl⟩ } },
       { rw [ein, nat.mod_self, add_zero],
         exact x_increasing _ (nat.pred_lt $ ne_of_gt npos) } })
     (λ (jn : j > n),
-      have lem1 : j ≠ n → xn j % xn n < xn (j + 1) % xn n → xn i % xn n < xn (j + 1) % xn n, from λjn s,
+      have lem1 : j ≠ n → xn j % xn n < xn (j + 1) % xn n → xn i % xn n < xn (j + 1) % xn n,
+        from λjn s,
       (lt_or_eq_of_le (nat.le_of_succ_le_succ ij)).elim
         (λh, lt_trans (eq_of_xn_modeq_lem3 h (le_of_lt j2n) jn $ λ⟨a1, n1, i0, j2⟩,
           by rw [n1, j2] at j2n; exact absurd j2n dec_trivial) s)
@@ -483,10 +537,11 @@ section
     i = j :=
   (le_total i j).elim
     (λij, eq_of_xn_modeq_le npos ij j2n h $ λ⟨a2, n1, i0, j2⟩, (ntriv a2 n1).left i0 j2)
-    (λij, (eq_of_xn_modeq_le npos ij i2n h.symm $ λ⟨a2, n1, j0, i2⟩, (ntriv a2 n1).right i2 j0).symm)
+    (λij, (eq_of_xn_modeq_le npos ij i2n h.symm $ λ⟨a2, n1, j0, i2⟩,
+      (ntriv a2 n1).right i2 j0).symm)
 
-  theorem eq_of_xn_modeq' {i j n} (ipos : 0 < i) (hin : i ≤ n) (j4n : j ≤ 4 * n) (h : xn j ≡ xn i [MOD xn n]) :
-    j = i ∨ j + i = 4 * n :=
+  theorem eq_of_xn_modeq' {i j n} (ipos : 0 < i) (hin : i ≤ n) (j4n : j ≤ 4 * n)
+    (h : xn j ≡ xn i [MOD xn n]) : j = i ∨ j + i = 4 * n :=
   have i2n : i ≤ 2*n, by apply le_trans hin; rw two_mul; apply nat.le_add_left,
   have npos : 0 < n, from lt_of_lt_of_le ipos hin,
   (le_or_gt j (2 * n)).imp
@@ -499,7 +554,8 @@ section
         exact nat.add_le_add_left (le_of_lt j2n) _,
      eq_of_xn_modeq npos i2n j42n
        (h.symm.trans $ let t := xn_modeq_x4n_sub j42n in by rwa [nat.sub_sub_self j4n] at t)
-       (λa2 n1, ⟨λi0, absurd i0 (ne_of_gt ipos), λi2, by rw[n1, i2] at hin; exact absurd hin dec_trivial⟩))
+       (λa2 n1, ⟨λi0, absurd i0 (ne_of_gt ipos), λi2, by { rw [n1, i2] at hin,
+         exact absurd hin dec_trivial }⟩))
 
   theorem modeq_of_xn_modeq {i j n} (ipos : 0 < i) (hin : i ≤ n) (h : xn j ≡ xn i [MOD xn n]) :
     j ≡ i [MOD 4 * n] ∨ j + i ≡ 0 [MOD 4 * n] :=

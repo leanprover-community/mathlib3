@@ -16,6 +16,8 @@ corresponding group of automorphisms `ring_aut`.
 
 ## Notations
 
+* ``infix ` ≃+* `:25 := ring_equiv``
+
 The extended equiv have coercions to functions, and the coercion is the canonical notation when
 treating the isomorphism as maps.
 
@@ -60,7 +62,7 @@ variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add 
 
 instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe_fun (f : R ≃+* S) : f.to_fun = f := rfl
+@[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 
 /-- A ring isomorphism preserves multiplication. -/
 @[simp] lemma map_mul (e : R ≃+* S) (x y : R) : e (x * y) = e x * e y := e.map_mul' x y
@@ -78,6 +80,12 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+@[simp] theorem coe_mk (e e' h₁ h₂ h₃ h₄) :
+  ⇑(⟨e, e', h₁, h₂, h₃, h₄⟩ : R ≃+* S) = e := rfl
+
+@[simp] theorem mk_coe (e : R ≃+* S) (e' h₁ h₂ h₃ h₄) :
+  (⟨e, e', h₁, h₂, h₃, h₄⟩ : R ≃+* S) = e := ext $ λ _, rfl
+
 protected lemma congr_arg {f : R ≃+* S} : Π {x x' : R}, x = x' → f x = f x'
 | _ _ rfl := rfl
 
@@ -90,11 +98,24 @@ instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
-@[norm_cast] lemma coe_mul_equiv (f : R ≃+* S) (a : R) :
-  (f : R ≃* S) a = f a := rfl
+lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
 
-@[norm_cast] lemma coe_add_equiv (f : R ≃+* S) (a : R) :
-  (f : R ≃+ S) a = f a := rfl
+lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
+
+@[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
+
+@[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
+
+/-- The `ring_equiv` between two semirings with a unique element. -/
+def ring_equiv_of_unique_of_unique {M N}
+  [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] : M ≃+* N :=
+{ ..add_equiv.add_equiv_of_unique_of_unique,
+  ..mul_equiv.mul_equiv_of_unique_of_unique}
+
+instance {M N} [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] :
+  unique (M ≃+* N) :=
+{ default := ring_equiv_of_unique_of_unique,
+  uniq := λ _, ext $ λ x, subsingleton.elim _ _ }
 
 variable (R)
 
@@ -122,7 +143,16 @@ initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_appl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 
-@[simp] lemma coe_symm_mk (f : R → S) (g h₁ h₂ h₃ h₄) : ⇑(mk f g h₁ h₂ h₃ h₄).symm = g := rfl
+lemma symm_bijective : function.bijective (ring_equiv.symm : (R ≃+* S) → (S ≃+* R)) :=
+equiv.bijective ⟨ring_equiv.symm, ring_equiv.symm, symm_symm, symm_symm⟩
+
+@[simp] lemma mk_coe' (e : R ≃+* S) (f h₁ h₂ h₃ h₄) :
+  (ring_equiv.mk f ⇑e h₁ h₂ h₃ h₄ : S ≃+* R) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
+@[simp] lemma symm_mk (f : R → S) (g h₁ h₂ h₃ h₄) :
+  (mk f g h₁ h₂ h₃ h₄).symm =
+  { to_fun := g, inv_fun := f, ..(mk f g h₁ h₂ h₃ h₄).symm} := rfl
 
 /-- Transitivity of `ring_equiv`. -/
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
@@ -212,8 +242,9 @@ lemma to_ring_hom_injective : function.injective (to_ring_hom : (R ≃+* S) → 
 
 instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.to_ring_hom⟩
 
-@[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :
-  (f : R →+* S) a = f a := rfl
+lemma to_ring_hom_eq_coe (f : R ≃+* S) : f.to_ring_hom = ↑f := rfl
+
+@[simp, norm_cast] lemma coe_to_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
 
 lemma coe_ring_hom_inj_iff {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
   f = g ↔ (f : R →+* S) = g :=

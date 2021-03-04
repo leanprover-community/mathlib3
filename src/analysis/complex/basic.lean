@@ -3,7 +3,6 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.normed_space.finite_dimension
 import data.complex.module
 import data.complex.is_R_or_C
 
@@ -79,15 +78,11 @@ instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed
 
 open continuous_linear_map
 
-/-- The space of continuous linear maps over `ℝ`, from a real vector space to a complex vector
-space, is a normed vector space over `ℂ`. -/
-instance continuous_linear_map.real_smul_complex (E : Type*) [normed_group E] [normed_space ℝ E]
-  (F : Type*) [normed_group F] [normed_space ℂ F] :
-  normed_space ℂ (E →L[ℝ] F) :=
-continuous_linear_map.normed_space_extend_scalars
-
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def continuous_linear_map.re : ℂ →L[ℝ] ℝ := linear_map.re.to_continuous_linear_map
+def continuous_linear_map.re : ℂ →L[ℝ] ℝ :=
+linear_map.re.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_re_le_abs])
+
+@[continuity] lemma continuous_re : continuous re := continuous_linear_map.re.continuous
 
 @[simp] lemma continuous_linear_map.re_coe :
   (coe (continuous_linear_map.re) : ℂ →ₗ[ℝ] ℝ) = linear_map.re := rfl
@@ -97,12 +92,15 @@ def continuous_linear_map.re : ℂ →L[ℝ] ℝ := linear_map.re.to_continuous_
 
 @[simp] lemma continuous_linear_map.re_norm :
   ∥continuous_linear_map.re∥ = 1 :=
-le_antisymm (op_norm_le_bound _ zero_le_one $ λ z, by simp [real.norm_eq_abs, abs_re_le_abs]) $
+le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥continuous_linear_map.re 1∥ : by simp
    ... ≤ ∥continuous_linear_map.re∥ : unit_le_op_norm _ _ (by simp)
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def continuous_linear_map.im : ℂ →L[ℝ] ℝ := linear_map.im.to_continuous_linear_map
+def continuous_linear_map.im : ℂ →L[ℝ] ℝ :=
+linear_map.im.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_im_le_abs])
+
+@[continuity] lemma continuous_im : continuous im := continuous_linear_map.im.continuous
 
 @[simp] lemma continuous_linear_map.im_coe :
   (coe (continuous_linear_map.im) : ℂ →ₗ[ℝ] ℝ) = linear_map.im := rfl
@@ -112,9 +110,29 @@ def continuous_linear_map.im : ℂ →L[ℝ] ℝ := linear_map.im.to_continuous_
 
 @[simp] lemma continuous_linear_map.im_norm :
   ∥continuous_linear_map.im∥ = 1 :=
-le_antisymm (op_norm_le_bound _ zero_le_one $ λ z, by simp [real.norm_eq_abs, abs_im_le_abs]) $
+le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥continuous_linear_map.im I∥ : by simp
    ... ≤ ∥continuous_linear_map.im∥ : unit_le_op_norm _ _ (by simp)
+
+/-- The complex-conjugation function from `ℂ` to itself is an isometric linear map. -/
+def linear_isometry.conj : ℂ →ₗᵢ[ℝ] ℂ := ⟨linear_map.conj, λ x, by simp⟩
+
+/-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/
+def continuous_linear_map.conj : ℂ →L[ℝ] ℂ := linear_isometry.conj.to_continuous_linear_map
+
+lemma isometry_conj : isometry (conj : ℂ → ℂ) := linear_isometry.conj.isometry
+
+@[continuity] lemma continuous_conj : continuous conj := continuous_linear_map.conj.continuous
+
+@[simp] lemma continuous_linear_map.conj_coe :
+  (coe (continuous_linear_map.conj) : ℂ →ₗ[ℝ] ℂ) = linear_map.conj := rfl
+
+@[simp] lemma continuous_linear_map.conj_apply (z : ℂ) :
+  (continuous_linear_map.conj : ℂ → ℂ) z = z.conj := rfl
+
+@[simp] lemma continuous_linear_map.conj_norm :
+  ∥continuous_linear_map.conj∥ = 1 :=
+linear_isometry.conj.norm_to_continuous_linear_map
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
 def linear_isometry.of_real : ℝ →ₗᵢ[ℝ] ℂ := ⟨linear_map.of_real, λ x, by simp⟩
@@ -124,7 +142,7 @@ def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ := linear_isometry.of_real
 
 lemma isometry_of_real : isometry (coe : ℝ → ℂ) := linear_isometry.of_real.isometry
 
-lemma continuous_of_real : continuous (coe : ℝ → ℂ) := isometry_of_real.continuous
+@[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := isometry_of_real.continuous
 
 @[simp] lemma continuous_linear_map.of_real_coe :
   (coe (continuous_linear_map.of_real) : ℝ →ₗ[ℝ] ℂ) = linear_map.of_real := rfl

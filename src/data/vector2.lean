@@ -121,7 +121,7 @@ begin
   simp only [list.nodup_iff_nth_le_inj],
   split,
   { intros h i j hij,
-    cases i, cases j, simp [nth_eq_nth_le] at *, tauto },
+    cases i, cases j, ext, apply h, simpa },
   { intros h i j hi hj hij,
     have := @h ⟨i, hi⟩ ⟨j, hj⟩, simp [nth_eq_nth_le] at *, tauto }
 end
@@ -331,41 +331,32 @@ rfl
   ∀{v : vector α n}, (remove_nth i v).val = v.val.remove_nth i
 | ⟨l, hl⟩ := rfl
 
-lemma remove_nth_insert_nth {v : vector α n} {i : fin (n+1)} : remove_nth i (insert_nth a i v) = v :=
+lemma remove_nth_insert_nth {v : vector α n} {i : fin (n+1)} :
+  remove_nth i (insert_nth a i v) = v :=
 subtype.eq $ list.remove_nth_insert_nth i.1 v.1
 
-lemma remove_nth_insert_nth_ne {v : vector α (n+1)} :
-  ∀{i j : fin (n+2)} (h : i ≠ j),
-    remove_nth i (insert_nth a j v) = insert_nth a (i.pred_above j h.symm) (remove_nth (j.pred_above i h) v)
-| ⟨i, hi⟩ ⟨j, hj⟩ ne :=
+lemma remove_nth_insert_nth' {v : vector α (n+1)} :
+  ∀{i : fin (n+1)} {j : fin (n+2)},
+    remove_nth (j.succ_above i) (insert_nth a j v) = insert_nth a (i.pred_above j) (remove_nth i v)
+| ⟨i, hi⟩ ⟨j, hj⟩ :=
   begin
-    have : i ≠ j := fin.vne_of_ne ne,
-    refine subtype.eq _,
-    dsimp [insert_nth, remove_nth, fin.pred_above, fin.cast_lt, -subtype.val_eq_coe],
-    rcases lt_trichotomy i j with h | h | h,
-    { have h_nji : ¬ j < i := lt_asymm h,
-      have j_pos : 0 < j := lt_of_le_of_lt (zero_le i) h,
-      rw [dif_neg], swap, { exact h_nji },
-      rw [dif_pos], swap, { exact h },
-      rw [fin.coe_pred, fin.coe_mk, remove_nth_val, fin.coe_mk],
-      rw [list.insert_nth_remove_nth_of_ge, nat.sub_add_cancel j_pos],
-      { rw [v.2], exact lt_of_lt_of_le h (nat.le_of_succ_le_succ hj) },
-      { exact nat.le_sub_right_of_add_le h } },
-    { exact (this h).elim },
-    { have h_nij : ¬ i < j := lt_asymm h,
-      have i_pos : 0 < i := lt_of_le_of_lt (zero_le j) h,
-      rw [dif_pos], swap, { exact h },
-      rw [dif_neg], swap, { exact h_nij },
-      rw [fin.coe_mk, remove_nth_val, fin.coe_pred, fin.coe_mk],
-      rw [list.insert_nth_remove_nth_of_le, nat.sub_add_cancel i_pos],
-      { show i - 1 + 1 ≤ v.val.length,
-        rw [v.2, nat.sub_add_cancel i_pos],
-        exact nat.le_of_lt_succ hi },
-      { exact nat.le_sub_right_of_add_le h } }
+    dsimp [insert_nth, remove_nth, fin.succ_above, fin.pred_above],
+    simp only [subtype.mk_eq_mk],
+    split_ifs,
+    { convert (list.insert_nth_remove_nth_of_ge i (j-1) _ _ _).symm,
+      { convert (nat.succ_pred_eq_of_pos _).symm, exact lt_of_le_of_lt (zero_le _) h, },
+      { apply remove_nth_val, },
+      { convert hi, exact v.2, },
+      { exact nat.le_pred_of_lt h, }, },
+    { convert (list.insert_nth_remove_nth_of_le i j _ _ _).symm,
+      { apply remove_nth_val, },
+      { convert hi, exact v.2, },
+      { simpa using h, }, }
   end
 
 lemma insert_nth_comm (a b : α) (i j : fin (n+1)) (h : i ≤ j) :
-  ∀(v : vector α n), (v.insert_nth a i).insert_nth b j.succ = (v.insert_nth b j).insert_nth a i.cast_succ
+  ∀(v : vector α n),
+    (v.insert_nth a i).insert_nth b j.succ = (v.insert_nth b j).insert_nth a i.cast_succ
 | ⟨l, hl⟩ :=
   begin
     refine subtype.eq _,

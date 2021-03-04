@@ -72,6 +72,7 @@ structure add_hom (M : Type*) (N : Type*) [has_add M] [has_add N] :=
 (map_add' : ∀ x y, to_fun (x + y) = to_fun x + to_fun y)
 
 /-- Bundled add_monoid homomorphisms; use this for bundled add_group homomorphisms too. -/
+@[ancestor zero_hom add_hom]
 structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N]
   extends zero_hom M N, add_hom M N
 
@@ -93,16 +94,17 @@ structure mul_hom (M : Type*) (N : Type*) [has_mul M] [has_mul N] :=
 (map_mul' : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
 
 /-- Bundled monoid homomorphisms; use this for bundled group homomorphisms too. -/
-@[to_additive]
+@[ancestor one_hom mul_hom, to_additive]
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] extends one_hom M N, mul_hom M N
 
 /-- Bundled monoid with zero homomorphisms; use this for bundled group with zero homomorphisms
 too. -/
+@[ancestor zero_hom monoid_hom]
 structure monoid_with_zero_hom (M : Type*) (N : Type*) [monoid_with_zero M] [monoid_with_zero N]
   extends zero_hom M N, monoid_hom M N
 
-attribute [nolint doc_blame, to_additive] monoid_hom.to_mul_hom
-attribute [nolint doc_blame, to_additive] monoid_hom.to_one_hom
+attribute [nolint doc_blame] monoid_hom.to_mul_hom
+attribute [nolint doc_blame] monoid_hom.to_one_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_monoid_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_zero_hom
 
@@ -733,8 +735,7 @@ include mM
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
   map_mul' := map_mul,
-  map_one' := mul_self_iff_eq_one.1 $ by rw [←map_mul, mul_one] }
-
+  map_one' := mul_left_eq_self.1 $ by rw [←map_mul, mul_one] }
 
 @[simp, to_additive]
 lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
@@ -773,15 +774,23 @@ add_decl_doc add_monoid_hom.has_neg
   (f : M →* G) (x : M) :
   f⁻¹ x = (f x)⁻¹ := rfl
 
+@[simp, to_additive] lemma inv_comp {M N A} {mM : monoid M} {gN : monoid N}
+  {gA : comm_group A} (φ : N →* A) (ψ : M →* N) : φ⁻¹.comp ψ = (φ.comp ψ)⁻¹ :=
+by { ext, simp only [function.comp_app, inv_apply, coe_comp] }
+
+@[simp, to_additive] lemma comp_inv {M A B} {mM : monoid M} {mA : comm_group A}
+  {mB : comm_group B} (φ : A →* B) (ψ : M →* A) : φ.comp ψ⁻¹ = (φ.comp ψ)⁻¹ :=
+by { ext, simp only [function.comp_app, inv_apply, map_inv, coe_comp] }
+
 /-- If `f` and `g` are monoid homomorphisms to a commutative group, then `f / g` is the homomorphism
-sending `x` to `(f x) / (g x). -/
+sending `x` to `(f x) / (g x)`. -/
 @[to_additive]
 instance {M G} [monoid M] [comm_group G] : has_div (M →* G) :=
 ⟨λ f g, mk' (λ x, f x / g x) $ λ a b,
   by simp [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]⟩
 
 /-- If `f` and `g` are monoid homomorphisms to an additive commutative group, then `f - g`
-is the homomorphism sending `x` to `(f x) - (g x). -/
+is the homomorphism sending `x` to `(f x) - (g x)`. -/
 add_decl_doc add_monoid_hom.has_sub
 
 @[simp, to_additive] lemma div_apply {M G} {mM : monoid M} {gG : comm_group G}

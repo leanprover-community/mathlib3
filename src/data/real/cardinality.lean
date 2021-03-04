@@ -7,6 +7,7 @@ import set_theory.cardinal_ordinal
 import analysis.specific_limits
 import data.rat.denumerable
 import data.set.intervals.image_preimage
+
 /-!
 # The cardinality of the reals
 
@@ -26,17 +27,19 @@ We conclude that all intervals with distinct endpoints have cardinality continuu
 ## Main statements
 
 * `cardinal.mk_real : #ℝ = 2 ^ omega`: the reals have cardinality continuum.
-* `cardinal.not_countable_real`: the universal set of real numbers is not countable. We can use this same
-  proof to show that all the other sets in this file are not countable.
+* `cardinal.not_countable_real`: the universal set of real numbers is not countable.
+  We can use this same proof to show that all the other sets in this file are not countable.
 * 8 lemmas of the form `mk_Ixy_real` for `x,y ∈ {i,o,c}` state that intervals on the reals
   have cardinality continuum.
 
 ## Tags
 continuum, cardinality, reals, cardinality of the reals
 -/
+
 open nat set
 open_locale cardinal
 noncomputable theory
+
 namespace cardinal
 
 variables {c : ℝ} {f g : ℕ → bool} {n : ℕ}
@@ -141,7 +144,8 @@ end
 lemma mk_real : #ℝ = 2 ^ omega.{0} :=
 begin
   apply le_antisymm,
-  { dsimp [real], apply le_trans mk_quotient_le, apply le_trans (mk_subtype_le _),
+  { rw real.equiv_Cauchy.cardinal_eq,
+    apply mk_quotient_le.trans, apply (mk_subtype_le _).trans,
     rw [←power_def, mk_nat, mk_rat, power_self_eq (le_refl _)] },
   { convert mk_le_of_injective (cantor_function_injective _ _),
     rw [←power_def, mk_bool, mk_nat], exact 1 / 3, norm_num, norm_num }

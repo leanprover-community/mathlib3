@@ -103,7 +103,7 @@ begin
     (le_pred_of_lt (succ_le_iff.mp hi))).trans_le (self_le_factorial _)),
 end
 
-lemma add_factorial_lt_factorial_add {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
+lemma add_factorial_succ_lt_factorial_add_succ {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
   i + (n + 1)! < (i + n + 1)! :=
 begin
   rw [factorial_succ (i + _), succ_eq_add_one, add_mul, one_mul],
@@ -114,13 +114,33 @@ begin
     ((le_of_eq (add_comm n 1)).trans ((add_le_add_iff_right n).mpr (one_le_two.trans hi)))),
 end
 
-lemma add_factorial_lt_factorial_add' {i n : ℕ} (hi : 2 ≤ i) (hn : 1 ≤ n) :
+lemma add_factorial_lt_factorial_add {i n : ℕ} (hi : 2 ≤ i) (hn : 1 ≤ n) :
   i + n! < (i + n)! :=
 begin
   cases hn,
   { rw factorial_one,
     exact lt_factorial_self (succ_le_succ hi) },
-  { exact add_factorial_lt_factorial_add _ hi }
+  { exact add_factorial_succ_lt_factorial_add_succ _ hi }
+end
+
+lemma add_factorial_succ_le_factorial_add_succ (i : ℕ) (n : ℕ) :
+  i + (n + 1)! ≤ (i + (n + 1))! :=
+begin
+  by_cases i2 : 2 ≤ i,
+  { exact (n.add_factorial_succ_lt_factorial_add_succ i2).le },
+  { cases (not_le.mp i2) with _ i0,
+    { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
+      rw [add_mul, one_mul, add_comm 1 n],
+      exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
+    { rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add] } }
+end
+
+lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
+  i + n! ≤ (i + n)! :=
+begin
+  cases n1 with h,
+  { exact self_le_factorial _ },
+  { exact add_factorial_succ_le_factorial_add_succ i h }
 end
 
 end nat

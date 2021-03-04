@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Heather Macbeth
 -/
 
 import data.polynomial.derivative
@@ -13,25 +13,28 @@ import tactic.ring
 The Chebyshev polynomials are two families of polynomials indexed by `ℕ`,
 with integral coefficients.
 
-See the file `ring_theory.polynomial.chebyshev.basic` for more properties.
-
 ## Main definitions
 
 * `polynomial.chebyshev₁`: the Chebyshev polynomials of the first kind.
 * `polynomial.chebyshev₂`: the Chebyshev polynomials of the second kind.
-* `polynomial.lambdashev`: a variant on the Chebyshev polynomials that define a Lambda structure
-  on `polynomial ℤ`.
 
 ## Main statements
 
 * The formal derivative of the Chebyshev polynomials of the first kind is a scalar multiple of the
   Chebyshev polynomials of the second kind.
+* `polynomial.mul_chebyshev₁`, the product of the `m`-th and `(m + k)`-th Chebyshev polynomials of
+  the first kind is the sum of the `(2 * m + k)`-th and `k`-th Chebyshev polynomials of the first
+  kind.
+* `polynomial.chebyshev₁_mul`, the `(m * n)`-th Chebyshev polynomial of the first kind is the
+  composition of the `m`-th and `n`-th Chebyshev polynomials of the first kind.
 
 ## Implementation details
 
-In this file we only give definitions and some very elementary simp-lemmas.
-This way, we can import this file in `analysis.special_functions.trigonometric`,
-and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
+Since Chebyshev polynomials have interesting behaviour over the complex numbers and modulo `p`,
+we define them to have coefficients in an arbitrary commutative ring, even though
+technically `ℤ` would suffice.
+The benefit of allowing arbitrary coefficient rings, is that the statements afterwards are clean,
+and do not have `map (int.cast_ring_hom R)` interfering all the time.
 
 ## References
 
@@ -46,10 +49,6 @@ and import that file in turn, in `ring_theory.polynomial.chebyshev.basic`.
 * Compute zeroes and extrema of Chebyshev polynomials.
 * Prove that the roots of the Chebyshev polynomials (except 0) are irrational.
 * Prove minimax properties of Chebyshev polynomials.
-* Define a variant of Chebyshev polynomials of the second kind removing the 2
-  (sometimes Dickson polynomials of the second kind) or even more general Dickson polynomials.
-* Prove that the adjacency matrices of simply laced Dynkin diagrams are precisely the adjacency
-  matrices of simple connected graphs which annihilate the Dickson polynomials.
 -/
 
 
@@ -92,45 +91,6 @@ begin
   simp only [chebyshev₁_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
   rw [map_chebyshev₁ (n + 1), map_chebyshev₁ n],
 end
-
-variables (R)
-
-/-- `lambdashev R n` is equal to `2 * (chebyshev₁ R n).comp (X / 2)`.
-It is a family of polynomials that satisfies
-`lambdashev (zmod p) p = X ^ p`, and therefore defines a Lambda structure on `polynomial ℤ`. -/
-noncomputable def lambdashev : ℕ → polynomial R
-| 0       := 2
-| 1       := X
-| (n + 2) := X * lambdashev (n + 1) - lambdashev n
-
-@[simp] lemma lambdashev_zero : lambdashev R 0 = 2 := rfl
-@[simp] lemma lambdashev_one : lambdashev R 1 = X := rfl
-lemma lambdashev_two : lambdashev R 2 = X ^ 2 - 2 :=
-by simp only [lambdashev, sub_left_inj, pow_two, mul_assoc]
-@[simp] lemma lambdashev_add_two (n : ℕ) :
-  lambdashev R (n + 2) = X * lambdashev R (n + 1) - lambdashev R n :=
-by rw lambdashev
-
-lemma lambdashev_eq_two_le (n : ℕ) (h : 2 ≤ n) :
-  lambdashev R n = X * lambdashev R (n - 1) - lambdashev R (n - 2) :=
-begin
-  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
-  rw add_comm,
-  exact lambdashev_add_two R n
-end
-
-variables {R S}
-
-lemma map_lambdashev (f : R →+* S) :
-  ∀ (n : ℕ), map f (lambdashev R n) = lambdashev S n
-| 0       := by simp only [lambdashev_zero, bit0, map_add, map_one]
-| 1       := by simp only [lambdashev_one, map_X]
-| (n + 2) :=
-begin
-  simp only [lambdashev_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
-  rw [map_lambdashev (n + 1), map_lambdashev n],
-end
-
 
 end polynomial
 
@@ -288,6 +248,65 @@ begin
             by rw h
   ... = X * chebyshev₂ R n - (1 - X ^ 2) * derivative (chebyshev₂ R n) :
             by ring,
+end
+
+variables (R)
+
+/-- The product of two Chebyshev polynomials is the sum of two other Chebyshev polynomials. -/
+lemma mul_chebyshev₁ :
+  ∀ m : ℕ, ∀ k,
+  2 * chebyshev₁ R m * chebyshev₁ R (m + k) = chebyshev₁ R (2 * m + k) + chebyshev₁ R k
+| 0 := by simp [two_mul, add_mul]
+| 1 := by simp [add_comm]
+| (m + 2) := begin
+  intros k,
+  -- clean up the `chebyshev₁` nat indices in the goal
+  suffices : 2 * chebyshev₁ R (m + 2) * chebyshev₁ R (m + k + 2)
+    = chebyshev₁ R (2 * m + k + 4) + chebyshev₁ R k,
+  { have h_nat₁ : 2 * (m + 2) + k = 2 * m + k + 4 := by ring,
+    have h_nat₂ : m + 2 + k = m + k + 2 := by simp [add_comm, add_assoc],
+    simpa [h_nat₁, h_nat₂] using this },
+  -- clean up the `chebyshev₁` nat indices in the inductive hypothesis applied to `m + 1` and
+  -- `k + 1`
+  have H₁ : 2 * chebyshev₁ R (m + 1) * chebyshev₁ R (m + k + 2)
+    = chebyshev₁ R (2 * m + k + 3) + chebyshev₁ R (k + 1),
+  { have h_nat₁ : m + 1 + (k + 1) = m + k + 2 := by ring,
+    have h_nat₂ : 2 * (m + 1) + (k + 1) = 2 * m + k + 3 := by ring,
+    simpa [h_nat₁, h_nat₂] using mul_chebyshev₁ (m + 1) (k + 1) },
+  -- clean up the `chebyshev₁` nat indices in the inductive hypothesis applied to `m` and `k + 2`
+  have H₂ : 2 * chebyshev₁ R m * chebyshev₁ R (m + k + 2)
+    = chebyshev₁ R (2 * m + k + 2) + chebyshev₁ R (k + 2),
+  { have h_nat₁ : 2 * m + (k + 2) = 2 * m + k + 2 := by simp [add_assoc],
+    have h_nat₂ : m + (k + 2) = m + k + 2 := by simp [add_assoc],
+    simpa [h_nat₁, h_nat₂] using mul_chebyshev₁ m (k + 2) },
+  -- state the `chebyshev₁` recurrence relation for a few useful indices
+  have h₁ := chebyshev₁_add_two R m,
+  have h₂ := chebyshev₁_add_two R (2 * m + k + 2),
+  have h₃ := chebyshev₁_add_two R k,
+  -- the desired identity is an appropriate linear combination of H₁, H₂, h₁, h₂, h₃
+  -- it would be really nice here to have a linear algebra tactic!!
+  apply_fun (λ p, 2 * X * p) at H₁,
+  apply_fun (λ p, 2 * chebyshev₁ R (m + k + 2) * p) at h₁,
+  have e₁ := congr (congr_arg has_add.add H₁) h₁,
+  have e₂ := congr (congr_arg has_sub.sub e₁) H₂,
+  have e₃ := congr (congr_arg has_sub.sub e₂) h₂,
+  have e₄ := congr (congr_arg has_sub.sub e₃) h₃,
+  rw ← sub_eq_zero at e₄ ⊢,
+  rw ← e₄,
+  ring,
+end
+
+/-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/
+lemma chebyshev₁_mul :
+  ∀ m : ℕ, ∀ n : ℕ, chebyshev₁ R (m * n) = (chebyshev₁ R m).comp (chebyshev₁ R n)
+| 0 := by simp
+| 1 := by simp
+| (m + 2) := begin
+  intros n,
+  have : 2 * chebyshev₁ R n * chebyshev₁ R ((m + 1) * n)
+    = chebyshev₁ R ((m + 2) * n) + chebyshev₁ R (m * n),
+  { convert mul_chebyshev₁ R n (m * n); ring },
+  simp [this, chebyshev₁_mul m, ← chebyshev₁_mul (m + 1)]
 end
 
 end polynomial

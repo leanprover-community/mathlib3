@@ -734,7 +734,7 @@ by induction b; simp [*, mul_add, pow_succ, add_comm]
 @[simp] lemma int.to_add_gpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
 int.induction_on b (by simp)
   (by simp [gpow_add, mul_add] {contextual := tt})
-  (by simp [gpow_add, mul_add, sub_eq_add_neg] {contextual := tt})
+  (by simp [gpow_add, mul_add, sub_eq_add_neg, -int.add_neg_one] {contextual := tt})
 
 @[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
 by { ext, simp }

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import data.set.countable
 import set_theory.schroeder_bernstein
@@ -11,22 +11,46 @@ import data.fintype.card
 # Cardinal Numbers
 
 We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
-We define the order on cardinal numbers, define omega, and do basic cardinal arithmetic:
-  addition, multiplication, power, cardinal successor, minimum, supremum,
-    infinitary sums and products
 
-The fact that the cardinality of `α × α` coincides with that of `α` when `α` is infinite is not
-proved in this file, as it relies on facts on well-orders. Instead, it is in
-`cardinal_ordinal.lean` (together with many other facts on cardinals, for instance the
-cardinality of `list α`).
+## Main definitions
+
+* `cardinal` the type of cardinal numbers (in a given universe).
+* `cardinal.mk α` or `#α` is the cardinality of `α`. The notation `#` lives in the locale
+  `cardinal`.
+* There is an instance that `cardinal` forms a `canonically_ordered_comm_semiring`.
+* Addition `c₁ + c₂` is defined by `cardinal.add_def α β : #α + #β = #(α ⊕ β)`.
+* Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α * β)`.
+* The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
+* Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
+* `cardinal.omega` the cardinality of `ℕ`. This definition is universe polymorphic:
+  `cardinal.omega.{u} : cardinal.{u}`
+  (contrast with `ℕ : Type`, which lives in a specific universe).
+  In some cases the universe level has to be given explicitly.
+* `cardinal.min (I : nonempty ι) (c : ι → cardinal)` is the minimal cardinal in the range of `c`.
+* `cardinal.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
+* `cardinal.sum` is the sum of a collection of cardinals.
+* `cardinal.sup` is the supremum of a collection of cardinals.
+* `cardinal.powerlt c₁ c₂` or `c₁ ^< c₂` is defined as `sup_{γ < β} α^γ`.
+
+## Main Statements
+
+* Cantor's theorem: `cardinal.cantor c : c < 2 ^ c`.
+* König's theorem: `cardinal.sum_lt_prod`
 
 ## Implementation notes
 
-* There is a type of cardinal numbers in every universe level: `cardinal.{u} : Type (u + 1)`
-  is the quotient of types in `Type u`.
-  There is a lift operation lifting cardinal numbers to a higher level.
+* There is a type of cardinal numbers in every universe level:
+  `cardinal.{u} : Type (u + 1)` is the quotient of types in `Type u`.
+  The operation `cardinal.lift` lifts cardinal numbers to a higher level.
 * Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
-  `set_theory/ordinal.lean`, because concepts from that file are used in the proof.
+  `set_theory/cardinal_ordinal.lean`.
+* There is an instance `has_pow cardinal`, but this will only fire if Lean already knows that both
+  the base and the exponent live in the same universe. As a workaround, you can add
+  ```
+    local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
+  ```
+  to a file. This notation will work even if Lean doesn't know yet that the base and the exponent
+  live in the same universe (but no exponents in other types can be used).
 
 ## References
 
@@ -34,7 +58,8 @@ cardinality of `list α`).
 
 ## Tags
 
-cardinal number, cardinal arithmetic, cardinal exponentiation, omega
+cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
+Cantor's theorem, König's theorem
 -/
 
 open function set
@@ -78,6 +103,9 @@ instance : has_le cardinal.{u} :=
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
     propext ⟨assume ⟨e⟩, ⟨e.congr e₁ e₂⟩, assume ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
 
+theorem le_def (α β : Type u) : mk α ≤ mk β ↔ nonempty (α ↪ β) :=
+iff.rfl
+
 theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : mk α ≤ mk β :=
 ⟨⟨f, hf⟩⟩
 
@@ -92,6 +120,9 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
+
+protected lemma eq_congr : α ≃ β → # α = # β :=
+λ h, quot.sound ⟨h⟩
 
 noncomputable instance : linear_order cardinal.{u} :=
 { le          := (≤),
@@ -271,6 +302,10 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
   eq_zero_or_eq_zero_of_mul_eq_zero := @cardinal.eq_zero_or_eq_zero_of_mul_eq_zero,
   ..cardinal.order_bot,
   ..cardinal.comm_semiring, ..cardinal.linear_order }
+
+noncomputable instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+{ .. (infer_instance : canonically_ordered_add_monoid cardinal.{u}),
+  .. cardinal.linear_order }
 
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
@@ -1081,3 +1116,6 @@ lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
 by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
 
 end cardinal
+
+lemma equiv.cardinal_eq {α β} : α ≃ β → cardinal.mk α = cardinal.mk β :=
+cardinal.eq_congr

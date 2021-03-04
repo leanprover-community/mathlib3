@@ -308,14 +308,18 @@ forall_sets_nonempty_iff_ne_bot.symm.trans $ hl.forall_iff $ λ _ _, nonempty.mo
 
 lemma has_basis.eq_bot_iff (hl : l.has_basis p s) :
   l = ⊥ ↔ ∃ i, p i ∧ s i = ∅ :=
-not_iff_not.1 $ hl.ne_bot_iff.trans $ by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
+not_iff_not.1 $ ne_bot_iff.symm.trans $ hl.ne_bot_iff.trans $
+by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
-  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
-by simp only [has_basis_iff, exists_prop, id, and_assoc]
+  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
+begin
+  simp only [has_basis_iff, exists_prop, id, and_assoc],
+  exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_sets_of_superset hl hts⟩⟩)
+end
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
 `p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/
@@ -413,7 +417,8 @@ l.basis_sets.inf_principal_ne_bot_iff
 
 lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
-not_iff_not.1 $ inf_ne_bot_iff.trans $ by simp [← ne_empty_iff_nonempty]
+not_iff_not.1 $ ne_bot_iff.symm.trans $ inf_ne_bot_iff.trans $
+by simp [← ne_empty_iff_nonempty]
 
 protected lemma disjoint_iff {f g : filter α} :
   disjoint f g ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
@@ -422,10 +427,14 @@ disjoint_iff.trans inf_eq_bot_iff
 lemma mem_iff_inf_principal_compl {f : filter α} {s : set α} :
   s ∈ f ↔ f ⊓ 𝓟 sᶜ = ⊥ :=
 begin
-  refine not_iff_not.1 (inf_principal_ne_bot_iff.trans _).symm,
+  refine not_iff_not.1 ((inf_principal_ne_bot_iff.trans _).symm.trans ne_bot_iff),
   exact ⟨λ h hs, by simpa [empty_not_nonempty] using h s hs,
     λ hs t ht, inter_compl_nonempty_iff.2 $ λ hts, hs $ mem_sets_of_superset ht hts⟩,
 end
+
+lemma not_mem_iff_inf_principal_compl {f : filter α} {s : set α} :
+  s ∉ f ↔ ne_bot (f ⊓ 𝓟 sᶜ) :=
+(not_congr mem_iff_inf_principal_compl).trans ne_bot_iff.symm
 
 lemma mem_iff_disjoint_principal_compl {f : filter α} {s : set α} :
   s ∈ f ↔ disjoint f (𝓟 sᶜ) :=

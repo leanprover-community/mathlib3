@@ -155,7 +155,7 @@ end is_monoid_hom
 @[to_additive]
 theorem is_monoid_hom.of_mul [monoid α] [group β] (f : α → β) [is_mul_hom f] :
   is_monoid_hom f :=
-{ map_one := mul_self_iff_eq_one.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
+{ map_one := mul_right_eq_self.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]

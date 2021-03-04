@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.group.pi
 import algebra.big_operators.order
 import algebra.module.basic
+import algebra.module.pi
 import group_theory.submonoid.basic
 import data.fintype.card
 import data.finset.preimage
@@ -122,7 +123,7 @@ set.ext $ λ x, mem_support_iff.symm
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-lemma coe_fn_injective : function.injective (λ (f : α →₀ M) (x : α), f x)
+lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
     change f = g at h, subst h,
@@ -639,7 +640,7 @@ variables [add_monoid M]
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 
 @[simp] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
-lemma add_apply {g₁ g₂ : α →₀ M} {a : α} : (g₁ + g₂) a = g₁ a + g₂ a := rfl
+lemma add_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
 lemma support_add {g₁ g₂ : α →₀ M} : (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
@@ -682,7 +683,7 @@ See `finsupp.lsingle` for the stronger version as a linear map.
 
 See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
-def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
 lemma single_add_erase (a : α) (f : α →₀ M) : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -731,6 +732,11 @@ begin
   { apply ih _ _,
     rw [support_erase, hf, finset.erase_insert has] }
 end
+
+lemma induction_linear {p : (α →₀ M) → Prop} (f : α →₀ M)
+  (h0 : p 0) (hadd : ∀ f g : α →₀ M, p f → p g → p (f + g)) (hsingle : ∀ a b, p (single a b)) :
+  p f :=
+induction₂ f h0 (λ a b f _ _ w, hadd _ _ w (hsingle _ _))
 
 @[simp] lemma add_closure_Union_range_single :
   add_submonoid.closure (⋃ a : α, set.range (single a : M → α →₀ M)) = ⊤ :=
@@ -817,9 +823,8 @@ namespace finsupp
 section nat_sub
 instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.sub_zero 0)⟩
 
-@[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
-  (g₁ - g₂) a = g₁ a - g₂ a :=
-rfl
+@[simp] lemma coe_nat_sub (g₁ g₂ : α →₀ ℕ) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+lemma nat_sub_apply (g₁ g₂ : α →₀ ℕ) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin
@@ -896,11 +901,11 @@ lemma prod_neg_index [add_group G] [comm_monoid M] {g : α →₀ G} {h : α →
   (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
 
-@[simp] lemma neg_apply [add_group G] {g : α →₀ G} {a : α} : (- g) a = - g a :=
-rfl
+@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
+lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
-@[simp] lemma sub_apply [add_group G] {g₁ g₂ : α →₀ G} {a : α} : (g₁ - g₂) a = g₁ a - g₂ a :=
-rfl
+@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma support_neg [add_group G] {f : α →₀ G} : support (-f) = support f :=
 finset.subset.antisymm
@@ -1156,9 +1161,24 @@ finset.subset.trans support_sum $
 
 @[to_additive]
 lemma prod_map_domain_index [comm_monoid N] {f : α → β} {s : α →₀ M}
-  {h : β → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
-  (map_domain f s).prod h = s.prod (λa b, h (f a) b) :=
+  {h : β → M → N} (h_zero : ∀b, h b 0 = 1) (h_add : ∀b m₁ m₂, h b (m₁ + m₂) = h b m₁ * h b m₂) :
+  (map_domain f s).prod h = s.prod (λa m, h (f a) m) :=
 (prod_sum_index h_zero h_add).trans $ prod_congr rfl $ λ _ _, prod_single_index (h_zero _)
+
+/--
+A version of `sum_map_domain_index` that takes a bundled `add_monoid_hom`,
+rather than separate linearity hypotheses.
+-/
+-- Note that in `prod_map_domain_index`, `M` is still an additive monoid,
+-- so there is no analogous version in terms of `monoid_hom`.
+@[simp]
+lemma sum_map_domain_index_add_monoid_hom [add_comm_monoid N] {f : α → β}
+  {s : α →₀ M} (h : β → M →+ N) :
+  (map_domain f s).sum (λ b m, h b m) = s.sum (λ a m, h (f a) m) :=
+@sum_map_domain_index _ _ _ _ _ _ _ _
+  (λ b m, h b m)
+  (λ b, (h b).map_zero)
+  (λ b m₁ m₂, (h b).map_add _ _)
 
 lemma emb_domain_eq_map_domain (f : α ↪ β) (v : α →₀ M) :
   emb_domain f v = map_domain f v :=
@@ -1624,7 +1644,7 @@ Scalar multiplication by a group element on finitely supported functions on a gr
 given by precomposition with the action of g⁻¹. -/
 def comap_distrib_mul_action_self :
   distrib_mul_action G (G →₀ M) :=
-@finsupp.comap_distrib_mul_action G M G _ (mul_action.regular G) _
+@finsupp.comap_distrib_mul_action G M G _ (monoid.to_mul_action G) _
 
 @[simp]
 lemma comap_smul_single (g : G) (a : α) (b : M) :
@@ -1648,16 +1668,17 @@ section
 instance [semiring R] [add_comm_monoid M] [semimodule R M] : has_scalar R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
-variables (α M)
-
 /-!
 Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
 See note [implicit instance arguments].
 -/
 
-@[simp] lemma smul_apply' {_:semiring R} [add_comm_monoid M] [semimodule R M]
-  {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) :=
-rfl
+@[simp] lemma coe_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+  (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
+lemma smul_apply {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+  (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
+
+variables (α M)
 
 instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α →₀ M) :=
 { smul      := (•),
@@ -1672,7 +1693,7 @@ variables {α M} {R}
 
 lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
-λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
+λ a, by simp only [smul_apply, mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
 
 section
 
@@ -1708,10 +1729,6 @@ by rw [smul_single, smul_eq_mul, mul_one]
 
 end
 
-@[simp] lemma smul_apply [semiring R] {a : α} {b : R} {v : α →₀ R} :
-  (b • v) a = b • (v a) :=
-rfl
-
 lemma sum_smul_index [semiring R] [add_comm_monoid M] {g : α →₀ R} {b : R} {h : α → R → M}
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
 finsupp.sum_map_range_index h0
@@ -1720,6 +1737,11 @@ lemma sum_smul_index' [semiring R] [add_comm_monoid M] [semimodule R M] [add_com
   {g : α →₀ M} {b : R} {h : α → M → N} (h0 : ∀i, h i 0 = 0) :
   (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
+
+instance [semiring R] [add_comm_monoid M] [semimodule R M] {ι : Type*}
+  [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=
+⟨λ c f h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext
+  (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩
 
 section
 variables [semiring R] [semiring S]

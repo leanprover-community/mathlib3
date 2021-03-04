@@ -35,7 +35,7 @@ https://math.stackexchange.com/questions/3974485/does-right-translation-preserve
 
 noncomputable theory
 open topological_space set (hiding prod_eq) function
-open_locale classical
+open_locale classical ennreal
 
 namespace measure_theory
 
@@ -133,7 +133,7 @@ begin
 end
 
 lemma lintegral_lintegral_mul_inv (hμ : is_mul_left_invariant μ) (hν : is_mul_left_invariant ν)
-  (f : G → G → ennreal) (hf : ae_measurable (uncurry f) (μ.prod ν)) :
+  (f : G → G → ℝ≥0∞) (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f (y * x) x⁻¹ ∂ν ∂μ = ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ :=
 begin
   have h : measurable (λ z : G × G, (z.2 * z.1, z.1⁻¹)) :=
@@ -169,7 +169,7 @@ lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE
   sets). -/
 lemma measure_lintegral_div_measure [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) (h2ν : regular ν) {E : set G} (hE : is_compact E) (h2E : ν E ≠ 0)
-  (f : G → ennreal) (hf : measurable f) :
+  (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
   have Em := hE.measurable_set,
@@ -182,12 +182,12 @@ begin
     ← lintegral_lintegral_mul_inv hμ hν],
   swap, { exact (((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
       (hg.comp measurable_snd)).ae_measurable },
-  have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ennreal)) y) :=
+  have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ℝ≥0∞)) y) :=
   λ x, measurable_const.indicator (measurable_mul_right _ Em),
-  have : ∀ x y, E.indicator (λ (z : G), (1 : ennreal)) (y * x) =
+  have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
   { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, simp },
-  have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ⊤ :=
+  have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
   λ y, ennreal.lt_top_iff_ne_top.mp (h2ν.lt_top_of_is_compact $
     (homeomorph.mul_right _).compact_preimage.mpr hE),
   simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_right _ Em),

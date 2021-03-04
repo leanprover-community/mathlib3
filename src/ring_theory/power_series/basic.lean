@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
 import data.mv_polynomial
+import linear_algebra.std_basis
 import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
 import tactic.linarith
+import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Formal power series
@@ -119,11 +121,11 @@ by rw [coeff, monomial, linear_map.proj_apply, linear_map.std_basis_apply, funct
 
 @[simp] lemma coeff_monomial_same (n : σ →₀ ℕ) (a : R) :
   coeff R n (monomial R n a) = a :=
-linear_map.std_basis_same _ _ _ _
+linear_map.std_basis_same R _ n a
 
 lemma coeff_monomial_ne {m n : σ →₀ ℕ} (h : m ≠ n) (a : R) :
   coeff R m (monomial R n a) = 0 :=
-linear_map.std_basis_ne  _ _ _ _ h a
+linear_map.std_basis_ne R _ _ _ h a
 
 lemma eq_of_coeff_monomial_ne_zero {m n : σ →₀ ℕ} {a : R} (h : coeff R m (monomial R n a) ≠ 0) :
   m = n :=
@@ -337,6 +339,13 @@ lemma coeff_zero_mul_X (φ : mv_power_series σ R) (s : σ) :
 begin
   have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
   simp only [X, coeff_mul_monomial, if_neg this]
+end
+
+lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
+ coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
+begin
+  have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
+  simp only [X, coeff_monomial_mul, if_neg this]
 end
 
 variables (σ) (R)
@@ -797,7 +806,8 @@ instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [s
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower
 
-instance [comm_ring R]       : algebra R       (power_series R) := by apply_instance
+instance {A} [semiring A] [comm_semiring R] [algebra R A] :
+  algebra R (power_series A) := by apply_instance
 
 end
 
@@ -954,6 +964,14 @@ begin
   rw mul_one
 end
 
+@[simp] lemma coeff_succ_X_mul (n : ℕ) (φ : power_series R) :
+  coeff R (n + 1) (X * φ) = coeff R n φ :=
+begin
+  simp only [coeff, finsupp.single_add, add_comm n 1],
+  convert φ.coeff_add_monomial_mul (single () 1) (single () n) _,
+  rw one_mul,
+end
+
 @[simp] lemma constant_coeff_C (a : R) : constant_coeff R (C R a) = a := rfl
 @[simp] lemma constant_coeff_comp_C :
   (constant_coeff R).comp (C R) = ring_hom.id R := rfl
@@ -964,10 +982,34 @@ end
 
 lemma coeff_zero_mul_X (φ : power_series R) : coeff R 0 (φ * X) = 0 := by simp
 
+lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
+
 /-- If a formal power series is invertible, then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : power_series R) (h : is_unit φ) :
   is_unit (constant_coeff R φ) :=
 mv_power_series.is_unit_constant_coeff φ h
+
+/-- Split off the constant coefficient. -/
+lemma eq_shift_mul_X_add_const (φ : power_series R) :
+  φ = mk (λ p, coeff R (p + 1) φ) * X + C R (constant_coeff R φ) :=
+begin
+  ext (_ | n),
+  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+      zero_add, mul_zero, ring_hom.map_mul], },
+  { simp only [coeff_succ_mul_X, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+      if_false, add_zero], }
+end
+
+/-- Split off the constant coefficient. -/
+lemma eq_X_mul_shift_add_const (φ : power_series R) :
+  φ = X * mk (λ p, coeff R (p + 1) φ) + C R (constant_coeff R φ) :=
+begin
+  ext (_ | n),
+  { simp only [ring_hom.map_add, constant_coeff_C, constant_coeff_X, coeff_zero_eq_constant_coeff,
+      zero_add, zero_mul, ring_hom.map_mul], },
+  { simp only [coeff_succ_X_mul, coeff_mk, linear_map.map_add, coeff_C, n.succ_ne_zero, sub_zero,
+      if_false, add_zero], }
+end
 
 section map
 variables {S : Type*} {T : Type*} [semiring S] [semiring T]
@@ -1009,6 +1051,43 @@ begin
   { exact h 0 zero_lt_one },
   { intros m hm, rwa nat.eq_zero_of_le_zero (nat.le_of_succ_le_succ hm) }
 end
+
+open finset nat
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(aX)`. -/
+noncomputable def rescale (a : R) : power_series R →+* power_series R :=
+{ to_fun :=  λ f, power_series.mk $ λ n, a^n * (power_series.coeff R n f),
+  map_zero' := by { ext, simp only [linear_map.map_zero, power_series.coeff_mk, mul_zero], },
+  map_one' := by { ext1, simp only [mul_boole, power_series.coeff_mk, power_series.coeff_one],
+                split_ifs, { rw [h, pow_zero], }, refl, },
+  map_add' := by { intros, ext, exact mul_add _ _ _, },
+  map_mul' := λ f g, by {
+    ext,
+    rw [power_series.coeff_mul, power_series.coeff_mk, power_series.coeff_mul, finset.mul_sum],
+    apply sum_congr rfl,
+    simp only [coeff_mk, prod.forall, nat.mem_antidiagonal],
+    intros b c H,
+    rw [←H, pow_add, mul_mul_mul_comm] }, }
+
+@[simp] lemma coeff_rescale (f : power_series R) (a : R) (n : ℕ) :
+  coeff R n (rescale a f) = a^n * coeff R n f := coeff_mk n _
+
+@[simp] lemma rescale_zero : rescale 0 = (C R).comp (constant_coeff R) :=
+begin
+  ext,
+  simp only [function.comp_app, ring_hom.coe_comp, rescale, ring_hom.coe_mk,
+    power_series.coeff_mk _ _, coeff_C],
+  split_ifs,
+  { simp only [h, one_mul, coeff_zero_eq_constant_coeff, pow_zero], },
+  { rw [zero_pow' n h, zero_mul], },
+end
+
+lemma rescale_zero_apply : rescale 0 X = C R (constant_coeff R X) :=
+by simp
+
+@[simp] lemma rescale_one : rescale 1 = ring_hom.id (power_series R) :=
+by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
+  ring_hom.coe_mk], }
 
 section trunc
 
@@ -1130,7 +1209,34 @@ lemma mul_inv_of_unit (φ : power_series R) (u : units R) (h : constant_coeff R 
   φ * inv_of_unit φ u = 1 :=
 mv_power_series.mul_inv_of_unit φ u $ h
 
+/-- Two ways of removing the constant coefficient of a power series are the same. -/
+lemma sub_const_eq_shift_mul_X (φ : power_series R) :
+  φ - C R (constant_coeff R φ) = power_series.mk (λ p, coeff R (p + 1) φ) * X :=
+sub_eq_iff_eq_add.mpr (eq_shift_mul_X_add_const φ)
+
+lemma sub_const_eq_X_mul_shift (φ : power_series R) :
+  φ - C R (constant_coeff R φ) = X * power_series.mk (λ p, coeff R (p + 1) φ) :=
+sub_eq_iff_eq_add.mpr (eq_X_mul_shift_add_const φ)
+
 end ring
+
+section comm_ring
+variables {A : Type*} [comm_ring A]
+
+@[simp] lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+begin
+  ext, simp only [linear_map.map_neg, coeff_rescale, coeff_X],
+  split_ifs with h; simp [h]
+end
+
+/-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
+noncomputable def eval_neg_hom : power_series A →+* power_series A :=
+rescale (-1 : A)
+
+@[simp] lemma eval_neg_hom_X : eval_neg_hom (X : power_series A) = -X :=
+rescale_neg_one_X
+
+end comm_ring
 
 section integral_domain
 variable [integral_domain R]
@@ -1184,6 +1290,18 @@ begin
   rw ← ideal.span_singleton_prime,
   { exact span_X_is_prime },
   { intro h, simpa using congr_arg (coeff R 1) h }
+end
+
+lemma rescale_injective {a : R} (ha : a ≠ 0) : function.injective (rescale a) :=
+begin
+  intros p q h,
+  rw power_series.ext_iff at *,
+  intros n,
+  specialize h n,
+  rw [coeff_rescale, coeff_rescale, mul_eq_mul_left_iff] at h,
+  apply h.resolve_right,
+  intro h',
+  exact ha (pow_eq_zero h'),
 end
 
 end integral_domain
@@ -1441,6 +1559,38 @@ end
 lemma order_monomial_of_ne_zero (n : ℕ) (a : R) (h : a ≠ 0) :
   order (monomial R n a) = n :=
 by rw [order_monomial, if_neg h]
+
+/-- If `n` is strictly smaller than the order of `ψ`, then the `n`th coefficient of its product
+with any other power series is `0`. -/
+lemma coeff_mul_of_lt_order {φ ψ : power_series R} {n : ℕ} (h : ↑n < ψ.order) :
+  coeff R n (φ * ψ) = 0 :=
+begin
+  suffices : coeff R n (φ * ψ) = ∑ p in finset.nat.antidiagonal n, 0,
+    rw [this, finset.sum_const_zero],
+  rw [coeff_mul],
+  apply finset.sum_congr rfl (λ x hx, _),
+  refine mul_eq_zero_of_right (coeff R x.fst φ) (ψ.coeff_of_lt_order x.snd (lt_of_le_of_lt _ h)),
+  rw finset.nat.mem_antidiagonal at hx,
+  norm_cast,
+  linarith,
+end
+
+lemma coeff_mul_one_sub_of_lt_order {R : Type*} [comm_ring R] {φ ψ : power_series R}
+  (n : ℕ) (h : ↑n < ψ.order) :
+  coeff R n (φ * (1 - ψ)) = coeff R n φ :=
+by simp [coeff_mul_of_lt_order h, mul_sub]
+
+lemma coeff_mul_prod_one_sub_of_lt_order {R ι : Type*} [comm_ring R] (k : ℕ) (s : finset ι)
+  (φ : power_series R) (f : ι → power_series R) :
+  (∀ i ∈ s, ↑k < (f i).order) → coeff R k (φ * ∏ i in s, (1 - f i)) = coeff R k φ :=
+begin
+  apply finset.induction_on s,
+  { simp },
+  { intros a s ha ih t,
+    simp only [finset.mem_insert, forall_eq_or_imp] at t,
+    rw [finset.prod_insert ha, ← mul_assoc, mul_right_comm, coeff_mul_one_sub_of_lt_order _ t.1],
+    exact ih t.2 },
+end
 
 end order_basic
 

@@ -102,6 +102,24 @@ instance : has_coe_to_fun (quadratic_form R M) :=
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_apply : Q.to_fun = ⇑ Q := rfl
 
+lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
+
+lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
+by { rw [←one_smul R x, ←add_smul, map_smul], norm_num }
+
+@[simp] lemma map_zero : Q 0 = 0 :=
+by rw [←@zero_smul R _ _ _ _ (0 : M), map_smul, zero_mul, zero_mul]
+
+@[simp] lemma map_neg (x : M) : Q (-x) = Q x :=
+by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
+
+lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=
+by rw [←neg_sub, map_neg]
+
+@[simp]
+lemma polar_zero_left (y : M) : polar Q 0 y = 0 :=
+by simp [polar]
+
 @[simp]
 lemma polar_add_left (x x' y : M) :
   polar Q (x + x') y = polar Q x y + polar Q x' y :=
@@ -123,6 +141,10 @@ lemma polar_sub_left (x x' y : M) :
 by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_left, polar_neg_left]
 
 @[simp]
+lemma polar_zero_right (y : M) : polar Q y 0 = 0 :=
+by simp [polar]
+
+@[simp]
 lemma polar_add_right (x y y' : M) :
   polar Q x (y + y') = polar Q x y + polar Q x y' :=
 Q.polar_add_right' x y y'
@@ -142,19 +164,12 @@ lemma polar_sub_right (x y y' : M) :
   polar Q x (y - y') = polar Q x y - polar Q x y' :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_right, polar_neg_right]
 
-lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
-
-lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
-by { rw [←one_smul R x, ←add_smul, map_smul], norm_num }
-
-@[simp] lemma map_zero : Q 0 = 0 :=
-by rw [←@zero_smul R _ _ _ _ (0 : M), map_smul, zero_mul, zero_mul]
-
-@[simp] lemma map_neg (x : M) : Q (-x) = Q x :=
-by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
-
-lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=
-by rw [←neg_sub, map_neg]
+@[simp]
+lemma polar_self (x : M) : polar Q x x = 2 * Q x :=
+begin
+  rw [polar, map_add_self, sub_sub, sub_eq_iff_eq_add, ←two_mul, ←two_mul, ←mul_assoc],
+  norm_num
+end
 
 variable {Q' : quadratic_form R M}
 @[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' :=
@@ -412,6 +427,14 @@ quadratic_form.ext $ λ x,
   calc  Q.associated.to_quadratic_form x
       = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
+
+lemma associated_eq_self_apply (x : M) : associated Q x x = Q x :=
+begin
+  rw [associated_apply, map_add_self],
+  suffices : 2 * Q x * ⅟ 2 = Q x,
+    { ring, assumption },
+  rw [mul_right_comm, mul_inv_of_self, one_mul],
+end
 
 end associated
 

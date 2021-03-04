@@ -25,10 +25,12 @@ variables {α : Type u} {β : Type v}
 
 /-- If `α` carries some multiplicative structure, then `additive α` carries the corresponding
 additive structure. -/
+@[derive decidable_eq]
 structure additive (α : Type*) := (out : α)
 
 /-- If `α` carries some additive structure, then `multiplicative α` carries the corresponding
 multiplicative structure. -/
+@[derive decidable_eq]
 structure multiplicative (α : Type*) := (out : α)
 
 namespace additive
@@ -311,6 +313,11 @@ instance [comm_group α] : add_comm_group (additive α) :=
 
 instance [add_comm_group α] : comm_group (multiplicative α) :=
 { .. multiplicative.group, .. multiplicative.comm_monoid }
+
+/-- Reinterpret `α → β` as `α → multiplicative β`. -/
+@[simps { value_md := semireducible, simp_rhs := tt }]
+def function.to_multiplicative : (α → β) ≃ (α → multiplicative β) :=
+by equiv_rw @to_add β; refl
 
 /-- Reinterpret `α →+ β` as `multiplicative α →* multiplicative β`. -/
 @[simps]

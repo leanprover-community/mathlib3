@@ -55,7 +55,7 @@ begin
   use k,
   { simpa only [xor, h, true_and, eq_self_iff_true, not_true, or_false, and_false]
       using (succ_ne_self (2*k)).symm },
-  { simp only [xor, h, add_eq_left_iff, false_or, eq_self_iff_true, not_true, not_false_iff,
+  { simp only [xor, h, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,
               one_ne_zero, and_self] },
 end
 
@@ -182,6 +182,13 @@ end
 
 theorem even.sub_odd (h : n ≤ m) (hm : even m) (hn : odd n) : odd (m - n) :=
 (odd_sub' h).mpr (iff_of_true hn hm)
+
+lemma even_mul_succ_self (n : ℕ) : even (n * (n + 1)) :=
+begin
+  rw even_mul,
+  convert n.even_or_odd,
+  simp with parity_simps
+end
 
 variables {R : Type*} [ring R]
 

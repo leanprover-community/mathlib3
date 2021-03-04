@@ -28,8 +28,8 @@ We also prove Tonelli's theorem and Fubini's theorem.
 * `measure_theory.measure.prod_prod` states `μ.prod ν (s.prod t) = μ s * ν t` for measurable sets
   `s` and `t`.
 * `measure_theory.lintegral_prod`: Tonelli's theorem. It states that for a measurable function
-  `α × β → ennreal` we have `∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ`. The version
-  for functions `α → β → ennreal` is reversed, and called `lintegral_lintegral`. Both versions have
+  `α × β → ℝ≥0∞` we have `∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ`. The version
+  for functions `α → β → ℝ≥0∞` is reversed, and called `lintegral_lintegral`. Both versions have
   a variant with `_symm` appended, where the order of integration is reversed.
   The lemma `measurable.lintegral_prod_right'` states that the inner integral of the right-hand side
   is measurable.
@@ -58,7 +58,7 @@ product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space ennreal
 open set function real ennreal
 open measure_theory measurable_space measure_theory.measure
 open topological_space (hiding generate_from)
@@ -198,7 +198,7 @@ end
 /-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   Tonelli's theorem is measurable. -/
 lemma measurable.lintegral_prod_right' [sigma_finite ν] :
-  ∀ {f : α × β → ennreal} (hf : measurable f), measurable (λ x, ∫⁻ y, f (x, y) ∂ν) :=
+  ∀ {f : α × β → ℝ≥0∞} (hf : measurable f), measurable (λ x, ∫⁻ y, f (x, y) ∂ν) :=
 begin
   have m := @measurable_prod_mk_left,
   refine measurable.ennreal_induction _ _ _,
@@ -217,20 +217,20 @@ end
 /-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   Tonelli's theorem is measurable.
   This version has the argument `f` in curried form. -/
-lemma measurable.lintegral_prod_right [sigma_finite ν] {f : α → β → ennreal}
+lemma measurable.lintegral_prod_right [sigma_finite ν] {f : α → β → ℝ≥0∞}
   (hf : measurable (uncurry f)) : measurable (λ x, ∫⁻ y, f x y ∂ν) :=
 hf.lintegral_prod_right'
 
 /-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Tonelli's theorem is measurable. -/
-lemma measurable.lintegral_prod_left' [sigma_finite μ] {f : α × β → ennreal}
+lemma measurable.lintegral_prod_left' [sigma_finite μ] {f : α × β → ℝ≥0∞}
   (hf : measurable f) : measurable (λ y, ∫⁻ x, f (x, y) ∂μ) :=
 (measurable_swap_iff.mpr hf).lintegral_prod_right'
 
 /-- The Lebesgue integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Tonelli's theorem is measurable.
   This version has the argument `f` in curried form. -/
-lemma measurable.lintegral_prod_left [sigma_finite μ] {f : α → β → ennreal}
+lemma measurable.lintegral_prod_left [sigma_finite μ] {f : α → β → ℝ≥0∞}
   (hf : measurable (uncurry f)) : measurable (λ y, ∫⁻ x, f x y ∂μ) :=
 hf.lintegral_prod_left'
 
@@ -339,7 +339,7 @@ begin
   { rcases (exists_measurable_superset_of_null hs0) with ⟨s', hs', h2s', h3s'⟩,
     convert measure_mono (prod_mono hs' (subset_univ _)),
     simp_rw [hs0, prod_prod h2s' measurable_set.univ, h3s', zero_mul] },
-  by_cases hti : ν t = ⊤,
+  by_cases hti : ν t = ∞,
   { convert le_top, simp_rw [hti, ennreal.mul_top, hs0, if_false] },
   rw [measure_eq_infi' μ],
   simp_rw [ennreal.infi_mul hti],
@@ -350,7 +350,7 @@ begin
   { rcases (exists_measurable_superset_of_null ht0) with ⟨t', ht', h2t', h3t'⟩,
     convert measure_mono (prod_mono (subset_univ _) ht'),
     simp_rw [ht0, prod_prod measurable_set.univ h2t', h3t', mul_zero] },
-  by_cases hsi : μ s' = ⊤,
+  by_cases hsi : μ s' = ∞,
   { convert le_top, simp_rw [hsi, ennreal.top_mul, ht0, if_false] },
   rw [measure_eq_infi' ν],
   simp_rw [ennreal.mul_infi hsi],
@@ -361,11 +361,11 @@ begin
 end
 
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
-  (h2s : (μ.prod ν) s < ⊤) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ⊤ :=
+  (h2s : (μ.prod ν) s < ∞) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ∞ :=
 by { simp_rw [prod_apply hs] at h2s, refine ae_lt_top (measurable_measure_prod_mk_left hs) h2s }
 
 lemma integrable_measure_prod_mk_left {s : set (α × β)}
-  (hs : measurable_set s) (h2s : (μ.prod ν) s < ⊤) :
+  (hs : measurable_set s) (h2s : (μ.prod ν) s < ∞) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
   refine ⟨(measurable_measure_prod_mk_left hs).to_real.ae_measurable, _⟩,
@@ -431,8 +431,8 @@ end
 variables [sigma_finite μ]
 
 instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
-⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
- by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩
+⟨⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
+ by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩⟩
 
 /-- Measures on a product space are equal the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
@@ -493,6 +493,14 @@ begin
   refine prod_eq (λ s' t' hs' ht', _),
   simp_rw [restrict_apply (hs'.prod ht'), prod_inter_prod, prod_prod (hs'.inter hs) (ht'.inter ht),
     restrict_apply hs', restrict_apply ht']
+end
+
+lemma restrict_prod_eq_prod_univ {s : set α} (hs : measurable_set s) :
+  (μ.restrict s).prod ν = (μ.prod ν).restrict (s.prod univ) :=
+begin
+  have : ν = ν.restrict set.univ := measure.restrict_univ.symm,
+  rwa [this, measure.prod_restrict, ← this],
+  exact measurable_set.univ,
 end
 
 lemma prod_dirac (y : β) : μ.prod (dirac y) = map (λ x, (x, y)) μ :=
@@ -578,14 +586,14 @@ namespace measure_theory
 
 variables [sigma_finite ν]
 
-lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ennreal)
+lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
 by { rw ← prod_swap at hf, rw [← lintegral_map' hf measurable_swap, prod_swap] }
 
-/-- Tonelli's Theorem: For `ennreal`-valued measurable functions on `α × β`,
+/-- Tonelli's Theorem: For `ℝ≥0∞`-valued measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
 lemma lintegral_prod_of_measurable :
-  ∀ (f : α × β → ennreal) (hf : measurable f), ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
+  ∀ (f : α × β → ℝ≥0∞) (hf : measurable f), ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
 begin
   have m := @measurable_prod_mk_left,
   refine measurable.ennreal_induction _ _ _,
@@ -603,9 +611,9 @@ begin
     simp only [lintegral_supr hf h2f, lintegral_supr (kf _), k2f, lintegral_supr lf l2f, h3f] },
 end
 
-/-- Tonelli's Theorem: For `ennreal`-valued almost everywhere measurable functions on `α × β`,
+/-- Tonelli's Theorem: For `ℝ≥0∞`-valued almost everywhere measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
-lemma lintegral_prod (f : α × β → ennreal) (hf : ae_measurable f (μ.prod ν)) :
+lemma lintegral_prod (f : α × β → ℝ≥0∞) (hf : ae_measurable f (μ.prod ν)) :
   ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
 begin
   have A : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ z, hf.mk f z ∂(μ.prod ν) :=
@@ -619,39 +627,39 @@ begin
   apply_instance
 end
 
-/-- The symmetric verion of Tonelli's Theorem: For `ennreal`-valued almost everywhere measurable
+/-- The symmetric verion of Tonelli's Theorem: For `ℝ≥0∞`-valued almost everywhere measurable
 functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
-lemma lintegral_prod_symm' [sigma_finite μ] (f : α × β → ennreal)
+lemma lintegral_prod_symm' [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
 by { simp_rw [← lintegral_prod_swap f hf], exact lintegral_prod _ hf.prod_swap }
 
-/-- The symmetric verion of Tonelli's Theorem: For `ennreal`-valued measurable
+/-- The symmetric verion of Tonelli's Theorem: For `ℝ≥0∞`-valued measurable
 functions on `α × β`,  the integral of `f` is equal to the iterated integral, in reverse order. -/
-lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ennreal)
+lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
 lintegral_prod_symm' f hf
 
 /-- The reversed version of Tonelli's Theorem. In this version `f` is in curried form, which makes
   it easier for the elaborator to figure out `f` automatically. -/
-lemma lintegral_lintegral ⦃f : α → β → ennreal⦄
+lemma lintegral_lintegral ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.1 z.2 ∂(μ.prod ν) :=
 (lintegral_prod _ hf).symm
 
 /-- The reversed version of Tonelli's Theorem (symmetric version). In this version `f` is in curried
   form, which makes it easier for the elaborator to figure out `f` automatically. -/
-lemma lintegral_lintegral_symm [sigma_finite μ] ⦃f : α → β → ennreal⦄
+lemma lintegral_lintegral_symm [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.2 z.1 ∂(ν.prod μ) :=
 (lintegral_prod_symm _ hf.prod_swap).symm
 
 /-- Change the order of Lebesgue integration. -/
-lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ennreal⦄
+lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ y, ∫⁻ x, f x y ∂μ ∂ν :=
 (lintegral_lintegral hf).trans (lintegral_prod_symm _ hf)
 
-lemma lintegral_prod_mul {f : α → ennreal} {g : β → ennreal}
+lemma lintegral_prod_mul {f : α → ℝ≥0∞} {g : β → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
 by simp [lintegral_prod _ (hf.fst.ennreal_mul hg.snd), lintegral_lintegral_mul hf hg]
@@ -794,7 +802,7 @@ end
 /-- Integrals commute with subtraction inside a lower Lebesgue integral.
   `F` can be any function. -/
 lemma lintegral_fn_integral_sub ⦃f g : α × β → E⦄
-  (F : E → ennreal) (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
+  (F : E → ℝ≥0∞) (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫⁻ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫⁻ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine lintegral_congr_ae _,
@@ -835,18 +843,19 @@ lemma continuous_integral_integral :
   continuous (λ (f : α × β →₁[μ.prod ν] E), ∫ x, ∫ y, f (x, y) ∂ν ∂μ) :=
 begin
   rw [continuous_iff_continuous_at], intro g,
-  refine tendsto_integral_of_l1 _ g.integrable.integral_prod_left
-    (eventually_of_forall $ λ h, h.integrable.integral_prod_left) _,
+  refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
+    (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
   simp_rw [edist_eq_coe_nnnorm_sub,
-    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ennreal)) (l1.integrable _) g.integrable],
+    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
+    (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
   { exact λ i, ∫⁻ x, ∫⁻ y, nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ },
   swap, { exact λ i, lintegral_mono (λ x, ennnorm_integral_le_lintegral_ennnorm _) },
   show tendsto (λ (i : α × β →₁[μ.prod ν] E),
     ∫⁻ x, ∫⁻ (y : β), nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ) (𝓝 g) (𝓝 0),
-  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (nnnorm (i z - g z) : ennreal)) :=
-  λ i, (i.measurable.sub g.measurable).ennnorm,
-  simp_rw [← lintegral_prod_of_measurable _ (this _), ← l1.of_real_norm_sub_eq_lintegral,
+  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (nnnorm (i z - g z) : ℝ≥0∞)) :=
+  λ i, ((Lp.measurable i).sub (Lp.measurable g)).ennnorm,
+  simp_rw [← lintegral_prod_of_measurable _ (this _), ← L1.of_real_norm_sub_eq_lintegral,
     ← of_real_zero],
   refine (continuous_of_real.tendsto 0).comp _,
   rw [← tendsto_iff_norm_tendsto_zero], exact tendsto_id

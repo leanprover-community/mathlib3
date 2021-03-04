@@ -8,14 +8,16 @@ import algebra.field
 import tactic.monotonicity.basic
 
 /-!
-  ### Linear ordered fields
-  A linear ordered field is a field equipped with a linear order such that
-  * addition respects the order: `a ≤ b → c + a ≤ c + b`;
-  * multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
-  * `0 < 1`.
+# Linear ordered fields
 
-  ### Main Definitions
-  * `linear_ordered_field`: the class of linear ordered fields.
+A linear ordered field is a field equipped with a linear order such that
+* addition respects the order: `a ≤ b → c + a ≤ c + b`;
+* multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
+* `0 < 1`.
+
+## Main Definitions
+
+* `linear_ordered_field`: the class of linear ordered fields.
 -/
 
 set_option old_structure_cmd true

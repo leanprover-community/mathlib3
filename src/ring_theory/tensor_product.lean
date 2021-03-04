@@ -7,9 +7,6 @@ Authors: Scott Morrison
 import linear_algebra.tensor_product
 import algebra.algebra.basic
 
-universes u v₁ v₂ v₃ v₄
-
-
 /-!
 # The tensor product of R-algebras
 
@@ -25,6 +22,8 @@ The code for
 is written and compiles, but takes longer than the `-T100000` time limit,
 so is currently commented out.
 -/
+
+universes u v₁ v₂ v₃ v₄
 
 namespace algebra
 
@@ -486,7 +485,8 @@ lemma assoc_aux_2 (r : R) :
 -- variables {R A B C}
 
 -- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) : (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+--   ((tensor_product.assoc R A B C) :
+--   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
 -- rfl
 
 end

@@ -29,7 +29,7 @@ both pointwise and in `L¹` norm, by a sequence of simple functions.
 -/
 
 open set filter topological_space
-open_locale classical topological_space
+open_locale classical topological_space ennreal
 variables {α β ι E : Type*}
 
 namespace measure_theory
@@ -168,7 +168,7 @@ begin
   exact_mod_cast this,
 end
 
-lemma tendsto_approx_on_l1_edist  [opens_measurable_space E]
+lemma tendsto_approx_on_L1_edist  [opens_measurable_space E]
  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, edist (approx_on f hf s y₀ h₀ n x) (f x) ∂μ) at_top (𝓝 0) :=
@@ -203,25 +203,25 @@ begin
     measure_theory.lintegral_mono (λ x, edist_approx_on_y0_le fmeas h₀ x n)
   ... = ∫⁻ x, edist y₀ (f x) ∂μ + ∫⁻ x, edist y₀ (f x) ∂μ :
     measure_theory.lintegral_add this this
-  ... < ⊤ :
+  ... < ∞ :
     add_lt_top.2 ⟨hi, hi⟩
 end
 
-lemma tendsto_approx_on_univ_l1_edist [opens_measurable_space E] [second_countable_topology E]
+lemma tendsto_approx_on_univ_L1_edist [opens_measurable_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
   tendsto (λ n, ∫⁻ x, edist (approx_on f fmeas univ 0 trivial n x) (f x) ∂μ) at_top (𝓝 0) :=
-tendsto_approx_on_l1_edist fmeas trivial (by simp) (by simpa using hf.2)
+tendsto_approx_on_L1_edist fmeas trivial (by simp) (by simpa using hf.2)
 
 lemma integrable_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) (n : ℕ) :
   integrable (approx_on f fmeas univ 0 trivial n) μ :=
 integrable_approx_on fmeas hf _ (integrable_zero _ _ _) n
 
-lemma tendsto_approx_on_univ_l1 [borel_space E] [second_countable_topology E]
+lemma tendsto_approx_on_univ_L1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
-  tendsto (λ n, l1.of_fun (approx_on f fmeas univ 0 trivial n)
-    (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ l1.of_fun f hf) :=
-tendsto_iff_edist_tendsto_0.2 $ tendsto_approx_on_univ_l1_edist fmeas hf
+  tendsto (λ n, integrable.to_L1 (approx_on f fmeas univ 0 trivial n)
+    (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ hf.to_L1 f) :=
+tendsto_iff_edist_tendsto_0.2 $  by simpa using tendsto_approx_on_univ_L1_edist fmeas hf
 
 end simple_func
 

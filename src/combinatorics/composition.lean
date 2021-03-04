@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import data.fintype.card
 import data.finset.sort
-import tactic.omega
 import algebra.big_operators.order
 
 /-!
@@ -289,8 +288,7 @@ begin
   have i_pos : (0 : ℕ) < i,
   { by_contradiction i_pos,
     push_neg at i_pos,
-    simp [nonpos_iff_eq_zero.mp i_pos, c.size_up_to_zero] at H,
-    exact nat.not_succ_le_zero j H },
+    revert H, simp [nonpos_iff_eq_zero.1 i_pos, c.size_up_to_zero] },
   let i₁ := (i : ℕ).pred,
   have i₁_lt_i : i₁ < i := nat.pred_lt (ne_of_gt i_pos),
   have i₁_succ : i₁.succ = i := nat.succ_pred_eq_of_pos i_pos,
@@ -677,7 +675,11 @@ Combinatorial viewpoints on compositions, seen as finite subsets of `fin (n+1)` 
 considering the restriction of the subset to `{1, ..., n-1}` and shifting to the left by one. -/
 def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n - 1)) :=
 { to_fun := λ c, {i : fin (n-1) |
-    (⟨1 + (i : ℕ), by { have := i.is_lt, omega }⟩ : fin n.succ) ∈ c.boundaries}.to_finset,
+    (⟨1 + (i : ℕ), begin
+       apply (add_lt_add_left i.is_lt 1).trans_le,
+       rw [nat.succ_eq_add_one, add_comm],
+       exact add_le_add (nat.sub_le n 1) (le_refl 1)
+    end ⟩ : fin n.succ) ∈ c.boundaries}.to_finset,
   inv_fun := λ s,
     { boundaries := {i : fin n.succ | (i = 0) ∨ (i = fin.last n)
         ∨ (∃ (j : fin (n-1)) (hj : j ∈ s), (i : ℕ) = j + 1)}.to_finset,
@@ -695,15 +697,26 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
     { simp only [or_iff_not_imp_left],
       assume i_mem i_ne_zero i_ne_last,
       simp [fin.ext_iff] at i_ne_zero i_ne_last,
+      have A : (1 + (i-1) : ℕ) = (i : ℕ),
+        by { rw add_comm, exact nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr i_ne_zero) },
       refine ⟨⟨i - 1, _⟩, _, _⟩,
-      { have : (i : ℕ) < n + 1 := i.2, omega },
-      { convert i_mem, rw fin.ext_iff, simp, omega },
-      { simp, omega } },
+      { have : (i : ℕ) < n + 1 := i.2,
+        simp [nat.lt_succ_iff_lt_or_eq, i_ne_last] at this,
+        exact nat.pred_lt_pred i_ne_zero this },
+      { convert i_mem,
+        rw fin.ext_iff,
+        simp only [fin.coe_mk, A] },
+      { simp [A] } },
   end,
   right_inv := begin
     assume s,
     ext i,
-    have : 1 + (i : ℕ) ≠ n, by { apply ne_of_lt, have := i.is_lt, omega },
+    have : 1 + (i : ℕ) ≠ n,
+    { apply ne_of_lt,
+      convert add_lt_add_left i.is_lt 1,
+      rw add_comm,
+      apply (nat.succ_pred_eq_of_pos _).symm,
+      exact (zero_le i.val).trans_lt (i.2.trans_le (nat.sub_le n 1)) },
     simp only [fin.ext_iff, exists_prop, fin.coe_zero, add_comm,
       set.mem_to_finset, set.mem_set_of_eq, fin.coe_last],
     erw [set.mem_set_of_eq],

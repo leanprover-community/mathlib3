@@ -141,7 +141,7 @@ h.quotient_map.is_open_preimage
 by rw [← preimage_symm, is_open_preimage]
 
 @[simp] lemma is_closed_preimage (h : α ≃ₜ β) {s : set β} : is_closed (h ⁻¹' s) ↔ is_closed s :=
-by simp only [is_closed, ← preimage_compl, is_open_preimage]
+by simp only [← is_open_compl_iff, ← preimage_compl, is_open_preimage]
 
 @[simp] lemma is_closed_image (h : α ≃ₜ β) {s : set α} : is_closed (h '' s) ↔ is_closed s :=
 by rw [← preimage_symm, is_closed_preimage]

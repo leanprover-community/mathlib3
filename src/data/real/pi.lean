@@ -189,7 +189,7 @@ begin
   --     constructed from `u` tends to `0` at `+∞`
   let u := λ k : ℕ, (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
   have H : tendsto (λ k : ℕ, (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
-  { convert (tendsto.const_add (1:ℝ) (((tendsto_rpow_div_mul_add (-1) 2 1 (by norm_num)).neg).add
+  { convert ((((tendsto_rpow_div_mul_add (-1) 2 1 (by norm_num)).neg.const_add (1:ℝ)).add
       tendsto_inv_at_top_zero)).comp tendsto_coe_nat_at_top_at_top,
     { ext k,
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],

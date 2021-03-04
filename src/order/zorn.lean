@@ -8,7 +8,6 @@ Zorn's lemmas.
 Ported from Isabelle/HOL (written by Jacques D. Fleuriot, Tobias Nipkow, and Christian Sternagel).
 -/
 import data.set.lattice
-import logic.relation
 noncomputable theory
 
 universes u

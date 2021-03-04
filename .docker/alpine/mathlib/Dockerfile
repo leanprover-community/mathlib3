@@ -1,9 +1,9 @@
-# This is the Dockerfile for `leanprover/mathlib:alpine`.
-# It is based on the `leanprover/lean:alpine` image,
+# This is the Dockerfile for `leanprovercommunity/mathlib:alpine`.
+# It is based on the `leanprovercommunity/lean:alpine` image,
 # and contains a cloned copy of the `mathlib` github repository,
 # along with precompiled oleans.
 
-FROM leanprover/lean:alpine
+FROM leanprovercommunity/lean:alpine
 
 # ssh to github once to bypass the unknown fingerprint warning
 RUN ssh -o StrictHostKeyChecking=no github.com || true

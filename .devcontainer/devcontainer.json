@@ -1,6 +1,6 @@
 {
 	"name": "mathlib",
-	// "image": "leanprover/mathlib", // it's faster to build the container than download it
+	// "image": "leanprovercommunity/mathlib", // it's faster to build the container than download it
 	"build": {
 		"dockerfile": "../.docker/debian/mathlib/Dockerfile",
 	},

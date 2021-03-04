@@ -6,10 +6,10 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 cd $DIR
 ./docker_build.sh
-docker push leanprover/lean:latest
-docker push leanprover/lean:debian
-docker push leanprover/lean:alpine
-docker push leanprover/mathlib:latest
-docker push leanprover/mathlib:debian
-docker push leanprover/mathlib:alpine
-docker push leanprover/mathlib:gitpod
+docker push leanprovercommunity/lean:latest
+docker push leanprovercommunity/lean:debian
+docker push leanprovercommunity/lean:alpine
+docker push leanprovercommunity/mathlib:latest
+docker push leanprovercommunity/mathlib:debian
+docker push leanprovercommunity/mathlib:alpine
+docker push leanprovercommunity/mathlib:gitpod

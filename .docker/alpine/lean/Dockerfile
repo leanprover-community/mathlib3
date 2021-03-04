@@ -1,6 +1,6 @@
-# This is an alternative Dockerfile, for `leanprover/lean:alpine`,
+# This is an alternative Dockerfile, for `leanprovercommunity/lean:alpine`,
 # based on `alpine`, and installs `elan` and `leanproject`.
-# See also the image `leanprover/mathlib` which contains a copy of mathlib.
+# See also the image `leanprovercommunity/mathlib` which contains a copy of mathlib.
 
 # `elan` doesn't include a release for `x86_64-unknown-linux-musl`,
 # so we roll our own

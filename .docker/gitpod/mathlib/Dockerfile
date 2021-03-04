@@ -1,4 +1,4 @@
-# This is the Dockerfile for `leanprover/mathlib:gitpod`.
+# This is the Dockerfile for `leanprovercommunity/mathlib:gitpod`.
 
 # gitpod doesn't support multiple FROM statements, (or rather, you can't copy from one to another)
 # so we just install everything in one go

@@ -1,6 +1,6 @@
-# This is the Dockerfile for `leanprover/lean`.
+# This is the Dockerfile for `leanprovercommunity/lean`.
 # It is based on the generic `debian` image, and installs `elan` and `leanproject`.
-# See also the image `leanprover/mathlib` which contains a copy of mathlib.
+# See also the image `leanprovercommunity/mathlib` which contains a copy of mathlib.
 
 # NOTE: to run this docker image on macos or windows,
 # you will need to increase the allowed memory (in the docker GUI) beyond 2GB

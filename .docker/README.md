@@ -8,12 +8,12 @@ with Lean and mathlib.
 You can build these containers using `scripts/docker_build.sh`.
 This will result in the creation of two containers:
 
-* `leanprover/lean` - contains elan, lean, and leanproject
-* `leanprover/mathlib` - additionally contains a copy of mathlib, with oleans
+* `leanprovercommunity/lean` - contains elan, lean, and leanproject
+* `leanprovercommunity/mathlib` - additionally contains a copy of mathlib, with oleans
 
 In fact, for each container you'll get three different tags, `:debian`, `:alpine` and `:latest`.
 `:debian` and `:alpine` use those respective distributions, and `:latest` just points at `:debian`.
-Finally, there is also a `leanprover/mathlib:gitpod` for use at
+Finally, there is also a `leanprovercommunity/mathlib:gitpod` for use at
 [https://gitpod.io/](https://gitpod.io/).
 
 ## Usage
@@ -36,13 +36,13 @@ which will add buttons directly on github.
 You can use these containers as virtual machines:
 
 ```sh
-docker run -it leanprover/mathlib
+docker run -it leanprovercommunity/mathlib
 ```
 
 ### Docker registry
 
 These containers are deployed to the Docker registry, so anyone can just
-`docker run -it leanprover/mathlib` to get a local lean+mathlib environment.
+`docker run -it leanprovercommunity/mathlib` to get a local lean+mathlib environment.
 
 There is a local script in `scripts/docker_push.sh` for deployment,
 but I have also set up `hub.docker.com` to watch the `docker` branch for updates

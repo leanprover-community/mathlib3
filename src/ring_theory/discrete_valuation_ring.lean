@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import ring_theory.principal_ideal_domain
+import group_theory.monoid_localization
 import order.conditionally_complete_lattice
+import ring_theory.principal_ideal_domain
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
 
@@ -472,5 +473,13 @@ begin
 end
 
 end
+
+section fraction_field
+
+variables {S : Type*} [ring S] [integral_domain S] [discrete_valuation_ring S]
+theorem localization_is_field (p : S) : is_field (localization.away p) :=
+
+end fraction_field
+
 
 end discrete_valuation_ring

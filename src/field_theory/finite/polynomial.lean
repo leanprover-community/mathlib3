@@ -183,12 +183,7 @@ finite_dimensional.finite_dimensional_iff_dim_lt_omega.mpr
   (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
 
 lemma findim_R : finite_dimensional.findim K (R σ K) = fintype.card (σ → K) :=
-begin
-  suffices : vector_space.dim K (R σ K) = fintype.card (σ → K),
-    { rw ← finite_dimensional.findim_eq_dim at this,
-      exact_mod_cast this },
-  rw dim_R
-end
+finite_dimensional.findim_eq_of_dim_eq (dim_R σ K)
 
 def evalᵢ : R σ K →ₗ[K] (σ → K) → K :=
 ((evalₗ K σ).comp (restrict_degree σ K (fintype.card K - 1)).subtype)

@@ -493,8 +493,9 @@ lemma localization_is_domain (S: Type*) [comm_ring S] (t : R)
   (f : localization_map (submonoid.powers t) S) :
   ¬ is_unit t → is_integral_domain S := sorry
 
-variables {A : Type*} [comm_ring A]
-#check bah R A
+instance loc_is_domain [comm_ring S] [t : R]
+  [f : localization_map (submonoid.powers t) S] :
+  ¬ is_unit t → integral_domain f.codomain := sorry
 
 instance localization_is_domain' [t : R] : integral_domain (localization.away t) :=
 begin
@@ -502,9 +503,15 @@ begin
   apply localization_map.integral_domain_localization (powers_le_non_zero_divisors_of_domain h_nz),
 end
 
+lemma bah (S : Type*) : comm_cancel_monoid_with_zero S :=
+begin
+  have hs : integral_domain S, sorry,
+  simp,
+end
+
 theorem localization_is_field  (S: Type*) [comm_ring S] (t : R)
   (f : localization_map (submonoid.powers t) S) :
-  ¬ is_unit t → is_field (f.codomain) :=
+  ¬ is_unit t → is_field S :=
 begin
   intro ht,
   split,
@@ -536,7 +543,9 @@ begin
   rw ← mul_assoc at h,
   rw [ring_hom.map_pow f.to_map ϖ] at h,
   rw ← hup at h,
-  rw [← units.mul_inv_eq_iff_eq_mul π] at h,
+  rw [← units.mul_inv_eq_iff_eq_mul _] at h,
+  rw mul_assoc at h,
+  rw mul_assoc at h,
   -- rw hup at h,
   --- e ora col goal
   rw [ring_hom.map_mul f.to_map],
@@ -547,9 +556,24 @@ begin
   rw [ring_hom.map_mul f.to_map],
   rw [ring_hom.map_pow f.to_map],
   rw [mul_comm (f.to_map ϖ ^ (e * n - v)) _],
-  rw ← mul_assoc,
+  -- rw ← mul_assoc,
   rw ← h,
-  rw ← mul_right_inj' _,
+  let w₁ := (f.to_map (↑εₜ ^ n) * f.to_map ϖ ^ (e * n - v)),
+  let w₂ := (f.to_map (↑εₜ ^ n) * (f.to_map (ϖ ^ e) ^ n) * ↑π⁻¹),
+  have prova : a * w₁ = a * w₂,-- sorry,
+  have : comm_cancel_monoid_with_zero S,
+  {suffices idS : integral_domain S,
+  -- exact (integral_domain.to_comm_cancel_monoid_with_zero idS),-- idS,
+  }
+  apply (mul_right_inj' _).mpr,
+  -- exact prova,
+  subst w₁,
+  -- rw mul_right_inj' _,
+  apply (@mul_right_inj' S _ _ _ _ _).mpr,
+  apply
+  (@mul_right_inj' S _ _ a (f.to_map (↑εₜ ^ n) * f.to_map ϖ ^ (e * n - v)) _) ha,
+  -- apply (@mul_right_inj' f.codomain _ a _ _ ha).mp, --a (f.to_map (↑εₜ ^ n) * f.to_map ϖ ^ (e * n - v)) _,
+  -- rw ← mul_right_inj' _,
   -- rw fpow_sub,-- hϖ n*e v],
   -- rw mul_inv_eq_one _ ηᵣ⁻¹,
   rw f.to_ring_hom.map_units_inv,

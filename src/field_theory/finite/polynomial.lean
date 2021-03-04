@@ -178,16 +178,15 @@ calc vector_space.dim K (R σ K) =
   end
   ... = fintype.card (σ → K) : cardinal.fintype_card _
 
+instance : finite_dimensional K (R σ K) :=
+finite_dimensional.finite_dimensional_iff_dim_lt_omega.mpr
+  (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
+
 lemma findim_R : finite_dimensional.findim K (R σ K) = fintype.card (σ → K) :=
 begin
   suffices : vector_space.dim K (R σ K) = fintype.card (σ → K),
-    { haveI : finite_dimensional K (R σ K) :=
-  begin
-    rw [finite_dimensional.finite_dimensional_iff_dim_lt_omega, dim_R],
-    exact cardinal.nat_lt_omega _
-  end,
-  rw ← finite_dimensional.findim_eq_dim at this,
-  exact_mod_cast this },
+    { rw ← finite_dimensional.findim_eq_dim at this,
+      exact_mod_cast this },
   rw dim_R
 end
 
@@ -202,13 +201,8 @@ end
 
 lemma ker_evalₗ : (evalᵢ σ K).ker = ⊥ :=
 begin
-  rw ker_eq_bot_iff_range_eq_top_of_findim_eq_findim _,
-  refine range_evalᵢ _ _,
-  { rw [finite_dimensional.finite_dimensional_iff_dim_lt_omega, dim_R],
-    exact cardinal.nat_lt_omega _ },
-  { rw [finite_dimensional.finite_dimensional_iff_dim_lt_omega, dim_fun, dim_of_field, mul_one],
-    exact cardinal.nat_lt_omega _ },
-  { rw [finite_dimensional.findim_fintype_fun_eq_card, findim_R] }
+  refine (ker_eq_bot_iff_range_eq_top_of_findim_eq_findim _).mpr (range_evalᵢ _ _),
+  rw [finite_dimensional.findim_fintype_fun_eq_card, findim_R]
 end
 
 lemma eq_zero_of_eval_eq_zero (p : mv_polynomial σ K)

@@ -465,6 +465,20 @@ instance : add_comm_group (α →ᵇ β) :=
 @[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
+open_locale big_operators
+@[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) :
+  ⇑(∑ i in s, f i) = (∑ i in s, (f i : α → β)) :=
+begin
+  ext a,
+  apply finset.induction_on s,
+  { simp, },
+  { intros i s nm h, simp [h, finset.sum_insert nm], },
+end
+
+lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
+  (∑ i in s, f i) a = (∑ i in s, f i a) :=
+by simp
+
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
 

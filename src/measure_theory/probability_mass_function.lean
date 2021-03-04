@@ -132,7 +132,7 @@ end
 
 /-- Generalized version of `bind` allowing `f` to only be defined on the support of `p`.
   `p.bind f` is equivalent to `p.bind_on_support (λ a _, f a)`, see `bind_on_support_eq_bind` -/
-noncomputable def bind_on_support (p : pmf α) (f : ∀ a ∈ p.support, pmf β) : pmf β :=
+def bind_on_support (p : pmf α) (f : ∀ a ∈ p.support, pmf β) : pmf β :=
 ⟨λ b, ∑' a, p a * if h : p a = 0 then 0 else f a h b,
 ennreal.has_sum_coe.1 begin
   simp only [ennreal.coe_tsum (bind_on_support.summable p f _)],

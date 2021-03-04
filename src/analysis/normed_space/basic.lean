@@ -921,7 +921,7 @@ real.norm_of_nonneg (norm_nonneg _)
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
 
--- `metric.tendsto_at_top` says `∃ , ∀ n ≥ N, ...` while here we use `∃ N, ∀ n > N, ...`,
+-- `metric.tendsto_at_top` says `∃ N, ∀ n ≥ N, ...` while here we use `∃ N, ∀ n > N, ...`,
 -- which is equivalent, but often more convenient.
 lemma normed_group.tendsto_at_top {β : Type*} [normed_group β] {f : ℕ → β} {b : β} :
   tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=

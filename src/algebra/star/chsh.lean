@@ -202,7 +202,7 @@ begin
   { norm_num, },
 end
 
-lemma sqrt_two_inv_sq : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
+lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
 by { rw [←mul_inv'], norm_num, }
 
 end tsirelson_inequality
@@ -229,7 +229,7 @@ begin
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),
   { dsimp [P, Q],
     simp only [pow_two, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
-    simp only [algebra.mul_smul_comm, algebra.smul_mul_assoc, ←mul_smul, sqrt_two_inv_sq],
+    simp only [algebra.mul_smul_comm, algebra.smul_mul_assoc, ←mul_smul, sqrt_two_inv_mul_self],
     simp only [←pow_two, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
     simp only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
     abel,

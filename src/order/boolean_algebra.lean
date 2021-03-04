@@ -54,7 +54,8 @@ class generalized_boolean_algebra α extends distrib_lattice α, order_bot α, h
 (sup_inf_sdiff : ∀a b:α, (a ⊓ b) ⊔ (a \ b) = a)
 (inf_inf_sdiff : ∀a b:α, (a ⊓ b) ⊓ (a \ b) = ⊥)
 
--- TODO: do we want a `is_compl_of` predicate generalizing `is_compl`?
+-- We might want a `is_compl_of` predicate generalizing `is_compl`,
+-- however we'd need another type class for lattices with bot, and all the API for that.
 
 section generalized_boolean_algebra
 variables [generalized_boolean_algebra α]
@@ -73,6 +74,8 @@ generalized_boolean_algebra.sup_inf_sdiff _ _
 theorem inf_inf_sdiff (x y : α) : (x ⊓ y) ⊓ (x \ y) = ⊥ :=
 generalized_boolean_algebra.inf_inf_sdiff _ _
 
+theorem disjoint_inf_sdiff : disjoint (x ⊓ y) (x \ y) := (inf_inf_sdiff x y).le
+
 -- TODO: in distributive lattices, relative complements are unique when they exist
 theorem sdiff_unique (s : (x ⊓ y) ⊔ z = x) (i : (x ⊓ y) ⊓ z = ⊥) : x \ y = z :=
 begin
@@ -82,6 +85,25 @@ begin
   rw [inf_comm] at i,
   exact (eq_of_inf_eq_sup_eq i s).symm,
 end
+
+theorem sdiff_symm (hy : y ≤ x) (hz : z ≤ x) (H : x \ y = z) : x \ z = y :=
+have hyi : x ⊓ y = y := inf_eq_right.2 hy,
+have hzi : x ⊓ z = z := inf_eq_right.2 hz,
+eq_of_inf_eq_sup_eq
+  (begin
+    have ixy := inf_inf_sdiff x y,
+    rw [H, hyi] at ixy,
+    have ixz := inf_inf_sdiff x z,
+    rwa [hzi, inf_comm, ←ixy] at ixz,
+  end)
+  (begin
+    have sxz := sup_inf_sdiff x z,
+    rw [hzi, sup_comm] at sxz,
+    rw sxz,
+    symmetry,
+    have sxy := sup_inf_sdiff x y,
+    rwa [H, hyi] at sxy,
+  end)
 
 lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
@@ -102,7 +124,7 @@ calc x ⊔ (y \ x) = (x ⊔ (x ⊓ y)) ⊔ (y \ x) : by rw sup_inf_self
 Grätzer 2011, I.6.1
 -/
 lemma sup_sdiff_of_le (h : x ≤ y) : x ⊔ (y \ x) = y :=
-by rw [sup_sdiff_same, sup_comm, sup_eq_left.2 h]
+by conv_rhs { rw [←sup_inf_sdiff y x, inf_eq_right.2 h] }
 
 lemma sup_sdiff_left : x ⊔ (x \ y) = x := by { rw [sup_eq_left], exact sdiff_le }
 
@@ -118,6 +140,8 @@ eq.symm $
      ... = x ⊓ (x \ y) ⊓ (y \ x)              : by rw [inf_assoc, @inf_comm _ _ (y \ x), ←inf_assoc]
      ... = (x \ y) ⊓ (y \ x)                           : by rw [inf_sdiff_right]
 
+lemma disjoint_sdiff_sdiff : disjoint (x \ y) (y \ x) := sdiff_inf_sdiff.le
+
 /-!
 Cf. <https://ncatlab.org/nlab/show/relative+complement>
 -/
@@ -126,6 +150,54 @@ calc x ⊓ (y \ x) = ((x ⊓ y) ⊔ (x \ y)) ⊓ (y \ x)         : by rw [sup_in
              ... = (x ⊓ y) ⊓ (y \ x) ⊔ (x \ y) ⊓ (y \ x) : by rw [inf_sup_right]
              ... = ⊥         : by rw [@inf_comm _ _ x y, inf_inf_sdiff, sdiff_inf_sdiff, bot_sup_eq]
 theorem sdiff_inf_same : (y \ x) ⊓ x = ⊥ := by rw [inf_comm, inf_sdiff_same]
+
+theorem disjoint_sdiff : disjoint x (y \ x) := inf_sdiff_same.le
+
+-- cf. `is_compl.le_left_iff` and `is_compl.le_right_iff`
+lemma le_iff_disjoint_sdiff (hz : z ≤ y) (hx : x ≤ y) : z ≤ x ↔ disjoint z (y \ x) :=
+⟨λ H, disjoint_sdiff.mono_left H,
+  λ H, le_of_inf_le_sup_le
+    (le_trans H bot_le)
+    (begin
+      rw [sup_sdiff_of_le hx],
+      apply le_trans,
+      apply sup_le_sup_left,
+      apply sdiff_le,
+      rw sup_eq_right.2 hz,
+    end)⟩
+
+-- cf. `is_compl.left_le_iff` and `is_compl.right_le_iff`
+lemma le_iff_eq_sup_disjoint (hz : z ≤ y) (hx : x ≤ y) : x ≤ z ↔ y = z ⊔ (y \ x) :=
+⟨λ H,
+  begin
+    apply le_antisymm,
+    { conv_lhs { rw [←sup_inf_sdiff y x] },
+      apply sup_le_sup_right,
+      rw inf_eq_right.2 hx,
+      exact H, },
+    { apply le_trans,
+      { apply sup_le_sup_right hz, },
+      { rw sup_sdiff_left, } }
+  end,
+ λ H,
+  begin
+    conv_lhs at H { rw [←sup_sdiff_of_le hx], },
+    refine le_of_inf_le_sup_le _ H.le,
+    rw inf_sdiff_same,
+    exact bot_le,
+  end⟩
+
+-- lemma antimono {x' y'} (h : is_compl x y) (h' : is_compl x' y') (hx : x ≤ x') :
+--   y' ≤ y :=
+-- h'.right_le_iff.2 $ le_trans h.symm.top_le_sup (sup_le_sup_left hx _)
+
+-- lemma right_unique (hxy : is_compl x y) (hxz : is_compl x z) :
+--   y = z :=
+-- le_antisymm (hxz.antimono hxy $ le_refl x) (hxy.antimono hxz $ le_refl x)
+
+-- lemma left_unique (hxz : is_compl x z) (hyz : is_compl y z) :
+--   x = y :=
+-- hxz.symm.right_unique hyz.symm
 
 theorem le_sup_sdiff : x ≤ y ⊔ (x \ y) :=
 by { rw [sup_sdiff_same], exact le_sup_right }

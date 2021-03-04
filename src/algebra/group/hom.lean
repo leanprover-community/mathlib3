@@ -267,6 +267,10 @@ instance monoid_hom.is_monoid_hom : is_monoid_hom (M →* N) M N :=
   map_mul := monoid_hom.map_mul',
   map_one := monoid_hom.map_one' }
 
+@[to_additive]
+instance [mh : is_monoid_hom F M N] : has_coe F (M →* N) :=
+⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
+
 end monoid
 
 section monoid_with_zero
@@ -493,34 +497,33 @@ monoid_with_zero_hom.ext $ λ _, rfl
 
 end coes
 
-namespace monoid_hom
+section is_monoid_hom
 variables {mM : monoid M} {mN : monoid N} {mP : monoid P}
-variables [group G] [comm_group H]
 
 include mM mN
 
 @[to_additive]
-lemma map_mul_eq_one (f : M →* N) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
+lemma map_mul_eq_one [is_monoid_hom F M N] (f : F) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
 by rw [← map_mul, h, map_one]
 
 /-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a right inverse,
 then `f x` has a right inverse too. For elements invertible on both sides see `is_unit.map`. -/
 @[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
 a right inverse, then `f x` has a right inverse too."]
-lemma map_exists_right_inv (f : M →* N) {x : M} (hx : ∃ y, x * y = 1) :
+lemma map_exists_right_inv [is_monoid_hom F M N] (f : F) {x : M} (hx : ∃ y, x * y = 1) :
   ∃ y, f x * y = 1 :=
-let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
 /-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a left inverse,
 then `f x` has a left inverse too. For elements invertible on both sides see `is_unit.map`. -/
 @[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
 a left inverse, then `f x` has a left inverse too. For elements invertible on both sides see
 `is_add_unit.map`."]
-lemma map_exists_left_inv (f : M →* N) {x : M} (hx : ∃ y, y * x = 1) :
+lemma map_exists_left_inv [is_monoid_hom F M N] (f : F) {x : M} (hx : ∃ y, y * x = 1) :
   ∃ y, y * f x = 1 :=
-let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
-end monoid_hom
+end is_monoid_hom
 
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive]
@@ -785,6 +788,24 @@ instance [monoid M] [monoid N] : inhabited (M →* N) := ⟨1⟩
 -- unlike the other homs, `monoid_with_zero_hom` does not have a `1` or `0`
 instance [monoid_with_zero M] : inhabited (monoid_with_zero_hom M M) := ⟨monoid_with_zero_hom.id M⟩
 
+/-- Group homomorphisms preserve inverse. -/
+@[simp, to_additive]
+theorem map_inv {G H F} [group G] [group H] [is_monoid_hom F G H]
+  (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
+eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
+
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive]
+theorem map_mul_inv {G H F} [group G] [group H] [is_monoid_hom F G H]
+  (f : F) (g h : G) : f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
+by rw [map_mul, map_inv f]
+
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive]
+theorem map_div {G H F} [group G] [group H] [is_monoid_hom F G H]
+  (f : F) (g h : G) : f (g / h) = f g / f h :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
+
 namespace monoid_hom
 variables [mM : monoid M] [mN : monoid N] [mP : monoid P]
 variables [group G] [comm_group H]
@@ -867,18 +888,8 @@ def comp_hom [monoid M] [comm_monoid N] [comm_monoid P] :
 then they are equal at `-x`." ]
 lemma eq_on_inv {G} [group G] [monoid M] {f g : G →* M} {x : G} (h : f x = g x) :
   f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (f.map_mul_eq_one $ inv_mul_self x) $
-  h.symm ▸ g.map_mul_eq_one $ mul_inv_self x
-
-/-- Group homomorphisms preserve inverse. -/
-@[simp, to_additive]
-theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
-
-/-- Group homomorphisms preserve division. -/
-@[simp, to_additive]
-theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
-  f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [map_mul, f.map_inv]
+left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
+  h.symm ▸ map_mul_eq_one g $ mul_inv_self x
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial. -/
 @[to_additive]
@@ -972,10 +983,6 @@ end monoid_hom
 namespace add_monoid_hom
 
 variables {A B : Type*} [add_monoid A] [add_comm_group B] [add_group G] [add_group H]
-
-/-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, f.map_add_neg g h]
 
 /-- Define a morphism of additive groups given a map which respects difference. -/
 def of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) : G →+ H :=

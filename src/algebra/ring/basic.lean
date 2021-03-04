@@ -618,14 +618,6 @@ end units
 
 namespace ring_hom
 
-/-- Ring homomorphisms preserve additive inverse. -/
-@[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
-(f : α →+ β).map_neg x
-
-/-- Ring homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
-
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
 theorem injective_iff {α β} [ring α] [semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=

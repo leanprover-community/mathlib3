@@ -907,6 +907,24 @@ by { rw div_eq_mul_inv, exact hac.mul_left hbc.inv_left' }
 
 end commute
 
+namespace is_monoid_with_zero_hom
+
+variables {F : Type*}
+variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
+
+/-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
+@[simp] lemma map_inv' [is_monoid_with_zero_hom F G₀ G₀'] (f : F) (a : G₀) : f a⁻¹ = (f a)⁻¹ :=
+begin
+  by_cases h : a = 0, by simp [h],
+  apply eq_inv_of_mul_left_eq_one,
+  rw [← map_mul f, inv_mul_cancel h, map_one f]
+end
+
+@[simp] lemma map_div [is_monoid_with_zero_hom F G₀ G₀'] (f : F) (a b : G₀) : f (a / b) = f a / f b :=
+by simpa only [div_eq_mul_inv] using ((map_mul f _ _).trans $ _root_.congr_arg _ $ map_inv' f b)
+
+end is_monoid_with_zero_hom
+
 namespace monoid_with_zero_hom
 
 variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
@@ -923,28 +941,12 @@ not_iff_not.1 f.map_ne_zero
 
 end monoid_with_zero
 
-section group_with_zero
-
-variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
-
-/-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
-@[simp] lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
-begin
-  by_cases h : a = 0, by simp [h],
-  apply eq_inv_of_mul_left_eq_one,
-  rw [← map_mul f, inv_mul_cancel h, map_one f]
-end
-
-@[simp] lemma map_div : f (a / b) = f a / f b :=
-by simpa only [div_eq_mul_inv] using ((map_mul f _ _).trans $ _root_.congr_arg _ $ f.map_inv' b)
-
-end group_with_zero
-
 end monoid_with_zero_hom
 
-@[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
-  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
-by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]
+@[simp] lemma map_units_inv {M G₀ F : Type*} [monoid M] [group_with_zero G₀] [is_monoid_hom F M G₀]
+  (f : F) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+show (f : M →* G₀) ↑u⁻¹ = ((f : M →* G₀) u)⁻¹,
+by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', map_inv]
 
 section noncomputable_defs
 

@@ -1138,6 +1138,15 @@ lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjec
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
 
+/-- Restriction of a group hom to a subgroup. -/
+@[to_additive]
+def restrict {K : Type*} [group K] (f : G →* K) (H : subgroup G) : H →* K :=
+f.comp H.subtype
+
+@[simp, to_additive]
+lemma restrict_apply {K : Type*} [group K] {H : subgroup G} (f : G →* K) (x : H) :
+  f.restrict H x = f (x : G) := rfl
+
 /-- Restriction of a group hom to a subgroup of the codomain. -/
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the codomain."]
 def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →* S :=

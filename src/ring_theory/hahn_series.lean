@@ -322,7 +322,6 @@ lemma mul_single_zero_coeff [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ}
   (x * (single 0 r)).coeff a = x.coeff a * r  :=
 by rw [← add_zero a, mul_single_coeff_add, add_zero]
 
-@[simp]
 lemma single_zero_mul_coeff [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ} :
   ((single 0 r) * x).coeff a = r * x.coeff a :=
 by rw [← add_zero a, single_mul_coeff_add, add_zero]
@@ -330,7 +329,7 @@ by rw [← add_zero a, single_mul_coeff_add, add_zero]
 @[simp]
 lemma single_zero_mul_eq_smul [semiring R] {r : R} {x : hahn_series Γ R} :
   (single 0 r) * x = r • x :=
-by { ext, simp }
+by { ext, exact single_zero_mul_coeff }
 
 theorem support_mul_subset_add_support [semiring R] {x y : hahn_series Γ R} :
   support (x * y) ⊆ support x + support y :=
@@ -419,7 +418,7 @@ section semiring
 variables [semiring R]
 
 @[simp]
-lemma single_mul_single [semiring R] {a b : Γ} {r s : R} :
+lemma single_mul_single {a b : Γ} {r s : R} :
   single a r * single b s = single (a + b) (r * s) :=
 begin
   ext x,
@@ -450,7 +449,6 @@ lemma C_zero : C (0 : R) = (0 : hahn_series Γ R) := C.map_zero
 @[simp]
 lemma C_one : C (1 : R) = (1 : hahn_series Γ R) := C.map_one
 
-@[simp]
 lemma C_mul_eq_smul {r : R} {x : hahn_series Γ R} : C r * x = r • x :=
 single_zero_mul_eq_smul
 

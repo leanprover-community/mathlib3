@@ -510,7 +510,7 @@ def equiv_of_equiv {α β : Type*} (f : α ≃ β) : free_abelian_group α ≃+ 
   end,
   map_add' := add_monoid_hom.map_add _ }
 
-/-- Isomorphic monoids induce ring-isomorphic abelian groups. -/
+/-- Isomorphic monoids induce ring-isomorphic free abelian groups. -/
 @[simps { simp_rhs := tt }]
 def ring_equiv_of_monoid_equiv {α β : Type*} [monoid α] [monoid β] (f : α ≃* β) :
   free_abelian_group α ≃+* free_abelian_group β :=

@@ -51,6 +51,18 @@ variables [linear_ordered_comm_monoid_with_zero α]
 The following facts are true more generally in a (linearly) ordered commutative monoid.
 -/
 
+/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map. -/
+def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
+  [has_zero β] [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  linear_ordered_comm_monoid_with_zero β :=
+{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one,
+    linear_ordered_comm_monoid_with_zero.zero_le_one],
+  ..linear_order.lift f hf,
+  ..hf.ordered_comm_monoid f one mul,
+  ..hf.comm_monoid_with_zero f zero one mul }
+
 lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
 begin
   induction n with n ih,

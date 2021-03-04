@@ -301,6 +301,21 @@ iff.intro
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
 
+/-- Pullback an `ordered_comm_monoid` under an injective map. -/
+@[to_additive function.injective.ordered_add_comm_monoid
+"Pullback an `ordered_add_comm_monoid` under an injective map."]
+def function.injective.ordered_comm_monoid {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  ordered_comm_monoid β :=
+{ mul_le_mul_left := λ a b ab c,
+    show f (c * a) ≤ f (c * b), by simp [mul, mul_le_mul_left' ab],
+  lt_of_mul_lt_mul_left :=
+    λ a b c bc, @lt_of_mul_lt_mul_left' _ _ (f a) _ _ (by rwa [← mul, ← mul]),
+  ..partial_order.lift f hf,
+  ..hf.comm_monoid f one mul }
+
 section mono
 
 variables {β : Type*} [preorder β] {f g : β → α}
@@ -1009,6 +1024,20 @@ by split; apply le_antisymm; try {assumption};
    rw ← hab; simp [ha, hb],
 λ ⟨ha', hb'⟩, by rw [ha', hb', mul_one]⟩
 
+/-- Pullback an `ordered_cancel_comm_monoid` under an injective map. -/
+@[to_additive function.injective.ordered_cancel_add_comm_monoid
+"Pullback an `ordered_cancel_add_comm_monoid` under an injective map."]
+def function.injective.ordered_cancel_comm_monoid {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  ordered_cancel_comm_monoid β :=
+{ le_of_mul_le_mul_left := λ a b c (ab : f (a * b) ≤ f (a * c)),
+    (by { rw [mul, mul] at ab, exact le_of_mul_le_mul_left' ab }),
+  ..hf.left_cancel_semigroup f mul,
+  ..hf.right_cancel_semigroup f mul,
+  ..hf.ordered_comm_monoid f one mul }
+
 section mono
 
 variables {β : Type*} [preorder β] {f g : β → α}
@@ -1133,6 +1162,17 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 @[to_additive]
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
+
+/-- Pullback a `linear_ordered_cancel_comm_monoid` under an injective map. -/
+@[to_additive function.injective.linear_ordered_cancel_add_comm_monoid
+"Pullback a `linear_ordered_cancel_add_comm_monoid` under an injective map."]
+def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  linear_ordered_cancel_comm_monoid β :=
+{ ..linear_order.lift f hf,
+  ..hf.ordered_cancel_comm_monoid f one mul }
 
 end linear_ordered_cancel_comm_monoid
 

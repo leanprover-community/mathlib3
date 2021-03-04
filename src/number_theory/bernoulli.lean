@@ -306,7 +306,7 @@ end
 def bernoulli_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!))
 
 theorem bernoulli_power_series_mul_exp_sub_one :
- bernoulli_power_series A * (exp A - 1) = X :=
+  bernoulli_power_series A * (exp A - 1) = X :=
 begin
   ext n,
   -- constant cofficient is a special case

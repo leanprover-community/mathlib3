@@ -1,4 +1,4 @@
-# This is an alternative Dockerfile for `leanprover/lean`,
+# This is an alternative Dockerfile, for `leanprover/lean:alpine`,
 # based on `alpine`, and installs `elan` and `leanproject`.
 # See also the image `leanprover/mathlib` which contains a copy of mathlib.
 

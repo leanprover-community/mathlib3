@@ -1,4 +1,4 @@
-# This is the Dockerfile for `leanprover/mathlib`.
+# This is the Dockerfile for `leanprover/mathlib:alpine`.
 # It is based on the `leanprover/lean:alpine` image,
 # and contains a cloned copy of the `mathlib` github repository,
 # along with precompiled oleans.

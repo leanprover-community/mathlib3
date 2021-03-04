@@ -283,8 +283,10 @@ funext $ λ x, free_abelian_group.lift.unique _ _ $ λ L,
 by { simp_rw [free_abelian_group.lift.of, (∘)], exact free_monoid.rec_on L rfl
 (λ hd tl ih, by { rw [(free_monoid.lift _).map_mul, free_monoid.lift_eval_of, ih], refl }) }
 
-@[simps]
-def subsingleton_equiv_free_monoid [subsingleton α] :
+/--
+The free monoid on a subsingleton is isomorphic to the multiplicative structure on the multiset.
+-/
+@[simps] def subsingleton_equiv_free_monoid [subsingleton α] :
   free_monoid α ≃* multiplicative (multiset α) :=
 { map_mul' := λ x y, rfl, ..(multiset.subsingleton_equiv α).trans of_add }
 

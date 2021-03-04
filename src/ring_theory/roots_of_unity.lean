@@ -487,17 +487,9 @@ end
   h.zmod_equiv_gpowers.symm (additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ)) = i :=
 by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe_int]
 
-@[simp] lemma zmod_equiv_gpowers_symm_apply_gpow' (i : ℤ) :
-  h.zmod_equiv_gpowers.symm (additive.of_mul (by exact ⟨ζ ^ i, i, rfl⟩)) = i :=
-h.zmod_equiv_gpowers_symm_apply_gpow i
-
 @[simp] lemma zmod_equiv_gpowers_symm_apply_pow (i : ℕ) :
   h.zmod_equiv_gpowers.symm (additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ)) = i :=
 by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe_nat]
-
-@[simp] lemma zmod_equiv_gpowers_symm_apply_pow' (i : ℕ) :
-  h.zmod_equiv_gpowers.symm (additive.of_mul (by exact ⟨ζ ^ i, i, rfl⟩)) = i :=
-h.zmod_equiv_gpowers_symm_apply_pow i
 
 lemma gpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
   subgroup.gpowers ζ = roots_of_unity k R :=

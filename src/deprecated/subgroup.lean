@@ -274,7 +274,7 @@ by rw [← equiv.eq_preimage_iff_image_eq, to_mul_preimage_trivial]
   to_add '' is_subgroup.trivial (multiplicative A) = is_add_subgroup.trivial A :=
 by rw [← equiv.eq_preimage_iff_image_eq, to_add_preimage_trivial]
 
-lemma of_mul_image_trivial [group G]:
+lemma of_mul_image_trivial :
   of_mul '' is_subgroup.trivial G = is_add_subgroup.trivial (additive G) :=
 by { ext, simp [additive.ext_iff], }
 

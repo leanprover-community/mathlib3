@@ -193,7 +193,7 @@ by simpa [nsmul] using congr_arg to_add (pow_mul_comm (of_add a) m n)
 @[simp] theorem add_monoid_hom.map_nsmul (f : A →+ B) (a : A) (n : ℕ) : f (n •ℕ a) = n •ℕ f a :=
 by simpa [nsmul, -monoid_hom.map_pow] using congr_arg to_add (f.to_multiplicative.map_pow _ n)
 
-lemma to_mul_nsmul [monoid M] (a : additive M) (n : ℕ) :
+lemma to_mul_nsmul (a : additive M) (n : ℕ) :
   to_mul (n •ℕ a) = to_mul a ^ n :=
 have ∀ a (n : ℕ), to_mul (to_add (a ^ n)) = to_mul (to_add a) ^ n,
 from (@to_add_to_mul M _).to_monoid_hom.map_pow,

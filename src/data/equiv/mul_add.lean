@@ -67,7 +67,7 @@ variables [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
 @[simp, to_additive]
 lemma to_fun_eq_coe {f : M ≃* N} : f.to_fun = f := rfl
 
-@[simp, to_additive]
+@[to_additive]
 lemma coe_to_equiv {f : M ≃* N} : ⇑f.to_equiv = f := rfl
 
 @[simp, to_additive]

@@ -228,16 +228,24 @@ begin
   let Q := √2⁻¹ • (A₁ - A₀) + B₁,
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),
   { dsimp [P, Q],
+    -- distribute out all the powers and products appearing on the RHS
     simp only [pow_two, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
+    -- pull all coefficients out to the front, and combine `√2`s where possible
     simp only [algebra.mul_smul_comm, algebra.smul_mul_assoc, ←mul_smul, sqrt_two_inv_sq],
+    -- replace Aᵢ * Aᵢ = 1 and Bᵢ * Bᵢ = 1
     simp only [←pow_two, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
+    -- move Aᵢ to the left of Bᵢ
     simp only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
+    -- collect terms, simplify coefficients, and collect terms again:
     abel,
     simp only [two_gsmul_half_smul, neg_two_gsmul_half_smul],
     abel,
+    -- these are identical, except the `_ • 1` terms don't quite match up
     congr,
+    -- collect terms by hand, as we don't have an analogue of `abel` for modules
     simp only [mul_one, int.cast_bit0, algebra.mul_smul_comm, int.cast_one, gsmul_eq_mul],
     rw [smul_two, smul_four, ←add_smul],
+    -- just look at the coefficients now:
     congr,
     exact mul_left_cancel' (by norm_num) tsirelson_inequality_aux, },
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {

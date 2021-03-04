@@ -30,8 +30,7 @@ namespace category_theory.triangulated
 /--
 We work in an additive category C equipped with an additive shift.
 -/
-variables {C : Type u} [category.{v} C] [has_shift C] [additive_category C]
-variables (C)
+variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
 
 
 /--
@@ -39,7 +38,6 @@ A triangle in C is a sextuple (X,Y,Z,f,g,h) where X,Y,Z are objects of C,
 and f: X → Y, g: Y → Z, h: Z → ΣX are morphisms in C.
 See https://stacks.math.columbia.edu/tag/0144.
 -/
-@[nolint has_inhabited_instance]
 structure triangle :=
 (obj1 : C)
 (obj2 : C)
@@ -47,6 +45,14 @@ structure triangle :=
 (mor1 : obj1 ⟶ obj2)
 (mor2 : obj2 ⟶ obj3)
 (mor3 : obj3 ⟶ obj1⟦1⟧)
+
+local attribute [instance] has_zero_object.has_zero
+instance [has_zero_object C]: inhabited (triangle C) := ⟨{ obj1 := 0,
+  obj2 := 0,
+  obj3 := 0,
+  mor1 := 0,
+  mor2 := 0,
+  mor3 := 0 } ⟩
 
 variable {C}
 
@@ -65,7 +71,6 @@ In other words, we have a commutative diagram:
 
 See https://stacks.math.columbia.edu/tag/0144.
 -/
-@[nolint has_inhabited_instance]
 structure triangle_morphism (T₁ : triangle C) (T₂ : triangle C):=
 (trimor1 : T₁.obj1 ⟶ T₂.obj1)
 (trimor2 : T₁.obj2 ⟶ T₂.obj2)
@@ -85,6 +90,7 @@ def triangle_morphism_id (T : triangle C) : triangle_morphism T T :=
   comm2 := by rw [category.id_comp, category.comp_id],
   comm3 := by { dsimp, simp } }
 
+instance (T: triangle C): inhabited (triangle_morphism T T) := ⟨ triangle_morphism_id T ⟩
 
 variable {T₁ : triangle C}
 variable {T₂ : triangle C}

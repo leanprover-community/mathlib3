@@ -476,7 +476,7 @@ instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_se
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 /-- Pullback a `linear_ordered_semiring` under an injective map. -/
-def function.injective.linear_ordered_semiring [linear_ordered_semiring α] {β : Type*}
+def function.injective.linear_ordered_semiring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -871,7 +871,7 @@ lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
 by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
 /-- Pullback a `linear_ordered_ring` under an injective map. -/
-def function.injective.linear_ordered_ring [linear_ordered_ring α] {β : Type*}
+def function.injective.linear_ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
@@ -947,7 +947,7 @@ begin
 end
 
 /-- Pullback a `linear_ordered_comm_ring` under an injective map. -/
-def function.injective.linear_ordered_comm_ring [linear_ordered_comm_ring α] {β : Type*}
+def function.injective.linear_ordered_comm_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)

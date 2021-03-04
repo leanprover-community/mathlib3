@@ -142,6 +142,12 @@ by { rw equiv.image_eq_preimage, refl }
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 
+instance [subsingleton α] : subsingleton (additive α) := to_mul.injective.subsingleton
+instance [subsingleton α] : subsingleton (multiplicative α) := to_add.injective.subsingleton
+
+instance [nontrivial α] : nontrivial (additive α) := of_mul.injective.nontrivial
+instance [nontrivial α] : nontrivial (multiplicative α) := of_add.injective.nontrivial
+
 @[simp] lemma to_add_cond {b : bool} {x y : multiplicative α} :
   (cond b x y).to_add = cond b x.to_add y.to_add :=
 by cases b; simp

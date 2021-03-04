@@ -159,7 +159,7 @@ variables (A : Type*) [comm_ring A] [algebra ℚ A]
 /-- The exponential generating function of the with `bernoulli' n`. -/
 def bernoulli'_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!))
 
-theorem bernoulli'_power_series_mul_exp_sub_one_eq_X_mul_exp :
+theorem bernoulli'_power_series_mul_exp_sub_one :
   bernoulli'_power_series A * (exp A - 1) = X * exp A :=
 begin
   ext n,
@@ -209,7 +209,7 @@ begin
     { dsimp [bernoulli'_power_series] at f',
       simp only [id_apply, rat.algebra_map_rat_rat] at f',
       exact f', },
-    {exact bernoulli'_power_series_mul_exp_sub_one_eq_X_mul_exp ℚ}, },
+    {exact bernoulli'_power_series_mul_exp_sub_one ℚ}, },
   have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n!)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
@@ -305,7 +305,7 @@ end
 /-- The exponential generating function of the with `bernoulli n`. -/
 def bernoulli_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!))
 
-theorem bernoulli_power_series_mul_exp_sub_one_eq_X :
+theorem bernoulli_power_series_mul_exp_sub_one :
  bernoulli_power_series A * (exp A - 1) = X :=
 begin
   ext n,

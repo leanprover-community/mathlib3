@@ -311,6 +311,9 @@ end
 
 @[simp] lemma C_comp : (C a).comp p = C a := eval₂_C _ _
 
+@[simp] lemma nat_cast_comp {n : ℕ} : (n : polynomial R).comp p = n :=
+by rw [←C_eq_nat_cast, C_comp]
+
 @[simp] lemma comp_zero : p.comp (0 : polynomial R) = C (p.eval 0) :=
 by rw [← C_0, comp_C]
 
@@ -492,6 +495,12 @@ lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 eq.symm $ sum_hom _ _
 
+lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
+polynomial.induction_on p
+  (by simp)
+  (by simp {contextual := tt})
+  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
+
 end map
 
 /-!
@@ -586,12 +595,6 @@ begin
   exact ring_hom.map_zero f,
 end
 
-lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
-polynomial.induction_on p
-  (by simp)
-  (by simp {contextual := tt})
-  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
-
 end map
 
 end comm_semiring
@@ -645,6 +648,9 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 @[simp] lemma neg_comp : (-p).comp q = -p.comp q := eval₂_neg _
 
 @[simp] lemma sub_comp : (p - q).comp r = p.comp r - q.comp r := eval₂_sub _
+
+@[simp] lemma int_cast_comp {i : ℤ} : (i : polynomial R).comp p = i :=
+by rw [←C_eq_int_cast, C_comp]
 
 end ring
 

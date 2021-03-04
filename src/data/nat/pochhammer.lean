@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.abel
+import data.polynomial.eval
 
 /-!
 # The rising and falling factorial functions
@@ -28,6 +29,40 @@ There is lots more in this direction:
 * q-factorials, q-binomials, q-Pochhammer.
 * Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
+
+variables (S : Type*) [semiring S]
+
+open polynomial
+
+noncomputable def pochhammer : ℕ → polynomial S
+| 0 := 1
+| (n+1) := X * (pochhammer n).comp(X + 1)
+
+@[simp] lemma pochhammer_zero : pochhammer S 0 = 1 := rfl
+@[simp] lemma pochhammer_one : pochhammer S 1 = X := by simp [pochhammer]
+@[simp] lemma pochhammer_succ_left (n : ℕ) : pochhammer S (n+1) = X * (pochhammer S n).comp (X+1) :=
+by { dsimp [pochhammer], refl, }
+
+section
+variables {S} {T : Type*} [semiring T]
+@[simp] lemma pochhammer_map (f : S →+* T) (n : ℕ): (pochhammer S n).map f = pochhammer T n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih, map_comp], },
+end
+
+
+@[simp] lemma pochhammer_succ_right (n : ℕ) : pochhammer ℕ (n+1) = pochhammer ℕ n * (X + n) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { conv_lhs {
+    rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
+      nat_cast_comp], },
+    simp?, }
+end
+
 
 variables {R : Type*}
 

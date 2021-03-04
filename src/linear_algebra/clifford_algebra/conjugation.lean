@@ -11,6 +11,7 @@ import algebra.module.opposites
 
 This file defines the grade reversal and grade involution functions on multivectors, `reverse` and
 `involute`.
+Together, these operations compose to form the "Clifford conjugate", hence the name of this file.
 
 https://en.wikipedia.org/wiki/Clifford_algebra#Antiautomorphisms
 
@@ -34,7 +35,7 @@ namespace clifford_algebra
 
 section involute
 
-/-- Grade involution, inverting the sign of each basis vector -/
+/-- Grade involution, inverting the sign of each basis vector. -/
 def involute : clifford_algebra Q →ₐ[R] clifford_algebra Q :=
 clifford_algebra.lift Q ⟨-(ι Q), λ m, by simp⟩
 
@@ -47,12 +48,16 @@ by { ext, simp }
 lemma involute_involutive : function.involutive (involute : _ → clifford_algebra Q) :=
 alg_hom.congr_fun involute_comp_involute
 
+@[simp] lemma involute_involute : ∀ a : clifford_algebra Q, involute (involute a) = a :=
+involute_involutive
+
 end involute
 
 section reverse
 open opposite
 
-/-- Grade reversion, inverting the multiplication order of basis vectors. -/
+/-- Grade reversion, inverting the multiplication order of basis vectors.
+Also called *transpose* in some literature. -/
 def reverse : clifford_algebra Q →ₗ[R] clifford_algebra Q :=
 (op_linear_equiv R).symm.to_linear_map.comp (
   clifford_algebra.lift Q ⟨(opposite.op_linear_equiv R).to_linear_map.comp (ι Q),
@@ -65,7 +70,7 @@ by simp [reverse]
   reverse (algebra_map R (clifford_algebra Q) r) = algebra_map R _ r :=
 by simp [reverse]
 
-@[simp] lemma reverse.map_one  : reverse (1 : clifford_algebra Q) = 1 :=
+@[simp] lemma reverse.map_one : reverse (1 : clifford_algebra Q) = 1 :=
 reverse.commutes 1
 
 @[simp] lemma reverse.map_mul (a b : clifford_algebra Q) :
@@ -88,6 +93,9 @@ end
 @[simp] lemma reverse_involutive : function.involutive (reverse : _ → clifford_algebra Q) :=
 linear_map.congr_fun reverse_comp_reverse
 
+@[simp] lemma reverse_reverse : ∀ a : clifford_algebra Q, reverse (reverse a) = a :=
+reverse_involutive
+
 lemma reverse_comp_involute :
   reverse.comp involute.to_linear_map =
     (involute.to_linear_map.comp reverse : _ →ₗ[R] clifford_algebra Q) :=
@@ -105,6 +113,9 @@ end
 is sometimes referred to as the "clifford conjugate". -/
 lemma reverse_involute_commute : function.commute (reverse : _ → clifford_algebra Q) involute :=
 linear_map.congr_fun reverse_comp_involute
+
+lemma reverse_involute : ∀ a : clifford_algebra Q, reverse (involute a) = involute (reverse a) :=
+reverse_involute_commute
 
 end reverse
 

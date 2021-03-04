@@ -1139,7 +1139,7 @@ lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjec
 range_top_iff_surjective.2 hf
 
 /-- Restriction of a group hom to a subgroup. -/
-@[to_additive]
+@[to_additive "Restriction of an `add_group` hom to an `add_subgroup`."]
 def restrict {K : Type*} [group K] (f : G →* K) (H : subgroup G) : H →* K :=
 f.comp H.subtype
 

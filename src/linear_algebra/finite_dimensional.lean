@@ -892,7 +892,7 @@ end
 lemma ker_eq_bot_iff_range_eq_top_of_findim_eq_findim [finite_dimensional K V]
   [finite_dimensional K V₂] (H : findim K V = findim K V₂) {f : V →ₗ[K] V₂} :
   f.ker = ⊥ ↔ f.range = ⊤ :=
-by { rw [range_eq_top, ker_eq_bot, injective_iff_surjective_of_findim_eq_findim H] }
+by rw [range_eq_top, ker_eq_bot, injective_iff_surjective_of_findim_eq_findim H]
 
 theorem findim_le_findim_of_injective [finite_dimensional K V] [finite_dimensional K V₂]
   {f : V →ₗ[K] V₂} (hf : function.injective f) : findim K V ≤ findim K V₂ :=

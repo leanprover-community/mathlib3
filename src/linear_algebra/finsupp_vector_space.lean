@@ -168,7 +168,7 @@ universes u
 
 open vector_space
 
-variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
+variables (K V : Type u) [field K] [add_comm_group V] [vector_space K V]
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
   cardinal.mk V = cardinal.mk K ^ dim K V :=
@@ -186,10 +186,9 @@ end
 lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
   cardinal.mk V < cardinal.omega :=
 begin
-  rw [cardinal_mk_eq_cardinal_mk_field_pow_dim],
+  rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
   exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
     (finite_dimensional.dim_lt_omega K V),
-  apply_instance
 end
 
 end vector_space

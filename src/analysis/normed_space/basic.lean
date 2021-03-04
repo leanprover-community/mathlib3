@@ -918,6 +918,17 @@ real.norm_of_nonneg (norm_nonneg _)
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
 
+-- `metric.tendsto_at_top` says `∃ N, ∀ n ≥ N, ...` while here we use `∃ N, ∀ n > N, ...`,
+-- which is equivalent, but often more convenient.
+lemma normed_group.tendsto_at_top {β : Type*} [normed_group β] {f : ℕ → β} {b : β} :
+  tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=
+begin
+  rw at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball,
+  { simp [dist_eq_norm] },
+  { apply_instance },
+  { apply_instance }
+end
+
 instance : normed_comm_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],

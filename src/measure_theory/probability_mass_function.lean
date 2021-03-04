@@ -121,7 +121,7 @@ begin
 end
 
 protected lemma bind_on_support.summable (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  summable (λ a : α, p a * dite (p a = 0) (λ _, (0 : nnreal)) (λ h, f a h b)) :=
+  summable (λ a : α, p a * if h : p a = 0 then 0 else f a h b) :=
 begin
   refine nnreal.summable_of_le (assume a, _) p.summable_coe,
   split_ifs,
@@ -133,7 +133,7 @@ end
 /-- Generalized version of `bind` allowing `f` to only be defined on the support of `p`.
   `p.bind f` is equivalent to `p.bind_on_support (λ a _, f a)`, see `bind_on_support_eq_bind` -/
 noncomputable def bind_on_support (p : pmf α) (f : ∀ a ∈ p.support, pmf β) : pmf β :=
-⟨λ b, ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b),
+⟨λ b, ∑' a, p a * if h : p a = 0 then 0 else f a h b,
 ennreal.has_sum_coe.1 begin
   simp only [ennreal.coe_tsum (bind_on_support.summable p f _)],
   rw [ennreal.summable.has_sum_iff, ennreal.tsum_comm],
@@ -147,7 +147,7 @@ ennreal.has_sum_coe.1 begin
 end⟩
 
 @[simp] lemma bind_on_support_apply (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  p.bind_on_support f b = ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b) := rfl
+  p.bind_on_support f b = ∑' a, p a * if h : p a = 0 then 0 else f a h b := rfl
 
 /-- `bind_on_support` reduces to `bind` if `f` doesn't depend on the additional hypothesis -/
 @[simp] lemma bind_on_support_eq_bind (p : pmf α) (f : α → pmf β) :
@@ -161,7 +161,7 @@ begin
 end
 
 lemma coe_bind_on_support_apply (p : pmf α) (f : ∀ a ∈ p.support, pmf β) (b : β) :
-  (p.bind_on_support f b : ℝ≥0∞) = ∑' a, p a * dite (p a = 0) (λ _, 0) (λ h, f a h b) :=
+  (p.bind_on_support f b : ℝ≥0∞) = ∑' a, p a * if h : p a = 0 then 0 else f a h b :=
 by simp only [bind_on_support_apply, ennreal.coe_tsum (bind_on_support.summable p f b),
     dite_cast, ennreal.coe_mul, ennreal.coe_zero]
 

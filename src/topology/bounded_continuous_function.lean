@@ -496,6 +496,7 @@ begin
   { simp, },
   { intros i s nm h, simp [h, finset.sum_insert nm], },
 end
+
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
   (∑ i in s, f i) a = (∑ i in s, f i a) :=
 by simp

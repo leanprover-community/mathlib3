@@ -61,17 +61,99 @@ variables {M : Type*} {N : Type*} {P : Type*} -- monoids
 -- for easy multiple inheritance
 set_option old_structure_cmd true
 
-/-- Homomorphism that preserves zero -/
+/-- The class `is_hom F α β` expresses that terms of type `F` can be coerced
+to functions from `α` to `β`.
+
+This typeclass is used in the definition of the homomorphism typeclasses,
+such as `is_zero_hom`, `is_mul_hom`, `is_monoid_hom`, ....
+In comparison to `has_coe_to_fun`, `is_hom` takes the function type as a parameter,
+rather than as a field of the class.
+-/
+class is_hom (F : Type*) (α β : out_param Type*)  :=
+(coe : F → α → β)
+
+variables {F α β : Type*}
+
+instance is_hom.to_coe_fn [is_hom F α β] : has_coe_to_fun F :=
+{ F := λ _, α → β,
+  coe := is_hom.coe }
+
+section zero
+
+variables [has_zero M] [has_zero N]
+
+/-- `zero_hom M N` is the type of functions `M → N` that preserve zero.
+
+When possible, instead of parametrizing results over `(f : zero_hom M N)`,
+you should parametrize over `(F : Type*) [is_zero_hom F M N] (f : F)`.
+
+When you extend this structure, make sure to also extend `is_zero_hom`.
+-/
 structure zero_hom (M : Type*) (N : Type*) [has_zero M] [has_zero N] :=
 (to_fun : M → N)
 (map_zero' : to_fun 0 = 0)
 
-/-- Homomorphism that preserves addition -/
+/-- `is_zero_hom F M N` states that `F` is a type of zero-preserving homomorphisms.
+
+You should extend this typeclass when you extend `zero_hom`.
+-/
+class is_zero_hom (F : Type*) (M N : out_param $ Type*)
+  [has_zero M] [has_zero N] extends is_hom F M N :=
+(map_zero : ∀ (f : F), f 0 = 0)
+
+instance zero_hom.is_zero_hom : is_zero_hom (zero_hom M N) M N :=
+{ coe := zero_hom.to_fun, map_zero := zero_hom.map_zero' }
+
+@[simp] lemma map_zero [is_zero_hom F M N] (f : F) : f 0 = 0 :=
+is_zero_hom.map_zero f
+
+end zero
+
+section add
+
+variables [has_add M] [has_add N]
+
+/-- `add_hom M N` is the type of functions `M → N` that preserve addition.
+
+When possible, instead of parametrizing results over `(f : add_hom M N)`,
+you should parametrize over `(F : Type*) [is_add_hom F M N] (f : F)`.
+
+When you extend this structure, make sure to extend `is_add_hom`.
+-/
 structure add_hom (M : Type*) (N : Type*) [has_add M] [has_add N] :=
 (to_fun : M → N)
 (map_add' : ∀ x y, to_fun (x + y) = to_fun x + to_fun y)
 
-/-- Bundled add_monoid homomorphisms; use this for bundled add_group homomorphisms too. -/
+/-- `is_add_hom F M N` states that `F` is a type of addition-preserving homomorphisms.
+
+You should declare an instance of this typeclass when you extend `add_hom`.
+-/
+class is_add_hom (F : Type*) (M N : out_param $ Type*)
+  [has_add M] [has_add N] extends is_hom F M N :=
+(map_add : ∀ (f : F) (x y : M), f (x + y) = f x + f y)
+
+instance add_hom.is_add_hom : is_add_hom (add_hom M N) M N :=
+{ coe := add_hom.to_fun, map_add := add_hom.map_add' }
+
+@[simp] lemma map_add [is_add_hom F M N] (f : F) (x y : M) :
+  f (x + y) = f x + f y :=
+is_add_hom.map_add f x y
+
+end add
+
+section add_monoid
+
+variables [add_monoid M] [add_monoid N]
+
+/-- `M →+ N` is the type of functions `M → N` that preserve the `add_monoid` structure.
+
+`add_monoid_hom` is also used for group homomorphisms.
+
+When possible, instead of parametrizing results over `(f : M →+ N)`,
+you should parametrize over `(F : Type*) [is_add_monoid_hom F M N] (f : F)`.
+
+When you extend this structure, make sure to extend `is_add_monoid_hom`.
+-/
 @[ancestor zero_hom add_hom]
 structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N]
   extends zero_hom M N, add_hom M N
@@ -80,6 +162,20 @@ attribute [nolint doc_blame] add_monoid_hom.to_add_hom
 attribute [nolint doc_blame] add_monoid_hom.to_zero_hom
 
 infixr ` →+ `:25 := add_monoid_hom
+
+/-- `is_add_monoid_hom F M N` states that `F` is a type of `add_monoid`-preserving homomorphisms.
+
+You should also extend this typeclass when you extend `add_monoid_hom`.
+-/
+class is_add_monoid_hom (F : Type*) (M N : out_param $ Type*) [add_monoid M] [add_monoid N]
+  extends is_add_hom F M N, is_zero_hom F M N
+
+instance add_monoid_hom.is_add_monoid_hom : is_add_monoid_hom (M →+ N) M N :=
+{ coe := add_monoid_hom.to_fun,
+  map_add := add_monoid_hom.map_add',
+  map_zero := add_monoid_hom.map_zero' }
+
+end add_monoid
 
 /-- Homomorphism that preserves one -/
 @[to_additive]

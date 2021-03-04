@@ -99,7 +99,7 @@ lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h, λ x, h ▸ rfl, ext⟩
 
 /- This lemma will be needed in the proof of the metric space instance, but it will become
-useless afterwards as it will be superceded by the general result that the distance is nonnegative
+useless afterwards as it will be superseded by the general result that the distance is nonnegative
 in metric spaces. -/
 private lemma dist_nonneg' : 0 ≤ dist f g :=
 le_cInf dist_set_exists (λ C, and.left)
@@ -617,7 +617,7 @@ functions from `α` to `𝕜`. -/
 
 instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
-(continuous.smul f.continuous g.continuous) (∥f∥ * ∥g∥) (λ x, calc
+(f.continuous.smul g.continuous) (∥f∥ * ∥g∥) (λ x, calc
   ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
   ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩

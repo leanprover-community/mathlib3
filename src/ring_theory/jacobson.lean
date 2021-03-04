@@ -538,8 +538,8 @@ open mv_polynomial ring_hom
 
 lemma is_jacobson_mv_polynomial_fin {R : Type*} [comm_ring R] [H : is_jacobson R] :
   ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
-| 0 := ((is_jacobson_iso ((ring_equiv_congr_left R
-  (equiv.equiv_pempty $ fin.elim0)).trans (pempty_ring_equiv R))).mpr H)
+| 0 := ((is_jacobson_iso ((rename_equiv
+  (equiv.equiv_pempty $ fin.elim0)).to_ring_equiv.trans (pempty_ring_equiv R))).mpr H)
 | (n+1) := (is_jacobson_iso (fin_succ_equiv R n)).2
   (polynomial.is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
 
@@ -552,7 +552,7 @@ instance {R : Type*} [comm_ring R] {ι : Type*} [fintype ι] [is_jacobson R] :
 begin
   haveI := classical.dec_eq ι,
   obtain ⟨e⟩ := fintype.equiv_fin ι,
-  rw is_jacobson_iso (ring_equiv_congr_left R e),
+  rw is_jacobson_iso (rename_equiv e).to_ring_equiv,
   exact is_jacobson_mv_polynomial_fin _
 end
 

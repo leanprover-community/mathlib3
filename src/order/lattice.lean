@@ -263,38 +263,6 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)
 
--- TODO: deduplicate this with semilattice_sup.mk' using `order_dual` / automation
-/--
-A type with a commutative, associative and idempotent binary `inf` operation has the structure of a
-meet-semilattice.
-
-The partial order is defined so that `a ≤ b` unfolds to `a = a ⊓ b`; cf. `left_eq_inf`.
--/
-def semilattice_inf.mk' {α : Type*} {h : has_inf α}
-  (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
-  (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
-  (inf_idem : ∀ (a : α), a ⊓ a = a) : semilattice_inf α :=
-{ inf := (⊓),
-  le := λ a b, a = a ⊓ b,
-  le_refl := λ a, (inf_idem a).symm,
-  le_trans := λ a b c hab hbc,
-    begin
-      dsimp only [(≤)] at *,
-      rw [hab, inf_assoc, ←hbc],
-    end,
-  le_antisymm := λ a b hab hba,
-    begin
-      dsimp only [(≤)] at *,
-      rw [hba, inf_comm, ←hab],
-    end,
-  inf_le_left  := λ a b, show a ⊓ b = a ⊓ b ⊓ a, by rw [inf_comm, inf_assoc, inf_idem],
-  inf_le_right := λ a b, show a ⊓ b = a ⊓ b ⊓ b, by rw [inf_assoc, inf_idem],
-  le_inf := λ a b c hac hbc,
-    begin
-      dsimp only [(≤), preorder.le] at *,
-      rwa [←inf_assoc, ←hac],
-    end }
-
 instance (α) [semilattice_inf α] : semilattice_sup (order_dual α) :=
 { le_sup_left  := semilattice_inf.inf_le_left,
   le_sup_right := semilattice_inf.inf_le_right,

@@ -44,6 +44,9 @@ lemma eval₂_congr {R S : Type*} [semiring R] [semiring S]
   f = g → s = t → φ = ψ → eval₂ f s φ = eval₂ g t ψ :=
 by rintro rfl rfl rfl; refl
 
+@[simp] lemma eval₂_at_zero : p.eval₂ f 0 = f (coeff p 0) :=
+sorry
+
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
 
@@ -236,6 +239,9 @@ begin
   exact P.eval_eq_finset_sum x
 end
 
+@[simp] lemma eval₂_at_one {S : Type*} [semiring S] (f : R →+* S) : p.eval₂ f 1 = f (p.eval 1) :=
+sorry
+
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
 @[simp] lemma eval_nat_cast {n : ℕ} : (n : polynomial R).eval x = n :=
@@ -260,21 +266,13 @@ eval₂_monomial _ _
   (s • p).eval x = s * p.eval x :=
 eval₂_smul (ring_hom.id _) _ _
 
-@[simp] lemma eval_mul_C : (p * C a).eval x = p.eval x * a := sorry
-
 @[simp] lemma eval_C_mul : (C a * p).eval x = a * p.eval x := sorry
-
-@[simp] lemma eval_mul_nat_cast {n : ℕ}: (p * n).eval x = p.eval x * n := sorry
 
 @[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : polynomial R) * p).eval x = n * p.eval x := sorry
 
 @[simp] lemma eval_mul_X : (p * X).eval x = p.eval x * x := sorry
 
-@[simp] lemma eval_X_mul : (X * p).eval x = x * p.eval x := sorry
-
 @[simp] lemma eval_mul_X_pow {k : ℕ} : (p * X^k).eval x = p.eval x * x^k := sorry
-
-@[simp] lemma eval_X_pow_mul {k : ℕ} : (X^k * p).eval x = x^k * p.eval x := sorry
 
 lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
@@ -343,6 +341,43 @@ by rw [← C_1, comp_C]
 by rw [← C_1, C_comp]
 
 @[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
+
+@[simp] lemma monomial_comp {a : R} {n : ℕ} : (monomial n a).comp r = C a * r^n :=
+begin
+  dsimp [comp_eq_sum_left, monomial],
+  simp,
+end
+
+@[simp] lemma mul_X_comp : (p * X).comp r = p.comp r * r :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq, add_mul], },
+  { intros n b, simp [pow_succ', mul_assoc], }
+end
+
+@[simp] lemma X_pow_comp {k : ℕ} : (X^k).comp p = p^k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp [pow_succ', mul_X_comp, ih], },
+end
+
+@[simp] lemma mul_X_pow_comp {k : ℕ} : (p * X^k).comp r = p.comp r * r^k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp [ih, pow_succ', ←mul_assoc, mul_X_comp], },
+end
+
+@[simp] lemma C_mul_comp : (C a * p).comp r = C a * p.comp r :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q hp hq, simp [hp, hq, mul_add], },
+  { intros n b, simp [mul_assoc], }
+end
+
+@[simp] lemma nat_cast_mul_comp {n : ℕ} : ((n : polynomial R) * p).comp r = n * p.comp r :=
+by rw [←C_eq_nat_cast, C_mul_comp, C_eq_nat_cast]
 
 @[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : polynomial R) :
   (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _

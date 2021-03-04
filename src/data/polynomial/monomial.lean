@@ -43,6 +43,9 @@ lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
 lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 
+@[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) := sorry
+@[simp] lemma monomial_mul_C : monomial n a * C b = monomial n (a * b) := sorry
+
 @[simp]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n

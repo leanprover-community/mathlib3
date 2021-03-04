@@ -53,6 +53,8 @@ begin
   { simp [ih, map_comp], },
 end
 
+end
+
 @[simp] lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=
 begin
   suffices h : pochhammer ℕ (n+1) = pochhammer ℕ n * (X + n),
@@ -66,6 +68,12 @@ begin
     refl, },
 end
 
+lemma pochhammer_mul (n m : ℕ) :
+  pochhammer S n * (pochhammer S m).comp(X + n) = pochhammer S (n + m) :=
+begin
+  induction m with m ih,
+  { simp, },
+  { rw [pochhammer_succ_right, mul_add, add_comp, mul_X_comp], }
 end
 
 end
@@ -78,9 +86,22 @@ begin
   induction n with n ih,
   { simp only [nat.nat_zero_eq_zero, pochhammer_zero, eval_one], exact zero_lt_one, },
   { simp only [mul_add, eval_mul_nat_cast, eval_mul_X, eval_add, pochhammer_succ_right],
-    convert add_lt_add (mul_pos ih h) (mul_pos ih _), },
+    exact lt_of_lt_of_le (mul_pos ih h)
+      ((le_add_iff_nonneg_right _).mpr (mul_nonneg (le_of_lt ih) (nat.cast_nonneg n))), }
 end
 
+end
+
+@[simp]
+variables (S : Type*) [semiring S]
+lemma pochhammer_eval_one (n : ℕ) : (pochhammer S n).eval (1 : S) = (n.factorial : S) :=
+begin
+  suffices h : (pochhammer ℕ n).eval 1 = n.factorial,
+  { apply_fun algebra_map ℕ S at h,
+    rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←ring_hom.eq_nat_cast, ←h, eval₂_at_one], },
+  induction n with n ih,
+  { simp, },
+  { simp [ih, mul_comm, nat.succ_eq_add_one, add_comm], },
 end
 
 #exit

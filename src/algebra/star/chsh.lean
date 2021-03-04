@@ -47,7 +47,8 @@ To keep things simple we just assume our rings are ℝ-algebras.)
 The proofs I've seen in the literature either
 assume a significant framework for quantum mechanics,
 or assume the ring is a `C^*`-algebra.
-In the `C^*`-algebra case, the order structure is completely determined by the `*`-algebra structure:
+In the `C^*`-algebra case, the order structure is completely determined by the `*`-algebra
+structure:
 `0 ≤ A` iff there exists some `B` so `A = star B * B`.
 There's a nice proof of both bounds in this setting at
 https://en.wikipedia.org/wiki/Tsirelson%27s_bound

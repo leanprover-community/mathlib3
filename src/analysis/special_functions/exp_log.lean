@@ -750,7 +750,7 @@ lemma tendsto_div_pow_mul_exp_add_at_top (b c : ℝ) (n : ℕ) (hb : 0 ≠ b) (h
 begin
   have H : ∀ d e, 0 < d → tendsto (λ (x:ℝ), x^n / (d * (exp x) + e)) at_top (𝓝 0),
   { intros b' c' h,
-    convert tendsto.inv_tendsto_at_top (tendsto_mul_exp_add_div_pow_at_top b' c' n h hn),
+    convert (tendsto_mul_exp_add_div_pow_at_top b' c' n h hn).inv_tendsto_at_top ,
     ext x,
     simpa only [pi.inv_apply] using inv_div.symm },
   cases lt_or_gt_of_ne hb,

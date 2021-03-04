@@ -538,7 +538,7 @@ open mv_polynomial ring_hom
 
 lemma is_jacobson_mv_polynomial_fin {R : Type*} [comm_ring R] [H : is_jacobson R] :
   ∀ (n : ℕ), is_jacobson (mv_polynomial (fin n) R)
-| 0 := ((is_jacobson_iso ((ring_equiv_of_equiv R
+| 0 := ((is_jacobson_iso ((ring_equiv_congr_left R
   (equiv.equiv_pempty $ fin.elim0)).trans (pempty_ring_equiv R))).mpr H)
 | (n+1) := (is_jacobson_iso (fin_succ_equiv R n)).2
   (polynomial.is_jacobson_polynomial_iff_is_jacobson.2 (is_jacobson_mv_polynomial_fin n))
@@ -552,7 +552,7 @@ instance {R : Type*} [comm_ring R] {ι : Type*} [fintype ι] [is_jacobson R] :
 begin
   haveI := classical.dec_eq ι,
   obtain ⟨e⟩ := fintype.equiv_fin ι,
-  rw is_jacobson_iso (ring_equiv_of_equiv R e),
+  rw is_jacobson_iso (ring_equiv_congr_left R e),
   exact is_jacobson_mv_polynomial_fin _
 end
 
@@ -595,9 +595,9 @@ lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] 
 begin
   haveI := classical.dec_eq σ,
   obtain ⟨e⟩ := fintype.equiv_fin σ,
-  let f' : mv_polynomial (fin _) R →+* S := f.comp ↑(ring_equiv_of_equiv R e.symm),
+  let f' : mv_polynomial (fin _) R →+* S := f.comp (ring_equiv_congr_left R e.symm).to_ring_hom,
   have hf' : function.surjective f' :=
-    ((function.surjective.comp hf (ring_equiv_of_equiv R e.symm).surjective)),
+    ((function.surjective.comp hf (ring_equiv_congr_left R e.symm).surjective)),
   have : (f'.comp C).is_integral,
   { haveI : (f'.ker).is_maximal := @comap_is_maximal_of_surjective _ _ _ _ f' ⊥ hf' bot_is_maximal,
     let g : f'.ker.quotient →+* S := ideal.quotient.lift f'.ker f' (λ _ h, h),
@@ -609,7 +609,10 @@ begin
     exact function.surjective.of_comp hf' },
   rw ring_hom.comp_assoc at this,
   convert this,
-  refine ring_hom.ext (λ x, (rename_C _ _).symm),
+  refine ring_hom.ext (λ x, _),
+  have h : ((ring_equiv_congr_left R e.symm).to_ring_hom) (C x) =
+    (ring_equiv_congr_left R e.symm) (C x) := rfl,
+  simp only [h, ring_equiv_congr_left_apply, function.comp_app, coe_comp, rename_C]
 end
 
 end mv_polynomial

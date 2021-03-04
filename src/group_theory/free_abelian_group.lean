@@ -427,7 +427,6 @@ begin
   simp [← of_mul, lift.of],
 end
 
--- set_option pp.all true
 /-- If `f` preserves multiplication, then so does `lift f`. -/
 def lift_monoid : (α →* R) ≃ (free_abelian_group α →+* R) :=
 { to_fun := λ f, { map_one' := by simp [lift.one], map_mul' := by simp [lift.mul], .. lift f },
@@ -453,10 +452,6 @@ variable {α}
 /-- `free_abelian_group.of` as a monoid homomorphism. -/
 @[simps] def of_hom [monoid α] : α →* free_abelian_group α :=
 ⟨of, by simp [of_one], by simp [of_mul]⟩
-
--- @[simp] lemma map_mul {α β} [monoid α] [monoid β] (f : α →* β) (x y : free_abelian_group α) :
---   f <$> (x * y) = (f <$> x) * (f <$> y) :=
--- show lift (of_hom.comp f) _ = _, by { rw lift.mul, refl }
 
 @[simp] lemma map_mul [monoid α] [monoid β] (f : α →* β) (x y : free_abelian_group α) :
   map f (x * y) = (map f x) * (map f y) :=

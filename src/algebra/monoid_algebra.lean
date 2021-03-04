@@ -737,14 +737,12 @@ to definitional inconveniences, we can still show the types are isomorphic.
 
 /-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of
 `multiplicative` -/
--- @[simps]
 protected def add_monoid_algebra.to_multiplicative [semiring k] [add_monoid G] :
   add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
 { map_mul' := λ x y, by simpa using add_monoid_algebra.map_domain_of_add_mul x y,
   ..finsupp.dom_congr multiplicative.of_add }
 
 /-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
--- @[simps]
 protected def monoid_algebra.to_additive [semiring k] [monoid G] :
   monoid_algebra k G ≃+* add_monoid_algebra k (additive G) :=
 { map_mul' := λ x y, by simpa using add_monoid_algebra.map_domain_of_mul_mul x y,

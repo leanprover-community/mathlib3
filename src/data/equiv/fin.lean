@@ -45,7 +45,7 @@ equiv.subtype_equiv_right (λ x, by subst h)
   fin_congr h ⟨k, w⟩ = ⟨k, by { subst h, exact w }⟩ :=
 rfl
 
-@[simp] lemma fin_congr_symm {n m : ℕ} (h : n = m) (k : ℕ) (w : k < m) :
+@[simp] lemma fin_congr_symm {n m : ℕ} (h : n = m) (k : ℕ) :
   (fin_congr h).symm = fin_congr h.symm := rfl
 
 @[simp] lemma fin_congr_apply_coe {n m : ℕ} (h : n = m) (k : fin n) :

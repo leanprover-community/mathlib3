@@ -546,6 +546,9 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
 ext' $ (coe_mrange _).trans $ subtype.range_coe
 
+@[to_additive] lemma eq_top_iff : S = ⊤ ↔ ∀ x : M, x ∈ S :=
+eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
+
 @[to_additive] lemma eq_bot_iff_forall : S = ⊥ ↔ ∀ x ∈ S, x = (1 : M) :=
 begin
   split,

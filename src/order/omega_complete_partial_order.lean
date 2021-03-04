@@ -470,7 +470,7 @@ begin
              chain.map_to_fun, function.comp_app, Sup_le_iff, preorder_hom.has_Sup_Sup_to_fun,
              exists_imp_distrib],
   split; introv h hx hb; subst b,
-  { apply le_trans _ _ _ _ (h _ _ hx rfl),
+  { apply le_trans _ (h _ _ hx rfl),
     mono, apply le_ωSup },
   { rw [hs _ hx c, ωSup_le_iff], intro,
     apply h i _ x hx rfl, }

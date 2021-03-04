@@ -165,8 +165,7 @@ def to_add_monoid_hom : M →+ M₂ :=
   map_zero' := f.map_zero,
   map_add' := f.map_add }
 
-@[simp] lemma to_add_monoid_hom_coe :
-  (f.to_add_monoid_hom : M → M₂) = f := rfl
+@[simp] lemma to_add_monoid_hom_coe : ⇑f.to_add_monoid_hom = f := rfl
 
 variable (R)
 
@@ -194,6 +193,10 @@ theorem to_add_monoid_hom_injective :
 /-- If two `R`-linear maps from `R` are equal on `1`, then they are equal. -/
 @[ext] theorem ext_ring {f g : R →ₗ[R] M} (h : f 1 = g 1) : f = g :=
 ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smul, g.map_smul, h]
+
+theorem ext_ring_iff {f g : R →ₗ[R] M} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
 end
 
 section
@@ -354,8 +357,8 @@ instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
 
-@[simp] lemma mk_apply {to_fun inv_fun map_add map_smul left_inv right_inv  a} :
-  (⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) a = to_fun a :=
+@[simp] lemma coe_mk {to_fun inv_fun map_add map_smul left_inv right_inv } :
+  ⇑(⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) = to_fun :=
 rfl
 
 -- This exists for compatibility, previously `≃ₗ[R]` extended `≃` instead of `≃+`.
@@ -381,11 +384,15 @@ section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (e e' : M ≃ₗ[R] M₂)
 
-@[simp, norm_cast] theorem coe_coe : ((e : M →ₗ[R] M₂) : M → M₂) = (e : M → M₂) := rfl
+lemma to_linear_map_eq_coe : e.to_linear_map = ↑e := rfl
 
-@[simp] lemma coe_to_equiv : (e.to_equiv : M → M₂) = (e : M → M₂) := rfl
+@[simp, norm_cast] theorem coe_coe : ⇑(e : M →ₗ[R] M₂) = e := rfl
 
-@[simp] lemma to_fun_apply {m : M} : e.to_fun m = e m := rfl
+@[simp] lemma coe_to_equiv : ⇑e.to_equiv = e := rfl
+
+@[simp] lemma coe_to_linear_map : ⇑e.to_linear_map = e := rfl
+
+@[simp] lemma to_fun_eq_coe : e.to_fun = e := rfl
 
 section
 variables {e e'}
@@ -465,6 +472,9 @@ lemma comp_coe [semimodule R M] [semimodule R M₂] [semimodule R M₃] (f :  M 
   (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M →ₗ[R] M₃) :=
 rfl
 
+@[simp] lemma mk_coe (h₁ h₂ f h₃ h₄) :
+  (linear_equiv.mk e h₁ h₂ f h₃ h₄ : M ≃ₗ[R] M₂) = e := ext $ λ _, rfl
+
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
@@ -478,6 +488,19 @@ theorem map_ne_zero_iff {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm : e.symm.symm = e := by { cases e, refl }
+
+lemma symm_bijective [semimodule R M] [semimodule R M₂] :
+  function.bijective (symm : (M ≃ₗ[R] M₂) → (M₂ ≃ₗ[R] M)) :=
+equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
+
+@[simp] lemma mk_coe' (f h₁ h₂ h₃ h₄) :
+  (linear_equiv.mk f h₁ h₂ ⇑e h₃ h₄ : M₂ ≃ₗ[R] M) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
+@[simp] theorem symm_mk (f h₁ h₂ h₃ h₄) :
+  (⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm =
+  { to_fun := f, inv_fun := e,
+    ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm } := rfl
 
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective

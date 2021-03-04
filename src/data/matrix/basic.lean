@@ -77,6 +77,10 @@ instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
 instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
 instance [add_group α] : add_group (matrix m n α) := pi.add_group
 instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
+instance [unique α] : unique (matrix m n α) := pi.unique
+instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
+instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
+function.nontrivial
 
 @[simp] theorem zero_apply [has_zero α] (i j) : (0 : matrix m n α) i j = 0 := rfl
 @[simp] theorem neg_apply [has_neg α] (M : matrix m n α) (i j) : (- M) i j = - M i j := rfl
@@ -797,7 +801,7 @@ section star_ring
 variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
 
 /--
-When `R` is a *-(semi)ring, `matrix n n R` becomes a *-(semi)ring with
+When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance : star_ring (matrix n n R) :=

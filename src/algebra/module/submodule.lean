@@ -149,6 +149,12 @@ instance : semimodule R p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action, ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 
+instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
+⟨λ c x h,
+  have c = 0 ∨ (x : M) = 0,
+  from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
+  this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]

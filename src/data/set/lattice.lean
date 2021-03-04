@@ -140,11 +140,9 @@ lemma Inter_congr {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
   (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
 infi_congr h h1 h2
 
-theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s :=
-ext $ by simp
+theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s := supr_const
 
-theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s :=
-ext $ by simp
+theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s := infi_const
 
 @[simp] -- complete_boolean_algebra
 theorem compl_Union (s : ι → set β) : (⋃ i, s i)ᶜ = (⋂ i, (s i)ᶜ) :=
@@ -234,7 +232,13 @@ end
 lemma Union_Inter_subset {ι ι' α} {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
 by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
 
-/- bounded unions and intersections -/
+lemma Union_option {ι} (s : option ι → set α) : (⋃ o, s o) = s none ∪ ⋃ i, s (some i) :=
+supr_option s
+
+lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
+infi_option s
+
+/-! ### Bounded unions and intersections -/
 
 theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
@@ -475,9 +479,11 @@ begin
   split ; tauto
 end
 
-@[simp] theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T := Sup_insert
+@[simp] theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T :=
+Sup_insert
 
-@[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T := Inf_insert
+@[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T :=
+Inf_insert
 
 theorem sUnion_pair (s t : set α) : ⋃₀ {s, t} = s ∪ t :=
 Sup_pair
@@ -1186,6 +1192,14 @@ disjoint_sup_left
 @[simp] theorem disjoint_union_right :
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 disjoint_sup_right
+
+@[simp] theorem disjoint_Union_left {ι : Sort*} {s : ι → set α} :
+  disjoint (⋃ i, s i) t ↔ ∀ i, disjoint (s i) t :=
+supr_disjoint_iff
+
+@[simp] theorem disjoint_Union_right {ι : Sort*} {s : ι → set α} :
+  disjoint t (⋃ i, s i) ↔ ∀ i, disjoint t (s i) :=
+disjoint_supr_iff
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)

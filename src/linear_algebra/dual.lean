@@ -135,17 +135,10 @@ def to_dual_flip (v : V) : (V →ₗ[K] K) := (h.to_dual B).flip v
 
 variable {B}
 
-omit de h
--- TODO: unify this with `finsupp.lapply`.
-/-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
-def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
-{ to_fun    := λ f, f i,
-  map_add'  := by intros; rw finsupp.add_apply,
-  map_smul' := by intros; rw finsupp.smul_apply }
-include h
+omit de
 
 /-- `h.coord_fun i` sends vectors to their `i`'th coordinate with respect to the basis `h`. -/
-def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := (finsupp.lapply i).comp h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 
@@ -234,7 +227,7 @@ h.to_dual_apply_right i v
   (h.dual_basis_is_basis.to_dual _).comp (h.to_dual B) = eval K V :=
 begin
   refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
-  suffices : @ite _ (classical.prop_decidable _) K 1 0 = @ite _ (de j i) K 1 0,
+  suffices : @ite K _ (classical.prop_decidable _) 1 0 = @ite K _ (de j i) 1 0,
     by simpa [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
   split_ifs; refl
 end

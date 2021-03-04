@@ -766,7 +766,7 @@ begin
   rw orthonormal_iff_ite at ⊢ hv,
   intros i j,
   convert hv (f i) (f j) using 1,
-  simp [hf]
+  simp [hf.eq_iff]
 end
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the

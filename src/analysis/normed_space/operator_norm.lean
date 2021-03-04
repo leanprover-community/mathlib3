@@ -31,10 +31,11 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
   ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
 section normed_field
-/- Most statements in this file require the field to be non-discrete, as this is necessary
-to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f. However, the other direction always
-holds. In this section, we just assume that `𝕜` is a normed field. In the remainder of the file,
-it will be non-discrete. -/
+/-! Most statements in this file require the field to be non-discrete,
+as this is necessary to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f.
+However, the other direction always holds.
+In this section, we just assume that `𝕜` is a normed field.
+In the remainder of the file, it will be non-discrete. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
@@ -89,7 +90,8 @@ let φ : E →ₗ[𝕜] F := ⟨f, h_add, h_smul⟩ in φ.continuous_of_bound C 
 @[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
   f.mk_continuous C h x = f x := rfl
 
-@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
+  (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
@@ -219,7 +221,8 @@ f.mk_continuous a (λ x, le_of_eq (hf x))
 
 variable (𝕜)
 
-lemma to_span_singleton_homothety (x : E) (c : 𝕜) : ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
+lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
+  ∥linear_map.to_span_singleton 𝕜 E x c∥ = ∥x∥ * ∥c∥ :=
 by {rw mul_comm, exact norm_smul _ _}
 
 /-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
@@ -1146,10 +1149,14 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 variables {𝕜}
 
-variables {E' F' : Type*} [normed_group E'] [normed_group F'] [normed_space 𝕜 E'] [normed_space 𝕜 F']
+variables {E' F' : Type*} [normed_group E'] [normed_group F']
+  [normed_space 𝕜 E'] [normed_space 𝕜 F']
 
-/-- Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`. -/
-def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) : E' →L[𝕜] F' →L[𝕜] G :=
+/--
+Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`.
+-/
+def bilinear_comp (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F) :
+  E' →L[𝕜] F' →L[𝕜] G :=
 ((f.comp gE).flip.comp gF).flip
 
 @[simp] lemma bilinear_comp_apply (f : E →L[𝕜] F →L[𝕜] G) (gE : E' →L[𝕜] E) (gF : F' →L[𝕜] F)

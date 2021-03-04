@@ -59,6 +59,38 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
+theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
+  [t0_space α] [compact_space α] {S : set α} (hS : is_closed S) (hne : S.nonempty) :
+  ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=
+begin
+  obtain ⟨V, Vsub, Vne, Vcls, hV⟩ := hS.exists_minimal_nonempty_closed_subset hne,
+  by_cases hnt : ∃ (x y : α) (hx : x ∈ V) (hy : y ∈ V), x ≠ y,
+  { exfalso,
+    obtain ⟨x, y, hx, hy, hne⟩ := hnt,
+    obtain ⟨U, hU, hsep⟩ := t0_space.t0 _ _ hne,
+    have : ∀ (z w : α) (hz : z ∈ V) (hw : w ∈ V) (hz' : z ∈ U) (hw' : ¬ w ∈ U), false,
+    { intros z w hz hw hz' hw',
+      have uvne : (V ∩ Uᶜ).nonempty,
+      { use w, simp only [hw, hw', set.mem_inter_eq, not_false_iff, and_self, set.mem_compl_eq], },
+      specialize hV (V ∩ Uᶜ) (set.inter_subset_left _ _) uvne
+        (is_closed_inter Vcls (is_closed_compl_iff.mpr hU)),
+      have : V ⊆ Uᶜ,
+      { rw ←hV, exact set.inter_subset_right _ _ },
+      exact this hz hz', },
+    cases hsep,
+    { exact this x y hx hy hsep.1 hsep.2 },
+    { exact this y x hy hx hsep.1 hsep.2 } },
+  { push_neg at hnt,
+    obtain ⟨z, hz⟩ := Vne,
+    refine ⟨z, Vsub hz, _⟩,
+    convert Vcls,
+    ext,
+    simp only [set.mem_singleton_iff, set.mem_compl_eq],
+    split,
+    { rintro rfl, exact hz, },
+    { exact λ hx, hnt x z hx hz, }, },
+end
+
 theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
   (hso : is_open (↑s : set α)) :
   ∃ x ∈ s, is_open ({x} : set α):=
@@ -445,6 +477,20 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
 
+lemma function.left_inverse.closed_range [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  is_closed (range g) :=
+have eq_on (g ∘ f) id (closure $ range g),
+  from h.right_inv_on_range.eq_on.closure (hg.comp hf) continuous_id,
+is_closed_of_closure_subset $ λ x hx,
+calc x = g (f x) : (this hx).symm
+   ... ∈ _ : mem_range_self _
+
+lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  closed_embedding g :=
+⟨h.embedding hf hg, h.closed_range hf hg⟩
+
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
   (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
@@ -557,21 +603,6 @@ begin
     closure_minimal h1t $ h2K.is_closed⟩
 end
 
-/-- In a locally compact T₂ space, every compact set is contained in the interior of a compact
-  set. -/
-lemma exists_compact_superset [locally_compact_space α] [t2_space α] {K : set α}
-  (hK : is_compact K) : ∃ (K' : set α), is_compact K' ∧ K ⊆ interior K' :=
-begin
-  choose U hU using λ x : K, exists_open_with_compact_closure (x : α),
-  rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩)
-    with ⟨s, hs⟩,
-  refine ⟨⋃ (i : K) (H : i ∈ s), closure (U i), _, _⟩,
-  exact (finite_mem_finset s).compact_bUnion (λ x hx, (hU x).2.2),
-  refine subset.trans hs _, rw subset_interior_iff_subset_of_open,
-  exact bUnion_subset_bUnion_right (λ x hx, subset_closure),
-  exact is_open_bUnion (λ x hx, (hU x).1)
-end
-
 end separation
 
 section regularity
@@ -583,7 +614,7 @@ class regular_space (α : Type u) [topological_space α] extends t1_space α : P
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
-  ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
+  ∃ t ∈ 𝓝 a, t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
 have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),

@@ -11,6 +11,7 @@ topological spaces. For example:
 -/
 import topology.metric_space.emetric_space
 import topology.algebra.ordered
+import data.fintype.intervals
 
 open set filter classical topological_space
 noncomputable theory
@@ -1310,17 +1311,8 @@ instance proper_of_compact [compact_space α] : proper_space α :=
 @[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
-begin
-  apply locally_compact_of_compact_nhds,
-  intros x,
-  existsi closed_ball x 1,
-  split,
-  { apply mem_nhds_iff.2,
-    existsi (1 : ℝ),
-    simp,
-    exact ⟨zero_lt_one, ball_subset_closed_ball⟩ },
-  { apply proper_space.compact_ball }
-end
+locally_compact_space_of_has_basis (λ x, nhds_basis_closed_ball) $
+  λ x ε ε0, proper_space.compact_ball _ _
 
 /-- A proper space is complete -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1709,3 +1701,23 @@ le_trans (diam_mono ball_subset_closed_ball bounded_closed_ball) (diam_closed_ba
 end diam
 
 end metric
+
+namespace int
+open metric
+
+/-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
+lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
+begin
+  simp only [filter.has_basis_cocompact.tendsto_right_iff, eventually_iff_exists_mem],
+  intros s hs,
+  obtain ⟨r, hr⟩ : ∃ r, s ⊆ closed_ball (0:ℝ) r,
+  { rw ← bounded_iff_subset_ball,
+    exact hs.bounded },
+  refine ⟨(coe ⁻¹' closed_ball (0:ℝ) r)ᶜ, _, _⟩,
+  { simp [mem_cofinite, closed_ball_Icc, set.Icc_ℤ_finite] },
+  { rw ← compl_subset_compl at hr,
+    intros y hy,
+    exact hr hy }
+end
+
+end int

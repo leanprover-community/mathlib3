@@ -81,7 +81,8 @@ Construct a functor out of the wide pullback shape given a J-indexed collection 
 fixed object.
 -/
 @[simps]
-def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) : wide_pullback_shape J ⥤ C :=
+def wide_cospan (B : C) (objs : J → C) (arrows : Π (j : J), objs j ⟶ B) :
+  wide_pullback_shape J ⥤ C :=
 { obj := λ j, option.cases_on j B objs,
   map := λ X Y f,
   begin

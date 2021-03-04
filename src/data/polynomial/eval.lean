@@ -260,6 +260,22 @@ eval₂_monomial _ _
   (s • p).eval x = s * p.eval x :=
 eval₂_smul (ring_hom.id _) _ _
 
+@[simp] lemma eval_mul_C : (p * C a).eval x = p.eval x * a := sorry
+
+@[simp] lemma eval_C_mul : (C a * p).eval x = a * p.eval x := sorry
+
+@[simp] lemma eval_mul_nat_cast {n : ℕ}: (p * n).eval x = p.eval x * n := sorry
+
+@[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : polynomial R) * p).eval x = n * p.eval x := sorry
+
+@[simp] lemma eval_mul_X : (p * X).eval x = p.eval x * x := sorry
+
+@[simp] lemma eval_X_mul : (X * p).eval x = x * p.eval x := sorry
+
+@[simp] lemma eval_mul_X_pow {k : ℕ} : (p * X^k).eval x = p.eval x * x^k := sorry
+
+@[simp] lemma eval_X_pow_mul {k : ℕ} : (X^k * p).eval x = x^k * p.eval x := sorry
+
 lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
 eval₂_sum _ _ _ _

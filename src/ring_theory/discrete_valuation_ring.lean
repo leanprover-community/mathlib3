@@ -476,28 +476,83 @@ end
 
 section fraction_field
 
+open localization_map
+
 variables [integral_domain R] [discrete_valuation_ring R]
 -- variables (p : R) [irreducible p]
 variables (t : R) [¬ is_unit t]
 -- variables (f : localization_map.away_map p (localization.away p))
 -- variables (f : localization_map.away_map t (localization.away t))
-variables (S : Type*) [comm_ring S] [f : localization_map (submonoid.powers t) S]
+variables {S : Type*}-- [comm_ring S]
+-- variables [f : localization_map (submonoid.powers t) S]
 
-instance localization_is_domain : integral_domain S := sorry
+-- instance localization_is_domain [comm_ring S] [t : R] [¬ is_unit t] [f : localization_map (submonoid.powers t) S]
+--   : integral_domain S := sorry
 
-instance localization_is_domain' [t : R]: integral_domain (localization.away t) :=
+lemma localization_is_domain (S: Type*) [comm_ring S] (t : R)
+  (f : localization_map (submonoid.powers t) S) :
+  ¬ is_unit t → is_integral_domain S := sorry
+
+variables {A : Type*} [comm_ring A]
+#check bah R A
+
+instance localization_is_domain' [t : R] : integral_domain (localization.away t) :=
 begin
   have h_nz : t ≠ 0, sorry,
   apply localization_map.integral_domain_localization (powers_le_non_zero_divisors_of_domain h_nz),
 end
 
-theorem localization_is_field : is_field (f.codomain) :=
+theorem localization_is_field  (S: Type*) [comm_ring S] (t : R)
+  (f : localization_map (submonoid.powers t) S) :
+  ¬ is_unit t → is_field (f.codomain) :=
 begin
+  intro ht,
   split,
   { apply (integral_domain.to_is_integral_domain _).1,
-    apply_instance },
-  { apply (integral_domain.to_is_integral_domain _).2 },
+    exact is_integral_domain.to_integral_domain _ (localization_is_domain _ _ _ f ht), },
+  { exact (localization_is_domain _ _ _ f ht).2, },
   intros a ha,
+  obtain ⟨⟨r, tn⟩, h⟩ : ∃ (x : R × submonoid.powers t), a * f.to_map x.2 = f.to_map x.1 := f.7 a,
+  dsimp only at h,
+  obtain ⟨n, hn⟩ : ∃ (n : ℕ), ↑tn = t^n, sorry,
+  let v := add_val R r,
+  let e := add_val R t,
+  let ϖ := classical.some (exists_irreducible R),
+  have hϖ : ϖ ≠ 0, sorry,
+  obtain ⟨εᵣ, hr⟩ : ∃ (εᵣ : units R), r = εᵣ * ϖ^v, sorry,
+  obtain ⟨εₜ, ht⟩ : ∃ (εₜ : units R), t = εₜ * ϖ^e, sorry,
+  obtain ⟨ηᵣ, hur⟩ : is_unit (f.to_map ↑εᵣ), sorry,
+  have hur' : ↑ηᵣ⁻¹ = (f.to_map ↑εᵣ⁻¹), sorry,
+  use f.to_map (ϖ^(n * e - v) * ↑εₜ^n * ↑εᵣ⁻¹),
+  simp_rw ht at hn,
+  rw [hr, hn] at h,
+  rw [ring_hom.map_pow f.to_map] at h,
+  rw [ring_hom.map_mul f.to_map] at h,
+  rw [mul_pow] at h,
+  rw [ring_hom.map_mul f.to_map] at h,
+  rw ← hur at h,
+  --- e ora col goal
+  rw [ring_hom.map_mul f.to_map],
+  rw ← mul_assoc,
+  rw ← hur',
+  rw units.mul_inv_eq_iff_eq_mul,
+  rw one_mul,
+  rw [ring_hom.map_mul f.to_map],
+  rw ← mul_assoc at h,
+  rw [mul_comm]{occs := occurrences.pos [2]} at h,
+  -- rw mul_inv_eq_one _ ηᵣ⁻¹,
+  rw f.to_ring_hom.map_units_inv,
+  rw [ring_hom.map_units_inv f.to_map],
+  -- simp [mul_inv_eq_one],-- (a * f.to_map (ϖ ^ (n * e - v) * ↑εₜ)) (f.to_map ↑εᵣ⁻¹)],
+  -- rw [@mul_inv_eq_one _ _ (a * f.to_map (ϖ ^ (n * e - v) * ↑εₜ)) (f.to_map ↑εᵣ⁻¹)],
+  --rw ← pow_mul at h,
+  -- rw [mul_fpow] at h,ϖ ^ e
+  rw [mul_pow (f.to_map ↑εₜ) _ n] at h,
+  rw [fpow_sub hϖ n*e v],
+  simp [h, ring_hom.map_mul],
+  -- rw hn₁ at h,
+  ring_exp!,
+
 end
 
 
@@ -509,7 +564,7 @@ begin
   { apply (integral_domain.to_is_integral_domain _).1,
     apply_instance },
   { apply (integral_domain.to_is_integral_domain _).2 },
-  intros a ha,
+  sorry,
 end
 
 end fraction_field

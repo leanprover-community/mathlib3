@@ -92,14 +92,15 @@ variable {T₃ : triangle C}
 /--
 Composition of triangle morphisms gives a triangle morphism.
 -/
-def triangle_morphism.comp (f : triangle_morphism T₁ T₂) (g : triangle_morphism T₂ T₃) : triangle_morphism T₁ T₃ :=
+def triangle_morphism.comp (f : triangle_morphism T₁ T₂) (g : triangle_morphism T₂ T₃) :
+triangle_morphism T₁ T₃ :=
 { trimor1 := f.trimor1 ≫ g.trimor1,
   trimor2 := f.trimor2 ≫ g.trimor2,
   trimor3 := f.trimor3 ≫ g.trimor3,
   comm1 := by rw [← category.assoc, f.comm1, category.assoc, g.comm1, category.assoc],
   comm2 := by rw [← category.assoc, f.comm2, category.assoc, g.comm2, category.assoc],
-  comm3 := by rw [functor.map_comp, ← category.assoc, f.comm3, category.assoc, g.comm3, category.assoc], }
+  comm3 := by rw [functor.map_comp, ← category.assoc, f.comm3, category.assoc,
+  g.comm3, category.assoc], }
 
 
 end category_theory.triangulated
-#lint

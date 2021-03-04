@@ -36,4 +36,3 @@ See https://stacks.math.columbia.edu/tag/0104.
 class additive_category extends preadditive C, has_finite_biproducts C
 
 end category_theory
-#lint

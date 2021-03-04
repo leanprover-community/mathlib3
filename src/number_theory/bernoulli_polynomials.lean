@@ -165,7 +165,7 @@ begin
         { norm_num, apply factorial_ne_zero n, },
         { apply factorial_mul_factorial_dvd_factorial (mem_range_le hx), },
         { apply mem_range_le hx, }, }, }, },
-  -- proving second and thrid assumption of `sum_eq_single`
+  -- proving second and third assumption of `sum_eq_single`
   { rintros b hb h, rw coeff_X b, split_ifs,
     { exfalso, apply h h_1, },
     { apply zero_mul, }, },

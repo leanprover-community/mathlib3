@@ -663,6 +663,15 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
+lemma prod_range_add (f : ℕ → β) (n : ℕ) (m : ℕ) :
+  (∏ x in range (n + m), f x) =
+  (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
+begin
+  induction m with m hm,
+  { simp },
+  { rw [nat.add_succ, finset.prod_range_succ, hm, finset.prod_range_succ, mul_left_comm _ _ _] },
+end
+
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (∏ k in range 0, f k) = 1 :=
@@ -1054,6 +1063,12 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
+
+lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
+  (∑ x in range (n + m), f x) =
+  (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=
+@prod_range_add (multiplicative β) _ _ _ _
+attribute [to_additive] prod_range_add
 
 lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
   (∑ i in range (n + 1), f (n - i)) = (∑ i in range (n + 1), f i) :=

@@ -615,8 +615,8 @@ With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring
 (That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
 
 In fact, the nonnegative elements are precisely those of this form.
-This hold in any C*-algebra, e.g. `ℂ`,
-but we don't yet have C*-algebras in mathlib.
+This hold in any `C^*`-algebra, e.g. `ℂ`,
+but we don't yet have `C^*`-algebras in mathlib.
 -/
 def complex_star_ordered_ring : star_ordered_ring ℂ :=
 { star_mul_self_nonneg := λ z,

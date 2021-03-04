@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import group_theory.monoid_localization
 import order.conditionally_complete_lattice
-import ring_theory.principal_ideal_domain
+import ring_theory.localization
 import ring_theory.multiplicity
+import ring_theory.principal_ideal_domain
 import ring_theory.valuation.basic
 
 /-!
@@ -476,8 +476,41 @@ end
 
 section fraction_field
 
-variables {S : Type*} [ring S] [integral_domain S] [discrete_valuation_ring S]
-theorem localization_is_field (p : S) : is_field (localization.away p) :=
+variables [integral_domain R] [discrete_valuation_ring R]
+-- variables (p : R) [irreducible p]
+variables (t : R) [¬ is_unit t]
+-- variables (f : localization_map.away_map p (localization.away p))
+-- variables (f : localization_map.away_map t (localization.away t))
+variables (S : Type*) [comm_ring S] [f : localization_map (submonoid.powers t) S]
+
+instance localization_is_domain : integral_domain S := sorry
+
+instance localization_is_domain' [t : R]: integral_domain (localization.away t) :=
+begin
+  have h_nz : t ≠ 0, sorry,
+  apply localization_map.integral_domain_localization (powers_le_non_zero_divisors_of_domain h_nz),
+end
+
+theorem localization_is_field : is_field (f.codomain) :=
+begin
+  split,
+  { apply (integral_domain.to_is_integral_domain _).1,
+    apply_instance },
+  { apply (integral_domain.to_is_integral_domain _).2 },
+  intros a ha,
+end
+
+
+theorem localization_is_field' : is_field (localization.away t) :=
+begin
+  --apply localization.away.ring_equiv_of_quotient,-- f,
+  -- have h_nz : t ≠ 0, sorry,
+  split,
+  { apply (integral_domain.to_is_integral_domain _).1,
+    apply_instance },
+  { apply (integral_domain.to_is_integral_domain _).2 },
+  intros a ha,
+end
 
 end fraction_field
 

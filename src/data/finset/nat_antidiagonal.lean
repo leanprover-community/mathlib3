@@ -59,15 +59,12 @@ begin
 end
 
 /-- A point in the antidiagonal is determined by its first co-ordinate. -/
-lemma antidiagonal_congr {n : ℕ} {p q : ℕ × ℕ} (hp : p ∈ nat.antidiagonal n)
-  (hq : q ∈ nat.antidiagonal n) : p = q ↔ p.fst = q.fst :=
+lemma antidiagonal_congr {n : ℕ} {p q : ℕ × ℕ} (hp : p ∈ antidiagonal n)
+  (hq : q ∈ antidiagonal n) : p = q ↔ p.fst = q.fst :=
 begin
-  refine ⟨congr_arg prod.fst, _⟩,
-  intros h,
-  refine prod.ext h _,
-  rw nat.mem_antidiagonal at hp hq,
-  rw [← hq, h] at hp,
-  exact (add_right_inj q.fst).mp hp
+  refine ⟨congr_arg prod.fst, (λ h, prod.ext h ((add_right_inj q.fst).mp _))⟩,
+  rw mem_antidiagonal at hp hq,
+  rw [hq, ← h, hp],
 end
 
 end nat

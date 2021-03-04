@@ -141,8 +141,9 @@ lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β �
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
 (monoid_hom.eval b).map_prod _ _
 
-namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
+
+namespace finset
 
 section comm_monoid
 variables [comm_monoid β]
@@ -217,6 +218,34 @@ fold_union_inter
 lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
+
+end comm_monoid
+
+end finset
+
+section
+variables [fintype α] [decidable_eq α] [comm_monoid β]
+
+@[to_additive]
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+end
+
+namespace finset
+
+section comm_monoid
+variables [comm_monoid β]
+
+@[to_additive]
+lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
@@ -634,15 +663,6 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
-lemma prod_range_add (f : ℕ → β) (n : ℕ) (m : ℕ) :
-  (∏ x in range (n + m), f x) =
-  (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
-begin
-  induction m with m hm,
-  { simp },
-  { rw [nat.add_succ, finset.prod_range_succ, hm, finset.prod_range_succ, mul_left_comm _ _ _] },
-end
-
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (∏ k in range 0, f k) = 1 :=
@@ -1034,12 +1054,6 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
-
-lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
-  (∑ x in range (n + m), f x) =
-  (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=
-@prod_range_add (multiplicative β) _ _ _ _
-attribute [to_additive] prod_range_add
 
 lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
   (∑ i in range (n + 1), f (n - i)) = (∑ i in range (n + 1), f i) :=

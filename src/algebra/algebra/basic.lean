@@ -675,7 +675,7 @@ rfl
 
 -- TODO: decide on a simp-normal form so that only one of these two lemmas is needed
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
-@[simp, norm_cast] lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
+@[simp] lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (λ e : A₁ ≃ₐ[R] A₂, (e : A₁ ≃+* A₂)) :=
 begin

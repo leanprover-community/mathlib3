@@ -76,8 +76,9 @@ variables {S : Type*} [ordered_semiring S] [nontrivial S]
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
 begin
   induction n with n ih,
-  { simp, exact zero_lt_one, },
-  { simp [mul_add, eval_mul], },
+  { simp only [nat.nat_zero_eq_zero, pochhammer_zero, eval_one], exact zero_lt_one, },
+  { simp only [mul_add, eval_mul_nat_cast, eval_mul_X, eval_add, pochhammer_succ_right],
+    convert add_lt_add (mul_pos ih h) (mul_pos ih _), },
 end
 
 end

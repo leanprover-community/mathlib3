@@ -22,9 +22,10 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
-def bounded_continuous_function (α : Type u) (β : Type v) [topological_space α] [metric_space β] :
+structure bounded_continuous_function
+  (α : Type u) (β : Type v) [topological_space α] [metric_space β] extends continuous_map α β :
   Type (max u v) :=
-{f : α → β // continuous f ∧ ∃C, ∀x y:α, dist (f x) (f y) ≤ C}
+(bounded' : ∃C, ∀x y:α, dist (to_fun x) (to_fun y) ≤ C)
 
 local infixr ` →ᵇ `:25 := bounded_continuous_function
 
@@ -33,21 +34,30 @@ section basics
 variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, subtype.val⟩
+instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
+
+protected lemma bounded (f : α →ᵇ β) : ∃C, ∀x y:α, dist (f x) (f y) ≤ C := f.bounded'
+protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
 
 lemma bounded_range : bounded (range f) :=
-bounded_range_iff.2 f.2.2
+bounded_range_iff.2 f.bounded
 
-/-- If a function is continuous on a compact space, it is automatically bounded,
-and therefore gives rise to an element of the type of bounded continuous functions -/
-def mk_of_compact [compact_space α] (f : α → β) (hf : continuous f) : α →ᵇ β :=
-⟨f, hf, bounded_range_iff.1 $ bounded_of_compact $ compact_range hf⟩
+/-- A continuous function with an explicit bound is a bounded continuous function. -/
+def mk_of_bound (f : C(α, β)) (C : ℝ) (h : ∀ x y:α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+⟨f, ⟨C, h⟩⟩
+
+@[simp] lemma mk_of_bound_coe {f} {C} {h} : (mk_of_bound f C h : α → β) = (f : α → β) :=
+rfl
+
+/-- A continuous function on a compact space is automatically a bounded continuous function. -/
+def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
+⟨f, bounded_range_iff.1 $ bounded_of_compact $ compact_range f.continuous⟩
 
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
 def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) :
   α →ᵇ β :=
-⟨f, continuous_of_discrete_topology, hf⟩
+⟨⟨f, continuous_of_discrete_topology⟩, hf⟩
 
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
@@ -59,8 +69,8 @@ lemma dist_set_exists : ∃ C, 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
 begin
   refine if h : nonempty α then _ else ⟨0, le_refl _, λ x, h.elim ⟨x⟩⟩,
   cases h with x,
-  rcases f.2.2 with ⟨Cf, hCf : ∀ x y, dist (f x) (f y) ≤ Cf⟩,
-  rcases g.2.2 with ⟨Cg, hCg : ∀ x y, dist (g x) (g y) ≤ Cg⟩,
+  rcases f.bounded with ⟨Cf, hCf : ∀ x y, dist (f x) (f y) ≤ Cf⟩,
+  rcases g.bounded with ⟨Cg, hCg : ∀ x y, dist (g x) (g y) ≤ Cg⟩,
   let C := max 0 (dist (f x) (g x) + (Cf + Cg)),
   refine ⟨C, le_max_left _ _, λ y, _⟩,
   calc dist (f y) (g y) ≤ dist (f x) (g x) + (dist (f x) (f y) + dist (g x) (g y)) :
@@ -74,14 +84,14 @@ lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
 le_cInf dist_set_exists $ λb hb, hb.2 x
 
 @[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
-subtype.eq $ funext H
+by { cases f, cases g, congr, ext, exact H x, }
 
 lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h, λ x, h ▸ rfl, ext⟩
 
 /- This lemma will be needed in the proof of the metric space instance, but it will become
 useless afterwards as it will be superceded by the general result that the distance is nonnegative
-is metric spaces. -/
+in metric spaces. -/
 private lemma dist_nonneg' : 0 ≤ dist f g :=
 le_cInf dist_set_exists (λ C, and.left)
 
@@ -106,7 +116,7 @@ instance : metric_space (α →ᵇ β) :=
 variable (α)
 
 /-- Constant as a continuous bounded function. -/
-def const (b : β) : α →ᵇ β := ⟨λx, b, continuous_const, 0, by simp [le_refl]⟩
+def const (b : β) : α →ᵇ β := ⟨continuous_map.const b, 0, by simp [le_refl]⟩
 
 variable {α}
 
@@ -120,7 +130,7 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)�
 theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
-have Hs : _ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0),
+have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
 mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
@@ -130,9 +140,6 @@ mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
 /-- In particular, when `x` is fixed, `f → f x` is continuous -/
 theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
 continuous_eval.comp (continuous_id.prod_mk continuous_const)
-
-/-- When `f` is fixed, `x → f x` is also continuous, by definition -/
-theorem continuous_evalf {f : α →ᵇ β} : continuous f := f.2.1
 
 /-- Bounded continuous functions taking values in a complete space form a complete space. -/
 instance [complete_space β] : complete_space (α →ᵇ β) :=
@@ -151,16 +158,16 @@ begin
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
     λ x N, le_of_tendsto (tendsto_const_nhds.dist (hF x))
       (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
-  refine ⟨⟨F, _, _⟩, _⟩,
+  refine ⟨⟨⟨F, _⟩, _⟩, _⟩,
   { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
     have : tendsto_uniformly (λn x, f n x) F at_top,
     { refine metric.tendsto_uniformly_iff.2 (λ ε ε0, _),
       refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (λN, (f N).2.1) },
+    exact this.continuous (λN, (f N).continuous) },
   { /- Check that `F` is bounded -/
-    rcases (f 0).2.2 with ⟨C, hC⟩,
+    rcases (f 0).bounded with ⟨C, hC⟩,
     refine ⟨C + (b 0 + b 0), λ x y, _⟩,
     calc dist (F x) (F y) ≤ dist (f 0 x) (f 0 y) + (dist (f 0 x) (F x) + dist (f 0 y) (F y)) :
       dist_triangle4_left _ _ _ _
@@ -174,8 +181,8 @@ end
 gives a bounded continuous function -/
 def comp (G : β → γ) {C : ℝ≥0} (H : lipschitz_with C G)
   (f : α →ᵇ β) : α →ᵇ γ :=
-⟨λx, G (f x), H.continuous.comp f.2.1,
-  let ⟨D, hD⟩ := f.2.2 in
+⟨⟨λx, G (f x), H.continuous.comp f.continuous⟩,
+  let ⟨D, hD⟩ := f.bounded in
   ⟨max C 0 * D, λ x y, calc
     dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le_mul _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
@@ -201,7 +208,7 @@ lemma continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
-⟨s.cod_restrict f H, continuous_subtype_mk _ f.2.1, f.2.2⟩
+⟨⟨s.cod_restrict f H, continuous_subtype_mk _ f.continuous⟩, f.bounded⟩
 
 end basics
 
@@ -412,7 +419,7 @@ le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 function taking values in a normed group. -/
 def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
   (f : α  → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
-⟨λn, f n, ⟨Hf, ⟨_, dist_le_two_norm' H⟩⟩⟩
+⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
 
 lemma norm_of_normed_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC : 0 ≤ C)
   (hfC : ∀ x, ∥f x∥ ≤ C) : ∥of_normed_group f hfc C hfC∥ ≤ C :=
@@ -427,17 +434,17 @@ of_normed_group f continuous_of_discrete_topology C H
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
-⟨λf g, of_normed_group (f + g) (f.2.1.add g.2.1) (∥f∥ + ∥g∥) $ λ x,
+⟨λf g, of_normed_group (f + g) (f.continuous.add g.continuous) (∥f∥ + ∥g∥) $ λ x,
   le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) (g.norm_coe_le_norm x))⟩
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, of_normed_group (-f) f.2.1.neg ∥f∥ $ λ x,
+⟨λf, of_normed_group (-f) f.continuous.neg ∥f∥ $ λ x,
   trans_rel_right _ (norm_neg _) (f.norm_coe_le_norm x)⟩
 
 /-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
 instance : has_sub (α →ᵇ β) :=
-⟨λf g, of_normed_group (f - g) (f.2.1.sub g.2.1) (∥f∥ + ∥g∥) $ λ x,
+⟨λf g, of_normed_group (f - g) (f.continuous.sub g.continuous) (∥f∥ + ∥g∥) $ λ x,
   by { simp only [sub_eq_add_neg],
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
@@ -489,7 +496,7 @@ variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
-⟨λ c f, of_normed_group (c • f) (continuous_const.smul f.2.1) (∥c∥ * ∥f∥) $ λ x,
+⟨λ c f, of_normed_group (c • f) (continuous_const.smul f.continuous) (∥c∥ * ∥f∥) $ λ x,
   trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))⟩
 
@@ -521,7 +528,7 @@ variables [topological_space α] {R : Type*} [normed_ring R]
 
 instance : ring (α →ᵇ R) :=
 { one := const α 1,
-  mul := λ f g, of_normed_group (f * g) (f.2.1.mul g.2.1) (∥f∥ * ∥g∥) $ λ x,
+  mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
     le_trans (normed_ring.norm_mul (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _),
   one_mul := λ f, ext $ λ x, one_mul (f x),
@@ -601,7 +608,7 @@ functions from `α` to `𝕜`. -/
 
 instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
-(continuous.smul f.2.1 g.2.1) (∥f∥ * ∥g∥) (λ x, calc
+(continuous.smul f.continuous g.continuous) (∥f∥ * ∥g∥) (λ x, calc
   ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
   ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩

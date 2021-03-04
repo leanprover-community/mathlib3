@@ -31,6 +31,8 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 
 instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
+@[simp] lemma to_fun_as_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
+
 variables {α β} {f g : continuous_map α β}
 
 protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
@@ -52,10 +54,19 @@ by cases f; cases g; cases h; refl
 /-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id⟩
 
+@[simp] lemma id_coe : (id : α → α) = id := rfl
+lemma id_apply (a : α) : id a = a := rfl
+
 /-- The composition of continuous maps, as a continuous map. -/
 def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) := ⟨f ∘ g⟩
 
+@[simp] lemma comp_coe (f : C(β, γ)) (g : C(α, β)) : (comp f g : α → γ) = f ∘ g := rfl
+lemma comp_apply (f : C(β, γ)) (g : C(α, β)) (a : α) : comp f g a = f (g a) := rfl
+
 /-- Constant map as a continuous map -/
 def const (b : β) : C(α, β) := ⟨λ x, b⟩
+
+@[simp] lemma const_coe (b : β) : (const b : α → β) = (λ x, b) := rfl
+lemma const_apply (b : β) (a : α) : const b a = b := rfl
 
 end continuous_map

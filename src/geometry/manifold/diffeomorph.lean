@@ -30,7 +30,7 @@ practice.
 
 -/
 
-open_locale manifold
+open_locale manifold topological_space
 open function set
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -43,9 +43,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
 {J : model_with_corners 𝕜 F G}
 
-variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-{M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
-{N : Type*} [topological_space N] [charted_space G N] [smooth_manifold_with_corners J N]
+variables {M : Type*} [topological_space M] [charted_space H M]
+{M' : Type*} [topological_space M'] [charted_space H' M']
+{N : Type*} [topological_space N] [charted_space G N]
 {n : with_top ℕ}
 
 section defs
@@ -57,14 +57,16 @@ variables (I I' M M' n)
 -/
 @[protect_proj, nolint has_inhabited_instance]
 structure times_diffeomorph extends M ≃ M' :=
-(times_cont_mdiff_to_fun  : times_cont_mdiff I I' n to_fun)
-(times_cont_mdiff_inv_fun : times_cont_mdiff I' I n inv_fun)
+(times_cont_mdiff_to_fun  : times_cont_mdiff I I' n to_equiv)
+(times_cont_mdiff_inv_fun : times_cont_mdiff I' I n to_equiv.symm)
 
 end defs
 
-localized "notation M ` ≃ₘ^`:50 n `⟮` I `,` J `⟯ ` N := times_diffeomorph I J M N n" in manifold
+localized "notation M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N := times_diffeomorph I J M N n" in manifold
 localized "notation M ` ≃ₘ⟮` I `,` J `⟯ ` N := times_diffeomorph I J M N ⊤" in manifold
-notation E ` ≃ₘ^` n `[` 𝕜 `] ` E' := times_diffeomorph (𝓘(𝕜, E)) (𝓘(𝕜, E')) E E' n
+localized
+  "notation E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' := times_diffeomorph (𝓘(𝕜, E)) (𝓘(𝕜, E')) E E' n"
+  in manifold
 localized "notation E ` ≃ₘ[` 𝕜 `] ` E' := times_diffeomorph (𝓘(𝕜, E)) (𝓘(𝕜, E')) E E' ⊤" in manifold
 
 namespace times_diffeomorph
@@ -72,7 +74,7 @@ instance : has_coe_to_fun (M ≃ₘ^n⟮I, I'⟯ M') := ⟨λ _, M → M', λe, 
 
 instance : has_coe (M ≃ₘ^n⟮I, I'⟯ M') C^n⟮I, M; I', M'⟯ := ⟨λ Φ, ⟨Φ, Φ.times_cont_mdiff_to_fun⟩⟩
 
-protected lemma continuous (h : M ≃ₘ^n⟮I, I'⟯ M') : continuous h :=
+@[continuity] protected lemma continuous (h : M ≃ₘ^n⟮I, I'⟯ M') : continuous h :=
 h.times_cont_mdiff_to_fun.continuous
 protected lemma times_cont_mdiff (h : M ≃ₘ^n⟮I, I'⟯ M') : times_cont_mdiff I I' n h :=
 h.times_cont_mdiff_to_fun
@@ -147,6 +149,8 @@ ext h.symm_apply_apply
 ext h.apply_symm_apply
 @[simp] lemma symm_trans' (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', J⟯ N) :
   (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl
+@[simp] lemma to_equiv_symm (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.to_equiv = h.to_equiv.symm := rfl
+@[simp, mfld_simps] lemma to_equiv_coe_symm (h : M ≃ₘ^n⟮I, J⟯ N) : ⇑h.to_equiv.symm = h.symm := rfl
 
 lemma image_eq_preimage (h : M ≃ₘ^n⟮I, J⟯ N) (s : set M) : h '' s = h.symm ⁻¹' s :=
 h.to_equiv.image_eq_preimage s
@@ -194,13 +198,13 @@ end
   unique_mdiff_on I (h ⁻¹' s) ↔ unique_mdiff_on J s :=
 h.symm_image_eq_preimage s ▸ h.symm.unique_mdiff_on_image hn
 
-@[simp] lemma unique_diff_on_image (h : E ≃ₘ^5[𝕜] F) (hn : 1 ≤ n) {s : set E} :
+@[simp] lemma unique_diff_on_image (h : E ≃ₘ^n[𝕜] F) (hn : 1 ≤ n) {s : set E} :
   unique_diff_on 𝕜 (h '' s) ↔ unique_diff_on 𝕜 s :=
-by rw [← unique_mdiff_on_iff_unique_diff_on, unique_mdiff_on_image]
+by simp only [← unique_mdiff_on_iff_unique_diff_on, unique_mdiff_on_image, hn]
 
-@[simp] lemma unique_mdiff_on_preimage (h : M ≃ₘ^n⟮I, J⟯ N) (hn : 1 ≤ n) {s : set N} :
-  unique_mdiff_on I (h ⁻¹' s) ↔ unique_mdiff_on J s :=
-h.symm_image_eq_preimage s ▸ h.symm.unique_mdiff_on_image hn
+@[simp] lemma unique_diff_on_preimage (h : E ≃ₘ^n[𝕜] F) (hn : 1 ≤ n) {s : set F} :
+  unique_diff_on 𝕜 (h ⁻¹' s) ↔ unique_diff_on 𝕜 s :=
+h.symm_image_eq_preimage s ▸ h.symm.unique_diff_on_image hn
 
 end times_diffeomorph
 
@@ -221,13 +225,58 @@ end continuous_linear_equiv
 
 namespace model_with_corners
 
-variables (e : E ≃ₘ[𝕜] E')
+variables (I) (e : E ≃ₘ[𝕜] E')
 
 def trans_diffeomorph (I : model_with_corners 𝕜 E H) (e : E ≃ₘ[𝕜] E') :
   model_with_corners 𝕜 E' H :=
 { to_local_equiv := I.to_local_equiv.trans e.to_equiv.to_local_equiv,
   source_eq := by simp,
-  unique_diff' := by simp [range_comp e],
-}
+  unique_diff' := by simp [range_comp e, I.unique_diff],
+  continuous_to_fun := e.continuous.comp I.continuous,
+  continuous_inv_fun := I.continuous_symm.comp e.symm.continuous }
+
+@[simp, mfld_simps] lemma coe_trans_diffeomorph : ⇑(I.trans_diffeomorph e) = e ∘ I := rfl
+@[simp, mfld_simps] lemma coe_trans_diffeomorph_symm :
+  ⇑(I.trans_diffeomorph e).symm = I.symm ∘ e.symm := rfl
+
+lemma trans_diffeomorph_range : range (I.trans_diffeomorph e) = e '' (range I) :=
+range_comp e I
+
+lemma coe_ext_chart_at_trans_diffeomorph {x : M} :
+  ⇑(ext_chart_at (I.trans_diffeomorph e) x) = e ∘ ext_chart_at I x := rfl
+
+lemma coe_ext_chart_at_trans_diffeomorph_symm {x : M} :
+  ⇑(ext_chart_at (I.trans_diffeomorph e) x).symm = (ext_chart_at I x).symm ∘ e.symm := rfl
 
 end model_with_corners
+
+namespace times_diffeomorph
+
+variables (e : E ≃ₘ[𝕜] F)
+
+instance smooth_manifold_with_corners_trans_diffeomorph :
+  smooth_manifold_with_corners (I.trans_diffeomorph e) M :=
+begin
+  refine smooth_manifold_with_corners_of_times_cont_diff_on  _ _ (λ e₁ e₂ h₁ h₂, _),
+  refine e.times_cont_diff.comp_times_cont_diff_on
+    (((times_cont_diff_groupoid ⊤ I).compatible h₁ h₂).1.comp e.symm.times_cont_diff.times_cont_diff_on _),
+  -- missing piece for `mfld_set_tac`
+  have : range (e ∘ I) = e.symm ⁻¹' (range I) := by rw [range_comp, e.image_eq_preimage],
+  mfld_set_tac
+end
+
+def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomorph e⟯ M :=
+{ to_equiv := equiv.refl M,
+  times_cont_mdiff_to_fun := λ x,
+    begin
+      refine times_cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, _⟩,
+/-      have : ext_chart_at (I.trans_diffeomorph e) x ∘ (ext_chart_at I x).symm
+        =ᶠ[𝓝[range I] (ext_chart_at I x x)] e,
+      { sorry },-/
+      refine e.times_cont_diff.times_cont_diff_within_at.congr' (λ y hy, _) _,
+      { simp only [equiv.coe_refl, id, (∘)], rw I.coe_ext_chart_at_trans_diffeomorph, },
+      -- times_cont_mdiff_within_at_iff.2 ⟨continuous_within_at_id, by simp⟩,
+    end,
+  times_cont_mdiff_inv_fun := _ }
+
+end times_diffeomorph

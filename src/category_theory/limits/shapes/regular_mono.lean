@@ -163,7 +163,8 @@ The second leg of a pushout cocone is a regular epimorphism if the right compone
 See also `pushout.snd_of_epi` for the basic epimorphism version, and
 `regular_of_is_pushout_fst_of_regular` for the flipped version.
 -/
-def regular_of_is_pushout_snd_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+def regular_of_is_pushout_snd_of_regular
+  {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [gr : regular_epi g] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 regular_epi h :=
 { W := gr.W,
@@ -193,7 +194,8 @@ The first leg of a pushout cocone is a regular epimorphism if the left component
 See also `pushout.fst_of_epi` for the basic epimorphism version, and
 `regular_of_is_pushout_snd_of_regular` for the flipped version.
 -/
-def regular_of_is_pushout_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+def regular_of_is_pushout_fst_of_regular
+  {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [fr : regular_epi f] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 regular_epi k :=
 regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t)

@@ -224,6 +224,31 @@ add_decl_doc ring_hom.to_monoid_hom
 The `simp`-normal form is `(f : R →+ S)`. -/
 add_decl_doc ring_hom.to_add_monoid_hom
 
+class is_ring_hom (F : Type*) (R S : out_param Type*) [semiring R] [semiring S]
+  extends is_add_monoid_hom F R S, is_monoid_with_zero_hom F R S
+
+instance ring_hom.is_ring_hom {R S : Type*} [semiring R] [semiring S] :
+  is_ring_hom (ring_hom R S) R S :=
+{ coe := ring_hom.to_fun,
+  map_add := ring_hom.map_add',
+  map_mul := ring_hom.map_mul',
+  map_one := ring_hom.map_one',
+  map_zero := ring_hom.map_zero' }
+
+section is_ring_hom
+
+variables {F S : Type*} [semiring R] [semiring S]
+
+/-- Ring homomorphisms preserve `bit0`. -/
+@[simp] lemma map_bit0 [is_ring_hom F R S] (f : F) (a : R) : f (bit0 a) = bit0 (f a) :=
+map_add _ _ _
+
+/-- Ring homomorphisms preserve `bit1`. -/
+@[simp] lemma map_bit1 [is_ring_hom F R S] (f : F) (a : R) : f (bit1 a) = bit1 (f a) :=
+by simp [bit1]
+
+end is_ring_hom
+
 namespace ring_hom
 
 section coe
@@ -296,25 +321,6 @@ theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) �
 
 theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →* β)) :=
 λ f g h, ext (λ x, monoid_hom.congr_fun h x)
-
-/-- Ring homomorphisms map zero to zero. -/
-@[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
-
-/-- Ring homomorphisms map one to one. -/
-@[simp] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
-
-/-- Ring homomorphisms preserve addition. -/
-@[simp] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
-
-/-- Ring homomorphisms preserve multiplication. -/
-@[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
-
-/-- Ring homomorphisms preserve `bit0`. -/
-@[simp] lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
-
-/-- Ring homomorphisms preserve `bit1`. -/
-@[simp] lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
-by simp [bit1]
 
 /-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
 lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 :=
@@ -445,7 +451,7 @@ by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
 lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
+λ ⟨z, hz⟩, ⟨f z, by rw [hz, map_mul]⟩
 
 end comm_semiring
 
@@ -869,7 +875,7 @@ def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β
   map_mul' := begin
     intros x y,
     have hxy := h (x + y),
-    rw [mul_add, add_mul, add_mul, f.map_add, f.map_add, f.map_add, f.map_add, h x, h y, add_mul,
+    rw [mul_add, add_mul, add_mul, map_add, map_add, map_add, map_add, h x, h y, add_mul,
       mul_add, mul_add, ← sub_eq_zero_iff_eq, add_comm, ← sub_sub, ← sub_sub, ← sub_sub,
       mul_comm y x, mul_comm (f y) (f x)] at hxy,
     simp only [add_assoc, add_sub_assoc, add_sub_cancel'_right] at hxy,

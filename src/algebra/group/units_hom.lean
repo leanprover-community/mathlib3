@@ -18,9 +18,9 @@ variables {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P
 def map (f : M →* N) : units M →* units N :=
 monoid_hom.mk'
   (λ u, ⟨f u.val, f u.inv,
-                  by rw [← f.map_mul, u.val_inv, f.map_one],
-                  by rw [← f.map_mul, u.inv_val, f.map_one]⟩)
-  (λ x y, ext (f.map_mul x y))
+                  by rw [← map_mul f, u.val_inv, map_one f],
+                  by rw [← map_mul f, u.inv_val, map_one f]⟩)
+  (λ x y, ext (map_mul f (x : M) (y : M)))
 
 @[simp, to_additive] lemma coe_map (f : M →* N) (x : units M) : ↑(map f x) = f x := rfl
 
@@ -50,8 +50,8 @@ is an add_monoid homomorphism too."]
 def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, ↑(g x) = f x) :
   M →* units N :=
 { to_fun := g,
-  map_one' := units.ext $ (h 1).symm ▸ f.map_one,
-  map_mul' := λ x y, units.ext $ by simp only [h, coe_mul, f.map_mul] }
+  map_one' := units.ext $ (h 1).symm ▸ map_one f,
+  map_mul' := λ x y, units.ext $ by simp only [h, coe_mul, map_mul] }
 
 @[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N}
   (h : ∀ x, ↑(g x) = f x) (x) : (lift_right f g h x : N) = f x := h x
@@ -77,10 +77,10 @@ and `f.to_hom_units` is the corresponding homomorphism from `G` to `add_units M`
 def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* units M :=
 { to_fun := λ g,
     ⟨f g, f (g⁻¹),
-      by rw [← f.map_mul, mul_inv_self, f.map_one],
-      by rw [← f.map_mul, inv_mul_self, f.map_one]⟩,
-  map_one' := units.ext (f.map_one),
-  map_mul' := λ _ _, units.ext (f.map_mul _ _) }
+      by rw [← map_mul f, mul_inv_self, map_one f],
+      by rw [← map_mul f, inv_mul_self, map_one f]⟩,
+  map_one' := by { ext, simp },
+  map_mul' := λ x y, units.ext (map_mul f (x : G) _) }
 
 @[simp] lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
   (f.to_hom_units g : M) = f g := rfl

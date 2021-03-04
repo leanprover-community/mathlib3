@@ -916,7 +916,7 @@ section monoid_with_zero
 variables (f : monoid_with_zero_hom G₀ M₀) {a : G₀}
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
-⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
+⟨λ hfa ha, hfa $ ha.symm ▸ map_zero f, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 :=
 not_iff_not.1 f.map_ne_zero
@@ -932,11 +932,11 @@ variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
 begin
   by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_left_eq_one,
-  rw [← f.map_mul, inv_mul_cancel h, f.map_one]
+  rw [← map_mul f, inv_mul_cancel h, map_one f]
 end
 
 @[simp] lemma map_div : f (a / b) = f a / f b :=
-by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' b)
+by simpa only [div_eq_mul_inv] using ((map_mul f _ _).trans $ _root_.congr_arg _ $ f.map_inv' b)
 
 end group_with_zero
 

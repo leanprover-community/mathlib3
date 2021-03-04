@@ -267,12 +267,6 @@ instance monoid_hom.is_monoid_hom : is_monoid_hom (M →* N) M N :=
   map_mul := monoid_hom.map_mul',
   map_one := monoid_hom.map_one' }
 
-example [is_monoid_hom F M N] (f : F) (x y : M) : f (x * y) * 1 = f x * f y * f 1 :=
-by squeeze_simp
-
-example [add_monoid M] [add_monoid N] [is_add_monoid_hom F M N] (f : F) (x y : M) : f (x + y) + 0 = f x + f y + f 0 :=
-by squeeze_simp
-
 end monoid
 
 section monoid_with_zero

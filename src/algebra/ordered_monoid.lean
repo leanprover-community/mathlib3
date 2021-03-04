@@ -1216,13 +1216,4 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
 
-instance [linear_ordered_add_comm_monoid_with_top α] :
-  linear_ordered_comm_monoid_with_zero (multiplicative (order_dual α)) :=
-{ zero := (⊤ : α),
-  zero_mul := top_add,
-  mul_zero := add_top,
-  zero_le_one := (le_top : (0 : α) ≤ ⊤),
-  ..multiplicative.ordered_comm_monoid,
-  ..multiplicative.linear_order }
-
 end type_tags

@@ -555,7 +555,7 @@ begin
   exact set_integral_mono_on hf.1 hg.1 measurable_set_Ioc (λ x hx, h x (Ioc_subset_Icc_self hx)),
 end
 
-@[mono] lemma integral_mono (h : f ≤ g) :
+lemma integral_mono (h : f ≤ g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 integral_mono_ae hf hg hab (ae_of_all _ h)
 

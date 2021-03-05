@@ -507,7 +507,7 @@ lemma set_integral_mono_on (hs : measurable_set s) (h : ∀ x ∈ s, f x ≤ g x
 set_integral_mono_ae_restrict hf hg
   (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h])
 
-@[mono] lemma set_integral_mono (h : f ≤ g) :
+lemma set_integral_mono (h : f ≤ g) :
   ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
 integral_mono hf hg h
 

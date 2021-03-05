@@ -529,13 +529,13 @@ end
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 
-lemma findim_eq_dual :
-  findim K V = findim K (module.dual K V) :=
+@[simp] lemma dual_findim_eq :
+  findim K (module.dual K V) = findim K V :=
 begin
+  obtain ⟨n, hn, hf⟩ := exists_is_basis_finite K V,
   refine linear_equiv.findim_eq _,
-  have hB := classical.some_spec (exists_is_basis_finite K V),
-  haveI := classical.choice hB.2,
-  exact is_basis.to_dual_equiv _ hB.1
+  haveI : fintype n := set.finite.fintype hf,
+  refine (hn.to_dual_equiv _).symm,
 end
 
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/

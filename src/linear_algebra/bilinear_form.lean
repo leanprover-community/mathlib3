@@ -521,7 +521,7 @@ lemma matrix.to_bilin'_apply (M : matrix n n R₃) (x y : n → R₃) :
   matrix.to_bilin' M x y = ∑ i j, x i * M i j * y j := rfl
 
 lemma matrix.to_bilin'_apply' (M : matrix n n R₃) (v w : n → R₃) :
-  (matrix.to_bilin' M) v w = matrix.dot_product v (M.mul_vec w) :=
+  matrix.to_bilin' M v w = matrix.dot_product v (M.mul_vec w) :=
 begin
   simp_rw [matrix.to_bilin'_apply, matrix.dot_product,
            matrix.mul_vec, matrix.dot_product],
@@ -1107,15 +1107,6 @@ begin
     ext, exact hm x }
 end
 
-/-- The linear map induced by a nondegenerate bilinear form is injective. -/
-lemma to_lin_injective {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
-  function.injective B.to_lin :=
-B.to_lin.to_add_monoid_hom.injective_iff.2 (λ a ha, hB _ (linear_map.congr_fun ha))
-
-lemma to_lin_ker_eq_bot {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
-  B.to_lin.ker = ⊥ :=
-linear_map.ker_eq_bot.2 (to_lin_injective hB)
-
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
@@ -1230,29 +1221,12 @@ open finite_dimensional
 
 variable [finite_dimensional K V]
 
-lemma to_lin_surjective_of_finite_dimensional
-  {B : bilin_form K V} (hB : B.nondegenerate) :
-  function.surjective B.to_lin :=
-begin
-  classical,
-  refine (linear_map.injective_iff_surjective_of_findim_eq_findim
-    (linear_equiv.findim_eq _)).1 (to_lin_injective hB),
-  have hB := classical.some_spec (finite_dimensional.exists_is_basis_finite K V),
-  haveI := classical.choice hB.2,
-  exact is_basis.to_dual_equiv _ hB.1
-end
-
-lemma to_lin_range_eq_top_of_finite_dimensional
-  {B : bilin_form K V} (hB : B.nondegenerate) :
-  B.to_lin.range = ⊤ :=
-linear_map.range_eq_top.2 $ to_lin_surjective_of_finite_dimensional hB
-
 /-- Given a nondegenerate bilinear form `B`, `B.to_dual` is the isomorphism
 between a vector space and its dual with the underlying linear map `B.to_lin`. -/
 noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
 linear_map.linear_equiv_of_ker_eq_bot B.to_lin
-  (linear_map.ker_eq_bot.2 $ to_lin_injective hB) subspace.findim_eq_dual
+  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_findim_eq.symm
 
 lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
   B.to_dual hB m n = B m n := rfl

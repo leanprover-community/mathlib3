@@ -356,7 +356,7 @@ rfl
 end lin_mul_lin
 
 /-- The proposition that two elements of a bilinear form space are orthogonal. For orthogonality
-of an index set of elements, use `bilin_form.is_ortho'`. -/
+of an index set of elements, use `bilin_form.is_Ortho`. -/
 def is_ortho (B : bilin_form R M) (x y : M) : Prop :=
 B x y = 0
 
@@ -372,11 +372,11 @@ zero_right x
 /-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only
 if for all `i ≠ j`, `B (v i) (v j) = 0`. For orthogonality between two elements, use
 `bilin_form.is_ortho` -/
-def is_ortho' {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
+def is_Ortho {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
 ∀ i j : n, i ≠ j → B.is_ortho (v j) (v i)
 
-lemma is_ortho'_def {n : Type w} {B : bilin_form R M} {v : n → M} :
-  B.is_ortho' v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
+lemma is_Ortho_def {n : Type w} {B : bilin_form R M} {v : n → M} :
+  B.is_Ortho v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
 
 section
 
@@ -1140,9 +1140,9 @@ variables [field K] [add_comm_group V] [vector_space K V]
 
 /-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is  linearly independent
   if for all `i`, `B (v i) (v i) ≠ 0`. -/
-lemma linear_independent_of_is_ortho'
+lemma linear_independent_of_is_Ortho
   {n : Type w} {B : bilin_form K V} {v : n → V}
-  (hv₁ : B.is_ortho' v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) : linear_independent K v :=
+  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) : linear_independent K v :=
 begin
   classical,
   rw linear_independent_iff',
@@ -1154,7 +1154,7 @@ begin
   { refine finset.sum_congr rfl (λ j hj, _),
     by_cases (i = j),
     { rw [if_pos h] },
-    { rw [if_neg h, is_ortho'_def.1 hv₁ _ _ h, mul_zero] } },
+    { rw [if_neg h, is_Ortho_def.1 hv₁ _ _ h, mul_zero] } },
   simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
   rw [if_pos, mul_eq_zero] at this,
   cases this,
@@ -1273,7 +1273,7 @@ end
 lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ v : fin (findim K V) → V,
-    B.is_ortho' v ∧ is_basis K v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
+    B.is_Ortho v ∧ is_basis K v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
 begin
   tactic.unfreeze_local_instances,
   induction hd : findim K V with d ih generalizing V,
@@ -1302,7 +1302,7 @@ begin
           rw [is_ortho, hB₂],
           exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
       { refine is_basis_of_linear_independent_of_card_eq_findim
-          (@linear_independent_of_is_ortho' _ _ _ _ _ _ B _ _ _)
+          (@linear_independent_of_is_Ortho _ _ _ _ _ _ B _ _ _)
           (by rw [hd', fintype.card_fin]),
         { intros i j hij,
           by_cases hi : i = 0,
@@ -1336,7 +1336,7 @@ end .
   field `K` with invertible `2`, there exists a orthogonal basis. -/
 theorem exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : fin (findim K V) → V, B.is_ortho' v ∧ is_basis K v :=
+  ∃ v : fin (findim K V) → V, B.is_Ortho v ∧ is_basis K v :=
 begin
   rcases exists_orthogonal_basis' hB₁ hB₂ with ⟨v, hv₁, hv₂, _⟩,
   exact ⟨v, hv₁, hv₂⟩

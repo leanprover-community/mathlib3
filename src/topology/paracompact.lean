@@ -134,7 +134,7 @@ The formalization is based on two [ncatlab](https://ncatlab.org/) proofs:
 * [locally compact and sigma compact spaces are paracompact](https://ncatlab.org/nlab/show/locally+compact+and+sigma-compact+spaces+are+paracompact);
 * [open cover of smooth manifold admits locally finite refinement by closed balls](https://ncatlab.org/nlab/show/partition+of+unity#ExistenceOnSmoothManifolds).
 
-In the most cases (namely, if `B c r ∪ B c r'` is again a set of the form `B c r''`) it is possible
+In most cases (namely, if `B c r ∪ B c r'` is again a set of the form `B c r''`) it is possible
 to choose `α = X`. This fact is not yet formalized in `mathlib`. -/
 theorem refinement_of_locally_compact_sigma_compact_of_nhds_basis
   [locally_compact_space X] [sigma_compact_space X] [t2_space X]

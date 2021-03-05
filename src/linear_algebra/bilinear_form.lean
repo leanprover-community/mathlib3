@@ -1071,7 +1071,9 @@ lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
 λ _ hn l hl, hn l (h hl)
 
 lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
-  N ≤ B.orthogonal (B.orthogonal N) := λ n hn m hm, hB _ _ (hm n hn)
+lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
+  N ≤ B.orthogonal (B.orthogonal N) :=
+λ n hn m hm, hB _ _ (hm n hn)
 
 end orthogonal
 
@@ -1091,7 +1093,7 @@ lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
 /-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
   to every other element is `0`. -/
 def nondegenerate (B : bilin_form R M) : Prop :=
-  ∀ m : M, (∀ n : M, B m n = 0) → m = 0
+∀ m : M, (∀ n : M, B m n = 0) → m = 0
 
 variables {n : Type w} [fintype n]
 
@@ -1129,11 +1131,12 @@ end
 variables {V : Type u} {K : Type v}
 variables [field K] [add_comm_group V] [vector_space K V]
 
-/-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is  linearly independent
+/-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is linearly independent
   if for all `i`, `B (v i) (v i) ≠ 0`. -/
 lemma linear_independent_of_is_Ortho
   {n : Type w} {B : bilin_form K V} {v : n → V}
-  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) : linear_independent K v :=
+  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) :
+  linear_independent K v :=
 begin
   classical,
   rw linear_independent_iff',

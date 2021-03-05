@@ -64,9 +64,10 @@ lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
 lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
 
 /-- `single a r` is the Hahn series which has coefficient `r` at `a` and zero otherwise. -/
-def single (a : Γ) (r : R) : hahn_series Γ R := {
-  coeff := pi.single a r,
-  is_wf_support' := (set.is_wf_singleton a).mono pi.support_single_subset }
+def single (a : Γ) : zero_hom R (hahn_series Γ R) :=
+{ to_fun := λ r, { coeff := pi.single a r,
+    is_wf_support' := (set.is_wf_singleton a).mono pi.support_single_subset },
+  map_zero' := ext _ _ (pi.single_zero _) }
 
 variables {a b : Γ} {r : R}
 
@@ -90,7 +91,7 @@ lemma eq_of_mem_support_single {b : Γ} (h : b ∈ support (single a r)) : b = a
 support_single_subset h
 
 @[simp]
-lemma single_eq_zero : (single a (0 : R)) = 0 := ext _ _ (pi.single_zero _)
+lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 
 end zero
 
@@ -98,12 +99,15 @@ section addition
 
 variable [linear_order Γ]
 
-instance [add_monoid R] : has_add (hahn_series Γ R) :=
+section add_monoid
+variable [add_monoid R]
+
+instance : has_add (hahn_series Γ R) :=
 { add := λ x y, { coeff := x.coeff + y.coeff,
                   is_wf_support' := (x.is_wf_support.union y.is_wf_support).mono
                     (function.support_add _ _) } }
 
-instance [add_monoid R] : add_monoid (hahn_series Γ R) :=
+instance : add_monoid (hahn_series Γ R) :=
 { zero := 0,
   add := (+),
   add_assoc := λ x y z, by { ext, apply add_assoc },
@@ -111,11 +115,21 @@ instance [add_monoid R] : add_monoid (hahn_series Γ R) :=
   add_zero := λ x, by { ext, apply add_zero } }
 
 @[simp]
-lemma add_coeff' [add_monoid R] {x y : hahn_series Γ R} :
+lemma add_coeff' {x y : hahn_series Γ R} :
   (x + y).coeff = x.coeff + y.coeff := rfl
 
-lemma add_coeff [add_monoid R] {x y : hahn_series Γ R} {a : Γ} :
+lemma add_coeff {x y : hahn_series Γ R} {a : Γ} :
   (x + y).coeff a = x.coeff a + y.coeff a := rfl
+
+/-- `single` as an additive monoid/group homomorphism -/
+def single.add_monoid_hom (a : Γ) : R →+ (hahn_series Γ R) :=
+{ map_add' := λ x y, by { ext b, by_cases h : b = a; simp [h] },
+  ..single a }
+
+@[simp]
+lemma single.add_monoid_hom_apply {a : Γ} {r : R} : single.add_monoid_hom a r = single a r := rfl
+
+end add_monoid
 
 instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
 { add_comm := λ x y, by { ext, apply add_comm }
@@ -442,7 +456,7 @@ begin
     exact (h rfl).elim }
 end
 
-/-- -/
+/-- `C a` is the constant Hahn Series `a`. `C` is provided as a ring homomorphism. -/
 def C : R →+* (hahn_series Γ R) :=
 { to_fun := single 0,
   map_zero' := single_eq_zero,

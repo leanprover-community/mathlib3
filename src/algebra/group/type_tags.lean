@@ -50,7 +50,7 @@ def to_mul : additive α ≃ α := of_mul.symm
 to_mul.apply_eq_iff_eq.mp
 
 protected lemma ext_iff {x y : additive α} : x = y ↔ x.to_mul = y.to_mul :=
-⟨congr_arg _, additive.ext⟩
+to_mul.apply_eq_iff_eq.symm
 
 @[elab_as_eliminator]
 protected lemma ind_on {C : additive α → Prop} (x : additive α) :
@@ -76,7 +76,7 @@ def to_add : multiplicative α ≃ α := of_add.symm
 to_add.apply_eq_iff_eq.mp
 
 protected lemma ext_iff {x y : multiplicative α} : x = y ↔ x.to_add = y.to_add :=
-⟨congr_arg _, multiplicative.ext⟩
+to_add.apply_eq_iff_eq.symm
 
 @[elab_as_eliminator]
 protected lemma ind_on {C : multiplicative α → Prop} (x : multiplicative α) :

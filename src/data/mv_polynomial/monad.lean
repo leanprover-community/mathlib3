@@ -270,7 +270,7 @@ lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynom
 ring_hom.congr_fun (eval₂_hom_comp_bind₂ f g h) φ
 
 lemma aeval_bind₂ [algebra S T] (f : σ → T) (g : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
-  aeval f (bind₂ g φ) = eval₂_hom ((@aeval S T σ _ f _ _ : mv_polynomial σ S →+* T).comp g) f φ :=
+  aeval f (bind₂ g φ) = eval₂_hom ((↑(aeval f : _ →ₐ[S] _) : _ →+* _).comp g) f φ :=
 eval₂_hom_bind₂ _ _ _ _
 
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl

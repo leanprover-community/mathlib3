@@ -868,6 +868,35 @@ ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
+section of_linear_equiv
+
+variables (l : A₁ ≃ₗ[R] A₂)
+  (map_mul : ∀ x y : A₁, l (x * y) = l x * l y)
+  (commutes : ∀ r : R, l (algebra_map R A₁ r) = algebra_map R A₂ r)
+
+/--
+Upgrade a linear equivalence to an algebra equivalence,
+given that it distributes over multiplication and action of scalars.
+-/
+def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
+{ to_fun := l,
+  inv_fun := l.symm,
+  map_mul' := map_mul,
+  commutes' := commutes,
+  ..l }
+
+@[simp] lemma of_linear_equiv_to_linear_equiv (map_mul) (commutes) :
+  of_linear_equiv e.to_linear_equiv map_mul commutes = e :=
+by { ext, refl }
+
+@[simp] lemma to_linear_equiv_of_linear_equiv :
+  to_linear_equiv (of_linear_equiv l map_mul commutes) = l :=
+by { ext, refl }
+
+@[simp] lemma of_linear_equiv_apply (x : A₁) : of_linear_equiv l map_mul commutes x = l x := rfl
+
+end of_linear_equiv
+
 instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
   mul_assoc := λ ϕ ψ χ, rfl,

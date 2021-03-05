@@ -88,6 +88,9 @@ lemma eq_on_comm : eq_on f₁ f₂ s ↔ eq_on f₂ f₁ s :=
 theorem eq_on.image_eq (heq : eq_on f₁ f₂ s) : f₁ '' s = f₂ '' s :=
 image_congr heq
 
+theorem eq_on.inter_preimage_eq (heq : eq_on f₁ f₂ s) (t : set β) : s ∩ f₁ ⁻¹' t = s ∩ f₂ ⁻¹' t :=
+ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, heq hx]
+
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
 

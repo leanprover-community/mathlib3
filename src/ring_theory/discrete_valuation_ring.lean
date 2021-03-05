@@ -56,6 +56,7 @@ class discrete_valuation_ring (R : Type u) [integral_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)
 
+
 namespace discrete_valuation_ring
 
 variables (R : Type u) [integral_domain R] [discrete_valuation_ring R]
@@ -477,51 +478,29 @@ end
 section fraction_field
 
 open localization_map
+variables {R} [integral_domain R] [discrete_valuation_ring R]
+variables {S: Type*} [comm_ring S]
+variables (t : R) [hyp_t : t ≠ 0] {f : localization_map (submonoid.powers t) S}
 
-variables [integral_domain R] [discrete_valuation_ring R]
--- variables (p : R) [irreducible p]
-variables (t : R) [¬ is_unit t]
--- variables (f : localization_map.away_map p (localization.away p))
--- variables (f : localization_map.away_map t (localization.away t))
-variables {S : Type*}-- [comm_ring S]
--- variables [f : localization_map (submonoid.powers t) S]
+lemma localization_is_domain : integral_domain f.codomain := sorry
 
--- instance localization_is_domain [comm_ring S] [t : R] [¬ is_unit t] [f : localization_map (submonoid.powers t) S]
---   : integral_domain S := sorry
+-- #print fields localization_map
+#check f.surj' (f.to_map t)
 
-lemma localization_is_domain (S: Type*) [comm_ring S] (t : R)
-  (f : localization_map (submonoid.powers t) S) :
-  ¬ is_unit t → is_integral_domain S := sorry
-
-instance loc_is_domain [comm_ring S] [t : R]
-  [f : localization_map (submonoid.powers t) S] :
-  ¬ is_unit t → integral_domain f.codomain := sorry
-
-instance localization_is_domain' [t : R] : integral_domain (localization.away t) :=
+theorem localization_is_field (ht: ¬ is_unit t): -- (S: Type*) [comm_ring S]
+  -- -- [integral_domain S]
+  -- (t : R) (ht : t ≠ 0)
+  -- (f : localization_map (submonoid.powers t) S) :
+  is_field f.codomain :=
 begin
-  have h_nz : t ≠ 0, sorry,
-  apply localization_map.integral_domain_localization (powers_le_non_zero_divisors_of_domain h_nz),
-end
-
-theorem localization_is_field  (S: Type*) [comm_ring S]
-  -- [integral_domain S]
-  (t : R) (ht : t ≠ 0)
-  (f : localization_map (submonoid.powers t) S) :
-  ¬ is_unit t → is_field f.codomain :=
-begin
-  have hS : integral_domain f.codomain, sorry,
-  resetI,--to put together
-  intro ht,
+  -- haveI hS : is_field f.codomain :=
+  letI hS : integral_domain f.codomain,
+  apply localization_is_domain, --non so se sia utile; se non lo è, non lo è neanche il lemma
   split,
-  { apply (integral_domain.to_is_integral_domain _).1,
-    assumption },
-  { have hS' : is_integral_domain f.codomain,
-    apply integral_domain.to_is_integral_domain f.codomain,
-    convert hS'.2,
-    sorry, },
-  -- { exact (localization_is_domain _ _ _ f ht).2, },
+  { exact (integral_domain.to_is_integral_domain f.codomain).1 },
+  { convert (integral_domain.to_is_integral_domain f.codomain).2, sorry },
   intros a ha,
-  obtain ⟨⟨r, tn⟩, h⟩ : ∃ (x : R × submonoid.powers t), a * f.to_map x.2 = f.to_map x.1 := f.7 a,
+  obtain ⟨⟨r, tn⟩, h⟩ : ∃ (x : R × submonoid.powers t), a * f.to_fun x.2 = f.to_fun x.1 := f.surj' a,--(f.to_map )
   dsimp only at h,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), ↑tn = t^n, sorry,
   let v := add_val R r,

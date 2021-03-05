@@ -189,11 +189,23 @@ instance [smul_comm_class R S V] :
 
 end distrib_mul_action
 
-instance [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V] :
-  semimodule R (hahn_series Γ V) :=
+section semimodule
+variables [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V]
+
+instance : semimodule R (hahn_series Γ V) :=
 { zero_smul := λ _, by { ext, simp },
   add_smul := λ _ _ _, by { ext, simp [add_smul] },
   .. hahn_series.distrib_mul_action }
+
+/-- `single` as a linear map -/
+def single.linear_map (a : Γ) : R →ₗ[R] (hahn_series Γ R) :=
+{ map_smul' := λ r s, by { ext b, by_cases h : b = a; simp [h] },
+  ..single.add_monoid_hom a }
+
+@[simp]
+lemma single.linear_map_apply {a : Γ} {r : R} : single.linear_map a r = single a r := rfl
+
+end semimodule
 
 section multiplication
 

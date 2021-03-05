@@ -149,12 +149,6 @@ instance {mM : has_one M} {mN : has_one N} : has_coe_to_fun (one_hom M N) :=
 @[to_additive]
 instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) :=
 ⟨_, mul_hom.to_fun⟩
-@[to_additive]
-instance {mM : monoid M} {mN : monoid N} : has_coe_to_fun (M →* N) :=
-⟨_, monoid_hom.to_fun⟩
-instance {mM : monoid_with_zero M} {mN : monoid_with_zero N} :
-  has_coe_to_fun (monoid_with_zero_hom M N) :=
-⟨_, monoid_with_zero_hom.to_fun⟩
 
 -- these must come after the coe_to_fun definitions
 initialize_simps_projections zero_hom (to_fun → apply)

@@ -105,71 +105,53 @@ end
 
 open power_series
 open polynomial (aeval)
-variables {A : Type*} [integral_domain A] [algebra ℚ A] [char_zero A]
+variables {A : Type*} [comm_ring A] [algebra ℚ A]
 
-lemma mem_range_ite_sub_zero {n x : ℕ} (hx : x ∈ range n) : ite (n - x = 0) 1 0 = (0 : A) :=
-begin
-  split_ifs,
-   { exfalso, apply mem_range_sub_ne_zero hx h, },
-   { refl, },
-end
-
-theorem exp_bernoulli_poly (t : A) :
+/-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
+theorem exp_bernoulli_poly' (t : A) :
   mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) = X * rescale t (exp A) :=
 begin
---opening and splitting sums
-  ext, rw [coeff_mul, coeff_mul, nat.sum_antidiagonal_eq_sum_range_succ_mk,
-    nat.sum_antidiagonal_eq_sum_range_succ_mk],
-  simp only [coeff_mk, coeff_one, coeff_exp, ring_hom.id_apply, linear_map.map_sub, factorial,
-    rat.algebra_map_rat_rat],
-  rw sum_range_succ, -- the `succ` term is 0
-  conv_lhs { congr, skip, apply_congr, skip, rw @mem_range_ite_sub_zero A _ _ _ _ _ H, },
-  cases n, { simp only [one_div, alg_hom.map_smul, power_series.coeff_zero_eq_constant_coeff,
-    add_zero, polynomial.aeval_one, if_congr, mul_one, nat.nat_zero_eq_zero,
-    bernoulli_poly.bernoulli_poly_zero, nat.factorial_zero, if_true, nat.zero_sub,
-    power_series.constant_coeff_X, nat.sub_self, sum_empty, eq_self_iff_true, nat.factorial_one,
-    one_smul, sub_zero, range_zero, power_series.coeff_rescale, ring_hom.map_one, nat.cast_one,
-    div_one, sum_singleton, range_one, mul_zero, pow_zero, power_series.coeff_exp, sum_congr,
-    sub_self, algebra.smul_mul_assoc], }, -- n = 0 is just one long `simp`
-  symmetry, rw [sum_eq_single 1], -- RHS equals the first term of the LHS sum
-  { rw [one_div, alg_hom.map_smul, nat.succ_sub_succ_eq_sub, nat.sub_self, nat.factorial_zero,
-      power_series.coeff_one_X, one_mul, nat.sub_zero, coeff_rescale, coeff_exp, nat.factorial_one,
-      nat.cast_one, div_one],
-    simp only [one_div, alg_hom.map_smul, if_true, eq_self_iff_true, sub_zero, zero_add,
-      ring_hom.map_one, mul_zero, sub_self, algebra.smul_mul_assoc],
-    rw [mul_comm, smul_zero, zero_add],
-    suffices g : (algebra_map ℚ A) (↑n!)⁻¹ * (n.succ : ℚ) • t ^ n =
-      (n.succ : ℚ) • ∑ (x : ℕ) in range n.succ, (↑x!)⁻¹ • ((polynomial.aeval t) (bernoulli_poly x)
-        * (algebra_map ℚ A) (↑(n.succ - x)!)⁻¹),
-    { rw [algebra.mul_smul_comm, algebra.smul_def, algebra.smul_def, mul_eq_mul_left_iff] at g,
-      cases g with g1 g2, { assumption, },
-      { exfalso, apply succ_ne_zero n, -- need `n ≠ 0` here
-        simp only [ring_hom.map_nat_cast, cast_succ, ring_hom.map_add, ring_hom.map_one] at g2,
-        norm_cast at *, }, },
-    { -- proving `g`
-      have g' : (n.succ : ℚ) • t^n = polynomial.aeval t (polynomial.monomial n (n + 1 : ℚ)),
-      { rw [polynomial.aeval_monomial, algebra.smul_def], norm_num, },
-      -- Convert LHS using `sum_bernoulli_poly` and then showing that summands are equal
-      rw [g', ←sum_bernoulli_poly, smul_sum, alg_hom.map_sum, mul_sum], apply sum_congr, { refl, },
-      { rintros x hx,
-        -- tidying up
-        rw [alg_hom.map_smul, ←algebra.smul_def,
-          mul_comm ((polynomial.aeval t) (bernoulli_poly x)) _, ←algebra.smul_def, smul_smul,
-          smul_smul, ←smul_assoc, algebra.smul_def, algebra.smul_def, mul_eq_mul_right_iff], left,
-        rw smul_eq_mul, apply congr_arg _,
-        rw [choose_eq_factorial_div_factorial, cast_dvd_char_zero, factorial_succ n, cast_mul,
-          cast_mul, div_eq_inv_mul, mul_inv', ←mul_assoc, mul_comm (↑n!)⁻¹ _,
-          mul_assoc ↑(n.succ) _ _], symmetry,
-        rw [mul_comm ↑(n.succ) _, mul_assoc ((↑x!)⁻¹ * (↑(n + 1 - x)!)⁻¹) _ _, mul_comm ↑(n.succ) _,
-         ←mul_assoc (↑n!)⁻¹ _ _, inv_mul_cancel, one_mul],
-        { norm_num, apply factorial_ne_zero n, },
-        { apply factorial_mul_factorial_dvd_factorial (mem_range_le hx), },
-        { apply mem_range_le hx, }, }, }, },
-  -- proving second and third assumption of `sum_eq_single`
-  { rintros b hb h, rw coeff_X b, split_ifs,
-    { exfalso, apply h h_1, },
-    { apply zero_mul, }, },
-  { rintros h, exfalso, apply h, rw [mem_range_succ_iff, succ_le_succ_iff], apply nat.zero_le _, },
+  -- check equality of power series by checking coefficients of X^n
+  ext n,
+  -- n = 0 case solved by `simp`
+  cases n, { simp },
+  -- n ≥ 1, the coefficients is a sum to n+2, so use `sum_range_succ` to write as
+  -- last term plus sum to n+1
+  rw [coeff_succ_X_mul, coeff_rescale, coeff_exp, coeff_mul,
+    nat.sum_antidiagonal_eq_sum_range_succ_mk, sum_range_succ],
+  -- last term is zero so kill with `zero_add`
+  simp only [ring_hom.map_sub, nat.sub_self, constant_coeff_one, constant_coeff_exp,
+    coeff_zero_eq_constant_coeff, mul_zero, sub_self, zero_add],
+  -- Let's multiply both sides by (n+1)! (OK because it's a unit)
+  set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,
+    mul_inv_cancel (by exact_mod_cast factorial_ne_zero (n+1)),
+      inv_mul_cancel (by exact_mod_cast factorial_ne_zero (n+1))⟩ with hu,
+  rw ←units.mul_right_inj (units.map (algebra_map ℚ A).to_monoid_hom u),
+  -- now tidy up unit mess and generally do trivial rearrangements
+  -- to make RHS (n+1)*t^n
+  rw [units.coe_map, mul_left_comm, ring_hom.to_monoid_hom_eq_coe,
+      ring_hom.coe_monoid_hom, ←ring_hom.map_mul, hu, units.coe_mk],
+  change _ = t^n * algebra_map ℚ A (((n+1)*n! : ℕ)*(1/n!)),
+  rw [cast_mul, mul_assoc, mul_one_div_cancel
+    (show (n! : ℚ) ≠ 0, from cast_ne_zero.2 (factorial_ne_zero n)), mul_one, mul_comm (t^n),
+    ← polynomial.aeval_monomial, cast_add, cast_one],
+  -- But this is the RHS of `sum_bernoulli_poly`
+  rw [← sum_bernoulli_poly, finset.mul_sum, alg_hom.map_sum],
+  -- and now we have to prove a sum is a sum, but all the terms are equal.
+  apply finset.sum_congr rfl,
+  -- The rest is just trivialities, hampered by the fact that we're coercing
+  -- factorials and binomial coefficients between ℕ and ℚ and A.
+  intros i hi,
+  -- NB prime.choose_eq_factorial_div_factorial' is in the wrong namespace
+  -- deal with coefficients of e^X-1
+  simp only [prime.choose_eq_factorial_div_factorial' (mem_range_le hi), coeff_mk,
+    if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, coeff_one, units.coe_mk,
+    coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
+    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],
+  -- finally cancel the Bernoulli polynomial and the algebra_map
+  congr',
+  apply congr_arg,
+  rw [mul_assoc, div_eq_mul_inv, ← mul_inv'],
 end
 
 end bernoulli_poly

@@ -448,7 +448,7 @@ instance : algebra R (mv_power_series σ A) :=
   to_ring_hom := (mv_power_series.map σ (algebra_map R A)).comp (C σ R),
   .. mv_power_series.semimodule }
 
-theorem C_eq_algebra_map {r : R} : C σ R r = (algebra_map R (mv_power_series σ R)) r := rfl
+theorem C_eq_algebra_map : C σ R = (algebra_map R (mv_power_series σ R)) := rfl
 
 theorem algebra_map_apply {r : R} :
   algebra_map R (mv_power_series σ A) r = C σ A (algebra_map R A r) :=

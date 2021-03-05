@@ -163,29 +163,23 @@ instance : distrib_mul_action R (hahn_series Γ V) :=
   smul_add := λ _ _ _, by { ext, simp [smul_add] },
   mul_smul := λ _ _ _, by { ext, simp [mul_smul] } }
 
+variables {S : Type*} [monoid S] [distrib_mul_action S V]
+
+instance [has_scalar R S] [is_scalar_tower R S V] :
+  is_scalar_tower R S (hahn_series Γ V) :=
+⟨λ r s a, by { ext, simp }⟩
+
+instance [smul_comm_class R S V] :
+  smul_comm_class R S (hahn_series Γ V) :=
+⟨λ r s a, by { ext, simp [smul_comm] }⟩
+
 end distrib_mul_action
 
-section scalar
-
-variables [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V]
-
-instance :
+instance [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V] :
   semimodule R (hahn_series Γ V) :=
 { zero_smul := λ _, by { ext, simp },
   add_smul := λ _ _ _, by { ext, simp [add_smul] },
   .. hahn_series.distrib_mul_action }
-
-variables {S : Type*} [semiring S] [semimodule S V]
-
-instance [semimodule R S] [is_scalar_tower R S V] :
-  is_scalar_tower R S (hahn_series Γ V) :=
-⟨λ r s a, by { ext, simp }⟩
-
-instance [semimodule R V] [smul_comm_class R S V] :
-  smul_comm_class R S (hahn_series Γ V) :=
-⟨λ r s a, by { ext, simp [smul_comm] }⟩
-
-end scalar
 
 section multiplication
 

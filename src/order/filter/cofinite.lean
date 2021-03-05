@@ -112,3 +112,23 @@ by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
 lemma filter.tendsto_embedding_cofinite {α β : Type*} (f : function.embedding α β) :
   tendsto f cofinite cofinite :=
 λ _ hs, hs.preimage_embedding f
+
+lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β] [no_top_order β]
+  {f : α → β} (hf : tendsto f cofinite at_top) :
+  ∃ a₀, ∀ a, f a₀ ≤ f a :=
+begin
+  -- take the inverse image, `small_vals`, of some bounded nonempty set; it's finite, so has a min
+  inhabit α,
+  haveI : inhabited β := ⟨f (default α)⟩,
+  let small_vals : finset α := (filter.eventually_cofinite.mp
+    ((at_top_basis_Ioi.tendsto_right_iff).1 hf (f $ default α) trivial)).to_finset,
+  have default_in : default α ∈ small_vals := by simp,
+  obtain ⟨a₀, -, others_bigger⟩ := small_vals.exists_min_image f ⟨default α, default_in⟩,
+  use a₀,
+  intros a,
+  by_cases h : a ∈ small_vals,
+  { exact others_bigger a h },
+  have inDef : f(a₀) ≤ f (default α) := others_bigger (default α) default_in,
+  refine le_trans inDef (le_of_lt _),
+  simpa using h,
+end

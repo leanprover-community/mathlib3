@@ -213,15 +213,6 @@ begin
   { apply_instance }
 end
 
-lemma filter.tendsto.exists_forall_le {α β : Type*} [linear_order β] {f : α → β}
-  (hf : tendsto f cofinite at_top) :
-  ∃ a₀, ∀ a, f a₀ ≤ f a :=
-begin
-  -- take the inverse image of some bounded set, it's finite, functions on finite sets have minima
-  -- `finset.exists_min_image`
-  sorry
-end
-
 lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
   {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
   tendsto f (cocompact α) (cocompact β) :=
@@ -455,14 +446,14 @@ begin
     exact half_le_neg_x_T (z:ℂ).re h },
 end
 
-lemma bot_row_eq_diff_by_T_n (g g' : SL(2,ℤ)) (h : bottom_row g = bottom_row g') :
-∃ (n:ℤ), g = T^n * g' :=
+lemma bot_row_eq_diff_by_unipotent (g g' : SL(2,ℝ)) (h : bottom_row g = bottom_row g') :
+∃ (x:ℝ), g = (![![1,x],![0,1]],_) * g' :=
 begin
   -- human proof: g= a,b,c,d, g' = a' b' c d (same c d!)
   -- then g*g⁻¹ = (a b c d)(d -b' -c a') = (1 * 0 1)
 
 --  let ![![a,b],![c,d]] := g.1,
-  let Tn := g * g⁻¹,
+  let Tn := g * g'⁻¹,
   sorry,
 
 end

@@ -975,6 +975,15 @@ begin
   apply not_le_of_lt hst h_eq_top,
 end
 
+lemma findim_add_eq_of_is_compl
+  [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
+  findim K U + findim K W = findim K V :=
+begin
+  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
+      findim_bot, add_zero],
+  exact findim_top
+end
+
 end submodule
 
 section span

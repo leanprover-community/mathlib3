@@ -371,6 +371,10 @@ zero_left x
 lemma is_ortho_zero_right (x : M) : is_ortho B x (0 : M) :=
 zero_right x
 
+lemma ne_zero_of_not_is_ortho_self {B : bilin_form K V}
+  (x : V) (hx₁ : ¬ B.is_ortho x x) : x ≠ 0 :=
+λ hx₂, hx₁ (hx₂.symm ▸ is_ortho_zero_left _)
+
 /-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only
 if for all `i ≠ j`, `B (v i) (v j) = 0`. For orthogonality between two elements, use
 `bilin_form.is_ortho` -/
@@ -1170,7 +1174,8 @@ begin
 end
 
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
-lemma span_singleton_inf_orthogonal_eq_bot {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
+lemma span_singleton_inf_orthogonal_eq_bot
+  {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
   (K ∙ x) ⊓ B.orthogonal (K ∙ x) = ⊥ :=
 begin
   rw ← finset.coe_singleton,
@@ -1199,6 +1204,12 @@ begin
     simp [is_ortho, mul_assoc, inv_mul_cancel hx, hB x] },
   { simp }
 end
+
+lemma span_singleton_is_compl_orthogonal {B : bilin_form K V}
+  (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
+  is_compl (K ∙ x) (B.orthogonal (K ∙ x)) :=
+⟨le_bot_iff.2 $ span_singleton_inf_orthogonal_eq_bot hx,
+  top_le_iff.2 $ span_singleton_sup_orthogonal_eq_top hB hx⟩
 
 /-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
   is complement to its orthogonal complement. -/
@@ -1239,16 +1250,6 @@ variable [finite_dimensional K V]
 -- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
 -- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.
 
-lemma findim_ortho_span_singleton
-  {B : bilin_form K V} (hB : sym_bilin_form.is_sym B)
-  {x : V} (hx : ¬ B.is_ortho x x) :
-  findim K V = findim K (B.orthogonal $ K ∙ x) + 1 :=
-begin
-  have : x ≠ 0 := λ hx', hx (hx'.symm ▸ zero_left _),
-  rw [← submodule.findim_quotient_add_findim (K ∙ x),
-      findim_span_singleton this, (quotient_equiv_of_ortho_singleton hB hx).findim_eq]
-end
-
 lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ v : fin (findim K V) → V,
@@ -1260,7 +1261,9 @@ begin
   { haveI := findim_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < findim K V),
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
-      rw findim_ortho_span_singleton hB₂ hx at hd,
+      rw [← submodule.findim_add_eq_of_is_compl
+            (span_singleton_is_compl_orthogonal hB₂ hx).symm,
+          findim_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
       rcases @ih (B.orthogonal $ K ∙ x) _ _ _
         (B.restrict _) (B.restrict_ortho_singleton_nondegenerate hB₁ hB₂ hx)
         (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,

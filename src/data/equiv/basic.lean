@@ -1290,8 +1290,8 @@ def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : su
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
 @[simp] lemma subtype_subtype_equiv_subtype_exists_apply {α : Type u} (p : α → Prop)
-  (q : subtype p → Prop) (a : _) : (subtype_subtype_equiv_subtype_exists p q a).val = a.val.val :=
-by { cases a, cases a_val, simp only [subtype.val_eq_coe], refl }
+  (q : subtype p → Prop) (a) : (subtype_subtype_equiv_subtype_exists p q a : α) = a :=
+by { cases a, cases a_val, refl }
 
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
 def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :

@@ -86,8 +86,10 @@ f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_per
   (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
-lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n)) :
-  set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔ set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
+lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n]
+  (σ : equiv.perm (m ⊕ n)) :
+  set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔
+  set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
 begin
   split; id {
     intros h,
@@ -124,7 +126,7 @@ end
 lemma perm_on_inr_of_perm_on_inl {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n))
   (h : ∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) : ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
 begin
-  exact (perm_on_inl_iff_perm_on_inr σ).mp
+  exact (perm_on_inl_iff_perm_on_inr σ).mp h
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,

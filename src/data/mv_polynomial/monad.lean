@@ -63,11 +63,13 @@ def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_po
 aeval f
 
 /--
-`bind₂` is the "right hand side" bind operation on `mv_polynomial`, operating on the coefficient type.
-Given a polynomial `p : mv_polynomial σ R` and a map `f : R → mv_polynomial σ S` taking coefficients
-in `p` to polynomials over a new ring `S`, `bind₂ f p` replaces each coefficient in `p` with its
-value under `f`, producing a new polynomial over `S`. The variable type remains the same.
-This operation is a ring hom.
+`bind₂` is the "right hand side" bind operation on `mv_polynomial`,
+operating on the coefficient type.
+Given a polynomial `p : mv_polynomial σ R` and
+a map `f : R → mv_polynomial σ S` taking coefficients in `p` to polynomials over a new ring `S`,
+`bind₂ f p` replaces each coefficient in `p` with its value under `f`,
+producing a new polynomial over `S`.
+The variable type remains the same. This operation is a ring hom.
 -/
 def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
 eval₂_hom f X
@@ -268,7 +270,7 @@ lemma eval₂_hom_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynom
 ring_hom.congr_fun (eval₂_hom_comp_bind₂ f g h) φ
 
 lemma aeval_bind₂ [algebra S T] (f : σ → T) (g : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
-  aeval f (bind₂ g φ) = eval₂_hom ((@aeval S T σ _ f _ _ : mv_polynomial σ S →+* T).comp g) f φ :=
+  aeval f (bind₂ g φ) = eval₂_hom ((↑(aeval f : _ →ₐ[S] _) : _ →+* _).comp g) f φ :=
 eval₂_hom_bind₂ _ _ _ _
 
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl

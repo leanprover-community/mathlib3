@@ -398,6 +398,19 @@ variable {f}
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
 by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
 
+lemma norm_le_of_nonempty [nonempty α]
+  {f : α →ᵇ β} {M : ℝ} (w : ∀ x, ∥f x∥ ≤ M) : ∥f∥ ≤ M :=
+(bounded_continuous_function.norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w
+
+lemma norm_lt_of_compact [nonempty α] [compact_space α]
+  {f : α →ᵇ β} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=
+begin
+  have c : continuous (λ x, ∥f x∥), { have := f.2.1, continuity, },
+  obtain ⟨x, -, le⟩ :=
+    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+  exact lt_of_le_of_lt (norm_le_of_nonempty (λ y, le y trivial)) (h x),
+end
+
 variable (f)
 
 /-- Norm of `const α b` is less than or equal to `∥b∥`. If `α` is nonempty,

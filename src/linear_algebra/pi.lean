@@ -27,10 +27,10 @@ universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
-namespace linear_map
-
 open function submodule
 open_locale big_operators
+
+namespace linear_map
 
 universe i
 variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
@@ -86,6 +86,8 @@ def single [decidable_eq ι] (i : ι) : φ i →ₗ[R] (Πi, φ i) :=
 @[simp] lemma coe_single [decidable_eq ι] (i : ι) :
   ⇑(single i : φ i →ₗ[R] (Π i, φ i)) = pi.single i := rfl
 
+variables (R φ)
+
 /-- The linear equivalence between linear functions on a finite product of modules and
 families of functions on these modules. See note [bundled maps over different rings]. -/
 def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
@@ -95,18 +97,15 @@ def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
   inv_fun := λ f i, f.comp (single i),
   map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
   map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum],
-  left_inv := λ f,
-    begin
-      ext i x,
-      suffices : ∑ j, pi.single i (f i x) j = f i x, by simpa [apply_single],
-      exact (finset.sum_dite_eq' _ _ _).trans (if_pos $ finset.mem_univ i)
-    end,
+  left_inv := λ f, by { ext i x, simp [apply_single] },
   right_inv := λ f,
     begin
       ext,
       suffices : f (∑ j, pi.single j (x j)) = f x, by simpa [apply_single],
       rw finset.univ_sum_single
     end }
+
+variables {R φ}
 
 section ext
 
@@ -196,5 +195,29 @@ variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [�
   map_smul' := λ c f, by { ext, simp },
   left_inv := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
+
+variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
+  [add_comm_monoid M] [semimodule R M] [semimodule S M] [smul_comm_class R S M]
+
+/-- Linear equivalence between linear functions `Rⁿ → M` and `Mⁿ`. The spaces `Rⁿ` and `Mⁿ`
+are represented as `ι → R` and `ι → M`, respectively, where `ι` is a finite type.
+
+This as an `S`-linear equivalence, under the assumption that `S` acts on `M` commuting with `R`.
+When `R` is commutative, we can take this to be the usual action with `S = R`.
+Otherwise, `S = ℕ` shows that the equivalence is additive.
+See note [bundled maps over different rings]. -/
+def pi_ring : ((ι → R) →ₗ[R] M) ≃ₗ[S] (ι → M) :=
+(linear_map.lsum R (λ i : ι, R) S).symm.trans
+  (pi $ λ i, linear_map.ring_lmap_equiv_self R M S)
+
+variables {ι R M}
+
+@[simp] lemma pi_ring_apply (f : (ι → R) →ₗ[R] M) (i : ι) :
+  pi_ring R M ι S f i = f (pi.single i 1) :=
+rfl
+
+@[simp] lemma pi_ring_symm_apply (f : ι → M) (g : ι → R) :
+  (pi_ring R M ι S).symm f g = ∑ i, g i • f i :=
+by simp [pi_ring, linear_map.lsum]
 
 end linear_equiv

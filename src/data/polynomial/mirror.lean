@@ -34,7 +34,7 @@ variables {R : Type*} [semiring R] (p : polynomial R)
 
 section mirror
 
-/-- mirror of a polynomial: reverses the coefficients while preverving `nat_degree` -/
+/-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
 
 lemma mirror_zero : (0 : polynomial R).mirror = 0 := rfl

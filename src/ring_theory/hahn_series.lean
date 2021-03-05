@@ -19,7 +19,7 @@ import ring_theory.power_series.basic
 
 ## TODO
   * Given `[linear_ordered_add_comm_group Γ]` and `[field R]`, define `field (hahn_series Γ R)`.
-  * Build an API for the constant map `C` and the variable `X`
+  * Build an API for the variable `X`
   * Define Laurent series
 
 -/
@@ -165,11 +165,27 @@ instance : distrib_mul_action R (hahn_series Γ V) :=
 
 end distrib_mul_action
 
-instance [linear_order Γ] {V : Type*} [semiring R] [add_comm_monoid V] [semimodule R V] :
+section scalar
+
+variables [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V]
+
+instance :
   semimodule R (hahn_series Γ V) :=
 { zero_smul := λ _, by { ext, simp },
   add_smul := λ _ _ _, by { ext, simp [add_smul] },
   .. hahn_series.distrib_mul_action }
+
+variables {S : Type*} [semiring S] [semimodule S V]
+
+instance [semimodule R S] [is_scalar_tower R S V] :
+  is_scalar_tower R S (hahn_series Γ V) :=
+⟨λ r s a, by { ext, simp }⟩
+
+instance [semimodule R V] [smul_comm_class R S V] :
+  smul_comm_class R S (hahn_series Γ V) :=
+⟨λ r s a, by { ext, simp [smul_comm] }⟩
+
+end scalar
 
 section multiplication
 
@@ -455,7 +471,7 @@ single_zero_mul_eq_smul
 end semiring
 
 section algebra
-variables [comm_ring R] {A : Type*} [semiring A] [algebra R A]
+variables [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
 
 instance : algebra R (hahn_series Γ A) :=
 { to_ring_hom := C.comp (algebra_map R A),
@@ -464,10 +480,10 @@ instance : algebra R (hahn_series Γ A) :=
     ring_hom.to_fun_eq_coe, C_apply, function.comp_app, algebra_map_smul, mul_single_zero_coeff],
     rw [← algebra.commutes, algebra.smul_def], }, }
 
-theorem C_eq_algebra_map {r : R} : C r = (algebra_map R (hahn_series Γ R)) r := rfl
+theorem C_eq_algebra_map : C = (algebra_map R (hahn_series Γ R)) := rfl
 
 theorem algebra_map_apply {r : R} :
-  algebra_map R (hahn_series Γ R) r = C r := rfl
+  algebra_map R (hahn_series Γ A) r = C (algebra_map R A r) := rfl
 
 end algebra
 
@@ -510,30 +526,31 @@ rfl
 
 end semiring
 
-section comm_ring
-variables [comm_ring R]
+section algebra
+variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
 
-/-- The `R`-algebra `hahn_series ℕ R` is isomorphic to `power_series R`. -/
-def to_power_series_alg : (hahn_series ℕ R) ≃ₐ[R] power_series R :=
+/-- The `R`-algebra `hahn_series ℕ A` is isomorphic to `power_series A`. -/
+def to_power_series_alg : (hahn_series ℕ A) ≃ₐ[R] power_series A :=
 { commutes' := λ r, begin
     ext n,
-    simp only [algebra_map_apply, ring_equiv.to_fun_eq_coe, C_apply, coeff_to_power_series],
+    simp only [algebra_map_apply, power_series.algebra_map_apply, ring_equiv.to_fun_eq_coe, C_apply,
+      coeff_to_power_series],
     cases n,
     { simp only [power_series.coeff_zero_eq_constant_coeff, single_coeff_same],
       refl },
     { simp only [n.succ_ne_zero, ne.def, not_false_iff, single_coeff_of_ne],
-      exact ((power_series.coeff_C n.succ _).trans (if_neg n.succ_ne_zero)).symm }
-end,
+      rw [power_series.coeff_C, if_neg n.succ_ne_zero] }
+  end,
   .. to_power_series }
 
 @[simp]
-lemma to_power_series_alg_apply {f : hahn_series ℕ R} :
-  f.to_power_series_alg = f.to_power_series := rfl
+lemma to_power_series_alg_apply {f : hahn_series ℕ A} :
+  hahn_series.to_power_series_alg R f = f.to_power_series := rfl
 
 @[simp]
-lemma to_power_series_alg_symm_apply {f : power_series R} :
-  hahn_series.to_power_series_alg.symm f = hahn_series.to_power_series.symm f := rfl
+lemma to_power_series_alg_symm_apply {f : power_series A} :
+  (hahn_series.to_power_series_alg R).symm f = hahn_series.to_power_series.symm f := rfl
 
-end comm_ring
+end algebra
 
 end hahn_series

@@ -503,21 +503,23 @@ begin
   apply localization_map.integral_domain_localization (powers_le_non_zero_divisors_of_domain h_nz),
 end
 
-lemma bah (S : Type*) : comm_cancel_monoid_with_zero S :=
-begin
-  have hs : integral_domain S, sorry,
-  simp,
-end
-
-theorem localization_is_field  (S: Type*) [comm_ring S] (t : R)
+theorem localization_is_field  (S: Type*) [comm_ring S]
+  -- [integral_domain S]
+  (t : R) (ht : t ≠ 0)
   (f : localization_map (submonoid.powers t) S) :
-  ¬ is_unit t → is_field S :=
+  ¬ is_unit t → is_field f.codomain :=
 begin
+  have hS : integral_domain f.codomain, sorry,
+  resetI,--to put together
   intro ht,
   split,
   { apply (integral_domain.to_is_integral_domain _).1,
-    exact is_integral_domain.to_integral_domain _ (localization_is_domain _ _ _ f ht), },
-  { exact (localization_is_domain _ _ _ f ht).2, },
+    assumption },
+  { have hS' : is_integral_domain f.codomain,
+    apply integral_domain.to_is_integral_domain f.codomain,
+    convert hS'.2,
+    sorry, },
+  -- { exact (localization_is_domain _ _ _ f ht).2, },
   intros a ha,
   obtain ⟨⟨r, tn⟩, h⟩ : ∃ (x : R × submonoid.powers t), a * f.to_map x.2 = f.to_map x.1 := f.7 a,
   dsimp only at h,
@@ -558,13 +560,13 @@ begin
   rw [mul_comm (f.to_map ϖ ^ (e * n - v)) _],
   -- rw ← mul_assoc,
   rw ← h,
-  let w₁ := (f.to_map (↑εₜ ^ n) * f.to_map ϖ ^ (e * n - v)),
-  let w₂ := (f.to_map (↑εₜ ^ n) * (f.to_map (ϖ ^ e) ^ n) * ↑π⁻¹),
-  have prova : a * w₁ = a * w₂,-- sorry,
-  have : comm_cancel_monoid_with_zero S,
-  {suffices idS : integral_domain S,
+  -- let w₁ := (f.to_map (↑εₜ ^ n) * f.to_map ϖ ^ (e * n - v)),
+  -- let w₂ := (f.to_map (↑εₜ ^ n) * (f.to_map (ϖ ^ e) ^ n) * ↑π⁻¹),
+  -- have prova : a * w₁ = a * w₂,-- sorry,
+  -- have : comm_cancel_monoid_with_zero S,
+  -- {suffices idS : integral_domain S,
   -- exact (integral_domain.to_comm_cancel_monoid_with_zero idS),-- idS,
-  }
+  -- }
   apply (mul_right_inj' _).mpr,
   -- exact prova,
   subst w₁,

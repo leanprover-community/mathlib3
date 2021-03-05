@@ -902,7 +902,7 @@ between the two vector spaces. -/
 noncomputable def linear_equiv_of_ker_eq_bot
   [finite_dimensional K V] [finite_dimensional K V₂]
   (f : V →ₗ[K] V₂) (hf : f.ker = ⊥) (hdim : findim K V = findim K V₂) : V ≃ₗ[K] V₂ :=
-f.of_bijective hf (linear_map.range_eq_top.2 $
+linear_equiv.of_bijective f hf (linear_map.range_eq_top.2 $
   (linear_map.injective_iff_surjective_of_findim_eq_findim hdim).1 (linear_map.ker_eq_bot.1 hf))
 
 @[simp] lemma linear_equiv_of_ker_eq_bot_apply

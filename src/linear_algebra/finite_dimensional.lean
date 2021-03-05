@@ -896,6 +896,20 @@ calc  findim K V
 ... = findim K f.range : by rw [ker_eq_bot.2 hf, findim_bot, add_zero]
 ... ≤ findim K V₂ : submodule.findim_le _
 
+/-- Given a linear map `f` between two vector spaces with the same dimension, if
+`ker f = ⊥` then `linear_equiv_of_ker_eq_bot` is the induced isomorphism
+between the two vector spaces. -/
+noncomputable def linear_equiv_of_ker_eq_bot
+  [finite_dimensional K V] [finite_dimensional K V₂]
+  (f : V →ₗ[K] V₂) (hf : f.ker = ⊥) (hdim : findim K V = findim K V₂) : V ≃ₗ[K] V₂ :=
+linear_equiv.of_bijective f hf (linear_map.range_eq_top.2 $
+  (linear_map.injective_iff_surjective_of_findim_eq_findim hdim).1 (linear_map.ker_eq_bot.1 hf))
+
+@[simp] lemma linear_equiv_of_ker_eq_bot_apply
+  [finite_dimensional K V] [finite_dimensional K V₂]
+  {f : V →ₗ[K] V₂} (hf : f.ker = ⊥) (hdim : findim K V = findim K V₂) (x : V) :
+  linear_map.linear_equiv_of_ker_eq_bot f hf hdim x = f x := rfl
+
 end linear_map
 
 namespace alg_hom

@@ -355,7 +355,8 @@ rfl
 
 end lin_mul_lin
 
-/-- The proposition that two elements of a bilinear form space are orthogonal -/
+/-- The proposition that two elements of a bilinear form space are orthogonal. For orthogonality
+of an index set of elements, use `bilin_form.is_ortho'`. -/
 def is_ortho (B : bilin_form R M) (x y : M) : Prop :=
 B x y = 0
 
@@ -367,6 +368,15 @@ zero_left x
 
 lemma is_ortho_zero_right (x : M) : is_ortho B x (0 : M) :=
 zero_right x
+
+/-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only
+if for all `i ≠ j`, `B (v i) (v j) = 0`. For orthogonality between two elements, use
+`bilin_form.is_ortho` -/
+def is_ortho' {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
+∀ i j : n, i ≠ j → B.is_ortho (v j) (v i)
+
+lemma is_ortho'_def {n : Type w} {B : bilin_form R M} {v : n → M} :
+  B.is_ortho' v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
 
 section
 
@@ -1065,14 +1075,6 @@ lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
 
 end orthogonal
 
-/-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only if for
-  all `i ≠ j`, `B (v i) (v j) = 0`. -/
-def is_ortho' {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
-∀ i j : n, i ≠ j → B.is_ortho (v j) (v i)
-
-lemma is_ortho'_def {n : Type w} {B : bilin_form R M} {v : n → M} :
-  B.is_ortho' v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
-
 /-- The restriction of a bilinear form on a submodule. -/
 @[simps apply]
 def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
@@ -1110,6 +1112,10 @@ lemma to_lin_injective {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
   function.injective B.to_lin :=
 B.to_lin.to_add_monoid_hom.injective_iff.2 (λ a ha, hB _ (linear_map.congr_fun ha))
 
+lemma to_lin_ker_eq_bot {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
+  B.to_lin.ker = ⊥ :=
+linear_map.ker_eq_bot.2 (to_lin_injective hB)
+
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
@@ -1134,8 +1140,8 @@ variables [field K] [add_comm_group V] [vector_space K V]
 
 /-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is  linearly independent
   if for all `i`, `B (v i) (v i) ≠ 0`. -/
-lemma is_ortho_linear_independent
-  {n : Type w} (B : bilin_form K V) {v : n → V}
+lemma linear_independent_of_is_ortho'
+  {n : Type w} {B : bilin_form K V} {v : n → V}
   (hv₁ : B.is_ortho' v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) : linear_independent K v :=
 begin
   classical,
@@ -1159,7 +1165,7 @@ end
 
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
 lemma span_inf_ortho_eq_bot {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
-  submodule.span K ({x} : set V) ⊓ B.orthogonal (submodule.span K ({x} : set V)) = ⊥ :=
+  (K ∙ x) ⊓ B.orthogonal (K ∙ x) = ⊥ :=
 begin
   rw ← finset.coe_singleton,
   refine eq_bot_iff.2 (λ y h, _),
@@ -1176,7 +1182,7 @@ end
 -- ↓ This lemma only applies in fields since we use the inverse
 lemma span_sup_ortho_eq_top {B : bilin_form K V}
   (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
-  submodule.span K ({x} : set V) ⊔ B.orthogonal (submodule.span K ({x} : set V)) = ⊤ :=
+  (K ∙ x) ⊔ B.orthogonal (K ∙ x) = ⊤ :=
 begin
   refine eq_top_iff.2 (λ y _, _),
   rw submodule.mem_sup,
@@ -1192,8 +1198,7 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_singleton {B : bilin_form K V}
   (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
-  is_compl (submodule.span K ({x} : set V))
-    (B.orthogonal (submodule.span K ({x} : set V))) :=
+  is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
 { inf_le_bot := eq_bot_iff.1 $ span_inf_ortho_eq_bot hx,
   top_le_sup := eq_top_iff.1 $ span_sup_ortho_eq_top hB hx }
 
@@ -1210,11 +1215,10 @@ submodule.prod_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
 
 lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V) (hB₁ : nondegenerate B)
   (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
-  nondegenerate $ B.restrict $ B.orthogonal (submodule.span K ({x} : set V)) :=
+  nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (hB₁ m.1 (λ n, _)),
-  have : n ∈ submodule.span K ({x} : set V) ⊔
-    B.orthogonal (submodule.span K ({x} : set V)) :=
+  have : n ∈ (K ∙ x) ⊔ B.orthogonal (K ∙ x) :=
     (span_sup_ortho_eq_top hB₂ hx).symm ▸ submodule.mem_top,
   rcases submodule.mem_sup.1 this with ⟨y, hy, z, hz, rfl⟩,
   specialize hm ⟨z, hz⟩,
@@ -1222,49 +1226,33 @@ begin
   erw [add_right, show B m.1 y = 0, by exact m.2 y hy, hm, add_zero]
 end
 
-/- Let V be a finite dimensional vector space over the field K with the
-  nondegenerate bilinear form B. Then for all m ∈ M, f_m : M → R₁ : n ↦ B m n is
-  a linear functional in the dual space.
-
-  Furthermore, the map, φ : M → M* : m ↦ f_m is an isomorphism. -/
-
-/-- Given a bilinear form `B` on the modual `M`, `to_dual' B` is the linear map
-  from `M` to its dual such that `to_dual B m` is the functional `λ x, B m x`. -/
-def to_dual' (B : bilin_form R₃ M₃) : M₃ →ₗ[R₃] module.dual R₃ M₃ :=
-B.to_lin
-
-@[simp] lemma to_dual'_def {B : bilin_form R₃ M₃} {m n : M₃} :
-  B.to_dual' m n = B m n := rfl
-
-lemma to_dual'_injective {B : bilin_form R₃ M₃} (hB : B.nondegenerate) :
-  function.injective (to_dual' B) :=
-to_lin_injective hB
-
 open finite_dimensional
 
 variable [finite_dimensional K V]
 
--- In order to show that `to_dual` is a surjective map we used the fact that
--- the dimensions of a vector space equal to the dimensions of its dual.
--- So rather than working with modules over rings, we work with vector spaces
-lemma to_dual'_bijective (B : bilin_form K V) (hB : B.nondegenerate) :
-  function.bijective (to_dual' B) :=
+lemma to_lin_surjective_of_finite_dimensional
+  {B : bilin_form K V} (hB : B.nondegenerate) :
+  function.surjective B.to_lin :=
 begin
   classical,
-  refine ⟨to_dual'_injective hB, _⟩,
-  change function.surjective B.to_dual',
   refine (linear_map.injective_iff_surjective_of_findim_eq_findim
-    (linear_equiv.findim_eq _)).1 (to_dual'_injective hB),
-  have hB := classical.some_spec (exists_is_basis_finite K V),
+    (linear_equiv.findim_eq _)).1 (to_lin_injective hB),
+  have hB := classical.some_spec (finite_dimensional.exists_is_basis_finite K V),
   haveI := classical.choice hB.2,
   exact is_basis.to_dual_equiv _ hB.1
 end
 
-/-- To dual is the `linear_equiv` with the underlying linear map `to_dual'`. -/
+lemma to_lin_range_eq_top_of_finite_dimensional
+  {B : bilin_form K V} (hB : B.nondegenerate) :
+  B.to_lin.range = ⊤ :=
+linear_map.range_eq_top.2 $ to_lin_surjective_of_finite_dimensional hB
+
+/-- Given a nondegenerate bilinear form `B`, `B.to_dual` is the isomorphism
+between a vector space and its dual with the underlying linear map `B.to_lin`. -/
 noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
-{ map_smul' := B.to_dual'.map_smul',
-  .. add_equiv.of_bijective B.to_dual'.to_add_monoid_hom (to_dual'_bijective B hB) }
+linear_map.linear_equiv_of_ker_eq_bot B.to_lin
+  (linear_map.ker_eq_bot.2 $ to_lin_injective hB) subspace.findim_eq_dual
 
 lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
   B.to_dual hB m n = B m n := rfl
@@ -1275,10 +1263,10 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 lemma findim_ortho_span_singleton
   {B : bilin_form K V} (hB : sym_bilin_form.is_sym B)
   {x : V} (hx : ¬ B.is_ortho x x) : findim K V =
-    findim K (B.orthogonal (submodule.span K ({x} : set V))) + 1 :=
+    findim K (B.orthogonal $ K ∙ x) + 1 :=
 begin
   have : x ≠ 0 := λ hx', hx (hx'.symm ▸ zero_left _),
-  rw [← submodule.findim_quotient_add_findim (submodule.span K ({x} : set V)),
+  rw [← submodule.findim_quotient_add_findim (K ∙ x),
       findim_span_singleton this, (quotient_equiv_of_ortho_singleton hB hx).findim_eq]
 end
 
@@ -1294,7 +1282,7 @@ begin
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
       rw findim_ortho_span_singleton hB₂ hx at hd,
-      rcases @ih (B.orthogonal (submodule.span K ({x} : set V))) _ _ _
+      rcases @ih (B.orthogonal $ K ∙ x) _ _ _
         (B.restrict _) (B.restrict_ortho_singleton_nondegenerate hB₁ hB₂ hx)
         (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
       refine ⟨λ i, if h : i ≠ 0 then coe (v' (i.pred h)) else x, λ i j hij, _, _, _⟩,
@@ -1314,7 +1302,7 @@ begin
           rw [is_ortho, hB₂],
           exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
       { refine is_basis_of_linear_independent_of_card_eq_findim
-          (B.is_ortho_linear_independent _ _)
+          (@linear_independent_of_is_ortho' _ _ _ _ _ _ B _ _ _)
           (by rw [hd', fintype.card_fin]),
         { intros i j hij,
           by_cases hi : i = 0,

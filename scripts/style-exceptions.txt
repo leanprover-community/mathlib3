@@ -229,7 +229,6 @@ src/geometry/manifold/times_cont_mdiff.lean : line 441 : ERR_LIN : Line has more
 src/geometry/manifold/times_cont_mdiff.lean : line 508 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/times_cont_mdiff.lean : line 607 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/times_cont_mdiff.lean : line 633 : ERR_LIN : Line has more than 100 characters
-src/group_theory/sylow.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/linear_algebra/dual.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/linear_algebra/finsupp_vector_space.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/logic/function/basic.lean : line 378 : ERR_LIN : Line has more than 100 characters
@@ -294,7 +293,6 @@ src/order/galois_connection.lean : line 510 : ERR_LIN : Line has more than 100 c
 src/order/galois_connection.lean : line 514 : ERR_LIN : Line has more than 100 characters
 src/order/galois_connection.lean : line 524 : ERR_LIN : Line has more than 100 characters
 src/order/galois_connection.lean : line 534 : ERR_LIN : Line has more than 100 characters
-src/order/lattice.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/lexicographic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/order/lexicographic.lean : line 169 : ERR_LIN : Line has more than 100 characters
 src/order/lexicographic.lean : line 172 : ERR_LIN : Line has more than 100 characters
@@ -309,14 +307,14 @@ src/order/preorder_hom.lean : line 131 : ERR_LIN : Line has more than 100 charac
 src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/zorn.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/order/zorn.lean : line 121 : ERR_LIN : Line has more than 100 characters
-src/order/zorn.lean : line 235 : ERR_LIN : Line has more than 100 characters
-src/order/zorn.lean : line 241 : ERR_LIN : Line has more than 100 characters
+src/order/zorn.lean : line 255 : ERR_LIN : Line has more than 100 characters
+src/order/zorn.lean : line 261 : ERR_LIN : Line has more than 100 characters
 src/order/zorn.lean : line 47 : ERR_LIN : Line has more than 100 characters
-src/set_theory/cardinal.lean : line 1055 : ERR_LIN : Line has more than 100 characters
-src/set_theory/cardinal.lean : line 1059 : ERR_LIN : Line has more than 100 characters
-src/set_theory/cardinal.lean : line 135 : ERR_LIN : Line has more than 100 characters
-src/set_theory/cardinal.lean : line 497 : ERR_LIN : Line has more than 100 characters
-src/set_theory/cardinal.lean : line 885 : ERR_LIN : Line has more than 100 characters
+src/set_theory/cardinal.lean : line 1156 : ERR_LIN : Line has more than 100 characters
+src/set_theory/cardinal.lean : line 1160 : ERR_LIN : Line has more than 100 characters
+src/set_theory/cardinal.lean : line 136 : ERR_LIN : Line has more than 100 characters
+src/set_theory/cardinal.lean : line 498 : ERR_LIN : Line has more than 100 characters
+src/set_theory/cardinal.lean : line 986 : ERR_LIN : Line has more than 100 characters
 src/set_theory/game/impartial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/game/nim.lean : line 83 : ERR_LIN : Line has more than 100 characters
 src/set_theory/game/nim.lean : line 86 : ERR_LIN : Line has more than 100 characters

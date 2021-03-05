@@ -1041,19 +1041,28 @@ theorem to_comap_apply (x) : to_comap R S A x = algebra_map S A x := rfl
 
 end algebra
 
-namespace alg_hom
+section
 
 variables {R : Type u} {S : Type v} {A : Type w} {B : Type u₁}
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
-variables [algebra R S] [algebra S A] [algebra S B] (φ : A →ₐ[S] B)
+variables [algebra R S] [algebra S A] [algebra S B]
 include R
 
-/-- R ⟶ S induces S-Alg ⥤ R-Alg -/
-def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
+/-- R ⟶ S induces S-Alg ⥤ R-Alg.#print
+
+See `alg_hom.restrict_base` for the version that uses `is_scalar_tower` instead of `comap`. -/
+def alg_hom.comap (φ : A →ₐ[S] B) : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
 { commutes' := λ r, φ.commutes (algebra_map R S r)
   ..φ }
 
-end alg_hom
+/-- `alg_hom.comap` for `alg_equiv`.
+
+See `alg_equiv.restrict_base` for the version that uses `is_scalar_tower` instead of `comap`. -/
+def alg_equiv.comap (φ : A ≃ₐ[S] B) : algebra.comap R S A ≃ₐ[R] algebra.comap R S B :=
+{ commutes' := λ r, φ.commutes (algebra_map R S r)
+  ..φ }
+
+end
 
 namespace ring_hom
 

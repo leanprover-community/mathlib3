@@ -743,7 +743,7 @@ begin
       with ⟨k, -, hsub : ball x (2⁻¹ ^ k) ⊆ D n i⟩,
     set B := ball x (2⁻¹ ^ (n + k + 1)),
     refine ⟨B, ball_mem_nhds _ (pow_pos _), _⟩,
-    -- The balls `D m i`, `m > n + k`, are disjoint with `B`
+    -- The sets `D m i`, `m > n + k`, are disjoint with `B`
     have Hgt : ∀ (m ≥ n + k + 1) (i : ι), disjoint (D m i) B,
     { rintros m hm i y ⟨hym, hyx⟩,
       rcases memD.1 hym with ⟨z, rfl, hzi, H, hz⟩,

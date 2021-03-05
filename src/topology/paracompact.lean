@@ -25,8 +25,8 @@ We also prove the following facts.
 * Every compact space is paracompact, see instance `paracompact_of_compact`.
 
 * A locally compact sigma compact Hausdorff space is paracompact, see instance
-  `paracompact_of_locally_compact_sigma_compact`. Moreover, we can choose a locally finite with sets
-  in a given collection of filter bases of `𝓝 x, `x : X`, see
+  `paracompact_of_locally_compact_sigma_compact`. Moreover, we can choose a locally finite
+  refinement with sets in a given collection of filter bases of `𝓝 x, `x : X`, see
   `refinement_of_locally_compact_sigma_compact_of_nhds_basis`. For example, in a proper metric space
   every open covering `⋃ i, s i` admits a refinement `⋃ i, metric.ball (c i) (r i)`.
 
@@ -57,10 +57,10 @@ finite refinement. We use the same universe for all types in the definition to a
 class like `paracompact_space.{u v}`. Due to lemma `precise_refinement` below, every open covering
 `s : α → set X` indexed on `α : Type v` has a *precise* locally finite refinement, i.e., a locally
 finite refinement `t : α → set X` indexed on the same type such that each `∀ i, t i ⊆ s i`. -/
-class paracompact_space (X : Type u) [topological_space X] : Prop :=
+class paracompact_space (X : Type v) [topological_space X] : Prop :=
 (locally_finite_refinement :
-  ∀ (α : Type u) (s : α → set X) (ho : ∀ a, is_open (s a)) (hc : (⋃ a, s a) = univ),
-  ∃ (β : Type u) (t : β → set X) (ho : ∀ b, is_open (t b)) (hc : (⋃ b, t b) = univ),
+  ∀ (α : Type v) (s : α → set X) (ho : ∀ a, is_open (s a)) (hc : (⋃ a, s a) = univ),
+  ∃ (β : Type v) (t : β → set X) (ho : ∀ b, is_open (t b)) (hc : (⋃ b, t b) = univ),
     locally_finite t ∧ ∀ b, ∃ a, t b ⊆ s a)
 
 variables {ι : Type u} {X : Type v} [topological_space X]
@@ -134,7 +134,7 @@ The formalization is based on two [ncatlab](https://ncatlab.org/) proofs:
 * [locally compact and sigma compact spaces are paracompact](https://ncatlab.org/nlab/show/locally+compact+and+sigma-compact+spaces+are+paracompact);
 * [open cover of smooth manifold admits locally finite refinement by closed balls](https://ncatlab.org/nlab/show/partition+of+unity#ExistenceOnSmoothManifolds).
 
-In the most cases (namely, if `B c r ∪ B c r'` is again a set of the form `B c r''`) it is possible
+In most cases (namely, if `B c r ∪ B c r'` is again a set of the form `B c r''`) it is possible
 to choose `α = X`. This fact is not yet formalized in `mathlib`. -/
 theorem refinement_of_locally_compact_sigma_compact_of_nhds_basis
   [locally_compact_space X] [sigma_compact_space X] [t2_space X]
@@ -205,27 +205,26 @@ end
 at [ncatlab](https://ncatlab.org/nlab/show/paracompact+Hausdorff+spaces+are+normal). -/
 lemma normal_of_paracompact_t2 [t2_space X] [paracompact_space X] : normal_space X :=
 begin
-  /- It suffices to learn how to go from points to a set on one side. Then we can apply
-  this procedure to one set, then to the other set. -/
-  suffices : ∀ (s t : set X), is_closed s → is_closed t →
+  /- First we show how to go from points to a set on one side. -/
+  have : ∀ (s t : set X), is_closed s → is_closed t →
     (∀ x ∈ s, ∃ u v, is_open u ∧ is_open v ∧ x ∈ u ∧ t ⊆ v ∧ disjoint u v) →
     ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v,
-  { refine ⟨λ s t hs ht hst, this s t hs ht (λ x hx, _)⟩,
-    rcases this t {x} ht is_closed_singleton (λ y hyt, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
-    { exact ⟨u, v, hu, hv, singleton_subset_iff.1 hxu, htv, huv.symm⟩ },
-    { have : x ≠ y, by { rintro rfl, exact hst ⟨hx, hyt⟩ },
-      rcases t2_separation this with ⟨v, u, hv, hu, hxv, hyu, hd⟩,
-      exact ⟨u, v, hu, hv, hyu, singleton_subset_iff.2 hxv, disjoint.symm hd.le⟩ } },
-  /- Proof of the lemma: for each `x ∈ s` we choose open disjoint `u x ∋ x` and `v x ⊇ t`.
-  The sets `u x` form an open covering of `s`. We choose a locally finite refinement
-  `u' : s → set X`, then `⋃ i, u' i` and `(closure (⋃ i, u' i))ᶜ` are disjoint open neighborhoods
-  of `s` and `t`.  -/
-  intros s t hs ht H, choose u v hu hv hxu htv huv using set_coe.forall'.1 H,
-  rcases precise_refinement_set hs u hu (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxu _⟩)
-    with ⟨u', hu'o, hcov', hu'fin, hsub⟩,
-  refine ⟨⋃ i, u' i, (closure (⋃ i, u' i))ᶜ, is_open_Union hu'o, is_closed_closure, hcov',
-    _, disjoint_compl_right.mono le_rfl (compl_le_compl subset_closure)⟩,
-  rw [hu'fin.closure_Union, compl_Union, subset_Inter_iff],
-  refine λ i x hxt hxu, absurd (htv i hxt) (closure_minimal _ (is_closed_compl_iff.2 $ hv _) hxu),
-  exact λ y hyu hyv, huv i ⟨hsub _ hyu, hyv⟩,
+  { /- For each `x ∈ s` we choose open disjoint `u x ∋ x` and `v x ⊇ t`. The sets `u x` form an
+    open covering of `s`. We choose a locally finite refinement `u' : s → set X`, then `⋃ i, u' i`
+    and `(closure (⋃ i, u' i))ᶜ` are disjoint open neighborhoods of `s` and `t`. -/
+    intros s t hs ht H, choose u v hu hv hxu htv huv using set_coe.forall'.1 H,
+    rcases precise_refinement_set hs u hu (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxu _⟩)
+      with ⟨u', hu'o, hcov', hu'fin, hsub⟩,
+    refine ⟨⋃ i, u' i, (closure (⋃ i, u' i))ᶜ, is_open_Union hu'o, is_closed_closure, hcov', _,
+      disjoint_compl_right.mono le_rfl (compl_le_compl subset_closure)⟩,
+    rw [hu'fin.closure_Union, compl_Union, subset_Inter_iff],
+    refine λ i x hxt hxu, absurd (htv i hxt) (closure_minimal _ (is_closed_compl_iff.2 $ hv _) hxu),
+    exact λ y hyu hyv, huv i ⟨hsub _ hyu, hyv⟩ },
+  /- Now we apply the lemma twice: first to `s` and `t`, then to `t` and each point of `s`. -/
+  refine ⟨λ s t hs ht hst, this s t hs ht (λ x hx, _)⟩,
+  rcases this t {x} ht is_closed_singleton (λ y hyt, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
+  { exact ⟨u, v, hu, hv, singleton_subset_iff.1 hxu, htv, huv.symm⟩ },
+  { have : x ≠ y, by { rintro rfl, exact hst ⟨hx, hyt⟩ },
+    rcases t2_separation this with ⟨v, u, hv, hu, hxv, hyu, hd⟩,
+    exact ⟨u, v, hu, hv, hyu, singleton_subset_iff.2 hxv, disjoint.symm hd.le⟩ }
 end

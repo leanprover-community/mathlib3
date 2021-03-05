@@ -191,6 +191,13 @@ lemma findim_eq_dim (K : Type u) (V : Type v) [field K]
   (findim K V : cardinal.{v}) = dim K V :=
 by rw [findim, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
 
+lemma findim_eq_of_dim_eq {n : ℕ} (h : dim K V = ↑ n) : findim K V = n :=
+begin
+  apply_fun to_nat at h,
+  rw to_nat_cast at h,
+  exact_mod_cast h,
+end
+
 lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
   (h : ¬finite_dimensional K V) : findim K V = 0 :=
 dif_neg $ mt finite_dimensional_iff_dim_lt_omega.2 h
@@ -883,6 +890,11 @@ begin
   { rw [h, findim_bot, add_zero, H] at this, exact eq_top_of_findim_eq this },
   { rw [h, findim_top, H] at this, exact findim_eq_zero.1 (add_right_injective _ this) }
 end
+
+lemma ker_eq_bot_iff_range_eq_top_of_findim_eq_findim [finite_dimensional K V]
+  [finite_dimensional K V₂] (H : findim K V = findim K V₂) {f : V →ₗ[K] V₂} :
+  f.ker = ⊥ ↔ f.range = ⊤ :=
+by rw [range_eq_top, ker_eq_bot, injective_iff_surjective_of_findim_eq_findim H]
 
 theorem findim_le_findim_of_injective [finite_dimensional K V] [finite_dimensional K V₂]
   {f : V →ₗ[K] V₂} (hf : function.injective f) : findim K V ≤ findim K V₂ :=

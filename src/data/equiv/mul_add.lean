@@ -65,9 +65,6 @@ infix ` ≃+ `:25 := add_equiv
 
 namespace mul_equiv
 
-@[to_additive]
-instance [has_mul M] [has_mul N] : has_coe_to_fun (M ≃* N) := ⟨_, mul_equiv.to_fun⟩
-
 variables [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
 
 @[simp, to_additive]

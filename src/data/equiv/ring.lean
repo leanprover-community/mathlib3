@@ -60,15 +60,15 @@ section basic
 
 variables [has_mul R] [has_add R] [has_mul S] [has_add S] [has_mul S'] [has_add S']
 
-instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
+instance : mul_hom_class (R ≃+* S) R S :=
+{ coe := ring_equiv.to_fun,
+  map_mul := ring_equiv.map_mul' }
+
+instance : add_hom_class (R ≃+* S) R S :=
+{ coe := ring_equiv.to_fun,
+  map_add := ring_equiv.map_add' }
 
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
-
-/-- A ring isomorphism preserves multiplication. -/
-@[simp] lemma map_mul (e : R ≃+* S) (x y : R) : e (x * y) = e x * e y := e.map_mul' x y
-
-/-- A ring isomorphism preserves addition. -/
-@[simp] lemma map_add (e : R ≃+* S) (x y : R) : e (x + y) = e x + e y := e.map_add' x y
 
 /-- Two ring isomorphisms agree if they are defined by the
     same underlying function. -/
@@ -211,21 +211,15 @@ noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R �
 
 end semiring
 
-section
-
-variables [ring R] [ring S] (f : R ≃+* S) (x y : R)
-
-@[simp] lemma map_neg : f (-x) = -f x := (f : R ≃+ S).map_neg x
-
-@[simp] lemma map_sub : f (x - y) = f x - f y := (f : R ≃+ S).map_sub x y
-
-#check map_bit0
-
-end
-
 section semiring_hom
 
 variables [semiring R] [semiring S] [semiring S']
+
+instance : ring_hom_class (R ≃+* S) R S :=
+{ map_one := by simp,
+  map_zero := by simp,
+  .. ring_equiv.add_hom_class,
+  .. ring_equiv.mul_hom_class }
 
 /-- Reinterpret a ring equivalence as a ring homomorphism. -/
 def to_ring_hom (e : R ≃+* S) : R →+* S :=

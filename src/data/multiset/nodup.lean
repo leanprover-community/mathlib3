@@ -79,7 +79,8 @@ quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append
 theorem disjoint_of_nodup_add {s t : multiset α} (d : nodup (s + t)) : disjoint s t :=
 (nodup_add.1 d).2.2
 
-theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) : nodup (s + t) ↔ disjoint s t :=
+theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) :
+  nodup (s + t) ↔ disjoint s t :=
 by simp [nodup_add, d₁, d₂]
 
 theorem nodup_of_nodup_map (f : α → β) {s : multiset α} : nodup (map f s) → nodup s :=
@@ -89,7 +90,8 @@ theorem nodup_map_on {f : α → β} {s : multiset α} : (∀x∈s, ∀y∈s, f 
   nodup s → nodup (map f s) :=
 quot.induction_on s $ λ l, nodup_map_on
 
-theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) : nodup s → nodup (map f s) :=
+theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) :
+  nodup s → nodup (map f s) :=
 nodup_map_on (λ x _ y _ h, hf h)
 
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
@@ -143,7 +145,8 @@ nodup_of_le $ inter_le_left _ _
 theorem nodup_inter_right [decidable_eq α] (s) {t : multiset α} : nodup t → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_right _ _
 
-@[simp] theorem nodup_union [decidable_eq α] {s t : multiset α} : nodup (s ∪ t) ↔ nodup s ∧ nodup t :=
+@[simp] theorem nodup_union [decidable_eq α] {s t : multiset α} :
+  nodup (s ∪ t) ↔ nodup s ∧ nodup t :=
 ⟨λ h, ⟨nodup_of_le (le_union_left _ _) h, nodup_of_le (le_union_right _ _) h⟩,
  λ ⟨h₁, h₂⟩, nodup_iff_count_le_one.2 $ λ a, by rw [count_union]; exact
    max_le (nodup_iff_count_le_one.1 h₁ a) (nodup_iff_count_le_one.1 h₂ a)⟩

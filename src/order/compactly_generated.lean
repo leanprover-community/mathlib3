@@ -328,7 +328,7 @@ begin
     obtain ⟨I, fi, hI⟩ := set.finite_subset_Union t.finite_to_set ht,
     obtain ⟨i, hi⟩ := hs.finset_le fi.to_finset,
     exact (h i).mono (set.subset.trans hI $ set.bUnion_subset $
-      λ j hj, hi j (set.finite.mem_to_finset.2 hj)) },
+      λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { rintros a ⟨_, ⟨i, _⟩, _⟩,
     exfalso, exact hη ⟨i⟩, },
 end

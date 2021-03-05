@@ -203,8 +203,7 @@ theorem filter.tendsto.if_nhds_within {f g : α → β} {p : α → Prop} [decid
 h₀.piecewise_nhds_within h₁
 
 lemma map_nhds_within (f : α → β) (a : α) (s : set α) :
-  map f (𝓝[s] a) =
-    ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (set.image f (t ∩ s)) :=
+  map f (𝓝[s] a) = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (f  '' (t ∩ s)) :=
 ((nhds_within_basis_open a s).map f).eq_binfi
 
 theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}

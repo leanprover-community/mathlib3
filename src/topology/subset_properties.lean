@@ -717,9 +717,8 @@ locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
   (hU : is_open U) (hx : x ∈ U) : ∃ (K : set α), is_compact K ∧ x ∈ interior K ∧ K ⊆ U :=
 begin
-  rcases locally_compact_space.local_compact_nhds x U _ with ⟨K, h1K, h2K, h3K⟩,
-  { refine ⟨K, h3K, _, h2K⟩, rwa [ mem_interior_iff_mem_nhds] },
-  rwa [← mem_interior_iff_mem_nhds, hU.interior_eq]
+  rcases locally_compact_space.local_compact_nhds x U (mem_nhds_sets hU hx) with ⟨K, h1K, h2K, h3K⟩,
+  exact ⟨K, h3K, mem_interior_iff_mem_nhds.2 h1K, h2K⟩,
 end
 
 /-- In a locally compact space every point has a compact neighborhood. -/

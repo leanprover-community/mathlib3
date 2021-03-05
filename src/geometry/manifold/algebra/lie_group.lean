@@ -24,13 +24,6 @@ groups here are not necessarily finite dimensional.
                         corners `I`.
 * `lie_add_group_morphism I I' G G'`  : morphism of addittive Lie groups
 * `lie_group_morphism I I' G G'`      : morphism of Lie groups
-* `lie_add_group_core I G`            : allows to define a Lie additive group without first proving
-                                        it is a topological additive group.
-* `lie_group_core I G`                : allows to define a Lie group without first proving
-                                        it is a topological group.
-
-* `reals_lie_group`                   : real numbers are a Lie group
-
 
 ## Implementation notes
 A priori, a Lie group here is a manifold with corners.
@@ -128,7 +121,7 @@ instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological
   {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
   {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
   {G' : Type*} [topological_space G'] [charted_space H' G']
-  [group G'] [topological_group G'] [lie_group I' G'] :
+  [group G'] [lie_group I' G'] :
   lie_group (I.prod I') (G×G') :=
 { smooth_inv := smooth_fst.inv.prod_mk smooth_snd.inv,
   ..has_smooth_mul.prod _ _ _ _ }

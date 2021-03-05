@@ -95,19 +95,19 @@ multiplicative.of_add.right_inv _
 @[simp] lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x :=
 additive.of_mul.right_inv _
 
-lemma exists_multiplicative_iff (p : multiplicative α → Prop) :
+lemma exists_multiplicative_iff {p : multiplicative α → Prop} :
   (∃ x, p x) ↔ ∃ x, p (of_add x) :=
 to_add.exists_congr_left
 
-lemma forall_multiplicative_iff (p : multiplicative α → Prop) :
+lemma forall_multiplicative_iff {p : multiplicative α → Prop} :
   (∀ x, p x) ↔ ∀ x, p (of_add x) :=
 to_add.forall_congr_left'
 
-lemma exists_additive_iff (p : additive α → Prop) :
+lemma exists_additive_iff {p : additive α → Prop} :
   (∃ x, p x) ↔ ∃ x, p (of_mul x) :=
 to_mul.exists_congr_left
 
-lemma forall_additive_iff (p : additive α → Prop) :
+lemma forall_additive_iff {p : additive α → Prop} :
   (∀ x, p x) ↔ ∀ x, p (of_mul x) :=
 to_mul.forall_congr_left'
 

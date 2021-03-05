@@ -94,6 +94,7 @@ begin
   exact coeff_eq_zero_of_lt_nat_trailing_degree (by rwa mirror_nat_trailing_degree),
 end
 
+--TODO: Exactract `finset.sum_range_rev_at` lemma.
 lemma mirror_eval_one : p.mirror.eval 1 = p.eval 1 :=
 begin
   simp_rw [eval_eq_finset_sum, one_pow, mul_one, mirror_nat_degree],

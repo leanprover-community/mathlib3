@@ -356,7 +356,7 @@ rfl
 end lin_mul_lin
 
 /-- The proposition that two elements of a bilinear form space are orthogonal. For orthogonality
-of an index set of elements, use `bilin_form.is_Ortho`. -/
+of an indexed set of elements, use `bilin_form.is_Ortho`. -/
 def is_ortho (B : bilin_form R M) (x y : M) : Prop :=
 B x y = 0
 
@@ -1225,7 +1225,7 @@ variable [finite_dimensional K V]
 between a vector space and its dual with the underlying linear map `B.to_lin`. -/
 noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
-linear_map.linear_equiv_of_ker_eq_bot B.to_lin
+B.to_lin.linear_equiv_of_ker_eq_bot
   (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_findim_eq.symm
 
 lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
@@ -1236,8 +1236,8 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 
 lemma findim_ortho_span_singleton
   {B : bilin_form K V} (hB : sym_bilin_form.is_sym B)
-  {x : V} (hx : ¬ B.is_ortho x x) : findim K V =
-    findim K (B.orthogonal $ K ∙ x) + 1 :=
+  {x : V} (hx : ¬ B.is_ortho x x) :
+  findim K V = findim K (B.orthogonal $ K ∙ x) + 1 :=
 begin
   have : x ≠ 0 := λ hx', hx (hx'.symm ▸ zero_left _),
   rw [← submodule.findim_quotient_add_findim (K ∙ x),

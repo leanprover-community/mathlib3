@@ -508,7 +508,8 @@ function.left_inverse.injective (length_repeat a)
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
   l >>= f = l.bind f := rfl
 
-@[simp] theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
+-- TODO: duplicate of a lemma in core
+theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
   (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
 append_bind _ _ _
 

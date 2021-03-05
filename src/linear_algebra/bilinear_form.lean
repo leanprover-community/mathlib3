@@ -30,8 +30,9 @@ the notation B x y to refer to the function field, ie. B x y = B.bilin x y.
 In this file we use the following type variables:
  - `M`, `M'`, ... are semimodules over the semiring `R`,
  - `M₁`, `M₁'`, ... are modules over the ring `R₁`,
- - `M₂`, `M₂'`, ... are semimodules over the commutative semiring `R₂`
- - `M₃`, `M₃'`, ... are modules over the commutative ring `R₃`
+ - `M₂`, `M₂'`, ... are semimodules over the commutative semiring `R₂`,
+ - `M₃`, `M₃'`, ... are modules over the commutative ring `R₃`,
+ - `V`, ... is a semimodule over the field `K`.
 
 ## References
 
@@ -58,6 +59,7 @@ variables {R : Type u} {M : Type v} [semiring R] [add_comm_monoid M] [semimodule
 variables {R₁ : Type u} {M₁ : Type v} [ring R₁] [add_comm_group M₁] [module R₁ M₁]
 variables {R₂ : Type u} {M₂ : Type v} [comm_semiring R₂] [add_comm_monoid M₂] [semimodule R₂ M₂]
 variables {R₃ : Type u} {M₃ : Type v} [comm_ring R₃] [add_comm_group M₃] [module R₃ M₃]
+variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
 variables {B : bilin_form R M} {B₁ : bilin_form R₁ M₁} {B₂ : bilin_form R₂ M₂}
 
 namespace bilin_form
@@ -377,6 +379,32 @@ def is_Ortho {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
 
 lemma is_Ortho_def {n : Type w} {B : bilin_form R M} {v : n → M} :
   B.is_Ortho v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
+
+/-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is linearly independent
+  if for all `i`, `B (v i) (v i) ≠ 0`. -/
+lemma linear_independent_of_is_Ortho
+  {n : Type w} {B : bilin_form K V} {v : n → V}
+  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) :
+  linear_independent K v :=
+begin
+  classical,
+  rw linear_independent_iff',
+  intros s w hs i hi,
+  have : B (s.sum $ λ (i : n), w i • v i) (v i) = 0,
+  { rw [hs, zero_left] },
+  have hsum : s.sum (λ (j : n), w j * B (v j) (v i)) =
+    s.sum (λ (j : n), if i = j then w j * B (v j) (v i) else 0),
+  { refine finset.sum_congr rfl (λ j hj, _),
+    by_cases (i = j),
+    { rw [if_pos h] },
+    { rw [if_neg h, is_Ortho_def.1 hv₁ _ _ h, mul_zero] } },
+  simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
+  rw [if_pos, mul_eq_zero] at this,
+  cases this,
+  { assumption },
+  { exact false.elim (hv₂ i $ this) },
+  { assumption }
+end
 
 section
 
@@ -1071,7 +1099,6 @@ lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
 λ _ hn l hl, hn l (h hl)
 
 lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
-lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
   N ≤ B.orthogonal (B.orthogonal N) :=
 λ n hn m hm, hB _ _ (hm n hn)
 
@@ -1095,8 +1122,6 @@ lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
 def nondegenerate (B : bilin_form R M) : Prop :=
 ∀ m : M, (∀ n : M, B m n = 0) → m = 0
 
-variables {n : Type w} [fintype n]
-
 /-- A bilinear form is nondegenerate if and only if it has a trivial kernel. -/
 theorem nondegenerate_iff_ker_eq_bot {B : bilin_form R₂ M₂} :
   B.nondegenerate ↔ B.to_lin.ker = ⊥ :=
@@ -1107,6 +1132,22 @@ begin
     rw [← to_linear_map_apply, hm], refl },
   { intros m hm, apply h,
     ext, exact hm x }
+end
+
+section
+
+variable [finite_dimensional K V]
+
+/-- Given a nondegenerate bilinear form `B`, `B.to_dual` is the isomorphism
+between a vector space and its dual with the underlying linear map `B.to_lin`. -/
+noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
+  V ≃ₗ[K] module.dual K V :=
+B.to_lin.linear_equiv_of_ker_eq_bot
+  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_findim_eq.symm
+
+lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
+  B.to_dual hB m n = B m n := rfl
+
 end
 
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
@@ -1128,37 +1169,8 @@ begin
   exact let ⟨v, hv⟩ := exists_ne (0 : M) in hv $ hB₁ v (hcon v),
 end
 
-variables {V : Type u} {K : Type v}
-variables [field K] [add_comm_group V] [vector_space K V]
-
-/-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is linearly independent
-  if for all `i`, `B (v i) (v i) ≠ 0`. -/
-lemma linear_independent_of_is_Ortho
-  {n : Type w} {B : bilin_form K V} {v : n → V}
-  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) :
-  linear_independent K v :=
-begin
-  classical,
-  rw linear_independent_iff',
-  intros s w hs i hi,
-  have : B (s.sum $ λ (i : n), w i • v i) (v i) = 0,
-  { rw [hs, zero_left] },
-  have hsum : s.sum (λ (j : n), w j * B (v j) (v i)) =
-    s.sum (λ (j : n), if i = j then w j * B (v j) (v i) else 0),
-  { refine finset.sum_congr rfl (λ j hj, _),
-    by_cases (i = j),
-    { rw [if_pos h] },
-    { rw [if_neg h, is_Ortho_def.1 hv₁ _ _ h, mul_zero] } },
-  simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
-  rw [if_pos, mul_eq_zero] at this,
-  cases this,
-  { assumption },
-  { exact false.elim (hv₂ i $ this) },
-  { assumption }
-end
-
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
-lemma span_inf_ortho_eq_bot {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
+lemma span_singleton_inf_orthogonal_eq_bot {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
   (K ∙ x) ⊓ B.orthogonal (K ∙ x) = ⊥ :=
 begin
   rw ← finset.coe_singleton,
@@ -1174,7 +1186,7 @@ begin
 end
 
 -- ↓ This lemma only applies in fields since we use the inverse
-lemma span_sup_ortho_eq_top {B : bilin_form K V}
+lemma span_singleton_sup_orthogonal_eq_top {B : bilin_form K V}
   (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   (K ∙ x) ⊔ B.orthogonal (K ∙ x) = ⊤ :=
 begin
@@ -1190,22 +1202,22 @@ end
 
 /-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
   is complement to its orthogonal complement. -/
-lemma is_compl_singleton {B : bilin_form K V}
+lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
   (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ inf_le_bot := eq_bot_iff.1 $ span_inf_ortho_eq_bot hx,
-  top_le_sup := eq_top_iff.1 $ span_sup_ortho_eq_top hB hx }
+{ inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
+  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hB hx }
 
 /-- The natural isomorphism between a singleton and the quotient by its orthogonal complement. -/
 noncomputable def quotient_equiv_of_ortho_singleton
   {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
-submodule.quotient_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
+submodule.quotient_equiv_of_is_compl _ _ (is_compl_span_singleton_orthogonal hB hx)
 
 /-- The natural isomorphism from the product between a singleton and its orthogonal component
   and the whole space. -/
 noncomputable def prod_equiv_of_ortho_singleton
   {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
-submodule.prod_equiv_of_is_compl _ _ (is_compl_singleton hB hx)
+submodule.prod_equiv_of_is_compl _ _ (is_compl_span_singleton_orthogonal hB hx)
 
 lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V) (hB₁ : nondegenerate B)
   (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
@@ -1213,7 +1225,7 @@ lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V) (hB₁ : nonde
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (hB₁ m.1 (λ n, _)),
   have : n ∈ (K ∙ x) ⊔ B.orthogonal (K ∙ x) :=
-    (span_sup_ortho_eq_top hB₂ hx).symm ▸ submodule.mem_top,
+    (span_singleton_sup_orthogonal_eq_top hB₂ hx).symm ▸ submodule.mem_top,
   rcases submodule.mem_sup.1 this with ⟨y, hy, z, hz, rfl⟩,
   specialize hm ⟨z, hz⟩,
   rw restrict at hm,
@@ -1223,16 +1235,6 @@ end
 open finite_dimensional
 
 variable [finite_dimensional K V]
-
-/-- Given a nondegenerate bilinear form `B`, `B.to_dual` is the isomorphism
-between a vector space and its dual with the underlying linear map `B.to_lin`. -/
-noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
-  V ≃ₗ[K] module.dual K V :=
-B.to_lin.linear_equiv_of_ker_eq_bot
-  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_findim_eq.symm
-
-lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
-  B.to_dual hB m n = B m n := rfl
 
 -- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
 -- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.

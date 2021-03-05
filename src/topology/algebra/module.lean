@@ -1366,7 +1366,7 @@ begin
     rintros ⟨F, hF⟩,
     use (continuous_linear_equiv.units_equiv _ _ F).trans e,
     ext,
-    simp [hF] }
+    simp [hF, coe_fn_coe_base] }
 end
 
 lemma ring_inverse_eq_map_inverse : ring.inverse = @inverse R M M _ _ _ _ _ _ _ :=

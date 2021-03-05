@@ -79,7 +79,7 @@ theorem coe_fn_coe_trans
   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
   (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
 
-@[simp] theorem coe_fn_coe_base
+theorem coe_fn_coe_base
   {α β} [has_coe α β] [has_coe_to_fun β]
   (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
 

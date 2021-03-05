@@ -26,6 +26,7 @@ import group_theory.group_action
 
 -/
 
+variables (F : Type*)
 variables (M' : Type*)
 variables (X : Type*) [has_scalar M' X]
 variables (Y : Type*) [has_scalar M' Y]
@@ -53,15 +54,27 @@ structure mul_action_hom :=
 
 notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
+class mul_action_hom_class
+  extends to_fun F X Y :=
+(map_smul : ∀ (f : F) (m : M') (x : X), f (m • x) = m • f x)
+
+section mul_action_hom_class
+
+variables {F M' X Y}
+
+@[simp] lemma map_smul [mul_action_hom_class F M' X Y] (f : F) (m : M') (x : X) :
+  f (m • x) = m • f x :=
+mul_action_hom_class.map_smul f m x
+
+end mul_action_hom_class
+
 namespace mul_action_hom
 
-instance : has_coe_to_fun (X →[M'] Y) :=
-⟨_, λ c, c.to_fun⟩
+instance : mul_action_hom_class (X →[M'] Y) M' X Y :=
+{ coe := to_fun,
+  map_smul := map_smul' }
 
 variables {M M' X Y}
-
-@[simp] lemma map_smul (f : X →[M'] Y) (m : M') (x : X) : f (m • x) = m • f x :=
-f.map_smul' m x
 
 @[ext] theorem ext : ∀ {f g : X →[M'] Y}, (∀ x, f x = g x) → f = g
 | ⟨f, _⟩ ⟨g, _⟩ H := by { congr' 1 with x, exact H x }
@@ -82,8 +95,8 @@ variables {M M' X Y Z}
 /-- Composition of two equivariant maps. -/
 def comp (g : Y →[M'] Z) (f : X →[M'] Y) : X →[M'] Z :=
 ⟨g ∘ f, λ m x, calc
-g (f (m • x)) = g (m • f x) : by rw f.map_smul
-          ... = m • g (f x) : g.map_smul _ _⟩
+g (f (m • x)) = g (m • f x) : by rw map_smul
+          ... = m • g (f x) : map_smul g _ _⟩
 
 @[simp] lemma comp_apply (g : Y →[M'] Z) (f : X →[M'] Y) (x : X) : g.comp f x = g (f x) := rfl
 
@@ -115,6 +128,9 @@ add_decl_doc distrib_mul_action_hom.to_mul_action_hom
 
 notation A ` →+[`:25 M:25 `] `:0 B:0 := distrib_mul_action_hom M A B
 
+class distrib_mul_action_hom_class
+  extends mul_action_hom_class F M A B, add_monoid_hom_class F A B
+
 namespace distrib_mul_action_hom
 
 instance has_coe : has_coe (A →+[M] B) (A →+ B) :=
@@ -136,21 +152,6 @@ variables {M A B}
 
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
-
-@[simp] lemma map_zero (f : A →+[M] B) : f 0 = 0 :=
-f.map_zero'
-
-@[simp] lemma map_add (f : A →+[M] B) (x y : A) : f (x + y) = f x + f y :=
-f.map_add' x y
-
-@[simp] lemma map_neg (f : A' →+[M] B') (x : A') : f (-x) = -f x :=
-(f : A' →+ B').map_neg x
-
-@[simp] lemma map_sub (f : A' →+[M] B') (x y : A') : f (x - y) = f x - f y :=
-(f : A' →+ B').map_sub x y
-
-@[simp] lemma map_smul (f : A →+[M] B) (m : M) (x : A) : f (m • x) = m • f x :=
-f.map_smul' m x
 
 variables (M) {A}
 
@@ -189,6 +190,9 @@ add_decl_doc mul_semiring_action_hom.to_distrib_mul_action_hom
 
 notation R ` →+*[`:25 M:25 `] `:0 S:0 := mul_semiring_action_hom M R S
 
+class mul_semiring_action_hom_class
+  extends distrib_mul_action_hom_class F M R S, ring_hom_class F R S
+
 namespace mul_semiring_action_hom
 
 instance has_coe : has_coe (R →+*[M] S) (R →+* S) :=
@@ -210,27 +214,6 @@ variables {M R S}
 
 theorem ext_iff {f g : R →+*[M] S} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
-
-@[simp] lemma map_zero (f : R →+*[M] S) : f 0 = 0 :=
-f.map_zero'
-
-@[simp] lemma map_add (f : R →+*[M] S) (x y : R) : f (x + y) = f x + f y :=
-f.map_add' x y
-
-@[simp] lemma map_neg (f : R' →+*[M] S') (x : R') : f (-x) = -f x :=
-(f : R' →+* S').map_neg x
-
-@[simp] lemma map_sub (f : R' →+*[M] S') (x y : R') : f (x - y) = f x - f y :=
-(f : R' →+* S').map_sub x y
-
-@[simp] lemma map_one (f : R →+*[M] S) : f 1 = 1 :=
-f.map_one'
-
-@[simp] lemma map_mul (f : R →+*[M] S) (x y : R) : f (x * y) = f x * f y :=
-f.map_mul' x y
-
-@[simp] lemma map_smul (f : R →+*[M] S) (m : M) (x : R) : f (m • x) = m • f x :=
-f.map_smul' m x
 
 variables (M) {R}
 

@@ -1140,11 +1140,11 @@ range_top_iff_surjective.2 hf
 
 /-- Restriction of a group hom to a subgroup of the domain. -/
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the domain."]
-def restrict {K : Type*} [group K] (f : G →* K) (H : subgroup G) : H →* K :=
+def restrict (f : G →* N) (H : subgroup G) : H →* N :=
 f.comp H.subtype
 
 @[simp, to_additive]
-lemma restrict_apply {K : Type*} [group K] {H : subgroup G} (f : G →* K) (x : H) :
+lemma restrict_apply {H : subgroup G} (f : G →* N) (x : H) :
   f.restrict H x = f (x : G) := rfl
 
 /-- Restriction of a group hom to a subgroup of the codomain. -/

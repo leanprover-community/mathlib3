@@ -169,8 +169,8 @@ given by `(f.prod g) x = (f x, g x)` -/
 `f.prod g : M →+ N × P` given by `(f.prod g) x = (f x, g x)`"]
 protected def prod (f : M →* N) (g : M →* P) : M →* N × P :=
 { to_fun := λ x, (f x, g x),
-  map_one' := prod.ext f.map_one g.map_one,
-  map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
+  map_one' := prod.ext (show f 1 = 1, from map_one f) (show g 1 = 1, from map_one g),
+  map_mul' := λ x y, prod.ext (map_mul f x y) (map_mul g x y) }
 
 @[simp, to_additive prod_apply]
 lemma prod_apply (f : M →* N) (g : M →* P) (x) : f.prod g x = (f x, g x) := rfl
@@ -274,6 +274,6 @@ def prod_units : units (M × N) ≃* units M × units N :=
   inv_fun := λ u, ⟨(u.1, u.2), (↑u.1⁻¹, ↑u.2⁻¹), by simp, by simp⟩,
   left_inv := λ u, by simp,
   right_inv := λ ⟨u₁, u₂⟩, by simp [units.map],
-  map_mul' := monoid_hom.map_mul _ }
+  map_mul' := map_mul _ }
 
 end mul_equiv

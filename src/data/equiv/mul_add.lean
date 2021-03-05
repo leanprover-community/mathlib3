@@ -23,7 +23,7 @@ notation when treating the isomorphisms as maps.
 
 ## Implementation notes
 
-The fields for `mul_equiv`, `add_equiv` now avoid the unbundled `is_mul_hom` and `is_add_hom`, as
+The fields for `mul_equiv`, `add_equiv` now avoid the unbundled `mul_hom_class` and `add_hom_class`, as
 these are deprecated.
 
 ## Tags
@@ -50,8 +50,8 @@ add_decl_doc add_equiv.to_add_hom
 structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, mul_hom M N
 
 @[to_additive]
-instance mul_equiv.is_mul_hom (M N : Type*) [has_mul M] [has_mul N] :
-  is_mul_hom (mul_equiv M N) M N :=
+instance mul_equiv.mul_hom_class (M N : Type*) [has_mul M] [has_mul N] :
+  mul_hom_class (mul_equiv M N) M N :=
 { coe := mul_equiv.to_fun,
   map_mul := mul_equiv.map_mul' }
 
@@ -227,14 +227,14 @@ def mul_equiv_of_unique_of_unique {M N}
 
 /-- A multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism). -/
 @[to_additive]
-instance (M N) [monoid M] [monoid N] : is_one_hom (M ≃* N) M N :=
+instance (M N) [monoid M] [monoid N] : one_hom_class (M ≃* N) M N :=
 { coe := to_fun,
   map_one := λ h, by rw [← mul_one (h 1), ← h.apply_symm_apply 1, ← map_mul, one_mul] }
 
 @[to_additive]
-instance {M N} [monoid M] [monoid N] : is_monoid_hom (M ≃* N) M N :=
-{ .. mul_equiv.is_mul_hom M N,
-  .. mul_equiv.is_one_hom M N }
+instance {M N} [monoid M] [monoid N] : monoid_hom_class (M ≃* N) M N :=
+{ .. mul_equiv.mul_hom_class M N,
+  .. mul_equiv.one_hom_class M N }
 
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :

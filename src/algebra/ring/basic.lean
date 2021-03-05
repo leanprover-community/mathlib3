@@ -224,30 +224,30 @@ add_decl_doc ring_hom.to_monoid_hom
 The `simp`-normal form is `(f : R →+ S)`. -/
 add_decl_doc ring_hom.to_add_monoid_hom
 
-class is_ring_hom (F : Type*) (R S : out_param Type*) [semiring R] [semiring S]
-  extends is_add_monoid_hom F R S, is_monoid_with_zero_hom F R S
+class ring_hom_class (F : Type*) (R S : out_param Type*) [semiring R] [semiring S]
+  extends add_monoid_hom_class F R S, monoid_with_zero_hom_class F R S
 
-instance ring_hom.is_ring_hom {R S : Type*} [semiring R] [semiring S] :
-  is_ring_hom (ring_hom R S) R S :=
+instance ring_hom.ring_hom_class {R S : Type*} [semiring R] [semiring S] :
+  ring_hom_class (ring_hom R S) R S :=
 { coe := ring_hom.to_fun,
   map_add := ring_hom.map_add',
   map_mul := ring_hom.map_mul',
   map_one := ring_hom.map_one',
   map_zero := ring_hom.map_zero' }
 
-section is_ring_hom
+section ring_hom_class
 
 variables {F S : Type*} [semiring R] [semiring S]
 
 /-- Ring homomorphisms preserve `bit0`. -/
-@[simp] lemma map_bit0 [is_ring_hom F R S] (f : F) (a : R) : f (bit0 a) = bit0 (f a) :=
+@[simp] lemma map_bit0 [ring_hom_class F R S] (f : F) (a : R) : f (bit0 a) = bit0 (f a) :=
 map_add _ _ _
 
 /-- Ring homomorphisms preserve `bit1`. -/
-@[simp] lemma map_bit1 [is_ring_hom F R S] (f : F) (a : R) : f (bit1 a) = bit1 (f a) :=
+@[simp] lemma map_bit1 [ring_hom_class F R S] (f : F) (a : R) : f (bit1 a) = bit1 (f a) :=
 by simp [bit1]
 
-end is_ring_hom
+end ring_hom_class
 
 namespace ring_hom
 
@@ -574,7 +574,7 @@ calc
   (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
               ... = d                   : begin rw h, simp [@add_sub_cancel α] end
 
-@[simp] lemma map_neg_one {R S F} [ring R] [ring S] [is_ring_hom F R S] (f : F) :
+@[simp] lemma map_neg_one {R S F} [ring R] [ring S] [ring_hom_class F R S] (f : F) :
   f (-1) = -1 :=
 by rw [map_neg, map_one]
 

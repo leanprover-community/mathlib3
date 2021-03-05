@@ -120,8 +120,8 @@ rfl
 
 @[to_additive]
 instance (f : M →* N) : is_monoid_hom (f : M → N) :=
-{ map_mul := f.map_mul,
-  map_one := f.map_one }
+{ map_mul := map_mul f,
+  map_one := map_one f }
 
 end monoid_hom
 
@@ -131,13 +131,13 @@ variables {M : Type*} {N : Type*} [monoid M] [monoid N]
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
 @[to_additive]
-instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
+instance (h : M ≃* N) : is_mul_hom h := ⟨map_mul h⟩
 
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
 @[to_additive]
 instance {M N} [monoid M] [monoid N] (h : M ≃* N) : is_monoid_hom h :=
-⟨h.map_one⟩
+⟨map_one h⟩
 
 end mul_equiv
 
@@ -196,11 +196,11 @@ class is_group_hom [group α] [group β] (f : α → β) extends is_mul_hom f : 
 @[to_additive]
 instance monoid_hom.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (f : G →* H) :
   is_group_hom (f : G → H) :=
-{ map_mul := f.map_mul }
+{ map_mul := map_mul f }
 
 @[to_additive]
 instance mul_equiv.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (h : G ≃* H) :
-  is_group_hom h := { map_mul := h.map_mul }
+  is_group_hom h := { map_mul := map_mul h }
 
 /-- Construct `is_group_hom` from its only hypothesis. The default constructor tries to get
 `is_mul_hom` from class instances, and this makes some proofs fail. -/
@@ -225,7 +225,7 @@ lemma map_one : f 1 = 1 := is_monoid_hom.map_one f
 /-- A group homomorphism sends inverses to inverses. -/
 @[to_additive]
 theorem map_inv (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
+eq_inv_of_mul_eq_one $ by rw [← is_mul_hom.map_mul f, inv_mul_self, map_one f]
 
 /-- The identity is a group homomorphism. -/
 @[to_additive]
@@ -242,7 +242,7 @@ lemma injective_iff (f : α → β) [is_group_hom f] :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
 ⟨λ h _, by rw ← is_group_hom.map_one f; exact @h _ _,
   λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← map_inv f,
-      ← map_mul f] at hxy;
+      ← is_mul_hom.map_mul f] at hxy;
     simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
 
 /-- The product of group homomorphisms is a group homomorphism if the target is commutative. -/
@@ -272,19 +272,19 @@ section
 variables [semiring R] [semiring S]
 
 instance (f : R →+* S) : is_monoid_hom f :=
-{ map_one := f.map_one,
-  map_mul := f.map_mul }
+{ map_one := map_one f,
+  map_mul := map_mul f }
 
 instance (f : R →+* S) : is_add_monoid_hom f :=
-{ map_zero := f.map_zero,
-  map_add := f.map_add }
+{ map_zero := map_zero f,
+  map_add := map_add f }
 end
 
 section
 variables [ring R] [ring S]
 
 instance (f : R →+* S) : is_add_group_hom f :=
-{ map_add := f.map_add }
+{ map_add := map_add f }
 end
 
 end ring_hom

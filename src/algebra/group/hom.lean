@@ -65,7 +65,7 @@ set_option old_structure_cmd true
 to functions from `α` to `β`.
 
 This typeclass is used in the definition of the homomorphism typeclasses,
-such as `is_zero_hom`, `is_mul_hom`, `is_monoid_hom`, ....
+such as `zero_hom_class`, `mul_hom_class`, `monoid_hom_class`, ....
 In comparison to `has_coe_to_fun`, `is_hom` takes the function type as a parameter,
 rather than as a field of the class.
 -/
@@ -83,19 +83,19 @@ section zero
 /-- `zero_hom M N` is the type of functions `M → N` that preserve zero.
 
 When possible, instead of parametrizing results over `(f : zero_hom M N)`,
-you should parametrize over `(F : Type*) [is_zero_hom F M N] (f : F)`.
+you should parametrize over `(F : Type*) [zero_hom_class F M N] (f : F)`.
 
-When you extend this structure, make sure to also extend `is_zero_hom`.
+When you extend this structure, make sure to also extend `zero_hom_class`.
 -/
 structure zero_hom (M : Type*) (N : Type*) [has_zero M] [has_zero N] :=
 (to_fun : M → N)
 (map_zero' : to_fun 0 = 0)
 
-/-- `is_zero_hom F M N` states that `F` is a type of zero-preserving homomorphisms.
+/-- `zero_hom_class F M N` states that `F` is a type of zero-preserving homomorphisms.
 
 You should extend this typeclass when you extend `zero_hom`.
 -/
-class is_zero_hom (F : Type*) (M N : out_param $ Type*)
+class zero_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_zero M] [has_zero N] extends to_fun F M N :=
 (map_zero : ∀ (f : F), f 0 = 0)
 
@@ -110,30 +110,30 @@ variables [has_one M] [has_one N]
 /-- `one_hom M N` is the type of functions `M → N` that preserve one.
 
 When possible, instead of parametrizing results over `(f : one_hom M N)`,
-you should parametrize over `(F : Type*) [is_one_hom F M N] (f : F)`.
+you should parametrize over `(F : Type*) [one_hom_class F M N] (f : F)`.
 
-When you extend this structure, make sure to also extend `is_one_hom`.
+When you extend this structure, make sure to also extend `one_hom_class`.
 -/
 @[to_additive]
 structure one_hom (M : Type*) (N : Type*) [has_one M] [has_one N] :=
 (to_fun : M → N)
 (map_one' : to_fun 1 = 1)
 
-/-- `is_one_hom F M N` states that `F` is a type of one-preserving homomorphisms.
+/-- `one_hom_class F M N` states that `F` is a type of one-preserving homomorphisms.
 
 You should extend this typeclass when you extend `one_hom`.
 -/
 @[to_additive]
-class is_one_hom (F : Type*) (M N : out_param $ Type*)
+class one_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_one M] [has_one N] extends to_fun F M N :=
 (map_one : ∀ (f : F), f 1 = 1)
 
 @[to_additive]
-instance one_hom.is_one_hom : is_one_hom (one_hom M N) M N :=
+instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
 { coe := one_hom.to_fun, map_one := one_hom.map_one' }
 
-@[simp, to_additive] lemma map_one [is_one_hom F M N] (f : F) : f 1 = 1 :=
-is_one_hom.map_one f
+@[simp, to_additive] lemma map_one [one_hom_class F M N] (f : F) : f 1 = 1 :=
+one_hom_class.map_one f
 
 end one
 
@@ -142,19 +142,19 @@ section add
 /-- `add_hom M N` is the type of functions `M → N` that preserve addition.
 
 When possible, instead of parametrizing results over `(f : add_hom M N)`,
-you should parametrize over `(F : Type*) [is_add_hom F M N] (f : F)`.
+you should parametrize over `(F : Type*) [add_hom_class F M N] (f : F)`.
 
-When you extend this structure, make sure to extend `is_add_hom`.
+When you extend this structure, make sure to extend `add_hom_class`.
 -/
 structure add_hom (M : Type*) (N : Type*) [has_add M] [has_add N] :=
 (to_fun : M → N)
 (map_add' : ∀ x y, to_fun (x + y) = to_fun x + to_fun y)
 
-/-- `is_add_hom F M N` states that `F` is a type of addition-preserving homomorphisms.
+/-- `add_hom_class F M N` states that `F` is a type of addition-preserving homomorphisms.
 
 You should declare an instance of this typeclass when you extend `add_hom`.
 -/
-class is_add_hom (F : Type*) (M N : out_param $ Type*)
+class add_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_add M] [has_add N] extends to_fun F M N :=
 (map_add : ∀ (f : F) (x y : M), f (x + y) = f x + f y)
 
@@ -169,31 +169,31 @@ variables [has_mul M] [has_mul N]
 /-- `mul_hom M N` is the type of functions `M → N` that preserve mulition.
 
 When possible, instead of parametrizing results over `(f : mul_hom M N)`,
-you should parametrize over `(F : Type*) [is_mul_hom F M N] (f : F)`.
+you should parametrize over `(F : Type*) [mul_hom_class F M N] (f : F)`.
 
-When you extend this structure, make sure to extend `is_mul_hom`.
+When you extend this structure, make sure to extend `mul_hom_class`.
 -/
 @[to_additive]
 structure mul_hom (M : Type*) (N : Type*) [has_mul M] [has_mul N] :=
 (to_fun : M → N)
 (map_mul' : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
 
-/-- `is_mul_hom F M N` states that `F` is a type of mulition-preserving homomorphisms.
+/-- `mul_hom_class F M N` states that `F` is a type of mulition-preserving homomorphisms.
 
 You should declare an instance of this typeclass when you extend `mul_hom`.
 -/
 @[to_additive]
-class is_mul_hom (F : Type*) (M N : out_param $ Type*)
+class mul_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_mul M] [has_mul N] extends to_fun F M N :=
 (map_mul : ∀ (f : F) (x y : M), f (x * y) = f x * f y)
 
 @[to_additive]
-instance mul_hom.is_mul_hom : is_mul_hom (mul_hom M N) M N :=
+instance mul_hom.mul_hom_class : mul_hom_class (mul_hom M N) M N :=
 { coe := mul_hom.to_fun, map_mul := mul_hom.map_mul' }
 
-@[simp, to_additive] lemma map_mul [is_mul_hom F M N] (f : F) (x y : M) :
+@[simp, to_additive] lemma map_mul [mul_hom_class F M N] (f : F) (x y : M) :
   f (x * y) = f x * f y :=
-is_mul_hom.map_mul f x y
+mul_hom_class.map_mul f x y
 
 end mul
 
@@ -206,9 +206,9 @@ variables [add_monoid M] [add_monoid N]
 `add_monoid_hom` is also used for group homomorphisms.
 
 When possible, instead of parametrizing results over `(f : M →+ N)`,
-you should parametrize over `(F : Type*) [is_add_monoid_hom F M N] (f : F)`.
+you should parametrize over `(F : Type*) [add_monoid_hom_class F M N] (f : F)`.
 
-When you extend this structure, make sure to extend `is_add_monoid_hom`.
+When you extend this structure, make sure to extend `add_monoid_hom_class`.
 -/
 @[ancestor zero_hom add_hom]
 structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N]
@@ -219,13 +219,13 @@ attribute [nolint doc_blame] add_monoid_hom.to_zero_hom
 
 infixr ` →+ `:25 := add_monoid_hom
 
-/-- `is_add_monoid_hom F M N` states that `F` is a type of `add_monoid`-preserving homomorphisms.
+/-- `add_monoid_hom_class F M N` states that `F` is a type of `add_monoid`-preserving homomorphisms.
 
 You should also extend this typeclass when you extend `add_monoid_hom`.
 -/
-@[ancestor is_add_hom is_zero_hom]
-class is_add_monoid_hom (F : Type*) (M N : out_param $ Type*) [add_monoid M] [add_monoid N]
-  extends is_add_hom F M N, is_zero_hom F M N
+@[ancestor add_hom_class zero_hom_class]
+class add_monoid_hom_class (F : Type*) (M N : out_param $ Type*) [add_monoid M] [add_monoid N]
+  extends add_hom_class F M N, zero_hom_class F M N
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
@@ -240,9 +240,9 @@ variables [monoid M] [monoid N]
 `monoid_hom` is also used for group homomorphisms.
 
 When possible, instead of parametrizing results over `(f : M →+ N)`,
-you should parametrize over `(F : Type*) [is_monoid_hom F M N] (f : F)`.
+you should parametrize over `(F : Type*) [monoid_hom_class F M N] (f : F)`.
 
-When you extend this structure, make sure to extend `is_monoid_hom`.
+When you extend this structure, make sure to extend `monoid_hom_class`.
 -/
 @[ancestor one_hom mul_hom, to_additive]
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N]
@@ -253,22 +253,22 @@ attribute [nolint doc_blame] monoid_hom.to_one_hom
 
 infixr ` →* `:25 := monoid_hom
 
-/-- `is_monoid_hom F M N` states that `F` is a type of `monoid`-preserving homomorphisms.
+/-- `monoid_hom_class F M N` states that `F` is a type of `monoid`-preserving homomorphisms.
 
 You should also extend this typeclass when you extend `monoid_hom`.
 -/
-@[ancestor is_mul_hom is_one_hom, to_additive]
-class is_monoid_hom (F : Type*) (M N : out_param $ Type*) [monoid M] [monoid N]
-  extends is_mul_hom F M N, is_one_hom F M N
+@[ancestor mul_hom_class one_hom_class, to_additive]
+class monoid_hom_class (F : Type*) (M N : out_param $ Type*) [monoid M] [monoid N]
+  extends mul_hom_class F M N, one_hom_class F M N
 
 @[to_additive]
-instance monoid_hom.is_monoid_hom : is_monoid_hom (M →* N) M N :=
+instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
 { coe := monoid_hom.to_fun,
   map_mul := monoid_hom.map_mul',
   map_one := monoid_hom.map_one' }
 
 @[to_additive]
-instance [mh : is_monoid_hom F M N] : has_coe F (M →* N) :=
+instance [mh : monoid_hom_class F M N] : has_coe F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
 
 end monoid
@@ -283,9 +283,9 @@ the `monoid_with_zero` structure.
 `monoid_with_zero_hom` is also used for group homomorphisms.
 
 When possible, instead of parametrizing results over `(f : M →+ N)`,
-you should parametrize over `(F : Type*) [is_monoid_with_zero_hom F M N] (f : F)`.
+you should parametrize over `(F : Type*) [monoid_with_zero_hom_class F M N] (f : F)`.
 
-When you extend this structure, make sure to extend `is_monoid_with_zero_hom`.
+When you extend this structure, make sure to extend `monoid_with_zero_hom_class`.
 -/
 structure monoid_with_zero_hom (M : Type*) (N : Type*) [monoid_with_zero M] [monoid_with_zero N]
   extends monoid_hom M N, zero_hom M N
@@ -293,16 +293,16 @@ structure monoid_with_zero_hom (M : Type*) (N : Type*) [monoid_with_zero M] [mon
 attribute [nolint doc_blame] monoid_with_zero_hom.to_monoid_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_zero_hom
 
-/-- `is_monoid_with_zero_hom F M N` states that `F` is a type of
+/-- `monoid_with_zero_hom_class F M N` states that `F` is a type of
 `monoid_with_zero`-preserving homomorphisms.
 
 You should also extend this typeclass when you extend `monoid_with_zero_hom`.
 -/
-class is_monoid_with_zero_hom (F : Type*) (M N : out_param $ Type*) [monoid_with_zero M] [monoid_with_zero N]
-  extends is_monoid_hom F M N, is_zero_hom F M N
+class monoid_with_zero_hom_class (F : Type*) (M N : out_param $ Type*) [monoid_with_zero M] [monoid_with_zero N]
+  extends monoid_hom_class F M N, zero_hom_class F M N
 
-instance monoid_with_zero_hom.is_monoid_with_zero_hom :
-  is_monoid_with_zero_hom (monoid_with_zero_hom M N) M N :=
+instance monoid_with_zero_hom.monoid_with_zero_hom_class :
+  monoid_with_zero_hom_class (monoid_with_zero_hom M N) M N :=
 { coe := monoid_with_zero_hom.to_fun,
   map_mul := monoid_with_zero_hom.map_mul',
   map_one := monoid_with_zero_hom.map_one',
@@ -484,20 +484,20 @@ monoid_with_zero_hom.ext $ λ _, rfl
 
 end coes
 
-section is_monoid_hom
+section monoid_hom_class
 variables {mM : monoid M} {mN : monoid N} {mP : monoid P}
 
 include mM mN
 
 @[to_additive]
-lemma map_mul_eq_one [is_monoid_hom F M N] (f : F) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
+lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
 by rw [← map_mul, h, map_one]
 
 /-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a right inverse,
 then `f x` has a right inverse too. For elements invertible on both sides see `is_unit.map`. -/
 @[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
 a right inverse, then `f x` has a right inverse too."]
-lemma map_exists_right_inv [is_monoid_hom F M N] (f : F) {x : M} (hx : ∃ y, x * y = 1) :
+lemma map_exists_right_inv [monoid_hom_class F M N] (f : F) {x : M} (hx : ∃ y, x * y = 1) :
   ∃ y, f x * y = 1 :=
 let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
@@ -506,11 +506,11 @@ then `f x` has a left inverse too. For elements invertible on both sides see `is
 @[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
 a left inverse, then `f x` has a left inverse too. For elements invertible on both sides see
 `is_add_unit.map`."]
-lemma map_exists_left_inv [is_monoid_hom F M N] (f : F) {x : M} (hx : ∃ y, y * x = 1) :
+lemma map_exists_left_inv [monoid_hom_class F M N] (f : F) {x : M} (hx : ∃ y, y * x = 1) :
   ∃ y, y * f x = 1 :=
 let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
-end is_monoid_hom
+end monoid_hom_class
 
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive]
@@ -777,19 +777,19 @@ instance [monoid_with_zero M] : inhabited (monoid_with_zero_hom M M) := ⟨monoi
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive]
-theorem map_inv {G H F} [group G] [group H] [is_monoid_hom F G H]
+theorem map_inv {G H F} [group G] [group H] [monoid_hom_class F G H]
   (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive]
-theorem map_mul_inv {G H F} [group G] [group H] [is_monoid_hom F G H]
+theorem map_mul_inv {G H F} [group G] [group H] [monoid_hom_class F G H]
   (f : F) (g h : G) : f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 by rw [map_mul, map_inv f]
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive]
-theorem map_div {G H F} [group G] [group H] [is_monoid_hom F G H]
+theorem map_div {G H F} [group G] [group H] [monoid_hom_class F G H]
   (f : F) (g h : G) : f (g / h) = f g / f h :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 

@@ -37,10 +37,10 @@ calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 ... ↔ a = 1 : is_conj_one_right
 
 @[simp] lemma conj_inv {a b : α} : (b * a * b⁻¹)⁻¹ = b * a⁻¹ * b⁻¹ :=
-((mul_aut.conj b).map_inv a).symm
+(map_inv (mul_aut.conj b) a).symm
 
 @[simp] lemma conj_mul {a b c : α} : (b * a * b⁻¹) * (b * c * b⁻¹) = b * (a * c) * b⁻¹ :=
-((mul_aut.conj b).map_mul a c).symm
+(map_mul (mul_aut.conj b) a c).symm
 
 lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
 (mul_aut.conj x).injective
@@ -49,4 +49,4 @@ lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹)
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩
 
 protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b → is_conj (f a) (f b)
-| ⟨c, hc⟩ := ⟨f c, by rw [← f.map_mul, ← f.map_inv, ← f.map_mul, hc]⟩
+| ⟨c, hc⟩ := ⟨f c, by rw [← map_mul, ← map_inv, ← map_mul, hc]⟩

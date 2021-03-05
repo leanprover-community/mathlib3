@@ -505,6 +505,19 @@ theorem C_eq_algebra_map : C = (algebra_map R (hahn_series Γ R)) := rfl
 theorem algebra_map_apply {r : R} :
   algebra_map R (hahn_series Γ A) r = C (algebra_map R A r) := rfl
 
+instance [nontrivial Γ] [nontrivial R] : nontrivial (subalgebra R (hahn_series Γ R)) :=
+⟨⟨⊥, ⊤, begin
+  rw [ne.def, subalgebra.ext_iff, not_forall],
+  obtain ⟨a, ha⟩ := exists_ne (0 : Γ),
+  refine ⟨single a 1, _⟩,
+  simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
+  intros x,
+  rw [ext_iff, function.funext_iff, not_forall],
+  refine ⟨a, _⟩,
+  rw [single_coeff_same, algebra_map_apply, C_apply, single_coeff_of_ne ha],
+  exact zero_ne_one
+end⟩⟩
+
 end algebra
 
 end multiplication

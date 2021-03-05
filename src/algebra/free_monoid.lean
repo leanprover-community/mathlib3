@@ -67,8 +67,8 @@ attribute [elab_as_eliminator] rec_on free_add_monoid.rec_on
 @[to_additive]
 lemma hom_eq ⦃f g : free_monoid α →* M⦄ (h : ∀ x, f (of x) = g (of x)) :
   f = g :=
-monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
-  λ x xs hxs, by simp only [h, hxs, monoid_hom.map_mul]
+monoid_hom.ext $ λ l, rec_on l (calc f 1 = 1 : map_one f ... = g 1 : (map_one g).symm) $
+  λ x xs hxs, by simp only [h, hxs, map_mul]
 
 attribute [ext] hom_eq free_add_monoid.hom_eq
 

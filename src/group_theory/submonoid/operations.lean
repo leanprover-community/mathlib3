@@ -114,9 +114,9 @@ open set
 `add_submonoid`."]
 def comap (f : M →* N) (S : submonoid N) : submonoid M :=
 { carrier := (f ⁻¹' S),
-  one_mem' := show f 1 ∈ S, by rw f.map_one; exact S.one_mem,
+  one_mem' := show f 1 ∈ S, by rw map_one; exact S.one_mem,
   mul_mem' := λ a b ha hb,
-    show f (a * b) ∈ S, by rw f.map_mul; exact S.mul_mem ha hb }
+    show f (a * b) ∈ S, by rw map_mul; exact S.mul_mem ha hb }
 
 @[simp, to_additive]
 lemma coe_comap (S : submonoid N) (f : M →* N) : (S.comap f : set M) = f ⁻¹' S := rfl
@@ -138,9 +138,9 @@ ext (by simp)
 an `add_submonoid`."]
 def map (f : M →* N) (S : submonoid M) : submonoid N :=
 { carrier := (f '' S),
-  one_mem' := ⟨1, S.one_mem, f.map_one⟩,
+  one_mem' := ⟨1, S.one_mem, map_one _⟩,
   mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩, exact ⟨x * y, S.mul_mem hx hy,
-    by rw f.map_mul; refl⟩ end }
+    by rw map_mul; refl⟩ end }
 
 @[simp, to_additive]
 lemma coe_map (f : M →* N) (S : submonoid M) :
@@ -336,7 +336,7 @@ S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (S.subtype : S → M) = coe := rfl
 
 /-- An induction principle on elements of the type `submonoid.closure s`.
 If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
@@ -495,8 +495,8 @@ lemma mrestrict_apply {N : Type*} [monoid N] (f : M →* N) (x : S) : f.mrestric
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
 def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
-  map_one' := subtype.eq f.map_one,
-  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+  map_one' := subtype.eq (show f 1 = 1, from map_one f),
+  map_mul' := λ x y, subtype.eq (map_mul f x y) }
 
 /-- Restriction of a monoid hom to its range interpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]

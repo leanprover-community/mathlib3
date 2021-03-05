@@ -47,7 +47,7 @@ theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n •�
 @list.prod_repeat (multiplicative A) _
 
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
-(units.coe_hom M).map_pow u n
+map_pow (units.coe_hom M) u n
 
 lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
   is_unit x :=
@@ -148,7 +148,7 @@ theorem bit1_gsmul : ∀ (a : A) (n : ℤ), bit1 n •ℤ a = n •ℤ a + n •
 @gpow_bit1 (multiplicative A) _
 
 @[simp] theorem monoid_hom.map_gpow (f : G →* H) (a : G) (n : ℤ) : f (a ^ n) = f a ^ n :=
-by cases n; [exact f.map_pow _ _, exact (f.map_inv _).trans (congr_arg _ $ f.map_pow _ _)]
+by cases n; [exact map_pow f _ _, exact (map_inv f _).trans (congr_arg _ $ map_pow f _ _)]
 
 @[simp] theorem add_monoid_hom.map_gsmul (f : A →+ B) (a : A) (n : ℤ) : f (n •ℤ a) = n •ℤ f a :=
 f.to_multiplicative.map_gpow a n
@@ -219,7 +219,7 @@ end linear_ordered_add_comm_group
 
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :
   ((nsmul n a : A) : with_bot A) = nsmul n a :=
-add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n
+map_nsmul (⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ : _ →+ _) a n
 
 theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n •ℕ a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
@@ -369,7 +369,7 @@ section linear_ordered_ring
 variables [linear_ordered_ring R] {a : R} {n : ℕ}
 
 @[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
-abs_hom.to_monoid_hom.map_pow a n
+show abs_hom (a ^ n) = abs a ^ n, from map_pow abs_hom a n
 
 @[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
@@ -464,7 +464,7 @@ def powers_hom [monoid M] : M ≃ (multiplicative ℕ →* M) :=
 { to_fun := λ x, ⟨λ n, x ^ n.to_add, pow_zero x, λ m n, pow_add x m n⟩,
   inv_fun := λ f, f (multiplicative.of_add 1),
   left_inv := pow_one,
-  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← f.map_pow, ← of_add_nsmul] } }
+  right_inv := λ f, monoid_hom.ext $ λ n, by { simp [← map_pow, ← of_add_nsmul] } }
 
 /-- Monoid homomorphisms from `multiplicative ℤ` are defined by the image
 of `multiplicative.of_add 1`. -/

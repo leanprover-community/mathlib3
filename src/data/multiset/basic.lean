@@ -416,11 +416,11 @@ def card : multiset α →+ ℕ :=
 @[simp] theorem card_zero : @card α 0 = 0 := rfl
 
 theorem card_add (s t : multiset α) : card (s + t) = card s + card t :=
-card.map_add s t
+map_add card s t
 
 lemma card_smul (s : multiset α) (n : ℕ) :
   (n •ℕ s).card = n * s.card :=
-by rw [card.map_nsmul s n, nat.nsmul_eq_mul]
+by rw [map_nsmul card s n, nat.nsmul_eq_mul]
 
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a ::ₘ s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl
@@ -632,7 +632,7 @@ quotient.induction_on' s $ λ L, list.forall_mem_map_iff
 
 @[simp] theorem coe_map (f : α → β) (l : list α) : map f ↑l = l.map f := rfl
 
-@[simp] theorem map_zero (f : α → β) : map f 0 = 0 := rfl
+@[simp] protected theorem map_zero (f : α → β) : map f 0 = 0 := rfl
 
 @[simp] theorem map_cons (f : α → β) (a s) : map f (a ::ₘ s) = f a ::ₘ map f s :=
 quot.induction_on s $ λ l, rfl
@@ -642,14 +642,14 @@ lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a}
 theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
 { induction k, simp, simpa }
 
-@[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
+@[simp] protected theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
 instance (f : α → β) : is_add_monoid_hom (map f) :=
-{ map_add := map_add _, map_zero := map_zero _ }
+{ map_add := multiset.map_add _, map_zero := multiset.map_zero _ }
 
 theorem map_nsmul (f : α → β) (n s) : map f (n •ℕ s) = n •ℕ map f s :=
-(add_monoid_hom.of (map f)).map_nsmul _ _
+map_nsmul (add_monoid_hom.of (map f)) s n
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
@@ -850,7 +850,8 @@ theorem prod_ne_zero {M₀ : Type*} [comm_monoid_with_zero M₀] [no_zero_diviso
 mt prod_eq_zero_iff.1 h
 
 @[to_additive]
-lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α →* β) :
+lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α)
+  {F} [monoid_hom_class F α β] (f : F) :
   (s.map f).prod = f s.prod :=
 quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
 

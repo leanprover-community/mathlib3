@@ -387,7 +387,7 @@ open submonoid
 @[to_additive "The additive submonoid of elements `x : M` such that `f x = g x`"]
 def eq_mlocus (f g : M →* N) : submonoid M :=
 { carrier := {x | f x = g x},
-  one_mem' := by rw [set.mem_set_of_eq, f.map_one, g.map_one],
+  one_mem' := by rw [set.mem_set_of_eq, map_one, map_one],
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/

@@ -70,8 +70,8 @@ protected def function.injective.semimodule [add_comm_monoid M₂] [has_scalar R
   (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
   semimodule R M₂ :=
 { smul := (•),
-  add_smul := λ c₁ c₂ x, hf $ by simp only [smul, f.map_add, add_smul],
-  zero_smul := λ x, hf $ by simp only [smul, zero_smul, f.map_zero],
+  add_smul := λ c₁ c₂ x, hf $ by simp only [smul, map_add, add_smul],
+  zero_smul := λ x, hf $ by simp only [smul, zero_smul, map_zero],
   .. hf.distrib_mul_action f smul }
 
 /-- Pushforward a `semimodule` structure along a surjective additive monoid homomorphism. -/
@@ -80,8 +80,8 @@ protected def function.surjective.semimodule [add_comm_monoid M₂] [has_scalar 
   semimodule R M₂ :=
 { smul := (•),
   add_smul := λ c₁ c₂ x, by { rcases hf x with ⟨x, rfl⟩,
-    simp only [add_smul, ← smul, ← f.map_add] },
-  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← f.map_zero, ← smul, zero_smul] },
+    simp only [add_smul, ← smul, ← map_add] },
+  zero_smul := λ x, by { rcases hf x with ⟨x, rfl⟩, simp only [← smul, zero_smul, map_zero] },
   .. hf.distrib_mul_action f smul }
 
 variable (M)
@@ -147,8 +147,10 @@ variables {R M}
 structure `semimodule.core`, when the underlying space is an `add_comm_group`. -/
 def semimodule.of_core (H : semimodule.core R M) : semimodule R M :=
 by letI := H.to_has_scalar; exact
-{ zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, H.add_smul r s x)).map_zero,
-  smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
+{ zero_smul := λ x, show add_monoid_hom.mk' (λ r : R, r • x) (λ r s, H.add_smul r s x) 0 = 0,
+                    from map_zero _,
+  smul_zero := λ r, show add_monoid_hom.mk' ((•) r) (H.smul_add _) 0 = 0,
+                    from map_zero _,
   ..H }
 
 end add_comm_group
@@ -225,10 +227,10 @@ instance semiring.to_semimodule [semiring R] : semimodule R R :=
 def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodule R S :=
 { smul := λ r x, f r * x,
   smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
-  add_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_add, add_mul],
-  mul_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_mul, mul_assoc],
-  one_smul := λ x, show f 1 * x = _, by rw [f.map_one, one_mul],
-  zero_smul := λ x, show f 0 * x = 0, by rw [f.map_zero, zero_mul],
+  add_smul := λ r s x, by unfold has_scalar.smul; rw [map_add, add_mul],
+  mul_smul := λ r s x, by unfold has_scalar.smul; rw [map_mul, mul_assoc],
+  one_smul := λ x, show f 1 * x = _, by rw [map_one, one_mul],
+  zero_smul := λ x, show f 0 * x = 0, by rw [map_zero, zero_mul],
   smul_zero := λ r, mul_zero (f r) }
 
 /--
@@ -403,7 +405,7 @@ lemma map_nat_cast_smul
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →+ M₂) (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : R) • f a :=
-by simp only [←nsmul_eq_smul_cast, f.map_nsmul]
+by simp only [←nsmul_eq_smul_cast, map_nsmul]
 
 lemma map_rat_cast_smul {R : Type*} [division_ring R] [char_zero R]
   {E : Type*} [add_comm_group E] [module R E] {F : Type*} [add_comm_group F] [module R F]

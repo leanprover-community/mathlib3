@@ -2209,10 +2209,10 @@ theorem prod_hom_rel {α β γ : Type*} [monoid β] [monoid γ] (l : list α) {r
 list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
 
 @[to_additive]
-theorem prod_hom [monoid β] (l : list α) (f : α →* β) :
+theorem prod_hom [monoid β] (l : list α) {F} [monoid_hom_class F α β] (f : F) :
   (l.map f).prod = f l.prod :=
-by { simp only [prod, foldl_map, f.map_one.symm],
-  exact l.foldl_hom _ _ _ 1 f.map_mul }
+by { rw [prod, foldl_map, ← map_one f],
+     exact l.foldl_hom _ _ _ 1 (map_mul f) }
 
 -- `to_additive` chokes on the next few lemmas, so we do them by hand below
 @[simp]

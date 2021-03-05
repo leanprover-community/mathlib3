@@ -57,8 +57,8 @@ by rw [fold, fold, ← fold_hom op hm, multiset.map_map]
 
 theorem fold_union_inter [decidable_eq α] {s₁ s₂ : finset α} {b₁ b₂ : β} :
   (s₁ ∪ s₂).fold op b₁ f * (s₁ ∩ s₂).fold op b₂ f = s₁.fold op b₂ f * s₂.fold op b₁ f :=
-by unfold fold; rw [← fold_add op, ← map_add, union_val,
-     inter_val, union_add_inter, map_add, hc.comm, fold_add]
+by unfold fold; rw [← fold_add op, ← multiset.map_add, union_val,
+     inter_val, union_add_inter, multiset.map_add, hc.comm, fold_add]
 
 @[simp] theorem fold_insert_idem [decidable_eq α] [hi : is_idempotent β op] :
   (insert a s).fold op b f = f a * s.fold op b f :=

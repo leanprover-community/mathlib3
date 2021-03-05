@@ -199,7 +199,7 @@ by simp only [mk_eq_div, cast_div, cast_coe_int]
 
 @[simp, norm_cast] theorem cast_pow [char_zero α] (q) (k : ℕ) :
   ((q ^ k : ℚ) : α) = q ^ k :=
-(cast_hom α).map_pow q k
+map_pow (cast_hom α) q k
 
 end with_div_ring
 
@@ -265,11 +265,11 @@ begin
   have : ∀ n : ℤ, f n = g n := λ n, show φ n = ψ n, by rw [φ.ext_int ψ],
   calc f (a * b⁻¹)
       = f a * f b⁻¹ * (g (b:ℤ) * g b⁻¹) :
-        by rw [int.cast_coe_nat, ← g.map_mul, mul_inv_cancel b0', g.map_one, mul_one, f.map_mul]
+        by rw [int.cast_coe_nat, ← map_mul g, mul_inv_cancel b0', map_one, mul_one, map_mul]
   ... = g a * f b⁻¹ * (f (b:ℤ) * g b⁻¹) : by rw [this a, ← this b]
   ... = g (a * b⁻¹) :
         by rw [int.cast_coe_nat, mul_assoc, ← mul_assoc (f b⁻¹),
-              ← f.map_mul, inv_mul_cancel b0', f.map_one, one_mul, g.map_mul]
+              ← map_mul, inv_mul_cancel b0', map_one, one_mul, map_mul]
 end
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=

@@ -221,7 +221,7 @@ namespace ring_hom
 variables {α : Type*} {β : Type*} [ring α] [ring β]
 
 @[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
-f.to_add_monoid_hom.eq_int_cast f.map_one n
+f.to_add_monoid_hom.eq_int_cast (show f 1 = 1, from map_one f) n
 
 lemma eq_int_cast' (f : ℤ →+* α) : f = int.cast_ring_hom α :=
 ring_hom.ext f.eq_int_cast
@@ -230,7 +230,8 @@ ring_hom.ext f.eq_int_cast
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
 lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
-coe_add_monoid_hom_injective $ add_monoid_hom.ext_int $ f.map_one.trans g.map_one.symm
+coe_add_monoid_hom_injective $ add_monoid_hom.ext_int $
+  (calc f 1 = 1 : map_one f ... = g 1 : (map_one g).symm)
 
 instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
 ⟨ring_hom.ext_int⟩

@@ -310,10 +310,10 @@ subtype.coe_injective.comm_group_div _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rf
 @[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
 def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
+@[simp, to_additive] theorem coe_subtype : (H.subtype : H → G) = coe := rfl
 
 @[simp, norm_cast] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
-coe_subtype H ▸ monoid_hom.map_pow _ _ _
+coe_subtype H ▸ map_pow _ _ _
 @[simp, norm_cast] lemma coe_gpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
 coe_subtype H ▸ monoid_hom.map_gpow _ _ _
 
@@ -687,7 +687,7 @@ def comap {N : Type*} [group N] (f : G →* N)
   (H : subgroup N) : subgroup G :=
 { carrier := (f ⁻¹' H),
   inv_mem' := λ a ha,
-    show f a⁻¹ ∈ H, by rw f.map_inv; exact H.inv_mem ha,
+    show f a⁻¹ ∈ H, by rw map_inv; exact H.inv_mem ha,
   .. H.to_submonoid.comap f }
 
 @[simp, to_additive]
@@ -706,7 +706,7 @@ rfl
 is an `add_subgroup`."]
 def map (f : G →* N) (H : subgroup G) : subgroup N :=
 { carrier := (f '' H),
-  inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, H.inv_mem hx, f.map_inv x⟩ },
+  inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, H.inv_mem hx, map_inv _ x⟩ },
   .. H.to_submonoid.map f }
 
 @[simp, to_additive]
@@ -763,7 +763,7 @@ begin
   { rw [eq_bot_iff_forall, eq_bot_iff_forall],
     intros h x hx,
     have hfx : f x = 1 := h (f x) ⟨x, hx, rfl⟩,
-    exact hf (show f x = f 1, by simp only [hfx, monoid_hom.map_one]), },
+    exact hf (show f x = f 1, by simp only [hfx, map_one]), },
   { intros h, rw [h, map_bot], },
 end
 
@@ -1081,7 +1081,7 @@ by simp [eq_bot_iff_forall, mem_closure_singleton]
 
 variable (H : add_subgroup A)
 @[simp] lemma coe_smul (x : H) (n : ℕ) : ((nsmul n x : H) : A) = nsmul n x :=
-coe_subtype H ▸ add_monoid_hom.map_nsmul _ _ _
+coe_subtype H ▸ map_nsmul _ _ _
 @[simp] lemma coe_gsmul (x : H) (n : ℤ) : ((n •ℤ x : H) : A) = n •ℤ x :=
 coe_subtype H ▸ add_monoid_hom.map_gsmul _ _ _
 
@@ -1142,8 +1142,8 @@ range_top_iff_surjective.2 hf
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the codomain."]
 def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
-  map_one' := subtype.eq f.map_one,
-  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+  map_one' := subtype.eq (show f 1 = 1, from map_one f),
+  map_mul' := λ x y, subtype.eq (map_mul f x y) }
 
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/
@@ -1168,7 +1168,7 @@ end
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
 def eq_locus (f g : G →* N) : subgroup G :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [map_inv, map_inv, hx],
   .. eq_mlocus f g}
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
@@ -1253,9 +1253,9 @@ noncomputable def lift_of_surjective
   map_mul' :=
   begin
     intros x y,
-    rw [← g.map_mul, ← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
+    rw [← map_mul, ← mul_inv_eq_one, ← map_inv, ← map_mul, ← mem_ker],
     apply hg,
-    rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one, f.map_mul],
+    rw [f.mem_ker, map_mul, map_inv, mul_inv_eq_one, map_mul],
     simp only [classical.some_spec (hf _)],
   end }
 
@@ -1265,9 +1265,9 @@ lemma lift_of_surjective_comp_apply
   (f.lift_of_surjective hf g hg) (f x) = g x :=
 begin
   dsimp [lift_of_surjective],
-  rw [← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
+  rw [← mul_inv_eq_one, ← map_inv, ← map_mul, ← g.mem_ker],
   apply hg,
-  rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one],
+  rw [f.mem_ker, map_mul, map_inv, mul_inv_eq_one],
   simp only [classical.some_spec (hf _)],
 end
 

@@ -341,11 +341,12 @@ variables [has_mul α] [has_mul β] (m : α → β) [is_mul_hom m]
 
 @[to_additive]
 lemma image_mul : m '' (s * t) = m '' s * m '' t :=
-by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, map_mul m] }
+by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right,
+                is_mul_hom.map_mul m] }
 
 @[to_additive]
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
-by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul _ _ _).symm ⟩ }
+by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (is_mul_hom.map_mul _ _ _).symm ⟩ }
 
 end is_mul_hom
 

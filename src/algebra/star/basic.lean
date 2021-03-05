@@ -75,7 +75,7 @@ variables (R)
 
 @[simp] lemma star_one [monoid R] [star_monoid R] : star (1 : R) = 1 :=
 begin
-  have := congr_arg opposite.unop (star_mul_equiv : R ≃* Rᵒᵖ).map_one,
+  have := congr_arg opposite.unop (map_one (star_mul_equiv : R ≃* Rᵒᵖ)),
   rwa [star_mul_equiv_apply, opposite.unop_op, opposite.unop_one] at this,
 end
 
@@ -102,7 +102,7 @@ def star_add_equiv [semiring R] [star_ring R] : R ≃+ R :=
 variables (R)
 
 @[simp] lemma star_zero [semiring R] [star_ring R] : star (0 : R) = 0 :=
-(star_add_equiv : R ≃+ R).map_zero
+show (star_add_equiv : R ≃+ R) 0 = 0, from map_zero _
 
 variables {R}
 
@@ -124,10 +124,10 @@ open_locale big_operators
 end
 
 @[simp] lemma star_neg [ring R] [star_ring R] (r : R) : star (-r) = - star r :=
-(star_add_equiv : R ≃+ R).map_neg _
+map_neg (star_add_equiv : R ≃+ R) r
 
 @[simp] lemma star_sub [ring R] [star_ring R] (r s : R) : star (r - s) = star r - star s :=
-(star_add_equiv : R ≃+ R).map_sub _ _
+map_sub (star_add_equiv : R ≃+ R) r s
 
 @[simp] lemma star_bit0 [ring R] [star_ring R] (r : R) : star (bit0 r) = bit0 (star r) :=
 by simp [bit0]

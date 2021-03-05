@@ -315,14 +315,14 @@ variables [group G] [group H]
 @[to_additive]
 lemma one_ker_inv (f : G → H) [is_group_hom f] {a b : G} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
-  rw [map_mul f, map_inv f] at h,
+  rw [is_mul_hom.map_mul f, map_inv f] at h,
   rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
 end
 
 @[to_additive]
 lemma one_ker_inv' (f : G → H) [is_group_hom f] {a b : G} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
-  rw [map_mul f, map_inv f] at h,
+rw [is_mul_hom.map_mul f, map_inv f] at h,
   apply inv_injective,
   rw eq_inv_of_mul_eq_one h
 end
@@ -330,12 +330,12 @@ end
 @[to_additive]
 lemma inv_ker_one (f : G → H) [is_group_hom f] {a b : G} (h : f a = f b) : f (a * b⁻¹) = 1 :=
 have f a * (f b)⁻¹ = 1, by rw [h, mul_right_inv],
-by rwa [←map_inv f, ←map_mul f] at this
+by rwa [←map_inv f, ←is_mul_hom.map_mul f] at this
 
 @[to_additive]
 lemma inv_ker_one' (f : G → H) [is_group_hom f] {a b : G} (h : f a = f b) : f (a⁻¹ * b) = 1 :=
 have (f a)⁻¹ * f b = 1, by rw [h, mul_left_inv],
-by rwa [←map_inv f, ←map_mul f] at this
+by rwa [←map_inv f, ←is_mul_hom.map_mul f] at this
 
 @[to_additive]
 lemma one_iff_ker_inv (f : G → H) [is_group_hom f] (a b : G) : f a = f b ↔ f (a * b⁻¹) = 1 :=
@@ -357,7 +357,7 @@ by rw [mem_ker]; exact one_iff_ker_inv' _ _ _
 instance image_subgroup (f : G → H) [is_group_hom f] (s : set G) [is_subgroup s] :
   is_subgroup (f '' s) :=
 { mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
-             ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, map_mul f]⟩,
+             ⟨b₁ * b₂, mul_mem hb₁ hb₂, by simp [eq₁, eq₂, is_mul_hom.map_mul f]⟩,
   one_mem := ⟨1, one_mem, map_one f⟩,
   inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw map_inv f; simp *⟩ }
 
@@ -370,12 +370,12 @@ local attribute [simp] one_mem inv_mem mul_mem normal_subgroup.normal
 @[to_additive]
 instance preimage (f : G → H) [is_group_hom f] (s : set H) [is_subgroup s] :
   is_subgroup (f ⁻¹' s) :=
-by refine {..}; simp [map_mul f, map_one f, map_inv f, @inv_mem H _ s] {contextual:=tt}
+by refine {..}; simp [is_mul_hom.map_mul f, map_one f, map_inv f, @inv_mem H _ s] {contextual:=tt}
 
 @[to_additive]
 instance preimage_normal (f : G → H) [is_group_hom f] (s : set H) [normal_subgroup s] :
   normal_subgroup (f ⁻¹' s) :=
-⟨by simp [map_mul f, map_inv f] {contextual:=tt}⟩
+⟨by simp [is_mul_hom.map_mul f, map_inv f] {contextual:=tt}⟩
 
 @[to_additive]
 instance normal_subgroup_ker (f : G → H) [is_group_hom f] : normal_subgroup (ker f) :=

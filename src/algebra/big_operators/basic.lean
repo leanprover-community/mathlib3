@@ -693,7 +693,7 @@ lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [comm_monoid M] (f : α → M) :
   (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
-  apply s.induction_on, { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  apply s.induction_on, { simp only [prod_const_one, count_zero, prod_zero, pow_zero, multiset.map_zero] },
   intros a s ih,
   simp only [prod_cons, map_cons, to_finset_cons, ih],
   by_cases has : a ∈ s.to_finset,

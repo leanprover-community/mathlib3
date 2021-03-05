@@ -225,8 +225,9 @@ namespace add_monoid_hom
 variables {A B : Type*} [add_monoid A]
 
 @[ext] lemma ext_nat {f g : ℕ →+ A} (h : f 1 = g 1) : f = g :=
-ext $ λ n, nat.rec_on n (f.map_zero.trans g.map_zero.symm) $ λ n ihn,
-by simp only [nat.succ_eq_add_one, *, map_add]
+ext $ λ n, nat.rec_on n
+  (calc f 0 = 0 : map_zero f ... = g 0 : (map_zero g).symm) $
+  λ n ihn, by simp only [nat.succ_eq_add_one, *, map_add]
 
 variables [has_one A] [add_monoid B] [has_one B]
 
@@ -244,14 +245,15 @@ namespace ring_hom
 variables {R : Type*} {S : Type*} [semiring R] [semiring S]
 
 @[simp] lemma eq_nat_cast (f : ℕ →+* R) (n : ℕ) : f n = n :=
-f.to_add_monoid_hom.eq_nat_cast f.map_one n
+f.to_add_monoid_hom.eq_nat_cast (show f 1 = 1, from map_one f) n
 
 @[simp] lemma map_nat_cast (f : R →+* S) (n : ℕ) :
   f n = n :=
 (f.comp (nat.cast_ring_hom R)).eq_nat_cast n
 
 lemma ext_nat (f g : ℕ →+* R) : f = g :=
-coe_add_monoid_hom_injective $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
+coe_add_monoid_hom_injective $ add_monoid_hom.ext_nat
+  (calc f 1 = 1 : map_one f ... = g 1 : (map_one g).symm)
 
 end ring_hom
 

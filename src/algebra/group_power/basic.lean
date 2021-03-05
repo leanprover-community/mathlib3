@@ -180,20 +180,23 @@ commute.pow_pow_self a m n
 theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m •ℕ a + n •ℕ a = n •ℕ a + m •ℕ a :=
 @pow_mul_comm (multiplicative A) _
 
-@[simp] theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
+@[simp] theorem map_pow {F} [monoid_hom_class F M N] (f : F) (a : M) :
+  ∀(n : ℕ), f (a ^ n) = (f a) ^ n
 | 0     := map_one f
-| (n+1) := by rw [pow_succ, pow_succ, map_mul, monoid_hom.map_pow]
+| (n+1) := by rw [pow_succ, pow_succ, map_mul, map_pow]
 
-@[simp] theorem add_monoid_hom.map_nsmul (f : A →+ B) (a : A) (n : ℕ) : f (n •ℕ a) = n •ℕ f a :=
-f.to_multiplicative.map_pow a n
+@[simp] theorem map_nsmul {F} [add_monoid_hom_class F A B] (f : F) (a : A) (n : ℕ) :
+  f (n •ℕ a) = n •ℕ f a :=
+show add_monoid_hom.to_multiplicative (f : A →+ B) (multiplicative.of_add a ^ n) = _,
+from map_pow (f : A →+ B).to_multiplicative (multiplicative.of_add a) n
 
 theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
   ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
-(monoid_hom.of f).map_pow a
+map_pow (monoid_hom.of f) a
 
 theorem is_add_monoid_hom.map_nsmul (f : A → B) [is_add_monoid_hom f] (a : A) (n : ℕ) :
   f (n •ℕ a) = n •ℕ f a :=
-(add_monoid_hom.of f).map_nsmul a n
+map_nsmul (add_monoid_hom.of f) a n
 
 lemma commute.mul_pow {a b : M} (h : commute a b) (n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
 nat.rec_on n (by simp) $ λ n ihn,
@@ -377,16 +380,6 @@ end comm_group
 lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
-namespace ring_hom
-
-variables [semiring R] [semiring S]
-
-@[simp] lemma map_pow (f : R →+* S) (a) :
-  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
-f.to_monoid_hom.map_pow a
-
-end ring_hom
-
 theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl rfl
 | (n+1) := (neg_one_pow_eq_or n).swap.imp
@@ -435,7 +428,7 @@ end
 mt pow_eq_zero h
 
 lemma pow_abs [linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
-(abs_hom.to_monoid_hom.map_pow a n).symm
+show abs_hom a ^ n = abs_hom (a ^ n), from (map_pow _ a n).symm
 
 lemma abs_neg_one_pow [linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]

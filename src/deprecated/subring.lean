@@ -44,10 +44,10 @@ def ring_hom.cod_restrict {R : Type u} {S : Type v} [ring R] [ring S] (f : R →
   (s : set S) [is_subring s] (h : ∀ x, f x ∈ s) :
   R →+* s :=
 { to_fun := λ x, ⟨f x, h x⟩,
-  map_add' := λ x y, subtype.eq $ f.map_add x y,
-  map_zero' := subtype.eq f.map_zero,
-  map_mul' := λ x y, subtype.eq $ f.map_mul x y,
-  map_one' := subtype.eq f.map_one }
+  map_add' := λ x y, subtype.eq $ map_add f x y,
+  map_zero' := subtype.eq (show f 0 = 0, from map_zero f),
+  map_mul' := λ x y, subtype.eq $ map_mul f x y,
+  map_one' := subtype.eq (show f 1 = 1, from map_one f) }
 
 /-- Coersion `S → R` as a ring homormorphism-/
 def is_subring.subtype (S : set R) [is_subring S] : S →+* R :=
@@ -189,12 +189,12 @@ le_antisymm
   begin
     rintros _ ⟨x, hx, rfl⟩,
     apply in_closure.rec_on hx; intros,
-    { rw [f.map_one], apply is_submonoid.one_mem },
-    { rw [f.map_neg, f.map_one],
+    { rw map_one, apply is_submonoid.one_mem },
+    { rw [map_neg, map_one],
       apply is_add_subgroup.neg_mem, apply is_submonoid.one_mem },
-    { rw [f.map_mul],
+    { rw map_mul,
       apply is_submonoid.mul_mem; solve_by_elim [subset_closure, set.mem_image_of_mem] },
-    { rw [f.map_add], apply is_add_submonoid.add_mem, assumption' },
+    { rw map_add, apply is_add_submonoid.add_mem, assumption' },
   end
   (closure_subset $ set.image_subset _ subset_closure)
 

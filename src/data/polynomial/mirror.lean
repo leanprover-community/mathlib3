@@ -23,7 +23,7 @@ It is also a coefficient of `p * p.mirror`.
 ## Main results
 
 - `mirror_mul_of_domain`: `mirror` preserves multiplication.
-- `mirror_irreducible_test`: an irreducibility criterion involving `mirror`
+- `irreducible_of_mirror`: an irreducibility criterion involving `mirror`
 - `norm2_eq_mul_reverse_coeff`: `norm2` is a coefficient of `p * p.mirror`
 
 -/
@@ -149,7 +149,7 @@ by rw [←C_mul', ←C_mul', mirror_mul_of_domain, mirror_C]
 lemma mirror_neg {R : Type*} [ring R] (p : polynomial R) : (-p).mirror = -(p.mirror) :=
 by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
-lemma mirror_irreducible_test {R : Type*} [integral_domain R] {f : polynomial R}
+lemma irreducible_of_mirror {R : Type*} [integral_domain R] {f : polynomial R}
   (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)
   (h3 : ∀ g, g ∣ f → g ∣ f.mirror → is_unit g) : irreducible f :=

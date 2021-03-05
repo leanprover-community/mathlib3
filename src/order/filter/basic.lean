@@ -2420,3 +2420,7 @@ h.eventually_eq.filter_mono $ filter.le_principal_iff.2 hl
 
 lemma set.subset.eventually_le {α} {l : filter α} {s t : set α} (h : s ⊆ t) : s ≤ᶠ[l] t :=
 filter.eventually_of_forall h
+
+lemma set.maps_to.tendsto {α β} {s : set α} {t : set β} {f : α → β} (h : maps_to f s t) :
+  filter.tendsto f (𝓟 s) (𝓟 t) :=
+filter.tendsto_principal_principal.2 h

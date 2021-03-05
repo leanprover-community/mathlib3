@@ -457,6 +457,18 @@ begin
   simp,
 end
 
+instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_series σ R)) :=
+⟨⟨⊥, ⊤, begin
+  rw [ne.def, subalgebra.ext_iff, not_forall],
+  inhabit σ,
+  refine ⟨X (default σ), _⟩,
+  simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
+  intros x,
+  rw [ext_iff, not_forall],
+  refine ⟨finsupp.single (default σ) 1, _⟩,
+  simp [algebra_map_apply, coeff_C],
+end⟩⟩
+
 end algebra
 
 section trunc
@@ -1342,6 +1354,9 @@ theorem C_eq_algebra_map {r : R} : C R r = (algebra_map R (power_series R)) r :=
 theorem algebra_map_apply {r : R} :
   algebra_map R (power_series A) r = C A (algebra_map R A r) :=
 mv_power_series.algebra_map_apply
+
+instance [nontrivial R] : nontrivial (subalgebra R (power_series R)) :=
+mv_power_series.subalgebra.nontrivial
 
 end algebra
 

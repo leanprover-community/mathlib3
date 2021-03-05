@@ -505,6 +505,9 @@ theorem C_eq_algebra_map : C = (algebra_map R (hahn_series Γ R)) := rfl
 theorem algebra_map_apply {r : R} :
   algebra_map R (hahn_series Γ A) r = C (algebra_map R A r) := rfl
 
+lemma subalgebra : nontrivial (subalgebra R (hahn_series Γ R)) := sorry
+
+
 end algebra
 
 end multiplication

@@ -352,7 +352,6 @@ def unop (e : Cᵒᵖ ≌ Dᵒᵖ) : C ≌ D :=
   functor_unit_iso_comp' := λ X, by { apply has_hom.hom.op_inj, dsimp, simp, }, }
 
 end equivalence
-set_option trace.simps.verbose true
 
 /-- The equivalence between arrows of the form `A ⟶ B` and `B.unop ⟶ A.unop`. Useful for building
 adjunctions.
@@ -368,7 +367,7 @@ def op_equiv''' (A B : C) : (opposite.op A ⟶ opposite.op B) ≃ (B ⟶ A) :=
 op_equiv _ _
 ```
 -/
-def op_equiv (A B : Cᵒᵖ) : (A ⟶ B) ≃ (B.unop ⟶ A.unop) :=
+@[simps] def op_equiv (A B : Cᵒᵖ) : (A ⟶ B) ≃ (B.unop ⟶ A.unop) :=
 { to_fun := λ f, f.unop,
   inv_fun := λ g, g.op,
   left_inv := λ _, rfl,

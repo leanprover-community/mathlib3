@@ -194,8 +194,8 @@ theorem maps_to_range (f : α → β) (s : set α) : maps_to f s (range f) :=
 ⟨λ h a, h (mem_univ _), λ h x _, h x⟩
 
 @[simp] lemma maps_range_to (f : α → β) (g : γ → α) (s : set β) :
-  maps_to f (range g) s ↔ maps_to f univ s :=
-by simp [←image_univ]
+  maps_to f (range g) s ↔ maps_to (f ∘ g) univ s :=
+by rw [←image_univ, maps_image_to]
 
 theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
   surjective ((maps_to_image f s).restrict f s (f '' s)) :=

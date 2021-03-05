@@ -890,6 +890,8 @@ theorem diff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
 @[simp] theorem diff_empty {s : set α} : s \ ∅ = s :=
 ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 
+@[simp] lemma diff_univ (s : set α) : s \ univ = ∅ := diff_eq_empty.2 (subset_univ s)
+
 theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 ext $ by simp [not_or_distrib, and.comm, and.left_comm]
 
@@ -1007,6 +1009,50 @@ theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
 
 @[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
 ext $ λ s, subset_empty_iff
+
+/-! ### If-then-else  for sets -/
+
+/-- `ite` for sets: `set_ite t s s' ∩ t = s ∩ t`, `set_ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
+Defined as `s ∩ t ∪ s' \ t`. -/
+def set_ite (t s s' : set α) : set α := s ∩ t ∪ s' \ t
+
+@[simp] lemma set_ite_inter_self (t s s' : set α) : set_ite t s s' ∩ t = s ∩ t :=
+by rw [set_ite, union_inter_distrib_right, diff_inter_self, inter_assoc, inter_self, union_empty]
+
+@[simp] lemma set_ite_compl (t s s' : set α) : set_ite tᶜ s s' = set_ite t s' s :=
+by rw [set_ite, set_ite, diff_compl, union_comm, diff_eq]
+
+@[simp] lemma set_ite_inter_compl_self (t s s' : set α) : set_ite t s s' ∩ tᶜ = s' ∩ tᶜ :=
+by rw [← set_ite_compl, set_ite_inter_self]
+
+@[simp] lemma set_ite_diff_self (t s s' : set α) : set_ite t s s' \ t = s' \ t :=
+set_ite_inter_compl_self t s s'
+
+@[simp] lemma set_ite_same (t s : set α) : set_ite t s s = s := inter_union_diff _ _
+
+@[simp] lemma set_ite_empty (s s' : set α) : set_ite ∅ s s' = s' :=
+by simp [set_ite]
+
+@[simp] lemma set_ite_univ (s s' : set α) : set_ite univ s s' = s :=
+by simp [set_ite]
+
+lemma set_ite_mono (t : set α) {s₁ s₁' s₂ s₂' : set α} (h : s₁ ⊆ s₂) (h' : s₁' ⊆ s₂') :
+  set_ite t s₁ s₁' ⊆ set_ite t s₂ s₂' :=
+union_subset_union (inter_subset_inter_left _ h) (inter_subset_inter_left _ h')
+
+lemma set_ite_subset_union (t s s' : set α) : set_ite t s s' ⊆ s ∪ s' :=
+union_subset_union (inter_subset_left _ _) (diff_subset _ _)
+
+lemma inter_subset_set_ite (t s s' : set α) : s ∩ s' ⊆ set_ite t s s' :=
+set_ite_same t (s ∩ s') ▸ set_ite_mono _ (inter_subset_left _ _) (inter_subset_right _ _)
+
+lemma set_ite_inter_inter (t s₁ s₂ s₁' s₂' : set α) :
+  set_ite t (s₁ ∩ s₂) (s₁' ∩ s₂') = set_ite t s₁ s₁' ∩ set_ite t s₂ s₂' :=
+by { ext x, finish [set_ite, iff_def] }
+
+lemma set_ite_inter (t s₁ s₂ s : set α) :
+  set_ite t (s₁ ∩ s) (s₂ ∩ s) = set_ite t s₁ s₂ ∩ s :=
+by rw [set_ite_inter_inter, set_ite_same]
 
 /-! ### Inverse image -/
 

@@ -86,26 +86,45 @@ f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_per
   (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
-lemma perm_on_inr_of_perm_on_inl {m n : Type u} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n))
+lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n)) :
+  set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔ set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
+begin
+  split; id {
+    intros h,
+    classical,
+    rw ←perm_inv_maps_to_iff_maps_to at h,
+    intro x,
+    cases hx : σ x with l r, },
+  { rintros ⟨a, rfl⟩,
+    obtain ⟨y, hy⟩ := h ⟨l, rfl⟩,
+    rw [←hx, σ.inv_apply_self] at hy,
+    exact absurd hy sum.inl_ne_inr},
+  { rintros ⟨a, ha⟩, exact ⟨r, rfl⟩, },
+  { rintros ⟨a, ha⟩, exact ⟨l, rfl⟩, },
+  { rintros ⟨a, rfl⟩,
+    obtain ⟨y, hy⟩ := h ⟨r, rfl⟩,
+    rw [←hx, σ.inv_apply_self] at hy,
+    exact absurd hy sum.inr_ne_inl},
+end
+
+/- TODO: move this -/
+lemma set.maps_to_range_iff {α β γ : Type*} (f : α → β) (g : γ → α) (h : set β) :
+  set.maps_to f (set.range g) h ↔ ∀ c : γ, f (g c) ∈ h :=
+⟨λ h c, h ⟨c, rfl⟩, λ h d ⟨c, hc⟩, hc ▸ h c⟩
+
+lemma perm_on_inl_iff_perm_on_inr {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n)) :
+  (∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) ↔ ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
+begin
+  have := perm_maps_to_inl_iff_maps_to_inr σ,
+  rw [set.maps_to_range_iff, set.maps_to_range_iff] at this,
+  exact this,
+end
+
+/- TODO: remove this -/
+lemma perm_on_inr_of_perm_on_inl {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n))
   (h : ∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) : ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
 begin
-  classical,
-  intro b,
-  generalize hx : σ (sum.inr b) = x,
-  cases x with a0 b0,
-  { have hl : σ⁻¹ (sum.inl a0) ∈ univ.filter (λ x, ∃ a, @sum.inl m n a = x),
-    { apply perm_inv_on_of_perm_on_finset,
-      { intro x, rw mem_filter, intro hx,
-        obtain ⟨a1, ha1⟩ := hx.right,
-        rw mem_filter,
-        refine ⟨mem_univ _, _⟩,
-        rw ← ha1, exact h a1 },
-      { rw mem_filter, refine ⟨mem_univ _, _⟩, use a0 }},
-    rw mem_filter at hl,
-    obtain ⟨a1, ha1⟩ := hl.right,
-    rw ← eq_inv_iff_eq.mpr hx at ha1,
-    apply absurd ha1 sum.inl_ne_inr },
-  { use b0 }
+  exact (perm_on_inl_iff_perm_on_inr σ).mp
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,

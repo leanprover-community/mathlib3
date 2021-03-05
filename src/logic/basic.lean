@@ -784,6 +784,7 @@ by simp [decidable.not_not]
 
 @[simp] theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := decidable.not_exists_not
 
+-- TODO: duplicate of a lemma in core
 theorem forall_true_iff : (α → true) ↔ true :=
 implies_true_iff α
 

@@ -22,13 +22,17 @@ prefix `!`:90 := bnot
 
 namespace bool
 
+-- TODO: duplicate of a lemma in core
 theorem coe_sort_tt : coe_sort.{1 1} tt = true := coe_sort_tt
 
+-- TODO: duplicate of a lemma in core
 theorem coe_sort_ff : coe_sort.{1 1} ff = false := coe_sort_ff
 
+-- TODO: duplicate of a lemma in core
 theorem to_bool_true {h} : @to_bool true h = tt :=
 to_bool_true_eq_tt h
 
+-- TODO: duplicate of a lemma in core
 theorem to_bool_false {h} : @to_bool false h = ff :=
 to_bool_false_eq_ff h
 

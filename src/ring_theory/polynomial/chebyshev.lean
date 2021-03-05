@@ -15,17 +15,17 @@ with integral coefficients.
 
 ## Main definitions
 
-* `chebyshev.T`: the Chebyshev polynomials of the first kind.
-* `chebyshev.U`: the Chebyshev polynomials of the second kind.
+* `polynomial.chebyshev.T`: the Chebyshev polynomials of the first kind.
+* `polynomial.chebyshev.U`: the Chebyshev polynomials of the second kind.
 
 ## Main statements
 
 * The formal derivative of the Chebyshev polynomials of the first kind is a scalar multiple of the
   Chebyshev polynomials of the second kind.
-* `chebyshev.mul_T`, the product of the `m`-th and `(m + k)`-th Chebyshev polynomials of
+* `polynomial.chebyshev.mul_T`, the product of the `m`-th and `(m + k)`-th Chebyshev polynomials of
   the first kind is the sum of the `(2 * m + k)`-th and `k`-th Chebyshev polynomials of the first
   kind.
-* `chebyshev.T_mul`, the `(m * n)`-th Chebyshev polynomial of the first kind is the
+* `polynomial.chebyshev.T_mul`, the `(m * n)`-th Chebyshev polynomial of the first kind is the
   composition of the `m`-th and `n`-th Chebyshev polynomials of the first kind.
 
 ## Implementation details
@@ -45,16 +45,13 @@ and do not have `map (int.cast_ring_hom R)` interfering all the time.
 
 * Redefine and/or relate the definition of Chebyshev polynomials to `linear_recurrence`.
 * Add explicit formula involving square roots for Chebyshev polynomials
-  `ring_theory.polynomial.chebyshev.basic`.
 * Compute zeroes and extrema of Chebyshev polynomials.
 * Prove that the roots of the Chebyshev polynomials (except 0) are irrational.
 * Prove minimax properties of Chebyshev polynomials.
 -/
 
-
 noncomputable theory
-
-namespace chebyshev
+namespace polynomial.chebyshev
 
 open polynomial
 
@@ -94,13 +91,7 @@ begin
   rw [map_T (n + 1), map_T n],
 end
 
-end chebyshev
-
-namespace chebyshev
-
-open polynomial
-
-variables (R S : Type*) [comm_ring R] [comm_ring S]
+variables (R S)
 
 /-- `U n` is the `n`-th Chebyshev polynomial of the second kind -/
 noncomputable def U : ℕ → polynomial R
@@ -283,4 +274,4 @@ lemma T_mul :
   simp [this, T_mul m, ← T_mul (m + 1)]
 end
 
-end chebyshev
+end polynomial.chebyshev

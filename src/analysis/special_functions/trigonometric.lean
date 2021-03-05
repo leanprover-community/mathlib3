@@ -2864,7 +2864,7 @@ lemma differentiable.clog {f : E → ℂ} (h₁ : differentiable ℂ f)
 
 end log_deriv
 
-namespace chebyshev
+namespace polynomial.chebyshev
 
 open polynomial complex
 
@@ -2910,7 +2910,7 @@ lemma sin_nat_succ_mul (n : ℕ) (θ : ℂ) :
   sin ((n + 1) * θ) = (U ℂ n).eval (cos θ) * sin θ :=
 (U_complex_cos θ n).symm
 
-end chebyshev
+end polynomial.chebyshev
 
 namespace real
 open_locale real

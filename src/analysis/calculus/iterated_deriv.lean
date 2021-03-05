@@ -135,7 +135,7 @@ lemma times_cont_diff_on_of_differentiable_on_deriv {n : with_top ℕ}
 begin
   apply times_cont_diff_on_of_differentiable_on,
   simpa [iterated_fderiv_within_eq_equiv_comp,
-    continuous_linear_equiv.comp_differentiable_on_iff, -coe_fn_coe_base],
+    continuous_linear_equiv.comp_differentiable_on_iff],
 end
 
 /-- On a set with unique derivatives, a `C^n` function has derivatives up to `n` which are
@@ -144,8 +144,7 @@ lemma times_cont_diff_on.continuous_on_iterated_deriv_within {n : with_top ℕ} 
   (h : times_cont_diff_on 𝕜 n f s) (hmn : (m : with_top ℕ) ≤ n) (hs : unique_diff_on 𝕜 s) :
   continuous_on (iterated_deriv_within m f s) s :=
 begin
-  simp [iterated_deriv_within_eq_equiv_comp, continuous_linear_equiv.comp_continuous_on_iff,
-    -coe_fn_coe_base],
+  simp [iterated_deriv_within_eq_equiv_comp, continuous_linear_equiv.comp_continuous_on_iff],
   exact h.continuous_on_iterated_fderiv_within hmn hs
 end
 
@@ -155,8 +154,7 @@ lemma times_cont_diff_on.differentiable_on_iterated_deriv_within {n : with_top �
   (h : times_cont_diff_on 𝕜 n f s) (hmn : (m : with_top ℕ) < n) (hs : unique_diff_on 𝕜 s) :
   differentiable_on 𝕜 (iterated_deriv_within m f s) s :=
 begin
-  simp [iterated_deriv_within_eq_equiv_comp, continuous_linear_equiv.comp_differentiable_on_iff,
-    -coe_fn_coe_base],
+  simp [iterated_deriv_within_eq_equiv_comp, continuous_linear_equiv.comp_differentiable_on_iff],
   exact h.differentiable_on_iterated_fderiv_within hmn hs
 end
 

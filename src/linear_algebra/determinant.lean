@@ -413,7 +413,7 @@ begin
     have h2 : ∀ (x : m ⊕ n), (∃ (b : n), sum.inr b = x) → (∃ (b : n), sum.inr b = σ x),
     { rintros x ⟨b, hb⟩,
       rw ← hb,
-      exact perm_on_inr_of_perm_on_inl σ ((@mem_preserving_A σ).mp hσ) b },
+      exact (perm_on_inl_iff_perm_on_inr σ).mp ((@mem_preserving_A σ).mp hσ) b },
     let σ₁' := subtype_perm_of_fintype σ h1,
     let σ₂' := subtype_perm_of_fintype σ h2,
     let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.injective_inl).symm σ₁',

@@ -109,24 +109,12 @@ begin
     exact absurd hy sum.inr_ne_inl},
 end
 
-/- TODO: move this -/
-lemma set.maps_to_range_iff {α β γ : Type*} (f : α → β) (g : γ → α) (h : set β) :
-  set.maps_to f (set.range g) h ↔ ∀ c : γ, f (g c) ∈ h :=
-⟨λ h c, h ⟨c, rfl⟩, λ h d ⟨c, hc⟩, hc ▸ h c⟩
-
 lemma perm_on_inl_iff_perm_on_inr {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n)) :
   (∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) ↔ ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
 begin
   have := perm_maps_to_inl_iff_maps_to_inr σ,
   rw [set.maps_to_range_iff, set.maps_to_range_iff] at this,
   exact this,
-end
-
-/- TODO: remove this -/
-lemma perm_on_inr_of_perm_on_inl {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n))
-  (h : ∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) : ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
-begin
-  exact (perm_on_inl_iff_perm_on_inr σ).mp h
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,

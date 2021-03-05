@@ -179,32 +179,32 @@ open is_scalar_tower
 namespace alg_hom
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
-def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
+def restrict_scalars (f : A →ₐ[S] B) : A →ₐ[R] B :=
 { commutes' := λ r, by { rw [algebra_map_apply R S A, algebra_map_apply R S B],
     exact f.commutes (algebra_map R S r) },
   .. (f : A →+* B) }
 
-lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : f.restrict_base R x = f x := rfl
+lemma restrict_scalars_apply (f : A →ₐ[S] B) (x : A) : f.restrict_scalars R x = f x := rfl
 
-@[simp] lemma coe_restrict_base (f : A →ₐ[S] B) : (f.restrict_base R : A →+* B) = f := rfl
+@[simp] lemma coe_restrict_scalars (f : A →ₐ[S] B) : (f.restrict_scalars R : A →+* B) = f := rfl
 
-@[simp] lemma coe_restrict_base' (f : A →ₐ[S] B) : (restrict_base R f : A → B) = f := rfl
+@[simp] lemma coe_restrict_scalars' (f : A →ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
 
 end alg_hom
 
 namespace alg_equiv
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
-def restrict_base (f : A ≃ₐ[S] B) : A ≃ₐ[R] B :=
+def restrict_scalars (f : A ≃ₐ[S] B) : A ≃ₐ[R] B :=
 { commutes' := λ r, by { rw [algebra_map_apply R S A, algebra_map_apply R S B],
     exact f.commutes (algebra_map R S r) },
   .. (f : A ≃+* B) }
 
-lemma restrict_base_apply (f : A ≃ₐ[S] B) (x : A) : f.restrict_base R x = f x := rfl
+lemma restrict_scalars_apply (f : A ≃ₐ[S] B) (x : A) : f.restrict_scalars R x = f x := rfl
 
-@[simp] lemma coe_restrict_base (f : A ≃ₐ[S] B) : (f.restrict_base R : A ≃+* B) = f := rfl
+@[simp] lemma coe_restrict_scalars (f : A ≃ₐ[S] B) : (f.restrict_scalars R : A ≃+* B) = f := rfl
 
-@[simp] lemma coe_restrict_base' (f : A ≃ₐ[S] B) : (restrict_base R f : A → B) = f := rfl
+@[simp] lemma coe_restrict_scalars' (f : A ≃ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
 
 end alg_equiv
 

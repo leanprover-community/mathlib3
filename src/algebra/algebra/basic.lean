@@ -1048,16 +1048,16 @@ variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra S B]
 include R
 
-/-- R ⟶ S induces S-Alg ⥤ R-Alg.#print
+/-- R ⟶ S induces S-Alg ⥤ R-Alg.
 
-See `alg_hom.restrict_base` for the version that uses `is_scalar_tower` instead of `comap`. -/
+See `alg_hom.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
 def alg_hom.comap (φ : A →ₐ[S] B) : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
 { commutes' := λ r, φ.commutes (algebra_map R S r)
   ..φ }
 
 /-- `alg_hom.comap` for `alg_equiv`.
 
-See `alg_equiv.restrict_base` for the version that uses `is_scalar_tower` instead of `comap`. -/
+See `alg_equiv.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
 def alg_equiv.comap (φ : A ≃ₐ[S] B) : algebra.comap R S A ≃ₐ[R] algebra.comap R S B :=
 { commutes' := λ r, φ.commutes (algebra_map R S r)
   ..φ }

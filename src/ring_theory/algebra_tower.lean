@@ -263,7 +263,7 @@ def alg_hom_equiv_sigma :
   (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra :=
 { to_fun := λ f, ⟨f.restrict_domain B, f.extend_scalars B⟩,
   inv_fun := λ fg,
-    let alg := fg.1.to_ring_hom.to_algebra in by exactI fg.2.restrict_base A,
+    let alg := fg.1.to_ring_hom.to_algebra in by exactI fg.2.restrict_scalars A,
   left_inv := λ f, by { dsimp only, ext, refl },
   right_inv :=
   begin

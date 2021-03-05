@@ -1205,12 +1205,6 @@ begin
   { simp }
 end
 
-lemma span_singleton_is_compl_orthogonal {B : bilin_form K V}
-  (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
-  is_compl (K ∙ x) (B.orthogonal (K ∙ x)) :=
-⟨le_bot_iff.2 $ span_singleton_inf_orthogonal_eq_bot hx,
-  top_le_iff.2 $ span_singleton_sup_orthogonal_eq_top hB hx⟩
-
 /-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
@@ -1219,17 +1213,8 @@ lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
 { inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
   top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hB hx }
 
-/-- The natural isomorphism between a singleton and the quotient by its orthogonal complement. -/
-noncomputable def quotient_equiv_of_ortho_singleton
-  {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
-submodule.quotient_equiv_of_is_compl _ _ (is_compl_span_singleton_orthogonal hB hx)
-
-/-- The natural isomorphism from the product between a singleton and its orthogonal component
-  and the whole space. -/
-noncomputable def prod_equiv_of_ortho_singleton
-  {B : bilin_form K V} (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :=
-submodule.prod_equiv_of_is_compl _ _ (is_compl_span_singleton_orthogonal hB hx)
-
+/-- The restriction of a non-degenerate bilinear form on the orthogonal complement of the
+  span of a singleton is also non-degenerate. -/
 lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V) (hB₁ : nondegenerate B)
   (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
@@ -1262,7 +1247,7 @@ begin
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
       rw [← submodule.findim_add_eq_of_is_compl
-            (span_singleton_is_compl_orthogonal hB₂ hx).symm,
+            (is_compl_span_singleton_orthogonal hB₂ hx).symm,
           findim_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
       rcases @ih (B.orthogonal $ K ∙ x) _ _ _
         (B.restrict _) (B.restrict_ortho_singleton_nondegenerate hB₁ hB₂ hx)

@@ -25,16 +25,16 @@ set_option default_priority 100 -- see Note [default priority]
 
 /-- A smooth semiring is a semiring where addition and multiplication are smooth. -/
 class smooth_semiring (I : model_with_corners 𝕜 E H)
-  (R : Type*) [semiring R] [topological_space R] [topological_semiring R] [charted_space H R]
+  (R : Type*) [semiring R] [topological_space R] [charted_space H R]
   extends has_smooth_add I R, has_smooth_mul I R : Prop
 
 /-- A smooth ring is a ring where the ring operations are smooth. -/
 class smooth_ring (I : model_with_corners 𝕜 E H)
-  (R : Type*) [ring R] [topological_space R] [topological_ring R] [charted_space H R]
+  (R : Type*) [ring R] [topological_space R] [charted_space H R]
   extends lie_add_group I R, has_smooth_mul I R : Prop
 
 instance smooth_ring.to_smooth_semiring {I : model_with_corners 𝕜 E H}
-  {R : Type*} [ring R] [topological_space R] [topological_ring R]
+  {R : Type*} [ring R] [topological_space R]
   [charted_space H R] [t : smooth_ring I R] :
   smooth_semiring I R := { ..t }
 

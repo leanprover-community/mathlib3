@@ -65,10 +65,10 @@ end multiplicative
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
 
-instance [h : nontrivial α] : nontrivial (additive α) :=
+instance [nontrivial α] : nontrivial (additive α) :=
 additive.of_mul.injective.nontrivial
 
-instance [h : nontrivial α] : nontrivial (multiplicative α) :=
+instance [nontrivial α] : nontrivial (multiplicative α) :=
 multiplicative.of_add.injective.nontrivial
 
 instance additive.has_add [has_mul α] : has_add (additive α) :=

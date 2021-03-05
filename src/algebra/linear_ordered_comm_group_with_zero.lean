@@ -35,6 +35,15 @@ class linear_ordered_comm_group_with_zero (α : Type*)
 variables {α : Type*}
 variables {a b c d x y z : α}
 
+instance [linear_ordered_add_comm_monoid_with_top α] :
+  linear_ordered_comm_monoid_with_zero (multiplicative (order_dual α)) :=
+{ zero := multiplicative.of_add (⊤ : α),
+  zero_mul := top_add,
+  mul_zero := add_top,
+  zero_le_one := (le_top : (0 : α) ≤ ⊤),
+  ..multiplicative.ordered_comm_monoid,
+  ..multiplicative.linear_order }
+
 section linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_monoid_with_zero α]
@@ -122,6 +131,13 @@ lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 
 lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 λ h1, not_lt_zero' $ show b < 0, from h1 ▸ h
+
+instance : linear_ordered_add_comm_monoid_with_top (additive (order_dual α)) :=
+{ top := (0 : α),
+  top_add' := λ a, (zero_mul a : (0 : α) * a = 0),
+  le_top := λ _, zero_le',
+  ..additive.ordered_add_comm_monoid,
+  ..additive.linear_order }
 
 end linear_ordered_comm_monoid
 

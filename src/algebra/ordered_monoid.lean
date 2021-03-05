@@ -1182,7 +1182,7 @@ def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
   linear_ordered_cancel_comm_monoid β :=
-{ ..linear_order.lift f hf,
+{ ..hf.linear_ordered_comm_monoid f one mul,
   ..hf.ordered_cancel_comm_monoid f one mul }
 
 end linear_ordered_cancel_comm_monoid

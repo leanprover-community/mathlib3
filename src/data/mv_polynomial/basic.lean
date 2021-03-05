@@ -110,7 +110,7 @@ instance [semiring R] [semiring S₁][comm_semiring S₂]
   [semimodule R S₂] [semimodule S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
-instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :algebra R (mv_polynomial σ S₁) :=
+instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
 
 end instances

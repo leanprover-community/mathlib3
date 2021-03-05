@@ -22,11 +22,9 @@ groups here are not necessarily finite dimensional.
 * `lie_add_group I G` : a Lie additive group where `G` is a manifold on the model with corners `I`.
 * `lie_group I G`     : a Lie multiplicative group where `G` is a manifold on the model with
                         corners `I`.
-* `lie_add_group_morphism I I' G G'`  : morphism of addittive Lie groups
-* `lie_group_morphism I I' G G'`      : morphism of Lie groups
+* `normed_space_lie_group` : a normed vector space over a nondiscrete normed field is a Lie group
 
 ## Implementation notes
-A priori, a Lie group here is a manifold with corners.
 
 The definition of Lie group cannot require `I : model_with_corners 𝕜 E E` with the same space as the
 model space and as the model vector space, as one might hope, beause in the product situation,

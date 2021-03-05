@@ -541,7 +541,9 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 def coe_add_hom [add_monoid α] : α →+ with_top α :=
 ⟨coe, rfl, λ _ _, rfl⟩
 
-@[simp] lemma coe_coe_add_hom [add_monoid α] : ⇑(coe_add_hom : α →+ with_top α) = coe := rfl
+@[simp] lemma coe_coe_add_hom [add_monoid α] :
+  ((coe_add_hom : α →+ with_top α) : α → with_top α) = coe :=
+rfl
 
 @[simp] lemma zero_lt_top [ordered_add_comm_monoid α] : (0 : with_top α) < ⊤ :=
 coe_lt_top 0

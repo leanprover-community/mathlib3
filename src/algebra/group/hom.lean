@@ -74,7 +74,9 @@ class to_fun (F : Type*) (α β : out_param Type*)  :=
 
 variables {F α β : Type*}
 
-instance is_hom.to_coe_fn [to_fun F α β] : has_coe_to_fun F :=
+@[priority 900, -- See library note [lower instance priority]
+  nolint dangerous_instance] -- `α` and `β` are out_params, so this instance should not be dangerous
+instance to_fun.to_coe_fn [to_fun F α β] : has_coe_to_fun F :=
 { F := λ _, α → β,
   coe := to_fun.coe }
 
@@ -268,7 +270,7 @@ instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
   map_one := monoid_hom.map_one' }
 
 @[to_additive]
-instance [mh : monoid_hom_class F M N] : has_coe F (M →* N) :=
+instance [mh : monoid_hom_class F M N] : has_coe_t F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
 
 end monoid
@@ -288,7 +290,7 @@ you should parametrize over `(F : Type*) [monoid_with_zero_hom_class F M N] (f :
 When you extend this structure, make sure to extend `monoid_with_zero_hom_class`.
 -/
 structure monoid_with_zero_hom (M : Type*) (N : Type*) [monoid_with_zero M] [monoid_with_zero N]
-  extends monoid_hom M N, zero_hom M N
+  extends zero_hom M N, monoid_hom M N
 
 attribute [nolint doc_blame] monoid_with_zero_hom.to_monoid_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_zero_hom
@@ -342,6 +344,10 @@ lemma monoid_with_zero_hom.coe_eq_to_monoid_hom {mM : monoid_with_zero M} {mN : 
 @[simp]
 lemma monoid_with_zero_hom.coe_eq_to_zero_hom {mM : monoid_with_zero M} {mN : monoid_with_zero N}
   (f : monoid_with_zero_hom M N) : (f : zero_hom M N) = f.to_zero_hom := rfl
+
+-- TODO: why do we need to remind `simps` that `coe_fn` exists?
+@[to_additive]
+def monoid_hom.simps.to_fun {M N : Type*} [monoid M] [monoid N] : (M →* N) → M → N := coe_fn
 
 -- these must come after the coe_to_fun definitions
 initialize_simps_projections zero_hom (to_fun → apply)
@@ -554,14 +560,15 @@ def one_hom.comp [has_one M] [has_one N] [has_one P]
 def mul_hom.comp [has_mul M] [has_mul N] [has_mul P]
   (hnp : mul_hom N P) (hmn : mul_hom M N) : mul_hom M P :=
 { to_fun := hnp ∘ hmn, map_mul' := by simp, }
+
 /-- Composition of monoid morphisms as a monoid morphism. -/
 @[to_additive]
 def monoid_hom.comp [monoid M] [monoid N] [monoid P] (hnp : N →* P) (hmn : M →* N) : M →* P :=
-{ to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
+{ to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp }
 /-- Composition of `monoid_with_zero_hom`s as a `monoid_with_zero_hom`. -/
 def monoid_with_zero_hom.comp [monoid_with_zero M] [monoid_with_zero N] [monoid_with_zero P]
   (hnp : monoid_with_zero_hom N P) (hmn : monoid_with_zero_hom M N) : monoid_with_zero_hom M P :=
-{ to_fun := hnp ∘ hmn, map_zero' := by simp, map_one' := by simp, map_mul' := by simp, }
+{ to_fun := hnp ∘ hmn, map_zero' := by simp, map_one' := by simp, map_mul' := by simp }
 
 /-- Composition of `zero_hom`s as a `zero_hom`. -/
 add_decl_doc zero_hom.comp

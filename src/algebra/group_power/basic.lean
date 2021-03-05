@@ -181,8 +181,8 @@ theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m •ℕ a + n •ℕ a = n �
 @pow_mul_comm (multiplicative A) _
 
 @[simp] theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
-| 0     := f.map_one
-| (n+1) := by rw [pow_succ, pow_succ, f.map_mul, monoid_hom.map_pow]
+| 0     := map_one f
+| (n+1) := by rw [pow_succ, pow_succ, map_mul, monoid_hom.map_pow]
 
 @[simp] theorem add_monoid_hom.map_nsmul (f : A →+ B) (a : A) (n : ℕ) : f (n •ℕ a) = n •ℕ f a :=
 f.to_multiplicative.map_pow a n

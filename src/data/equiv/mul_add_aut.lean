@@ -37,6 +37,9 @@ namespace mul_aut
 
 variables (M) [has_mul M]
 
+@[to_additive]
+instance : mul_hom_class (mul_aut M) M M := mul_equiv.mul_hom_class M M
+
 /--
 The group operation on multiplicative automorphisms is defined by
 `λ g h, mul_equiv.trans h g`.
@@ -52,8 +55,10 @@ intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (mul_aut M) := ⟨1⟩
 
-@[simp] lemma coe_mul (e₁ e₂ : mul_aut M) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
-@[simp] lemma coe_one : ⇑(1 : mul_aut M) = id := rfl
+example : has_coe_to_fun (mul_aut M) := infer_instance
+
+@[simp] lemma coe_mul (e₁ e₂ : mul_aut M) : ((e₁ * e₂ : mul_aut M) : M → M) = e₁ ∘ e₂ := rfl
+@[simp] lemma coe_one : ((1 : mul_aut M) : M → M) = id := rfl
 
 lemma mul_def (e₁ e₂ : mul_aut M) : e₁ * e₂ = e₂.trans e₁ := rfl
 lemma one_def : (1 : mul_aut M) = mul_equiv.refl _ := rfl
@@ -108,8 +113,8 @@ intros; ext; try { refl }; apply equiv.left_inv
 
 instance : inhabited (add_aut A) := ⟨1⟩
 
-@[simp] lemma coe_mul (e₁ e₂ : add_aut A) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
-@[simp] lemma coe_one : ⇑(1 : add_aut A) = id := rfl
+@[simp] lemma coe_mul (e₁ e₂ : add_aut A) : ((e₁ * e₂ : add_aut A) : A → A) = e₁ ∘ e₂ := rfl
+@[simp] lemma coe_one : ((1 : add_aut A) : A → A) = id := rfl
 
 lemma mul_def (e₁ e₂ : add_aut A) : e₁ * e₂ = e₂.trans e₁ := rfl
 lemma one_def : (1 : add_aut A) = add_equiv.refl _ := rfl

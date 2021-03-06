@@ -28,19 +28,20 @@ boolean ring, boolean algebra
 
 /-- A Boolean ring is a ring where multiplication is idempotent. -/
 class boolean_ring α extends ring α :=
-(mul_idem : ∀ a : α, a * a = a)
+(mul_self : ∀ a : α, a * a = a)
 
 section boolean_ring
-open boolean_ring
 variables {α : Type*} [boolean_ring α] (a b : α)
 
-instance : is_idempotent α (*) := ⟨mul_idem⟩
+instance : is_idempotent α (*) := ⟨boolean_ring.mul_self⟩
+
+@[simp] lemma mul_self : a * a = a := boolean_ring.mul_self _
 
 @[simp] lemma add_self : a + a = 0 :=
 have a + a = a + a + (a + a) :=
-  calc a + a = (a+a) * (a+a)           : by rw mul_idem
+  calc a + a = (a+a) * (a+a)           : by rw mul_self
          ... = a*a + a*a + (a*a + a*a) : by rw [add_mul, mul_add]
-         ... = a + a + (a + a)         : by rw mul_idem,
+         ... = a + a + (a + a)         : by rw mul_self,
 by rwa self_eq_add_left at this
 
 @[simp] lemma neg_eq : -a = a :=
@@ -54,9 +55,9 @@ calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
 
 lemma mul_add_mul : a*b + b*a = 0 :=
 have a + b = a + b + (a*b + b*a) :=
-  calc a + b = (a + b) * (a + b)       : by rw mul_idem
+  calc a + b = (a + b) * (a + b)       : by rw mul_self
          ... = a*a + a*b + (b*a + b*b) : by rw [add_mul, mul_add, mul_add]
-         ... = a + a*b + (b*a + b)     : by simp only [mul_idem]
+         ... = a + a*b + (b*a + b)     : by simp only [mul_self]
          ... = a + b + (a*b + b*a)     : by abel,
 by rwa self_eq_add_right at this
 
@@ -91,9 +92,9 @@ lemma sup_assoc (a b c : α) : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) := by { dsimp onl
 lemma inf_assoc (a b c : α) : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) := by { dsimp only [(⊓)], ring }
 
 lemma sup_inf_self (a b : α) : a ⊔ a ⊓ b = a :=
-by { dsimp only [(⊔), (⊓)], assoc_rw [mul_idem, add_self, add_zero] }
+by { dsimp only [(⊔), (⊓)], assoc_rw [mul_self, add_self, add_zero] }
 lemma inf_sup_self (a b : α) : a ⊓ (a ⊔ b) = a :=
-by { dsimp only [(⊔), (⊓)], assoc_rw [mul_add, mul_add, mul_idem, mul_idem, add_self, add_zero] }
+by { dsimp only [(⊔), (⊓)], assoc_rw [mul_add, mul_add, mul_self, mul_self, add_self, add_zero] }
 
 lemma le_sup_inf_aux (a b c : α) : (a + b + a * b) * (a + c + a * c) = a + b * c + a * (b * c) :=
 calc (a + b + a * b) * (a + c + a * c) =
@@ -101,10 +102,10 @@ calc (a + b + a * b) * (a + c + a * c) =
           (a * b + (a * a) * b) +
           (a * c + (a * a) * c) +
           (a * b * c + (a * a) * b * c) : by ring
-... = a + b * c + a * (b * c)           : by simp only [mul_idem, add_self, add_zero]
+... = a + b * c + a * (b * c)           : by simp only [mul_self, add_self, add_zero]
 
 lemma le_sup_inf (a b c : α) : (a ⊔ b) ⊓ (a ⊔ c) ⊔ (a ⊔ b ⊓ c) = a ⊔ b ⊓ c :=
-by { dsimp only [(⊔), (⊓)], rw [le_sup_inf_aux, add_self, mul_idem, zero_add] }
+by { dsimp only [(⊔), (⊓)], rw [le_sup_inf_aux, add_self, mul_self, zero_add] }
 
 /--
 The Boolean algebra structure on a Boolean ring.
@@ -128,11 +129,11 @@ def to_boolean_algebra : boolean_algebra α :=
   sdiff := λ a b, a * (1 + b),
   inf_compl_le_bot := λ a,
     show a*(1+a) + 0 + a*(1+a)*0 = 0,
-    by norm_num [mul_add, mul_idem, add_self],
+    by norm_num [mul_add, mul_self, add_self],
   top_le_sup_compl := λ a,
     begin
       change 1 + (a + (1+a) + a*(1+a)) + 1*(a + (1+a) + a*(1+a)) = a + (1+a) + a*(1+a),
-      norm_num [mul_add, mul_idem],
+      norm_num [mul_add, mul_self],
       rw [←add_assoc, add_self],
     end,
   sdiff_eq := λ a b, rfl,

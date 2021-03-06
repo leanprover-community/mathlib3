@@ -21,18 +21,19 @@ monomial of $P$.
 
 ## Main declarations
 
-* `mv_polynomial.degrees p` : the multiset of variables representing the union of the multisets corresponding
-  to each non-zero monomial in `p`. For example if `7 ≠ 0` in `R` and `p = x²y+7y³` then
-  `degrees p = {x, x, y, y, y}`
+* `mv_polynomial.degrees p` : the multiset of variables representing the union of the multisets
+  corresponding to each non-zero monomial in `p`.
+  For example if `7 ≠ 0` in `R` and `p = x²y+7y³` then `degrees p = {x, x, y, y, y}`
 
-* `mv_polynomial.vars p` : the finset of variables occurring in `p`. For example if `p = x⁴y+yz` then
-  `vars p = {x, y, z}`
+* `mv_polynomial.vars p` : the finset of variables occurring in `p`.
+  For example if `p = x⁴y+yz` then `vars p = {x, y, z}`
 
-* `mv_polynomial.degree_of n p : ℕ` -- the total degree of `p` with respect to the variable `n`. For example
-  if `p = x⁴y+yz` then `degree_of y p = 1`.
+* `mv_polynomial.degree_of n p : ℕ` : the total degree of `p` with respect to the variable `n`.
+  For example if `p = x⁴y+yz` then `degree_of y p = 1`.
 
-* `mv_polynomial.total_degree p : ℕ` -- the max of the sizes of the multisets `s` whose monomials `X^s` occur
-  in `p`. For example if `p = x⁴y+yz` then `total_degree p = 5`.
+* `mv_polynomial.total_degree p : ℕ` :
+  the max of the sizes of the multisets `s` whose monomials `X^s` occur in `p`.
+  For example if `p = x⁴y+yz` then `total_degree p = 5`.
 
 ## Notation
 
@@ -182,7 +183,8 @@ begin
     all_goals { rw mem_degrees, refine ⟨d, _, hj⟩, assumption } }
 end
 
-lemma degrees_add_of_disjoint {p q : mv_polynomial σ R} (h : multiset.disjoint p.degrees q.degrees) :
+lemma degrees_add_of_disjoint
+  {p q : mv_polynomial σ R} (h : multiset.disjoint p.degrees q.degrees) :
   (p + q).degrees = p.degrees ∪ q.degrees :=
 begin
   apply le_antisymm,
@@ -245,9 +247,11 @@ by rw [X, vars_monomial (@one_ne_zero R _ _), finsupp.support_single_ne_zero (on
 
 lemma mem_vars (i : σ) :
   i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
-by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff, exists_prop]
+by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff,
+  exists_prop]
 
-lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ R} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
+lemma mem_support_not_mem_vars_zero
+  {f : mv_polynomial σ R} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
   x v = 0 :=
 begin
   rw [vars, multiset.mem_to_finset] at h,

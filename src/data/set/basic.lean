@@ -2258,6 +2258,15 @@ begin
   rw [← singleton_eq_singleton_iff], apply h,
   rw [image_singleton, image_singleton, hx]
 end
+
+lemma preimage_eq_iff_eq_image {f : α → β} (hf : bijective f) {s t} :
+  f ⁻¹' s = t ↔ s = f '' t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
+lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
+  s = f ⁻¹' t ↔ f '' s = t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
 end image_preimage
 
 /-! ### Lemmas about images of binary and ternary functions -/

@@ -176,6 +176,12 @@ lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb
   (𝓝 (a, b)).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
 by { rw nhds_prod_eq, exact ha.prod hb }
 
+lemma filter.has_basis.prod_nhds' {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
+  {sa : ιa → set α} {sb : ιb → set β} {ab : α × β} (ha : (𝓝 ab.1).has_basis pa sa)
+  (hb : (𝓝 ab.2).has_basis pb sb) :
+  (𝓝 ab).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+by { cases ab, exact ha.prod_nhds hb }
+
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
 ⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩
@@ -480,6 +486,10 @@ variables [topological_space α] [topological_space β] [topological_space γ] {
 lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=
 ⟨⟨rfl⟩, subtype.coe_injective⟩
 
+lemma closed_embedding_subtype_coe (h : is_closed {a | p a}) :
+  closed_embedding (coe : subtype p → α) :=
+⟨embedding_subtype_coe, by rwa [subtype.range_coe_subtype]⟩
+
 @[continuity] lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
 
@@ -519,7 +529,7 @@ continuous_iff_continuous_at.mp continuous_subtype_coe _
 
 lemma map_nhds_subtype_coe_eq {a : α} (ha : p a) (h : {a | p a} ∈ 𝓝 a) :
   map (coe : subtype p → α) (𝓝 ⟨a, ha⟩) = 𝓝 a :=
-map_nhds_induced_eq $ by simpa only [subtype.coe_mk, subtype.range_coe] using h
+map_nhds_induced_of_mem $ by simpa only [subtype.coe_mk, subtype.range_coe] using h
 
 lemma nhds_subtype_eq_comap {a : α} {h : p a} :
   𝓝 (⟨a, h⟩ : subtype p) = comap coe (𝓝 a) :=
@@ -551,9 +561,7 @@ continuous_iff_is_closed.mpr $
   assume s hs,
   have ∀i, is_closed ((coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
     from assume i,
-    embedding_is_closed embedding_subtype_coe
-      (by simp [subtype.range_coe]; exact h_is_closed i)
-      (continuous_iff_is_closed.mp (f_cont i) _ hs),
+    (closed_embedding_subtype_coe (h_is_closed _)).is_closed_map _ (hs.preimage (f_cont i)),
   have is_closed (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
     from is_closed_Union_of_locally_finite
       (locally_finite_subset h_lf $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')

@@ -37,7 +37,8 @@ def evaluation_jointly_reflects_limits {F : J ⥤ K ⥤ C} (c : cone F)
     naturality' := λ X Y f, (t Y).hom_ext $ λ j,
     begin
       rw [assoc, (t Y).fac _ j],
-      simpa using ((t X).fac_assoc ⟨s.X.obj X, whisker_right s.π ((evaluation K C).obj X)⟩ j _).symm,
+      simpa using
+        ((t X).fac_assoc ⟨s.X.obj X, whisker_right s.π ((evaluation K C).obj X)⟩ j _).symm,
     end },
   fac' := λ s j, nat_trans.ext _ _ $ funext $ λ k, (t k).fac _ j,
   uniq' := λ s m w, nat_trans.ext _ _ $ funext $ λ x, (t x).hom_ext $ λ j,
@@ -112,7 +113,8 @@ them together to give a cocone for the diagram `F`.
     naturality' := λ j₁ j₂ g, nat_trans.ext _ _ $ funext $ λ k, (c k).cocone.ι.naturality g } }
 
 /-- The stitched together cocones each project down to the original given cocones (up to iso). -/
-def evaluate_combined_cocones (F : J ⥤ K ⥤ C) (c : Π (k : K), colimit_cocone (F.flip.obj k)) (k : K) :
+def evaluate_combined_cocones
+  (F : J ⥤ K ⥤ C) (c : Π (k : K), colimit_cocone (F.flip.obj k)) (k : K) :
   ((evaluation K C).obj k).map_cocone (combine_cocones F c) ≅ (c k).cocone :=
 cocones.ext (iso.refl _) (by tidy)
 

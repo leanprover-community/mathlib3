@@ -680,7 +680,8 @@ instance additive.simple_add_group [group G] [simple_group G] :
 theorem multiplicative.simple_group_iff [add_group A] :
   simple_group (multiplicative A) ↔ simple_add_group A :=
 ⟨λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
+  λ hs, ⟨λ N h,
+          @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
 
 instance multiplicative.simple_group [add_group A] [simple_add_group A] :
 simple_group (multiplicative A) := multiplicative.simple_group_iff.2 (by apply_instance)

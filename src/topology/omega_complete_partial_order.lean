@@ -68,10 +68,10 @@ begin
   dsimp [is_open] at *,
   apply complete_lattice.Sup_continuous' _,
   introv ht, specialize h₀ { x | t x } _,
-  { simpa using h₀ },
   { simp only [flip, set.mem_image] at *,
     rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
-    simpa, }
+    simpa, },
+  { simpa using h₀ }
 end
 
 end Scott

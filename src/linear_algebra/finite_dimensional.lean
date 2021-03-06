@@ -182,19 +182,14 @@ finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_l
 be `0` if the space is infinite-dimensional. -/
 noncomputable def findim (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] : ℕ :=
-if h : dim K V < omega.{v} then classical.some (lt_omega.1 h) else 0
+(dim K V).to_nat
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
 `findim`. -/
 lemma findim_eq_dim (K : Type u) (V : Type v) [field K]
   [add_comm_group V] [vector_space K V] [finite_dimensional K V] :
   (findim K V : cardinal.{v}) = dim K V :=
-begin
-  have : findim K V = classical.some (lt_omega.1 (dim_lt_omega K V)) :=
-    dif_pos (dim_lt_omega K V),
-  rw this,
-  exact (classical.some_spec (lt_omega.1 (dim_lt_omega K V))).symm
-end
+by rw [findim, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
 
 lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
   (h : ¬finite_dimensional K V) : findim K V = 0 :=
@@ -329,6 +324,17 @@ iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V 
 /-- A nontrivial finite dimensional space has positive `findim`. -/
 lemma findim_pos [finite_dimensional K V] [h : nontrivial V] : 0 < findim K V :=
 findim_pos_iff.mpr h
+
+/-- A finite dimensional space has zero `findim` iff it is a subsingleton.
+This is the `findim` version of `dim_zero_iff`. -/
+lemma findim_zero_iff [finite_dimensional K V] :
+  findim K V = 0 ↔ subsingleton V :=
+iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
+
+/-- A finite dimensional space that is a subsingleton has zero `findim`. -/
+lemma findim_zero_of_subsingleton [finite_dimensional K V] [h : subsingleton V] :
+  findim K V = 0 :=
+findim_zero_iff.2 h
 
 section
 open_locale big_operators
@@ -849,6 +855,22 @@ theorem findim_top : findim K (⊤ : submodule K V) = findim K V :=
 by { unfold findim, simp [dim_top] }
 
 end top
+
+lemma findim_zero_iff_forall_zero [finite_dimensional K V] :
+  findim K V = 0 ↔ ∀ x : V, x = 0 :=
+findim_zero_iff.trans (subsingleton_iff_forall_eq 0)
+
+lemma is_basis_of_findim_zero [finite_dimensional K V]
+  {ι : Type*} (h : ¬ nonempty ι) (hV : findim K V = 0) :
+  is_basis K (λ x : ι, (0 : V)) :=
+begin
+  haveI : subsingleton V := findim_zero_iff.1 hV,
+  exact is_basis_empty _ h
+end
+
+lemma is_basis_of_findim_zero' [finite_dimensional K V]
+  (hV : findim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_of_findim_zero (finset.univ_eq_empty.mp rfl) hV
 
 namespace linear_map
 

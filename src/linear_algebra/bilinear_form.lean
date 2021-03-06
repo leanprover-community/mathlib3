@@ -384,32 +384,6 @@ def is_Ortho {n : Type w} (B : bilin_form R M) (v : n → M) : Prop :=
 lemma is_Ortho_def {n : Type w} {B : bilin_form R M} {v : n → M} :
   B.is_Ortho v ↔ ∀ i j : n, i ≠ j → B (v j) (v i) = 0 := iff.rfl
 
-/-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is linearly independent
-  if for all `i`, `B (v i) (v i) ≠ 0`. -/
-lemma linear_independent_of_is_Ortho
-  {n : Type w} {B : bilin_form K V} {v : n → V}
-  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) :
-  linear_independent K v :=
-begin
-  classical,
-  rw linear_independent_iff',
-  intros s w hs i hi,
-  have : B (s.sum $ λ (i : n), w i • v i) (v i) = 0,
-  { rw [hs, zero_left] },
-  have hsum : s.sum (λ (j : n), w j * B (v j) (v i)) =
-    s.sum (λ (j : n), if i = j then w j * B (v j) (v i) else 0),
-  { refine finset.sum_congr rfl (λ j hj, _),
-    by_cases (i = j),
-    { rw [if_pos h] },
-    { rw [if_neg h, is_Ortho_def.1 hv₁ _ _ h, mul_zero] } },
-  simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
-  rw [if_pos, mul_eq_zero] at this,
-  cases this,
-  { assumption },
-  { exact false.elim (hv₂ i $ this) },
-  { assumption }
-end
-
 section
 
 variables {R₄ M₄ : Type*} [domain R₄] [add_comm_group M₄] [module R₄ M₄] {G : bilin_form R₄ M₄}
@@ -443,6 +417,32 @@ end
 end
 
 section is_basis
+
+/-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is linearly independent
+  if for all `i`, `B (v i) (v i) ≠ 0`. -/
+lemma linear_independent_of_is_Ortho
+  {n : Type w} {B : bilin_form K V} {v : n → V}
+  (hv₁ : B.is_Ortho v) (hv₂ : ∀ i, ¬ B.is_ortho (v i) (v i)) :
+  linear_independent K v :=
+begin
+  classical,
+  rw linear_independent_iff',
+  intros s w hs i hi,
+  have : B (s.sum $ λ (i : n), w i • v i) (v i) = 0,
+  { rw [hs, zero_left] },
+  have hsum : s.sum (λ (j : n), w j * B (v j) (v i)) =
+    s.sum (λ (j : n), if i = j then w j * B (v j) (v i) else 0),
+  { refine finset.sum_congr rfl (λ j hj, _),
+    by_cases (i = j),
+    { rw [if_pos h] },
+    { rw [if_neg h, is_Ortho_def.1 hv₁ _ _ h, mul_zero] } },
+  simp_rw [map_sum_left, smul_left, hsum, finset.sum_ite_eq] at this,
+  rw [if_pos, mul_eq_zero] at this,
+  cases this,
+  { assumption },
+  { exact false.elim (hv₂ i $ this) },
+  { assumption }
+end
 
 variables {B₃ F₃ : bilin_form R₃ M₃}
 variables {ι : Type*} {b : ι → M₃} (hb : is_basis R₃ b)
@@ -1086,18 +1086,18 @@ section orthogonal
 /-- The orthogonal complement of a submodule `N` with respect to some bilinear form is the set
   of elements which are orthogonal to all elements of `N`. -/
 def orthogonal (B : bilin_form R M) (N : submodule R M) : submodule R M :=
-{ carrier := { m | ∀ n ∈ N, is_ortho B m n },
-  zero_mem' := λ x _, is_ortho_zero_left x,
+{ carrier := { m | ∀ n ∈ N, is_ortho B n m },
+  zero_mem' := λ x _, is_ortho_zero_right x,
   add_mem' := λ x y hx hy n hn,
-    by rw [is_ortho, add_left, show B x n = 0, by exact hx n hn,
-        show B y n = 0, by exact hy n hn, zero_add],
+    by rw [is_ortho, add_right, show B n x = 0, by exact hx n hn,
+        show B n y = 0, by exact hy n hn, zero_add],
   smul_mem' := λ c x hx n hn,
-    by rw [is_ortho, smul_left, show B x n = 0, by exact hx n hn, mul_zero] }
+    by rw [is_ortho, smul_right, show B n x = 0, by exact hx n hn, mul_zero] }
 
 variables {N L : submodule R M}
 
 @[simp] lemma mem_orthogonal_iff {N : submodule R M} {m : M} :
-  m ∈ B.orthogonal N ↔ ∀ n ∈ N, is_ortho B m n := iff.rfl
+  m ∈ B.orthogonal N ↔ ∀ n ∈ N, is_ortho B n m := iff.rfl
 
 lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
 λ _ hn l hl, hn l (h hl)
@@ -1185,47 +1185,53 @@ begin
   { rw finset.sum_singleton at this ⊢,
     suffices hμzero : μ x = 0,
     { rw [hμzero, zero_smul, submodule.mem_bot] },
-    change B (μ x • x) x = 0 at this, rw [smul_left] at this,
+    change B x (μ x • x) = 0 at this, rw [smul_right] at this,
     exact or.elim (zero_eq_mul.mp this.symm) id (λ hfalse, false.elim $ hx hfalse) },
   { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
 end
 
--- ↓ This lemma only applies in fields since we use the inverse
+-- ↓ This lemma only applies in fields since we use the `mul_eq_zero`
+lemma orthogonal_span_singleton_eq_to_lin_ker {B : bilin_form K V} (x : V) :
+  B.orthogonal (K ∙ x) = (bilin_form.to_lin B x).ker :=
+begin
+  ext y,
+  simp_rw [mem_orthogonal_iff, linear_map.mem_ker,
+           submodule.mem_span_singleton ],
+  split,
+  { exact λ h, h x ⟨1, one_smul _ _⟩ },
+  { rintro h _ ⟨z, rfl⟩,
+    rw [is_ortho, smul_left, mul_eq_zero],
+    exact or.intro_right _ h }
+end
+
 lemma span_singleton_sup_orthogonal_eq_top {B : bilin_form K V}
-  (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
+  {x : V} (hx : ¬ B.is_ortho x x) :
   (K ∙ x) ⊔ B.orthogonal (K ∙ x) = ⊤ :=
 begin
-  refine eq_top_iff.2 (λ y _, _),
-  rw submodule.mem_sup,
-  refine ⟨(B x y * (B x x)⁻¹) • x, _, y - (B x y * (B x x)⁻¹) • x, _, _⟩,
-  { exact submodule.mem_span_singleton.2 ⟨(B x y * (B x x)⁻¹), rfl⟩ },
-  { intros z hz,
-    rcases submodule.mem_span_singleton.1 hz with ⟨μ, rfl⟩,
-    simp [is_ortho, mul_assoc, inv_mul_cancel hx, hB x] },
-  { simp }
+  rw orthogonal_span_singleton_eq_to_lin_ker,
+  exact linear_map.span_singleton_sup_ker_eq_top _ hx,
 end
 
 /-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
-  (hB : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
-  is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
+  {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
 { inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hB hx }
+  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 /-- The restriction of a non-degenerate bilinear form on the orthogonal complement of the
   span of a singleton is also non-degenerate. -/
-lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V) (hB₁ : nondegenerate B)
-  (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
+lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V)
+  (hB₁ : nondegenerate B) (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (hB₁ m.1 (λ n, _)),
   have : n ∈ (K ∙ x) ⊔ B.orthogonal (K ∙ x) :=
-    (span_singleton_sup_orthogonal_eq_top hB₂ hx).symm ▸ submodule.mem_top,
+    (span_singleton_sup_orthogonal_eq_top hx).symm ▸ submodule.mem_top,
   rcases submodule.mem_sup.1 this with ⟨y, hy, z, hz, rfl⟩,
   specialize hm ⟨z, hz⟩,
   rw restrict at hm,
-  erw [add_right, show B m.1 y = 0, by exact m.2 y hy, hm, add_zero]
+  erw [add_right, show B m.1 y = 0, by rw hB₂; exact m.2 y hy, hm, add_zero]
 end
 
 open finite_dimensional
@@ -1247,7 +1253,7 @@ begin
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
       rw [← submodule.findim_add_eq_of_is_compl
-            (is_compl_span_singleton_orthogonal hB₂ hx).symm,
+            (is_compl_span_singleton_orthogonal hx).symm,
           findim_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
       rcases @ih (B.orthogonal $ K ∙ x) _ _ _
         (B.restrict _) (B.restrict_ortho_singleton_nondegenerate hB₁ hB₂ hx)
@@ -1257,13 +1263,13 @@ begin
         { subst i,
           simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
             not_false_iff, dite_not],
-          rw dif_neg hij.symm,
+          rw [dif_neg hij.symm, is_ortho, hB₂],
           exact (v' (j.pred hij.symm)).2 _ (submodule.mem_span_singleton_self x) },
         by_cases hj : j = 0,
         { subst j,
           simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
             not_false_iff, dite_not],
-          rw [is_ortho, dif_neg hi, hB₂],
+          rw dif_neg hi,
           exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
         { simp_rw [dif_pos hi, dif_pos hj],
           rw [is_ortho, hB₂],
@@ -1276,13 +1282,13 @@ begin
           { subst hi,
             simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
               not_false_iff, dite_not],
-            rw dif_neg hij.symm,
+            rw [dif_neg hij.symm, is_ortho, hB₂],
             exact (v' (j.pred hij.symm)).2 _ (submodule.mem_span_singleton_self x) },
           by_cases hj : j = 0,
           { subst j,
             simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
               not_false_iff, dite_not],
-            rw [is_ortho, dif_neg hi, hB₂],
+            rw dif_neg hi,
             exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
           { simp_rw [dif_pos hi, dif_pos hj],
             rw [is_ortho, hB₂],

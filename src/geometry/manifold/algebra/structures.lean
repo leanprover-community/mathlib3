@@ -50,4 +50,4 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
     rw times_cont_diff_on_univ,
     exact times_cont_diff_mul,
   end,
-  ..normed_space_lie_group }
+  ..normed_space_lie_add_group }

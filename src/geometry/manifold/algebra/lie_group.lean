@@ -22,7 +22,8 @@ groups here are not necessarily finite dimensional.
 * `lie_add_group I G` : a Lie additive group where `G` is a manifold on the model with corners `I`.
 * `lie_group I G`     : a Lie multiplicative group where `G` is a manifold on the model with
                         corners `I`.
-* `normed_space_lie_group` : a normed vector space over a nondiscrete normed field is a Lie group
+* `normed_space_lie_add_group` : a normed vector space over a nondiscrete normed field
+                                 is an additive Lie group.
 
 ## Implementation notes
 
@@ -126,8 +127,6 @@ instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological
 
 end prod_lie_group
 
-section normed_space_lie_group
-
 /-! ### Normed spaces are Lie groups -/
 
 instance normed_space_lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -135,5 +134,3 @@ instance normed_space_lie_add_group {𝕜 : Type*} [nondiscrete_normed_field �
   lie_add_group (model_with_corners_self 𝕜 E) E :=
 { smooth_add := smooth_iff.2 ⟨continuous_add, λ x y, times_cont_diff_add.times_cont_diff_on⟩,
   smooth_neg := smooth_iff.2 ⟨continuous_neg, λ x y, times_cont_diff_neg.times_cont_diff_on⟩ }
-
-end normed_space_lie_group

@@ -32,11 +32,8 @@ lemma integral_mul_const (c : ℝ) : ∫ x in a..b, f x * c = (∫ x in a..b, f 
 by simp only [mul_comm, integral_const_mul]
 
 @[simp]
-lemma integral_div' (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) * c⁻¹ :=
-integral_mul_const c⁻¹
-
 lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
-integral_div' c
+integral_mul_const c⁻¹
 
 end interval_integral
 

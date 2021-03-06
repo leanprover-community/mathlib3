@@ -148,17 +148,17 @@ lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
   e '' s = e.target ∩ e.symm ⁻¹' s :=
 e.to_local_equiv.image_eq_target_inter_inv_preimage h
 
-lemma image_inter_source_eq (s : set α) :
-  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
-e.image_eq_target_inter_inv_preimage (inter_subset_right _ _)
+lemma image_source_inter_eq (s : set α) :
+  e '' (e.source ∩ s) = e.target ∩ e.symm ⁻¹' (e.source ∩ s) :=
+e.image_eq_target_inter_inv_preimage (inter_subset_left _ _)
 
 lemma symm_image_eq_source_inter_preimage {s : set β} (h : s ⊆ e.target) :
   e.symm '' s = e.source ∩ e ⁻¹' s :=
 e.symm.image_eq_target_inter_inv_preimage h
 
-lemma symm_image_inter_target_eq (s : set β) :
-  e.symm '' (s ∩ e.target) = e.source ∩ e ⁻¹' (s ∩ e.target) :=
-e.symm.image_inter_source_eq _
+lemma symm_image_target_inter_eq (s : set β) :
+  e.symm '' (e.target ∩ s) = e.source ∩ e ⁻¹' (e.target ∩ s) :=
+e.symm.image_source_inter_eq _
 
 /-- Two local homeomorphisms are equal when they have equal `to_fun`, `inv_fun` and `source`.
 It is not sufficient to have equal `to_fun` and `source`, as this only determines `inv_fun` on
@@ -250,9 +250,9 @@ begin
 end
 
 /-- The image of the restriction of an open set to the source is open. -/
-lemma image_open_of_open' {s : set α} (hs : is_open s) : is_open (e '' (s ∩ e.source)) :=
+lemma image_open_of_open' {s : set α} (hs : is_open s) : is_open (e '' (e.source ∩ s)) :=
 begin
-  refine image_open_of_open _ (is_open_inter hs e.open_source) _,
+  refine image_open_of_open _ (is_open_inter e.open_source hs) _,
   simp,
 end
 

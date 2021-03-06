@@ -40,8 +40,8 @@ open equiv equiv.perm finset function
 namespace matrix
 open_locale matrix big_operators
 
-variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m] {R : Type v}
-  [comm_ring R]
+variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
@@ -389,7 +389,7 @@ begin
     rw fintype.prod_sum_type,
     simp_rw [equiv.sum_congr_apply, sum.map_inr, sum.map_inl, from_blocks_apply₁₁,
       from_blocks_apply₂₂],
-    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ring },
+    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
     rw hr,
     congr,
     norm_cast,

@@ -1034,10 +1034,10 @@ end
 
 namespace matrix
 
-variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m] {R : Type v}
-  [comm_ring R]
+variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {R : Type v} [comm_ring R]
 
-lemma to_block_matrix_det (M : matrix m m R) (p : m → Prop) [decidable_pred p] :
+lemma det_to_block (M : matrix m m R) (p : m → Prop) [decidable_pred p] :
   M.det = (matrix.from_blocks (to_block M p p) (to_block M p (λ j, ¬p j))
     (to_block M (λ j, ¬p j) p) (to_block M (λ j, ¬p j) (λ j, ¬p j))).det :=
 begin
@@ -1051,19 +1051,19 @@ begin
     from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂],
 end
 
-lemma to_square_block_det (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :
-  (to_square_block M b k).det = (to_square_block_prop M (λ i, b i = k)).det := by simp
+lemma det_to_square_block (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :
+  (to_square_block M b k).det = (to_square_block_prop M (λ i, b i = k)).det :=
+by simp
 
-lemma to_square_block_det' (M : matrix m m R) (b : m → ℕ) (k : ℕ) :
-  (to_square_block' M b k).det = (to_square_block_prop M (λ i, b i = k)).det := by simp
-
-example (n : ℕ) (a b : fin n) : a = b ↔ (↑a : ℕ) = ↑b := fin.ext_iff a b
+lemma det_to_square_block' (M : matrix m m R) (b : m → ℕ) (k : ℕ) :
+  (to_square_block' M b k).det = (to_square_block_prop M (λ i, b i = k)).det :=
+by simp
 
 lemma two_block_triangular_det (M : matrix m m R) (p : m → Prop) [decidable_pred p]
   (h : ∀ i (h1 : ¬p i) j (h2 : p j), M i j = 0) :
   M.det = (to_square_block_prop M p).det * (to_square_block_prop M (λ i, ¬p i)).det :=
 begin
-  rw to_block_matrix_det M p,
+  rw det_to_block M p,
   convert upper_two_block_triangular_det (to_block M p p) (to_block M p (λ j, ¬p j))
     (to_block M (λ j, ¬p j) (λ j, ¬p j)),
   ext,
@@ -1084,16 +1084,17 @@ begin
 end
 
 /-- Let `b` map rows and columns of a square matrix `M` to `n` blocks. Then
-  `block_triangular_matrix M n b` says the matrix is block triangular. -/
+  `block_triangular_matrix' M n b` says the matrix is block triangular. -/
 def block_triangular_matrix' {o : Type*} [fintype o] (M : matrix o o R) {n : ℕ}
-  (b : o → fin n) := ∀ i j, b j < b i → M i j = 0
+  (b : o → fin n) : Prop :=
+∀ i j, b j < b i → M i j = 0
 
 /-- Let `b` map rows and columns of a square matrix `M` to `n` blocks. Then
-  `upper_block_triangular_matrix M n b` says the matrix is upper block triangular. -/
+  `block_triangular_matrix M n b` says the matrix is block triangular. -/
 def block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (n : ℕ)
   (b : o → ℕ) := (∀ i, b i < n) ∧ (∀ i j, b j < b i → M i j = 0)
 
-lemma block_triangular_det' (M : matrix m m R) (n : ℕ) (b : m → ℕ)
+lemma det_of_block_triangular_matrix (M : matrix m m R) (n : ℕ) (b : m → ℕ)
   (h : block_triangular_matrix M n b) :
   M.det = ∏ k in finset.range n, (to_square_block' M b k).det :=
 begin
@@ -1129,7 +1130,7 @@ begin
           { intros i hbi, rw hbi, exact ne_of_lt (fin.is_lt k) },
           exact equiv.subtype_subtype_equiv_subtype hc },
         exact matrix.det_reindex_self he (λ (i j : {a // b' a = ↑k}), M ↑i ↑j) },
-      { rw to_square_block_det' M b n,
+      { rw det_to_square_block' M b n,
         have hh : ∀ a, b a = n ↔ ¬(λ (i : m), ¬b i = n) a,
         { intro i, simp only [not_not] },
         exact equiv_block_det M hh }},
@@ -1139,24 +1140,24 @@ begin
       exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (h.left j)) }}
 end
 
-lemma block_triangular_det (M : matrix m m R) {n : ℕ} (b : m → fin n)
+lemma det_of_block_triangular_matrix' (M : matrix m m R) {n : ℕ} (b : m → fin n)
   (h : block_triangular_matrix' M b) :
   M.det = ∏ (k : fin n), (to_square_block M b k).det :=
 begin
   let b2 : m → ℕ := λ i, ↑(b i),
   simp_rw to_square_block_det'',
   rw fin.prod_univ_eq_prod_range (λ (k : ℕ), (M.to_square_block' b2 k).det) n,
-  apply block_triangular_det',
+  apply det_of_block_triangular_matrix,
   split,
   { intro i, exact fin.is_lt (b i) },
   { intros i j hij, exact h i j (fin.coe_fin_lt.mp hij) }
 end
 
-lemma upper_triangular_det {n : ℕ} (M : matrix (fin n) (fin n) R)
+lemma det_of_upper_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)
   (h : ∀ (i j : fin n), j < i → M i j = 0) :
   M.det = ∏ i : (fin n), M i i :=
 begin
-  convert block_triangular_det M id h,
+  convert det_of_block_triangular_matrix' M id h,
   ext i,
   have h2 : ∀ (j : {a // id a = i}), j = ⟨i, rfl⟩ :=
     λ (j : {a // id a = i}), subtype.ext j.property,
@@ -1164,12 +1165,12 @@ begin
   simp [h2 (default {a // id a = i})]
 end
 
-lemma lower_triangular_det {n : ℕ} (M : matrix (fin n) (fin n) R)
+lemma det_of_lower_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)
   (h : ∀ (i j : fin n), i < j → M i j = 0) :
   M.det = ∏ i : (fin n), M i i :=
 begin
   rw ← det_transpose,
-  apply upper_triangular_det _ (λ (i j : fin n) (hji : j < i), h j i hji)
+  exact det_of_upper_triangular _ (λ (i j : fin n) (hji : j < i), h j i hji)
 end
 
 end matrix

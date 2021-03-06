@@ -732,7 +732,8 @@ protected def pi_field_equiv : G ≃L[𝕜] (continuous_multilinear_map 𝕜 (λ
     exact multilinear_map.mk_continuous_norm_le _ (norm_nonneg _) _
   end,
   continuous_inv_fun := begin
-    refine (continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G).symm.to_linear_map.continuous_of_bound
+    refine
+      (continuous_multilinear_map.pi_field_equiv_aux 𝕜 ι G).symm.to_linear_map.continuous_of_bound
       (1 : ℝ) (λf, _),
     rw one_mul,
     change ∥f (λi, 1)∥ ≤ ∥f∥,
@@ -1012,14 +1013,16 @@ by { ext m, simp }
 
 variables (𝕜 Ei G)
 
-/-- The space of continuous multilinear maps on `Π(i : fin (n+1)), Ei i` is canonically isomorphic to
+/--
+The space of continuous multilinear maps on `Π(i : fin (n+1)), Ei i` is canonically isomorphic to
 the space of continuous multilinear maps on `Π(i : fin n), Ei i.cast_succ` with values in the space
 of continuous linear maps on `Ei (last n)`, by separating the last variable. We register this
 isomorphism as a continuous linear equiv in `continuous_multilinear_curry_right_equiv 𝕜 Ei G`.
 The algebraic version (without topology) is given in `multilinear_curry_right_equiv 𝕜 Ei G`.
 
 The direct and inverse maps are given by `f.uncurry_right` and `f.curry_right`. Use these
-unless you need the full framework of linear isometric equivs. -/
+unless you need the full framework of linear isometric equivs.
+-/
 def continuous_multilinear_curry_right_equiv :
   (continuous_multilinear_map 𝕜 (λ(i : fin n), Ei i.cast_succ) (Ei (last n) →L[𝕜] G)) ≃ₗᵢ[𝕜]
   (continuous_multilinear_map 𝕜 Ei G) :=

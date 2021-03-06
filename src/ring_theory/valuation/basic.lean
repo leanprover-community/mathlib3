@@ -54,16 +54,12 @@ open function ideal
 
 variables {R : Type*} -- This will be a ring, assumed commutative in some sections
 
-variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀]
-variables {Γ'₀  : Type*} [linear_ordered_comm_group_with_zero Γ'₀]
-variables {Γ''₀ : Type*} [linear_ordered_comm_group_with_zero Γ''₀]
-
 set_option old_structure_cmd true
 
 section
-variables (R) (Γ₀) [ring R]
+variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
 
-/-- The type of Γ₀-valued valuations on R. -/
+/-- The type of `Γ₀`-valued valuations on `R`. -/
 @[nolint has_inhabited_instance]
 structure valuation extends monoid_with_zero_hom R Γ₀ :=
 (map_add' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
@@ -75,10 +71,18 @@ end
 
 namespace valuation
 
+variables {Γ₀   : Type*}
+variables {Γ'₀  : Type*}
+variables {Γ''₀ : Type*} [linear_ordered_comm_group_with_zero Γ''₀]
+
 section basic
+
 variables (R) (Γ₀) [ring R]
 
-/-- A valuation is coerced to the underlying function R → Γ₀. -/
+section monoid
+variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
+
+/-- A valuation is coerced to the underlying function `R → Γ₀`. -/
 instance : has_coe_to_fun (valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
@@ -138,13 +142,48 @@ lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = 
 def to_preorder : preorder R := preorder.lift v
 
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
-@[simp] lemma zero_iff {K : Type*} [division_ring K]
+@[simp] lemma zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x = 0 ↔ x = 0 :=
 v.to_monoid_with_zero_hom.map_eq_zero
 
-lemma ne_zero_iff {K : Type*} [division_ring K]
+lemma ne_zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x ≠ 0 ↔ x ≠ 0 :=
 v.to_monoid_with_zero_hom.map_ne_zero
+
+theorem unit_map_eq (u : units R) :
+  (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
+
+/-- A ring homomorphism `S → R` induces a map `valuation R Γ₀ → valuation S Γ₀`. -/
+def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
+  valuation S Γ₀ :=
+{ to_fun := v ∘ f,
+  map_add' := λ x y, by simp only [comp_app, map_add, f.map_add],
+  .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
+
+@[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
+
+lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁ →+* S₂) (g : S₂ →+* R) :
+  v.comap (g.comp f) = (v.comap g).comap f :=
+ext $ λ r, rfl
+
+/-- A `≤`-preserving group homomorphism `Γ₀ → Γ'₀` induces a map `valuation R Γ₀ → valuation R Γ'₀`.
+-/
+def map (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
+  valuation R Γ'₀ :=
+{ to_fun := f ∘ v,
+  map_add' := λ r s,
+    calc f (v (r + s)) ≤ f (max (v r) (v s))     : hf (v.map_add r s)
+                   ... = max (f (v r)) (f (v s)) : hf.map_max,
+  .. monoid_with_zero_hom.comp f v.to_monoid_with_zero_hom }
+
+/-- Two valuations on `R` are defined to be equivalent if they induce the same preorder on `R`. -/
+def is_equiv (v₁ : valuation R Γ₀) (v₂ : valuation R Γ'₀) : Prop :=
+∀ r s, v₁ r ≤ v₁ s ↔ v₂ r ≤ v₂ s
+
+end monoid
+
+section group
+variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
 @[simp] lemma map_inv {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
@@ -152,9 +191,6 @@ v.to_monoid_with_zero_hom.map_inv' x
 
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
-
-theorem unit_map_eq (u : units R) :
-  (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
@@ -190,36 +226,12 @@ begin
   simpa using this
 end
 
-/-- A ring homomorphism S → R induces a map valuation R Γ₀ → valuation S Γ₀ -/
-def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
-  valuation S Γ₀ :=
-{ to_fun := v ∘ f,
-  map_add' := λ x y, by simp only [comp_app, map_add, f.map_add],
-  .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
-
-@[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
-
-lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁ →+* S₂) (g : S₂ →+* R) :
-  v.comap (g.comp f) = (v.comap g).comap f :=
-ext $ λ r, rfl
-
-/-- A ≤-preserving group homomorphism Γ₀ → Γ'₀ induces a map valuation R Γ₀ → valuation R Γ'₀. -/
-def map (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
-  valuation R Γ'₀ :=
-{ to_fun := f ∘ v,
-  map_add' := λ r s,
-    calc f (v (r + s)) ≤ f (max (v r) (v s))     : hf (v.map_add r s)
-                   ... = max (f (v r)) (f (v s)) : hf.map_max,
-  .. monoid_with_zero_hom.comp f v.to_monoid_with_zero_hom }
-
-/-- Two valuations on R are defined to be equivalent if they induce the same preorder on R. -/
-def is_equiv (v₁ : valuation R Γ₀) (v₂ : valuation R Γ'₀) : Prop :=
-∀ r s, v₁ r ≤ v₁ s ↔ v₂ r ≤ v₂ s
-
+end group
 end basic -- end of section
 
 namespace is_equiv
 variables [ring R]
+variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 variables {v : valuation R Γ₀}
 variables {v₁ : valuation R Γ₀} {v₂ : valuation R Γ'₀} {v₃ : valuation R Γ''₀}
 
@@ -262,12 +274,18 @@ end
 
 end is_equiv -- end of namespace
 
-lemma is_equiv_of_map_strict_mono [ring R] {v : valuation R Γ₀}
+section
+
+lemma is_equiv_of_map_strict_mono [linear_ordered_comm_monoid_with_zero Γ₀]
+  [linear_ordered_comm_monoid_with_zero Γ'₀]
+  [ring R] {v : valuation R Γ₀}
   (f : monoid_with_zero_hom Γ₀ Γ'₀) (H : strict_mono f) :
   is_equiv (v.map f (H.monotone)) v :=
 λ x y, ⟨H.le_iff_le.mp, λ h, H.monotone h⟩
 
-lemma is_equiv_of_val_le_one {K : Type*} [division_ring K]
+lemma is_equiv_of_val_le_one [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) (h : ∀ {x:K}, v x ≤ 1 ↔ v' x ≤ 1) :
   v.is_equiv v' :=
 begin
@@ -288,8 +306,11 @@ begin
     rwa h, },
 end
 
+end
+
 section supp
 variables [comm_ring R]
+variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 variables (v : valuation R Γ₀)
 
 /-- The support of a valuation `v : R → Γ₀` is the ideal of `R` where `v` vanishes. -/
@@ -308,7 +329,7 @@ def supp : ideal R :=
 -- @[simp] lemma mem_supp_iff' (x : R) : x ∈ (supp v : set R) ↔ v x = 0 := iff.rfl
 
 /-- The support of a valuation is a prime ideal. -/
-instance : ideal.is_prime (supp v) :=
+instance [nontrivial Γ₀] [no_zero_divisors Γ₀] : ideal.is_prime (supp v) :=
 ⟨λ (h : v.supp = ⊤), one_ne_zero $ show (1 : Γ₀) = 0,
 from calc 1 = v 1 : v.map_one.symm
         ... = 0   : show (1:R) ∈ supp v, by { rw h, trivial },

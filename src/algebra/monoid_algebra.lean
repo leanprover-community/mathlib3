@@ -172,13 +172,25 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
-instance {R : Type*} [semiring R] [semiring k] [semimodule R k] :
+variables {R S : Type*}
+
+instance [semiring R] [semiring k] [semimodule R k] :
   has_scalar R (monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance {R : Type*} [semiring R] [semiring k] [semimodule R k] :
+instance [semiring R] [semiring k] [semimodule R k] :
   semimodule R (monoid_algebra k G) :=
 finsupp.semimodule G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [has_scalar R S] [is_scalar_tower R S k] :
+  is_scalar_tower R S (monoid_algebra k G) :=
+finsupp.is_scalar_tower G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [smul_comm_class R S k] :
+  smul_comm_class R S (monoid_algebra k G) :=
+finsupp.smul_comm_class G k
 
 instance [group G] [semiring k] : distrib_mul_action G (monoid_algebra k G) :=
 finsupp.comap_distrib_mul_action_self
@@ -350,7 +362,7 @@ In particular this provides the instance `algebra k (monoid_algebra k G)`.
 -/
 instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   algebra k (monoid_algebra A G) :=
-{ smul_def' := λ r a, by { ext, simp [single_one_mul_apply, algebra.smul_def''], },
+{ smul_def' := λ r a, by { ext, simp [single_one_mul_apply, algebra.smul_def'', pi.smul_apply], },
   commutes' := λ r f, by { ext, simp [single_one_mul_apply, mul_single_one_apply,
     algebra.commutes], },
   ..single_one_ring_hom.comp (algebra_map k A) }
@@ -668,13 +680,23 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
-variables {R : Type*}
+variables {R S : Type*}
 
 instance [semiring R] [semiring k] [semimodule R k] : has_scalar R (add_monoid_algebra k G) :=
 finsupp.has_scalar
 
 instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
 finsupp.semimodule G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [has_scalar R S] [is_scalar_tower R S k] :
+  is_scalar_tower R S (add_monoid_algebra k G) :=
+finsupp.is_scalar_tower G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [smul_comm_class R S k] :
+  smul_comm_class R S (add_monoid_algebra k G) :=
+finsupp.smul_comm_class G k
 
 /-! It is hard to state the equivalent of `distrib_mul_action G (add_monoid_algebra k G)`
 because we've never discussed actions of additive groups. -/
@@ -827,7 +849,7 @@ In particular this provides the instance `algebra k (add_monoid_algebra k G)`.
 -/
 instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   algebra R (add_monoid_algebra k G) :=
-{ smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def''], },
+{ smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def'', pi.smul_apply], },
   commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply,
                                       algebra.commutes], },
   ..single_zero_ring_hom.comp (algebra_map R k) }

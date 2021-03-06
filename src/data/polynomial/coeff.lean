@@ -37,7 +37,7 @@ lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
 
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+coeff (r • p) n = r * coeff p n := finsupp.smul_apply _ _ _
 
 lemma mem_support_iff_coeff_ne_zero : n ∈ p.support ↔ p.coeff n ≠ 0 :=
 by { rw mem_support_to_fun, refl }
@@ -182,5 +182,41 @@ lemma exists_coeff_not_mem_C_inverse :
   f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
 imp_of_not_imp_not _ _
   (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
+
+section cast
+
+@[simp] lemma nat_cast_coeff_zero {n : ℕ} {R : Type*} [semiring R] :
+  (n : polynomial R).coeff 0 = n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih], },
+end
+
+@[simp, norm_cast] theorem nat_cast_inj
+  {m n : ℕ} {R : Type*} [semiring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
+begin
+  fsplit,
+  { intro h,
+    apply_fun (λ p, p.coeff 0) at h,
+    simpa using h, },
+  { rintro rfl, refl, },
+end
+
+@[simp] lemma int_cast_coeff_zero {i : ℤ} {R : Type*} [ring R] :
+  (i : polynomial R).coeff 0 = i :=
+by cases i; simp
+
+@[simp, norm_cast] theorem int_cast_inj
+  {m n : ℤ} {R : Type*} [ring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
+begin
+  fsplit,
+  { intro h,
+    apply_fun (λ p, p.coeff 0) at h,
+    simpa using h, },
+  { rintro rfl, refl, },
+end
+
+end cast
 
 end polynomial

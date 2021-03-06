@@ -61,6 +61,22 @@ open_locale classical
 
 universes u v w
 
+-- TODO move to data.set.something
+/-- `set.to_finset s` is the finset corresponding to `s` if `s` is finite, and the empty set
+    otherwise -/
+noncomputable def set.to_finset' {α : Type u} (s : set α) : finset α :=
+if h : s.finite then h.to_finset else ∅
+
+theorem set.to_finset'_eq_to_finset {α : Type u} {s : set α} [fintype s] :
+  s.to_finset' = s.to_finset :=
+begin
+  have h : s.finite := ⟨infer_instance⟩,
+  unfold set.to_finset',
+  rw dif_pos h,
+  unfold set.finite.to_finset,
+  congr',
+end
+
 /-! # finset.univ' -- noncomputable univ (empty set if infinite) -/
 
 namespace finset
@@ -69,11 +85,6 @@ namespace finset
 Note that it is noncomputable -/
 noncomputable def univ' (α : Type u) : finset α :=
 if h : nonempty (fintype α) then (classical.choice h).elems else ∅
-
-/-- `set.to_finset s` is the finset corresponding to `s` if `s` is finite, and the empty set
-    otherwise -/
-noncomputable def set.to_finset {α : Type u} (s : set α) : finset α :=
-if h : s.finite then h.to_finset else ∅
 
 variable {α : Type u}
 
@@ -98,7 +109,8 @@ variables {α : Type u} {M : Type v} [add_comm_monoid M]
 /-- Sum of `f x` as `x` ranges over the elements of the support of `f`, if it's finite. Zero
   otherwise. -/
 noncomputable def finsum (f : α → M) : M :=
-if h : (function.support f).finite then finset.sum (h.to_finset) f else 0
+(function.support f).to_finset'.sum f
+--if h : (function.support f).finite then finset.sum (h.to_finset) f else 0
 
 /-- Sum of `f x` for `x ∈ s`, if `s ∩ f.support` is finite. Zero if it's infinite.  -/
 noncomputable def finsum_in (s : set α) (f : α → M) : M :=
@@ -113,7 +125,13 @@ localized "notation `∑ᶠ` binders ` in ` s `, ` r:(scoped:67 f, finsum_in s f
 open_locale big_operators
 
 lemma finsum_def (f : α → M) :
-  ∑ᶠ i : α, f i = if h : (function.support f).finite then finset.sum (h.to_finset) f else 0 := rfl
+  ∑ᶠ i : α, f i = if h : (function.support f).finite then finset.sum (h.to_finset) f else 0 :=
+begin
+  split_ifs,
+  { unfold finsum set.to_finset',
+    rw dif_pos h },
+  { sorry }
+end
 
 lemma finsum_in_def (s : set α) (f : α → M) :
   ∑ᶠ i in s, f i = finsum (λ x, if x ∈ s then f x else 0) := rfl

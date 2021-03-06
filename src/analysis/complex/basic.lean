@@ -71,12 +71,6 @@ by rw [norm_real, real.norm_eq_abs]
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
-/-- A complex normed vector space is also a real normed vector space.
-
-This is not an instance as it forms a loop. -/
-def normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed_space ℂ E] :
-  normed_space ℝ E := normed_space.restrict_scalars ℝ ℂ E
-
 open continuous_linear_map
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/

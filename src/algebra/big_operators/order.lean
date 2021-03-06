@@ -22,13 +22,46 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
-lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
-  (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
-  f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
+@[to_additive le_sum_nonempty_of_subadditive_on_pred]
+lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (p : α → Prop) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) (s : finset γ) (hs_nonempty : s.nonempty)
+  (hs : ∀ x, x ∈ s → p (g x)) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 begin
-  refine le_trans (multiset.le_sum_of_subadditive f h_zero h_add _) _,
-  rw [multiset.map_map],
-  refl
+  refine le_trans (multiset.le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul _ _ _) _,
+  { simp [nonempty_iff_ne_empty.mp hs_nonempty], },
+  { exact multiset.forall_mem_map_iff.mpr hs, },
+  rw multiset.map_map,
+  refl,
+end
+
+@[to_additive le_sum_nonempty_of_subadditive]
+lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) {s : finset γ} (hs : s.nonempty) (g : γ → α) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) g s hs
+  (by simp)
+
+@[to_additive le_sum_of_subadditive_on_pred]
+lemma le_prod_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (p : α → Prop) (h_one : f 1 = 1) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
+  (hp_mul : ∀ x y, p x → p y → p (x * y)) (g : γ → α) {s : finset γ} (hs : ∀ x, x ∈ s → p (g x)) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+begin
+  by_cases hs_nonempty : s.nonempty,
+  { exact le_prod_nonempty_of_submultiplicative_on_pred f p h_mul hp_mul g s hs_nonempty hs, },
+  { simp [not_nonempty_iff_eq_empty.mp hs_nonempty, h_one], },
+end
+
+@[to_additive le_sum_of_subadditive]
+lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
+  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (s : finset γ) (g : γ → α) :
+  f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
+begin
+  refine le_trans (multiset.le_prod_of_submultiplicative f h_one h_mul _) _,
+  rw multiset.map_map,
+  refl,
 end
 
 lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :

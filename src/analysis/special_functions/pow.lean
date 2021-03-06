@@ -138,7 +138,7 @@ begin
     rw [log_zero, mul_zero],
     refine (has_strict_deriv_at_const _ 0).congr_of_eventually_eq _,
     exact (is_open_ne.eventually_mem h).mono (λ y hy, (zero_cpow hy).symm) },
-  { simpa only [cpow_def_of_ne_zero hx, mul_one] 
+  { simpa only [cpow_def_of_ne_zero hx, mul_one]
       using ((has_strict_deriv_at_id y).const_mul (log x)).cexp }
 end
 
@@ -516,10 +516,10 @@ end
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
 begin
   iterate 3 { rw real.rpow_def_of_nonneg }, split_ifs; simp * at *,
-  { have hx : 0 < x, 
+  { have hx : 0 < x,
     { cases lt_or_eq_of_le h with h₂ h₂, { exact h₂ },
       exfalso, apply h_2, exact eq.symm h₂ },
-    have hy : 0 < y, 
+    have hy : 0 < y,
     { cases lt_or_eq_of_le h₁ with h₂ h₂, { exact h₂ },
       exfalso, apply h_3, exact eq.symm h₂ },
     rw [log_mul (ne_of_gt hx) (ne_of_gt hy), add_mul, exp_add]},
@@ -957,7 +957,7 @@ end
 /-- The function `x ^ (-y)` tends to `0` at `+∞` for any positive real `y`. -/
 lemma tendsto_rpow_neg_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ (-y)) at_top (𝓝 0) :=
 tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (rpow_neg (le_of_lt hx) y).symm))
-  (tendsto.inv_tendsto_at_top (tendsto_rpow_at_top hy))
+  (tendsto_rpow_at_top hy).inv_tendsto_at_top
 
 /-- The function `x ^ (a / (b * x + c))` tends to `1` at `+∞`, for any real numbers `a`, `b`, and
 `c` such that `b` is nonzero. -/

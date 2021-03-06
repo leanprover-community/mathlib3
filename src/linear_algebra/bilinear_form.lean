@@ -414,10 +414,6 @@ begin
   { rw [smul_right, H, mul_zero] },
 end
 
-end
-
-section is_basis
-
 /-- A set of orthogonal vectors `v` with respect to some bilinear form `B` is linearly independent
   if for all `i`, `B (v i) (v i) ≠ 0`. -/
 lemma linear_independent_of_is_Ortho
@@ -443,6 +439,10 @@ begin
   { exact false.elim (hv₂ i $ this) },
   { assumption }
 end
+
+end
+
+section is_basis
 
 variables {B₃ F₃ : bilin_form R₃ M₃}
 variables {ι : Type*} {b : ι → M₃} (hb : is_basis R₃ b)
@@ -1106,6 +1106,52 @@ lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
   N ≤ B.orthogonal (B.orthogonal N) :=
 λ n hn m hm, hB _ _ (hm n hn)
 
+-- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
+lemma span_singleton_inf_orthogonal_eq_bot
+  {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
+  (K ∙ x) ⊓ B.orthogonal (K ∙ x) = ⊥ :=
+begin
+  rw ← finset.coe_singleton,
+  refine eq_bot_iff.2 (λ y h, _),
+  rcases mem_span_finset.1 h.1 with ⟨μ, rfl⟩,
+  have := h.2 x _,
+  { rw finset.sum_singleton at this ⊢,
+    suffices hμzero : μ x = 0,
+    { rw [hμzero, zero_smul, submodule.mem_bot] },
+    change B x (μ x • x) = 0 at this, rw [smul_right] at this,
+    exact or.elim (zero_eq_mul.mp this.symm) id (λ hfalse, false.elim $ hx hfalse) },
+  { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
+end
+
+-- ↓ This lemma only applies in fields since we use the `mul_eq_zero`
+lemma orthogonal_span_singleton_eq_to_lin_ker {B : bilin_form K V} (x : V) :
+  B.orthogonal (K ∙ x) = (bilin_form.to_lin B x).ker :=
+begin
+  ext y,
+  simp_rw [mem_orthogonal_iff, linear_map.mem_ker,
+           submodule.mem_span_singleton ],
+  split,
+  { exact λ h, h x ⟨1, one_smul _ _⟩ },
+  { rintro h _ ⟨z, rfl⟩,
+    rw [is_ortho, smul_left, mul_eq_zero],
+    exact or.intro_right _ h }
+end
+
+lemma span_singleton_sup_orthogonal_eq_top {B : bilin_form K V}
+  {x : V} (hx : ¬ B.is_ortho x x) :
+  (K ∙ x) ⊔ B.orthogonal (K ∙ x) = ⊤ :=
+begin
+  rw orthogonal_span_singleton_eq_to_lin_ker,
+  exact linear_map.span_singleton_sup_ker_eq_top _ hx,
+end
+
+/-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
+  is complement to its orthogonal complement. -/
+lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
+  {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
+{ inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
+  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+
 end orthogonal
 
 /-- The restriction of a bilinear form on a submodule. -/
@@ -1173,52 +1219,6 @@ begin
     rw [show 0 = htwo.inv_of * (2 * B u v), by rw [this, mul_zero]], simp [← mul_assoc] },
   exact let ⟨v, hv⟩ := exists_ne (0 : M) in hv $ hB₁ v (hcon v),
 end
-
--- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
-lemma span_singleton_inf_orthogonal_eq_bot
-  {B : bilin_form K V} {x : V} (hx : ¬ B.is_ortho x x) :
-  (K ∙ x) ⊓ B.orthogonal (K ∙ x) = ⊥ :=
-begin
-  rw ← finset.coe_singleton,
-  refine eq_bot_iff.2 (λ y h, _),
-  rcases mem_span_finset.1 h.1 with ⟨μ, rfl⟩,
-  have := h.2 x _,
-  { rw finset.sum_singleton at this ⊢,
-    suffices hμzero : μ x = 0,
-    { rw [hμzero, zero_smul, submodule.mem_bot] },
-    change B x (μ x • x) = 0 at this, rw [smul_right] at this,
-    exact or.elim (zero_eq_mul.mp this.symm) id (λ hfalse, false.elim $ hx hfalse) },
-  { rw submodule.mem_span; exact λ _ hp, hp $ finset.mem_singleton_self _ }
-end
-
--- ↓ This lemma only applies in fields since we use the `mul_eq_zero`
-lemma orthogonal_span_singleton_eq_to_lin_ker {B : bilin_form K V} (x : V) :
-  B.orthogonal (K ∙ x) = (bilin_form.to_lin B x).ker :=
-begin
-  ext y,
-  simp_rw [mem_orthogonal_iff, linear_map.mem_ker,
-           submodule.mem_span_singleton ],
-  split,
-  { exact λ h, h x ⟨1, one_smul _ _⟩ },
-  { rintro h _ ⟨z, rfl⟩,
-    rw [is_ortho, smul_left, mul_eq_zero],
-    exact or.intro_right _ h }
-end
-
-lemma span_singleton_sup_orthogonal_eq_top {B : bilin_form K V}
-  {x : V} (hx : ¬ B.is_ortho x x) :
-  (K ∙ x) ⊔ B.orthogonal (K ∙ x) = ⊤ :=
-begin
-  rw orthogonal_span_singleton_eq_to_lin_ker,
-  exact linear_map.span_singleton_sup_ker_eq_top _ hx,
-end
-
-/-- Given a bilinear form `B` and some `x` such that `B x x ≠ 0`, the span of the singleton of `x`
-  is complement to its orthogonal complement. -/
-lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
-  {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 /-- The restriction of a non-degenerate bilinear form on the orthogonal complement of the
   span of a singleton is also non-degenerate. -/

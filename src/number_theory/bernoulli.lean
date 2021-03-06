@@ -205,11 +205,7 @@ open ring_hom
 theorem bernoulli'_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli' n = 0 :=
 begin
   have f : power_series.mk (λ n, (bernoulli' n / n!)) * (exp ℚ - 1) = X * exp ℚ,
-  { suffices f': bernoulli'_power_series ℚ * (exp ℚ - 1) = X * exp ℚ,
-    { dsimp [bernoulli'_power_series] at f',
-      simp only [id_apply, rat.algebra_map_rat_rat] at f',
-      exact f', },
-    {exact bernoulli'_power_series_mul_exp_sub_one ℚ}, },
+  { simpa [bernoulli'_power_series] using bernoulli'_power_series_mul_exp_sub_one ℚ },
   have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n!)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,

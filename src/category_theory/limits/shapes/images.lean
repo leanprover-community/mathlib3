@@ -255,7 +255,7 @@ begin
 end
 
 -- This is the proof that `factor_thru_image f` is an epimorphism
--- from https://en.wikipedia.org/wiki/Image_(category_theory), which is in turn taken from:
+-- from https://en.wikipedia.org/wiki/Image_%28category_theory%29, which is in turn taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
 @[ext]
 lemma image.ext {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]

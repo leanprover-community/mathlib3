@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import tactic.hint
-
+import tactic.ext
 namespace tactic
 
 open expr
@@ -294,5 +294,34 @@ add_tactic_doc
   decl_names := [`tactic.interactive.tautology, `tactic.interactive.tauto],
   tags       := ["logic", "decision procedure"] }
 
+
+/-- Helper for set_taut and set_taut'. -/
+meta def set_tauth (classical_op:bool) : tactic unit :=
+do tactic.ext1 [], 
+   lemmas ← simp_lemmas.mk_default,
+   lemmas' ← simp_lemmas.add_simp lemmas `forall_and_iff_forall_and_forall,
+   tactic.simp_all lemmas' [],
+   tactic.tautology  {classical := classical_op}
+
+/-- Prove tautological equality of two sets, using intuitionistic logic.
+    For best results, import data.set.default or data.finset.default
+    as appropriate.
+ -/
+meta def set_taut : tactic unit := set_tauth ff
+
+/-- Prove tautological equality of two sets, using classical logic.
+    For best results, import data.set.default or data.finset.default
+    as appropriate.
+ -/
+meta def set_taut' : tactic unit := set_tauth tt
+
 end interactive
 end tactic
+
+/-- tactic.tautology cannot deduce P b from (∀ b, P b ∧ Q b),
+  but it can from (∀ b, P b) ∧ (∀ b, Q b). -/
+lemma forall_and_iff_forall_and_forall {β} {P Q : β → Prop} :
+  (∀ b, P b ∧ Q b) ↔ (∀ b, P b) ∧ ∀ b, Q b :=
+iff.intro 
+  (λ h1 : (∀ b, P b ∧ Q b), and.intro (λ b, (h1 b).left) (λ b, (h1 b).right)) 
+  (λ h1 : (∀ b, P b) ∧ (∀ b, Q b), (λ b, and.intro (h1.left b) (h1.right b))) 

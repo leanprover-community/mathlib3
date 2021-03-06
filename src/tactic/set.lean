@@ -6,8 +6,8 @@ Authors: Martin Zinkevich
 import tactic.interactive
 import tactic.ext
 import tactic.tauto
-import data.set.default
-import data.finset.default
+--import data.set.default
+--import data.finset.default
 
 
 /-! tactics for proving results about sets. Also work with finsets.
@@ -31,11 +31,11 @@ iff.intro
 
 /-- Helper for set_taut and set_taut'. -/
 meta def set_tauth (classical_op:bool) : tactic unit :=
-do tactic.ext1 [],
-do lemmas ← simp_lemmas.mk_default,
-do lemmas' ← simp_lemmas.add_simp lemmas `forall_and_iff_forall_and_forall,
-do tactic.simp_all lemmas' [],
-do tactic.tautology  {classical := classical_op}
+do tactic.ext1 [], 
+   lemmas ← simp_lemmas.mk_default,
+   lemmas' ← simp_lemmas.add_simp lemmas `forall_and_iff_forall_and_forall,
+   tactic.simp_all lemmas' [],
+   tactic.tautology  {classical := classical_op}
 
 /-- Prove tautological equality of two sets, using intuitionistic logic. -/
 meta def set_taut : tactic unit := set_tauth ff

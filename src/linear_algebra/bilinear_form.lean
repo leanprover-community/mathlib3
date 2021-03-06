@@ -14,8 +14,8 @@ import algebra.invertible
 
 This file defines a bilinear form over a module. Basic ideas
 such as orthogonality are also introduced, as well as reflexivive,
-symmetric and alternating bilinear forms. Adjoints of linear maps
-with respect to a bilinear form are also introduced.
+symmetric, non-degenerate and alternating bilinear forms. Adjoints of
+linear maps with respect to a bilinear form are also introduced.
 
 A bilinear form on an R-(semi)module M, is a function from M x M to R,
 that is linear in both arguments. Comments will typically abbreviate
@@ -1117,6 +1117,7 @@ def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
   bilin_add_right := λ _ _ _, add_right _ _ _,
   bilin_smul_right := λ _ _ _, smul_right _ _ _}
 
+/-- The restriction of a symmetric bilinear form on a submodule is also symmetric. -/
 lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
   (W : submodule R M) : sym_bilin_form.is_sym $ B.restrict W :=
 λ x y, hB x y
@@ -1234,6 +1235,8 @@ begin
   erw [add_right, show B m.1 y = 0, by rw hB₂; exact m.2 y hy, hm, add_zero]
 end
 
+section
+
 open finite_dimensional
 
 variable [finite_dimensional K V]
@@ -1313,6 +1316,8 @@ theorem exists_orthogonal_basis [hK : invertible (2 : K)]
 begin
   rcases exists_orthogonal_basis' hB₁ hB₂ with ⟨v, hv₁, hv₂, _⟩,
   exact ⟨v, hv₁, hv₂⟩
+end
+
 end
 
 end bilin_form

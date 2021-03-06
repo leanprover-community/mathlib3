@@ -1236,18 +1236,6 @@ variables [borel_space E] [second_countable_topology E]
 namespace measure_theory
 namespace Lp
 
-lemma ennreal.tsum_eq_liminf_sum_nat {f : ℕ → ℝ≥0∞} :
-  ∑' i, f i = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
-begin
-  rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
-  congr,
-  refine funext (λ n, le_antisymm _ _),
-  { refine le_binfi (λ i hi, finset.sum_le_sum_of_subset_of_nonneg _ (λ _ _ _, zero_le _)),
-    simpa only [finset.range_subset, add_le_add_iff_right] using hi, },
-  { refine le_trans (infi_le _ n) _,
-    simp [le_refl n, le_refl ((finset.range n).sum f)], },
-end
-
 lemma snorm'_lim_sub {f : ℕ → α → G} {p : ℝ} (hp1 : 1 ≤ p) {f_lim : α → G}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) (n : ℕ) :
   snorm' (f n - f_lim) p μ
@@ -1263,13 +1251,6 @@ begin
       (nnnorm (f n a - f_lim a))).comp _,
   exact (continuous_nnnorm.tendsto (f n a - f_lim a)).comp (tendsto_const_nhds.sub ha),
 end
-
-
-
-
-
-
-
 
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 

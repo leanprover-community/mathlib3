@@ -1460,12 +1460,47 @@ lemma exists_Union_ball_eq_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i)
 let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_pos_lt hr is_closed_univ (λ x _, uf x) uU.ge
 in ⟨r', univ_subset_iff.1 hU, hv⟩
 
-lemma exists_locally_finite_Union_ball_eq_radius_lt {r : α → ℝ} (hr : ∀ x, 0 < r x) :
-  ∃ (ι : Type u) (c : ι → α) (r' r'' : ι → ℝ), (∀ i, r' i < r'' i ∧ r'' i < r (c i)) ∧
-    locally_finite (λ i, ball (c i) (r'' i)) ∧ (⋃ i, ball (c i) (r' i)) = univ :=
+/-- Let `R : α → ℝ` be a (possibly discontinuous) function that is positive on a closed set `s`.
+Then there exists a collection of pairs of balls `metric.ball (c i) (r i)`,
+`metric.ball (c i) (r' i)` such that
+
+* all centers belong to `s`;
+* for all `i` we have `0 < r i < r' i < R (c i)`;
+* the family of balls `metric.ball (c i) (r' i)` is locally finite;
+* the balls `metric.ball (c i) (r i)` cover `s`.
+
+This is a simple corollary of `refinement_of_locally_compact_sigma_compact_of_nhds_basis_set`
+and `exists_subset_Union_ball_radius_pos_lt`. -/
+lemma exists_locally_finite_subset_Union_ball_radius_lt (hs : is_closed s)
+  {R : α → ℝ} (hR : ∀ x ∈ s, 0 < R x) :
+  ∃ (ι : Type u) (c : ι → α) (r r' : ι → ℝ),
+    (∀ i, c i ∈ s ∧ 0 < r i ∧ r i < r' i ∧ r' i < R (c i)) ∧
+    locally_finite (λ i, ball (c i) (r' i)) ∧ s ⊆ ⋃ i, ball (c i) (r i) :=
 begin
-  rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis
+  have : ∀ x ∈ s, (𝓝 x).has_basis (λ r : ℝ, 0 < r ∧ r < R x) (λ r, ball x r),
+    from λ x hx, nhds_basis_uniformity (uniformity_basis_dist_lt (hR x hx)),
+  rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs this
+    with ⟨ι, c, r', hr', hsub', hfin⟩,
+  rcases exists_subset_Union_ball_radius_pos_lt (λ i, (hr' i).2.1) hs
+    (λ x hx, hfin.point_finite x) hsub' with ⟨r, hsub, hlt⟩,
+  exact ⟨ι, c, r, r', λ i, ⟨(hr' i).1, (hlt i).1, (hlt i).2, (hr' i).2.2⟩, hfin, hsub⟩
 end
+
+/-- Let `R : α → ℝ` be a (possibly discontinuous) positive function. Then there exists a collection
+of pairs of balls `metric.ball (c i) (r i)`, `metric.ball (c i) (r' i)` such that
+
+* for all `i` we have `0 < r i < r' i < R (c i)`;
+* the family of balls `metric.ball (c i) (r' i)` is locally finite;
+* the balls `metric.ball (c i) (r i)` cover the whole space.
+
+This is a simple corollary of `refinement_of_locally_compact_sigma_compact_of_nhds_basis`
+and `exists_Union_ball_eq_radius_pos_lt` or `exists_locally_finite_subset_Union_ball_radius_lt`. -/
+lemma exists_locally_finite_Union_eq_ball_radius_lt {R : α → ℝ} (hR : ∀ x, 0 < R x) :
+  ∃ (ι : Type u) (c : ι → α) (r r' : ι → ℝ), (∀ i, 0 < r i ∧ r i < r' i ∧ r' i < R (c i)) ∧
+    locally_finite (λ i, ball (c i) (r' i)) ∧ (⋃ i, ball (c i) (r i)) = univ :=
+let ⟨ι, c, r, r', hlt, hfin, hsub⟩ := exists_locally_finite_subset_Union_ball_radius_lt
+  is_closed_univ (λ x _, hR x)
+in ⟨ι, c, r, r', λ i, (hlt i).2, hfin, univ_subset_iff.1 hsub⟩
 
 end proper_space
 

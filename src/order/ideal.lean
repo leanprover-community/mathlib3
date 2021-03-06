@@ -91,9 +91,9 @@ class proper (I : ideal P) : Prop := (nuniv : (I : set P) ≠ set.univ)
 
 lemma proper_of_nmem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
 ⟨λ hp, begin
-change p ∉ ↑I at nmem,
-rw hp at nmem,
-exact nmem (set.mem_univ p),
+  change p ∉ ↑I at nmem,
+  rw hp at nmem,
+  exact nmem (set.mem_univ p),
 end⟩
 
 end preorder

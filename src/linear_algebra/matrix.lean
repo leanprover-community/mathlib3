@@ -1089,22 +1089,23 @@ def block_triangular_matrix' {o : Type*} [fintype o] (M : matrix o o R) {n : ℕ
   (b : o → fin n) : Prop :=
 ∀ i j, b j < b i → M i j = 0
 
-/-- Let `b` map rows and columns of a square matrix `M` to `n` blocks. Then
+/-- Let `b` map rows and columns of a square matrix `M` to blocks indexed by `ℕ`s. Then
   `block_triangular_matrix M n b` says the matrix is block triangular. -/
-def block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (n : ℕ)
-  (b : o → ℕ) := (∀ i, b i < n) ∧ (∀ i j, b j < b i → M i j = 0)
+def block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (b : o → ℕ) : Prop :=
+∀ i j, b j < b i → M i j = 0
 
-lemma det_of_block_triangular_matrix (M : matrix m m R) (n : ℕ) (b : m → ℕ)
-  (h : block_triangular_matrix M n b) :
-  M.det = ∏ k in finset.range n, (to_square_block' M b k).det :=
+lemma det_of_block_triangular_matrix (M : matrix m m R) (b : m → ℕ)
+  (h : block_triangular_matrix M b) :
+  ∀ (n : ℕ) (hn : ∀ i, b i < n), M.det = ∏ k in finset.range n, (to_square_block' M b k).det :=
 begin
+  intros n hn,
   tactic.unfreeze_local_instances,
-  induction n with n hn generalizing m M b,
+  induction n with n hi generalizing m M b,
   { rw finset.prod_range_zero,
     apply det_eq_one_of_card_eq_zero,
     apply fintype.card_eq_zero_iff.mpr,
     intro i,
-    exact nat.not_lt_zero (b i) (h.left i) },
+    exact nat.not_lt_zero (b i) (hn i) },
   { rw finset.prod_range_succ,
     have h2 : (M.to_square_block_prop (λ (i : m), b i = n.succ)).det =
       (M.to_square_block' b n.succ).det,
@@ -1115,11 +1116,11 @@ begin
       { let m' := {a // ¬b a = n },
         let b' := (λ (i : m'), b ↑i),
         have h' :
-          block_triangular_matrix (M.to_square_block_prop (λ (i : m), ¬b i = n)) n b',
-        { split,
-          { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (h.left ↑i)) },
-          { intros i j, apply h.right ↑i ↑j }},
-        have h1 := hn (M.to_square_block_prop (λ (i : m), ¬b i = n)) b' h',
+          block_triangular_matrix (M.to_square_block_prop (λ (i : m), ¬b i = n)) b',
+        { intros i j, apply h ↑i ↑j },
+        have hni : ∀ (i : {a // ¬b a = n}), b' i < n,
+          { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (hn ↑i)) },
+        have h1 := hi (M.to_square_block_prop (λ (i : m), ¬b i = n)) b' h' hni,
         rw ←fin.prod_univ_eq_prod_range,
         rw ←fin.prod_univ_eq_prod_range at h1,
         convert h1,
@@ -1135,9 +1136,36 @@ begin
         { intro i, simp only [not_not] },
         exact equiv_block_det M hh }},
     { intros i hi j hj,
-      apply (h.right i), simp only [not_not] at hi,
+      apply (h i), simp only [not_not] at hi,
       rw hi,
-      exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (h.left j)) }}
+      exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (hn j)) }}
+end
+
+lemma det_of_block_triangular_matrix'' (M : matrix m m R) (b : m → ℕ)
+  (h : block_triangular_matrix M b) :
+  M.det = ∏ k in finset.image b finset.univ, (to_square_block' M b k).det :=
+begin
+  let n : ℕ := (Sup (finset.image b finset.univ : set ℕ)).succ,
+  have hn : ∀ i, b i < n,
+  { have hbi : ∀ i, b i ∈ finset.image b finset.univ, { simp },
+    intro i,
+    dsimp only [n],
+    apply nat.lt_succ_iff.mpr,
+    exact le_cSup (finset.bdd_above _) (hbi i) },
+  rw det_of_block_triangular_matrix M b h n hn,
+  refine (finset.prod_subset _ _).symm,
+  { intros a ha, apply finset.mem_range.mpr,
+    obtain ⟨i, ⟨hi, hbi⟩⟩ := finset.mem_image.mp ha,
+    rw ←hbi,
+    exact hn i },
+  { intros k hk hbk,
+    apply det_eq_one_of_card_eq_zero,
+    apply fintype.card_eq_zero_iff.mpr,
+    simp only [subtype.forall],
+    intros a hba, apply hbk,
+    apply finset.mem_image.mpr,
+    use a,
+    exact ⟨finset.mem_univ a, hba⟩ }
 end
 
 lemma det_of_block_triangular_matrix' (M : matrix m m R) {n : ℕ} (b : m → fin n)
@@ -1148,9 +1176,8 @@ begin
   simp_rw to_square_block_det'',
   rw fin.prod_univ_eq_prod_range (λ (k : ℕ), (M.to_square_block' b2 k).det) n,
   apply det_of_block_triangular_matrix,
-  split,
-  { intro i, exact fin.is_lt (b i) },
-  { intros i j hij, exact h i j (fin.coe_fin_lt.mp hij) }
+  { intros i j hij, exact h i j (fin.coe_fin_lt.mp hij) },
+  { intro i, exact fin.is_lt (b i) }
 end
 
 lemma det_of_upper_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)

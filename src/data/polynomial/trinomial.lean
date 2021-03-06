@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import data.polynomial.reverse2
+import data.polynomial.mirror
 import analysis.complex.polynomial
 
 /-!
@@ -21,8 +21,8 @@ work with than a sum of monomials.
 
 ## Main results
 
-- `reverse'_irreducible_test'`: an irreducibility criterion for unit trinomials
-- `reverse'_irreducible_test''`: an irreducibility criterion for unit trinomials
+- `irreducible_of_mirror'`: an irreducibility criterion for unit trinomials
+- `irreducible_of_mirror''`: an irreducibility criterion for unit trinomials
 - `selmer_irreducible`: the polynomial `X ^ n - X - 1` is irreducible for all `n ≠ 1`
 
 -/

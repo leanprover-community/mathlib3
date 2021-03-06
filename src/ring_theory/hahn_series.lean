@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import order.well_founded_set
 import algebra.big_operators
+import ring_theory.valuation.basic
 import algebra.module.pi
 
 /-!
@@ -15,6 +16,7 @@ import algebra.module.pi
   formal series over `Γ` with coefficients in `R`, whose supports are well-founded.
   * If `R` is a (commutative) additive monoid or group, then so is `hahn_series Γ R`.
   * If `R` is a (comm_)(semi)ring, then so is `hahn_series Γ R`.
+  * `hahn_series.add_val Γ R` defines an `add_valuation` on `hahn_series Γ R`.
 
 ## TODO
   * Given `[linear_ordered_add_comm_group Γ]` and `[field R]`, define `field (hahn_series Γ R)`.
@@ -55,11 +57,29 @@ instance : has_zero (hahn_series Γ R) :=
 
 instance : inhabited (hahn_series Γ R) := ⟨0⟩
 
+instance [subsingleton R] : subsingleton (hahn_series Γ R) :=
+⟨λ a b, a.ext b (subsingleton.elim _ _)⟩
+
 @[simp]
 lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
 
-@[simp]
 lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
+
+@[simp]
+lemma support_nonempty_iff {x : hahn_series Γ R} :
+  {a | x.coeff a ≠ 0}.nonempty ↔ x ≠ 0 :=
+begin
+  split,
+  { rintro ⟨a, ha⟩ rfl,
+    apply ha zero_coeff },
+  { contrapose!,
+    rw set.not_nonempty_iff_eq_empty,
+    intro h,
+    ext a,
+    have ha := set.not_mem_empty a,
+    rw [← h, set.mem_set_of_eq, not_not] at ha,
+    rw [ha, zero_coeff] }
+end
 
 /-- `single a r` is the Hahn series which has coefficient `r` at `a` and zero otherwise. -/
 def single (a : Γ) (r : R) : hahn_series Γ R := {
@@ -69,7 +89,7 @@ def single (a : Γ) (r : R) : hahn_series Γ R := {
 variables {a b : Γ} {r : R}
 
 @[simp]
-theorem single_coeff_same : (single a r).coeff a = r := pi.single_eq_same a r
+theorem single_coeff_same (a : Γ) (r : R) : (single a r).coeff a = r := pi.single_eq_same a r
 
 @[simp]
 theorem single_coeff_of_ne (h : b ≠ a) : (single a r).coeff b = 0 := pi.single_eq_of_ne h r
@@ -83,6 +103,18 @@ pi.support_single_of_ne h
 
 @[simp]
 lemma single_eq_zero : (single a (0 : R)) = 0 := ext _ _ (pi.single_zero _)
+
+instance [nonempty Γ] [nontrivial R] : nontrivial (hahn_series Γ R) :=
+⟨begin
+  obtain ⟨r, s, rs⟩ := exists_pair_ne R,
+  inhabit Γ,
+  refine ⟨single (arbitrary Γ) r, single (arbitrary Γ) s, λ con, rs _⟩,
+  rw [← single_coeff_same (arbitrary Γ) r, con, single_coeff_same],
+end⟩
+
+lemma coeff_min_ne_zero {x : hahn_series Γ R} (hx : x ≠ 0) :
+  x.coeff (x.is_wf_support.min (support_nonempty_iff.2 hx)) ≠ 0 :=
+x.is_wf_support.min_mem (support_nonempty_iff.2 hx)
 
 end zero
 
@@ -108,6 +140,16 @@ lemma add_coeff' [add_monoid R] {x y : hahn_series Γ R} :
 
 lemma add_coeff [add_monoid R] {x y : hahn_series Γ R} {a : Γ} :
   (x + y).coeff a = x.coeff a + y.coeff a := rfl
+
+lemma support_add_subset [add_monoid R] {x y : hahn_series Γ R} :
+  support (x + y) ⊆ support x ∪ support y :=
+λ a ha, begin
+  rw [mem_support, add_coeff] at ha,
+  rw [set.mem_union, mem_support, mem_support],
+  contrapose! ha,
+  rw [ha.1, ha.2, add_zero],
+end
+
 
 instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
 { add_comm := λ x y, by { ext, apply add_comm }
@@ -176,6 +218,10 @@ lemma one_coeff [has_zero R] [has_one R] {a : Γ} :
 
 @[simp]
 lemma single_zero_one [has_zero R] [has_one R] : (single 0 (1 : R)) = 1 := rfl
+
+lemma support_one [semiring R] [nontrivial R] :
+  {a | (1 : hahn_series Γ R).coeff a ≠ 0} = {0} :=
+support_single_of_ne one_ne_zero
 
 noncomputable instance [semiring R] : has_mul (hahn_series Γ R) :=
 { mul := λ x y, { coeff := λ a,
@@ -318,6 +364,14 @@ begin
   simp [hx],
 end
 
+@[simp]
+lemma mul_coeff_min_add_min [semiring R] {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (x * y).coeff (x.is_wf_support.min (support_nonempty_iff.2 hx) +
+    y.is_wf_support.min (support_nonempty_iff.2 hy)) =
+    (x.coeff (x.is_wf_support.min (support_nonempty_iff.2 hx))) *
+    y.coeff (y.is_wf_support.min (support_nonempty_iff.2 hy)) :=
+by rw [mul_coeff, finset.add_antidiagonal_min_add_min, finset.sum_singleton]
+
 private lemma mul_assoc' [semiring R] (x y z : hahn_series Γ R) :
   x * y * z = x * (y * z) :=
 begin
@@ -390,6 +444,99 @@ noncomputable instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 
+noncomputable instance [integral_domain R] : integral_domain (hahn_series Γ R) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y xy, begin
+    by_cases hx : x = 0,
+    { left, exact hx },
+    right,
+    contrapose! xy,
+    rw [hahn_series.ext_iff, function.funext_iff, not_forall],
+    refine ⟨x.is_wf_support.min (support_nonempty_iff.2 hx) +
+      y.is_wf_support.min (support_nonempty_iff.2 xy), _⟩,
+    rw [mul_coeff_min_add_min, zero_coeff, mul_eq_zero],
+    simp [coeff_min_ne_zero, hx, xy],
+  end,
+  .. hahn_series.nontrivial,
+  .. hahn_series.comm_ring }
+
 end multiplication
+
+section valuation
+
+variables [linear_ordered_add_comm_group Γ] [integral_domain R] [nontrivial R]
+
+instance : linear_ordered_comm_group (multiplicative Γ) :=
+{ .. (infer_instance : linear_order (multiplicative Γ)),
+  .. (infer_instance : ordered_comm_group (multiplicative Γ)) }
+
+instance : linear_ordered_comm_group_with_zero (with_zero (multiplicative Γ)) :=
+{ zero_le_one := with_zero.zero_le 1,
+  .. (with_zero.ordered_comm_monoid),
+  .. (infer_instance : linear_order (with_zero (multiplicative Γ))),
+  .. (infer_instance : comm_group_with_zero (with_zero (multiplicative Γ))) }
+
+open_locale classical
+
+variables (Γ) (R)
+
+/-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which
+  a Hahn Series has a nonzero coefficient, or `⊤` for the 0 series.  -/
+noncomputable def add_val : add_valuation (hahn_series Γ R) (with_top Γ) :=
+add_valuation.of (λ x, if h : x = (0 : hahn_series Γ R) then (⊤ : with_top Γ)
+    else x.is_wf_support.min (support_nonempty_iff.2 h))
+  (dif_pos rfl)
+  ((dif_neg one_ne_zero).trans begin
+    rw [← with_top.coe_zero, with_top.coe_eq_coe],
+    transitivity (set.is_wf_singleton (0 : Γ)).min (set.singleton_nonempty 0),
+    { congr,
+      exact support_one },
+    { apply set.is_wf_min_singleton }
+  end)
+  (λ x y, begin
+    by_cases hx : x = 0,
+    { by_cases hy : y = 0,
+      { simp [hx, hy] },
+      { simp only [hx, hy, support_nonempty_iff, dif_pos, with_top.coe_le_coe,
+          eq_self_iff_true, le_top, dif_neg, zero_add, not_false_iff, min_eq_right, is_wf_support],
+        refl } },
+    { by_cases hy : y = 0,
+      { simp only [hx, hy, support_nonempty_iff, add_zero, dif_pos, min_eq_left,
+          with_top.coe_le_coe, eq_self_iff_true, le_top, dif_neg, not_false_iff, is_wf_support],
+        refl },
+      { simp only [hx, hy, support_nonempty_iff, dif_neg, not_false_iff, is_wf_support, min_le_iff],
+        by_cases hxy : x + y = 0,
+        { simp [hxy] },
+        rw [dif_neg hxy, with_top.coe_le_coe, with_top.coe_le_coe, ← min_le_iff,
+          ← set.is_wf.min_union],
+        exact set.is_wf.min_le_min_of_subset support_add_subset, } },
+  end)
+  (λ x y, begin
+    by_cases hx : x = 0,
+    { simp [hx] },
+    by_cases hy : y = 0,
+    { simp [hy] },
+    rw [dif_neg hx, dif_neg hy, dif_neg (mul_ne_zero hx hy),
+      ← with_top.coe_add, with_top.coe_eq_coe],
+    apply le_antisymm,
+    { apply set.is_wf.min_le,
+      rw [mem_support, mul_coeff_min_add_min],
+      exact mul_ne_zero (coeff_min_ne_zero hx) (coeff_min_ne_zero hy) },
+    { rw ← set.is_wf.min_add,
+      exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
+  end)
+
+variables {Γ} {R}
+
+lemma add_val_apply {x : hahn_series Γ R} :
+  add_val Γ R x = if h : x = (0 : hahn_series Γ R) then (⊤ : with_top Γ)
+    else x.is_wf_support.min (support_nonempty_iff.2 h) :=
+add_valuation.of_apply _
+
+@[simp]
+lemma add_val_apply_of_ne {x : hahn_series Γ R} (hx : x ≠ 0) :
+  add_val Γ R x = x.is_wf_support.min (support_nonempty_iff.2 hx) :=
+dif_neg hx
+
+end valuation
 
 end hahn_series

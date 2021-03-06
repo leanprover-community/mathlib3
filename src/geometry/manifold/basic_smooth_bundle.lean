@@ -94,7 +94,7 @@ in general. -/
 structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+(M : Type*) [topological_space M] [charted_space H M]
 (F : Type*) [normed_group F] [normed_space 𝕜 F] :=
 (coord_change      : atlas H M → atlas H M → H → F → F)
 (coord_change_self :
@@ -106,13 +106,12 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   times_cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)))
 
-
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
 def trivial_basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+(M : Type*) [topological_space M] [charted_space H M]
 (F : Type*) [normed_group F] [normed_space 𝕜 F] : basic_smooth_bundle_core I M F :=
 { coord_change := λ i j x v, v,
   coord_change_self := λ i x hx v, rfl,
@@ -124,7 +123,7 @@ namespace basic_smooth_bundle_core
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+{M : Type*} [topological_space M] [charted_space H M]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_bundle_core I M F)
 
@@ -220,7 +219,7 @@ by simp only [chart_at] with mfld_simps
   = ((chart_at H q.1).symm : H → M) p.1 := rfl
 
 /-- Smooth manifold structure on the total space of a basic smooth bundle -/
-instance to_smooth_manifold :
+instance to_smooth_manifold [smooth_manifold_with_corners I M] :
   smooth_manifold_with_corners (I.prod (model_with_corners_self 𝕜 F))
   Z.to_topological_fiber_bundle_core.total_space :=
 begin

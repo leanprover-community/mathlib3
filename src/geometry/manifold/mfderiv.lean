@@ -1281,6 +1281,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {s : set M}
 
+
 /-- If a set has the unique differential property, then its image under a local
 diffeomorphism also has the unique differential property. -/
 lemma unique_mdiff_on.unique_mdiff_on_preimage [smooth_manifold_with_corners I' M']

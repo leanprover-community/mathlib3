@@ -209,6 +209,12 @@ instance to_ordered_add_comm_monoid
   ordered_add_comm_monoid S :=
 subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl)
 
+/-- A submodule of a `linear_ordered_add_comm_monoid` is a `linear_ordered_add_comm_monoid`. -/
+instance to_linear_ordered_add_comm_monoid
+  {M} [linear_ordered_add_comm_monoid M] [semimodule R M] (S : submodule R M) :
+  linear_ordered_add_comm_monoid S :=
+subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl)
+
 /-- A submodule of an `ordered_cancel_add_comm_monoid` is an `ordered_cancel_add_comm_monoid`. -/
 instance to_ordered_cancel_add_comm_monoid
   {M} [ordered_cancel_add_comm_monoid M] [semimodule R M] (S : submodule R M) :

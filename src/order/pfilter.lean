@@ -24,7 +24,7 @@ type `α`, `filter α` represents the same mathematical object as
 
 ## References
 
-- https://en.wikipedia.org/wiki/Filter_(mathematics)
+- <https://en.wikipedia.org/wiki/Filter_(mathematics)>
 
 ## Tags
 

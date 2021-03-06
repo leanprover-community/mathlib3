@@ -107,6 +107,9 @@ open power_series
 open polynomial (aeval)
 variables {A : Type*} [comm_ring A] [algebra ℚ A]
 
+-- TODO: define exponential generating functions, and use them here
+-- This name should probably be updated afterwards
+
 /-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
 theorem exp_bernoulli_poly' (t : A) :
   mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) = X * rescale t (exp A) :=

@@ -133,7 +133,7 @@ lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} : a ∉ s → s �
 mt $ λ e, e.symm ▸ mem_insert _ _
 
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
-by tactic.timetac "insert_subset" begin simp only [subset_def, or_imp_distrib, forall_and_distrib, forall_eq, mem_insert_iff] end
+by simp only [subset_def, or_imp_distrib, forall_and_distrib, forall_eq, mem_insert_iff]
 
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t := λ x, or.imp_right (@h _)
 

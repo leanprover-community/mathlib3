@@ -242,7 +242,7 @@ equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
 
 instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
 { default := 1,
-uniq := λ σ, equiv.ext (λ i, subsingleton.elim _ _) }
+  uniq := λ σ, equiv.ext (λ i, subsingleton.elim _ _) }
 
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
 

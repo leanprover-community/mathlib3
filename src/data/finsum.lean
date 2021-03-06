@@ -61,8 +61,8 @@ open_locale classical
 
 universes u v w
 
--- TODO move to data.set.something
-/-- `set.to_finset s` is the finset corresponding to `s` if `s` is finite, and the empty set
+-- TODO move to data.finset.something?
+/-- `set.to_finset' s` is the finset corresponding to `s` if `s` is finite, and the empty set
     otherwise -/
 noncomputable def set.to_finset' {α : Type u} (s : set α) : finset α :=
 if h : s.finite then h.to_finset else ∅
@@ -77,7 +77,11 @@ begin
   congr',
 end
 
-/-! # finset.univ' -- noncomputable univ (empty set if infinite) -/
+/-!
+
+# finset.univ' -- noncomputable univ (empty set if infinite)
+
+-/
 
 namespace finset
 
@@ -88,15 +92,21 @@ if h : nonempty (fintype α) then (classical.choice h).elems else ∅
 
 variable {α : Type u}
 
-/-- `univ' α` is finset.univ if `α` is a fintype. -/
+/-- `univ' α` is `finset.univ` if `α` is a fintype. -/
 lemma univ'_eq_univ [h : fintype α] : univ' α = univ :=
 by convert (dif_pos (nonempty.intro h))
 
 lemma univ'_eq_empty (h : ¬ nonempty (fintype α)) : univ' α = ∅ :=
 dif_neg h
 
+lemma univ'_eq_empty' (h : fintype α → false) : univ' α = ∅ :=
+univ'_eq_empty $ not_nonempty_fintype.2 $ ⟨h⟩
+
 @[simp] lemma mem_univ' [h : fintype α] (x : α) : x ∈ univ' α :=
 (@univ'_eq_univ _ h).symm ▸ mem_univ _
+
+@[simp] lemma mem_univ'' [h : nonempty (fintype α)] (x : α) : x ∈ univ' α :=
+@mem_univ' α (nonempty.some h) x
 
 end finset
 
@@ -110,7 +120,6 @@ variables {α : Type u} {M : Type v} [add_comm_monoid M]
   otherwise. -/
 noncomputable def finsum (f : α → M) : M :=
 (function.support f).to_finset'.sum f
---if h : (function.support f).finite then finset.sum (h.to_finset) f else 0
 
 /-- Sum of `f x` for `x ∈ s`, if `s ∩ f.support` is finite. Zero if it's infinite.  -/
 noncomputable def finsum_in (s : set α) (f : α → M) : M :=
@@ -130,14 +139,16 @@ begin
   split_ifs,
   { unfold finsum set.to_finset',
     rw dif_pos h },
-  { sorry }
+  { unfold finsum,
+    convert finset.sum_empty,
+    exact dif_neg h }
 end
 
 lemma finsum_in_def (s : set α) (f : α → M) :
   ∑ᶠ i in s, f i = finsum (λ x, if x ∈ s then f x else 0) := rfl
 
 -- function.support doesn't import data.finsupp and vice versa
--- so the lemmas can't go in either place
+-- so the below lemma can't go in either place
 lemma function.support_eq_support {α : Type u} {β : Type v} [has_zero β] (f : α →₀ β) :
   function.support f = f.support :=
 set.ext $ λ x, finsupp.mem_support_iff.symm
@@ -151,13 +162,13 @@ by { rw function.support_eq_support, exact f.support.finite_to_set }
 
 /-- The natural `finsupp` induced by the function `f` given that it has finite support. -/
 noncomputable def of_support_finite
-  {f : α → β} (hf : (function.support f).finite) : α →₀ β :=
+  (f : α → β) (hf : (function.support f).finite) : α →₀ β :=
 { support := hf.to_finset,
   to_fun := f,
   mem_support_to_fun := λ _, set.finite.mem_to_finset }
 
 lemma of_support_finite_def {f : α → β} {hf : (function.support f).finite} :
-  (of_support_finite hf : α → β) = f := rfl
+  (of_support_finite f hf : α → β) = f := rfl
 
 end finsupp
 
@@ -169,14 +180,14 @@ begin
 end
 
 lemma finsum_eq_finsupp_sum' (f : α → M) (hf : (function.support f).finite) :
-  ∑ᶠ i : α, f i = finsupp.sum (finsupp.of_support_finite hf) (λ x m, m) :=
+  ∑ᶠ i : α, f i = finsupp.sum (finsupp.of_support_finite f hf) (λ x m, m) :=
 by rw [← finsum_eq_finsupp_sum, finsupp.of_support_finite_def]
 
 lemma finsum_eq_finset_sum (f : α → M) (hf : (function.support f).finite) :
   ∑ᶠ i : α, f i = finset.sum hf.to_finset f :=
 by rw [finsum_def, dif_pos hf]
 
-lemma finsum_eq_finset_sum' [fintype α] (f : α → M) :
+lemma finsum_eq_finset_sum_of_fintype [fintype α] (f : α → M) :
   ∑ᶠ i : α, f i = (finset.univ' α).sum f :=
 begin
   rw [finsum_def, dif_pos (set.finite.of_fintype (_ : set α))],
@@ -210,7 +221,7 @@ begin
       exact hx.2 } },
 end
 
-lemma finsum_in_eq_finset_sum'' (f : α → M) (s : set α)
+lemma finsum_in_eq_sum_filter (f : α → M) (s : set α)
   (hf : (function.support f).finite) :
   ∑ᶠ i in s, f i = (finset.filter (∈ s) hf.to_finset).sum f :=
 begin
@@ -218,15 +229,15 @@ begin
   congr, ext, finish
 end
 
-lemma finsum_in_eq_finset_sum' [fintype α] (f : α → M) (s : set α):
+lemma finsum_in_eq_to_finset_sum [fintype α] (f : α → M) (s : set α):
   ∑ᶠ i in s, f i = ∑ i in s.to_finset, f i :=
 begin
-  rw finsum_in_eq_finset_sum'' f s (set.finite.of_fintype _),
+  rw finsum_in_eq_sum_filter f s (set.finite.of_fintype _),
   conv_rhs { rw ← finset.sum_filter_ne_zero },
   exact finset.sum_congr (by ext; finish) (λ _ _, rfl),
 end
 
-lemma finsum_in_eq_finset_sum''' (f : α → M) {s : set α} (hs : s.finite) :
+lemma finsum_in_eq_finite_to_finset_sum (f : α → M) {s : set α} (hs : s.finite) :
   ∑ᶠ i in s, f i = ∑ i in hs.to_finset, f i :=
 begin
   rw finsum_in_eq_finset_sum f (set.finite.subset hs (set.inter_subset_left _ _)),
@@ -236,10 +247,10 @@ begin
            set.mem_to_finset, set.mem_inter_iff, function.mem_support]
 end
 
-lemma finsum_in_eq_finset_sum'''' (f : α → M) (s : finset α) :
+lemma finsum_in_coe_eq_sum (f : α → M) (s : finset α) :
   ∑ᶠ i in ↑s, f i = ∑ i in s, f i :=
 begin
-  rw [finsum_in_eq_finset_sum''' f (finset.finite_to_set s), set.finite.to_finset],
+  rw [finsum_in_eq_finite_to_finset_sum f (finset.finite_to_set s), set.finite.to_finset],
   congr, ext, simp
 end
 
@@ -264,7 +275,23 @@ begin
   { refl }
 end
 
-lemma finsum_eq_finsum_in_univ (f : α → M) : ∑ᶠ i : α, f i = ∑ᶠ i in set.univ, f i :=
+lemma finsum_in_inter_support_eq (f : α → M) (s t : set α)
+  (h : s ∩ function.support f = t ∩ function.support f) :
+  ∑ᶠ i in s, f i = ∑ᶠ i in t, f i :=
+by rw [finsum_in_inter_support, h, ← finsum_in_inter_support]
+
+example (p q r : Prop) : (p → (q ↔ r)) → (p ∧ q ↔ p ∧ r) := and_congr_right
+
+lemma finsum_in_inter_support_eq' (f : α → M) (s t : set α)
+  (h : ∀ x ∈ function.support f, x ∈ s ↔ x ∈ t) :
+  ∑ᶠ i in s, f i = ∑ᶠ i in t, f i :=
+begin
+  apply finsum_in_inter_support_eq,
+  ext x,
+  simpa [and_congr_right (h x)] using h x,
+end
+
+lemma finsum_eq_finsum_in_univ (f : α → M) : ∑ᶠ i in set.univ, f i = ∑ᶠ i : α, f i :=
 by { rw finsum_in_def, congr, funext, rw if_pos (set.mem_univ _) }
 
 variables {β : Type w} {f g : α → M} {a b : α} {s t : set α}
@@ -276,7 +303,7 @@ h₀ ▸ by { rw [finsum_in_def, finsum_in_def], congr', ext x, split_ifs; finis
 /-- The sum on an empty set over any function is zero. -/
 @[simp] lemma finsum_in_empty : ∑ᶠ i in ∅, f i = 0 :=
 begin
-  rw [finsum_in_eq_finset_sum''' _ (set.finite_empty), ← @finset.sum_empty _ _ _ f],
+  rw [finsum_in_eq_finite_to_finset_sum _ (set.finite_empty), ← @finset.sum_empty _ _ _ f],
   congr, ext, simp
 end
 
@@ -289,7 +316,7 @@ lemma nonempty_of_finsum_in_ne_zero (h : ∑ᶠ i in s, f i ≠ 0) : s ≠ ∅ :
 lemma finsum_in_insert (f : α → M) (h : a ∉ s) (hs : s.finite) :
   ∑ᶠ i in insert a s, f i = f a + ∑ᶠ i in s, f i :=
 begin
-  rw [finsum_in_eq_finset_sum''' f (set.finite.insert a hs), finsum_in_eq_finset_sum''' f hs,
+  rw [finsum_in_eq_finite_to_finset_sum f (set.finite.insert a hs), finsum_in_eq_finite_to_finset_sum f hs,
       set.finite.to_finset, set.finite.to_finset, ← finset.sum_insert],
     { congr, ext, simp },
     { rw set.mem_to_finset, exact h }
@@ -338,7 +365,7 @@ finsum_in_insert_of_eq_zero_if_not_mem (λ _, h)
 /-- The sum on a singleton `{a}` over the function `f` is `f a`. -/
 @[simp] lemma finsum_singleton : ∑ᶠ i in {a}, f i = f a :=
 begin
-  rw [finsum_in_eq_finset_sum''' f (set.finite_singleton a), set.finite.to_finset,
+  rw [finsum_in_eq_finite_to_finset_sum f (set.finite_singleton a), set.finite.to_finset,
       ← @finset.sum_singleton _ _ a f _],
   congr, ext, simp
 end
@@ -346,48 +373,42 @@ end
 /-- The sum on the set of two unique elements `{a, b}` over the function `f` equals `f a + f b`. -/
 @[simp] lemma finsum_pair (h : a ≠ b) : finsum_in {a, b} f = f a + f b :=
 begin
-  rw [finsum_in_eq_finset_sum''' f (show set.finite {a, b}, by simp),
+  rw [finsum_in_eq_finite_to_finset_sum f (show set.finite {a, b}, by simp),
       set.finite.to_finset, ← finset.sum_pair h],
   congr, ext, simp
 end
 
 /-- The sum on the image `g '' s` over the function `f` equals the sum on `s` over `f ∘ g` given `g`
   is injective on `s`. -/
-@[simp] lemma finsum_in_image' {s : set β} {g : β → α} (hs : s.finite) (hg : set.inj_on g s) :
-  ∑ᶠ j in (g '' s), f j = ∑ᶠ i in s, (f ∘ g) i :=
-begin
-  rw [finsum_in_eq_finset_sum''' (f ∘ g) hs, finsum_in_eq_finset_sum''' f (set.finite.image g hs),
-    ←finset.sum_image
-    (λ x hx y hy hxy, hg (set.finite.mem_to_finset.1 hx) (set.finite.mem_to_finset.1 hy) hxy)],
-  congr, ext, simp
-end
-
-/-- A more general version of `finsum_in_image'` that does not require `s` to be finite. -/
 @[simp] lemma finsum_in_image {s : set β} {g : β → α}
-  (hg : set.inj_on g s) : finsum_in (g '' s) f = finsum_in s (f ∘ g) :=
+  (hg : set.inj_on g s) : ∑ᶠ i in (g '' s), f i = ∑ᶠ j in s, f (g j) :=
 begin
   by_cases hs : (g '' s ∩ function.support f).finite,
-    { rw [finsum_in_eq_finset_sum _ hs, finsum_in_eq_finset_sum _
-            ((set.image_inter_support_finite_iff hg).1 hs),
-        ← finsum_in_eq_finset_sum''', ← finsum_in_eq_finset_sum''',
-        ← (@finsum_in_image' _ _ _ _ f (s ∩ function.support (f ∘ g)) g
-            ((set.image_inter_support_finite_iff hg).1 hs)
-          (set.inj_on.mono (set.inter_subset_left s _) hg))],
-        { congr, ext y, split,
-          { rintro ⟨⟨x, hx, rfl⟩, hy⟩,
-            exact ⟨x, ⟨hx, hy⟩, rfl⟩ },
-          { rintro ⟨x, ⟨hxs, h2⟩, rfl⟩,
-            exact ⟨⟨x, hxs, rfl⟩, h2⟩ } } },
-    { rw [finsum_in_eq_zero_of_infinite hs, finsum_in_eq_zero_of_infinite],
-      intro hs', apply hs,
-      rwa set.image_inter_support_finite_iff hg }
-end .
+  { rw [finsum_in_eq_finset_sum _ hs, finsum_in_eq_finset_sum _
+          ((set.image_inter_support_finite_iff hg).1 hs)],
+    convert @finset.sum_image α _ _ _ _ infer_instance _ _ _,
+    { ext,
+      simp only [exists_prop, set.mem_image, set.mem_inter_eq, set.finite.mem_to_finset,
+        finset.mem_image, ← exists_and_distrib_right, function.mem_support],
+      apply exists_congr,
+      intro b,
+      split,
+      { rintro ⟨⟨h1, rfl⟩, h2⟩,
+        exact ⟨⟨h1, h2⟩, rfl⟩ },
+      { rintro ⟨⟨h1, h2⟩, rfl⟩,
+        exact ⟨⟨h1, rfl⟩, h2⟩ } },
+    { intros x hx y hy,
+      exact hg (set.finite.mem_to_finset.1 hx).1 (set.finite.mem_to_finset.1 hy).1 } },
+  { rw [finsum_in_eq_zero_of_infinite hs, finsum_in_eq_zero_of_infinite],
+    intro hs', apply hs,
+    rwa set.image_inter_support_finite_iff hg }
+end
 
 /-- The sum on `s : set α` over `f : α → M` equals the sum on `t : set β` over `g : β → M` if there
   exists some function `e : α → β` that is bijective on `s` to `t` such that for all `x` in `s`,
-  `f x = (g ∘ e) x`. -/
+  `f x = g (e x)`. -/
 lemma finsum_in_eq_of_bij_on {s : set α} {t : set β} {f : α → M} {g : β → M}
-  (e : α → β) (he₀ : set.bij_on e s t) (he₁ : ∀ x ∈ s, f x = (g ∘ e) x) :
+  (e : α → β) (he₀ : set.bij_on e s t) (he₁ : ∀ x ∈ s, f x = g (e x)) :
   ∑ᶠ i in s, f i = ∑ᶠ j in t, g j :=
 begin
   rw [(set.bij_on.image_eq he₀).symm, finsum_in_image he₀.2.1],
@@ -399,9 +420,9 @@ end
 lemma finsum_in_union_inter (hs : s.finite) (ht : t.finite) :
   ∑ᶠ i in (s ∪ t), f i + ∑ᶠ i in (s ∩ t), f i = ∑ᶠ i in s, f i + ∑ᶠ i in t, f i :=
 begin
-  rw [finsum_in_eq_finset_sum''' f hs, finsum_in_eq_finset_sum''' f ht,
-      finsum_in_eq_finset_sum''' f (set.finite.union hs ht),
-      finsum_in_eq_finset_sum''' f (set.finite.subset hs (set.inter_subset_left _ _)),
+  rw [finsum_in_eq_finite_to_finset_sum f hs, finsum_in_eq_finite_to_finset_sum f ht,
+      finsum_in_eq_finite_to_finset_sum f (set.finite.union hs ht),
+      finsum_in_eq_finite_to_finset_sum f (set.finite.subset hs (set.inter_subset_left _ _)),
       set.finite.to_finset],
   convert finset.sum_union_inter,
   { ext,
@@ -467,9 +488,9 @@ lemma finsum_in_bUnion {s : set β} {t : β → set α} (hs : s.finite)
   (ht : ∀ b, (t b).finite) (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
   ∑ᶠ i in (⋃ x ∈ s, t x), f i = ∑ᶠ i in s, (∑ᶠ j in (t i), f j) :=
 begin
-  rw finsum_in_eq_finset_sum''' _ hs,
-  rw finsum_in_eq_finset_sum''' f (set.finite.bUnion hs (λ i _, ht i)),
-  conv_rhs { congr, skip, funext, rw finsum_in_eq_finset_sum''' f (ht i) },
+  rw finsum_in_eq_finite_to_finset_sum _ hs,
+  rw finsum_in_eq_finite_to_finset_sum f (set.finite.bUnion hs (λ i _, ht i)),
+  conv_rhs { congr, skip, funext, rw finsum_in_eq_finite_to_finset_sum f (ht i) },
   convert @finset.sum_bUnion _ _ _ f _ _ hs.to_finset (λ x, (ht x).to_finset)
     (begin
       intros x hx y hy hxy a ha,
@@ -488,7 +509,7 @@ lemma finsum_in_Union [fintype β] {t : β → set α}
   (ht : ∀ b, (t b).finite) (h : ∀ x y, x ≠ y → disjoint (t x) (t y)) :
   ∑ᶠ i in (⋃ x : β, t x), f i = ∑ᶠ i, (∑ᶠ j in (t i), f j) :=
 begin
-  rw finsum_eq_finsum_in_univ,
+  rw ← finsum_eq_finsum_in_univ,
   rw ← finsum_in_bUnion (set.finite.of_fintype _) ht (λ x _ y _, h x y),
     { congr, funext y, simp only [set.Union_pos, set.mem_univ] },
 end
@@ -538,24 +559,24 @@ end
 /-- Given a finite set `s`, the sum on `s` over `f + g` equals the sum over `f` plus the sum over
   `g`. -/
 lemma finsum_in_add_distrib (hs : s.finite) :
-  ∑ᶠ i in s, (f + g) i = ∑ᶠ i in s, f i + ∑ᶠ i in s, g i :=
-by iterate 3 { rw [finsum_in_eq_finset_sum''' _ hs, set.finite.to_finset] };
+  ∑ᶠ i in s, (f i + g i) = ∑ᶠ i in s, f i + ∑ᶠ i in s, g i :=
+by iterate 3 { rw [finsum_in_eq_finite_to_finset_sum _ hs, set.finite.to_finset] };
   exact finset.sum_add_distrib
 
 /-- A more general version of `finsum_in_distrib` that requires `s ∩ function.support f` and
   `s ∩ function.support g` instead of `s` to be finite. -/
 lemma finsum_in_add_distrib'
   (hf : (s ∩ function.support f).finite) (hg : (s ∩ function.support g).finite) :
-  ∑ᶠ i in s, (f + g) i = ∑ᶠ i in s, f i + ∑ᶠ i in s, g i :=
+  ∑ᶠ i in s, (f i + g i) = ∑ᶠ i in s, f i + ∑ᶠ i in s, g i :=
 begin
   convert @finset.sum_add_distrib _ _ ((hf.to_finset ∪ hg.to_finset).filter s) f g _,
-  { rw [←finsum_in_eq_finset_sum'''', finsum_in_inter_support],
+  { rw [←finsum_in_coe_eq_sum, finsum_in_inter_support],
     refine finsum_in_eq_finsum_in_of_subset _ _,
     { rintros x ⟨hx₁, hx₂⟩,
       rw [finset.mem_coe, finset.mem_filter],
       refine ⟨_, hx₁⟩,
       by_cases hf : f x = 0,
-      { rw [function.mem_support, pi.add_apply, hf, zero_add] at hx₂,
+      { rw [function.mem_support, hf, zero_add] at hx₂,
         apply finset.subset_union_right,
         rw set.finite.mem_to_finset,
         exact ⟨hx₁, hx₂⟩ },
@@ -565,7 +586,7 @@ begin
     { rintros x ⟨hxs, hx⟩,
       rw [finset.mem_coe, finset.mem_filter] at hxs,
       by_contra hfg, exact hx ⟨hxs.2, hfg⟩ } },
-  all_goals { rw [← finsum_in_eq_finset_sum'''', finsum_in_inter_support],
+  all_goals { rw [← finsum_in_coe_eq_sum, finsum_in_inter_support],
               apply finsum_in_eq_finsum_in_of_subset },
   { rintro x ⟨hxs, hxf⟩,
     apply finset.mem_filter.2,
@@ -599,7 +620,7 @@ lemma finsum_add_distrib
   (hf : (function.support f).finite) (hg : (function.support g).finite) :
   ∑ᶠ i, (f + g) i = ∑ᶠ i, f i + ∑ᶠ i, g i :=
 begin
-  rw [finsum_eq_finsum_in_univ, finsum_eq_finsum_in_univ, finsum_eq_finsum_in_univ],
+  rw [← finsum_eq_finsum_in_univ, ← finsum_eq_finsum_in_univ, ← finsum_eq_finsum_in_univ],
   apply finsum_in_add_distrib',
   { convert hf, simp },
   { convert hg, simp }
@@ -612,9 +633,9 @@ lemma finsum_in_comm {s : set α} {t : set β}
   (f : α → β → M) (hs : s.finite) (ht : t.finite) :
   ∑ᶠ i in s, ∑ᶠ j in t, f i j = ∑ᶠ j in t, ∑ᶠ i in s, f i j :=
 begin
-  rw [finsum_in_eq_finset_sum''' _ hs, finsum_in_eq_finset_sum''' _ ht],
-  conv_lhs { congr, skip, funext, rw finsum_in_eq_finset_sum''' _ ht },
-  conv_rhs { congr, skip, funext, rw finsum_in_eq_finset_sum''' _ hs },
+  rw [finsum_in_eq_finite_to_finset_sum _ hs, finsum_in_eq_finite_to_finset_sum _ ht],
+  conv_lhs { congr, skip, funext, rw finsum_in_eq_finite_to_finset_sum _ ht },
+  conv_rhs { congr, skip, funext, rw finsum_in_eq_finite_to_finset_sum _ hs },
   exact finset.sum_comm,
 end
 
@@ -622,7 +643,7 @@ end
   equals `g` of the sum on `s` over `f`. -/
 lemma finsum_in_hom [add_comm_monoid β] (f : α → β) (g : β →+ M) (hs : s.finite) :
   ∑ᶠ i in s, (g ∘ f) i = g (∑ᶠ j in s, f j) :=
-by rw [finsum_in_eq_finset_sum''' _ hs, finsum_in_eq_finset_sum''' _ hs,
+by rw [finsum_in_eq_finite_to_finset_sum _ hs, finsum_in_eq_finite_to_finset_sum _ hs,
        set.finite.to_finset, add_monoid_hom.map_sum]
 
 lemma finsum_in_hom'' [add_comm_monoid β] (f : α → β) (g : β →+ M) (hs : s.finite) :
@@ -633,7 +654,7 @@ finsum_in_hom f g hs
   `s` to be finite. -/
 lemma finsum_in_hom' [add_comm_monoid β] {f : α → β} (g : β →+ M)
   (h₀ : (s ∩ function.support f).finite) :
-  ∑ᶠ i in s, (g ∘ f) i = g (∑ᶠ j in s, f j) :=
+  ∑ᶠ i in s, (g (f i)) = g (∑ᶠ j in s, f j) :=
 begin
   rw [finsum_in_inter_support f, ← finsum_in_hom _ _ h₀],
   symmetry,
@@ -644,11 +665,6 @@ begin
   exact add_monoid_hom.map_zero g
 end
 
-lemma finsum_in_hom''' [add_comm_monoid β] {f : α → β} (g : β →+ M)
-  (h₀ : (s ∩ function.support f).finite) :
-  ∑ᶠ i in s, g (f i) = g (∑ᶠ j in s, f j) :=
-finsum_in_hom' g h₀
-
 /-- Given a proposition `p` such that for all `x ∈ s, f x ≠ 0 → p x`, the sum on the elements of `s`
   satisfied by `p` equals the sum on `s`. -/
 lemma finsum_in_inter_of_ne {p : α → Prop} (hp : ∀ x ∈ s, f x ≠ 0 → p x) :
@@ -657,9 +673,9 @@ finsum_in_eq_finsum_in_of_subset'' (set.inter_subset_left _ _)
   (λ _ ⟨hsx, hfx⟩, ⟨hsx, hp _ hsx $ function.mem_support.1 hfx⟩)
 
 /-- Given a proposition `p`, the sum on the elements of `s` satisfied by `p` over `f` equals the sum
-  on `s` over the function `λ a, if p a then f a else 0`. -/
+  on `s` over the function `λ i, if p i then f i else 0`. -/
 lemma finsum_in_inter (p : α → Prop) :
-  ∑ᶠ i in (s ∩ p), f i = ∑ᶠ i in s, (λ a, if p a then f a else 0) i :=
+  ∑ᶠ i in (s ∩ p), f i = ∑ᶠ i in s, if p i then f i else 0 :=
 begin
   rw ← @finsum_in_inter_of_ne _ _ _ (λ a, if p a then f a else 0) _ p,
   refine finsum_in_congr rfl (λ x ⟨hsx, hxp⟩, (if_pos hxp).symm),
@@ -698,7 +714,7 @@ lemma finsum_in_induction (p : M → Prop) (hp₀ : p 0)
   p (∑ᶠ i in s, f i) :=
 begin
   by_cases hs : (s ∩ function.support f).finite,
-    { rw [finsum_in_inter_support, finsum_in_eq_finset_sum''' _ hs, set.finite.to_finset],
+    { rw [finsum_in_inter_support, finsum_in_eq_finite_to_finset_sum _ hs, set.finite.to_finset],
       refine finset.sum_induction _ p hp₁ hp₀ (λ x hx, hp₂ x _),
       rw set.mem_to_finset at hx, exact hx.1 },
     { exact (finsum_in_eq_zero_of_infinite hs).symm ▸ hp₀ }

@@ -1314,8 +1314,8 @@ assume x,
 
 @[simp] lemma subtype_subtype_equiv_subtype_apply {α : Type u} {p q : α → Prop} (h : ∀ x, q x → p x)
   (a : {x : subtype p // q x.1}) :
-  (subtype_subtype_equiv_subtype h a).val = a.val.val :=
-by { cases a, cases a_val, simp only [subtype.val_eq_coe], refl }
+  (subtype_subtype_equiv_subtype h a : α) = a :=
+by { cases a, cases a_val, refl }
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/

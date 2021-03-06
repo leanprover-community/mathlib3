@@ -754,7 +754,7 @@ theorem foldl_swap (f : β → α → β) (H : right_commutative f) (b : β) (s 
 
 lemma foldr_induction' (f : α → β → β) (H : left_commutative f) (x : β) (q : α → Prop)
   (p : β → Prop) (s : multiset α) (hpqf : ∀ a b, q a → p b → p (f a b)) (px : p x)
-  (q_s : ∀ y ∈ s, q y) :
+  (q_s : ∀ a ∈ s, q a) :
   p (foldr f H x s) :=
 begin
   revert s,
@@ -766,13 +766,13 @@ begin
 end
 
 lemma foldr_induction (f : α → α → α) (H : left_commutative f) (x : α) (p : α → Prop)
-  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f a b)) (px : p x) (p_s : ∀ y ∈ s, p y) :
+  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f a b)) (px : p x) (p_s : ∀ a ∈ s, p a) :
   p (foldr f H x s) :=
 foldr_induction' f H x p p s p_f px p_s
 
 lemma foldl_induction' (f : β → α → β) (H : right_commutative f) (x : β) (q : α → Prop)
   (p : β → Prop) (s : multiset α) (hpqf : ∀ a b, q a → p b → p (f b a)) (px : p x)
-  (q_s : ∀ y ∈ s, q y) :
+  (q_s : ∀ a ∈ s, q a) :
   p (foldl f H x s) :=
 begin
   rw foldl_swap,
@@ -780,7 +780,7 @@ begin
 end
 
 lemma foldl_induction (f : α → α → α) (H : right_commutative f) (x : α) (p : α → Prop)
-  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f b a)) (px : p x) (p_s : ∀ y ∈ s, p y) :
+  (s : multiset α) (p_f : ∀ a b, p a → p b → p (f b a)) (px : p x) (p_s : ∀ a ∈ s, p a) :
   p (foldl f H x s) :=
 foldl_induction' f H x p p s p_f px p_s
 
@@ -932,7 +932,7 @@ quotient.induction_on m $ λ l, by simpa using list.sum_eq_zero_iff l
 
 @[to_additive]
 lemma prod_induction {M : Type*} [comm_monoid M] (p : M → Prop) (s : multiset M)
-  (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p x) :
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ a ∈ s, p a) :
   p s.prod :=
 begin
   rw prod_eq_foldr,
@@ -942,8 +942,8 @@ end
 @[to_additive le_sum_of_subadditive_on_pred]
 lemma le_prod_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (p : α → Prop) (h_one : f 1 = 1) (hp_one : p 1)
-  (h_mul : ∀x y, p x → p y → f (x * y) ≤ f x * f y)
-  (hp_mul : ∀ x y, p x → p y → p (x * y)) (s : multiset α) (hps : ∀ x, x ∈ s → p x) :
+  (h_mul : ∀ a b, p a → p b → f (a * b) ≤ f a * f b)
+  (hp_mul : ∀ a b, p a → p b → p (a * b)) (s : multiset α) (hps : ∀ a, a ∈ s → p a) :
   f s.prod ≤ (s.map f).prod :=
 begin
   revert s,
@@ -958,7 +958,7 @@ end
 
 @[to_additive le_sum_of_subadditive]
 lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
-  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : multiset α) :
+  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀ a b, f (a * b) ≤ f a * f b) (s : multiset α) :
   f s.prod ≤ (s.map f).prod :=
 le_prod_of_submultiplicative_on_pred f (λ i, true) h_one trivial (λ x y _ _ , h_mul x y) (by simp)
   s (by simp)
@@ -966,7 +966,7 @@ le_prod_of_submultiplicative_on_pred f (λ i, true) h_one trivial (λ x y _ _ , 
 @[to_additive]
 lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (p : M → Prop)
   (p_mul : ∀ a b, p a → p b → p (a * b)) {s : multiset M} (hs_nonempty : s ≠ ∅)
-  (p_s : ∀ x ∈ s, p x) :
+  (p_s : ∀ a ∈ s, p a) :
   p s.prod :=
 begin
   revert s,
@@ -984,9 +984,9 @@ end
 
 @[to_additive le_sum_nonempty_of_subadditive_on_pred]
 lemma le_prod_nonempty_of_submultiplicative_on_pred [comm_monoid α] [ordered_comm_monoid β]
-  (f : α → β) (p : α → Prop) (h_mul : ∀ x y, p x → p y → f (x * y) ≤ f x * f y)
-  (hp_mul : ∀ x y, p x → p y → p (x * y)) (s : multiset α) (hs_nonempty : s ≠ ∅)
-  (hs : ∀ x, x ∈ s → p x) :
+  (f : α → β) (p : α → Prop) (h_mul : ∀ a b, p a → p b → f (a * b) ≤ f a * f b)
+  (hp_mul : ∀ a b, p a → p b → p (a * b)) (s : multiset α) (hs_nonempty : s ≠ ∅)
+  (hs : ∀ a, a ∈ s → p a) :
   f s.prod ≤ (s.map f).prod :=
 begin
   revert s,
@@ -1007,7 +1007,7 @@ end
 
 @[to_additive le_sum_nonempty_of_subadditive]
 lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
-  (f : α → β) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (s : multiset α) (hs_nonempty : s ≠ ∅) :
+  (f : α → β) (h_mul : ∀ a b, f (a * b) ≤ f a * f b) (s : multiset α) (hs_nonempty : s ≠ ∅) :
   f s.prod ≤ (s.map f).prod :=
 le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) s
   hs_nonempty (by simp)

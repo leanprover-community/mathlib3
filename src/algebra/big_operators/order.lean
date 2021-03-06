@@ -38,7 +38,7 @@ end
 
 @[to_additive le_sum_nonempty_of_subadditive]
 lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
-  (f : α → β) (h_mul : ∀x y, f (x * y) ≤ f x * f y) {s : finset γ} (hs : s.nonempty) (g : γ → α) :
+  (f : α → β) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) {s : finset γ} (hs : s.nonempty) (g : γ → α) :
   f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) g s hs
   (by simp)
@@ -56,7 +56,7 @@ end
 
 @[to_additive le_sum_of_subadditive]
 lemma le_prod_of_submultiplicative [comm_monoid α] [ordered_comm_monoid β]
-  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀x y, f (x * y) ≤ f x * f y) (s : finset γ) (g : γ → α) :
+  (f : α → β) (h_one : f 1 = 1) (h_mul : ∀ x y, f (x * y) ≤ f x * f y) (s : finset γ) (g : γ → α) :
   f (∏ x in s, g x) ≤ ∏ x in s, f (g x) :=
 begin
   refine le_trans (multiset.le_prod_of_submultiplicative f h_one h_mul _) _,

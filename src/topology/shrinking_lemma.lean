@@ -210,13 +210,11 @@ lemma exists_subset_Union_closure_subset (hs : is_closed s) (uo : ∀ i, is_open
   ∃ v : ι → set X, s ⊆ Union v ∧ ∀ i, is_open (v i) ∧ closure (v i) ⊆ u i :=
 begin
   classical,
-  have : ∀ c : set (partial_refinement u s), chain (≤) c → ∃ ub, ∀ v ∈ c, v ≤ ub,
-  { intros c hc,
-    rcases eq_empty_or_nonempty c with rfl|ne,
-    { exact ⟨⟨u, ∅, uo, us, λ _, false.elim, λ _ _, rfl⟩, λ _, false.elim⟩ },
-    { exact ⟨partial_refinement.chain_Sup c hc ne uf us,
-        λ v hv, partial_refinement.le_chain_Sup _ _ _ _ hv⟩ } },
-  rcases zorn_partial_order this with ⟨v, hv⟩,
+  haveI : nonempty (partial_refinement u s) := ⟨⟨u, ∅, uo, us, λ _, false.elim, λ _ _, rfl⟩⟩,
+  have : ∀ c : set (partial_refinement u s), chain (≤) c → c.nonempty → ∃ ub, ∀ v ∈ c, v ≤ ub,
+    from λ c hc ne, ⟨partial_refinement.chain_Sup c hc ne uf us,
+      λ v hv, partial_refinement.le_chain_Sup _ _ _ _ hv⟩,
+  rcases zorn_nonempty_partial_order this with ⟨v, hv⟩,
   suffices : ∀ i, i ∈ v.carrier,
     from ⟨v, v.subset_Union, λ i, ⟨v.is_open _, v.closure_subset (this i)⟩⟩,
   contrapose! hv,

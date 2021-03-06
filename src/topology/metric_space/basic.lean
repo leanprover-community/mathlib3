@@ -407,7 +407,13 @@ metric.mk_uniformity_basis (λ n _, div_pos zero_lt_one $ nat.cast_add_one_pos n
 theorem uniformity_basis_dist_inv_nat_pos :
   (𝓤 α).has_basis (λ n:ℕ, 0<n) (λ n:ℕ, {p:α×α | dist p.1 p.2 < 1 / ↑n }) :=
 metric.mk_uniformity_basis (λ n hn, div_pos zero_lt_one $ nat.cast_pos.2 hn)
-  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, le_of_lt hn⟩)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, hn.le⟩)
+
+theorem uniformity_basis_dist_lt {R : ℝ} (hR : 0 < R) :
+  (𝓤 α).has_basis (λ r : ℝ, 0 < r ∧ r < R) (λ r, {p : α × α | dist p.1 p.2 < r}) :=
+metric.mk_uniformity_basis (λ r, and.left) $ λ r hr,
+  ⟨min r (R / 2), ⟨lt_min hr (half_pos hR), min_lt_iff.2 $ or.inr (half_lt_self hR)⟩,
+    min_le_left _ _⟩
 
 /-- Given `f : β → ℝ`, if `f` sends `{i | p i}` to a set of positive numbers
 accumulating to zero, then closed neighborhoods of the diagonal of sizes `{f i | p i}`
@@ -1410,7 +1416,9 @@ end
 variables {ι : Type*} {c : ι → α}
 
 /-- A point-finite open cover of a closed subset of a proper metric space by open balls to a new
-cover by open balls so that each of the new balls has strictly smaller radius than the old one. -/
+cover by open balls so that each of the new balls has strictly smaller radius than the old one.
+This version assumes that `λ x, ball (c i) (r i)` is a locally finite covering and provides
+a covering indexed by the same type. -/
 lemma exists_subset_Union_ball_radius_lt {r : ι → ℝ} (hs : is_closed s)
   (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i < r i :=
@@ -1451,6 +1459,13 @@ lemma exists_Union_ball_eq_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i)
   ∃ r' : ι → ℝ, (⋃ i, ball (c i) (r' i)) = univ ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
 let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_pos_lt hr is_closed_univ (λ x _, uf x) uU.ge
 in ⟨r', univ_subset_iff.1 hU, hv⟩
+
+lemma exists_locally_finite_Union_ball_eq_radius_lt {r : α → ℝ} (hr : ∀ x, 0 < r x) :
+  ∃ (ι : Type u) (c : ι → α) (r' r'' : ι → ℝ), (∀ i, r' i < r'' i ∧ r'' i < r (c i)) ∧
+    locally_finite (λ i, ball (c i) (r'' i)) ∧ (⋃ i, ball (c i) (r' i)) = univ :=
+begin
+  rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis
+end
 
 end proper_space
 

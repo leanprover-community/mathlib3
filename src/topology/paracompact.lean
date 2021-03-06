@@ -118,34 +118,33 @@ begin
   rwa [Union_subtype, finset.set_bUnion_coe, ← univ_subset_iff],
 end
 
-/-- Let `X` be a locally compact sigma compact Hausdorff topological space. Suppose that for each
-`x : X` we are given
-
-* `s x : set X`, a neighborhood of `x`;
-* `(p x : ι x → Prop, B x : ι x → set X)`, a basis of the filter `𝓝 x`.
-
-Then there exists a locally finite covering `λ i, B (c i) (r i)` such that
-`B (c i) (r i) ⊆ s (c i)`.
+/-- Let `X` be a locally compact sigma compact Hausdorff topological space, let `s` be a closed set
+in `X`. Suppose that for each `x ∈ s` the sets `B x : ι x → set X` bounded by `p x : ι x → Prop`
+form a basis of the filter `𝓝 x`. Then there exists a locally finite covering `λ i, B (c i) (r i)`
+of `s` such that all “centers” `c i` belong to `s` and each `r i` satisfies `p (c i)`.
 
 The notation is inspired by the case `B x r = metric.ball x r` but the theorem applies to
-`nhds_basis_opens` as well. In the latter case this lemma implies that `X` is a paracompact space.
+`nhds_basis_opens` as well. If the covering must be subordinate to some open covering of `s`, then
+the user should use a basis obtained by `filter.has_basis.restrict_subset` or a similar lemma, see
+the proof of `paracompact_of_locally_compact_sigma_compact` for an example.
 
 The formalization is based on two [ncatlab](https://ncatlab.org/) proofs:
 * [locally compact and sigma compact spaces are paracompact](https://ncatlab.org/nlab/show/locally+compact+and+sigma-compact+spaces+are+paracompact);
 * [open cover of smooth manifold admits locally finite refinement by closed balls](https://ncatlab.org/nlab/show/partition+of+unity#ExistenceOnSmoothManifolds).
 
+See also `refinement_of_locally_compact_sigma_compact_of_nhds_basis` for a version of this lemma
+dealing with a covering of the whole space.
+
 In most cases (namely, if `B c r ∪ B c r'` is again a set of the form `B c r''`) it is possible
 to choose `α = X`. This fact is not yet formalized in `mathlib`. -/
-theorem refinement_of_locally_compact_sigma_compact_of_nhds_basis
+theorem refinement_of_locally_compact_sigma_compact_of_nhds_basis_set
   [locally_compact_space X] [sigma_compact_space X] [t2_space X]
-  {ι : X → Type u} {p : Π x, ι x → Prop} {B : Π x, ι x → set X}
-  (hB : ∀ x, (𝓝 x).has_basis (p x) (B x)) (s : X → set X) (hs : ∀ x, s x ∈ 𝓝 x) :
-  ∃ (α : Type v) (c : α → X) (r : Π a, ι (c a)), (∀ a, p (c a) (r a)) ∧
-    (⋃ a, B (c a) (r a)) = univ ∧ locally_finite (λ a, B (c a) (r a)) ∧
-    ∀ a, B (c a) (r a) ⊆ s (c a) :=
+  {ι : X → Type u} {p : Π x, ι x → Prop} {B : Π x, ι x → set X} {s : set X}
+  (hs : is_closed s) (hB : ∀ x ∈ s, (𝓝 x).has_basis (p x) (B x)) :
+  ∃ (α : Type v) (c : α → X) (r : Π a, ι (c a)), (∀ a, c a ∈ s ∧ p (c a) (r a)) ∧
+    (s ⊆ ⋃ a, B (c a) (r a)) ∧ locally_finite (λ a, B (c a) (r a)) :=
 begin
   classical,
-  haveI : ∀ x, nonempty (ι x) := λ x, (hB x).nonempty,
   -- For technical reasons we prepend two empty sets to the sequence `compact_exhaustion.choice X`
   set K' : compact_exhaustion X := compact_exhaustion.choice X,
   set K : compact_exhaustion X := K'.shiftr.shiftr,
@@ -155,38 +154,66 @@ begin
   { intro x,
     simpa only [K'.find_shiftr]
       using diff_subset_diff_right interior_subset (K'.shiftr.mem_diff_shiftr_find x) },
-  have Kdiffc : ∀ n, is_compact (Kdiff n), from λ n, compact_diff (K.is_compact _) is_open_interior,
+  have Kdiffc : ∀ n, is_compact (Kdiff n ∩ s),
+    from λ n, (compact_diff (K.is_compact _) is_open_interior).inter_right hs,
   -- Next we choose a finite covering `B (c n i) (r n i)` of each
-  -- `Kdiff (n + 1) = K (n + 2) \ interior (K (n + 1))` such that
-  -- `B (c n i) (r n i) ⊆ interior (K (n + 3)) \ K n`
-  have : ∀ n (x ∈ Kdiff (n + 1)), (K n)ᶜ ∈ 𝓝 x,
-    from λ n x hx, mem_nhds_sets (K.is_closed n) (λ hx', hx.2 $ K.subset_interior_succ _ hx'),
-  choose! r hrp hr using (λ n x hx, (hB x).mem_iff.1 (inter_mem_sets (hs x) (this n x hx))),
-  have hxr : ∀ n (x ∈ Kdiff (n + 1)), B x (r n x) ∈ 𝓝 x,
-    from λ n x hx, (hB x).mem_of_mem (hrp _ _ hx),
-  choose T hTK hT using λ n, (Kdiffc (n + 1)).elim_nhds_subcover _ (hxr n),
+  -- `Kdiff (n + 1) ∩ s` such that `B (c n i) (r n i) ∩ s` is disjoint with `K n`
+  have : ∀ n (x : Kdiff (n + 1) ∩ s), (K n)ᶜ ∈ 𝓝 (x : X),
+    from λ n x, mem_nhds_sets (K.is_closed n) (λ hx', x.2.1.2 $ K.subset_interior_succ _ hx'),
+  haveI : ∀ n (x : Kdiff n ∩ s), nonempty (ι x) := λ n x, (hB x x.2.2).nonempty,
+  choose! r hrp hr using (λ n (x : Kdiff (n + 1) ∩ s), (hB x x.2.2).mem_iff.1 (this n x)),
+  have hxr : ∀ n x (hx : x ∈ Kdiff (n + 1) ∩ s), B x (r n ⟨x, hx⟩) ∈ 𝓝 x,
+    from λ n x hx, (hB x hx.2).mem_of_mem (hrp _ ⟨x, hx⟩),
+  choose T hT using λ n, (Kdiffc (n + 1)).elim_nhds_subcover' _ (hxr n),
+  set T' : Π n, set ↥(Kdiff (n + 1) ∩ s) := λ n, T n,
   -- Finally, we take the union of all these coverings
-  refine ⟨Σ n, ↥(T n : set X), λ a, a.2, λ a, r a.1 a.2, _, _, _, _⟩,
-  { rintro ⟨n, x, hx⟩, exact hrp _ _ (hTK _ _ hx) },
-  { refine Union_eq_univ_iff.2 (λ x, _),
-    obtain ⟨c, hcT, hcx⟩ : ∃ c ∈ T (K'.find x), x ∈ B c (r (K'.find x) c) :=
-      mem_bUnion_iff.1 (hT _ (hKcov x)),
-    exact ⟨⟨_,  c, hcT⟩, hcx⟩ },
+  refine ⟨Σ n, T' n, λ a, a.2, λ a, r a.1 a.2, _, _, _⟩,
+  { rintro ⟨n, x, hx⟩, exact ⟨x.2.2, hrp _ _⟩ },
+  { refine (λ x hx, mem_Union.2 _),
+    rcases mem_bUnion_iff.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
+    exact ⟨⟨_, ⟨c, hc⟩, hcT⟩, hcx⟩ },
   { intro x,
     refine ⟨interior (K (K'.find x + 3)),
       mem_nhds_sets is_open_interior (K.subset_interior_succ _ (hKcov x).1), _⟩,
-    have : (⋃ k ≤ K'.find x + 2, (range $ sigma.mk k) : set (Σ n, ↥(T n : set X))).finite,
+    have : (⋃ k ≤ K'.find x + 2, (range $ sigma.mk k) : set (Σ n, T' n)).finite,
       from (finite_le_nat _).bUnion (λ k hk, finite_range _),
     apply this.subset, rintro ⟨k, c, hc⟩,
     simp only [mem_Union, mem_set_of_eq, mem_image_eq, subtype.coe_mk],
     rintro ⟨x, hxB : x ∈ B c (r k c), hxK⟩,
     refine ⟨k, _, ⟨c, hc⟩, rfl⟩,
-    have := (mem_compl_iff _ _).1 (hr k c (hTK _ _ hc) hxB).2,
+    have := (mem_compl_iff _ _).1 (hr k c hxB),
     contrapose! this with hnk,
     exact K.subset hnk (interior_subset hxK) },
-  { rintro ⟨n, x, hx⟩,
-    exact subset.trans (hr n x $ hTK _ _ hx) (inter_subset_left _ _) }
 end
+
+/-- Let `X` be a locally compact sigma compact Hausdorff topological space. Suppose that for each
+`x` the sets `B x : ι x → set X` bounded by `p x : ι x → Prop` form a basis of the filter `𝓝
+x`. Then there exists a locally finite covering `λ i, B (c i) (r i)` of `X` such that each `r i`
+satisfies `p (c i)`
+
+The notation is inspired by the case `B x r = metric.ball x r` but the theorem applies to
+`nhds_basis_opens` as well. If the covering must be subordinate to some open covering of `s`, then
+the user should use a basis obtained by `filter.has_basis.restrict_subset` or a similar lemma, see
+the proof of `paracompact_of_locally_compact_sigma_compact` for an example.
+
+The formalization is based on two [ncatlab](https://ncatlab.org/) proofs:
+* [locally compact and sigma compact spaces are paracompact](https://ncatlab.org/nlab/show/locally+compact+and+sigma-compact+spaces+are+paracompact);
+* [open cover of smooth manifold admits locally finite refinement by closed balls](https://ncatlab.org/nlab/show/partition+of+unity#ExistenceOnSmoothManifolds).
+
+See also `refinement_of_locally_compact_sigma_compact_of_nhds_basis_set` for a version of this lemma
+dealing with a covering of a closed set.
+
+In most cases (namely, if `B c r ∪ B c r'` is again a set of the form `B c r''`) it is possible
+to choose `α = X`. This fact is not yet formalized in `mathlib`. -/
+theorem refinement_of_locally_compact_sigma_compact_of_nhds_basis
+  [locally_compact_space X] [sigma_compact_space X] [t2_space X]
+  {ι : X → Type u} {p : Π x, ι x → Prop} {B : Π x, ι x → set X}
+  (hB : ∀ x, (𝓝 x).has_basis (p x) (B x)) :
+  ∃ (α : Type v) (c : α → X) (r : Π a, ι (c a)), (∀ a, p (c a) (r a)) ∧
+    (⋃ a, B (c a) (r a)) = univ ∧ locally_finite (λ a, B (c a) (r a)) :=
+let ⟨α, c, r, hp, hU, hfin⟩ := refinement_of_locally_compact_sigma_compact_of_nhds_basis_set
+  is_closed_univ (λ x _, hB x)
+in ⟨α, c, r, λ a, (hp a).2, univ_subset_iff.1 hU, hfin⟩
 
 /-- A locally compact sigma compact Hausdorff space is paracompact. See also
 `refinement_of_locally_compact_sigma_compact_of_nhds_basis` for a more precise statement. -/
@@ -196,9 +223,11 @@ instance paracompact_of_locally_compact_sigma_compact [locally_compact_space X]
 begin
   refine ⟨λ α s ho hc, _⟩,
   choose i hi using Union_eq_univ_iff.1 hc,
-  rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis nhds_basis_opens
-    (s ∘ i) (λ x, mem_nhds_sets (ho _ ) (hi _)) with ⟨β, c, t, hto, htc, htf, hsub⟩,
-  exact ⟨β, t, λ x, (hto x).2, htc, htf, λ b, ⟨i $ c b, hsub _⟩⟩
+  have : ∀ x : X, (𝓝 x).has_basis (λ t : set X, (x ∈ t ∧ is_open t) ∧ t ⊆ s (i x)) id,
+    from λ x : X, (nhds_basis_opens x).restrict_subset (mem_nhds_sets (ho (i x)) (hi x)),
+  rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis this
+    with ⟨β, c, t, hto, htc, htf⟩,
+  exact ⟨β, t, λ x, (hto x).1.2, htc, htf, λ b, ⟨i $ c b, (hto b).2⟩⟩
 end
 
 /- Dieudonné‘s theorem: a paracompact Hausdorff space is normal. Formalization is based on the proof

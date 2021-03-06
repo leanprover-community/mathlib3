@@ -635,7 +635,8 @@ begin
   apply ideal.add_mem _ _ this,
   rw [ideal.mem_span_singleton],
   simpa only [ring_hom.eq_int_cast, ring_hom.map_pow, int.cast_sub] using
-    (int.cast_ring_hom ℤ_[p]).map_dvd (pow_dvd_nth_hom_sub f_compat r n (max n k) (le_max_left _ _)),
+    (int.cast_ring_hom ℤ_[p]).map_dvd
+      (pow_dvd_nth_hom_sub f_compat r n (max n k) (le_max_left _ _)),
 end
 
 /--

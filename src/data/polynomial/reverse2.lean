@@ -188,19 +188,21 @@ section norm2
 
 variables {R : Type*} [comm_ring R] (p q : polynomial R)
 
-def norm2_fun : polynomial R → R := λ p, p.support.sum (λ k, (p.coeff k) ^ 2)
+def norm2_fun : polynomial R → R := λ p, p.sum (λ k c, c ^ 2)
+
+lemma norm2_fun_def : p.norm2_fun = p.sum (λ k c, c ^ 2) := rfl
 
 lemma norm2_fun_eq_sum_of_support {s : finset ℕ} (h : p.support ⊆ s) :
   p.norm2_fun = s.sum (λ k, (p.coeff k) ^ 2) :=
-finset.sum_subset h (λ k h1 h2, by rw [not_mem_support_iff_coeff_zero.mp h2, pow_two, zero_mul])
+finset.sum_subset h (λ k h1 h2, by
+{ rw [finsupp.not_mem_support_iff.mp h2], exact zero_pow zero_lt_two })
 
 lemma smul_norm2_fun (a : R) : (a • p).norm2_fun = a * a * p.norm2_fun :=
 begin
-  rw [(a • p).norm2_fun_eq_sum_of_support finsupp.support_smul, norm2_fun, finset.mul_sum],
-  apply finset.sum_congr rfl,
-  intros k hk,
-  rw coeff_smul,
-  ring,
+  rw [norm2_fun_def, norm2_fun_def, finsupp.sum_smul_index, finsupp.mul_sum],
+  congr,
+  { exact _root_.funext (λ _, _root_.funext (λ _, by ring)) },
+  { exact λ k, zero_pow zero_lt_two },
 end
 
 lemma polar_norm2_fun {s : finset ℕ} (hp : p.support ⊆ s) (hq : q.support ⊆ s) :

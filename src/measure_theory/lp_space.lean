@@ -588,6 +588,20 @@ begin
   exact snorm'_add_le hf hg hp1_real,
 end
 
+lemma snorm'_sum_le [second_countable_topology E] {ι} {f : ι → α → E} {s : finset ι}
+  (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hq1 : 1 ≤ q) :
+  snorm' (∑ i in s, f i) q μ ≤ ∑ i in s, snorm' (f i) q μ :=
+@finset.le_sum_of_subadditive_on_pred (α → E) ℝ≥0∞ ι _ _ (λ f, snorm' f q μ)
+  (λ f, ae_measurable f μ) (snorm'_zero (zero_lt_one.trans_le hq1))
+  (λ f g hf hg, snorm'_add_le hf hg hq1) (λ x y, ae_measurable.add) _ _ hfs
+
+lemma snorm_sum_le [second_countable_topology E] {ι} {f : ι → α → E} {s : finset ι}
+  (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hp1 : 1 ≤ p) :
+  snorm (∑ i in s, f i) p μ ≤ ∑ i in s, snorm (f i) p μ :=
+@finset.le_sum_of_subadditive_on_pred (α → E) ℝ≥0∞ ι _ _ (λ f, snorm f p μ)
+  (λ f, ae_measurable f μ) snorm_zero (λ f g hf hg, snorm_add_le hf hg hp1)
+  (λ x y, ae_measurable.add) _ _ hfs
+
 lemma snorm_add_lt_top_of_one_le {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ)
   (hq1 : 1 ≤ p) : snorm (f + g) p μ < ∞ :=
 lt_of_le_of_lt (snorm_add_le hf.1 hg.1 hq1) (ennreal.add_lt_top.mpr ⟨hf.2, hg.2⟩)
@@ -1221,93 +1235,6 @@ variables [borel_space E] [second_countable_topology E]
 
 namespace measure_theory
 namespace Lp
-
-lemma finset.prop_sum_of_subadditive {α γ} [add_comm_monoid α] [decidable_eq γ]
-  (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
-  ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
-begin
-  refine finset.induction (by simp [hp_zero]) _,
-  intros a s ha h hpsa,
-  rw finset.sum_insert ha,
-  exact hp_add _ _ (hpsa a (finset.mem_insert_self a s))
-    (h (λ x hx, hpsa x (finset.mem_insert_of_mem hx))),
-end
-
-lemma finset.prop_sum_nonempty_of_subadditive {α γ} [add_comm_monoid α] [decidable_eq γ]
-  (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
-  ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
-begin
-  refine finset.induction _ _,
-  { exact λ h, absurd rfl h, },
-  intros a s ha h h_nonempty hpsa,
-  by_cases hs_empty : s = ∅,
-  { simp [hs_empty, hpsa a _], },
-  { rw finset.sum_insert ha,
-    exact hp_add _ _ (hpsa a (finset.mem_insert_self a s))
-      (h hs_empty (λ x hx, hpsa x (finset.mem_insert_of_mem hx))), },
-end
-
-lemma finset.le_sum_of_subadditive' {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
-  [decidable_eq γ] (f : α → β) (h_zero : f 0 = 0) (p : α → Prop)
-  (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
-  (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
-  ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
-begin
-  refine finset.induction (by simp [h_zero]) _,
-  intros a s ha hs hsa,
-  rw finset.sum_insert ha,
-  have hsa_restrict : (∀ (x : γ), x ∈ s → p (g x)),
-    from λ x hx, hsa x (finset.mem_insert_of_mem hx),
-  have hp_sup : p ∑ (x : γ) in s, g x,
-    from finset.prop_sum_of_subadditive p hp_add hp_zero g s hsa_restrict,
-  have hp_ga : p (g a), from hsa a (finset.mem_insert_self a s),
-  refine le_trans (h_add (g a) _ hp_ga hp_sup) _,
-  rw finset.sum_insert ha,
-  exact add_le_add_left (hs hsa_restrict) _,
-end
-
-lemma finset.le_sum_nonempty_of_subadditive {α β γ} [add_comm_monoid α] [ordered_add_comm_monoid β]
-  [decidable_eq γ] (f : α → β) (p : α → Prop) (h_add : ∀ x y, p x → p y → f (x + y) ≤ f x + f y)
-  (hp_add : ∀ x y, p x → p y → p (x + y)) (g : γ → α) :
-  ∀ (s : finset γ) (hs_nonempty : s ≠ ∅) (hs : ∀ x, x ∈ s → p (g x)),
-    f (∑ x in s, g x) ≤ ∑ x in s, f (g x) :=
-begin
-  refine finset.induction _ _,
-  { exact λ h, absurd rfl h, },
-  rintros a s ha hs hsa_nonempty hsa_prop,
-  rw finset.sum_insert ha,
-  by_cases hs_empty : s = ∅,
-  { simp only [hs_empty, insert_emptyc_eq, add_zero, finset.sum_empty, forall_eq,
-      finset.mem_singleton, finset.sum_singleton], },
-  have hsa_restrict : (∀ (x : γ), x ∈ s → p (g x)),
-    from λ x hx, hsa_prop x (finset.mem_insert_of_mem hx),
-  have hp_sup : p ∑ (x : γ) in s, g x,
-    from finset.prop_sum_nonempty_of_subadditive p hp_add g s hs_empty hsa_restrict,
-  have hp_ga : p (g a), from hsa_prop a (finset.mem_insert_self a s),
-  refine le_trans (h_add (g a) _ hp_ga hp_sup) _,
-  rw finset.sum_insert ha,
-  exact add_le_add_left (hs hs_empty hsa_restrict) _,
-end
-
-lemma snorm'_sum_le {ι} {f : ι → α → E} {s : finset ι} [decidable_eq ι]
-  (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hq1 : 1 ≤ q) :
-  snorm' (∑ i in s, f i) q μ ≤ ∑ i in s, snorm' (f i) q μ :=
-begin
-  refine @finset.le_sum_of_subadditive' (α → E) ℝ≥0∞ ι _ _ _ (λ f, snorm' f q μ)
-    (snorm'_zero (zero_lt_one.trans_le hq1)) (λ f, ae_measurable f μ) _
-    (λ x y, ae_measurable.add) (@measurable_zero E α _ _ _).ae_measurable _ _ hfs,
-  exact λ f g hf hg, snorm'_add_le hf hg hq1,
-end
-
-lemma snorm_sum_le {ι} {f : ι → α → E} {s : finset ι} [decidable_eq ι]
-  (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hp1 : 1 ≤ p) :
-  snorm (∑ i in s, f i) p μ ≤ ∑ i in s, snorm (f i) p μ :=
-begin
-  refine @finset.le_sum_of_subadditive' (α → E) ℝ≥0∞ ι _ _ _ (λ f, snorm f p μ)
-    snorm_zero (λ f, ae_measurable f μ) _
-    (λ x y, ae_measurable.add) (@measurable_zero E α _ _ _).ae_measurable _ _ hfs,
-  exact λ f g hf hg, snorm_add_le hf hg hp1,
-end
 
 lemma ennreal.tsum_eq_liminf_sum_nat {f : ℕ → ℝ≥0∞} :
   ∑' i, f i = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=

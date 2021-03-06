@@ -181,85 +181,85 @@ by tactic.timetac "compl_inter_self" set_taut
 theorem compl_empty : (∅ : set α)ᶜ = univ :=
 by tactic.timetac "compl_empty" set_taut
 
-/-
+
 theorem compl_union (s t : set α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ :=
 by tactic.timetac "compl_union" set_taut'
 
 theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ :=
 by tactic.timetac "compl_inter" set_taut'
 
-theorem compl_univ : (univ : set α)ᶜ = ∅ := by "compl_univ" set_taut'
+theorem compl_univ : (univ : set α)ᶜ = ∅ := by tactic.timetac "compl_univ" set_taut'
 
 
-lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} := by "compl_singleton_eq" set_taut
+lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} := by tactic.timetac "compl_singleton_eq" set_taut
 
 lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} :=
-by set_taut
+by tactic.timetac "compl_ne_eq_singleton" set_taut
 
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = (sᶜ ∩ tᶜ)ᶜ :=
-by set_taut
+by tactic.timetac "union_eq_compl_compl_inter_compl" set_taut
 
 theorem inter_eq_compl_compl_union_compl (s t : set α) : s ∩ t = (sᶜ ∪ tᶜ)ᶜ :=
-by set_taut
+by tactic.timetac "inter_eq_compl_compl_union_compl" set_taut
 
-theorem union_compl_self (s : set α) : s ∪ sᶜ = univ := by "union_compl_self" set_taut
+theorem union_compl_self (s : set α) : s ∪ sᶜ = univ := by tactic.timetac "union_compl_self" set_taut
 
-theorem compl_union_self (s : set α) : sᶜ ∪ s = univ := by "compl_union_self" set_taut
+theorem compl_union_self (s : set α) : sᶜ ∪ s = univ := by tactic.timetac "compl_union_self" set_taut
 
-theorem compl_comp_compl : compl ∘ compl = @id (set α) := by "compl_comp_compl" set_taut
+theorem compl_comp_compl : compl ∘ compl = @id (set α) := by tactic.timetac "compl_comp_compl" set_taut
 
-theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := by "diff_eq" set_taut
+theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := by tactic.timetac "diff_eq" set_taut
 
-theorem diff_eq_compl_inter {s t : set α} : s \ t = tᶜ ∩ s := by "diff_eq_compl_inter" set_taut
+theorem diff_eq_compl_inter {s t : set α} : s \ t = tᶜ ∩ s := by tactic.timetac "diff_eq_compl_inter" set_taut
 
-theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u := by "union_diff_cancel'" set_taut
+theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u := by tactic.timetac "union_diff_cancel'" set_taut
 
 
 theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
-by set_taut
+by tactic.timetac "union_diff_cancel" set_taut
 
 
 theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
-by set_taut
+by tactic.timetac "union_diff_left" set_taut
 
 theorem union_diff_right {s t : set α} : (s ∪ t) \ t = s \ t :=
-by set_taut
+by tactic.timetac "union_diff_right" set_taut
 
 theorem union_diff_distrib {s t u : set α} : (s ∪ t) \ u = s \ u ∪ t \ u :=
-by set_taut'
+by tactic.timetac "union_diff_distrib" set_taut'
 
-theorem inter_union_distrib_left {s t u : set α} : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) := by "inter_union_distrib_left" set_taut'
+theorem inter_union_distrib_left {s t u : set α} : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) := by tactic.timetac "inter_union_distrib_left" set_taut'
 
-theorem inter_union_distrib_right {s t u : set α} : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) := by "inter_union_distrib_right" set_taut'
+theorem inter_union_distrib_right {s t u : set α} : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) := by tactic.timetac "inter_union_distrib_right" set_taut'
 
-theorem union_inter_distrib_left {s t u : set α} : s ∪ (t ∩ u) = (s ∪ t) ∩ (s ∪ u) :=  by "union_inter_distrib_left" set_taut'
+theorem union_inter_distrib_left {s t u : set α} : s ∪ (t ∩ u) = (s ∪ t) ∩ (s ∪ u) :=  by tactic.timetac "union_inter_distrib_left" set_taut'
 
-theorem union_inter_distrib_right {s t u : set α} : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) := by "union_inter_distrib_right" set_taut'
+theorem union_inter_distrib_right {s t u : set α} : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) := by tactic.timetac "union_inter_distrib_right" set_taut'
 
 theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
-by set_taut
+by tactic.timetac "inter_diff_assoc" set_taut
 
 theorem inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
-by set_taut
+by tactic.timetac "inter_diff_self" set_taut
 
-theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s := by "inter_union_diff" set_taut
+theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s := by tactic.timetac "inter_union_diff" set_taut
 
-theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := by "inter_union_compl" set_taut
+theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := by tactic.timetac "inter_union_compl" set_taut
 
 
 
 theorem compl_eq_univ_diff (s : set α) : sᶜ = univ \ s :=
-by set_taut
+by tactic.timetac "compl_eq_univ_diff" set_taut
 
-lemma empty_diff (s : set α) : (∅ \ s : set α) = ∅ := by "empty_diff" set_taut
+lemma empty_diff (s : set α) : (∅ \ s : set α) = ∅ := by tactic.timetac "empty_diff" set_taut
 
 
-theorem diff_empty {s : set α} : s \ ∅ = s := by "diff_empty" set_taut
+theorem diff_empty {s : set α} : s \ ∅ = s := by tactic.timetac "diff_empty" set_taut
 
-theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) := by "diff_diff" set_taut
+theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) := by tactic.timetac "diff_diff" set_taut
 
 -- the following statement contains parentheses to help the reader
-lemma diff_diff_comm {s t u : set α} : (s \ t) \ u = (s \ u) \ t := by "diff_diff_comm" set_taut
+lemma diff_diff_comm {s t u : set α} : (s \ t) \ u = (s \ u) \ t := by tactic.timetac "diff_diff_comm" set_taut
 
 lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
 by set_taut'
@@ -267,7 +267,7 @@ by set_taut'
 lemma diff_inter_diff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
 by set_taut'
 
-lemma diff_compl : s \ tᶜ = s ∩ t := by "diff_compl" set_taut'
+lemma diff_compl : s \ tᶜ = s ∩ t := by tactic.timetac "diff_compl" set_taut'
 
 lemma diff_diff_right {s t u : set α} : s \ (t \ u) = (s \ t) ∪ (s ∩ u) :=
 by set_taut'
@@ -295,12 +295,12 @@ by set_taut'
 theorem diff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t :=
 by set_taut'
 
-theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s := by "diff_singleton_eq_self" set_taut'
+theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s := by tactic.timetac "diff_singleton_eq_self" set_taut'
 
 theorem insert_diff_singleton {a : α} {s : set α} :
   insert a (s \ {a}) = insert a s := by set_taut'
 
-lemma diff_self {s : set α} : s \ s = ∅ := by "diff_self" set_taut'
+lemma diff_self {s : set α} : s \ s = ∅ := by tactic.timetac "diff_self" set_taut'
 
 lemma diff_diff_cancel_left {s t : set α} (h : s ⊆ t) : t \ (t \ s) = s :=
 by set_taut'
@@ -312,12 +312,12 @@ variables {α β γ:Type*}
 section preimage
 variables {f : α → β} {g : β → γ}
 
-theorem preimage_empty : f ⁻¹' ∅ = ∅ := by "preimage_empty" set_taut
+theorem preimage_empty : f ⁻¹' ∅ = ∅ := by tactic.timetac "preimage_empty" set_taut
 
 
-lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s := by "preimage_congr" set_taut
+lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s := by tactic.timetac "preimage_congr" set_taut
 
-theorem preimage_univ : f ⁻¹' univ = univ := by "preimage_univ" set_taut
+theorem preimage_univ : f ⁻¹' univ = univ := by tactic.timetac "preimage_univ" set_taut
 
 theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
@@ -327,16 +327,16 @@ by set_taut
 theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t :=
 by set_taut
 
-theorem preimage_compl {s : set β} : f ⁻¹' sᶜ = (f ⁻¹' s)ᶜ := by "preimage_compl" set_taut
+theorem preimage_compl {s : set β} : f ⁻¹' sᶜ = (f ⁻¹' s)ᶜ := by tactic.timetac "preimage_compl" set_taut
 
 theorem preimage_diff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := by set_taut
 
-theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} := by "preimage_set_of_eq" set_taut
+theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} := by tactic.timetac "preimage_set_of_eq" set_taut
 
-theorem preimage_id {s : set α} : id ⁻¹' s = s := by "preimage_id" set_taut
+theorem preimage_id {s : set α} : id ⁻¹' s = s := by tactic.timetac "preimage_id" set_taut
 
-theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := by "preimage_id'" set_taut
+theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := by tactic.timetac "preimage_id'" set_taut
 
 theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
   (λ (x : α), b) ⁻¹' s = univ := by set_taut
@@ -349,7 +349,7 @@ theorem preimage_const (b : β) (s : set β) [decidable (b ∈ s)] :
   cases decidable.em (b ∈ s) ; set_taut,
 end
 
-theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := by "preimage_comp" set_taut
+theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := by tactic.timetac "preimage_comp" set_taut
 
 lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :
   f ⁻¹' (g ⁻¹' s) = (λ x, g (f x)) ⁻¹' s := by set_taut'
@@ -390,20 +390,20 @@ end set_tests
 
 section finset_tests
 variables {α β: Type*} [decidable_eq α] {s t u : finset α} {f : β → set α}
-lemma inter_comm' : s ∩ t = t ∩ s := by "inter_comm'" set_taut
+lemma inter_comm' : s ∩ t = t ∩ s := by tactic.timetac "inter_comm'" set_taut
 
 
-lemma union_comm' : s ∪ t = t ∪ s := by "union_comm'" set_taut
+lemma union_comm' : s ∪ t = t ∪ s := by tactic.timetac "union_comm'" set_taut
 
-lemma inter_assoc' : (s ∩ t) ∩ u = s ∩ (t ∩ u) := by "inter_assoc'" set_taut
+lemma inter_assoc' : (s ∩ t) ∩ u = s ∩ (t ∩ u) := by tactic.timetac "inter_assoc'" set_taut
 
-lemma union_assoc' : (s ∪ t) ∪ u = s ∪ (t ∪ u) := by "union_assoc'" set_taut
+lemma union_assoc' : (s ∪ t) ∪ u = s ∪ (t ∪ u) := by tactic.timetac "union_assoc'" set_taut
 
-lemma union_distrib : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) := by "union_distrib" set_taut
+lemma union_distrib : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) := by tactic.timetac "union_distrib" set_taut
 
-lemma union_distrib_comm : (s ∪ t) ∩ u = (t ∩ u) ∪ (s ∩ u) := by "union_distrib_comm" set_taut
+lemma union_distrib_comm : (s ∪ t) ∩ u = (t ∩ u) ∪ (s ∩ u) := by tactic.timetac "union_distrib_comm" set_taut
 
-lemma Inter_union : (s ∪ t) ∩ u = (t ∩ u) ∪ (s ∩ u) := by "Inter_union" set_taut
+lemma Inter_union : (s ∪ t) ∩ u = (t ∩ u) ∪ (s ∩ u) := by tactic.timetac "Inter_union" set_taut
 
 end finset_tests
 

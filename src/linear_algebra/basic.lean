@@ -79,11 +79,9 @@ lemma smul_sum' {α : Type u} {R : Type v} {M : Type w} {M₂ : Type x}
   {v : α →₀ M} {c : R} {h : α → M →ₗ[R] M₂} :
   (c • v).sum (λ a, h a) = c • (v.sum (λ a, h a)) :=
 begin
-  apply finsupp.induction v,
-  { simp only [finsupp.sum_zero_index, smul_zero], },
-  { intros a m v ha hm ih,
-    simp only [sum_add_index, ih, smul_add, linear_map.map_zero, implies_true_iff, eq_self_iff_true,
-      smul_single, forall_3_true_iff, sum_single_index, linear_map.map_smul, linear_map.map_add], },
+  rw [finsupp.sum_smul_index', finsupp.smul_sum],
+  { simp only [linear_map.map_smul], },
+  { intro i, exact (h i).map_zero },
 end
 
 end finsupp

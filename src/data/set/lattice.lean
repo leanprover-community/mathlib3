@@ -132,11 +132,9 @@ set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 lemma Inter_set_of (P : ι → α → Prop) : (⋂ i, {x : α | P i x }) = {x : α | ∀ i, P i x} :=
 by { ext, simp }
 
-theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s :=
-ext $ by simp
+theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s := supr_const
 
-theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s :=
-ext $ by simp
+theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s := infi_const
 
 @[simp] -- complete_boolean_algebra
 theorem compl_Union (s : ι → set β) : (⋃ i, s i)ᶜ = (⋂ i, (s i)ᶜ) :=
@@ -226,7 +224,13 @@ end
 lemma Union_Inter_subset {ι ι' α} {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
 by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
 
-/- bounded unions and intersections -/
+lemma Union_option {ι} (s : option ι → set α) : (⋃ o, s o) = s none ∪ ⋃ i, s (some i) :=
+supr_option s
+
+lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
+infi_option s
+
+/-! ### Bounded unions and intersections -/
 
 theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
@@ -1155,6 +1159,14 @@ disjoint_sup_left
 @[simp] theorem disjoint_union_right :
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 disjoint_sup_right
+
+@[simp] theorem disjoint_Union_left {ι : Sort*} {s : ι → set α} :
+  disjoint (⋃ i, s i) t ↔ ∀ i, disjoint (s i) t :=
+supr_disjoint_iff
+
+@[simp] theorem disjoint_Union_right {ι : Sort*} {s : ι → set α} :
+  disjoint t (⋃ i, s i) ↔ ∀ i, disjoint t (s i) :=
+disjoint_supr_iff
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)

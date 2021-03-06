@@ -2,11 +2,52 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 -/
 import order.rel_classes
 
+/-!
+# (Semi-)lattices
+
+Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or
+meet (least upper bound, or `inf`) operations. Lattices are posets that are both
+join-semilattices and meet-semilattices.
+
+Distributive lattices are lattices which satisfy any of four equivalent distributivity properties,
+of `sup` over `inf`, on the left or on the right.
+
+## Main declarations
+
+* `has_sup`: type class for the `⊔` notation
+* `has_inf`: type class for the `⊓` notation
+
+* `semilattice_sup`: a type class for join semilattices
+* `semilattice_sup.mk'`: an alternative constructor for `semilattice_sup` via proofs that `⊔` is
+  commutative, associative and idempotent.
+* `semilattice_inf`: a type class for meet semilattices
+* `semilattice_sup.mk'`: an alternative constructor for `semilattice_inf` via proofs that `⊓` is
+  commutative, associative and idempotent.
+
+* `lattice`: a type class for lattices
+* `lattice.mk'`: an alternative constructor for `lattice` via profs that `⊔` and `⊓` are
+  commutative, associative and satisfy a pair of "absorption laws".
+
+* `distrib_lattice`: a type class for distributive lattices.
+
+## Notations
+
+* `a ⊔ b`: the supremum or join of `a` and `b`
+* `a ⊓ b`: the infimum or meet of `a` and `b`
+
+## TODO
+
+* (Semi-)lattice homomorphisms
+* Alternative constructors for distributive lattices from the other distributive properties
+
+## Tags
+
+semilattice, lattice
+
+-/
 set_option old_structure_cmd true
 
 universes u v w
@@ -32,6 +73,10 @@ class has_inf (α : Type u) := (inf : α → α → α)
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
 
+/-!
+### Join-semilattices
+-/
+
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
@@ -39,6 +84,37 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
+
+/--
+A type with a commutative, associative and idempotent binary `sup` operation has the structure of a
+join-semilattice.
+
+The partial order is defined so that `a ≤ b` unfolds to `a ⊔ b = b`; cf. `sup_eq_right`.
+-/
+def semilattice_sup.mk' {α : Type*} [has_sup α]
+  (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
+  (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
+  (sup_idem : ∀ (a : α), a ⊔ a = a) : semilattice_sup α :=
+{ sup := (⊔),
+  le := λ a b, a ⊔ b = b,
+  le_refl := sup_idem,
+  le_trans := λ a b c hab hbc,
+    begin
+      dsimp only [(≤)] at *,
+      rwa [←hbc, ←sup_assoc, hab],
+    end,
+  le_antisymm := λ a b hab hba,
+    begin
+      dsimp only [(≤)] at *,
+      rwa [←hba, sup_comm],
+    end,
+  le_sup_left  := λ a b, show a ⊔ (a ⊔ b) = (a ⊔ b), by rw [←sup_assoc, sup_idem],
+  le_sup_right := λ a b, show b ⊔ (a ⊔ b) = (a ⊔ b), by rw [sup_comm, sup_assoc, sup_idem],
+  sup_le := λ a b c hac hbc,
+    begin
+      dsimp only [(≤), preorder.le] at *,
+      rwa [sup_assoc, hbc],
+    end }
 
 instance (α : Type*) [has_inf α] : has_sup (order_dual α) := ⟨((⊓) : α → α → α)⟩
 instance (α : Type*) [has_sup α] : has_inf (order_dual α) := ⟨((⊔) : α → α → α)⟩
@@ -175,6 +251,10 @@ end
 
 end semilattice_sup
 
+/-!
+### Meet-semilattices
+-/
+
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
@@ -194,6 +274,10 @@ instance (α) [semilattice_sup α] : semilattice_inf (order_dual α) :=
   inf_le_right := @le_sup_right α _,
   le_inf := assume a b c hca hcb, @sup_le α _ _ _ _ hca hcb,
   .. order_dual.partial_order α, .. order_dual.has_inf α }
+
+theorem semilattice_sup.dual_dual (α : Type*) [H : semilattice_sup α] :
+  order_dual.semilattice_sup (order_dual α) = H :=
+semilattice_sup.ext $ λ _ _, iff.rfl
 
 section semilattice_inf
 variables [semilattice_inf α] {a b c d : α}
@@ -303,9 +387,31 @@ begin
   injection this; congr'
 end
 
+theorem semilattice_inf.dual_dual (α : Type*) [H : semilattice_inf α] :
+  order_dual.semilattice_inf (order_dual α) = H :=
+semilattice_inf.ext $ λ _ _, iff.rfl
+
 end semilattice_inf
 
-/-! ### Lattices -/
+/--
+A type with a commutative, associative and idempotent binary `inf` operation has the structure of a
+meet-semilattice.
+
+The partial order is defined so that `a ≤ b` unfolds to `b ⊓ a = a`; cf. `inf_eq_right`.
+-/
+def semilattice_inf.mk' {α : Type*} [has_inf α]
+  (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
+  (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
+  (inf_idem : ∀ (a : α), a ⊓ a = a) : semilattice_inf α :=
+begin
+  haveI : semilattice_sup (order_dual α) := semilattice_sup.mk' inf_comm inf_assoc inf_idem,
+  haveI i := order_dual.semilattice_inf (order_dual α),
+  exact i,
+end
+
+/-!
+### Lattices
+-/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
@@ -313,10 +419,65 @@ class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 instance (α) [lattice α] : lattice (order_dual α) :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
 
+/-- The partial orders from `semilattice_sup_mk'` and `semilattice_inf_mk'` agree
+if `sup` and `inf` satisfy the lattice absorption laws `sup_inf_self` (`a ⊔ a ⊓ b = a`)
+and `inf_sup_self` (`a ⊓ (a ⊔ b) = a`). -/
+lemma semilattice_sup_mk'_partial_order_eq_semilattice_inf_mk'_partial_order {α : Type*}
+  [has_sup α] [has_inf α]
+  (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
+  (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
+  (sup_idem : ∀ (a : α), a ⊔ a = a)
+  (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
+  (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
+  (inf_idem : ∀ (a : α), a ⊓ a = a)
+  (sup_inf_self : ∀ (a b : α), a ⊔ a ⊓ b = a)
+  (inf_sup_self : ∀ (a b : α), a ⊓ (a ⊔ b) = a) :
+  @semilattice_sup.to_partial_order _ (semilattice_sup.mk' sup_comm sup_assoc sup_idem) =
+    @semilattice_inf.to_partial_order _ (semilattice_inf.mk' inf_comm inf_assoc inf_idem) :=
+partial_order.ext $ λ a b, show a ⊔ b = b ↔ b ⊓ a = a, from
+  ⟨λ h, by rw [←h, inf_comm, inf_sup_self],
+   λ h, by rw [←h, sup_comm, sup_inf_self]⟩
+
+/--
+A type with a pair of commutative and associative binary operations which satisfy two absorption
+laws relating the two operations has the structure of a lattice.
+
+The partial order is defined so that `a ≤ b` unfolds to `a ⊔ b = b`; cf. `sup_eq_right`.
+-/
+def lattice.mk' {α : Type*} [has_sup α] [has_inf α]
+  (sup_comm : ∀ (a b : α), a ⊔ b = b ⊔ a)
+  (sup_assoc : ∀ (a b c : α), a ⊔ b ⊔ c = a ⊔ (b ⊔ c))
+  (inf_comm : ∀ (a b : α), a ⊓ b = b ⊓ a)
+  (inf_assoc : ∀ (a b c : α), a ⊓ b ⊓ c = a ⊓ (b ⊓ c))
+  (sup_inf_self : ∀ (a b : α), a ⊔ a ⊓ b = a)
+  (inf_sup_self : ∀ (a b : α), a ⊓ (a ⊔ b) = a) : lattice α :=
+have sup_idem : ∀ (b : α), b ⊔ b = b := λ b,
+  calc b ⊔ b = b ⊔ b ⊓ (b ⊔ b) : by rw inf_sup_self
+         ... = b               : by rw sup_inf_self,
+have inf_idem : ∀ (b : α), b ⊓ b = b := λ b,
+  calc b ⊓ b = b ⊓ (b ⊔ b ⊓ b) : by rw sup_inf_self
+         ... = b               : by rw inf_sup_self,
+let semilatt_inf_inst := semilattice_inf.mk' inf_comm inf_assoc inf_idem,
+    semilatt_sup_inst := semilattice_sup.mk' sup_comm sup_assoc sup_idem,
+-- here we help Lean to see that the two partial orders are equal
+  partial_order_inst := @semilattice_sup.to_partial_order _ semilatt_sup_inst in
+have partial_order_eq :
+  partial_order_inst = @semilattice_inf.to_partial_order _ semilatt_inf_inst :=
+  semilattice_sup_mk'_partial_order_eq_semilattice_inf_mk'_partial_order _ _ _ _ _ _
+    sup_inf_self inf_sup_self,
+{ inf_le_left  := λ a b, by { rw partial_order_eq, apply inf_le_left },
+  inf_le_right := λ a b, by { rw partial_order_eq, apply inf_le_right },
+  le_inf := λ a b c, by { rw partial_order_eq, apply le_inf },
+  ..partial_order_inst,
+  ..semilatt_sup_inst,
+  ..semilatt_inf_inst, }
+
 section lattice
 variables [lattice α] {a b c d : α}
 
-/- Distributivity laws -/
+/-!
+#### Distributivity laws
+-/
 /- TODO: better names? -/
 theorem sup_inf_le : a ⊔ (b ⊓ c) ≤ (a ⊔ b) ⊓ (a ⊔ c) :=
 le_inf (sup_le_sup_left inf_le_left _) (sup_le_sup_left inf_le_right _)
@@ -330,6 +491,9 @@ by simp
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
 by simp
 
+theorem sup_eq_iff_inf_eq : a ⊔ b = b ↔ a ⊓ b = a :=
+by rw [sup_eq_right, ←inf_eq_left]
+
 theorem lattice.ext {α} {A B : lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
@@ -342,14 +506,25 @@ end
 
 end lattice
 
+/-!
+### Distributive lattices
+-/
+
 /-- A distributive lattice is a lattice that satisfies any of four
-  equivalent distribution properties (of sup over inf or inf over sup,
-  on the left or right). A classic example of a distributive lattice
-  is the lattice of subsets of a set, and in fact this example is
-  generic in the sense that every distributive lattice is realizable
-  as a sublattice of a powerset lattice. -/
+equivalent distributive properties (of `sup` over `inf` or `inf` over `sup`,
+on the left or right).
+
+The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`.
+
+A classic example of a distributive lattice
+is the lattice of subsets of a set, and in fact this example is
+generic in the sense that every distributive lattice is realizable
+as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
+
+/- TODO: alternative constructors from the other distributive properties,
+and perhaps a `tfae` statement -/
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}
@@ -428,6 +603,9 @@ instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
+/-!
+### Monotone functions and lattices
+-/
 namespace monotone
 
 lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
@@ -453,6 +631,10 @@ lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f :
 @monotone.map_sup (order_dual α) _ _ _ _ _ hf.order_dual x y
 
 end monotone
+
+/-!
+### Products of (semi-)lattices
+-/
 
 namespace prod
 variables (α β)
@@ -480,6 +662,10 @@ instance [distrib_lattice α] [distrib_lattice β] : distrib_lattice (α × β) 
   .. prod.lattice α β }
 
 end prod
+
+/-!
+### Subtypes of (semi-)lattices
+-/
 
 namespace subtype
 

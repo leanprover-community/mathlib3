@@ -100,6 +100,8 @@ variable [semiring R]
 def semiring' : semiring (mv_polynomial σ R) := add_monoid_algebra.semiring
 attribute [instance, priority 90] semiring'
 
+section instances
+
 instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
   decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
 instance : inhabited (mv_polynomial σ R) := ⟨0⟩
@@ -108,6 +110,9 @@ instance {S} [semiring S] [semimodule S R] : semimodule S (mv_polynomial σ R) :
 add_monoid_algebra.semimodule
 
 instance [subsingleton R] : unique (mv_polynomial σ R) := add_monoid_algebra.unique
+
+end instances
+
 
 /-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
 of a given monomial. -/
@@ -438,8 +443,22 @@ end semiring
 section comm_semiring
 variables [comm_semiring R] {p q : mv_polynomial σ R}
 
+section instances
+
 instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
 instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
+instance [semiring R] [semiring S₁] [comm_semiring S₂]
+  [has_scalar R S₁] [semimodule R S₂] [semimodule S₁ S₂] [is_scalar_tower R S₁ S₂] :
+  is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
+add_monoid_algebra.is_scalar_tower
+instance [semiring R] [semiring S₁][comm_semiring S₂]
+  [semimodule R S₂] [semimodule S₁ S₂] [smul_comm_class R S₁ S₂] :
+  smul_comm_class R S₁ (mv_polynomial σ S₂) :=
+add_monoid_algebra.smul_comm_class
+instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
+add_monoid_algebra.algebra
+
+end instances
 
 variables (R σ)
 theorem algebra_map_eq : algebra_map R (mv_polynomial σ R) = C := rfl
@@ -553,7 +572,6 @@ constant_coeff_comp_C _ _
 end constant_coeff
 
 section eval₂
-variables [comm_semiring S₁]
 variables (f : R →+* S₁) (g : σ → S₁)
 
 /-- Evaluate a polynomial `p` given a valuation `g` of all the variables
@@ -750,7 +768,6 @@ end
 end eval
 
 section map
-variables [comm_semiring S₁]
 variables (f : R →+* S₁)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
@@ -904,7 +921,7 @@ section aeval
 /-! ### The algebra of multivariate polynomials -/
 
 variables (f : σ → S₁)
-variables [comm_semiring S₁] [algebra R S₁] [comm_semiring S₂]
+variables [algebra R S₁] [comm_semiring S₂]
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/

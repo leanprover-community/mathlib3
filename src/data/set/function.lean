@@ -275,6 +275,8 @@ lemma surj_on_iff_exists_map_subtype :
 
 theorem surj_on_empty (f : α → β) (s : set α) : surj_on f s ∅ := empty_subset _
 
+theorem surj_on_image (f : α → β) (s : set α) : surj_on f s (f '' s) := subset.rfl
+
 theorem surj_on.comap_nonempty (h : surj_on f s t) (ht : t.nonempty) : s.nonempty :=
 (ht.mono h).of_image
 
@@ -469,6 +471,9 @@ left_inv_on f f' t
 lemma right_inv_on.eq_on (h : right_inv_on f' f t) : eq_on (f ∘ f') id t := h
 
 lemma right_inv_on.eq (h : right_inv_on f' f t) {y} (hy : y ∈ t) : f (f' y) = y := h hy
+
+lemma left_inv_on.right_inv_on_image (h : left_inv_on f' f s) : right_inv_on f' f (f '' s) :=
+λ y ⟨x, hx, eq⟩, eq ▸ congr_arg f $ h.eq hx
 
 theorem right_inv_on.congr_left (h₁ : right_inv_on f₁' f t) (heq : eq_on f₁' f₂' t) :
   right_inv_on f₂' f t :=
@@ -723,6 +728,14 @@ lemma injective.comp_inj_on (hg : injective g) (hf : s.inj_on f) : s.inj_on (g �
 lemma surjective.surj_on (hf : surjective f) (s : set β) :
   surj_on f univ s :=
 (surjective_iff_surj_on_univ.1 hf).mono (subset.refl _) (subset_univ _)
+
+lemma left_inverse.left_inv_on {g : β → α} (h : left_inverse f g) (s : set β) :
+  left_inv_on f g s :=
+λ x hx, h x
+
+lemma right_inverse.right_inv_on {g : β → α} (h : right_inverse f g) (s : set α) :
+  right_inv_on f g s :=
+λ x hx, h x
 
 lemma left_inverse.right_inv_on_range {g : β → α} (h : left_inverse f g) :
   right_inv_on f g (range g) :=

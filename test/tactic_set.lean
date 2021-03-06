@@ -19,9 +19,9 @@ namespace set_tests
 universe v
 variables {α β: Type*} {a:α} {s t u : set α} {f g : β → set α} 
 
-lemma top_eq_univ : (⊤ : set α) = univ := by set_taut
-lemma bot_eq_empty : (⊥ : set α) = ∅ :=  by set_taut
-lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := by set_taut
+lemma top_eq_univ : (⊤ : set α) = univ := by tactic.timetac set_taut
+lemma bot_eq_empty : (⊥ : set α) = ∅ :=  by tactic.timetac set_taut
+lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := by tactic.timetac set_taut
 lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := by set_taut
 lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := by set_taut
 

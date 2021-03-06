@@ -1222,40 +1222,6 @@ variables [borel_space E] [second_countable_topology E]
 namespace measure_theory
 namespace Lp
 
-/-- ok -/
-lemma supr_monotone_add_nat {β} [complete_lattice β] {f : ℕ → β} (hf : monotone f) (k : ℕ) :
-  (⨆ n, f n) = (⨆ n, f (n + k)) :=
-le_antisymm (supr_le_supr (λ i, hf ((le_add_iff_nonneg_right i).mpr (zero_le k))))
-    (supr_le (λ i, (le_refl _).trans (le_supr _ (i + k))))
-
-/-- ok -/
-lemma supr_infi_add_nat {β} [complete_lattice β] (f : ℕ → β) (k : ℕ) :
-  (⨆ n, ⨅ i (H : i ≥ n), f i) = (⨆ n, ⨅ i (H : i ≥ n), f (i + k)) :=
-begin
-  rw supr_monotone_add_nat _ k,
-  { simp_rw [infi_ge_eq_infi_nat_add, ←add_assoc], },
-  { exact λ n m hnm, le_infi (λ i, (infi_le _ i).trans (le_infi (λ h, infi_le _ (hnm.trans h)))), },
-end
-
-/-- ok -/
-lemma liminf_add_nat {β} [complete_lattice β] (f : ℕ → β) (k : ℕ) :
-  filter.at_top.liminf f = filter.at_top.liminf (λ i, f (i + k)) :=
-by { simp_rw filter.liminf_eq_supr_infi_of_nat, exact supr_infi_add_nat f k }
-
-/-- ok -/
-lemma filter.liminf_le_of_frequently_le' {α β} [complete_lattice β]
-  {f : filter α} {u : α → β} {x : β} (h : ∃ᶠ a in f, u a ≤ x) :
-  f.liminf u ≤ x :=
-begin
-  rw filter.liminf_eq,
-  refine Sup_le (λ b hb, _),
-  have hbx : ∃ᶠ a in f, b ≤ x,
-  { revert h,
-    rw [←not_imp_not, filter.not_frequently, filter.not_frequently],
-    exact λ h, hb.mp (h.mono (λ a hbx hba hax, hbx (hba.trans hax))), },
-  exact hbx.exists.some_spec,
-end
-
 lemma finset.prop_sum_of_subadditive {α γ} [add_comm_monoid α] [decidable_eq γ]
   (p : α → Prop) (hp_add : ∀ x y, p x → p y → p (x + y)) (hp_zero : p 0) (g : γ → α) :
   ∀ (s : finset γ) (hs : ∀ x, x ∈ s → p (g x)), p (∑ x in s, g x) :=
@@ -1343,8 +1309,8 @@ begin
   exact λ f g hf hg, snorm_add_le hf hg hp1,
 end
 
-lemma ennreal.tsum_eq_liminf_sum {f : ℕ → ℝ≥0∞} :
-  tsum f = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
+lemma ennreal.tsum_eq_liminf_sum_nat {f : ℕ → ℝ≥0∞} :
+  ∑' i, f i = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
 begin
   rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
   congr,
@@ -1354,10 +1320,6 @@ begin
   { refine le_trans (infi_le _ n) _,
     simp [le_refl n, le_refl ((finset.range n).sum f)], },
 end
-
-lemma ennreal.tsum_eq_liminf_sum_add_nat {f : ℕ → ℝ≥0∞} (k : ℕ) :
-  tsum f = filter.at_top.liminf (λ n, ∑ i in finset.range (n + k), f i) :=
-by rw [ennreal.tsum_eq_liminf_sum, liminf_add_nat _ k]
 
 lemma snorm'_lim_sub {f : ℕ → α → G} {p : ℝ} (hp1 : 1 ≤ p) {f_lim : α → G}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) (n : ℕ) :
@@ -1517,8 +1479,11 @@ begin
   have hp_pos : 0 < p := zero_lt_one.trans_le hp1,
   suffices h_pow : ∫⁻ a, (∑' i, nnnorm (f (i + 1) a - f i a) : ennreal)^p ∂μ ≤ (tsum B) ^ p,
     by rwa [←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]), one_div_one_div],
-  simp_rw ennreal.tsum_eq_liminf_sum_add_nat 1,
-  rw ←ennreal.tsum_eq_liminf_sum_add_nat 1,
+  have h_tsum_1 : ∀ g : ℕ → ℝ≥0∞,
+      tsum g = filter.at_top.liminf (λ n, ∑ i in finset.range (n + 1), g i),
+  { intro g, rw [ennreal.tsum_eq_liminf_sum_nat, ← filter.liminf_nat_add _ 1], },
+  simp_rw h_tsum_1 _,
+  rw ← h_tsum_1,
   have h_liminf_pow : ∫⁻ a, filter.at_top.liminf (λ n, ∑ i in finset.range (n + 1),
       (nnnorm (f (i + 1) a - f i a)))^p ∂μ
     = ∫⁻ a, filter.at_top.liminf (λ n, (∑ i in finset.range (n + 1),

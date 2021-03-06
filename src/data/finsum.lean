@@ -165,7 +165,7 @@ noncomputable def of_support_finite
   (f : α → β) (hf : (function.support f).finite) : α →₀ β :=
 { support := hf.to_finset,
   to_fun := f,
-  mem_support_to_fun := λ _, set.finite.mem_to_finset }
+  mem_support_to_fun := λ _, hf.mem_to_finset }
 
 lemma of_support_finite_def {f : α → β} {hf : (function.support f).finite} :
   (of_support_finite f hf : α → β) = f := rfl
@@ -316,8 +316,9 @@ lemma nonempty_of_finsum_in_ne_zero (h : ∑ᶠ i in s, f i ≠ 0) : s ≠ ∅ :
 lemma finsum_in_insert (f : α → M) (h : a ∉ s) (hs : s.finite) :
   ∑ᶠ i in insert a s, f i = f a + ∑ᶠ i in s, f i :=
 begin
-  rw [finsum_in_eq_finite_to_finset_sum f (set.finite.insert a hs), finsum_in_eq_finite_to_finset_sum f hs,
-      set.finite.to_finset, set.finite.to_finset, ← finset.sum_insert],
+  rw [finsum_in_eq_finite_to_finset_sum f (set.finite.insert a hs),
+      finsum_in_eq_finite_to_finset_sum f hs, set.finite.to_finset, set.finite.to_finset,
+      ← finset.sum_insert],
     { congr, ext, simp },
     { rw set.mem_to_finset, exact h }
 end
@@ -398,7 +399,7 @@ begin
       { rintro ⟨⟨h1, h2⟩, rfl⟩,
         exact ⟨⟨h1, rfl⟩, h2⟩ } },
     { intros x hx y hy,
-      exact hg (set.finite.mem_to_finset.1 hx).1 (set.finite.mem_to_finset.1 hy).1 } },
+      exact hg ((set.finite.mem_to_finset _).1 hx).1 ((set.finite.mem_to_finset _).1 hy).1 } },
   { rw [finsum_in_eq_zero_of_infinite hs, finsum_in_eq_zero_of_infinite],
     intro hs', apply hs,
     rwa set.image_inter_support_finite_iff hg }
@@ -494,13 +495,13 @@ begin
   convert @finset.sum_bUnion _ _ _ f _ _ hs.to_finset (λ x, (ht x).to_finset)
     (begin
       intros x hx y hy hxy a ha,
-      specialize h x (set.finite.mem_to_finset.1 hx) y (set.finite.mem_to_finset.1 hy) hxy,
+      specialize h x ((set.finite.mem_to_finset _).1 hx) y ((set.finite.mem_to_finset _).1 hy) hxy,
       apply @h a, simpa using ha
     end),
   ext, rw [finset.mem_bUnion, set.finite.mem_to_finset, set.mem_bUnion_iff],
   split; intro ha; rcases ha with ⟨x, hx₀, hx₁⟩,
-    exact ⟨x, set.finite.mem_to_finset.2 hx₀, set.finite.mem_to_finset.2 hx₁⟩,
-    exact ⟨x, set.finite.mem_to_finset.1 hx₀, set.finite.mem_to_finset.1 hx₁⟩
+    exact ⟨x, (set.finite.mem_to_finset _).2 hx₀, (set.finite.mem_to_finset _).2 hx₁⟩,
+    exact ⟨x, (set.finite.mem_to_finset _).1 hx₀, (set.finite.mem_to_finset _).1 hx₁⟩
 end .
 
 /-- An alternative version of `finsum_in_bUnion` in which we sum on the a fintype rather than a

@@ -1012,7 +1012,7 @@ ext $ λ s, subset_empty_iff
 
 /-! ### If-then-else  for sets -/
 
-/-- `ite` for sets: `set_ite t s s' ∩ t = s ∩ t`, `set_ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
+/-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
 Defined as `s ∩ t ∪ s' \ t`. -/
 protected def ite (t s s' : set α) : set α := s ∩ t ∪ s' \ t
 
@@ -1020,7 +1020,7 @@ protected def ite (t s s' : set α) : set α := s ∩ t ∪ s' \ t
 by rw [set.ite, union_inter_distrib_right, diff_inter_self, inter_assoc, inter_self, union_empty]
 
 @[simp] lemma ite_compl (t s s' : set α) : tᶜ.ite s s' = t.ite s' s :=
-by rw [set.ite, set_ite, diff_compl, union_comm, diff_eq]
+by rw [set.ite, set.ite, diff_compl, union_comm, diff_eq]
 
 @[simp] lemma ite_inter_compl_self (t s s' : set α) : t.ite s s' ∩ tᶜ = s' ∩ tᶜ :=
 by rw [← ite_compl, ite_inter_self]

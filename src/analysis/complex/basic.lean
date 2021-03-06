@@ -48,9 +48,9 @@ instance : normed_field ℂ :=
 instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
 
-instance normed_algebra_over_reals : normed_algebra ℝ ℂ :=
-{ norm_algebra_map_eq := abs_of_real,
-  ..complex.algebra }
+instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
+{ norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
+  to_algebra := complex.algebra }
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 

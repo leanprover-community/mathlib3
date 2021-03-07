@@ -136,7 +136,7 @@ begin
 end
 
 lemma proper_of_ntop {I : ideal P} (ntop : I ≠ ⊤) : proper I :=
-proper_of_not_mem (λ h, ntop (top_of_top_mem h))
+proper_of_not_mem (λ h, ntop (top_of_mem_top h))
 
 end order_top
 

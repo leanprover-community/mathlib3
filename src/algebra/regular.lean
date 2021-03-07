@@ -49,12 +49,12 @@ section semigroup
 
 variable [semigroup R]
 
-/-- In a semigroup, then the product of left-regular elements is left-regular. -/
+/-- In a semigroup, the product of left-regular elements is left-regular. -/
 lemma is_left_regular.mul (lra : is_left_regular a) (lrb : is_left_regular b) :
   is_left_regular (a * b) :=
 show function.injective ((*) (a * b)), from (comp_mul_left a b) ▸ lra.comp lrb
 
-/-- In a semigroup, then the product of right-regular elements is right-regular. -/
+/-- In a semigroup, the product of right-regular elements is right-regular. -/
 lemma is_right_regular.mul (rra : is_right_regular a) (rrb : is_right_regular b) :
   is_right_regular (a * b) :=
 show function.injective (* (a * b)), from (comp_mul_right b a) ▸ rrb.comp rra

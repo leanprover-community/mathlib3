@@ -434,7 +434,7 @@ instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
 ⟨⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
  by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩⟩
 
-/-- Measures on a product space are equal the product measure if they are equal on rectangles
+/-- A measure on a product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
 lemma prod_eq_generate_from {μ : measure α} {ν : measure β} {C : set (set α)}
   {D : set (set β)} (hC : generate_from C = ‹_›)
@@ -454,7 +454,7 @@ begin
     simp_rw [h₁ s hs t ht, prod_prod (h4C s hs) (h4D t ht)] }
 end
 
-/-- Measures on a product space are equal to the product measure if they are equal on rectangles. -/
+/-- A measures on a product space equals the product measure if they are equal on rectangles. -/
 lemma prod_eq {μν : measure (α × β)}
   (h : ∀ s t, measurable_set s → measurable_set t → μν (s.prod t) = μ s * ν t) : μ.prod ν = μν :=
 prod_eq_generate_from generate_from_measurable_set generate_from_measurable_set

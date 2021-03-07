@@ -226,8 +226,8 @@ begin
   rw ← induced_compose,
 end
 
-/-- I imagine that this lemma characterizes discrete topological spaces as those having
-every as a neighbourhood of its points. -/
+/-- This lemma characterizes discrete topological spaces as those whose singletons are
+neighbourhoods. -/
 lemma discrete_topology_iff_nhds {X : Type*} [topological_space X] :
   discrete_topology X ↔ (nhds : X → filter X) = pure :=
 begin

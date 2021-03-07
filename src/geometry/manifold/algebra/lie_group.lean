@@ -44,6 +44,7 @@ set_option old_structure_cmd true
 
 /-- A Lie (additive) group is a group and a smooth manifold at the same time in which
 the addition and negation operations are smooth. -/
+-- See note [Design choices about smooth algebraic structures]
 @[ancestor has_smooth_add]
 class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
@@ -54,6 +55,7 @@ class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- A Lie group is a group and a smooth manifold at the same time in which
 the multiplication and inverse operations are smooth. -/
+-- See note [Design choices about smooth algebraic structures]
 @[ancestor has_smooth_mul, to_additive]
 class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
@@ -94,7 +96,11 @@ variable (I)
 lemma smooth_inv : smooth I I (λ x : G, x⁻¹) :=
 lie_group.smooth_inv
 
-@[to_additive]
+/-- A Lie group is a topological group. This is not an instance for technical reasons,
+see note [Design choices about smooth algebraic structures]. -/
+@[to_additive
+"An additive Lie group is an additive topological group. This is not an instance for technical
+reasons, see note [Design choices about smooth algebraic structures]."]
 lemma topological_group_of_lie_group : topological_group G :=
 { continuous_inv := (smooth_inv I).continuous,
   .. has_continuous_mul_of_smooth I }

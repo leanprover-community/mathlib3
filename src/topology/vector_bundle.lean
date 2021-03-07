@@ -13,90 +13,141 @@ import linear_algebra.dual
 
 In this file we define topological vector bundles.
 
-The most important idea here is that vector bundles are named through their fibers.
-Let `B` be the base space. The collection of the fibers is a function `E : B → Type*` for which
-there is an appropriate instance on each `E x` and an instance of topological space over
-`bundle.total_space E` which is a type synonim for `Σ x, E x`. Naming conventions are essential to
-work with vector bundles this way.
+Let `B` be the base space. In our formalism, a topological vector bundle is by definition the type
+`bundle.total_space E` where `E : B → Type*` is a function associating to
+`x : B` the fiber over `x`. This type `bundle.total_space E` is just a type synonym for
+`Σ (x : B), E x`, with the interest that one can put anothe topology than on `Σ (x : B), E x`
+which has the disjoint union topology.
 
-## Definitions
+To have a topological vector bundle structure on `bundle.total_space E`,
+one should addtionally have the following data:
 
-* `nc_topological_vector_bundle R E F`  : topological vector bundle with non constant fiber. It is
-                                          implemented as a `class : Prop`. Here `F` is a function
-                                          `I → Type*` and `I` is an index type.
-* `topological_vector_bundle R E F`     : topological vector bundle constant fiber `F : Type*`. It
-                                          also implemented as a `class : Prop`,
+* `F` should be a topological vector space over a field `𝕜`;
+* There should be a topology on `bundle.total_space E`, for which the projection to `E` is
+a topological fiber bundle with fiber `F` (in particular, each fiber `E x` is homeomorphic to `F`);
+* For each `x`, the fiber `E x` should be a topological vector space over `𝕜`, and the injection
+from `E x` to `bundle.total_space F E` should be an embedding;
+* The most important condition: around each point, there should be a bundle trivialization which
+is a continuous linear equiv in the fibers.
 
+If all these conditions are satisfied, we register the typeclass
+`topological_vector_bundle 𝕜 F E`. We emphasize that the data is provided by other classes, and
+that the `topological_vector_bundle` class is `Prop`-valued.
+
+The point of this formalism is that it is unbundled in the sense that the total space of the bundle
+is a type with a topology, with which one can work or put further structure, and still on can
+perform operations on fiber bundles (which are yet to be formalized). For instance, assume
+that `E₁ : B → Type*` and `E₂ : B → Type*` define two topological vector bundles over `𝕜` with fiber
+models `F₁` and `F₂` which are normed spaces. Then one can construct the vector bundle of
+continuous linear maps from `E₁ x` to `E₂ x` with fiber `E x := (E₁ x →L[𝕜] E₂ x)` (and with the
+topology inherited from the norm-topology on `F₁ →L[𝕜] F₂`, without the need to define the strong
+topology on continuous linear maps between general topological vector spaces). Let
+`vector_bundle_continuous_linear_map 𝕜 F₁ E₁ F₂ E₂ (x : B)` be a type synonym for `E₁ x →L[𝕜] E₂ x`.
+Then one can endow
+`bundle.total_space (vector_bundle_continuous_linear_map 𝕜 F₁ E₁ F₂ E₂)`
+with a topology and a topological vector bundle structure.
+
+Similar constructions can be done for tensor products of topological vector bundles, exterior
+algebras, and so on, where the topology can be defined using a norm on the fiber model if this
+helps.
 -/
 
 noncomputable theory
-
 variables {B : Type*}
-
-/--
-`total_space E` is the total space of the bundle `Σ x, E x`. This type synonym is used to avoid
-conflicts with general sigma types.
--/
-def bundle.total_space (E : B → Type*) := Σ x, E x
-
-instance {E : B → Type*} [inhabited B] [inhabited (E (default B))] :
-  inhabited (bundle.total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
-
-/-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
-def bundle.proj (E : B → Type*) : bundle.total_space E → B := λ y : (bundle.total_space E), y.1
 
 open bundle
 
-variables (R : Type*) (E : B → Type*) (F : Type*)
-[comm_semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
-[∀ x, topological_space (E x)]
-
-/-- `bundle.dual R E` is the dual bundle. -/
-@[reducible] def bundle.dual := (λ x, module.dual R (E x))
-
-localized "notation E `ᵛ` R := bundle.dual R E" in bundle.dual
+variables (𝕜 : Type*) (F : Type*) (E : B → Type*)
+[normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule 𝕜 (E x)]
+[normed_group F] [normed_space 𝕜 F]
+[topological_space (total_space E)] [topological_space B]
 
 section
 
-variables [topological_space B] [topological_space F] [topological_space (total_space E)]
-[add_comm_monoid F] [semimodule R F]
-
-@[nolint unused_arguments]
-instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
-
-lemma to_total_space_coe {x : B} {v : E x} : (v : total_space E) = ⟨x, v⟩ := rfl
-
-/-- Local trivialization for vector bunlde. -/
+/-- Local trivialization for vector bundles. -/
 @[nolint has_inhabited_instance]
 structure vector_bundle_trivialization extends bundle_trivialization F (proj E) :=
-(linear : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
+(linear : ∀ x ∈ base_set, is_linear_map 𝕜 (λ y : (E x), (to_fun y).2))
 
-instance : has_coe (vector_bundle_trivialization R E F) (bundle_trivialization F (proj E)) :=
-⟨vector_bundle_trivialization.to_bundle_trivialization⟩
-
-instance : has_coe_to_fun (vector_bundle_trivialization R E F) :=
-⟨_, λ e, e.to_bundle_trivialization⟩
-
-@[simp] lemma coe_eq_coe_coe {e : vector_bundle_trivialization R E F} :
-  (⇑e : (total_space E) → B × F) =
-  ((e : bundle_trivialization F (proj E)) : (total_space E) → B × F) :=
-rfl
-
-section
-
-def vector_bundle_trivialization.at (e : vector_bundle_trivialization R E F) (b : B)
-  (hb : b ∈ e.base_set):
-  continuous_linear_equiv R (E b) F :=
-{ to_fun := λ y, (e.to_fun y).2,
-  inv_fun := λ z, begin let g := (e.to_local_homeomorph.symm ⟨b, z⟩).2,
-    have h : ((e.to_bundle_trivialization.to_local_homeomorph.symm) (b, z)).fst = b := sorry,
-    rw h at g,
-    exact g,
-  end,
-  left_inv := begin
-  end, }
+instance : has_coe_to_fun (vector_bundle_trivialization 𝕜 F E) :=
+⟨λ _, (total_space E → B × F), λ e, e.to_bundle_trivialization⟩
 
 end
+
+variable [∀ x, topological_space (E x)]
+
+/-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
+space) has a topological vector space structure with fiber `F` (denoted with
+`topological_vector_bundle 𝕜 F E`) if around every point there is a fiber bundle trivialization
+which is linear in the fibers. -/
+class topological_vector_bundle : Prop :=
+(inducing [] : ∀ (b : B), inducing (λ x : (E b), (id ⟨b, x⟩ : total_space E)))
+(locally_trivial [] : ∀ b : B, ∃ e : vector_bundle_trivialization 𝕜 F E, b ∈ e.base_set)
+
+/-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
+is in fact a continuous linear equiv between the fibers and the model fiber. -/
+def vector_bundle_trivialization.at [topological_vector_bundle 𝕜 F E]
+  (e : vector_bundle_trivialization 𝕜 F E) (b : B)
+  (hb : b ∈ e.base_set) : continuous_linear_equiv 𝕜 (E b) F :=
+{ to_fun := λ y, (e ⟨b, y⟩).2,
+  inv_fun := λ z, begin
+    have : ((e.to_local_homeomorph.symm) (b, z)).fst = b :=
+      bundle_trivialization.proj_symm_apply' _ hb,
+    have C : E ((e.to_local_homeomorph.symm) (b, z)).fst = E b, by rw this,
+    exact cast C (e.to_local_homeomorph.symm (b, z)).2
+  end,
+  left_inv := begin
+    assume v,
+    rw [← heq_iff_eq],
+    apply (cast_heq _ _).trans,
+    have A : (b, (e ⟨b, v⟩).snd) = e ⟨b, v⟩,
+    { refine prod.ext _ rfl,
+      symmetry,
+      exact bundle_trivialization.coe_fst' _ hb },
+    have B : e.to_local_homeomorph.symm (e ⟨b, v⟩) = ⟨b, v⟩,
+    { apply local_homeomorph.left_inv_on,
+      rw bundle_trivialization.mem_source,
+      exact hb },
+    rw [A, B],
+  end,
+  right_inv := begin
+    assume v,
+    have B : e (e.to_local_homeomorph.symm (b, v)) = (b, v),
+    { apply local_homeomorph.right_inv_on,
+      rw bundle_trivialization.mem_target,
+      exact hb },
+    have C : (e (e.to_local_homeomorph.symm (b, v))).2 = v, by rw [B],
+    conv_rhs { rw ← C },
+    dsimp,
+    congr,
+    ext,
+    { exact (bundle_trivialization.proj_symm_apply' _ hb).symm },
+    { exact (cast_heq _ _).trans (by refl) },
+  end,
+  map_add' := λ v w, (e.linear _ hb).map_add v w,
+  map_smul' := λ c v, (e.linear _ hb).map_smul c v,
+  continuous_to_fun := begin
+    refine continuous_snd.comp _,
+    apply continuous_on.comp_continuous e.to_local_homeomorph.continuous_on
+      (topological_vector_bundle.inducing 𝕜 F E b).continuous (λ x, _),
+    rw bundle_trivialization.mem_source,
+    exact hb,
+  end,
+  continuous_inv_fun := begin
+    dsimp,
+    convert continuous (λ (z : F), (e.to_local_homeomorph.symm (b, z)).2),
+  end
+}
+
+#exit
+
+
+
+}
+
+end
+
+#exit
 
 variables {I : Type*} (F' : I → Type*) [∀ i, topological_space (F' i)]
 [∀ i, add_comm_monoid (F' i)] [∀ i, semimodule R (F' i)]

@@ -57,15 +57,18 @@ We provide the following operations on `bundle_trivialization`s.
 
 ### Construction of a bundle from trivializations
 
+* `bundle.total_space E` is a type synonym for `Σ (x : B), E x`, that we can endow with a suitable
+  topology.
 * `topological_fiber_bundle_core ι B F` : structure registering how changes of coordinates act
   on the fiber `F` above open subsets of `B`, where local trivializations are indexed by `ι`.
 
 Let `Z : topological_fiber_bundle_core ι B F`. Then we define
 
-* `Z.total_space` : the total space of `Z`, defined as a `Type` as `Σ (b : B), F`, but with a
-  twisted topology coming from the fiber bundle structure
-* `Z.proj`        : projection from `Z.total_space` to `B`. It is continuous.
 * `Z.fiber x`     : the fiber above `x`, homeomorphic to `F` (and defeq to `F` as a type).
+* `Z.total_space` : the total space of `Z`, defined as a `Type` as `Σ (b : B), F`, but with a
+  twisted topology coming from the fiber bundle structure. It is (reducibly) the same as
+  `bundle.total_space Z.fiber`.
+* `Z.proj`        : projection from `Z.total_space` to `B`. It is continuous.
 * `Z.local_triv i`: for `i : ι`, a local homeomorphism from `Z.total_space` to `B × F`, that
   realizes a trivialization above the set `Z.base_set i`, which is an open set in `B`.
 
@@ -138,6 +141,8 @@ variables {ι : Type*} {B : Type*} {F : Type*}
 open topological_space filter set
 open_locale topological_space
 
+/-! ### General definition of topological fiber bundles -/
+
 section topological_fiber_bundle
 
 variables (F) {Z : Type*} [topological_space B] [topological_space Z]
@@ -148,6 +153,7 @@ A structure extending local homeomorphisms, defining a local trivialization of a
 `proj : Z → B` with fiber `F`, as a local homeomorphism between `Z` and `B × F` defined between two
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
 -/
+@[nolint has_inhabited_instance]
 structure bundle_trivialization (proj : Z → B) extends local_homeomorph Z (B × F) :=
 (base_set      : set B)
 (open_base_set : is_open base_set)
@@ -370,6 +376,34 @@ end induced
 
 end topological_fiber_bundle
 
+/-! ### Constructing topological fiber bundles -/
+
+namespace bundle
+/- We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
+a topology which is not the disjoint union topology. In general, the constructions of fiber bundles
+we will make will be of this form. -/
+
+variable (E : B → Type*)
+
+/--
+`total_space E` is the total space of the bundle `Σ x, E x`. This type synonym is used to avoid
+conflicts with general sigma types.
+-/
+def total_space := Σ x, E x
+
+instance [inhabited B] [inhabited (E (default B))] :
+  inhabited (total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
+
+/-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
+@[simp, mfld_simps] def proj : total_space E → B :=
+λ (y : total_space E), y.1
+
+instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
+
+lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
+
+end bundle
+
 /-- Core data defining a locally trivial topological bundle with fiber `F` over a topological
 space `B`. Note that "bundle" is used in its mathematical sense. This is the (computer science)
 bundled version, i.e., all the relevant data is contained in the following structure. A family of
@@ -378,6 +412,7 @@ Trivialization changes from `i` to `j` are given by continuous maps `coord_chang
 `base_set i ∩ base_set j` to the set of homeomorphisms of `F`, but we express them as maps
 `B → F → F` and require continuity on `(base_set i ∩ base_set j) × F` to avoid the topology on the
 space of continuous maps on `F`. -/
+@[nolint has_inhabited_instance]
 structure topological_fiber_bundle_core (ι : Type*) (B : Type*) [topological_space B]
   (F : Type*) [topological_space F] :=
 (base_set          : ι → set B)
@@ -400,29 +435,29 @@ variables [topological_space B] [topological_space F] (Z : topological_fiber_bun
 include Z
 
 /-- The index set of a topological fiber bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments]
+@[nolint unused_arguments has_inhabited_instance]
 def index := ι
 
 /-- The base space of a topological fiber bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments]
+@[nolint unused_arguments, reducible]
 def base := B
 
 /-- The fiber of a topological fiber bundle core, as a convenience function for dot notation and
 typeclass inference -/
-@[nolint unused_arguments]
+@[nolint unused_arguments has_inhabited_instance]
 def fiber (x : B) := F
 
 instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
 by { dsimp [fiber], apply_instance }
 
-/-- Total space of a topological bundle created from core. It is equal to `Σ (x : B), F` as a type,
-but the fiber above `x` is registered as `Z.fiber x` to make sure that it is possible to register
-additional type classes on these fibers. -/
-@[nolint unused_arguments]
-def total_space := Σ (x : B), Z.fiber x
+/-- The total space of the topological fiber bundle, as a convenience function for dot notation.
+It is by definition equal to `bundle.total_space Z.fiber`, a.k.a. `Σ x, Z.fiber x` but with a
+different name for typeclass inference. -/
+@[nolint unused_arguments, reducible]
+def total_space := bundle.total_space Z.fiber
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
-@[simp, mfld_simps] def proj : Z.total_space → B := λp, p.1
+@[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.proj Z.fiber
 
 /-- Local homeomorphism version of the trivialization change. -/
 def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
@@ -515,13 +550,13 @@ begin
   { rintros ⟨x, v⟩ hx,
     simp only [triv_change, local_triv', local_equiv.symm, true_and, prod_mk_mem_set_prod_eq,
       local_equiv.trans_source, mem_inter_eq, and_true, mem_univ, prod.mk.inj_iff, mem_preimage,
-      proj, local_equiv.coe_mk, eq_self_iff_true, local_equiv.coe_trans] at hx ⊢,
-    simp [Z.coord_change_comp, hx] }
+      proj, local_equiv.coe_mk, eq_self_iff_true, local_equiv.coe_trans, bundle.proj] at hx ⊢,
+    simp [Z.coord_change_comp, hx], }
 end
 
 /-- Topological structure on the total space of a topological bundle created from core, designed so
 that all the local trivialization are continuous. -/
-instance to_topological_space : topological_space Z.total_space :=
+instance to_topological_space : topological_space (bundle.total_space Z.fiber) :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
   {(Z.local_triv' i).source ∩ (Z.local_triv' i) ⁻¹' s}
 
@@ -615,7 +650,8 @@ Z.is_topological_fiber_bundle.is_open_map_proj
 
 /-- Preferred local trivialization of a fiber bundle constructed from core, at a given point, as
 a local homeomorphism -/
-def local_triv_at (p : Z.total_space) : local_homeomorph Z.total_space (B × F) :=
+def local_triv_at (p : Z.total_space) :
+  local_homeomorph Z.total_space (B × F) :=
 Z.local_triv (Z.index_at (Z.proj p))
 
 @[simp, mfld_simps] lemma mem_local_triv_at_source (p : Z.total_space) :

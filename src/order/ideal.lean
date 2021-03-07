@@ -126,7 +126,7 @@ instance : order_top (ideal P) :=
 @[simp] lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)
 
-@[simp] lemma top_of_mem_top {I : ideal P} (topmem : ⊤ ∈ I) : I = ⊤ :=
+lemma top_of_mem_top {I : ideal P} (topmem : ⊤ ∈ I) : I = ⊤ :=
 begin
   ext,
   change x ∈ I.carrier ↔ x ∈ (⊤ : ideal P).carrier,

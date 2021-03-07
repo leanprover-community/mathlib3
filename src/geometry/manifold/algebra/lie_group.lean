@@ -36,6 +36,8 @@ so the definition does not apply. Hence the definition should be more general, a
 
 noncomputable theory
 
+open_locale manifold
+
 section
 set_option old_structure_cmd true
 
@@ -131,6 +133,7 @@ end prod_lie_group
 
 instance normed_space_lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  lie_add_group (model_with_corners_self 𝕜 E) E :=
+  lie_add_group (𝓘(𝕜, E)) E :=
 { smooth_add := smooth_iff.2 ⟨continuous_add, λ x y, times_cont_diff_add.times_cont_diff_on⟩,
-  smooth_neg := smooth_iff.2 ⟨continuous_neg, λ x y, times_cont_diff_neg.times_cont_diff_on⟩ }
+  smooth_neg := smooth_iff.2 ⟨continuous_neg, λ x y, times_cont_diff_neg.times_cont_diff_on⟩,
+  .. model_space_smooth }

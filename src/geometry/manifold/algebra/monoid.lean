@@ -18,13 +18,16 @@ semigroups.
 
 section
 
+set_option old_structure_cmd true
+
 /-- Basic hypothesis to talk about a smooth (Lie) additive monoid or a smooth additive
 semigroup. A smooth additive monoid over `α`, for example, is obtained by requiring both the
 instances `add_monoid α` and `has_smooth_add α`. -/
 class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
-  (G : Type*) [has_add G] [topological_space G] [charted_space H G] : Prop :=
+  (G : Type*) [has_add G] [topological_space G] [charted_space H G]
+  extends smooth_manifold_with_corners I G : Prop :=
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a smooth (Lie) monoid or a smooth semigroup.
@@ -34,7 +37,8 @@ and `has_smooth_mul I G`. -/
 class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
-  (G : Type*) [has_mul G] [topological_space G] [charted_space H G] : Prop :=
+  (G : Type*) [has_mul G] [topological_space G] [charted_space H G]
+  extends smooth_manifold_with_corners I G : Prop :=
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 
 end
@@ -95,7 +99,8 @@ instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   [has_mul G'] [has_smooth_mul I' G'] :
   has_smooth_mul (I.prod I') (G×G') :=
 { smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
-    ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)) }
+    ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
+  .. smooth_manifold_with_corners.prod G G' }
 
 variable (I)
 

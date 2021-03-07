@@ -318,24 +318,64 @@ calc w \ x ≤ w \ z : sdiff_le_sdiff_same h₂
   -- (show w \ x ⊔ (x ⊔ z) ≤ y \ z ⊔ (x ⊔ z), from sorry)
 -- by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
+lemma foo : (x ⊓ y) ⊓ z ⊔ (y \ z) = (x ⊓ y) ⊔ (y \ z) :=
+calc (x ⊓ y) ⊓ z ⊔ (y \ z) = x ⊓ (y ⊓ z) ⊔ (y \ z) : by rw [inf_assoc]
+  ... = (x ⊔ (y \ z)) ⊓ y : by rw [sup_inf_right, sup_inf_sdiff]
+  ... = (x ⊓ y) ⊔ (y \ z) : by rw [inf_sup_right, inf_sdiff_left]
+
+lemma blah : (x \ z) ⊓ (y ⊔ x) = x \ z :=
+by rw [inf_sup_left, inf_sdiff_left, sup_comm, sup_inf_self]
+
 lemma mccuan1c : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) :=
-eq.symm $
-calc (x \ y) ⊔ (x ⊓ y ⊓ z) = z ⊓ (x ⊓ y) ⊔ (x \ y) : by rw [sup_comm, inf_comm]
-... = (z ⊔ (x \ y)) ⊓ ((x ⊓ y) ⊔ (x \ y)) : by rw [sup_inf_right]
-... = (z ⊔ (x \ y)) ⊓ x : by rw [sup_inf_sdiff]
-... = (z ⊓ x) ⊔ (x \ y) : by rw [inf_sup_right, inf_sdiff_left]
-... = _ : sorry
+begin
+  rw [sup_comm, inf_comm, ←inf_assoc, foo],
+  apply sdiff_unique,
+  { rw [sup_inf_right, ←sup_assoc, @inf_comm _ _ z, sup_inf_self, sup_sdiff_left, ←sup_assoc,
+      sup_inf_left, sup_sdiff_same_left, inf_sup_right, @sup_comm _ _ y, blah,
+      @inf_sup_left _ _ x z y, sup_assoc, sup_assoc, sup_inf_sdiff, @sup_comm _ _ (x ⊓ z),
+      sup_inf_self, sup_comm, inf_sup_self], },
+  { rw [inf_sup_left, inf_assoc, ←@inf_assoc _ _ (y \ z), inf_sdiff_same_left, bot_inf_eq,
+      inf_bot_eq, bot_sup_eq, ←inf_sdiff_left, inf_assoc, inf_assoc, inf_sdiff_same_right,
+      inf_bot_eq, inf_bot_eq], }
+end
+-- eq.symm $
+-- calc (x \ y) ⊔ (x ⊓ y ⊓ z) = z ⊓ x ⊓ y ⊔ (x \ y) : by rw [sup_comm, inf_comm, inf_assoc]
+-- ... = (z ⊓ x) ⊔ (x \ y) : by rw [foo]
+-- ... = _ : sorry
 
 lemma sdiff_sdiff : x \ (x \ y) = x ⊓ y := by rw [mccuan1c, inf_idem, sdiff_self, bot_sup_eq]
 
 lemma sdiff_sdiff_eq_self (h : y ≤ x) : x \ (x \ y) = y := by rw [sdiff_sdiff, inf_of_le_right h]
 
-lemma mccuan1b : (x \ y) \ z = x \ (y ⊔ z) := sorry
+lemma mccuan1b : (x \ y) \ z = x \ (y ⊔ z) :=
+begin
+  rw sdiff_sup,
+  apply sdiff_unique,
+  { rw [←inf_sup_left, sup_sdiff_same_right, blah] },
+  { rw [inf_assoc, @inf_comm _ _ z, inf_assoc, inf_sdiff_same_left, inf_bot_eq, inf_bot_eq] }
+end
 
 @[simp] lemma sdiff_idem_right : x \ y \ y = x \ y := by rw [mccuan1b, sup_idem]
 -- by rw [sdiff_eq, sdiff_eq, inf_assoc, inf_idem]
 
-lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = (z \ x ⊔ y) ⊓ (z \ y ⊔ x) := sorry
+-- for use with symm_diff; this is false right now: RHS needs to be intersected with `z`.
+lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = (z \ x ⊔ y) ⊓ (z \ y ⊔ x) :=
+begin
+  rw [sdiff_sup, mccuan1c, mccuan1c,
+    sup_inf_left, sup_comm, sup_inf_sdiff,
+    sup_inf_left,  @sup_comm _ _ (z \ y), sup_inf_sdiff,
+    inf_assoc, ←@inf_assoc _ _ (z \ x ⊔ y), @inf_comm _ _ _ z, ←inf_assoc, ←inf_assoc, inf_idem,
+    inf_assoc, inf_eq_right,
+    inf_sup_left, inf_sup_right, inf_sdiff_same_right, sup_bot_eq,
+    inf_sup_right, inf_sdiff_same_left, bot_sup_eq, ←sdiff_sup],
+  { sorry },
+end
+
+lemma sdiff_sdiff_sup_sdiff' : z \ (x \ y ⊔ y \ x) = z \ (x ⊔ y) ⊔ z ⊓ y ⊓ x :=
+begin
+  rw [sdiff_sup, mccuan1c, mccuan1c, inf_assoc, @inf_comm _ _ x, ←inf_assoc, ←sup_inf_right,
+    ←sdiff_sup],
+end
 
 -- mccuan1a
 lemma sup_sdiff : (x ⊔ y) \ z = (x \ z) ⊔ (y \ z) :=
@@ -361,9 +401,12 @@ lemma inf_sdiff : (x ⊓ y) \ z = (x \ z) ⊓ (y \ z) :=
 sdiff_unique
   (calc (x ⊓ y) ⊓ z ⊔ ((x \ z) ⊓ (y \ z)) = ((x ⊓ y) ⊓ z ⊔ (x \ z)) ⊓ ((x ⊓ y) ⊓ z ⊔ (y \ z)) :
           by rw [sup_inf_left]
-          ... = ((x ⊓ y ⊓ (z ⊔ x)) ⊔ ((x \ z) ⊓ (z ⊔ x))) ⊓ ((x ⊓ y) ⊓ z ⊔ (y \ z)) :
-                      by rw [sup_inf_right, sup_sdiff_same_right, inf_sup_right]
-                                  ... = x ⊓ y : sorry)
+          ... = ((y ⊓ x) ⊔ (x \ z)) ⊓ ((x ⊓ y) ⊓ z ⊔ (y \ z)) :
+                by rw [sup_inf_right, sup_sdiff_same_right, inf_sup_right, blah, @inf_comm _ _ x,
+                  @sup_comm _ _ z, inf_assoc, inf_sup_self]
+          ... = ((y ⊓ x) ⊔ (x \ z)) ⊓ ((x ⊓ y) ⊔ (y \ z)) : by rw [foo]
+          ... = (x ⊓ y) ⊔ ((x \ z) ⊓ (y \ z)) : by rw [@inf_comm _ _ y, sup_inf_left]
+                                  ... = x ⊓ y : sup_eq_left.2 (inf_le_inf sdiff_le sdiff_le))
   (calc (x ⊓ y) ⊓ z ⊓ ((x \ z) ⊓ (y \ z)) = x ⊓ y ⊓ (z ⊓ (x \ z)) ⊓ (y \ z) :
                                                           by rw [←inf_assoc, @inf_assoc _ _ (x ⊓ y)]
                                       ... = ⊥ :

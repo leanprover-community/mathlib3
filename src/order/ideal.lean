@@ -89,7 +89,7 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
     Note that the whole set might not be an ideal. -/
 class proper (I : ideal P) : Prop := (nuniv : (I : set P) ≠ set.univ)
 
-lemma proper_of_nmem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
+lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
 ⟨λ hp, begin
   change p ∉ ↑I at nmem,
   rw hp at nmem,

@@ -166,22 +166,30 @@ example : ∫ x:ℝ in 0..1, 3*x^2 + 2*x = 2 := by norm_num
 
 example : ∫ x:ℝ in 0..1, 3*x^2 + 2*x + 1 = 3 :=
 begin
-  have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
-  have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,
-  have h3 : interval_integrable (λ x:ℝ, (1:ℝ)) volume 0 1 := by simp,
-  have H := integral_add (h1.add h2) h3,
-  simp at H,
-  norm_num [H],
+  have : interval_integrable (λ x:ℝ, 3 * x ^ 2 + 2 * x) volume 0 1,
+  { apply interval_integrable.add; simp },
+  norm_num [this],
+  -- have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
+  -- have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,
+  -- have h3 : interval_integrable (λ x:ℝ, (1:ℝ)) volume 0 1 := by simp,
+  -- have H := integral_add (h1.add h2) h3,
+  -- simp only [pi.add_apply] at H,
+  -- norm_num [H],
 end
 
 example : ∫ x:ℝ in 0..1, 4*x^3 + 3*x^2 + 2*x + 1 = 4 :=
 begin
-  have h0 : interval_integrable (λ x:ℝ, 4*x^3) volume 0 1 := by simp,
-  have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
-  have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,
-  have h3 : interval_integrable (λ x:ℝ, (1:ℝ)) volume 0 1 := by simp,
-  have H1 := integral_add ((h0.add h1).add h2) h3,
-  have H2 := integral_add (h0.add h1) h2,
-  simp at H1 H2,
-  norm_num [H1, H2],
+  have h1 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2) volume 0 1,
+  { apply interval_integrable.add; simp },
+  have h2 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2 + 2 * x) volume 0 1,
+  { apply h1.add, simp },
+  norm_num [h1, h2],
+  -- have h0 : interval_integrable (λ x:ℝ, 4*x^3) volume 0 1 := by simp,
+  -- have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
+  -- have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,
+  -- have h3 : interval_integrable (λ x:ℝ, (1:ℝ)) volume 0 1 := by simp,
+  -- have H1 := integral_add ((h0.add h1).add h2) h3,
+  -- have H2 := integral_add (h0.add h1) h2,
+  -- simp only [pi.add_apply] at H1 H2,
+  -- norm_num [H1, H2],
 end

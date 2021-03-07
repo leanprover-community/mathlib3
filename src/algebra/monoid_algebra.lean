@@ -61,10 +61,9 @@ namespace monoid_algebra
 
 variables {k G}
 
-/-! #### Semiring structure -/
-section semiring
+section has_mul
 
-variables [semiring k] [monoid G]
+variables [semiring k] [has_mul G]
 
 /-- The product of `f g : monoid_algebra k G` is the finitely supported function
   whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
@@ -75,6 +74,41 @@ instance : has_mul (monoid_algebra k G) :=
 lemma mul_def {f g : monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)) :=
 rfl
+
+instance : distrib (monoid_algebra k G) :=
+{ mul           := (*),
+  add           := (+),
+  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+    sum_add],
+  .. finsupp.add_comm_monoid }
+
+instance : mul_zero_class (monoid_algebra k G) :=
+{ zero      := 0,
+  mul       := (*),
+  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
+  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero] }
+
+end has_mul
+
+section semigroup
+
+variables [semiring k] [semigroup G]
+
+instance : semigroup (monoid_algebra k G) :=
+{ mul       := (*),
+  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
+    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],}
+
+end semigroup
+
+section has_one
+
+variables [semiring k] [has_one G]
+
 /-- The unit of the multiplication is `single 1 1`, i.e. the function
   that is `1` at `1` and zero elsewhere. -/
 instance : has_one (monoid_algebra k G) :=
@@ -82,6 +116,13 @@ instance : has_one (monoid_algebra k G) :=
 
 lemma one_def : (1 : monoid_algebra k G) = single 1 1 :=
 rfl
+
+end has_one
+
+/-! #### Semiring structure -/
+section semiring
+
+variables [semiring k] [monoid G]
 
 instance : semiring (monoid_algebra k G) :=
 { one       := 1,
@@ -92,16 +133,9 @@ instance : semiring (monoid_algebra k G) :=
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
-  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
-  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
-  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
-    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  .. monoid_algebra.semigroup,
+  .. monoid_algebra.mul_zero_class,
+  .. monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 
 variables {R : Type*} [semiring R]
@@ -574,10 +608,9 @@ namespace add_monoid_algebra
 
 variables {k G}
 
-/-! #### Semiring structure -/
-section semiring
+section has_mul
 
-variables [semiring k] [add_monoid G]
+variables [semiring k] [has_add G]
 
 /-- The product of `f g : add_monoid_algebra k G` is the finitely supported function
   whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
@@ -590,6 +623,27 @@ lemma mul_def {f g : add_monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
 rfl
 
+instance : distrib (add_monoid_algebra k G) :=
+{ mul           := (*),
+  add           := (+),
+  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+    sum_add], }
+
+instance : mul_zero_class (add_monoid_algebra k G) :=
+{ zero      := 0,
+  mul       := (*),
+  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
+  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero] }
+
+end has_mul
+
+section has_one
+
+variables [semiring k] [has_zero G]
+
 /-- The unit of the multiplication is `single 1 1`, i.e. the function
   that is `1` at `0` and zero elsewhere. -/
 instance : has_one (add_monoid_algebra k G) :=
@@ -597,6 +651,25 @@ instance : has_one (add_monoid_algebra k G) :=
 
 lemma one_def : (1 : add_monoid_algebra k G) = single 0 1 :=
 rfl
+
+end has_one
+
+section semigroup
+
+variables [semiring k] [add_semigroup G]
+
+instance : semigroup (add_monoid_algebra k G) :=
+{ mul       := (*),
+  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
+    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add] }
+
+end semigroup
+
+/-! #### Semiring structure -/
+section semiring
+
+variables [semiring k] [add_monoid G]
 
 instance : semiring (add_monoid_algebra k G) :=
 { one       := 1,
@@ -607,16 +680,9 @@ instance : semiring (add_monoid_algebra k G) :=
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
-  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
-  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
-  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
-    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  .. add_monoid_algebra.semigroup,
+  .. add_monoid_algebra.mul_zero_class,
+  .. add_monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 
 variables {R : Type*} [semiring R]

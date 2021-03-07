@@ -67,18 +67,19 @@ We use the following type variables in this file:
 
 * `𝕜` : a `nondiscrete_normed_field`;
 * `ι`, `ι'` : finite index types with decidable equality;
-* `E` : a family of normed vector spaces over `𝕜` indexed by `i : ι`;
+* `E`, `E₁` : families of normed vector spaces over `𝕜` indexed by `i : ι`;
 * `E'` : a family of normed vector spaces over `𝕜` indexed by `i' : ι'`;
 * `Ei` : a family of normed vector spaces over `𝕜` indexed by `i : fin (nat.succ n)`;
 * `G`, `G'` : normed vector spaces over `𝕜`.
 -/
 
-universes u v v' wE wE' wEi wG wG'
+universes u v v' wE wE₁ wE' wEi wG wG'
 variables {𝕜 : Type u} {ι : Type v} {ι' : Type v'} {n : ℕ}
-  {E : ι → Type wE} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
+  {E : ι → Type wE} {E₁ : ι → Type wE₁} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
   {G : Type wG} {G' : Type wG'}
   [decidable_eq ι] [fintype ι] [decidable_eq ι'] [fintype ι'] [nondiscrete_normed_field 𝕜]
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, normed_group (E₁ i)] [Π i, normed_space 𝕜 (E₁ i)]
   [Π i, normed_group (E' i)] [Π i, normed_space 𝕜 (E' i)]
   [Π i, normed_group (Ei i)] [Π i, normed_space 𝕜 (Ei i)]
   [normed_group G] [normed_space 𝕜 G] [normed_group G'] [normed_space 𝕜 G']
@@ -317,13 +318,7 @@ theorem le_of_op_norm_le {C : ℝ} (h : ∥f∥ ≤ C) : ∥f m∥ ≤ C * ∏ i
 (f.le_op_norm m).trans $ mul_le_mul_of_nonneg_right h (prod_nonneg $ λ i _, norm_nonneg (m i))
 
 lemma ratio_le_op_norm : ∥f m∥ / ∏ i, ∥m i∥ ≤ ∥f∥ :=
-begin
-  have : 0 ≤ ∏ i, ∥m i∥ := prod_nonneg (λj hj, norm_nonneg _),
-  cases eq_or_lt_of_le this with h h,
-  { simp [h.symm, op_norm_nonneg f] },
-  { rw div_le_iff h,
-    exact le_op_norm f m }
-end
+div_le_of_nonneg_of_le_mul (prod_nonneg $ λ i _, norm_nonneg _) (op_norm_nonneg _) (f.le_op_norm m)
 
 /-- The image of the unit ball under a continuous multilinear map is bounded. -/
 lemma unit_le_op_norm (h : ∥m∥ ≤ 1) : ∥f m∥ ≤ ∥f∥ :=
@@ -378,6 +373,30 @@ normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G) :=
 ⟨λ c f, f.op_norm_smul_le c⟩
+
+lemma op_norm_prod (f : continuous_multilinear_map 𝕜 E G) (g : continuous_multilinear_map 𝕜 E G') :
+  ∥f.prod g∥ = max (∥f∥) (∥g∥) :=
+le_antisymm
+  (op_norm_le_bound _ (norm_nonneg (f, g)) (λ m,
+    have H : 0 ≤ ∏ i, ∥m i∥, from prod_nonneg $ λ _ _,  norm_nonneg _,
+    by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, H]
+      using max_le_max (f.le_op_norm m) (g.le_op_norm m))) $
+  max_le
+    (f.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_left _ _).trans ((f.prod g).le_op_norm _))
+    (g.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_right _ _).trans ((f.prod g).le_op_norm _))
+
+/-- `continuous_multilinear_map.prod` as a `linear_isometry_equiv`. -/
+def prodL :
+  (continuous_multilinear_map 𝕜 E G) × (continuous_multilinear_map 𝕜 E G') ≃ₗᵢ[𝕜]
+    continuous_multilinear_map 𝕜 E (G × G') :=
+{ to_fun := λ f, f.1.prod f.2,
+  inv_fun := λ f, ((continuous_linear_map.fst 𝕜 G G').comp_continuous_multilinear_map f,
+    (continuous_linear_map.snd 𝕜 G G').comp_continuous_multilinear_map f),
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  left_inv := λ f, by ext; refl,
+  right_inv := λ f, by ext; refl,
+  norm_map' := λ f, op_norm_prod f.1 f.2 }
 
 section restrict_scalars
 
@@ -673,7 +692,7 @@ begin
   convert ratio_le_op_norm _ (λ _, 1); [simp, apply_instance]
 end
 
-lemma norm_mk_pi_algebra_fin [norm_one_class A] :
+@[simp] lemma norm_mk_pi_algebra_fin [norm_one_class A] :
   ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n A∥ = 1 :=
 begin
   cases n,
@@ -744,12 +763,41 @@ protected def pi_field_equiv : G ≃L[𝕜] (continuous_multilinear_map 𝕜 (λ
 
 end continuous_multilinear_map
 
-lemma continuous_linear_map.norm_comp_continuous_multilinear_map_le
-  (g : G →L[𝕜] G') (f : continuous_multilinear_map 𝕜 E G) :
+namespace continuous_linear_map
+
+lemma norm_comp_continuous_multilinear_map_le (g : G →L[𝕜] G')
+  (f : continuous_multilinear_map 𝕜 E G) :
   ∥g.comp_continuous_multilinear_map f∥ ≤ ∥g∥ * ∥f∥ :=
 continuous_multilinear_map.op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) $ λ m,
 calc ∥g (f m)∥ ≤ ∥g∥ * (∥f∥ * ∏ i, ∥m i∥) : g.le_op_norm_of_le $ f.le_op_norm _
            ... = _                        : (mul_assoc _ _ _).symm
+
+/-- `continuous_linear_map.comp_continuous_multilinear_map` as a bundled continuous bilinear map. -/
+def comp_continuous_multilinear_mapL :
+  (G →L[𝕜] G') →L[𝕜] continuous_multilinear_map 𝕜 E G →L[𝕜] continuous_multilinear_map 𝕜 E G' :=
+linear_map.mk_continuous₂
+  (linear_map.mk₂ 𝕜 comp_continuous_multilinear_map (λ f₁ f₂ g, rfl) (λ c f g, rfl)
+    (λ f g₁ g₂, by { ext1, apply f.map_add }) (λ c f g, by { ext1, simp }))
+  1 $ λ f g, by { rw one_mul, exact f.norm_comp_continuous_multilinear_map_le g }
+
+/-- Flip arguments in `f : G →L[𝕜] continuous_multilinear_map 𝕜 E G'` to get
+`continuous_multilinear_map 𝕜 E (G →L[𝕜] G')` -/
+def flip_multilinear (f : G →L[𝕜] continuous_multilinear_map 𝕜 E G') :
+  continuous_multilinear_map 𝕜 E (G →L[𝕜] G') :=
+multilinear_map.mk_continuous
+  { to_fun := λ m, linear_map.mk_continuous
+      { to_fun := λ x, f x m,
+        map_add' := λ x y, by simp,
+        map_smul' := λ c x, by simp }
+      (∥f∥ * ∏ i, ∥m i∥) $ λ x,
+      by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
+    map_add' := λ m i x y, by { ext1, simp },
+    map_smul' := λ m i c x, by { ext1, simp } } ∥f∥ $ λ m,
+  linear_map.mk_continuous_norm_le _
+    (mul_nonneg (norm_nonneg f) (prod_nonneg $ λ i hi, norm_nonneg (m i))) _
+
+end continuous_linear_map
+open continuous_multilinear_map
 
 namespace multilinear_map
 
@@ -816,6 +864,42 @@ lemma mk_continuous_multilinear_norm_le (f : multilinear_map 𝕜 E (multilinear
 (mk_continuous_multilinear_norm_le' f C H).trans_eq (max_eq_left hC)
 
 end multilinear_map
+
+namespace continuous_multilinear_map
+
+lemma norm_comp_continuous_linear_le (g : continuous_multilinear_map 𝕜 E₁ G)
+  (f : Π i, E i →L[𝕜] E₁ i) :
+  ∥g.comp_continuous_linear_map f∥ ≤ ∥g∥ * ∏ i, ∥f i∥ :=
+op_norm_le_bound _ (mul_nonneg (norm_nonneg _) $ prod_nonneg $ λ i hi, norm_nonneg _) $ λ m,
+calc ∥g (λ i, f i (m i))∥ ≤ ∥g∥ * ∏ i, ∥f i (m i)∥ : g.le_op_norm _
+... ≤ ∥g∥ * ∏ i, (∥f i∥ * ∥m i∥) :
+  mul_le_mul_of_nonneg_left
+    (prod_le_prod (λ _ _, norm_nonneg _) (λ i hi, (f i).le_op_norm (m i))) (norm_nonneg g)
+... = (∥g∥ * ∏ i, ∥f i∥) * ∏ i, ∥m i∥ : by rw [prod_mul_distrib, mul_assoc]
+
+/-- `continuous_multilinear_map.comp_continuous_linear_map` as a bundled continuous linear map.
+This implementation fixes `f : Π i, E i →L[𝕜] E₁ i`.
+
+TODO: Actually, the map is multilinear in `f` but an attempt to formalize this failed because of
+issues with class instances. -/
+def comp_continuous_linear_mapL (f : Π i, E i →L[𝕜] E₁ i) :
+  continuous_multilinear_map 𝕜 E₁ G →L[𝕜] continuous_multilinear_map 𝕜 E G :=
+linear_map.mk_continuous
+  { to_fun := λ g, g.comp_continuous_linear_map f,
+    map_add' := λ g₁ g₂, rfl,
+    map_smul' := λ c g, rfl }
+  (∏ i, ∥f i∥) $ λ g, (norm_comp_continuous_linear_le _ _).trans_eq (mul_comm _ _)
+
+@[simp] lemma comp_continuous_linear_mapL_apply (g : continuous_multilinear_map 𝕜 E₁ G)
+  (f : Π i, E i →L[𝕜] E₁ i) :
+  comp_continuous_linear_mapL f g = g.comp_continuous_linear_map f :=
+rfl
+
+lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
+  ∥@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ _ f∥ ≤ (∏ i, ∥f i∥) :=
+linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
+
+end continuous_multilinear_map
 
 section currying
 /-!

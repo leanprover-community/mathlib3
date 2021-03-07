@@ -148,6 +148,10 @@ lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
   e '' s = e.target ∩ e.symm ⁻¹' s :=
 e.to_local_equiv.image_eq_target_inter_inv_preimage h
 
+lemma image_inter_source_eq' (s : set α) :
+  e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' s :=
+e.to_local_equiv.image_inter_source_eq' s
+
 lemma image_inter_source_eq (s : set α) :
   e '' (s ∩ e.source) = e.target ∩ e.symm ⁻¹' (s ∩ e.source) :=
 e.image_eq_target_inter_inv_preimage (inter_subset_right _ _)
@@ -200,38 +204,43 @@ lemma image_mem_nhds (e : local_homeomorph α β) {x} (hx : x ∈ e.source) {s :
   e '' s ∈ 𝓝 (e x) :=
 e.map_nhds_eq hx ▸ filter.image_mem_map hs
 
+lemma map_nhds_within_eq (e : local_homeomorph α β) {x} (hx : x ∈ e.source) (s : set α) :
+  map e (𝓝[s] x) = 𝓝[e '' (s ∩ e.source)] (e x) :=
+calc map e (𝓝[s] x) = map e (𝓝[e.source ∩ s] x) :
+  congr_arg (map e) (nhds_within_inter_of_mem
+    (mem_nhds_within_of_mem_nhds $ mem_nhds_sets e.open_source hx)).symm
+... = 𝓝[e '' (e.source ∩ s)] (e x) :
+  (e.left_inv_on.mono $ inter_subset_left _ _).map_nhds_within_eq (e.left_inv hx)
+    (e.continuous_at_symm (e.map_source hx)).continuous_within_at
+    (e.continuous_at hx).continuous_within_at
+... = 𝓝[e '' (s ∩ e.source)] (e x) : by rw inter_comm
+
 /-- Preimage of interior or interior of preimage coincide for local homeomorphisms, when restricted
 to the source. -/
 lemma preimage_interior (s : set β) :
   e.source ∩ e ⁻¹' (interior s) = e.source ∩ interior (e ⁻¹' s) :=
 begin
-  apply subset.antisymm,
-  { exact e.continuous_on.preimage_interior_subset_interior_preimage e.open_source },
-  { calc e.source ∩ interior (e ⁻¹' s)
-        = (e.source ∩ interior (e ⁻¹' s)) ∩ (e ⁻¹' e.target) : by mfld_set_tac
-    ... = (e.source ∩ e ⁻¹' (e.symm ⁻¹' (interior (e ⁻¹' s)))) ∩ (e ⁻¹' e.target) :
-      begin
-        have := e.to_local_equiv.source_inter_preimage_inv_preimage _,
-        simp only [coe_coe_symm, coe_coe] at this,
-        rw this
-      end
-    ... = e.source ∩ e ⁻¹' (e.target ∩ e.symm ⁻¹' (interior (e ⁻¹' s))) :
-       by rw [inter_comm e.target, preimage_inter, inter_assoc]
-    ... ⊆ e.source ∩ e ⁻¹' (e.target ∩ interior (e.symm ⁻¹' (e ⁻¹' s))) : begin
-        apply inter_subset_inter (subset.refl _) (preimage_mono _),
-        exact e.continuous_on_symm.preimage_interior_subset_interior_preimage e.open_target
-      end
-    ... = e.source ∩ e ⁻¹' (interior (e.target ∩ e.symm ⁻¹' (e ⁻¹' s))) :
-      by rw [interior_inter, e.open_target.interior_eq]
-    ... = e.source ∩ e ⁻¹' (interior (e.target ∩ s)) :
-      begin
-        have := e.to_local_equiv.target_inter_inv_preimage_preimage,
-        simp only [coe_coe_symm, coe_coe] at this,
-        rw this
-      end
-    ... = e.source ∩ e ⁻¹' e.target ∩ e ⁻¹' (interior s) :
-      by rw [interior_inter, preimage_inter, e.open_target.interior_eq, inter_assoc]
-    ... = e.source ∩ e ⁻¹' (interior s) : by mfld_set_tac }
+  refine set.ext (λ x, and.congr_right_iff.2 $ λ hx, _),
+  rw [mem_interior_iff_mem_nhds, mem_preimage, mem_interior_iff_mem_nhds, ← e.map_nhds_eq hx,
+    mem_map, preimage]
+end
+
+lemma preimage_closure (s : set β) :
+  e.source ∩ e ⁻¹' (closure s) = e.source ∩ closure (e ⁻¹' s) :=
+begin
+  refine set.ext (λ x, and.congr_right_iff.2 $ λ hx, _),
+  rw [mem_closure_iff_nhds_within_ne_bot, mem_preimage, mem_closure_iff_nhds_within_ne_bot,
+    ← map_ne_bot_iff e.symm, e.symm.map_nhds_within_eq (e.map_source hx), e.left_inv hx,
+    e.symm.image_inter_source_eq', symm_symm, nhds_within_inter_of_mem],
+  exact mem_nhds_within_of_mem_nhds (mem_nhds_sets e.open_source hx)
+end
+
+lemma preimage_frontier (s : set β) :
+  e.source ∩ e ⁻¹' (frontier s) = e.source ∩ frontier (e ⁻¹' s) :=
+begin
+  rw [frontier_eq_closure_inter_closure, frontier_eq_closure_inter_closure],
+  have := @preimage_compl _ _ e s,
+  convert congr_arg2 (∩) (e.preimage_closure s) (e.preimage_closure sᶜ) using 1; mfld_set_tac
 end
 
 lemma preimage_open_of_open {s : set β} (hs : is_open s) : is_open (e.source ∩ e ⁻¹' s) :=
@@ -251,10 +260,7 @@ end
 
 /-- The image of the restriction of an open set to the source is open. -/
 lemma image_open_of_open' {s : set α} (hs : is_open s) : is_open (e '' (s ∩ e.source)) :=
-begin
-  refine image_open_of_open _ (is_open_inter hs e.open_source) _,
-  simp,
-end
+image_open_of_open _ (is_open_inter hs e.open_source) (inter_subset_right _ _)
 
 /-- A `local_equiv` with continuous open forward map and an open source is a `local_homeomorph`. -/
 def of_continuous_open_restrict (e : local_equiv α β) (hc : continuous_on e e.source)

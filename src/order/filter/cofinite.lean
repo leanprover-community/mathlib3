@@ -48,6 +48,24 @@ lemma frequently_cofinite_iff_infinite {p : α → Prop} :
 by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
   set.infinite]
 
+/-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
+lemma coprod_cofinite {β : Type*} :
+  (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cofinite],
+  split,
+  { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
+    rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
+    exact (hAf.prod hBf).subset (subset_inter hAS hBS) },
+  { intro hS,
+    refine ⟨⟨(prod.fst '' Sᶜ)ᶜ, _, _⟩, ⟨(prod.snd '' Sᶜ)ᶜ, _, _⟩⟩,
+    { simpa using hS.image prod.fst },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.fst Sᶜ },
+    { simpa using hS.image prod.snd },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.snd Sᶜ } },
+end
+
 end filter
 
 open filter

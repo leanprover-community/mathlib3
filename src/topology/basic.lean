@@ -329,9 +329,10 @@ is_closed_empty.closure_eq
 @[simp] lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
-lemma set.nonempty.closure {s : set α} (h : s.nonempty) :
-  set.nonempty (closure s) :=
-let ⟨x, hx⟩ := h in ⟨x, subset_closure hx⟩
+@[simp] lemma closure_nonempty_iff {s : set α} : (closure s).nonempty ↔ s.nonempty :=
+by simp only [← ne_empty_iff_nonempty, ne.def, closure_empty_iff]
+
+alias closure_nonempty_iff ↔ set.nonempty.of_closure set.nonempty.closure
 
 @[simp] lemma closure_univ : closure (univ : set α) = univ :=
 is_closed_univ.closure_eq
@@ -823,6 +824,9 @@ begin
   rwa [← inf_principal, ← inf_assoc, inf_eq_left.2 (le_principal_iff.2 this)],
 end
 
+lemma closure_inter_open' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
+by simpa only [inter_comm] using closure_inter_open h
+
 /-- The intersection of an open dense set with a dense set is a dense set. -/
 lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
   dense (s ∩ t) :=
@@ -936,13 +940,27 @@ def locally_finite (f : β → set α) :=
 lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
 assume x, ⟨univ, univ_mem_sets, finite.of_fintype _⟩
 
-lemma locally_finite_subset
+lemma locally_finite.subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
 ⟨t, ht₁, ht₂.subset $ assume i hi, hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
 
-lemma is_closed_Union_of_locally_finite {f : β → set α}
+lemma locally_finite.comp_injective {ι} {f : β → set α} {g : ι → β} (hf : locally_finite f)
+  (hg : function.injective g) : locally_finite (f ∘ g) :=
+λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage (hg.inj_on _)⟩
+
+lemma locally_finite.closure {f : β → set α} (hf : locally_finite f) :
+  locally_finite (λ i, closure (f i)) :=
+begin
+  intro x,
+  rcases hf x with ⟨s, hsx, hsf⟩,
+  refine ⟨interior s, interior_mem_nhds.2 hsx, hsf.subset $ λ i hi, _⟩,
+  exact (hi.mono (closure_inter_open' is_open_interior)).of_closure.mono
+    (inter_subset_inter_right _ interior_subset)
+end
+
+lemma locally_finite.is_closed_Union {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
 is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   have ∀i, a ∈ (f i)ᶜ,
@@ -950,7 +968,6 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   have ∀i, (f i)ᶜ ∈ (𝓝 a),
     by simp only [mem_nhds_sets_iff]; exact assume i, ⟨(f i)ᶜ, subset.refl _, h₂ i, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
-
   calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) : by simp *
   ... ≤ 𝓟 (⋃i, f i)ᶜ :
   begin
@@ -959,6 +976,13 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
       exists_imp_distrib, ne_empty_iff_nonempty, set.nonempty],
     exact assume x xt ht i xfi, ht i x xfi xt xfi
   end
+
+lemma locally_finite.closure_Union {f : β → set α} (h : locally_finite f) :
+  closure (⋃ i, f i) = ⋃ i, closure (f i) :=
+subset.antisymm
+  (closure_minimal (Union_subset_Union $ λ _, subset_closure) $
+    h.closure.is_closed_Union $ λ _, is_closed_closure)
+  (Union_subset $ λ i, closure_mono $ subset_Union _ _)
 
 end locally_finite
 

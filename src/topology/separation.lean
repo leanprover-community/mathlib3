@@ -260,7 +260,7 @@ end
 
 /-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
 by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
-lemma discrete_topology.of_subset_patrick {X : Type*} [topological_space X] {s t : set X}
+lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
   (ds : discrete_topology s) (ts : t ⊆ s) :
   discrete_topology t :=
 begin

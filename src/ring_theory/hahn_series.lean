@@ -143,7 +143,7 @@ variables [linear_order Γ] {V : Type*} [monoid R] [add_monoid V] [distrib_mul_a
 
 instance : has_scalar R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := r • x.coeff,
-          is_wf_support' := x.is_wf_support.mono (function.support_smul_subset r x.coeff) }⟩
+          is_wf_support' := x.is_wf_support.mono (function.support_smul_subset_right r x.coeff) }⟩
 
 @[simp]
 lemma smul_coeff {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl

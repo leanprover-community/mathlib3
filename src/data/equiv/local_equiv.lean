@@ -529,6 +529,29 @@ by ext x; simp [ext_iff]; tauto
 
 end prod
 
+section pi
+
+variables {ι : Type*} {αi βi : ι → Type*} (ei : Π i, local_equiv (αi i) (βi i))
+
+/-- The product of a family of local equivs, as a local equiv on the pi type. -/
+@[simps source target] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
+{ to_fun := λ f i, ei i (f i),
+  inv_fun := λ f i, (ei i).symm (f i),
+  source := pi univ (λ i, (ei i).source),
+  target := pi univ (λ i, (ei i).target),
+  map_source' := λ f hf i hi, (ei i).map_source (hf i hi),
+  map_target' := λ f hf i hi, (ei i).map_target (hf i hi),
+  left_inv' := λ f hf, funext $ λ i, (ei i).left_inv (hf i trivial),
+  right_inv' := λ f hf, funext $ λ i, (ei i).right_inv (hf i trivial) }
+
+attribute [mfld_simps] pi_source pi_target
+
+@[simp, mfld_simps] lemma pi_coe : ⇑(local_equiv.pi ei) = λ (f : Π i, αi i) i, ei i (f i) := rfl
+@[simp, mfld_simps] lemma pi_symm :
+  (local_equiv.pi ei).symm = local_equiv.pi (λ i, (ei i).symm) := rfl
+
+end pi
+
 end local_equiv
 
 namespace set

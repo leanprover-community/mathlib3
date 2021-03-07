@@ -1089,10 +1089,48 @@ def block_triangular_matrix' {o : Type*} [fintype o] (M : matrix o o R) {n : ℕ
   (b : o → fin n) : Prop :=
 ∀ i j, b j < b i → M i j = 0
 
+lemma upper_two_block_triangular' (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+  block_triangular_matrix' (from_blocks A B 0 D) (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) :=
+begin
+  intros k1 k2 hk12,
+  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 0 → ∃ i, k = sum.inl i,
+  { simp },
+  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 1 → ∃ j, k = sum.inr j,
+  { simp },
+  set mk1 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k1 with hmk1,
+  set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
+  fin_cases mk1; fin_cases mk2; rw [h, h_1] at hk12,
+  { exact absurd hk12 (nat.not_lt_zero 0) },
+  { exact absurd hk12 (nat.not_lt_zero 1) },
+  { rw hmk1 at h,
+    obtain ⟨i, hi⟩ := h1 k1 h,
+    rw hmk2 at h_1,
+    obtain ⟨j, hj⟩ := h0 k2 h_1,
+    rw [hi, hj], simp },
+  { exact absurd hk12 (irrefl 1) }
+end
+
 /-- Let `b` map rows and columns of a square matrix `M` to blocks indexed by `ℕ`s. Then
   `block_triangular_matrix M n b` says the matrix is block triangular. -/
 def block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (b : o → ℕ) : Prop :=
 ∀ i j, b j < b i → M i j = 0
+
+lemma upper_two_block_triangular (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+  block_triangular_matrix (from_blocks A B 0 D) (sum.elim (λ i, 0) (λ j, 1)) :=
+begin
+  intros k1 k2 hk12,
+  have h01 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 ∨ sum.elim (λ i, 0) (λ j, 1) k = 1,
+  { simp },
+  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 → ∃ i, k = sum.inl i, { simp },
+  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 1 → ∃ j, k = sum.inr j, { simp },
+  cases (h01 k1) with hk1 hk1; cases (h01 k2) with hk2 hk2; rw [hk1, hk2] at hk12,
+  { exact absurd hk12 (nat.not_lt_zero 0) },
+  { exact absurd hk12 (nat.not_lt_zero 1) },
+  { obtain ⟨i, hi⟩ := h1 k1 hk1,
+    obtain ⟨j, hj⟩ := h0 k2 hk2,
+    rw [hi, hj], simp },
+  { exact absurd hk12 (irrefl 1) }
+end
 
 lemma det_of_block_triangular_matrix (M : matrix m m R) (b : m → ℕ)
   (h : block_triangular_matrix M b) :
@@ -1121,8 +1159,7 @@ begin
         have hni : ∀ (i : {a // ¬b a = n}), b' i < n,
           { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (hn ↑i)) },
         have h1 := hi (M.to_square_block_prop (λ (i : m), ¬b i = n)) b' h' hni,
-        rw ←fin.prod_univ_eq_prod_range,
-        rw ←fin.prod_univ_eq_prod_range at h1,
+        rw ←fin.prod_univ_eq_prod_range at h1 ⊢,
         convert h1,
         ext k,
         simp only [to_square_block_def', to_square_block_def],

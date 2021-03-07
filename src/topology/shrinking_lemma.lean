@@ -42,7 +42,7 @@ namespace shrinking_lemma
 * if `i ∉ carrier`, then `v i = u i`.
 
 This type is equipped with the folowing partial order: `v ≤ v'` if `v.carrier ⊆ v'.carrier`
-and `v i = v' i` for `i ∈ v.carrier`. We will use the Zorn's lemma to prove that this type has
+and `v i = v' i` for `i ∈ v.carrier`. We will use Zorn's lemma to prove that this type has
 a maximal element, then show that the maximal element must have `carrier = univ`. -/
 @[nolint has_inhabited_instance] -- the trivial refinement needs `u` to be a covering
 structure partial_refinement (u : ι → set X) (s : set X) :=

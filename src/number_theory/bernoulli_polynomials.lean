@@ -76,6 +76,19 @@ begin
   simp [this],
 end
 
+@[simp] lemma bernoulli_poly_eval_one (n : ℕ) : (bernoulli_poly n).eval 1 = bernoulli' n :=
+begin
+  simp only [bernoulli_poly, polynomial.eval_finset_sum],
+  simp only [←succ_eq_add_one, sum_range_succ, mul_one, cast_one, choose_self,
+    (bernoulli _).mul_comm, sum_bernoulli, one_pow, mul_one, polynomial.eval_C,
+    polynomial.eval_monomial],
+  by_cases h: n = 1,
+  { simp [h],
+    norm_num, },
+  { simp [h],
+    exact bernoulli_eq_bernoulli'_of_ne_one h, }
+end
+
 end examples
 
 @[simp] theorem sum_bernoulli_poly (n : ℕ) :

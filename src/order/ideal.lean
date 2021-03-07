@@ -135,7 +135,7 @@ begin
   { exact λ _, I.mem_of_le le_top topmem }
 end
 
-lemma proper_of_ntop {I : ideal P} (ntop : I ≠ ⊤) : proper I :=
+lemma proper_of_ne_top {I : ideal P} (ntop : I ≠ ⊤) : proper I :=
 proper_of_not_mem (λ h, ntop (top_of_mem_top h))
 
 end order_top

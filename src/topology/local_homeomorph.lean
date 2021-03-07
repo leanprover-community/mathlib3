@@ -585,6 +585,7 @@ section pi
 variables {ι : Type*} [fintype ι] {Xi Yi : ι → Type*} [Π i, topological_space (Xi i)]
   [Π i, topological_space (Yi i)] (ei : Π i, local_homeomorph (Xi i) (Yi i))
 
+/-- The product of a finite family of `local_homeomorph`s. -/
 @[simps to_local_equiv] def pi : local_homeomorph (Π i, Xi i) (Π i, Yi i) :=
 { to_local_equiv := local_equiv.pi (λ i, (ei i).to_local_equiv),
   open_source := is_open_set_pi finite_univ $ λ i hi, (ei i).open_source,

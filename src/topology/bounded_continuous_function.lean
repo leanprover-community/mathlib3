@@ -59,16 +59,17 @@ lemma dist_set_exists : ∃ C, 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
 begin
   refine if h : nonempty α then _ else ⟨0, le_refl _, λ x, h.elim ⟨x⟩⟩,
   cases h with x,
-  rcases f.2 with ⟨_, Cf, hCf⟩, /- hCf : ∀ (x y : α), dist (f.val x) (f.val y) ≤ Cf -/
-  rcases g.2 with ⟨_, Cg, hCg⟩, /- hCg : ∀ (x y : α), dist (g.val x) (g.val y) ≤ Cg -/
+  rcases f.2.2 with ⟨Cf, hCf : ∀ x y, dist (f x) (f y) ≤ Cf⟩,
+  rcases g.2.2 with ⟨Cg, hCg : ∀ x y, dist (g x) (g y) ≤ Cg⟩,
   let C := max 0 (dist (f x) (g x) + (Cf + Cg)),
-  exact ⟨C, le_max_left _ _, λ y, calc
-    dist (f y) (g y) ≤ dist (f x) (g x) + (dist (f x) (f y) + dist (g x) (g y)) : dist_triangle4_left _ _ _ _
-                ... ≤ dist (f x) (g x) + (Cf + Cg) : add_le_add_left (add_le_add (hCf _ _) (hCg _ _)) _
-                ... ≤ C : le_max_right _ _⟩
+  refine ⟨C, le_max_left _ _, λ y, _⟩,
+  calc dist (f y) (g y) ≤ dist (f x) (g x) + (dist (f x) (f y) + dist (g x) (g y)) :
+    dist_triangle4_left _ _ _ _
+                    ... ≤ dist (f x) (g x) + (Cf + Cg) : by mono*
+                    ... ≤ C : le_max_right _ _
 end
 
-/-- The pointwise distance is controlled by the distance between functions, by definition -/
+/-- The pointwise distance is controlled by the distance between functions, by definition. -/
 lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
 le_cInf dist_set_exists $ λb hb, hb.2 x
 
@@ -160,9 +161,10 @@ begin
     exact this.continuous (λN, (f N).2.1) },
   { /- Check that `F` is bounded -/
     rcases (f 0).2.2 with ⟨C, hC⟩,
-    exact ⟨C + (b 0 + b 0), λ x y, calc
-      dist (F x) (F y) ≤ dist (f 0 x) (f 0 y) + (dist (f 0 x) (F x) + dist (f 0 y) (F y)) : dist_triangle4_left _ _ _ _
-         ... ≤ C + (b 0 + b 0) : add_le_add (hC x y) (add_le_add (fF_bdd x 0) (fF_bdd y 0))⟩ },
+    refine ⟨C + (b 0 + b 0), λ x y, _⟩,
+    calc dist (F x) (F y) ≤ dist (f 0 x) (f 0 y) + (dist (f 0 x) (F x) + dist (f 0 y) (F y)) :
+      dist_triangle4_left _ _ _ _
+                      ... ≤ C + (b 0 + b 0) : by mono* },
   { /- Check that `F` is close to `f N` in distance terms -/
     refine tendsto_iff_dist_tendsto_zero.2 (squeeze_zero (λ _, dist_nonneg) _ b_lim),
     exact λ N, (dist_le (b0 _)).2 (λx, fF_bdd x N) }
@@ -321,7 +323,8 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
       refine bex.imp_right (λ U U_set hU y z hy hz f hf, _) (H x (ε/2) (half_pos ε0)),
       rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
       replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
-      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) : dist_triangle4_right _ _ _ _
+      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
+        dist_triangle4_right _ _ _ _
           ... < ε/2/2 + ε/2/2 + ε/2 :
             add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y z hy hz g gA)
           ... = ε : by rw [add_halves, add_halves]
@@ -394,6 +397,19 @@ variable {f}
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
 by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
+
+lemma norm_le_of_nonempty [nonempty α]
+  {f : α →ᵇ β} {M : ℝ} (w : ∀ x, ∥f x∥ ≤ M) : ∥f∥ ≤ M :=
+(bounded_continuous_function.norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w
+
+lemma norm_lt_of_compact [nonempty α] [compact_space α]
+  {f : α →ᵇ β} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=
+begin
+  have c : continuous (λ x, ∥f x∥), { have := f.2.1, continuity, },
+  obtain ⟨x, -, le⟩ :=
+    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+  exact lt_of_le_of_lt (norm_le_of_nonempty (λ y, le y trivial)) (h x),
+end
 
 variable (f)
 

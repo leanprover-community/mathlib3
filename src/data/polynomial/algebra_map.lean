@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 
 import data.polynomial.eval
+import algebra.algebra.tower
 
 /-!
 # Theory of univariate polynomials
@@ -51,7 +52,8 @@ lemma alg_hom_eval₂_algebra_map
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
   dsimp [eval₂, finsupp.sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast, alg_hom.commutes],
+  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast,
+    alg_hom.commutes],
 end
 
 @[simp]
@@ -143,6 +145,15 @@ alg_hom.map_nat_cast _ _
 lemma aeval_mul : aeval x (p * q) = aeval x p * aeval x q :=
 alg_hom.map_mul _ _ _
 
+lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
+  aeval x (p.comp q) = (aeval (aeval x q) p) :=
+eval₂_comp (algebra_map R A)
+
+@[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
+  [is_scalar_tower R A B] (b : B) (p : polynomial R) :
+  aeval b (p.map (algebra_map R A)) = aeval b p :=
+by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
+
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
 begin
@@ -167,9 +178,6 @@ alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
-
-lemma pow_comp (p q : polynomial R) (k : ℕ) : (p ^ k).comp q = (p.comp q) ^ k :=
-by { unfold comp, rw ← coe_eval₂_ring_hom, apply ring_hom.map_pow }
 
 variables [comm_ring S] {f : R →+* S}
 

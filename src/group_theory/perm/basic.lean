@@ -8,6 +8,7 @@ import algebra.group.basic
 import algebra.group.hom
 import algebra.group.pi
 import algebra.group.prod
+
 /-!
 # The group of permutations (self-equivalences) of a type `α`
 
@@ -54,6 +55,33 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
+
+/-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
+`equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
+The assumption made here is that if you're using the group structure, you want to preserve it after
+simp. -/
+
+@[simp] lemma trans_one {α : Sort*} {β : Type*} (e : α ≃ β) : e.trans (1 : perm β) = e :=
+equiv.trans_refl e
+
+@[simp] lemma mul_refl (e : perm α) : e * equiv.refl α = e := equiv.trans_refl e
+
+@[simp] lemma one_symm : (1 : perm α).symm = 1 := equiv.refl_symm
+
+@[simp] lemma refl_inv : (equiv.refl α : perm α)⁻¹ = 1 := equiv.refl_symm
+
+@[simp] lemma one_trans {α : Type*} {β : Sort*} (e : α ≃ β) : (1 : perm α).trans e = e :=
+equiv.refl_trans e
+
+@[simp] lemma refl_mul (e : perm α) : equiv.refl α * e = e := equiv.refl_trans e
+
+@[simp] lemma inv_trans (e : perm α) : e⁻¹.trans e = 1 := equiv.symm_trans e
+
+@[simp] lemma mul_symm (e : perm α) : e * e.symm = 1 := equiv.symm_trans e
+
+@[simp] lemma trans_inv (e : perm α) : e.trans e⁻¹ = 1 := equiv.trans_symm e
+
+@[simp] lemma symm_mul (e : perm α) : e.symm * e = 1 := equiv.trans_symm e
 
 /-! Lemmas about `equiv.perm.sum_congr` re-expressed via the group structure. -/
 
@@ -131,6 +159,86 @@ begin
   ext a b,
   simpa using equiv.congr_fun h ⟨a, b⟩,
 end
+
+/-- `equiv.perm.subtype_congr` as a `monoid_hom`. -/
+@[simps] def subtype_congr_hom (p : α → Prop) [decidable_pred p] :
+  (perm {a // p a}) × (perm {a // ¬ p a}) →* perm α :=
+{ to_fun := λ pair, perm.subtype_congr pair.fst pair.snd,
+  map_one' := perm.subtype_congr.refl,
+  map_mul' := λ _ _, (perm.subtype_congr.trans _ _ _ _).symm }
+
+lemma subtype_congr_hom_injective (p : α → Prop) [decidable_pred p] :
+  function.injective (subtype_congr_hom p) :=
+begin
+  rintros ⟨⟩ ⟨⟩ h,
+  rw prod.mk.inj_iff,
+  split;
+  ext i;
+  simpa using equiv.congr_fun h i
+end
+
+/-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
+  on `{x // p x}` induced by `f`. -/
+def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
+⟨λ x, ⟨f x, (h _).1 x.2⟩, λ x, ⟨f⁻¹ x, (h (f⁻¹ x)).2 $ by simpa using x.2⟩,
+  λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
+  λ _, by simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
+
+@[simp] lemma subtype_perm_apply (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x))
+  (x : {x // p x}) : subtype_perm f h x = ⟨f x, (h _).1 x.2⟩ := rfl
+
+@[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) :
+  @subtype_perm α 1 p h = 1 :=
+equiv.ext $ λ ⟨_, _⟩, rfl
+
+/-- The inclusion map of permutations on a subtype of `α` into permutations of `α`,
+  fixing the other points. -/
+def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm α :=
+{ to_fun := λ f,
+  ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
+  λ x, have h : ∀ h : p x, p (f ⟨x, h⟩), from λ h, (f ⟨x, h⟩).2,
+    by { simp only [], split_ifs at *;
+         simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * },
+  λ x, have h : ∀ h : p x, p (f⁻¹ ⟨x, h⟩), from λ h, (f⁻¹ ⟨x, h⟩).2,
+    by { simp only [], split_ifs at *;
+         simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * }⟩,
+  map_one' := begin ext, dsimp, split_ifs; refl, end,
+  map_mul' := λ f g, equiv.ext $ λ x, begin
+  by_cases h : p x,
+  { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
+    have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
+    simp only [h, h₂, coe_fn_mk, perm.mul_apply, dif_pos, subtype.coe_eta] },
+  { simp only [h, coe_fn_mk, perm.mul_apply, dif_neg, not_false_iff] }
+end }
+
+lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]
+  (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) :
+  of_subtype (subtype_perm f h₁) = f :=
+equiv.ext $ λ x, begin
+  rw [of_subtype, subtype_perm],
+  by_cases hx : p x,
+  { simp only [hx, coe_fn_mk, dif_pos, monoid_hom.coe_mk, subtype.coe_mk]},
+  { haveI := classical.prop_decidable,
+    simp only [hx, not_not.mp (mt (h₂ x) hx), coe_fn_mk, dif_neg, not_false_iff,
+      monoid_hom.coe_mk] }
+end
+
+lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
+  (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
+  of_subtype f x = x :=
+dif_neg hx
+
+lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p]
+  (f : perm (subtype p)) (x : α) :
+  p x ↔ p ((of_subtype f : α → α) x) :=
+if h : p x then by simpa only [of_subtype, h, coe_fn_mk, dif_pos, true_iff, monoid_hom.coe_mk]
+  using (f ⟨x, h⟩).2
+else by simp [h, of_subtype_apply_of_not_mem f h]
+
+@[simp] lemma subtype_perm_of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) :
+  subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
+equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
+  simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
 
 end perm
 

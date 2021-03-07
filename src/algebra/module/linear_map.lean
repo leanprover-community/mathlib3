@@ -117,21 +117,43 @@ protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
 
+@[simp] lemma mk_coe (f : M →ₗ[R] M₂) (h₁ h₂) :
+  (linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) = f := ext $ λ _, rfl
+
 variables (f g)
 
 @[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
 
 @[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
-@[simp, priority 900]
-lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R S] [has_scalar R M]
-  [semimodule S M] [is_scalar_tower R S M] [has_scalar R M₂] [semimodule S M₂]
-  [is_scalar_tower R S M₂] (f : M →ₗ[S] M₂) (c : R) (x : M) :
-  f (c • x) = c • f x :=
-by simp only [← smul_one_smul S c x, ← smul_one_smul S c (f x), map_smul]
-
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
+
+variables (M M₂)
+/--
+A typeclass for `has_scalar` structures which can be moved through a `linear_map`.
+This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
+we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
+`R` does not support negation.
+-/
+class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
+  [semimodule S M] [has_scalar R M₂] [semimodule S M₂] :=
+(map_smul : ∀ (f : M →ₗ[S] M₂) (c : R) (x : M), f (c • x) = c • f x)
+variables {M M₂}
+
+@[priority 100]
+instance compatible_smul.is_scalar_tower
+  {R S : Type*} [semiring S] [has_scalar R S]
+  [has_scalar R M] [semimodule S M] [is_scalar_tower R S M]
+  [has_scalar R M₂] [semimodule S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
+⟨λ f c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (f x), map_smul]⟩
+
+@[simp, priority 900]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
+  [semimodule S M] [has_scalar R M₂] [semimodule S M₂]
+  [compatible_smul M M₂ R S] (f : M →ₗ[S] M₂) (c : R) (x : M) :
+  f (c • x) = c • f x :=
+compatible_smul.map_smul f c x
 
 instance : is_add_monoid_hom f :=
 { map_add := map_add f,
@@ -143,8 +165,7 @@ def to_add_monoid_hom : M →+ M₂ :=
   map_zero' := f.map_zero,
   map_add' := f.map_add }
 
-@[simp] lemma to_add_monoid_hom_coe :
-  (f.to_add_monoid_hom : M → M₂) = f := rfl
+@[simp] lemma to_add_monoid_hom_coe : ⇑f.to_add_monoid_hom = f := rfl
 
 variable (R)
 
@@ -153,8 +174,8 @@ are defined by an action of `R` on `S` (formally, we have two scalar towers), th
 map from `M` to `M₂` is `R`-linear.
 
 See also `linear_map.map_smul_of_tower`. -/
-def restrict_scalars {S : Type*} [has_scalar R S] [semiring S] [semimodule S M] [semimodule S M₂]
-  [is_scalar_tower R S M] [is_scalar_tower R S M₂] (f : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
+def restrict_scalars {S : Type*} [semiring S] [semimodule S M] [semimodule S M₂]
+  [compatible_smul M M₂ R S] (f : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
 { to_fun := f,
   map_add' := f.map_add,
   map_smul' := f.map_smul_of_tower }
@@ -172,6 +193,10 @@ theorem to_add_monoid_hom_injective :
 /-- If two `R`-linear maps from `R` are equal on `1`, then they are equal. -/
 @[ext] theorem ext_ring {f g : R →ₗ[R] M} (h : f 1 = g 1) : f = g :=
 ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smul, g.map_smul, h]
+
+theorem ext_ring_iff {f g : R →ₗ[R] M} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
 end
 
 section
@@ -214,6 +239,16 @@ f.to_add_monoid_hom.map_sub x y
 
 instance : is_add_group_hom f :=
 { map_add := map_add f }
+
+instance compatible_smul.int_module
+  {S : Type*} [semiring S] [semimodule ℤ M]
+  [semimodule S M] [semimodule ℤ M₂] [semimodule S M₂] : compatible_smul M M₂ ℤ S :=
+⟨λ f c x, begin
+  induction c using int.induction_on,
+  case hz : { simp },
+  case hp : n ih { simpa [add_smul] using ih },
+  case hn : n ih { simpa [sub_smul] using ih }
+end⟩
 
 end add_comm_group
 
@@ -322,8 +357,8 @@ instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
 
-@[simp] lemma mk_apply {to_fun inv_fun map_add map_smul left_inv right_inv  a} :
-  (⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) a = to_fun a :=
+@[simp] lemma coe_mk {to_fun inv_fun map_add map_smul left_inv right_inv } :
+  ⇑(⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) = to_fun :=
 rfl
 
 -- This exists for compatibility, previously `≃ₗ[R]` extended `≃` instead of `≃+`.
@@ -349,11 +384,15 @@ section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (e e' : M ≃ₗ[R] M₂)
 
-@[simp, norm_cast] theorem coe_coe : ((e : M →ₗ[R] M₂) : M → M₂) = (e : M → M₂) := rfl
+lemma to_linear_map_eq_coe : e.to_linear_map = ↑e := rfl
 
-@[simp] lemma coe_to_equiv : (e.to_equiv : M → M₂) = (e : M → M₂) := rfl
+@[simp, norm_cast] theorem coe_coe : ⇑(e : M →ₗ[R] M₂) = e := rfl
 
-@[simp] lemma to_fun_apply {m : M} : e.to_fun m = e m := rfl
+@[simp] lemma coe_to_equiv : ⇑e.to_equiv = e := rfl
+
+@[simp] lemma coe_to_linear_map : ⇑e.to_linear_map = e := rfl
+
+@[simp] lemma to_fun_eq_coe : e.to_fun = e := rfl
 
 section
 variables {e e'}
@@ -391,7 +430,7 @@ def simps.inv_fun [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : 
 
 initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)
 
-@[simp] lemma inv_fun_apply {m : M₂} : e.inv_fun m = e.symm m := rfl
+@[simp] lemma inv_fun_eq_symm : e.inv_fun = e.symm := rfl
 
 variables {semimodule_M₃ : semimodule R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃)
 
@@ -433,6 +472,9 @@ lemma comp_coe [semimodule R M] [semimodule R M₂] [semimodule R M₃] (f :  M 
   (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M →ₗ[R] M₃) :=
 rfl
 
+@[simp] lemma mk_coe (h₁ h₂ f h₃ h₄) :
+  (linear_equiv.mk e h₁ h₂ f h₃ h₄ : M ≃ₗ[R] M₂) = e := ext $ λ _, rfl
+
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
@@ -446,6 +488,19 @@ theorem map_ne_zero_iff {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm : e.symm.symm = e := by { cases e, refl }
+
+lemma symm_bijective [semimodule R M] [semimodule R M₂] :
+  function.bijective (symm : (M ≃ₗ[R] M₂) → (M₂ ≃ₗ[R] M)) :=
+equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
+
+@[simp] lemma mk_coe' (f h₁ h₂ h₃ h₄) :
+  (linear_equiv.mk f h₁ h₂ ⇑e h₃ h₄ : M₂ ≃ₗ[R] M) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
+@[simp] theorem symm_mk (f h₁ h₂ h₃ h₄) :
+  (⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm =
+  { to_fun := f, inv_fun := e,
+    ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm } := rfl
 
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective

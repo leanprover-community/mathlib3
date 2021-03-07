@@ -1,6 +1,9 @@
 import data.matrix.notation
+import linear_algebra.determinant
+import group_theory.perm.fin
+import tactic.norm_swap
 
-variables {α : Type} [semiring α]
+variables {α β : Type} [semiring α] [ring β]
 
 namespace matrix
 
@@ -8,6 +11,10 @@ open_locale matrix
 
 example {a a' b b' c c' d d' : α} :
   ![![a, b], ![c, d]] + ![![a', b'], ![c', d']] = ![![a + a', b + b'], ![c + c', d + d']] :=
+by simp
+
+example {a a' b b' c c' d d' : β} :
+  ![![a, b], ![c, d]] - ![![a', b'], ![c', d']] = ![![a - a', b - b'], ![c - c', d - d']] :=
 by simp
 
 example {a a' b b' c c' d d' : α} :
@@ -49,5 +56,24 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 5 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 7 = h := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 37 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
+
+example {α : Type*} [comm_ring α] {a b c d : α} :
+  matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
+begin
+  -- TODO: can we make this require less steering?
+  simp [matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ, finset.sum_product,
+        fin.sum_univ_succ, fin.prod_univ_succ],
+  ring
+end
+
+example {α : Type*} [comm_ring α] (A : matrix (fin 3) (fin 3) α) {a b c d e f g h i : α} :
+        matrix.det ![![a, b, c], ![d, e, f], ![g, h, i]] =
+          a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
+begin
+  -- We utilize the `norm_swap` plugin for `norm_num` to reduce swap terms
+  norm_num [matrix.det, finset.univ_perm_fin_succ, ←finset.univ_product_univ,
+            finset.sum_product, fin.sum_univ_succ, fin.prod_univ_succ],
+  ring
+end
 
 end matrix

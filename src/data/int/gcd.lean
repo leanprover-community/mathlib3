@@ -46,6 +46,28 @@ def gcd_a (x y : ℕ) : ℤ := (xgcd x y).1
 /-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : ℕ) : ℤ := (xgcd x y).2
 
+@[simp] theorem gcd_a_zero_left {s : ℕ} : gcd_a 0 s = 0 :=
+by { unfold gcd_a, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_b_zero_left {s : ℕ} : gcd_b 0 s = 1 :=
+by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
+
+@[simp] theorem gcd_a_zero_right {s : ℕ} (h : s ≠ 0) : gcd_a s 0 = 1 :=
+begin
+  unfold gcd_a xgcd,
+  induction s,
+  { exact absurd rfl h, },
+  { simp [xgcd_aux], }
+end
+
+@[simp] theorem gcd_b_zero_right {s : ℕ} (h : s ≠ 0) : gcd_b s 0 = 0 :=
+begin
+  unfold gcd_b xgcd,
+  induction s,
+  { exact absurd rfl h, },
+  { simp [xgcd_aux], }
+end
+
 @[simp] theorem xgcd_aux_fst (x y) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=
 gcd.induction x y (by simp) (λ x y h IH s t s' t', by simp [xgcd_aux_rec, h, IH]; rw ← gcd_rec)
@@ -83,6 +105,23 @@ end nat
 
 /-! ### Divisibility over ℤ -/
 namespace int
+
+/-- The extended GCD `a` value in the equation `gcd x y = x * a + y * b`. -/
+def gcd_a : ℤ → ℤ → ℤ
+| (of_nat m) n := m.gcd_a n.nat_abs
+| -[1+ m]    n := -m.succ.gcd_a n.nat_abs
+
+/-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
+def gcd_b : ℤ → ℤ → ℤ
+| m (of_nat n) := m.nat_abs.gcd_b n
+| m -[1+ n]    := -m.nat_abs.gcd_b n.succ
+
+theorem gcd_eq_gcd_ab : ∀ x y : ℤ, (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y
+| (m : ℕ) (n : ℕ) := nat.gcd_eq_gcd_ab _ _
+| (m : ℕ) -[1+ n] := show (_ : ℤ) = _ + -(n+1) * -_, by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab
+| -[1+ m] (n : ℕ) := show (_ : ℤ) = -(m+1) * -_ + _ , by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab
+| -[1+ m] -[1+ n] := show (_ : ℤ) = -(m+1) * -_ + -(n+1) * -_,
+  by { rw [neg_mul_neg, neg_mul_neg], apply nat.gcd_eq_gcd_ab }
 
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
 begin

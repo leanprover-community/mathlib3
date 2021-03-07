@@ -10,6 +10,30 @@ import algebra.algebra.basic
 import tactic.ring
 import linear_algebra.alternating
 
+/-!
+# Determinant of a matrix
+
+This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
+
+## Main definitions
+
+ - `matrix.det`: the determinant of a square matrix, as a sum over permutations
+ - `matrix.det_row_multilinear`: the determinant, as an `alternating_map` in the rows of the matrix
+
+## Main results
+
+ - `det_mul`: the determinant of `A ⬝ B` is the product of determinants
+ - `det_zero_of_row_eq`: the determinant is zero if there is a repeated row
+ - `det_block_diagonal`: the determinant of a block diagonal matrix is a product
+   of the blocks' determinants
+
+## Implementation notes
+
+It is possible to configure `simp` to compute determinants. See the file
+`test/matrix.lean` for some examples.
+
+-/
+
 universes u v w z
 open equiv equiv.perm finset function
 
@@ -66,7 +90,7 @@ begin
           (by simp [apply_swap_eq_self hpij])
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
-      by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
+      by simp [this, sign_swap hij, prod_mul_distrib])
     (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
     (λ σ _, mul_swap_involutive i j σ)
@@ -93,7 +117,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
         by rw ← σ⁻¹.prod_comp; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
-          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
+          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
         ... = ε τ : by simp,
       by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
     (λ _ _ _ _, mul_right_cancel) (λ τ _, ⟨τ * σ, by simp⟩))
@@ -230,7 +254,8 @@ lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_column M j $ s • u) = s * det (update_column M j u) :=
 begin
   simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i = s * ∏ i, M.update_column j u (σ i) i,
+  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i =
+    s * ∏ i, M.update_column j u (σ i) i,
   { intros σ,
     simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
                if_true, algebra.id.smul_eq_mul, pi.smul_apply],
@@ -283,12 +308,8 @@ begin
     rintros ⟨k, x⟩,
     simp },
   { intros σ _,
-    rw finset.prod_mul_distrib,
-    congr,
-    { convert congr_arg (λ (x : units ℤ), (↑x : R)) (sign_prod_congr_left (λ k, σ k _)).symm,
-      simp, congr, ext, congr },
-    rw [← finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp },
+    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
+    simp [sign_prod_congr_left] },
   { intros σ σ' _ _ eq,
     ext x hx k,
     simp only at eq,

@@ -63,6 +63,19 @@ def pempty_ring_equiv : mv_polynomial pempty R ≃+* R :=
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
 
+/-- The algebra isomorphism between multivariable polynomials in no variables
+and the ground ring. -/
+@[simps]
+def pempty_alg_equiv : mv_polynomial pempty R ≃ₐ[R] R :=
+{ to_fun    := mv_polynomial.eval₂ (ring_hom.id _) $ pempty.elim,
+  inv_fun   := C,
+  left_inv  := is_id (C.comp (eval₂_hom (ring_hom.id _) pempty.elim))
+    (assume a : R, by { dsimp, rw [eval₂_C], refl }) (assume a, a.elim),
+  right_inv := λ r, eval₂_C _ _ _,
+  map_mul'  := λ _ _, eval₂_mul _ _,
+  map_add'  := λ _ _, eval₂_add _ _,
+  commutes' := λ _, by rw [mv_polynomial.algebra_map_eq]; simp }
+
 /--
 The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
@@ -91,41 +104,133 @@ def punit_ring_equiv : mv_polynomial punit R ≃+* polynomial R :=
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
 
-/-- The ring isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
+/-- If  `e : A ≃+* B` is a rings isomorphism and `e_var : S₁ ≃ S₂` is an isomorphism of types,
+the induced isomorphism `mv_polynomial S₁ A ≃+* mv_polynomial S₂ B`. -/
 @[simps]
-def ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₂ R :=
-{ to_fun    := rename e,
-  inv_fun   := rename e.symm,
-  left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
-  right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
-  map_mul'  := (rename e).map_mul,
-  map_add'  := (rename e).map_add }
+def ring_equiv_congr {A : Type u} {B : Type x} [comm_semiring A] [comm_semiring B] (e : A ≃+* B)
+  (e_var : S₁ ≃ S₂) : mv_polynomial S₁ A ≃+* mv_polynomial S₂ B :=
+{ to_fun    := rename e_var ∘ map (e : A →+* B),
+  inv_fun   := map (e.symm : B →+* A) ∘ rename e_var.symm,
+  left_inv  :=
+    begin
+      intro p,
+      have h : (e.symm : B →+* A).comp (e : A →+* B) = ring_hom.id _,
+      { ext a, exact e.symm_apply_apply a },
+      simp only [map_map, h, map_id, rename_rename, rename_id, comp_app, equiv.symm_comp_self],
+    end,
+  right_inv :=
+    begin
+      intro p,
+      have h : (e : A →+* B).comp (e.symm : B →+* A) = ring_hom.id _,
+      { ext a, exact e.apply_symm_apply a },
+      simp only [map_map, h, map_id, rename_rename, equiv.self_comp_symm, rename_id, comp_app],
+    end,
+  map_mul' := λ _ _, by rw [comp_app, ring_hom.map_mul, alg_hom.map_mul],
+  map_add' := λ _ _, by rw [comp_app, ring_hom.map_add, alg_hom.map_add] }
 
-/-- The algebra isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
-@[simps]
-def alg_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃ₐ[R] mv_polynomial S₂ R :=
-{ to_fun    := rename e,
-  inv_fun   := rename e.symm,
-  left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
-  right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
-  commutes' := λ p, by simp only [alg_hom.commutes],
-  .. rename e }
+/-- The ring isomorphism between multivariable polynomials induced by an equivalence
+of the variables. -/
+def ring_equiv_congr_left (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₂ R :=
+ring_equiv_congr (ring_equiv.refl R) e
 
-/-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
+@[simp]
+lemma ring_equiv_congr_left_apply (e : S₁ ≃ S₂) (p : mv_polynomial S₁ R) :
+  ring_equiv_congr_left R e p = rename e p :=
+begin
+  have h : ((ring_equiv.refl R) : R →+* R) = ring_hom.id _ := rfl,
+  simp only [ring_equiv_congr_left, h, map_id, ring_equiv_congr_apply, comp_app],
+end
+
+@[simp]
+lemma ring_equiv_congr_left_symm_apply (e : S₁ ≃ S₂) (p : mv_polynomial S₂ R) :
+  (ring_equiv_congr_left R e).symm p = rename e.symm p :=
+begin
+  have h : ((ring_equiv.refl R).symm : R →+* R) = ring_hom.id _ := rfl,
+  simp only [ring_equiv_congr_left, h, map_id, ring_equiv_congr_symm_apply, comp_app]
+end
+
+variable (S₁)
+
+/-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism
+of the ground ring. -/
+def ring_equiv_congr_right [comm_semiring S₂] (e : R ≃+* S₂) :
+  mv_polynomial S₁ R ≃+* mv_polynomial S₁ S₂ :=
+ring_equiv_congr e (equiv.cast rfl)
+
+@[simp]
+lemma ring_equiv_congr_right_apply [comm_semiring S₂] (e : R ≃+* S₂) (p : mv_polynomial S₁ R) :
+  ring_equiv_congr_right R S₁ e p = map (e : R →+* S₂) p :=
+by simp [ring_equiv_congr_right]
+
+@[simp]
+lemma ring_equiv_congr_right_symm_apply [comm_semiring S₂] (e : R ≃+* S₂)
+  (p : mv_polynomial S₁ S₂) : (ring_equiv_congr_right R S₁ e).symm p = map (e.symm : S₂ →+* R) p :=
+by simp [ring_equiv_congr_right]
+
+variable {S₁}
+
+/-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas and `e_var : S₁ ≃ S₂` is an isomorphism of
+types, the induced isomorphism `mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₂ B`. -/
 @[simps]
-def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₁ S₂ :=
-{ to_fun    := map (e : R →+* S₂),
-  inv_fun   := map (e.symm : S₂ →+* R),
-  left_inv  := assume p,
-    have (e.symm : S₂ →+* R).comp (e : R →+* S₂) = ring_hom.id _,
-    { ext a, exact e.symm_apply_apply a },
-    by simp only [map_map, this, map_id],
-  right_inv := assume p,
-    have (e : R →+* S₂).comp (e.symm : S₂ →+* R) = ring_hom.id _,
-    { ext a, exact e.apply_symm_apply a },
-    by simp only [map_map, this, map_id],
-  map_mul'  := ring_hom.map_mul _,
-  map_add'  := ring_hom.map_add _ }
+def alg_equiv_congr {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A] [algebra R B]
+  (e : A ≃ₐ[R] B) (e_var : S₁ ≃ S₂) :
+  algebra.comap R A (mv_polynomial S₁ A) ≃ₐ[R] algebra.comap R B (mv_polynomial S₂ B) :=
+{ commutes' := begin
+  intro r,
+  dsimp,
+  have h₁ : algebra_map R (algebra.comap R A (mv_polynomial S₁ A)) r =
+    C (algebra_map R A r) := rfl,
+  have h₂ : algebra_map R (algebra.comap R B (mv_polynomial S₂ B)) r =
+    C (algebra_map R B r) := rfl,
+  have h : (↑(e.to_ring_equiv) : A →+* B) ((algebra_map R A) r) = e ((algebra_map R A) r) := rfl,
+  simp [h₁, h₂, ring_equiv_congr_left_apply, ring_equiv_congr_right_apply, map, rename_C,
+    eval₂_hom_C, ring_hom.comp_apply, h, alg_equiv.commutes],
+  end,
+  .. ring_equiv_congr e.to_ring_equiv e_var }
+
+/-- The algebra isomorphism between multivariable polynomials induced by an equivalence
+of the variables.  -/
+def alg_equiv_congr_left (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃ₐ[R] mv_polynomial S₂ R :=
+alg_equiv_congr R alg_equiv.refl e
+
+@[simp]
+lemma alg_equiv_congr_left_apply (e : S₁ ≃ S₂) (p : mv_polynomial S₁ R) :
+  alg_equiv_congr_left R e p = rename e p :=
+begin
+  have h : ((alg_equiv.refl : R ≃ₐ[R] R).to_ring_equiv : R →+* R) = ring_hom.id _ := rfl,
+  simp only [alg_equiv_congr_left, h, map_id, ring_equiv.to_fun_eq_coe, ring_equiv_congr_apply,
+    comp_app, alg_equiv_congr_apply]
+end
+
+@[simp]
+lemma alg_equiv_congr_left_symm_apply (e : S₁ ≃ S₂) (p : mv_polynomial S₂ R) :
+  (alg_equiv_congr_left R e).symm p = rename e.symm p :=
+begin
+  have h : ((alg_equiv.refl : R ≃ₐ[R] R).to_ring_equiv.symm : R →+* R) = ring_hom.id _ := rfl,
+  simp only [alg_equiv_congr_left, ring_equiv_congr, h, map_id, alg_equiv_congr_symm_apply,
+    comp_app],
+end
+
+variable (S₁)
+
+/-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas, the induced isomorphism
+`mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₁ B`. -/
+def alg_equiv_congr_right {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A]
+  [algebra R B] (e : A ≃ₐ[R] B) :
+  algebra.comap R A (mv_polynomial S₁ A) ≃ₐ[R] algebra.comap R B (mv_polynomial S₁ B) :=
+alg_equiv_congr R e (equiv.cast rfl)
+
+@[simp]
+lemma alg_equiv_congr_right_apply {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A]
+  [algebra R B] (e : A ≃ₐ[R] B) (p : mv_polynomial S₁ A) :
+  alg_equiv_congr_right R S₁ e p = map (↑e : A →+* B) p :=
+by simpa [alg_equiv_congr_right]
+
+@[simp]
+lemma alg_equiv_congr_right_symm_apply {A B : Type*} [comm_semiring A] [comm_semiring B]
+  [algebra R A] [algebra R B] (e : A ≃ₐ[R] B) (p : mv_polynomial S₁ B) :
+  (alg_equiv_congr_right R S₁ e).symm p = map (↑e.symm : B →+* A ) p :=
+by simpa [alg_equiv_congr_right, ring_equiv_congr]
 
 section
 variables (S₁ S₂ S₃)
@@ -211,11 +316,29 @@ begin
 end
 
 /--
+The algebra isomorphism between multivariable polynomials in a sum of two types,
+and multivariable polynomials in one of the types,
+with coefficents in multivariable polynomials in the other type.
+-/
+def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
+  algebra.comap R (mv_polynomial S₂ R) (mv_polynomial S₁ (mv_polynomial S₂ R)) :=
+{ commutes' := begin
+    intro r,
+    change algebra_map R (algebra.comap R (mv_polynomial S₂ R)
+      (mv_polynomial S₁ (mv_polynomial S₂ R))) r with C (C r),
+    change algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r with C r,
+    simp only [sum_ring_equiv, sum_to_iter_C, mv_polynomial_equiv_mv_polynomial_apply,
+      ring_equiv.to_fun_eq_coe]
+  end,
+  ..sum_ring_equiv R S₁ S₂
+}
+
+/--
 The ring isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
 -/
 def option_equiv_left : mv_polynomial (option S₁) R ≃+* polynomial (mv_polynomial S₁ R) :=
-(ring_equiv_of_equiv R $ (equiv.option_equiv_sum_punit.{0} S₁).trans (equiv.sum_comm _ _)).trans $
+(ring_equiv_congr_left R $ (equiv.option_equiv_sum_punit.{0} S₁).trans (equiv.sum_comm _ _)).trans $
 (sum_ring_equiv R _ _).trans $
 punit_ring_equiv _
 
@@ -224,9 +347,9 @@ The ring isomorphism between multivariable polynomials in `option S₁` and
 multivariable polynomials with coefficients in polynomials.
 -/
 def option_equiv_right : mv_polynomial (option S₁) R ≃+* mv_polynomial S₁ (polynomial R) :=
-(ring_equiv_of_equiv R $ equiv.option_equiv_sum_punit.{0} S₁).trans $
+(ring_equiv_congr_left R $ equiv.option_equiv_sum_punit.{0} S₁).trans $
 (sum_ring_equiv R S₁ unit).trans $
-ring_equiv_congr (mv_polynomial unit R) (punit_ring_equiv R)
+ring_equiv_congr_right (mv_polynomial unit R) _ (punit_ring_equiv R)
 
 /--
 The ring isomorphism between multivariable polynomials in `fin (n + 1)` and
@@ -234,7 +357,7 @@ polynomials over multivariable polynomials in `fin n`.
 -/
 def fin_succ_equiv (n : ℕ) :
   mv_polynomial (fin (n + 1)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
-(ring_equiv_of_equiv R (fin_succ_equiv n)).trans
+(ring_equiv_congr_left R (fin_succ_equiv n)).trans
   (option_equiv_left R (fin n))
 
 lemma fin_succ_equiv_eq (n : ℕ) :
@@ -244,16 +367,17 @@ lemma fin_succ_equiv_eq (n : ℕ) :
 begin
   apply ring_hom_ext,
   { intro r,
-    dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
-    simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp] },
+    dsimp [ring_equiv.coe_to_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
+    simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp, ring_equiv_congr_left_apply] },
   { intro i,
-    dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv, _root_.fin_succ_equiv],
-    by_cases hi : i = 0,
-    { simp only [hi, fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
-        equiv.sum_comm_apply, comp_app, sum_to_iter_Xl, eval₂_X] },
-    { rw [← fin.succ_pred i hi],
-      simp only [rename_X, equiv.sum_comm_apply, comp_app, eval₂_X,
-        equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, sum_to_iter_Xr, eval₂_C] } }
+    dsimp [fin_succ_equiv, option_equiv_left, sum_ring_equiv],
+    refine fin.cases _ (λ _, _) i,
+    { simp only [fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
+      equiv.sum_comm_apply, ring_equiv_congr_left_apply, comp_app, sum_to_iter_Xl, equiv.coe_trans,
+      fin_succ_equiv_zero, eval₂_X]},
+    { simp only [equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, rename_X,
+        equiv.sum_comm_apply, ring_equiv_congr_left_apply, sum_to_iter_Xr, comp_app, eval₂_C,
+        equiv.coe_trans, fin_succ_equiv_succ, eval₂_X]} }
 end
 
 @[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) R) :
@@ -261,6 +385,18 @@ end
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
 by { rw ← fin_succ_equiv_eq, refl }
+
+lemma fin_succ_equiv_comp_C_eq_C {R : Type u} [comm_semiring R] (n : ℕ) :
+  ((mv_polynomial.fin_succ_equiv R n).symm.to_ring_hom).comp
+    ((polynomial.C).comp (mv_polynomial.C))
+    = (mv_polynomial.C : R →+* mv_polynomial (fin n.succ) R) :=
+begin
+  refine ring_hom.ext (λ x, _),
+  rw ring_hom.comp_apply,
+  refine (mv_polynomial.fin_succ_equiv R n).injective
+    (trans ((mv_polynomial.fin_succ_equiv R n).apply_symm_apply _) _),
+  simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
+end
 
 end
 

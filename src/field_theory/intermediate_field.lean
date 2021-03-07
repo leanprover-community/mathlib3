@@ -147,12 +147,14 @@ lemma multiset_sum_mem (m : multiset L) :
   (∀ a ∈ m, a ∈ S) → m.sum ∈ S :=
 S.to_subfield.multiset_sum_mem m
 
-/-- Product of elements of an intermediate field indexed by a `finset` is in the intermediate_field. -/
+/-- Product of elements of an intermediate field indexed by a `finset` is in the intermediate_field.
+-/
 lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c ∈ S) :
   ∏ i in t, f i ∈ S :=
 S.to_subfield.prod_mem h
 
-/-- Sum of elements in a `intermediate_field` indexed by a `finset` is in the `intermediate_field`. -/
+/-- Sum of elements in a `intermediate_field` indexed by a `finset` is in the `intermediate_field`.
+-/
 lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c ∈ S) :
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h

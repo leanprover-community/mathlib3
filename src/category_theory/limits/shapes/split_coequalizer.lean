@@ -87,7 +87,7 @@ section
 open limits
 
 /-- A split coequalizer clearly induces a cofork. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def is_split_coequalizer.as_cofork {Z : C} {h : Y ⟶ Z} (t : is_split_coequalizer f g h) :
   cofork f g :=
 cofork.of_π h t.condition

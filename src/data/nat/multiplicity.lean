@@ -12,7 +12,8 @@ import algebra.big_operators.intervals
 
 # Natural number multiplicity
 
-This file contains lemmas about the multiplicity function (the maximum prime power divding a number).
+This file contains lemmas about the multiplicity function
+(the maximum prime power divding a number).
 
 # Main results
 

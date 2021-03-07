@@ -109,7 +109,7 @@ protected def function.injective.semiring [has_zero β] [has_one β] [has_add β
 { .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
   .. hf.distrib f add mul }
 
-/-- Pullback a `semiring` instance along an injective function. -/
+/-- Pushforward a `semiring` instance along a surjective function. -/
 protected def function.surjective.semiring [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -173,6 +173,9 @@ lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
 
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
+
+theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
+dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
 end semiring
 
@@ -284,6 +287,9 @@ coe_inj (funext h)
 
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
+
+@[simp] lemma mk_coe (f : α →+* β) (h₁ h₂ h₃ h₄) : ring_hom.mk f h₁ h₂ h₃ h₄ = f :=
+ext $ λ _, rfl
 
 theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →+ β)) :=
 λ f g h, ext (λ x, add_monoid_hom.congr_fun h x)
@@ -434,11 +440,7 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 { .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
-calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [add_mul, mul_add, mul_comm, add_assoc]
-              ...     = a*a + 2*a*b + b*b    : by rw one_add_one_eq_two
-
-theorem dvd_add (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
-dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
@@ -856,6 +858,36 @@ by rw [← mul_self_eq_mul_self_iff, one_mul]
   one's additive inverse. -/
 lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
+
+/--
+Makes a ring homomorphism from an additive group homomorphism from a commutative ring to an integral
+domain that commutes with self multiplication, assumes that two is nonzero and one is sent to one.
+-/
+def add_monoid_hom.mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
+  (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
+{ map_one' := h_one,
+  map_mul' := begin
+    intros x y,
+    have hxy := h (x + y),
+    rw [mul_add, add_mul, add_mul, f.map_add, f.map_add, f.map_add, f.map_add, h x, h y, add_mul,
+      mul_add, mul_add, ← sub_eq_zero_iff_eq, add_comm, ← sub_sub, ← sub_sub, ← sub_sub,
+      mul_comm y x, mul_comm (f y) (f x)] at hxy,
+    simp only [add_assoc, add_sub_assoc, add_sub_cancel'_right] at hxy,
+    rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub, mul_eq_zero, sub_eq_zero_iff_eq,
+      or_iff_not_imp_left] at hxy,
+    exact hxy h_two,
+  end,
+  ..f }
+
+@[simp]
+lemma add_monoid_hom.coe_fn_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
+  (h h_two h_one) :
+  (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β → α) = f := rfl
+
+@[simp]
+lemma add_monoid_hom.coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β]
+  (f : β →+ α) (h h_two h_one) :
+  (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β →+ α) = f := by {ext, simp}
 
 end integral_domain
 

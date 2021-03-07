@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import linear_algebra.basic
+import linear_algebra.prod
 
 /-!
 # Partially defined linear maps
@@ -66,7 +67,7 @@ f.to_fun.map_smul c x
 @[simp] lemma mk_apply (p : submodule R E) (f : p →ₗ[R] F) (x : p) :
   mk p f x = f x := rfl
 
-/-- The unique `linear_pmap` on `span R {x}` that sends `x` to `y`. This version works for modules
+/-- The unique `linear_pmap` on `R ∙ x` that sends `x` to `y`. This version works for modules
 over rings, and requires a proof of `∀ c, c • x = 0 → c • y = 0`. -/
 noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   linear_pmap R E F :=
@@ -75,7 +76,7 @@ begin
   { intros c₁ c₂ h,
     rw [← sub_eq_zero, ← sub_smul] at h ⊢,
     exact H _ h },
-  refine ⟨span R {x}, λ z, _, _, _⟩,
+  refine ⟨R ∙ x, λ z, _, _, _⟩,
   { exact (classical.some (mem_span_singleton.1 z.prop) • y) },
   { intros z₁ z₂,
     rw [← add_smul],
@@ -90,7 +91,7 @@ begin
 end
 
 @[simp] lemma domain_mk_span_singleton (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
-  (mk_span_singleton' x y H).domain = span R {x} := rfl
+  (mk_span_singleton' x y H).domain = R ∙ x := rfl
 
 @[simp] lemma mk_span_singleton_apply (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
   (c : R) (h) :
@@ -280,6 +281,32 @@ begin
   have hy : y = 0, from subtype.eq (h y (hxy ▸ x.2) y.2),
   have hx : x = 0, from subtype.eq (hxy.trans $ congr_arg _ hy),
   simp [*]
+end
+
+section
+
+variables {K : Type*} [division_ring K] [module K E] [module K F]
+
+/-- Extend a `linear_pmap` to `f.domain ⊔ K ∙ x`. -/
+noncomputable def sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F) (hx : x ∉ f.domain) :
+  linear_pmap K E F :=
+f.sup (mk_span_singleton x y (λ h₀, hx $ h₀.symm ▸ f.domain.zero_mem)) $
+  sup_h_of_disjoint _ _ $ by simpa [disjoint_span_singleton]
+
+@[simp] lemma domain_sup_span_singleton (f : linear_pmap K E F) (x : E) (y : F)
+  (hx : x ∉ f.domain) :
+  (f.sup_span_singleton x y hx).domain = f.domain ⊔ K ∙ x := rfl
+
+@[simp] lemma sup_span_singleton_apply_mk (f : linear_pmap K E F) (x : E) (y : F)
+  (hx : x ∉ f.domain) (x' : E) (hx' : x' ∈ f.domain) (c : K) :
+  f.sup_span_singleton x y hx ⟨x' + c • x,
+    mem_sup.2 ⟨x', hx', _, mem_span_singleton.2 ⟨c, rfl⟩, rfl⟩⟩ = f ⟨x', hx'⟩ + c • y :=
+begin
+  erw [sup_apply _ ⟨x', hx'⟩ ⟨c • x, _⟩, mk_span_singleton_apply],
+  refl,
+  exact mem_span_singleton.2 ⟨c, rfl⟩
+end
+
 end
 
 private lemma Sup_aux (c : set (linear_pmap R E F)) (hc : directed_on (≤) c) :

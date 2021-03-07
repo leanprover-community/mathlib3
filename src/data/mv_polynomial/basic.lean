@@ -93,17 +93,31 @@ namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
 section comm_semiring
-variables [comm_semiring R] {p q : mv_polynomial σ R}
 
-instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
+section instances
+
+instance decidable_eq_mv_polynomial [comm_semiring R] [decidable_eq σ] [decidable_eq R] :
   decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
-instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
-instance : inhabited (mv_polynomial σ R) := ⟨0⟩
-instance : has_scalar R (mv_polynomial σ R) := add_monoid_algebra.has_scalar
-instance : semimodule R (mv_polynomial σ R) := add_monoid_algebra.semimodule
-instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
+instance [comm_semiring R] : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
+instance [comm_semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
+instance [semiring R] [comm_semiring S₁] [semimodule R S₁] : semimodule R (mv_polynomial σ S₁) :=
+add_monoid_algebra.semimodule
+instance [semiring R] [semiring S₁] [comm_semiring S₂]
+  [has_scalar R S₁] [semimodule R S₂] [semimodule S₁ S₂] [is_scalar_tower R S₁ S₂] :
+  is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
+add_monoid_algebra.is_scalar_tower
+instance [semiring R] [semiring S₁][comm_semiring S₂]
+  [semimodule R S₂] [semimodule S₁ S₂] [smul_comm_class R S₁ S₂] :
+  smul_comm_class R S₁ (mv_polynomial σ S₂) :=
+add_monoid_algebra.smul_comm_class
+instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
+add_monoid_algebra.algebra
 
-/-- the coercion turning an `mv_polynomial` into the function which reports the coefficient of a given monomial -/
+end instances
+
+variables [comm_semiring R] [comm_semiring S₁] {p q : mv_polynomial σ R}
+/-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
+of a given monomial. -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ R) :=
 finsupp.has_coe_to_fun
 
@@ -147,6 +161,17 @@ lemma C_injective (σ : Type*) (R : Type*) [comm_semiring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.single_injective _
 
+lemma C_surjective {R : Type*} [comm_semiring R] (σ : Type*) (hσ : ¬ nonempty σ) :
+  function.surjective (C : R → mv_polynomial σ R) :=
+begin
+  refine λ p, ⟨p.to_fun 0, finsupp.ext (λ a, _)⟩,
+  simpa [(finsupp.ext (λ x, absurd (nonempty.intro x) hσ) : a = 0), C, monomial],
+end
+
+lemma C_surjective_fin_0 {R : Type*} [comm_ring R] :
+  function.surjective (mv_polynomial.C : R → mv_polynomial (fin 0) R) :=
+C_surjective (fin 0) (λ h, let ⟨n⟩ := h in fin_zero_elim n)
+
 @[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_semiring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
 (C_injective σ R).eq_iff
@@ -155,7 +180,8 @@ instance infinite_of_infinite (σ : Type*) (R : Type*) [comm_semiring R] [infini
   infinite (mv_polynomial σ R) :=
 infinite.of_injective C (C_injective _ _)
 
-instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R] [nontrivial R] :
+instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R]
+  [nontrivial R] :
   infinite (mv_polynomial σ R) :=
 infinite.of_injective (λ i : ℕ, monomial (single (classical.arbitrary σ) i) 1)
 begin
@@ -304,7 +330,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 ⟨ λ h m, by rw h, ext p q⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
-  coeff m (p + q) = coeff m p + coeff m q := add_apply
+  coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
 @[simp] lemma coeff_zero (m : σ →₀ ℕ) :
   coeff m (0 : mv_polynomial σ R) = 0 := rfl
@@ -422,7 +448,7 @@ begin
       refine (nat.sub_add_cancel $ nat.pos_of_ne_zero _).symm, rwa mem_support_iff at h },
     { simp [single_eq_of_ne hj] } },
   { delta coeff, rw ← not_mem_support_iff, intro hm, apply h,
-    have H := support_mul _ _ hm, simp only [finset.mem_bind] at H,
+    have H := support_mul _ _ hm, simp only [finset.mem_bUnion] at H,
     rcases H with ⟨j, hj, i', hi', H⟩,
     delta X monomial at hi', rw mem_support_single at hi', cases hi', subst i',
     erw finset.mem_singleton at H, subst m,
@@ -505,8 +531,8 @@ end constant_coeff
 
 section as_sum
 
-@[simp]
-lemma support_sum_monomial_coeff (p : mv_polynomial σ R) : ∑ v in p.support, monomial v (coeff v p) = p :=
+@[simp] lemma support_sum_monomial_coeff (p : mv_polynomial σ R) :
+  ∑ v in p.support, monomial v (coeff v p) = p :=
 finsupp.sum_single p
 
 lemma as_sum (p : mv_polynomial σ R) : p = ∑ v in p.support, monomial v (coeff v p) :=
@@ -516,7 +542,6 @@ end as_sum
 
 
 section eval₂
-variables [comm_semiring S₁]
 variables (f : R →+* S₁) (g : σ → S₁)
 
 /-- Evaluate a polynomial `p` given a valuation `g` of all the variables
@@ -713,7 +738,6 @@ end
 end eval
 
 section map
-variables [comm_semiring S₁]
 variables (f : R →+* S₁)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
@@ -811,7 +835,7 @@ eval₂_map f g φ p
 coeff_map f φ 0
 
 lemma constant_coeff_comp_map (f : R →+* S₁) :
-  (constant_coeff : mv_polynomial σ S₁ →+* S₁).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
+  (constant_coeff : mv_polynomial σ S₁ →+* S₁).comp (mv_polynomial.map f) = f.comp constant_coeff :=
 by { ext; simp }
 
 lemma support_map_subset (p : mv_polynomial σ R) : (map f p).support ⊆ p.support :=
@@ -867,7 +891,7 @@ section aeval
 /-! ### The algebra of multivariate polynomials -/
 
 variables (f : σ → S₁)
-variables [comm_semiring S₁] [algebra R S₁] [comm_semiring S₂]
+variables [algebra R S₁] [comm_semiring S₂]
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/
@@ -931,7 +955,7 @@ begin
   obtain ⟨i, hi, hgi⟩ : ∃ i ∈ d.support, g i = 0 := h d (finsupp.mem_support_iff.mp hd),
   rw [eval₂_hom_monomial, finsupp.prod, finset.prod_eq_zero hi, mul_zero],
   rw [hgi, zero_pow],
-  rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff]
+  rwa [pos_iff_ne_zero, ← finsupp.mem_support_iff]
 end
 
 lemma aeval_eq_zero [algebra R S₂] (f : σ → S₂) (φ : mv_polynomial σ R)

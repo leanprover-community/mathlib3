@@ -5,7 +5,7 @@ Authors: Johan Commelin, Keeley Hoek, Scott Morrison
 -/
 import meta.expr
 /-!
-# A lens for zoming into nested `expr` applications
+# A lens for zooming into nested `expr` applications
 
 A "lens" for looking into the subterms of an expression, tracking where we've been, so that
 when we "zoom out" after making a change we know exactly which order of `congr_fun`s and
@@ -37,8 +37,8 @@ namespace expr_lens
 that represent the function-part `f` and arg-part `a` of an application `f a`. They specify the
 directions in which an `expr_lens` should zoom into an `expr`.
 
-This type is used in the development of rewriting tactics such as
-`nth_rewrite`, and `rewrite_search` (not currently in mathlib). -/
+This type is used in the development of rewriting tactics such as `nth_rewrite` and
+`rewrite_search`. -/
 @[derive [decidable_eq, inhabited]]
 inductive dir
 | F

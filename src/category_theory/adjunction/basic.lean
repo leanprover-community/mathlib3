@@ -9,7 +9,8 @@ import data.equiv.basic
 namespace category_theory
 open category
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 local attribute [elab_simple] whisker_left whisker_right
 
@@ -175,8 +176,10 @@ This structure won't typically be used anywhere else.
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : 𝟭 C ⟶ F.comp G)
 (counit : G.comp F ⟶ 𝟭 D)
-(left_triangle' : whisker_right unit F ≫ (functor.associator F G F).hom ≫ whisker_left F counit = nat_trans.id (𝟭 C ⋙ F) . obviously)
-(right_triangle' : whisker_left G unit ≫ (functor.associator G F G).inv ≫ whisker_right counit G = nat_trans.id (G ⋙ 𝟭 C) . obviously)
+(left_triangle' : whisker_right unit F ≫ (functor.associator F G F).hom ≫ whisker_left F counit =
+  nat_trans.id (𝟭 C ⋙ F) . obviously)
+(right_triangle' : whisker_left G unit ≫ (functor.associator G F G).inv ≫ whisker_right counit G =
+  nat_trans.id (G ⋙ 𝟭 C) . obviously)
 
 namespace core_unit_counit
 
@@ -283,7 +286,8 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, (adj.hom_equiv X Y).trans (equiv_homset_right_of_nat_iso iso) }
 
 /-- Transport being a right adjoint along a natural isomorphism. -/
-def right_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_right_adjoint F] : is_right_adjoint G :=
+def right_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_right_adjoint F] :
+  is_right_adjoint G :=
 { left := r.left,
   adj := of_nat_iso_right r.adj h }
 
@@ -351,7 +355,7 @@ def left_adjoint_of_equiv : C ⥤ D :=
 
 /-- Show that the functor given by `left_adjoint_of_equiv` is indeed left adjoint to `G`. Dual
 to `adjunction_of_equiv_right`. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def adjunction_of_equiv_left : left_adjoint_of_equiv e he ⊣ G :=
 mk_of_hom_equiv
 { hom_equiv := e,
@@ -390,7 +394,7 @@ def right_adjoint_of_equiv : D ⥤ C :=
 
 /-- Show that the functor given by `right_adjoint_of_equiv` is indeed right adjoint to `F`. Dual
 to `adjunction_of_equiv_left`. -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def adjunction_of_equiv_right : F ⊣ right_adjoint_of_equiv e he :=
 mk_of_hom_equiv
 { hom_equiv := e,
@@ -419,7 +423,7 @@ def to_equivalence (adj : F ⊣ G) [∀ X, is_iso (adj.unit.app X)] [∀ Y, is_i
 If the unit and counit for the adjunction corresponding to a right adjoint functor are (pointwise)
 isomorphisms, then the functor is an equivalence of categories.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def is_right_adjoint_to_is_equivalence [is_right_adjoint G]
   [∀ X, is_iso ((adjunction.of_right_adjoint G).unit.app X)]
   [∀ Y, is_iso ((adjunction.of_right_adjoint G).counit.app Y)] :

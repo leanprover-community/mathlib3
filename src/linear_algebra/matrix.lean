@@ -127,7 +127,7 @@ matrix.to_lin'.apply_symm_apply f
 @[simp] lemma linear_map.to_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) (i j) :
   linear_map.to_matrix' f i j = f (λ j', if j' = j then 1 else 0) i :=
 begin
-  simp only [linear_map.to_matrix', linear_equiv.mk_apply],
+  simp only [linear_map.to_matrix', linear_equiv.coe_mk],
   congr,
   ext j',
   split_ifs with h,
@@ -140,7 +140,7 @@ end
 
 @[simp] lemma matrix.to_lin'_one :
   matrix.to_lin' (1 : matrix n n R) = id :=
-by { ext, simp }
+by { ext, simp [linear_map.one_apply, std_basis_apply] }
 
 @[simp] lemma linear_map.to_matrix'_id :
   (linear_map.to_matrix' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
@@ -232,7 +232,7 @@ by rw [matrix.to_lin'_apply, hv₂.equiv_fun_symm_apply]
 by simp only [matrix.to_lin_apply, matrix.mul_vec, dot_product, hv₁.equiv_fun_self, mul_boole,
   finset.sum_ite_eq, finset.mem_univ, if_true]
 
-@[simp]
+/-- This will be a special case of `linear_map.to_matrix_id_eq_basis_to_matrix`. -/
 lemma linear_map.to_matrix_id : linear_map.to_matrix hv₁ hv₁ id = 1 :=
 begin
   ext i j,
@@ -277,7 +277,7 @@ end to_matrix
 
 section is_basis_to_matrix
 
-variables {ι ι' : Type*} [fintype ι] [fintype ι']
+variables {ι ι' κ κ' : Type*} [fintype ι] [fintype ι'] [fintype κ] [fintype κ']
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
 open function matrix
@@ -363,19 +363,41 @@ end is_basis
 section mul_linear_map_to_matrix
 
 variables {N : Type*} [add_comm_group N] [module R N]
-variables {b : ι → M} {b' : ι' → M} {c : ι → N} {c' : ι' → N}
+variables {b : ι → M} {b' : ι' → M} {c : κ → N} {c' : κ' → N}
 variables (hb : is_basis R b) (hb' : is_basis R b') (hc : is_basis R c) (hc' : is_basis R c')
 variables (f : M →ₗ[R] N)
+
+open linear_map
 
 @[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix [decidable_eq ι'] :
   hc.to_matrix c' ⬝ linear_map.to_matrix hb' hc' f = linear_map.to_matrix hb' hc f :=
 (matrix.to_lin hb' hc).injective
-  (by rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
+  (by haveI := classical.dec_eq κ';
+      rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
 
 @[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix [decidable_eq ι] [decidable_eq ι'] :
   linear_map.to_matrix hb' hc' f ⬝ hb'.to_matrix b = linear_map.to_matrix hb hc' f :=
 (matrix.to_lin hb hc').injective
   (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])
+
+/-- A generalization of `linear_map.to_matrix_id`. -/
+@[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :
+  linear_map.to_matrix hb hb' id = hb'.to_matrix b :=
+by { haveI := classical.dec_eq ι',
+      rw [← is_basis_to_matrix_mul_linear_map_to_matrix hb hb', to_matrix_id, matrix.mul_one] }
+
+/-- A generalization of `is_basis.to_matrix_self`, in the opposite direction. -/
+@[simp] lemma is_basis.to_matrix_mul_to_matrix
+  {ι'' : Type*} [fintype ι''] {b'' : ι'' → M} (hb'' : is_basis R b'') :
+  hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=
+begin
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq ι',
+  haveI := classical.dec_eq ι'',
+  rw [← linear_map.to_matrix_id_eq_basis_to_matrix hb' hb,
+      ← linear_map.to_matrix_id_eq_basis_to_matrix hb'' hb',
+      ← to_matrix_comp, id_comp, linear_map.to_matrix_id_eq_basis_to_matrix],
+end
 
 end mul_linear_map_to_matrix
 
@@ -387,7 +409,7 @@ section det
 
 open linear_map matrix
 
-variables {R : Type} [comm_ring R]
+variables {R : Type*} [comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {ι : Type*} [decidable_eq ι] [fintype ι] {v : ι → M} {v' : ι → M'}
@@ -451,7 +473,8 @@ lemma is_basis.iff_det {v : ι → M} : is_basis R v ↔ is_unit (he.det v) :=
 begin
   split,
   { intro hv,
-    suffices : is_unit (linear_map.to_matrix he he (equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    suffices :
+      is_unit (linear_map.to_matrix he he (linear_equiv_of_is_basis he hv $ equiv.refl ι)).det,
     { rw [is_basis.det_apply, is_basis.to_matrix_eq_to_matrix_constr],
       exact this },
     apply linear_equiv.is_unit_det },
@@ -688,6 +711,10 @@ rfl
   (reindex eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
 rfl
 
+@[simp] lemma reindex_refl_refl (A : matrix m n R) :
+  (reindex (equiv.refl _) (equiv.refl _) A) = A :=
+by { ext, simp only [reindex_apply, equiv.refl_symm, equiv.refl_apply] }
+
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is a linear
 equivalence. -/
 def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
@@ -696,19 +723,34 @@ def reindex_linear_equiv [semiring R] (eₘ : m ≃ m') (eₙ : n ≃ n') :
   map_smul' := λ M N, rfl,
 ..(reindex eₘ eₙ)}
 
-@[simp] lemma reindex_linear_equiv_apply [semiring R]
+@[simp] lemma coe_reindex_linear_equiv [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
   reindex_linear_equiv eₘ eₙ M = λ i j, M (eₘ.symm i) (eₙ.symm j) :=
 rfl
 
-@[simp] lemma reindex_linear_equiv_symm_apply [semiring R]
+lemma reindex_linear_equiv_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) (i j) :
+  reindex_linear_equiv eₘ eₙ M i j = M (eₘ.symm i) (eₙ.symm j) :=
+rfl
+
+@[simp] lemma coe_reindex_linear_equiv_symm [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) :
   (reindex_linear_equiv eₘ eₙ).symm M = λ i j, M (eₘ i) (eₙ j) :=
 rfl
 
+lemma reindex_linear_equiv_symm_apply [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m' n' R) (i j) :
+  (reindex_linear_equiv eₘ eₙ).symm M i j = M (eₘ i) (eₙ j) :=
+rfl
+
+@[simp] lemma reindex_linear_equiv_refl_refl [semiring R] (A : matrix m n R) :
+  (reindex_linear_equiv (equiv.refl _) (equiv.refl _) A) = A :=
+reindex_refl_refl A
+
 lemma reindex_mul [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₗ : l ≃ l') (M : matrix m n R) (N : matrix n l R) :
-  (reindex_linear_equiv eₘ eₙ M) ⬝ (reindex_linear_equiv eₙ eₗ N) = reindex_linear_equiv eₘ eₗ (M ⬝ N) :=
+  (reindex_linear_equiv eₘ eₙ M) ⬝ (reindex_linear_equiv eₙ eₗ N) =
+  reindex_linear_equiv eₘ eₗ (M ⬝ N) :=
 begin
   ext i j,
   dsimp only [matrix.mul, matrix.dot_product],
@@ -720,19 +762,34 @@ end
 types is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
-{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_apply, mul_eq_mul],
-  commutes' := λ r, by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
+{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_eq_coe, mul_eq_mul],
+  commutes' := λ r,
+                 by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }
 
-@[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+@[simp] lemma coe_reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) (M : matrix m m R) :
   reindex_alg_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
 rfl
 
-@[simp] lemma reindex_alg_equiv_symm_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+@[simp] lemma reindex_alg_equiv_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix m m R) (i j) :
+  reindex_alg_equiv e M i j = M (e.symm i) (e.symm j) :=
+rfl
+
+@[simp] lemma coe_reindex_alg_equiv_symm [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) (M : matrix n n R) :
   (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
+
+@[simp] lemma reindex_alg_equiv_symm_apply [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix n n R) (i j):
+  (reindex_alg_equiv e).symm M i j = M (e i) (e j) :=
+rfl
+
+@[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m]
+  (A : matrix m m R) : (reindex_alg_equiv (equiv.refl m) A) = A :=
+reindex_linear_equiv_refl_refl A
 
 lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
@@ -862,9 +919,9 @@ if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M)
 then trace_aux R (classical.some_spec H)
 else 0
 
-theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
-  trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
+theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M]
+  [module R M] {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
+  (f : M →ₗ[R] M) : trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),
 from ⟨finset.univ.image b,
   by { rw [finset.coe_image, finset.coe_univ, set.image_univ], exact hb.range }⟩,
@@ -936,3 +993,39 @@ def alg_equiv_matrix {R : Type v} {M : Type w} {n : Type*} [fintype n]
   [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] {b : n → M} (h : is_basis R b) :
   module.End R M ≃ₐ[R] matrix n n R :=
 h.equiv_fun.alg_conj.trans alg_equiv_matrix'
+
+section
+
+variables {R : Type v} [semiring R] {n : Type w} [fintype n]
+
+@[simp] lemma matrix.dot_product_std_basis_eq_mul [decidable_eq n] (v : n → R) (c : R) (i : n) :
+  matrix.dot_product v (linear_map.std_basis R (λ _, R) i c) = v i * c :=
+begin
+  rw [matrix.dot_product, finset.sum_eq_single i, linear_map.std_basis_same],
+  exact λ _ _ hb, by rw [linear_map.std_basis_ne _ _ _ _ hb, mul_zero],
+  exact λ hi, false.elim (hi $ finset.mem_univ _)
+end
+
+@[simp] lemma matrix.dot_product_std_basis_one [decidable_eq n] (v : n → R) (i : n) :
+  matrix.dot_product v (linear_map.std_basis R (λ _, R) i 1) = v i :=
+by rw [matrix.dot_product_std_basis_eq_mul, mul_one]
+
+lemma matrix.dot_product_eq
+  (v w : n → R) (h : ∀ u, matrix.dot_product v u = matrix.dot_product w u) : v = w :=
+begin
+  funext x,
+  classical,
+  rw [← matrix.dot_product_std_basis_one v x, ← matrix.dot_product_std_basis_one w x, h],
+end
+
+lemma matrix.dot_product_eq_iff {v w : n → R} :
+  (∀ u, matrix.dot_product v u = matrix.dot_product w u) ↔ v = w :=
+⟨λ h, matrix.dot_product_eq v w h, λ h _, h ▸ rfl⟩
+
+lemma matrix.dot_product_eq_zero (v : n → R) (h : ∀ w, matrix.dot_product v w = 0) : v = 0 :=
+matrix.dot_product_eq _ _ $ λ u, (h u).symm ▸ (zero_dot_product u).symm
+
+lemma matrix.dot_product_eq_zero_iff {v : n → R} : (∀ w, matrix.dot_product v w = 0) ↔ v = 0 :=
+⟨λ h, matrix.dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩
+
+end

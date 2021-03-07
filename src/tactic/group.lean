@@ -73,7 +73,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   expr ``(gpow_trick_one'),
   expr ``(gpow_trick_sub),
   expr ``(tactic.ring.horner)]
-  [] locat
+  [] locat >> skip
 
 /-- Auxilliary tactic for the `group` tactic. Calls `ring` to normalize exponents. -/
 meta def aux_group₂ (locat : loc) : tactic unit :=

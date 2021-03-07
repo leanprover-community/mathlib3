@@ -247,7 +247,8 @@ section unique_diff
 /-!
 ### Properties of `unique_diff_within_at` and `unique_diff_on`
 
-This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
+This section is devoted to properties of the predicates
+`unique_diff_within_at` and `unique_diff_on`. -/
 
 lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
   unique_diff_within_at 𝕜 s x :=
@@ -296,11 +297,11 @@ lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter' ht).2 hs
 
+lemma unique_diff_within_at_of_mem_nhds (h : s ∈ 𝓝 x) : unique_diff_within_at 𝕜 s x :=
+by simpa only [univ_inter] using unique_diff_within_at_univ.inter h
+
 lemma is_open.unique_diff_within_at (hs : is_open s) (xs : x ∈ s) : unique_diff_within_at 𝕜 s x :=
-begin
-  have := unique_diff_within_at_univ.inter (mem_nhds_sets hs xs),
-  rwa univ_inter at this
-end
+unique_diff_within_at_of_mem_nhds (mem_nhds_sets hs xs)
 
 lemma unique_diff_on.inter (hs : unique_diff_on 𝕜 s) (ht : is_open t) : unique_diff_on 𝕜 (s ∩ t) :=
 λx hx, (hs x hx.1).inter (mem_nhds_sets ht hx.2)

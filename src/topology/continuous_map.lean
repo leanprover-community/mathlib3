@@ -46,6 +46,9 @@ instance [inhabited β] : inhabited C(α, β) :=
 lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
+@[simp] lemma coe_mk (f : α → β) (h : continuous f) :
+  ⇑(⟨f, h⟩ : continuous_map α β) = f := rfl
+
 /-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id⟩
 

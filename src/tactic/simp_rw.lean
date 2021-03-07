@@ -51,7 +51,7 @@ q.rules.mmap' (λ rule, do
     then simp_arg_type.symm_expr rule.rule
     else simp_arg_type.expr rule.rule,
   save_info rule.pos,
-  simp none tt [simp_arg] [] l) -- equivalent to `simp only [rule] at l`
+  simp none none tt [simp_arg] [] l) -- equivalent to `simp only [rule] at l`
 
 add_tactic_doc
 { name       := "simp_rw",

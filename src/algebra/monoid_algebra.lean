@@ -172,13 +172,25 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
-instance {R : Type*} [semiring R] [semiring k] [semimodule R k] :
+variables {R S : Type*}
+
+instance [semiring R] [semiring k] [semimodule R k] :
   has_scalar R (monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance {R : Type*} [semiring R] [semiring k] [semimodule R k] :
+instance [semiring R] [semiring k] [semimodule R k] :
   semimodule R (monoid_algebra k G) :=
 finsupp.semimodule G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [has_scalar R S] [is_scalar_tower R S k] :
+  is_scalar_tower R S (monoid_algebra k G) :=
+finsupp.is_scalar_tower G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [smul_comm_class R S k] :
+  smul_comm_class R S (monoid_algebra k G) :=
+finsupp.smul_comm_class G k
 
 instance [group G] [semiring k] : distrib_mul_action G (monoid_algebra k G) :=
 finsupp.comap_distrib_mul_action_self
@@ -217,9 +229,9 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
   end
 
 lemma support_mul (a b : monoid_algebra k G) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ * a₂}) :=
-subset.trans support_sum $ bind_mono $ assume a₁ _,
-  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
+  (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ * a₂}) :=
+subset.trans support_sum $ bUnion_mono $ assume a₁ _,
+  subset.trans support_sum $ bUnion_mono $ assume a₂ _, support_single_subset
 
 @[simp] lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
@@ -335,8 +347,7 @@ ring_hom.coe_add_monoid_hom_injective $ add_hom_ext $ λ a b,
 /-- If two ring homomorphisms from `monoid_algebra k G` are equal on all `single a 1`
 and `single 1 b`, then they are equal.
 
-We formulate this lemma using equality of homomorphisms so that `ext` tactic can apply
-type-specific extensionality lemmas to prove equalities of these homomorphisms. -/
+See note [partially-applied ext lemmas]. -/
 @[ext] lemma ring_hom_ext' {R} [semiring k] [monoid G] [semiring R]
   {f g : monoid_algebra k G →+* R} (h₁ : f.comp single_one_ring_hom = g.comp single_one_ring_hom)
   (h_of : (f : monoid_algebra k G →* R).comp (of k G) =
@@ -351,7 +362,7 @@ In particular this provides the instance `algebra k (monoid_algebra k G)`.
 -/
 instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   algebra k (monoid_algebra A G) :=
-{ smul_def' := λ r a, by { ext, simp [single_one_mul_apply, algebra.smul_def''], },
+{ smul_def' := λ r a, by { ext, simp [single_one_mul_apply, algebra.smul_def'', pi.smul_apply], },
   commutes' := λ r f, by { ext, simp [single_one_mul_apply, mul_single_one_apply,
     algebra.commutes], },
   ..single_one_ring_hom.comp (algebra_map k A) }
@@ -395,6 +406,7 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 alg_hom.to_linear_map_inj $ finsupp.lhom_ext' $ λ a, linear_map.ext_ring (h a)
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma alg_hom_ext' ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
   (h : (φ₁ : monoid_algebra k G →* A).comp (of k G) =
     (φ₂ : monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=
@@ -450,10 +462,9 @@ section
 local attribute [reducible] monoid_algebra
 
 variables (k)
--- TODO: generalise from groups `G` to monoids
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
-def group_smul.linear_map [group G] [comm_ring k]
-  (V : Type u₃) [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+def group_smul.linear_map [monoid G] [comm_semiring k]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) :
   V →ₗ[k] V :=
 { to_fun    := λ v, (single g (1 : k) • v : V),
@@ -461,24 +472,23 @@ def group_smul.linear_map [group G] [comm_ring k]
   map_smul' := λ c x, smul_algebra_smul_comm _ _ _ }
 
 @[simp]
-lemma group_smul.linear_map_apply [group G] [comm_ring k]
-  (V : Type u₃) [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+lemma group_smul.linear_map_apply [monoid G] [comm_semiring k]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) (v : V) :
   (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
 rfl
 
 section
 variables {k}
-variables [group G] [comm_ring k] {V W : Type u₃}
-  [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables [monoid G] [comm_semiring k] {V W : Type u₃}
+  [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V]
-  [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+  [add_comm_monoid W] [semimodule k W] [semimodule (monoid_algebra k G) W]
   [is_scalar_tower k (monoid_algebra k G) W]
   (f : V →ₗ[k] W)
   (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
 include h
 
--- TODO generalise from groups `G` to monoids??
 /-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
 def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
 { to_fun := f,
@@ -624,7 +634,8 @@ lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g $ multiplicative.of_add x))
   lift_nc f g (single a b) = f b * g (multiplicative.of_add a) :=
 lift_add_hom_apply_single _ _ _
 
-@[simp] lemma lift_nc_one (f : k →+* R) (g : multiplicative G →* R) : lift_nc (f : k →+ R) g 1 = 1 :=
+@[simp] lemma lift_nc_one (f : k →+* R) (g : multiplicative G →* R) :
+  lift_nc (f : k →+ R) g 1 = 1 :=
 @monoid_algebra.lift_nc_one k (multiplicative G) _ _ _ _ f g
 
 lemma lift_nc_mul (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoid_algebra k G)
@@ -669,13 +680,23 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
-variables {R : Type*}
+variables {R S : Type*}
 
 instance [semiring R] [semiring k] [semimodule R k] : has_scalar R (add_monoid_algebra k G) :=
 finsupp.has_scalar
 
 instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
 finsupp.semimodule G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [has_scalar R S] [is_scalar_tower R S k] :
+  is_scalar_tower R S (add_monoid_algebra k G) :=
+finsupp.is_scalar_tower G k
+
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
+  [smul_comm_class R S k] :
+  smul_comm_class R S (add_monoid_algebra k G) :=
+finsupp.smul_comm_class G k
 
 /-! It is hard to state the equivalent of `distrib_mul_action G (add_monoid_algebra k G)`
 because we've never discussed actions of additive groups. -/
@@ -697,7 +718,7 @@ lemma mul_apply_antidiagonal (f g : add_monoid_algebra k G) (x : G) (s : finset 
 @monoid_algebra.mul_apply_antidiagonal k (multiplicative G) _ _ _ _ _ s @hs
 
 lemma support_mul (a b : add_monoid_algebra k G) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
+  (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ + a₂}) :=
 @monoid_algebra.support_mul k (multiplicative G) _ _ _ _
 
 lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
@@ -773,7 +794,8 @@ While we were not able to define `add_monoid_algebra k G = monoid_algebra k (mul
 to definitional inconveniences, we can still show the types are isomorphic.
 -/
 
-/-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of `multiplicative` -/
+/-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of
+`multiplicative` -/
 protected def add_monoid_algebra.to_multiplicative [semiring k] [add_monoid G] :
   add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
 { map_mul' := λ x y, by convert add_monoid_algebra.map_domain_mul (add_hom.id G),
@@ -811,8 +833,7 @@ lemma ring_hom_ext {R} [semiring k] [add_monoid G] [semiring R]
 /-- If two ring homomorphisms from `add_monoid_algebra k G` are equal on all `single a 1`
 and `single 0 b`, then they are equal.
 
-We formulate this lemma using equality of homomorphisms so that `ext` tactic can apply
-type-specific extensionality lemmas to prove equalities of these homomorphisms. -/
+See note [partially-applied ext lemmas]. -/
 @[ext] lemma ring_hom_ext' {R} [semiring k] [add_monoid G] [semiring R]
   {f g : add_monoid_algebra k G →+* R}
   (h₁ : f.comp single_zero_ring_hom = g.comp single_zero_ring_hom)
@@ -828,8 +849,9 @@ In particular this provides the instance `algebra k (add_monoid_algebra k G)`.
 -/
 instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   algebra R (add_monoid_algebra k G) :=
-{ smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def''], },
-  commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], },
+{ smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def'', pi.smul_apply], },
+  commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply,
+                                      algebra.commutes], },
   ..single_zero_ring_hom.comp (algebra_map R k) }
 
 /-- `finsupp.single 0` as a `alg_hom` -/
@@ -838,7 +860,8 @@ instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
 { commutes' := λ r, by { ext, simp, refl, }, ..single_zero_ring_hom}
 
 @[simp] lemma coe_algebra_map [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
-  (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) = single 0 ∘ (algebra_map R k) :=
+  (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) =
+    single 0 ∘ (algebra_map R k) :=
 rfl
 
 end algebra
@@ -849,7 +872,8 @@ variables {k G} [comm_semiring k] [add_monoid G]
 variables {A : Type u₃} [semiring A] [algebra k A] {B : Type*} [semiring B] [algebra k B]
 
 /-- `lift_nc_ring_hom` as a `alg_hom`, for when `f` is an `alg_hom` -/
-def lift_nc_alg_hom (f : A →ₐ[k] B) (g : multiplicative G →* B) (h_comm : ∀ x y, commute (f x) (g y)) :
+def lift_nc_alg_hom (f : A →ₐ[k] B) (g : multiplicative G →* B)
+  (h_comm : ∀ x y, commute (f x) (g y)) :
   add_monoid_algebra A G →ₐ[k] B :=
 { to_fun := lift_nc_ring_hom (f : A →+* B) g h_comm,
   commutes' := by simp [lift_nc_ring_hom],
@@ -861,6 +885,7 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 @monoid_algebra.alg_hom_ext k (multiplicative G) _ _ _ _ _ _ _ h
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma alg_hom_ext' ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
   (h : (φ₁ : add_monoid_algebra k G →* A).comp (of k G) =
     (φ₂ : add_monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=

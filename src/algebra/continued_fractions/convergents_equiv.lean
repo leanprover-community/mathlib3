@@ -6,6 +6,8 @@ Authors: Kevin Kappelmann
 import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
 import tactic.linarith
+import tactic.field_simp
+
 /-!
 # Equivalence of Recursive and Direct Computations of `gcf` Convergents
 
@@ -278,7 +280,7 @@ begin
           (continuants_recurrence_aux s_nth_eq zeroth_continuant_aux_eq_one_zero
           first_continuant_aux_eq_h_one)],
       calc
-        (b * g.h + a) / b = b * g.h / b + a / b  : by ring -- requires `field` rather than `division_ring`
+        (b * g.h + a) / b = b * g.h / b + a / b  : by ring -- requires `field`, not `division_ring`
                       ... = g.h + a / b          : by rw (mul_div_cancel_left _ b_ne_zero) },
     case nat.succ
     { obtain ⟨⟨pa, pb⟩, s_n'th_eq⟩ : ∃ gp_n', g.s.nth n' = some gp_n' :=
@@ -319,7 +321,7 @@ begin
             (continuants_aux_eq_continuants_aux_squash_gcf_of_le n'.le_succ).symm] },
         symmetry,
         simpa only [eq1, eq2, eq3, eq4, mul_div_cancel _  b_ne_zero] },
-      field_simp [b_ne_zero],
+      field_simp,
       congr' 1; ring } }
 end
 

@@ -38,8 +38,8 @@ is_group_hom, is_monoid_hom, monoid_hom
 
 /--
 We have lemmas stating that the composition of two morphisms is again a morphism.
-Since composition is reducible, type class inference will always succeed in applying these instances.
-For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
+Since composition is reducible, type class inference will always succeed in applying these
+instances. For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
 will still succeed, unifying `f` with `f ∘ (λ x, x)`.  This causes type class inference to loop.
 To avoid this, we do not make these lemmas instances.
 -/
@@ -155,7 +155,7 @@ end is_monoid_hom
 @[to_additive]
 theorem is_monoid_hom.of_mul [monoid α] [group β] (f : α → β) [is_mul_hom f] :
   is_monoid_hom f :=
-{ map_one := mul_self_iff_eq_one.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
+{ map_one := mul_right_eq_self.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
@@ -231,7 +231,7 @@ eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
 @[to_additive]
 instance id : is_group_hom (@id α) := { }
 
-/-- The composition of two group homomomorphisms is a group homomorphism. -/
+/-- The composition of two group homomorphisms is a group homomorphism. -/
 @[to_additive] -- see Note [no instance on morphisms]
 lemma comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) :=
 { ..is_mul_hom.comp _ _ }
@@ -290,7 +290,7 @@ end
 end ring_hom
 
 /-- Inversion is a group homomorphism if the group is commutative. -/
-@[instance, to_additive neg.is_add_group_hom 
+@[instance, to_additive neg.is_add_group_hom
 "Negation is an `add_group` homomorphism if the `add_group` is commutative."]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }

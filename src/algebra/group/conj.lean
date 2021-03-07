@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
 import algebra.group.hom
+import data.equiv.mul_add_aut
 
 /-!
 # Conjugacy of group elements
+
+See also `mul_aut.conj` and `quandle.conj`.
 -/
 
 universes u v
@@ -34,15 +37,13 @@ calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj_symm, is_conj_symm⟩
 ... ↔ a = 1 : is_conj_one_right
 
 @[simp] lemma conj_inv {a b : α} : (b * a * b⁻¹)⁻¹ = b * a⁻¹ * b⁻¹ :=
-begin
-  rw [mul_inv_rev _ b⁻¹, mul_inv_rev b _, inv_inv, mul_assoc],
-end
+((mul_aut.conj b).map_inv a).symm
 
 @[simp] lemma conj_mul {a b c : α} : (b * a * b⁻¹) * (b * c * b⁻¹) = b * (a * c) * b⁻¹ :=
-begin
-  assoc_rw inv_mul_cancel_right,
-  repeat {rw mul_assoc},
-end
+((mul_aut.conj b).map_mul a c).symm
+
+lemma conj_injective {x : α} : function.injective (λ (g : α), x * g * x⁻¹) :=
+(mul_aut.conj x).injective
 
 @[simp] lemma is_conj_iff_eq {α : Type*} [comm_group α] {a b : α} : is_conj a b ↔ a = b :=
 ⟨λ ⟨c, hc⟩, by rw [← hc, mul_right_comm, mul_inv_self, one_mul], λ h, by rw h⟩

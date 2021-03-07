@@ -282,7 +282,7 @@ lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
     that is constant on `c`'s equivalence classes. -/
 @[simp, to_additive "Definition of the function on the quotient by an additive congruence
 relation `c` induced by a function that is constant on `c`'s equivalence classes."]
-protected lemma lift_on_beta {β} (c : con M) (f : M → β)
+protected lemma lift_on_coe {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
   con.lift_on (x : c.quotient) f h = f x := rfl
 
@@ -535,9 +535,9 @@ def correspondence : {d // c ≤ d} ≃o (con c.quotient) :=
       λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
     ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-    λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
-      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy⟩ }
+  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
+      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy,
+      λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end
 

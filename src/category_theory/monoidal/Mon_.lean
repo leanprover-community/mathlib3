@@ -52,7 +52,8 @@ def trivial : Mon_ C :=
 { X := 𝟙_ C,
   one := 𝟙 _,
   mul := (λ_ _).hom,
-  mul_assoc' := by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
+  mul_assoc' :=
+    by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
   mul_one' := by simp [unitors_equal] }
 
 instance : inhabited (Mon_ C) := ⟨trivial C⟩
@@ -242,7 +243,7 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
     tensor' := λ _ _, f.mul_hom, }, }
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def unit_iso :
   𝟭 (lax_monoidal_functor (discrete punit) C) ≅ lax_monoidal_to_Mon C ⋙ Mon_to_lax_monoidal C :=
 nat_iso.of_components (λ F,
@@ -252,7 +253,7 @@ nat_iso.of_components (λ F,
   (by tidy)
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def counit_iso : Mon_to_lax_monoidal C ⋙ lax_monoidal_to_Mon C ≅ 𝟭 (Mon_ C) :=
 nat_iso.of_components (λ F, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _, } })
   (by tidy)

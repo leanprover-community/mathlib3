@@ -106,11 +106,19 @@ begin
   { intro a, simp [module.algebra_map_End_apply] },
   { intros p q hp hq, simp [hp, hq, add_smul] },
   { intros n a hna,
-    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
+    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
     simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
 end
 
-section minimal_polynomial
+section minpoly
+
+theorem is_root_of_has_eigenvalue {f : End K V} {μ : K} (h : f.has_eigenvalue μ) :
+  (minpoly K f).is_root μ :=
+begin
+  rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
+  refine or.resolve_right (smul_eq_zero.1 _) ne0,
+  simp [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minpoly.aeval K f],
+end
 
 variables [finite_dimensional K V] (f : End K V)
 
@@ -119,15 +127,7 @@ is_integral_of_noetherian (by apply_instance) f
 
 variables {f} {μ : K}
 
-theorem is_root_of_has_eigenvalue (h : f.has_eigenvalue μ) :
-  (minimal_polynomial f.is_integral).is_root μ :=
-begin
-  rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
-  refine or.resolve_right (smul_eq_zero.1 _) ne0,
-  simp [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minimal_polynomial.aeval f.is_integral],
-end
-
-theorem has_eigenvalue_of_is_root (h : (minimal_polynomial f.is_integral).is_root μ) :
+theorem has_eigenvalue_of_is_root (h : (minpoly K f).is_root μ) :
   f.has_eigenvalue μ :=
 begin
   cases dvd_iff_is_root.2 h with p hp,
@@ -136,22 +136,22 @@ begin
   cases (linear_map.is_unit_iff _).2 con with u hu,
   have p_ne_0 : p ≠ 0,
   { intro con,
-    apply minimal_polynomial.ne_zero f.is_integral,
+    apply minpoly.ne_zero f.is_integral,
     rw [hp, con, mul_zero] },
-  have h_deg := minimal_polynomial.degree_le_of_ne_zero f.is_integral p_ne_0 _,
+  have h_deg := minpoly.degree_le_of_ne_zero K f p_ne_0 _,
   { rw [hp, degree_mul, degree_X_sub_C, polynomial.degree_eq_nat_degree p_ne_0] at h_deg,
     norm_cast at h_deg,
     linarith, },
-  { have h_aeval := minimal_polynomial.aeval f.is_integral,
+  { have h_aeval := minpoly.aeval K f,
     revert h_aeval,
     simp [hp, ← hu] },
 end
 
 theorem has_eigenvalue_iff_is_root :
-  f.has_eigenvalue μ ↔ (minimal_polynomial f.is_integral).is_root μ :=
+  f.has_eigenvalue μ ↔ (minpoly K f).is_root μ :=
 ⟨is_root_of_has_eigenvalue, has_eigenvalue_of_is_root⟩
 
-end minimal_polynomial
+end minpoly
 
 /-- Every linear operator on a vector space over an algebraically closed field has
     an eigenvalue. (Lemma 5.21 of [axler2015]) -/
@@ -456,7 +456,7 @@ begin
     have h_dim_add : findim K ER + findim K ES = findim K V,
     { apply linear_map.findim_range_add_findim_ker },
     -- Therefore the dimension `ER` mus be smaller than `findim K V`.
-    have h_dim_ER : findim K ER < n.succ, by omega,
+    have h_dim_ER : findim K ER < n.succ, by linarith,
     -- This allows us to apply the induction hypothesis on `ER`:
     have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
       from ih (findim K ER) h_dim_ER f' rfl,

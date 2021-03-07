@@ -5,7 +5,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.reverse
 import algebra.associated
-import tactic.omega
 
 /-!
 # Theory of monic polynomials

@@ -60,9 +60,12 @@ def inverse_associator : C ⊕ (D ⊕ E) ⥤ (C ⊕ D) ⊕ E :=
   | inr (inr X), inr (inr Y), f := f
   end }
 
-@[simp] lemma inverse_associator_obj_inl (X) : (inverse_associator C D E).obj (inl X) = inl (inl X) := rfl
-@[simp] lemma inverse_associator_obj_inr_inl (X) : (inverse_associator C D E).obj (inr (inl X)) = inl (inr X) := rfl
-@[simp] lemma inverse_associator_obj_inr_inr (X) : (inverse_associator C D E).obj (inr (inr X)) = inr X := rfl
+@[simp] lemma inverse_associator_obj_inl (X) :
+  (inverse_associator C D E).obj (inl X) = inl (inl X) := rfl
+@[simp] lemma inverse_associator_obj_inr_inl (X) :
+  (inverse_associator C D E).obj (inr (inl X)) = inl (inr X) := rfl
+@[simp] lemma inverse_associator_obj_inr_inr (X) :
+  (inverse_associator C D E).obj (inr (inr X)) = inr X := rfl
 @[simp] lemma inverse_associator_map_inl {X Y : C} (f : inl X ⟶ inl Y) :
   (inverse_associator C D E).map f = f := rfl
 @[simp] lemma inverse_associator_map_inr_inl {X Y : D} (f : inr (inl X) ⟶ inr (inl Y)) :

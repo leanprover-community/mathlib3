@@ -133,7 +133,7 @@ end
 `∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then `∥f x∥` is bounded by `gronwall_bound δ K ε (x - a)`
 on `[a, b]`. -/
 theorem norm_le_gronwall_bound_of_norm_deriv_right_le {f f' : ℝ → E} {δ K ε : ℝ} {a b : ℝ}
-  (hf : continuous_on f (Icc a b)) (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf : continuous_on f (Icc a b)) (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   (ha : ∥f a∥ ≤ δ) (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ K * ∥f x∥ + ε) :
   ∀ x ∈ Icc a b, ∥f x∥ ≤ gronwall_bound δ K ε (x - a) :=
 le_gronwall_bound_of_liminf_deriv_right_le (continuous_norm.comp_continuous_on hf)
@@ -149,18 +149,18 @@ theorem dist_le_of_approx_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s :
   {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g f' g' : ℝ → E} {a b : ℝ} {εf εg δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ici t) t)
   (f_bound : ∀ t ∈ Ico a b, dist (f' t) (v t (f t)) ≤ εf)
   (hfs : ∀ t ∈ Ico a b, f t ∈ s t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ici t) t)
   (g_bound : ∀ t ∈ Ico a b, dist (g' t) (v t (g t)) ≤ εg)
   (hgs : ∀ t ∈ Ico a b, g t ∈ s t)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 begin
   simp only [dist_eq_norm] at ha ⊢,
-  have h_deriv : ∀ t ∈ Ico a b, has_deriv_within_at (λ t, f t - g t) (f' t - g' t) (Ioi t) t,
+  have h_deriv : ∀ t ∈ Ico a b, has_deriv_within_at (λ t, f t - g t) (f' t - g' t) (Ici t) t,
     from λ t ht, (hf' t ht).sub (hg' t ht),
   apply norm_le_gronwall_bound_of_norm_deriv_right_le (hf.sub hg) h_deriv ha,
   assume t ht,
@@ -181,10 +181,10 @@ theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g f' g' : ℝ → E} {a b : ℝ} {εf εg δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ici t) t)
   (f_bound : ∀ t ∈ Ico a b, dist (f' t) (v t (f t)) ≤ εf)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ici t) t)
   (g_bound : ∀ t ∈ Ico a b, dist (g' t) (v t (g t)) ≤ εg)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
@@ -202,10 +202,10 @@ theorem dist_le_of_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s : ℝ �
   {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g : ℝ → E} {a b : ℝ} {δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hfs : ∀ t ∈ Ico a b, f t ∈ s t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (hgs : ∀ t ∈ Ico a b, g t ∈ s t)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
@@ -229,9 +229,9 @@ theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ} {δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
@@ -245,10 +245,10 @@ theorem ODE_solution_unique_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
   {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g : ℝ → E} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hfs : ∀ t ∈ Ico a b, f t ∈ s t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (hgs : ∀ t ∈ Ico a b, g t ∈ s t)
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
@@ -265,9 +265,9 @@ theorem ODE_solution_unique {v : ℝ → E → E}
   {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,

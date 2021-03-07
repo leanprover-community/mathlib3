@@ -3,7 +3,7 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Benjamin Davidson
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.integrals
 /-!
 # Pi
 
@@ -273,6 +273,154 @@ begin
                                                       (add_le_add mvt1 mvt2)
                ... = 1 - U + U^(2*k) * U : by ring
                ... = 1 - (u k) + (u k)^(2*(k:ℝ)+1) : by { rw [← pow_succ' (U:ℝ) (2*k)], norm_cast },
+end
+
+open filter set finset interval_integral
+open_locale real classical big_operators topological_space
+
+lemma integral_sin_pow (n : ℕ) : ∫ x in 0..π, sin x ^ (n + 2) =
+  ((n + 1) * ∫ x in 0..π, sin x ^ n) - (n + 1) * ∫ x in 0..π, sin x ^ (n + 2) :=
+begin
+  have h : (λ x, sin x ^ (n + 2)) = λ x, sin x ^ (n + 1) * sin x, { funext, ring },
+  have hv : ∀ x ∈ interval 0 π, has_deriv_at (-cos) (sin x) x,
+  { intros, convert (has_deriv_at_cos x).neg, rw neg_neg },
+  have hu : ∀ x ∈ interval 0 π, has_deriv_at (λ x, sin x ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x,
+  { intros,
+    convert (has_deriv_at_pow (n + 1) (sin x)).comp x (has_deriv_at_sin x) using 1,
+    simp [mul_right_comm], },
+  have : (λ x, cos x * ((n + 1) * cos x * sin x ^ n)) = λ x, (↑n + 1) * (cos x ^ 2 * sin x ^ n),
+  { funext, ring },
+  conv_lhs { rw h },
+  rw integral_mul_deriv_eq_deriv_mul hu hv _ _,
+  simp only [neg_mul_eq_neg_mul_symm, sin_zero, sin_pi, zero_mul, pi.neg_apply, sub_zero,
+    add_eq_zero_iff, ne.def, zero_add, not_false_iff, one_ne_zero, integral_neg, and_false,
+    zero_pow', sub_neg_eq_add, this, integral_const_mul (↑n + 1)],
+  simp only [cos_square', sub_mul, mul_sub, one_mul, ← pow_add _ 2 n, add_comm 2 n],
+  rw [integral_sub, mul_sub],
+  exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π,
+  exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π,
+  apply continuous.continuous_on, continuity,
+  apply continuous.continuous_on, continuity,
+end
+
+lemma integral_sin_pow_succ_succ (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (n + 2) = (n + 1) / (n + 2) * ∫ x in 0..π, sin x ^ n :=
+begin
+  field_simp,
+  have := eq_sub_iff_add_eq.mp (integral_sin_pow n),
+  rwa [eq_div_iff, mul_comm, bit0, ← add_assoc, add_mul, one_mul, add_comm],
+  norm_cast, norm_num,
+end
+
+theorem integral_sin_pow_odd (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (2 * n + 1) = 2 * ∏ i in range n, (2 * i + 2) / (2 * i + 3) :=
+begin
+  induction n with k ih,
+  { norm_num, },
+  rw [prod_range_succ, ← mul_assoc, mul_comm (2:ℝ) ((2 * k + 2) / (2 * k + 3)), mul_assoc, ← ih],
+  have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { rw nat.succ_eq_add_one k, rw mul_add, rw mul_one },
+  have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast, },
+  have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast, },
+  simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)]
+end
+
+theorem integral_sin_pow_even (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (2 * n) = π * ∏ i in range n, (2 * i + 1) / (2 * i + 2) :=
+begin
+  induction n with k ih,
+  { norm_num, },
+  rw [prod_range_succ, ← mul_assoc, mul_comm π ((2 * k + 1) / (2 * k + 2)), mul_assoc, ← ih],
+  simp [nat.succ_eq_add_one, mul_add, mul_one, integral_sin_pow_succ_succ _],
+end
+
+lemma integral_sin_pow_pos (n : ℕ) : 0 < ∫ x in 0..π, sin x ^ n :=
+begin
+  rcases nat.even_or_odd' n with ⟨k, h, h⟩,
+  rw [h, integral_sin_pow_even],
+  refine mul_pos pi_pos (prod_pos (λ n hn, div_pos _ _)),
+  norm_cast, linarith, norm_cast, linarith,
+  rw [h, integral_sin_pow_odd],
+  refine mul_pos (by norm_num) (prod_pos (λ n hn, div_pos _ _)),
+  norm_cast, linarith, norm_cast, linarith,
+end
+
+lemma integral_sin_pow_anti_mono (n : ℕ) :
+  ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) ≤ ∫ (x : ℝ) in 0..π, sin x ^ n :=
+begin
+  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
+  exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π,
+  exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π,
+  refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
+  rw interval_of_le pi_pos.le at hx,
+  exact sin_nonneg_of_mem_Icc hx,
+end
+
+lemma integral_sin_pow_div_tendsto_one :
+  tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
+begin
+  have h₃ : ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≤ 1 :=
+    λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_anti_mono _),
+  have h₄ :
+    ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
+  { intro, cases n,
+    { have : 0 ≤ (1 + 1) / π, exact div_nonneg (by norm_num) pi_pos.le,
+      simp [this] },
+    calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
+      (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
+      by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
+        convert integral_sin_pow_anti_mono (2 * n + 1) using 1 }
+    ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
+      by { symmetry, rw [eq_div_iff, nat.succ_eq_add_one],
+        convert (integral_sin_pow_succ_succ (2 * n + 1)).symm using 3,
+        simp [mul_add], ring, simp [mul_add], ring,
+        exact norm_num.ne_zero_of_pos  _ (integral_sin_pow_pos (2 * n + 1)) } },
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
+  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
+    have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
+    { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
+      rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
+    have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
+    rw [real.dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
+    calc 1 / ε ≤ nat_ceil (1 / ε) : le_nat_ceil _
+          ... ≤ n : by exact_mod_cast hn.le
+          ... < 2 * n + 1 : by { norm_cast, linarith } },
+  exact tendsto_const_nhds,
+end
+
+/-- This theorem establishes the Wallis Product for `π`. Our proof is largely about analyzing
+  the behavior of the ratio of the integral of `sin x ^ n` as `n → ∞`.
+
+  The proof can be broken down into two pieces. First, we use integration by parts to obtain
+  a recursive formula for `∫ x in 0..π, sin x ^ (n + 2)` in terms of `∫ x in 0..π, sin x ^ n`.
+  From this we can obtain closed form products of `∫ x in 0..π, sin x ^ (2 * n)` and
+  `∫ x in 0..π, sin x ^ (2 * n + 1)` via induction. Next, we study the behavior of the ratio
+  `∫ (x : ℝ) in 0..π, sin x ^ (2 * k + 1)) / ∫ (x : ℝ) in 0..π, sin x ^ (2 * k)` and proof that
+  it converges to one using the squeeze theorem. The final product for `π` is obtained after some
+  algebraic manipulation.  -/
+theorem tendsto_prod_pi_div_two :
+  tendsto (λ k, ∏ i in range k,
+    (((2:ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) at_top (𝓝 (π/2)) :=
+begin
+  suffices h : tendsto (λ k, 2 / π  * ∏ i in range k,
+    (((2:ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) at_top (𝓝 1),
+  have := tendsto.const_mul (π / 2) h,
+  have h : π / 2 ≠ 0, norm_num [pi_ne_zero],
+  simp only [← mul_assoc, ← @inv_div _ _ π 2, mul_inv_cancel h, one_mul, mul_one] at this,
+  exact this,
+  have h : (λ (k : ℕ), (2:ℝ) / π * ∏ (i : ℕ) in range k,
+    ((2 * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) =
+  λ k, (2 * ∏ i in range k,
+    (2 * i + 2) / (2 * i + 3)) / (π * ∏ (i : ℕ) in range k, (2 * i + 1) / (2 * i + 2)),
+  { funext,
+    have h : ∏ (i : ℕ) in range k, ((2:ℝ) * ↑i + 2) / (2 * ↑i + 1) =
+      1 / (∏ (i : ℕ) in range k, (2 * ↑i + 1) / (2 * ↑i + 2)),
+    { rw [one_div, ← finset.prod_inv_distrib'],
+      refine prod_congr rfl (λ x hx, _),
+      field_simp },
+    rw [prod_mul_distrib, h],
+    field_simp },
+  simp only [h, ← integral_sin_pow_even, ← integral_sin_pow_odd],
+  exact integral_sin_pow_div_tendsto_one,
 end
 
 end real

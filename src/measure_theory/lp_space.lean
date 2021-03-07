@@ -1239,10 +1239,10 @@ namespace Lp
 lemma snorm'_lim_sub {f : ℕ → α → G} {p : ℝ} (hp1 : 1 ≤ p) {f_lim : α → G}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) (n : ℕ) :
   snorm' (f n - f_lim) p μ
-    = (∫⁻ a, filter.at_top.liminf (λ m, (nnnorm (f n a - f m a) : ennreal)^p) ∂μ) ^ (1/p) :=
+    = (∫⁻ a, filter.at_top.liminf (λ m, (nnnorm (f n a - f m a) : ℝ≥0∞)^p) ∂μ) ^ (1/p) :=
 begin
   suffices h_no_pow : (∫⁻ a, (nnnorm ((f n - f_lim) a)) ^ p ∂μ)
-    = (∫⁻ a, filter.at_top.liminf (λ (m : ℕ), (nnnorm (f n a - f m a) : ennreal)^p) ∂μ),
+    = (∫⁻ a, filter.at_top.liminf (λ (m : ℕ), (nnnorm (f n a - f m a) : ℝ≥0∞)^p) ∂μ),
   { rw [snorm', h_no_pow], },
   refine lintegral_congr_ae (h_lim.mono (λ a ha, _)),
   rw filter.tendsto.liminf_eq,

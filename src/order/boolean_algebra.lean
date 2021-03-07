@@ -359,22 +359,18 @@ end
 -- by rw [sdiff_eq, sdiff_eq, inf_assoc, inf_idem]
 
 -- for use with symm_diff; this is false right now: RHS needs to be intersected with `z`.
-lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = (z \ x ⊔ y) ⊓ (z \ y ⊔ x) :=
+lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = z ⊓ (z \ x ⊔ y) ⊓ (z \ y ⊔ x) :=
 begin
   rw [sdiff_sup, mccuan1c, mccuan1c,
     sup_inf_left, sup_comm, sup_inf_sdiff,
     sup_inf_left,  @sup_comm _ _ (z \ y), sup_inf_sdiff,
-    inf_assoc, ←@inf_assoc _ _ (z \ x ⊔ y), @inf_comm _ _ _ z, ←inf_assoc, ←inf_assoc, inf_idem,
-    inf_assoc, inf_eq_right,
-    inf_sup_left, inf_sup_right, inf_sdiff_same_right, sup_bot_eq,
-    inf_sup_right, inf_sdiff_same_left, bot_sup_eq, ←sdiff_sup],
-  { sorry },
+    inf_assoc, ←@inf_assoc _ _ (z \ x ⊔ y), @inf_comm _ _ _ z, ←inf_assoc, ←inf_assoc, inf_idem],
 end
 
-lemma sdiff_sdiff_sup_sdiff' : z \ (x \ y ⊔ y \ x) = z \ (x ⊔ y) ⊔ z ⊓ y ⊓ x :=
+lemma sdiff_sdiff_sup_sdiff' : z \ (x \ y ⊔ y \ x) = z ⊓ x ⊓ y ⊔ ((z \ x) ⊓ (z \ y)):=
 begin
   rw [sdiff_sup, mccuan1c, mccuan1c, inf_assoc, @inf_comm _ _ x, ←inf_assoc, ←sup_inf_right,
-    ←sdiff_sup],
+    sup_comm],
 end
 
 -- mccuan1a

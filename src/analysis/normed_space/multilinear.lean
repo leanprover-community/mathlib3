@@ -375,9 +375,9 @@ instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E
 ⟨λ c f, f.op_norm_smul_le c⟩
 
 lemma op_norm_prod (f : continuous_multilinear_map 𝕜 E G) (g : continuous_multilinear_map 𝕜 E G') :
-  ∥f.prod g∥ = ∥(f, g)∥ :=
+  ∥f.prod g∥ = max (∥f∥) (∥g∥) :=
 le_antisymm
-  (op_norm_le_bound _ (norm_nonneg _) (λ m,
+  (op_norm_le_bound _ (norm_nonneg (f, g)) (λ m,
     have H : 0 ≤ ∏ i, ∥m i∥, from prod_nonneg $ λ _ _,  norm_nonneg _,
     by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, H]
       using max_le_max (f.le_op_norm m) (g.le_op_norm m))) $

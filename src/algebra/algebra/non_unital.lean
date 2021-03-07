@@ -31,9 +31,13 @@ class non_unital_non_assoc_algebra [non_unital_non_assoc_semiring A] extends sem
 (smul_mul_assoc' : ∀ (t : R) (a b : A), (t • a) * b = t • (a * b))
 (mul_smul_comm' : ∀ (t : R) (a b : A), a * (t • b) = t • (a * b))
 
-@[priority 200] -- see Note [lower instance priority]
-instance semiring.to_non_unital_non_assoc_semiring [semiring A] : non_unital_non_assoc_semiring A :=
+/-- Forgetting the unit and the fact that it is associative, any `semiring` is a
+`non_unital_non_assoc_semiring`. -/
+def semiring.to_non_unital_non_assoc_semiring [semiring A] : non_unital_non_assoc_semiring A :=
 { ..(infer_instance : semiring A) }
+
+-- see Note [lower instance priority]
+local attribute [instance, priority 200] semiring.to_non_unital_non_assoc_semiring
 
 @[priority 200] -- see Note [lower instance priority]
 instance algebra.to_non_unital_non_assoc_algebra (R : Type u₁)

@@ -3,8 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
-import algebra.algebra.basic
-import linear_algebra.finsupp
+import algebra.magma_algebra
 
 /-!
 # Monoid algebras
@@ -38,7 +37,7 @@ Similarly, I attempted to just define
 noncomputable theory
 open_locale classical big_operators
 
-open finset finsupp
+open finset (hiding mul_def) finsupp magma_algebra
 
 universes u₁ u₂ u₃
 variables (k : Type u₁) (G : Type u₂)
@@ -61,47 +60,17 @@ namespace monoid_algebra
 
 variables {k G}
 
-section has_mul
-
-variables [semiring k] [has_mul G]
-
-/-- The product of `f g : monoid_algebra k G` is the finitely supported function
-  whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
-  such that `x * y = a`. (Think of the group ring of a group.) -/
-instance : has_mul (monoid_algebra k G) :=
-⟨λf g, f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)⟩
-
-lemma mul_def {f g : monoid_algebra k G} :
-  f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)) :=
-rfl
-
-instance : distrib (monoid_algebra k G) :=
-{ mul           := (*),
-  add           := (+),
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
-  .. finsupp.add_comm_monoid }
-
-instance : mul_zero_class (monoid_algebra k G) :=
-{ zero      := 0,
-  mul       := (*),
-  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
-  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero] }
-
-end has_mul
+instance [semiring k] [has_mul G] : has_mul (monoid_algebra k G) := magma_algebra.has_mul
 
 section semigroup
 
 variables [semiring k] [semigroup G]
 
 instance : semigroup (monoid_algebra k G) :=
-{ mul       := (*),
-  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
+{ mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],}
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
+  ..magma_algebra.has_mul, }
 
 end semigroup
 
@@ -126,17 +95,12 @@ variables [semiring k] [monoid G]
 
 instance : semiring (monoid_algebra k G) :=
 { one       := 1,
-  mul       := (*),
-  zero      := 0,
-  add       := (+),
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   .. monoid_algebra.semigroup,
-  .. monoid_algebra.mul_zero_class,
-  .. monoid_algebra.distrib,
-  .. finsupp.add_comm_monoid }
+  .. magma_algebra.non_unital_non_assoc_semiring, }
 
 variables {R : Type*} [semiring R]
 
@@ -300,9 +264,8 @@ variables (k G) [monoid G]
 
 /-- Embedding of a monoid into its monoid algebra. -/
 def of : G →* monoid_algebra k G :=
-{ to_fun := λ a, single a 1,
-  map_one' := rfl,
-  map_mul' := λ a b, by rw [single_mul_single, one_mul] }
+{ map_one' := rfl,
+  ..magma_algebra.of k }
 
 end
 
@@ -823,9 +786,8 @@ variables (k G)
 
 /-- Embedding of a monoid into its monoid algebra. -/
 def of [add_monoid G] : multiplicative G →* add_monoid_algebra k G :=
-{ to_fun := λ a, single a 1,
-  map_one' := rfl,
-  map_mul' := λ a b, by { rw [single_mul_single, one_mul], refl } }
+{ map_one' := rfl,
+  ..magma_algebra.of k }
 
 end
 

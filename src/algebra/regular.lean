@@ -205,7 +205,7 @@ lemma is_regular_iff_subsingleton : is_regular (0 : R) ↔ subsingleton R :=
 ⟨λ h, h.left.subsingleton,
  λ h, ⟨is_left_regular_zero_iff_subsingleton.mpr h, is_right_regular_zero_iff_subsingleton.mpr h⟩⟩
 
-/--  A left-regular element of a `nontrivial` `mul_zero_class` is non-zero. -/
+/-- A left-regular element of a `nontrivial` `mul_zero_class` is non-zero. -/
 lemma is_left_regular.ne_zero [nontrivial R] (la : is_left_regular a) : a ≠ 0 :=
 begin
   rintro rfl,
@@ -214,7 +214,7 @@ begin
   rw [zero_mul, zero_mul]
 end
 
-/--  A right-regular element of a `nontrivial` `mul_zero_class` is non-zero. -/
+/-- A right-regular element of a `nontrivial` `mul_zero_class` is non-zero. -/
 lemma is_right_regular.ne_zero [nontrivial R] (ra : is_right_regular a) : a ≠ 0 :=
 begin
   rintro rfl,
@@ -223,7 +223,7 @@ begin
   rw [mul_zero, mul_zero]
 end
 
-/--  A regular element of a `nontrivial` `mul_zero_class` is non-zero. -/
+/-- A regular element of a `nontrivial` `mul_zero_class` is non-zero. -/
 lemma is_regular.ne_zero [nontrivial R] (la : is_regular a) : a ≠ 0 :=
 la.left.ne_zero
 
@@ -304,7 +304,7 @@ variables  [cancel_monoid_with_zero R]
 lemma is_regular_of_ne_zero (a0 : a ≠ 0) : is_regular a :=
 ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
 
-/--  In a non-trivial integral domain, an element is regular iff it is non-zero. -/
+/-- In a non-trivial integral domain, an element is regular iff it is non-zero. -/
 lemma is_regular_iff_ne_zero [nontrivial R] : is_regular a ↔ a ≠ 0 :=
 ⟨is_regular.ne_zero, is_regular_of_ne_zero⟩
 

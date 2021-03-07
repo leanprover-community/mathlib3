@@ -35,9 +35,10 @@ variables {ι X : Type*} [topological_space X] [normal_space X]
 namespace shrinking_lemma
 
 /-- Auxiliary definition for the proof of `shrinking_lemma`. A partial refinement of a covering
-`⋃ i, u i` is a map `v : ι → set X` and a set `carrier : set ι` such that
+`⋃ i, u i` of a set `s` is a map `v : ι → set X` and a set `carrier : set ι` such that
 
-* `(⋃ i, v i) = univ`;
+* `s ⊆ ⋃ i, v i`;
+* all `v i` are open;
 * if `i ∈ carrier v`, then `closure (v i) ⊆ u i`;
 * if `i ∉ carrier`, then `v i = u i`.
 

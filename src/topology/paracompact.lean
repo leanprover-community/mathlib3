@@ -119,9 +119,10 @@ begin
 end
 
 /-- Let `X` be a locally compact sigma compact Hausdorff topological space, let `s` be a closed set
-in `X`. Suppose that for each `x ∈ s` the sets `B x : ι x → set X` bounded by `p x : ι x → Prop`
-form a basis of the filter `𝓝 x`. Then there exists a locally finite covering `λ i, B (c i) (r i)`
-of `s` such that all “centers” `c i` belong to `s` and each `r i` satisfies `p (c i)`.
+in `X`. Suppose that for each `x ∈ s` the sets `B x : ι x → set X` with the predicate
+`p x : ι x → Prop` form a basis of the filter `𝓝 x`. Then there exists a locally finite covering
+`λ i, B (c i) (r i)` of `s` such that all “centers” `c i` belong to `s` and each `r i` satisfies
+`p (c i)`.
 
 The notation is inspired by the case `B x r = metric.ball x r` but the theorem applies to
 `nhds_basis_opens` as well. If the covering must be subordinate to some open covering of `s`, then
@@ -187,8 +188,8 @@ begin
 end
 
 /-- Let `X` be a locally compact sigma compact Hausdorff topological space. Suppose that for each
-`x` the sets `B x : ι x → set X` bounded by `p x : ι x → Prop` form a basis of the filter `𝓝
-x`. Then there exists a locally finite covering `λ i, B (c i) (r i)` of `X` such that each `r i`
+`x` the sets `B x : ι x → set X` with the predicate `p x : ι x → Prop` form a basis of the filter
+`𝓝 x`. Then there exists a locally finite covering `λ i, B (c i) (r i)` of `X` such that each `r i`
 satisfies `p (c i)`
 
 The notation is inspired by the case `B x r = metric.ball x r` but the theorem applies to

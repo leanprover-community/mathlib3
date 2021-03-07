@@ -75,7 +75,7 @@ We use the following type variables in this file:
 
 universes u v v' wE wE₁ wE' wEi wG wG'
 variables {𝕜 : Type u} {ι : Type v} {ι' : Type v'} {n : ℕ}
-  {E E₁ : ι → Type wE} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
+  {E : ι → Type wE} {E₁ : ι → Type wE₁} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
   {G : Type wG} {G' : Type wG'}
   [decidable_eq ι] [fintype ι] [decidable_eq ι'] [fintype ι'] [nondiscrete_normed_field 𝕜]
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]

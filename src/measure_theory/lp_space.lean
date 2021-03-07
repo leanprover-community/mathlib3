@@ -64,7 +64,11 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory
+<<<<<<< HEAD
 open_locale nnreal ennreal big_operators topological_space
+=======
+open_locale nnreal ennreal big_operators
+>>>>>>> origin/master
 
 lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := le_refl _
 
@@ -591,16 +595,28 @@ end
 lemma snorm'_sum_le [second_countable_topology E] {ι} {f : ι → α → E} {s : finset ι}
   (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hq1 : 1 ≤ q) :
   snorm' (∑ i in s, f i) q μ ≤ ∑ i in s, snorm' (f i) q μ :=
+<<<<<<< HEAD
 @finset.le_sum_of_subadditive_on_pred (α → E) ℝ≥0∞ ι _ _ (λ f, snorm' f q μ)
   (λ f, ae_measurable f μ) (snorm'_zero (zero_lt_one.trans_le hq1))
   (λ f g hf hg, snorm'_add_le hf hg hq1) (λ x y, ae_measurable.add) _ _ hfs
+=======
+finset.le_sum_of_subadditive_on_pred (λ (f : α → E), snorm' f q μ)
+  (λ f, ae_measurable f μ) (snorm'_zero (zero_lt_one.trans_le hq1))
+  (λ f g hf hg, snorm'_add_le hf hg hq1) (λ x y, ae_measurable.add) _ hfs
+>>>>>>> origin/master
 
 lemma snorm_sum_le [second_countable_topology E] {ι} {f : ι → α → E} {s : finset ι}
   (hfs : ∀ i, i ∈ s → ae_measurable (f i) μ) (hp1 : 1 ≤ p) :
   snorm (∑ i in s, f i) p μ ≤ ∑ i in s, snorm (f i) p μ :=
+<<<<<<< HEAD
 @finset.le_sum_of_subadditive_on_pred (α → E) ℝ≥0∞ ι _ _ (λ f, snorm f p μ)
   (λ f, ae_measurable f μ) snorm_zero (λ f g hf hg, snorm_add_le hf hg hp1)
   (λ x y, ae_measurable.add) _ _ hfs
+=======
+finset.le_sum_of_subadditive_on_pred (λ (f : α → E), snorm f p μ)
+  (λ f, ae_measurable f μ) snorm_zero (λ f g hf hg, snorm_add_le hf hg hp1)
+  (λ x y, ae_measurable.add) _ hfs
+>>>>>>> origin/master
 
 lemma snorm_add_lt_top_of_one_le {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ)
   (hq1 : 1 ≤ p) : snorm (f + g) p μ < ∞ :=

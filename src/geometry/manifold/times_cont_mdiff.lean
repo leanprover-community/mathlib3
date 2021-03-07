@@ -284,7 +284,47 @@ lemma smooth_within_at_iff_target :
     (s ∩ f ⁻¹' (ext_chart_at I' (f x)).source) x :=
 times_cont_mdiff_within_at_iff_target
 
+lemma times_cont_mdiff_at_ext_chart_at :
+  times_cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x :=
+begin
+  rw [times_cont_mdiff_at, times_cont_mdiff_within_at_iff],
+  refine ⟨(ext_chart_at_continuous_at _ _).continuous_within_at, _⟩,
+  refine times_cont_diff_within_at_id.congr _ _;
+    simp only with mfld_simps { contextual := tt }
+end
+
 include Is I's
+
+/-- One can reformulate smoothness within a set at a point as continuity within this set at this
+point, and smoothness in the corresponding extended chart. -/
+lemma times_cont_mdiff_within_at_iff' {x' : M} {y : M'} (hx : x' ∈ (chart_at H x).source)
+  (hy : f x' ∈ (chart_at H' y).source) :
+  times_cont_mdiff_within_at I I' n f s x' ↔ continuous_within_at f s x' ∧
+    times_cont_diff_within_at 𝕜 n ((ext_chart_at I' y) ∘ f ∘ (ext_chart_at I x).symm)
+    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' y).source))
+    (ext_chart_at I x x') :=
+begin
+  refine ((times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart
+    (structure_groupoid.chart_mem_maximal_atlas _ x) hx
+    (structure_groupoid.chart_mem_maximal_atlas _ y) hy).trans _,
+  rw [times_cont_diff_within_at_prop, iff_eq_eq],
+  congr' 2,
+  mfld_set_tac
+end
+
+omit I's
+
+lemma times_cont_mdiff_at_ext_chart_at' {x' : M} (h : x' ∈ (chart_at H x).source) :
+  times_cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x' :=
+begin
+  refine (times_cont_mdiff_within_at_iff' h (mem_chart_source _ _)).2 _,
+  refine ⟨(ext_chart_at_continuous_at' _ _ _).continuous_within_at, _⟩,
+  { rwa ext_chart_at_source },
+  refine times_cont_diff_within_at_id.congr' _ _;
+    simp only [h] with mfld_simps { contextual := tt }
+end
+
+include I's
 
 /-- One can reformulate smoothness on a set as continuity on this set, and smoothness in any
 extended chart. -/
@@ -726,7 +766,7 @@ begin
   { rintros p ⟨⟨hp₁, ⟨hp₂, hp₃⟩⟩, hp₄⟩,
     refine ⟨hp₁, ⟨hp₂, o_subset ⟨hp₄, ⟨hp₂, _⟩⟩⟩⟩,
     have := hp₁.1,
-    rwa model_with_corners.target at this },
+    rwa I.target_eq at this },
   have : times_cont_diff_on 𝕜 n (((ext_chart_at I'' y) ∘ g ∘ (ext_chart_at I' (f x')).symm) ∘
     ((ext_chart_at I' (f x')) ∘ f ∘ (ext_chart_at I x).symm)) u,
   { refine times_cont_diff_on.comp (hg.2 (f x') y) ((hf.2 x (f x')).mono u_subset) (λp hp, _),
@@ -999,7 +1039,7 @@ begin
   let x : H := I.symm (0 : E),
   let y : H' := I'.symm (0 : E'),
   have A := hf.2 x y,
-  simp only [I.image, inter_comm] with mfld_simps at A ⊢,
+  simp only [I.image_eq, inter_comm] with mfld_simps at A ⊢,
   apply A.continuous_on_fderiv_within _ hn,
   convert hs.unique_diff_on x using 1,
   simp only [inter_comm] with mfld_simps

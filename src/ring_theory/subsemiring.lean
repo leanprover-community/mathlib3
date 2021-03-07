@@ -180,6 +180,22 @@ def subtype : s →+* R :=
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
+/-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
+instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
+subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
+instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
+  ordered_comm_semiring s :=
+subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
+instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
+  linear_ordered_semiring s :=
+subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+
 instance : partial_order (subsemiring R) :=
 { le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
   .. partial_order.lift (coe : subsemiring R → set R) ext' }
@@ -258,6 +274,9 @@ def srange : subsemiring S := (⊤ : subsemiring R).map f
 
 @[simp] lemma mem_srange {f : R →+* S} {y : S} : y ∈ f.srange ↔ ∃ x, f x = y :=
 by simp [srange]
+
+lemma mem_srange_self (f : R →+* S) (x : R) : f x ∈ f.srange :=
+mem_srange.mpr ⟨x, rfl⟩
 
 lemma map_srange : f.srange.map g = (g.comp f).srange :=
 (⊤ : subsemiring R).map_map g f
@@ -517,13 +536,18 @@ def cod_srestrict (f : R →+* S) (s : subsemiring S) (h : ∀ x, f x ∈ s) : R
   .. (f : R →* S).cod_mrestrict s.to_submonoid h,
   .. (f : R →+ S).cod_mrestrict s.to_add_submonoid h }
 
-/-- Restriction of a ring homomorphism to its range iterpreted as a subsemiring. -/
+/-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
+
+This is the bundled version of `set.range_factorization`. -/
 def srange_restrict (f : R →+* S) : R →+* f.srange :=
-f.cod_srestrict f.srange $ λ x, ⟨x, subsemiring.mem_top x, rfl⟩
+f.cod_srestrict f.srange f.mem_srange_self
 
 @[simp] lemma coe_srange_restrict (f : R →+* S) (x : R) :
   (f.srange_restrict x : S) = f x :=
 rfl
+
+lemma srange_restrict_surjective (f : R →+* S) : function.surjective f.srange_restrict :=
+λ ⟨y, hy⟩, let ⟨x, hx⟩ := mem_srange.mp hy in ⟨x, subtype.ext hx⟩
 
 lemma srange_top_iff_surjective {f : R →+* S} :
   f.srange = (⊤ : subsemiring S) ↔ function.surjective f :=
@@ -603,5 +627,25 @@ variables {s t : subsemiring R}
     monoid are equal. -/
 def subsemiring_congr (h : s = t) : s ≃+* t :=
 { map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ subsemiring.ext'_iff.1 h }
+
+/-- Restrict a ring homomorphism with a left inverse to a ring isomorphism to its
+`ring_hom.srange`. -/
+def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f) :
+  R ≃+* f.srange :=
+{ to_fun := λ x, f.srange_restrict x,
+  inv_fun := λ x, (g ∘ f.srange.subtype) x,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := ring_hom.mem_srange.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  ..f.srange_restrict }
+
+@[simp] lemma sof_left_inverse_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : R) :
+  ↑(sof_left_inverse h x) = f x := rfl
+
+@[simp] lemma sof_left_inverse_symm_apply
+  {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
+  (sof_left_inverse h).symm x = g x := rfl
 
 end ring_equiv

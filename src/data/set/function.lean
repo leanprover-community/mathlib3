@@ -243,16 +243,21 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
-lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
-  (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
-begin
-  have : eq_on ((inv_fun_on f s₂) ∘ f) id s₁, from λz hz, inv_fun_on_eq' h (ht hz),
-  rw [← image_comp, this.image_eq, image_id]
-end
-
 lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ powerset (range f)) :
   inj_on (preimage f) B :=
 λ s hs t ht hst, (preimage_eq_preimage' (hB hs) (hB ht)).1 hst
+
+lemma inj_on.mem_of_mem_image {x} (hf : inj_on f s) (hs : s₁ ⊆ s) (h : x ∈ s) (h₁ : f x ∈ f '' s₁) :
+  x ∈ s₁ :=
+let ⟨x', h', eq⟩ := h₁ in hf (hs h') h eq ▸ h'
+
+lemma inj_on.mem_image_iff {x} (hf : inj_on f s) (hs : s₁ ⊆ s) (hx : x ∈ s) :
+  f x ∈ f '' s₁ ↔ x ∈ s₁ :=
+⟨hf.mem_of_mem_image hs hx, mem_image_of_mem f⟩
+
+lemma inj_on.preimage_image_inter (hf : inj_on f s) (hs : s₁ ⊆ s) :
+  f ⁻¹' (f '' s₁) ∩ s = s₁ :=
+ext $ λ x, ⟨λ ⟨h₁, h₂⟩, hf.mem_of_mem_image hs h₂ h₁, λ h, ⟨mem_image_of_mem _ h, hs h⟩⟩
 
 /-! ### Surjectivity on a set -/
 
@@ -269,6 +274,8 @@ lemma surj_on_iff_exists_map_subtype :
     ⟨x, x.2, by rw [hfg, hx, subtype.coe_mk]⟩⟩
 
 theorem surj_on_empty (f : α → β) (s : set α) : surj_on f s ∅ := empty_subset _
+
+theorem surj_on_image (f : α → β) (s : set α) : surj_on f s (f '' s) := subset.rfl
 
 theorem surj_on.comap_nonempty (h : surj_on f s t) (ht : t.nonempty) : s.nonempty :=
 (ht.mono h).of_image
@@ -420,7 +427,8 @@ theorem left_inv_on.surj_on (h : left_inv_on f' f s) (hf : maps_to f s t) : surj
 theorem left_inv_on.maps_to (h : left_inv_on f' f s) (hf : surj_on f s t) : maps_to f' t s :=
 λ y hy, let ⟨x, hs, hx⟩ := hf hy in by rwa [← hx, h hs]
 
-theorem left_inv_on.comp (hf' : left_inv_on f' f s) (hg' : left_inv_on g' g t) (hf : maps_to f s t) :
+theorem left_inv_on.comp
+  (hf' : left_inv_on f' f s) (hg' : left_inv_on g' g t) (hf : maps_to f s t) :
   left_inv_on (f' ∘ g') (g ∘ f) s :=
 λ x h,
 calc
@@ -446,6 +454,14 @@ begin
   rintro _ ⟨h₁, x, hx, rfl⟩, exact ⟨⟨h₁, by rwa hf hx⟩, mem_image_of_mem _ hx⟩
 end
 
+theorem left_inv_on.image_image (hf : left_inv_on f' f s) :
+  f' '' (f '' s) = s :=
+by rw [image_image, image_congr hf, image_id']
+
+theorem left_inv_on.image_image' (hf : left_inv_on f' f s)  (hs : s₁ ⊆ s) :
+  f' '' (f '' s₁) = s₁ :=
+(hf.mono hs).image_image
+
 /-! ### Right inverse -/
 
 /-- `g` is a right inverse to `f` on `b` if `f (g x) = x` for all `x ∈ b`. -/
@@ -455,6 +471,9 @@ left_inv_on f f' t
 lemma right_inv_on.eq_on (h : right_inv_on f' f t) : eq_on (f ∘ f') id t := h
 
 lemma right_inv_on.eq (h : right_inv_on f' f t) {y} (hy : y ∈ t) : f (f' y) = y := h hy
+
+lemma left_inv_on.right_inv_on_image (h : left_inv_on f' f s) : right_inv_on f' f (f '' s) :=
+λ y ⟨x, hx, eq⟩, eq ▸ congr_arg f $ h.eq hx
 
 theorem right_inv_on.congr_left (h₁ : right_inv_on f₁' f t) (heq : eq_on f₁' f₂' t) :
   right_inv_on f₂' f t :=
@@ -516,6 +535,10 @@ theorem inv_on.bij_on (h : inv_on f' f s t) (hf : maps_to f s t) (hf' : maps_to 
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
 λ x hx, inv_fun_on_eq' h hx
+
+lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
+  (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
+h.left_inv_on_inv_fun_on.image_image' ht
 
 theorem surj_on.right_inv_on_inv_fun_on [nonempty α] (h : surj_on f s t) :
   right_inv_on (inv_fun_on f s) f t :=
@@ -705,6 +728,18 @@ lemma injective.comp_inj_on (hg : injective g) (hf : s.inj_on f) : s.inj_on (g �
 lemma surjective.surj_on (hf : surjective f) (s : set β) :
   surj_on f univ s :=
 (surjective_iff_surj_on_univ.1 hf).mono (subset.refl _) (subset_univ _)
+
+lemma left_inverse.left_inv_on {g : β → α} (h : left_inverse f g) (s : set β) :
+  left_inv_on f g s :=
+λ x hx, h x
+
+lemma right_inverse.right_inv_on {g : β → α} (h : right_inverse f g) (s : set α) :
+  right_inv_on f g s :=
+λ x hx, h x
+
+lemma left_inverse.right_inv_on_range {g : β → α} (h : left_inverse f g) :
+  right_inv_on f g (range g) :=
+forall_range_iff.2 $ λ i, congr_arg g (h i)
 
 namespace semiconj
 

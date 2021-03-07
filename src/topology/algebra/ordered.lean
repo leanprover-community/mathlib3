@@ -568,11 +568,13 @@ lemma continuous_min : continuous (λ p : α × α, min p.1 p.2) := continuous_f
 
 lemma continuous_max : continuous (λ p : α × α, max p.1 p.2) := continuous_fst.max continuous_snd
 
-lemma tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+lemma filter.tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁))
+  (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, max (f b) (g b)) b (𝓝 (max a₁ a₂)) :=
 (continuous_max.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
-lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+lemma filter.tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁))
+  (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
@@ -1599,16 +1601,18 @@ lemma filter.tendsto.div_at_top [has_continuous_mul α] {f g : β → α} {l : f
   (h : tendsto f l (𝓝 a)) (hg : tendsto g l at_top) : tendsto (λ x, f x / g x) l (𝓝 0) :=
 by { simp only [div_eq_mul_inv], exact mul_zero a ▸ h.mul (tendsto_inv_at_top_zero.comp hg) }
 
-lemma tendsto.inv_tendsto_at_top (h : tendsto f l at_top) : tendsto (f⁻¹) l (𝓝 0) :=
+lemma filter.tendsto.inv_tendsto_at_top (h : tendsto f l at_top) : tendsto (f⁻¹) l (𝓝 0) :=
 tendsto_inv_at_top_zero.comp h
 
-lemma tendsto.inv_tendsto_zero (h : tendsto f l (𝓝[set.Ioi 0] 0)) : tendsto (f⁻¹) l at_top :=
+lemma filter.tendsto.inv_tendsto_zero (h : tendsto f l (𝓝[set.Ioi 0] 0)) :
+  tendsto (f⁻¹) l at_top :=
 tendsto_inv_zero_at_top.comp h
 
 /-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (fpow_neg x n).symm) (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
+tendsto.congr (λ x, (fpow_neg x n).symm)
+  (filter.tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
 lemma tendsto_fpow_at_top_zero {n : ℤ} (hn : n < 0) :
   tendsto (λ x : α, x^n) at_top (𝓝 0) :=
@@ -1948,7 +1952,7 @@ begin
   rcases eq_empty_or_nonempty (Iio b) with (hb'|⟨a, ha⟩),
   { rw [filter_eq_bot_of_not_nonempty at_top, map_bot, hb', nhds_within_empty],
     exact λ ⟨⟨x, hx⟩⟩, not_nonempty_iff_eq_empty.2 hb' ⟨x, hb hx⟩ },
-  { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap],
+  { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap_of_mem],
     rw subtype.range_coe,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' ha).2 (hs a ha) },
 end

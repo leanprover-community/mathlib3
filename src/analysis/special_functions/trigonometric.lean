@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
-import ring_theory.polynomial.chebyshev.defs
+import ring_theory.polynomial.chebyshev
 import analysis.calculus.times_cont_diff
 
 /-!
@@ -26,7 +26,7 @@ Many basic inequalities on trigonometric functions are established.
 The continuity and differentiability of the usual trigonometric functions are proved, and their
 derivatives are computed.
 
-* `polynomial.chebyshev₁_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
+* `polynomial.chebyshev.T_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
   to the value `n * complex.cos θ`.
 
 ## Tags
@@ -68,6 +68,7 @@ differentiable_sin x
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
 
+@[continuity]
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
@@ -106,6 +107,7 @@ lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
 @[simp] lemma deriv_cos' : deriv cos = (λ x, -sin x) :=
 funext $ λ x, deriv_cos
 
+@[continuity]
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
@@ -139,6 +141,7 @@ differentiable_sinh x
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
 
+@[continuity]
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
 
@@ -170,6 +173,7 @@ differentiable_cos x
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
 
+@[continuity]
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
@@ -542,8 +546,12 @@ differentiable_sin x
 @[simp] lemma deriv_sin : deriv sin = cos :=
 funext $ λ x, (has_deriv_at_sin x).deriv
 
+@[continuity]
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
+
+lemma continuous_on_sin {s} : continuous_on sin s :=
+continuous_sin.continuous_on
 
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
@@ -568,6 +576,7 @@ lemma deriv_cos : deriv cos x = - sin x :=
 @[simp] lemma deriv_cos' : deriv cos = (λ x, - sin x) :=
 funext $ λ _, deriv_cos
 
+@[continuity]
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
@@ -593,6 +602,7 @@ differentiable_sinh x
 @[simp] lemma deriv_sinh : deriv sinh = cosh :=
 funext $ λ x, (has_deriv_at_sinh x).deriv
 
+@[continuity]
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
 
@@ -616,6 +626,7 @@ differentiable_cosh x
 @[simp] lemma deriv_cosh : deriv cosh = sinh :=
 funext $ λ x, (has_deriv_at_cosh x).deriv
 
+@[continuity]
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
@@ -1016,6 +1027,26 @@ half_pos pi_pos
 lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
 
+end real
+
+namespace nnreal
+open real
+open_locale real nnreal
+
+/-- `π` considered as a nonnegative real. -/
+noncomputable def pi : ℝ≥0 := ⟨π, real.pi_pos.le⟩
+
+@[simp] lemma coe_real_pi : (pi : ℝ) = π := rfl
+
+lemma pi_pos : 0 < pi := by exact_mod_cast real.pi_pos
+
+lemma pi_ne_zero : pi ≠ 0 := pi_pos.ne'
+
+end nnreal
+
+namespace real
+open_locale real
+
 @[simp] lemma sin_pi : sin π = 0 :=
 by rw [← mul_div_cancel_left π (@two_ne_zero ℝ _ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
@@ -1046,8 +1077,11 @@ by simp [sub_eq_add_neg, sin_add]
 lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
 by simp [cos_add]
 
+lemma cos_sub_pi (x : ℝ) : cos (x - π) = -cos x :=
+by simp [cos_sub]
+
 lemma cos_pi_sub (x : ℝ) : cos (π - x) = -cos x :=
-by simp [sub_eq_add_neg, cos_add]
+by simp [cos_sub]
 
 lemma sin_pos_of_pos_of_lt_pi {x : ℝ} (h0x : 0 < x) (hxp : x < π) : 0 < sin x :=
 if hx2 : x ≤ 2 then sin_pos_of_pos_of_le_two h0x hx2
@@ -1559,7 +1593,8 @@ begin
   { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k,
-        mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],
+         mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero,
+         zero_mul],
     have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add,
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
     rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π,
@@ -1638,6 +1673,7 @@ lemma arcsin_inj {x y : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) (hy₁ : -1 �
   arcsin x = arcsin y ↔ x = y :=
 inj_on_arcsin.eq_iff ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩
 
+@[continuity]
 lemma continuous_arcsin : continuous arcsin :=
 continuous_subtype_coe.comp sin_order_iso.symm.continuous.Icc_extend
 
@@ -1958,6 +1994,7 @@ by rw [← add_halves π, arccos, arcsin_neg, arccos, add_sub_assoc, sub_sub_sel
 lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x) = sqrt (1 - x ^ 2) :=
 by rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
 
+@[continuity]
 lemma continuous_arccos : continuous arccos := continuous_const.sub continuous_arcsin
 
 lemma has_strict_deriv_at_arccos {x : ℝ} (h₁ : x ≠ -1) (h₂ : x ≠ 1) :
@@ -2313,6 +2350,9 @@ lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]
 
 lemma log_im (x : ℂ) : x.log.im = x.arg := by simp [log]
 
+lemma neg_pi_lt_log_im (x : ℂ) : -π < (log x).im := by simp only [log_im, neg_pi_lt_arg]
+lemma log_im_le_pi (x : ℂ) : (log x).im ≤ π := by simp only [log_im, arg_le_pi]
+
 lemma exp_log {x : ℂ} (hx : x ≠ 0) : exp (log x) = x :=
 by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx,
   ← of_real_exp, real.exp_log (abs_pos.2 hx), mul_add, of_real_div, of_real_div,
@@ -2422,7 +2462,7 @@ local_homeomorph.of_continuous_open
     end,
   map_target' := λ z h,
     suffices 0 ≤ z.re ∨ z.im ≠ 0,
-      by simpa [log, neg_pi_lt_arg, (arg_le_pi _).lt_iff_ne, arg_eq_pi_iff, not_and_distrib],
+      by simpa [log_im, neg_pi_lt_arg, (arg_le_pi _).lt_iff_ne, arg_eq_pi_iff, not_and_distrib],
     h.imp (λ h, le_of_lt h) id,
   left_inv' := λ x hx, log_exp hx.1 (le_of_lt hx.2),
   right_inv' := λ x hx, exp_log $ by { rintro rfl, simpa [lt_irrefl] using hx } }
@@ -2655,8 +2695,8 @@ begin
   { refine tendsto_inf.2 ⟨tendsto.mono_left _ inf_le_left, tendsto_principal.2 _⟩,
     exacts [continuous_cos.tendsto' x 0 hx,
       hx ▸ (has_deriv_at_cos _).eventually_ne (neg_ne_zero.2 A)] },
-  exact tendsto.mul_at_top (norm_pos_iff.2 A) continuous_sin.continuous_within_at.norm
-    (tendsto.inv_tendsto_zero $ tendsto_norm_nhds_within_zero.comp B),
+  exact continuous_sin.continuous_within_at.norm.mul_at_top (norm_pos_iff.2 A)
+    (tendsto_norm_nhds_within_zero.comp B).inv_tendsto_zero,
 end
 
 lemma tendsto_abs_tan_at_top (k : ℤ) :
@@ -2682,6 +2722,7 @@ else (has_deriv_at_tan h).deriv
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 continuous_on_sin.div continuous_on_cos $ λ x, id
 
+@[continuity]
 lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 continuous_on_iff_continuous_restrict.1 continuous_on_tan
 
@@ -2823,20 +2864,20 @@ lemma differentiable.clog {f : E → ℂ} (h₁ : differentiable ℂ f)
 
 end log_deriv
 
-section chebyshev₁
+namespace polynomial.chebyshev
 
 open polynomial complex
 
 /-- The `n`-th Chebyshev polynomial of the first kind evaluates on `cos θ` to the
 value `cos (n * θ)`. -/
-lemma chebyshev₁_complex_cos (θ : ℂ) :
-  ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
-| 0       := by simp only [chebyshev₁_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
-| 1       := by simp only [eval_X, one_mul, chebyshev₁_one, nat.cast_one]
+lemma T_complex_cos (θ : ℂ) :
+  ∀ n, (T ℂ n).eval (cos θ) = cos (n * θ)
+| 0       := by simp only [T_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
+| 1       := by simp only [eval_X, one_mul, T_one, nat.cast_one]
 | (n + 2) :=
 begin
-  simp only [eval_X, eval_one, chebyshev₁_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
-  rw [chebyshev₁_complex_cos (n + 1), chebyshev₁_complex_cos n],
+  simp only [eval_X, eval_one, T_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
+  rw [T_complex_cos (n + 1), T_complex_cos n],
   have aux : sin θ * sin θ = 1 - cos θ * cos θ,
   { rw ← sin_sq_add_cos_sq θ, ring, },
   simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
@@ -2846,24 +2887,18 @@ end
 /-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial of the first kind evaluated
 on `cos θ`. -/
 lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
-  cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
-(chebyshev₁_complex_cos θ n).symm
-
-end chebyshev₁
-
-section chebyshev₂
-
-open polynomial complex
+  cos (n * θ) = (T ℂ n).eval (cos θ) :=
+(T_complex_cos θ n).symm
 
 /-- The `n`-th Chebyshev polynomial of the second kind evaluates on `cos θ` to the
 value `sin ((n+1) * θ) / sin θ`. -/
-lemma chebyshev₂_complex_cos (θ : ℂ) (n : ℕ) :
-  (chebyshev₂ ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
+lemma U_complex_cos (θ : ℂ) (n : ℕ) :
+  (U ℂ n).eval (cos θ) * sin θ = sin ((n+1) * θ) :=
 begin
   induction n with d hd,
-  { simp only [chebyshev₂_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
-  { rw chebyshev₂_eq_X_mul_chebyshev₂_add_chebyshev₁,
-    simp only [eval_add, eval_mul, eval_X, chebyshev₁_complex_cos, add_mul, mul_assoc, hd, one_mul],
+  { simp only [U_zero, nat.cast_zero, eval_one, mul_one, zero_add, one_mul] },
+  { rw U_eq_X_mul_U_add_T,
+    simp only [eval_add, eval_mul, eval_X, T_complex_cos, add_mul, mul_assoc, hd, one_mul],
     conv_rhs { rw [sin_add, mul_comm] },
     push_cast,
     simp only [add_mul, one_mul] }
@@ -2872,10 +2907,10 @@ end
 /-- `sin ((n + 1) * θ)` is equal to `sin θ` multiplied with the `n`-th Chebyshev polynomial of the
 second kind evaluated on `cos θ`. -/
 lemma sin_nat_succ_mul (n : ℕ) (θ : ℂ) :
-  sin ((n + 1) * θ) = (chebyshev₂ ℂ n).eval (cos θ) * sin θ :=
-(chebyshev₂_complex_cos θ n).symm
+  sin ((n + 1) * θ) = (U ℂ n).eval (cos θ) * sin θ :=
+(U_complex_cos θ n).symm
 
-end chebyshev₂
+end polynomial.chebyshev
 
 namespace real
 open_locale real
@@ -2969,6 +3004,10 @@ else (has_deriv_at_tan h).deriv
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 λ x hx, (continuous_at_tan.2 hx).continuous_within_at
 
+@[continuity]
+lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
+continuous_on_iff_continuous_restrict.1 continuous_on_tan
+
 lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 has_deriv_at_tan (cos_pos_of_mem_Ioo h).ne'
@@ -2993,7 +3032,7 @@ end
 
 lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
 begin
-  convert (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two).at_top_mul zero_lt_one
+  convert tendsto_cos_pi_div_two.inv_tendsto_zero.at_top_mul zero_lt_one
             tendsto_sin_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
@@ -3011,7 +3050,7 @@ end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
 begin
-  convert (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two).at_top_mul_neg (by norm_num)
+  convert tendsto_cos_neg_pi_div_two.inv_tendsto_zero.at_top_mul_neg (by norm_num)
             tendsto_sin_neg_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
@@ -3088,6 +3127,7 @@ arctan_eq_of_tan_eq tan_pi_div_four $ by split; linarith [pi_pos]
 @[simp] lemma arctan_neg (x : ℝ) : arctan (-x) = - arctan x :=
 by simp [arctan_eq_arcsin, neg_div]
 
+@[continuity]
 lemma continuous_arctan : continuous arctan :=
 continuous_subtype_coe.comp tan_order_iso.to_homeomorph.continuous_inv_fun
 

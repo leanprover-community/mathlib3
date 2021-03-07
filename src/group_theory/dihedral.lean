@@ -135,7 +135,7 @@ begin
   { rw pow_zero },
   { rw [r_one_pow, one_def],
     congr' 1,
-    exact zmod.cast_self _, }
+    exact zmod.nat_cast_self _, }
 end
 
 @[simp] lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]
@@ -161,7 +161,7 @@ begin
     { exact pow_order_of_eq_one _ },
     rw r_one_pow at h1,
     injection h1 with h2,
-    rw [←zmod.val_eq_zero, zmod.val_cast_nat, nat.mod_eq_of_lt h] at h2,
+    rw [←zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
     exact absurd h2.symm (ne_of_lt (order_of_pos _)) },
   { exact h }
 end
@@ -171,7 +171,7 @@ If `0 < n`, then `i : zmod n` has order `n / gcd n i`
 -/
 lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin
-  conv_lhs { rw ←zmod.cast_val i },
+  conv_lhs { rw ←zmod.nat_cast_zmod_val i },
   rw [←r_one_pow, order_of_pow, order_of_r_one]
 end
 

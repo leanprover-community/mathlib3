@@ -510,15 +510,6 @@ apply_nolint mv_polynomial.evalᵢ doc_blame
 apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
 
--- field_theory/mv_polynomial.lean
-apply_nolint mv_polynomial.restrict_degree doc_blame
-apply_nolint mv_polynomial.restrict_total_degree doc_blame
-
--- group_theory/free_abelian_group.lean
-apply_nolint free_abelian_group doc_blame
-apply_nolint free_abelian_group.lift doc_blame
-apply_nolint free_abelian_group.of doc_blame
-
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 

@@ -123,7 +123,7 @@ variables {p E}
 @[simp] lemma restrict_smul [h : fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑((restrict p E ϕ) • x) = ϕ x :=
 begin
-  let ψ := alg_hom.alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F p.splitting_field E),
+  let ψ := alg_equiv.of_injective_field (is_scalar_tower.to_alg_hom F p.splitting_field E),
   change ↑(ψ (ψ.symm _)) = ϕ x,
   rw alg_equiv.apply_symm_apply ψ,
   change ϕ (roots_equiv_roots p E ((roots_equiv_roots p E).symm x)) = ϕ x,

@@ -2379,7 +2379,7 @@ open normed_ring continuous_linear_map ring
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
 lemma has_fderiv_at_ring_inverse (x : units R) :
-  has_fderiv_at ring.inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
+  has_fderiv_at ring.inverse (-lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹) x :=
 begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
@@ -2394,57 +2394,56 @@ begin
   simp only [has_fderiv_at, has_fderiv_at_filter],
   convert h_is_o.comp_tendsto h_lim,
   ext y,
-  simp only [coe_comp', function.comp_app, lmul_right_apply, lmul_left_apply, neg_apply,
-    inverse_unit x, units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul],
-  abel
+  simp only [coe_comp', function.comp_app, lmul_left_right_apply, neg_apply, inverse_unit x,
+    units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul, sub_neg_eq_add]
 end
 
 lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@ring.inverse R _) x :=
 (has_fderiv_at_ring_inverse x).differentiable_at
 
 lemma fderiv_inverse (x : units R) :
-  fderiv 𝕜 (@ring.inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
+  fderiv 𝕜 (@ring.inverse R _) x = - lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹ :=
 (has_fderiv_at_ring_inverse x).fderiv
 
 end algebra_inverse
 
-section continuous_linear_equiv
+namespace continuous_linear_equiv
 /-! ### Differentiability of linear equivs, and invariance of differentiability -/
 
 variable (iso : E ≃L[𝕜] F)
 
-protected lemma continuous_linear_equiv.has_strict_fderiv_at :
+protected lemma has_strict_fderiv_at :
   has_strict_fderiv_at iso (iso : E →L[𝕜] F) x :=
 iso.to_continuous_linear_map.has_strict_fderiv_at
 
-protected lemma continuous_linear_equiv.has_fderiv_within_at :
+protected lemma has_fderiv_within_at :
   has_fderiv_within_at iso (iso : E →L[𝕜] F) s x :=
 iso.to_continuous_linear_map.has_fderiv_within_at
 
-protected lemma continuous_linear_equiv.has_fderiv_at : has_fderiv_at iso (iso : E →L[𝕜] F) x :=
+protected lemma has_fderiv_at : has_fderiv_at iso (iso : E →L[𝕜] F) x :=
 iso.to_continuous_linear_map.has_fderiv_at_filter
 
-protected lemma continuous_linear_equiv.differentiable_at : differentiable_at 𝕜 iso x :=
+protected lemma differentiable_at : differentiable_at 𝕜 iso x :=
 iso.has_fderiv_at.differentiable_at
 
-protected lemma continuous_linear_equiv.differentiable_within_at :
+protected lemma differentiable_within_at :
   differentiable_within_at 𝕜 iso s x :=
 iso.differentiable_at.differentiable_within_at
 
-protected lemma continuous_linear_equiv.fderiv : fderiv 𝕜 iso x = iso :=
+protected lemma fderiv : fderiv 𝕜 iso x = iso :=
 iso.has_fderiv_at.fderiv
 
-protected lemma continuous_linear_equiv.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
+protected lemma fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 iso s x = iso :=
 iso.to_continuous_linear_map.fderiv_within hxs
 
-protected lemma continuous_linear_equiv.differentiable : differentiable 𝕜 iso :=
+protected lemma differentiable : differentiable 𝕜 iso :=
 λx, iso.differentiable_at
 
-protected lemma continuous_linear_equiv.differentiable_on : differentiable_on 𝕜 iso s :=
+protected lemma differentiable_on : differentiable_on 𝕜 iso s :=
 iso.differentiable.differentiable_on
 
-lemma continuous_linear_equiv.comp_differentiable_within_at_iff {f : G → E} {s : set G} {x : G} :
+lemma comp_differentiable_within_at_iff {f : G → E} {s : set G} {x : G} :
   differentiable_within_at 𝕜 (iso ∘ f) s x ↔ differentiable_within_at 𝕜 f s x :=
 begin
   refine ⟨λ H, _, λ H, iso.differentiable.differentiable_at.comp_differentiable_within_at x H⟩,
@@ -2453,26 +2452,26 @@ begin
   rwa [← function.comp.assoc iso.symm iso f, iso.symm_comp_self] at this,
 end
 
-lemma continuous_linear_equiv.comp_differentiable_at_iff {f : G → E} {x : G} :
+lemma comp_differentiable_at_iff {f : G → E} {x : G} :
   differentiable_at 𝕜 (iso ∘ f) x ↔ differentiable_at 𝕜 f x :=
 by rw [← differentiable_within_at_univ, ← differentiable_within_at_univ,
        iso.comp_differentiable_within_at_iff]
 
-lemma continuous_linear_equiv.comp_differentiable_on_iff {f : G → E} {s : set G} :
+lemma comp_differentiable_on_iff {f : G → E} {s : set G} :
   differentiable_on 𝕜 (iso ∘ f) s ↔ differentiable_on 𝕜 f s :=
 begin
   rw [differentiable_on, differentiable_on],
   simp only [iso.comp_differentiable_within_at_iff],
 end
 
-lemma continuous_linear_equiv.comp_differentiable_iff {f : G → E} :
+lemma comp_differentiable_iff {f : G → E} :
   differentiable 𝕜 (iso ∘ f) ↔ differentiable 𝕜 f :=
 begin
   rw [← differentiable_on_univ, ← differentiable_on_univ],
   exact iso.comp_differentiable_on_iff
 end
 
-lemma continuous_linear_equiv.comp_has_fderiv_within_at_iff
+lemma comp_has_fderiv_within_at_iff
   {f : G → E} {s : set G} {x : G} {f' : G →L[𝕜] E} :
   has_fderiv_within_at (iso ∘ f) ((iso : E →L[𝕜] F).comp f') s x ↔ has_fderiv_within_at f f' s x :=
 begin
@@ -2485,29 +2484,29 @@ begin
   exact iso.symm.has_fderiv_at.comp_has_fderiv_within_at x H
 end
 
-lemma continuous_linear_equiv.comp_has_strict_fderiv_at_iff {f : G → E} {x : G} {f' : G →L[𝕜] E} :
+lemma comp_has_strict_fderiv_at_iff {f : G → E} {x : G} {f' : G →L[𝕜] E} :
   has_strict_fderiv_at (iso ∘ f) ((iso : E →L[𝕜] F).comp f') x ↔ has_strict_fderiv_at f f' x :=
 begin
   refine ⟨λ H, _, λ H, iso.has_strict_fderiv_at.comp x H⟩,
   convert iso.symm.has_strict_fderiv_at.comp x H; ext z; apply (iso.symm_apply_apply _).symm
 end
 
-lemma continuous_linear_equiv.comp_has_fderiv_at_iff {f : G → E} {x : G} {f' : G →L[𝕜] E} :
+lemma comp_has_fderiv_at_iff {f : G → E} {x : G} {f' : G →L[𝕜] E} :
   has_fderiv_at (iso ∘ f) ((iso : E →L[𝕜] F).comp f') x ↔ has_fderiv_at f f' x :=
 by rw [← has_fderiv_within_at_univ, ← has_fderiv_within_at_univ, iso.comp_has_fderiv_within_at_iff]
 
-lemma continuous_linear_equiv.comp_has_fderiv_within_at_iff'
+lemma comp_has_fderiv_within_at_iff'
   {f : G → E} {s : set G} {x : G} {f' : G →L[𝕜] F} :
   has_fderiv_within_at (iso ∘ f) f' s x ↔
   has_fderiv_within_at f ((iso.symm : F →L[𝕜] E).comp f') s x :=
 by rw [← iso.comp_has_fderiv_within_at_iff, ← continuous_linear_map.comp_assoc,
   iso.coe_comp_coe_symm, continuous_linear_map.id_comp]
 
-lemma continuous_linear_equiv.comp_has_fderiv_at_iff' {f : G → E} {x : G} {f' : G →L[𝕜] F} :
+lemma comp_has_fderiv_at_iff' {f : G → E} {x : G} {f' : G →L[𝕜] F} :
   has_fderiv_at (iso ∘ f) f' x ↔ has_fderiv_at f ((iso.symm : F →L[𝕜] E).comp f') x :=
 by rw [← has_fderiv_within_at_univ, ← has_fderiv_within_at_univ, iso.comp_has_fderiv_within_at_iff']
 
-lemma continuous_linear_equiv.comp_fderiv_within {f : G → E} {s : set G} {x : G}
+lemma comp_fderiv_within {f : G → E} {s : set G} {x : G}
   (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (iso ∘ f) s x = (iso : E →L[𝕜] F).comp (fderiv_within 𝕜 f s x) :=
 begin
@@ -2520,7 +2519,7 @@ begin
         continuous_linear_map.comp_zero] }
 end
 
-lemma continuous_linear_equiv.comp_fderiv {f : G → E} {x : G} :
+lemma comp_fderiv {f : G → E} {x : G} :
   fderiv 𝕜 (iso ∘ f) x = (iso : E →L[𝕜] F).comp (fderiv 𝕜 f x) :=
 begin
   rw [← fderiv_within_univ, ← fderiv_within_univ],
@@ -2528,6 +2527,89 @@ begin
 end
 
 end continuous_linear_equiv
+
+namespace linear_isometry_equiv
+/-! ### Differentiability of linear isometry equivs, and invariance of differentiability -/
+
+variable (iso : E ≃ₗᵢ[𝕜] F)
+
+protected lemma has_strict_fderiv_at : has_strict_fderiv_at iso (iso : E →L[𝕜] F) x :=
+(iso : E ≃L[𝕜] F).has_strict_fderiv_at
+
+protected lemma has_fderiv_within_at : has_fderiv_within_at iso (iso : E →L[𝕜] F) s x :=
+(iso : E ≃L[𝕜] F).has_fderiv_within_at
+
+protected lemma has_fderiv_at : has_fderiv_at iso (iso : E →L[𝕜] F) x :=
+(iso : E ≃L[𝕜] F).has_fderiv_at
+
+protected lemma differentiable_at : differentiable_at 𝕜 iso x :=
+iso.has_fderiv_at.differentiable_at
+
+protected lemma differentiable_within_at :
+  differentiable_within_at 𝕜 iso s x :=
+iso.differentiable_at.differentiable_within_at
+
+protected lemma fderiv : fderiv 𝕜 iso x = iso := iso.has_fderiv_at.fderiv
+
+protected lemma fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 iso s x = iso :=
+(iso : E ≃L[𝕜] F).fderiv_within hxs
+
+protected lemma differentiable : differentiable 𝕜 iso :=
+λx, iso.differentiable_at
+
+protected lemma differentiable_on : differentiable_on 𝕜 iso s :=
+iso.differentiable.differentiable_on
+
+lemma comp_differentiable_within_at_iff {f : G → E} {s : set G} {x : G} :
+  differentiable_within_at 𝕜 (iso ∘ f) s x ↔ differentiable_within_at 𝕜 f s x :=
+(iso : E ≃L[𝕜] F).comp_differentiable_within_at_iff
+
+lemma comp_differentiable_at_iff {f : G → E} {x : G} :
+  differentiable_at 𝕜 (iso ∘ f) x ↔ differentiable_at 𝕜 f x :=
+(iso : E ≃L[𝕜] F).comp_differentiable_at_iff
+
+lemma comp_differentiable_on_iff {f : G → E} {s : set G} :
+  differentiable_on 𝕜 (iso ∘ f) s ↔ differentiable_on 𝕜 f s :=
+(iso : E ≃L[𝕜] F).comp_differentiable_on_iff
+
+lemma comp_differentiable_iff {f : G → E} :
+  differentiable 𝕜 (iso ∘ f) ↔ differentiable 𝕜 f :=
+(iso : E ≃L[𝕜] F).comp_differentiable_iff
+
+lemma comp_has_fderiv_within_at_iff
+  {f : G → E} {s : set G} {x : G} {f' : G →L[𝕜] E} :
+  has_fderiv_within_at (iso ∘ f) ((iso : E →L[𝕜] F).comp f') s x ↔ has_fderiv_within_at f f' s x :=
+(iso : E ≃L[𝕜] F).comp_has_fderiv_within_at_iff
+
+lemma comp_has_strict_fderiv_at_iff {f : G → E} {x : G} {f' : G →L[𝕜] E} :
+  has_strict_fderiv_at (iso ∘ f) ((iso : E →L[𝕜] F).comp f') x ↔ has_strict_fderiv_at f f' x :=
+(iso : E ≃L[𝕜] F).comp_has_strict_fderiv_at_iff
+
+lemma comp_has_fderiv_at_iff {f : G → E} {x : G} {f' : G →L[𝕜] E} :
+  has_fderiv_at (iso ∘ f) ((iso : E →L[𝕜] F).comp f') x ↔ has_fderiv_at f f' x :=
+(iso : E ≃L[𝕜] F).comp_has_fderiv_at_iff
+
+lemma comp_has_fderiv_within_at_iff'
+  {f : G → E} {s : set G} {x : G} {f' : G →L[𝕜] F} :
+  has_fderiv_within_at (iso ∘ f) f' s x ↔
+  has_fderiv_within_at f ((iso.symm : F →L[𝕜] E).comp f') s x :=
+(iso : E ≃L[𝕜] F).comp_has_fderiv_within_at_iff'
+
+lemma comp_has_fderiv_at_iff' {f : G → E} {x : G} {f' : G →L[𝕜] F} :
+  has_fderiv_at (iso ∘ f) f' x ↔ has_fderiv_at f ((iso.symm : F →L[𝕜] E).comp f') x :=
+(iso : E ≃L[𝕜] F).comp_has_fderiv_at_iff'
+
+lemma comp_fderiv_within {f : G → E} {s : set G} {x : G}
+  (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (iso ∘ f) s x = (iso : E →L[𝕜] F).comp (fderiv_within 𝕜 f s x) :=
+(iso : E ≃L[𝕜] F).comp_fderiv_within hxs
+
+lemma comp_fderiv {f : G → E} {x : G} :
+  fderiv 𝕜 (iso ∘ f) x = (iso : E →L[𝕜] F).comp (fderiv 𝕜 f x) :=
+(iso : E ≃L[𝕜] F).comp_fderiv
+
+end linear_isometry_equiv
 
 /-- If `f (g y) = y` for `y` in some neighborhood of `a`, `g` is continuous at `a`, and `f` has an
 invertible derivative `f'` at `g a` in the strict sense, then `g` has the derivative `f'⁻¹` at `a`
@@ -2684,32 +2766,28 @@ begin
   exact h.maps_to_tangent_cone.mono (subset.refl _) submodule.subset_span
 end
 
+lemma unique_diff_on.image {f' : E → E →L[𝕜] F} (hs : unique_diff_on 𝕜 s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hd : ∀ x ∈ s, dense_range (f' x)) :
+  unique_diff_on 𝕜 (f '' s) :=
+ball_image_iff.2 $ λ x hx, (hf' x hx).unique_diff_within_at (hs x hx) (hd x hx)
+
 lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
   {x : E} (e' : E ≃L[𝕜] F) (h : has_fderiv_within_at f (e' : E →L[𝕜] F) s x)
   (hs : unique_diff_within_at 𝕜 s x) :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 h.unique_diff_within_at hs e'.surjective.dense_range
 
-lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
+lemma continuous_linear_equiv.unique_diff_on_image (e : E ≃L[𝕜] F) (h : unique_diff_on 𝕜 s) :
+  unique_diff_on 𝕜 (e '' s) :=
+h.image (λ x _, e.has_fderiv_within_at) (λ x hx, e.surjective.dense_range)
+
+@[simp] lemma continuous_linear_equiv.unique_diff_on_image_iff (e : E ≃L[𝕜] F) :
+  unique_diff_on 𝕜 (e '' s) ↔ unique_diff_on 𝕜 s :=
+⟨λ h, e.symm_image_image s ▸ e.symm.unique_diff_on_image h, e.unique_diff_on_image⟩
+
+@[simp] lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
   unique_diff_on 𝕜 (e ⁻¹' s) ↔ unique_diff_on 𝕜 s :=
-begin
-  split,
-  { assume hs x hx,
-    have A : s = e '' (e.symm '' s) :=
-      (equiv.symm_image_image (e.symm.to_linear_equiv.to_equiv) s).symm,
-    have B : e.symm '' s = e⁻¹' s :=
-      equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s,
-    rw [A, B, (e.apply_symm_apply x).symm],
-    refine has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e
-      e.has_fderiv_within_at (hs _ _),
-    rwa [mem_preimage, e.apply_symm_apply x] },
-  { assume hs x hx,
-    have : e ⁻¹' s = e.symm '' s :=
-      (equiv.image_eq_preimage e.symm.to_linear_equiv.to_equiv s).symm,
-    rw [this, (e.symm_apply_apply x).symm],
-    exact has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv e.symm
-      e.symm.has_fderiv_within_at (hs _ hx) },
-end
+by rw [← e.image_symm_eq_preimage, e.symm.unique_diff_on_image_iff]
 
 end tangent_cone
 

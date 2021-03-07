@@ -156,8 +156,7 @@ lemma rename_esymm (n : ℕ) (e : σ ≃ τ) : rename e (esymm σ R n) = esymm �
 begin
   rw [esymm_eq_sum_subtype, esymm_eq_sum_subtype, (rename ⇑e).map_sum],
   let e' : {s : finset σ // s.card = n} ≃ {s : finset τ // s.card = n} :=
-    equiv.subtype_equiv (equiv.finset_congr e)
-    (by { intro, rw [equiv.finset_congr_apply, card_map] }),
+    equiv.subtype_equiv (equiv.finset_congr e) (by simp),
   rw ← equiv.sum_comp e'.symm,
   apply fintype.sum_congr,
   intro,

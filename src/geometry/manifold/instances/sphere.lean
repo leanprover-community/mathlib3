@@ -169,7 +169,7 @@ begin
   { convert eq_sum_orthogonal_projection_self_orthogonal_complement (ℝ ∙ v) x,
     exact (orthogonal_projection_unit_singleton ℝ hv x).symm },
   have hvy : ⟪v, y⟫_ℝ = 0 := inner_right_of_mem_orthogonal_singleton v y.2,
-  have pythag : 1 = a ^ 2 + ∥(y:E)∥ ^ 2,
+  have pythag : 1 = a ^ 2 + ∥y∥ ^ 2,
   { have hvy' : ⟪a • v, y⟫_ℝ = 0 := by simp [inner_smul_left, hvy],
     convert norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero _ _ hvy' using 2,
     { simp [← split] },
@@ -179,7 +179,7 @@ begin
   have ha : 1 - a ≠ 0,
   { have : a < 1 := (inner_lt_one_iff_real_of_norm_one hv (by simp)).mpr hx.symm,
     linarith },
-  have : 2 ^ 2 * ∥(y:E)∥ ^ 2 + 4 * (1 - a) ^ 2 ≠ 0,
+  have : 2 ^ 2 * ∥y∥ ^ 2 + 4 * (1 - a) ^ 2 ≠ 0,
   { refine ne_of_gt _,
     have := norm_nonneg (y:E),
     have : 0 < (1 - a) ^ 2 := pow_two_pos_of_ne_zero (1 - a) ha,
@@ -188,9 +188,9 @@ begin
   have h₁ : (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 + 4)⁻¹ * 4 * (2 / (1 - a)) = 1,
   { field_simp,
     nlinarith },
-  have h₂ : (2 ^ 2 / (1 - a) ^ 2 * ∥(y:E)∥ ^ 2 + 4)⁻¹ * (2 ^ 2 / (1 - a) ^ 2 * ∥(y:E)∥ ^ 2 - 4) = a,
+  have h₂ : (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 + 4)⁻¹ * (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 - 4) = a,
   { field_simp,
-    transitivity (1 - a) ^ 2 * (a * (2 ^ 2 * ∥(y:E)∥ ^ 2 + 4 * (1 - a) ^ 2)),
+    transitivity (1 - a) ^ 2 * (a * (2 ^ 2 * ∥y∥ ^ 2 + 4 * (1 - a) ^ 2)),
     { congr,
       nlinarith },
     ring },
@@ -273,9 +273,9 @@ composing the original sterographic projection (`stereographic`) with an arbitra
 from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
 def stereographic' (n : ℕ) [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
-(stereographic (norm_eq_of_mem_sphere v)).trans
-(linear_isometry_equiv.from_orthogonal_span_singleton
-  (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv.to_homeomorph.to_local_homeomorph
+(stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
+(linear_isometry_equiv.from_orthogonal_span_singleton n
+  (nonzero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
@@ -307,21 +307,19 @@ instance {n : ℕ} [fact (findim ℝ E = n + 1)] :
 smooth_manifold_with_corners_of_times_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
-  let U : (ℝ ∙ (v:E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton
-    (nonzero_of_mem_unit_sphere v)).to_continuous_linear_equiv,
-  let U' : (ℝ ∙ (v':E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton
-    (nonzero_of_mem_unit_sphere v')).to_continuous_linear_equiv,
-  have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)).trans
-      U.to_homeomorph.to_local_homeomorph := rfl,
+  let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+    linear_isometry_equiv.from_orthogonal_span_singleton n
+      (nonzero_of_mem_unit_sphere v),
+  let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+    linear_isometry_equiv.from_orthogonal_span_singleton n
+      (nonzero_of_mem_unit_sphere v'),
+  have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
+    U.to_homeomorph.to_local_homeomorph := rfl,
   have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
-      U'.to_homeomorph.to_local_homeomorph := rfl,
-  have H₁ := U'.to_continuous_linear_map.times_cont_diff.comp_times_cont_diff_on
-      times_cont_diff_on_stereo_to_fun,
+    U'.to_homeomorph.to_local_homeomorph := rfl,
+  have H₁ := U'.times_cont_diff.comp_times_cont_diff_on times_cont_diff_on_stereo_to_fun,
   have H₂ := (times_cont_diff_stereo_inv_fun_aux.comp
-      (ℝ ∙ (v:E))ᗮ.subtypeL.times_cont_diff).comp
-      U.symm.to_continuous_linear_map.times_cont_diff,
+      (ℝ ∙ (v:E))ᗮ.subtypeL.times_cont_diff).comp U.symm.times_cont_diff,
   convert H₁.comp' (H₂.times_cont_diff_on : times_cont_diff_on ℝ ⊤ _ set.univ) using 1,
   have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
   { simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one] },
@@ -337,12 +335,10 @@ begin
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-      (linear_isometry_equiv.from_orthogonal_span_singleton
-      (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
+    let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+      linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v)),
     exact ((times_cont_diff_stereo_inv_fun_aux.comp
-      (ℝ ∙ ((-v):E))ᗮ.subtypeL.times_cont_diff).comp
-      U.symm.to_continuous_linear_map.times_cont_diff).times_cont_diff_on }
+      (ℝ ∙ ((-v):E))ᗮ.subtypeL.times_cont_diff).comp U.symm.times_cont_diff).times_cont_diff_on }
 end
 
 variables {F : Type*} [normed_group F] [normed_space ℝ F]
@@ -359,11 +355,10 @@ begin
   rw times_cont_mdiff_iff_target,
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
-  let U : (ℝ ∙ ((-v):E))ᗮ ≃L[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton
-    (nonzero_of_mem_unit_sphere (-v))).to_continuous_linear_equiv,
-  have h : times_cont_diff_on _ _ _ set.univ :=
-    U.to_continuous_linear_map.times_cont_diff.times_cont_diff_on,
+  let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+    (linear_isometry_equiv.from_orthogonal_span_singleton n (nonzero_of_mem_unit_sphere (-v))),
+  have h : times_cont_diff_on ℝ ⊤ U set.univ :=
+    U.times_cont_diff.times_cont_diff_on,
   have H₁ := (h.comp' times_cont_diff_on_stereo_to_fun).times_cont_mdiff_on,
   have H₂ : times_cont_mdiff_on _ _ _ _ set.univ := hf.times_cont_mdiff_on,
   convert (H₁.of_le le_top).comp' H₂ using 1,

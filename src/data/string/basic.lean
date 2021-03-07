@@ -26,7 +26,8 @@ using_well_founded {rel_tac :=
 instance has_lt' : has_lt string :=
 ⟨λ s₁ s₂, ltb s₁.mk_iterator s₂.mk_iterator⟩
 
-instance decidable_lt : @decidable_rel string (<) := by apply_instance -- short-circuit type class inference
+instance decidable_lt : @decidable_rel string (<) :=
+by apply_instance -- short-circuit type class inference
 
 @[simp] theorem lt_iff_to_list_lt :
   ∀ {s₁ s₂ : string}, s₁ < s₂ ↔ s₁.to_list < s₂.to_list
@@ -36,7 +37,7 @@ instance decidable_lt : @decidable_rel string (<) := by apply_instance -- short-
     intros,
     induction s₁ with a s₁ IH generalizing p₁ p₂ s₂;
       cases s₂ with b s₂; rw ltb; simp [iterator.has_next],
-    { exact iff_of_false bool.ff_ne_tt (lt_irrefl _) },
+    { refl, },
     { exact iff_of_true rfl list.lex.nil },
     { exact iff_of_false bool.ff_ne_tt (not_lt_of_lt list.lex.nil) },
     { dsimp [iterator.has_next,
@@ -49,7 +50,8 @@ instance decidable_lt : @decidable_rel string (<) := by apply_instance -- short-
 
 instance has_le : has_le string := ⟨λ s₁ s₂, ¬ s₂ < s₁⟩
 
-instance decidable_le : @decidable_rel string (≤) := by apply_instance -- short-circuit type class inference
+instance decidable_le : @decidable_rel string (≤) :=
+by apply_instance -- short-circuit type class inference
 
 @[simp] theorem le_iff_to_list_le
   {s₁ s₂ : string} : s₁ ≤ s₂ ↔ s₁.to_list ≤ s₂.to_list :=

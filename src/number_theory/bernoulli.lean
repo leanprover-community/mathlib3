@@ -156,7 +156,7 @@ open power_series
 variables (A : Type*) [comm_ring A] [algebra ℚ A]
 
 
-/-- The exponential generating function of the with `bernoulli' n`. -/
+/-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/
 def bernoulli'_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!))
 
 theorem bernoulli'_power_series_mul_exp_sub_one :
@@ -297,7 +297,7 @@ begin
     norm_num },
 end
 
-/-- The exponential generating function of the with `bernoulli n`. -/
+/-- The exponential generating function for the Bernoulli numbers `bernoulli n`. -/
 def bernoulli_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!))
 
 theorem bernoulli_power_series_mul_exp_sub_one :

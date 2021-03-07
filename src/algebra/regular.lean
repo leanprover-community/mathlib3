@@ -218,7 +218,7 @@ end
 lemma is_right_regular.ne_zero [nontrivial R] (ra : is_right_regular a) : a ≠ 0 :=
 begin
   rintro rfl,
-  rcases nontrivial_iff.mp exists_pair_ne R with ⟨x, y, xy⟩,
+  rcases exists_pair_ne R with ⟨x, y, xy⟩,
   refine xy (ra (_ : x * 0 = y * 0)),
   rw [mul_zero, mul_zero]
 end

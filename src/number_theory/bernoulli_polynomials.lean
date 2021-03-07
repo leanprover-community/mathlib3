@@ -82,7 +82,7 @@ begin
   simp only [←succ_eq_add_one, sum_range_succ, mul_one, cast_one, choose_self,
     (bernoulli _).mul_comm, sum_bernoulli, one_pow, mul_one, polynomial.eval_C,
     polynomial.eval_monomial],
-  by_cases h: n = 1,
+  by_cases h : n = 1,
   { simp [h],
     norm_num, },
   { simp [h],

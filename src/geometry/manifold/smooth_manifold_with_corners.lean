@@ -644,11 +644,11 @@ lemma ext_chart_at_open_source : is_open (ext_chart_at I x).source :=
 by { rw ext_chart_at_source, exact (chart_at H x).open_source }
 
 lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
-by simp only with mfld_simps
+by simp only [ext_chart_at_source, mem_chart_source]
 
 lemma ext_chart_at_to_inv :
   (ext_chart_at I x).symm ((ext_chart_at I x) x) = x :=
-by simp only with mfld_simps
+(ext_chart_at I x).left_inv (mem_ext_chart_source I x)
 
 lemma ext_chart_at_source_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
   (ext_chart_at I x).source ∈ 𝓝 x' :=
@@ -656,6 +656,14 @@ mem_nhds_sets (ext_chart_at_open_source I x) h
 
 lemma ext_chart_at_source_mem_nhds : (ext_chart_at I x).source ∈ 𝓝 x :=
 ext_chart_at_source_mem_nhds' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_source_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
+  (ext_chart_at I x).source ∈ 𝓝[s] x' :=
+mem_nhds_within_of_mem_nhds (ext_chart_at_source_mem_nhds' I x h)
+
+lemma ext_chart_at_source_mem_nhds_within :
+  (ext_chart_at I x).source ∈ 𝓝[s] x :=
+mem_nhds_within_of_mem_nhds (ext_chart_at_source_mem_nhds I x)
 
 lemma ext_chart_at_continuous_on :
   continuous_on (ext_chart_at I x) (ext_chart_at I x).source :=
@@ -690,32 +698,34 @@ lemma ext_chart_at_map_nhds :
   map (ext_chart_at I x) (𝓝 x) = 𝓝[range I] (ext_chart_at I x x) :=
 ext_chart_at_map_nhds' I $ mem_ext_chart_source I x
 
+lemma ext_chart_at_target_mem_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  (ext_chart_at I x).target ∈ 𝓝[range I] (ext_chart_at I x y) :=
+begin
+  rw [← local_equiv.image_source_eq_target, ← ext_chart_at_map_nhds' I hy],
+  exact image_mem_map (ext_chart_at_source_mem_nhds' _ _ hy)
+end
+
 lemma ext_chart_at_target_mem_nhds_within :
   (ext_chart_at I x).target ∈ 𝓝[range I] (ext_chart_at I x x) :=
-begin
-  rw [← local_equiv.image_source_eq_target, ← ext_chart_at_map_nhds],
-  exact image_mem_map (ext_chart_at_source_mem_nhds _ _)
-end
+ext_chart_at_target_mem_nhds_within' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_at_target_subset_range : (ext_chart_at I x).target ⊆ range I :=
 by simp only with mfld_simps
 
+lemma nhds_within_ext_chart_target_eq' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  𝓝[(ext_chart_at I x).target] (ext_chart_at I x y) =
+  𝓝[range I] (ext_chart_at I x y) :=
+(nhds_within_mono _ (ext_chart_at_target_subset_range _ _)).antisymm $
+  nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within' _ _ hy)
+
 lemma nhds_within_ext_chart_target_eq :
   𝓝[(ext_chart_at I x).target] ((ext_chart_at I x) x) =
   𝓝[range I] ((ext_chart_at I x) x) :=
-(nhds_within_mono _ (ext_chart_at_target_subset_range _ _)).antisymm $
-  nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within _ _)
+nhds_within_ext_chart_target_eq' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_continuous_at_symm'' {y : E} (h : y ∈ (ext_chart_at I x).target) :
   continuous_at (ext_chart_at I x).symm y :=
-begin
-  apply continuous_at.comp,
-  { suffices : continuous_at (chart_at H x).symm (I.symm y), by simpa only with mfld_simps,
-    refine (chart_at H x).continuous_at_symm _,
-    simp only with mfld_simps at h,
-    exact h.2 },
-  { exact I.continuous_symm.continuous_at }
-end
+continuous_at.comp ((chart_at H x).continuous_at_symm h.2) (I.continuous_symm.continuous_at)
 
 lemma ext_chart_continuous_at_symm' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
   continuous_at (ext_chart_at I x).symm (ext_chart_at I x x') :=
@@ -729,20 +739,64 @@ lemma ext_chart_continuous_on_symm :
   continuous_on (ext_chart_at I x).symm (ext_chart_at I x).target :=
 λ y hy, (ext_chart_continuous_at_symm'' _ _ hy).continuous_within_at
 
+lemma ext_chart_at_map_nhds_within_eq_image' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x) (𝓝[s] y) =
+    𝓝[ext_chart_at I x '' ((ext_chart_at I x).source ∩ s)] (ext_chart_at I x y) :=
+by set e := ext_chart_at I x;
+calc map e (𝓝[s] y) = map e (𝓝[e.source ∩ s] y) :
+  congr_arg (map e) (nhds_within_inter_of_mem (ext_chart_at_source_mem_nhds_within' I x hy)).symm
+... = 𝓝[e '' (e.source ∩ s)] (e y) :
+  ((ext_chart_at I x).left_inv_on.mono $ inter_subset_left _ _).map_nhds_within_eq
+    ((ext_chart_at I x).left_inv hy)
+    (ext_chart_continuous_at_symm' I x hy).continuous_within_at
+    (ext_chart_at_continuous_at' I x hy).continuous_within_at
+
+lemma ext_chart_at_map_nhds_within_eq_image :
+  map (ext_chart_at I x) (𝓝[s] x) =
+    𝓝[ext_chart_at I x '' ((ext_chart_at I x).source ∩ s)] (ext_chart_at I x x) :=
+ext_chart_at_map_nhds_within_eq_image' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_map_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x) (𝓝[s] y) =
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x y) :=
+by rw [ext_chart_at_map_nhds_within_eq_image' I x hy, nhds_within_inter,
+  ← nhds_within_ext_chart_target_eq' _ _ hy, ← nhds_within_inter, inter_comm,
+  (ext_chart_at I x).image_inter_source_eq', inter_comm]
+
+lemma ext_chart_at_map_nhds_within :
+  map (ext_chart_at I x) (𝓝[s] x) =
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x) :=
+ext_chart_at_map_nhds_within' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_symm_map_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x).symm
+    (𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x y)) = 𝓝[s] y :=
+begin
+  rw [← ext_chart_at_map_nhds_within' I x hy, map_map, map_congr, map_id],
+  exact (ext_chart_at I x).left_inv_on.eq_on.eventually_eq_of_mem
+    (ext_chart_at_source_mem_nhds_within' _ _ hy)
+end
+
+lemma ext_chart_at_symm_map_nhds_within_range' {y : M} (hy : y ∈ (ext_chart_at I x).source) :
+  map (ext_chart_at I x).symm (𝓝[range I] (ext_chart_at I x y)) = 𝓝 y :=
+by rw [← nhds_within_univ, ← ext_chart_at_symm_map_nhds_within' I x hy, preimage_univ, univ_inter]
+
+lemma ext_chart_at_symm_map_nhds_within :
+  map (ext_chart_at I x).symm
+    (𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)) = 𝓝[s] x :=
+ext_chart_at_symm_map_nhds_within' I x (mem_ext_chart_source I x)
+
+lemma ext_chart_at_symm_map_nhds_within_range :
+  map (ext_chart_at I x).symm (𝓝[range I] (ext_chart_at I x x)) = 𝓝 x :=
+ext_chart_at_symm_map_nhds_within_range' I x (mem_ext_chart_source I x)
+
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
 in the source is a neighborhood of the preimage, within a set. -/
 lemma ext_chart_preimage_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x).source)
   (ht : t ∈ 𝓝[s] x') :
   (ext_chart_at I x).symm ⁻¹' t ∈
     𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x') :=
-begin
-  apply (ext_chart_continuous_at_symm' I x h).continuous_within_at.tendsto_nhds_within_image,
-  rw (ext_chart_at I x).left_inv h,
-  apply nhds_within_mono _ _ ht,
-  have : (ext_chart_at I x).symm '' ((ext_chart_at I x).symm ⁻¹' s) ⊆ s :=
-    image_preimage_subset _ _,
-  exact subset.trans (image_subset _ (inter_subset_left _ _)) this
-end
+by rwa [← ext_chart_at_symm_map_nhds_within' I x h, mem_map] at ht
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of the
 base point is a neighborhood of the preimage, within a set. -/

@@ -550,6 +550,16 @@ attribute [mfld_simps] pi_source pi_target
 @[simp, mfld_simps] lemma pi_symm :
   (local_equiv.pi ei).symm = local_equiv.pi (λ i, (ei i).symm) := rfl
 
+@[simp] lemma range_pi : range (local_equiv.pi ei) = pi univ (λ i, range $ ei i) :=
+begin
+  apply subset.antisymm,
+  { rintro _ ⟨x, rfl⟩ i -,
+    exact ⟨x i, rfl⟩ },
+  { intros x hx,
+    choose y hy using hx,
+    exact ⟨λ i, y i trivial, funext $ λ i, hy i trivial⟩ }
+end
+
 end pi
 
 end local_equiv

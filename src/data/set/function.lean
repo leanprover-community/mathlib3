@@ -687,6 +687,20 @@ lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
   s.piecewise f g ∈ pi t t' :=
 by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
 
+@[simp] lemma pi_piecewise_univ' {ι : Type*} {α : ι → Type*} (s s' : set ι)
+  (t : Π i, set (α i)) [Π x, decidable (x ∈ s')] :
+  pi s (s'.piecewise t (λ _, univ)) = pi (s ∩ s') t :=
+begin
+  ext x,
+  refine forall_congr (λ i, _),
+  by_cases hi : i ∈ s'; simp *
+end
+
+lemma pi_piecewise_univ {ι : Type*} {α : ι → Type*} (s : set ι)
+  (t : Π i, set (α i)) [Π x, decidable (x ∈ s)] :
+  pi univ (s.piecewise t (λ _, univ)) = pi s t :=
+by simp
+
 end set
 
 lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}

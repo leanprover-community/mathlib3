@@ -130,7 +130,7 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=
 (source_eq          : source = univ)
-(unique_diff'       : unique_diff_on 𝕜 (range to_fun))
+(unique_diff'       : unique_diff_on 𝕜 (range to_local_equiv))
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
@@ -274,33 +274,36 @@ end
 section model_with_corners_prod
 
 /-- Given two model_with_corners `I` on `(E, H)` and `I'` on `(E', H')`, we define the model with
-corners `I.prod I'` on `(E × E', H × H')`. This appears in particular for the manifold structure on
-the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on `(E × E, H × E)`. -/
+corners `I.prod I'` on `(E × E', model_prod H H')`. This appears in particular for the manifold
+structure on the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on
+`(E × E, H × E)`. See note [Manifold type tags] for explanation about `model_prod H H'`
+vs `H × H'`. -/
 def model_with_corners.prod
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H)
   {E' : Type v'} [normed_group E'] [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
   (I' : model_with_corners 𝕜 E' H') : model_with_corners 𝕜 (E × E') (model_prod H H') :=
-{ to_fun       := λ p, (I p.1, I' p.2),
-  inv_fun      := λ p, (I.symm p.1, I'.symm p.2),
-  source       := (univ : set (H × H')),
-  target       := set.prod (range I) (range I'),
-  map_source'  := λ ⟨x, x'⟩ _, by simp [-mem_range, mem_range_self],
-  map_target'  := λ ⟨x, x'⟩ _, mem_univ _,
-  left_inv'    := λ ⟨x, x'⟩ _, by simp,
-  right_inv'   := λ ⟨x, x'⟩ ⟨hx, hx'⟩, by simp [hx, hx'],
-  source_eq    := rfl,
-  unique_diff' := begin
-    have : range (λ(p : model_prod H H'), (I p.1, I' p.2)) = set.prod (range I) (range I'),
-      by { dsimp [model_prod], rw ← prod_range_range_eq },
-    rw this,
-    exact unique_diff_on.prod I.unique_diff I'.unique_diff,
-  end,
-  continuous_to_fun := (continuous.comp I.continuous_to_fun continuous_fst).prod_mk
-    (continuous.comp I'.continuous_to_fun continuous_snd),
-  continuous_inv_fun := (continuous.comp I.continuous_inv_fun continuous_fst).prod_mk
-    (continuous.comp I'.continuous_inv_fun continuous_snd) }
+{ to_local_equiv := I.to_local_equiv.prod I'.to_local_equiv,
+  source_eq    := by simp only with mfld_simps,
+  unique_diff' := by simpa only [prod_range_range_eq] using I.unique_diff.prod I'.unique_diff,
+  continuous_to_fun := I.continuous_to_fun.prod_map I'.continuous_to_fun,
+  continuous_inv_fun := I.continuous_inv_fun.prod_map I'.continuous_inv_fun }
+
+/-- Given a finite family of `model_with_corners` `I i` on `(E i, H i)`, we define the model with
+corners `pi I` on `(Π i, E i, model_pi H)`. See note [Manifold type tags] for explanation about
+`model_pi H`. -/
+def model_with_corners.pi
+  {𝕜 : Type u} [nondiscrete_normed_field 𝕜] {ι : Type v} [fintype ι]
+  {E : ι → Type w} [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {H : ι → Type u'} [Π i, topological_space (H i)] (I : Π i, model_with_corners 𝕜 (E i) (H i)) :
+  model_with_corners 𝕜 (Π i, E i) (model_pi H) :=
+{ to_local_equiv := local_equiv.pi (λ i, (I i).to_local_equiv),
+  source_eq := by simp only [set.pi_univ] with mfld_simps,
+  unique_diff' := by { rw local_equiv.range_pi,
+    exact unique_diff_on.pi (λ i _, (I i).unique_diff) },
+  continuous_to_fun := continuous_pi $ λ i, (I i).continuous.comp (continuous_apply i),
+  continuous_inv_fun := continuous_pi $ λ i, (I i).continuous_symm.comp (continuous_apply i) }
 
 /-- Special case of product model with corners, which is trivial on the second factor. This shows up
 as the model to tangent bundles. -/

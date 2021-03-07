@@ -88,7 +88,7 @@ begin
   simp_rw [polynomial.smul_monomial, mul_comm (bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
-      rw [nat.prime.choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
+      rw [choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
         (le.intro rfl), add_comm x x_1, nat.add_sub_cancel, mul_assoc, mul_comm, ←smul_eq_mul,
         ←polynomial.smul_monomial], },
     rw [←sum_smul], },
@@ -147,7 +147,7 @@ begin
   intros i hi,
   -- NB prime.choose_eq_factorial_div_factorial' is in the wrong namespace
   -- deal with coefficients of e^X-1
-  simp only [prime.choose_eq_factorial_div_factorial' (mem_range_le hi), coeff_mk,
+  simp only [choose_eq_factorial_div_factorial' (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, coeff_one, units.coe_mk,
     coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
     mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],

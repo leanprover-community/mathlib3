@@ -123,10 +123,10 @@ instance : order_top (ideal P) :=
   le_top := λ I x h, le_top,
   .. ideal.partial_order }
 
-lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
+@[simp] lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)
 
-lemma top_of_top_mem {I : ideal P} (topmem : ⊤ ∈ I) : I = ⊤ :=
+@[simp] lemma top_of_mem_top {I : ideal P} (topmem : ⊤ ∈ I) : I = ⊤ :=
 begin
   ext,
   change x ∈ I.carrier ↔ x ∈ (⊤ : ideal P).carrier,

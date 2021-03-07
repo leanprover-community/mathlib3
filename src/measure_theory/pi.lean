@@ -44,8 +44,35 @@ finitary product measure
 -/
 
 noncomputable theory
-open function set measure_theory.outer_measure filter measurable_space
+
 open_locale classical big_operators topological_space ennreal
+
+section
+open finset
+variables {α β γ : Type*}
+lemma equiv.finset_image_univ_eq_univ [fintype α] [fintype β] (f : α ≃ β) :
+  univ.image f = univ :=
+by { ext x, simp only [mem_image, mem_univ, iff_true, exists_prop_of_true], use f.symm x, simp }
+
+variables [comm_monoid β]
+
+lemma prod_comp_equiv {s : finset α} (f : γ → β) (g : α ≃ γ) :
+  ∏ a in s, f (g a) = ∏ b in s.image g, f b :=
+begin
+  refine prod_bij' (λ x _, g x) (λ a ha, finset.mem_image_of_mem _ ha) (λ _ _, rfl)
+    (λ a _, g.symm a) _ (λ a _, g.symm_apply_apply a) (λ a _, g.apply_symm_apply a),
+  simp only [finset.mem_image, exists_imp_distrib], rintro _ _ _ rfl, simpa
+end
+
+lemma prod_univ_comp_equiv [fintype α] [fintype γ] (f : γ → β) (g : α ≃ γ) :
+  ∏ a, f (g a) = ∏ b, f b :=
+by rw [prod_comp_equiv f g, g.finset_image_univ_eq_univ]
+
+end
+
+
+open function set measure_theory.outer_measure filter measurable_space
+
 
 variables {ι ι' : Type*} {α : ι → Type*}
 
@@ -62,11 +89,24 @@ by { ext, simp [unique.forall_iff] }
 
 attribute [simps] equiv.Pi_congr_left
 open equiv
-lemma Pi_congr_left_symm_preimage (f : ι' ≃ ι) (s : set ι) (t : ∀ i, set (α i)) :
+lemma Pi_congr_left_symm_preimage_pi (f : ι' ≃ ι) (s : set ι) (t : ∀ i, set (α i)) :
   (f.Pi_congr_left α).symm ⁻¹' (f ⁻¹' s).pi (λ i', t $ f i') = s.pi t :=
 begin
   ext, simp only [mem_preimage, mem_pi, Pi_congr_left_symm_apply], convert f.forall_congr_left, refl
 end
+
+
+lemma Pi_congr_left_preimage_univ_pi (f : ι' ≃ ι) (t : ∀ i, set (α i)) :
+  f.Pi_congr_left α ⁻¹' pi univ t = pi univ (λ i, t (f i)) :=
+begin
+  apply set.ext, rw [← (f.Pi_congr_left α).symm.forall_congr_left],
+  intro x, simp only [mem_univ_pi, mem_preimage, apply_symm_apply, Pi_congr_left_symm_apply],
+  exact f.forall_congr_left.symm
+end
+
+-- lemma Pi_congr_left'_symm_preimage_univ_pi (f : ι ≃ ι') (t : ∀ i, set (α i)) :
+--   (f.Pi_congr_left' α).symm ⁻¹' pi univ t = pi univ (λ i, t (f.symm i)) :=
+-- Pi_congr_left_preimage_univ_pi f.symm t
 
 lemma measurable_unique_elim [unique ι] [∀ i, measurable_space (α i)] :
   measurable (unique_elim : α (default ι) → Π i, α i) :=
@@ -77,6 +117,40 @@ lemma measurable_set.univ_pi_fintype {δ} {π : δ → Type*} [∀ i, measurable
   {t : Π i, set (π i)} (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
 measurable_set.pi_fintype (λ i _, ht i)
 
+section new
+
+variables [∀ i, measurable_space (α i)]
+
+variables (α)
+lemma measurable_eq_mp {i i' : ι} (h : i = i') : measurable (congr_arg α h).mp :=
+by { cases h, exact measurable_id }
+
+lemma measurable.eq_mp {β} [measurable_space β] {i i' : ι} (h : i = i') {f : β → α i}
+  (hf : measurable f) : measurable (λ x, (congr_arg α h).mp (f x)) :=
+(measurable_eq_mp α h).comp hf
+variables {α}
+
+-- section
+-- variables (P : ι → Type*) (e : ι ≃ ι')
+-- -- note: `@[simps]` generates a lemma where the equality is proven by `Pi_congr_left'._proof_1`
+-- @[simp] lemma Pi_congr_left'_symm_apply (f : Π b, P (e.symm b)) (x : ι) :
+--   (Pi_congr_left' P e).symm f x =
+--   (congr_arg P $ e.symm_apply_apply _).mp (f (e x)) :=
+-- rfl
+-- end
+
+lemma measurable_Pi_congr_left (f : ι' ≃ ι) : measurable (Pi_congr_left α f) :=
+begin
+  rw measurable_pi_iff,
+  intro i,
+  apply measurable.eq_mp α (f.apply_symm_apply i),
+  exact measurable_pi_apply (f.symm i)
+end
+
+end new
+
+
+
 lemma pred_update {α} {β : α → Type*} (P : ∀ ⦃a⦄, β a → Prop)
   (f : Π a, β a) (a' : α) (v : β a') (a : α) :
   P (update f a' v a) ↔ (a = a' ∧ P v) ∨ (a ≠ a' ∧ P (f a)) :=
@@ -85,14 +159,14 @@ by { rw [update], split_ifs, { subst h, simp }, { rw [← ne.def] at h, simp [h]
 @[simp] lemma imp_and_neg_imp_iff (p q : Prop) [decidable p] : (p → q) ∧ (¬ p → q) ↔ q :=
 by { by_cases p; simp [h] }
 
-#print Union_unpair_prod
+-- #print Union_unpair_prod
 /- rename Union_prod to Union_prod_const.
 Also prove Union_unpair_prod using this or similar -/
 lemma Union_prod {ι α β} (s : ι → set α) (t : ι → set β) :
   (⋃ (x : ι × ι), (s x.1).prod (t x.2)) = (⋃ (i : ι), s i).prod (⋃ (i : ι), t i) :=
 by { ext, simp }
 
-set_option trace.simps.verbose true
+-- set_option trace.simps.verbose true
 attribute [simps apply symm_apply] subtype_equiv_right
 /-- `s ∪ t` (using finset union) is equivalent to `s ∪ t` (using set union) -/
 @[simps apply symm_apply] -- apply symm_apply
@@ -492,12 +566,14 @@ def equiv.Pi_sum' (π : ι → Type*) (π' : ι' → Type*) :
   ((Π i, π i) × (Π i', π' i')) ≃ Π i, sum.elim π π' i :=
 equiv.Pi_sum (sum.elim π π')
 
-lemma pi_map_left (f : ι ≃ ι') :
-  map (f.Pi_congr_left' α).symm (measure.pi (λ i', μ (f.symm i'))) = measure.pi μ :=
+lemma pi_map_left (f : ι' ≃ ι) :
+  map (f.Pi_congr_left α) (measure.pi (λ i', μ (f i'))) = measure.pi μ :=
 begin
   refine (pi_eq _).symm, intros s hs,
-  rw [map_apply],
-  all_goals {sorry}
+  rw [map_apply _ (measurable_set.univ_pi_fintype hs)],
+  { simp_rw [Pi_congr_left_preimage_univ_pi, pi_pi _ _ (λ i, hs (f i)),
+    prod_univ_comp_equiv (λ i, μ i (s i)) f] },
+  { apply measurable_Pi_congr_left }
 end
 
 lemma pi_sum {π : ι ⊕ ι' → Type*} [∀ i, measurable_space (π i)] (μ : ∀ i, measure (π i))
@@ -655,14 +731,14 @@ variables {E : Type*} [normed_group E] [second_countable_topology E]
 /-- Integrate `f(x₁,…,xₙ)` over all variables `xᵢ` where `i ∈ s`. Return a function in the
   remaining variables (it will be constant in the `xᵢ` for `i ∈ s`).
   This is the marginal distribution of all variables not in `s`. -/
--- give better name?
 def marginal (μ : ∀ i, measure (π i)) (s : finset δ) (f : (Π i, π i) → E) (x : Π i, π i) :
   E :=
 ∫ y : Π i : (s : set δ), π i, f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)
   ∂(measure.pi (λ i : (s : set δ), μ i))
 
 /-- The integrand of `marginal _ _ f` is measurable if `f` is. -/
-lemma measurable.marginal_aux {f : (Π i, π i) → E} (hf : measurable f) {s : finset δ} {x : Π i, π i} :
+lemma measurable.marginal_aux {f : (Π i, π i) → E} (hf : measurable f) {s : finset δ}
+  {x : Π i, π i} :
   measurable (λ (y : Π i : (s : set δ), π i), f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)) :=
 begin
   refine hf.comp _,
@@ -700,30 +776,29 @@ lemma set.union_apply_right' {α} {s t : set α} [decidable_pred (λ x, x ∈ s)
   {a : α} (ha : a ∈ t) : equiv.set.union H ⟨a, set.mem_union_right _ ha⟩ = sum.inr ⟨a, ha⟩ :=
 dif_neg $ λ h, H ⟨h, ha⟩
 
-lemma marginal_union (f : (Π i, π i) → E) (s t : finset δ) (hst : disjoint s t) :
+lemma marginal_union (f : (Π i, π i) → E) (hf : measurable f) (s t : finset δ) (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
 begin
   have : (s : set δ) ∩ (t : set δ) ⊆ ∅, { exact_mod_cast hst },
   let e : ((s ∪ t : finset δ) : set δ) ≃ (s : set δ) ⊕ (t : set δ) :=
   (finset_union s t).trans (equiv.set.union this),
   ext x,
-  simp_rw [marginal, ← measure.pi_map_left _ e],
+  simp_rw [marginal, ← measure.pi_map_left _ e.symm],
   rw [integral_map, ← measure.pi_sum, integral_map, integral_prod_symm],
+  -- dsimp only [e, set.union_symm_apply_left],
   sorry,
 
-  -- congr' with x, congr' with y, congr' with i,
-  -- { by_cases his : i ∈ s; by_cases hit : i ∈ t,
+  --
+  -- { symmetry, congr' with x, congr' with y, congr' with i, symmetry,
+        -- by_cases his : i ∈ s; by_cases hit : i ∈ t,
   --   { exact false.elim (this ⟨his, hit⟩) },
-  --   all_goals { simp only [his, hit, Pi_congr_left'_symm_apply, dif_pos, or_false, false_or,
+  --   all_goals { simp only [his, hit, Pi_congr_left_apply, dif_pos, or_false, false_or,
   --     measure.equiv.Pi_sum_apply, dif_neg, not_false_iff, finset.mem_union] },
   --   all_goals { dsimp only [e, trans_apply, finset_union_apply, set.union_apply_left,
   --   set.union_apply_right, subtype.coe_mk], rw [← heq_iff_eq], refine (eq_mpr_heq _ _).trans _ },
   --   exact congr_arg_heq _ (set.union_apply_left' this his),
-  --   exact congr_arg_heq _ (set.union_apply_right' this hit)
-  --   },
-  -- dsimp [e],
-  -- congr' with y, congr' with i, simp [e], dsimp [e], refl,
-  -- sorry, sorry
+  --   exact congr_arg_heq _ (set.union_apply_right' this hit) },
+
 end
 
 lemma marginal_singleton (f : (Π i, π i) → E) (hf : measurable f) (i : δ) :
@@ -746,7 +821,7 @@ lemma marginal_univ [fintype δ] (f : (Π i, π i) → E) :
 begin
   let e : { j // j ∈ finset.univ} ≃ δ := equiv.subtype_univ_equiv finset.mem_univ,
   ext x,
-  simp_rw [marginal, ← measure.pi_map_left μ e.symm],
+  simp_rw [marginal, ← measure.pi_map_left μ e],
   rw [integral_map], congr' with y, congr' with i, simp [e], dsimp [e], refl,
   sorry, sorry
 end

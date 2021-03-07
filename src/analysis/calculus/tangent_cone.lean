@@ -322,7 +322,8 @@ begin
   simp only [unique_diff_within_at, closure_pi_set] at h ⊢,
   refine ⟨(dense_pi univ (λ i _, (h i).1)).mono _, λ i _, (h i).2⟩,
   norm_cast,
-  simp only [← submodule.supr_map_single, supr_le_iff, submodule.map_span, submodule.span_le, ← maps_to'],
+  simp only [← submodule.supr_map_single, supr_le_iff, submodule.map_span, submodule.span_le,
+    ← maps_to'],
   exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
 end
 

@@ -2143,6 +2143,17 @@ end
 lemma univ_pi_eq_empty_iff : pi univ t = ∅ ↔ ∃ i, t i = ∅ :=
 by simp [← not_nonempty_iff_eq_empty, univ_pi_nonempty_iff]
 
+@[simp] lemma range_dcomp {β : ι → Type*} (f : Π i, α i → β i) :
+  range (λ (g : Π i, α i) i, f i (g i)) = pi univ (λ i, range (f i)) :=
+begin
+  apply subset.antisymm,
+  { rintro _ ⟨x, rfl⟩ i -,
+    exact ⟨x i, rfl⟩ },
+  { intros x hx,
+    choose y hy using hx,
+    exact ⟨λ i, y i trivial, funext $ λ i, hy i trivial⟩ }
+end
+
 @[simp] lemma insert_pi (i : ι) (s : set ι) (t : Π i, set (α i)) :
   pi (insert i s) t = (eval i ⁻¹' t i) ∩ pi s t :=
 by { ext, simp [pi, or_imp_distrib, forall_and_distrib] }

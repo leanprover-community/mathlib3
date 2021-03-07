@@ -209,7 +209,7 @@ lemma is_regular_iff_subsingleton : is_regular (0 : R) ↔ subsingleton R :=
 lemma is_left_regular.ne_zero [nontrivial R] (la : is_left_regular a) : a ≠ 0 :=
 begin
   rintro rfl,
-  rcases nontrivial_iff.mp _inst_2 with ⟨x, y, xy⟩,
+  rcases exists_pair_ne R with ⟨x, y, xy⟩,
   refine xy (la _),
   rw [zero_mul, zero_mul]
 end
@@ -218,7 +218,7 @@ end
 lemma is_right_regular.ne_zero [nontrivial R] (ra : is_right_regular a) : a ≠ 0 :=
 begin
   rintro rfl,
-  rcases nontrivial_iff.mp _inst_2 with ⟨x, y, xy⟩,
+  rcases nontrivial_iff.mp exists_pair_ne R with ⟨x, y, xy⟩,
   refine xy (ra (_ : x * 0 = y * 0)),
   rw [mul_zero, mul_zero]
 end
@@ -306,6 +306,6 @@ lemma is_regular_of_ne_zero (a0 : a ≠ 0) : is_regular a :=
 
 /--  In a non-trivial integral domain, an element is regular iff it is non-zero. -/
 lemma is_regular_iff_ne_zero [nontrivial R] : is_regular a ↔ a ≠ 0 :=
-⟨λ ra, ra.ne_zero, λ a0, ⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩⟩
+⟨is_regular.ne_zero, is_regular_of_ne_zero⟩
 
 end cancel_monoid_with_zero

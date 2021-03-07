@@ -1467,7 +1467,7 @@ begin
   rw h_rw_sum at hx,
   have hf_rw : (λ n, f n x) = λ n, f n x - f 0 x + f 0 x, by { ext1 n, abel, },
   rw hf_rw,
-  exact ⟨l + f 0 x, tendsto.add_const _ hx⟩,
+  exact ⟨l + f 0 x, filter.tendsto.add_const _ hx⟩,
 end
 
 lemma cauchy_limit_ℒp [complete_space E] {f : ℕ → α → E} {p : ℝ}

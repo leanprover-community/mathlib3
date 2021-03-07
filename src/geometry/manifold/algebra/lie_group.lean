@@ -26,6 +26,7 @@ groups here are not necessarily finite dimensional.
                                  is an additive Lie group.
 
 ## Implementation notes
+A priori, a Lie group here is a manifold with corners.
 
 The definition of Lie group cannot require `I : model_with_corners 𝕜 E E` with the same space as the
 model space and as the model vector space, as one might hope, beause in the product situation,

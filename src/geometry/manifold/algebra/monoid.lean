@@ -23,6 +23,7 @@ set_option old_structure_cmd true
 /-- Basic hypothesis to talk about a smooth (Lie) additive monoid or a smooth additive
 semigroup. A smooth additive monoid over `α`, for example, is obtained by requiring both the
 instances `add_monoid α` and `has_smooth_add α`. -/
+@[ancestor smooth_manifold_with_corners]
 class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
@@ -33,7 +34,7 @@ class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 /-- Basic hypothesis to talk about a smooth (Lie) monoid or a smooth semigroup.
 A smooth monoid over `G`, for example, is obtained by requiring both the instances `monoid G`
 and `has_smooth_mul I G`. -/
-@[to_additive]
+@[ancestor smooth_manifold_with_corners, to_additive]
 class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
@@ -63,7 +64,7 @@ has_smooth_mul.smooth_mul
 
 @[to_additive]
 lemma has_continuous_mul_of_smooth : has_continuous_mul G :=
-⟨(smooth_mul I).continuous⟩ 
+⟨(smooth_mul I).continuous⟩
 
 end
 

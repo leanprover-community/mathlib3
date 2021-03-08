@@ -7,6 +7,8 @@ import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
 import linear_algebra.multilinear
 import linear_algebra.dual
+import ring_theory.algebra_tower
+import ring_theory.matrix_algebra
 
 /-!
 # Linear maps and matrices
@@ -298,6 +300,9 @@ begin
   ext i j,
   simp [linear_map.to_matrix_apply, is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
 end
+
+lemma linear_map.to_matrix_one : linear_map.to_matrix hv₁ hv₁ 1 = 1 :=
+linear_map.to_matrix_id hv₁
 
 @[simp]
 lemma matrix.to_lin_one : matrix.to_lin hv₁ hv₁ 1 = id :=
@@ -704,6 +709,8 @@ variables {n} {R} {M}
 
 @[simp] lemma trace_diag (A : matrix n n M) : trace n R M A = ∑ i, diag n R M A i := rfl
 
+lemma trace_apply (A : matrix n n M) : trace n R M A = ∑ i, A i i := rfl
+
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = ∑ i, diag n R R 1 i := rfl,
@@ -812,6 +819,32 @@ begin
   apply linear_equiv.dim_eq,
   apply h₂,
 end
+
+variables {V : Type*} [add_comm_group V] [vector_space K V]
+variables {v₁ : n → V} (hv₁ : is_basis K v₁)
+
+lemma ker_to_lin_eq_bot [decidable_eq n] (M : matrix n n K) (hM : M.det ≠ 0) :
+  (to_lin hv₁ hv₁ M).ker = ⊥ :=
+begin
+  rw submodule.eq_bot_iff,
+  intros x hx,
+  calc x = to_lin hv₁ hv₁ (M⁻¹ ⬝ M) x : by simp [nonsing_inv_mul M (is_unit.mk0 _ hM)]
+     ... = to_lin hv₁ hv₁ M⁻¹ (to_lin hv₁ hv₁ M x) : by simp [to_lin_mul hv₁ hv₁ hv₁]
+     ... = (to_lin hv₁ hv₁ M⁻¹) 0 : by rw mem_ker.mp hx
+     ... = 0 : linear_map.map_zero _
+end
+
+lemma range_to_lin_eq_top [decidable_eq n] (M : matrix n n K) (hM : M.det ≠ 0) :
+  (to_lin hv₁ hv₁ M).range = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintros x -,
+  rw linear_map.mem_range,
+  use to_lin hv₁ hv₁ M⁻¹ x,
+  rw [← linear_map.comp_apply, ← to_lin_mul, mul_nonsing_inv _ (is_unit.mk0 _ hM),
+      to_lin_one, linear_map.id_apply]
+end
+
 
 end vector_space
 
@@ -996,6 +1029,79 @@ det_reindex_self' e A
 
 end reindexing
 
+section lmul
+
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
+variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+variables {b : m → S} (hb : is_basis R b) {c : n → T} (hc : is_basis S c)
+
+open algebra
+
+@[simp] lemma lmul_algebra_map (x : R) :
+  lmul R S (algebra_map R S x) = algebra.lsmul R S x :=
+linear_map.ext (λ s, by simp [smul_def''])
+
+lemma to_matrix_lmul' (x : S) (i j) :
+  linear_map.to_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
+by rw [linear_map.to_matrix_apply', lmul_apply]
+
+@[simp] lemma to_matrix_lsmul (x : R) (i j) :
+  linear_map.to_matrix hb hb (algebra.lsmul R S x) i j = if i = j then x else 0 :=
+by { rw [linear_map.to_matrix_apply', algebra.lsmul_coe, linear_map.map_smul, finsupp.smul_apply,
+         hb.repr_self_apply, smul_eq_mul, mul_boole],
+     congr' 1; simp only [eq_comm] }
+
+/-- `matrix.lmul hb x` is the matrix corresponding to the linear map `λ y, x * y`.
+
+This definition is useful for doing (more) explicit computations with `algebra.lmul`,
+such as the trace form or norm map for algebras.
+-/
+protected noncomputable def lmul : S →ₐ[R] matrix m m R :=
+{ to_fun := λ x, linear_map.to_matrix hb hb (algebra.lmul R S x),
+  map_zero' := by rw [alg_hom.map_zero, linear_equiv.map_zero],
+  map_one' := by rw [alg_hom.map_one, linear_map.to_matrix_one],
+  map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
+  map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.mul_eq_mul],
+  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul,
+                                  algebra_map_matrix_apply, id.map_eq_self] } }
+
+lemma lmul_apply (x : S) (i j) :
+  matrix.lmul hb x i j = linear_map.to_matrix hb hb (lmul R S x) i j := rfl
+
+@[simp] lemma to_matrix_lmul_eq (x : S) :
+  linear_map.to_matrix hb hb (lmul R S x) = matrix.lmul hb x :=
+rfl
+
+lemma lmul_injective : function.injective (matrix.lmul hb) :=
+λ x x' h, calc x = algebra.lmul R S x 1 : (mul_one x).symm
+             ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix hb hb).injective h
+             ... = x' : mul_one x'
+
+lemma smul_lmul (x) (i j) (k k') :
+  matrix.lmul (hb.smul hc) x (i, k) (j, k') = matrix.lmul hb (matrix.lmul hc x k k') i j :=
+by simp only [matrix.lmul_apply, linear_map.to_matrix_apply, is_basis.equiv_fun_apply, mul_comm,
+              is_basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
+              linear_map.map_smul, mul_smul_comm]
+
+lemma smul_lmul_algebra_map (x : S) :
+  matrix.lmul (hb.smul hc) (algebra_map _ _ x) = block_diagonal (λ k, matrix.lmul hb x) :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  rw [smul_lmul, alg_hom.commutes, block_diagonal_apply, algebra_map_matrix_apply],
+  split_ifs with h; simp [h],
+end
+
+lemma smul_lmul_algebra_map_eq (x : S) (i j k) :
+  matrix.lmul (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k) = matrix.lmul hb x i j :=
+by rw [smul_lmul_algebra_map, block_diagonal_apply_eq]
+
+lemma smul_lmul_algebra_map_ne (x : S) (i j) {k k'}
+  (h : k ≠ k') : matrix.lmul (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
+by rw [smul_lmul_algebra_map, block_diagonal_apply_ne _ _ _ h]
+
+end lmul
+
 end matrix
 
 namespace linear_map
@@ -1008,7 +1114,7 @@ def trace_aux (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module
   (M →ₗ[R] M) →ₗ[R] R :=
 (matrix.trace ι R R).comp $ linear_map.to_matrix hb hb
 
-@[simp] lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace_aux R hb f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 rfl
@@ -1064,9 +1170,9 @@ if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M)
 then trace_aux R (classical.some_spec H)
 else 0
 
-theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M]
-  [module R M] {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
-  (f : M →ₗ[R] M) : trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
+theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
+  trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),
 from ⟨finset.univ.image b,
   by { rw [finset.coe_image, finset.coe_univ, set.image_univ], exact hb.range }⟩,

@@ -19,16 +19,17 @@ local attribute [instance] fact_one_le_one_ennreal fact_one_le_two_ennreal fact_
 variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜]
   [measurable_space α] {p : ℝ≥0∞} {q : ℝ} {μ : measure α}
   [measurable_space E]
-  [normed_group F] [normed_group G]
   [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
   [measurable_space 𝕜] [borel_space 𝕜]
+  [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
+  [normed_group G]
 
 namespace measure_theory
 
-/-- The inner product in L2 is the integral of the inner product of the two functions. -/
-def L2_inner (f g : Lp E 2 μ) : 𝕜 := ∫ a : α, (inner (f a) (g a)) ∂μ
+instance : has_inner 𝕜 (Lp E 2 μ) :=
+{inner := λ (f g : Lp E 2 μ), ∫ a : α, (inner (f a) (g a)) ∂μ }
 
-instance : has_inner 𝕜 (Lp E 2 μ) := {inner := L2_inner }
+lemma inner_def (f g : Lp E 2 μ) : inner f g = ∫ a : α, (inner (f a) (g a) : 𝕜) ∂μ := rfl
 
 lemma ennreal.to_real_pow (x : ℝ≥0∞) (n : ℕ) : ennreal.to_real x ^ n = ennreal.to_real (x ^ n) :=
 by rw [←ennreal.rpow_nat_cast, ←ennreal.to_real_rpow, real.rpow_nat_cast]
@@ -46,7 +47,7 @@ begin
   exact norm_rpow hx_nonneg,
 end
 
-lemma ess_sup_norm_rpow (f : α → F) (q : ℝ) (hq_pos : 0 < q) :
+lemma ess_sup_norm_rpow (f : α → G) (q : ℝ) (hq_pos : 0 < q) :
   ess_sup (λ (x : α), (nnnorm (∥f x∥ ^ q) : ℝ≥0∞)) μ = ess_sup (λ (x : α), ↑(nnnorm (f x))) μ ^ q :=
 begin
   have h_rpow : ess_sup (λ (x : α), (nnnorm (∥f x∥ ^ q) : ℝ≥0∞)) μ
@@ -62,7 +63,7 @@ begin
   exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm,
 end
 
-lemma snorm_norm_rpow (f : α → F) (q : ℝ) (hq_pos : 0 < q) :
+lemma snorm_norm_rpow (f : α → G) (q : ℝ) (hq_pos : 0 < q) :
   snorm (λ x, ∥f x∥ ^ q) p μ = (snorm f (p * ennreal.of_real q) μ) ^ q :=
 begin
   by_cases h0 : p = 0,
@@ -88,6 +89,17 @@ end
 @[norm_cast] lemma integral_coe {f : α → ℝ} : ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
 sorry
 
+lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+sorry
+
+lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) :
+  snorm (λ (x : α), ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
+begin
+  have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
+  rw [snorm_norm_rpow f 2 zero_lt_two, one_mul, h_two],
+  exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),
+end
+
 include 𝕜
 
 lemma integral_inner_eq_sq_snorm (f : Lp E 2 μ) :
@@ -97,24 +109,20 @@ begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,
   rw integral_eq_lintegral_of_nonneg_ae,
-  swap, { refine filter.eventually_of_forall (λ x, _),
-    simp_rw pi.zero_apply,
-    simp only [norm_nonneg, pow_nonneg], },
+  swap, { refine filter.eventually_of_forall (λ x, pow_two_nonneg _), },
   swap, { exact (Lp.ae_measurable f).norm.pow, },
   congr,
   ext1 x,
-  rw [←of_real_norm_eq_coe_nnnorm,
-    ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) zero_lt_two],
-  congr,
   have h_two : (2 : ℝ) = ((2 : ℕ) : ℝ), by simp,
-  rw [h_two, real.rpow_nat_cast, norm_sq_eq_inner, ←real_inner_eq_re_inner],
-  refl,
+  rw [← real.rpow_nat_cast _ 2, ← h_two,
+    ←ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) zero_lt_two, of_real_norm_eq_coe_nnnorm],
+  norm_cast,
 end
 
-private lemma norm_sq_eq_inner' (f : Lp E 2 μ) : ∥f∥ ^ 2 = is_R_or_C.re (L2_inner f f) :=
+private lemma norm_sq_eq_inner' (f : Lp E 2 μ) : ∥f∥ ^ 2 = is_R_or_C.re (inner f f : 𝕜) :=
 begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
-  rw [L2_inner, integral_inner_eq_sq_snorm, norm_def, ennreal.to_real_pow,
+  rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ennreal.to_real_pow, is_R_or_C.of_real_re,
     ennreal.to_real_eq_to_real (ennreal.pow_lt_top (Lp.snorm_lt_top f) 2) _],
   swap,
   { refine lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _,
@@ -125,21 +133,8 @@ begin
   simp,
 end
 
-lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-begin
-  sorry,
-end
-
-private lemma conj_sym' (f g : Lp E 2 μ) : is_R_or_C.conj (L2_inner f g) = L2_inner g f :=
-by simp_rw [L2_inner, ← integral_conj, inner_conj_sym]
-
-lemma snorm_rpow_two_norm_lt_top (f : Lp E 2 μ) :
-  snorm (λ (x : α), ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
-begin
-  have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
-  rw [snorm_norm_rpow f 2 zero_lt_two, one_mul, h_two],
-  exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),
-end
+private lemma conj_sym' (f g : Lp E 2 μ) : is_R_or_C.conj (inner g f : 𝕜) = inner f g :=
+by simp_rw [inner_def, ← integral_conj, inner_conj_sym]
 
 lemma mem_L1_inner {μ : measure α} (f g : Lp E 2 μ) :
   ae_eq_fun.mk (λ (x : α), inner (f x) (g x))
@@ -182,9 +177,9 @@ begin
 end
 
 private lemma add_left' (f f' g : Lp E 2 μ) :
-  L2_inner (f + f') g = L2_inner f g + L2_inner f' g :=
+  (inner (f + f') g : 𝕜) = inner f g + inner f' g :=
 begin
-  simp_rw L2_inner,
+  simp_rw inner_def,
   rw ← integral_add (integrable_inner f g) (integrable_inner f' g),
   refine integral_congr_ae _,
   simp_rw ←inner_add_left,
@@ -195,9 +190,9 @@ begin
 end
 
 private lemma smul_left' (f g : Lp E 2 μ) (r : 𝕜) :
-  L2_inner (r • f) g = is_R_or_C.conj r * L2_inner f g :=
+  inner (r • f) g = is_R_or_C.conj r * inner f g :=
 begin
-  simp_rw L2_inner,
+  simp_rw inner_def,
   rw ← integral_mul_left,
   refine integral_congr_ae _,
   simp_rw ←inner_smul_left,
@@ -207,9 +202,9 @@ begin
   rwa pi.smul_apply at hx,
 end
 
-instance : inner_product_space ℝ (Lp E 2 μ) :=
-{ norm_sq_eq_inner := λ f, by { simp_rw [inner, ← norm_sq_eq_inner' f], refl, },
-  conj_sym := λ f g, by { simp_rw inner, exact conj_sym' g f, },
+instance : inner_product_space 𝕜 (Lp E 2 μ) :=
+{ norm_sq_eq_inner := norm_sq_eq_inner',
+  conj_sym := conj_sym',
   add_left := add_left',
   smul_left := smul_left', }
 

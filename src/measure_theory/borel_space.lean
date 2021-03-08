@@ -588,6 +588,14 @@ begin
   exact finset.measurable_prod _ (λ _, hf),
 end
 
+lemma ae_measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
+  [measurable_space β] {n : ℕ} {f : β → α} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x : β, (f x) ^ n) μ :=
+begin
+  simp_rw finset.pow_eq_prod_const,
+  exact finset.ae_measurable_prod _ (λ _, hf),
+end
+
 @[to_additive]
 lemma measurable_inv [group α] [topological_group α] : measurable (has_inv.inv : α → α) :=
 continuous_inv.measurable

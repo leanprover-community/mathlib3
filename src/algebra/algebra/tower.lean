@@ -280,7 +280,7 @@ section ring
 
 namespace algebra
 
-variables [comm_semiring R] [ring A]  [algebra R A]
+variables [comm_semiring R] [ring A] [algebra R A]
 variables [add_comm_group M] [module A M] [semimodule R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :

@@ -196,7 +196,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     bilinear forms: 'bilin_form'
     alternating bilinear forms: 'alt_bilin_form.is_alt'
     symmetric bilinear forms: 'sym_bilin_form.is_sym'
-    nondegenerate forms:
+    nondegenerate forms: 'bilin_form.nondegenerate'
     matrix representation: 'bilin_form.to_matrix'
     change of coordinates: 'bilin_form.to_matrix_comp'
     rank of a bilinear form:

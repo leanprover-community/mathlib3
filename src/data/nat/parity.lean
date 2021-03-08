@@ -138,19 +138,16 @@ begin
   exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
 end
 
-lemma odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
+theorem odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
 by simp [not_or_distrib] with parity_simps
 
-lemma even.mul_even (hm : even m) (hn : even n) : even (m * n) :=
+theorem even.mul (hm : even m) (n) : even (m * n) :=
 even_mul.mpr $ or.inl hm
 
-lemma even.mul_odd (hm : even m) (hn : odd n) : even (m * n) :=
-even_mul.mpr $ or.inl hm
-
-lemma odd.mul_even (hm : odd m) (hn : even n) : even (m * n) :=
+theorem mul_even (m) (hn : even n) : even (m * n) :=
 even_mul.mpr $ or.inr hn
 
-lemma odd.mul_odd (hm : odd m) (hn : odd n) : odd (m * n) :=
+theorem odd.mul_odd (hm : odd m) (hn : odd n) : odd (m * n) :=
 odd_mul.mpr ⟨hm, hn⟩
 
 /-- If `m` and `n` are natural numbers, then the natural number `m^n` is even

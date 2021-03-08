@@ -18,6 +18,40 @@ We define two type tags:
   multiplicative structure on `multiplicative α`.
 
 We also define instances `additive.*` and `multiplicative.*` that actually transfer the structures.
+
+For example,
+multiplication on `multiplicative ℕ`
+is defined as addition on `ℕ`:
+```
+example : of_add 2 * of_add 3 = of_add 5 := rfl
+```
+Here, `of_add 2 : multiplicative ℕ`.
+
+We often want to transfer theorems
+from multiplicative to additive structures
+and vice versa.
+A common trick that is often fruitful for equations consists of
+wrapping the old equation in `of_add`/`to_add`/`of_mul`/`to_mul`
+and applying the `simpa` tactic:
+```
+example (x y : multiplicative ℤ) : x * y = y * x :=
+by simpa using congr_arg of_add (int.add_comm x.to_add y.to_add)
+```
+
+Using the `forall_multiplicative_iff` lemma
+is another convenient technique to transfer results:
+```
+example : ∀ x : multiplicative ℤ, x * 1 = x :=
+by simp only [forall_multiplicative_iff, multiplicative.ext_iff,
+  to_add_mul, to_add_one, int.add_zero, eq_self_iff_true, imp_true_iff]
+```
+
+The `equiv_rw` can also be used
+to replace `multiplicative α` by `α` in goals:
+```
+example : ∀ x y : multiplicative ℤ, x * y = y * x :=
+by { equiv_rw to_add, simp [multiplicative.ext_iff, int.add_comm] }
+```
 -/
 
 universes u v

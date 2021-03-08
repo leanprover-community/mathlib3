@@ -783,7 +783,8 @@ lemma mul_apply_antidiagonal [has_add G] (f g : add_monoid_algebra k G) (x : G) 
   (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
 @monoid_algebra.mul_apply_antidiagonal k (multiplicative G) _ _ _ _ _ s @hs
 
-lemma support_mul [has_add G] (a b : add_monoid_algebra k G) :
+-- this only needs `has_add`, but `leanchecker` crashes if we use that
+lemma support_mul [add_monoid G] (a b : add_monoid_algebra k G) :
   (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ + a₂}) :=
 @monoid_algebra.support_mul k (multiplicative G) _ _ _ _
 

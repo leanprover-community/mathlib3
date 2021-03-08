@@ -114,8 +114,11 @@ variables {α} [monoid α] [decidable_eq α]
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
-noncomputable def order_of (a : α) : ℕ :=
+def order_of (a : α) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)] : ℕ :=
 if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
+
+instance order_of.fintype_decidable {α : Type u_1} [group α] [fintype α] (a : α) :
+decidable (∃ (i : ℕ) (H : i > 0), a ^ i = 1) := decidable.of_true (exists_pow_eq_one α)
 
 lemma order_of_of_finite_order (h : ∃ n, 0 < n ∧ a ^ n = 1) : order_of a = nat.find h :=
 begin

@@ -28,19 +28,19 @@ group is nonarchimedean.
 
 /-- An topological additive group is nonarchimedean if every neighborhood of 0
   contains an open subgroup. -/
-class nonarchimedean_add_group (G : Type)
+class nonarchimedean_add_group (G : Type*)
   [add_group G] [topological_space G] extends topological_add_group G : Prop :=
 (is_nonarchimedean : ∀ U ∈ nhds (0 : G), ∃ V : open_add_subgroup G, (V : set G) ⊆ U)
 
 /-- A topological group is nonarchimedean if every neighborhood of 1 contains an open subgroup. -/
 @[to_additive]
-class nonarchimedean_group (G : Type)
+class nonarchimedean_group (G : Type*)
   [group G] [topological_space G] extends topological_group G : Prop :=
 (is_nonarchimedean : ∀ U ∈ nhds (1 : G), ∃ V : open_subgroup G, (V : set G) ⊆ U)
 
 /-- An topological ring is non-archimedean if its underlying topological additive
   group is nonarchimedean. -/
-class nonarchimedean_ring (R : Type)
+class nonarchimedean_ring (R : Type*)
   [ring R] [topological_space R] extends topological_ring R : Prop :=
 (is_nonarchimedean : ∀ U ∈ nhds (0 : R), ∃ V : open_add_subgroup R, (V : set R) ⊆ U)
 
@@ -52,9 +52,9 @@ nonarchimedean_add_group R := {..t}
 
 namespace nonarchimedean_group
 
-variables {G : Type} [group G] [topological_space G] [nonarchimedean_group G]
-variables {H : Type} [group H] [topological_space H] [topological_group H]
-variables {K : Type} [group K] [topological_space K] [nonarchimedean_group K]
+variables {G : Type*} [group G] [topological_space G] [nonarchimedean_group G]
+variables {H : Type*} [group H] [topological_space H] [topological_group H]
+variables {K : Type*} [group K] [topological_space K] [nonarchimedean_group K]
 
 /-- If a topological group embeds into a nonarchimedean group, then it
   is nonarchimedean. -/
@@ -103,7 +103,7 @@ namespace nonarchimedean_ring
 open nonarchimedean_ring
 open nonarchimedean_add_group
 
-variables {R S : Type}
+variables {R S : Type*}
 variables [ring R] [topological_space R] [nonarchimedean_ring R]
 variables [ring S] [topological_space S] [nonarchimedean_ring S]
 

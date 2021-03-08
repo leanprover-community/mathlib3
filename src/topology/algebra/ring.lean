@@ -13,8 +13,7 @@ open classical set filter topological_space
 open_locale classical
 
 section topological_ring
-universes u v w
-variables (α : Type u)
+variables (α : Type*)
 
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring [topological_space α] [semiring α]
@@ -29,7 +28,7 @@ variables {α}
 
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
-instance prod_semiring {β : Type u}
+instance prod_semiring {β : Type*}
   [semiring α] [topological_space α] [topological_semiring α]
   [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
 {}
@@ -45,7 +44,7 @@ variables [topological_ring α]
 
 /-- The product topology on the cartesian product of two topological rings
   makes the product into a topological ring. -/
-instance prod_ring {β : Type u}
+instance prod_ring {β : Type*}
   [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
 { continuous_neg := continuous_neg }
 

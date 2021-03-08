@@ -1186,8 +1186,7 @@ namespace algebra
 variables {R A : Type*} [comm_semiring R] [domain A] [algebra R A]
 
 lemma lmul_injective {x : A} (hx : x ≠ 0) : function.injective (lmul R A x) :=
-(lmul R A x).to_add_monoid_hom.injective_iff.mpr
-  (λ y h, (eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hx)
+mul_left_injective' hx
 
 end algebra
 

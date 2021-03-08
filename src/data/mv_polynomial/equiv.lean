@@ -100,7 +100,7 @@ def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
   map_add'  := λ _ _, eval₂_add _ _,
   commutes' := λ _, eval₂_C _ _ _}
 
-section
+section map
 variables {R} (σ)
 
 /-- If `e : A ≃+* B` is an isomorphism of rings, then so is `map e`. -/
@@ -158,9 +158,7 @@ alg_equiv.ext map_id
   (map_alg_equiv σ e).trans (map_alg_equiv σ f) = map_alg_equiv σ (e.trans f) :=
 alg_equiv.ext (map_map e f)
 
-end section
-
-variable (S₁)
+end map
 
 section
 variables (S₁ S₂ S₃)

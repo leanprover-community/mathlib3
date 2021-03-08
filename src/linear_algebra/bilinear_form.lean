@@ -146,27 +146,28 @@ instance : inhabited (bilin_form R M) := ⟨0⟩
 
 section
 
-instance {R : Type*} [comm_semiring R] [semimodule R M] : semimodule R (bilin_form R M) :=
+instance {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] [semimodule A M] :
+  semimodule R (bilin_form A M) :=
 { smul := λ c B,
-  { bilin := λ x y, c * B x y,
+  { bilin := λ x y, c • B x y,
     bilin_add_left := λ x y z,
-      by { unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, left_distrib] },
+      by { unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, smul_add] },
     bilin_smul_left := λ a x y, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_smul_left, ←mul_assoc, mul_comm c, mul_assoc] },
+      rw [bilin_smul_left, ←algebra.mul_smul_comm] },
     bilin_add_right := λ x y z, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_add_right, left_distrib] },
+      rw [bilin_add_right, smul_add] },
     bilin_smul_right := λ a x y, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_smul_right, ←mul_assoc, mul_comm c, mul_assoc] } },
-  smul_add := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw left_distrib },
-  add_smul := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw right_distrib },
-  mul_smul := λ a c D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw mul_assoc },
-  one_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw one_mul },
-  zero_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_mul },
-  smul_zero := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw mul_zero } }
+      rw [bilin_smul_right, ←algebra.mul_smul_comm] } },
+  smul_add := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_add },
+  add_smul := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_smul },
+  mul_smul := λ a c D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw ←smul_assoc, refl },
+  one_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw one_smul },
+  zero_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_smul },
+  smul_zero := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_zero } }
 
 @[simp]
-lemma smul_apply {R : Type*} [comm_semiring R] [semimodule R M]
-  (B : bilin_form R M) (a : R) (x y : M) :
+lemma smul_apply {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] [semimodule A M]
+  (B : bilin_form A M) (a : R) (x y : M) :
   (a • B) x y = a • (B x y) :=
 rfl
 

@@ -54,6 +54,7 @@ quadratic form, homogeneous polynomial, quadratic polynomial
 universes u v w
 variables {R : Type u} {M : Type v} [add_comm_group M] [ring R]
 variables {R₁ : Type u} [comm_ring R₁]
+variables {R₂ : Type u} [comm_semiring R₂]
 
 namespace quadratic_form
 /-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`.d
@@ -239,28 +240,42 @@ by simp [sub_eq_add_neg]
 @[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
 by simp [sub_eq_add_neg]
 
-instance : has_scalar R₁ (quadratic_form R₁ M) :=
+instance [algebra R₂ R] : has_scalar R₂ (quadratic_form R M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
-    to_fun_smul := λ b x, by simp only [pi.smul_apply, map_smul, smul_eq_mul, mul_left_comm],
-    polar_add_left' := λ x x' y, by simp only [polar_smul, polar_add_left, mul_add],
-    polar_smul_left' := λ b x y,
-      by simp only [polar_smul, polar_smul_left, smul_eq_mul, mul_left_comm],
-    polar_add_right' := λ x y y', by simp only [polar_smul, polar_add_right, mul_add],
-    polar_smul_right' := λ b x y,
-      by simp only [polar_smul, polar_smul_right, smul_eq_mul, mul_left_comm] } ⟩
+    to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, algebra.mul_smul_comm],
+    polar_add_left' := λ x x' y, begin
+      rw [← one_smul R ⇑Q, ←smul_assoc],
+      simp only [polar_smul, polar_add_left, mul_add],
+    end,
+    polar_smul_left' := λ b x y, begin
+      rw [← one_smul R ⇑Q, ←smul_assoc],
+      simp only [polar_smul, polar_smul_left, smul_eq_mul, algebra.smul_def, ←mul_assoc, mul_one,
+        one_mul, algebra.commutes],
+    end,
+    polar_add_right' := λ x y y', begin
+      rw [← one_smul R ⇑Q, ←smul_assoc],
+      simp only [polar_smul, polar_add_right, mul_add],
+    end,
+    polar_smul_right' := λ b x y, begin
+      rw [← one_smul R ⇑Q, ←smul_assoc],
+      simp only [polar_smul, polar_smul_right, smul_eq_mul, algebra.smul_def, ←mul_assoc, mul_one,
+        one_mul, algebra.commutes],
+    end } ⟩
 
-@[simp] lemma coe_fn_smul (a : R₁) (Q : quadratic_form R₁ M) : ⇑(a • Q) = a • Q := rfl
+@[simp] lemma coe_fn_smul [algebra R₂ R] (a : R₂) (Q : quadratic_form R M) : ⇑(a • Q) = a • Q := rfl
 
-@[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = a * Q x := rfl
+@[simp] lemma smul_apply [algebra R₂ R] (a : R₂) (Q : quadratic_form R M) (x : M) :
+  (a • Q) x = a • Q x := rfl
 
-instance : module R₁ (quadratic_form R₁ M) :=
-{ mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_left_comm, mul_assoc]),
+instance [algebra R₂ R] : semimodule R₂ (quadratic_form R M) :=
+{ mul_smul := λ a b Q, ext (λ x, by
+    simp only [smul_apply, mul_left_comm, ←smul_eq_mul, smul_assoc]),
   one_smul := λ Q, ext (λ x, by simp),
-  smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, mul_add] },
-  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, mul_zero] },
-  zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_mul] },
-  add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_mul] } }
+  smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, smul_add] },
+  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, smul_zero] },
+  zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_smul] },
+  add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_smul] } }
 
 section comp
 

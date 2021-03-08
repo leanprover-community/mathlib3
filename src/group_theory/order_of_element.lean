@@ -117,9 +117,6 @@ Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convent
 def order_of (a : α) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)] : ℕ :=
 if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
-instance order_of.fintype_decidable {α : Type u_1} [group α] [fintype α] (a : α) :
-decidable (∃ (i : ℕ) (H : i > 0), a ^ i = 1) := decidable.of_true (exists_pow_eq_one α)
-
 lemma order_of_of_finite_order (h : ∃ n, 0 < n ∧ a ^ n = 1) : order_of a = nat.find h :=
 begin
   rw order_of,
@@ -282,7 +279,7 @@ decidable.by_contradiction $ assume ne : n ≠ m,
     begin rw [h₃, pow_add] at eq,
           apply mul_left_cancel,
           convert eq.symm,
-          exact mul_one (a^n) end,
+          exact mul_one (a ^ n) end,
   have le : order_of a ≤ m - n,
     begin rw order_of,
           split_ifs with hx,
@@ -335,7 +332,7 @@ end finite_monoid
 section finite_cancel_monoid
 variables {α} [fintype α] [decidable_eq α] [left_cancel_monoid α]
 
-lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=
+lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=
 begin
   have h :  ¬ injective (λi:ℕ, a^i),
     from not_injective_infinite_fintype _,
@@ -358,6 +355,9 @@ begin
       rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
     { exact h''' },
 end
+
+instance order_of.fintype_decidable (a : α) :
+decidable (∃ (i : ℕ), 0 < i ∧  a ^ i = 1) := decidable.is_true (exists_pow_eq_one a)
 
 lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
 finset.le_card_of_inj_on_range ((^) a)
@@ -388,7 +388,7 @@ finset.mem_range_iff_mem_finset_range_of_mod_eq
                          exact ⟨w, hw1, hw2⟩ end))
   (assume i, gpow_eq_mod_order_of.symm)
 
-noncomputable instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
+instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
 assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
   mem_gpowers_iff_mem_range_order_of

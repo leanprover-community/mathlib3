@@ -69,6 +69,11 @@ def mul_as_bilinear {R : Type u₁} {A : Type u₂} [comm_semiring R] [na_semiri
   A →ₗ[R] A →ₗ[R] A :=
 linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm
 
+/-- If the underlying `na_semiring` is actually a `semiring` we have an `algebra`. -/
+def to_algebra {R : Type u₁} {A : Type u₂} [comm_semiring R] [semiring A] [na_algebra R A] :
+  algebra R A :=
+algebra.of_semimodule smul_mul_assoc mul_smul_comm
+
 end na_algebra
 
 variables [na_semiring A] [na_algebra R A]

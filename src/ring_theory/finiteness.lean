@@ -293,7 +293,7 @@ begin
   { rintro ⟨ι, hfintype, f, hf⟩,
     haveI : fintype ι := hfintype,
     obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,
-    replace equiv := mv_polynomial.rename_equiv (nonempty.some equiv),
+    replace equiv : _ ≃ₐ[R] _ := mv_polynomial.rename_equiv (nonempty.some equiv),
     refine ⟨n, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
       submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,

@@ -156,7 +156,7 @@ lemma smul_im : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
-{ map_smul' := smul_re',  .. re }
+{ map_smul' := smul_re,  .. re }
 
 @[simp] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
 

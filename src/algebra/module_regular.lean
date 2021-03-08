@@ -40,7 +40,7 @@ variables [monoid R] [add_monoid M] [is_scalar_tower R R M]
 /-- In a monoid, the product of `M`-regular elements is `M`-regular. -/
 lemma is_regular.mul (ra : is_regular M a) (rb : is_regular M b) :
   is_regular M (a • b) :=
-λ a b ab, rb (ra ((smul_assoc _ _ _).symm.trans ( ab.trans (smul_assoc _ _ _))))
+λ a b ab, rb (ra ((smul_assoc _ _ _).symm.trans (ab.trans (smul_assoc _ _ _))))
 
 /--  If an element `b` becomes `M`-regular after multiplying it on the left by an `M`-regular
 element, then `b` is `M`-regular. -/

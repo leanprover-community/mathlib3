@@ -366,7 +366,7 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
 
-@[simp] lemma coe_zero : (0 : α →ᵇ β) x = 0 := rfl
+@[simp] lemma coe_zero : ((0 : α →ᵇ β) : α → β) = 0 := rfl
 
 instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
@@ -396,7 +396,7 @@ variable {f}
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
-by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
+by simpa [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
 
 variable (f)
 
@@ -465,15 +465,15 @@ instance : add_comm_group (α →ᵇ β) :=
 @[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
+/-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+@[simps]
+def coe_fn_add_hom : (α →ᵇ β) →+ (α → β) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add}
+
 open_locale big_operators
 @[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) :
   ⇑(∑ i in s, f i) = (∑ i in s, (f i : α → β)) :=
-begin
-  ext a,
-  apply finset.induction_on s,
-  { simp, },
-  { intros i s nm h, simp [h, finset.sum_insert nm], },
-end
+(@coe_fn_add_hom α β _ _).map_sum f s
 
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
   (∑ i in s, f i) a = (∑ i in s, f i a) :=

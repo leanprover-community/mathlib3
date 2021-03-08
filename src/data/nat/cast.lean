@@ -111,7 +111,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
 eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 
 @[simp, norm_cast] theorem cast_mul [semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
-| 0     := by { convert (mul_zero _).symm, rw [mul_zero], refl }
+| 0     := by rw [cast_zero, mul_zero, mul_zero, cast_zero]
 | (n+1) := by { convert (cast_add _ _).trans (
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]),
   exact mul_succ _ _ }

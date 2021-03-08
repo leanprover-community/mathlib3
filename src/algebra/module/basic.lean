@@ -509,6 +509,12 @@ section module
 
 variables [ring R] [add_comm_group M] [module R M]
 
+lemma smul_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+  function.injective (λ (x : M), c • x) :=
+λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
+  (calc c • (x - y) = c • x - c • y : smul_sub c x y
+                ... = 0 : sub_eq_zero.mpr h)).resolve_left hc)
+
 section nat
 
 variables (R) [no_zero_smul_divisors R M] [char_zero R]

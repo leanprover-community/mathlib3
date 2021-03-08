@@ -22,6 +22,10 @@ that is linear in both arguments. Comments will typically abbreviate
 "(semi)module" as just "module", but the definitions should be as general as
 possible.
 
+The result that there exists an orthogonal basis with respect to a symmetric,
+nondegenerate bilinear form can be found in `quadratic_form.lean` with
+`exists_orthogonal_basis`.
+
 ## Notations
 
 Given any term B of type bilin_form, due to a coercion, can use

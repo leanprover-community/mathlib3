@@ -33,7 +33,7 @@ def is_regular (c : R) := function.injective ((•) c : M → M)
 
 section monoid
 
-variables [monoid R] [is_scalar_tower R S M]
+--variables [monoid R]
 --semigroup does not have the right instance
 --instance semigroup.has_scalar : has_scalar R R := { smul := λ a b, a * b }
 
@@ -55,7 +55,7 @@ is `M`-regular. -/
   is_regular M (a • b) ↔ is_regular M b :=
 ⟨λ ab, is_regular.of_mul M ab, λ ab, is_regular.mul M ha ab⟩
 
-variables [is_scalar_tower R R M]
+variables [monoid R] [is_scalar_tower R R M]
 
 /--  Two elements `a` and `b` are `M`-regular if and only if both products `a • b` and `b • a`
 are `M`-regular. -/
@@ -87,8 +87,6 @@ begin
   intros a b ab,
   rwa [one_smul, one_smul] at ab,
 end
-
-variables [add_monoid M]
 
 /--  Any power of an `M`-regular element is `M`-regular. -/
 lemma is_regular.pow (n : ℕ) (ra : is_regular M a) : is_regular M (a ^ n) :=
@@ -134,7 +132,7 @@ end semiring
 section comm_monoid
 open module
 
-variables [comm_monoid R] [add_monoid M] [mul_action R M]
+variables [comm_monoid R] [mul_action R M]
 
 /--  A product is `M`-regular if and only if the factors are. -/
 lemma is_regular_mul_iff : is_regular M (a • b) ↔ is_regular M a ∧ is_regular M b :=
@@ -149,7 +147,7 @@ section monoid
 
 section monoid_R
 
-variables [monoid R] [semiring S] [add_comm_monoid M] [has_scalar R S] [has_scalar R M]
+variables [semiring S] [add_comm_monoid M] [has_scalar R S] [has_scalar R M]
   [semimodule S M]  [is_scalar_tower R S M]
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/

@@ -54,7 +54,6 @@ quadratic form, homogeneous polynomial, quadratic polynomial
 universes u v w
 variables {R : Type u} {M : Type v} [add_comm_group M] [ring R]
 variables {R₁ : Type u} [comm_ring R₁]
-variables {R₂ : Type u} [comm_semiring R₂]
 
 namespace quadratic_form
 /-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`.d
@@ -240,6 +239,12 @@ by simp [sub_eq_add_neg]
 @[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
 by simp [sub_eq_add_neg]
 
+section has_scalar
+variables {R₂ : Type u} [comm_semiring R₂]
+
+/-- `quadratic_form R M` inherits the scalar action from any algebra over `R`.
+
+When `R` is commutative, this provides an `R`-action via `algebra.id`. -/
 instance [algebra R₂ R] : has_scalar R₂ (quadratic_form R M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
@@ -276,6 +281,8 @@ instance [algebra R₂ R] : semimodule R₂ (quadratic_form R M) :=
   smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, smul_zero] },
   zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_smul] },
   add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_smul] } }
+
+end has_scalar
 
 section comp
 

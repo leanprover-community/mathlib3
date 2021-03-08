@@ -146,6 +146,9 @@ instance : inhabited (bilin_form R M) := ⟨0⟩
 
 section
 
+/-- `quadratic_form A M` inherits the scalar action from any algebra over `A`.
+
+When `A` is commutative, this provides an `A`-action via `algebra.id`. -/
 instance {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] [semimodule A M] :
   semimodule R (bilin_form A M) :=
 { smul := λ c B,

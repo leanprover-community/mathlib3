@@ -120,23 +120,189 @@ begin
   { exact ⟨i + 1, dec_trivial, inv_eq_one.1 eq⟩ }
 end
 
-include dec
+end order_of
 
-/-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` -/
-def order_of (a : α) : ℕ := nat.find (exists_pow_eq_one a)
+section order_of
+
+section monoid
+open_locale classical
+variables {α} [monoid α] [decidable_eq α]
+
+
+/-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
+Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
+noncomputable def order_of (a : α) : ℕ :=
+if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
+
+lemma order_of_of_finite_order (h : ∃ n, 0 < n ∧ a ^ n = 1) : order_of a = nat.find h :=
+begin
+  rw order_of,
+  split_ifs with hx,
+  refl
+end
 
 lemma pow_order_of_eq_one (a : α) : a ^ order_of a = 1 :=
-let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₂
+begin
+  rw order_of,
+  split_ifs with hx,
+  { exact (nat.find_spec hx).2 },
+  { exact pow_zero a }
+end
 
-lemma order_of_pos (a : α) : 0 < order_of a :=
-let ⟨h₁, h₂⟩ := nat.find_spec (exists_pow_eq_one a) in h₁
+lemma order_of_pos (a : α) (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
+begin
+  rw order_of_of_finite_order h,
+  exact (nat.find_spec h).1
+end
+
+lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
+begin
+rw order_of,
+split_ifs with ha,
+  { exact nat.find_min' ha ⟨hn, h⟩ },
+  { exact le_of_lt hn }
+end
+
+@[simp] lemma order_of_one : order_of (1 : α) = 1 :=
+begin
+  have h : 0 < 1 ∧ (1 : α)  ^ 1 = 1,
+    by exact ⟨nat.one_pos, one_pow 1⟩,
+  rw order_of,
+  split_ifs with h',
+  { have h'' : nat.find h' ≤ 1,
+      { apply nat.find_min',
+        exact h, },
+    have h''' := (nat.find_spec h').1,
+    apply le_antisymm h'',
+    exact nat.succ_le_iff.mpr h''' },
+  { exfalso,
+    apply h',
+    use 1,
+    exact h, }
+end
+
+@[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
+⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
+
+lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
+calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.mod_add_div]
+       ... = a ^ (n % order_of a) : by simp [pow_add, pow_mul, pow_order_of_eq_one]
+
+lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
+begin
+rw order_of,
+split_ifs with hn,
+{ have h' := nat.find_spec hn,
+  apply nat.dvd_of_mod_eq_zero,
+  have h'' : (¬ n % nat.find hn>0) → n % nat.find hn=0,
+    { contrapose!,
+      exact nat.pos_of_ne_zero },
+  apply h'', clear h'',
+  have h₁ :=  nat.find_min _ (show n % nat.find hn < nat.find hn,
+    from nat.mod_lt _ ((nat.find_spec hn).1)),
+  push_neg at h₁,
+  by_contradiction,
+  specialize h₁ h,
+  apply h₁,
+  rw ← order_of_of_finite_order hn,
+  rwa ← pow_eq_mod_order_of },
+{ by_contradiction h',
+  apply hn,
+  use n,
+  split,
+  { cases nat.eq_zero_or_eq_succ_pred n,
+    { exfalso,
+      apply h',
+      rw h_1 },
+    { rw h_1,
+      exact (nat.pred n).succ_pos } },
+  { exact h } }
+end
+
+lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
+⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
+
+lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
+  (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
+(hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
+
+open nat
+
+lemma order_of_pow (a : α) (n : ℕ) (h : n ≠ 0) :
+  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
+begin
+conv_rhs { rw order_of },
+split_ifs with hx,
+{ rw ← order_of_of_finite_order hx,
+  exact dvd_antisymm
+  (order_of_dvd_of_pow_eq_one
+    (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
+      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
+  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos a hx),
+    have hdvd : order_of a ∣ n * order_of (a ^ n),
+      from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
+    coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
+      (dvd_of_mul_dvd_mul_right gcd_pos
+        (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
+            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm]))) },
+{ rw order_of,
+  split_ifs with hx',
+  { exfalso,
+    apply hx,
+    cases hx' with m hm,
+    use n*m,
+    split,
+      { apply nat.lt_of_le_and_ne (nat.zero_le (n*m)),
+        symmetry,
+        apply nat.mul_ne_zero h,
+        symmetry,
+        exact ne_of_lt hm.1 },
+      { rw pow_mul,
+        exact hm.2 } },
+  { simp } }
+end
+
+lemma order_of_pow' (a : α) (n : ℕ) (h : ∃ n, 0 < n ∧ a ^ n = 1) :
+  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
+begin
+  conv_rhs { rw order_of },
+  split_ifs with hx,
+  rw ← order_of_of_finite_order h,
+  exact dvd_antisymm
+  (order_of_dvd_of_pow_eq_one
+    (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
+      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
+  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos a h),
+    have hdvd : order_of a ∣ n * order_of (a ^ n),
+      from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
+    coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
+      (dvd_of_mul_dvd_mul_right gcd_pos
+        (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
+            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
+end
+
+
+end monoid
+
+section cancel_monoid
+variables {α} [decidable_eq α] [cancel_monoid α]
 
 private lemma pow_injective_aux {n m : ℕ} (a : α) (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 decidable.by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
-  have h₂ : a ^ (m - n) = 1, by simp [pow_sub _ h, eq],
-  have le : order_of a ≤ m - n, from nat.find_min' (exists_pow_eq_one a) ⟨h₁, h₂⟩,
+  have h₃ : m = n + (m - n), begin exact (nat.add_sub_of_le h).symm end,
+  have h₂ : a ^ (m - n) = 1,
+    begin rw [h₃, pow_add] at eq,
+          apply mul_left_cancel,
+          convert eq.symm,
+          exact mul_one (a^n) end,
+  have le : order_of a ≤ m - n,
+    begin rw order_of,
+          split_ifs with hx,
+          { exact nat.find_min' hx ⟨h₁, h₂⟩ },
+          { exact zero_le (m - n) }
+    end,
   have lt : m - n < order_of a,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (lt_of_le_of_lt le lt)
@@ -147,16 +313,10 @@ lemma pow_injective_of_lt_order_of {n m : ℕ} (a : α)
   (assume h, pow_injective_aux a h hn hm eq)
   (assume h, (pow_injective_aux a h hm hn eq.symm).symm)
 
-lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
-finset.le_card_of_inj_on_range ((^) a)
-  (assume n _, finset.mem_univ _)
-  (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
+end cancel_monoid
 
-lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
-calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) :
-    by rw [nat.mod_add_div]
-  ... = a ^ (n % order_of a) :
-    by simp [pow_add, pow_mul, pow_order_of_eq_one]
+section group
+variables {α} [decidable_eq α] [group α]
 
 lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
 calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
@@ -164,28 +324,10 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
   ... = a ^ (i % order_of a) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
-  a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
-finset.mem_range_iff_mem_finset_range_of_mod_eq
-  (order_of_pos a)
-  (assume i, gpow_eq_mod_order_of.symm)
+end group
 
-instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
-assume a', decidable_of_iff'
-  (a' ∈ (finset.range (order_of a)).image ((^) a))
-  mem_gpowers_iff_mem_range_order_of
-
-lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
-by_contradiction
-  (λ h₁, nat.find_min _ (show n % order_of a < order_of a,
-    from nat.mod_lt _ (order_of_pos _))
-      ⟨nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero h₁), by rwa ← pow_eq_mod_order_of⟩)
-
-lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
-⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
-
-lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
-nat.find_min' (exists_pow_eq_one a) ⟨hn, h⟩
+section finite_monoid
+variables {α} [fintype α] [decidable_eq α] [monoid α]
 
 lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
@@ -200,8 +342,38 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : 
     λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
-section
-local attribute [instance] set_fintype
+
+
+end finite_monoid
+
+section finite_cancel_monoid
+variables {α} [fintype α] [decidable_eq α] [cancel_monoid α]
+
+lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
+finset.le_card_of_inj_on_range ((^) a)
+  (assume n _, finset.mem_univ _)
+  (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
+
+
+
+end finite_cancel_monoid
+
+section finite_group
+variables {α} [fintype α] [decidable_eq α] [group α]
+
+
+lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
+  a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
+finset.mem_range_iff_mem_finset_range_of_mod_eq
+  (order_of_pos a (begin cases (exists_pow_eq_one a) with w hw,
+                         cases hw with hw1 hw2,
+                         exact ⟨w, hw1, hw2⟩ end))
+  (assume i, gpow_eq_mod_order_of.symm)
+
+noncomputable instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
+assume a', decidable_of_iff'
+  (a' ∈ (finset.range (order_of a)).image ((^) a))
+  mem_gpowers_iff_mem_range_order_of
 
 lemma order_eq_card_gpowers : order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin
@@ -209,7 +381,9 @@ begin
   { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
   { exact assume ⟨_, i, rfl⟩ _,
     have pos: (0:int) < order_of a,
-      from int.coe_nat_lt.mpr $ order_of_pos a,
+      from int.coe_nat_lt.mpr $ order_of_pos a (begin cases (exists_pow_eq_one a) with w hw,
+                                                      cases hw with hw1 hw2,
+                                                      exact ⟨w, hw1, hw2⟩ end),
     have 0 ≤ i % (order_of a),
       from int.mod_nonneg _ $ ne_of_gt pos,
     ⟨int.to_nat (i % order_of a),
@@ -219,19 +393,6 @@ begin
   { exact assume i j hi hj eq, pow_injective_of_lt_order_of a hi hj $ by simpa using eq }
 end
 
-@[simp] lemma order_of_one : order_of (1 : α) = 1 :=
-by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
-  exact ⟨⟨1, 0, rfl⟩, λ ⟨a, i, ha⟩, by simp [ha.symm]⟩
-
-@[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
-⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
-
-lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
-  (hg : a^p = 1) (hg1 : a ≠ 1) : order_of a = p :=
-(hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
-
-section classical
-open_locale classical
 open quotient_group subgroup
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
@@ -255,8 +416,6 @@ have eq₂ : order_of a = @fintype.card _ ft_s,
 dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
-omit dec
-
 @[simp] lemma pow_card_eq_one (a : α) : a ^ fintype.card α = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
@@ -265,34 +424,19 @@ lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
   by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩
+    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _ (begin cases (exists_pow_eq_one a) with w hw,
+                                                          cases hw with hw1 hw2,
+                                                          exact ⟨w, hw1, hw2⟩ end)))),
+    ← gpow_eq_mod_order_of]⟩⟩
 
 lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
 set.ext $ λ x, mem_powers_iff_mem_gpowers
-
-end classical
-
-open nat subgroup
-
-lemma order_of_pow (a : α) (n : ℕ) : order_of (a ^ n) = order_of a / gcd (order_of a) n :=
-dvd_antisymm
-  (order_of_dvd_of_pow_eq_one
-    (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
-  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos a),
-    have hdvd : order_of a ∣ n * order_of (a ^ n),
-      from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
-    coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
-      (dvd_of_mul_dvd_mul_right gcd_pos
-        (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
-            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
 
 lemma image_range_order_of (a : α) :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
-omit dec
-open_locale classical
+open nat
 
 lemma pow_gcd_card_eq_one_iff {n : ℕ} {a : α} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
@@ -300,11 +444,12 @@ lemma pow_gcd_card_eq_one_iff {n : ℕ} {a : α} :
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
     by rw [hm, pow_mul, h, one_pow]⟩
 
-end
+end finite_group
 
 end order_of
 
 section cyclic
+
 
 local attribute [instance] set_fintype
 
@@ -430,16 +575,20 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
   have hm0 : 0 < m, from nat.pos_of_ne_zero
     (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
   begin
-    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
-      order_of_pow, order_of_eq_card_of_forall_mem_gpowers hg],
+    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers],
+    rw order_of_pow' g _ (begin cases (exists_pow_eq_one g) with w hw,
+                                cases hw with hw1 hw2,
+                                exact ⟨w, hw1, hw2⟩ end),
+    rw order_of_eq_card_of_forall_mem_gpowers hg,
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
       hm, nat.mul_div_cancel _ hm0],
     exact le_of_dvd hn0 (gcd_dvd_left _ _)
   end
 
-lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [fintype α] [is_cyclic α] :
-  ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
+
+lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [decidable_eq α] [fintype α]
+[is_cyclic α] : ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
 by { simp only [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α }
 
 section
@@ -470,7 +619,9 @@ include hn
 lemma card_pow_eq_one_eq_order_of_aux (a : α) :
   (finset.univ.filter (λ b : α, b ^ order_of a = 1)).card = order_of a :=
 le_antisymm
-  (hn _ (order_of_pos _))
+  (hn _ (order_of_pos _ (begin cases (exists_pow_eq_one a) with w hw,
+                               cases hw with hw1 hw2,
+                               exact ⟨w, hw1, hw2⟩ end)))
   (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
     ... ≤ @fintype.card (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
     (fintype.of_finset _ (λ _, iff.rfl)) :
@@ -488,7 +639,10 @@ private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d
 | 0     := λ hd hd0,
-let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $ order_of_pos a
+let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $
+  order_of_pos a (begin cases (exists_pow_eq_one a) with w hw,
+                        cases hw with hw1 hw2,
+                        exact ⟨w, hw1, hw2⟩ end)
 | (d+1) := λ hd hd0,
 let ⟨a, ha⟩ := card_pos.1 hd0 in
 have ha : order_of a = d.succ, from (mem_filter.1 ha).2,
@@ -500,8 +654,11 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
       card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
-          by rw [order_of_pow, ha, gcd_eq_right (div_dvd_of_dvd hm),
-            nat.div_div_self hm (succ_pos _)]⟩⟩)),
+          by { rw order_of_pow' a _ (begin cases (exists_pow_eq_one a) with w hw,
+                                           cases hw with hw1 hw2,
+                                           exact ⟨w, hw1, hw2⟩ end),
+                rw [ha, gcd_eq_right (div_dvd_of_dvd hm),
+                nat.div_div_self hm (succ_pos _)] }⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])

@@ -96,16 +96,35 @@ f.to_add_monoid_hom.map_sum _ _
 
 @[simp] lemma map_neg (x) : f (-x) = -(f x) := f.to_add_monoid_hom.map_neg _
 
-/-- Make a normed group hom from a group hom and a norm bound. -/
-def mk' (f : V₁ →+ V₂) (C : ℝ≥0) (hC : ∀ x, ∥f x∥ ≤ C * ∥x∥) : normed_group_hom V₁ V₂ :=
-{ bound' := ⟨C, hC⟩ .. f}
-
-@[simp] lemma coe_mk' (f : V₁ →+ V₂) (C) (hC) : ⇑(mk' f C hC) = f := rfl
-
 /-- Predicate asserting a norm bound on a normed group hom. -/
 def bound_by (f : normed_group_hom V₁ V₂) (C : ℝ≥0) : Prop := ∀ x, ∥f x∥ ≤ C * ∥x∥
 
-lemma mk'_bound_by (f : V₁ →+ V₂) (C) (hC) : (mk' f C hC).bound_by C := hC
+end normed_group_hom
+
+namespace add_monoid_hom
+
+variables {V V₁ V₂ V₃ : Type*}
+variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
+variables {f g : normed_group_hom V₁ V₂}
+
+/-- Make a normed group hom from a group hom and a norm bound. -/
+def mk_normed_group_hom (f : V₁ →+ V₂) (C : ℝ≥0) (hC : ∀ x, ∥f x∥ ≤ C * ∥x∥) :
+  normed_group_hom V₁ V₂ :=
+{ bound' := ⟨C, hC⟩ .. f}
+
+@[simp] lemma coe_mk_normed_group_hom (f : V₁ →+ V₂) (C) (hC) :
+  ⇑(f.mk_normed_group_hom C hC) = f := rfl
+
+lemma mk_normed_group_hom_bound_by (f : V₁ →+ V₂) (C) (hC) :
+  (f.mk_normed_group_hom C hC).bound_by C := hC
+
+end add_monoid_hom
+
+namespace normed_group_hom
+
+variables {V V₁ V₂ V₃ : Type*}
+variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
+variables (f g : normed_group_hom V₁ V₂)
 
 lemma bound : ∃ C, 0 < C ∧ f.bound_by C :=
 begin

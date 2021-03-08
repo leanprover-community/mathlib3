@@ -874,6 +874,8 @@ begin
     rw [comp_app, comp_app, fin_succ_equiv_symm_coe, fin.cons_succ] }
 end
 
+/-- See `linear_independent.fin_cons'` for an uglier version that works if you
+only have a semimodule. -/
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
   (hx : x ∉ submodule.span K (range v)) :
   linear_independent K (fin.cons x v : fin (n + 1) → V) :=

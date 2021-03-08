@@ -14,7 +14,7 @@ noncomputable theory
 open topological_space measure_theory measure_theory.Lp
 open_locale nnreal ennreal
 
-local attribute [instance] fact_one_le_one_ennreal fact_one_le_two_ennreal fact_one_le_top_ennreal
+namespace measure_theory
 
 variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜]
   [measurable_space α] {p : ℝ≥0∞} {q : ℝ} {μ : measure α}
@@ -24,15 +24,10 @@ variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜]
   [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
   [normed_group G]
 
-namespace measure_theory
-
 instance : has_inner 𝕜 (Lp E 2 μ) :=
 {inner := λ (f g : Lp E 2 μ), ∫ a : α, (inner (f a) (g a)) ∂μ }
 
 lemma inner_def (f g : Lp E 2 μ) : inner f g = ∫ a : α, (inner (f a) (g a) : 𝕜) ∂μ := rfl
-
-lemma ennreal.to_real_pow (x : ℝ≥0∞) (n : ℕ) : ennreal.to_real x ^ n = ennreal.to_real (x ^ n) :=
-by rw [←ennreal.rpow_nat_cast, ←ennreal.to_real_rpow, real.rpow_nat_cast]
 
 lemma norm_rpow {x : ℝ} {q : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ q∥ = ∥x∥ ^ q :=
 begin
@@ -122,7 +117,7 @@ end
 private lemma norm_sq_eq_inner' (f : Lp E 2 μ) : ∥f∥ ^ 2 = is_R_or_C.re (inner f f : 𝕜) :=
 begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
-  rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ennreal.to_real_pow, is_R_or_C.of_real_re,
+  rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,
     ennreal.to_real_eq_to_real (ennreal.pow_lt_top (Lp.snorm_lt_top f) 2) _],
   swap,
   { refine lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _,

@@ -505,9 +505,15 @@ end nat
 
 end semimodule
 
-section module
+section add_comm_group -- `R` can still be a semiring here
 
-variables [ring R] [add_comm_group M] [module R M]
+variables [semiring R] [add_comm_group M] [semimodule R M]
+
+lemma smul_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+  function.injective (λ (x : M), c • x) :=
+λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
+  (calc c • (x - y) = c • x - c • y : smul_sub c x y
+                ... = 0 : sub_eq_zero.mpr h)).resolve_left hc)
 
 section nat
 
@@ -525,7 +531,15 @@ begin
   abel
 end
 
-variables {R}
+end nat
+
+end add_comm_group
+
+section module
+
+section nat
+
+variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M] [char_zero R]
 
 lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
 λ h, have semimodule ℕ R := add_comm_monoid.nat_semimodule, by exactI hv (eq_zero_of_eq_neg R h)

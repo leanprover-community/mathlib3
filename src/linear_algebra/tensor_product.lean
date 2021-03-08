@@ -190,6 +190,16 @@ variables {R M}
 
 end comm_semiring
 
+section comm_ring
+
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+
+lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
+  function.injective (lsmul R M x) :=
+smul_injective hx
+
+end comm_ring
+
 end linear_map
 
 section semiring

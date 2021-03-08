@@ -16,10 +16,10 @@ open_locale nnreal ennreal
 
 namespace measure_theory
 
-variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜]
-  [measurable_space α] {p : ℝ≥0∞} {q : ℝ} {μ : measure α}
-  [measurable_space E]
-  [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
+section is_R_or_C
+
+variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜] {p : ℝ≥0∞} [measurable_space α] {μ : measure α}
+  [measurable_space E] [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
   [measurable_space 𝕜] [borel_space 𝕜]
   [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
   [normed_group G]
@@ -183,11 +183,18 @@ begin
   rwa pi.add_apply at hx,
 end
 
-private lemma smul_left' (f g : Lp E 2 μ) (r : 𝕜) :
+end is_R_or_C
+
+section real
+
+variables {α E F G : Type*} [measurable_space α] {μ : measure α}
+  [measurable_space E] [inner_product_space ℝ E] [borel_space E] [second_countable_topology E]
+
+private lemma smul_left' (f g : Lp E 2 μ) (r : ℝ) :
   inner (r • f) g = is_R_or_C.conj r * inner f g :=
 begin
   simp_rw inner_def,
-  rw ← integral_mul_left,
+  rw ← integral_mul_left,  -- TODO write that one for is_R_or_C
   refine integral_congr_ae _,
   simp_rw ←inner_smul_left,
   refine (coe_fn_smul r f).mono (λ x hx, _),
@@ -196,10 +203,12 @@ begin
   rwa pi.smul_apply at hx,
 end
 
-instance : inner_product_space 𝕜 (Lp E 2 μ) :=
+instance : inner_product_space ℝ (Lp E 2 μ) :=
 { norm_sq_eq_inner := norm_sq_eq_inner',
   conj_sym := conj_sym',
   add_left := add_left',
   smul_left := smul_left', }
+
+end real
 
 end measure_theory

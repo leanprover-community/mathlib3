@@ -787,7 +787,8 @@ def flip_multilinear (f : G →L[𝕜] continuous_multilinear_map 𝕜 E G') :
 multilinear_map.mk_continuous
   { to_fun := λ m, linear_map.mk_continuous
       { to_fun := λ x, f x m,
-        map_add' := λ x y, by simp,
+        map_add' := λ x y, by simp only [add_left_inj, f.map_add,
+          continuous_multilinear_map.add_apply],
         map_smul' := λ c x, by simp }
       (∥f∥ * ∏ i, ∥m i∥) $ λ x,
       by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },

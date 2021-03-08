@@ -83,8 +83,7 @@ begin
     (bernoulli _).mul_comm, sum_bernoulli, one_pow, mul_one, polynomial.eval_C,
     polynomial.eval_monomial],
   by_cases h : n = 1,
-  { simp [h],
-    norm_num, },
+  { norm_num [h], },
   { simp [h],
     exact bernoulli_eq_bernoulli'_of_ne_one h, }
 end

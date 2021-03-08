@@ -121,16 +121,11 @@ ext $ λ x, or_and_distrib_right
 theorem union_distrib_left (s t u : set α) : s ∪ (t ∩ u) = (s ∪ t) ∩ (s ∪ u) :=
 ext $ λ x, or_and_distrib_left
 
+meta def union_distrib_right_tactic : tactic unit :=
+  `[ext, apply λ x, and_or_distrib_right]
+
 theorem union_distrib_right (s t u : set α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
-ext $ λ x, and_or_distrib_right
-
-theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
-
-theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
-(ext $ λ x, or_iff_right_of_imp $ λ e, e.symm ▸ h)
-
-lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} : a ∉ s → s ≠ insert a t :=
-mt $ λ e, e.symm ▸ mem_insert _ _
+by timetac "union_distrib_right" union_distrib_right_tactic
 
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp only [subset_def, or_imp_distrib, forall_and_distrib, forall_eq, mem_insert_iff]

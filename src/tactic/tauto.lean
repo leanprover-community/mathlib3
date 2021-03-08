@@ -6,15 +6,6 @@ Authors: Simon Hudon
 import tactic.hint
 import tactic.ext
 
-/-- tactic.tautology cannot deduce P b from (∀ b, P b ∧ Q b),
-  but it can from (∀ b, P b) ∧ (∀ b, Q b). -/
-lemma forall_and_iff_forall_and_forall {β} {P Q : β → Prop} :
-  (∀ b, P b ∧ Q b) ↔ (∀ b, P b) ∧ ∀ b, Q b :=
-iff.intro 
-  (λ h1 : (∀ b, P b ∧ Q b), and.intro (λ b, (h1 b).left) (λ b, (h1 b).right)) 
-  (λ h1 : (∀ b, P b) ∧ (∀ b, Q b), (λ b, and.intro (h1.left b) (h1.right b))) 
-
-
 namespace tactic
 
 open expr

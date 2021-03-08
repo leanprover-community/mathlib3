@@ -31,7 +31,7 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 
 instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
-@[simp] lemma to_fun_as_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
+@[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 
 variables {α β} {f g : continuous_map α β}
 

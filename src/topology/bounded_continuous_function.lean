@@ -36,14 +36,14 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
 
-protected lemma bounded (f : α →ᵇ β) : ∃C, ∀x y:α, dist (f x) (f y) ≤ C := f.bounded'
+protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.bounded'
 protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
 
 lemma bounded_range : bounded (range f) :=
 bounded_range_iff.2 f.bounded
 
 /-- A continuous function with an explicit bound is a bounded continuous function. -/
-def mk_of_bound (f : C(α, β)) (C : ℝ) (h : ∀ x y:α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+def mk_of_bound (f : C(α, β)) (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
 ⟨f, ⟨C, h⟩⟩
 
 @[simp] lemma mk_of_bound_coe {f} {C} {h} : (mk_of_bound f C h : α → β) = (f : α → β) :=
@@ -64,7 +64,7 @@ def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, di
 ⟨⟨f, continuous_of_discrete_topology⟩, hf⟩
 
 @[simp] lemma mk_of_discrete_apply
-  [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) (a : α) :
+  [discrete_topology α] (f : α → β) (hf : ∃C, ∀ x y, dist (f x) (f y) ≤ C) (a : α) :
   mk_of_discrete f hf a = f a :=
 rfl
 

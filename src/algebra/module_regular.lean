@@ -19,6 +19,8 @@ element `a ∈ R` such that the function `m ↦ a • m` is injective.
 
 --should it be in the module namespace?
 
+namespace module
+
 variables {R : Type*} {a b : R} (M : Type*)
 
 section has_scalar
@@ -162,3 +164,5 @@ begin
 end
 
 end monoid
+
+end module

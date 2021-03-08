@@ -3,12 +3,9 @@ Copyright (c) 2021 Luke Kershaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
-import category_theory.limits.constructions.pullbacks
-import category_theory.limits.shapes.biproducts
-import category_theory.limits.shapes.images
-import category_theory.abelian.non_preadditive
 import category_theory.additive.basic
 import category_theory.shift
+import category_theory.abelian.additive_functor
 
 /-!
 # Triangulated Categories
@@ -33,6 +30,7 @@ open category_theory.category
 We work in an additive category C equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_shift C] [additive_category C]
+[functor.additive (shift C).functor]
 
 
 /--

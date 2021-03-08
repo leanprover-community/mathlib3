@@ -396,7 +396,7 @@ variable {f}
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
-by simpa [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
+by simpa using @dist_le _ _ _ _ f 0 _ C0
 
 variable (f)
 

@@ -30,6 +30,9 @@ meta def set_tauto_int_impl : tactic unit :=
 meta def set_tauto_classic_impl : tactic unit :=
  `[{{ refl } <|> { ext1, simp [forall_and_distrib], try { tauto! }}}]
 
+meta def set_tauto_classic_impl2 : tactic unit :=
+ `[{{ refl } <|> { ext1, try {simp [forall_and_distrib]}, try { tauto! }}}]
+
 /-- Helper for set_tauto4. -/
 meta def set_tauto3 : tactic unit :=
 do tactic.ext1 [],
@@ -77,6 +80,13 @@ meta def set_tauto_int := set_tauto_classic_impl
 meta def set_tauto_classic := set_tauto_classic_impl
 meta def set_tauto_hard := set_tauto4
 
+set_tauto_classic2_impl works nearly identically.
+139.655 ms avg
+meta def refl_int := set_tauto_classic_impl2
+meta def set_tauto_int := set_tauto_classic_impl2
+meta def set_tauto_classic := set_tauto_classic_impl2
+meta def set_tauto_hard := set_tauto4
+
 Intuitionistic is 10 ms faster, but fails on 29 more problems.
 Minimal working solution except refl on all problems
 131.271 ms avg
@@ -104,11 +114,11 @@ meta def set_tauto_hard := `[refl]
  -/
 
 /-- Problems solvable by refl (36 problems) -/ 
-meta def refl_int := set_tauto2
+meta def refl_int := set_tauto_classic_impl2
 /-- Problems solvable by intuitionistic logic (68 problems) -/
-meta def set_tauto_int := set_tauto2
+meta def set_tauto_int := set_tauto_classic_impl2
 /-- Problems solvable by classical logic. (24 problems) -/
-meta def set_tauto_classic := set_tauto2
+meta def set_tauto_classic := set_tauto_classic_impl2
 /-- Problems that require the longer version, set_tauto4
     Five timed + 1 needing additional help. -/
 meta def set_tauto_hard := set_tauto4

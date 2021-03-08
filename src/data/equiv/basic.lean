@@ -239,7 +239,7 @@ end
 
 @[simp] theorem cast_symm {α β} (h : α = β) : (equiv.cast h).symm = equiv.cast h.symm := rfl
 
-@[simp] theorem cast_refl {α} : equiv.cast (rfl : α = α) = equiv.refl α := rfl
+@[simp] theorem cast_refl {α} (h : α = α := rfl) : equiv.cast h = equiv.refl α := rfl
 
 @[simp] theorem cast_trans {α β γ} (h : α = β) (h2 : β = γ) :
   (equiv.cast h).trans (equiv.cast h2) = equiv.cast (h.trans h2) :=
@@ -1229,14 +1229,29 @@ def subtype_equiv {p : α → Prop} {q : β → Prop}
  λ ⟨x, h⟩, subtype.ext_val $ by simp,
  λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
 
+@[simp] lemma subtype_equiv_refl {p : α → Prop}
+  (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :
+  (equiv.refl α).subtype_equiv h = equiv.refl {a : α // p a} :=
+by { ext, refl }
+
+@[simp] lemma subtype_equiv_symm {p : α → Prop} {q : β → Prop} (e : α ≃ β)
+  (h : ∀ (a : α), p a ↔ q (e a)) :
+  (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
+    convert (h $ e.symm a).symm,
+    exact (e.apply_symm_apply a).symm,
+  }) :=
+rfl
+
+@[simp] lemma subtype_equiv_trans {p : α → Prop} {q : β → Prop} {r : γ → Prop}
+  (e : α ≃ β) (f : β ≃ γ)
+  (h : ∀ (a : α), p a ↔ q (e a)) (h' : ∀ (b : β), q b ↔ r (f b)):
+  (e.subtype_equiv h).trans (f.subtype_equiv h') =
+    (e.trans f).subtype_equiv (λ a, (h a).trans (h' $ e a)) :=
+rfl
+
 @[simp] lemma subtype_equiv_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
   (h : ∀ (a : α), p a ↔ q (e a)) (x : {x // p x}) :
   e.subtype_equiv h x = ⟨e x, (h _).1 x.2⟩ :=
-rfl
-
-@[simp] lemma subtype_equiv_symm_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
-  (h : ∀ (a : α), p a ↔ q (e a)) (y : {y // q y}) :
-  (e.subtype_equiv h).symm y = ⟨e.symm y, (h _).2 $ (e.apply_symm_apply y).symm ▸ y.2⟩ :=
 rfl
 
 /-- If two predicates `p` and `q` are pointwise equivalent, then `{x // p x}` is equivalent to

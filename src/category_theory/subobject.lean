@@ -1357,6 +1357,14 @@ lemma sup_factors_of_factors_right {A B : C} {X Y : subobject B} {f : A ⟶ B} (
   (X ⊔ Y).factors f :=
 factors_of_le f le_sup_right P
 
+/-!
+Unfortunately, there are two different ways we may obtain a `semilattice_sup_bot (subobject B)`,
+either as here, by assuming `[has_zero_morphisms C] [has_zero_object C]`,
+or if `C` is cartesian closed.
+
+These will be definitionally different, and at the very least we will need two different versions
+of `finset_sup_factors`. So far I don't see how to handle this through generalization.
+-/
 section
 variables [has_zero_morphisms C] [has_zero_object C]
 

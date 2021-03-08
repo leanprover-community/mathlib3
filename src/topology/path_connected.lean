@@ -99,9 +99,6 @@ by continuity!
 instance : connected_space I :=
 subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
-instance : compact_space I :=
-compact_iff_compact_space.1 compact_Icc
-
 /-! ### Paths -/
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/

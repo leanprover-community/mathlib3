@@ -72,7 +72,7 @@ begin
     linear_map.ring_lmap_equiv_self_symm_apply, linear_map.comp_apply,
     continuous_linear_map.coe_coe, continuous_linear_map.prod_apply,
     linear_equiv.trans_apply, linear_equiv.prod_apply, linear_map.coprod_apply,
-    linear_map.smul_right_apply, linear_map.one_app, smul_eq_mul, mul_comm]
+    linear_map.smul_right_apply, linear_map.one_apply, smul_eq_mul, mul_comm]
 end
 
 /-- Lagrange multipliers theorem. Let `f : ι → E → ℝ` be a finite family of functions.

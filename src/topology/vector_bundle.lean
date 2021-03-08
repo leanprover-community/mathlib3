@@ -206,7 +206,9 @@ instance trivial_bundle.topological_vector_bundle :
 
 variables {𝕜 B F}
 
+/- Not registered as an instance because of a metavariable. -/
 lemma is_topological_vector_bundle_is_topological_fiber_bundle [topological_vector_bundle 𝕜 F E] :
   is_topological_fiber_bundle F (proj E) :=
-λ x, ⟨topological_vector_bundle.trivialization_at 𝕜 F E x.1,
-  topological_vector_bundle.mem_trivialization_source 𝕜 f E x⟩
+λ x, ⟨(trivialization_at 𝕜 F E x).to_bundle_trivialization, mem_base_set_trivialization_at 𝕜 F E x⟩
+
+end topological_vector_bundle

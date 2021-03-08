@@ -100,11 +100,6 @@ def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
   map_add'  := λ _ _, eval₂_add _ _,
   commutes' := λ _, eval₂_C _ _ _}
 
-/-- The ring isomorphism between multivariable polynomials induced by an equivalence
-of the variables.  -/
-abbreviation ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₂ R :=
-(rename_equiv e : _ ≃ₐ[R] _).to_ring_equiv
-
 /-- If `e : A ≃+* B` is an isomorphism of `R`-algebras, then so is `map e`. -/
 @[simps]
 def map_equiv [comm_semiring S₂] (e : R ≃+* S₂) :
@@ -132,14 +127,6 @@ def map_alg_equiv {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A
       ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.commutes],
   end,
   ..(map_equiv A ↑e) }
-
-/-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebas and `e_var : S₁ ≃ S₂` is an isomorphism of
-types, the induced isomorphism `mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₂ B`. -/
-abbreviation alg_equiv_congr {A B : Type*}
-  [comm_semiring A] [comm_semiring B] [algebra R A] [algebra R B]
-  (e : A ≃ₐ[R] B) (e_var : S₁ ≃ S₂) :
-  mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₂ B :=
-(map_alg_equiv R e).trans $ (rename_equiv e_var).restrict_scalars _
 
 variable (S₁)
 

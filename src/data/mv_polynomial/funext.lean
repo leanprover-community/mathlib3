@@ -43,7 +43,7 @@ begin
     rw [eval₂_hom_rename],
     exact eval₂_hom_congr rfl (subsingleton.elim _ _) rfl },
   { introsI R _ _ p h,
-    let e := fin_succ_equiv R n,
+    let e := (fin_succ_equiv R n).to_ring_equiv,
     apply e.injective,
     simp only [ring_equiv.map_zero],
     apply polynomial.funext,

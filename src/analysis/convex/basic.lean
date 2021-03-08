@@ -350,28 +350,28 @@ begin
 end
 
 lemma convex_halfspace_re_lt (r : ℝ) : convex {c : ℂ | c.re < r} :=
-convex_halfspace_lt (is_linear_map.mk complex.add_re complex.smul_re') _
+convex_halfspace_lt (is_linear_map.mk complex.add_re complex.smul_re) _
 
 lemma convex_halfspace_re_le (r : ℝ) : convex {c : ℂ | c.re ≤ r} :=
-convex_halfspace_le (is_linear_map.mk complex.add_re complex.smul_re') _
+convex_halfspace_le (is_linear_map.mk complex.add_re complex.smul_re) _
 
 lemma convex_halfspace_re_gt (r : ℝ) : convex {c : ℂ | r < c.re } :=
-convex_halfspace_gt (is_linear_map.mk complex.add_re complex.smul_re') _
+convex_halfspace_gt (is_linear_map.mk complex.add_re complex.smul_re) _
 
 lemma convex_halfspace_re_lge (r : ℝ) : convex {c : ℂ | r ≤ c.re} :=
-convex_halfspace_ge (is_linear_map.mk complex.add_re complex.smul_re') _
+convex_halfspace_ge (is_linear_map.mk complex.add_re complex.smul_re) _
 
 lemma convex_halfspace_im_lt (r : ℝ) : convex {c : ℂ | c.im < r} :=
-convex_halfspace_lt (is_linear_map.mk complex.add_im complex.smul_im') _
+convex_halfspace_lt (is_linear_map.mk complex.add_im complex.smul_im) _
 
 lemma convex_halfspace_im_le (r : ℝ) : convex {c : ℂ | c.im ≤ r} :=
-convex_halfspace_le (is_linear_map.mk complex.add_im complex.smul_im') _
+convex_halfspace_le (is_linear_map.mk complex.add_im complex.smul_im) _
 
 lemma convex_halfspace_im_gt (r : ℝ) : convex {c : ℂ | r < c.im } :=
-convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im') _
+convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im) _
 
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
-convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im') _
+convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 
 /-! ### Convex combinations in intervals -/
 

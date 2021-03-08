@@ -146,16 +146,13 @@ ext_iff.2 $ by simp
 ext_iff.2 $ by simp
 lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
-
-lemma smul_re (r : ℝ) (z : K) : re (↑r * z) = r * (re z) :=
-by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
-lemma smul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
+lemma of_real_mul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
 by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
-lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
-λ r z, by { rw algebra.smul_def, apply smul_re }
-lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
-λ r z, by { rw algebra.smul_def, apply smul_im }
+lemma smul_re : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_re }
+lemma smul_im : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_im }
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def re_lm : K →ₗ[ℝ] ℝ :=

@@ -43,11 +43,11 @@ variables [has_scalar R ℝ]
 instance : has_scalar R ℂ :=
 { smul := λ r x, ⟨r • x.re, r • x.im⟩ }
 
-lemma smul_re' (r : R) (z : ℂ) : (r • z).re = r • z.re := rfl
-lemma smul_im' (r : R) (z : ℂ) : (r • z).im = r • z.im := rfl
+lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := rfl
+lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := rfl
 
 @[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z :=
-by ext; simp [smul_re', smul_im']
+by ext; simp [smul_re, smul_im]
 
 end
 
@@ -62,7 +62,6 @@ instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, ext (one_smul _ _) (one_smul _ _),
   mul_smul := λ r s x, ext (mul_smul _ _ _) (mul_smul _ _ _) }
 
-
 instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
 { smul_add := λ r x y, ext (smul_add _ _ _) (smul_add _ _ _),
   smul_zero := λ r, ext (smul_zero _) (smul_zero _) }
@@ -73,8 +72,8 @@ instance [semiring R] [semimodule R ℝ] : semimodule R ℂ :=
 
 instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
 { smul := (•),
-  smul_def' := λ r x, by ext; simp [smul_re', smul_im', algebra.smul_def],
-  commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re', smul_im', algebra.commutes],
+  smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
+  commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
 section

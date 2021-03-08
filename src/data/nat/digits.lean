@@ -149,7 +149,7 @@ begin
   { dsimp [of_digits], rw ih, },
 end
 
-private lemma of_digits_eq_sum_map_with_index_aux (b : ℕ) (l : list ℕ) :
+lemma of_digits_eq_sum_map_with_index_aux (b : ℕ) (l : list ℕ) :
   ((list.range l.length).zip_with ((λ (i a : ℕ), a * b ^ i) ∘ succ) l).sum =
   b * ((list.range l.length).zip_with (λ i a, a * b ^ i) l).sum :=
 begin

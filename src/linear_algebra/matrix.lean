@@ -197,7 +197,7 @@ by simp [linear_map.to_matrix_alg_equiv']
 
 @[simp] lemma matrix.to_lin_alg_equiv'_one :
   matrix.to_lin_alg_equiv' (1 : matrix n n R) = id :=
-by { ext, simp [one_apply, std_basis_apply] }
+by { ext, simp [matrix.one_apply, std_basis_apply] }
 
 @[simp] lemma linear_map.to_matrix_alg_equiv'_id :
   (linear_map.to_matrix_alg_equiv' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=

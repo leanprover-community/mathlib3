@@ -818,20 +818,20 @@ lemma continuous.piecewise {s : set α} {f g : α → β} [∀ a, decidable (a �
   continuous (piecewise s f g) :=
 hf.if hs hg
 
-lemma is_open_inter_union_inter_compl' {s s' t : set α}
+lemma is_open.ite' {s s' t : set α}
   (hs : is_open s) (hs' : is_open s') (ht : ∀ x ∈ frontier t, x ∈ s ↔ x ∈ s') :
-  is_open (s ∩ t ∪ s' ∩ tᶜ) :=
+  is_open (t.ite s s') :=
 begin
   classical,
-  simp only [is_open_iff_continuous_mem] at *,
+  simp only [is_open_iff_continuous_mem, set.ite] at *,
   convert continuous_piecewise (λ x hx, propext (ht x hx)) hs.continuous_on hs'.continuous_on,
   ext x, by_cases hx : x ∈ t; simp [hx]
 end
 
-lemma is_open_inter_union_inter_compl {s s' t : set α} (hs : is_open s) (hs' : is_open s')
+lemma is_open.ite {s s' t : set α} (hs : is_open s) (hs' : is_open s')
   (ht : s ∩ frontier t = s' ∩ frontier t) :
-  is_open (s ∩ t ∪ s' ∩ tᶜ) :=
-is_open_inter_union_inter_compl' hs hs' $ λ x hx, by simpa [hx] using ext_iff.1 ht x
+  is_open (t.ite s s') :=
+hs.ite' hs' $ λ x hx, by simpa [hx] using ext_iff.1 ht x
 
 lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
 continuous_fst.continuous_on

@@ -483,6 +483,10 @@ theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
 ⟨eq_zero_or_eq_zero_of_smul_eq_zero,
  λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
 
+theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
+  c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=
+by simp only [ne.def, smul_eq_zero, not_or_distrib]
+
 section nat
 
 variables (R) (M) [no_zero_smul_divisors R M] [semimodule ℕ M] [char_zero R]

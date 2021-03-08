@@ -1580,6 +1580,15 @@ submodule.map_smul f _ a h
 lemma range_smul' (f : V →ₗ[K] V₂) (a : K) : range (a • f) = ⨆(h : a ≠ 0), range f :=
 submodule.map_smul' f _ a
 
+lemma span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
+  (K ∙ x) ⊔ f.ker = ⊤ :=
+eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
+  submodule.mem_span_singleton.2 ⟨f y * (f x)⁻¹, rfl⟩,
+    ⟨y - (f y * (f x)⁻¹) • x,
+      by rw [linear_map.mem_ker, f.map_sub, f.map_smul, smul_eq_mul, mul_assoc,
+             inv_mul_cancel hx, mul_one, sub_self],
+      by simp only [add_sub_cancel'_right]⟩⟩)
+
 end field
 
 end linear_map

@@ -367,9 +367,9 @@ variables [fintype ι] (h : is_basis R v)
 -/
 def is_basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans (module_equiv_finsupp h)
-  { to_fun := finsupp.to_fun,
-    map_add' := λ x y, by ext; exact finsupp.add_apply,
-    map_smul' := λ x y, by ext; exact finsupp.smul_apply,
+  { to_fun := coe_fn,
+    map_add' := finsupp.coe_add,
+    map_smul' := finsupp.coe_smul,
     ..finsupp.equiv_fun_on_fintype }
 
 /-- A module over a finite ring that admits a finite basis is finite. -/

@@ -894,7 +894,7 @@ lemma is_adjoint_pair.comp {f' : M' →ₗ[R] M''} {g' : M'' →ₗ[R] M'}
 lemma is_adjoint_pair.mul
   {f g f' g' : module.End R M} (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
   is_adjoint_pair B B (f * f') (g' * g) :=
-λ x y, by rw [linear_map.mul_app, linear_map.mul_app, h, h']
+λ x y, by rw [linear_map.mul_apply, linear_map.mul_apply, h, h']
 
 variables (B B' B₁ B₂) (F₂ : bilin_form R₂ M₂)
 

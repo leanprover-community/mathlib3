@@ -467,6 +467,11 @@ lemma times_cont_diff_within_at.congr {n : with_top ℕ}
   times_cont_diff_within_at 𝕜 n f₁ s x :=
 h.congr_of_eventually_eq (filter.eventually_eq_of_mem self_mem_nhds_within h₁) hx
 
+lemma times_cont_diff_within_at.congr' {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : ∀ y ∈ s, f₁ y = f y) (hx : x ∈ s) :
+  times_cont_diff_within_at 𝕜 n f₁ s x :=
+h.congr h₁ (h₁ _ hx)
+
 lemma times_cont_diff_within_at.mono_of_mem {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : s ∈ 𝓝[t] x) :
   times_cont_diff_within_at 𝕜 n f t x :=
@@ -707,7 +712,8 @@ lemma iterated_fderiv_within_zero_eq_comp :
 
 lemma iterated_fderiv_within_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
   (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n + 1) → E) → F) m
-  = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) := rfl
+  = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x : E → (E [×n]→L[𝕜] F))
+      (m 0) (tail m) := rfl
 
 /-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the derivative of the `n`-th derivative. -/
@@ -864,7 +870,8 @@ begin
     have : has_fderiv_within_at (λ (y : E), iterated_fderiv_within 𝕜 m f s y)
       (continuous_multilinear_map.curry_left (p x (nat.succ m))) s x :=
     (h.fderiv_within m A x hx).congr (λ y hy, (IH (le_of_lt A) hy).symm) (IH (le_of_lt A) hx).symm,
-    rw [iterated_fderiv_within_succ_eq_comp_left, function.comp_apply, this.fderiv_within (hs x hx)],
+    rw [iterated_fderiv_within_succ_eq_comp_left, function.comp_apply,
+      this.fderiv_within (hs x hx)],
     exact (continuous_multilinear_map.uncurry_curry_left _).symm }
 end
 
@@ -1420,8 +1427,8 @@ lemma times_cont_diff_of_differentiable_iterated_fderiv {n : with_top ℕ}
 times_cont_diff_iff_continuous_differentiable.2
 ⟨λ m hm, (h m hm).continuous, λ m hm, (h m (le_of_lt hm))⟩
 
-/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is differentiable
-there, and its derivative is `C^n`. -/
+/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if
+it is differentiable there, and its derivative is `C^n`. -/
 theorem times_cont_diff_succ_iff_fderiv {n : ℕ} :
   times_cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ times_cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
@@ -1843,7 +1850,8 @@ lemma times_cont_diff_on.prod {n : with_top ℕ} {s : set E} {f : E → F} {g : 
 lemma times_cont_diff_at.prod {n : with_top ℕ} {f : E → F} {g : E → G}
   (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
   times_cont_diff_at 𝕜 n (λx:E, (f x, g x)) x :=
-times_cont_diff_within_at_univ.1 $ times_cont_diff_within_at.prod (times_cont_diff_within_at_univ.2 hf)
+times_cont_diff_within_at_univ.1 $ times_cont_diff_within_at.prod
+  (times_cont_diff_within_at_univ.2 hf)
   (times_cont_diff_within_at_univ.2 hg)
 
 /--
@@ -2494,7 +2502,8 @@ begin
   have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂ :=
     funext (to_ring_inverse e),
   rw this,
-  -- `O₁` and `O₂` are `times_cont_diff`, so we reduce to proving that `ring.inverse` is `times_cont_diff`
+  -- `O₁` and `O₂` are `times_cont_diff`,
+  -- so we reduce to proving that `ring.inverse` is `times_cont_diff`
   have h₁ : times_cont_diff 𝕜 n O₁,
     from is_bounded_bilinear_map_comp.times_cont_diff.comp
       (times_cont_diff_const.prod times_cont_diff_id),
@@ -2511,9 +2520,10 @@ end map_inverse
 section function_inverse
 open continuous_linear_map
 
-/-- If `f` is a local homeomorphism and the point `a` is in its target, and if `f` is `n` times
-continuously differentiable at `f.symm a`, and if the derivative at `f.symm a` is a continuous linear
-equivalence, then `f.symm` is `n` times continuously differentiable at the point `a`.
+/-- If `f` is a local homeomorphism and the point `a` is in its target,
+and if `f` is `n` times continuously differentiable at `f.symm a`,
+and if the derivative at `f.symm a` is a continuous linear equivalence,
+then `f.symm` is `n` times continuously differentiable at the point `a`.
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/

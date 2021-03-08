@@ -899,6 +899,14 @@ theorem supr_sum {γ : Type*} {f : β ⊕ γ → α} :
   (⨆ x, f x) = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=
 @infi_sum (order_dual α) _ _ _ _
 
+theorem supr_option (f : option β → α) :
+  (⨆ o, f o) = f none ⊔ ⨆ b, f (option.some b) :=
+eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sup_le_iff, option.forall]
+
+theorem infi_option (f : option β → α) :
+  (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
+@supr_option (order_dual α) _ _ _
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/

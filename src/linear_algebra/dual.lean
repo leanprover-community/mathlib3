@@ -6,8 +6,6 @@ Authors: Johan Commelin, Fabian Glöckle
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
 
-noncomputable theory
-
 /-!
 # Dual vector spaces
 
@@ -32,7 +30,12 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 We sometimes use `V'` as local notation for `dual K V`.
 
+## TODO
+
+Erdös-Kaplansky theorem about the dimension of a dual vector space in case of infinite dimension.
 -/
+
+noncomputable theory
 
 namespace module
 
@@ -135,17 +138,10 @@ def to_dual_flip (v : V) : (V →ₗ[K] K) := (h.to_dual B).flip v
 
 variable {B}
 
-omit de h
--- TODO: unify this with `finsupp.lapply`.
-/-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
-def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
-{ to_fun    := λ f, f i,
-  map_add'  := by intros; rw finsupp.add_apply,
-  map_smul' := by intros; rw finsupp.smul_apply }
-include h
+omit de
 
 /-- `h.coord_fun i` sends vectors to their `i`'th coordinate with respect to the basis `h`. -/
-def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := (finsupp.lapply i).comp h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 

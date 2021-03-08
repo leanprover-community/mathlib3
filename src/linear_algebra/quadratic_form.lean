@@ -428,6 +428,14 @@ quadratic_form.ext $ λ x,
       = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 
+lemma associated_eq_self_apply (x : M) : associated Q x x = Q x :=
+begin
+  rw [associated_apply, map_add_self],
+  suffices : 2 * Q x * ⅟ 2 = Q x,
+    { ring, assumption },
+  rw [mul_right_comm, mul_inv_of_self, one_mul],
+end
+
 -- Change to module over rings once #6585 is merged
 lemma exists_quadratic_form_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]
   {Q : quadratic_form R₁ M} (hB₁ : Q.associated.nondegenerate) :

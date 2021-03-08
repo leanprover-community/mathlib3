@@ -99,6 +99,9 @@ by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
 
 @[simp] lemma coeff_X_zero : coeff (X : polynomial R) 0 = 0 := coeff_monomial
 
+@[simp] lemma coeff_monomial_succ : coeff (monomial (n+1) a) 0 = 0 :=
+by simp [coeff_monomial]
+
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
 lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 0 :=

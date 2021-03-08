@@ -1,4 +1,4 @@
-import m4r.koszul_of_free
+import m4r.koszul_of_free linear_algebra.determinant
 
 universes u v
 variables (R : Type u) [comm_ring R] {M : Type u} [add_comm_group M] [module R M]
@@ -244,6 +244,7 @@ def smul_cx_isom (x : R) :
   hom_inv_id' := by ext; simp,
   inv_hom_id' := by ext; simp }
 
+variables {R M}
 lemma subsingleton_Koszul_one (j : ℤ) (x : R) (hj : ¬(j = 0 ∨ j = 1)) :
   subsingleton ((Koszul R R x).X j) :=
 @equiv.subsingleton _ _ (smul_cx_isom_aux R x j).to_linear_equiv.symm.to_equiv
@@ -253,7 +254,7 @@ lemma subsingleton_Koszul_one (j : ℤ) (x : R) (hj : ¬(j = 0 ∨ j = 1)) :
   (tensor_product.lid R M).symm (tensor_product.lid R M m) = m :=
 linear_equiv.symm_apply_apply _ _
 
-def tensor_Koszul_isom_prod (x : R) (y : M) (i : ℤ) :
+/-def tensor_Koszul_isom_prod (x : R) (y : M) (i : ℤ) :
   (cochain_complex.tensor_product R (Koszul R R x) (Koszul R M y)).X (i + 1) ≅
   Module.of R ((Koszul R M y).X (i + 1) × (Koszul R M y).X i) :=
 { hom := linear_map.prod (((tensor_product.lid R _).to_linear_map.comp
@@ -320,15 +321,120 @@ def tensor_Koszul_isom_prod (x : R) (y : M) (i : ℤ) :
           to_linear_map_apply, id.def, one_smul, tensor_product.lid_tmul,
           linear_equiv.apply_symm_apply] },
       { exact (λ hnot, zero_ne_one $ int_pair_ext_iff_fst.1 hnot) }}
-  end }
+  end }-/
 
+def alternating_map.prod {N P : Type u} [add_comm_group N] [add_comm_group P] [module R N]
+  [module R P] {m : ℕ} (f : alternating_map R M N (fin m)) (g : alternating_map R M P (fin m)) :
+  alternating_map R M (N × P) (fin m) :=
+{ to_fun := λ v, (f v, g v),
+  map_add' := λ x i y z, prod.ext (f.map_add x i y z) (g.map_add x i y z),
+  map_smul' := λ x i r y, prod.ext (f.map_smul x i r y) (g.map_smul x i r y),
+  map_eq_zero_of_eq' := λ v i j hv hij, prod.ext (f.map_eq_zero_of_eq v hv hij)
+    (g.map_eq_zero_of_eq v hv hij) }
 #exit
+variables (R)
+/-
+def aux_inl (n i : ℕ) :
+  alternating_map R (fin n.succ → R) (epow R (fin n → R) i.succ) (fin i.succ) :=
+{ to_fun := λ (v : fin i.succ → fin n.succ → R), epow.mk R (fin n → R) i.succ
+    (λ j, (fin.init (v j)) : fin i.succ → fin n → R),
+  map_add' := λ x i y z,
+  begin
+    by_cases h : i = n,
+    { rw h,
+      sorry, --whoops!!!!
+       },
+    sorry,
+  end,
+  map_smul' := sorry,
+  map_eq_zero_of_eq' := sorry }
+
+def aux_inr (n i : ℕ) :
+  alternating_map R (fin n.succ → R) (epow R (fin n → R) i) (fin i.succ) :=
+{ to_fun := λ v, finset.sum (@finset.univ (ordered_list n i) _)
+    (λ l, ((matrix.det $ matrix.minor v
+  (id : fin i.succ → fin i.succ) (fin.snoc (λ j, ordered_nth (ordered_cast_succ l) j) n))
+    • (epow.mk R (fin n → R) i (λ j, function.update 0 (ordered_nth l j) 1)))),
+  map_add' := λ x i y z,
+  begin
+    sorry,
+  end,
+  map_smul' := _,
+  map_eq_zero_of_eq' := _ }
+
+def aux_fst (n i : ℕ) :
+  alternating_map R (fin n → R) (epow R (fin n.succ → R) i.succ) (fin i.succ) :=
+{ to_fun := λ v, epow.mk R (fin n.succ → R) i.succ (λ j, fin.snoc (v j) 0),
+  map_add' := _,
+  map_smul' := _,
+  map_eq_zero_of_eq' := _ }
+
+lemma aux_fst_inj_helper (n i : ℕ) (v : fin i.succ → fin n → R)
+  (h : aux_fst R n i v = 0) :
+  epow.mk R (fin n → R) i.succ v = 0 :=
+begin
+  change submodule.mkq _ _ = 0 at h,
+  rw ←linear_map.mem_ker at h,
+  rw submodule.ker_mkq at h,
+  refine @submodule.span_induction R _ _ _ _
+    ((tpow.mk' R (fin n.succ → R) i.succ) (λ (j : fin i.succ), fin.snoc (v j) 0))
+    ((tpow.mk' R (fin n.succ → R) i.succ) '' exists_same (fin n.succ → R) i.succ)
+    (λ p, ∀ (w : fin i.succ → fin n → R), p = ((tpow.mk' R (fin n.succ → R) i.succ)
+      (λ (j : fin i.succ), fin.snoc (w j) 0))
+    → (epow.mk R (fin n → R) i.succ w = 0)) h _ _ _ _ v rfl,
+  { intros x hx w hw,
+    rcases hx with ⟨s, ⟨i, j, hs, hij⟩, hs⟩,
+     },
+  { sorry },
+  { sorry },
+  { sorry }
+end
+
+lemma aux_fst_inj (n i : ℕ) :
+  (epow_lift R (aux_fst R n i)).ker = ⊥ :=
+begin
+  rw submodule.eq_bot_iff,
+  intro x,
+  refine quotient.induction_on' x _,
+  intro y,
+  rcases exists_sum_of_tpow R _ y with ⟨s, rfl⟩,
+  show submodule.mkq _ _ ∈ _ → submodule.mkq _ _ = _,
+  intro h,
+  rw map_sum at h ⊢,
+  rw linear_map.mem_ker at h,
+  simp only [linear_map.map_smul] at h ⊢,
+  rw map_sum at h,
+  simp only [linear_map.map_smul] at h,
+  change (multiset.map (λ (j : R × (fin i.succ → fin n → R)), j.1 • epow_lift R _
+    (epow.mk R _ _ j.2)) _).sum = _ at h,
+  simp only [epow_lift_mk] at h,
+
+
+
+
+end
+
+#check linear_equiv.of_injective
+def aux_snd (n i : ℕ) :
+  alternating_map R (fin n → R) (epow R (fin n.succ → R) i.succ) (fin i) :=
+{ to_fun := λ (v : fin _ → fin _ → R), epow.mk R (fin n.succ → R) i.succ
+    (fin.snoc (λ j, fin.snoc (v j) 0) (function.update 0 n 1)),
+  map_add' := _,
+  map_smul' := _,
+  map_eq_zero_of_eq' := _ }
+
+variables (n i : ℕ)
+
+def hmmm  (n i : ℕ) :
+  epow R (fin n.succ → R) i.succ ≃ₗ[R] ((epow R (fin n → R) i.succ) × epow R (fin n → R) i) :=
+linear_equiv.of_linear (epow_lift R ((aux_inl R n i).prod (aux_inr R n i)))
+  (linear_map.coprod _ _) _ _
 
 def Koszul_isom_prod {n : ℕ} (x : fin n.succ → R) (i : ℤ) :
   (Koszul R (fin n.succ → R) x).X (i + 1) ≅
   Module.of R ((Koszul R (fin n → R) (fin.init x)).X (i + 1)
     × (Koszul R (fin n → R) (fin.init x)).X i) :=
-{ hom := int.rec_on i (λ i, nat.rec_on n _ _) (λ i, 0),
+{ hom := _,
   inv := _,
   hom_inv_id' := sorry,
   inv_hom_id' := sorry }
@@ -339,4 +445,4 @@ def Koszul_succ_isom_aux {n : ℕ} (x : fin n.succ → R) (i : ℤ) :
 { hom := _,
   inv := _,
   hom_inv_id' := _,
-  inv_hom_id' := _ }
+  inv_hom_id' := _ }-/

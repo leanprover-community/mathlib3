@@ -793,7 +793,7 @@ lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
 
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
 lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
-  [semiring β] [add_monoid α] [add_monoid α₂]
+  [semiring β] [has_add α] [has_add α₂]
   {x y : add_monoid_algebra β α} (f : add_hom α α₂) :
   (map_domain f (x * y : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
@@ -864,7 +864,7 @@ to definitional inconveniences, we can still show the types are isomorphic.
 `multiplicative` -/
 protected def add_monoid_algebra.to_multiplicative [semiring k] [has_add G] :
   add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
-{ map_mul' := λ x y, by convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)),
+{ map_mul' := λ x y, by convert add_monoid_algebra.map_domain_mul (add_hom.id G),
   ..finsupp.dom_congr multiplicative.of_add }
 
 /-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/

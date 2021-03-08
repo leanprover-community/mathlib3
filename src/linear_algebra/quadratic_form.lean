@@ -440,7 +440,7 @@ end
 
 -- Change to module over rings once #6585 is merged
 
-/-- There exists a non-null vector with respect to any quadratic form `Q` whos associated
+/-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
 bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
 lemma exists_quadratic_form_neq_zero [nontrivial M]
   {Q : quadratic_form R₁ M} (hB₁ : Q.associated.nondegenerate) :

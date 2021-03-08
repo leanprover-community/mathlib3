@@ -1741,6 +1741,21 @@ lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measura
   measurable (λ t, ⟪f t, g t⟫) :=
 continuous.measurable2 continuous_inner hf hg
 
+lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
+  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
+  {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (λ x : α, (inner (f x) (g x) : 𝕜)) μ :=
+begin
+  use (λ x : α, (inner (hf.mk f x) (hg.mk g x) : 𝕜)),
+  split,
+  { exact measurable.inner hf.measurable_mk hg.measurable_mk, },
+  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
+  dsimp only,
+  congr,
+  { exact hxf, },
+  { exact hxg, },
+end
+
 variables [topological_space α] {f g : α → E} {x : α} {s : set α}
 
 include 𝕜

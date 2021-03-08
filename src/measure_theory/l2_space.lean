@@ -31,20 +31,6 @@ instance : has_inner ℝ (Lp E 2 μ) := {inner := L2_inner }
 lemma ennreal.to_real_pow (x : ℝ≥0∞) (n : ℕ) : ennreal.to_real x ^ n = ennreal.to_real (x ^ n) :=
 by rw [←ennreal.rpow_nat_cast, ←ennreal.to_real_rpow, real.rpow_nat_cast]
 
-lemma ae_measurable.inner {α} [measurable_space α] {μ : measure α} {f g : α → E}
-  (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
-  ae_measurable (λ x : α, (inner (f x) (g x) : ℝ)) μ :=
-begin
-  use (λ x : α, (inner (hf.mk f x) (hg.mk g x) : ℝ)),
-  split,
-  { exact measurable.inner hf.measurable_mk hg.measurable_mk, },
-  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
-  dsimp only,
-  congr,
-  { exact hxf, },
-  { exact hxg, },
-end
-
 lemma integral_inner_eq_sq_snorm (f : Lp E 2 μ) :
   ∫ (a : α), inner (f a) (f a) ∂μ =
     ennreal.to_real ∫⁻ (a : α), (nnnorm (f a) : ennreal) ^ (2:ℝ) ∂μ :=

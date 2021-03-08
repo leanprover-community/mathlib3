@@ -96,7 +96,7 @@ def triangle_morphism_id (T : triangle C) : triangle_morphism T T :=
 
 instance (T: triangle C): inhabited (triangle_morphism T T) := ⟨ triangle_morphism_id T ⟩
 
-variables {T₁ T₂ T₃ : triangle C}
+variables {T₁ T₂ T₃ T₄: triangle C}
 /--
 Composition of triangle morphisms gives a triangle morphism.
 -/
@@ -109,5 +109,33 @@ triangle_morphism T₁ T₃ :=
   comm2 := by rw [f.comm2_assoc, g.comm2, assoc],
   comm3 := by rw [functor.map_comp, f.comm3_assoc, g.comm3, assoc], }
 
+namespace triangle_morphism
 
+@[simp]
+lemma id_comp (f: triangle_morphism T₁ T₂) : (triangle_morphism_id T₁).comp f = f :=
+begin
+  unfold comp,
+  unfold triangle_morphism_id,
+  cases f,
+  simp only [eq_self_iff_true, id_comp, and_self],
+end
+
+@[simp]
+lemma comp_id (f: triangle_morphism T₁ T₂) : f.comp (triangle_morphism_id T₂) = f :=
+begin
+  unfold comp,
+  unfold triangle_morphism_id,
+  cases f,
+  simp only [eq_self_iff_true, and_self, comp_id],
+end
+
+@[simp]
+lemma comp_assoc (f: triangle_morphism T₁ T₂) (g: triangle_morphism T₂ T₃)
+(h: triangle_morphism T₃ T₄): (f.comp g).comp h = f.comp (g.comp h) :=
+begin
+  unfold comp,
+  simp only [eq_self_iff_true, assoc, and_self],
+end
+
+end triangle_morphism
 end category_theory.triangulated

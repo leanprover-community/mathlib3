@@ -10,6 +10,9 @@ import category_theory.limits.shapes.biproducts
 
 This file contains the definition of additive categories.
 
+TODO: show that finite biproducts implies enriched over commutative monoids and what is missing
+additionally to have additivity is that identities have additive inverses,
+see https://ncatlab.org/nlab/show/biproduct#BiproductsImplyEnrichment
 -/
 
 noncomputable theory

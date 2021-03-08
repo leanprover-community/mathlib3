@@ -32,6 +32,8 @@ and composition with linear maps `f`, `Q.comp f x = Q (f x)`.
  * `quadratic_form.associated_right_inverse`: in a commutative ring where 2 has
   an inverse, there is a correspondence between quadratic forms and symmetric
   bilinear forms
+ * `bilin_form.exists_orthogonal_basis`: There exists an orthogonal basis with
+  respect to any nondegenerate, symmetric bilinear form `B`.
 
 ## Notation
 
@@ -437,6 +439,9 @@ begin
 end
 
 -- Change to module over rings once #6585 is merged
+
+/-- There exists a non-null vector with respect to any quadratic form `Q` whos associated
+bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
 lemma exists_quadratic_form_neq_zero [nontrivial M]
   {Q : quadratic_form R₁ M} (hB₁ : Q.associated.nondegenerate) :
   ∃ x, Q x ≠ 0 :=
@@ -614,8 +619,9 @@ end quadratic_form
 
 namespace bilin_form
 
-/-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
-  `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
+/- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
+on a nontrivial module `M` over the commring `R` with invertible `2`, i.e. there exists some
+`x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]
   {B : bilin_form R₁ M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
@@ -699,7 +705,7 @@ begin
 end .
 
 /-- Given a nondegenerate symmetric bilinear form `B` on some vector space `V` over the
-  field `K` with invertible `2`, there exists a orthogonal basis. -/
+  field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
 theorem exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ v : fin (findim K V) → V, B.is_Ortho v ∧ is_basis K v :=

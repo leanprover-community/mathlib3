@@ -37,6 +37,7 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
 
 protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.bounded'
+@[continuity]
 protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
 
 lemma bounded_range : bounded (range f) :=
@@ -61,11 +62,11 @@ rfl
 and therefore gives rise to an element of the type of bounded continuous functions -/
 def mk_of_discrete [discrete_topology α] (f : α → β)
   (C : ℝ) (h :  ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
-⟨⟨f, continuous_of_discrete_topology⟩, h⟩
+⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
 
 @[simp] lemma mk_of_discrete_apply
-  [discrete_topology α] (f : α → β) (hf : ∃C, ∀ x y, dist (f x) (f y) ≤ C) (a : α) :
-  mk_of_discrete f hf a = f a :=
+  [discrete_topology α] (f : α → β) (C) (h) (a : α) :
+  mk_of_discrete f C h a = f a :=
 rfl
 
 /-- The uniform distance between two bounded continuous functions -/
@@ -421,7 +422,7 @@ lemma norm_le_of_nonempty [nonempty α]
 lemma norm_lt_of_compact [nonempty α] [compact_space α]
   {f : α →ᵇ β} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=
 begin
-  have c : continuous (λ x, ∥f x∥), { have := f.2.1, continuity, },
+  have c : continuous (λ x, ∥f x∥), { continuity, },
   obtain ⟨x, -, le⟩ :=
     is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
   exact lt_of_le_of_lt (norm_le_of_nonempty (λ y, le y trivial)) (h x),

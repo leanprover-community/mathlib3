@@ -841,6 +841,11 @@ lemma measurable.rpow_const {α} [measurable_space α] {f : α → ℝ} (hf : me
   measurable (λ a : α, (f a) ^ y) :=
 hf.rpow measurable_const
 
+lemma ae_measurable.rpow_const {α} [measurable_space α] {f : α → ℝ}
+  {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
+  ae_measurable (λ a : α, (f a) ^ y) μ :=
+measurable.comp_ae_measurable (measurable.rpow_const measurable_id) hf
+
 lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
 measurable_id.rpow_const
 
@@ -1634,6 +1639,24 @@ end
 
 lemma to_real_rpow (x : ℝ≥0∞) (z : ℝ) : (x.to_real) ^ z = (x ^ z).to_real :=
 by rw [ennreal.to_real, ennreal.to_real, ←nnreal.coe_rpow, ennreal.to_nnreal_rpow]
+
+lemma of_real_rpow_of_pos {x p : ℝ} (hx_pos : 0 < x) :
+  ennreal.of_real x ^ p = ennreal.of_real (x ^ p) :=
+begin
+  simp_rw ennreal.of_real,
+  rw [coe_rpow_of_ne_zero, coe_eq_coe, nnreal.of_real_rpow_of_nonneg hx_pos.le],
+  simp [hx_pos],
+end
+
+lemma of_real_rpow_of_nonneg_of_pos {x p : ℝ} (hx_nonneg : 0 ≤ x) (hp_pos : 0 < p) :
+  ennreal.of_real x ^ p = ennreal.of_real (x ^ p) :=
+begin
+  by_cases hx0 : x = 0,
+  { simp [hx0, hp_pos, hp_pos.ne.symm], },
+  rw ← ne.def at hx0,
+  have hx_pos : 0 < x, from hx_nonneg.lt_of_ne hx0.symm,
+  exact of_real_rpow_of_pos hx_pos,
+end
 
 lemma rpow_left_injective {x : ℝ} (hx : x ≠ 0) :
   function.injective (λ y : ℝ≥0∞, y^x) :=

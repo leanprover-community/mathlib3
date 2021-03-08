@@ -325,8 +325,25 @@ lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, �
 le_antisymm (snorm_mono_ae $ filter.eventually_eq.le hfg)
   (snorm_mono_ae $ (filter.eventually_eq.symm hfg).le)
 
+@[simp] lemma snorm'_norm {f : α → G} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
+by simp [snorm']
+
 @[simp] lemma snorm_norm (f : α → F) : snorm (λ x, ∥f x∥) p μ = snorm f p μ :=
 snorm_congr_norm_ae $ filter.eventually_of_forall $ λ x, norm_norm _
+
+lemma snorm'_norm_rpow (f : α → E) (p q : ℝ) (hq_pos : 0 < q) :
+  snorm' (λ x, ∥f x∥ ^ q) p μ = (snorm' f (p * q) μ) ^ q :=
+begin
+  simp_rw snorm',
+  rw [← ennreal.rpow_mul, ←one_div_mul_one_div],
+  simp_rw one_div,
+  rw [mul_assoc, inv_mul_cancel hq_pos.ne.symm, mul_one],
+  congr,
+  ext1 x,
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
+  rw [real.norm_eq_abs, abs_eq_self.mpr (real.rpow_nonneg_of_nonneg (norm_nonneg _) _),
+    mul_comm, ← ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) hq_pos, ennreal.rpow_mul],
+end
 
 lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f p μ = snorm g p μ :=
 snorm_congr_norm_ae $ hfg.mono (λ x hx, hx ▸ rfl)

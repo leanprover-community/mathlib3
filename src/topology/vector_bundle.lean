@@ -84,9 +84,11 @@ class topological_vector_bundle : Prop :=
 (inducing [] : ∀ (b : B), inducing (λ x : (E b), (id ⟨b, x⟩ : total_space E)))
 (locally_trivial [] : ∀ b : B, ∃ e : vector_bundle_trivialization 𝕜 F E, b ∈ e.base_set)
 
+variable [topological_vector_bundle 𝕜 F E]
+
 /-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
-def vector_bundle_trivialization.at [topological_vector_bundle 𝕜 F E]
+def vector_bundle_trivialization.continuous_linear_equiv_at
   (e : vector_bundle_trivialization 𝕜 F E) (b : B)
   (hb : b ∈ e.base_set) : continuous_linear_equiv 𝕜 (E b) F :=
 { to_fun := λ y, (e ⟨b, y⟩).2,
@@ -134,66 +136,24 @@ def vector_bundle_trivialization.at [topological_vector_bundle 𝕜 F E]
     exact hb,
   end,
   continuous_inv_fun := begin
+    rw (topological_vector_bundle.inducing 𝕜 F E b).continuous_iff,
     dsimp,
-    convert continuous (λ (z : F), (e.to_local_homeomorph.symm (b, z)).2),
-  end
-}
+    have : continuous (λ (z : F), (e.to_bundle_trivialization.to_local_homeomorph.symm) (b, z)),
+    { apply e.to_local_homeomorph.symm.continuous_on.comp_continuous
+        (continuous_const.prod_mk continuous_id') (λ z, _),
+      simp only [bundle_trivialization.mem_target, hb, local_equiv.symm_source,
+        local_homeomorph.symm_to_local_equiv] },
+    convert this,
+    ext z,
+    { exact (bundle_trivialization.proj_symm_apply' _ hb).symm },
+    { exact cast_heq _ _ },
+  end }
 
-#exit
+def trivialization_at : Π b : B, vector_bundle_trivialization 𝕜 F E :=
+λ b, classical.some (topological_vector_bundle.locally_trivial 𝕜 F E b)
 
-
-
-}
-
-end
-
-#exit
-
-variables {I : Type*} (F' : I → Type*) [∀ i, topological_space (F' i)]
-[∀ i, add_comm_monoid (F' i)] [∀ i, semimodule R (F' i)]
-
-/-- Topological vector bundle with varying fiber. `nc` stands for non constant. -/
-class nc_topological_vector_bundle : Prop :=
-(inducing [] : ∀ b : B, inducing (λ x : (E b), (x : total_space E)))
-(locally_trivial [] :
-  ∀ b : B, ∃ i : I, ∃ e : vector_bundle_trivialization R E (F' i), b ∈ e.base_set)
-
-namespace nc_topological_vector_bundle
-
-variable [nc_topological_vector_bundle R E F']
-
-def fiber_index_at : B → I := λ b, classical.some (locally_trivial R E F' b)
-
-def trivialization_at : Π b : B, vector_bundle_trivialization R E (F' (fiber_index_at R E F' b)) :=
-λ b, classical.some (classical.some_spec (locally_trivial R E F' b))
-
-lemma mem_trivialization_base_set : ∀ b : B, b ∈ (trivialization_at R E F' b).base_set :=
-λ b, classical.some_spec (classical.some_spec (locally_trivial R E F' b))
-
-lemma mem_trivialization_source : ∀ z : total_space E, z ∈ (trivialization_at R E F' z.1).source :=
-λ z, begin sorry end
-
-end nc_topological_vector_bundle
-
-/-- Topological vector bundle of fiber `F`. -/
-class topological_vector_bundle : Prop :=
-(inducing [] : ∀ b : B, inducing (λ x : (E b), (x : total_space E)))
-(locally_trivial [] : ∀ b : B, ∃ e : vector_bundle_trivialization R E F, b ∈ e.base_set)
-
-namespace topological_vector_bundle
-
-instance nc_topological_vector_bundle [topological_vector_bundle R E F] :
-  nc_topological_vector_bundle R E (λ u : unit, F) :=
-{ inducing := topological_vector_bundle.inducing R E F,
-  locally_trivial := λ b : B, ⟨unit.star, topological_vector_bundle.locally_trivial R E F b⟩ }
-
-variable [topological_vector_bundle R E F]
-
-def trivialization_at : Π b : B, vector_bundle_trivialization R E F :=
-λ b, classical.some (locally_trivial R E F b)
-
-lemma mem_trivialization_base_set : ∀ b : B, b ∈ (trivialization_at R E F b).base_set :=
-λ b, classical.some_spec (locally_trivial R E F b)
+lemma mem_trivialization_base_set : ∀ b : B, b ∈ (trivialization_at 𝕜 F E b).base_set :=
+λ b, classical.some_spec (topological_vector_bundle.locally_trivial 𝕜 F E b)
 
 lemma mem_trivialization_source : ∀ z : total_space E, z ∈ (trivialization_at R E F z.1).source :=
 λ z, begin sorry end

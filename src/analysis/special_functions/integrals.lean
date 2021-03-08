@@ -162,13 +162,24 @@ by simp
 open measure_theory
 open_locale real
 
+-- @[simp] lemma interval_integrable.add' (hf : interval_integrable f volume a b)
+--   (hg : interval_integrable g volume a b) : interval_integrable (λ x, f x + g x) volume a b :=
+-- ⟨hf.1.add hg.1, hf.2.add hg.2⟩
+
+-- @[simp] lemma interval_integrable.sub' (hf : interval_integrable f volume a b)
+--   (hg : interval_integrable g volume a b) : interval_integrable (λ x, f x - g x) volume a b :=
+-- ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
+
 example : ∫ x:ℝ in 0..1, 3*x^2 + 2*x = 2 := by norm_num
 
 example : ∫ x:ℝ in 0..1, 3*x^2 + 2*x + 1 = 3 :=
 begin
-  have : interval_integrable (λ x:ℝ, 3 * x ^ 2 + 2 * x) volume 0 1,
-  { apply interval_integrable.add; simp },
-  norm_num [this],
+  norm_num,
+
+  -- have : interval_integrable (λ x:ℝ, 3 * x ^ 2 + 2 * x) volume 0 1,
+  -- { apply interval_integrable.add; simp },
+  -- norm_num [this],
+
   -- have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
   -- have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,
   -- have h3 : interval_integrable (λ x:ℝ, (1:ℝ)) volume 0 1 := by simp,
@@ -179,11 +190,14 @@ end
 
 example : ∫ x:ℝ in 0..1, 4*x^3 + 3*x^2 + 2*x + 1 = 4 :=
 begin
-  have h1 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2) volume 0 1,
-  { apply interval_integrable.add; simp },
-  have h2 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2 + 2 * x) volume 0 1,
-  { apply h1.add, simp },
-  norm_num [h1, h2],
+  norm_num,
+
+  -- have h1 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2) volume 0 1,
+  -- { apply interval_integrable.add; simp },
+  -- have h2 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2 + 2 * x) volume 0 1,
+  -- { apply h1.add, simp },
+  -- norm_num [h1, h2],
+
   -- have h0 : interval_integrable (λ x:ℝ, 4*x^3) volume 0 1 := by simp,
   -- have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
   -- have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,

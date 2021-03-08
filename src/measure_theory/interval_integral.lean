@@ -187,11 +187,11 @@ lemma smul [normed_field 𝕜] [normed_space 𝕜 E] {f : α → E} {a b : α} {
 ⟨h.1.smul r, h.2.smul r⟩
 
 @[simp] lemma add [second_countable_topology E] (hf : interval_integrable f μ a b)
-  (hg : interval_integrable g μ a b) : interval_integrable (f + g) μ a b :=
+  (hg : interval_integrable g μ a b) : interval_integrable (λ x, f x + g x) μ a b :=
 ⟨hf.1.add hg.1, hf.2.add hg.2⟩
 
 @[simp] lemma sub [second_countable_topology E] (hf : interval_integrable f μ a b)
-  (hg : interval_integrable g μ a b) : interval_integrable (f - g) μ a b :=
+  (hg : interval_integrable g μ a b) : interval_integrable (λ x, f x - g x) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
 end interval_integrable

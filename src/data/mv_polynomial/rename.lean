@@ -15,6 +15,7 @@ which modifies the set of variables.
 ## Main declarations
 
 * `mv_polynomial.rename`
+* `mv_polynomial.rename_equiv`
 
 ## Notation
 
@@ -126,7 +127,7 @@ def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ
 alg_equiv.ext rename_id
 
 @[simp] lemma rename_equiv_symm (f : σ ≃ τ) :
-  (rename_equiv R f).symm = rename_equiv f.symm := rfl
+  (rename_equiv R f).symm = rename_equiv R f.symm := rfl
 
 @[simp] lemma rename_equiv_trans (e : σ ≃ τ) (f : τ ≃ α):
   (rename_equiv R e).trans (rename_equiv R f) = rename_equiv R (e.trans f) :=

@@ -483,7 +483,7 @@ protected theorem mul_nonneg (a b : ℤ√d) : 0 ≤ a → 0 ≤ b → 0 ≤ a *
 by repeat {rw ← nonneg_iff_zero_le}; exact nonneg_mul
 
 theorem not_sq_le_succ (c d y) (h : 0 < c) : ¬sq_le (y + 1) c 0 d :=
-not_le_of_gt $ mul_pos (mul_pos h $ nat.succ_pos _) $ nat.succ_pos _
+not_le_of_gt $ by { rw mul_zero, exact mul_pos (mul_pos h $ nat.succ_pos _) (nat.succ_pos _) }
 
 /-- A nonsquare is a natural number that is not equal to the square of an
   integer. This is implemented as a typeclass because it's a necessary condition

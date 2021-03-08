@@ -914,7 +914,8 @@ lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
 begin
   rintros ⟨c, rfl⟩,
   rcases eq_zero_or_pos c with (rfl | hc),
-  { exact lt_irrefl 0 h1 },
+  { rw mul_zero at h1,
+    exact lt_irrefl 0 h1 },
   { exact not_lt.2 (le_mul_of_pos_right hc) h2 },
 end
 
@@ -1500,9 +1501,10 @@ lemma shiftl'_tt_eq_mul_pow (m) : ∀ n, shiftl' tt m n + 1 = (m + 1) * 2 ^ n
 | (k+1) :=
 begin
   change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 * 2 ^ k),
-  rw bit1_val,
-  change 2 * (shiftl' tt m k + 1) = _,
-  rw [shiftl'_tt_eq_mul_pow, mul_left_comm]
+  rw [bit1_val],
+  have : 2 * shiftl' tt m k + 1 + 1 = 2 * (shiftl' tt m k + 1),
+    { rw mul_succ },
+  rw [this, shiftl'_tt_eq_mul_pow, mul_left_comm]
 end
 
 lemma one_shiftl (n) : shiftl 1 n = 2 ^ n :=

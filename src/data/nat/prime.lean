@@ -185,7 +185,7 @@ section min_fac
       cases nat.eq_or_lt_of_le (a m m2 d) with me ml,
       { subst me, contradiction },
       apply (nat.eq_or_lt_of_le ml).resolve_left, intro me,
-      rw [← me, e] at d, change 2 * (i + 2) ∣ n at d,
+      rw [← me, e, ←add_succ, show succ 3 = 2 * 2, from rfl, ←mul_add] at d,
       have := dvd_of_mul_right_dvd d, contradiction }
   end
   using_well_founded {rel_tac :=
@@ -301,7 +301,9 @@ section min_fac
       cases h : n.min_fac with m,
       { rw h at lb, cases lb, },
       { cases m with m,
-        { simp at h, subst h, cases h with n h, cases n; cases h, },
+        { rw min_fac_eq_one_iff at h,
+          subst h,
+          exact le_antisymm ub (le_of_dvd lb h) },
         { cases m with m,
           { refl, },
           { rw h at ub,

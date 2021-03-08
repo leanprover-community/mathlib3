@@ -136,7 +136,11 @@ theorem lt_succ_sqrt (n : ℕ) : n < succ (sqrt n) * succ (sqrt n) :=
 (sqrt_is_sqrt n).right
 
 theorem sqrt_le_add (n : ℕ) : n ≤ sqrt n * sqrt n + sqrt n + sqrt n :=
-by rw ← succ_mul; exact le_of_lt_succ (lt_succ_sqrt n)
+begin
+  convert le_of_lt_succ (lt_succ_sqrt n),
+  rw ←mul_succ,
+  refl
+end
 
 theorem le_sqrt {m n : ℕ} : m ≤ sqrt n ↔ m*m ≤ n :=
 ⟨λ h, le_trans (mul_self_le_mul_self h) (sqrt_le n),
@@ -184,8 +188,11 @@ sqrt_add_eq n (zero_le _)
 theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
 le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $
 le_trans (sqrt_le_add n) $ add_le_add_right
-  (by refine add_le_add
-    (mul_le_mul_right _ _) _; exact le_add_right _ 2) _
+  (by {
+    dsimp,
+    rw mul_succ,
+    refine add_le_add (nat.mul_le_mul _ _) _;
+    exact nat.le_succ _ }) _
 
 theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=

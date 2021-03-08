@@ -82,8 +82,9 @@ show _root_.bit0 n + 1 = bit1 n, by rw [add_one, bit0_of_bit0]; refl
 theorem mul_to_nat (m) : ∀ n, ((m * n : pos_num) : ℕ) = m * n
 | 1        := (mul_one _).symm
 | (bit0 p) := show (↑(m * p) + ↑(m * p) : ℕ) = ↑m * (p + p), by rw [mul_to_nat, left_distrib]
-| (bit1 p) := (add_to_nat (bit0 (m * p)) m).trans $
-  show (↑(m * p) + ↑(m * p) + ↑m : ℕ) = ↑m * (p + p) + m, by rw [mul_to_nat, left_distrib]
+| (bit1 p) := (add_to_nat (bit0 (m * p)) m).trans (
+  by rw [cast_bit1, cast_bit0, _root_.bit1, mul_add, mul_one, mul_to_nat, ←nat.mul_succ,
+        _root_.bit0, ←left_distrib, ←nat.mul_succ, _root_.bit0])
 
 theorem to_nat_pos : ∀ n : pos_num, 0 < (n : ℕ)
 | 1        := zero_lt_one
@@ -225,7 +226,7 @@ theorem add_to_nat : ∀ m n, ((m + n : num) : ℕ) = m + n
 theorem mul_to_nat : ∀ m n, ((m * n : num) : ℕ) = m * n
 | 0       0       := rfl
 | 0       (pos q) := (zero_mul _).symm
-| (pos p) 0       := rfl
+| (pos p) 0       := (mul_zero _).symm
 | (pos p) (pos q) := pos_num.mul_to_nat _ _
 
 theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((n:ℕ) < m) : Prop)

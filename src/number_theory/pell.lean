@@ -134,7 +134,7 @@ section
   show az*az-d*1*1=1, by simp [dz_val]; ring
 
   theorem is_pell_pell_zd : ∀ (n : ℕ), is_pell (pell_zd n)
-  | 0     := rfl
+  | 0     := by { rw [pell_zd, is_pell_nat], simp }
   | (n+1) := let o := is_pell_one in by simp; exact pell.is_pell_mul (is_pell_pell_zd n) o
 
   @[simp] theorem pell_eqz (n : ℕ) : xz n * xz n - d * yz n * yz n = 1 := is_pell_pell_zd n
@@ -281,7 +281,7 @@ section
   | (n+1) := show n < yn (n+1), from lt_of_le_of_lt (yn_ge_n n) (y_increasing $ nat.lt_succ_self n)
 
   theorem y_mul_dvd (n) : ∀k, yn n ∣ yn (n * k)
-  | 0     := dvd_zero _
+  | 0     := by { rw mul_zero, exact dvd_zero _ }
   | (k+1) := by rw [nat.mul_succ, yn_add]; exact
     dvd_add (dvd_mul_left _ _) (dvd_mul_of_dvd_left (y_mul_dvd k) _)
 

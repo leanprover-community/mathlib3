@@ -395,7 +395,7 @@ def list_blank.bind {Γ Γ'} [inhabited Γ] [inhabited Γ']
 l.lift_on (λ l, list_blank.mk (list.bind l f)) begin
   rintro l _ ⟨i, rfl⟩, cases hf with n e, refine quotient.sound' (or.inl ⟨i * n, _⟩),
   rw [list.bind_append, mul_comm], congr,
-  induction i with i IH, refl,
+  induction i with i IH, simp [mul_zero],
   simp only [IH, e, list.repeat_add, nat.mul_succ, add_comm, list.repeat_succ, list.cons_bind],
 end
 

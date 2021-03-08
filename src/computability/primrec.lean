@@ -699,7 +699,10 @@ from hf.of_eq $ λ ⟨m, n⟩, by simp [this],
   have : (f (n, k)).2 + k * (f (n, k)).1 = n
     ∧ (0 < k → (f (n, k)).2 < k)
     ∧ (k = 0 → (f (n, k)).1 = 0),
-  { induction n with n IH, {exact ⟨rfl, id, λ _, rfl⟩},
+  { induction n with n IH,
+    { refine ⟨_, id, λ _, rfl⟩,
+      rw [show (f (0, k)).fst = 0, from rfl, show (f (0, k)).snd = 0, from rfl,
+          zero_add, mul_zero] },
     rw [λ n:ℕ, show f (n.succ, k) =
       _root_.ite ((f (n, k)).2.succ = k)
       (nat.succ (f (n, k)).1, 0)

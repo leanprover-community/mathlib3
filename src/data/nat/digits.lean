@@ -214,7 +214,8 @@ begin
     dsimp [of_digits] at w,
     rcases m with ⟨rfl⟩,
     { convert nat.eq_zero_of_add_eq_zero_right w, simp, },
-    { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
+    { refine ih _ _ m,
+      rw [←nat.mul_right_inj h, eq_zero_of_add_eq_zero_left w, mul_zero] } }
 end
 
 lemma digits_of_digits

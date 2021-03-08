@@ -1080,8 +1080,10 @@ begin
   cases r with rs rl rx rr, {cases H2},
   rw [hr.2.size_eq, nat.lt_succ_iff] at H2,
   rw [hr.2.size_eq] at H3,
-  replace H3 : 2 * (size rl + size rr) ≤ 9 * size l + 3 ∨ size rl + size rr ≤ 2 :=
-    H3.imp (@nat.le_of_add_le_add_right 2 _ _) nat.le_of_succ_le_succ,
+  replace H3 : 2 * (size rl + size rr) ≤ 9 * size l + 3 ∨ size rl + size rr ≤ 2,
+    { refine H3.imp _ nat.le_of_succ_le_succ,
+      rw mul_add,
+      exact @nat.le_of_add_le_add_right 2 _ _ },
   have H3_0 : size l = 0 → size rl + size rr ≤ 2,
   { intro l0, rw l0 at H3,
     exact (or_iff_right_of_imp $ by exact λ h,
@@ -1186,8 +1188,10 @@ begin
   { exact le_trans (nat.le_add_left _ _) (le_trans h (nat.le_add_left _ _)) },
   { exact le_trans h₂ (nat.mul_le_mul_left _ $
       le_trans (nat.dist_tri_right _ _) (nat.add_le_add_left hl _)) },
-  { exact le_trans (nat.dist_tri_left' _ _)
-      (le_trans (add_le_add hr (le_trans (nat.le_add_left _ _) h)) dec_trivial) },
+  { refine le_trans (nat.dist_tri_left' _ _)
+      (le_trans (add_le_add hr (le_trans (nat.le_add_left _ _) h)) _),
+    rw [mul_add, mul_one],
+    exact le_add_left dec_trivial },
   { rw nat.mul_succ,
     exact le_trans (nat.dist_tri_right' _ _)
       (add_le_add h₂ (le_trans hr dec_trivial)) },

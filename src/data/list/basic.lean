@@ -2380,8 +2380,12 @@ lemma dvd_prod [comm_monoid α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod 
 let ⟨s, t, h⟩ := mem_split ha in
 by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 
-@[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
-by induction n; [refl, simp only [*, repeat_succ, sum_cons, nat.mul_succ, add_comm]]
+@[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = n * m :=
+begin
+  induction n with n hn,
+  { refl },
+  { rw [repeat_succ, sum_cons, hn, succ_mul, add_comm] }
+end
 
 theorem dvd_sum [comm_semiring α] {a} {l : list α} (h : ∀ x ∈ l, a ∣ x) : a ∣ l.sum :=
 begin

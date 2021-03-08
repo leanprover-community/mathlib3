@@ -352,7 +352,7 @@ end
 theorem dvd_iff {k m : ℕ+} : k ∣ m ↔ (k : ℕ) ∣ (m : ℕ) :=
 begin
   split; intro h, rcases h with ⟨_, rfl⟩, apply dvd_mul_right,
-  rcases h with ⟨a, h⟩, cases a, { contrapose h, apply ne_zero, },
+  rcases h with ⟨a, h⟩, cases a, { contrapose h, rw mul_zero, apply ne_zero },
   use a.succ, apply nat.succ_pos, rw [← coe_inj, h, mul_coe, mk_coe],
 end
 

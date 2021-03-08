@@ -488,12 +488,16 @@ end
 theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
 | (m : ℕ) 0       := congr_arg of_nat (nat.mod_add_div _ _)
 | (m : ℕ) (n+1:ℕ) := congr_arg of_nat (nat.mod_add_div _ _)
-| 0       -[1+ n] := rfl
+| 0       -[1+ n] := by simp [int.zero_div]
 | (m+1:ℕ) -[1+ n] := show (_ + -(n+1) * -((m + 1) / (n + 1) : ℕ) : ℤ) = _,
   by rw [neg_mul_neg]; exact congr_arg of_nat (nat.mod_add_div _ _)
 | -[1+ m] 0       := by rw [mod_zero, int.div_zero]; refl
-| -[1+ m] (n+1:ℕ) := mod_add_div_aux m n.succ
-| -[1+ m] -[1+ n] := mod_add_div_aux m n.succ
+| -[1+ m] (n+1:ℕ) := by { convert mod_add_div_aux m n.succ,
+  rw [neg_succ_of_nat_div _ (coe_nat_succ_pos _), mul_neg_eq_neg_mul_symm,
+      mul_add, mul_one] }
+| -[1+ m] -[1+ n] := by { convert mod_add_div_aux m n.succ,
+  rw [neg_succ_of_nat_eq, ←int.coe_nat_succ, ←neg_mul_eq_neg_mul, int.div_neg,
+      neg_succ_of_nat_div _ (coe_nat_succ_pos _), neg_neg, mul_add, mul_one] }
 
 theorem div_add_mod (a b : ℤ) : b * (a / b) + a % b = a :=
 (add_comm _ _).trans (mod_add_div _ _)
@@ -609,18 +613,21 @@ end,
 λ m k b, match b, k with
 | (n : ℕ), k   := congr_arg of_nat (nat.mul_div_mul _ _ m.succ_pos)
 | -[1+ n], 0   := by rw [int.coe_nat_zero, mul_zero, int.div_zero, int.div_zero]
-| -[1+ n], k+1 := congr_arg neg_succ_of_nat $
-  show (m.succ * n + m) / (m.succ * k.succ) = n / k.succ, begin
-    apply nat.div_eq_of_lt_le,
+| -[1+ n], k+1 := by {
+  refine congr_arg neg_succ_of_nat _,
+  have : (m.succ * n + m) / (m.succ * k.succ) = n / k.succ,
+    { apply nat.div_eq_of_lt_le,
     { refine le_trans _ (nat.le_add_right _ _),
       rw [← nat.mul_div_mul _ _ m.succ_pos],
       apply nat.div_mul_le_self },
-    { change m.succ * n.succ ≤ _,
-      rw [mul_left_comm],
+    { apply lt_of_succ_le,
+      rw [←add_succ, ←mul_succ, mul_left_comm],
       apply nat.mul_le_mul_left,
       apply (nat.div_lt_iff_lt_mul _ _ k.succ_pos).1,
-      apply nat.lt_succ_self }
-  end
+      apply nat.lt_succ_self } },
+  convert this using 2,
+  dsimp,
+  rw [mul_succ, succ_mul, add_assoc, add_assoc, add_comm m] }
 end
 
 @[simp] theorem mul_div_mul_of_pos_left (a : ℤ) {b : ℤ} (c : ℤ) (H : 0 < b) :
@@ -1097,20 +1104,25 @@ by cases m with m m; cases n with n n; unfold has_add.add;
 by cases m with m m; cases n with n n;
   simp [← int.mul_def, int.mul, -of_nat_eq_coe, bool.bxor_comm]
 
+theorem div2_val : ∀ n, div2 n = n / 2
+| (n : ℕ) := congr_arg of_nat n.div2_val
+| -[1+ n] := congr_arg neg_succ_of_nat n.div2_val
+
 theorem bodd_add_div2 : ∀ n, cond (bodd n) 1 0 + 2 * div2 n = n
 | (n : ℕ) :=
   by rw [show (cond (bodd n) 1 0 : ℤ) = (cond (bodd n) 1 0 : ℕ),
          by cases bodd n; refl]; exact congr_arg of_nat n.bodd_add_div2
 | -[1+ n] := begin
-    refine eq.trans _ (congr_arg neg_succ_of_nat n.bodd_add_div2),
+    convert (congr_arg neg_succ_of_nat n.bodd_add_div2),
     dsimp [bodd], cases nat.bodd n; dsimp [cond, bnot, div2, int.mul],
-    { change -[1+ 2 * nat.div2 n] = _, rw zero_add },
-    { rw [zero_add, add_comm], refl }
+    { rw [zero_add, add_comm, neg_succ_of_nat_eq', neg_succ_of_nat_eq', mul_sub, sub_add,
+          mul_neg_eq_neg_mul_symm, mul_one],
+      refl },
+    { rw [zero_add, neg_succ_of_nat_eq, neg_succ_of_nat_eq, mul_neg_eq_neg_mul_symm,
+          int.coe_nat_add, int.coe_nat_one, add_assoc, add_left_comm, neg_eq_iff_neg_eq, neg_neg,
+          mul_add],
+      refl }
   end
-
-theorem div2_val : ∀ n, div2 n = n / 2
-| (n : ℕ) := congr_arg of_nat n.div2_val
-| -[1+ n] := congr_arg neg_succ_of_nat n.div2_val
 
 lemma bit0_val (n : ℤ) : bit0 n = 2 * n := (two_mul _).symm
 
@@ -1133,7 +1145,16 @@ by rw [← bit_decomp n]; apply h
 by rw [bit_val, nat.bit_val]; cases b; refl
 
 @[simp] lemma bit_neg_succ (b) (n : ℕ) : bit b -[1+ n] = -[1+ nat.bit (bnot b) n] :=
-by rw [bit_val, nat.bit_val]; cases b; refl
+begin
+  rw [bit_val, nat.bit_val, neg_succ_of_nat_eq', mul_sub, sub_add, mul_one, neg_succ_of_nat_eq',
+      int.coe_nat_add, neg_add', sub_sub],
+  congr,
+  { rw [int.coe_nat_mul, neg_mul_eq_mul_neg],
+    refl },
+  { cases b;
+    simpa }
+end
+-- by { rw [bit_val, nat.bit_val]; cases b, simp [neg_succ_of_nat_eq], }
 
 @[simp] lemma bodd_bit (b n) : bodd (bit b n) = b :=
 by rw bit_val; simp; cases b; cases bodd n; refl

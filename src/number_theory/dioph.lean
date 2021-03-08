@@ -714,7 +714,8 @@ dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $ ext this $ (vector_all_iff_forall _)
 show y = 0 ∧ z = 0 ∨ z * y ≤ x ∧ x < (z + 1) * y ↔ x / y = z,
 by refine iff.trans _ eq_comm; exact y.eq_zero_or_pos.elim
   (λy0, by rw [y0, nat.div_zero]; exact
-    ⟨λo, (o.resolve_right $ λ⟨_, h2⟩, not_lt_zero _ h2).right, λz0, or.inl ⟨rfl, z0⟩⟩)
+    ⟨λo, (o.resolve_right $ λ⟨_, h2⟩, not_lt_zero x (mul_zero (z + 1) ▸ h2)).right,
+      λz0, or.inl ⟨rfl, z0⟩⟩)
   (λypos, iff.trans ⟨λo, o.resolve_left $ λ⟨h1, _⟩, ne_of_gt ypos h1, or.inr⟩
     (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le _ _ ypos) $
       iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul _ _ ypos)).symm)

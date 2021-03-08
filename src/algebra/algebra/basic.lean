@@ -1186,7 +1186,7 @@ namespace algebra
 variables {R A : Type*} [comm_semiring R] [domain A] [algebra R A]
 
 lemma lmul_injective {x : A} (hx : x ≠ 0) : function.injective (lmul R A x) :=
-mul_left_injective' hx
+mul_right_injective' hx
 
 end algebra
 

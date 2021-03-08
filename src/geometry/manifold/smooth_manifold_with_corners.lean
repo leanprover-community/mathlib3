@@ -130,7 +130,7 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=
 (source_eq          : source = univ)
-(unique_diff'       : unique_diff_on 𝕜 (range to_local_equiv))
+(unique_diff'       : unique_diff_on 𝕜 to_local_equiv.target)
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
@@ -139,16 +139,9 @@ attribute [simp, mfld_simps] model_with_corners.source_eq
 /-- A vector space is a model with corners. -/
 def model_with_corners_self (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] : model_with_corners 𝕜 E E :=
-{ to_fun       := id,
-  inv_fun      := id,
-  source       := univ,
-  target       := univ,
+{ to_local_equiv := local_equiv.refl E,
   source_eq    := rfl,
-  map_source'  := λ_ _, mem_univ _,
-  map_target'  := λ_ _, mem_univ _,
-  left_inv'    := λ_ _, rfl,
-  right_inv'   := λ_ _, rfl,
-  unique_diff' := by { rw range_id, exact unique_diff_on_univ },
+  unique_diff' := unique_diff_on_univ,
   continuous_to_fun  := continuous_id,
   continuous_inv_fun := continuous_id }
 
@@ -181,14 +174,14 @@ rfl
   (model_with_corners.mk e a b c d : model_with_corners 𝕜 E H).symm = e.symm :=
 rfl
 
-protected lemma unique_diff : unique_diff_on 𝕜 (range I) := I.unique_diff'
-
 @[continuity] protected lemma continuous : continuous I := I.continuous_to_fun
 
 @[continuity] lemma continuous_symm : continuous I.symm := I.continuous_inv_fun
 
 @[simp, mfld_simps] lemma target_eq : I.target = range (I : H → E) :=
 by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
+
+protected lemma unique_diff : unique_diff_on 𝕜 (range I) := I.target_eq ▸ I.unique_diff'
 
 @[simp, mfld_simps] protected lemma left_inv (x : H) : I.symm (I x) = x :=
 by { refine I.left_inv' _, simp }
@@ -284,11 +277,14 @@ def model_with_corners.prod
   (I : model_with_corners 𝕜 E H)
   {E' : Type v'} [normed_group E'] [normed_space 𝕜 E'] {H' : Type w'} [topological_space H']
   (I' : model_with_corners 𝕜 E' H') : model_with_corners 𝕜 (E × E') (model_prod H H') :=
-{ to_local_equiv := I.to_local_equiv.prod I'.to_local_equiv,
-  source_eq    := by simp only with mfld_simps,
-  unique_diff' := by simpa only [prod_range_range_eq] using I.unique_diff.prod I'.unique_diff,
+{ to_fun := λ x, (I x.1, I' x.2),
+  inv_fun := λ x, (I.symm x.1, I'.symm x.2),
+  source := {x | x.1 ∈ I.source ∧ x.2 ∈ I'.source},
+  source_eq    := by simp only [set_of_true] with mfld_simps,
+  unique_diff' := I.unique_diff'.prod I'.unique_diff',
   continuous_to_fun := I.continuous_to_fun.prod_map I'.continuous_to_fun,
-  continuous_inv_fun := I.continuous_inv_fun.prod_map I'.continuous_inv_fun }
+  continuous_inv_fun := I.continuous_inv_fun.prod_map I'.continuous_inv_fun,
+  .. I.to_local_equiv.prod I'.to_local_equiv }
 
 /-- Given a finite family of `model_with_corners` `I i` on `(E i, H i)`, we define the model with
 corners `pi I` on `(Π i, E i, model_pi H)`. See note [Manifold type tags] for explanation about
@@ -300,8 +296,7 @@ def model_with_corners.pi
   model_with_corners 𝕜 (Π i, E i) (model_pi H) :=
 { to_local_equiv := local_equiv.pi (λ i, (I i).to_local_equiv),
   source_eq := by simp only [set.pi_univ] with mfld_simps,
-  unique_diff' := by { rw local_equiv.range_pi,
-    exact unique_diff_on.pi (λ i _, (I i).unique_diff) },
+  unique_diff' := unique_diff_on.pi (λ i _, (I i).unique_diff'),
   continuous_to_fun := continuous_pi $ λ i, (I i).continuous.comp (continuous_apply i),
   continuous_inv_fun := continuous_pi $ λ i, (I i).continuous_symm.comp (continuous_apply i) }
 
@@ -321,13 +316,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {I : model_with_corners 𝕜 E H} {J : model_with_corners 𝕜 F G}
 
 @[simp, mfld_simps] lemma model_with_corners_prod_to_local_equiv :
-  (I.prod J).to_local_equiv = (I.to_local_equiv).prod (J.to_local_equiv) :=
-begin
-  ext1 x,
-  { refl, },
-  { intro x, refl, },
-  { simp only [set.univ_prod_univ, model_with_corners.source_eq, local_equiv.prod_source], }
-end
+  (I.prod J).to_local_equiv = I.to_local_equiv.prod (J.to_local_equiv) :=
+rfl
 
 @[simp, mfld_simps] lemma model_with_corners_prod_coe
   (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
@@ -603,8 +593,8 @@ instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   smooth_manifold_with_corners (I.prod I') (M×M') :=
 { compatible :=
   begin
-    rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
-    rw [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans],
+    rintros f g ⟨f1, f2, hf1, hf2, rfl⟩ ⟨g1, g2, hg1, hg2, rfl⟩,
+    rw [local_homeomorph.prod_symm, local_homeomorph.prod_trans],
     have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf1 hg1,
     have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,
     exact times_cont_diff_groupoid_prod h1 h2,

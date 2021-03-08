@@ -621,18 +621,14 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
-/-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
-continuous. -/
-@[continuity]
-lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
-  continuous (λ x : π i, function.update f i x) :=
-begin
-  refine continuous_pi (λj, _),
-  by_cases h : j = i,
-  { rw h,
-    simpa using continuous_id },
-  { simpa [h] using continuous_const }
-end
+lemma continuous_at_apply [∀i, topological_space (π i)] (i : ι) (x : Π i, π i) :
+  continuous_at (λp:Πi, π i, p i) x :=
+(continuous_apply i).continuous_at
+
+lemma filter.tendsto.apply [∀i, topological_space (π i)] {l : filter α} {f : α → Π i, π i}
+  {x : Π i, π i} (h : tendsto f l (𝓝 x)) (i : ι) :
+  tendsto (λ a, f a i) l (𝓝 $ x i) :=
+(continuous_at_apply i _).tendsto.comp h
 
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
@@ -647,6 +643,29 @@ lemma continuous_at_pi [∀ i, topological_space (π i)] [topological_space α] 
   {x : α} :
   continuous_at f x ↔ ∀ i, continuous_at (λ y, f y i) x :=
 tendsto_pi
+
+lemma filter.tendsto.update [∀i, topological_space (π i)] [decidable_eq ι]
+  {l : filter α} {f : α → Π i, π i} {x : Π i, π i} (hf : tendsto f l (𝓝 x)) (i : ι)
+  {g : α → π i} {xi : π i} (hg : tendsto g l (𝓝 xi)) :
+  tendsto (λ a, function.update (f a) i (g a)) l (𝓝 $ function.update x i xi) :=
+tendsto_pi.2 $ λ j, by { rcases em (j = i) with rfl|hj; simp [*, hf.apply] }
+
+lemma continuous_at.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
+  {f : α → Π i, π i} {a : α} (hf : continuous_at f a) (i : ι) {g : α → π i}
+  (hg : continuous_at g a) :
+  continuous_at (λ a, function.update (f a) i (g a)) a :=
+hf.update i hg
+
+lemma continuous.update [∀i, topological_space (π i)] [topological_space α] [decidable_eq ι]
+  {f : α → Π i, π i} (hf : continuous f) (i : ι) {g : α → π i} (hg : continuous g) :
+  continuous (λ a, function.update (f a) i (g a)) :=
+continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.update i hg.continuous_at
+
+/-- `function.update f i x` is continuous in `(f, x)`. -/
+@[continuity]
+lemma continuous_update [∀i, topological_space (π i)] [decidable_eq ι] (i : ι) :
+  continuous (λ f : (Π j, π j) × π i, function.update f.1 i f.2) :=
+continuous_fst.update i continuous_snd
 
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=

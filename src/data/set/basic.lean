@@ -2005,6 +2005,10 @@ theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} 
   (range m₁).prod (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
 
+@[simp] theorem range_prod_map {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
+  range (prod.map m₁ m₂) = (range m₁).prod (range m₂) :=
+prod_range_range_eq.symm
+
 theorem prod_range_univ_eq {α β γ} {m₁ : α → γ} :
   (range m₁).prod (univ : set β) = range (λp:α×β, (m₁ p.1, p.2)) :=
 ext $ by simp [range]

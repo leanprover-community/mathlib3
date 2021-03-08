@@ -82,59 +82,30 @@ model for manifolds with boundary. In the locale `manifold`, use the shortcut `�
 def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n) :=
 { to_fun      := λx, x.val,
-  inv_fun     := λx, ⟨λi, if h : i = 0 then max (x i) 0 else x i, by simp [le_refl]⟩,
+  inv_fun     := λx, ⟨function.update x 0 (max (x 0) 0), by simp [le_refl]⟩,
   source      := univ,
-  target      := range (λx : euclidean_half_space n, x.val),
-  map_source' := λx hx, by simpa only [subtype.range_val] using x.property,
+  target      := {x | 0 ≤ x 0},
+  map_source' := λx hx, x.property,
   map_target' := λx hx, mem_univ _,
-  left_inv'   := λ⟨xval, xprop⟩ hx, begin
-    rw subtype.mk_eq_mk,
-    ext1 i,
-    by_cases hi : i = 0,
-    { rw hi, simp only [xprop, dif_pos, max_eq_left] },
-    { simp only [hi, dif_neg, not_false_iff] }
+  left_inv'   := λ ⟨xval, xprop⟩ hx, begin
+    rw [subtype.mk_eq_mk, function.update_eq_iff],
+    exact ⟨max_eq_left xprop, λ i _, rfl⟩
   end,
-  right_inv'  := λx hx, begin
-    simp only [mem_set_of_eq, subtype.range_val_subtype] at hx,
-    ext1 i,
-    by_cases hi : i = 0,
-    { rw hi, simp only [hx, dif_pos, max_eq_left] } ,
-    { simp only [hi, dif_neg, not_false_iff] }
-  end,
+  right_inv'  := λx hx, function.update_eq_iff.2 ⟨max_eq_left hx, λ i _, rfl⟩,
   source_eq    := rfl,
   unique_diff' := begin
     /- To check that the half-space has the unique differentiability property, we use the criterion
     `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
-    rw range_half_space,
     apply unique_diff_on_convex,
     show convex {y : euclidean_space ℝ (fin n) | 0 ≤ y 0},
-    { assume x y hx hy a b ha hb hab,
-      simpa only [add_zero] using add_le_add (mul_nonneg ha hx) (mul_nonneg hb hy) },
+      from (convex_Ici 0).linear_preimage (linear_map.proj 0 : (fin n → ℝ) →ₗ[ℝ] ℝ),
     show (interior {y : euclidean_space ℝ (fin n) | 0 ≤ y 0}).nonempty,
-    { use (λi, 1),
-      rw mem_interior,
-      refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
-        is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
-      { assume x hx,
-        simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi] at hx,
-        exact le_of_lt (hx 0) },
-      { simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi],
-        assume i,
-        exact zero_lt_one } }
+      from ⟨λ i, 1, mem_interior_iff_mem_nhds.2 ((continuous_at_apply 0 _).eventually
+        (le_mem_nhds zero_lt_one))⟩
   end,
   continuous_to_fun  := continuous_subtype_val,
-  continuous_inv_fun := begin
-    apply continuous_subtype_mk,
-    apply continuous_pi,
-    assume i,
-    by_cases h : i = 0,
-    { rw h,
-      simp only [dif_pos],
-      have : continuous (λx:ℝ, max x 0) := continuous_id.max continuous_const,
-      exact this.comp (continuous_apply 0) },
-    { simp only [h, dif_neg, not_false_iff],
-      exact continuous_apply i }
-  end }
+  continuous_inv_fun := continuous_subtype_mk _ $ continuous_id.update 0 $
+    (continuous_apply 0).max continuous_const }
 
 /--
 Definition of the model with corners `(euclidean_space ℝ (fin n), euclidean_quadrant n)`, used as a
@@ -144,7 +115,7 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
 { to_fun      := λx, x.val,
   inv_fun     := λx, ⟨λi, max (x i) 0, λi, by simp only [le_refl, or_true, le_max_iff]⟩,
   source      := univ,
-  target      := range (λx : euclidean_quadrant n, x.val),
+  target      := {x | ∀ i, 0 ≤ x i},
   map_source' := λx hx, by simpa only [subtype.range_val] using x.property,
   map_target' := λx hx, mem_univ _,
   left_inv'   := λ⟨xval, xprop⟩ hx, begin
@@ -153,7 +124,6 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
     simp only [xprop i, max_eq_left]
   end,
   right_inv' := λx hx, begin
-    rw range_quadrant at hx,
     ext1 i,
     simp only [hx i, max_eq_left]
   end,
@@ -161,7 +131,6 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   unique_diff' := begin
     /- To check that the quadrant has the unique differentiability property, we use the criterion
     `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
-    rw range_quadrant,
     apply unique_diff_on_convex,
     show convex {y : euclidean_space ℝ (fin n) | ∀ (i : fin n), 0 ≤ y i},
     { assume x y hx hy a b ha hb hab i,
@@ -331,7 +300,7 @@ begin
   either the left chart or the right chart, leaving 4 possibilities that we handle successively.
   -/
   rcases he with rfl | rfl; rcases he' with rfl | rfl,
-  { -- `e = left chart`, `e' = left chart`
+                 { -- `e = left chart`, `e' = left chart`
     exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 },
   { -- `e = left chart`, `e' = right chart`
     apply M.congr_mono _ (subset_univ _),

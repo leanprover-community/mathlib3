@@ -331,7 +331,7 @@ by simp [snorm']
 @[simp] lemma snorm_norm (f : α → F) : snorm (λ x, ∥f x∥) p μ = snorm f p μ :=
 snorm_congr_norm_ae $ filter.eventually_of_forall $ λ x, norm_norm _
 
-lemma snorm'_norm_rpow (f : α → E) (p q : ℝ) (hq_pos : 0 < q) :
+lemma snorm'_norm_rpow (f : α → F) (p q : ℝ) (hq_pos : 0 < q) :
   snorm' (λ x, ∥f x∥ ^ q) p μ = (snorm' f (p * q) μ) ^ q :=
 begin
   simp_rw snorm',

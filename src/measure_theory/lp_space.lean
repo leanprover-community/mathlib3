@@ -6,7 +6,6 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import analysis.mean_inequalities
-import data.finset.intervals
 
 /-!
 # ℒp space and Lp space

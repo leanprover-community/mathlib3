@@ -34,6 +34,16 @@ equiv, mul_equiv, add_equiv
 variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
   {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
 
+/-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
+@[to_additive "Makes an additive inverse from a bijection which preserves addition."]
+def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : mul_hom N M :=
+{ to_fun   := g,
+  map_mul' := λ x y,
+    calc g (x * y) = g (f (g x) * f (g y)) : by rw [h₂ x, h₂ y]
+               ... = g (f (g x * g y)) : by rw f.map_mul
+               ... = g x * g y : h₁ _, }
+
 set_option old_structure_cmd true
 
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/

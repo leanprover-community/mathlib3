@@ -91,6 +91,21 @@ protected def function.surjective.distrib {S} [distrib R] [has_add S] [has_mul S
 ### Semirings
 -/
 
+/-- A not-necessarily-unital, not-necessarily-associative semiring. -/
+@[protect_proj, ancestor add_comm_monoid distrib mul_zero_class]
+class non_unital_non_assoc_semiring (α : Type u) extends
+  add_comm_monoid α, distrib α, mul_zero_class α
+
+/-- An associative but not-necessarily unital semiring. -/
+@[protect_proj, ancestor non_unital_non_assoc_semiring semigroup_with_zero]
+class non_unital_semiring (α : Type u) extends
+  non_unital_non_assoc_semiring α, semigroup_with_zero α
+
+/-- A unital but not-necessarily-associative semiring. -/
+@[protect_proj, ancestor non_unital_non_assoc_semiring mul_one_class]
+class non_assoc_semiring (α : Type u) extends
+  non_unital_non_assoc_semiring α, mul_one_class α
+
 /-- A semiring is a type with the following structures: additive commutative monoid
 (`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and
 multiplication by zero law (`mul_zero_class`). The actual definition extends `monoid_with_zero`
@@ -100,6 +115,18 @@ class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, di
 
 section semiring
 variables [semiring α]
+
+@[priority 100] -- see Note [lower instance priority]
+instance semiring.to_non_unital_non_assoc_semiring : non_unital_non_assoc_semiring α :=
+{ ..‹semiring α› }
+
+@[priority 100] -- see Note [lower instance priority]
+instance semiring.non_unital_semiring : non_unital_semiring α :=
+{ ..‹semiring α› }
+
+@[priority 100] -- see Note [lower instance priority]
+instance semiring.non_assoc_semiring : non_assoc_semiring α :=
+{ ..‹semiring α› }
 
 /-- Pullback a `semiring` instance along an injective function. -/
 protected def function.injective.semiring [has_zero β] [has_one β] [has_add β] [has_mul β]

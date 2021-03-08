@@ -174,14 +174,32 @@ theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
 
 end right_cancel_semigroup
 
+/-- Typeclass for expressing that a type `M` with multiplication and a one satisfies
+`1 * a = a` and `a * 1 = a` for all `a : M`. -/
+@[ancestor has_one has_mul]
+class mul_one_class (M : Type u) extends has_one M, has_mul M :=
+(one_mul : ∀ (a : M), 1 * a = a)
+(mul_one : ∀ (a : M), a * 1 = a)
+
+/-- Typeclass for expressing that a type `M` with addition and a zero satisfies
+`0 + a = a` and `a + 0 = a` for all `a : M`. -/
+@[ancestor has_zero has_add]
+class add_zero_class (M : Type u) extends has_zero M, has_add M :=
+(zero_add : ∀ (a : M), 0 + a = a)
+(add_zero : ∀ (a : M), a + 0 = a)
+
+attribute [to_additive] mul_one_class
+
 /-- A `monoid` is a `semigroup` with an element `1` such that `1 * a = a * 1 = a`. -/
 @[ancestor semigroup has_one]
 class monoid (M : Type u) extends semigroup M, has_one M :=
 (one_mul : ∀ a : M, 1 * a = a) (mul_one : ∀ a : M, a * 1 = a)
+
 /-- An `add_monoid` is an `add_semigroup` with an element `0` such that `0 + a = a + 0 = a`. -/
 @[ancestor add_semigroup has_zero]
 class add_monoid (M : Type u) extends add_semigroup M, has_zero M :=
 (zero_add : ∀ a : M, 0 + a = a) (add_zero : ∀ a : M, a + 0 = a)
+
 attribute [to_additive] monoid
 
 section monoid

@@ -155,13 +155,13 @@ def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = 
   inv_of_mul_self := by rw [hs, inv_of_mul_self],
   mul_inv_of_self := by rw [hs, mul_inv_of_self] }
 
-theorem commute.inv_right_invertible [monoid α] {a b : α} [invertible b] (h : commute a b) :
+theorem commute.inv_of_right [monoid α] {a b : α} [invertible b] (h : commute a b) :
   commute a (⅟b) :=
 calc a * (⅟b) = (⅟b) * (b * a * (⅟b)) : by simp [mul_assoc]
 ... = (⅟b) * (a * b * ((⅟b))) : by rw h.eq
 ... = (⅟b) * a : by simp [mul_assoc]
 
-theorem commute.inv_left_invertible [monoid α] {a b : α} [invertible b] (h : commute b a) :
+theorem commute.inv_of_left [monoid α] {a b : α} [invertible b] (h : commute b a) :
   commute (⅟b) a :=
 calc (⅟b) * a = (⅟b) * (a * b * (⅟b)) : by simp [mul_assoc]
 ... = (⅟b) * (b * a * (⅟b)) : by rw h.eq

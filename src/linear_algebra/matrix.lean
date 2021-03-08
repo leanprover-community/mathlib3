@@ -1034,7 +1034,7 @@ end
 
 namespace matrix
 
-variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {m n : Type*} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
 variables {R : Type v} [comm_ring R]
 
 lemma det_to_block (M : matrix m m R) (p : m → Prop) [decidable_pred p] :
@@ -1089,7 +1089,8 @@ def block_triangular_matrix' {o : Type*} [fintype o] (M : matrix o o R) {n : ℕ
   (b : o → fin n) : Prop :=
 ∀ i j, b j < b i → M i j = 0
 
-lemma upper_two_block_triangular' (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+lemma upper_two_block_triangular' {m n : Type*} [fintype m] [fintype n]
+  (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   block_triangular_matrix' (from_blocks A B 0 D) (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) :=
 begin
   intros k1 k2 hk12,
@@ -1115,7 +1116,8 @@ end
 def block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (b : o → ℕ) : Prop :=
 ∀ i j, b j < b i → M i j = 0
 
-lemma upper_two_block_triangular (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+lemma upper_two_block_triangular {m n : Type*} [fintype m] [fintype n]
+  (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   block_triangular_matrix (from_blocks A B 0 D) (sum.elim (λ i, 0) (λ j, 1)) :=
 begin
   intros k1 k2 hk12,

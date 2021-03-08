@@ -92,7 +92,7 @@ begin
   exact norm_rpow hx_nonneg,
 end
 
-lemma ess_sup_norm_rpow (f : α → E) (q : ℝ) (hq_pos : 0 < q) :
+lemma ess_sup_norm_rpow (f : α → F) (q : ℝ) (hq_pos : 0 < q) :
   ess_sup (λ (x : α), (nnnorm (∥f x∥ ^ q) : ℝ≥0∞)) μ = ess_sup (λ (x : α), ↑(nnnorm (f x))) μ ^ q :=
 begin
   have h_rpow : ess_sup (λ (x : α), (nnnorm (∥f x∥ ^ q) : ℝ≥0∞)) μ
@@ -108,7 +108,7 @@ begin
   exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm,
 end
 
-lemma snorm_norm_rpow (f : α → E) (q : ℝ) (hq_pos : 0 < q) :
+lemma snorm_norm_rpow (f : α → F) (q : ℝ) (hq_pos : 0 < q) :
   snorm (λ x, ∥f x∥ ^ q) p μ = (snorm f (p * ennreal.of_real q) μ) ^ q :=
 begin
   by_cases h0 : p = 0,

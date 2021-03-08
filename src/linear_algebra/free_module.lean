@@ -134,21 +134,6 @@ begin
     exact (v z).2 }
 end
 
-lemma finset.sum_fin_succ_above {α : Type*} [add_comm_monoid α] {n : ℕ} (i : fin n.succ)
-  (f : fin n.succ → α) : ∑ j, f j = f i + ∑ (j : fin n), f (i.succ_above j) :=
-begin
-  rw [← finset.insert_erase (finset.mem_univ i), finset.sum_insert (finset.not_mem_erase i _),
-      finset.sum_bij (λ (j : fin n) (hj : j ∈ finset.univ), i.succ_above j)],
-  { intros j hj, simpa using fin.succ_above_ne i j },
-  { intros j hj, simp },
-  { intros j j' hj hj' h, simpa using h },
-  { intros j hj,
-    have hj : j ∈ { j | j ≠ i } := (finset.mem_erase.mp hj).1,
-    rw ← i.range_succ_above at hj,
-    obtain ⟨j', rfl⟩ := hj,
-    exact ⟨j', finset.mem_univ _, rfl⟩ },
-end
-
 /-- In an `n`-dimensional space, the rank is at most `m`. -/
 lemma is_basis.card_le_card_of_linear_independent_aux
   {R : Type*} [integral_domain R]
@@ -202,7 +187,7 @@ begin
     rw [pi.zero_apply, @pi.sub_apply (fin n.succ) (λ _, R) _ _ _ _],
     simp only [finset.sum_apply, pi.smul_apply, smul_eq_mul, sub_eq_zero],
     symmetry,
-    rw [finset.sum_fin_succ_above i, fin.insert_nth_apply_same, zero_mul, zero_add, mul_comm],
+    rw [fin.sum_univ_succ_above _ i, fin.insert_nth_apply_same, zero_mul, zero_add, mul_comm],
     simp only [fin.insert_nth_apply_succ_above],
     refine fin.cases _ _ j,
     { simp },
@@ -215,12 +200,12 @@ begin
   -- If `y = 0`, then we can extend `c'` to a linear dependence on the full space,
   -- which implies `c'` is trivial.
   convert hv (@fin.insert_nth _ (λ _, R) i 0 c') _ (i.succ_above i'),
-  { rw [fin.insert_nth_apply_succ_above] },
+  { rw fin.insert_nth_apply_succ_above },
   ext j,
   -- After a bit of calculation, we find that `∑ i, c' i • v i = (y, 0, 0, ...) = 0` as promised.
   rw [@finset.sum_apply (fin n.succ) (λ _, R) _ _ _, pi.zero_apply],
   simp only [pi.smul_apply, smul_eq_mul],
-  rw [finset.sum_fin_succ_above i, fin.insert_nth_apply_same, zero_mul, zero_add],
+  rw [fin.sum_univ_succ_above _ i, fin.insert_nth_apply_same, zero_mul, zero_add],
   simp only [fin.insert_nth_apply_succ_above],
   refine fin.cases _ _ j,
   { rw [← y_eq, hy] },

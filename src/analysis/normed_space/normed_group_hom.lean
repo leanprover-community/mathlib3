@@ -356,11 +356,18 @@ end normed_group_hom
 
 namespace normed_group_hom
 
+variables {V W V₁ V₂ V₃ : Type*}
+variables [normed_group V] [normed_group W] [normed_group V₁] [normed_group V₂] [normed_group V₃]
+
+
+/-- The inclusion of the kernel, as bounded group homomorphism. -/
+@[simps] def incl (s : add_subgroup V) : normed_group_hom s V :=
+{ to_fun := (coe : s → V),
+  map_add' := λ v w, add_subgroup.coe_add _ _ _,
+  bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
+
 /-!### Kernel -/
 section kernels
-
-variables {V V₁ V₂ V₃ : Type*}
-variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
 variables (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃)
 
 /-- The kernel of a bounded group homomorphism. Naturally endowed with a `normed_group` instance. -/
@@ -368,12 +375,6 @@ def ker : add_subgroup V₁ := f.to_add_monoid_hom.ker
 
 lemma mem_ker (v : V₁) : v ∈ f.ker ↔ f v = 0 :=
 by { erw f.to_add_monoid_hom.mem_ker, refl }
-
-/-- The inclusion of the kernel, as bounded group homomorphism. -/
-@[simps] def ker.incl : normed_group_hom f.ker V₁ :=
-{ to_fun := (coe : f.ker → V₁),
-  map_add' := λ v w, add_subgroup.coe_add _ _ _,
-  bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
 
 /-- Given a normed group hom `f : V₁ → V₂` satisfying `g.comp f = 0` for some `g : V₂ → V₃`,
     the corestriction of `f` to the kernel of `g`. -/
@@ -384,7 +385,7 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
   bound' := f.bound' }
 
 @[simp] lemma ker.incl_comp_lift (h : g.comp f = 0) :
-  (ker.incl g).comp (ker.lift f g h) = f :=
+  (incl g.ker).comp (ker.lift f g h) = f :=
 by { ext, refl }
 
 end kernels
@@ -392,8 +393,6 @@ end kernels
 /-! ### Range -/
 section range
 
-variables {V V₁ V₂ V₃ : Type*}
-variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
 variables (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃)
 
 /-- The image of a bounded group homomorphism. Naturally endowed with a `normed_group` instance. -/
@@ -404,9 +403,6 @@ by { rw [range, add_monoid_hom.mem_range], refl }
 
 end range
 
-variables {V W V₁ V₂ V₃ : Type*}
-variables [normed_group V] [normed_group W]
-variables [normed_group V₁] [normed_group V₂] [normed_group V₃]
 variables {f : normed_group_hom V W}
 
 /-- A `normed_group_hom` is *norm-nonincreasing* if `∥f v∥ ≤ ∥v∥` for all `v`. -/

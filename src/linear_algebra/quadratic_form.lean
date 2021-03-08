@@ -437,7 +437,7 @@ begin
 end
 
 -- Change to module over rings once #6585 is merged
-lemma exists_quadratic_form_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]
+lemma exists_quadratic_form_neq_zero [nontrivial M]
   {Q : quadratic_form R₁ M} (hB₁ : Q.associated.nondegenerate) :
   ∃ x, Q x ≠ 0 :=
 begin

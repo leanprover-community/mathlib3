@@ -1216,8 +1216,8 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 
 end
 
-/-- The restriction of a non-degenerate bilinear form on the orthogonal complement of the
-  span of a singleton is also non-degenerate. -/
+/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of 
+the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
   (hB₁ : nondegenerate B) (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=

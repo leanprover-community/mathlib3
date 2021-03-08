@@ -183,32 +183,27 @@ begin
   rwa pi.add_apply at hx,
 end
 
-end is_R_or_C
-
-section real
-
-variables {α E F G : Type*} [measurable_space α] {μ : measure α}
-  [measurable_space E] [inner_product_space ℝ E] [borel_space E] [second_countable_topology E]
-
-private lemma smul_left' (f g : Lp E 2 μ) (r : ℝ) :
+private lemma smul_left' (f g : Lp E 2 μ) (r : 𝕜) :
   inner (r • f) g = is_R_or_C.conj r * inner f g :=
 begin
   simp_rw inner_def,
-  rw ← integral_mul_left,  -- TODO write that one for is_R_or_C
+  rw ← smul_eq_mul,
+  rw ← integral_smul,
   refine integral_congr_ae _,
-  simp_rw ←inner_smul_left,
   refine (coe_fn_smul r f).mono (λ x hx, _),
   dsimp only,
+  rw smul_eq_mul,
+  simp_rw ← inner_smul_left,
   congr,
   rwa pi.smul_apply at hx,
 end
 
-instance : inner_product_space ℝ (Lp E 2 μ) :=
+instance : inner_product_space 𝕜 (Lp E 2 μ) :=
 { norm_sq_eq_inner := norm_sq_eq_inner',
   conj_sym := conj_sym',
   add_left := add_left',
   smul_left := smul_left', }
 
-end real
+end is_R_or_C
 
 end measure_theory

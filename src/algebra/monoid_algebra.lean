@@ -860,13 +860,6 @@ While we were not able to define `add_monoid_algebra k G = monoid_algebra k (mul
 to definitional inconveniences, we can still show the types are isomorphic.
 -/
 
-/-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of
-`multiplicative` -/
-protected def add_monoid_algebra.to_multiplicative [semiring k] [has_add G] :
-  add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
-{ map_mul' := λ x y, by convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)),
-  ..finsupp.dom_congr multiplicative.of_add }
-
 /-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
 protected def monoid_algebra.to_additive [semiring k] [has_mul G] :
   monoid_algebra k G ≃+* add_monoid_algebra k (additive G) :=

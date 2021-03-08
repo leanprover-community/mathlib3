@@ -1083,8 +1083,11 @@ namespace bilin_form
 
 section orthogonal
 
-/-- The orthogonal complement of a submodule `N` with respect to some bilinear form is the set
-  of elements which are orthogonal to all elements of `N`. -/
+/-- The orthogonal complement of a submodule `N` with respect to some bilinear form is the set of elements `x` which are orthogonal to all elements of `N`; i.e., for all `y` in `N`, B x y = 0. Note
+that for general (neither symmetric nor antisymmetric) bilinear forms this definition has a
+chirality; in addition to this "left" orthogonal complement one could define a "right" orthogonal
+complement for which, for all `y` in `N`, B y x = 0.  This variant definition is not currently
+provided in mathlib. -/
 def orthogonal (B : bilin_form R M) (N : submodule R M) : submodule R M :=
 { carrier := { m | ∀ n ∈ N, is_ortho B n m },
   zero_mem' := λ x _, is_ortho_zero_right x,
@@ -1169,7 +1172,13 @@ lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
 λ x y, hB x y
 
 /-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
-  to every other element is `0`. -/
+to every other element is `0`; i.e., for all nonzero `m` in `M`, there exists `n` in `M` with
+`B m n ≠ 0`.
+
+Note that for general (neither symmetric nor antisymmetric) bilinear forms this definition has a 
+chirality; in addition to this "left" nondegeneracy condition one could define a "right" 
+nondegeneracy condition that in the situation described, `B n m ≠ 0`.  This variant definition is 
+not currently provided in mathlib.  In finite dimension either definition implies the other. -/
 def nondegenerate (B : bilin_form R M) : Prop :=
 ∀ m : M, (∀ n : M, B m n = 0) → m = 0
 
@@ -1189,8 +1198,9 @@ section
 
 variable [finite_dimensional K V]
 
-/-- Given a nondegenerate bilinear form `B`, `B.to_dual` is the isomorphism
-between a vector space and its dual with the underlying linear map `B.to_lin`. -/
+/-- Given a nondegenerate bilinear form `B` on a finite-dimensional vector space, `B.to_dual` is 
+the linear equivalence between a vector space and its dual with the underlying linear map 
+`B.to_lin`. -/
 noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
 B.to_lin.linear_equiv_of_ker_eq_bot
@@ -1220,8 +1230,8 @@ begin
   exact let ⟨v, hv⟩ := exists_ne (0 : M) in hv $ hB₁ v (hcon v),
 end
 
-/-- The restriction of a non-degenerate bilinear form on the orthogonal complement of the
-  span of a singleton is also non-degenerate. -/
+/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of 
+the span of a singleton is also non-degenerate. -/
 lemma restrict_ortho_singleton_nondegenerate (B : bilin_form K V)
   (hB₁ : nondegenerate B) (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=

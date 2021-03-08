@@ -28,8 +28,10 @@ polynomials with variables `x : X`.
 -/
 def free : Type u ⥤ CommRing :=
 { obj := λ α, of (mv_polynomial α ℤ),
-  map := λ X Y f, ((rename f : mv_polynomial X ℤ →ₐ[ℤ] mv_polynomial Y ℤ) :
-                              (mv_polynomial X ℤ →+*   mv_polynomial Y ℤ)),
+  map := λ X Y f,
+    -- otherwise this finds `algebra_int`, which is not defeq to the one used by `mv_polynomial`.
+    let Zalg : algebra ℤ ℤ := algebra.id ℤ in by exactI
+    (↑(rename f : _ →ₐ[ℤ] _) : (mv_polynomial X ℤ →+* mv_polynomial Y ℤ)),
   -- TODO these next two fields can be done by `tidy`, but the calls in `dsimp` and `simp` it
   -- generates are too slow.
   map_id' := λ X, ring_hom.ext $ rename_id,

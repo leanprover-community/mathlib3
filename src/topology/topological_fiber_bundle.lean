@@ -402,6 +402,21 @@ instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : tot
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
+/-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
+def trivial (B : Type*) (F : Type*) : B → Type* := λ x, F
+
+instance [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
+⟨(default F : F)⟩
+
+/-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
+def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
+
+instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
+instance [t₁ : topological_space B] [t₂ : topological_space F] :
+  topological_space (total_space (trivial B F)) :=
+topological_space.induced (proj (trivial B F)) t₁ ⊓
+  topological_space.induced (trivial.proj_snd B F) t₂
+
 end bundle
 
 /-- Core data defining a locally trivial topological bundle with fiber `F` over a topological

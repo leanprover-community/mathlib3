@@ -103,23 +103,6 @@ lemma card_quotient_dvd_card (s : subgroup α) [decidable_pred (λ a, a ∈ s)] 
   fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s]
 
-lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
-have ¬ injective (λi:ℤ, a ^ i),
-  from not_injective_infinite_fintype _,
-let ⟨i, j, a_eq, ne⟩ := show ∃(i j : ℤ), a ^ i = a ^ j ∧ i ≠ j,
-  by rw [injective] at this; simpa [not_forall] in
-have a ^ (i - j) = 1,
-  by simp [sub_eq_add_neg, gpow_add, gpow_neg, a_eq],
-⟨i - j, sub_ne_zero.mpr ne, this⟩
-
-lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=
-let ⟨i, hi, eq⟩ := exists_gpow_eq_one a in
-begin
-  cases i,
-  { exact ⟨i, nat.pos_of_ne_zero (by simp [int.of_nat_eq_coe, *] at *), eq⟩ },
-  { exact ⟨i + 1, dec_trivial, inv_eq_one.1 eq⟩ }
-end
-
 end order_of
 
 section order_of
@@ -285,7 +268,7 @@ end
 end monoid
 
 section cancel_monoid
-variables {α} [decidable_eq α] [cancel_monoid α]
+variables {α} [decidable_eq α] [left_cancel_monoid α]
 
 private lemma pow_injective_aux {n m : ℕ} (a : α) (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
@@ -347,7 +330,31 @@ end))
 end finite_monoid
 
 section finite_cancel_monoid
-variables {α} [fintype α] [decidable_eq α] [cancel_monoid α]
+variables {α} [fintype α] [decidable_eq α] [left_cancel_monoid α]
+
+lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=
+begin
+  have h :  ¬ injective (λi:ℕ, a^i),
+    from not_injective_infinite_fintype _,
+  have h' : ∃(i j : ℕ), a ^ i = a ^ j ∧ i ≠ j,
+    { rw injective at h,
+      simp only [not_forall, exists_prop] at h,
+      exact h },
+  rcases h' with ⟨i, j, a_eq, ne⟩,
+  wlog h'' : j ≤ i,
+  have h''' : a ^ (i - j) = 1,
+    { rw [(nat.add_sub_of_le h'').symm, pow_add, ← mul_one (a ^ j), mul_assoc] at a_eq,
+      convert mul_left_cancel a_eq,
+      rw one_mul },
+  use (i - j),
+  split,
+    { apply lt_of_le_of_ne (zero_le (i - j)),
+      by_contradiction,
+      rw not_not at h,
+      apply ne,
+      rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
+    { exact h''' },
+end
 
 lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
 finset.le_card_of_inj_on_range ((^) a)
@@ -361,6 +368,14 @@ end finite_cancel_monoid
 section finite_group
 variables {α} [fintype α] [decidable_eq α] [group α]
 
+lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
+begin
+  rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
+  use w,
+  split,
+  exact_mod_cast ne_of_gt hw1,
+  exact_mod_cast hw2,
+end
 
 lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=

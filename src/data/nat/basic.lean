@@ -231,10 +231,22 @@ theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
 
+@[simp] lemma succ_ne_zero' {n : ℕ} : succ n ≠ 0 := succ_ne_zero n
+
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ.inj, congr_arg _⟩
 
 theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
+
+lemma succ_ne_succ {n m : ℕ} : succ n ≠ succ m ↔ n ≠ m :=
+succ_injective.ne_iff
+
+@[simp]
+lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
+succ_ne_succ.mpr n.succ_ne_zero
+
+lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
+succ_lt_succ $ succ_pos n
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
@@ -615,6 +627,12 @@ lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * 
 
 lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
 λ _ _, eq_of_mul_eq_mul_left ha
+
+theorem mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
+(mul_left_injective ha).ne_iff
+
+lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=
+(mul_right_injective ha).ne_iff
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,

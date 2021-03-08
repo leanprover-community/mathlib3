@@ -103,8 +103,8 @@ by simp [bit1] with parity_simps
 lemma two_not_dvd_two_mul_add_one (n : ℕ) : ¬(2 ∣ 2 * n + 1) :=
 by convert not_even_bit1 n; exact two_mul n
 
-lemma two_not_dvd_two_mul_sub_one : Π {n} (w : 0 < n), ¬(2 ∣ 2 * n - 1) | (n + 1) _ :=
-two_not_dvd_two_mul_add_one n
+lemma two_not_dvd_two_mul_sub_one : Π {n} (w : 0 < n), ¬(2 ∣ 2 * n - 1)
+| (n + 1) _ := two_not_dvd_two_mul_add_one n
 
 @[parity_simps] theorem even_sub (h : n ≤ m) : even (m - n) ↔ (even m ↔ even n) :=
 begin
@@ -137,6 +137,21 @@ begin
   { exact @modeq.modeq_mul _ _ 1 _ 0 h₁ h₂ },
   exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
 end
+
+lemma odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
+by simp [not_or_distrib] with parity_simps
+
+lemma even.mul_even (hm : even m) (hn : even n) : even (m * n) :=
+even_mul.mpr $ or.inl hm
+
+lemma even.mul_odd (hm : even m) (hn : odd n) : even (m * n) :=
+even_mul.mpr $ or.inl hm
+
+lemma odd.mul_even (hm : odd m) (hn : even n) : even (m * n) :=
+even_mul.mpr $ or.inr hn
+
+lemma odd.mul_odd (hm : odd m) (hn : odd n) : odd (m * n) :=
+odd_mul.mpr ⟨hm, hn⟩
 
 /-- If `m` and `n` are natural numbers, then the natural number `m^n` is even
 if and only if `m` is even and `n` is positive. -/

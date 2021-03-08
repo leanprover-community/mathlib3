@@ -454,7 +454,7 @@ begin
     simp_rw [h₁ s hs t ht, prod_prod (h4C s hs) (h4D t ht)] }
 end
 
-/-- A measures on a product space equals the product measure if they are equal on rectangles. -/
+/-- A measure on a product space equals the product measure if they are equal on rectangles. -/
 lemma prod_eq {μν : measure (α × β)}
   (h : ∀ s t, measurable_set s → measurable_set t → μν (s.prod t) = μ s * ν t) : μ.prod ν = μν :=
 prod_eq_generate_from generate_from_measurable_set generate_from_measurable_set

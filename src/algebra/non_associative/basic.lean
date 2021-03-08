@@ -56,11 +56,11 @@ namespace na_algebra
 
 variables {R A} [na_semiring A] [na_algebra R A]
 
-@[simp] lemma smul_mul_assoc (t : R) (a b : A) :
+lemma smul_mul_assoc (t : R) (a b : A) :
   (t • a) * b = t • (a * b) :=
 na_algebra.smul_mul_assoc' t a b
 
-@[simp] lemma mul_smul_comm (t : R) (a b : A) :
+lemma mul_smul_comm (t : R) (a b : A) :
   a * (t • b) = t • (a * b) :=
 na_algebra.mul_smul_comm' t a b
 

@@ -352,7 +352,7 @@ begin
   exact hg.neg
 end
 
-lemma integral_smul' {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+lemma integral_smul {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   integral μ (r • f) = r • integral μ f :=
 calc integral μ (r • f) = ∑ x in f.range, ennreal.to_real (μ (f ⁻¹' {x})) • r • x :
@@ -361,10 +361,6 @@ calc integral μ (r • f) = ∑ x in f.range, ennreal.to_real (μ (f ⁻¹' {x}
   finset.sum_congr rfl $ λ b hb, by { exact smul_comm _ _ _}
 ... = r • integral μ f :
 by simp only [integral, smul_sum, smul_smul, mul_comm]
-
-lemma integral_smul (r : ℝ) {f : α →ₛ E} (hf : integrable f μ) :
-  integral μ (r • f) = r • integral μ f :=
-integral_smul' r hf
 
 lemma norm_integral_le_integral_norm (f : α →ₛ E) (hf : integrable f μ) :
   ∥f.integral μ∥ ≤ (f.map norm).integral μ :=
@@ -766,7 +762,7 @@ lemma integral_smul {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [sm
   (r : 𝕜) (f : α →₁ₛ[μ] E) : integral (r • f) = r • integral f :=
 begin
   simp only [integral],
-  rw ← simple_func.integral_smul' _ (simple_func.integrable f),
+  rw ← simple_func.integral_smul _ (simple_func.integrable f),
   apply measure_theory.simple_func.integral_congr (simple_func.integrable (r • f)),
   apply smul_to_simple_func,
   repeat { assumption },

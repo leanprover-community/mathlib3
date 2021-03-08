@@ -958,8 +958,20 @@ by simpa only [inv_inv] using @inv_le_inv a b⁻¹
 lemma le_inv_iff_le_inv : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
 by simpa only [inv_inv] using @inv_le_inv a⁻¹ b
 
+@[simp] lemma inv_le_one : a⁻¹ ≤ 1 ↔ 1 ≤ a :=
+inv_le_iff_inv_le.trans $ by rw inv_one
+
+lemma one_le_inv : 1 ≤ a⁻¹ ↔ a ≤ 1 :=
+le_inv_iff_le_inv.trans $ by rw inv_one
+
 @[simp] lemma inv_lt_one : a⁻¹ < 1 ↔ 1 < a :=
 inv_lt_iff_inv_lt.trans $ by rw [inv_one]
+
+lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
+begin
+  rw [← @inv_inv a, ← ennreal.inv_pow, ← @ennreal.inv_pow a⁻¹, inv_le_inv],
+  exact pow_le_pow (one_le_inv.2 ha) h
+end
 
 @[simp] lemma div_top : a / ∞ = 0 := by rw [div_eq_mul_inv, inv_top, mul_zero]
 
@@ -1150,6 +1162,16 @@ begin
   rcases exists_nat_pos_inv_mul_lt ha hb with ⟨n, npos : 0 < n, hn⟩,
   use (n : ℝ≥0)⁻¹,
   simp [*, npos.ne', zero_lt_one]
+end
+
+lemma exists_inv_two_pow_lt (ha : a ≠ 0) :
+  ∃ n : ℕ, 2⁻¹ ^ n < a :=
+begin
+  rcases exists_inv_nat_lt ha with ⟨n, hn⟩,
+  simp only [← ennreal.inv_pow],
+  refine ⟨n, lt_trans (inv_lt_inv.2 _) hn⟩,
+  norm_cast,
+  exact n.lt_two_pow
 end
 
 end inv

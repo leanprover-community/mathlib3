@@ -366,7 +366,7 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
 
-@[simp] lemma coe_zero : (0 : α →ᵇ β) x = 0 := rfl
+@[simp] lemma coe_zero : ((0 : α →ᵇ β) : α → β) = 0 := rfl
 
 instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
@@ -396,7 +396,20 @@ variable {f}
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
-by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
+by simpa using @dist_le _ _ _ _ f 0 _ C0
+
+lemma norm_le_of_nonempty [nonempty α]
+  {f : α →ᵇ β} {M : ℝ} (w : ∀ x, ∥f x∥ ≤ M) : ∥f∥ ≤ M :=
+(bounded_continuous_function.norm_le (le_trans (norm_nonneg _) (w (nonempty.some ‹_›)))).mpr w
+
+lemma norm_lt_of_compact [nonempty α] [compact_space α]
+  {f : α →ᵇ β} {M : ℝ} (h : ∀ x, ∥f x∥ < M) : ∥f∥ < M :=
+begin
+  have c : continuous (λ x, ∥f x∥), { have := f.2.1, continuity, },
+  obtain ⟨x, -, le⟩ :=
+    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+  exact lt_of_le_of_lt (norm_le_of_nonempty (λ y, le y trivial)) (h x),
+end
 
 variable (f)
 
@@ -464,6 +477,20 @@ instance : add_comm_group (α →ᵇ β) :=
 
 @[simp] lemma coe_sub : ⇑(f - g) = λ x, f x - g x := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
+
+/-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+@[simps]
+def coe_fn_add_hom : (α →ᵇ β) →+ (α → β) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add}
+
+open_locale big_operators
+@[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) :
+  ⇑(∑ i in s, f i) = (∑ i in s, (f i : α → β)) :=
+(@coe_fn_add_hom α β _ _).map_sum f s
+
+lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
+  (∑ i in s, f i) a = (∑ i in s, f i a) :=
+by simp
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }

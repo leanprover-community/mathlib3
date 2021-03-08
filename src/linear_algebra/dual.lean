@@ -6,8 +6,6 @@ Authors: Johan Commelin, Fabian Glöckle
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
 
-noncomputable theory
-
 /-!
 # Dual vector spaces
 
@@ -32,7 +30,12 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 We sometimes use `V'` as local notation for `dual K V`.
 
+## TODO
+
+Erdös-Kaplansky theorem about the dimension of a dual vector space in case of infinite dimension.
 -/
+
+noncomputable theory
 
 namespace module
 

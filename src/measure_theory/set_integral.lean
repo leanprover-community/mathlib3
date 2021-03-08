@@ -38,7 +38,12 @@ theorem for a locally finite measure `μ` and a function `f` continuous at a poi
 
 ## Notation
 
-`∫ a in s, f a` is `measure_theory.integral (s.indicator f)`
+We provide the following notations for expressing the integral of a function on a set :
+* `∫ a in s, f a ∂μ` is `measure_theory.integral (μ.restrict s) f`
+* `∫ a in s, f a` is `∫ a in s, f a ∂volume`
+
+Note that the set notations are defined in the file `measure_theory/bochner_integration`,
+but we reference them here because all theorems about set integrals are in this file.
 
 ## TODO
 
@@ -483,6 +488,47 @@ begin
 end
 
 end normed_group
+
+section mono
+
+variables {μ : measure α} {f g : α → ℝ} {s : set α}
+  (hf : integrable_on f s μ) (hg : integrable_on g s μ)
+
+lemma set_integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict s] g) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+integral_mono_ae hf hg h
+
+lemma set_integral_mono_ae (h : f ≤ᵐ[μ] g) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+set_integral_mono_ae_restrict hf hg (ae_restrict_of_ae h)
+
+lemma set_integral_mono_on (hs : measurable_set s) (h : ∀ x ∈ s, f x ≤ g x) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+set_integral_mono_ae_restrict hf hg
+  (by simp [hs, eventually_le, eventually_inf_principal, ae_of_all _ h])
+
+lemma set_integral_mono (h : f ≤ g) :
+  ∫ a in s, f a ∂μ ≤ ∫ a in s, g a ∂μ :=
+integral_mono hf hg h
+
+end mono
+
+section nonneg
+
+variables {μ : measure α} {f : α → ℝ} {s : set α}
+
+lemma set_integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict s] f) :
+  (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
+integral_nonneg_of_ae hf
+
+lemma set_integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
+set_integral_nonneg_of_ae_restrict (ae_restrict_of_ae hf)
+
+lemma set_integral_nonneg (hs : measurable_set s) (hf : ∀ a, a ∈ s → 0 ≤ f a) :
+  (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
+set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
+
+end nonneg
 
 end measure_theory
 

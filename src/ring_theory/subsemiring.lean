@@ -180,6 +180,22 @@ def subtype : s →+* R :=
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
+/-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
+instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
+subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
+instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
+  ordered_comm_semiring s :=
+subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
+instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
+  linear_ordered_semiring s :=
+subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+
 instance : partial_order (subsemiring R) :=
 { le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
   .. partial_order.lift (coe : subsemiring R → set R) ext' }

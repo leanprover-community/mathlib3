@@ -33,7 +33,7 @@ def is_regular (c : R) := function.injective ((•) c : M → M)
 
 section monoid
 
-variables [monoid R] [add_monoid M] [is_scalar_tower R S M]
+variables [monoid R] [is_scalar_tower R S M]
 --semigroup does not have the right instance
 --instance semigroup.has_scalar : has_scalar R R := { smul := λ a b, a * b }
 

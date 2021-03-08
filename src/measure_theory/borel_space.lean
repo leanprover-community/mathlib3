@@ -589,7 +589,7 @@ begin
 end
 
 lemma ae_measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
-  [measurable_space β] {n : ℕ} {f : β → α} {μ : measure α} (hf : ae_measurable f μ) :
+  [measurable_space β] {n : ℕ} {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
   ae_measurable (λ x : β, (f x) ^ n) μ :=
 begin
   simp_rw finset.pow_eq_prod_const,

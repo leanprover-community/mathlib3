@@ -428,6 +428,19 @@ quadratic_form.ext $ λ x,
       = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
   ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 
+-- Change to module over rings once #6585 is merged
+lemma exists_quadratic_form_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]
+  {Q : quadratic_form R₁ M} (hB₁ : Q.associated.nondegenerate) :
+  ∃ x, Q x ≠ 0 :=
+begin
+  rw nondegenerate at hB₁,
+  contrapose! hB₁,
+  obtain ⟨x, hx⟩ := exists_ne (0 : M),
+  refine ⟨x, λ y, _, hx⟩,
+  have : Q = 0 := quadratic_form.ext hB₁,
+  simpa [this, quadratic_form.associated_apply],
+end
+
 end associated
 
 section anisotropic
@@ -593,40 +606,21 @@ end quadratic_form
 
 namespace bilin_form
 
-variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
-
-lemma bar
-  [nontrivial M] {B : bilin_form R M} (hB₁ : B.nondegenerate) :
-  ∃ x y, B x y ≠ 0 :=
-begin
-  revert hB₁, contrapose!,
-  unfold nondegenerate,
-  intros h₁,
-  push_neg,
-  obtain ⟨v, hv⟩ := exists_ne (0 : M),
-  refine ⟨v, h₁ v, hv⟩,
-end
-
 /-- Let `B` be a symmetric, nondegenerate bilinear form on a nontrivial module `M` over the ring
   `R` with invertible `2`. Then, there exists some `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
-  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]
+  {B : bilin_form R₁ M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
-  revert hB₂,
-  rw sym_bilin_form.is_sym,
-  contrapose!,
-  intro h,
-  obtain ⟨x, y, hxy⟩ := bar hB₁,
-  refine ⟨x, y, λ hxy₁, hxy _⟩,
-  suffices : 2 * B x y = 0,
-    { rw [← one_mul (B x y), ← inv_of_mul_self (2 : R), mul_assoc, this, mul_zero] },
-  rw [two_mul, add_eq_zero_iff_eq_neg],
-  conv_rhs { rw [← alt_bilin_form.neg h y x, ← hxy₁, neg_neg] },
+  have : B.to_quadratic_form.associated.nondegenerate,
+    refine (quadratic_form.associated_left_inverse hB₂).symm ▸ hB₁,
+  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero this,
+  refine ⟨x, λ h, hx (B.to_quadratic_form_apply x ▸ h)⟩,
 end
 
 open finite_dimensional
 
+variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
 variable [finite_dimensional K V]
 
 -- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
@@ -647,7 +641,7 @@ begin
             (is_compl_span_singleton_orthogonal hx).symm,
           findim_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
       rcases @ih (B.orthogonal $ K ∙ x) _ _ _
-        (B.restrict _) (B.restrict_ortho_singleton_nondegenerate hB₁ hB₂ hx)
+        (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
         (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
       refine ⟨λ i, if h : i ≠ 0 then coe (v' (i.pred h)) else x, λ i j hij, _, _, _⟩,
       { by_cases hi : i = 0,
@@ -701,9 +695,6 @@ end .
 theorem exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ v : fin (findim K V) → V, B.is_Ortho v ∧ is_basis K v :=
-begin
-  rcases exists_orthogonal_basis' hB₁ hB₂ with ⟨v, hv₁, hv₂, _⟩,
-  exact ⟨v, hv₁, hv₂⟩
-end
+let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁, hv₂⟩
 
 end bilin_form

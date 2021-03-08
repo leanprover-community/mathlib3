@@ -674,7 +674,7 @@ theorem is_noetherian_ring_fin [is_noetherian_ring R] :
 | 0 := is_noetherian_ring_fin_0
 | (n+1) :=
   @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _ _ _
-    (mv_polynomial.fin_succ_equiv _ n).symm
+    (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv.symm
     (@polynomial.is_noetherian_ring (mv_polynomial (fin n) R) _ (is_noetherian_ring_fin))
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
@@ -703,7 +703,7 @@ lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain
   ring_equiv.is_integral_domain
     (polynomial (mv_polynomial (fin n) R))
     (is_integral_domain_fin n).polynomial
-    (mv_polynomial.fin_succ_equiv _ n)
+    (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv
 
 lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
   (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=

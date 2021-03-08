@@ -619,7 +619,7 @@ end quadratic_form
 
 namespace bilin_form
 
-/- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
+/-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
 on a nontrivial module `M` over the commring `R` with invertible `2`, i.e. there exists some
 `x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]

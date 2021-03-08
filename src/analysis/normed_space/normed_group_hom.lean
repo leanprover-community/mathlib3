@@ -146,7 +146,7 @@ lemma bounds_nonempty {f : normed_group_hom V₁ V₂} :
 let ⟨M, hMp, hMb⟩ := f.bound in ⟨M, le_of_lt hMp, hMb⟩
 
 lemma bounds_bdd_below {f : normed_group_hom V₁ V₂} :
-  bdd_below { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
+  bdd_below {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥} :=
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=

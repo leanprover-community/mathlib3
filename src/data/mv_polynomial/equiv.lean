@@ -110,10 +110,10 @@ def map_equiv [comm_semiring S₁] [comm_semiring S₂] (e : S₁ ≃+* S₂) :
 { to_fun    := map (e : S₁ →+* S₂),
   inv_fun   := map (e.symm : S₂ →+* S₁),
   left_inv  := λ p,
-    have (e.symm : S₂ →+* S₁).comp (e : S₁ →+* S₂) = ring_hom.id _ := ring_hom.ext e.symm_apply_apply,
+    have (e.symm : S₂ →+* S₁).comp ↑e = ring_hom.id _ := ring_hom.ext e.symm_apply_apply,
     by rw [map_map, this, map_id],
   right_inv := assume p,
-    have (e : S₁ →+* S₂).comp (e.symm : S₂ →+* S₁) = ring_hom.id _ := ring_hom.ext e.apply_symm_apply,
+    have (e : S₁ →+* S₂).comp ↑e.symm = ring_hom.id _ := ring_hom.ext e.apply_symm_apply,
     by rw [map_map, this, map_id],
   ..map (e : S₁ →+* S₂) }
 

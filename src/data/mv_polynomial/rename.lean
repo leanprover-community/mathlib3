@@ -109,6 +109,9 @@ begin
   exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
 end
 
+section
+variables (R)
+
 /-- `mv_polynomial.rename e` is an equivalence when `e` is. -/
 @[simps apply]
 def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
@@ -119,15 +122,17 @@ def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ
   ..rename f}
 
 @[simp] lemma rename_equiv_refl :
-  (rename_equiv (equiv.refl σ) : _ ≃ₐ[R] _).symm = alg_equiv.refl :=
+  rename_equiv R (equiv.refl σ) = alg_equiv.refl :=
 alg_equiv.ext rename_id
 
 @[simp] lemma rename_equiv_symm (f : σ ≃ τ) :
-  (rename_equiv f : _ ≃ₐ[R] _).symm = rename_equiv f.symm := rfl
+  (rename_equiv R f).symm = rename_equiv f.symm := rfl
 
 @[simp] lemma rename_equiv_trans (e : σ ≃ τ) (f : τ ≃ α):
-  (rename_equiv e : _ ≃ₐ[R] _).trans (rename_equiv f : _ ≃ₐ[R] _) = rename_equiv (e.trans f) :=
+  (rename_equiv R e).trans (rename_equiv R f) = rename_equiv R (e.trans f) :=
 alg_equiv.ext (rename_rename e f)
+
+end
 
 section
 variables (f : R →+* S) (k : σ → τ) (g : τ → S) (p : mv_polynomial σ R)

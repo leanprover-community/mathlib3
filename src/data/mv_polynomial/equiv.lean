@@ -100,33 +100,65 @@ def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
   map_add'  := λ _ _, eval₂_add _ _,
   commutes' := λ _, eval₂_C _ _ _}
 
-/-- If `e : A ≃+* B` is an isomorphism of `R`-algebras, then so is `map e`. -/
-@[simps]
-def map_equiv [comm_semiring S₂] (e : R ≃+* S₂) :
-  mv_polynomial S₁ R ≃+* mv_polynomial S₁ S₂ :=
-{ to_fun    := map (e : R →+* S₂),
-  inv_fun   := map (e.symm : S₂ →+* R),
+section
+variables {R} (σ)
+
+/-- If `e : A ≃+* B` is an isomorphism of rings, then so is `map e`. -/
+@[simps apply]
+def map_equiv [comm_semiring S₁] [comm_semiring S₂] (e : S₁ ≃+* S₂) :
+  mv_polynomial σ S₁ ≃+* mv_polynomial σ S₂ :=
+{ to_fun    := map (e : S₁ →+* S₂),
+  inv_fun   := map (e.symm : S₂ →+* S₁),
   left_inv  := λ p,
-    have (e.symm : S₂ →+* R).comp (e : R →+* S₂) = ring_hom.id _ := ring_hom.ext e.symm_apply_apply,
+    have (e.symm : S₂ →+* S₁).comp (e : S₁ →+* S₂) = ring_hom.id _ := ring_hom.ext e.symm_apply_apply,
     by rw [map_map, this, map_id],
   right_inv := assume p,
-    have (e : R →+* S₂).comp (e.symm : S₂ →+* R) = ring_hom.id _ := ring_hom.ext e.apply_symm_apply,
+    have (e : S₁ →+* S₂).comp (e.symm : S₂ →+* S₁) = ring_hom.id _ := ring_hom.ext e.apply_symm_apply,
     by rw [map_map, this, map_id],
-  ..map (e : R →+* S₂) }
+  ..map (e : S₁ →+* S₂) }
+
+@[simp] lemma map_equiv_refl :
+  map_equiv σ (ring_equiv.refl R) = ring_equiv.refl _ :=
+ring_equiv.ext map_id
+
+@[simp] lemma map_equiv_symm [comm_semiring S₁] [comm_semiring S₂] (e : S₁ ≃+* S₂) :
+  (map_equiv σ e).symm = map_equiv σ e.symm := rfl
+
+@[simp] lemma map_equiv_trans [comm_semiring S₁] [comm_semiring S₂] [comm_semiring S₃]
+  (e : S₁ ≃+* S₂) (f : S₂ ≃+* S₃) :
+  (map_equiv σ e).trans (map_equiv σ f) = map_equiv σ (e.trans f) :=
+ring_equiv.ext (map_map e f)
+
+variables {A₁ A₂ A₃ : Type*} [comm_semiring A₁] [comm_semiring A₂] [comm_semiring A₃]
+variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 
 /-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebras, then so is `map e`. -/
-@[simps]
-def map_alg_equiv {A B : Type*} [comm_semiring A] [comm_semiring B] [algebra R A] [algebra R B]
-  (e : A ≃ₐ[R] B) :
- mv_polynomial S₁ A ≃ₐ[R] mv_polynomial S₁ B :=
+def map_alg_equiv (e : A₁ ≃ₐ[R] A₂) :
+  mv_polynomial σ A₁ ≃ₐ[R] mv_polynomial σ A₂ :=
 { commutes' := λ r, begin
     dsimp,
-    have h₁ : algebra_map R (mv_polynomial S₁ A) r = C (algebra_map R A r) := rfl,
-    have h₂ : algebra_map R (mv_polynomial S₁ B) r = C (algebra_map R B r) := rfl,
+    have h₁ : algebra_map R (mv_polynomial σ A₁) r = C (algebra_map R A₁ r) := rfl,
+    have h₂ : algebra_map R (mv_polynomial σ A₂) r = C (algebra_map R A₂ r) := rfl,
     rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply,
       ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.commutes],
   end,
-  ..(map_equiv A ↑e) }
+  ..(map_equiv σ ↑e) }
+
+@[simp] lemma map_alg_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : mv_polynomial σ A₁) :
+  map_alg_equiv σ e x = map ↑e x := rfl
+
+@[simp] lemma map_alg_equiv_refl :
+  map_alg_equiv σ (alg_equiv.refl : A₁ ≃ₐ[R] A₁) = alg_equiv.refl :=
+alg_equiv.ext map_id
+
+@[simp] lemma map_alg_equiv_symm (e : A₁ ≃ₐ[R] A₂) :
+  (map_alg_equiv σ e).symm = map_alg_equiv σ e.symm := rfl
+
+@[simp] lemma map_alg_equiv_trans (e : A₁ ≃ₐ[R] A₂) (f : A₂ ≃ₐ[R] A₃) :
+  (map_alg_equiv σ e).trans (map_alg_equiv σ f) = map_alg_equiv σ (e.trans f) :=
+alg_equiv.ext (map_map e f)
+
+end section
 
 variable (S₁)
 
@@ -238,7 +270,7 @@ The ring isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
 -/
 def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_polynomial S₁ R) :=
-(rename_equiv $ (equiv.option_equiv_sum_punit.{0} S₁).trans (equiv.sum_comm _ _))
+(rename_equiv R $ (equiv.option_equiv_sum_punit.{0} S₁).trans (equiv.sum_comm _ _))
   .trans $
 (sum_alg_equiv R _ _).trans $
 (punit_alg_equiv (mv_polynomial S₁ R)).restrict_scalars R
@@ -248,9 +280,9 @@ The ring isomorphism between multivariable polynomials in `option S₁` and
 multivariable polynomials with coefficients in polynomials.
 -/
 def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ (polynomial R) :=
-(rename_equiv $ equiv.option_equiv_sum_punit.{0} S₁).trans $
+(rename_equiv R $ equiv.option_equiv_sum_punit.{0} S₁).trans $
 (sum_alg_equiv R S₁ unit).trans $
-map_alg_equiv R (punit_alg_equiv R)
+map_alg_equiv _ (punit_alg_equiv R)
 
 /--
 The ring isomorphism between multivariable polynomials in `fin (n + 1)` and
@@ -258,7 +290,7 @@ polynomials over multivariable polynomials in `fin n`.
 -/
 def fin_succ_equiv (n : ℕ) :
   mv_polynomial (fin (n + 1)) R ≃ₐ[R] polynomial (mv_polynomial (fin n) R) :=
-(rename_equiv (fin_succ_equiv n)).trans
+(rename_equiv R (fin_succ_equiv n)).trans
   (option_equiv_left R (fin n))
 
 lemma fin_succ_equiv_eq (n : ℕ) :

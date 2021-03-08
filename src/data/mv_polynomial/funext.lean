@@ -30,7 +30,8 @@ begin
   unfreezingI { revert R },
   induction n with n ih,
   { introsI R _ _ p h,
-    let e := (rename_equiv fin_zero_equiv').to_ring_equiv.trans (mv_polynomial.pempty_ring_equiv R),
+    let e := (rename_equiv R fin_zero_equiv').to_ring_equiv.trans
+      (mv_polynomial.pempty_ring_equiv R),
     apply e.injective,
     rw ring_equiv.map_zero,
     convert h fin_zero_elim,

@@ -59,9 +59,9 @@ rfl
 
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
-def mk_of_discrete [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) :
-  α →ᵇ β :=
-⟨⟨f, continuous_of_discrete_topology⟩, hf⟩
+def mk_of_discrete [discrete_topology α] (f : α → β)
+  (C : ℝ) (h :  ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+⟨⟨f, continuous_of_discrete_topology⟩, h⟩
 
 @[simp] lemma mk_of_discrete_apply
   [discrete_topology α] (f : α → β) (hf : ∃C, ∀ x y, dist (f x) (f y) ≤ C) (a : α) :

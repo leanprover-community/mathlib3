@@ -173,7 +173,6 @@ begin
   refine (integrable_congr (ae_eq_fun.coe_fn_mk (λ (x : α), inner (f x) (g x))
     (ae_measurable.inner (Lp.ae_measurable f) (Lp.ae_measurable g)))).mp _,
   exact ae_eq_fun.integrable_iff_mem_L1.mpr (mem_L1_inner f g),
-  --rw ← integrable_norm_iff (ae_measurable.inner (Lp.ae_measurable f) (Lp.ae_measurable g)),
 end
 
 private lemma add_left' (f f' g : Lp E 2 μ) :

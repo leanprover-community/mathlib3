@@ -28,58 +28,6 @@ def L2_inner (f g : Lp E 2 μ) : ℝ := ∫ a : α, (inner (f a) (g a)) ∂μ
 
 instance : has_inner ℝ (Lp E 2 μ) := {inner := L2_inner }
 
-lemma measurable_pow {α} [measurable_space α] [topological_space α] [borel_space α]
-  [comm_monoid α] [has_continuous_mul α] [second_countable_topology α] {n : ℕ} :
-  measurable (λ x : α, x ^ n) :=
-begin
-  simp_rw finset.pow_eq_prod_const,
-  exact finset.measurable_prod _ (λ _, measurable_id),
-end
-
-lemma measurable.pow {α β} [measurable_space α] [topological_space α] [borel_space α]
-  [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
-  [measurable_space β] {n : ℕ} {f : β → α} (hf : measurable f) :
-  measurable (λ x : β, (f x) ^ n) :=
-begin
-  simp_rw finset.pow_eq_prod_const,
-  exact finset.measurable_prod _ (λ _, hf),
-end
-
-@[simp] lemma ennreal.to_nnreal_bit0 {x : ℝ≥0∞} : (bit0 x).to_nnreal = bit0 (x.to_nnreal) :=
-begin
-  by_cases hx_top : x = ∞,
-  { simp [hx_top, ennreal.bit0_eq_top_iff.mpr rfl], },
-  exact ennreal.to_nnreal_add (lt_top_iff_ne_top.mpr hx_top) (lt_top_iff_ne_top.mpr hx_top),
-end
-
-@[simp] lemma ennreal.to_nnreal_bit1 {x : ℝ≥0∞} (hx_top : x ≠ ∞) :
-  (bit1 x).to_nnreal = bit1 (x.to_nnreal) :=
-by simp [bit1, bit1, ennreal.to_nnreal_add
-    (lt_top_iff_ne_top.mpr (by rwa [ne.def, ennreal.bit0_eq_top_iff])) ennreal.one_lt_top]
-
-@[simp] lemma ennreal.to_real_bit0 {x : ℝ≥0∞} : (bit0 x).to_real = bit0 (x.to_real) :=
-by simp [ennreal.to_real]
-
-@[simp] lemma ennreal.to_real_bit1 {x : ℝ≥0∞} (hx_top : x ≠ ∞) :
-  (bit1 x).to_real = bit1 (x.to_real) :=
-by simp [ennreal.to_real, hx_top]
-
-@[simp] lemma nnreal.of_real_bit0 {r : ℝ} (hr : 0 ≤ r) :
-  nnreal.of_real (bit0 r) = bit0 (nnreal.of_real r) :=
-nnreal.of_real_add hr hr
-
-@[simp] lemma nnreal.of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
-  nnreal.of_real (bit1 r) = bit1 (nnreal.of_real r) :=
-(nnreal.of_real_add (by simp [hr]) zero_le_one).trans (by simp [nnreal.of_real_one, bit1, hr])
-
-@[simp] lemma ennreal.of_real_bit0 {r : ℝ} (hr : 0 ≤ r) :
-  ennreal.of_real (bit0 r) = bit0 (ennreal.of_real r) :=
-ennreal.of_real_add hr hr
-
-@[simp] lemma ennreal.of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
-  ennreal.of_real (bit1 r) = bit1 (ennreal.of_real r) :=
-(ennreal.of_real_add (by simp [hr]) zero_le_one).trans (by simp [nnreal.of_real_one, bit1, hr])
-
 lemma ennreal.of_real_two : ennreal.of_real (2 : ℝ) = 2 := by simp [zero_le_one]
 
 lemma ennreal.of_real_rpow_of_pos {x p : ℝ} (hx_pos : 0 < x) :

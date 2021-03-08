@@ -140,6 +140,9 @@ instance : add_comm_group (bilin_form R₁ M₁) :=
 lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
 
 @[simp]
+lemma zero_apply (x y : M) : (0 : bilin_form R M) x y = 0 := rfl
+
+@[simp]
 lemma neg_apply (x y : M₁) : (-B₁) x y = -(B₁ x y) := rfl
 
 instance : inhabited (bilin_form R M) := ⟨0⟩

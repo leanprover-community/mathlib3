@@ -24,8 +24,8 @@ then `findim (fixed_points G F) F = fintype.card G`.
 
 ## Main Definitions
 
-- `fixed_points G F`, the subfield consisting of elements of `F` fixed_points by every element of `G`, where
-`G` is a group that acts on `F`.
+- `fixed_points G F`, the subfield consisting of elements of `F` fixed_points by every element of
+`G`, where `G` is a group that acts on `F`.
 
 -/
 
@@ -74,7 +74,8 @@ lemma linear_independent_smul_of_linear_independent {s : finset F} :
   linear_independent (fixed_points G F) (λ i : (↑s : set F), (i : F)) →
   linear_independent F (λ i : (↑s : set F), mul_action.to_fun G F i) :=
 begin
-  refine finset.induction_on s (λ _, linear_independent_empty_type $ λ ⟨x⟩, x.2) (λ a s has ih hs, _),
+  refine finset.induction_on s (λ _, linear_independent_empty_type $ λ ⟨x⟩, x.2)
+    (λ a s has ih hs, _),
   rw coe_insert at hs ⊢,
   rw linear_independent_insert (mt mem_coe.1 has) at hs,
   rw linear_independent_insert' (mt mem_coe.1 has), refine ⟨ih hs.1, λ ha, _⟩,

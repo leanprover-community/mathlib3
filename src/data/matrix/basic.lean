@@ -801,7 +801,7 @@ section star_ring
 variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
 
 /--
-When `R` is a *-(semi)ring, `matrix n n R` becomes a *-(semi)ring with
+When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance : star_ring (matrix n n R) :=

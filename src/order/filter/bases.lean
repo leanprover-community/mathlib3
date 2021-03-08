@@ -224,6 +224,9 @@ lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s
 lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
 let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
 
+protected lemma has_basis.nonempty (h : l.has_basis p s) : nonempty ι :=
+nonempty_of_exists h.ex_mem
+
 protected lemma is_basis.has_basis (h : is_basis p s) : has_basis h.filter p s :=
 ⟨λ t, by simp only [h.mem_filter_iff, exists_prop]⟩
 
@@ -315,8 +318,11 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
-  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
-by simp only [has_basis_iff, exists_prop, id, and_assoc]
+  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
+begin
+  simp only [has_basis_iff, exists_prop, id, and_assoc],
+  exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_sets_of_superset hl hts⟩⟩)
+end
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
 `p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/

@@ -176,6 +176,12 @@ lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb
   (𝓝 (a, b)).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
 by { rw nhds_prod_eq, exact ha.prod hb }
 
+lemma filter.has_basis.prod_nhds' {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
+  {sa : ιa → set α} {sb : ιb → set β} {ab : α × β} (ha : (𝓝 ab.1).has_basis pa sa)
+  (hb : (𝓝 ab.2).has_basis pb sb) :
+  (𝓝 ab).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+by { cases ab, exact ha.prod_nhds hb }
+
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
 ⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩
@@ -557,8 +563,8 @@ continuous_iff_is_closed.mpr $
     from assume i,
     (closed_embedding_subtype_coe (h_is_closed _)).is_closed_map _ (hs.preimage (f_cont i)),
   have is_closed (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
-    from is_closed_Union_of_locally_finite
-      (locally_finite_subset h_lf $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
+    from locally_finite.is_closed_Union
+      (h_lf.subset $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
       this,
   have f ⁻¹' s = (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
   begin

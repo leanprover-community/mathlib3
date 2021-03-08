@@ -109,9 +109,13 @@ theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
 instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
-{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
-  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
+{ mul_left_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
+  mul_right_cancel_of_ne_zero :=
+    λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
+
+attribute [simp] nat.not_lt_zero
 
 /-!
 Inject some simple facts into the type class system.
@@ -219,6 +223,9 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
+
+lemma eq_of_le_of_lt_succ {n m : ℕ} (h₁ : n ≤ m) (h₂ : m < n + 1) : m = n :=
+nat.le_antisymm (le_of_succ_le_succ h₂) h₁
 
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
@@ -1308,7 +1315,15 @@ by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
 
 theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
   nat.find hp ≤ nat.find hq :=
-nat.find_min' _ ((h _) (nat.find_spec hq))
+nat.find_min' _ (h _ (nat.find_spec hq))
+
+lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h0 : ¬ p 0) :
+  nat.find h₁ = nat.find h₂ + 1 :=
+begin
+  refine (find_eq_iff _).2 ⟨nat.find_spec h₂, λ n hn, _⟩,
+  cases n with n,
+  exacts [h0, @nat.find_min (λ n, p (n + 1)) _ h₂ _ (succ_lt_succ_iff.1 hn)]
+end
 
 end find
 

@@ -318,16 +318,7 @@ theorem min_eq_none {s : finset α} : s.min = none ↔ s = ∅ :=
   λ h, h.symm ▸ min_empty⟩
 
 theorem mem_of_min {s : finset α} : ∀ {a : α}, a ∈ s.min → a ∈ s :=
-finset.induction_on s (λ _ H, by cases H) $
-  λ b s _ (ih : ∀ {a}, a ∈ s.min → a ∈ s) a (h : a ∈ (insert b s).min),
-  begin
-    by_cases p : b = a,
-    { induction p, exact mem_insert_self b s },
-    { cases option.lift_or_get_choice min_choice (some b) s.min with q q;
-      rw [min_insert, q] at h,
-      { cases h, cases p rfl },
-      { exact mem_insert_of_mem (ih h) } }
-  end
+@mem_of_max (order_dual α) _ s
 
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
 by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
@@ -438,6 +429,40 @@ lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
   (insert a s).min' (s.insert_nonempty a) = min (s.min' H) a :=
 (is_least_min' _ _).unique $
   by { rw [coe_insert, min_comm], exact (is_least_min' _ _).insert _ }
+
+/-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
+`s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` strictly greater than all elements of `s`, `p s`
+  implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_max {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+  (step : ∀ a s, (∀ x ∈ s, x < a) → p s → p (insert a s)) : p s :=
+begin
+  induction hn : s.card with n ihn generalizing s,
+  { rwa [card_eq_zero.1 hn] },
+  { have A : s.nonempty, from card_pos.1 (hn.symm ▸ n.succ_pos),
+    have B : s.max' A ∈ s, from max'_mem s A,
+    rw [← insert_erase B],
+    refine step _ _ (λ x hx, _) (ihn _ _),
+    { rw [mem_erase] at hx, exact (le_max' s x hx.2).lt_of_ne hx.1 },
+    { rw [card_erase_of_mem B, hn, nat.pred_succ] } }
+end
+
+/-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
+`s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` strictly less than all elements of `s`, `p s`
+  implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_min {p : finset α → Prop} (s : finset α) (h0 : p ∅)
+  (step : ∀ a s, (∀ x ∈ s, a < x) → p s → p (insert a s)) : p s :=
+begin
+  refine @induction_on_max (order_dual α) _ _ s h0 (λ a s has hs, _),
+  convert step a s has hs
+end
 
 end max_min
 

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import topology.bases
 import data.finset.order
+import data.set.accumulate
 
 /-!
 # Properties of subsets of topological spaces
@@ -147,15 +148,37 @@ end
 
 alias compact_iff_ultrafilter_le_nhds ↔ is_compact.ultrafilter_le_nhds _
 
+/-- For every open directed cover of a compact set, there exists a single element of the 
+cover which itself includes the set. -/
+lemma is_compact.elim_directed_cover {ι : Type v} [hι : nonempty ι] (hs : is_compact s)
+  (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) (hdU : directed (⊆) U) :
+  ∃ i, s ⊆ U i :=
+hι.elim $ λ i₀, is_compact.induction_on hs ⟨i₀, empty_subset _⟩
+  (λ s₁ s₂ hs ⟨i, hi⟩, ⟨i, subset.trans hs hi⟩)
+  (λ s₁ s₂ ⟨i, hi⟩ ⟨j, hj⟩, let ⟨k, hki, hkj⟩ := hdU i j in
+    ⟨k, union_subset (subset.trans hi hki) (subset.trans hj hkj)⟩)
+  (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
+    ⟨U i, mem_nhds_within_of_mem_nhds (mem_nhds_sets (hUo i) hi), i, subset.refl _⟩)
+
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
-is_compact.induction_on hs ⟨∅, empty_subset _⟩ (λ s₁ s₂ hs ⟨t, hs₂⟩, ⟨t, subset.trans hs hs₂⟩)
-  (λ s₁ s₂ ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
-    ⟨t₁ ∪ t₂, by { rw [finset.set_bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
-  (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
-    ⟨U i, mem_nhds_within.2 ⟨U i, hUo i, hi, inter_subset_left _ _⟩, {i}, by simp⟩)
+hs.elim_directed_cover _ (λ t, is_open_bUnion $ λ i _, hUo i) (Union_eq_Union_finset U ▸ hsU)
+  (directed_of_sup $ λ t₁ t₂ h, bUnion_subset_bUnion_left h)
+
+lemma is_compact.elim_nhds_subcover' (hs : is_compact s) (U : Π x ∈ s, set α)
+  (hU : ∀ x ∈ s, U x ‹x ∈ s› ∈ 𝓝 x) :
+  ∃ t : finset s, s ⊆ ⋃ x ∈ t, U (x : s) x.2 :=
+(hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open_interior)
+  (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 $ hU _ _⟩)).imp $ λ t ht,
+subset.trans ht $ bUnion_subset_bUnion_right $ λ _ _, interior_subset
+
+lemma is_compact.elim_nhds_subcover (hs : is_compact s) (U : α → set α) (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (∀ x ∈ t, x ∈ s) ∧ s ⊆ ⋃ x ∈ t, U x :=
+let ⟨t, ht⟩ := hs.elim_nhds_subcover' (λ x _, U x) hU
+in ⟨t.image coe, λ x hx, let ⟨y, hyt, hyx⟩ := finset.mem_image.1 hx in hyx ▸ y.2,
+  by rwa finset.set_bUnion_finset_image⟩
 
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
@@ -325,6 +348,10 @@ compact_of_finite_subcover $ assume ι U hUo hsU,
 lemma finset.compact_bUnion (s : finset β) {f : β → set α} (hf : ∀i ∈ s, is_compact (f i)) :
   is_compact (⋃i ∈ s, f i) :=
 s.finite_to_set.compact_bUnion hf
+
+lemma compact_accumulate {K : ℕ → set α} (hK : ∀ n, is_compact (K n)) (n : ℕ) :
+  is_compact (accumulate K n) :=
+(finite_le_nat n).compact_bUnion $ λ k _, hK k
 
 lemma compact_Union {f : β → set α} [fintype β]
   (h : ∀i, is_compact (f i)) : is_compact (⋃i, f i) :=
@@ -627,6 +654,34 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (compact_range continuous_inl).union (compact_range continuous_inr)
 end⟩
 
+/-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
+their product. -/
+lemma filter.coprod_cocompact {β : Type*} [topological_space β]:
+  (filter.cocompact α).coprod (filter.cocompact β) = filter.cocompact (α × β) :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  split,
+  { rintro ⟨⟨A, ⟨t, ht, hAt⟩, hAS⟩, B, ⟨t', ht', hBt'⟩, hBS⟩,
+    refine ⟨t.prod t', ht.prod ht', _⟩,
+    refine subset.trans _ (union_subset hAS hBS),
+    rw compl_subset_comm at ⊢ hAt hBt',
+    refine subset.trans _ (set.prod_mono hAt hBt'),
+    intros x,
+    simp only [compl_union, mem_inter_eq, mem_prod, mem_preimage, mem_compl_eq],
+    tauto },
+  { rintros ⟨t, ht, htS⟩,
+    refine ⟨⟨(prod.fst '' t)ᶜ, _, _⟩, ⟨(prod.snd '' t)ᶜ, _, _⟩⟩,
+    { exact ⟨prod.fst '' t, ht.image continuous_fst, subset.rfl⟩ },
+    { rw preimage_compl,
+      rw compl_subset_comm at ⊢ htS,
+      exact subset.trans htS (subset_preimage_image prod.fst _) },
+    { exact ⟨prod.snd '' t, ht.image continuous_snd, subset.rfl⟩ },
+    { rw preimage_compl,
+      rw compl_subset_comm at ⊢ htS,
+      exact subset.trans htS (subset_preimage_image prod.snd _) } }
+end
+
 section tychonoff
 variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
 
@@ -669,29 +724,29 @@ compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
 (local_compact_nhds : ∀ (x : α) (n ∈ 𝓝 x), ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s)
 
+lemma compact_basis_nhds [locally_compact_space α] (x : α) :
+  (𝓝 x).has_basis (λ s, s ∈ 𝓝 x ∧ is_compact s) (λ s, s) :=
+has_basis_self.2 $ by simpa only [and_comm] using locally_compact_space.local_compact_nhds x
+
+lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x → Prop}
+  {s : Π x, ι x → set α} (h : ∀ x, (𝓝 x).has_basis (p x) (s x))
+  (hc : ∀ x i, p x i → is_compact (s x i)) :
+  locally_compact_space α :=
+⟨λ x t ht, let ⟨i, hp, ht⟩ := (h x).mem_iff.1 ht in ⟨s x i, (h x).mem_of_mem hp, ht, hc x i hp⟩⟩
+
 instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space α]
   [topological_space β] [locally_compact_space α] [locally_compact_space β] :
   locally_compact_space (α × β) :=
-{ local_compact_nhds :=
-  begin
-    rintros ⟨x, y⟩ n hn,
-    obtain ⟨u, hu, v, hv, huv⟩ := mem_nhds_prod_iff.1 hn,
-    obtain ⟨a, ha₁, ha₂, ha₃⟩ := locally_compact_space.local_compact_nhds _ _ hu,
-    obtain ⟨b, hb₁, hb₂, hb₃⟩ := locally_compact_space.local_compact_nhds _ _ hv,
-    refine ⟨a.prod b, _, _, _⟩,
-    { exact mem_nhds_prod_iff.2 ⟨_, ha₁, _, hb₁, subset.rfl⟩ },
-    { exact subset.trans (prod_mono ha₂ hb₂) huv },
-    { exact is_compact.prod ha₃ hb₃ }
-  end }
+have _ := λ x : α × β, (compact_basis_nhds x.1).prod_nhds' (compact_basis_nhds x.2),
+locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h₁.prod h₂
 
 /-- A reformulation of the definition of locally compact space: In a locally compact space,
   every open set containing `x` has a compact subset containing `x` in its interior. -/
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
   (hU : is_open U) (hx : x ∈ U) : ∃ (K : set α), is_compact K ∧ x ∈ interior K ∧ K ⊆ U :=
 begin
-  rcases locally_compact_space.local_compact_nhds x U _ with ⟨K, h1K, h2K, h3K⟩,
-  { refine ⟨K, h3K, _, h2K⟩, rwa [ mem_interior_iff_mem_nhds] },
-  rwa [← mem_interior_iff_mem_nhds, hU.interior_eq]
+  rcases locally_compact_space.local_compact_nhds x U (mem_nhds_sets hU hx) with ⟨K, h1K, h2K, h3K⟩,
+  exact ⟨K, h3K, mem_interior_iff_mem_nhds.2 h1K, h2K⟩,
 end
 
 /-- In a locally compact space every point has a compact neighborhood. -/
@@ -789,17 +844,107 @@ end
 variables (α) [sigma_compact_space α]
 open sigma_compact_space
 
-/-- An arbitrary compact covering of a σ-compact space. -/
+/-- A choice of compact covering for a σ-compact space, chosen to be monotone. -/
 def compact_covering : ℕ → set α :=
-classical.some exists_compact_covering
+accumulate exists_compact_covering.some
 
 lemma is_compact_compact_covering (n : ℕ) : is_compact (compact_covering α n) :=
-(classical.some_spec sigma_compact_space.exists_compact_covering).1 n
+compact_accumulate (classical.some_spec sigma_compact_space.exists_compact_covering).1 n
 
 lemma Union_compact_covering : (⋃ n, compact_covering α n) = univ :=
-(classical.some_spec sigma_compact_space.exists_compact_covering).2
+begin
+  rw [compact_covering, Union_accumulate],
+  exact (classical.some_spec sigma_compact_space.exists_compact_covering).2
+end
+
+@[mono] lemma compact_covering_subset ⦃m n : ℕ⦄ (h : m ≤ n) :
+  compact_covering α m ⊆ compact_covering α n :=
+monotone_accumulate h
 
 end compact
+
+/-- An [exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets) of a
+topological space is a sequence of compact sets `K n` such that `K n ⊆ interior (K (n + 1))` and
+`(⋃ n, K n) = univ`.
+
+If `X` is a locally compact sigma compact space, then `compact_exhaustion.choice X` provides
+a choice of an exhaustion by compact sets. This choice is also available as
+`(default : compact_exhaustion X)`. -/
+structure compact_exhaustion (X : Type*) [topological_space X] :=
+(to_fun : ℕ → set X)
+(is_compact' : ∀ n, is_compact (to_fun n))
+(subset_interior_succ' : ∀ n, to_fun n ⊆ interior (to_fun (n + 1)))
+(Union_eq' : (⋃ n, to_fun n) = univ)
+
+namespace compact_exhaustion
+
+instance : has_coe_to_fun (compact_exhaustion α) := ⟨_, to_fun⟩
+
+variables {α} (K : compact_exhaustion α)
+
+protected lemma is_compact (n : ℕ) : is_compact (K n) := K.is_compact' n
+
+lemma subset_interior_succ (n : ℕ) : K n ⊆ interior (K (n + 1)) :=
+K.subset_interior_succ' n
+
+lemma subset_succ (n : ℕ) : K n ⊆ K (n + 1) :=
+subset.trans (K.subset_interior_succ n) interior_subset
+
+@[mono] protected lemma subset ⦃m n : ℕ⦄ (h : m ≤ n) : K m ⊆ K n :=
+show K m ≤ K n, from monotone_of_monotone_nat K.subset_succ h
+
+lemma subset_interior ⦃m n : ℕ⦄ (h : m < n) : K m ⊆ interior (K n) :=
+subset.trans (K.subset_interior_succ m) $ interior_mono $ K.subset h
+
+lemma Union_eq : (⋃ n, K n) = univ := K.Union_eq'
+
+lemma exists_mem (x : α) : ∃ n, x ∈ K n := Union_eq_univ_iff.1 K.Union_eq x
+
+/-- The minimal `n` such that `x ∈ K n`. -/
+protected noncomputable def find (x : α) : ℕ := nat.find (K.exists_mem x)
+
+lemma mem_find (x : α) : x ∈ K (K.find x) := nat.find_spec (K.exists_mem x)
+
+lemma mem_iff_find_le {x : α} {n : ℕ} : x ∈ K n ↔ K.find x ≤ n :=
+⟨λ h, nat.find_min' (K.exists_mem x) h, λ h, K.subset h $ K.mem_find x⟩
+
+/-- Prepend the empty set to a compact exhaustion `K n`. -/
+def shiftr : compact_exhaustion α :=
+{ to_fun := λ n, nat.cases_on n ∅ K,
+  is_compact' := λ n, nat.cases_on n compact_empty K.is_compact,
+  subset_interior_succ' := λ n, nat.cases_on n (empty_subset _) K.subset_interior_succ,
+  Union_eq' := Union_eq_univ_iff.2 $ λ x, ⟨K.find x + 1, K.mem_find x⟩ }
+
+@[simp] lemma find_shiftr (x : α) : K.shiftr.find x = K.find x + 1 :=
+nat.find_comp_succ _ _ (not_mem_empty _)
+
+lemma mem_diff_shiftr_find (x : α) : x ∈ K.shiftr (K.find x + 1) \ K.shiftr (K.find x) :=
+⟨K.mem_find _, mt K.shiftr.mem_iff_find_le.1 $
+  by simp only [find_shiftr, not_le, nat.lt_succ_self]⟩
+
+/-- A choice of an
+[exhaustion by compact sets](https://en.wikipedia.org/wiki/Exhaustion_by_compact_sets)
+of a locally compact sigma compact space. -/
+noncomputable def choice (X : Type*) [topological_space X] [locally_compact_space X]
+  [sigma_compact_space X] : compact_exhaustion X :=
+begin
+  apply classical.choice,
+  let K : ℕ → {s : set X // is_compact s} :=
+    λ n, nat.rec_on n ⟨∅, compact_empty⟩
+      (λ n s, ⟨(exists_compact_superset s.2).some ∪ compact_covering X n,
+        (exists_compact_superset s.2).some_spec.1.union (is_compact_compact_covering _ _)⟩),
+  refine ⟨⟨λ n, K n, λ n, (K n).2, λ n, _, _⟩⟩,
+  { exact subset.trans (exists_compact_superset (K n).2).some_spec.2
+      (interior_mono $ subset_union_left _ _) },
+  { refine univ_subset_iff.1 (Union_compact_covering X ▸ _),
+    exact Union_subset_Union2 (λ n, ⟨n + 1, subset_union_right _ _⟩) }
+end
+
+noncomputable instance [locally_compact_space α] [sigma_compact_space α] :
+  inhabited (compact_exhaustion α) :=
+⟨compact_exhaustion.choice α⟩
+
+end compact_exhaustion
 
 section clopen
 

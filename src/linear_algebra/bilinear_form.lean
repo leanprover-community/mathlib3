@@ -7,7 +7,6 @@ Author: Andreas Swerdlow, Kexing Ying
 import linear_algebra.matrix
 import linear_algebra.tensor_product
 import linear_algebra.nonsingular_inverse
-import algebra.invertible
 
 /-!
 # Bilinear form

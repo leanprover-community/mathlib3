@@ -49,13 +49,13 @@ structure triangle :=
 (mor3 : obj3 ⟶ obj1⟦1⟧)
 
 local attribute [instance] has_zero_object.has_zero
-instance [has_zero_object C]: inhabited (triangle C) :=
+instance [has_zero_object C] : inhabited (triangle C) :=
 ⟨{ obj1 := 0,
   obj2 := 0,
   obj3 := 0,
   mor1 := 0,
   mor2 := 0,
-  mor3 := 0 } ⟩
+  mor3 := 0 }⟩
 
 variable {C}
 
@@ -81,9 +81,7 @@ structure triangle_morphism (T₁ : triangle C) (T₂ : triangle C):=
 (comm1: T₁.mor1 ≫ trimor2 = trimor1 ≫ T₂.mor1)
 (comm2: T₁.mor2 ≫ trimor3 = trimor2 ≫ T₂.mor2)
 (comm3: T₁.mor3 ≫ trimor1⟦1⟧' = trimor3 ≫ T₂.mor3)
-attribute [reassoc] triangle_morphism.comm1
-attribute [reassoc] triangle_morphism.comm2
-attribute [reassoc] triangle_morphism.comm3
+attribute [reassoc] triangle_morphism.comm1 triangle_morphism.comm2 triangle_morphism.comm3
 
 /--
 The identity triangle morphism.
@@ -98,9 +96,7 @@ def triangle_morphism_id (T : triangle C) : triangle_morphism T T :=
 
 instance (T: triangle C): inhabited (triangle_morphism T T) := ⟨ triangle_morphism_id T ⟩
 
-variable {T₁ : triangle C}
-variable {T₂ : triangle C}
-variable {T₃ : triangle C}
+variables {T₁ T₂ T₃ : triangle C}
 /--
 Composition of triangle morphisms gives a triangle morphism.
 -/

@@ -702,6 +702,10 @@ image_subset _
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
+lemma range_map_nonempty (N : submodule R M) :
+  (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
+⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
+
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
 { carrier   := f ⁻¹' p,

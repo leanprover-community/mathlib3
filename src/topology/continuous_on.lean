@@ -454,6 +454,10 @@ begin
   exact (hf x hx).mem_closure_image hx
 end
 
+lemma continuous_on.image_closure {f : α → β} {s : set α} (hf : continuous_on f (closure s)) :
+  f '' (closure s) ⊆ closure (f '' s) :=
+continuous_within_at.image_closure $ λ x hx, (hf x hx).mono subset_closure
+
 @[simp] lemma continuous_within_at_singleton {f : α → β} {x : α} : continuous_within_at f {x} x :=
 by simp only [continuous_within_at, nhds_within_singleton, tendsto_pure_nhds]
 

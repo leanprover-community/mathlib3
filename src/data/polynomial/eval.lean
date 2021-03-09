@@ -389,11 +389,8 @@ by rw [← C_1, C_comp]
 
 @[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
 
-@[simp] lemma monomial_comp {a : R} {n : ℕ} : (monomial n a).comp r = C a * r^n :=
-begin
-  dsimp [comp_eq_sum_left, monomial],
-  simp,
-end
+@[simp] lemma monomial_comp (n : ℕ) : (monomial n a).comp p = C a * p^n :=
+eval₂_monomial _ _
 
 @[simp] lemma mul_X_comp : (p * X).comp r = p.comp r * r :=
 begin
@@ -436,9 +433,6 @@ begin
   { simp, },
   { simp [pow_succ, ih], },
 end
-
-@[simp] lemma monomial_comp (n : ℕ) : (monomial n a).comp p = C a * p^n :=
-eval₂_monomial _ _
 
 @[simp] lemma bit0_comp : comp (bit0 p : polynomial R) q = bit0 (p.comp q) :=
 by simp only [bit0, add_comp]

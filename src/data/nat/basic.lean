@@ -231,8 +231,6 @@ theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
 @[simp] lemma succ_pos' {n : ℕ} : 0 < succ n := succ_pos n
 
-@[simp] lemma succ_ne_zero' {n : ℕ} : succ n ≠ 0 := succ_ne_zero n
-
 theorem succ_inj' {n m : ℕ} : succ n = succ m ↔ n = m :=
 ⟨succ.inj, congr_arg _⟩
 

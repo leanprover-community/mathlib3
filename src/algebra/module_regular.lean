@@ -7,7 +7,7 @@ import algebra.group
 import algebra.group_power.basic
 import algebra.iterate_hom
 import algebra.module.basic
-
+import data.zmod.basic
 /-!
 # Action of regular elements on a module
 
@@ -18,10 +18,9 @@ element `a ∈ R` such that the function `m ↦ a • m` is injective.
 -/
 
 --should it be in the module namespace?
-
 namespace module
 
-variables {R S : Type*} {a b : R} {s : S} (M : Type*)
+variables {R S : Type*} (M : Type*) {a b : R} {s : S}
 
 section has_scalar
 
@@ -30,12 +29,6 @@ variables [has_scalar R M] [has_scalar R S] [has_scalar S M] [is_scalar_tower R 
 /-- An `M`-regular element is an element `c` such that multiplication on the left by `c` is an
 injective map `M → M`. -/
 def is_regular (c : R) := function.injective ((•) c : M → M)
-
-section monoid
-
---variables [monoid R]
---semigroup does not have the right instance
---instance semigroup.has_scalar : has_scalar R R := { smul := λ a b, a * b }
 
 /-- In a monoid, the product of `M`-regular elements is `M`-regular. -/
 lemma is_regular.mul (ra : is_regular M a) (rs : is_regular M s) :
@@ -55,7 +48,11 @@ is `M`-regular. -/
   is_regular M (a • b) ↔ is_regular M b :=
 ⟨λ ab, is_regular.of_mul M ab, λ ab, is_regular.mul M ha ab⟩
 
-variables [monoid R] [is_scalar_tower R R M]
+end has_scalar
+
+section monoid
+
+variables [monoid R] [mul_action R M]
 
 /--  Two elements `a` and `b` are `M`-regular if and only if both products `a • b` and `b • a`
 are `M`-regular. -/
@@ -73,14 +70,6 @@ end
 lemma is_regular.and_of_mul_of_mul (ab : is_regular M (a • b)) (ba : is_regular M (b • a)) :
   is_regular M a ∧ is_regular M b :=
 (is_regular_mul_and_mul_iff M).mp ⟨ab, ba⟩
-
-end monoid
-
-end has_scalar
-
-section mul_action
-
-variables [monoid R] [mul_action R M]
 
 @[simp] lemma is_regular_one : is_regular M (1 : R) :=
 begin
@@ -105,8 +94,12 @@ begin
   exact is_regular.of_mul M,
 end
 
-end mul_action
+end monoid
 
+/-  Here, I assumed `semiring R`, but I do not actually use the addition.  I would like this to
+work for a `monoid_with_zero R` and a `smul_with_zero R M` instance that does not seem to exist,
+asserting that there is a scalar multiplication between `R → M → M`and `0 : R` produces the
+constant map to `0 : M`. -/
 section semiring
 
 variables [semiring R] [add_comm_monoid M] [semimodule R M]

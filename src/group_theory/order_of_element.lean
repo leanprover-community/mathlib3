@@ -160,7 +160,9 @@ begin
   exact set.decidable_set_of (λ (a : ℕ), 1 ≤ a)
 end
 
-@[simp] lemma order_of_one : order_of (1 : α) = 1 :=
+@[simp] lemma order_of_one
+  [decidable_pred (λ n, 0 < n ∧ (1 : α) ^ n = 1)] [decidable (∃ n, 0 < n ∧ (1 : α) ^ n = 1)] :
+  order_of (1 : α) = 1 :=
 begin
   have h : 0 < 1 ∧ (1 : α)  ^ 1 = 1,
     by exact ⟨nat.one_pos, one_pow 1⟩,

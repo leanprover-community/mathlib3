@@ -3,7 +3,7 @@ Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Martin Zinkevich
 -/
-import measure_theory.measure_space
+import measure_theory.measurable_space
 
 /-!
 # Lemmas regarding `is_pi_system`.
@@ -34,7 +34,7 @@ intersection (thus neither more nor less general than a typical π-system).
 
 -/
 
-open measure_theory measurable_space
+open measurable_space
 open_locale classical
 
 lemma is_pi_system.singleton {α} (S : set α) : is_pi_system ({S} : set (set α)) :=
@@ -168,3 +168,4 @@ begin
     simp only [exists_prop, set.mem_Union, function.comp_app, subtype.exists, subtype.coe_mk],
     refl, },
 end
+

@@ -11,9 +11,12 @@ Results about "big operations" over a `fintype`, and consequent
 results about cardinalities of certain types.
 
 ## Implementation note
-This content had previously been in `data.fintype`, but was moved here to avoid
+This content had previously been in `data.fintype.basic`, but was moved here to avoid
 requiring `algebra.big_operators` (and hence many other imports) as a
 dependency of `fintype`.
+
+However many of the results here really belong in `algebra.big_operators.basic`
+and should be moved at some point.
 -/
 
 universes u v
@@ -89,23 +92,6 @@ show ((finset.insert_none _).1.map f).prod = _,
 by simp only [finset.prod, finset.insert_none, multiset.map_cons, multiset.prod_cons,
   multiset.map_map]
 
-variable [decidable_eq α]
-
-@[to_additive]
-lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → M) :
-  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
-(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
-
-@[to_additive]
-lemma finset.prod_mul_prod_compl (s : finset α) (f : α → M) :
-  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
-is_compl_compl.prod_mul_prod f
-
-@[to_additive]
-lemma finset.prod_compl_mul_prod (s : finset α) (f : α → M) :
-  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
-is_compl_compl.symm.prod_mul_prod f
-
 end
 
 @[to_additive]
@@ -168,6 +154,8 @@ theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) �
 by apply @fin.prod_univ_cast_succ (multiplicative β)
 
 attribute [to_additive] fin.prod_univ_cast_succ
+
+open finset
 
 @[simp] theorem fintype.card_sigma {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] :

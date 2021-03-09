@@ -1,6 +1,13 @@
-# To normalize:
-# bibtool --preserve.key.case=on --preserve.keys=on --print.use.tab=off -s -i docs/references.bib -o docs/references.bib
 
+# To normalize:
+# bibtool --preserve.key.case=on --preserve.keys=on --pass.comments=on --print.use.tab=off -s -i docs/references.bib -o docs/references.bib
+
+# https://www.zbmath.org/ and https://mathscinet.ams.org/mathscinet
+# (or the free tool https://mathscinet.ams.org/mrlookup)
+# are good sources of complete bibtex entries for mathematics
+
+# To link to an entry in `references.bib`, use the following formats:
+#   [Author, *Title* (optional location)][bibkey]
 @Article{         ahrens2017,
   author        = {Benedikt Ahrens and Peter LeFanu Lumsdaine},
   year          = {2019},
@@ -559,6 +566,22 @@
   url           = {https://doi.org/10.1090/S0002-9904-1949-09344-8}
 }
 
+@Article{         MR3790629,
+  author        = {Bell, J. S.},
+  title         = {On the {E}instein {P}odolsky {R}osen paradox},
+  journal       = {Phys. Phys. Fiz.},
+  fjournal      = {Physics Physique Fizika},
+  volume        = {1},
+  year          = {1964},
+  number        = {3},
+  pages         = {195--200},
+  issn          = {0554-128X},
+  mrclass       = {DML},
+  mrnumber      = {3790629},
+  doi           = {10.1103/PhysicsPhysiqueFizika.1.195},
+  url           = {https://doi.org/10.1103/PhysicsPhysiqueFizika.1.195}
+}
+
 @Article{         MR399081,
   author        = {Hiblot, Jean-Jacques},
   title         = {Des anneaux euclidiens dont le plus petit algorithme n'est
@@ -588,6 +611,35 @@
   mrclass       = {13F07},
   mrnumber      = {541021},
   mrreviewer    = {Daniel Lazard}
+}
+
+@Article{         MR0236876,
+  title         = {A new proof that metric spaces are paracompact},
+  author        = {Mary Ellen Rudin},
+  year          = 1969,
+  journal       = {Proc. Amer. Math. Soc.},
+  volume        = {20},
+  pages         = {603},
+  mrnumber      = {0236876},
+  doi           = {10.1090/S0002-9939-1969-0236876-3}
+}
+
+@Article{         MR577178,
+  author        = {Cirel\cprime son, B. S.},
+  title         = {Quantum generalizations of {B}ell's inequality},
+  journal       = {Lett. Math. Phys.},
+  fjournal      = {Letters in Mathematical Physics. A Journal for the Rapid
+                  Dissemination of Short Contributions in the Field of
+                  Mathematical Physics},
+  volume        = {4},
+  year          = {1980},
+  number        = {2},
+  pages         = {93--100},
+  issn          = {0377-9017},
+  mrclass       = {81B05},
+  mrnumber      = {577178},
+  doi           = {10.1007/BF00417500},
+  url           = {https://doi.org/10.1007/BF00417500}
 }
 
 @Misc{            ponton2020chebyshev,
@@ -745,4 +797,23 @@
   title         = {Adic Spaces},
   year          = {2019},
   eprint        = {arXiv:1910.05934}
+}
+
+@Article{         zbMATH06785026,
+  author        = {John F. {Clauser} and Michael A. {Horne} and Abner
+                  {Shimony} and Richard A. {Holt}},
+  title         = {{Proposed experiment to test local hidden-variable
+                  theories}},
+  fjournal      = {{Physical Review Letters}},
+  journal       = {{Phys. Rev. Lett.}},
+  issn          = {0031-9007; 1079-7114/e},
+  volume        = {23},
+  pages         = {880--883},
+  year          = {1969},
+  publisher     = {American Physical Society (APS), New York, NY},
+  language      = {English},
+  msc2010       = {81-05},
+  zbl           = {1371.81014},
+  doi           = {10.1103/PhysRevLett.23.880},
+  url           = {https://doi.org/10.1103/PhysRevLett.23.880}
 }

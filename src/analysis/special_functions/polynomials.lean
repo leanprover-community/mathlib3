@@ -83,8 +83,7 @@ begin
   rw ←  nat_degree_lt_nat_degree_iff hP at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_nhds _,
   rw ← mul_zero,
-  refine tendsto.const_mul _ _,
-  apply tendsto_fpow_at_top_zero,
+  refine (tendsto_fpow_at_top_zero _).const_mul _,
   linarith
 end
 

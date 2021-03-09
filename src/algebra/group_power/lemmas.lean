@@ -10,7 +10,6 @@ import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
 import deprecated.group
-import tactic.wlog
 
 /-!
 # Lemmas about power operations on monoids and groups

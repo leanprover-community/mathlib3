@@ -108,7 +108,8 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 
 lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
 lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
-lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ := ext (smul_re _ _) (smul_im _ _)
+lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
+ext (smul_re _ _) (smul_im _ _)
 
 /-! ### The imaginary unit, `I` -/
 
@@ -608,6 +609,26 @@ def complex_ordered_comm_ring : ordered_comm_ring ℂ :=
   ..(by apply_instance : add_cancel_monoid ℂ) }
 
 localized "attribute [instance] complex_ordered_comm_ring" in complex_order
+
+/--
+With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
+(That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
+
+In fact, the nonnegative elements are precisely those of this form.
+This hold in any `C^*`-algebra, e.g. `ℂ`,
+but we don't yet have `C^*`-algebras in mathlib.
+-/
+def complex_star_ordered_ring : star_ordered_ring ℂ :=
+{ star_mul_self_nonneg := λ z,
+  begin
+    refine ⟨z.abs^2, pow_nonneg (abs_nonneg z) 2, _⟩,
+    simp only [has_star.star, of_real_pow, zero_add],
+    norm_cast,
+    rw [←norm_sq_eq_abs, norm_sq_eq_conj_mul_self],
+  end, }
+
+localized "attribute [instance] complex_star_ordered_ring" in complex_order
+
 end complex_order
 
 /-! ### Cauchy sequences -/

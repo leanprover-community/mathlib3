@@ -299,16 +299,25 @@ attribute [norm_cast] add_subgroup.coe_add add_subgroup.coe_zero
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
 instance to_group {G : Type*} [group G] (H : subgroup G) : group H :=
-{ inv := has_inv.inv,
-  div := (/),
-  div_eq_mul_inv := λ x y, subtype.eq $ div_eq_mul_inv x y,
-  mul_left_inv := λ x, subtype.eq $ mul_left_inv x,
-  .. H.to_submonoid.to_monoid }
+subtype.coe_injective.group_div _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of a `comm_group` is a `comm_group`. -/
 @[to_additive "An `add_subgroup` of an `add_comm_group` is an `add_comm_group`."]
 instance to_comm_group {G : Type*} [comm_group G] (H : subgroup G) : comm_group H :=
-{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, .. H.to_group}
+subtype.coe_injective.comm_group_div _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subgroup of an `ordered_comm_group` is an `ordered_comm_group`. -/
+@[to_additive "An `add_subgroup` of an `add_ordered_comm_group` is an `add_ordered_comm_group`."]
+instance to_ordered_comm_group {G : Type*} [ordered_comm_group G] (H : subgroup G) :
+  ordered_comm_group H :=
+subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subgroup of a `linear_ordered_comm_group` is a `linear_ordered_comm_group`. -/
+@[to_additive "An `add_subgroup` of a `linear_ordered_add_comm_group` is a
+  `linear_ordered_add_comm_group`."]
+instance to_linear_ordered_comm_group {G : Type*} [linear_ordered_comm_group G]
+  (H : subgroup G) : linear_ordered_comm_group H :=
+subtype.coe_injective.linear_ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
@@ -516,7 +525,8 @@ not_iff_not.mp (
   not_nontrivial_iff_subsingleton.symm)
 
 @[to_additive]
-instance [subsingleton G] : subsingleton (subgroup G) := subsingleton_iff.mp ‹_›
+instance [subsingleton G] : unique (subgroup G) :=
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ (subsingleton_iff.mp ‹_›) a _⟩
 
 @[to_additive]
 instance [nontrivial G] : nontrivial (subgroup G) := nontrivial_iff.mp ‹_›
@@ -1140,6 +1150,15 @@ subgroup.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_s
 lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
+
+/-- Restriction of a group hom to a subgroup of the domain. -/
+@[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the domain."]
+def restrict (f : G →* N) (H : subgroup G) : H →* N :=
+f.comp H.subtype
+
+@[simp, to_additive]
+lemma restrict_apply {H : subgroup G} (f : G →* N) (x : H) :
+  f.restrict H x = f (x : G) := rfl
 
 /-- Restriction of a group hom to a subgroup of the codomain. -/
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the codomain."]

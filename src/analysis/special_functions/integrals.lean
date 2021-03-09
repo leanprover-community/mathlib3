@@ -23,12 +23,6 @@ variables {a b : ℝ} {f f' g : ℝ → ℝ}
 namespace interval_integral
 open measure_theory
 
-theorem integral_deriv_eq_sub' (f) (hderiv : deriv f = f')
-  (hdiff : ∀ x ∈ interval a b, differentiable_at ℝ f x)
-  (hcont' : continuous_on f' (interval a b)) :
-  ∫ y in a..b, f' y = f b - f a :=
-by rw [← hderiv, integral_deriv_eq_sub hdiff]; cc
-
 @[simp]
 lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
 integral_smul c
@@ -111,7 +105,7 @@ open interval_integral
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
 begin
-  have hderiv : deriv (λ x:ℝ, x^(n + 1) / (n + 1)) = λ x, x ^ n,
+  have hderiv : deriv (λ x : ℝ, x^(n + 1) / (n + 1)) = λ x, x ^ n,
   { have hne : (n + 1 : ℝ) ≠ 0 := by exact_mod_cast nat.succ_ne_zero n,
     ext,
     simp [mul_div_assoc, mul_div_cancel' _ hne] },
@@ -159,7 +153,7 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 
 @[simp]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
-by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_sin.continuous_on]
+by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 
 @[simp]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=

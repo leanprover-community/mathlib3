@@ -401,6 +401,26 @@ begin
     mul_inv_cancel_right] at this,
 end
 
+@[simp, to_additive] lemma div_le_self_iff (a : α) {b : α} : a / b ≤ a ↔ 1 ≤ b :=
+by simp [div_eq_mul_inv]
+
+@[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
+by simp [div_eq_mul_inv]
+
+/-- Pullback an `ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.ordered_add_comm_group
+"Pullback an `ordered_add_comm_group` under an injective map."]
+def function.injective.ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) :
+  ordered_comm_group β :=
+{ ..partial_order.lift f hf,
+  ..hf.ordered_comm_monoid f one mul,
+  ..hf.comm_group_div f one mul inv div }
+
 end ordered_comm_group
 
 section ordered_add_comm_group
@@ -412,13 +432,7 @@ by simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg hcd)
 lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
 by simpa only [sub_eq_add_neg] using add_lt_add hab (neg_lt_neg hcd)
 
-@[simp] lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
-by simp [sub_eq_add_neg]
-
 alias sub_le_self_iff ↔ _ sub_le_self
-
-@[simp] lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
-by simp [sub_eq_add_neg]
 
 alias sub_lt_self_iff ↔ _ sub_lt_self
 
@@ -544,67 +558,129 @@ end ordered_add_comm_group
 /-- A linearly ordered additive commutative group is an
 additive commutative group with a linear order in which
 addition is monotone. -/
-@[protect_proj] class linear_ordered_add_comm_group (α : Type u)
-  extends add_comm_group α, linear_order α :=
+@[protect_proj, ancestor add_comm_group linear_order]
+class linear_ordered_add_comm_group (α : Type u) extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
 /-- A linearly ordered commutative group is a
 commutative group with a linear order in which
 multiplication is monotone. -/
-@[protect_proj, to_additive] class linear_ordered_comm_group (α : Type u)
-  extends comm_group α, linear_order α :=
+@[protect_proj, ancestor comm_group linear_order, to_additive]
+class linear_ordered_comm_group (α : Type u) extends comm_group α, linear_order α :=
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
-@[to_additive, priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_ordered_comm_group (α : Type u)
-  [s : linear_ordered_comm_group α] : ordered_comm_group α :=
-{ ..s }
+section linear_ordered_comm_group
+variables [linear_ordered_comm_group α] {a b c : α}
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α :=
+{ ..‹linear_ordered_comm_group α› }
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
+  linear_ordered_cancel_comm_monoid α :=
+{ le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
+  mul_left_cancel := λ x y z, mul_left_cancel,
+  mul_right_cancel := λ x y z, mul_right_cancel,
+  ..‹linear_ordered_comm_group α› }
+
+/-- Pullback a `linear_ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.linear_ordered_add_comm_group
+"Pullback a `linear_ordered_add_comm_group` under an injective map."]
+def function.injective.linear_ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y)  :
+  linear_ordered_comm_group β :=
+{ ..linear_order.lift f hf,
+  ..hf.ordered_comm_group f one mul inv div }
+
+@[to_additive linear_ordered_add_comm_group.add_lt_add_left]
+lemma linear_ordered_comm_group.mul_lt_mul_left'
+  (a b : α) (h : a < b) (c : α) : c * a < c * b :=
+ordered_comm_group.mul_lt_mul_left' a b h c
+
+@[to_additive min_neg_neg]
+lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
+eq.symm $ @monotone.map_max α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
+
+@[to_additive max_neg_neg]
+lemma max_inv_inv' (a b : α) : max (a⁻¹) (b⁻¹) = (min a b)⁻¹ :=
+eq.symm $ @monotone.map_min α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
+
+@[to_additive min_sub_sub_right]
+lemma min_div_div_right' (a b c : α) : min (a / c) (b / c) = min a b / c :=
+by simpa only [div_eq_mul_inv] using min_mul_mul_right a b (c⁻¹)
+
+@[to_additive max_sub_sub_right]
+lemma max_div_div_right' (a b c : α) : max (a / c) (b / c) = max a b / c :=
+by simpa only [div_eq_mul_inv] using max_mul_mul_right a b (c⁻¹)
+
+@[to_additive min_sub_sub_left]
+lemma min_div_div_left' (a b c : α) : min (a / b) (a / c) = a / max b c :=
+by simp only [div_eq_mul_inv, min_mul_mul_left, min_inv_inv']
+
+@[to_additive max_sub_sub_left]
+lemma max_div_div_left' (a b c : α) : max (a / b) (a / c) = a / min b c :=
+by simp only [div_eq_mul_inv, max_mul_mul_left, max_inv_inv']
+
+@[to_additive max_zero_sub_eq_self]
+lemma max_one_div_eq_self' (a : α) : max a 1 / max (a⁻¹) 1 = a :=
+begin
+  rcases le_total a 1,
+  { rw [max_eq_right h, max_eq_left, one_div, inv_inv], { rwa [le_inv', one_inv] } },
+  { rw [max_eq_left, max_eq_right, div_eq_mul_inv, one_inv, mul_one],
+    { rwa [inv_le', one_inv] }, exact h }
+end
+
+@[to_additive eq_zero_of_neg_eq]
+lemma eq_one_of_inv_eq' (h : a⁻¹ = a) : a = 1 :=
+match lt_trichotomy a 1 with
+| or.inl h₁ :=
+  have 1 < a, from h ▸ one_lt_inv_of_inv h₁,
+  absurd h₁ this.asymm
+| or.inr (or.inl h₁) := h₁
+| or.inr (or.inr h₁) :=
+  have a < 1, from h ▸ inv_inv_of_one_lt h₁,
+  absurd h₁ this.asymm
+end
+
+@[to_additive exists_zero_lt]
+lemma exists_one_lt' [nontrivial α] : ∃ (a:α), 1 < a :=
+begin
+  obtain ⟨y, hy⟩ := exists_ne (1 : α),
+  cases hy.lt_or_lt,
+  { exact ⟨y⁻¹, one_lt_inv'.mpr h⟩ },
+  { exact ⟨y, h⟩ }
+end
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_no_top_order [nontrivial α] :
+  no_top_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
+    exact λ a, ⟨a * y, lt_mul_of_one_lt_right' a hy⟩
+  end ⟩
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
+    exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
+  end ⟩
+
+end linear_ordered_comm_group
 
 section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group α] {a b c : α}
 
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_add_comm_group.to_linear_ordered_cancel_add_comm_monoid :
-  linear_ordered_cancel_add_comm_monoid α :=
-{ le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
-  add_left_cancel := λ x y z, add_left_cancel,
-  add_right_cancel := λ x y z, add_right_cancel,
-  ..‹linear_ordered_add_comm_group α› }
-
-lemma linear_ordered_add_comm_group.add_lt_add_left
-  (a b : α) (h : a < b) (c : α) : c + a < c + b :=
-ordered_add_comm_group.add_lt_add_left a b h c
-
 lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
    ... = c           : add_sub_cancel'_right _ _
-
-lemma min_neg_neg (a b : α) : min (-a) (-b) = -max a b :=
-eq.symm $ @monotone.map_max α (order_dual α) _ _ has_neg.neg a b $ λ a b, neg_le_neg
-
-lemma max_neg_neg (a b : α) : max (-a) (-b) = -min a b :=
-eq.symm $ @monotone.map_min α (order_dual α) _ _ has_neg.neg a b $ λ a b, neg_le_neg
-
-lemma min_sub_sub_right (a b c : α) : min (a - c) (b - c) = min a b - c :=
-by simpa only [sub_eq_add_neg] using min_add_add_right a b (-c)
-
-lemma max_sub_sub_right (a b c : α) : max (a - c) (b - c) = max a b - c :=
-by simpa only [sub_eq_add_neg] using max_add_add_right a b (-c)
-
-lemma min_sub_sub_left (a b c : α) : min (a - b) (a - c) = a - max b c :=
-by simp only [sub_eq_add_neg, min_add_add_left, min_neg_neg]
-
-lemma max_sub_sub_left (a b c : α) : max (a - b) (a - c) = a - min b c :=
-by simp only [sub_eq_add_neg, max_add_add_left, max_neg_neg]
-
-lemma max_zero_sub_eq_self (a : α) : max a 0 - max (-a) 0 = a :=
-begin
-  rcases le_total a 0,
-  { rw [max_eq_right h, max_eq_left, zero_sub, neg_neg], { rwa [le_neg, neg_zero] } },
-  { rw [max_eq_left, max_eq_right, sub_zero], { rwa [neg_le, neg_zero] }, exact h }
-end
 
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)
@@ -743,17 +819,6 @@ begin
     neg_le_abs_self, neg_zero, abs_nonneg, le_abs_self]
 end
 
-lemma eq_zero_of_neg_eq {a : α} (h : -a = a) : a = 0 :=
-match lt_trichotomy a 0 with
-| or.inl h₁ :=
-  have 0 < a, from h ▸ neg_pos_of_neg h₁,
-  absurd h₁ this.asymm
-| or.inr (or.inl h₁) := h₁
-| or.inr (or.inr h₁) :=
-  have a < 0, from h ▸ neg_neg_of_pos h₁,
-  absurd h₁ this.asymm
-end
-
 lemma eq_of_abs_sub_eq_zero {a b : α} (h : abs (a - b) = 0) : a = b :=
 sub_eq_zero.1 $ abs_eq_zero.1 h
 
@@ -774,29 +839,6 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 
 lemma eq_of_abs_sub_nonpos (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
-
-lemma exists_zero_lt [nontrivial α] : ∃ (a:α), 0 < a :=
-begin
-  obtain ⟨y, hy⟩ := exists_ne (0 : α),
-  cases hy.lt_or_lt,
-  { exact ⟨- y, neg_pos.mpr h⟩ },
-  { exact ⟨y, h⟩ }
-end
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
-  no_top_order α :=
-⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_zero_lt,
-    exact λ a, ⟨a + y, lt_add_of_pos_right a hy⟩
-  end ⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_add_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
-⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_zero_lt,
-    exact λ a, ⟨a - y, sub_lt_self a hy⟩
-  end ⟩
 
 end linear_ordered_add_comm_group
 
@@ -899,5 +941,13 @@ instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
 instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
 { ..additive.add_comm_group,
   ..additive.ordered_add_comm_monoid }
+
+instance [linear_ordered_add_comm_group α] : linear_ordered_comm_group (multiplicative α) :=
+{ ..multiplicative.linear_order,
+  ..multiplicative.ordered_comm_group }
+
+instance [linear_ordered_comm_group α] : linear_ordered_add_comm_group (additive α) :=
+{ ..additive.linear_order,
+  ..additive.ordered_add_comm_group }
 
 end type_tags

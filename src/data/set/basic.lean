@@ -266,6 +266,9 @@ theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
 | _ ⟨x, hx⟩ rfl := hx
 
+@[simp] theorem not_nonempty_empty : ¬(∅ : set α).nonempty :=
+λ h, h.ne_empty rfl
+
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
 protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h
@@ -887,6 +890,8 @@ theorem diff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
 @[simp] theorem diff_empty {s : set α} : s \ ∅ = s :=
 ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 
+@[simp] lemma diff_univ (s : set α) : s \ univ = ∅ := diff_eq_empty.2 (subset_univ s)
+
 theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 ext $ by simp [not_or_distrib, and.comm, and.left_comm]
 
@@ -1004,6 +1009,50 @@ theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
 
 @[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
 ext $ λ s, subset_empty_iff
+
+/-! ### If-then-else for sets -/
+
+/-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
+Defined as `s ∩ t ∪ s' \ t`. -/
+protected def ite (t s s' : set α) : set α := s ∩ t ∪ s' \ t
+
+@[simp] lemma ite_inter_self (t s s' : set α) : t.ite s s' ∩ t = s ∩ t :=
+by rw [set.ite, union_inter_distrib_right, diff_inter_self, inter_assoc, inter_self, union_empty]
+
+@[simp] lemma ite_compl (t s s' : set α) : tᶜ.ite s s' = t.ite s' s :=
+by rw [set.ite, set.ite, diff_compl, union_comm, diff_eq]
+
+@[simp] lemma ite_inter_compl_self (t s s' : set α) : t.ite s s' ∩ tᶜ = s' ∩ tᶜ :=
+by rw [← ite_compl, ite_inter_self]
+
+@[simp] lemma ite_diff_self (t s s' : set α) : t.ite s s' \ t = s' \ t :=
+ite_inter_compl_self t s s'
+
+@[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_diff _ _
+
+@[simp] lemma ite_empty (s s' : set α) : set.ite ∅ s s' = s' :=
+by simp [set.ite]
+
+@[simp] lemma ite_univ (s s' : set α) : set.ite univ s s' = s :=
+by simp [set.ite]
+
+lemma ite_mono (t : set α) {s₁ s₁' s₂ s₂' : set α} (h : s₁ ⊆ s₂) (h' : s₁' ⊆ s₂') :
+  t.ite s₁ s₁' ⊆ t.ite s₂ s₂' :=
+union_subset_union (inter_subset_inter_left _ h) (inter_subset_inter_left _ h')
+
+lemma ite_subset_union (t s s' : set α) : t.ite s s' ⊆ s ∪ s' :=
+union_subset_union (inter_subset_left _ _) (diff_subset _ _)
+
+lemma inter_subset_ite (t s s' : set α) : s ∩ s' ⊆ t.ite s s' :=
+ite_same t (s ∩ s') ▸ ite_mono _ (inter_subset_left _ _) (inter_subset_right _ _)
+
+lemma ite_inter_inter (t s₁ s₂ s₁' s₂' : set α) :
+  t.ite (s₁ ∩ s₂) (s₁' ∩ s₂') = t.ite s₁ s₁' ∩ t.ite s₂ s₂' :=
+by { ext x, finish [set.ite, iff_def] }
+
+lemma ite_inter (t s₁ s₂ s : set α) :
+  t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
+by rw [ite_inter_inter, ite_same]
 
 /-! ### Inverse image -/
 
@@ -2243,6 +2292,15 @@ begin
   rw [← singleton_eq_singleton_iff], apply h,
   rw [image_singleton, image_singleton, hx]
 end
+
+lemma preimage_eq_iff_eq_image {f : α → β} (hf : bijective f) {s t} :
+  f ⁻¹' s = t ↔ s = f '' t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
+lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
+  s = f ⁻¹' t ↔ f '' s = t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
 end image_preimage
 
 /-! ### Lemmas about images of binary and ternary functions -/

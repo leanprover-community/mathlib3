@@ -59,7 +59,7 @@ open bundle
 
 variables (𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 [normed_field 𝕜] [∀ x, add_comm_group (E x)] [∀ x, semimodule 𝕜 (E x)]
-[normed_group F] [normed_space 𝕜 F]
+[topological_space F] [add_comm_group F] [semimodule 𝕜 F]
 [topological_space (total_space E)] [topological_space B]
 
 section
@@ -74,7 +74,7 @@ instance : has_coe_to_fun (topological_vector_bundle.trivialization 𝕜 F E) :=
 
 end
 
-variable [∀ x, topological_space (E x)]
+variables [∀ x, topological_space (E x)]
 
 /-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
 space) has a topological vector space structure with fiber `F` (denoted with
@@ -88,8 +88,18 @@ variable [topological_vector_bundle 𝕜 F E]
 
 namespace topological_vector_bundle
 
+/-- `trivialization_at 𝕜 F E b` is some choice of trivialization of a vector bundle whose base set
+contains a given point `b`. -/
 def trivialization_at : Π b : B, trivialization 𝕜 F E :=
 λ b, classical.some (topological_vector_bundle.locally_trivial 𝕜 F E b)
+
+@[simp, mfld_simps] lemma mem_base_set_trivialization_at (b : B) :
+  b ∈ (trivialization_at 𝕜 F E b).base_set :=
+classical.some_spec (topological_vector_bundle.locally_trivial 𝕜 F E b)
+
+@[simp, mfld_simps] lemma mem_source_trivialization_at (z : total_space E) :
+  z ∈ (trivialization_at 𝕜 F E z.1).source :=
+by { rw bundle_trivialization.mem_source, apply mem_base_set_trivialization_at }
 
 /-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
@@ -153,19 +163,16 @@ def trivialization.continuous_linear_equiv_at (e : trivialization 𝕜 F E) (b :
     { exact cast_heq _ _ },
   end }
 
-@[simp, mfld_simps] lemma mem_base_set_trivialization_at (b : B) :
-  b ∈ (trivialization_at 𝕜 F E b).base_set :=
-classical.some_spec (topological_vector_bundle.locally_trivial 𝕜 F E b)
-
-@[simp, mfld_simps] lemma mem_source_trivialization_at (z : total_space E) :
-  z ∈ (trivialization_at 𝕜 F E z.1).source :=
-by { rw bundle_trivialization.mem_source, apply mem_base_set_trivialization_at }
+-- [add_comm_group F] [semimodule 𝕜 F]
 
 section
 local attribute [reducible] bundle.trivial
 
-instance (b : B) : normed_group (bundle.trivial B F b) := by apply_instance
-instance (b : B) : normed_space 𝕜 (bundle.trivial B F b) := by apply_instance
+instance {B : Type*} {F : Type*} [add_comm_group F] (b : B) :
+  add_comm_group (bundle.trivial B F b) := by apply_instance
+
+instance {B : Type*} {F : Type*} [add_comm_group F] [semimodule 𝕜 F] (b : B) :
+  semimodule 𝕜 (bundle.trivial B F b) := by apply_instance
 
 end
 
@@ -207,7 +214,7 @@ instance trivial_bundle.topological_vector_bundle :
 variables {𝕜 B F}
 
 /- Not registered as an instance because of a metavariable. -/
-lemma is_topological_vector_bundle_is_topological_fiber_bundle [topological_vector_bundle 𝕜 F E] :
+lemma is_topological_vector_bundle_is_topological_fiber_bundle :
   is_topological_fiber_bundle F (proj E) :=
 λ x, ⟨(trivialization_at 𝕜 F E x).to_bundle_trivialization, mem_base_set_trivialization_at 𝕜 F E x⟩
 

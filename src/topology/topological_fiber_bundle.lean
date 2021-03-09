@@ -403,6 +403,7 @@ instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : tot
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
+@[nolint unused_arguments]
 def trivial (B : Type*) (F : Type*) : B → Type* := λ x, F
 
 instance [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
@@ -412,6 +413,7 @@ instance [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
 
 instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
+
 instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial B F)) :=
 topological_space.induced (proj (trivial B F)) t₁ ⊓

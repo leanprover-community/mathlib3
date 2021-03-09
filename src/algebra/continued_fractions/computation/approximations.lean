@@ -19,6 +19,8 @@ In particular, we derive the so-called *determinant formula* for `gcf.of`:
 Moreover, we derive some upper bounds for the error term when computing a continued fraction up a
 given position, i.e. bounds for the term `|v - (gcf.of v).convergents n|`.
 The derived bounds will show us that the error term indeed gets smaller.
+As a corollary, we will be able to show that `(gcf.of v).convergents` converges to `v` in
+`algebra.continued_fractions.computation.approximation_corollaries`.
 
 ## Main Theorems
 
@@ -32,11 +34,6 @@ The derived bounds will show us that the error term indeed gets smaller.
   denominator of the continued fraction.
 - `gcf.abs_sub_convergents_le`: shows that `|v - Aₙ / Bₙ| ≤ 1 / (Bₙ * Bₙ₊₁)`, where `Aₙ` is the
   nth partial numerator.
-
-## TODO
-As a corollary of `gcf.abs_sub_convergents_le`, we will be able to show that
-`(gcf.of v).convergents` converges to `v`. (reference to this convergence lemma will be added in the
-upcoming PR about continued fractions)
 
 ## References
 

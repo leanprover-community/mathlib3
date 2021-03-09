@@ -108,7 +108,7 @@ begin
     { field_simp [continuants_aux, next_continuants, next_numerator, next_denominator,
         gcf.of_h_eq_floor, gcf.comp_exact_value, fract_ne_zero] } },
   { assume ifp_succ_n succ_nth_stream_eq,  -- nat.succ
-    obtain ⟨ifp_n, nth_stream_eq, nth_fract_ne_zero, _⟩ :
+    obtain ⟨ifp_n, nth_stream_eq, nth_fract_ne_zero, -⟩ :
       ∃ ifp_n, int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr ≠ 0
       ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n, from
         int_fract_pair.succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,

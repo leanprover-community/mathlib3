@@ -93,21 +93,29 @@ namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring S₁] {p q : mv_polynomial σ R}
 
-instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq R] :
+section instances
+
+instance decidable_eq_mv_polynomial [comm_semiring R] [decidable_eq σ] [decidable_eq R] :
   decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
-instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
-instance : inhabited (mv_polynomial σ R) := ⟨0⟩
-instance [semimodule R S₁] : semimodule R (mv_polynomial σ S₁) := add_monoid_algebra.semimodule
-instance [algebra R S₁] : algebra R (mv_polynomial σ S₁) := add_monoid_algebra.algebra
-/-
-TODO: add `add_monoid_algebra.is_scalar_tower` so that we have
-instance [comm_semiring S₂] [has_scalar R S₁] [semimodule R S₂] [semimodule S₁ S₂]
-  [is_scalar_tower R S₁ S₂] : is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
-  add_monoid_algebra.is_scalar_tower
--/
+instance [comm_semiring R] : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
+instance [comm_semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
+instance [semiring R] [comm_semiring S₁] [semimodule R S₁] : semimodule R (mv_polynomial σ S₁) :=
+add_monoid_algebra.semimodule
+instance [semiring R] [semiring S₁] [comm_semiring S₂]
+  [has_scalar R S₁] [semimodule R S₂] [semimodule S₁ S₂] [is_scalar_tower R S₁ S₂] :
+  is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
+add_monoid_algebra.is_scalar_tower
+instance [semiring R] [semiring S₁][comm_semiring S₂]
+  [semimodule R S₂] [semimodule S₁ S₂] [smul_comm_class R S₁ S₂] :
+  smul_comm_class R S₁ (mv_polynomial σ S₂) :=
+add_monoid_algebra.smul_comm_class
+instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
+add_monoid_algebra.algebra
 
+end instances
+
+variables [comm_semiring R] [comm_semiring S₁] {p q : mv_polynomial σ R}
 /-- The coercion turning an `mv_polynomial` into the function which reports the coefficient
 of a given monomial. -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ R) :=

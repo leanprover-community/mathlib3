@@ -1691,6 +1691,16 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α �
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
+instance [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M] [semimodule S M]
+  [has_scalar R S] [is_scalar_tower R S M] :
+  is_scalar_tower R S (α →₀ M) :=
+{ smul_assoc := λ r s a, ext $ λ _, smul_assoc _ _ _ }
+
+instance [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M] [semimodule S M]
+  [smul_comm_class R S M] :
+  smul_comm_class R S (α →₀ M) :=
+{ smul_comm := λ r s a, ext $ λ _, smul_comm _ _ _ }
+
 variables {α M} {R}
 
 lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :

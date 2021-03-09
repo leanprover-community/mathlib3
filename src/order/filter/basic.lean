@@ -2405,6 +2405,86 @@ by simp only [tendsto_def, mem_prod_iff, prod_sub_preimage_iff, exists_prop, iff
 
 end prod
 
+/-! ### Coproducts of filters -/
+
+section coprod
+variables {s : set α} {t : set β} {f : filter α} {g : filter β}
+
+/-- Coproduct of filters. -/
+protected def coprod (f : filter α) (g : filter β) : filter (α × β) :=
+f.comap prod.fst ⊔ g.comap prod.snd
+
+lemma mem_coprod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
+  s ∈ f.coprod g ↔ ((∃ t₁ ∈ f, prod.fst ⁻¹' t₁ ⊆ s) ∧ (∃ t₂ ∈ g, prod.snd ⁻¹' t₂ ⊆ s)) :=
+by simp [filter.coprod]
+
+@[mono] lemma coprod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
+  f₁.coprod g₁ ≤ f₂.coprod g₂ :=
+sup_le_sup (comap_mono hf) (comap_mono hg)
+
+lemma principal_coprod_principal (s : set α) (t : set β) :
+  (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ.prod tᶜ)ᶜ :=
+begin
+  rw [filter.coprod, comap_principal, comap_principal, sup_principal],
+  congr,
+  ext x,
+  simp ; tauto,
+end
+
+-- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and 
+-- `map_prod_map_const_id_principal_coprod_principal` below.
+lemma map_prod_map_coprod_le {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
+  {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :
+  map (prod.map m₁ m₂) (f₁.coprod f₂) ≤ (map m₁ f₁).coprod (map m₂ f₂) :=
+begin
+  intros s,
+  simp only [mem_map, mem_coprod_iff],
+  rintros ⟨⟨u₁, hu₁, h₁⟩, ⟨u₂, hu₂, h₂⟩⟩,
+  refine ⟨⟨m₁ ⁻¹' u₁, hu₁, λ _ hx, h₁ _⟩, ⟨m₂ ⁻¹' u₂, hu₂, λ _ hx, h₂ _⟩⟩; convert hx
+end
+
+/-- Characterization of the coproduct of the `filter.map`s of two principal filters `𝓟 {a}` and
+`𝓟 {i}`, the first under the constant function `λ a, b` and the second under the identity function.
+Together with the next lemma, `map_prod_map_const_id_principal_coprod_principal`, this provides an
+example showing that the inequality in the lemma `map_prod_map_coprod_le` can be strict. -/
+lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
+  (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
+  = 𝓟 (({b} : set β).prod (univ : set ι) ∪ (univ : set β).prod {i}) :=
+begin
+  rw [map_principal, map_principal, principal_coprod_principal],
+  congr,
+  ext ⟨b', i'⟩,
+  simp,
+  tauto,
+end
+
+/-- Characterization of the `filter.map` of the coproduct of two principal filters `𝓟 {a}` and
+`𝓟 {i}`, under the `prod.map` of two functions, respectively the constant function `λ a, b` and the
+identity function.  Together with the previous lemma,
+`map_const_principal_coprod_map_id_principal`, this provides an example showing that the inequality
+in the lemma `map_prod_map_coprod_le` can be strict. -/
+lemma map_prod_map_const_id_principal_coprod_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
+  map (prod.map (λ _ : α, b) id) ((𝓟 {a}).coprod (𝓟 {i}))
+  = 𝓟 (({b} : set β).prod (univ : set ι)) :=
+begin
+  rw [principal_coprod_principal, map_principal],
+  congr,
+  ext ⟨b', i'⟩,
+  split,
+  { rintros ⟨⟨a'', i''⟩, h₁, ⟨h₂, h₃⟩⟩,
+    simp },
+  { rintros ⟨h₁, h₂⟩,
+    use (a, i'),
+    simpa using h₁.symm }
+end
+
+lemma tendsto.prod_map_coprod {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
+  {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :
+  tendsto (prod.map f g) (a.coprod b) (c.coprod d) :=
+map_prod_map_coprod_le.trans (coprod_mono hf hg)
+
+end coprod
+
 end filter
 
 open_locale filter

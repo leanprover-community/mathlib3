@@ -2083,7 +2083,7 @@ section pi
 variables {ι : Type*} {α : ι → Type*} {s s₁ : set ι} {t t₁ t₂ : Π i, set (α i)}
 
 /-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
-is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `π a`
+is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `s a`
 whenever `a ∈ i`. -/
 def pi (s : set ι) (t : Π i, set (α i)) : set (Π i, α i) := { f | ∀i ∈ s, f i ∈ t i }
 

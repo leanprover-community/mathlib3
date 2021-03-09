@@ -146,11 +146,8 @@ attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_i
 is an `open_add_subgroup`."]
 def comap {N : Type*} [group N] [topological_space N] [topological_group N] (f : G →* N)
   (hf : continuous f) (H : open_subgroup N) : open_subgroup G :=
-{ carrier := (f ⁻¹' H),
-  inv_mem' := λ a ha,
-    show f a⁻¹ ∈ H, by rw f.map_inv; exact H.inv_mem ha,
-  is_open' := H.is_open.preimage hf,
-  .. (H : subgroup N).to_submonoid.comap f }
+{ is_open' := H.is_open.preimage hf,
+  .. (H : subgroup N).comap f }
 
 end open_subgroup
 

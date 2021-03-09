@@ -408,6 +408,10 @@ sdiff_unique
                                       ... = ⊥ :
                                                by rw [inf_sdiff_same_right, inf_bot_eq, bot_inf_eq])
 
+instance pi.generalized_boolean_algebra {α : Type u} {β : Type v} [generalized_boolean_algebra β] :
+  generalized_boolean_algebra (α → β) :=
+by pi_instance
+
 end generalized_boolean_algebra
 
 /-!
@@ -421,30 +425,38 @@ class has_compl (α : Type*) := (compl : α → α)
 export has_compl (compl)
 
 postfix `ᶜ`:(max+1) := compl
+-- See note [forgetful inheritance]
 
-/-- A Boolean algebra is a bounded distributive lattice with
-a complement operator `ᶜ` such that `x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`.
-For convenience, it must also provide a set difference operation `\`
-satisfying `x \ y = x ⊓ yᶜ`.
+-- @[priority 100]
+-- def generalized_boolean_algebra.of_boolean_algebra
+--   [bounded_distrib_lattice α] [has_compl α] [has_sdiff α]
+--   (inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)
+--   (top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)
+--   (sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ) :
+--   generalized_boolean_algebra α :=
+-- { sup_inf_sdiff := λ a b, by rw [sdiff_eq, ←inf_sup_left, top_unique $ top_le_sup_compl _,
+--     inf_top_eq],
+--   inf_inf_sdiff := λ a b, by rw [sdiff_eq, inf_left_right_swap, @inf_assoc _ _ a,
+--     inf_comm.trans (bot_unique $ inf_compl_le_bot _), inf_bot_eq, bot_inf_eq],
+--   ..(infer_instance : has_sdiff α),
+--   ..(infer_instance : bounded_distrib_lattice α) }
+-- set_option formatter.hide_full_terms false
 
-This is a generalization of (classical) logic of propositions, or
-the powerset lattice. -/
-class boolean_algebra α extends bounded_distrib_lattice α, has_compl α, has_sdiff α :=
+class boolean_algebra.core (α : Type u) extends bounded_distrib_lattice α, has_compl α :=
 (inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)
 (top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)
-(sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ)
 
-section boolean_algebra
-variables [boolean_algebra α]
+section boolean_algebra_core
+variables [boolean_algebra.core α]
 
 @[simp] theorem inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
-bot_unique $ boolean_algebra.inf_compl_le_bot x
+bot_unique $ boolean_algebra.core.inf_compl_le_bot x
 
 @[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
 eq.trans inf_comm inf_compl_eq_bot
 
 @[simp] theorem sup_compl_eq_top : x ⊔ xᶜ = ⊤ :=
-top_unique $ boolean_algebra.top_le_sup_compl x
+top_unique $ boolean_algebra.core.top_le_sup_compl x
 
 @[simp] theorem compl_sup_eq_top : xᶜ ⊔ x = ⊤ :=
 eq.trans sup_comm sup_compl_eq_top
@@ -457,11 +469,6 @@ theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
-
-theorem sdiff_eq : x \ y = x ⊓ yᶜ :=
-boolean_algebra.sdiff_eq x y
-
-theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 
 theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
 (is_compl.of_eq i s).compl_eq
@@ -515,14 +522,37 @@ theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
 theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
 ⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
 
-namespace boolean_algebra
+end boolean_algebra_core
 
-@[priority 100]
-instance : generalized_boolean_algebra α :=
-{ sup_inf_sdiff := λ a b, by rw [sdiff_eq, ←inf_sup_left, sup_compl_eq_top, inf_top_eq],
-  inf_inf_sdiff := λ a b, by rw [_root_.sdiff_eq, inf_left_right_swap, @inf_assoc _ _ a,
-      compl_inf_eq_bot, inf_bot_eq, bot_inf_eq],
-  ..(infer_instance : boolean_algebra α) }
+/-- A Boolean algebra is a bounded distributive lattice with
+a complement operator `ᶜ` such that `x ⊓ xᶜ = ⊥` and `x ⊔ xᶜ = ⊤`.
+For convenience, it must also provide a set difference operation `\`
+satisfying `x \ y = x ⊓ yᶜ`.
+
+This is a generalization of (classical) logic of propositions, or
+the powerset lattice. -/
+-- Lean complains about metavariables in the type if the universe is not specified
+class boolean_algebra (α : Type u) extends boolean_algebra.core α, generalized_boolean_algebra α :=
+(sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ)
+
+def boolean_algebra.of_core (B : boolean_algebra.core α) :
+  boolean_algebra α :=
+{ sdiff := λ x y, x ⊓ yᶜ,
+  sdiff_eq := λ _ _, rfl,
+  sup_inf_sdiff := λ a b, by rw [←inf_sup_left, sup_compl_eq_top, inf_top_eq],
+  inf_inf_sdiff := λ a b, by rw [inf_left_right_swap, @inf_assoc _ _ a, compl_inf_eq_bot,
+    inf_bot_eq, bot_inf_eq],
+  ..B }
+
+section boolean_algebra
+variables [boolean_algebra α]
+
+theorem sdiff_eq : x \ y = x ⊓ yᶜ :=
+boolean_algebra.sdiff_eq x y
+
+theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
+
+namespace boolean_algebra
 
 @[priority 100]
 instance : is_complemented α := ⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
@@ -532,9 +562,8 @@ end boolean_algebra
 end boolean_algebra
 
 instance boolean_algebra_Prop : boolean_algebra Prop :=
+boolean_algebra.of_core
 { compl := not,
-  sdiff := λ p q, p ∧ ¬ q,
-  sdiff_eq := λ _ _, rfl,
   inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
   .. bounded_distrib_lattice_Prop }

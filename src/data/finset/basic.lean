@@ -905,6 +905,19 @@ instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
+@[simp] theorem inter_sdiff_self (s₁ s₂ : finset α) : s₁ ∩ (s₂ \ s₁) = ∅ :=
+eq_empty_of_forall_not_mem $
+by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
+
+instance : generalized_boolean_algebra (finset α) :=
+{ sup_inf_sdiff := λ x y, by { simp only [ext_iff, mem_union, mem_sdiff, inf_eq_inter, sup_eq_union,
+      mem_inter], tauto },
+  inf_inf_sdiff := λ x y, by { simp only [ext_iff, inter_sdiff_self, inter_empty, inter_assoc,
+      false_iff, inf_eq_inter, not_mem_empty], tauto },
+  ..finset.has_sdiff,
+  ..finset.distrib_lattice,
+  ..finset.semilattice_inf_bot }
+
 lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
 
@@ -917,10 +930,6 @@ theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁
 
 theorem inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u :=
 by { ext x, simp [and_assoc] }
-
-@[simp] theorem inter_sdiff_self (s₁ s₂ : finset α) : s₁ ∩ (s₂ \ s₁) = ∅ :=
-eq_empty_of_forall_not_mem $
-by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
 
 @[simp] theorem sdiff_inter_self (s₁ s₂ : finset α) : (s₂ \ s₁) ∩ s₁ = ∅ :=
 (inter_comm _ _).trans (inter_sdiff_self _ _)

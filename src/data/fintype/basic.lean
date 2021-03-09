@@ -59,14 +59,12 @@ instance : order_top (finset α) :=
   .. finset.partial_order }
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
-boolean_algebra.of_core
 { compl := λ s, univ \ s,
   inf_compl_le_bot := λ s x hx, by simpa using hx,
   top_le_sup_compl := λ s x hx, by simp,
-  ..finset.distrib_lattice,
-  ..finset.semilattice_inf_bot,
+  sdiff_eq := λ s t, by simp [ext_iff, compl],
   ..finset.order_top,
-  ..finset.has_sdiff }
+  ..finset.generalized_boolean_algebra }
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
 

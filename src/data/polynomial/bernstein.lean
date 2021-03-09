@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import data.polynomial.derivative
 import data.polynomial.algebra_map
 import linear_algebra.basis
-import data.nat.pochhammer
+import ring_theory.polynomial.pochhammer
 import tactic.omega
 
 /-!

@@ -358,6 +358,10 @@ by simp only [frontier, closure_prod_eq, interior_prod_eq, prod_diff_prod]
   frontier (s.prod (univ : set β)) = (frontier s).prod univ :=
 by simp [frontier_prod_eq]
 
+@[simp] lemma frontier_univ_prod_eq (s : set β) :
+  frontier ((univ : set α).prod s) = (univ : set α).prod (frontier s) :=
+by simp [frontier_prod_eq]
+
 lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
   (hu : ∀a b, a ∈ s → b ∈ t → f a b ∈ u) :

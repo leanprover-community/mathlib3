@@ -38,7 +38,7 @@ class nonarchimedean_group (G : Type*)
   [group G] [topological_space G] extends topological_group G : Prop :=
 (is_nonarchimedean : ∀ U ∈ nhds (1 : G), ∃ V : open_subgroup G, (V : set G) ⊆ U)
 
-/-- An topological ring is non-archimedean if its underlying topological additive
+/-- An topological ring is nonarchimedean if its underlying topological additive
   group is nonarchimedean. -/
 class nonarchimedean_ring (R : Type*)
   [ring R] [topological_space R] extends topological_ring R : Prop :=
@@ -79,12 +79,11 @@ begin
   use V, use W,
   rw set.prod_subset_iff,
   intros x hX y hY,
-  refine set.subset.trans (set.prod_mono hV hW) h _,
-  exact set.mem_sep hX hY,
+  exact set.subset.trans (set.prod_mono hV hW) h (set.mem_sep hX hY),
 end
 
-/-- An open neighborhood of the identity in the cartesian square of two nonarchimedean groups
-  contains the cartesian product of an open neighborhood in each group. -/
+/-- An open neighborhood of the identity in the cartesian square of a nonarchimedean group
+  contains the cartesian square of an open neighborhood in the group. -/
 @[to_additive nonarchimedean_add_group.prod_self_subset]
 lemma prod_self_subset {U} (hU : U ∈ nhds (1 : G × G)) :
   ∃ (V : open_subgroup G), (V : set G).prod (V : set G) ⊆ U :=
@@ -111,14 +110,14 @@ variables [ring S] [topological_space S] [nonarchimedean_ring S]
 instance : nonarchimedean_ring (R × S) :=
 { is_nonarchimedean := nonarchimedean_add_group.is_nonarchimedean }
 
-/-- If you multiply an element of a nonarchimedean ring by an open subgroup,
-  the product still contains an open subgroup. -/
+/-- Given an open subgroup `U` and an element `r` of a nonarchimedean ring, there is a smaller open
+  subgroup `V` such that `r • V` is contained in `U`. -/
 lemma left_mul_subset (U : open_add_subgroup R) (r : R) :
   ∃ V : open_add_subgroup R, r • (V : set R) ⊆ U :=
 ⟨U.comap (add_monoid_hom.mul_left r) (continuous_mul_left r),
   (U : set R).image_preimage_subset _⟩
 
-/-- An open subset of a topological ring contains the square of another one. -/
+/-- An open subgroup of a nonarchimedean ring contains the square of another one. -/
 lemma mul_subset (U : open_add_subgroup R) :
   ∃ V : open_add_subgroup R, (V : set R) * V ⊆ U :=
 let ⟨V, H⟩ := prod_self_subset (mem_nhds_sets (is_open.preimage continuous_mul U.is_open)
@@ -128,8 +127,7 @@ let ⟨V, H⟩ := prod_self_subset (mem_nhds_sets (is_open.preimage continuous_m
   end) in
 begin
   use V,
-  intros v hv,
-  rcases hv with ⟨a, b, ha, hb, hv⟩,
+  rintros v ⟨a, b, ha, hb, hv⟩,
   have hy := H (set.mk_mem_prod ha hb),
   simp only [set.mem_preimage, open_add_subgroup.mem_coe] at hy,
   rwa hv at hy

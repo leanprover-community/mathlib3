@@ -246,7 +246,7 @@ lemma nhds_within_pi_eq_bot {ι : Type*} {α : ι → Type*} [Π i, topological_
   𝓝[pi I s] x = ⊥ ↔ ∃ i ∈ I, 𝓝[s i] (x i) = ⊥ :=
 begin
   classical,
-  rw [← pi_piecewise_univ I, nhds_within_pi_univ_eq_bot],
+  rw [← univ_pi_piecewise I, nhds_within_pi_univ_eq_bot],
   refine exists_congr (λ i, _),
   by_cases hi : i ∈ I; simp [*, nhds_within_univ, nhds_ne_bot.ne]
 end

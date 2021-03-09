@@ -1188,6 +1188,31 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
 
 end algebra
 
+section ring
+
+namespace algebra
+
+variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
+
+lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_left R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
+
+lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_right R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_left_injective' hx }
+
+lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul R A x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
+
+end algebra
+
+end ring
+
 section nat
 
 variables (R : Type*) [semiring R]

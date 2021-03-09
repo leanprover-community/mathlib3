@@ -208,30 +208,33 @@ begin
     simp only [gsmul_neg_succ_of_nat, neg_gsmul, neg_neg] }
 end
 
+lemma abs_add_eq_add_abs_le {α : Type*} [linear_ordered_add_comm_group α] {a b : α} (hle : a ≤ b) :
+  abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
+begin
+  by_cases a0 : 0 ≤ a; by_cases b0 : 0 ≤ b,
+  { simp [a0, b0, abs_of_nonneg, add_nonneg a0 b0] },
+  { exact (lt_irrefl (0 : α) (a0.trans_lt (hle.trans_lt (not_le.mp b0)))).elim },
+  any_goals { simp [(not_le.mp a0).le, (not_le.mp b0).le, abs_of_nonpos, add_nonpos, add_comm] },
+  obtain F := (not_le.mp a0),
+  have : (abs (a + b) = -a + b ↔ b ≤ 0) ↔ (abs (a + b) =
+    abs a + abs b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0),
+  { simp [a0, b0, abs_of_neg, abs_of_nonneg, F, F.le] },
+  refine this.mp ⟨λ h, _, λ h, by simp only [le_antisymm h b0, abs_of_neg F, add_zero]⟩,
+  by_cases ba : a + b ≤ 0,
+  { refine le_of_eq (eq_zero_of_neg_eq _),
+    rwa [abs_of_nonpos ba, neg_add_rev, add_comm, add_right_inj] at h },
+  { refine (lt_irrefl (0 : α) _).elim,
+    rw [abs_of_pos (not_le.mp ba), add_left_inj] at h,
+    rwa eq_zero_of_neg_eq h.symm at F }
+end
+
 lemma abs_add_eq_add_abs_iff {α : Type*} [linear_ordered_add_comm_group α]  (a b : α) :
   abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
 begin
-  wlog hle : a ≤ b using [a b, b a],
-  { exact le_total a b },
-  cases eq_or_lt_of_le hle with heq hlt,
-  { rw [heq, and_self, ← two_nsmul b, ← two_nsmul (abs b), abs_nsmul],
-  simp only [true_iff, eq_self_iff_true, and_self, le_total 0 b] },
-  split,
-  { intro h,
-    rcases ⟨le_total 0 a, le_total 0 b⟩ with ⟨pa|na, pb|nb⟩,
-    { exact or.inl ⟨pa, pb⟩ },
-    { exfalso,
-      exact not_lt.2 nb (lt_of_le_of_lt pa hlt) },
-    { rw [abs_of_nonneg pb, abs_of_nonpos na] at h,
-      cases le_total (a + b) 0 with sumn sump,
-      { rw [abs_of_nonpos sumn, neg_add, add_right_inj (-a)] at h,
-        exact or.inr ⟨na, le_of_eq (eq_zero_of_neg_eq h)⟩ },
-      { rw [abs_of_nonneg sump, add_left_inj b] at h,
-        exact or.inl ⟨le_of_eq (eq_zero_of_neg_eq h.symm).symm, pb⟩ } },
-    { exact or.inr ⟨na, nb⟩ } },
-  { rintro (p | n),
-    { rw [abs_of_nonneg p.1, abs_of_nonneg p.2, abs_of_nonneg (add_nonneg p.1 p.2)] },
-    { rw [abs_of_nonpos n.1, abs_of_nonpos n.2, abs_of_nonpos (add_nonpos n.1 n.2), neg_add] } }
+  by_cases ab : a ≤ b,
+  { exact abs_add_eq_add_abs_le ab },
+  { rw [add_comm a, add_comm (abs _), abs_add_eq_add_abs_le ((not_le.mp ab).le), and.comm,
+    @and.comm (b ≤ 0 ) _] }
 end
 
 end ordered_add_comm_group

@@ -1369,7 +1369,7 @@ trans (filter_congr (λ _ _, ⟨eq.symm, eq.symm⟩)) (filter_eq s b)
 
 lemma filter_ne [decidable_eq β] (s : finset β) (b : β) :
   s.filter (λ a, b ≠ a) = s.erase b :=
-by { ext, simp only [mem_filter, mem_erase, ne.def], cc, }
+by { ext, simp only [mem_filter, mem_erase, ne.def], tauto, }
 
 lemma filter_ne' [decidable_eq β] (s : finset β) (b : β) :
   s.filter (λ a, a ≠ b) = s.erase b :=

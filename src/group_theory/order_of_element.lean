@@ -108,14 +108,15 @@ end order_of
 section order_of
 
 section monoid
-open_locale classical
-variables {α} [monoid α] [decidable_eq α]
-
+variables {α} [monoid α]
+variables (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
-def order_of (a : α) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)] : ℕ :=
+def order_of  : ℕ :=
 if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
+
+variable {a}
 
 lemma order_of_of_finite_order (h : ∃ n, 0 < n ∧ a ^ n = 1) : order_of a = nat.find h :=
 begin
@@ -124,7 +125,9 @@ begin
   refl
 end
 
-lemma pow_order_of_eq_one (a : α) : a ^ order_of a = 1 :=
+variable (a)
+
+lemma pow_order_of_eq_one : a ^ order_of a = 1 :=
 begin
   rw order_of,
   split_ifs with hx,
@@ -132,7 +135,9 @@ begin
   { exact pow_zero a }
 end
 
-lemma order_of_pos (a : α) (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
+variable {a}
+
+lemma order_of_pos (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
 begin
   rw order_of_of_finite_order h,
   exact (nat.find_spec h).1
@@ -144,6 +149,15 @@ rw order_of,
 split_ifs with ha,
   { exact nat.find_min' ha ⟨hn, h⟩ },
   { exact le_of_lt hn }
+end
+
+instance decidable_order_of_one : decidable (∃ n, 0 < n ∧ (1 : α) ^ n = 1) :=
+decidable.is_true ⟨1, ⟨nat.one_pos, one_pow 1⟩⟩
+
+instance decidable_pred_order_of_one : decidable_pred (λ n, 0 < n ∧ (1 : α)  ^ n = 1) :=
+begin
+  simp only [one_pow, and_true, eq_self_iff_true],
+  exact set.decidable_set_of (λ (a : ℕ), 1 ≤ a)
 end
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=

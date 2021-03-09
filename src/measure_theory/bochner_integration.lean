@@ -1181,6 +1181,15 @@ begin
   exact Lp.mem_ℒp _,
 end
 
+lemma integrable_linear_equiv_iff (f : α → E) (g : E ≃L[ℝ] F) :
+  integrable (λ (a : α), g (f a)) μ ↔ integrable f μ :=
+begin
+  refine ⟨λ h, _, integrable_linear_map f g⟩,
+  have hfg : f = λ x, g.symm (g (f x)), by simp,
+  rw hfg,
+  exact integrable_linear_map (λ x, g (f x)) g.symm.to_continuous_linear_map h,
+end
+
 lemma to_L1_comp_eq_comp_Lp [complete_space F] [normed_space ℝ F] (f : α → E) (g : E →L[ℝ] F)
   (hf : integrable f μ) :
   integrable.to_L1 (λ (a : α), g (f a)) (integrable_linear_map f g hf) = g.comp_Lp (hf.to_L1 f) :=
@@ -1194,6 +1203,16 @@ lemma integral_linear_map [complete_space F] [normed_space ℝ F] {f : α → E}
   ∫ a, g (f a) ∂μ = g (∫ a, f a ∂μ) :=
 by rw [integral_eq _ hf, integral_eq _ (integrable_linear_map f g hf), to_L1_comp_eq_comp_Lp,
   L1.integral_linear_map]
+
+lemma integral_linear_equiv [complete_space F] [normed_space ℝ F] {f : α → E} (g : E ≃L[ℝ] F) :
+  ∫ a, g (f a) ∂μ = g (∫ a, f a ∂μ) :=
+begin
+  by_cases hf : integrable f μ,
+  { exact integral_linear_map hf g, },
+  have hfg : ¬ integrable (λ a, g (f a)) μ,
+    from mt (integrable_linear_equiv_iff f g).mp hf,
+  simp [integral_undef hf, integral_undef hfg],
+end
 
 @[simp]
 lemma is_R_or_C.of_real_smul {𝕜 : Type*} [is_R_or_C 𝕜] (r x : ℝ) :

@@ -698,7 +698,7 @@ begin
       (times_cont_diff_at_snd.mul times_cont_diff_at_const).cos }
 end
 
-lemma has_strict_deriv_at_rpow_const {x : ℝ} (hx : x ≠ 0) (p : ℝ) :
+lemma has_strict_deriv_at_rpow_const' {x : ℝ} (hx : x ≠ 0) (p : ℝ) :
   has_strict_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
 begin
   cases hx.lt_or_lt with hx hx,
@@ -784,7 +784,13 @@ lemma filter.tendsto.rpow {l : filter α} {f g : α → ℝ} {x y : ℝ}
   tendsto (λ t, f t ^ g t) l (𝓝 (x ^ y)) :=
 (real.continuous_at_rpow h).tendsto.comp (hf.prod_mk_nhds hg)
 
-variables [topological_space α] {f g : α → ℝ} {s : set α} {x : α}
+lemma filter.tendsto.rpow_const {l : filter α} {f : α → ℝ} {x p : ℝ}
+  (hf : tendsto f l (𝓝 x)) (h : x ≠ 0 ∨ 0 ≤ p) :
+  tendsto (λ a, f a ^ p) l (𝓝 (x ^ p)) :=
+if h0 : 0 = p then h0 ▸ by simp [tendsto_const_nhds]
+else hf.rpow tendsto_const_nhds (h.imp id $ λ h', h'.lt_of_ne h0)
+
+variables [topological_space α] {f g : α → ℝ} {s : set α} {x : α} {p : ℝ}
 
 lemma continuous_at.rpow (hf : continuous_at f x) (hg : continuous_at g x) (h : f x ≠ 0 ∨ 0 < g x) :
   continuous_at (λ t, f t ^ g t) x :=
@@ -804,6 +810,22 @@ lemma continuous.rpow (hf : continuous f) (hg : continuous g) (h : ∀ x, f x �
   continuous (λ x, f x ^ g x) :=
 continuous_iff_continuous_at.2 $ λ x, (hf.continuous_at.rpow hg.continuous_at (h x))
 
+lemma continuous_within_at.rpow_const (hf : continuous_within_at f s x) (h : f x ≠ 0 ∨ 0 ≤ p) :
+  continuous_within_at (λ x, f x ^ p) s x :=
+hf.rpow_const h
+
+lemma continuous_at.rpow_const (hf : continuous_at f x) (h : f x ≠ 0 ∨ 0 ≤ p) :
+  continuous_at (λ x, f x ^ p) x :=
+hf.rpow_const h
+
+lemma continuous_on.rpow_const (hf : continuous_on f s) (h : ∀ x ∈ s, f x ≠ 0 ∨ 0 ≤ p) :
+  continuous_on (λ x, f x ^ p) s :=
+λ x hx, (hf x hx).rpow_const (h x hx)
+
+lemma continuous.rpow_const (hf : continuous f) (h : ∀ x, f x ≠ 0 ∨ 0 ≤ p) :
+  continuous (λ x, f x ^ p) :=
+continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.rpow_const (h x)
+
 end
 
 namespace real
@@ -814,16 +836,44 @@ lemma has_deriv_at_rpow_const {x p : ℝ} (h : x ≠ 0 ∨ 1 ≤ p) :
   has_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
 begin
   rcases em (x = 0) with rfl | hx;
-    [skip, exact (has_strict_deriv_at_rpow_const hx _).has_deriv_at],
+    [skip, exact (has_strict_deriv_at_rpow_const' hx _).has_deriv_at],
   replace h : 1 ≤ p := h.neg_resolve_left rfl,
   have hp' : 0 < p, from zero_lt_one.trans_le h,
   apply has_deriv_at_of_has_deriv_at_of_ne
-    (λ x hx, (has_strict_deriv_at_rpow_const hx p).has_deriv_at),
+    (λ x hx, (has_strict_deriv_at_rpow_const' hx p).has_deriv_at),
   { exact continuous_at_id.rpow continuous_at_const (or.inr hp')  },
   { rcases h.eq_or_lt with rfl|h,
     { simp only [sub_self, rpow_zero, continuous_at_const] },
     { exact continuous_at_const.mul
         (continuous_at_id.rpow continuous_at_const (or.inr $ sub_pos_of_lt h)) } }
+end
+
+lemma differentiable_rpow_const {p : ℝ} (hp : 1 ≤ p) :
+  differentiable ℝ (λ x : ℝ, x ^ p) :=
+λ x, (has_deriv_at_rpow_const (or.inr hp)).differentiable_at
+
+lemma deriv_rpow_const {x p : ℝ} (h : x ≠ 0 ∨ 1 ≤ p) :
+  deriv (λ x : ℝ, x ^ p) x = p * x ^ (p - 1) :=
+(has_deriv_at_rpow_const h).deriv
+
+lemma deriv_rpow_const' {p : ℝ} (h : 1 ≤ p) :
+  deriv (λ x : ℝ, x ^ p) = λ x, p * x ^ (p - 1) :=
+funext $ λ x, deriv_rpow_const (or.inr h)
+
+lemma times_cont_diff_at_rpow_const_of_ne {x p : ℝ} {n : with_top ℕ} (h : x ≠ 0) :
+  times_cont_diff_at ℝ n (λ x, x ^ p) x :=
+(times_cont_diff_at_rpow' h p).comp x (times_cont_diff_at_id.prod times_cont_diff_at_const)
+
+lemma times_cont_diff_rpow_const_of_le {p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
+  times_cont_diff ℝ n (λ x : ℝ, x ^ p) :=
+begin
+  induction n with n ihn generalizing p,
+  { exact times_cont_diff_zero.2 (continuous_id.rpow_const (λ x, or.inr h)) },
+  { rw [nat.cast_succ] at h,
+    have h1 : 1 ≤ p, from le_trans (by simp) h,
+    rw [← le_sub_iff_add_le] at h,
+    simpa [times_cont_diff_succ_iff_deriv, differentiable_rpow_const, h1, deriv_rpow_const']
+      using times_cont_diff_const.mul (ihn h) }
 end
 
 section sqrt

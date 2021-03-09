@@ -20,6 +20,23 @@ This file is incomplete; we are working on expanding it.
 open real set interval_integral
 variables {a b : ℝ}
 
+namespace interval_integral
+variable {f : ℝ → ℝ}
+
+@[simp]
+lemma integral_const_mul (c : ℝ) : ∫ x in a..b, c * f x = c * ∫ x in a..b, f x :=
+integral_smul c
+
+@[simp]
+lemma integral_mul_const (c : ℝ) : ∫ x in a..b, f x * c = (∫ x in a..b, f x) * c :=
+by simp only [mul_comm, integral_const_mul]
+
+@[simp]
+lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
+integral_mul_const c⁻¹
+
+end interval_integral
+
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
 begin

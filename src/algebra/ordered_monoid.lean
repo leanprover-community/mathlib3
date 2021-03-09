@@ -49,10 +49,24 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 
 attribute [to_additive] ordered_comm_monoid
 
-/-- A linearly ordered commutative monoid with a zero element. -/
-class linear_ordered_comm_monoid_with_zero (α : Type*)
-  extends linear_order α, comm_monoid_with_zero α, ordered_comm_monoid α :=
-(zero_le_one : (0:α) ≤ 1)
+/-- A linearly ordered additive commutative monoid. -/
+@[protect_proj, ancestor linear_order ordered_add_comm_monoid]
+class linear_ordered_add_comm_monoid (α : Type*)
+  extends linear_order α, ordered_add_comm_monoid α :=
+(lt_of_add_lt_add_left := λ x y z, by {
+  apply imp_of_not_imp_not,
+  intro h,
+  apply not_lt_of_le,
+  apply add_le_add_left,
+  -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
+  -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
+  letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
+  exact le_of_not_lt h })
+
+/-- A linearly ordered commutative monoid. -/
+@[protect_proj, ancestor linear_order ordered_comm_monoid, to_additive]
+class linear_ordered_comm_monoid (α : Type*)
+  extends linear_order α, ordered_comm_monoid α :=
 (lt_of_mul_lt_mul_left := λ x y z, by {
   apply imp_of_not_imp_not,
   intro h,
@@ -63,6 +77,29 @@ class linear_ordered_comm_monoid_with_zero (α : Type*)
   letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
   exact le_of_not_lt h })
 
+/-- A linearly ordered commutative monoid with a zero element. -/
+class linear_ordered_comm_monoid_with_zero (α : Type*)
+  extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=
+(zero_le_one : (0 : α) ≤ 1)
+
+/-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
+  Instances should include number systems with an infinite element adjoined.` -/
+@[protect_proj, ancestor linear_ordered_add_comm_monoid order_top]
+class linear_ordered_add_comm_monoid_with_top (α : Type*)
+  extends linear_ordered_add_comm_monoid α, order_top α :=
+(top_add' : ∀ x : α, ⊤ + x = ⊤)
+
+section linear_ordered_add_comm_monoid_with_top
+variables [linear_ordered_add_comm_monoid_with_top α] {a b : α}
+
+@[simp]
+lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_top.top_add' a
+
+@[simp]
+lemma add_top (a : α) : a + ⊤ = ⊤ :=
+by rw [add_comm, top_add]
+
+end linear_ordered_add_comm_monoid_with_top
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}
@@ -264,6 +301,21 @@ iff.intro
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
 
+/-- Pullback an `ordered_comm_monoid` under an injective map. -/
+@[to_additive function.injective.ordered_add_comm_monoid
+"Pullback an `ordered_add_comm_monoid` under an injective map."]
+def function.injective.ordered_comm_monoid {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  ordered_comm_monoid β :=
+{ mul_le_mul_left := λ a b ab c,
+    show f (c * a) ≤ f (c * b), by simp [mul, mul_le_mul_left' ab],
+  lt_of_mul_lt_mul_left :=
+    λ a b c bc, @lt_of_mul_lt_mul_left' _ _ (f a) _ _ (by rwa [← mul, ← mul]),
+  ..partial_order.lift f hf,
+  ..hf.comm_monoid f one mul }
+
 section mono
 
 variables {β : Type*} [preorder β] {f g : β → α}
@@ -283,6 +335,17 @@ monotone_const.mul' hf
 end mono
 
 end ordered_comm_monoid
+
+/-- Pullback a `linear_ordered_comm_monoid` under an injective map. -/
+@[to_additive function.injective.linear_ordered_add_comm_monoid
+"Pullback an `ordered_add_comm_monoid` under an injective map."]
+def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α] {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  linear_ordered_comm_monoid β :=
+{ .. hf.ordered_comm_monoid f one mul,
+  .. linear_order.lift f hf }
 
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos h h
@@ -536,6 +599,14 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
       exact lt_of_add_lt_add_left (coe_lt_coe.1 hlt)
     end,
   ..with_top.partial_order, ..with_top.add_comm_monoid }
+
+instance [linear_ordered_add_comm_monoid α] :
+  linear_ordered_add_comm_monoid_with_top (with_top α) :=
+{ top_add' := λ x, with_top.top_add,
+  ..with_top.order_top,
+  ..with_top.linear_order,
+  ..with_top.ordered_add_comm_monoid,
+  ..option.nontrivial }
 
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=
@@ -967,6 +1038,20 @@ by split; apply le_antisymm; try {assumption};
    rw ← hab; simp [ha, hb],
 λ ⟨ha', hb'⟩, by rw [ha', hb', mul_one]⟩
 
+/-- Pullback an `ordered_cancel_comm_monoid` under an injective map. -/
+@[to_additive function.injective.ordered_cancel_add_comm_monoid
+"Pullback an `ordered_cancel_add_comm_monoid` under an injective map."]
+def function.injective.ordered_cancel_comm_monoid {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  ordered_cancel_comm_monoid β :=
+{ le_of_mul_le_mul_left := λ a b c (ab : f (a * b) ≤ f (a * c)),
+    (by { rw [mul, mul] at ab, exact le_of_mul_le_mul_left' ab }),
+  ..hf.left_cancel_semigroup f mul,
+  ..hf.right_cancel_semigroup f mul,
+  ..hf.ordered_comm_monoid f one mul }
+
 section mono
 
 variables {β : Type*} [preorder β] {f g : β → α}
@@ -1050,16 +1135,16 @@ fn_min_mul_fn_max id n m
 /-- A linearly ordered cancellative additive commutative monoid
 is an additive commutative monoid with a decidable linear order
 in which addition is cancellative and monotone. -/
-@[protect_proj, ancestor ordered_cancel_add_comm_monoid linear_order]
+@[protect_proj, ancestor ordered_cancel_add_comm_monoid linear_ordered_add_comm_monoid]
 class linear_ordered_cancel_add_comm_monoid (α : Type u)
-  extends ordered_cancel_add_comm_monoid α, linear_order α
+  extends ordered_cancel_add_comm_monoid α, linear_ordered_add_comm_monoid α
 
 /-- A linearly ordered cancellative commutative monoid
 is a commutative monoid with a linear order
 in which multiplication is cancellative and monotone. -/
-@[protect_proj, ancestor ordered_cancel_comm_monoid linear_order, to_additive]
+@[protect_proj, ancestor ordered_cancel_comm_monoid linear_ordered_comm_monoid, to_additive]
 class linear_ordered_cancel_comm_monoid (α : Type u)
-  extends ordered_cancel_comm_monoid α, linear_order α
+  extends ordered_cancel_comm_monoid α, linear_ordered_comm_monoid α
 
 section linear_ordered_cancel_comm_monoid
 
@@ -1091,6 +1176,17 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 @[to_additive]
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
+
+/-- Pullback a `linear_ordered_cancel_comm_monoid` under an injective map. -/
+@[to_additive function.injective.linear_ordered_cancel_add_comm_monoid
+"Pullback a `linear_ordered_cancel_add_comm_monoid` under an injective map."]
+def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
+  [has_one β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) :
+  linear_ordered_cancel_comm_monoid β :=
+{ ..hf.linear_ordered_comm_monoid f one mul,
+  ..hf.ordered_cancel_comm_monoid f one mul }
 
 end linear_ordered_cancel_comm_monoid
 
@@ -1164,6 +1260,14 @@ instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (addit
 { le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
   ..additive.add_right_cancel_semigroup,
   ..additive.add_left_cancel_semigroup,
+  ..additive.ordered_add_comm_monoid }
+
+instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multiplicative α) :=
+{ ..multiplicative.linear_order,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
+{ ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
 
 end type_tags

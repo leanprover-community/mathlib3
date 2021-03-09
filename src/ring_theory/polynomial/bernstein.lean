@@ -205,7 +205,8 @@ begin
 end
 
 lemma iterate_derivative_at_0_aux₂ (n k : ℕ) :
-  (↑k) * polynomial.eval ↑(k-n) (pochhammer R n) = ↑(k-n) * polynomial.eval (↑(k-n+1)) (pochhammer R n) :=
+  (↑k) * polynomial.eval ↑(k-n) (pochhammer R n) =
+    ↑(k-n) * polynomial.eval (↑(k-n+1)) (pochhammer R n) :=
 by simpa using congr_arg (algebra_map ℕ R) (iterate_derivative_at_0_aux₁ n k)
 
 @[simp]

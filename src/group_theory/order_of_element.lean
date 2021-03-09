@@ -227,7 +227,7 @@ open nat
 
 variables (a)
 
-lemma order_of_pow (n : ℕ) (h : n ≠ 0) :
+lemma order_of_pow (n : ℕ) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
 conv_rhs { rw order_of },
@@ -260,26 +260,6 @@ split_ifs with hx,
         exact hm.2 } },
   { simp } }
 end
-
-lemma order_of_pow' (n : ℕ) (h : ∃ n, 0 < n ∧ a ^ n = 1) :
-  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
-begin
-  conv_rhs { rw order_of },
-  split_ifs with hx,
-  rw ← order_of_of_finite_order h,
-  exact dvd_antisymm
-  (order_of_dvd_of_pow_eq_one
-    (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
-  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos a h),
-    have hdvd : order_of a ∣ n * order_of (a ^ n),
-      from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
-    coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
-      (dvd_of_mul_dvd_mul_right gcd_pos
-        (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
-            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
-end
-
 
 end monoid
 
@@ -330,7 +310,7 @@ end group
 section finite_monoid
 variables {α} [fintype α] [decidable_eq α] [monoid α]
 
-lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
@@ -615,9 +595,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
     (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
   begin
     rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers],
-    rw order_of_pow' g _ (begin cases (exists_pow_eq_one g) with w hw,
-                                cases hw with hw1 hw2,
-                                exact ⟨w, hw1, hw2⟩ end),
+    rw order_of_pow g _,
     rw order_of_eq_card_of_forall_mem_gpowers hg,
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
@@ -693,11 +671,10 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
       card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
-          by { rw order_of_pow' a _ (begin cases (exists_pow_eq_one a) with w hw,
-                                           cases hw with hw1 hw2,
-                                           exact ⟨w, hw1, hw2⟩ end),
+          by { rw order_of_pow a (d.succ / m),
                 rw [ha, gcd_eq_right (div_dvd_of_dvd hm),
-                nat.div_div_self hm (succ_pos _)] }⟩⟩)),
+                nat.div_div_self hm (succ_pos _)]
+                }⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])

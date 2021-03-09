@@ -105,7 +105,8 @@ by convert not_even_bit1 n; exact two_mul n
 
 lemma two_not_dvd_two_mul_sub_one : Π {n} (w : 0 < n), ¬(2 ∣ 2 * n - 1)
 | (n + 1) _ := by { convert two_not_dvd_two_mul_add_one n,
-  rw [mul_add, mul_one, nat.add_sub_assoc one_le_two] }
+  -- TODO: remove try if mul is left-recursive
+  try { rw [mul_add, mul_one, nat.add_sub_assoc one_le_two] } }
 
 @[parity_simps] theorem even_sub (h : n ≤ m) : even (m - n) ↔ (even m ↔ even n) :=
 begin

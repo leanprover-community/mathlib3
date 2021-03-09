@@ -626,7 +626,9 @@ end,
       apply (nat.div_lt_iff_lt_mul _ _ k.succ_pos).1,
       apply nat.lt_succ_self } },
   dsimp,
-  rw [add_zero, ←add_succ, ←mul_succ, this] }
+  rw [add_zero, ←add_succ, ←mul_succ, this] <|>
+  rw [add_zero, ←add_succ, ←succ_mul, mul_succ, add_assoc, add_comm m n, ←add_assoc,
+      ←succ_mul, this] }
 end
 
 @[simp] theorem mul_div_mul_of_pos_left (a : ℤ) {b : ℤ} (c : ℤ) (H : 0 < b) :

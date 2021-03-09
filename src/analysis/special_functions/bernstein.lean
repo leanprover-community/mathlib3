@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.polynomial.bernstein
+import ring_theory.polynomial.bernstein
 import topology.instances.real
 import topology.algebra.continuous_functions
 import topology.algebra.polynomial

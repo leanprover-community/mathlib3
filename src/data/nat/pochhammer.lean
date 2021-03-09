@@ -4,23 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.abel
+import data.polynomial.eval
 
 /-!
-# The rising and falling factorial functions
+# The Pochhammer polynomials
 
 We define and prove some basic relations about
-`rising_factorial x n = x * (x+1) * ... * (x + n - 1)`
-which is also known as the Pochhammer function
-and its cousin
-`falling_factorial x n = x * (x-1) * ... * (x - (n-1))`.
+`pochhammer S n : polynomial S = X * (X+1) * ... * (X + n - 1)`
+which is also known as the rising factorial.
 
 ## Implementation
 
-In a commutative ring we have `rising_factorial r n = falling_factorial (r + n - 1) n`,
-but for the sake of (perhaps needless?) generality
-we give separate inductive definitions in a `[semiring R]`,
-additionally requiring `[has_sub R]` for `falling_factorial`.
-A few of the theorems require separate proofs assuming either `[ring R]` or `R = ℕ`.
+As with many other families of polynomials, even though the coefficients are always in `ℕ`,
+we define the polynomial with coefficients in any `[semiring S]`.
 
 ## TODO
 
@@ -29,203 +25,122 @@ There is lots more in this direction:
 * Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
-variables {R : Type*}
+universes u v
+
+open polynomial
 
 section
-variables [semiring R]
+variables (S : Type u) [semiring S]
 
-/--
-The rising factorial function: `rising_factorial x n = x * (x+1) * ... * (x + n - 1)`.
+noncomputable def pochhammer : ℕ → polynomial S
+| 0 := 1
+| (n+1) := X * (pochhammer n).comp(X + 1)
 
-It is also sometimes called the Pochhammer polynomial, or the upper factorial.
-Notations in the mathematics literature vary extensively.
--/
-def rising_factorial : R → ℕ → R
-| r 0 := 1
-| r (n+1) := r * rising_factorial (r+1) n
-
-@[simp]
-lemma rising_factorial_zero {r : R} : rising_factorial r 0 = 1 := rfl
-@[simp]
-lemma rising_factorial_one {r : R} : rising_factorial r 1 = r := by simp [rising_factorial]
-
-lemma rising_factorial_eq_mul_left {r : R} {n : ℕ} :
-  rising_factorial r (n + 1) = r * rising_factorial (r+1) n := rfl
-
-lemma rising_factorial_eq_mul_right {r : R} {n : ℕ} :
-  rising_factorial r (n + 1) = rising_factorial r n * (r + n) :=
-begin
-  induction n with n ih generalizing r,
-  { simp, },
-  { rw [rising_factorial, ih, rising_factorial, nat.succ_eq_add_one],
-    push_cast,
-    rw [mul_assoc, add_comm (n : R) 1, add_assoc], }
-end
-
-lemma rising_factorial_mul_rising_factorial {r : R} {n m : ℕ} :
-  rising_factorial r n * rising_factorial (r + n) m = rising_factorial r (n + m) :=
-begin
-  induction m with m ih,
-  { simp, },
-  { rw [rising_factorial_eq_mul_right, ←mul_assoc, ih, nat.add_succ, rising_factorial_eq_mul_right],
-    push_cast,
-    rw [add_assoc], }
-end
-end
+@[simp] lemma pochhammer_zero : pochhammer S 0 = 1 := rfl
+@[simp] lemma pochhammer_one : pochhammer S 1 = X := by simp [pochhammer]
+@[simp] lemma pochhammer_succ_left (n : ℕ) : pochhammer S (n+1) = X * (pochhammer S n).comp (X+1) :=
+by { dsimp [pochhammer], refl, }
 
 section
-variables [semiring R] [has_sub R]
-
-/--
-The falling factorial function: `falling_factorial x n = x * (x-1) * ... * (x - (n - 1))`.
--/
-def falling_factorial : R → ℕ → R
-| r 0 := 1
-| r (n+1) := r * falling_factorial (r-1) n
-
-@[simp]
-lemma falling_factorial_zero {r : R} : falling_factorial r 0 = 1 := rfl
-@[simp]
-lemma falling_factorial_one {r : R} : falling_factorial r 1 = r := by simp [falling_factorial]
-
-lemma falling_factorial_eq_mul_left {r : R} {n : ℕ} :
-  falling_factorial r (n + 1) = r * falling_factorial (r-1) n := rfl
-end
-
-section
--- In fact, the lemmas in this section apply to `ℕ` as well:
--- they only use `n - 0 = n` and `n - m - k = n - (m + k)`.
--- Without a `[monus R]` typeclass, we just prove them separately below in the `nat` namespace.
-variables [ring R]
-
-lemma falling_factorial_eq_mul_right {r : R} {n : ℕ} :
-  falling_factorial r (n + 1) = falling_factorial r n * (r - n) :=
-begin
-  induction n with n ih generalizing r,
-  { simp, },
-  { rw [falling_factorial, ih, falling_factorial, nat.succ_eq_add_one],
-    push_cast,
-    rw [mul_assoc, add_comm (n : R) 1, ←sub_sub], }
-end
-
-lemma falling_factorial_mul_falling_factorial {r : R} {n m : ℕ} :
-  falling_factorial r n * falling_factorial (r - n) m = falling_factorial r (n + m) :=
-begin
-  induction m with m ih,
-  { simp, },
-  { rw [falling_factorial_eq_mul_right, ←mul_assoc, ih, nat.add_succ,
-      falling_factorial_eq_mul_right],
-    push_cast,
-    rw [sub_sub], }
-end
-
-end
-
-namespace nat
-
-section
-variables [ring R]
-
-@[norm_cast]
-lemma falling_factorial_coe {r n : ℕ} :
-  ((falling_factorial r n : ℕ) : R) = falling_factorial (r : R) n :=
-begin
-  induction n with n ih generalizing r,
-  { simp, },
-  { simp only [falling_factorial, falling_factorial_eq_mul_left, nat.cast_mul],
-    rw [ih],
-    { by_cases w : r = 0,
-      { subst w, simp, },
-      { replace w : 0 < r := nat.pos_of_ne_zero w,
-        push_cast [w], }, }, },
-end
-
-/-- We already have this theorem for `r : R` with `[ring R]`,
-but need to prove it separately for `ℕ`.-/
-lemma falling_factorial_eq_mul_right {r n : ℕ} :
-  falling_factorial r (n + 1) = falling_factorial r n * (r - n) :=
-begin
-  -- We could prove this from the ring case by using the injectivity of `ℕ → ℤ`,
-  -- but it involves casing on `n ≤ r`, so it's easier to just redo it from scratch.
-  induction n with n ih generalizing r,
-  { simp, },
-  { rw [falling_factorial, ih, falling_factorial, succ_eq_add_one],
-    rw [mul_assoc, add_comm n 1, ←nat.sub_sub], }
-end
-
-@[simp]
-lemma falling_factorial_eq_factorial {n : ℕ} :
-  falling_factorial n n = n.factorial :=
+variables {S} {T : Type v} [semiring T]
+@[simp] lemma pochhammer_map (f : S →+* T) (n : ℕ) : (pochhammer S n).map f = pochhammer T n :=
 begin
   induction n with n ih,
   { simp, },
-  { simp [falling_factorial_eq_mul_left, ih], }
+  { simp [ih, map_comp], },
 end
 
-/-- We already have this theorem for `r : R` with `[ring R]`,
-but need to prove it separately for `ℕ`.-/
-lemma falling_factorial_mul_falling_factorial {r n m : ℕ} :
-  falling_factorial r n * falling_factorial (r - n) m = falling_factorial r (n + m) :=
+end
+
+@[simp] lemma pochhammer_eval_cast (n k : ℕ) :
+  ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
+begin
+  rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←(algebra_map ℕ S).eq_nat_cast,
+    eval₂_at_nat_cast, nat.cast_id, ring_hom.eq_nat_cast],
+end
+
+@[simp] lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
+begin
+  cases n,
+  { simp, },
+  { simp [X_mul, nat.succ_ne_zero], } -- should nat.succ_ne_zero be a simp lemma?
+end
+
+lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=
+begin
+  suffices h : pochhammer ℕ (n+1) = pochhammer ℕ n * (X + n),
+  { apply_fun polynomial.map (algebra_map ℕ S) at h,
+    simpa only [pochhammer_map, map_mul, map_add, map_X, map_nat_cast] using h, },
+  induction n with n ih,
+  { simp, },
+  { conv_lhs {
+    rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
+      nat_cast_comp, add_assoc, add_comm (1 : polynomial ℕ)], },
+    refl, },
+end
+
+lemma polynomial.mul_X_add_nat_cast_comp {p q : polynomial S} {n : ℕ} :
+  (p * (X + n)).comp q = (p.comp q) * (q + n) :=
+by rw [mul_add, add_comp, mul_X_comp, ←nat.cast_comm, nat_cast_mul_comp, nat.cast_comm, mul_add]
+
+lemma pochhammer_mul (n m : ℕ) :
+  pochhammer S n * (pochhammer S m).comp(X + n) = pochhammer S (n + m) :=
 begin
   induction m with m ih,
   { simp, },
-  { rw [falling_factorial_eq_mul_right, ←mul_assoc, ih, add_succ,
-      falling_factorial_eq_mul_right, nat.sub_sub], }
-end
-
-lemma falling_factorial_ne_zero {n m : ℕ} (h : n ≤ m) :
-  falling_factorial m n ≠ 0 :=
-begin
-  intro w,
-  have := @falling_factorial_mul_falling_factorial m n (m-n),
-  rw [w, nat.add_sub_cancel' h, zero_mul, falling_factorial_eq_factorial] at this,
-  exact ne_of_lt m.factorial_pos this,
-end
-
-end
-
-end nat
-
-section
-variables [comm_ring R]
-
-lemma rising_factorial_eq_falling_factorial {r : R} {n : ℕ} :
-  rising_factorial r n = falling_factorial (r + n - 1) n :=
-begin
-  induction n with n ih generalizing r,
-  { refl, },
-  { rw [rising_factorial, falling_factorial_eq_mul_right, ih, mul_comm, nat.succ_eq_add_one],
-    push_cast,
-    congr' 2; abel, }
+  { rw [pochhammer_succ_right, polynomial.mul_X_add_nat_cast_comp, ←mul_assoc, ih,
+      nat.succ_eq_add_one, ←add_assoc, pochhammer_succ_right, nat.cast_add, add_assoc], }
 end
 
 end
 
 section
-lemma rising_factorial_eq_factorial {n : ℕ} :
-  rising_factorial 1 n = n.factorial :=
+variables {S : Type*} [ordered_semiring S] [nontrivial S]
+
+lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
 begin
   induction n with n ih,
-  { refl, },
-  { rw [rising_factorial_eq_mul_right, nat.factorial, ih, mul_comm, add_comm], push_cast, }
+  { simp only [nat.nat_zero_eq_zero, pochhammer_zero, eval_one], exact zero_lt_one, },
+  { rw [pochhammer_succ_right, mul_add, eval_add, ←nat.cast_comm, eval_nat_cast_mul, eval_mul_X,
+      nat.cast_comm, ←mul_add],
+    exact mul_pos ih
+      (lt_of_lt_of_le h ((le_add_iff_nonneg_right _).mpr (nat.cast_nonneg n))), }
 end
 
-lemma factorial_mul_rising_factorial {r n : ℕ} :
-  r.factorial * rising_factorial (r+1) n = (r + n).factorial :=
-begin
-  rw [←rising_factorial_eq_factorial, add_comm, ←rising_factorial_eq_factorial],
-  convert rising_factorial_mul_rising_factorial,
-  simp,
 end
 
-lemma rising_factorial_eq_factorial_div_factorial {r n : ℕ} :
-  rising_factorial (r+1) n = (r + n).factorial / r.factorial :=
-(nat.div_eq_of_eq_mul_right (nat.factorial_pos _) factorial_mul_rising_factorial.symm).symm
+section factorial
 
-lemma rising_factorial_eq_choose_mul_factorial {r n : ℕ} :
-  rising_factorial (r+1) n = (r + n).choose n * n.factorial :=
+/-- Preliminary version of `pochhammer_eval_one` specialized to `S = ℕ`. -/
+lemma pochhammer_eval_one' (n : ℕ) : (pochhammer ℕ n).eval 1 = n.factorial :=
 begin
-  rw rising_factorial_eq_factorial_div_factorial,
+  induction n with n ih,
+  { simp, },
+  { simp [ih, mul_comm, nat.succ_eq_add_one, add_comm, pochhammer_succ_right], },
+end
+
+@[simp]
+lemma pochhammer_eval_one (S : Type*) [semiring S] (n : ℕ) :
+  (pochhammer S n).eval (1 : S) = (n.factorial : S) :=
+by simpa using congr_arg (algebra_map ℕ S) (pochhammer_eval_one' n)
+
+/-- Preliminary version of `factorial_mul_pochhammer` specialized to `S = ℕ`. -/
+lemma factorial_mul_pochhammer' (r n : ℕ) :
+  r.factorial * (pochhammer ℕ n).eval (r+1) = (r + n).factorial :=
+by simpa [add_comm 1 r, pochhammer_eval_one'] using congr_arg (eval 1) (pochhammer_mul ℕ r n)
+
+lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
+  (r.factorial : S) * (pochhammer S n).eval (r+1) = (r + n).factorial :=
+by simpa using congr_arg (algebra_map ℕ S) (factorial_mul_pochhammer' r n)
+
+lemma pochhammer_eval_eq_factorial_div_factorial {r n : ℕ} :
+  (pochhammer ℕ n).eval (r+1) = (r + n).factorial / r.factorial :=
+(nat.div_eq_of_eq_mul_right (nat.factorial_pos _) (factorial_mul_pochhammer' r n).symm).symm
+
+lemma pochhammer_eval_eq_choose_mul_factorial {r n : ℕ} :
+  (pochhammer ℕ n).eval (r+1) = (r + n).choose n * n.factorial :=
+begin
+  rw pochhammer_eval_eq_factorial_div_factorial,
   -- TODO we need a `clear_denominators` tactic!
   apply nat.div_eq_of_eq_mul_right (nat.factorial_pos _),
   rw [mul_comm],
@@ -233,61 +148,12 @@ begin
   simp,
 end
 
-lemma choose_eq_rising_factorial_div_factorial {r n : ℕ} :
-  (r + n).choose n = rising_factorial (r+1) n / n.factorial :=
+lemma choose_eq_pochhammer_eval_div_factorial {r n : ℕ} :
+  (r + n).choose n = (pochhammer ℕ n).eval (r+1) / n.factorial :=
 begin
   symmetry,
   apply nat.div_eq_of_eq_mul_right (nat.factorial_pos _),
-  rw [mul_comm, rising_factorial_eq_choose_mul_factorial],
-end
-end
-
-namespace ring_hom
-
-local attribute [simp] rising_factorial falling_factorial
-
-variables {S : Type*}
-
-section
-variables [semiring R] [semiring S]
-
-@[simp]
-lemma map_rising_factorial (f : R →+* S) {r : R} {n : ℕ} :
-  f (rising_factorial r n) = rising_factorial (f r) n :=
-begin
-  induction n with n ih generalizing r,
-  { simp, },
-  { simp [ih], }
+  rw [mul_comm, pochhammer_eval_eq_choose_mul_factorial],
 end
 
-@[norm_cast]
-lemma nat_coe_rising_factorial {r n : ℕ} :
-  ((rising_factorial r n : ℕ) : R) = rising_factorial (r : R) n :=
-by rw [←nat.coe_cast_ring_hom, map_rising_factorial]
-
-end
-
-section
-variables [ring R] [ring S]
-
-@[simp]
-lemma map_falling_factorial (f : R →+* S) {r : R} {n : ℕ} :
-  f (falling_factorial r n) = falling_factorial (f r) n :=
-begin
-  induction n with n ih generalizing r,
-  { simp, },
-  { simp [ih], }
-end
-
-@[norm_cast]
-lemma int_coe_rising_factorial {r : ℤ} {n : ℕ} :
-  ((rising_factorial r n : ℤ) : R) = rising_factorial (r : R) n :=
-by rw [←int.coe_cast_ring_hom, map_rising_factorial]
-
-@[norm_cast]
-lemma int_coe_falling_factorial {r : ℤ} {n : ℕ} :
-  ((falling_factorial r n : ℤ) : R) = falling_factorial (r : R) n :=
-by rw [←int.coe_cast_ring_hom, map_falling_factorial]
-
-end
-end ring_hom
+end factorial

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import analysis.normed_space.inner_product
-import measure_theory.bochner_integration
+import measure_theory.set_integral
 
 /-! # `L^2` space
 

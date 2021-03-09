@@ -159,6 +159,12 @@ lemma coe_comap (H : open_subgroup N) (f : G →* N) (hf : continuous f) :
 lemma mem_comap {H : open_subgroup N} {f : G →* N} {hf : continuous f} {x : G} :
   x ∈ H.comap f hf ↔ f x ∈ H := iff.rfl
 
+@[to_additive]
+lemma comap_comap {P : Type*} [group P] [topological_space P] [topological_group P]
+  (K : open_subgroup P) (f₂ : N →* P) (hf₂ : continuous f₂) (f₁ : G →* N) (hf₁ : continuous f₁) :
+  (K.comap f₂ hf₂).comap f₁ hf₁ = K.comap (f₂.comp f₁) (hf₂.comp hf₁) :=
+rfl
+
 end open_subgroup
 
 namespace subgroup

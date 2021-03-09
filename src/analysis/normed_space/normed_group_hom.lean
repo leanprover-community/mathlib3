@@ -375,7 +375,7 @@ variables {V W V₁ V₂ V₃ : Type*}
 variables [normed_group V] [normed_group W] [normed_group V₁] [normed_group V₂] [normed_group V₃]
 
 
-/-- The inclusion of the kernel, as bounded group homomorphism. -/
+/-- The inclusion of an `add_subgroup`, as bounded group homomorphism. -/
 @[simps] def incl (s : add_subgroup V) : normed_group_hom s V :=
 { to_fun := (coe : s → V),
   map_add' := λ v w, add_subgroup.coe_add _ _ _,

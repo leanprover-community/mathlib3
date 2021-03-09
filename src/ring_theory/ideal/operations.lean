@@ -1323,7 +1323,7 @@ by { rw [← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_eq_coe], 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
 lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :
   (I.comap (f.symm : S →+* R)).comap (f : R →+* S) = I :=
-by { rw [← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_eq_coe], simp [comap_comap] }
+by simp [← ring_equiv.to_ring_hom_eq_coe, comap_comap]
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I`. -/
 lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=

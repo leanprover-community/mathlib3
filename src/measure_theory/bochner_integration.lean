@@ -352,6 +352,17 @@ begin
   exact hg.neg
 end
 
+lemma integral_linear_map [normed_space ℝ E] (f : α →ₛ E) (g : E →L[ℝ] F) (hf : integrable f μ) :
+  integral μ (f.map g) = g (integral μ f) :=
+begin
+  rw map_integral f g hf g.map_zero,
+  have h_smul : ∑ (x : E) in f.range, (μ (⇑f ⁻¹' {x})).to_real • g x
+    = ∑ (x : E) in f.range, g ((μ (⇑f ⁻¹' {x})).to_real • x),
+  { congr' with x,
+    exact (g.map_smul _ _).symm, },
+  rw [h_smul, ← g.map_sum, integral],
+end
+
 lemma integral_smul {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   integral μ (r • f) = r • integral μ f :=
@@ -758,6 +769,59 @@ begin
   apply add_to_simple_func
 end
 
+lemma simple_func_linear_map [normed_space ℝ F] (f : α →₁[μ] E) (g : E →L[ℝ] F)
+  (hf : f ∈ L1.simple_func α E μ) :
+  (g.comp_Lp f) ∈ L1.simple_func α F μ :=
+begin
+  refine ⟨(to_simple_func ⟨f, hf⟩).map g, _⟩,
+  ext1,
+  have hfg : g.comp_Lp f =ᵐ[μ] g ∘ f,
+  { rw eventually_eq,
+    exact continuous_linear_map.coe_fn_comp_Lp _ _, },
+  refine eventually_eq.trans _ hfg.symm,
+  refine (coe_fn_mk _ _).trans _,
+  rw measure_theory.simple_func.coe_map,
+  refine (to_simple_func_eq_to_fun ⟨f, hf⟩).mono (λ x hx, _),
+  change g ((to_simple_func ⟨f, hf⟩) x) = g (f x),
+  rw hx,
+  congr,
+end
+
+def comp_simple_func [normed_space ℝ F] (L : E →L[ℝ] F) (f : α →₁ₛ[μ] E) : α →₁ₛ[μ] F :=
+⟨L.comp_Lp f, simple_func_linear_map f L f.mem⟩
+
+lemma coe_comp_simple_func [normed_space ℝ F] (L : E →L[ℝ] F) (f : α →₁ₛ[μ] E) :
+  L.comp_Lp (f : α →₁[μ] E) = ↑(comp_simple_func L f) := rfl
+
+lemma comp_simple_func_coe [normed_space ℝ F] (L : E →L[ℝ] F) (f : α →₁ₛ[μ] E) :
+  comp_simple_func L f =ᵐ[μ] L.comp_Lp (f : α →₁[μ] E) :=
+by { rw coe_comp_simple_func L f, simp, }
+
+lemma comp_simple_func_coe_fn [normed_space ℝ F] (L : E →L[ℝ] F) (f : α →₁ₛ[μ] E) :
+  comp_simple_func L f =ᵐ[μ] L ∘ f :=
+begin
+  refine (comp_simple_func_coe L f).trans _,
+  rw eventually_eq,
+  exact continuous_linear_map.coe_fn_comp_Lp _ _,
+end
+
+lemma to_simple_func_comp [normed_space ℝ F] (L : E →L[ℝ] F) (f : α →₁ₛ[μ] E) :
+  to_simple_func (comp_simple_func L f) =ᵐ[μ] (to_simple_func f).map L :=
+begin
+  rw measure_theory.simple_func.coe_map,
+  refine (to_simple_func_eq_to_fun _).trans ((comp_simple_func_coe_fn _ _).trans _),
+  refine (to_simple_func_eq_to_fun f).mono (λ x hx, _),
+  change L (f x) = L (to_simple_func f x),
+  congr,
+  exact hx.symm,
+end
+
+lemma integral_linear_map [normed_space ℝ F] (f : α →₁ₛ[μ] E) (g : E →L[ℝ] F) :
+  integral (comp_simple_func g f) = g (integral f) :=
+by rw [integral, integral,
+  measure_theory.simple_func.integral_congr (simple_func.integrable _) (to_simple_func_comp g f),
+  measure_theory.simple_func.integral_linear_map (to_simple_func f) g (simple_func.integrable f)]
+
 lemma integral_smul {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) (f : α →₁ₛ[μ] E) : integral (r • f) = r • integral f :=
 begin
@@ -933,6 +997,24 @@ calc ∥integral f∥ = ∥Integral f∥ : rfl
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), integral f) :=
 by simp [L1.integral, L1.integral_clm.continuous]
 
+lemma integral_linear_map [complete_space F] [normed_space ℝ F] (f : α →₁[μ] E) (g : E →L[ℝ] F) :
+  integral (g.comp_Lp f) = g (integral f) :=
+begin
+  haveI h1 : fact (1 ≤ (1 : ℝ≥0∞)) := le_rfl,
+  refine @is_closed_property _ _ _ (coe : (α →₁ₛ[μ] E) → (α →₁[μ] E))
+    (λ f : α →₁[μ] E, integral (g.comp_Lp f) = g (integral f))
+    L1.simple_func.dense_range _ _ f,
+  { refine is_closed_eq _ _,
+    { continuity,
+      simp_rw comp_Lp,
+      exact lipschitz_with.continuous_comp_Lp _ _, },
+    { continuity, }, },
+  intro f',
+  norm_cast,
+  rw [← simple_func.integral_linear_map f' g, coe_comp_simple_func],
+  norm_cast,
+end
+
 section pos_part
 
 local attribute [instance] fact_one_le_one_ennreal
@@ -1074,6 +1156,154 @@ integral_congr_ae $ by simp [integrable.coe_fn_to_L1]
 @[continuity]
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), ∫ a, f a ∂μ) :=
 by { simp only [← L1.integral_eq_integral], exact L1.continuous_integral }
+
+lemma comp_Lp_to_L1_ae_eq [complete_space F] [normed_space ℝ F] (f : α → E) (g : E →L[ℝ] F)
+  (hf : integrable f μ) :
+  g.comp_Lp (hf.to_L1 f) =ᵐ[μ] g ∘ f :=
+begin
+  have hfg : g.comp_Lp (hf.to_L1 f) =ᵐ[μ] g ∘ (hf.to_L1 f),
+  { rw eventually_eq,
+    exact continuous_linear_map.coe_fn_comp_Lp _ _, },
+  refine hfg.trans _,
+  refine (integrable.coe_fn_to_L1 hf).mono (λ x hx, _),
+  change g ((integrable.to_L1 f hf) x) = g (f x),
+  rw hx,
+end
+
+lemma integrable_linear_map [complete_space F] [normed_space ℝ F] (f : α → E) (g : E →L[ℝ] F)
+  (hf : integrable f μ) :
+  integrable (λ (a : α), g (f a)) μ :=
+begin
+  have hfg : g.comp_Lp (hf.to_L1 f) =ᵐ[μ] g ∘ f,
+    from comp_Lp_to_L1_ae_eq f g hf,
+  refine integrable.congr _ hfg,
+  rw ← mem_ℒp_one_iff_integrable,
+  exact Lp.mem_ℒp _,
+end
+
+lemma integrable_linear_equiv_iff (f : α → E) (g : E ≃L[ℝ] F) :
+  integrable (λ (a : α), g (f a)) μ ↔ integrable f μ :=
+begin
+  refine ⟨λ h, _, integrable_linear_map f g⟩,
+  have hfg : f = λ x, g.symm (g (f x)), by simp,
+  rw hfg,
+  exact integrable_linear_map (λ x, g (f x)) g.symm.to_continuous_linear_map h,
+end
+
+lemma to_L1_comp_eq_comp_Lp [complete_space F] [normed_space ℝ F] (f : α → E) (g : E →L[ℝ] F)
+  (hf : integrable f μ) :
+  integrable.to_L1 (λ (a : α), g (f a)) (integrable_linear_map f g hf) = g.comp_Lp (hf.to_L1 f) :=
+begin
+  ext1,
+  exact (integrable.coe_fn_to_L1 _).trans (comp_Lp_to_L1_ae_eq f g hf).symm,
+end
+
+lemma integral_linear_map [complete_space F] [normed_space ℝ F] {f : α → E} (hf : integrable f μ)
+  (g : E →L[ℝ] F) :
+  ∫ a, g (f a) ∂μ = g (∫ a, f a ∂μ) :=
+by rw [integral_eq _ hf, integral_eq _ (integrable_linear_map f g hf), to_L1_comp_eq_comp_Lp,
+  L1.integral_linear_map]
+
+lemma integral_linear_equiv [complete_space F] [normed_space ℝ F] {f : α → E} (g : E ≃L[ℝ] F) :
+  ∫ a, g (f a) ∂μ = g (∫ a, f a ∂μ) :=
+begin
+  by_cases hf : integrable f μ,
+  { exact integral_linear_map hf g, },
+  have hfg : ¬ integrable (λ a, g (f a)) μ,
+    from mt (integrable_linear_equiv_iff f g).mp hf,
+  simp [integral_undef hf, integral_undef hfg],
+end
+
+@[simp]
+lemma is_R_or_C.of_real_smul {𝕜 : Type*} [is_R_or_C 𝕜] (r x : ℝ) :
+  (((r • x) : ℝ) : 𝕜) = r • (x : 𝕜) :=
+begin
+  simp_rw is_R_or_C.of_real_alg,
+  exact smul_assoc _ _ _,
+end
+
+def coe_is_R_or_C_lm {𝕜 : Type*} [is_R_or_C 𝕜] : ℝ →ₗ[ℝ] 𝕜 :=
+{ to_fun := λ x, (x : 𝕜),
+  map_add' := by simp,
+  map_smul' := is_R_or_C.of_real_smul, }
+
+@[simp] lemma coe_is_R_or_C_lm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
+  (coe_is_R_or_C_lm : ℝ → 𝕜) = coe := rfl
+
+def coe_is_R_or_C_clm {𝕜 : Type*} [is_R_or_C 𝕜] : ℝ →L[ℝ] 𝕜 :=
+coe_is_R_or_C_lm.mk_continuous 1 $
+begin
+  simp only [is_R_or_C.norm_eq_abs, coe_is_R_or_C_lm_coe, one_mul, is_R_or_C.abs_of_real,
+    is_R_or_C.abs_to_real],
+  exact λ _, le_rfl,
+end
+
+@[simp, norm_cast] lemma coe_is_R_or_C_clm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
+  ((coe_is_R_or_C_clm : ℝ →L[ℝ] 𝕜) : ℝ →ₗ[ℝ] 𝕜) = coe_is_R_or_C_lm := rfl
+
+@[simp] lemma coe_is_R_or_C_clm_apply {𝕜 : Type*} [is_R_or_C 𝕜] :
+  ((coe_is_R_or_C_clm : ℝ →L[ℝ] 𝕜) : ℝ → 𝕜) = coe := rfl
+
+@[norm_cast]
+lemma integral_coe_is_R_or_C {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  {f : α → ℝ} :
+  ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
+begin
+  by_cases hf : integrable f μ,
+  { simp_rw ← coe_is_R_or_C_clm_apply,
+    rw integral_linear_map hf,
+    exact normed_algebra.to_normed_space ℝ 𝕜,
+    exact is_R_or_C.to_complete_space, },
+  { sorry, },
+end
+
+lemma is_R_or_C.conj_eq_re_sub_im {𝕜 : Type*} [is_R_or_C 𝕜] (x : 𝕜) :
+  is_R_or_C.conj x = is_R_or_C.re x - (is_R_or_C.im x) * is_R_or_C.I :=
+by { rw is_R_or_C.ext_iff, simp, }
+
+lemma is_R_or_C.conj_smul {𝕜 : Type*} [is_R_or_C 𝕜] (m : ℝ) (x : 𝕜) :
+  is_R_or_C.conj (m • x) = m • is_R_or_C.conj x :=
+begin
+  simp_rw is_R_or_C.conj_eq_re_sub_im,
+  simp only [is_R_or_C.smul_re', is_R_or_C.smul_im', is_R_or_C.of_real_mul],
+  rw smul_sub,
+  simp_rw is_R_or_C.of_real_alg,
+  simp,
+end
+
+def conj_lm {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →ₗ[ℝ] 𝕜 :=
+{ to_fun := λ x, is_R_or_C.conj x,
+  map_add' := by simp,
+  map_smul' := is_R_or_C.conj_smul, }
+
+@[simp] lemma conj_lm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
+  (conj_lm : 𝕜 → 𝕜) = is_R_or_C.conj := rfl
+
+def conj_clm {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →L[ℝ] 𝕜 :=
+conj_lm.mk_continuous 1 $
+begin
+  simp only [is_R_or_C.norm_eq_abs, conj_lm_coe, one_mul, is_R_or_C.abs_of_real, is_R_or_C.abs_conj,
+    is_R_or_C.abs_to_real],
+  exact λ x, le_rfl,
+end
+
+@[simp, norm_cast] lemma conj_clm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
+  ((conj_clm : 𝕜 →L[ℝ] 𝕜) : 𝕜 →ₗ[ℝ] 𝕜) = conj_lm := rfl
+
+@[simp] lemma conj_clm_apply {𝕜 : Type*} [is_R_or_C 𝕜] :
+  ((conj_clm : 𝕜 →L[ℝ] 𝕜) : 𝕜 → 𝕜) = is_R_or_C.conj := rfl
+
+lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  {f : α → 𝕜} :
+  ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+begin
+  by_cases hf : integrable f μ,
+  { simp_rw ← conj_clm_apply,
+    rw integral_linear_map hf,
+    exact normed_algebra.to_normed_space ℝ 𝕜,
+    exact is_R_or_C.to_complete_space, },
+  { sorry, },
+end
 
 lemma norm_integral_le_lintegral_norm (f : α → E) :
   ∥∫ a, f a ∂μ∥ ≤ ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=

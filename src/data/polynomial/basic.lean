@@ -66,9 +66,10 @@ add_monoid_algebra.single_mul_single
 lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
   (monomial n r)^k = monomial (n*k) (r^k) :=
 begin
-  induction k with k ih,
-  { simp, },
-  { rw [pow_succ, ih, monomial_mul_monomial, pow_succ, nat.mul_succ, add_comm], },
+  rw mul_comm,
+  convert add_monoid_algebra.single_pow k,
+  simp only [nat.cast_id, nsmul_eq_mul],
+  refl,
 end
 
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :

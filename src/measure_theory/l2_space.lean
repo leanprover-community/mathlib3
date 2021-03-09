@@ -164,12 +164,10 @@ end
 private lemma add_left' (f f' g : Lp E 2 μ) :
   (inner (f + f') g : 𝕜) = inner f g + inner f' g :=
 begin
-  simp_rw inner_def,
-  rw ← integral_add (integrable_inner f g) (integrable_inner f' g),
-  refine integral_congr_ae _,
+  rw [inner_def, inner_def, inner_def,
+    ← integral_add (integrable_inner f g) (integrable_inner f' g)],
   simp_rw ←inner_add_left,
-  refine (coe_fn_add f f').mono (λ x hx, _),
-  dsimp only,
+  refine integral_congr_ae ((coe_fn_add f f').mono (λ x hx, _)),
   congr,
   rwa pi.add_apply at hx,
 end
@@ -177,14 +175,9 @@ end
 private lemma smul_left' (f g : Lp E 2 μ) (r : 𝕜) :
   inner (r • f) g = is_R_or_C.conj r * inner f g :=
 begin
-  simp_rw inner_def,
-  rw ← smul_eq_mul,
-  rw ← integral_smul,
-  refine integral_congr_ae _,
-  refine (coe_fn_smul r f).mono (λ x hx, _),
-  dsimp only,
-  rw smul_eq_mul,
-  simp_rw ← inner_smul_left,
+  rw [inner_def, inner_def, ← smul_eq_mul, ← integral_smul],
+  refine integral_congr_ae ((coe_fn_smul r f).mono (λ x hx, _)),
+  rw [smul_eq_mul, ← inner_smul_left],
   congr,
   rwa pi.smul_apply at hx,
 end

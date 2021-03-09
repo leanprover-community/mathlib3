@@ -113,8 +113,8 @@ lemma perm_on_inl_iff_perm_on_inr {m n : Type*} [fintype m] [fintype n] (σ : eq
   (∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) ↔ ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
 begin
   have := perm_maps_to_inl_iff_maps_to_inr σ,
-  rw [set.maps_to_range_iff, set.maps_to_range_iff] at this,
-  exact this,
+  rw [set.maps_range_to, set.maps_range_to] at this,
+  convert this; simp
 end
 
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,

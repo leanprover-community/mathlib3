@@ -1075,52 +1075,6 @@ integral_congr_ae $ by simp [integrable.coe_fn_to_L1]
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), ∫ a, f a ∂μ) :=
 by { simp only [← L1.integral_eq_integral], exact L1.continuous_integral }
 
-@[simp]
-lemma is_R_or_C.of_real_smul {𝕜 : Type*} [is_R_or_C 𝕜] (r x : ℝ) :
-  (((r • x) : ℝ) : 𝕜) = r • (x : 𝕜) :=
-begin
-  simp_rw is_R_or_C.of_real_alg,
-  exact smul_assoc _ _ _,
-end
-
-def R_coe_lm {𝕜 : Type*} [is_R_or_C 𝕜] : ℝ →ₗ[ℝ] 𝕜 :=
-{ to_fun := λ x, (x : 𝕜),
-  map_add' := by simp,
-  map_smul' := is_R_or_C.of_real_smul, }
-
-@[simp] lemma R_coe_lm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
-  (R_coe_lm : ℝ → 𝕜) = coe := rfl
-
-def R_coe_li {𝕜 : Type*} [is_R_or_C 𝕜] : ℝ →ₗᵢ[ℝ] 𝕜 :=
-{ to_linear_map := R_coe_lm,
-  norm_map' := by simp [is_R_or_C.norm_eq_abs] }
-
-lemma is_R_or_C.conj_eq_re_sub_im {𝕜 : Type*} [is_R_or_C 𝕜] (x : 𝕜) :
-  is_R_or_C.conj x = is_R_or_C.re x - (is_R_or_C.im x) * is_R_or_C.I :=
-by { rw is_R_or_C.ext_iff, simp, }
-
-lemma is_R_or_C.conj_smul {𝕜 : Type*} [is_R_or_C 𝕜] (m : ℝ) (x : 𝕜) :
-  is_R_or_C.conj (m • x) = m • is_R_or_C.conj x :=
-begin
-  simp_rw is_R_or_C.conj_eq_re_sub_im,
-  simp only [is_R_or_C.smul_re', is_R_or_C.smul_im', is_R_or_C.of_real_mul],
-  rw smul_sub,
-  simp_rw is_R_or_C.of_real_alg,
-  simp,
-end
-
-def conj_lm {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →ₗ[ℝ] 𝕜 :=
-{ to_fun := λ x, is_R_or_C.conj x,
-  map_add' := by simp,
-  map_smul' := is_R_or_C.conj_smul, }
-
-@[simp] lemma conj_lm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
-  (conj_lm : 𝕜 → 𝕜) = is_R_or_C.conj := rfl
-
-def conj_li {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →ₗᵢ[ℝ] 𝕜 :=
-{ to_linear_map := conj_lm,
-  norm_map' := by simp [is_R_or_C.norm_eq_abs] }
-
 lemma norm_integral_le_lintegral_norm (f : α → E) :
   ∥∫ a, f a ∂μ∥ ≤ ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 begin

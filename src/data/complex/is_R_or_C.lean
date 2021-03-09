@@ -710,6 +710,45 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 
 end cleanup_lemmas
 
+section linear_maps
+
+variables {K : Type*} [is_R_or_C K]
+
+@[simp] lemma of_real_smul (r x : ℝ) :
+  (((r • x) : ℝ) : K) = r • (x : K) :=
+by { simp_rw of_real_alg, exact smul_assoc _ _ _, }
+
+noncomputable
+def R_coe_lm : ℝ →ₗ[ℝ] K :=
+{ to_fun := λ x, (x : K), map_add' := by simp, map_smul' := of_real_smul, }
+
+@[simp] lemma R_coe_lm_coe : (R_coe_lm : ℝ → K) = coe := rfl
+
+noncomputable
+def R_coe_li : ℝ →ₗᵢ[ℝ] K := { to_linear_map := R_coe_lm, norm_map' := by simp [norm_eq_abs] }
+
+lemma conj_eq_re_sub_im (x : K) : conj x = re x - (im x) * I := by { rw ext_iff, simp, }
+
+lemma conj_smul (m : ℝ) (x : K) :
+  conj (m • x) = m • conj x :=
+begin
+  simp_rw conj_eq_re_sub_im,
+  simp only [smul_re', smul_im', of_real_mul],
+  rw smul_sub,
+  simp_rw of_real_alg,
+  simp,
+end
+
+noncomputable
+def conj_lm : K →ₗ[ℝ] K := { to_fun := λ x, conj x, map_add' := by simp, map_smul' := conj_smul, }
+
+@[simp] lemma conj_lm_coe : (conj_lm : K → K) = conj := rfl
+
+noncomputable
+def conj_li : K →ₗᵢ[ℝ] K := { to_linear_map := conj_lm, norm_map' := by simp [norm_eq_abs] }
+
+end linear_maps
+
 end is_R_or_C
 
 section normalization

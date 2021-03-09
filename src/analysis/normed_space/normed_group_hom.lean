@@ -30,11 +30,25 @@ structure normed_group_hom (V W : Type*) [normed_group V] [normed_group W] :=
 (map_add' : ∀ v₁ v₂, to_fun (v₁ + v₂) = to_fun v₁ + to_fun v₂)
 (bound' : ∃ C, ∀ v, ∥to_fun v∥ ≤ C * ∥v∥)
 
+namespace add_monoid_hom
+
+variables {V W : Type*} [normed_group V] [normed_group W] {f g : normed_group_hom V W}
+
 /-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
--/
-def add_monoid_hom.mk_continuous {V W : Type*} [normed_group V] [normed_group W] (f : V →+ W)
+
+See `add_monoid_hom.mk_normed_group_hom'` for a version that uses `ℝ≥0` for the bound. -/
+def mk_normed_group_hom (f : V →+ W)
   (C : ℝ) (h : ∀ v, ∥f v∥ ≤ C * ∥v∥) : normed_group_hom V W :=
 { bound' := ⟨C, h⟩, ..f }
+
+/-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
+
+See `add_monoid_hom.mk_normed_group_hom` for a version that uses `ℝ` for the bound. -/
+def mk_normed_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, nnnorm (f x) ≤ C * nnnorm x) :
+  normed_group_hom V W :=
+{ bound' := ⟨C, hC⟩ .. f}
+
+end add_monoid_hom
 
 lemma exists_pos_bound_of_bound {V W : Type*} [normed_group V] [normed_group W]
   {f : V → W} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
@@ -71,6 +85,12 @@ variables (f g)
 
 @[simp] lemma coe_mk (f) (h₁) (h₂) (h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : normed_group_hom V₁ V₂) = f := rfl
 
+@[simp] lemma coe_mk_normed_group_hom (f : V₁ →+ V₂) (C) (hC) :
+  ⇑(f.mk_normed_group_hom C hC) = f := rfl
+
+@[simp] lemma coe_mk_normed_group_hom' (f : V₁ →+ V₂) (C) (hC) :
+  ⇑(f.mk_normed_group_hom' C hC) = f := rfl
+
 /-- The group homomorphism underlying a bounded group homomorphism. -/
 def to_add_monoid_hom (f : normed_group_hom V₁ V₂) : V₁ →+ V₂ :=
 add_monoid_hom.mk' f f.map_add'
@@ -99,32 +119,8 @@ f.to_add_monoid_hom.map_sum _ _
 /-- Predicate asserting a norm bound on a normed group hom. -/
 def bound_by (f : normed_group_hom V₁ V₂) (C : ℝ≥0) : Prop := ∀ x, ∥f x∥ ≤ C * ∥x∥
 
-end normed_group_hom
-
-namespace add_monoid_hom
-
-variables {V V₁ V₂ V₃ : Type*}
-variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
-variables {f g : normed_group_hom V₁ V₂}
-
-/-- Make a normed group hom from a group hom and a norm bound. -/
-def mk_normed_group_hom (f : V₁ →+ V₂) (C : ℝ≥0) (hC : ∀ x, ∥f x∥ ≤ C * ∥x∥) :
-  normed_group_hom V₁ V₂ :=
-{ bound' := ⟨C, hC⟩ .. f}
-
-@[simp] lemma coe_mk_normed_group_hom (f : V₁ →+ V₂) (C) (hC) :
-  ⇑(f.mk_normed_group_hom C hC) = f := rfl
-
-lemma mk_normed_group_hom_bound_by (f : V₁ →+ V₂) (C) (hC) :
-  (f.mk_normed_group_hom C hC).bound_by C := hC
-
-end add_monoid_hom
-
-namespace normed_group_hom
-
-variables {V V₁ V₂ V₃ : Type*}
-variables [normed_group V] [normed_group V₁] [normed_group V₂] [normed_group V₃]
-variables (f g : normed_group_hom V₁ V₂)
+lemma mk_normed_group_hom'_bound_by (f : V₁ →+ V₂) (C) (hC) :
+  (f.mk_normed_group_hom' C hC).bound_by C := hC
 
 lemma bound : ∃ C, 0 < C ∧ f.bound_by C :=
 begin
@@ -203,28 +199,28 @@ theorem op_norm_le_of_lipschitz {f : normed_group_hom V₁ V₂} {K : ℝ≥0} (
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
 
 /-- If a bounded group homomorphism map is constructed from a group homomorphism via the constructor
-`mk_continuous`, then its norm is bounded by the bound given to the constructor if it is
+`mk_normed_group_hom`, then its norm is bounded by the bound given to the constructor if it is
 nonnegative. -/
-lemma mk_continuous_norm_le (f : V₁ →+ V₂) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ∥f.mk_continuous C h∥ ≤ C :=
+lemma mk_normed_group_hom_norm_le (f : V₁ →+ V₂) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ∥f.mk_normed_group_hom C h∥ ≤ C :=
 op_norm_le_bound _ hC h
 
 /-- If a bounded group homomorphism map is constructed from a group homomorphism via the constructor
-`mk_continuous`, then its norm is bounded by the bound given to the constructor or zero if this
+`mk_normed_group_hom`, then its norm is bounded by the bound given to the constructor or zero if this
 bound is negative. -/
-lemma mk_continuous_norm_le' (f : V₁ →+ V₂) {C : ℝ} (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ∥f.mk_continuous C h∥ ≤ max C 0 :=
+lemma mk_normed_group_hom_norm_le' (f : V₁ →+ V₂) {C : ℝ} (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ∥f.mk_normed_group_hom C h∥ ≤ max C 0 :=
 op_norm_le_bound _ (le_max_right _ _) $ λ x, (h x).trans $
   mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg x)
 
-alias mk_continuous_norm_le ← add_monoid_hom.mk_continuous_norm_le
-alias mk_continuous_norm_le' ← add_monoid_hom.mk_continuous_norm_le'
+alias mk_normed_group_hom_norm_le ← add_monoid_hom.mk_normed_group_hom_norm_le
+alias mk_normed_group_hom_norm_le' ← add_monoid_hom.mk_normed_group_hom_norm_le'
 
 /-! ### Addition of normed group homs -/
 
 /-- Addition of normed group homs. -/
 instance : has_add (normed_group_hom V₁ V₂) :=
-⟨λ f g, (f.to_add_monoid_hom + g.to_add_monoid_hom).mk_continuous (∥f∥ + ∥g∥) $ λ v, calc
+⟨λ f g, (f.to_add_monoid_hom + g.to_add_monoid_hom).mk_normed_group_hom (∥f∥ + ∥g∥) $ λ v, calc
   ∥f v + g v∥
       ≤ ∥f v∥ + ∥g v∥ : norm_add_le _ _
   ... ≤ ∥f∥ * ∥v∥ + ∥g∥ * ∥v∥ : add_le_add (le_op_norm f v) (le_op_norm g v)
@@ -232,7 +228,7 @@ instance : has_add (normed_group_hom V₁ V₂) :=
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-mk_continuous_norm_le _ (add_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
+mk_normed_group_hom_norm_le _ (add_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
 /--
 Terms containing `@has_add.add (has_coe_to_fun.F ...) pi.has_add`
@@ -250,7 +246,7 @@ library_note "addition on function coercions"
 /-! ### The zero normed group hom -/
 
 instance : has_zero (normed_group_hom V₁ V₂) :=
-⟨(0 : V₁ →+ V₂).mk_continuous 0 (by simp)⟩
+⟨(0 : V₁ →+ V₂).mk_normed_group_hom 0 (by simp)⟩
 
 instance : inhabited (normed_group_hom V₁ V₂) := ⟨0⟩
 
@@ -275,7 +271,7 @@ variables {f g}
 /-- The identity as a continuous normed group hom. -/
 @[simps]
 def id : normed_group_hom V V :=
-(add_monoid_hom.id V).mk_continuous 1 (by simp [le_refl])
+(add_monoid_hom.id V).mk_normed_group_hom 1 (by simp [le_refl])
 
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
 where it is `0`. It means that one can not do better than an inequality in general. -/
@@ -292,7 +288,7 @@ by rwa [id_apply, div_self (ne_of_gt $ norm_pos_iff.2 hx)] at this
 
 /-- Opposite of a normed group hom. -/
 instance : has_neg (normed_group_hom V₁ V₂) :=
-⟨λ f, (-f.to_add_monoid_hom).mk_continuous (∥f∥) (λ v, by simp [le_op_norm f v])⟩
+⟨λ f, (-f.to_add_monoid_hom).mk_normed_group_hom (∥f∥) (λ v, by simp [le_op_norm f v])⟩
 
 -- see Note [addition on function coercions]
 @[simp] lemma coe_neg (f : normed_group_hom V₁ V₂) : ⇑(-f) = (-f : V₁ → V₂) := rfl
@@ -349,14 +345,14 @@ by simp only [coe_sum, finset.sum_apply]
 @[simps]
 protected def comp (g : normed_group_hom V₂ V₃) (f : normed_group_hom V₁ V₂) :
   normed_group_hom V₁ V₃ :=
-(g.to_add_monoid_hom.comp f.to_add_monoid_hom).mk_continuous (∥g∥ * ∥f∥) $ λ v, calc
+(g.to_add_monoid_hom.comp f.to_add_monoid_hom).mk_normed_group_hom (∥g∥ * ∥f∥) $ λ v, calc
 ∥g (f v)∥ ≤ ∥g∥ * ∥f v∥ : le_op_norm _ _
 ... ≤ ∥g∥ * (∥f∥ * ∥v∥) : mul_le_mul_of_nonneg_left (le_op_norm _ _) (op_norm_nonneg _)
 ... = ∥g∥ * ∥f∥ * ∥v∥   : by rw mul_assoc
 
 lemma norm_comp_le (g : normed_group_hom V₂ V₃) (f : normed_group_hom V₁ V₂) :
   ∥g.comp f∥ ≤ ∥g∥ * ∥f∥ :=
-mk_continuous_norm_le _ (mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
+mk_normed_group_hom_norm_le _ (mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
 /-- Composition of normed groups hom as an additive group morphism. -/
 def comp_hom : (normed_group_hom V₂ V₃) →+ (normed_group_hom V₁ V₂) →+ (normed_group_hom V₁ V₃) :=

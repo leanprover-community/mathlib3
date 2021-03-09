@@ -1221,6 +1221,51 @@ end
 @[simp] lemma coe_is_R_or_C_clm_apply {𝕜 : Type*} [is_R_or_C 𝕜] :
   ((coe_is_R_or_C_clm : ℝ →L[ℝ] 𝕜) : ℝ → 𝕜) = coe := rfl
 
+lemma integral_coe_is_R_or_C {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  {f : α → ℝ} :
+  ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
+begin
+  by_cases hf : integrable f μ,
+  { simp_rw ← coe_is_R_or_C_clm_apply,
+    rw integral_linear_map hf,
+    exact normed_algebra.to_normed_space ℝ 𝕜,
+    exact is_R_or_C.to_complete_space, },
+  { sorry, },
+end
+
+def conj_lm {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →ₗ[ℝ] 𝕜 :=
+{ to_fun := λ x, is_R_or_C.conj x,
+  map_add' := by simp,
+  map_smul' := by sorry, }
+
+@[simp] lemma conj_lm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
+  (conj_lm : 𝕜 → 𝕜) = is_R_or_C.conj := rfl
+
+def conj_clm {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →L[ℝ] 𝕜 :=
+conj_lm.mk_continuous 1 $
+begin
+  simp only [is_R_or_C.norm_eq_abs, conj_lm_coe, one_mul, is_R_or_C.abs_of_real, is_R_or_C.abs_conj,
+    is_R_or_C.abs_to_real],
+  exact λ x, le_rfl,
+end
+
+@[simp, norm_cast] lemma conj_clm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
+  ((conj_clm : 𝕜 →L[ℝ] 𝕜) : 𝕜 →ₗ[ℝ] 𝕜) = conj_lm := rfl
+
+@[simp] lemma conj_clm_apply {𝕜 : Type*} [is_R_or_C 𝕜] :
+  ((conj_clm : 𝕜 →L[ℝ] 𝕜) : 𝕜 → 𝕜) = is_R_or_C.conj := rfl
+
+lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  {f : α → 𝕜} :
+  ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+begin
+  by_cases hf : integrable f μ,
+  { simp_rw ← conj_clm_apply,
+    rw integral_linear_map hf,
+    exact normed_algebra.to_normed_space ℝ 𝕜,
+    exact is_R_or_C.to_complete_space, },
+  { sorry, },
+end
 lemma norm_integral_le_lintegral_norm (f : α → E) :
   ∥∫ a, f a ∂μ∥ ≤ ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 begin

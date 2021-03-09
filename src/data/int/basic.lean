@@ -493,11 +493,11 @@ theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
   by rw [neg_mul_neg]; exact congr_arg of_nat (nat.mod_add_div _ _)
 | -[1+ m] 0       := by rw [mod_zero, int.div_zero]; refl
 | -[1+ m] (n+1:ℕ) := by { convert mod_add_div_aux m n.succ,
-  rw [neg_succ_of_nat_div _ (coe_nat_succ_pos _), mul_neg_eq_neg_mul_symm,
-      mul_add, mul_one] }
+  try { rw [neg_succ_of_nat_div _ (coe_nat_succ_pos _), mul_neg_eq_neg_mul_symm,
+      mul_add, mul_one] } } -- TODO: remove try if mul is left-recursive
 | -[1+ m] -[1+ n] := by { convert mod_add_div_aux m n.succ,
-  rw [neg_succ_of_nat_eq, ←int.coe_nat_succ, ←neg_mul_eq_neg_mul, int.div_neg,
-      neg_succ_of_nat_div _ (coe_nat_succ_pos _), neg_neg, mul_add, mul_one] }
+  try { rw [neg_succ_of_nat_eq, ←int.coe_nat_succ, ←neg_mul_eq_neg_mul, int.div_neg,
+        neg_succ_of_nat_div _ (coe_nat_succ_pos _), neg_neg, mul_add, mul_one] } }
 
 theorem div_add_mod (a b : ℤ) : b * (a / b) + a % b = a :=
 (add_comm _ _).trans (mod_add_div _ _)
@@ -625,9 +625,8 @@ end,
       apply nat.mul_le_mul_left,
       apply (nat.div_lt_iff_lt_mul _ _ k.succ_pos).1,
       apply nat.lt_succ_self } },
-  convert this using 2,
   dsimp,
-  rw [mul_succ, succ_mul, add_assoc, add_assoc, add_comm m] }
+  rw [add_zero, ←add_succ, ←mul_succ, this] }
 end
 
 @[simp] theorem mul_div_mul_of_pos_left (a : ℤ) {b : ℤ} (c : ℤ) (H : 0 < b) :

@@ -53,7 +53,7 @@ confusion between `*` from `ring` and `*` from `comm_ring`.
 quadratic form, homogeneous polynomial, quadratic polynomial
 -/
 
-universes u u₁ v w
+universes u u₁ u₂ v w
 variables {R : Type u} {M : Type v} [add_comm_group M] [ring R]
 variables {R₁ : Type u₁} [comm_ring R₁]
 
@@ -242,7 +242,7 @@ by simp [sub_eq_add_neg]
 by simp [sub_eq_add_neg]
 
 section has_scalar
-variables {R₂ : Type u} [comm_semiring R₂]
+variables {R₂ : Type u₂} [comm_semiring R₂]
 
 /-- `quadratic_form R M` inherits the scalar action from any algebra over `R`.
 

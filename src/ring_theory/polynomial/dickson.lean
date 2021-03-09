@@ -1,62 +1,102 @@
 /-
-Copyright (c) 2020 Johan Commelin. All rights reserved.
+Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Julian Kuelshammer
 -/
 
-import ring_theory.polynomial.chebyshev.defs
-import ring_theory.polynomial.chebyshev.dickson
-import analysis.special_functions.trigonometric
+import ring_theory.polynomial.chebyshev
 import ring_theory.localization
 import data.zmod.basic
 import algebra.invertible
 
-/-!
-# Chebyshev polynomials
 
-The Chebyshev polynomials are two families of polynomials indexed by `ℕ`,
-with integral coefficients.
-In this file, we only consider Chebyshev polynomials of the first kind.
+/-!
+# Dickson polynomials
+
+The (generalised) Dickson polynomials are a family of polynomials indexed by `ℕ × ℕ`,
+with coefficients in a commutative ring `R` depending on an element `a∈R`. More precisely, the
+they satisfy the recursion `dickson k a (n + 2) = X * (dickson k a n + 1) - a * (dickson k a n)`
+with starting values `dickson k a 0 = 3 - k` and `dickson k a 1 = X`. In the literature,
+`dickson k a n` is called the `n`-th Dickson polynomial of the `k`-th kind associated to the
+parameter `a : R`. They are closely related to the Chebyshev polynomials in the case that `a=1`.
+When `a=0` they are just the family of monomials `X ^ n`.
+
+## Main definition
+
+* `polynomial.dickson`: the generalised Dickson polynomials.
 
 ## Main statements
 
-* `polynomial.chebyshev₁_mul`, the `(m * n)`-th Chebyshev polynomial is the composition
-  of the `m`-th and `n`-th Chebyshev polynomials.
 * `polynomial.dickson_one_one_mul`, the `(m * n)`-th Dickson polynomial of the first kind for
   parameter `1 : R` is the composition of the `m`-th and `n`-th Dickson polynomials of the first
   kind for `1 : R`.
 * `polynomial.dickson_one_one_char_p`, for a prime number `p`, the `p`-th Dickson polynomial of the
   first kind associated to parameter `1 : R` is congruent to `X ^ p` modulo `p`.
 
-## Implementation details
+## References
 
-Since Chebyshev polynomials have interesting behaviour over the complex numbers and modulo `p`,
-we define them to have coefficients in an arbitrary commutative ring, even though
-technically `ℤ` would suffice.
-The benefit of allowing arbitrary coefficient rings, is that the statements afterwards are clean,
-and do not have `map (int.cast_ring_hom R)` interfering all the time.
+* [R. Lidl, G. L. Mullen and G. Turnwald, _Dickson polynomials_][MR1237403]
 
+## TODO
 
+* Redefine `dickson` in terms of `linear_recurrence`.
+* Show that `dickson 2 1` is equal to the characteristic polynomial of the adjacency matrix of a
+  type A Dynkin diagram.
+* Prove that the adjacency matrices of simply laced Dynkin diagrams are precisely the adjacency
+  matrices of simple connected graphs which annihilate `dickson 2 1`.
 -/
 
 noncomputable theory
 
 namespace polynomial
-open complex
-variables (R S : Type*) [comm_ring R] [comm_ring S]
 
-/-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/
-lemma chebyshev₁_mul (m n : ℕ) :
-  chebyshev₁ R (m * n) = (chebyshev₁ R m).comp (chebyshev₁ R n) :=
+variables {R S : Type*} [comm_ring R] [comm_ring S] (k : ℕ) (a : R)
+
+/-- `dickson` is the `n`the (generalised) Dickson polynomial of the `k`-th kind associated to the
+element `a ∈ R`. -/
+noncomputable def dickson : ℕ → polynomial R
+| 0       := 3 - k
+| 1       := X
+| (n + 2) := X * dickson (n + 1) - (C a) * dickson n
+
+@[simp] lemma dickson_zero : dickson k a 0 = 3 - k := rfl
+@[simp] lemma dickson_one : dickson k a 1 = X := rfl
+lemma dickson_two : dickson k a 2 = X ^ 2 - C a * (3 - k) :=
+by simp only [dickson, pow_two]
+@[simp] lemma dickson_add_two (n : ℕ) :
+  dickson k a (n + 2) = X * dickson k a (n + 1) - C a * dickson k a n :=
+by rw dickson
+
+lemma dickson_of_two_le {n : ℕ} (h : 2 ≤ n) :
+  dickson k a n = X * dickson k a (n - 1) - C a * dickson k a (n - 2) :=
 begin
-  simp only [← map_comp, ← map_chebyshev₁ (int.cast_ring_hom R)],
-  congr' 1,
-  apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
-  simp only [map_comp, map_chebyshev₁],
-  apply polynomial.funext,
-  intro z,
-  obtain ⟨θ, rfl⟩ := cos_surjective z,
-  simp only [chebyshev₁_complex_cos, nat.cast_mul, eval_comp, mul_assoc]
+  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
+  rw add_comm,
+  exact dickson_add_two k a n
+end
+
+variables {R S k a}
+
+lemma map_dickson (f : R →+* S) :
+  ∀ (n : ℕ), map f (dickson k a n) = dickson k (f a) n
+| 0       := by simp only [dickson_zero, map_sub, map_nat_cast, bit1, bit0, map_add, map_one]
+| 1       := by simp only [dickson_one, map_X]
+| (n + 2) :=
+begin
+  simp only [dickson_add_two, map_sub, map_mul, map_X, map_C],
+  rw [map_dickson, map_dickson]
+end
+
+variable {R}
+
+@[simp] lemma dickson_two_zero :
+  ∀ (n : ℕ), dickson 2 (0 : R) n = X ^ n
+| 0       := by { simp only [dickson_zero, pow_zero], norm_num }
+| 1       := by simp only [dickson_one, pow_one]
+| (n + 2) :=
+begin
+  simp only [dickson_add_two, C_0, zero_mul, sub_zero],
+  rw [dickson_two_zero, pow_add X (n + 1) 1, mul_comm, pow_one]
 end
 
 section dickson
@@ -87,24 +127,24 @@ end
 
 variables (R)
 
-lemma dickson_one_one_eq_chebyshev₁ [invertible (2 : R)] :
-  ∀ n, dickson 1 (1 : R) n = 2 * (chebyshev₁ R n).comp (C (⅟2) * X)
-| 0       := by { simp only [chebyshev₁_zero, mul_one, one_comp, dickson_zero], norm_num }
-| 1       := by rw [dickson_one, chebyshev₁_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
+lemma dickson_one_one_eq_chebyshev_T [invertible (2 : R)] :
+  ∀ n, dickson 1 (1 : R) n = 2 * (chebyshev.T R n).comp (C (⅟2) * X)
+| 0       := by { simp only [chebyshev.T_zero, mul_one, one_comp, dickson_zero], norm_num }
+| 1       := by rw [dickson_one, chebyshev.T_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
                     mul_inv_of_self, C_1, one_mul]
 | (n + 2) :=
 begin
-  simp only [dickson_add_two, chebyshev₁_add_two, dickson_one_one_eq_chebyshev₁ (n + 1),
-    dickson_one_one_eq_chebyshev₁ n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
+  simp only [dickson_add_two, chebyshev.T_add_two, dickson_one_one_eq_chebyshev_T (n + 1),
+    dickson_one_one_eq_chebyshev_T n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
   simp only [← C_1, ← C_bit0, ← mul_assoc, ← C_mul, mul_inv_of_self],
   rw [C_1, one_mul],
   ring
 end
 
-lemma chebyshev₁_eq_dickson_one_one [invertible (2 : R)] (n : ℕ) :
-  chebyshev₁ R n = C (⅟2) * (dickson 1 1 n).comp (2 * X) :=
+lemma chebyshev_T_eq_dickson_one_one [invertible (2 : R)] (n : ℕ) :
+  chebyshev.T R n = C (⅟2) * (dickson 1 1 n).comp (2 * X) :=
 begin
-  rw dickson_one_one_eq_chebyshev₁,
+  rw dickson_one_one_eq_chebyshev_T,
   simp only [comp_assoc, mul_comp, C_comp, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul],
   rw [inv_of_mul_self, C_1, one_mul, one_mul, comp_X]
 end
@@ -121,7 +161,7 @@ begin
   congr' 1,
   apply map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [map_dickson, map_comp, ring_hom.eq_int_cast, int.cast_one,
-    dickson_one_one_eq_chebyshev₁, chebyshev₁_mul, two_mul, ← add_comp],
+    dickson_one_one_eq_chebyshev_T, chebyshev.T_mul, two_mul, ← add_comp],
   simp only [← two_mul, ← comp_assoc],
   apply eval₂_congr rfl rfl,
   rw [comp_assoc],

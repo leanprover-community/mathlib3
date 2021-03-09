@@ -187,10 +187,10 @@ lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : �
   abs (n •ℕ a) = n •ℕ abs a :=
 begin
   cases le_total a 0 with hneg hpos,
-  { have h : 0 ≤ n •ℕ (-a) := nsmul_nonneg (neg_nonneg.mpr hneg) n,
-    rw [abs_of_nonpos hneg, ← abs_neg, ← neg_nsmul, abs_of_nonneg h] },
-  { have h : 0 ≤ n •ℕ a := nsmul_nonneg hpos n,
-    rw [abs_of_nonneg hpos, abs_of_nonneg h] }
+  { rw [abs_of_nonpos hneg, ← abs_neg, ← neg_nsmul, abs_of_nonneg],
+    exact nsmul_nonneg (neg_nonneg.mpr hneg) n },
+  { rw [abs_of_nonneg hpos, abs_of_nonneg],
+    exact nsmul_nonneg hpos n }
 end
 
 lemma abs_gsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℤ) (a : α) :

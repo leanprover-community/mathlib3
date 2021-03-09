@@ -227,9 +227,11 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 
 open nat
 
-variables (a)
+variables (a) (n : ℕ)
+  [decidable_pred (λ m, 0 < m ∧ (a ^ n) ^ m = 1)] [decidable (∃ m, 0 < m ∧ (a ^ n) ^ m = 1)]
 
-lemma order_of_pow (n : ℕ) :
+
+lemma order_of_pow (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
 conv_rhs { rw order_of },
@@ -239,7 +241,7 @@ split_ifs with hx,
   (order_of_dvd_of_pow_eq_one
     (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
       nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
-  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos a hx),
+  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos hx),
     have hdvd : order_of a ∣ n * order_of (a ^ n),
       from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
     coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
@@ -261,6 +263,25 @@ split_ifs with hx,
       { rw pow_mul,
         exact hm.2 } },
   { simp } }
+end
+
+lemma order_of_pow' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
+  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
+begin
+  conv_rhs { rw order_of },
+  split_ifs with hx,
+  rw ← order_of_of_finite_order h,
+  exact dvd_antisymm
+  (order_of_dvd_of_pow_eq_one
+    (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
+      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
+  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos h),
+    have hdvd : order_of a ∣ n * order_of (a ^ n),
+      from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
+    coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
+      (dvd_of_mul_dvd_mul_right gcd_pos
+        (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
+            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
 end
 
 end monoid
@@ -312,7 +333,9 @@ end group
 section finite_monoid
 variables {α} [fintype α] [decidable_eq α] [monoid α]
 
-lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} :
+open_locale classical
+
+lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
@@ -435,8 +458,8 @@ have eq₂ : order_of a = @fintype.card _ ft_s,
 dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
-@[simp] lemma pow_card_eq_one (a : α) : a ^ fintype.card α = 1 :=
-let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
+@[simp] lemma pow_card_eq_one : a ^ fintype.card α = 1 :=
+let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
 lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=

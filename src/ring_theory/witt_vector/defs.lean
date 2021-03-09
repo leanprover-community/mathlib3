@@ -80,7 +80,7 @@ end
 lemma ext_iff {x y : 𝕎 R} : x = y ↔ ∀ n, x.coeff n = y.coeff n :=
 ⟨λ h n, by rw h, ext⟩
 
-@[simp] lemma coeff_mk (x : ℕ → R) :
+lemma coeff_mk (x : ℕ → R) :
   (mk p x).coeff = x := rfl
 
 /- These instances are not needed for the rest of the development,
@@ -152,7 +152,7 @@ variables (R) [fact p.prime]
 instance : has_zero (𝕎 R) :=
 ⟨eval (witt_zero p) ![]⟩
 
-instance [inhabited R] : inhabited (𝕎 R) := ⟨0⟩
+instance : inhabited (𝕎 R) := ⟨0⟩
 
 instance : has_one (𝕎 R) :=
 ⟨eval (witt_one p) ![]⟩
@@ -288,10 +288,12 @@ by simp only [hn, witt_one_pos_eq_zero, alg_hom.map_zero]
 
 variables {p R}
 
+omit hp
 @[simp]
-lemma v2_coeff (x y : 𝕎 R) (i : fin 2) :
+lemma v2_coeff {p' R'} (x y : witt_vector p' R') (i : fin 2) :
   (![x, y] i).coeff = ![x.coeff, y.coeff] i :=
 by fin_cases i; simp
+include hp
 
 lemma add_coeff (x y : 𝕎 R) (n : ℕ) :
   (x + y).coeff n = peval (witt_add p n) ![x.coeff, y.coeff] :=

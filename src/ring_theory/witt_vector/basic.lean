@@ -143,10 +143,12 @@ include hp
 
 variables (x y : 𝕎 R)
 
+omit hp
 local attribute [simp]
-lemma matrix_vec_empty_coeff (i j) :
+lemma matrix_vec_empty_coeff {R} (i j) :
   @coeff p R (matrix.vec_empty i) j = (matrix.vec_empty i : ℕ → R) j :=
 by rcases i with ⟨_ | _ | _ | _ | i_val, ⟨⟩⟩
+include hp
 
 private lemma ghost_fun_zero : ghost_fun (0 : 𝕎 R) = 0 := by ghost_fun_tac 0 ![]
 

@@ -25,10 +25,12 @@ There is lots more in this direction:
 * Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
+universes u v
+
 open polynomial
 
 section
-variables (S : Type*) [semiring S]
+variables (S : Type u) [semiring S]
 
 noncomputable def pochhammer : ℕ → polynomial S
 | 0 := 1
@@ -40,7 +42,7 @@ noncomputable def pochhammer : ℕ → polynomial S
 by { dsimp [pochhammer], refl, }
 
 section
-variables {S} {T : Type*} [semiring T]
+variables {S} {T : Type v} [semiring T]
 @[simp] lemma pochhammer_map (f : S →+* T) (n : ℕ) : (pochhammer S n).map f = pochhammer T n :=
 begin
   induction n with n ih,
@@ -50,10 +52,18 @@ end
 
 end
 
-@[simp] lemma pochhammer_eval_cast (n k : ℕ) : ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
+@[simp] lemma pochhammer_eval_cast (n k : ℕ) :
+  ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
 begin
   rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←(algebra_map ℕ S).eq_nat_cast,
     eval₂_at_nat_cast, nat.cast_id, ring_hom.eq_nat_cast],
+end
+
+@[simp] lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
+begin
+  cases n,
+  { simp, },
+  { simp [X_mul, nat.succ_ne_zero], } -- should nat.succ_ne_zero be a simp lemma?
 end
 
 lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=
@@ -101,6 +111,7 @@ end
 
 section factorial
 
+/-- Preliminary version of `pochhammer_eval_one` specialized to `S = ℕ`. -/
 lemma pochhammer_eval_one' (n : ℕ) : (pochhammer ℕ n).eval 1 = n.factorial :=
 begin
   induction n with n ih,
@@ -113,6 +124,7 @@ lemma pochhammer_eval_one (S : Type*) [semiring S] (n : ℕ) :
   (pochhammer S n).eval (1 : S) = (n.factorial : S) :=
 by simpa using congr_arg (algebra_map ℕ S) (pochhammer_eval_one' n)
 
+/-- Preliminary version of `factorial_mul_pochhammer` specialized to `S = ℕ`. -/
 lemma factorial_mul_pochhammer' (r n : ℕ) :
   r.factorial * (pochhammer ℕ n).eval (r+1) = (r + n).factorial :=
 by simpa [add_comm 1 r, pochhammer_eval_one'] using congr_arg (eval 1) (pochhammer_mul ℕ r n)

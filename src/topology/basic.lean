@@ -310,6 +310,10 @@ closure_minimal (subset.trans h subset_closure) is_closed_closure
 lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure α _) :=
 λ _ _, closure_mono
 
+lemma diff_subset_closure_iff {s t : set α} :
+  s \ t ⊆ closure t ↔ s ⊆ closure t :=
+by rw [diff_subset_iff, union_eq_self_of_subset_left subset_closure]
+
 lemma closure_inter_subset_inter_closure (s t : set α) :
   closure (s ∩ t) ⊆ closure s ∩ closure t :=
 (monotone_closure α).map_inf_le s t

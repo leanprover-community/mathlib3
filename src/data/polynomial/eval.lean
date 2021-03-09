@@ -679,6 +679,10 @@ section eval
 
 variables [comm_semiring R] {p q : polynomial R} {x : R}
 
+lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
+  eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
+by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
+
 @[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
@@ -692,6 +696,9 @@ begin
   { intros r s hr hs, simp [add_comp, hr, hs], },
   { intros n a, simp, }
 end
+
+instance comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
+by unfold comp; apply_instance
 
 lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=

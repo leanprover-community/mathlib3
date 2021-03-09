@@ -75,8 +75,6 @@ noncomputable theory
 
 section
 
-local attribute [semireducible] witt_vector
-
 /-- `witt_vector.select P x`, for a predicate `P : ℕ → Prop` is the Witt vector
 whose `n`-th coefficient is `x.coeff n` if `P n` is true, and `0` otherwise.
 -/

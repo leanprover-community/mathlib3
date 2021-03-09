@@ -463,6 +463,20 @@ begin
   simp [← mul_assoc],
 end
 
+/-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
+bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
+lemma exists_quadratic_form_neq_zero [nontrivial M]
+  {Q : quadratic_form R M} (hB₁ : Q.associated'.nondegenerate) :
+  ∃ x, Q x ≠ 0 :=
+begin
+  rw nondegenerate at hB₁,
+  contrapose! hB₁,
+  obtain ⟨x, hx⟩ := exists_ne (0 : M),
+  refine ⟨x, λ y, _, hx⟩,
+  have : Q = 0 := quadratic_form.ext hB₁,
+  simp [this]
+end
+
 end associated'
 
 section associated
@@ -521,22 +535,6 @@ begin
   suffices : 2 * Q x * ⅟ 2 = Q x,
     { ring, assumption },
   rw [mul_right_comm, mul_inv_of_self, one_mul],
-end
-
--- Change to module over rings once #6585 is merged
-
-/-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
-bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
-lemma exists_quadratic_form_neq_zero [nontrivial M]
-  {Q : quadratic_form R₁ M} (hB₁ : Q.associated.nondegenerate) :
-  ∃ x, Q x ≠ 0 :=
-begin
-  rw nondegenerate at hB₁,
-  contrapose! hB₁,
-  obtain ⟨x, hx⟩ := exists_ne (0 : M),
-  refine ⟨x, λ y, _, hx⟩,
-  have : Q = 0 := quadratic_form.ext hB₁,
-  simpa [this, quadratic_form.associated_apply],
 end
 
 end associated
@@ -707,12 +705,12 @@ namespace bilin_form
 /-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
 on a nontrivial module `M` over the commring `R` with invertible `2`, i.e. there exists some
 `x : M` such that `B x x ≠ 0`. -/
-lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R₁)] [nontrivial M]
-  {B : bilin_form R₁ M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
+  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
-  have : B.to_quadratic_form.associated.nondegenerate,
-    refine (quadratic_form.associated_left_inverse hB₂).symm ▸ hB₁,
+  have : B.to_quadratic_form.associated'.nondegenerate,
+    refine (quadratic_form.associated'_left_inverse hB₂).symm ▸ hB₁,
   obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero this,
   refine ⟨x, λ h, hx (B.to_quadratic_form_apply x ▸ h)⟩,
 end

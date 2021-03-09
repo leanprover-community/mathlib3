@@ -428,6 +428,14 @@ begin
     exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
 end
 
+lemma abs_rpow_le_exp_log_mul (x y : ℝ) : abs (x ^ y) ≤ exp (log x * y) :=
+begin
+  refine (abs_rpow_le_abs_rpow x y).trans _,
+  by_cases hx : x = 0,
+  { by_cases hy : y = 0; simp [hx, hy, zero_le_one] },
+  { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
+end
+
 end real
 
 namespace complex
@@ -651,166 +659,172 @@ lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
 have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, inv_mul_cancel hn0, rpow_one]
 
-section prove_rpow_is_continuous
+lemma rpow_deriv_aux_of_pos {p : ℝ × ℝ} (hp : 0 < p.1) :
+  has_strict_fderiv_at (λ x : ℝ × ℝ, x.1 ^ x.2)
+    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℝ ℝ ℝ +
+      (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℝ ℝ ℝ) p ∧
+    ∀ n, times_cont_diff_at ℝ n (λ x : ℝ × ℝ, x.1 ^ x.2) p :=
+begin
+  have : (λ x : ℝ × ℝ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2)),
+    from (continuous_at_fst.eventually (lt_mem_nhds hp)).mono
+      (λ p hp, rpow_def_of_pos hp _),
+  rw [rpow_sub hp, rpow_one, mul_div_comm, mul_smul, mul_smul, ← smul_add],
+  refine ⟨has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
+    λ n, times_cont_diff_at.congr_of_eventually_eq _ this⟩,
+  { simpa only [rpow_def_of_pos hp, div_eq_mul_inv, smul_smul, add_comm]
+      using ((has_strict_fderiv_at_fst.log hp.ne').mul has_strict_fderiv_at_snd).exp },
+  { exact ((times_cont_diff_at_fst.log hp.ne').mul times_cont_diff_at_snd).exp }
+end
 
-lemma continuous_rpow_aux1 : continuous (λp : {p:ℝ×ℝ // 0 < p.1}, p.val.1 ^ p.val.2) :=
-suffices h : continuous (λ p : {p:ℝ×ℝ // 0 < p.1 }, exp (log p.val.1 * p.val.2)),
-  by { convert h, ext p, rw rpow_def_of_pos p.2 },
-continuous_exp.comp $
-  (show continuous ((λp:{p:ℝ//0 < p}, log (p.val)) ∘ (λp:{p:ℝ×ℝ//0<p.fst}, ⟨p.val.1, p.2⟩)), from
-    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val).mul
-  (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)
+lemma rpow_deriv_aux_of_neg {p : ℝ × ℝ} (hp : p.1 < 0) :
+  has_strict_fderiv_at (λ x : ℝ × ℝ, x.1 ^ x.2)
+    ((p.2 * p.1 ^ (p.2 - 1)) • continuous_linear_map.fst ℝ ℝ ℝ +
+      (p.1 ^ p.2 * log p.1 - exp (log p.1 * p.2) * sin (p.2 * π) * π) •
+        continuous_linear_map.snd ℝ ℝ ℝ) p ∧
+    ∀ n, times_cont_diff_at ℝ n (λ x : ℝ × ℝ, x.1 ^ x.2) p :=
+begin
+  have : (λ x : ℝ × ℝ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2) * cos (x.2 * π)),
+    from (continuous_at_fst.eventually (gt_mem_nhds hp)).mono
+      (λ p hp, rpow_def_of_neg hp _),
+  refine ⟨has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
+    λ n, times_cont_diff_at.congr_of_eventually_eq _ this⟩,
+  { simp only [rpow_def_of_neg hp],
+    convert ((has_strict_fderiv_at_fst.log hp.ne).mul has_strict_fderiv_at_snd).exp.mul
+      (has_strict_fderiv_at_snd.mul (has_strict_fderiv_at_const _ _)).cos using 1,
+    ext,
+    { field_simp [mul_sub, sub_mul, exp_sub, exp_log_of_neg, cos_sub_pi, hp, hp.ne], ac_refl },
+    { dsimp, ring } },
+  { exact ((times_cont_diff_at_fst.log hp.ne).mul times_cont_diff_at_snd).exp.mul
+      (times_cont_diff_at_snd.mul times_cont_diff_at_const).cos }
+end
 
-lemma continuous_rpow_aux2 : continuous (λ p : {p:ℝ×ℝ // p.1 < 0}, p.val.1 ^ p.val.2) :=
-suffices h : continuous (λp:{p:ℝ×ℝ // p.1 < 0}, exp (log (-p.val.1) * p.val.2) * cos (p.val.2 * π)),
-  by { convert h, ext p, rw [rpow_def_of_neg p.2, log_neg_eq_log] },
-  (continuous_exp.comp $
-    (show continuous $ (λp:{p:ℝ//0<p},
-            log (p.val))∘(λp:{p:ℝ×ℝ//p.1<0}, ⟨-p.val.1, neg_pos_of_neg p.2⟩),
-     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg.comp $
-            continuous_fst.comp continuous_subtype_val).mul
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)).mul
-  (continuous_cos.comp $
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id).mul continuous_const)
+lemma has_strict_deriv_at_rpow_const {x : ℝ} (hx : x ≠ 0) (p : ℝ) :
+  has_strict_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
+begin
+  cases hx.lt_or_lt with hx hx,
+  { have := ((@rpow_deriv_aux_of_neg (x, p) hx).1.comp x
+      ((has_strict_fderiv_at_id x).prod (has_strict_fderiv_at_const _ _))).has_strict_deriv_at,
+    convert this, simp },
+  { have := ((@rpow_deriv_aux_of_pos (x, p) hx).1.comp x
+      ((has_strict_fderiv_at_id x).prod (has_strict_fderiv_at_const _ _))).has_strict_deriv_at,
+    convert this, simp }
+end
+
+lemma has_strict_deriv_at_const_rpow {a : ℝ} (ha : 0 < a) (x : ℝ) :
+  has_strict_deriv_at (λ x, a ^ x) (a ^ x * log a) x :=
+begin
+  have := ((@rpow_deriv_aux_of_pos (a, x) ha).1.comp x
+    ((has_strict_fderiv_at_const _ _).prod (has_strict_fderiv_at_id _))).has_strict_deriv_at,
+  convert this, simp
+end
+
+/-- This lemma says that `λ x, a ^ x` is strictly differentiable for `a < 0`. Note that these
+values of `a` are outside of the "official" domain of `a ^ x`, and we may redefine `a ^ x`
+for negative `a` if some other definition will be more convenient. -/
+lemma has_strict_deriv_at_const_rpow_of_neg {a x : ℝ} (ha : a < 0) :
+  has_strict_deriv_at (λ x, a ^ x) (a ^ x * log a - exp (log a * x) * sin (x * π) * π) x :=
+begin
+  have := ((@rpow_deriv_aux_of_neg (a, x) ha).1.comp x
+    ((has_strict_fderiv_at_const _ _).prod (has_strict_fderiv_at_id _))).has_strict_deriv_at,
+  convert this, simp
+end
+
+/-- The function `λ (x, y), x ^ y` is infinitely smooth at `(x, y)` unless `x = 0`. -/
+lemma times_cont_diff_at_rpow {p : ℝ × ℝ} {n} (hp : p.1 ≠ 0) :
+  times_cont_diff_at ℝ n (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
+hp.lt_or_lt.elim (λ hp, (rpow_deriv_aux_of_neg hp).2 n) (λ hp, (rpow_deriv_aux_of_pos hp).2 n)
+
+lemma times_cont_diff_at_rpow' {n} (hx : x ≠ 0) (y : ℝ) :
+  times_cont_diff_at ℝ n (λ p : ℝ × ℝ, p.1 ^ p.2) (x, y) :=
+times_cont_diff_at_rpow hx
+
+lemma differentiable_at_rpow {p : ℝ × ℝ} (hp : p.1 ≠ 0) :
+  differentiable_at ℝ (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
+(times_cont_diff_at_rpow hp).differentiable_at le_rfl
 
 lemma continuous_at_rpow_of_ne_zero (hx : x ≠ 0) (y : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
-begin
-  cases lt_trichotomy 0 x,
-  exact continuous_within_at.continuous_at
-    (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux1 _ h)
-    (mem_nhds_sets (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
-  cases h,
-  { exact absurd h.symm hx },
-  exact continuous_within_at.continuous_at
-    (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux2 _ h)
-    (mem_nhds_sets (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
-end
-
-lemma continuous_rpow_aux3 : continuous (λ p : {p:ℝ×ℝ // 0 < p.2}, p.val.1 ^ p.val.2) :=
-continuous_iff_continuous_at.2 $ λ ⟨(x₀, y₀), hy₀⟩,
-begin
-  by_cases hx₀ : x₀ = 0,
-  { simp only [continuous_at, hx₀, zero_rpow (ne_of_gt hy₀), metric.tendsto_nhds_nhds],
-    assume ε ε0,
-    rcases exists_pos_rat_lt (half_pos hy₀) with ⟨q, q_pos, q_lt⟩,
-    let q := (q:ℝ), replace q_pos : 0 < q := rat.cast_pos.2 q_pos,
-    let δ := min (min q (ε ^ (1 / q))) (1/2),
-    have δ0 : 0 < δ := lt_min (lt_min q_pos (rpow_pos_of_pos ε0 _)) (by norm_num),
-    have : δ ≤ q := le_trans (min_le_left _ _) (min_le_left _ _),
-    have : δ ≤ ε ^ (1 / q) := le_trans (min_le_left _ _) (min_le_right _ _),
-    have : δ < 1 := lt_of_le_of_lt (min_le_right _ _) (by norm_num),
-    use δ, use δ0, rintros ⟨⟨x, y⟩, hy⟩,
-    simp only [subtype.dist_eq, real.dist_eq, prod.dist_eq, sub_zero, subtype.coe_mk],
-    assume h, rw max_lt_iff at h, cases h with xδ yy₀,
-    have qy : q < y, calc q < y₀ / 2 : q_lt
-      ... = y₀ - y₀ / 2 : (sub_half _).symm
-      ... ≤ y₀ - δ : by linarith
-      ... < y : sub_lt_of_abs_sub_lt_left yy₀,
-    calc abs(x^y) ≤ abs(x)^y : abs_rpow_le_abs_rpow _ _
-      ... < δ ^ y : rpow_lt_rpow (abs_nonneg _) xδ hy
-      ... < δ ^ q : by { refine rpow_lt_rpow_of_exponent_gt _ _ _, repeat {linarith} }
-      ... ≤ (ε ^ (1 / q)) ^ q : by { refine rpow_le_rpow _ _ _, repeat {linarith} }
-      ... = ε : by { rw [← rpow_mul, div_mul_cancel, rpow_one], exact ne_of_gt q_pos, linarith }},
-  { exact (continuous_within_at_iff_continuous_at_restrict (λp:ℝ×ℝ, p.1^p.2) _).1
-      (continuous_at_rpow_of_ne_zero hx₀ _).continuous_within_at }
-end
+(show times_cont_diff_at ℝ 0 (λ p : ℝ × ℝ, p.1 ^ p.2) (x, y),
+  from times_cont_diff_at_rpow hx).continuous_at
 
 lemma continuous_at_rpow_of_pos (hy : 0 < y) (x : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
-continuous_within_at.continuous_at
-  (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux3 _ hy)
-  (mem_nhds_sets (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
+begin
+  by_cases hx : x = 0, swap, { exact continuous_at_rpow_of_ne_zero hx y },
+  subst x,
+  have A : tendsto (λ p : ℝ × ℝ, exp (log p.1 * p.2)) (𝓝[{0}ᶜ] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
+    tendsto_exp_at_bot.comp
+      ((tendsto_log_nhds_within_zero.comp tendsto_fst).at_bot_mul hy tendsto_snd),
+  have B : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}ᶜ] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
+    squeeze_zero_norm (λ p, abs_rpow_le_exp_log_mul p.1 p.2) A,
+  have C : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}] 0 ×ᶠ 𝓝 y) (pure 0),
+  { rw [nhds_within_singleton, ← principal_singleton],
+    refine tendsto.mono_left _ (prod_mono le_rfl (le_principal_iff.2 $ Ioi_mem_nhds hy)),
+    rw [prod_principal_principal, tendsto_principal_principal],
+    rintro p ⟨hx, hy⟩,
+    simp only [set.mem_singleton_iff.1 hx, zero_rpow (set.mem_Ioi.1 hy).ne', set.mem_singleton] },
+  have := B.sup (C.mono_right (pure_le_nhds _)),
+  rw [← nhds_within_univ, ← nhds_within_prod_eq, ← nhds_within_prod_eq, ← nhds_within_union,
+    ← set.union_prod, set.compl_union_self, set.univ_prod_univ, nhds_within_univ] at this,
+  simpa [continuous_at, hy.ne']
+end
 
 lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
-by { cases h, exact continuous_at_rpow_of_ne_zero h _, exact continuous_at_rpow_of_pos h x }
+h.elim (λ h, continuous_at_rpow_of_ne_zero h y) (λ h, continuous_at_rpow_of_pos h x)
 
-variables {α : Type*} [topological_space α] {f g : α → ℝ}
+end real
 
-/--
-`real.rpow` is continuous at all points except for the lower half of the y-axis.
-In other words, the function `λp:ℝ×ℝ, p.1^p.2` is continuous at `(x, y)` if `x ≠ 0` or `y > 0`.
+section
 
-Multiple forms of the claim is provided in the current section.
--/
-lemma continuous_rpow (h : ∀a, f a ≠ 0 ∨ 0 < g a) (hf : continuous f) (hg : continuous g):
-  continuous (λa:α, (f a) ^ (g a)) :=
-continuous_iff_continuous_at.2 $ λ a,
-begin
-  show continuous_at ((λp:ℝ×ℝ, p.1^p.2) ∘ (λa, (f a, g a))) a,
-  refine continuous_at.comp _ (continuous_iff_continuous_at.1 (hf.prod_mk hg) _),
-  { replace h := h a, cases h,
-    { exact continuous_at_rpow_of_ne_zero h _ },
-    { exact continuous_at_rpow_of_pos h _ }},
+variable {α : Type*}
+
+lemma filter.tendsto.rpow {l : filter α} {f g : α → ℝ} {x y : ℝ}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (h : x ≠ 0 ∨ 0 < y) :
+  tendsto (λ t, f t ^ g t) l (𝓝 (x ^ y)) :=
+(real.continuous_at_rpow h).tendsto.comp (hf.prod_mk_nhds hg)
+
+variables [topological_space α] {f g : α → ℝ} {s : set α} {x : α}
+
+lemma continuous_at.rpow (hf : continuous_at f x) (hg : continuous_at g x) (h : f x ≠ 0 ∨ 0 < g x) :
+  continuous_at (λ t, f t ^ g t) x :=
+hf.rpow hg h
+
+lemma continuous_within_at.rpow (hf : continuous_within_at f s x) (hg : continuous_within_at g s x)
+  (h : f x ≠ 0 ∨ 0 < g x) :
+  continuous_within_at (λ t, f t ^ g t) s x :=
+hf.rpow hg h
+
+lemma continuous_on.rpow (hf : continuous_on f s) (hg : continuous_on g s)
+  (h : ∀ x ∈ s, f x ≠ 0 ∨ 0 < g x) :
+  continuous_on (λ t, f t ^ g t) s :=
+λ t ht, (hf t ht).rpow (hg t ht) (h t ht)
+
+lemma continuous.rpow (hf : continuous f) (hg : continuous g) (h : ∀ x, f x ≠ 0 ∨ 0 < g x) :
+  continuous (λ x, f x ^ g x) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.continuous_at.rpow hg.continuous_at (h x))
+
 end
 
-lemma continuous_rpow_of_ne_zero (h : ∀a, f a ≠ 0) (hf : continuous f) (hg : continuous g):
-  continuous (λa:α, (f a) ^ (g a)) := continuous_rpow (λa, or.inl $ h a) hf hg
+namespace real
 
-lemma continuous_rpow_of_pos (h : ∀a, 0 < g a) (hf : continuous f) (hg : continuous g):
-  continuous (λa:α, (f a) ^ (g a)) := continuous_rpow (λa, or.inr $ h a) hf hg
+variables {z x y : ℝ}
 
-end prove_rpow_is_continuous
-
-section prove_rpow_is_differentiable
-
-lemma has_deriv_at_rpow_of_pos {x : ℝ} (h : 0 < x) (p : ℝ) :
-  has_deriv_at (λ x, x^p) (p * x^(p-1)) x :=
+lemma has_deriv_at_rpow_const {x p : ℝ} (h : x ≠ 0 ∨ 1 ≤ p) :
+  has_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
 begin
-  have : has_deriv_at (λ x, exp (log x * p)) (p * x^(p-1)) x,
-  { convert (has_deriv_at_exp _).comp x ((has_deriv_at_log (ne_of_gt h)).mul_const p) using 1,
-    field_simp [rpow_def_of_pos h, mul_sub, exp_sub, exp_log h, ne_of_gt h],
-    ring },
-  apply this.congr_of_eventually_eq,
-  have : set.Ioi (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Ioi h,
-  exact filter.eventually_of_mem this (λ y hy, rpow_def_of_pos hy _)
+  rcases em (x = 0) with rfl | hx;
+    [skip, exact (has_strict_deriv_at_rpow_const hx _).has_deriv_at],
+  replace h : 1 ≤ p := h.neg_resolve_left rfl,
+  have hp' : 0 < p, from zero_lt_one.trans_le h,
+  apply has_deriv_at_of_has_deriv_at_of_ne
+    (λ x hx, (has_strict_deriv_at_rpow_const hx p).has_deriv_at),
+  { exact continuous_at_id.rpow continuous_at_const (or.inr hp')  },
+  { rcases h.eq_or_lt with rfl|h,
+    { simp only [sub_self, rpow_zero, continuous_at_const] },
+    { exact continuous_at_const.mul
+        (continuous_at_id.rpow continuous_at_const (or.inr $ sub_pos_of_lt h)) } }
 end
-
-lemma has_deriv_at_rpow_of_neg {x : ℝ} (h : x < 0) (p : ℝ) :
-  has_deriv_at (λ x, x^p) (p * x^(p-1)) x :=
-begin
-  have : has_deriv_at (λ x, exp (log x * p) * cos (p * π)) (p * x^(p-1)) x,
-  { convert ((has_deriv_at_exp _).comp x ((has_deriv_at_log (ne_of_lt h)).mul_const p)).mul_const _
-      using 1,
-    field_simp [rpow_def_of_neg h, mul_sub, exp_sub, sub_mul, cos_sub, exp_log_of_neg h,
-      ne_of_lt h],
-    ring },
-  apply this.congr_of_eventually_eq,
-  have : set.Iio (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Iio h,
-  exact filter.eventually_of_mem this (λ y hy, rpow_def_of_neg hy _)
-end
-
-lemma has_deriv_at_rpow {x : ℝ} (h : x ≠ 0) (p : ℝ) :
-  has_deriv_at (λ x, x^p) (p * x^(p-1)) x :=
-begin
-  rcases lt_trichotomy x 0 with H|H|H,
-  { exact has_deriv_at_rpow_of_neg H p },
-  { exact (h H).elim },
-  { exact has_deriv_at_rpow_of_pos H p },
-end
-
-lemma has_deriv_at_rpow_zero_of_one_le {p : ℝ} (h : 1 ≤ p) :
-  has_deriv_at (λ x, x^p) (p * (0 : ℝ)^(p-1)) 0 :=
-begin
-  apply has_deriv_at_of_has_deriv_at_of_ne (λ x hx, has_deriv_at_rpow hx p),
-  { exact (continuous_rpow_of_pos (λ _, (lt_of_lt_of_le zero_lt_one h))
-      continuous_id continuous_const).continuous_at },
-  { rcases le_iff_eq_or_lt.1 h with rfl|h,
-    { simp [continuous_const.continuous_at] },
-    { exact (continuous_const.mul (continuous_rpow_of_pos (λ _, sub_pos_of_lt h)
-        continuous_id continuous_const)).continuous_at } }
-end
-
-lemma has_deriv_at_rpow_of_one_le (x : ℝ) {p : ℝ} (h : 1 ≤ p) :
-  has_deriv_at (λ x, x^p) (p * x^(p-1)) x :=
-begin
-  by_cases hx : x = 0,
-  { rw hx, exact has_deriv_at_rpow_zero_of_one_le h },
-  { exact has_deriv_at_rpow hx p }
-end
-
-end prove_rpow_is_differentiable
 
 section sqrt
 
@@ -936,6 +950,10 @@ lemma deriv_within_rpow_of_one_le (hf : differentiable_within_at ℝ f s x) (hp 
   deriv (λx, (f x)^p) x = (deriv f x) * p * (f x)^(p-1) :=
 (hf.has_deriv_at.rpow_of_one_le hp).deriv
 
+lemma times_cont_diff_at.rpow {n : with_top ℕ} {g : ℝ → ℝ} (hf : times_cont_diff_at ℝ n f x)
+  (hg : times_cont_diff_at ℝ n g x) (h₀ : f x ≠ 0) :
+  times_cont_diff_at ℝ n (λ x : ℝ, f x ^ g x) x :=
+(times_cont_diff_at_rpow' h₀ (g x)).comp x (hf.prod hg)
 
 end differentiability
 

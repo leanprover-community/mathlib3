@@ -720,8 +720,7 @@ end⟩,
 λ ⟨h⟩, ⟨begin
   introsI N _,
   simpa [of_mul.preimage_eq_iff_eq_image, is_subgroup.of_mul_image_trivial] using
-    @h (of_mul ⁻¹' N)
-      (by rw ← additive.normal_add_subgroup_iff; simpa [← additive.to_mul_symm_eq])
+    @h (of_mul ⁻¹' N) (by simpa [← additive.normal_add_subgroup_iff])
 end⟩⟩
 
 instance additive.simple_add_group [group G] [simple_group G] :
@@ -737,8 +736,7 @@ end⟩,
 λ ⟨h⟩, ⟨begin
   introsI N _,
   simpa [of_add.preimage_eq_iff_eq_image, is_subgroup.of_add_image_trivial] using
-    @h (of_add ⁻¹' N)
-      (by rw ← multiplicative.normal_subgroup_iff; simpa [← multiplicative.to_add_symm_eq])
+    @h (of_add ⁻¹' N) (by simpa [← multiplicative.normal_subgroup_iff])
 end⟩⟩
 
 instance multiplicative.simple_group [add_group A] [simple_add_group A] :

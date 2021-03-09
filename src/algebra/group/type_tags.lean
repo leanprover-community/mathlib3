@@ -74,7 +74,7 @@ def of_mul : α ≃ additive α :=
 ⟨additive.mk, additive.out, λ _, rfl, λ ⟨_⟩, rfl⟩
 
 /-- Reinterpret `x : additive α` as an element of `α`. -/
-def to_mul : additive α ≃ α := of_mul.symm
+@[reducible] def to_mul : additive α ≃ α := of_mul.symm
 
 @[simp] lemma of_mul_symm_eq : (@of_mul α).symm = to_mul := rfl
 
@@ -103,7 +103,7 @@ def of_add : α ≃ multiplicative α :=
 ⟨mk, out, λ _, rfl, λ ⟨_⟩, rfl⟩
 
 /-- Reinterpret `x : multiplicative α` as an element of `α`. -/
-def to_add : multiplicative α ≃ α := of_add.symm
+@[reducible] def to_add : multiplicative α ≃ α := of_add.symm
 
 @[simp] lemma of_add_symm_eq : (@of_add α).symm = to_add := rfl
 
@@ -127,12 +127,12 @@ end multiplicative
 
 open additive multiplicative
 
-@[simp] lemma to_add_of_add (x : α) : (multiplicative.of_add x).to_add = x := rfl
-@[simp] lemma of_add_to_add (x : multiplicative α) : multiplicative.of_add x.to_add = x :=
+lemma to_add_of_add (x : α) : (multiplicative.of_add x).to_add = x := rfl
+lemma of_add_to_add (x : multiplicative α) : multiplicative.of_add x.to_add = x :=
 multiplicative.of_add.right_inv _
 
-@[simp] lemma to_mul_of_mul (x : α) : (additive.of_mul x).to_mul = x := rfl
-@[simp] lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x :=
+lemma to_mul_of_mul (x : α) : (additive.of_mul x).to_mul = x := rfl
+lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x :=
 additive.of_mul.right_inv _
 
 lemma exists_multiplicative_iff {p : multiplicative α → Prop} :
@@ -151,27 +151,11 @@ lemma forall_additive_iff {p : additive α → Prop} :
   (∀ x, p x) ↔ ∀ x, p (of_mul x) :=
 to_mul.forall_congr_left'
 
-@[simp] lemma of_mul_preimage_to_mul_preimage {α} (s : set α) :
-  of_mul ⁻¹' (to_mul ⁻¹' s) = s :=
-rfl
-
-@[simp] lemma of_add_preimage_to_add_preimage {α} (s : set α) :
-  of_add ⁻¹' (to_add ⁻¹' s) = s :=
-rfl
-
-@[simp] lemma to_mul_preimage_of_mul_preimage {α} (s : set (additive α)) :
-  to_mul ⁻¹' (of_mul ⁻¹' s) = s :=
-by { ext, simp }
-
-@[simp] lemma to_add_preimage_of_add_preimage {α} (s : set (multiplicative α)) :
-  to_add ⁻¹' (of_add ⁻¹' s) = s :=
-by { ext, simp }
-
 @[simp] lemma of_mul_image {α} (s : set α) : of_mul '' s = to_mul ⁻¹' s :=
-by { rw equiv.image_eq_preimage, refl }
+equiv.image_eq_preimage _ _
 
 @[simp] lemma of_add_image {α} (s : set α) : of_add '' s = to_add ⁻¹' s :=
-by { rw equiv.image_eq_preimage, refl }
+equiv.image_eq_preimage _ _
 
 @[simp] lemma to_mul_image {α} (s : set (additive α)) : to_mul '' s = of_mul ⁻¹' s :=
 by { rw equiv.image_eq_preimage, refl }

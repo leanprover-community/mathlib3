@@ -415,12 +415,12 @@ def associated' : quadratic_form R M →+ bilin_form R M :=
   { bilin := λ x y, ⅟2 * polar Q x y,
     bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
     bilin_smul_left := λ x y z, begin
-      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_right_invertible,
+      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
       simp [polar_smul_left, ← mul_assoc, htwo]
     end,
     bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
     bilin_smul_right := λ x y z, begin
-      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_right_invertible,
+      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
       simp [polar_smul_left, ← mul_assoc, htwo]
     end },
   map_add' := λ Q Q', by { ext, simp [bilin_form.add_apply, polar_add, mul_add] },

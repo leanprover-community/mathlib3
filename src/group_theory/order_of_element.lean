@@ -225,7 +225,9 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 
 open nat
 
-lemma order_of_pow (a : α) (n : ℕ) (h : n ≠ 0) :
+variables (a)
+
+lemma order_of_pow (n : ℕ) (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
 conv_rhs { rw order_of },
@@ -259,7 +261,7 @@ split_ifs with hx,
   { simp } }
 end
 
-lemma order_of_pow' (a : α) (n : ℕ) (h : ∃ n, 0 < n ∧ a ^ n = 1) :
+lemma order_of_pow' (n : ℕ) (h : ∃ n, 0 < n ∧ a ^ n = 1) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
   conv_rhs { rw order_of },
@@ -282,9 +284,10 @@ end
 end monoid
 
 section cancel_monoid
-variables {α} [decidable_eq α] [left_cancel_monoid α]
+variables {α} [left_cancel_monoid α]
+  (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
-private lemma pow_injective_aux {n m : ℕ} (a : α) (h : n ≤ m)
+private lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 decidable.by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
@@ -304,7 +307,7 @@ decidable.by_contradiction $ assume ne : n ≠ m,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (lt_of_le_of_lt le lt)
 
-lemma pow_injective_of_lt_order_of {n m : ℕ} (a : α)
+lemma pow_injective_of_lt_order_of {n m : ℕ}
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
 (le_total n m).elim
   (assume h, pow_injective_aux a h hn hm eq)
@@ -313,7 +316,8 @@ lemma pow_injective_of_lt_order_of {n m : ℕ} (a : α)
 end cancel_monoid
 
 section group
-variables {α} [decidable_eq α] [group α]
+variables {α} [group α]
+  {a} [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
 lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
 calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
@@ -339,12 +343,10 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : 
     λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
-
-
 end finite_monoid
 
 section finite_cancel_monoid
-variables {α} [fintype α] [decidable_eq α] [left_cancel_monoid α]
+variables {α} [fintype α] [left_cancel_monoid α]
 
 lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=
 begin
@@ -373,17 +375,17 @@ end
 instance order_of.fintype_decidable (a : α) :
 decidable (∃ (i : ℕ), 0 < i ∧  a ^ i = 1) := decidable.is_true (exists_pow_eq_one a)
 
+variables {a} [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+
 lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
 finset.le_card_of_inj_on_range ((^) a)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
 
-
-
 end finite_cancel_monoid
 
 section finite_group
-variables {α} [fintype α] [decidable_eq α] [group α]
+variables {α} [fintype α] [group α]
 
 lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
 begin
@@ -394,10 +396,13 @@ begin
   exact_mod_cast hw2,
 end
 
-lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
+variables (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+  [decidable_eq α]
+
+lemma mem_gpowers_iff_mem_range_order_of {a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq
-  (order_of_pos a (begin cases (exists_pow_eq_one a) with w hw,
+  (order_of_pos (begin cases (exists_pow_eq_one a) with w hw,
                          cases hw with hw1 hw2,
                          exact ⟨w, hw1, hw2⟩ end))
   (assume i, gpow_eq_mod_order_of.symm)
@@ -413,9 +418,9 @@ begin
   { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
   { exact assume ⟨_, i, rfl⟩ _,
     have pos: (0:int) < order_of a,
-      from int.coe_nat_lt.mpr $ order_of_pos a (begin cases (exists_pow_eq_one a) with w hw,
-                                                      cases hw with hw1 hw2,
-                                                      exact ⟨w, hw1, hw2⟩ end),
+      from int.coe_nat_lt.mpr $ order_of_pos (begin cases (exists_pow_eq_one a) with w hw,
+                                                    cases hw with hw1 hw2,
+                                                    exact ⟨w, hw1, hw2⟩ end),
     have 0 ≤ i % (order_of a),
       from int.mod_nonneg _ $ ne_of_gt pos,
     ⟨int.to_nat (i % order_of a),
@@ -456,15 +461,17 @@ lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
 λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
   by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _ (begin cases (exists_pow_eq_one a) with w hw,
-                                                          cases hw with hw1 hw2,
-                                                          exact ⟨w, hw1, hw2⟩ end)))),
+    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos (begin cases (exists_pow_eq_one a) with w hw,
+                                                        cases hw with hw1 hw2,
+                                                        exact ⟨w, hw1, hw2⟩ end)))),
     ← gpow_eq_mod_order_of]⟩⟩
 
 lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
 set.ext $ λ x, mem_powers_iff_mem_gpowers
 
-lemma image_range_order_of (a : α) :
+variable (a)
+
+lemma image_range_order_of :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
@@ -651,9 +658,9 @@ include hn
 lemma card_pow_eq_one_eq_order_of_aux (a : α) :
   (finset.univ.filter (λ b : α, b ^ order_of a = 1)).card = order_of a :=
 le_antisymm
-  (hn _ (order_of_pos _ (begin cases (exists_pow_eq_one a) with w hw,
-                               cases hw with hw1 hw2,
-                               exact ⟨w, hw1, hw2⟩ end)))
+  (hn _ (order_of_pos (begin cases (exists_pow_eq_one a) with w hw,
+                             cases hw with hw1 hw2,
+                             exact ⟨w, hw1, hw2⟩ end)))
   (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
     ... ≤ @fintype.card (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
     (fintype.of_finset _ (λ _, iff.rfl)) :

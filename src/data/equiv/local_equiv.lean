@@ -56,6 +56,12 @@ an empty type and a nonempty type. Since empty types are not that useful, and si
 needs to talk about equal local equivs, this is not an issue in practice.
 Still, we introduce an equivalence relation `eq_on_source` that captures this right notion of
 equality, and show that many properties are invariant under this equivalence relation.
+
+### Local coding conventions
+
+If a lemma deals with the intersection of a set with either source or target of a `local_equiv`,
+then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or `t ∩ e.target`.
+
 -/
 
 mk_simp_attribute mfld_simps "The simpset `mfld_simps` records several simp lemmas that are

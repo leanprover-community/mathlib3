@@ -35,6 +35,11 @@ Most statements are copied from their local_equiv versions, although some care i
 especially when restricting to subsets, as these should be open subsets.
 
 For design notes, see `local_equiv.lean`.
+
+### Local coding conventions
+
+If a lemma deals with the intersection of a set with either source or target of a `local_equiv`,
+then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or `t ∩ e.target`.
 -/
 
 open function set filter

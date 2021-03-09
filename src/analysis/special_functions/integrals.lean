@@ -11,14 +11,13 @@ import measure_theory.interval_integral
 This file contains proofs of the integrals of various simple functions, including `pow`, `exp`,
 `inv`/`one_div`, `sin`, `cos`, and `λ x, 1 / (1 + x^2)`.
 
-With these lemmas, many simple integrals can be computed by `simp` or `norm_num`. Scroll to the
-bottom of the file for examples.
+With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
 
-This file is incomplete; we are working on expanding it.
+This file is still being developed.
 -/
 
 open real set
-variables {a b : ℝ} {f f' g : ℝ → ℝ}
+variables {a b : ℝ} {f : ℝ → ℝ}
 
 namespace interval_integral
 open measure_theory
@@ -172,10 +171,3 @@ end
 
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
-
-
-open_locale real
-
-example : ∫ x:ℝ in 0..1, x^3 + x/2 + 1/4 - (1 + x^2)⁻¹ = 3/4 - π/4 := by norm_num
-
-example : ∫ x:ℝ in 0..2, 6*x^5 + 3*x^4 + x^3 - 2*x^2 + x - 7 = 1048 / 15 := by norm_num

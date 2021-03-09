@@ -1233,10 +1233,16 @@ begin
   { sorry, },
 end
 
+lemma is_R_or_C.conj_smul {𝕜 : Type*} [is_R_or_C 𝕜] (m : ℝ) (x : 𝕜) :
+  is_R_or_C.conj (m • x) = m • is_R_or_C.conj x :=
+begin
+  sorry
+end
+
 def conj_lm {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →ₗ[ℝ] 𝕜 :=
 { to_fun := λ x, is_R_or_C.conj x,
   map_add' := by simp,
-  map_smul' := by sorry, }
+  map_smul' := is_R_or_C.conj_smul, }
 
 @[simp] lemma conj_lm_coe {𝕜 : Type*} [is_R_or_C 𝕜] :
   (conj_lm : 𝕜 → 𝕜) = is_R_or_C.conj := rfl

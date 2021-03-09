@@ -413,9 +413,12 @@ finset.mem_range_iff_mem_finset_range_of_mod_eq
   (assume i, gpow_eq_mod_order_of.symm)
 
 instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
-assume a', decidable_of_iff'
-  (a' ∈ (finset.range (order_of a)).image ((^) a))
-  mem_gpowers_iff_mem_range_order_of
+begin
+  assume a',
+  apply decidable_of_iff'
+  (a' ∈ (finset.range (order_of a)).image ((^) a)),
+  exact @mem_gpowers_iff_mem_range_order_of _ _ _ _ _ _ _ (a')
+end
 
 lemma order_eq_card_gpowers : order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin
@@ -512,8 +515,10 @@ def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
     hm ▸ hn ▸ gpow_mul_comm _ _ _,
   ..hg }
 
-lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
-  (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
+variables [group α] (x : α) [decidable_pred (λ n, 0 < n ∧ x ^ n = 1)] [decidable (∃ n, 0 < n ∧ x ^ n = 1)]
+
+lemma is_cyclic_of_order_of_eq_card [decidable_eq α] [fintype α]
+   (hx : order_of x = fintype.card α) : is_cyclic α :=
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
@@ -597,6 +602,7 @@ else
   by clear _let_match; substI this; apply_instance
 
 open finset nat
+
 lemma is_cyclic.card_pow_eq_one_le [group α] [decidable_eq α] [fintype α] [is_cyclic α] {n : ℕ}
   (hn0 : 0 < n) : (univ.filter (λ a : α, a ^ n = 1)).card ≤ n :=
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
@@ -682,9 +688,9 @@ private lemma card_order_of_eq_totient_aux₁ :
   (univ.filter (λ a : α, order_of a = d)).card = φ d
 | 0     := λ hd hd0,
 let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $
-  order_of_pos a (begin cases (exists_pow_eq_one a) with w hw,
-                        cases hw with hw1 hw2,
-                        exact ⟨w, hw1, hw2⟩ end)
+  order_of_pos (begin cases (exists_pow_eq_one a) with w hw,
+                      cases hw with hw1 hw2,
+                      exact ⟨w, hw1, hw2⟩ end)
 | (d+1) := λ hd hd0,
 let ⟨a, ha⟩ := card_pos.1 hd0 in
 have ha : order_of a = d.succ, from (mem_filter.1 ha).2,
@@ -696,7 +702,9 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
       card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
-          by { rw order_of_pow a (d.succ / m),
+          by { rw order_of_pow' a _ (begin cases (exists_pow_eq_one a) with w hw,
+                                           cases hw with hw1 hw2,
+                                           exact ⟨w, hw1, hw2⟩ end),
                 rw [ha, gcd_eq_right (div_dvd_of_dvd hm),
                 nat.div_div_self hm (succ_pos _)]
                 }⟩⟩)),

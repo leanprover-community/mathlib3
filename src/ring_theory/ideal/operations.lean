@@ -1318,7 +1318,7 @@ ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.qu
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
 lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
-by { rw [← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_eq_coe], simp [map_map] }
+by simp [← ring_equiv.to_ring_hom_eq_coe, map_map]
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
 lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :

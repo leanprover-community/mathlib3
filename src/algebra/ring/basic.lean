@@ -897,7 +897,10 @@ open_locale classical
 
 /-- Introduce a function `inverse` on a monoid with zero `M₀`, which sends `x` to `x⁻¹` if `x` is
 invertible and to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather
-than partially) defined inverse function for some purposes, including for calculus. -/
+than partially) defined inverse function for some purposes, including for calculus.
+
+Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
+`monoid_with_zero M₀` instead of `ring M₀`. -/
 noncomputable def inverse : M₀ → M₀ :=
 λ x, if h : is_unit x then (((classical.some h)⁻¹ : units M₀) : M₀) else 0
 

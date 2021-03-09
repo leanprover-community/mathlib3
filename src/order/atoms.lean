@@ -333,14 +333,14 @@ instance : fintype α := fintype.of_equiv bool (order_iso_bool.to_equiv).symm
 protected def boolean_algebra : boolean_algebra α :=
 { compl := λ x, if x = ⊥ then ⊤ else ⊥,
   sdiff := λ x y, if x = ⊤ ∧ y = ⊥ then ⊤ else ⊥,
-  sdiff_eq := λ x y, by { rcases eq_bot_or_eq_top x with rfl | rfl;
-      simp [bot_ne_top, has_sdiff.sdiff, compl] },
-  inf_compl_le_bot := λ x, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
-  top_le_sup_compl := λ x, by { rcases eq_bot_or_eq_top x with rfl | rfl; simp },
-  sup_inf_sdiff := λ x y, by { rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top] },
-  inf_inf_sdiff := λ x y, by { rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp },
+  sdiff_eq := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
+      simp [bot_ne_top, has_sdiff.sdiff, compl],
+  inf_compl_le_bot := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
+  top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
+  sup_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
+      rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top],
+  inf_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
+      rcases eq_bot_or_eq_top y with rfl | rfl; simp,
   .. is_simple_lattice.bounded_distrib_lattice }
 
 end decidable_eq

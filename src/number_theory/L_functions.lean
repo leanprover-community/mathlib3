@@ -30,7 +30,7 @@ instance t2 : t2_space (units ℤ_[p]) := sorry
 
 instance td : totally_disconnected_space (units ℤ_[p]) := sorry
 
-instance cat : (units ℤ_[p]) ∈ category_theory.Cat.objects Profinite :=
+--instance cat : (units ℤ_[p]) ∈ category_theory.Cat.objects Profinite :=
 
 instance topo' : topological_space (units A) := sorry
 
@@ -41,14 +41,38 @@ variables (X : Profinite)
 
 def clopen_sets := {s : set X // is_clopen s}
 
+instance union : semilattice_inf_bot (clopen_sets X) := sorry
+
+instance has_union' : has_union (clopen_sets X) :=
+begin
+constructor,
+sorry
+end
+
+open_locale big_operators
+
 variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
-def distribution := clopen_sets X → R --is this more than a function?
+structure distribution :=
+(phi : clopen_sets X → R)
+(count_add ⦃f : ℕ → clopen_sets X⦄ :
+  (∀ i j, pairwise (disjoint on f) →
+  phi((f i) ∪ (f j)) = phi (f i) + phi (f j)))
 
 variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
 
-def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : Γ₀, v (φ S) ≤ K }
+def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : Γ₀, v (φ.phi S) ≤ K }
 
-def integral (φ : measures X v) : C(X, R) → R := sorry
+instance uniform : uniform_space C(X, R) := sorry
+
+instance completeness : complete_space C(X, R) := sorry
+
+def integral (φ : measures X v) : C(X, R) → R :=
+begin
+--  intro f,
+  apply dense_inducing.extend,
+  sorry
+end
+
 /-structure dir_sys ( α : Type* ) :=
 (h : ℕ → finset α )
 (sys : ∀ (i j : ℕ) (hji : j ≤ i), (h i : set α) → (h j : set α))

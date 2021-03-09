@@ -138,7 +138,7 @@ theorem lt_succ_sqrt (n : ℕ) : n < succ (sqrt n) * succ (sqrt n) :=
 theorem sqrt_le_add (n : ℕ) : n ≤ sqrt n * sqrt n + sqrt n + sqrt n :=
 begin
   convert le_of_lt_succ (lt_succ_sqrt n),
-  rw ←mul_succ,
+  rw [←mul_succ, mul_comm],
   refl
 end
 
@@ -190,8 +190,8 @@ le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $
 le_trans (sqrt_le_add n) $ add_le_add_right
   (by {
     dsimp,
-    rw mul_succ,
-    refine add_le_add (nat.mul_le_mul _ _) _;
+    rw [←mul_succ, mul_comm],
+    refine (nat.mul_le_mul _ _);
     exact nat.le_succ _ }) _
 
 theorem exists_mul_self (x : ℕ) :

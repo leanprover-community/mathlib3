@@ -59,8 +59,8 @@ instance : order_top (finset α) :=
   .. finset.partial_order }
 
 instance [decidable_eq α] : boolean_algebra (finset α) :=
+boolean_algebra.of_core
 { compl := λ s, univ \ s,
-  sdiff_eq := λ s t, by simp [ext_iff],
   inf_compl_le_bot := λ s x hx, by simpa using hx,
   top_le_sup_compl := λ s x hx, by simp,
   ..finset.distrib_lattice,

@@ -91,6 +91,9 @@ protected lemma ind_on {C : additive α → Prop} (x : additive α) :
   (∀ x, C (of_mul x)) → C x :=
 λ h, by rw ← additive.of_mul.right_inv x; apply h
 
+@[simp] lemma out_eq_to_mul {x : additive α} : x.out = x.to_mul := rfl
+@[simp] lemma mk_eq_of_mul {x : α} : additive.mk x = of_mul x := rfl
+
 end additive
 
 namespace multiplicative
@@ -116,6 +119,9 @@ to_add.apply_eq_iff_eq.symm
 protected lemma ind_on {C : multiplicative α → Prop} (x : multiplicative α) :
   (∀ x, C (of_add x)) → C x :=
 λ h, by rw ← multiplicative.of_add.right_inv x; apply h
+
+@[simp] lemma out_eq_to_add {x : multiplicative α} : x.out = x.to_add := rfl
+@[simp] lemma mk_eq_of_add {x : α} : multiplicative.mk x = of_add x := rfl
 
 end multiplicative
 

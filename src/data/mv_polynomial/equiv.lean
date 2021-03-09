@@ -259,10 +259,6 @@ def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
   end,
   ..sum_ring_equiv R S₁ S₂ }
 
--- TODO: move
-instance : is_scalar_tower R (mv_polynomial S₁ R) (polynomial (mv_polynomial S₁ R)) :=
-    finsupp.is_scalar_tower ℕ _
-
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.

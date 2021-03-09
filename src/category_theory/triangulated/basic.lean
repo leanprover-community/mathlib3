@@ -129,7 +129,7 @@ end
 
 @[simp]
 lemma comp_assoc (f: triangle_morphism T₁ T₂) (g: triangle_morphism T₂ T₃)
-(h: triangle_morphism T₃ T₄): (f.comp g).comp h = f.comp (g.comp h) :=
+  (h: triangle_morphism T₃ T₄) : (f.comp g).comp h = f.comp (g.comp h) :=
 begin
   unfold comp,
   simp only [eq_self_iff_true, assoc, and_self],

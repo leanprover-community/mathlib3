@@ -29,8 +29,6 @@ Either prepend `https://gitpod.io/#` to basically any URL at github, e.g.
 or install a [gitpod browser extension](https://www.gitpod.io/docs/browser-extension/)
 which will add buttons directly on github.
 
-(If people like gitpod we can add links in the PR template.)
-
 You can enable gitpod for repositories importing mathlib as a dependency simply by creating
 the file `/.gitpod.yml` containing:
 

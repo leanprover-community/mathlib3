@@ -197,7 +197,7 @@ by use a
 lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
 begin
   cases z with a, split,
-  { rintro ⟨_, h⟩, erw eq_iff at h, cc },
+  { rintro ⟨_, h⟩, dsimp only, erw eq_iff at h, rcases h; cc },
   { rintro ⟨⟩, use a, refl },
 end
 

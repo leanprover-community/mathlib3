@@ -151,10 +151,7 @@ lemma comp_coe (f : na_algebra_hom R B C) (g : na_algebra_hom R A B) :
 /-- The inverse of a bijective morphism is a morphism. -/
 def inverse (f : na_algebra_hom R A B) (g : B → A)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : na_algebra_hom R B A :=
-{ map_mul' := λ x y,
-  calc g (x * y) = g ((f (g x)) * (f (g y))) : by { conv_lhs { rw [←h₂ x, ←h₂ y], }, }
-             ... = g (f ((g x) * (g y))) : by rw map_mul
-             ... = (g x) * (g y) : (h₁ _),
+{ ..mul_hom.inverse (f : mul_hom A B) g h₁ h₂,
   ..linear_map.inverse (f : A →ₗ[R] B) g h₁ h₂ }
 
 end na_algebra_hom

@@ -401,7 +401,7 @@ begin
   exact_mod_cast hw2,
 end
 
-variables (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+variables {a} [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
   [decidable_eq α]
 
 lemma mem_gpowers_iff_mem_range_order_of {a' : α} :
@@ -485,9 +485,11 @@ by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] 
 
 open nat
 
-lemma pow_gcd_card_eq_one_iff {n : ℕ} {a : α} :
+variable {a}
+
+lemma pow_gcd_card_eq_one_iff {n : ℕ} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
-⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one _,
+⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
     by rw [hm, pow_mul, h, one_pow]⟩
 
@@ -524,7 +526,7 @@ lemma is_cyclic_of_order_of_eq_card [decidable_eq α] [fintype α]
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
 
 /-- A finite group of prime order is cyclic. -/
-lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
+lemma is_cyclic_of_prime_card [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
   obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
@@ -550,12 +552,12 @@ lemma is_cyclic_of_prime_card [group α] [fintype α] {p : ℕ} [hp : fact p.pri
     exact subgroup.mem_top _ }
 end⟩
 
-lemma order_of_eq_card_of_forall_mem_gpowers [group α] [decidable_eq α] [fintype α]
+lemma order_of_eq_card_of_forall_mem_gpowers [decidable_eq α] [fintype α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
 by {rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
   simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
 
-instance bot.is_cyclic [group α] : is_cyclic (⊥ : subgroup α) :=
+instance bot.is_cyclic : is_cyclic (⊥ : subgroup α) :=
 ⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
 
 instance subgroup.is_cyclic [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=
@@ -603,7 +605,7 @@ else
 
 open finset nat
 
-lemma is_cyclic.card_pow_eq_one_le [group α] [decidable_eq α] [fintype α] [is_cyclic α] {n : ℕ}
+lemma is_cyclic.card_pow_eq_one_le [decidable_eq α] [fintype α] [is_cyclic α] {n : ℕ}
   (hn0 : 0 < n) : (univ.filter (λ a : α, a ^ n = 1)).card ≤ n :=
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 calc (univ.filter (λ a : α, a ^ n = 1)).card

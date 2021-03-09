@@ -31,6 +31,20 @@ which will add buttons directly on github.
 
 (If people like gitpod we can add links in the PR template.)
 
+You can enable gitpod for repositories importing mathlib as a dependency simply by creating
+the file `/.gitpod.yml` containing:
+
+```yml
+image: leanprovercommunity/mathlib:gitpod
+
+vscode:
+  extensions:
+    - jroesch.lean
+
+tasks:
+  - command: . /home/gitpod/.profile && leanproject get-mathlib-cache
+```
+
 ### Command line
 
 You can use these containers as virtual machines:

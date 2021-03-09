@@ -115,9 +115,8 @@ instance : nonarchimedean_ring (R × S) :=
   the product still contains an open subgroup. -/
 lemma left_mul_subset (U : open_add_subgroup R) (r : R) :
   ∃ V : open_add_subgroup R, r • (V : set R) ⊆ U :=
-⟨{is_open' := is_open.preimage (continuous_mul_left r) U.is_open,
-  ..add_subgroup.comap (add_monoid_hom.mul_left r) U},
-set.image_preimage_subset (λ x, (add_monoid_hom.mul_left r) x) U⟩
+⟨U.comap (add_monoid_hom.mul_left r) (continuous_mul_left r),
+  (U : set R).image_preimage_subset _⟩
 
 /-- An open subset of a topological ring contains the square of another one. -/
 lemma mul_subset (U : open_add_subgroup R) :

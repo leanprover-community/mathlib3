@@ -140,6 +140,17 @@ instance : semilattice_inf_top (open_subgroup G) :=
 attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_inf
   open_add_subgroup.coe_subset open_add_subgroup.coe_add_subgroup_le
 
+/-- The preimage of an `open_subgroup` along a continuous `monoid` homomorphism is a subgroup. -/
+@[to_additive "The preimage of an `open_add_subgroup` along an `open_add_monoid` homomorphism
+is an `open_add_subgroup`."]
+def comap {N : Type*} [group N] [topological_space N] [topological_group N] (f : G →* N)
+  (hf : continuous f) (H : open_subgroup N) : open_subgroup G :=
+{ carrier := (f ⁻¹' H),
+  inv_mem' := λ a ha,
+    show f a⁻¹ ∈ H, by rw f.map_inv; exact H.inv_mem ha,
+  is_open' := H.is_open.preimage hf,
+  .. (H : subgroup N).to_submonoid.comap f }
+
 end open_subgroup
 
 namespace subgroup

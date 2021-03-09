@@ -6,6 +6,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import data.polynomial.induction
 import data.polynomial.degree.definitions
 import deprecated.ring
+import tactic.converter.apply_congr
 
 /-!
 # Theory of univariate polynomials
@@ -45,7 +46,15 @@ lemma eval₂_congr {R S : Type*} [semiring R] [semiring S]
 by rintro rfl rfl rfl; refl
 
 @[simp] lemma eval₂_at_zero : p.eval₂ f 0 = f (coeff p 0) :=
-sorry
+begin
+  -- This proof is lame, and the `finsupp` API shows through.
+  simp only [eval₂_eq_sum, zero_pow_eq, mul_ite, mul_zero, mul_one, finsupp.sum_ite_eq'],
+  split_ifs,
+  { refl, },
+  { simp only [not_not, finsupp.mem_support_iff, ne.def] at h,
+    apply_fun f at h,
+    simpa using h.symm, },
+end
 
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
@@ -239,8 +248,25 @@ begin
   exact P.eval_eq_finset_sum x
 end
 
+@[simp] lemma eval₂_at_apply {S : Type*} [semiring S] (f : R →+* S) (r : R) :
+  p.eval₂ f (f r) = f (p.eval r) :=
+begin
+  rw [eval₂_eq_sum, eval_eq_sum, finsupp.sum, finsupp.sum, f.map_sum],
+  simp only [f.map_mul, f.map_pow],
+end
+
 @[simp] lemma eval₂_at_one {S : Type*} [semiring S] (f : R →+* S) : p.eval₂ f 1 = f (p.eval 1) :=
-sorry
+begin
+  convert eval₂_at_apply f 1,
+  simp,
+end
+
+@[simp] lemma eval₂_at_nat_cast {S : Type*} [semiring S] (f : R →+* S) (n : ℕ) :
+  p.eval₂ f n = f (p.eval n) :=
+begin
+  convert eval₂_at_apply f n,
+  simp,
+end
 
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
@@ -266,13 +292,34 @@ eval₂_monomial _ _
   (s • p).eval x = s * p.eval x :=
 eval₂_smul (ring_hom.id _) _ _
 
-@[simp] lemma eval_C_mul : (C a * p).eval x = a * p.eval x := sorry
+@[simp] lemma eval_C_mul : (C a * p).eval x = a * p.eval x :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q ph qh,
+    simp only [mul_add, eval_add, ph, qh], },
+  { intros n b,
+    simp [mul_assoc], }
+end
 
-@[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : polynomial R) * p).eval x = n * p.eval x := sorry
+@[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : polynomial R) * p).eval x = n * p.eval x :=
+by rw [←C_eq_nat_cast, eval_C_mul]
 
-@[simp] lemma eval_mul_X : (p * X).eval x = p.eval x * x := sorry
+@[simp] lemma eval_mul_X : (p * X).eval x = p.eval x * x :=
+begin
+  apply polynomial.induction_on' p,
+  { intros p q ph qh,
+    simp only [add_mul, eval_add, ph, qh], },
+  { intros n a,
+    simp only [←monomial_one_one_eq_X, monomial_mul_monomial, eval_monomial,
+      mul_one, pow_succ', mul_assoc], }
+end
 
-@[simp] lemma eval_mul_X_pow {k : ℕ} : (p * X^k).eval x = p.eval x * x^k := sorry
+@[simp] lemma eval_mul_X_pow {k : ℕ} : (p * X^k).eval x = p.eval x * x^k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp [pow_succ', ←mul_assoc, ih], }
+end
 
 lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
@@ -593,6 +640,14 @@ variables [comm_semiring R] {p q : polynomial R} {x : R}
 instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
 
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
+
+@[simp]
+lemma eval_comp : (p.comp q).eval x = p.eval (q.eval x) :=
+begin
+  apply polynomial.induction_on' p,
+  { intros r s hr hs, simp [add_comp, hr, hs], },
+  { intros n a, simp, }
+end
 
 lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=

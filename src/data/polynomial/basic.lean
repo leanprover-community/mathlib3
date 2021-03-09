@@ -78,7 +78,7 @@ finsupp.smul_single _ _ _
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
 
-lemma monomial_one_one_eq_X : monomial 1 1 = X := rfl
+lemma monomial_one_one_eq_X : monomial 1 (1 : R) = X := rfl
 lemma monomial_one_right_eq_X_pow (n : ℕ) : monomial n 1 = X^n :=
 begin
   induction n with n ih,

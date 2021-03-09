@@ -160,16 +160,13 @@ Send `k : fin (n+1)` to the equally spaced points `k/n` in the unit interval.
 def z {n : ℕ} (k : fin (n+1)) : I :=
 ⟨(k : ℝ) / n,
   begin
-    rcases k with ⟨k,w⟩,
-    fsplit,
-    { simp only [fin.coe_mk, coe_coe],
-      exact div_nonneg (nat.cast_nonneg k) (nat.cast_nonneg n), },
-    { simp only [fin.coe_mk, coe_coe],
-      cases n,
-      norm_num,
-      rw div_le_iff,
-      { simp only [one_mul, nat.cast_succ], norm_cast, exact nat.le_of_lt_succ w, },
-      { norm_cast, exact nat.succ_pos _, }, }
+    cases n,
+    { norm_num },
+    have h₁ : 0 < (n.succ : ℝ) := by exact_mod_cast (nat.succ_pos _),
+    have h₂ : ↑k ≤ n.succ := by exact_mod_cast (fin.le_last k),
+    rw [set.mem_Icc, le_div_iff h₁, div_le_iff h₁],
+    norm_cast,
+    simp [h₂]
   end⟩
 
 local postfix `/ₙ`:90 := z
@@ -297,14 +294,8 @@ begin
                               : by rw mul_one
     ... = abs (bernstein_approximation n f x - f x * (∑ k : fin (n+1), bernstein n k x))
                               : by rw bernstein.probability
-    ... = abs (bernstein_approximation n f x - (∑ k : fin (n+1), f x * bernstein n k x))
-                              : by rw finset.mul_sum
     ... = abs (∑ k : fin (n+1), (f k/ₙ - f x) * bernstein n k x)
-                              : begin
-                                  dsimp [bernstein_approximation],
-                                  simp only [coe_sum, coe_smul, finset.sum_apply,
-                                    ←finset.sum_sub_distrib, algebra.id.smul_eq_mul, ←sub_mul],
-                                end
+                              : by simp [bernstein_approximation, finset.mul_sum, sub_mul]
     ... ≤ ∑ k : fin (n+1), abs ((f k/ₙ - f x) * bernstein n k x)
                               : finset.abs_sum_le_sum_abs
     ... = ∑ k : fin (n+1), abs (f k/ₙ - f x) * bernstein n k x

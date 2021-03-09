@@ -849,20 +849,30 @@ theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
 
 instance : order_topology ℝ :=
-order_topology_of_nhds_abs $ λ x, begin
-  simp only [show ∀ r, {b : ℝ | abs (x - b) < r} = ball x r,
-    by simp [abs_sub, ball, real.dist_eq]],
-  apply le_antisymm,
-  { simp [le_infi_iff],
-    exact λ ε ε0, mem_nhds_sets (is_open_ball) (mem_ball_self ε0) },
-  { intros s h,
-    rcases mem_nhds_iff.1 h with ⟨ε, ε0, ss⟩,
-    exact mem_infi_sets _ (mem_infi_sets ε0 (mem_principal_sets.2 ss)) },
-end
+order_topology_of_nhds_abs $ λ x,
+  by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub]
 
 lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
+
+section metric_ordered
+
+variables [conditionally_complete_linear_order α] [order_topology α]
+
+lemma totally_bounded_Icc (a b : ℝ) : totally_bounded (Icc a b) :=
+(compact_Icc a b).totally_bounded
+
+lemma totally_bounded_Ico (a b : ℝ) : totally_bounded (Ico a b) :=
+totally_bounded_subset Ico_subset_Icc_self (totally_bounded_Icc a b)
+
+lemma totally_bounded_Ioc (a b : ℝ) : totally_bounded (Ioc a b) :=
+totally_bounded_subset Ioc_subset_Icc_self (totally_bounded_Icc a b)
+
+lemma totally_bounded_Ioo (a b : ℝ) : totally_bounded (Ioo a b) :=
+totally_bounded_subset Ioo_subset_Icc_self (totally_bounded_Icc a b)
+
+end metric_ordered
 
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
 general case. -/

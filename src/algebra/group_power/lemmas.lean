@@ -198,7 +198,7 @@ begin
   by_cases n0 : 0 ≤ n,
   { lift n to ℕ using n0,
     simp only [abs_nsmul, coe_nat_abs, gsmul_coe_nat] },
-  { lift (- n) to ℕ using int.le_of_lt (neg_pos.mpr (not_le.mp n0)) with m,
+  { lift (- n) to ℕ using int.le_of_lt (neg_pos.mpr (not_le.mp n0)) with m h,
     rw [← abs_neg (n •ℤ a), ← neg_gsmul, ← abs_neg n, ← h],
     convert abs_nsmul m _,
     simp only [coe_nat_abs, gsmul_coe_nat] },

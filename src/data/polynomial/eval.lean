@@ -6,7 +6,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import data.polynomial.induction
 import data.polynomial.degree.definitions
 import deprecated.ring
-import tactic.converter.apply_congr
 
 /-!
 # Theory of univariate polynomials
@@ -389,11 +388,8 @@ by rw [← C_1, C_comp]
 
 @[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
 
-@[simp] lemma monomial_comp {a : R} {n : ℕ} : (monomial n a).comp r = C a * r^n :=
-begin
-  dsimp [comp_eq_sum_left, monomial],
-  simp,
-end
+@[simp] lemma monomial_comp (n : ℕ) : (monomial n a).comp p = C a * p^n :=
+eval₂_monomial _ _
 
 @[simp] lemma mul_X_comp : (p * X).comp r = p.comp r * r :=
 begin
@@ -608,6 +604,12 @@ lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 eq.symm $ sum_hom _ _
 
+lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
+polynomial.induction_on p
+  (by simp)
+  (by simp {contextual := tt})
+  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
+
 @[simp]
 lemma eval_zero_map (f : R →+* S) (p : polynomial R) :
   (p.map f).eval 0 = f (p.eval 0) :=
@@ -640,12 +642,6 @@ begin
   { intros p q hp hq, simp [hp, hq], },
   { intros n r, simp, }
 end
-
-lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
-polynomial.induction_on p
-  (by simp)
-  (by simp {contextual := tt})
-  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
 
 end map
 
@@ -799,8 +795,8 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
 @[simp] lemma sub_comp : (p - q).comp r = p.comp r - q.comp r := eval₂_sub _
 
-@[simp] lemma int_cast_comp {i : ℤ} : (i : polynomial R).comp p = i :=
-by rw [←C_eq_int_cast, C_comp]
+@[simp] lemma cast_int_comp (i : ℤ) : comp (i : polynomial R) p = i :=
+by cases i; simp
 
 end ring
 

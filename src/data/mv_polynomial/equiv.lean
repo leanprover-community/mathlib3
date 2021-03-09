@@ -264,7 +264,7 @@ instance : is_scalar_tower R (mv_polynomial S₁ R) (polynomial (mv_polynomial S
     finsupp.is_scalar_tower ℕ _
 
 /--
-The ring isomorphism between multivariable polynomials in `option S₁` and
+The algebra isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
 -/
 def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_polynomial S₁ R) :=
@@ -274,7 +274,7 @@ def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_p
 (punit_alg_equiv (mv_polynomial S₁ R)).restrict_scalars R
 
 /--
-The ring isomorphism between multivariable polynomials in `option S₁` and
+The algebra isomorphism between multivariable polynomials in `option S₁` and
 multivariable polynomials with coefficients in polynomials.
 -/
 def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ (polynomial R) :=
@@ -283,7 +283,7 @@ def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S
 map_alg_equiv _ (punit_alg_equiv R)
 
 /--
-The ring isomorphism between multivariable polynomials in `fin (n + 1)` and
+The algebra isomorphism between multivariable polynomials in `fin (n + 1)` and
 polynomials over multivariable polynomials in `fin n`.
 -/
 def fin_succ_equiv (n : ℕ) :

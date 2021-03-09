@@ -517,7 +517,8 @@ def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
     hm ▸ hn ▸ gpow_mul_comm _ _ _,
   ..hg }
 
-variables [group α] (x : α) [decidable_pred (λ n, 0 < n ∧ x ^ n = 1)] [decidable (∃ n, 0 < n ∧ x ^ n = 1)]
+variables [group α]
+  (x : α) [decidable_pred (λ n, 0 < n ∧ x ^ n = 1)] [decidable (∃ n, 0 < n ∧ x ^ n = 1)]
 
 lemma is_cyclic_of_order_of_eq_card [decidable_eq α] [fintype α]
    (hx : order_of x = fintype.card α) : is_cyclic α :=

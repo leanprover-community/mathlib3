@@ -127,17 +127,6 @@ ring_hom.ext $ λ _, rfl
 rfl
 
 variables (R) {S A B}
-/-- R ⟶ S induces S-Alg ⥤ R-Alg -/
-def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
-{ commutes' := λ r, by { rw [algebra_map_apply R S A, algebra_map_apply R S B],
-    exact f.commutes (algebra_map R S r) },
-  .. (f : A →+* B) }
-
-lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f x := rfl
-
-@[simp] lemma coe_restrict_base (f : A →ₐ[S] B) : (restrict_base R f : A →+* B) = f := rfl
-
-@[simp] lemma coe_restrict_base' (f : A →ₐ[S] B) : (restrict_base R f : A → B) = f := rfl
 
 instance right : is_scalar_tower S A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, algebra.smul_mul_assoc]⟩
@@ -175,6 +164,51 @@ of_algebra_map_eq $ λ x, ((algebra_map R S).map_rat_cast x).symm
 end division_ring
 
 end is_scalar_tower
+
+section homs
+
+variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
+variables [algebra R S] [algebra S A] [algebra S B]
+variables [algebra R A] [algebra R B]
+variables [is_scalar_tower R S A] [is_scalar_tower R S B]
+
+variables (R) {A S B}
+
+open is_scalar_tower
+
+namespace alg_hom
+
+/-- R ⟶ S induces S-Alg ⥤ R-Alg -/
+def restrict_scalars (f : A →ₐ[S] B) : A →ₐ[R] B :=
+{ commutes' := λ r, by { rw [algebra_map_apply R S A, algebra_map_apply R S B],
+    exact f.commutes (algebra_map R S r) },
+  .. (f : A →+* B) }
+
+lemma restrict_scalars_apply (f : A →ₐ[S] B) (x : A) : f.restrict_scalars R x = f x := rfl
+
+@[simp] lemma coe_restrict_scalars (f : A →ₐ[S] B) : (f.restrict_scalars R : A →+* B) = f := rfl
+
+@[simp] lemma coe_restrict_scalars' (f : A →ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
+
+end alg_hom
+
+namespace alg_equiv
+
+/-- R ⟶ S induces S-Alg ⥤ R-Alg -/
+def restrict_scalars (f : A ≃ₐ[S] B) : A ≃ₐ[R] B :=
+{ commutes' := λ r, by { rw [algebra_map_apply R S A, algebra_map_apply R S B],
+    exact f.commutes (algebra_map R S r) },
+  .. (f : A ≃+* B) }
+
+lemma restrict_scalars_apply (f : A ≃ₐ[S] B) (x : A) : f.restrict_scalars R x = f x := rfl
+
+@[simp] lemma coe_restrict_scalars (f : A ≃ₐ[S] B) : (f.restrict_scalars R : A ≃+* B) = f := rfl
+
+@[simp] lemma coe_restrict_scalars' (f : A ≃ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
+
+end alg_equiv
+
+end homs
 
 namespace subalgebra
 

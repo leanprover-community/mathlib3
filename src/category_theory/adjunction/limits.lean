@@ -39,7 +39,8 @@ The unit for the adjunction for `cocones.functoriality K F : cocone K ⥤ cocone
 
 Auxiliary definition for `functoriality_is_left_adjoint`.
 -/
-@[simps] def functoriality_unit : 𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
+@[simps] def functoriality_unit :
+  𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
 { app := λ c, { hom := adj.unit.app c.X } }
 
 /--
@@ -84,7 +85,7 @@ instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : ref
   { reflects_colimit := λ K,
     { reflects := λ c t,
       begin
-        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.fun_inv_id,
+        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.as_equivalence.unit_iso.symm,
         refine (((is_colimit.precompose_inv_equiv K.right_unitor _).symm) l).of_iso_colimit _,
         tidy,
       end } } }
@@ -112,7 +113,7 @@ lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_coli
   has_colimit K :=
 @has_colimit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
 (@adjunction.has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
-((functor.right_unitor _).symm ≪≫ (iso_whisker_left K (fun_inv_id E)).symm)
+((functor.right_unitor _).symm ≪≫ iso_whisker_left K (E.as_equivalence.unit_iso))
 
 end preservation_colimits
 
@@ -181,7 +182,7 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
   { reflects_limit := λ K,
     { reflects := λ c t,
       begin
-        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.fun_inv_id,
+        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.as_equivalence.unit_iso.symm,
         refine (((is_limit.postcompose_hom_equiv K.left_unitor _).symm) this).of_iso_limit _,
         tidy,
       end } } }
@@ -209,7 +210,7 @@ lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit 
   has_limit K :=
 @has_limit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
 (@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
-((iso_whisker_left K (fun_inv_id E)) ≪≫ (functor.right_unitor _))
+((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
 
 end preservation_limits
 

@@ -109,7 +109,7 @@ protected def function.injective.semiring [has_zero β] [has_one β] [has_add β
 { .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
   .. hf.distrib f add mul }
 
-/-- Pullback a `semiring` instance along an injective function. -/
+/-- Pushforward a `semiring` instance along a surjective function. -/
 protected def function.surjective.semiring [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :

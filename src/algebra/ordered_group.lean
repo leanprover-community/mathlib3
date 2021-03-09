@@ -407,6 +407,20 @@ by simp [div_eq_mul_inv]
 @[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
 by simp [div_eq_mul_inv]
 
+/-- Pullback an `ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.ordered_add_comm_group
+"Pullback an `ordered_add_comm_group` under an injective map."]
+def function.injective.ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) :
+  ordered_comm_group β :=
+{ ..partial_order.lift f hf,
+  ..hf.ordered_comm_monoid f one mul,
+  ..hf.comm_group_div f one mul inv div }
+
 end ordered_comm_group
 
 section ordered_add_comm_group
@@ -569,6 +583,19 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   mul_left_cancel := λ x y z, mul_left_cancel,
   mul_right_cancel := λ x y z, mul_right_cancel,
   ..‹linear_ordered_comm_group α› }
+
+/-- Pullback a `linear_ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.linear_ordered_add_comm_group
+"Pullback a `linear_ordered_add_comm_group` under an injective map."]
+def function.injective.linear_ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y)  :
+  linear_ordered_comm_group β :=
+{ ..linear_order.lift f hf,
+  ..hf.ordered_comm_group f one mul inv div }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
@@ -914,5 +941,13 @@ instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
 instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
 { ..additive.add_comm_group,
   ..additive.ordered_add_comm_monoid }
+
+instance [linear_ordered_add_comm_group α] : linear_ordered_comm_group (multiplicative α) :=
+{ ..multiplicative.linear_order,
+  ..multiplicative.ordered_comm_group }
+
+instance [linear_ordered_comm_group α] : linear_ordered_add_comm_group (additive α) :=
+{ ..additive.linear_order,
+  ..additive.ordered_add_comm_group }
 
 end type_tags

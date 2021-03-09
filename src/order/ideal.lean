@@ -23,9 +23,9 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 
 ## References
 
-- https://en.wikipedia.org/wiki/Ideal_(order_theory)
-- https://en.wikipedia.org/wiki/Cofinal_(mathematics)
-- https://en.wikipedia.org/wiki/Rasiowa–Sikorski_lemma
+- <https://en.wikipedia.org/wiki/Ideal_(order_theory)>
+- <https://en.wikipedia.org/wiki/Cofinal_(mathematics)>
+- <https://en.wikipedia.org/wiki/Rasiowa%E2%80%93Sikorski_lemma>
 
 Note that for the Rasiowa–Sikorski lemma, Wikipedia uses the opposite ordering on `P`,
 in line with most presentations of forcing.
@@ -85,6 +85,17 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 ⟨λ (h : ∀ {y}, y ≤ x → y ∈ I), h (le_refl x),
  λ h_mem y (h_le : y ≤ x), I.mem_of_le h_le h_mem⟩
 
+/-- A proper ideal is one that is not the whole set.
+    Note that the whole set might not be an ideal. -/
+class proper (I : ideal P) : Prop := (nuniv : (I : set P) ≠ set.univ)
+
+lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
+⟨λ hp, begin
+  change p ∉ ↑I at nmem,
+  rw hp at nmem,
+  exact nmem (set.mem_univ p),
+end⟩
+
 end preorder
 
 section order_bot
@@ -102,11 +113,32 @@ instance : order_bot (ideal P) :=
 
 end order_bot
 
+section order_top
+
+variables [order_top P]
+
 /-- There is a top ideal when `P` has a top element. -/
-instance {P} [order_top P] : order_top (ideal P) :=
+instance : order_top (ideal P) :=
 { top := principal ⊤,
   le_top := λ I x h, le_top,
   .. ideal.partial_order }
+
+@[simp] lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
+set.univ_subset_iff.1 (λ p _, le_top)
+
+lemma top_of_mem_top {I : ideal P} (topmem : ⊤ ∈ I) : I = ⊤ :=
+begin
+  ext,
+  change x ∈ I.carrier ↔ x ∈ (⊤ : ideal P).carrier,
+  split,
+  { simp [top_carrier] },
+  { exact λ _, I.mem_of_le le_top topmem }
+end
+
+lemma proper_of_ne_top {I : ideal P} (ntop : I ≠ ⊤) : proper I :=
+proper_of_not_mem (λ h, ntop (top_of_mem_top h))
+
+end order_top
 
 section semilattice_sup
 variables [semilattice_sup P] {x y : P} {I : ideal P}

@@ -517,9 +517,23 @@ is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
+lemma compact_exhaustion.is_closed [t2_space α] (K : compact_exhaustion α) (n : ℕ) :
+  is_closed (K n) :=
+(K.is_compact n).is_closed
+
 lemma is_compact.inter [t2_space α] {s t : set α} (hs : is_compact s) (ht : is_compact t) :
   is_compact (s ∩ t) :=
 hs.inter_right $ ht.is_closed
+
+lemma compact_closure_of_subset_compact [t2_space α] {s t : set α} (ht : is_compact t) (h : s ⊆ t) :
+  is_compact (closure s) :=
+compact_of_is_closed_subset ht is_closed_closure (closure_minimal h ht.is_closed)
+
+lemma image_closure_of_compact [t2_space β]
+  {s : set α} (hs : is_compact (closure s)) {f : α → β} (hf : continuous_on f (closure s)) :
+  f '' closure s = closure (f '' s) :=
+subset.antisymm hf.image_closure $ closure_minimal (image_subset f subset_closure)
+  (hs.image_of_continuous_on hf).is_closed
 
 /-- If a compact set is covered by two open sets, then we can cover it by two compact subsets. -/
 lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_compact K)
@@ -596,11 +610,9 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
   ∃ (U : set α), is_open U ∧ x ∈ U ∧ is_compact (closure U) :=
 begin
-  rcases locally_compact_space.local_compact_nhds x univ filter.univ_mem_sets with
-    ⟨K, h1K, _, h2K⟩,
-  rw [mem_nhds_sets_iff] at h1K, rcases h1K with ⟨t, h1t, h2t, h3t⟩,
-  exact ⟨t, h2t, h3t, compact_of_is_closed_subset h2K is_closed_closure $
-    closure_minimal h1t $ h2K.is_closed⟩
+  rcases exists_compact_mem_nhds x with ⟨K, hKc, hxK⟩,
+  rcases mem_nhds_sets_iff.1 hxK with ⟨t, h1t, h2t, h3t⟩,
+  exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
 end
 
 end separation

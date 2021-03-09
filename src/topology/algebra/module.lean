@@ -1083,6 +1083,11 @@ rfl
   (e₂.trans e₁).symm c = e₂.symm (e₁.symm c) :=
 rfl
 
+@[simp] theorem symm_image_image (e : M ≃L[R] M₂) (s : set M) : e.symm '' (e '' s) = s :=
+e.to_linear_equiv.to_equiv.symm_image_image s
+@[simp] theorem image_symm_image (e : M ≃L[R] M₂) (s : set M₂) : e '' (e.symm '' s) = s :=
+e.symm.symm_image_image s
+
 @[simp, norm_cast]
 lemma comp_coe (f : M ≃L[R] M₂) (f' : M₂ ≃L[R] M₃) :
   (f' : M₂ →L[R] M₃).comp (f : M →L[R] M₂) = (f.trans f' : M →L[R] M₃) :=

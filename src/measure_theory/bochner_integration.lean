@@ -114,6 +114,12 @@ Use `is_closed_property` or `dense_range.induction_on` for this argument.
                 `measure_theory/lp_space`)
 * `α →₁ₛ[μ] E` : simple functions in L1 space, i.e., equivalence classes of integrable simple
                  functions
+* `∫ a, f a ∂μ` : integral of `f` with respect to a measure `μ`
+* `∫ a, f a` : integral of `f` with respect to `volume`, the default measure on the
+                    ambient type
+
+We also define notations for integral on a set, which are described in the file
+`measure_theory/set_integral`.
 
 Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missing.
 
@@ -1323,7 +1329,7 @@ lemma integral_mono_ae {f g : α → ℝ} (hf : integrable f μ) (hg : integrabl
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 le_of_sub_nonneg $ integral_sub hg hf ▸ integral_nonneg_of_ae $ h.mono (λ a, sub_nonneg_of_le)
 
-lemma integral_mono {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ g) :
+@[mono] lemma integral_mono {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ g) :
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 integral_mono_ae hf hg $ eventually_of_forall h
 

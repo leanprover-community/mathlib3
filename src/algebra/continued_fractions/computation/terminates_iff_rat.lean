@@ -36,14 +36,16 @@ map functions.
 -/
 local attribute [simp] gcf.pair.map gcf.int_fract_pair.mapFr
 
+section rat_of_terminates
 /-!
+### Terminating Continued Fractions Are Rational
+
 We want to show that the computation of a continued fraction `gcf.of v` terminates if and only if
-`v ∈ ℚ`. In the next section, we show the implication from left to right.
+`v ∈ ℚ`. In this section, we show the implication from left to right.
 
 We first show that every finite convergent corresponds to a rational number `q` and then use the
 finite correctness proof (`of_correctness_of_terminates`) of `gcf.of` to show that `v = ↑q`.
 -/
-section rat_of_terminates
 
 variables (v : K) (n : ℕ)
 
@@ -128,7 +130,10 @@ end
 
 end rat_of_terminates
 
+section rat_translation
 /-!
+### Technical Translation Lemmas
+
 Before we can show that the continued fraction of a rational number terminates, we have to prove
 some technical translation lemmas. More precisely, in this section, we show that, given a rational
 number `q : ℚ` and value `v : K` with `v = ↑q`, the continued fraction of `q` and `v` coincide.
@@ -137,7 +142,6 @@ In particular, we show that `(↑(gcf.of q : gcf ℚ) : gcf K) = gcf.of v` in `g
 To do this, we proceed bottom-up, showing the correspondence between the basic functions involved in
 the computation first and then lift the results step-by-step.
 -/
-section rat_translation
 
 /- The lifting works for arbitrary linear ordered, archimedean fields with a floor function. -/
 variables [archimedean K] {v : K} {q : ℚ} (v_eq_q : v = (↑q : K)) (n : ℕ)
@@ -227,8 +231,10 @@ end
 
 end rat_translation
 
-
+section terminates_of_rat
 /-!
+### Continued Fractions of Rationals Terminate
+
 Finally, we show that the continued fraction of a rational number terminates.
 
 The crucial insight is that, given any `q : ℚ` with `0 < q < 1`, the numerator of `fract q` is
@@ -237,7 +243,6 @@ the fractional part of a value `v` and `0 ≤ fract v < 1`, we infer that the nu
 fractional part in the computation decreases by at least one in each step. As `0 ≤ fract v`,
 this process must stop after finite number of steps, and the computation hence terminates.
 -/
-section terminates_of_rat
 
 namespace int_fract_pair
 variables {q : ℚ} {n : ℕ}
@@ -283,7 +288,7 @@ begin
     { rw [int.coe_nat_succ, sub_add_eq_sub_sub],
       solve_by_elim [le_sub_right_of_add_le] },
     rcases (succ_nth_stream_eq_some_iff.elim_left stream_succ_nth_eq) with
-      ⟨ifp_n, stream_nth_eq, _⟩,
+      ⟨ifp_n, stream_nth_eq, -⟩,
     have : ifp_succ_n.fr.num < ifp_n.fr.num, from
       stream_succ_nth_fr_num_lt_nth_fr_num_rat stream_nth_eq stream_succ_nth_eq,
     have : ifp_succ_n.fr.num + 1 ≤ ifp_n.fr.num, from int.add_one_le_of_lt this,

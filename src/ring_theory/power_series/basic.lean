@@ -450,42 +450,25 @@ variables [comm_semiring R] (n : σ →₀ ℕ)
 
 /-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=
-{ support := (n.antidiagonal.support.image prod.fst).filter (λ m, coeff R m φ ≠ 0),
-  to_fun := λ m, if m ≤ n then coeff R m φ else 0,
-  mem_support_to_fun := λ m,
-  begin
-    suffices : m ∈ finset.image prod.fst ((antidiagonal n).support) ↔ m ≤ n,
-    { rw [finset.mem_filter, this], split,
-      { intro h, rw [if_pos h.1], exact h.2 },
-      { intro h, split_ifs at h with H H,
-        { exact ⟨H, h⟩ },
-        { exfalso, exact h rfl } } },
-    rw finset.mem_image, split,
-    { rintros ⟨⟨i,j⟩, h, rfl⟩ s,
-      rw finsupp.mem_antidiagonal_support at h,
-      rw ← h, exact nat.le_add_right _ _ },
-    { intro h, refine ⟨(m, n-m), _, rfl⟩,
-      rw finsupp.mem_antidiagonal_support, ext s, exact nat.add_sub_of_le (h s) }
-  end }
+∑ m in Iic_finset n, mv_polynomial.monomial m (coeff R m φ)
+
+lemma coeff_trunc_fun (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
+  (trunc_fun n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+by simp [trunc_fun, mv_polynomial.coeff_sum]
 
 variable (R)
 
 /-- The `n`th truncation of a multivariate formal power series to a multivariate polynomial -/
 def trunc : mv_power_series σ R →+ mv_polynomial σ R :=
 { to_fun := trunc_fun n,
-  map_zero' := mv_polynomial.ext _ _ $ λ m, by { change ite _ _ _ = _, split_ifs; refl },
-  map_add' := λ φ ψ, mv_polynomial.ext _ _ $ λ m,
-  begin
-    rw mv_polynomial.coeff_add,
-    change ite _ _ _ = ite _ _ _ + ite _ _ _,
-    split_ifs with H, {refl}, {rw [zero_add]}
-  end }
+  map_zero' := by { ext, simp [coeff_trunc_fun] },
+  map_add' := by { intros, ext, simp [coeff_trunc_fun, ite_add], split_ifs; refl } }
 
 variable {R}
 
 lemma coeff_trunc (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
-  mv_polynomial.coeff m (trunc R n φ) =
-  if m ≤ n then coeff R m φ else 0 := rfl
+  (trunc R n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+by simp [trunc, coeff_trunc_fun]
 
 @[simp] lemma trunc_one : trunc R n 1 = 1 :=
 mv_polynomial.ext _ _ $ λ m,
@@ -1093,26 +1076,11 @@ section trunc
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
 def trunc (n : ℕ) (φ : power_series R) : polynomial R :=
-{ support := ((finset.nat.antidiagonal n).image prod.fst).filter (λ m, coeff R m φ ≠ 0),
-  to_fun := λ m, if m ≤ n then coeff R m φ else 0,
-  mem_support_to_fun := λ m,
-  begin
-    suffices : m ∈ ((finset.nat.antidiagonal n).image prod.fst) ↔ m ≤ n,
-    { rw [finset.mem_filter, this], split,
-      { intro h, rw [if_pos h.1], exact h.2 },
-      { intro h, split_ifs at h with H H,
-        { exact ⟨H, h⟩ },
-        { exfalso, exact h rfl } } },
-    rw finset.mem_image, split,
-    { rintros ⟨⟨i,j⟩, h, rfl⟩,
-      rw finset.nat.mem_antidiagonal at h,
-      rw ← h, exact nat.le_add_right _ _ },
-    { intro h, refine ⟨(m, n-m), _, rfl⟩,
-      rw finset.nat.mem_antidiagonal, exact nat.add_sub_of_le h }
-  end }
+∑ m in Ico 0 (n + 1), polynomial.monomial m (coeff R m φ)
 
 lemma coeff_trunc (m) (n) (φ : power_series R) :
-  polynomial.coeff (trunc n φ) m = if m ≤ n then coeff R m φ else 0 := rfl
+  (trunc n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+by simp [trunc, polynomial.coeff_sum, polynomial.coeff_monomial, nat.lt_succ_iff]
 
 @[simp] lemma trunc_zero (n) : trunc n (0 : power_series R) = 0 :=
 polynomial.ext $ λ m,
@@ -1638,12 +1606,7 @@ congr_arg (coeff φ) (finsupp.single_eq_same)
 
 @[simp, norm_cast] lemma coe_monomial (n : ℕ) (a : R) :
   (monomial n a : power_series R) = power_series.monomial R n a :=
-power_series.ext $ λ m,
-begin
-  rw [coeff_coe, power_series.coeff_monomial],
-  simp only [@eq_comm _ m n],
-  convert finsupp.single_apply,
-end
+by { ext, simp [coeff_coe, power_series.coeff_monomial, polynomial.coeff_monomial, eq_comm] }
 
 @[simp, norm_cast] lemma coe_zero : ((0 : polynomial R) : power_series R) = 0 := rfl
 

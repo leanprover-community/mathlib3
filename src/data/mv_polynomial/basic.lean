@@ -571,6 +571,7 @@ constant_coeff_comp_C _ _
 end constant_coeff
 
 section eval₂
+variables [comm_semiring S₁]
 variables (f : R →+* S₁) (g : σ → S₁)
 
 /-- Evaluate a polynomial `p` given a valuation `g` of all the variables
@@ -767,7 +768,7 @@ end
 end eval
 
 section map
-variables (f : R →+* S₁)
+variables [comm_semiring S₁] (f : R →+* S₁)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : mv_polynomial σ R →+* mv_polynomial σ S₁ := eval₂_hom (C.comp f) X
@@ -920,7 +921,7 @@ section aeval
 /-! ### The algebra of multivariate polynomials -/
 
 variables (f : σ → S₁)
-variables [algebra R S₁] [comm_semiring S₂]
+variables [comm_semiring S₁] [algebra R S₁] [comm_semiring S₂]
 
 /-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `S₁`. -/

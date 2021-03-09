@@ -17,8 +17,8 @@ bottom of the file for examples.
 This file is incomplete; we are working on expanding it.
 -/
 
-open real set interval_integral
-open_locale real big_operators
+open real set interval_integral filter
+open_locale real big_operators topological_space
 variables {a b : ℝ}
 
 namespace interval_integral
@@ -165,6 +165,38 @@ begin
   refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
   rw interval_of_le pi_pos.le at hx,
   exact sin_nonneg_of_mem_Icc hx,
+end
+
+lemma integral_sin_pow_div_tendsto_one :
+  tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
+begin
+  have h₃ : ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≤ 1 :=
+    λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_anti_mono _),
+  have h₄ :
+    ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
+  { intro, cases n,
+    { have : 0 ≤ (1 + 1) / π, exact div_nonneg (by norm_num) pi_pos.le,
+      simp [this] },
+    calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
+      (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
+      by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
+        convert integral_sin_pow_anti_mono (2 * n + 1) using 1 }
+    ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
+      by { symmetry, rw [eq_div_iff, nat.succ_eq_add_one],
+        convert (integral_sin_pow_succ_succ (2 * n + 1)).symm using 3,
+        simp [mul_add], ring, simp [mul_add], ring,
+        exact norm_num.ne_zero_of_pos  _ (integral_sin_pow_pos (2 * n + 1)) } },
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
+  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
+    have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
+    { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
+      rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
+    have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
+    rw [real.dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
+    calc 1 / ε ≤ nat_ceil (1 / ε) : le_nat_ceil _
+          ... ≤ n : by exact_mod_cast hn.le
+          ... < 2 * n + 1 : by { norm_cast, linarith } },
+  exact tendsto_const_nhds,
 end
 
 @[simp]

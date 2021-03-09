@@ -205,9 +205,9 @@ lemma mk_normed_group_hom_norm_le (f : V₁ →+ V₂) {C : ℝ} (hC : 0 ≤ C) 
   ∥f.mk_normed_group_hom C h∥ ≤ C :=
 op_norm_le_bound _ hC h
 
-/-- If a bounded group homomorphism map is constructed from a group homomorphism via the constructor
-`mk_normed_group_hom`, then its norm is bounded by the bound given to the constructor or zero if this
-bound is negative. -/
+/-- If a bounded group homomorphism map is constructed from a group homomorphism
+via the constructor `mk_normed_group_hom`, then its norm is bounded by the bound
+given to the constructor or zero if this bound is negative. -/
 lemma mk_normed_group_hom_norm_le' (f : V₁ →+ V₂) {C : ℝ} (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ∥f.mk_normed_group_hom C h∥ ≤ max C 0 :=
 op_norm_le_bound _ (le_max_right _ _) $ λ x, (h x).trans $

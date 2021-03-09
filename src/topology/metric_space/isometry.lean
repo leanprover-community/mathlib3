@@ -73,9 +73,13 @@ assume x y, calc
   edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
                             ... = edist x y : hf _ _
 
-/-- An isometry is an embedding -/
+/-- An isometry is a uniform embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
 hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
+
+/-- An isometry on a complete space is a closed embedding -/
+theorem isometry.closed_embedding [complete_space α] (hf : isometry f) : closed_embedding f :=
+hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous
 
 /-- An isometry is continuous. -/
 lemma isometry.continuous (hf : isometry f) : continuous f :=

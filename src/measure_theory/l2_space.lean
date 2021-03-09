@@ -72,8 +72,14 @@ begin
      ... = a ^ 2 + b ^ 2 - 2 * a * b : by ring,
 end
 
+lemma integrable_coe (f : α → ℝ) :
+
 @[norm_cast] lemma integral_coe {f : α → ℝ} : ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
-sorry
+begin
+
+end
+
+#exit
 
 lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
 sorry

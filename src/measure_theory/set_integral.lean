@@ -756,10 +756,32 @@ begin
   all_goals { assumption }
 end
 
+lemma integral_comp_comm' (L : E →L[ℝ] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+begin
+  by_cases h : integrable φ μ,
+  { exact integral_comp_comm L h },
+  have : ¬ (integrable (L ∘ φ) μ),
+    by rwa lipschitz_with.integrable_comp_iff_of_antilipschitz L.lipschitz hL (L.map_zero),
+  simp [integral_undef, h, this]
+end
+
 lemma integral_comp_L1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 L.integral_comp_comm (L1.integrable_coe_fn φ)
 
 end continuous_linear_map
+
+namespace linear_isometry
+
+variables [measurable_space F] [borel_space F] [complete_space E]
+[second_countable_topology F] [complete_space F]
+[borel_space E] [second_countable_topology E]
+
+lemma integral_comp_comm (L : E →ₗᵢ[ℝ] F) (φ : α → E) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
+
+end linear_isometry
 
 variables [borel_space E] [second_countable_topology E] [complete_space E]
   [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]

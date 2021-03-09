@@ -1091,6 +1091,26 @@ variables [second_countable_topology E] [borel_space E]
 
 namespace lipschitz_with
 
+lemma mem_ℒp_comp_iff_of_antilipschitz [complete_space E] {K K'}
+  {f : α → E} {g : E → F} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
+  mem_ℒp (g ∘ f) p μ ↔ mem_ℒp f p μ :=
+begin
+  have := ae_measurable_comp_iff_of_closed_embedding g (hg'.closed_embedding hg.uniform_continuous),
+  split,
+  { assume H,
+    have A : ∀ᵐ x ∂μ, ∥f x∥ ≤ K' * ∥g (f x)∥,
+    { apply filter.eventually_of_forall (λ x, _),
+      rw [← dist_zero_right, ← dist_zero_right, ← g0],
+      apply hg'.le_mul_dist },
+    exact H.of_le_mul (this.1 H.ae_measurable) A },
+  { assume H,
+    have A : ∀ᵐ x ∂μ, ∥g (f x)∥ ≤ K * ∥f x∥,
+    { apply filter.eventually_of_forall (λ x, _),
+      rw [← dist_zero_right, ← dist_zero_right, ← g0],
+      apply hg.dist_le_mul },
+    exact H.of_le_mul (this.2 H.ae_measurable) A }
+end
+
 /-- When `g` is a Lipschitz function sending `0` to `0` and `f` is in `Lp`, then `g ∘ f` is well
 defined as an element of `Lp`. -/
 def comp_Lp (hg : lipschitz_with c g) (g0 : g 0 = 0) (f : Lp E p μ) : Lp F p μ :=

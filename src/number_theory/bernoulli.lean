@@ -231,7 +231,7 @@ def bernoulli (n : ℕ) : ℚ := (-1)^n * (bernoulli' n)
 @[simp] lemma bernoulli_one   : bernoulli 1 = -1/2 :=
 by norm_num [bernoulli, bernoulli'_one]
 
-theorem bernoulli_eq_bernoulli' {n : ℕ} (hn : n ≠ 1) : bernoulli n = bernoulli' n :=
+theorem bernoulli_eq_bernoulli'_of_ne_one {n : ℕ} (hn : n ≠ 1) : bernoulli n = bernoulli' n :=
 begin
   by_cases n = 0,
   { rw [h, bernoulli'_zero, bernoulli_zero] },
@@ -242,11 +242,12 @@ begin
     rw mod_two_ne_one at k, simp [k] }
 end
 
-@[simp] theorem sum_bernoulli (n : ℕ) ( h : 2 ≤ n ) :
-  ∑ k in range n, (n.choose k : ℚ) * bernoulli k = 0 :=
+@[simp] theorem sum_bernoulli (n : ℕ):
+  ∑ k in range n, (n.choose k : ℚ) * bernoulli k = if n = 1 then 1 else 0 :=
 begin
-  cases n, norm_num at h,
-  cases n, norm_num at h,
+  cases n, { simp only [sum_empty, range_zero, if_false, zero_ne_one], },
+  cases n, { simp only [mul_one, cast_one, if_true, choose_succ_self_right, eq_self_iff_true,
+    bernoulli_zero, sum_singleton, range_one], },
   rw [sum_range_succ', bernoulli_zero, mul_one, choose_zero_right, cast_one,
     sum_range_succ', bernoulli_one, choose_one_right],
   suffices : ∑ (i : ℕ) in range n, ↑((n + 2).choose (i + 2)) * bernoulli (i + 2) = n/2,
@@ -255,6 +256,6 @@ begin
   simp only [sum_range_succ', one_div, bernoulli'_one, cast_succ, mul_one, cast_one, add_left_inj,
     choose_zero_right, bernoulli'_zero, zero_add, choose_one_right, ← eq_sub_iff_add_eq] at f,
   convert f,
-  { ext x, rw bernoulli_eq_bernoulli' (succ_ne_zero x ∘ succ.inj) },
+  { ext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
   { ring },
 end

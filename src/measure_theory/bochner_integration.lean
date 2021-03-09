@@ -352,17 +352,6 @@ begin
   exact hg.neg
 end
 
-lemma integral_linear_map [normed_space ℝ E] (f : α →ₛ E) (g : E →L[ℝ] F) (hf : integrable f μ) :
-  integral μ (f.map g) = g (integral μ f) :=
-begin
-  rw map_integral f g hf g.map_zero,
-  have h_smul : ∑ (x : E) in f.range, (μ (⇑f ⁻¹' {x})).to_real • g x
-    = ∑ (x : E) in f.range, g ((μ (⇑f ⁻¹' {x})).to_real • x),
-  { congr' with x,
-    exact (g.map_smul _ _).symm, },
-  rw [h_smul, ← g.map_sum, integral],
-end
-
 lemma integral_smul {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   integral μ (r • f) = r • integral μ f :=

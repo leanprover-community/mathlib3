@@ -2051,6 +2051,9 @@ set.subset.antisymm (snd_image_prod_subset _ _)
   $ λ y y_in, let ⟨x, x_in⟩ := hs in
     ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
+lemma prod_diff_prod : s.prod t \ s₁.prod t₁ = s.prod (t \ t₁) ∪ (s \ s₁).prod t :=
+by { ext x, by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁; simp * }
+
 /-- A product set is included in a product set if and only factors are included, or a factor of the
 first set is empty. -/
 lemma prod_subset_prod_iff :

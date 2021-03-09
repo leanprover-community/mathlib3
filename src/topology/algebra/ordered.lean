@@ -532,6 +532,12 @@ begin
   convert hb₂ using 2, simp only [not_le.symm], refl
 end
 
+lemma frontier_Iic_subset (a : α) : frontier (Iic a) ⊆ {a} :=
+frontier_le_subset_eq (@continuous_id α _) continuous_const
+
+lemma frontier_Ici_subset (a : α) : frontier (Ici a) ⊆ {a} :=
+@frontier_Iic_subset (order_dual α) _ _ _ _
+
 lemma frontier_lt_subset_eq (hf : continuous f) (hg : continuous g) :
   frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;

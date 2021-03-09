@@ -186,9 +186,13 @@ instance [discrete_topology α] [discrete_topology β] : discrete_topology (α �
 ⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩
 
+lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
+  s.prod t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
+by rw [nhds_prod_eq, prod_mem_prod_iff]
+
 lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
   (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : set.prod s t ∈ 𝓝 (a, b) :=
-by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
+prod_mem_nhds_iff.2 ⟨ha, hb⟩
 
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
@@ -341,6 +345,18 @@ set.ext $ assume ⟨a, b⟩,
 have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (𝓝 b ⊓ 𝓟 t),
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
+
+lemma interior_prod_eq (s : set α) (t : set β) :
+  interior (s.prod t) = (interior s).prod (interior t) :=
+set.ext $ λ ⟨a, b⟩, by simp only [mem_interior_iff_mem_nhds, mem_prod, prod_mem_nhds_iff]
+
+lemma frontier_prod_eq (s : set α) (t : set β) :
+  frontier (s.prod t) = (closure s).prod (frontier t) ∪ (frontier s).prod (closure t) :=
+by simp only [frontier, closure_prod_eq, interior_prod_eq, prod_diff_prod]
+
+@[simp] lemma frontier_prod_univ_eq (s : set α) :
+  frontier (s.prod (univ : set β)) = (frontier s).prod univ :=
+by simp [frontier_prod_eq]
 
 lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)

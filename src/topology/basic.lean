@@ -429,6 +429,10 @@ by rw [closure_compl, frontier, diff_eq]
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]
 
+@[simp] lemma frontier_univ : frontier (univ : set α) = ∅ := by simp [frontier]
+
+@[simp] lemma frontier_empty : frontier (∅ : set α) = ∅ := by simp [frontier]
+
 lemma frontier_inter_subset (s t : set α) :
   frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=
 begin

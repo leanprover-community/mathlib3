@@ -195,16 +195,13 @@ end
 lemma abs_gsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℤ) (a : α) :
   abs (n •ℤ a) = (abs n) •ℤ abs a :=
 begin
-  induction n,
-  { simp only [coe_nat_abs, gsmul_coe_nat, of_nat_eq_coe, abs_nsmul] },
-  have h₁ : -[1+ n] ≤ 0 := sup_eq_left.mp rfl,
-  cases le_total a 0 with hneg hpos,
-  { have h : 0 ≤ n.succ •ℕ (-a) := nsmul_nonneg (neg_nonneg.mpr hneg) n.succ,
-    rw [gsmul_neg_succ_of_nat, ← neg_nsmul, abs_of_nonneg h, abs_of_nonpos h₁, abs_of_nonpos hneg],
-    simp only [gsmul_neg_succ_of_nat, neg_gsmul, neg_neg] },
-  { have h : 0 ≤ n.succ •ℕ a := nsmul_nonneg hpos (nat.succ n),
-    rw [gsmul_neg_succ_of_nat, abs_neg, abs_of_nonneg h, abs_of_nonneg hpos, abs_of_nonpos h₁],
-    simp only [gsmul_neg_succ_of_nat, neg_gsmul, neg_neg] }
+  by_cases n0 : 0 ≤ n,
+  { lift n to ℕ using n0,
+    simp only [abs_nsmul, coe_nat_abs, gsmul_coe_nat] },
+  { lift (- n) to ℕ using int.le_of_lt (neg_pos.mpr (not_le.mp n0)) with m,
+    rw [← abs_neg (n •ℤ a), ← neg_gsmul, ← abs_neg n, ← h],
+    convert abs_nsmul m _,
+    simp only [coe_nat_abs, gsmul_coe_nat] },
 end
 
 lemma abs_add_eq_add_abs_le {α : Type*} [linear_ordered_add_comm_group α] {a b : α} (hle : a ≤ b) :

@@ -791,6 +791,12 @@ lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 @monoid_algebra.single_mul_single k (multiplicative G) _ _ _ _ _ _
 
+@[simp] lemma single_pow [add_monoid G] {a : G} {b : k} :
+  ∀ n : ℕ, (single a b : add_monoid_algebra k G)^n = single (n •ℕ a) (b ^ n)
+| 0 := rfl
+| (n+1) :=
+by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul, one_nsmul]
+
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
 lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
   [semiring β] [has_add α] [has_add α₂]

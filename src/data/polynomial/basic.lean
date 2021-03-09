@@ -37,6 +37,12 @@ instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
 instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
 add_monoid_algebra.semimodule
+instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+  [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
+add_monoid_algebra.smul_comm_class
+instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+  [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
+add_monoid_algebra.is_scalar_tower
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
@@ -66,9 +72,10 @@ add_monoid_algebra.single_mul_single
 lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
   (monomial n r)^k = monomial (n*k) (r^k) :=
 begin
-  induction k with k ih,
-  { simp, },
-  { rw [pow_succ, ih, monomial_mul_monomial, pow_succ, nat.mul_succ, add_comm], },
+  rw mul_comm,
+  convert add_monoid_algebra.single_pow k,
+  simp only [nat.cast_id, nsmul_eq_mul],
+  refl,
 end
 
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :

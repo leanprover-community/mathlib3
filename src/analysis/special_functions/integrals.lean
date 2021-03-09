@@ -18,6 +18,7 @@ This file is incomplete; we are working on expanding it.
 -/
 
 open real set interval_integral
+open_locale real big_operators
 variables {a b : ℝ}
 
 namespace interval_integral
@@ -34,8 +35,6 @@ by simp only [mul_comm, integral_const_mul]
 @[simp]
 lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
 integral_mul_const c⁻¹
-
-end interval_integral
 
 @[simp]
 lemma integral_pow (n : ℕ) : ∫ x in a..b, x ^ n = (b^(n+1) - a^(n+1)) / (n + 1) :=
@@ -90,6 +89,84 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
 by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 
+lemma integral_sin_pow (n : ℕ) : ∫ x in 0..π, sin x ^ (n + 2) =
+  ((n + 1) * ∫ x in 0..π, sin x ^ n) - (n + 1) * ∫ x in 0..π, sin x ^ (n + 2) :=
+begin
+  have h : (λ x, sin x ^ (n + 2)) = λ x, sin x ^ (n + 1) * sin x, { funext, ring },
+  have hv : ∀ x ∈ interval 0 π, has_deriv_at (-cos) (sin x) x,
+  { intros, convert (has_deriv_at_cos x).neg, rw neg_neg },
+  have hu : ∀ x ∈ interval 0 π, has_deriv_at (λ x, sin x ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x,
+  { intros,
+    convert (has_deriv_at_pow (n + 1) (sin x)).comp x (has_deriv_at_sin x) using 1,
+    simp [mul_right_comm], },
+  have : (λ x, cos x * ((n + 1) * cos x * sin x ^ n)) = λ x, (↑n + 1) * (cos x ^ 2 * sin x ^ n),
+  { funext, ring },
+  conv_lhs { rw h },
+  rw integral_mul_deriv_eq_deriv_mul hu hv _ _,
+  simp only [neg_mul_eq_neg_mul_symm, sin_zero, sin_pi, zero_mul, pi.neg_apply, sub_zero,
+    add_eq_zero_iff, ne.def, zero_add, not_false_iff, one_ne_zero, integral_neg, and_false,
+    zero_pow', sub_neg_eq_add, this, integral_const_mul (↑n + 1)],
+  simp only [cos_square', sub_mul, mul_sub, one_mul, ← pow_add _ 2 n, add_comm 2 n],
+  rw [integral_sub, mul_sub],
+  exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π,
+  exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π,
+  apply continuous.continuous_on, continuity,
+  apply continuous.continuous_on, continuity,
+end
+
+lemma integral_sin_pow_succ_succ (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (n + 2) = (n + 1) / (n + 2) * ∫ x in 0..π, sin x ^ n :=
+begin
+  field_simp,
+  have := eq_sub_iff_add_eq.mp (integral_sin_pow n),
+  rwa [eq_div_iff, mul_comm, bit0, ← add_assoc, add_mul, one_mul, add_comm],
+  norm_cast, norm_num,
+end
+
+theorem integral_sin_pow_odd (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (2 * n + 1) = 2 * ∏ i in finset.range n, (2 * i + 2) / (2 * i + 3) :=
+begin
+  induction n with k ih,
+  { norm_num, },
+  rw [finset.prod_range_succ, ← mul_assoc, mul_comm (2:ℝ) ((2 * k + 2) / (2 * k + 3)),
+    mul_assoc, ← ih],
+  have h₁ : 2 * k.succ + 1 = 2 * k + 1 + 2, { rw nat.succ_eq_add_one k, rw mul_add, rw mul_one },
+  have h₂ : (2:ℝ) * k + 1 + 1 = 2 * k + 2, { norm_cast, },
+  have h₃ : (2:ℝ) * k + 1 + 2 = 2 * k + 3, { norm_cast, },
+  simp [h₁, h₂, h₃, integral_sin_pow_succ_succ (2 * k + 1)]
+end
+
+theorem integral_sin_pow_even (n : ℕ) :
+  ∫ x in 0..π, sin x ^ (2 * n) = π * ∏ i in finset.range n, (2 * i + 1) / (2 * i + 2) :=
+begin
+  induction n with k ih,
+  { norm_num, },
+  rw [finset.prod_range_succ, ← mul_assoc, mul_comm π ((2 * k + 1) / (2 * k + 2)), mul_assoc, ← ih],
+  simp [nat.succ_eq_add_one, mul_add, mul_one, integral_sin_pow_succ_succ _],
+end
+
+lemma integral_sin_pow_pos (n : ℕ) : 0 < ∫ x in 0..π, sin x ^ n :=
+begin
+  rcases nat.even_or_odd' n with ⟨k, h, h⟩,
+  rw [h, integral_sin_pow_even],
+  refine mul_pos pi_pos (finset.prod_pos (λ n hn, div_pos _ _)),
+  norm_cast, linarith, norm_cast, linarith,
+  rw [h, integral_sin_pow_odd],
+  refine mul_pos (by norm_num) (finset.prod_pos (λ n hn, div_pos _ _)),
+  norm_cast, linarith, norm_cast, linarith,
+end
+
+lemma integral_sin_pow_anti_mono (n : ℕ) :
+  ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) ≤ ∫ (x : ℝ) in 0..π, sin x ^ n :=
+begin
+  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
+  exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π,
+  exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π,
+  refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
+  rw interval_of_le pi_pos.le at hx,
+  exact sin_nonneg_of_mem_Icc hx,
+end
+
 @[simp]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
@@ -106,3 +183,5 @@ end
 
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
+
+end interval_integral

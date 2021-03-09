@@ -446,7 +446,6 @@ variables [comm_semiring R] {p q : mv_polynomial σ R}
 section instances
 
 instance : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
-instance : algebra R (mv_polynomial σ R) := add_monoid_algebra.algebra
 instance [semiring R] [semiring S₁] [comm_semiring S₂]
   [has_scalar R S₁] [semimodule R S₂] [semimodule S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=

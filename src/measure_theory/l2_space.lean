@@ -72,12 +72,6 @@ begin
      ... = a ^ 2 + b ^ 2 - 2 * a * b : by ring,
 end
 
-@[norm_cast] lemma integral_coe {f : α → ℝ} : ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
-sorry
-
-lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-sorry
-
 lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) :
   snorm (λ (x : α), ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin

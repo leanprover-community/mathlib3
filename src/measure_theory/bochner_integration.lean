@@ -1195,9 +1195,13 @@ lemma integral_linear_map [complete_space F] [normed_space ℝ F] {f : α → E}
 by rw [integral_eq _ hf, integral_eq _ (integrable_linear_map f g hf), to_L1_comp_eq_comp_Lp,
   L1.integral_linear_map]
 
+@[simp]
 lemma is_R_or_C.of_real_smul {𝕜 : Type*} [is_R_or_C 𝕜] (r x : ℝ) :
   (((r • x) : ℝ) : 𝕜) = r • (x : 𝕜) :=
-sorry
+begin
+  simp_rw is_R_or_C.of_real_alg,
+  exact smul_assoc _ _ _,
+end
 
 def coe_is_R_or_C_lm {𝕜 : Type*} [is_R_or_C 𝕜] : ℝ →ₗ[ℝ] 𝕜 :=
 { to_fun := λ x, (x : 𝕜),
@@ -1221,6 +1225,7 @@ end
 @[simp] lemma coe_is_R_or_C_clm_apply {𝕜 : Type*} [is_R_or_C 𝕜] :
   ((coe_is_R_or_C_clm : ℝ →L[ℝ] 𝕜) : ℝ → 𝕜) = coe := rfl
 
+@[norm_cast]
 lemma integral_coe_is_R_or_C {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   {f : α → ℝ} :
   ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
@@ -1233,10 +1238,18 @@ begin
   { sorry, },
 end
 
+lemma is_R_or_C.conj_eq_re_sub_im {𝕜 : Type*} [is_R_or_C 𝕜] (x : 𝕜) :
+  is_R_or_C.conj x = is_R_or_C.re x - (is_R_or_C.im x) * is_R_or_C.I :=
+by { rw is_R_or_C.ext_iff, simp, }
+
 lemma is_R_or_C.conj_smul {𝕜 : Type*} [is_R_or_C 𝕜] (m : ℝ) (x : 𝕜) :
   is_R_or_C.conj (m • x) = m • is_R_or_C.conj x :=
 begin
-  sorry
+  simp_rw is_R_or_C.conj_eq_re_sub_im,
+  simp only [is_R_or_C.smul_re', is_R_or_C.smul_im', is_R_or_C.of_real_mul],
+  rw smul_sub,
+  simp_rw is_R_or_C.of_real_alg,
+  simp,
 end
 
 def conj_lm {𝕜 : Type*} [is_R_or_C 𝕜] : 𝕜 →ₗ[ℝ] 𝕜 :=
@@ -1272,6 +1285,7 @@ begin
     exact is_R_or_C.to_complete_space, },
   { sorry, },
 end
+
 lemma norm_integral_le_lintegral_norm (f : α → E) :
   ∥∫ a, f a ∂μ∥ ≤ ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=
 begin

@@ -4,6 +4,8 @@ import ring_theory.int.basic
 import data.padics.padic_integers
 import set_theory.zfc
 import topology.category.Profinite
+import topology.locally_constant.algebra
+import topology.algebra.continuous_functions
 
 variables {A : Type*} [integral_domain A] [algebra ℚ A]
 
@@ -51,27 +53,50 @@ end
 
 open_locale big_operators
 
-variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
-structure distribution :=
+--variables {R : Type*} [ring R] [topological_space R]
+--variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
+structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
   (∀ i j, pairwise (disjoint on f) →
   phi((f i) ∪ (f j)) = phi (f i) + phi (f j)))
 
-variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
+instance semi {R : Type*} [semiring R] : semimodule R (locally_constant X R) := sorry
+
+structure distribution' {R : Type*} [semiring R] [topological_space R] :=
+(phi : (locally_constant X R) →ₗ[R] R)
+
+variables {R : Type*} [ring R] {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
 
 def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : Γ₀, v (φ.phi S) ≤ K }
 
-instance uniform : uniform_space C(X, R) := sorry
+def measures' [topological_space R] := {φ : @distribution' X R _ _ // ∀ f : (locally_constant X R), ∃ K : Γ₀, v (φ.phi f) ≤ K }
 
-instance completeness : complete_space C(X, R) := sorry
+instance uniform [topological_space R] : uniform_space C(X, R) := sorry
 
-def integral (φ : measures X v) : C(X, R) → R :=
+instance completeness [topological_space R] : complete_space C(X, R) := sorry
+
+--topo ring assumption not really needed
+def inclusion [topological_space R] [topological_ring R] : locally_constant X R → C(X,R) := sorry
+
+lemma sub [topological_space R] [topological_ring R] : function.injective (@inclusion X R _ _ _) := sorry
+
+instance topo_space :  topological_space (locally_constant ↥X R) := sorry
+
+noncomputable def integral [topological_space R] [topological_ring R] (φ : measures' X v) : C(X, R) →ₗ[R] R :=
 begin
---  intro f,
-  apply dense_inducing.extend,
-  sorry
+  have f : @dense (C(X,R)) _ (set.range (inclusion X)),
+  sorry,
+  split,
+  swap 3,
+  {  apply dense_inducing.extend _ (φ.1).phi,
+    sorry,
+    sorry,
+    sorry, },
+  sorry, sorry,
 end
+
+lemma cont [topological_space R] [topological_ring R] (φ : measures' X v) : continuous (integral X v φ) := sorry
 
 /-structure dir_sys ( α : Type* ) :=
 (h : ℕ → finset α )

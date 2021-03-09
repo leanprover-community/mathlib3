@@ -229,8 +229,7 @@ begin
       { rw [abs_of_nonneg sump, add_left_inj b] at h,
         exact or.inl ⟨le_of_eq (eq_zero_of_neg_eq h.symm).symm, pb⟩ } },
     { exact or.inr ⟨na, nb⟩ } },
-  { intro h,
-    cases h with p n,
+  { rintro (p | n),
     { rw [abs_of_nonneg p.1, abs_of_nonneg p.2, abs_of_nonneg (add_nonneg p.1 p.2)] },
     { rw [abs_of_nonpos n.1, abs_of_nonpos n.2, abs_of_nonpos (add_nonpos n.1 n.2), neg_add] } }
 end

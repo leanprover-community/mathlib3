@@ -38,11 +38,8 @@ lemma integral_mul_const (c : ℝ) : ∫ x in a..b, f x * c = (∫ x in a..b, f 
 by simp only [mul_comm, integral_const_mul]
 
 @[simp]
-lemma integral_div' (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) * c⁻¹ :=
-integral_mul_const c⁻¹
-
 lemma integral_div (c : ℝ) : ∫ x in a..b, f x / c = (∫ x in a..b, f x) / c :=
-integral_div' c
+integral_mul_const c⁻¹
 
 @[simp]
 lemma interval_integrable_pow (n : ℕ) : interval_integrable (λ x, x^n) volume a b :=
@@ -60,6 +57,16 @@ continuous_const.interval_integrable a b
 lemma interval_integrable.const_mul (c : ℝ) (h : interval_integrable f volume a b) :
   interval_integrable (λ x, c * f x) volume a b :=
 by convert h.smul c
+
+@[simp]
+lemma interval_integrable.mul_const (c : ℝ) (h : interval_integrable f volume a b) :
+  interval_integrable (λ x, f x * c) volume a b :=
+by simp only [mul_comm, interval_integrable.const_mul c h]
+
+@[simp]
+lemma interval_integrable.div (c : ℝ) (h : interval_integrable f volume a b) :
+  interval_integrable (λ x, f x / c) volume a b :=
+interval_integrable.mul_const c⁻¹ h
 
 lemma interval_integrable_one_div (hf : continuous_on f (interval a b))
   (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
@@ -83,6 +90,19 @@ continuous_sin.interval_integrable a b
 @[simp]
 lemma interval_integrable_cos : interval_integrable cos volume a b :=
 continuous_cos.interval_integrable a b
+
+lemma interval_integrable_one_div_one_add_sq :
+  interval_integrable (λ x:ℝ, 1 / (1 + x^2)) volume a b :=
+begin
+  refine (continuous_const.div _ (λ x, _)).interval_integrable a b,
+  { continuity },
+  { nlinarith },
+end
+
+@[simp]
+lemma interval_integrable_inv_one_add_sq :
+  interval_integrable (λ x:ℝ, (1 + x^2)⁻¹) volume a b :=
+by simpa only [one_div] using interval_integrable_one_div_one_add_sq
 
 end interval_integral
 
@@ -159,51 +179,9 @@ end
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp
 
-open measure_theory
+
 open_locale real
 
--- @[simp] lemma interval_integrable.add' (hf : interval_integrable f volume a b)
---   (hg : interval_integrable g volume a b) : interval_integrable (λ x, f x + g x) volume a b :=
--- ⟨hf.1.add hg.1, hf.2.add hg.2⟩
+example : ∫ x:ℝ in 0..1, x^3 + x/2 + 1/4 - (1 + x^2)⁻¹ = 3/4 - π/4 := by norm_num
 
--- @[simp] lemma interval_integrable.sub' (hf : interval_integrable f volume a b)
---   (hg : interval_integrable g volume a b) : interval_integrable (λ x, f x - g x) volume a b :=
--- ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
-
-example : ∫ x:ℝ in 0..1, 3*x^2 + 2*x = 2 := by norm_num
-
-example : ∫ x:ℝ in 0..1, 3*x^2 + 2*x + 1 = 3 :=
-begin
-  norm_num,
-
-  -- have : interval_integrable (λ x:ℝ, 3 * x ^ 2 + 2 * x) volume 0 1,
-  -- { apply interval_integrable.add; simp },
-  -- norm_num [this],
-
-  -- have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
-  -- have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,
-  -- have h3 : interval_integrable (λ x:ℝ, (1:ℝ)) volume 0 1 := by simp,
-  -- have H := integral_add (h1.add h2) h3,
-  -- simp only [pi.add_apply] at H,
-  -- norm_num [H],
-end
-
-example : ∫ x:ℝ in 0..1, 4*x^3 + 3*x^2 + 2*x + 1 = 4 :=
-begin
-  norm_num,
-
-  -- have h1 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2) volume 0 1,
-  -- { apply interval_integrable.add; simp },
-  -- have h2 : interval_integrable (λ x:ℝ, 4 * x ^ 3 + 3 * x ^ 2 + 2 * x) volume 0 1,
-  -- { apply h1.add, simp },
-  -- norm_num [h1, h2],
-
-  -- have h0 : interval_integrable (λ x:ℝ, 4*x^3) volume 0 1 := by simp,
-  -- have h1 : interval_integrable (λ x:ℝ, 3*x^2) volume 0 1 := by simp,
-  -- have h2 : interval_integrable (λ x:ℝ, 2*x) volume 0 1 := by simp,
-  -- have h3 : interval_integrable (λ x:ℝ, (1:ℝ)) volume 0 1 := by simp,
-  -- have H1 := integral_add ((h0.add h1).add h2) h3,
-  -- have H2 := integral_add (h0.add h1) h2,
-  -- simp only [pi.add_apply] at H1 H2,
-  -- norm_num [H1, H2],
-end
+example : ∫ x:ℝ in 0..2, 6*x^5 + 3*x^4 + x^3 - 2*x^2 + x - 7 = 1048 / 15 := by norm_num

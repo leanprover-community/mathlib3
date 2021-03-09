@@ -2134,7 +2134,7 @@ lemma univ_pi_eq_empty_iff : pi univ t = ∅ ↔ ∃ i, t i = ∅ :=
 by simp [← not_nonempty_iff_eq_empty, univ_pi_nonempty_iff]
 
 @[simp] lemma range_dcomp {β : ι → Type*} (f : Π i, α i → β i) :
-  range (λ (g : Π i, α i) i, f i (g i)) = pi univ (λ i, range (f i)) :=
+  range (λ (g : Π i, α i), (λ i, f i (g i))) = pi univ (λ i, range (f i)) :=
 begin
   apply subset.antisymm,
   { rintro _ ⟨x, rfl⟩ i -,

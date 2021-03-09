@@ -116,6 +116,13 @@ end
 @[parity_simps] theorem even_pow {m : ℤ} {n : ℕ} : even (m^n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, even_mul, pow_succ], tauto }
 
+lemma even_mul_succ_self (n : ℤ) : even (n * (n + 1)) :=
+begin
+  rw even_mul,
+  convert n.even_or_odd,
+  simp with parity_simps
+end
+
 -- Here are examples of how `parity_simps` can be used with `int`.
 
 example (m n : ℤ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=

@@ -67,13 +67,15 @@ begin
   { rw exact_iff,
     refine λ h, ⟨h.1, _⟩,
     apply zero_of_epi_comp (is_limit.cone_point_unique_up_to_iso hg (limit.is_limit _)).hom,
-    apply zero_of_comp_mono (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) hf).hom,
+    apply zero_of_comp_mono
+      (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) hf).hom,
     simp [h.2] }
 end
 
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image [h : exact f g] :
-  is_limit (kernel_fork.of_ι (images.image.ι f) (images.image_ι_comp_eq_zero h.1) : kernel_fork g) :=
+  is_limit
+    (kernel_fork.of_ι (images.image.ι f) (images.image_ι_comp_eq_zero h.1) : kernel_fork g) :=
 begin
   rw exact_iff at h,
   refine is_limit.of_ι _ _ _ _ _,

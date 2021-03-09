@@ -106,7 +106,7 @@ begin
   { intro a, simp [module.algebra_map_End_apply] },
   { intros p q hp hq, simp [hp, hq, add_smul] },
   { intros n a hna,
-    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
+    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
     simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
 end
 

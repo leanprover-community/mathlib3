@@ -52,6 +52,14 @@ theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 @[norm_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
 
+instance : proper_space ℤ :=
+⟨ begin
+    intros x r,
+    apply set.finite.is_compact,
+    have : closed_ball x r = coe ⁻¹' (closed_ball (x:ℝ) r) := rfl,
+    simp [this, closed_ball_Icc, set.Icc_ℤ_finite],
+  end ⟩
+
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
 uniform_continuous_comap
 
@@ -288,8 +296,14 @@ compact_of_totally_bounded_is_closed
   (real.totally_bounded_Icc a b)
   (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
 
+instance {a b : ℝ} : compact_space (Icc a b) :=
+compact_iff_compact_space.mp compact_Icc
+
 lemma compact_pi_Icc {ι : Type*} {a b : ι → ℝ} : is_compact (Icc a b) :=
 pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
+
+instance compact_space_pi_Icc {ι : Type*} {a b : ι → ℝ} : compact_space (Icc a b) :=
+compact_iff_compact_space.mp compact_pi_Icc
 
 instance : proper_space ℝ :=
 { compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }

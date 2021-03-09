@@ -2383,7 +2383,7 @@ by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = n * m :=
 begin
   induction n with n hn,
-  { refl },
+  { rw [repeat, sum_nil, zero_mul] },
   { rw [repeat_succ, sum_cons, hn, succ_mul, add_comm] }
 end
 

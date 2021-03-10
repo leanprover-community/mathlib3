@@ -1662,13 +1662,12 @@ lemma of_real_rpow_of_nonneg {x p : ℝ} (hx_nonneg : 0 ≤ x) (hp_nonneg : 0 �
 begin
   by_cases hp0 : p = 0,
   { simp [hp0], },
-  rw ← ne.def at hp0,
-  have hp_pos : 0 < p := lt_of_le_of_ne hp_nonneg hp0.symm,
   by_cases hx0 : x = 0,
-  { simp [hx0, hp_pos, hp_pos.ne.symm], },
+  { rw ← ne.def at hp0,
+    have hp_pos : 0 < p := lt_of_le_of_ne hp_nonneg hp0.symm,
+    simp [hx0, hp_pos, hp_pos.ne.symm], },
   rw ← ne.def at hx0,
-  have hx_pos : 0 < x, from hx_nonneg.lt_of_ne hx0.symm,
-  exact of_real_rpow_of_pos hx_pos,
+  exact of_real_rpow_of_pos (hx_nonneg.lt_of_ne hx0.symm),
 end
 
 lemma rpow_left_injective {x : ℝ} (hx : x ≠ 0) :

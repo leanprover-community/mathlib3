@@ -12,8 +12,6 @@ import data.polynomial.monic
 We define `integral_normalization`, which relate arbitrary polynomials to monic ones.
 -/
 
-noncomputable theory
-
 open finsupp
 open_locale big_operators
 
@@ -32,8 +30,12 @@ a monic polynomial with root `leading_coeff f * z`.
 Moreover, `integral_normalization 0 = 0`.
 -/
 noncomputable def integral_normalization (f : polynomial R) : polynomial R :=
-∑ i in f.support,
-monomial i (if f.degree = i then 1 else coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i))
+∑ i in f.support, monomial i (if f.degree = i then 1 else
+  coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i))
+
+@[simp] lemma integral_normalization_zero :
+  integral_normalization (0 : polynomial R) = 0 :=
+by simp [integral_normalization]
 
 lemma integral_normalization_coeff {f : polynomial R} {i : ℕ} :
   (integral_normalization f).coeff i =
@@ -74,9 +76,10 @@ end semiring
 section domain
 variables [integral_domain R]
 
-@[simp] lemma support_integral_normalization {f : polynomial R} (hf : f ≠ 0) :
+@[simp] lemma support_integral_normalization {f : polynomial R} :
   (integral_normalization f).support = f.support :=
 begin
+  by_cases hf : f = 0, {simp [hf]},
   ext i,
   refine ⟨λ h, integral_normalization_support h, _⟩,
   simp only [integral_normalization_coeff, mem_support_iff],
@@ -86,18 +89,19 @@ end
 
 variables [comm_ring S]
 
-lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
+lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (f : R →+* S)
   {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
   eval₂ f (z * f p.leading_coeff) (integral_normalization p) = 0 :=
 calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
     = p.support.attach.sum
         (λ i, f (coeff (integral_normalization p) i.1 * p.leading_coeff ^ i.1) * z ^ i.1) :
-      by { rw [eval₂, sum_def, support_integral_normalization hp],
+      by { rw [eval₂, sum_def, support_integral_normalization],
            simp only [mul_comm z, mul_pow, mul_assoc, ring_hom.map_pow, ring_hom.map_mul],
            exact finset.sum_attach.symm }
 ... = p.support.attach.sum
         (λ i, f (coeff p i.1 * p.leading_coeff ^ (nat_degree p - 1)) * z ^ i.1) :
       begin
+        by_cases hp : p = 0, {simp [hp]},
         have one_le_deg : 1 ≤ nat_degree p :=
           nat.succ_le_of_lt (nat_degree_pos_of_eval₂_root hp f hz inj),
         congr' with i,
@@ -118,10 +122,10 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
            exact @finset.sum_attach _ _ p.support _ (λ i, f (p.coeff i) * z ^ i) }
 ... = 0 : by rw [hz, _root_.mul_zero]
 
-lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R} (hf : f ≠ 0)
+lemma integral_normalization_aeval_eq_zero [algebra R S] {f : polynomial R}
   {z : S} (hz : aeval z f = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   aeval (z * algebra_map R S f.leading_coeff) (integral_normalization f) = 0 :=
-integral_normalization_eval₂_eq_zero hf (algebra_map R S) hz inj
+integral_normalization_eval₂_eq_zero (algebra_map R S) hz inj
 
 end domain
 

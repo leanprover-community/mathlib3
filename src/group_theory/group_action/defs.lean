@@ -34,6 +34,7 @@ This file should avoid depending on other parts of `group_theory`, to avoid impo
 More sophisticated lemmas belong in `group_theory.group_action`.
 -/
 
+set_option old_structure_cmd true
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -81,7 +82,7 @@ lemma smul_comm_class.symm (M N α : Type*) [has_scalar M α] [has_scalar N α]
 
 instance smul_comm_class_self (M α : Type*) [comm_monoid M] [mul_action M α] :
   smul_comm_class M M α :=
-⟨λ a a' b, by rw [← mul_smul, mul_comm, mul_smul]⟩
+⟨λ a a' b, by rw [← mul_smul, mul_comm, mul_smul]; refl⟩
 
 /-- An instance of `is_scalar_tower M N α` states that the multiplicative
 action of `M` on `α` is determined by the multiplicative actions of `M` on `N`
@@ -110,7 +111,7 @@ protected def function.injective.mul_action [has_scalar α γ] (f : γ → β)
   mul_action α γ :=
 { smul := (•),
   one_smul := λ x, hf $ (smul _ _).trans $ one_smul _ (f x),
-  mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
+  mul_smul := λ c₁ c₂ x, hf $ by simpa only [smul, mul_smul] }
 
 /-- Pushforward a multiplicative action along a surjective map respecting `•`. -/
 protected def function.surjective.mul_action [has_scalar α γ] (f : β → γ) (hf : surjective f)
@@ -118,7 +119,7 @@ protected def function.surjective.mul_action [has_scalar α γ] (f : β → γ) 
   mul_action α γ :=
 { smul := (•),
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
-  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simpa only [← smul, mul_smul] } }
 
 section ite
 
@@ -172,7 +173,8 @@ def comp_hom [monoid γ] (g : γ →* α) :
   mul_action γ β :=
 { smul := λ x b, (g x) • b,
   one_smul := by simp [g.map_one, mul_action.one_smul],
-  mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
+  mul_smul := λ x y b,
+    by {simpa [g.map_mul, mul_action.mul_smul, (•)] using mul_action.mul_smul (g x) (g y) b } }
 
 end mul_action
 
@@ -208,8 +210,9 @@ protected def function.injective.distrib_mul_action [add_monoid γ] [has_scalar 
   (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
   distrib_mul_action α γ :=
 { smul := (•),
-  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
-  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  smul_add := λ c x y, hf $ by
+    { simpa only [smul, f.map_add, has_scalar.smul] using smul_add _ _ _ },
+  smul_zero := λ c, hf $ by {simpa only [smul, f.map_zero, has_scalar.smul] using smul_zero _ },
   .. hf.mul_action f smul }
 
 /-- Pushforward a distributive multiplicative action along a surjective additive monoid
@@ -219,8 +222,9 @@ protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar
   distrib_mul_action α γ :=
 { smul := (•),
   smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
-    simp only [smul_add, ← smul, ← f.map_add] },
-  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+    simp only [smul_add, ← smul, ← f.map_add, (•),  ← smul_add c x y], erw ← smul_add c x y, refl },
+  smul_zero := λ c, by { simp only [← f.map_zero, ← smul, smul_zero, (•)],
+  convert add_monoid_hom.map_zero f,  convert smul_zero c, exact add_monoid_hom.map_zero f },
   .. hf.mul_action f smul }
 
 variable (β)

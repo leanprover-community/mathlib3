@@ -69,46 +69,23 @@ jobs:
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
           echo "short_lean_version=$(~/.elan/bin/lean --run scripts/lean_version.lean)" >> $GITHUB_ENV
 
-      - name: get azcopy version
-        id: azcopy_version
-        run: echo "::set-output name=ver::$(curl -s -D- https://aka.ms/downloadazcopy-v10-linux | grep ^Location | cut -d" " -f2)"
-
-      - name: cache azcopy
-        uses: actions/cache@v2.1.4
-        id: cache_azcopy
-        with:
-          # A list of files, directories, and wildcard patterns to cache and restore
-          path: |
-            /usr/local/bin/azcopy
-          # An explicit key for restoring and saving the cache
-          key: ${{ steps.azcopy_version.outputs.ver }}
-
-      - name: install azcopy
-        if: steps.cache_azcopy.outputs.cache-hit != 'true'
-        run: |
-          cd /usr/local/bin
-          wget -q https://aka.ms/downloadazcopy-v10-linux -O - | sudo tar zxf - --strip-components 1 --wildcards '*/azcopy'
-          sudo chmod 755 /usr/local/bin/azcopy
-
       - name: install Python
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
 
       - name: try to find olean cache
-        id: find_olean_cache
-        run: |
-          ./scripts/fetch_olean_cache.sh
-          echo "::set-output name=success::true"
+        run: ./scripts/fetch_olean_cache.sh
 
       - name: leanpkg build
         id: build
         run: |
           leanpkg configure
+          echo "::set-output name=started::true"
           lean --json -T100000 --make src | python scripts/detect_errors.py
 
       - name: push release to azure
-        if: always() && github.repository == 'leanprover-community/mathlib' && steps.find_olean_cache.outputs.success == 'true'
+        if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
         run: |
           archive_name="$(git rev-parse HEAD).tar.gz"
           find src/ -name "*.olean" -o -name ".noisy_files" | tar czf "$archive_name" -T -

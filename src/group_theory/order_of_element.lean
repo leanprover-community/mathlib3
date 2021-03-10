@@ -231,7 +231,7 @@ variables (a) (n : ℕ)
   [decidable_pred (λ m, 0 < m ∧ (a ^ n) ^ m = 1)] [decidable (∃ m, 0 < m ∧ (a ^ n) ^ m = 1)]
 
 
-lemma order_of_pow (h : n ≠ 0) :
+lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
 conv_rhs { rw order_of },
@@ -265,7 +265,7 @@ split_ifs with hx,
   { simp } }
 end
 
-lemma order_of_pow' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
+lemma order_of_pow'' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
   conv_rhs { rw order_of },
@@ -414,6 +414,17 @@ begin
   cases exists_pow_eq_one a with w hw,
   cases hw with hw1 hw2,
   exact ⟨w, hw1, hw2⟩,
+end
+
+open nat
+
+lemma order_of_pow {n : ℕ} :
+  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
+begin
+  apply order_of_pow'',
+  cases exists_pow_eq_one a with w hw,
+  cases hw with hw1 hw2,
+  exact ⟨w, hw1, hw2⟩
 end
 
 variable {a}
@@ -638,11 +649,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
   have hm0 : 0 < m, from nat.pos_of_ne_zero
     (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
   begin
-    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers],
-    rw order_of_pow' g _ (begin cases (exists_pow_eq_one g) with w hw,
-                                           cases hw with hw1 hw2,
-                                           exact ⟨w, hw1, hw2⟩ end),
-    rw order_of_eq_card_of_forall_mem_gpowers hg,
+    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
+        order_of_pow g, order_of_eq_card_of_forall_mem_gpowers hg],
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
       hm, nat.mul_div_cancel _ hm0],
@@ -713,10 +721,7 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
       card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
-          by { rw order_of_pow' a _ (begin cases (exists_pow_eq_one a) with w hw,
-                                           cases hw with hw1 hw2,
-                                           exact ⟨w, hw1, hw2⟩ end),
-                rw [ha, gcd_eq_right (div_dvd_of_dvd hm),
+          by { rw [order_of_pow a, ha, gcd_eq_right (div_dvd_of_dvd hm),
                 nat.div_div_self hm (succ_pos _)]
                 }⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))

@@ -204,8 +204,10 @@ open ring_hom
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
 theorem bernoulli'_odd_eq_zero {n : ℕ} (h_odd : odd n) (hlt : 1 < n) : bernoulli' n = 0 :=
 begin
-  have f := bernoulli'_power_series,
-  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑n!) * (exp ℚ - 1)) * (exp ℚ) =
+  --have f := bernoulli'_power_series,
+  have f : power_series.mk (λ n, (bernoulli' n / n!)) * (exp ℚ - 1) = X * exp ℚ,
+  { simpa [bernoulli'_power_series] using bernoulli'_power_series_mul_exp_sub_one ℚ },
+  have g : eval_neg_hom (mk (λ (n : ℕ), bernoulli' n / ↑(n!)) * (exp ℚ - 1)) * (exp ℚ) =
     (eval_neg_hom (X * exp ℚ)) * (exp ℚ) := by congr',
   rw [map_mul, map_sub, map_one, map_mul, mul_assoc, sub_mul, mul_assoc (eval_neg_hom X) _ _,
     mul_comm (eval_neg_hom (exp ℚ)) (exp ℚ), exp_mul_exp_neg_eq_one, eval_neg_hom_X, mul_one,
@@ -360,7 +362,7 @@ lemma aux_power_series_equal (n : ℕ) :
     power_series.mk (λ p, (range n).sum (λ k, (k : ℚ) ^ p * algebra_map ℚ ℚ p!⁻¹))
   = power_series.mk (λ p, (range (p + 1)).sum
       (λ i, bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1)!)) :=
-begin
+ begin
   have hexp : exp ℚ - 1 ≠ 0,
   { simp only [exp, power_series.ext_iff, linear_map.map_zero, one_div, coeff_mk, coeff_one,
     id_apply, linear_map.map_sub, ne, not_forall, rat.algebra_map_rat_rat],
@@ -369,9 +371,11 @@ begin
   have h_r : exp ℚ ^ n - 1 = X * mk (λ p, coeff ℚ (p + 1) (exp ℚ ^ n)),
   { have h_const : C ℚ (constant_coeff ℚ (exp ℚ ^ n)) = 1 := by simp,
     rw [←h_const, sub_const_eq_X_mul_shift], },
-  rw [← mul_right_inj' hexp, ←exp_pow_sum n, mul_comm],
-  simpa [h_r, ←bernoulli_power_series, mul_assoc, aux_cauchy_prod] using geom_sum_mul (exp ℚ) n,
-end
+  rw [← mul_right_inj' hexp, ←exp_pow_sum n, mul_comm, ←geom_series_def, geom_sum_mul (exp ℚ) n,
+    h_r, ←bernoulli_power_series_mul_exp_sub_one],
+  simp only [bernoulli_power_series, mul_comm _ (exp ℚ - 1), mul_assoc, aux_cauchy_prod, id_apply,
+    factorial_succ, rat.algebra_map_rat_rat],
+  end
 
 /-- Faulhabers' theorem: sum of powers. -/
 theorem faulhaber (n p : ℕ) :

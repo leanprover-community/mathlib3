@@ -325,8 +325,52 @@ lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, �
 le_antisymm (snorm_mono_ae $ filter.eventually_eq.le hfg)
   (snorm_mono_ae $ (filter.eventually_eq.symm hfg).le)
 
+@[simp] lemma snorm'_norm {f : α → G} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
+by simp [snorm']
+
 @[simp] lemma snorm_norm (f : α → F) : snorm (λ x, ∥f x∥) p μ = snorm f p μ :=
 snorm_congr_norm_ae $ filter.eventually_of_forall $ λ x, norm_norm _
+
+lemma snorm'_norm_rpow (f : α → F) (p q : ℝ) (hq_pos : 0 < q) :
+  snorm' (λ x, ∥f x∥ ^ q) p μ = (snorm' f (p * q) μ) ^ q :=
+begin
+  simp_rw snorm',
+  rw [← ennreal.rpow_mul, ←one_div_mul_one_div],
+  simp_rw one_div,
+  rw [mul_assoc, inv_mul_cancel hq_pos.ne.symm, mul_one],
+  congr,
+  ext1 x,
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
+  rw [real.norm_eq_abs, abs_eq_self.mpr (real.rpow_nonneg_of_nonneg (norm_nonneg _) _),
+    mul_comm, ← ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) hq_pos, ennreal.rpow_mul],
+end
+
+lemma snorm_norm_rpow (f : α → G) (hq_pos : 0 < q) :
+  snorm (λ x, ∥f x∥ ^ q) p μ = (snorm f (p * ennreal.of_real q) μ) ^ q :=
+begin
+  by_cases h0 : p = 0,
+  { simp [h0, ennreal.zero_rpow_of_pos hq_pos], },
+  by_cases hp_top : p = ∞,
+  { simp only [hp_top, snorm_exponent_top, ennreal.top_mul, hq_pos.not_le, ennreal.of_real_eq_zero,
+      if_false, snorm_exponent_top, snorm_ess_sup],
+    have h_rpow : ess_sup (λ (x : α), (nnnorm (∥f x∥ ^ q) : ℝ≥0∞)) μ
+      = ess_sup (λ (x : α), (↑(nnnorm (f x))) ^ q) μ,
+    { congr,
+      ext1 x,
+      nth_rewrite 1 ← nnnorm_norm,
+      rw [ennreal.coe_rpow_of_nonneg _ hq_pos.le, ennreal.coe_eq_coe,
+        nnreal.nnnorm_rpow_of_nonneg (norm_nonneg _)], },
+    rw h_rpow,
+    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
+    have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,
+    let iso := h_rpow_mono.order_iso_of_surjective _ h_rpow_surj,
+    exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm, },
+  rw [snorm_eq_snorm' h0 hp_top, snorm_eq_snorm' _ _],
+  swap, { refine mul_ne_zero h0 _, rwa [ne.def, ennreal.of_real_eq_zero, not_le], },
+  swap, { exact ennreal.mul_ne_top hp_top ennreal.of_real_ne_top, },
+  rw [ennreal.to_real_mul, ennreal.to_real_of_real hq_pos.le],
+  exact snorm'_norm_rpow f p.to_real q hq_pos,
+end
 
 lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f p μ = snorm g p μ :=
 snorm_congr_norm_ae $ hfg.mono (λ x hx, hx ▸ rfl)

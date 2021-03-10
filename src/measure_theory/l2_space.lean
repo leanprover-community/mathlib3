@@ -73,7 +73,7 @@ begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,
   rw integral_eq_lintegral_of_nonneg_ae,
-  swap, { refine filter.eventually_of_forall (λ x, pow_two_nonneg _), },
+  swap, { exact filter.eventually_of_forall (λ x, pow_two_nonneg _), },
   swap, { exact (Lp.ae_measurable f).norm.pow, },
   congr,
   ext1 x,
@@ -88,13 +88,12 @@ begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
   rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,
     ennreal.to_real_eq_to_real (ennreal.pow_lt_top (Lp.snorm_lt_top f) 2) _],
-  swap,
+  { rw [←ennreal.rpow_nat_cast, snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top, snorm',
+      ← ennreal.rpow_mul, one_div, h_two],
+    simp, },
   { refine lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top zero_lt_two _,
     rw [← h_two, ← snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top],
     exact Lp.snorm_lt_top f, },
-  rw [←ennreal.rpow_nat_cast, snorm_eq_snorm' ennreal.two_ne_zero ennreal.two_ne_top, snorm',
-    ← ennreal.rpow_mul, one_div, h_two],
-  simp,
 end
 
 lemma mem_L1_inner (f g : Lp E 2 μ) :

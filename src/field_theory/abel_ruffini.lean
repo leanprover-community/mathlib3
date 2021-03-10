@@ -101,8 +101,7 @@ section gal_X_pow_sub_C
 
 lemma gal_X_pow_sub_one_is_solvable (n : ℕ) : is_solvable (X ^ n - 1 : polynomial F).gal :=
 begin
-  suffices : ∀ σ τ : (X ^ n - 1 : polynomial F).gal, σ * τ = τ * σ,
-  { sorry },
+  apply is_solvable_of_comm',
   intros σ τ,
   ext a ha,
   rw [mem_root_set, alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] at ha,
@@ -149,8 +148,7 @@ begin
     { exact minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c) },
     { apply minpoly.dvd,
       rwa [map_id, alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] } },
-  suffices : ∀ σ τ : (X ^ n - C a).gal, σ * τ = τ * σ,
-  { sorry },
+  apply is_solvable_of_comm',
   intros σ τ,
   ext b hb,
   rw [mem_root_set hn''', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero_iff_eq] at hb,

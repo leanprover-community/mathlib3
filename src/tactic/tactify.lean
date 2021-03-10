@@ -3,8 +3,13 @@ import data.nat.factorial
 
 open tactic expr
 
+namespace tactic
+
+namespace tactify
+
 meta inductive proof_step
 | apply (e : expr) : proof_step
+| exact (e : expr) : proof_step
 | intro (n : name) : proof_step
 
 meta inductive proof_script
@@ -14,6 +19,7 @@ namespace proof_step
 
 meta def to_format : proof_step → tactic format
 | (apply e) := do p ← pp e, return format!"apply {p}"
+| (exact e) := do p ← pp e, return format!"exact {p}"
 | (intro n) := return format!"intro {n}"
 
 meta instance : has_to_tactic_format proof_step :=
@@ -36,10 +42,14 @@ run_with_state state $ do
   -- Return the new states and their corresponding solutions
   return (states.zip gs)
 
-meta def subgoals (state : tactic_state) (solution : expr) :
-  proof_step → tactic (list (tactic_state × expr))
-| (apply e) := subgoals' state solution (tactic.apply e)
-| (intro n) := subgoals' state solution (tactic.intro n)
+meta def as_tactic : proof_step → tactic unit
+| (apply e) := tactic.apply e >> skip
+| (exact e) := tactic.exact e
+| (intro n) := tactic.intro n >> skip
+
+meta def subgoals (state : tactic_state) (solution : expr) (step : proof_step) :
+  tactic (list (tactic_state × expr)) :=
+subgoals' state solution (step.as_tactic)
 
 end proof_step
 
@@ -58,6 +68,13 @@ meta def to_format : proof_script → tactic format
 meta instance : has_to_tactic_format proof_script :=
 ⟨to_format⟩
 
+meta def steps : proof_script → tactic (list (string × string))
+| (proof_script.step g s r) := do
+  ppg ← pp g,
+  pps ← pp s,
+  rs ← r.mmap steps,
+  return $ (to_string ppg, to_string pps) :: rs.join
+
 end proof_script
 
 meta def tactic_state_with_goal (goal : expr) : tactic tactic_state :=
@@ -75,15 +92,15 @@ do
 
 /--
 Hopefully `apply f` works against the `state`, in which case return `f`.
-Otherwise, try some variations...
+Otherwise, try using `apply f _`, `apply f _ _` and so on.
 -/
-meta def discover_apply (state : tactic_state) : expr → tactic expr
+meta def apply_with_underscores (state : tactic_state) : expr → tactic expr
 | f :=
 do
-  ppf ← pp f, trace format!"checking {ppf} against the goal",
-  (run_with_state state (tactic.apply f) >> trace "!" >> return f) <|>
+  -- ppf ← pp f, trace format!"checking {ppf} against the goal",
+  (run_with_state state (tactic.apply f) >> return f) <|>
   (do f' ← to_expr ``(%%f _),
-      discover_apply f')
+      apply_with_underscores f')
 
 /--
 Attempt to extract from a `solution` to a `goal` a single proof step,
@@ -93,45 +110,58 @@ meta def tactify_1 (state : tactic_state) (solution : expr) :
   tactic (proof_step × list (tactic_state × expr)) :=
 do
   s ← match solution with
-  | `(bit0 %%n) := return (proof_step.apply solution)
-  | `(bit1 %%n) := return (proof_step.apply solution)
-  | (const n l) := return (proof_step.apply solution)
-  | (local_const u p b t) := return (proof_step.apply solution)
-  | (app f x) := do f' ← discover_apply state solution.get_app_fn, return (proof_step.apply f')
+  | `(bit0 %%n) := return (proof_step.exact solution)
+  | `(bit1 %%n) := return (proof_step.exact solution)
+  | (const n l) := return (proof_step.exact solution)
+  | (local_const u p b t) := return (proof_step.exact solution)
+  | (app f x) := do
+      f' ← apply_with_underscores state solution.get_app_fn,
+      return (proof_step.apply f')
   | (lam n bi ty bd) := return (proof_step.intro n) -- TODO use `intros`?
   | _ := fail format!"don't know how to process {solution}"
   end,
   gs ← s.subgoals state solution,
   return ⟨s, gs⟩
 
+end tactify
+
+open tactify
+
 meta def tactify : tactic_state → expr → tactic proof_script
 | goal solution :=
 do
-  trace goal,
-  trace solution,
+  -- trace goal,
+  -- trace solution,
   (step, pairs) ← tactify_1 goal solution,
-  trace step,
-  trace "---",
+  -- trace step,
+  -- trace "---",
   scripts' ← pairs.mmap (λ p, tactify p.1 p.2),
   return $ proof_script.step goal step scripts'
 
-meta def foo (d : declaration) : tactic unit :=
-do
+namespace interactive
+
+meta def tactify (n : name) : tactic unit := do
+  env ← get_env,
+  d ← env.get n,
   state ← tactic_state_with_goal d.type,
-  o ← tactify state d.value,
-  trace o,
-  skip
+  o ← tactic.tactify state d.value,
+  trace o
 
-meta def bar (n : name) : tactic unit :=
-do env ← get_env,
-   d ← env.get n,
-   foo d
+end interactive
 
-meta def bar' (n : name) : tactic unit :=
-begin
-  apply id_rhs _,
-end
+end tactic
 
+open tactic tactic.tactify
+
+meta def tactic_prompts (n : name) : tactic unit := do
+  env ← get_env,
+  d ← env.get n,
+  state ← tactic_state_with_goal d.type,
+  o ← tactic.tactify state d.value,
+  s ← o.steps,
+  s.mmap' (λ p, do trace p.1, trace p.2, trace "")
+
+run_cmd tactic_prompts `nat.factorial_le
 
 def quux : ℕ := nat.factorial (3 + (nat.factorial 7))
 
@@ -177,9 +207,15 @@ apply list.cons,
      } }
 end
 
+
+
+
+run_cmd tactic.interactive.tactify `nat.factorial_le
+
 example : false :=
 begin
-  bar `quux,
-  bar `ff,
+  tactify `quux,
+  tactify `ff,
+  tactify `nat.factorial_le,
   -- bar `bar,
 end

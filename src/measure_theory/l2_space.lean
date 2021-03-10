@@ -16,14 +16,10 @@ open_locale nnreal ennreal
 
 namespace measure_theory
 
-section inner_product_space
-
-variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜] {p : ℝ≥0∞} [measurable_space α] {μ : measure α}
+variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
   [measurable_space E] [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
-  [measurable_space 𝕜] [borel_space 𝕜]
   [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
   [normed_group G]
-
 
 lemma two_mul_le_add_sq (a b : ℝ) : 2 * a * b ≤ a ^ 2 + b ^ 2 :=
 begin
@@ -40,6 +36,30 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),
 end
 
+lemma snorm_inner_lt_top (f g : Lp E 2 μ) : snorm (λ (x : α), (inner (f x) (g x) : 𝕜)) 1 μ < ∞ :=
+begin
+  have h : ∀ x, is_R_or_C.abs (inner (f x) (g x) : 𝕜) ≤ ∥f x∥ * ∥g x∥,
+    from λ x, abs_inner_le_norm _ _,
+  have h' : ∀ x, is_R_or_C.abs (inner (f x) (g x) : 𝕜) ≤ ∥ ∥f x∥^2 + ∥g x∥^2 ∥,
+  { simp_rw real.norm_eq_abs,
+    refine λ x, le_trans (h x) _,
+    rw abs_eq_self.mpr,
+    swap, { exact add_nonneg (by simp) (by simp), },
+    refine le_trans _ (half_le_self (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _))),
+    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr (le_trans (le_of_eq _) (two_mul_le_add_sq _ _)),
+    ring, },
+  simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
+  refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
+  { exact (Lp.ae_measurable f).norm.rpow_const, },
+  { exact (Lp.ae_measurable g).norm.rpow_const, },
+  simp only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
+  exact ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
+end
+
+section inner_product_space
+
+variables [measurable_space 𝕜] [borel_space 𝕜]
+
 include 𝕜
 
 instance : has_inner 𝕜 (Lp E 2 μ) :=
@@ -48,8 +68,7 @@ instance : has_inner 𝕜 (Lp E 2 μ) :=
 lemma inner_def (f g : Lp E 2 μ) : inner f g = ∫ a : α, (inner (f a) (g a) : 𝕜) ∂μ := rfl
 
 lemma integral_inner_eq_sq_snorm (f : Lp E 2 μ) :
-  ∫ (a : α), (inner (f a) (f a) : 𝕜) ∂μ =
-    ennreal.to_real ∫⁻ (a : α), (nnnorm (f a) : ennreal) ^ (2:ℝ) ∂μ :=
+  ∫ a, (inner (f a) (f a) : 𝕜) ∂μ = ennreal.to_real ∫⁻ a, (nnnorm (f a) : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
 begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,
@@ -78,54 +97,22 @@ begin
   simp,
 end
 
-private lemma conj_sym' (f g : Lp E 2 μ) : is_R_or_C.conj (inner g f : 𝕜) = inner f g :=
-by simp_rw [inner_def, ← integral_conj, inner_conj_sym]
-
-lemma mem_L1_inner {μ : measure α} (f g : Lp E 2 μ) :
-  ae_eq_fun.mk (λ (x : α), inner (f x) (g x))
+lemma mem_L1_inner (f g : Lp E 2 μ) :
+  ae_eq_fun.mk (λ x, inner (f x) (g x))
     (ae_measurable.inner (Lp.ae_measurable f) (Lp.ae_measurable g)) ∈ Lp 𝕜 1 μ :=
-begin
-  simp_rw [mem_Lp_iff_snorm_lt_top, snorm_ae_eq_fun],
-  have h : ∀ x, is_R_or_C.abs (inner (f x) (g x) : 𝕜) ≤ ∥f x∥ * ∥g x∥,
-    from λ x, abs_inner_le_norm _ _,
-  have h' : ∀ x, is_R_or_C.abs (inner (f x) (g x) : 𝕜) ≤ ∥ ∥f x∥^2 + ∥g x∥^2 ∥,
-  { suffices h'' : ∀ x, is_R_or_C.abs (inner (f x) (g x) : 𝕜) ≤ abs ((λ x, ∥f x∥^2 + ∥g x∥^2) x),
-    { intro x,
-      rw real.norm_eq_abs,
-      exact h'' x, } ,
-    refine λ x, le_trans (h x) _,
-    rw abs_eq_self.mpr,
-    swap, { exact add_nonneg (by simp) (by simp), },
-    refine le_trans _ (half_le_self _),
-    { rw  le_div_iff _,
-      { dsimp only,
-        rw [mul_comm _ (2 : ℝ), ← mul_assoc],
-        exact two_mul_le_add_sq _ _, },
-      { exact zero_lt_two, }, },
-    { exact add_nonneg (pow_two_nonneg _) (pow_two_nonneg _), } },
-  simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
-  refine lt_of_le_of_lt (snorm_mono_ae (ae_of_all _ h')) ((snorm_add_le _ _ le_rfl).trans_lt _),
-  { exact ae_measurable.rpow_const (ae_measurable.norm (Lp.ae_measurable f)), },
-  { exact ae_measurable.rpow_const (ae_measurable.norm (Lp.ae_measurable g)), },
-  have h_two : ((2 : ℕ) : ℝ) = 2, by simp only [nat.cast_bit0, nat.cast_one],
-  simp_rw h_two,
-  exact ennreal.add_lt_top.mpr ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
-end
+by { simp_rw [mem_Lp_iff_snorm_lt_top, snorm_ae_eq_fun], exact snorm_inner_lt_top f g, }
 
-lemma integrable_inner {α} [measurable_space α] {μ : measure α} (f g : Lp E 2 μ) :
-  integrable (λ x : α, (inner (f x) (g x) : 𝕜)) μ :=
+lemma integrable_inner (f g : Lp E 2 μ) : integrable (λ x : α, (inner (f x) (g x) : 𝕜)) μ :=
 begin
-  refine (integrable_congr (ae_eq_fun.coe_fn_mk (λ (x : α), inner (f x) (g x))
+  refine (integrable_congr (ae_eq_fun.coe_fn_mk (λ x, inner (f x) (g x))
     (ae_measurable.inner (Lp.ae_measurable f) (Lp.ae_measurable g)))).mp _,
   exact ae_eq_fun.integrable_iff_mem_L1.mpr (mem_L1_inner f g),
 end
 
-private lemma add_left' (f f' g : Lp E 2 μ) :
-  (inner (f + f') g : 𝕜) = inner f g + inner f' g :=
+private lemma add_left' (f f' g : Lp E 2 μ) : (inner (f + f') g : 𝕜) = inner f g + inner f' g :=
 begin
-  rw [inner_def, inner_def, inner_def,
-    ← integral_add (integrable_inner f g) (integrable_inner f' g)],
-  simp_rw ←inner_add_left,
+  simp_rw [inner_def, ← integral_add (integrable_inner f g) (integrable_inner f' g),
+    ←inner_add_left],
   refine integral_congr_ae ((coe_fn_add f f').mono (λ x hx, _)),
   congr,
   rwa pi.add_apply at hx,
@@ -143,7 +130,7 @@ end
 
 instance : inner_product_space 𝕜 (Lp E 2 μ) :=
 { norm_sq_eq_inner := norm_sq_eq_inner',
-  conj_sym := conj_sym',
+  conj_sym := λ _ _, by simp_rw [inner_def, ← integral_conj, inner_conj_sym],
   add_left := add_left',
   smul_left := smul_left', }
 

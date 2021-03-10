@@ -333,7 +333,8 @@ end group
 section finite_monoid
 variables {α} [fintype α] [decidable_eq α] [monoid α]
 
-open_locale classical
+variables [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+  [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
 lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
@@ -379,6 +380,9 @@ end
 
 instance order_of.fintype_decidable (a : α) :
 decidable (∃ (i : ℕ), 0 < i ∧  a ^ i = 1) := decidable.is_true (exists_pow_eq_one a)
+
+instance order_of.fintype_decidable' :
+decidable (Π a : α, ∃ n, 0 < n ∧ a ^ n = 1) := decidable.is_true (λ a, exists_pow_eq_one a)
 
 variables {a} [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
@@ -606,6 +610,10 @@ else
 
 open finset nat
 
+section classical
+
+open_locale classical
+
 lemma is_cyclic.card_pow_eq_one_le [decidable_eq α] [fintype α] [is_cyclic α] {n : ℕ}
   (hn0 : 0 < n) : (univ.filter (λ a : α, a ^ n = 1)).card ≤ n :=
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
@@ -629,7 +637,9 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
     (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
   begin
     rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers],
-    rw order_of_pow g _,
+    rw order_of_pow' g _ (begin cases (exists_pow_eq_one g) with w hw,
+                                           cases hw with hw1 hw2,
+                                           exact ⟨w, hw1, hw2⟩ end),
     rw order_of_eq_card_of_forall_mem_gpowers hg,
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
@@ -637,6 +647,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
     exact le_of_dvd hn0 (gcd_dvd_left _ _)
   end
 
+end classical
 
 lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [decidable_eq α] [fintype α]
 [is_cyclic α] : ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=

@@ -431,7 +431,8 @@ variable {a}
 
 lemma mem_gpowers_iff_mem_range_order_of {a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
-finset.mem_range_iff_mem_finset_range_of_mod_eq (order_of_pos a) (assume i, gpow_eq_mod_order_of.symm)
+finset.mem_range_iff_mem_finset_range_of_mod_eq (order_of_pos a)
+  (assume i, gpow_eq_mod_order_of.symm)
 
 instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
 begin

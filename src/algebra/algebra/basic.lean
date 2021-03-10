@@ -922,6 +922,14 @@ def aut_congr (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃�
   right_inv := λ ψ, by { ext, simp_rw [trans_apply, apply_symm_apply] },
   map_mul' := λ ψ χ, by { ext, simp only [mul_apply, trans_apply, symm_apply_apply] } }
 
+@[simp] lemma aut_congr_refl : aut_congr (alg_equiv.refl) = mul_equiv.refl (A₁ ≃ₐ[R] A₁) :=
+by { ext, refl }
+
+@[simp] lemma aut_congr_symm (ϕ : A₁ ≃ₐ[R] A₂) : (aut_congr ϕ).symm = aut_congr ϕ.symm := rfl
+
+@[simp] lemma aut_congr_trans (ϕ : A₁ ≃ₐ[R] A₂) (ψ : A₂ ≃ₐ[R] A₃) :
+  (aut_congr ϕ).trans (aut_congr ψ) = aut_congr (ϕ.trans ψ) := rfl
+
 end semiring
 
 section comm_semiring

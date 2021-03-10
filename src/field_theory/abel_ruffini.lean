@@ -9,26 +9,12 @@ open polynomial intermediate_field
 
 lemma leading_coeff_X_pow_sub_C {R : Type*} [ring R] [nontrivial R] {n : ℕ} (hn : 0 < n) (a : R) :
   (X ^ n - C a).leading_coeff = 1 :=
-begin
-  rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,
-      coeff_C, if_neg (pos_iff_ne_zero.mp hn), sub_zero],
-  assumption,
-end
+by rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,
+  coeff_C, if_neg (pos_iff_ne_zero.mp hn), sub_zero]
 
 lemma leading_coeff_X_pow_sub_one {R : Type*} [ring R] [nontrivial R] {n : ℕ} (hn : 0 < n) :
   (X ^ n - 1 : polynomial R).leading_coeff = 1 :=
-begin
-  rw [←C_1, leading_coeff_X_pow_sub_C hn],
-  assumption,
-end
-
-lemma splits_C_mul_iff {F : Type*} [field F] {E : Type*} [field E] (i : F →+* E)
-  {p : polynomial F} {a : F} (ha : a ≠ 0) : (C a * p).splits i ↔ p.splits i :=
-begin
-  by_cases hp : p = 0,
-  { rw [hp, mul_zero] },
-  { rw [splits_mul_iff i (mt C_eq_zero.mp ha) hp, and_iff_right (splits_C i a)] },
-end
+leading_coeff_X_pow_sub_C hn 1
 
 lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset (polynomial R)) (p : polynomial R) :
   s.prod.comp p = (s.map (λ q : polynomial R, q.comp p)).prod :=

@@ -165,7 +165,6 @@ begin
   { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] },
   rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
     nat_degree_X_pow_sub_C],
-  exact nat.pos_of_ne_zero hzero
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then

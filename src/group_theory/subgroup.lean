@@ -1186,6 +1186,16 @@ begin
   simp only [],
 end
 
+lemma le_ker_iff (f : G →* N) {H : subgroup G} : H ≤ f.ker ↔ H.map f = ⊥ :=
+begin
+  rw eq_bot_iff,
+  split,
+  { intros h x hx,
+    obtain ⟨y, hy1, rfl⟩ := hx,
+    exact h hy1 },
+  { exact λ h x hx, h ⟨x, hx, rfl⟩ },
+end
+
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]

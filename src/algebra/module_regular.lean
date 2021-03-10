@@ -5,9 +5,10 @@ Authors: Damiano Testa
 -/
 import algebra.group
 import algebra.group_power.basic
-import algebra.iterate_hom
+--import algebra.iterate_hom
 import algebra.module.basic
-import data.zmod.basic
+import algebra.mwe
+--import data.zmod.basic
 /-!
 # Action of regular elements on a module
 

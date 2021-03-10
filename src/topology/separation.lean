@@ -741,15 +741,27 @@ class normal_space (α : Type u) [topological_space α] extends t1_space α : Pr
 (normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
 
-theorem normal_separation [normal_space α] (s t : set α)
+theorem normal_separation [normal_space α] {s t : set α}
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 normal_space.normal s t H1 H2 H3
 
+theorem normal_exists_closure_subset [normal_space α] {s t : set α} (hs : is_closed s)
+  (ht : is_open t) (hst : s ⊆ t) :
+  ∃ u, is_open u ∧ s ⊆ u ∧ closure u ⊆ t :=
+begin
+  have : disjoint s tᶜ, from λ x ⟨hxs, hxt⟩, hxt (hst hxs),
+  rcases normal_separation hs (is_closed_compl_iff.2 ht) this
+    with ⟨s', t', hs', ht', hss', htt', hs't'⟩,
+  refine ⟨s', hs', hss',
+    subset.trans (closure_minimal _ (is_closed_compl_iff.2 ht')) (compl_subset_comm.1 htt')⟩,
+  exact λ x hxs hxt, hs't' ⟨hxs, hxt⟩
+end
+
 @[priority 100] -- see Note [lower instance priority]
 instance normal_space.regular_space [normal_space α] : regular_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ :=
-    normal_separation s {x} hs is_closed_singleton
+    normal_separation hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ mem_of_eq_of_mem (eq_of_mem_singleton hy).symm hx) in
     ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
       ⟨v, mem_nhds_sets hv (singleton_subset_iff.1 hxv), u, filter.mem_principal_self u,
@@ -784,7 +796,7 @@ begin
   -- Since our space is normal, we get two larger disjoint open sets containing the disjoint
   -- closed sets. If we can show that our intersection is a subset of any of these we can then
   -- "descend" this to show that it is a subset of either a or b.
-  rcases normal_separation a b ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
+  rcases normal_separation ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
   -- If we can find a clopen set around x, contained in u ∪ v, we get a disjoint decomposition
   -- Z = Z ∩ u ∪ Z ∩ v of clopen sets. The intersection of all clopen neighbourhoods will then lie
   -- in whichever of u or v x lies in and hence will be a subset of either a or b.

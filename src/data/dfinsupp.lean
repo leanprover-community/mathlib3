@@ -187,17 +187,23 @@ instance {γ : Type w} {δ : Type*} [monoid γ] [monoid δ]
   is_scalar_tower γ δ (Π₀ i, β i) :=
 { smul_assoc := λ r s m, ext $ λ i, by simp only [smul_apply, smul_assoc r s (m i)] }
 
+/-- Dependent functions with finite support inherit a `distrib_mul_action` structure from such a
+structure on each coordinate. -/
+instance {γ : Type w} [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
+  distrib_mul_action γ (Π₀ i, β i) :=
+{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
+  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
+  one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
+  mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
+  ..dfinsupp.has_scalar }
+
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
 instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
   semimodule γ (Π₀ i, β i) :=
-{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
-  zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
-  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
+{ zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
-  one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
-  mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
-  ..dfinsupp.has_scalar }
+  ..dfinsupp.distrib_mul_action }
 
 end algebra
 

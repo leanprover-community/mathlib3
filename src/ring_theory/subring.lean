@@ -242,6 +242,39 @@ instance to_ring : ring s :=
 instance to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring s}
 
+/-- A subring of a non-trivial ring is non-trivial. -/
+instance {R} [ring R] [nontrivial R] (s : subring R) : nontrivial s :=
+s.to_subsemiring.nontrivial
+
+/-- A subring of a ring with no zero divisors has no zero divisors. -/
+instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s :=
+s.to_subsemiring.no_zero_divisors
+
+/-- A subring of an integral domain is an integral domain. -/
+instance {R} [integral_domain R] (s : subring R) : integral_domain s :=
+{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
+
+/-- A subring of an `ordered_ring` is an `ordered_ring`. -/
+instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
+subtype.coe_injective.ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of an `ordered_comm_ring` is an `ordered_comm_ring`. -/
+instance to_ordered_comm_ring {R} [ordered_comm_ring R] (s : subring R) : ordered_comm_ring s :=
+subtype.coe_injective.ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_ring` is a `linear_ordered_ring`. -/
+instance to_linear_ordered_ring {R} [linear_ordered_ring R] (s : subring R) :
+  linear_ordered_ring s :=
+subtype.coe_injective.linear_ordered_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
+instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] (s : subring R) :
+  linear_ordered_comm_ring s :=
+subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
 { to_fun := coe,
@@ -362,24 +395,6 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
 end ring_hom
 
 namespace subring
-
-variables {cR : Type u} [comm_ring cR]
-
-/-- A subring of a commutative ring is a commutative ring. -/
-def subset_comm_ring (S : subring cR) : comm_ring S :=
-{mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring S}
-
-/-- A subring of a non-trivial ring is non-trivial. -/
-instance {D : Type*} [ring D] [nontrivial D] (S : subring D) : nontrivial S :=
-S.to_subsemiring.nontrivial
-
-/-- A subring of a ring with no zero divisors has no zero divisors. -/
-instance {D : Type*} [ring D] [no_zero_divisors D] (S : subring D) : no_zero_divisors S :=
-S.to_subsemiring.no_zero_divisors
-
-/-- A subring of an integral domain is an integral domain. -/
-instance subring.domain {D : Type*} [integral_domain D] (S : subring D) : integral_domain S :=
-{ .. S.nontrivial, .. S.no_zero_divisors, .. S.subset_comm_ring }
 
 /-! # bot -/
 

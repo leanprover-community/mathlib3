@@ -1319,27 +1319,29 @@ lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J �
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
-lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map f.to_ring_hom).map f.symm.to_ring_hom = I :=
-by simp [map_map, map_id]
+@[simp]
+lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
+by simp [← ring_equiv.to_ring_hom_eq_coe, map_map]
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
+@[simp]
 lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :
-  (I.comap f.symm.to_ring_hom).comap f.to_ring_hom = I :=
-by simp [comap_comap, comap_id]
+  (I.comap (f.symm : S →+* R)).comap (f : R →+* S) = I :=
+by simp [← ring_equiv.to_ring_hom_eq_coe, comap_comap]
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I`. -/
 lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
-le_antisymm (le_comap_of_map_le (le_of_eq (map_of_equiv I f)))
+le_antisymm (le_comap_of_map_le (map_of_equiv I f).le)
   (le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le)
 
 /-- The ring equiv `R/I ≃+* S/J` induced by a ring equiv `f : R ≃+** S`,  where `J = f(I)`. -/
 @[simps]
-def quotient_equiv (I : ideal R) (f : R ≃+* S) :
-  I.quotient ≃+* (map ↑f I).quotient :=
-{ inv_fun := quotient_map I ↑f.symm (le_of_eq (map_comap_of_equiv I f)),
-  left_inv := by {rintro ⟨r⟩, simp},
-  right_inv := by {rintro ⟨s⟩, simp},
-  ..quotient_map (map ↑f I) ↑f (@le_comap_map _ S _ _ _ _) }
+def quotient_equiv (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S)) :
+  I.quotient ≃+* J.quotient :=
+{ inv_fun := quotient_map I ↑f.symm (by {rw hIJ, exact le_of_eq (map_comap_of_equiv I f)}),
+  left_inv := by {rintro ⟨r⟩, simp },
+  right_inv := by {rintro ⟨s⟩, simp },
+  ..quotient_map J ↑f (by {rw hIJ, exact @le_comap_map _ S _ _ _ _}) }
 
 /-- `H` and `h` are kept as separate hypothesis since H is used in constructing the quotient map. -/
 lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
@@ -1396,14 +1398,14 @@ alg_hom.ext (λ x, by simp only [quotient_map_mkₐ, quotient.mkₐ_eq_mk, alg_h
 
 /-- The algebra equiv `A/I ≃ₐ[R] S/J` induced by an algebra equiv `f : A ≃ₐ[R] S`,
 where`J = f(I)`. -/
-def quotient_equiv_alg (I : ideal A) (f : A ≃ₐ[R] S) : I.quotient ≃ₐ[R]
-  (map (f : A →+* S) I).quotient :=
+def quotient_equiv_alg (I : ideal A) (J : ideal S) (f : A ≃ₐ[R] S) (hIJ : J = I.map (f : A →+* S)) :
+  I.quotient ≃ₐ[R] J.quotient :=
 { commutes' := λ r,
   begin
     have h : (algebra_map R I.quotient) r = (quotient.mk I) (algebra_map R A r) := rfl,
     simpa [h]
   end,
-  ..quotient_equiv I (f : A ≃+* S) }
+  ..quotient_equiv I J (f : A ≃+* S) hIJ }
 
 @[priority 100]
 instance quotient_algebra : algebra (J.comap (algebra_map R S)).quotient J.quotient :=

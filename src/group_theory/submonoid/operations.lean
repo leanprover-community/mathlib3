@@ -332,6 +332,35 @@ an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
 S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 
+/-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
+an `ordered_add_comm_monoid`."]
+instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] (S : submonoid M) :
+  ordered_comm_monoid S :=
+S.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
+a `linear_ordered_add_comm_monoid`."]
+instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] (S : submonoid M) :
+  linear_ordered_comm_monoid S :=
+S.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
+an `ordered_cancel_add_comm_monoid`."]
+instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] (S : submonoid M) :
+  ordered_cancel_comm_monoid S :=
+S.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
+-/
+@[to_additive "An `add_submonoid` of a `linear_ordered_cancel_add_comm_monoid` is
+a `linear_ordered_cancel_add_comm_monoid`."]
+instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
+  (S : submonoid M) : linear_ordered_cancel_comm_monoid S :=
+S.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
 def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩

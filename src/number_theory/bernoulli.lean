@@ -155,17 +155,12 @@ end
 open power_series
 variables (A : Type*) [comm_ring A] [algebra ℚ A]
 
-<<<<<<< HEAD
 
 /-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/
 def bernoulli'_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!))
 
 theorem bernoulli'_power_series_mul_exp_sub_one :
   bernoulli'_power_series A * (exp A - 1) = X * exp A :=
-=======
-theorem bernoulli'_power_series :
-  power_series.mk (λ n, (bernoulli' n / n! : ℚ)) * (exp ℚ - 1) = X * exp ℚ :=
->>>>>>> 3ee2d039d (replace factorial by !)
 begin
   ext n,
   -- constant coefficient is a special case
@@ -277,7 +272,6 @@ begin
   { ring },
 end
 
-<<<<<<< HEAD
 lemma bernoulli_spec' (n: ℕ) :
   ∑ k in nat.antidiagonal n,
   ((k.1 + k.2).choose k.2 : ℚ) / (k.2 + 1) * bernoulli k.1 = if n = 0 then 1 else 0 :=
@@ -334,18 +328,6 @@ begin
   exact factorial_mul_factorial_dvd_factorial_add i j,
 end
 
-=======
-theorem bernoulli_power_series :
-  (exp ℚ - 1) * mk (λ n, (bernoulli n / n!)) = X :=
-begin
-  have h: power_series.mk (λ n, (bernoulli' n / n! : ℚ)) * (exp ℚ - 1)
-    = X * exp ℚ :=
-  begin
-    simp only [bernoulli'_power_series],
-  end,
-  sorry,
-end
->>>>>>> 3ee2d039d (replace factorial by !)
 
 section faulhaber
 

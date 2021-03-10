@@ -773,7 +773,7 @@ noncomputable def conj_clm : K →L[ℝ] K := conj_li.to_continuous_linear_map
 
 /-- The ℝ → K coercion, as a linear map -/
 noncomputable def of_real_lm : ℝ →ₗ[ℝ] K :=
-{ to_fun := λ x, (x : K), map_add' := by simp, map_smul' := by{ simp, exact of_real_smul, } }
+{ to_fun := λ x, (x : K), map_add' := by simp, map_smul' := by simp, }
 
 @[simp] lemma of_real_lm_coe : (of_real_lm : ℝ → K) = coe := rfl
 

@@ -2710,21 +2710,43 @@ begin
   { exact tendsto_of_not_nonempty hi }
 end
 
+lemma tendsto_at_bot_cinfi {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_below $ range f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr (order_dual ι) (order_dual α) _ _ _ _ _ h_mono.order_dual hbdd
+
 lemma tendsto_at_top_cinfi {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α]
   {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_below $ range f) :
   tendsto f at_top (𝓝 (⨅i, f i)) :=
 @tendsto_at_top_csupr _ (order_dual α) _ _ _ _ _ @h_mono hbdd
 
+lemma tendsto_at_bot_csupr {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_above $ range f) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+@tendsto_at_bot_cinfi ι (order_dual α) _ _ _ _ _ h_mono hbdd
+
 lemma tendsto_at_top_supr {ι α : Type*} [preorder ι] [topological_space α]
   [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
   tendsto f at_top (𝓝 (⨆i, f i)) :=
 tendsto_at_top_csupr h_mono (order_top.bdd_above _)
 
+lemma tendsto_at_bot_infi {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+tendsto_at_bot_cinfi h_mono (order_bot.bdd_below _)
+
 lemma tendsto_at_top_infi {ι α : Type*} [preorder ι] [topological_space α]
   [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
   tendsto f at_top (𝓝 (⨅i, f i)) :=
 tendsto_at_top_cinfi @h_mono (order_bot.bdd_below _)
+
+lemma tendsto_at_bot_supr {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+tendsto_at_bot_csupr h_mono (order_top.bdd_above _)
 
 lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :

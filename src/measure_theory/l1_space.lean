@@ -515,10 +515,9 @@ lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f :
   (hfq : mem_ℒp f q μ) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
 
-lemma lipschitz_with.integrable_comp_iff_of_antilipschitz
-  [complete_space β] [second_countable_topology β] [borel_space β]
-  [second_countable_topology γ] [borel_space γ] {K K'}
-  {f : α → β} {g : β → γ} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
+lemma lipschitz_with.integrable_comp_iff_of_antilipschitz [complete_space β] [borel_space β]
+  [borel_space γ] {K K'} {f : α → β} {g : β → γ} (hg : lipschitz_with K g)
+  (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   integrable (g ∘ f) μ ↔ integrable f μ :=
 by simp [← mem_ℒp_one_iff_integrable, hg.mem_ℒp_comp_iff_of_antilipschitz hg' g0]
 

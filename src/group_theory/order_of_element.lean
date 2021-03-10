@@ -331,12 +331,12 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
 end group
 
 section finite_monoid
-variables {α} [fintype α] [decidable_eq α] [monoid α]
+variables {α} [fintype α] [monoid α]
 
 variables [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
   [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
-lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] {n : ℕ} (hn : 0 < n) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : α, order_of a = m)).card
@@ -406,7 +406,6 @@ begin
 end
 
 variables (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
-  [decidable_eq α]
 
 lemma order_of_pos : 0 < order_of a :=
 begin
@@ -418,7 +417,10 @@ end
 
 open nat
 
-lemma order_of_pow {n : ℕ} :
+variables {n : ℕ}
+  [decidable_pred (λ m, 0 < m ∧ (a ^ n) ^ m = 1)] [decidable (∃ m, 0 < m ∧ (a ^ n) ^ m = 1)]
+
+lemma order_of_pow :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
   apply order_of_pow'',
@@ -427,7 +429,7 @@ begin
   exact ⟨w, hw1, hw2⟩
 end
 
-variable {a}
+variables {a} [decidable_eq α]
 
 lemma mem_gpowers_iff_mem_range_order_of {a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=

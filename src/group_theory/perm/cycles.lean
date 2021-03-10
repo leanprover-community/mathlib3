@@ -200,9 +200,11 @@ instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
     by { rw int.nat_abs_of_nonneg (int.mod_nonneg _
         (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))),
       calc _ < _ : int.mod_lt _ (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))
-          ... = _ : by simp }),
-  by rw [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of, hi]⟩⟩
+          ... = _ : by simp,
+          exact fintype_perm, }),
+  by { rw [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of, hi],
+    exact fintype_perm }⟩⟩
 
 lemma same_cycle_apply {f : perm β} {x y : β} : same_cycle f x (f y) ↔ same_cycle f x y :=
 ⟨λ ⟨i, hi⟩, ⟨-1 + i, by rw [gpow_add, mul_apply, hi, gpow_neg_one, inv_apply_self]⟩,

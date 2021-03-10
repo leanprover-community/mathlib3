@@ -212,6 +212,8 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_inv (x : S) : (↑(x⁻¹) : L) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
+@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = (↑x : L) ^ n :=
+@is_submonoid.coe_pow L _ S.to_subfield.to_submonoid _ x n
 
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra

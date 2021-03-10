@@ -161,19 +161,31 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
-instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
+instance {γ : Type w} [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 
-lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
-  [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
+lemma smul_apply {γ : Type w} [monoid γ] [Π i, add_monoid (β i)]
+  [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
 map_range_apply _ _ v i
 
-@[simp] lemma coe_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
-  [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) :
+@[simp] lemma coe_smul {γ : Type w} [monoid γ] [Π i, add_monoid (β i)]
+  [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
 funext $ smul_apply b v
+
+instance {γ : Type w} {δ : Type*} [monoid γ] [monoid δ]
+  [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
+  [Π i, smul_comm_class γ δ (β i)] :
+  smul_comm_class γ δ (Π₀ i, β i) :=
+{ smul_comm := λ r s m, ext $ λ i, by simp only [smul_apply, smul_comm r s (m i)] }
+
+instance {γ : Type w} {δ : Type*} [monoid γ] [monoid δ]
+  [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
+  [has_scalar γ δ] [Π i, is_scalar_tower γ δ (β i)] :
+  is_scalar_tower γ δ (Π₀ i, β i) :=
+{ smul_assoc := λ r s m, ext $ λ i, by simp only [smul_apply, smul_assoc r s (m i)] }
 
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
@@ -185,7 +197,7 @@ instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semim
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
   one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
   mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
-  .. (infer_instance : has_scalar γ (Π₀ i, β i)) }
+  ..dfinsupp.has_scalar }
 
 end algebra
 

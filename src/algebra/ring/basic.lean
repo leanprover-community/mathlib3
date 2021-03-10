@@ -107,8 +107,8 @@ class na_semiring (α : Type u) extends nau_semiring α, mul_one_class α
 (`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and
 multiplication by zero law (`mul_zero_class`). The actual definition extends `monoid_with_zero`
 instead of `monoid` and `mul_zero_class`. -/
-@[protect_proj, ancestor nu_semiring na_semiring monoid_with_zero]
-class semiring (α : Type u) extends nu_semiring α, na_semiring α, monoid_with_zero α
+@[protect_proj, ancestor add_comm_monoid monoid_with_zero distrib]
+class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, distrib α
 
 section semiring
 variables [semiring α]

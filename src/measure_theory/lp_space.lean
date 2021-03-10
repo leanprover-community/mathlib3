@@ -1254,13 +1254,12 @@ end
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 
 lemma tendsto_Lp_of_tendsto_ℒp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
-  {f : ι → Lp E p μ} (h_tendsto : ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
-    ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε)) :
-  ∃ (g : Lp E p μ), filter.at_top.tendsto f (𝓝 g) :=
+  {f : ι → Lp E p μ} (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ)
+  (h_tendsto : ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε)) :
+  filter.at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) :=
 begin
   simp_rw metric.tendsto_at_top,
-  rcases h_tendsto with ⟨f_lim, f_lim_ℒp, h_tendsto⟩,
-  refine ⟨mem_ℒp.to_Lp f_lim f_lim_ℒp, λ ε hε, _⟩,
+  intros ε hε,
   have hε_pos : 0 < ennreal.of_real ε, from ennreal.of_real_pos.mpr hε,
   cases (h_tendsto (ennreal.of_real ε) hε_pos ennreal.of_real_lt_top) with N h_tendsto,
   refine ⟨N, λ n hn, _⟩,
@@ -1279,30 +1278,6 @@ begin
     exact snorm_ne_top _, },
 end
 
-lemma tendsto_ℒp_of_tendsto_Lp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
-  {f : ι → Lp E p μ} (h_tendsto : ∃ (g : Lp E p μ), filter.at_top.tendsto f (𝓝 g)) :
-  ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
-    ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε) :=
-begin
-  simp_rw metric.tendsto_at_top at h_tendsto,
-  cases h_tendsto with g h_tendsto,
-  refine ⟨g, Lp.mem_ℒp g, λ ε hε hε_top, _⟩,
-  have hε_pos : 0 < ε.to_real, from ennreal.to_real_pos_iff.mpr ⟨hε, lt_top_iff_ne_top.mp hε_top⟩,
-  cases (h_tendsto ε.to_real hε_pos) with N h_tendsto,
-  refine ⟨N, λ n hn, _⟩,
-  specialize h_tendsto n hn,
-  rwa [dist_def, ennreal.to_real_lt_to_real _ (lt_top_iff_ne_top.mp hε_top)] at h_tendsto,
-  rw [←lt_top_iff_ne_top, snorm_congr_ae (Lp.coe_fn_sub _ _).symm],
-  exact Lp.snorm_lt_top _,
-end
-
-lemma tendsto_Lp_iff_tendsto_ℒp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
-{f : ι → Lp E p μ} :
- (∃ (g : Lp E p μ), filter.at_top.tendsto f (𝓝 g))
-  ↔ ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
-    ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε) :=
-⟨tendsto_ℒp_of_tendsto_Lp, tendsto_Lp_of_tendsto_ℒp⟩
-
 lemma complete_space_Lp_of_cauchy_complete_ℒp [hp : fact (1 ≤ p)]
   (H : ∀ (f : ℕ → α → E) (hf : ∀ n, mem_ℒp (f n) p μ) (B : ℕ → ℝ≥0∞) (hB : ∑' i, B i < ∞)
       (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N),
@@ -1313,7 +1288,10 @@ begin
   let B := λ n : ℕ, ((1:ℝ) / 2) ^ n,
   have hB_pos : ∀ n, 0 < B n, from λ n, pow_pos (div_pos zero_lt_one zero_lt_two) n,
   refine metric.complete_of_convergent_controlled_sequences B hB_pos (λ f hf, _),
-  refine tendsto_Lp_of_tendsto_ℒp _,
+  suffices h_limit : ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
+    ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε),
+  { rcases h_limit with ⟨f_lim, hf_lim_meas, h_tendsto⟩,
+    exact ⟨hf_lim_meas.to_Lp f_lim, tendsto_Lp_of_tendsto_ℒp f_lim hf_lim_meas h_tendsto⟩, },
   have hB : summable B, from summable_geometric_two,
   cases hB with M hB,
   let B1 := λ n, ennreal.of_real (B n),

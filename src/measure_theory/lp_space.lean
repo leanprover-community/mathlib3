@@ -1364,7 +1364,7 @@ begin
   simp_rw snorm' at hn,
   have h_nnnorm_nonneg :
     (λ a, (nnnorm (∑ i in finset.range (n + 1), ∥f (i + 1) a - f i a∥) : ℝ≥0∞) ^ p)
-    = λ a, (∑ i in finset.range (n + 1), (nnnorm( f (i + 1) a - f i a) : ℝ≥0∞)) ^ p,
+    = λ a, (∑ i in finset.range (n + 1), (nnnorm(f (i + 1) a - f i a) : ℝ≥0∞)) ^ p,
   { ext1 a,
     congr,
     simp_rw ←of_real_norm_eq_coe_nnnorm,

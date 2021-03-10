@@ -487,6 +487,16 @@ lemma not_anisotropic_iff_exists (Q : quadratic_form R M) :
   ¬anisotropic Q ↔ ∃ x ≠ 0, Q x = 0 :=
 by simp only [anisotropic, not_forall, exists_prop, and_comm]
 
+/-- The associated bilinear form of an anisotropic quadratic form is nondegenerate. -/
+lemma nondegenerate_of_anisotropic [invertible (2 : R₁)] (Q : quadratic_form R₁ M)
+  (hB : Q.anisotropic) : Q.associated.nondegenerate :=
+begin
+  intros x hx,
+  refine hB _ _,
+  rw ← hx x,
+  exact (associated_eq_self_apply x).symm,
+end
+
 end anisotropic
 
 section pos_def
@@ -640,6 +650,11 @@ end equivalent
 end quadratic_form
 
 namespace bilin_form
+
+/-- The quadratic form associated with a nondegenerate bilinear form is anisotropic. -/
+lemma nondegenerate_of_anisotropic
+  {B : bilin_form R M} (hB : B.to_quadratic_form.anisotropic) : B.nondegenerate :=
+λ x hx, hB _ (hx x)
 
 /-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
 on a nontrivial module `M` over the commring `R` with invertible `2`, i.e. there exists some

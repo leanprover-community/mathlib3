@@ -1,12 +1,34 @@
+/-
+Copyright (c) 2020 Thomas Brownng and Patrick Lutz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning and Patrick Lutz
+-/
+
 import group_theory.solvable
 import field_theory.polynomial_galois_group
 import ring_theory.roots_of_unity
+
+/-!
+# The Abel-Ruffini Theorem
+
+This file proves one direction of the Abel-Ruffini theorem, namely that if an element is solvable
+by radicals, then its minimal polynomial has solvable Galois group.
+
+## Main definitions
+
+* `SBF F E` : the intermediate field of solvable-by-radicals elements
+
+## Main results
+
+* `solvable_gal_of_SBR` : the `minpoly` of an element of `SBF F E` has solvabe Galois group
+-/
 
 noncomputable theory
 open_locale classical
 
 open polynomial intermediate_field
 
+--todo: move these preliminary lemmas
 lemma leading_coeff_X_pow_sub_C {R : Type*} [ring R] [nontrivial R] {n : ℕ} (hn : 0 < n) (a : R) :
   (X ^ n - C a).leading_coeff = 1 :=
 by rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,

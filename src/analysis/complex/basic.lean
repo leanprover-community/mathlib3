@@ -17,12 +17,14 @@ This file registers `ℂ` as a normed field, expresses basic properties of the n
 tools on the real vector space structure of `ℂ`. Notably, in the namespace `complex`,
 it defines functions:
 
-* `continuous_linear_map.re`
-* `continuous_linear_map.im`
-* `continuous_linear_map.of_real`
+* `re_clm`
+* `im_clm`
+* `of_real_clm`
+* `conj_clm`
 
-They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
-as continuous `ℝ`-linear maps.
+They are bundled versions of the real part, the imaginary part, the embedding of `ℝ` in `ℂ`, and
+the complex conjugate as continuous `ℝ`-linear maps. The last two are also bundled as linear
+isometries in `of_real_li` and `conj_li`.
 
 We also register the fact that `ℂ` is an `is_R_or_C` field.
 -/

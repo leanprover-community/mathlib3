@@ -342,19 +342,10 @@ begin
   ext1 x,
   simp_rw ← of_real_norm_eq_coe_nnnorm,
   rw [real.norm_eq_abs, abs_eq_self.mpr (real.rpow_nonneg_of_nonneg (norm_nonneg _) _),
-    mul_comm, ← ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) hq_pos, ennreal.rpow_mul],
+    mul_comm, ← ennreal.of_real_rpow_of_nonneg (norm_nonneg _) hq_pos.le, ennreal.rpow_mul],
 end
 
-lemma norm_rpow {x : ℝ} {q : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ q∥ = ∥x∥ ^ q :=
-begin
-  have h_rpow_nonneg : 0 ≤ x ^ q, from real.rpow_nonneg_of_nonneg hx_nonneg _,
-  rw [real.norm_eq_abs, real.norm_eq_abs, abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
-end
-
-lemma nnnorm_rpow {x : ℝ} {q : ℝ} (hx_nonneg : 0 ≤ x) : nnnorm (x ^ q) = (nnnorm x) ^ q :=
-by { ext, push_cast, exact norm_rpow hx_nonneg }
-
-lemma snorm_norm_rpow (f : α → G) (q : ℝ) (hq_pos : 0 < q) :
+lemma snorm_norm_rpow (f : α → G) (hq_pos : 0 < q) :
   snorm (λ x, ∥f x∥ ^ q) p μ = (snorm f (p * ennreal.of_real q) μ) ^ q :=
 begin
   by_cases h0 : p = 0,
@@ -367,8 +358,10 @@ begin
     { congr,
       ext1 x,
       nth_rewrite 1 ← nnnorm_norm,
-      rw [ennreal.coe_rpow_of_nonneg _ hq_pos.le, ennreal.coe_eq_coe,
-        nnnorm_rpow (norm_nonneg _)], },
+      rw [ennreal.coe_rpow_of_nonneg _ hq_pos.le, ennreal.coe_eq_coe],
+      ext,
+      push_cast,
+      rw real.norm_rpow_of_nonneg (norm_nonneg _), },
     rw h_rpow,
     have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,

@@ -428,6 +428,15 @@ begin
     exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
 end
 
+lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : abs (x ^ y) = (abs x) ^ y :=
+begin
+  have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
+  rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
+end
+
+lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
+by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
+
 end real
 
 namespace complex
@@ -1648,14 +1657,17 @@ begin
   simp [hx_pos],
 end
 
-lemma of_real_rpow_of_nonneg_of_pos {x p : ℝ} (hx_nonneg : 0 ≤ x) (hp_pos : 0 < p) :
+lemma of_real_rpow_of_nonneg {x p : ℝ} (hx_nonneg : 0 ≤ x) (hp_nonneg : 0 ≤ p) :
   ennreal.of_real x ^ p = ennreal.of_real (x ^ p) :=
 begin
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
   by_cases hx0 : x = 0,
-  { simp [hx0, hp_pos, hp_pos.ne.symm], },
+  { rw ← ne.def at hp0,
+    have hp_pos : 0 < p := lt_of_le_of_ne hp_nonneg hp0.symm,
+    simp [hx0, hp_pos, hp_pos.ne.symm], },
   rw ← ne.def at hx0,
-  have hx_pos : 0 < x, from hx_nonneg.lt_of_ne hx0.symm,
-  exact of_real_rpow_of_pos hx_pos,
+  exact of_real_rpow_of_pos (hx_nonneg.lt_of_ne hx0.symm),
 end
 
 lemma rpow_left_injective {x : ℝ} (hx : x ≠ 0) :

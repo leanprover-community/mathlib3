@@ -573,13 +573,6 @@ begin
     (λ i _, hf i),
 end
 
-lemma measurable_pow [comm_monoid α] [has_continuous_mul α] [second_countable_topology α] {n : ℕ} :
-  measurable (λ x : α, x ^ n) :=
-begin
-  simp_rw finset.pow_eq_prod_const,
-  exact finset.measurable_prod _ (λ _, measurable_id),
-end
-
 lemma measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
   [measurable_space β] {n : ℕ} {f : β → α} (hf : measurable f) :
   measurable (λ x : β, (f x) ^ n) :=
@@ -587,6 +580,10 @@ begin
   simp_rw finset.pow_eq_prod_const,
   exact finset.measurable_prod _ (λ _, hf),
 end
+
+lemma measurable_pow [comm_monoid α] [has_continuous_mul α] [second_countable_topology α] {n : ℕ} :
+  measurable (λ x : α, x ^ n) :=
+measurable_id.pow
 
 lemma ae_measurable.pow {β} [comm_monoid α] [has_continuous_mul α] [second_countable_topology α]
   [measurable_space β] {n : ℕ} {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :

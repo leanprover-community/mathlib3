@@ -85,7 +85,7 @@ end
 
 instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : polynomial F).gal :=
 begin
-  haveI : fact ((X ^ n: polynomial F).splits (ring_hom.id F)) := sorry,
+  haveI : fact ((X ^ n: polynomial F).splits (ring_hom.id F)) := splits_X_pow (ring_hom.id F) n,
   apply_instance,
 end
 

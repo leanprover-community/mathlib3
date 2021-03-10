@@ -239,11 +239,10 @@ theorem succ_injective : function.injective nat.succ := λ x y, succ.inj
 lemma succ_ne_succ {n m : ℕ} : succ n ≠ succ m ↔ n ≠ m :=
 succ_injective.ne_iff
 
-@[simp]
-lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
+@[simp] lemma succ_succ_ne_one (n : ℕ) : n.succ.succ ≠ 1 :=
 succ_ne_succ.mpr n.succ_ne_zero
 
-lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
+@[simp] lemma one_lt_succ_succ (n : ℕ) : 1 < n.succ.succ :=
 succ_lt_succ $ succ_pos n
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=

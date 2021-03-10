@@ -21,7 +21,6 @@ universe u
 
 namespace set
 
-
 section has_exists_add_of_le
 /-!
 The lemmas in this section state that addition maps intervals bijectively. The typeclass

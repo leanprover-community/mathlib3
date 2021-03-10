@@ -42,7 +42,7 @@ In this file, the variable `R` is used when a `ring` structure is sufficient and
 `[module R M]` and `[module R₁ M]` assumptions in the variables without
 confusion between `*` from `ring` and `*` from `comm_ring`.
 
-The variable `S` is used when `R` itself has an `•` action.
+The variable `S` is used when `R` itself has a `•` action.
 
 ## References
 

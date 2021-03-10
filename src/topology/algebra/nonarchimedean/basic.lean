@@ -110,7 +110,7 @@ variables [ring S] [topological_space S] [nonarchimedean_ring S]
 instance : nonarchimedean_ring (R × S) :=
 { is_nonarchimedean := nonarchimedean_add_group.is_nonarchimedean }
 
-/-- Given an open subgroup `U` and an element `r` of a nonarchimedean ring, there is a smaller open
+/-- Given an open subgroup `U` and an element `r` of a nonarchimedean ring, there is an open
   subgroup `V` such that `r • V` is contained in `U`. -/
 lemma left_mul_subset (U : open_add_subgroup R) (r : R) :
   ∃ V : open_add_subgroup R, r • (V : set R) ⊆ U :=

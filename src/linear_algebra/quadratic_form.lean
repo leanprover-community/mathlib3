@@ -42,6 +42,7 @@ In this file, the variable `R` is used when a `ring` structure is sufficient and
 `[module R M]` and `[module R₁ M]` assumptions in the variables without
 confusion between `*` from `ring` and `*` from `comm_ring`.
 
+The variable `S` is used when `R` itself has an `•` action.
 
 ## References
 
@@ -54,8 +55,9 @@ quadratic form, homogeneous polynomial, quadratic polynomial
 -/
 
 universes u v w
-variables {R : Type u} {M : Type v} [add_comm_group M] [ring R]
-variables {R₁ : Type u} [comm_ring R₁]
+variables {S : Type*}
+variables {R : Type*} {M : Type*} [add_comm_group M] [ring R]
+variables {R₁ : Type*} [comm_ring R₁]
 
 namespace quadratic_form
 /-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`.d
@@ -73,9 +75,9 @@ lemma polar_neg (f : M → R) (x y : M) :
   polar (-f) x y = - polar f x y :=
 by { simp only [polar, pi.neg_apply, sub_eq_add_neg, neg_add] }
 
-lemma polar_smul (f : M → R) (s : R) (x y : M) :
-  polar (s • f) x y = s * polar f x y :=
-by { simp only [polar, pi.smul_apply, smul_eq_mul, mul_sub] }
+lemma polar_smul [monoid S] [distrib_mul_action S R] (f : M → R) (s : S) (x y : M) :
+  polar (s • f) x y = s • polar f x y :=
+by { simp only [polar, pi.smul_apply, smul_sub] }
 
 lemma polar_comm (f : M → R₁) (x y : M) : polar f x y = polar f y x :=
 by rw [polar, polar, add_comm, sub_sub, sub_sub, add_comm (f x) (f y)]
@@ -173,6 +175,22 @@ begin
   norm_num
 end
 
+section of_tower
+
+variables [comm_semiring S] [algebra S R] [semimodule S M] [is_scalar_tower S R M]
+
+@[simp]
+lemma polar_smul_left_of_tower (a : S) (x y : M) :
+  polar Q (a • x) y = a • polar Q x y :=
+by rw [←is_scalar_tower.algebra_map_smul R a x, polar_smul_left, algebra.smul_def]
+
+@[simp]
+lemma polar_smul_right_of_tower (a : S) (x y : M) :
+  polar Q x (a • y) = a • polar Q x y :=
+by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul_def]
+
+end of_tower
+
 variable {Q' : quadratic_form R M}
 @[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' :=
 by { cases Q, cases Q', congr, funext, apply H }
@@ -242,40 +260,31 @@ by simp [sub_eq_add_neg]
 by simp [sub_eq_add_neg]
 
 section has_scalar
-variables {R₂ : Type u} [comm_semiring R₂]
+
+variables [comm_semiring S] [algebra S R]
 
 /-- `quadratic_form R M` inherits the scalar action from any algebra over `R`.
 
 When `R` is commutative, this provides an `R`-action via `algebra.id`. -/
-instance [algebra R₂ R] : has_scalar R₂ (quadratic_form R M) :=
+instance : has_scalar S (quadratic_form R M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
     to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, algebra.mul_smul_comm],
-    polar_add_left' := λ x x' y, begin
-      rw [← one_smul R ⇑Q, ←smul_assoc],
-      simp only [polar_smul, polar_add_left, mul_add],
-    end,
+    polar_add_left' := λ x x' y, by simp only [polar_smul, polar_add_left, smul_add],
     polar_smul_left' := λ b x y, begin
-      rw [← one_smul R ⇑Q, ←smul_assoc],
-      simp only [polar_smul, polar_smul_left, smul_eq_mul, algebra.smul_def, ←mul_assoc, mul_one,
-        one_mul, algebra.commutes],
+      simp only [polar_smul, polar_smul_left, ←algebra.mul_smul_comm, smul_eq_mul],
     end,
-    polar_add_right' := λ x y y', begin
-      rw [← one_smul R ⇑Q, ←smul_assoc],
-      simp only [polar_smul, polar_add_right, mul_add],
-    end,
+    polar_add_right' := λ x y y', by simp only [polar_smul, polar_add_right, smul_add],
     polar_smul_right' := λ b x y, begin
-      rw [← one_smul R ⇑Q, ←smul_assoc],
-      simp only [polar_smul, polar_smul_right, smul_eq_mul, algebra.smul_def, ←mul_assoc, mul_one,
-        one_mul, algebra.commutes],
+      simp only [polar_smul, polar_smul_right, ←algebra.mul_smul_comm, smul_eq_mul],
     end } ⟩
 
-@[simp] lemma coe_fn_smul [algebra R₂ R] (a : R₂) (Q : quadratic_form R M) : ⇑(a • Q) = a • Q := rfl
+@[simp] lemma coe_fn_smul (a : S) (Q : quadratic_form R M) : ⇑(a • Q) = a • Q := rfl
 
-@[simp] lemma smul_apply [algebra R₂ R] (a : R₂) (Q : quadratic_form R M) (x : M) :
+@[simp] lemma smul_apply (a : S) (Q : quadratic_form R M) (x : M) :
   (a • Q) x = a • Q x := rfl
 
-instance [algebra R₂ R] : semimodule R₂ (quadratic_form R M) :=
+instance : semimodule S (quadratic_form R M) :=
 { mul_smul := λ a b Q, ext (λ x, by
     simp only [smul_apply, mul_left_comm, ←smul_eq_mul, smul_assoc]),
   one_smul := λ Q, ext (λ x, by simp),

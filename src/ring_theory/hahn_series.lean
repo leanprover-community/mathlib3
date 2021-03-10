@@ -518,8 +518,6 @@ instance [integral_domain R] : integral_domain (hahn_series Γ R) :=
   .. hahn_series.nontrivial,
   .. hahn_series.comm_ring }
 
-end multiplication
-
 section semiring
 variables [semiring R]
 

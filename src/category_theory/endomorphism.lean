@@ -70,7 +70,8 @@ by refine { one := iso.refl X,
             inv := iso.symm,
             mul := flip iso.trans,
             div_eq_mul_inv := λ _ _, rfl, .. } ;
-     simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one, has_inv.inv]
+     simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
+      has_inv.inv]
 
 /--
 Units in the monoid of endomorphisms of an object

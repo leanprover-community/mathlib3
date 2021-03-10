@@ -12,7 +12,6 @@ import data.polynomial.monic
 We define `integral_normalization`, which relate arbitrary polynomials to monic ones.
 -/
 
-open finsupp
 open_locale big_operators
 
 namespace polynomial

@@ -17,7 +17,6 @@ We also define `root_multiplicity`.
 
 noncomputable theory
 open_locale classical big_operators
-open multiplicative
 
 open finset
 

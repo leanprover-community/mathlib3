@@ -409,14 +409,12 @@ begin
   exact ⟨w, hw1, hw2⟩
 end
 
-variables {a} [decidable_eq α]
-
-lemma mem_gpowers_iff_mem_range_order_of {a' : α} :
+lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq (order_of_pos a)
   (assume i, gpow_eq_mod_order_of.symm)
 
-instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
+instance decidable_gpowers [decidable_eq α] : decidable_pred (subgroup.gpowers a : set α) :=
 begin
   assume a',
   apply decidable_of_iff'
@@ -424,7 +422,8 @@ begin
   exact @mem_gpowers_iff_mem_range_order_of _ _ _ _ _ _ _ (a')
 end
 
-lemma order_eq_card_gpowers : order_of a = fintype.card (subgroup.gpowers a : set α) :=
+lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
+order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
   { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
@@ -441,6 +440,10 @@ begin
 end
 
 open quotient_group subgroup
+
+section classical
+
+open_locale classical
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
@@ -463,8 +466,10 @@ have eq₂ : order_of a = @fintype.card _ ft_s,
 dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
-@[simp] lemma pow_card_eq_one : a ^ fintype.card α = 1 :=
-let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ _ _ in
+end classical
+
+@[simp] lemma pow_card_eq_one {a : α} : a ^ fintype.card α = 1 :=
+let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
 lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
@@ -479,13 +484,11 @@ set.ext $ λ x, mem_powers_iff_mem_gpowers
 
 variable (a)
 
-lemma image_range_order_of :
+lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
 open nat
-
-variable {a}
 
 lemma pow_gcd_card_eq_one_iff {n : ℕ} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
@@ -523,11 +526,11 @@ variables [group α] [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
 lemma is_cyclic_of_order_of_eq_card [decidable_eq α] [fintype α]  (x : α)
    (hx : order_of x = fintype.card α) : is_cyclic α :=
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
-  (set.subset_univ _)
-  (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
+          (set.subset_univ _)
+          (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
 
 /-- A finite group of prime order is cyclic. -/
-lemma is_cyclic_of_prime_card [fintype α] {p : ℕ} [hp : fact p.prime]
+lemma is_cyclic_of_prime_card {α : Type*} [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
   obtain ⟨g, hg⟩ : ∃ g : α, g ≠ 1,
@@ -553,15 +556,15 @@ lemma is_cyclic_of_prime_card [fintype α] {p : ℕ} [hp : fact p.prime]
     exact subgroup.mem_top _ }
 end⟩
 
-lemma order_of_eq_card_of_forall_mem_gpowers [decidable_eq α] [fintype α]
+lemma order_of_eq_card_of_forall_mem_gpowers [fintype α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
-by {rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
+by { classical, rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
   simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
 
-instance bot.is_cyclic : is_cyclic (⊥ : subgroup α) :=
+instance bot.is_cyclic {α : Type*} [group α] : is_cyclic (⊥ : subgroup α) :=
 ⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
 
-instance subgroup.is_cyclic [is_cyclic α] (H : subgroup α) : is_cyclic H :=
+instance subgroup.is_cyclic {α : Type*} [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=
 by haveI := classical.prop_decidable; exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
@@ -642,7 +645,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
 
 end classical
 
-lemma is_cyclic.exists_monoid_generator [fintype α] [decidable_eq α]
+lemma is_cyclic.exists_monoid_generator [fintype α]
 [is_cyclic α] : ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
 by { simp_rw [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α }
 

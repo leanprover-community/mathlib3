@@ -213,6 +213,61 @@ let ⟨V, h, h'⟩ := nhds_inter_eq_singleton_of_mem_discrete hx in
   ⟨{x}ᶜ ∩ V, inter_mem_nhds_within _ h,
     (disjoint_iff_inter_eq_empty.mpr (by { rw [inter_assoc, h', compl_inter_self] }))⟩
 
+/-- Let `X` be a topological space and let `s, t ⊆ X` be two subsets.  If there is an inclusion
+`t ⊆ s`, then the topological space structure on `t` induced by `X` is the same as the one
+obtained by the induced topological space structure on `s`. -/
+lemma topological_space.subset_trans {X : Type*} [tX : topological_space X]
+  {s t : set X} (ts : t ⊆ s) :
+  (subtype.topological_space : topological_space t) =
+    (subtype.topological_space : topological_space s).induced (set.inclusion ts) :=
+begin
+  change tX.induced ((coe : s → X) ∘ (set.inclusion ts)) =
+    topological_space.induced (set.inclusion ts) (tX.induced _),
+  rw ← induced_compose,
+end
+
+/-- This lemma characterizes discrete topological spaces as those whose singletons are
+neighbourhoods. -/
+lemma discrete_topology_iff_nhds {X : Type*} [topological_space X] :
+  discrete_topology X ↔ (nhds : X → filter X) = pure :=
+begin
+  split,
+  { introI hX,
+    exact nhds_discrete X },
+  { intro h,
+    constructor,
+    apply eq_of_nhds_eq_nhds,
+    simp [h, nhds_bot] }
+end
+
+/-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
+discrete topology.
+This version does not assume the choice of a topology on either the source `X`
+nor the target `Y` of the inclusion `f`. -/
+lemma induced_bot {X Y : Type*} {f : X → Y} (hf : function.injective f) :
+  topological_space.induced f ⊥ = ⊥ :=
+eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
+
+/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
+is the discrete topology on `X`. -/
+lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
+  {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
+begin
+  constructor,
+  rw discrete_topology.eq_bot Y,
+  exact induced_bot hf
+end
+
+/-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
+by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
+lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
+  (ds : discrete_topology s) (ts : t ⊆ s) :
+  discrete_topology t :=
+begin
+  rw [topological_space.subset_trans ts, ds.eq_bot],
+  exact {eq_bot := induced_bot (set.inclusion_injective ts)}
+end
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -525,6 +580,16 @@ lemma is_compact.inter [t2_space α] {s t : set α} (hs : is_compact s) (ht : is
   is_compact (s ∩ t) :=
 hs.inter_right $ ht.is_closed
 
+lemma compact_closure_of_subset_compact [t2_space α] {s t : set α} (ht : is_compact t) (h : s ⊆ t) :
+  is_compact (closure s) :=
+compact_of_is_closed_subset ht is_closed_closure (closure_minimal h ht.is_closed)
+
+lemma image_closure_of_compact [t2_space β]
+  {s : set α} (hs : is_compact (closure s)) {f : α → β} (hf : continuous_on f (closure s)) :
+  f '' closure s = closure (f '' s) :=
+subset.antisymm hf.image_closure $ closure_minimal (image_subset f subset_closure)
+  (hs.image_of_continuous_on hf).is_closed
+
 /-- If a compact set is covered by two open sets, then we can cover it by two compact subsets. -/
 lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_compact K)
   (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
@@ -600,11 +665,9 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
   ∃ (U : set α), is_open U ∧ x ∈ U ∧ is_compact (closure U) :=
 begin
-  rcases locally_compact_space.local_compact_nhds x univ filter.univ_mem_sets with
-    ⟨K, h1K, _, h2K⟩,
-  rw [mem_nhds_sets_iff] at h1K, rcases h1K with ⟨t, h1t, h2t, h3t⟩,
-  exact ⟨t, h2t, h3t, compact_of_is_closed_subset h2K is_closed_closure $
-    closure_minimal h1t $ h2K.is_closed⟩
+  rcases exists_compact_mem_nhds x with ⟨K, hKc, hxK⟩,
+  rcases mem_nhds_sets_iff.1 hxK with ⟨t, h1t, h2t, h3t⟩,
+  exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
 end
 
 end separation

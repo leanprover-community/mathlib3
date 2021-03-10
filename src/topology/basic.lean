@@ -310,6 +310,10 @@ closure_minimal (subset.trans h subset_closure) is_closed_closure
 lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure α _) :=
 λ _ _, closure_mono
 
+lemma diff_subset_closure_iff {s t : set α} :
+  s \ t ⊆ closure t ↔ s ⊆ closure t :=
+by rw [diff_subset_iff, union_eq_self_of_subset_left subset_closure]
+
 lemma closure_inter_subset_inter_closure (s t : set α) :
   closure (s ∩ t) ⊆ closure s ∩ closure t :=
 (monotone_closure α).map_inf_le s t
@@ -428,6 +432,10 @@ by rw [closure_compl, frontier, diff_eq]
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]
+
+@[simp] lemma frontier_univ : frontier (univ : set α) = ∅ := by simp [frontier]
+
+@[simp] lemma frontier_empty : frontier (∅ : set α) = ∅ := by simp [frontier]
 
 lemma frontier_inter_subset (s t : set α) :
   frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=

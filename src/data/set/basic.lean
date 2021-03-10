@@ -109,6 +109,16 @@ instance {α : Type*} : boolean_algebra (set α) :=
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
 
+instance pi_set_coe.can_lift (ι : Type u) (α : Π i : ι, Type v) [ne : Π i, nonempty (α i)]
+  (s : set ι) :
+  can_lift (Π i : s, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  .. pi_subtype.can_lift ι α s }
+
+instance pi_set_coe.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (s : set ι) :
+  can_lift (s → α) (ι → α) :=
+pi_set_coe.can_lift ι (λ _, α) s
+
 end set
 
 section set_coe
@@ -2051,6 +2061,9 @@ set.subset.antisymm (snd_image_prod_subset _ _)
   $ λ y y_in, let ⟨x, x_in⟩ := hs in
     ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
+lemma prod_diff_prod : s.prod t \ s₁.prod t₁ = s.prod (t \ t₁) ∪ (s \ s₁).prod t :=
+by { ext x, by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁; simp * }
+
 /-- A product set is included in a product set if and only factors are included, or a factor of the
 first set is empty. -/
 lemma prod_subset_prod_iff :
@@ -2083,7 +2096,7 @@ section pi
 variables {ι : Type*} {α : ι → Type*} {s s₁ : set ι} {t t₁ t₂ : Π i, set (α i)}
 
 /-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
-is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `π a`
+is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `s a`
 whenever `a ∈ i`. -/
 def pi (s : set ι) (t : Π i, set (α i)) : set (Π i, α i) := { f | ∀i ∈ s, f i ∈ t i }
 
@@ -2198,6 +2211,14 @@ end
   (λ f : Π i, α i, f i) '' pi univ t = t i :=
 eval_image_pi (mem_univ i) ht
 
+lemma eval_preimage {ι} {α : ι → Type*} {i : ι} {s : set (α i)} :
+  eval i ⁻¹' s = pi univ (update (λ i, univ) i s) :=
+by { ext x, simp [@forall_update_iff _ (λ i, set (α i)) _ _ _ _ (λ i' y, x i' ∈ y)] }
+
+lemma eval_preimage' {ι} {α : ι → Type*} {i : ι} {s : set (α i)} :
+  eval i ⁻¹' s = pi {i} (update (λ i, univ) i s) :=
+by { ext, simp }
+
 lemma update_preimage_pi {i : ι} {f : Π i, α i} (hi : i ∈ s)
   (hf : ∀ j ∈ s, j ≠ i → f j ∈ t j) : (update f i) ⁻¹' s.pi t = t i :=
 begin
@@ -2214,6 +2235,10 @@ update_preimage_pi (mem_univ i) (λ j _, hf j)
 
 lemma subset_pi_eval_image (s : set ι) (u : set (Π i, α i)) : u ⊆ pi s (λ i, eval i '' u) :=
 λ f hf i hi, ⟨f, hf, rfl⟩
+
+lemma univ_pi_ite (s : set ι) (t : Π i, set (α i)) :
+  pi univ (λ i, if i ∈ s then t i else univ) = s.pi t :=
+by { ext, simp_rw [mem_univ_pi], apply forall_congr, intro i, split_ifs; simp [h] }
 
 end pi
 

@@ -832,7 +832,8 @@ lemma sigma_compact_space.of_countable (S : set (set α)) (Hc : countable S)
   (Hcomp : ∀ s ∈ S, is_compact s) (HU : ⋃₀ S = univ) : sigma_compact_space α :=
 ⟨(exists_seq_cover_iff_countable ⟨_, compact_empty⟩).2 ⟨S, Hc, Hcomp, HU⟩⟩
 
-lemma sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
   [second_countable_topology α] : sigma_compact_space α :=
 begin
   choose K hKc hxK using λ x : α, exists_compact_mem_nhds x,

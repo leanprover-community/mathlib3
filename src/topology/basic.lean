@@ -171,6 +171,10 @@ by simpa only [is_closed, compl_sInter, sUnion_image] using is_open_bUnion
 lemma is_closed_Inter {f : ι → set α} (h : ∀i, is_closed (f i)) : is_closed (⋂i, f i ) :=
 is_closed_sInter $ assume t ⟨i, (heq : f i = t)⟩, heq ▸ h i
 
+lemma is_closed_bInter {s : set β} {f : β → set α} (h : ∀ i ∈ s, is_closed (f i)) :
+  is_closed (⋂ i ∈ s, f i) :=
+is_closed_Inter $ λ i, is_closed_Inter $ h i
+
 @[simp] lemma is_open_compl_iff {s : set α} : is_open sᶜ ↔ is_closed s := iff.rfl
 
 @[simp] lemma is_closed_compl_iff {s : set α} : is_closed sᶜ ↔ is_open s :=
@@ -310,6 +314,10 @@ closure_minimal (subset.trans h subset_closure) is_closed_closure
 lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure α _) :=
 λ _ _, closure_mono
 
+lemma diff_subset_closure_iff {s t : set α} :
+  s \ t ⊆ closure t ↔ s ⊆ closure t :=
+by rw [diff_subset_iff, union_eq_self_of_subset_left subset_closure]
+
 lemma closure_inter_subset_inter_closure (s t : set α) :
   closure (s ∩ t) ⊆ closure s ∩ closure t :=
 (monotone_closure α).map_inf_le s t
@@ -428,6 +436,10 @@ by rw [closure_compl, frontier, diff_eq]
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]
+
+@[simp] lemma frontier_univ : frontier (univ : set α) = ∅ := by simp [frontier]
+
+@[simp] lemma frontier_empty : frontier (∅ : set α) = ∅ := by simp [frontier]
 
 lemma frontier_inter_subset (s t : set α) :
   frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=
@@ -936,6 +948,10 @@ section locally_finite
   there is a neighborhood of `x` which meets only finitely many sets in the family -/
 def locally_finite (f : β → set α) :=
 ∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
+
+lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x : α) :
+  finite {b | x ∈ f b} :=
+let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_nhds hxt⟩
 
 lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
 assume x, ⟨univ, univ_mem_sets, finite.of_fintype _⟩

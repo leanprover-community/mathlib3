@@ -227,6 +227,15 @@ begin
   ... = ⊥ : rfl,
 end
 
+lemma is_solvable_of_comm' {G : Type*} [hG : group G]
+  (h : ∀ a b : G, a * b = b * a) : is_solvable G :=
+begin
+  letI hG' : comm_group G := { mul_comm := h .. hG },
+  tactic.unfreeze_local_instances,
+  cases hG,
+  exact is_solvable_of_comm,
+end
+
 lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=
 ⟨⟨0, h⟩⟩
 

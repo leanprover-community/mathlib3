@@ -127,8 +127,9 @@ begin
   let K := p.splitting_field,
   let L := q.splitting_field,
   haveI : fact (p.splits (algebra_map F L)) := hpq,
-  have iso : L ≃ₐ[K] (q.map (algebra_map F p.splitting_field)).splitting_field,
+  have ϕ : L ≃ₐ[K] (q.map (algebra_map F K)).splitting_field,
   { exact is_splitting_field.alg_equiv L (q.map (algebra_map F K)) },
+  replace ϕ : (L ≃ₐ[K] L) ≃* (q.map (algebra_map F K)).gal := ϕ.aut_mul_equiv_aut,
   haveI : is_solvable (K ≃ₐ[F] K) := hp,
   haveI : is_solvable (L ≃ₐ[K] L) := by
   { /- transfer solvability along isomorphism -/

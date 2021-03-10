@@ -64,6 +64,9 @@ instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
   ..nat.linear_ordered_semiring }
 
+instance : has_exists_add_of_le ℕ :=
+{ exists_add_of_le := λ a b hab, ⟨b - a, (nat.add_sub_of_le hab).symm⟩ }
+
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
 { mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
   ..nat.linear_ordered_semiring,

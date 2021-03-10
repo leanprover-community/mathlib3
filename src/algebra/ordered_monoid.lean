@@ -1117,6 +1117,12 @@ by simpa [add_comm] using @with_bot.add_lt_add_iff_left _ _ a b c
 
 end ordered_cancel_add_comm_monoid
 
+
+/-- an `ordered_cancel_add_comm_monoid` with one-sided 'subtraction'
+in the sense that if `a ≤ b`, there is some `c` for which `a + c = b` -/
+class has_exists_add_of_le (α : Type u) [ordered_cancel_add_comm_monoid α] :=
+(exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a + c)
+
 /-! Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
 @[to_additive]

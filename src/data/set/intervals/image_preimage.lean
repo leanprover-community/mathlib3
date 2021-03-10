@@ -20,6 +20,79 @@ lemmas about preimages and images of all intervals. We also prove a few lemmas a
 universe u
 
 namespace set
+
+
+section has_exists_add_of_le
+/-!
+The lemmas in this section state that addition maps intervals bijectively. The typeclass
+`has_exists_add_of_le` is defined specifically to make them work; it applies to all
+`ordered_add_comm_group`, but also to `ℕ` and `ℝ≥0`, which are not groups.
+
+TODO : move as much as possible in this file to the setting of this weaker typeclass.
+-/
+
+variables {α : Type u}[ordered_cancel_add_comm_monoid α][has_exists_add_of_le α](l u x : α)
+
+open has_exists_add_of_le
+
+lemma Icc_add_bij : bij_on (+x) (Icc l u) (Icc (l + x) (u + x)) :=
+begin
+  refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_le_add_right h.2 _⟩,
+          λ _ _ _ _ h, add_right_cancel h,
+          λ _ h, _⟩,
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h.1,
+  rw [mem_Icc, add_right_comm, add_le_add_iff_right, add_le_add_iff_right] at h,
+  exact ⟨l + c, h, by rw add_right_comm⟩,
+end
+
+lemma Ioo_add_bij : bij_on (+x) (Ioo l u) (Ioo (l + x) (u + x)) :=
+begin
+  refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_lt_add_right h.2 _⟩,
+          λ _ _ _ _ h, add_right_cancel h,
+          λ _ h, _⟩,
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h.1),
+  rw [mem_Ioo, add_right_comm, add_lt_add_iff_right, add_lt_add_iff_right] at h,
+  exact ⟨l + c, h, by rw add_right_comm⟩,
+end
+
+lemma Ioc_add_bij : bij_on (+x) (Ioc l u) (Ioc (l + x) (u + x)) :=
+begin
+  refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_le_add_right h.2 _⟩,
+          λ _ _ _ _ h, add_right_cancel h,
+          λ _ h, _⟩,
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h.1),
+  rw [mem_Ioc, add_right_comm, add_lt_add_iff_right, add_le_add_iff_right] at h,
+  exact ⟨l + c, h, by rw add_right_comm⟩,
+end
+
+lemma Ico_add_bij : bij_on (+x) (Ico l u) (Ico (l + x) (u + x)) :=
+begin
+  refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_lt_add_right h.2 _⟩,
+          λ _ _ _ _ h, add_right_cancel h,
+          λ _ h, _⟩,
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h.1,
+  rw [mem_Ico, add_right_comm, add_le_add_iff_right, add_lt_add_iff_right] at h,
+  exact ⟨l + c, h, by rw add_right_comm⟩,
+end
+
+lemma Ici_add_bij : bij_on (+x) (Ici l) (Ici (l + x)) :=
+begin
+  refine ⟨λ x h, add_le_add_right (mem_Ici.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h,
+  rw [mem_Ici, add_right_comm, add_le_add_iff_right] at h,
+  exact ⟨l + c, h, by rw add_right_comm⟩,
+end
+
+lemma Ioi_add_bij : bij_on (+x) (Ioi l) (Ioi (l + x)) :=
+begin
+  refine ⟨λ x h, add_lt_add_right (mem_Ioi.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h),
+  rw [mem_Ioi, add_right_comm, add_lt_add_iff_right] at h,
+  exact ⟨l + c, h, by rw add_right_comm⟩,
+end
+
+end has_exists_add_of_le
+
 section ordered_add_comm_group
 
 variables {G : Type u} [ordered_add_comm_group G] (a b c : G)
@@ -267,6 +340,22 @@ by simp [sub_eq_neg_add]
 
 @[simp] lemma image_sub_const_Ioo : (λ x, x - a) '' Ioo b c = Ioo (b - a) (c - a) :=
 by simp [sub_eq_neg_add]
+
+/-!
+### Bijections
+-/
+
+lemma Iic_add_bij : bij_on (+a) (Iic b) (Iic (b + a)) :=
+begin
+  refine ⟨λ x h, add_le_add_right (mem_Iic.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
+  simpa [add_comm a] using h,
+end
+
+lemma Iio_add_bij : bij_on (+a) (Iio b) (Iio (b + a)) :=
+begin
+  refine ⟨λ x h, add_lt_add_right (mem_Iio.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
+  simpa [add_comm a] using h,
+end
 
 end ordered_add_comm_group
 

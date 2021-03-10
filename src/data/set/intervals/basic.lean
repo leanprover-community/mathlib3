@@ -1183,7 +1183,7 @@ end
 
 end linear_order
 
-/-! ### Lemmas about membership of arithmetic operations -/
+/-! ### Lemmas about arithmetic operations -/
 
 section ordered_comm_group
 

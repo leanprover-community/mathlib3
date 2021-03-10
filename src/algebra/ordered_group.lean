@@ -71,11 +71,17 @@ begin simp [inv_mul_cancel_left] at this, assumption end
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
-  [s : ordered_comm_group α] : ordered_cancel_comm_monoid α :=
+  [s : ordered_comm_group α] :
+  ordered_cancel_comm_monoid α :=
 { mul_left_cancel       := @mul_left_cancel α _,
   mul_right_cancel      := @mul_right_cancel α _,
   le_of_mul_le_mul_left := @ordered_comm_group.le_of_mul_le_mul_left α _,
   ..s }
+
+instance ordered_add_comm_group.has_exists_add_of_le (α : Type u)
+  [ordered_add_comm_group α] :
+  has_exists_add_of_le α :=
+⟨λ a b hab, ⟨b - a, (add_sub_cancel'_right a b).symm⟩⟩
 
 @[to_additive neg_le_neg]
 lemma inv_le_inv' (h : a ≤ b) : b⁻¹ ≤ a⁻¹ :=

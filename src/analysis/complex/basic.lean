@@ -81,12 +81,11 @@ instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed
 open continuous_linear_map
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def re_clm : ℂ →L[ℝ] ℝ :=
-linear_map.re.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_re_le_abs])
+def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_re_le_abs])
 
 @[continuity] lemma continuous_re : continuous re := re_clm.continuous
 
-@[simp] lemma re_clm_coe : (coe (re_clm) : ℂ →ₗ[ℝ] ℝ) = linear_map.re := rfl
+@[simp] lemma re_clm_coe : (coe (re_clm) : ℂ →ₗ[ℝ] ℝ) = re_lm := rfl
 
 @[simp] lemma re_clm_apply (z : ℂ) : (re_clm : ℂ → ℝ) z = z.re := rfl
 
@@ -96,12 +95,11 @@ calc 1 = ∥re_clm 1∥ : by simp
    ... ≤ ∥re_clm∥ : unit_le_op_norm _ _ (by simp)
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def im_clm : ℂ →L[ℝ] ℝ :=
-linear_map.im.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_im_le_abs])
+def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_im_le_abs])
 
 @[continuity] lemma continuous_im : continuous im := im_clm.continuous
 
-@[simp] lemma im_clm_coe : (coe (im_clm) : ℂ →ₗ[ℝ] ℝ) = linear_map.im := rfl
+@[simp] lemma im_clm_coe : (coe (im_clm) : ℂ →ₗ[ℝ] ℝ) = im_lm := rfl
 
 @[simp] lemma im_clm_apply (z : ℂ) : (im_clm : ℂ → ℝ) z = z.im := rfl
 
@@ -111,7 +109,7 @@ calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
 
 /-- The complex-conjugation function from `ℂ` to itself is an isometric linear map. -/
-def conj_li : ℂ →ₗᵢ[ℝ] ℂ := ⟨linear_map.conj, λ x, by simp⟩
+def conj_li : ℂ →ₗᵢ[ℝ] ℂ := ⟨conj_lm, λ x, by simp⟩
 
 /-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/
 def conj_clm : ℂ →L[ℝ] ℂ := conj_li.to_continuous_linear_map
@@ -120,14 +118,14 @@ lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_li.isometry
 
 @[continuity] lemma continuous_conj : continuous conj := conj_clm.continuous
 
-@[simp] lemma conj_clm_coe : (coe (conj_clm) : ℂ →ₗ[ℝ] ℂ) = linear_map.conj := rfl
+@[simp] lemma conj_clm_coe : (coe (conj_clm) : ℂ →ₗ[ℝ] ℂ) = conj_lm := rfl
 
 @[simp] lemma conj_clm_apply (z : ℂ) : (conj_clm : ℂ → ℂ) z = z.conj := rfl
 
 @[simp] lemma conj_clm_norm : ∥conj_clm∥ = 1 := conj_li.norm_to_continuous_linear_map
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨linear_map.of_real, λ x, by simp⟩
+def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_lm, λ x, by simp⟩
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
@@ -136,7 +134,7 @@ lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := isometry_of_real.continuous
 
-@[simp] lemma of_real_clm_coe : (coe (of_real_clm) : ℝ →ₗ[ℝ] ℂ) = linear_map.of_real := rfl
+@[simp] lemma of_real_clm_coe : (coe (of_real_clm) : ℝ →ₗ[ℝ] ℂ) = of_real_lm := rfl
 
 @[simp] lemma of_real_clm_apply (x : ℝ) : (of_real_clm : ℝ → ℂ) x = x := rfl
 

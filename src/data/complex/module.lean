@@ -21,12 +21,13 @@ This file contains three instances:
 
 It also defines three linear maps:
 
-* `complex.linear_map.re`;
-* `complex.linear_map.im`;
-* `complex.linear_map.of_real`.
+* `complex.re_lm`;
+* `complex.im_lm`;
+* `complex.of_real_lm`;
+* `complex.conj_lm`.
 
-They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
-as `ℝ`-linear maps.
+They are bundled versions of the real part, the imaginary part, the embedding of `ℝ` in `ℂ`, and
+the convex conjugate as `ℝ`-linear maps.
 -/
 noncomputable theory
 
@@ -122,34 +123,34 @@ by rw [← finite_dimensional.findim_mul_findim ℝ ℂ E, complex.findim_real_c
 namespace complex
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
+def re_lm : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
   map_add' := add_re,
   map_smul' := by simp, }
 
-@[simp] lemma linear_map.coe_re : ⇑linear_map.re = re := rfl
+@[simp] lemma re_lm_coe : ⇑re_lm = re := rfl
 
 /-- Linear map version of the imaginary part function, from `ℂ` to `ℝ`. -/
-def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
+def im_lm : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
   map_add' := add_im,
   map_smul' := by simp, }
 
-@[simp] lemma linear_map.coe_im : ⇑linear_map.im = im := rfl
+@[simp] lemma im_lm_coe : ⇑im_lm = im := rfl
 
 /-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
+def of_real_lm : ℝ →ₗ[ℝ] ℂ :=
 { to_fun := coe,
   map_add' := of_real_add,
   map_smul' := λc x, by simp [algebra.smul_def] }
 
-@[simp] lemma linear_map.coe_of_real : ⇑linear_map.of_real = coe := rfl
+@[simp] lemma of_real_lm_coe : ⇑of_real_lm = coe := rfl
 
 /-- `ℝ`-linear map version of the complex conjugation function from `ℂ` to `ℂ`. -/
-def linear_map.conj : ℂ →ₗ[ℝ] ℂ :=
+def conj_lm : ℂ →ₗ[ℝ] ℂ :=
 { map_smul' := by simp [restrict_scalars_smul_def],
   ..conj }
 
-@[simp] lemma linear_map.coe_conj : ⇑linear_map.conj = conj := rfl
+@[simp] lemma conj_lm_coe : ⇑conj_lm = conj := rfl
 
 end complex

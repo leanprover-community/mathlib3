@@ -315,20 +315,18 @@ end
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (n : ℕ) :
-  finite_presentation R (algebra.comap R A (_root_.mv_polynomial (fin n) A)) :=
+  finite_presentation R (_root_.mv_polynomial (fin n) A) :=
 begin
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
-  refine equiv _ (mv_polynomial.alg_equiv_congr_right R e),
-  have epol₁ := alg_equiv.comap R
-    (@mv_polynomial.quotient_alg_equiv_quotient_mv_polynomial _ (fin n) _ I),
-  let S := _root_.mv_polynomial (fin m) R,
-  refine equiv _ epol₁.symm,
-  let epol₂ := (mv_polynomial.sum_alg_equiv R (fin n) (fin m)).symm.trans
-    (mv_polynomial.alg_equiv_congr_left R (@sum_fin_sum_equiv n m)),
-  let J := (I.map mv_polynomial.C : ideal (_root_.mv_polynomial (fin n) S)),
-  letI : algebra R J.quotient := ring_hom.to_algebra ((algebra_map S _).comp (algebra_map R S)),
-  refine equiv (quotient _ (mv_polynomial R (fin (n + m)))) (ideal.quotient_equiv_alg J epol₂).symm,
-  exact submodule.map_fg_of_fg _ (submodule.map_fg_of_fg _ hfg _) _,
+  refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
+  letI : is_scalar_tower R (_root_.mv_polynomial (fin m) R)
+    (@ideal.map _ (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R))
+    _ _ mv_polynomial.C I).quotient := is_scalar_tower.comap,
+  refine equiv _ (alg_equiv.restrict_scalars R (@mv_polynomial.quotient_equiv_quotient_mv_polynomial
+    _ (fin n) _ I)).symm,
+  refine quotient (submodule.map_fg_of_fg I hfg _) _,
+  refine equiv _ (mv_polynomial.sum_alg_equiv _ _ _),
+  exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R sum_fin_sum_equiv).symm
 end
 
 end finite_presentation

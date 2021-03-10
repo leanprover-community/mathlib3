@@ -14,7 +14,8 @@ meta inductive proof_step
 | rewrite (r : expr) : proof_step
 
 meta inductive proof_script
-| step (goal : tactic_state) (step : proof_step) (rest : list proof_script) : proof_script
+| done : proof_script
+| step (state : tactic_state) (step : proof_step) (rest : proof_script) : proof_script
 
 namespace proof_step
 
@@ -27,22 +28,20 @@ meta def to_format : proof_step → tactic format
 meta instance : has_to_tactic_format proof_step :=
 ⟨to_format⟩
 
-meta def subgoals' (state : tactic_state) (solution : expr) {α} (t : tactic α) :
-  tactic (list (tactic_state × expr)) :=
-run_with_state state $ do
-  g ← get_goal,
+meta def subgoals' (solutions : list expr) {α} (t : tactic α) :
+  tactic (list expr) :=
+do
+  -- Keep a copy of the initial goals (which should unify with the solutions)
+  initial_goals ← get_goals,
   -- Run the tactic
   t,
   -- Collect the subgoals
-  gs ← get_goals,
-  -- Collect the tactic state for each of those goals
-  states ← gs.mmap (λ g', do set_goals [g'], get_state),
-  -- By unifying the goal with the given solution,
-  -- find the corresponding solutions for the subgoals.
-  unify g solution,
-  gs ← gs.mmap instantiate_mvars,
-  -- Return the new states and their corresponding solutions
-  return (states.zip gs)
+  new_goals ← get_goals,
+  lock_tactic_state $ (do
+    -- By unifying the initial goals with the given solutions,
+    -- find the corresponding solutions for the new goals.
+    (initial_goals.zip solutions).mmap' (λ ⟨g, s⟩, unify g s),
+    new_goals.mmap instantiate_mvars)
 
 meta def as_tactic : proof_step → tactic unit
 | (apply e) := tactic.apply e >> skip
@@ -50,33 +49,35 @@ meta def as_tactic : proof_step → tactic unit
 | (intro n) := tactic.intro n >> skip
 | (rewrite r) := tactic.rewrite_target r >> skip
 
-meta def subgoals (state : tactic_state) (solution : expr) (step : proof_step) :
-  tactic (list (tactic_state × expr)) :=
-subgoals' state solution (step.as_tactic)
+meta def subgoals (solutions : list expr) (step : proof_step) :
+  tactic (list expr) :=
+subgoals' solutions step.as_tactic
 
 end proof_step
 
 namespace proof_script
 
 meta def to_format : proof_script → tactic format
-| (proof_script.step g s [n]) := do
+| (proof_script.done) := return $ format.of_string "done"
+| (proof_script.step st s n) := do
   ps ← pp s,
   pn ← to_format n,
   return (ps ++ "," ++ format.line ++ pn)
-| (proof_script.step g s r) := do
-  ps ← pp s,
-  pr ← r.mmap (λ n, do pn ← to_format n, return (format.of_string "{ " ++ (format.nest 2 pn) ++ " }")),
-  return $ ps ++ "," ++ format.line ++ format.join (list.intersperse ("," ++ format.line) pr)
+-- | (proof_script.step st s r) := do
+--   ps ← pp s,
+--   pr ← r.mmap (λ n, do pn ← to_format n, return (format.of_string "{ " ++ (format.nest 2 pn) ++ " }")),
+--   return $ ps ++ "," ++ format.line ++ format.join (list.intersperse ("," ++ format.line) pr)
 
 meta instance : has_to_tactic_format proof_script :=
 ⟨to_format⟩
 
-meta def steps : proof_script → tactic (list (string × string))
-| (proof_script.step g s r) := do
-  ppg ← pp g,
+meta def prompts : proof_script → tactic (list (string × string))
+| (proof_script.done) := return []
+| (proof_script.step st s r) := do
+  ppst ← pp st,
   pps ← pp s,
-  rs ← r.mmap steps,
-  return $ (to_string ppg, to_string pps) :: rs.join
+  rs ← r.prompts,
+  return $ (to_string ppst, to_string pps) :: rs
 
 end proof_script
 
@@ -97,48 +98,41 @@ do
 Hopefully `apply f` works against the `state`, in which case return `f`.
 Otherwise, try using `apply f _`, `apply f _ _` and so on.
 -/
-meta def apply_with_underscores (state : tactic_state) : expr → tactic expr
-| f :=
-do
-  -- ppf ← pp f, trace format!"checking {ppf} against the goal",
-  (run_with_state state (tactic.apply f) >> return f) <|>
+meta def apply_with_underscores : expr → tactic expr
+| f := do
+  (lock_tactic_state (tactic.apply f) >> return f) <|>
   (do f' ← to_expr ``(%%f _),
       apply_with_underscores f')
 
 /--
-Attempt to extract from a `solution` to a `goal` a single proof step,
-along with the resulting subgoals and their corresponding solutions
+Attempt to deduce a single proof step from a list of `solutions` for the current goals,
+along with the corresponding solutions for the new goals.
 -/
-meta def tactify_1 (state : tactic_state) (solution : expr) :
-  tactic (proof_step × list (tactic_state × expr)) :=
+meta def tactify_1 (solutions : list expr) :
+  tactic (proof_step × list expr) :=
 do
-  s ← match solution with
-  -- | `(bit0 %%n) := return (proof_step.exact solution)
-  -- | `(bit1 %%n) := return (proof_step.exact solution)
-  -- | `(eq.mpr (@eq.rec _ _ _ _ _ %%b) _) :=
-  --     return (proof_step.rewrite b)
-  | (const n l) := return (proof_step.exact solution)
-  | (local_const u p b t) := return (proof_step.exact solution)
+  let sol := solutions.head,
+  s ← match sol with
+  | (const n l) := return (proof_step.exact sol)
+  | (local_const u p b t) := return (proof_step.exact sol)
   | (lam n bi ty bd) := return (proof_step.intro n) -- TODO use `intros`?
   | (app f x) := do
       let f' := f.get_app_fn,
-      trace f',
       match f' with
-      | `(bit0) := return (proof_step.exact solution)
-      | `(bit1) := return (proof_step.exact solution)
+      | `(@bit0) := return (proof_step.exact sol)
+      | `(@bit1) := return (proof_step.exact sol)
       | `(@eq.mpr) := do
-          let b := solution.app_fn.app_arg.app_arg.app_arg,
-          trace b,
+          let b := sol.app_fn.app_arg.app_arg.app_arg,
           return (proof_step.rewrite b)
       | _ := do
-          f'' ← apply_with_underscores state f',
+          f'' ← apply_with_underscores f',
           return (proof_step.apply f'')
       end
   | _ := do
-      trace state,
-      fail format!"don't know how to process {solution}"
+      trace_state,
+      fail format!"don't know how to process {sol}"
   end,
-  gs ← s.subgoals state solution,
+  gs ← s.subgoals solutions,
   return ⟨s, gs⟩
 
 -- #exit
@@ -147,25 +141,31 @@ end tactify
 
 open tactify
 
-meta def tactify : tactic_state → expr → tactic proof_script
-| goal solution :=
+meta def tactify : list expr → tactic proof_script
+| solutions :=
 do
-  trace goal,
-  trace solution,
-  (step, pairs) ← tactify_1 goal solution,
-  trace step,
-  trace "---",
-  scripts' ← pairs.mmap (λ p, tactify p.1 p.2),
-  return $ proof_script.step goal step scripts'
+  goals ← get_goals,
+  guard (goals.length = solutions.length) <|>
+    fail "Number of solutions has diverged from the number of goals.",
+  done >> return proof_script.done <|>
+do
+  state ← get_state,
+  -- trace_state,
+  -- trace solutions,
+  (step, new_solutions) ← tactify_1 solutions,
+  -- trace step,
+  -- trace "---",
+  next ← tactify new_solutions,
+  return $ proof_script.step state step next
 
 namespace interactive
 
 meta def tactify (n : name) : tactic unit := do
   env ← get_env,
   d ← env.get n,
-  state ← tactic_state_with_goal d.type,
-  o ← tactic.tactify state d.value,
-  trace o
+  run_with_goal d.type (do
+    o ← tactic.tactify [d.value],
+    trace o)
 
 end interactive
 
@@ -176,71 +176,27 @@ open tactic tactic.tactify
 meta def tactic_prompts (n : name) : tactic unit := do
   env ← get_env,
   d ← env.get n,
-  state ← tactic_state_with_goal d.type,
-  o ← tactic.tactify state d.value,
-  s ← o.steps,
-  s.mmap' (λ p, do trace p.1, trace p.2, trace "")
+    run_with_goal d.type (do
+    o ← tactic.tactify [d.value],
+    s ← o.prompts,
+    s.mmap' (λ p, do trace p.1, trace p.2, trace ""))
 
 -- Examples that work:
 run_cmd tactic_prompts `nat.factorial_le
 run_cmd tactic_prompts `nat.units_eq_one
 
+-- Later goals that have actually been solved stick around:
+run_cmd tactic_prompts `nat.add_factorial_succ_lt_factorial_add_succ
+
 -- rewrites have spurious `propext`:
 run_cmd tactic_prompts `nat.zero_eq_mul
-
--- Weird unification problems:
-run_cmd tactic_prompts `nat.add_factorial_succ_lt_factorial_add_succ
-#print nat.add_factorial_succ_lt_factorial_add_succ
 
 -- dcases_on breaks things:
 run_cmd tactic_prompts `nat.add_factorial_le_factorial_add
 
 def quux : ℕ := nat.factorial (3 + (nat.factorial 7))
 
-def quux' : ℕ :=
-begin
-apply nat.factorial,
-apply has_add.add,
-{ apply 3,
-   },
-{ apply nat.factorial,
-  apply 7,
-   }
-end
-#print quux'
-
 def ff {α : Type*} (a : α) := [[a,a],[a,a,a]]
-
-def ff' : Π {α : Type*} (a : α), list (list α) := begin
-intro α,
-intro a,
-apply list.cons,
-{ apply list.cons,
-  { apply a,
-     },
-  { apply list.cons,
-    { apply a,
-       },
-    { apply list.nil,
-       } } },
-{ apply list.cons,
-  { apply list.cons,
-    { apply a,
-       },
-    { apply list.cons,
-      { apply a,
-         },
-      { apply list.cons,
-        { apply a,
-           },
-        { apply list.nil,
-           } } } },
-  { apply list.nil,
-     } }
-end
-
-
-
 
 run_cmd tactic.interactive.tactify `nat.factorial_le
 
@@ -251,4 +207,54 @@ begin
   tactify `nat.factorial_le,
   tactify `nat.add_factorial_succ_lt_factorial_add_succ,
   -- bar `bar,
+end
+
+example : ∀ {i : ℕ} (n : ℕ), 2 ≤ i → i + (n + 1).factorial < (i + n + 1).factorial :=
+begin
+  intro i,
+  intro n,
+  intro hi,
+  rw (i + n).factorial_succ,
+  rw (i + n).succ_eq_add_one,
+  rw add_mul (i + n) 1 (i + n).factorial,
+  rw one_mul (i + n).factorial,
+  apply add_lt_add_of_lt_of_le,
+  apply has_le.le.trans_lt,
+  apply nat.le.intro,
+  apply rfl,
+  exact n,
+  apply iff.mpr,
+  apply lt_mul_iff_one_lt_right,
+  apply has_lt.lt.trans_le,
+  apply zero_lt_two,
+  apply has_le.le.trans,
+  exact hi,
+  apply nat.le.intro,
+  apply rfl,
+  apply iff.mpr,
+  apply lt_iff_le_and_ne,
+  apply and.intro,
+  apply nat.factorial_pos,
+  intro g,
+  apply nat.not_succ_le_self,
+  apply has_le.le.trans,
+  apply has_le.le.trans,
+  exact hi,
+  apply nat.le.intro,
+  apply rfl,
+  exact n,
+  apply iff.mp,
+  apply nat.factorial_eq_one,
+  apply eq.symm,
+  exact g,
+  apply nat.factorial_le,
+  apply has_le.le.trans,
+  apply le_of_eq,
+  apply add_comm,
+  apply iff.mpr,
+  apply add_le_add_iff_right,
+  apply has_le.le.trans,
+  apply one_le_two,
+  exact hi,
+  done,
 end

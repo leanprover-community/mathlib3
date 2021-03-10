@@ -532,6 +532,12 @@ begin
   convert hb₂ using 2, simp only [not_le.symm], refl
 end
 
+lemma frontier_Iic_subset (a : α) : frontier (Iic a) ⊆ {a} :=
+frontier_le_subset_eq (@continuous_id α _) continuous_const
+
+lemma frontier_Ici_subset (a : α) : frontier (Ici a) ⊆ {a} :=
+@frontier_Iic_subset (order_dual α) _ _ _ _
+
 lemma frontier_lt_subset_eq (hf : continuous f) (hg : continuous g) :
   frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
@@ -918,10 +924,10 @@ instance order_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h ⟨lt_of_lt_of_le hb₁ hbc, le_of_lt hca⟩ hcs,
-              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hb₂) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hb₂) $
                 assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hl) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hl) $
                 assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -935,10 +941,10 @@ instance order_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h ⟨le_of_lt hca, lt_of_le_of_lt hbc hb₂⟩ hcs,
-              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hb₁) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hb₁) $
                 assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hu) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hu) $
                 assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -2710,21 +2716,43 @@ begin
   { exact tendsto_of_not_nonempty hi }
 end
 
+lemma tendsto_at_bot_cinfi {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_below $ range f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr (order_dual ι) (order_dual α) _ _ _ _ _ h_mono.order_dual hbdd
+
 lemma tendsto_at_top_cinfi {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α]
   {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_below $ range f) :
   tendsto f at_top (𝓝 (⨅i, f i)) :=
 @tendsto_at_top_csupr _ (order_dual α) _ _ _ _ _ @h_mono hbdd
 
+lemma tendsto_at_bot_csupr {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_above $ range f) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+@tendsto_at_bot_cinfi ι (order_dual α) _ _ _ _ _ h_mono hbdd
+
 lemma tendsto_at_top_supr {ι α : Type*} [preorder ι] [topological_space α]
   [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
   tendsto f at_top (𝓝 (⨆i, f i)) :=
 tendsto_at_top_csupr h_mono (order_top.bdd_above _)
 
+lemma tendsto_at_bot_infi {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+tendsto_at_bot_cinfi h_mono (order_bot.bdd_below _)
+
 lemma tendsto_at_top_infi {ι α : Type*} [preorder ι] [topological_space α]
   [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
   tendsto f at_top (𝓝 (⨅i, f i)) :=
 tendsto_at_top_cinfi @h_mono (order_bot.bdd_below _)
+
+lemma tendsto_at_bot_supr {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+tendsto_at_bot_csupr h_mono (order_top.bdd_above _)
 
 lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :

@@ -866,9 +866,22 @@ theorem zero_nmem_multiset_map_X_sub_C {α : Type*} (m : multiset α) (f : α �
   (0 : polynomial R) ∉ m.map (λ a, X - C (f a)) :=
 λ mem, let ⟨a, _, ha⟩ := multiset.mem_map.mp mem in X_sub_C_ne_zero _ ha
 
-lemma nat_degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
+lemma nat_degree_X_pow_sub_C {n : ℕ} {r : R} :
   (X ^ n - C r).nat_degree = n :=
-by { apply nat_degree_eq_of_degree_eq_some, simp [degree_X_pow_sub_C hn], }
+begin
+  by_cases hn : n = 0,
+  { rw [hn, pow_zero, ←C_1, ←ring_hom.map_sub, nat_degree_C] },
+  { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_sub_C (pos_iff_ne_zero.mpr hn) r) },
+end
+
+lemma leading_coeff_X_pow_sub_C [nontrivial R] {n : ℕ} (hn : 0 < n) (a : R) :
+  (X ^ n - C a).leading_coeff = 1 :=
+by rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,
+  coeff_C, if_neg (pos_iff_ne_zero.mp hn), sub_zero]
+
+lemma leading_coeff_X_pow_sub_one [nontrivial R] {n : ℕ} (hn : 0 < n) :
+  (X ^ n - 1 : polynomial R).leading_coeff = 1 :=
+leading_coeff_X_pow_sub_C hn 1
 
 end nonzero_ring
 

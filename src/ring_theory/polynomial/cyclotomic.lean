@@ -145,7 +145,7 @@ begin
   have hmonic : (X ^ n - C (1 : K)).monic := monic_X_pow_sub_C (1 : K) (ne_of_lt hpos).symm,
   symmetry,
   apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
-  rw [@nat_degree_X_pow_sub_C K _ _ n hpos 1, ← nth_roots],
+  rw [@nat_degree_X_pow_sub_C K _ _ n 1, ← nth_roots],
   exact is_primitive_root.card_nth_roots h
 end
 

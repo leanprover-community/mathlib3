@@ -7,11 +7,10 @@ open_locale classical
 
 open polynomial intermediate_field
 
---todo: remove hypothesis in `nat_degree_X_pow_sub_C`
 lemma leading_coeff_X_pow_sub_C {R : Type*} [ring R] [nontrivial R] {n : ℕ} (hn : 0 < n) (a : R) :
   (X ^ n - C a).leading_coeff = 1 :=
 begin
-  rw [leading_coeff, nat_degree_X_pow_sub_C hn, coeff_sub, coeff_X_pow_self,
+  rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,
       coeff_C, if_neg (pos_iff_ne_zero.mp hn), sub_zero],
   assumption,
 end
@@ -78,30 +77,30 @@ section abel_ruffini
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma gal_zero_is_solvable : is_solvable (gal (0 : polynomial F)) :=
+lemma gal_zero_is_solvable : is_solvable (0 : polynomial F).gal :=
 by apply_instance
 
-lemma gal_one_is_solvable : is_solvable (gal (1 : polynomial F)) :=
+lemma gal_one_is_solvable : is_solvable (1 : polynomial F).gal :=
 by apply_instance
 
-lemma gal_C_is_solvable (x : F) : is_solvable (gal (C x)) :=
+lemma gal_C_is_solvable (x : F) : is_solvable (C x).gal :=
 by apply_instance
 
-lemma gal_X_is_solvable : is_solvable (gal (X : polynomial F)) :=
+lemma gal_X_is_solvable : is_solvable (X : polynomial F).gal :=
 by apply_instance
 
-lemma gal_X_sub_C_is_solvable (x : F) : is_solvable (gal (X - C x)) :=
+lemma gal_X_sub_C_is_solvable (x : F) : is_solvable (X - C x).gal :=
 by apply_instance
 
-lemma gal_X_pow_is_solvable (n : ℕ) : is_solvable (gal (X ^ n : polynomial F)) :=
+lemma gal_X_pow_is_solvable (n : ℕ) : is_solvable (X ^ n : polynomial F).gal :=
 by apply_instance
 
 lemma gal_mul_is_solvable {p q : polynomial F}
-  (hp : is_solvable (gal p)) (hq : is_solvable (gal q)) : is_solvable (gal (p * q)) :=
+  (hp : is_solvable p.gal) (hq : is_solvable q.gal) : is_solvable (p * q).gal :=
 solvable_of_solvable_injective (gal.restrict_prod_injective p q)
 
 lemma gal_prod_is_solvable {s : multiset (polynomial F)}
-  (hs : ∀ p ∈ s, is_solvable (gal p)) : is_solvable (gal s.prod) :=
+  (hs : ∀ p ∈ s, is_solvable (gal p)) : is_solvable s.prod.gal :=
 begin
   apply multiset.induction_on' s,
   { rw [multiset.empty_eq_zero, multiset.prod_zero],
@@ -111,29 +110,28 @@ begin
     exact gal_mul_is_solvable (hs p hps) ht },
 end
 
-lemma lemma2 {p q : polynomial F} (hpq : fact (splits (algebra_map F q.splitting_field) p))
-  (hq : is_solvable (gal q)) : is_solvable (gal p) :=
+lemma gal_is_solvable_of_splits {p q : polynomial F}
+  (hpq : fact (p.splits (algebra_map F q.splitting_field))) (hq : is_solvable q.gal) :
+  is_solvable p.gal :=
 begin
   haveI : is_solvable (q.splitting_field ≃ₐ[F] q.splitting_field) := hq,
   exact solvable_of_surjective (alg_equiv.restrict_normal_hom_surjective q.splitting_field),
 end
 
-lemma lemma3 (p q : polynomial F)
+lemma gal_is_solvable_tower (p q : polynomial F)
   (hpq : p.splits (algebra_map F q.splitting_field))
-  (hp : is_solvable (gal p))
-  (hq : is_solvable (gal (q.map (algebra_map F p.splitting_field)))) :
-  is_solvable (gal q) :=
+  (hp : is_solvable p.gal)
+  (hq : is_solvable (q.map (algebra_map F p.splitting_field)).gal) :
+  is_solvable q.gal :=
 begin
   let K := p.splitting_field,
   let L := q.splitting_field,
   haveI : fact (p.splits (algebra_map F L)) := hpq,
-  have ϕ : L ≃ₐ[K] (q.map (algebra_map F K)).splitting_field,
-  { exact is_splitting_field.alg_equiv L (q.map (algebra_map F K)) },
-  replace ϕ : (L ≃ₐ[K] L) ≃* (q.map (algebra_map F K)).gal := ϕ.aut_mul_equiv_aut,
+  let ϕ : (L ≃ₐ[K] L) ≃* (q.map (algebra_map F K)).gal :=
+    (is_splitting_field.alg_equiv L (q.map (algebra_map F K))).aut_mul_equiv_aut,
+  have ϕ_inj : function.injective ϕ.to_monoid_hom := ϕ.injective,
   haveI : is_solvable (K ≃ₐ[F] K) := hp,
-  haveI : is_solvable (L ≃ₐ[K] L) := by
-  { /- transfer solvability along isomorphism -/
-    sorry },
+  haveI : is_solvable (L ≃ₐ[K] L) := solvable_of_solvable_injective ϕ_inj,
   exact is_solvable_of_is_scalar_tower F p.splitting_field q.splitting_field,
 end
 
@@ -243,7 +241,7 @@ begin
   have hs : _ = _ * (s.map _).prod := eq_prod_roots_of_splits h,
   have hs' : s.card = n,
   { rw [splits_iff_card_roots.mp ((splits_id_iff_splits i).mpr h), nat_degree_map],
-    exact nat_degree_X_pow_sub_C hn' },
+    exact nat_degree_X_pow_sub_C },
   rw [leading_coeff_X_pow_sub_C hn', ring_hom.map_one, C_1, one_mul] at hs,
   apply @splits_of_exists_multiset F E _ _ i (X ^ n - 1) (s.map (λ c : E, c / b)),
   rw [leading_coeff_X_pow_sub_one hn', ring_hom.map_one, C_1, one_mul],
@@ -268,7 +266,7 @@ begin
   by_cases hx : x = 0,
   { rw [hx, C_0, sub_zero],
     exact gal_X_pow_is_solvable n },
-  apply lemma3 (X ^ n - 1) (X ^ n - C x),
+  apply gal_is_solvable_tower (X ^ n - 1) (X ^ n - C x),
   { exact splits_X_pow_sub_one_of_X_pow_sub_C _ n hx (splitting_field.splits _) },
   { exact gal_X_pow_sub_one_is_solvable n },
   { rw [map_sub, map_pow, map_X, map_C],
@@ -370,13 +368,13 @@ begin
     cases (comp_eq_zero_iff.mp h) with h' h',
     { exact minpoly.ne_zero (is_integral (α ^ n)) h' },
     { exact hn (by rw [←nat_degree_C _, ←h'.2, nat_degree_X_pow]) } },
-  apply lemma2,
+  apply gal_is_solvable_of_splits,
   { apply splits_of_splits_of_dvd,
     { exact hp },
     { exact splitting_field.splits (p.comp (X ^ n)) },
     { apply minpoly.dvd,
       rw [aeval_comp, aeval_X_pow, minpoly.aeval] } },
-  { apply lemma3 p (p.comp (X ^ n)),
+  { apply gal_is_solvable_tower p (p.comp (X ^ n)),
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
     { exact hα },
     { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
@@ -394,7 +392,6 @@ begin
         exact gal_X_pow_sub_C_is_solvable n q } } },
 end
 
---todo: clean up
 lemma induction2 {α β γ : SBR F E} (hγ : γ ∈ F⟮α, β⟯) (hα : P α) (hβ : P β) : P γ :=
 begin
   let p := (minpoly F α),
@@ -410,8 +407,8 @@ begin
     cases hx,
     exact ⟨is_integral β, hpq.2⟩,
   end),
-  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.unique' (normal.is_integral
-    (splitting_field.normal _) _) (minpoly.irreducible (is_integral γ)) begin
+  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.unique'
+    (normal.is_integral (splitting_field.normal _) _) (minpoly.irreducible (is_integral γ)) begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
       apply (algebra_map F⟮α, β⟯ (SBR F E)).injective,
@@ -419,7 +416,9 @@ begin
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],
-  exact lemma2 (normal.splits (splitting_field.normal _) _) (gal_mul_is_solvable hα hβ),
+  apply gal_is_solvable_of_splits,
+  { exact normal.splits (splitting_field.normal _) _ },
+  { exact gal_mul_is_solvable hα hβ },
 end
 
 lemma induction1 {α β : SBR F E} (hβ : β ∈ F⟮α⟯) (hα : P α) : P β :=

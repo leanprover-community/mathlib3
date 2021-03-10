@@ -19,9 +19,8 @@ Classical versions are in the namespace "classical".
 In the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-f
 
-local attribute [instance, priority 10] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decfidable
 
 section miscellany
 

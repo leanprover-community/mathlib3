@@ -79,7 +79,7 @@ lemma polar_smul [monoid S] [distrib_mul_action S R] (f : M → R) (s : S) (x y 
   polar (s • f) x y = s • polar f x y :=
 by { simp only [polar, pi.smul_apply, smul_sub] }
 
-lemma polar_comm (f : M → R₁) (x y : M) : polar f x y = polar f y x :=
+lemma polar_comm (f : M → R) (x y : M) : polar f x y = polar f y x :=
 by rw [polar, polar, add_comm, sub_sub, sub_sub, add_comm (f x) (f y)]
 
 end quadratic_form

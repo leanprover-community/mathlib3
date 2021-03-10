@@ -26,24 +26,16 @@ universes u₁ u₂ u₃ u₄
 
 variables (R : Type u₁) (A : Type u₂) (B : Type u₃) (C : Type u₄) [semiring R]
 
-set_option old_structure_cmd true
-
-/-- A not-necessarily-unital, not-necessarily-associative semiring, or "non-associative ring" for
-short. -/
-class na_semiring extends add_comm_monoid A, distrib A, mul_zero_class A
-
--- https://github.com/leanprover-community/lean/issues/285
-set_option old_structure_cmd false
-
 /-- A not-necessarily-unital, not-necessarily-associative algebra, or "non-associative algebra" for
 short. -/
 @[protect_proj]
-class na_algebra [na_semiring A] extends semimodule R A :=
+class na_algebra [nau_semiring A] extends semimodule R A :=
 (smul_mul_assoc' : ∀ (t : R) (a b : A), (t • a) * b = t • (a * b))
 (mul_smul_comm' : ∀ (t : R) (a b : A), a * (t • b) = t • (a * b))
 
 @[priority 200] -- see Note [lower instance priority]
-instance semiring.to_na_semiring [semiring A] : na_semiring A := { ..(infer_instance : semiring A) }
+instance semiring.to_nau_semiring [semiring A] : nau_semiring A :=
+{ ..(infer_instance : semiring A) }
 
 @[priority 200] -- see Note [lower instance priority]
 instance algebra.to_na_algebra (R : Type u₁) [comm_semiring R] [semiring A] [algebra R A] :
@@ -54,7 +46,7 @@ instance algebra.to_na_algebra (R : Type u₁) [comm_semiring R] [semiring A] [a
 
 namespace na_algebra
 
-variables {R A} [na_semiring A] [na_algebra R A]
+variables {R A} [nau_semiring A] [na_algebra R A]
 
 lemma smul_mul_assoc (t : R) (a b : A) :
   (t • a) * b = t • (a * b) :=
@@ -65,20 +57,20 @@ lemma mul_smul_comm (t : R) (a b : A) :
 na_algebra.mul_smul_comm' t a b
 
 /-- The algebra multiplication as a bilinear map. -/
-def mul_as_bilinear {R : Type u₁} {A : Type u₂} [comm_semiring R] [na_semiring A] [na_algebra R A] :
+def mul_as_bilinear {R : Type u₁} {A : Type u₂} [comm_semiring R] [nau_semiring A] [na_algebra R A] :
   A →ₗ[R] A →ₗ[R] A :=
 linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm
 
-/-- If the underlying `na_semiring` is actually a `semiring` we have an `algebra`. -/
+/-- If the underlying `nau_semiring` is actually a `semiring` we have an `algebra`. -/
 def to_algebra {R : Type u₁} {A : Type u₂} [comm_semiring R] [semiring A] [na_algebra R A] :
   algebra R A :=
 algebra.of_semimodule smul_mul_assoc mul_smul_comm
 
 end na_algebra
 
-variables [na_semiring A] [na_algebra R A]
-variables [na_semiring B] [na_algebra R B]
-variables [na_semiring C] [na_algebra R C]
+variables [nau_semiring A] [na_algebra R A]
+variables [nau_semiring B] [na_algebra R B]
+variables [nau_semiring C] [na_algebra R C]
 
 set_option old_structure_cmd true
 

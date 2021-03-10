@@ -565,7 +565,7 @@ by {rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
 instance bot.is_cyclic : is_cyclic (⊥ : subgroup α) :=
 ⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
 
-instance subgroup.is_cyclic [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=
+instance subgroup.is_cyclic [is_cyclic α] (H : subgroup α) : is_cyclic H :=
 by haveI := classical.prop_decidable; exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
@@ -655,7 +655,7 @@ by { simp only [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α
 
 section
 
-variables [group α] [decidable_eq α] [fintype α]
+variables [decidable_eq α] [fintype α]
 
 lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
@@ -673,7 +673,7 @@ end
 
 section totient
 
-variables [group α] [decidable_eq α] [fintype α]
+variables [decidable_eq α] [fintype α]
 (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
 
 include hn
@@ -788,7 +788,7 @@ is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
 
 end totient
 
-lemma is_cyclic.card_order_of_eq_totient [group α] [is_cyclic α] [decidable_eq α] [fintype α]
+lemma is_cyclic.card_order_of_eq_totient [is_cyclic α] [decidable_eq α] [fintype α]
   {d : ℕ} (hd : d ∣ fintype.card α) : (univ.filter (λ a : α, order_of a = d)).card = totient d :=
 card_order_of_eq_totient_aux₂ (λ n, is_cyclic.card_pow_eq_one_le) hd
 

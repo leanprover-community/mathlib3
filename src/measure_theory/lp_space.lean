@@ -342,7 +342,7 @@ begin
   ext1 x,
   simp_rw ← of_real_norm_eq_coe_nnnorm,
   rw [real.norm_eq_abs, abs_eq_self.mpr (real.rpow_nonneg_of_nonneg (norm_nonneg _) _),
-    mul_comm, ← ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) hq_pos, ennreal.rpow_mul],
+    mul_comm, ← ennreal.of_real_rpow_of_nonneg (norm_nonneg _) hq_pos.le, ennreal.rpow_mul],
 end
 
 lemma snorm_norm_rpow (f : α → G) (hq_pos : 0 < q) :

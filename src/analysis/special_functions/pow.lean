@@ -1657,9 +1657,13 @@ begin
   simp [hx_pos],
 end
 
-lemma of_real_rpow_of_nonneg_of_pos {x p : ℝ} (hx_nonneg : 0 ≤ x) (hp_pos : 0 < p) :
+lemma of_real_rpow_of_nonneg {x p : ℝ} (hx_nonneg : 0 ≤ x) (hp_nonneg : 0 ≤ p) :
   ennreal.of_real x ^ p = ennreal.of_real (x ^ p) :=
 begin
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
+  rw ← ne.def at hp0,
+  have hp_pos : 0 < p := lt_of_le_of_ne hp_nonneg hp0.symm,
   by_cases hx0 : x = 0,
   { simp [hx0, hp_pos, hp_pos.ne.symm], },
   rw ← ne.def at hx0,

@@ -439,11 +439,37 @@ map_monomial _ _ _
 
 end map
 
-instance {A} [comm_semiring R] [semiring A] [algebra R A] : algebra R (mv_power_series σ A) :=
+section algebra
+variables {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+
+instance : algebra R (mv_power_series σ A) :=
 { commutes' := λ a φ, by { ext n, simp [algebra.commutes] },
   smul_def' := λ a σ, by { ext n, simp [(coeff A n).map_smul_of_tower a, algebra.smul_def] },
   to_ring_hom := (mv_power_series.map σ (algebra_map R A)).comp (C σ R),
   .. mv_power_series.semimodule }
+
+theorem C_eq_algebra_map : C σ R = (algebra_map R (mv_power_series σ R)) := rfl
+
+theorem algebra_map_apply {r : R} :
+  algebra_map R (mv_power_series σ A) r = C σ A (algebra_map R A r) :=
+begin
+  change (mv_power_series.map σ (algebra_map R A)).comp (C σ R) r = _,
+  simp,
+end
+
+instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_series σ R)) :=
+⟨⟨⊥, ⊤, begin
+  rw [ne.def, subalgebra.ext_iff, not_forall],
+  inhabit σ,
+  refine ⟨X (default σ), _⟩,
+  simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
+  intros x,
+  rw [ext_iff, not_forall],
+  refine ⟨finsupp.single (default σ) 1, _⟩,
+  simp [algebra_map_apply, coeff_C],
+end⟩⟩
+
+end algebra
 
 section trunc
 variables [comm_semiring R] (n : σ →₀ ℕ)
@@ -1287,6 +1313,20 @@ instance : local_ring (power_series R) :=
 mv_power_series.local_ring
 
 end local_ring
+
+section algebra
+variables {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+
+theorem C_eq_algebra_map {r : R} : C R r = (algebra_map R (power_series R)) r := rfl
+
+theorem algebra_map_apply {r : R} :
+  algebra_map R (power_series A) r = C A (algebra_map R A r) :=
+mv_power_series.algebra_map_apply
+
+instance [nontrivial R] : nontrivial (subalgebra R (power_series R)) :=
+mv_power_series.subalgebra.nontrivial
+
+end algebra
 
 section field
 variables {k : Type*} [field k]

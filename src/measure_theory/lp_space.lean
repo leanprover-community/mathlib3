@@ -345,6 +345,42 @@ begin
     mul_comm, ← ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) hq_pos, ennreal.rpow_mul],
 end
 
+lemma norm_rpow {x : ℝ} {q : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ q∥ = ∥x∥ ^ q :=
+begin
+  have h_rpow_nonneg : 0 ≤ x ^ q, from real.rpow_nonneg_of_nonneg hx_nonneg _,
+  rw [real.norm_eq_abs, real.norm_eq_abs, abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
+end
+
+lemma nnnorm_rpow {x : ℝ} {q : ℝ} (hx_nonneg : 0 ≤ x) : nnnorm (x ^ q) = (nnnorm x) ^ q :=
+by { ext, push_cast, exact norm_rpow hx_nonneg }
+
+lemma snorm_norm_rpow (f : α → G) (q : ℝ) (hq_pos : 0 < q) :
+  snorm (λ x, ∥f x∥ ^ q) p μ = (snorm f (p * ennreal.of_real q) μ) ^ q :=
+begin
+  by_cases h0 : p = 0,
+  { simp [h0, ennreal.zero_rpow_of_pos hq_pos], },
+  by_cases hp_top : p = ∞,
+  { simp only [hp_top, snorm_exponent_top, ennreal.top_mul, hq_pos.not_le, ennreal.of_real_eq_zero,
+      if_false, snorm_exponent_top, snorm_ess_sup],
+    have h_rpow : ess_sup (λ (x : α), (nnnorm (∥f x∥ ^ q) : ℝ≥0∞)) μ
+      = ess_sup (λ (x : α), (↑(nnnorm (f x))) ^ q) μ,
+    { congr,
+      ext1 x,
+      nth_rewrite 1 ← nnnorm_norm,
+      rw [ennreal.coe_rpow_of_nonneg _ hq_pos.le, ennreal.coe_eq_coe,
+        nnnorm_rpow (norm_nonneg _)], },
+    rw h_rpow,
+    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
+    have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,
+    let iso := h_rpow_mono.order_iso_of_surjective _ h_rpow_surj,
+    exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm, },
+  rw [snorm_eq_snorm' h0 hp_top, snorm_eq_snorm' _ _],
+  swap, { refine mul_ne_zero h0 _, rwa [ne.def, ennreal.of_real_eq_zero, not_le], },
+  swap, { exact ennreal.mul_ne_top hp_top ennreal.of_real_ne_top, },
+  rw [ennreal.to_real_mul, ennreal.to_real_of_real hq_pos.le],
+  exact snorm'_norm_rpow f p.to_real q hq_pos,
+end
+
 lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f p μ = snorm g p μ :=
 snorm_congr_norm_ae $ hfg.mono (λ x hx, hx ▸ rfl)
 

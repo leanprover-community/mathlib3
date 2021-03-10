@@ -35,6 +35,45 @@ lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset (polynomial R)) (p :
   s.prod.comp p = (s.map (λ q : polynomial R, q.comp p)).prod :=
 (s.prod_hom (monoid_hom.mk (λ q : polynomial R, q.comp p) one_comp (λ q r, mul_comp q r p))).symm
 
+lemma lem1 {G : Type*} [group G] [h : is_cyclic G] (σ : G →* G) (g : G) :
+∃ m : ℤ, σ g = g ^ m :=
+begin
+  tactic.unfreeze_local_instances,
+  obtain ⟨h, hG⟩ := h,
+  obtain ⟨n, rfl⟩ := hG g,
+  obtain ⟨m, hm⟩ := hG (σ h),
+  use m,
+  rw [monoid_hom.map_gpow, ←hm, ←gpow_mul, ←gpow_mul'],
+end
+
+lemma lem2 {F : Type*} [field F] {n : ℕ+} (σ : F →+* F)
+  (ζ : roots_of_unity n F) : ∃ m : ℕ, σ ζ = ζ ^ m :=
+begin
+  have h1 : ∀ ξ : roots_of_unity n F, (ξ : F) ^ (n : ℕ) = 1,
+  { intro ξ,
+    have key := congr_arg (coe : units F → F) ξ.2,
+    rwa [units.coe_pow] at key },
+  have h2 : ∀ ξ : roots_of_unity n F, (σ ξ) ^ (n : ℕ) = 1,
+  { intro ξ,
+    rw [←σ.map_pow, h1 ξ, σ.map_one] },
+  let f : (roots_of_unity n F) →* (roots_of_unity n F) :=
+  { to_fun := λ ξ, ⟨is_unit.unit (is_unit_of_pow_eq_one (σ ξ) n (h2 ξ) n.2),
+      by { ext, rw [units.coe_pow, is_unit.unit_spec], exact h2 ξ }⟩,
+    map_one' := by { ext, rw [subtype.coe_mk, is_unit.unit_spec], exact σ.map_one },
+    map_mul' := λ ξ₁ ξ₂, by
+    { ext,
+      simp_rw [subgroup.coe_mul, units.coe_mul, subtype.coe_mk, is_unit.unit_spec],
+      exact σ.map_mul _ _ } },
+  obtain ⟨m, hm⟩ := lem1 f ζ,
+  replace hm := congr_arg (coe : roots_of_unity n F → units F) hm,
+  replace hm := congr_arg (coe : units F → F) hm,
+  rw [gpow_eq_mod_order_of, ←int.to_nat_of_nonneg (int.mod_nonneg m _), gpow_coe_nat,
+      subgroup.coe_pow, units.coe_pow] at hm,
+  exact ⟨(m % (order_of ζ)).to_nat, eq.trans (is_unit.unit_spec _).symm hm⟩,
+  rw [int.coe_nat_ne_zero, ←pos_iff_ne_zero],
+  exact order_of_pos ζ,
+end
+
 section abel_ruffini
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
@@ -101,18 +140,32 @@ section gal_X_pow_sub_C
 
 lemma gal_X_pow_sub_one_is_solvable (n : ℕ) : is_solvable (X ^ n - 1 : polynomial F).gal :=
 begin
+  by_cases hn : n = 0,
+  { rw [hn, pow_zero, sub_self],
+    exact gal_zero_is_solvable },
+  have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
+  have hn'' : (X ^ n - 1 : polynomial F) ≠ 0,
+  { intro h,
+    replace h := congr_arg (eval 0) h,
+    rw [eval_sub, eval_zero, sub_eq_zero_iff_eq, eval_pow, eval_X, eval_one, zero_pow hn'] at h,
+    exact zero_ne_one h },
   apply is_solvable_of_comm',
   intros σ τ,
   ext a ha,
-  rw [mem_root_set, alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] at ha,
+  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] at ha,
   have key1 : ∀ σ : (X ^ n - 1 : polynomial F).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    sorry },
+    obtain ⟨m, hm⟩ := lem2 σ.to_alg_hom.to_ring_hom
+      ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn'),
+      by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
+    use m,
+    convert hm,
+    exact (is_unit.unit_spec _).symm,
+    exact (is_unit.unit_spec _).symm },
   obtain ⟨c, hc⟩ := key1 σ,
   obtain ⟨d, hd⟩ := key1 τ,
   change σ (τ a) = τ (σ a),
   rw [hc, hd, σ.map_pow, τ.map_pow, hc, hd, ←pow_mul, pow_mul'],
-  sorry,
 end
 
 lemma gal_X_pow_sub_C_is_solvable_aux (n : ℕ) (a : F)
@@ -127,31 +180,29 @@ begin
   { rw [hn, pow_zero, ←C_1, ←C_sub],
     exact gal_C_is_solvable (1 - a) },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : (X ^ n - C a).degree ≠ 0,
-  { rwa [degree_X_pow_sub_C hn', ne, with_bot.coe_eq_zero],
-    apply_instance },
-  have hn''' : X ^ n - C a ≠ 0,
+  have hn'' : X ^ n - C a ≠ 0,
   { intro h,
     replace h := congr_arg (eval 0) h,
     rw [eval_sub, eval_zero, sub_eq_zero_iff_eq, eval_pow, eval_X, eval_C, zero_pow hn'] at h,
     exact ha h.symm },
+  have hn''' : (X ^ n - 1 : polynomial F) ≠ 0,
+  { intro h,
+    replace h := congr_arg (eval 0) h,
+    rw [eval_sub, eval_zero, sub_eq_zero_iff_eq, eval_pow, eval_X, eval_one, zero_pow hn'] at h,
+    exact zero_ne_one h },
   have key0 : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c,
   { intros c hc,
     rw [←ring_hom.mem_range],
     apply minpoly.mem_range_of_degree_eq_one,
     refine or.resolve_left h _ _ _,
-    { intro h,
-      replace h := congr_arg nat_degree h,
-      rw [←C_1, nat_degree_X_pow_sub_C hn', nat_degree_zero] at h,
-      exact hn h,
-      apply_instance },
+    { exact hn''' },
     { exact minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c) },
     { apply minpoly.dvd,
       rwa [map_id, alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] } },
   apply is_solvable_of_comm',
   intros σ τ,
   ext b hb,
-  rw [mem_root_set hn''', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero_iff_eq] at hb,
+  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero_iff_eq] at hb,
   have hb' : b ≠ 0,
   { intro hb',
     rw [hb', zero_pow hn'] at hb,

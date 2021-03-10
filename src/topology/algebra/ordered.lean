@@ -2458,7 +2458,7 @@ lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connec
 end densely_ordered
 
 /-- Closed interval in a conditionally complete linear order is compact. -/
-lemma compact_Icc (a b : α) : is_compact (Icc a b) :=
+lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
 begin
   cases le_or_lt a b with hab hab, swap, { simp [hab] },
   refine compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
@@ -2502,15 +2502,15 @@ begin
 end
 
 /-- An unordered closed interval in a conditionally complete linear order is compact. -/
-lemma compact_interval (a b : α) : is_compact (interval a b) := compact_Icc _ _
+lemma compact_interval {a b : α} : is_compact (interval a b) := compact_Icc
 
 lemma compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
   [Π i, topological_space (α i)] [Π i, order_topology (α i)] (a b : Π i, α i) :
   is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc (a i) (b i)
+pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
 
 instance compact_space_Icc (a b : α) : compact_space (Icc a b) :=
-compact_iff_compact_space.mp (compact_Icc a b)
+compact_iff_compact_space.mp compact_Icc
 
 instance compact_space_pi_Icc {ι : Type*} {α : ι → Type*}
   [Π i, conditionally_complete_linear_order (α i)] [Π i, topological_space (α i)]

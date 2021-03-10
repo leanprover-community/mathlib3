@@ -32,7 +32,7 @@ lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) :
   snorm (λ (x : α), ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin
   have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
-  rw [snorm_norm_rpow f 2 zero_lt_two, one_mul, h_two],
+  rw [snorm_norm_rpow f zero_lt_two, one_mul, h_two],
   exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),
 end
 
@@ -79,7 +79,7 @@ begin
   ext1 x,
   have h_two : (2 : ℝ) = ((2 : ℕ) : ℝ), by simp,
   rw [← real.rpow_nat_cast _ 2, ← h_two,
-    ←ennreal.of_real_rpow_of_nonneg_of_pos (norm_nonneg _) zero_lt_two, of_real_norm_eq_coe_nnnorm],
+    ←ennreal.of_real_rpow_of_nonneg (norm_nonneg _) zero_le_two, of_real_norm_eq_coe_nnnorm],
   norm_cast,
 end
 

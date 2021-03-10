@@ -66,6 +66,9 @@ variables [has_lt α]
 /-- `s.is_wf` indicates that `<` is well-founded when restricted to `s`. -/
 def is_wf (s : set α) : Prop := well_founded_on s (<)
 
+lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
+by simp [is_wf, well_founded_on_iff]
+
 variables {s t : set α}
 
 theorem is_wf.mono (h : is_wf t) (st : s ⊆ t) : is_wf s :=
@@ -526,3 +529,7 @@ begin
 end
 
 end finset
+
+lemma well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop)) (s : set α) :
+  s.is_wf :=
+(set.is_wf_univ_iff.2 h).mono (set.subset_univ s)

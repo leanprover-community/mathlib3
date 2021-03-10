@@ -183,9 +183,9 @@ begin
   { rw iff_quotient_mv_polynomial',
     rintro ⟨ι, hfintype, ⟨f, hsur⟩⟩,
     obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι hfintype,
-    replace equiv := mv_polynomial.alg_equiv_congr_left R (nonempty.some equiv),
-    use [n, alg_hom.comp f equiv.symm, function.surjective.comp hsur
-      (alg_equiv.symm equiv).surjective] },
+    replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
+    exact ⟨n, alg_hom.comp f equiv.symm, function.surjective.comp hsur
+      (alg_equiv.symm equiv).surjective⟩ },
   { rintro ⟨n, ⟨f, hsur⟩⟩,
     exact finite_type.of_surjective (finite_type.mv_polynomial R (fin n)) f hsur }
 end
@@ -239,7 +239,7 @@ variable (R)
 lemma mv_polynomial (ι : Type u_2) [fintype ι] : finite_presentation R (mv_polynomial ι R) :=
 begin
   obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι _,
-  replace equiv := mv_polynomial.alg_equiv_congr_left R (nonempty.some equiv),
+  replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
   use [n, alg_equiv.to_alg_hom equiv.symm],
   split,
   { exact (alg_equiv.symm equiv).surjective },
@@ -284,7 +284,7 @@ lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u
 begin
   split,
   { rintro ⟨n, f, hfs, hfk⟩,
-    set ulift_var := mv_polynomial.alg_equiv_congr_left R equiv.ulift,
+    set ulift_var := mv_polynomial.rename_equiv R equiv.ulift,
     refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
       hfs.comp ulift_var.surjective,
       submodule.fg_ker_ring_hom_comp _ _ _ hfk ulift_var.surjective⟩,
@@ -293,7 +293,7 @@ begin
   { rintro ⟨ι, hfintype, f, hf⟩,
     haveI : fintype ι := hfintype,
     obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,
-    replace equiv := mv_polynomial.alg_equiv_congr_left R (nonempty.some equiv),
+    replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
     refine ⟨n, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
       submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,

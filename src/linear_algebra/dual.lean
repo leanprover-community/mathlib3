@@ -525,6 +525,15 @@ end
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 
+@[simp] lemma dual_findim_eq :
+  findim K (module.dual K V) = findim K V :=
+begin
+  obtain ⟨n, hn, hf⟩ := exists_is_basis_finite K V,
+  refine linear_equiv.findim_eq _,
+  haveI : fintype n := set.finite.fintype hf,
+  refine (hn.to_dual_equiv _).symm,
+end
+
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/
 noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :
   W.dual_lift.range.quotient ≃ₗ[K] W.dual_annihilator :=

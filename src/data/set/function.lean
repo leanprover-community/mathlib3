@@ -88,6 +88,9 @@ lemma eq_on_comm : eq_on f₁ f₂ s ↔ eq_on f₂ f₁ s :=
 theorem eq_on.image_eq (heq : eq_on f₁ f₂ s) : f₁ '' s = f₂ '' s :=
 image_congr heq
 
+theorem eq_on.inter_preimage_eq (heq : eq_on f₁ f₂ s) (t : set β) : s ∩ f₁ ⁻¹' t = s ∩ f₂ ⁻¹' t :=
+ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, heq hx]
+
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
 
@@ -184,6 +187,18 @@ theorem maps_to_preimage (f : α → β) (t : set β) : maps_to f (f ⁻¹' t) t
 
 theorem maps_to_range (f : α → β) (s : set α) : maps_to f s (range f) :=
 (maps_to_image f s).mono (subset.refl s) (image_subset_range _ _)
+
+@[simp] lemma maps_image_to (f : α → β) (g : γ → α) (s : set γ) (t : set β) :
+  maps_to f (g '' s) t ↔ maps_to (f ∘ g) s t :=
+⟨λ h c hc, h ⟨c, hc, rfl⟩, λ h d ⟨c, hc⟩, hc.2 ▸ h hc.1⟩
+
+@[simp] lemma maps_univ_to (f : α → β) (s : set β) :
+  maps_to f univ s ↔ ∀ a, f a ∈ s :=
+⟨λ h a, h (mem_univ _), λ h x _, h x⟩
+
+@[simp] lemma maps_range_to (f : α → β) (g : γ → α) (s : set β) :
+  maps_to f (range g) s ↔ maps_to (f ∘ g) univ s :=
+by rw [←image_univ, maps_image_to]
 
 theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
   surjective ((maps_to_image f s).restrict f s (f '' s)) :=
@@ -686,6 +701,21 @@ lemma piecewise_mem_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
   {f g} (hf : f ∈ pi t t') (hg : g ∈ pi t t') :
   s.piecewise f g ∈ pi t t' :=
 by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
+
+@[simp] lemma pi_piecewise {ι : Type*} {α : ι → Type*} (s s' : set ι)
+  (t t' : Π i, set (α i)) [Π x, decidable (x ∈ s')] :
+  pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
+begin
+  ext x,
+  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  refine forall_congr (λ i, _),
+  by_cases hi : i ∈ s'; simp *
+end
+
+lemma univ_pi_piecewise {ι : Type*} {α : ι → Type*} (s : set ι)
+  (t : Π i, set (α i)) [Π x, decidable (x ∈ s)] :
+  pi univ (s.piecewise t (λ _, univ)) = pi s t :=
+by simp
 
 end set
 

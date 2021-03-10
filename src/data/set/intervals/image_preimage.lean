@@ -24,8 +24,9 @@ namespace set
 section has_exists_add_of_le
 /-!
 The lemmas in this section state that addition maps intervals bijectively. The typeclass
-`has_exists_add_of_le` is defined specifically to make them work; it applies to all
-`ordered_add_comm_group`, but also to `ℕ` and `ℝ≥0`, which are not groups.
+`has_exists_add_of_le` is defined specifically to make them work in combination with
+`ordered_cancel_add_comm_monoid`; they apply to all `ordered_add_comm_group`, but also
+to `ℕ` and `ℝ≥0`, which are not groups.
 
 TODO : move as much as possible in this file to the setting of this weaker typeclass.
 -/

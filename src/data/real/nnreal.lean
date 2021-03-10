@@ -537,9 +537,6 @@ by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff
 lemma sub_eq_iff_eq_add {a b c : ℝ≥0} (h : b ≤ a) : a - b = c ↔ a = c + b :=
 by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
 
-instance : has_exists_add_of_le ℝ≥0 :=
-⟨λ a b hab, ⟨b - a, by rw [add_comm, nnreal.sub_add_cancel_of_le hab]⟩⟩
-
 end sub
 
 section inv

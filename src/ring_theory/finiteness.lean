@@ -314,9 +314,12 @@ end
 
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
-lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (n : ℕ) :
-  finite_presentation R (_root_.mv_polynomial (fin n) A) :=
+lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
+  [fintype ι] : finite_presentation R (_root_.mv_polynomial ι A) :=
 begin
+  obtain ⟨n, e⟩ := fintype.exists_equiv_fin ι,
+  replace e := alg_equiv.restrict_scalars R (mv_polynomial.rename_equiv A (nonempty.some e)),
+  refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
   refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
   letI : is_scalar_tower R (_root_.mv_polynomial (fin m) R)

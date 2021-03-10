@@ -24,10 +24,6 @@ variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜] {p : ℝ≥0∞} [measurable_
   [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
   [normed_group G]
 
-instance : has_inner 𝕜 (Lp E 2 μ) :=
-{inner := λ (f g : Lp E 2 μ), ∫ a : α, (inner (f a) (g a)) ∂μ }
-
-lemma inner_def (f g : Lp E 2 μ) : inner f g = ∫ a : α, (inner (f a) (g a) : 𝕜) ∂μ := rfl
 
 lemma two_mul_le_add_sq (a b : ℝ) : 2 * a * b ≤ a ^ 2 + b ^ 2 :=
 begin
@@ -45,6 +41,11 @@ begin
 end
 
 include 𝕜
+
+instance : has_inner 𝕜 (Lp E 2 μ) :=
+{inner := λ (f g : Lp E 2 μ), ∫ a : α, (inner (f a) (g a)) ∂μ }
+
+lemma inner_def (f g : Lp E 2 μ) : inner f g = ∫ a : α, (inner (f a) (g a) : 𝕜) ∂μ := rfl
 
 lemma integral_inner_eq_sq_snorm (f : Lp E 2 μ) :
   ∫ (a : α), (inner (f a) (f a) : 𝕜) ∂μ =

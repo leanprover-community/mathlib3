@@ -31,7 +31,7 @@ to `ℕ` and `ℝ≥0`, which are not groups.
 TODO : move as much as possible in this file to the setting of this weaker typeclass.
 -/
 
-variables {α : Type u}[ordered_cancel_add_comm_monoid α][has_exists_add_of_le α](l u x : α)
+variables {α : Type u} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (l u x : α)
 
 open has_exists_add_of_le
 
@@ -78,7 +78,7 @@ end
 lemma Ici_add_bij : bij_on (+x) (Ici l) (Ici (l + x)) :=
 begin
   refine ⟨λ x h, add_le_add_right (mem_Ici.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h,
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (mem_Ici.mp h),
   rw [mem_Ici, add_right_comm, add_le_add_iff_right] at h,
   exact ⟨l + c, h, by rw add_right_comm⟩,
 end
@@ -86,7 +86,7 @@ end
 lemma Ioi_add_bij : bij_on (+x) (Ioi l) (Ioi (l + x)) :=
 begin
   refine ⟨λ x h, add_lt_add_right (mem_Ioi.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h),
+  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt (mem_Ioi.mp h)),
   rw [mem_Ioi, add_right_comm, add_lt_add_iff_right] at h,
   exact ⟨l + c, h, by rw add_right_comm⟩,
 end

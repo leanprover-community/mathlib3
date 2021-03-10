@@ -47,6 +47,11 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
+/-- an `ordered_comm_monoid` with one-sided 'division'
+in the sense that if `a ≤ b`, there is some `c` for which `a * c = b` -/
+class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] :=
+(exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a * c)
+
 attribute [to_additive] ordered_comm_monoid
 
 /-- A linearly ordered additive commutative monoid. -/
@@ -62,6 +67,11 @@ class linear_ordered_add_comm_monoid (α : Type*)
   -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
   letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
   exact le_of_not_lt h })
+
+/-- an `ordered_add_comm_monoid` with one-sided 'subtraction'
+in the sense that if `a ≤ b`, there is some `c` for which `a + c = b` -/
+class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] :=
+(exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a + c)
 
 /-- A linearly ordered commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_comm_monoid, to_additive]
@@ -795,6 +805,11 @@ instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_orde
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
 
+@[priority 100]
+instance canonically_ordered_add_monoid.has_exists_add_of_le
+(α : Type u)[canonically_ordered_add_monoid α] : has_exists_add_of_le α :=
+{ exists_add_of_le := λ a b hab, le_iff_exists_add.mp hab}
+
 end canonically_ordered_monoid
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
@@ -1117,15 +1132,6 @@ by simpa [add_comm] using @with_bot.add_lt_add_iff_left _ _ a b c
 
 end ordered_cancel_add_comm_monoid
 
-/-- an `ordered_cancel_add_comm_monoid` with one-sided 'subtraction'
-in the sense that if `a ≤ b`, there is some `c` for which `a + c = b` -/
-class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] :=
-(exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a + c)
-
-instance canonically_ordered_add_monoid.has_exists_add_of_le
-(α : Type u)[canonically_ordered_add_monoid α] : has_exists_add_of_le α :=
-{ exists_add_of_le := λ a b hab, le_iff_exists_add.mp hab}
-
 /-! Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
 @[to_additive]
@@ -1277,3 +1283,5 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
   ..additive.ordered_add_comm_monoid }
 
 end type_tags
+
+#lint

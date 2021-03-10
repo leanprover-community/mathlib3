@@ -1147,9 +1147,6 @@ begin
   rw [←nnreal.coe_rpow, nnreal.of_real_coe],
 end
 
-lemma nnnorm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : nnnorm (x ^ y) = (nnnorm x) ^ y :=
-by { ext, push_cast, exact real.norm_rpow_of_nonneg hx_nonneg }
-
 end nnreal
 
 namespace measurable

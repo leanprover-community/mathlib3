@@ -1485,9 +1485,9 @@ begin
   exact λ N1, ⟨max N N1, le_max_right _ _, (h_ n (max N N1) hnN (le_max_left _ _)).le⟩,
 end
 
-lemma mem_ℒp_of_cauchy_limit [complete_space E] [hp : fact (1 ≤ p)]
+lemma mem_ℒp_of_cauchy_limit [hp : fact (1 ≤ p)]
   {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ)
-  {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞) (f_lim : α → E) (h_lim_meas : ae_measurable f_lim μ)
+  (f_lim : α → E) (h_lim_meas : ae_measurable f_lim μ)
   (h_tendsto : ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm ((λ n, f n) n - f_lim) p μ < ε)) :
   mem_ℒp f_lim p μ :=
 begin
@@ -1527,7 +1527,7 @@ begin
   { simp_rw snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp.elim).ne.symm hp_ne_top,
     exact h_tendsto, },
   have h_ℒp_lim : mem_ℒp f_lim p μ,
-    from mem_ℒp_of_cauchy_limit hf hB f_lim f_lim_meas.ae_measurable h_tendsto',
+    from mem_ℒp_of_cauchy_limit hf f_lim f_lim_meas.ae_measurable h_tendsto',
   exact ⟨f_lim, h_ℒp_lim, h_tendsto'⟩,
 end
 
@@ -1585,7 +1585,7 @@ lemma cauchy_complete_ℒp_top [complete_space E] {f : ℕ → α → E} (hf : �
     ∀ (ε : ℝ≥0∞), 0 < ε → ε < ∞ → (∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → snorm (f n - f_lim) ∞ μ < ε) :=
 begin
   obtain ⟨f_lim, h_lim_meas, h_tendsto⟩ := cauchy_limit_ℒp_top hf hB h_cau,
-  exact ⟨f_lim, mem_ℒp_of_cauchy_limit hf hB f_lim h_lim_meas.ae_measurable h_tendsto, h_tendsto⟩,
+  exact ⟨f_lim, mem_ℒp_of_cauchy_limit hf f_lim h_lim_meas.ae_measurable h_tendsto, h_tendsto⟩,
 end
 
 /-! ### `Lp` is complete for `1 ≤ p` -/

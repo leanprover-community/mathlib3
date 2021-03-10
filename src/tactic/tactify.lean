@@ -11,6 +11,7 @@ meta inductive proof_step
 | apply (e : expr) : proof_step
 | exact (e : expr) : proof_step
 | intro (n : name) : proof_step
+| rewrite (r : expr) : proof_step
 
 meta inductive proof_script
 | step (goal : tactic_state) (step : proof_step) (rest : list proof_script) : proof_script
@@ -21,6 +22,7 @@ meta def to_format : proof_step → tactic format
 | (apply e) := do p ← pp e, return format!"apply {p}"
 | (exact e) := do p ← pp e, return format!"exact {p}"
 | (intro n) := return format!"intro {n}"
+| (rewrite r) := do p ← pp r, return format!"rw {p}"
 
 meta instance : has_to_tactic_format proof_step :=
 ⟨to_format⟩
@@ -46,6 +48,7 @@ meta def as_tactic : proof_step → tactic unit
 | (apply e) := tactic.apply e >> skip
 | (exact e) := tactic.exact e
 | (intro n) := tactic.intro n >> skip
+| (rewrite r) := tactic.rewrite_target r >> skip
 
 meta def subgoals (state : tactic_state) (solution : expr) (step : proof_step) :
   tactic (list (tactic_state × expr)) :=
@@ -110,19 +113,36 @@ meta def tactify_1 (state : tactic_state) (solution : expr) :
   tactic (proof_step × list (tactic_state × expr)) :=
 do
   s ← match solution with
-  | `(bit0 %%n) := return (proof_step.exact solution)
-  | `(bit1 %%n) := return (proof_step.exact solution)
+  -- | `(bit0 %%n) := return (proof_step.exact solution)
+  -- | `(bit1 %%n) := return (proof_step.exact solution)
+  -- | `(eq.mpr (@eq.rec _ _ _ _ _ %%b) _) :=
+  --     return (proof_step.rewrite b)
   | (const n l) := return (proof_step.exact solution)
   | (local_const u p b t) := return (proof_step.exact solution)
-  | (app f x) := do
-      f' ← apply_with_underscores state solution.get_app_fn,
-      return (proof_step.apply f')
   | (lam n bi ty bd) := return (proof_step.intro n) -- TODO use `intros`?
-  | _ := fail format!"don't know how to process {solution}"
+  | (app f x) := do
+      let f' := f.get_app_fn,
+      trace f',
+      match f' with
+      | `(bit0) := return (proof_step.exact solution)
+      | `(bit1) := return (proof_step.exact solution)
+      | `(@eq.mpr) := do
+          let b := solution.app_fn.app_arg.app_arg.app_arg,
+          trace b,
+          return (proof_step.rewrite b)
+      | _ := do
+          f'' ← apply_with_underscores state f',
+          return (proof_step.apply f'')
+      end
+  | _ := do
+      trace state,
+      fail format!"don't know how to process {solution}"
   end,
   gs ← s.subgoals state solution,
   return ⟨s, gs⟩
 
+-- #exit
+-- #print tactify_1
 end tactify
 
 open tactify
@@ -130,11 +150,11 @@ open tactify
 meta def tactify : tactic_state → expr → tactic proof_script
 | goal solution :=
 do
-  -- trace goal,
-  -- trace solution,
+  trace goal,
+  trace solution,
   (step, pairs) ← tactify_1 goal solution,
-  -- trace step,
-  -- trace "---",
+  trace step,
+  trace "---",
   scripts' ← pairs.mmap (λ p, tactify p.1 p.2),
   return $ proof_script.step goal step scripts'
 
@@ -161,8 +181,11 @@ meta def tactic_prompts (n : name) : tactic unit := do
   s ← o.steps,
   s.mmap' (λ p, do trace p.1, trace p.2, trace "")
 
-run_cmd tactic_prompts `nat.factorial_le
 
+run_cmd tactic_prompts `nat.factorial_le
+run_cmd tactic_prompts `nat.add_factorial_succ_lt_factorial_add_succ
+#print nat.add_factorial_succ_lt_factorial_add_succ
+#print eq.rec
 def quux : ℕ := nat.factorial (3 + (nat.factorial 7))
 
 def quux' : ℕ :=
@@ -217,5 +240,6 @@ begin
   tactify `quux,
   tactify `ff,
   tactify `nat.factorial_le,
+  tactify `nat.add_factorial_succ_lt_factorial_add_succ,
   -- bar `bar,
 end

@@ -291,13 +291,7 @@ instance cancel_monoid_with_zero.to_no_zero_divisors : no_zero_divisors M₀ :=
 ⟨λ a b ab0, by { by_cases a = 0, { left, exact h }, right,
   apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
 
-lemma mul_left_injective' (hc : c ≠ 0) : injective (λ x, x * c) :=
-λ a b, mul_right_cancel' hc
-
 lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := ⟨mul_right_cancel' hc, λ h, h ▸ rfl⟩
-
-lemma mul_right_injective' (hc : c ≠ 0) : injective (λ x, c * x) :=
-λ a b, mul_left_cancel' hc
 
 lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_cancel' ha, λ h, h ▸ rfl⟩
 

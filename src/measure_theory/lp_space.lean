@@ -1485,8 +1485,7 @@ begin
   exact λ N1, ⟨max N N1, le_max_right _ _, (h_ n (max N N1) hnN (le_max_left _ _)).le⟩,
 end
 
-lemma mem_ℒp_of_cauchy_limit [hp : fact (1 ≤ p)]
-  {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ)
+lemma mem_ℒp_of_cauchy_limit [hp : fact (1 ≤ p)] {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ)
   (f_lim : α → E) (h_lim_meas : ae_measurable f_lim μ)
   (h_tendsto : ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm ((λ n, f n) n - f_lim) p μ < ε)) :
   mem_ℒp f_lim p μ :=

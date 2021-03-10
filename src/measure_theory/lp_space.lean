@@ -1253,8 +1253,8 @@ end
 
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 
-lemma tendsto_Lp_of_tendsto_ℒp [hp : fact (1 ≤ p)] {f : ℕ → Lp E p μ}
-  (h_tendsto : ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
+lemma tendsto_Lp_of_tendsto_ℒp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
+  {f : ι → Lp E p μ} (h_tendsto : ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
     ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε)) :
   ∃ (g : Lp E p μ), filter.at_top.tendsto f (𝓝 g) :=
 begin
@@ -1279,8 +1279,8 @@ begin
     exact snorm_ne_top _, },
 end
 
-lemma tendsto_ℒp_of_tendsto_Lp [hp : fact (1 ≤ p)] {f : ℕ → Lp E p μ}
-  (h_tendsto : ∃ (g : Lp E p μ), filter.at_top.tendsto f (𝓝 g)) :
+lemma tendsto_ℒp_of_tendsto_Lp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
+  {f : ι → Lp E p μ} (h_tendsto : ∃ (g : Lp E p μ), filter.at_top.tendsto f (𝓝 g)) :
   ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
     ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε) :=
 begin
@@ -1296,7 +1296,8 @@ begin
   exact Lp.snorm_lt_top _,
 end
 
-lemma tendsto_Lp_iff_tendsto_ℒp [hp : fact (1 ≤ p)] {f : ℕ → Lp E p μ} :
+lemma tendsto_Lp_iff_tendsto_ℒp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
+{f : ι → Lp E p μ} :
  (∃ (g : Lp E p μ), filter.at_top.tendsto f (𝓝 g))
   ↔ ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
     ∀ ε, 0 < ε → ε < ∞ → (∃ N, ∀ n, N ≤ n → snorm (f n - f_lim) p μ < ε) :=

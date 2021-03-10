@@ -1385,7 +1385,11 @@ end
 @[simp] lemma to_nnreal_bit1 {x : ℝ≥0∞} (hx_top : x ≠ ∞) :
   (bit1 x).to_nnreal = bit1 (x.to_nnreal) :=
 by simp [bit1, bit1, to_nnreal_add
+<<<<<<< HEAD
     (lt_top_iff_ne_top.mpr (by rwa [ne.def, bit0_eq_top_iff])) ennreal.one_lt_top]
+=======
+  (lt_top_iff_ne_top.mpr (by rwa [ne.def, bit0_eq_top_iff])) ennreal.one_lt_top]
+>>>>>>> origin/ennreal_bit0
 
 @[simp] lemma to_real_bit0 {x : ℝ≥0∞} : (bit0 x).to_real = bit0 (x.to_real) :=
 by simp [ennreal.to_real]

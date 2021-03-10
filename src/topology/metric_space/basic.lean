@@ -682,6 +682,15 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
+/--
+A variant of `tendsto_at_top` that
+uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
+-/
+theorem tendsto_at_top' [nonempty β] [semilattice_sup β] [no_top_order β] {u : β → α} {a : α} :
+  tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n>N, dist (u n) a < ε :=
+(at_top_basis_Ioi.tendsto_iff nhds_basis_ball).trans $
+  by { simp only [exists_prop, true_and], refl }
+
 lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
   is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
 by simp [is_open_iff, subset_singleton_iff, mem_ball]

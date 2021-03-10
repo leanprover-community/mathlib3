@@ -139,7 +139,7 @@ theorem mul_right_injective (a : G) : function.injective ((*) a) :=
 theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
 (mul_right_injective a).eq_iff
 
-@[simp, to_additive]
+@[to_additive]
 theorem mul_ne_mul_right (a : G) {b c : G} : a * b ≠ a * c ↔ b ≠ c :=
 (mul_right_injective a).ne_iff
 
@@ -176,7 +176,7 @@ theorem mul_left_injective (a : G) : function.injective (λ x, x * a) :=
 theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
 (mul_left_injective a).eq_iff
 
-@[simp, to_additive]
+@[to_additive]
 theorem mul_ne_mul_left (a : G) {b c : G} : b * a ≠ c * a ↔ b ≠ c :=
 (mul_left_injective a).ne_iff
 

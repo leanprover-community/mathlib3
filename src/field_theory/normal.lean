@@ -312,7 +312,7 @@ begin
   have key : g.ker ≤ f.range := λ ϕ hϕ, ⟨alg_equiv.mk ϕ ϕ.symm ϕ.symm_apply_apply
     ϕ.apply_symm_apply ϕ.map_mul ϕ.map_add (λ x, eq.trans (ϕ.restrict_normal_commutes K x).symm
     (congr_arg (algebra_map K E) (alg_equiv.ext_iff.mp hϕ x))), alg_equiv.ext (λ _, rfl)⟩,
-  sorry,
+  exact solvable_of_ker_le_range f g key,
 end
 
 end lift

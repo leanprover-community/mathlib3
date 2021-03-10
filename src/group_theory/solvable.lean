@@ -266,7 +266,7 @@ instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solva
   is_solvable (quotient_group.quotient H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
-lemma short_exact_sequence_solvable_new {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
+lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
   (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
   is_solvable G :=
 begin
@@ -275,7 +275,7 @@ end
 
 instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :
   is_solvable (G × G') :=
-short_exact_sequence_solvable_new (monoid_hom.inl G G') (monoid_hom.snd G G')
+solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
   (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
 
 end solvable

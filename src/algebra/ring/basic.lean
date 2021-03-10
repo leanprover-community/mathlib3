@@ -93,15 +93,18 @@ protected def function.surjective.distrib {S} [distrib R] [has_add S] [has_mul S
 
 /-- A not-necessarily-unital, not-necessarily-associative semiring. -/
 @[protect_proj, ancestor add_comm_monoid distrib mul_zero_class]
-class nau_semiring (α : Type u) extends add_comm_monoid α, distrib α, mul_zero_class α
+class non_unital_non_assoc_semiring (α : Type u) extends
+  add_comm_monoid α, distrib α, mul_zero_class α
 
-/-- An associative but not-necessarily untial semiring. -/
-@[protect_proj, ancestor nau_semiring semigroup_with_zero]
-class nu_semiring (α : Type u) extends nau_semiring α, semigroup_with_zero α
+/-- An associative but not-necessarily unital semiring. -/
+@[protect_proj, ancestor non_unital_non_assoc_semiring semigroup_with_zero]
+class non_unital_semiring (α : Type u) extends
+  non_unital_non_assoc_semiring α, semigroup_with_zero α
 
 /-- A unital but not-necessarily-associative semiring. -/
-@[protect_proj, ancestor nau_semiring mul_one_class]
-class na_semiring (α : Type u) extends nau_semiring α, mul_one_class α
+@[protect_proj, ancestor non_unital_non_assoc_semiring mul_one_class]
+class non_assoc_semiring (α : Type u) extends
+  non_unital_non_assoc_semiring α, mul_one_class α
 
 /-- A semiring is a type with the following structures: additive commutative monoid
 (`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and

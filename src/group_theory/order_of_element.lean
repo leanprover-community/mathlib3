@@ -108,26 +108,22 @@ end order_of
 section order_of
 
 section monoid
-variables {α} [monoid α]
-variables (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+variables {α} [monoid α] [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+  [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
 /-- `order_of a` is the order of the element `a`, i.e. the `n ≥ 1`, s.t. `a ^ n = 1` if it exists.
 Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convention.-/
-def order_of  : ℕ :=
+def order_of (a : α) : ℕ :=
 if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
-variable {a}
-
-lemma order_of_of_finite_order (h : ∃ n, 0 < n ∧ a ^ n = 1) : order_of a = nat.find h :=
+lemma order_of_of_finite_order {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : order_of a = nat.find h :=
 begin
   rw order_of,
   split_ifs with hx,
   refl
 end
 
-variable (a)
-
-lemma pow_order_of_eq_one : a ^ order_of a = 1 :=
+lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
   rw order_of,
   split_ifs with hx,
@@ -135,9 +131,7 @@ begin
   { exact pow_zero a }
 end
 
-variable {a}
-
-lemma order_of_pos' (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
+lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
 begin
   rw order_of_of_finite_order h,
   exact (nat.find_spec h).1
@@ -151,18 +145,7 @@ split_ifs with ha,
   { exact le_of_lt hn }
 end
 
-instance decidable_order_of_one : decidable (∃ n, 0 < n ∧ (1 : α) ^ n = 1) :=
-decidable.is_true ⟨1, ⟨nat.one_pos, one_pow 1⟩⟩
-
-instance decidable_pred_order_of_one : decidable_pred (λ n, 0 < n ∧ (1 : α)  ^ n = 1) :=
-begin
-  simp only [one_pow, and_true, eq_self_iff_true],
-  exact set.decidable_set_of (λ (a : ℕ), 1 ≤ a)
-end
-
-@[simp] lemma order_of_one
-  [decidable_pred (λ n, 0 < n ∧ (1 : α) ^ n = 1)] [decidable (∃ n, 0 < n ∧ (1 : α) ^ n = 1)] :
-  order_of (1 : α) = 1 :=
+@[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
   have h : 0 < 1 ∧ (1 : α)  ^ 1 = 1,
     by exact ⟨nat.one_pos, one_pow 1⟩,
@@ -181,7 +164,7 @@ begin
 end
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
-⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
+⟨λ h, by conv_lhs { rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
 lemma pow_eq_mod_order_of {n : ℕ} : a ^ n = a ^ (n % order_of a) :=
 calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.mod_add_div]
@@ -227,9 +210,7 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 
 open nat
 
-variables (a) (n : ℕ)
-  [decidable_pred (λ m, 0 < m ∧ (a ^ n) ^ m = 1)] [decidable (∃ m, 0 < m ∧ (a ^ n) ^ m = 1)]
-
+variables (a) {n : ℕ}
 
 lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
@@ -265,6 +246,8 @@ split_ifs with hx,
   { simp } }
 end
 
+variable (n)
+
 lemma order_of_pow'' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
@@ -287,8 +270,9 @@ end
 end monoid
 
 section cancel_monoid
-variables {α} [left_cancel_monoid α]
-  (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+variables {α} [left_cancel_monoid α] [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+  [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+  (a)
 
 private lemma pow_injective_aux {n m : ℕ} (h : n ≤ m)
   (hn : n < order_of a) (hm : m < order_of a) (eq : a ^ n = a ^ m) : n = m :=
@@ -319,8 +303,8 @@ lemma pow_injective_of_lt_order_of {n m : ℕ}
 end cancel_monoid
 
 section group
-variables {α} [group α]
-  {a} [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+variables {α} [group α] [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+  [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]  {a}
 
 lemma gpow_eq_mod_order_of {i : ℤ} : a ^ i = a ^ (i % order_of a) :=
 calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
@@ -331,9 +315,7 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
 end group
 
 section finite_monoid
-variables {α} [fintype α] [monoid α]
-
-variables [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+variables {α} [fintype α] [monoid α] [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
   [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
 lemma sum_card_order_of_eq_card_pow_eq_one [decidable_eq α] {n : ℕ} (hn : 0 < n) :
@@ -378,13 +360,11 @@ begin
     { exact h''' },
 end
 
-instance order_of.fintype_decidable (a : α) :
-decidable (∃ (i : ℕ), 0 < i ∧  a ^ i = 1) := decidable.is_true (exists_pow_eq_one a)
-
-instance order_of.fintype_decidable' :
+instance order_of.fintype_decidable :
 decidable (Π a : α, ∃ n, 0 < n ∧ a ^ n = 1) := decidable.is_true (λ a, exists_pow_eq_one a)
 
-variables {a} [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+variables [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+  [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)] {a}
 
 lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
 finset.le_card_of_inj_on_range ((^) a)
@@ -405,7 +385,8 @@ begin
   exact_mod_cast hw2,
 end
 
-variables (a) [decidable_pred (λ n, 0 < n ∧ a ^ n = 1)] [decidable (∃ n, 0 < n ∧ a ^ n = 1)]
+variables (a) [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+  [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
 lemma order_of_pos : 0 < order_of a :=
 begin
@@ -418,7 +399,6 @@ end
 open nat
 
 variables {n : ℕ}
-  [decidable_pred (λ m, 0 < m ∧ (a ^ n) ^ m = 1)] [decidable (∃ m, 0 < m ∧ (a ^ n) ^ m = 1)]
 
 lemma order_of_pow :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
@@ -537,10 +517,10 @@ def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
     hm ▸ hn ▸ gpow_mul_comm _ _ _,
   ..hg }
 
-variables [group α]
-  (x : α) [decidable_pred (λ n, 0 < n ∧ x ^ n = 1)] [decidable (∃ n, 0 < n ∧ x ^ n = 1)]
+variables [group α] [Π a : α, decidable_pred (λ n, 0 < n ∧ a ^ n = 1)]
+  [Π a : α, decidable (∃ n, 0 < n ∧ a ^ n = 1)]
 
-lemma is_cyclic_of_order_of_eq_card [decidable_eq α] [fintype α]
+lemma is_cyclic_of_order_of_eq_card [decidable_eq α] [fintype α]  (x : α)
    (hx : order_of x = fintype.card α) : is_cyclic α :=
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
@@ -662,9 +642,9 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
 
 end classical
 
-lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [decidable_eq α] [fintype α]
+lemma is_cyclic.exists_monoid_generator [fintype α] [decidable_eq α]
 [is_cyclic α] : ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
-by { simp only [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α }
+by { simp_rw [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α }
 
 section
 

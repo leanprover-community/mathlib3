@@ -253,7 +253,8 @@ calc Hausdorff_edist s t = 0 ↔ s ⊆ closure t ∧ t ⊆ closure s :
   by simp only [Hausdorff_edist_def, ennreal.sup_eq_zero, ennreal.supr_eq_zero,
     ← mem_closure_iff_inf_edist_zero, subset_def]
 ... ↔ closure s = closure t :
-  ⟨λ h, subset.antisymm (closure_minimal h.1 is_closed_closure) (closure_minimal h.2 is_closed_closure),
+  ⟨λ h, subset.antisymm (closure_minimal h.1 is_closed_closure)
+     (closure_minimal h.2 is_closed_closure),
    λ h, ⟨h ▸ subset_closure, h.symm ▸ subset_closure⟩⟩
 
 /-- The Hausdorff edistance between a set and its closure vanishes -/

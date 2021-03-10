@@ -30,7 +30,7 @@ theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] 
 begin
   classical,
   have : fintype.card R •ℕ (1 : R) = 0 :=
-    @pow_card_eq_one (multiplicative R) (multiplicative.of_add 1) _ _ _ _ _,
+    @pow_card_eq_one (multiplicative R) _ _ _ _ (multiplicative.of_add 1),
   simpa only [mul_one, nsmul_eq_mul]
 end
 

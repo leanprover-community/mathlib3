@@ -57,8 +57,8 @@ lemma mul_smul_comm (t : R) (a b : A) :
 na_algebra.mul_smul_comm' t a b
 
 /-- The algebra multiplication as a bilinear map. -/
-def mul_as_bilinear {R : Type u₁} {A : Type u₂} [comm_semiring R] [nau_semiring A] [na_algebra R A] :
-  A →ₗ[R] A →ₗ[R] A :=
+def mul_as_bilinear {R : Type u₁} {A : Type u₂}
+  [comm_semiring R] [nau_semiring A] [na_algebra R A] : A →ₗ[R] A →ₗ[R] A :=
 linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm
 
 /-- If the underlying `nau_semiring` is actually a `semiring` we have an `algebra`. -/

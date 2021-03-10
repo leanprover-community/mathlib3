@@ -126,7 +126,7 @@ end
 
 lemma le_nat_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → a ≤ nat_degree p:=
-le_nat_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
+le_nat_degree_of_ne_zero ∘ mem_support_iff.mp
 
 lemma supp_subset_range (h : nat_degree p < m) : p.support ⊆ finset.range m :=
 λ n hn, mem_range.2 $ (le_nat_degree_of_mem_supp _ hn).trans_lt h
@@ -315,7 +315,7 @@ end
 
 lemma le_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → ↑a ≤ degree p :=
-le_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
+le_degree_of_ne_zero ∘ mem_support_iff.mp
 
 lemma nonempty_support_iff : p.support.nonempty ↔ p ≠ 0 :=
 by rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty]

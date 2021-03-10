@@ -224,11 +224,11 @@ lemma trailing_coeff_nonzero_iff_nonzero : trailing_coeff p ≠ 0 ↔ p ≠ 0 :=
 not_congr trailing_coeff_eq_zero
 
 lemma nat_trailing_degree_mem_support_of_nonzero : p ≠ 0 → nat_trailing_degree p ∈ p.support :=
-(mem_support_iff_coeff_ne_zero.mpr ∘ trailing_coeff_nonzero_iff_nonzero.mpr)
+(mem_support_iff.mpr ∘ trailing_coeff_nonzero_iff_nonzero.mpr)
 
 lemma nat_trailing_degree_le_of_mem_supp (a : ℕ) :
   a ∈ p.support → nat_trailing_degree p ≤ a:=
-nat_trailing_degree_le_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
+nat_trailing_degree_le_of_ne_zero ∘ mem_support_iff.mp
 
 lemma nat_trailing_degree_eq_support_min' (h : p ≠ 0) :
   nat_trailing_degree p = p.support.min' (nonempty_support_iff.mpr h) :=
@@ -238,7 +238,7 @@ begin
     intros y hy,
     exact nat_trailing_degree_le_of_mem_supp y hy },
   { apply finset.min'_le,
-    exact mem_support_iff_coeff_ne_zero.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
+    exact mem_support_iff.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
 end
 
 lemma nat_trailing_degree_le_nat_degree (p : polynomial R) :
@@ -258,9 +258,9 @@ begin
   { rw [nat_trailing_degree_eq_support_min' (λ h, hp (mul_X_pow_eq_zero h)), finset.le_min'_iff],
     intros y hy,
     have key : n ≤ y,
-    { rw [mem_support_iff_coeff_ne_zero, coeff_mul_X_pow'] at hy,
+    { rw [mem_support_iff, coeff_mul_X_pow'] at hy,
       exact by_contra (λ h, hy (if_neg h)) },
-    rw [mem_support_iff_coeff_ne_zero, coeff_mul_X_pow', if_pos key] at hy,
+    rw [mem_support_iff, coeff_mul_X_pow', if_pos key] at hy,
     exact (nat.add_le_to_le_sub _ key).mpr (nat_trailing_degree_le_of_ne_zero hy) },
 end
 
@@ -284,7 +284,7 @@ section ring
 variables [ring R]
 
 @[simp] lemma trailing_degree_neg (p : polynomial R) : trailing_degree (-p) = trailing_degree p :=
-by unfold trailing_degree; rw finsupp.support_neg
+by unfold trailing_degree; rw support_neg
 
 @[simp] lemma nat_trailing_degree_neg (p : polynomial R) :
   nat_trailing_degree (-p) = nat_trailing_degree p :=

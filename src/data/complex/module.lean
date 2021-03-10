@@ -27,7 +27,7 @@ It also defines three linear maps:
 * `complex.conj_lm`.
 
 They are bundled versions of the real part, the imaginary part, the embedding of `ℝ` in `ℂ`, and
-the convex conjugate as `ℝ`-linear maps.
+the complex conjugate as `ℝ`-linear maps.
 -/
 noncomputable theory
 

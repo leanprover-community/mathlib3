@@ -140,6 +140,9 @@ instance : add_comm_group (bilin_form R₁ M₁) :=
 lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
 
 @[simp]
+lemma zero_apply (x y : M) : (0 : bilin_form R M) x y = 0 := rfl
+
+@[simp]
 lemma neg_apply (x y : M₁) : (-B₁) x y = -(B₁ x y) := rfl
 
 instance : inhabited (bilin_form R M) := ⟨0⟩
@@ -793,7 +796,7 @@ noncomputable def to_bilin_form (A : α → α → (bilin_form R M)) :
   bilin_add_right := bilin_add_right' (λ i j x, ((A i j).right x).to_add_monoid_hom),
   bilin_smul_right := bilin_smul_right' (λ i j x, (A i j).right x) }
 
-lemma to_bilin_form_apply (A : α → α → (bilin_form R M)) (p q : α →₀ M) :
+@[simp] lemma to_bilin_form_apply (A : α → α → (bilin_form R M)) (p q : α →₀ M) :
   finsupp.to_bilin_form A p q = p.sum (λ i x, q.sum (λ j y, A i j x y)) :=
 rfl
 
@@ -832,6 +835,24 @@ lemma ortho_sym {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := refl_bilin_form.ortho_sym (is_refl H)
 
 end sym_bilin_form
+
+/-- A bilinear form on `finsupp` from an "infinite matrix" is symmetric, if the coefficients
+satisfy a symmetry condition. -/
+-- TODO the same for matrices
+lemma finsupp.is_sym_to_bilinear_form {α : Type*} (A : α → α → (bilin_form R M))
+  (hA : ∀ i j x y, A i j x y = A j i y x) :
+  sym_bilin_form.is_sym (finsupp.to_bilin_form A) :=
+begin
+  -- sorry
+  intros p q,
+  simp only [finsupp.to_bilin_form_apply, finsupp.sum_comm],
+  -- congr,
+  -- ext i x,
+  -- congr,
+  -- ext j y,
+  -- convert (hA i j x y).symm,
+
+end
 
 namespace alt_bilin_form
 

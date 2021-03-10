@@ -20,7 +20,7 @@ In the presence of automation, this whole file may be unnecessary. On the other 
 maybe it is useful for writing automation.
 -/
 
-local attribute [instance, priority 10] classical.prop_decfidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 section miscellany
 

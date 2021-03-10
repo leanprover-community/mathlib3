@@ -40,15 +40,45 @@ def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
 
-instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
+instance unique_gal_of_splits [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
 { default := 1,
   uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
     ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
     rw [alg_equiv.commutes, alg_equiv.commutes] }) }
 
-instance : unique (0 : polynomial F).gal :=
+instance unique_gal_zero : unique (0 : polynomial F).gal :=
 begin
-  haveI : fact ((0 : polynomial F).splits (ring_hom.id F)) := splits_zero _,
+  haveI : fact ((0 : polynomial F).splits (ring_hom.id F)) := splits_zero (ring_hom.id F),
+  apply_instance,
+end
+
+instance unique_gal_one : unique (1 : polynomial F).gal :=
+begin
+  haveI : fact ((1 : polynomial F).splits (ring_hom.id F)) := splits_one (ring_hom.id F),
+  apply_instance,
+end
+
+instance unique_gal_C (x : F) : unique (C x).gal :=
+begin
+  haveI : fact ((C x).splits (ring_hom.id F)) := splits_C (ring_hom.id F) x,
+  apply_instance,
+end
+
+instance unique_gal_X : unique (X : polynomial F).gal :=
+begin
+  haveI : fact ((X : polynomial F).splits (ring_hom.id F)) := splits_X (ring_hom.id F),
+  apply_instance,
+end
+
+instance unique_gal_X_sub_C (x : F) : unique (X - C x).gal :=
+begin
+  haveI : fact ((X - C x).splits (ring_hom.id F)) := splits_X_sub_C (ring_hom.id F),
+  apply_instance,
+end
+
+instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : polynomial F).gal :=
+begin
+  haveI : fact ((X ^ n: polynomial F).splits (ring_hom.id F)) := splits_X_pow (ring_hom.id F) n,
   apply_instance,
 end
 
@@ -178,7 +208,7 @@ monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { haveI : unique (gal (p * q)) := by { rw hpq, apply_instance },
+  { haveI : unique (p * q).gal := by { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,

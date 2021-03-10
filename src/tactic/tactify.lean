@@ -181,11 +181,20 @@ meta def tactic_prompts (n : name) : tactic unit := do
   s ← o.steps,
   s.mmap' (λ p, do trace p.1, trace p.2, trace "")
 
-
+-- Examples that work:
 run_cmd tactic_prompts `nat.factorial_le
+run_cmd tactic_prompts `nat.units_eq_one
+
+-- rewrites have spurious `propext`:
+run_cmd tactic_prompts `nat.zero_eq_mul
+
+-- Weird unification problems:
 run_cmd tactic_prompts `nat.add_factorial_succ_lt_factorial_add_succ
 #print nat.add_factorial_succ_lt_factorial_add_succ
-#print eq.rec
+
+-- dcases_on breaks things:
+run_cmd tactic_prompts `nat.add_factorial_le_factorial_add
+
 def quux : ℕ := nat.factorial (3 + (nat.factorial 7))
 
 def quux' : ℕ :=

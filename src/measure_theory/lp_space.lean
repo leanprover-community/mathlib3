@@ -1127,7 +1127,9 @@ variables [second_countable_topology E] [borel_space E]
 
 namespace lipschitz_with
 
-lemma mem_ℒp_comp_iff_of_antilipschitz [complete_space E] {K K'}
+lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {μ : measure α}
+  [measurable_space E] [measurable_space F] [normed_group E] [normed_group F] [borel_space E]
+  [borel_space F] [complete_space E]
   {f : α → E} {g : E → F} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   mem_ℒp (g ∘ f) p μ ↔ mem_ℒp f p μ :=
 begin

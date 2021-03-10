@@ -786,6 +786,7 @@ def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
   1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
+/-- The Bochner integral over simple functions in L1 space as a continuous linear map. -/
 def integral_clm' {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E] :
   (α →₁ₛ[μ] E) →L[𝕜] E :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
@@ -886,6 +887,7 @@ def integral_clm : (α →₁[μ] E) →L[ℝ] E :=
 (integral_clm α E μ).extend
   to_L1 simple_func.dense_range simple_func.uniform_inducing
 
+/-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] :
   (α →₁[μ] E) →L[𝕜] E :=

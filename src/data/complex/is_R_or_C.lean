@@ -144,8 +144,8 @@ end
 ext_iff.2 $ by simp
 @[simp, norm_cast, priority 900] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s :=
 ext_iff.2 $ by simp
-@[simp, norm_cast] lemma of_real_smul (r x : ℝ) : ((r • x : ℝ) : K) = r • (x : K) :=
-by { simp_rw of_real_alg, exact smul_assoc _ _ _, }
+@[simp, norm_cast] lemma of_real_smul (r x : ℝ) : r • (x : K) = (r : K) * (x : K) :=
+by { simp_rw [← smul_eq_mul, of_real_alg r], simp, }
 
 lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
@@ -773,7 +773,7 @@ noncomputable def conj_clm : K →L[ℝ] K := conj_li.to_continuous_linear_map
 
 /-- The ℝ → K coercion, as a linear map -/
 noncomputable def of_real_lm : ℝ →ₗ[ℝ] K :=
-{ to_fun := λ x, (x : K), map_add' := by simp, map_smul' := of_real_smul, }
+{ to_fun := λ x, (x : K), map_add' := by simp, map_smul' := by{ simp, exact of_real_smul, } }
 
 @[simp] lemma of_real_lm_coe : (of_real_lm : ℝ → K) = coe := rfl
 

@@ -95,6 +95,7 @@ jobs:
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
 
       - name: setup precompiled zip file
+        if: always() && steps.build.outputs.started == 'true'
         id: setup_precompiled
         run: |
           touch workspace.tar
@@ -102,6 +103,7 @@ jobs:
           git_hash="$(git log -1 --pretty=format:%h)"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
       - name: upload precompiled mathlib zip file
+        if: always() && steps.build.outputs.started == 'true'
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}

@@ -786,14 +786,12 @@ end linear_isometry
 variables [borel_space E] [second_countable_topology E] [complete_space E]
   [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
 
-@[norm_cast]
-lemma integral_of_real {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+@[norm_cast] lemma integral_of_real {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   {f : α → ℝ} :
   ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
 linear_isometry.integral_comp_comm is_R_or_C.of_real_li f
 
-lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-  {f : α → 𝕜} :
+lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
   ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
 linear_isometry.integral_comp_comm is_R_or_C.conj_li f
 

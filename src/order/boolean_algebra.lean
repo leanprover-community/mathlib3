@@ -532,7 +532,7 @@ satisfying `x \ y = x ⊓ yᶜ`.
 This is a generalization of (classical) logic of propositions, or
 the powerset lattice. -/
 -- Lean complains about metavariables in the type if the universe is not specified
-class boolean_algebra (α : Type u) extends boolean_algebra.core α, generalized_boolean_algebra α :=
+class boolean_algebra (α : Type u) extends generalized_boolean_algebra α, boolean_algebra.core α :=
 (sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ)
 
 def boolean_algebra.of_core (B : boolean_algebra.core α) :

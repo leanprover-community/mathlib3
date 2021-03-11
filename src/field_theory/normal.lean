@@ -5,8 +5,6 @@ Authors: Kenny Lau
 -/
 
 import field_theory.adjoin
-import field_theory.minpoly
-import field_theory.splitting_field
 import field_theory.tower
 import ring_theory.power_basis
 import group_theory.solvable

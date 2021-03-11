@@ -290,7 +290,7 @@ begin
   induction k with k hk,
   { rw [add_zero, derived_series_zero, ←monoid_hom.range_eq_map],
     refine le_trans _ hfg,
-    rw [g.le_ker_iff, eq_bot_iff, ←hn],
+    rw [←map_eq_bot_iff, eq_bot_iff, ←hn],
     exact map_derived_series_le_derived_series g n },
   { rw [nat.add_succ, derived_series_succ, derived_series_succ],
     exact commutator_le_map_commutator hk hk },

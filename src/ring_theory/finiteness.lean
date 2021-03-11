@@ -318,7 +318,7 @@ lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι :
   [fintype ι] : finite_presentation R (_root_.mv_polynomial ι A) :=
 begin
   obtain ⟨n, e⟩ := fintype.exists_equiv_fin ι,
-  replace e := alg_equiv.restrict_scalars R (mv_polynomial.rename_equiv A (nonempty.some e)),
+  replace e := (mv_polynomial.rename_equiv A (nonempty.some e)).restrict_scalars R,
   refine equiv _ e.symm,
   obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
   refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),

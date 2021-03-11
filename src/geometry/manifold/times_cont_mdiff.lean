@@ -265,7 +265,7 @@ begin
   rw [times_cont_mdiff_within_at_iff, and.congr_right_iff],
   set e := ext_chart_at I x, set e' := ext_chart_at I' (f x),
   refine λ hc, times_cont_diff_within_at_congr_nhds _,
-  rw [← e.image_inter_source_eq', inter_comm _ e.source, ← ext_chart_at_map_nhds_within_eq_image,
+  rw [← e.image_source_inter_eq', ← ext_chart_at_map_nhds_within_eq_image,
       ← ext_chart_at_map_nhds_within, inter_comm, nhds_within_inter_of_mem],
   exact hc (ext_chart_at_source_mem_nhds _ _)
 end

@@ -120,8 +120,6 @@ variables {p} (n)
 
 section
 
-local attribute [semireducible] witt_vector
-
 /-- `truncate_fun n x` uses the first `n` entries of `x` to construct a `truncated_witt_vector`,
 which has the same base `p` as `x`.
 This function is bundled into a ring homomorphism in `witt_vector.truncate` -/

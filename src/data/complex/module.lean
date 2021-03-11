@@ -12,10 +12,12 @@ import linear_algebra.finite_dimensional
 /-!
 # Complex number as a vector space over `ℝ`
 
-This file contains three instances:
-* `ℂ` is an `ℝ` algebra;
+This file contains the following instances:
+* Any `•`-structure (`has_scalar`, `mul_action`, `distrib_mul_action`, `semimodule`, `algebra`) on
+  `ℝ` imbues a corresponding structure on `ℂ`. This includes the statement that `ℂ` is an `ℝ`
+  algebra.
 * any complex vector space is a real vector space;
-* any finite dimensional complex vector space is a finite dimesional real vector space;
+* any finite dimensional complex vector space is a finite dimensional real vector space;
 * the space of `ℝ`-linear maps from a real vector space to a complex vector space is a complex
   vector space.
 
@@ -32,9 +34,47 @@ noncomputable theory
 
 namespace complex
 
-instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
+variables {R : Type*} {S : Type*}
 
-@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z := rfl
+section
+
+variables [has_scalar R ℝ]
+
+instance : has_scalar R ℂ :=
+{ smul := λ r x, ⟨r • x.re, r • x.im⟩ }
+
+lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := rfl
+lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := rfl
+
+@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z :=
+by ext; simp [smul_re, smul_im]
+
+end
+
+instance [has_scalar R ℝ] [has_scalar S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
+{ smul_comm := λ r s x, ext (smul_comm _ _ _) (smul_comm _ _ _) }
+
+instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower R S ℝ] :
+  is_scalar_tower R S ℂ :=
+{ smul_assoc := λ r s x, ext (smul_assoc _ _ _) (smul_assoc _ _ _) }
+
+instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
+{ one_smul := λ x, ext (one_smul _ _) (one_smul _ _),
+  mul_smul := λ r s x, ext (mul_smul _ _ _) (mul_smul _ _ _) }
+
+instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+{ smul_add := λ r x y, ext (smul_add _ _ _) (smul_add _ _ _),
+  smul_zero := λ r, ext (smul_zero _) (smul_zero _) }
+
+instance [semiring R] [semimodule R ℝ] : semimodule R ℂ :=
+{ add_smul := λ r s x, ext (add_smul _ _ _) (add_smul _ _ _),
+  zero_smul := λ r, ext (zero_smul _ _) (zero_smul _ _) }
+
+instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
+{ smul := (•),
+  smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
+  commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
+  ..complex.of_real.comp (algebra_map R ℝ) }
 
 section
 open_locale complex_order

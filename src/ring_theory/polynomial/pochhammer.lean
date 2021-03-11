@@ -38,7 +38,7 @@ noncomputable def pochhammer : ℕ → polynomial S
 
 @[simp] lemma pochhammer_zero : pochhammer S 0 = 1 := rfl
 @[simp] lemma pochhammer_one : pochhammer S 1 = X := by simp [pochhammer]
-@[simp] lemma pochhammer_succ_left (n : ℕ) : pochhammer S (n+1) = X * (pochhammer S n).comp (X+1) :=
+lemma pochhammer_succ_left (n : ℕ) : pochhammer S (n+1) = X * (pochhammer S n).comp (X+1) :=
 by { dsimp [pochhammer], refl, }
 
 section
@@ -47,7 +47,7 @@ variables {S} {T : Type v} [semiring T]
 begin
   induction n with n ih,
   { simp, },
-  { simp [ih, map_comp], },
+  { simp [ih, pochhammer_succ_left, map_comp], },
 end
 
 end
@@ -63,7 +63,7 @@ end
 begin
   cases n,
   { simp, },
-  { simp [X_mul, nat.succ_ne_zero], } -- should nat.succ_ne_zero be a simp lemma?
+  { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], } -- should nat.succ_ne_zero be a simp lemma?
 end
 
 lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=
@@ -84,7 +84,7 @@ lemma polynomial.mul_X_add_nat_cast_comp {p q : polynomial S} {n : ℕ} :
 by rw [mul_add, add_comp, mul_X_comp, ←nat.cast_comm, nat_cast_mul_comp, nat.cast_comm, mul_add]
 
 lemma pochhammer_mul (n m : ℕ) :
-  pochhammer S n * (pochhammer S m).comp(X + n) = pochhammer S (n + m) :=
+  pochhammer S n * (pochhammer S m).comp (X + n) = pochhammer S (n + m) :=
 begin
   induction m with m ih,
   { simp, },

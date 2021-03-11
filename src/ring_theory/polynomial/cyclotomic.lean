@@ -688,7 +688,8 @@ lemma cyclotomic.irreducible {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic 
 begin
   have h0 := (ne_of_lt hpos).symm,
   rw [cyclotomic_eq_minpoly (is_primitive_root_exp n h0) hpos],
-  exact minpoly.irreducible (is_integral (is_primitive_root_exp n h0) hpos)
+  apply minpoly.irreducible,
+  exact (is_primitive_root_exp n h0).is_integral hpos,
 end
 
 end minpoly

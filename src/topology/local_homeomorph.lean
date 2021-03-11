@@ -573,7 +573,7 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_home
   continuous_inv_fun := continuous_on.prod
     (e.continuous_inv_fun.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
     (e'.continuous_inv_fun.comp continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),
-  ..e.to_local_equiv.prod e'.to_local_equiv }
+  to_local_equiv := e.to_local_equiv.prod e'.to_local_equiv }
 
 @[simp, mfld_simps] lemma prod_to_local_equiv (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').to_local_equiv = e.to_local_equiv.prod e'.to_local_equiv := rfl
@@ -603,6 +603,23 @@ local_homeomorph.eq_of_local_equiv_eq $
   by dsimp only [trans_to_local_equiv, prod_to_local_equiv]; apply local_equiv.prod_trans
 
 end prod
+
+section pi
+
+variables {ι : Type*} [fintype ι] {Xi Yi : ι → Type*} [Π i, topological_space (Xi i)]
+  [Π i, topological_space (Yi i)] (ei : Π i, local_homeomorph (Xi i) (Yi i))
+
+/-- The product of a finite family of `local_homeomorph`s. -/
+@[simps to_local_equiv] def pi : local_homeomorph (Π i, Xi i) (Π i, Yi i) :=
+{ to_local_equiv := local_equiv.pi (λ i, (ei i).to_local_equiv),
+  open_source := is_open_set_pi finite_univ $ λ i hi, (ei i).open_source,
+  open_target := is_open_set_pi finite_univ $ λ i hi, (ei i).open_target,
+  continuous_to_fun := continuous_on_pi.2 $ λ i, (ei i).continuous_on.comp
+    (continuous_apply _).continuous_on (λ f hf, hf i trivial),
+  continuous_inv_fun := continuous_on_pi.2 $ λ i, (ei i).continuous_on_symm.comp
+    (continuous_apply _).continuous_on (λ f hf, hf i trivial) }
+
+end pi
 
 section continuity
 

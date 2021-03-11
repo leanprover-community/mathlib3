@@ -24,7 +24,8 @@ as the least fixpoint of a polynomial functor.
 Three views of M-types:
 
  * `Wp`: polynomial functor
- * `W`: data type inductively defined by a triple: shape of the root, data in the root and children of the root
+ * `W`: data type inductively defined by a triple:
+     shape of the root, data in the root and children of the root
  * `W`: least fixed point of a polynomial functor
 
 Specifically, we define the polynomial functor `Wp` as:

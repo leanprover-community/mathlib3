@@ -215,7 +215,7 @@ coeff_eq_zero_of_nat_degree_lt (lt_add_one _)
 
 -- We need the explicit `decidable` argument here because an exotic one shows up in a moment!
 lemma ite_le_nat_degree_coeff (p : polynomial R) (n : ℕ) (I : decidable (n < 1 + nat_degree p)) :
-  @ite (n < 1 + nat_degree p) I _ (coeff p n) 0 = coeff p n :=
+  @ite _ (n < 1 + nat_degree p) I (coeff p n) 0 = coeff p n :=
 begin
   split_ifs,
   { refl },
@@ -861,6 +861,10 @@ mt degree_eq_bot.2 (show degree ((X : polynomial R) ^ n - C a) ≠ ⊥,
 
 theorem X_sub_C_ne_zero (r : R) : X - C r ≠ 0 :=
 pow_one (X : polynomial R) ▸ X_pow_sub_C_ne_zero zero_lt_one r
+
+theorem zero_nmem_multiset_map_X_sub_C {α : Type*} (m : multiset α) (f : α → R) :
+  (0 : polynomial R) ∉ m.map (λ a, X - C (f a)) :=
+λ mem, let ⟨a, _, ha⟩ := multiset.mem_map.mp mem in X_sub_C_ne_zero _ ha
 
 lemma nat_degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
   (X ^ n - C r).nat_degree = n :=

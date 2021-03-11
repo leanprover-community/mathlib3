@@ -179,7 +179,7 @@ begin
   { intro i,
     ext j,
     haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
-    simp [hv.range_repr_self, finsupp.single_apply, hv.injective] }
+    simp [hv.range_repr_self, finsupp.single_apply, hv.injective.eq_iff] }
 end
 
 /-- Construct a linear map given the value at the basis. -/
@@ -311,6 +311,35 @@ begin
   exact linear_map.sup_range_inl_inr
 end
 
+@[simp] lemma is_basis.repr_eq_zero {x : M} :
+  hv.repr x = 0 ↔ x = 0 :=
+⟨λ h, (hv.total_repr x).symm.trans (h.symm ▸ (finsupp.total _ _ _ _).map_zero),
+ λ h, h.symm ▸ hv.repr.map_zero⟩
+
+lemma is_basis.ext_elem {x y : M}
+  (h : ∀ i, hv.repr x i = hv.repr y i) : x = y :=
+by { rw [← hv.total_repr x, ← hv.total_repr y], congr' 1, ext i, exact h i }
+
+section
+
+include hv
+
+-- Can't be an instance because the basis can't be inferred.
+lemma is_basis.no_zero_smul_divisors [no_zero_divisors R] :
+  no_zero_smul_divisors R M :=
+⟨λ c x hcx, or_iff_not_imp_right.mpr (λ hx, begin
+  rw [← hv.total_repr x, ← linear_map.map_smul] at hcx,
+  have := linear_independent_iff.mp hv.1 (c • hv.repr x) hcx,
+  rw smul_eq_zero at this,
+  exact this.resolve_right (λ hr, hx (hv.repr_eq_zero.mp hr))
+end)⟩
+
+lemma is_basis.smul_eq_zero [no_zero_divisors R] {c : R} {x : M} :
+  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+@smul_eq_zero _ _ _ _ _ hv.no_zero_smul_divisors _ _
+
+end
+
 end is_basis
 
 lemma is_basis_singleton_one (R : Type*) [unique ι] [ring R] :
@@ -367,9 +396,9 @@ variables [fintype ι] (h : is_basis R v)
 -/
 def is_basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans (module_equiv_finsupp h)
-  { to_fun := finsupp.to_fun,
-    map_add' := λ x y, by ext; exact finsupp.add_apply,
-    map_smul' := λ x y, by ext; exact finsupp.smul_apply,
+  { to_fun := coe_fn,
+    map_add' := finsupp.coe_add,
+    map_smul' := finsupp.coe_smul,
     ..finsupp.equiv_fun_on_fintype }
 
 /-- A module over a finite ring that admits a finite basis is finite. -/

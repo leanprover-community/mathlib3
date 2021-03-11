@@ -37,6 +37,12 @@ instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
 instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
 add_monoid_algebra.semimodule
+instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+  [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
+add_monoid_algebra.smul_comm_class
+instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+  [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
+add_monoid_algebra.is_scalar_tower
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
@@ -99,6 +105,9 @@ by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
 
 @[simp] lemma coeff_X_zero : coeff (X : polynomial R) 0 = 0 := coeff_monomial
 
+@[simp] lemma coeff_monomial_succ : coeff (monomial (n+1) a) 0 = 0 :=
+by simp [coeff_monomial]
+
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
 lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 0 :=
@@ -158,6 +167,10 @@ begin
   rw [← pow_one X, support_X_pow H 1],
 end
 
+lemma monomial_left_inj {R : Type*} [semiring R] {a : R} (ha : a ≠ 0) {i j : ℕ} :
+  (monomial i a) = (monomial j a) ↔ i = j :=
+finsupp.single_left_inj ha
+
 end semiring
 
 section comm_semiring
@@ -176,6 +189,9 @@ instance : ring (polynomial R) := add_monoid_algebra.ring
 
 @[simp]
 lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - coeff q n := rfl
+
+@[simp] lemma monomial_neg (n : ℕ) (a : R) : monomial n (-a) = -(monomial n a) :=
+by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_right]
 
 end ring
 

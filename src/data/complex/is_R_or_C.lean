@@ -146,20 +146,17 @@ ext_iff.2 $ by simp
 ext_iff.2 $ by simp
 lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
-
-lemma smul_re (r : ℝ) (z : K) : re (↑r * z) = r * (re z) :=
-by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
-lemma smul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
+lemma of_real_mul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
 by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
-lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
-λ r z, by { rw algebra.smul_def, apply smul_re }
-lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
-λ r z, by { rw algebra.smul_def, apply smul_im }
+lemma smul_re : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_re }
+lemma smul_im : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_im }
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
-{ map_smul' := smul_re',  .. re }
+{ map_smul' := smul_re,  .. re }
 
 @[simp] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
 
@@ -679,8 +676,8 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   conj_re_ax := λ z, by simp only [ring_hom.id_apply],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, mul_zero,
-    add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
+  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero,
+    mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
   inv_def_ax := λ z, by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}

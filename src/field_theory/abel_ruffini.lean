@@ -83,7 +83,7 @@ begin
   let L := q.splitting_field,
   haveI : fact (p.splits (algebra_map F L)) := hpq,
   let ϕ : (L ≃ₐ[K] L) ≃* (q.map (algebra_map F K)).gal :=
-    (is_splitting_field.alg_equiv L (q.map (algebra_map F K))).aut_mul_equiv_aut,
+    (is_splitting_field.alg_equiv L (q.map (algebra_map F K))).aut_congr,
   have ϕ_inj : function.injective ϕ.to_monoid_hom := ϕ.injective,
   haveI : is_solvable (K ≃ₐ[F] K) := hp,
   haveI : is_solvable (L ≃ₐ[K] L) := solvable_of_solvable_injective ϕ_inj,
@@ -103,13 +103,13 @@ begin
     replace h := congr_arg (eval 0) h,
     rw [eval_sub, eval_zero, sub_eq_zero_iff_eq, eval_pow, eval_X, eval_one, zero_pow hn'] at h,
     exact zero_ne_one h },
-  apply is_solvable_of_comm',
+  apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
   rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] at ha,
   have key1 : ∀ σ : (X ^ n - 1 : polynomial F).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    obtain ⟨m, hm⟩ := lem2 σ.to_alg_hom.to_ring_hom
+    obtain ⟨m, hm⟩ := σ.to_alg_hom.to_ring_hom.map_root_of_unity
       ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn'),
       by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
     use m,
@@ -153,7 +153,7 @@ begin
     { exact minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c) },
     { apply minpoly.dvd,
       rwa [map_id, alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero_iff_eq] } },
-  apply is_solvable_of_comm',
+  apply is_solvable_of_comm,
   intros σ τ,
   ext b hb,
   rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero_iff_eq] at hb,

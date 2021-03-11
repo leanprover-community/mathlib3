@@ -334,7 +334,7 @@ lemma unique_diff_within_at.pi {ι : Type*} [fintype ι] {E : ι → Type*}
   unique_diff_within_at 𝕜 (set.pi I s) x :=
 begin
   classical,
-  rw [← set.pi_piecewise_univ],
+  rw [← set.univ_pi_piecewise],
   refine unique_diff_within_at.pi' (λ i, _),
   by_cases hi : i ∈ I; simp [*, unique_diff_within_at_univ],
 end

@@ -155,50 +155,6 @@ end
 open power_series
 variables (A : Type*) [comm_ring A] [algebra ℚ A]
 
-
-/-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/
-def bernoulli'_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli' n / n!))
-
-theorem bernoulli'_power_series_mul_exp_sub_one :
-  bernoulli'_power_series A * (exp A - 1) = X * exp A :=
-begin
-  ext n,
-  -- constant coefficient is a special case
-  cases n,
-  { simp only [ring_hom.map_sub, constant_coeff_one, zero_mul, constant_coeff_exp, constant_coeff_X,
-      coeff_zero_eq_constant_coeff, mul_zero, sub_self, ring_hom.map_mul] },
-  rw [bernoulli'_power_series, coeff_mul, mul_comm X, coeff_succ_mul_X],
-  simp only [coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial,
-    rat.algebra_map_rat_rat, nat.sum_antidiagonal_succ', if_pos],
-  simp only [factorial, prod.snd, one_div, cast_succ, cast_one, cast_mul, ring_hom.id_apply,
-    sub_zero, add_eq_zero_iff, if_false, zero_add, one_ne_zero,
-    factorial, div_one, mul_zero, and_false, sub_self],
-  suffices : ∑ (p : ℕ × ℕ) in nat.antidiagonal n, (bernoulli' p.fst / ↑(p.fst)!)
-                * ((↑(p.snd) + 1) * ↑(p.snd)!)⁻¹ = (↑n!)⁻¹,
-  { convert congr_arg (algebra_map ℚ A) this,
-    simp [ring_hom.map_sum] },
-  apply eq_inv_of_mul_left_eq_one,
-  rw sum_mul,
-  convert bernoulli'_spec' n using 1,
-  apply sum_congr rfl,
-  rintro ⟨i, j⟩ hn,
-  rw nat.mem_antidiagonal at hn,
-  subst hn,
-  dsimp only,
-  have hj : (j : ℚ) + 1 ≠ 0, by { norm_cast, linarith },
-  have hj' : j.succ ≠ 0, by { show j + 1 ≠ 0, by linarith },
-  have hnz : (j + 1 : ℚ) * j! * i! ≠ 0,
-  { norm_cast at *,
-    exact mul_ne_zero (mul_ne_zero hj (factorial_ne_zero j)) (factorial_ne_zero _), },
-  field_simp [hj, hnz],
-  rw [mul_comm _ (bernoulli' i), mul_assoc],
-  norm_cast,
-  rw [mul_comm (j + 1) _, mul_div_assoc, ← mul_assoc, cast_mul, cast_mul, mul_div_mul_right _,
-    add_choose, cast_dvd_char_zero],
-  { apply factorial_mul_factorial_dvd_factorial_add, },
-  { exact cast_ne_zero.mpr hj', },
-end
-
 open ring_hom
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
@@ -296,35 +252,4 @@ begin
     simp [this, bernoulli_eq_bernoulli'_of_ne_one] },
   { field_simp [h₃],
     norm_num },
-end
-
-/-- The exponential generating function for the Bernoulli numbers `bernoulli n`. -/
-def bernoulli_power_series := power_series.mk (λ n, algebra_map ℚ A (bernoulli n / n!))
-
-theorem bernoulli_power_series_mul_exp_sub_one :
-  bernoulli_power_series A * (exp A - 1) = X :=
-begin
-  ext n,
-  -- constant coefficient is a special case
-  cases n, { simp },
-  simp only [bernoulli_power_series, coeff_mul, coeff_X, nat.sum_antidiagonal_succ', one_div,
-    coeff_mk, coeff_one, coeff_exp, linear_map.map_sub, factorial, if_pos, cast_succ, cast_one,
-    cast_mul, sub_zero, map_one, add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero,
-    mul_zero, and_false, sub_self, ←map_mul, ←map_sum],
-  suffices : ∑ x in nat.antidiagonal n, bernoulli x.fst / ↑x.fst! * ((↑x.snd + 1) * ↑x.snd!)⁻¹
-           = if n.succ = 1 then 1 else 0, { split_ifs; simp [h, this] },
-  cases n, { simp },
-  have hfact : ∀ m, (m! : ℚ) ≠ 0 := λ m, by exact_mod_cast factorial_ne_zero m,
-  have hn : n.succ.succ ≠ 1, by { show n + 2 ≠ 1, by linarith },
-  have hite1 : ite (n.succ.succ = 1) 1 0 = (0 / n.succ! : ℚ) := by simp [hn],
-  have hite2 : ite (n.succ = 0) 1 0 = (0 : ℚ) := by simp [succ_ne_zero],
-  rw [hite1, eq_div_iff (hfact n.succ), ←hite2, ←bernoulli_spec', sum_mul],
-  apply sum_congr rfl,
-  rintro ⟨i, j⟩ h,
-  rw nat.mem_antidiagonal at h,
-  have hj : (j.succ : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero j,
-  field_simp [←h, mul_ne_zero hj (hfact j), hfact i, mul_comm _ (bernoulli i), mul_assoc],
-  rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
-  rw [cast_mul, cast_mul, mul_div_mul_right _ _ hj, add_choose, cast_dvd_char_zero],
-  exact factorial_mul_factorial_dvd_factorial_add i j,
 end

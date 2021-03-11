@@ -220,7 +220,7 @@ begin
   tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
   use k,
   rw [← lie_ideal.derived_series_map_eq k h₂, hk],
-  simp only [lie_hom.map_bot_iff, bot_le],
+  simp only [lie_ideal.map_eq_bot_iff, bot_le],
 end
 
 end function

@@ -36,7 +36,7 @@ class smul_with_zero [has_zero R] extends has_scalar R M :=
 ( smul_zero : ∀ r : R, r • (0 : M) = 0 )
 ( zero_smul : ∀ m : M, (0 : R) • m = 0 )
 
-attribute [simp] smul_with_zero.smul_zero smul_with_zero.zero_smul
+--attribute [simp] smul_with_zero.smul_zero smul_with_zero.zero_smul
 
 --namespace smul_with_zero
 

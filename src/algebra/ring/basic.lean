@@ -171,8 +171,16 @@ def even (a : α) : Prop := ∃ k, a = 2*k
 
 lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
 
+@[simp] lemma range_two_mul (α : Type*) [semiring α] :
+  set.range (λ x : α, 2 * x) = {a | even a} :=
+by { ext x, simp [even, eq_comm] }
+
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
+
+@[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
+  set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
+by { ext x, simp [odd, eq_comm] }
 
 theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))

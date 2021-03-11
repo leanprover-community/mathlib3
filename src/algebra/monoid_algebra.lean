@@ -790,7 +790,10 @@ lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ * single a₂ b₂ : add_monoid_algebra k G) = single (a₁ + a₂) (b₁ * b₂) :=
 @monoid_algebra.single_mul_single k (multiplicative G) _ _ _ _ _ _
 
-@[simp] lemma single_pow [add_monoid G] {a : G} {b : k} :
+-- This should be a `@[simp]` lemma, but the simp_nf linter times out if we add this.
+-- Probably the correct fix is to make a `[add_]monoid_algebra.single` with the correct type,
+-- instead of relying on `finsupp.single`.
+lemma single_pow [add_monoid G] {a : G} {b : k} :
   ∀ n : ℕ, ((single a b)^n : add_monoid_algebra k G) = single (n •ℕ a) (b ^ n)
 | 0 := rfl
 | (n+1) :=

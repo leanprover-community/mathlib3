@@ -305,6 +305,10 @@ lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=
 (has_sum_sum_of_ne_finset_zero hf).tsum_eq
 
+lemma tsum_congr {α β : Type*} [add_comm_monoid α] [topological_space α]
+  {f g : β → α} (hfg : ∀ b, f b = g b) : ∑' b, f b = ∑' b, g b :=
+congr_arg tsum (funext hfg)
+
 lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=
 (has_sum_fintype f).tsum_eq
 
@@ -323,6 +327,14 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
 @[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
   ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
+
+lemma tsum_dite_right (P : Prop) [decidable P] (x : β → ¬ P → α) :
+  ∑' (b : β), (if h : P then (0 : α) else x b h) = if h : P then (0 : α) else ∑' (b : β), x b h :=
+by by_cases hP : P; simp [hP]
+
+lemma tsum_dite_left (P : Prop) [decidable P] (x : β → P → α) :
+  ∑' (b : β), (if h : P then x b h else 0) = if h : P then (∑' (b : β), x b h) else 0 :=
+by by_cases hP : P; simp [hP]
 
 lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
   [topological_space α'] (e : α' ≃ α) (h0 : e 0 = 0) {f : β → α} {g : γ → α'}
@@ -778,10 +790,6 @@ begin
   { simp [tsum_eq_zero_of_not_summable hf] }
 end
 
-lemma tsum_congr {f g : ℕ → ℝ} (hfg : ∀ n, f n = g n) :
-  ∑' n, f n = ∑' n, g n :=
-congr_arg tsum (funext hfg)
-
 end order_topology
 
 section ordered_topological_group
@@ -831,6 +839,9 @@ end
 
 lemma tsum_eq_zero_iff (hf : summable f) : ∑' i, f i = 0 ↔ ∀ x, f x = 0 :=
 by rw [←has_sum_zero_iff, hf.has_sum_iff]
+
+lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 0 :=
+by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
 end canonically_ordered
 

@@ -453,6 +453,7 @@ theorem continuous_generated_from {t : tspace α} {b : set (set β)}
   (h : ∀s∈b, is_open (f ⁻¹' s)) : cont t (generate_from b) f :=
 continuous_iff_coinduced_le.2 $ le_generate_from h
 
+@[continuity]
 lemma continuous_induced_dom {t : tspace β} : cont (induced f t) t f :=
 by { rw continuous_def, assume s h, exact ⟨_, h, rfl⟩ }
 

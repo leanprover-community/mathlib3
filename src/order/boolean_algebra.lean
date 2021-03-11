@@ -50,7 +50,8 @@ and `(a ⊓ b) ⊓ (a \ b) = b`, i.e. `a \ b` is the complement of `b` in
 
 This is a generalization of Boolean algebras which applies to `finset α`
 for arbitrary (not-necessarily-`fintype`) `α`. -/
-class generalized_boolean_algebra α extends distrib_lattice α, order_bot α, has_sdiff α :=
+class generalized_boolean_algebra (α : Type u) extends semilattice_sup_bot α, semilattice_inf_bot α,
+  distrib_lattice α, has_sdiff α :=
 (sup_inf_sdiff : ∀a b:α, (a ⊓ b) ⊔ (a \ b) = a)
 (inf_inf_sdiff : ∀a b:α, (a ⊓ b) ⊓ (a \ b) = ⊥)
 
@@ -62,8 +63,8 @@ variables [generalized_boolean_algebra α]
 
 namespace generalized_boolean_algebra
 
-@[priority 100]
-instance : semilattice_sup_bot α := { .. (infer_instance : generalized_boolean_algebra α) }
+-- @[priority 100]
+-- instance : semilattice_sup_bot α := { .. (infer_instance : generalized_boolean_algebra α) }
 @[priority 100]
 instance : semilattice_inf_bot α := { .. (infer_instance : generalized_boolean_algebra α) }
 

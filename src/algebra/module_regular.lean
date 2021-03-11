@@ -5,9 +5,10 @@ Authors: Damiano Testa
 -/
 import algebra.group
 import algebra.group_power.basic
---import algebra.iterate_hom
 import algebra.module.basic
-import algebra.mwe
+import algebra.smul_with_zero
+
+--import algebra.iterate_hom
 --import data.zmod.basic
 /-!
 # Action of regular elements on a module
@@ -141,8 +142,10 @@ section monoid
 
 section monoid_R
 
-variables [semiring S] [add_comm_monoid M] [has_scalar R S] [has_scalar R M]
-  [semimodule S M]  [is_scalar_tower R S M]
+variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M] [mul_action_with_zero R M]
+  [mul_action_with_zero R S] [mul_action_with_zero S M] [is_scalar_tower R S M]
+--[semiring S] [add_comm_monoid M] [has_scalar R S] [has_scalar R M]
+--  [semimodule S M]  [is_scalar_tower R S M]
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
 lemma is_regular_of_mul_eq_one (h : a • s = 1) : is_regular M s :=
@@ -155,8 +158,13 @@ end
 
 end monoid_R
 
-variables [semiring R] [semiring S] [add_comm_monoid M] [semimodule R S] [semimodule R M]
-  [semimodule S M]  [is_scalar_tower R S M]
+variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
+--[monoid_with_zero S] [add_comm_monoid M] [semimodule R S] [semimodule R M]
+--  [semimodule S M]  [is_scalar_tower R S M]
+
+lemma defs {R M : Type*} [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
+  @smul_with_zero.to_has_scalar R M _ _ _ = mul_action.to_has_scalar :=
+rfl
 
 /-- Any element in `units R` is `M`-regular. -/
 lemma units.is_regular (a : units R) : is_regular M (a : R) :=
@@ -164,7 +172,7 @@ begin
   have ai : a.inv • a.val = 1,
   { rw smul_eq_mul,
      exact a.inv_val },
-  exact is_regular_of_mul_eq_one M ai,
+  { exact is_regular_of_mul_eq_one M ai }
 end
 
 /-- A unit is `M`-regular. -/

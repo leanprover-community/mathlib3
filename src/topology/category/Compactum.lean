@@ -139,6 +139,7 @@ instance {X : Compactum} : topological_space X :=
 theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
   (∀ F : ultrafilter X, S ∈ F → X.str F ∈ S) :=
 begin
+  rw ← is_open_compl_iff,
   split,
   { intros cond F h,
     by_contradiction c,
@@ -267,7 +268,7 @@ begin
   { intros A hA h,
     by_contradiction H,
     rw le_nhds_iff at cond,
-    specialize cond Aᶜ H hA,
+    specialize cond Aᶜ H hA.is_open_compl,
     rw [ultrafilter.mem_coe, ultrafilter.compl_mem_iff_not_mem] at cond,
     contradiction },
   -- If A ∈ F, then x ∈ cl A.

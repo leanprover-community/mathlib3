@@ -441,6 +441,14 @@ begin
     intro rp, have : ¬(p ≤ 0) := not_le_of_lt (lt_of_le_of_lt (coe_nonneg _) rp), contradiction }
 end
 
+@[simp] lemma of_real_bit0 {r : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real (bit0 r) = bit0 (nnreal.of_real r) :=
+of_real_add hr hr
+
+@[simp] lemma of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real (bit1 r) = bit1 (nnreal.of_real r) :=
+(of_real_add (by simp [hr]) zero_le_one).trans (by simp [of_real_one, bit1, hr])
+
 end of_real
 
 section mul

@@ -221,13 +221,12 @@ by simp only [chart_at] with mfld_simps
 
 /-- Smooth manifold structure on the total space of a basic smooth bundle -/
 instance to_smooth_manifold :
-  smooth_manifold_with_corners (I.prod (model_with_corners_self 𝕜 F))
-  Z.to_topological_fiber_bundle_core.total_space :=
+  smooth_manifold_with_corners (I.prod (𝓘(𝕜, F))) Z.to_topological_fiber_bundle_core.total_space :=
 begin
   /- We have to check that the charts belong to the smooth groupoid, i.e., they are smooth on their
   source, and their inverses are smooth on the target. Since both objects are of the same kind, it
   suffices to prove the first statement in A below, and then glue back the pieces at the end. -/
-  let J := model_with_corners.to_local_equiv (I.prod (model_with_corners_self 𝕜 F)),
+  let J := model_with_corners.to_local_equiv (I.prod (𝓘(𝕜, F))),
   have A : ∀ (e e' : local_homeomorph M H) (he : e ∈ atlas H M) (he' : e' ∈ atlas H M),
     times_cont_diff_on 𝕜 ∞
     (J ∘ ((Z.chart he).symm.trans (Z.chart he')) ∘ J.symm)
@@ -261,7 +260,7 @@ begin
       cocycle property one can get rid of it, and then conclude using the smoothness of the
       cocycle as given in the definition of basic smooth bundles. -/
       have := Z.coord_change_smooth ⟨e, he⟩ ⟨e', he'⟩,
-      rw model_with_corners.image at this,
+      rw I.image_eq at this,
       apply times_cont_diff_on.congr this,
       rintros ⟨x, v⟩ hx,
       simp only with mfld_simps at hx,
@@ -297,7 +296,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
   coord_change_smooth := λi j, begin
     /- To check that the coordinate change of the bundle is smooth, one should just use the
     smoothness of the charts, and thus the smoothness of their derivatives. -/
-    rw model_with_corners.image,
+    rw I.image_eq,
     have A : times_cont_diff_on 𝕜 ∞
       (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
       (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
@@ -343,9 +342,9 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       simp only [hx, i.1.map_target] with mfld_simps },
     have B : ∀ᶠ y in 𝓝[range I] (I x),
       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
-    { apply filter.mem_sets_of_superset A,
+    { filter_upwards [A],
       assume y hy,
-      rw ← model_with_corners.image at hy,
+      rw ← I.image_eq at hy,
       rcases hy with ⟨z, hz⟩,
       simp only with mfld_simps at hz,
       simp only [hz.2.symm, hz.1] with mfld_simps },

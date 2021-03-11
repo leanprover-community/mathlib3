@@ -1375,6 +1375,33 @@ begin
   exact nnreal.of_real_prod_of_nonneg hf,
 end
 
+@[simp] lemma to_nnreal_bit0 {x : ℝ≥0∞} : (bit0 x).to_nnreal = bit0 (x.to_nnreal) :=
+begin
+  by_cases hx_top : x = ∞,
+  { simp [hx_top, bit0_eq_top_iff.mpr rfl], },
+  exact to_nnreal_add (lt_top_iff_ne_top.mpr hx_top) (lt_top_iff_ne_top.mpr hx_top),
+end
+
+@[simp] lemma to_nnreal_bit1 {x : ℝ≥0∞} (hx_top : x ≠ ∞) :
+  (bit1 x).to_nnreal = bit1 (x.to_nnreal) :=
+by simp [bit1, bit1, to_nnreal_add
+  (lt_top_iff_ne_top.mpr (by rwa [ne.def, bit0_eq_top_iff])) ennreal.one_lt_top]
+
+@[simp] lemma to_real_bit0 {x : ℝ≥0∞} : (bit0 x).to_real = bit0 (x.to_real) :=
+by simp [ennreal.to_real]
+
+@[simp] lemma to_real_bit1 {x : ℝ≥0∞} (hx_top : x ≠ ∞) :
+  (bit1 x).to_real = bit1 (x.to_real) :=
+by simp [ennreal.to_real, hx_top]
+
+@[simp] lemma of_real_bit0 {r : ℝ} (hr : 0 ≤ r) :
+  ennreal.of_real (bit0 r) = bit0 (ennreal.of_real r) :=
+of_real_add hr hr
+
+@[simp] lemma of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
+  ennreal.of_real (bit1 r) = bit1 (ennreal.of_real r) :=
+(of_real_add (by simp [hr]) zero_le_one).trans (by simp [nnreal.of_real_one, bit1, hr])
+
 end real
 
 section infi
@@ -1443,6 +1470,11 @@ by { rw [mul_comm, infi_mul h], simp only [mul_comm], assumption }
 end infi
 
 section supr
+
+@[simp] lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
+supr_eq_bot
+
+lemma sup_eq_zero {a b : ℝ≥0∞} : a ⊔ b = 0 ↔ a = 0 ∧ b = 0 := sup_eq_bot_iff
 
 lemma supr_coe_nat : (⨆n:ℕ, (n : ℝ≥0∞)) = ∞ :=
 (supr_eq_top _).2 $ assume b hb, ennreal.exists_nat_gt (lt_top_iff_ne_top.1 hb)

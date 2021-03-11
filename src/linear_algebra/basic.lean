@@ -74,7 +74,7 @@ lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
 finset.smul_sum
 
 @[simp]
-lemma smul_sum' {α : Type u} {R : Type v} {M : Type w} {M₂ : Type x}
+lemma sum_smul_index_linear_map' {α : Type u} {R : Type v} {M : Type w} {M₂ : Type x}
   [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid M₂] [semimodule R M₂]
   {v : α →₀ M} {c : R} {h : α → M →ₗ[R] M₂} :
   (c • v).sum (λ a, h a) = c • (v.sum (λ a, h a)) :=
@@ -495,6 +495,8 @@ variables {p p'}
 
 lemma le_def : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
 
+@[simp, norm_cast] lemma coe_subset_coe : (p : set M) ⊆ p' ↔ p ≤ p' := iff.rfl
+
 lemma le_def' : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
 
 lemma lt_def : p < p' ↔ (p : set M) ⊂ p' := iff.rfl
@@ -713,6 +715,10 @@ image_subset _
 have ∃ (x : M), x ∈ p := ⟨0, p.zero_mem⟩,
 ext $ by simp [this, eq_comm]
 
+lemma range_map_nonempty (N : submodule R M) :
+  (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
+⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
+
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
 { carrier   := f ⁻¹' p,
@@ -879,6 +885,16 @@ lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i ∈ s, f i ∈ p i) :
+  ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
+
+lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
+  (h : ∀ i, f i ∈ p i) :
+  ∑ i, f i ∈ ⨆ i, p i :=
+sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
 
 lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
@@ -1590,6 +1606,15 @@ submodule.map_smul f _ a h
 
 lemma range_smul' (f : V →ₗ[K] V₂) (a : K) : range (a • f) = ⨆(h : a ≠ 0), range f :=
 submodule.map_smul' f _ a
+
+lemma span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
+  (K ∙ x) ⊔ f.ker = ⊤ :=
+eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
+  submodule.mem_span_singleton.2 ⟨f y * (f x)⁻¹, rfl⟩,
+    ⟨y - (f y * (f x)⁻¹) • x,
+      by rw [linear_map.mem_ker, f.map_sub, f.map_smul, smul_eq_mul, mul_assoc,
+             inv_mul_cancel hx, mul_one, sub_self],
+      by simp only [add_sub_cancel'_right]⟩⟩)
 
 end field
 

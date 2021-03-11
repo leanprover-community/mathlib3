@@ -768,18 +768,6 @@ lemma comap_infi {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-@[to_additive]
-lemma map_eq_bot_iff {G' : Type*} [group G'] {f : G →* G'} (hf : function.injective f)
-  (H : subgroup G) : H.map f = ⊥ ↔ H = ⊥ :=
-begin
-  split,
-  { rw [eq_bot_iff_forall, eq_bot_iff_forall],
-    intros h x hx,
-    have hfx : f x = 1 := h (f x) ⟨x, hx, rfl⟩,
-    exact hf (show f x = f 1, by simp only [hfx, monoid_hom.map_one]), },
-  { intros h, rw [h, map_bot], },
-end
-
 @[simp, to_additive]
 lemma comap_subtype_inf_left {H K : subgroup G} : comap H.subtype (H ⊓ K) = comap H.subtype K :=
 ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
@@ -1186,6 +1174,13 @@ begin
   simp only [],
 end
 
+@[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
+begin
+  split,
+  { intros h x y hxy,
+    rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
+  { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
+end
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
@@ -1226,6 +1221,26 @@ le_antisymm
   ((closure_le _).2 $ set.image_subset _ subset_closure)
 
 end monoid_hom
+
+namespace subgroup
+
+variables {N : Type*} [group N] (H : subgroup G)
+
+@[to_additive] lemma map_eq_bot_iff {f : G →* N} : H.map f = ⊥ ↔ H ≤ f.ker :=
+begin
+  rw eq_bot_iff,
+  split,
+  { exact λ h x hx, h ⟨x, hx, rfl⟩ },
+  { intros h x hx,
+    obtain ⟨y, hy, rfl⟩ := hx,
+    exact h hy },
+end
+
+@[to_additive]
+lemma map_eq_bot_iff_of_injective {f : G →* N} (hf : function.injective f) : H.map f = ⊥ ↔ H = ⊥ :=
+by rw [map_eq_bot_iff, f.ker_eq_bot_iff.mpr hf, le_bot_iff]
+
+end subgroup
 
 namespace monoid_hom
 

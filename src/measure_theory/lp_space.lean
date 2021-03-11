@@ -1502,7 +1502,7 @@ begin
   exact ⟨l + f 0 x, tendsto.add_const _ hx⟩,
 end
 
-lemma cauchy_tendsto_of_tendsto (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ)
+lemma cauchy_tendsto_of_tendsto {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ)
   (f_lim : α → E) {B : ℕ → ℝ≥0∞}
   (hB : ∑' i, B i < ∞) (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N)
   (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
@@ -1569,7 +1569,7 @@ begin
       (ae_tendsto_of_cauchy_snorm' (λ n, (hf n).1) hp1 hB h_cau'),
   rw ennreal.of_real_to_real hp_ne_top at hf,
   have h_tendsto' : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
-    from cauchy_tendsto_of_tendsto hp (λ m, (hf m).1) f_lim hB h_cau h_lim,
+    from cauchy_tendsto_of_tendsto (λ m, (hf m).1) f_lim hB h_cau h_lim,
   have h_ℒp_lim : mem_ℒp f_lim p μ,
     from mem_ℒp_of_cauchy_tendsto hp hf f_lim h_f_lim_meas.ae_measurable h_tendsto',
   exact ⟨f_lim, h_ℒp_lim, h_tendsto'⟩,
@@ -1581,12 +1581,12 @@ lemma cauchy_complete_ℒp_top [complete_space E] {f : ℕ → α → E} (hf : �
   ∃ (f_lim : α → E) (hf_lim_ℒp : mem_ℒp f_lim ∞ μ),
     at_top.tendsto (λ n, snorm (f n - f_lim) ∞ μ) (𝓝 0) :=
 begin
-  simp_rw [snorm_exponent_top, snorm_ess_sup] at h_cau,
   have h_cau_ae : ∀ᵐ x ∂μ, ∀ N n m, N ≤ n → N ≤ m → (nnnorm ((f n - f m) x) : ℝ≥0∞) < B N,
   { simp_rw [ae_all_iff, ae_imp_iff],
     exact λ N n m hnN hmN, ae_lt_of_ess_sup_lt (h_cau N n m hnN hmN), },
   have h_tendsto_ae : ∀ᵐ x ∂μ, ∃ l, at_top.tendsto (λ n, f n x) (𝓝 l),
-  { refine h_cau_ae.mono (λ x hx, cauchy_seq_tendsto_of_complete _),
+  { simp_rw [snorm_exponent_top, snorm_ess_sup] at h_cau,
+    refine h_cau_ae.mono (λ x hx, cauchy_seq_tendsto_of_complete _),
     refine cauchy_seq_of_le_tendsto_0 (λ n, (B n).to_real) _ _,
     { intros n m N hnN hmN,
       specialize hx N n m hnN hmN,
@@ -1601,7 +1601,7 @@ begin
   obtain ⟨f_lim, h_f_lim_meas, h_lim⟩ : ∃ (f_lim : α → E) (hf_lim_meas : measurable f_lim),
       ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (nhds (f_lim x)),
     from measurable_limit_of_tendsto_metric_ae (λ n, (hf n).1) h_tendsto_ae,
-  have h_cau_lim := cauchy_tendsto_of_tendsto le_top (λ m, (hf m).1) f_lim hB h_cau h_lim,
+  have h_cau_lim := cauchy_tendsto_of_tendsto (λ m, (hf m).1) f_lim hB h_cau h_lim,
   exact ⟨f_lim, mem_ℒp_of_cauchy_tendsto le_top hf f_lim h_f_lim_meas.ae_measurable h_cau_lim,
     h_cau_lim⟩,
 end

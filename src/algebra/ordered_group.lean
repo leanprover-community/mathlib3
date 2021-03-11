@@ -77,7 +77,7 @@ instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   le_of_mul_le_mul_left := @ordered_comm_group.le_of_mul_le_mul_left α _,
   ..s }
 
-@[to_additive]
+@[priority 100, to_additive]
 instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   [ordered_comm_group α] :
   has_exists_mul_of_le α :=

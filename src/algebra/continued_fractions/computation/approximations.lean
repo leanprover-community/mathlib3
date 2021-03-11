@@ -17,10 +17,11 @@ computation `generalized_continued_fraction.of`. In particular, we derive the so
 `Aₙ * Bₙ₊₁ - Bₙ * Aₙ₊₁ = (-1)^(n + 1)`.
 
 Moreover, we derive some upper bounds for the error term when computing a continued fraction up a
-given position, i.e. bounds for the term `|v - (generalized_continued_fraction.of v).convergents n|`.
-The derived bounds will show us that the error term indeed gets smaller.
-As a corollary, we will be able to show that `(generalized_continued_fraction.of v).convergents`
-converges to `v` in `algebra.continued_fractions.computation.approximation_corollaries`.
+given position, i.e. bounds for the term
+`|v - (generalized_continued_fraction.of v).convergents n|`. The derived bounds will show us that
+the error term indeed gets smaller. As a corollary, we will be able to show that
+`(generalized_continued_fraction.of v).convergents` converges to `v` in
+`algebra.continued_fractions.computation.approximation_corollaries`.
 
 ## Main Theorems
 

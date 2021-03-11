@@ -219,7 +219,7 @@ lemma is_solvable_def : is_solvable G ↔ ∃ n : ℕ, derived_series G n = ⊥ 
 ⟨λ h, h.solvable, λ h, ⟨h⟩⟩
 
 @[priority 100]
-instance is_solvable_of_comm {G : Type*} [comm_group G] : is_solvable G :=
+instance comm_group.is_solvable {G : Type*} [comm_group G] : is_solvable G :=
 begin
   use 1,
   rw [eq_bot_iff, derived_series_one],
@@ -227,13 +227,13 @@ begin
   ... = ⊥ : rfl,
 end
 
-lemma is_solvable_of_comm' {G : Type*} [hG : group G]
+lemma is_solvable_of_comm {G : Type*} [hG : group G]
   (h : ∀ a b : G, a * b = b * a) : is_solvable G :=
 begin
   letI hG' : comm_group G := { mul_comm := h .. hG },
   tactic.unfreeze_local_instances,
   cases hG,
-  exact is_solvable_of_comm,
+  exact comm_group.is_solvable,
 end
 
 lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=

@@ -1237,11 +1237,14 @@ namespace Lp
 
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 
-lemma tendsto_Lp_of_tendsto_ℒp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
+lemma tendsto_Lp_of_tendsto_ℒp {ι} [linear_order ι] [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ)
   (h_tendsto : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
   at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) :=
 begin
+  by_cases hι : nonempty ι,
+  swap, { exact tendsto_of_not_nonempty hι, },
+  haveI : nonempty ι := hι,
   rw ennreal.tendsto_at_top_zero at h_tendsto,
   simp_rw metric.tendsto_at_top,
   intros ε hε,

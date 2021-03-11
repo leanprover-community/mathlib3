@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated
 import algebra.big_operators.basic
-import data.nat.enat
+import ring_theory.valuation.basic
 
 /-!
 # Multiplicity of a divisor
@@ -389,6 +389,20 @@ multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
 end comm_cancel_monoid_with_zero
+
+section valuation
+
+variables {R : Type*} [integral_domain R] {p : R} [decidable_rel (has_dvd.dvd : R → R → Prop)]
+
+/-- `multiplicity` of a prime inan integral domain as an additive valuation to `enat`. -/
+noncomputable def add_valuation (hp : prime p) : add_valuation R enat :=
+add_valuation.of (multiplicity p) (multiplicity.zero _) (one_right hp.not_unit)
+  (λ _ _, min_le_multiplicity_add) (λ a b, multiplicity.mul hp)
+
+@[simp]
+lemma add_valuation_apply {hp : prime p} {r : R} : add_valuation hp r = multiplicity p r := rfl
+
+end valuation
 
 end multiplicity
 

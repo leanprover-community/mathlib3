@@ -193,6 +193,69 @@ lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topolog
   (u.prod v) ∈ 𝓝[s.prod t] (a, b) :=
 by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
+lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  𝓝[pi I s] x = ⨅ i, comap (λ x, x i) (𝓝 (x i) ⊓ ⨅ (hi : i ∈ I), 𝓟 (s i)) :=
+by simp only [nhds_within, nhds_pi, comap_inf, comap_infi, pi_def, comap_principal,
+  ← infi_principal_finite hI, ← infi_inf_eq]
+
+lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  𝓝[pi I s] x = (⨅ i ∈ I, comap (λ x, x i) (𝓝[s i] (x i))) ⊓
+    ⨅ (i ∉ I), comap (λ x, x i) (𝓝 (x i)) :=
+begin
+  simp only [nhds_within, nhds_pi, pi_def, ← infi_principal_finite hI, comap_inf, comap_principal,
+    function.eval],
+  rw [infi_split _ (λ i, i ∈ I), inf_right_comm],
+  simp only [infi_inf_eq]
+end
+
+lemma nhds_within_pi_univ_eq {ι : Type*} {α : ι → Type*} [fintype ι] [Π i, topological_space (α i)]
+  (s : Π i, set (α i)) (x : Π i, α i) :
+  𝓝[pi univ s] x = ⨅ i, comap (λ x, x i) 𝓝[s i] (x i) :=
+by simpa [nhds_within] using nhds_within_pi_eq finite_univ s x
+
+lemma nhds_within_pi_univ_eq_bot {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
+  {s : Π i, set (α i)} {x : Π i, α i} :
+  𝓝[pi univ s] x = ⊥ ↔ ∃ i, 𝓝[s i] (x i) = ⊥ :=
+begin
+  classical,
+  split,
+  { haveI : Π i, inhabited (α i) := λ i, ⟨x i⟩,
+    simp only [nhds_within, nhds_pi, inf_principal_eq_bot, mem_infi_iff', mem_comap_sets],
+    rintro ⟨I, hIf, V, hV, hVs⟩, choose! t htx htV using hV,
+    contrapose! hVs,
+    change ∀ i, ∃ᶠ y in 𝓝 (x i), y ∈ s i at hVs,
+    have : ∀ i ∈ I, (s i ∩ t i).nonempty, from λ i hi, ((hVs i).and_eventually (htx i hi)).exists,
+    choose! y hys hyt,
+    choose z hzs using λ i, (hVs i).exists,
+    suffices : I.piecewise y z ∈ (⋂ i ∈ I, V i) ∩ (pi univ s),
+      from λ H, H this.1 this.2,
+    refine ⟨mem_bInter $ λ i hi, htV i hi _, λ i hi', _⟩,
+    { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i hi] },
+    { by_cases hi : i ∈ I; simp * } },
+  { rintro ⟨i, eq⟩,
+    rw [← @map_eq_bot_iff _ _ _ (λ x : Π i, α i, x i)],
+    refine eq_bot_mono _ eq,
+    exact ((continuous_apply i).tendsto x).inf
+      (tendsto_principal_principal.2 $ λ y hy, hy i trivial) }
+end
+
+lemma nhds_within_pi_eq_bot {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} {x : Π i, α i} :
+  𝓝[pi I s] x = ⊥ ↔ ∃ i ∈ I, 𝓝[s i] (x i) = ⊥ :=
+begin
+  classical,
+  rw [← univ_pi_piecewise I, nhds_within_pi_univ_eq_bot],
+  refine exists_congr (λ i, _),
+  by_cases hi : i ∈ I; simp [*, nhds_within_univ, nhds_ne_bot.ne]
+end
+
+lemma nhds_within_pi_ne_bot {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} {x : Π i, α i} :
+  (𝓝[pi I s] x).ne_bot ↔ ∀ i ∈ I, (𝓝[s i] (x i)).ne_bot :=
+by simp [ne_bot_iff, nhds_within_pi_eq_bot]
+
 theorem filter.tendsto.piecewise_nhds_within {f g : α → β} {t : set α} [∀ x, decidable (x ∈ t)]
   {a : α} {s : set α} {l : filter β}
   (h₀ : tendsto f (𝓝[s ∩ t] a) l) (h₁ : tendsto g (𝓝[s ∩ tᶜ] a) l) :
@@ -244,6 +307,22 @@ by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
 lemma dense_range.nhds_within_ne_bot {ι : Type*} {f : ι → α} (h : dense_range f) (x : α) :
   ne_bot (𝓝[range f] x) :=
 mem_closure_iff_cluster_pt.1 (h x)
+
+lemma mem_closure_pi {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} {x : Π i, α i} :
+  x ∈ closure (pi I s) ↔ ∀ i ∈ I, x i ∈ closure (s i) :=
+by simp only [mem_closure_iff_nhds_within_ne_bot, nhds_within_pi_ne_bot]
+
+lemma closure_pi_set {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
+  (I : set ι) (s : Π i, set (α i)) :
+  closure (pi I s) = pi I (λ i, closure (s i)) :=
+set.ext $ λ x, mem_closure_pi
+
+lemma dense_pi {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)] {s : Π i, set (α i)}
+  (I : set ι) (hs : ∀ i ∈ I, dense (s i)) :
+  dense (pi I s) :=
+by simp only [dense_iff_closure_eq, closure_pi_set,
+  pi_congr rfl (λ i hi, (hs i hi).closure_eq), pi_univ]
 
 lemma eventually_eq_nhds_within_iff {f g : α → β} {s : set α} {a : α} :
   (f =ᶠ[𝓝[s] a] g) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → f x = g x :=
@@ -355,6 +434,16 @@ begin
   exact hf.prod_map hg,
 end
 
+lemma continuous_within_at_pi {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+  {f : α → Π i, π i} {s : set α} {x : α} :
+  continuous_within_at f s x ↔ ∀ i, continuous_within_at (λ y, f y i) s x :=
+tendsto_pi
+
+lemma continuous_on_pi {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
+  {f : α → Π i, π i} {s : set α} :
+  continuous_on f s ↔ ∀ i, continuous_on (λ y, f y i) s :=
+⟨λ h i x hx, tendsto_pi.1 (h x hx) i, λ h x hx, tendsto_pi.2 (λ i, h i x hx)⟩
+
 theorem continuous_on_iff {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ x ∈ s, ∀ t : set β, is_open t → f x ∈ t → ∃ u, is_open u ∧ x ∈ u ∧
     u ∩ s ⊆ f ⁻¹' t :=
@@ -453,6 +542,10 @@ begin
   rintros _ ⟨x, hx, rfl⟩,
   exact (hf x hx).mem_closure_image hx
 end
+
+lemma continuous_on.image_closure {f : α → β} {s : set α} (hf : continuous_on f (closure s)) :
+  f '' (closure s) ⊆ closure (f '' s) :=
+continuous_within_at.image_closure $ λ x hx, (hf x hx).mono subset_closure
 
 @[simp] lemma continuous_within_at_singleton {f : α → β} {x : α} : continuous_within_at f {x} x :=
 by simp only [continuous_within_at, nhds_within_singleton, tendsto_pure_nhds]

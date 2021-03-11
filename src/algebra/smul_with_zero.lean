@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import group_theory.group_action.defs
-
+import algebra.algebra.basic
 /-!
 # Introduce `smul_with_zero`
 
@@ -16,7 +16,11 @@ on a Type with `0`.  The action is required to be compatible with
 * associativity of the monoid.
 -/
 
-variables (R M : Type*) [has_zero M]
+variables (R M : Type*)
+
+section has_zero
+
+variable [has_zero M]
 
 /--  `smul_with_zero` is a class consisting of a Type `R` with `0 : R` and a scalar multiplication
 of `R` on a Type `M` with `0`, such that the equality `r • m = 0` holds if at least one among `r`
@@ -65,3 +69,15 @@ instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
   zero_smul := zero_mul}
 
 end monoid_with_zero
+
+end has_zero
+
+section semiring
+
+instance semimodule.to_mul_action_with_zero [semiring R] [add_comm_monoid M] [semimodule R M] :
+  mul_action_with_zero R M :=
+{ smul_zero := smul_zero,
+  zero_smul := zero_smul R,
+  ..(infer_instance : mul_action R M) }
+
+end semiring

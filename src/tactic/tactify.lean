@@ -12,6 +12,7 @@ meta inductive proof_step
 | exact (e : expr) : proof_step
 | intro (n : name) : proof_step
 | rewrite (r : expr) : proof_step
+| «sorry» : proof_step
 
 meta inductive proof_script
 | done : proof_script
@@ -24,6 +25,7 @@ meta def to_format : proof_step → tactic format
 | (exact e) := do p ← pp e, return format!"exact {p}"
 | (intro n) := return format!"intro {n}"
 | (rewrite r) := do p ← pp r, return format!"rw {p}"
+| («sorry») := return format!"sorry"
 
 meta instance : has_to_tactic_format proof_step :=
 ⟨to_format⟩
@@ -34,7 +36,11 @@ do
   -- Keep a copy of the initial goals (which should unify with the solutions)
   initial_goals ← get_goals,
   -- Run the tactic
+  -- trace_state,
+  -- trace_result,
   t,
+  -- trace_state,
+  -- trace_result,
   -- Collect the subgoals
   new_goals ← get_goals,
   lock_tactic_state $ (do
@@ -48,6 +54,7 @@ meta def as_tactic : proof_step → tactic unit
 | (exact e) := tactic.exact e
 | (intro n) := tactic.intro n >> skip
 | (rewrite r) := tactic.rewrite_target r >> skip
+| («sorry») := tactic.admit
 
 meta def subgoals (solutions : list expr) (step : proof_step) :
   tactic (list expr) :=
@@ -57,16 +64,13 @@ end proof_step
 
 namespace proof_script
 
+-- TODO: produce scripts using correct braces?
 meta def to_format : proof_script → tactic format
 | (proof_script.done) := return $ format.of_string "done"
 | (proof_script.step st s n) := do
   ps ← pp s,
   pn ← to_format n,
   return (ps ++ "," ++ format.line ++ pn)
--- | (proof_script.step st s r) := do
---   ps ← pp s,
---   pr ← r.mmap (λ n, do pn ← to_format n, return (format.of_string "{ " ++ (format.nest 2 pn) ++ " }")),
---   return $ ps ++ "," ++ format.line ++ format.join (list.intersperse ("," ++ format.line) pr)
 
 meta instance : has_to_tactic_format proof_script :=
 ⟨to_format⟩
@@ -125,14 +129,19 @@ do
           let b := sol.app_fn.app_arg.app_arg.app_arg,
           return (proof_step.rewrite b)
       | _ := do
-          f'' ← apply_with_underscores f',
-          return (proof_step.apply f'')
+          let n := f'.const_name,
+          if (`dcases_on).is_suffix_of n ∨ (`cases_on).is_suffix_of n then do
+            return (proof_step.sorry)
+          else do
+            f'' ← apply_with_underscores f',
+            return (proof_step.apply f'')
       end
   | _ := do
       trace_state,
       fail format!"don't know how to process {sol}"
   end,
   gs ← s.subgoals solutions,
+  -- trace gs,
   return ⟨s, gs⟩
 
 -- #exit
@@ -187,28 +196,22 @@ run_cmd tactic_prompts `nat.units_eq_one
 
 -- Later goals that have actually been solved stick around:
 run_cmd tactic_prompts `nat.add_factorial_succ_lt_factorial_add_succ
+run_cmd tactic_prompts `nat.lt_factorial_self
 
 -- rewrites have spurious `propext`:
 run_cmd tactic_prompts `nat.zero_eq_mul
 
--- dcases_on breaks things:
+-- I don't know how to handle proofs that use `cases`, `induction`, or pattern matching.
 run_cmd tactic_prompts `nat.add_factorial_le_factorial_add
-
-def quux : ℕ := nat.factorial (3 + (nat.factorial 7))
-
-def ff {α : Type*} (a : α) := [[a,a],[a,a,a]]
-
-run_cmd tactic.interactive.tactify `nat.factorial_le
+run_cmd tactic_prompts `nat.self_le_factorial
 
 example : false :=
 begin
-  tactify `quux,
-  tactify `ff,
   tactify `nat.factorial_le,
   tactify `nat.add_factorial_succ_lt_factorial_add_succ,
-  -- bar `bar,
 end
 
+-- Extracted from nat.add_factorial_succ_lt_factorial_add_succ.
 example : ∀ {i : ℕ} (n : ℕ), 2 ≤ i → i + (n + 1).factorial < (i + n + 1).factorial :=
 begin
   intro i,

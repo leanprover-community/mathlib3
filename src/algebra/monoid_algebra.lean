@@ -772,7 +772,6 @@ end derived_instances
 section misc_theorems
 
 variables [semiring k]
-local attribute [reducible] add_monoid_algebra
 
 lemma mul_apply [has_add G] (f g : add_monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
@@ -788,11 +787,11 @@ lemma support_mul [has_add G] (a b : add_monoid_algebra k G) :
 @monoid_algebra.support_mul k (multiplicative G) _ _ _ _
 
 lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
-  (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
+  (single a₁ b₁ * single a₂ b₂ : add_monoid_algebra k G) = single (a₁ + a₂) (b₁ * b₂) :=
 @monoid_algebra.single_mul_single k (multiplicative G) _ _ _ _ _ _
 
 @[simp] lemma single_pow [add_monoid G] {a : G} {b : k} :
-  ∀ n : ℕ, (single a b : add_monoid_algebra k G)^n = single (n •ℕ a) (b ^ n)
+  ∀ n : ℕ, ((single a b)^n : add_monoid_algebra k G) = single (n •ℕ a) (b ^ n)
 | 0 := rfl
 | (n+1) :=
 by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul, one_nsmul]
@@ -843,11 +842,11 @@ f.mul_single_apply_aux r _ _ _ $ λ a, by rw [add_zero]
 
 lemma single_mul_apply_aux [has_add G] (f : add_monoid_algebra k G) (r : k) (x y z : G)
   (H : ∀ a, x + a = y ↔ a = z) :
-  (single x r * f) y = r * f z :=
+  (single x r * f : add_monoid_algebra k G) y = r * f z :=
 @monoid_algebra.single_mul_apply_aux k (multiplicative G) _ _ _ _ _ _ _ H
 
 lemma single_zero_mul_apply [add_monoid G] (f : add_monoid_algebra k G) (r : k) (x : G) :
-  (single 0 r * f) x = r * f x :=
+  (single 0 r * f : add_monoid_algebra k G) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
 
 lemma lift_nc_smul {R : Type*} [add_monoid G] [semiring R] (f : k →+* R)

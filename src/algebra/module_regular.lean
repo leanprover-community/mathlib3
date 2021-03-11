@@ -59,8 +59,8 @@ variables [monoid R] [mul_action R M]
 
 /--  Two elements `a` and `b` are `M`-regular if and only if both products `a • b` and `b • a`
 are `M`-regular. -/
-lemma is_regular_smul_and_smul_iff :
-  is_regular M (a • b) ∧ is_regular M (b • a) ↔ is_regular M a ∧ is_regular M b :=
+lemma is_regular_mul_and_mul_iff :
+  is_regular M (a * b) ∧ is_regular M (b * a) ↔ is_regular M a ∧ is_regular M b :=
 begin
   refine ⟨_, _⟩,
   { rintros ⟨ab, ba⟩,
@@ -72,7 +72,7 @@ end
 /--  The "most used" implication of `mul_and_mul_iff`, with split hypotheses, instead of `∧`. -/
 lemma is_regular.and_of_smul_of_smul (ab : is_regular M (a • b)) (ba : is_regular M (b • a)) :
   is_regular M a ∧ is_regular M b :=
-is_regular_smul_and_smul_iff.mp ⟨ab, ba⟩
+is_regular_mul_and_mul_iff.mp ⟨ab, ba⟩
 
 @[simp] lemma is_regular_one : is_regular M (1 : R) :=
 begin
@@ -158,8 +158,8 @@ variables [comm_monoid R] [mul_action R M]
 /--  A product is `M`-regular if and only if the factors are. -/
 lemma is_regular_mul_iff : is_regular M (a * b) ↔ is_regular M a ∧ is_regular M b :=
 begin
-  rw [← is_regular_smul_and_smul_iff],
-  exact ⟨λ ab, ⟨ab, by rwa [smul_eq_mul, mul_comm]⟩, λ rab, rab.1⟩
+  rw [← is_regular_mul_and_mul_iff],
+  exact ⟨λ ab, ⟨ab, by rwa [mul_comm]⟩, λ rab, rab.1⟩
 end
 
 end comm_monoid

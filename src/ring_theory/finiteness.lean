@@ -334,8 +334,8 @@ end
 
 /-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is
   finitely presented as `R`-algebra. -/
-lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R A) (hfpB : finite_presentation A B) :
-  finite_presentation R B :=
+lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R A)
+  (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
   letI : is_scalar_tower R A I.quotient := is_scalar_tower.comap,

@@ -117,51 +117,40 @@ Otherwise, i.e. if `a` is of infinite order, then `order_of a` is `0` by convent
 noncomputable def order_of (a : α) : ℕ :=
 if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 
-lemma order_of_of_finite_order {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : order_of a = nat.find h :=
+lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
 begin
   rw order_of,
   split_ifs with hx,
-  refl
+  exact (nat.find_spec h).1
 end
 
 lemma pow_order_of_eq_one (a : α): a ^ order_of a = 1 :=
 begin
   rw order_of,
-  split_ifs with hx,
-  { exact (nat.find_spec hx).2 },
+  split_ifs with hfin,
+  { exact (nat.find_spec hfin).2 },
   { exact pow_zero a }
 end
 
-lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
+lemma order_of_le_of_pow_eq_one' {m : ℕ} (h : m < order_of a) : ¬ (0 < m ∧ a ^ m = 1) :=
 begin
-  rw order_of_of_finite_order h,
-  exact (nat.find_spec h).1
+  rw order_of at h,
+  split_ifs at h with hfin,
+     { exact nat.find_min hfin h },
+     { exfalso, exact nat.not_lt_zero m h }
 end
 
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
 begin
-rw order_of,
-split_ifs with ha,
-  { exact nat.find_min' ha ⟨hn, h⟩ },
-  { exact le_of_lt hn }
+  by_contradiction h',
+  exact (order_of_le_of_pow_eq_one' (not_le.mp h')) ⟨hn, h⟩
 end
 
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
-  have h : 0 < 1 ∧ (1 : α)  ^ 1 = 1,
-    by exact ⟨nat.one_pos, one_pow 1⟩,
-  rw order_of,
-  split_ifs with h',
-  { have h'' : nat.find h' ≤ 1,
-      { apply nat.find_min',
-        exact h, },
-    have h''' := (nat.find_spec h').1,
-    apply le_antisymm h'',
-    exact nat.succ_le_iff.mpr h''' },
-  { exfalso,
-    apply h',
-    use 1,
-    exact h, }
+apply le_antisymm,
+  { exact order_of_le_of_pow_eq_one (nat.one_pos) (pow_one 1) },
+  { exact nat.succ_le_of_lt ( order_of_pos' ⟨1, ⟨nat.one_pos, pow_one 1⟩⟩) }
 end
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
@@ -173,33 +162,21 @@ calc a ^ n = a ^ (n % order_of a + order_of a * (n / order_of a)) : by rw [nat.m
 
 lemma order_of_dvd_of_pow_eq_one {n : ℕ} (h : a ^ n = 1) : order_of a ∣ n :=
 begin
-  rw order_of,
-  split_ifs with hn,
-  { have h' := nat.find_spec hn,
-    apply nat.dvd_of_mod_eq_zero,
-    have h'' : (¬ n % nat.find hn>0) → n % nat.find hn=0,
-      { contrapose!,
-        exact nat.pos_of_ne_zero },
-    apply h'', clear h'',
-    have h₁ :=  nat.find_min _ (show n % nat.find hn < nat.find hn,
-      from nat.mod_lt _ ((nat.find_spec hn).1)),
-    push_neg at h₁,
-    by_contradiction,
-    specialize h₁ h,
-    apply h₁,
-    rw ← order_of_of_finite_order hn,
-    rwa ← pow_eq_mod_order_of },
-  { by_contradiction h',
-    apply hn,
-    use n,
-    split,
-      { cases nat.eq_zero_or_eq_succ_pred n,
-        { exfalso,
-          apply h',
-          rw h_1 },
-        { rw h_1,
-          exact (nat.pred n).succ_pos } },
-      { exact h } }
+by_cases h₁ : 0 < n,
+  { apply nat.dvd_of_mod_eq_zero,
+    by_contradiction h₂,
+    have h₃ : n % order_of a > 0 :=
+      nat.pos_of_ne_zero _,
+    have h₄ : ¬ (0 < n % order_of a ∧ a ^ (n % order_of a) = 1) := order_of_le_of_pow_eq_one'
+      ( nat.mod_lt _ ( order_of_pos' ⟨n, h₁, h⟩)),
+    push_neg at h₄,
+    specialize h₄ h₃,
+    rw ← pow_eq_mod_order_of at h₄,
+    exact h₄ h,
+    exact h₂ },
+  { have h'' : n = 0 :=
+      le_antisymm (not_lt.mp h₁) (nat.zero_le n),
+    simp [h''] }
 end
 
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=

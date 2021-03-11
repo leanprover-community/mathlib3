@@ -1429,7 +1429,7 @@ begin
 end
 
 lemma snorm'_lim_eq_lintegral_liminf {ι} [nonempty ι] [linear_order ι] {f : ι → α → G} {p : ℝ}
-  (hp1 : 1 ≤ p) {f_lim : α → G}
+  (hp_nonneg : 0 ≤ p) {f_lim : α → G}
   (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
   snorm' f_lim p μ = (∫⁻ a, at_top.liminf (λ m, (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ) ^ (1/p) :=
 begin
@@ -1438,26 +1438,24 @@ begin
   { rw [snorm', h_no_pow], },
   refine lintegral_congr_ae (h_lim.mono (λ a ha, _)),
   rw tendsto.liminf_eq,
-  simp_rw [ennreal.coe_rpow_of_nonneg _ (le_trans zero_le_one hp1), ennreal.tendsto_coe],
-  refine ((nnreal.continuous_rpow_const (le_trans zero_le_one hp1)).tendsto
-      (nnnorm (f_lim a))).comp _,
+  simp_rw [ennreal.coe_rpow_of_nonneg _ hp_nonneg, ennreal.tendsto_coe],
+  refine ((nnreal.continuous_rpow_const hp_nonneg).tendsto (nnnorm (f_lim a))).comp _,
   exact (continuous_nnnorm.tendsto (f_lim a)).comp ha,
 end
 
 lemma snorm'_lim_le_liminf_snorm' {E} [measurable_space E]
-  [normed_group E] [borel_space E] {f : ℕ → α → E} {p : ℝ} (hp1 : 1 ≤ p)
+  [normed_group E] [borel_space E] {f : ℕ → α → E} {p : ℝ} (hp_pos : 0 < p)
   (hf : ∀ n, ae_measurable (f n) μ) {f_lim : α → E}
   (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x)))  :
   snorm' f_lim p μ ≤ at_top.liminf (λ n, snorm' (f n) p μ) :=
 begin
-  have hp_pos : 0 < p, from zero_lt_one.trans_le hp1,
-  rw snorm'_lim_eq_lintegral_liminf hp1 h_lim,
+  rw snorm'_lim_eq_lintegral_liminf hp_pos.le h_lim,
   rw [←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]), one_div_one_div],
   refine (lintegral_liminf_le' (λ m,
     (hf m).nnnorm.ennreal_coe.ennreal_rpow_const)).trans (le_of_eq _),
   have h_pow_liminf : at_top.liminf (λ n, snorm' (f n) p μ) ^ p
     = at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
-  { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
+  { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hp_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },
@@ -1488,17 +1486,20 @@ begin
 end
 
 lemma snorm_lim_le_liminf_snorm {E} [measurable_space E] [normed_group E] [borel_space E]
-  (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ) (f_lim : α → E)
+  {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ) (f_lim : α → E)
   (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
   snorm f_lim p μ ≤ at_top.liminf (λ n, snorm (f n) p μ) :=
 begin
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
+  rw ← ne.def at hp0,
   by_cases hp_top : p = ∞,
   { simp_rw [hp_top],
     exact snorm_exponent_top_lim_le_liminf_snorm_exponent_top h_lim, },
-  simp_rw snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp).ne.symm hp_top,
-  have hp1 : 1 ≤ p.to_real,
-    by rwa [← ennreal.of_real_le_iff_le_to_real hp_top, ennreal.of_real_one],
-  exact snorm'_lim_le_liminf_snorm' hp1 hf h_lim,
+  simp_rw snorm_eq_snorm' hp0 hp_top,
+  have hp_pos : 0 < p.to_real,
+    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
+  exact snorm'_lim_le_liminf_snorm' hp_pos hf h_lim,
 end
 
 lemma cauchy_tendsto_of_tendsto (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ)
@@ -1517,7 +1518,7 @@ begin
   cases h_B with N h_B,
   refine ⟨N, λ n hn, _⟩,
   have h_sub : snorm (f n - f_lim) p μ ≤ at_top.liminf (λ m, snorm (f n - f m) p μ),
-  { refine snorm_lim_le_liminf_snorm hp (λ m, (hf n).sub (hf m)) (f n - f_lim) _,
+  { refine snorm_lim_le_liminf_snorm (λ m, (hf n).sub (hf m)) (f n - f_lim) _,
     refine h_lim.mono (λ x hx, _),
     simp_rw sub_eq_add_neg,
     exact tendsto.add tendsto_const_nhds (tendsto.neg hx), },

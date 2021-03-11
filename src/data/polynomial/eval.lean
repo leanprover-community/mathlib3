@@ -328,6 +328,10 @@ by rw [← C_1, C_comp]
 @[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : polynomial R) :
   (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
 
+lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset (polynomial R)) (p : polynomial R) :
+  s.prod.comp p = (s.map (λ q : polynomial R, q.comp p)).prod :=
+(s.prod_hom (monoid_hom.mk (λ q : polynomial R, q.comp p) one_comp (λ q r, mul_comp q r p))).symm
+
 @[simp] lemma pow_comp {R : Type*} [comm_semiring R] (p q : polynomial R) (n : ℕ) :
   (p^n).comp q = (p.comp q)^n :=
 begin

@@ -256,6 +256,16 @@ abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid
 /-- Reinterpret a ring equivalence as an `add_monoid` homomorphism. -/
 abbreviation to_add_monoid_hom (e : R ≃+* S) : R →+ S := e.to_ring_hom.to_add_monoid_hom
 
+/-- The two paths coercion can take to an `add_monoid_hom` are equivalent -/
+lemma to_add_monoid_hom_commutes (f : R ≃+* S) :
+  (f : R →+* S).to_add_monoid_hom = (f : R ≃+ S).to_add_monoid_hom :=
+rfl
+
+/-- The two paths coercion can take to an `monoid_hom` are equivalent -/
+lemma to_monoid_hom_commutes (f : R ≃+* S) :
+  (f : R →+* S).to_monoid_hom = (f : R ≃* S).to_monoid_hom :=
+rfl
+
 @[simp]
 lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl
 

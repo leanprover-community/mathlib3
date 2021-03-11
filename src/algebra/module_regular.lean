@@ -121,12 +121,12 @@ begin
 end
 
 /--  The element `0` is `M`-regular when `M` is trivial. -/
-lemma is_regular_zero [subsingleton M] : is_regular M (0 : R) :=
-is_regular_zero_iff_subsingleton.mpr _inst_8
+lemma is_regular_zero [sM : subsingleton M] : is_regular M (0 : R) :=
+is_regular_zero_iff_subsingleton.mpr sM
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/
-lemma not_is_regular_zero [nontrivial M] : ¬ is_regular M (0 : R) :=
-not_is_regular_zero_iff.mpr _inst_8
+lemma not_is_regular_zero [nM : nontrivial M] : ¬ is_regular M (0 : R) :=
+not_is_regular_zero_iff.mpr nM
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
 lemma is_regular_of_smul_eq_one (h : a • s = 1) : is_regular M s :=

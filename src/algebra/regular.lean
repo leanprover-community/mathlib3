@@ -228,12 +228,12 @@ lemma is_regular.ne_zero [nontrivial R] (la : is_regular a) : a ≠ 0 :=
 la.left.ne_zero
 
 /--  In a non-trivial ring, the element `0` is not left-regular -- with typeclasses. -/
-lemma not_is_left_regular_zero [nontrivial R] : ¬ is_left_regular (0 : R) :=
-not_is_left_regular_zero_iff.mpr _inst_2
+lemma not_is_left_regular_zero [nR : nontrivial R] : ¬ is_left_regular (0 : R) :=
+not_is_left_regular_zero_iff.mpr nR
 
 /--  In a non-trivial ring, the element `0` is not right-regular -- with typeclasses. -/
-lemma not_is_right_regular_zero [nontrivial R] : ¬ is_right_regular (0 : R) :=
-not_is_right_regular_zero_iff.mpr _inst_2
+lemma not_is_right_regular_zero [nR : nontrivial R] : ¬ is_right_regular (0 : R) :=
+not_is_right_regular_zero_iff.mpr nR
 
 /--  In a non-trivial ring, the element `0` is not regular -- with typeclasses. -/
 lemma not_is_regular_zero [nontrivial R] : ¬ is_regular (0 : R) :=

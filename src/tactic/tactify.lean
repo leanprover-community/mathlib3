@@ -42,6 +42,7 @@ do
   -- trace_state,
   -- trace_result,
   -- Collect the subgoals
+  get_goals >>= set_goals,
   new_goals ← get_goals,
   lock_tactic_state $ (do
     -- By unifying the initial goals with the given solutions,
@@ -127,6 +128,7 @@ do
       | `(@bit1) := return (proof_step.exact sol)
       | `(@eq.mpr) := do
           let b := sol.app_fn.app_arg.app_arg.app_arg,
+          let b := if b.get_app_fn.const_name = `propext then b.app_arg else b,
           return (proof_step.rewrite b)
       | _ := do
           let n := f'.const_name,
@@ -193,15 +195,14 @@ meta def tactic_prompts (n : name) : tactic unit := do
 -- Examples that work:
 run_cmd tactic_prompts `nat.factorial_le
 run_cmd tactic_prompts `nat.units_eq_one
-
--- Later goals that have actually been solved stick around:
 run_cmd tactic_prompts `nat.add_factorial_succ_lt_factorial_add_succ
 run_cmd tactic_prompts `nat.lt_factorial_self
-
--- rewrites have spurious `propext`:
 run_cmd tactic_prompts `nat.zero_eq_mul
 
--- I don't know how to handle proofs that use `cases`, `induction`, or pattern matching.
+-- TODO try generating shorter `rw` proofs (i.e. leave off arguments when they aren't needed)
+-- TODO combine `apply iff.mpr` and `apply F` into `apply F.mpr`.
+
+-- PROJECT I don't know how to handle proofs that use `cases`, `induction`, or pattern matching.
 run_cmd tactic_prompts `nat.add_factorial_le_factorial_add
 run_cmd tactic_prompts `nat.self_le_factorial
 

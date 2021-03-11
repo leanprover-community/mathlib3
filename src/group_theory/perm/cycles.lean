@@ -193,7 +193,7 @@ lemma is_cycle.same_cycle {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : same_cycle f x y :=
 hf.exists_gpow_eq hx hy
 
-instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
+noncomputable instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
 λ x y, decidable_of_iff (∃ n ∈ list.range (order_of f), (f ^ n) x = y)
 ⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2
   (int.coe_nat_lt.1 $
@@ -230,7 +230,7 @@ by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
 -/
 
 /-- `f.cycle_of x` is the cycle of the permutation `f` to which `x` belongs. -/
-def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
+noncomputable def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
 of_subtype (@subtype_perm _ f (same_cycle f x) (λ _, same_cycle_apply.symm))
 
 lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
@@ -289,7 +289,7 @@ have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
 
 /-- Given a list `l : list α` and a permutation `f : perm α` whose nonfixed points are all in `l`,
   recursively factors `f` into cycles. -/
-def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
+noncomputable def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}
 | []     f h := ⟨[], by { simp only [imp_false, list.pairwise.nil, list.not_mem_nil, forall_const,
     and_true, forall_prop_of_false, not_not, not_false_iff, list.prod_nil] at *,
@@ -322,7 +322,7 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
         hm₃⟩⟩
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
-def cycle_factors [fintype α] [linear_order α] (f : perm α) :
+noncomputable def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 

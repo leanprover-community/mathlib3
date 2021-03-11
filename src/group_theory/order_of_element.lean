@@ -412,14 +412,10 @@ end
 noncomputable instance decidable_gpowers [decidable_eq α] :
   decidable_pred (subgroup.gpowers a : set α) :=
 begin
-  assume a',
-  apply decidable_of_iff'
-    (a' ∈ (finset.range (order_of a)).image ((^) a)),
-  exact @mem_gpowers_iff_mem_range_order_of _ _ _ _ _ (a')
+  rw ← powers_eq_gpowers,
+  exact decidable_powers,
 end
 
-
-/-- Generalise to `submonoid.powers`.-/
 lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
 order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin

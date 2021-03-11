@@ -558,9 +558,6 @@ begin
   { rw mem_ker, apply h x hx, },
 end
 
-@[simp] lemma map_eq_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
-by { rw ← le_bot_iff, exact lie_ideal.map_le_iff_le_comap, }
-
 lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, ker_coe_submodule, lie_submodule.bot_coe_submodule,
   linear_map.ker_eq_bot, coe_to_linear_map]
@@ -593,6 +590,9 @@ end lie_hom
 namespace lie_ideal
 
 variables {f : L →ₗ⁅R⁆ L'} {I : lie_ideal R L} {J : lie_ideal R L'}
+
+@[simp] lemma map_eq_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
+by { rw ← le_bot_iff, exact lie_ideal.map_le_iff_le_comap }
 
 lemma coe_map_of_surjective (h : function.surjective f) :
   (I.map f : submodule R L') = (I : submodule R L).map f :=

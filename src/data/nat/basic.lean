@@ -625,7 +625,7 @@ lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * 
 lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
 λ _ _, eq_of_mul_eq_mul_left ha
 
-theorem mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
+lemma mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
 (mul_left_injective ha).ne_iff
 
 lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=

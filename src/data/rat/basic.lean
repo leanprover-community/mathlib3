@@ -282,10 +282,12 @@ begin
     ... = (a * d + c * b) * (d₁ * d₂)             : by simp [mul_add, mul_comm, mul_left_comm]
 end
 
-protected def neg : ℚ → ℚ
-| ⟨n, d, h, c⟩ := ⟨-n, d, h, by simp [c]⟩
+protected def neg (r : ℚ) : ℚ :=
+⟨-r.num, r.denom, r.pos, by simp [r.cop]⟩
 
 instance : has_neg ℚ := ⟨rat.neg⟩
+
+@[simp] theorem denom_neg (r : ℚ) : denom (-r) = denom r := rfl
 
 @[simp] theorem neg_def {a b : ℤ} : -(a /. b) = -a /. b :=
 begin
@@ -544,6 +546,20 @@ by cases d; refl
 theorem mk_pnat_denom (n : ℤ) (d : ℕ+) :
   (mk_pnat n d).denom = d / nat.gcd n.nat_abs d :=
 by cases d; refl
+
+theorem mk_pnat_denom_dvd (n : ℤ) (d : ℕ+) :
+  (mk_pnat n d).denom ∣ d.1 :=
+begin
+  rw mk_pnat_denom,
+  apply nat.div_dvd_of_dvd,
+  apply nat.gcd_dvd_right
+end
+
+theorem add_denom_dvd (q₁ q₂ : ℚ) : (q₁ + q₂).denom ∣ q₁.denom * q₂.denom :=
+by { cases q₁, cases q₂, apply mk_pnat_denom_dvd }
+
+theorem mul_denom_dvd (q₁ q₂ : ℚ) : (q₁ * q₂).denom ∣ q₁.denom * q₂.denom :=
+by { cases q₁, cases q₂, apply mk_pnat_denom_dvd }
 
 theorem mul_num (q₁ q₂ : ℚ) : (q₁ * q₂).num =
   (q₁.num * q₂.num) / nat.gcd (q₁.num * q₂.num).nat_abs (q₁.denom * q₂.denom) :=

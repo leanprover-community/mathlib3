@@ -94,6 +94,7 @@ instance : inhabited (open_subgroup G) := ⟨⊤⟩
 @[to_additive]
 lemma is_closed [has_continuous_mul G] (U : open_subgroup G) : is_closed (U : set G) :=
 begin
+  apply is_open_compl_iff.1,
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
   { intros u hux,
     simp only [set.mem_preimage, set.mem_compl_iff, mem_coe] at hux hx ⊢,

@@ -73,6 +73,17 @@ lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
   c • (v.sum h) = v.sum (λa b, c • h a b) :=
 finset.smul_sum
 
+@[simp]
+lemma sum_smul_index_linear_map' {α : Type u} {R : Type v} {M : Type w} {M₂ : Type x}
+  [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid M₂] [semimodule R M₂]
+  {v : α →₀ M} {c : R} {h : α → M →ₗ[R] M₂} :
+  (c • v).sum (λ a, h a) = c • (v.sum (λ a, h a)) :=
+begin
+  rw [finsupp.sum_smul_index', finsupp.smul_sum],
+  { simp only [linear_map.map_smul], },
+  { intro i, exact (h i).map_zero },
+end
+
 end finsupp
 
 section

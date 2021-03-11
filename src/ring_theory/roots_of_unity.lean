@@ -155,6 +155,7 @@ calc  fintype.card (roots_of_unity k R)
 
 variables {k R}
 
+/-- Restrict a ring homomorphism between integral domains to the nth roots of unity -/
 def ring_hom.restrict_roots_of_unity (σ : R →+* S) (n : ℕ+) :
   roots_of_unity n R →* roots_of_unity n S :=
 let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by

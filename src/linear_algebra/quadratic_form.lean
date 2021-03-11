@@ -482,7 +482,7 @@ begin
   obtain ⟨x, hx⟩ := exists_ne (0 : M),
   refine ⟨x, λ y, _, hx⟩,
   have : Q = 0 := quadratic_form.ext hB₁,
-  simpa [this, quadratic_form.associated_apply],
+  simp [this]
 end
 
 end associated

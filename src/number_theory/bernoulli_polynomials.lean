@@ -176,8 +176,8 @@ begin
   rw [mul_assoc, div_eq_mul_inv, ← mul_inv'],
 end
 
-/-- The following two lemmas can probably done much easier somehow?!-/
-lemma aux_eval (t : ℚ) (p: polynomial ℚ):
+/-- Planning to add a slightly more general version to mathlib and removing this here. -/
+lemma aeval_map_eq_map_eval (t : ℚ) (p : polynomial ℚ):
 aeval (algebra_map ℚ A t) p = algebra_map ℚ A (p.eval t) :=
 begin
   dsimp [polynomial.aeval_def],
@@ -188,14 +188,6 @@ begin
   simp only [ring_hom.map_sum, ring_hom.map_pow, ring_hom.map_mul],
 end
 
-lemma aux_smul (q r : ℚ):
- q • (algebra_map ℚ A) r = (algebra_map ℚ A) (q * r) :=
-begin
-  simp only [ring_hom.map_mul],
-  rw [←algebra.smul_def, algebra.smul_def, algebra.commutes],
-end
-
-
 /-- The exponential generating function of the with `bernoulli' n`. -/
 def bernoulli'_power_series :=
   power_series.mk (λ n, (1 / n! : ℚ) • (algebra_map ℚ A (bernoulli' n)))
@@ -203,13 +195,14 @@ def bernoulli'_power_series :=
 theorem bernoulli'_power_series_mul_exp_sub_one :
   bernoulli'_power_series * (exp A - 1) = X * exp A :=
 begin
-  suffices h: mk (λ n, aeval (1:A) ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) =
+  suffices h: mk (λ n, aeval (1 : A) ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) =
   X * rescale 1 (exp A),
   { simp at h,
     rw [←h],
     dsimp only [bernoulli'_power_series],
     ext,
-    simp only [coeff_mul, ← ring_hom.map_one (algebra_map ℚ A), aux_eval, aux_smul, coeff_mk],
+    simp only [coeff_mul, ← ring_hom.map_one (algebra_map ℚ A), aeval_map_eq_map_eval,
+      algebra.smul_def, coeff_mk],
     simp  [bernoulli_poly_eval_one], },
   { exact exp_bernoulli_poly' 1, },
 end
@@ -219,13 +212,14 @@ def bernoulli_power_series := power_series.mk (λ n, (1 / n! : ℚ) • (algebra
 
 theorem bernoulli_power_series_mul_exp_sub_one : bernoulli_power_series * (exp A - 1) = X :=
 begin
-  suffices h: mk (λ n, aeval (0:A) ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) =
+  suffices h: mk (λ n, aeval (0 : A) ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) =
   X * rescale 0 (exp A),
   { simp at h,
     rw [←h],
     dsimp only [bernoulli_power_series],
     ext,
-    simp only [coeff_mul, ← ring_hom.map_zero (algebra_map ℚ A), aux_eval, aux_smul, coeff_mk],
+    simp only [coeff_mul, ← ring_hom.map_zero (algebra_map ℚ A), aeval_map_eq_map_eval,
+      algebra.smul_def, ring_hom.map_mul, coeff_mk],
     simp [bernoulli_poly_eval_zero], },
   { exact exp_bernoulli_poly' 0, },
 end

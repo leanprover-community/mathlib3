@@ -51,6 +51,20 @@ variables {α : Type*} {s : set α} {a a₁ a₂ b c: α}
 namespace finset
 open finset
 
+lemma mem_range_iff_mem_finset_range_of_mod_eq' [decidable_eq α] {f : ℕ → α} {a : α} {n : ℕ}
+  (hn : 0 < n) (h : ∀i, f (i % n) = f i) :
+  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
+begin
+  split,
+    { rintros ⟨i, hi⟩,
+      simp only [mem_image, exists_prop, mem_range],
+      exact ⟨i % n, nat.mod_lt i hn, (rfl.congr hi).mp (h i)⟩ },
+    { rintro h,
+      simp only [mem_image, exists_prop, set.mem_range, mem_range] at *,
+      rcases h with ⟨i, hi, ha⟩,
+      use ⟨i, ha⟩ },
+end
+
 lemma mem_range_iff_mem_finset_range_of_mod_eq [decidable_eq α] {f : ℤ → α} {a : α} {n : ℕ}
   (hn : 0 < n) (h : ∀i, f (i % n) = f i) :
   a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
@@ -336,6 +350,32 @@ begin
   exact ⟨w, hw1, hw2⟩
 end
 
+lemma mem_powers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
+  a' ∈ submonoid.powers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
+finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos a)
+  (assume i, pow_eq_mod_order_of.symm)
+
+noncomputable instance decidable_powers [decidable_eq α] :
+  decidable_pred (submonoid.powers a : set α) :=
+begin
+  assume a',
+  apply decidable_of_iff'
+    (a' ∈ (finset.range (order_of a)).image ((^) a)),
+  exact mem_powers_iff_mem_range_order_of
+end
+
+lemma order_eq_card_powers [decidable_eq α] {a : α} :
+order_of a = fintype.card (submonoid.powers a : set α) :=
+begin
+  refine (finset.card_eq_of_bijective _ _ _ _).symm,
+  { exact λn hn, ⟨pow a n, ⟨n, rfl⟩⟩ },
+  { rintros ⟨_, i, rfl⟩ _,
+    exact ⟨i % order_of a, mod_lt i (order_of_pos a), subtype.eq pow_eq_mod_order_of.symm⟩ },
+  { intros, exact finset.mem_univ _ },
+  { intros i j hi hj eq,
+    exact pow_injective_of_lt_order_of a hi hj ( by simpa using eq ) }
+end
+
 end finite_cancel_monoid
 
 section finite_group
@@ -350,21 +390,34 @@ begin
     { exact_mod_cast hw2 }
 end
 
-/-- TODO: Generalise to `submonoid.powers`.-/
+open subgroup
+
+lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
+⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
+  by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos a))),
+    ← gpow_eq_mod_order_of]⟩⟩
+
+lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
+set.ext $ λ x, mem_powers_iff_mem_gpowers
+
 lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
-finset.mem_range_iff_mem_finset_range_of_mod_eq (order_of_pos a)
-  (assume i, gpow_eq_mod_order_of.symm)
+begin
+  rw ← mem_powers_iff_mem_gpowers,
+  exact mem_powers_iff_mem_range_order_of,
+end
 
-/-- TODO: Generalise to `submonoid.powers`.-/
 noncomputable instance decidable_gpowers [decidable_eq α] :
   decidable_pred (subgroup.gpowers a : set α) :=
 begin
   assume a',
   apply decidable_of_iff'
-  (a' ∈ (finset.range (order_of a)).image ((^) a)),
+    (a' ∈ (finset.range (order_of a)).image ((^) a)),
   exact @mem_gpowers_iff_mem_range_order_of _ _ _ _ _ (a')
 end
+
 
 /-- Generalise to `submonoid.powers`.-/
 lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
@@ -414,15 +467,6 @@ end
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
-lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
-⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
-λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
-  by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos a))),
-    ← gpow_eq_mod_order_of]⟩⟩
-
-lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
-set.ext $ λ x, mem_powers_iff_mem_gpowers
 
 variable (a)
 

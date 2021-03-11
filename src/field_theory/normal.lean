@@ -298,7 +298,7 @@ lemma alg_equiv.restrict_normal_hom_surjective [normal F K] [normal F E] :
 
 variables (F) (K) (E)
 
-lemma is_solvable_of_is_scalar_tower [normal F K] [normal F E] [h1 : is_solvable (K ≃ₐ[F] K)]
+lemma is_solvable_of_is_scalar_tower [normal F K] [h1 : is_solvable (K ≃ₐ[F] K)]
   [h2 : is_solvable (E ≃ₐ[K] E)] : is_solvable (E ≃ₐ[F] E) :=
 begin
   let f : (E ≃ₐ[K] E) →* (E ≃ₐ[F] E) :=

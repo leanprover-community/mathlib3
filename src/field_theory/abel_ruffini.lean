@@ -287,6 +287,7 @@ end gal_X_pow_sub_C
 
 variables (F)
 
+/-- Inductive definition of solvable by radicals -/
 inductive is_SBR : E → Prop
 | base (a : F) : is_SBR (algebra_map F E a)
 | add (a b : E) : is_SBR a → is_SBR b → is_SBR (a + b)
@@ -297,6 +298,7 @@ inductive is_SBR : E → Prop
 
 variables (E)
 
+/-- The intermediate field of solvable-by-radicals elements -/
 def SBR : intermediate_field F E :=
 { carrier := is_SBR F,
   zero_mem' := by { convert is_SBR.base (0 : F), rw ring_hom.map_zero },
@@ -366,6 +368,7 @@ begin
     rwa nat_degree_X_pow }
 end
 
+/-- The statement to be proved inductively -/
 def P (α : SBR F E) : Prop := is_solvable (minpoly F α).gal
 
 lemma induction3 {α : SBR F E} {n : ℕ} (hn : n ≠ 0) (hα : P (α ^ n)) : P α :=

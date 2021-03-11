@@ -40,6 +40,13 @@ def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
 namespace gal
 
+@[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
+begin
+  refine alg_equiv.ext (λ x, (alg_hom.mem_equalizer σ.to_alg_hom τ.to_alg_hom x).mp
+      ((subalgebra.ext_iff.mp _ x).mpr algebra.mem_top)),
+  rwa [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
+end
+
 instance unique_gal_of_splits [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
 { default := 1,
   uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp

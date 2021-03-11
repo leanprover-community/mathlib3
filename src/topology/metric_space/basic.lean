@@ -1399,7 +1399,7 @@ ball with the same center and a strictly smaller radius that includes `s`. -/
 lemma exists_pos_lt_subset_ball (hr : 0 < r) (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' ∈ Ioo 0 r, s ⊆ ball x r' :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|hne,
+  unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
   { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
   have : is_compact s,
     from compact_of_is_closed_subset (proper_space.compact_ball x r) hs
@@ -1417,7 +1417,7 @@ lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' < r, s ⊆ ball x r' :=
 begin
   cases le_or_lt r 0 with hr hr,
-  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, subst s,
+  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
     exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
   { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end

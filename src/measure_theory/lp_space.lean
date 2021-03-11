@@ -62,7 +62,7 @@ function coercion from the coercion to almost everywhere defined functions.
 -/
 
 noncomputable theory
-open topological_space measure_theory
+open topological_space measure_theory filter
 open_locale nnreal ennreal big_operators topological_space
 
 lemma fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := le_refl _
@@ -318,14 +318,14 @@ end
 
 lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, ∥f x∥ = ∥g x∥) :
   snorm f p μ = snorm g p μ :=
-le_antisymm (snorm_mono_ae $ filter.eventually_eq.le hfg)
-  (snorm_mono_ae $ (filter.eventually_eq.symm hfg).le)
+le_antisymm (snorm_mono_ae $ eventually_eq.le hfg)
+  (snorm_mono_ae $ (eventually_eq.symm hfg).le)
 
 @[simp] lemma snorm'_norm {f : α → G} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
 by simp [snorm']
 
 @[simp] lemma snorm_norm (f : α → F) : snorm (λ x, ∥f x∥) p μ = snorm f p μ :=
-snorm_congr_norm_ae $ filter.eventually_of_forall $ λ x, norm_norm _
+snorm_congr_norm_ae $ eventually_of_forall $ λ x, norm_norm _
 
 lemma snorm_congr_ae {f g : α → F} (hfg : f =ᵐ[μ] g) : snorm f p μ = snorm g p μ :=
 snorm_congr_norm_ae $ hfg.mono (λ x hx, hx ▸ rfl)
@@ -344,7 +344,7 @@ section opens_measurable_space
 variable [opens_measurable_space E]
 
 lemma mem_ℒp.norm {f : α → E} (h : mem_ℒp f p μ) : mem_ℒp (λ x, ∥f x∥) p μ :=
-h.of_le h.ae_measurable.norm (filter.eventually_of_forall (λ x, by simp))
+h.of_le h.ae_measurable.norm (eventually_of_forall (λ x, by simp))
 
 lemma snorm'_eq_zero_of_ae_zero {f : α → F} (hq0_lt : 0 < q) (hf_zero : f =ᵐ[μ] 0) :
   snorm' f q μ = 0 :=
@@ -380,7 +380,7 @@ lemma coe_nnnorm_ae_le_snorm_ess_sup (f : α → F) (μ : measure α) :
 ennreal.ae_le_ess_sup (λ x, (nnnorm (f x) : ℝ≥0∞))
 
 @[simp] lemma snorm_ess_sup_eq_zero_iff {f : α → F} : snorm_ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
-by simp [filter.eventually_eq, snorm_ess_sup]
+by simp [eventually_eq, snorm_ess_sup]
 
 lemma snorm_eq_zero_iff {f : α → E} (hf : ae_measurable f μ) (h0 : p ≠ 0) :
   snorm f p μ = 0 ↔ f =ᵐ[μ] 0 :=
@@ -568,7 +568,7 @@ end
 lemma snorm_ess_sup_add_le {f g : α → F} :
   snorm_ess_sup (f + g) μ ≤ snorm_ess_sup f μ + snorm_ess_sup g μ :=
 begin
-  refine le_trans (ess_sup_mono_ae (filter.eventually_of_forall (λ x, _)))
+  refine le_trans (ess_sup_mono_ae (eventually_of_forall (λ x, _)))
     (ennreal.ess_sup_add_le _ _),
   simp_rw [pi.add_apply, ←ennreal.coe_add, ennreal.coe_le_coe],
   exact nnnorm_add_le _ _,
@@ -1239,8 +1239,8 @@ namespace Lp
 
 lemma tendsto_Lp_of_tendsto_ℒp {ι} [nonempty ι] [linear_order ι] [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ)
-  (h_tendsto : filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
-  filter.at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) :=
+  (h_tendsto : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
+  at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) :=
 begin
   rw ennreal.tendsto_at_top_zero at h_tendsto,
   simp_rw metric.tendsto_at_top,
@@ -1267,14 +1267,14 @@ lemma complete_space_Lp_of_cauchy_complete_ℒp [hp : fact (1 ≤ p)]
   (H : ∀ (f : ℕ → α → E) (hf : ∀ n, mem_ℒp (f n) p μ) (B : ℕ → ℝ≥0∞) (hB : ∑' i, B i < ∞)
       (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N),
     ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
-      filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
+      at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
   complete_space (Lp E p μ) :=
 begin
   let B := λ n : ℕ, ((1:ℝ) / 2) ^ n,
   have hB_pos : ∀ n, 0 < B n, from λ n, pow_pos (div_pos zero_lt_one zero_lt_two) n,
   refine metric.complete_of_convergent_controlled_sequences B hB_pos (λ f hf, _),
   suffices h_limit : ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
-    filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
+    at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
   { rcases h_limit with ⟨f_lim, hf_lim_meas, h_tendsto⟩,
     exact ⟨hf_lim_meas.to_Lp f_lim, tendsto_Lp_of_tendsto_ℒp f_lim hf_lim_meas h_tendsto⟩, },
   have hB : summable B, from summable_geometric_two,
@@ -1351,24 +1351,23 @@ begin
   suffices h_pow : ∫⁻ a, (∑' i, nnnorm (f (i + 1) a - f i a) : ℝ≥0∞)^p ∂μ ≤ (∑' i, B i) ^ p,
     by rwa [←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]), one_div_one_div],
   have h_tsum_1 : ∀ g : ℕ → ℝ≥0∞,
-      ∑' i, g i = filter.at_top.liminf (λ n, ∑ i in finset.range (n + 1), g i),
-    by { intro g, rw [ennreal.tsum_eq_liminf_sum_nat, ← filter.liminf_nat_add _ 1], },
+      ∑' i, g i = at_top.liminf (λ n, ∑ i in finset.range (n + 1), g i),
+    by { intro g, rw [ennreal.tsum_eq_liminf_sum_nat, ← liminf_nat_add _ 1], },
   simp_rw h_tsum_1 _,
   rw ← h_tsum_1,
-  have h_liminf_pow : ∫⁻ a, filter.at_top.liminf (λ n, ∑ i in finset.range (n + 1),
+  have h_liminf_pow : ∫⁻ a, at_top.liminf (λ n, ∑ i in finset.range (n + 1),
       (nnnorm (f (i + 1) a - f i a)))^p ∂μ
-    = ∫⁻ a, filter.at_top.liminf (λ n, (∑ i in finset.range (n + 1),
-      (nnnorm (f (i + 1) a - f i a)))^p) ∂μ,
+    = ∫⁻ a, at_top.liminf (λ n, (∑ i in finset.range (n + 1), (nnnorm (f (i + 1) a - f i a)))^p) ∂μ,
   { refine lintegral_congr (λ x, _),
     have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
-    all_goals { filter.is_bounded_default }, },
+    all_goals { is_bounded_default }, },
   rw h_liminf_pow,
   refine (lintegral_liminf_le' _).trans _,
   { exact λ n, ae_measurable.ennreal_rpow_const (finset.ae_measurable_sum (finset.range (n+1))
       (λ i, ((hf (i+1)).sub (hf i)).nnnorm.ennreal_coe)), },
-  { exact filter.liminf_le_of_frequently_le' (filter.frequently_of_forall h), },
+  { exact liminf_le_of_frequently_le' (frequently_of_forall h), },
 end
 
 private lemma tsum_nnnorm_sub_ae_lt_top
@@ -1394,7 +1393,7 @@ end
 lemma ae_tendsto_of_cauchy_snorm' [complete_space E] {f : ℕ → α → E} {p : ℝ}
   (hf : ∀ n, ae_measurable (f n) μ) (hp1 : 1 ≤ p) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) p μ < B N) :
-  ∀ᵐ x ∂μ, ∃ l : E, filter.at_top.tendsto (λ n, f n x) (𝓝 l) :=
+  ∀ᵐ x ∂μ, ∃ l : E, at_top.tendsto (λ n, f n x) (𝓝 l) :=
 begin
   have h_summable : ∀ᵐ x ∂μ, summable (λ (i : ℕ), f (i + 1) x - f i x),
   { have h1 : ∀ n, snorm' (λ x, ∑ i in finset.range (n + 1), norm (f (i + 1) x - f i x)) p μ
@@ -1410,7 +1409,7 @@ begin
     exact h4.mono (λ x hx, summable_of_summable_nnnorm
       (ennreal.tsum_coe_ne_top_iff_summable.mp (lt_top_iff_ne_top.mp hx))), },
   have h : ∀ᵐ x ∂μ, ∃ l : E,
-    filter.at_top.tendsto (λ n, ∑ i in finset.range n, (f (i + 1) x - f i x)) (𝓝 l),
+    at_top.tendsto (λ n, ∑ i in finset.range n, (f (i + 1) x - f i x)) (𝓝 l),
   { refine h_summable.mono (λ x hx, _),
     let hx_sum := (summable.has_sum_iff_tendsto_nat hx).mp hx.has_sum,
     exact ⟨∑' i, (f (i + 1) x - f i x), hx_sum⟩, },
@@ -1423,20 +1422,19 @@ begin
   rw h_rw_sum at hx,
   have hf_rw : (λ n, f n x) = λ n, f n x - f 0 x + f 0 x, by { ext1 n, abel, },
   rw hf_rw,
-  exact ⟨l + f 0 x, filter.tendsto.add_const _ hx⟩,
+  exact ⟨l + f 0 x, tendsto.add_const _ hx⟩,
 end
 
 lemma snorm'_lim_eq_lintegral_liminf {ι} [nonempty ι] [linear_order ι] {f : ι → α → G} {p : ℝ}
   (hp1 : 1 ≤ p) {f_lim : α → G}
-  (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
-  snorm' f_lim p μ
-    = (∫⁻ a, filter.at_top.liminf (λ m, (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ) ^ (1/p) :=
+  (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
+  snorm' f_lim p μ = (∫⁻ a, at_top.liminf (λ m, (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ) ^ (1/p) :=
 begin
   suffices h_no_pow : (∫⁻ a, (nnnorm (f_lim a)) ^ p ∂μ)
-    = (∫⁻ a, filter.at_top.liminf (λ m, (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ),
+    = (∫⁻ a, at_top.liminf (λ m, (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ),
   { rw [snorm', h_no_pow], },
   refine lintegral_congr_ae (h_lim.mono (λ a ha, _)),
-  rw filter.tendsto.liminf_eq,
+  rw tendsto.liminf_eq,
   simp_rw [ennreal.coe_rpow_of_nonneg _ (le_trans zero_le_one hp1), ennreal.tendsto_coe],
   refine ((nnreal.continuous_rpow_const (le_trans zero_le_one hp1)).tendsto
       (nnnorm (f_lim a))).comp _,
@@ -1446,40 +1444,40 @@ end
 lemma snorm'_lim_le_liminf_snorm' {E} [measurable_space E]
   [normed_group E] [borel_space E] {f : ℕ → α → E} {p : ℝ} (hp1 : 1 ≤ p)
   (hf : ∀ n, ae_measurable (f n) μ) {f_lim : α → E}
-  (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x)))  :
-  snorm' f_lim p μ ≤ filter.at_top.liminf (λ n, snorm' (f n) p μ) :=
+  (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x)))  :
+  snorm' f_lim p μ ≤ at_top.liminf (λ n, snorm' (f n) p μ) :=
 begin
   have hp_pos : 0 < p, from zero_lt_one.trans_le hp1,
   rw snorm'_lim_eq_lintegral_liminf hp1 h_lim,
   rw [←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]), one_div_one_div],
   refine (lintegral_liminf_le' (λ m,
     (hf m).nnnorm.ennreal_coe.ennreal_rpow_const)).trans (le_of_eq _),
-  have h_pow_liminf : filter.at_top.liminf (λ n, snorm' (f n) p μ) ^ p
-    = filter.at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
+  have h_pow_liminf : at_top.liminf (λ n, snorm' (f n) p μ) ^ p
+    = at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
   { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
-    all_goals { filter.is_bounded_default }, },
+    all_goals { is_bounded_default }, },
   rw h_pow_liminf,
   simp_rw [snorm', ← ennreal.rpow_mul, one_div, inv_mul_cancel hp_pos.ne.symm, ennreal.rpow_one],
 end
 
 lemma snorm_exponent_top_lim_eq_ess_sup_liminf {ι} [nonempty ι] [linear_order ι] {f : ι → α → G}
   {f_lim : α → G}
-  (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
-  snorm f_lim ∞ μ = ess_sup (λ x, filter.at_top.liminf (λ m, (nnnorm (f m x) : ℝ≥0∞))) μ :=
+  (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
+  snorm f_lim ∞ μ = ess_sup (λ x, at_top.liminf (λ m, (nnnorm (f m x) : ℝ≥0∞))) μ :=
 begin
   rw [snorm_exponent_top, snorm_ess_sup],
   refine ess_sup_congr_ae (h_lim.mono (λ x hx, _)),
-  rw filter.tendsto.liminf_eq,
+  rw tendsto.liminf_eq,
   rw ennreal.tendsto_coe,
   exact (continuous_nnnorm.tendsto (f_lim x)).comp hx,
 end
 
 lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [encodable ι]
   [linear_order ι] {f : ι → α → F} {f_lim : α → F}
-  (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
-  snorm f_lim ∞ μ ≤ filter.at_top.liminf (λ n, snorm (f n) ∞ μ) :=
+  (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
+  snorm f_lim ∞ μ ≤ at_top.liminf (λ n, snorm (f n) ∞ μ) :=
 begin
   rw snorm_exponent_top_lim_eq_ess_sup_liminf h_lim,
   simp_rw [snorm_exponent_top, snorm_ess_sup],
@@ -1488,8 +1486,8 @@ end
 
 lemma snorm_lim_le_liminf_snorm {E} [measurable_space E] [normed_group E] [borel_space E]
   (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ) (f_lim : α → E)
-  (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
-  snorm f_lim p μ ≤ filter.at_top.liminf (λ n, snorm (f n) p μ) :=
+  (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
+  snorm f_lim p μ ≤ at_top.liminf (λ n, snorm (f n) p μ) :=
 begin
   by_cases hp_top : p = ∞,
   { simp_rw [hp_top],
@@ -1503,8 +1501,8 @@ end
 lemma cauchy_tendsto_of_tendsto (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀ n, ae_measurable (f n) μ)
   (f_lim : α → E) {B : ℕ → ℝ≥0∞}
   (hB : ∑' i, B i < ∞) (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N)
-  (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
-  filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
+  (h_lim : ∀ᵐ (x : α) ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x))) :
+  at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
   rw ennreal.tendsto_at_top_zero,
   intros ε hε,
@@ -1515,20 +1513,20 @@ begin
       ε hε, },
   cases h_B with N h_B,
   refine ⟨N, λ n hn, _⟩,
-  have h_sub : snorm (f n - f_lim) p μ ≤ filter.at_top.liminf (λ m, snorm (f n - f m) p μ),
+  have h_sub : snorm (f n - f_lim) p μ ≤ at_top.liminf (λ m, snorm (f n - f m) p μ),
   { refine snorm_lim_le_liminf_snorm hp (λ m, (hf n).sub (hf m)) (f n - f_lim) _,
     refine h_lim.mono (λ x hx, _),
     simp_rw sub_eq_add_neg,
-    exact filter.tendsto.add tendsto_const_nhds (filter.tendsto.neg hx), },
+    exact tendsto.add tendsto_const_nhds (tendsto.neg hx), },
   refine h_sub.trans _,
-  refine filter.liminf_le_of_frequently_le' (filter.frequently_at_top.mpr _),
+  refine liminf_le_of_frequently_le' (frequently_at_top.mpr _),
   refine λ N1, ⟨max N N1, le_max_right _ _, _⟩,
   exact (h_cau N n (max N N1) hn (le_max_left _ _)).le.trans h_B,
 end
 
 lemma mem_ℒp_of_cauchy_tendsto (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ)
   (f_lim : α → E) (h_lim_meas : ae_measurable f_lim μ)
-  (h_tendsto : filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
+  (h_tendsto : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
   mem_ℒp f_lim p μ :=
 begin
   refine ⟨h_lim_meas, _⟩,
@@ -1550,7 +1548,7 @@ lemma cauchy_complete_ℒp_of_ne_top [complete_space E] (hp : 1 ≤ p) (hp_ne_to
   {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N) :
   ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
-    filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
+    at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
   have hp1 : 1 ≤ p.to_real,
   { rw [← ennreal.of_real_le_iff_le_to_real hp_ne_top, ennreal.of_real_one],
@@ -1562,11 +1560,11 @@ begin
   rw ←ennreal.of_real_to_real hp_ne_top at hf,
   have hp_pos := zero_lt_one.trans_le hp1,
   obtain ⟨f_lim, h_f_lim_meas, h_lim⟩ : ∃ (f_lim : α → E) (hf_lim_meas : measurable f_lim),
-      ∀ᵐ x ∂μ, filter.tendsto (λ n, f n x) filter.at_top (nhds (f_lim x)),
+      ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (nhds (f_lim x)),
     from measurable_limit_of_tendsto_metric_ae (λ n, (hf n).1)
       (ae_tendsto_of_cauchy_snorm' (λ n, (hf n).1) hp1 hB h_cau'),
   rw ennreal.of_real_to_real hp_ne_top at hf,
-  have h_tendsto' : filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
+  have h_tendsto' : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
     from cauchy_tendsto_of_tendsto hp (λ m, (hf m).1) f_lim hB h_cau h_lim,
   have h_ℒp_lim : mem_ℒp f_lim p μ,
     from mem_ℒp_of_cauchy_tendsto hp hf f_lim h_f_lim_meas.ae_measurable h_tendsto',
@@ -1577,13 +1575,13 @@ lemma cauchy_complete_ℒp_top [complete_space E] {f : ℕ → α → E} (hf : �
   {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) ∞ μ < B N) :
   ∃ (f_lim : α → E) (hf_lim_ℒp : mem_ℒp f_lim ∞ μ),
-    filter.at_top.tendsto (λ n, snorm (f n - f_lim) ∞ μ) (𝓝 0) :=
+    at_top.tendsto (λ n, snorm (f n - f_lim) ∞ μ) (𝓝 0) :=
 begin
   simp_rw [snorm_exponent_top, snorm_ess_sup] at h_cau,
   have h_cau_ae : ∀ᵐ x ∂μ, ∀ N n m, N ≤ n → N ≤ m → (nnnorm ((f n - f m) x) : ℝ≥0∞) < B N,
   { simp_rw [ae_all_iff, ae_imp_iff],
     exact λ N n m hnN hmN, ae_lt_of_ess_sup_lt (h_cau N n m hnN hmN), },
-  have h_tendsto_ae : ∀ᵐ x ∂μ, ∃ l, filter.at_top.tendsto (λ n, f n x) (𝓝 l),
+  have h_tendsto_ae : ∀ᵐ x ∂μ, ∃ l, at_top.tendsto (λ n, f n x) (𝓝 l),
   { refine h_cau_ae.mono (λ x hx, cauchy_seq_tendsto_of_complete _),
     refine cauchy_seq_of_le_tendsto_0 (λ n, (B n).to_real) _ _,
     { intros n m N hnN hmN,
@@ -1594,10 +1592,10 @@ begin
       rw ←of_real_norm_eq_coe_nnnorm at hx,
       exact hx.le, },
     { rw ← ennreal.zero_to_real,
-      exact filter.tendsto.comp (ennreal.tendsto_to_real ennreal.zero_ne_top)
+      exact tendsto.comp (ennreal.tendsto_to_real ennreal.zero_ne_top)
         (ennreal.tendsto_at_top_zero_of_tsum_lt_top hB), }, },
   obtain ⟨f_lim, h_f_lim_meas, h_lim⟩ : ∃ (f_lim : α → E) (hf_lim_meas : measurable f_lim),
-      ∀ᵐ x ∂μ, filter.tendsto (λ n, f n x) filter.at_top (nhds (f_lim x)),
+      ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (nhds (f_lim x)),
     from measurable_limit_of_tendsto_metric_ae (λ n, (hf n).1) h_tendsto_ae,
   have h_cau_lim := cauchy_tendsto_of_tendsto le_top (λ m, (hf m).1) f_lim hB h_cau h_lim,
   exact ⟨f_lim, mem_ℒp_of_cauchy_tendsto le_top hf f_lim h_f_lim_meas.ae_measurable h_cau_lim,

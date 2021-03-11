@@ -155,8 +155,8 @@ calc  fintype.card (roots_of_unity k R)
 
 variables {k R}
 
-def ring_hom.restrict_roots_of_unity (σ : R →+* R) (n : ℕ+) :
-  roots_of_unity n R →* roots_of_unity n R :=
+def ring_hom.restrict_roots_of_unity (σ : R →+* S) (n : ℕ+) :
+  roots_of_unity n R →* roots_of_unity n S :=
 let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
 { change (σ (ξ : units R)) ^ (n : ℕ) = 1,
   rw [←σ.map_pow, ←units.coe_pow, show ((ξ : units R) ^ (n : ℕ) = 1), from ξ.2,

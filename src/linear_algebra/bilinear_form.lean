@@ -843,15 +843,13 @@ lemma finsupp.is_sym_to_bilinear_form {α : Type*} (A : α → α → (bilin_for
   (hA : ∀ i j x y, A i j x y = A j i y x) :
   sym_bilin_form.is_sym (finsupp.to_bilin_form A) :=
 begin
-  -- sorry
   intros p q,
-  simp only [finsupp.to_bilin_form_apply, finsupp.sum_comm],
-  -- congr,
-  -- ext i x,
-  -- congr,
-  -- ext j y,
-  -- convert (hA i j x y).symm,
-
+  simp only [finsupp.to_bilin_form_apply, p.sum_comm q],
+  congr,
+  ext i x,
+  congr,
+  ext j y,
+  exact (hA i j x y).symm
 end
 
 namespace alt_bilin_form

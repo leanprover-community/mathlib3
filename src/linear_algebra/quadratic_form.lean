@@ -538,7 +538,8 @@ variables {α : Type*}
 
 /-- A collection of `bilin_form R M`, parametrized by two indices in `α` induces a quadratic form
 on `α →₀ M`.  This can be thought of as an infinite-dimensional version of
-`matrix.to_quadratic_form`. -/
+`matrix.to_quadratic_form`.  For this construction to be well-behaved, we usually require an
+additional symmetry hypothesis on the coefficients `A`. -/
 noncomputable def to_quadratic_form (A : α → α → (bilin_form R M)) :
   quadratic_form R (α →₀ M) :=
 (finsupp.to_bilin_form A).to_quadratic_form

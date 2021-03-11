@@ -30,22 +30,22 @@ injective map `M → M`. -/
 def is_regular (c : R) := function.injective ((•) c : M → M)
 
 /-- In a monoid, the product of `M`-regular elements is `M`-regular. -/
-lemma is_regular.mul (ra : is_regular M a) (rs : is_regular M s) :
+lemma is_regular.smul (ra : is_regular M a) (rs : is_regular M s) :
   is_regular M (a • s) :=
 λ a b ab, rs (ra ((smul_assoc _ _ _).symm.trans (ab.trans (smul_assoc _ _ _))))
 
 /--  If an element `b` becomes `M`-regular after multiplying it on the left by an `M`-regular
 element, then `b` is `M`-regular. -/
-lemma is_regular.of_mul (ab : is_regular M (a • s)) :
+lemma is_regular.of_smul (ab : is_regular M (a • s)) :
   is_regular M s :=
 @function.injective.of_comp _ _ _ (λ m : M, a • m) _ (λ c d cd, ab
   (by rwa [smul_assoc, smul_assoc]))
 
 /--  An element is `M`-regular if and only if multiplying it on the left by an `M`-regular element
 is `M`-regular. -/
-@[simp] lemma mul_is_regular_iff (b : S) (ha : is_regular M a) :
+@[simp] lemma smul_is_regular_iff (b : S) (ha : is_regular M a) :
   is_regular M (a • b) ↔ is_regular M b :=
-⟨λ ab, is_regular.of_mul M ab, λ ab, is_regular.mul M ha ab⟩
+⟨λ ab, is_regular.of_smul M ab, λ ab, is_regular.smul M ha ab⟩
 
 end has_scalar
 

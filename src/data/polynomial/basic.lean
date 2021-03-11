@@ -46,7 +46,19 @@ add_monoid_algebra.is_scalar_tower
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
+/--
+The set of all `n` such that `X^n` has a non-zero coefficient.
+-/
+def support (p : polynomial R) : finset ℕ :=
+p.support
+
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
+
+@[simp] lemma support_eq_empty : p.support = ∅ ↔ p = 0 :=
+by simp [support]
+
+lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
+by simp
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) : R →ₗ[R] polynomial R := finsupp.lsingle n
@@ -68,6 +80,9 @@ add_monoid_algebra.single_mul_single
 lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 finsupp.smul_single _ _ _
+
+lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
+by convert @support_add _ _ _ p q
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -192,6 +207,9 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 
 @[simp] lemma monomial_neg (n : ℕ) (a : R) : monomial n (-a) = -(monomial n a) :=
 by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_right]
+
+@[simp] lemma support_neg {p : polynomial R} : (-p).support = p.support :=
+by simp [support]
 
 end ring
 

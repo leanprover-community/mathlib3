@@ -62,7 +62,7 @@ begin
   -- It's not great that we need to use an `erw` here,
   -- but hopefully it will become smoother when we move entirely away from `is_semiring_hom`.
   erw [finsupp.map_range_finset_sum (f : R →+ S)],
-  rw [← p.support.sum_hom (map f)],
+  rw [← (finsupp.support p).sum_hom (map f)],
   { refine finset.sum_congr rfl (assume n _, _),
     rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl, },
   apply_instance

@@ -378,7 +378,7 @@ integral_congr_ae ((ae_restrict_iff' hs).2 h)
 lemma set_integral_congr (hs : measurable_set s) (h : eq_on f g s) :
   ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
 set_integral_congr_ae hs $ eventually_of_forall h
-
+set_option pp.implicit true
 lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurable_set t)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
@@ -390,9 +390,8 @@ lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [meas
 
 lemma integral_add_compl (hs : measurable_set s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_union (@disjoint_compl_right _ _ (@boolean_algebra.to_core _
-    (@set.boolean_algebra α))) hs hs.compl hfi.integrable_on hfi.integrable_on,
-  union_compl_self, integral_univ]
+by rw [← integral_union (@disjoint_compl_right (set α) _ _) hs hs.compl
+    hfi.integrable_on hfi.integrable_on, union_compl_self, integral_univ]
 
 /-- For a function `f` and a measurable set `s`, the integral of `indicator s f`
 over the whole space is equal to `∫ x in s, f x ∂μ` defined as `∫ x, f x ∂(μ.restrict s)`. -/

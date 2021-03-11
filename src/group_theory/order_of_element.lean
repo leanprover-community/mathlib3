@@ -165,18 +165,17 @@ begin
 by_cases h₁ : 0 < n,
   { apply nat.dvd_of_mod_eq_zero,
     by_contradiction h₂,
-    have h₃ : n % order_of a > 0 :=
-      nat.pos_of_ne_zero _,
-    have h₄ : ¬ (0 < n % order_of a ∧ a ^ (n % order_of a) = 1) := order_of_le_of_pow_eq_one'
+    have h₃ : ¬ (0 < n % order_of a ∧ a ^ (n % order_of a) = 1) := order_of_le_of_pow_eq_one'
       ( nat.mod_lt _ ( order_of_pos' ⟨n, h₁, h⟩)),
-    push_neg at h₄,
-    specialize h₄ h₃,
-    rw ← pow_eq_mod_order_of at h₄,
-    exact h₄ h,
-    exact h₂ },
-  { have h'' : n = 0 :=
+    push_neg at h₃,
+    have h₄ : n % order_of a > 0 :=
+        nat.pos_of_ne_zero h₂,
+    specialize h₃ h₄,
+    rw ← pow_eq_mod_order_of at h₃,
+    exact h₃ h },
+  { have h₅ : n = 0 :=
       le_antisymm (not_lt.mp h₁) (nat.zero_le n),
-    simp [h''] }
+    simp [h₅] }
 end
 
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of a ∣ n ↔ a ^ n = 1 :=
@@ -193,35 +192,17 @@ variables (a) {n : ℕ}
 lemma order_of_pow' (h : n ≠ 0) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
-conv_rhs { rw order_of },
-split_ifs with hx,
-{ rw ← order_of_of_finite_order hx,
-  exact dvd_antisymm
-  (order_of_dvd_of_pow_eq_one
-    (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
-  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos' hx),
-    have hdvd : order_of a ∣ n * order_of (a ^ n),
-      from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
-    coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
-      (dvd_of_mul_dvd_mul_right gcd_pos
-        (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
-            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm]))) },
-{ rw order_of,
-  split_ifs with hx',
-  { exfalso,
-    apply hx,
-    cases hx' with m hm,
-    use n*m,
-    split,
-      { apply nat.lt_of_le_and_ne (nat.zero_le (n*m)),
-        symmetry,
-        apply nat.mul_ne_zero h,
-        symmetry,
-        exact ne_of_lt hm.1 },
-      { rw pow_mul,
-        exact hm.2 } },
-  { simp } }
+apply dvd_antisymm,
+  { apply order_of_dvd_of_pow_eq_one,
+    rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
+        nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow] },
+  { have gcd_pos : 0 < gcd (order_of a) n, exact gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h),
+    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
+    apply dvd_of_mul_dvd_mul_right gcd_pos,
+    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _),
+    mul_comm],
+    apply order_of_dvd_of_pow_eq_one,
+    rw [pow_mul, pow_order_of_eq_one] }
 end
 
 variable (n)

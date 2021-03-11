@@ -234,14 +234,14 @@ section partial_order
 variables [topological_space α] [partial_order α] [t : order_closed_topology α]
 include t
 
-private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2} :=
+private lemma is_closed_eq_aux : is_closed {p : α × α | p.1 = p.2} :=
 by simp only [le_antisymm_iff];
    exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
 @[priority 90] -- see Note [lower instance priority]
 instance order_closed_topology.to_t2_space : t2_space α :=
 { t2 :=
-  have is_open {p : α × α | p.1 ≠ p.2}, from is_closed_eq,
+  have is_open {p : α × α | p.1 ≠ p.2} := is_closed_eq_aux.is_open_compl,
   assume a b h,
   let ⟨u, v, hu, hv, ha, hb, h⟩ := is_open_prod_iff.mp this a b h in
   ⟨u, v, hu, hv, ha, hb,
@@ -260,7 +260,7 @@ by { simp_rw [← is_closed_compl_iff, compl_set_of, not_lt],
 
 lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_open {b | f b < g b} :=
-by simp [lt_iff_not_ge, -not_le]; exact is_closed_le hg hf
+by simp [lt_iff_not_ge, -not_le]; exact (is_closed_le hg hf).is_open_compl
 
 variables {a b : α}
 
@@ -905,7 +905,7 @@ end
 @[priority 100] -- see Note [lower instance priority]
 instance order_topology.to_order_closed_topology : order_closed_topology α :=
 { is_closed_le' :=
-    is_open_prod_iff.mpr $ assume a₁ a₂ (h : ¬ a₁ ≤ a₂),
+    is_open_compl_iff.1 $ is_open_prod_iff.mpr $ assume a₁ a₂ (h : ¬ a₁ ≤ a₂),
       have h : a₂ < a₁, from lt_of_not_ge h,
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
@@ -915,7 +915,7 @@ lemma order_topology.t2_space : t2_space α := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance order_topology.regular_space : regular_space α :=
 { regular := assume s a hs ha,
-    have hs' : sᶜ ∈ 𝓝 a, from mem_nhds_sets hs ha,
+    have hs' : sᶜ ∈ 𝓝 a, from mem_nhds_sets hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
       from by_cases
         (assume h : ∃l, l < a,
@@ -2365,7 +2365,7 @@ begin
   have zt : z ∈ tᶜ, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
   have : tᶜ ∩ Ioc z y ∈ 𝓝[Ioi z] z,
   { rw [← nhds_within_Ioc_eq_nhds_within_Ioi hz.2],
-    exact mem_nhds_within.2 ⟨tᶜ, ht, zt, subset.refl _⟩},
+    exact mem_nhds_within.2 ⟨tᶜ, ht.is_open_compl, zt, subset.refl _⟩},
   apply mem_sets_of_superset this,
   have : Ioc z y ⊆ s ∪ t, from λ w hw, hab (xyab ⟨le_trans hz.1 (le_of_lt hw.1), hw.2⟩),
   exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
@@ -2462,6 +2462,72 @@ lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connec
 @continuous_on.surj_on_of_tendsto α (order_dual β) _ _ _ _ _ _ _ _ _ _ hs hf hbot htop
 
 end densely_ordered
+
+/-- A closed interval in a conditionally complete linear order is compact. -/
+lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
+begin
+  cases le_or_lt a b with hab hab, swap, { simp [hab] },
+  refine compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
+  contrapose! hf,
+  rw [le_principal_iff],
+  have hpt : ∀ x ∈ Icc a b, {x} ∉ f,
+    from λ x hx hxf, hf x hx ((le_pure_iff.2 hxf).trans (pure_le_nhds x)),
+  set s := {x ∈ Icc a b | Icc a x ∉ f},
+  have hsb : b ∈ upper_bounds s, from λ x hx, hx.1.2,
+  have sbd : bdd_above s, from ⟨b, hsb⟩,
+  have ha : a ∈ s, by simp [hpt, hab],
+  rcases hab.eq_or_lt with rfl|hlt, { exact ha.2 },
+  set c := Sup s,
+  have hsc : is_lub s c, from is_lub_cSup ⟨a, ha⟩ sbd,
+  have hc : c ∈ Icc a b, from ⟨hsc.1 ha, hsc.2 hsb⟩,
+  specialize hf c hc,
+  have hcs : c ∈ s,
+  { cases hc.1.eq_or_lt with heq hlt, { rwa ← heq },
+    refine ⟨hc, λ hcf, hf (λ U hU, _)⟩,
+    rcases (mem_nhds_within_Iic_iff_exists_Ioc_subset' hlt).1 (mem_nhds_within_of_mem_nhds hU)
+      with ⟨x, hxc, hxU⟩,
+    rcases ((hsc.frequently_mem ⟨a, ha⟩).and_eventually
+      (Ioc_mem_nhds_within_Iic ⟨hxc, le_rfl⟩)).exists
+      with ⟨y, ⟨hyab, hyf⟩, hy⟩,
+    refine mem_sets_of_superset(f.diff_mem_iff.2 ⟨hcf, hyf⟩) (subset.trans _ hxU),
+    rw diff_subset_iff,
+    exact subset.trans Icc_subset_Icc_union_Ioc
+      (union_subset_union subset.rfl $ Ioc_subset_Ioc_left hy.1.le) },
+  cases hc.2.eq_or_lt with heq hlt, { rw ← heq, exact hcs.2 },
+  contrapose! hf,
+  intros U hU,
+  rcases (mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset hlt).1 (mem_nhds_within_of_mem_nhds hU)
+    with ⟨y, hxy, hyU⟩,
+  refine mem_sets_of_superset _ hyU, clear_dependent U,
+  have hy : y ∈ Icc a b, from ⟨hc.1.trans hxy.1.le, hxy.2⟩,
+  by_cases hay : Icc a y ∈ f,
+  { refine mem_sets_of_superset (f.diff_mem_iff.2 ⟨f.diff_mem_iff.2 ⟨hay, hcs.2⟩, hpt y hy⟩) _,
+    rw [diff_subset_iff, union_comm, Ico_union_right hxy.1.le, diff_subset_iff],
+    exact Icc_subset_Icc_union_Icc },
+  { exact ((hsc.1 ⟨hy, hay⟩).not_lt hxy.1).elim },
+end
+
+/-- An unordered closed interval in a conditionally complete linear order is compact. -/
+lemma compact_interval {a b : α} : is_compact (interval a b) := compact_Icc
+
+lemma compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
+  [Π i, topological_space (α i)] [Π i, order_topology (α i)] (a b : Π i, α i) :
+  is_compact (Icc a b) :=
+pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
+
+instance compact_space_Icc (a b : α) : compact_space (Icc a b) :=
+compact_iff_compact_space.mp compact_Icc
+
+instance compact_space_pi_Icc {ι : Type*} {α : ι → Type*}
+  [Π i, conditionally_complete_linear_order (α i)] [Π i, topological_space (α i)]
+  [Π i, order_topology (α i)] (a b : Π i, α i) : compact_space (Icc a b) :=
+compact_iff_compact_space.mp (compact_pi_Icc a b)
+
+@[priority 100] -- See note [lower instance priority]
+instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]
+  [topological_space α] [order_topology α] :
+  compact_space α :=
+⟨by simp only [← Icc_bot_top, compact_Icc]⟩
 
 lemma is_compact.Inf_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   Inf s ∈ s :=
@@ -2716,21 +2782,43 @@ begin
   { exact tendsto_of_not_nonempty hi }
 end
 
+lemma tendsto_at_bot_cinfi {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : monotone f) (hbdd : bdd_below $ range f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr (order_dual ι) (order_dual α) _ _ _ _ _ h_mono.order_dual hbdd
+
 lemma tendsto_at_top_cinfi {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α]
   {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_below $ range f) :
   tendsto f at_top (𝓝 (⨅i, f i)) :=
 @tendsto_at_top_csupr _ (order_dual α) _ _ _ _ _ @h_mono hbdd
 
+lemma tendsto_at_bot_csupr {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_above $ range f) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+@tendsto_at_bot_cinfi ι (order_dual α) _ _ _ _ _ h_mono hbdd
+
 lemma tendsto_at_top_supr {ι α : Type*} [preorder ι] [topological_space α]
   [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
   tendsto f at_top (𝓝 (⨆i, f i)) :=
 tendsto_at_top_csupr h_mono (order_top.bdd_above _)
 
+lemma tendsto_at_bot_infi {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+tendsto_at_bot_cinfi h_mono (order_bot.bdd_below _)
+
 lemma tendsto_at_top_infi {ι α : Type*} [preorder ι] [topological_space α]
   [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
   tendsto f at_top (𝓝 (⨅i, f i)) :=
 tendsto_at_top_cinfi @h_mono (order_bot.bdd_below _)
+
+lemma tendsto_at_bot_supr {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+tendsto_at_bot_csupr h_mono (order_top.bdd_above _)
 
 lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :

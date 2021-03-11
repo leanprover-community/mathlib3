@@ -146,7 +146,7 @@ by { rw [derived_series_eq_derived_series_of_ideal_comap, map_comap_incl, inf_eq
 
 lemma derived_series_eq_bot_iff (k : ℕ) :
   derived_series R I k = ⊥ ↔ derived_series_of_ideal R L k I = ⊥ :=
-by rw [← derived_series_eq_derived_series_of_ideal_map, I.incl.map_bot_iff, ker_incl, eq_bot_iff]
+by rw [← derived_series_eq_derived_series_of_ideal_map, I.map_eq_bot_iff, ker_incl, eq_bot_iff]
 
 lemma derived_series_add_eq_bot {k l : ℕ} {I J : lie_ideal R L}
   (hI : derived_series R I k = ⊥) (hJ : derived_series R J l = ⊥) :

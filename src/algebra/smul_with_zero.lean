@@ -5,6 +5,17 @@ Authors: Damiano Testa
 -/
 import group_theory.group_action.defs
 
+/-!
+# Introduce `smul_with_zero`
+
+Alongside with a usual monoid action on a Type `M`, we introduce an action of a `monoid_with_zero`
+on a Type with `0`.  The action is required to be compatible with
+
+* the unit of the monoid, acting as the identity;
+* the zero of the monoid_with_zero, acting as zero;
+* associativity of the monoid.
+-/
+
 variables (R M : Type*) [has_zero M]
 
 /--  `smul_with_zero` is a class consisting of a Type `R` with `0 : R` and a scalar multiplication

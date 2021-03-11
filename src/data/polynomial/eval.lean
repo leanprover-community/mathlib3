@@ -334,11 +334,7 @@ lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset (polynomial R)) (p :
 
 @[simp] lemma pow_comp {R : Type*} [comm_semiring R] (p q : polynomial R) (n : ℕ) :
   (p^n).comp q = (p.comp q)^n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
+((monoid_hom.mk (λ r : polynomial R, r.comp q)) one_comp (λ r s, mul_comp r s q)).map_pow p n
 
 @[simp] lemma monomial_comp (n : ℕ) : (monomial n a).comp p = C a * p^n :=
 eval₂_monomial _ _

@@ -132,10 +132,6 @@ not_is_regular_zero_iff.mpr _inst_8
 lemma is_regular_of_smul_eq_one (h : a • s = 1) : is_regular M s :=
 is_regular.of_smul a (by { rw h, exact is_regular_one })
 
-lemma defs {R M : Type*} [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
-  @smul_with_zero.to_has_scalar R M _ _ _ = mul_action.to_has_scalar :=
-rfl
-
 /-- Any element in `units R` is `M`-regular. -/
 lemma units.is_regular (a : units R) : is_regular M (a : R) :=
 begin

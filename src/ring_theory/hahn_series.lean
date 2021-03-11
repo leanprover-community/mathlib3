@@ -153,7 +153,7 @@ lemma add_coeff' {x y : hahn_series Γ R} :
 lemma add_coeff {x y : hahn_series Γ R} {a : Γ} :
   (x + y).coeff a = x.coeff a + y.coeff a := rfl
 
-lemma support_add_subset [add_monoid R] {x y : hahn_series Γ R} :
+lemma support_add_subset {x y : hahn_series Γ R} :
   support (x + y) ⊆ support x ∪ support y :=
 λ a ha, begin
   rw [mem_support, add_coeff] at ha,

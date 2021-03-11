@@ -10,40 +10,40 @@ import algebra.char_p.basic
 /-!
 # Invertibility of elements given a characteristic
 
-This file  includes some instances of `invertible` for specific numbers in
+This file includes some instances of `invertible` for specific numbers in
 characteristic zero. Some more cases are given as a `def`, to be included only
 when needed. To construct instances for concrete numbers,
 `invertible_of_nonzero` is a useful definition.
 -/
-section ring_char
+
+variables {K : Type*}
+
+section field
+variables [field K]
 
 /-- A natural number `t` is invertible in a field `K` if the charactistic of `K` does not divide
 `t`. -/
-def invertible_of_ring_char_not_dvd {K : Type*} [field K]
+def invertible_of_ring_char_not_dvd
   {t : ℕ} (not_dvd : ¬(ring_char K ∣ t)) : invertible (t : K) :=
 invertible_of_nonzero (λ h, not_dvd ((ring_char.spec K t).mp h))
 
-end ring_char
-
-section char_p
 
 /-- A natural number `t` is invertible in a field `K` of charactistic `p` if `p` does not divide
 `t`. -/
-def invertible_of_char_p_not_dvd {K : Type*} [field K] {p : ℕ} [char_p K p]
+def invertible_of_char_p_not_dvd {p : ℕ} [char_p K p]
   {t : ℕ} (not_dvd : ¬(p ∣ t)) : invertible (t : K) :=
 invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff K p t).mp h))
 
-instance invertible_of_pos {K : Type*} [field K] [char_zero K] (n : ℕ) [h : fact (0 < n)] :
+instance invertible_of_pos [char_zero K] (n : ℕ) [h : fact (0 < n)] :
   invertible (n : K) :=
 invertible_of_nonzero $ by simpa [pos_iff_ne_zero] using h
 
-end char_p
+end field
 
 section division_ring
+variables [division_ring K] [char_zero K]
 
-variable [division_ring α]
-
-instance invertible_succ [char_zero α] (n : ℕ) : invertible (n.succ : α) :=
+instance invertible_succ (n : ℕ) : invertible (n.succ : K) :=
 invertible_of_nonzero (nat.cast_ne_zero.mpr (nat.succ_ne_zero _))
 
 /-!
@@ -51,10 +51,10 @@ A few `invertible n` instances for small numerals `n`. Feel free to add your own
 number when you need its inverse.
 -/
 
-instance invertible_two [char_zero α] : invertible (2 : α) :=
+instance invertible_two : invertible (2 : K) :=
 invertible_of_nonzero (by exact_mod_cast (dec_trivial : 2 ≠ 0))
 
-instance invertible_three [char_zero α] : invertible (3 : α) :=
+instance invertible_three : invertible (3 : K) :=
 invertible_of_nonzero (by exact_mod_cast (dec_trivial : 3 ≠ 0))
 
 end division_ring

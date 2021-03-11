@@ -133,7 +133,7 @@ lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f 
     tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
     use k,
     rw [← lie_ideal.lower_central_series_map_eq k h₂, hk],
-    simp only [lie_hom.map_bot_iff, bot_le],
+    simp only [lie_ideal.map_eq_bot_iff, bot_le],
   end, }
 
 lemma lie_algebra.nilpotent_iff_equiv_nilpotent (e : L ≃ₗ⁅R⁆ L') :

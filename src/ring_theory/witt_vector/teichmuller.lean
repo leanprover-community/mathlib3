@@ -32,15 +32,12 @@ open mv_polynomial
 variables (p : ℕ) {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
-local attribute [semireducible] witt_vector
-
 /--
 The underlying function of the monoid hom `witt_vector.teichmuller`.
 The `0`-th coefficient of `teichmuller_fun p r` is `r`, and all others are `0`.
 -/
-def teichmuller_fun (r : R) : 𝕎 R
-| 0 := r
-| (n+1) := 0
+def teichmuller_fun (r : R) : 𝕎 R :=
+⟨p, λ n, if n = 0 then r else 0⟩
 
 /-!
 ## `teichmuller` is a monoid homomorphism

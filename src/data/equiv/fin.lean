@@ -46,8 +46,7 @@ equiv.subtype_equiv_right (λ x, by subst h)
 rfl
 
 @[simp] lemma fin_congr_symm {n m : ℕ} (h : n = m) :
-  (fin_congr h).symm = fin_congr h.symm :=
-rfl
+  (fin_congr h).symm = fin_congr h.symm := rfl
 
 @[simp] lemma fin_congr_apply_coe {n m : ℕ} (h : n = m) (k : fin n) :
   (fin_congr h k : ℕ) = k :=
@@ -173,8 +172,10 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
 (sum_fin_sum_equiv.symm.trans (equiv.sum_comm _ _)).trans sum_fin_sum_equiv
 
-@[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m) :
-  fin_add_flip (⟨k, nat.lt_add_right k m n h⟩ : fin (m + n)) = ⟨n + k, add_lt_add_left h n⟩ :=
+@[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m)
+  (hk : k < m + n := nat.lt_add_right k m n h)
+  (hnk : n + k < n + m := add_lt_add_left h n) :
+  fin_add_flip (⟨k, hk⟩ : fin (m + n)) = ⟨n + k, hnk⟩ :=
 begin
   dsimp [fin_add_flip, sum_fin_sum_equiv],
   rw [dif_pos h],

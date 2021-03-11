@@ -1481,7 +1481,7 @@ begin
   exact λ N1, ⟨max N N1, le_max_right _ _, h_ n (max N N1) hnN (le_max_left _ _)⟩,
 end
 
-lemma mem_ℒp_of_cauchy_limit [hp : fact (1 ≤ p)] {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ)
+lemma mem_ℒp_of_cauchy_limit (hp : 1 ≤ p) {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ)
   (f_lim : α → E) (h_lim_meas : ae_measurable f_lim μ)
   (h_tendsto : filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
   mem_ℒp f_lim p μ :=
@@ -1492,7 +1492,7 @@ begin
   specialize h_tendsto_1 N (le_refl N),
   have h_add : f_lim = f_lim - f N + f N, by abel,
   rw h_add,
-  refine lt_of_le_of_lt (snorm_add_le (h_lim_meas.sub (hf N).1) (hf N).1 hp.elim) _,
+  refine lt_of_le_of_lt (snorm_add_le (h_lim_meas.sub (hf N).1) (hf N).1 hp) _,
   rw ennreal.add_lt_top,
   split,
   { refine lt_of_le_of_lt _ ennreal.one_lt_top,
@@ -1501,7 +1501,7 @@ begin
   { exact (hf N).2, },
 end
 
-lemma cauchy_complete_ℒp_of_ne_top [complete_space E] [hp : fact(1 ≤ p)] (hp_ne_top : p ≠ ∞)
+lemma cauchy_complete_ℒp_of_ne_top [complete_space E] (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞)
   {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N) :
   ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
@@ -1509,19 +1509,19 @@ lemma cauchy_complete_ℒp_of_ne_top [complete_space E] [hp : fact(1 ≤ p)] (hp
 begin
   have hp1 : 1 ≤ p.to_real,
   { rw [← ennreal.of_real_le_iff_le_to_real hp_ne_top, ennreal.of_real_one],
-    exact hp.elim, },
+    exact hp, },
   have h_cau' : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) (p.to_real) μ < B N,
   { intros N n m hn hm,
     specialize h_cau N n m hn hm,
-    rwa snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp.elim).ne.symm hp_ne_top at h_cau, },
+    rwa snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp).ne.symm hp_ne_top at h_cau, },
   rw ←ennreal.of_real_to_real hp_ne_top at hf,
   obtain ⟨f_lim, f_lim_meas, h_tendsto⟩ := cauchy_limit_ℒp hf hp1 hB h_cau',
   rw ennreal.of_real_to_real hp_ne_top at hf,
   have h_tendsto' : filter.at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
-  { simp_rw snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp.elim).ne.symm hp_ne_top,
+  { simp_rw snorm_eq_snorm' (ennreal.zero_lt_one.trans_le hp).ne.symm hp_ne_top,
     exact h_tendsto, },
   have h_ℒp_lim : mem_ℒp f_lim p μ,
-    from mem_ℒp_of_cauchy_limit hf f_lim f_lim_meas.ae_measurable h_tendsto',
+    from mem_ℒp_of_cauchy_limit hp hf f_lim f_lim_meas.ae_measurable h_tendsto',
   exact ⟨f_lim, h_ℒp_lim, h_tendsto'⟩,
 end
 
@@ -1581,12 +1581,13 @@ lemma cauchy_complete_ℒp_top [complete_space E] {f : ℕ → α → E} (hf : �
     filter.at_top.tendsto (λ n, snorm (f n - f_lim) ∞ μ) (𝓝 0) :=
 begin
   obtain ⟨f_lim, h_lim_meas, h_tendsto⟩ := cauchy_limit_ℒp_top hf hB h_cau,
-  exact ⟨f_lim, mem_ℒp_of_cauchy_limit hf f_lim h_lim_meas.ae_measurable h_tendsto, h_tendsto⟩,
+  exact ⟨f_lim, mem_ℒp_of_cauchy_limit le_top hf f_lim h_lim_meas.ae_measurable h_tendsto,
+    h_tendsto⟩,
 end
 
 /-! ### `Lp` is complete for `1 ≤ p` -/
 
-instance [complete_space E] [fact (1 ≤ p)] : complete_space (Lp E p μ) :=
+instance [complete_space E] [hp : fact (1 ≤ p)] : complete_space (Lp E p μ) :=
 begin
   by_cases hp_top : p = ∞,
   { have hc_top : complete_space (Lp E ∞ μ),
@@ -1594,7 +1595,7 @@ begin
         (λ f hf B hB h_cau, cauchy_complete_ℒp_top hf hB h_cau),
     convert hc_top, },
   { exact complete_space_Lp_of_cauchy_complete_ℒp (λ f hf B hB h_cau,
-      cauchy_complete_ℒp_of_ne_top hp_top hf hB h_cau), },
+      cauchy_complete_ℒp_of_ne_top hp.elim hp_top hf hB h_cau), },
 end
 
 end Lp

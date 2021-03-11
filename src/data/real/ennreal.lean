@@ -1471,6 +1471,11 @@ end infi
 
 section supr
 
+@[simp] lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
+supr_eq_bot
+
+lemma sup_eq_zero {a b : ℝ≥0∞} : a ⊔ b = 0 ↔ a = 0 ∧ b = 0 := sup_eq_bot_iff
+
 lemma supr_coe_nat : (⨆n:ℕ, (n : ℝ≥0∞)) = ∞ :=
 (supr_eq_top _).2 $ assume b hb, ennreal.exists_nat_gt (lt_top_iff_ne_top.1 hb)
 

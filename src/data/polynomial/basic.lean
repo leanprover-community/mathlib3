@@ -51,11 +51,12 @@ instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) : R →ₗ[R] polynomial R := finsupp.lsingle n
 
+@[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
 finsupp.single_zero
 
-@[simp]
+-- This is not a `simp` lemma as `monomial_zero_left` is more general.
 lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
 lemma monomial_def (n : ℕ) (a : R) : monomial n a = finsupp.single n a := rfl
@@ -89,7 +90,7 @@ lemma monomial_one_one_eq_X : monomial 1 (1 : R) = X := rfl
 lemma monomial_one_right_eq_X_pow (n : ℕ) : monomial n 1 = X^n :=
 begin
   induction n with n ih,
-  { simp, },
+  { simp [monomial_zero_one], },
   { rw [pow_succ, ←ih, ←monomial_one_one_eq_X, monomial_mul_monomial, add_comm, one_mul], }
 end
 

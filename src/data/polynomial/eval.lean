@@ -439,13 +439,6 @@ by simp only [bit0, add_comp]
 @[simp] lemma bit1_comp : comp (bit1 p : polynomial R) q = bit1 (p.comp q) :=
 by simp only [bit1, add_comp, bit0_comp, one_comp]
 
-@[simp] lemma cast_nat_comp (n : ℕ) : comp (n : polynomial R) p = n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih], },
-end
-
 lemma comp_assoc {R : Type*} [comm_semiring R] (φ ψ χ : polynomial R) :
   (φ.comp ψ).comp χ = φ.comp (ψ.comp χ) :=
 begin

@@ -49,18 +49,12 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 
 attribute [to_additive] ordered_comm_monoid
 
-<<<<<<< HEAD
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
 if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker
 version of the canonical orderings defined later.   -/
-=======
-/-- an `ordered_comm_monoid` with one-sided 'division'
-in the sense that if `a ≤ b`, there is some `c` for which `a * c = b` -/
->>>>>>> 174bcd063087465fc4cecaaf15fc702d2d97f3d2
 class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] :=
 (exists_mul_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a * c)
 
-<<<<<<< HEAD
 /-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
 if `a ≤ b`, then there is some `c` for which `a * c = b`. This is a weaker
 version of the canonical orderings defined later. -/
@@ -69,8 +63,6 @@ class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] :=
 
 attribute [to_additive] has_exists_mul_of_le
 
-=======
->>>>>>> 174bcd063087465fc4cecaaf15fc702d2d97f3d2
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
 class linear_ordered_add_comm_monoid (α : Type*)

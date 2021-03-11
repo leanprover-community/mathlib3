@@ -95,17 +95,14 @@ end
 
 end monoid
 
-/-  Here, I assumed `semiring R`, but I do not actually use the addition.  I would like this to
-work for a `monoid_with_zero R` and a `smul_with_zero R M` instance that does not seem to exist,
-asserting that there is a scalar multiplication between `R → M → M`and `0 : R` produces the
-constant map to `0 : M`. -/
-section semiring
+section monoid_with_zero
 
-variables [semiring R] [add_comm_monoid M] [semimodule R M]
+variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M] [mul_action_with_zero R M]
+  [mul_action_with_zero R S] [mul_action_with_zero S M] [is_scalar_tower R S M]
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/
 lemma is_regular.subsingleton (h : is_regular M (0 : R)) : subsingleton M :=
-⟨λ a b, h (by repeat { rw zero_smul R _ })⟩
+⟨λ a b, h (by repeat { rw mul_action_with_zero.zero_smul })⟩
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/
 lemma is_regular_zero_iff_subsingleton : is_regular M (0 : R) ↔ subsingleton M :=
@@ -119,45 +116,14 @@ begin
   exact iff.rfl
 end
 
-end semiring
-
-section comm_monoid
-open module
-
-variables [comm_monoid R] [mul_action R M]
-
-/--  A product is `M`-regular if and only if the factors are. -/
-lemma is_regular_smul_iff : is_regular M (a • b) ↔ is_regular M a ∧ is_regular M b :=
-begin
-  rw [← is_regular_smul_and_smul_iff],
-  exact ⟨λ ab, ⟨ab, by rwa [smul_eq_mul, mul_comm]⟩, λ rab, rab.1⟩
-end
-
-end comm_monoid
-
-section monoid
-
-section monoid_R
-
-variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M] [mul_action_with_zero R M]
-  [mul_action_with_zero R S] [mul_action_with_zero S M] [is_scalar_tower R S M]
---[semiring S] [add_comm_monoid M] [has_scalar R S] [has_scalar R M]
---  [semimodule S M]  [is_scalar_tower R S M]
-
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
-lemma is_regular_of_mul_eq_one (h : a • s = 1) : is_regular M s :=
+lemma is_regular_of_smul_eq_one (h : a • s = 1) : is_regular M s :=
 begin
   have ras : is_regular M (a • s),
   { rw h,
     exact is_regular_one M },
   exact is_regular.of_smul M ras
 end
-
-end monoid_R
-
-variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
---[monoid_with_zero S] [add_comm_monoid M] [semimodule R S] [semimodule R M]
---  [semimodule S M]  [is_scalar_tower R S M]
 
 lemma defs {R M : Type*} [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
   @smul_with_zero.to_has_scalar R M _ _ _ = mul_action.to_has_scalar :=
@@ -169,7 +135,7 @@ begin
   have ai : a.inv • a.val = 1,
   { rw smul_eq_mul,
      exact a.inv_val },
-  { exact is_regular_of_mul_eq_one M ai }
+  { exact is_regular_of_smul_eq_one M ai }
 end
 
 /-- A unit is `M`-regular. -/
@@ -179,6 +145,20 @@ begin
   exact units.is_regular M a,
 end
 
-end monoid
+end monoid_with_zero
+
+section comm_monoid
+open module
+
+variables [comm_monoid R] [mul_action R M]
+
+/--  A product is `M`-regular if and only if the factors are. -/
+lemma is_regular_mul_iff : is_regular M (a * b) ↔ is_regular M a ∧ is_regular M b :=
+begin
+  rw [← is_regular_smul_and_smul_iff],
+  exact ⟨λ ab, ⟨ab, by rwa [smul_eq_mul, mul_comm]⟩, λ rab, rab.1⟩
+end
+
+end comm_monoid
 
 end module

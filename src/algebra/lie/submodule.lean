@@ -558,7 +558,7 @@ begin
   { rw mem_ker, apply h x hx, },
 end
 
-@[simp] lemma map_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
+@[simp] lemma map_eq_bot_iff : I.map f = ⊥ ↔ I ≤ f.ker :=
 by { rw ← le_bot_iff, exact lie_ideal.map_le_iff_le_comap, }
 
 lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=

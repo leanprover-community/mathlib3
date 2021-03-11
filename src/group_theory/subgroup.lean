@@ -1186,14 +1186,22 @@ begin
   simp only [],
 end
 
-lemma le_ker_iff (f : G →* N) {H : subgroup G} : H ≤ f.ker ↔ H.map f = ⊥ :=
+@[to_additive] lemma map_eq_bot_iff (f : G →* N) {H : subgroup G} : H.map f = ⊥ ↔ H ≤ f.ker :=
 begin
   rw eq_bot_iff,
   split,
-  { intros h x hx,
-    obtain ⟨y, hy1, rfl⟩ := hx,
-    exact h hy1 },
   { exact λ h x hx, h ⟨x, hx, rfl⟩ },
+  { intros h x hx,
+    obtain ⟨y, hy, rfl⟩ := hx,
+    exact h hy },
+end
+
+@[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
+begin
+  split,
+  { intros h x y hxy,
+    rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
+  { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
 end
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/

@@ -221,13 +221,12 @@ by simp only [chart_at] with mfld_simps
 
 /-- Smooth manifold structure on the total space of a basic smooth bundle -/
 instance to_smooth_manifold :
-  smooth_manifold_with_corners (I.prod (model_with_corners_self 𝕜 F))
-  Z.to_topological_fiber_bundle_core.total_space :=
+  smooth_manifold_with_corners (I.prod (𝓘(𝕜, F))) Z.to_topological_fiber_bundle_core.total_space :=
 begin
   /- We have to check that the charts belong to the smooth groupoid, i.e., they are smooth on their
   source, and their inverses are smooth on the target. Since both objects are of the same kind, it
   suffices to prove the first statement in A below, and then glue back the pieces at the end. -/
-  let J := model_with_corners.to_local_equiv (I.prod (model_with_corners_self 𝕜 F)),
+  let J := model_with_corners.to_local_equiv (I.prod (𝓘(𝕜, F))),
   have A : ∀ (e e' : local_homeomorph M H) (he : e ∈ atlas H M) (he' : e' ∈ atlas H M),
     times_cont_diff_on 𝕜 ∞
     (J ∘ ((Z.chart he).symm.trans (Z.chart he')) ∘ J.symm)

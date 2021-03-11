@@ -760,8 +760,8 @@ lemma ext_chart_at_map_nhds_within' {y : M} (hy : y ∈ (ext_chart_at I x).sourc
   map (ext_chart_at I x) (𝓝[s] y) =
     𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x y) :=
 by rw [ext_chart_at_map_nhds_within_eq_image' I x hy, nhds_within_inter,
-  ← nhds_within_ext_chart_target_eq' _ _ hy, ← nhds_within_inter, inter_comm,
-  (ext_chart_at I x).image_inter_source_eq', inter_comm]
+  ← nhds_within_ext_chart_target_eq' _ _ hy, ← nhds_within_inter,
+  (ext_chart_at I x).image_source_inter_eq', inter_comm]
 
 lemma ext_chart_at_map_nhds_within :
   map (ext_chart_at I x) (𝓝[s] x) =

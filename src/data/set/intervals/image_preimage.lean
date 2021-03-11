@@ -39,7 +39,7 @@ begin
   refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_le_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h.1,
+  obtain ⟨c, rfl⟩ := exists_add_of_le h.1,
   rw [mem_Icc, add_right_comm, add_le_add_iff_right, add_le_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end
@@ -49,7 +49,7 @@ begin
   refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_lt_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h.1),
+  obtain ⟨c, rfl⟩ := exists_add_of_le (le_of_lt h.1),
   rw [mem_Ioo, add_right_comm, add_lt_add_iff_right, add_lt_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end
@@ -59,7 +59,7 @@ begin
   refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_le_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h.1),
+  obtain ⟨c, rfl⟩ := exists_add_of_le (le_of_lt h.1),
   rw [mem_Ioc, add_right_comm, add_lt_add_iff_right, add_le_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end
@@ -69,7 +69,7 @@ begin
   refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_lt_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h.1,
+  obtain ⟨c, rfl⟩ := exists_add_of_le h.1,
   rw [mem_Ico, add_right_comm, add_le_add_iff_right, add_lt_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end
@@ -77,7 +77,7 @@ end
 lemma Ici_add_bij : bij_on (+d) (Ici a) (Ici (a + d)) :=
 begin
   refine ⟨λ x h, add_le_add_right (mem_Ici.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (mem_Ici.mp h),
+  obtain ⟨c, rfl⟩ := exists_add_of_le (mem_Ici.mp h),
   rw [mem_Ici, add_right_comm, add_le_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end
@@ -85,7 +85,7 @@ end
 lemma Ioi_add_bij : bij_on (+d) (Ioi a) (Ioi (a + d)) :=
 begin
   refine ⟨λ x h, add_lt_add_right (mem_Ioi.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt (mem_Ioi.mp h)),
+  obtain ⟨c, rfl⟩ := exists_add_of_le (le_of_lt (mem_Ioi.mp h)),
   rw [mem_Ioi, add_right_comm, add_lt_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end

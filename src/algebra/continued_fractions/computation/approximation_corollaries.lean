@@ -7,18 +7,18 @@ import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.convergents_equiv
 import topology.instances.ennreal
 /-!
-# Corollaries Following From Approximation Lemmas in `approximations.lean`
+# Corollaries From Approximation Lemmas (`algebra.continued_fractions.computation.approximations`)
 
 ## Summary
 
-Let us write `gcf` for `generalized_continued_fraction`.
-We show that the generalized_continued_fraction given by `gcf.of` in fact is a (regular) continued
-fraction. Using the equivalence of the convergents computations (`gcf.convergents` and
-`gcf.convergents'`) for continued fractions (see `algebra.continued_fractions.convergents_equiv`),
-it follows that the convergents computations for `gcf.of` are equivalent.
+We show that the generalized_continued_fraction given by `generalized_continued_fraction.of` in fact
+is a (regular) continued fraction. Using the equivalence of the convergents computations
+(`generalized_continued_fraction.convergents` and `generalized_continued_fraction.convergents'`) for
+continued fractions (see `algebra.continued_fractions.convergents_equiv`), it follows that the
+convergents computations for `generalized_continued_fraction.of` are equivalent.
 
 Moreover, we show the convergence of the continued fractions computations, that is
-`(gcf.of v).convergents` indeed computes `v` in the limit.
+`(generalized_continued_fraction.of v).convergents` indeed computes `v` in the limit.
 
 ## Main Definitions
 
@@ -26,9 +26,10 @@ Moreover, we show the convergence of the continued fractions computations, that 
 
 ## Main Theorems
 
-- `gcf.of_convergents_eq_convergents'` shows that the convergents computations for `gcf.of` are
-equivalent.
-- `gcf.of_convergence` shows that `(gcf.of v).convergents` converges to `v`.
+- `generalized_continued_fraction.of_convergents_eq_convergents'` shows that the convergents
+  computations for `generalized_continued_fraction.of` are equivalent.
+- `generalized_continued_fraction.of_convergence` shows that
+  `(generalized_continued_fraction.of v).convergents` converges to `v`.
 
 ## Tags
 
@@ -66,7 +67,7 @@ section convergence
 /-!
 ### Convergence
 
-We next show that `(gcf.of v).convergents v` converges to `v`.
+We next show that `(generalized_continued_fraction.of v).convergents v` converges to `v`.
 -/
 
 variable [archimedean K]

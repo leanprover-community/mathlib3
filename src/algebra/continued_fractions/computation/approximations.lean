@@ -7,33 +7,34 @@ import algebra.continued_fractions.computation.correctness_terminating
 import data.nat.fib
 import tactic.solve_by_elim
 /-!
-# Approximations for Continued Fraction Computations (`gcf.of`)
+# Approximations for Continued Fraction Computations (`generalized_continued_fraction.of`)
 
 ## Summary
 
-Let us write `gcf` for `generalized_continued_fraction`. This file contains useful approximations
-for the values involved in the continued fractions computation `gcf.of`.
-In particular, we derive the so-called *determinant formula* for `gcf.of`:
+This file contains useful approximations for the values involved in the continued fractions
+computation `generalized_continued_fraction.of`. In particular, we derive the so-called
+*determinant formula* for `generalized_continued_fraction.of`:
 `Aₙ * Bₙ₊₁ - Bₙ * Aₙ₊₁ = (-1)^(n + 1)`.
 
 Moreover, we derive some upper bounds for the error term when computing a continued fraction up a
-given position, i.e. bounds for the term `|v - (gcf.of v).convergents n|`.
+given position, i.e. bounds for the term `|v - (generalized_continued_fraction.of v).convergents n|`.
 The derived bounds will show us that the error term indeed gets smaller.
-As a corollary, we will be able to show that `(gcf.of v).convergents` converges to `v` in
-`algebra.continued_fractions.computation.approximation_corollaries`.
+As a corollary, we will be able to show that `(generalized_continued_fraction.of v).convergents`
+converges to `v` in `algebra.continued_fractions.computation.approximation_corollaries`.
 
 ## Main Theorems
 
-- `gcf.of_part_num_eq_one`: shows that all partial numerators `aᵢ` are equal to one.
-- `gcf.exists_int_eq_of_part_denom`: shows that all partial denominators `bᵢ` correspond to an
-  integer.
-- `gcf.one_le_of_nth_part_denom`: shows that `1 ≤ bᵢ`.
-- `gcf.succ_nth_fib_le_of_nth_denom`: shows that the `n`th denominator `Bₙ` is greater than or equal
-  to the `n + 1`th fibonacci number `nat.fib (n + 1)`.
-- `gcf.le_of_succ_nth_denom`: shows that `bₙ * Bₙ ≤ Bₙ₊₁`, where `bₙ` is the `n`th partial
-  denominator of the continued fraction.
-- `gcf.abs_sub_convergents_le`: shows that `|v - Aₙ / Bₙ| ≤ 1 / (Bₙ * Bₙ₊₁)`, where `Aₙ` is the
-  nth partial numerator.
+- `generalized_continued_fraction.of_part_num_eq_one`: shows that all partial numerators `aᵢ` are
+  equal to one.
+- `generalized_continued_fraction.exists_int_eq_of_part_denom`: shows that all partial denominators
+  `bᵢ` correspond to an integer.
+- `generalized_continued_fraction.one_le_of_nth_part_denom`: shows that `1 ≤ bᵢ`.
+- `generalized_continued_fraction.succ_nth_fib_le_of_nth_denom`: shows that the `n`th denominator
+  `Bₙ` is greater than or equal to the `n + 1`th fibonacci number `nat.fib (n + 1)`.
+- `generalized_continued_fraction.le_of_succ_nth_denom`: shows that `bₙ * Bₙ ≤ Bₙ₊₁`, where `bₙ` is
+  the `n`th partial denominator of the continued fraction.
+- `generalized_continued_fraction.abs_sub_convergents_le`: shows that
+  `|v - Aₙ / Bₙ| ≤ 1 / (Bₙ * Bₙ₊₁)`, where `Aₙ` is the nth partial numerator.
 
 ## References
 
@@ -120,7 +121,7 @@ end int_fract_pair
 
 /-!
 Next we translate above results about the stream of `int_fract_pair`s to the computed continued
-fraction `gcf.of`.
+fraction `generalized_continued_fraction.of`.
 -/
 
 /-- Shows that the integer parts of the continued fraction are at least one. -/
@@ -318,7 +319,7 @@ section determinant
 /-!
 ### Determinant Formula
 
-Next we prove the so-called *determinant formula* for `gcf.of`:
+Next we prove the so-called *determinant formula* for `generalized_continued_fraction.of`:
 `Aₙ * Bₙ₊₁ - Bₙ * Aₙ₊₁ = (-1)^(n + 1)`.
 -/
 
@@ -376,7 +377,7 @@ section error_term
 ### Approximation of Error Term
 
 Next we derive some approximations for the error term when computing a continued fraction up a given
-position, i.e. bounds for the term `|v - (gcf.of v).convergents n|`.
+position, i.e. bounds for the term `|v - (generalized_continued_fraction.of v).convergents n|`.
 -/
 
 /-- This lemma follows from the finite correctness proof, the determinant equality, and

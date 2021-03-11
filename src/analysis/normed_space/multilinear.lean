@@ -60,6 +60,9 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
+-- hack to speed up simp when dealing with complicated types
+local attribute [-instance] unique.subsingleton pi.subsingleton
+
 /-!
 ### Type variables
 
@@ -1178,6 +1181,9 @@ Therefore, the space of continuous multilinear maps on `(fin 0) → G` with valu
 isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the construction of iterated
 derivatives, we register this isomorphism. -/
 
+section
+local attribute [instance] unique.subsingleton
+
 variables {𝕜 G G'}
 
 /-- Associating to a continuous multilinear map in `0` variables the unique value it takes. -/
@@ -1258,6 +1264,8 @@ variables {𝕜 G G'}
 
 @[simp] lemma continuous_multilinear_curry_fin0_symm_apply (x : G') (v : (fin 0) → G) :
   (continuous_multilinear_curry_fin0 𝕜 G G').symm x v = x := rfl
+
+end
 
 /-! #### With 1 variable -/
 

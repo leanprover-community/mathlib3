@@ -2457,7 +2457,7 @@ lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connec
 
 end densely_ordered
 
-/-- Closed interval in a conditionally complete linear order is compact. -/
+/-- A closed interval in a conditionally complete linear order is compact. -/
 lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
 begin
   cases le_or_lt a b with hab hab, swap, { simp [hab] },

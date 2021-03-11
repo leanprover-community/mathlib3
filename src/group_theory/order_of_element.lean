@@ -210,20 +210,17 @@ variable (n)
 lemma order_of_pow'' (h : ∃ n, 0 < n ∧ a ^ n = 1) :
   order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 begin
-  conv_rhs { rw order_of },
-  split_ifs with hx,
-  rw ← order_of_of_finite_order h,
-  exact dvd_antisymm
-  (order_of_dvd_of_pow_eq_one
-    (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
-  (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos' h),
-    have hdvd : order_of a ∣ n * order_of (a ^ n),
-      from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
-    coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos)
-      (dvd_of_mul_dvd_mul_right gcd_pos
-        (by rwa [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
-            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
+apply dvd_antisymm,
+  { apply order_of_dvd_of_pow_eq_one,
+    rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
+        nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow] },
+  { have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos' h),
+    apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd gcd_pos),
+    apply dvd_of_mul_dvd_mul_right gcd_pos,
+    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc,
+            nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm],
+    apply order_of_dvd_of_pow_eq_one,
+    rw [pow_mul, pow_order_of_eq_one] }
 end
 
 end monoid
@@ -237,16 +234,8 @@ by_contradiction $ assume ne : n ≠ m,
   have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [nat.sub_eq_iff_eq_add h, ne.symm]),
   have h₃ : m = n + (m - n), begin exact (nat.add_sub_of_le h).symm end,
   have h₂ : a ^ (m - n) = 1,
-    begin rw [h₃, pow_add] at eq,
-          apply mul_left_cancel,
-          convert eq.symm,
-          exact mul_one (a ^ n) end,
-  have le : order_of a ≤ m - n,
-    begin rw order_of,
-          split_ifs with hx,
-          { exact nat.find_min' hx ⟨h₁, h₂⟩ },
-          { exact zero_le (m - n) }
-    end,
+    by { rw [h₃, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (a ^ n) },
+  have le : order_of a ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₂,
   have lt : m - n < order_of a,
     from (nat.sub_lt_left_iff_lt_add h).mpr $ nat.lt_add_left _ _ _ hm,
   lt_irrefl _ (lt_of_le_of_lt le lt)
@@ -289,8 +278,10 @@ end))
 end finite_monoid
 
 section finite_cancel_monoid
+/-- TODO: Of course everything also works for right_cancel_monoids. -/
 variables {α} [fintype α] [left_cancel_monoid α]
 
+/-- TODO: Use this to show that a finite left cancellative monoid is a group.-/
 lemma exists_pow_eq_one (a : α) : ∃i, 0 < i ∧ a ^ i = 1 :=
 begin
   have h :  ¬ injective (λi:ℕ, a^i),
@@ -315,12 +306,35 @@ begin
     { exact h''' },
 end
 
-variable {a}
-
-lemma order_of_le_card_univ : order_of a ≤ fintype.card α :=
+lemma order_of_le_card_univ {a : α}: order_of a ≤ fintype.card α :=
 finset.le_card_of_inj_on_range ((^) a)
   (assume n _, finset.mem_univ _)
   (assume i hi j hj, pow_injective_of_lt_order_of a hi hj)
+
+/-- This is the same as `order_of_pos' but with one fewer explicit assumption since this is
+  automatic in case of a finite cancellative monoid.-/
+lemma order_of_pos (a : α) : 0 < order_of a :=
+begin
+  apply order_of_pos',
+  cases exists_pow_eq_one a with w hw,
+  cases hw with hw1 hw2,
+  exact ⟨w, hw1, hw2⟩,
+end
+
+variables {n : ℕ}
+
+open nat
+
+/-- This is the same as `order_of_pow'` and `order_of_pow''` but with one assumption less which is
+automatic in the case of a finite cancellative group.-/
+lemma order_of_pow (a : α) :
+  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
+begin
+  apply order_of_pow'',
+  cases exists_pow_eq_one a with w hw,
+  cases hw with hw1 hw2,
+  exact ⟨w, hw1, hw2⟩
+end
 
 end finite_cancel_monoid
 
@@ -332,39 +346,19 @@ begin
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
   use w,
   split,
-  exact_mod_cast ne_of_gt hw1,
-  exact_mod_cast hw2,
+    { exact_mod_cast ne_of_gt hw1 },
+    { exact_mod_cast hw2 }
 end
 
-variables (a)
-
-lemma order_of_pos : 0 < order_of a :=
-begin
-  apply order_of_pos',
-  cases exists_pow_eq_one a with w hw,
-  cases hw with hw1 hw2,
-  exact ⟨w, hw1, hw2⟩,
-end
-
-open nat
-
-variables {n : ℕ}
-
-lemma order_of_pow :
-  order_of (a ^ n) = order_of a / gcd (order_of a) n :=
-begin
-  apply order_of_pow'',
-  cases exists_pow_eq_one a with w hw,
-  cases hw with hw1 hw2,
-  exact ⟨w, hw1, hw2⟩
-end
-
+/-- TODO: Generalise to `submonoid.powers`.-/
 lemma mem_gpowers_iff_mem_range_order_of [decidable_eq α] {a a' : α} :
   a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq (order_of_pos a)
   (assume i, gpow_eq_mod_order_of.symm)
 
-noncomputable instance decidable_gpowers [decidable_eq α] : decidable_pred (subgroup.gpowers a : set α) :=
+/-- TODO: Generalise to `submonoid.powers`.-/
+noncomputable instance decidable_gpowers [decidable_eq α] :
+  decidable_pred (subgroup.gpowers a : set α) :=
 begin
   assume a',
   apply decidable_of_iff'
@@ -372,6 +366,7 @@ begin
   exact @mem_gpowers_iff_mem_range_order_of _ _ _ _ _ (a')
 end
 
+/-- Generalise to `submonoid.powers`.-/
 lemma order_eq_card_gpowers [decidable_eq α] {a : α} :
 order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin
@@ -391,32 +386,29 @@ end
 
 open quotient_group subgroup
 
-section classical
-
-open_locale classical
-
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
-have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
-  from fintype.of_equiv α group_equiv_quotient_times_subgroup,
-have ft_s : fintype (gpowers a),
-  from @fintype.fintype_prod_right _ _ _ ft_prod _,
-have ft_cosets : fintype (quotient (gpowers a)),
-  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (gpowers a).one_mem⟩⟩,
-have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
-  from calc fintype.card α = @fintype.card _ ft_prod :
-      @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup
-    ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
-      congr_arg (@fintype.card _) $ subsingleton.elim _ _
-    ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
-      @fintype.card_prod _ _ ft_cosets ft_s,
-have eq₂ : order_of a = @fintype.card _ ft_s,
-  from calc order_of a = _ : order_eq_card_gpowers
-    ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets) $
-  by rw [eq₁, eq₂, mul_comm]
-
-end classical
+begin
+  classical,
+  have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
+    from fintype.of_equiv α group_equiv_quotient_times_subgroup,
+  have ft_s : fintype (gpowers a),
+    from @fintype.fintype_prod_right _ _ _ ft_prod _,
+  have ft_cosets : fintype (quotient (gpowers a)),
+    from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (gpowers a).one_mem⟩⟩,
+  have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
+    from calc fintype.card α = @fintype.card _ ft_prod :
+        @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup
+      ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
+        congr_arg (@fintype.card _) $ subsingleton.elim _ _
+      ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
+        @fintype.card_prod _ _ ft_cosets ft_s,
+  have eq₂ : order_of a = @fintype.card _ ft_s,
+    from calc order_of a = _ : order_eq_card_gpowers
+      ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
+  exact dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets)
+          (by rw [eq₁, eq₂, mul_comm])
+end
 
 @[simp] lemma pow_card_eq_one {a : α} : a ^ fintype.card α = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ in
@@ -434,12 +426,14 @@ set.ext $ λ x, mem_powers_iff_mem_gpowers
 
 variable (a)
 
+/-- TODO: Generalise to `submonoid.powers`.-/
 lemma image_range_order_of [decidable_eq α] :
   finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
 by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
 open nat
 
+/-- TODO: Generalise to `finite_cancel_monoid`. -/
 lemma pow_gcd_card_eq_one_iff {n : ℕ} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
 ⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one,

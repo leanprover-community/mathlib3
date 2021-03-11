@@ -19,7 +19,6 @@ This file develops the basics of ordered monoids.
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
-
 -/
 
 set_option old_structure_cmd true
@@ -42,17 +41,18 @@ class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α 
   * `a ≤ b → c + a ≤ c + b` (addition is monotone)
   * `a + b < a + c → b < c`.
 -/
+
 @[protect_proj, ancestor add_comm_monoid partial_order]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
+attribute [to_additive] ordered_comm_monoid
+
 /-- an `ordered_comm_monoid` with one-sided 'division'
 in the sense that if `a ≤ b`, there is some `c` for which `a * c = b` -/
 class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] :=
 (exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a * c)
-
-attribute [to_additive] ordered_comm_monoid
 
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
@@ -1283,5 +1283,3 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
   ..additive.ordered_add_comm_monoid }
 
 end type_tags
-
-#lint

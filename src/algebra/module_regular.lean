@@ -40,7 +40,7 @@ lemma is_regular.smul (ra : is_regular M a) (rs : is_regular M s) :
 
 /--  If an element `b` becomes `M`-regular after multiplying it on the left by an `M`-regular
 element, then `b` is `M`-regular. -/
-lemma is_regular.of_smul (ab : is_regular M (a • s)) :
+lemma is_regular.of_smul (a : R) (ab : is_regular M (a • s)) :
   is_regular M s :=
 @function.injective.of_comp _ _ _ (λ m : M, a • m) _ (λ c d cd, ab
   (by rwa [smul_assoc, smul_assoc]))
@@ -49,7 +49,7 @@ lemma is_regular.of_smul (ab : is_regular M (a • s)) :
 is `M`-regular. -/
 @[simp] lemma is_regular.smul_iff (b : S) (ha : is_regular M a) :
   is_regular M (a • b) ↔ is_regular M b :=
-⟨is_regular.of_smul, ha.smul⟩
+⟨is_regular.of_smul _, ha.smul⟩
 
 end has_scalar
 
@@ -64,15 +64,15 @@ lemma is_regular_smul_and_smul_iff :
 begin
   refine ⟨_, _⟩,
   { rintros ⟨ab, ba⟩,
-    exact ⟨is_regular.of_smul M ba, is_regular.of_smul M ab⟩ },
+    exact ⟨ba.of_smul b, ab.of_smul a⟩ },
   { rintros ⟨ha, hb⟩,
-    exact ⟨(smul_is_regular_iff M b ha).mpr hb, (smul_is_regular_iff M a hb).mpr ha⟩ }
+    exact ⟨(ha.smul_iff b).mpr hb, (hb.smul_iff a).mpr ha⟩ }
 end
 
 /--  The "most used" implication of `mul_and_mul_iff`, with split hypotheses, instead of `∧`. -/
 lemma is_regular.and_of_smul_of_smul (ab : is_regular M (a • b)) (ba : is_regular M (b • a)) :
   is_regular M a ∧ is_regular M b :=
-(is_regular_smul_and_smul_iff M).mp ⟨ab, ba⟩
+is_regular_smul_and_smul_iff.mp ⟨ab, ba⟩
 
 @[simp] lemma is_regular_one : is_regular M (1 : R) :=
 begin
@@ -85,16 +85,16 @@ lemma is_regular.pow (n : ℕ) (ra : is_regular M a) : is_regular M (a ^ n) :=
 begin
   induction n with n hn,
   { simp },
-  { exact (smul_is_regular_iff M (a ^ n) ra).mpr hn }
+  { exact (ra.smul_iff (a ^ n)).mpr hn }
 end
 
 /--  An element `a` is `M`-regular if and only if a positive power of `a` is `M`-regular. -/
 lemma is_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
   is_regular M (a ^ n) ↔ is_regular M a :=
 begin
-  refine ⟨_, is_regular.pow M n⟩,
+  refine ⟨_, is_regular.pow n⟩,
   rw [← nat.succ_pred_eq_of_pos n0, pow_succ', ← smul_eq_mul],
-  exact is_regular.of_smul M,
+  exact is_regular.of_smul _,
 end
 
 end monoid
@@ -110,7 +110,7 @@ lemma is_regular.subsingleton (h : is_regular M (0 : R)) : subsingleton M :=
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/
 lemma is_regular_zero_iff_subsingleton : is_regular M (0 : R) ↔ subsingleton M :=
-⟨λ h, h.subsingleton M, λ H a b h, @subsingleton.elim _ H a b⟩
+⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/
 lemma not_is_regular_zero_iff : ¬ is_regular M (0 : R) ↔ nontrivial M :=
@@ -122,12 +122,7 @@ end
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
 lemma is_regular_of_smul_eq_one (h : a • s = 1) : is_regular M s :=
-begin
-  have ras : is_regular M (a • s),
-  { rw h,
-    exact is_regular_one M },
-  exact is_regular.of_smul M ras
-end
+is_regular.of_smul a (by { rw h, exact is_regular_one })
 
 lemma defs {R M : Type*} [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
   @smul_with_zero.to_has_scalar R M _ _ _ = mul_action.to_has_scalar :=
@@ -139,14 +134,14 @@ begin
   have ai : a.inv • a.val = 1,
   { rw smul_eq_mul,
      exact a.inv_val },
-  { exact is_regular_of_smul_eq_one M ai }
+  { exact is_regular_of_smul_eq_one ai }
 end
 
 /-- A unit is `M`-regular. -/
 lemma is_unit.is_regular (ua : is_unit a) : is_regular M a :=
 begin
   rcases ua with ⟨a, rfl⟩,
-  exact units.is_regular M a,
+  exact units.is_regular a,
 end
 
 end monoid_with_zero

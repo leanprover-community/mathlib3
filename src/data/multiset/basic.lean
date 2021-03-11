@@ -1663,6 +1663,10 @@ theorem filter_add_not (s : multiset α) :
   filter p s + filter (λ a, ¬ p a) s = s :=
 by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em]
 
+theorem map_filter (f : β → α) (s : multiset β) :
+  filter p (map f s) = map f (filter (p ∘ f) s) :=
+quot.induction_on s (λ l, by simp [map_filter])
+
 /-! ### Simultaneously filter and map elements of a multiset -/
 
 /-- `filter_map f s` is a combination filter/map operation on `s`.

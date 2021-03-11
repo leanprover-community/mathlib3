@@ -394,6 +394,9 @@ instance matrix_algebra (n : Type u) (R : Type v)
   smul_def' := by { intros, simp [matrix.scalar], },
   ..(matrix.scalar n) }
 
+@[simp] lemma matrix.algebra_map_eq_smul (n : Type u) {R : Type v} [decidable_eq n] [fintype n]
+  [comm_semiring R] (r : R) : (algebra_map R (matrix n n R)) r = r • 1 := rfl
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 @[nolint has_inhabited_instance]
@@ -1196,6 +1199,31 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
   zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
 end algebra
+
+section ring
+
+namespace algebra
+
+variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
+
+lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_left R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
+
+lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_right R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_left_injective' hx }
+
+lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul R A x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
+
+end algebra
+
+end ring
 
 section nat
 

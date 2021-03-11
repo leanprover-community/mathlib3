@@ -86,6 +86,37 @@ f.subtype_perm (λ x, ⟨h x, λ h₂, f.inv_apply_self x ▸ perm_inv_on_of_per
   (h : ∀ x, p x → p ((1 : perm α) x)) : @subtype_perm_of_fintype α 1 p _ h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
+lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n]
+  (σ : equiv.perm (m ⊕ n)) :
+  set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔
+  set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
+begin
+  split; id {
+    intros h,
+    classical,
+    rw ←perm_inv_maps_to_iff_maps_to at h,
+    intro x,
+    cases hx : σ x with l r, },
+  { rintros ⟨a, rfl⟩,
+    obtain ⟨y, hy⟩ := h ⟨l, rfl⟩,
+    rw [←hx, σ.inv_apply_self] at hy,
+    exact absurd hy sum.inl_ne_inr},
+  { rintros ⟨a, ha⟩, exact ⟨r, rfl⟩, },
+  { rintros ⟨a, ha⟩, exact ⟨l, rfl⟩, },
+  { rintros ⟨a, rfl⟩,
+    obtain ⟨y, hy⟩ := h ⟨r, rfl⟩,
+    rw [←hx, σ.inv_apply_self] at hy,
+    exact absurd hy sum.inr_ne_inl},
+end
+
+lemma perm_on_inl_iff_perm_on_inr {m n : Type*} [fintype m] [fintype n] (σ : equiv.perm (m ⊕ n)) :
+  (∀ a1, ∃ a2, sum.inl a2 = σ (sum.inl a1)) ↔ ∀ b1, ∃ b2, sum.inr b2 = σ (sum.inr b1) :=
+begin
+  have := perm_maps_to_inl_iff_maps_to_inr σ,
+  rw [set.maps_range_to, set.maps_range_to] at this,
+  convert this; simp
+end
+
 /-- Two permutations `f` and `g` are `disjoint` if their supports are disjoint, i.e.,
 every element is fixed either by `f`, or by `g`. -/
 def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x

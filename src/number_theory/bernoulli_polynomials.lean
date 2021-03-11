@@ -197,7 +197,8 @@ end
 
 
 /-- The exponential generating function of the with `bernoulli' n`. -/
-def bernoulli'_power_series := power_series.mk (λ n, (1 / n! : ℚ) • (algebra_map ℚ A (bernoulli' n)))
+def bernoulli'_power_series :=
+  power_series.mk (λ n, (1 / n! : ℚ) • (algebra_map ℚ A (bernoulli' n)))
 
 theorem bernoulli'_power_series_mul_exp_sub_one :
   bernoulli'_power_series * (exp A - 1) = X * exp A :=

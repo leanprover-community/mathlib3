@@ -324,7 +324,7 @@ def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
   ..hg }
 
 lemma monoid_hom.map_cyclic {G : Type*} [group G] [h : is_cyclic G] (σ : G →* G) :
-∃ m : ℤ, ∀ g : G, σ g = g ^ m :=
+  ∃ m : ℤ, ∀ g : G, σ g = g ^ m :=
 begin
   tactic.unfreeze_local_instances,
   obtain ⟨h, hG⟩ := h,

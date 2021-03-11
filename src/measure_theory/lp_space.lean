@@ -1426,13 +1426,14 @@ begin
   exact ⟨l + f 0 x, filter.tendsto.add_const _ hx⟩,
 end
 
-lemma snorm'_lim_eq_lintegral_liminf {f : ℕ → α → G} {p : ℝ} (hp1 : 1 ≤ p) {f_lim : α → G}
+lemma snorm'_lim_eq_lintegral_liminf {ι} [nonempty ι] [linear_order ι] {f : ι → α → G} {p : ℝ}
+  (hp1 : 1 ≤ p) {f_lim : α → G}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
   snorm' f_lim p μ
     = (∫⁻ a, filter.at_top.liminf (λ m, (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ) ^ (1/p) :=
 begin
   suffices h_no_pow : (∫⁻ a, (nnnorm (f_lim a)) ^ p ∂μ)
-    = (∫⁻ a, filter.at_top.liminf (λ (m : ℕ), (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ),
+    = (∫⁻ a, filter.at_top.liminf (λ m, (nnnorm (f m a) : ℝ≥0∞)^p) ∂μ),
   { rw [snorm', h_no_pow], },
   refine lintegral_congr_ae (h_lim.mono (λ a ha, _)),
   rw filter.tendsto.liminf_eq,
@@ -1442,8 +1443,8 @@ begin
   exact (continuous_nnnorm.tendsto (f_lim a)).comp ha,
 end
 
-lemma snorm'_lim_le_liminf_snorm' {E} [measurable_space E] [normed_group E] [borel_space E]
-  {f : ℕ → α → E} {p : ℝ} (hp1 : 1 ≤ p)
+lemma snorm'_lim_le_liminf_snorm' {E} [measurable_space E]
+  [normed_group E] [borel_space E] {f : ℕ → α → E} {p : ℝ} (hp1 : 1 ≤ p)
   (hf : ∀ n, ae_measurable (f n) μ) {f_lim : α → E}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x)))  :
   snorm' f_lim p μ ≤ filter.at_top.liminf (λ n, snorm' (f n) p μ) :=
@@ -1453,8 +1454,8 @@ begin
   rw [←@ennreal.le_rpow_one_div_iff _ _ (1/p) (by simp [hp_pos]), one_div_one_div],
   refine (lintegral_liminf_le' (λ m,
     (hf m).nnnorm.ennreal_coe.ennreal_rpow_const)).trans (le_of_eq _),
-  have h_pow_liminf : filter.at_top.liminf (λ (n : ℕ), snorm' (f n) p μ) ^ p
-    = filter.at_top.liminf (λ (n : ℕ), (snorm' (f n) p μ) ^ p),
+  have h_pow_liminf : filter.at_top.liminf (λ n, snorm' (f n) p μ) ^ p
+    = filter.at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
   { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
@@ -1463,7 +1464,8 @@ begin
   simp_rw [snorm', ← ennreal.rpow_mul, one_div, inv_mul_cancel hp_pos.ne.symm, ennreal.rpow_one],
 end
 
-lemma snorm_exponent_top_lim_eq_ess_sup_liminf {f : ℕ → α → G} {f_lim : α → G}
+lemma snorm_exponent_top_lim_eq_ess_sup_liminf {ι} [nonempty ι] [linear_order ι] {f : ι → α → G}
+  {f_lim : α → G}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
   snorm f_lim ∞ μ = ess_sup (λ x, filter.at_top.liminf (λ m, (nnnorm (f m x) : ℝ≥0∞))) μ :=
 begin
@@ -1484,12 +1486,13 @@ begin
   filter.is_bounded_default,
 end
 
-lemma ess_sup_liminf_le (f : ℕ → α → ℝ≥0∞) :
+lemma ess_sup_liminf_le {ι} [encodable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
   ess_sup (λ x, filter.at_top.liminf (λ n, f n x)) μ
     ≤ filter.at_top.liminf (λ n, ess_sup (λ x, f n x) μ) :=
 by { simp_rw ess_sup, exact limsup_liminf_le_liminf_limsup (λ a b, f b a), }
 
-lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {f : ℕ → α → F} {f_lim : α → F}
+lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [encodable ι]
+  [linear_order ι] {f : ι → α → F} {f_lim : α → F}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
   snorm f_lim ∞ μ ≤ filter.at_top.liminf (λ n, snorm (f n) ∞ μ) :=
 begin

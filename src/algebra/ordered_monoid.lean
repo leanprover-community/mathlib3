@@ -19,7 +19,6 @@ This file develops the basics of ordered monoids.
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
-
 -/
 
 set_option old_structure_cmd true
@@ -42,17 +41,27 @@ class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α 
   * `a ≤ b → c + a ≤ c + b` (addition is monotone)
   * `a + b < a + c → b < c`.
 -/
+
 @[protect_proj, ancestor add_comm_monoid partial_order]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
-/-- an `ordered_comm_monoid` with one-sided 'division'
-in the sense that if `a ≤ b`, there is some `c` for which `a * c = b` -/
-class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] :=
-(exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a * c)
-
 attribute [to_additive] ordered_comm_monoid
+
+/-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
+if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker
+version of the canonical orderings defined later.   -/
+class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] :=
+(exists_mul_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a * c)
+
+/-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
+if `a ≤ b`, then there is some `c` for which `a * c = b`. This is a weaker
+version of the canonical orderings defined later. -/
+class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] :=
+(exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a + c)
+
+attribute [to_additive] has_exists_mul_of_le
 
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
@@ -67,11 +76,6 @@ class linear_ordered_add_comm_monoid (α : Type*)
   -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
   letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
   exact le_of_not_lt h })
-
-/-- an `ordered_add_comm_monoid` with one-sided 'subtraction'
-in the sense that if `a ≤ b`, there is some `c` for which `a + c = b` -/
-class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] :=
-(exists_add_of_le : ∀ (a b : α), a ≤ b → ∃ (c : α), b = a + c)
 
 /-- A linearly ordered commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_comm_monoid, to_additive]
@@ -805,10 +809,10 @@ instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_orde
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
 
-@[priority 100]
-instance canonically_ordered_add_monoid.has_exists_add_of_le
-(α : Type u)[canonically_ordered_add_monoid α] : has_exists_add_of_le α :=
-{ exists_add_of_le := λ a b hab, le_iff_exists_add.mp hab}
+@[priority 100, to_additive]
+instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
+  [canonically_ordered_monoid α] : has_exists_mul_of_le α :=
+{ exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
 
 end canonically_ordered_monoid
 
@@ -1283,5 +1287,3 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
   ..additive.ordered_add_comm_monoid }
 
 end type_tags
-
-#lint

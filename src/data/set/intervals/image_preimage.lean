@@ -14,7 +14,6 @@ In this file we prove a bunch of trivial lemmas like “if we add `a` to all poi
 then we get `[a + b, a + c]`”. For the functions `x ↦ x ± a`, `x ↦ a ± x`, and `x ↦ -x` we prove
 lemmas about preimages and images of all intervals. We also prove a few lemmas about images under
 `x ↦ a * x`, `x ↦ x * a` and `x ↦ x⁻¹`.
-
 -/
 
 universe u
@@ -24,71 +23,71 @@ namespace set
 section has_exists_add_of_le
 /-!
 The lemmas in this section state that addition maps intervals bijectively. The typeclass
-`has_exists_add_of_le` is defined specifically to make them work in combination with
-`ordered_cancel_add_comm_monoid`; they apply to all `ordered_add_comm_group`, but also
-to `ℕ` and `ℝ≥0`, which are not groups.
+`has_exists_add_of_le` is defined specifically to make them work when combined with
+`ordered_cancel_add_comm_monoid`; the lemmas below therefore apply to all `ordered_add_comm_group`,
+but also to `ℕ` and `ℝ≥0`, which are not groups.
 
 TODO : move as much as possible in this file to the setting of this weaker typeclass.
 -/
 
-variables {α : Type u} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (l u x : α)
+variables {α : Type u} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (a b d : α)
 
 open has_exists_add_of_le
 
-lemma Icc_add_bij : bij_on (+x) (Icc l u) (Icc (l + x) (u + x)) :=
+lemma Icc_add_bij : bij_on (+d) (Icc a b) (Icc (a + d) (b + d)) :=
 begin
   refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_le_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
   obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h.1,
   rw [mem_Icc, add_right_comm, add_le_add_iff_right, add_le_add_iff_right] at h,
-  exact ⟨l + c, h, by rw add_right_comm⟩,
+  exact ⟨a + c, h, by rw add_right_comm⟩,
 end
 
-lemma Ioo_add_bij : bij_on (+x) (Ioo l u) (Ioo (l + x) (u + x)) :=
+lemma Ioo_add_bij : bij_on (+d) (Ioo a b) (Ioo (a + d) (b + d)) :=
 begin
   refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_lt_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
   obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h.1),
   rw [mem_Ioo, add_right_comm, add_lt_add_iff_right, add_lt_add_iff_right] at h,
-  exact ⟨l + c, h, by rw add_right_comm⟩,
+  exact ⟨a + c, h, by rw add_right_comm⟩,
 end
 
-lemma Ioc_add_bij : bij_on (+x) (Ioc l u) (Ioc (l + x) (u + x)) :=
+lemma Ioc_add_bij : bij_on (+d) (Ioc a b) (Ioc (a + d) (b + d)) :=
 begin
   refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_le_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
   obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt h.1),
   rw [mem_Ioc, add_right_comm, add_lt_add_iff_right, add_le_add_iff_right] at h,
-  exact ⟨l + c, h, by rw add_right_comm⟩,
+  exact ⟨a + c, h, by rw add_right_comm⟩,
 end
 
-lemma Ico_add_bij : bij_on (+x) (Ico l u) (Ico (l + x) (u + x)) :=
+lemma Ico_add_bij : bij_on (+d) (Ico a b) (Ico (a + d) (b + d)) :=
 begin
   refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_lt_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
   obtain ⟨c, rfl⟩ := exists_add_of_le _ _ h.1,
   rw [mem_Ico, add_right_comm, add_le_add_iff_right, add_lt_add_iff_right] at h,
-  exact ⟨l + c, h, by rw add_right_comm⟩,
+  exact ⟨a + c, h, by rw add_right_comm⟩,
 end
 
-lemma Ici_add_bij : bij_on (+x) (Ici l) (Ici (l + x)) :=
+lemma Ici_add_bij : bij_on (+d) (Ici a) (Ici (a + d)) :=
 begin
   refine ⟨λ x h, add_le_add_right (mem_Ici.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
   obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (mem_Ici.mp h),
   rw [mem_Ici, add_right_comm, add_le_add_iff_right] at h,
-  exact ⟨l + c, h, by rw add_right_comm⟩,
+  exact ⟨a + c, h, by rw add_right_comm⟩,
 end
 
-lemma Ioi_add_bij : bij_on (+x) (Ioi l) (Ioi (l + x)) :=
+lemma Ioi_add_bij : bij_on (+d) (Ioi a) (Ioi (a + d)) :=
 begin
   refine ⟨λ x h, add_lt_add_right (mem_Ioi.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
   obtain ⟨c, rfl⟩ := exists_add_of_le _ _ (le_of_lt (mem_Ioi.mp h)),
   rw [mem_Ioi, add_right_comm, add_lt_add_iff_right] at h,
-  exact ⟨l + c, h, by rw add_right_comm⟩,
+  exact ⟨a + c, h, by rw add_right_comm⟩,
 end
 
 end has_exists_add_of_le

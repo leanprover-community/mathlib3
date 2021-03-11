@@ -50,9 +50,9 @@ instance : normed_field ℂ :=
 instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
 
-instance normed_algebra_over_reals : normed_algebra ℝ ℂ :=
-{ norm_algebra_map_eq := abs_of_real,
-  ..complex.algebra_over_reals }
+instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
+{ norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
+  to_algebra := complex.algebra }
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
@@ -72,11 +72,6 @@ by rw [norm_real, real.norm_eq_abs]
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
-
-/-- A complex normed vector space is also a real normed vector space. -/
-@[priority 900]
-instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed_space ℂ E] :
-  normed_space ℝ E := normed_space.restrict_scalars ℝ ℂ E
 
 open continuous_linear_map
 

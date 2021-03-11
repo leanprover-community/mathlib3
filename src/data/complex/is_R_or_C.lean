@@ -149,16 +149,13 @@ by { simp_rw [← smul_eq_mul, of_real_alg r], simp, }
 
 lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
-
-lemma smul_re (r : ℝ) (z : K) : re (↑r * z) = r * (re z) :=
-by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
-lemma smul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
+lemma of_real_mul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
 by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
-lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
-λ r z, by { rw algebra.smul_def, apply smul_re }
-lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
-λ r z, by { rw algebra.smul_def, apply smul_im }
+lemma smul_re : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_re }
+lemma smul_im : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
+λ r z, by { rw algebra.smul_def, apply of_real_mul_im }
 
 /-! ### The imaginary unit, `I` -/
 
@@ -200,7 +197,7 @@ lemma conj_eq_re_sub_im (z : K) : conj z = re z - (im z) * I := by { rw ext_iff,
 lemma conj_smul (r : ℝ) (z : K) : conj (r • z) = r • conj z :=
 begin
   simp_rw conj_eq_re_sub_im,
-  simp only [smul_re', smul_im', of_real_mul],
+  simp only [smul_re, smul_im, of_real_mul],
   rw smul_sub,
   simp_rw of_real_alg,
   simp,
@@ -709,7 +706,7 @@ variables {K : Type*} [is_R_or_C K]
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
-{ map_smul' := smul_re',  .. re }
+{ map_smul' := smul_re,  .. re }
 
 @[simp] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
 
@@ -733,7 +730,7 @@ end
 
 /-- The imaginary part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def im_lm : K →ₗ[ℝ] ℝ :=
-{ map_smul' := smul_im',  .. im }
+{ map_smul' := smul_im,  .. im }
 
 @[simp] lemma im_lm_coe : (im_lm : K → ℝ) = im := rfl
 

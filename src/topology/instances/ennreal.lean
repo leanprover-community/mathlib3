@@ -448,9 +448,6 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
     (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
 
-lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
-by simp_rw [← nonpos_iff_eq_zero, supr_le_iff]
-
 end topological_space
 
 section tsum

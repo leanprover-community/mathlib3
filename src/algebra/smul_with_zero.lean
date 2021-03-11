@@ -74,6 +74,7 @@ end has_zero
 
 section semiring
 
+@[priority 100] -- see Note [lower instance priority]
 instance semimodule.to_mul_action_with_zero [semiring R] [add_comm_monoid M] [semimodule R M] :
   mul_action_with_zero R M :=
 { smul_zero := smul_zero,

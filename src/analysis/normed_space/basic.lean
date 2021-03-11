@@ -920,6 +920,22 @@ real.norm_of_nonneg (norm_nonneg _)
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
 
+/-- A restatement of `metric_space.tendsto_at_top` in terms of the norm. -/
+lemma normed_group.tendsto_at_top [nonempty α] [semilattice_sup α] {β : Type*} [normed_group β]
+  {f : α → β} {b : β} :
+  tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N ≤ n → ∥f n - b∥ < ε :=
+(at_top_basis.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
+
+/--
+A variant of `normed_group.tendsto_at_top` that
+uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
+-/
+lemma normed_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [no_top_order α]
+  {β : Type*} [normed_group β]
+  {f : α → β} {b : β} :
+  tendsto f at_top (𝓝 b) ↔ ∀ ε, 0 < ε → ∃ N, ∀ n, N < n → ∥f n - b∥ < ε :=
+(at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
+
 instance : normed_comm_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],

@@ -213,6 +213,61 @@ let ⟨V, h, h'⟩ := nhds_inter_eq_singleton_of_mem_discrete hx in
   ⟨{x}ᶜ ∩ V, inter_mem_nhds_within _ h,
     (disjoint_iff_inter_eq_empty.mpr (by { rw [inter_assoc, h', compl_inter_self] }))⟩
 
+/-- Let `X` be a topological space and let `s, t ⊆ X` be two subsets.  If there is an inclusion
+`t ⊆ s`, then the topological space structure on `t` induced by `X` is the same as the one
+obtained by the induced topological space structure on `s`. -/
+lemma topological_space.subset_trans {X : Type*} [tX : topological_space X]
+  {s t : set X} (ts : t ⊆ s) :
+  (subtype.topological_space : topological_space t) =
+    (subtype.topological_space : topological_space s).induced (set.inclusion ts) :=
+begin
+  change tX.induced ((coe : s → X) ∘ (set.inclusion ts)) =
+    topological_space.induced (set.inclusion ts) (tX.induced _),
+  rw ← induced_compose,
+end
+
+/-- This lemma characterizes discrete topological spaces as those whose singletons are
+neighbourhoods. -/
+lemma discrete_topology_iff_nhds {X : Type*} [topological_space X] :
+  discrete_topology X ↔ (nhds : X → filter X) = pure :=
+begin
+  split,
+  { introI hX,
+    exact nhds_discrete X },
+  { intro h,
+    constructor,
+    apply eq_of_nhds_eq_nhds,
+    simp [h, nhds_bot] }
+end
+
+/-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
+discrete topology.
+This version does not assume the choice of a topology on either the source `X`
+nor the target `Y` of the inclusion `f`. -/
+lemma induced_bot {X Y : Type*} {f : X → Y} (hf : function.injective f) :
+  topological_space.induced f ⊥ = ⊥ :=
+eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
+
+/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
+is the discrete topology on `X`. -/
+lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
+  {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
+begin
+  constructor,
+  rw discrete_topology.eq_bot Y,
+  exact induced_bot hf
+end
+
+/-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
+by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
+lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
+  (ds : discrete_topology s) (ts : t ⊆ s) :
+  discrete_topology t :=
+begin
+  rw [topological_space.subset_trans ts, ds.eq_bot],
+  exact {eq_bot := induced_bot (set.inclusion_injective ts)}
+end
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -686,15 +741,27 @@ class normal_space (α : Type u) [topological_space α] extends t1_space α : Pr
 (normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
 
-theorem normal_separation [normal_space α] (s t : set α)
+theorem normal_separation [normal_space α] {s t : set α}
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 normal_space.normal s t H1 H2 H3
 
+theorem normal_exists_closure_subset [normal_space α] {s t : set α} (hs : is_closed s)
+  (ht : is_open t) (hst : s ⊆ t) :
+  ∃ u, is_open u ∧ s ⊆ u ∧ closure u ⊆ t :=
+begin
+  have : disjoint s tᶜ, from λ x ⟨hxs, hxt⟩, hxt (hst hxs),
+  rcases normal_separation hs (is_closed_compl_iff.2 ht) this
+    with ⟨s', t', hs', ht', hss', htt', hs't'⟩,
+  refine ⟨s', hs', hss',
+    subset.trans (closure_minimal _ (is_closed_compl_iff.2 ht')) (compl_subset_comm.1 htt')⟩,
+  exact λ x hxs hxt, hs't' ⟨hxs, hxt⟩
+end
+
 @[priority 100] -- see Note [lower instance priority]
 instance normal_space.regular_space [normal_space α] : regular_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ :=
-    normal_separation s {x} hs is_closed_singleton
+    normal_separation hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ mem_of_eq_of_mem (eq_of_mem_singleton hy).symm hx) in
     ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
       ⟨v, mem_nhds_sets hv (singleton_subset_iff.1 hxv), u, filter.mem_principal_self u,
@@ -729,7 +796,7 @@ begin
   -- Since our space is normal, we get two larger disjoint open sets containing the disjoint
   -- closed sets. If we can show that our intersection is a subset of any of these we can then
   -- "descend" this to show that it is a subset of either a or b.
-  rcases normal_separation a b ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
+  rcases normal_separation ha hb (disjoint_iff.2 ab_empty) with ⟨u, v, hu, hv, hau, hbv, huv⟩,
   -- If we can find a clopen set around x, contained in u ∪ v, we get a disjoint decomposition
   -- Z = Z ∩ u ∪ Z ∩ v of clopen sets. The intersection of all clopen neighbourhoods will then lie
   -- in whichever of u or v x lies in and hence will be a subset of either a or b.

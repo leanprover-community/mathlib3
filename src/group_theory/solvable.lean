@@ -242,7 +242,7 @@ begin
   rw is_solvable_def at *,
   cases h with n hn,
   use n,
-  rw ← map_eq_bot_iff_of_injective hf,
+  rw ← map_eq_bot_iff_of_injective _ hf,
   rw eq_bot_iff at *,
   calc map f (derived_series G n) ≤ derived_series G' n : map_derived_series_le_derived_series f n
   ... ≤ ⊥ : hn,

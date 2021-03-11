@@ -837,7 +837,7 @@ lemma bilin_smul_left' (A : α → β → N → (M →ₗ[R] R)) (a : R)
   = a • p.sum (λ i x, q.sum (λ j y, A i j y x)) :=
 begin
   let h : α → M →ₗ[R] R := λ i, q.sum (λ j y, A i j y),
-  have := @finsupp.smul_sum' _ _ _ _ _ _ _ _ _ _ _ h,
+  have := @finsupp.sum_smul_index_linear_map' _ _ _ _ _ _ _ _ _ _ _ h,
   convert this;
   { ext i x,
     simp [h] },
@@ -851,7 +851,7 @@ begin
   rw finsupp.smul_sum,
   congr,
   ext i x,
-  exact finsupp.smul_sum',
+  exact finsupp.sum_smul_index_linear_map'
 end
 
 /-- A collection of `bilin_form R M`, parametrized by two indices in `α`, induces a bilinear form
@@ -1328,7 +1328,7 @@ lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
 
 end
 
-/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of 
+/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
   (hB₁ : nondegenerate B) (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :

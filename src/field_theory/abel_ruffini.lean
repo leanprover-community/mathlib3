@@ -28,59 +28,6 @@ open_locale classical
 
 open polynomial intermediate_field
 
---todo: move these preliminary lemmas
-lemma leading_coeff_X_pow_sub_C {R : Type*} [ring R] [nontrivial R] {n : ℕ} (hn : 0 < n) (a : R) :
-  (X ^ n - C a).leading_coeff = 1 :=
-by rw [leading_coeff, nat_degree_X_pow_sub_C, coeff_sub, coeff_X_pow_self,
-  coeff_C, if_neg (pos_iff_ne_zero.mp hn), sub_zero]
-
-lemma leading_coeff_X_pow_sub_one {R : Type*} [ring R] [nontrivial R] {n : ℕ} (hn : 0 < n) :
-  (X ^ n - 1 : polynomial R).leading_coeff = 1 :=
-leading_coeff_X_pow_sub_C hn 1
-
-lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset (polynomial R)) (p : polynomial R) :
-  s.prod.comp p = (s.map (λ q : polynomial R, q.comp p)).prod :=
-(s.prod_hom (monoid_hom.mk (λ q : polynomial R, q.comp p) one_comp (λ q r, mul_comp q r p))).symm
-
-lemma lem1 {G : Type*} [group G] [h : is_cyclic G] (σ : G →* G) (g : G) :
-∃ m : ℤ, σ g = g ^ m :=
-begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨h, hG⟩ := h,
-  obtain ⟨n, rfl⟩ := hG g,
-  obtain ⟨m, hm⟩ := hG (σ h),
-  use m,
-  rw [monoid_hom.map_gpow, ←hm, ←gpow_mul, ←gpow_mul'],
-end
-
-lemma lem2 {F : Type*} [field F] {n : ℕ+} (σ : F →+* F)
-  (ζ : roots_of_unity n F) : ∃ m : ℕ, σ ζ = ζ ^ m :=
-begin
-  have h1 : ∀ ξ : roots_of_unity n F, (ξ : F) ^ (n : ℕ) = 1,
-  { intro ξ,
-    have key := congr_arg (coe : units F → F) ξ.2,
-    rwa [units.coe_pow] at key },
-  have h2 : ∀ ξ : roots_of_unity n F, (σ ξ) ^ (n : ℕ) = 1,
-  { intro ξ,
-    rw [←σ.map_pow, h1 ξ, σ.map_one] },
-  let f : (roots_of_unity n F) →* (roots_of_unity n F) :=
-  { to_fun := λ ξ, ⟨is_unit.unit (is_unit_of_pow_eq_one (σ ξ) n (h2 ξ) n.2),
-      by { ext, rw [units.coe_pow, is_unit.unit_spec], exact h2 ξ }⟩,
-    map_one' := by { ext, rw [subtype.coe_mk, is_unit.unit_spec], exact σ.map_one },
-    map_mul' := λ ξ₁ ξ₂, by
-    { ext,
-      simp_rw [subgroup.coe_mul, units.coe_mul, subtype.coe_mk, is_unit.unit_spec],
-      exact σ.map_mul _ _ } },
-  obtain ⟨m, hm⟩ := lem1 f ζ,
-  replace hm := congr_arg (coe : roots_of_unity n F → units F) hm,
-  replace hm := congr_arg (coe : units F → F) hm,
-  rw [gpow_eq_mod_order_of, ←int.to_nat_of_nonneg (int.mod_nonneg m _), gpow_coe_nat,
-      subgroup.coe_pow, units.coe_pow] at hm,
-  exact ⟨(m % (order_of ζ)).to_nat, eq.trans (is_unit.unit_spec _).symm hm⟩,
-  rw [int.coe_nat_ne_zero, ←pos_iff_ne_zero],
-  exact order_of_pos ζ,
-end
-
 section abel_ruffini
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]

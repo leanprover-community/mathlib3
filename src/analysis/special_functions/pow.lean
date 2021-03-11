@@ -130,6 +130,12 @@ begin
     using ((has_strict_fderiv_at_fst.clog hp).mul has_strict_fderiv_at_snd).cexp
 end
 
+lemma has_strict_fderiv_at_cpow' {x y : ℂ} (hp : 0 < x.re ∨ x.im ≠ 0) :
+  has_strict_fderiv_at (λ x : ℂ × ℂ, x.1 ^ x.2)
+    ((y * x ^ (y - 1)) • continuous_linear_map.fst ℂ ℂ ℂ +
+      (x ^ y * log x) • continuous_linear_map.snd ℂ ℂ ℂ) (x, y) :=
+@has_strict_fderiv_at_cpow (x, y) hp
+
 lemma has_strict_deriv_at_const_cpow {x y : ℂ} (h : x ≠ 0 ∨ y ≠ 0) :
   has_strict_deriv_at (λ y, x ^ y) (x ^ y * log x) y :=
 begin
@@ -466,13 +472,10 @@ by simp only [rpow_def_of_pos hx, mul_add, exp_add]
 
 lemma rpow_add' {x : ℝ} (hx : 0 ≤ x) {y z : ℝ} (h : y + z ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
 begin
-  rcases le_iff_eq_or_lt.1 hx with H|pos,
-  { simp only [← H, h, rpow_eq_zero_iff_of_nonneg, true_and, zero_rpow, eq_self_iff_true, ne.def,
-               not_false_iff, zero_eq_mul],
-    by_contradiction F,
-    push_neg at F,
-    apply h,
-    simp [F] },
+  rcases hx.eq_or_lt with rfl|pos,
+  { rw [zero_rpow h, zero_eq_mul],
+    have : y ≠ 0 ∨ z ≠ 0, from not_and_distrib.1 (λ ⟨hy, hz⟩, h $ hy.symm ▸ hz.symm ▸ zero_add 0),
+    exact this.imp zero_rpow zero_rpow },
   { exact rpow_add pos _ _ }
 end
 
@@ -790,6 +793,24 @@ lemma filter.tendsto.rpow_const {l : filter α} {f : α → ℝ} {x p : ℝ}
 if h0 : 0 = p then h0 ▸ by simp [tendsto_const_nhds]
 else hf.rpow tendsto_const_nhds (h.imp id $ λ h', h'.lt_of_ne h0)
 
+section
+
+variables [measurable_space α] {f g : α → ℝ}
+open complex
+
+lemma measurable.rpow (hf : measurable f) (hg : measurable g) :
+  measurable (λ a : α, (f a) ^ (g a)) :=
+measurable_re.comp $ ((measurable_of_real.comp hf).cpow (measurable_of_real.comp hg))
+
+lemma measurable.rpow_const (hf : measurable f) {y : ℝ} :
+  measurable (λ a : α, (f a) ^ y) :=
+hf.rpow measurable_const
+
+lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
+measurable_id.rpow_const
+
+end
+
 variables [topological_space α] {f g : α → ℝ} {s : set α} {x : α} {p : ℝ}
 
 lemma continuous_at.rpow (hf : continuous_at f x) (hg : continuous_at g x) (h : f x ≠ 0 ∨ 0 < g x) :
@@ -838,14 +859,10 @@ begin
   rcases em (x = 0) with rfl | hx;
     [skip, exact (has_strict_deriv_at_rpow_const' hx _).has_deriv_at],
   replace h : 1 ≤ p := h.neg_resolve_left rfl,
-  have hp' : 0 < p, from zero_lt_one.trans_le h,
   apply has_deriv_at_of_has_deriv_at_of_ne
     (λ x hx, (has_strict_deriv_at_rpow_const' hx p).has_deriv_at),
-  { exact continuous_at_id.rpow continuous_at_const (or.inr hp')  },
-  { rcases h.eq_or_lt with rfl|h,
-    { simp only [sub_self, rpow_zero, continuous_at_const] },
-    { exact continuous_at_const.mul
-        (continuous_at_id.rpow continuous_at_const (or.inr $ sub_pos_of_lt h)) } }
+  exacts [continuous_at_id.rpow_const (or.inr (zero_le_one.trans h)),
+    continuous_at_const.mul (continuous_at_id.rpow_const (or.inr (sub_nonneg.2 h)))]
 end
 
 lemma differentiable_rpow_const {p : ℝ} (hp : 1 ≤ p) :
@@ -876,6 +893,17 @@ begin
       using times_cont_diff_const.mul (ihn h) }
 end
 
+lemma times_cont_diff_at_rpow_const_of_le {x p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
+  times_cont_diff_at ℝ n (λ x : ℝ, x ^ p) x :=
+(times_cont_diff_rpow_const_of_le h).times_cont_diff_at
+
+lemma has_strict_deriv_at_rpow_const {x p : ℝ} (hx : x ≠ 0 ∨ 1 ≤ p) :
+  has_strict_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
+times_cont_diff_at.has_strict_deriv_at'
+  (hx.elim times_cont_diff_at_rpow_const_of_ne
+    (λ h, times_cont_diff_at_rpow_const_of_le (by rwa nat.cast_one)))
+  (has_deriv_at_rpow_const hx) le_rfl
+
 section sqrt
 
 lemma sqrt_eq_rpow : sqrt = λx:ℝ, x ^ (1/(2:ℝ)) :=
@@ -892,30 +920,19 @@ end sqrt
 
 end real
 
-section measurability_real
-
-open complex
-
-lemma measurable.rpow {α} [measurable_space α] {f g : α → ℝ} (hf : measurable f)
-  (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-measurable_re.comp $ ((measurable_of_real.comp hf).cpow (measurable_of_real.comp hg))
-
-lemma measurable.rpow_const {α} [measurable_space α] {f : α → ℝ} (hf : measurable f) {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.rpow measurable_const
-
-lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
-measurable_id.rpow_const
-
-end measurability_real
-
 section differentiability
 open real
 
-variables {f : ℝ → ℝ} {x f' : ℝ} {s : set ℝ} (p : ℝ)
-/- Differentiability statements for the power of a function, when the function does not vanish
-and the exponent is arbitrary-/
+section fderiv
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
+  {x : E} {s : set E} {c : ℝ}
+
+lemma has_fderiv_within_at.rpow (hf : has_fderiv_within_at f f' s x)
+  (hg : has_fderiv_within_at g g' s x) :
+  has_fderiv_within_at (λ x, f x ^ g x)
+    ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') s x :=
+  
 
 lemma has_deriv_within_at.rpow (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
   has_deriv_within_at (λ y, (f y)^p) (f' * p * (f x)^(p-1)) s x :=

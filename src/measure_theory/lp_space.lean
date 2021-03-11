@@ -1476,21 +1476,6 @@ begin
   exact (continuous_nnnorm.tendsto (f_lim x)).comp hx,
 end
 
-lemma limsup_liminf_le_liminf_limsup {α β} [encodable β] {f : filter α} [countable_Inter_filter f]
-  {g : filter β} (u : α → β → ℝ≥0∞) :
-  f.limsup (λ (a : α), g.liminf (λ (b : β), u a b)) ≤ g.liminf (λ b, f.limsup (λ a, u a b)) :=
-begin
-  have h1 : ∀ᶠ a in f, ∀ b, u a b ≤ f.limsup (λ a', u a' b),
-    by { rw eventually_countable_forall, exact λ b, ennreal.eventually_le_limsup (λ a, u a b), },
-  refine Inf_le (h1.mono (λ x hx, filter.liminf_le_liminf (filter.eventually_of_forall hx) _)),
-  filter.is_bounded_default,
-end
-
-lemma ess_sup_liminf_le {ι} [encodable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
-  ess_sup (λ x, filter.at_top.liminf (λ n, f n x)) μ
-    ≤ filter.at_top.liminf (λ n, ess_sup (λ x, f n x) μ) :=
-by { simp_rw ess_sup, exact limsup_liminf_le_liminf_limsup (λ a b, f b a), }
-
 lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [encodable ι]
   [linear_order ι] {f : ι → α → F} {f_lim : α → F}
   (h_lim : ∀ᵐ (x : α) ∂μ, filter.tendsto (λ n, f n x) filter.at_top (𝓝 (f_lim x))) :
@@ -1498,7 +1483,7 @@ lemma snorm_exponent_top_lim_le_liminf_snorm_exponent_top {ι} [nonempty ι] [en
 begin
   rw snorm_exponent_top_lim_eq_ess_sup_liminf h_lim,
   simp_rw [snorm_exponent_top, snorm_ess_sup],
-  exact ess_sup_liminf_le (λ n, (λ x, (nnnorm (f n x) : ℝ≥0∞))),
+  exact ennreal.ess_sup_liminf_le (λ n, (λ x, (nnnorm (f n x) : ℝ≥0∞))),
 end
 
 lemma snorm_lim_le_liminf_snorm {E} [measurable_space E] [normed_group E] [borel_space E]

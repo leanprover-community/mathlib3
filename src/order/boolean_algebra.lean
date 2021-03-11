@@ -319,7 +319,7 @@ calc w \ x ≤ w \ z : sdiff_le_sdiff_same h₂
   -- (show w \ x ⊔ (x ⊔ z) ≤ y \ z ⊔ (x ⊔ z), from sorry)
 -- by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
-lemma foo : (x ⊓ y) ⊓ z ⊔ (y \ z) = (x ⊓ y) ⊔ (y \ z) :=
+lemma sup_inf_inf_sdiff : (x ⊓ y) ⊓ z ⊔ (y \ z) = (x ⊓ y) ⊔ (y \ z) :=
 calc (x ⊓ y) ⊓ z ⊔ (y \ z) = x ⊓ (y ⊓ z) ⊔ (y \ z) : by rw [inf_assoc]
   ... = (x ⊔ (y \ z)) ⊓ y : by rw [sup_inf_right, sup_inf_sdiff]
   ... = (x ⊓ y) ⊔ (y \ z) : by rw [inf_sup_right, inf_sdiff_left]
@@ -329,7 +329,7 @@ by rw [inf_sup_left, inf_sdiff_left, sup_comm, sup_inf_self]
 
 lemma mccuan1c : x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) :=
 begin
-  rw [sup_comm, inf_comm, ←inf_assoc, foo],
+  rw [sup_comm, inf_comm, ←inf_assoc, sup_inf_inf_sdiff],
   apply sdiff_unique,
   { rw [sup_inf_right, ←sup_assoc, @inf_comm _ _ z, sup_inf_self, sup_sdiff_left, ←sup_assoc,
       sup_inf_left, sup_sdiff_same_left, inf_sup_right, @sup_comm _ _ y, blah,
@@ -401,7 +401,7 @@ sdiff_unique
           ... = ((y ⊓ x) ⊔ (x \ z)) ⊓ ((x ⊓ y) ⊓ z ⊔ (y \ z)) :
                 by rw [sup_inf_right, sup_sdiff_same_right, inf_sup_right, blah, @inf_comm _ _ x,
                   @sup_comm _ _ z, inf_assoc, inf_sup_self]
-          ... = ((y ⊓ x) ⊔ (x \ z)) ⊓ ((x ⊓ y) ⊔ (y \ z)) : by rw [foo]
+          ... = ((y ⊓ x) ⊔ (x \ z)) ⊓ ((x ⊓ y) ⊔ (y \ z)) : by rw [sup_inf_inf_sdiff]
           ... = (x ⊓ y) ⊔ ((x \ z) ⊓ (y \ z)) : by rw [@inf_comm _ _ y, sup_inf_left]
                                   ... = x ⊓ y : sup_eq_left.2 (inf_le_inf sdiff_le sdiff_le))
   (calc (x ⊓ y) ⊓ z ⊓ ((x \ z) ⊓ (y \ z)) = x ⊓ y ⊓ (z ⊓ (x \ z)) ⊓ (y \ z) :

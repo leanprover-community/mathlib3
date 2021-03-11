@@ -7,9 +7,6 @@ import algebra.group
 import algebra.group_power.basic
 import algebra.module.basic
 import algebra.smul_with_zero
-
---import algebra.iterate_hom
---import data.zmod.basic
 /-!
 # Action of regular elements on a module
 

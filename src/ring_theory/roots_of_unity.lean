@@ -153,6 +153,31 @@ calc  fintype.card (roots_of_unity k R)
 ... = (nth_roots k (1 : R)).card                  : multiset.card_attach
 ... ≤ k                                           : card_nth_roots k 1
 
+variables {k R}
+
+def ring_hom.restrict_roots_of_unity (σ : R →+* R) (n : ℕ+) :
+  roots_of_unity n R →* roots_of_unity n R :=
+let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
+{ change (σ (ξ : units R)) ^ (n : ℕ) = 1,
+  rw [←σ.map_pow, ←units.coe_pow, show ((ξ : units R) ^ (n : ℕ) = 1), from ξ.2,
+      units.coe_one, σ.map_one] } in
+{ to_fun := λ ξ, ⟨is_unit.unit (is_unit_of_pow_eq_one (σ ξ) n (h ξ) n.2),
+    by { ext, rw [units.coe_pow, is_unit.unit_spec], exact h ξ }⟩,
+  map_one' := by { ext, rw [subtype.coe_mk, is_unit.unit_spec], exact σ.map_one },
+  map_mul' := λ ξ₁ ξ₂, by
+  { ext,
+    simp_rw [subgroup.coe_mul, units.coe_mul, subtype.coe_mk, is_unit.unit_spec],
+    exact σ.map_mul _ _ } }
+
+lemma ring_hom.map_root_of_unity (σ : R →+* R) (ζ : roots_of_unity k R) : ∃ m : ℕ, σ ζ = ζ ^ m :=
+begin
+  obtain ⟨m, hm⟩ := (σ.restrict_roots_of_unity k).map_cyclic,
+  have h := congr_arg (coe : units R → R) (congr_arg (coe : roots_of_unity k R → units R) (hm ζ)),
+  rw [gpow_eq_mod_order_of, ←int.to_nat_of_nonneg (m.mod_nonneg (int.coe_nat_ne_zero.mpr
+      (pos_iff_ne_zero.mp (order_of_pos ζ)))), gpow_coe_nat, subgroup.coe_pow, units.coe_pow] at h,
+  exact ⟨(m % (order_of ζ)).to_nat, eq.trans (is_unit.unit_spec _).symm h⟩,
+end
+
 end roots_of_unity
 
 /-- An element `ζ` is a primitive `k`-th root of unity if `ζ ^ k = 1`,

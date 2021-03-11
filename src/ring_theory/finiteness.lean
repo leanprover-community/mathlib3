@@ -445,12 +445,10 @@ lemma of_finite_type [is_noetherian_ring A] {f : A →+* B} : f.finite_type ↔ 
 lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite_presentation) (hf : f.finite_presentation) :
   (g.comp f).finite_presentation :=
 @algebra.finite_presentation.trans A B C _ _ f.to_algebra _ (g.comp f).to_algebra g.to_algebra
-begin
-  fconstructor,
-  intros a b c,
-  simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
-  refl
-end
+{ smul_assoc := λ a b c, begin
+    simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc],
+    refl
+  end }
 hf hg
 
 end finite_presentation

@@ -132,6 +132,10 @@ not_is_regular_zero_iff.mpr nM
 lemma is_regular_of_smul_eq_one (h : a • s = 1) : is_regular M s :=
 is_regular.of_smul a (by { rw h, exact is_regular_one })
 
+/-- An element of `R` admitting a left inverse is `M`-regular. -/
+lemma is_regular_of_mul_eq_one (h : a * b = 1) : is_regular M b :=
+is_regular.of_smul a (by { rw [smul_eq_mul, h], exact is_regular_one })
+
 /-- Any element in `units R` is `M`-regular. -/
 lemma units.is_regular (a : units R) : is_regular M (a : R) :=
 begin

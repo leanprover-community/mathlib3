@@ -184,6 +184,10 @@ theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
+lemma aeval_algebra_map_apply {A : Type*} [semiring A] [algebra R A] (r : R) (p: polynomial R):
+  aeval (algebra_map R A r) p = algebra_map R A (p.eval r) :=
+aeval_alg_hom_apply (algebra.of_id R A) r p
+
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl
 

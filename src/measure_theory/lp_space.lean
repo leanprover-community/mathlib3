@@ -1581,7 +1581,7 @@ begin
   { exact (hf N).2, },
 end
 
-lemma cauchy_complete_ℒp_of_ne_top [complete_space E] (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞)
+lemma cauchy_complete_ℒp [complete_space E] (hp : 1 ≤ p)
   {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N) :
   ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
@@ -1598,34 +1598,10 @@ begin
   exact ⟨f_lim, h_ℒp_lim, h_tendsto'⟩,
 end
 
-lemma cauchy_complete_ℒp_top [complete_space E] {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) ∞ μ)
-  {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
-  (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) ∞ μ < B N) :
-  ∃ (f_lim : α → E) (hf_lim_ℒp : mem_ℒp f_lim ∞ μ),
-    at_top.tendsto (λ n, snorm (f n - f_lim) ∞ μ) (𝓝 0) :=
-begin
-  have h_tendsto_ae : ∀ᵐ x ∂μ, ∃ l, at_top.tendsto (λ n, f n x) (𝓝 l),
-    from ae_tendsto_of_cauchy_snorm (λ m, (hf m).1) le_top hB h_cau,
-  obtain ⟨f_lim, h_f_lim_meas, h_lim⟩ : ∃ (f_lim : α → E) (hf_lim_meas : measurable f_lim),
-      ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (nhds (f_lim x)),
-    from measurable_limit_of_tendsto_metric_ae (λ n, (hf n).1) h_tendsto_ae,
-  have h_cau_lim := cauchy_tendsto_of_tendsto (λ m, (hf m).1) f_lim hB h_cau h_lim,
-  exact ⟨f_lim, mem_ℒp_of_cauchy_tendsto le_top hf f_lim h_f_lim_meas.ae_measurable h_cau_lim,
-    h_cau_lim⟩,
-end
-
 /-! ### `Lp` is complete for `1 ≤ p` -/
 
 instance [complete_space E] [hp : fact (1 ≤ p)] : complete_space (Lp E p μ) :=
-begin
-  by_cases hp_top : p = ∞,
-  { have hc_top : complete_space (Lp E ∞ μ),
-      from complete_space_Lp_of_cauchy_complete_ℒp
-        (λ f hf B hB h_cau, cauchy_complete_ℒp_top hf hB h_cau),
-    convert hc_top, },
-  { exact complete_space_Lp_of_cauchy_complete_ℒp (λ f hf B hB h_cau,
-      cauchy_complete_ℒp_of_ne_top hp.elim hp_top hf hB h_cau), },
-end
+complete_space_Lp_of_cauchy_complete_ℒp (λ f hf B hB h_cau, cauchy_complete_ℒp hp.elim hf hB h_cau)
 
 end Lp
 end measure_theory

@@ -95,13 +95,13 @@ end submodule
 
 namespace submodule
 
-section add_comm_monoid
+section monoid__add_monoid
 
-variables [monoid R] [add_comm_monoid M]
+variables [monoid R] [add_monoid M]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
-variables {semimodule_M : distrib_mul_action R M}
+variables {distrib_mul_action_M : distrib_mul_action R M}
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
@@ -115,13 +115,6 @@ variables (p)
 lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
-
-lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
-p.to_add_submonoid.sum_mem
-
-lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
-    (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
-submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
 @[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' u
@@ -148,12 +141,56 @@ variables {p}
 
 variables (p)
 
+instance : add_monoid p :=
+{ add := (+), zero := 0, .. p.to_add_submonoid.to_add_monoid }
+
+instance : distrib_mul_action R p :=
+by refine {smul := (•), ..p.to_sub_mul_action.mul_action, ..};
+   { intros, apply set_coe.ext, simp [smul_add] }
+
+end monoid__add_monoid
+
+section monoid__add_comm_monoid
+
+variables [monoid R] [add_comm_monoid M]
+
+-- We can infer the module structure implicitly from the bundled submodule,
+-- rather than via typeclass resolution.
+variables {distrib_mul_action_M : distrib_mul_action R M}
+variables {p q : submodule R M}
+variables {r : R} {x y : M}
+
+variables (p)
+
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
-end add_comm_monoid
+lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
+p.to_add_submonoid.sum_mem
 
-section add_comm_monoid
+lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
+    (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
+submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
+
+end monoid__add_comm_monoid
+
+section monoid_with_zero__add_monoid
+
+variables [monoid_with_zero R] [add_monoid M]
+-- We can infer the module structure implicitly from the bundled submodule,
+-- rather than via typeclass resolution.
+variables {distrib_mul_action_M : distrib_mul_action R M}
+variables {p q : submodule R M}
+
+instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
+⟨λ c x h,
+  have c = 0 ∨ (x : M) = 0,
+  from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
+  this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+
+end monoid_with_zero__add_monoid
+
+section semiring__add_comm_monoid
 
 variables [semiring R] [add_comm_monoid M]
 
@@ -164,14 +201,8 @@ variables {r : R} {x y : M}
 variables (p)
 
 instance : semimodule R p :=
-by refine {smul := (•), ..p.to_sub_mul_action.mul_action, ..};
-   { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
-
-instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
-⟨λ c x h,
-  have c = 0 ∨ (x : M) = 0,
-  from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
-  this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+by refine {smul := (•), ..p.distrib_mul_action, ..};
+   { intros, apply set_coe.ext, simp [add_smul] }
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
@@ -181,9 +212,9 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
-end add_comm_monoid
+end semiring__add_comm_monoid
 
-section add_comm_group
+section ring__add_comm_group
 
 variables [ring R] [add_comm_group M]
 variables {semimodule_M : semimodule R M}
@@ -215,7 +246,7 @@ instance : add_comm_group p :=
 
 @[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
-end add_comm_group
+end ring__add_comm_group
 
 section ordered_monoid
 

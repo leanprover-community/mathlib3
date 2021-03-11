@@ -325,8 +325,8 @@ begin
   letI : is_scalar_tower R (_root_.mv_polynomial (fin m) R)
     (@ideal.map _ (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R))
     _ _ mv_polynomial.C I).quotient := is_scalar_tower.comap,
-  refine equiv _ (alg_equiv.restrict_scalars R (@mv_polynomial.quotient_equiv_quotient_mv_polynomial
-    _ (fin n) _ I)).symm,
+  refine equiv _ (((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
+    _ (fin n) _ I)).restrict_scalars R).symm,
   refine quotient (submodule.map_fg_of_fg I hfg _) _,
   refine equiv _ (mv_polynomial.sum_alg_equiv _ _ _),
   exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R sum_fin_sum_equiv).symm

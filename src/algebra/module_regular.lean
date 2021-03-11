@@ -19,15 +19,19 @@ element `a ∈ R` such that the function `m ↦ a • m` is injective.
 --should it be in the module namespace?
 namespace module
 
-variables {R S : Type*} (M : Type*) {a b : R} {s : S}
+variables {R S : Type*} {M : Type*} {a b : R} {s : S}
 
 section has_scalar
 
 variables [has_scalar R M] [has_scalar R S] [has_scalar S M] [is_scalar_tower R S M]
 
+variables (M)
+
 /-- An `M`-regular element is an element `c` such that multiplication on the left by `c` is an
 injective map `M → M`. -/
 def is_regular (c : R) := function.injective ((•) c : M → M)
+
+variables {M}
 
 /-- In a monoid, the product of `M`-regular elements is `M`-regular. -/
 lemma is_regular.smul (ra : is_regular M a) (rs : is_regular M s) :
@@ -43,9 +47,9 @@ lemma is_regular.of_smul (ab : is_regular M (a • s)) :
 
 /--  An element is `M`-regular if and only if multiplying it on the left by an `M`-regular element
 is `M`-regular. -/
-@[simp] lemma smul_is_regular_iff (b : S) (ha : is_regular M a) :
+@[simp] lemma is_regular.smul_iff (b : S) (ha : is_regular M a) :
   is_regular M (a • b) ↔ is_regular M b :=
-⟨λ ab, is_regular.of_smul M ab, λ ab, is_regular.smul M ha ab⟩
+⟨is_regular.of_smul, ha.smul⟩
 
 end has_scalar
 

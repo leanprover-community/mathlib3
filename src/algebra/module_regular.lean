@@ -55,20 +55,20 @@ variables [monoid R] [mul_action R M]
 
 /--  Two elements `a` and `b` are `M`-regular if and only if both products `a • b` and `b • a`
 are `M`-regular. -/
-lemma is_regular_mul_and_mul_iff :
+lemma is_regular_smul_and_smul_iff :
   is_regular M (a • b) ∧ is_regular M (b • a) ↔ is_regular M a ∧ is_regular M b :=
 begin
   refine ⟨_, _⟩,
   { rintros ⟨ab, ba⟩,
-    exact ⟨is_regular.of_mul M ba, is_regular.of_mul M ab⟩ },
+    exact ⟨is_regular.of_smul M ba, is_regular.of_smul M ab⟩ },
   { rintros ⟨ha, hb⟩,
-    exact ⟨(mul_is_regular_iff M b ha).mpr hb, (mul_is_regular_iff M a hb).mpr ha⟩ }
+    exact ⟨(smul_is_regular_iff M b ha).mpr hb, (smul_is_regular_iff M a hb).mpr ha⟩ }
 end
 
 /--  The "most used" implication of `mul_and_mul_iff`, with split hypotheses, instead of `∧`. -/
-lemma is_regular.and_of_mul_of_mul (ab : is_regular M (a • b)) (ba : is_regular M (b • a)) :
+lemma is_regular.and_of_smul_of_smul (ab : is_regular M (a • b)) (ba : is_regular M (b • a)) :
   is_regular M a ∧ is_regular M b :=
-(is_regular_mul_and_mul_iff M).mp ⟨ab, ba⟩
+(is_regular_smul_and_smul_iff M).mp ⟨ab, ba⟩
 
 @[simp] lemma is_regular_one : is_regular M (1 : R) :=
 begin
@@ -81,7 +81,7 @@ lemma is_regular.pow (n : ℕ) (ra : is_regular M a) : is_regular M (a ^ n) :=
 begin
   induction n with n hn,
   { simp },
-  { exact (mul_is_regular_iff M (a ^ n) ra).mpr hn }
+  { exact (smul_is_regular_iff M (a ^ n) ra).mpr hn }
 end
 
 /--  An element `a` is `M`-regular if and only if a positive power of `a` is `M`-regular. -/
@@ -90,7 +90,7 @@ lemma is_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
 begin
   refine ⟨_, is_regular.pow M n⟩,
   rw [← nat.succ_pred_eq_of_pos n0, pow_succ', ← smul_eq_mul],
-  exact is_regular.of_mul M,
+  exact is_regular.of_smul M,
 end
 
 end monoid
@@ -127,9 +127,9 @@ open module
 variables [comm_monoid R] [mul_action R M]
 
 /--  A product is `M`-regular if and only if the factors are. -/
-lemma is_regular_mul_iff : is_regular M (a • b) ↔ is_regular M a ∧ is_regular M b :=
+lemma is_regular_smul_iff : is_regular M (a • b) ↔ is_regular M a ∧ is_regular M b :=
 begin
-  rw [← is_regular_mul_and_mul_iff],
+  rw [← is_regular_smul_and_smul_iff],
   exact ⟨λ ab, ⟨ab, by rwa [smul_eq_mul, mul_comm]⟩, λ rab, rab.1⟩
 end
 
@@ -150,7 +150,7 @@ begin
   have ras : is_regular M (a • s),
   { rw h,
     exact is_regular_one M },
-  exact is_regular.of_mul M ras
+  exact is_regular.of_smul M ras
 end
 
 end monoid_R

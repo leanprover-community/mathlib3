@@ -913,12 +913,22 @@ instance aut : group (A₁ ≃ₐ[R] A₁) :=
 
 @[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
-def aut_mul_equiv_aut (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃ₐ[R] A₂) :=
+/-- An algebra isomorphism induces a group isomorphism between automorphism groups -/
+@[simps apply]
+def aut_congr (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃ₐ[R] A₂) :=
 { to_fun := λ ψ, ϕ.symm.trans (ψ.trans ϕ),
   inv_fun := λ ψ, ϕ.trans (ψ.trans ϕ.symm),
   left_inv := λ ψ, by { ext, simp_rw [trans_apply, symm_apply_apply] },
   right_inv := λ ψ, by { ext, simp_rw [trans_apply, apply_symm_apply] },
   map_mul' := λ ψ χ, by { ext, simp only [mul_apply, trans_apply, symm_apply_apply] } }
+
+@[simp] lemma aut_congr_refl : aut_congr (alg_equiv.refl) = mul_equiv.refl (A₁ ≃ₐ[R] A₁) :=
+by { ext, refl }
+
+@[simp] lemma aut_congr_symm (ϕ : A₁ ≃ₐ[R] A₂) : (aut_congr ϕ).symm = aut_congr ϕ.symm := rfl
+
+@[simp] lemma aut_congr_trans (ϕ : A₁ ≃ₐ[R] A₂) (ψ : A₂ ≃ₐ[R] A₃) :
+  (aut_congr ϕ).trans (aut_congr ψ) = aut_congr (ϕ.trans ψ) := rfl
 
 end semiring
 

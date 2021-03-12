@@ -86,15 +86,16 @@ end
 by simp [sub_eq_add_neg]
 
 @[simp, norm_cast] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n
-| (m : ℕ) (n : ℕ) := nat.cast_mul _ _
-| (m : ℕ) -[1+ n] := (cast_neg_of_nat _).trans $
-  show (-(m * (n + 1) : ℕ) : α) = m * -(n + 1),
-  by rw [nat.cast_mul, nat.cast_add_one, neg_mul_eq_mul_neg]
-| -[1+ m] (n : ℕ) := (cast_neg_of_nat _).trans $
-  show (-((m + 1) * n : ℕ) : α) = -(m + 1) * n,
-  by rw [nat.cast_mul, nat.cast_add_one, neg_mul_eq_neg_mul]
-| -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
-  by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
+| (m : ℕ) (n : ℕ) := by rw [int.coe_nat_mul_out, cast_coe_nat, nat.cast_mul, cast_coe_nat,
+                            cast_coe_nat]
+| (m : ℕ) -[1+ n] := by rw [int.coe_nat_eq, of_nat_mul_neg_succ_of_nat, cast_neg_of_nat,
+                            ←neg_of_nat, cast_neg_of_nat, cast_of_nat, nat.cast_mul,
+                            neg_mul_eq_mul_neg]
+| -[1+ m] (n : ℕ) := by rw [int.coe_nat_eq, neg_succ_of_nat_of_nat, cast_neg_of_nat, ←neg_of_nat,
+                            cast_neg_of_nat, nat.cast_mul, cast_of_nat, neg_mul_eq_neg_mul]
+| -[1+ m] -[1+ n] := by rw [mul_neg_succ_of_nat_neg_succ_of_nat, cast_of_nat, ←neg_of_nat,
+                            cast_neg_of_nat, ←neg_of_nat, cast_neg_of_nat, neg_mul_neg,
+                            nat.cast_mul]
 
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
 def cast_add_hom (α : Type*) [add_group α] [has_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩

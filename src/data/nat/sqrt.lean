@@ -186,15 +186,13 @@ theorem sqrt_eq (n : ℕ) : sqrt (n*n) = n :=
 sqrt_add_eq n (zero_le _)
 
 theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
-le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $
-le_trans (sqrt_le_add n) $ add_le_add_right
-  (by {
-    have : (sqrt n).succ.succ * (sqrt n).succ = (sqrt n).succ * (sqrt n).succ.succ,
-      { simp [mul_comm] },
-    simp only [this, mul_def],
-    rw ←mul_succ,
-    refine (nat.mul_le_mul _ _);
-    exact nat.le_succ _ }) _
+begin
+  refine le_of_lt_succ (sqrt_lt.mpr _),
+  rw [succ_mul, mul_succ],
+  refine lt_succ_of_le (succ_le_succ (le_trans (sqrt_le_add n) (add_le_add_right _ _))),
+  refine nat.add_le_add (nat.mul_le_mul _ _) _;
+  exact nat.le_succ _
+end
 
 theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=

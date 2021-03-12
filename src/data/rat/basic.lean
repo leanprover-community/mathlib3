@@ -161,7 +161,7 @@ begin
       rw ← nat.mul_div_assoc _ dv at this,
       exact nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_right dv _) this.symm },
     have m0 : (a.nat_abs.gcd b * c.nat_abs.gcd d : ℤ) ≠ 0, {
-      refine int.coe_nat_ne_zero.2 (ne_of_gt _),
+      rw int.coe_nat_mul_out, refine int.coe_nat_ne_zero.2 (ne_of_gt _),
       apply mul_pos; apply nat.gcd_pos_of_pos_right; assumption },
     apply mul_right_cancel' m0,
     simpa [mul_comm, mul_left_comm] using
@@ -274,7 +274,8 @@ end
   a /. b + c /. d = (a * d + c * b) /. (b * d) :=
 begin
   apply lift_binop_eq rat.add; intros; try {assumption},
-  { apply mk_pnat_eq },
+  { rw int.coe_nat_mul_out,
+    apply mk_pnat_eq },
   { apply mul_ne_zero d₁0 d₂0 },
   calc (n₁ * d₂ + n₂ * d₁) * (b * d) =
           (n₁ * b) * d₂ * d + (n₂ * d) * (d₁ * b) : by simp [mul_add, mul_comm, mul_left_comm]
@@ -306,7 +307,8 @@ instance : has_mul ℚ := ⟨rat.mul⟩
   (a /. b) * (c /. d) = (a * c) /. (b * d) :=
 begin
   apply lift_binop_eq rat.mul; intros; try {assumption},
-  { apply mk_pnat_eq },
+  { rw int.coe_nat_mul_out,
+    apply mk_pnat_eq },
   { apply mul_ne_zero d₁0 d₂0 },
   cc
 end

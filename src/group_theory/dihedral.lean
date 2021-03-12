@@ -172,21 +172,21 @@ begin
       rw hnpos,
       apply order_of_eq_zero,
       intros m hm,
-      rw r_one_pow,
-      rw one_def,
+      rw [r_one_pow, one_def],
       by_contradiction,
       rw not_not at h,
       have h' : (m : zmod 0) = 0,
         { exact r.inj h, },
       have h'' : m = 0,
-        { sorry },
+        { simp only [int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat] at h',
+          exact h', },
       rw h'' at hm,
       apply nat.lt_irrefl,
       exact hm },
 end
 
 /--
-If `0 < n`, then `i : zmod n` has order `n / gcd n i`
+If `0 < n`, then `i : zmod n` has order `n / gcd n i`.
 -/
 lemma order_of_r [fact (0 < n)] (i : zmod n) : order_of (r i) = n / nat.gcd n i.val :=
 begin

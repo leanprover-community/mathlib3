@@ -255,15 +255,25 @@ variable [semilattice_inf P]
 def is_prime (I : ideal P) : Prop :=
 proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I
 
-lemma is_prime_iff {I : ideal P} :
+variable {I : ideal P}
+
+lemma is_prime_iff :
   is_prime I ↔ proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
-lemma is_prime.proper {I : ideal P} (hI : is_prime I) : proper I := hI.1
+lemma is_prime.proper (hI : is_prime I) : proper I := hI.1
 
-lemma is_prime.mem_or_mem {I : ideal P} (hI : is_prime I) :
+lemma is_prime.mem_or_mem (hI : is_prime I) :
   ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
 hI.2
+
+lemma is_prime_of_is_maximal (hI : is_maximal I) : is_prime I :=
+begin
+  use hI.proper,
+  intros x y hxy,
+  contrapose! hxy,
+  sorry,
+end
 
 end semilattice_inf
 

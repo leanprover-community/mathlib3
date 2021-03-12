@@ -1114,7 +1114,7 @@ def trace_aux (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module
   (M →ₗ[R] M) →ₗ[R] R :=
 (matrix.trace ι R R).comp $ linear_map.to_matrix hb hb
 
-lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+@[simp] lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace_aux R hb f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 rfl

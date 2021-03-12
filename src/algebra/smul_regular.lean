@@ -90,7 +90,7 @@ begin
   { rintros ⟨ab, ba⟩,
     refine ⟨ba.of_mul, ab.of_mul⟩ },
   { rintros ⟨ha, hb⟩,
-    exact ⟨(ha.mul_iff_right).mpr hb, (hb.mul_iff_right).mpr ha⟩ }
+    exact ⟨ha.mul hb, hb.mul ha⟩ }
 end
 
 /--  Any power of an `M`-regular element is `M`-regular. -/
@@ -118,7 +118,7 @@ variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M] [mul_action_wit
   [mul_action_with_zero R S] [mul_action_with_zero S M] [is_scalar_tower R S M]
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/
-lemma subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
+protected lemma subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
 ⟨λ a b, h (by repeat { rw mul_action_with_zero.zero_smul })⟩
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/

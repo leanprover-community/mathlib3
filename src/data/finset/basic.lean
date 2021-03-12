@@ -1978,6 +1978,20 @@ theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
   (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
 by simp only [card, image_val_of_inj_on H, card_map]
 
+theorem inj_on_of_card_image_eq [decidable_eq β] {f : α → β} {s : finset α}
+  (H : card (image f s) = card s) :
+∀x∈s, ∀y∈s, f x = f y → x = y :=
+begin
+  change (s.1.map f).erase_dup.card = s.1.card at H,
+  have : (s.1.map f).erase_dup = s.1.map f,
+  { apply multiset.eq_of_le_of_card_le,
+    { apply multiset.erase_dup_le },
+    rw H,
+    simp only [multiset.card_map] },
+  rw multiset.erase_dup_eq_self at this,
+  apply inj_on_of_nodup_map this,
+end
+
 theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α)
   (H : injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h

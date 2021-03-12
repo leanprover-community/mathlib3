@@ -138,7 +138,7 @@ begin
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
     symmetry, rw ← finsupp.sum_map_range_index h, swap, refl,
     refine congr (congr rfl _) (by {ext, rw mul_comm}), ext, rw finsupp.map_range_apply,
-    simp [apply_eq_coeff], }
+    simpa [coeff] using (mat_poly_equiv_coeff_apply M a i j).symm }
 end
 
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :

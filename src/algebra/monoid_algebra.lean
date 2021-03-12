@@ -845,7 +845,6 @@ variables {k G}
 section misc_theorems
 
 variables [semiring k]
-local attribute [reducible] add_monoid_algebra
 open additive multiplicative
 
 lemma to_multiplicative_apply' [has_add G] (f : add_monoid_algebra k G) :
@@ -902,9 +901,18 @@ subset.trans support_sum $ bUnion_mono $ assume a₁ _,
   subset.trans support_sum $ bUnion_mono $ assume a₂ _, support_single_subset
 
 lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
-  (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
+  (single a₁ b₁ * single a₂ b₂ : add_monoid_algebra k G) = single (a₁ + a₂) (b₁ * b₂) :=
 (sum_single_index (by simp only [zero_mul, single_zero, sum_zero])).trans
   (sum_single_index (by rw [mul_zero, single_zero]))
+
+-- This should be a `@[simp]` lemma, but the simp_nf linter times out if we add this.
+-- Probably the correct fix is to make a `[add_]monoid_algebra.single` with the correct type,
+-- instead of relying on `finsupp.single`.
+lemma single_pow [add_monoid G] {a : G} {b : k} :
+  ∀ n : ℕ, ((single a b)^n : add_monoid_algebra k G) = single (n •ℕ a) (b ^ n)
+| 0 := rfl
+| (n+1) :=
+by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul, one_nsmul]
 
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
 lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
@@ -960,7 +968,7 @@ f.mul_single_apply_aux r _ _ _ $ λ a, by rw [add_zero]
 
 lemma single_mul_apply_aux [has_add G] (f : add_monoid_algebra k G) (r : k) (x y z : G)
   (H : ∀ a, x + a = y ↔ a = z) :
-  (single x r * f) y = r * f z :=
+  (single x r * f : add_monoid_algebra k G) y = r * f z :=
 begin
   rw [← to_add_of_add z, ← to_multiplicative_apply,
     ← @monoid_algebra.single_mul_apply_aux _ _ _ _ _ r (of_add x) (of_add y) (of_add z),
@@ -972,7 +980,7 @@ begin
 end
 
 lemma single_zero_mul_apply [add_monoid G] (f : add_monoid_algebra k G) (r : k) (x : G) :
-  (single 0 r * f) x = r * f x :=
+  (single 0 r * f : add_monoid_algebra k G) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
 
 lemma lift_nc_smul {R : Type*} [add_monoid G] [semiring R] (f : k →+* R)

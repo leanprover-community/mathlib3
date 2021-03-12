@@ -60,6 +60,9 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
+-- hack to speed up simp when dealing with complicated types
+local attribute [-instance] unique.subsingleton pi.subsingleton
+
 /-!
 ### Type variables
 
@@ -787,12 +790,17 @@ def flip_multilinear (f : G →L[𝕜] continuous_multilinear_map 𝕜 E G') :
 multilinear_map.mk_continuous
   { to_fun := λ m, linear_map.mk_continuous
       { to_fun := λ x, f x m,
-        map_add' := λ x y, by simp,
-        map_smul' := λ c x, by simp }
+        map_add' := λ x y, by simp only [map_add, continuous_multilinear_map.add_apply],
+        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul]}
       (∥f∥ * ∏ i, ∥m i∥) $ λ x,
       by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
-    map_add' := λ m i x y, by { ext1, simp },
-    map_smul' := λ m i c x, by { ext1, simp } } ∥f∥ $ λ m,
+    map_add' := λ m i x y,
+      by { ext1, simp only [add_apply, continuous_multilinear_map.map_add, linear_map.coe_mk,
+                            linear_map.mk_continuous_apply]},
+    map_smul' := λ m i c x,
+      by { ext1, simp only [coe_smul', continuous_multilinear_map.map_smul, linear_map.coe_mk,
+                            linear_map.mk_continuous_apply, pi.smul_apply]} }
+  ∥f∥ $ λ m,
   linear_map.mk_continuous_norm_le _
     (mul_nonneg (norm_nonneg f) (prod_nonneg $ λ i hi, norm_nonneg (m i))) _
 
@@ -1173,6 +1181,9 @@ Therefore, the space of continuous multilinear maps on `(fin 0) → G` with valu
 isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the construction of iterated
 derivatives, we register this isomorphism. -/
 
+section
+local attribute [instance] unique.subsingleton
+
 variables {𝕜 G G'}
 
 /-- Associating to a continuous multilinear map in `0` variables the unique value it takes. -/
@@ -1253,6 +1264,8 @@ variables {𝕜 G G'}
 
 @[simp] lemma continuous_multilinear_curry_fin0_symm_apply (x : G') (v : (fin 0) → G) :
   (continuous_multilinear_curry_fin0 𝕜 G G').symm x v = x := rfl
+
+end
 
 /-! #### With 1 variable -/
 

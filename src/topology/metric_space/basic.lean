@@ -682,6 +682,15 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
+/--
+A variant of `tendsto_at_top` that
+uses `∃ N, ∀ n > N, ...` rather than `∃ N, ∀ n ≥ N, ...`
+-/
+theorem tendsto_at_top' [nonempty β] [semilattice_sup β] [no_top_order β] {u : β → α} {a : α} :
+  tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n>N, dist (u n) a < ε :=
+(at_top_basis_Ioi.tendsto_iff nhds_basis_ball).trans $
+  by { simp only [exists_prop, true_and], refl }
+
 lemma is_open_singleton_iff {X : Type*} [metric_space X] {x : X} :
   is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
 by simp [is_open_iff, subset_singleton_iff, mem_ball]
@@ -860,20 +869,30 @@ theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
 
 instance : order_topology ℝ :=
-order_topology_of_nhds_abs $ λ x, begin
-  simp only [show ∀ r, {b : ℝ | abs (x - b) < r} = ball x r,
-    by simp [abs_sub, ball, real.dist_eq]],
-  apply le_antisymm,
-  { simp [le_infi_iff],
-    exact λ ε ε0, mem_nhds_sets (is_open_ball) (mem_ball_self ε0) },
-  { intros s h,
-    rcases mem_nhds_iff.1 h with ⟨ε, ε0, ss⟩,
-    exact mem_infi_sets _ (mem_infi_sets ε0 (mem_principal_sets.2 ss)) },
-end
+order_topology_of_nhds_abs $ λ x,
+  by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub]
 
 lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
+
+section metric_ordered
+
+variables [conditionally_complete_linear_order α] [order_topology α]
+
+lemma totally_bounded_Icc (a b : α) : totally_bounded (Icc a b) :=
+compact_Icc.totally_bounded
+
+lemma totally_bounded_Ico (a b : α) : totally_bounded (Ico a b) :=
+totally_bounded_subset Ico_subset_Icc_self (totally_bounded_Icc a b)
+
+lemma totally_bounded_Ioc (a b : α) : totally_bounded (Ioc a b) :=
+totally_bounded_subset Ioc_subset_Icc_self (totally_bounded_Icc a b)
+
+lemma totally_bounded_Ioo (a b : α) : totally_bounded (Ioo a b) :=
+totally_bounded_subset Ioo_subset_Icc_self (totally_bounded_Icc a b)
+
+end metric_ordered
 
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
 general case. -/
@@ -1390,7 +1409,7 @@ ball with the same center and a strictly smaller radius that includes `s`. -/
 lemma exists_pos_lt_subset_ball (hr : 0 < r) (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' ∈ Ioo 0 r, s ⊆ ball x r' :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|hne,
+  unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
   { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
   have : is_compact s,
     from compact_of_is_closed_subset (proper_space.compact_ball x r) hs
@@ -1408,7 +1427,7 @@ lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' < r, s ⊆ ball x r' :=
 begin
   cases le_or_lt r 0 with hr hr,
-  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, subst s,
+  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
     exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
   { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end

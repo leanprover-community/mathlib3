@@ -294,7 +294,7 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
 ⟨λ hs, classical.by_contradiction $ λ h,
   have h1 : s ≠ ∅ ∧ sᶜ ≠ ∅, from ⟨mt or.inl h,
     mt (λ h2, or.inr $ (by rw [← compl_compl s, h2, compl_empty] : s = univ)) h⟩,
-  let ⟨_, h2, h3⟩ := nonempty_inter hs.1 hs.2 (union_compl_self s)
+  let ⟨_, h2, h3⟩ := nonempty_inter hs.1 hs.2.is_open_compl (union_compl_self s)
     (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
@@ -874,7 +874,8 @@ begin
     rw ←connected_components_preimage_singleton,
     exact is_connected_connected_component },
   refine λ T, ⟨λ hT, hT.preimage continuous_quotient_mk, λ hT, _⟩,
-  rwa [←is_open_compl_iff, ←preimage_compl, quotient_map_quotient_mk.is_open_preimage] at hT,
+  rwa [← is_open_compl_iff, ← preimage_compl, quotient_map_quotient_mk.is_open_preimage,
+    is_open_compl_iff] at hT,
 end
 
 /-- Functoriality of `connected_components` -/

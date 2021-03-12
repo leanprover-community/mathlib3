@@ -56,7 +56,7 @@ lemma support_scale_roots_eq (p : polynomial R) {s : R} (hs : s ∈ non_zero_div
 le_antisymm (support_scale_roots_le p s)
   begin
     intro i,
-    simp only [polynomial.mem_support_iff, coeff_scale_roots],
+    simp only [coeff_scale_roots, polynomial.mem_support_iff],
     intros p_ne_zero ps_zero,
     have := ((non_zero_divisors R).pow_mem hs (p.nat_degree - i)) _ ps_zero,
     contradiction

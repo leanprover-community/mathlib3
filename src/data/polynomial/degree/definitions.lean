@@ -866,9 +866,13 @@ theorem zero_nmem_multiset_map_X_sub_C {α : Type*} (m : multiset α) (f : α �
   (0 : polynomial R) ∉ m.map (λ a, X - C (f a)) :=
 λ mem, let ⟨a, _, ha⟩ := multiset.mem_map.mp mem in X_sub_C_ne_zero _ ha
 
-lemma nat_degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
+lemma nat_degree_X_pow_sub_C {n : ℕ} {r : R} :
   (X ^ n - C r).nat_degree = n :=
-by { apply nat_degree_eq_of_degree_eq_some, simp [degree_X_pow_sub_C hn], }
+begin
+  by_cases hn : n = 0,
+  { rw [hn, pow_zero, ←C_1, ←ring_hom.map_sub, nat_degree_C] },
+  { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_sub_C (pos_iff_ne_zero.mpr hn) r) },
+end
 
 end nonzero_ring
 

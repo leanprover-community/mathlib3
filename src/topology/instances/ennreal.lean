@@ -448,9 +448,6 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
     (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
 
-lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
-by simp_rw [← nonpos_iff_eq_zero, supr_le_iff]
-
 end topological_space
 
 section tsum
@@ -529,6 +526,18 @@ ennreal.tsum_eq_supr_sum' _ $ λ t,
 protected lemma tsum_eq_supr_nat {f : ℕ → ℝ≥0∞} :
   ∑'i:ℕ, f i = (⨆i:ℕ, ∑ a in finset.range i, f a) :=
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
+
+protected lemma tsum_eq_liminf_sum_nat {f : ℕ → ℝ≥0∞} :
+  ∑' i, f i = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
+begin
+  rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
+  congr,
+  refine funext (λ n, le_antisymm _ _),
+  { refine le_binfi (λ i hi, finset.sum_le_sum_of_subset_of_nonneg _ (λ _ _ _, zero_le _)),
+    simpa only [finset.range_subset, add_le_add_iff_right] using hi, },
+  { refine le_trans (infi_le _ n) _,
+    simp [le_refl n, le_refl ((finset.range n).sum f)], },
+end
 
 protected lemma le_tsum (a : α) : f a ≤ ∑'a, f a :=
 le_tsum' ennreal.summable a

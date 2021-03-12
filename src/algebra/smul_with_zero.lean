@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import group_theory.group_action.defs
-import algebra.algebra.basic
 /-!
 # Introduce `smul_with_zero`
 
@@ -21,6 +20,11 @@ Thus, the action is required to be compatible with
 * the unit of the monoid, acting as the identity;
 * the zero of the monoid_with_zero, acting as zero;
 * associativity of the monoid.
+
+We also add `instances`:
+
+* any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself;
+* any `R`-semimodule `M` inherits automatically a `mul_action_with_zero R M`.
 -/
 
 variables (R M : Type*)

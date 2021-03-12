@@ -159,7 +159,6 @@ end
 end monoid_with_zero
 
 section comm_monoid
-open module
 
 variables [comm_monoid R] [mul_action R M]
 

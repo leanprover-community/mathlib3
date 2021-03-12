@@ -266,6 +266,11 @@ lemma to_monoid_hom_commutes (f : R ≃+* S) :
   (f : R →+* S).to_monoid_hom = (f : R ≃* S).to_monoid_hom :=
 rfl
 
+/-- The two paths coercion can take to an `equiv` are equivalent -/
+lemma to_equiv_commutes (f : R ≃+* S) :
+  (f : R ≃+ S).to_equiv = (f : R ≃* S).to_equiv :=
+rfl
+
 @[simp]
 lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl
 

@@ -252,18 +252,9 @@ variable [semilattice_inf P]
 
 /-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
 -/
-def is_prime (I : ideal P) : Prop :=
-proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I
-
-lemma is_prime_iff {I : ideal P} :
-  is_prime I ↔ proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
-
-lemma is_prime.proper {I : ideal P} (hI : is_prime I) : proper I := hI.1
-
-lemma is_prime.mem_or_mem {I : ideal P} (hI : is_prime I) :
-  ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
-hI.2
+@[mk_iff] structure is_prime (I : ideal P) : Prop :=
+(proper : proper I) 
+(mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
 end semilattice_inf
 

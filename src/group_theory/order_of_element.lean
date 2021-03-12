@@ -769,8 +769,11 @@ is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
 
 end totient
 
-lemma is_cyclic.card_order_of_eq_totient [is_cyclic α] [decidable_eq α] [fintype α]
+lemma is_cyclic.card_order_of_eq_totient [is_cyclic α] [fintype α]
   {d : ℕ} (hd : d ∣ fintype.card α) : (univ.filter (λ a : α, order_of a = d)).card = totient d :=
-card_order_of_eq_totient_aux₂ (λ n, is_cyclic.card_pow_eq_one_le) hd
+begin
+  classical,
+  apply card_order_of_eq_totient_aux₂ (λ n, is_cyclic.card_pow_eq_one_le) hd
+end
 
 end cyclic

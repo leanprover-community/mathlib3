@@ -65,7 +65,6 @@ instance semimodule.to_mul_action_with_zero :
 
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 variables (R)
---@[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 

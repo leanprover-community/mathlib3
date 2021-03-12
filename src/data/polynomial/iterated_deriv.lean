@@ -144,19 +144,18 @@ begin
 end
 
 lemma coeff_iterated_deriv_as_prod_range :
-  ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in finset.range k, ↑(m + k - i)) :=
+  ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in range k, ↑(m + k - i)) :=
 begin
   induction k with k ih,
   { simp },
-
   intro m,
   calc (f.iterated_deriv k.succ).coeff m
-      = f.coeff (m + k.succ) * (∏ i in finset.range k, ↑(m + k.succ - i)) * (m + 1) :
+      = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * (m + 1) :
     by rw [iterated_deriv_succ, coeff_derivative, ih m.succ, succ_add, add_succ]
-  ... = f.coeff (m + k.succ) * (↑(m + 1) * (∏ (i : ℕ) in range k, ↑(m + k.succ - i))) :
-    by { push_cast, ring }
-  ... = f.coeff (m + k.succ) * (∏ (i : ℕ) in range k.succ, ↑(m + k.succ - i)) :
-    by { rw [prod_range_succ, nat.add_sub_assoc (le_succ k), nat.succ_sub le_rfl, nat.sub_self] }
+  ... = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * ↑(m + 1) :
+    by push_cast
+  ... = f.coeff (m + k.succ) * (∏ i in range k.succ, ↑(m + k.succ - i)) :
+    by rw [prod_range_succ, nat.add_sub_assoc k.le_succ, succ_sub le_rfl, nat.sub_self, mul_assoc]
 end
 
 lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=

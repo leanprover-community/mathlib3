@@ -63,10 +63,6 @@ lemma trace_eq_zero_of_not_exists_basis
   (h : ¬ ∃ s : finset S, is_basis R (λ x, x : (↑s : set S) → S)) : trace R S = 0 :=
 by { ext s, simp [linear_map.trace, h] }
 
-lemma findim_eq_zero_of_not_exists_basis
-  (h : ¬ ∃ s : finset L, is_basis K (λ x, x : (↑s : set L) → L)) : findim K L = 0 :=
-dif_neg (mt (λ h, @exists_is_basis_finset K L _ _ _ (finite_dimensional_iff_dim_lt_omega.mpr h)) h)
-
 include hb
 
 variables {R}

@@ -423,8 +423,8 @@ associated symmetric bilinear form.  As provided here, this has the structure of
 where `S` is a commutative subring of `R`.
 
 Over a commutative ring, use `associated`, which gives an `R`-linear map.  Over a general ring with
-no nontrivial distinguished subring, use `associated'`, which gives an additive homomorphism (or
-more precisely a `ℤ`-linear map.) -/
+no nontrivial distinguished commutative subring, use `associated'`, which gives an additive
+homomorphism (or more precisely a `ℤ`-linear map.) -/
 def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
 { to_fun := λ Q,
   { bilin := λ x y, ⅟2 * polar Q x y,
@@ -501,6 +501,9 @@ end associated_hom
 
 section associated
 variables [invertible (2 : R₁)]
+
+-- Note:  When possible, rather than writing lemmas about `associated`, write a lemma applying to
+-- the more general `associated_hom` and place it in the previous section.
 
 /-- `associated` is the linear map that sends a quadratic form over a commutative ring to its
 associated symmetric bilinear form. -/

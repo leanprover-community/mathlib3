@@ -774,17 +774,16 @@ begin
   exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
-variables (α E μ)
+variables (α E μ 𝕜)
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map. -/
-def integral_clm' (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E] :
-  (α →₁ₛ[μ] E) →L[𝕜] E :=
+def integral_clm' : (α →₁ₛ[μ] E) →L[𝕜] E :=
 linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
   1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map over ℝ. -/
 def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E := integral_clm' α E μ ℝ
 
-variables {α E μ}
+variables {α E μ 𝕜}
 
 local notation `Integral` := integral_clm α E μ
 
@@ -875,12 +874,13 @@ local attribute [instance] simple_func.normed_group simple_func.normed_space
 
 open continuous_linear_map
 
+variables (𝕜)
 /-- The Bochner integral in L1 space as a continuous linear map. -/
-def integral_clm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
-  [smul_comm_class ℝ 𝕜 E] :
-  (α →₁[μ] E) →L[𝕜] E :=
+def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E μ 𝕜).extend
   (coe_to_L1 α E 𝕜) simple_func.dense_range simple_func.uniform_inducing
+
+variables {𝕜}
 
 /-- The Bochner integral in L1 space as a continuous linear map over ℝ. -/
 def integral_clm : (α →₁[μ] E) →L[ℝ] E := integral_clm' ℝ

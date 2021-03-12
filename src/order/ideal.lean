@@ -109,18 +109,9 @@ end⟩
 /-- A maximal ideal if it is maximal in the collection of proper ideals.
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
-def is_maximal (I : ideal P) : Prop :=
-  proper I ∧ ∀ J : ideal P, I < J → J.carrier = ⊤
-
-lemma is_maximal_iff {I : ideal P} :
-  is_maximal I ↔ proper I ∧ ∀ J : ideal P, I < J → J.carrier = ⊤ :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
-
-lemma is_maximal.proper {I : ideal P} (hI : is_maximal I) : proper I := hI.1
-
-lemma is_maximal.maximal_proper {I : ideal P} (hI : is_maximal I) :
-  ∀ J : ideal P, I < J → J.carrier = ⊤
-:= hI.2
+@[mk_iff] structure is_maximal (I : ideal P) : Prop :=
+(proper : proper I)
+(maximal_proper : ∀ J : ideal P, I < J → J.carrier = set.univ)
 
 end preorder
 

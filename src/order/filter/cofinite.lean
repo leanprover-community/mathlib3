@@ -120,4 +120,4 @@ end
 lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]
   {f : α → β} (hf : tendsto f cofinite at_bot) :
   ∃ a₀, ∀ a, f a ≤ f a₀ :=
-@filter.tendsto.exists_forall_le _ _ _ _ _ hf
+@filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf

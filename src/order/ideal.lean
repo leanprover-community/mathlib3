@@ -95,9 +95,7 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
-class proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
-
-lemma proper_iff {I : ideal P} : proper I ↔ (I : set P) ≠ set.univ := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+@[mk_iff] class proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
 
 lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
 ⟨λ hp, begin

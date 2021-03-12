@@ -65,11 +65,9 @@ instance mul_action_with_zero.to_smul_with_zero [m : mul_action_with_zero R M] :
 {..m}
 
 instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
-{ smul := (*),
-  one_smul := one_mul,
-  mul_smul := mul_assoc,
-  smul_zero := mul_zero,
-  zero_smul := zero_mul}
+{ smul_zero := mul_zero,
+  zero_smul := zero_mul,
+  ..monoid.to_mul_action R }
 
 end monoid_with_zero
 

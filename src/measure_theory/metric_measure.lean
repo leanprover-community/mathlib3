@@ -149,10 +149,11 @@ begin
   simp [this.not_le]
 end
 
-lemma isomety_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (hm : m 0 = 0) {f : X → Y} (hf : isometry f) :
-  map f (mk_metric m hm) = mk_metric m hm :=
+lemma isomety_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (hm : m 0 = 0) (h_mono : monotone m)
+  {f : X → Y} (hf : isometry f) :
+  map f (mk_metric m hm) = restrict (range f) (mk_metric m hm) :=
 begin
-  
+  simp only [mk_metric, mk_metric'],
 end
 
 end outer_measure

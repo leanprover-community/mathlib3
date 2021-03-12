@@ -157,6 +157,10 @@ lemma injective_coe_fn : injective (λ (μ : outer_measure α) (s : set α), μ 
 @[ext] lemma ext {μ₁ μ₂ : outer_measure α} (h : ∀ s, μ₁ s = μ₂ s) : μ₁ = μ₂ :=
 injective_coe_fn $ funext h
 
+lemma ext_nonempty {μ₁ μ₂ : outer_measure α} (h : ∀ s : set α, s.nonempty → μ₁ s = μ₂ s) :
+  μ₁ = μ₂ :=
+ext $ λ s, s.eq_empty_or_nonempty.elim (λ he, by rw [he, empty', empty']) (h s)
+
 instance : has_zero (outer_measure α) :=
 ⟨{ measure_of := λ_, 0,
    empty      := rfl,
@@ -273,6 +277,17 @@ ext $ λ s, rfl
   (m : outer_measure α) : map g (map f m) = map (g ∘ f) m :=
 ext $ λ s, rfl
 
+@[mono] theorem map_mono {β} (f : α → β) : monotone (map f) :=
+λ m m' h s, h _
+
+@[simp] theorem map_sup {β} (f : α → β) (m m' : outer_measure α) :
+  map f (m ⊔ m') = map f m ⊔ map f m' :=
+ext $ λ s, by simp only [map_apply, sup_apply]
+
+@[simp] theorem map_supr {β ι} (f : α → β) (m : ι → outer_measure α) :
+  map f (⨆ i, m i) = ⨆ i, map f (m i) :=
+ext $ λ s, by simp only [map_apply, supr_apply]
+
 instance : functor outer_measure := {map := λ α β f, map f}
 
 instance : is_lawful_functor outer_measure :=
@@ -323,11 +338,43 @@ def comap {β} (f : α → β) : outer_measure β →ₗ[ℝ≥0∞] outer_measu
   comap f m s = m (f '' s) :=
 rfl
 
+@[mono] lemma comap_mono {β} (f : α → β) :
+  monotone (comap f) :=
+λ m m' h s, h _
+
+/-- Restrict an `outer_measure` to a set. -/
+def restrict (s : set α) : outer_measure α →ₗ[ℝ≥0∞] outer_measure α :=
+(map coe).comp (comap (coe : s → α))
+
+@[simp] lemma restrict_apply (s t : set α) (m : outer_measure α) :
+  restrict s m t = m (t ∩ s) :=
+by simp [restrict]
+
+@[mono] lemma restrict_mono {s t : set α} (h : s ⊆ t) {m m' : outer_measure α} (hm : m ≤ m') :
+  restrict s m ≤ restrict t m' :=
+λ u, by { simp only [restrict_apply], exact (hm _).trans (m'.mono $ inter_subset_inter_right _ h) }
+
+@[simp] lemma restrict_univ (m : outer_measure α) : restrict univ m = m := ext $ λ s, by simp
+
+@[simp] lemma restrict_empty (m : outer_measure α) : restrict ∅ m = 0 := ext $ λ s, by simp
+
+lemma map_comap {β} (f : α → β) (m : outer_measure β) :
+  map f (comap f m) = restrict (range f) m :=
+ext $ λ s, congr_arg m $ by simp only [image_preimage_eq_inter_range, subtype.range_coe]
+
 lemma map_comap_le {β} (f : α → β) (m : outer_measure β) :
   map f (comap f m) ≤ m :=
 λ s, m.mono $ image_preimage_subset _ _
 
-lemma map_comap {β} {f : α → β} (hf : surjective f) (m : outer_measure β) :
+lemma restrict_le_self (m : outer_measure α) (s : set α) :
+  restrict s m ≤ m :=
+map_comap_le _ _
+
+@[simp] lemma map_le_restrict_range {β} {ma : outer_measure α} {mb : outer_measure β} {f : α → β} :
+  map f ma ≤ restrict (range f) mb ↔ map f ma ≤ mb :=
+⟨λ h, h.trans (restrict_le_self _ _), λ h s, by simpa using h (s ∩ range f)⟩
+
+lemma map_comap_of_surjective {β} {f : α → β} (hf : surjective f) (m : outer_measure β) :
   map f (comap f m) = m :=
 ext $ λ s, by rw [map_apply, comap_apply, hf.image_preimage]
 
@@ -339,17 +386,15 @@ lemma comap_map {β} {f : α → β} (hf : injective f) (m : outer_measure α) :
   comap f (map f m) = m :=
 ext $ λ s, by rw [comap_apply, map_apply, hf.preimage_image]
 
-/-- Restrict an `outer_measure` to a set. -/
-def restrict (s : set α) : outer_measure α →ₗ[ℝ≥0∞] outer_measure α :=
-(map coe).comp (comap (coe : s → α))
-
-@[simp] lemma restrict_apply (s t : set α) (m : outer_measure α) :
-  restrict s m t = m (t ∩ s) :=
-by simp [restrict]
-
-theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ∞ :=
+@[simp] theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ∞ :=
 let ⟨a, as⟩ := h in
 top_unique $ le_trans (by simp [smul_dirac_apply, as]) (le_bsupr (∞ • dirac a) trivial)
+
+@[simp] theorem comap_top (f : α → β) : comap f ⊤ = ⊤ :=
+ext_nonempty $ λ s hs, by rw [comap_apply, top_apply hs, top_apply (hs.image _)]
+
+theorem map_top (f : α → β) (hf : surjective f) : map f ⊤ = ⊤ :=
+ext_nonempty $ λ s hs, by rw [map_apply, top_apply hs, top_apply (hs.preimage hf)]
 
 end basic
 
@@ -440,7 +485,7 @@ begin
   ... ≤ ∑' i, m (f i) : ennreal.tsum_le_tsum (λ i, of_function_le _)
 end
 
-lemma comap_of_function {β} {f : β → α} (h_mono : monotone m) :
+lemma comap_of_function_of_mono {β} (f : β → α) (h_mono : monotone m) :
   comap f (outer_measure.of_function m m_empty) =
     outer_measure.of_function (λ s, m (f '' s)) (by rwa set.image_empty) :=
 begin
@@ -454,19 +499,41 @@ begin
     exact h_mono (image_preimage_subset _ _) }
 end
 
+lemma comap_of_function_of_surjective {β} {f : β → α} (hf : surjective f) :
+  comap f (outer_measure.of_function m m_empty) =
+    outer_measure.of_function (λ s, m (f '' s)) (by rwa set.image_empty) :=
+begin
+  refine le_antisymm (le_of_function.2 $ λ s, _) (λ s, _),
+  { rw comap_apply, apply of_function_le },
+  { rw [comap_apply, of_function_apply, of_function_apply],
+    refine infi_le_infi2 (λ t, ⟨λ k, f ⁻¹' (t k), _⟩),
+    refine infi_le_infi2 (λ ht, _),
+    rw [set.image_subset_iff, preimage_Union] at ht,
+    refine ⟨ht, ennreal.tsum_le_tsum $ λ n, le_of_eq _⟩,
+    rw [hf.image_preimage] }
+end
+
 lemma map_of_function_le {β} (f : α → β) :
   map f (outer_measure.of_function m m_empty) ≤
     outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty :=
 le_of_function.2 $ λ s, by { rw map_apply, apply of_function_le }
 
-lemma map_of_function {β} (h_mono : monotone m)
-  {f : α → β} (hf : bijective f) :
+lemma map_of_function {β} {f : α → β} (hf : bijective f) :
   map f (outer_measure.of_function m m_empty) =
     outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty :=
 begin
-  refine eq.trans _ (map_comap hf.surjective _),
-  rw [comap_of_function],
-  { simp only [hf.injective.preimage_image] },
+  refine eq.trans _ (map_comap_of_surjective hf.surjective _),
+  rw [comap_of_function_of_surjective hf.surjective],
+  simp only [hf.injective.preimage_image]
+end
+
+lemma map_of_function' {β} {f : α → β} (h_mono : monotone m) (hf : injective f) :
+  map f (outer_measure.of_function m m_empty) =
+    restrict (range f) (outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty) :=
+begin
+  refine eq.trans _ (map_comap _ _),
+  rw [comap_of_function_of_mono],
+  { simp only [hf.preimage_image] },
   { exact h_mono.comp monotone_preimage }
 end
 
@@ -723,35 +790,106 @@ lemma Inf_apply {m : set (outer_measure α)} {s : set α} (h : m.nonempty) :
     ∑' n, ⨅ (μ : outer_measure α) (h3 : μ ∈ m), μ (t n) :=
 by simp_rw [Inf_eq_bounded_by_Inf_gen, bounded_by_apply, supr_Inf_gen_nonempty h]
 
+/-- The value of the Infimum of a set of outer measures on a nonempty set is not simply
+the minimum value of a measure on that set: it is the infimum sum of measures of countable set of
+sets that covers that set, where a different measure can be used for each set in the cover. -/
+lemma Inf_apply' {m : set (outer_measure α)} {s : set α} (h : s.nonempty) :
+  Inf m s = ⨅ (t : ℕ → set α) (h2 : s ⊆ Union t),
+    ∑' n, ⨅ (μ : outer_measure α) (h3 : μ ∈ m), μ (t n) :=
+m.eq_empty_or_nonempty.elim (λ hm, by simp [hm, h]) Inf_apply
+
+/-- The value of the Infimum of a nonempty family of outer measures on a set is not simply
+the minimum value of a measure on that set: it is the infimum sum of measures of countable set of
+sets that covers that set, where a different measure can be used for each set in the cover. -/
+lemma infi_apply {ι} [nonempty ι] (m : ι → outer_measure α) (s : set α) :
+  (⨅ i, m i) s = ⨅ (t : ℕ → set α) (h2 : s ⊆ Union t), ∑' n, ⨅ i, m i (t n) :=
+by { rw [infi, Inf_apply (range_nonempty m)], simp only [infi_range] }
+
+/-- The value of the Infimum of a family of outer measures on a nonempty set is not simply
+the minimum value of a measure on that set: it is the infimum sum of measures of countable set of
+sets that covers that set, where a different measure can be used for each set in the cover. -/
+lemma infi_apply' {ι} (m : ι → outer_measure α) {s : set α} (hs : s.nonempty) :
+  (⨅ i, m i) s = ⨅ (t : ℕ → set α) (h2 : s ⊆ Union t), ∑' n, ⨅ i, m i (t n) :=
+by { rw [infi, Inf_apply' hs], simp only [infi_range] }
+
+/-- The value of the Infimum of a nonempty family of outer measures on a set is not simply
+the minimum value of a measure on that set: it is the infimum sum of measures of countable set of
+sets that covers that set, where a different measure can be used for each set in the cover. -/
+lemma binfi_apply {ι} {I : set ι} (hI : I.nonempty) (m : ι → outer_measure α) (s : set α) :
+  (⨅ i ∈ I, m i) s = ⨅ (t : ℕ → set α) (h2 : s ⊆ Union t), ∑' n, ⨅ i ∈ I, m i (t n) :=
+by { haveI := hI.to_subtype, simp only [← infi_subtype'', infi_apply] }
+
+/-- The value of the Infimum of a nonempty family of outer measures on a set is not simply
+the minimum value of a measure on that set: it is the infimum sum of measures of countable set of
+sets that covers that set, where a different measure can be used for each set in the cover. -/
+lemma binfi_apply' {ι} (I : set ι) (m : ι → outer_measure α) {s : set α} (hs : s.nonempty) :
+  (⨅ i ∈ I, m i) s = ⨅ (t : ℕ → set α) (h2 : s ⊆ Union t), ∑' n, ⨅ i ∈ I, m i (t n) :=
+by { simp only [← infi_subtype'', infi_apply' _ hs] }
+
+lemma map_infi_le {ι β} (f : α → β) (m : ι → outer_measure α) :
+  map f (⨅ i, m i) ≤ ⨅ i, map f (m i) :=
+(map_mono f).map_infi_le
+
+lemma comap_infi_le {ι β} (f : α → β) (m : ι → outer_measure β) :
+  comap f (⨅ i, m i) ≤ ⨅ i, comap f (m i) :=
+(comap_mono f).map_infi_le
+
+lemma comap_infi {ι β} (f : α → β) (m : ι → outer_measure β) :
+  comap f (⨅ i, m i) = ⨅ i, comap f (m i) :=
+begin
+  refine ext_nonempty (λ s hs, _),
+  refine ((comap_mono f).map_infi_le s).antisymm _,
+  simp only [comap_apply, infi_apply' _ hs, infi_apply' _ (hs.image _),
+    le_infi_iff, set.image_subset_iff, preimage_Union],
+  refine λ t ht, infi_le_of_le _ (infi_le_of_le ht $ ennreal.tsum_le_tsum $ λ k, _),
+  exact infi_le_infi (λ i, (m i).mono (image_preimage_subset _ _))
+end
+
+lemma map_infi {ι β} {f : α → β} (hf : injective f) (m : ι → outer_measure α) :
+  map f (⨅ i, m i) = restrict (range f) (⨅ i, map f (m i)) :=
+begin
+  refine eq.trans _ (map_comap _ _),
+  simp only [comap_infi, comap_map hf]
+end
+
+lemma map_infi_comap {ι β} [nonempty ι] {f : α → β} (m : ι → outer_measure β) :
+  map f (⨅ i, comap f (m i)) = ⨅ i, map f (comap f (m i)) :=
+begin
+  refine (map_infi_le _ _).antisymm (λ s, _),
+  simp only [map_apply, comap_apply, infi_apply, le_infi_iff],
+  refine λ t ht, infi_le_of_le (λ n, f '' (t n) ∪ (range f)ᶜ) (infi_le_of_le _ _),
+  { rw [← Union_union, set.union_comm, ← inter_subset, ← image_Union,
+      ← image_preimage_eq_inter_range],
+    exact image_subset _ ht },
+  { refine ennreal.tsum_le_tsum (λ n, infi_le_infi (λ i, (m i).mono _)),
+    simp }
+end
+
+lemma map_binfi_comap {ι β} {I : set ι} (hI : I.nonempty) {f : α → β} (m : ι → outer_measure β) :
+  map f (⨅ i ∈ I, comap f (m i)) = ⨅ i ∈ I, map f (comap f (m i)) :=
+by { haveI := hI.to_subtype, rw [← infi_subtype'', ← infi_subtype''], exact map_infi_comap _ }
+
+lemma restrict_infi_restrict {ι} (s : set α) (m : ι → outer_measure α) :
+  restrict s (⨅ i, restrict s (m i)) = restrict s (⨅ i, m i) :=
+calc restrict s (⨅ i, restrict s (m i)) = restrict (range (coe : s → α)) (⨅ i, restrict s (m i)) :
+  by rw [subtype.range_coe]
+... = map (coe : s → α) (⨅ i, comap coe (m i)) : (map_infi subtype.coe_injective _).symm
+... = restrict s (⨅ i, m i) : congr_arg (map coe) (comap_infi _ _).symm
+
+lemma restrict_infi {ι} [nonempty ι] (s : set α) (m : ι → outer_measure α) :
+  restrict s (⨅ i, m i) = ⨅ i, restrict s (m i) :=
+(congr_arg (map coe) (comap_infi _ _)).trans (map_infi_comap _)
+
+lemma restrict_binfi {ι} {I : set ι} (hI : I.nonempty) (s : set α) (m : ι → outer_measure α) :
+  restrict s (⨅ i ∈ I, m i) = ⨅ i ∈ I, restrict s (m i) :=
+by { haveI := hI.to_subtype, rw [← infi_subtype'', ← infi_subtype''], exact restrict_infi _ _ }
+
 /-- This proves that Inf and restrict commute for outer measures, so long as the set of
 outer measures is nonempty. -/
 lemma restrict_Inf_eq_Inf_restrict
   (m : set (outer_measure α)) {s : set α} (hm : m.nonempty) :
   restrict s (Inf m) = Inf ((restrict s) '' m) :=
-begin
-  have hm2 : ((measure_theory.outer_measure.restrict s) '' m).nonempty :=
-    set.nonempty_image_iff.mpr hm,
-  ext1 u, rw [restrict_apply, Inf_apply hm, Inf_apply hm2],
-  apply le_antisymm; simp only [set.mem_image, infi_exists, le_infi_iff]; intros t hu,
-  { refine infi_le_of_le (λ n, (t n) ∩ s) _,
-    refine infi_le_of_le _ _,
-    { rw [← Union_inter], exact inter_subset_inter hu subset.rfl },
-    apply ennreal.tsum_le_tsum (λ n, _) ,
-    simp only [and_imp, set.mem_image, infi_exists, le_infi_iff],
-    rintro _ ⟨μ, h_μ_in_s, rfl⟩,
-    refine infi_le_of_le μ _,
-    refine infi_le_of_le h_μ_in_s _,
-    simp_rw [restrict_apply, le_refl] },
-  { refine infi_le_of_le (λ n, (t n) ∪ sᶜ) _,
-    refine infi_le_of_le _ _,
-    { rwa [inter_subset, set.union_comm, Union_union] at hu },
-    apply ennreal.tsum_le_tsum (λ n, _),
-    refine le_binfi (λ μ hμ, _),
-    refine infi_le_of_le (restrict s μ) _,
-    refine infi_le_of_le ⟨_, hμ, rfl⟩ _,
-    rw [restrict_apply, union_inter_distrib_right, compl_inter_self, set.union_empty],
-    exact μ.mono (inter_subset_left _ _) },
-end
+by simp only [Inf_eq_infi, restrict_binfi, hm, infi_image]
 
 end Inf_gen
 

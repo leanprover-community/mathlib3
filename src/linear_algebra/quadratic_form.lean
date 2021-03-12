@@ -486,7 +486,7 @@ associated_hom ℤ
 /-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
 bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
 lemma exists_quadratic_form_neq_zero [nontrivial M]
-  {Q : quadratic_form R M} (hB₁ : (associated' Q).nondegenerate) :
+  {Q : quadratic_form R M} (hB₁ : Q.associated'.nondegenerate) :
   ∃ x, Q x ≠ 0 :=
 begin
   rw nondegenerate at hB₁,
@@ -678,14 +678,14 @@ end quadratic_form
 namespace bilin_form
 
 /-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
-on a nontrivial module `M` over the commring `R` with invertible `2`, i.e. there exists some
+on a nontrivial module `M` over a ring `R` with invertible `2`, i.e. there exists some
 `x : M` such that `B x x ≠ 0`. -/
 lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
   {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
   ∃ x, ¬ B.is_ortho x x :=
 begin
-  have : (quadratic_form.associated' (B.to_quadratic_form)).nondegenerate,
-  { simpa [(quadratic_form.associated_left_inverse hB₂)] using hB₁ },
+  have : B.to_quadratic_form.associated'.nondegenerate,
+  { simpa [quadratic_form.associated_left_inverse hB₂] using hB₁ },
   obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero this,
   refine ⟨x, λ h, hx (B.to_quadratic_form_apply x ▸ h)⟩,
 end

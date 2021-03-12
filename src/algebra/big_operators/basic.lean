@@ -973,8 +973,7 @@ lemma prod_erase [decidable_eq α] (s : finset α) {f : α → β} {a : α} (h :
   ∏ x in s.erase a, f x = ∏ x in s, f x :=
 begin
   rw ←sdiff_singleton_eq_erase,
-  apply prod_subset sdiff_subset_self,
-  intros x hx hnx,
+  refine prod_subset (sdiff_subset _ _) (λ x hx hnx, _),
   rw sdiff_singleton_eq_erase at hnx,
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end

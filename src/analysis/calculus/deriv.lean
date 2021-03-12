@@ -273,7 +273,7 @@ has_deriv_at_filter_iff_tendsto_slope
 
 @[simp] lemma has_deriv_within_at_diff_singleton :
   has_deriv_within_at f f' (s \ {x}) x ↔ has_deriv_within_at f f' s x :=
-by simp only [has_deriv_within_at_iff_tendsto_slope, sdiff_idem_right]
+by simp only [has_deriv_within_at_iff_tendsto_slope, sdiff_idem]
 
 @[simp] lemma has_deriv_within_at_Ioi_iff_Ici [partial_order 𝕜] :
   has_deriv_within_at f f' (Ioi x) x ↔ has_deriv_within_at f f' (Ici x) x :=

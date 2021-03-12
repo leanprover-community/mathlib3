@@ -202,8 +202,8 @@ lemma le_iff_disjoint_sdiff (hz : z ≤ y) (hx : x ≤ y) : z ≤ x ↔ disjoint
 (disjoint_sdiff_iff_le hz hx).symm
 
 -- cf. `is_compl.inf_left_eq_bot_iff` and `is_compl.inf_right_eq_bot_iff`
-lemma inf_sdiff_eq_bot_iff (hz : z ≤ y) (hx : x ≤ y) : z ≤ x ↔ z ⊓ (y \ x) = ⊥ :=
-by { rw ←disjoint_iff, exact le_iff_disjoint_sdiff hz hx }
+lemma inf_sdiff_eq_bot_iff (hz : z ≤ y) (hx : x ≤ y) : z ⊓ (y \ x) = ⊥ ↔ z ≤ x :=
+by { rw ←disjoint_iff, exact disjoint_sdiff_iff_le hz hx }
 
 -- cf. `is_compl.left_le_iff` and `is_compl.right_le_iff`
 lemma le_iff_eq_sup_sdiff (hz : z ≤ y) (hx : x ≤ y) : x ≤ z ↔ y = z ⊔ (y \ x) :=
@@ -252,7 +252,7 @@ sdiff_unique
   ... = (y ⊔ z) ⊓ ((y ⊓ x) ⊔ (y \ x ⊔ y \ z)) :
                                             by rw [sup_sdiff_same_left, ←sup_assoc, sup_sdiff_right]
   ... = (y ⊔ z) ⊓ y                              : by rw [←sup_assoc, sup_inf_sdiff, sup_sdiff_left]
-  ... = y                                                          : by rw [inf_comm, inf_sup_self])
+  ... = y                                                   : by rw [inf_comm, inf_sup_self])
   (calc y ⊓ (x ⊓ z) ⊓ ((y \ x) ⊔ (y \ z)) =
         (y ⊓ (x ⊓ z) ⊓ (y \ x)) ⊔ (y ⊓ (x ⊓ z) ⊓ (y \ z)) : by rw inf_sup_left
   ... = z ⊓ (y ⊓ x ⊓ (y \ x)) ⊔ z ⊓ (y ⊓ x) ⊓ (y \ z)     : by ac_refl
@@ -280,6 +280,10 @@ le_of_inf_le_sup_le
   (calc w \ x ⊔ (w ⊓ z) ≤ w \ x ⊔ (w ⊓ x)   : sup_le_sup le_rfl (inf_le_inf le_rfl h)
                     ... ≤ w                 : by rw [sup_comm, sup_inf_sdiff]
                     ... = (w \ z) ⊔ (w ⊓ z) : by rw [sup_comm, sup_inf_sdiff])
+
+lemma sdiff_eq_bot_iff : y \ x = ⊥ ↔ y ≤ x :=
+⟨λ h, by rw [←inf_eq_left, ←@sup_bot_eq _ _ (y ⊓ x), ←h, sup_inf_sdiff],
+ λ h, by { rw ←le_bot_iff, apply le_trans (sdiff_le_sdiff_same h), rw [le_bot_iff, sdiff_self], }⟩
 
 lemma sdiff_le_same_sdiff (h : w ≤ y) : w \ x ≤ y \ x :=
 le_of_inf_le_sup_le

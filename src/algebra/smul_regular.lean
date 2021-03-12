@@ -175,7 +175,7 @@ end comm_monoid
 
 /-- Left-regularity in a `semiring R` is equivalent to `M`-regularity, when
 the `R`-module `M` is `R`.  -/
-lemma is_left_regular_iff {R : Type*} [semiring R] (a : R) :
+lemma is_left_regular_iff {R : Type*} [monoid R] (a : R) :
   is_left_regular a ↔ module.is_smul_regular R a :=
 iff.rfl
 

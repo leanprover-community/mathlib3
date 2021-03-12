@@ -98,7 +98,7 @@ by {simp_rw [irreducible_iff_uniformizer],
 
 /-- Uniformisers exist in a DVR -/
 theorem exists_prime : ∃ ϖ : R, prime ϖ :=
-exists_imp_exists (λ _, principal_ideal_ring.irreducible_iff_prime.1) (exists_irreducible R)
+(exists_irreducible R).imp (λ _, principal_ideal_ring.irreducible_iff_prime.1)
 
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
 theorem iff_pid_with_one_nonzero_prime (R : Type u) [integral_domain R] :

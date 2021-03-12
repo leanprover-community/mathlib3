@@ -250,6 +250,8 @@ variable [semilattice_inf P]
 (proper : proper I) 
 (mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
+end semilattice_inf
+
 end ideal
 
 /-- For a preorder `P`, `cofinal P` is the type of subsets of `P`

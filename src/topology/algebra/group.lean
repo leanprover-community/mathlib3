@@ -633,13 +633,12 @@ instance multiplicative.topological_group {G} [h : topological_space G]
 { continuous_inv := @continuous_neg G _ _ _ }
 
 /-- An alternative characterization of a `topological_add_group`, given by
-  axiomatizing properties of a filter basis for the neighborhood filter at `0`.
-  (note: I had to write (x₀+x+(-x₀)) ) -/
+  axiomatizing properties of a filter basis for the neighborhood filter at `0`. -/
 class add_group_filter_basis (G : Type*) [add_group G] extends filter_basis G :=
 (zero : ∀ {U}, U ∈ sets → (0 : G) ∈ U)
 (add : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V + V ⊆ U)
-(neg : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ (λ x, -x) ⁻¹' U)
-(conj : ∀ x₀, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ (λ x, x₀+x+(-x₀)) ⁻¹' U)
+(neg : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ has_neg.neg ⁻¹' U)
+(conj' : ∀ g, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ (λ h, g+h-g) ⁻¹' U)
 
 /-- An alternative characterization of a `topological_group`, given by
   axiomatizing properties of a filter basis for the neighborhood filter at `1`. -/
@@ -647,8 +646,8 @@ class add_group_filter_basis (G : Type*) [add_group G] extends filter_basis G :=
 class group_filter_basis (G : Type*) [group G] extends filter_basis G :=
 (one : ∀ {U}, U ∈ sets → (1 : G) ∈ U)
 (mul : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V * V ⊆ U)
-(inv : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ (λ x, x⁻¹) ⁻¹' U)
-(conj : ∀ x₀, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ (λ x, x₀*x*x₀⁻¹) ⁻¹' U)
+(inv : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ has_inv.inv ⁻¹' U)
+(conj' : ∀ g, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ mul_aut.conj g ⁻¹' U)
 
 instance group_filter_basis.has_mem {α : Type*} [group α] :
   has_mem (set α) (group_filter_basis α) := ⟨λ s f, s ∈ f.sets⟩
@@ -658,6 +657,14 @@ instance add_group_filter_basis.has_mem {α : Type*} [add_group α] :
 namespace group_filter_basis
 
 variables {G} [group G]
+
+lemma conj {G : Type*} [group G] (f : group_filter_basis G) (g : G) {U} (hU : U ∈ f) :
+  ∃ V ∈ f, V ⊆ (λ h, g*h*g⁻¹) ⁻¹' U :=
+group_filter_basis.conj' g _ hU
+
+lemma add_conj {G : Type*} [add_group G] (f : add_group_filter_basis G) (g : G) {U} (hU : U ∈ f) :
+  ∃ V ∈ f, V ⊆ (λ h, g+h-g) ⁻¹' U :=
+add_group_filter_basis.conj' g _ hU
 
 @[to_additive]
 lemma mul_subset_self (f : group_filter_basis G) {U : set G} (h : U ∈ f) : U ⊆ U*U :=

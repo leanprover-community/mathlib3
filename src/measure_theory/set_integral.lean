@@ -378,7 +378,7 @@ integral_congr_ae ((ae_restrict_iff' hs).2 h)
 lemma set_integral_congr (hs : measurable_set s) (h : eq_on f g s) :
   ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
 set_integral_congr_ae hs $ eventually_of_forall h
-set_option pp.implicit true
+
 lemma integral_union (hst : disjoint s t) (hs : measurable_set s) (ht : measurable_set t)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=

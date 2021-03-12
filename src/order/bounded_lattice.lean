@@ -1032,9 +1032,20 @@ end bounded_lattice
 
 variables [bounded_distrib_lattice α] {x y z : α}
 
+lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
+inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
+
+lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
+h.symm.inf_left_eq_bot_iff
+
+lemma disjoint_left_iff (h : is_compl y z) : disjoint x y ↔ x ≤ z :=
+by { rw [disjoint_iff], exact h.inf_left_eq_bot_iff }
+
+lemma disjoint_right_iff (h : is_compl y z) : disjoint x z ↔ x ≤ y :=
+h.symm.disjoint_left_iff
+
 lemma le_left_iff (h : is_compl x y) : z ≤ x ↔ disjoint z y :=
-⟨λ hz, h.disjoint.mono_left hz,
-  λ hz, le_of_inf_le_sup_le (le_trans hz bot_le) (le_trans le_top h.top_le_sup)⟩
+h.disjoint_right_iff.symm
 
 lemma le_right_iff (h : is_compl x y) : z ≤ y ↔ disjoint z x :=
 h.symm.le_left_iff
@@ -1068,18 +1079,6 @@ of_eq
 lemma inf_sup {x' y'} (h : is_compl x y) (h' : is_compl x' y') :
   is_compl (x ⊓ x') (y ⊔ y') :=
 (h.symm.sup_inf h'.symm).symm
-
-lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
-inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
-
-lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
-h.symm.inf_left_eq_bot_iff
-
-lemma disjoint_left_iff (h : is_compl y z) : disjoint x y ↔ x ≤ z :=
-disjoint_iff.trans h.inf_left_eq_bot_iff
-
-lemma disjoint_right_iff (h : is_compl y z) : disjoint x z ↔ x ≤ y :=
-h.symm.disjoint_left_iff
 
 end is_compl
 

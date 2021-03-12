@@ -823,22 +823,25 @@ end
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 variables {b : n → M} (hb : is_basis R b)
 
-lemma to_lin_bijective [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
-  function.bijective (to_lin hb hb A) :=
-begin
-  refine function.bijective_iff_has_inverse.mpr ⟨to_lin hb hb A⁻¹, λ x, _, λ x, _⟩;
-    simp only [← linear_map.comp_apply, ← to_lin_mul,
-               matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
-               to_lin_one, linear_map.id_apply]
-end
+include hb
 
+/-- `to_lin hb hb A` is a linear_equiv if `is_unit A.det` -/
+@[simps apply]
+def to_lin_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+  M ≃ₗ[R] M :=
+begin
+  refine ⟨to_lin hb hb A, linear_map.map_add _, linear_map.map_smul _, to_lin hb hb A⁻¹, λ x, _, λ x, _⟩;
+  simp only [← linear_map.comp_apply, ← to_lin_mul,
+             matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
+             to_lin_one, linear_map.id_apply]
+end
 lemma ker_to_lin_eq_bot [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   (to_lin hb hb A).ker = ⊥ :=
-ker_eq_bot.mpr (to_lin_bijective hb A hA).injective
+ker_eq_bot.mpr (to_lin_equiv hb A hA).injective
 
 lemma range_to_lin_eq_top [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   (to_lin hb hb A).range = ⊤ :=
-range_eq_top.mpr (to_lin_bijective hb A hA).surjective
+range_eq_top.mpr (to_lin_equiv hb A hA).surjective
 
 end vector_space
 

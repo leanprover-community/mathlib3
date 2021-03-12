@@ -270,7 +270,7 @@ begin
 end
 
 @[to_additive]
-lemma topological_group.of_nhds_one {G : Type*} [group G] [topological_space G]
+lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
   (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
@@ -631,3 +631,82 @@ instance additive.topological_add_group {G} [h : topological_space G]
 instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
+
+/-- An alternative characterization of a `topological_add_group`, given by
+  axiomatizing properties of a filter basis for the neighborhood filter at `0`.
+  (note: I had to write (x₀+x+(-x₀)) ) -/
+class add_group_filter_basis (G : Type*) [add_group G] extends filter_basis G :=
+(zero : ∀ {U}, U ∈ sets → (0 : G) ∈ U)
+(add : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V + V ⊆ U)
+(neg : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ (λ x, -x) ⁻¹' U)
+(conj : ∀ x₀, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ (λ x, x₀+x+(-x₀)) ⁻¹' U)
+
+/-- An alternative characterization of a `topological_group`, given by
+  axiomatizing properties of a filter basis for the neighborhood filter at `1`. -/
+@[to_additive]
+class group_filter_basis (G : Type*) [group G] extends filter_basis G :=
+(one : ∀ {U}, U ∈ sets → (1 : G) ∈ U)
+(mul : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V * V ⊆ U)
+(inv : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ (λ x, x⁻¹) ⁻¹' U)
+(conj : ∀ x₀, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ (λ x, x₀*x*x₀⁻¹) ⁻¹' U)
+
+instance group_filter_basis.has_mem {α : Type*} [group α] :
+  has_mem (set α) (group_filter_basis α) := ⟨λ s f, s ∈ f.sets⟩
+instance add_group_filter_basis.has_mem {α : Type*} [add_group α] :
+  has_mem (set α) (add_group_filter_basis α) := ⟨λ s f, s ∈ f.sets⟩
+
+namespace group_filter_basis
+
+variables {G} [group G]
+
+@[to_additive]
+lemma mul_subset_self (f : group_filter_basis G) {U : set G} (h : U ∈ f) : U ⊆ U*U :=
+λ x x_in, (mul_one x) ▸ set.mul_mem_mul x_in $ group_filter_basis.one h
+
+/-- The neighborhood function of a `group_filter_basis`. -/
+@[to_additive]
+def N (f : group_filter_basis G) : G → filter G :=
+λ x, filter.map (λ y, x*y) f.to_filter_basis.filter
+
+/-- The neighborhood of 1 is just the `filter` associated with the `group_filter_basis`. -/
+@[simp, to_additive]
+lemma N_one (f : group_filter_basis G) : f.N 1 = f.to_filter_basis.filter :=
+by simp only [N, one_mul, filter.map_id']
+
+/-- The topological group associated with a group filter basis. -/
+@[to_additive]
+lemma to_topological_group [topological_space G]
+  (basis : group_filter_basis G) (hnhds : ∀ x₀ : G, nhds x₀ = basis.N x₀) : topological_group G :=
+begin
+  refine topological_group.of_nhds_one _ _ _ _,
+  { rw [hnhds 1, N_one],
+    intros V V_in,
+    rcases V_in with ⟨W₀, W₀_in, hW₀⟩,
+    rcases mul W₀_in with ⟨W, W_in, hW⟩,
+    rw [filter.mem_map, filter.mem_prod_iff],
+    use [W, to_filter_basis.mem_filter_of_mem W_in, W, to_filter_basis.mem_filter_of_mem W_in],
+    intros w hw,
+    apply trans hW hW₀,
+    use [w.1, w.2, hw.1, hw.2],
+    rwa function.uncurry },
+  { rw [hnhds 1, N_one],
+    intros V V_in,
+    rcases V_in with ⟨W₀, W₀_in, hW₀⟩,
+    rcases inv W₀_in with ⟨W, W_in, hW⟩,
+    rw filter.mem_map,
+    use [W, W_in],
+    exact id (λ w hw, hW₀ (hW hw)) },
+  { intro x₀,
+    rw [hnhds x₀, hnhds 1, N],
+    simp only [one_mul, filter.map_id'] },
+  { intro x₀,
+    rw [hnhds 1, N_one],
+    intros V V_in,
+    rcases V_in with ⟨W₀, W₀_in, hW₀⟩,
+    rcases conj x₀ _ W₀_in with ⟨W, W_in, hW⟩,
+    rw filter.mem_map,
+    use [W, W_in],
+    exact id (λ h hw, hW₀ (hW hw)) }
+end
+
+end group_filter_basis

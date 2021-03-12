@@ -6,6 +6,7 @@ import set_theory.zfc
 import topology.category.Profinite
 import topology.locally_constant.algebra
 import topology.algebra.continuous_functions
+import topology.metric_space.basic
 
 variables {A : Type*} [integral_domain A] [algebra ℚ A]
 
@@ -63,16 +64,23 @@ structure  distribution {R : Type*} [add_monoid R] :=
 
 instance semi {R : Type*} [semiring R] : semimodule R (locally_constant X R) := sorry
 
-structure distribution' {R : Type*} [semiring R] [topological_space R] :=
-(phi : (locally_constant X R) →ₗ[R] R)
-
 variables {R : Type*} [ring R] {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
 
-def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : Γ₀, v (φ.phi S) ≤ K }
+instance dis [topological_space R] : has_dist C(X,R) := sorry
 
-def measures' [topological_space R] := {φ : @distribution' X R _ _ // ∀ f : (locally_constant X R), ∃ K : Γ₀, v (φ.phi f) ≤ K }
+noncomputable instance met [topological_space R] : metric_space C(X,R) := sorry
+/-{
+  dist_self := sorry
+  eq_of_dist_eq_zero := sorry
+  dist_comm := sorry
+  dist_triangle := sorry
+  edist := sorry
+  edist_dist := sorry
+  to_uniform_space := sorry
+  uniformity_dist := sorry
+}-/
 
-instance uniform [topological_space R] : uniform_space C(X, R) := sorry
+noncomputable instance uniform [topological_space R] : uniform_space C(X, R) := metric_space.to_uniform_space'
 
 instance completeness [topological_space R] : complete_space C(X, R) := sorry
 
@@ -83,10 +91,55 @@ lemma sub [topological_space R] [topological_ring R] : function.injective (@incl
 
 instance topo_space :  topological_space (locally_constant ↥X R) := sorry
 
+lemma totally_disconnected_space.is_disconnected {A : Type*} [topological_space A]
+  [totally_disconnected_space A] : ∃ (U V : set A) (hU : is_open U) (hV : is_open V)
+    (hnU : U.nonempty) (hnV : V.nonempty) (hdis : disjoint U V), U ∪ V = ⊤:= sorry
+
+open classical
+local attribute [instance] prop_decidable
+
+noncomputable def char_fn (U : clopen_sets X) : locally_constant X R :=
+{
+  to_fun := λ x, if (x ∈ U.val) then 1 else 0,
+  is_locally_constant := sorry
+}
+
+lemma exists_local (a b : X) (h : a ≠ b) : ∃ (f : locally_constant X R), f a = 1 ∧ f b = 0 := sorry
+
+lemma exists_local' [has_norm R] [topological_space R] [topological_ring R] (g : C(X,R)) (U : set X) [is_open U] :
+   ∀ (x : X) (h : x ∈ U) (ε : ℝ) [hε : ε > 0], ∃ (f : locally_constant X R) (V : set X)
+    (hV : is_open V) (hVx : x ∈ V), ∀ (y : X) (hy : y ∈ V), ∥(g - (inclusion X f)) y∥ < ε := sorry
+/-def char_fn (U : clopen_sets X) : locally_constant X R :=
+{
+  to_fun := { decidable_pred (λ (x : X), if x ∈ U.val then 1 else 0) }
+  is_locally_constant := sorry
+}-/
+--lemma exists_loc : ∀ (a b : X) (h : a ≠ b), ∃ (f : locally_constant X R), f a = 1 ∧
+
+lemma dense_C [topological_space R] [topological_ring R] [has_norm R] :
+  @dense (C(X,R)) _ (set.range (inclusion X)) :=
+begin
+  rintros f,
+  rw metric.mem_closure_iff,
+  rintros ε hε,
+  have h := @totally_disconnected_space.is_disconnected X _ _,
+  rcases h with ⟨U, V, hU, hV, hnU, hnV, hdis, h⟩,
+  set x := classical.some hnU with hx,
+  set y := classical.some hnV with hy,
+  rcases @exists_local' X R _ _ _ _ f U hU x _ ε hε with ⟨kx, Vx, hVx, mem_hVx, hkx⟩,
+-- working with clopen sets makes life easy
+--  rcases exists_local X x y _ with ⟨f, hf1, hf2⟩,
+end
+
+structure distribution' {R : Type*} [semiring R] [topological_space R] :=
+(phi : (locally_constant X R) →ₗ[R] R)
+
+def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : Γ₀, v (φ.phi S) ≤ K }
+
+def measures' [topological_space R] := {φ : @distribution' X R _ _ // ∀ f : (locally_constant X R), ∃ K : Γ₀, v (φ.phi f) ≤ K }
+
 noncomputable def integral [topological_space R] [topological_ring R] (φ : measures' X v) : C(X, R) →ₗ[R] R :=
 begin
-  have f : @dense (C(X,R)) _ (set.range (inclusion X)),
-  sorry,
   split,
   swap 3,
   {  apply dense_inducing.extend _ (φ.1).phi,

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison
 -/
 import algebra.monoid_algebra
-import algebra.char_p.basic
 import algebra.char_p.invertible
 import linear_algebra.basis
 import ring_theory.simple_module

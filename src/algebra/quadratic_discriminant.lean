@@ -3,9 +3,9 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import tactic.linarith
-import order.filter.at_top_bot
 import algebra.char_p.invertible
+import order.filter.at_top_bot
+import tactic.linarith
 
 /-!
 # Quadratic discriminants and roots of a quadratic

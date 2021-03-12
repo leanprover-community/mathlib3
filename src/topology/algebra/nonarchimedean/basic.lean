@@ -18,6 +18,9 @@ open neighborhoods of the identity element in the group consisting of open subgr
 A nonarchimedean ring is a topological ring whose underlying topological (additive)
 group is nonarchimedean.
 
+Note that the data of a nonarchimedean topological group is equivalent to the data of a collection
+of open subgroups satisfying
+
 ## Definitions
 
 - `nonarchimedean_add_group`: nonarchimedean additive group.
@@ -134,66 +137,3 @@ begin
 end
 
 end nonarchimedean_ring
-
-class add_group_filter_basis (α : Type*) [add_group α] extends filter_basis α :=
-(zero : ∀ {U}, U ∈ sets → (0 : α) ∈ U)
-(add : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V + V ⊆ U)
-(neg : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ (λ x, -x) ⁻¹' U)
-(conj : ∀ x₀, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ (λ x, x₀+x-x₀) ⁻¹' U)
-
-@[to_additive]
-class group_filter_basis (α : Type*) [group α] extends filter_basis α :=
-(one : ∀ {U}, U ∈ sets → (1 : α) ∈ U)
-(mul : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V * V ⊆ U)
-(inv : ∀ {U}, U ∈ sets → ∃ V ∈ sets, V ⊆ (λ x, x⁻¹) ⁻¹' U)
-(conj : ∀ x₀, ∀ U ∈ sets, ∃ V ∈ sets, V ⊆ (λ x, x₀*x*x₀⁻¹) ⁻¹' U)
-
-instance group_filter_basis.has_mem {α : Type*} [group α] : has_mem (set α) (group_filter_basis α) := ⟨λ s f, s ∈ f.sets⟩
-instance add_group_filter_basis.has_mem {α : Type*} [add_group α] : has_mem (set α) (add_group_filter_basis α) := ⟨λ s f, s ∈ f.sets⟩
-
-namespace group_filter_basis
-variables {α : Type*} [group α]
-
-@[to_additive]
-lemma mul_subset_self (f : group_filter_basis α) {U : set α} (h : U ∈ f) : U ⊆ U*U :=
-λ x x_in, (mul_one x) ▸ set.mul_mem_mul x_in $ group_filter_basis.one h
-
-/-- The neighborhood function of a `group_filter_basis` -/
-@[to_additive]
-def N (f : group_filter_basis α) : α → filter α :=
-λ x, filter.map (λ y, x*y) f.to_filter_basis.filter
-
-@[simp, to_additive]
-lemma N_one (f : group_filter_basis α) : f.N 1 = f.to_filter_basis.filter :=
-by simp only [N, one_mul, filter.map_id']
-
-set_option pp.universes true
-
-@[to_additive]
-lemma to_topological_group {α : Type} [group α] [topological_space α]
-  (basis : group_filter_basis α) (hnhds : ∀ x₀ : α, nhds x₀ = basis.N x₀) : topological_group α :=
-topological_group.of_nhds_one
-begin
-  have hnhds1 := hnhds 1,
-  rw hnhds1,
-end
-  begin end
-  begin end
-  begin end
-/-begin
-  apply topological_group.of_nhds_one,
-  have hnhds1 : nhds 1 = basis.to_filter_basis.filter, by rw [hnhds 1, N_one],
-  { rw [hnhds1, ← basis.to_filter_basis.prod_filter, filter_basis.tendsto_both],
-    intros V V_in,
-    rcases group_filter_basis.mul V_in with ⟨W, W_in, hW⟩,
-    use [set.prod W W, filter_basis.mem_prod_of_mem W_in W_in],
-    rwa [pointwise_mul_eq_image, image_subset_iff] at hW },
-  { rw [hnhds1, basis.to_filter_basis.tendsto_both],
-    exact basis.inv },
-  { exact hnhds1.symm ▸ hnhds },
-  { intro x₀,
-    rw [hnhds1, basis.to_filter_basis.tendsto_both],
-    exact  group_filter_basis.conj x₀ }
-end-/
-
-end group_filter_basis

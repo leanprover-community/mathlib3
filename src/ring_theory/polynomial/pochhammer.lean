@@ -32,9 +32,13 @@ open polynomial
 section
 variables (S : Type u) [semiring S]
 
+/--
+`pochhammer S n` is the polynomial `X * (X+1) * ... * (X + n - 1)`,
+with coefficients in the semiring `S`.
+-/
 noncomputable def pochhammer : ℕ → polynomial S
 | 0 := 1
-| (n+1) := X * (pochhammer n).comp(X + 1)
+| (n+1) := X * (pochhammer n).comp (X + 1)
 
 @[simp] lemma pochhammer_zero : pochhammer S 0 = 1 := rfl
 @[simp] lemma pochhammer_one : pochhammer S 1 = X := by simp [pochhammer]
@@ -63,7 +67,7 @@ end
 begin
   cases n,
   { simp, },
-  { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], } -- should nat.succ_ne_zero be a simp lemma?
+  { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], }
 end
 
 lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=

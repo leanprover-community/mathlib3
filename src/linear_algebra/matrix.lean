@@ -820,31 +820,25 @@ begin
   apply h₂,
 end
 
-variables {V : Type*} [add_comm_group V] [vector_space K V]
-variables {v₁ : n → V} (hv₁ : is_basis K v₁)
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {b : n → M} (hb : is_basis R b)
 
-lemma ker_to_lin_eq_bot [decidable_eq n] (M : matrix n n K) (hM : M.det ≠ 0) :
-  (to_lin hv₁ hv₁ M).ker = ⊥ :=
+lemma to_lin_bijective [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+  function.bijective (to_lin hb hb A) :=
 begin
-  rw submodule.eq_bot_iff,
-  intros x hx,
-  calc x = to_lin hv₁ hv₁ (M⁻¹ ⬝ M) x : by simp [nonsing_inv_mul M (is_unit.mk0 _ hM)]
-     ... = to_lin hv₁ hv₁ M⁻¹ (to_lin hv₁ hv₁ M x) : by simp [to_lin_mul hv₁ hv₁ hv₁]
-     ... = (to_lin hv₁ hv₁ M⁻¹) 0 : by rw mem_ker.mp hx
-     ... = 0 : linear_map.map_zero _
+  refine function.bijective_iff_has_inverse.mpr ⟨to_lin hb hb A⁻¹, λ x, _, λ x, _⟩;
+    simp only [← linear_map.comp_apply, ← to_lin_mul,
+               matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
+               to_lin_one, linear_map.id_apply]
 end
 
-lemma range_to_lin_eq_top [decidable_eq n] (M : matrix n n K) (hM : M.det ≠ 0) :
-  (to_lin hv₁ hv₁ M).range = ⊤ :=
-begin
-  rw eq_top_iff,
-  rintros x -,
-  rw linear_map.mem_range,
-  use to_lin hv₁ hv₁ M⁻¹ x,
-  rw [← linear_map.comp_apply, ← to_lin_mul, mul_nonsing_inv _ (is_unit.mk0 _ hM),
-      to_lin_one, linear_map.id_apply]
-end
+lemma ker_to_lin_eq_bot [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+  (to_lin hb hb A).ker = ⊥ :=
+ker_eq_bot.mpr (to_lin_bijective hb A hA).injective
 
+lemma range_to_lin_eq_top [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
+  (to_lin hb hb A).range = ⊤ :=
+range_eq_top.mpr (to_lin_bijective hb A hA).surjective
 
 end vector_space
 

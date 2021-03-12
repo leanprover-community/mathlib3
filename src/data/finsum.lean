@@ -93,7 +93,7 @@ if h : nonempty (fintype α) then (classical.choice h).elems else ∅
 variable {α : Type u}
 
 /-- `univ' α` is `finset.univ` if `α` is a fintype. -/
-lemma univ'_eq_univ [h : fintype α] : univ' α = univ :=
+@[simp] lemma univ'_eq_univ [h : fintype α] : univ' α = univ :=
 by convert (dif_pos (nonempty.intro h))
 
 lemma univ'_eq_empty (h : ¬ nonempty (fintype α)) : univ' α = ∅ :=

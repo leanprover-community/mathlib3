@@ -37,8 +37,8 @@ variable [has_zero M]
 of `R` on a Type `M` with `0`, such that the equality `r • m = 0` holds if at least one among `r`
 or `m` equals `0`. -/
 class smul_with_zero [has_zero R] extends has_scalar R M :=
-( smul_zero : ∀ r : R, r • (0 : M) = 0 )
-( zero_smul : ∀ m : M, (0 : R) • m = 0 )
+(smul_zero : ∀ r : R, r • (0 : M) = 0)
+(zero_smul : ∀ m : M, (0 : R) • m = 0)
 
 @[simp] lemma zero_smul [has_zero R] [smul_with_zero R M] (m : M) :
   (0 : R) • m = 0 :=
@@ -67,8 +67,9 @@ variable [monoid_with_zero R]
 (both in `R` and in `M`), with `1 ∈ R`, and with associativity of multiplication on the
 monoid `M`. -/
 class mul_action_with_zero extends mul_action R M :=
-( smul_zero : ∀ r : R, r • (0 : M) = 0 )
-( zero_smul : ∀ m : M, (0 : R) • m = 0 )
+-- these fields are copied from `smul_with_zero`, as `extends` behaves poorly
+(smul_zero : ∀ r : R, r • (0 : M) = 0)
+(zero_smul : ∀ m : M, (0 : R) • m = 0)
 
 @[priority 100] -- see Note [lower instance priority]
 instance mul_action_with_zero.to_smul_with_zero [m : mul_action_with_zero R M] :

@@ -164,13 +164,13 @@ begin
 end
 
 lemma proper_iff_ne_top {I : ideal P} : proper I ↔ I ≠ ⊤ :=
-  ⟨λ h, h.ne_top, λ h, proper_of_ne_top h⟩
+⟨λ h, h.ne_top, λ h, proper_of_ne_top h⟩
 
 lemma is_maximal.is_coatom {I : ideal P} (hI : is_maximal I) : is_coatom I :=
-⟨hI.proper.ne_top, λ J hJ, by {rw [ext'_iff, top_coe], exact hI.2 J hJ}⟩
+⟨hI.proper.ne_top, λ J hJ, by { rw [ext'_iff, top_coe], exact hI.2 J hJ }⟩
 
 lemma is_maximal_of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
-  ⟨proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
+⟨proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
 
 end order_top
 

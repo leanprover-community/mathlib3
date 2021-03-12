@@ -204,7 +204,7 @@ begin
 
   congr,
   refine (sum_range_succ' _ _).trans (congr_arg2 (+) _ _),
-  { rw [sum_range_succ, nat.choose_succ_self, cast_zero, C.map_zero, zero_mul, zero_mul, zero_add],
+  { rw [sum_range_succ, nat.choose_succ_self, cast_zero, C.map_zero, zero_mul, zero_mul, add_zero],
     refine sum_congr rfl (λ k hk, _),
     rw mem_range at hk,
     congr,

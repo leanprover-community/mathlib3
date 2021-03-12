@@ -909,8 +909,8 @@ map_neg integral_clm f
 lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - integral g :=
 map_sub integral_clm f g
 
-lemma integral_smul (r : 𝕜) (f : α →₁[μ] E) : integral (r • f) = r • integral f :=
-map_smul r (integral_clm' 𝕜) f
+lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
+map_smul c (integral_clm' 𝕜) f
 
 local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ μ _
@@ -1036,14 +1036,14 @@ lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
 integral_sub hf hg
 
-lemma integral_smul (r : 𝕜) (f : α → E) : ∫ a, r • (f a) ∂μ = r • ∫ a, f a ∂μ :=
+lemma integral_smul (c : 𝕜) (f : α → E) : ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
 begin
   by_cases hf : integrable f μ,
-  { rw [integral_eq f hf, integral_eq (λa, r • (f a)), integrable.to_L1_smul, L1.integral_smul], },
-  { by_cases hr : r = 0,
+  { rw [integral_eq f hf, integral_eq (λa, c • (f a)), integrable.to_L1_smul, L1.integral_smul], },
+  { by_cases hr : c = 0,
     { simp only [hr, measure_theory.integral_zero, zero_smul] },
-    have hf' : ¬ integrable (λ x, r • f x) μ,
-    { change ¬ integrable (r • f) μ, rwa [integrable_smul_iff hr f] },
+    have hf' : ¬ integrable (λ x, c • f x) μ,
+    { change ¬ integrable (c • f) μ, rwa [integrable_smul_iff hr f] },
     rw [integral_undef hf, integral_undef hf', smul_zero] }
 end
 

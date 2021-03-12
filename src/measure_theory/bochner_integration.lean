@@ -176,7 +176,7 @@ end measure_theory
 namespace measure_theory
 open set filter topological_space ennreal emetric
 
-variables {α E F : Type*} [measurable_space α]
+variables {α E F 𝕜 : Type*} [measurable_space α]
 
 local infixr ` →ₛ `:25 := simple_func
 
@@ -278,7 +278,7 @@ begin
   { simp [hg0] }
 end
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E]
   [smul_comm_class ℝ 𝕜 E]
 
 lemma integral_congr {f g : α →ₛ E} (hf : integrable f μ) (h : f =ᵐ[μ] g):
@@ -460,7 +460,7 @@ lemma coe_sub (f g : α →₁ₛ[μ] E) : ((f - g : α →₁ₛ[μ] E) : α �
 
 lemma norm_eq (f : α →₁ₛ[μ] E) : ∥f∥ = ∥(f : α →₁[μ] E)∥ := rfl
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
 Bochner integral. -/
@@ -523,7 +523,7 @@ lemma to_L1_sub (f g : α →ₛ E) (hf : integrable f μ) (hg : integrable g μ
   to_L1 (f - g) (hf.sub hg) = to_L1 f hf - to_L1 g hg :=
 by { simp only [sub_eq_add_neg, ← to_L1_neg, ← to_L1_add], refl }
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma to_L1_smul (f : α →ₛ E) (hf : integrable f μ) (c : 𝕜) :
   to_L1 (c • f) (hf.smul c) = c • to_L1 f hf := rfl
@@ -608,7 +608,7 @@ begin
   repeat { assume h, rw h }
 end
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma smul_to_simple_func (k : 𝕜) (f : α →₁ₛ[μ] E) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
@@ -695,9 +695,9 @@ simple_func.dense_embedding.to_dense_inducing
 protected lemma dense_range : dense_range (coe : (α →₁ₛ[μ] E) → (α →₁[μ] E)) :=
 simple_func.dense_inducing.dense
 
-variables (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
-variables (α E)
+variables (α E 𝕜)
 
 /-- The uniform and dense embedding of L1 simple functions into L1 functions. -/
 def coe_to_L1 : (α →₁ₛ[μ] E) →L[𝕜] (α →₁[μ] E) :=
@@ -735,7 +735,7 @@ end pos_part
 section simple_func_integral
 /-! Define the Bochner integral on `α →₁ₛ[μ] E` and prove basic properties of this integral. -/
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E]
   [smul_comm_class ℝ 𝕜 E]
 
 /-- The Bochner integral over simple functions in L1 space. -/
@@ -781,7 +781,7 @@ linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
   1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map over ℝ. -/
-def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E := integral_clm' α E μ ℝ
+def integral_clm : (α →₁ₛ[μ] E) →L[ℝ] E := integral_clm' α E ℝ μ
 
 variables {α E μ 𝕜}
 
@@ -864,7 +864,7 @@ open simple_func
 local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 
-variables [normed_space ℝ E] {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [normed_space ℝ F] [complete_space E]
 
 section integration_in_L1
@@ -877,7 +877,7 @@ open continuous_linear_map
 variables (𝕜)
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
-(integral_clm' α E μ 𝕜).extend
+(integral_clm' α E 𝕜 μ).extend
   (coe_to_L1 α E 𝕜) simple_func.dense_range simple_func.uniform_inducing
 
 variables {𝕜}
@@ -960,7 +960,7 @@ end L1
 
 variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [complete_space E]
   [measurable_space E] [borel_space E]
-          {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+          [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
           [normed_group F] [second_countable_topology F] [normed_space ℝ F] [complete_space F]
   [measurable_space F] [borel_space F]
 

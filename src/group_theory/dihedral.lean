@@ -158,7 +158,8 @@ If `0 < n`, then `r 1` has order `n`.
 begin
   by_cases hnpos : 0 < n,
     { haveI : fact (0 < n) := hnpos,
-      cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n))) with h h,
+      cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n)))
+        with h h,
         { have h1 : (r 1 : dihedral n)^(order_of (r 1)) = 1,
         { exact pow_order_of_eq_one _ },
       rw r_one_pow at h1,

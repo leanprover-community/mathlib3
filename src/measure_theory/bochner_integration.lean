@@ -68,12 +68,6 @@ The Bochner integral is defined following these steps:
 
 4. `tendsto_integral_of_dominated_convergence` : the Lebesgue dominated convergence theorem
 
-5. (In the file `set_integral`) integration commutes with continuous linear maps.
-
-  * `continuous_linear_map.integral_comp_comm`
-  * `linear_isometry.integral_comp_comm`
-
-
 ## Notes
 
 Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that

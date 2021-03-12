@@ -17,8 +17,8 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
-- `is_prime`: the type of prime ideals.
-- `is_maximal` : the type of maximal ideals.
+- `is_prime`: a predicate for prime ideals.
+- `is_maximal`: a predicate for maximal ideals.
 - `cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
                Dual to the notion of 'dense set' used in forcing.
 - `ideal_of_cofinals p 𝒟`, where `p : P`, and `𝒟` is a countable family of cofinal
@@ -95,9 +95,7 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
-class proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
-
-lemma proper_iff {I : ideal P} : proper I ↔ (I : set P) ≠ set.univ := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+@[mk_iff] class proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
 
 lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
 ⟨λ hp, begin
@@ -109,18 +107,9 @@ end⟩
 /-- A maximal ideal if it is maximal in the collection of proper ideals.
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
-def is_maximal (I : ideal P) : Prop :=
-  proper I ∧ ∀ J : ideal P, I < J → J.carrier = ⊤
-
-lemma is_maximal_iff {I : ideal P} :
-  is_maximal I ↔ proper I ∧ ∀ J : ideal P, I < J → J.carrier = ⊤ :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
-
-lemma is_maximal.proper {I : ideal P} (hI : is_maximal I) : proper I := hI.1
-
-lemma is_maximal.maximal_proper {I : ideal P} (hI : is_maximal I) :
-  ∀ J : ideal P, I < J → J.carrier = ⊤
-:= hI.2
+@[mk_iff] structure is_maximal (I : ideal P) : Prop :=
+(proper : proper I)
+(maximal_proper : ∀ J : ideal P, I < J → J.carrier = set.univ)
 
 end preorder
 
@@ -175,13 +164,13 @@ begin
 end
 
 lemma proper_iff_ne_top {I : ideal P} : proper I ↔ I ≠ ⊤ :=
-  ⟨λ h, h.ne_top, λ h, proper_of_ne_top h⟩
+⟨λ h, h.ne_top, λ h, proper_of_ne_top h⟩
 
 lemma is_maximal.is_coatom {I : ideal P} (hI : is_maximal I) : is_coatom I :=
-⟨hI.proper.ne_top, λ J hJ, by {rw [ext'_iff, top_coe], exact hI.2 J hJ}⟩
+⟨hI.proper.ne_top, λ J hJ, by { rw [ext'_iff, top_coe], exact hI.2 J hJ }⟩
 
 lemma is_maximal_of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
-  ⟨proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
+⟨proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
 
 end order_top
 
@@ -252,20 +241,9 @@ variable [semilattice_inf P]
 
 /-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
 -/
-def is_prime (I : ideal P) : Prop :=
-proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I
-
-variable {I : ideal P}
-
-lemma is_prime_iff :
-  is_prime I ↔ proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
-⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
-
-lemma is_prime.proper (hI : is_prime I) : proper I := hI.1
-
-lemma is_prime.mem_or_mem (hI : is_prime I) :
-  ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
-hI.2
+@[mk_iff] structure is_prime (I : ideal P) : Prop :=
+(proper : proper I)
+(mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
 lemma is_prime_of_is_maximal (hI : is_maximal I) : is_prime I :=
 begin
@@ -279,11 +257,6 @@ end semilattice_inf
 
 end ideal
 
-/-- For a preorder `P`, `cofinal P` is the type of subsets of `P`
-  containing arbitrarily large elements. They are the dense sets in
-  the topology whose open sets are terminal segments. -/
-structure cofinal (P) [preorder P] :=
-(carrier : set P)
 (mem_gt  : ∀ x : P, ∃ y ∈ carrier, x ≤ y)
 
 namespace cofinal

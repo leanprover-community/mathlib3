@@ -120,6 +120,7 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.zero_ne_bit0 nat.zero_ne_bit1 nat.bit0_ne_zero nat.bit1_ne_zero
   nat.bit0_ne_one nat.bit1_ne_one nat.one_ne_bit0 nat.one_ne_bit1
   nat.bit0_ne_bit1 nat.bit1_ne_bit0 nat.bit0_ne nat.bit1_ne
+
 /-!
 Inject some simple facts into the type class system.
 This `fact` should not be confused with the factorial function `nat.fact`!

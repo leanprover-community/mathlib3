@@ -8,11 +8,11 @@ import category_theory.shift
 import category_theory.abelian.additive_functor
 
 /-!
-# Triangulated Categories
+# Triangles
 
-This file contains the definition of triangulated categories.
+This file contains the definition of triangles in an additive category with an additive shift.
 
-TODO: generalise this to n-angulated categories as in https://arxiv.org/abs/1006.4592
+TODO: generalise this to n-angles in n-angulated categories as in https://arxiv.org/abs/1006.4592
 -/
 
 noncomputable theory
@@ -55,23 +55,49 @@ instance [has_zero_object C] : inhabited (triangle C) :=
   mor2 := 0,
   mor3 := 0 }⟩
 
+/--
+For each object in C, there is a triangle of the form (X,X,0,𝟙_X,0,0)
+-/
+def contractible_triangle (X : C) : triangle C :=
+{ obj1 := X,
+  obj2 := X,
+  obj3 := 0,
+  mor1 := 𝟙 X,
+  mor2 := 0,
+  mor3 := 0 }
+
+/--
+If you rotate a triangle, you get another triangle.
+-/
+def triangle.rotate (T : triangle C) : triangle C :=
+{ obj1 := T.obj2,
+  obj2 := T.obj3,
+  obj3 := T.obj1⟦1⟧,
+  mor1 := T.mor2,
+  mor2 := T.mor3,
+  mor3 := T.mor1⟦1⟧' }
+
+--TODO: Opposite rotation gives another triangle.
+
+
 variable {C}
 
 /--
 A morphism of triangles (X,Y,Z,f,g,h)→(X',Y',Z',f',g',h') in C is a triple of morphisms
 a: X → X', b: Y → Y', c: Z → Z' such that b ≫ f = f' ≫ a, c ≫ g = g' ≫ b,
-and Σa ≫ h = h' ≫ c.
+and a[1] ≫ h = h' ≫ c.
 In other words, we have a commutative diagram:
      f      g      h
-  X  --> Y  --> Z  --> ΣX
+  X  --> Y  --> Z  --> X[1]
   |      |      |       |
-  |a     |b     |c      |Σa
+  |a     |b     |c      |a[1]
   V      V      V       V
-  X' --> Y' --> Z' --> ΣX'
+  X' --> Y' --> Z' --> X'[1]
      f'     g'     h'
 
 See https://stacks.math.columbia.edu/tag/0144.
 -/
+@[ext]
 structure triangle_morphism (T₁ : triangle C) (T₂ : triangle C):=
 (trimor1 : T₁.obj1 ⟶ T₂.obj1)
 (trimor2 : T₁.obj2 ⟶ T₂.obj2)
@@ -135,5 +161,84 @@ begin
   simp only [eq_self_iff_true, assoc, and_self],
 end
 
+/--
+You can also rotate a triangle morphism to get a morphism between the two rotated triangles.
+-/
+def rotate (f : triangle_morphism T₁ T₂)
+: triangle_morphism (T₁.rotate C) (T₂.rotate C):=
+{ trimor1 := f.trimor2,
+  trimor2 := f.trimor3,
+  trimor3 := f.trimor1⟦1⟧',
+  comm1 := by exact f.comm2,
+  comm2 := by exact f.comm3,
+  comm3 := begin
+    change T₁.mor1⟦1⟧' ≫ (shift C).functor.map f.trimor2
+      = (shift C).functor.map f.trimor1 ≫ T₂.mor1⟦1⟧',
+    dsimp,
+    repeat {rw ← functor.map_comp},
+    rw f.comm1,
+  end }
+
 end triangle_morphism
+
+/--
+Triangles with triangle morphisms form a category.
+-/
+instance triangle_category : category (triangle C) :=
+{ hom   := λ A B, triangle_morphism A B,
+  id    := λ A, triangle_morphism_id A,
+  comp  := λ A B C f g, f.comp g }
+
+/--
+Rotating triangles gives an endofunctor on this category.
+-/
+def rotate : (triangle C) ⥤ (triangle C) :=
+{ obj := triangle.rotate C,
+  map := λ _ _ f, f.rotate,
+  map_id' := begin
+    assume T₁,
+    change triangle_morphism.rotate (triangle_morphism_id T₁) =
+    triangle_morphism_id (triangle.rotate C T₁),
+    unfold triangle_morphism_id,
+    unfold triangle_morphism.rotate,
+    dsimp,
+    ext,
+    { dsimp,
+      refl,
+    },
+    {
+      dsimp,
+      refl,
+    },
+    {
+      dsimp,
+      rw (shift C).functor.map_id,
+      refl,
+    }
+  end,
+  map_comp' := begin
+    intros T₁ T₂ T₃ f g,
+    unfold triangle_morphism.rotate,
+    ext,
+    {
+      dsimp,
+      refl,
+    },
+    {
+      dsimp,
+      refl,
+    },
+    {
+      dsimp,
+      change (shift C).functor.map (f.trimor1 ≫ g.trimor1) = ((shift C).functor.map f.trimor1) ≫ ((shift C).functor.map g.trimor1),
+      rw (shift C).functor.map_comp,
+    }
+  end
+}
+--TODO: Opposite rotation is a functor.
+--TODO: Rotating triangles gives a shift of the category of triangles.
+
+
+
+
 end category_theory.triangulated

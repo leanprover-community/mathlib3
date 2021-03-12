@@ -236,12 +236,3 @@ def add_monoid_hom.to_multiplicative'' [add_monoid α] [monoid β] :
 def monoid_hom.to_additive'' [add_monoid α] [monoid β] :
   (multiplicative α →* β) ≃ (α →+ additive β) :=
 add_monoid_hom.to_multiplicative''.symm
-
-instance additive.has_coe_to_fun {α : Type*} [has_coe_to_fun α] : has_coe_to_fun (additive α) := ⟨
-  λ a,
-  has_coe_to_fun.F a.to_mul, λ a, coe_fn a.to_mul⟩
-
-instance multiplicative.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
-  has_coe_to_fun (multiplicative α) := ⟨
-  λ a,
-  has_coe_to_fun.F a.to_add, λ a, coe_fn a.to_add⟩

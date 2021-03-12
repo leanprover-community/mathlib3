@@ -24,7 +24,6 @@ Thus, the action is required to be compatible with
 We also add `instances`:
 
 * any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself;
-* any `R`-semimodule `M` inherits automatically a `mul_action_with_zero R M`.
 -/
 
 variables (R M : Type*)

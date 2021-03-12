@@ -145,7 +145,7 @@ of_smul a (by { rw h, exact one M })
 
 /-- An element of `R` admitting a left inverse is `M`-regular. -/
 lemma of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
-of_smul a (by { rw [smul_eq_mul, h], exact one M })
+of_mul (by { rw h, exact one M })
 
 end monoid_with_zero
 

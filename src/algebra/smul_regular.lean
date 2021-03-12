@@ -57,7 +57,7 @@ variables [monoid R] [mul_action R M]
 
 /-- Left-regularity in a `monoid R` is equivalent to `M`-regularity,
 when the `R`-module `M` is `R`.  -/
-lemma is_left_regular_iff {R : Type*} [monoid R] (a : R) :
+lemma is_left_regular_iff (a : R) :
   is_left_regular a ↔ is_smul_regular R a :=
 iff.rfl
 

@@ -122,7 +122,7 @@ protected lemma subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
 ⟨λ a b, h (by repeat { rw mul_action_with_zero.zero_smul })⟩
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/
-lemma zero_iff_subsingleton : is_smul_regular M (0 : R) ↔ _root_.subsingleton M :=
+lemma zero_iff_subsingleton : is_smul_regular M (0 : R) ↔ subsingleton M :=
 ⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/
@@ -134,7 +134,7 @@ begin
 end
 
 /--  The element `0` is `M`-regular when `M` is trivial. -/
-lemma zero [sM : _root_.subsingleton M] : is_smul_regular M (0 : R) :=
+lemma zero [sM : subsingleton M] : is_smul_regular M (0 : R) :=
 zero_iff_subsingleton.mpr sM
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/

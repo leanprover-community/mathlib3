@@ -61,9 +61,13 @@ lemma is_left_regular_iff (a : R) :
   is_left_regular a ↔ is_smul_regular R a :=
 iff.rfl
 
+variable (M)
+
 /--  One is `M`-regular always. -/
 @[simp] lemma one : is_smul_regular M (1 : R) :=
 λ a b ab, by rwa [one_smul, one_smul] at ab
+
+variable {M}
 
 lemma mul (ra : is_smul_regular M a) (rb : is_smul_regular M b) :
   is_smul_regular M (a * b) :=
@@ -139,27 +143,11 @@ not_zero_iff.mpr nM
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
 lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
-of_smul a (by { rw h, exact one })
+of_smul a (by { rw h, exact one M })
 
 /-- An element of `R` admitting a left inverse is `M`-regular. -/
 lemma of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
-of_smul a (by { rw [smul_eq_mul, h], exact one })
-
-/-- Any element in `units R` is `M`-regular. -/
-lemma of_units (a : units R) : is_smul_regular M (a : R) :=
-begin
-  have ai : a.inv • a.val = 1,
-  { rw smul_eq_mul,
-     exact a.inv_val },
-  { exact of_smul_eq_one ai }
-end
-
-/-- A unit is `M`-regular. -/
-lemma of_is_unit (ua : is_unit a) : is_smul_regular M a :=
-begin
-  rcases ua with ⟨a, rfl⟩,
-  exact of_units a,
-end
+of_smul a (by { rw [smul_eq_mul, h], exact one M })
 
 end monoid_with_zero
 
@@ -178,3 +166,16 @@ end
 end comm_monoid
 
 end is_smul_regular
+
+variables (M) [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
+
+/-- Any element in `units R` is `M`-regular. -/
+lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R) :=
+is_smul_regular.of_mul_eq_one a.inv_val
+
+/-- A unit is `M`-regular. -/
+lemma is_unit.is_smul_regular (ua : is_unit a) : is_smul_regular M a :=
+begin
+  rcases ua with ⟨a, rfl⟩,
+  exact a.is_smul_regular M
+end

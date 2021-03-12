@@ -75,7 +75,7 @@ ra.smul rb
 
 lemma of_mul (ab : is_smul_regular M (a * b)) :
   is_smul_regular M b :=
-by { rw ←smul_eq_mul at ab, exact ab.of_smul _ }
+by { rw ← smul_eq_mul at ab, exact ab.of_smul _ }
 
 @[simp] lemma mul_iff_right  (ha : is_smul_regular M a) :
   is_smul_regular M (a * b) ↔ is_smul_regular M b :=
@@ -97,7 +97,7 @@ end
 lemma pow (n : ℕ) (ra : is_smul_regular M a) : is_smul_regular M (a ^ n) :=
 begin
   induction n with n hn,
-  { simp },
+  { simp only [one, pow_zero] },
   { exact (ra.smul_iff (a ^ n)).mpr hn }
 end
 

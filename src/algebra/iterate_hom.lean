@@ -65,11 +65,11 @@ semiconj₂.iterate f.map_sub n x y
 
 theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
   f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
-f.to_multiplicative.iterate_map_pow x n m
+commute.iterate_left (λ _, f.map_nsmul _ _) n x
 
 theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
   f^[n] (m •ℤ x) = m •ℤ (f^[n] x) :=
-f.to_multiplicative.iterate_map_gpow x n m
+commute.iterate_left (λ _, f.map_gsmul _ _) n x
 
 end add_monoid_hom
 

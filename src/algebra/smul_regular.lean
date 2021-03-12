@@ -55,6 +55,12 @@ section monoid
 
 variables [monoid R] [mul_action R M]
 
+/-- Left-regularity in a `monoid R` is equivalent to `M`-regularity,
+when the `R`-module `M` is `R`.  -/
+lemma is_left_regular_iff {R : Type*} [monoid R] (a : R) :
+  is_left_regular a ↔ is_smul_regular R a :=
+iff.rfl
+
 /--  One is `M`-regular always. -/
 @[simp] lemma one : is_smul_regular M (1 : R) :=
 λ a b ab, by rwa [one_smul, one_smul] at ab
@@ -116,7 +122,7 @@ lemma zero_iff_subsingleton : is_smul_regular M (0 : R) ↔ _root_.subsingleton 
 ⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/
-lemma not_is_smul_regular_zero_iff : ¬ is_smul_regular M (0 : R) ↔ nontrivial M :=
+lemma not_zero_iff : ¬ is_smul_regular M (0 : R) ↔ nontrivial M :=
 begin
   rw [nontrivial_iff, not_iff_comm, zero_iff_subsingleton, subsingleton_iff],
   push_neg,
@@ -128,8 +134,8 @@ lemma zero [sM : _root_.subsingleton M] : is_smul_regular M (0 : R) :=
 zero_iff_subsingleton.mpr sM
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/
-lemma not_is_smul_regular_zero [nM : nontrivial M] : ¬ is_smul_regular M (0 : R) :=
-not_is_smul_regular_zero_iff.mpr nM
+lemma not_zero [nM : nontrivial M] : ¬ is_smul_regular M (0 : R) :=
+not_zero_iff.mpr nM
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
 lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
@@ -140,7 +146,7 @@ lemma of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
 of_smul a (by { rw [smul_eq_mul, h], exact one })
 
 /-- Any element in `units R` is `M`-regular. -/
-lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R) :=
+lemma of_units (a : units R) : is_smul_regular M (a : R) :=
 begin
   have ai : a.inv • a.val = 1,
   { rw smul_eq_mul,
@@ -149,10 +155,10 @@ begin
 end
 
 /-- A unit is `M`-regular. -/
-lemma is_unit.is_smul_regular (ua : is_unit a) : is_smul_regular M a :=
+lemma of_is_unit (ua : is_unit a) : is_smul_regular M a :=
 begin
   rcases ua with ⟨a, rfl⟩,
-  exact units.is_smul_regular a,
+  exact of_units a,
 end
 
 end monoid_with_zero
@@ -170,11 +176,5 @@ begin
 end
 
 end comm_monoid
-
-/-- Left-regularity in a `semiring R` is equivalent to `M`-regularity, when
-the `R`-module `M` is `R`.  -/
-lemma is_left_regular_iff {R : Type*} [monoid R] (a : R) :
-  is_left_regular a ↔ is_smul_regular R a :=
-iff.rfl
 
 end is_smul_regular

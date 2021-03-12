@@ -5,10 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.group.hom
-import algebra.ring.basic
-import data.rat.cast
 import group_theory.group_action.group
-import tactic.nth_rewrite
 import algebra.smul_with_zero
 
 /-!

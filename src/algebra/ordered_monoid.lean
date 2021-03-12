@@ -1224,6 +1224,7 @@ instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
 end prod
 
 section type_tags
+open multiplicative additive
 
 @[simps]
 instance [preorder α] : preorder (multiplicative α) :=
@@ -1254,10 +1255,50 @@ instance [linear_order α] : linear_order (multiplicative α) :=
   decidable_le := λ _ _, by { simp, apply_instance },
   ..multiplicative.partial_order }
 
+@[simp]
+lemma multiplicative.to_add_max [linear_order α] {a b : multiplicative α} :
+  to_add (max a b) = max (to_add a) (to_add b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma multiplicative.of_add_max [linear_order α] {a b : α} :
+  of_add (max a b) = max (of_add a) (of_add b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma multiplicative.to_add_min [linear_order α] {a b : multiplicative α} :
+  to_add (min a b) = min (to_add a) (to_add b) :=
+by simp [min]; split_ifs; refl
+
+@[simp]
+lemma multiplicative.of_add_min [linear_order α] {a b : α} :
+  of_add (min a b) = min (of_add a) (of_add b) :=
+by simp [min]; split_ifs; refl
+
 instance [linear_order α] : linear_order (additive α) :=
 { le_total := by { equiv_rw additive.to_mul, simpa using @le_total _ _ },
   decidable_le := λ _ _, by { simp, apply_instance },
   ..additive.partial_order }
+
+@[simp]
+lemma additive.to_mul_max [linear_order α] {a b : additive α} :
+  to_mul (max a b) = max (to_mul a) (to_mul b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma additive.of_mul_max [linear_order α] {a b : α} :
+  of_mul (max a b) = max (of_mul a) (of_mul b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma additive.to_mul_min [linear_order α] {a b : additive α} :
+  to_mul (min a b) = min (to_mul a) (to_mul b) :=
+by simp [min]; split_ifs; refl
+
+@[simp]
+lemma additive.of_mul_min [linear_order α] {a b : α} :
+  of_mul (min a b) = min (of_mul a) (of_mul b) :=
+by simp [min]; split_ifs; refl
 
 instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
 { mul_le_mul_left := begin

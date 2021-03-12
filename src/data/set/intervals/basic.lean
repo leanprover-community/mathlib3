@@ -1138,6 +1138,8 @@ by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_re
 
 end both
 
+lemma Icc_bot_top {α} [bounded_lattice α] : Icc (⊥ : α) ⊤ = univ := by simp
+
 end lattice
 
 section linear_order

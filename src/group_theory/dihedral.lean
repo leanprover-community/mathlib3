@@ -143,7 +143,7 @@ end
 /--
 If `0 < n`, then `sr i` has order 2.
 -/
-@[simp] lemma order_of_sr [fact (0 < n)] (i : zmod n) : order_of (sr i) = 2 :=
+@[simp] lemma order_of_sr (i : zmod n) : order_of (sr i) = 2 :=
 begin
   rw order_of_eq_prime _ _,
   { exact nat.prime_two },
@@ -154,16 +154,35 @@ end
 /--
 If `0 < n`, then `r 1` has order `n`.
 -/
-@[simp] lemma order_of_r_one [hnpos : fact (0 < n)] : order_of (r 1 : dihedral n) = n :=
+@[simp] lemma order_of_r_one : order_of (r 1 : dihedral n) = n :=
 begin
-  cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n))) with h h,
-  { have h1 : (r 1 : dihedral n)^(order_of (r 1)) = 1,
-    { exact pow_order_of_eq_one _ },
-    rw r_one_pow at h1,
-    injection h1 with h2,
-    rw [←zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
-    exact absurd h2.symm (ne_of_lt (order_of_pos _)) },
-  { exact h }
+  by_cases hnpos : 0 < n,
+    { haveI : fact (0 < n) := hnpos,
+      cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@r_one_pow_n n))) with h h,
+        { have h1 : (r 1 : dihedral n)^(order_of (r 1)) = 1,
+        { exact pow_order_of_eq_one _ },
+      rw r_one_pow at h1,
+      injection h1 with h2,
+      rw [←zmod.val_eq_zero, zmod.val_nat_cast, nat.mod_eq_of_lt h] at h2,
+      apply absurd h2.symm,
+      apply ne_of_lt,
+      exact absurd h2.symm (ne_of_lt (order_of_pos _)) },
+      { exact h } },
+    { simp only [not_lt, nonpos_iff_eq_zero] at hnpos,
+      rw hnpos,
+      apply order_of_eq_zero,
+      intros m hm,
+      rw r_one_pow,
+      rw one_def,
+      by_contradiction,
+      rw not_not at h,
+      have h' : (m : zmod 0) = 0,
+        { exact r.inj h, },
+      have h'' : m = 0,
+        { sorry },
+      rw h'' at hm,
+      apply nat.lt_irrefl,
+      exact hm },
 end
 
 /--

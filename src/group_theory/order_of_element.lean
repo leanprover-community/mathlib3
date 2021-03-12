@@ -134,7 +134,7 @@ if h : ∃ n, 0 < n ∧ a ^ n = 1 then nat.find h else 0
 lemma order_of_pos' {a : α} (h : ∃ n, 0 < n ∧ a ^ n = 1) : 0 < order_of a :=
 begin
   rw order_of,
-  split_ifs with hx,
+  split_ifs,
   exact (nat.find_spec h).1
 end
 
@@ -144,6 +144,16 @@ begin
   split_ifs with hfin,
   { exact (nat.find_spec hfin).2 },
   { exact pow_zero a }
+end
+
+lemma order_of_eq_zero {a : α} (h : ∀n, 0 < n → a ^ n ≠ 1) : order_of a = 0 :=
+begin
+  rw order_of,
+  split_ifs with hx,
+    { exfalso,
+      cases hx with n hn,
+      exact (h n) hn.1 hn.2 },
+    { refl }
 end
 
 lemma order_of_le_of_pow_eq_one' {m : ℕ} (h : m < order_of a) : ¬ (0 < m ∧ a ^ m = 1) :=

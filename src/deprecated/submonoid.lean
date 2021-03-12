@@ -121,7 +121,7 @@ lemma powers.mul_mem {x y z : M} : (y ∈ powers x) → (z ∈ powers x) → (y 
     addition. -/
 lemma multiples.add_mem {x y z : A} :
   (y ∈ multiples x) → (z ∈ multiples x) → (y + z ∈ multiples x) :=
-@powers.mul_mem (multiplicative A) _ _ _ _
+λ ⟨n₁, h₁⟩ ⟨n₂, h₂⟩, ⟨n₁ + n₂, by simp only [add_nsmul, *]⟩
 attribute [to_additive] powers.mul_mem
 
 /-- The set of natural number powers of an element of a monoid `M` is a submonoid of `M`. -/
@@ -167,8 +167,10 @@ lemma is_submonoid.pow_mem {a : M} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ
 
 /-- An `add_submonoid` is closed under multiplication by naturals. -/
 lemma is_add_submonoid.smul_mem {a : A} [is_add_submonoid t] :
-  ∀ (h : a ∈ t) {n : ℕ}, n •ℕ a ∈ t :=
-@is_submonoid.pow_mem (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
+  ∀ (h : a ∈ t) {n : ℕ}, n •ℕ a ∈ t
+| h 0 := is_add_submonoid.zero_mem
+| h (n + 1) := by { rw [add_nsmul, one_nsmul],
+  exact is_add_submonoid.add_mem (is_add_submonoid.smul_mem h) h }
 attribute [to_additive smul_mem] is_submonoid.pow_mem
 
 /-- The set of natural number powers of an element of a submonoid is a subset of the submonoid. -/
@@ -179,7 +181,7 @@ assume x ⟨n, hx⟩, hx ▸ is_submonoid.pow_mem h
     `add_submonoid`. -/
 lemma is_add_submonoid.multiple_subset {a : A} [is_add_submonoid t] :
   a ∈ t → multiples a ⊆ t :=
-@is_submonoid.power_subset (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
+assume h x ⟨n, hx⟩, hx ▸ is_add_submonoid.smul_mem h
 attribute [to_additive multiple_subset] is_submonoid.power_subset
 
 end powers

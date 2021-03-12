@@ -65,7 +65,9 @@ end
 
 end monoid
 
-theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n := rfl
+theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n :=
+by induction m with m ih; [rw [zero_nsmul, zero_mul],
+  rw [succ_nsmul', ih, nat.succ_mul]]
 
 section group
 variables [group G] [group H] [add_group A] [add_group B]

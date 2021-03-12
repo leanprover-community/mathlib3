@@ -245,6 +245,8 @@ variable [semilattice_inf P]
 (proper : proper I) 
 (mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
+end ideal
+
 (mem_gt  : ∀ x : P, ∃ y ∈ carrier, x ≤ y)
 
 namespace cofinal

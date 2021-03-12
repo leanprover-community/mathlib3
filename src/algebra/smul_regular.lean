@@ -7,10 +7,21 @@ import algebra.smul_with_zero
 import algebra.regular
 /-!
 # Action of regular elements on a module
+
 We introduce `M`-regular elements, in the context of an `R`-module `M`.  The corresponding
 predicate is called `is_smul_regular`.
-By definition, an `M`-regular element of a commutative ring acting on an `R`-module `M` is an
-element `a ∈ R` such that the function `m ↦ a • m` is injective.
+
+There are very limited typeclass assumptions on `R` and `M`, but the "mathematical" case of interest
+is a commutative ring `R` acting an a module `M`. Since the properties are "multiplicative", there
+is no actual requirement of having an addition, but there is a zero in both `R` and `M`.
+Smultiplications involving `0` are, of course, all trivial.
+
+The defining property is that an element `a ∈ R` is `M`-regular if the smultiplication map
+`M → M`, defined by `m ↦ a • m`, is injective.
+
+This property is the direct generalization to modules of the property `is_left_regular` defined in
+`algebra/regular`.  Lemma `is_smul_regular.is_left_regular_iff` shows that indeed the two notions
+coincide.
 -/
 
 variables {R S : Type*} (M : Type*) {a b : R} {s : S}

@@ -273,12 +273,12 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
     (by { rintros _ _ ⟨_⟩, { refl }, apply list.perm.swap', refl }),
   inv_fun := quotient.map from_vector (begin
     rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
-    cases x with _ x, { simp at hx; tauto },
     cases x with _ x, { simpa using hx, },
-    cases x with _ x, swap, { exfalso, simp at hx; linarith [hx] },
-    cases y with _ y, { simp at hy; tauto },
+    cases x with _ x, { simpa using hx, },
+    cases x with _ x, swap, { exfalso, simp at hx, linarith [hx] },
     cases y with _ y, { simpa using hy, },
-    cases y with _ y, swap, { exfalso, simp at hy; linarith [hy] },
+    cases y with _ y, { simpa using hy, },
+    cases y with _ y, swap, { exfalso, simp at hy, linarith [hy] },
     rcases perm_card_two_iff.mp h with ⟨rfl,rfl⟩|⟨rfl,rfl⟩, { refl },
     apply sym2.rel.swap,
   end),
@@ -286,9 +286,9 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
   right_inv := λ x, begin
     refine quotient.rec_on_subsingleton x (λ x, _),
     { cases x with x hx,
-      cases x with _ x, { simp at hx; tauto },
       cases x with _ x, { simpa using hx, },
-      cases x with _ x, swap, { exfalso, simp at hx; linarith [hx] },
+      cases x with _ x, { simpa using hx, },
+      cases x with _ x, swap, { exfalso, simp at hx, linarith [hx] },
       refl },
   end }
 

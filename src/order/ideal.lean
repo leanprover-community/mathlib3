@@ -17,8 +17,8 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
-- `is_prime`: the type of prime ideals.
-- `is_maximal` : the type of maximal ideals.
+- `is_prime`: a predicate for prime ideals.
+- `is_maximal`: a predicate for maximal ideals.
 - `cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
                Dual to the notion of 'dense set' used in forcing.
 - `ideal_of_cofinals p 𝒟`, where `p : P`, and `𝒟` is a countable family of cofinal

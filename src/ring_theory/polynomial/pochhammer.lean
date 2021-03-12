@@ -63,7 +63,7 @@ end
 begin
   cases n,
   { simp, },
-  { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], } -- should nat.succ_ne_zero be a simp lemma?
+  { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], }
 end
 
 lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=

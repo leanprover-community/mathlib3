@@ -199,7 +199,7 @@ begin
   by_cases hf : f = 0,
   { simp [hf] },
   by_cases hi : i ∈ f.support,
-  { unfold polynomial.eval polynomial.eval₂ finsupp.sum id at dvd_eval,
+  { rw [eval, eval₂, sum_def] at dvd_eval,
     rw [←finset.insert_erase hi, finset.sum_insert (finset.not_mem_erase _ _)] at dvd_eval,
     refine (dvd_add_left _).mp dvd_eval,
     apply finset.dvd_sum,

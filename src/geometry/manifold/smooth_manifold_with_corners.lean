@@ -259,13 +259,13 @@ variables (𝕜 E)
 
 /-- In the trivial model with corners, the associated local equiv is the identity. -/
 @[simp, mfld_simps] lemma model_with_corners_self_local_equiv :
-  (model_with_corners_self 𝕜 E).to_local_equiv = local_equiv.refl E := rfl
+  (𝓘(𝕜, E)).to_local_equiv = local_equiv.refl E := rfl
 
 @[simp, mfld_simps] lemma model_with_corners_self_coe :
-  (model_with_corners_self 𝕜 E : E → E) = id := rfl
+  (𝓘(𝕜, E) : E → E) = id := rfl
 
 @[simp, mfld_simps] lemma model_with_corners_self_coe_symm :
-  ((model_with_corners_self 𝕜 E).symm : E → E) = id := rfl
+  (𝓘(𝕜, E).symm : E → E) = id := rfl
 
 end
 
@@ -308,7 +308,7 @@ as the model to tangent bundles. -/
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H) : model_with_corners 𝕜 (E × E) (model_prod H E) :=
-I.prod (model_with_corners_self 𝕜 E)
+I.prod (𝓘(𝕜, E))
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']

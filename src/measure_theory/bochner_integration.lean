@@ -735,8 +735,7 @@ end pos_part
 section simple_func_integral
 /-! Define the Bochner integral on `α →₁ₛ[μ] E` and prove basic properties of this integral. -/
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E]
-  [smul_comm_class ℝ 𝕜 E]
+variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
 
 /-- The Bochner integral over simple functions in L1 space. -/
 def integral (f : α →₁ₛ[μ] E) : E := ((to_simple_func f)).integral μ

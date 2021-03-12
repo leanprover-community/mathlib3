@@ -502,7 +502,8 @@ theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
 | (m : ℕ) (n+1:ℕ) := by { convert congr_arg of_nat (nat.mod_add_div m (n + 1)), try { simp } }
 | 0       -[1+ n] := by simp [int.zero_div]
 | (m+1:ℕ) -[1+ n] := show (_ + -(n+1) * -((m + 1) / (n + 1) : ℕ) : ℤ) = _,
-  by { rw [neg_mul_neg, neg_succ_of_nat_eq, mod_neg], convert congr_arg of_nat (nat.mod_add_div (m + 1) (n + 1)),
+  by { rw [neg_mul_neg, neg_succ_of_nat_eq, mod_neg],
+        convert congr_arg of_nat (nat.mod_add_div (m + 1) (n + 1)),
        try { simp } }
 | -[1+ m] 0       := by rw [mod_zero, int.div_zero]; refl
 | -[1+ m] (n+1:ℕ) := by { convert mod_add_div_aux m n.succ,

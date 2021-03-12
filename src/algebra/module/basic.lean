@@ -17,7 +17,7 @@ import algebra.smul_with_zero
 In this file we define
 
 * `semimodule R M` : an additive commutative monoid `M` is a `semimodule` over a
-  `semiring` `R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
+  `semiring R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
 

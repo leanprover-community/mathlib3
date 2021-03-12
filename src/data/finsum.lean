@@ -52,6 +52,9 @@ We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fi
 There is work on `fincard` in the pipeline, which returns the cardinality of `X` if it
 is finite, and 0 otherwise.
 
+If there were a multiplicative version of `function.support`, returning the terms which
+were not mapped to `1`, then this could be refactored into a multiplicative version.
+
 ## Tags
 
 finsum, finsum_in, univ', finiteness

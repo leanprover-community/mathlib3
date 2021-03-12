@@ -830,7 +830,8 @@ include hb
 def to_lin_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   M ≃ₗ[R] M :=
 begin
-  refine ⟨to_lin hb hb A, linear_map.map_add _, linear_map.map_smul _, to_lin hb hb A⁻¹, λ x, _, λ x, _⟩;
+  refine ⟨to_lin hb hb A, linear_map.map_add _, linear_map.map_smul _, to_lin hb hb A⁻¹,
+          λ x, _, λ x, _⟩;
   simp only [← linear_map.comp_apply, ← to_lin_mul,
              matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
              to_lin_one, linear_map.id_apply]

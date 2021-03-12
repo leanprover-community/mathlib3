@@ -490,7 +490,7 @@ instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
 theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
 ⟨eq_zero_or_eq_zero_of_smul_eq_zero,
- λ h, h.elim (λ h, h.symm ▸ zero_smul R M x) (λ h, h.symm ▸ smul_zero c)⟩
+ λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
 
 theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
   c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=

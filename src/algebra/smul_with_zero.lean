@@ -39,9 +39,13 @@ class smul_with_zero [has_zero R] extends has_scalar R M :=
 (smul_zero : ∀ r : R, r • (0 : M) = 0)
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
 
+variables {M}
+
 @[simp] lemma zero_smul [has_zero R] [smul_with_zero R M] (m : M) :
   (0 : R) • m = 0 :=
 smul_with_zero.zero_smul m
+
+variables (M)
 
 section monoid_with_zero
 

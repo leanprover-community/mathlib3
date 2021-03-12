@@ -27,20 +27,6 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section semiring
 variables [semiring R] {p q : polynomial R}
 
-section
-/--
-The coercion turning a `polynomial` into the function which reports the coefficient of a given
-monomial `X^n`
--/
--- TODO we would like to completely remove this, but this requires fixing some proofs
-def coeff_coe_to_fun : has_coe_to_fun (polynomial R) :=
-finsupp.has_coe_to_fun
-
-local attribute [instance] coeff_coe_to_fun
-
-lemma apply_eq_coeff : p n = coeff p n := rfl
-end
-
 /-- `div_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
 def div_X (p : polynomial R) : polynomial R :=

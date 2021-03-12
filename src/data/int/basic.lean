@@ -644,8 +644,8 @@ begin
           apply (nat.div_lt_iff_lt_mul _ _ k.succ_pos).1,
           apply nat.lt_succ_self } },
       { exact int.coe_succ_pos k },
-      { convert int.coe_succ_pos (m.succ * k + m),
-        rw [mul_succ] } } }
+      { rw mul_succ,
+        exact int.coe_succ_pos (m.succ * k + m) } } }
 end
 
 @[simp] theorem mul_div_mul_of_pos_left (a : ℤ) {b : ℤ} (c : ℤ) (H : 0 < b) :

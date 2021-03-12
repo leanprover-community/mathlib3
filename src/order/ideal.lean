@@ -245,6 +245,8 @@ variable [semilattice_inf P]
 (proper : proper I)
 (mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
+variable {I : ideal P}
+
 lemma is_prime_of_is_maximal (hI : is_maximal I) : is_prime I :=
 begin
   use hI.proper,
@@ -257,6 +259,11 @@ end semilattice_inf
 
 end ideal
 
+/-- For a preorder `P`, `cofinal P` is the type of subsets of `P`
+  containing arbitrarily large elements. They are the dense sets in
+  the topology whose open sets are terminal segments. -/
+structure cofinal (P) [preorder P] :=
+(carrier : set P)
 (mem_gt  : ∀ x : P, ∃ y ∈ carrier, x ≤ y)
 
 namespace cofinal

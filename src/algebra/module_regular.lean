@@ -58,18 +58,6 @@ section monoid
 
 variables [monoid R] [mul_action R M]
 
-/--  Two elements `a` and `b` are `M`-regular if and only if both products `a • b` and `b • a`
-are `M`-regular. -/
-lemma is_regular_mul_and_mul_iff :
-  is_regular M (a * b) ∧ is_regular M (b * a) ↔ is_regular M a ∧ is_regular M b :=
-begin
-  refine ⟨_, _⟩,
-  { rintros ⟨ab, ba⟩,
-    exact ⟨ba.of_smul b, ab.of_smul a⟩ },
-  { rintros ⟨ha, hb⟩,
-    exact ⟨(ha.smul_iff b).mpr hb, (hb.smul_iff a).mpr ha⟩ }
-end
-
 /--  One is `M`-regular always. -/
 @[simp] lemma is_regular_one : is_regular M (1 : R) :=
 λ a b ab, by rwa [one_smul, one_smul] at ab
@@ -84,6 +72,18 @@ by { rw ←smul_eq_mul at ab, exact ab.of_smul _ }
 @[simp] lemma is_regular.mul_iff  (ha : is_regular M a) :
   is_regular M (a * b) ↔ is_regular M b :=
 ⟨is_regular.of_mul, ha.mul⟩
+
+/--  Two elements `a` and `b` are `M`-regular if and only if both products `a * b` and `b * a`
+are `M`-regular. -/
+lemma is_regular_mul_and_mul_iff :
+  is_regular M (a * b) ∧ is_regular M (b * a) ↔ is_regular M a ∧ is_regular M b :=
+begin
+  refine ⟨_, _⟩,
+  { rintros ⟨ab, ba⟩,
+    refine ⟨ba.of_mul, ab.of_mul⟩ },
+  { rintros ⟨ha, hb⟩,
+    exact ⟨(ha.mul_iff).mpr hb, (hb.mul_iff).mpr ha⟩ }
+end
 
 /--  Any power of an `M`-regular element is `M`-regular. -/
 lemma is_regular.pow (n : ℕ) (ra : is_regular M a) : is_regular M (a ^ n) :=

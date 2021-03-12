@@ -9,6 +9,7 @@ import algebra.ring.basic
 import data.rat.cast
 import group_theory.group_action.group
 import tactic.nth_rewrite
+import algebra.smul_with_zero
 
 /-!
 # Modules over a ring
@@ -252,6 +253,14 @@ library_note "vector space definition"
   operation between vectors. -/
 abbreviation vector_space (R : Type u) (M : Type v) [field R] [add_comm_group M] :=
 semimodule R M
+
+/-- A semimodule over a semiring automatically inherits a `mul_action_with_zero` structure. -/
+@[priority 100] -- see Note [lower instance priority]
+instance semimodule.to_mul_action_with_zero [semiring R] [add_comm_monoid M] [semimodule R M] :
+  mul_action_with_zero R M :=
+{ smul_zero := smul_zero,
+  zero_smul := zero_smul R,
+  ..(infer_instance : mul_action R M) }
 
 section add_comm_monoid
 

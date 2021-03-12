@@ -115,7 +115,11 @@ instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
     λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
-attribute [simp] nat.not_lt_zero
+attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.add_one_ne_zero
+  nat.succ_ne_self nat.zero_ne_one nat.one_ne_zero
+  nat.bit0_ne_one nat.bit1_ne_one nat.one_ne_bit0 nat.one_ne_bit1
+  nat.bit0_ne_bit1 nat.bit1_ne_bit0 nat.bit0_ne nat.bit1_ne
+  nat.zero_ne_bit0 nat.zero_ne_bit1 nat.bit0_ne_zero nat.bit1_ne_zero
 
 /-!
 Inject some simple facts into the type class system.
@@ -187,6 +191,7 @@ lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠
 | 1     := dec_trivial
 | (n+2) := dec_trivial
 
+@[simp]
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
 

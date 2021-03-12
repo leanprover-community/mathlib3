@@ -8,7 +8,8 @@ import algebra.regular
 /-!
 # Action of regular elements on a module
 
-We introduce `M`-regular elements, in the context of an `R`-module `M`.
+We introduce `M`-regular elements, in the context of an `R`-module `M`.  The corresponding
+predicate is called `is_smul_regular`.
 
 By definition, an `M`-regular element of a commutative ring acting on an `R`-module `M` is an
 element `a ∈ R` such that the function `m ↦ a • m` is injective.
@@ -27,27 +28,27 @@ variables (M)
 
 /-- An `M`-regular element is an element `c` such that multiplication on the left by `c` is an
 injective map `M → M`. -/
-def is_regular (c : R) := function.injective ((•) c : M → M)
+def is_smul_regular (c : R) := function.injective ((•) c : M → M)
 
 variables {M}
 
 /-- In a monoid, the product of `M`-regular elements is `M`-regular. -/
-lemma is_regular.smul (ra : is_regular M a) (rs : is_regular M s) :
-  is_regular M (a • s) :=
+lemma is_smul_regular.smul (ra : is_smul_regular M a) (rs : is_smul_regular M s) :
+  is_smul_regular M (a • s) :=
 λ a b ab, rs (ra ((smul_assoc _ _ _).symm.trans (ab.trans (smul_assoc _ _ _))))
 
 /--  If an element `b` becomes `M`-regular after multiplying it on the left by an `M`-regular
 element, then `b` is `M`-regular. -/
-lemma is_regular.of_smul (a : R) (ab : is_regular M (a • s)) :
-  is_regular M s :=
+lemma is_smul_regular.of_smul (a : R) (ab : is_smul_regular M (a • s)) :
+  is_smul_regular M s :=
 @function.injective.of_comp _ _ _ (λ m : M, a • m) _ (λ c d cd, ab
   (by rwa [smul_assoc, smul_assoc]))
 
 /--  An element is `M`-regular if and only if multiplying it on the left by an `M`-regular element
 is `M`-regular. -/
-@[simp] lemma is_regular.smul_iff (b : S) (ha : is_regular M a) :
-  is_regular M (a • b) ↔ is_regular M b :=
-⟨is_regular.of_smul _, ha.smul⟩
+@[simp] lemma is_smul_regular.smul_iff (b : S) (ha : is_smul_regular M a) :
+  is_smul_regular M (a • b) ↔ is_smul_regular M b :=
+⟨is_smul_regular.of_smul _, ha.smul⟩
 
 end has_scalar
 
@@ -56,24 +57,25 @@ section monoid
 variables [monoid R] [mul_action R M]
 
 /--  One is `M`-regular always. -/
-@[simp] lemma is_regular_one : is_regular M (1 : R) :=
+@[simp] lemma is_smul_regular_one : is_smul_regular M (1 : R) :=
 λ a b ab, by rwa [one_smul, one_smul] at ab
 
-lemma is_regular.mul (ra : is_regular M a) (rb : is_regular M b) : is_regular M (a * b) :=
+lemma is_smul_regular.mul (ra : is_smul_regular M a) (rb : is_smul_regular M b) :
+  is_smul_regular M (a * b) :=
 ra.smul rb
 
-lemma is_regular.of_mul (ab : is_regular M (a * b)) :
-  is_regular M b :=
+lemma is_smul_regular.of_mul (ab : is_smul_regular M (a * b)) :
+  is_smul_regular M b :=
 by { rw ←smul_eq_mul at ab, exact ab.of_smul _ }
 
-@[simp] lemma is_regular.mul_iff  (ha : is_regular M a) :
-  is_regular M (a * b) ↔ is_regular M b :=
-⟨is_regular.of_mul, ha.mul⟩
+@[simp] lemma is_smul_regular.mul_iff  (ha : is_smul_regular M a) :
+  is_smul_regular M (a * b) ↔ is_smul_regular M b :=
+⟨is_smul_regular.of_mul, ha.mul⟩
 
 /--  Two elements `a` and `b` are `M`-regular if and only if both products `a * b` and `b * a`
 are `M`-regular. -/
-lemma is_regular_mul_and_mul_iff :
-  is_regular M (a * b) ∧ is_regular M (b * a) ↔ is_regular M a ∧ is_regular M b :=
+lemma is_smul_regular_mul_and_mul_iff : is_smul_regular M (a * b) ∧ is_smul_regular M (b * a) ↔
+  is_smul_regular M a ∧ is_smul_regular M b :=
 begin
   refine ⟨_, _⟩,
   { rintros ⟨ab, ba⟩,
@@ -83,7 +85,7 @@ begin
 end
 
 /--  Any power of an `M`-regular element is `M`-regular. -/
-lemma is_regular.pow (n : ℕ) (ra : is_regular M a) : is_regular M (a ^ n) :=
+lemma is_smul_regular.pow (n : ℕ) (ra : is_smul_regular M a) : is_smul_regular M (a ^ n) :=
 begin
   induction n with n hn,
   { simp },
@@ -91,12 +93,12 @@ begin
 end
 
 /--  An element `a` is `M`-regular if and only if a positive power of `a` is `M`-regular. -/
-lemma is_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
-  is_regular M (a ^ n) ↔ is_regular M a :=
+lemma is_smul_regular.pow_iff {n : ℕ} (n0 : 0 < n) :
+  is_smul_regular M (a ^ n) ↔ is_smul_regular M a :=
 begin
-  refine ⟨_, is_regular.pow n⟩,
+  refine ⟨_, is_smul_regular.pow n⟩,
   rw [← nat.succ_pred_eq_of_pos n0, pow_succ', ← smul_eq_mul],
-  exact is_regular.of_smul _,
+  exact is_smul_regular.of_smul _,
 end
 
 end monoid
@@ -107,51 +109,51 @@ variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M] [mul_action_wit
   [mul_action_with_zero R S] [mul_action_with_zero S M] [is_scalar_tower R S M]
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/
-lemma is_regular.subsingleton (h : is_regular M (0 : R)) : subsingleton M :=
+lemma is_smul_regular.subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
 ⟨λ a b, h (by repeat { rw mul_action_with_zero.zero_smul })⟩
 
 /--  The element `0` is `M`-regular if and only if `M` is trivial. -/
-lemma is_regular_zero_iff_subsingleton : is_regular M (0 : R) ↔ subsingleton M :=
+lemma is_smul_regular_zero_iff_subsingleton : is_smul_regular M (0 : R) ↔ subsingleton M :=
 ⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/
-lemma not_is_regular_zero_iff : ¬ is_regular M (0 : R) ↔ nontrivial M :=
+lemma not_is_smul_regular_zero_iff : ¬ is_smul_regular M (0 : R) ↔ nontrivial M :=
 begin
-  rw [nontrivial_iff, not_iff_comm, is_regular_zero_iff_subsingleton, subsingleton_iff],
+  rw [nontrivial_iff, not_iff_comm, is_smul_regular_zero_iff_subsingleton, subsingleton_iff],
   push_neg,
   exact iff.rfl
 end
 
 /--  The element `0` is `M`-regular when `M` is trivial. -/
-lemma is_regular_zero [sM : subsingleton M] : is_regular M (0 : R) :=
-is_regular_zero_iff_subsingleton.mpr sM
+lemma is_smul_regular_zero [sM : subsingleton M] : is_smul_regular M (0 : R) :=
+is_smul_regular_zero_iff_subsingleton.mpr sM
 
 /--  The `0` element is not `M`-regular, on a non-trivial semimodule. -/
-lemma not_is_regular_zero [nM : nontrivial M] : ¬ is_regular M (0 : R) :=
-not_is_regular_zero_iff.mpr nM
+lemma not_is_smul_regular_zero [nM : nontrivial M] : ¬ is_smul_regular M (0 : R) :=
+not_is_smul_regular_zero_iff.mpr nM
 
 /-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
-lemma is_regular_of_smul_eq_one (h : a • s = 1) : is_regular M s :=
-is_regular.of_smul a (by { rw h, exact is_regular_one })
+lemma is_smul_regular_of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
+is_smul_regular.of_smul a (by { rw h, exact is_smul_regular_one })
 
 /-- An element of `R` admitting a left inverse is `M`-regular. -/
-lemma is_regular_of_mul_eq_one (h : a * b = 1) : is_regular M b :=
-is_regular.of_smul a (by { rw [smul_eq_mul, h], exact is_regular_one })
+lemma is_smul_regular_of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
+is_smul_regular.of_smul a (by { rw [smul_eq_mul, h], exact is_smul_regular_one })
 
 /-- Any element in `units R` is `M`-regular. -/
-lemma units.is_regular (a : units R) : is_regular M (a : R) :=
+lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R) :=
 begin
   have ai : a.inv • a.val = 1,
   { rw smul_eq_mul,
      exact a.inv_val },
-  { exact is_regular_of_smul_eq_one ai }
+  { exact is_smul_regular_of_smul_eq_one ai }
 end
 
 /-- A unit is `M`-regular. -/
-lemma is_unit.is_regular (ua : is_unit a) : is_regular M a :=
+lemma is_unit.is_smul_regular (ua : is_unit a) : is_smul_regular M a :=
 begin
   rcases ua with ⟨a, rfl⟩,
-  exact units.is_regular a,
+  exact units.is_smul_regular a,
 end
 
 end monoid_with_zero
@@ -162,9 +164,10 @@ open module
 variables [comm_monoid R] [mul_action R M]
 
 /--  A product is `M`-regular if and only if the factors are. -/
-lemma is_regular_mul_iff : is_regular M (a * b) ↔ is_regular M a ∧ is_regular M b :=
+lemma is_smul_regular_mul_iff : is_smul_regular M (a * b) ↔
+  is_smul_regular M a ∧ is_smul_regular M b :=
 begin
-  rw [← is_regular_mul_and_mul_iff],
+  rw [← is_smul_regular_mul_and_mul_iff],
   exact ⟨λ ab, ⟨ab, by rwa [mul_comm]⟩, λ rab, rab.1⟩
 end
 
@@ -173,7 +176,7 @@ end comm_monoid
 /-- Left-regularity in a `semiring R` is equivalent to `M`-regularity, when
 the `R`-module `M` is `R`.  -/
 lemma is_left_regular_iff {R : Type*} [semiring R] (a : R) :
-  is_left_regular a ↔ module.is_regular R a :=
+  is_left_regular a ↔ module.is_smul_regular R a :=
 iff.rfl
 
 end module

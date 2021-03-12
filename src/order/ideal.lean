@@ -18,7 +18,9 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
 - `is_prime`: a predicate for prime ideals.
+              Dual to the notion of a prime filter.
 - `is_maximal`: a predicate for maximal ideals.
+              Dual to the notion of an ultrafilter.
 - `cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
                Dual to the notion of 'dense set' used in forcing.
 - `ideal_of_cofinals p 𝒟`, where `p : P`, and `𝒟` is a countable family of cofinal
@@ -171,6 +173,9 @@ lemma is_maximal.is_coatom {I : ideal P} (hI : is_maximal I) : is_coatom I :=
 
 lemma is_maximal_of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
 ⟨proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
+
+lemma is_maximal_iff_is_coatom {I : ideal P} : is_maximal I ↔ is_coatom I :=
+⟨λ h, h.is_coatom, λ h, is_maximal_of_is_coatom h⟩
 
 end order_top
 

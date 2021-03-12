@@ -7,6 +7,7 @@ import algebra.group
 import algebra.group_power.basic
 import algebra.module.basic
 import algebra.smul_with_zero
+import algebra.regular
 /-!
 # Action of regular elements on a module
 
@@ -69,16 +70,22 @@ begin
     exact ⟨(ha.smul_iff b).mpr hb, (hb.smul_iff a).mpr ha⟩ }
 end
 
-/--  The "most used" implication of `mul_and_mul_iff`, with split hypotheses, instead of `∧`. -/
-lemma is_regular.and_of_mul_of_mul (ab : is_regular M (a * b)) (ba : is_regular M (b * a)) :
-  is_regular M a ∧ is_regular M b :=
-⟨ba.of_smul b, ab.of_smul a⟩
-
 @[simp] lemma is_regular_one : is_regular M (1 : R) :=
 begin
   intros a b ab,
   rwa [one_smul, one_smul] at ab,
 end
+
+lemma is_regular.mul (ra : is_regular M a) (rb : is_regular M b) : is_regular M (a * b) :=
+ra.smul rb
+
+lemma is_regular.of_mul (ab : is_regular M (a * b)) :
+  is_regular M b :=
+by { rw ←smul_eq_mul at ab, exact ab.of_smul _ }
+
+@[simp] lemma is_regular.mul_iff  (ha : is_regular M a) :
+  is_regular M (a * b) ↔ is_regular M b :=
+⟨is_regular.of_mul, ha.mul⟩
 
 /--  Any power of an `M`-regular element is `M`-regular. -/
 lemma is_regular.pow (n : ℕ) (ra : is_regular M a) : is_regular M (a ^ n) :=
@@ -167,5 +174,11 @@ begin
 end
 
 end comm_monoid
+
+/-- Left-regularity in a `semiring R` is equivalent to `M`-regularity, when
+the `R`-module `M` is `R`.  -/
+lemma is_left_regular_iff {R : Type*} [semiring R] (a : R) :
+  is_left_regular a ↔ module.is_regular R a :=
+iff.rfl
 
 end module

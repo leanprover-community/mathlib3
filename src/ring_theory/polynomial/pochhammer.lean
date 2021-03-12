@@ -32,9 +32,13 @@ open polynomial
 section
 variables (S : Type u) [semiring S]
 
+/--
+`pochhammer S n` is the polynomial `X * (X+1) * ... * (X + n - 1)`,
+with coefficients in the semiring `S`.
+-/
 noncomputable def pochhammer : ℕ → polynomial S
 | 0 := 1
-| (n+1) := X * (pochhammer n).comp(X + 1)
+| (n+1) := X * (pochhammer n).comp (X + 1)
 
 @[simp] lemma pochhammer_zero : pochhammer S 0 = 1 := rfl
 @[simp] lemma pochhammer_one : pochhammer S 1 = X := by simp [pochhammer]

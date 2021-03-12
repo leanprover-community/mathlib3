@@ -232,7 +232,7 @@ If `f` is a natural transformation whose transferred natural transformation is a
 then `f` is an isomorphism.
 The converse is given in `transfer_nat_trans_self_iso`.
 -/
-def transfer_nat_trans_self_of_iso (f : L₂ ⟶ L₁) [is_iso (transfer_nat_trans_self adj₁ adj₂ f)] :
+lemma transfer_nat_trans_self_of_iso (f : L₂ ⟶ L₁) [is_iso (transfer_nat_trans_self adj₁ adj₂ f)] :
   is_iso f :=
 begin
   suffices :

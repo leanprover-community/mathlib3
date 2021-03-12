@@ -36,6 +36,8 @@ to monoid objects.
 See https://stacks.math.columbia.edu/tag/0FFL.
 -/
 
+noncomputable theory
+
 open category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃

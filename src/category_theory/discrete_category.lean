@@ -5,6 +5,8 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.eq_to_hom
 
+noncomputable theory
+
 namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -46,7 +48,7 @@ lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
 variables {C : Type u₂} [category.{v₂} C]
 
 instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
-{ inv := eq_to_hom (eq_of_hom f).symm, }
+⟨eq_to_hom (eq_of_hom f).symm, by tidy⟩
 
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.
@@ -94,7 +96,7 @@ rfl
 lemma nat_iso_inv_app {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
   (discrete.nat_iso f).inv.app i = (f i).inv :=
-rfl
+by { simp [discrete.nat_iso], }
 
 @[simp]
 lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}

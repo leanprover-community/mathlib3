@@ -8,6 +8,8 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
+noncomputable theory
+
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory
@@ -204,11 +206,10 @@ namespace cones
 Given a cone morphism whose object part is an isomorphism, produce an
 isomorphism of cones.
 -/
-def cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso f.hom] :
+lemma cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso f.hom] :
   is_iso f :=
-{ inv :=
-  { hom := i.inv,
-    w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm } }
+⟨{ hom := i.inv,
+   w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm }, by tidy⟩
 
 /--
 Functorially postcompose a cone for `F` by a natural transformation `F ⟶ G` to give a cone for `G`.
@@ -368,11 +369,10 @@ namespace cocones
 Given a cocone morphism whose object part is an isomorphism, produce an
 isomorphism of cocones.
 -/
-def cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_iso f.hom] :
+lemma cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_iso f.hom] :
   is_iso f :=
-{ inv :=
-  { hom := i.inv,
-    w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm } }
+⟨{ hom := i.inv,
+   w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm }, by tidy⟩
 
 /-- Functorially precompose a cocone for `F` by a natural transformation `G ⟶ F` to give a cocone
 for `G`. -/

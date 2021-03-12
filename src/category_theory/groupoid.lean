@@ -5,6 +5,8 @@ Authors: Reid Barton, Scott Morrison, David Wärn
 -/
 import category_theory.epi_mono
 
+noncomputable theory
+
 namespace category_theory
 
 universes v v₂ u u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -36,7 +38,8 @@ section
 variables {C : Type u} [groupoid.{v} C] {X Y : C}
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f := { inv := groupoid.inv f }
+instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f :=
+⟨groupoid.inv f, by simp⟩
 
 variables (X Y)
 
@@ -55,7 +58,7 @@ variables {C : Type u} [category.{v} C]
 
 /-- A category where every morphism `is_iso` is a groupoid. -/
 def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : groupoid.{v} C :=
-{ inv := λ X Y f, (all_is_iso f).inv }
+{ inv := λ X Y f, inv f }
 
 /-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
 def groupoid.of_trunc_split_mono

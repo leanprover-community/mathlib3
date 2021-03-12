@@ -16,6 +16,8 @@ there is a natural "pointwise" monoidal structure on `C ⥤ D`.
 The initial intended application is tensor product of presheaves.
 -/
 
+noncomputable theory
+
 universes v₁ v₂ u₁ u₂
 
 open category_theory
@@ -116,11 +118,13 @@ lemma right_unitor_inv_app {F : C ⥤ D} {X} :
 
 @[simp]
 lemma associator_hom_app {F G H : C ⥤ D} {X} :
-  ((α_ F G H).hom : (F ⊗ G) ⊗ H ⟶ F ⊗ (G ⊗ H)).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).hom := rfl
+  ((α_ F G H).hom : (F ⊗ G) ⊗ H ⟶ F ⊗ (G ⊗ H)).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).hom :=
+rfl
 
 @[simp]
 lemma associator_inv_app {F G H : C ⥤ D} {X} :
-  ((α_ F G H).inv : F ⊗ (G ⊗ H) ⟶ (F ⊗ G) ⊗ H).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).inv := rfl
+  ((α_ F G H).inv : F ⊗ (G ⊗ H) ⟶ (F ⊗ G) ⊗ H).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).inv :=
+rfl
 
 section braided_category
 

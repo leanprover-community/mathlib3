@@ -9,6 +9,8 @@ import category_theory.eq_to_hom
 Disjoint unions of categories, functors, and natural transformations.
 -/
 
+noncomputable theory
+
 namespace category_theory
 
 universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation

@@ -82,9 +82,8 @@ If the image of a morphism under a fully faithful functor in an isomorphism,
 then the original morphisms is also an isomorphism.
 -/
 def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
-{ inv := F.preimage (inv (F.map f)),
-  hom_inv_id' := F.map_injective (by simp),
-  inv_hom_id' := F.map_injective (by simp) }
+⟨F.preimage (inv (F.map f)),
+  ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩
 
 /-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
 def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
@@ -206,6 +205,7 @@ instance full.comp [full F] [full G] : full (F ⋙ G) :=
 Given a natural isomorphism between `F ⋙ H` and `G ⋙ H` for a fully faithful functor `H`, we
 can 'cancel' it to give a natural iso between `F` and `G`.
 -/
+noncomputable
 def fully_faithful_cancel_right {F G : C ⥤ D} (H : D ⥤ E)
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) : F ≅ G :=
 nat_iso.of_components
@@ -221,6 +221,6 @@ rfl
 lemma fully_faithful_cancel_right_inv_app {F G : C ⥤ D} {H : D ⥤ E}
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
   (fully_faithful_cancel_right H comp_iso).inv.app X = H.preimage (comp_iso.inv.app X) :=
-rfl
+by simp [fully_faithful_cancel_right]
 
 end category_theory

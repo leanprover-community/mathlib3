@@ -33,6 +33,8 @@ See also `category_theory.functor.elements` for the category of elements of func
 
 -/
 
+noncomputable theory
+
 universe u
 
 namespace category_theory

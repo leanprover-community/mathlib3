@@ -22,6 +22,8 @@ Over (and under) categories are special cases of comma categories.
 comma, slice, coslice, over, under
 -/
 
+noncomputable theory
+
 namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -130,7 +132,8 @@ end
 
 instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
 { reflects := λ Y Z f t, by exactI
-  { inv := over.hom_mk t.inv ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm) } }
+  ⟨over.hom_mk (inv ((forget X).map f)) ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm),
+   by tidy⟩ }
 
 instance forget_faithful : faithful (forget X) := {}.
 

@@ -25,6 +25,8 @@ We don't attempt to set up the full theory here, but do provide the natural isom
 Beyond that, there's a collection of simp lemmas for working with these constructions.
 -/
 
+noncomputable theory
+
 open category_theory
 open topological_space
 open opposite
@@ -201,7 +203,8 @@ def map_iso (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=
 nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg functor.obj (congr_arg map h)) U) )
   (by obviously)
 
-@[simp] lemma map_iso_refl (f : X ⟶ Y) (h) : map_iso f f h = iso.refl (map _) := rfl
+@[simp] lemma map_iso_refl (f : X ⟶ Y) (h) : map_iso f f h = iso.refl (map _) :=
+by ext
 
 @[simp] lemma map_iso_hom_app (f g : X ⟶ Y) (h : f = g) (U : opens Y) :
   (map_iso f g h).hom.app U = eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h)) U) :=
@@ -210,7 +213,7 @@ rfl
 @[simp] lemma map_iso_inv_app (f g : X ⟶ Y) (h : f = g) (U : opens Y) :
   (map_iso f g h).inv.app U =
      eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
-rfl
+by ext
 
 end topological_space.opens
 

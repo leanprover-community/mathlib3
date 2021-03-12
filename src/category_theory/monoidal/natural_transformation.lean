@@ -17,6 +17,8 @@ an additional compatibility relation with the tensorators:
 themselves form a category.
 -/
 
+noncomputable theory
+
 open category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
@@ -110,21 +112,21 @@ namespace monoidal_nat_iso
 variables {F G : lax_monoidal_functor C D}
 
 instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-{ inv :=
-  { app := λ X, inv (α.app X),
-    naturality' := λ X Y f,
-    begin
-      have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y)))
-        (α.to_nat_trans.naturality f).symm,
-      simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
-      exact h
-    end,
-    tensor' := λ X Y,
-    begin
-      dsimp,
-      rw [is_iso.comp_inv_eq, assoc, monoidal_nat_trans.tensor, ←inv_tensor,
-        is_iso.inv_hom_id_assoc],
-    end }, }
+⟨{ app := λ X, inv (α.app X),
+  naturality' := λ X Y f,
+  begin
+    have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y)))
+      (α.to_nat_trans.naturality f).symm,
+    simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+    exact h
+  end,
+  tensor' := λ X Y,
+  begin
+    dsimp,
+    rw [is_iso.comp_inv_eq, assoc, monoidal_nat_trans.tensor, ←inv_tensor,
+      is_iso.inv_hom_id_assoc],
+  end },
+  by tidy⟩
 
 /--
 Construct a monoidal natural isomorphism from object level isomorphisms,
@@ -143,7 +145,8 @@ as_iso { app := λ X, (app X).hom }
   (of_components app naturality unit tensor).hom.app X = (app X).hom := rfl
 @[simp] lemma of_components.inv_app
   (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
-  (of_components app naturality unit tensor).inv.app X = (app X).inv := rfl
+  (of_components app naturality unit tensor).inv.app X = (app X).inv :=
+by simp [of_components]
 
 end monoidal_nat_iso
 

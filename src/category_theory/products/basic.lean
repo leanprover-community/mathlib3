@@ -5,6 +5,8 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.eq_to_hom
 
+noncomputable theory
+
 namespace category_theory
 
 -- declare the `v`'s first; see `category_theory.category` for an explanation

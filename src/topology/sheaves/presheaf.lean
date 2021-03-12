@@ -20,6 +20,8 @@ and for `ℱ : X.presheaf C` provide the natural isomorphisms
 along with their `@[simp]` lemmas.
 -/
 
+noncomputable theory
+
 universes v u
 
 open category_theory
@@ -54,16 +56,18 @@ def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
 
-@[simp] lemma pushforward_eq_hom_app {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
-  (pushforward_eq h ℱ).hom.app U = ℱ.map (begin dsimp [functor.op], apply has_hom.hom.op, apply eq_to_hom, rw h, end) :=
-rfl
+@[simp] lemma pushforward_eq_hom_app
+  {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
+  (pushforward_eq h ℱ).hom.app U =
+    ℱ.map (begin dsimp [functor.op], apply has_hom.hom.op, apply eq_to_hom, rw h, end) :=
+by simp [pushforward_eq]
 
 @[simp]
 lemma pushforward_eq_rfl {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) :
   (pushforward_eq (rfl : f = f) ℱ).hom.app (op U) = 𝟙 _ :=
 begin
   dsimp [pushforward_eq],
-  erw ℱ.map_id,
+  simp,
 end
 
 lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : X.presheaf C) :

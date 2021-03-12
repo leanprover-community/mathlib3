@@ -21,6 +21,8 @@ cofree functors, respectively from and to the original category.
 * [Riehl, *Category theory in context*, Section 5.2.4][riehl2017]
 -/
 
+noncomputable theory
+
 namespace category_theory
 open category
 
@@ -303,10 +305,9 @@ structure. -/
 /--
 Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
 -/
-def coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-{ inv :=
-  { f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } } }
+lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
+⟨{ f := inv f.f,
+   h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
 { reflects := λ A B, coalgebra_iso_of_iso G }

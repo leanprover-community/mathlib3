@@ -31,6 +31,8 @@ more convenient API. We prove the equivalence in
 category of elements, Grothendieck construction, comma category
 -/
 
+noncomputable theory
+
 namespace category_theory
 
 universes w v u

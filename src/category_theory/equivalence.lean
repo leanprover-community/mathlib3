@@ -278,6 +278,7 @@ by { dsimp [inv_fun_id_assoc], tidy }
 
 /-- If `C` is equivalent to `D`, then `C ⥤ E` is equivalent to `D ⥤ E`. -/
 @[simps functor inverse unit_iso counit_iso]
+noncomputable
 def congr_left (e : C ≌ D) : (C ⥤ E) ≌ (D ⥤ E) :=
 equivalence.mk
   ((whiskering_left _ _ _).obj e.inverse)
@@ -287,6 +288,7 @@ equivalence.mk
 
 /-- If `C` is equivalent to `D`, then `E ⥤ C` is equivalent to `E ⥤ D`. -/
 @[simps functor inverse unit_iso counit_iso]
+noncomputable
 def congr_right (e : C ≌ D) : (E ⥤ C) ≌ (E ⥤ D) :=
 equivalence.mk
   ((whiskering_right _ _ _).obj e.functor)

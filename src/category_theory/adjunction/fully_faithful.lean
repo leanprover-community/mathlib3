@@ -30,20 +30,18 @@ See
 instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunction.unit h) :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ (adjunction.unit h) $ λ X,
 @yoneda.is_iso _ _ _ _ ((adjunction.unit h).app X)
-{ inv := { app := λ Y f, L.preimage ((h.hom_equiv (unop Y) (L.obj X)).symm f) },
-  inv_hom_id' :=
-  begin
-    ext, dsimp,
+⟨{ app := λ Y f, L.preimage ((h.hom_equiv (unop Y) (L.obj X)).symm f) },
+  ⟨begin
+    ext x f, dsimp,
     simp only [adjunction.hom_equiv_counit, preimage_comp, preimage_map, category.assoc],
-    rw ←h.unit_naturality,
-    simp,
-  end,
-  hom_inv_id' :=
-  begin
-    ext, dsimp,
     apply L.map_injective,
     simp,
-  end }.
+  end,
+  begin
+    ext x f, dsimp at ⊢ f,
+    apply L.map_injective,
+    simp,
+  end⟩⟩
 
 /--
 If the right adjoint is fully faithful, then the counit is an isomorphism.

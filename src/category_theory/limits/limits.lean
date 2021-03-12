@@ -558,10 +558,8 @@ def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s 
   inv_hom_id' := Q.uniq_cocone_morphism }
 
 /-- Any cocone morphism between colimit cocones is an isomorphism. -/
-def hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶ t) : is_iso f :=
-{ inv := Q.desc_cocone_morphism s,
-  hom_inv_id' := P.uniq_cocone_morphism,
-  inv_hom_id' := Q.uniq_cocone_morphism, }
+lemma hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶ t) : is_iso f :=
+⟨Q.desc_cocone_morphism s, ⟨P.uniq_cocone_morphism, Q.uniq_cocone_morphism⟩⟩
 
 /-- Colimits of `F` are unique up to isomorphism. -/
 def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) :

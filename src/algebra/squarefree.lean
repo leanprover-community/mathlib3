@@ -110,7 +110,7 @@ begin
     by_cases h0 : a = 0,
     { simp [h0, x0] },
     rcases wf_dvd_monoid.exists_irreducible_factor hu h0 with ⟨b, hib, hdvd⟩,
-    apply le_trans (multiplicity.multiplicity_le_multiplicity_of_dvd hdvd),
+    apply le_trans (multiplicity.multiplicity_le_multiplicity_of_dvd_left hdvd),
     rw [multiplicity_eq_count_factors hib x0],
     specialize h (normalize b),
     assumption_mod_cast }

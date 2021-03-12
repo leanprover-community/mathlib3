@@ -99,6 +99,10 @@ theorem exists_irreducible : ∃ ϖ : R, irreducible ϖ :=
 by {simp_rw [irreducible_iff_uniformizer],
     exact (is_principal_ideal_ring.principal $ maximal_ideal R).principal}
 
+/-- Uniformisers exist in a DVR -/
+theorem exists_prime : ∃ ϖ : R, prime ϖ :=
+exists_imp_exists (λ _, principal_ideal_ring.irreducible_iff_prime.1) (exists_irreducible R)
+
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
 theorem iff_pid_with_one_nonzero_prime (R : Type u) [integral_domain R] :
   discrete_valuation_ring R ↔ is_principal_ideal_ring R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P :=
@@ -385,10 +389,12 @@ end
 ## The additive valuation on a DVR
 -/
 
-/-- The `ℕ`-valued additive valuation on a DVR (returns junk at `0` rather than `+∞`) -/
-noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_ring R] : R → ℕ :=
-λ r, if hr : r = 0 then 0 else
-  classical.some (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
+open multiplicity
+
+/-- The `enat`-valued additive valuation on a DVR -/
+noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_ring R] :
+  add_valuation R enat :=
+add_valuation (classical.some_spec (exists_prime R))
 
 theorem add_val_spec {r : R} (hr : r ≠ 0) :
   let ϖ := classical.some (exists_irreducible R) in
@@ -399,77 +405,65 @@ classical.some_spec (associated_pow_irreducible hr (classical.some_spec $ exists
 
 lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
   add_val R r = n :=
-begin
-  subst hr,
-  let ϖ₀ := classical.some (exists_irreducible R),
-  have hϖ₀ : irreducible ϖ₀ := classical.some_spec (exists_irreducible R),
-  have h0 : (u : R) * ϖ ^ n ≠ 0,
-  { simp only [units.mul_right_eq_zero, ne.def, pow_ne_zero n hϖ.ne_zero, not_false_iff] },
-  unfold add_val,
-  rw dif_neg h0,
-  obtain ⟨v, hv⟩ := (add_val_spec h0).symm,
-  rw mul_comm at hv,
-  refine unit_mul_pow_congr_pow hϖ₀ hϖ _ u _ _ hv,
-end
+by rw [add_val, add_valuation_apply, hr,
+    eq_of_associated_left (associated_of_irreducible R hϖ
+      (irreducible_of_prime (classical.some_spec (exists_prime R)))),
+    eq_of_associated_right (associated.symm ⟨u, mul_comm _ _⟩),
+    multiplicity_pow_self_of_prime (principal_ideal_ring.irreducible_iff_prime.1 hϖ)]
 
 lemma add_val_def' (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
   add_val R ((u : R) * ϖ ^ n) = n :=
 add_val_def _ u hϖ n rfl
 
-@[simp] lemma add_val_zero : add_val R 0 = 0 :=
-dif_pos rfl
+@[simp] lemma add_val_zero : add_val R 0 = ⊤ :=
+(add_val R).map_zero
 
 @[simp] lemma add_val_one : add_val R 1 = 0 :=
-add_val_def 1 1 (classical.some_spec $ exists_irreducible R) 0 (by simp)
+(add_val R).map_one
 
 @[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
 add_val_def ϖ 1 hϖ 1 (by simp)
 
-@[simp] lemma add_val_mul {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) :
+@[simp] lemma add_val_mul {a b : R} :
   add_val R (a * b) = add_val R a + add_val R b :=
-begin
-  obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
-  obtain ⟨m, u, rfl⟩ := eq_unit_mul_pow_irreducible ha hϖ,
-  obtain ⟨n, v, rfl⟩ := eq_unit_mul_pow_irreducible hb hϖ,
-  rw mul_mul_mul_comm,
-  simp only [hϖ, add_val_def', ← pow_add, ← units.coe_mul],
-end
+(add_val R).map_mul _ _
 
-lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n * add_val R a :=
-begin
-  by_cases ha : a = 0,
-  { cases nat.eq_zero_or_pos n with hn hn,
-    { simp [ha, hn] },
-    { simp [ha, zero_pow hn] } },
-  induction n with d hd,
-  { simp [ha] },
-  { rw [pow_succ, add_val_mul ha (pow_ne_zero _ ha), hd], ring}
-end
+lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n • add_val R a :=
+(add_val R).map_pow _ _
 
-lemma add_val_le_iff_dvd {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) : add_val R a ≤ add_val R b ↔ a ∣ b :=
+lemma add_val_eq_top_iff {a : R} : add_val R a = ⊤ ↔ a = 0 :=
 begin
+  have hi := (irreducible_of_prime (classical.some_spec (exists_prime R))),
   split,
-  { obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
-    obtain ⟨m, u, rfl⟩ := eq_unit_mul_pow_irreducible ha hϖ,
-    obtain ⟨n, v, rfl⟩ := eq_unit_mul_pow_irreducible hb hϖ,
-    rw [add_val_def' _ hϖ, add_val_def' _ hϖ, le_iff_exists_add],
-    rintro ⟨q, rfl⟩,
-    use ((v * u⁻¹ : units R) : R) * ϖ ^ q,
-    rw [mul_mul_mul_comm, pow_add, units.coe_mul, mul_left_comm ↑u, units.mul_inv, mul_one] },
-  { rintro ⟨c, rfl⟩,
-    rw add_val_mul ha (right_ne_zero_of_mul hb),
-    simp only [zero_le, le_add_iff_nonneg_right] }
+  { contrapose,
+    intro h,
+    obtain ⟨n, ha⟩ := associated_pow_irreducible h hi,
+    obtain ⟨u, rfl⟩ := ha.symm,
+    rw [mul_comm, add_val_def' u hi n],
+    exact enat.coe_ne_top _ },
+  { rintro rfl,
+    exact add_val_zero }
 end
 
-lemma add_val_add {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) (hab : a + b ≠ 0) :
-  min (add_val R a) (add_val R b) ≤ add_val R (a + b) :=
+lemma add_val_le_iff_dvd {a b : R} : add_val R a ≤ add_val R b ↔ a ∣ b :=
 begin
-  -- wlog is slow but I'm grateful it works.
-  wlog h : add_val R a ≤ add_val R b := le_total (add_val R a) (add_val R b) using [a b, b a],
-  rw [min_eq_left h, add_val_le_iff_dvd ha hab],
-  rw add_val_le_iff_dvd ha hb at h,
-  exact dvd_add_self_left.mpr h,
+  have hp := classical.some_spec (exists_prime R),
+  split; intro h,
+  { by_cases ha0 : a = 0,
+    { rw [ha0, add_val_zero, top_le_iff, add_val_eq_top_iff] at h,
+      rw h,
+      apply dvd_zero },
+    obtain ⟨n, ha⟩ := associated_pow_irreducible ha0 (irreducible_of_prime hp),
+    rw [add_val, add_valuation_apply, add_valuation_apply,
+      multiplicity_le_multiplicity_iff] at h,
+    exact dvd.trans (dvd_of_associated ha) (h n (dvd_of_associated ha.symm)), },
+  { rw [add_val, add_valuation_apply, add_valuation_apply],
+    exact multiplicity_le_multiplicity_of_dvd_right h }
 end
+
+lemma add_val_add {a b : R} :
+  min (add_val R a) (add_val R b) ≤ add_val R (a + b) :=
+(add_val R).map_add _ _
 
 end
 

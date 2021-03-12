@@ -710,7 +710,11 @@ end
 lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [add_comm_monoid M] (f : α → M) :
   (s.map f).sum = ∑ m in s.to_finset, s.count m •ℕ f m :=
-@prod_multiset_map_count _ _ _ (multiplicative M) _ f
+begin
+  convert @prod_multiset_map_count _ _ _ (multiplicative M) _ f,
+  try { ext, convert of_add_nsmul _ _ }
+end
+
 attribute [to_additive] prod_multiset_map_count
 
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
@@ -719,7 +723,10 @@ by { convert prod_multiset_map_count s id, rw map_id }
 
 lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
   s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
-@prod_multiset_count (multiplicative α) _ _ s
+begin
+  convert @prod_multiset_count (multiplicative α) _ _ s,
+  try { ext, convert of_add_nsmul _ _ }
+end
 attribute [to_additive] prod_multiset_count
 
 /--
@@ -1026,12 +1033,18 @@ attribute [to_additive] prod_update_of_mem
 
 lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   (∑ x in s, n •ℕ (f x)) = n •ℕ ((∑ x in s, f x)) :=
-@prod_pow _ (multiplicative β) _ _ _ _
+begin
+  convert @prod_pow _ (multiplicative β) _ s n f,
+  try { ext, convert of_add_nsmul _ _, convert of_add_nsmul _ _ }
+end
 attribute [to_additive sum_nsmul] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
   (∑ x in s, b) = s.card •ℕ b :=
-@prod_const _ (multiplicative β) _ _ _
+begin
+  convert @prod_const _ (multiplicative β) _ _ _,
+  try { convert of_add_nsmul _ _ }
+end
 attribute [to_additive] prod_const
 
 lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
@@ -1061,7 +1074,10 @@ lemma sum_int_cast [add_comm_group β] [has_one β] (s : finset α) (f : α → 
 
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card •ℕ (f b) :=
-@prod_comp _ (multiplicative β) _ _ _ _ _ _
+begin
+  convert @prod_comp _ (multiplicative β) _ _ _ s f g,
+  try { ext, convert of_add_nsmul _ _ }
+end
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
 

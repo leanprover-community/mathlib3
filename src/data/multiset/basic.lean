@@ -832,7 +832,7 @@ lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] :
   ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n •ℕ a :=
-@prod_repeat (multiplicative α) _
+λ _ _, by simp [repeat, list.sum_repeat]
 attribute [to_additive] prod_repeat
 
 lemma prod_map_one [comm_monoid γ] {m : multiset α} :

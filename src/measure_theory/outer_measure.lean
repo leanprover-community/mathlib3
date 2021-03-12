@@ -96,6 +96,44 @@ protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
   m (s₁ ∪ s₂) ≤ m s₁ + m s₂ :=
 rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
 
+lemma Union_nat_of_tendsto_zero (m : outer_measure α) {s : ℕ → set α}
+  (h0 : tendsto (λ k, m ((⋃ n, s n) \ s k)) at_top (𝓝 0)) :
+  m (⋃ n, s n) = ⨆ n, m (s n) :=
+begin
+  set S := ⋃ n, s n,
+  set M := ⨆ n, m (s n),
+  have hsS : ∀ {k}, s k ⊆ S, from λ k, subset_Union _ _,
+  refine le_antisymm _ (supr_le $ λ n, m.mono hsS),
+  have A : ∀ k, m S ≤ M + m (S \ s k), from λ k,
+  calc m S = m (s k ∪ S \ s k) : by rw [union_diff_self, union_eq_self_of_subset_left hsS]
+  ... ≤ m (s k) + m (S \ s k) : m.union _ _
+  ... ≤ M + m (S \ s k) : add_le_add_right (le_supr _ k) _,
+  have B : tendsto (λ k, M + m (S \ s k)) at_top (𝓝 (M + 0)), from tendsto_const_nhds.add h0,
+  rw add_zero at B,
+  exact ge_of_tendsto' B A
+end
+
+lemma Union_nat_of_monotone_of_tsum_ne_top (m : outer_measure α) {s : ℕ → set α}
+  (h_mono : ∀ n, s n ⊆ s (n + 1)) (h0 : ∑' k, m (s (k + 1) \ s k) ≠ ∞) :
+  m (⋃ n, s n) = ⨆ n, m (s n) :=
+begin
+  refine m.Union_nat_of_tendsto_zero _,
+  refine tendsto_nhds_bot_mono' (ennreal.tendsto_sum_nat_add _ h0) (λ n, _),
+  refine (m.mono _).trans (m.Union _),
+  /- Current goal: `(⋃ k, s k) \ s n = ⋃ k, s (k + n + 1) \ s (k + n)`
+  Should we add this to `data/set/*`? -/
+  have h' : monotone s := @monotone_of_monotone_nat (set α) _ _ h_mono,
+  simp only [diff_subset_iff, Union_subset_iff],
+  intros i x hx,
+  rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,
+  cases le_or_lt j n with hjn hnj, { exact or.inl (h' hjn hj) },
+  have : j - (n + 1) + n + 1 = j,
+    by rw [add_assoc, nat.sub_add_cancel hnj],
+  refine or.inr (mem_Union.2 ⟨j - (n + 1), _, hlt _ _⟩),
+  { rwa this },
+  { rw [← nat.succ_le_iff, nat.succ_eq_add_one, this] }
+end
+
 lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :
   m t ≤ m (t ∩ s) + m (t \ s) :=
 by { convert m.union _ _, rw inter_union_diff t s }
@@ -210,6 +248,10 @@ by have := supr_apply (λ b, cond b m₁ m₂) s;
 
 end supremum
 
+@[mono] lemma mono'' {m₁ m₂ : outer_measure α} {s₁ s₂ : set α} (hm : m₁ ≤ m₂) (hs : s₁ ⊆ s₂) :
+  m₁ s₁ ≤ m₂ s₂ :=
+(hm s₁).trans (m₂.mono hs)
+
 /-- The pushforward of `m` along `f`. The outer measure on `s` is defined to be `m (f ⁻¹' s)`. -/
 def map {β} (f : α → β) : outer_measure α →ₗ[ℝ≥0∞] outer_measure β :=
 { to_fun := λ m,
@@ -281,6 +323,22 @@ def comap {β} (f : α → β) : outer_measure β →ₗ[ℝ≥0∞] outer_measu
   comap f m s = m (f '' s) :=
 rfl
 
+lemma map_comap_le {β} (f : α → β) (m : outer_measure β) :
+  map f (comap f m) ≤ m :=
+λ s, m.mono $ image_preimage_subset _ _
+
+lemma map_comap {β} {f : α → β} (hf : surjective f) (m : outer_measure β) :
+  map f (comap f m) = m :=
+ext $ λ s, by rw [map_apply, comap_apply, hf.image_preimage]
+
+lemma le_comap_map {β} (f : α → β) (m : outer_measure α) :
+  m ≤ comap f (map f m) :=
+λ s, m.mono $ subset_preimage_image _ _
+
+lemma comap_map {β} {f : α → β} (hf : injective f) (m : outer_measure α) :
+  comap f (map f m) = m :=
+ext $ λ s, by rw [comap_apply, map_apply, hf.preimage_image]
+
 /-- Restrict an `outer_measure` to a set. -/
 def restrict (s : set α) : outer_measure α →ₗ[ℝ≥0∞] outer_measure α :=
 (map coe).comp (comap (coe : s → α))
@@ -339,11 +397,9 @@ lemma of_function_apply (s : set α) :
 
 variables {m m_empty}
 theorem of_function_le (s : set α) : outer_measure.of_function m m_empty s ≤ m s :=
-let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
+let f : ℕ → set α := λi, nat.cases_on i s (λ _, ∅) in
 infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $ le_of_eq $
-calc ∑'i, m (f i) = ∑ i in {0}, m (f i) :
-    tsum_eq_sum $ by intro i; cases i; simp [m_empty]
-  ... = m s : by simp; refl
+tsum_eq_single 0 $ by rintro (_|i); simp [f, m_empty]
 
 theorem of_function_eq (s : set α) (m_mono : ∀ ⦃t : set α⦄, s ⊆ t → m s ≤ m t)
   (m_subadd : ∀ (s : ℕ → set α), m (⋃i, s i) ≤ ∑'i, m (s i)) :
@@ -356,6 +412,63 @@ theorem le_of_function {μ : outer_measure α} :
  λ H s, le_infi $ λ f, le_infi $ λ hs,
   le_trans (μ.mono hs) $ le_trans (μ.Union f) $
   ennreal.tsum_le_tsum $ λ i, H _⟩
+
+lemma of_function_union_of_separated {s t : set α}
+  (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → m u = ∞) :
+  outer_measure.of_function m m_empty (s ∪ t) =
+    outer_measure.of_function m m_empty s + outer_measure.of_function m m_empty t :=
+begin
+  refine le_antisymm (outer_measure.union _ _ _) (le_infi $ λ f, le_infi $ λ hf, _),
+  set μ := outer_measure.of_function m m_empty,
+  rcases em (∃ i, (s ∩ f i).nonempty ∧ (t ∩ f i).nonempty) with ⟨i, hs, ht⟩|he,
+  { calc μ s + μ t ≤ ∞ : le_top
+    ... = m (f i) : (h (f i) hs ht).symm
+    ... ≤ ∑' i, m (f i) : ennreal.le_tsum i },
+  set I := λ s, {i : ℕ | (s ∩ f i).nonempty},
+  have hd : disjoint (I s) (I t), from λ i hi, he ⟨i, hi⟩,
+  have hI : ∀ u ⊆ s ∪ t, μ u ≤ ∑'  i : I u, μ (f i), from λ u hu,
+  calc μ u ≤ μ (⋃ i : I u, f i) :
+    μ.mono (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hf (hu hx)) in mem_Union.2 ⟨⟨i, ⟨x, hx, hi⟩⟩, hi⟩)
+  ... ≤ ∑' i : I u, μ (f i) : μ.Union _,
+  calc μ s + μ t ≤ (∑' i : I s, μ (f i)) + (∑' i : I t, μ (f i)) :
+    add_le_add (hI _ $ subset_union_left _ _) (hI _ $ subset_union_right _ _)
+  ... = ∑' i : I s ∪ I t, μ (f i) :
+    (@tsum_union_disjoint _ _ _ _ _ (λ i, μ (f i)) _ _ _ hd ennreal.summable ennreal.summable).symm
+  ... ≤ ∑' i, μ (f i) :
+    tsum_le_tsum_of_inj coe subtype.coe_injective (λ _ _, zero_le _) (λ _, le_rfl)
+      ennreal.summable ennreal.summable
+  ... ≤ ∑' i, m (f i) : ennreal.tsum_le_tsum (λ i, of_function_le _)
+end
+
+lemma comap_of_function {β} {f : β → α} (h_mono : monotone m) :
+  comap f (outer_measure.of_function m m_empty) =
+    outer_measure.of_function (λ s, m (f '' s)) (by rwa set.image_empty) :=
+begin
+  refine le_antisymm (le_of_function.2 $ λ s, _) (λ s, _),
+  { rw comap_apply, apply of_function_le },
+  { rw [comap_apply, of_function_apply, of_function_apply],
+    refine infi_le_infi2 (λ t, ⟨λ k, f ⁻¹' (t k), _⟩),
+    refine infi_le_infi2 (λ ht, _),
+    rw [set.image_subset_iff, preimage_Union] at ht,
+    refine ⟨ht, ennreal.tsum_le_tsum $ λ n, _⟩,
+    exact h_mono (image_preimage_subset _ _) }
+end
+
+lemma map_of_function_le {β} (f : α → β) :
+  map f (outer_measure.of_function m m_empty) ≤
+    outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty :=
+le_of_function.2 $ λ s, by { rw map_apply, apply of_function_le }
+
+lemma map_of_function {β} (h_mono : monotone m)
+  {f : α → β} (hf : bijective f) :
+  map f (outer_measure.of_function m m_empty) =
+    outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty :=
+begin
+  refine eq.trans _ (map_comap hf.surjective _),
+  rw [comap_of_function],
+  { simp only [hf.injective.preimage_image] },
+  { exact h_mono.comp monotone_preimage }
+end
 
 end of_function
 

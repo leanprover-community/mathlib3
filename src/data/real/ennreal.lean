@@ -1487,5 +1487,10 @@ lemma le_of_add_le_add_left {a b c : ℝ≥0∞} : a < ∞ →
   a + b ≤ a + c → b ≤ c :=
 by cases a; cases b; cases c; simp [← ennreal.coe_add, ennreal.coe_le_coe]
 
+/-- `le_of_add_le_add_right` is normally applicable to `ordered_cancel_add_comm_monoid`,
+but it holds in `ℝ≥0∞` with the additional assumption that `a < ∞`. -/
+lemma le_of_add_le_add_right {a b c : ℝ≥0∞} : a < ∞ →
+  b + a ≤ c + a → b ≤ c :=
+by simpa only [add_comm _ a] using le_of_add_le_add_left
 
 end ennreal

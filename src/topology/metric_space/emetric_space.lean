@@ -119,6 +119,8 @@ iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
 theorem edist_le_zero {x y : α} : (edist x y ≤ 0) ↔ x = y :=
 nonpos_iff_eq_zero.trans edist_eq_zero
 
+@[simp] theorem edist_pos {x y : α} : 0 < edist x y ↔ x ≠ y := by simp [← not_le]
+
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
 by rw edist_comm z; apply edist_triangle

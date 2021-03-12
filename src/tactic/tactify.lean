@@ -69,11 +69,8 @@ We don't try particularly hard to "start fresh".
 -/
 meta def tactic_state_with_goal (goal : expr) : tactic tactic_state :=
 lock_tactic_state $ do
-  n ← mk_fresh_name,
-  assert n goal,
-  g :: _ ← get_goals,
+  g ← mk_meta_var goal,
   set_goals [g],
-  local_context >>= (λ ctx, ctx.mmap' (λ h, try (clear h))),
   get_state
 
 meta def run_with_goal (goal : expr) {α} (t : tactic α) : tactic α :=
@@ -87,9 +84,10 @@ namespace tactify
 
 meta inductive proof_step
 | apply (e : expr) : proof_step
+-- | apply' (p : pexpr) (e : expr) : proof_step
 | exact (e : expr) : proof_step
 | intros (ns : list name) : proof_step
-| rewrite (r : expr) : proof_step
+| rewrite (r : expr) (symm : bool) : proof_step
 | «sorry» (comment : format) : proof_step
 
 meta inductive proof_script
@@ -100,13 +98,14 @@ namespace proof_step
 
 meta def to_format : proof_step → tactic format
 | (apply e) := do p ← pp e.replace_mvars, return format!"apply {p}"
+-- | (apply' p e) := do p ← pp e.replace_mvars, return format!"apply {p}"
 | (exact e) := do p ← pp e, return format!"exact {p}"
 | (intros ns) := do match ns with
   | [] := fail "unreachable code"
   | [n] := return format!"intro {n}"
   | _ := do let ns := string.intercalate " " (ns.map name.to_string), return format!"intros {ns}"
   end
-| (rewrite r) := do p ← pp r, return format!"rw {p}"
+| (rewrite r symm) := do p ← pp r, let a := if symm then "←" else "", return format!"rw {a}{p}"
 | («sorry» c) := return $ format!"sorry" ++ " -- " ++ c
 
 meta instance : has_to_tactic_format proof_step :=
@@ -122,9 +121,12 @@ do
   -- Keep a copy of the initial goals.
   initial_goals ← get_goals,
   -- Run the tactic
+  -- trace "before tactic:",
   -- trace_state,
   -- trace_result,
+  -- trace "running tactic:",
   t,
+  -- trace "after tactic:",
   -- trace_state,
   -- trace_result,
   -- then collect the new goals.
@@ -137,9 +139,10 @@ do
 
 meta def as_tactic : proof_step → tactic unit
 | (apply e) := tactic.apply e >> skip
+-- | (apply' p e) := tactic.interactive.apply p >> skip
 | (exact e) := tactic.exact e
 | (intros ns) := tactic.intro_lst ns >> skip
-| (rewrite r) := tactic.rewrite_target r >> try reflexivity
+| (rewrite r symm) := tactic.rewrite_target r { symm := symm } >> try reflexivity
 | («sorry» c) := tactic.admit
 
 /-- Update a list of solutions for the current goals, as we progress through a proof_step. -/
@@ -176,8 +179,10 @@ The intended purpose of this view is to generate training data.
 meta def prompts : proof_script → tactic (list (string × string))
 | (proof_script.done) := return []
 | (proof_script.step st s r) := do
+  -- trace "prompts:",
   ppst ← pp st,
   pps ← pp s,
+  -- trace "prompts:",
   rs ← r.prompts,
   return $ (to_string ppst, to_string pps) :: rs
 
@@ -198,6 +203,20 @@ meta def construct_apply_step (e : expr) : tactic proof_step :=
   pp_e ← pp e,
   pp_t ← infer_type e >>= pp,
   return (proof_step.sorry format!"tried to `apply {pp_e}` with type `{pp_t}` but couldn't make it work"))
+
+meta def shrink_rw (symm : bool) : expr → tactic expr
+| e := do
+  trace e,
+  if e.is_app then do
+    s ← to_string <$> lock_tactic_state (do tactic.rewrite_target e { symm := symm }, get_state >>= pp),
+    let e' := e.app_fn,
+    s' ← to_string <$> lock_tactic_state (do tactic.rewrite_target e' { symm := symm }, get_state >>= pp),
+    if s = s' then
+      shrink_rw e'
+    else
+      return e
+  else
+    return e
 
 /--
 Attempt to deduce a single proof step from a list of `solutions` for the current goals,
@@ -220,18 +239,33 @@ do
           -- Assume the solution was built using `rw`, and hope we get it right:
           let b := sol.app_fn.app_arg.app_arg.app_arg,
           let b := if b.get_app_fn.const_name = `propext then b.app_arg else b,
-          return (proof_step.rewrite b)
+          -- Now do some cleanup: first check for `eq.symm
+          (symm, b) ← match b with
+          | `(eq.symm %%b') := return (tt, b')
+          | `(iff.symm %%b') := return (tt, b')
+          | _ := return (ff, b)
+          end,
+          -- then try to discard arguments but still get the correct rewrite:
+          b ← shrink_rw symm b,
+          return (proof_step.rewrite b symm)
       -- | `(@iff.mpr) := do
       --     -- Rather than produce separate steps `apply iff.mpr` and then `apply F`,
       --     -- try to produce `refine (F _ _).mpr` in one step.
       --     match sol with
       --     | `(iff.mpr %%F %%x) := do
       --       -- Since we're playing with `_`s here, we need to discard extra goals that get created.
-      --       -- gs ← get_goals,
+      --       trace_state,
       --       F' ← replace_args_with_mvars F,
+      --       trace_state,
+      --       let p := ``(iff.mpr %%F'),
+      --       trace_state,
       --       e ← lock_tactic_state $ to_expr ``(iff.mpr %%F'),
+      --       -- e ← mk_mapp ``iff.mpr [none,none,F'],
+      --       -- e ← to_expr ``(iff.mpr %%F'),
+      --       -- e ← tactic.iff_mpr F.get_app_fn,
+      --       -- trace e,
       --       -- set_goals gs,
-      --       return (proof_step.apply e)
+      --       return (proof_step.apply' p e)
       --     | _ := fail "unreachable code"
       --     end
       | _ := do
@@ -258,15 +292,20 @@ open tactify
 meta def tactify : list expr → tactic proof_script
 | solutions :=
 do
+  -- trace "tactify:",
   goals ← get_goals,
+  -- trace "tactify:",
   guard (goals.length = solutions.length) <|>
     fail "Number of solutions has diverged from the number of goals.",
   done >> return proof_script.done <|>
 do
+  -- trace "tactify:",
   state ← get_state,
+  -- trace "before tactify_1:",
   -- trace_state,
   -- trace solutions,
   (step, new_solutions) ← tactify_1 solutions,
+  -- trace "after tactify_1:",
   -- trace step,
   -- trace "---",
   next ← tactify new_solutions,
@@ -306,13 +345,27 @@ meta def all_tactic_prompts : tactic unit := do
 -- Examples that work:
 run_cmd tactic_prompts `nat.factorial_le
 run_cmd tactic_prompts `nat.units_eq_one
-run_cmd tactic_prompts `nat.lt_factorial_self
+run_cmd tactic_prompts `nat.lt_factorial_self -- minimising rewrites
 run_cmd tactic_prompts `nat.zero_eq_mul
 
 def foo (n m : ℕ) (h : m < n) : m.succ ≤ n :=
-(nat.succ_le_iff).mpr h
+begin
+  apply nat.succ_le_iff.mpr,
+  exact h,
+end
 
 run_cmd tactic_prompts `foo
+
+def bar (a b : ℕ) (h₁ : 1 < b) (h₂ : 0 < a) :
+  a < a * b :=
+begin
+  apply (lt_mul_iff_one_lt_right _).mpr,
+  exact h₁,
+  exact h₂,
+end
+
+run_cmd tactic_prompts `bar
+
 
 -- TODO combine `apply iff.mpr` and `apply F` into `apply F.mpr`. (also `.mp`)
 run_cmd tactic_prompts `nat.add_factorial_succ_lt_factorial_add_succ
@@ -332,7 +385,6 @@ run_cmd tactic_prompts `add_cancel_comm_monoid.add_comm
 run_cmd tactic_prompts `list.decidable_chain._proof_2
 #print list.decidable_chain
 -- TODO avoid `apply id_rhs α`
--- TODO try generating shorter `rw` proofs (i.e. leave off arguments when they aren't needed)
 -- TODO Also `eq.symm` (e.g. `functor.map_map`)?
 -- TODO don't use `Exists.intro`?
 
@@ -340,10 +392,6 @@ run_cmd tactic_prompts `list.decidable_chain._proof_2
 run_cmd tactic_prompts `nat.add_factorial_le_factorial_add
 run_cmd tactic_prompts `nat.self_le_factorial
 
-
-#print add_lt_add_of_lt_of_le
-
-#print rfl
 
 example : false :=
 begin
@@ -374,16 +422,8 @@ apply has_le.le.trans_lt,
 apply nat.le.intro,
 apply rfl,
 exact n,
-apply iff.mpr,
-apply lt_mul_iff_one_lt_right,
-apply has_lt.lt.trans_le,
-apply zero_lt_two,
-apply has_le.le.trans,
-exact hi,
-apply nat.le.intro,
-apply rfl,
-apply iff.mpr,
-apply lt_iff_le_and_ne,
+apply (lt_mul_iff_one_lt_right _).mpr,
+apply lt_iff_le_and_ne.mpr,
 apply and.intro,
 apply nat.factorial_pos,
 intro g,
@@ -402,56 +442,7 @@ apply nat.factorial_le,
 apply has_le.le.trans,
 apply le_of_eq,
 apply add_comm,
-apply iff.mpr,
-apply add_le_add_iff_right,
-apply has_le.le.trans,
-apply one_le_two,
-exact hi,
-done
-end
-
-example : ∀ {i : ℕ} (n : ℕ), 2 ≤ i → i + (n + 1).factorial < (i + n + 1).factorial :=
-begin
-intros i n hi,
-rw (i + n).factorial_succ,
-rw (i + n).succ_eq_add_one,
-rw add_mul (i + n) 1 (i + n).factorial,
-rw one_mul (i + n).factorial,
-apply add_lt_add_of_lt_of_le,
-apply has_le.le.trans_lt,
-apply nat.le.intro,
-apply rfl,
-exact n,
-apply iff.mpr,
-apply lt_mul_iff_one_lt_right,
-apply has_lt.lt.trans_le,
-apply zero_lt_two,
-apply has_le.le.trans,
-exact hi,
-apply nat.le.intro,
-apply rfl,
-apply iff.mpr,
-apply lt_iff_le_and_ne,
-apply and.intro,
-apply nat.factorial_pos,
-intro g,
-apply nat.not_succ_le_self,
-apply has_le.le.trans,
-apply has_le.le.trans,
-exact hi,
-apply nat.le.intro,
-apply rfl,
-exact n,
-apply iff.mp,
-apply nat.factorial_eq_one,
-apply eq.symm,
-exact g,
-apply nat.factorial_le,
-apply has_le.le.trans,
-apply le_of_eq,
-apply add_comm,
-apply iff.mpr,
-apply add_le_add_iff_right,
+apply (add_le_add_iff_right _).mpr,
 apply has_le.le.trans,
 apply one_le_two,
 exact hi,

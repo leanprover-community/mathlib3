@@ -70,11 +70,9 @@ begin
     exact ⟨(ha.smul_iff b).mpr hb, (hb.smul_iff a).mpr ha⟩ }
 end
 
+/--  One is `M`-regular always. -/
 @[simp] lemma is_regular_one : is_regular M (1 : R) :=
-begin
-  intros a b ab,
-  rwa [one_smul, one_smul] at ab,
-end
+λ a b ab, by rwa [one_smul, one_smul] at ab
 
 lemma is_regular.mul (ra : is_regular M a) (rb : is_regular M b) : is_regular M (a * b) :=
 ra.smul rb

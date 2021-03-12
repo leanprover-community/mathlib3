@@ -809,9 +809,12 @@ instance : lattice (finset α) :=
 
 @[simp] theorem sup_eq_union (s t : finset α) : s ⊔ t = s ∪ t := rfl
 @[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
+@[simp] lemma le_eq_subset (s t : finset α) : s ≤ t = (s ⊆ t) := rfl
 
 instance : semilattice_inf_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset, ..finset.lattice }
+
+@[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl
 
 instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
 { ..finset.semilattice_inf_bot, ..finset.lattice }
@@ -935,7 +938,7 @@ by { ext x, simp [and_assoc] }
 (inter_comm _ _).trans (inter_sdiff_self _ _)
 
 @[simp] theorem sdiff_self (s₁ : finset α) : s₁ \ s₁ = ∅ :=
-by ext; simp
+by simp
 
 theorem sdiff_inter_distrib_right (s₁ s₂ s₃ : finset α) : s₁ \ (s₂ ∩ s₃) = (s₁ \ s₂) ∪ (s₁ \ s₃) :=
 by ext; simp only [and_or_distrib_left, mem_union, not_and_distrib, mem_sdiff, mem_inter]

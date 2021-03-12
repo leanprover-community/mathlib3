@@ -340,7 +340,8 @@ by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 @[simp] theorem gsmul_eq_mul [ring R] (a : R) : ∀ n, n •ℤ a = n * a
 | (n : ℕ) := nsmul_eq_mul _ _
-| -[1+ n] := show -(_ •ℕ _)=-_*_, by rw [neg_mul_eq_neg_mul_symm, nsmul_eq_mul, nat.cast_succ]
+| -[1+ n] := by rw [int.cast_neg_succ_of_nat, gsmul_neg_succ_of_nat, nsmul_eq_mul,
+                    nat.cast_succ, neg_mul_eq_neg_mul]
 
 theorem gsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n •ℤ a = a * n :=
 by rw [gsmul_eq_mul, (n.cast_commute a).eq]

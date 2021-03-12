@@ -49,7 +49,7 @@ def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
 /-- The scalar multiplication in an additive monoid.
 `n •ℕ a = a+a+...+a` n times. -/
 def nsmul [has_add A] [has_zero A] (n : ℕ) (a : A) : A :=
-n.smul a
+nat.rec_on n 0 (λ b rec, a + rec)
 
 infix ` •ℕ `:70 := nsmul
 
@@ -321,8 +321,10 @@ The scalar multiplication by integers on an additive group.
 This extends `nsmul` to negative integers
 with the definition `(-n) •ℤ a = -(n •ℕ a)`.
 -/
-def gsmul (n : ℤ) (a : A) : A :=
-n.smul a
+def gsmul : ℤ → A → A :=
+λ m, int.rec_on m
+  (λ n a, nat.rec_on n 0 (λ b rec, a + rec))
+  (λ n a, - (nat.rec_on n.succ 0 (λ b rec, a + rec)))
 
 instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
 

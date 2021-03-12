@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 import order.basic
 import data.equiv.encodable.basic
+import order.atoms
 
 /-!
 # Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma
@@ -16,6 +17,8 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
+- `is_prime`: the type of prime ideals.
+- `is_maximal` : the type of maximal ideals.
 - `cofinal P`: the type of subsets of `P` containing arbitrarily large elements.
                Dual to the notion of 'dense set' used in forcing.
 - `ideal_of_cofinals p 𝒟`, where `p : P`, and `𝒟` is a countable family of cofinal
@@ -75,6 +78,11 @@ instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
 @[ext] lemma ext : ∀ (I J : ideal P), (I : set P) = J → I = J
 | ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ rfl := rfl
 
+@[simp, norm_cast] lemma ext_set_eq {I J : ideal P} : (I : set P) = J ↔ I = J :=
+⟨by ext, congr_arg _⟩
+
+lemma ext'_iff {I J : ideal P} : I = J ↔ (I : set P) = J := ext_set_eq.symm
+
 /-- The partial ordering by subset inclusion, inherited from `set P`. -/
 instance : partial_order (ideal P) := partial_order.lift coe ext
 
@@ -87,7 +95,9 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
-class proper (I : ideal P) : Prop := (nuniv : (I : set P) ≠ set.univ)
+class proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
+
+lemma proper_iff {I : ideal P} : proper I ↔ (I : set P) ≠ set.univ := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
 ⟨λ hp, begin
@@ -95,6 +105,22 @@ lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
   rw hp at nmem,
   exact nmem (set.mem_univ p),
 end⟩
+
+/-- A maximal ideal if it is maximal in the collection of proper ideals.
+  Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
+-/
+def is_maximal (I : ideal P) : Prop :=
+  proper I ∧ ∀ J : ideal P, I < J → J.carrier = ⊤
+
+lemma is_maximal_iff {I : ideal P} :
+  is_maximal I ↔ proper I ∧ ∀ J : ideal P, I < J → J.carrier = ⊤ :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+lemma is_maximal.proper {I : ideal P} (hI : is_maximal I) : proper I := hI.1
+
+lemma is_maximal.maximal_proper {I : ideal P} (hI : is_maximal I) :
+  ∀ J : ideal P, I < J → J.carrier = ⊤
+:= hI.2
 
 end preorder
 
@@ -126,6 +152,8 @@ instance : order_top (ideal P) :=
 @[simp] lemma top_carrier : (⊤ : ideal P).carrier = set.univ :=
 set.univ_subset_iff.1 (λ p _, le_top)
 
+@[simp] lemma top_coe : ((⊤ : ideal P) : set P) = set.univ := top_carrier
+
 lemma top_of_mem_top {I : ideal P} (topmem : ⊤ ∈ I) : I = ⊤ :=
 begin
   ext,
@@ -135,8 +163,25 @@ begin
   { exact λ _, I.mem_of_le le_top topmem }
 end
 
-lemma proper_of_ne_top {I : ideal P} (ntop : I ≠ ⊤) : proper I :=
-proper_of_not_mem (λ h, ntop (top_of_mem_top h))
+lemma proper_of_ne_top {I : ideal P} (ne_top : I ≠ ⊤) : proper I :=
+proper_of_not_mem (λ h, ne_top (top_of_mem_top h))
+
+lemma proper.ne_top {I : ideal P} (hI : proper I) : I ≠ ⊤ :=
+begin
+  intro h,
+  rw [ext'_iff, top_coe] at h,
+  apply hI.ne_univ,
+  assumption,
+end
+
+lemma proper_iff_ne_top {I : ideal P} : proper I ↔ I ≠ ⊤ :=
+  ⟨λ h, h.ne_top, λ h, proper_of_ne_top h⟩
+
+lemma is_maximal.is_coatom {I : ideal P} (hI : is_maximal I) : is_coatom I :=
+⟨hI.proper.ne_top, λ J hJ, by {rw [ext'_iff, top_coe], exact hI.2 J hJ}⟩
+
+lemma is_maximal_of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
+  ⟨proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
 
 end order_top
 
@@ -200,6 +245,27 @@ instance : lattice (ideal P) :=
 @[simp] lemma mem_sup {x : P} : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
 
 end semilattice_sup_bot
+
+section semilattice_inf
+
+variable [semilattice_inf P]
+
+/-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
+-/
+def is_prime (I : ideal P) : Prop :=
+proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I
+
+lemma is_prime_iff {I : ideal P} :
+  is_prime I ↔ proper I ∧ ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
+
+lemma is_prime.proper {I : ideal P} (hI : is_prime I) : proper I := hI.1
+
+lemma is_prime.mem_or_mem {I : ideal P} (hI : is_prime I) :
+  ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
+hI.2
+
+end semilattice_inf
 
 end ideal
 

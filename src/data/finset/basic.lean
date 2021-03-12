@@ -807,9 +807,8 @@ instance : lattice (finset α) :=
   inf_le_right := inter_subset_right,
   ..finset.partial_order }
 
-@[simp] theorem sup_eq_union (s t : finset α) : s ⊔ t = s ∪ t := rfl
-@[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
-@[simp] lemma le_eq_subset (s t : finset α) : s ≤ t = (s ⊆ t) := rfl
+@[simp] theorem sup_eq_union : ((⊔) : finset α → finset α → finset α) = (∪) := rfl
+@[simp] theorem inf_eq_inter : ((⊓) : finset α → finset α → finset α) = (∩) := rfl
 
 instance : semilattice_inf_bot (finset α) :=
 { bot := ∅, bot_le := empty_subset, ..finset.lattice }
@@ -934,7 +933,7 @@ theorem inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u :=
 by { ext x, simp [and_assoc] }
 
 @[simp] theorem sdiff_inter_self (s₁ s₂ : finset α) : (s₂ \ s₁) ∩ s₁ = ∅ :=
-inf_sdiff_same_left
+inf_sdiff_self_left
 
 @[simp] theorem sdiff_self (s₁ : finset α) : s₁ \ s₁ = ∅ :=
 sdiff_self
@@ -943,10 +942,10 @@ theorem sdiff_inter_distrib_right (s₁ s₂ s₃ : finset α) : s₁ \ (s₂ �
 sdiff_inf
 
 @[simp] theorem sdiff_inter_self_left (s₁ s₂ : finset α) : s₁ \ (s₁ ∩ s₂) = s₁ \ s₂ :=
-by simp only [sdiff_inter_distrib_right, sdiff_self, empty_union]
+sdiff_inf_self_left
 
 @[simp] theorem sdiff_inter_self_right (s₁ s₂ : finset α) : s₁ \ (s₂ ∩ s₁) = s₁ \ s₂ :=
-by simp only [sdiff_inter_distrib_right, sdiff_self, union_empty]
+sdiff_inf_self_right
 
 @[simp] theorem sdiff_empty {s₁ : finset α} : s₁ \ ∅ = s₁ :=
 sdiff_bot
@@ -960,13 +959,13 @@ sdiff_le_sdiff ‹t₁ ≤ t₂› ‹s₂ ≤ s₁›
 set.ext $ λ _, mem_sdiff
 
 @[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
-sup_sdiff_same_right
+sup_sdiff_self_right
 
 @[simp] theorem sdiff_union_self_eq_union {s t : finset α} : (s \ t) ∪ t = s ∪ t :=
-sup_sdiff_same_left
+sup_sdiff_self_left
 
 lemma union_sdiff_symm {s t : finset α} : s ∪ (t \ s) = t ∪ (s \ t) :=
-by rw [union_sdiff_self_eq_union, union_sdiff_self_eq_union, union_comm]
+sup_sdiff_symm
 
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s :=
 by { rw union_comm, exact sup_inf_sdiff _ _ }
@@ -1016,16 +1015,16 @@ lemma sdiff_union_distrib (s t₁ t₂ : finset α) : s \ (t₁ ∪ t₂) = (s \
 sdiff_sup
 
 lemma union_sdiff_self (s t : finset α) : (s ∪ t) \ t = s \ t :=
-by rw [union_sdiff_distrib, sdiff_self, union_empty]
+sup_sdiff_self
 
 lemma sdiff_singleton_eq_erase (a : α) (s : finset α) : s \ singleton a = erase s a :=
 by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
-sdiff_sdiff_right_same
+sdiff_sdiff_right_self
 
-lemma inter_eq_inter_of_sdiff_eq_sdiff {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ → s ∩ t₁ = s ∩ t₂ :=
-by { simp only [ext_iff, mem_sdiff, mem_inter], intros b c, replace b := b c, split; tauto }
+lemma sdiff_eq_sdiff_iff_inter_eq_inter {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ ↔ s ∩ t₁ = s ∩ t₂ :=
+sdiff_eq_sdiff_iff_inf_eq_inf
 
 end decidable_eq
 

@@ -115,7 +115,6 @@ begin
   { intros a s has ih, rw [fold_insert has, ih, insert_eq], }
 end
 
-@[simp]
 lemma fold_sup_bot_singleton [decidable_eq α] (s : finset α) :
   finset.fold (⊔) ⊥ singleton s = s :=
 fold_union_empty_singleton s

@@ -1004,6 +1004,31 @@ begin
     simp }
 end
 
+lemma inj_on_of_card_image_eq {α β : Type*} [decidable_eq β] {f : α → β} {s : finset α}
+  (H : (s.image f).card = s.card) :
+  ∀ (x y ∈ s), f x = f y → x = y :=
+begin
+  change (s.1.map f).erase_dup.card = s.1.card at H,
+  have : (s.1.map f).erase_dup = s.1.map f,
+  { apply multiset.eq_of_le_of_card_le,
+    { apply multiset.erase_dup_le },
+    rw H,
+    simp only [multiset.card_map] },
+  rw multiset.erase_dup_eq_self at this,
+  rw multiset.nodup_iff_pairwise at this,
+
+
+  -- cases s,
+  -- dsimp at H,
+
+end
+
+#exit
+
+theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
+  (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
+by simp only [card, image_val_of_inj_on H, card_map]
+
 lemma panchromatic_pairs_card_eq_panchromatic_card {S : triangulation (std_simplex (fin (m+1)))}
   (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :
   (panchromatic_pairs hS f).card = ((S.faces_finset hS).filter (panchromatic f)).card :=
@@ -1020,7 +1045,7 @@ begin
     ext1,
     { refl },
     change Y₁ = Y₂,
-
+    have := finset.card_image_of_inj_on,
   }
 end
 

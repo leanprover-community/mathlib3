@@ -140,7 +140,7 @@ begin
     { apply ih d.2 _ h₁ _ h₂ h₃ } }
 end
 
-theorem nodup_map_iff {f : α → β} {l : list α} (d : nodup l) :
+theorem nodup_map_iff_inj_on {f : α → β} {l : list α} (d : nodup l) :
   nodup (map f l) ↔ (∀ (x ∈ l) (y ∈ l), f x = f y → x = y) :=
 ⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
 

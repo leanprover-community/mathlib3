@@ -43,21 +43,6 @@ class smul_with_zero [has_zero R] extends has_scalar R M :=
 @[simp] lemma zero_smul [has_zero R] [smul_with_zero R M] (m : M) :
   (0 : R) • m = 0 :=
 smul_with_zero.zero_smul m
---attribute [simp] smul_with_zero.smul_zero smul_with_zero.zero_smul
-
---namespace smul_with_zero
-
-/-
--- todo: this should replace the global one
-lemma smul_zero [has_zero R] [smul_with_zero R M] (r : R) :
-  r • (0 : M) = 0 :=
-smul_zero' r
-
--- this one has a typeclass that is neither stronger nor weaker than the global one
-lemma zero_smul [has_zero R] [smul_with_zero R M] (m : M) :
-  (0 : R) • m = 0 :=
-zero_smul' m
---/
 
 section monoid_with_zero
 

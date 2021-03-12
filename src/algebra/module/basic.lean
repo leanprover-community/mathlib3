@@ -58,9 +58,17 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [semimodule R M] (r s : R) (x y : M)
 
+/-- A semimodule over a semiring automatically inherits a `mul_action_with_zero` structure. -/
+@[priority 100] -- see Note [lower instance priority]
+instance semimodule.to_mul_action_with_zero :
+  mul_action_with_zero R M :=
+{ smul_zero := smul_zero,
+  zero_smul := semimodule.zero_smul,
+  ..(infer_instance : mul_action R M) }
+
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 variables (R)
-@[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
+--@[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
@@ -253,14 +261,6 @@ library_note "vector space definition"
   operation between vectors. -/
 abbreviation vector_space (R : Type u) (M : Type v) [field R] [add_comm_group M] :=
 semimodule R M
-
-/-- A semimodule over a semiring automatically inherits a `mul_action_with_zero` structure. -/
-@[priority 100] -- see Note [lower instance priority]
-instance semimodule.to_mul_action_with_zero [semiring R] [add_comm_monoid M] [semimodule R M] :
-  mul_action_with_zero R M :=
-{ smul_zero := smul_zero,
-  zero_smul := zero_smul R,
-  ..(infer_instance : mul_action R M) }
 
 section add_comm_monoid
 
@@ -490,7 +490,7 @@ instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
 theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
 ⟨eq_zero_or_eq_zero_of_smul_eq_zero,
- λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
+ λ h, h.elim (λ h, h.symm ▸ zero_smul R M x) (λ h, h.symm ▸ smul_zero c)⟩
 
 theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
   c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=

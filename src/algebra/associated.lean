@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import data.multiset.basic
 import algebra.divisibility
+import algebra.invertible
 
 /-!
 # Associated, prime, and irreducible elements.
@@ -14,6 +15,12 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 lemma is_unit.pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+
+instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
+  invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
 
 theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,

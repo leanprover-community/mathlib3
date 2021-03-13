@@ -481,8 +481,10 @@ begin
   conv at p { to_rhs,
     rw [sum, sum_smul, sum_mul_smul],
     simp only [polynomial.nat_smul], },
-  convert p using 1,
-  { congr' 1, funext k, congr' 1, simp only [polynomial.nat_smul] with push_cast,
+  calc _ = _ : finset.sum_congr rfl (λ k m, _)
+     ... = _ : p
+     ... = _ : _,
+  { congr' 1 ,simp only [polynomial.nat_smul] with push_cast,
     cases k; { simp, ring, }, },
   { simp only [polynomial.nat_smul] with push_cast,
     cases n; { simp, ring, }, },

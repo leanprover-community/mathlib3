@@ -257,7 +257,7 @@ variable [semilattice_inf P]
 
 /-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
 -/
-@[mk_iff, class] structure is_prime (I : ideal P) extends is_proper I : Prop :=
+@[mk_iff] class is_prime (I : ideal P) extends is_proper I : Prop :=
 (mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
 end semilattice_inf

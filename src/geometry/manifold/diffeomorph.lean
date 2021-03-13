@@ -12,14 +12,24 @@ This file implements diffeomorphisms.
 
 ## Definitions
 
-* `times_diffeomorph I I' M M' n`:  `n`-times continuously differentiable diffeomorphism between
-                                    `M` and `M'` with respect to I and I'
-* `diffeomorph  I I' M M'` : smooth diffeomorphism between `M` and `M'` with respect to I and I'
+* `diffeomorph I I' M M' n`:  `n`-times continuously differentiable diffeomorphism between
+  `M` and `M'` with respect to I and I'; we do not introduce a separate definition for the case
+  `n = ∞`; we use notation instead.
+* `diffeomorph.to_homeomorph`: reinterpret a diffeomorphism as a homeomorphism.
+* `continuous_linear_equiv.to_diffeomorph`: reinterpret a continuous equivalence as
+  a diffeomorphism.
+* `model_with_corners.trans_diffeomorph`: compose a given `model_with_corners` with a diffeomorphism
+  between the old and the new target spaces. Useful, e.g, to turn any finite dimensional manifold
+  into a manifold modelled on a Euclidean space.
+* `diffeomorph.to_trans_diffeomorph`: the identity diffeomorphism between `M` with model `I` and `M`
+  with model `I.trans_diffeomorph e`.
 
 ## Notations
 
-* `M ≃ₘ^n⟮I, I'⟯ M'`  := `times_diffeomorph I J M N n`
-* `M ≃ₘ⟮I, I'⟯ M'`    := `times_diffeomorph I J M N ⊤`
+* `M ≃ₘ^n⟮I, I'⟯ M'`  := `diffeomorph I J M N n`
+* `M ≃ₘ⟮I, I'⟯ M'`    := `diffeomorph I J M N ⊤`
+* `E ≃ₘ^n[𝕜] E'`    := `M ≃ₘ^n⟮𝓘(𝕜, E), 𝓘(𝕜, E')⟯ E'`
+* `E ≃ₘ[𝕜] E'`    := `M ≃ₘ⟮𝓘(𝕜, E), 𝓘(𝕜, E')⟯ E'`
 
 ## Implementation notes
 
@@ -28,6 +38,9 @@ because structomorphisms do not allow the model spaces `H` and `H'` of the two m
 different, i.e. for a structomorphism one has to impose `H = H'` which is often not the case in
 practice.
 
+## Keywords
+
+diffeomorphism, manifold
 -/
 
 open_locale manifold topological_space
@@ -56,21 +69,20 @@ variables (I I' M M' n)
 `n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
 -/
 @[protect_proj, nolint has_inhabited_instance]
-structure times_diffeomorph extends M ≃ M' :=
+structure diffeomorph extends M ≃ M' :=
 (times_cont_mdiff_to_fun  : times_cont_mdiff I I' n to_equiv)
 (times_cont_mdiff_inv_fun : times_cont_mdiff I' I n to_equiv.symm)
 
 end defs
 
-localized "notation M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N := times_diffeomorph I J M N n" in manifold
-localized "notation M ` ≃ₘ⟮` I `,` J `⟯ ` N := times_diffeomorph I J M N ⊤" in manifold
-localized
-  "notation E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' := times_diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' n"
-  in manifold
-localized "notation E ` ≃ₘ[` 𝕜 `] ` E' := times_diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' ⊤"
-  in manifold
+localized "notation M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N := diffeomorph I J M N n" in manifold
+localized "notation M ` ≃ₘ⟮` I `,` J `⟯ ` N := diffeomorph I J M N ⊤" in manifold
+localized "notation E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
+  diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' n" in manifold
+localized "notation E ` ≃ₘ[` 𝕜 `] ` E' :=
+  diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' ⊤" in manifold
 
-namespace times_diffeomorph
+namespace diffeomorph
 instance : has_coe_to_fun (M ≃ₘ^n⟮I, I'⟯ M') := ⟨λ _, M → M', λe, e.to_equiv⟩
 
 instance : has_coe (M ≃ₘ^n⟮I, I'⟯ M') C^n⟮I, M; I', M'⟯ := ⟨λ Φ, ⟨Φ, Φ.times_cont_mdiff_to_fun⟩⟩
@@ -96,7 +108,7 @@ protected lemma mdifferentiable_on (h : M ≃ₘ^n⟮I, I'⟯ M') (s : set M) (h
 @[simp] lemma coe_to_equiv (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑h.to_equiv = h := rfl
 @[simp, norm_cast] lemma coe_coe (h : M ≃ₘ^n⟮I, I'⟯ M') : ⇑(h : C^n⟮I, M; I', M'⟯) = h := rfl
 
-lemma to_equiv_injective : injective (times_diffeomorph.to_equiv : (M ≃ₘ^n⟮I, I'⟯ M') → (M ≃ M'))
+lemma to_equiv_injective : injective (diffeomorph.to_equiv : (M ≃ₘ^n⟮I, I'⟯ M') → (M ≃ M'))
 | ⟨e, _, _⟩ ⟨e', _, _⟩ rfl := rfl
 
 @[simp] lemma to_equiv_inj {h h' : M ≃ₘ^n⟮I, I'⟯ M'} : h.to_equiv = h'.to_equiv ↔ h = h' :=
@@ -118,8 +130,8 @@ protected def refl : M ≃ₘ^n⟮I, I⟯ M :=
   times_cont_mdiff_inv_fun := times_cont_mdiff_id,
   to_equiv := equiv.refl M }
 
-@[simp] lemma refl_to_equiv : (times_diffeomorph.refl I M n).to_equiv = equiv.refl _ := rfl
-@[simp] lemma coe_refl : ⇑(times_diffeomorph.refl I M n) = id := rfl
+@[simp] lemma refl_to_equiv : (diffeomorph.refl I M n).to_equiv = equiv.refl _ := rfl
+@[simp] lemma coe_refl : ⇑(diffeomorph.refl I M n) = id := rfl
 
 end
 
@@ -130,9 +142,9 @@ protected def trans (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', 
   times_cont_mdiff_inv_fun := h₁.times_cont_mdiff_inv_fun.comp h₂.times_cont_mdiff_inv_fun,
   to_equiv := h₁.to_equiv.trans h₂.to_equiv }
 
-@[simp] lemma trans_refl (h : M ≃ₘ^n⟮I, I'⟯ M') : h.trans (times_diffeomorph.refl I' M' n) = h :=
+@[simp] lemma trans_refl (h : M ≃ₘ^n⟮I, I'⟯ M') : h.trans (diffeomorph.refl I' M' n) = h :=
 ext $ λ _, rfl
-@[simp] lemma refl_trans (h : M ≃ₘ^n⟮I, I'⟯ M') : (times_diffeomorph.refl I M n).trans h = h :=
+@[simp] lemma refl_trans (h : M ≃ₘ^n⟮I, I'⟯ M') : (diffeomorph.refl I M n).trans h = h :=
 ext $ λ _, rfl
 @[simp] lemma coe_trans (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', J⟯ N) :
   ⇑(h₁.trans h₂) = h₂ ∘ h₁ := rfl
@@ -148,11 +160,11 @@ h.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (h : M ≃ₘ^n⟮I, J⟯ N) (x : M) : h.symm (h x) = x :=
 h.to_equiv.symm_apply_apply x
 
-@[simp] lemma symm_refl : (times_diffeomorph.refl I M n).symm = times_diffeomorph.refl I M n :=
+@[simp] lemma symm_refl : (diffeomorph.refl I M n).symm = diffeomorph.refl I M n :=
 ext $ λ _, rfl
-@[simp] lemma trans_symm (h : M ≃ₘ^n⟮I, J⟯ N) : h.trans h.symm = times_diffeomorph.refl I M n :=
+@[simp] lemma trans_symm (h : M ≃ₘ^n⟮I, J⟯ N) : h.trans h.symm = diffeomorph.refl I M n :=
 ext h.symm_apply_apply
-@[simp] lemma symm_trans (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.trans h = times_diffeomorph.refl J N n :=
+@[simp] lemma symm_trans (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.trans h = diffeomorph.refl J N n :=
 ext h.apply_symm_apply
 @[simp] lemma symm_trans' (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', J⟯ N) :
   (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl
@@ -267,7 +279,7 @@ by simp only [← unique_mdiff_on_iff_unique_diff_on, unique_mdiff_on_image, hn]
   unique_diff_on 𝕜 (h ⁻¹' s) ↔ unique_diff_on 𝕜 s :=
 h.symm_image_eq_preimage s ▸ h.symm.unique_diff_on_image hn
 
-end times_diffeomorph
+end diffeomorph
 
 namespace continuous_linear_equiv
 
@@ -316,7 +328,7 @@ by simp only [range_comp e, e.image_eq_preimage, preimage_preimage] with mfld_si
 
 end model_with_corners
 
-namespace times_diffeomorph
+namespace diffeomorph
 
 variables (e : E ≃ₘ[𝕜] F)
 
@@ -401,4 +413,4 @@ times_cont_mdiff_trans_diffeomorph_right e
   smooth (I.trans_diffeomorph e) I' f ↔ smooth I I' f :=
 e.times_cont_mdiff_trans_diffeomorph_left
 
-end times_diffeomorph
+end diffeomorph

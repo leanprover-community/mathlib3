@@ -16,6 +16,7 @@ if all monomials occuring in `φ` have degree `n`.
 ## Main definitions/lemmas
 
 * `is_homogeneous φ n`: a predicate that asserts that `φ` is homogeneous of degree `n`.
+* `homogeneous_submodule σ R n`: the submodule of homogeneous polynomials of degree `n`.
 * `homogeneous_component n`: the additive morphism that projects polynomials onto
   their summand that is homogeneous of degree `n`.
 * `sum_homogeneous_component`: every polynomial is the sum of its homogeneous components
@@ -37,6 +38,35 @@ TODO
 if all monomials occuring in `φ` have degree `n`. -/
 def is_homogeneous [comm_semiring R] (φ : mv_polynomial σ R) (n : ℕ) :=
 ∀ ⦃d⦄, coeff d φ ≠ 0 → ∑ i in d.support, d i = n
+
+variables (σ R)
+
+/-- The submodule of homogeneous `mv_polynomial`s. -/
+noncomputable def homogeneous_submodule [comm_semiring R] (n : ℕ) :
+  submodule R (mv_polynomial σ R) :=
+{ carrier := { x | x.is_homogeneous n },
+  smul_mem' := λ r a ha c hc, begin
+    have : coeff c (r • a) = r • coeff c a := finsupp.smul_apply _ _ _,
+    rw this at hc,
+    apply ha,
+    intro h,
+    apply hc,
+    rw h,
+    exact smul_zero r,
+  end,
+  zero_mem' := λ d hd, false.elim (hd $ coeff_zero _),
+  add_mem' := λ a b ha hb c hc, begin
+    rw coeff_add at hc,
+    obtain h|h : coeff c a ≠ 0 ∨ coeff c b ≠ 0,
+    { contrapose! hc, simp only [hc, add_zero] },
+    { exact ha h },
+    { exact hb h }
+  end }
+
+@[simp] lemma mem_homogeneous_submodule [comm_semiring R] (n : ℕ) (p : mv_polynomial σ R) :
+  p ∈ homogeneous_submodule σ R n ↔ p.is_homogeneous n := iff.rfl
+
+variables {σ R}
 
 section
 variables [comm_semiring R]
@@ -64,7 +94,7 @@ end
 variables (σ R)
 
 lemma is_homogeneous_zero (n : ℕ) : is_homogeneous (0 : mv_polynomial σ R) n :=
-λ d hd, false.elim (hd $ coeff_zero _)
+(homogeneous_submodule σ R n).zero_mem
 
 lemma is_homogeneous_one : is_homogeneous (1 : mv_polynomial σ R) 0 :=
 is_homogeneous_C _ _
@@ -97,29 +127,12 @@ end
 
 lemma add (hφ : is_homogeneous φ n) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ + ψ) n :=
-begin
-  intros c hc,
-  rw coeff_add at hc,
-  obtain h|h : coeff c φ ≠ 0 ∨ coeff c ψ ≠ 0,
-  { contrapose! hc, simp only [hc, add_zero] },
-  { exact hφ h },
-  { exact hψ h }
-end
+(homogeneous_submodule σ R n).add_mem hφ hψ
 
 lemma sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ℕ)
   (h : ∀ i ∈ s, is_homogeneous (φ i) n) :
   is_homogeneous (∑ i in s, φ i) n :=
-begin
-  classical,
-  revert h,
-  apply finset.induction_on s,
-  { intro, simp only [is_homogeneous_zero, finset.sum_empty] },
-  { intros i s his IH h,
-    simp only [his, finset.sum_insert, not_false_iff],
-    apply (h i (finset.mem_insert_self _ _)).add (IH _),
-    intros j hjs,
-    exact h j (finset.mem_insert_of_mem hjs) }
-end
+(homogeneous_submodule σ R n).sum_mem h
 
 lemma mul (hφ : is_homogeneous φ m) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ * ψ) (m + n) :=

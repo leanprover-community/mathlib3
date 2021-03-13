@@ -108,7 +108,7 @@ lemma is_proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : is_proper I 
   exact nmem (set.mem_univ p),
 end⟩
 
-/-- A maximal ideal if it is maximal in the collection of proper ideals.
+/-- An ideal is maximal if it is maximal in the collection of proper ideals.
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
 @[mk_iff] structure is_maximal (I : ideal P) : Prop :=

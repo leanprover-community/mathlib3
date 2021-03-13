@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
 import data.string.defs
+import data.option.defs
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -372,29 +373,21 @@ e.replace $ λ e d,
   | _ := none
   end
 
-/-- FIXME err, what is this called, and is there just a punctuation incantation I can use? -/
-def foo {α : Type*}{m : Type* → Type*} [monad m] (x : m (option α)) (y : m α) : m α :=
-do o ← x,
-  match o with
-  | none := y
-  | (some a) := pure a
-  end
-
 /-- Implementation of `expr.mreplace`. -/
 meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) :
   expr → ℕ → m expr
-| (app f x) n := foo (R (app f x) n)
+| (app f x) n := option.mget_or_else (R (app f x) n)
   (do Rf ← mreplace_aux f n, Rx ← mreplace_aux x n, return $ app Rf Rx)
-| (lam nm bi ty bd) n := foo (R (lam nm bi ty bd) n)
+| (lam nm bi ty bd) n := option.mget_or_else (R (lam nm bi ty bd) n)
   (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ lam nm bi Rty Rbd)
-| (pi nm bi ty bd) n := foo (R (pi nm bi ty bd) n)
+| (pi nm bi ty bd) n := option.mget_or_else (R (pi nm bi ty bd) n)
   (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ pi nm bi Rty Rbd)
-| (elet nm ty a b) n := foo (R (elet nm ty a b) n)
+| (elet nm ty a b) n := option.mget_or_else (R (elet nm ty a b) n)
   (do Rty ← mreplace_aux ty n,
     Ra ← mreplace_aux a n,
     Rb ← mreplace_aux b n,
     return $ elet nm Rty Ra Rb)
-| e n := foo (R e n) (return e)
+| e n := option.mget_or_else (R e n) (return e)
 
 /--
 Monadic analogue of `expr.replace`.
@@ -406,8 +399,8 @@ If `R s n` returns `some t`, `s` is replaced with `t` (and `mreplace` does not v
 its subexpressions).
 If `R s n` return `none`, then `mreplace` continues visiting subexpressions of `s`.
 -/
-meta def mreplace {m : Type* → Type*} [monad m] [alternative m]
-  (R : expr → nat → m (option expr)) (e : expr) : m expr :=
+meta def mreplace {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) (e : expr) :
+  m expr :=
 mreplace_aux R e 0
 
 /-- Match a variable. -/

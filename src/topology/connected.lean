@@ -724,8 +724,8 @@ begin
   exact ⟨a, mem_connected_component, refl (f a)⟩,
 end
 
-lemma is_totally_disconnected_of_totally_disconnected_space [totally_disconnected_space α] (s : set α) :
-  is_totally_disconnected s :=
+lemma is_totally_disconnected_of_totally_disconnected_space [totally_disconnected_space α]
+  (s : set α) : is_totally_disconnected s :=
 λ t hts ht, totally_disconnected_space.is_totally_disconnected_univ _ t.subset_univ ht
 
 lemma is_preconnected.subsingleton [totally_disconnected_space α] {s : set α}

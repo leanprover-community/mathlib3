@@ -55,6 +55,18 @@ structure ideal (P) [preorder P] :=
 (directed  : directed_on (≤) carrier)
 (mem_of_le : ∀ {x y : P}, x ≤ y → y ∈ carrier → x ∈ carrier)
 
+/-- A preorder `P` has the `ideal_inter_nonempty` property if the
+    intersection of any two ideals is nonempty.
+    Most importantly, a `semilattice_sup` preorder with this property
+    satisfies that its ideal poset is a latice.
+-/
+class ideal_inter_nonempty (P) [preorder P] : Prop :=
+(inter_nonempty : ∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty)
+
+lemma inter_nonempty [preorder P] [ideal_inter_nonempty P] :
+∀ (I J : ideal P), (I.carrier ∩ J.carrier).nonempty :=
+ideal_inter_nonempty.inter_nonempty
+
 namespace ideal
 
 section preorder
@@ -75,6 +87,8 @@ instance : has_coe (ideal P) (set P) := ⟨carrier⟩
 
 /-- For the notation `x ∈ I`. -/
 instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
+
+@[simp] lemma mem_def : x ∈ I ↔ x ∈ (I : set P) := iff_of_eq rfl
 
 /-- Two ideals are equal when their underlying sets are equal. -/
 @[ext] lemma ext : ∀ (I J : ideal P), (I : set P) = J → I = J
@@ -193,20 +207,22 @@ I.mem_of_le (sup_le hx hy) h_mem
 
 end semilattice_sup
 
-section semilattice_sup_bot
-variables [semilattice_sup_bot P] (I J K : ideal P)
+section semilattice_sup_ideal_inter_nonempty
 
-/-- The intersection of two ideals is an ideal, when `P` has joins and a bottom. -/
+variables [semilattice_sup P] [ideal_inter_nonempty P]
+variables (I J K : ideal P)
+
+/-- The intersection of two ideals is an ideal, when it is nonempty and `P` has joins. -/
 def inf (I J : ideal P) : ideal P :=
 { carrier   := I ∩ J,
-  nonempty  := ⟨⊥, bot_mem, bot_mem⟩,
+  nonempty  := inter_nonempty I J,
   directed  := λ x ⟨_, _⟩ y ⟨_, _⟩, ⟨x ⊔ y, ⟨sup_mem x y ‹_› ‹_›, sup_mem x y ‹_› ‹_›⟩, by simp⟩,
   mem_of_le := λ x y h ⟨_, _⟩, ⟨mem_of_le I h ‹_›, mem_of_le J h ‹_›⟩ }
 
-/-- There is a smallest ideal containing two ideals, when `P` has joins and a bottom. -/
+/-- There is a smallest ideal containing two ideals, when it is nonempty and `P` has joins. -/
 def sup (I J : ideal P) : ideal P :=
 { carrier   := {x | ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j},
-  nonempty  := ⟨⊥, ⊥, bot_mem, ⊥, bot_mem, bot_le⟩,
+  nonempty  := by {cases inter_nonempty I J, refine ⟨w, w, h.1, w, h.2, le_sup_left⟩},
   directed  := λ x ⟨xi, _, xj, _, _⟩ y ⟨yi, _, yj, _, _⟩,
     ⟨x ⊔ y,
      ⟨xi ⊔ yi, sup_mem xi yi ‹_› ‹_›,
@@ -225,8 +241,8 @@ K.mem_of_le hxij $ sup_mem i j (mem_of_mem_of_le hiI hIK) (mem_of_mem_of_le hjJ 
 
 instance : lattice (ideal P) :=
 { sup          := sup,
-  le_sup_left  := λ I J (i ∈ I), ⟨i, ‹_›, ⊥, bot_mem, by simp only [sup_bot_eq]⟩,
-  le_sup_right := λ I J (j ∈ J), ⟨⊥, bot_mem, j, ‹_›, by simp only [bot_sup_eq]⟩,
+  le_sup_left  := λ I J (i ∈ I), by { cases nonempty J, refine ⟨i, ‹_›, w, ‹_›, le_sup_left⟩},
+  le_sup_right := λ I J (j ∈ J), by { cases nonempty I, refine ⟨w, ‹_›, j, ‹_›, le_sup_right⟩},
   sup_le       := sup_le,
   inf          := inf,
   inf_le_left  := λ I J, set.inter_subset_left I J,
@@ -238,11 +254,28 @@ instance : lattice (ideal P) :=
 
 @[simp] lemma mem_sup {x : P} : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
 
+end semilattice_sup_ideal_inter_nonempty
+
+section semilattice_sup_bot
+variables [semilattice_sup_bot P] (I J K : ideal P)
+
+instance semilattice_sup_bot.ideal_inter_nonempty : ideal_inter_nonempty P :=
+{ inter_nonempty := λ _ _, ⟨⊥, ⟨bot_mem, bot_mem⟩⟩ }
+
 end semilattice_sup_bot
 
 section semilattice_inf
 
 variable [semilattice_inf P]
+
+instance semilattice_inf.ideal_inter_nonempty : ideal_inter_nonempty P :=
+{
+  inter_nonempty := λ I J, begin
+    cases I.nonempty with i _,
+    cases J.nonempty with j _,
+    refine ⟨i ⊓ j, I.mem_of_le inf_le_left ‹_›, J.mem_of_le inf_le_right ‹_›⟩,
+  end
+}
 
 /-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
 -/
@@ -251,6 +284,30 @@ variable [semilattice_inf P]
 (mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
 end semilattice_inf
+
+section distrib_lattice
+
+variables [distrib_lattice P]
+variables {I J : ideal P}
+
+lemma eq_sup_of_le_sup {x i j: P} (hi : i ∈ I) (hj : j ∈ J) (hx : x ≤ i ⊔ j):
+∃ (i' ∈ I) (j' ∈ J), x = i' ⊔ j' :=
+begin
+  refine ⟨x ⊓ i, I.mem_of_le inf_le_right hi, x ⊓ j, J.mem_of_le inf_le_right hj, _⟩,
+  calc
+  x    = x ⊓ (i ⊔ j) : left_eq_inf.mpr hx
+  ...  = (x ⊓ i) ⊔ (x ⊓ j) : inf_sup_left,
+end
+
+lemma sup_coe_eq_sup_set : ↑(I ⊔ J) = {x | ∃ i ∈ I, ∃ j ∈ J, x = i ⊔ j} :=
+begin
+  ext,
+  rw [← mem_def, mem_sup],
+  exact ⟨λ ⟨_, hi, _, hj, hx⟩, eq_sup_of_le_sup ‹_› ‹_› ‹_›,
+  λ ⟨i, _, j, _, _⟩, ⟨i, ‹_›, j, ‹_›, le_of_eq ‹_›⟩⟩
+end
+
+end distrib_lattice
 
 end ideal
 

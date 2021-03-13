@@ -318,7 +318,7 @@ end from_pi_systems_to_measurable_spaces
 section indep_set
 /-! ### Independence of measurable sets
 
-We prove the following equivalences on `indep_set`, for measurable sets `s,t`.
+We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
 * `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
 * `indep_set s t μ ↔ indep_sets {s} {t} μ`.
 -/

@@ -101,9 +101,9 @@ instance {α : Type*} : boolean_algebra (set α) :=
 
 @[simp] lemma top_eq_univ : (⊤ : set α) = univ := rfl
 @[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
-@[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
-@[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
-@[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
+@[simp] lemma sup_eq_union : ((⊔) : set α → set α → set α) = (∪) := rfl
+@[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
+@[simp] lemma le_eq_subset : ((≤) : set α → set α → Prop) = (⊆) := rfl
 /-! `set.lt_eq_ssubset` is defined further down -/
 
 /-- Coercion from a set to the corresponding subtype. -/
@@ -229,7 +229,7 @@ theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subse
 
 instance : has_ssubset (set α) := ⟨(<)⟩
 
-@[simp] lemma lt_eq_ssubset (s t : set α) : s < t = (s ⊂ t) := rfl
+@[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
 
 theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ ¬ (t ⊆ s)) := rfl
 

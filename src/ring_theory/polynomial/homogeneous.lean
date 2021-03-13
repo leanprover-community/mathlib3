@@ -69,6 +69,20 @@ variables {σ R}
 @[simp] lemma mem_homogeneous_submodule [comm_semiring R] (n : ℕ) (p : mv_polynomial σ R) :
   p ∈ homogeneous_submodule σ R n ↔ p.is_homogeneous n := iff.rfl
 
+variables (σ R)
+
+/-- While equal, the former has a convenient definitional reduction. -/
+lemma homogenous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
+  homogeneous_submodule σ R n = finsupp.supported _ R {d | ∑ i in d.support, d i = n} :=
+begin
+  ext,
+  rw [finsupp.mem_supported, set.subset_def],
+  simp only [finsupp.mem_support_iff, finset.mem_coe],
+  refl,
+end
+
+variables {σ R}
+
 lemma homogenous_submodule_mul [comm_semiring R] (m n : ℕ) :
   homogeneous_submodule σ R m * homogeneous_submodule σ R n ≤ homogeneous_submodule σ R (m + n) :=
 begin

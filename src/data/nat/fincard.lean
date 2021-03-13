@@ -9,9 +9,10 @@ import set_theory.cardinal
 # Finite Cardinality Functions
 
 ## Main Definitions
-  * `nat.card α` is the cardinality of `α` as a natural number.
+
+* `nat.card α` is the cardinality of `α` as a natural number.
   If `α` is infinite, `nat.card α = 0`.
-  * `enat.card α` is the cardinality of `α` as an extended natural number.
+* `enat.card α` is the cardinality of `α` as an extended natural number.
   If `α` is infinite, `nat.card α = ⊤`.
 
 -/

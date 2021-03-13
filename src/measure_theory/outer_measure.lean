@@ -1225,8 +1225,8 @@ end
 
 /-- If `μ i` is a countable family of outer measures, then for every set `s` there exists
 a measurable set `t ⊇ s` such that `μ i t = (μ i).trim s` for all `i`. -/
-lemma exists_measurable_superset_forall_eq_trim {ι} [encodable ι] (μ : ι → outer_measure α) (s : set α) :
-  ∃ t, s ⊆ t ∧ measurable_set t ∧ ∀ i, μ i t = (μ i).trim s :=
+lemma exists_measurable_superset_forall_eq_trim {ι} [encodable ι] (μ : ι → outer_measure α)
+  (s : set α) : ∃ t, s ⊆ t ∧ measurable_set t ∧ ∀ i, μ i t = (μ i).trim s :=
 begin
   choose t hst ht hμt using λ i, (μ i).exists_measurable_superset_eq_trim s,
   replace hst := subset_Inter hst,

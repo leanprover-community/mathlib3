@@ -164,6 +164,9 @@ def is_iso (f : X ⟶ Y) : Prop := ∃ inv : Y ⟶ X, f ≫ inv = 𝟙 X ∧ inv
 
 attribute [class] is_iso
 
+/--
+The inverse of a morphism `f` when we have `[is_iso f]`.
+-/
 noncomputable def inv (f : X ⟶ Y) [I : is_iso f] := classical.some I
 
 namespace is_iso

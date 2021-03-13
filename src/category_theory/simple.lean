@@ -24,7 +24,7 @@ class simple (X : C) : Prop :=
 (mono_is_iso_iff_nonzero : ∀ {Y : C} (f : Y ⟶ X) [mono f], is_iso f ↔ (f ≠ 0))
 
 /-- A nonzero monomorphism to a simple object is an isomorphism. -/
-def is_iso_of_mono_of_nonzero {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w : f ≠ 0) :
+lemma is_iso_of_mono_of_nonzero {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w : f ≠ 0) :
   is_iso f :=
 (simple.mono_is_iso_iff_nonzero f).mpr w
 
@@ -67,7 +67,7 @@ variables [abelian C]
 
 /-- In an abelian category, an object satisfying the dual of the definition of a simple object is
     simple. -/
-def simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso f ↔ (f ≠ 0)) :
+lemma simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso f ↔ (f ≠ 0)) :
   simple X :=
 ⟨λ Y f I,
  begin
@@ -88,7 +88,7 @@ def simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso f 
  end⟩
 
 /-- A nonzero epimorphism from a simple object is an isomorphism. -/
-def is_iso_of_epi_of_nonzero {X Y : C} [simple X] {f : X ⟶ Y} [epi f] (w : f ≠ 0) :
+lemma is_iso_of_epi_of_nonzero {X Y : C} [simple X] {f : X ⟶ Y} [epi f] (w : f ≠ 0) :
   is_iso f :=
 begin
   -- `f ≠ 0` means that `kernel.ι f` is not an iso, and hence zero, and hence `f` is a mono.

@@ -174,7 +174,7 @@ by simp [of_components]
 A natural transformation is an isomorphism if all its components are isomorphisms.
 -/
 -- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
-def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+lemma is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
 is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))
 
 /-- Horizontal composition of natural isomorphisms. -/

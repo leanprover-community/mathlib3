@@ -329,7 +329,7 @@ section
 variables (X Y)
 
 /-- The kernel morphism of a zero morphism is an isomorphism -/
-def kernel.ι_of_zero : is_iso (kernel.ι (0 : X ⟶ Y)) :=
+lemma kernel.ι_of_zero : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 end
@@ -585,7 +585,7 @@ section
 variables (X Y)
 
 /-- The cokernel of a zero morphism is an isomorphism -/
-def cokernel.π_of_zero :
+lemma cokernel.π_of_zero :
   is_iso (cokernel.π (0 : X ⟶ Y)) :=
 coequalizer.π_of_self _
 

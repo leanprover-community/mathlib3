@@ -245,7 +245,7 @@ If `f` is a natural transformation whose un-transferred natural transformation i
 then `f` is an isomorphism.
 The converse is given in `transfer_nat_trans_self_symm_iso`.
 -/
-def transfer_nat_trans_self_symm_of_iso (f : R₁ ⟶ R₂)
+lemma transfer_nat_trans_self_symm_of_iso (f : R₁ ⟶ R₂)
   [is_iso ((transfer_nat_trans_self adj₁ adj₂).symm f)] :
   is_iso f :=
 begin

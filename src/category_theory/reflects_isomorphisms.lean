@@ -25,7 +25,7 @@ class reflects_isomorphisms (F : C ⥤ D) :=
 (reflects : Π {A B : C} (f : A ⟶ B) [is_iso (F.map f)], is_iso f)
 
 /-- If `F` reflects isos and `F.map f` is an iso, then `f` is an iso. -/
-def is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
+lemma is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
   [is_iso (F.map f)] [reflects_isomorphisms F] :
   is_iso f :=
 reflects_isomorphisms.reflects F f

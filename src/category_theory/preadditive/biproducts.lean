@@ -54,7 +54,7 @@ If
 ```
 is invertible, then `f` is invertible.
 -/
-def is_iso_left_of_is_iso_biprod_map
+lemma is_iso_left_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso f :=
 ⟨biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
   ⟨begin
@@ -79,7 +79,7 @@ If
 ```
 is invertible, then `g` is invertible.
 -/
-def is_iso_right_of_is_iso_biprod_map
+lemma is_iso_right_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 begin
   letI : is_iso (biprod.map g f) := by

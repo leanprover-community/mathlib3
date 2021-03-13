@@ -156,7 +156,7 @@ lemma frobenius_morphism_mate (h : L ⊣ F) (A : C) :
 If the exponential comparison transformation (at `A`) is an isomorphism, then the Frobenius morphism
 at `A` is an isomorphism.
 -/
-def frobenius_morphism_iso_of_exp_comparison_iso (h : L ⊣ F) (A : C)
+lemma frobenius_morphism_iso_of_exp_comparison_iso (h : L ⊣ F) (A : C)
   [i : is_iso (exp_comparison F A)] :
   is_iso (frobenius_morphism F h A) :=
 begin
@@ -168,7 +168,7 @@ end
 If the Frobenius morphism at `A` is an isomorphism, then the exponential comparison transformation
 (at `A`) is an isomorphism.
 -/
-def exp_comparison_iso_of_frobenius_morphism_iso (h : L ⊣ F) (A : C)
+lemma exp_comparison_iso_of_frobenius_morphism_iso (h : L ⊣ F) (A : C)
   [i : is_iso (frobenius_morphism F h A)] :
   is_iso (exp_comparison F A) :=
 by { rw ← frobenius_morphism_mate F h, apply_instance }

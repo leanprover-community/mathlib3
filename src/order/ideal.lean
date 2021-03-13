@@ -111,8 +111,7 @@ end⟩
 /-- An ideal is maximal if it is maximal in the collection of proper ideals.
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
-@[mk_iff] structure is_maximal (I : ideal P) : Prop :=
-(is_proper : is_proper I)
+@[mk_iff] structure is_maximal (I : ideal P) extends is_proper I : Prop :=
 (maximal_proper : ∀ J : ideal P, I < J → J.carrier = set.univ)
 
 end preorder
@@ -171,7 +170,7 @@ lemma is_proper_iff_ne_top {I : ideal P} : is_proper I ↔ I ≠ ⊤ :=
 ⟨λ h, h.ne_top, λ h, is_proper_of_ne_top h⟩
 
 lemma is_maximal.is_coatom {I : ideal P} (hI : is_maximal I) : is_coatom I :=
-⟨hI.is_proper.ne_top, λ J hJ, by { rw [ext'_iff, top_coe], exact hI.2 J hJ }⟩
+⟨hI.to_is_proper.ne_top, λ J hJ, by { rw [ext'_iff, top_coe], exact hI.2 J hJ }⟩
 
 lemma is_maximal_of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
 ⟨is_proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
@@ -248,8 +247,7 @@ variable [semilattice_inf P]
 
 /-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
 -/
-@[mk_iff] structure is_prime (I : ideal P) : Prop :=
-(is_proper : is_proper I)
+@[mk_iff] structure is_prime (I : ideal P) extends is_proper I : Prop :=
 (mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
 end semilattice_inf

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import analysis.specific_limits
 import measure_theory.measurable_space
 import measure_theory.pi_system
+import data.matrix.notation
 import topology.algebra.infinite_sum
 
 /-!
@@ -250,6 +251,10 @@ funext $ λ s, by rw [supr_apply, _root_.supr_apply]
 by have := supr_apply (λ b, cond b m₁ m₂) s;
   rwa [supr_bool_eq, supr_bool_eq] at this
 
+theorem smul_supr {ι} (f : ι → outer_measure α) (c : ℝ≥0∞) :
+  c • (⨆ i, f i) = ⨆ i, c • f i :=
+ext $ λ s, by simp only [smul_apply, supr_apply, ennreal.mul_supr]
+
 end supremum
 
 @[mono] lemma mono'' {m₁ m₂ : outer_measure α} {s₁ s₂ : set α} (hm : m₁ ≤ m₂) (hs : s₁ ⊆ s₂) :
@@ -342,6 +347,10 @@ rfl
   monotone (comap f) :=
 λ m m' h s, h _
 
+@[simp] theorem comap_supr {β ι} (f : α → β) (m : ι → outer_measure β) :
+  comap f (⨆ i, m i) = ⨆ i, comap f (m i) :=
+ext $ λ s, by simp only [comap_apply, supr_apply]
+
 /-- Restrict an `outer_measure` to a set. -/
 def restrict (s : set α) : outer_measure α →ₗ[ℝ≥0∞] outer_measure α :=
 (map coe).comp (comap (coe : s → α))
@@ -357,6 +366,10 @@ by simp [restrict]
 @[simp] lemma restrict_univ (m : outer_measure α) : restrict univ m = m := ext $ λ s, by simp
 
 @[simp] lemma restrict_empty (m : outer_measure α) : restrict ∅ m = 0 := ext $ λ s, by simp
+
+@[simp] lemma restrict_supr {ι} (s : set α) (m : ι → outer_measure α) :
+  restrict s (⨆ i, m i) = ⨆ i, restrict s (m i) :=
+by simp [restrict]
 
 lemma map_comap {β} (f : α → β) (m : outer_measure β) :
   map f (comap f m) = restrict (range f) m :=
@@ -458,6 +471,13 @@ theorem le_of_function {μ : outer_measure α} :
   le_trans (μ.mono hs) $ le_trans (μ.Union f) $
   ennreal.tsum_le_tsum $ λ i, H _⟩
 
+lemma is_greatest_of_function :
+  is_greatest {μ : outer_measure α | ∀ s, μ s ≤ m s} (outer_measure.of_function m m_empty) :=
+⟨λ s, of_function_le _, λ μ, le_of_function.2⟩
+
+lemma of_function_eq_Sup : outer_measure.of_function m m_empty = Sup {μ | ∀ s, μ s ≤ m s} :=
+(@is_greatest_of_function α m m_empty).is_lub.Sup_eq.symm
+
 lemma of_function_union_of_separated {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → m u = ∞) :
   outer_measure.of_function m m_empty (s ∪ t) =
@@ -485,7 +505,7 @@ begin
   ... ≤ ∑' i, m (f i) : ennreal.tsum_le_tsum (λ i, of_function_le _)
 end
 
-lemma comap_of_function_of_mono {β} (f : β → α) (h_mono : monotone m) :
+lemma comap_of_function {β} (f : β → α) (h : monotone m ∨ surjective f) :
   comap f (outer_measure.of_function m m_empty) =
     outer_measure.of_function (λ s, m (f '' s)) (by rwa set.image_empty) :=
 begin
@@ -496,21 +516,8 @@ begin
     refine infi_le_infi2 (λ ht, _),
     rw [set.image_subset_iff, preimage_Union] at ht,
     refine ⟨ht, ennreal.tsum_le_tsum $ λ n, _⟩,
-    exact h_mono (image_preimage_subset _ _) }
-end
-
-lemma comap_of_function_of_surjective {β} {f : β → α} (hf : surjective f) :
-  comap f (outer_measure.of_function m m_empty) =
-    outer_measure.of_function (λ s, m (f '' s)) (by rwa set.image_empty) :=
-begin
-  refine le_antisymm (le_of_function.2 $ λ s, _) (λ s, _),
-  { rw comap_apply, apply of_function_le },
-  { rw [comap_apply, of_function_apply, of_function_apply],
-    refine infi_le_infi2 (λ t, ⟨λ k, f ⁻¹' (t k), _⟩),
-    refine infi_le_infi2 (λ ht, _),
-    rw [set.image_subset_iff, preimage_Union] at ht,
-    refine ⟨ht, ennreal.tsum_le_tsum $ λ n, le_of_eq _⟩,
-    rw [hf.image_preimage] }
+    cases h,
+    exacts [h (image_preimage_subset _ _), (congr_arg m (h.image_preimage (t n))).le] }
 end
 
 lemma map_of_function_le {β} (f : α → β) :
@@ -518,23 +525,33 @@ lemma map_of_function_le {β} (f : α → β) :
     outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty :=
 le_of_function.2 $ λ s, by { rw map_apply, apply of_function_le }
 
-lemma map_of_function {β} {f : α → β} (hf : bijective f) :
+lemma map_of_function {β} {f : α → β} (hf : injective f) :
   map f (outer_measure.of_function m m_empty) =
     outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty :=
 begin
-  refine eq.trans _ (map_comap_of_surjective hf.surjective _),
-  rw [comap_of_function_of_surjective hf.surjective],
-  simp only [hf.injective.preimage_image]
+  refine (map_of_function_le _).antisymm (λ s, _),
+  simp only [of_function_apply, map_apply, le_infi_iff],
+  intros t ht,
+  refine infi_le_of_le (λ n, (range f)ᶜ ∪ f '' (t n)) (infi_le_of_le _ _),
+  { rw [← union_Union, ← inter_subset, ← image_preimage_eq_inter_range, ← image_Union],
+    exact image_subset _ ht },
+  { refine ennreal.tsum_le_tsum (λ n, le_of_eq _),
+    simp [hf.preimage_image] }
 end
 
-lemma map_of_function' {β} {f : α → β} (h_mono : monotone m) (hf : injective f) :
-  map f (outer_measure.of_function m m_empty) =
-    restrict (range f) (outer_measure.of_function (λ s, m (f ⁻¹' s)) m_empty) :=
+lemma restrict_of_function (s : set α) (hm : monotone m) :
+  restrict s (outer_measure.of_function m m_empty) =
+    outer_measure.of_function (λ t, m (t ∩ s)) (by rwa set.empty_inter) :=
+by simp only [restrict, linear_map.comp_apply, comap_of_function _ (or.inl hm),
+  map_of_function subtype.coe_injective, subtype.image_preimage_coe]
+
+lemma smul_of_function {c : ℝ≥0∞} (hc : c ≠ ∞) :
+  c • outer_measure.of_function m m_empty = outer_measure.of_function (c • m) (by simp [m_empty]) :=
 begin
-  refine eq.trans _ (map_comap _ _),
-  rw [comap_of_function_of_mono],
-  { simp only [hf.preimage_image] },
-  { exact h_mono.comp monotone_preimage }
+  ext1 s,
+  haveI : nonempty {t : ℕ → set α // s ⊆ ⋃ i, t i} := ⟨⟨λ _, s, subset_Union (λ _, s) 0⟩⟩,
+  simp only [smul_apply, of_function_apply, ennreal.tsum_mul_left, pi.smul_apply, smul_eq_mul,
+    infi_subtype', ennreal.infi_mul_left (λ h, (hc h).elim)],
 end
 
 end of_function
@@ -920,6 +937,12 @@ by simp [extend, h]
 lemma le_extend {s : α} (h : P s) : m s h ≤ extend m s :=
 by { simp only [extend, le_infi_iff], intro, refl' }
 
+-- TODO: why this is a bad `congr` lemma?
+lemma extend_congr {β : Type*} {Pb : β → Prop} {mb : Π s : β, Pb s → ℝ≥0∞}
+  {sa : α} {sb : β} (hP : P sa ↔ Pb sb) (hm : ∀ (ha : P sa) (hb : Pb sb), m sa ha = mb sb hb) :
+  extend m sa = extend mb sb :=
+infi_congr_Prop hP (λ h, hm _ _)
+
 end extend
 
 section extend_set
@@ -993,6 +1016,10 @@ variable (m)
 def induced_outer_measure : outer_measure α :=
 outer_measure.of_function (extend m) (extend_empty P0 m0)
 variables {m P0 m0}
+
+lemma le_induced_outer_measure {μ : outer_measure α} :
+  μ ≤ induced_outer_measure m P0 m0 ↔ ∀ s (hs : P s), μ s ≤ m s hs :=
+le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 include msU m_mono
 lemma induced_outer_measure_eq_extend' {s : set α} (hs : P s) :
@@ -1122,8 +1149,8 @@ theorem trim_congr {m₁ m₂ : outer_measure α}
   m₁.trim = m₂.trim :=
 by { unfold trim, congr, funext s hs, exact H hs }
 
-theorem trim_le_trim {m₁ m₂ : outer_measure α} (H : m₁ ≤ m₂) : m₁.trim ≤ m₂.trim :=
-λ s, binfi_le_binfi $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
+@[mono] theorem trim_mono : monotone (trim : outer_measure α → outer_measure α) :=
+λ m₁ m₂ H s, binfi_le_binfi $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
 
 theorem le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
@@ -1144,17 +1171,6 @@ ext $ λ s, le_antisymm
   (le_trans ((trim 0).mono (subset_univ s)) $
     le_of_eq $ trim_eq _ measurable_set.univ)
   (zero_le _)
-
-theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim + m₂.trim :=
-begin
-  ext1 s, simp only [trim_eq_infi', add_apply],
-  rw ennreal.infi_add_infi,
-  rintro ⟨t₁, st₁, ht₁⟩ ⟨t₂, st₂, ht₂⟩,
-  exact ⟨⟨_, subset_inter_iff.2 ⟨st₁, st₂⟩, ht₁.inter ht₂⟩,
-    add_le_add
-      (m₁.mono' (inter_subset_left _ _))
-      (m₂.mono' (inter_subset_right _ _))⟩,
-end
 
 theorem trim_sum_ge {ι} (m : ι → outer_measure α) : sum (λ i, (m i).trim) ≤ (sum m).trim :=
 λ s, by simp [trim_eq_infi]; exact
@@ -1196,15 +1212,50 @@ begin
   exact ⟨t, hst, ht, h ▸ hm⟩
 end
 
+lemma exists_measurable_superset_forall_eq_trim {ι} [encodable ι] (μ : ι → outer_measure α) (s : set α) :
+  ∃ t, s ⊆ t ∧ measurable_set t ∧ ∀ i, μ i t = (μ i).trim s :=
+begin
+  choose t hst ht hμt using λ i, (μ i).exists_measurable_superset_eq_trim s,
+  replace hst := subset_Inter hst,
+  replace ht := measurable_set.Inter ht,
+  refine ⟨⋂ i, t i, hst, ht, λ i, le_antisymm _ _⟩,
+  exacts [hμt i ▸ (μ i).mono (Inter_subset _ _),
+    (mono' _ hst).trans_eq ((μ i).trim_eq ht)]
+end
+
+theorem trim_binop {m₁ m₂ m₃ : outer_measure α} {op : ℝ≥0∞ → ℝ≥0∞ → ℝ≥0∞}
+  (h : ∀ s, m₁ s = op (m₂ s) (m₃ s)) (s : set α) :
+  m₁.trim s = op (m₂.trim s) (m₃.trim s) :=
+begin
+  rcases exists_measurable_superset_forall_eq_trim (![m₁, m₂, m₃]) s
+    with ⟨t, hst, ht, htm⟩,
+  simp only [fin.forall_fin_succ, matrix.cons_val_zero, matrix.cons_val_succ] at htm,
+  rw [← htm.1, ← htm.2.1, ← htm.2.2.1, h]
+end
+
+theorem trim_op {m₁ m₂ : outer_measure α} {op : ℝ≥0∞ → ℝ≥0∞}
+  (h : ∀ s, m₁ s = op (m₂ s)) (s : set α) :
+  m₁.trim s = op (m₂.trim s) :=
+@trim_binop α _ m₁ m₂ 0 (λ a b, op a) h s
+
+theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim + m₂.trim :=
+ext $ trim_binop (add_apply m₁ m₂)
+
 theorem trim_smul (c : ℝ≥0∞) (m : outer_measure α) :
   (c • m).trim = c • m.trim :=
+ext $ trim_op (smul_apply c m)
+
+theorem trim_sup (m₁ m₂ : outer_measure α) : (m₁ ⊔ m₂).trim = m₁.trim ⊔ m₂.trim :=
+ext $ λ s, (trim_binop (sup_apply m₁ m₂) s).trans (sup_apply _ _ _).symm
+
+lemma trim_supr {ι} [encodable ι] (μ : ι → outer_measure α) :
+  trim (⨆ i, μ i) = ⨆ i, trim (μ i) :=
 begin
   ext1 s,
-  simp only [trim_eq_infi', smul_apply],
-  haveI : nonempty {t // s ⊆ t ∧ measurable_set t} := ⟨⟨univ, subset_univ _, measurable_set.univ⟩⟩,
-  refine ennreal.infi_mul_left (assume hc hs, _),
-  rw ← trim_eq_infi' at hs,
-  simpa [and_assoc] using exists_measurable_superset_of_trim_eq_zero hs
+  rcases exists_measurable_superset_forall_eq_trim (λ o, option.elim o (supr μ) μ) s
+    with ⟨t, hst, ht, hμt⟩,
+  simp only [option.forall, option.elim] at hμt,
+  simp only [supr_apply, ← hμt.1, ← hμt.2]
 end
 
 /-- The trimmed property of a measure μ states that `μ.to_outer_measure.trim = μ.to_outer_measure`.
@@ -1212,21 +1263,16 @@ This theorem shows that a restricted trimmed outer measure is a trimmed outer me
 lemma restrict_trim {μ : outer_measure α} {s : set α} (hs : measurable_set s) :
   (restrict s μ).trim = restrict s μ.trim :=
 begin
-  apply measure_theory.outer_measure.ext, intro t,
-  simp_rw [restrict_apply, trim_eq_infi, restrict_apply],
-  apply le_antisymm,
-  { simp only [le_infi_iff],
-    intros v h_subset hv,
-    refine infi_le_of_le (v ∪ sᶜ) _,
-    refine infi_le_of_le _ _,
-    { rwa [set.union_comm, ← inter_subset] },
-    refine infi_le_of_le (hv.union hs.compl) _,
-    rw [union_inter_distrib_right, compl_inter_self, set.union_empty],
-    exact μ.mono (inter_subset_left _ _) },
-  { simp only [le_infi_iff], intros u h_subset hu,
-    refine infi_le_of_le (u ∩ s) _,
-    refine infi_le_of_le (set.inter_subset_inter_left _ h_subset) _,
-    refine infi_le_of_le (hu.inter hs) le_rfl },
+  refine le_antisymm (λ t, _) (le_trim_iff.2 $ λ t ht, _),
+  { rw restrict_apply,
+    rcases μ.exists_measurable_superset_eq_trim (t ∩ s) with ⟨t', htt', ht', hμt'⟩,
+    rw [← hμt'], rw inter_subset at htt',
+    refine (mono' _ htt').trans _,
+    rw [trim_eq _ (hs.compl.union ht'), restrict_apply, union_inter_distrib_right,
+      compl_inter_self, set.empty_union],
+    exact μ.mono' (inter_subset_left _ _) },
+  { rw [restrict_apply, trim_eq _ (ht.inter hs), restrict_apply],
+    exact le_rfl }
 end
 
 end outer_measure

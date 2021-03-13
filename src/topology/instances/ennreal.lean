@@ -296,8 +296,8 @@ begin
   exact le_of_tendsto this (eventually_nhds_within_iff.2 $ eventually_of_forall h)
 end
 
-lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
-  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+lemma infi_mul_left' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
   (⨅ i, a * f i) = a * ⨅ i, f i :=
 begin
   by_cases H : a = ⊤ ∧ (⨅ i, f i) = 0,
@@ -305,14 +305,28 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { rw not_and_distrib at H,
-    exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-      ennreal.mul_left_mono).symm }
+    by_cases hι : nonempty ι,
+    { resetI,
+      exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+        ennreal.mul_left_mono).symm },
+    { rw [infi_of_empty hι, infi_of_empty hι, mul_top, if_neg],
+      exact mt h0 hι } }
 end
+
+lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
+  (⨅ i, a * f i) = a * ⨅ i, f i :=
+infi_mul_left' h (λ _, ‹nonempty ι›)
+
+lemma infi_mul_right' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
+  (⨅ i, f i * a) = (⨅ i, f i) * a :=
+by simpa only [mul_comm a] using infi_mul_left' h h0
 
 lemma infi_mul_right {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
   (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
   (⨅ i, f i * a) = (⨅ i, f i) * a :=
-by simpa only [mul_comm a] using infi_mul_left h
+infi_mul_right' h (λ _, ‹nonempty ι›)
 
 protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
@@ -965,6 +979,14 @@ end
 
 lemma emetric.is_closed_ball {a : α} {r : ℝ≥0∞} : is_closed (closed_ball a r) :=
 is_closed_le (continuous_id.edist continuous_const) continuous_const
+
+@[simp] lemma emetric.diam_closure (s : set α) : diam (closure s) = diam s :=
+begin
+  refine le_antisymm (diam_le_of_forall_edist_le $ λ x hx y hy, _) (diam_mono subset_closure),
+  have : edist x y ∈ closure (Iic (diam s)),
+    from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
+  rwa closure_Iic at this
+end
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,
 then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/

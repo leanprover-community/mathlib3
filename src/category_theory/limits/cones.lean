@@ -8,8 +8,6 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
-noncomputable theory
-
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory

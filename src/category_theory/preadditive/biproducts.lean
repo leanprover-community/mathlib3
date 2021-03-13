@@ -56,22 +56,20 @@ is invertible, then `f` is invertible.
 -/
 def is_iso_left_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso f :=
-{ inv := biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
-  hom_inv_id' :=
-  begin
+⟨biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
+  ⟨begin
     have t := congr_arg (λ p : W ⊞ X ⟶ W ⊞ X, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.hom_inv_id (biprod.map f g)),
     simp only [category.id_comp, category.assoc, biprod.inl_map_assoc] at t,
     simp [t],
   end,
-  inv_hom_id' :=
   begin
     have t := congr_arg (λ p : Y ⊞ Z ⟶ Y ⊞ Z, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.inv_hom_id (biprod.map f g)),
     simp only [category.id_comp, category.assoc, biprod.map_fst] at t,
     simp only [category.assoc],
     simp [t],
-  end }
+  end⟩⟩
 
 /--
 If

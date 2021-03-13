@@ -161,13 +161,6 @@ def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
       exact h
     end }, }
 
-/--
-A natural transformation is an isomorphism if all its components are isomorphisms.
--/
--- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
-def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))
-
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
 by tidy
@@ -176,6 +169,13 @@ by tidy
 @[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app naturality).inv.app X = (app X).inv :=
 by simp [of_components]
+
+/--
+A natural transformation is an isomorphism if all its components are isomorphisms.
+-/
+-- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
+def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))
 
 /-- Horizontal composition of natural isomorphisms. -/
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=

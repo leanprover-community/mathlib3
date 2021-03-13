@@ -141,7 +141,7 @@ adjunction.mk_of_hom_equiv
 /--
 Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism.
 -/
-def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
+lemma algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 ⟨{ f := inv f.f,
    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩
 

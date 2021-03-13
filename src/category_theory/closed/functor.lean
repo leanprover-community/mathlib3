@@ -87,12 +87,21 @@ transfer_nat_trans (exp.adjunction A) (exp.adjunction (F.obj A)) (prod_compariso
 lemma exp_comparison_ev (A B : C) :
   limits.prod.map (𝟙 (F.obj A)) ((exp_comparison F A).app B) ≫ (ev (F.obj A)).app (F.obj B) =
     inv (prod_comparison F _ _) ≫ F.map ((ev _).app _) :=
-by convert transfer_nat_trans_counit _ _ (prod_comparison_nat_iso F A).inv B
+begin
+  convert transfer_nat_trans_counit _ _ (prod_comparison_nat_iso F A).inv B,
+  ext,
+  simp,
+end
 
 lemma coev_exp_comparison (A B : C) :
   F.map ((coev A).app B) ≫ (exp_comparison F A).app (A ⨯ B) =
       (coev _).app (F.obj B) ≫ (exp (F.obj A)).map (inv (prod_comparison F A B)) :=
-by convert unit_transfer_nat_trans _ _ (prod_comparison_nat_iso F A).inv B
+begin
+  convert unit_transfer_nat_trans _ _ (prod_comparison_nat_iso F A).inv B,
+  ext,
+  dsimp,
+  simp,
+end
 
 lemma uncurry_exp_comparison (A B : C) :
   uncurry ((exp_comparison F A).app B) = inv (prod_comparison F _ _) ≫ F.map ((ev _).app _) :=

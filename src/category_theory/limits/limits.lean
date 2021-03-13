@@ -143,7 +143,7 @@ def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t 
   inv_hom_id' := Q.uniq_cone_morphism }
 
 /-- Any cone morphism between limit cones is an isomorphism. -/
-def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : is_iso f :=
+lemma hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : is_iso f :=
 ⟨P.lift_cone_morphism t, ⟨P.uniq_cone_morphism, Q.uniq_cone_morphism⟩⟩
 
 /-- Limits of `F` are unique up to isomorphism. -/

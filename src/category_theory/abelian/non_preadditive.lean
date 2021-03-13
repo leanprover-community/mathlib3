@@ -556,7 +556,7 @@ is_iso_of_mono_of_epi _
     followed by the inverse of `r`. In the category of modules, using the normal kernels and
     cokernels, this map is equal to the map `(a, b) ↦ a - b`, hence the name `σ` for
     "subtraction". -/
-abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ is_iso.inv (r A)
+abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ inv (r A)
 
 end
 

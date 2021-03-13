@@ -17,7 +17,8 @@ characteristic.
 ## Main results
 - `exp_char` is the definition  
 - `exp_char_is_prime_or_one` the exponential characteristic is a prime or one
-- `char_eq_exp_char_iff` the characteristic equals the exponential characteristic iff the characteristic is prime
+- `char_eq_exp_char_iff` the characteristic equals the exponential characteristic iff the 
+characteristic is prime
 
 ## Tags
 exponential characteristic, characteristic

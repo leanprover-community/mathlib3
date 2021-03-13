@@ -53,7 +53,7 @@ instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
     ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
     rw [alg_equiv.commutes, alg_equiv.commutes] }) }
 
-/-- If `p` splits in `F` then the `p.gal` is trivial -/
+/-- If `p` splits in `F` then the `p.gal` is trivial. -/
 def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
 { default := 1,
   uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp

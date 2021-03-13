@@ -58,10 +58,6 @@ def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
   mk_of_compact f a = f a :=
 rfl
 
-@[simp] lemma mk_of_compact_apply [compact_space α] (f : α → β) (hf : continuous f) (a : α) :
-  mk_of_compact f hf a = f a :=
-rfl
-
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
 def mk_of_discrete [discrete_topology α] (f : α → β)
@@ -71,11 +67,6 @@ def mk_of_discrete [discrete_topology α] (f : α → β)
 @[simp] lemma mk_of_discrete_apply
   [discrete_topology α] (f : α → β) (C) (h) (a : α) :
   mk_of_discrete f C h a = f a :=
-rfl
-
-@[simp] lemma mk_of_discrete_apply
-  [discrete_topology α] (f : α → β) (hf : ∃C, ∀x y, dist (f x) (f y) ≤ C) (a : α) :
-  mk_of_discrete f hf a = f a :=
 rfl
 
 /-- The uniform distance between two bounded continuous functions -/

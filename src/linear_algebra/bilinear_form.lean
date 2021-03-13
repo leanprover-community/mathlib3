@@ -240,7 +240,7 @@ end flip
 
 section to_lin'
 
-variables (R₂) [algebra R₂ R] [semimodule R₂ M] [smul_comm_class R₂ R M]
+variables (R₂) [algebra R₂ R] [semimodule R₂ M] [is_scalar_tower R₂ R M]
 
 /-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
 the right.
@@ -253,11 +253,7 @@ def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
       map_add' := A.bilin_add_right x,
       map_smul' := λ c, A.bilin_smul_right c x },
     map_add' := λ x₁ x₂, by { ext, simp },
-    map_smul' := λ c x, begin
-      ext y,
-      simp only [linear_map.smul_apply, linear_map.coe_mk],
-      convert smul_left (algebra_map R₂ R c) x y; sorry
-    end },
+    map_smul' := λ c x, by { ext y, simpa using smul_left (c • (1 : R)) x y } },
   map_add' := λ A₁ A₂, by { ext, simp },
   map_smul' := λ c A, by { ext, simp } }
 
@@ -267,6 +263,10 @@ variables {R₂}
   ⇑(to_lin_hom R₂ A x) = A x :=
 rfl
 
+/-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
+the right.
+Over a commutative semiring, use `to_lin`, in which the two `add_monoid_hom`s in the type here are
+upgraded to linear maps. -/
 abbreviation to_lin' : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R := to_lin_hom ℕ
 
 variables (R₂)

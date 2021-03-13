@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import data.equiv.basic
 import control.applicative
 import control.traversable.basic
+import algebra.group.hom
 
 /-!
 # Free constructions
@@ -88,6 +89,16 @@ theorem lift_unique (f : free_magma α → β) (hf : ∀ x y, f (x * y) = f x * 
   f = lift_aux (f ∘ of) :=
 funext $ λ x, free_magma.rec_on x (λ x, rfl) $ λ x y ih1 ih2,
 (hf x y).trans $ congr (congr_arg _ ih1) ih2
+
+/-- The universal property of the free magma expressing its adjointness. -/
+@[to_additive "The universal property of the free additive magma expressing its adjointness."]
+def lift : (α → β) ≃ mul_hom (free_magma α) β :=
+{ to_fun    := λ f,
+  { to_fun := lift_aux f,
+    map_mul' := lift_aux_mul f, },
+    inv_fun   := λ F, F ∘ of,
+  left_inv  := λ f, by { ext, simp only [lift_aux, mul_hom.coe_mk, function.comp_app], },
+  right_inv := λ F, by { ext, rw [mul_hom.coe_mk, ← lift_unique (F : _ → β) F.map_mul], } }
 
 end free_magma
 

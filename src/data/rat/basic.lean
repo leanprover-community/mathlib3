@@ -50,6 +50,8 @@ notation `ℚ` := rat
 
 namespace rat
 
+/-- String representation of a rational numbers, used in `has_repr`, `has_to_string`, and
+`has_to_format` instances. -/
 protected def repr : ℚ → string
 | ⟨n, d, _, _⟩ := if d = 1 then _root_.repr n else
   _root_.repr n ++ "/" ++ _root_.repr d
@@ -219,14 +221,17 @@ theorem num_denom' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom.sy
 
 theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom'
 
+/-- Define a (dependent) function or prove `∀ r : ℚ, p r` by dealing with rational
+numbers of the form `n /. d` with `0 < d` and coprime `n`, `d`. -/
 @[elab_as_eliminator] def {u} num_denom_cases_on {C : ℚ → Sort u}
    : ∀ (a : ℚ) (H : ∀ n d, 0 < d → (int.nat_abs n).coprime d → C (n /. d)), C a
 | ⟨n, d, h, c⟩ H := by rw num_denom'; exact H n d h c
 
+/-- Define a (dependent) function or prove `∀ r : ℚ, p r` by dealing with rational
+numbers of the form `n /. d` with `d ≠ 0`. -/
 @[elab_as_eliminator] def {u} num_denom_cases_on' {C : ℚ → Sort u}
    (a : ℚ) (H : ∀ (n:ℤ) (d:ℕ), d ≠ 0 → C (n /. d)) : C a :=
-num_denom_cases_on a $ λ n d h c,
-H n d $ ne_of_gt h
+num_denom_cases_on a $ λ n d h c, H n d h.ne'
 
 theorem num_dvd (a) {b : ℤ} (b0 : b ≠ 0) : (a /. b).num ∣ a :=
 begin
@@ -248,6 +253,7 @@ begin
   rw [← int.nat_abs_mul, ← int.coe_nat_dvd, int.dvd_nat_abs, ← e], simp
 end
 
+/-- Addition of rational numbers. Use `(+)` instead. -/
 protected def add : ℚ → ℚ → ℚ
 | ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := mk_pnat (n₁ * d₂ + n₂ * d₁) ⟨d₁ * d₂, mul_pos h₁ h₂⟩
 
@@ -282,12 +288,11 @@ begin
     ... = (a * d + c * b) * (d₁ * d₂)             : by simp [mul_add, mul_comm, mul_left_comm]
 end
 
+/-- Opposite rational number. Use `-r` instead. -/
 protected def neg (r : ℚ) : ℚ :=
 ⟨-r.num, r.denom, r.pos, by simp [r.cop]⟩
 
 instance : has_neg ℚ := ⟨rat.neg⟩
-
-@[simp] theorem denom_neg (r : ℚ) : denom (-r) = denom r := rfl
 
 @[simp] theorem neg_def {a b : ℤ} : -(a /. b) = -a /. b :=
 begin
@@ -299,6 +304,7 @@ begin
   simp only [neg_mul_eq_neg_mul_symm, congr_arg has_neg.neg h₁]
 end
 
+/-- Multiplication of rational numbers. Use `(*)` instead. -/
 protected def mul : ℚ → ℚ → ℚ
 | ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := mk_pnat (n₁ * n₂) ⟨d₁ * d₂, mul_pos h₁ h₂⟩
 
@@ -313,6 +319,7 @@ begin
   cc
 end
 
+/-- Inverse rational number. Use `r⁻¹` instead. -/
 protected def inv : ℚ → ℚ
 | ⟨(n+1:ℕ), d, h, c⟩ := ⟨d, n+1, n.succ_pos, c.symm⟩
 | ⟨0, d, h, c⟩ := 0
@@ -459,13 +466,13 @@ theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=
 by simp [b0, d0, sub_eq_add_neg]
 
-@[simp] lemma denom_neg_eq_denom : ∀ q : ℚ, (-q).denom = q.denom
-| ⟨_, d, _, _⟩ := rfl
+@[simp] lemma denom_neg_eq_denom (q : ℚ) : (-q).denom = q.denom := rfl
 
-@[simp] lemma num_neg_eq_neg_num : ∀ q : ℚ, (-q).num = -(q.num)
-| ⟨n, _, _, _⟩ := rfl
+@[simp] lemma num_neg_eq_neg_num (q : ℚ) : (-q).num = -(q.num) := rfl
 
 @[simp] lemma num_zero : rat.num 0 = 0 := rfl
+
+@[simp] lemma denom_zero : rat.denom 0 = 1 := rfl
 
 lemma zero_of_num_zero {q : ℚ} (hq : q.num = 0) : q = 0 :=
 have q = q.num /. q.denom, from num_denom.symm,

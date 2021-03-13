@@ -304,7 +304,7 @@ end
 
 @[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
 begin
-  dsimp [comp, eval₂, eval, finsupp.sum],
+  dsimp [comp, eval₂, eval, sum_def],
   rw [← p.support.sum_hom (@C R _)],
   apply finset.sum_congr rfl; simp
 end
@@ -393,8 +393,8 @@ nat.rec_on n rfl $ λ n ih, by rw [n.cast_succ, map_add, ih, map_one, n.cast_suc
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
-  rw [map, eval₂, coeff_sum],
-  conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
+  rw [map, eval₂, coeff_sum, sum_def],
+  conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, sum_def,
     ← p.support.sum_hom f], },
   refine finset.sum_congr rfl (λ x hx, _),
   simp [function.comp, coeff_C_mul_X, f.map_mul],

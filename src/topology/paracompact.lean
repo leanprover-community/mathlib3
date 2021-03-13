@@ -160,7 +160,8 @@ begin
   -- Next we choose a finite covering `B (c n i) (r n i)` of each
   -- `Kdiff (n + 1) ∩ s` such that `B (c n i) (r n i) ∩ s` is disjoint with `K n`
   have : ∀ n (x : Kdiff (n + 1) ∩ s), (K n)ᶜ ∈ 𝓝 (x : X),
-    from λ n x, mem_nhds_sets (K.is_closed n) (λ hx', x.2.1.2 $ K.subset_interior_succ _ hx'),
+    from λ n x, mem_nhds_sets (K.is_closed n).is_open_compl
+      (λ hx', x.2.1.2 $ K.subset_interior_succ _ hx'),
   haveI : ∀ n (x : Kdiff n ∩ s), nonempty (ι x) := λ n x, (hB x x.2.2).nonempty,
   choose! r hrp hr using (λ n (x : Kdiff (n + 1) ∩ s), (hB x x.2.2).mem_iff.1 (this n x)),
   have hxr : ∀ n x (hx : x ∈ Kdiff (n + 1) ∩ s), B x (r n ⟨x, hx⟩) ∈ 𝓝 x,
@@ -245,8 +246,8 @@ begin
     intros s t hs ht H, choose u v hu hv hxu htv huv using set_coe.forall'.1 H,
     rcases precise_refinement_set hs u hu (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxu _⟩)
       with ⟨u', hu'o, hcov', hu'fin, hsub⟩,
-    refine ⟨⋃ i, u' i, (closure (⋃ i, u' i))ᶜ, is_open_Union hu'o, is_closed_closure, hcov', _,
-      disjoint_compl_right.mono le_rfl (compl_le_compl subset_closure)⟩,
+    refine ⟨⋃ i, u' i, (closure (⋃ i, u' i))ᶜ, is_open_Union hu'o, is_closed_closure.is_open_compl,
+      hcov', _, disjoint_compl_right.mono le_rfl (compl_le_compl subset_closure)⟩,
     rw [hu'fin.closure_Union, compl_Union, subset_Inter_iff],
     refine λ i x hxt hxu, absurd (htv i hxt) (closure_minimal _ (is_closed_compl_iff.2 $ hv _) hxu),
     exact λ y hyu hyv, huv i ⟨hsub _ hyu, hyv⟩ },

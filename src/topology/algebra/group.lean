@@ -234,7 +234,7 @@ lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) =
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
 
 @[to_additive]
-lemma topological_group.ext {t t' : topological_space G}
+lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (tg : @topological_group G t _) (tg' : @topological_group G t' _)
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
 eq_of_nhds_eq_nhds $ λ x, by

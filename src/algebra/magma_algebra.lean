@@ -41,24 +41,27 @@ formal `R`-linear combinations of terms of `M`, endowed with the convolution pro
 @[derive [inhabited, add_comm_monoid, has_coe_to_fun]]
 def magma_algebra := M →₀ R
 
-variables {R M}
-
-/-- A multiplicaiton on `M` determines a convolution product on `M →₀ R`. -/
-instance finsupp.has_mul [has_mul M] : has_mul (M →₀ R) :=
-⟨λ a b, a.sum $ λ m₁ t₁, b.sum $ λ m₂ t₂, finsupp.single (m₁ * m₂) (t₁ * t₂)⟩
-
 namespace magma_algebra
+
+variables {R M}
 
 instance : semimodule R (magma_algebra R M) := finsupp.semimodule M R
 
+/-- A synonym for `finsupp.single` which forces it to take values in `magma_algebra R M`. -/
+private abbreviation single (m : M) (t : R) : magma_algebra R M := finsupp.single m t
+
 variables [has_mul M]
 
-open finsupp
+open finsupp (hiding single)
 
-instance : has_mul (magma_algebra R M) := finsupp.has_mul
+/-- A multiplication on `M` determines a convolution product on `magma_algebra R M`. Note that this
+should not be placed directly on `M →₀ R` since it carries the pointwise multiplication `has_mul`
+instance. -/
+instance : has_mul (magma_algebra R M) :=
+⟨λ a b, a.sum $ λ m₁ t₁, b.sum $ λ m₂ t₂, finsupp.single (m₁ * m₂) (t₁ * t₂)⟩
 
 lemma mul_def {a b : magma_algebra R M} :
-  a * b = a.sum (λ m₁ t₁, b.sum $ λ m₂ t₂, single (m₁ * m₂) (t₁ * t₂)) :=
+  a * b = a.sum (λ m₁ t₁, b.sum $ λ m₂ t₂, finsupp.single (m₁ * m₂) (t₁ * t₂)) :=
 rfl
 
 instance : distrib (magma_algebra R M) :=

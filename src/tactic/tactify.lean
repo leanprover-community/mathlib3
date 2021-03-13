@@ -359,6 +359,7 @@ run_cmd tactic_prompts `foo
 def bar (a b : ℕ) (h₁ : 1 < b) (h₂ : 0 < a) :
   a < a * b :=
 begin
+  show_term { applyc `iff.mpr, applyc `lt_mul_iff_one_lt_right, },
   apply (lt_mul_iff_one_lt_right _).mpr,
   exact h₁,
   exact h₂,

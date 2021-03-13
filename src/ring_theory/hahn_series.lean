@@ -69,7 +69,7 @@ lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_ze
 
 @[simp]
 lemma support_nonempty_iff {x : hahn_series Γ R} :
-  {a | x.coeff a ≠ 0}.nonempty ↔ x ≠ 0 :=
+  x.support.nonempty ↔ x ≠ 0 :=
 begin
   split,
   { rintro ⟨a, ha⟩ rfl,
@@ -263,7 +263,7 @@ lemma one_coeff [has_zero R] [has_one R] {a : Γ} :
 lemma single_zero_one [has_zero R] [has_one R] : (single 0 (1 : R)) = 1 := rfl
 
 lemma support_one [semiring R] [nontrivial R] :
-  {a | (1 : hahn_series Γ R).coeff a ≠ 0} = {0} :=
+  support (1 : hahn_series Γ R) = {0} :=
 support_single_of_ne one_ne_zero
 
 instance [semiring R] : has_mul (hahn_series Γ R) :=

@@ -7,8 +7,8 @@ import group_theory.group_action.defs
 /-!
 # Introduce `smul_with_zero`
 
-Alongside with a usual monoid action on a Type `M`, we introduce an action of a `monoid_with_zero`
-on a Type with `0`.
+In analogy with the usual monoid action on a Type `M`, we introduce an action of a
+`monoid_with_zero` on a Type with `0`.
 
 In particular, for Types `R` and `M`, both containing `0`, we define `smul_with_zero R M` to
 be the typeclass where the products `r • 0` and `0 • m` vanish for all `r : R` and all `m : M`.

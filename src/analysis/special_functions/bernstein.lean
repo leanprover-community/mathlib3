@@ -276,8 +276,7 @@ begin
   filter_upwards [nhds_zero.eventually (gt_mem_nhds (half_pos h)), eventually_gt_at_top 0],
   intros n nh npos',
   have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
-  -- Three easy inequalities we'll need later:
-  have w₀ : 0 ≤ ε / 2 := le_of_lt (half_pos h),
+  -- Two easy inequalities we'll need later:
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
   have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
@@ -319,7 +318,8 @@ begin
       -- so that we can use `bernstein.probability`.
       ... ≤ (ε/2) * ∑ k : fin (n+1), bernstein n k x
                                 : mul_le_mul_of_nonneg_left
-                                    (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg)) w₀
+                                    (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg))
+                                    (le_of_lt (half_pos h))
       ... = ε/2 : by rw [bernstein.probability, mul_one] },
       -- We now turn to working on `Sᶜ`: we control the difference term just using `∥f∥`,
       -- and then insert a `δ^(-2) * (x - k/n)^2` factor

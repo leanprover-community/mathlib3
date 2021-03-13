@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.big_operators.order
 import group_theory.coset
@@ -17,16 +17,13 @@ This file defines the order of an element of a finite group. For a finite group 
 
 ## Main definitions
 
-* `order_of` defines the order of an element `a` of a group `G`.
+* `order_of` defines the order of an element `a` of a group `G`, by convention its value is `0` if
+  `a` has infinite order.
 * `is_cyclic` is a predicate on a group stating that the group is cyclic.
 
 ## Main statements
 
 `is_cyclic_of_prime_card` proves that a finite group of prime order is cyclic.
-
-## Implementation notes
-
-`order_of` is currently only defined for finite multiplicatively written groups.
 
 ## Tags
 
@@ -37,9 +34,6 @@ order of an element, cyclic group
 * Move the first declarations until the definition of order to other files.
 * Add the attribute `@[to_additive]` to the declarations in that file so that they also work with
   additive groups.
-* Modify the definition to work with infinite groups. (Defining `order_of` to have value `0` for
-  elements of infinite order would make more statements true with fewer assumptions.)
-* Potentially expand the definition to work with monoids.
 -/
 
 open function
@@ -212,6 +206,13 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 (hp.2 _ (order_of_dvd_of_pow_eq_one hg)).resolve_left (mt order_of_eq_one_iff.1 hg1)
 
 open nat
+
+-- An example on how to determine the order of an element of a finite group.
+example : order_of (-1 : units ℤ) = 2 :=
+begin
+  haveI : fact (prime 2) := prime_two,
+  exact order_of_eq_prime (by { rw pow_two, simp }) (dec_trivial)
+end
 
 variables (a) {n : ℕ}
 

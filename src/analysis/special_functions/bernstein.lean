@@ -110,7 +110,7 @@ lemma uniform_continuity
   (f : α →ᵇ β) (ε : ℝ) (h : 0 < ε) :
   ∃ δ > 0, ∀ {x y}, dist x y < δ → dist (f x) (f y) < ε :=
 metric.uniform_continuous_iff.mp
-  (compact_space.uniform_continuous_of_continuous f.2.1) ε h
+  (compact_space.uniform_continuous_of_continuous f.continuous) ε h
 
 /--
 The (noncomputable) modulus of uniform continuity for a given function `f` and `ε > 0`.
@@ -134,7 +134,7 @@ The Bernstein polynomials, as bounded continuous functions on `[0,1]`.
 -/
 def bernstein (n ν : ℕ) : I →ᵇ ℝ :=
 bounded_continuous_function.mk_of_compact
-  (λ x, bernstein' n ν x) (by continuity)
+  ⟨λ x, bernstein' n ν x, by continuity⟩
 
 @[simp] lemma bernstein_apply (n ν : ℕ) (x : I) :
   bernstein n ν x = n.choose ν * x^ν * (1-x)^(n-ν) :=
@@ -358,12 +358,5 @@ begin
                                     apply mul_unit_interval_le w₂ (le_refl _),
                                     all_goals { unit_interval, },
                                   end
-      ... < ε/2 : _, -- We postpone this final step for a moment, in order to actually choose `n`!
-  -- Choose `n` to make the inequality work.
-  show ℕ, { exact nat_ceil (2 * (2 * ∥f∥ * δ^(-2 : ℤ)) / ε), },
-  { -- And a final inequality bash gets us to the end.
-    rw [lt_div_iff (show (0 : ℝ) < 2, by norm_num), mul_comm],
-    rw [←mul_div_assoc, div_lt_iff npos, mul_comm ε, ←div_lt_iff h],
-    replace nh : (N : ℝ) < (n : ℝ) := by exact_mod_cast nh,
-    apply lt_of_le_of_lt (le_nat_ceil _) nh, },
+      ... < ε/2 : nh,
 end

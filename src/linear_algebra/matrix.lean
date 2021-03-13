@@ -1289,7 +1289,7 @@ begin
     apply fintype.card_eq_zero_iff.mpr,
     intro i,
     exact nat.not_lt_zero (b i) (hn i) },
-  { rw finset.prod_range_succ,
+  { rw [finset.prod_range_succ, mul_comm],
     have h2 : (M.to_square_block_prop (λ (i : m), b i = n.succ)).det =
       (M.to_square_block' b n.succ).det,
     { dunfold to_square_block', dunfold to_square_block_prop, refl },
@@ -1302,7 +1302,7 @@ begin
           block_triangular_matrix (M.to_square_block_prop (λ (i : m), ¬b i = n)) b',
         { intros i j, apply h ↑i ↑j },
         have hni : ∀ (i : {a // ¬b a = n}), b' i < n,
-          { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (hn ↑i)) },
+        { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (hn ↑i)) },
         have h1 := hi (M.to_square_block_prop (λ (i : m), ¬b i = n)) b' h' hni,
         rw ←fin.prod_univ_eq_prod_range at h1 ⊢,
         convert h1,

@@ -63,28 +63,29 @@ attribute [elab_as_eliminator] rec_on' free_add_magma.rec_on'
 end free_magma
 
 /-- Lifts a function `α → β` to a magma homomorphism `free_magma α → β` given a magma `β`. -/
-def free_magma.lift {α : Type u} {β : Type v} [has_mul β] (f : α → β) : free_magma α → β
+def free_magma.lift_aux {α : Type u} {β : Type v} [has_mul β] (f : α → β) : free_magma α → β
 | (free_magma.of x) := f x
-| (x * y)           := x.lift * y.lift
+| (x * y)           := x.lift_aux * y.lift_aux
 
 /-- Lifts a function `α → β` to an additive magma homomorphism `free_add_magma α → β` given
 an additive magma `β`. -/
-def free_add_magma.lift {α : Type u} {β : Type v} [has_add β] (f : α → β) : free_add_magma α → β
+def free_add_magma.lift_aux {α : Type u} {β : Type v} [has_add β] (f : α → β) : free_add_magma α → β
 | (free_add_magma.of x) := f x
-| (x + y)               := x.lift + y.lift
+| (x + y)               := x.lift_aux + y.lift_aux
 
-attribute [to_additive free_add_magma.lift] free_magma.lift
+attribute [to_additive free_add_magma.lift_aux] free_magma.lift_aux
 
 namespace free_magma
 
 variables {α : Type u} {β : Type v} [has_mul β] (f : α → β)
 
-@[simp, to_additive] lemma lift_of (x) : lift f (of x) = f x := rfl
-@[simp, to_additive] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y := rfl
+@[simp, to_additive] lemma lift_aux_of (x) : lift_aux f (of x) = f x := rfl
+@[simp, to_additive] lemma lift_aux_mul (x y) : lift_aux f (x * y) = lift_aux f x * lift_aux f y :=
+rfl
 
 @[to_additive]
 theorem lift_unique (f : free_magma α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
-  f = lift (f ∘ of) :=
+  f = lift_aux (f ∘ of) :=
 funext $ λ x, free_magma.rec_on x (λ x, rfl) $ λ x y ih1 ih2,
 (hf x y).trans $ congr (congr_arg _ ih1) ih2
 
@@ -122,7 +123,7 @@ section category
 @[to_additive]
 instance : monad free_magma :=
 { pure := λ _, of,
-  bind := λ _ _ x f, lift f x }
+  bind := λ _ _ x f, lift_aux f x }
 
 /-- Recursor on `free_magma` using `pure` instead of `of`. -/
 @[elab_as_eliminator, to_additive "Recursor on `free_add_magma` using `pure` instead of `of`."]
@@ -569,15 +570,16 @@ end free_semigroup
 `add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
 def free_semigroup_free_magma (α : Type u) :
   magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
-{ to_fun := magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift_mul _),
+{ to_fun :=
+    magma.free_semigroup.lift (free_magma.lift_aux free_semigroup.of) (free_magma.lift_aux_mul _),
   inv_fun := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
   left_inv := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
     exact free_magma.rec_on' p
-      (λ x, by rw [free_magma.lift_of, free_semigroup.lift_of])
-      (λ x y ihx ihy, by rw [free_magma.lift_mul, free_semigroup.lift_mul, ihx, ihy,
+      (λ x, by rw [free_magma.lift_aux_of, free_semigroup.lift_of])
+      (λ x y ihx ihy, by rw [free_magma.lift_aux_mul, free_semigroup.lift_mul, ihx, ihy,
         magma.free_semigroup.of_mul]),
   right_inv := λ x, free_semigroup.rec_on x
-    (λ x, by rw [free_semigroup.lift_of, magma.free_semigroup.lift_of, free_magma.lift_of])
+    (λ x, by rw [free_semigroup.lift_of, magma.free_semigroup.lift_of, free_magma.lift_aux_of])
     (λ x y ihx ihy, by rw [free_semigroup.lift_mul, magma.free_semigroup.lift_mul, ihx, ihy]) }
 
 @[simp, to_additive] lemma free_semigroup_free_magma_mul {α : Type u} (x y) :

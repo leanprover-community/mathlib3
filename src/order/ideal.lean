@@ -17,6 +17,8 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
+- `is_proper P`: a predicate for proper ideals.
+                 Dual to the notion of a proper filter.
 - `is_prime`: a predicate for prime ideals.
               Dual to the notion of a prime filter.
 - `is_maximal`: a predicate for maximal ideals.
@@ -97,9 +99,9 @@ instance : partial_order (ideal P) := partial_order.lift coe ext
 
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
-@[mk_iff] class proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
+@[mk_iff] class is_proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ set.univ)
 
-lemma proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : proper I :=
+lemma is_proper_of_not_mem {I : ideal P} {p : P} (nmem : p ∉ I) : is_proper I :=
 ⟨λ hp, begin
   change p ∉ ↑I at nmem,
   rw hp at nmem,
@@ -110,7 +112,7 @@ end⟩
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
 @[mk_iff] structure is_maximal (I : ideal P) : Prop :=
-(proper : proper I)
+(is_proper : is_proper I)
 (maximal_proper : ∀ J : ideal P, I < J → J.carrier = set.univ)
 
 end preorder
@@ -154,10 +156,10 @@ begin
   { exact λ _, I.mem_of_le le_top topmem }
 end
 
-lemma proper_of_ne_top {I : ideal P} (ne_top : I ≠ ⊤) : proper I :=
-proper_of_not_mem (λ h, ne_top (top_of_mem_top h))
+lemma is_proper_of_ne_top {I : ideal P} (ne_top : I ≠ ⊤) : is_proper I :=
+is_proper_of_not_mem (λ h, ne_top (top_of_mem_top h))
 
-lemma proper.ne_top {I : ideal P} (hI : proper I) : I ≠ ⊤ :=
+lemma is_proper.ne_top {I : ideal P} (hI : is_proper I) : I ≠ ⊤ :=
 begin
   intro h,
   rw [ext'_iff, top_coe] at h,
@@ -165,14 +167,14 @@ begin
   assumption,
 end
 
-lemma proper_iff_ne_top {I : ideal P} : proper I ↔ I ≠ ⊤ :=
-⟨λ h, h.ne_top, λ h, proper_of_ne_top h⟩
+lemma is_proper_iff_ne_top {I : ideal P} : is_proper I ↔ I ≠ ⊤ :=
+⟨λ h, h.ne_top, λ h, is_proper_of_ne_top h⟩
 
 lemma is_maximal.is_coatom {I : ideal P} (hI : is_maximal I) : is_coatom I :=
-⟨hI.proper.ne_top, λ J hJ, by { rw [ext'_iff, top_coe], exact hI.2 J hJ }⟩
+⟨hI.is_proper.ne_top, λ J hJ, by { rw [ext'_iff, top_coe], exact hI.2 J hJ }⟩
 
 lemma is_maximal_of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
-⟨proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
+⟨is_proper_of_ne_top hI.1, λ J hJ, by simp [hI.2 _ hJ]⟩
 
 lemma is_maximal_iff_is_coatom {I : ideal P} : is_maximal I ↔ is_coatom I :=
 ⟨λ h, h.is_coatom, λ h, is_maximal_of_is_coatom h⟩
@@ -247,7 +249,7 @@ variable [semilattice_inf P]
 /-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
 -/
 @[mk_iff] structure is_prime (I : ideal P) : Prop :=
-(proper : proper I)
+(is_proper : is_proper I)
 (mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
 
 end semilattice_inf

@@ -241,7 +241,7 @@ eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
 
 /-- The topological closure of a subgroup as a subgroup. -/
-@[to_additive]
+@[to_additive "The topological closure of an additive subgroup as an additive subgroup."]
 def subgroup.topological_closure (H : subgroup G) : subgroup G :=
 { carrier := closure H,
   one_mem' := subset_closure H.one_mem,

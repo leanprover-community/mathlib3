@@ -98,7 +98,7 @@ begin
   inhabit α,
   by_cases not_all_top : ∃ y, ∃ x, f y < x,
   { -- take the inverse image, `small_vals`, of some bounded nonempty set; it's finite so has a min
-    haveI : inhabited β := ⟨f (default α)⟩,
+    haveI : nonempty β := ⟨f (default α)⟩,
     obtain ⟨y, x, hx⟩ := not_all_top,
     let small_vals : finset α := (filter.eventually_cofinite.mp
       ((at_top_basis.tendsto_right_iff).1 hf x trivial)).to_finset,

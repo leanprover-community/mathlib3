@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.mv_polynomial
+import algebra.algebra.operations
 import data.fintype.card
 
 /-!
@@ -63,10 +64,32 @@ noncomputable def homogeneous_submodule [comm_semiring R] (n : ℕ) :
     { exact hb h }
   end }
 
+variables {σ R}
+
 @[simp] lemma mem_homogeneous_submodule [comm_semiring R] (n : ℕ) (p : mv_polynomial σ R) :
   p ∈ homogeneous_submodule σ R n ↔ p.is_homogeneous n := iff.rfl
 
-variables {σ R}
+lemma homogenous_submodule_mul [comm_semiring R] (m n : ℕ) :
+  homogeneous_submodule σ R m * homogeneous_submodule σ R n ≤ homogeneous_submodule σ R (m + n) :=
+begin
+  rw submodule.mul_le,
+  intros φ hφ ψ hψ c hc,
+  rw [coeff_mul] at hc,
+  obtain ⟨⟨d, e⟩, hde, H⟩ := finset.exists_ne_zero_of_sum_ne_zero hc,
+  have aux : coeff d φ ≠ 0 ∧ coeff e ψ ≠ 0,
+  { contrapose! H,
+    by_cases h : coeff d φ = 0;
+    simp only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
+  specialize hφ aux.1, specialize hψ aux.2,
+  rw finsupp.mem_antidiagonal_support at hde,
+  classical,
+  have hd' : d.support ⊆ d.support ∪ e.support := finset.subset_union_left _ _,
+  have he' : e.support ⊆ d.support ∪ e.support := finset.subset_union_right _ _,
+  rw [← hde, ← hφ, ← hψ, finset.sum_subset (finsupp.support_add),
+    finset.sum_subset hd', finset.sum_subset he', ← finset.sum_add_distrib],
+  { congr },
+  all_goals { intros i hi, apply finsupp.not_mem_support_iff.mp },
+end
 
 section
 variables [comm_semiring R]
@@ -136,24 +159,7 @@ lemma sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ℕ
 
 lemma mul (hφ : is_homogeneous φ m) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ * ψ) (m + n) :=
-begin
-  intros c hc,
-  rw [coeff_mul] at hc,
-  obtain ⟨⟨d, e⟩, hde, H⟩ := finset.exists_ne_zero_of_sum_ne_zero hc,
-  have aux : coeff d φ ≠ 0 ∧ coeff e ψ ≠ 0,
-  { contrapose! H,
-    by_cases h : coeff d φ = 0;
-    simp only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
-  specialize hφ aux.1, specialize hψ aux.2,
-  rw finsupp.mem_antidiagonal_support at hde,
-  classical,
-  have hd' : d.support ⊆ d.support ∪ e.support := finset.subset_union_left _ _,
-  have he' : e.support ⊆ d.support ∪ e.support := finset.subset_union_right _ _,
-  rw [← hde, ← hφ, ← hψ, finset.sum_subset (finsupp.support_add),
-    finset.sum_subset hd', finset.sum_subset he', ← finset.sum_add_distrib],
-  { congr },
-  all_goals { intros i hi, apply finsupp.not_mem_support_iff.mp }
-end
+homogenous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
 
 lemma prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ι → ℕ)
   (h : ∀ i ∈ s, is_homogeneous (φ i) (n i)) :

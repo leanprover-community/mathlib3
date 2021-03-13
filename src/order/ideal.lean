@@ -17,6 +17,7 @@ structure, such as a bottom element, a top element, or a join-semilattice struct
 
 - `ideal P`: the type of upward directed, downward closed subsets of `P`.
              Dual to the notion of a filter on a preorder.
+- `is_ideal P`: a predicate for when a `set P` is an ideal.
 - `is_proper P`: a predicate for proper ideals.
                  Dual to the notion of a proper filter.
 - `is_prime`: a predicate for prime ideals.
@@ -57,6 +58,15 @@ structure ideal (P) [preorder P] :=
 (directed  : directed_on (≤) carrier)
 (mem_of_le : ∀ {x y : P}, x ≤ y → y ∈ carrier → x ∈ carrier)
 
+/-- A predicate to when a subset of `P` is an ideal. -/
+@[mk_iff] structure is_ideal {P} [preorder P] (I : set P) : Prop :=
+(nonempty : I.nonempty)
+(directed : directed_on (≤) I)
+(mem_of_le : ∀ {x y : P}, x ≤ y → y ∈ I → x ∈ I)
+
+def is_ideal.to_ideal [preorder P] {I : set P} (h : is_ideal I) : ideal P :=
+⟨I, h.1, h.2, h.3⟩
+
 namespace ideal
 
 section preorder
@@ -86,6 +96,8 @@ instance : has_mem P (ideal P) := ⟨λ x I, x ∈ (I : set P)⟩
 ⟨by ext, congr_arg _⟩
 
 lemma ext'_iff {I J : ideal P} : I = J ↔ (I : set P) = J := ext_set_eq.symm
+
+lemma is_ideal (I : ideal P) : is_ideal (I : set P) := ⟨I.2, I.3, I.4⟩
 
 /-- The partial ordering by subset inclusion, inherited from `set P`. -/
 instance : partial_order (ideal P) := partial_order.lift coe ext
@@ -166,7 +178,7 @@ begin
   assumption,
 end
 
-instance is_proper.of_is_coatom {I : ideal P} (hI : is_coatom I) : is_proper I :=
+lemma is_proper.of_is_coatom {I : ideal P} (hI : is_coatom I) : is_proper I :=
 is_proper_of_ne_top hI.1
 
 lemma is_proper_iff_ne_top {I : ideal P} : is_proper I ↔ I ≠ ⊤ :=
@@ -179,7 +191,7 @@ exact is_maximal.maximal_proper J ‹_› }⟩
 lemma is_maximal.is_coatom' {I : ideal P} [is_maximal I] : is_coatom I :=
 is_maximal.is_coatom ‹_›
 
-instance is_maximal.of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
+lemma is_maximal.of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
 {
   maximal_proper := λ _ _, by simp [hI.2 _ ‹_›],
   ..is_proper.of_is_coatom ‹_›
@@ -250,17 +262,6 @@ instance : lattice (ideal P) :=
 @[simp] lemma mem_sup {x : P} : x ∈ I ⊔ J ↔ ∃ (i ∈ I) (j ∈ J), x ≤ i ⊔ j := iff_of_eq rfl
 
 end semilattice_sup_bot
-
-section semilattice_inf
-
-variable [semilattice_inf P]
-
-/-- A prime ideal is an ideal that satisfies `x ⊓ y ∈ I → x ∈ I ∨ y ∈ I`
--/
-@[mk_iff] class is_prime (I : ideal P) extends is_proper I : Prop :=
-(mem_or_mem : ∀ {x y : P}, x ⊓ y ∈ I → x ∈ I ∨ y ∈ I)
-
-end semilattice_inf
 
 end ideal
 

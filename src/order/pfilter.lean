@@ -17,6 +17,8 @@ a join-semilattice structure.
 - `pfilter P`: The type of nonempty, downward directed, upward closed
                subsets of `P`. This is dual to `order.ideal`, so it
                simply wraps `order.ideal (order_dual P)`.
+- `is_pfilter P`: a predicate for when a `set P` is an ideal.
+
 
 Note the relation between `order/filter` and `order/pfilter`: for any
 type `α`, `filter α` represents the same mathematical object as
@@ -32,6 +34,8 @@ pfilter, filter, ideal, dual
 
 -/
 
+namespace order
+
 variables {P : Type*}
 
 /-- A filter on a preorder `P` is a subset of `P` that is
@@ -40,6 +44,13 @@ variables {P : Type*}
   - upward closed. -/
 structure pfilter (P) [preorder P] :=
 (dual : order.ideal (order_dual P))
+
+/-- A predicate to when a subset of `P` is a filter. -/
+def is_pfilter [preorder P] (F : set P) : Prop :=
+@is_ideal (order_dual P) _ F
+
+def is_pfilter.to_pfilter [preorder P] {F : set P} (h : is_pfilter F) : pfilter P :=
+⟨h.to_ideal⟩
 
 namespace pfilter
 
@@ -51,6 +62,9 @@ instance : has_coe (pfilter P) (set P) := ⟨λ F, F.dual.carrier⟩
 
 /-- For the notation `x ∈ F`. -/
 instance : has_mem P (pfilter P) := ⟨λ x F, x ∈ (F : set P)⟩
+
+lemma is_pfilter (F : pfilter P) : is_pfilter (F : set P) :=
+(pfilter.dual F).is_ideal
 
 lemma nonempty : (F : set P).nonempty := F.dual.nonempty
 
@@ -112,3 +126,5 @@ order.ideal.sup_mem_iff
 end semilattice_inf
 
 end pfilter
+
+end order

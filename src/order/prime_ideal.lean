@@ -31,6 +31,8 @@ ideal, prime
 
 -/
 
+open order.pfilter
+
 namespace order
 
 variables {P : Type*}
@@ -65,7 +67,7 @@ end
 @[mk_iff] class is_prime (I : ideal P) extends is_proper I : Prop :=
 (compl_filter : is_pfilter ((I : set P)ᶜ))
 
-def prime_pair.of_is_prime (I : ideal P) (h : is_prime I) : prime_pair P :=
+def prime_pair.of_is_prime {I : ideal P} (h : is_prime I) : prime_pair P :=
 ⟨I, h.compl_filter.to_pfilter, set.inter_compl_self _, set.union_compl_self _⟩
 
 lemma is_prime.of_is_prime_pair (IF : prime_pair P) : is_prime IF.I :=
@@ -74,6 +76,23 @@ lemma is_prime.of_is_prime_pair (IF : prime_pair P) : is_prime IF.I :=
 }
 
 end preorder
+
+section semilattice_inf
+
+variable [semilattice_inf P]
+variables {x y : P}
+
+lemma is_prime.mem_or_mem {I : ideal P} (hI : is_prime I) : x ⊓ y ∈ I → x ∈ I ∨ y ∈ I :=
+begin
+  contrapose!,
+  intro h,
+  let IF := prime_pair.of_is_prime hI,
+  have hxy : x ∈ ↑IF.F ∧ y ∈ ↑IF.F := by rwa ← prime_pair.ideal_compl_eq_pfilter,
+  show x ⊓ y ∈ IF.F,
+  exact inf_mem _ _ hxy.1 hxy.2,
+end
+
+end semilattice_inf
 
 end ideal
 

@@ -65,7 +65,7 @@ end
 @[mk_iff] class is_prime (I : ideal P) extends is_proper I : Prop :=
 (compl_filter : is_pfilter ((I : set P)ᶜ))
 
-def prime_pair.of_is_prime (I : ideal P) (h : is_prime I) : prime_pair P :=
+def prime_pair.of_is_prime {I : ideal P} (h : is_prime I) : prime_pair P :=
 ⟨I, h.compl_filter.to_pfilter, set.inter_compl_self _, set.union_compl_self _⟩
 
 lemma is_prime.of_is_prime_pair (IF : prime_pair P) : is_prime IF.I :=

@@ -142,9 +142,8 @@ adjunction.mk_of_hom_equiv
 Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism.
 -/
 def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-{ inv :=
-  { f := inv f.f,
-    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } } }
+⟨{ f := inv f.f,
+   h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }

@@ -268,6 +268,17 @@ lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y �
 
 namespace iso
 
+@[ext] lemma inv_ext {f : X ≅ Y} {g : Y ⟶ X}
+  (hom_inv_id : f.hom ≫ g = 𝟙 X) : f.inv = g :=
+begin
+  apply (cancel_epi f.hom).mp,
+  simp [hom_inv_id],
+end
+
+@[ext] lemma inv_ext' {f : X ≅ Y} {g : Y ⟶ X}
+  (hom_inv_id : f.hom ≫ g = 𝟙 X) : g = f.inv :=
+by { symmetry, ext, assumption, }
+
 /-!
 All these cancellation lemmas can be solved by `simp [cancel_mono]` (or `simp [cancel_epi]`),
 but with the current design `cancel_mono` is not a good `simp` lemma,

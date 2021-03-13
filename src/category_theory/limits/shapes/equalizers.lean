@@ -562,7 +562,7 @@ rfl
 
 @[simp] lemma equalizer.iso_source_of_self_inv :
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
-rfl
+by { ext, simp [equalizer.iso_source_of_self], }
 
 section
 /--
@@ -692,7 +692,7 @@ def coequalizer.iso_target_of_self : coequalizer f f ≅ Y :=
 
 @[simp] lemma coequalizer.iso_target_of_self_hom :
   (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
-rfl
+by { ext, simp [coequalizer.iso_target_of_self], }
 
 @[simp] lemma coequalizer.iso_target_of_self_inv :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=

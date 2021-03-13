@@ -13,7 +13,7 @@ import set_theory.cardinal
 * `nat.card α` is the cardinality of `α` as a natural number.
   If `α` is infinite, `nat.card α = 0`.
 * `enat.card α` is the cardinality of `α` as an extended natural number.
-  If `α` is infinite, `nat.card α = ⊤`.
+  If `α` is infinite, `enat.card α = ⊤`.
 
 -/
 
@@ -39,7 +39,7 @@ end nat
 namespace enat
 
 /-- `enat.card α` is the cardinality of `α` as an extended natural number.
-  If `α` is infinite, `nat.card α = ⊤`. -/
+  If `α` is infinite, `enat.card α = ⊤`. -/
 def card (α : Type*) : enat := (mk α).to_enat
 
 @[simp]

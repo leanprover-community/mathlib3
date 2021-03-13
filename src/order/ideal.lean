@@ -111,7 +111,7 @@ end⟩
 /-- An ideal is maximal if it is maximal in the collection of proper ideals.
   Note that we cannot use the `is_coatom` class because `P` might not have a `top` element.
 -/
-@[mk_iff, class] structure is_maximal (I : ideal P) extends is_proper I : Prop :=
+@[mk_iff] class is_maximal (I : ideal P) extends is_proper I : Prop :=
 (maximal_proper : ∀ J : ideal P, I < J → J.carrier = set.univ)
 
 end preorder

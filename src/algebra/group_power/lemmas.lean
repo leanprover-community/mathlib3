@@ -58,12 +58,12 @@ instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
-/-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n` -/
+/-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
 def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
   invertible x :=
 ⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
 
-/-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)` -/
+/-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
 def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
   invertible x :=
 begin

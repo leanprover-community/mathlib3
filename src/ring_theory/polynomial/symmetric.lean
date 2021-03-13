@@ -18,7 +18,7 @@ We also prove some basic facts about them.
 
 * `mv_polynomial.is_symmetric`
 
-* `mv_polynomial.is_symmetric`
+* `mv_polynomial.symmetric_subalgebra`
 
 * `mv_polynomial.esymm`
 

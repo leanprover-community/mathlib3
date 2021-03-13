@@ -946,9 +946,9 @@ noncomputable def to_bilin_form (A : α → α → (bilin_form R M)) :
   bilin_form R (α →₀ M) :=
 { bilin := λ p q, p.sum (λ i x, q.sum (λ j y, A i j x y)),
   bilin_add_left := bilin_add_left' (λ i j x, (to_lin'_flip (A i j) x).to_add_monoid_hom),
-  bilin_smul_left := sorry,
-  bilin_add_right := sorry,
-  bilin_smul_right := sorry }
+  bilin_smul_left := bilin_smul_left' (λ i j, to_lin'_flip (A i j)),
+  bilin_add_right := bilin_add_right' (λ i j x, (to_lin' (A i j) x).to_add_monoid_hom),
+  bilin_smul_right := bilin_smul_right' (λ i j, to_lin' (A i j)) }
 
 @[simp] lemma to_bilin_form_apply (A : α → α → (bilin_form R M)) (p q : α →₀ M) :
   finsupp.to_bilin_form A p q = p.sum (λ i x, q.sum (λ j y, A i j x y)) :=

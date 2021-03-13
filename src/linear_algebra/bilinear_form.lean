@@ -244,8 +244,10 @@ variables (R₂) [algebra R₂ R] [semimodule R₂ M] [is_scalar_tower R₂ R M]
 
 /-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
 the right.
-Over a commutative semiring, use `to_lin`, in which the two `add_monoid_hom`s in the type here are
-upgraded to linear maps. -/
+This is the most general version of the construction; it is `R₂`-linear for some distinguished
+commutative subsemiring `R₂` of the scalar ring.  Over semiring with no particular distinguished
+such subsemiring, use `to_lin'`, which is `ℕ`-linear.  Over a commutative semiring, use `to_lin`,
+which is linear. -/
 def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
 { to_fun := λ A,
   { to_fun := λ x,
@@ -265,25 +267,29 @@ rfl
 
 /-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
 the right.
-Over a commutative semiring, use `to_lin`, in which the two `add_monoid_hom`s in the type here are
-upgraded to linear maps. -/
+Over a commutative semiring, use `to_lin`, which is linear rather than `ℕ`-linear. -/
 abbreviation to_lin' : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R := to_lin_hom ℕ
 
 variables (R₂)
 
 /-- The linear map obtained from a `bilin_form` by fixing the right co-ordinate and evaluating in
 the left.
-Over a commutative semiring, use `to_lin`, in which the two `add_monoid_hom`s in the type here are
-upgraded to linear maps. -/
+This is the most general version of the construction; it is `R₂`-linear for some distinguished
+commutative subsemiring `R₂` of the scalar ring.  Over semiring with no particular distinguished
+such subsemiring, use `to_lin'_flip`, which is `ℕ`-linear.  Over a commutative semiring, use
+`to_lin_flip`, which is linear. -/
 def to_lin_hom_flip : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
 (to_lin_hom R₂).comp (flip_hom R₂).to_linear_map
 
 variables {R₂}
 
-@[simp] lemma to_lin'_flip_apply (A : bilin_form R M) (x y : M) :
+@[simp] lemma to_lin'_flip_apply (A : bilin_form R M) (x : M) :
   ⇑(to_lin_hom_flip R₂ A x) = λ y, A y x :=
 rfl
 
+/-- The linear map obtained from a `bilin_form` by fixing the right co-ordinate and evaluating in
+the left.
+Over a commutative semiring, use `to_lin_flip`, which is linear rather than `ℕ`-linear. -/
 abbreviation to_lin'_flip : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R := to_lin_hom_flip ℕ
 
 end to_lin'

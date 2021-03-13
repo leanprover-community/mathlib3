@@ -337,7 +337,8 @@ instance smooth_manifold_with_corners_trans_diffeomorph [smooth_manifold_with_co
 begin
   refine smooth_manifold_with_corners_of_times_cont_diff_on  _ _ (λ e₁ e₂ h₁ h₂, _),
   refine e.times_cont_diff.comp_times_cont_diff_on
-    (((times_cont_diff_groupoid ⊤ I).compatible h₁ h₂).1.comp e.symm.times_cont_diff.times_cont_diff_on _),
+    (((times_cont_diff_groupoid ⊤ I).compatible h₁ h₂).1.comp
+      e.symm.times_cont_diff.times_cont_diff_on _),
   -- missing piece for `mfld_set_tac`
   have : range (e ∘ I) = e.symm ⁻¹' (range I) := by rw [range_comp, e.image_eq_preimage],
   mfld_set_tac

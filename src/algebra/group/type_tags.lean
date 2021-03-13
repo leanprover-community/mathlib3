@@ -245,13 +245,11 @@ add_monoid_hom.to_multiplicative''.symm
 
 /-- If `α` has some multiplicative structure and coerces to a function,
   then `additive α` should also coerce to a function. -/
-instance additive.has_coe_to_fun {α : Type*} [has_coe_to_fun α] : has_coe_to_fun (additive α) := ⟨
-  λ a,
-  has_coe_to_fun.F a.to_mul, λ a, coe_fn a.to_mul⟩
+instance additive.has_coe_to_fun {α : Type*} [has_coe_to_fun α] : has_coe_to_fun (additive α) := 
+⟨λ a, has_coe_to_fun.F a.to_mul, λ a, coe_fn a.to_mul⟩
 
 /-- If `α` has some additive structure and coerces to a function,
   then `multiplicative α` should also coerce to a function. -/
 instance multiplicative.has_coe_to_fun {α : Type*} [has_coe_to_fun α] :
-  has_coe_to_fun (multiplicative α) := ⟨
-  λ a,
-  has_coe_to_fun.F a.to_add, λ a, coe_fn a.to_add⟩
+  has_coe_to_fun (multiplicative α) := 
+⟨λ a, has_coe_to_fun.F a.to_add, λ a, coe_fn a.to_add⟩

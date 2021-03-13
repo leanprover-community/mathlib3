@@ -215,7 +215,6 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
 @nat.rec (λ n, (↑(x ^ n) : L) = ↑x ^ n) rfl (λ _ h, congr_arg (has_mul.mul ↑x) h) n
 
-
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra
 

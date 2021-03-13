@@ -87,7 +87,7 @@ lemma reflect_support (N : ℕ) (f : polynomial R) :
   (reflect N f).support = image (rev_at N) f.support :=
 begin
   ext1,
-  rw [reflect, mem_image, support_emb_domain, mem_map],
+  rw [reflect, mem_image, support, support, support_emb_domain, mem_map],
 end
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : polynomial R) (i : ℕ) :
@@ -100,14 +100,7 @@ calc finsupp.emb_domain (rev_at N) f i
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) = 0 ↔ f = 0 :=
-begin
-  split,
-  { intros a,
-    injection a with f0 f1,
-    rwa [map_eq_empty, support_eq_empty] at f0, },
-  { rintro rfl,
-    refl, },
-end
+by simp [reflect]
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
@@ -124,7 +117,7 @@ begin
   rw [reflect_C_mul, coeff_C_mul, coeff_C_mul, coeff_X_pow, coeff_reflect],
   split_ifs with h j,
   { rw [h, rev_at_invol, coeff_X_pow_self], },
-  { rw [not_mem_support_iff_coeff_zero.mp],
+  { rw [not_mem_support_iff.mp],
     intro a,
     rw [← one_mul (X ^ n), ← C_1] at a,
     apply h,

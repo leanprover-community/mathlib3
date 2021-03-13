@@ -724,6 +724,29 @@ begin
   exact ⟨a, mem_connected_component, refl (f a)⟩,
 end
 
+lemma is_totally_disconnected_of_totally_disconnected_space [totally_disconnected_space α] (s : set α) :
+  is_totally_disconnected s :=
+λ t hts ht, totally_disconnected_space.is_totally_disconnected_univ _ t.subset_univ ht
+
+lemma is_preconnected.subsingleton [totally_disconnected_space α] {s : set α}
+  (hs : is_preconnected s) : subsingleton s :=
+is_totally_disconnected_of_totally_disconnected_space s s (set.subset.refl _) hs
+
+namespace embedding
+open filter
+variables [topological_space β]
+
+lemma is_totally_disconnected {f : α → β} (hf : embedding f) {s : set α}
+  (h : is_totally_disconnected (f '' s)) : is_totally_disconnected s :=
+λ t hts ht, ⟨λ a b,subtype.ext $ hf.inj $
+  (h (f '' t) (set.image_subset f hts) (ht.image f hf.continuous.continuous_on)).image_eq a b⟩
+
+lemma totally_disconnected_space [totally_disconnected_space β] {f : α → β} (hf : embedding f) :
+  totally_disconnected_space α :=
+⟨hf.is_totally_disconnected $ is_totally_disconnected_of_totally_disconnected_space (f '' univ)⟩
+
+end embedding
+
 end totally_disconnected
 
 section totally_separated

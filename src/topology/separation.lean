@@ -336,6 +336,11 @@ begin
     exact this rfl },
 end
 
+lemma embedding.t2_space [topological_space β] [t2_space β] {f : α → β} (hf : embedding f) :
+  t2_space α :=
+t2_iff_nhds.mpr $ λ x y h, hf.inj $ eq_of_nhds_ne_bot
+⟨λ H, by simpa [hf.to_inducing.nhds_eq_comap, ← comap_inf, H, not_ne_bot.mpr] using h⟩
+
 section separated
 
 open separated finset

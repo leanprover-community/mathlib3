@@ -1732,7 +1732,19 @@ begin
 end
 
 end set
+
 open set
+
+namespace subsingleton
+variables {α β : Type*} {f : α → β}
+
+lemma range_eq (hs : subsingleton $ set.range f) (a b : α) : f a = f b :=
+subtype.mk.inj $ subsingleton.elim (⟨f a, mem_range_self a⟩ : range f) ⟨f b, mem_range_self b⟩
+
+lemma image_eq {s : set α} (hs : subsingleton $ f '' s) (a b : s) : f a = f b :=
+by { rw set.image_eq_range at hs, apply hs.range_eq }
+
+end subsingleton
 
 namespace function
 

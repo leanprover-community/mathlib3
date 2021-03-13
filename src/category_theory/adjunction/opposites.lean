@@ -19,7 +19,6 @@ These constructions are used to show uniqueness of adjoints (up to natural isomo
 adjunction, opposite, uniqueness
 -/
 
-noncomputable theory
 
 open category_theory
 

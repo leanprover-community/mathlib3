@@ -30,8 +30,6 @@ we put some declarations that are specifically about natural isomorphisms in the
 namespace so that they are available using dot notation.
 -/
 
-noncomputable theory
-
 open category_theory
 
 -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -136,19 +134,6 @@ lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
 by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.hom_inv_id, id_app, category.id_comp]
 
 /--
-A natural transformation is an isomorphism if all its components are isomorphisms.
--/
--- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
-def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
-⟨{ app := λ X, inv (α.app X),
-    naturality' := λ X Y f,
-    begin
-      have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.naturality f).symm,
-      simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
-      exact h
-    end }, by tidy⟩
-
-/--
 The components of a natural isomorphism are isomorphisms.
 -/
 instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
@@ -166,7 +151,22 @@ and checking naturality only in the forward direction.
 def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
   F ≅ G :=
-@as_iso _ _ F G { app := λ X, (app X).hom } (is_iso_of_is_iso_app _)
+{ hom := { app := λ X, (app X).hom },
+  inv :=
+  { app := λ X, (app X).inv,
+    naturality' := λ X Y f,
+    begin
+      have h := congr_arg (λ f, (app X).inv ≫ (f ≫ (app Y).inv)) (naturality f).symm,
+      simp only [iso.inv_hom_id_assoc, iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+      exact h
+    end }, }
+
+/--
+A natural transformation is an isomorphism if all its components are isomorphisms.
+-/
+-- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
+def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))
 
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=

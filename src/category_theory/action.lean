@@ -18,8 +18,6 @@ A morphism `x ‚ü∂ y` in this category is simply a scalar `m : M` such that `m ‚Ä
 where M is a group, this category is a groupoid -- the `action groupoid'.
 -/
 
-noncomputable theory
-
 open mul_action
 namespace category_theory
 

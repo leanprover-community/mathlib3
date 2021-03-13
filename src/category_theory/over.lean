@@ -22,8 +22,6 @@ Over (and under) categories are special cases of comma categories.
 comma, slice, coslice, over, under
 -/
 
-noncomputable theory
-
 namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation

@@ -7,8 +7,6 @@ import category_theory.types
 import category_theory.equivalence
 import data.opposite
 
-noncomputable theory
-
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory

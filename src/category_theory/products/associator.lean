@@ -9,8 +9,6 @@ import category_theory.products.basic
 The associator functor `((C × D) × E) ⥤ (C × (D × E))` and its inverse form an equivalence.
 -/
 
-noncomputable theory
-
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
 open category_theory

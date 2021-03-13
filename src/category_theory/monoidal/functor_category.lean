@@ -16,8 +16,6 @@ there is a natural "pointwise" monoidal structure on `C ⥤ D`.
 The initial intended application is tensor product of presheaves.
 -/
 
-noncomputable theory
-
 universes v₁ v₂ u₁ u₂
 
 open category_theory

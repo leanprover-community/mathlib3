@@ -11,8 +11,6 @@ import category_theory.discrete_category
 Defines a category structure on `pempty`, and the unique functor `pempty ⥤ C` for any category `C`.
 -/
 
-noncomputable theory
-
 universes v u w -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory

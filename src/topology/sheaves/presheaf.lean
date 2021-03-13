@@ -20,8 +20,6 @@ and for `ℱ : X.presheaf C` provide the natural isomorphisms
 along with their `@[simp]` lemmas.
 -/
 
-noncomputable theory
-
 universes v u
 
 open category_theory

@@ -6,8 +6,6 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.const
 import category_theory.discrete_category
 
-noncomputable theory
-
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory

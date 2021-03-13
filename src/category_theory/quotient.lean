@@ -93,7 +93,6 @@ def lift : quotient r ⥤ D :=
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
 
 /-- The original functor factors through the induced functor. -/
-noncomputable
 def lift.is_lift : (functor r) ⋙ lift r F H ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 

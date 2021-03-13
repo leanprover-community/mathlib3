@@ -6,8 +6,6 @@ Authors: Scott Morrison
 import topology.category.Top.opens
 import category_theory.filtered
 
-noncomputable theory
-
 open category_theory
 open topological_space
 open opposite

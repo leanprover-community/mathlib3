@@ -5,8 +5,6 @@ Authors: Reid Barton, Scott Morrison, David Wärn
 -/
 import category_theory.epi_mono
 
-noncomputable theory
-
 namespace category_theory
 
 universes v v₂ u u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -46,7 +44,7 @@ variables (X Y)
 /-- In a groupoid, isomorphisms are equivalent to morphisms. -/
 def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
 { to_fun := iso.hom,
-  inv_fun := λ f, as_iso f,
+  inv_fun := λ f, ⟨f, groupoid.inv f⟩,
   left_inv := λ i, iso.ext rfl,
   right_inv := λ f, rfl }
 
@@ -57,10 +55,13 @@ section
 variables {C : Type u} [category.{v} C]
 
 /-- A category where every morphism `is_iso` is a groupoid. -/
+noncomputable
 def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : groupoid.{v} C :=
 { inv := λ X Y f, inv f }
 
 /-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
+-- FIXME this has unnecessarily become noncomputable!
+noncomputable
 def groupoid.of_trunc_split_mono
   (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono f)) :
   groupoid.{v} C :=

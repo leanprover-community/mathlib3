@@ -45,8 +45,6 @@ This is far from completely effective, but seems to prove a useful principle.
 * https://stacks.math.columbia.edu/tag/0FFK.
 -/
 
-noncomputable theory
-
 open category_theory
 
 universes v u

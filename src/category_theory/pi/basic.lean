@@ -14,8 +14,6 @@ We define the pointwise category structure on indexed families of objects in a c
 
 -/
 
-noncomputable theory
-
 namespace category_theory
 
 universes w₀ w₁ w₂ v₁ v₂ u₁ u₂

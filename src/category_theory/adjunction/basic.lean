@@ -6,8 +6,6 @@ Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 import category_theory.equivalence
 import data.equiv.basic
 
-noncomputable theory
-
 namespace category_theory
 open category
 

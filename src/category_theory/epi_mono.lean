@@ -13,8 +13,6 @@ import category_theory.opposites
 
 universes v₁ v₂ u₁ u₂
 
-noncomputable theory
-
 namespace category_theory
 
 variables {C : Type u₁} [category.{v₁} C]
@@ -105,11 +103,13 @@ lemma is_iso_of_mono_of_split_epi {X Y : C} (f : X ⟶ Y) [mono f] [split_epi f]
 
 /-- Every iso is a split mono. -/
 @[priority 100]
+noncomputable
 instance split_mono.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_mono f :=
 { retraction := inv f }
 
 /-- Every iso is a split epi. -/
 @[priority 100]
+noncomputable
 instance split_epi.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_epi f :=
 { section_ := inv f }
 

@@ -14,8 +14,6 @@ import category_theory.pi.basic
 We define the category structure on a sigma-type (disjoint union) of categories.
 -/
 
-noncomputable theory
-
 namespace category_theory
 namespace sigma
 

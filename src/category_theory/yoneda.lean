@@ -17,8 +17,6 @@ Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation
 * [Stacks: Opposite Categories and the Yoneda Lemma](https://stacks.math.columbia.edu/tag/001L)
 -/
 
-noncomputable theory
-
 namespace category_theory
 open opposite
 

@@ -205,7 +205,6 @@ instance full.comp [full F] [full G] : full (F ⋙ G) :=
 Given a natural isomorphism between `F ⋙ H` and `G ⋙ H` for a fully faithful functor `H`, we
 can 'cancel' it to give a natural iso between `F` and `G`.
 -/
-noncomputable
 def fully_faithful_cancel_right {F G : C ⥤ D} (H : D ⥤ E)
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) : F ≅ G :=
 nat_iso.of_components

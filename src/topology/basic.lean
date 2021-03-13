@@ -1051,7 +1051,7 @@ lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h :
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
 
-lemma eventually_eq_zero_nhds [has_zero β] {a : α} {f : α → β} :
+lemma eventually_eq_zero_nhds {M₀} [has_zero M₀] {a : α} {f : α → M₀} :
   f =ᶠ[𝓝 a] 0 ↔ a ∉ closure (function.support f) :=
 by rw [← mem_compl_eq, ← interior_compl, mem_interior_iff_mem_nhds, function.compl_support]; refl
 

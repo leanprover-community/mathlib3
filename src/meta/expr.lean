@@ -372,33 +372,42 @@ e.replace $ λ e d,
   | _ := none
   end
 
+/-- FIXME err, what is this called, and is there just a punctuation incantation I can use? -/
+def foo {α : Type*}{m : Type* → Type*} [monad m] (x : m (option α)) (y : m α) : m α :=
+do o ← x,
+  match o with
+  | none := y
+  | (some a) := pure a
+  end
+
 /-- Implementation of `expr.mreplace`. -/
-meta def mreplace_aux {m : Type* → Type*} [monad m] [alternative m] (R : expr → nat → m expr) :
+meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) :
   expr → ℕ → m expr
-| (app f x) n := R (app f x) n <|>
+| (app f x) n := foo (R (app f x) n)
   (do Rf ← mreplace_aux f n, Rx ← mreplace_aux x n, return $ app Rf Rx)
-| (lam nm bi ty bd) n := R (lam nm bi ty bd) n <|>
+| (lam nm bi ty bd) n := foo (R (lam nm bi ty bd) n)
   (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ lam nm bi Rty Rbd)
-| (pi nm bi ty bd) n := R (pi nm bi ty bd) n <|>
+| (pi nm bi ty bd) n := foo (R (pi nm bi ty bd) n)
   (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ pi nm bi Rty Rbd)
-| (elet nm ty a b) n := R (elet nm ty a b) n <|>
+| (elet nm ty a b) n := foo (R (elet nm ty a b) n)
   (do Rty ← mreplace_aux ty n,
     Ra ← mreplace_aux a n,
     Rb ← mreplace_aux b n,
     return $ elet nm Rty Ra Rb)
-| e n := R e n <|> return e
+| e n := foo (R e n) (return e)
 
 /--
 Monadic analogue of `expr.replace`.
 
 The `mreplace R e` visits each subexpression `s` of `e`, and is called with `R s n`, where
 `n` is the number of binders above `e`.
-If `R s n` returns some value, `s` is replaced with that value (and `mreplace` does not visit
+If `R s n` fails, the whole replacement fails.
+If `R s n` returns `some t`, `s` is replaced with `t` (and `mreplace` does not visit
 its subexpressions).
-If `R s n` fails, then `mreplace` continues visiting subexpressions of `s`.
+If `R s n` return `none`, then `mreplace` continues visiting subexpressions of `s`.
 -/
 meta def mreplace {m : Type* → Type*} [monad m] [alternative m]
-  (R : expr → nat → m expr) (e : expr) : m expr :=
+  (R : expr → nat → m (option expr)) (e : expr) : m expr :=
 mreplace_aux R e 0
 
 /-- Match a variable. -/

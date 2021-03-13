@@ -57,6 +57,27 @@ meta def fill_args_with_mvars : expr → tactic expr
 meta def replace_args_with_mvars (e : expr) : tactic expr :=
 e.get_app_fn.fill_args_with_mvars
 
+meta def mreplace_aux (R : expr → nat → tactic expr) : expr → ℕ → tactic expr
+| (app f x) n := R (app f x) n <|>
+  (do Rf ← mreplace_aux f n, Rx ← mreplace_aux x n, return $ app Rf Rx)
+| (lam nm bi ty bd) n := R (lam nm bi ty bd) n <|>
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ lam nm bi Rty Rbd)
+| (pi nm bi ty bd) n := R (pi nm bi ty bd) n <|>
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ pi nm bi Rty Rbd)
+| (elet nm ty a b) n := R (elet nm ty a b) n <|>
+  (do Rty ← mreplace_aux ty n,
+    Ra ← mreplace_aux a n,
+    Rb ← mreplace_aux b n,
+    return $ elet nm Rty Ra Rb)
+| e n := R e n <|> return e
+.
+
+meta def mreplace (R : expr → nat → tactic expr) (e : expr) : tactic expr :=
+mreplace_aux R e 0
+
+meta def refresh_mvars (e : expr) : tactic expr :=
+e.mreplace (λ f n, if f.is_mvar then infer_type f >>= mk_meta_var else failed)
+
 end expr
 
 open expr
@@ -189,13 +210,14 @@ meta def prompts : proof_script → tactic (list (string × string))
 end proof_script
 
 
+meta def iff_mpr_apply (n : name) : tactic unit :=
+do t ← target,
+   e ← prod.snd <$> (solve_aux t $ applyc `iff.mpr >> applyc n) >>= instantiate_mvars,
+   trace e,
+   e ← e.refresh_mvars,
+   apply e $> ()
+
 meta def construct_apply_step (e : expr) : tactic proof_step :=
--- This part just doesn't work. :-(
--- (do
---   tgt ← target,
---   e' ← i_to_expr_strict ``(%%e : %%tgt),
---   lock_tactic_state (tactic.exact e'),
---   return (proof_step.exact e')) <|>
 (do
   lock_tactic_state (tactic.apply e),
   return (proof_step.apply e)) <|>

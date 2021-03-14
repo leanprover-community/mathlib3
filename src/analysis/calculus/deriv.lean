@@ -192,6 +192,12 @@ protected lemma has_strict_fderiv_at.has_strict_deriv_at {f' : 𝕜 →L[𝕜] F
   has_strict_fderiv_at f f' x → has_strict_deriv_at f (f' 1) x :=
 has_strict_fderiv_at_iff_has_strict_deriv_at.mp
 
+lemma has_strict_deriv_at_iff_has_strict_fderiv_at :
+  has_strict_deriv_at f f' x ↔ has_strict_fderiv_at f (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') x :=
+iff.rfl
+
+alias has_strict_deriv_at_iff_has_strict_fderiv_at ↔ has_strict_deriv_at.has_strict_fderiv_at _
+
 /-- Expressing `has_deriv_at f f' x` in terms of `has_fderiv_at` -/
 lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
   has_deriv_at f f' x ↔
@@ -929,6 +935,10 @@ theorem has_deriv_within_at.const_sub (c : F) (hf : has_deriv_within_at f f' s x
   has_deriv_within_at (λ x, c - f x) (-f') s x :=
 hf.const_sub c
 
+theorem has_strict_deriv_at.const_sub (c : F) (hf : has_strict_deriv_at f f' x) :
+  has_strict_deriv_at (λ x, c - f x) (-f') x :=
+by simpa only [sub_eq_add_neg] using hf.neg.const_add c
+
 theorem has_deriv_at.const_sub (c : F) (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, c - f x) (-f') x :=
 hf.const_sub c
@@ -1162,7 +1172,7 @@ end
 end composition
 
 section composition_vector
-/-! ### Derivative of the composition of a function between vector spaces and of a function defined on `𝕜` -/
+/-! ### Derivative of the composition of a function between vector spaces and a function on `𝕜` -/
 
 variables {l : F → E} {l' : F →L[𝕜] E}
 variable (x)
@@ -1268,6 +1278,13 @@ begin
   exact hc.mul_const d
 end
 
+theorem has_strict_deriv_at.mul_const (hc : has_strict_deriv_at c c' x) (d : 𝕜) :
+  has_strict_deriv_at (λ y, c y * d) (c' * d) x :=
+begin
+  convert hc.mul (has_strict_deriv_at_const x d),
+  rw [mul_zero, add_zero]
+end
+
 lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
   (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
   deriv_within (λ y, c y * d) s x = deriv_within c s x * d :=
@@ -1289,6 +1306,13 @@ theorem has_deriv_at.const_mul (c : 𝕜) (hd : has_deriv_at d d' x) :
 begin
   rw [← has_deriv_within_at_univ] at *,
   exact hd.const_mul c
+end
+
+theorem has_strict_deriv_at.const_mul (c : 𝕜) (hd : has_strict_deriv_at d d' x) :
+  has_strict_deriv_at (λ y, c * d y) (c * d') x :=
+begin
+  convert (has_strict_deriv_at_const _ _).mul hd,
+  rw [zero_mul, zero_add]
 end
 
 lemma deriv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)
@@ -1421,11 +1445,16 @@ lemma has_deriv_within_at.div
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) (hx : d x ≠ 0) :
   has_deriv_within_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) s x :=
 begin
-  have A : (d x)⁻¹ * (d x)⁻¹ * (c' * d x) = (d x)⁻¹ * c',
-    by rw [← mul_assoc, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel hx, one_mul],
   convert hc.mul ((has_deriv_at_inv hx).comp_has_deriv_within_at x hd),
-  simp [div_eq_inv_mul, pow_two, mul_inv', mul_add, A, sub_eq_add_neg],
-  ring
+  field_simp, ring
+end
+
+lemma has_strict_deriv_at.div (hc : has_strict_deriv_at c c' x) (hd : has_strict_deriv_at d d' x)
+  (hx : d x ≠ 0) :
+  has_strict_deriv_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) x :=
+begin
+  convert hc.mul ((has_strict_deriv_at_inv hx).comp x hd),
+  field_simp, ring
 end
 
 lemma has_deriv_at.div (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) (hx : d x ≠ 0) :

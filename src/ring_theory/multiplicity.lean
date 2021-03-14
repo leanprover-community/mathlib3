@@ -5,7 +5,21 @@ Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated
 import algebra.big_operators.basic
-import data.nat.enat
+import ring_theory.valuation.basic
+
+/-!
+# Multiplicity of a divisor
+
+For a commutative monoid, this file introduces the notion of multiplicity of a divisor and proves
+several basic results on it.
+
+## Main definitions
+
+* `multiplicity a b`: for two elements `a` and `b` of a commutative monoid returns the largest
+  number `n` such that `a ^ n ∣ b` or infinity, written `⊤`, if `a ^ n ∣ b` for all natural numbers
+  `n`.
+* `multiplicity.finite a b`: a predicate denoting that the multiplicity of `a` in `b` is finite.
+-/
 
 variables {α : Type*}
 
@@ -310,8 +324,10 @@ protected lemma mul' {p a b : α} (hp : prime p)
   get (multiplicity p (a * b)) h =
   get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
   get (multiplicity p b) ((finite_mul_iff hp).1 h).2 :=
-have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a, from pow_multiplicity_dvd _,
-have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b, from pow_multiplicity_dvd _,
+have hdiva : p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 ∣ a,
+  from pow_multiplicity_dvd _,
+have hdivb : p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2 ∣ b,
+  from pow_multiplicity_dvd _,
 have hpoweq : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) =
     p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 *
@@ -373,6 +389,20 @@ multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
 end comm_cancel_monoid_with_zero
+
+section valuation
+
+variables {R : Type*} [integral_domain R] {p : R} [decidable_rel (has_dvd.dvd : R → R → Prop)]
+
+/-- `multiplicity` of a prime inan integral domain as an additive valuation to `enat`. -/
+noncomputable def add_valuation (hp : prime p) : add_valuation R enat :=
+add_valuation.of (multiplicity p) (multiplicity.zero _) (one_right hp.not_unit)
+  (λ _ _, min_le_multiplicity_add) (λ a b, multiplicity.mul hp)
+
+@[simp]
+lemma add_valuation_apply {hp : prime p} {r : R} : add_valuation hp r = multiplicity p r := rfl
+
+end valuation
 
 end multiplicity
 

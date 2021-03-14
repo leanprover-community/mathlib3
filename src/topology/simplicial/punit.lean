@@ -11,7 +11,7 @@ import data.fintype.card
 
 universe variables u
 
-open category_theory Top Simplicial sType
+open category_theory Top simplicial_object sSet
 
 variables (X : Top.{u}) (R : Type u) [comm_ring R]
 
@@ -24,12 +24,12 @@ lemma singular_chain_complex_d_of_nonpos :
 open_locale big_operators
 
 lemma foobar [subsingleton ↥X]
-  (α : (((sType.free_simplicial_module R).obj
+  (α : (((sSet.free_simplicial_module R).obj
              (singular_standard_simplex.op.comp_left.obj
                 (category_theory.yoneda.obj X))).graded_object 1)) :
   ⇑((∑ (i : fin (0 + 2)),
-            (-1:R) ^ (i:ℕ) • Simplicial.δ
-                ((sType.free_simplicial_module R).obj
+            (-1:R) ^ (i:ℕ) • simplicial_object.δ
+                ((sSet.free_simplicial_module R).obj
                    (singular_standard_simplex.op.comp_left.obj
                       (category_theory.yoneda.obj X))) i)) α = 0 :=
 begin
@@ -37,7 +37,7 @@ begin
   simp only [add_zero, fin.coe_zero, linear_map.smul_apply, one_smul, linear_map.add_apply, pow_zero],
   simp only [fin.coe_zero, fin.coe_succ, one_smul, pow_one, neg_smul],
   rw add_neg_eq_zero,
-  -- dsimp [Simplicial.δ, free_simplicial_module, Module.Free, skeletal],
+  -- dsimp [simplicial_object.δ, free_simplicial_module, Module.Free, skeletal],
   -- dsimp [functor.comp_right, functor.comp_left],
   apply finsupp.map_domain_congr,
   intros x hx,
@@ -52,7 +52,7 @@ begin
   dsimp [singular_chain_complex, singular, simplicial_module.graded_object_d] at *,
   show (simplicial_module.boundary _ 0 ≫ _) α = 0,
   dsimp,
-  show (((sType.free_simplicial_module R).obj (singular_standard_simplex.op.comp_left.obj
+  show (((sSet.free_simplicial_module R).obj (singular_standard_simplex.op.comp_left.obj
     (category_theory.yoneda.obj X))).boundary 0) α = 0,
   dsimp [simplicial_module.boundary],
   apply foobar,

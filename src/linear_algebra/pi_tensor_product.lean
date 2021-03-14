@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Frédéric Dupuis
+Authors: Frédéric Dupuis, Eric Wieser
 -/
 
 import group_theory.congruence
@@ -26,6 +26,8 @@ binary tensor product in `linear_algebra/tensor_product.lean`.
 * `lift φ` with `φ : multilinear_map R s E` is the corresponding linear map
   `(⨂[R] i, s i) →ₗ[R] E`. This is bundled as a linear equivalence.
 * `pi_tensor_product.reindex e` re-indexes the components of `⨂[R] i : ι, M` along `e : ι ≃ ι₂`.
+* `pi_tensor_product.tmul_equiv` equivalence between a `tensor_product` of `pi_tensor_product`s and
+  a single `pi_tensor_product`.
 
 ## Notations
 
@@ -441,6 +443,58 @@ def pempty_equiv : ⨂[R] i : pempty, M ≃ₗ[R] R :=
     linear_map.map_smul, pi_tensor_product.lift.tprod],
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }
+
+section tmul
+
+/-- Collapse a `tensor_product` of `pi_tensor_product`s. -/
+private def tmul : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) →ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+tensor_product.lift
+  { to_fun := λ a, pi_tensor_product.lift $ pi_tensor_product.lift
+      (multilinear_map.curry_sum_equiv R _ _ M _ (tprod R)) a,
+    map_add' := λ a b, by simp only [linear_equiv.map_add, linear_map.map_add],
+    map_smul' := λ r a, by simp only [linear_equiv.map_smul, linear_map.map_smul], }
+
+private lemma tmul_apply (a : ι → M) (b : ι₂ → M) :
+  tmul ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
+begin
+  erw [tensor_product.lift.tmul, pi_tensor_product.lift.tprod, pi_tensor_product.lift.tprod],
+  refl
+end
+
+/-- Expand `pi_tensor_product` into a `tensor_product` of two factors. -/
+private def tmul_symm : ⨂[R] i : ι ⊕ ι₂, M →ₗ[R] (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) :=
+-- by using tactic mode, we avoid the need for a lot of `@`s and `_`s
+pi_tensor_product.lift $ by apply multilinear_map.dom_coprod; [exact tprod R, exact tprod R]
+
+private lemma tmul_symm_apply (a : ι ⊕ ι₂ → M) :
+  tmul_symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
+pi_tensor_product.lift.tprod _
+
+variables (R M)
+
+/-- Equivalence between a `tensor_product` of `pi_tensor_product`s and a single
+`pi_tensor_product` indexed by a `sum` type.
+
+For simplicity, this is defined only for homogeneously- (rather than dependently-) typed components.
+-/
+def tmul_equiv : (⨂[R] i : ι, M) ⊗[R] (⨂[R] i : ι₂, M) ≃ₗ[R] ⨂[R] i : ι ⊕ ι₂, M :=
+linear_equiv.of_linear tmul tmul_symm
+  (by { ext x,
+        show tmul (tmul_symm (tprod R x)) = tprod R x, -- Speed up the call to `simp`.
+        simp only [tmul_symm_apply, tmul_apply, sum.elim_comp_inl_inr], })
+  (by { ext x y,
+        show tmul_symm (tmul (tprod R x ⊗ₜ[R] tprod R y)) = tprod R x ⊗ₜ[R] tprod R y,
+        simp only [tmul_apply, tmul_symm_apply, sum.elim_inl, sum.elim_inr], })
+
+@[simp] lemma tmul_equiv_apply (a : ι → M) (b : ι₂ → M) :
+  tmul_equiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, sum.elim a b i :=
+tmul_apply a b
+
+@[simp] lemma tmul_equiv_symm_apply (a : ι ⊕ ι₂ → M) :
+  (tmul_equiv R M).symm (⨂ₜ[R] i, a i) = (⨂ₜ[R] i, a (sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (sum.inr i)) :=
+tmul_symm_apply a
+
+end tmul
 
 end multilinear
 

@@ -40,11 +40,9 @@ The free-forgetful adjunction for R-modules.
 -/
 def adj : free R ⊣ forget (Module.{u} R) :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X M, finsupp.hom_equiv R M X,
-  hom_equiv_naturality_left_symm' :=
-  begin
-    intros _ _ M f g, ext x,
-    exact (finsupp.map_domain_sum_index f _ (λ y, smul_add_hom_left R (g y))).symm,
-  end }
+{ hom_equiv := λ X M, (finsupp.lift M R X).to_equiv.symm,
+  hom_equiv_naturality_left_symm' := λ _ _ M f g,
+  finsupp.lhom_ext' (λ x, linear_map.ext_ring
+    (finsupp.sum_map_domain_index_add_monoid_hom (λ y, ((smul_add_hom R ↥M).flip) (g y))).symm) }
 
 end Module

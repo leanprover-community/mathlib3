@@ -53,7 +53,8 @@ lemma integral_normalization_coeff_ne_degree {f : polynomial R} {i : ℕ} (hi : 
   coeff (integral_normalization f) i = coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i) :=
 if_neg hi
 
-lemma integral_normalization_coeff_ne_nat_degree {f : polynomial R} {i : ℕ} (hi : i ≠ nat_degree f) :
+lemma integral_normalization_coeff_ne_nat_degree
+  {f : polynomial R} {i : ℕ} (hi : i ≠ nat_degree f) :
   coeff (integral_normalization f) i = coeff f i * f.leading_coeff ^ (f.nat_degree - 1 - i) :=
 integral_normalization_coeff_ne_degree (degree_ne_of_nat_degree_ne hi.symm)
 
@@ -62,7 +63,7 @@ lemma monic_integral_normalization {f : polynomial R} (hf : f ≠ 0) :
 begin
   apply monic_of_degree_le f.nat_degree,
   { refine finset.sup_le (λ i h, _),
-    rw [integral_normalization, mem_support_iff, on_finset_apply] at h,
+    rw [integral_normalization, mem_support_iff, coeff, on_finset_apply] at h,
     split_ifs at h with hi,
     { exact le_trans (le_of_eq hi.symm) degree_le_nat_degree },
     { erw [with_bot.some_le_some],
@@ -80,7 +81,7 @@ variables [integral_domain R]
   (integral_normalization f).support = f.support :=
 begin
   ext i,
-  simp only [integral_normalization, on_finset_apply, mem_support_iff],
+  simp only [integral_normalization, coeff, on_finset_apply, mem_support_iff],
   split_ifs with hi,
   { simp only [ne.def, not_false_iff, true_iff, one_ne_zero, hi],
     exact coeff_ne_zero_of_eq_degree hi },
@@ -100,7 +101,7 @@ lemma integral_normalization_eval₂_eq_zero {p : polynomial R} (hp : p ≠ 0) (
 calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
     = p.support.attach.sum
         (λ i, f (coeff (integral_normalization p) i.1 * p.leading_coeff ^ i.1) * z ^ i.1) :
-      by { rw [eval₂, finsupp.sum, support_integral_normalization hp],
+      by { rw [eval₂, sum_def, support_integral_normalization hp],
            simp only [mul_comm z, mul_pow, mul_assoc, ring_hom.map_pow, ring_hom.map_mul],
            exact finset.sum_attach.symm }
 ... = p.support.attach.sum

@@ -1,32 +1,57 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import data.set.countable
 import set_theory.schroeder_bernstein
 import data.fintype.card
+import data.nat.enat
 
 /-!
 # Cardinal Numbers
 
 We define cardinal numbers as a quotient of types under the equivalence relation of equinumerity.
-We define the order on cardinal numbers, define omega, and do basic cardinal arithmetic:
-  addition, multiplication, power, cardinal successor, minimum, supremum,
-    infinitary sums and products
 
-The fact that the cardinality of `α × α` coincides with that of `α` when `α` is infinite is not
-proved in this file, as it relies on facts on well-orders. Instead, it is in
-`cardinal_ordinal.lean` (together with many other facts on cardinals, for instance the
-cardinality of `list α`).
+## Main definitions
+
+* `cardinal` the type of cardinal numbers (in a given universe).
+* `cardinal.mk α` or `#α` is the cardinality of `α`. The notation `#` lives in the locale
+  `cardinal`.
+* There is an instance that `cardinal` forms a `canonically_ordered_comm_semiring`.
+* Addition `c₁ + c₂` is defined by `cardinal.add_def α β : #α + #β = #(α ⊕ β)`.
+* Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α * β)`.
+* The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
+* Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
+* `cardinal.omega` the cardinality of `ℕ`. This definition is universe polymorphic:
+  `cardinal.omega.{u} : cardinal.{u}`
+  (contrast with `ℕ : Type`, which lives in a specific universe).
+  In some cases the universe level has to be given explicitly.
+* `cardinal.min (I : nonempty ι) (c : ι → cardinal)` is the minimal cardinal in the range of `c`.
+* `cardinal.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
+* `cardinal.sum` is the sum of a collection of cardinals.
+* `cardinal.sup` is the supremum of a collection of cardinals.
+* `cardinal.powerlt c₁ c₂` or `c₁ ^< c₂` is defined as `sup_{γ < β} α^γ`.
+
+## Main Statements
+
+* Cantor's theorem: `cardinal.cantor c : c < 2 ^ c`.
+* König's theorem: `cardinal.sum_lt_prod`
 
 ## Implementation notes
 
-* There is a type of cardinal numbers in every universe level: `cardinal.{u} : Type (u + 1)`
-  is the quotient of types in `Type u`.
-  There is a lift operation lifting cardinal numbers to a higher level.
+* There is a type of cardinal numbers in every universe level:
+  `cardinal.{u} : Type (u + 1)` is the quotient of types in `Type u`.
+  The operation `cardinal.lift` lifts cardinal numbers to a higher level.
 * Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
-  `set_theory/ordinal.lean`, because concepts from that file are used in the proof.
+  `set_theory/cardinal_ordinal.lean`.
+* There is an instance `has_pow cardinal`, but this will only fire if Lean already knows that both
+  the base and the exponent live in the same universe. As a workaround, you can add
+  ```
+    local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
+  ```
+  to a file. This notation will work even if Lean doesn't know yet that the base and the exponent
+  live in the same universe (but no exponents in other types can be used).
 
 ## References
 
@@ -34,7 +59,8 @@ cardinality of `list α`).
 
 ## Tags
 
-cardinal number, cardinal arithmetic, cardinal exponentiation, omega
+cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
+Cantor's theorem, König's theorem
 -/
 
 open function set
@@ -77,6 +103,9 @@ instance : has_le cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
   assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
     propext ⟨assume ⟨e⟩, ⟨e.congr e₁ e₂⟩, assume ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
+
+theorem le_def (α β : Type u) : mk α ≤ mk β ↔ nonempty (α ↪ β) :=
+iff.rfl
 
 theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : mk α ≤ mk β :=
 ⟨⟨f, hf⟩⟩
@@ -758,6 +787,10 @@ end
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
 by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
 
+lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
+⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
+ λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+
 lemma countable_iff (s : set α) : countable s ↔ mk s ≤ omega :=
 begin
   rw [countable_iff_exists_injective], split,
@@ -765,9 +798,105 @@ begin
   rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩
 end
 
-lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ mk α = omega :=
-⟨λ⟨h⟩, quotient.sound $ by exactI ⟨ (denumerable.eqv α).trans equiv.ulift.symm ⟩,
- λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to 0. -/
+noncomputable def to_nat : zero_hom cardinal ℕ :=
+⟨λ c, if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0,
+  begin
+    have h : 0 < omega := nat_lt_omega 0,
+    rw [dif_pos h, ← cardinal.nat_cast_inj, ← classical.some_spec (lt_omega.1 h), nat.cast_zero],
+  end⟩
+
+lemma to_nat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_nat = classical.some (lt_omega.1 h) :=
+dif_pos h
+
+@[simp]
+lemma to_nat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_nat = 0 :=
+dif_neg (not_lt_of_le h)
+
+@[simp]
+lemma cast_to_nat_of_lt_omega {c : cardinal} (h : c < omega) :
+  ↑c.to_nat = c :=
+by rw [to_nat_apply_of_lt_omega h, ← classical.some_spec (lt_omega.1 h)]
+
+@[simp]
+lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
+begin
+  rw [to_nat_apply_of_lt_omega (nat_lt_omega n), ← nat_cast_inj],
+  exact (classical.some_spec (lt_omega.1 (nat_lt_omega n))).symm,
+end
+
+/-- `to_nat` has a right-inverse: coercion. -/
+lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
+
+lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+@[simp]
+lemma mk_to_nat_of_infinite [h : infinite α] : (mk α).to_nat = 0 :=
+dif_neg (not_lt_of_le (infinite_iff.1 h))
+
+@[simp]
+lemma mk_to_nat_eq_card [fintype α] : (mk α).to_nat = fintype.card α :=
+by simp [fintype_card]
+
+@[simp]
+lemma zero_to_nat : cardinal.to_nat 0 = 0 :=
+by rw [← to_nat_cast 0, nat.cast_zero]
+
+@[simp]
+lemma one_to_nat : cardinal.to_nat 1 = 1 :=
+by rw [← to_nat_cast 1, nat.cast_one]
+
+/-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
+  to `⊤`. -/
+noncomputable def to_enat : cardinal →+ enat :=
+{ to_fun := λ c, if c < omega.{v} then c.to_nat else ⊤,
+  map_zero' := by simp [if_pos (lt_trans zero_lt_one one_lt_omega)],
+  map_add' := λ x y, begin
+    by_cases hx : x < omega,
+    { obtain ⟨x0, rfl⟩ := lt_omega.1 hx,
+      by_cases hy : y < omega,
+      { obtain ⟨y0, rfl⟩ := lt_omega.1 hy,
+        simp only [add_lt_omega hx hy, hx, hy, to_nat_cast, if_true],
+        rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
+      { rw [if_neg hy, if_neg, enat.add_top],
+        contrapose! hy,
+        apply lt_of_le_of_lt (le_add_left (le_refl y)) hy } },
+    { rw [if_neg hx, if_neg, enat.top_add],
+      contrapose! hx,
+      apply lt_of_le_of_lt (le_add_right (le_refl x)) hx },
+  end }
+
+@[simp]
+lemma to_enat_apply_of_lt_omega {c : cardinal} (h : c < omega) :
+  c.to_enat = c.to_nat :=
+if_pos h
+
+@[simp]
+lemma to_enat_apply_of_omega_le {c : cardinal} (h : omega ≤ c) :
+  c.to_enat = ⊤ :=
+if_neg (not_lt_of_le h)
+
+@[simp]
+lemma to_enat_cast (n : ℕ) : cardinal.to_enat n = n :=
+by rw [to_enat_apply_of_lt_omega (nat_lt_omega n), to_nat_cast]
+
+@[simp]
+lemma mk_to_enat_of_infinite [h : infinite α] : (mk α).to_enat = ⊤ :=
+to_enat_apply_of_omega_le (infinite_iff.1 h)
+
+lemma to_enat_surjective : surjective to_enat :=
+begin
+  intro x,
+  exact enat.cases_on x ⟨omega, to_enat_apply_of_omega_le (le_refl omega)⟩
+    (λ n, ⟨n, to_enat_cast n⟩),
+end
+
+@[simp]
+lemma mk_to_enat_eq_coe_card [fintype α] : (mk α).to_enat = fintype.card α :=
+by simp [fintype_card]
 
 lemma mk_int : mk ℤ = omega :=
 denumerable_iff.mp ⟨by apply_instance⟩

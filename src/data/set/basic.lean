@@ -109,6 +109,16 @@ instance {α : Type*} : boolean_algebra (set α) :=
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
 
+instance pi_set_coe.can_lift (ι : Type u) (α : Π i : ι, Type v) [ne : Π i, nonempty (α i)]
+  (s : set ι) :
+  can_lift (Π i : s, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  .. pi_subtype.can_lift ι α s }
+
+instance pi_set_coe.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (s : set ι) :
+  can_lift (s → α) (ι → α) :=
+pi_set_coe.can_lift ι (λ _, α) s
+
 end set
 
 section set_coe
@@ -220,6 +230,9 @@ theorem eq_of_subset_of_subset {a b : set α} : a ⊆ b → b ⊆ a → a = b :=
 
 theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} (h : s₁ ⊆ s₂) : a ∈ s₁ → a ∈ s₂ := @h _
 
+theorem not_mem_subset (h : s ⊆ t) : a ∉ t → a ∉ s :=
+mt $ mem_of_subset_of_mem h
+
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t := by simp only [subset_def, not_forall]
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
@@ -262,6 +275,9 @@ theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 
 theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
 | _ ⟨x, hx⟩ rfl := hx
+
+@[simp] theorem not_nonempty_empty : ¬(∅ : set α).nonempty :=
+λ h, h.ne_empty rfl
 
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
@@ -467,6 +483,10 @@ subset.trans h (subset_union_right t u)
 
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 by simp only [← subset_empty_iff]; exact union_subset_iff
+
+@[simp] lemma union_univ {s : set α} : s ∪ univ = univ := sup_top_eq
+
+@[simp] lemma univ_union {s : set α} : univ ∪ s = univ := top_sup_eq
 
 /-! ### Lemmas about intersection -/
 
@@ -772,7 +792,7 @@ theorem compl_comp_compl : compl ∘ compl = @id (set α) := funext compl_compl
 
 theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_iff_compl_le _ s t _
 
-lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le _ t s _
+@[simp] lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le _ t s _
 
 theorem compl_subset_iff_union {s t : set α} : sᶜ ⊆ t ↔ s ∪ t = univ :=
 iff.symm $ eq_univ_iff_forall.trans $ forall_congr $ λ a, or_iff_not_imp_left
@@ -879,6 +899,8 @@ theorem diff_eq_empty {s t : set α} : s \ t = ∅ ↔ s ⊆ t :=
 
 @[simp] theorem diff_empty {s : set α} : s \ ∅ = s :=
 ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
+
+@[simp] lemma diff_univ (s : set α) : s \ univ = ∅ := diff_eq_empty.2 (subset_univ s)
 
 theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 ext $ by simp [not_or_distrib, and.comm, and.left_comm]
@@ -997,6 +1019,50 @@ theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
 
 @[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
 ext $ λ s, subset_empty_iff
+
+/-! ### If-then-else for sets -/
+
+/-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
+Defined as `s ∩ t ∪ s' \ t`. -/
+protected def ite (t s s' : set α) : set α := s ∩ t ∪ s' \ t
+
+@[simp] lemma ite_inter_self (t s s' : set α) : t.ite s s' ∩ t = s ∩ t :=
+by rw [set.ite, union_inter_distrib_right, diff_inter_self, inter_assoc, inter_self, union_empty]
+
+@[simp] lemma ite_compl (t s s' : set α) : tᶜ.ite s s' = t.ite s' s :=
+by rw [set.ite, set.ite, diff_compl, union_comm, diff_eq]
+
+@[simp] lemma ite_inter_compl_self (t s s' : set α) : t.ite s s' ∩ tᶜ = s' ∩ tᶜ :=
+by rw [← ite_compl, ite_inter_self]
+
+@[simp] lemma ite_diff_self (t s s' : set α) : t.ite s s' \ t = s' \ t :=
+ite_inter_compl_self t s s'
+
+@[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_diff _ _
+
+@[simp] lemma ite_empty (s s' : set α) : set.ite ∅ s s' = s' :=
+by simp [set.ite]
+
+@[simp] lemma ite_univ (s s' : set α) : set.ite univ s s' = s :=
+by simp [set.ite]
+
+lemma ite_mono (t : set α) {s₁ s₁' s₂ s₂' : set α} (h : s₁ ⊆ s₂) (h' : s₁' ⊆ s₂') :
+  t.ite s₁ s₁' ⊆ t.ite s₂ s₂' :=
+union_subset_union (inter_subset_inter_left _ h) (inter_subset_inter_left _ h')
+
+lemma ite_subset_union (t s s' : set α) : t.ite s s' ⊆ s ∪ s' :=
+union_subset_union (inter_subset_left _ _) (diff_subset _ _)
+
+lemma inter_subset_ite (t s s' : set α) : s ∩ s' ⊆ t.ite s s' :=
+ite_same t (s ∩ s') ▸ ite_mono _ (inter_subset_left _ _) (inter_subset_right _ _)
+
+lemma ite_inter_inter (t s₁ s₂ s₁' s₂' : set α) :
+  t.ite (s₁ ∩ s₂) (s₁' ∩ s₂') = t.ite s₁ s₁' ∩ t.ite s₂ s₂' :=
+by { ext x, finish [set.ite, iff_def] }
+
+lemma ite_inter (t s₁ s₂ s : set α) :
+  t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
+by rw [ite_inter_inter, ite_same]
 
 /-! ### Inverse image -/
 
@@ -1995,6 +2061,9 @@ set.subset.antisymm (snd_image_prod_subset _ _)
   $ λ y y_in, let ⟨x, x_in⟩ := hs in
     ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
+lemma prod_diff_prod : s.prod t \ s₁.prod t₁ = s.prod (t \ t₁) ∪ (s \ s₁).prod t :=
+by { ext x, by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁; simp * }
+
 /-- A product set is included in a product set if and only factors are included, or a factor of the
 first set is empty. -/
 lemma prod_subset_prod_iff :
@@ -2027,7 +2096,7 @@ section pi
 variables {ι : Type*} {α : ι → Type*} {s s₁ : set ι} {t t₁ t₂ : Π i, set (α i)}
 
 /-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
-is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `π a`
+is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `s a`
 whenever `a ∈ i`. -/
 def pi (s : set ι) (t : Π i, set (α i)) : set (Π i, α i) := { f | ∀i ∈ s, f i ∈ t i }
 
@@ -2076,6 +2145,17 @@ end
 
 lemma univ_pi_eq_empty_iff : pi univ t = ∅ ↔ ∃ i, t i = ∅ :=
 by simp [← not_nonempty_iff_eq_empty, univ_pi_nonempty_iff]
+
+@[simp] lemma range_dcomp {β : ι → Type*} (f : Π i, α i → β i) :
+  range (λ (g : Π i, α i), (λ i, f i (g i))) = pi univ (λ i, range (f i)) :=
+begin
+  apply subset.antisymm,
+  { rintro _ ⟨x, rfl⟩ i -,
+    exact ⟨x i, rfl⟩ },
+  { intros x hx,
+    choose y hy using hx,
+    exact ⟨λ i, y i trivial, funext $ λ i, hy i trivial⟩ }
+end
 
 @[simp] lemma insert_pi (i : ι) (s : set ι) (t : Π i, set (α i)) :
   pi (insert i s) t = (eval i ⁻¹' t i) ∩ pi s t :=
@@ -2142,6 +2222,14 @@ end
   (λ f : Π i, α i, f i) '' pi univ t = t i :=
 eval_image_pi (mem_univ i) ht
 
+lemma eval_preimage {ι} {α : ι → Type*} {i : ι} {s : set (α i)} :
+  eval i ⁻¹' s = pi univ (update (λ i, univ) i s) :=
+by { ext x, simp [@forall_update_iff _ (λ i, set (α i)) _ _ _ _ (λ i' y, x i' ∈ y)] }
+
+lemma eval_preimage' {ι} {α : ι → Type*} {i : ι} {s : set (α i)} :
+  eval i ⁻¹' s = pi {i} (update (λ i, univ) i s) :=
+by { ext, simp }
+
 lemma update_preimage_pi {i : ι} {f : Π i, α i} (hi : i ∈ s)
   (hf : ∀ j ∈ s, j ≠ i → f j ∈ t j) : (update f i) ⁻¹' s.pi t = t i :=
 begin
@@ -2158,6 +2246,10 @@ update_preimage_pi (mem_univ i) (λ j _, hf j)
 
 lemma subset_pi_eval_image (s : set ι) (u : set (Π i, α i)) : u ⊆ pi s (λ i, eval i '' u) :=
 λ f hf i hi, ⟨f, hf, rfl⟩
+
+lemma univ_pi_ite (s : set ι) (t : Π i, set (α i)) :
+  pi univ (λ i, if i ∈ s then t i else univ) = s.pi t :=
+by { ext, simp_rw [mem_univ_pi], apply forall_congr, intro i, split_ifs; simp [h] }
 
 end pi
 
@@ -2236,6 +2328,15 @@ begin
   rw [← singleton_eq_singleton_iff], apply h,
   rw [image_singleton, image_singleton, hx]
 end
+
+lemma preimage_eq_iff_eq_image {f : α → β} (hf : bijective f) {s t} :
+  f ⁻¹' s = t ↔ s = f '' t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
+lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
+  s = f ⁻¹' t ↔ f '' s = t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
 end image_preimage
 
 /-! ### Lemmas about images of binary and ternary functions -/

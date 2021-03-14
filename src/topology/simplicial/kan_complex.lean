@@ -7,17 +7,17 @@ import topology.simplicial.adjunction
 
 universe variables u
 
-namespace sType
+namespace sSet
 
 /-- A simplicial type `X` is a Kan complex if every map `horn n i ⟶ X`
 can be extended (along `horn_inclusion n i` to a map `standard_simplex n ⟶ X`. -/
-def kan_complex (X : sType) : Prop :=
+def kan_complex (X : sSet) : Prop :=
 Π (n i) (f : horn n i ⟶ X), ∃ g : standard_simplex.obj n ⟶ X, horn_inclusion n i ≫ g = f
 
-end sType
+end sSet
 
 section
-open Top sType
+open Top sSet
 
 lemma singular_is_kan_complex (X : Top) : kan_complex (singular.obj X) :=
 begin

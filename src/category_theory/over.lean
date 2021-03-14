@@ -87,7 +87,8 @@ Construct an isomorphism in the over category given isomorphisms of the objects 
 direction gives a commutative triangle.
 -/
 @[simps]
-def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) : f ≅ g :=
+def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) :
+  f ≅ g :=
 comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
 
 section
@@ -247,7 +248,7 @@ by tidy
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).right = f.right ≫ g.right := rfl
 
-@[simp] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
+@[simp, reassoc] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/

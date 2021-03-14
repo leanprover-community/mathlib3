@@ -13,7 +13,7 @@ universe variables u
 open category_theory
 
 namespace simplicial_module
-open Simplicial opposite
+open simplicial_object opposite
 variables {R : Type u} [comm_ring R] (M : simplicial_module R)
 
 def graded_object : graded_object_with_shift (-1:ℤ) (Module R)

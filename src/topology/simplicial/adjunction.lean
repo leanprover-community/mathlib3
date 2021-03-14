@@ -12,11 +12,11 @@ universe variables u
 noncomputable theory
 open category_theory
 
-namespace sType
+namespace sSet
 open Top simplex_category opposite
 
 @[simps]
-def realization_singular_unit : 𝟭 sType ⟶ realization.{u} ⋙ singular.{u} :=
+def realization_singular_unit : 𝟭 sSet ⟶ realization.{u} ⋙ singular.{u} :=
 { app := λ S,
   { app := λ n s, show singular_standard_simplex.obj (n.unop) ⟶ _,
     begin
@@ -97,4 +97,4 @@ adjunction.mk_of_unit_counit
   hom_equiv_counit' := _ }
 -/
 
-end sType
+end sSet

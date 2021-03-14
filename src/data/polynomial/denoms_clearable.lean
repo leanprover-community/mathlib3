@@ -24,7 +24,9 @@ variables {a b : R} {bi : K}
 /-- `denoms_clearable` formalizes the property that `b ^ N * f (a / b)`
 does not have denominators, if the inequality `f.nat_degree ≤ N` holds.
 
-In the implementation, we also use provide an inverse in the existential.
+The definition asserts the existence of an element `D` of `R` and an
+element `bi = 1 / i b` of `K` such that clearing the denominators of
+the fraction equals `i D`.
 -/
 def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) : Prop :=
   ∃ (D : R) (bi : K), bi * i b = 1 ∧ i D = i b ^ N * eval (i a * bi) (f.map i)

@@ -16,25 +16,25 @@ universe variables u
 
 open category_theory category_theory.limits
 
-namespace sType
+namespace sSet
 open Top function opposite
 
-structure has_realization (S : sType.{u}) (Y : Top.{u}) :=
+structure has_realization (S : sSet.{u}) (Y : Top.{u}) :=
 (hom   : S ⟶ singular.obj Y)
 (equiv : Π X, (Y ⟶ X) ≃ (S ⟶ singular.obj X))
 (equiv_apply : ∀ (X : Top.{u}) (f : Y ⟶ X), equiv _ f = hom ≫ singular.map f . obviously)
 
 namespace has_realization
-variables {S : sType.{u}} {Y : Top.{u}} (h : S.has_realization Y)
+variables {S : sSet.{u}} {Y : Top.{u}} (h : S.has_realization Y)
 
 attribute [simp] equiv_apply
 
-def map {S₁ S₂ : sType} {Y₁ Y₂ : Top}
+def map {S₁ S₂ : sSet} {Y₁ Y₂ : Top}
   (h₁ : S₁.has_realization Y₁) (h₂ : S₂.has_realization Y₂) (f : S₁ ⟶ S₂) : Y₁ ⟶ Y₂ :=
 (h₁.equiv _).symm (f ≫ h₂.hom)
 
 @[simp, reassoc]
-lemma map_spec {S₁ S₂ : sType} {Y₁ Y₂ : Top}
+lemma map_spec {S₁ S₂ : sSet} {Y₁ Y₂ : Top}
   (h₁ : S₁.has_realization Y₁) (h₂ : S₂.has_realization Y₂) (f : S₁ ⟶ S₂) :
   h₁.hom ≫ singular.map (h₁.map h₂ f) = f ≫ h₂.hom :=
 begin
@@ -42,11 +42,11 @@ begin
   rw [← equiv_apply, equiv.symm_apply_apply], refl
 end
 
-@[simp] lemma map_id {S : sType} {Y : Top} (h : S.has_realization Y) :
+@[simp] lemma map_id {S : sSet} {Y : Top} (h : S.has_realization Y) :
   h.map h (𝟙 S) = 𝟙 Y :=
 by { apply (h.equiv _).injective, simp [h.map_spec h (𝟙 S)], }
 
-lemma map_comp {S₁ S₂ S₃ : sType} {Y₁ Y₂ Y₃ : Top}
+lemma map_comp {S₁ S₂ S₃ : sSet} {Y₁ Y₂ Y₃ : Top}
   (h₁ : S₁.has_realization Y₁) (h₂ : S₂.has_realization Y₂) (h₃ : S₃.has_realization Y₃)
   (f : S₁ ⟶ S₂) (g : S₂ ⟶ S₃) :
   h₁.map h₃ (f ≫ g) = h₁.map h₂ f ≫ h₂.map h₃ g :=
@@ -81,14 +81,14 @@ lemma standard_simplex_has_realization (n : NonemptyFinLinOrd) :
 
 open simplex_category opposite
 
-def category_of_simplices (S : sType.{u}) : Type u :=
+def category_of_simplices (S : sSet.{u}) : Type u :=
 Σ (n : simplex_category), (skeletal_functor.{u}.op ⋙ S).obj (op n)
 
 -- The following definition has universe issues
 -- Σ (n : simplex_category), (skeletal_functor.{u}.op ⋙ X).obj (op n)
 
 namespace category_of_simplices
-variables (S : sType.{u}) {S₁ S₂ : sType.{u}}
+variables (S : sSet.{u}) {S₁ S₂ : sSet.{u}}
 
 -- slow, sigh
 instance : small_category (category_of_simplices S) :=
@@ -127,8 +127,8 @@ def proj : (category_of_simplices S) ⥤ simplex_category :=
 end category_of_simplices
 
 @[simps]
-def Category_of_simplices : sType ⥤ Cat.{u} :=
-{ obj := λ S, ⟨category_of_simplices S, sType.category_of_simplices.category_theory.small_category _⟩,
+def Category_of_simplices : sSet ⥤ Cat.{u} :=
+{ obj := λ S, ⟨category_of_simplices S, sSet.category_of_simplices.category_theory.small_category _⟩,
   map := λ S₁ S₂ f, category_of_simplices.map f,
   map_id' :=
   begin
@@ -143,19 +143,19 @@ def Category_of_simplices : sType ⥤ Cat.{u} :=
     { intros X, refl }
   end }
 
-def realization_obj_functor (S : sType.{u}) :
+def realization_obj_functor (S : sSet.{u}) :
   (category_of_simplices S) ⥤ Top.{u} :=
 category_of_simplices.proj S ⋙ skeletal_functor ⋙ singular_standard_simplex
 
 @[simps]
-def realization_obj_functor_comp_hom {S₁ S₂ : sType.{u}} (f : S₁ ⟶ S₂) :
+def realization_obj_functor_comp_hom {S₁ S₂ : sSet.{u}} (f : S₁ ⟶ S₂) :
   realization_obj_functor S₁ ⟶ category_of_simplices.map f ⋙ realization_obj_functor S₂ :=
 { app := λ s, 𝟙 _, }
 
-def realization_obj (S : sType.{u}) : Top.{u} :=
+def realization_obj (S : sSet.{u}) : Top.{u} :=
 colimit (realization_obj_functor S)
 
-def realization_map {S₁ S₂ : sType.{u}} (f : S₁ ⟶ S₂) :
+def realization_map {S₁ S₂ : sSet.{u}} (f : S₁ ⟶ S₂) :
   realization_obj S₁ ⟶ realization_obj S₂ :=
 colim.map (realization_obj_functor_comp_hom f) ≫ colimit.pre _ _
 
@@ -163,11 +163,11 @@ colim.map (realization_obj_functor_comp_hom f) ≫ colimit.pre _ _
 This functor is left adjoint to `Top.singular`. -/
 -- TODO: Use Kan extensions
 @[simps]
-def realization : sType.{u} ⥤ Top.{u} :=
+def realization : sSet.{u} ⥤ Top.{u} :=
 { obj := realization_obj,
   map := λ S₁ S₂ f, realization_map f, }
 .
--- def has_realization_realization (S : sType.{u}) :
+-- def has_realization_realization (S : sSet.{u}) :
 --   S.has_realization (realization.obj S) :=
 -- { hom :=
 --   { app := λ n s, show singular_standard_simplex.obj (n.unop) ⟶  _,
@@ -178,4 +178,4 @@ def realization : sType.{u} ⥤ Top.{u} :=
 --     naturality' := _ },
 --   w := _ }
 
-end sType
+end sSet

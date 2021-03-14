@@ -43,7 +43,8 @@ begin
   { rw [iterated_deriv_succ, hn, derivative_zero] },
 end
 
-@[simp] lemma iterated_deriv_add : iterated_deriv (p + q) n = iterated_deriv p n + iterated_deriv q n :=
+@[simp] lemma iterated_deriv_add :
+  iterated_deriv (p + q) n = iterated_deriv p n + iterated_deriv q n :=
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right], },
@@ -109,7 +110,8 @@ begin
   { simp only [iterated_deriv_succ, ih, derivative_neg] }
 end
 
-@[simp] lemma iterated_deriv_sub : iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
+@[simp] lemma iterated_deriv_sub :
+  iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
 by rw [sub_eq_add_neg, iterated_deriv_add, iterated_deriv_neg, ←sub_eq_add_neg]
 
 

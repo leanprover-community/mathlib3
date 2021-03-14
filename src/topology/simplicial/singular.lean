@@ -51,7 +51,7 @@ def singular_standard_simplex : NonemptyFinLinOrd.{u} ⥤ Top.{u} :=
 
 /-- The singular simplicial type associated with a topological space `X`
 has as `n`-simplices all continuous maps from `singular_standard_simplex n` to `X`. -/
-def singular : Top ⥤ sType :=
+def singular : Top ⥤ sSet :=
 yoneda ⋙ singular_standard_simplex.op.comp_left
 
 lemma singular_map_injective (X Y : Top) :
@@ -74,7 +74,7 @@ end
 variables (R : Type u) [comm_ring R]
 
 def singular_chain_complex : Top ⥤ chain_complex (Module R) :=
-singular ⋙ sType.free_simplicial_module R ⋙ (simplicial_module.simplicial_complex R)
+singular ⋙ sSet.free_simplicial_module R ⋙ (simplicial_module.simplicial_complex R)
 
 -- def homology (i : ℤ) : Top ⥤ Module R :=
 -- singular_chain_complex R ⋙ homological_complex.homology _ i

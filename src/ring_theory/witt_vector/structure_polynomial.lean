@@ -79,6 +79,11 @@ dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
   (We also define `witt_vector.witt_sub`, and later we will prove that it describes subtraction,
   which is defined as `λ a b, a + -b`. See `witt_vector.sub_coeff` for this proof.)
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open mv_polynomial
@@ -321,7 +326,7 @@ theorem witt_structure_prop (Φ : mv_polynomial idx ℤ) (n) :
   aeval (λ i, map (int.cast_ring_hom R) (witt_structure_int p Φ i)) (witt_polynomial p ℤ n) =
   aeval (λ i, rename (prod.mk i) (W n)) Φ :=
 begin
-  convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n);
+  convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n) using 1;
     rw hom_bind₁; apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   { refl },
   { simp only [map_rename, map_witt_polynomial] }

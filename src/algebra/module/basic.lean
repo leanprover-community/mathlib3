@@ -216,12 +216,6 @@ variables {R}
 theorem sub_smul (r s : R) (y : M) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]
 
-theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
-  {c : R} {x : E} :
-  c • x = 0 ↔ c = 0 ∨ x = 0 :=
-⟨λ h, or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h,
-  λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
-
 end module
 
 /-- A semimodule over a `subsingleton` semiring is a `subsingleton`. We cannot register this
@@ -233,15 +227,10 @@ theorem semimodule.subsingleton (R M : Type*) [semiring R] [subsingleton R] [add
 
 @[priority 910] -- see Note [lower instance priority]
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
-{ smul := (*),
-  smul_add := mul_add,
+{ smul_add := mul_add,
   add_smul := add_mul,
-  mul_smul := mul_assoc,
-  one_smul := one_mul,
   zero_smul := zero_mul,
   smul_zero := mul_zero }
-
-@[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodule R S :=
@@ -472,32 +461,115 @@ end
 
 end add_monoid_hom
 
-section module_division_ring
-/-! Some tests for the vanishing of elements in modules over division rings. -/
+section no_zero_smul_divisors
+/-! ### `no_zero_smul_divisors`
 
-variables (R) [division_ring R] [add_comm_group M] [module R M]
+This section defines the `no_zero_smul_divisors` class, and includes some tests
+for the vanishing of elements (especially in modules over division rings).
+-/
 
-lemma smul_nat_eq_zero [semimodule ℕ M] [char_zero R] {v : M} {n : ℕ} :
-  n • v = 0 ↔ n = 0 ∨ v = 0 :=
-by { rw [←nsmul_eq_smul, nsmul_eq_smul_cast R, smul_eq_zero], simp }
+/-- `no_zero_smul_divisors R M` states that a scalar multiple is `0` only if either argument is `0`.
 
-lemma eq_zero_of_smul_two_eq_zero [semimodule ℕ M] [char_zero R] {v : M} (hv : 2 • v = 0) : v = 0 :=
-((smul_nat_eq_zero R).mp hv).resolve_left (by norm_num)
+The main application of `no_zero_smul_divisors R M`, when `M` is a semimodule,
+is the result `smul_eq_zero`: a scalar multiple is `0` iff either argument is `0`.
 
-lemma eq_zero_of_eq_neg [char_zero R] {v : M} (hv : v = - v) : v = 0 :=
+It is a generalization of the `no_zero_divisors` class to heterogeneous multiplication.
+-/
+class no_zero_smul_divisors (R M : Type*) [has_zero R] [has_zero M] [has_scalar R M] : Prop :=
+(eq_zero_or_eq_zero_of_smul_eq_zero : ∀ {c : R} {x : M}, c • x = 0 → c = 0 ∨ x = 0)
+
+export no_zero_smul_divisors (eq_zero_or_eq_zero_of_smul_eq_zero)
+
+section semimodule
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
+  no_zero_smul_divisors R R :=
+⟨λ c x, no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+@[simp]
+theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
+  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+⟨eq_zero_or_eq_zero_of_smul_eq_zero,
+ λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
+
+theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
+  c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=
+by simp only [ne.def, smul_eq_zero, not_or_distrib]
+
+section nat
+
+variables (R) (M) [no_zero_smul_divisors R M] [semimodule ℕ M] [char_zero R]
+include R
+
+lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
+⟨by { intros c x, rw [← nsmul_eq_smul, nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
+
+variables {M}
+
+lemma eq_zero_of_smul_two_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
+by haveI := nat.no_zero_smul_divisors R M;
+exact (smul_eq_zero.mp hv).resolve_left (by norm_num)
+
+end nat
+
+end semimodule
+
+section add_comm_group -- `R` can still be a semiring here
+
+variables [semiring R] [add_comm_group M] [semimodule R M]
+
+lemma smul_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+  function.injective (λ (x : M), c • x) :=
+λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
+  (calc c • (x - y) = c • x - c • y : smul_sub c x y
+                ... = 0 : sub_eq_zero.mpr h)).resolve_left hc)
+
+section nat
+
+variables (R) [no_zero_smul_divisors R M] [char_zero R]
+include R
+
+lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
 begin
   -- any semimodule will do
   haveI : semimodule ℕ M := add_comm_monoid.nat_semimodule,
+  haveI := nat.no_zero_smul_divisors R M,
   refine eq_zero_of_smul_two_eq_zero R _,
   rw ←nsmul_eq_smul,
   convert add_eq_zero_iff_eq_neg.mpr hv,
   abel
 end
 
-lemma ne_neg_of_ne_zero [char_zero R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
+end nat
+
+end add_comm_group
+
+section module
+
+section nat
+
+variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M] [char_zero R]
+
+lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
 λ h, have semimodule ℕ R := add_comm_monoid.nat_semimodule, by exactI hv (eq_zero_of_eq_neg R h)
 
-end module_division_ring
+end nat
+
+end module
+
+section division_ring
+
+variables [division_ring R] [add_comm_group M] [module R M]
+
+@[priority 100] -- see note [lower instance priority]
+instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
+⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h⟩
+
+end division_ring
+
+end no_zero_smul_divisors
 
 -- We finally turn on these instances globally. By doing this here, we ensure that none of the
 -- lemmas about nat semimodules above are specific to these instances.

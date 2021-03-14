@@ -4,7 +4,7 @@ Authors: Johan Commelin
 -/
 
 import topology.simplicial.move_this
-import topology.simplicial.basic
+import algebraic_topology.simplicial_set
 import algebra.category.Module.adjunctions
 import algebra.homology.homology
 import linear_algebra.tensor_product
@@ -21,18 +21,18 @@ variables (R : Type u) [comm_ring R]
 
 /-- The category of simplicial modules over a ring. -/
 @[derive category]
-def simplicial_module := Simplicial.{u} (Module.{u} R)
+def simplicial_module := simplicial_object.{u} (Module.{u} R)
 
-namespace sType
+namespace sSet
 
 /-- The free simplicial module on a simplicial type. -/
-def free_simplicial_module : sType.{u} ⥤ (simplicial_module R) :=
+def free_simplicial_module : sSet.{u} ⥤ (simplicial_module R) :=
 functor.comp_right (Module.free R)
 
-end sType
+end sSet
 
 namespace simplicial_module
-open simplex_category Simplicial linear_map opposite finset
+open simplex_category simplicial_object linear_map opposite finset
 open_locale big_operators classical
 
 variables {R} (M : simplicial_module R)

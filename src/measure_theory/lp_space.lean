@@ -321,9 +321,6 @@ lemma snorm_congr_norm_ae {f : α → F} {g : α → G} (hfg : ∀ᵐ x ∂μ, �
 le_antisymm (snorm_mono_ae $ eventually_eq.le hfg)
   (snorm_mono_ae $ (eventually_eq.symm hfg).le)
 
-@[simp] lemma snorm'_norm {f : α → G} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
-by simp [snorm']
-
 @[simp] lemma snorm'_norm {f : α → F} : snorm' (λ a, ∥f a∥) q μ = snorm' f q μ :=
 by simp [snorm']
 

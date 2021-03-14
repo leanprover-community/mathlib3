@@ -101,7 +101,7 @@ begin
   suffices : im (log x * n⁻¹) ∈ set.Ioc (-π) π,
   { rw [← cpow_nat_cast, ← cpow_mul _ this.1 this.2, inv_mul_cancel, cpow_one],
     exact_mod_cast hn.ne' },
-  rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, smul_im, ← div_eq_inv_mul],
+  rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, of_real_mul_im, ← div_eq_inv_mul],
   have hn' : 0 < (n : ℝ), by assumption_mod_cast,
   have hn1 : 1 ≤ (n : ℝ), by exact_mod_cast (nat.succ_le_iff.2 hn),
   split,

@@ -61,7 +61,7 @@ begin
   intros x hx,
   apply measurable_set.of_compl,
   apply generate_measurable.basic,
-  exact is_closed_singleton
+  exact is_closed_singleton.is_open_compl
 end
 
 lemma borel_eq_generate_from_of_subbasis {s : set (set α)}
@@ -190,7 +190,7 @@ lemma measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
 (is_Gδ_set_of_continuous_at f).measurable_set
 
 lemma is_closed.measurable_set (h : is_closed s) : measurable_set s :=
-h.measurable_set.of_compl
+h.is_open_compl.measurable_set.of_compl
 
 lemma is_compact.measurable_set [t2_space α] (h : is_compact s) : measurable_set s :=
 h.is_closed.measurable_set

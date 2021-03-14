@@ -5,15 +5,13 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import data.multiset.basic
 import algebra.divisibility
+import algebra.invertible
 
 /-!
 # Associated, prime, and irreducible elements.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-lemma is_unit.pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
-λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
 theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,

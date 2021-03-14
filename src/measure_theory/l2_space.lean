@@ -16,10 +16,9 @@ open_locale nnreal ennreal
 
 namespace measure_theory
 
-variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
+variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
   [measurable_space E] [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
   [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
-  [normed_group G]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 

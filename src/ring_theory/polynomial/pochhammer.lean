@@ -63,12 +63,18 @@ begin
     eval₂_at_nat_cast, nat.cast_id, ring_hom.eq_nat_cast],
 end
 
-@[simp] lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
+lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
 begin
   cases n,
   { simp, },
   { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], }
 end
+
+@[simp] lemma pochhammer_zero_eval_zero : (pochhammer S 0).eval 0 = 1 :=
+by simp [pochhammer_eval_zero]
+
+@[simp] lemma pochhammer_ne_zero_eval_zero {n : ℕ} (h : n ≠ 0) : (pochhammer S n).eval 0 = 0 :=
+by simp [pochhammer_eval_zero, h]
 
 lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=
 begin

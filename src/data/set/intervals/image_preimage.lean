@@ -24,15 +24,13 @@ section has_exists_add_of_le
 /-!
 The lemmas in this section state that addition maps intervals bijectively. The typeclass
 `has_exists_add_of_le` is defined specifically to make them work when combined with
-`ordered_cancel_add_comm_monoid`; the lemmas below therefore apply to all `ordered_add_comm_group`,
-but also to `ℕ` and `ℝ≥0`, which are not groups.
+`ordered_cancel_add_comm_monoid`; the lemmas below therefore apply to all
+`ordered_add_comm_group`, but also to `ℕ` and `ℝ≥0`, which are not groups.
 
 TODO : move as much as possible in this file to the setting of this weaker typeclass.
 -/
 
 variables {α : Type u} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (a b d : α)
-
-open has_exists_add_of_le
 
 lemma Icc_add_bij : bij_on (+d) (Icc a b) (Icc (a + d) (b + d)) :=
 begin
@@ -49,7 +47,7 @@ begin
   refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_lt_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le (le_of_lt h.1),
+  obtain ⟨c, rfl⟩ := exists_add_of_le h.1.le,
   rw [mem_Ioo, add_right_comm, add_lt_add_iff_right, add_lt_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end
@@ -59,7 +57,7 @@ begin
   refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_le_add_right h.2 _⟩,
           λ _ _ _ _ h, add_right_cancel h,
           λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le (le_of_lt h.1),
+  obtain ⟨c, rfl⟩ := exists_add_of_le h.1.le,
   rw [mem_Ioc, add_right_comm, add_lt_add_iff_right, add_le_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end
@@ -85,7 +83,7 @@ end
 lemma Ioi_add_bij : bij_on (+d) (Ioi a) (Ioi (a + d)) :=
 begin
   refine ⟨λ x h, add_lt_add_right (mem_Ioi.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le (le_of_lt (mem_Ioi.mp h)),
+  obtain ⟨c, rfl⟩ := exists_add_of_le (mem_Ioi.mp h).le,
   rw [mem_Ioi, add_right_comm, add_lt_add_iff_right] at h,
   exact ⟨a + c, h, by rw add_right_comm⟩,
 end

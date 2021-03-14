@@ -198,10 +198,10 @@ src/geometry/manifold/algebra/monoid.lean : line 39 : ERR_LIN : Line has more th
 src/geometry/manifold/basic_smooth_bundle.lean : line 190 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/basic_smooth_bundle.lean : line 205 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/basic_smooth_bundle.lean : line 219 : ERR_LIN : Line has more than 100 characters
-src/geometry/manifold/basic_smooth_bundle.lean : line 391 : ERR_LIN : Line has more than 100 characters
+src/geometry/manifold/basic_smooth_bundle.lean : line 390 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/basic_smooth_bundle.lean : line 41 : ERR_LIN : Line has more than 100 characters
-src/geometry/manifold/basic_smooth_bundle.lean : line 421 : ERR_LIN : Line has more than 100 characters
-src/geometry/manifold/basic_smooth_bundle.lean : line 563 : ERR_LIN : Line has more than 100 characters
+src/geometry/manifold/basic_smooth_bundle.lean : line 420 : ERR_LIN : Line has more than 100 characters
+src/geometry/manifold/basic_smooth_bundle.lean : line 562 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/charted_space.lean : line 520 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/charted_space.lean : line 522 : ERR_LIN : Line has more than 100 characters
 src/geometry/manifold/charted_space.lean : line 525 : ERR_LIN : Line has more than 100 characters

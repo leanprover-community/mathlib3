@@ -271,7 +271,7 @@
   title  : Fourier Series
 77:
   title  : Sum of kth powers
-  decl   : sum_range_pow
+  decl   : sum_range_pow'
   author : mathlib (Moritz Firsching, Fabian Kruse, Ashvni Narayanan)
 78:
   title  : The Cauchy-Schwarz Inequality

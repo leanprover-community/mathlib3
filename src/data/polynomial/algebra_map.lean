@@ -90,19 +90,6 @@ lemma eval₂_algebra_map_int_X {R : Type*} [ring R] (p : polynomial ℤ) (f : p
 -- Unfortunately `f.to_int_alg_hom` doesn't work here, as typeclasses don't match up correctly.
 eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
 
-section comp
-
-lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
-  eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
-by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
-
-lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
-
-instance comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
-by unfold comp; apply_instance
-
-end comp
-
 end comm_semiring
 
 section aeval
@@ -183,6 +170,10 @@ alg_hom.ext $ λ p, by rw [eval_unique (f.comp (aeval x)), alg_hom.comp_apply, a
 theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
+
+lemma aeval_algebra_map_apply (x : R) (p : polynomial R) :
+  aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
+aeval_alg_hom_apply (algebra.of_id R A) x p
 
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl

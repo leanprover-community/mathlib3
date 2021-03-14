@@ -948,7 +948,7 @@ open bilin_form
 /-- A collection of `bilin_form R M`, parametrized by two indices in `α`, induces a bilinear form
 on `α →₀ M`.  This can be thought of as an infinite-dimensional version of `matrix.to_bilin_form`.
 -/
-noncomputable def to_bilin_form (A : α → α → (bilin_form R M)) :
+noncomputable def bilin_form_of (A : α → α → (bilin_form R M)) :
   bilin_form R (α →₀ M) :=
 { bilin := λ p q, p.sum (λ i x, q.sum (λ j y, A i j x y)),
   bilin_add_left := bilin_add_left' (λ i j x, (to_lin'_flip (A i j) x).to_add_monoid_hom),

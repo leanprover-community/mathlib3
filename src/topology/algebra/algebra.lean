@@ -12,6 +12,10 @@ import topology.algebra.module
 A topological algebra over a topological ring `R` is a
 topological ring with a compatible continuous scalar multiplication by elements of `R`.
 
+## Results
+
+This is just a minimal stub for now!
+
 The topological closure of a subalgebra is still a subalgebra,
 which as an algebra is a topological algebra.
 -/

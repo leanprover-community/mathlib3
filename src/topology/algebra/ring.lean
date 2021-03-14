@@ -129,7 +129,8 @@ variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring �
 
 /-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
-{ smul_mem'  := assume c x hx,
+{ carrier := closure S,
+  smul_mem' := assume c x hx,
     have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
     map_mem_closure this hx $ assume a, S.mul_mem_left _,
   ..(add_submonoid.topological_closure S.to_add_submonoid) }

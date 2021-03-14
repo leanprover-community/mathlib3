@@ -47,7 +47,7 @@ begin
   rwa [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
 end
 
-instance unique_gal_of_splits [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
+instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
 { default := 1,
   uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
     ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),

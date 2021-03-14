@@ -649,7 +649,7 @@ begin
 end
 
 lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
-  ∑ x in range (n + 1), f x = ∑ x in range n, f x + f n:=
+  ∑ x in range (n + 1), f x = ∑ x in range n, f x + f n :=
 by rw [range_succ, sum_insert not_mem_range_self, add_comm]
 
 @[to_additive]

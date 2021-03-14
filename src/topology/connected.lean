@@ -643,7 +643,7 @@ theorem is_totally_disconnected_empty : is_totally_disconnected (∅ : set α) :
 λ _ ht _ _ x_in _ _, (ht x_in).elim
 
 theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : set α) :=
-λ _ ht _, subsingleton.mono subsingleton_singleton ht
+λ _ ht _, (subsingleton_singleton ht).mono
 
 /-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=

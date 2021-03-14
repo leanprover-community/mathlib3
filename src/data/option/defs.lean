@@ -156,7 +156,7 @@ x >>= λ o, option.elim o y z
 A monadic analogue of `option.get_or_else`.
 -/
 def mget_or_else {α : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m α) : m α :=
-mrec x y pure
+melim x y pure
 
 
 end option

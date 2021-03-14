@@ -146,11 +146,11 @@ def {u v w} mmap {m : Type u → Type v} [monad m] {α : Type w} {β : Type u} (
   (o : option α) : m (option β) := (o.map f).maybe
 
 /--
-A monadic analogue of `option.rec`.
+A monadic analogue of `option.elim`.
 -/
-def mrec {α β : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m β) (z : α → m β) :
+def melim {α β : Type*} {m : Type* → Type*} [monad m] (x : m (option α)) (y : m β) (z : α → m β) :
   m β :=
-x >>= @option.rec _ (λ _, m β) y z
+x >>= λ o, option.elim o y z
 
 /--
 A monadic analogue of `option.get_or_else`.

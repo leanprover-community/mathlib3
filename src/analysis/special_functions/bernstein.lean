@@ -48,7 +48,6 @@ This result proves Weierstrass' theorem that polynomials are dense in `C([0,1], 
 although we defer an abstract statement of this until later.
 -/
 
-
 noncomputable theory
 
 open_locale classical

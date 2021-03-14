@@ -96,7 +96,7 @@ def lift : (α → β) ≃ mul_hom (free_magma α) β :=
 { to_fun    := λ f,
   { to_fun := lift_aux f,
     map_mul' := lift_aux_mul f, },
-    inv_fun   := λ F, F ∘ of,
+  inv_fun   := λ F, F ∘ of,
   left_inv  := λ f, by { ext, simp only [lift_aux, mul_hom.coe_mk, function.comp_app], },
   right_inv := λ F, by { ext, rw [mul_hom.coe_mk, ← lift_unique (F : _ → β) F.map_mul], } }
 

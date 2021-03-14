@@ -21,7 +21,7 @@ class topological_semiring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 
 section
-variables {α} [semiring α] [topological_semiring α]
+variables {α} [topological_space α] [semiring α] [topological_semiring α]
 
 /-- The (topological-space) closure of a subsemiring of a topological semiring is
 itself a subsemiring. -/
@@ -56,17 +56,6 @@ instance (S : submonoid α) : has_continuous_mul (S.topological_closure) :=
     continuity,
   end }
 
-end
-
-variables [ring α]
-
-/-- A topological ring is a ring where the ring operations are continuous. -/
-class topological_ring [topological_space α] [ring α]
-  extends has_continuous_add α, has_continuous_mul α : Prop :=
-(continuous_neg : continuous (λa:α, -a))
-
-variables {α}
-
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
 instance prod_semiring {β : Type*}
@@ -74,12 +63,23 @@ instance prod_semiring {β : Type*}
   [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
 {}
 
-variables [ring α] [topological_space α] [t : topological_ring α]
+end
+
+/-- A topological ring is a ring where the ring operations are continuous. -/
+class topological_ring [topological_space α] [ring α]
+  extends has_continuous_add α, has_continuous_mul α : Prop :=
+(continuous_neg : continuous (λa:α, -a))
+
+variables {α} [ring α] [topological_space α]
+
+section
+variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
 
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
+end
 
 variables [topological_ring α]
 

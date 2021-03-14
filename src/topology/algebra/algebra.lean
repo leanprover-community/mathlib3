@@ -40,9 +40,11 @@ attribute [continuity] topological_algebra.continuous_algebra_map
 end topological_algebra
 
 section topological_algebra
-variables {R A} [algebra R A] [topological_ring A] [topological_algebra R A]
+variables {R A} [algebra R A] [topological_ring A]
 
-instance topological_algebra.to_topological_module : topological_semimodule R A :=
+@[priority 200] -- see Note [lower instance priority]
+instance topological_algebra.to_topological_module [topological_algebra R A] :
+  topological_semimodule R A :=
 { continuous_smul := begin
     simp_rw algebra.smul_def,
     continuity,
@@ -58,7 +60,8 @@ instance subalgebra.topological_closure_topological_ring (s : subalgebra R A) :
   topological_ring (s.topological_closure) :=
 s.to_subring.topological_closure_topological_ring
 
-instance subalgebra.topological_closure_topological_algebra (s : subalgebra R A) :
+instance subalgebra.topological_closure_topological_algebra
+  [topological_algebra R A] (s : subalgebra R A) :
   topological_algebra R (s.topological_closure) :=
 { continuous_algebra_map :=
   begin

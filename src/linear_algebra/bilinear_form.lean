@@ -956,8 +956,8 @@ noncomputable def bilin_form_of (A : α → α → (bilin_form R M)) :
   bilin_add_right := bilin_add_right' (λ i j x, (to_lin' (A i j) x).to_add_monoid_hom),
   bilin_smul_right := bilin_smul_right' (λ i j, to_lin' (A i j)) }
 
-@[simp] lemma to_bilin_form_apply (A : α → α → (bilin_form R M)) (p q : α →₀ M) :
-  finsupp.to_bilin_form A p q = p.sum (λ i x, q.sum (λ j y, A i j x y)) :=
+@[simp] lemma bilin_form_of_apply (A : α → α → (bilin_form R M)) (p q : α →₀ M) :
+  finsupp.bilin_form_of A p q = p.sum (λ i x, q.sum (λ j y, A i j x y)) :=
 rfl
 
 end finsupp
@@ -1012,10 +1012,10 @@ satisfy a symmetry condition. -/
 -- TODO the same for matrices
 lemma finsupp.is_sym_to_bilinear_form {α : Type*} (A : α → α → (bilin_form R M))
   (hA : ∀ i j x y, A i j x y = A j i y x) :
-  sym_bilin_form.is_sym (finsupp.to_bilin_form A) :=
+  sym_bilin_form.is_sym (finsupp.bilin_form_of A) :=
 begin
   intros p q,
-  simp only [finsupp.to_bilin_form_apply, p.sum_comm q],
+  simp only [finsupp.bilin_form_of_apply, p.sum_comm q],
   congr,
   ext i x,
   congr,

@@ -28,7 +28,7 @@ theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] 
 @[simp] lemma char_p.cast_card_eq_zero (R : Type*) [ring R] [fintype R] :
   (fintype.card R : R) = 0 :=
 begin
-  have : fintype.card R •ℕ (1 : R) = 0 :=
+  have : fintype.card R •ℕ (1 : R) = 0 := by simpa [←of_add_nsmul] using
     @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
   simpa only [mul_one, nsmul_eq_mul]
 end

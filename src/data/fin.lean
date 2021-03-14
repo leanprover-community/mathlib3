@@ -445,7 +445,7 @@ section succ
 ### succ and casts into larger fin types
 -/
 
-@[simp] lemma coe_succ (j : fin n) : (j.succ : ℕ) = j + 1 :=
+@[simp, norm_cast] lemma coe_succ (j : fin n) : (j.succ : ℕ) = j + 1 :=
 by cases j; simp [fin.succ]
 
 lemma succ_pos (a : fin n) : (0 : fin (n + 1)) < a.succ := by simp [lt_iff_coe_lt_coe]

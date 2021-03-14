@@ -32,15 +32,19 @@ functor.comp_right (Module.free R)
 end sSet
 
 namespace simplicial_module
-open simplex_category simplicial_object linear_map opposite finset
+open simplex_category linear_map opposite finset
 open_locale big_operators classical
 
 variables {R} (M : simplicial_module R)
 
+open_locale sSet
+
 def boundary (n : ℕ) :
-  (skeletal.obj M).obj (op (n+1 : ℕ)) ⟶
-  (skeletal.obj M).obj (op n) :=
+  M.obj (op (n+1 : ℕ)) ⟶ M.obj (op n) :=
 ∑ i : fin (n+2), (-1:R)^(i:ℕ) • (M.δ i)
+
+example (n : ℕ) (k : fin n) : (k.succ : ℕ) = (k : ℕ).succ :=
+fin.coe_succ k
 
 @[reassoc]
 lemma boundary_boundary (n : ℕ) : boundary M (n+1) ≫ boundary M n = 0 :=
@@ -48,14 +52,14 @@ begin
   let s : finset (fin (n+3) × fin (n+2)) := univ.filter (λ ij, (ij.1:ℕ) ≤ ij.2),
   calc boundary M (n+1) ≫ boundary M n
       = llcomp R _ _ _
-          (∑ (i:fin (n+2)), (-1:R)^(i:ℕ) • δ M i) (∑ (i:fin (n+3)), (-1:R)^(i:ℕ) • δ M i) : rfl
-  -- ... = ∑ (i : fin (n+3)) (j : fin (n+2)), (-1:R)^(i+j:ℕ) • (llcomp R _ _ _ (δ M j) (δ M i)) :
-  ... = ∑ (i : fin (n+3)) (j : fin (n+2)), (-1:R)^(i+j:ℕ) • ((δ M i) ≫ (δ M j)) :
+          (∑ (i:fin (n+2)), (-1:R)^(i:ℕ) • M.δ i) (∑ (i:fin (n+3)), (-1:R)^(i:ℕ) • M.δ i) : rfl
+  -- ... = ∑ (i : fin (n+3)) (j : fin (n+2)), (-1:R)^(i+j:ℕ) • (llcomp R _ _ _ (M.δ j) (M.δ i)) :
+  ... = ∑ (i : fin (n+3)) (j : fin (n+2)), (-1:R)^(i+j:ℕ) • ((M.δ i) ≫ (M.δ j)) :
         by simp_rw [map_sum, linear_map.sum_apply, map_smul, smul_apply, smul_smul, ← pow_add]; refl
-  ... = ∑ ij : fin (n+3) × fin (n+2), (-1:R)^(ij.1+ij.2:ℕ) • ((δ M ij.1) ≫ (δ M ij.2)) :
+  ... = ∑ ij : fin (n+3) × fin (n+2), (-1:R)^(ij.1+ij.2:ℕ) • ((M.δ ij.1) ≫ (M.δ ij.2)) :
         by rw [← univ_product_univ, sum_product]
-  ... =   (∑ ij in s,  (-1:R)^(ij.1+ij.2:ℕ) • ((δ M ij.1) ≫ (δ M ij.2)))
-        + (∑ ij in sᶜ, (-1:R)^(ij.1+ij.2:ℕ) • ((δ M ij.1) ≫ (δ M ij.2))) : by rw sum_add_sum_compl
+  ... =   (∑ ij in s,  (-1:R)^(ij.1+ij.2:ℕ) • ((M.δ ij.1) ≫ (M.δ ij.2)))
+        + (∑ ij in sᶜ, (-1:R)^(ij.1+ij.2:ℕ) • ((M.δ ij.1) ≫ (M.δ ij.2))) : by rw sum_add_sum_compl
   ... = 0 : _,
 
   erw [← eq_neg_iff_add_eq_zero, ← finset.sum_neg_distrib],
@@ -68,22 +72,22 @@ begin
   { -- Show that our function is well-defined
     rintro ⟨i,j⟩ hij, simp only [mem_filter, true_and, mem_compl_iff, mem_univ, not_le],
     unfold_coes, dsimp [s] at hij ⊢, simp only [true_and, mem_filter, mem_univ] at *,
-    exact nat.succ_le_succ (by assumption) },
+    apply nat.lt_of_succ_le, push_cast, apply nat.succ_le_succ, exact hij, },
   { -- The core of the proof.
     -- After all, we have to use the simplicial identity somewhere.
     rintros ⟨i,j⟩ hij,
-    show (-1:R)^(i+j:ℕ) • δ M i ≫ δ M j =
-      -((-1:R)^(j.succ + i.cast_lt _ :ℕ) • δ M j.succ ≫ δ M (i.cast_lt _)),
+    dsimp,
+    -- show (-1:R)^(i+j:ℕ) • M.δ i ≫ M.δ j =
+    --   -((-1:R)^(j.succ + i : ℕ) • M.δ j.succ ≫ δ M (i.cast_lt _)),
     rw M.δ_comp_δ (show i.cast_lt _ ≤ j, from (mem_filter.mp hij).2),
     rw [← neg_smul],
     congr' 1,
-    unfold_coes,
-    simp only [fin.succ_val, nat.succ_eq_add_one, pow_add, mul_comm,
-      one_mul, pow_one, mul_neg_eq_neg_mul_symm, fin.cast_lt_val, neg_neg], },
+    sorry -- should be easy from here
+     },
   { -- Show that our function is injective
     rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ hij₁ hij₂ h,
     rw [prod.mk.inj_iff, fin.eq_iff_veq, fin.eq_iff_veq] at h ⊢,
-    simp only [fin.cast_lt_val, fin.succ_val] at h,
+    simp at h,
     rwa [and_comm] at h, },
   { -- Show that our function is surjective
     rintro ⟨i,j⟩ hij,

@@ -11,7 +11,7 @@ import data.fintype.card
 
 universe variables u
 
-open category_theory Top simplicial_object sSet
+open category_theory Top sSet
 
 variables (X : Top.{u}) (R : Type u) [comm_ring R]
 

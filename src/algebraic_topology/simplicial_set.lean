@@ -42,7 +42,7 @@ namespace sSet
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sSet := yoneda
 
-localized "notation `Δ[`n`]` := standard_simplex.obj n" in sSet
+localized "notation `Δ[`n`]` := sSet.standard_simplex.obj n" in sSet
 
 instance : inhabited sSet := ⟨standard_simplex.obj (0 : ℕ)⟩
 
@@ -59,7 +59,7 @@ def boundary (n : ℕ) : sSet :=
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   by { intro h, apply α.property, exact function.surjective.of_comp h }⟩ }
 
-localized "notation `∂Δ[`n`]` := boundary n" in sSet
+localized "notation `∂Δ[`n`]` := sSet.boundary n" in sSet
 
 /-- The inclusion of the boundary of the `n`-th standard simplex into that standard simplex. -/
 def boundary_inclusion (n : ℕ) :
@@ -82,7 +82,7 @@ def horn (n : ℕ) (i : fin (n+1)) : sSet :=
     exact set.range_comp_subset_range _ _ hj,
   end⟩ }
 
-localized "notation `Λ[`n`, `i`]` := horn n i" in sSet
+localized "notation `Λ[`n`, `i`]` := sSet.horn n i" in sSet
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
 def horn_inclusion (n : ℕ) (i : fin (n+1)) :

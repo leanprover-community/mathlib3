@@ -13,12 +13,12 @@ universe variables u
 open category_theory
 
 namespace simplicial_module
-open simplicial_object opposite
+open opposite
 variables {R : Type u} [comm_ring R] (M : simplicial_module R)
 
 def graded_object : graded_object_with_shift (-1:ℤ) (Module R)
 | -[1+n] := Module.of R punit -- this should just be 0
-| (n:ℕ)  := (skeletal.obj M).obj (op n)
+| (n:ℕ)  := M.obj (op n)
 
 def graded_object_d : M.graded_object ⟶ M.graded_object⟦1⟧
 | -[1+n]  := 0
@@ -44,7 +44,7 @@ end
 def graded_object_map {M N : simplicial_module R} (f : M ⟶ N) :
   Π i, M.graded_object i ⟶ N.graded_object i
 | -[1+n]  := 0
-| (n:ℕ)   := (skeletal.map f).app (op n)
+| (n:ℕ)   := f.app (op n)
 
 section
 open linear_map
@@ -53,16 +53,16 @@ open linear_map
   {M N : simplicial_module R} (f : M ⟶ N) (n : ℕ) :
   M.boundary n ≫ graded_object_map f n = graded_object_map f (n + 1) ≫ N.boundary n :=
 begin
-  show llcomp R _ _ _ ((skeletal.map f).app (op n)) (M.boundary n) =
-    llcomp R _ _ _ (N.boundary n) ((skeletal.map f).app (op (n+1:ℕ))),
+  show llcomp R _ _ _ (f.app (op n)) (M.boundary n) =
+    llcomp R _ _ _ (N.boundary n) (f.app (op (n+1:ℕ))),
   dsimp [boundary],
   rw [map_sum, map_sum, sum_apply],
   apply fintype.sum_congr,
   intro i,
   simp only [smul_apply, map_smul],
   congr' 1,
-  show δ M i ≫ (skeletal.map f).app (op n) = (skeletal.map f).app (op (n+1:ℕ)) ≫ δ N i,
-  apply (skeletal.map f).naturality,
+  show M.δ i ≫ f.app (op n) = f.app (op (n+1:ℕ)) ≫ N.δ i,
+  apply f.naturality,
 end
 
 end
@@ -75,7 +75,7 @@ funext $ λ i, match i with
 | (n+1:ℕ) :=
   begin
     dsimp,
-    rw graded_object.hom_congr (graded_object_map f) (show (n:ℤ) + 1 + -1 = n, by simp),
+    erw graded_object.hom_congr (graded_object_map f) (show (n:ℤ) + 1 + -1 = n, by simp),
     show (M.boundary n ≫ eq_to_hom _) ≫ eq_to_hom _ ≫ graded_object_map f n ≫ eq_to_hom _ =
       graded_object_map f (n + 1) ≫ N.boundary n ≫ eq_to_hom _,
     simp only [category.id_comp, eq_to_hom_refl, eq_to_hom_trans_assoc, category.assoc,

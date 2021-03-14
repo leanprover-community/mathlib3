@@ -8,6 +8,7 @@ import algebra.homology.homology
 import topology.category.Top
 import topology.simplicial.pmf
 import topology.simplicial.move_this
+import data.ulift
 
 /-!
 # The singular simplicial set of a topological space
@@ -34,6 +35,11 @@ open function opposite
 
 local attribute [instance] pmf.topological_space
 
+-- These two shouldn't be needed. :-(
+@[simp] lemma ulift_map_id (n : simplex_category) : ulift.map (𝟙 n) = id := by { ext, cases x, refl, }
+@[simp] lemma ulift_map_comp {l m n : simplex_category} (f : l ⟶ m) (g : m ⟶ n) :
+  ulift.map (f ≫ g : l ⟶ n) = ulift.map g ∘ ulift.map f := by { ext, cases x, refl, }
+
 /-- The functor that assigns to a nonempty finite linear order
 the singular standard simplex on that order.
 
@@ -41,17 +47,17 @@ the singular standard simplex on that order.
 subspace of `ℝ^n` consisting of vectors that sum to `1`
 and all of whose entries are nonnegative. -/
 @[simps]
-def singular_standard_simplex : NonemptyFinLinOrd.{u} ⥤ Top.{u} :=
-{ obj := λ n, Top.of (pmf n),
+def singular_standard_simplex : simplex_category ⥤ Top.{u} :=
+{ obj := λ n, Top.of (pmf (ulift (fin (n+1)))),
   map := λ m n α,
-  { to_fun := pmf.map α,
-    continuous_to_fun := pmf.map_continuous α },
-  map_id' := by { intro n, ext1 x, exact pmf.map_id x, },
-  map_comp' := by { intros _ _ _ f g, ext1 x, exact (pmf.map_comp x f g).symm, } }
+  { to_fun := pmf.map (ulift.map α),
+    continuous_to_fun := pmf.map_continuous (ulift.map α) },
+  map_id' := by { intro n, ext1 x, simp only [ulift_map_id], exact pmf.map_id x, },
+  map_comp' := by { intros _ _ _ f g, ext1 x, dsimp, erw [ulift_map_comp], exact (pmf.map_comp x _  _).symm, } }
 
 /-- The singular simplicial type associated with a topological space `X`
 has as `n`-simplices all continuous maps from `singular_standard_simplex n` to `X`. -/
-def singular : Top ⥤ sSet :=
+def singular : Top.{u} ⥤ sSet.{u} :=
 yoneda ⋙ singular_standard_simplex.op.comp_left
 
 lemma singular_map_injective (X Y : Top) :
@@ -59,9 +65,10 @@ lemma singular_map_injective (X Y : Top) :
 begin
   intros f g h,
   ext x,
-  let v : pmf punit := ⟨_, by simpa using has_sum_fintype (λ x : punit, (1:nnreal))⟩,
+  let v : pmf (ulift (fin 1)) :=
+    ⟨_, by simpa using has_sum_fintype (λ x : ulift (fin 1), (1:nnreal))⟩,
   rw [nat_trans.ext_iff, funext_iff] at h,
-  specialize h (op $ NonemptyFinLinOrd.of punit),
+  specialize h (op (0 : ℕ)),
   dsimp [singular] at h,
   rw [funext_iff] at h,
   specialize h ⟨λ _, x, continuous_const⟩,

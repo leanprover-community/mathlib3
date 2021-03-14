@@ -58,11 +58,18 @@ end
 
 end has_realization
 
-lemma standard_simplex_has_realization (n : NonemptyFinLinOrd) :
+
+-- We don't use `yoneda_hom_comp_yoneda` because universes don't quite work.
+@[simps]
+def foo (n : simplex_category) : standard_simplex.obj n ⟶ singular.obj (singular_standard_simplex.obj n) :=
+{ app := λ Y f, singular_standard_simplex.map f,
+  naturality' := by { intros Y Z f, ext1 g, exact singular_standard_simplex.map_comp _ _, } }
+
+lemma standard_simplex_has_realization (n : simplex_category) :
   (standard_simplex.obj n).has_realization (singular_standard_simplex.obj n) :=
-{ hom := (yoneda_hom_comp_yoneda singular_standard_simplex).app n,
+{ hom := foo n,
   equiv := λ X,
-  { to_fun    := λ f, (yoneda_hom_comp_yoneda singular_standard_simplex).app n ≫ singular.map f,
+  { to_fun    := λ f, foo n ≫ singular.map f,
     inv_fun   := λ f, f.app (op n) (𝟙 n),
     left_inv  := by tidy,
     right_inv :=
@@ -77,12 +84,12 @@ lemma standard_simplex_has_realization (n : NonemptyFinLinOrd) :
       dsimp [standard_simplex, singular, singular_standard_simplex] at this,
       rw [category.comp_id] at this,
       exact this,
-    end } }
+    end }, }
 
 open simplex_category opposite
 
 def category_of_simplices (S : sSet.{u}) : Type u :=
-Σ (n : simplex_category), (skeletal_functor.{u}.op ⋙ S).obj (op n)
+Σ (n : simplex_category), S.obj (op n)
 
 -- The following definition has universe issues
 -- Σ (n : simplex_category), (skeletal_functor.{u}.op ⋙ X).obj (op n)
@@ -90,9 +97,8 @@ def category_of_simplices (S : sSet.{u}) : Type u :=
 namespace category_of_simplices
 variables (S : sSet.{u}) {S₁ S₂ : sSet.{u}}
 
--- slow, sigh
 instance : small_category (category_of_simplices S) :=
-{ hom := λ s t, ulift { f : s.1 ⟶ t.1 // (skeletal_functor.{u}.op ⋙ S).map f.op t.2 = s.2 },
+{ hom := λ s t, ulift { f : s.1 ⟶ t.1 // S.map f.op t.2 = s.2 },
   id := λ s, ⟨⟨𝟙 _, by { cases s, dsimp at *, simp at *, }⟩⟩,
   comp := λ s t u f g, ⟨⟨f.down.1 ≫ g.down.1,
     begin
@@ -115,7 +121,7 @@ def map (f : S₁ ⟶ S₂) : category_of_simplices S₁ ⥤ category_of_simplic
       rcases t with ⟨n, t⟩,
       rcases i with ⟨⟨i, hi⟩⟩,
       dsimp at *, subst hi,
-      have := f.naturality (skeletal_functor.{u}.map i).op,
+      have := f.naturality i.op,
       exact congr_fun this.symm t,
     end⟩⟩, }
 
@@ -145,7 +151,7 @@ def Category_of_simplices : sSet ⥤ Cat.{u} :=
 
 def realization_obj_functor (S : sSet.{u}) :
   (category_of_simplices S) ⥤ Top.{u} :=
-category_of_simplices.proj S ⋙ skeletal_functor ⋙ singular_standard_simplex
+category_of_simplices.proj S ⋙ singular_standard_simplex
 
 @[simps]
 def realization_obj_functor_comp_hom {S₁ S₂ : sSet.{u}} (f : S₁ ⟶ S₂) :
@@ -165,7 +171,10 @@ This functor is left adjoint to `Top.singular`. -/
 @[simps]
 def realization : sSet.{u} ⥤ Top.{u} :=
 { obj := realization_obj,
-  map := λ S₁ S₂ f, realization_map f, }
+  map := λ S₁ S₂ f, realization_map f,
+  map_id' := sorry, -- Did these work previously?
+  map_comp' := sorry, -- Did these work previously?
+   }
 .
 -- def has_realization_realization (S : sSet.{u}) :
 --   S.has_realization (realization.obj S) :=

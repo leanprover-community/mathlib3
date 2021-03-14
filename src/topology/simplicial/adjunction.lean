@@ -18,15 +18,11 @@ open Top simplex_category opposite
 @[simps]
 def realization_singular_unit : 𝟭 sSet ⟶ realization.{u} ⋙ singular.{u} :=
 { app := λ S,
-  { app := λ n s, show singular_standard_simplex.obj (n.unop) ⟶ _,
+  { app := λ n s,
     begin
-      refine _ ≫ category_theory.limits.colimit.ι _ ⟨skeletal_equivalence.inverse.obj n.unop, _⟩,
-      { show S.obj ((skeletal_equivalence.inverse ⋙ skeletal_equivalence.functor).op.obj n),
-        apply S.map _ s,
-        refine (skeletal_equivalence.counit.app (unop n)).op },
-      { dsimp [realization_obj_functor],
-        apply singular_standard_simplex.map,
-        exact (skeletal_equivalence.counit_inv.app (unop n)), }
+      refine _ ≫ category_theory.limits.colimit.ι _ ⟨n.unop, _⟩,
+      { exact S.map (𝟙 _) s, },
+      { exact singular_standard_simplex.map (𝟙 _), }
     end,
     naturality' :=
     begin

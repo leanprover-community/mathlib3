@@ -216,15 +216,10 @@ theorem semimodule.subsingleton (R M : Type*) [semiring R] [subsingleton R] [add
 
 @[priority 910] -- see Note [lower instance priority]
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
-{ smul := (*),
-  smul_add := mul_add,
+{ smul_add := mul_add,
   add_smul := add_mul,
-  mul_smul := mul_assoc,
-  one_smul := one_mul,
   zero_smul := zero_mul,
   smul_zero := mul_zero }
-
-@[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_semimodule [semiring R] [semiring S] (f : R →+* S) : semimodule R S :=
@@ -488,6 +483,10 @@ theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
 ⟨eq_zero_or_eq_zero_of_smul_eq_zero,
  λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
 
+theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
+  c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=
+by simp only [ne.def, smul_eq_zero, not_or_distrib]
+
 section nat
 
 variables (R) (M) [no_zero_smul_divisors R M] [semimodule ℕ M] [char_zero R]
@@ -506,9 +505,15 @@ end nat
 
 end semimodule
 
-section module
+section add_comm_group -- `R` can still be a semiring here
 
-variables [ring R] [add_comm_group M] [module R M]
+variables [semiring R] [add_comm_group M] [semimodule R M]
+
+lemma smul_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+  function.injective (λ (x : M), c • x) :=
+λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
+  (calc c • (x - y) = c • x - c • y : smul_sub c x y
+                ... = 0 : sub_eq_zero.mpr h)).resolve_left hc)
 
 section nat
 
@@ -526,7 +531,15 @@ begin
   abel
 end
 
-variables {R}
+end nat
+
+end add_comm_group
+
+section module
+
+section nat
+
+variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M] [char_zero R]
 
 lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
 λ h, have semimodule ℕ R := add_comm_monoid.nat_semimodule, by exactI hv (eq_zero_of_eq_neg R h)

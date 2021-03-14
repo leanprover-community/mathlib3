@@ -106,9 +106,10 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
-lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
-lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
-lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ := ext (smul_re _ _) (smul_im _ _)
+lemma of_real_mul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
+lemma of_real_mul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
+lemma of_real_mul' (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
+ext (of_real_mul_re _ _) (of_real_mul_im _ _)
 
 /-! ### The imaginary unit, `I` -/
 
@@ -614,8 +615,8 @@ With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring
 (That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
 
 In fact, the nonnegative elements are precisely those of this form.
-This hold in any C*-algebra, e.g. `ℂ`,
-but we don't yet have C*-algebras in mathlib.
+This hold in any `C^*`-algebra, e.g. `ℂ`,
+but we don't yet have `C^*`-algebras in mathlib.
 -/
 def complex_star_ordered_ring : star_ordered_ring ℂ :=
 { star_mul_self_nonneg := λ z,

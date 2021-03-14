@@ -383,13 +383,17 @@ instance : add_comm_monoid (M →L[R] M₂) :=
 by { refine {zero := 0, add := (+), ..}; intros; ext;
   apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm] }
 
+@[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) :
+  ↑(∑ d in t, f d) = (∑ d in t, f d : M →ₗ[R] M₂) :=
+(add_monoid_hom.mk (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) rfl (λ _ _, rfl)).map_sum _ _
+
+@[simp, norm_cast] lemma coe_sum' {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) :
+  ⇑(∑ d in t, f d) = ∑ d in t, f d :=
+by simp only [← coe_coe, coe_sum, linear_map.coe_fn_sum]
+
 lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M →L[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
-begin
-  haveI : is_add_monoid_hom (λ (g : M →L[R] M₂), g b) :=
-    { map_add := λ f g, continuous_linear_map.add_apply f g b, map_zero := by simp },
-  exact (finset.sum_hom t (λ g : M →L[R] M₂, g b)).symm
-end
+by simp only [coe_sum', finset.sum_apply]
 
 end add
 
@@ -641,7 +645,10 @@ it produces a continuous linear function into a family of topological modules. -
 def pi (f : Πi, M →L[R] φ i) : M →L[R] (Πi, φ i) :=
 ⟨linear_map.pi (λ i, f i), continuous_pi (λ i, (f i).continuous)⟩
 
-@[simp] lemma coe_pi (f : Π i, M →L[R] φ i) : ⇑(pi f) = λ c i, f i c := rfl
+@[simp] lemma coe_pi' (f : Π i, M →L[R] φ i) : ⇑(pi f) = λ c i, f i c := rfl
+@[simp] lemma coe_pi (f : Π i, M →L[R] φ i) :
+  (pi f : M →ₗ[R] Π i, φ i) = linear_map.pi (λ i, f i) :=
+rfl
 
 lemma pi_apply (f : Πi, M →L[R] φ i) (c : M) (i : ι) :
   pi f c i = f i c := rfl
@@ -968,6 +975,9 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { to_equiv := e.to_lin
 lemma image_closure (e : M ≃L[R] M₂) (s : set M) : e '' closure s = closure (e '' s) :=
 e.to_homeomorph.image_closure s
 
+lemma map_nhds_eq (e : M ≃L[R] M₂) (x : M) : map e (𝓝 x) = 𝓝 (e x) :=
+e.to_homeomorph.map_nhds_eq x
+
 -- Make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
 @[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
@@ -1036,6 +1046,9 @@ by { ext, refl }
 @[simp] lemma symm_to_homeomorph (e : M ≃L[R] M₂) : e.to_homeomorph.symm = e.symm.to_homeomorph :=
 rfl
 
+lemma symm_map_nhds_eq (e : M ≃L[R] M₂) (x : M) : map e.symm (𝓝 (e x)) = 𝓝 x :=
+e.to_homeomorph.symm_map_nhds_eq x
+
 /-- The composition of two continuous linear equivalences as a continuous linear equivalence. -/
 @[trans] protected def trans (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) : M ≃L[R] M₃ :=
 { continuous_to_fun := e₂.continuous_to_fun.comp e₁.continuous_to_fun,
@@ -1069,6 +1082,11 @@ rfl
 @[simp] theorem symm_trans_apply (e₁ : M₂ ≃L[R] M) (e₂ : M₃ ≃L[R] M₂) (c : M) :
   (e₂.trans e₁).symm c = e₂.symm (e₁.symm c) :=
 rfl
+
+@[simp] theorem symm_image_image (e : M ≃L[R] M₂) (s : set M) : e.symm '' (e '' s) = s :=
+e.to_linear_equiv.to_equiv.symm_image_image s
+@[simp] theorem image_symm_image (e : M ≃L[R] M₂) (s : set M₂) : e '' (e.symm '' s) = s :=
+e.symm.symm_image_image s
 
 @[simp, norm_cast]
 lemma comp_coe (f : M ≃L[R] M₂) (f' : M₂ ≃L[R] M₃) :

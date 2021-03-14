@@ -53,41 +53,30 @@ instance unique_gal_of_splits [h : fact (p.splits (ring_hom.id F))] : unique p.g
     ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
     rw [alg_equiv.commutes, alg_equiv.commutes] }) }
 
+/-- If `p` splits in `F` then the `p.gal` is trivial. -/
+def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
+{ default := 1,
+  uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
+    ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
+    rw [alg_equiv.commutes, alg_equiv.commutes] }) }
+
 instance unique_gal_zero : unique (0 : polynomial F).gal :=
-begin
-  haveI : fact ((0 : polynomial F).splits (ring_hom.id F)) := splits_zero (ring_hom.id F),
-  apply_instance,
-end
+unique_gal_of_splits _ (splits_zero _)
 
 instance unique_gal_one : unique (1 : polynomial F).gal :=
-begin
-  haveI : fact ((1 : polynomial F).splits (ring_hom.id F)) := splits_one (ring_hom.id F),
-  apply_instance,
-end
+unique_gal_of_splits _ (splits_one _)
 
 instance unique_gal_C (x : F) : unique (C x).gal :=
-begin
-  haveI : fact ((C x).splits (ring_hom.id F)) := splits_C (ring_hom.id F) x,
-  apply_instance,
-end
+unique_gal_of_splits _ (splits_C _ _)
 
 instance unique_gal_X : unique (X : polynomial F).gal :=
-begin
-  haveI : fact ((X : polynomial F).splits (ring_hom.id F)) := splits_X (ring_hom.id F),
-  apply_instance,
-end
+unique_gal_of_splits _ (splits_X _)
 
 instance unique_gal_X_sub_C (x : F) : unique (X - C x).gal :=
-begin
-  haveI : fact ((X - C x).splits (ring_hom.id F)) := splits_X_sub_C (ring_hom.id F),
-  apply_instance,
-end
+unique_gal_of_splits _ (splits_X_sub_C _)
 
 instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : polynomial F).gal :=
-begin
-  haveI : fact ((X ^ n: polynomial F).splits (ring_hom.id F)) := splits_X_pow (ring_hom.id F) n,
-  apply_instance,
-end
+unique_gal_of_splits _ (splits_X_pow _ _)
 
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
 (is_splitting_field.lift p.splitting_field p h).to_ring_hom.to_algebra

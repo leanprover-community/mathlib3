@@ -270,6 +270,18 @@ the right.
 Over a commutative semiring, use `to_lin`, which is linear rather than `ℕ`-linear. -/
 abbreviation to_lin' : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R := to_lin_hom ℕ
 
+@[simp]
+lemma map_sum_left {α} (t : finset α) (g : α → M) (w : M) :
+  B (∑ i in t, g i) w = ∑ i in t, B (g i) w :=
+show bilin_form.to_lin' B (∑ i in t, g i) w = ∑ i in t, bilin_form.to_lin' B (g i) w,
+by rw [linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply]
+
+@[simp]
+lemma map_sum_right {α} (t : finset α) (w : M) (g : α → M) :
+  B w (∑ i in t, g i) = ∑ i in t, B w (g i) :=
+show bilin_form.to_lin' B w (∑ i in t, g i) = ∑ i in t, bilin_form.to_lin' B w (g i),
+from linear_map.map_sum _
+
 variables (R₂)
 
 /-- The linear map obtained from a `bilin_form` by fixing the right co-ordinate and evaluating in
@@ -332,19 +344,7 @@ rfl
 linear_map.to_bilin.symm_symm
 
 @[simp, norm_cast]
-lemma to_linear_map_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ x := rfl
-
-@[simp]
-lemma map_sum_left {α} (t : finset α) (g : α → M₂) (w : M₂) :
-  B₂ (∑ i in t, g i) w = ∑ i in t, B₂ (g i) w :=
-show bilin_form.to_lin B₂ (∑ i in t, g i) w = ∑ i in t, bilin_form.to_lin B₂ (g i) w,
-by rw [linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply]
-
-@[simp]
-lemma map_sum_right {α} (t : finset α) (w : M₂) (g : α → M₂) :
-  B₂ w (∑ i in t, g i) = ∑ i in t, B₂ w (g i) :=
-show bilin_form.to_lin B₂ w (∑ i in t, g i) = ∑ i in t, bilin_form.to_lin B₂ w (g i),
-from linear_map.map_sum _
+lemma bilin_form.to_lin_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ x := rfl
 
 /-- Bilinear forms are linearly equivalent to maps with two arguments that are linear in both,
 "arguments-reversed" version. -/
@@ -1408,7 +1408,7 @@ begin
   rw linear_map.ker_eq_bot',
   split; intro h,
   { refine λ m hm, h _ (λ x, _),
-    rw [← to_linear_map_apply, hm], refl },
+    rw [← to_lin_apply, hm], refl },
   { intros m hm, apply h,
     ext, exact hm x }
 end

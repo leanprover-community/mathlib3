@@ -275,4 +275,30 @@ instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solva
   is_solvable (quotient_group.quotient H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
+lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
+  (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
+  is_solvable G :=
+begin
+  tactic.unfreeze_local_instances,
+  obtain ⟨n, hn⟩ := hG'',
+  suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
+  { obtain ⟨m, hm⟩ := hG',
+    use n + m,
+    specialize this m,
+    rwa [hm, map_bot, le_bot_iff] at this },
+  intro k,
+  induction k with k hk,
+  { rw [add_zero, derived_series_zero, ←monoid_hom.range_eq_map],
+    refine le_trans _ hfg,
+    rw [←map_eq_bot_iff, eq_bot_iff, ←hn],
+    exact map_derived_series_le_derived_series g n },
+  { rw [nat.add_succ, derived_series_succ, derived_series_succ],
+    exact commutator_le_map_commutator hk hk },
+end
+
+instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :
+  is_solvable (G × G') :=
+solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
+  (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
+
 end solvable

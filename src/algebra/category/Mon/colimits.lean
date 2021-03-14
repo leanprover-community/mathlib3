@@ -147,7 +147,8 @@ instance monoid_colimit_type : monoid (colimit_type F) :=
   end }
 
 @[simp] lemma quot_one : quot.mk setoid.r one = (1 : colimit_type F) := rfl
-@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) = ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
+@[simp] lemma quot_mul (x y) : quot.mk setoid.r (mul x y) =
+  ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
 /-- The bundled monoid giving the colimit of a diagram. -/
 def colimit : Mon := ⟨colimit_type F, by apply_instance⟩

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.specific_limits
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 
 /-!
 # The group of units of a complete normed ring
@@ -38,7 +38,7 @@ namespace units
 from `1` is a unit.  Here we construct its `units` structure.  -/
 def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 { val := 1 - t,
-  inv := ∑' (n : ℕ), t ^ n,
+  inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
 
@@ -49,17 +49,14 @@ def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
 x * (units.one_sub (-(↑x⁻¹ * t))
 begin
-  rcases subsingleton_or_nontrivial R with _i|_i; resetI,
-  { rw subsingleton.elim (↑x⁻¹ : R) 0,
-    have : (0:ℝ) < 1 := by norm_num,
-    simpa, },
-  { have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
-    calc ∥-(↑x⁻¹ * t)∥
-        = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }
-    ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le x.inv _
-    ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
-    ... = 1                           : mul_inv_cancel (ne_of_gt hpos) },
-end )
+  nontriviality R using [zero_lt_one],
+  have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
+  calc ∥-(↑x⁻¹ * t)∥
+      = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
+  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
+  ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
+  ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
+end)
 
 @[simp] lemma add_coe (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
   ((x.add t h) : R) = x + t := by { unfold units.add, simp [mul_add] }
@@ -73,21 +70,19 @@ x.add ((y : R) - x) h
   ↑(x.unit_of_nearby y h) = y := by { unfold units.unit_of_nearby, simp }
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
-lemma is_open : is_open {x : R | is_unit x} :=
+protected lemma is_open : is_open {x : R | is_unit x} :=
 begin
-  rcases subsingleton_or_nontrivial R with _i|_i; resetI,
-  { exact is_open_discrete is_unit },
-  { apply metric.is_open_iff.mpr,
-    rintros x' ⟨x, h⟩,
-    refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
-    intros y hy,
-    rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
-    use x.unit_of_nearby y hy,
-    simp }
+  nontriviality R,
+  apply metric.is_open_iff.mpr,
+  rintros x' ⟨x, rfl⟩,
+  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
+  intros y hy,
+  rw [metric.mem_ball, dist_eq_norm] at hy,
+  exact ⟨x.unit_of_nearby y hy, unit_of_nearby_coe _ _ _⟩
 end
 
-lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets is_open (by { rw [set.mem_set_of_eq], exact is_unit_unit x })
+protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
+mem_nhds_sets units.is_open (is_unit_unit x)
 
 end units
 
@@ -96,34 +91,28 @@ open_locale classical big_operators
 open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
-begin
-  rw ← inverse_unit (units.one_sub t h),
-  refl,
-end
+by rw [← inverse_unit (units.one_sub t h), units.one_sub_coe]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
 lemma inverse_add (x : units R) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ↑x⁻¹ * t) * ↑x⁻¹ :=
 begin
+  nontriviality R,
   rw [eventually_iff, mem_nhds_iff],
-  casesI subsingleton_or_nontrivial R,
-  { use [1, by norm_num] },
-  { have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹,
-    { cancel_denoms,
-      exact x⁻¹.norm_pos },
-    use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
-    intros t ht,
-    simp only [mem_ball, dist_zero_right] at ht,
-    have ht' : ∥-↑x⁻¹ * t∥ < 1,
-    { refine lt_of_le_of_lt (norm_mul_le _ _) _,
-      rw norm_neg,
-      refine lt_of_lt_of_le (mul_lt_mul_of_pos_left ht x⁻¹.norm_pos) _,
-      cancel_denoms },
-    have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
-    have hleft := inverse_unit (x.add t ht),
-    simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add] at hright,
-    simp only [units.add_coe] at hleft,
-    simp [hleft, hright, units.add] }
+  have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
+  use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
+  intros t ht,
+  simp only [mem_ball, dist_zero_right] at ht,
+  have ht' : ∥-↑x⁻¹ * t∥ < 1,
+  { refine lt_of_le_of_lt (norm_mul_le _ _) _,
+    rw norm_neg,
+    refine lt_of_lt_of_le (mul_lt_mul_of_pos_left ht x⁻¹.norm_pos) _,
+    cancel_denoms },
+  have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
+  have hleft := inverse_unit (x.add t ht),
+  simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
+  simp only [units.add_coe] at hleft,
+  simp [hleft, hright, units.add]
 end
 
 lemma inverse_one_sub_nth_order (n : ℕ) :
@@ -177,8 +166,8 @@ begin
   have ht' : ∥t∥ < 1,
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
-  simp only [inverse_one_sub t ht', normed_field.norm_one, mul_one, set.mem_set_of_eq],
-  change ∥(∑' (n : ℕ), t ^ n)∥ ≤ _,
+  simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
+  change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
   { rw ← inv_inv' (2:ℝ),
@@ -191,22 +180,19 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  simp only [is_O_iff, normed_field.norm_one, mul_one],
-  cases subsingleton_or_nontrivial R; resetI,
-  { refine ⟨1, eventually_of_forall (λ t, _)⟩,
-    have : ∥inverse (↑x + t)∥ = 0 := by simp,
-    linarith },
-  { cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
-    use C * ∥((x⁻¹:units R):R)∥,
-    have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
-    { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
-      simp },
-    refine (inverse_add x).mp ((hzero.eventually hC).mp (eventually_of_forall _)),
-    intros t bound iden,
-    rw iden,
-    simp at bound,
-    have hmul := norm_mul_le (inverse (1 + ↑x⁻¹ * t)) ↑x⁻¹,
-    nlinarith [norm_nonneg (↑x⁻¹ : R)] }
+  nontriviality R,
+  simp only [is_O_iff, norm_one, mul_one],
+  cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
+  use C * ∥((x⁻¹:units R):R)∥,
+  have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
+  { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
+    simp },
+  refine (inverse_add x).mp ((hzero.eventually hC).mp (eventually_of_forall _)),
+  intros t bound iden,
+  rw iden,
+  simp at bound,
+  have hmul := norm_mul_le (inverse (1 + ↑x⁻¹ * t)) ↑x⁻¹,
+  nlinarith [norm_nonneg (↑x⁻¹ : R)]
 end
 
 /-- The function
@@ -235,7 +221,7 @@ begin
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
   have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
-  { calc ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(-(↑x⁻¹ * t))∥ ^ n : norm_pow_le _ hn
+  { calc ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(-(↑x⁻¹ * t))∥ ^ n : norm_pow_le' _ hn
     ... = ∥↑x⁻¹ * t∥ ^ n : by rw norm_neg
     ... ≤ (∥(↑x⁻¹ : R)∥ * ∥t∥) ^ n : _
     ... =  ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n : mul_pow _ _ n,

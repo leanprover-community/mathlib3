@@ -5,7 +5,6 @@ Authors: Scott Morrison, Yury Kudryashov
 -/
 import category_theory.concrete_category.basic
 import category_theory.concrete_category.bundled
-import category_theory.fully_faithful
 
 /-!
 # Category instances for algebraic structures that use bundled homs.

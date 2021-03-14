@@ -91,7 +91,8 @@ begin
       rw nat.lt_iff_add_one_le,
       apply le_max',
       rw mem_image at this ⊢,
-      -- In particular we take the subsequence `t` of length `a_i` which ends at `i`, by definition of `a_i`
+      -- In particular we take the subsequence `t` of length `a_i` which ends at `i`, by definition
+      -- of `a_i`
       rcases this with ⟨t, ht₁, ht₂⟩,
       rw mem_filter at ht₁,
       -- Ensure `t` ends at `i`.
@@ -107,9 +108,10 @@ begin
         { convert max_insert,
           rw [ht₁.2.1, option.lift_or_get_some_some, max_eq_left, with_top.some_eq_coe],
           apply le_of_lt ‹i < j› },
-        -- To show it's increasing (i.e., `f` is monotone increasing on `t.insert j`), we do cases on
-        -- what the possibilities could be - either in `t` or equals `j`.
-        simp only [strict_mono_incr_on, strict_mono_decr_on, coe_insert, set.mem_insert_iff, mem_coe],
+        -- To show it's increasing (i.e., `f` is monotone increasing on `t.insert j`), we do cases
+        -- on what the possibilities could be - either in `t` or equals `j`.
+        simp only [strict_mono_incr_on, strict_mono_decr_on, coe_insert, set.mem_insert_iff,
+          mem_coe],
         -- Most of the cases are just bashes.
         rintros x ⟨rfl | _⟩ y ⟨rfl | _⟩ _,
         { apply (irrefl _ ‹j < j›).elim },
@@ -117,9 +119,9 @@ begin
           apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_mem ‹y ∈ t› ‹i ∈ t.max›) },
         { apply lt_of_le_of_lt _ ‹f i < f j› <|> apply lt_of_lt_of_le ‹f j < f i› _,
           rcases lt_or_eq_of_le (le_max_of_mem ‹x ∈ t› ‹i ∈ t.max›) with _ | rfl,
-          { apply le_of_lt (ht₁.2.2 _ ‹x ∈ t› i (mem_of_max ‹i ∈ t.max›) ‹x < i›) },
+          { apply le_of_lt (ht₁.2.2 ‹x ∈ t› (mem_of_max ‹i ∈ t.max›) ‹x < i›) },
           { refl } },
-        { apply ht₁.2.2 _ ‹x ∈ t› _ ‹y ∈ t› ‹x < y› } },
+        { apply ht₁.2.2 ‹x ∈ t› ‹y ∈ t› ‹x < y› } },
       -- Finally show that this new subsequence is one longer than the old one.
       { rw [card_insert_of_not_mem, ht₂],
         intro _,
@@ -138,8 +140,8 @@ begin
     simp only [mem_image, exists_prop, mem_range, mem_univ, mem_product, true_and, prod.mk.inj_iff],
     rintros ⟨i, rfl, rfl⟩,
     specialize q i,
-    -- Show `1 ≤ a_i` and `1 ≤ b_i`, which is easy from the fact that `{i}` is a increasing and decreasing
-    -- subsequence which we did right near the top.
+    -- Show `1 ≤ a_i` and `1 ≤ b_i`, which is easy from the fact that `{i}` is a increasing and
+    -- decreasing subsequence which we did right near the top.
     have z : 1 ≤ (ab i).1 ∧ 1 ≤ (ab i).2,
     { split;
       { apply le_max',

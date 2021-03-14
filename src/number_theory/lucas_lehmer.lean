@@ -47,6 +47,13 @@ begin
      ... ≤ 2^p - 1 : nat.pred_le_pred (nat.pow_le_pow_of_le_right (nat.succ_pos 1) h)
 end
 
+@[simp]
+lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
+begin
+  rw [mersenne, nat.sub_add_cancel],
+  exact one_le_pow_of_one_le (by norm_num) k
+end
+
 namespace lucas_lehmer
 
 open nat
@@ -86,7 +93,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { trivial, },
+  { exact sup_eq_left.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
@@ -299,8 +306,8 @@ begin
     ... = (ω^(2^i) + ωb^(2^i))^2 - 2 : by rw ih
     ... = (ω^(2^i))^2 + (ωb^(2^i))^2 + 2*(ωb^(2^i)*ω^(2^i)) - 2 : by ring
     ... = (ω^(2^i))^2 + (ωb^(2^i))^2 :
-            by rw [←mul_pow ωb ω, ωb_mul_ω, _root_.one_pow, mul_one, add_sub_cancel]
-    ... = ω^(2^(i+1)) + ωb^(2^(i+1)) : by rw [←pow_mul, ←pow_mul, nat.pow_succ] }
+            by rw [←mul_pow ωb ω, ωb_mul_ω, one_pow, mul_one, add_sub_cancel]
+    ... = ω^(2^(i+1)) + ωb^(2^(i+1)) : by rw [←pow_mul, ←pow_mul, pow_succ'] }
 end
 
 
@@ -314,9 +321,9 @@ Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction i
 
 /-- If `1 < p`, then `q p`, the smallest prime factor of `mersenne p`, is more than 2. -/
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
-  by_contradiction,
-  simp at a,
-  interval_cases q (p'+2); clear a,
+  by_contradiction H,
+  simp at H,
+  interval_cases q (p'+2); clear H,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
     simp [mersenne] at h',
@@ -326,7 +333,7 @@ lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
       ...  = 2        : nat.pred_inj (nat.one_le_two_pow _) dec_trivial h'), },
   { -- If q = 2, we get a contradiction from 2 ∣ 2^p - 1
     dsimp [q] at h, injection h with h', clear h,
-    rw [mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
+    rw [mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, pow_succ] at h',
     exact nat.two_not_dvd_two_mul_sub_one (nat.one_le_two_pow _) h', }
 end
 
@@ -345,7 +352,7 @@ begin
   replace h := congr_arg (λ x, ω^2^p' * x) h,
   dsimp at h,
   have t : 2^p' + 2^p' = 2^(p'+1) := by ring_exp,
-  rw [mul_add, ←pow_add ω, t, ←mul_pow ω ωb (2^p'), ω_mul_ωb, _root_.one_pow] at h,
+  rw [mul_add, ←pow_add ω, t, ←mul_pow ω ωb (2^p'), ω_mul_ωb, one_pow] at h,
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q (p'+2)))] at h,
   replace h := eq_sub_of_add_eq h,
@@ -355,7 +362,7 @@ end
 /-- `q` is the minimum factor of `mersenne p`, so `M p = 0` in `X q`. -/
 theorem mersenne_coe_X (p : ℕ) : (mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd],
+  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd, -pow_pos],
   apply nat.min_fac_dvd,
 end
 
@@ -370,7 +377,7 @@ end
 theorem ω_pow_eq_one (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   (ω : X (q (p'+2)))^(2^(p'+2)) = 1 :=
 calc (ω : X (q (p'+2)))^2^(p'+2)
-        = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ]
+        = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←pow_succ']
     ... = (-1)^2           : by rw ω_pow_eq_neg_one p' h
     ... = 1                : by simp
 
@@ -391,7 +398,8 @@ begin
   { norm_num, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
-    replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) : units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
+    replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :
+      units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
     simp at ω_pow,
     have h : (1 : zmod (q (p'+2))) = -1 :=
       congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),
@@ -444,7 +452,7 @@ lemma s_mod_succ {p a i b c}
   (h2 : s_mod p i = b)
   (h3 : (b * b - 2) % a = c) :
   s_mod p (i+1) = c :=
-by { dsimp [s_mod, mersenne], rw [h1, h2, _root_.pow_two, h3] }
+by { dsimp [s_mod, mersenne], rw [h1, h2, pow_two, h3] }
 
 /--
 Given a goal of the form `lucas_lehmer_test p`,
@@ -498,13 +506,13 @@ Someone should do this, too!
 lemma modeq_mersenne (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :=
 -- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446
 begin
-  conv in k {rw [← nat.mod_add_div k (2^n), add_comm]},
+  conv in k { rw ← nat.div_add_mod k (2^n) },
   refine nat.modeq.modeq_add _ (by refl),
-  conv {congr, skip, skip, rw ← one_mul (k/2^n)},
+  conv { congr, skip, skip, rw ← one_mul (k/2^n) },
   refine nat.modeq.modeq_mul _ (by refl),
   symmetry,
   rw [nat.modeq.modeq_iff_dvd, int.coe_nat_sub],
-  exact nat.pow_pos dec_trivial _
+  exact pow_pos (show 0 < 2, from dec_trivial) _
 end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.

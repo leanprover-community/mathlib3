@@ -55,7 +55,8 @@ lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g
 instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
 { forget₂ :=
   { obj := λ X, Top.of X,
-    map := λ X Y f, { to_fun := f, continuous_to_fun := uniform_continuous.continuous f.property }, }, }
+    map := λ X Y f, { to_fun := f,
+                      continuous_to_fun := uniform_continuous.continuous f.property }, }, }
 
 end UniformSpace
 
@@ -76,11 +77,15 @@ attribute [instance] is_uniform_space is_complete_space is_separated
 def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
 UniformSpace.of X
 
-instance (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_complete_space X
-instance (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) := CpltSepUniformSpace.is_separated X
+instance complete_space (X : CpltSepUniformSpace) : complete_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_complete_space X
+
+instance separated_space (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) :=
+CpltSepUniformSpace.is_separated X
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
+def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
+CpltSepUniformSpace := ⟨X⟩
 
 @[simp] lemma coe_of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
   (of X : Type u) = X := rfl
@@ -168,6 +173,6 @@ open category_theory.limits
 
 -- TODO Once someone defines `has_limits UniformSpace`, turn this into an instance.
 example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
-has_limits_of_reflective $ forget₂ CpltSepUniformSpace UniformSpace
+has_limits_of_reflective $ forget₂ CpltSepUniformSpace UniformSpace.{u}
 
 end UniformSpace

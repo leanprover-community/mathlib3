@@ -23,18 +23,36 @@ include adj
 section preservation_colimits
 variables {J : Type v} [small_category J] (K : J ⥤ C)
 
+/--
+The right adjoint of `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)`.
+
+Auxiliary definition for `functoriality_is_left_adjoint`.
+-/
 def functoriality_right_adjoint : cocone (K ⋙ F) ⥤ cocone K :=
 (cocones.functoriality _ G) ⋙
   (cocones.precompose (K.right_unitor.inv ≫ (whisker_left K adj.unit) ≫ (associator _ _ _).inv))
 
 local attribute [reducible] functoriality_right_adjoint
 
-@[simps] def functoriality_unit : 𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
+/--
+The unit for the adjunction for `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)`.
+
+Auxiliary definition for `functoriality_is_left_adjoint`.
+-/
+@[simps] def functoriality_unit :
+  𝟭 (cocone K) ⟶ cocones.functoriality _ F ⋙ functoriality_right_adjoint adj K :=
 { app := λ c, { hom := adj.unit.app c.X } }
 
-@[simps] def functoriality_counit : functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
+/--
+The counit for the adjunction for `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)`.
+
+Auxiliary definition for `functoriality_is_left_adjoint`.
+-/
+@[simps] def functoriality_counit :
+  functoriality_right_adjoint adj K ⋙ cocones.functoriality _ F ⟶ 𝟭 (cocone (K ⋙ F)) :=
 { app := λ c, { hom := adj.counit.app c.X } }
 
+/-- The functor `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)` is a left adjoint. -/
 def functoriality_is_left_adjoint :
   is_left_adjoint (cocones.functoriality K F) :=
 { right := functoriality_right_adjoint adj K,
@@ -61,6 +79,25 @@ omit adj
 instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
 left_adjoint_preserves_colimits E.adjunction
 
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : reflects_colimits E :=
+{ reflects_colimits_of_shape := λ J 𝒥, by exactI
+  { reflects_colimit := λ K,
+    { reflects := λ c t,
+      begin
+        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.as_equivalence.unit_iso.symm,
+        refine (((is_colimit.precompose_inv_equiv K.right_unitor _).symm) l).of_iso_colimit _,
+        tidy,
+      end } } }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] : creates_colimits H :=
+{ creates_colimits_of_shape := λ J 𝒥, by exactI
+  { creates_colimit := λ F,
+    { lifts := λ c t,
+      { lifted_cocone := H.map_cocone_inv c,
+        valid_lift := H.map_cocone_map_cocone_inv c } } } }
+
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
@@ -76,25 +113,43 @@ lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_coli
   has_colimit K :=
 @has_colimit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
 (@adjunction.has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
-((functor.right_unitor _).symm ≪≫ (iso_whisker_left K (fun_inv_id E)).symm)
+((functor.right_unitor _).symm ≪≫ iso_whisker_left K (E.as_equivalence.unit_iso))
 
 end preservation_colimits
 
 section preservation_limits
 variables {J : Type v} [small_category J] (K : J ⥤ D)
 
+/--
+The left adjoint of `cones.functoriality K G : cone K ⥤ cone (K ⋙ G)`.
+
+Auxiliary definition for `functoriality_is_right_adjoint`.
+-/
 def functoriality_left_adjoint : cone (K ⋙ G) ⥤ cone K :=
 (cones.functoriality _ F) ⋙ (cones.postcompose
     ((associator _ _ _).hom ≫ (whisker_left K adj.counit) ≫ K.right_unitor.hom))
 
 local attribute [reducible] functoriality_left_adjoint
 
-@[simps] def functoriality_unit' : 𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
+/--
+The unit for the adjunction for`cones.functoriality K G : cone K ⥤ cone (K ⋙ G)`.
+
+Auxiliary definition for `functoriality_is_right_adjoint`.
+-/
+@[simps] def functoriality_unit' :
+  𝟭 (cone (K ⋙ G)) ⟶ functoriality_left_adjoint adj K ⋙ cones.functoriality _ G :=
 { app := λ c, { hom := adj.unit.app c.X, } }
 
-@[simps] def functoriality_counit' : cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
+/--
+The counit for the adjunction for`cones.functoriality K G : cone K ⥤ cone (K ⋙ G)`.
+
+Auxiliary definition for `functoriality_is_right_adjoint`.
+-/
+@[simps] def functoriality_counit' :
+  cones.functoriality _ G ⋙ functoriality_left_adjoint adj K ⟶ 𝟭 (cone K) :=
 { app := λ c, { hom := adj.counit.app c.X, } }
 
+/-- The functor `cones.functoriality K G : cone K ⥤ cone (K ⋙ G)` is a right adjoint. -/
 def functoriality_is_right_adjoint :
   is_right_adjoint (cones.functoriality K G) :=
 { left := functoriality_left_adjoint adj K,
@@ -127,12 +182,9 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
   { reflects_limit := λ K,
     { reflects := λ c t,
       begin
-        have l: is_limit (E.inv.map_cone (E.map_cone c)) := preserves_limit.preserves t,
-        convert is_limit.map_cone_equiv E.fun_inv_id l,
-        { rw functor.comp_id },
-        { cases c,
-          cases c_π,
-          congr; rw functor.comp_id }
+        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.as_equivalence.unit_iso.symm,
+        refine (((is_limit.postcompose_hom_equiv K.left_unitor _).symm) this).of_iso_limit _,
+        tidy,
       end } } }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -158,7 +210,7 @@ lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit 
   has_limit K :=
 @has_limit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
 (@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
-((iso_whisker_left K (fun_inv_id E)) ≪≫ (functor.right_unitor _))
+((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
 
 end preservation_limits
 
@@ -182,6 +234,12 @@ def cocones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ C}
     dsimp, simp
   end }
 
+/--
+When `F ⊣ G`,
+the functor associating to each `Y` the cocones over `K ⋙ F` with cone point `Y`
+is naturally isomorphic to
+the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
+-/
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
 def cocones_iso {J : Type v} [small_category J] {K : J ⥤ C} :
   (cocones J D).obj (op (K ⋙ F)) ≅ G ⋙ ((cocones J C).obj (op K)) :=
@@ -195,12 +253,12 @@ nat_iso.of_components (λ Y,
 def cones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : (functor.op F ⋙ (cones J D).obj K).obj X) :
   ((cones J C).obj (K ⋙ G)).obj X :=
-  { app := λ j, (adj.hom_equiv (unop X) (K.obj j)) (t.app j),
-    naturality' := λ j j' f,
-    begin
-      erw [← adj.hom_equiv_naturality_right, ← t.naturality, category.id_comp, category.id_comp],
-      refl
-    end }
+{ app := λ j, (adj.hom_equiv (unop X) (K.obj j)) (t.app j),
+  naturality' := λ j j' f,
+  begin
+    erw [← adj.hom_equiv_naturality_right, ← t.naturality, category.id_comp, category.id_comp],
+    refl
+  end }
 
 /-- auxiliary construction for `cones_iso` -/
 @[simps]
@@ -214,6 +272,12 @@ def cones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ D}
   end }
 
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
+/--
+When `F ⊣ G`,
+the functor associating to each `X` the cones over `K` with cone point `F.op.obj X`
+is naturally isomorphic to
+the functor associating to each `X` the cones over `K ⋙ G` with cone point `X`.
+-/
 def cones_iso {J : Type v} [small_category J] {K : J ⥤ D} :
   F.op ⋙ ((cones J D).obj K) ≅ (cones J C).obj (K ⋙ G) :=
 nat_iso.of_components (λ X,

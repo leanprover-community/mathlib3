@@ -6,6 +6,7 @@ Authors: Johan Commelin, Bhavik Mehta
 import category_theory.comma
 import category_theory.punit
 import category_theory.reflects_isomorphisms
+import category_theory.epi_mono
 
 /-!
 # Over and under categories
@@ -33,7 +34,7 @@ triangles.
 See https://stacks.math.columbia.edu/tag/001G.
 -/
 @[derive category]
-def over (X : T) := comma.{v₁ 0 v₁} (𝟭 T) (functor.from_punit X)
+def over (X : T) := comma.{v₁ v₁ v₁} (𝟭 T) (functor.from_punit X)
 
 -- Satisfying the inhabited linter
 instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
@@ -85,8 +86,9 @@ def hom_mk {U V : over X} (f : U.left ⟶ V.left) (w : f ≫ V.hom = U.hom . obv
 Construct an isomorphism in the over category given isomorphisms of the objects whose forward
 direction gives a commutative triangle.
 -/
-@[simps {rhs_md:=semireducible}]
-def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) : f ≅ g :=
+@[simps]
+def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) :
+  f ≅ g :=
 comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
 
 section
@@ -129,6 +131,43 @@ end
 instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
 { reflects := λ Y Z f t, by exactI
   { inv := over.hom_mk t.inv ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm) } }
+
+instance forget_faithful : faithful (forget X) := {}.
+
+/--
+If `k.left` is an epimorphism, then `k` is an epimorphism. In other words, `over.forget X` reflects
+epimorphisms.
+The converse does not hold without additional assumptions on the underlying category.
+-/
+-- TODO: Show the converse holds if `T` has binary products or pushouts.
+lemma epi_of_epi_left {f g : over X} (k : f ⟶ g) [hk : epi k.left] : epi k :=
+faithful_reflects_epi (forget X) hk
+
+/--
+If `k.left` is a monomorphism, then `k` is a monomorphism. In other words, `over.forget X` reflects
+monomorphisms.
+The converse of `category_theory.over.mono_left_of_mono`.
+
+This lemma is not an instance, to avoid loops in type class inference.
+-/
+lemma mono_of_mono_left {f g : over X} (k : f ⟶ g) [hk : mono k.left] : mono k :=
+faithful_reflects_mono (forget X) hk
+
+/--
+If `k` is a monomorphism, then `k.left` is a monomorphism. In other words, `over.forget X` preserves
+monomorphisms.
+The converse of `category_theory.over.mono_of_mono_left`.
+-/
+instance mono_left_of_mono {f g : over X} (k : f ⟶ g) [mono k] : mono k.left :=
+begin
+  refine ⟨λ (Y : T) l m a, _⟩,
+  let l' : mk (m ≫ f.hom) ⟶ f := hom_mk l (by { dsimp, rw [←over.w k, reassoc_of a] }),
+  suffices : l' = hom_mk m,
+  { apply congr_arg comma_morphism.left this },
+  rw ← cancel_mono k,
+  ext,
+  apply a,
+end
 
 section iterated_slice
 variables (f : over X)
@@ -187,7 +226,7 @@ end over
 /-- The under category has as objects arrows with domain `X` and as morphisms commutative
     triangles. -/
 @[derive category]
-def under (X : T) := comma.{0 v₁ v₁} (functor.from_punit X) (𝟭 T)
+def under (X : T) := comma.{v₁ v₁ v₁} (functor.from_punit X) (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
@@ -209,7 +248,7 @@ by tidy
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).right = f.right ≫ g.right := rfl
 
-@[simp] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
+@[simp, reassoc] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/

@@ -18,8 +18,8 @@ def range (n : ℕ) : multiset ℕ := range n
 
 @[simp] theorem range_zero : range 0 = 0 := rfl
 
-@[simp] theorem range_succ (n : ℕ) : range (succ n) = n :: range n :=
-by rw [range, range_concat, ← coe_add, add_comm]; refl
+@[simp] theorem range_succ (n : ℕ) : range (succ n) = n ::ₘ range n :=
+by rw [range, range_succ, ← coe_add, add_comm]; refl
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := length_range _
 

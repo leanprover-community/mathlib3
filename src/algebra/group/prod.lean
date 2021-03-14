@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
 import algebra.group.hom
+import data.equiv.mul_add
 import data.prod
 
 /-!
@@ -66,6 +67,14 @@ lemma snd_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).2 = (p.2)⁻¹ := 
 lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
 @[to_additive]
+instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, p.2 / q.2⟩⟩
+
+@[simp] lemma fst_sub [add_group A] [add_group B] (a b : A × B) : (a - b).1 = a.1 - b.1 := rfl
+@[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
+@[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
+(x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
+
+@[to_additive]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
@@ -79,16 +88,26 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
-  .. prod.monoid, .. prod.has_inv }
-
-@[simp] lemma fst_sub [add_group A] [add_group B] (a b : A × B) : (a - b).1 = a.1 - b.1 := rfl
-@[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
-@[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
-  (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
+  div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
+  .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
 @[to_additive]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
 { mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
+  .. prod.semigroup }
+
+@[to_additive]
+instance [left_cancel_semigroup G] [left_cancel_semigroup H] :
+  left_cancel_semigroup (G × H) :=
+{ mul_left_cancel := λ a b c h, prod.ext (mul_left_cancel (prod.ext_iff.1 h).1)
+    (mul_left_cancel (prod.ext_iff.1 h).2),
+  .. prod.semigroup }
+
+@[to_additive]
+instance [right_cancel_semigroup G] [right_cancel_semigroup H] :
+  right_cancel_semigroup (G × H) :=
+{ mul_right_cancel := λ a b c h, prod.ext (mul_right_cancel (prod.ext_iff.1 h).1)
+    (mul_right_cancel (prod.ext_iff.1 h).2),
   .. prod.semigroup }
 
 @[to_additive]
@@ -229,3 +248,32 @@ ext $ λ x, by simp
 end coprod
 
 end monoid_hom
+
+namespace mul_equiv
+variables {M N} [monoid M] [monoid N]
+
+/-- The equivalence between `M × N` and `N × M` given by swapping the components
+is multiplicative. -/
+@[to_additive prod_comm "The equivalence between `M × N` and `N × M` given by swapping the
+components is additive."]
+def prod_comm : M × N ≃* N × M :=
+{ map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, rfl, ..equiv.prod_comm M N }
+
+@[simp, to_additive coe_prod_comm] lemma coe_prod_comm :
+  ⇑(prod_comm : M × N ≃* N × M) = prod.swap := rfl
+
+@[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
+  ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
+
+/-- The monoid equivalence between units of a product of two monoids, and the product of the
+    units of each monoid. -/
+@[to_additive prod_add_units "The additive monoid equivalence between additive units of a product
+of two additive monoids, and the product of the additive units of each additive monoid."]
+def prod_units : units (M × N) ≃* units M × units N :=
+{ to_fun := (units.map (monoid_hom.fst M N)).prod (units.map (monoid_hom.snd M N)),
+  inv_fun := λ u, ⟨(u.1, u.2), (↑u.1⁻¹, ↑u.2⁻¹), by simp, by simp⟩,
+  left_inv := λ u, by simp,
+  right_inv := λ ⟨u₁, u₂⟩, by simp [units.map],
+  map_mul' := monoid_hom.map_mul _ }
+
+end mul_equiv

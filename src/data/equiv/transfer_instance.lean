@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import data.equiv.basic
 import algebra.field
 import algebra.module
-import ring_theory.algebra
+import algebra.algebra.basic
 import algebra.group.type_tags
 import ring_theory.ideal.basic
 
@@ -47,6 +47,13 @@ protected def has_mul [has_mul β] : has_mul α := ⟨λ x y, e.symm (e x * e y)
 @[to_additive]
 lemma mul_def [has_mul β] (x y : α) :
   @has_mul.mul _ (equiv.has_mul e) x y = e.symm (e x * e y) := rfl
+
+/-- Transfer `has_div` across an `equiv` -/
+@[to_additive "Transfer `has_sub` across an `equiv`"]
+protected def has_div [has_div β] : has_div α := ⟨λ x y, e.symm (e x / e y)⟩
+@[to_additive]
+lemma div_def [has_div β] (x y : α) :
+@has_div.div _ (equiv.has_div e) x y = e.symm (e x / e y) := rfl
 
 /-- Transfer `has_inv` across an `equiv` -/
 @[to_additive "Transfer `has_neg` across an `equiv`"]
@@ -141,8 +148,10 @@ protected def comm_monoid [comm_monoid β] : comm_monoid α :=
 @[to_additive "Transfer `add_group` across an `equiv`"]
 protected def group [group β] : group α :=
 { mul_left_inv := by simp [mul_def, inv_def, one_def],
+  div_eq_mul_inv := λ a b, by rw [div_def, div_eq_mul_inv, mul_def, inv_def, e.apply_symm_apply],
   ..equiv.monoid e,
-  ..equiv.has_inv e }
+  ..equiv.has_inv e,
+  ..equiv.has_div e }
 
 /-- Transfer `comm_group` across an `equiv` -/
 @[to_additive "Transfer `add_comm_group` across an `equiv`"]
@@ -194,15 +203,14 @@ protected def integral_domain [integral_domain β] : integral_domain α :=
 
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=
-{ inv_mul_cancel := λ _,
-    by simp [mul_def, inv_def, zero_def, one_def, (equiv.symm_apply_eq _).symm];
-      exact inv_mul_cancel,
-  mul_inv_cancel := λ _,
+{ mul_inv_cancel := λ _,
     by simp [mul_def, inv_def, zero_def, one_def, (equiv.symm_apply_eq _).symm];
       exact mul_inv_cancel,
   inv_zero := by simp [zero_def, inv_def],
+  div_eq_mul_inv := λ a b, by rw [div_def, div_eq_mul_inv, mul_def, inv_def, e.apply_symm_apply],
   ..equiv.has_zero e,
   ..equiv.has_one e,
+  ..equiv.has_div e,
   ..equiv.domain e,
   ..equiv.has_inv e }
 

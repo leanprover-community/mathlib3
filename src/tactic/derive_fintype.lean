@@ -1,8 +1,10 @@
 /-
 Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro
 -/
-import logic.basic data.fintype.basic
+import logic.basic
+import data.fintype.basic
 
 /-!
 # Derive handler for `fintype` instances
@@ -190,31 +192,27 @@ open derive_fintype tactic expr
 
 namespace derive_fintype
 
-/-- Construct the term `Σ' (a:A) (b:B a), C a b` from `Π (a:A) (b:B a), C a b → T` (the type of a
-constructor). -/
+/-- Construct the term `Σ' (a:A) (b:B a) (c:C a b), unit` from
+`Π (a:A) (b:B a), C a b → T` (the type of a constructor). -/
 meta def mk_sigma : expr → tactic expr
-| (expr.pi n bi d b@(expr.pi _ _ _ _)) := do
+| (expr.pi n bi d b) := do
   p ← mk_local' n bi d,
   e ← mk_sigma (expr.instantiate_var b p),
   tactic.mk_app ``psigma [d, bind_lambda e p]
-| (expr.pi n bi d b) := pure d
-| _ := failed
+| _ := pure `(unit)
 
-/-- Prove the goal `(Σ' (a:A) (b:B a), C a b) → T` (this is the function `f` in `finset_in.mk`)
-using recursive `psigma.elim`, finishing with the constructor. The two arguments are
-the type of the constructor, and the constructor term itself; as we recurse we add arguments
+/-- Prove the goal `(Σ' (a:A) (b:B a) (c:C a b), unit) → T`
+(this is the function `f` in `finset_in.mk`) using recursive `psigma.elim`,
+finishing with the constructor. The two arguments are the type of the constructor,
+and the constructor term itself; as we recurse we add arguments
 to the constructor application and destructure the pi type of the constructor. We return the number
-of `psigma.elim` applications constructed, which is one less than the number of constructor
-arguments. -/
+of `psigma.elim` applications constructed, which is the number of constructor arguments. -/
 meta def mk_sigma_elim : expr → expr → tactic ℕ
-| (expr.pi n bi d b@(expr.pi _ _ _ _)) c := do
+| (expr.pi n bi d b) c := do
   refine ``(@psigma.elim %%d _ _ _),
   i ← intro_fresh n,
   (+ 1) <$> mk_sigma_elim (expr.instantiate_var b i) (c i)
-| (expr.pi n bi d b) c := do
-  i ← intro_fresh n,
-  exact (c i) $> 0
-| _ c := failed
+| _ c := do intro1, exact c $> 0
 
 /-- Prove the goal `a, b |- f a = f b → g a = g b` where `f` is the function we constructed in
 `mk_sigma_elim`, and `g` is some other term that gets built up and eventually closed by
@@ -229,7 +227,11 @@ meta def mk_sigma_elim_inj : ℕ → expr → expr → tactic unit
   [(_, [x1, x2])] ← cases x,
   [(_, [y1, y2])] ← cases y,
   mk_sigma_elim_inj m x2 y2
-| 0 x y := do intro1 >>= cases, reflexivity
+| 0 x y := do
+  cases x, cases y,
+  is ← intro1 >>= injection,
+  is.mmap' cases,
+  reflexivity
 
 /-- Prove the goal `a |- enum (f a) = n`, where `f` is the function constructed in `mk_sigma_elim`,
 and `enum` is a function that reduces to `n` on the constructor `C_n`. Here we just have to case on
@@ -266,11 +268,10 @@ meta def mk_finset (args : list expr) : ℕ → list name → tactic unit
     mk_finset (k+1) cs
 | k [] := applyc ``finset_above.nil
 
-/-- Prove the goal `|- Σ' (a:A) (b: B a), C a b` given a list of terms `a, b, c`. -/
+/-- Prove the goal `|- Σ' (a:A) (b: B a) (c:C a b), unit` given a list of terms `a, b, c`. -/
 meta def mk_sigma_mem : list expr → tactic unit
-| [x] := exact x
-| (x::xs) := constructor >> exact x >> mk_sigma_mem xs
-| [] := failed
+| (x::xs) := fconstructor >> exact x >> mk_sigma_mem xs
+| [] := fconstructor $> ()
 
 /-- This function is called to prove `a : T |- a ∈ S.1` where `S` is the `finset_above` constructed
 by `mk_finset`, after the initial cases on `a : T`, producing a list of subgoals. For each case,

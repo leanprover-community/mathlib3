@@ -3,11 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison
 -/
-import data.monoid_algebra
-import ring_theory.algebra
-import algebra.invertible
-import algebra.char_p
+import algebra.monoid_algebra
+import algebra.char_p.invertible
 import linear_algebra.basis
+import ring_theory.simple_module
 
 /-!
 # Maschke's theorem
@@ -40,8 +39,10 @@ section
 -- `[invertible (fintype.card G : k)]` when it is required.
 variables {k : Type u} [comm_ring k] {G : Type u} [group G]
 
-variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
-variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]
+variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables [is_scalar_tower k (monoid_algebra k G) V]
+variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+variables [is_scalar_tower k (monoid_algebra k G) W]
 
 /-!
 We now do the key calculation in Maschke's theorem.
@@ -56,15 +57,15 @@ by the formula
 $$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
 
-variables (π : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k]
-               (restrict_scalars k (monoid_algebra k G) V))
+namespace linear_map
+
+variables (π : W →ₗ[k] V)
 include π
 
 /--
 We define the conjugate of `π` by `g`, as a `k`-linear map.
 -/
-def conjugate (g : G) :
-  (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
+def conjugate (g : G) : W →ₗ[k] V :=
 ((group_smul.linear_map k V g⁻¹).comp π).comp (group_smul.linear_map k W g)
 
 variables (i : V →ₗ[monoid_algebra k G] W) (h : ∀ v : V, π (i v) = v)
@@ -81,23 +82,21 @@ begin
 end
 end
 
-variables [fintype G]
+variables (G) [fintype G]
 
 /--
 The sum of the conjugates of `π` by each element `g : G`, as a `k`-linear map.
 
 (We postpone dividing by the size of the group as long as possible.)
 -/
-def sum_of_conjugates :
-  (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
-∑ g : G, conjugate π g
+def sum_of_conjugates : W →ₗ[k] V :=
+∑ g : G, π.conjugate g
 
 /--
 In fact, the sum over `g : G` of the conjugate of `π` by `g` is a `k[G]`-linear map.
 -/
-def sum_of_conjugates_equivariant :
-  W →ₗ[monoid_algebra k G] V :=
-monoid_algebra.equivariant_of_linear_of_comm (sum_of_conjugates π) (λ g v,
+def sum_of_conjugates_equivariant : W →ₗ[monoid_algebra k G] V :=
+monoid_algebra.equivariant_of_linear_of_comm (π.sum_of_conjugates G) (λ g v,
 begin
   dsimp [sum_of_conjugates],
   simp only [linear_map.sum_apply, finset.smul_sum],
@@ -108,66 +107,77 @@ begin
   },
   simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
     finset.sum_map, inv_inv, inv_mul_cancel_right],
+  recover,
 end)
 
 section
 variables [inv : invertible (fintype.card G : k)]
 include inv
 
-section
-local attribute [instance] linear_map_algebra_module
 /--
 We construct our `k[G]`-linear retraction of `i` as
 $$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
-def equivariant_projection :
-  W →ₗ[monoid_algebra k G] V :=
-⅟(fintype.card G : k) • (sum_of_conjugates_equivariant π)
-end
+def equivariant_projection : W →ₗ[monoid_algebra k G] V :=
+⅟(fintype.card G : k) • (π.sum_of_conjugates_equivariant G)
 
 include h
 
-lemma equivariant_projection_condition (v : V) : (equivariant_projection π) (i v) = v :=
+lemma equivariant_projection_condition (v : V) : (π.equivariant_projection G) (i v) = v :=
 begin
-  rw [equivariant_projection, linear_map_algebra_module.smul_apply, sum_of_conjugates_equivariant,
+  rw [equivariant_projection, smul_apply, sum_of_conjugates_equivariant,
     equivariant_of_linear_of_comm_apply, sum_of_conjugates],
   rw [linear_map.sum_apply],
   simp only [conjugate_i π i h],
-  rw [finset.sum_const, finset.card_univ,
-    @semimodule.nsmul_eq_smul k _
-      (restrict_scalars k (monoid_algebra k G) V) _ _ (fintype.card G) v,
+  rw [finset.sum_const, finset.card_univ, nsmul_eq_smul_cast k,
     ←mul_smul, invertible.inv_of_mul_self, one_smul],
 end
 end
+end linear_map
 end
+
+namespace monoid_algebra
 
 -- Now we work over a `[field k]`, and replace the assumption `[invertible (fintype.card G : k)]`
 -- with `¬(ring_char k ∣ fintype.card G)`.
 variables {k : Type u} [field k] {G : Type u} [fintype G] [group G]
-variables {V : Type u} [add_comm_group V] [module (monoid_algebra k G) V]
-variables {W : Type u} [add_comm_group W] [module (monoid_algebra k G) W]
+variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables [is_scalar_tower k (monoid_algebra k G) V]
+variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+variables [is_scalar_tower k (monoid_algebra k G) W]
 
-lemma monoid_algebra.exists_left_inverse_of_injective
-  (not_dvd : ¬(ring_char k ∣ fintype.card G))
-  (f : V →ₗ[monoid_algebra k G] W) (hf_inj : f.ker = ⊥) :
+lemma exists_left_inverse_of_injective
+  (not_dvd : ¬(ring_char k ∣ fintype.card G)) (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
 begin
-  let E := linear_map.exists_left_inverse_of_injective
-    (by convert f.restrict_scalars k) (by simp [hf_inj]),
-  fsplit,
   haveI : invertible (fintype.card G : k) :=
     invertible_of_ring_char_not_dvd not_dvd,
-  exact equivariant_projection (classical.some E),
-  { ext v,
-    apply equivariant_projection_condition,
-    intro v,
-    have := classical.some_spec E,
-    have := congr_arg linear_map.to_fun this,
-    exact congr_fun this v, }
+  obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
+    (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
+  refine ⟨φ.equivariant_projection G, _⟩,
+  ext v,
+  simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
+  apply linear_map.equivariant_projection_condition,
+  intro v,
+  have := congr_arg linear_map.to_fun hφ,
+  exact congr_fun this v
 end
 
-lemma monoid_algebra.submodule.exists_is_compl
+namespace submodule
+
+lemma exists_is_compl
   (not_dvd : ¬(ring_char k ∣ fintype.card G)) (p : submodule (monoid_algebra k G) V) :
   ∃ q : submodule (monoid_algebra k G) V, is_compl p q :=
 let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
+
+theorem is_complemented (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
+  is_complemented (submodule (monoid_algebra k G) V) := ⟨exists_is_compl not_dvd⟩
+
+end submodule
+
+theorem is_semisimple_module (not_dvd : ¬(ring_char k ∣ fintype.card G)) :
+  is_semisimple_module (monoid_algebra k G) V :=
+submodule.is_complemented not_dvd
+
+end monoid_algebra

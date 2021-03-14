@@ -53,9 +53,9 @@ by simp [powerset_aux']
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0)::0 := rfl
+@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0) ::ₘ 0 := rfl
 
-@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a::s) =
+@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a ::ₘ s) =
   map (prod.map id (cons a)) (antidiagonal s) +
   map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin

@@ -96,6 +96,9 @@ def ext (X Y : C)
 @preimage_iso _ _ _ _ yoneda _ _ _ _
   (nat_iso.of_components (λ Z, { hom := p, inv := q, }) (by tidy))
 
+/--
+If `yoneda.map f` is an isomorphism, so was `f`.
+-/
 def is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful yoneda f
 
@@ -118,8 +121,18 @@ instance coyoneda_faithful : faithful (@coyoneda C _) :=
     simpa using congr_arg has_hom.hom.op t,
   end }
 
+/--
+If `coyoneda.map f` is an isomorphism, so was `f`.
+-/
 def is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful coyoneda f
+
+-- No need to use Cᵒᵖ here, works with any category
+/-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
+  coyoneda functor coming from `punit`. -/
+@[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
+{ hom := { app := λ X f, f punit.star},
+  inv := { app := λ X a _, a } }
 
 end coyoneda
 
@@ -154,6 +167,10 @@ category_theory.prod.{v₁ (max u₁ v₁)} Cᵒᵖ (Cᵒᵖ ⥤ Type v₁)
 
 open yoneda
 
+/--
+The "Yoneda evaluation" functor, which sends `X : Cᵒᵖ` and `F : Cᵒᵖ ⥤ Type`
+to `F.obj X`, functorially in both `X` and `F`.
+-/
 def yoneda_evaluation : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
 evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
 
@@ -161,6 +178,10 @@ evaluation_uncurried Cᵒᵖ (Type v₁) ⋙ ulift_functor.{u₁}
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (x : (yoneda_evaluation C).obj P) :
   ((yoneda_evaluation C).map α x).down = α.2.app Q.1 (P.2.map α.1 x.down) := rfl
 
+/--
+The "Yoneda pairing" functor, which sends `X : Cᵒᵖ` and `F : Cᵒᵖ ⥤ Type`
+to `yoneda.op.obj X ⟶ F`, functorially in both `X` and `F`.
+-/
 def yoneda_pairing : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁) ⥤ Type (max u₁ v₁) :=
 functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ ⥤ Type v₁)
 
@@ -213,12 +234,61 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 
 variables {C}
 
+/--
+The isomorphism between `yoneda.obj X ⟶ F` and `F.obj (op X)`
+(we need to insert a `ulift` to get the universes right!)
+given by the Yoneda lemma.
+-/
 @[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) :
   (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 (yoneda_lemma C).app (op X, F)
 
-@[simp] def yoneda_sections_small {C : Type u₁} [small_category C] (X : C) (F : Cᵒᵖ ⥤ Type u₁) :
+/--
+We have a type-level equivalence between natural transformations from the yoneda embedding
+and elements of `F.obj X`, without any universe switching.
+-/
+def yoneda_equiv {X : C} {F : Cᵒᵖ ⥤ Type v₁} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
+(yoneda_sections X F).to_equiv.trans equiv.ulift
+
+lemma yoneda_equiv_naturality {X Y : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) (g : Y ⟶ X) :
+  F.map g.op (yoneda_equiv f) = yoneda_equiv (yoneda.map g ≫ f) :=
+begin
+  change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
+  rw ← f.naturality,
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma yoneda_equiv_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) :
+  yoneda_equiv f = f.app (op X) (𝟙 X) :=
+rfl
+
+@[simp]
+lemma yoneda_equiv_symm_app_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (x : F.obj (op X))
+  (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
+  (yoneda_equiv.symm x).app Y f = F.map f.op x :=
+rfl
+
+/--
+When `C` is a small category, we can restate the isomorphism from `yoneda_sections`
+without having to change universes.
+-/
+def yoneda_sections_small {C : Type u₁} [small_category C] (X : C)
+  (F : Cᵒᵖ ⥤ Type u₁) :
   (yoneda.obj X ⟶ F) ≅ F.obj (op X) :=
 yoneda_sections X F ≪≫ ulift_trivial _
+
+@[simp]
+lemma yoneda_sections_small_hom {C : Type u₁} [small_category C] (X : C)
+  (F : Cᵒᵖ ⥤ Type u₁) (f : yoneda.obj X ⟶ F) :
+  (yoneda_sections_small X F).hom f = f.app _ (𝟙 _) :=
+rfl
+
+@[simp]
+lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X : C)
+  (F : Cᵒᵖ ⥤ Type u₁) (t : F.obj (op X)) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
+  ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
+rfl
 
 end category_theory

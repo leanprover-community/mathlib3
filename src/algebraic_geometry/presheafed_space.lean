@@ -38,6 +38,8 @@ variables {C}
 
 namespace PresheafedSpace
 
+attribute [protected] presheaf
+
 instance coe_carrier : has_coe (PresheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 
@@ -69,7 +71,7 @@ structure hom (X Y : PresheafedSpace C) :=
   α = β :=
 begin
   cases α, cases β,
-  dsimp [presheaf.pushforward] at *,
+  dsimp [presheaf.pushforward_obj] at *,
   tidy, -- TODO including `injections` would make tidy work earlier.
 end
 .
@@ -82,14 +84,14 @@ def id (X : PresheafedSpace C) : hom X X :=
 instance hom_inhabited (X : PresheafedSpace C) : inhabited (hom X X) := ⟨id X⟩
 
 /-- Composition of morphisms of `PresheafedSpace`s. -/
-def comp (X Y Z : PresheafedSpace C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
+def comp {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { base := α.base ≫ β.base,
   c := β.c ≫ (whisker_left (opens.map β.base).op α.c) ≫ (Top.presheaf.pushforward.comp _ _ _).inv }
 
 variables (C)
 
 section
-local attribute [simp] id comp presheaf.pushforward
+local attribute [simp] id comp
 
 /- The proofs below can be done by `tidy`, but it is too slow,
    and we don't have a tactic caching mechanism. -/
@@ -98,14 +100,14 @@ local attribute [simp] id comp presheaf.pushforward
 instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
 { hom := hom,
   id := id,
-  comp := comp,
+  comp := λ X Y Z f g, comp f g,
   id_comp' := λ X Y f,
   begin
     ext1, swap,
     { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
       dsimp,
       simp only [comp_id], },
   end,
@@ -115,7 +117,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [comp_id] },
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
       dsimp,
       simp only [comp_id], }
   end,
@@ -125,7 +127,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
      refl,
      { ext U, op_induction, cases U,
        dsimp,
-       simp only [assoc, map_id, comp_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+       simp only [assoc, map_id, comp_id, presheaf.pushforward.comp_inv_app],
        dsimp,
        simp only [comp_id, id_comp], }
   end }
@@ -152,10 +154,15 @@ by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) ≫
     (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
 
+lemma congr_app {X Y : PresheafedSpace C} {α β : X ⟶ Y} (h : α = β) (U) :
+  α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
+by { subst h, dsimp, simp, }
+
 section
 variables (C)
 
 /-- The forgetful functor from `PresheafedSpace` to `Top`. -/
+@[simps]
 def forget : PresheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
   map := λ X Y f, f.base }
@@ -191,9 +198,9 @@ subspace.
 @[simps]
 def to_restrict_top (X : PresheafedSpace C) :
   X ⟶ X.restrict (opens.inclusion ⊤) (opens.inclusion_open_embedding ⊤) :=
-{ base := ⟨λ x, ⟨x, trivial⟩, λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩,
+{ base := ⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩,
   c := { app := λ U, X.presheaf.map $ (hom_of_le $ λ x hxU, ⟨⟨x, trivial⟩, hxU, rfl⟩ :
-      (opens.map (⟨λ x, ⟨x, trivial⟩, λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ :
+      (opens.map (⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ :
           X.1 ⟶ (opens.to_Top X.1).obj ⊤)).obj (unop U) ⟶
         (opens.inclusion_open_embedding ⊤).is_open_map.functor.obj (unop U)).op,
     naturality':= λ U V f, show X.presheaf.map _ ≫ _ = _ ≫ X.presheaf.map _,
@@ -218,9 +225,8 @@ def restrict_top_iso (X : PresheafedSpace C) :
     dsimp only [nat_trans.comp_app, comp_c_app, of_restrict, to_restrict_top,
         whisker_right_app, comp_base, nat_trans.op_app, opens.map_iso_inv_app],
     erw [← X.presheaf.map_comp, ← X.presheaf.map_comp, ← X.presheaf.map_comp, id_c_app],
-    convert eq_to_hom_map X.presheaf _, swap,
-    { erw [op_obj, id_base, opens.map_id_obj], refl },
-    { refine has_hom.hom.unop_inj _, exact subsingleton.elim _ _ } } }
+    convert eq_to_hom_map X.presheaf _,
+    erw [op_obj, id_base, opens.map_id_obj], refl } }
 
 /--
 The global sections, notated Gamma.
@@ -259,7 +265,7 @@ namespace category_theory
 
 variables {D : Type u} [category.{v} D]
 
-local attribute [simp] presheaf.pushforward
+local attribute [simp] presheaf.pushforward_obj
 
 namespace functor
 

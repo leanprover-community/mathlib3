@@ -59,7 +59,7 @@ lemma approx_mono ⦃i j : ℕ⦄ (hij : i ≤ j) : approx f i ≤ approx f j :=
 begin
   induction j, cases hij, refine @le_refl _ _ _,
   cases hij, apply @le_refl _ _ _,
-  apply @le_trans _ _ _ (approx f j_n) _ (j_ih hij_a),
+  apply @le_trans _ _ _ (approx f j_n) _ (j_ih ‹_›),
   apply approx_mono' f
 end
 
@@ -239,7 +239,8 @@ section curry
 variables {f : (Π x (y : β x), γ x y) →ₘ (Π x (y : β x), γ x y)}
 variables (hc : continuous f)
 
-lemma uncurry_curry_continuous : continuous $ (monotone_uncurry α β γ).comp $ f.comp $ monotone_curry α β γ :=
+lemma uncurry_curry_continuous :
+  continuous $ (monotone_uncurry α β γ).comp $ f.comp $ monotone_curry α β γ :=
 continuous_comp _ _
   (continuous_comp _ _ (continuous_curry _ _ _) hc)
   (continuous_uncurry _ _ _)
@@ -248,6 +249,10 @@ end curry
 
 instance pi.lawful_fix' [lawful_fix $ Π x : sigma β, γ x.1 x.2] : lawful_fix (Π x y, γ x y) :=
 { fix_eq := λ f hc,
-  by { dsimp [fix], conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] }, refl, } }
+    begin
+      dsimp [fix],
+      conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] },
+      refl,
+    end, }
 
 end pi

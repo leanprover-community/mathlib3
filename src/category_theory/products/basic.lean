@@ -7,7 +7,8 @@ import category_theory.eq_to_hom
 
 namespace category_theory
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 section
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
@@ -87,7 +88,7 @@ to the identity functor.
 /--
 The equivalence, given by swapping factors, between `C × D` and `D × C`.
 -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def braiding : C × D ≌ D × C :=
 equivalence.mk (swap C D) (swap D C)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
@@ -101,6 +102,11 @@ end prod
 section
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
+/--
+The "evaluation at `X`" functor, such that
+`(evaluation.obj X).obj F = F.obj X`,
+which is functorial in both `X` and `F`.
+-/
 @[simps] def evaluation : C ⥤ (C ⥤ D) ⥤ D :=
 { obj := λ X,
   { obj := λ F, F.obj X,
@@ -109,6 +115,10 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
   { app := λ F, F.map f,
     naturality' := λ F G α, eq.symm (α.naturality f) } }
 
+/--
+The "evaluation of `F` at `X`" functor,
+as a functor `C × (C ⥤ D) ⥤ D`.
+-/
 @[simps] def evaluation_uncurried : C × (C ⥤ D) ⥤ D :=
 { obj := λ p, p.2.obj p.1,
   map := λ x y f, (x.2.map f.1) ≫ (f.2.app y.1),

@@ -46,17 +46,6 @@ private meta def match_perms (pat : pattern) : expr → tactic (list $ list expr
     rs ← match_perms r,
     return (m.2 :: rs))
 
-private meta def update_type : expr → expr → expr
-| (local_const n pp bi d) t := local_const n pp bi t
-| e t := e
-
-private meta def intron' : ℕ → tactic (list expr)
-| 0       := return []
-| (i + 1) := do
-  n ← intro1,
-  ls ← intron' i,
-  return (n :: ls)
-
 meta def wlog (vars' : list expr) (h_cases fst_case : expr) (perms : list (list expr)) :
   tactic unit := do
   guard h_cases.is_local_constant,
@@ -73,7 +62,7 @@ meta def wlog (vars' : list expr) (h_cases fst_case : expr) (perms : list (list 
   ((), pr) ← solve_aux cases (repeat $ exact h_fst_case <|> left >> skip),
 
   t ← target,
-  fixed_vars ← vars.mmap (λv, do t ← infer_type v, return (update_type v t) ),
+  fixed_vars ← vars.mmap update_type,
   let t' := (instantiate_local h_cases.local_uniq_name pr t).pis (fixed_vars ++ [h_fst_case]),
 
   (h, [g]) ← local_proof `this t' (do

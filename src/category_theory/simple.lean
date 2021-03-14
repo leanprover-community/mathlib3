@@ -7,6 +7,8 @@ import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
 
+noncomputable theory
+
 open category_theory.limits
 
 namespace category_theory
@@ -27,9 +29,6 @@ class simple (X : C) : Type (max u v) :=
 begin
   casesI a, casesI b,
   congr,
-  funext Y f m,
-  ext,
-  refl,
 end
 
 instance subsingleton_simple (X : C) : subsingleton (simple X) :=

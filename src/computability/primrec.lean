@@ -103,7 +103,7 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, pow_succ']
 
 end primrec
 
@@ -218,9 +218,7 @@ theorem option_some_iff {f : α → σ} : primrec (λ a, some (f a)) ↔ primrec
 theorem of_equiv {β} {e : β ≃ α} :
   by haveI := primcodable.of_equiv α e; exact
   primrec e :=
-(primcodable.prim α).of_eq $ λ n,
-show _ = encode (option.map e (option.map _ _)),
-by cases decode α n; simp
+by letI : primcodable β := primcodable.of_equiv α e; exact encode_iff.1 primrec.encode
 
 theorem of_equiv_symm {β} {e : β ≃ α} :
   by haveI := primcodable.of_equiv α e; exact
@@ -963,7 +961,7 @@ theorem list_map
 theorem list_range : primrec list.range :=
 (nat_elim' primrec.id (const [])
   ((list_concat.comp snd fst).comp snd).to₂).of_eq $
-λ n, by simp; induction n; simp [*, list.range_concat]; refl
+λ n, by simp; induction n; simp [*, list.range_succ]; refl
 
 theorem list_join : primrec (@list.join α) :=
 (list_foldr primrec.id (const []) $ to₂ $
@@ -1003,7 +1001,7 @@ primrec₂.option_some_iff.1 $
     (to₂ $ list_concat.comp (snd.comp fst) snd))).of_eq $
 λ a n, begin
   simp, induction n with n IH, {refl},
-  simp [IH, H, list.range_concat]
+  simp [IH, H, list.range_succ]
 end
 
 end primrec
@@ -1188,7 +1186,7 @@ inductive primrec' : ∀ {n}, (vector ℕ n → ℕ) → Prop
   primrec' (λ a, f (of_fn (λ i, g i a)))
 | prec {n f g} : @primrec' n f → @primrec' (n+2) g →
   primrec' (λ v : vector ℕ (n+1),
-    v.head.elim (f v.tail) (λ y IH, g (y :: IH :: v.tail)))
+    v.head.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)))
 
 end nat
 
@@ -1234,7 +1232,7 @@ protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
 
 protected theorem cons {n m f g}
   (hf : @primrec' n f) (hg : @vec n m g) :
-  vec (λ v, f v :: g v) :=
+  vec (λ v, (f v ::ᵥ g v)) :=
 λ i, fin.cases (by simp *) (λ i, by simp [hg i]) i
 
 theorem idv {n} : @vec n n id := nth
@@ -1257,7 +1255,7 @@ by simpa using hf.comp' (hg.cons $ hh.cons primrec'.nil)
 theorem prec' {n f g h}
   (hf : @primrec' n f) (hg : @primrec' n g) (hh : @primrec' (n+2) h) :
   @primrec' n (λ v, (f v).elim (g v)
-    (λ (y IH : ℕ), h (y :: IH :: v))) :=
+    (λ (y IH : ℕ), h (y ::ᵥ IH ::ᵥ v))) :=
 by simpa using comp' (prec hg hh) (hf.cons idv)
 
 theorem pred : @primrec' 1 (λ v, v.head.pred) :=

@@ -39,8 +39,8 @@ The flat sections of a functor into `Algebra R` form a submodule of all sections
 -/
 def sections_subalgebra (F : J ⥤ Algebra R) :
   subalgebra R (Π j, F.obj j) :=
-{ carrier := SemiRing.sections_subsemiring (F ⋙ forget₂ (Algebra R) Ring ⋙ forget₂ Ring SemiRing),
-  algebra_map_mem' := λ r j j' f, (F.map f).commutes r, }
+{ algebra_map_mem' := λ r j j' f, (F.map f).commutes r,
+  ..SemiRing.sections_subsemiring (F ⋙ forget₂ (Algebra R) Ring ⋙ forget₂ Ring SemiRing) }
 
 
 instance limit_semiring (F : J ⥤ Algebra R) :
@@ -88,10 +88,10 @@ begin
   refine is_limit.of_faithful
     (forget (Algebra R)) (types.limit_cone_is_limit _)
     (λ s, { .. }) (λ s, rfl),
-  { simp only [forget_map_eq_coe, alg_hom.map_one, functor.map_cone_π], refl, },
-  { intros x y, simp only [forget_map_eq_coe, alg_hom.map_mul, functor.map_cone_π], refl, },
-  { simp only [forget_map_eq_coe, alg_hom.map_zero, functor.map_cone_π], refl, },
-  { intros x y, simp only [forget_map_eq_coe, alg_hom.map_add, functor.map_cone_π], refl, },
+  { simp only [forget_map_eq_coe, alg_hom.map_one, functor.map_cone_π_app], refl, },
+  { intros x y, simp only [forget_map_eq_coe, alg_hom.map_mul, functor.map_cone_π_app], refl, },
+  { simp only [forget_map_eq_coe, alg_hom.map_zero, functor.map_cone_π_app], refl, },
+  { intros x y, simp only [forget_map_eq_coe, alg_hom.map_add, functor.map_cone_π_app], refl, },
   { intros r, ext j, exact (s.π.app j).commutes r,  },
 end
 

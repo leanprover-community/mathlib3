@@ -68,10 +68,10 @@ begin
   dsimp [is_open] at *,
   apply complete_lattice.Sup_continuous' _,
   introv ht, specialize h₀ { x | t x } _,
-  { simpa using h₀ },
   { simp only [flip, set.mem_image] at *,
     rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
-    simpa, }
+    simpa, },
+  { simpa using h₀ }
 end
 
 end Scott
@@ -127,20 +127,20 @@ lemma Scott_continuous_of_continuous {α β}
   (f : Scott α → Scott β) (hf : continuous f) :
   omega_complete_partial_order.continuous' f :=
 begin
-  dsimp [_root_.continuous, (⁻¹')] at hf,
+  simp only [continuous_def, (⁻¹')] at hf,
   have h : monotone f,
   { intros x y h,
     cases (hf {x | ¬ x ≤ f y} (not_below_is_open _)) with hf hf', clear hf',
     specialize hf h, simp only [set.preimage, set_of, (∈), set.mem, le_iff_imp] at hf,
-    by_contradiction, apply hf a (le_refl (f y)) },
+    by_contradiction H, apply hf H (le_refl (f y)) },
   existsi h, intro c,
   apply eq_of_forall_ge_iff, intro z,
   specialize (hf _ (not_below_is_open z)),
   cases hf, specialize hf_h c,
   simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
-  simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, exists_prop, set.mem_range, preorder_hom.coe_fun_mk,
-             chain.map_to_fun, function.comp_app, eq_iff_iff, not_forall],
+  simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, exists_prop, set.mem_range,
+    preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app, eq_iff_iff, not_forall],
   tauto,
 end
 
@@ -150,6 +150,7 @@ lemma continuous_of_Scott_continuous {α β}
   (f : Scott α → Scott β) (hf : omega_complete_partial_order.continuous' f) :
   continuous f :=
 begin
+  rw continuous_def,
   intros s hs,
   change continuous' (s ∘ f),
   cases hs with hs hs',

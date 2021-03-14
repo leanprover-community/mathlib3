@@ -158,7 +158,7 @@ end
   ℱ.stalk_pushforward C (f ≫ g) x =
   ((f _* ℱ).stalk_pushforward C g (f x)) ≫ (ℱ.stalk_pushforward C f x) :=
 begin
-  dsimp [stalk_pushforward, stalk_functor, pushforward],
+  dsimp [stalk_pushforward, stalk_functor],
   ext U,
   op_induction U,
   cases U,

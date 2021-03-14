@@ -20,7 +20,15 @@ restate_axiom groupoid.comp_inv'
 
 attribute [simp] groupoid.inv_comp groupoid.comp_inv
 
+/--
+A `large_groupoid` is a groupoid
+where the objects live in `Type (u+1)` while the morphisms live in `Type u`.
+-/
 abbreviation large_groupoid (C : Type (u+1)) : Type (u+1) := groupoid.{u} C
+/--
+A `small_groupoid` is a groupoid
+where the objects and morphisms live in the same universe.
+-/
 abbreviation small_groupoid (C : Type u) : Type (u+1) := groupoid.{u} C
 
 section
@@ -62,5 +70,12 @@ begin
 end
 
 end
+
+instance induced_category.groupoid {C : Type u} (D : Type u₂) [groupoid.{v} D] (F : C → D) :
+   groupoid.{v} (induced_category D F) :=
+{ inv       := λ X Y f, groupoid.inv f,
+  inv_comp' := λ X Y f, groupoid.inv_comp f,
+  comp_inv' := λ X Y f, groupoid.comp_inv f,
+  .. induced_category.category F }
 
 end category_theory

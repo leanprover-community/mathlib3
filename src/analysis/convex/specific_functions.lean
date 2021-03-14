@@ -18,6 +18,7 @@ In this file we prove that the following functions are convex:
 * `convex_on_pow` : for a natural $n$, the function $f(x)=x^n$ is convex on $[0, +∞)$;
 * `convex_on_fpow` : for an integer $m$, the function $f(x)=x^m$ is convex on $(0, +∞)$.
 * `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on (Ici 0) (λ x, x ^ p)`
+* `concave_on_log_Ioi` and `concave_on_log_Iio`: log is concave on `Ioi 0` and `Iio 0` respectively.
 -/
 
 open real set
@@ -29,12 +30,12 @@ convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
   (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
-lemma convex_on_pow_of_even {n : ℕ} (hn : n.even) : convex_on set.univ (λ x : ℝ, x^n) :=
+lemma convex_on_pow_of_even {n : ℕ} (hn : even n) : convex_on set.univ (λ x : ℝ, x^n) :=
 begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
-    rcases hn.sub (nat.even_bit0 1) with ⟨k, hk⟩,
+    rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
     simp only [iter_deriv_pow, finset.prod_range_succ, finset.prod_range_zero, nat.sub_zero,
       mul_one, hk, pow_mul', pow_two],
     exact mul_nonneg (nat.cast_nonneg _) (mul_self_nonneg _) }
@@ -53,7 +54,7 @@ end
 lemma finset.prod_nonneg_of_card_nonpos_even
   {α β : Type*} [linear_ordered_comm_ring β]
   {f : α → β} [decidable_pred (λ x, f x ≤ 0)]
-  {s : finset α} (h0 : (s.filter (λ x, f x ≤ 0)).card.even) :
+  {s : finset α} (h0 : even (s.filter (λ x, f x ≤ 0)).card) :
   0 ≤ ∏ x in s, f x :=
 calc 0 ≤ (∏ x in s, ((if f x ≤ 0 then (-1:β) else 1) * f x)) :
   finset.prod_nonneg (λ x _, by
@@ -61,7 +62,7 @@ calc 0 ≤ (∏ x in s, ((if f x ≤ 0 then (-1:β) else 1) * f x)) :
 ... = _ : by rw [finset.prod_mul_distrib, finset.prod_ite, finset.prod_const_one,
   mul_one, finset.prod_const, neg_one_pow_eq_pow_mod_two, nat.even_iff.1 h0, pow_zero, one_mul]
 
-lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : n.even) :
+lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : even n) :
   0 ≤ ∏ k in finset.range n, (m - k) :=
 begin
   cases (le_or_lt ↑n m) with hnm hmn,
@@ -113,4 +114,40 @@ begin
     suffices : 0 ≤ p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
     apply mul_nonneg (le_trans zero_le_one hp),
     exact mul_nonneg (sub_nonneg_of_le hp) (rpow_nonneg_of_nonneg (le_of_lt hx) _) }
+end
+
+lemma concave_on_log_Ioi : concave_on (Ioi 0) log :=
+begin
+  have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
+  { intros x hx hx',
+    rw [mem_singleton_iff] at hx',
+    rw [hx'] at hx,
+    exact lt_irrefl 0 hx },
+  refine concave_on_open_of_deriv2_nonpos (convex_Ioi 0) is_open_Ioi _ _ _,
+  { exact differentiable_on_log.mono h₁ },
+  { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
+    exact is_open_compl_singleton },
+  { intros x hx,
+    rw [function.iterate_succ, function.iterate_one],
+    change (deriv (deriv log)) x ≤ 0,
+    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
+    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+end
+
+lemma concave_on_log_Iio : concave_on (Iio 0) log :=
+begin
+  have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
+  { intros x hx hx',
+    rw [mem_singleton_iff] at hx',
+    rw [hx'] at hx,
+    exact lt_irrefl 0 hx },
+  refine concave_on_open_of_deriv2_nonpos (convex_Iio 0) is_open_Iio _ _ _,
+  { exact differentiable_on_log.mono h₁ },
+  { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
+    exact is_open_compl_singleton },
+  { intros x hx,
+    rw [function.iterate_succ, function.iterate_one],
+    change (deriv (deriv log)) x ≤ 0,
+    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
+    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
 end

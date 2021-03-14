@@ -8,6 +8,8 @@ import data.list.range
 
 namespace int
 
+local attribute [semireducible] int.nonneg
+
 /-- List enumerating `[m, n)`. -/
 def range (m n : ℤ) : list ℤ :=
 (list.range (to_nat (n-m))).map $ λ r, m+r

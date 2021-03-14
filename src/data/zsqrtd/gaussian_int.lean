@@ -52,10 +52,7 @@ local attribute [-instance] complex.field -- Avoid making things noncomputable u
 
 /-- The embedding of the Gaussian integers into the complex numbers, as a ring homomorphism. -/
 def to_complex : ℤ[i] →+* ℂ :=
-begin
-  refine_struct { to_fun := λ x : ℤ[i], (x.re + x.im * I : ℂ), .. };
-  intros; apply complex.ext; dsimp; norm_cast; simp; abel
-end
+zsqrtd.lift ⟨I, by simp⟩
 end
 
 instance : has_coe (ℤ[i]) ℂ := ⟨to_complex⟩
@@ -90,7 +87,7 @@ by rw [norm, norm_sq]; simp
 @[simp] lemma nat_cast_complex_norm (x : ℤ[i]) : (x.norm : ℂ) = (x : ℂ).norm_sq :=
 by cases x; rw [norm, norm_sq]; simp
 
-lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg trivial _
+lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg (by norm_num) _
 
 @[simp] lemma norm_eq_zero {x : ℤ[i]} : norm x = 0 ↔ x = 0 :=
 by rw [← @int.cast_inj ℝ _ _ _]; simp
@@ -132,7 +129,7 @@ local notation `abs'` := _root_.abs
 
 lemma norm_sq_le_norm_sq_of_re_le_of_im_le {x y : ℂ} (hre : abs' x.re ≤ abs' y.re)
   (him : abs' x.im ≤ abs' y.im) : x.norm_sq ≤ y.norm_sq :=
-by rw [norm_sq, norm_sq, ← _root_.abs_mul_self, _root_.abs_mul,
+by rw [norm_sq_apply, norm_sq_apply, ← _root_.abs_mul_self, _root_.abs_mul,
   ← _root_.abs_mul_self y.re, _root_.abs_mul y.re,
   ← _root_.abs_mul_self x.im, _root_.abs_mul x.im,
   ← _root_.abs_mul_self y.im, _root_.abs_mul y.im]; exact
@@ -146,7 +143,7 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
     ((x / y : ℂ).im - ((x / y : ℤ[i]) : ℂ).im) * I : ℂ).norm_sq :
       congr_arg _ $ by apply complex.ext; simp
   ... ≤ (1 / 2 + 1 / 2 * I).norm_sq :
-  have abs' (2 / (2 * 2) : ℝ) = 1 / 2, by rw _root_.abs_of_nonneg; norm_num,
+  have abs' (2⁻¹ : ℝ) = 2⁻¹, from _root_.abs_of_nonneg (by norm_num),
   norm_sq_le_norm_sq_of_re_le_of_im_le
     (by rw [to_complex_div_re]; simp [norm_sq, this];
       simpa using abs_sub_round (x / y : ℂ).re)
@@ -162,7 +159,7 @@ lemma mod_def (x y : ℤ[i]) : x % y = x - y * (x / y) := rfl
 
 lemma norm_mod_lt (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) : (x % y).norm < y.norm :=
 have (y : ℂ) ≠ 0, by rwa [ne.def, ← to_complex_zero, to_complex_inj],
-(@int.cast_lt ℝ _ _ _).1 $
+(@int.cast_lt ℝ _ _ _ _).1 $
   calc ↑(norm (x % y)) = (x - y * (x / y : ℤ[i]) : ℂ).norm_sq : by simp [mod_def]
   ... = (y : ℂ).norm_sq * (((x / y) - (x / y : ℤ[i])) : ℂ).norm_sq :
     by rw [← norm_sq_mul, mul_sub, mul_div_cancel' _ this]
@@ -178,7 +175,7 @@ lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
 by rw [norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right (nat.zero_le _)
-    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact norm_pos.2 hy))
+    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
 
 instance : nontrivial ℤ[i] :=
 ⟨⟨0, 1, dec_trivial⟩⟩
@@ -218,16 +215,16 @@ hp.eq_two_or_odd.elim
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
-      { refine ⟨k.val, k.val_lt, zmod.cast_val k⟩ },
+      { refine ⟨k.val, k.val_lt, zmod.nat_cast_zmod_val k⟩ },
       have hpk : p ∣ k ^ 2 + 1,
         by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
-        by simp [_root_.pow_two, zsqrtd.ext],
+        by simp [pow_two, zsqrtd.ext],
       have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
           add_le_add_right (nat.pos_of_ne_zero
-            (λ hk0, by clear_aux_decl; simp [*, nat.pow_succ] at *)) _
+            (λ hk0, by clear_aux_decl; simp [*, pow_succ'] at *)) _
         ... = k * (k + 1) : by simp [add_comm, mul_add]
         ... < p * p : mul_lt_mul k_lt_p k_lt_p (nat.succ_pos _) (nat.zero_le _),
       have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k, -1⟩ :=
@@ -258,20 +255,20 @@ have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
     exact λ h, (ne_of_lt hp.one_lt).symm h.1,
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
-  by simpa [irreducible, hpu, not_forall, not_or_distrib] using hpi,
+  by simpa [irreducible_iff, hpu, not_forall, not_or_distrib] using hpi,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
 have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
-  by rw [← int.coe_nat_inj', int.coe_nat_pow, _root_.pow_two,
+  by rw [← int.coe_nat_inj', int.coe_nat_pow, pow_two,
     ← @norm_nat_cast (-1), hpab];
     simp).1,
-⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, nat.pow_two] using hnap⟩
+⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, pow_two] using hnap⟩
 
 lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3 : p % 4 = 3) :
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
   let ⟨a, b, hab⟩ := sum_two_squares_of_nat_prime_of_not_irreducible p hpi in
-have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.cast_mod_nat 4 p, hp3]; exact dec_trivial,
+have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod 4 p, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 
 /-- A prime natural number is prime in `ℤ[i]` if and only if it is `3` mod `4` -/

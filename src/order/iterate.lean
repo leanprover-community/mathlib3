@@ -18,6 +18,50 @@ a circle homeomorphism.
 -/
 variables {α : Type*}
 
+namespace monotone
+
+variables [preorder α] {f : α → α} {x y : ℕ → α}
+
+lemma seq_le_seq (hf : monotone f) (n : ℕ) (h₀ : x 0 ≤ y 0)
+  (hx : ∀ k < n, x (k + 1) ≤ f (x k)) (hy : ∀ k < n, f (y k) ≤ y (k + 1)) :
+  x n ≤ y n :=
+begin
+  induction n with n ihn,
+  { exact h₀ },
+  { refine (hx _ n.lt_succ_self).trans ((hf $ ihn _ _).trans (hy _ n.lt_succ_self)),
+    exact λ k hk, hx _ (hk.trans n.lt_succ_self),
+    exact λ k hk, hy _ (hk.trans n.lt_succ_self) }
+end
+
+lemma seq_pos_lt_seq_of_lt_of_le (hf : monotone f) {n : ℕ} (hn : 0 < n) (h₀ : x 0 ≤ y 0)
+  (hx : ∀ k < n, x (k + 1) < f (x k)) (hy : ∀ k < n, f (y k) ≤ y (k + 1)) :
+  x n < y n :=
+begin
+  induction n with n ihn, { exact hn.false.elim },
+  suffices : x n ≤ y n,
+    from (hx n n.lt_succ_self).trans_le ((hf this).trans $ hy n n.lt_succ_self),
+  cases n, { exact h₀ },
+  refine (ihn n.zero_lt_succ (λ k hk, hx _ _) (λ k hk, hy _ _)).le;
+    exact hk.trans n.succ.lt_succ_self
+end
+
+lemma seq_pos_lt_seq_of_le_of_lt (hf : monotone f) {n : ℕ} (hn : 0 < n) (h₀ : x 0 ≤ y 0)
+  (hx : ∀ k < n, x (k + 1) ≤ f (x k)) (hy : ∀ k < n, f (y k) < y (k + 1)) :
+  x n < y n :=
+hf.order_dual.seq_pos_lt_seq_of_lt_of_le hn h₀ hy hx
+
+lemma seq_lt_seq_of_lt_of_le (hf : monotone f) (n : ℕ) (h₀ : x 0 < y 0)
+  (hx : ∀ k < n, x (k + 1) < f (x k)) (hy : ∀ k < n, f (y k) ≤ y (k + 1)) :
+  x n < y n :=
+by { cases n, exacts [h₀, hf.seq_pos_lt_seq_of_lt_of_le n.zero_lt_succ h₀.le hx hy] }
+
+lemma seq_lt_seq_of_le_of_lt (hf : monotone f) (n : ℕ) (h₀ : x 0 < y 0)
+  (hx : ∀ k < n, x (k + 1) ≤ f (x k)) (hy : ∀ k < n, f (y k) < y (k + 1)) :
+  x n < y n :=
+hf.order_dual.seq_lt_seq_of_lt_of_le n h₀ hy hx
+
+end monotone
+
 namespace function
 
 namespace commute
@@ -29,22 +73,14 @@ variables [preorder α] {f g : α → α}
 lemma iterate_le_of_map_le (h : commute f g) (hf : monotone f)  (hg : monotone g)
   {x} (hx : f x ≤ g x) (n : ℕ) :
   f^[n] x ≤ (g^[n]) x :=
-nat.rec_on n (le_refl _) $ λ n ihn,
-calc f^[n+1] x = (f^[n]) (f x) : iterate_succ_apply f n x
-           ... ≤ (f^[n]) (g x) : hf.iterate n hx
-           ... = g (f^[n] x)   : h.iterate_left n x
-           ... ≤ g (g^[n] x)   : hg ihn
-           ... = (g^[n+1]) x   : (iterate_succ_apply' g n x).symm
+by refine hf.seq_le_seq n _ (λ k hk, _) (λ k hk, _);
+  simp [iterate_succ' f, h.iterate_right _ _, hg.iterate _ hx]
 
 lemma iterate_pos_lt_of_map_lt (h : commute f g) (hf : monotone f) (hg : strict_mono g)
   {x} (hx : f x < g x) {n} (hn : 0 < n) :
   f^[n] x < (g^[n]) x :=
-flip (nat.le_rec_on hn) hx $ λ n ihn,
-calc f^[n+1] x = (f^[n]) (f x) : iterate_succ_apply f n x
-           ... ≤ (f^[n]) (g x) : hf.iterate n (le_of_lt hx)
-           ... = g (f^[n] x)   : h.iterate_left n x
-           ... < g (g^[n] x)   : hg ihn
-           ... = (g^[n+1]) x   : (iterate_succ_apply' g n x).symm
+by refine hf.seq_pos_lt_seq_of_le_of_lt hn _ (λ k hk, _) (λ k hk, _);
+  simp [iterate_succ' f, h.iterate_right _ _, hg.iterate _ hx]
 
 lemma iterate_pos_lt_of_map_lt' (h : commute f g) (hf : strict_mono f) (hg : monotone g)
   {x} (hx : f x < g x) {n} (hn : 0 < n) :
@@ -99,9 +135,7 @@ open function
 /-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
 lemma iterate_le_of_le (hf : monotone f) (h : f ≤ g) (n : ℕ) :
   f^[n] ≤ (g^[n]) :=
-nat.rec_on n (le_refl id) $ λ n ihn x,
-calc f^[n] (f x) ≤ (f^[n]) (g x) : hf.iterate n (h x)
-             ... ≤ (g^[n+1] x)   : ihn (g x)
+λ x, by refine hf.seq_le_seq n _ (λ k hk, _) (λ k hk, _); simp [iterate_succ', h _]
 
 /-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
 lemma iterate_ge_of_ge (hg : monotone g) (h : f ≤ g) (n : ℕ) :

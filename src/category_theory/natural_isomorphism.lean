@@ -14,12 +14,13 @@ For the most part, natural isomorphisms are just another sort of isomorphism.
 We provide some special support for extracting components:
 * if `α : F ≅ G`, then `a.app X : F.obj X ≅ G.obj X`,
 and building natural isomorphisms from components:
-* ```
-  nat_iso.of_components
-    (app : ∀ X : C, F.obj X ≅ G.obj X)
-    (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
-  F ≅ G
-  ```
+*
+```
+nat_iso.of_components
+  (app : ∀ X : C, F.obj X ≅ G.obj X)
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
+F ≅ G
+```
 only needing to check naturality in one direction.
 
 ## Implementation
@@ -154,6 +155,8 @@ instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X)
 { inv := (inv α).app X,
   hom_inv_id' := congr_fun (congr_arg nat_trans.app (is_iso.hom_inv_id α)) X,
   inv_hom_id' := congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X }
+
+@[simp] lemma is_iso_inv_app (α : F ⟶ G) [is_iso α] (X) : (inv α).app X = inv (α.app X) := rfl
 
 /--
 Construct a natural isomorphism between functors by giving object level isomorphisms,

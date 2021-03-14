@@ -36,10 +36,7 @@ lemma inv_gold : φ⁻¹ = -ψ :=
 begin
   have : 1 + real.sqrt 5 ≠ 0,
     from ne_of_gt (add_pos (by norm_num) $ real.sqrt_pos.mpr (by norm_num)),
-  field_simp,
-  apply mul_left_cancel' this,
-  rw mul_div_cancel' _ this,
-  rw [add_comm, ← sq_sub_sq],
+  field_simp [sub_mul, mul_add],
   norm_num
 end
 
@@ -79,10 +76,7 @@ begin
 end
 
 lemma gold_pos : 0 < φ :=
-begin
-  rw golden_ratio,
-  linarith [real.sqrt_nonneg 5]
-end
+mul_pos (by apply add_pos; norm_num) $ inv_pos.2 zero_lt_two
 
 lemma gold_ne_zero : φ ≠ 0 := ne_of_gt gold_pos
 
@@ -160,7 +154,8 @@ begin
   intros n,
   simp only,
   rw [nat.fib_succ_succ, add_comm],
-  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ']
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ'],
+  refl,
 end
 
 /-- The geometric sequence `λ n, φ^n` is a solution of `fib_rec`. -/

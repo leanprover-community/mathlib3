@@ -75,13 +75,13 @@ private def arity (α : Type*) : constructors α → nat
 
 variable {α : Type*}
 
-private def f : prop_form α → W (λ i, fin (arity α i))
+private def f : prop_form α → W_type (λ i, fin (arity α i))
 | (var a)   := ⟨cvar a, mk_fn0⟩
 | (not p)   := ⟨cnot, mk_fn1 (f p)⟩
 | (and p q) := ⟨cand, mk_fn2 (f p) (f q)⟩
 | (or  p q) := ⟨cor, mk_fn2 (f p) (f q)⟩
 
-private def finv : W (λ i, fin (arity α i)) → prop_form α
+private def finv : W_type (λ i, fin (arity α i)) → prop_form α
 | ⟨cvar a, fn⟩ := var a
 | ⟨cnot, fn⟩   := not (finv (fn ⟨0, dec_trivial⟩))
 | ⟨cand, fn⟩   := and (finv (fn ⟨0, dec_trivial⟩)) (finv (fn ⟨1, dec_trivial⟩))

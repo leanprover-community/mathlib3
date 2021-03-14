@@ -7,9 +7,18 @@ Author: Mario Carneiro
 import set_theory.ordinal_arithmetic
 
 /-!
-# Ordinal notations
+# Ordinal notation
 
-constructive ordinal arithmetic for ordinals `< ε₀`.
+Constructive ordinal arithmetic for ordinals below `ε₀`.
+
+We define a type `onote`, with constructors `0 : onote` and `onote.oadd e n a` representing
+`ω ^ e * n + a`.
+We say that `o` is in Cantor normal form - `onote.NF o` - if either `o = 0` or
+`o = ω ^ e * n + a` with `a < ω ^ e` and `a` in Cantor normal form.
+
+The type `nonote` is the type of ordinals below `ε₀` in Cantor normal form.
+Various operations (addition, subtraction, multiplication, power function)
+are defined on `onote` and `nonote`.
 -/
 
 open ordinal
@@ -175,7 +184,7 @@ by cases h with _ _ _ _ eb _ h₁ h₂ h₃; exact h₃
 
 theorem NF_below_zero : ∀ {o}, NF_below o 0 ↔ o = 0
 | 0            := ⟨λ _, rfl, λ _, NF_below.zero⟩
-| (oadd e n a) := ⟨λ h, (not_le_of_lt h.lt).elim (zero_le _),
+| (oadd e n a) := ⟨λ h, (not_le_of_lt h.lt).elim (ordinal.zero_le _),
                    λ e, e.symm ▸ NF_below.zero⟩
 
 theorem NF.zero_of_zero {e n a} (h : NF (oadd e n a)) (e0 : e = 0) : a = 0 :=
@@ -643,8 +652,8 @@ begin
   haveI := (NF_repr_split' e₂).1,
   casesI a with a0 n a',
   { cases m with m,
-    { by_cases o₂ = 0; simp [pow, power, e₁, h]; apply_instance },
-    { by_cases m = 0; simp [pow, power, e₁, e₂, h]; apply_instance } },
+    { by_cases o₂ = 0; simp [pow, power, *]; apply_instance },
+    { by_cases m = 0; simp [pow, power, -monoid.pow_eq_has_pow, *]; apply_instance } },
   { simp [pow, power, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
     cases k with k; simp [succ_eq_add_one, power]; resetI; apply_instance }
@@ -674,7 +683,7 @@ begin
   cases le_or_lt ω (repr e) with h h,
   { apply le_trans (mul_le_mul_left _ $ le_of_lt $ lt_succ_self _),
     rw [succ, add_mul_succ _ (one_add_of_omega_le h), ← succ,
-        succ_le, mul_lt_mul_iff_left (pos_iff_ne_zero.2 e0)],
+        succ_le, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
     exact omega_is_limit.2 _ l },
   { refine le_trans (le_of_lt $ mul_lt_omega (omega_is_limit.2 _ h) l) _,
     simpa using mul_le_mul_right ω (one_le_iff_ne_zero.2 e0) }
@@ -712,7 +721,7 @@ begin
     { rw power_mul, exact IH.1 k0 } },
   refine ⟨λ_, _, _⟩,
   { rw [RR, ← power_mul _ _ (succ k.succ)],
-    have e0 := pos_iff_ne_zero.2 e0,
+    have e0 := ordinal.pos_iff_ne_zero.2 e0,
     have rr0 := lt_of_lt_of_le e0 (le_add_left _ _),
     apply add_lt_omega_power,
     { simp [power_mul, ω0, power_add, mul_assoc],
@@ -762,7 +771,7 @@ begin
       cases NF_repr_split' e₂ with _ r₂,
       by_cases m = 0; simp [power_def, power, e₁, h, r₁, e₂, r₂, -nat.cast_succ],
       rw [power_add, power_mul, power_omega _ (nat_lt_omega _)],
-      simpa using nat_cast_lt.2 (nat.succ_lt_succ $ nat.pos_iff_ne_zero.2 h) } },
+      simpa using nat_cast_lt.2 (nat.succ_lt_succ $ pos_iff_ne_zero.2 h) } },
   { haveI := N₁.fst, haveI := N₁.snd,
     cases N₁.of_dvd_omega (split_dvd e₁) with a00 ad,
     have al := split_add_lt e₁,
@@ -835,26 +844,7 @@ theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
   exact subtype.mk_eq_mk.2 this
 end
 
-instance : linear_order nonote :=
-{ le_antisymm := λ a b, match cmp a b, cmp_compares a b with
-    | ordering.lt, h, h₁, h₂ := (not_lt_of_le h₂).elim h
-    | ordering.eq, h, h₁, h₂ := h
-    | ordering.gt, h, h₁, h₂ := (not_lt_of_le h₁).elim h
-    end,
-  le_total := λ a b, match cmp a b, cmp_compares a b with
-    | ordering.lt, h := or.inl (le_of_lt h)
-    | ordering.eq, h := or.inl (le_of_eq h)
-    | ordering.gt, h := or.inr (le_of_lt h)
-    end,
-  ..nonote.preorder }
-
-instance decidable_lt : @decidable_rel nonote (<)
-| a b := decidable_of_iff _ (cmp_compares a b).eq_lt
-
-instance : decidable_linear_order nonote :=
-{ decidable_le := λ a b, decidable_of_iff _ not_lt,
-  decidable_lt := nonote.decidable_lt,
-  ..nonote.linear_order }
+instance : linear_order nonote := linear_order_of_compares cmp cmp_compares
 
 /-- Asserts that `repr a < ω ^ repr b`. Used in `nonote.rec_on` -/
 def below (a b : nonote) : Prop := NF_below a.1 (repr b)

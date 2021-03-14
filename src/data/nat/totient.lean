@@ -19,7 +19,7 @@ localized "notation `φ` := nat.totient" in nat
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
-calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)
+calc totient n ≤ (range n).card : card_filter_le _ _
            ... = n              : card_range _
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
@@ -63,12 +63,12 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
               nat.mul_div_cancel' (gcd_dvd_right _ _)]; exact hb.1)),
                 hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
           hb.2 ▸ nat.mul_div_cancel' (gcd_dvd_right _ _)⟩))
-... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
-  (card_bind (by intros; apply disjoint_filter.2; cc)).symm
+... = ((filter (∣ n) (range n.succ)).bUnion (λ d, (range n).filter (λ m, gcd n m = d))).card :
+  (card_bUnion (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
   congr_arg card (finset.ext (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,
-      mem_bind.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
+      mem_bUnion.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
         (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
 ... = n : card_range _
 

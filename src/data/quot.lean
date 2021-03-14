@@ -6,7 +6,13 @@ Authors: Johannes Hölzl
 import logic.relator
 
 /-!
-# Quotients -- extends the core library
+# Quotient types
+
+This module extends the core library's treatment of quotient types (`init.data.quot`).
+
+## Tags
+
+quotient
 -/
 
 variables {α : Sort*} {β : Sort*}
@@ -58,6 +64,14 @@ lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y �
 
 variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 
+/-- **Alias** of `quot.lift_beta`. -/
+lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
+  quot.lift f h (quot.mk r a) = f a := quot.lift_beta f h a
+
+@[simp]
+lemma lift_on_mk (a : α) (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
+  quot.lift_on (quot.mk r a) f h = f a := rfl
+
 /-- Descends a function `f : α → β → γ` to quotients of `α` and `β`. -/
 attribute [reducible, elab_as_eliminator]
 protected def lift₂
@@ -70,9 +84,9 @@ quot.lift (λ a, quot.lift (f a) (hr a))
 q₁ q₂
 
 @[simp]
-lemma lift₂_mk  (a : α) (b : β) (f : α → β → γ)
+lemma lift₂_mk (f : α → β → γ)
   (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
-  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) :
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) (a : α) (b : β) :
   quot.lift₂ f hr hs (quot.mk r a) (quot.mk s b) = f a b := rfl
 
 /-- Descends a function `f : α → β → γ` to quotients of `α` and `β` and applies it. -/
@@ -82,7 +96,7 @@ protected def lift_on₂ (p : quot r) (q : quot s) (f : α → β → γ)
   (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) : γ := quot.lift₂ f hr hs p q
 
 @[simp]
-lemma lift_on₂_mk  (a : α) (b : β) (f : α → β → γ)
+lemma lift_on₂_mk (a : α) (b : β) (f : α → β → γ)
   (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
   (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b) :
   quot.lift_on₂ (quot.mk r a) (quot.mk s b) f hr hs = f a b := rfl
@@ -162,17 +176,26 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
   (∀a:quotient r, p a) ↔ (∀a:α, p ⟦a⟧) :=
 ⟨assume h x, h _, assume h a, a.induction_on h⟩
 
-@[simp] lemma quotient.lift_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+@[simp] lemma quotient.lift_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
 
-@[simp] lemma quotient.lift_on_beta [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
+@[simp] lemma quotient.lift_on_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift_on (quotient.mk x) f h = f x := rfl
 
-@[simp] theorem quotient.lift_on_beta₂ {α : Type} {β : Type} [setoid α] (f : α → α → β)
+@[simp] theorem quotient.lift_on₂_mk {α : Sort*} {β : Sort*} [setoid α] (f : α → α → β)
   (h : ∀ (a₁ a₂ b₁ b₂ : α), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂) (x y : α) :
   quotient.lift_on₂ (quotient.mk x) (quotient.mk y) f h = f x y := rfl
+
+/-- `quot.mk r` is a surjective function. -/
+lemma surjective_quot_mk (r : α → α → Prop) : function.surjective (quot.mk r) :=
+quot.exists_rep
+
+/-- `quotient.mk` is a surjective function. -/
+lemma surjective_quotient_mk (α : Sort*) [s : setoid α] :
+  function.surjective (quotient.mk : α → quotient s) :=
+quot.exists_rep
 
 /-- Choose an element of the equivalence class using the axiom of choice.
   Sound but noncomputable. -/
@@ -238,7 +261,7 @@ quot.lift f (λ a b _, c a b)
 
 theorem ind {β : trunc α → Prop} : (∀ a : α, β (mk a)) → ∀ q : trunc α, β q := quot.ind
 
-protected theorem lift_beta (f : α → β) (c) (a : α) : lift f c (mk a) = f a := rfl
+protected theorem lift_mk (f : α → β) (c) (a : α) : lift f c (mk a) = f a := rfl
 
 /-- Lift a constant function on `q : trunc α`. -/
 @[reducible, elab_as_eliminator]
@@ -261,6 +284,7 @@ trunc.induction_on₂ a b (λ x y, quot.sound trivial)
 
 instance : subsingleton (trunc α) := ⟨trunc.eq⟩
 
+/-- The `bind` operator for the `trunc` monad. -/
 def bind (q : trunc α) (f : α → trunc β) : trunc β :=
 trunc.lift_on q f (λ a b, trunc.eq _ _)
 
@@ -319,11 +343,19 @@ several different quotient relations on a type, for example quotient groups, rin
 instance argument. -/
 protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
 
+/-- `quotient.mk'` is a surjective function. -/
+lemma surjective_quotient_mk' : function.surjective (quotient.mk' : α → quotient s₁) :=
+quot.exists_rep
+
 /-- A version of `quotient.lift_on` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/
 @[elab_as_eliminator, reducible]
 protected def lift_on' (q : quotient s₁) (f : α → φ)
   (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) : φ := quotient.lift_on q f h
+
+@[simp]
+protected lemma lift_on'_mk' (f : α → φ) (h) (x : α) :
+  quotient.lift_on' (@quotient.mk' _ s₁ x) f h = f x := rfl
 
 /-- A version of `quotient.lift_on₂` taking `{s₁ : setoid α} {s₂ : setoid β}` as implicit arguments
 instead of instance arguments. -/
@@ -331,6 +363,10 @@ instead of instance arguments. -/
 protected def lift_on₂' (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → γ)
   (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂) : γ :=
 quotient.lift_on₂ q₁ q₂ f h
+
+@[simp]
+protected lemma lift_on₂'_mk' (f : α → β → γ) (h) (a : α) (b : β) :
+  quotient.lift_on₂' (@quotient.mk' _ s₁ a) (@quotient.mk' _ s₂ b) f h = f a b := rfl
 
 /-- A version of `quotient.ind` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/
@@ -367,6 +403,13 @@ protected lemma induction_on₃' {p : quotient s₁ → quotient s₂ → quotie
   (q₁ : quotient s₁) (q₂ : quotient s₂) (q₃ : quotient s₃)
   (h : ∀ a₁ a₂ a₃, p (quotient.mk' a₁) (quotient.mk' a₂) (quotient.mk' a₃)) : p q₁ q₂ q₃ :=
 quotient.induction_on₃ q₁ q₂ q₃ h
+
+/-- A version of `quotient.rec_on_subsingleton` taking `{s₁ : setoid α}` as an implicit argument
+instead of an instance argument. -/
+@[elab_as_eliminator]
+protected def rec_on_subsingleton' {φ : quotient s₁ → Sort*}
+  [h : ∀ a, subsingleton (φ ⟦a⟧)] (q : quotient s₁) (f : Π a, φ (quotient.mk' a)) : φ q :=
+quotient.rec_on_subsingleton q f
 
 /-- Recursion on a `quotient` argument `a`, result type depends on `⟦a⟧`. -/
 protected def hrec_on' {φ : quotient s₁ → Sort*} (qa : quotient s₁) (f : Π a, φ (quotient.mk' a))

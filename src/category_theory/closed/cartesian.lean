@@ -5,10 +5,11 @@ Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.constructions.preserve_binary_products
+import category_theory.limits.preserves.shapes.binary_products
 import category_theory.closed.monoidal
 import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction
+import category_theory.adjunction.mates
 import category_theory.epi_mono
 
 /-!
@@ -86,16 +87,29 @@ def exp : C ⥤ C :=
 (@closed.is_adj _ _ _ A _).right
 
 /-- The adjunction between A ⨯ - and (-)^A. -/
-def exp.adjunction : prod_functor.obj A ⊣ exp A :=
+def exp.adjunction : prod.functor.obj A ⊣ exp A :=
 closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
-def ev : exp A ⋙ prod_functor.obj A ⟶ 𝟭 C :=
+def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
 closed.is_adj.adj.counit
 
 /-- The coevaluation natural transformation. -/
-def coev : 𝟭 C ⟶ prod_functor.obj A ⋙ exp A :=
+def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
 closed.is_adj.adj.unit
+
+@[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
+@[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
+
+@[simp, reassoc]
+lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
+  limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=
+(ev A).naturality f
+
+@[simp, reassoc]
+lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
+  f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
+(coev A).naturality f
 
 notation A ` ⟹ `:20 B:20 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
@@ -106,6 +120,9 @@ adjunction.left_triangle_components (exp.adjunction A)
 
 @[simp, reassoc] lemma coev_ev : (coev A).app (A⟹B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A⟹B) :=
 adjunction.right_triangle_components (exp.adjunction A)
+
+instance : preserves_colimits (prod.functor.obj A) :=
+(exp.adjunction A).left_adjoint_preserves_colimits
 
 end exp
 
@@ -173,7 +190,7 @@ lemma curry_eq (g : A ⨯ Y ⟶ X) : curry g = (coev A).app Y ≫ (exp A).map g 
 adjunction.hom_equiv_unit _
 
 lemma uncurry_id_eq_ev (A X : C) [exponentiable A] : uncurry (𝟙 (A ⟹ X)) = (ev A).app X :=
-by rw [uncurry_eq, prod_map_id_id, id_comp]
+by rw [uncurry_eq, prod.map_id_id, id_comp]
 
 lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = (coev A).app X :=
 by { rw [curry_eq, (exp A).map_id (A ⨯ _)], apply comp_id }
@@ -195,7 +212,7 @@ yoneda.ext (⊤_ C ⟹ X) X
   (λ Y f, curry ((prod.left_unitor Y).hom ≫ f))
   (λ Z g, by rw [curry_eq_iff, iso.hom_inv_id_assoc] )
   (λ Z g, by simp)
-  (λ Z W f g, by rw [uncurry_natural_left, prod_left_unitor_inv_naturality_assoc f] )
+  (λ Z W f g, by rw [uncurry_natural_left, prod.left_unitor_inv_naturality_assoc f] )
 
 /-- The internal element which points at the given morphism. -/
 def internalize_hom (f : A ⟶ Y) : ⊤_C ⟶ (A ⟹ Y) :=
@@ -206,41 +223,40 @@ section pre
 variables {B}
 
 /-- Pre-compose an internal hom with an external hom. -/
-def pre (X : C) (f : B ⟶ A) [exponentiable B] : (A⟹X) ⟶ B⟹X :=
-curry (limits.prod.map f (𝟙 _) ≫ (ev A).app X)
+def pre (f : B ⟶ A) [exponentiable B] : exp A ⟶ exp B :=
+transfer_nat_trans_self (exp.adjunction _) (exp.adjunction _) (prod.functor.map f)
 
-lemma pre_id (A X : C) [exponentiable A] : pre X (𝟙 A) = 𝟙 (A⟹X) :=
-by { rw [pre, prod_map_id_id, id_comp, ← uncurry_id_eq_ev], simp }
+lemma prod_map_pre_app_comp_ev (f : B ⟶ A) [exponentiable B] (X : C) :
+  limits.prod.map (𝟙 B) ((pre f).app X) ≫ (ev B).app X =
+    limits.prod.map f (𝟙 (A ⟹ X)) ≫ (ev A).app X :=
+transfer_nat_trans_self_counit _ _ (prod.functor.map f) X
 
--- There's probably a better proof of this somehow
-/-- Precomposition is contrafunctorial. -/
-lemma pre_map [exponentiable B] {D : C} [exponentiable D] (f : A ⟶ B) (g : B ⟶ D) :
-  pre X (f ≫ g) = pre X g ≫ pre X f :=
+lemma uncurry_pre (f : B ⟶ A) [exponentiable B] (X : C) :
+  uncurry ((pre f).app X) = limits.prod.map f (𝟙 _) ≫ (ev A).app X :=
 begin
-  rw [pre, curry_eq_iff, pre, pre, uncurry_natural_left, uncurry_curry, prod_map_map_assoc,
-      prod_map_comp_id, assoc, ← uncurry_id_eq_ev, ← uncurry_id_eq_ev, ← uncurry_natural_left,
-      curry_natural_right, comp_id, uncurry_natural_right, uncurry_curry],
+  rw [uncurry_eq, prod_map_pre_app_comp_ev]
 end
+
+lemma coev_app_comp_pre_app (f : B ⟶ A) [exponentiable B] :
+  (coev A).app X ≫ (pre f).app (A ⨯ X) = (coev B).app X ≫ (exp B).map (limits.prod.map f (𝟙 _)) :=
+unit_transfer_nat_trans_self _ _ (prod.functor.map f) X
+
+@[simp]
+lemma pre_id (A : C) [exponentiable A] : pre (𝟙 A) = 𝟙 _ :=
+by simp [pre]
+
+@[simp]
+lemma pre_map {A₁ A₂ A₃ : C} [exponentiable A₁] [exponentiable A₂] [exponentiable A₃]
+  (f : A₁ ⟶ A₂) (g : A₂ ⟶ A₃) :
+  pre (f ≫ g) = pre g ≫ pre f :=
+by rw [pre, pre, pre, transfer_nat_trans_self_comp, prod.functor.map_comp]
 
 end pre
 
-lemma pre_post_comm [cartesian_closed C] {A B : C} {X Y : Cᵒᵖ} (f : A ⟶ B) (g : X ⟶ Y) :
-  pre A g.unop ≫ (exp Y.unop).map f = (exp X.unop).map f ≫ pre B g.unop :=
-begin
-  erw [← curry_natural_left, eq_curry_iff, uncurry_natural_right, uncurry_curry, prod_map_map_assoc,
-       (ev _).naturality, assoc], refl
-end
-
 /-- The internal hom functor given by the cartesian closed structure. -/
-def internal_hom [cartesian_closed C] : C ⥤ Cᵒᵖ ⥤ C :=
-{ obj := λ X,
-  { obj := λ Y, Y.unop ⟹ X,
-    map := λ Y Y' f, pre _ f.unop,
-    map_id' := λ Y, pre_id _ _,
-    map_comp' := λ Y Y' Y'' f g, pre_map _ _ },
-  map := λ A B f, { app := λ X, (exp X.unop).map f, naturality' := λ X Y g, pre_post_comm _ _ },
-  map_id' := λ X, by { ext, apply functor.map_id },
-  map_comp' := λ X Y Z f g, by { ext, apply functor.map_comp } }
+def internal_hom [cartesian_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
+{ obj := λ X, exp X.unop,
+  map := λ X Y f, pre f.unop }
 
 /-- If an initial object `I` exists in a CCC, then `A ⨯ I ≅ I`. -/
 @[simps]
@@ -313,7 +329,12 @@ strict_initial initial_is_initial _
 
 /-- If an initial object `0` exists in a CCC then every morphism from it is monic. -/
 lemma initial_mono {I : C} (B : C) (t : is_initial I) [cartesian_closed C] : mono (t.to B) :=
-⟨λ B g h _, by { haveI := strict_initial t g, haveI := strict_initial t h, exact eq_of_inv_eq_inv (t.hom_ext _ _) }⟩
+⟨λ B g h _,
+begin
+  haveI := strict_initial t g,
+  haveI := strict_initial t h,
+  exact eq_of_inv_eq_inv (t.hom_ext _ _)
+end⟩
 
 instance initial.mono_to [has_initial C] (B : C) [cartesian_closed C] : mono (initial.to B) :=
 initial_mono B initial_is_initial
@@ -334,75 +355,30 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
   { is_adj :=
     begin
       haveI q : exponentiable (e.inverse.obj X) := infer_instance,
-      have : is_left_adjoint (prod_functor.obj (e.inverse.obj X)) := q.is_adj,
-      have : e.functor ⋙ prod_functor.obj X ⋙ e.inverse ≅ prod_functor.obj (e.inverse.obj X),
+      have : is_left_adjoint (prod.functor.obj (e.inverse.obj X)) := q.is_adj,
+      have : e.functor ⋙ prod.functor.obj X ⋙ e.inverse ≅ prod.functor.obj (e.inverse.obj X),
       apply nat_iso.of_components _ _,
       intro Y,
       { apply as_iso (prod_comparison e.inverse X (e.functor.obj Y)) ≪≫ _,
-        exact ⟨limits.prod.map (𝟙 _) (e.unit_inv.app _),
-              limits.prod.map (𝟙 _) (e.unit.app _),
-              by simpa [←prod_map_id_comp, prod_map_id_id],
-              by simpa [←prod_map_id_comp, prod_map_id_id]⟩, },
+        apply prod.map_iso (iso.refl _) (e.unit_iso.app Y).symm },
       { intros Y Z g,
-        simp only [prod_comparison, inv_prod_comparison_map_fst, inv_prod_comparison_map_snd,
-          prod.lift_map, functor.comp_map, prod_functor_obj_map, assoc, comp_id,
-          iso.trans_hom, as_iso_hom],
-        apply prod.hom_ext,
-        { rw [assoc, prod.lift_fst, prod.lift_fst, ←functor.map_comp,
-            limits.prod.map_fst, comp_id], },
-        { rw [assoc, prod.lift_snd, prod.lift_snd, ←functor.map_comp_assoc, limits.prod.map_snd],
-          simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
-            functor.map_comp, comp_id],
-          erw comp_id, }, },
-      { have : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+        dsimp [prod_comparison],
+        simp [prod.comp_lift, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
+          -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
+        dsimp, simp -- See note [dsimp, simp]
+        },
+      { have : is_left_adjoint (e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_nat_iso this.symm,
-        have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+        have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_comp e.inverse _,
-        have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
-          prod_functor.obj X,
-        { apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
-          change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
-          apply iso_whisker_left (prod_functor.obj X) e.counit_iso, },
+        have : (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
+          prod.functor.obj X,
+        { apply iso_whisker_right e.counit_iso (prod.functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
+          change prod.functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod.functor.obj X,
+          apply iso_whisker_left (prod.functor.obj X) e.counit_iso, },
         resetI,
         apply adjunction.left_adjoint_of_nat_iso this },
     end } }
-
-variables [cartesian_closed C] [cartesian_closed D]
-variables (F : C ⥤ D) [preserves_limits_of_shape (discrete walking_pair) F]
-
-/--
-The exponential comparison map.
-`F` is a cartesian closed functor if this is an iso for all `A,B`.
--/
-def exp_comparison (A B : C) :
-  F.obj (A ⟹ B) ⟶ F.obj A ⟹ F.obj B :=
-curry (inv (prod_comparison F A _) ≫ F.map ((ev _).app _))
-
-/-- The exponential comparison map is natural in its left argument. -/
-lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
-  exp_comparison F A B ≫ pre (F.obj B) (F.map f) = F.map (pre B f) ≫ exp_comparison F A' B :=
-begin
-  rw [exp_comparison, exp_comparison, ← curry_natural_left, eq_curry_iff, uncurry_natural_left,
-       pre, uncurry_curry, prod_map_map_assoc, curry_eq, prod_map_id_comp, assoc],
-  erw [(ev _).naturality, ev_coev_assoc, ← F.map_id, ← prod_comparison_inv_natural_assoc,
-       ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
-       prod_map_id_comp, assoc, (ev _).naturality, ev_coev_assoc], refl,
-end
-
-/-- The exponential comparison map is natural in its right argument. -/
-lemma exp_comparison_natural_right (A B B' : C) (f : B ⟶ B') :
-  exp_comparison F A B ≫ (exp (F.obj A)).map (F.map f) =
-    F.map ((exp A).map f) ≫ exp_comparison F A B' :=
-by
-  erw [exp_comparison, ← curry_natural_right, curry_eq_iff, exp_comparison, uncurry_natural_left,
-       uncurry_curry, assoc, ← F.map_comp, ← (ev _).naturality, F.map_comp,
-       prod_comparison_inv_natural_assoc, F.map_id]
-
--- TODO: If F has a left adjoint L, then F is cartesian closed if and only if
--- L (B ⨯ F A) ⟶ L B ⨯ L F A ⟶ L B ⨯ A
--- is an iso for all A ∈ D, B ∈ C.
--- Corollary: If F has a left adjoint L which preserves finite products, F is cartesian closed iff
--- F is full and faithful.
 
 end functor
 

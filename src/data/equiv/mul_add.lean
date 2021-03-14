@@ -3,17 +3,20 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import data.equiv.basic
-import deprecated.group
+import algebra.group.hom
+import algebra.group.type_tags
+import algebra.group.units_hom
 
 /-!
 # Multiplicative and additive equivs
 
 In this file we define two extensions of `equiv` called `add_equiv` and `mul_equiv`, which are
-datatypes representing isomorphisms of `add_monoid`s/`add_group`s and `monoid`s/`group`s. We also
-introduce the corresponding groups of automorphisms `add_aut` and `mul_aut`.
+datatypes representing isomorphisms of `add_monoid`s/`add_group`s and `monoid`s/`group`s.
 
 ## Notations
+
+* ``infix ` ≃* `:25 := mul_equiv``
+* ``infix ` ≃+ `:25 := add_equiv``
 
 The extended equivs all have coercions to functions, and the coercions are the canonical
 notation when treating the isomorphisms as maps.
@@ -23,33 +26,33 @@ notation when treating the isomorphisms as maps.
 The fields for `mul_equiv`, `add_equiv` now avoid the unbundled `is_mul_hom` and `is_add_hom`, as
 these are deprecated.
 
-Definition of multiplication in the groups of automorphisms agrees with function composition,
-multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not with
-`category_theory.comp`.
-
 ## Tags
 
-equiv, mul_equiv, add_equiv, mul_aut, add_aut
+equiv, mul_equiv, add_equiv
 -/
 
-variables {A : Type*} {B : Type*} {M : Type*} {N : Type*} {P : Type*} {G : Type*} {H : Type*}
+variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
+  {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
 
 set_option old_structure_cmd true
 
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/
-structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B :=
-(map_add' : ∀ x y : A, to_fun (x + y) = to_fun x + to_fun y)
+@[ancestor equiv add_hom]
+structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B, add_hom A B
 
 /-- The `equiv` underlying an `add_equiv`. -/
 add_decl_doc add_equiv.to_equiv
+/-- The `add_hom` underlying a `add_equiv`. -/
+add_decl_doc add_equiv.to_add_hom
 
 /-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
-@[to_additive]
-structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N :=
-(map_mul' : ∀ x y : M, to_fun (x * y) = to_fun x * to_fun y)
+@[ancestor equiv mul_hom, to_additive]
+structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, mul_hom M N
 
 /-- The `equiv` underlying a `mul_equiv`. -/
 add_decl_doc mul_equiv.to_equiv
+/-- The `mul_hom` underlying a `mul_equiv`. -/
+add_decl_doc mul_equiv.to_mul_hom
 
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
@@ -59,23 +62,34 @@ namespace mul_equiv
 @[to_additive]
 instance [has_mul M] [has_mul N] : has_coe_to_fun (M ≃* N) := ⟨_, mul_equiv.to_fun⟩
 
-variables [has_mul M] [has_mul N] [has_mul P]
+variables [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
 
 @[simp, to_additive]
-lemma to_fun_apply {f : M ≃* N} {m : M} : f.to_fun m = f m := rfl
+lemma to_fun_eq_coe {f : M ≃* N} : f.to_fun = f := rfl
+
+@[simp, to_additive]
+lemma coe_to_equiv {f : M ≃* N} : ⇑f.to_equiv = f := rfl
+
+@[simp, to_additive]
+lemma coe_to_mul_hom {f : M ≃* N} : ⇑f.to_mul_hom = f := rfl
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[simp, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
 
-/-- A multiplicative isomorphism preserves multiplication (deprecated). -/
-@[to_additive]
-instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
-
 /-- Makes a multiplicative isomorphism from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive isomorphism from a bijection which preserves addition."]
 def mk' (f : M ≃ N) (h : ∀ x y, f (x * y) = f x * f y) : M ≃* N :=
 ⟨f.1, f.2, f.3, f.4, h⟩
+
+@[to_additive]
+protected lemma bijective (e : M ≃* N) : function.bijective e := e.to_equiv.bijective
+
+@[to_additive]
+protected lemma injective (e : M ≃* N) : function.injective e := e.to_equiv.injective
+
+@[to_additive]
+protected lemma surjective (e : M ≃* N) : function.surjective e := e.to_equiv.surjective
 
 /-- The identity map is a multiplicative isomorphism. -/
 @[refl, to_additive "The identity map is an additive isomorphism."]
@@ -88,13 +102,21 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, h.left_inv.injective begin
-    show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
-      h ((h.to_equiv.symm n₁) * (h.to_equiv.symm n₂)),
-   rw h.map_mul,
-   show _ = h.to_equiv (_) * h.to_equiv (_),
-   rw [h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply], end,
-  ..h.to_equiv.symm}
+{ map_mul' := λ n₁ n₂, h.injective $
+    begin
+      have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
+      simp only [this, h.map_mul]
+    end,
+  .. h.to_equiv.symm}
+
+/-- See Note [custom simps projection] -/
+-- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
+-- in the whole file.
+@[to_additive add_equiv.simps.inv_fun "See Note custom simps projection"]
+def simps.inv_fun (e : M ≃* N) : N → M := e.symm
+
+initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
+initialize_simps_projections mul_equiv (to_fun → apply, inv_fun → symm_apply)
 
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
@@ -103,7 +125,17 @@ theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃) = f := rfl
 
 @[simp, to_additive]
-theorem coe_symm_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃).symm = g := rfl
+lemma symm_symm : ∀ (f : M ≃* N), f.symm.symm = f
+| ⟨f, g, h₁, h₂, h₃⟩ := rfl
+
+@[to_additive]
+lemma symm_bijective : function.bijective (symm : (M ≃* N) → (N ≃* M)) :=
+equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
+
+@[simp, to_additive]
+theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
+  (mul_equiv.mk f g h₁ h₂ h₃).symm =
+  { to_fun := g, inv_fun := f, ..(mul_equiv.mk f g h₁ h₂ h₃).symm} := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
@@ -128,7 +160,70 @@ theorem refl_apply (m : M) : refl M m = m := rfl
 @[simp, to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
-/-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
+@[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
+e.injective.eq_iff
+
+@[to_additive]
+lemma apply_eq_iff_symm_apply (e : M ≃* N) {x : M} {y : N} : e x = y ↔ x = e.symm y :=
+e.to_equiv.apply_eq_iff_eq_symm_apply
+
+@[to_additive]
+lemma symm_apply_eq (e : M ≃* N) {x y} : e.symm x = y ↔ x = e y :=
+e.to_equiv.symm_apply_eq
+
+@[to_additive]
+lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
+e.to_equiv.eq_symm_apply
+
+/-- Two multiplicative isomorphisms agree if they are defined by the
+    same underlying function. -/
+@[ext, to_additive
+  "Two additive isomorphisms agree if they are defined by the same underlying function."]
+lemma ext {f g : mul_equiv M N} (h : ∀ x, f x = g x) : f = g :=
+begin
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
+
+attribute [ext] add_equiv.ext
+
+@[to_additive]
+lemma ext_iff {f g : mul_equiv M N} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, ext⟩
+
+@[simp, to_additive] lemma mk_coe (e : M ≃* N) (e' h₁ h₂ h₃) :
+  (⟨e, e', h₁, h₂, h₃⟩ : M ≃* N) = e := ext $ λ _, rfl
+
+@[simp, to_additive] lemma mk_coe' (e : M ≃* N) (f h₁ h₂ h₃) :
+  (mul_equiv.mk f ⇑e h₁ h₂ h₃ : N ≃* M) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
+@[to_additive]
+protected lemma congr_arg {f : mul_equiv M N} : Π {x x' : M}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+@[to_additive]
+protected lemma congr_fun {f g : mul_equiv M N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
+
+/-- The `mul_equiv` between two monoids with a unique element. -/
+@[to_additive "The `add_equiv` between two add_monoids with a unique element."]
+def mul_equiv_of_unique_of_unique {M N}
+  [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
+{ map_mul' := λ _ _, subsingleton.elim _ _,
+  ..equiv_of_unique_of_unique }
+
+/-- There is a unique monoid homomorphism between two monoids with a unique element. -/
+@[to_additive] instance {M N} [unique M] [unique N] [has_mul M] [has_mul N] : unique (M ≃* N) :=
+{ default := mul_equiv_of_unique_of_unique ,
+  uniq := λ _, ext $ λ x, subsingleton.elim _ _}
+
+/-!
+## Monoids
+-/
+
+/-- A multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism). -/
 @[simp, to_additive]
 lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
@@ -136,7 +231,7 @@ by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
   h x = 1 ↔ x = 1 :=
-h.map_one ▸ h.to_equiv.apply_eq_iff_eq x 1
+h.map_one ▸ h.to_equiv.apply_eq_iff_eq
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
@@ -160,42 +255,90 @@ def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
 
 @[simp, to_additive]
-lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
-  e.to_monoid_hom x = e x :=
+lemma coe_to_monoid_hom {M N} [monoid M] [monoid N] (e : M ≃* N) :
+  ⇑e.to_monoid_hom = e :=
 rfl
+
+@[to_additive] lemma to_monoid_hom_injective
+  {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
+λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
+
+
+/--
+A multiplicative analogue of `equiv.arrow_congr`,
+where the equivalence between the targets is multiplicative.
+-/
+@[simps apply,
+  to_additive "An additive analogue of `equiv.arrow_congr`,
+where the equivalence between the targets is additive."]
+def arrow_congr {M N P Q : Type*} [monoid P] [monoid Q]
+  (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
+{ to_fun := λ h n, g (h (f.symm n)),
+  inv_fun := λ k m, g.symm (k (f m)),
+  left_inv := λ h, by { ext, simp, },
+  right_inv := λ k, by { ext, simp, },
+  map_mul' := λ h k, by { ext, simp, }, }
+
+/--
+A multiplicative analogue of `equiv.arrow_congr`,
+for multiplicative maps from a monoid to a commutative monoid.
+-/
+@[simps apply,
+  to_additive "An additive analogue of `equiv.arrow_congr`,
+for additive maps from an additive monoid to a commutative additive monoid."]
+def monoid_hom_congr {M N P Q} [monoid M] [monoid N] [comm_monoid P] [comm_monoid Q]
+  (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
+{ to_fun := λ h,
+  g.to_monoid_hom.comp (h.comp f.symm.to_monoid_hom),
+  inv_fun := λ k,
+  g.symm.to_monoid_hom.comp (k.comp f.to_monoid_hom),
+  left_inv := λ h, by { ext, simp, },
+  right_inv := λ k, by { ext, simp, },
+  map_mul' := λ h k, by { ext, simp, }, }
+
+/-!
+# Groups
+-/
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
 @[simp, to_additive]
 lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 h.to_monoid_hom.map_inv x
 
-/-- A multiplicative bijection between two monoids is a monoid hom
-  (deprecated -- use to_monoid_hom). -/
-@[to_additive]
-instance is_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : is_monoid_hom h :=
-⟨h.map_one⟩
-
-/-- A multiplicative bijection between two groups is a group hom
-  (deprecated -- use to_monoid_hom). -/
-@[to_additive]
-instance is_group_hom {G H} [group G] [group H] (h : G ≃* H) :
-  is_group_hom h := { map_mul := h.map_mul }
-
-/-- Two multiplicative isomorphisms agree if they are defined by the
-    same underlying function. -/
-@[ext, to_additive
-  "Two additive isomorphisms agree if they are defined by the same underlying function."]
-lemma ext {f g : mul_equiv M N} (h : ∀ x, f x = g x) : f = g :=
-begin
-  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
-  cases f, cases g, congr,
-  { exact (funext h) },
-  { exact congr_arg equiv.inv_fun h₁ }
-end
-
-attribute [ext] add_equiv.ext
-
 end mul_equiv
+
+-- We don't use `to_additive` to generate definition because it fails to tell Lean about
+-- equational lemmas
+
+/-- Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id` and
+`f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
+constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
+monoid homomorphisms. -/
+def add_monoid_hom.to_add_equiv [add_monoid M] [add_monoid N] (f : M →+ N) (g : N →+ M)
+  (h₁ : g.comp f = add_monoid_hom.id _) (h₂ : f.comp g = add_monoid_hom.id _) :
+  M ≃+ N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := add_monoid_hom.congr_fun h₁,
+  right_inv := add_monoid_hom.congr_fun h₂,
+  map_add' := f.map_add }
+
+/-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
+returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
+useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
+@[to_additive]
+def monoid_hom.to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M)
+  (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
+  M ≃* N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := monoid_hom.congr_fun h₁,
+  right_inv := monoid_hom.congr_fun h₂,
+  map_mul' := f.map_mul }
+
+@[simp, to_additive]
+lemma monoid_hom.coe_to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M) (h₁ h₂) :
+  ⇑(f.to_mul_equiv g h₁ h₂) = f := rfl
 
 /-- An additive equivalence of additive groups preserves subtraction. -/
 lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
@@ -203,105 +346,6 @@ lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
 h.to_add_monoid_hom.map_sub x y
 
 instance add_equiv.inhabited {M : Type*} [has_add M] : inhabited (M ≃+ M) := ⟨add_equiv.refl M⟩
-
-/-- The group of multiplicative automorphisms. -/
-@[to_additive "The group of additive automorphisms."]
-def mul_aut (M : Type*) [has_mul M] := M ≃* M
-
-attribute [reducible] mul_aut add_aut
-
-namespace mul_aut
-
-variables (M) [has_mul M]
-
-/--
-The group operation on multiplicative automorphisms is defined by
-`λ g h, mul_equiv.trans h g`.
-This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
--/
-instance : group (mul_aut M) :=
-by refine_struct
-{ mul := λ g h, mul_equiv.trans h g,
-  one := mul_equiv.refl M,
-  inv := mul_equiv.symm };
-intros; ext; try { refl }; apply equiv.left_inv
-
-instance : inhabited (mul_aut M) := ⟨1⟩
-
-@[simp] lemma coe_mul (e₁ e₂ : mul_aut M) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
-@[simp] lemma coe_one : ⇑(1 : mul_aut M) = id := rfl
-
-lemma mul_def (e₁ e₂ : mul_aut M) : e₁ * e₂ = e₂.trans e₁ := rfl
-lemma one_def : (1 : mul_aut M) = mul_equiv.refl _ := rfl
-lemma inv_def (e₁ : mul_aut M) : e₁⁻¹ = e₁.symm := rfl
-@[simp] lemma mul_apply (e₁ e₂ : mul_aut M) (m : M) : (e₁ * e₂) m = e₁ (e₂ m) := rfl
-@[simp] lemma one_apply (m : M) : (1 : mul_aut M) m = m := rfl
-
-@[simp] lemma apply_inv_self (e : mul_aut M) (m : M) : e (e⁻¹ m) = m :=
-mul_equiv.apply_symm_apply _ _
-
-@[simp] lemma inv_apply_self (e : mul_aut M) (m : M) : e⁻¹ (e m) = m :=
-mul_equiv.apply_symm_apply _ _
-
-/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
-def to_perm : mul_aut M →* equiv.perm M :=
-by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
-
-/-- group conjugation as a group homomorphism into the automorphism group.
-  `conj g h = g * h * g⁻¹` -/
-def conj [group G] : G →* mul_aut G :=
-{ to_fun := λ g,
-  { to_fun := λ h, g * h * g⁻¹,
-    inv_fun := λ h, g⁻¹ * h * g,
-    left_inv := λ _, by simp [mul_assoc],
-    right_inv := λ _, by simp [mul_assoc],
-    map_mul' := by simp [mul_assoc] },
-  map_mul' := λ _ _, by ext; simp [mul_assoc],
-  map_one' := by ext; simp [mul_assoc] }
-
-@[simp] lemma conj_apply [group G] (g h : G) : conj g h = g * h * g⁻¹ := rfl
-@[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
-
-end mul_aut
-
-namespace add_aut
-
-variables (A) [has_add A]
-
-/--
-The group operation on additive automorphisms is defined by
-`λ g h, mul_equiv.trans h g`.
-This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
--/
-instance group : group (add_aut A) :=
-by refine_struct
-{ mul := λ g h, add_equiv.trans h g,
-  one := add_equiv.refl A,
-  inv := add_equiv.symm };
-intros; ext; try { refl }; apply equiv.left_inv
-
-instance : inhabited (add_aut A) := ⟨1⟩
-
-@[simp] lemma coe_mul (e₁ e₂ : add_aut A) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
-@[simp] lemma coe_one : ⇑(1 : add_aut A) = id := rfl
-
-lemma mul_def (e₁ e₂ : add_aut A) : e₁ * e₂ = e₂.trans e₁ := rfl
-lemma one_def : (1 : add_aut A) = add_equiv.refl _ := rfl
-lemma inv_def (e₁ : add_aut A) : e₁⁻¹ = e₁.symm := rfl
-@[simp] lemma mul_apply (e₁ e₂ : add_aut A) (a : A) : (e₁ * e₂) a = e₁ (e₂ a) := rfl
-@[simp] lemma one_apply (a : A) : (1 : add_aut A) a = a := rfl
-
-@[simp] lemma apply_inv_self (e : add_aut A) (a : A) : e⁻¹ (e a) = a :=
-add_equiv.apply_symm_apply _ _
-
-@[simp] lemma inv_apply_self (e : add_aut A) (a : A) : e (e⁻¹ a) = a :=
-add_equiv.apply_symm_apply _ _
-
-/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
-def to_perm : add_aut A →* equiv.perm A :=
-by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
-
-end add_aut
 
 /-- A group is isomorphic to its group of units. -/
 @[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
@@ -368,6 +412,10 @@ protected def mul_left (a : G) : perm G := (to_units a).mul_left
 @[simp, to_additive]
 lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
 
+/-- extra simp lemma that `dsimp` can use. `simp` will never use this. -/
+@[simp, nolint simp_nf, to_additive]
+lemma mul_left_symm_apply (a : G) : ((equiv.mul_left a).symm : G → G) = (*) a⁻¹ := rfl
+
 @[simp, to_additive]
 lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
@@ -382,6 +430,12 @@ lemma coe_mul_right (a : G) : ⇑(equiv.mul_right a) = λ x, x * a := rfl
 @[simp, to_additive]
 lemma mul_right_symm (a : G) : (equiv.mul_right a).symm = equiv.mul_right a⁻¹ :=
 ext $ λ x, rfl
+
+/-- extra simp lemma that `dsimp` can use. `simp` will never use this.  -/
+@[simp, nolint simp_nf, to_additive]
+lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x, x * a⁻¹ := rfl
+
+attribute [nolint simp_nf] add_left_symm_apply add_right_symm_apply
 
 variable (G)
 
@@ -403,43 +457,53 @@ lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 end group
 
-section point_reflection
-
-variables [add_comm_group A] (x y : A)
-
-/-- Point reflection in `x` as a permutation. -/
-def point_reflection (x : A) : perm A :=
-(equiv.neg A).trans (equiv.add_left (x + x))
-
-lemma point_reflection_apply : point_reflection x y = x + x - y := rfl
-
-@[simp] lemma point_reflection_self : point_reflection x x = x := add_sub_cancel _ _
-
-lemma point_reflection_involutive : function.involutive (point_reflection x : A → A) :=
-λ y, by simp only [point_reflection_apply, sub_sub_cancel]
-
-@[simp] lemma point_reflection_symm : (point_reflection x).symm = point_reflection x :=
-by { ext y, rw [symm_apply_eq, point_reflection_involutive x y] }
-
-/-- `x` is the only fixed point of `point_reflection x`. This lemma requires
-`x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
-lemma point_reflection_fixed_iff_of_bit0_injective {x y : A} (h : function.injective (bit0 : A → A)) :
-  point_reflection x y = y ↔ y = x :=
-sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
-
-end point_reflection
-
 end equiv
 
 section type_tags
 
-/-- Reinterpret `f : G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
-def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] (f : G ≃+ H) :
-  multiplicative G ≃* multiplicative H :=
-⟨f.to_add_monoid_hom.to_multiplicative, f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩
+/-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
+def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] :
+  (G ≃+ H) ≃ (multiplicative G ≃* multiplicative H) :=
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative,
+                  f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
 
-/-- Reinterpret `f : G ≃* H` as `additive G ≃+ additive H`. -/
-def mul_equiv.to_additive [monoid G] [monoid H] (f : G ≃* H) : additive G ≃+ additive H :=
-⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩
+/-- Reinterpret `G ≃* H` as `additive G ≃+ additive H`. -/
+def mul_equiv.to_additive [monoid G] [monoid H] :
+  (G ≃* H) ≃ (additive G ≃+ additive H) :=
+{ to_fun := λ f, ⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_add_monoid_hom, f.symm.to_add_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
+
+/-- Reinterpret `additive G ≃+ H` as `G ≃* multiplicative H`. -/
+def add_equiv.to_multiplicative' [monoid G] [add_monoid H] :
+  (additive G ≃+ H) ≃ (G ≃* multiplicative H) :=
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative',
+                  f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
+
+/-- Reinterpret `G ≃* multiplicative H` as `additive G ≃+ H` as. -/
+def mul_equiv.to_additive' [monoid G] [add_monoid H] :
+  (G ≃* multiplicative H) ≃ (additive G ≃+ H) :=
+add_equiv.to_multiplicative'.symm
+
+/-- Reinterpret `G ≃+ additive H` as `multiplicative G ≃* H`. -/
+def add_equiv.to_multiplicative'' [add_monoid G] [monoid H] :
+  (G ≃+ additive H) ≃ (multiplicative G ≃* H) :=
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'',
+                  f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
+
+/-- Reinterpret `multiplicative G ≃* H` as `G ≃+ additive H` as. -/
+def mul_equiv.to_additive'' [add_monoid G] [monoid H] :
+  (multiplicative G ≃* H) ≃ (G ≃+ additive H) :=
+add_equiv.to_multiplicative''.symm
 
 end type_tags

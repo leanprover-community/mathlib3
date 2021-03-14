@@ -23,6 +23,7 @@ and the appropriate definition of instances:
    to `[nonempty α]`
  * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
    in the statement, and could thus be removed by using `classical` in the proof.
+ * `linter.has_coe_to_fun` checks whether necessary `has_coe_to_fun` instances are declared
 -/
 
 open tactic
@@ -44,7 +45,9 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   (is_persistent, prio) ← has_attribute `instance nm,
   /- return `none` if `d` is has low priority -/
   if prio < 1000 then return none else do
-  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
+  (_, tp) ← open_pis d.type,
+  tp ← whnf tp transparency.none,
+  let (fn, args) := tp.get_app_fn_args,
   cls ← get_decl fn.const_name,
   let (pi_args, _) := cls.type.pi_binders,
   guard (args.length = pi_args.length),
@@ -54,8 +57,20 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   let relevant_args := (args.zip pi_args).filter_map $ λ⟨e, ⟨_, info, tp⟩⟩,
     if info = binder_info.inst_implicit ∨ tp.get_app_fn.is_constant_of `out_param
     then none else some e,
-  let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
+  let always_applies := relevant_args.all expr.is_local_constant ∧ relevant_args.nodup,
   if always_applies then return $ some "set priority below 1000" else return none
+
+/--
+There are places where typeclass arguments are specified with implicit `{}` brackets instead of
+the usual `[]` brackets. This is done when the instances can be inferred because they are implicit
+arguments to the type of one of the other arguments. When they can be inferred from these other
+arguments,  it is faster to use this method than to use type class inference.
+
+For example, when writing lemmas about `(f : α →+* β)`, it is faster to specify the fact that `α`
+and `β` are `semiring`s as `{rα : semiring α} {rβ : semiring β}` rather than the usual
+`[semiring α] [semiring β]`.
+-/
+library_note "implicit instance arguments"
 
 /--
 Certain instances always apply during type-class resolution. For example, the instance
@@ -288,6 +303,7 @@ attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
+tt ← return d.is_trusted | pure none,
 mk_meta_var d.type >>= set_goals ∘ pure,
 args ← unfreezing intros,
 expr.sort _ ← target | pure none,
@@ -313,4 +329,4 @@ pure $ format.to_string $
   no_errors_found := "has_coe_to_fun is used correctly",
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.
-See Note function coercions]." }
+See Note [function coercion]." }

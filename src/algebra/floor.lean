@@ -7,6 +7,7 @@ import tactic.linarith
 import tactic.abel
 import algebra.ordered_group
 import data.set.intervals.basic
+
 /-!
 # Floor and Ceil
 
@@ -90,9 +91,9 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
   ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
 
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α]
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
   [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
   have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
@@ -218,7 +219,7 @@ ceil_le.2 (le_trans h (le_ceil _))
 by rw [ceil, neg_add', floor_sub_int, neg_sub, sub_eq_neg_add]; refl
 
 theorem ceil_sub_int (x : α) (z : ℤ) : ⌈x - z⌉ = ⌈x⌉ - z :=
-eq.trans (by rw [int.cast_neg]; refl) (ceil_add_int _ _)
+eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
 
 theorem ceil_lt_add_one (x : α) : (⌈x⌉ : α) < x + 1 :=
 by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
@@ -289,3 +290,35 @@ lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)
 
 lemma le_of_nat_ceil_le {x : α} {n : ℕ} (h : nat_ceil x ≤ n) : x ≤ n :=
 le_trans (le_nat_ceil x) (by exact_mod_cast h)
+
+namespace int
+
+@[simp] lemma preimage_Ioo {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioo x y)) = set.Ioo (floor x) (ceil y) :=
+by { ext, simp [floor_lt, lt_ceil] }
+
+@[simp] lemma preimage_Ico {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ico x y)) = set.Ico (ceil x) (ceil y) :=
+by { ext, simp [ceil_le, lt_ceil] }
+
+@[simp] lemma preimage_Ioc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioc x y)) = set.Ioc (floor x) (floor y) :=
+by { ext, simp [floor_lt, le_floor] }
+
+@[simp] lemma preimage_Icc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Icc x y)) = set.Icc (ceil x) (floor y) :=
+by { ext, simp [ceil_le, le_floor] }
+
+@[simp] lemma preimage_Ioi {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ioi x)) = set.Ioi (floor x) :=
+by { ext, simp [floor_lt] }
+
+@[simp] lemma preimage_Ici {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ici x)) = set.Ici (ceil x) :=
+by { ext, simp [ceil_le] }
+
+@[simp] lemma preimage_Iio {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iio x)) = set.Iio (ceil x) :=
+by { ext, simp [lt_ceil] }
+
+@[simp] lemma preimage_Iic {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iic x)) = set.Iic (floor x) :=
+by { ext, simp [le_floor] }
+
+end int

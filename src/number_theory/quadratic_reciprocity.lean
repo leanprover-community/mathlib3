@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import field_theory.finite
+import field_theory.finite.basic
 import data.zmod.basic
 import data.nat.parity
 
@@ -28,7 +28,7 @@ The proof of quadratic reciprocity implemented uses Gauss' lemma and Eisenstein'
 -/
 
 open function finset nat finite_field zmod
-open_locale big_operators
+open_locale big_operators nat
 
 namespace zmod
 
@@ -60,10 +60,10 @@ lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
   (∃ y : zmod p, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
-  simp only [units.ext_iff, _root_.pow_two, units.coe_mk0, units.coe_mul],
+  simp only [units.ext_iff, pow_two, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
-    have hy : y ≠ 0, { rintro rfl, simpa [_root_.zero_pow] using ha, },
+    have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
@@ -76,11 +76,11 @@ begin
   have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
   rw [euler_criterion p neg_one_ne_zero, neg_one_pow_eq_pow_mod_two],
   cases mod_two_eq_zero_or_one (p / 2) with p_half_even p_half_odd,
-  { rw [p_half_even, _root_.pow_zero, eq_self_iff_true, true_iff],
+  { rw [p_half_even, pow_zero, eq_self_iff_true, true_iff],
     contrapose! p_half_even with hp,
     rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp],
     exact dec_trivial },
-  { rw [p_half_odd, _root_.pow_one,
+  { rw [p_half_odd, pow_one,
         iff_false_intro (ne_neg_self p one_ne_zero).symm, false_iff, not_not],
     rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl] at p_half_odd,
     rw [_root_.fact, ← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp_odd,
@@ -94,16 +94,16 @@ lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
   { substI p, revert a ha, exact dec_trivial },
-  rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
+  rw [← mul_self_eq_one_iff, ← pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
   exact pow_card_sub_one_eq_one ha
 end
 
 /-- Wilson's Lemma: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
-@[simp] lemma wilsons_lemma : (nat.fact (p - 1) : zmod p) = -1 :=
+@[simp] lemma wilsons_lemma : ((p - 1)! : zmod p) = -1 :=
 begin
   refine
-  calc (nat.fact (p - 1) : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
-    by rw [← finset.prod_Ico_id_eq_fact, prod_nat_cast]
+  calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
+    by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
                                ... = (∏ x : units (zmod p), x) : _
                                ... = -1 :
     by rw [prod_hom _ (coe : units (zmod p) → zmod p),
@@ -120,7 +120,7 @@ begin
   { intros a ha, simp only [cast_id, nat_cast_val], },
   { intros _ _ _ _ h, rw units.ext_iff, exact val_injective p h },
   { intros b hb,
-    rw [Ico.mem, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, nat.pos_iff_ne_zero] at hb,
+    rw [Ico.mem, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, pos_iff_ne_zero] at hb,
     refine ⟨units.mk0 b _, finset.mem_univ _, _⟩,
     { assume h, apply hb.1, apply_fun val at h,
       simpa only [val_cast_of_lt hb.right, val_zero] using h },
@@ -130,7 +130,7 @@ end
 @[simp] lemma prod_Ico_one_prime : (∏ x in Ico 1 p, (x : zmod p)) = -1 :=
 begin
   conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub (nat.prime.pos ‹p.prime›)] },
-  rw [← prod_nat_cast, finset.prod_Ico_id_eq_fact, wilsons_lemma]
+  rw [← prod_nat_cast, finset.prod_Ico_id_eq_factorial, wilsons_lemma]
 end
 
 end zmod
@@ -144,7 +144,7 @@ lemma Ico_map_val_min_abs_nat_abs_eq_Ico_map_id
   (Ico 1 (p / 2).succ).1.map (λ a, a) :=
 begin
   have he : ∀ {x}, x ∈ Ico 1 (p / 2).succ → x ≠ 0 ∧ x ≤ p / 2,
-    by simp [nat.lt_succ_iff, nat.succ_le_iff, nat.pos_iff_ne_zero] {contextual := tt},
+    by simp [nat.lt_succ_iff, nat.succ_le_iff, pos_iff_ne_zero] {contextual := tt},
   have hep : ∀ {x}, x ∈ Ico 1 (p / 2).succ → x < p,
     from λ x hx, lt_of_le_of_lt (he hx).2 (nat.div_lt_self hp.pos dec_trivial),
   have hpe : ∀ {x}, x ∈ Ico 1 (p / 2).succ → ¬ p ∣ x,
@@ -153,7 +153,7 @@ begin
     (a * x : zmod p).val_min_abs.nat_abs ∈ Ico 1 (p / 2).succ,
   { assume x hx,
     simp [hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hx, lt_succ_iff, succ_le_iff,
-        nat.pos_iff_ne_zero, nat_abs_val_min_abs_le _], },
+        pos_iff_ne_zero, nat_abs_val_min_abs_le _], },
   have hsurj : ∀ (b : ℕ) (hb : b ∈ Ico 1 (p / 2).succ),
     ∃ x ∈ Ico 1 (p / 2).succ, b = (a * x : zmod p).val_min_abs.nat_abs,
   { assume b hb,
@@ -162,7 +162,7 @@ begin
       simp only [div_eq_mul_inv, hap, char_p.cast_eq_zero_iff (zmod p) p, hpe hb, not_false_iff,
         val_min_abs_eq_zero, inv_eq_zero, int.nat_abs_eq_zero, ne.def, mul_eq_zero, or_self] },
       { apply lt_succ_of_le, apply nat_abs_val_min_abs_le },
-      { rw cast_nat_abs_val_min_abs,
+      { rw nat_cast_nat_abs_val_min_abs,
         split_ifs,
         { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
             if_pos (le_of_lt_succ (Ico.mem.1 hb).2), int.nat_abs_of_nat], },
@@ -176,19 +176,19 @@ end
 
 private lemma gauss_lemma_aux₁ (p : ℕ) [hp : fact p.prime] [hp2 : fact (p % 2 = 1)]
   {a : ℕ} (hap : (a : zmod p) ≠ 0) :
-  (a^(p / 2) * (p / 2).fact : zmod p) =
+  (a^(p / 2) * (p / 2)! : zmod p) =
   (-1)^((Ico 1 (p / 2).succ).filter
-    (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2).fact :=
-calc (a ^ (p / 2) * (p / 2).fact : zmod p) =
+    (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :=
+calc (a ^ (p / 2) * (p / 2)! : zmod p) =
     (∏ x in Ico 1 (p / 2).succ, a * x) :
-  by rw [prod_mul_distrib, ← prod_nat_cast, ← prod_nat_cast, prod_Ico_id_eq_fact,
+  by rw [prod_mul_distrib, ← prod_nat_cast, ← prod_nat_cast, prod_Ico_id_eq_factorial,
       prod_const, Ico.card, succ_sub_one]; simp
 ... = (∏ x in Ico 1 (p / 2).succ, (a * x : zmod p).val) : by simp
 ... = (∏ x in Ico 1 (p / 2).succ,
     (if (a * x : zmod p).val ≤ p / 2 then 1 else -1) *
       (a * x : zmod p).val_min_abs.nat_abs) :
   prod_congr rfl $ λ _ _, begin
-    simp only [cast_nat_abs_val_min_abs],
+    simp only [nat_cast_nat_abs_val_min_abs],
     split_ifs; simp
   end
 ... = (-1)^((Ico 1 (p / 2).succ).filter
@@ -205,18 +205,18 @@ calc (a ^ (p / 2) * (p / 2).fact : zmod p) =
       (by intros; split_ifs at *; simp * at *),
   by rw [prod_mul_distrib, this]; simp
 ... = (-1)^((Ico 1 (p / 2).succ).filter
-      (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2).fact :
+      (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :
   by rw [← prod_nat_cast, finset.prod_eq_multiset_prod,
       Ico_map_val_min_abs_nat_abs_eq_Ico_map_id p a hap,
-      ← finset.prod_eq_multiset_prod, prod_Ico_id_eq_fact]
+      ← finset.prod_eq_multiset_prod, prod_Ico_id_eq_factorial]
 
 private lemma gauss_lemma_aux₂ (p : ℕ) [hp : fact p.prime] [hp2 : fact (p % 2 = 1)]
   {a : ℕ} (hap : (a : zmod p) ≠ 0) :
   (a^(p / 2) : zmod p) = (-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
 (mul_left_inj'
-    (show ((p / 2).fact : zmod p) ≠ 0,
-      by rw [ne.def, char_p.cast_eq_zero_iff (zmod p) p, hp.dvd_fact, not_le];
+    (show ((p / 2)! : zmod p) ≠ 0,
+      by rw [ne.def, char_p.cast_eq_zero_iff (zmod p) p, hp.dvd_factorial, not_le];
           exact nat.div_lt_self hp.pos dec_trivial)).1 $
   by simpa using gauss_lemma_aux₁ p hap
 
@@ -233,7 +233,7 @@ calc ((∑ x in Ico 1 (p / 2).succ, a * x : ℕ) : zmod 2)
   by simp only [mod_add_div]
 ... = (∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) +
     (∑ x in Ico 1 (p / 2).succ, (a * x) / p : ℕ) :
-  by simp only [val_cast_nat];
+  by simp only [val_nat_cast];
     simp [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, sum_nat_cast, hp2]
 ... = _ : congr_arg2 (+)
   (calc ((∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) : zmod 2)
@@ -331,7 +331,7 @@ begin
       { simpa [hq0] using congr_arg (coe : ℕ → zmod p) (le_antisymm hpq hqp) },
     apply_fun zmod.val at this,
     rw [val_cast_of_lt hxp, val_zero] at this,
-    simpa only [this, le_zero_iff_eq, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
+    simpa only [this, nonpos_iff_eq_zero, Ico.mem, one_ne_zero, false_and, mem_product] using hx },
   have hunion : ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
       (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q) ∪
     ((Ico 1 (p / 2).succ).product (Ico 1 (q / 2).succ)).filter
@@ -366,7 +366,7 @@ lemma legendre_sym_eq_pow (a p : ℕ) [hp : fact p.prime] :
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
-  { simp only [if_pos, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
+  { simp only [if_pos, ha, zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
   cases hp.eq_two_or_odd with hp2 hp_odd,
   { substI p,
     generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
@@ -426,7 +426,7 @@ theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] 
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
 by rw [eisenstein_lemma q hp1 hpq0, eisenstein_lemma p hq1 hqp0,
-  ← _root_.pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
+  ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
 -- move this
 instance fact_prime_two : fact (nat.prime 2) := nat.prime_two
@@ -440,7 +440,8 @@ have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
   from λ x hx, have h2xp : 2 * x < p,
       from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
         (le_of_lt_succ $ by finish) dec_trivial
-      ... < _ : by conv_rhs {rw [← mod_add_div p 2, add_comm, show p % 2 = 1, from hp1]}; exact lt_succ_self _,
+      ... < _ :
+        by conv_rhs {rw [← div_add_mod p 2, show p % 2 = 1, from hp1]}; exact lt_succ_self _,
     by rw [← nat.cast_two, ← nat.cast_mul, val_cast_of_lt h2xp],
 have hdisj : disjoint
     ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val))

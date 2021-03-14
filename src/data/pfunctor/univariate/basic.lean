@@ -61,7 +61,7 @@ instance : is_lawful_functor P.obj :=
 
 /-- re-export existing definition of W-types and
 adapt it to a packaged definition of polynomial functor -/
-def W := _root_.W P.B
+def W := _root_.W_type P.B
 
 /- inhabitants of W types is awkward to encode as an instance
 assumption because there needs to be a value `a : P.A`

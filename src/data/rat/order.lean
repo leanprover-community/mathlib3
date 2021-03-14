@@ -59,8 +59,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
-  exact mul_nonneg
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0, mul_nonneg] { contextual := tt }
 end
 
 protected lemma nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
@@ -100,14 +99,14 @@ protected theorem le_total : a ≤ b ∨ b ≤ a :=
 by have := rat.nonneg_total (b - a); rwa neg_sub at this
 
 protected theorem le_antisymm {a b : ℚ} (hab : a ≤ b) (hba : b ≤ a) : a = b :=
-by have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by simpa);
-   rwa neg_neg at this
+by { have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by rwa [← sub_eq_add_neg, neg_sub]),
+   rwa neg_neg at this }
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
 by simpa [sub_eq_add_neg, add_comm, add_left_comm]
 
-instance : decidable_linear_order ℚ :=
+instance : linear_order ℚ :=
 { le              := rat.le,
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
@@ -124,7 +123,6 @@ instance : semilattice_inf ℚ := by apply_instance
 instance : semilattice_sup ℚ := by apply_instance
 instance : has_inf ℚ         := by apply_instance
 instance : has_sup ℚ         := by apply_instance
-instance : linear_order ℚ    := by apply_instance
 instance : partial_order ℚ   := by apply_instance
 instance : preorder ℚ        := by apply_instance
 
@@ -157,29 +155,26 @@ by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
-instance : discrete_linear_ordered_field ℚ :=
-{ zero_lt_one     := dec_trivial,
+instance : linear_ordered_field ℚ :=
+{ zero_le_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
   ..rat.field,
-  ..rat.decidable_linear_order,
+  ..rat.linear_order,
   ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_field ℚ                := by apply_instance
-instance : decidable_linear_ordered_comm_ring ℚ  := by apply_instance
-instance : linear_ordered_comm_ring ℚ            := by apply_instance
-instance : linear_ordered_ring ℚ                 := by apply_instance
-instance : ordered_ring ℚ                        := by apply_instance
-instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
-instance : linear_ordered_semiring ℚ             := by apply_instance
-instance : ordered_semiring ℚ                    := by apply_instance
-instance : decidable_linear_ordered_add_comm_group ℚ := by apply_instance
-instance : ordered_add_comm_group ℚ              := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℚ      := by apply_instance
-instance : ordered_add_comm_monoid ℚ             := by apply_instance
+instance : linear_ordered_comm_ring ℚ       := by apply_instance
+instance : linear_ordered_ring ℚ            := by apply_instance
+instance : ordered_ring ℚ                   := by apply_instance
+instance : linear_ordered_semiring ℚ        := by apply_instance
+instance : ordered_semiring ℚ               := by apply_instance
+instance : linear_ordered_add_comm_group ℚ  := by apply_instance
+instance : ordered_add_comm_group ℚ         := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℚ := by apply_instance
+instance : ordered_add_comm_monoid ℚ        := by apply_instance
 
 attribute [irreducible] rat.le
 

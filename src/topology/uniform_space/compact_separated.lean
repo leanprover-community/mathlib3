@@ -37,17 +37,16 @@ variables {α β : Type*} [uniform_space α] [uniform_space β]
 ### Uniformity on compact separated spaces
 -/
 
-
+/-- On a separated compact uniform space, the topology determines the uniform structure, entourages
+are exactly the neighborhoods of the diagonal. -/
 lemma compact_space_uniformity [compact_space α] [separated_space α] : 𝓤 α = ⨆ x : α, 𝓝 (x, x) :=
 begin
-  symmetry, refine le_antisymm nhds_le_uniformity _,
+  symmetry, refine le_antisymm supr_nhds_le_uniformity _,
   by_contra H,
-  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ ne_bot (𝓤 α ⊓ 𝓟 Vᶜ),
-  { rw le_iff_forall_inf_principal_compl at H,
-    push_neg at H,
-    simpa only [mem_supr_sets] using H },
+  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
+  { simpa [le_iff_forall_inf_principal_compl] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
-  haveI : ne_bot F := h,
+  haveI : ne_bot F := ⟨h⟩,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
     cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=
@@ -104,7 +103,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     rw le_iff_forall_inf_principal_compl,
     intros V V_in,
     by_contra H,
-    haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := H,
+    haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := ⟨H⟩,
     -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 Vᶜ
     obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact _,
     -- In particular (x, y) is a cluster point of 𝓟 Vᶜ, hence is not in the interior of V,
@@ -146,11 +145,9 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
         { right,
           rw mem_prod,
           tauto }, },
-      all_goals { simp only [is_open_prod, *] } },
+      all_goals { simp only [is_open.prod, *] } },
     -- So W ○ W ∈ F by definition of F
-    have : W ○ W ∈ F,
-    { dsimp [F],-- Lean has weird elaboration trouble with this line
-      exact mem_lift' W_in },
+    have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
     -- And V₁.prod V₂ ∈ 𝓝 (x, y)
     have hV₁₂ : V₁.prod V₂ ∈ 𝓝 (x, y) := prod_mem_nhds_sets V₁_in V₂_in,
     -- But (x, y) is also a cluster point of F so (V₁.prod V₂) ∩ (W ○ W) ≠ ∅
@@ -208,7 +205,7 @@ map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw 
                      ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
                      ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_le_supr (λ x, (h.prod_map h).continuous_at)
                      ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
-                     ... ≤ 𝓤 β                   : nhds_le_uniformity
+                     ... ≤ 𝓤 β                   : supr_nhds_le_uniformity
 
 /-- Heine-Cantor: a continuous function on a compact separated set of a uniform space is
 uniformly continuous. -/

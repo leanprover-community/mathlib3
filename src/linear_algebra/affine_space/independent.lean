@@ -8,10 +8,6 @@ import data.matrix.notation
 import linear_algebra.affine_space.combination
 import linear_algebra.basis
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-
 /-!
 # Affine independence
 
@@ -33,6 +29,10 @@ This file defines affinely independent families of points.
 * https://en.wikipedia.org/wiki/Affine_space
 
 -/
+
+noncomputable theory
+open_locale big_operators classical affine
+open function
 
 section affine_independent
 
@@ -85,7 +85,7 @@ begin
     rw linear_independent_iff',
     intros s g hg i hi,
     set f : ι → k := λ x, if hx : x = i1 then -∑ y in s, g y else g ⟨x, hx⟩ with hfdef,
-    let s2 : finset ι := insert i1 (s.map (function.embedding.subtype _)),
+    let s2 : finset ι := insert i1 (s.map (embedding.subtype _)),
     have hfg : ∀ x : {x // x ≠ i1}, g x = f x,
     { intro x,
       rw hfdef,
@@ -220,9 +220,7 @@ begin
   intros i j hij,
   rw affine_independent_iff_linear_independent_vsub _ _ j at ha,
   by_contra hij',
-  refine ha.ne_zero _,
-  { exact ⟨i, hij'⟩ },
-  { exact vsub_eq_zero_iff_eq.mpr hij },
+  exact ha.ne_zero ⟨i, hij'⟩ (vsub_eq_zero_iff_eq.mpr hij)
 end
 
 /-- If a family is affinely independent, so is any subfamily given by
@@ -253,7 +251,7 @@ end
 by a subtype of the index type. -/
 lemma affine_independent_subtype_of_affine_independent {p : ι → P}
     (ha : affine_independent k p) (s : set ι) : affine_independent k (λ i : s, p i) :=
-affine_independent_embedding_of_affine_independent (function.embedding.subtype _) ha
+affine_independent_embedding_of_affine_independent (embedding.subtype _) ha
 
 /-- If an indexed family of points is affinely independent, so is the
 corresponding set of points. -/
@@ -364,7 +362,7 @@ begin
     have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
     { intros v hv,
       change ((⟨v, hv⟩ : sv) : V) ≠ 0,
-      exact hsvi.ne_zero },
+      exact hsvi.ne_zero _ },
     rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
     use [{p₁} ∪ (λ v, v +ᵥ p₁) '' sv, set.empty_subset _, hsvi,
          affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] },
@@ -373,7 +371,7 @@ begin
     have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
     { intros v hv,
       change ((⟨v, hv⟩ : sv) : V) ≠ 0,
-      exact hsvi.ne_zero },
+      exact hsvi.ne_zero _ },
     rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
     use {p₁} ∪ (λ v, v +ᵥ p₁) '' sv,
     split,
@@ -458,13 +456,19 @@ lemma ext_iff {n : ℕ} (s1 s2 : simplex k P n): s1 = s2 ↔ ∀ i, s1.points i 
 points. -/
 def face {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))} {m : ℕ} (h : fs.card = m + 1) :
   simplex k P m :=
-⟨s.points ∘ fs.mono_of_fin h,
+⟨s.points ∘ fs.order_emb_of_fin h,
  affine_independent_embedding_of_affine_independent
-   ⟨fs.mono_of_fin h, fs.mono_of_fin_injective h⟩ s.independent⟩
+   (fs.order_emb_of_fin h).to_embedding s.independent⟩
 
 /-- The points of a face of a simplex are given by `mono_of_fin`. -/
 lemma face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))} {m : ℕ}
-  (h : fs.card = m + 1) (i : fin (m + 1)) : (s.face h).points i = s.points (fs.mono_of_fin h i) :=
+  (h : fs.card = m + 1) (i : fin (m + 1)) :
+  (s.face h).points i = s.points (fs.order_emb_of_fin h i) :=
+rfl
+
+/-- The points of a face of a simplex are given by `mono_of_fin`. -/
+lemma face_points' {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))} {m : ℕ}
+  (h : fs.card = m + 1) : (s.face h).points = s.points ∘ (fs.order_emb_of_fin h) :=
 rfl
 
 /-- A single-point face equals the 0-simplex constructed with
@@ -476,10 +480,7 @@ by { ext, simp [face_points] }
 /-- The set of points of a face. -/
 @[simp] lemma range_face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
   {m : ℕ} (h : fs.card = m + 1) : set.range (s.face h).points = s.points '' ↑fs :=
-begin
-  rw [face, set.range_comp],
-  simp
-end
+by rw [face_points', set.range_comp, finset.range_order_emb_of_fin]
 
 end simplex
 
@@ -498,8 +499,8 @@ the points. -/
   {m : ℕ} (h : fs.card = m + 1) :
   finset.univ.centroid k (s.face h).points = fs.centroid k s.points :=
 begin
-  convert (finset.univ.centroid_map k ⟨fs.mono_of_fin h, fs.mono_of_fin_injective h⟩ s.points).symm,
-  rw [←finset.coe_inj, finset.coe_map, function.embedding.coe_fn_mk],
+  convert (finset.univ.centroid_map k (fs.order_emb_of_fin h).to_embedding s.points).symm,
+  rw [← finset.coe_inj, finset.coe_map, finset.coe_univ, set.image_univ],
   simp
 end
 

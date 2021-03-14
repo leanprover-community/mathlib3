@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import ring_theory.principal_ideal_domain order.conditionally_complete_lattice
+import ring_theory.principal_ideal_domain
+import order.conditionally_complete_lattice
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
-import tactic
 
 /-!
 # Discrete valuation rings
@@ -28,11 +28,15 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 ### Definitions
 
+* `add_val R : R → ℕ` : the additive valuation on a DVR (sending 0 to 0 rather than the
+     mathematically correct +∞).
+TODO -- the multiplicative valuation, taking values in something
+  like `with_zero (multiplicative ℤ)`?
+
 ## Implementation notes
 
 It's a theorem that an element of a DVR is a uniformizer if and only if it's irreducible.
 We do not hence define `uniformizer` at all, because we can use `irreducible` instead.
-
 
 ## Tags
 
@@ -45,7 +49,8 @@ universe u
 
 open ideal local_ring
 
-/-- An integral domain is a discrete valuation ring if it's a local PID which is not a field -/
+/-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
+  is not a field. -/
 class discrete_valuation_ring (R : Type u) [integral_domain R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
 (not_a_field' : maximal_ideal R ≠ ⊥)
@@ -163,26 +168,23 @@ begin
   { simpa only [pow_one] using hn.symm, },
   { obtain ⟨n, rfl⟩ : ∃ k, n = 1 + k + 1 := nat.exists_eq_add_of_lt H,
     rw pow_succ at this,
-    rcases this.2 _ _ rfl with H0|H0,
+    rcases this.is_unit_or_is_unit rfl with H0|H0,
     { exact (hϖ.not_unit H0).elim, },
     { rw [add_comm, pow_succ] at H0,
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-/-- Implementation detail: an integral domain in which there is a unit `p`
+/-- An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
-
 See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
-noncomputable def ufd : unique_factorization_domain R :=
+theorem to_unique_factorization_monoid : unique_factorization_monoid R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
-{ factors := λ x, if h : x = 0 then 0 else multiset.repeat p (classical.some (spec.2 h)),
-  factors_prod := λ x hx,
-  by { rw [dif_neg hx, multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), },
-  prime_factors :=
-  begin
-    intros x hx q hq,
-    rw dif_neg hx at hq,
+unique_factorization_monoid.of_exists_prime_factors $ λ x hx,
+begin
+  use multiset.repeat p (classical.some (spec.2 hx)),
+  split,
+  { intros q hq,
     have hpq := multiset.eq_of_mem_repeat hq,
     rw hpq,
     refine ⟨spec.1.ne_zero, spec.1.not_unit, _⟩,
@@ -198,12 +200,13 @@ let spec := classical.some_spec hR in
     { simp only [hm, one_mul, pow_zero] at h ⊢, right, exact h },
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
-    apply dvd_mul_of_dvd_left (dvd_refl _) _,
-  end }
+    apply dvd_mul_of_dvd_left (dvd_refl _) _ },
+  { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
+end
 
 omit hR
 
-lemma of_ufd_of_unique_irreducible [unique_factorization_domain R]
+lemma of_ufd_of_unique_irreducible [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   has_unit_mul_pow_irreducible_factorization R :=
@@ -211,8 +214,9 @@ begin
   obtain ⟨p, hp⟩ := h₁,
   refine ⟨p, hp, _⟩,
   intros x hx,
-  refine ⟨(unique_factorization_domain.factors x).card, _⟩,
-  have H := unique_factorization_domain.factors_prod hx,
+  cases wf_dvd_monoid.exists_factors x hx with fx hfx,
+  refine ⟨fx.card, _⟩,
+  have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
   rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
   congr' 1,
@@ -222,13 +226,13 @@ begin
     multiset.mem_map, exists_imp_distrib],
   rintros _ q hq rfl,
   rw associates.mk_eq_mk_iff_associated,
-  apply h₂ (unique_factorization_domain.irreducible_factors hx _ hq) hp,
+  apply h₂ (hfx.1 _ hq) hp,
 end
 
 end has_unit_mul_pow_irreducible_factorization
 
 lemma aux_pid_of_ufd_of_unique_irreducible
-  (R : Type u) [integral_domain R] [unique_factorization_domain R]
+  (R : Type u) [integral_domain R] [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   is_principal_ideal_ring R :=
@@ -242,7 +246,7 @@ begin
   have ex : ∃ n : ℕ, p ^ n ∈ I,
   { obtain ⟨n, u, rfl⟩ := H hx0,
     refine ⟨n, _⟩,
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hxI, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hxI, },
   constructor,
   use p ^ (nat.find ex),
   show I = ideal.span _,
@@ -254,7 +258,7 @@ begin
     simp only [mem_span_singleton, is_unit_unit, is_unit.dvd_mul_right],
     apply pow_dvd_pow,
     apply nat.find_min',
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hr, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hr, },
   { erw submodule.span_singleton_le_iff_mem,
     exact nat.find_spec ex, },
 end
@@ -264,7 +268,7 @@ A unique factorization domain with at least one irreducible element
 in which all irreducible elements are associated
 is a discrete valuation ring.
 -/
-lemma of_ufd_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_domain R]
+lemma of_ufd_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   discrete_valuation_ring R :=
@@ -276,18 +280,18 @@ begin
   { rw submodule.ne_bot_iff,
     refine ⟨p, ideal.mem_span_singleton.mpr (dvd_refl p), hp.ne_zero⟩, },
   { rwa [ideal.span_singleton_prime hp.ne_zero,
-        ← unique_factorization_domain.irreducible_iff_prime], },
+        ← unique_factorization_monoid.irreducible_iff_prime], },
   { intro I,
     rw ← submodule.is_principal.span_singleton_generator I,
     rintro ⟨I0, hI⟩,
     apply span_singleton_eq_span_singleton.mpr,
     apply h₂ _ hp,
     erw [ne.def, span_singleton_eq_bot] at I0,
-    rwa [unique_factorization_domain.irreducible_iff_prime, ← ideal.span_singleton_prime I0], },
+    rwa [unique_factorization_monoid.irreducible_iff_prime, ← ideal.span_singleton_prime I0], },
 end
 
 /--
-An integral domain in which there is a unit `p`
+An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p`
 is a discrete valuation ring.
 -/
@@ -295,7 +299,7 @@ lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domai
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin
-  letI : unique_factorization_domain R := hR.ufd,
+  letI : unique_factorization_monoid R := hR.to_unique_factorization_monoid,
   apply of_ufd_of_unique_irreducible _ hR.unique_irreducible,
   unfreezingI { obtain ⟨p, hp, H⟩ := hR, exact ⟨p, hp⟩, },
 end
@@ -309,9 +313,10 @@ variable {R}
 lemma associated_pow_irreducible {x : R} (hx : x ≠ 0) {ϖ : R} (hirr : irreducible ϖ) :
   ∃ (n : ℕ), associated x (ϖ ^ n) :=
 begin
-  have : unique_factorization_domain R := principal_ideal_ring.to_unique_factorization_domain,
-  unfreezingI { use (unique_factorization_domain.factors x).card },
-  have H := unique_factorization_domain.factors_prod hx,
+  have : wf_dvd_monoid R := is_noetherian_ring.wf_dvd_monoid,
+  cases wf_dvd_monoid.exists_factors x hx with fx hfx,
+  unfreezingI { use fx.card },
+  have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
   rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
   congr' 1,
@@ -321,8 +326,17 @@ begin
   rintros _ _ _ rfl,
   rw associates.mk_eq_mk_iff_associated,
   refine associated_of_irreducible _ _ hirr,
-  apply unique_factorization_domain.irreducible_factors hx,
+  apply hfx.1,
   assumption
+end
+
+lemma eq_unit_mul_pow_irreducible {x : R} (hx : x ≠ 0) {ϖ : R} (hirr : irreducible ϖ) :
+  ∃ (n : ℕ) (u : units R), x = u * ϖ ^ n :=
+begin
+  obtain ⟨n, hn⟩ := associated_pow_irreducible hx hirr,
+  obtain ⟨u, rfl⟩ := hn.symm,
+  use [n, u],
+  apply mul_comm,
 end
 
 open submodule.is_principal
@@ -348,8 +362,7 @@ begin
     refine ⟨u * v⁻¹, _⟩,
     simp only [units.coe_mul],
     rw [mul_left_comm, ← mul_assoc, h, mul_right_comm, units.mul_inv, one_mul], },
-  letI := @principal_ideal_ring.to_unique_factorization_domain R _ _,
-  have := multiset.card_eq_card_of_rel (unique_factorization_domain.unique _ _ key),
+  have := multiset.card_eq_card_of_rel (unique_factorization_monoid.factors_unique _ _ key),
   { simpa only [multiset.card_repeat] },
   all_goals
   { intros x hx, replace hx := multiset.eq_of_mem_repeat hx,
@@ -366,6 +379,96 @@ begin
   cases h,
   { rw sub_eq_zero at h, exact_mod_cast h },
   { apply (hirr.ne_zero (pow_eq_zero h)).elim, }
+end
+
+/-!
+## The additive valuation on a DVR
+-/
+
+/-- The `ℕ`-valued additive valuation on a DVR (returns junk at `0` rather than `+∞`) -/
+noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_ring R] : R → ℕ :=
+λ r, if hr : r = 0 then 0 else
+  classical.some (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
+
+theorem add_val_spec {r : R} (hr : r ≠ 0) :
+  let ϖ := classical.some (exists_irreducible R) in
+  let n := classical.some
+    (associated_pow_irreducible hr (classical.some_spec (exists_irreducible R))) in
+  associated r (ϖ ^ n) :=
+classical.some_spec (associated_pow_irreducible hr (classical.some_spec $ exists_irreducible R))
+
+lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
+  add_val R r = n :=
+begin
+  subst hr,
+  let ϖ₀ := classical.some (exists_irreducible R),
+  have hϖ₀ : irreducible ϖ₀ := classical.some_spec (exists_irreducible R),
+  have h0 : (u : R) * ϖ ^ n ≠ 0,
+  { simp only [units.mul_right_eq_zero, ne.def, pow_ne_zero n hϖ.ne_zero, not_false_iff] },
+  unfold add_val,
+  rw dif_neg h0,
+  obtain ⟨v, hv⟩ := (add_val_spec h0).symm,
+  rw mul_comm at hv,
+  refine unit_mul_pow_congr_pow hϖ₀ hϖ _ u _ _ hv,
+end
+
+lemma add_val_def' (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
+  add_val R ((u : R) * ϖ ^ n) = n :=
+add_val_def _ u hϖ n rfl
+
+@[simp] lemma add_val_zero : add_val R 0 = 0 :=
+dif_pos rfl
+
+@[simp] lemma add_val_one : add_val R 1 = 0 :=
+add_val_def 1 1 (classical.some_spec $ exists_irreducible R) 0 (by simp)
+
+@[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
+add_val_def ϖ 1 hϖ 1 (by simp)
+
+@[simp] lemma add_val_mul {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) :
+  add_val R (a * b) = add_val R a + add_val R b :=
+begin
+  obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
+  obtain ⟨m, u, rfl⟩ := eq_unit_mul_pow_irreducible ha hϖ,
+  obtain ⟨n, v, rfl⟩ := eq_unit_mul_pow_irreducible hb hϖ,
+  rw mul_mul_mul_comm,
+  simp only [hϖ, add_val_def', ← pow_add, ← units.coe_mul],
+end
+
+lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n * add_val R a :=
+begin
+  by_cases ha : a = 0,
+  { cases nat.eq_zero_or_pos n with hn hn,
+    { simp [ha, hn] },
+    { simp [ha, zero_pow hn] } },
+  induction n with d hd,
+  { simp [ha] },
+  { rw [pow_succ, add_val_mul ha (pow_ne_zero _ ha), hd], ring}
+end
+
+lemma add_val_le_iff_dvd {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) : add_val R a ≤ add_val R b ↔ a ∣ b :=
+begin
+  split,
+  { obtain ⟨ϖ, hϖ⟩ := exists_irreducible R,
+    obtain ⟨m, u, rfl⟩ := eq_unit_mul_pow_irreducible ha hϖ,
+    obtain ⟨n, v, rfl⟩ := eq_unit_mul_pow_irreducible hb hϖ,
+    rw [add_val_def' _ hϖ, add_val_def' _ hϖ, le_iff_exists_add],
+    rintro ⟨q, rfl⟩,
+    use ((v * u⁻¹ : units R) : R) * ϖ ^ q,
+    rw [mul_mul_mul_comm, pow_add, units.coe_mul, mul_left_comm ↑u, units.mul_inv, mul_one] },
+  { rintro ⟨c, rfl⟩,
+    rw add_val_mul ha (right_ne_zero_of_mul hb),
+    simp only [zero_le, le_add_iff_nonneg_right] }
+end
+
+lemma add_val_add {a b : R} (ha : a ≠ 0) (hb : b ≠ 0) (hab : a + b ≠ 0) :
+  min (add_val R a) (add_val R b) ≤ add_val R (a + b) :=
+begin
+  -- wlog is slow but I'm grateful it works.
+  wlog h : add_val R a ≤ add_val R b := le_total (add_val R a) (add_val R b) using [a b, b a],
+  rw [min_eq_left h, add_val_le_iff_dvd ha hab],
+  rw add_val_le_iff_dvd ha hb at h,
+  exact dvd_add_self_left.mpr h,
 end
 
 end

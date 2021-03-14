@@ -108,7 +108,8 @@ composition of local equivs with `≫`.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
+open filter
 universes u
 
 variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
@@ -119,6 +120,12 @@ Note that, as is usual for equivs, the composition is from left to right, hence 
 the arrow. -/
 localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
 localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
+
+/- `simp` looks for subsingleton instances at every call. This turns out to be very
+inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
+Disable two such instances to speed up things.
+NB: this is just a hack. TODO: fix `simp` properly. -/
+localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
 
 open set local_homeomorph
 
@@ -297,15 +304,15 @@ def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
     { apply PG.locality e.open_source (λx xu, _),
       rcases he x xu with ⟨s, s_open, xs, hs⟩,
       refine ⟨s, s_open, xs, _⟩,
-      convert hs.1,
-      exact s_open.interior_eq.symm },
+      convert hs.1 using 1,
+      dsimp [local_homeomorph.restr], rw s_open.interior_eq },
     { apply PG.locality e.open_target (λx xu, _),
       rcases he (e.symm x) (e.map_target xu) with ⟨s, s_open, xs, hs⟩,
       refine ⟨e.target ∩ e.symm ⁻¹' s, _, ⟨xu, xs⟩, _⟩,
       { exact continuous_on.preimage_open_of_open e.continuous_inv_fun e.open_target s_open },
       { rw [← inter_assoc, inter_self],
-        convert hs.2,
-        exact s_open.interior_eq.symm } },
+        convert hs.2 using 1,
+        dsimp [local_homeomorph.restr], rw s_open.interior_eq } },
   end,
   eq_on_source' := λe e' he ee', begin
     split,
@@ -485,6 +492,31 @@ by simp [atlas, charted_space.atlas]
   chart_at H x = local_homeomorph.refl H :=
 by simpa using chart_mem_atlas H x
 
+section
+
+variables (H) [topological_space H] [topological_space M] [charted_space H M]
+
+lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
+(chart_at H x).map_source (mem_chart_source _ _)
+
+/-- If a topological space admits an atlas with locally compact charts, then the space itself
+is locally compact. -/
+lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
+begin
+  have : ∀ (x : M), (𝓝 x).has_basis
+      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
+      (λ s, (chart_at H x).symm '' s),
+  { intro x,
+    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
+    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
+      (mem_nhds_sets (chart_at H x).open_target (mem_chart_target H x))).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨h₁, h₂, h₃⟩,
+  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
+end
+
+end
+
 /-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model `H`
 is a set of local charts from `M` to `H` covering the space. Every space is registered as a charted
 space over itself, using the only chart `id`, in `manifold_model_space`. You can also define a product
@@ -597,7 +629,7 @@ end
 /-- An element of the atlas in a charted space without topology becomes a local homeomorphism
 for the topology constructed from this atlas. The `local_homeomorph` version is given in this
 definition. -/
-def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
+protected def local_homeomorph (e : local_equiv M H) (he : e ∈ c.atlas) :
   @local_homeomorph M H c.to_topological_space _ :=
 { open_source := by convert c.open_source' he,
   open_target := by convert c.open_target he,
@@ -647,11 +679,16 @@ end charted_space_core
 section has_groupoid
 variables [topological_space H] [topological_space M] [charted_space H M]
 
+section
+set_option old_structure_cmd true
+
 /-- A charted space has an atlas in a groupoid `G` if the change of coordinates belong to the
 groupoid -/
 class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
   [charted_space H M] (G : structure_groupoid H) : Prop :=
 (compatible [] : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
+
+end
 
 /-- Reformulate in the `structure_groupoid` namespace the compatibility condition of charts in a
 charted space admitting a structure groupoid, to make it more easily accessible with dot

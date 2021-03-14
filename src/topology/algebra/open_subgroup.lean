@@ -94,23 +94,25 @@ instance : inhabited (open_subgroup G) := ⟨⊤⟩
 @[to_additive]
 lemma is_closed [has_continuous_mul G] (U : open_subgroup G) : is_closed (U : set G) :=
 begin
+  apply is_open_compl_iff.1,
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
   { intros u hux,
     simp only [set.mem_preimage, set.mem_compl_iff, mem_coe] at hux hx ⊢,
     refine mt (λ hu, _) hx,
     convert U.mul_mem (U.inv_mem hux) hu,
     simp },
-  { exact (continuous_mul_right _) _ U.is_open },
+  { exact U.is_open.preimage (continuous_mul_right _) },
   { simp [U.one_mem] }
 end
 
 section
 variables {H : Type*} [group H] [topological_space H]
 
-@[to_additive]
+/-- The product of two open subgroups as an open subgroup of the product group. -/
+@[to_additive "The product of two open subgroups as an open subgroup of the product group."]
 def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
 { carrier := (U : set G).prod (V : set H),
-  is_open' := is_open_prod U.is_open V.is_open,
+  is_open' := U.is_open.prod V.is_open,
   .. (U : subgroup G).prod (V : subgroup H) }
 
 end

@@ -130,7 +130,8 @@ This is a more convenient formulation to show that a `kernel_fork` constructed u
 def is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
   (lift : Π {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), W' ⟶ W)
   (fac : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), lift g' eq' ≫ g = g')
-  (uniq : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0) (m : W' ⟶ W) (w : m ≫ g = g'), m = lift g' eq') :
+  (uniq :
+    ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0) (m : W' ⟶ W) (w : m ≫ g = g'), m = lift g' eq') :
   is_limit (kernel_fork.of_ι g eq) :=
 is_limit_aux _ (λ s, lift s.ι s.condition) (λ s, fac s.ι s.condition) (λ s, uniq s.ι s.condition)
 
@@ -177,8 +178,7 @@ def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f /
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
 
 /-- Every kernel of the zero morphism is an isomorphism -/
-instance kernel.ι_zero_is_iso :
-  is_iso (kernel.ι (0 : X ⟶ Y)) :=
+instance kernel.ι_zero_is_iso : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=
@@ -387,7 +387,8 @@ This is a more convenient formulation to show that a `cokernel_cofork` construct
 def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
   (desc : Π {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), Z ⟶ Z')
   (fac : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), g ≫ desc g' eq' = g')
-  (uniq : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0) (m : Z ⟶ Z') (w : g ≫ m = g'), m = desc g' eq') :
+  (uniq :
+    ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0) (m : Z ⟶ Z') (w : g ≫ m = g'), m = desc g' eq') :
   is_colimit (cokernel_cofork.of_π g eq) :=
 is_colimit_aux _ (λ s, desc s.π s.condition) (λ s, fac s.π s.condition) (λ s, uniq s.π s.condition)
 
@@ -421,7 +422,8 @@ colimit.ι_desc _ _
 lemma cokernel.desc_zero {W : C} {h} : cokernel.desc f (0 : Y ⟶ W) h = 0 :=
 by { ext, simp, }
 
-instance cokernel.desc_epi {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) [epi k] : epi (cokernel.desc f k h) :=
+instance cokernel.desc_epi
+  {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) [epi k] : epi (cokernel.desc f k h) :=
 ⟨λ Z g g' w,
 begin
   replace w := cokernel.π f ≫= w,
@@ -565,7 +567,8 @@ def cokernel_image_ι {X Y : C} (f : X ⟶ Y)
   begin
     have w := cokernel.condition f,
     conv at w { to_lhs, congr, rw ←image.fac f, },
-    rw [←has_zero_morphisms.comp_zero (limits.factor_thru_image f), category.assoc, cancel_epi] at w,
+    rw [←has_zero_morphisms.comp_zero (limits.factor_thru_image f), category.assoc, cancel_epi]
+      at w,
     exact w,
   end,
   inv := cokernel.desc _ (cokernel.π _)

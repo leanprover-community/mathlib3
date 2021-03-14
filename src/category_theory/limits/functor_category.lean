@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.preserves.basic
+import category_theory.limits.preserves.limits
 
 open category_theory category_theory.category
 
@@ -14,6 +14,16 @@ universes v v₂ u -- declare the `v`'s first; see `category_theory.category` fo
 variables {C : Type u} [category.{v} C]
 
 variables {J K : Type v} [small_category J] [category.{v₂} K]
+
+@[simp, reassoc]
+lemma limit.lift_π_app (H : J ⥤ K ⥤ C) [has_limit H] (c : cone H) (j : J) (k : K) :
+  (limit.lift H c).app k ≫ (limit.π H j).app k = (c.π.app j).app k :=
+congr_app (limit.lift_π c j) k
+
+@[simp, reassoc]
+lemma colimit.ι_desc_app (H : J ⥤ K ⥤ C) [has_colimit H] (c : cocone H) (j : J) (k : K) :
+  (colimit.ι H j).app k ≫ (colimit.desc H c).app k = (c.ι.app j).app k :=
+congr_app (colimit.ι_desc c j) k
 
 /--
 The evaluation functors jointly reflect limits: that is, to show a cone is a limit of `F`
@@ -27,7 +37,8 @@ def evaluation_jointly_reflects_limits {F : J ⥤ K ⥤ C} (c : cone F)
     naturality' := λ X Y f, (t Y).hom_ext $ λ j,
     begin
       rw [assoc, (t Y).fac _ j],
-      simpa using ((t X).fac_assoc ⟨s.X.obj X, whisker_right s.π ((evaluation K C).obj X)⟩ j _).symm,
+      simpa using
+        ((t X).fac_assoc ⟨s.X.obj X, whisker_right s.π ((evaluation K C).obj X)⟩ j _).symm,
     end },
   fac' := λ s j, nat_trans.ext _ _ $ funext $ λ k, (t k).fac _ j,
   uniq' := λ s m w, nat_trans.ext _ _ $ funext $ λ x, (t x).hom_ext $ λ j,
@@ -102,7 +113,8 @@ them together to give a cocone for the diagram `F`.
     naturality' := λ j₁ j₂ g, nat_trans.ext _ _ $ funext $ λ k, (c k).cocone.ι.naturality g } }
 
 /-- The stitched together cocones each project down to the original given cocones (up to iso). -/
-def evaluate_combined_cocones (F : J ⥤ K ⥤ C) (c : Π (k : K), colimit_cocone (F.flip.obj k)) (k : K) :
+def evaluate_combined_cocones
+  (F : J ⥤ K ⥤ C) (c : Π (k : K), colimit_cocone (F.flip.obj k)) (k : K) :
   ((evaluation K C).obj k).map_cocone (combine_cocones F c) ≅ (c k).cocone :=
 cocones.ext (iso.refl _) (by tidy)
 
@@ -139,12 +151,90 @@ instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) 
     is_limit.of_iso_limit (limit.is_limit _)
       (evaluate_combined_cones F _ k).symm }
 
+/--
+If `F : J ⥤ K ⥤ C` is a functor into a functor category which has a limit,
+then the evaluation of that limit at `k` is the limit of the evaluations of `F.obj j` at `k`.
+-/
+def limit_obj_iso_limit_comp_evaluation [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) (k : K) :
+  (limit F).obj k ≅ limit (F ⋙ ((evaluation K C).obj k)) :=
+preserves_limit_iso ((evaluation K C).obj k) F
+
+@[simp, reassoc]
+lemma limit_obj_iso_limit_comp_evaluation_hom_π
+  [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
+  (limit_obj_iso_limit_comp_evaluation F k).hom ≫ limit.π (F ⋙ ((evaluation K C).obj k)) j =
+    (limit.π F j).app k :=
+begin
+  dsimp [limit_obj_iso_limit_comp_evaluation],
+  simp,
+end
+
+@[simp, reassoc]
+lemma limit_obj_iso_limit_comp_evaluation_inv_π_app
+  [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K):
+  (limit_obj_iso_limit_comp_evaluation F k).inv ≫ (limit.π F j).app k =
+    limit.π (F ⋙ ((evaluation K C).obj k)) j :=
+begin
+  dsimp [limit_obj_iso_limit_comp_evaluation],
+  rw iso.inv_comp_eq,
+  simp,
+end
+
+@[ext]
+lemma limit_obj_ext {H : J ⥤ K ⥤ C} [has_limits_of_shape J C]
+  {k : K} {W : C} {f g : W ⟶ (limit H).obj k}
+  (w : ∀ j, f ≫ (limits.limit.π H j).app k = g ≫ (limits.limit.π H j).app k) : f = g :=
+begin
+  apply (cancel_mono (limit_obj_iso_limit_comp_evaluation H k).hom).1,
+  ext,
+  simpa using w j,
+end
+
 instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k : K) :
   preserves_colimits_of_shape J ((evaluation K C).obj k) :=
 { preserves_colimit :=
   λ F, preserves_colimit_of_preserves_colimit_cocone (combined_is_colimit _ _) $
     is_colimit.of_iso_colimit (colimit.is_colimit _)
       (evaluate_combined_cocones F _ k).symm }
+
+/--
+If `F : J ⥤ K ⥤ C` is a functor into a functor category which has a colimit,
+then the evaluation of that colimit at `k` is the colimit of the evaluations of `F.obj j` at `k`.
+-/
+def colimit_obj_iso_colimit_comp_evaluation [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) (k : K) :
+  (colimit F).obj k ≅ colimit (F ⋙ ((evaluation K C).obj k)) :=
+preserves_colimit_iso ((evaluation K C).obj k) F
+
+@[simp, reassoc]
+lemma colimit_obj_iso_colimit_comp_evaluation_ι_inv
+  [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
+  colimit.ι (F ⋙ ((evaluation K C).obj k)) j ≫ (colimit_obj_iso_colimit_comp_evaluation F k).inv =
+    (colimit.ι F j).app k :=
+begin
+  dsimp [colimit_obj_iso_colimit_comp_evaluation],
+  simp,
+end
+
+@[simp, reassoc]
+lemma colimit_obj_iso_colimit_comp_evaluation_ι_app_hom
+  [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
+  (colimit.ι F j).app k ≫ (colimit_obj_iso_colimit_comp_evaluation F k).hom =
+     colimit.ι (F ⋙ ((evaluation K C).obj k)) j :=
+begin
+  dsimp [colimit_obj_iso_colimit_comp_evaluation],
+  rw ←iso.eq_comp_inv,
+  simp,
+end
+
+@[ext]
+lemma colimit_obj_ext {H : J ⥤ K ⥤ C} [has_colimits_of_shape J C]
+  {k : K} {W : C} {f g : (colimit H).obj k ⟶ W}
+  (w : ∀ j, (colimit.ι H j).app k ≫ f = (colimit.ι H j).app k ≫ g) : f = g :=
+begin
+  apply (cancel_epi (colimit_obj_iso_colimit_comp_evaluation H k).inv).1,
+  ext,
+  simpa using w j,
+end
 
 instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=

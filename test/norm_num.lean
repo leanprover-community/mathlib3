@@ -8,6 +8,7 @@ Tests for norm_num
 
 import tactic.norm_num
 import data.complex.basic
+import data.nat.prime
 
 -- constant real : Type
 -- notation `ℝ` := real
@@ -42,6 +43,7 @@ example {α} [semiring α] [char_zero α] : (1:α) ≠ 2 := by norm_num
 example {α} [ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (1:α) / 3 ≠ 2 / 7 := by norm_num
+example {α} [division_ring α] [char_zero α] : (1:α) / 3 ≠ 0 := by norm_num
 
 example : (5 / 2:ℕ) = 2 := by norm_num
 example : (5 / -2:ℤ) < -1 := by norm_num
@@ -66,10 +68,20 @@ example (x : ℕ) : ℕ := begin
   exact n
 end
 
+example (a : ℚ) (h : 3⁻¹ * a = a) : true :=
+begin
+  norm_num at h,
+  guard_hyp h : 1 / 3 * a = a,
+  trivial
+end
+
 example : nat.prime 1277 := by norm_num
 example : nat.min_fac 221 = 13 := by norm_num
 
 example (h : (5 : ℤ) ∣ 2) : false := by norm_num at h
+example (h : false) : false := by norm_num at h
+example : true := by norm_num
+example : true ∧ true := by { split, norm_num, norm_num }
 
 example : 10 + 2 = 1 + 11 := by norm_num
 
@@ -82,6 +94,14 @@ example : 0 - 0 = 0 := by norm_num
 example : 100 - 100 = 0 := by norm_num
 example : 5 * (2 - 3) = 0 := by norm_num
 example : 10 - 5 * 5 + (7 - 3) * 6 = 27 - 3 := by norm_num
+
+def foo : ℕ := 1
+
+@[norm_num] meta def eval_foo : expr → tactic (expr × expr)
+| `(foo) := pure (`(1:ℕ), `(eq.refl 1))
+| _ := tactic.failed
+
+example : foo = 1 := by norm_num
 
 -- ordered field examples
 

@@ -22,9 +22,9 @@ Define filters for other cardinalities of the complement.
 open set
 open_locale classical
 
-namespace filter
-
 variables {α : Type*}
+
+namespace filter
 
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
@@ -37,21 +37,54 @@ def cofinite : filter α :=
 
 @[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite sᶜ := iff.rfl
 
+@[simp] lemma eventually_cofinite {p : α → Prop} :
+  (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
+
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
-mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }
+⟨mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
 by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
   set.infinite]
 
+/-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
+lemma coprod_cofinite {β : Type*} :
+  (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cofinite],
+  split,
+  { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
+    rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
+    exact (hAf.prod hBf).subset (subset_inter hAS hBS) },
+  { intro hS,
+    refine ⟨⟨(prod.fst '' Sᶜ)ᶜ, _, _⟩, ⟨(prod.snd '' Sᶜ)ᶜ, _, _⟩⟩,
+    { simpa using hS.image prod.fst },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.fst Sᶜ },
+    { simpa using hS.image prod.snd },
+    { simpa [compl_subset_comm] using subset_preimage_image prod.snd Sᶜ } },
+end
+
 end filter
 
 open filter
 
-lemma set.infinite_iff_frequently_cofinite {α : Type*} {s : set α} :
+lemma set.finite.compl_mem_cofinite {s : set α} (hs : s.finite) : sᶜ ∈ (@cofinite α) :=
+mem_cofinite.2 $ (compl_compl s).symm ▸ hs
+
+lemma set.finite.eventually_cofinite_nmem {s : set α} (hs : s.finite) : ∀ᶠ x in cofinite, x ∉ s :=
+hs.compl_mem_cofinite
+
+lemma finset.eventually_cofinite_nmem (s : finset α) : ∀ᶠ x in cofinite, x ∉ s :=
+s.finite_to_set.eventually_cofinite_nmem
+
+lemma set.infinite_iff_frequently_cofinite {s : set α} :
   set.infinite s ↔ (∃ᶠ x in cofinite, x ∈ s) :=
 frequently_cofinite_iff_infinite.symm
+
+lemma filter.eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
+(set.finite_singleton x).eventually_cofinite_nmem
 
 /-- For natural numbers the filters `cofinite` and `at_top` coincide. -/
 lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
@@ -63,7 +96,7 @@ begin
     use (hs.to_finset.sup id) + 1,
     assume b hb,
     by_contradiction hbs,
-    have := hs.to_finset.subset_range_sup_succ (finite.mem_to_finset.2 hbs),
+    have := hs.to_finset.subset_range_sup_succ (hs.mem_to_finset.2 hbs),
     exact not_lt_of_le hb (finset.mem_range.1 this) },
   { rintros ⟨N, hN⟩,
     apply (finite_lt_nat N).subset,
@@ -71,3 +104,7 @@ begin
     change n < N,
     exact lt_of_not_ge (λ hn', hn $ hN n hn') }
 end
+
+lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
+  (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
+by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]

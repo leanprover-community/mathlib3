@@ -4,21 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.limits.preserves.basic
-import category_theory.limits.shapes.kernels
+import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.strong_epi
 import category_theory.limits.shapes.pullbacks
 
 /-!
-# Definitions and basic properties of regular and normal monomorphisms and epimorphisms.
+# Definitions and basic properties of regular monomorphisms and epimorphisms.
 
 A regular monomorphism is a morphism that is the equalizer of some parallel pair.
-A normal monomorphism is a morphism that is the kernel of some other morphism.
 
 We give the constructions
-* `split_mono → regular_mono`
-* `normal_mono → regular_mono`, and
+* `split_mono → regular_mono` and
 * `regular_mono → mono`
-as well as the dual constructions for regular and normal epimorphisms. Additionally, we give the
+as well as the dual constructions for regular epimorphisms. Additionally, we give the
 construction
 * `regular_epi ⟶ strong_epi`.
 
@@ -79,8 +77,9 @@ The second leg of a pullback cone is a regular monomorphism if the right compone
 See also `pullback.snd_of_mono` for the basic monomorphism version, and
 `regular_of_is_pullback_fst_of_regular` for the flipped version.
 -/
-def regular_of_is_pullback_snd_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
-  [hr : regular_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
+def regular_of_is_pullback_snd_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S}
+  {k : R ⟶ S} [hr : regular_mono h] (comm : f ≫ h = g ≫ k)
+  (t : is_limit (pullback_cone.mk _ _ comm)) :
 regular_mono g :=
 { Z := hr.Z,
   left := k ≫ hr.left,
@@ -109,8 +108,9 @@ The first leg of a pullback cone is a regular monomorphism if the left component
 See also `pullback.fst_of_mono` for the basic monomorphism version, and
 `regular_of_is_pullback_snd_of_regular` for the flipped version.
 -/
-def regular_of_is_pullback_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
-  [hr : regular_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
+def regular_of_is_pullback_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S}
+  {k : R ⟶ S} [hr : regular_mono k] (comm : f ≫ h = g ≫ k)
+  (t : is_limit (pullback_cone.mk _ _ comm)) :
 regular_mono f :=
 regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 
@@ -118,82 +118,6 @@ regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 def is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
 @is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
 
-section
-variables [has_zero_morphisms C]
-/-- A normal monomorphism is a morphism which is the kernel of some morphism. -/
-class normal_mono (f : X ⟶ Y) :=
-(Z : C)
-(g : Y ⟶ Z)
-(w : f ≫ g = 0)
-(is_limit : is_limit (kernel_fork.of_ι f w))
-
-section
-local attribute [instance] fully_faithful_reflects_limits
-local attribute [instance] equivalence.ess_surj_of_equivalence
-
-/-- If `F` is an equivalence and `F.map f` is a normal mono, then `f` is a normal mono. -/
-def equivalence_reflects_normal_mono {D : Type u₂} [category.{v₁} D] [has_zero_morphisms D]
-  (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_mono (F.map f)) :
-  normal_mono f :=
-{ Z := F.obj_preimage hf.Z,
-  g := full.preimage (hf.g ≫ (F.fun_obj_preimage_iso hf.Z).inv),
-  w := faithful.map_injective F $ by simp [reassoc_of hf.w],
-  is_limit := reflects_limit.reflects $
-    is_limit.of_cone_equiv (cones.postcompose_equivalence (comp_nat_iso F)) $
-      is_limit.of_iso_limit
-        (by exact is_limit.of_iso_limit
-          (is_kernel.of_comp_iso _ _ (F.fun_obj_preimage_iso hf.Z) (by simp) hf.is_limit)
-          (of_ι_congr (category.comp_id _).symm)) (iso_of_ι _).symm }
-
-end
-
-/-- Every normal monomorphism is a regular monomorphism. -/
-@[priority 100]
-instance normal_mono.regular_mono (f : X ⟶ Y) [I : normal_mono f] : regular_mono f :=
-{ left := I.g,
-  right := 0,
-  w := (by simpa using I.w),
-  ..I }
-
-/-- If `f` is a normal mono, then any map `k : W ⟶ Y` such that `k ≫ normal_mono.g = 0` induces
-    a morphism `l : W ⟶ X` such that `l ≫ f = k`. -/
-def normal_mono.lift' {W : C} (f : X ⟶ Y) [normal_mono f] (k : W ⟶ Y) (h : k ≫ normal_mono.g = 0) :
-  {l : W ⟶ X // l ≫ f = k} :=
-kernel_fork.is_limit.lift' normal_mono.is_limit _ h
-
-/--
-The second leg of a pullback cone is a normal monomorphism if the right component is too.
-
-See also `pullback.snd_of_mono` for the basic monomorphism version, and
-`normal_of_is_pullback_fst_of_normal` for the flipped version.
--/
-def normal_of_is_pullback_snd_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
-  [hn : normal_mono h] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
-normal_mono g :=
-{ Z := hn.Z,
-  g := k ≫ hn.g,
-  w := by rw [← reassoc_of comm, hn.w, has_zero_morphisms.comp_zero],
-  is_limit :=
-  begin
-    letI gr := regular_of_is_pullback_snd_of_regular comm t,
-    have q := (has_zero_morphisms.comp_zero k hn.Z).symm,
-    convert gr.is_limit,
-    dunfold kernel_fork.of_ι fork.of_ι,
-    congr, exact q, exact q, exact q, apply proof_irrel_heq,
-  end }
-
-/--
-The first leg of a pullback cone is a normal monomorphism if the left component is too.
-
-See also `pullback.fst_of_mono` for the basic monomorphism version, and
-`normal_of_is_pullback_snd_of_normal` for the flipped version.
--/
-def normal_of_is_pullback_fst_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
-  [hn : normal_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
-normal_mono f :=
-normal_of_is_pullback_snd_of_normal comm.symm (pullback_cone.flip_is_limit t)
-
-end
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
 class regular_epi (f : X ⟶ Y) :=
 (W : C)
@@ -214,7 +138,8 @@ instance coequalizer_regular (g h : X ⟶ Y) [has_colimit (parallel_pair g h)] :
   left := g,
   right := h,
   w := coequalizer.condition g h,
-  is_colimit := cofork.is_colimit.mk _ (λ s, colimit.desc _ s) (by simp) (λ s m w, by { ext1, simp [←w] }) }
+  is_colimit := cofork.is_colimit.mk _ (λ s, colimit.desc _ s) (by simp)
+    (λ s m w, by { ext1, simp [←w] }) }
 
 /-- Every split epimorphism is a regular epimorphism. -/
 @[priority 100]
@@ -238,7 +163,8 @@ The second leg of a pushout cocone is a regular epimorphism if the right compone
 See also `pushout.snd_of_epi` for the basic epimorphism version, and
 `regular_of_is_pushout_fst_of_regular` for the flipped version.
 -/
-def regular_of_is_pushout_snd_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+def regular_of_is_pushout_snd_of_regular
+  {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [gr : regular_epi g] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 regular_epi h :=
 { W := gr.W,
@@ -268,7 +194,8 @@ The first leg of a pushout cocone is a regular epimorphism if the left component
 See also `pushout.fst_of_epi` for the basic epimorphism version, and
 `regular_of_is_pushout_snd_of_regular` for the flipped version.
 -/
-def regular_of_is_pushout_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
+def regular_of_is_pushout_fst_of_regular
+  {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
   [fr : regular_epi f] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
 regular_epi k :=
 regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t)
@@ -287,86 +214,8 @@ instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f 
     { apply (cancel_mono z).1,
       simp only [category.assoc, h, regular_epi.w_assoc] },
     obtain ⟨t, ht⟩ := regular_epi.desc' f u this,
-    exact ⟨t, ht, (cancel_epi f).1
+    exact arrow.has_lift.mk ⟨t, ht, (cancel_epi f).1
       (by simp only [←category.assoc, ht, ←h, arrow.mk_hom, arrow.hom_mk'_right])⟩,
   end }
-
-section
-variables [has_zero_morphisms C]
-/-- A normal epimorphism is a morphism which is the cokernel of some morphism. -/
-class normal_epi (f : X ⟶ Y) :=
-(W : C)
-(g : W ⟶ X)
-(w : g ≫ f = 0)
-(is_colimit : is_colimit (cokernel_cofork.of_π f w))
-
-section
-local attribute [instance] fully_faithful_reflects_colimits
-local attribute [instance] equivalence.ess_surj_of_equivalence
-
-/-- If `F` is an equivalence and `F.map f` is a normal epi, then `f` is a normal epi. -/
-def equivalence_reflects_normal_epi {D : Type u₂} [category.{v₁} D] [has_zero_morphisms D]
-  (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_epi (F.map f)) :
-  normal_epi f :=
-{ W := F.obj_preimage hf.W,
-  g := full.preimage ((F.fun_obj_preimage_iso hf.W).hom ≫ hf.g),
-  w := faithful.map_injective F $ by simp [hf.w],
-  is_colimit := reflects_colimit.reflects $
-    is_colimit.of_cocone_equiv (cocones.precompose_equivalence (comp_nat_iso F).symm) $
-      is_colimit.of_iso_colimit
-        (by exact is_colimit.of_iso_colimit
-          (is_cokernel.of_iso_comp _ _ (F.fun_obj_preimage_iso hf.W).symm (by simp) hf.is_colimit)
-            (of_π_congr (category.id_comp _).symm))
-        (iso_of_π _).symm }
-
-end
-
-/-- Every normal epimorphism is a regular epimorphism. -/
-@[priority 100]
-instance normal_epi.regular_epi (f : X ⟶ Y) [I : normal_epi f] : regular_epi f :=
-{ left := I.g,
-  right := 0,
-  w := (by simpa using I.w),
-  ..I }
-
-/-- If `f` is a normal epi, then every morphism `k : X ⟶ W` satisfying `normal_epi.g ≫ k = 0`
-    induces `l : Y ⟶ W` such that `f ≫ l = k`. -/
-def normal_epi.desc' {W : C} (f : X ⟶ Y) [normal_epi f] (k : X ⟶ W) (h : normal_epi.g ≫ k = 0) :
-  {l : Y ⟶ W // f ≫ l = k} :=
-cokernel_cofork.is_colimit.desc' (normal_epi.is_colimit) _ h
-
-/--
-The second leg of a pushout cocone is a normal epimorphism if the right component is too.
-
-See also `pushout.snd_of_epi` for the basic epimorphism version, and
-`normal_of_is_pushout_fst_of_normal` for the flipped version.
--/
-def normal_of_is_pushout_snd_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
-  [gn : normal_epi g] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
-normal_epi h :=
-{ W := gn.W,
-  g := gn.g ≫ f,
-  w := by rw [category.assoc, comm, reassoc_of gn.w, zero_comp],
-  is_colimit :=
-  begin
-    letI hn := regular_of_is_pushout_snd_of_regular comm t,
-    have q := (@zero_comp _ _ _ gn.W _ _ f).symm,
-    convert hn.is_colimit,
-    dunfold cokernel_cofork.of_π cofork.of_π,
-    congr, exact q, exact q, exact q, apply proof_irrel_heq,
-  end }
-
-/--
-The first leg of a pushout cocone is a normal epimorphism if the left component is too.
-
-See also `pushout.fst_of_epi` for the basic epimorphism version, and
-`normal_of_is_pushout_snd_of_normal` for the flipped version.
--/
-def normal_of_is_pushout_fst_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R} {h : Q ⟶ S} {k : R ⟶ S}
-  [hn : normal_epi f] (comm : f ≫ h = g ≫ k) (t : is_colimit (pushout_cocone.mk _ _ comm)) :
-normal_epi k :=
-normal_of_is_pushout_snd_of_normal comm.symm (pushout_cocone.flip_is_colimit t)
-
-end
 
 end category_theory

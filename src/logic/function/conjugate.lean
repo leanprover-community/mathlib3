@@ -98,6 +98,22 @@ lemma comp {f' : β → γ} {gc : γ → γ → γ} (hf' : semiconj₂ f' gb gc)
   semiconj₂ (f' ∘ f) ga gc :=
 λ x y, by simp only [hf'.eq, hf.eq, comp_app]
 
+lemma is_associative_right [is_associative α ga] (h : semiconj₂ f ga gb) (h_surj : surjective f) :
+  is_associative β gb :=
+⟨h_surj.forall₃.2 $ λ x₁ x₂ x₃, by simp only [← h.eq, @is_associative.assoc _ ga]⟩
+
+lemma is_associative_left [is_associative β gb] (h : semiconj₂ f ga gb) (h_inj : injective f) :
+  is_associative α ga :=
+⟨λ x₁ x₂ x₃, h_inj $ by simp only [h.eq, @is_associative.assoc _ gb]⟩
+
+lemma is_idempotent_right [is_idempotent α ga] (h : semiconj₂ f ga gb) (h_surj : surjective f) :
+  is_idempotent β gb :=
+⟨h_surj.forall.2 $ λ x, by simp only [← h.eq, @is_idempotent.idempotent _ ga]⟩
+
+lemma is_idempotent_left [is_idempotent β gb] (h : semiconj₂ f ga gb) (h_inj : injective f) :
+  is_idempotent α ga :=
+⟨λ x, h_inj $ by rw [h.eq, @is_idempotent.idempotent _ gb]⟩
+
 end semiconj₂
 
 end function

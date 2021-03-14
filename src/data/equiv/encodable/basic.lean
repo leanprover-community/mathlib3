@@ -31,6 +31,10 @@ open encodable
 theorem encode_injective [encodable α] : function.injective (@encode α _)
 | x y e := option.some.inj $ by rw [← encodek, e, encodek]
 
+lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
+  surjective (λ n, (encodable.decode α n).iget) :=
+λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
+
 /- This is not set as an instance because this is usually not the best way
   to infer decidability. -/
 def decidable_eq_of_encodable (α) [encodable α] : decidable_eq α
@@ -292,10 +296,10 @@ def up (a : ulower α) : α := (equiv α).symm a
 @[simp] lemma up_down {a : α} : (down a).up = a := equiv.left_inv _ _
 
 @[simp] lemma up_eq_up {a b : ulower α} : a.up = b.up ↔ a = b :=
-equiv.apply_eq_iff_eq _ _ _
+equiv.apply_eq_iff_eq _
 
 @[simp] lemma down_eq_down {a b : α} : down a = down b ↔ a = b :=
-equiv.apply_eq_iff_eq _ _ _
+equiv.apply_eq_iff_eq _
 
 @[ext] protected lemma ext {a b : ulower α} : a.up = b.up → a = b :=
 up_eq_up.1

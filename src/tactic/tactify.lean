@@ -57,7 +57,9 @@ meta def fill_args_with_mvars : expr → tactic expr
 meta def replace_args_with_mvars (e : expr) : tactic expr :=
 e.get_app_fn.fill_args_with_mvars
 
-meta def mreplace_aux (R : expr → nat → tactic expr) : expr → ℕ → tactic expr
+/-- Implementation of `expr.mreplace`. -/
+meta def mreplace_aux {m : Type* → Type*} [monad m] [alternative m] (R : expr → nat → m expr) :
+  expr → ℕ → m expr
 | (app f x) n := R (app f x) n <|>
   (do Rf ← mreplace_aux f n, Rx ← mreplace_aux x n, return $ app Rf Rx)
 | (lam nm bi ty bd) n := R (lam nm bi ty bd) n <|>
@@ -70,13 +72,53 @@ meta def mreplace_aux (R : expr → nat → tactic expr) : expr → ℕ → tact
     Rb ← mreplace_aux b n,
     return $ elet nm Rty Ra Rb)
 | e n := R e n <|> return e
-.
 
-meta def mreplace (R : expr → nat → tactic expr) (e : expr) : tactic expr :=
+/--
+Monadic equivalent of `expr.replace`.
+
+The function `R` visits each subexpression `e`, and is called with `R e n`, where
+`n` is the number of binders above `e`.
+If `R e n` returns some value, `e` is replaced with that value (and `mreplace` does not visit
+its subexpressions).
+If `R e n` fails, then `mreplace` continues visiting subexpressions of `e`.
+-/
+meta def mreplace {m : Type* → Type*} [monad m] [alternative m]
+  (R : expr → nat → m expr) (e : expr) : m expr :=
 mreplace_aux R e 0
 
+/--
+Replace each metavariable in an expression with a fresh metavariable of the same type.
+-/
 meta def refresh_mvars (e : expr) : tactic expr :=
 e.mreplace (λ f n, if f.is_mvar then infer_type f >>= mk_meta_var else failed)
+
+/--
+Prepares a ``(n ___).mpr` expression that can be applied against the goal,
+where `___` is however many `_`s are needed to obtain an `iff`.
+-/
+meta def iff_mpr_apply (n : name) : tactic expr :=
+do t ← target,
+   e ← prod.snd <$> (solve_aux t $ applyc `iff.mpr >> applyc n) >>= instantiate_mvars,
+   e ← e.refresh_mvars,
+   return e.app_fn
+
+example (a b : ℕ) (h₁ : 1 < b) (h₂ : 0 < a) :
+  a < a * b :=
+begin
+  apply (lt_mul_iff_one_lt_right _).mpr,
+  exact h₁,
+  exact h₂,
+end
+
+example (a b : ℕ) (h₁ : 1 < b) (h₂ : 0 < a) :
+  a < a * b :=
+begin
+  iff_mpr_apply `lt_mul_iff_one_lt_right >>= trace, -- looks good: `(lt_mul_iff_one_lt_right ?m_1).mpr`
+  iff_mpr_apply `lt_mul_iff_one_lt_right >>= apply,
+  -- but we only get one goal :-(
+  exact h₁,
+end
+
 
 end expr
 
@@ -210,12 +252,6 @@ meta def prompts : proof_script → tactic (list (string × string))
 end proof_script
 
 
-meta def iff_mpr_apply (n : name) : tactic unit :=
-do t ← target,
-   e ← prod.snd <$> (solve_aux t $ applyc `iff.mpr >> applyc n) >>= instantiate_mvars,
-   trace e,
-   e ← e.refresh_mvars,
-   apply e $> ()
 
 meta def construct_apply_step (e : expr) : tactic proof_step :=
 (do
@@ -226,19 +262,42 @@ meta def construct_apply_step (e : expr) : tactic proof_step :=
   pp_t ← infer_type e >>= pp,
   return (proof_step.sorry format!"tried to `apply {pp_e}` with type `{pp_t}` but couldn't make it work"))
 
-meta def shrink_rw (symm : bool) : expr → tactic expr
-| e := do
-  trace e,
-  if e.is_app then do
-    s ← to_string <$> lock_tactic_state (do tactic.rewrite_target e { symm := symm }, get_state >>= pp),
-    let e' := e.app_fn,
-    s' ← to_string <$> lock_tactic_state (do tactic.rewrite_target e' { symm := symm }, get_state >>= pp),
-    if s = s' then
-      shrink_rw e'
-    else
-      return e
+meta def shrink_rw_aux (symm : bool) (tgt : expr) (result : string) : expr → tactic expr
+| r := do
+  pp ← pp r,
+  -- trace format!"shrink_rw_aux {pp}",
+  if r.is_app then (do
+    goal ← prod.snd <$> solve_aux tgt (tactic.rewrite_target r.app_fn { symm := symm }),
+    result' ← to_string <$> tactic.pp goal,
+    (guard (result = result') >> shrink_rw_aux (r.app_fn))) <|>
+      return r
   else
-    return e
+    return r
+
+meta def shrink_rw (symm : bool) (r : expr) : tactic expr :=
+do
+  t ← target,
+  -- trace "target",
+  -- trace t,
+  -- trace symm,
+  -- trace r,
+  t' ← prod.snd <$> solve_aux t (tactic.rewrite_target r { symm := symm }),
+  result ← to_string <$> tactic.pp t',
+  shrink_rw_aux symm t result r
+
+-- meta def shrink_rw (symm : bool) : expr → tactic expr
+-- | e := do
+--   -- trace e,
+--   if e.is_app then do
+--     s ← to_string <$> lock_tactic_state (do tactic.rewrite_target e { symm := symm }, get_state >>= pp),
+--     let e' := e.app_fn,
+--     s' ← to_string <$> lock_tactic_state (do tactic.rewrite_target e' { symm := symm }, get_state >>= pp),
+--     if s = s' then
+--       shrink_rw e'
+--     else
+--       return e
+--   else
+--     return e
 
 /--
 Attempt to deduce a single proof step from a list of `solutions` for the current goals,
@@ -268,7 +327,9 @@ do
           | _ := return (ff, b)
           end,
           -- then try to discard arguments but still get the correct rewrite:
+          -- trace format!"before shrink: {b}",
           b ← shrink_rw symm b,
+          -- trace format!"after shrink: {b}",
           return (proof_step.rewrite b symm)
       -- | `(@iff.mpr) := do
       --     -- Rather than produce separate steps `apply iff.mpr` and then `apply F`,
@@ -276,18 +337,18 @@ do
       --     match sol with
       --     | `(iff.mpr %%F %%x) := do
       --       -- Since we're playing with `_`s here, we need to discard extra goals that get created.
-      --       trace_state,
-      --       F' ← replace_args_with_mvars F,
-      --       trace_state,
-      --       let p := ``(iff.mpr %%F'),
-      --       trace_state,
-      --       e ← lock_tactic_state $ to_expr ``(iff.mpr %%F'),
-      --       -- e ← mk_mapp ``iff.mpr [none,none,F'],
-      --       -- e ← to_expr ``(iff.mpr %%F'),
-      --       -- e ← tactic.iff_mpr F.get_app_fn,
-      --       -- trace e,
+      --       -- trace_state,
+      --       -- F' ← replace_args_with_mvars F,
+      --       -- trace_state,
+      --       -- let p := ``(iff.mpr %%F'),
+      --       -- trace_state,
+      --       -- e ← lock_tactic_state $ to_expr ``(iff.mpr %%F'),
+      --       -- -- e ← mk_mapp ``iff.mpr [none,none,F'],
+      --       -- -- e ← to_expr ``(iff.mpr %%F'),
+      --       e ← iff_mpr_apply F.get_app_fn.const_name,
+      --       trace e,
       --       -- set_goals gs,
-      --       return (proof_step.apply' p e)
+      --       return (proof_step.apply e)
       --     | _ := fail "unreachable code"
       --     end
       | _ := do
@@ -381,7 +442,7 @@ run_cmd tactic_prompts `foo
 def bar (a b : ℕ) (h₁ : 1 < b) (h₂ : 0 < a) :
   a < a * b :=
 begin
-  show_term { applyc `iff.mpr, applyc `lt_mul_iff_one_lt_right, },
+  -- show_term { applyc `iff.mpr, applyc `lt_mul_iff_one_lt_right, },
   apply (lt_mul_iff_one_lt_right _).mpr,
   exact h₁,
   exact h₂,
@@ -419,17 +480,29 @@ run_cmd tactic_prompts `nat.self_le_factorial
 example : false :=
 begin
   tactify `nat.factorial_le,
+  tactify `nat.lt_factorial_self,
   tactify `nat.add_factorial_succ_lt_factorial_add_succ,
 end
 
-example {i : ℕ} (n : ℕ) (hi : 2 ≤ i) :
-  i + (n + 1).factorial < (i + n) * (i + n).factorial + (i + n).factorial :=
+#print nat.lt_factorial_self
+
+-- extract from nat.lt_factorial_self
+example : ∀ {n : ℕ}, 3 ≤ n → n < n.factorial :=
 begin
-  apply add_lt_add_of_lt_of_le,
-  apply has_le.le.trans_lt,
-  apply nat.le.intro,
-  exact rfl,
-  skip,
+intros n hi,
+rw ←nat.succ_pred_eq_of_pos ((zero_lt_two.trans (nat.lt.base 2)).trans_le hi),
+rw nat.factorial_succ,
+apply lt_mul_of_one_lt_right,
+apply nat.succ_pos,
+apply has_lt.lt.trans_le,
+apply has_lt.lt.trans_le,
+apply one_lt_two,
+apply nat.le_pred_of_lt,
+apply iff.mp,
+apply nat.succ_le_iff,
+exact hi,
+apply nat.self_le_factorial,
+done,
 end
 
 -- Extracted from nat.add_factorial_succ_lt_factorial_add_succ.
@@ -437,16 +510,24 @@ example : ∀ {i : ℕ} (n : ℕ), 2 ≤ i → i + (n + 1).factorial < (i + n + 
 begin
 intros i n hi,
 rw (i + n).factorial_succ,
-rw (i + n).succ_eq_add_one,
-rw add_mul (i + n) 1 (i + n).factorial,
-rw one_mul (i + n).factorial,
+rw nat.succ_eq_add_one,
+rw add_mul,
+rw one_mul,
 apply add_lt_add_of_lt_of_le,
 apply has_le.le.trans_lt,
 apply nat.le.intro,
 apply rfl,
 exact n,
-apply (lt_mul_iff_one_lt_right _).mpr,
-apply lt_iff_le_and_ne.mpr,
+apply iff.mpr,
+apply lt_mul_iff_one_lt_right,
+apply has_lt.lt.trans_le,
+apply zero_lt_two,
+apply has_le.le.trans,
+exact hi,
+apply nat.le.intro,
+apply rfl,
+apply iff.mpr,
+apply lt_iff_le_and_ne,
 apply and.intro,
 apply nat.factorial_pos,
 intro g,
@@ -465,7 +546,8 @@ apply nat.factorial_le,
 apply has_le.le.trans,
 apply le_of_eq,
 apply add_comm,
-apply (add_le_add_iff_right _).mpr,
+apply iff.mpr,
+apply add_le_add_iff_right,
 apply has_le.le.trans,
 apply one_le_two,
 exact hi,

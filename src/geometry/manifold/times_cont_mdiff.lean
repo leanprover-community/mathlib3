@@ -1026,7 +1026,7 @@ begin
   have A := hf.2 x y,
   simp only [I.image_eq, inter_comm] with mfld_simps at A ⊢,
   apply A.continuous_on_fderiv_within _ hn,
-  convert hs.unique_diff_on x using 1,
+  convert hs.unique_diff_on_target_inter x using 1,
   simp only [inter_comm] with mfld_simps
 end
 

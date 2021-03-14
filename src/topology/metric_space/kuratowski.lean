@@ -11,7 +11,7 @@ import topology.compacts
 /-!
 # The Kuratowski embedding
 
-Any separable metric space can be embedded isometrically in ℓ^∞(ℝ).
+Any separable metric space can be embedded isometrically in `ℓ^∞(ℝ)`.
 -/
 
 noncomputable theory
@@ -32,7 +32,7 @@ namespace Kuratowski_embedding
 variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ → α) (a b : α)
 
 /-- A metric space can be embedded in `l^∞(ℝ)` via the distances to points in
-a fixed countable set, if this set is dense. This map is given in the next definition,
+a fixed countable set, if this set is dense. This map is given in `Kuratowski_embedding`,
 without density assumptions. -/
 def embedding_of_subset : ℓ_infty_ℝ :=
 of_normed_group_discrete (λn, dist a (x n) - dist (x 0) (x n)) (dist a (x 0))
@@ -73,7 +73,7 @@ begin
   simpa [dist_comm] using this
 end
 
-/-- Every separable metric space embeds isometrically in ℓ_infty_ℝ. -/
+/-- Every separable metric space embeds isometrically in `ℓ_infty_ℝ`. -/
 theorem exists_isometric_embedding (α : Type u) [metric_space α] [separable_space α] :
   ∃(f : α → ℓ_infty_ℝ), isometry f :=
 begin
@@ -92,11 +92,11 @@ end Kuratowski_embedding
 
 open topological_space Kuratowski_embedding
 
-/-- The Kuratowski embedding is an isometric embedding of a separable metric space in ℓ^∞(ℝ) -/
+/-- The Kuratowski embedding is an isometric embedding of a separable metric space in `ℓ^∞(ℝ)`. -/
 def Kuratowski_embedding (α : Type u) [metric_space α] [separable_space α] : α → ℓ_infty_ℝ :=
   classical.some (Kuratowski_embedding.exists_isometric_embedding α)
 
-/-- The Kuratowski embedding is an isometry -/
+/-- The Kuratowski embedding is an isometry. -/
 protected lemma Kuratowski_embedding.isometry (α : Type u) [metric_space α] [separable_space α] :
   isometry (Kuratowski_embedding α) :=
 classical.some_spec (exists_isometric_embedding α)

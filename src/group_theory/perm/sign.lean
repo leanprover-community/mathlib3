@@ -110,10 +110,10 @@ begin
 end
 
 lemma mem_sum_congr_hom_range_of_perm_maps_to_inl {m n : Type*} [fintype m] [fintype n]
-  [decidable_eq m] [decidable_eq n]
   {σ : perm (m ⊕ n)} (h : set.maps_to σ (set.range sum.inl) (set.range sum.inl)) :
   σ ∈ (sum_congr_hom m n).range :=
 begin
+  classical,
   have h1 : ∀ (x : m ⊕ n), (∃ (a : m), sum.inl a = x) → (∃ (a : m), sum.inl a = σ x),
   { rintros x ⟨a, ha⟩, apply h, rw ← ha, exact ⟨a, rfl⟩ },
   have h3 : ∀ (x : m ⊕ n), (∃ (b : n), sum.inr b = x) → (∃ (b : n), sum.inr b = σ x),

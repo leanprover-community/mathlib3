@@ -54,7 +54,9 @@ open monoidal_opposite
 
 variables [category.{v₁} C]
 
+/-- The monoidal opposite of a morphism `f : X ⟶ Y` is just `f`, thought of as `mop X ⟶ mop Y`. -/
 def has_hom.hom.mop {X Y : C} (f : X ⟶ Y) : @has_hom.hom Cᵐᵒᵖ _ (mop X) (mop Y) := f
+/-- We can think of a morphism `f : mop X ⟶ mop Y` as a morphism `X ⟶ Y`. -/
 def has_hom.hom.unmop {X Y : Cᵐᵒᵖ} (f : X ⟶ Y) : unmop X ⟶ unmop Y := f
 
 lemma has_hom.hom.mop_inj {X Y : C} :

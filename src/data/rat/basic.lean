@@ -288,7 +288,7 @@ begin
     ... = (a * d + c * b) * (d₁ * d₂)             : by simp [mul_add, mul_comm, mul_left_comm]
 end
 
-/-- Opposite rational number. Use `-r` instead. -/
+/-- Negation of rational numbers. Use `-r` instead. -/
 protected def neg (r : ℚ) : ℚ :=
 ⟨-r.num, r.denom, r.pos, by simp [r.cop]⟩
 

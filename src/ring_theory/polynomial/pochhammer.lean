@@ -56,19 +56,25 @@ end
 
 end
 
-@[simp] lemma pochhammer_eval_cast (n k : ℕ) :
+@[simp, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
   ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
 begin
   rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←(algebra_map ℕ S).eq_nat_cast,
     eval₂_at_nat_cast, nat.cast_id, ring_hom.eq_nat_cast],
 end
 
-@[simp] lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
+lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
 begin
   cases n,
   { simp, },
   { simp [X_mul, nat.succ_ne_zero, pochhammer_succ_left], }
 end
+
+@[simp] lemma pochhammer_zero_eval_zero : (pochhammer S 0).eval 0 = 1 :=
+by simp [pochhammer_eval_zero]
+
+@[simp] lemma pochhammer_ne_zero_eval_zero {n : ℕ} (h : n ≠ 0) : (pochhammer S n).eval 0 = 0 :=
+by simp [pochhammer_eval_zero, h]
 
 lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X + n) :=
 begin
@@ -115,8 +121,10 @@ end
 
 section factorial
 
+open_locale nat
+
 /-- Preliminary version of `pochhammer_eval_one` specialized to `S = ℕ`. -/
-lemma pochhammer_eval_one' (n : ℕ) : (pochhammer ℕ n).eval 1 = n.factorial :=
+lemma pochhammer_eval_one' (n : ℕ) : (pochhammer ℕ n).eval 1 = n! :=
 begin
   induction n with n ih,
   { simp, },
@@ -125,24 +133,24 @@ end
 
 @[simp]
 lemma pochhammer_eval_one (S : Type*) [semiring S] (n : ℕ) :
-  (pochhammer S n).eval (1 : S) = (n.factorial : S) :=
+  (pochhammer S n).eval (1 : S) = (n! : S) :=
 by simpa using congr_arg (algebra_map ℕ S) (pochhammer_eval_one' n)
 
 /-- Preliminary version of `factorial_mul_pochhammer` specialized to `S = ℕ`. -/
 lemma factorial_mul_pochhammer' (r n : ℕ) :
-  r.factorial * (pochhammer ℕ n).eval (r+1) = (r + n).factorial :=
+  r! * (pochhammer ℕ n).eval (r+1) = (r + n)! :=
 by simpa [add_comm 1 r, pochhammer_eval_one'] using congr_arg (eval 1) (pochhammer_mul ℕ r n)
 
 lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
-  (r.factorial : S) * (pochhammer S n).eval (r+1) = (r + n).factorial :=
+  (r! : S) * (pochhammer S n).eval (r+1) = (r + n)! :=
 by simpa using congr_arg (algebra_map ℕ S) (factorial_mul_pochhammer' r n)
 
 lemma pochhammer_eval_eq_factorial_div_factorial {r n : ℕ} :
-  (pochhammer ℕ n).eval (r+1) = (r + n).factorial / r.factorial :=
+  (pochhammer ℕ n).eval (r+1) = (r + n)! / r! :=
 (nat.div_eq_of_eq_mul_right (nat.factorial_pos _) (factorial_mul_pochhammer' r n).symm).symm
 
 lemma pochhammer_eval_eq_choose_mul_factorial {r n : ℕ} :
-  (pochhammer ℕ n).eval (r+1) = (r + n).choose n * n.factorial :=
+  (pochhammer ℕ n).eval (r+1) = (r + n).choose n * n! :=
 begin
   rw pochhammer_eval_eq_factorial_div_factorial,
   -- TODO we need a `clear_denominators` tactic!
@@ -153,7 +161,7 @@ begin
 end
 
 lemma choose_eq_pochhammer_eval_div_factorial {r n : ℕ} :
-  (r + n).choose n = (pochhammer ℕ n).eval (r+1) / n.factorial :=
+  (r + n).choose n = (pochhammer ℕ n).eval (r+1) / n! :=
 begin
   symmetry,
   apply nat.div_eq_of_eq_mul_right (nat.factorial_pos _),

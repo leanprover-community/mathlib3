@@ -29,8 +29,7 @@ begin
      ... = a ^ 2 + b ^ 2 - 2 * a * b : by ring,
 end
 
-lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) :
-  snorm (λ (x : α), ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
+lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin
   have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
   rw [snorm_norm_rpow f zero_lt_two, one_mul, h_two],
@@ -39,12 +38,10 @@ end
 
 lemma snorm_inner_lt_top (f g : Lp E 2 μ) : snorm (λ (x : α), ⟪f x, g x⟫) 1 μ < ∞ :=
 begin
-  have h : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ∥f x∥ * ∥g x∥,
-    from λ x, abs_inner_le_norm _ _,
-  have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ∥ ∥f x∥^2 + ∥g x∥^2 ∥,
-  { simp_rw real.norm_eq_abs,
-    refine λ x, le_trans (h x) _,
-    rw abs_eq_self.mpr,
+  have h : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ∥f x∥ * ∥g x∥, from λ x, abs_inner_le_norm _ _,
+  have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ is_R_or_C.abs (∥f x∥^2 + ∥g x∥^2),
+  { refine λ x, le_trans (h x) _,
+    rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
     swap, { exact add_nonneg (by simp) (by simp), },
     refine le_trans _ (half_le_self (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _))),
     refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr (le_trans (le_of_eq _) (two_mul_le_add_sq _ _)),
@@ -79,7 +76,7 @@ begin
   ext1 x,
   have h_two : (2 : ℝ) = ((2 : ℕ) : ℝ), by simp,
   rw [← real.rpow_nat_cast _ 2, ← h_two,
-    ←ennreal.of_real_rpow_of_nonneg (norm_nonneg _) zero_le_two, of_real_norm_eq_coe_nnnorm],
+    ← ennreal.of_real_rpow_of_nonneg (norm_nonneg _) zero_le_two, of_real_norm_eq_coe_nnnorm],
   norm_cast,
 end
 

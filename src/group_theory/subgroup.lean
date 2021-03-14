@@ -1366,7 +1366,7 @@ by { ext, exact mem_closure_singleton.symm }
 @[simp] lemma range_gmultiples_hom (a : A) : (gmultiples_hom A a).range = gmultiples a := rfl
 
 lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
-@subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
+λ x ⟨i, hi⟩, hi ▸ B.gsmul_mem h i
 
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers

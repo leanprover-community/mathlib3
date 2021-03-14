@@ -1510,9 +1510,17 @@ lemma times_cont_mdiff_within_at.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at I J' n g s x) :
   times_cont_mdiff_within_at I (I'.prod J') n (λ x, (f x, g x)) s x :=
 begin
-  rw times_cont_mdiff_within_at_iff at *,
-  refine ⟨hf.1.prod hg.1, (hf.2.mono _).prod (hg.2.mono _)⟩;
-  mfld_set_tac,
+  rw times_cont_mdiff_within_at_iff'' at *,
+  exact ⟨hf.1.prod hg.1, hf.2.prod hg.2⟩,
+end
+
+lemma times_cont_mdiff_within_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff_within_at I 𝓘(𝕜, E') n f s x)
+  (hg : times_cont_mdiff_within_at I 𝓘(𝕜, F') n g s x) :
+  times_cont_mdiff_within_at I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) s x :=
+begin
+  rw times_cont_mdiff_within_at_iff'' at *,
+  exact ⟨hf.1.prod hg.1, hf.2.prod hg.2⟩,
 end
 
 lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'}
@@ -1520,35 +1528,70 @@ lemma times_cont_mdiff_at.prod_mk {f : M → M'} {g : M → N'}
   times_cont_mdiff_at I (I'.prod J') n (λ x, (f x, g x)) x :=
 hf.prod_mk hg
 
+lemma times_cont_mdiff_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff_at I 𝓘(𝕜, E') n f x) (hg : times_cont_mdiff_at I 𝓘(𝕜, F') n g x) :
+  times_cont_mdiff_at I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) x :=
+hf.prod_mk_space hg
+
 lemma times_cont_mdiff_on.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on I J' n g s) :
   times_cont_mdiff_on I (I'.prod J') n (λ x, (f x, g x)) s :=
 λ x hx, (hf x hx).prod_mk (hg x hx)
+
+lemma times_cont_mdiff_on.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff_on I 𝓘(𝕜, E') n f s) (hg : times_cont_mdiff_on I 𝓘(𝕜, F') n g s) :
+  times_cont_mdiff_on I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) s :=
+λ x hx, (hf x hx).prod_mk_space (hg x hx)
 
 lemma times_cont_mdiff.prod_mk {f : M → M'} {g : M → N'}
   (hf : times_cont_mdiff I I' n f) (hg : times_cont_mdiff I J' n g) :
   times_cont_mdiff I (I'.prod J') n (λ x, (f x, g x)) :=
 λ x, (hf x).prod_mk (hg x)
 
+lemma times_cont_mdiff.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : times_cont_mdiff I 𝓘(𝕜, E') n f) (hg : times_cont_mdiff I 𝓘(𝕜, F') n g) :
+  times_cont_mdiff I 𝓘(𝕜, E' × F') n (λ x, (f x, g x)) :=
+λ x, (hf x).prod_mk_space (hg x)
+
 lemma smooth_within_at.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth_within_at I I' f s x) (hg : smooth_within_at I J' g s x) :
   smooth_within_at I (I'.prod J') (λ x, (f x, g x)) s x :=
 hf.prod_mk hg
+
+lemma smooth_within_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth_within_at I 𝓘(𝕜, E') f s x) (hg : smooth_within_at I 𝓘(𝕜, F') g s x) :
+  smooth_within_at I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) s x :=
+hf.prod_mk_space hg
 
 lemma smooth_at.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth_at I I' f x) (hg : smooth_at I J' g x) :
   smooth_at I (I'.prod J') (λ x, (f x, g x)) x :=
 hf.prod_mk hg
 
+lemma smooth_at.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth_at I 𝓘(𝕜, E') f x) (hg : smooth_at I 𝓘(𝕜, F') g x) :
+  smooth_at I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) x :=
+hf.prod_mk_space hg
+
 lemma smooth_on.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth_on I I' f s) (hg : smooth_on I J' g s) :
   smooth_on I (I'.prod J') (λ x, (f x, g x)) s :=
 hf.prod_mk hg
 
+lemma smooth_on.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth_on I 𝓘(𝕜, E') f s) (hg : smooth_on I 𝓘(𝕜, F') g s) :
+  smooth_on I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) s :=
+hf.prod_mk_space hg
+
 lemma smooth.prod_mk {f : M → M'} {g : M → N'}
   (hf : smooth I I' f) (hg : smooth I J' g) :
   smooth I (I'.prod J') (λ x, (f x, g x)) :=
 hf.prod_mk hg
+
+lemma smooth.prod_mk_space {f : M → E'} {g : M → F'}
+  (hf : smooth I 𝓘(𝕜, E') f) (hg : smooth I 𝓘(𝕜, F') g) :
+  smooth I 𝓘(𝕜, E' × F') (λ x, (f x, g x)) :=
+hf.prod_mk_space hg
 
 end prod_mk
 

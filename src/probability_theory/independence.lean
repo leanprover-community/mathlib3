@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Rémy Degenne
 -/
 import measure_theory.measure_space
+import measure_theory.pi_system
 import algebra.big_operators.intervals
 import data.finset.intervals
 
@@ -195,6 +196,11 @@ lemma indep_sets.Inter {α ι} [measurable_space α] {s : ι → set (set α)} {
   indep_sets (⋂ n, s n) s' μ :=
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
 
+lemma indep_sets_singleton_iff {α} [measurable_space α] {s t : set α} {μ : measure α} :
+  indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
+⟨λ h, h s t rfl rfl,
+  λ h s1 t1 hs1 ht1, by rwa [set.mem_singleton_iff.mp hs1, set.mem_singleton_iff.mp ht1]⟩
+
 end indep
 
 /-! ### Deducing `indep` from `Indep` -/
@@ -308,5 +314,36 @@ begin
 end
 
 end from_pi_systems_to_measurable_spaces
+
+section indep_set
+/-! ### Independence of measurable sets
+
+We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
+* `indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t`,
+* `indep_set s t μ ↔ indep_sets {s} {t} μ`.
+-/
+
+variables {α : Type*} [measurable_space α] {s t : set α} (S T : set (set α))
+
+lemma indep_set_iff_indep_sets_singleton (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [probability_measure μ] :
+  indep_set s t μ ↔ indep_sets {s} {t} μ :=
+⟨indep.indep_sets,  λ h, indep_sets.indep
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu))
+  (generate_from_le (λ u hu, by rwa set.mem_singleton_iff.mp hu)) (is_pi_system.singleton s)
+  (is_pi_system.singleton t) rfl rfl h⟩
+
+lemma indep_set_iff_measure_inter_eq_mul (hs_meas : measurable_set s) (ht_meas : measurable_set t)
+  (μ : measure α . volume_tac) [probability_measure μ] :
+  indep_set s t μ ↔ μ (s ∩ t) = μ s * μ t :=
+(indep_set_iff_indep_sets_singleton hs_meas ht_meas μ).trans indep_sets_singleton_iff
+
+lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measurable_set s)
+  (ht_meas : measurable_set t) (μ : measure α . volume_tac) [probability_measure μ]
+  (h_indep : indep_sets S T μ) :
+  indep_set s t μ :=
+(indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
+
+end indep_set
 
 end probability_theory

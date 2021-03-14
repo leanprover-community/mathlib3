@@ -189,8 +189,8 @@ section flip
 variables (R₂)
 
 /-- Auxiliary construction for the flip of a bilinear form, obtained by exchanging the left and
-right arguments. This is a verison is an `add_monoid_hom`; it is later upgraded to an `add_equiv`
-in `flip'`, and for a commutative ring to a `linear_equiv` in `flip`. -/
+right arguments. This version is a `linear_map`; it is later upgraded to a `linear_equiv`
+in `flip_hom`. -/
 def flip_hom_aux [algebra R₂ R] : bilin_form R M →ₗ[R₂] bilin_form R M :=
 { to_fun := λ A,
   { bilin := λ i j, A j i,

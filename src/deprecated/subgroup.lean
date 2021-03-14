@@ -131,7 +131,9 @@ instance gpowers.is_subgroup (x : G) : is_subgroup (gpowers x) :=
   inv_mem := assume x₀ ⟨i, h⟩, ⟨-i, by simp [h.symm]⟩ }
 
 instance gmultiples.is_add_subgroup (x : A) : is_add_subgroup (gmultiples x) :=
-multiplicative.is_subgroup_iff.1 $ gpowers.is_subgroup _
+{ zero_mem := ⟨(0:ℤ), by simp⟩,
+  add_mem := λ x y, by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, simp [←add_gsmul, gmultiples] },
+  neg_mem := assume x₀ ⟨i, h⟩, ⟨-i, by simp [h.symm]⟩ }
 attribute [to_additive] gpowers.is_subgroup
 
 lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : ∀{i:ℤ}, a ^ i ∈ s
@@ -139,14 +141,16 @@ lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : �
 | -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
 
 lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] :
-  a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
-@is_subgroup.gpow_mem (multiplicative A) _ _ _ (multiplicative.is_subgroup _)
+  a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s
+| h (n : ℕ) := is_add_submonoid.smul_mem h
+| h -[1+ n] := by { rw [gsmul_neg_succ_of_nat],
+                    exact is_add_subgroup.neg_mem (is_add_submonoid.smul_mem h) }
 
 lemma gpowers_subset {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : gpowers a ⊆ s :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := is_subgroup.gpow_mem h end
 
 lemma gmultiples_subset {a : A} {s : set A} [is_add_subgroup s] (h : a ∈ s) : gmultiples a ⊆ s :=
-@gpowers_subset (multiplicative A) _ _ _ (multiplicative.is_subgroup _) h
+λ x ⟨i, hi⟩, hi ▸ is_add_subgroup.gsmul_mem h
 
 attribute [to_additive gmultiples_subset] gpowers_subset
 

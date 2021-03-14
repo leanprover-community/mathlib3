@@ -677,18 +677,6 @@ begin
   { exact (h x).mono (hs.subset_connected_component x_in) }
 end
 
-lemma set.subsingleton_iff_singleton {α : Type*} {s : set α} {x} (hx : x ∈ s) :
-  s.subsingleton ↔ s = {x} :=
-begin
-  split,
-  { intro h,
-    ext y,
-    rw mem_singleton_iff,
-    exact ⟨λ hy, h hy hx, λ h, h.symm ▸ hx⟩ },
-  { intro h,
-    exact (h.symm ▸ subsingleton_singleton) },
-end
-
 /-- A space is totally disconnected iff its connected components are singletons. -/
 lemma totally_disconnected_space_iff_connected_component_singleton :
   totally_disconnected_space α ↔ ∀ x : α, connected_component x = {x} :=

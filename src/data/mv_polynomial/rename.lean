@@ -15,6 +15,7 @@ which modifies the set of variables.
 ## Main declarations
 
 * `mv_polynomial.rename`
+* `mv_polynomial.rename_equiv`
 
 ## Notation
 
@@ -107,6 +108,31 @@ have (rename f : mv_polynomial σ R → mv_polynomial τ R) =
 begin
   rw this,
   exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
+end
+
+section
+variables (R)
+
+/-- `mv_polynomial.rename e` is an equivalence when `e` is. -/
+@[simps apply]
+def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
+{ to_fun := rename f,
+  inv_fun := rename f.symm,
+  left_inv := λ p, by rw [rename_rename, f.symm_comp_self, rename_id],
+  right_inv := λ p, by rw [rename_rename, f.self_comp_symm, rename_id],
+  ..rename f}
+
+@[simp] lemma rename_equiv_refl :
+  rename_equiv R (equiv.refl σ) = alg_equiv.refl :=
+alg_equiv.ext rename_id
+
+@[simp] lemma rename_equiv_symm (f : σ ≃ τ) :
+  (rename_equiv R f).symm = rename_equiv R f.symm := rfl
+
+@[simp] lemma rename_equiv_trans (e : σ ≃ τ) (f : τ ≃ α):
+  (rename_equiv R e).trans (rename_equiv R f) = rename_equiv R (e.trans f) :=
+alg_equiv.ext (rename_rename e f)
+
 end
 
 section

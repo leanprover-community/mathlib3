@@ -354,7 +354,7 @@ lemma bsupr_add {ι} {s : set ι} (hs : s.nonempty) {f : ι → ℝ≥0∞} :
 begin
   simp only [← Sup_image], symmetry,
   rw [image_comp (+ a)],
-  refine is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto _ (is_lub_Sup _) (hs.image _) _),
+  refine is_lub.Sup_eq ((is_lub_Sup $ f '' s).is_lub_of_tendsto _ (hs.image _) _),
   exacts [λ x _ y _ hxy, add_le_add hxy le_rfl,
     tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds]
 end
@@ -415,9 +415,8 @@ begin
     have s₁ : Sup s ≠ 0 :=
       pos_iff_ne_zero.1 (lt_of_lt_of_le (pos_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
-      is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto
+      is_lub.Sup_eq ((is_lub_Sup s).is_lub_of_tendsto
         (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
-        (is_lub_Sup _)
         ⟨x, hx⟩
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
@@ -439,20 +438,15 @@ begin
     by simp [le_of_lt] {contextual := tt})) tendsto_const_nhds
 end
 
-lemma sub_supr {ι : Sort*} [hι : nonempty ι] {b : ι → ℝ≥0∞} (hr : a < ⊤) :
+lemma sub_supr {ι : Sort*} [nonempty ι] {b : ι → ℝ≥0∞} (hr : a < ⊤) :
   a - (⨆i, b i) = (⨅i, a - b i) :=
-let ⟨i⟩ := hι in
 let ⟨r, eq, _⟩ := lt_iff_exists_coe.mp hr in
 have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
-  from is_glb.Inf_eq $ is_glb_of_is_lub_of_tendsto
+  from is_glb.Inf_eq $ is_lub_supr.is_glb_of_tendsto
     (assume x _ y _, sub_le_sub (le_refl _))
-    is_lub_supr
-    ⟨_, i, rfl⟩
-    (tendsto.comp ennreal.tendsto_coe_sub (tendsto_id' inf_le_left)),
+    (range_nonempty _)
+    (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
-
-lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
-by simp_rw [← nonpos_iff_eq_zero, supr_le_iff]
 
 end topological_space
 

@@ -53,11 +53,30 @@ instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
     ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
     rw [alg_equiv.commutes, alg_equiv.commutes] }) }
 
-instance : unique (0 : polynomial F).gal :=
-begin
-  haveI : fact ((0 : polynomial F).splits (ring_hom.id F)) := splits_zero _,
-  apply_instance,
-end
+/-- If `p` splits in `F` then the `p.gal` is trivial. -/
+def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
+{ default := 1,
+  uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
+    ((subalgebra.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
+    rw [alg_equiv.commutes, alg_equiv.commutes] }) }
+
+instance unique_gal_zero : unique (0 : polynomial F).gal :=
+unique_gal_of_splits _ (splits_zero _)
+
+instance unique_gal_one : unique (1 : polynomial F).gal :=
+unique_gal_of_splits _ (splits_one _)
+
+instance unique_gal_C (x : F) : unique (C x).gal :=
+unique_gal_of_splits _ (splits_C _ _)
+
+instance unique_gal_X : unique (X : polynomial F).gal :=
+unique_gal_of_splits _ (splits_X _)
+
+instance unique_gal_X_sub_C (x : F) : unique (X - C x).gal :=
+unique_gal_of_splits _ (splits_X_sub_C _)
+
+instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : polynomial F).gal :=
+unique_gal_of_splits _ (splits_X_pow _ _)
 
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
 (is_splitting_field.lift p.splitting_field p h).to_ring_hom.to_algebra
@@ -185,7 +204,7 @@ monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { haveI : unique (gal (p * q)) := by { rw hpq, apply_instance },
+  { haveI : unique (p * q).gal := by { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,

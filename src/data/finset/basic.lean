@@ -2082,6 +2082,16 @@ finset.strong_induction_on s $ λ s,
 finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
 
+/-- An alternative to `finset.strong_induction_on` that has an associated equation lemma. -/
+def strong_induction {p : finset α → Sort*} (H : ∀ s, (∀ t ⊂ s, p t) → p s) :
+  ∀ (s : finset α), p s
+| s := H s (λ t h, have card t < card s, from card_lt_card h, strong_induction t)
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
+
+lemma strong_induction_eq {p : finset α → Sort*} (H : ∀ s, (∀ t ⊂ s, p t) → p s) (s : finset α) :
+  strong_induction H s = H s (λ t h, strong_induction H t) :=
+by rw strong_induction
+
 lemma card_congr {s : finset α} {t : finset β} (f : Π a ∈ s, β)
   (h₁ : ∀ a ha, f a ha ∈ t) (h₂ : ∀ a b ha hb, f a ha = f b hb → a = b)
   (h₃ : ∀ b ∈ t, ∃ a ha, f a ha = b) : s.card = t.card :=

@@ -467,11 +467,11 @@ end
 
 lemma coe_nat_lt_coe {n : ℕ} : (n : ℝ≥0∞) < r ↔ ↑n < r := ennreal.coe_nat n ▸ coe_lt_coe
 lemma coe_lt_coe_nat {n : ℕ} : (r : ℝ≥0∞) < n ↔ r < n := ennreal.coe_nat n ▸ coe_lt_coe
-@[norm_cast] lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ℝ≥0∞) < n ↔ m < n :=
+@[simp, norm_cast] lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ℝ≥0∞) < n ↔ m < n :=
 ennreal.coe_nat n ▸ coe_nat_lt_coe.trans nat.cast_lt
 lemma coe_nat_ne_top {n : ℕ} : (n : ℝ≥0∞) ≠ ∞ := ennreal.coe_nat n ▸ coe_ne_top
 lemma coe_nat_mono : strict_mono (coe : ℕ → ℝ≥0∞) := λ _ _, coe_nat_lt_coe_nat.2
-@[norm_cast] lemma coe_nat_le_coe_nat {m n : ℕ} : (m : ℝ≥0∞) ≤ n ↔ m ≤ n :=
+@[simp, norm_cast] lemma coe_nat_le_coe_nat {m n : ℕ} : (m : ℝ≥0∞) ≤ n ↔ m ≤ n :=
 coe_nat_mono.le_iff_le
 
 instance : char_zero ℝ≥0∞ := ⟨coe_nat_mono.injective⟩
@@ -1471,6 +1471,11 @@ end infi
 
 section supr
 
+@[simp] lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
+supr_eq_bot
+
+lemma sup_eq_zero {a b : ℝ≥0∞} : a ⊔ b = 0 ↔ a = 0 ∧ b = 0 := sup_eq_bot_iff
+
 lemma supr_coe_nat : (⨆n:ℕ, (n : ℝ≥0∞)) = ∞ :=
 (supr_eq_top _).2 $ assume b hb, ennreal.exists_nat_gt (lt_top_iff_ne_top.1 hb)
 
@@ -1482,5 +1487,10 @@ lemma le_of_add_le_add_left {a b c : ℝ≥0∞} : a < ∞ →
   a + b ≤ a + c → b ≤ c :=
 by cases a; cases b; cases c; simp [← ennreal.coe_add, ennreal.coe_le_coe]
 
+/-- `le_of_add_le_add_right` is normally applicable to `ordered_cancel_add_comm_monoid`,
+but it holds in `ℝ≥0∞` with the additional assumption that `a < ∞`. -/
+lemma le_of_add_le_add_right {a b c : ℝ≥0∞} : a < ∞ →
+  b + a ≤ c + a → b ≤ c :=
+by simpa only [add_comm _ a] using le_of_add_le_add_left
 
 end ennreal

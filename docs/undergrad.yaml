@@ -508,7 +508,7 @@ Measures and integral Calculus:
     continuity of integrals with respect to parameters:
     differentiability of integrals with respect to parameters:
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
-    Completeness of $\mathrm{L}^p$ spaces:
+    Completeness of $\mathrm{L}^p$ spaces: 'measure_theory.Lp.complete_space'
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:

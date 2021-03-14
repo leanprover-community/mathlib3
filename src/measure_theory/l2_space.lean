@@ -21,6 +21,8 @@ variables {α E F G 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : m
   [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
   [normed_group G]
 
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+
 lemma two_mul_le_add_sq (a b : ℝ) : 2 * a * b ≤ a ^ 2 + b ^ 2 :=
 begin
   suffices h_nonneg : 0 ≤ a ^ 2 + b ^ 2 - 2 * a * b, by rwa sub_nonneg at h_nonneg,
@@ -36,11 +38,11 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),
 end
 
-lemma snorm_inner_lt_top (f g : Lp E 2 μ) : snorm (λ (x : α), (inner (f x) (g x) : 𝕜)) 1 μ < ∞ :=
+lemma snorm_inner_lt_top (f g : Lp E 2 μ) : snorm (λ (x : α), ⟪f x, g x⟫) 1 μ < ∞ :=
 begin
-  have h : ∀ x, is_R_or_C.abs (inner (f x) (g x) : 𝕜) ≤ ∥f x∥ * ∥g x∥,
+  have h : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ∥f x∥ * ∥g x∥,
     from λ x, abs_inner_le_norm _ _,
-  have h' : ∀ x, is_R_or_C.abs (inner (f x) (g x) : 𝕜) ≤ ∥ ∥f x∥^2 + ∥g x∥^2 ∥,
+  have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ∥ ∥f x∥^2 + ∥g x∥^2 ∥,
   { simp_rw real.norm_eq_abs,
     refine λ x, le_trans (h x) _,
     rw abs_eq_self.mpr,
@@ -62,10 +64,9 @@ variables [measurable_space 𝕜] [borel_space 𝕜]
 
 include 𝕜
 
-instance : has_inner 𝕜 (Lp E 2 μ) :=
-{inner := λ (f g : Lp E 2 μ), ∫ a : α, (inner (f a) (g a)) ∂μ }
+instance : has_inner 𝕜 (Lp E 2 μ) := ⟨λ f g, ∫ a, ⟪f a, g a⟫ ∂μ⟩
 
-lemma inner_def (f g : Lp E 2 μ) : inner f g = ∫ a : α, (inner (f a) (g a) : 𝕜) ∂μ := rfl
+lemma inner_def (f g : Lp E 2 μ) : inner f g = ∫ a : α, ⟪f a, g a⟫ ∂μ := rfl
 
 lemma integral_inner_eq_sq_snorm (f : Lp E 2 μ) :
   ∫ a, (inner (f a) (f a) : 𝕜) ∂μ = ennreal.to_real ∫⁻ a, (nnnorm (f a) : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
@@ -97,16 +98,13 @@ begin
 end
 
 lemma mem_L1_inner (f g : Lp E 2 μ) :
-  ae_eq_fun.mk (λ x, inner (f x) (g x))
-    (ae_measurable.inner (Lp.ae_measurable f) (Lp.ae_measurable g)) ∈ Lp 𝕜 1 μ :=
+  ae_eq_fun.mk (λ x, ⟪f x, g x⟫) ((Lp.ae_measurable f).inner (Lp.ae_measurable g)) ∈ Lp 𝕜 1 μ :=
 by { simp_rw [mem_Lp_iff_snorm_lt_top, snorm_ae_eq_fun], exact snorm_inner_lt_top f g, }
 
-lemma integrable_inner (f g : Lp E 2 μ) : integrable (λ x : α, (inner (f x) (g x) : 𝕜)) μ :=
-begin
-  refine (integrable_congr (ae_eq_fun.coe_fn_mk (λ x, inner (f x) (g x))
-    (ae_measurable.inner (Lp.ae_measurable f) (Lp.ae_measurable g)))).mp _,
-  exact ae_eq_fun.integrable_iff_mem_L1.mpr (mem_L1_inner f g),
-end
+lemma integrable_inner (f g : Lp E 2 μ) : integrable (λ x : α, ⟪f x, g x⟫) μ :=
+(integrable_congr (ae_eq_fun.coe_fn_mk (λ x, ⟪f x, g x⟫)
+    ((Lp.ae_measurable f).inner (Lp.ae_measurable g)))).mp
+  (ae_eq_fun.integrable_iff_mem_L1.mpr (mem_L1_inner f g))
 
 private lemma add_left' (f f' g : Lp E 2 μ) : (inner (f + f') g : 𝕜) = inner f g + inner f' g :=
 begin

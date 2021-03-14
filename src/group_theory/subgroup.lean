@@ -228,6 +228,10 @@ by simpa only [div_eq_mul_inv] using H.mul_mem' hx (H.inv_mem' hy)
 @[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
 ⟨λ h, inv_inv x ▸ H.inv_mem h, H.inv_mem⟩
 
+@[simp, to_additive]
+theorem inv_coe_set : (H : set G)⁻¹ = H :=
+by { ext, simp, }
+
 @[to_additive]
 lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
 ⟨λ hba, by simpa using H.mul_mem hba (H.inv_mem h), λ hb, H.mul_mem hb h⟩

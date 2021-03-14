@@ -7,6 +7,7 @@ import linear_algebra.finite_dimensional
 import analysis.convex.basic
 import analysis.convex.mwe2
 import data.nat.parity
+import combinatorics.mwe4
 
 lemma subset_iff_inter_eq_left {ι : Type*} {X Y : finset ι} (h : Y ⊆ X) [decidable_eq ι] :
   X ∩ Y = Y :=
@@ -853,7 +854,7 @@ begin
   exact nat.pred_le_iff.mp h,
 end
 
-lemma size_bound (S : triangulation s) {X : finset _} (hX : X ∈ S.faces) :
+lemma size_bound {X : finset (fin m → ℝ)} (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
   X.card ≤ m+1 :=
 begin
   cases X.eq_empty_or_nonempty,
@@ -862,7 +863,7 @@ begin
   have y_mem : y ∈ (X : set (fin m → ℝ)) := hy,
   have Xy : (↑X \ {y}) = ((↑(X.erase y)) : set (fin m → ℝ)),
   { simp },
-  have := S.indep X hX,
+  have := hX,
   rw @affine_independent_set_iff_linear_independent_vsub ℝ _ _ _ _ _ _ ↑X y y_mem at this,
   letI q : fintype ↥((λ (p : fin m → ℝ), p -ᵥ y) '' (↑X \ {y})),
   { apply set.fintype_image _ _,
@@ -955,7 +956,7 @@ noncomputable def good_pairs {S : triangulation (std_simplex (fin (m+1)))} (hS :
   finset (finset (fin (m+1) → ℝ) × finset (fin (m+1) → ℝ)) :=
 ((S.faces_finset hS).product (S.faces_finset hS)).filter
       (λ (XY : finset _ × finset _),
-          XY.1.card = m+1 ∧ XY.2.image f = finset.univ.image fin.succ ∧ XY.2 ⊆ XY.1)
+          XY.2.card = m ∧ XY.1.card = m+1 ∧ XY.2.image f = finset.univ.erase 0 ∧ XY.2 ⊆ XY.1)
 
 @[simp]
 lemma mem_good_pairs {S : triangulation (std_simplex (fin (m+1)))} (hS : S.finite)
@@ -963,8 +964,9 @@ lemma mem_good_pairs {S : triangulation (std_simplex (fin (m+1)))} (hS : S.finit
   (X,Y) ∈ good_pairs hS f ↔
       X ∈ S.faces
     ∧ Y ∈ S.faces
+    ∧ Y.card = m
     ∧ X.card = m+1
-    ∧ Y.image f = finset.univ.image fin.succ
+    ∧ Y.image f = finset.univ.erase 0
     ∧ Y ⊆ X :=
 begin
   simp [good_pairs, and_assoc],
@@ -976,7 +978,35 @@ noncomputable def panchromatic_pairs {S : triangulation (std_simplex (fin (m+1))
 
 noncomputable def almost_panchromatic_pairs {S : triangulation (std_simplex (fin (m+1)))}
   (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :=
-(good_pairs hS f).filter (λ (XY : _ × _), XY.1.image f = finset.univ.image fin.succ)
+(good_pairs hS f).filter (λ (XY : _ × _), XY.1.image f = finset.univ.erase 0)
+
+noncomputable def almost_panchromatic_simplices {S : triangulation (std_simplex (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :=
+(S.faces_finset hS).filter (λ (X : finset _), X.card = m+1 ∧ X.image f = finset.univ.erase 0)
+
+lemma almost_panchromatic_pairs_card_eq_twice {S : triangulation (std_simplex (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :
+  (almost_panchromatic_pairs hS f).card = (almost_panchromatic_simplices hS f).card * 2 :=
+begin
+  have H : ∀ x ∈ almost_panchromatic_pairs hS f, prod.fst x ∈ almost_panchromatic_simplices hS f,
+  { rintro ⟨X, Y⟩ h,
+    simp only [almost_panchromatic_pairs, mem_good_pairs, finset.mem_filter] at h,
+    simp only [almost_panchromatic_simplices, mem_faces_finset, finset.mem_filter],
+    tauto },
+  rw finset.card_eq_sum_card_fiberwise H,
+  apply finset.sum_const_nat,
+  intros X hX,
+  simp only [almost_panchromatic_simplices, mem_faces_finset, finset.mem_filter] at hX,
+  dsimp,
+  suffices : ((almost_panchromatic_pairs hS f).filter (λ (x : _ × _), x.fst = X)).card =
+    (X.filter (λ x, _)).card,
+  {
+
+  },
+  -- rw finset.card_eq_sum_card_image prod.fst (almost_panchromatic_pairs hS f),
+  -- let g : (finset (fin (m+1) → ℝ) × finset (fin (m+1) → ℝ)) → finset (fin (m+1) → ℝ) := prod.fst,
+  -- have := finset.card_eq_sum_card_fiberwise,
+end
 
 lemma panchromatic_splits {S : triangulation (std_simplex (fin (m+1)))}
   (hS : S.finite) {f : (fin (m+1) → ℝ) → (fin (m+1))} :
@@ -985,9 +1015,9 @@ begin
   rw [panchromatic_pairs, almost_panchromatic_pairs, ←finset.filter_or, finset.filter_true_of_mem],
   rintro ⟨X,Y⟩ h,
   simp only [mem_good_pairs] at h,
-  rcases h with ⟨hX₁, hY₁, hX₂, hY₂, YX⟩,
-  have : finset.univ.image fin.succ ⊆ X.image f,
-  { rw ← hY₂,
+  rcases h with ⟨hX₁, hY₁, hY₂, hX₂, hY₃, YX⟩,
+  have : finset.univ.erase 0 ⊆ X.image f,
+  { rw ← hY₃,
     apply finset.image_subset_image,
     apply YX },
   rw subset_iff_eq_or_ssubset at this,
@@ -1000,34 +1030,111 @@ begin
     simp only [finset.card_fin],
     rw nat.succ_le_iff,
     apply lt_of_le_of_lt _ (finset.card_lt_card this),
-    rw finset.card_image_of_injective _ (fin.succ_injective m),
-    simp }
+    rw finset.card_erase_of_mem (finset.mem_univ _),
+    simp only [finset.card_fin, nat.pred_succ] }
 end
 
-lemma inj_on_of_card_image_eq {α β : Type*} [decidable_eq β] {f : α → β} {s : finset α}
-  (H : (s.image f).card = s.card) :
-  ∀ (x y ∈ s), f x = f y → x = y :=
+lemma disjoint_split {S : triangulation (std_simplex (fin (m+1)))}
+  (hS : S.finite) {f : (fin (m+1) → ℝ) → (fin (m+1))} :
+  disjoint (panchromatic_pairs hS f) (almost_panchromatic_pairs hS f) :=
 begin
-  change (s.1.map f).erase_dup.card = s.1.card at H,
-  have : (s.1.map f).erase_dup = s.1.map f,
-  { apply multiset.eq_of_le_of_card_le,
-    { apply multiset.erase_dup_le },
-    rw H,
-    simp only [multiset.card_map] },
-  rw multiset.erase_dup_eq_self at this,
-  rw multiset.nodup_iff_pairwise at this,
-
-
-  -- cases s,
-  -- dsimp at H,
-
+  rw finset.disjoint_left,
+  simp only [panchromatic_pairs, almost_panchromatic_pairs, and_imp, prod.forall, not_and,
+    mem_good_pairs, finset.mem_filter],
+  rintro X Y - - - - - - (h : _ = _) - - - - - - t,
+  rw h at t,
+  have : (0 : fin (m+1)) ∉ finset.univ,
+  { intro q,
+    rw t at q,
+    rw finset.mem_erase at q,
+    apply q.1 rfl },
+  simpa using this
 end
 
-#exit
+-- lemma image_subset_image_iff {α β : Type*}
+--   [decidable_eq α] [decidable_eq β] (s t : finset α)
+--   {f : α → β} : s.image f ⊆ t.image f → s ⊆ t :=
+-- begin
+--   intros h x hx,
+--   have : f x ∈ t.image f,
+--   sorry,
+--   simp at this,
 
-theorem card_image_of_inj_on [decidable_eq β] {f : α → β} {s : finset α}
-  (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : card (image f s) = card s :=
-by simp only [card, image_val_of_inj_on H, card_map]
+--   -- refine ⟨_, finset.subset_image _⟩,
+
+--   -- refine (iff.symm $ iff.intro (image_subset f) $ assume h, _),
+--   -- rw [← preimage_image_eq s hf, ← preimage_image_eq t hf],
+--   -- exact preimage_mono h
+-- end
+
+lemma subset_erase_iff {α : Type*} [decidable_eq α] (x : α) {s t : finset α} :
+  s ⊆ t.erase x ↔ s ⊆ t ∧ x ∉ s :=
+⟨λ h, ⟨finset.subset.trans h (finset.erase_subset x t), λ q, by simpa using h q⟩,
+ λ ⟨h₁, h₂⟩ y hy, finset.mem_erase_of_ne_of_mem (ne_of_mem_of_not_mem hy h₂) (h₁ hy)⟩
+
+-- lemma sum_mul {α β : Type*} [add_comm_monoid β] {s : finset α} (b : β) (f : α → β) :
+--   ∑ x in s, b * f x = _ :=
+-- begin
+-- end
+
+def plane : affine_subspace ℝ E :=
+{ carrier := {X | ∑ i, X i = 1},
+  smul_vsub_vadd_mem :=
+  begin
+    rintro c p₁ p₂ p₃ (hp₁ hp₂ hp₃ : _ = _),
+    simp [finset.sum_add_distrib, ←finset.mul_sum, hp₁, hp₂, hp₃],
+  end }
+
+lemma obvious {m : ℕ} : ∑ (i : fin m), (0 : fin m → ℝ) i = 1 → false :=
+begin
+  simp,
+end
+
+lemma better_size_bound {X : finset E}
+  (hX₁ : affine_independent ℝ (λ p, p : (X : set E) → E))
+  (hX₂ : ∀ x ∈ X, x ∈ std_simplex (fin m)) :
+  X.card ≤ m :=
+begin
+  cases nat.eq_or_lt_of_le (size_bound hX₁),
+  { have card_eq : fintype.card (X : set E) = finite_dimensional.findim ℝ (fin m → ℝ) + 1,
+    { simp [h] },
+    have : affine_span ℝ (X : set E) = ⊤,
+    { convert affine_span_eq_top_of_affine_independent_of_card_eq_findim_add_one hX₁ card_eq,
+      simp },
+    have zero_mem : (0 : E) ∈ affine_span ℝ (X : set E),
+    { rw this,
+      apply affine_subspace.mem_top },
+    have : (X : set E) ≤ (↑plane : set E),
+    { intros x hx,
+      rw affine_subspace.mem_coe,
+      apply (hX₂ _ hx).2 },
+    rw ←((affine_subspace.gi ℝ (fin m → ℝ) (fin m → ℝ)).gc (X : set E) plane) at this,
+    have q : _ = _ := this zero_mem,
+    apply (obvious q).elim },
+  rwa ← nat.lt_succ_iff,
+end
+
+lemma card_eq_of_panchromatic {S : triangulation (std_simplex (fin (m+1)))}
+  (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) {X} (hX : X ∈ S.faces)
+  (hf : panchromatic f X) :
+  X.card = m+1 :=
+le_antisymm
+  (better_size_bound (S.indep X hX) (λ x hx, face_subset hX hx))
+  begin
+    change _ = _ at hf,
+    have : (X.image f).card ≤ X.card := finset.card_image_le,
+    simpa [hf] using this,
+  end
+
+lemma erase_image_subset_image_erase {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α → β)
+  (s : finset α) (a : α) :
+  (s.image f).erase (f a) ⊆ finset.image f (s.erase a) :=
+begin
+  intro b,
+  simp only [and_imp, exists_prop, finset.mem_image, exists_imp_distrib, finset.mem_erase],
+  rintro hb x hx rfl,
+  exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
+end
 
 lemma panchromatic_pairs_card_eq_panchromatic_card {S : triangulation (std_simplex (fin (m+1)))}
   (hS : S.finite) (f : (fin (m+1) → ℝ) → (fin (m+1))) :
@@ -1042,14 +1149,62 @@ begin
     tauto },
   { rintro ⟨X₁, Y₁⟩ ⟨X₂, Y₂⟩ h₁ h₂ (rfl : X₁ = X₂),
     simp only [panchromatic_pairs, finset.mem_filter, mem_good_pairs, and_assoc] at h₁ h₂,
+    rcases h₁ with ⟨X₁S, Y₁S, Y₁c, hX₁, hY₁, hY₁X, hX₂ : _ = _⟩,
+    rcases h₂ with ⟨-, Y₂S, Y₂c, -, hY₂, hY₂X, -⟩,
     ext1,
     { refl },
     change Y₁ = Y₂,
-    have := finset.card_image_of_inj_on,
-  }
+    have : ∃ x ∈ X₁, f x = 0,
+    { suffices : (0 : fin (m+1)) ∈ X₁.image f,
+      { simpa using this },
+      rw hX₂,
+      simp },
+    rcases this with ⟨x, hx₁, hx₂⟩,
+    have : x ∉ Y₁,
+    { intro q,
+      simpa [‹f x = 0›, hY₁, fin.succ_ne_zero] using finset.mem_image_of_mem f q },
+    have : Y₁ ⊆ X₁.erase x,
+    { rw subset_erase_iff,
+      exact ⟨‹Y₁ ⊆ X₁›, ‹x ∉ Y₁›⟩ },
+    have : Y₁ = X₁.erase x,
+    { apply finset.eq_of_subset_of_card_le ‹Y₁ ⊆ X₁.erase x›,
+      simp [finset.card_erase_of_mem ‹x ∈ X₁›, ‹X₁.card = m+1›, ‹Y₁.card = m›] },
+    have : x ∉ Y₂,
+    { intro q,
+      simpa [‹f x = 0›, hY₂, fin.succ_ne_zero] using finset.mem_image_of_mem f q },
+    have : Y₂ ⊆ X₁.erase x,
+    { rw subset_erase_iff,
+      exact ⟨‹Y₂ ⊆ X₁›, ‹x ∉ Y₂›⟩ },
+    have : Y₂ = X₁.erase x,
+    { apply finset.eq_of_subset_of_card_le ‹Y₂ ⊆ X₁.erase x›,
+      simp [finset.card_erase_of_mem ‹x ∈ X₁›, ‹X₁.card = m+1›, ‹Y₂.card = m›] },
+    rw [‹Y₁ = X₁.erase x›, ‹Y₂ = X₁.erase x›] },
+  { simp_intros X hX only [finset.mem_filter, mem_faces_finset],
+    have : ∃ x ∈ X, f x = 0,
+    { suffices : (0 : fin (m+1)) ∈ X.image f,
+      { simpa using this },
+      rw (show _ = _, from hX.2),
+      simp },
+    rcases this with ⟨x, hx₁, hx₂⟩,
+    refine ⟨⟨X, X.erase x⟩, _, rfl⟩,
+    have Xc : finset.card X = m+1 := card_eq_of_panchromatic hS f hX.1 hX.2,
+    simp only [panchromatic_pairs, hX.1, hX.2, finset.erase_subset, and_true, true_and, Xc,
+      finset.card_erase_of_mem hx₁, eq_self_iff_true, mem_good_pairs, finset.mem_filter,
+      nat.pred_succ],
+    refine ⟨S.down_closed _ hX.1 _ (finset.erase_subset _ _), _⟩,
+    symmetry,
+    apply finset.eq_of_subset_of_card_le,
+    { rw ←(show finset.image f X = finset.univ, from hX.2),
+      rw ←hx₂,
+      apply erase_image_subset_image_erase f X x },
+    rw finset.card_erase_of_mem (finset.mem_univ _),
+    simp only [finset.card_fin, nat.pred_succ],
+    apply le_trans finset.card_image_le,
+    rw finset.card_erase_of_mem hx₁,
+    rw Xc,
+    simp, }
 end
 
-#exit
 theorem strong_sperner (S : triangulation (std_simplex (fin (m+1)))) (hS : S.finite)
   {f} (hf : is_sperner_colouring S f) :
   odd ((S.faces_finset hS).filter (panchromatic f)).card :=
@@ -1088,47 +1243,10 @@ begin
     rw ← q,
     simp },
   specialize ih (induct_down S) (induct_down_finite _ hS) hf',
-  let T : finset (finset (fin (n+2) → ℝ) × finset (fin (n+2) → ℝ)),
-  { apply ((S.faces_finset hS).product (S.faces_finset hS)).filter
-      (λ (XY : _ × _), finset.card XY.1 = n+2 ∧ finset.card XY.2 = n+1 ∧ XY.2 ⊆ XY.1) },
-  have : ∀ X Y,
-      (X,Y) ∈ T ↔ X ∈ S.faces ∧ Y ∈ S.faces ∧ finset.card X = n+2 ∧ finset.card Y = n+1 ∧ Y ⊆ X,
-  { intros X Y,
-    simp [mem_faces_finset, and_assoc] },
-  let T' := T.filter (λ (XY : _ × finset _), XY.2.image f = finset.univ.image fin.succ),
-  let x := ((S.faces_finset hS).filter (panchromatic f)).card,
-  let T'x := T'.filter (λ (XY : _ × _), panchromatic f XY.1),
-  let T'y := T'.filter (λ (XY : finset _ × _), XY.1.image f = finset.univ.image fin.succ),
-  let p := (((induct_down S).faces_finset (induct_down_finite _ hS)).filter (panchromatic f')).card,
-  have : T'x.card + T'y.card = T'.card,
-  { rw ← finset.card_disjoint_union,
-    { congr' 1,
-      rw ←finset.filter_or,
-      apply finset.filter_true_of_mem,
-      rintro ⟨X, Y⟩ h,
-      simp only [mem_faces_finset, and_assoc, finset.mem_filter, finset.mem_product] at h,
-      rcases h with ⟨hX, hY, Xc, Yc, YX, Yf⟩,
-      change X.image f = _ ∨ X.image f = _,
-      have : finset.univ.image fin.succ ⊆ X.image f,
-      { rw ← Yf,
-        apply finset.image_subset_image,
-        apply YX },
-      rw subset_iff_eq_or_ssubset at this,
-      cases this,
-      { right,
-        apply this_1.symm },
-      { left,
-        apply finset.eq_of_subset_of_card_le,
-        apply finset.subset_univ,
-        simp only [finset.card_fin],
-        rw nat.succ_le_iff,
-        have := finset.card_lt_card this_1,
-      }
 
 
-    }
 
-  },
+
 
   -- want that the number `x` of (n+2)-sets which are coloured by all n+2 colours is odd
   -- let `y` be the (n+2)-sets coloured by the colours 1..(n+1)

@@ -377,6 +377,13 @@ end comm_group
 lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
+lemma zero_pow_eq [monoid_with_zero R] (n : ℕ) : (0 : R)^n = if n = 0 then 1 else 0 :=
+begin
+  split_ifs with h,
+  { rw [h, pow_zero], },
+  { rw [zero_pow (nat.pos_of_ne_zero h)] },
+end
+
 namespace ring_hom
 
 variables [semiring R] [semiring S]

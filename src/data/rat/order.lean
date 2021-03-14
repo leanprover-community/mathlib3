@@ -26,8 +26,8 @@ namespace rat
 variables (a b c : ℚ)
 open_locale rat
 
-protected def nonneg : ℚ → Prop
-| ⟨n, d, h, c⟩ := 0 ≤ n
+/-- A rational number is called nonnegative if its numerator is nonnegative. -/
+protected def nonneg (r : ℚ) : Prop := 0 ≤ r.num
 
 @[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : 0 < b) : (a /. b).nonneg ↔ 0 ≤ a :=
 begin
@@ -77,6 +77,8 @@ or.imp_right neg_nonneg_of_nonpos (le_total 0 n)
 instance decidable_nonneg : decidable (rat.nonneg a) :=
 by cases a; unfold rat.nonneg; apply_instance
 
+/-- Relation `a ≤ b` on `ℚ` defined as `a ≤ b ↔ rat.nonneg (b - a)`. Use `a ≤ b` instead of
+`rat.le a b`. -/
 protected def le (a b : ℚ) := rat.nonneg (b - a)
 
 instance : has_le ℚ := ⟨rat.le⟩

@@ -138,7 +138,7 @@ rfl
 @[simp]
 lemma incl_desc_inv_app (i : I) (X : C i) :
   (incl_desc F i).inv.app X = 𝟙 ((F i).obj X) :=
-by { simp [incl_desc], dsimp, simp, }
+rfl
 
 /--
 If `q` when restricted to each subcategory `C i` agrees with `F i`, then `q` is isomorphic to
@@ -156,7 +156,7 @@ rfl
 @[simp]
 lemma desc_uniq_inv_app (q : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q ≅ F i) (i : I) (X : C i) :
   (desc_uniq F q h).inv.app ⟨i, X⟩ = (h i).inv.app X :=
-by simp [desc_uniq]
+rfl
 
 /--
 If `q₁` and `q₂` when restricted to each subcategory `C i` agree, then `q₁` and `q₂` are isomorphic.

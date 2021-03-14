@@ -101,7 +101,7 @@ lemma lift.is_lift_hom (X : C) : (lift.is_lift r F H).hom.app X = 𝟙 (F.obj X)
 rfl
 @[simp]
 lemma lift.is_lift_inv (X : C) : (lift.is_lift r F H).inv.app X = 𝟙 (F.obj X) :=
-by { simp [lift.is_lift], dsimp, simp, }
+rfl
 
 end quotient
 

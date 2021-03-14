@@ -216,10 +216,11 @@ lemma fully_faithful_cancel_right_hom_app {F G : C ⥤ D} {H : D ⥤ E}
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
   (fully_faithful_cancel_right H comp_iso).hom.app X = H.preimage (comp_iso.hom.app X) :=
 rfl
+
 @[simp]
 lemma fully_faithful_cancel_right_inv_app {F G : C ⥤ D} {H : D ⥤ E}
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) (X : C) :
   (fully_faithful_cancel_right H comp_iso).inv.app X = H.preimage (comp_iso.inv.app X) :=
-by simp [fully_faithful_cancel_right]
+rfl
 
 end category_theory

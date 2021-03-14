@@ -94,7 +94,7 @@ rfl
 lemma nat_iso_inv_app {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
   (discrete.nat_iso f).inv.app i = (f i).inv :=
-by { simp [discrete.nat_iso], }
+rfl
 
 @[simp]
 lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}

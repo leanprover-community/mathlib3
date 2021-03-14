@@ -27,7 +27,7 @@ open bounded_continuous_function metric topological_space
 
 namespace Kuratowski_embedding
 
-/-! ### In this section, we show that any separable metric space can be embedded isometrically in ℓ^∞(ℝ) -/
+/-! ### Any separable metric space can be embedded isometrically in ℓ^∞(ℝ) -/
 
 variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ → α) (a b : α)
 

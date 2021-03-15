@@ -107,9 +107,6 @@ export pseudoemetric_space (edist_self edist_comm edist_triangle)
 
 attribute [simp] edist_self
 
-@[simp] theorem edist_eq_zero_of_self {x y : α} : x = y → edist x y = 0 :=
-assume : x = y, this ▸ edist_self _
-
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
 by rw edist_comm z; apply edist_triangle

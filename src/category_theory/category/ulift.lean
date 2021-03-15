@@ -24,16 +24,19 @@ namespace category_theory
 
 variables {C : Type u1} [category.{v} C]
 
+/-- The functorial version of `ulift.up`. -/
 @[simps]
 def ulift.up : C ⥤ (ulift.{u2} C) :=
 { obj := ulift.up,
   map := λ X Y f, f }
 
+/-- The functorial version of `ulift.down`. -/
 @[simps]
 def ulift.down : (ulift.{u2} C) ⥤ C :=
 { obj := ulift.down,
   map := λ X Y f, f }
 
+/-- The categorical equivalence between `C` and `ulift C`. -/
 @[simps]
 def ulift.equivalence : C ≌ (ulift.{u2} C) :=
 { functor := ulift.up,

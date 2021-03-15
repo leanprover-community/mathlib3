@@ -742,6 +742,8 @@ begin
   simpa [huv] using hz
 end
 
+alias is_totally_disconnected_of_is_totally_separated ← is_totally_separated.is_totally_disconnected
+
 /-- A space is totally separated if any two points can be separated by two disjoint open sets
 covering the whole space. -/
 class totally_separated_space (α : Type u) [topological_space α] : Prop :=

@@ -87,7 +87,7 @@ on a product.
 
 Continuity of `edist` is proved in `topology.instances.ennreal`
 -/
-class pseudoemetric_space (α : Type u) extends has_edist α : Type u :=
+class pseudo_emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_self : ∀ x : α, edist x x = 0)
 (edist_comm : ∀ x y : α, edist x y = edist y x)
 (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z)
@@ -97,13 +97,13 @@ class pseudoemetric_space (α : Type u) extends has_edist α : Type u :=
 
 /- emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
-variables [pseudoemetric_space α]
+variables [pseudo_emetric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance pseudoemetric_space.to_uniform_space' : uniform_space α :=
-pseudoemetric_space.to_uniform_space
+instance pseudoe_emetric_space.to_uniform_space' : uniform_space α :=
+pseudo_emetric_space.to_uniform_space
 
-export pseudoemetric_space (edist_self edist_comm edist_triangle)
+export pseudo_emetric_space (edist_self edist_comm edist_triangle)
 
 attribute [simp] edist_self
 
@@ -159,7 +159,7 @@ finset.Ico.zero_bot n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_pseudoedist :
   𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} :=
-pseudoemetric_space.uniformity_edist
+pseudo_emetric_space.uniformity_edist
 
 theorem uniformity_basis_edist :
   (𝓤 α).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
@@ -253,19 +253,19 @@ theorem uniformity_has_countable_basis : is_countably_generated (𝓤 α) :=
 is_countably_generated_of_seq ⟨_, uniformity_basis_edist_inv_nat.eq_infi⟩
 
 /-- ε-δ characterization of uniform continuity on a set for pseudoemetric spaces -/
-theorem uniform_continuous_on_iff [pseudoemetric_space β] {f : α → β} {s : set α} :
+theorem uniform_continuous_on_iff [pseudo_emetric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b}, a ∈ s → b ∈ s → edist a b < δ → edist (f a) (f b) < ε :=
 uniformity_basis_edist.uniform_continuous_on_iff uniformity_basis_edist
 
 /-- ε-δ characterization of uniform continuity on pseudoemetric spaces -/
-theorem uniform_continuous_iff [pseudoemetric_space β] {f : α → β} :
+theorem uniform_continuous_iff [pseudo_emetric_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b:α}, edist a b < δ → edist (f a) (f b) < ε :=
 uniformity_basis_edist.uniform_continuous_iff uniformity_basis_edist
 
 /-- ε-δ characterization of uniform embeddings on pseudoemetric spaces -/
-theorem uniform_embedding_iff [pseudoemetric_space β] {f : α → β} :
+theorem uniform_embedding_iff [pseudo_emetric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ :=
 uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
@@ -277,7 +277,7 @@ uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
 
 /-- If a map between pseudoemetric spaces is a uniform embedding then the edistance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y`. -/
-theorem controlled_of_uniform_embedding [pseudoemetric_space β] {f : α → β} :
+theorem controlled_of_uniform_embedding [pseudo_emetric_space β] {f : α → β} :
   uniform_embedding f →
   (∀ ε > 0, ∃ δ > 0, ∀ {a b : α}, edist a b < δ → edist (f a) (f b) < ε) ∧
   (∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ) :=
@@ -356,19 +356,19 @@ This is useful if one wants to construct an emetric space with a
 specified uniformity. See Note [forgetful inheritance] explaining why having definitionally
 the right uniformity is often important.
 -/
-def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudoemetric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudoemetric_space.to_uniform_space) :
-  pseudoemetric_space α :=
+def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
   edist_comm          := edist_comm,
   edist_triangle      := edist_triangle,
   to_uniform_space    := U,
-  uniformity_edist    := H.trans (@pseudoemetric_space.uniformity_edist α _) }
+  uniformity_edist    := H.trans (@pseudo_emetric_space.uniformity_edist α _) }
 
 /-- The extended metric induced by an injective function taking values in a pseudoemetric space. -/
-def pseudoemetric_space.induced {α β} (f : α → β) (hf : function.injective f)
-  (m : pseudoemetric_space β) : pseudoemetric_space α :=
+def pseudo_emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
+  (m : pseudo_emetric_space β) : pseudo_emetric_space α :=
 { edist               := λ x y, edist (f x) (f y),
   edist_self          := λ x, edist_self _,
   edist_comm          := λ x y, edist_comm _ _,
@@ -386,8 +386,8 @@ def pseudoemetric_space.induced {α β} (f : α → β) (hf : function.injective
   end }
 
 /-- Pseudoemetric space instance on subsets of emetric spaces -/
-instance {α : Type*} {p : α → Prop} [t : pseudoemetric_space α] : pseudoemetric_space (subtype p) :=
-t.induced coe (λ x y, subtype.ext_iff_val.2)
+instance {α : Type*} {p : α → Prop} [t : pseudo_emetric_space α] :
+  pseudo_emetric_space (subtype p) := t.induced coe (λ x y, subtype.ext_iff_val.2)
 
 /-- The extended psuedodistance on a subset of a pseudoemetric space is the restriction of
 the original pseudodistance, by definition -/
@@ -396,7 +396,7 @@ theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
-instance prod.pseudoemetric_space_max [pseudoemetric_space β] : pseudoemetric_space (α × β) :=
+instance prod.pseudoemetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
 { edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
@@ -405,14 +405,14 @@ instance prod.pseudoemetric_space_max [pseudoemetric_space β] : pseudoemetric_s
     (le_trans (edist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
-    simp [pseudoemetric_space.uniformity_edist, comap_infi],
+    simp [pseudo_emetric_space.uniformity_edist, comap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
     simp [inf_principal, ext_iff, max_lt_iff]
   end,
   to_uniform_space := prod.uniform_space }
 
-lemma prod.pesudoedist_eq [pseudoemetric_space β] (x y : α × β) :
+lemma prod.pesudoedist_eq [pseudo_emetric_space β] (x y : α × β) :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
 rfl
 
@@ -425,7 +425,7 @@ a pseudoemetric space.
 This construction would also work for infinite products, but it would not give rise
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces. -/
-instance pseudoemetric_space_pi [∀b, pseudoemetric_space (π b)] : pseudoemetric_space (Πb, π b) :=
+instance pseudoemetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_emetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
   edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,
@@ -437,7 +437,7 @@ instance pseudoemetric_space_pi [∀b, pseudoemetric_space (π b)] : pseudoemetr
     end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_edist := begin
-    simp only [Pi.uniformity, pseudoemetric_space.uniformity_edist, comap_infi, gt_iff_lt,
+    simp only [Pi.uniformity, pseudo_emetric_space.uniformity_edist, comap_infi, gt_iff_lt,
       preimage_set_of_eq, comap_principal],
     rw infi_comm, congr, funext ε,
     rw infi_comm, congr, funext εpos,
@@ -445,7 +445,7 @@ instance pseudoemetric_space_pi [∀b, pseudoemetric_space (π b)] : pseudoemetr
     simp [set.ext_iff, εpos]
   end }
 
-lemma pseudoedist_pi_def [Π b, pseudoemetric_space (π b)] (f g : Π b, π b) :
+lemma pseudoedist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
 @[simp] lemma pseudoedist_pi_const [nonempty β] (a b : α) :
@@ -549,11 +549,11 @@ is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subse
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
-theorem ball_prod_same [pseudoemetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
+theorem ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
   (ball x r).prod (ball y r) = ball (x, y) r :=
 ext $ λ z, max_lt_iff.symm
 
-theorem closed_ball_prod_same [pseudoemetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
+theorem closed_ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
   (closed_ball x r).prod (closed_ball y r) = closed_ball (x, y) r :=
 ext $ λ z, max_le_iff.symm
 
@@ -737,7 +737,7 @@ end compact
 section first_countable
 
 @[priority 100] -- see Note [lower instance priority]
-instance (α : Type u) [pseudoemetric_space α] :
+instance (α : Type u) [pseudo_emetric_space α] :
   topological_space.first_countable_topology α :=
 uniform_space.first_countable_topology uniformity_has_countable_basis
 
@@ -750,7 +750,7 @@ open topological_space
 the balls centered at points in a dense subset, and with rational radii. We do not register
 this as an instance, as there is already an instance going in the other direction
 from second countable spaces to separable spaces, and we want to avoid loops. -/
-lemma second_countable_of_separable (α : Type u) [pseudoemetric_space α] [separable_space α] :
+lemma second_countable_of_separable (α : Type u) [pseudo_emetric_space α] [separable_space α] :
   second_countable_topology α :=
 uniform_space.second_countable_of_separable uniformity_has_countable_basis
 
@@ -841,14 +841,14 @@ end diam
 
 end emetric --namespace
 
-class emetric_space (α : Type u) extends pseudoemetric_space α : Type u :=
+class emetric_space (α : Type u) extends pseudo_emetric_space α : Type u :=
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
 
 variables {γ : Type w} [emetric_space γ]
 
 @[priority 100] -- see Note [lower instance priority]
 instance emetric_space.to_uniform_space' : uniform_space γ :=
-pseudoemetric_space.to_uniform_space
+pseudo_emetric_space.to_uniform_space
 
 export emetric_space (eq_of_edist_eq_zero)
 
@@ -904,7 +904,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def emetric_space.replace_uniformity {γ} [U : uniform_space γ] (m : emetric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudoemetric_space.to_uniform_space) :
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
   emetric_space γ :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -912,7 +912,7 @@ def emetric_space.replace_uniformity {γ} [U : uniform_space γ] (m : emetric_sp
   edist_comm          := edist_comm,
   edist_triangle      := edist_triangle,
   to_uniform_space    := U,
-  uniformity_edist    := H.trans (@pseudoemetric_space.uniformity_edist γ _) }
+  uniformity_edist    := H.trans (@pseudo_emetric_space.uniformity_edist γ _) }
 
   /-- The extended metric induced by an injective function taking values in a emetric space. -/
 def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
@@ -956,7 +956,7 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (γ × β) :=
     (le_trans (edist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
-    simp [pseudoemetric_space.uniformity_edist, comap_infi],
+    simp [pseudo_emetric_space.uniformity_edist, comap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
     simp [inf_principal, ext_iff, max_lt_iff]
@@ -970,7 +970,7 @@ rfl
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist :
   𝓤 γ = ⨅ ε>0, 𝓟 {p:γ×γ | edist p.1 p.2 < ε} :=
-pseudoemetric_space.uniformity_edist
+pseudo_emetric_space.uniformity_edist
 
 section pi
 open finset

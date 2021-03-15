@@ -60,6 +60,9 @@ open finset metric
 local attribute [instance, priority 1001]
 add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
+-- hack to speed up simp when dealing with complicated types
+local attribute [-instance] unique.subsingleton pi.subsingleton
+
 /-!
 ### Type variables
 
@@ -67,15 +70,15 @@ We use the following type variables in this file:
 
 * `𝕜` : a `nondiscrete_normed_field`;
 * `ι`, `ι'` : finite index types with decidable equality;
-* `E` : a family of normed vector spaces over `𝕜` indexed by `i : ι`;
+* `E`, `E₁` : families of normed vector spaces over `𝕜` indexed by `i : ι`;
 * `E'` : a family of normed vector spaces over `𝕜` indexed by `i' : ι'`;
 * `Ei` : a family of normed vector spaces over `𝕜` indexed by `i : fin (nat.succ n)`;
 * `G`, `G'` : normed vector spaces over `𝕜`.
 -/
 
-universes u v v' wE wE' wEi wG wG'
+universes u v v' wE wE₁ wE' wEi wG wG'
 variables {𝕜 : Type u} {ι : Type v} {ι' : Type v'} {n : ℕ}
-  {E : ι → Type wE} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
+  {E : ι → Type wE} {E₁ : ι → Type wE₁} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
   {G : Type wG} {G' : Type wG'}
   [decidable_eq ι] [fintype ι] [decidable_eq ι'] [fintype ι'] [nondiscrete_normed_field 𝕜]
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
@@ -375,9 +378,9 @@ instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E
 ⟨λ c f, f.op_norm_smul_le c⟩
 
 lemma op_norm_prod (f : continuous_multilinear_map 𝕜 E G) (g : continuous_multilinear_map 𝕜 E G') :
-  ∥f.prod g∥ = ∥(f, g)∥ :=
+  ∥f.prod g∥ = max (∥f∥) (∥g∥) :=
 le_antisymm
-  (op_norm_le_bound _ (norm_nonneg _) (λ m,
+  (op_norm_le_bound _ (norm_nonneg (f, g)) (λ m,
     have H : 0 ≤ ∏ i, ∥m i∥, from prod_nonneg $ λ _ _,  norm_nonneg _,
     by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, H]
       using max_le_max (f.le_op_norm m) (g.le_op_norm m))) $
@@ -856,6 +859,38 @@ continuous_multilinear_map.op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_
 calc ∥g (f m)∥ ≤ ∥g∥ * (∥f∥ * ∏ i, ∥m i∥) : g.le_op_norm_of_le $ f.le_op_norm _
            ... = _                        : (mul_assoc _ _ _).symm
 
+/-- `continuous_linear_map.comp_continuous_multilinear_map` as a bundled continuous bilinear map. -/
+def comp_continuous_multilinear_mapL :
+  (G →L[𝕜] G') →L[𝕜] continuous_multilinear_map 𝕜 E G →L[𝕜] continuous_multilinear_map 𝕜 E G' :=
+linear_map.mk_continuous₂
+  (linear_map.mk₂ 𝕜 comp_continuous_multilinear_map (λ f₁ f₂ g, rfl) (λ c f g, rfl)
+    (λ f g₁ g₂, by { ext1, apply f.map_add }) (λ c f g, by { ext1, simp }))
+  1 $ λ f g, by { rw one_mul, exact f.norm_comp_continuous_multilinear_map_le g }
+
+/-- Flip arguments in `f : G →L[𝕜] continuous_multilinear_map 𝕜 E G'` to get
+`continuous_multilinear_map 𝕜 E (G →L[𝕜] G')` -/
+def flip_multilinear (f : G →L[𝕜] continuous_multilinear_map 𝕜 E G') :
+  continuous_multilinear_map 𝕜 E (G →L[𝕜] G') :=
+multilinear_map.mk_continuous
+  { to_fun := λ m, linear_map.mk_continuous
+      { to_fun := λ x, f x m,
+        map_add' := λ x y, by simp only [map_add, continuous_multilinear_map.add_apply],
+        map_smul' := λ c x, by simp only [continuous_multilinear_map.smul_apply, map_smul]}
+      (∥f∥ * ∏ i, ∥m i∥) $ λ x,
+      by { rw mul_right_comm, exact (f x).le_of_op_norm_le _ (f.le_op_norm x) },
+    map_add' := λ m i x y,
+      by { ext1, simp only [add_apply, continuous_multilinear_map.map_add, linear_map.coe_mk,
+                            linear_map.mk_continuous_apply]},
+    map_smul' := λ m i c x,
+      by { ext1, simp only [coe_smul', continuous_multilinear_map.map_smul, linear_map.coe_mk,
+                            linear_map.mk_continuous_apply, pi.smul_apply]} }
+  ∥f∥ $ λ m,
+  linear_map.mk_continuous_norm_le _
+    (mul_nonneg (norm_nonneg f) (prod_nonneg $ λ i hi, norm_nonneg (m i))) _
+
+end continuous_linear_map
+open continuous_multilinear_map
+
 namespace multilinear_map
 
 /-- Given a map `f : G →ₗ[𝕜] multilinear_map 𝕜 E G'` and an estimate
@@ -921,6 +956,42 @@ lemma mk_continuous_multilinear_norm_le (f : multilinear_map 𝕜 E (multilinear
 (mk_continuous_multilinear_norm_le' f C H).trans_eq (max_eq_left hC)
 
 end multilinear_map
+
+namespace continuous_multilinear_map
+
+lemma norm_comp_continuous_linear_le (g : continuous_multilinear_map 𝕜 E₁ G)
+  (f : Π i, E i →L[𝕜] E₁ i) :
+  ∥g.comp_continuous_linear_map f∥ ≤ ∥g∥ * ∏ i, ∥f i∥ :=
+op_norm_le_bound _ (mul_nonneg (norm_nonneg _) $ prod_nonneg $ λ i hi, norm_nonneg _) $ λ m,
+calc ∥g (λ i, f i (m i))∥ ≤ ∥g∥ * ∏ i, ∥f i (m i)∥ : g.le_op_norm _
+... ≤ ∥g∥ * ∏ i, (∥f i∥ * ∥m i∥) :
+  mul_le_mul_of_nonneg_left
+    (prod_le_prod (λ _ _, norm_nonneg _) (λ i hi, (f i).le_op_norm (m i))) (norm_nonneg g)
+... = (∥g∥ * ∏ i, ∥f i∥) * ∏ i, ∥m i∥ : by rw [prod_mul_distrib, mul_assoc]
+
+/-- `continuous_multilinear_map.comp_continuous_linear_map` as a bundled continuous linear map.
+This implementation fixes `f : Π i, E i →L[𝕜] E₁ i`.
+
+TODO: Actually, the map is multilinear in `f` but an attempt to formalize this failed because of
+issues with class instances. -/
+def comp_continuous_linear_mapL (f : Π i, E i →L[𝕜] E₁ i) :
+  continuous_multilinear_map 𝕜 E₁ G →L[𝕜] continuous_multilinear_map 𝕜 E G :=
+linear_map.mk_continuous
+  { to_fun := λ g, g.comp_continuous_linear_map f,
+    map_add' := λ g₁ g₂, rfl,
+    map_smul' := λ c g, rfl }
+  (∏ i, ∥f i∥) $ λ g, (norm_comp_continuous_linear_le _ _).trans_eq (mul_comm _ _)
+
+@[simp] lemma comp_continuous_linear_mapL_apply (g : continuous_multilinear_map 𝕜 E₁ G)
+  (f : Π i, E i →L[𝕜] E₁ i) :
+  comp_continuous_linear_mapL f g = g.comp_continuous_linear_map f :=
+rfl
+
+lemma norm_comp_continuous_linear_mapL_le (f : Π i, E i →L[𝕜] E₁ i) :
+  ∥@comp_continuous_linear_mapL 𝕜 ι E E₁ G _ _ _ _ _ _ _ _ _ f∥ ≤ (∏ i, ∥f i∥) :=
+linear_map.mk_continuous_norm_le _ (prod_nonneg $ λ i _, norm_nonneg _) _
+
+end continuous_multilinear_map
 
 section currying
 /-!
@@ -1194,6 +1265,9 @@ Therefore, the space of continuous multilinear maps on `(fin 0) → G` with valu
 isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the construction of iterated
 derivatives, we register this isomorphism. -/
 
+section
+local attribute [instance] unique.subsingleton
+
 variables {𝕜 G G'}
 
 /-- Associating to a continuous multilinear map in `0` variables the unique value it takes. -/
@@ -1274,6 +1348,8 @@ variables {𝕜 G G'}
 
 @[simp] lemma continuous_multilinear_curry_fin0_symm_apply (x : G') (v : (fin 0) → G) :
   (continuous_multilinear_curry_fin0 𝕜 G G').symm x v = x := rfl
+
+end
 
 /-! #### With 1 variable -/
 

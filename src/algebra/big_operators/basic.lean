@@ -141,8 +141,9 @@ lemma monoid_hom.finset_prod_apply [monoid β] [comm_monoid γ] (f : α → β �
   (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
 (monoid_hom.eval b).map_prod _ _
 
-namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
+
+namespace finset
 
 section comm_monoid
 variables [comm_monoid β]
@@ -217,6 +218,34 @@ fold_union_inter
 lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
+
+end comm_monoid
+
+end finset
+
+section
+variables [fintype α] [decidable_eq α] [comm_monoid β]
+
+@[to_additive]
+lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
+(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+end
+
+namespace finset
+
+section comm_monoid
+variables [comm_monoid β]
+
+@[to_additive]
+lemma prod_mul_prod_compl [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in s, f i) * (∏ i in sᶜ, f i) = ∏ i, f i :=
+is_compl_compl.prod_mul_prod f
+
+@[to_additive]
+lemma prod_compl_mul_prod [fintype α] [decidable_eq α] (s : finset α) (f : α → β) :
+  (∏ i in sᶜ, f i) * (∏ i in s, f i) = ∏ i, f i :=
+is_compl_compl.symm.prod_mul_prod f
 
 @[to_additive]
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
@@ -700,15 +729,21 @@ the property is multiplicative and holds on factors.
 @[to_additive "To prove a property of a sum, it suffices to prove that
 the property is additive and holds on summands."]
 lemma prod_induction {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
-(p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
-p $ ∏ x in s, f x :=
-begin
-  classical,
-  induction s using finset.induction with x hx s hs, simpa,
-  rw finset.prod_insert, swap, assumption,
-  apply p_mul, apply p_s, simp,
-  apply hs, intros a ha, apply p_s, simp [ha],
-end
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
+  p $ ∏ x in s, f x :=
+multiset.prod_induction _ _ p_mul p_one (multiset.forall_mem_map_iff.mpr p_s)
+
+/--
+To prove a property of a product, it suffices to prove that
+the property is multiplicative and holds on factors.
+-/
+@[to_additive "To prove a property of a sum, it suffices to prove that
+the property is additive and holds on summands."]
+lemma prod_induction_nonempty {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
+  (p_mul : ∀ a b, p a → p b → p (a * b)) (hs_nonempty : s.nonempty) (p_s : ∀ x ∈ s, p $ f x) :
+  p $ ∏ x in s, f x :=
+multiset.prod_induction_nonempty p p_mul (by simp [nonempty_iff_ne_empty.mp hs_nonempty])
+  (multiset.forall_mem_map_iff.mpr p_s)
 
 /--
 For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that

@@ -493,4 +493,10 @@ lemma find_eq_top_iff : find P = ⊤ ↔ ∀ n, ¬P n :=
 
 end find
 
+noncomputable instance : linear_ordered_add_comm_monoid_with_top enat :=
+{ top_add' := top_add,
+  .. enat.linear_order,
+  .. enat.ordered_add_comm_monoid,
+  .. enat.order_top }
+
 end enat

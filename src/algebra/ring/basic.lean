@@ -171,8 +171,16 @@ def even (a : α) : Prop := ∃ k, a = 2*k
 
 lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
 
+@[simp] lemma range_two_mul (α : Type*) [semiring α] :
+  set.range (λ x : α, 2 * x) = {a | even a} :=
+by { ext x, simp [even, eq_comm] }
+
 /-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
 def odd (a : α) : Prop := ∃ k, a = 2*k + 1
+
+@[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
+  set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
+by { ext x, simp [odd, eq_comm] }
 
 theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
@@ -892,24 +900,27 @@ lemma add_monoid_hom.coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [
 end integral_domain
 
 namespace ring
-variables [ring R]
+variables {M₀ : Type*} [monoid_with_zero M₀]
 open_locale classical
 
-/-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
-to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than partially)
-defined inverse function for some purposes, including for calculus. -/
-noncomputable def inverse : R → R :=
-λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
+/-- Introduce a function `inverse` on a monoid with zero `M₀`, which sends `x` to `x⁻¹` if `x` is
+invertible and to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather
+than partially) defined inverse function for some purposes, including for calculus.
+
+Note that while this is in the `ring` namespace for brevity, it requires the weaker assumption
+`monoid_with_zero M₀` instead of `ring M₀`. -/
+noncomputable def inverse : M₀ → M₀ :=
+λ x, if h : is_unit x then (((classical.some h)⁻¹ : units M₀) : M₀) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-@[simp] lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+@[simp] lemma inverse_unit (u : units M₀) : inverse (u : M₀) = (u⁻¹ : units M₀) :=
 begin
-  simp [is_unit_unit, inverse],
-  exact units.inv_unique (classical.some_spec (is_unit_unit a)),
+  simp only [is_unit_unit, inverse, dif_pos],
+  exact units.inv_unique (classical.some_spec (is_unit_unit u))
 end
 
 /-- By definition, if `x` is not invertible then `inverse x = 0`. -/
-@[simp] lemma inverse_non_unit (x : R) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
+@[simp] lemma inverse_non_unit (x : M₀) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
 
 end ring
 

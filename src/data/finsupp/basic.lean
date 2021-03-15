@@ -147,6 +147,12 @@ lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x �
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
+lemma support_nonempty_iff {f : α →₀ M} : f.support.nonempty ↔ f ≠ 0 :=
+by simp only [finsupp.support_eq_empty, finset.nonempty_iff_ne_empty, ne.def]
+
+lemma nonzero_iff_exists {f : α →₀ M} : f ≠ 0 ↔ ∃ a : α, f a ≠ 0 :=
+by simp [finsupp.support_eq_empty.symm, finset.eq_empty_iff_forall_not_mem]
+
 lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 
@@ -1685,6 +1691,16 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α �
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
+instance [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M] [semimodule S M]
+  [has_scalar R S] [is_scalar_tower R S M] :
+  is_scalar_tower R S (α →₀ M) :=
+{ smul_assoc := λ r s a, ext $ λ _, smul_assoc _ _ _ }
+
+instance [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M] [semimodule S M]
+  [smul_comm_class R S M] :
+  smul_comm_class R S (α →₀ M) :=
+{ smul_comm := λ r s a, ext $ λ _, smul_comm _ _ _ }
+
 variables {α M} {R}
 
 lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
@@ -1733,6 +1749,13 @@ lemma sum_smul_index' [semiring R] [add_comm_monoid M] [semimodule R M] [add_com
   {g : α →₀ M} {b : R} {h : α → M → N} (h0 : ∀i, h i 0 = 0) :
   (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
+
+/-- A version of `finsupp.sum_smul_index'` for bundled additive maps. -/
+lemma sum_smul_index_add_monoid_hom
+  [semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M]
+  {g : α →₀ M} {b : R} {h : α → M →+ N} :
+  (b • g).sum (λ a, h a) = g.sum (λ i c, h i (b • c)) :=
+sum_map_range_index (λ i, (h i).map_zero)
 
 instance [semiring R] [add_comm_monoid M] [semimodule R M] {ι : Type*}
   [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=

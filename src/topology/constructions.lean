@@ -186,9 +186,13 @@ instance [discrete_topology α] [discrete_topology β] : discrete_topology (α �
 ⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩
 
+lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
+  s.prod t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
+by rw [nhds_prod_eq, prod_mem_prod_iff]
+
 lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
   (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : set.prod s t ∈ 𝓝 (a, b) :=
-by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
+prod_mem_nhds_iff.2 ⟨ha, hb⟩
 
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
@@ -209,7 +213,7 @@ hf.prod_mk_nhds hg
 lemma continuous_at.prod_map {f : α → γ} {g : β → δ} {p : α × β}
   (hf : continuous_at f p.fst) (hg : continuous_at g p.snd) :
   continuous_at (λ p : α × β, (f p.1, g p.2)) p :=
-(hf.comp continuous_fst.continuous_at).prod (hg.comp continuous_snd.continuous_at)
+(hf.comp continuous_at_fst).prod (hg.comp continuous_at_snd)
 
 lemma continuous_at.prod_map' {f : α → γ} {g : β → δ} {x : α} {y : β}
   (hf : continuous_at f x) (hg : continuous_at g y) :
@@ -341,6 +345,22 @@ set.ext $ assume ⟨a, b⟩,
 have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (𝓝 b ⊓ 𝓟 t),
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
+
+lemma interior_prod_eq (s : set α) (t : set β) :
+  interior (s.prod t) = (interior s).prod (interior t) :=
+set.ext $ λ ⟨a, b⟩, by simp only [mem_interior_iff_mem_nhds, mem_prod, prod_mem_nhds_iff]
+
+lemma frontier_prod_eq (s : set α) (t : set β) :
+  frontier (s.prod t) = (closure s).prod (frontier t) ∪ (frontier s).prod (closure t) :=
+by simp only [frontier, closure_prod_eq, interior_prod_eq, prod_diff_prod]
+
+@[simp] lemma frontier_prod_univ_eq (s : set α) :
+  frontier (s.prod (univ : set β)) = (frontier s).prod univ :=
+by simp [frontier_prod_eq]
+
+@[simp] lemma frontier_univ_prod_eq (s : set β) :
+  frontier ((univ : set α).prod s) = (univ : set α).prod (frontier s) :=
+by simp [frontier_prod_eq]
 
 lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
@@ -563,8 +583,8 @@ continuous_iff_is_closed.mpr $
     from assume i,
     (closed_embedding_subtype_coe (h_is_closed _)).is_closed_map _ (hs.preimage (f_cont i)),
   have is_closed (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
-    from is_closed_Union_of_locally_finite
-      (locally_finite_subset h_lf $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
+    from locally_finite.is_closed_Union
+      (h_lf.subset $ assume i x ⟨⟨x', hx'⟩, _, heq⟩, heq ▸ hx')
       this,
   have f ⁻¹' s = (⋃i, (coe : {x | c i x} → α) '' (f ∘ coe ⁻¹' s)),
   begin
@@ -643,9 +663,19 @@ lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g 
   tendsto f u (𝓝 g) ↔ ∀ x, tendsto (λ i, f i x) u (𝓝 (g x)) :=
 by simp [nhds_pi, filter.tendsto_comap_iff]
 
+lemma continuous_at_pi [∀ i, topological_space (π i)] [topological_space α] {f : α → Π i, π i}
+  {x : α} :
+  continuous_at f x ↔ ∀ i, continuous_at (λ y, f y i) x :=
+tendsto_pi
+
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
+
+lemma is_closed_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
+  (hs : ∀a∈i, is_closed (s a)) : is_closed (pi i s) :=
+by rw [pi_def];
+  exact (is_closed_Inter $ λ a, is_closed_Inter $ λ ha, (hs _ ha).preimage (continuous_apply _))
 
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
@@ -720,7 +750,7 @@ lemma is_open_sigma_iff {s : set (sigma σ)} : is_open s ↔ ∀ i, is_open (sig
 by simp only [is_open_supr_iff, is_open_coinduced]
 
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
-is_open_sigma_iff
+by simp [← is_open_compl_iff, is_open_sigma_iff]
 
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin

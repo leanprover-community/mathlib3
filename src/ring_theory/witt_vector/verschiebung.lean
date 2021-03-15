@@ -26,9 +26,6 @@ local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 noncomputable theory
 
--- unfortunately, without this attribute, some of the code breaks for reasons I don't understand
-local attribute [semireducible] witt_vector
-
 /--
 `verschiebung_fun x` shifts the coefficients of `x` up by one,
 by inserting 0 as the 0th coefficient.

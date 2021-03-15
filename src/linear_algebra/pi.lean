@@ -182,6 +182,46 @@ end
 
 end linear_map
 
+namespace submodule
+
+variables [semiring R] {φ : ι → Type*} [∀ i, add_comm_monoid (φ i)] [∀ i, semimodule R (φ i)]
+
+open linear_map
+
+/-- A version of `set.pi` for submodules. Given an index set `I` and a family of submodules
+`p : Π i, submodule R (φ i)`, `pi I s` is the submodule of dependent functions `f : Π i, φ i`
+such that `f i` belongs to `p a` whenever `i ∈ I`. -/
+def pi (I : set ι) (p : Π i, submodule R (φ i)) : submodule R (Π i, φ i) :=
+{ carrier := set.pi I (λ i, p i),
+  zero_mem' := λ i hi, (p i).zero_mem,
+  add_mem' := λ x y hx hy i hi, (p i).add_mem (hx i hi) (hy i hi),
+  smul_mem' := λ c x hx i hi, (p i).smul_mem c (hx i hi) }
+
+variables {I : set ι} {p : Π i, submodule R (φ i)} {x : Π i, φ i}
+
+@[simp] lemma mem_pi : x ∈ pi I p ↔ ∀ i ∈ I, x i ∈ p i := iff.rfl
+
+@[simp, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
+
+lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
+by { ext x, simp }
+
+lemma infi_comap_proj : (⨅ i, comap (proj i) (p i)) = pi set.univ p :=
+by { ext x, simp }
+
+lemma supr_map_single [decidable_eq ι] [fintype ι] :
+  (⨆ i, map (linear_map.single i) (p i)) = pi set.univ p :=
+begin
+  refine (supr_le $ λ i, _).antisymm _,
+  { rintro _ ⟨x, hx : x ∈ p i, rfl⟩ j -,
+    rcases em (j = i) with rfl|hj; simp * },
+  { intros x hx,
+    rw [← finset.univ_sum_single x],
+    exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
+end
+
+end submodule
+
 namespace linear_equiv
 
 variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]

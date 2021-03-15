@@ -7,7 +7,7 @@ Authors: Julian Kuelshammer
 import ring_theory.polynomial.chebyshev
 import ring_theory.localization
 import data.zmod.basic
-import algebra.invertible
+import algebra.char_p.invertible
 
 
 /-!
@@ -127,24 +127,24 @@ end
 
 variables (R)
 
-lemma dickson_one_one_eq_chebyshev₁ [invertible (2 : R)] :
-  ∀ n, dickson 1 (1 : R) n = 2 * (chebyshev₁ R n).comp (C (⅟2) * X)
-| 0       := by { simp only [chebyshev₁_zero, mul_one, one_comp, dickson_zero], norm_num }
-| 1       := by rw [dickson_one, chebyshev₁_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
+lemma dickson_one_one_eq_chebyshev_T [invertible (2 : R)] :
+  ∀ n, dickson 1 (1 : R) n = 2 * (chebyshev.T R n).comp (C (⅟2) * X)
+| 0       := by { simp only [chebyshev.T_zero, mul_one, one_comp, dickson_zero], norm_num }
+| 1       := by rw [dickson_one, chebyshev.T_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
                     mul_inv_of_self, C_1, one_mul]
 | (n + 2) :=
 begin
-  simp only [dickson_add_two, chebyshev₁_add_two, dickson_one_one_eq_chebyshev₁ (n + 1),
-    dickson_one_one_eq_chebyshev₁ n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
+  simp only [dickson_add_two, chebyshev.T_add_two, dickson_one_one_eq_chebyshev_T (n + 1),
+    dickson_one_one_eq_chebyshev_T n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
   simp only [← C_1, ← C_bit0, ← mul_assoc, ← C_mul, mul_inv_of_self],
   rw [C_1, one_mul],
   ring
 end
 
-lemma chebyshev₁_eq_dickson_one_one [invertible (2 : R)] (n : ℕ) :
-  chebyshev₁ R n = C (⅟2) * (dickson 1 1 n).comp (2 * X) :=
+lemma chebyshev_T_eq_dickson_one_one [invertible (2 : R)] (n : ℕ) :
+  chebyshev.T R n = C (⅟2) * (dickson 1 1 n).comp (2 * X) :=
 begin
-  rw dickson_one_one_eq_chebyshev₁,
+  rw dickson_one_one_eq_chebyshev_T,
   simp only [comp_assoc, mul_comp, C_comp, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul],
   rw [inv_of_mul_self, C_1, one_mul, one_mul, comp_X]
 end
@@ -161,7 +161,7 @@ begin
   congr' 1,
   apply map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [map_dickson, map_comp, ring_hom.eq_int_cast, int.cast_one,
-    dickson_one_one_eq_chebyshev₁, chebyshev₁_mul, two_mul, ← add_comp],
+    dickson_one_one_eq_chebyshev_T, chebyshev.T_mul, two_mul, ← add_comp],
   simp only [← two_mul, ← comp_assoc],
   apply eval₂_congr rfl rfl,
   rw [comp_assoc],

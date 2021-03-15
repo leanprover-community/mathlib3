@@ -28,7 +28,7 @@ instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv�
   ((homeomorph.mk a b c) : α → β) = a :=
 rfl
 
-lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
+@[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
 | ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
@@ -141,7 +141,7 @@ h.quotient_map.is_open_preimage
 by rw [← preimage_symm, is_open_preimage]
 
 @[simp] lemma is_closed_preimage (h : α ≃ₜ β) {s : set β} : is_closed (h ⁻¹' s) ↔ is_closed s :=
-by simp only [is_closed, ← preimage_compl, is_open_preimage]
+by simp only [← is_open_compl_iff, ← preimage_compl, is_open_preimage]
 
 @[simp] lemma is_closed_image (h : α ≃ₜ β) {s : set α} : is_closed (h '' s) ↔ is_closed s :=
 by rw [← preimage_symm, is_closed_preimage]

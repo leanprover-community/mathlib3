@@ -155,6 +155,10 @@ lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
 
+protected lemma bijective (h : α ≃ᵢ β) : bijective h := h.to_equiv.bijective
+protected lemma injective (h : α ≃ᵢ β) : injective h := h.to_equiv.injective
+protected lemma surjective (h : α ≃ᵢ β) : surjective h := h.to_equiv.surjective
+
 protected lemma edist_eq (h : α ≃ᵢ β) (x y : α) : edist (h x) (h y) = edist x y :=
 h.isometry.edist_eq x y
 
@@ -221,7 +225,7 @@ lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
 @[simp] lemma range_eq_univ (h : α ≃ᵢ β) : range h = univ :=
-eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
+h.to_equiv.range_eq_univ
 
 lemma image_symm (h : α ≃ᵢ β) : image h.symm = preimage h :=
 image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv

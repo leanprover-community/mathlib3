@@ -651,20 +651,20 @@ variables [has_zero_morphisms C]
 
 /-- `has_kernels` represents the existence of kernels for every morphism. -/
 class has_kernels : Prop :=
-(has_limit : Π {X Y : C} (f : X ⟶ Y), has_kernel f)
+(has_limit : Π {X Y : C} (f : X ⟶ Y), has_kernel f . tactic.apply_instance)
 
 /-- `has_cokernels` represents the existence of cokernels for every morphism. -/
 class has_cokernels : Prop :=
-(has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
+(has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f . tactic.apply_instance)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
 
 @[priority 100]
 instance has_kernels_of_has_equalizers [has_equalizers C] : has_kernels C :=
-{ has_limit := by apply_instance }
+{}
 
 @[priority 100]
 instance has_cokernels_of_has_coequalizers [has_coequalizers C] : has_cokernels C :=
-{ has_colimit := by apply_instance }
+{}
 
 end category_theory.limits

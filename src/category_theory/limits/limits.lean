@@ -926,11 +926,12 @@ variables (J C)
 
 /-- `C` has limits of shape `J` if there exists a limit for every functor `F : J ⥤ C`. -/
 class has_limits_of_shape : Prop :=
-(has_limit : Π F : J ⥤ C, has_limit F)
+(has_limit : Π F : J ⥤ C, has_limit F . tactic.apply_instance)
 
 /-- `C` has all (small) limits if it has limits of every shape. -/
 class has_limits : Prop :=
-(has_limits_of_shape : Π (J : Type v) [𝒥 : small_category J], has_limits_of_shape J C)
+(has_limits_of_shape :
+  Π (J : Type v) [𝒥 : small_category J], has_limits_of_shape J C . tactic.apply_instance)
 
 variables {J C}
 
@@ -1331,11 +1332,12 @@ variables (J C)
 
 /-- `C` has colimits of shape `J` if there exists a colimit for every functor `F : J ⥤ C`. -/
 class has_colimits_of_shape : Prop :=
-(has_colimit : Π F : J ⥤ C, has_colimit F)
+(has_colimit : Π F : J ⥤ C, has_colimit F . tactic.apply_instance)
 
 /-- `C` has all (small) colimits if it has colimits of every shape. -/
 class has_colimits : Prop :=
-(has_colimits_of_shape : Π (J : Type v) [𝒥 : small_category J], has_colimits_of_shape J C)
+(has_colimits_of_shape :
+  Π (J : Type v) [𝒥 : small_category J], has_colimits_of_shape J C . tactic.apply_instance)
 
 variables {J C}
 

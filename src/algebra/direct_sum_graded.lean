@@ -445,27 +445,15 @@ variables {R A : Type*} [comm_semiring R]
 instance nat_power_direct_sum_gmonoid [semiring A] [algebra R A] (S : submodule R A) :
   direct_sum.gmonoid (λ i : ℕ, ↥(S ^ i)) :=
 direct_sum.gmonoid.of_submodules _
-  (begin
-    rw [←one_le, pow_zero],
-    exact rfl.le,
-  end)
-  (λ i j p q, begin
-    rw pow_add,
-    exact submodule.mul_mem_mul p.prop q.prop,
-  end)
+  (by { rw [←one_le, pow_zero], exact le_rfl })
+  (λ i j p q, by { rw pow_add, exact submodule.mul_mem_mul p.prop q.prop })
 
 /-- A direct sum of powers of a submodule of a commutative algebra has a commutative multiplicative
 structure. -/
 instance nat_power_direct_sum_gcomm_monoid [comm_semiring A] [algebra R A] (S : submodule R A) :
   direct_sum.gcomm_monoid (λ i : ℕ, ↥(S ^ i)) :=
 direct_sum.gcomm_monoid.of_submodules _
-  (begin
-    rw [←one_le, pow_zero],
-    exact rfl.le,
-  end)
-  (λ i j p q, begin
-    rw pow_add,
-    exact submodule.mul_mem_mul p.prop q.prop,
-  end)
+  (by { rw [←one_le, pow_zero], exact le_rfl })
+  (λ i j p q, by { rw pow_add, exact submodule.mul_mem_mul p.prop q.prop })
 
 end submodule

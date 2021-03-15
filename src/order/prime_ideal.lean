@@ -70,8 +70,7 @@ def prime_pair.of_is_prime {I : ideal P} (h : is_prime I) : prime_pair P :=
 
 lemma is_prime.of_prime_pair (IF : prime_pair P) : is_prime IF.I :=
 { compl_filter := by {rw prime_pair.ideal_compl_eq_pfilter, exact (IF.F).is_pfilter},
-  ..IF.ideal_is_proper
-}
+  ..IF.ideal_is_proper }
 
 end preorder
 

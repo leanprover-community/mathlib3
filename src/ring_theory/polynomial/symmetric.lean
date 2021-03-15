@@ -216,7 +216,7 @@ begin
       { simpa },
       { intros x s hx h,
         simp [h] } },
-  rw [degrees, support_esymm, ←sup_finset_image, this],
+  rw [degrees, support_esymm, sup_finset_image, this],
   convert (hf _).symm,
   obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
   simp [powerset_len_sup _ _ (nat.lt_of_succ_le hn)]

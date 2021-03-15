@@ -283,7 +283,7 @@ begin
     { suffices : u.sup id ≤ s, from le_antisymm husup this,
       rw [sSup, finset.sup_eq_Sup], exact Sup_le_Sup huspan, },
     obtain ⟨t, ⟨hts, rfl⟩⟩ := finset.subset_image_iff.mp huspan,
-    rw [←finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr, supr_rw,
+    rw [finset.sup_finset_image, function.comp.left_id, finset.sup_eq_supr, supr_rw,
       ←span_eq_supr_of_singleton_spans, eq_comm] at ssup,
     exact ⟨t, ssup⟩, },
 end

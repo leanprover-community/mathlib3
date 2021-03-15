@@ -155,6 +155,7 @@ calc  fintype.card (roots_of_unity k R)
 
 variables {k R}
 
+@[norm_cast]
 lemma roots_of_unity.coe_pow (ζ : roots_of_unity k R) (m : ℕ) : ↑(ζ ^ m) = (ζ ^ m : R) :=
 begin
   change ↑(↑(ζ ^ m) : units R) = ↑(ζ : units R) ^ m,
@@ -173,13 +174,17 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
   map_one' := by { ext, exact σ.map_one },
   map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact σ.map_mul _ _ } }
 
+@[simp] lemma ring_hom.restrict_roots_of_unity_coe_apply (σ : R →+* S) (ζ : roots_of_unity k R) :
+  ↑(σ.restrict_roots_of_unity k ζ) = σ ↑ζ :=
+rfl
+
 lemma ring_hom.map_root_of_unity (σ : R →+* R) (ζ : roots_of_unity k R) : ∃ m : ℕ, σ ζ = ζ ^ m :=
 begin
   obtain ⟨m, hm⟩ := (σ.restrict_roots_of_unity k).map_cyclic,
-  use (m % (order_of ζ)).to_nat,
-  rw [←roots_of_unity.coe_pow, ←gpow_coe_nat, int.to_nat_of_nonneg, ←gpow_eq_mod_order_of, ←hm],
-  refl,
-  exact m.mod_nonneg (int.coe_nat_ne_zero.mpr (pos_iff_ne_zero.mp (order_of_pos ζ))),
+  rw [←σ.restrict_roots_of_unity_coe_apply, hm, gpow_eq_mod_order_of, ←int.to_nat_of_nonneg
+      (m.mod_nonneg (int.coe_nat_ne_zero.mpr (pos_iff_ne_zero.mp (order_of_pos ζ)))),
+      gpow_coe_nat, roots_of_unity.coe_pow],
+  exact ⟨(m % (order_of ζ)).to_nat, rfl⟩,
 end
 
 end roots_of_unity

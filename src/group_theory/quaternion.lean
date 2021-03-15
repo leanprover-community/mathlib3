@@ -7,6 +7,7 @@ import data.zmod.basic
 import group_theory.order_of_element
 import data.nat.basic
 import tactic.interval_cases
+import group_theory.dihedral
 
 /-!
 # Quaternion Groups
@@ -20,8 +21,10 @@ dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`.
 
 ## Implementation notes
 
-`quaternion_group 0` is isomorphic to the infinite dihedral group, but it would be inconvenient to
-carry around the condition that `n` is greater than zero.
+In mathematics, the name `quaternion_group` is reserved for the cases `n ≥ 2`. Since it would be
+inconvenient to carry around this condition we define `quaternion_group` also for `n = 0` and
+`n = 1`. `quaternion_group 0` is isomorphic to the infinite dihedral group, while
+`quaternion_group 1` is isomorphic to a cyclic group of order `4`.
 
 ## References
 
@@ -127,21 +130,42 @@ private def fintype_helper : (zmod (2 * n) ⊕ zmod (2 * n)) ≃ quaternion_grou
   left_inv := by rintro (x | x); refl,
   right_inv := by rintro (x | x); refl }
 
-/--
-If `0 < n`, then `quaternion_group n` is a finite group.
--/
-instance [fact (0 < n)] : fintype (quaternion_group n) :=
+/-- The special case that more or less by definition `quaternion_group 0` is isomorphic to the
+infinite dihedral group. -/
+def quaternion_zero_equiv_dihedral_zero : quaternion_group 0 ≃* dihedral 0 :=
+{ to_fun :=  λ i, match i with
+                | (a j) := dihedral.r j
+                | (xa j) := dihedral.sr j
+                end,
+  inv_fun := λ i, match i with
+                | (dihedral.r j) := a j
+                | (dihedral.sr j) := xa j
+                end,
+  left_inv := by rintro (k | k); refl,
+  right_inv := by rintro (k | k); refl,
+  map_mul' := begin rintros (k | k) (l | l); try {refl},
+                    change quaternion_zero_equiv_dihedral_zero._match_1 (a (0 + l - k)) = _,
+                    rw zero_add,
+                    refl end }
+
+/-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
+in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
+private lemma two_mul_pos_of_pos [fact (0 < n)] : fact (0 < 2 * n) :=
 begin
-  haveI : fact (0 < 2 * n) :=
-    begin rw ← zero_mul 0,
+rw ← zero_mul 0,
           apply mul_lt_mul',
             { exact zero_le 2 },
             { assumption },
             { exact zero_le 0 },
             { exact nat.zero_lt_succ 1 }
-    end,
-  exact fintype.of_equiv _ fintype_helper
 end
+
+local attribute [instance] two_mul_pos_of_pos
+
+/--
+If `0 < n`, then `quaternion_group n` is a finite group.
+-/
+instance [fact (0 < n)] : fintype (quaternion_group n) := fintype.of_equiv _ fintype_helper
 
 instance : nontrivial (quaternion_group n) := ⟨⟨a 0, xa 0, dec_trivial⟩⟩
 
@@ -150,18 +174,10 @@ If `0 < n`, then `quaternion_group n` has `4n` elements.
 -/
 lemma card [fact (0 < n)] : fintype.card (quaternion_group n) = 4 * n :=
 begin
-  haveI : fact (0 < 2 * n) :=
-    begin rw ← zero_mul 0,
-          apply mul_lt_mul',
-            { exact zero_le 2 },
-            { assumption },
-            { exact zero_le 0 },
-            { exact nat.zero_lt_succ 1 }
-    end,
   rw ← fintype.card_eq.mpr ⟨fintype_helper⟩,
   change fintype.card (zmod (2 * n) ⊕ zmod (2 * n)) = 4 * n,
   rw [fintype.card_sum, zmod.card, two_mul],
-  ring,
+  ring
 end
 
 @[simp] lemma a_one_pow (k : ℕ) : (a 1 : quaternion_group n) ^ k = a k :=
@@ -180,12 +196,12 @@ begin
   { simp_rw [mul_zero, pow_zero] },
   { rw [a_one_pow, one_def],
     congr' 1,
-    exact zmod.nat_cast_self _, }
+    exact zmod.nat_cast_self _ }
 end
 
 @[simp] lemma xa_pow_two (i : zmod (2 * n)) : xa i ^ 2 = a n :=
 begin
-  simp [pow_two],
+  simp [pow_two]
 end
 
 @[simp] lemma xa_pow_four (i : zmod (2 * n)) : xa i ^ 4 = 1 :=
@@ -237,20 +253,21 @@ begin
   }
 end
 
+/-- In the special case `n = 1`, `quaternion 1` is a cyclic group (of order `4`).-/
+lemma quaternion_one_is_cyclic : is_cyclic (quaternion_group 1) :=
+begin
+  apply is_cyclic_of_order_of_eq_card,
+  rw [card, mul_one],
+  exact order_of_xa 0
+end
+
 /--
 If `0 < n`, then `a 1` has order `2 * n`.
 -/
 @[simp] lemma order_of_a_one [fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  have hnpos : fact (0 < 2 * n) :=
-    begin rw ← zero_mul 0,
-          apply mul_lt_mul',
-            { exact zero_le 2 },
-            { assumption },
-            { exact zero_le 0 },
-            { exact nat.zero_lt_succ 1 }
-    end,
-  cases lt_or_eq_of_le (nat.le_of_dvd hnpos (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))) with h h,
+  cases lt_or_eq_of_le (nat.le_of_dvd (two_mul_pos_of_pos)
+    (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))) with h h,
   { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1,
     { exact pow_order_of_eq_one _ },
     rw a_one_pow at h1,
@@ -266,14 +283,6 @@ If `0 < n`, then `i : zmod n` has order `n / gcd n i`
 lemma order_of_a [fact (0 < n)] (i : zmod (2 * n)) :
   order_of (a i) = (2 * n) / nat.gcd (2 * n) i.val :=
 begin
-  haveI : fact (0 < 2 * n) :=
-    begin rw ← zero_mul 0,
-          apply mul_lt_mul',
-            { exact zero_le 2 },
-            { assumption },
-            { exact zero_le 0 },
-            { exact nat.zero_lt_succ 1 }
-    end,
   conv_lhs { rw ← zmod.nat_cast_zmod_val i },
   rw [← a_one_pow, order_of_pow, order_of_a_one]
 end

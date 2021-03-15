@@ -146,7 +146,7 @@ end
 instance : nontrivial (quaternion_group n) := ⟨⟨a 0, xa 0, dec_trivial⟩⟩
 
 /--
-If `0 < n`, then `dihedral n` has `2n` elements.
+If `0 < n`, then `quaternion_group n` has `4n` elements.
 -/
 lemma card [fact (0 < n)] : fintype.card (quaternion_group n) = 4 * n :=
 begin
@@ -174,7 +174,7 @@ begin
     rw nat.one_add }
 end
 
-@[simp] lemma a_one_pow_n : (a (1 : zmod (2 * n)))^(2 * n) = 1 :=
+@[simp] lemma a_one_pow_n : (a 1 : quaternion_group n)^(2 * n) = 1 :=
 begin
   cases n,
   { simp_rw [mul_zero, pow_zero] },
@@ -200,7 +200,7 @@ end
 /--
 If `0 < n`, then `xa i` has order 4.
 -/
-@[simp] lemma order_of_xa [fact (0 < n)] (i : zmod (2 *n)) : order_of (xa i) = 4 :=
+@[simp] lemma order_of_xa [fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
   have h : order_of (xa i) ≤ 4 := order_of_le_of_pow_eq_one (by norm_num) (xa_pow_four i),
   interval_cases (order_of (xa i)) with hcas,

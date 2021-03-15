@@ -812,6 +812,13 @@ lemma times_cont_mdiff_within_at.comp' {t : set M'} {g : M' → M''} (x : M)
   times_cont_mdiff_within_at I I'' n (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp x (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
+/-- `g ∘ f` is `C^n` within `s` at `x` if `g` is `C^n` at `f x` and
+`f` is `C^n` within `s` at `x`. -/
+lemma times_cont_mdiff_at.comp_times_cont_mdiff_within_at {g : M' → M''} (x : M)
+  (hg : times_cont_mdiff_at I' I'' n g (f x)) (hf : times_cont_mdiff_within_at I I' n f s x) :
+  times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
+hg.comp x hf (maps_to_univ _ _)
+
 /-- The composition of `C^n` functions at points is `C^n`. -/
 lemma times_cont_mdiff_at.comp {g : M' → M''} (x : M)
   (hg : times_cont_mdiff_at I' I'' n g (f x)) (hf : times_cont_mdiff_at I I' n f x) :

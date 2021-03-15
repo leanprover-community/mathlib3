@@ -632,8 +632,8 @@ begin
   assume t ht,
   obtain ⟨u, u_open, hu⟩ : ∃ (u : set α), is_open u ∧ f ⁻¹' t ∩ s = u ∩ s :=
     _root_.continuous_on_iff'.1 hf t ht,
-  rw [indicator_preimage, inter_comm, hu],
-  exact (u_open.measurable_set.inter hs).union (hs.compl.inter (measurable_const ht.measurable_set))
+  rw [indicator_preimage, set.ite, hu],
+  exact (u_open.measurable_set.inter hs).union ((measurable_zero ht.measurable_set).diff hs)
 end
 
 lemma continuous_on.integrable_at_nhds_within

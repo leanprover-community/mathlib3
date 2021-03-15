@@ -1046,6 +1046,12 @@ by simp [set.ite]
 @[simp] lemma ite_univ (s s' : set α) : set.ite univ s s' = s :=
 by simp [set.ite]
 
+@[simp] lemma ite_empty_left (t s : set α) : t.ite ∅ s = s \ t :=
+by simp [set.ite]
+
+@[simp] lemma ite_empty_right (t s : set α) : t.ite s ∅ = s ∩ t :=
+by simp [set.ite]
+
 lemma ite_mono (t : set α) {s₁ s₁' s₂ s₂' : set α} (h : s₁ ⊆ s₂) (h' : s₁' ⊆ s₂') :
   t.ite s₁ s₁' ⊆ t.ite s₂ s₂' :=
 union_subset_union (inter_subset_inter_left _ h) (inter_subset_inter_left _ h')

@@ -6,8 +6,10 @@ def is_projective
   (R : Type u) [ring R] (M : Type u) [add_comm_group M] [module R M] :
 -- M is the R-module on which `projective` is a predicate
   Prop := -- `projective R M` is a proposition
+-- this rather obscure definition says that the map from the free R-module on
+-- the set M to M splits as R-module map; it doesn't matter what the
+-- actual definition is though, because we're going to make an API.
 ∃ s : M →ₗ[R] (M →₀ R), ∀ m, (s m).sum (λ m r, r • m) = m
-
 
 namespace function
 
@@ -18,11 +20,7 @@ variables {α β : Type u} (f : α → β) (hf : surjective f)
 end function
 namespace is_projective
 
-variables (R : Type u) [ring R] (M : Type u) [add_comm_group M] [module R M] (h : is_projective R M)
-
-noncomputable def g : M →ₗ[R] (M →₀ R) := classical.some h
-
-variables {R M}
+variables {R : Type u} [ring R] {M : Type u} [add_comm_group M] [module R M] (h : is_projective R M)
 
 noncomputable
 def universal_free_R_mod_map {X : Type u} (f : X → M) : (X →₀ R) →ₗ[R] M :=
@@ -53,9 +51,11 @@ theorem universal_property {R A B M : Type u} [ring R] [add_comm_group M] [semim
 (hf : function.surjective f) : ∃ (h : M →ₗ[R] A), f.comp h = g :=
 begin
   /- Maths proof
-  M is a direct summand of R^M. The universal property says that to a set map M -> B (e.g. forget g) we
-  get an R-module map R^M -> B. This lifts to a map R^M → A (in fact we should first just define
-  a set-theoretic map M → A using surjectivity of f, then get R^M → A). Now compose with `g`
+  M is a direct summand of R^M. The universal property says that to a set map X -> A
+  we get an R-module map R^X -> A. Apply this to a noncomputable map M → A coming
+  the map M → B and a random splitting of the surjection A → B,
+  and we get R^M →ₗ A. Now compose with the map `s` coming from `is_projective R M`.
+  This works.
   -/
   let fma : M → A := λ m, function.surj_inv hf (g m),
   -- now apply universal property to fma
@@ -63,10 +63,7 @@ begin
   cases h with s hs,
   use hmlin.comp s,
   ext m,
-  show f (hmlin (s m)) = _,
---  have : function.injective _ := function.injective_surj_inv hf,
---  apply this,
---  change _ = fma m,
+--  show f (hmlin (s m)) = _,
   have hg2 : ∀ m : M, f (fma m) = g m,
     simp [fma, function.surj_inv.apply _ hf],
   conv_rhs {rw ← hs m},

@@ -132,7 +132,7 @@ section category
 @[to_additive]
 instance : monad free_magma :=
 { pure := λ _, of,
-  bind := λ _ _ x f, lift_aux f x }
+  bind := λ _ _ x f, lift f x }
 
 /-- Recursor on `free_magma` using `pure` instead of `of`. -/
 @[elab_as_eliminator, to_additive "Recursor on `free_add_magma` using `pure` instead of `of`."]

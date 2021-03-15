@@ -221,7 +221,7 @@ lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit 
 (@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
 
-/-- Transport a `has_limits_of_shape` across an equivalence. -/
+/-- Transport a `has_limits_of_shape` instance across an equivalence. -/
 def has_limits_of_shape_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits_of_shape J C] :
   has_limits_of_shape J D :=
 ⟨λ F, by exactI has_limit_of_comp_equivalence F E⟩

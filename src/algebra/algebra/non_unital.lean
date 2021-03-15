@@ -84,16 +84,22 @@ namespace non_unital_non_assoc_algebra_hom
 
 variables {R A B C}
 
-instance {R A B} [comm_semiring R] [ring A] [ring B] [algebra R A] [algebra R B] :
+instance {R : Type u₁} {A : Type u₂} {B : Type u₃}
+  [comm_semiring R] [ring A] [ring B] [algebra R A] [algebra R B] :
   has_coe (A →ₐ[R] B) (non_unital_non_assoc_algebra_hom R A B) :=
 ⟨λ f, { to_fun    := f,
-        map_add'  := f.map_add,
         map_smul' := f.map_smul,
-        map_mul'  := f.map_mul, }⟩
+        ..f, }⟩
 
 instance : has_coe (non_unital_non_assoc_algebra_hom R A B) (A →ₗ[R] B) := ⟨to_linear_map⟩
 
 instance : has_coe (non_unital_non_assoc_algebra_hom R A B) (mul_hom A B) := ⟨to_mul_hom⟩
+
+lemma to_linear_map_eq_coe (f : non_unital_non_assoc_algebra_hom R A B) : f.to_linear_map = ↑f :=
+rfl
+
+lemma to_mul_hom_eq_coe (f : non_unital_non_assoc_algebra_hom R A B) : f.to_mul_hom = ↑f :=
+rfl
 
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (non_unital_non_assoc_algebra_hom R A B) := ⟨_, to_fun⟩

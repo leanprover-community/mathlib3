@@ -80,10 +80,6 @@ namespace free_magma
 
 variables {α : Type u} {β : Type v} [has_mul β] (f : α → β)
 
-@[simp, to_additive] lemma lift_aux_of (x) : lift_aux f (of x) = f x := rfl
-@[simp, to_additive] lemma lift_aux_mul (x y) : lift_aux f (x * y) = lift_aux f x * lift_aux f y :=
-rfl
-
 @[to_additive]
 theorem lift_unique (f : free_magma α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
   f = lift_aux (f ∘ of) :=
@@ -95,10 +91,12 @@ funext $ λ x, free_magma.rec_on x (λ x, rfl) $ λ x y ih1 ih2,
 def lift : (α → β) ≃ mul_hom (free_magma α) β :=
 { to_fun    := λ f,
   { to_fun := lift_aux f,
-    map_mul' := lift_aux_mul f, },
+    map_mul' := λ x y, rfl, },
   inv_fun   := λ F, F ∘ of,
   left_inv  := λ f, by { ext, simp only [lift_aux, mul_hom.coe_mk, function.comp_app], },
   right_inv := λ F, by { ext, rw [mul_hom.coe_mk, ← lift_unique (F : _ → β) F.map_mul], } }
+
+@[simp, to_additive] lemma lift_of (x) : lift f (of x) = f x := rfl
 
 end free_magma
 
@@ -581,16 +579,16 @@ end free_semigroup
 `add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
 def free_semigroup_free_magma (α : Type u) :
   magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
-{ to_fun :=
-    magma.free_semigroup.lift (free_magma.lift_aux free_semigroup.of) (free_magma.lift_aux_mul _),
-  inv_fun := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
-  left_inv := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
+{ to_fun    :=
+    magma.free_semigroup.lift (free_magma.lift free_semigroup.of) ((free_magma.lift _).map_mul),
+  inv_fun   := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
+  left_inv  := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
     exact free_magma.rec_on' p
-      (λ x, by rw [free_magma.lift_aux_of, free_semigroup.lift_of])
-      (λ x y ihx ihy, by rw [free_magma.lift_aux_mul, free_semigroup.lift_mul, ihx, ihy,
+      (λ x, by rw [free_magma.lift_of, free_semigroup.lift_of])
+      (λ x y ihx ihy, by rw [mul_hom.map_mul, free_semigroup.lift_mul, ihx, ihy,
         magma.free_semigroup.of_mul]),
   right_inv := λ x, free_semigroup.rec_on x
-    (λ x, by rw [free_semigroup.lift_of, magma.free_semigroup.lift_of, free_magma.lift_aux_of])
+    (λ x, by rw [free_semigroup.lift_of, magma.free_semigroup.lift_of, free_magma.lift_of])
     (λ x y ihx ihy, by rw [free_semigroup.lift_mul, magma.free_semigroup.lift_mul, ihx, ihy]) }
 
 @[simp, to_additive] lemma free_semigroup_free_magma_mul {α : Type u} (x y) :

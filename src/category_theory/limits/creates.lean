@@ -477,6 +477,7 @@ end comp
 section is_equivalence
 variables (F : C ⥤ D) [is_equivalence F]
 
+@[priority 100]
 instance is_equivalence_creates_limits : creates_limits F :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
   { creates_limit := λ K, creates_limit_of_reflects_iso (λ c t,
@@ -487,6 +488,7 @@ instance is_equivalence_creates_limits : creates_limits F :=
           (cones.functoriality_equivalence K F.as_equivalence).symm).symm t
     }), }, }
 
+@[priority 100]
 instance is_equivalence_creates_colimits : creates_colimits F :=
 { creates_colimits_of_shape := λ J 𝒥, by exactI
   { creates_colimit := λ K, creates_colimit_of_reflects_iso (λ c t,

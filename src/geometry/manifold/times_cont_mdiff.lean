@@ -1712,17 +1712,66 @@ hf.prod_map hg
 
 end prod_map
 
+section pi_space
+
+/-!
+### Smoothness of functions with codomain `Π i, F i`
+
+We have no `model_with_corners.pi` yet, so we prove lemmas about functions `f : M → Π i, F i` and
+use `𝓘(𝕜, Π i, F i)` as the model space.
+-/
+
+variables {ι : Type*} [fintype ι] {Fi : ι → Type*} [Π i, normed_group (Fi i)]
+  [Π i, normed_space 𝕜 (Fi i)] {φ : M → Π i, Fi i}
+
+lemma times_cont_mdiff_within_at_pi_space :
+  times_cont_mdiff_within_at I (𝓘(𝕜, Π i, Fi i)) n φ s x ↔
+    ∀ i, times_cont_mdiff_within_at I (𝓘(𝕜, Fi i)) n (λ x, φ x i) s x :=
+by simp only [times_cont_mdiff_within_at_iff'', continuous_within_at_pi,
+  times_cont_diff_within_at_pi, forall_and_distrib, written_in_ext_chart_at,
+  ext_chart_model_space_eq_id, (∘), local_equiv.refl_coe, id]
+
+lemma times_cont_mdiff_on_pi_space :
+  times_cont_mdiff_on I (𝓘(𝕜, Π i, Fi i)) n φ s ↔
+    ∀ i, times_cont_mdiff_on I (𝓘(𝕜, Fi i)) n (λ x, φ x i) s :=
+⟨λ h i x hx, times_cont_mdiff_within_at_pi_space.1 (h x hx) i,
+  λ h x hx, times_cont_mdiff_within_at_pi_space.2 (λ i, h i x hx)⟩
+
+lemma times_cont_mdiff_at_pi_space :
+  times_cont_mdiff_at I (𝓘(𝕜, Π i, Fi i)) n φ x ↔
+    ∀ i, times_cont_mdiff_at I (𝓘(𝕜, Fi i)) n (λ x, φ x i) x :=
+times_cont_mdiff_within_at_pi_space
+
+lemma times_cont_mdiff_pi_space :
+  times_cont_mdiff I (𝓘(𝕜, Π i, Fi i)) n φ ↔
+    ∀ i, times_cont_mdiff I (𝓘(𝕜, Fi i)) n (λ x, φ x i) :=
+⟨λ h i x, times_cont_mdiff_at_pi_space.1 (h x) i,
+  λ h x, times_cont_mdiff_at_pi_space.2 (λ i, h i x)⟩
+
+lemma smooth_within_at_pi_space :
+  smooth_within_at I (𝓘(𝕜, Π i, Fi i)) φ s x ↔
+    ∀ i, smooth_within_at I (𝓘(𝕜, Fi i)) (λ x, φ x i) s x :=
+times_cont_mdiff_within_at_pi_space
+
+lemma smooth_on_pi_space :
+  smooth_on I (𝓘(𝕜, Π i, Fi i)) φ s ↔ ∀ i, smooth_on I (𝓘(𝕜, Fi i)) (λ x, φ x i) s :=
+times_cont_mdiff_on_pi_space
+
+lemma smooth_at_pi_space :
+  smooth_at I (𝓘(𝕜, Π i, Fi i)) φ x ↔ ∀ i, smooth_at I (𝓘(𝕜, Fi i)) (λ x, φ x i) x :=
+times_cont_mdiff_at_pi_space
+
+lemma smooth_pi_space :
+  smooth I (𝓘(𝕜, Π i, Fi i)) φ ↔ ∀ i, smooth I (𝓘(𝕜, Fi i)) (λ x, φ x i) :=
+times_cont_mdiff_pi_space
+
+end pi_space
+
 /-! ### Linear maps between normed spaces are smooth -/
 
 lemma continuous_linear_map.times_cont_mdiff (L : E →L[𝕜] F) :
   times_cont_mdiff 𝓘(𝕜, E) 𝓘(𝕜, F) n L :=
-begin
-  rw times_cont_mdiff_iff,
-  refine ⟨L.cont, λ x y, _⟩,
-  simp only with mfld_simps,
-  rw times_cont_diff_on_univ,
-  exact continuous_linear_map.times_cont_diff L,
-end
+L.times_cont_diff.times_cont_mdiff
 
 /-! ### Smoothness of standard operations -/
 

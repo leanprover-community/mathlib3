@@ -22,15 +22,9 @@ variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : mea
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
-lemma two_mul_le_add_sq (a b : ℝ) : 2 * a * b ≤ a ^ 2 + b ^ 2 :=
-begin
-  suffices h_nonneg : 0 ≤ a ^ 2 + b ^ 2 - 2 * a * b, by rwa sub_nonneg at h_nonneg,
-  calc 0 ≤ (a - b) ^ 2               : pow_two_nonneg _
-     ... = a ^ 2 + b ^ 2 - 2 * a * b : by ring,
-end
-
 lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin
+  rw add_pow_two
   have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
   rw [snorm_norm_rpow f zero_lt_two, one_mul, h_two],
   exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),
@@ -44,7 +38,7 @@ begin
     rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
     swap, { exact add_nonneg (by simp) (by simp), },
     refine le_trans _ (half_le_self (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _))),
-    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr (le_trans (le_of_eq _) (two_mul_le_add_sq _ _)),
+    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_pow_two _ _)),
     ring, },
   simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
   refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),

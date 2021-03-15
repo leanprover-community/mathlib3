@@ -52,12 +52,11 @@ variables (R S)
 
 /-- The trace of an element `s` of an `R`-algebra is the trace of `(*) s`,
 as an `R`-linear map. -/
+@[simps]
 noncomputable def trace : S →ₗ[R] R :=
 (linear_map.trace R S).comp (lmul R S).to_linear_map
 
 variables {S}
-
-@[simp] lemma trace_apply (s : S) : trace R S s = linear_map.trace R S (lmul R S s) := rfl
 
 lemma trace_eq_zero_of_not_exists_basis
   (h : ¬ ∃ s : finset S, is_basis R (λ x, x : (↑s : set S) → S)) : trace R S = 0 :=
@@ -102,6 +101,7 @@ variables (R S)
 
 /-- The `trace_form` maps `x y : S` to the trace of `x * y`.
 It is a symmetric bilinear form and is nondegenerate if the extension is separable. -/
+@[simps]
 noncomputable def trace_form : bilin_form R S :=
 { bilin := λ x y, trace R S (x * y),
   bilin_add_left := λ x y z, by rw [add_mul, linear_map.map_add],
@@ -110,8 +110,6 @@ noncomputable def trace_form : bilin_form R S :=
   bilin_smul_right := λ x y z, by rw [mul_smul_comm, linear_map.map_smul, smul_eq_mul], }
 
 variables {S}
-
-@[simp] lemma trace_form_apply (x y : S) : trace_form R S x y = trace R S (x * y) := rfl
 
 lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
 λ x y, congr_arg (trace R S) (mul_comm _ _)

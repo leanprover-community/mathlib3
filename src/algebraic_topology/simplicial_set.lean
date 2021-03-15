@@ -95,9 +95,10 @@ section examples
 open_locale sSet
 
 /-- The simplicial circle. -/
-noncomputable def S1 : sSet := limits.colimit $ limits.parallel_pair
-((standard_simplex.map $ simplex_category.δ 0) : Δ[0] ⟶ Δ[1])
-(standard_simplex.map $ simplex_category.δ 1)
+noncomputable def S1 : sSet :=
+limits.colimit $ limits.parallel_pair
+  ((standard_simplex.map $ simplex_category.δ 0) : Δ[0] ⟶ Δ[1])
+  (standard_simplex.map $ simplex_category.δ 1)
 
 end examples
 

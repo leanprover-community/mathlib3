@@ -34,11 +34,13 @@ namespace simplicial_object
 
 instance [has_limits C] : has_limits (simplicial_object C) :=
 let E : (simplex_categoryᵒᵖ ⥤ C) ≌ (ulift.{v} simplex_category)ᵒᵖ ⥤ C :=
-  ulift.equivalence.op.congr_left in adjunction.has_limits_of_equivalence E.functor
+  ulift.equivalence.op.congr_left in
+  adjunction.has_limits_of_equivalence E.functor
 
 instance [has_colimits C] : has_colimits (simplicial_object C) :=
 let E : (simplex_categoryᵒᵖ ⥤ C) ≌ (ulift.{v} simplex_category)ᵒᵖ ⥤ C :=
-  ulift.equivalence.op.congr_left in adjunction.has_colimits_of_equivalence E.functor
+  ulift.equivalence.op.congr_left in
+  adjunction.has_colimits_of_equivalence E.functor
 
 variables {C} (X : simplicial_object C)
 

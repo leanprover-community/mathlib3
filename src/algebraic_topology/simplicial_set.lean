@@ -43,7 +43,7 @@ namespace sSet
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sSet := yoneda
 
-localized "notation `Δ[`n`]` := standard_simplex.obj n" in sSet
+localized "notation `Δ[`n`]` := standard_simplex.obj (n : ℕ)" in sSet
 
 instance : inhabited sSet := ⟨standard_simplex.obj (0 : ℕ)⟩
 
@@ -83,11 +83,22 @@ def horn (n : ℕ) (i : fin (n+1)) : sSet :=
     exact set.range_comp_subset_range _ _ hj,
   end⟩ }
 
-localized "notation `Λ[`n`, `i`]` := horn n i" in sSet
+localized "notation `Λ[`n`, `i`]` := horn (n : ℕ) i" in sSet
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
 def horn_inclusion (n : ℕ) (i : fin (n+1)) :
   Λ[n, i] ⟶ Δ[n] :=
 { app := λ m (α : {α : Δ[n].obj m // _}), α }
+
+section examples
+
+open_locale sSet
+
+/-- The simplicial circle. -/
+noncomputable def S1 : sSet := limits.colimit $ limits.parallel_pair
+((standard_simplex.map $ simplex_category.δ 0) : Δ[0] ⟶ Δ[1])
+(standard_simplex.map $ simplex_category.δ 1)
+
+end examples
 
 end sSet

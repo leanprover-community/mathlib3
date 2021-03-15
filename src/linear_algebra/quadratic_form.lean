@@ -527,8 +527,8 @@ lemma not_anisotropic_iff_exists (Q : quadratic_form R M) :
 by simp only [anisotropic, not_forall, exists_prop, and_comm]
 
 /-- The associated bilinear form of an anisotropic quadratic form is nondegenerate. -/
-lemma nondegenerate_of_anisotropic [invertible (2 : R₁)] (Q : quadratic_form R₁ M)
-  (hB : Q.anisotropic) : Q.associated.nondegenerate :=
+lemma nondegenerate_of_anisotropic [invertible (2 : R)] (Q : quadratic_form R M)
+  (hB : Q.anisotropic) : Q.associated'.nondegenerate :=
 begin
   intros x hx,
   refine hB _ _,

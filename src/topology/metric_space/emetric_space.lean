@@ -969,7 +969,6 @@ This construction would also work for infinite products, but it would not give r
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces. -/
 instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π b) :=
-instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π b) :=
 { eq_of_edist_eq_zero := assume f g eq0,
   begin
     have eq1 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq0,

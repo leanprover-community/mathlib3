@@ -6,7 +6,6 @@ Authors: Luke Kershaw
 import category_theory.additive.basic
 import category_theory.shift
 import category_theory.abelian.additive_functor
-import category_theory.natural_isomorphism
 
 /-!
 # Triangles
@@ -98,6 +97,7 @@ attribute [reassoc] triangle_morphism.comm1 triangle_morphism.comm2 triangle_mor
 /--
 The identity triangle morphism.
 -/
+@[simps]
 def triangle_morphism_id (T : triangle C) : triangle_morphism T T :=
 { trimor1 := 𝟙 T.obj1,
   trimor2 := 𝟙 T.obj2,
@@ -112,6 +112,7 @@ variables {T₁ T₂ T₃ T₄: triangle C}
 /--
 Composition of triangle morphisms gives a triangle morphism.
 -/
+@[simps]
 def triangle_morphism.comp (f : triangle_morphism T₁ T₂) (g : triangle_morphism T₂ T₃) :
 triangle_morphism T₁ T₃ :=
 { trimor1 := f.trimor1 ≫ g.trimor1,
@@ -149,22 +150,15 @@ begin
   simp only [eq_self_iff_true, assoc, and_self],
 end
 
-
-
 end triangle_morphism
 
 /--
 Triangles with triangle morphisms form a category.
 -/
+@[simps]
 instance triangle_category : category (triangle C) :=
 { hom   := λ A B, triangle_morphism A B,
   id    := λ A, triangle_morphism_id A,
   comp  := λ A B C f g, f.comp g }
-
-
-
-
-
-
 
 end category_theory.triangulated

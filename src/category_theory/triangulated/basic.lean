@@ -6,11 +6,13 @@ Authors: Luke Kershaw
 import category_theory.additive.basic
 import category_theory.shift
 import category_theory.abelian.additive_functor
+import category_theory.natural_isomorphism
 
 /-!
 # Triangles
 
 This file contains the definition of triangles in an additive category with an additive shift.
+It also defines morphisms between these triangles.
 
 TODO: generalise this to n-angles in n-angulated categories as in https://arxiv.org/abs/1006.4592
 -/
@@ -65,26 +67,6 @@ def contractible_triangle (X : C) : triangle C :=
   mor1 := 𝟙 X,
   mor2 := 0,
   mor3 := 0 }
-
-/--
-If you rotate a triangle, you get another triangle.
--/
-def triangle.rotate (T : triangle C) : triangle C :=
-{ obj1 := T.obj2,
-  obj2 := T.obj3,
-  obj3 := T.obj1⟦1⟧,
-  mor1 := T.mor2,
-  mor2 := T.mor3,
-  mor3 := T.mor1⟦1⟧' }
-
-def triangle.inv_rotate (T : triangle C) : triangle C :=
-{ obj1 := T.obj3⟦-1⟧,
-  obj2 := T.obj1,
-  obj3 := T.obj2,
-  mor1 := T.mor3⟦-1⟧' ≫ (shift C).unit_iso.inv.app T.obj1,
-  mor2 := T.mor1,
-  mor3 := T.mor2 ≫ (shift C).counit_iso.inv.app T.obj3,}
-
 
 variable {C}
 
@@ -167,59 +149,7 @@ begin
   simp only [eq_self_iff_true, assoc, and_self],
 end
 
-/--
-You can also rotate a triangle morphism to get a morphism between the two rotated triangles.
--/
-def rotate (f : triangle_morphism T₁ T₂)
-: triangle_morphism (T₁.rotate C) (T₂.rotate C):=
-{ trimor1 := f.trimor2,
-  trimor2 := f.trimor3,
-  trimor3 := f.trimor1⟦1⟧',
-  comm1 := by exact f.comm2,
-  comm2 := by exact f.comm3,
-  comm3 := begin
-    change T₁.mor1⟦1⟧' ≫ (shift C).functor.map f.trimor2
-      = (shift C).functor.map f.trimor1 ≫ T₂.mor1⟦1⟧',
-    dsimp,
-    repeat {rw ← functor.map_comp},
-    rw f.comm1,
-  end }
 
-def inv_rotate (f : triangle_morphism T₁ T₂)
-: triangle_morphism (T₁.inv_rotate C) (T₂.inv_rotate C) :=
-{ trimor1 := f.trimor3⟦-1⟧',
-  trimor2 := f.trimor1,
-  trimor3 := f.trimor2,
-  comm1 := begin
-    change (T₁.mor3⟦-1⟧' ≫ (shift C).unit_iso.inv.app T₁.obj1) ≫ f.trimor1 =
-    f.trimor3⟦-1⟧' ≫ (T₂.mor3⟦-1⟧' ≫ (shift C).unit_iso.inv.app T₂.obj1),
-    rw ← assoc,
-    dsimp,
-    rw ← functor.map_comp (shift C).inverse,
-    rw ← f.comm3,
-    rw functor.map_comp,
-    repeat {rw assoc},
-    suffices h : (shift C).unit_iso.inv.app T₁.obj1 ≫ f.trimor1 = (shift C).inverse.map ((shift C).functor.map f.trimor1) ≫ (shift C).unit_iso.inv.app T₂.obj1,
-    {
-      rw h,
-      refl,
-    },
-    {
-      simp,
-      dsimp,
-      exact (category.comp_id f.trimor1).symm,
-    }
-  end,
-  comm2 := by exact f.comm1,
-  comm3 := begin
-    have h := f.comm2,
-    change (triangle.inv_rotate C T₁).mor3 ≫ (shift C).functor.map ((shift C).inverse.map f.trimor3) = f.trimor2 ≫ (T₂.mor2 ≫ (shift C).counit_iso.inv.app T₂.obj3),
-    rw ← assoc,
-    rw ← f.comm2,
-    change (T₁.mor2 ≫ (shift C).counit_iso.inv.app T₁.obj3) ≫ (shift C).functor.map ((shift C).inverse.map f.trimor3) = (T₁.mor2 ≫ f.trimor3) ≫ (shift C).counit_iso.inv.app T₂.obj3,
-    repeat {rw assoc},
-    simp,
-  end }
 
 end triangle_morphism
 
@@ -231,109 +161,7 @@ instance triangle_category : category (triangle C) :=
   id    := λ A, triangle_morphism_id A,
   comp  := λ A B C f g, f.comp g }
 
-/--
-Rotating triangles gives an endofunctor on this category.
--/
-def rotate : (triangle C) ⥤ (triangle C) :=
-{ obj := triangle.rotate C,
-  map := λ _ _ f, f.rotate,
-  map_id' := begin
-    intro T₁,
-    change triangle_morphism.rotate (triangle_morphism_id T₁) =
-    triangle_morphism_id (triangle.rotate C T₁),
-    unfold triangle_morphism.rotate,
-    dsimp,
-    ext,
-    { dsimp,
-      refl,
-    },
-    {
-      dsimp,
-      refl,
-    },
-    {
-      unfold triangle_morphism_id,
-      dsimp,
-      rw (shift C).functor.map_id,
-      refl,
-    }
-  end,
-  map_comp' := begin
-    intros T₁ T₂ T₃ f g,
-    unfold triangle_morphism.rotate,
-    ext,
-    {
-      dsimp,
-      refl,
-    },
-    {
-      dsimp,
-      refl,
-    },
-    {
-      dsimp,
-      change (shift C).functor.map (f.trimor1 ≫ g.trimor1) = ((shift C).functor.map f.trimor1) ≫ ((shift C).functor.map g.trimor1),
-      rw (shift C).functor.map_comp,
-    }
-  end
-}
 
-def inv_rotate : (triangle C) ⥤ (triangle C) :=
-{ obj := triangle.inv_rotate C,
-  map := λ _ _ f, f.inv_rotate,
-  map_id' := begin
-    intro T₁,
-    change triangle_morphism.inv_rotate (triangle_morphism_id T₁) =
-    triangle_morphism_id (triangle.inv_rotate C T₁),
-    unfold triangle_morphism.inv_rotate,
-    ext,
-    {
-      unfold triangle_morphism_id,
-      dsimp,
-      rw (shift C).inverse.map_id,
-      refl,
-    },
-    {
-      dsimp,
-      refl,
-    },
-    {
-      dsimp,
-      refl,
-    }
-  end,
-  map_comp' := begin
-    intros T₁ T₂ T₃ f g,
-    unfold triangle_morphism.inv_rotate,
-    ext,
-    {
-      dsimp,
-      change (shift C).inverse.map (f ≫ g).trimor3 =
-      (shift C).inverse.map f.trimor3 ≫ (shift C).inverse.map g.trimor3,
-      rw ← (shift C).inverse.map_comp,
-      refl,
-    },
-    {
-      dsimp,
-      refl,
-    },
-    {
-      dsimp,
-      refl,
-    },
-  end
-}
-
-/--
-Rotating triangles gives an auto-equivalence on the category of triangles.
--/
-def triangle_rotation : equivalence (triangle C) (triangle C) :=
-{
-  functor := rotate,
-  inverse := inv_rotate,
-  unit_iso := by sorry,
-  counit_iso := by sorry,
-}
 
 
 

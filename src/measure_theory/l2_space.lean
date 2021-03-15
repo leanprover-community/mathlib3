@@ -24,7 +24,6 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
 lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin
-  rw add_pow_two
   have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
   rw [snorm_norm_rpow f zero_lt_two, one_mul, h_two],
   exact ennreal.rpow_lt_top_of_nonneg zero_le_two (Lp.snorm_ne_top f),

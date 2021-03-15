@@ -98,7 +98,7 @@ protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
 rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
 
 /-- If `s : ι → set α` is a sequence of sets, `S = ⋃ n, s n`, and `m (S \ s n)` tends to zero along
-some nontrivial filter (usually `at_top` on `α = ℕ`), then `m S = ⨆ n, s n`. -/
+some nontrivial filter (usually `at_top` on `α = ℕ`), then `m S = ⨆ n, m (s n)`. -/
 lemma Union_of_tendsto_zero {ι} (m : outer_measure α) {s : ι → set α}
   (l : filter ι) [ne_bot l] (h0 : tendsto (λ k, m ((⋃ n, s n) \ s k)) l (𝓝 0)) :
   m (⋃ n, s n) = ⨆ n, m (s n) :=
@@ -125,8 +125,7 @@ begin
   refine m.Union_of_tendsto_zero at_top _,
   refine tendsto_nhds_bot_mono' (ennreal.tendsto_sum_nat_add _ h0) (λ n, _),
   refine (m.mono _).trans (m.Union _),
-  /- Current goal: `(⋃ k, s k) \ s n ⊆ ⋃ k, s (k + n + 1) \ s (k + n)`
-  Should we add this to `data/set/*`? -/
+  /- Current goal: `(⋃ k, s k) \ s n ⊆ ⋃ k, s (k + n + 1) \ s (k + n)` -/
   have h' : monotone s := @monotone_of_monotone_nat (set α) _ _ h_mono,
   simp only [diff_subset_iff, Union_subset_iff],
   intros i x hx,
@@ -492,8 +491,12 @@ lemma of_function_eq_Sup : outer_measure.of_function m m_empty = Sup {μ | ∀ s
 (@is_greatest_of_function α m m_empty).is_lub.Sup_eq.symm
 
 /-- If `m u = ∞` for any set `u` that has nonempty intersection both with `s` and `t`, then
-`μ (s ∪ t) = μ s + μ t`, where `μ = measure_theory.outer_measure.of_function m m_empty`. -/
-lemma of_function_union_of_separated {s t : set α}
+`μ (s ∪ t) = μ s + μ t`, where `μ = measure_theory.outer_measure.of_function m m_empty`.
+
+E.g., if `α` is an (e)metric space and `m u = ∞` on any set of diameter `≥ r`, then this lemma
+implies that `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s`
+and `y ∈ t`.  -/
+lemma of_function_union_of_top_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → m u = ∞) :
   outer_measure.of_function m m_empty (s ∪ t) =
     outer_measure.of_function m m_empty s + outer_measure.of_function m m_empty t :=
@@ -1031,6 +1034,17 @@ variables {m P0 m0}
 lemma le_induced_outer_measure {μ : outer_measure α} :
   μ ≤ induced_outer_measure m P0 m0 ↔ ∀ s (hs : P s), μ s ≤ m s hs :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
+
+/-- If `P u` is `false` for any set `u` that has nonempty intersection both with `s` and `t`, then
+`μ (s ∪ t) = μ s + μ t`, where `μ = induced_outer_measure m P0 m0`.
+
+E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that 
+`μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s` and `y ∈ t`. -/
+lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
+  (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :
+  induced_outer_measure m P0 m0 (s ∪ t) =
+     induced_outer_measure m P0 m0 s + induced_outer_measure m P0 m0 t :=
+of_function_union_of_top_of_nonempty_inter $ λ u hsu htu, infi_of_empty' $ h u hsu htu
 
 include msU m_mono
 lemma induced_outer_measure_eq_extend' {s : set α} (hs : P s) :

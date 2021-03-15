@@ -279,7 +279,7 @@ instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [create
     category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
 
 /--
-If `F` reflects isomorphisms and we can lift any limit cocone to a limit cocone,
+If `F` reflects isomorphisms and we can lift any colimit cocone to a colimit cocone,
 then `F` creates colimits.
 In particular here we don't need to assume that F reflects colimits.
 -/
@@ -473,6 +473,31 @@ instance comp_creates_colimits [creates_colimits F] [creates_colimits G] :
 { creates_colimits_of_shape := infer_instance }
 
 end comp
+
+section is_equivalence
+variables (F : C ⥤ D) [is_equivalence F]
+
+instance is_equivalence_creates_limits : creates_limits F :=
+{ creates_limits_of_shape := λ J 𝒥, by exactI
+  { creates_limit := λ K, creates_limit_of_reflects_iso (λ c t,
+    { lifted_cone := F.map_cone_inv c,
+      valid_lift := F.map_cone_map_cone_inv c,
+      makes_limit :=
+        (is_limit.of_cone_equiv
+          (cones.functoriality_equivalence K F.as_equivalence).symm).symm t
+    }), }, }
+
+instance is_equivalence_creates_colimits : creates_colimits F :=
+{ creates_colimits_of_shape := λ J 𝒥, by exactI
+  { creates_colimit := λ K, creates_colimit_of_reflects_iso (λ c t,
+    { lifted_cocone := F.map_cocone_inv c,
+      valid_lift := F.map_cocone_map_cocone_inv c,
+      makes_colimit :=
+        (is_colimit.of_cocone_equiv
+          (cocones.functoriality_equivalence K F.as_equivalence).symm).symm t
+    }), }, }
+
+end is_equivalence
 
 end creates
 

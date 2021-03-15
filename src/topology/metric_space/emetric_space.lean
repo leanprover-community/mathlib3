@@ -385,7 +385,7 @@ def pseudo_emetric_space.induced {α β} (f : α → β) (hf : function.injectiv
       exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-/-- Pseudoemetric space instance on subsets of emetric spaces -/
+/-- Pseudoemetric space instance on subsets of pseudoemetric spaces -/
 instance {α : Type*} {p : α → Prop} [t : pseudo_emetric_space α] :
   pseudo_emetric_space (subtype p) := t.induced coe (λ x y, subtype.ext_iff_val.2)
 

@@ -352,7 +352,7 @@ open emetric
 
 /-- Auxiliary function to replace the uniformity on a pseudoemetric space with
 a uniformity which is equal to the original one, but maybe not defeq.
-This is useful if one wants to construct an emetric space with a
+This is useful if one wants to construct a pseudoemetric space with a
 specified uniformity. See Note [forgetful inheritance] explaining why having definitionally
 the right uniformity is often important.
 -/

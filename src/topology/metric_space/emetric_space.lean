@@ -982,30 +982,14 @@ This construction would also work for infinite products, but it would not give r
 to the product topology. Hence, we only formalize it in the good situation of finitely many
 spaces. -/
 instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π b) :=
-{ edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
-  edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
-  edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,
-  edist_triangle := assume f g h,
-    begin
-      simp only [finset.sup_le_iff],
-      assume b hb,
-      exact le_trans (edist_triangle _ (g b) _) (add_le_add (le_sup hb) (le_sup hb))
-    end,
-  eq_of_edist_eq_zero := assume f g eq0,
-    begin
-      have eq1 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq0,
-      simp only [finset.sup_le_iff] at eq1,
-      exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
-    end,
-  to_uniform_space := Pi.uniform_space _,
-  uniformity_edist := begin
-    simp only [Pi.uniformity, uniformity_edist, comap_infi, gt_iff_lt,
-      preimage_set_of_eq, comap_principal],
-    rw  infi_comm, congr, funext ε,
-    rw infi_comm, congr, funext εpos,
-    change 0 < ε at εpos,
-    simp [set.ext_iff, εpos]
-  end }
+instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π b) :=
+{ eq_of_edist_eq_zero := assume f g eq0,
+  begin
+    have eq1 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq0,
+    simp only [finset.sup_le_iff] at eq1,
+    exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
+  end,
+  ..pseudoemetric_space_pi }
 
 lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl

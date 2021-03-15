@@ -204,10 +204,11 @@ lemma support_esymm (n : ℕ) [decidable_eq σ] [nontrivial R] :
   (powerset_len n (univ : finset σ)).image (λ t, ∑ (i : σ) in t, finsupp.single i 1) :=
 by { rw support_esymm', exact bUnion_singleton }
 
-lemma degrees_esymm [decidable_eq σ] [nontrivial R]
+lemma degrees_esymm [nontrivial R]
   (n : ℕ) (hpos : 0 < n) (hn : n ≤ fintype.card σ) :
   (esymm σ R n).degrees = (univ : finset σ).val :=
 begin
+  classical,
   have : (finsupp.to_multiset ∘ λ (t : finset σ), ∑ (i : σ) in t, finsupp.single i 1) = finset.val,
     { funext, simp [finsupp.to_multiset_sum_single] },
   have hf : ∀ s : finset (finset σ), (s.sup id).val = s.sup finset.val,
@@ -215,8 +216,7 @@ begin
       { simpa },
       { intros x s hx h,
         simp [h] } },
-  rw [degrees, support_esymm, (sup_finset_image' _ _ (powerset_len n univ)).symm, this],
-  swap, { apply_instance },
+  rw [degrees, support_esymm, ←sup_finset_image, this],
   convert (hf _).symm,
   obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hpos.ne',
   simp [powerset_len_sup _ _ (nat.lt_of_succ_le hn)]

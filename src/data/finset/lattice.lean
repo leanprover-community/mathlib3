@@ -673,14 +673,11 @@ lemma supr_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨆ x ∈ s.image f, g x) = (⨆ y ∈ s, g (f y)) :=
 by rw [← supr_coe, coe_image, supr_image, supr_coe]
 
-lemma sup_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
-  s.sup (g ∘ f) = (s.image f).sup g :=
-by { simp_rw [sup_eq_supr, comp_app], rw supr_finset_image, }
-
-lemma sup_finset_image' {α : Type*} {β : Type*} {γ : Type*}
-  [decidable_eq α] [semilattice_sup_bot β] [decidable_eq γ] (f : γ → α) (g : α → β) (s : finset γ) :
+lemma sup_finset_image {β : Type*} {γ : Type*}
+  [semilattice_sup_bot β] (f : γ → α) (g : α → β) (s : finset γ) :
   s.sup (g ∘ f) = (s.image f).sup g :=
 begin
+  classical,
   apply finset.induction_on s,
   { simp },
   { intros a s' ha ih,

@@ -1516,8 +1516,8 @@ end
 
 lemma to_multiset_sum_single {ι : Type*} (s : finset ι) (n : ℕ) :
   finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
-by simp_rw [to_multiset_sum, finsupp.to_multiset_single, sum_nsmul, sum_multiset_singleton,
-            nsmul_eq_smul]
+by simp_rw [to_multiset_sum, finsupp.to_multiset_single, multiset.singleton_eq_singleton,
+            sum_nsmul, sum_multiset_singleton, nsmul_eq_smul]
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
 by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]

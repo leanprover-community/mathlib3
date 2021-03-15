@@ -623,6 +623,8 @@ lemma symm_piecewise (e e' : local_equiv α β) {s : set α} {t : set β}
   (e.piecewise e' s t H H').symm = e.symm.piecewise e'.symm t s H.symm H'.symm :=
 rfl
 
+/-- Combine two `local_equiv`s with disjoint sources and disjoint targets. We do not reuse
+`local_equiv.piecewise` here to provide better formulas for `source` and `target`. -/
 @[simps] def disjoint_union (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
   (ht : disjoint e.target e'.target) [∀ x, decidable (x ∈ e.source)]
   [∀ y, decidable (y ∈ e.target)] :

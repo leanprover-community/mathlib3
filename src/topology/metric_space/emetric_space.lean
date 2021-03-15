@@ -23,6 +23,10 @@ and topological spaces. For example: open and closed sets, compactness, complete
 uniform continuity.
 
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
+
+Since a lot of elementary properties don't require `eq_of_edist_eq_zero` we start setting up the
+theory of `pseudo_emetric_space`, where we don't require `d(x,y) = 0 → x = y` and we specialize to
+`emetric_space` at the end.
 -/
 
 open set filter classical
@@ -75,14 +79,15 @@ uniform_space.of_core {
 -- the uniform structure is embedded in the emetric space structure
 -- to avoid instance diamond issues. See Note [forgetful inheritance].
 
-/-- Extended metric spaces, with an extended distance `edist` possibly taking the
+/-- Extended (pseudo) metric spaces, with an extended distance `edist` possibly taking the
 value ∞
 
-Each emetric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
+Each pseudo_emetric space induces a canonical `uniform_space` and hence a canonical
+`topological_space`.
 This is enforced in the type class definition, by extending the `uniform_space` structure. When
-instantiating an `emetric_space` structure, the uniformity fields are not necessary, they will be
-filled in by default. There is a default value for the uniformity, that can be substituted
-in cases of interest, for instance when instantiating an `emetric_space` structure
+instantiating a `pseudo_emetric_space` structure, the uniformity fields are not necessary, they
+will be filled in by default. There is a default value for the uniformity, that can be substituted
+in cases of interest, for instance when instantiating a `pseudo_emetric_space` structure
 on a product.
 
 Continuity of `edist` is proved in `topology.instances.ennreal`
@@ -95,7 +100,7 @@ class pseudo_emetric_space (α : Type u) extends has_edist α : Type u :=
   uniform_space_of_edist edist edist_self edist_comm edist_triangle)
 (uniformity_edist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 
-/- emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
+/- Pseudoemetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
 variables [pseudo_emetric_space α]
 
@@ -366,7 +371,8 @@ def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   to_uniform_space    := U,
   uniformity_edist    := H.trans (@pseudo_emetric_space.uniformity_edist α _) }
 
-/-- The extended metric induced by an injective function taking values in a pseudoemetric space. -/
+/-- The extended pseudometric induced by an injective function taking values in a
+pseudoemetric space. -/
 def pseudo_emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
   (m : pseudo_emetric_space β) : pseudo_emetric_space α :=
 { edist               := λ x y, edist (f x) (f y),
@@ -572,8 +578,8 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_eball).trans $
   by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
-/-- In an emetric space, Cauchy sequences are characterized by the fact that, eventually,
-the edistance between its elements is arbitrarily small -/
+/-- In a pseudoemetric space, Cauchy sequences are characterized by the fact that, eventually,
+the pseudoedistance between its elements is arbitrarily small -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy_seq_iff [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, edist (u m) (u n) < ε :=
@@ -746,7 +752,7 @@ end first_countable
 section second_countable
 open topological_space
 
-/-- A separable emetric space is second countable: one obtains a countable basis by taking
+/-- A separable pseudoemetric space is second countable: one obtains a countable basis by taking
 the balls centered at points in a dense subset, and with rational radii. We do not register
 this as an instance, as there is already an instance going in the other direction
 from second countable spaces to separable spaces, and we want to avoid loops. -/
@@ -758,7 +764,7 @@ end second_countable
 
 section diam
 
-/-- The diameter of a set in an emetric space, named `emetric.diam` -/
+/-- The diameter of a set in a pseudoemetric space, named `emetric.diam` -/
 def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
 
 lemma diam_le_iff_forall_edist_le {d : ℝ≥0∞} :
@@ -840,6 +846,8 @@ le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
 end diam
 
 end emetric --namespace
+
+/-- We now define `emetric_space`, extending `pseudo_emetric_space`. -/
 
 class emetric_space (α : Type u) extends pseudo_emetric_space α : Type u :=
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)

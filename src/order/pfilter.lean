@@ -17,7 +17,7 @@ a join-semilattice structure.
 - `pfilter P`: The type of nonempty, downward directed, upward closed
                subsets of `P`. This is dual to `order.ideal`, so it
                simply wraps `order.ideal (order_dual P)`.
-- `is_pfilter P`: a predicate for when a `set P` is an ideal.
+- `is_pfilter P`: a predicate for when a `set P` is a filter.
 
 
 Note the relation between `order/filter` and `order/pfilter`: for any

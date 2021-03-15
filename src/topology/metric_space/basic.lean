@@ -809,7 +809,7 @@ let m : metric_space α :=
   eq_of_dist_eq_zero := λx y hxy,
     by simpa [h, ennreal.to_real_eq_zero_iff, edist_ne_top x y] using hxy,
   dist_self          := λx, by simp [h],
-  dist_comm          := λx y, by simp [h, pseudoemetric_space.edist_comm],
+  dist_comm          := λx y, by simp [h, pseudo_emetric_space.edist_comm],
   dist_triangle      := λx y z, begin
     simp only [h],
     rw [← ennreal.to_real_add (edist_ne_top _ _) (edist_ne_top _ _),

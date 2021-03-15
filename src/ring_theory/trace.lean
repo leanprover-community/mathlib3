@@ -101,15 +101,13 @@ variables (R S)
 
 /-- The `trace_form` maps `x y : S` to the trace of `x * y`.
 It is a symmetric bilinear form and is nondegenerate if the extension is separable. -/
-@[simps]
 noncomputable def trace_form : bilin_form R S :=
-{ bilin := λ x y, trace R S (x * y),
-  bilin_add_left := λ x y z, by rw [add_mul, linear_map.map_add],
-  bilin_smul_left := λ x y z, by rw [smul_mul_assoc, linear_map.map_smul, smul_eq_mul],
-  bilin_add_right := λ x y z, by rw [mul_add, linear_map.map_add],
-  bilin_smul_right := λ x y z, by rw [mul_smul_comm, linear_map.map_smul, smul_eq_mul], }
+(linear_map.compr₂ (lmul R S).to_linear_map (trace R S)).to_bilin
 
 variables {S}
+
+-- This is a nicer lemma than the one produced by `@[simps] def trace_form`.
+@[simp] lemma trace_form_apply (x y : S) : trace_form R S x y = trace R S (x * y) := rfl
 
 lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
 λ x y, congr_arg (trace R S) (mul_comm _ _)

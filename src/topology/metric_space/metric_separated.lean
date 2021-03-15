@@ -9,8 +9,10 @@ import topology.metric_space.emetric_space
 # Metric separated pairs of sets
 
 In this file we define the predicate `is_metric_separated`. We say that two sets in an (extended)
-metric space are called *metric separated* if the (extended) distance between `x ∈ s` and `y ∈ t` is
+metric space are *metric separated* if the (extended) distance between `x ∈ s` and `y ∈ t` is
 bounded from below by a positive constant.
+
+This notion is useful, e.g., to define metric outer measures.
 -/
 
 open emetric set

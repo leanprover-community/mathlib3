@@ -25,7 +25,7 @@ uniform continuity.
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 
 Since a lot of elementary properties don't require `eq_of_edist_eq_zero` we start setting up the
-theory of `pseudo_emetric_space`, where we don't require `d(x,y) = 0 → x = y` and we specialize to
+theory of `pseudo_emetric_space`, where we don't require `edist x y = 0 → x = y` and we specialize to
 `emetric_space` at the end.
 -/
 

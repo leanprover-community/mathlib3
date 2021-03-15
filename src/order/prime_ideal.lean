@@ -43,6 +43,7 @@ variables [preorder P]
 
 /-- A pair of an `ideal` and a `pfilter` who form a partition of `P`.
 -/
+@[nolint has_inhabited_instance]
 structure prime_pair (P : Type*) [preorder P] :=
 (I        : ideal P)
 (F        : pfilter P)

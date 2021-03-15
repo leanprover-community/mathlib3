@@ -30,6 +30,9 @@ lemma nmem_support [has_zero A] {f : α → A} {x : α} :
   x ∉ support f ↔ f x = 0 :=
 not_not
 
+lemma compl_support [has_zero A] {f : α → A} : (support f)ᶜ = {x | f x = 0} :=
+ext $ λ x, nmem_support
+
 @[simp]
 lemma mem_support [has_zero A] {f : α → A} {x : α} :
   x ∈ support f ↔ f x ≠ 0 :=
@@ -76,14 +79,20 @@ support_binop_subset (has_sub.sub) (sub_self _) f g
 set.ext $ λ x, by simp only [support, ne.def, mul_eq_zero, mem_set_of_eq,
   mem_inter_iff, not_or_distrib]
 
-lemma support_smul_subset [add_monoid A] [monoid B] [distrib_mul_action B A]
+lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B A]
   (b : B) (f : α → A) :
   support (b • f) ⊆ support f :=
-begin
-  simp_rw [support_subset_iff, mem_support],
-  refine λ x hbf hf, hbf _,
-  rw [pi.smul_apply, hf, smul_zero],
-end
+λ x hbf hf, hbf $ by rw [pi.smul_apply, hf, smul_zero]
+
+lemma support_smul_subset_left {R M} [semiring R] [add_comm_monoid M] [semimodule R M]
+  (f : α → R) (g : α → M) :
+  support (f • g) ⊆ support f :=
+λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
+
+lemma support_smul {R M} [semiring R] [add_comm_monoid M] [semimodule R M]
+  [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
+  support (f • g) = support f ∩ support g :=
+ext $ λ x, smul_ne_zero
 
 @[simp] lemma support_inv [division_ring A] (f : α → A) :
   support (λ x, (f x)⁻¹) = support f :=

@@ -1398,6 +1398,15 @@ begin
   congr' with x, simp [and_comm]
 end
 
+lemma ae_restrict_of_ae {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) :
+  (∀ᵐ x ∂(μ.restrict s), p x) :=
+eventually.filter_mono (ae_mono measure.restrict_le_self) h
+
+lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst : s ⊆ t)
+  (h : ∀ᵐ x ∂(μ.restrict t), p x) :
+  (∀ᵐ x ∂(μ.restrict s), p x) :=
+eventually.filter_mono (ae_mono $ measure.restrict_mono hst (le_refl μ)) h
+
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ℝ≥0∞) : ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
 

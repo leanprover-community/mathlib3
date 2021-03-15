@@ -7,6 +7,7 @@ import algebra.linear_ordered_comm_group_with_zero
 import algebra.big_operators.ring
 import data.real.basic
 import data.indicator_function
+import algebra.algebra.basic
 
 /-!
 # Nonnegative real numbers
@@ -123,6 +124,9 @@ end
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/
 def to_real_hom : ℝ≥0 →+* ℝ :=
 ⟨coe, nnreal.coe_one, nnreal.coe_mul, nnreal.coe_zero, nnreal.coe_add⟩
+
+/-- The real numbers are an algebra over the non-negative reals. -/
+instance : algebra ℝ≥0 ℝ := to_real_hom.to_algebra
 
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
@@ -436,6 +440,14 @@ begin
     intro, have := not_lt_of_le (zero_le r), contradiction,
     intro rp, have : ¬(p ≤ 0) := not_le_of_lt (lt_of_le_of_lt (coe_nonneg _) rp), contradiction }
 end
+
+@[simp] lemma of_real_bit0 {r : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real (bit0 r) = bit0 (nnreal.of_real r) :=
+of_real_add hr hr
+
+@[simp] lemma of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real (bit1 r) = bit1 (nnreal.of_real r) :=
+(of_real_add (by simp [hr]) zero_le_one).trans (by simp [of_real_one, bit1, hr])
 
 end of_real
 

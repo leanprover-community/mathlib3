@@ -340,8 +340,11 @@ protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
-@[simp] lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
+@[simp] lemma symm_image_image {α β} (e : α ≃ β) (s : set α) : e.symm '' (e '' s) = s :=
 by { rw [← set.image_comp], simp }
+
+@[simp] lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
+e.symm.symm_image_image s
 
 @[simp] lemma image_preimage {α β} (e : α ≃ β) (s : set β) : e '' (e ⁻¹' s) = s :=
 e.surjective.image_preimage s
@@ -1289,11 +1292,19 @@ def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : su
   λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
+@[simp] lemma subtype_subtype_equiv_subtype_exists_apply {α : Type u} (p : α → Prop)
+  (q : subtype p → Prop) (a) : (subtype_subtype_equiv_subtype_exists p q a : α) = a :=
+by { cases a, cases a_val, refl }
+
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
 def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
   {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
 (subtype_subtype_equiv_subtype_exists p _).trans $
 subtype_equiv_right $ λ x, exists_prop
+
+@[simp] lemma subtype_subtype_equiv_subtype_inter_apply {α : Type u} (p q : α → Prop) (a) :
+  (subtype_subtype_equiv_subtype_inter p q a : α) = a :=
+by { cases a, cases a_val, refl }
 
 /-- If the outer subtype has more restrictive predicate than the inner one,
 then we can drop the latter. -/
@@ -1303,6 +1314,11 @@ def subtype_subtype_equiv_subtype {α : Type u} {p q : α → Prop} (h : ∀ {x}
 subtype_equiv_right $
 assume x,
 ⟨and.right, λ h₁, ⟨h h₁, h₁⟩⟩
+
+@[simp] lemma subtype_subtype_equiv_subtype_apply {α : Type u} {p q : α → Prop} (h : ∀ x, q x → p x)
+  (a : {x : subtype p // q x.1}) :
+  (subtype_subtype_equiv_subtype h a : α) = a :=
+by { cases a, cases a_val, refl }
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/

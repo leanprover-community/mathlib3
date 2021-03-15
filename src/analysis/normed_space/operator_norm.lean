@@ -6,6 +6,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import linear_algebra.finite_dimensional
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
+import analysis.normed_space.normed_group_hom
 import analysis.asymptotics.asymptotics
 import algebra.algebra.tower
 
@@ -23,12 +24,6 @@ variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
 [normed_group E] [normed_group F] [normed_group G]
 
 open metric continuous_linear_map
-
-lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
-  ∃ N, 0 < N ∧ ∀x, ∥f x∥ ≤ N * ∥x∥ :=
-⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
-  ∥f x∥ ≤ M * ∥x∥ : h x
-  ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
 
 section normed_field
 /-! Most statements in this file require the field to be non-discrete,

@@ -129,6 +129,14 @@ begin
   exact splits_mul i ht.1 (ih ht.2)
 end
 
+lemma splits_pow {f : polynomial α} (hf : f.splits i) (n : ℕ) : (f ^ n).splits i :=
+begin
+  rw [←finset.card_range n, ←finset.prod_const],
+  exact splits_prod i (λ j hj, hf),
+end
+
+lemma splits_X_pow (n : ℕ) : (X ^ n).splits i := splits_pow i (splits_X i) n
+
 theorem splits_prod_iff {ι : Type w} {s : ι → polynomial α} {t : finset ι} :
   (∀ j ∈ t, s j ≠ 0) → ((∏ x in t, s x).splits i ↔ ∀ j ∈ t, (s j).splits i) :=
 begin

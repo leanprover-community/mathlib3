@@ -457,7 +457,7 @@ lemma infi_eq_generate (s : ι → filter α) : infi s = generate (⋃ i, (s i).
 show generate _ = generate _, from congr_arg _ supr_range
 
 lemma mem_infi_iff {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : {i | i ∈ I} → set α, (∀ i, V i ∈ s i) ∧ (⋂ i, V i) ⊆ U :=
+  ∃ I : set ι, finite I ∧ ∃ V : I → set α, (∀ i, V i ∈ s i) ∧ (⋂ i, V i) ⊆ U :=
 begin
   rw [infi_eq_generate, mem_generate_iff],
   split,
@@ -475,8 +475,18 @@ begin
     { rintro _ ⟨i, rfl⟩,
       rw mem_Union,
       use [i, V_in i] },
-    { haveI : fintype {i : ι | i ∈ I} := finite.fintype Ifin,
+    { haveI : fintype I := finite.fintype Ifin,
       exact finite_range _ } },
+end
+
+lemma mem_infi_iff' {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
+  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i ∈ I, V i ∈ s i) ∧ (⋂ i ∈ I, V i) ⊆ U :=
+begin
+  simp only [mem_infi_iff, set_coe.forall', bInter_eq_Inter],
+  refine ⟨_, λ ⟨I, If, V, hV⟩, ⟨I, If, λ i, V i, hV⟩⟩,
+  rintro ⟨I, If, V, hV⟩,
+  lift V to ι → set α using trivial,
+  exact ⟨I, If, V, hV⟩
 end
 
 @[simp] lemma le_principal_iff {s : set α} {f : filter α} : f ≤ 𝓟 s ↔ s ∈ f :=
@@ -768,9 +778,6 @@ lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 ⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
   by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
 
-lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : sᶜ ∈ f) : f ⊓ 𝓟 s = ⊥ :=
-empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h₂⟩, h₁ h₂⟩
-
 theorem mem_inf_principal {f : filter α} {s t : set α} :
   s ∈ f ⊓ 𝓟 t ↔ {x | x ∈ t → x ∈ s} ∈ f :=
 begin
@@ -779,6 +786,9 @@ begin
   rw [← disjoint, ← (is_compl_principal (t ∩ sᶜ)).le_right_iff, compl_inter, compl_compl],
   refl
 end
+
+lemma inf_principal_eq_bot {f : filter α} {s : set α} : f ⊓ 𝓟 s = ⊥ ↔ sᶜ ∈ f :=
+by { rw [← empty_in_sets_eq_bot, mem_inf_principal], refl }
 
 lemma diff_mem_inf_principal_compl {f : filter α} {s : set α} (hs : s ∈ f) (t : set α) :
   s \ t ∈ f ⊓ 𝓟 tᶜ :=
@@ -813,6 +823,13 @@ end
 @[simp] lemma infi_principal_fintype {ι : Type w} [fintype ι] (f : ι → set α) :
   (⨅i, 𝓟 (f i)) = 𝓟 (⋂i, f i) :=
 by simpa using infi_principal_finset finset.univ f
+
+lemma infi_principal_finite {ι : Type w} {s : set ι} (hs : finite s) (f : ι → set α) :
+  (⨅i∈s, 𝓟 (f i)) = 𝓟 (⋂i∈s, f i) :=
+begin
+  unfreezingI { lift s to finset ι using hs }, -- TODO: why `unfreezingI` is needed?
+  exact_mod_cast infi_principal_finset s f
+end
 
 end lattice
 
@@ -974,6 +991,10 @@ lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   (hpq : ∀ᶠ x in f, p x → q x) :
   ∃ᶠ x in f, q x :=
 mt (λ hq, hq.mp $ hpq.mono $ λ x, mt) h
+
+lemma frequently.filter_mono {p : α → Prop} {f g : filter α} (h : ∃ᶠ x in f, p x) (hle : f ≤ g) :
+  ∃ᶠ x in g, p x :=
+mt (λ h', h'.filter_mono hle) h
 
 lemma frequently.mono {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
   (hpq : ∀ x, p x → q x) :
@@ -2250,6 +2271,16 @@ begin
     ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩
 end
 
+@[simp] lemma prod_mem_prod_iff {s : set α} {t : set β} {f : filter α} {g : filter β}
+  [f.ne_bot] [g.ne_bot] :
+  s.prod t ∈ f ×ᶠ g ↔ s ∈ f ∧ t ∈ g :=
+⟨λ h, let ⟨s', hs', t', ht', H⟩ := mem_prod_iff.1 h in (prod_subset_prod_iff.1 H).elim
+  (λ ⟨hs's, ht't⟩, ⟨mem_sets_of_superset hs' hs's, mem_sets_of_superset ht' ht't⟩)
+  (λ h, h.elim
+    (λ hs'e, absurd hs'e (nonempty_of_mem_sets hs').ne_empty)
+    (λ ht'e, absurd ht'e (nonempty_of_mem_sets ht').ne_empty)),
+  λ h, prod_mem_prod h.1 h.2⟩
+
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
 by erw [comap_inf, filter.comap_comap, filter.comap_comap]
@@ -2404,6 +2435,86 @@ lemma tendsto_prod_iff {f : α × β → γ} {x : filter α} {y : filter β} {z 
 by simp only [tendsto_def, mem_prod_iff, prod_sub_preimage_iff, exists_prop, iff_self]
 
 end prod
+
+/-! ### Coproducts of filters -/
+
+section coprod
+variables {s : set α} {t : set β} {f : filter α} {g : filter β}
+
+/-- Coproduct of filters. -/
+protected def coprod (f : filter α) (g : filter β) : filter (α × β) :=
+f.comap prod.fst ⊔ g.comap prod.snd
+
+lemma mem_coprod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
+  s ∈ f.coprod g ↔ ((∃ t₁ ∈ f, prod.fst ⁻¹' t₁ ⊆ s) ∧ (∃ t₂ ∈ g, prod.snd ⁻¹' t₂ ⊆ s)) :=
+by simp [filter.coprod]
+
+@[mono] lemma coprod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
+  f₁.coprod g₁ ≤ f₂.coprod g₂ :=
+sup_le_sup (comap_mono hf) (comap_mono hg)
+
+lemma principal_coprod_principal (s : set α) (t : set β) :
+  (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ.prod tᶜ)ᶜ :=
+begin
+  rw [filter.coprod, comap_principal, comap_principal, sup_principal],
+  congr,
+  ext x,
+  simp ; tauto,
+end
+
+-- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and 
+-- `map_prod_map_const_id_principal_coprod_principal` below.
+lemma map_prod_map_coprod_le {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
+  {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :
+  map (prod.map m₁ m₂) (f₁.coprod f₂) ≤ (map m₁ f₁).coprod (map m₂ f₂) :=
+begin
+  intros s,
+  simp only [mem_map, mem_coprod_iff],
+  rintros ⟨⟨u₁, hu₁, h₁⟩, ⟨u₂, hu₂, h₂⟩⟩,
+  refine ⟨⟨m₁ ⁻¹' u₁, hu₁, λ _ hx, h₁ _⟩, ⟨m₂ ⁻¹' u₂, hu₂, λ _ hx, h₂ _⟩⟩; convert hx
+end
+
+/-- Characterization of the coproduct of the `filter.map`s of two principal filters `𝓟 {a}` and
+`𝓟 {i}`, the first under the constant function `λ a, b` and the second under the identity function.
+Together with the next lemma, `map_prod_map_const_id_principal_coprod_principal`, this provides an
+example showing that the inequality in the lemma `map_prod_map_coprod_le` can be strict. -/
+lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
+  (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
+  = 𝓟 (({b} : set β).prod (univ : set ι) ∪ (univ : set β).prod {i}) :=
+begin
+  rw [map_principal, map_principal, principal_coprod_principal],
+  congr,
+  ext ⟨b', i'⟩,
+  simp,
+  tauto,
+end
+
+/-- Characterization of the `filter.map` of the coproduct of two principal filters `𝓟 {a}` and
+`𝓟 {i}`, under the `prod.map` of two functions, respectively the constant function `λ a, b` and the
+identity function.  Together with the previous lemma,
+`map_const_principal_coprod_map_id_principal`, this provides an example showing that the inequality
+in the lemma `map_prod_map_coprod_le` can be strict. -/
+lemma map_prod_map_const_id_principal_coprod_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
+  map (prod.map (λ _ : α, b) id) ((𝓟 {a}).coprod (𝓟 {i}))
+  = 𝓟 (({b} : set β).prod (univ : set ι)) :=
+begin
+  rw [principal_coprod_principal, map_principal],
+  congr,
+  ext ⟨b', i'⟩,
+  split,
+  { rintros ⟨⟨a'', i''⟩, h₁, ⟨h₂, h₃⟩⟩,
+    simp },
+  { rintros ⟨h₁, h₂⟩,
+    use (a, i'),
+    simpa using h₁.symm }
+end
+
+lemma tendsto.prod_map_coprod {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
+  {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :
+  tendsto (prod.map f g) (a.coprod b) (c.coprod d) :=
+map_prod_map_coprod_le.trans (coprod_mono hf hg)
+
+end coprod
 
 end filter
 

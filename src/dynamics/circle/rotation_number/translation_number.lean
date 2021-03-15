@@ -193,7 +193,7 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
       inv_fun := ⇑(f⁻¹),
       left_inv := units_inv_apply_apply f,
       right_inv := units_apply_inv_apply f,
-      map_rel_iff' := λ x y, ⟨mono f, λ h, by simpa using mono ↑(f⁻¹) h⟩ },
+      map_rel_iff' := λ x y, ⟨λ h, by simpa using mono ↑(f⁻¹) h, mono f⟩ },
   map_one' := rfl,
   map_mul' := λ f g, rfl }
 
@@ -261,9 +261,10 @@ by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 /-!
 ### Commutativity with integer translations
 
-In this section we prove that `f` commutes with translations by an integer number. First we formulate
-these statements (for a natural or an integer number, addition on the left or on the right, addition
-or subtraction) using `function.commute`, then reformulate as `simp` lemmas `map_int_add` etc.
+In this section we prove that `f` commutes with translations by an integer number.
+First we formulate these statements (for a natural or an integer number,
+addition on the left or on the right, addition or subtraction) using `function.commute`,
+then reformulate as `simp` lemmas `map_int_add` etc.
 -/
 
 lemma commute_nat_add (n : ℕ) : function.commute f ((+) n) :=
@@ -273,17 +274,19 @@ lemma commute_add_nat (n : ℕ) : function.commute f (λ x, x + n) :=
 by simp only [add_comm _ (n:ℝ), f.commute_nat_add n]
 
 lemma commute_sub_nat (n : ℕ) : function.commute f (λ x, x - n) :=
-(f.commute_add_nat n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
+by simpa only [sub_eq_add_neg] using
+  (f.commute_add_nat n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
 
 lemma commute_add_int : ∀ n : ℤ, function.commute f (λ x, x + n)
 | (n:ℕ) := f.commute_add_nat n
-| -[1+n] := f.commute_sub_nat (n + 1)
+| -[1+n] := by simpa only [sub_eq_add_neg] using f.commute_sub_nat (n + 1)
 
 lemma commute_int_add (n : ℤ) : function.commute f ((+) n) :=
 by simpa only [add_comm _ (n:ℝ)] using f.commute_add_int n
 
 lemma commute_sub_int (n : ℤ) : function.commute f (λ x, x - n) :=
-(f.commute_add_int n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
+by simpa only [sub_eq_add_neg] using
+  (f.commute_add_int n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
 
 @[simp] lemma map_int_add (m : ℤ) (x : ℝ) : f (m + x) = m + f x :=
 f.commute_int_add m x
@@ -395,13 +398,13 @@ calc ⌈f 0⌉ + ⌊g 0⌋ = ⌈f 0 + ⌊g 0⌋⌉ : (ceil_add_int _ _).symm
                ... ≤ ⌈f (g 0)⌉     : ceil_mono $ f.le_map_map_zero g
 
 lemma lt_map_map_zero : f 0 + g 0 - 1 < f (g 0) :=
-calc f 0 + g 0 - 1 = f 0 + (g 0 - 1) : add_assoc _ _ _
+calc f 0 + g 0 - 1 = f 0 + (g 0 - 1) : add_sub_assoc _ _ _
                ... < f 0 + ⌊g 0⌋     : add_lt_add_left (sub_one_lt_floor _) _
                ... ≤ f (g 0)         : f.le_map_map_zero g
 
 lemma dist_map_map_zero_lt : dist (f 0 + g 0) (f (g 0)) < 1 :=
 begin
-  rw [dist_comm, real.dist_eq, abs_lt, lt_sub_iff_add_lt', sub_lt_iff_lt_add'],
+  rw [dist_comm, real.dist_eq, abs_lt, lt_sub_iff_add_lt', sub_lt_iff_lt_add', ← sub_eq_add_neg],
   exact ⟨f.lt_map_map_zero g, f.map_map_zero_lt g⟩
 end
 
@@ -426,11 +429,11 @@ tendsto_at_bot_mono f.map_le_of_map_zero $ tendsto_at_bot_add_const_left _ _ $
 
 protected lemma tendsto_at_top : tendsto f at_top at_top :=
 tendsto_at_top_mono f.le_map_of_map_zero $ tendsto_at_top_add_const_left _ _ $
-  tendsto_at_top_mono (λ x, (sub_one_lt_floor x).le) $ tendsto_at_top_add_const_right _ _ tendsto_id
+  tendsto_at_top_mono (λ x, (sub_one_lt_floor x).le) $
+    by simpa [sub_eq_add_neg] using tendsto_at_top_add_const_right _ _ tendsto_id
 
 lemma continuous_iff_surjective : continuous f ↔ function.surjective f :=
-⟨λ h, surjective_of_continuous h f.tendsto_at_top f.tendsto_at_bot,
-  f.monotone.continuous_of_surjective⟩
+⟨λ h, h.surjective f.tendsto_at_top f.tendsto_at_bot, f.monotone.continuous_of_surjective⟩
 
 /-!
 ### Estimates on `(f^n) x`

@@ -21,10 +21,10 @@ We give methods for computing coefficients of the characteristic polynomial.
 
 - `char_poly_degree_eq_dim` proves that the degree of the characteristic polynomial
   over a nonzero ring is the dimension of the matrix
-- `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the characteristic
-  polynomial, up to sign.
-- `trace_eq_neg_char_poly_coeff` proves that the trace is the negative of the (d-1)th coefficient of the
-  characteristic polynomial, where d is the dimension of the matrix.
+- `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the
+  characteristic polynomial, up to sign.
+- `trace_eq_neg_char_poly_coeff` proves that the trace is the negative of the (d-1)th coefficient of
+  the characteristic polynomial, where d is the dimension of the matrix.
   For a nonzero ring, this is the second-highest coefficient.
 
 -/
@@ -138,7 +138,7 @@ begin
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
     symmetry, rw ← finsupp.sum_map_range_index h, swap, refl,
     refine congr (congr rfl _) (by {ext, rw mul_comm}), ext, rw finsupp.map_range_apply,
-    simp [apply_eq_coeff], }
+    simpa [coeff] using (mat_poly_equiv_coeff_apply M a i j).symm }
 end
 
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
@@ -187,8 +187,8 @@ end
   char_poly (M ^ p) = char_poly M :=
 by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
 
-lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n] (M : matrix n n K) :
-  trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
+lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n]
+  (M : matrix n n K) : trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
        finite_field.char_poly_pow_card, finite_field.pow_card]
 
@@ -201,7 +201,7 @@ namespace matrix
 theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
 
 theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
-  (minimal_polynomial M.is_integral) ∣ char_poly M :=
-minimal_polynomial.dvd M.is_integral (aeval_self_char_poly M)
+  (minpoly K M) ∣ char_poly M :=
+minpoly.dvd _ _ (aeval_self_char_poly M)
 
 end matrix

@@ -7,7 +7,8 @@ import category_theory.eq_to_hom
 
 namespace category_theory
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 section
 variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
@@ -87,7 +88,7 @@ to the identity functor.
 /--
 The equivalence, given by swapping factors, between `C × D` and `D × C`.
 -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def braiding : C × D ≌ D × C :=
 equivalence.mk (swap C D) (swap D C)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))

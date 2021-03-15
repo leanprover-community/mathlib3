@@ -2,11 +2,31 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Archimedean groups and fields.
 -/
+
 import algebra.field_power
 import data.rat
+
+/-!
+# Archimedean groups and fields.
+
+This file defines the archimedean property for ordered groups and proves several results connected
+to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
+number `n` such that `x ≤ n •ℕ y`.
+
+## Main definitions
+
+* `archimedean` is a typeclass for an ordered additive commutative monoid to have the archimedean
+  property.
+* `archimedean.floor_ring` defines a floor function on an archimedean linearly ordered ring making
+  it into a `floor_ring`.
+* `round` defines a function rounding to the nearest integer for a linearly ordered field which is
+  also a floor ring.
+
+## Main statements
+
+* `ℕ`, `ℤ`, and `ℚ` are archimedean.
+-/
 
 variables {α : Type*}
 
@@ -46,24 +66,29 @@ end
 
 end linear_ordered_add_comm_group
 
-theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
+theorem exists_nat_gt [ordered_semiring α] [nontrivial α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
-theorem exists_nat_ge [linear_ordered_semiring α] [archimedean α] (x : α) :
+theorem exists_nat_ge [ordered_semiring α] [archimedean α] (x : α) :
   ∃ n : ℕ, x ≤ n :=
-(exists_nat_gt x).imp $ λ n, le_of_lt
+begin
+  nontriviality α,
+  exact (exists_nat_gt x).imp (λ n, le_of_lt)
+end
 
-lemma add_one_pow_unbounded_of_pos [linear_ordered_semiring α] [archimedean α] (x : α) {y : α}
-  (hy : 0 < y) :
+lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archimedean α]
+  (x : α) {y : α} (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
+have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
 ⟨n, calc x ≤ n •ℕ y : h
-       ... < 1 + n •ℕ y : lt_one_add _
-       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg (le_of_lt hy) (le_of_lt hy))
-                             (le_of_lt $ lt_trans hy (lt_one_add y)) _
+       ... = n * y : nsmul_eq_mul _ _
+       ... < 1 + n * y : lt_one_add _
+       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg hy.le hy.le) (mul_nonneg this this)
+                             (add_nonneg zero_le_two hy.le) _
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section linear_ordered_ring
@@ -80,7 +105,7 @@ lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
 have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
 by classical; exact let n := nat.find h in
   have hn  : x < y ^ n, from nat.find_spec h,
-  have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
+  have hnp : 0 < n,     from pos_iff_ne_zero.2 (λ hn0,
     by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
   have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
   have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
@@ -208,7 +233,7 @@ variables [linear_ordered_field α]
 
 theorem archimedean_iff_nat_lt :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
-⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
+⟨@exists_nat_gt α _ _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
   by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 
@@ -247,8 +272,8 @@ begin
   cases exists_nat_gt (y - x)⁻¹ with n nh,
   cases exists_floor (x * n) with z zh,
   refine ⟨(z + 1 : ℤ) / n, _⟩,
-  have n0 := nat.cast_pos.1 (lt_trans (inv_pos.2 (sub_pos.2 h)) nh),
-  have n0' := (@nat.cast_pos α _ _).2 n0,
+  have n0' := (inv_pos.2 (sub_pos.2 h)).trans nh,
+  have n0 := nat.cast_pos.1 n0',
   rw [rat.cast_div_of_ne_zero, rat.cast_coe_nat, rat.cast_coe_int, div_lt_iff n0'],
   refine ⟨(lt_div_iff n0').2 $
     (lt_iff_lt_of_le_iff_le (zh _)).1 (lt_add_one _), _⟩,

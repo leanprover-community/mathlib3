@@ -91,25 +91,19 @@ by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
 lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
   angle x (x - y) = angle y (y - x) :=
 begin
-  refine real.cos_inj_of_nonneg_of_le_pi (angle_nonneg _ _)
-                                         (angle_le_pi _ _)
-                                         (angle_nonneg _ _)
-                                         (angle_le_pi _ _) _,
+  refine real.inj_on_cos ⟨angle_nonneg _ _, angle_le_pi _ _⟩ ⟨angle_nonneg _ _, angle_le_pi _ _⟩ _,
   rw [cos_angle, cos_angle, h, ←neg_sub, norm_neg, neg_sub,
-      inner_sub_right, inner_sub_right, real_inner_self_eq_norm_square, real_inner_self_eq_norm_square, h,
-      real_inner_comm x y]
+    inner_sub_right, inner_sub_right, real_inner_self_eq_norm_square,
+    real_inner_self_eq_norm_square, h, real_inner_comm x y]
 end
 
 /-- Converse of pons asinorum, vector angle form. -/
 lemma norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi {x y : V}
     (h : angle x (x - y) = angle y (y - x)) (hpi : angle x y ≠ π) : ∥x∥ = ∥y∥ :=
 begin
-  replace h := real.arccos_inj
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y))).1
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y))).2
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))).1
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))).2
-    h,
+  replace h := real.arccos_inj_on
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y)))
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))) h,
   by_cases hxy : x = y,
   { rw hxy },
   { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,

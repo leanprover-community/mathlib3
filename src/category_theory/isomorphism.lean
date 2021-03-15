@@ -109,7 +109,8 @@ infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
   iso.trans
     {hom := hom, inv := inv, hom_inv_id' := hom_inv_id, inv_hom_id' := inv_hom_id}
     {hom := hom', inv := inv', hom_inv_id' := hom_inv_id', inv_hom_id' := inv_hom_id'} =
-  {hom := hom ≫ hom', inv := inv' ≫ inv, hom_inv_id' := hom_inv_id'', inv_hom_id' := inv_hom_id''} :=
+  { hom := hom ≫ hom', inv := inv' ≫ inv, hom_inv_id' := hom_inv_id'',
+    inv_hom_id' := inv_hom_id''} :=
 rfl
 
 @[simp] lemma trans_symm (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).symm = β.symm ≪≫ α.symm := rfl
@@ -233,7 +234,8 @@ instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 @[priority 100] -- see Note [lower instance priority]
 instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
-  by rw [←category.comp_id g, ←category.comp_id h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
+  by rw [← category.comp_id g, ← category.comp_id h, ← is_iso.hom_inv_id f, ← category.assoc, w,
+    ← category.assoc] }
 
 end is_iso
 
@@ -253,6 +255,12 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 
 lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
 iso.inv_eq_inv (as_iso f) (as_iso g)
+
+lemma hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X ↔ f = inv g :=
+(as_iso g).hom_comp_eq_id
+
+lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
+(as_iso g).comp_hom_eq_id
 
 namespace iso
 

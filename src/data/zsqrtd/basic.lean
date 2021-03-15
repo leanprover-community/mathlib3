@@ -99,6 +99,7 @@ instance : comm_ring ℤ√d := by refine
   zero           := 0,
   neg            := has_neg.neg,
   mul            := (*),
+  sub            := λ a b, a + -b,
   one            := 1, ..};
   { intros, simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm] }
 
@@ -144,6 +145,9 @@ by simp [ext]
 @[simp] theorem muld_val (x y : ℤ) : sqrtd * ⟨x, y⟩ = ⟨d * y, x⟩ :=
 by simp [ext]
 
+@[simp] theorem dmuld : sqrtd * sqrtd = d :=
+by simp [ext]
+
 @[simp] theorem smuld_val (n x y : ℤ) : sqrtd * (n : ℤ√d) * ⟨x, y⟩ = ⟨d * n * y, n * x⟩ :=
 by simp [ext]
 
@@ -156,9 +160,12 @@ by simp [ext, sub_eq_add_neg, mul_comm]
 theorem conj_mul {a b : ℤ√d} : conj (a * b) = conj a * conj b :=
 by { simp [ext], ring }
 
-protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n := by simp [ext]
-protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n := by simp [ext, sub_eq_add_neg]
-protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n := by simp [ext]
+protected lemma coe_int_add (m n : ℤ) : (↑(m + n) : ℤ√d) = ↑m + ↑n :=
+(int.cast_ring_hom _).map_add _ _
+protected lemma coe_int_sub (m n : ℤ) : (↑(m - n) : ℤ√d) = ↑m - ↑n :=
+(int.cast_ring_hom _).map_sub _ _
+protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n :=
+(int.cast_ring_hom _).map_mul _ _
 protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
 by simpa using congr_arg re h
 
@@ -570,4 +577,64 @@ instance : linear_ordered_semiring ℤ√d := by apply_instance
 instance : ordered_semiring ℤ√d        := by apply_instance
 
 end
+
+lemma norm_eq_zero {d : ℤ} (h_nonsquare : ∀ n : ℤ, d ≠ n*n) (a : ℤ√d) :
+  norm a = 0 ↔ a = 0 :=
+begin
+  refine ⟨λ ha, ext.mpr _, λ h, by rw [h, norm_zero]⟩,
+  delta norm at ha,
+  rw sub_eq_zero at ha,
+  by_cases h : 0 ≤ d,
+  { obtain ⟨d', rfl⟩ := int.eq_coe_of_zero_le h,
+    haveI : nonsquare d' := ⟨λ n h, h_nonsquare n $ by exact_mod_cast h⟩,
+    exact divides_sq_eq_zero_z ha, },
+  { push_neg at h,
+    suffices : a.re * a.re = 0,
+    { rw eq_zero_of_mul_self_eq_zero this at ha ⊢,
+      simpa only [true_and, or_self_right, zero_re, zero_im, eq_self_iff_true,
+        zero_eq_mul, mul_zero, mul_eq_zero, h.ne, false_or, or_self] using ha },
+    apply _root_.le_antisymm _ (mul_self_nonneg _),
+    rw [ha, mul_assoc],
+    exact mul_nonpos_of_nonpos_of_nonneg h.le (mul_self_nonneg _) }
+end
+
+variables {R : Type} [comm_ring R]
+
+@[ext] lemma hom_ext {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
+begin
+  ext ⟨x_re, x_im⟩,
+  simp [decompose, h],
+end
+
+/-- The unique `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided
+root. Conversely, this associates to every mapping `ℤ√d →+* R` a value of `√d` in `R`. -/
+@[simps]
+def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
+{ to_fun := λ r,
+  { to_fun := λ a, a.1 + a.2*(r : R),
+    map_zero' := by simp,
+    map_add' := λ a b, by { simp, ring, },
+    map_one' := by simp,
+    map_mul' := λ a b, by {
+      have : (a.re + a.im * r : R) * (b.re + b.im * r) =
+              a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
+      simp [this, r.prop],
+      ring, } },
+  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
+  left_inv := λ r, by { ext, simp },
+  right_inv := λ f, by { ext, simp } }
+
+/-- `lift r` is injective if `d` is non-square, and R has characteristic zero (that is, the map from
+`ℤ` into `R` is injective). -/
+lemma lift_injective [char_zero R] {d : ℤ} (r : {r : R // r * r = ↑d}) (hd : ∀ n : ℤ, d ≠ n*n) :
+  function.injective (lift r) :=
+(lift r).injective_iff.mpr $ λ a ha,
+begin
+  have h_inj : function.injective (coe : ℤ → R) := int.cast_injective,
+  suffices : lift r a.norm = 0,
+  { simp only [coe_int_re, add_zero, lift_apply_apply, coe_int_im, int.cast_zero, zero_mul] at this,
+    rwa [← int.cast_zero, h_inj.eq_iff, norm_eq_zero hd] at this },
+  rw [norm_eq_mul_conj, ring_hom.map_mul, ha, zero_mul]
+end
+
 end zsqrtd

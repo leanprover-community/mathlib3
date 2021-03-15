@@ -3,7 +3,8 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import algebra.invertible
+import algebra.char_p.invertible
+import order.filter.at_top_bot
 import tactic.linarith
 
 /-!
@@ -27,6 +28,8 @@ This file defines the discriminant of a quadratic and gives the solution to a qu
 
 polynomial, quadratic, discriminant, root
 -/
+
+open filter
 
 section ring
 variables {R : Type*}
@@ -117,27 +120,14 @@ begin
   rw [discrim, pow_two],
   obtain ha|rfl|ha : a < 0 ∨ a = 0 ∨ 0 < a := lt_trichotomy a 0,
   -- if a < 0
-  { by_cases hb : b = 0,
-    { rw hb at *,
-      rcases exists_lt_mul_self (-c / a) with ⟨x, hx⟩,
-      have := mul_lt_mul_of_neg_left hx ha,
-      rw [mul_div_cancel' _ (ne_of_lt ha), ← mul_assoc] at this,
-      have h₂ := h x, linarith },
-    { by_cases hc' : c = 0,
-      { rw hc' at *,
-        have : -(a * -b * -b + b * -b + 0) = (1 - a) * (b * b), {ring},
-        have h := h (-b), rw [← neg_nonpos, this] at h,
-        have : b * b ≤ 0 := nonpos_of_mul_nonpos_left h (by linarith),
-        linarith },
-      { have h := h (-c / b),
-        have : a * (-c / b) * (-c / b) + b * (-c / b) + c = a * ((c / b) * (c / b)),
-        { rw mul_div_cancel' _ hb, ring },
-        rw this at h,
-        have : 0 ≤ a := nonneg_of_mul_nonneg_right h (mul_self_pos $ div_ne_zero hc' hb),
-        linarith [ha] } } },
+  { have : tendsto (λ x, (a * x + b) * x + c) at_top at_bot :=
+     tendsto_at_bot_add_const_right _ c ((tendsto_at_bot_add_const_right _ b
+       (tendsto_id.neg_const_mul_at_top ha)).at_bot_mul_at_top tendsto_id),
+    rcases (this.eventually (eventually_lt_at_bot 0)).exists with ⟨x, hx⟩,
+    exact false.elim ((h x).not_lt $ by rwa ← add_mul) },
   -- if a = 0
-  { by_cases hb : b = 0,
-    { rw [hb], linarith },
+  { rcases em (b = 0) with (rfl|hb),
+    { simp },
     { have := h ((-c - 1) / b), rw [mul_div_cancel' _ hb] at this, linarith } },
   -- if a > 0
   { have := calc

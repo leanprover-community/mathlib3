@@ -82,6 +82,12 @@ begin
   ghost_simp
 end
 ```
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 /-
@@ -101,7 +107,7 @@ setup_tactic_parser
 /-- A macro for a common simplification when rewriting with ghost component equations. -/
 meta def ghost_simp (lems : parse simp_arg_list) : tactic unit :=
 do tactic.try tactic.intro1,
-   simp none tt
+   simp none none tt
      (lems ++ [simp_arg_type.symm_expr ``(sub_eq_add_neg)])
      [`ghost_simps] (loc.ns [none])
 
@@ -157,8 +163,6 @@ universe variable u
 variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
-
-local attribute [semireducible] witt_vector
 
 open mv_polynomial
 open function (uncurry)
@@ -217,13 +221,13 @@ and the `@[is_poly]` attribute derives certain specialized composition instances
 for declarations of type `is_poly f`.
 For the most part, users are not expected to treat `is_poly` as a class.
 -/
-@[class] def is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) : Prop :=
-∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R),
-  by exactI (f x).coeff = λ n, aeval x.coeff (φ n)
+class is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) : Prop :=
+mk' :: (poly : ∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R),
+  by exactI (f x).coeff = λ n, aeval x.coeff (φ n))
 
 /-- The identity function on Witt vectors is a polynomial function. -/
 instance id_is_poly : is_poly p (λ _ _, id) :=
-⟨X, by { introsI, simp only [aeval_X, id] }⟩
+⟨⟨X, by { introsI, simp only [aeval_X, id] }⟩⟩
 
 instance id_is_poly_i' : is_poly p (λ _ _ a, a) :=
 witt_vector.id_is_poly _
@@ -257,7 +261,7 @@ begin
   convert h,
   all_goals {
     funext i,
-    rw [← ring_equiv.coe_ring_hom],
+    rw [← ring_equiv.coe_to_ring_hom],
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
@@ -293,9 +297,9 @@ and the `@[is_poly]` attribute derives certain specialized composition instances
 for declarations of type `is_poly₂ f`.
 For the most part, users are not expected to treat `is_poly₂` as a class.
 -/
-@[class] def is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
-∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
-  by exactI (f x y).coeff = λ n, peval (φ n) ![x.coeff, y.coeff]
+class is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
+mk' :: (poly : ∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
+  by exactI (f x y).coeff = λ n, peval (φ n) ![x.coeff, y.coeff])
 
 
 variable {p}
@@ -308,9 +312,9 @@ begin
   { obtain ⟨φ, hf⟩ := hf,
     obtain ⟨ψ, hg⟩ := hg,
     obtain ⟨χ, hh⟩ := hh },
-  refine ⟨(λ n, bind₁ (uncurry $
+  refine ⟨⟨(λ n, bind₁ (uncurry $
           ![λ k, rename (prod.mk (0 : fin 2)) (φ k),
-            λ k, rename (prod.mk (1 : fin 2)) (ψ k)]) (χ n)), _⟩,
+            λ k, rename (prod.mk (1 : fin 2)) (ψ k)]) (χ n)), _⟩⟩,
   intros,
   funext n,
   simp only [peval, aeval_bind₁, function.comp, hh, hf, hg, uncurry],
@@ -338,7 +342,7 @@ lemma is_poly₂.diag {f} (hf : is_poly₂ p f) :
   is_poly p (λ R _Rcr x, by exactI f x x) :=
 begin
   unfreezingI {obtain ⟨φ, hf⟩ := hf},
-  refine ⟨λ n, bind₁ (uncurry ![X, X]) (φ n), _⟩,
+  refine ⟨⟨λ n, bind₁ (uncurry ![X, X]) (φ n), _⟩⟩,
   intros, funext n,
   simp only [hf, peval, uncurry, aeval_bind₁],
   apply eval₂_hom_congr rfl _ rfl,
@@ -461,13 +465,13 @@ Users are expected to use the non-instance versions manually.
 /-- The additive negation is a polynomial function on Witt vectors. -/
 @[is_poly]
 lemma neg_is_poly : is_poly p (λ R _, by exactI @has_neg.neg (𝕎 R) _) :=
-⟨λ n, rename prod.snd (witt_neg p n),
+⟨⟨λ n, rename prod.snd (witt_neg p n),
 begin
   introsI, funext n,
   rw [neg_coeff, aeval_eq_eval₂_hom, eval₂_hom_rename],
   apply eval₂_hom_congr rfl _ rfl,
   ext ⟨i, k⟩, fin_cases i, refl,
-end⟩
+end⟩⟩
 
 section zero_one
 /- To avoid a theory of 0-ary functions (a.k.a. constants)
@@ -475,7 +479,7 @@ we model them as constant unary functions. -/
 
 /-- The function that is constantly zero on Witt vectors is a polynomial function. -/
 instance zero_is_poly : is_poly p (λ _ _ _, by exactI 0) :=
-⟨0, by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] }⟩
+⟨⟨0, by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] }⟩⟩
 
 @[simp] lemma bind₁_zero_witt_polynomial (n : ℕ) :
   bind₁ (0 : ℕ → mv_polynomial ℕ R) (witt_polynomial p R n) = 0 :=
@@ -502,13 +506,13 @@ end
 
 /-- The function that is constantly one on Witt vectors is a polynomial function. -/
 instance one_is_poly : is_poly p (λ _ _ _, by exactI 1) :=
-⟨one_poly,
+⟨⟨one_poly,
 begin
   introsI, funext n, cases n,
   { simp only [one_poly, if_true, eq_self_iff_true, one_coeff_zero, alg_hom.map_one], },
   { simp only [one_poly, nat.succ_pos', one_coeff_eq_of_pos,
       if_neg n.succ_ne_zero, alg_hom.map_zero] }
-end⟩
+end⟩⟩
 
 end zero_one
 
@@ -516,12 +520,12 @@ omit hp
 
 /-- Addition of Witt vectors is a polynomial function. -/
 @[is_poly] lemma add_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (+)) :=
-⟨witt_add p, by { introsI, refl }⟩
+⟨⟨witt_add p, by { introsI, dunfold witt_vector.has_add, simp [eval] }⟩⟩
 
 
 /-- Multiplication of Witt vectors is a polynomial function. -/
 @[is_poly] lemma mul_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (*)) :=
-⟨witt_mul p, by { introsI, refl }⟩
+⟨⟨witt_mul p, by { introsI, dunfold witt_vector.has_mul, simp [eval] }⟩⟩
 
 include hp
 
@@ -582,7 +586,7 @@ begin
   convert h; clear h,
   all_goals {
     funext i,
-    rw [← ring_equiv.coe_ring_hom],
+    rw [← ring_equiv.coe_to_ring_hom],
     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1,
@@ -616,38 +620,5 @@ attribute [ghost_simps]
       mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
       nat.succ_ne_zero nat.add_sub_cancel nat.succ_eq_add_one
       if_true eq_self_iff_true if_false forall_true_iff forall_2_true_iff forall_3_true_iff
-
-/-!
-### Subtraction of Witt vectors
-
-In Lean, subtraction in a ring is by definition equal to `x + -y`.
-For Witt vectors, this means that subtraction is not defined in terms of
-the polynomials `witt_sub p`.
-
-As a demonstration of some of the techniques developed in this file,
-we show by a computation that evaluating `witt_sub p` on the coefficients of `x` and `y`
-gives the coefficients of `x - y`.
-
-For a more powerful demonstration, see `ring_theory/witt_vector/identities.lean`.
--/
-
-lemma sub_eq (x y : 𝕎 R) :
-  x - y = eval (witt_sub p) ![x, y] :=
-begin
-  apply is_poly₂.ext ((add_is_poly₂).comp_right
-    (neg_is_poly)) ⟨witt_sub p, by intros; refl⟩ _ _ x y,
-  unfreezingI { clear_dependent R }, introsI R _Rcr x y n,
-  simp only [←sub_eq_add_neg, ring_hom.map_sub],
-  symmetry,
-  have := witt_structure_int_prop p (X 0 - X 1 : mv_polynomial (fin 2) ℤ) n,
-  apply_fun (aeval (function.uncurry ![x.coeff, y.coeff])) at this,
-  simp only [aeval_bind₁, alg_hom.map_sub, bind₁_X_right] at this,
-  simp only [aeval_eq_eval₂_hom, eval₂_hom_rename] at this,
-  exact this,
-end
-
-lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :
-  (x - y).coeff n = peval (witt_sub p n) ![x.coeff, y.coeff] :=
-by { rw [sub_eq], refl }
 
 end witt_vector

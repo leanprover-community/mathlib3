@@ -7,6 +7,37 @@ This file is to a certain extent based on `quotient_module.lean` by Johannes Hö
 -/
 import group_theory.coset
 
+/-!
+# Quotients of groups by normal subgroups
+
+This files develops the basic theory of quotients of groups by normal subgroups. In particular it
+proves Noether's first and second isomorphism theorems.
+
+## Main definitions
+
+* `mk'`: the canonical group homomorphism `G →* G/N` given a normal subgroup `N` of `G`.
+* `lift φ`: the group homomorphism `G/N →* H` given a group homomorphism `φ : G →* H` such that
+  `N ⊆ ker φ`.
+* `map f`: the group homomorphism `G/N →* H/M` given a group homomorphism `f : G →* H` such that
+  `N ⊆ f⁻¹(M)`.
+
+## Main statements
+
+* `quotient_ker_equiv_range`: Noether's first isomorphism theorem, an explicit isomorphism
+  `G/ker φ → range φ` for every group homomorphism `φ : G →* H`.
+* `quotient_inf_equiv_prod_normal_quotient`: Noether's second isomorphism theorem, an explicit
+  isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
+  group `G`.
+
+## Tags
+
+isomorphism theorems, quotient groups
+
+## TODO
+
+Noether's third isomorphism theorem
+-/
+
 universes u v
 
 namespace quotient_group
@@ -14,8 +45,11 @@ namespace quotient_group
 variables {G : Type u} [group G] (N : subgroup G) [nN : N.normal] {H : Type v} [group H]
 include nN
 
-@[to_additive quotient_add_group.add_group]
-instance : group (quotient N) :=
+-- Define the `div_inv_monoid` before the `group` structure,
+-- to make sure we have `inv` fully defined before we show `mul_left_inv`.
+-- TODO: is there a non-invasive way of defining this in one declaration?
+@[to_additive quotient_add_group.div_inv_monoid]
+instance : div_inv_monoid (quotient N) :=
 { one := (1 : G),
   mul := quotient.map₂' (*)
   (λ a₁ b₁ hab₁ a₂ b₂ hab₂,
@@ -34,9 +68,13 @@ instance : group (quotient N) :=
       show a⁻¹⁻¹ * b⁻¹ ∈ N,
       rw ← mul_inv_rev,
       exact N.inv_mem (nN.mem_comm hab)
-    end),
-  mul_left_inv := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (mul_left_inv a)) }
+    end) }
+
+@[to_additive quotient_add_group.add_group]
+instance : group (quotient N) :=
+{ mul_left_inv := λ a, quotient.induction_on' a
+    (λ a, congr_arg mk (mul_left_inv a)),
+ .. quotient.div_inv_monoid _ }
 
 /-- The group homomorphism from `G` to `G/N`. -/
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
@@ -185,5 +223,42 @@ mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
   use mk g,
   refl
 end⟩
+
+/-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
+isomorphic. -/
+@[to_additive "If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
+isomorphic."]
+def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
+  quotient M ≃* quotient N :=
+{ to_fun := (lift M (mk' N) (λ m hm, quotient_group.eq.mpr (by simpa [← h] using M.inv_mem hm))),
+  inv_fun := (lift N (mk' M) (λ n hn, quotient_group.eq.mpr (by simpa [← h] using N.inv_mem hn))),
+  left_inv := λ x, x.induction_on' $ by { intro, refl },
+  right_inv := λ x, x.induction_on' $ by { intro, refl },
+  map_mul' := λ x y, by rw map_mul }
+
+section snd_isomorphism_thm
+
+open subgroup
+
+/-- The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`, where `N`
+is normal, defines an isomorphism between `H/(H ∩ N)` and `(HN)/N`. -/
+@[to_additive "The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`,
+where `N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(H + N)/N`"]
+noncomputable def quotient_inf_equiv_prod_normal_quotient (H N : subgroup G) [N.normal] :
+  quotient ((H ⊓ N).comap H.subtype) ≃* quotient (N.comap (H ⊔ N).subtype) :=
+/- φ is the natural homomorphism H →* (HN)/N. -/
+let φ : H →* quotient (N.comap (H ⊔ N).subtype) :=
+  (mk' $ N.comap (H ⊔ N).subtype).comp (inclusion le_sup_left) in
+have φ_surjective : function.surjective φ := λ x, x.induction_on' $
+  begin
+    rintro ⟨y, (hy : y ∈ ↑(H ⊔ N))⟩, rw mul_normal H N at hy,
+    rcases hy with ⟨h, n, hh, hn, rfl⟩,
+    use [h, hh], apply quotient.eq.mpr, change h⁻¹ * (h * n) ∈ N,
+    rwa [←mul_assoc, inv_mul_self, one_mul],
+  end,
+(equiv_quotient_of_eq (by simp [comap_comap, ←comap_ker])).trans
+  (quotient_ker_equiv_of_surjective φ φ_surjective)
+
+end snd_isomorphism_thm
 
 end quotient_group

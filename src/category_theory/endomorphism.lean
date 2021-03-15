@@ -68,7 +68,9 @@ instance inhabited : inhabited (Aut X) := ⟨iso.refl X⟩
 instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := flip iso.trans, .. } ; simp [flip, (*), has_one.one]
+            mul := flip iso.trans,
+            div_eq_mul_inv := λ _ _, rfl, .. } ;
+     simp [flip, (*), has_one.one, monoid.one, has_inv.inv]
 
 /--
 Units in the monoid of endomorphisms of an object

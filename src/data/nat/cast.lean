@@ -19,6 +19,10 @@ protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
 
+/-- Computationally friendlier cast than `nat.cast`, using binary representation. -/
+protected def bin_cast (n : ℕ) : α :=
+@nat.binary_rec (λ _, α) 0 (λ odd k a, cond odd (a + a + 1) (a + a)) n
+
 /--
 Coercions such as `nat.cast_coe` that go from a concrete structure such as
 `ℕ` to an arbitrary ring `α` should be set up as follows:
@@ -59,6 +63,7 @@ theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
 @[simp, norm_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
   (((ite P m n) : ℕ) : α) = ite P (m : α) (n : α) :=
 by { split_ifs; refl, }
+
 end
 
 @[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
@@ -66,6 +71,18 @@ end
 @[simp, norm_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm
 | (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]
+
+@[simp] lemma bin_cast_eq [add_monoid α] [has_one α] (n : ℕ) :
+  (nat.bin_cast n : α) = ((n : ℕ) : α) :=
+begin
+  rw nat.bin_cast,
+  apply binary_rec _ _ n,
+  { rw [binary_rec_zero, cast_zero] },
+  { intros b k h,
+    rw [binary_rec_eq, h],
+    { cases b; simp [bit, bit0, bit1] },
+    { simp } },
+end
 
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α :=
@@ -83,7 +100,7 @@ def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α 
   ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
-lemma cast_two {α : Type*} [semiring α] : ((2 : ℕ) : α) = 2 := by simp
+lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 := by simp
 
 @[simp, norm_cast] theorem cast_pred [add_group α] [has_one α] :
   ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
@@ -98,11 +115,12 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
 
-@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
+@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) :
+  ((m / n : ℕ) : α) = m / n :=
 begin
   rcases n_dvd with ⟨k, rfl⟩,
   have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
-  rw nat.mul_div_cancel_left _ (nat.pos_iff_ne_zero.2 this),
+  rw nat.mul_div_cancel_left _ (pos_iff_ne_zero.2 this),
   rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
 end
 
@@ -118,40 +136,55 @@ def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
 lemma cast_commute [semiring α] (n : ℕ) (x : α) : commute ↑n x :=
 nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 
+lemma cast_comm [semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
+(cast_commute n x).eq
+
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
-@[simp] theorem cast_nonneg [linear_ordered_semiring α] : ∀ n : ℕ, 0 ≤ (n : α)
+section
+
+variables [ordered_semiring α]
+
+@[simp] theorem cast_nonneg : ∀ n : ℕ, 0 ≤ (n : α)
 | 0     := le_refl _
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
-theorem strict_mono_cast [linear_ordered_semiring α] : strict_mono (coe : ℕ → α) :=
+theorem mono_cast : monotone (coe : ℕ → α) :=
+λ m n h, let ⟨k, hk⟩ := le_iff_exists_add.1 h in by simp [hk]
+
+variable [nontrivial α]
+
+theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
 λ m n h, nat.le_induction (lt_add_of_pos_right _ zero_lt_one)
   (λ n _ h, lt_add_of_lt_of_pos h zero_lt_one) _ h
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_semiring α] {m n : ℕ} : (m : α) ≤ n ↔ m ≤ n :=
+@[simp, norm_cast] theorem cast_le {m n : ℕ} :
+  (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
-@[simp, norm_cast] theorem cast_lt [linear_ordered_semiring α] {m n : ℕ} : (m : α) < n ↔ m < n :=
+@[simp, norm_cast] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
 
-@[simp] theorem cast_pos [linear_ordered_semiring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
+@[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
-lemma cast_add_one_pos [linear_ordered_semiring α] (n : ℕ) : 0 < (n : α) + 1 :=
+lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
   add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
-@[simp, norm_cast] theorem one_lt_cast [linear_ordered_semiring α] {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
+@[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]
 
-@[simp, norm_cast] theorem one_le_cast [linear_ordered_semiring α] {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
+@[simp, norm_cast] theorem one_le_cast {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
 by rw [← cast_one, cast_le]
 
-@[simp, norm_cast] theorem cast_lt_one [linear_ordered_semiring α] {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
+@[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
 by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 
-@[simp, norm_cast] theorem cast_le_one [linear_ordered_semiring α] {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
+@[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
+
+end
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
@@ -161,7 +194,7 @@ by by_cases a ≤ b; simp [h, min]
   (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp, norm_cast] theorem abs_cast [linear_ordered_comm_ring α] (a : ℕ) :
+@[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
   abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
@@ -257,6 +290,10 @@ begin
   cases i, { exact (not_le_of_lt h le_top).elim },
   exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
 end
+
+lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
+⟨λ h, (coe_lt_coe.2 zero_lt_one).trans_le h,
+  λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
 
 @[elab_as_eliminator]
 lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)

@@ -134,6 +134,9 @@ alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
+@[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
+⟨λ h, classical.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
+
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 
@@ -235,6 +238,28 @@ lemma le_iff_le_iff_lt_iff_lt {β} [linear_order α] [linear_order β]
 ⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ (not_congr H).trans $ not_lt⟩
 
 end decidable
+
+/-- Like `cmp`, but uses a `≤` on the type instead of `<`. Given two elements
+`x` and `y`, returns a three-way comparison result `ordering`. -/
+def cmp_le {α} [has_le α] [@decidable_rel α (≤)] (x y : α) : ordering :=
+if x ≤ y then
+  if y ≤ x then ordering.eq else ordering.lt
+else ordering.gt
+
+theorem cmp_le_swap {α} [has_le α] [is_total α (≤)] [@decidable_rel α (≤)] (x y : α) :
+  (cmp_le x y).swap = cmp_le y x :=
+begin
+  by_cases xy : x ≤ y; by_cases yx : y ≤ x; simp [cmp_le, *, ordering.swap],
+  cases not_or xy yx (total_of _ _ _)
+end
+
+theorem cmp_le_eq_cmp {α} [preorder α] [is_total α (≤)]
+  [@decidable_rel α (≤)] [@decidable_rel α (<)] (x y : α) : cmp_le x y = cmp x y :=
+begin
+  by_cases xy : x ≤ y; by_cases yx : y ≤ x;
+    simp [cmp_le, lt_iff_le_not_le, *, cmp, cmp_using],
+  cases not_or xy yx (total_of _ _ _)
+end
 
 namespace ordering
 

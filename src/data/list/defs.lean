@@ -15,7 +15,7 @@ proofs about these definitions, those are contained in other files in `data/list
 
 namespace list
 
-open function nat
+open function nat native (rb_map mk_rb_map rb_map.of_list)
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
@@ -837,5 +837,95 @@ zip_right = map₂_right prod.mk
 -/
 def zip_right : list α → list β → list (option α × β) :=
 map₂_right prod.mk
+
+/--
+If all elements of `xs` are `some xᵢ`, `all_some xs` returns the `xᵢ`. Otherwise
+it returns `none`.
+
+```
+all_some [some 1, some 2] = some [1, 2]
+all_some [some 1, none  ] = none
+```
+-/
+def all_some : list (option α) → option (list α)
+| [] := some []
+| (some a :: as) := cons a <$> all_some as
+| (none :: as) := none
+
+/--
+`fill_nones xs ys` replaces the `none`s in `xs` with elements of `ys`. If there
+are not enough `ys` to replace all the `none`s, the remaining `none`s are
+dropped from `xs`.
+
+```
+fill_nones [none, some 1, none, none] [2, 3] = [2, 1, 3]
+```
+-/
+def fill_nones {α} : list (option α) → list α → list α
+| [] _ := []
+| (some a :: as) as' := a :: fill_nones as as'
+| (none :: as) [] := as.reduce_option
+| (none :: as) (a :: as') := a :: fill_nones as as'
+
+/--
+`take_list as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
+it first takes the `n₁` initial elements from `as`, then the next `n₂` ones,
+etc. It returns the sublists of `as` -- one for each `nᵢ` -- and the remaining
+elements of `as`. If `as` does not have at least as many elements as the sum of
+the `nᵢ`, the corresponding sublists will have less than `nᵢ` elements.
+
+```
+take_list ['a', 'b', 'c', 'd', 'e'] [2, 1, 1] = ([['a', 'b'], ['c'], ['d']], ['e'])
+take_list ['a', 'b'] [3, 1] = ([['a', 'b'], []], [])
+```
+-/
+def take_list {α} : list α → list ℕ → list (list α) × list α
+| xs [] := ([], xs)
+| xs (n :: ns) :=
+  let ⟨xs₁, xs₂⟩ := xs.split_at n in
+  let ⟨xss, rest⟩ := take_list xs₂ ns in
+  (xs₁ :: xss, rest)
+
+/--
+`to_rbmap as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rbmap ['a', 'b', 'c'] = rbmap_of [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+def to_rbmap : list α → rbmap ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
+
+/--
+`to_rb_map as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
+
+/--
+`xs.to_chunks n` splits the list into sublists of size at most `n`,
+such that `(xs.to_chunks n).join = xs`.
+
+TODO: make non-meta; currently doesn't terminate, e.g.
+```
+#eval [0].to_chunks 0
+```
+-/
+meta def to_chunks {α} (n : ℕ) : list α → list (list α)
+| [] := []
+| xs :=
+  xs.take n :: (xs.drop n).to_chunks
+
+/--
+Asynchronous version of `list.map`.
+-/
+meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
+((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
 
 end list

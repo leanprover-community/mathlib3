@@ -170,7 +170,7 @@ lemma trailing_degree_one_le : (0 : with_top ℕ) ≤ trailing_degree (1 : polyn
 by rw [← C_1]; exact le_trailing_degree_C
 
 @[simp] lemma nat_trailing_degree_C (a : R) : nat_trailing_degree (C a) = 0 :=
-le_zero_iff_eq.1 nat_trailing_degree_monomial_le
+nonpos_iff_eq_zero.1 nat_trailing_degree_monomial_le
 
 @[simp] lemma nat_trailing_degree_one : nat_trailing_degree (1 : polynomial R) = 0 :=
 nat_trailing_degree_C 1
@@ -224,11 +224,11 @@ lemma trailing_coeff_nonzero_iff_nonzero : trailing_coeff p ≠ 0 ↔ p ≠ 0 :=
 not_congr trailing_coeff_eq_zero
 
 lemma nat_trailing_degree_mem_support_of_nonzero : p ≠ 0 → nat_trailing_degree p ∈ p.support :=
-(mem_support_iff_coeff_ne_zero.mpr ∘ trailing_coeff_nonzero_iff_nonzero.mpr)
+(mem_support_iff.mpr ∘ trailing_coeff_nonzero_iff_nonzero.mpr)
 
 lemma nat_trailing_degree_le_of_mem_supp (a : ℕ) :
   a ∈ p.support → nat_trailing_degree p ≤ a:=
-nat_trailing_degree_le_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
+nat_trailing_degree_le_of_ne_zero ∘ mem_support_iff.mp
 
 lemma nat_trailing_degree_eq_support_min' (h : p ≠ 0) :
   nat_trailing_degree p = p.support.min' (nonempty_support_iff.mpr h) :=
@@ -238,11 +238,33 @@ begin
     intros y hy,
     exact nat_trailing_degree_le_of_mem_supp y hy },
   { apply finset.min'_le,
-    exact mem_support_iff_coeff_ne_zero.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
+    exact mem_support_iff.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
+end
+
+lemma nat_trailing_degree_le_nat_degree (p : polynomial R) :
+  p.nat_trailing_degree ≤ p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, nat_degree_zero, nat_trailing_degree_zero] },
+  { exact le_nat_degree_of_ne_zero (mt trailing_coeff_eq_zero.mp hp) },
+end
+
+lemma nat_trailing_degree_mul_X_pow {p : polynomial R} (hp : p ≠ 0) (n : ℕ) :
+  (p * X ^ n).nat_trailing_degree = p.nat_trailing_degree + n :=
+begin
+  apply le_antisymm,
+  { refine nat_trailing_degree_le_of_ne_zero (λ h, mt trailing_coeff_eq_zero.mp hp _),
+    rwa [trailing_coeff, ←coeff_mul_X_pow] },
+  { rw [nat_trailing_degree_eq_support_min' (λ h, hp (mul_X_pow_eq_zero h)), finset.le_min'_iff],
+    intros y hy,
+    have key : n ≤ y,
+    { rw [mem_support_iff, coeff_mul_X_pow'] at hy,
+      exact by_contra (λ h, hy (if_neg h)) },
+    rw [mem_support_iff, coeff_mul_X_pow', if_pos key] at hy,
+    exact (nat.add_le_to_le_sub _ key).mpr (nat_trailing_degree_le_of_ne_zero hy) },
 end
 
 end semiring
-
 
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}

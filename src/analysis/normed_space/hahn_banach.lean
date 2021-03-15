@@ -29,7 +29,7 @@ universes u v
 The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
 state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
 
-For the concrete cases of `ℝ` and `𝕜`, this is just `∥x∥` and `↑∥x∥`, respectively.
+For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
 -/
 noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [normed_group E] (x : E) : 𝕜 :=
@@ -111,7 +111,7 @@ begin
         ≤ ∥g∥ : g.extend_to_𝕜.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
     ... = ∥fr∥ : hnormeq
     ... ≤ ∥re_clm∥ * ∥f∥ : continuous_linear_map.op_norm_comp_le _ _
-    ... = ∥f∥ : by rw [norm_re_clm, one_mul] },
+    ... = ∥f∥ : by rw [re_clm_norm, one_mul] },
   { exact f.op_norm_le_bound g.extend_to_𝕜.op_norm_nonneg (λ x, h x ▸ g.extend_to_𝕜.le_op_norm x) },
 end
 
@@ -131,14 +131,14 @@ by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
     element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/
 theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
 begin
-  let p : submodule 𝕜 E := span 𝕜 {x},
+  let p : submodule 𝕜 E := 𝕜 ∙ x,
   let f := norm' 𝕜 x • coord 𝕜 x h,
   obtain ⟨g, hg⟩ := exists_extension_norm_eq p f,
   use g, split,
   { rw [hg.2, coord_norm'] },
-  { calc g x = g (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw coe_mk
-    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw ← hg.1
-    ... = norm' 𝕜 x : by simp [coord_self] }
+  { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
+    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
+    ... = norm' 𝕜 x : by simp }
 end
 
 /-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing

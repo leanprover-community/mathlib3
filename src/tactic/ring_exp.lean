@@ -1334,8 +1334,11 @@ meta def inverse (ps : ex sum) : ring_exp_m (ex sum) := do
   e''_o ← lift $ mk_app ``has_inv.inv [ps.orig],
   pure $ e''.set_info e''_o pf
 
-lemma sub_pf {α} [ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
-lemma div_pf {α} [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := id
+lemma sub_pf {α} [ring α] {ps qs psqs : α} (h : ps + -qs = psqs) : ps - qs = psqs :=
+by rwa sub_eq_add_neg
+
+lemma div_pf {α} [division_ring α] {ps qs psqs : α} (h : ps * qs⁻¹ = psqs) : ps / qs = psqs :=
+by rwa div_eq_mul_inv
 
 end operations
 

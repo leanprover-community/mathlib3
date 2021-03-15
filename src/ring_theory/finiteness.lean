@@ -19,6 +19,8 @@ In this file we define several notions of finiteness that are common in commutat
   all of these express that some object is finitely generated *as module* over some base ring.
 - `algebra.finite_type`, `ring_hom.finite_type`, `alg_hom.finite_type`
   all of these express that some object is finitely generated *as algebra* over some base ring.
+- `algebra.finite_presentation`, `ring_hom.finite_presentation`, `alg_hom.finite_presentation`
+  all of these express that some object is finitely presented *as algebra* over some base ring.
 
 -/
 
@@ -40,6 +42,12 @@ def module.finite : Prop := (⊤ : submodule R M).fg
 over the base ring as algebra. -/
 @[class]
 def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
+
+/-- An algebra over a commutative ring is `finite_presentation` if it is the quotient of a
+polynomial ring in `n` variables by a finitely generated ideal. -/
+def algebra.finite_presentation : Prop :=
+∃ (n : ℕ) (f : mv_polynomial (fin n) R →ₐ[R] A),
+  surjective f ∧ f.to_ring_hom.ker.fg
 
 namespace module
 
@@ -136,7 +144,164 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite_type R A) (hAB :
   finite_type R B :=
 fg_trans' hRA hAB
 
+/-- An algebra is finitely generated if and only if it is a quotient
+of a polynomial ring whose variables are indexed by a finset. -/
+lemma iff_quotient_mv_polynomial : (finite_type R A) ↔ ∃ (s : finset A)
+  (f : (mv_polynomial {x // x ∈ s} R) →ₐ[R] A), (surjective f) :=
+begin
+  split,
+  { rintro ⟨s, hs⟩,
+    use [s, mv_polynomial.aeval coe],
+    intro x,
+    have hrw : (↑s : set A) = (λ (x : A), x ∈ s.val) := rfl,
+    rw [← set.mem_range, ← alg_hom.coe_range, ← adjoin_eq_range, ← hrw, hs],
+    exact mem_top },
+  { rintro ⟨s, ⟨f, hsur⟩⟩,
+    exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
+end
+
+/-- An algebra is finitely generated if and only if it is a quotient
+of a polynomial ring whose variables are indexed by a fintype. -/
+lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) [fintype ι]
+  (f : (mv_polynomial ι R) →ₐ[R] A), (surjective f) :=
+begin
+  split,
+  { rw iff_quotient_mv_polynomial,
+    rintro ⟨s, ⟨f, hsur⟩⟩,
+    use [{x // x ∈ s}, by apply_instance, f, hsur] },
+  { rintro ⟨ι, ⟨hfintype, ⟨f, hsur⟩⟩⟩,
+    letI : fintype ι := hfintype,
+    exact finite_type.of_surjective (finite_type.mv_polynomial R ι) f hsur }
+end
+
+/-- An algebra is finitely generated if and only if it is a quotient of a polynomial ring in `n`
+variables. -/
+lemma iff_quotient_mv_polynomial'' : (finite_type R A) ↔ ∃ (n : ℕ)
+  (f : (mv_polynomial (fin n) R) →ₐ[R] A), (surjective f) :=
+begin
+  split,
+  { rw iff_quotient_mv_polynomial',
+    rintro ⟨ι, hfintype, ⟨f, hsur⟩⟩,
+    obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι hfintype,
+    replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
+    exact ⟨n, alg_hom.comp f equiv.symm, function.surjective.comp hsur
+      (alg_equiv.symm equiv).surjective⟩ },
+  { rintro ⟨n, ⟨f, hsur⟩⟩,
+    exact finite_type.of_surjective (finite_type.mv_polynomial R (fin n)) f hsur }
+end
+
+/-- A finitely presented algebra is of finite type. -/
+lemma of_finite_presentation : finite_presentation R A → finite_type R A :=
+begin
+  rintro ⟨n, f, hf⟩,
+  apply (finite_type.iff_quotient_mv_polynomial'').2,
+  exact ⟨n, f, hf.1⟩
+end
+
 end finite_type
+
+namespace finite_presentation
+
+variables {R A B}
+
+/-- An algebra over a Noetherian ring is finitely generated if and only if it is finitely
+presented. -/
+lemma of_finite_type [is_noetherian_ring R] : finite_type R A ↔ finite_presentation R A :=
+begin
+  refine ⟨λ h, _, algebra.finite_type.of_finite_presentation⟩,
+  obtain ⟨n, f, hf⟩ := algebra.finite_type.iff_quotient_mv_polynomial''.1 h,
+  refine ⟨n, f, hf, _⟩,
+  have hnoet : is_noetherian_ring (mv_polynomial (fin n) R) := by apply_instance,
+  replace hnoet := (is_noetherian_ring_iff.1 hnoet).noetherian,
+  exact hnoet f.to_ring_hom.ker,
+end
+
+/-- If `e : A ≃ₐ[R] B` and `A` is finitely presented, then so is `B`. -/
+lemma equiv (hfp : finite_presentation R A) (e : A ≃ₐ[R] B) : finite_presentation R B :=
+begin
+  obtain ⟨n, f, hf⟩ := hfp,
+  use [n, alg_hom.comp ↑e f],
+  split,
+  { exact function.surjective.comp e.surjective hf.1 },
+  suffices hker : (alg_hom.comp ↑e f).to_ring_hom.ker = f.to_ring_hom.ker,
+  { rw hker, exact hf.2 },
+  { have hco : (alg_hom.comp ↑e f).to_ring_hom = ring_hom.comp ↑e.to_ring_equiv f.to_ring_hom,
+    { have h : (alg_hom.comp ↑e f).to_ring_hom = e.to_alg_hom.to_ring_hom.comp f.to_ring_hom := rfl,
+      have h1 : ↑(e.to_ring_equiv) = (e.to_alg_hom).to_ring_hom := rfl,
+      rw [h, h1] },
+    rw [ring_hom.ker_eq_comap_bot, hco, ← ideal.comap_comap, ← ring_hom.ker_eq_comap_bot,
+      ring_hom.ker_coe_equiv (alg_equiv.to_ring_equiv e), ring_hom.ker_eq_comap_bot] }
+end
+
+variable (R)
+
+/-- The ring of polynomials in finitely many variables is finitely presented. -/
+lemma mv_polynomial (ι : Type u_2) [fintype ι] : finite_presentation R (mv_polynomial ι R) :=
+begin
+  obtain ⟨n, equiv⟩ := @fintype.exists_equiv_fin ι _,
+  replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
+  use [n, alg_equiv.to_alg_hom equiv.symm],
+  split,
+  { exact (alg_equiv.symm equiv).surjective },
+  suffices hinj : function.injective equiv.symm.to_alg_hom.to_ring_hom,
+  { rw [(ring_hom.injective_iff_ker_eq_bot _).1 hinj],
+    exact submodule.fg_bot },
+  exact (alg_equiv.symm equiv).injective
+end
+
+/-- `R` is finitely presented as `R`-algebra. -/
+lemma self : finite_presentation R R :=
+begin
+  letI hempty := mv_polynomial R pempty,
+  exact @equiv R (_root_.mv_polynomial pempty R) R _ _ _ _ _ hempty
+    (mv_polynomial.pempty_alg_equiv R)
+end
+
+variable {R}
+
+/-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
+presented. -/
+lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
+  finite_presentation R I.quotient :=
+begin
+  obtain ⟨n, f, hf⟩ := hfp,
+  refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
+  { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
+  { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
+    rwa ideal.quotient.mkₐ_ker R I }
+end
+
+/-- If `f : A →ₐ[R] B` is surjective with finitely generated kernel and `A` is finitely presented,
+then so is `B`. -/
+lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.to_ring_hom.ker.fg)
+  (hfp : finite_presentation R A) : finite_presentation R B :=
+equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
+
+/-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
+variables are indexed by a fintype by a finitely generated ideal. -/
+lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) [fintype ι]
+  (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
+begin
+  split,
+  { rintro ⟨n, f, hfs, hfk⟩,
+    set ulift_var := mv_polynomial.rename_equiv R equiv.ulift,
+    refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
+      hfs.comp ulift_var.surjective,
+      submodule.fg_ker_ring_hom_comp _ _ _ hfk ulift_var.surjective⟩,
+    convert submodule.fg_bot,
+    exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
+  { rintro ⟨ι, hfintype, f, hf⟩,
+    haveI : fintype ι := hfintype,
+    obtain ⟨n, equiv⟩ := fintype.exists_equiv_fin ι,
+    replace equiv := mv_polynomial.rename_equiv R (nonempty.some equiv),
+    refine ⟨n, f.comp equiv.symm,
+      hf.1.comp (alg_equiv.symm equiv).surjective,
+      submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
+    convert submodule.fg_bot,
+    exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
+end
+
+end finite_presentation
 
 end algebra
 
@@ -151,6 +316,10 @@ by letI : algebra A B := f.to_algebra; exact module.finite A B
 
 /-- A ring morphism `A →+* B` is of `finite_type` if `B` is finitely generated as `A`-algebra. -/
 def finite_type (f : A →+* B) : Prop := @algebra.finite_type A B _ _ f.to_algebra
+
+/-- A ring morphism `A →+* B` is of `finite_presentation` if `B` is finitely presented as
+`A`-algebra. -/
+def finite_presentation (f : A →+* B) : Prop := @algebra.finite_presentation A B _ _ f.to_algebra
 
 namespace finite
 
@@ -208,7 +377,31 @@ begin
 end
 hf hg
 
+lemma of_finite_presentation {f : A →+* B} (hf : f.finite_presentation) : f.finite_type :=
+@algebra.finite_type.of_finite_presentation A B _ _ f.to_algebra hf
+
 end finite_type
+
+namespace finite_presentation
+
+variables (A)
+
+lemma id : finite_presentation (ring_hom.id A) := algebra.finite_presentation.self A
+
+variables {A}
+
+lemma comp_surjective {f : A →+* B} {g : B →+* C} (hf : f.finite_presentation) (hg : surjective g)
+  (hker : g.ker.fg) :  (g.comp f).finite_presentation :=
+@algebra.finite_presentation.of_surjective A B C _ _ f.to_algebra _ (g.comp f).to_algebra
+{ to_fun := g, commutes' := λ a, rfl, .. g } hg hker hf
+
+lemma of_surjective (f : A →+* B) (hf : surjective f) (hker : f.ker.fg) : f.finite_presentation :=
+by { rw ← f.comp_id, exact (id A).comp_surjective hf hker}
+
+lemma of_finite_type [is_noetherian_ring A] {f : A →+* B} : f.finite_type ↔ f.finite_presentation :=
+@algebra.finite_presentation.of_finite_type A B _ _ f.to_algebra _
+
+end finite_presentation
 
 end ring_hom
 
@@ -225,6 +418,10 @@ def finite (f : A →ₐ[R] B) : Prop := f.to_ring_hom.finite
 /-- An algebra morphism `A →ₐ[R] B` is of `finite_type` if it is of finite type as ring morphism.
 In other words, if `B` is finitely generated as `A`-algebra. -/
 def finite_type (f : A →ₐ[R] B) : Prop := f.to_ring_hom.finite_type
+
+/-- An algebra morphism `A →ₐ[R] B` is of `finite_presentation` if it is of finite presentation as
+ring morphism. In other words, if `B` is finitely presented as `A`-algebra. -/
+def finite_presentation (f : A →ₐ[R] B) : Prop := f.to_ring_hom.finite_presentation
 
 namespace finite
 
@@ -264,6 +461,31 @@ ring_hom.finite_type.comp_surjective hf hg
 lemma of_surjective (f : A →ₐ[R] B) (hf : surjective f) : f.finite_type :=
 ring_hom.finite_type.of_surjective f hf
 
+lemma of_finite_presentation {f : A →ₐ[R] B} (hf : f.finite_presentation) : f.finite_type :=
+ring_hom.finite_type.of_finite_presentation hf
+
 end finite_type
+
+namespace finite_presentation
+
+variables (R A)
+
+lemma id : finite_presentation (alg_hom.id R A) := ring_hom.finite_presentation.id A
+
+variables {R A}
+
+lemma comp_surjective {f : A →ₐ[R] B} {g : B →ₐ[R] C} (hf : f.finite_presentation)
+  (hg : surjective g) (hker : g.to_ring_hom.ker.fg) : (g.comp f).finite_presentation :=
+ring_hom.finite_presentation.comp_surjective hf hg hker
+
+lemma of_surjective (f : A →ₐ[R] B) (hf : surjective f) (hker : f.to_ring_hom.ker.fg) :
+  f.finite_presentation :=
+ring_hom.finite_presentation.of_surjective f hf hker
+
+lemma of_finite_type [is_noetherian_ring A] {f : A →ₐ[R] B} :
+  f.finite_type ↔ f.finite_presentation :=
+ring_hom.finite_presentation.of_finite_type
+
+end finite_presentation
 
 end alg_hom

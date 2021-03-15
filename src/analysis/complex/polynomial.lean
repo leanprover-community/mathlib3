@@ -18,7 +18,8 @@ open_locale classical
 namespace complex
 
 /- The following proof uses the method given at
-  <https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus> -/
+<https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus>
+-/
 /-- The fundamental theorem of algebra. Every non constant complex polynomial
   has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
@@ -36,7 +37,8 @@ let ⟨δ', hδ'₁, hδ'₂⟩ := continuous_iff.1 (polynomial.continuous g) z�
   ((g.eval z₀).abs) (complex.abs_pos.2 hg0) in
 let δ := min (min (δ' / 2) 1) (((f.eval z₀).abs / (g.eval z₀).abs) / 2) in
 have hf0' : 0 < (f.eval z₀).abs, from complex.abs_pos.2 hf0,
-have hfg0 : 0 < abs (eval z₀ f) * (abs (eval z₀ g))⁻¹, from div_pos hf0' (complex.abs_pos.2 hg0),
+have hg0' : 0 < abs (eval z₀ g), from complex.abs_pos.2 hg0,
+have hfg0 : 0 < (f.eval z₀).abs / abs (eval z₀ g), from div_pos hf0' hg0',
 have hδ0 : 0 < δ, from lt_min (lt_min (half_pos hδ'₁) (by norm_num)) (half_pos hfg0),
 have hδ : ∀ z : ℂ, abs (z - z₀) = δ → abs (g.eval z - g.eval z₀) < (g.eval z₀).abs,
   from λ z hz, hδ'₂ z (by rw [complex.dist_eq, hz];
@@ -46,18 +48,17 @@ let F : polynomial ℂ := C (f.eval z₀) + C (g.eval z₀) * (X - C z₀) ^ n i
 let z' := (-f.eval z₀ * (g.eval z₀).abs * δ ^ n /
   ((f.eval z₀).abs * g.eval z₀)) ^ (n⁻¹ : ℂ) + z₀ in
 have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs,
-  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc, mul_comm (g.eval z₀),
-      mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv', inv_mul_cancel hg0,
-      eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X, add_neg_cancel_right,
-      neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
+  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc,
+      mul_comm (g.eval z₀), mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv',
+      inv_mul_cancel hg0, eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X,
+      add_neg_cancel_right, neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _),
-      mul_inv_rev', inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
-    calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
-      ... = δ : pow_one _
-      ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _
-      ... < _ : half_lt_self hfg0,
+  from (div_lt_one hf0').2 $ (lt_div_iff' hg0').1 $
+  calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
+         ... = δ : pow_one _
+         ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _
+         ... < _ : half_lt_self (div_pos hf0' hg0'),
 have hF₂ : (F.eval z').abs = (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n,
   from calc (F.eval z').abs = (f.eval z₀ - f.eval z₀ * (g.eval z₀).abs
     * δ ^ n / (f.eval z₀).abs).abs : congr_arg abs hF₁

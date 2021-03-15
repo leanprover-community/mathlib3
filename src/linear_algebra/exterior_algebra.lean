@@ -163,6 +163,7 @@ begin
   refl,
 end
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext]
 theorem hom_ext {f g : exterior_algebra R M →ₐ[R] A}
   (h : f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R)) : f = g :=
@@ -172,186 +173,56 @@ begin
   simp only [h],
 end
 
-lemma ι_add_mul (x y z : M) : ι R (x + y) * ι R z = ι R x * ι R z + ι R y * ι R z :=
-by rw [linear_map.map_add, right_distrib]
-
-lemma ι_mul_add (x y z : M) : ι R x * ι R (y + z) = ι R x * ι R y + ι R x * ι R z :=
-by rw [linear_map.map_add, left_distrib]
-
-@[simp]
-lemma ι_add_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
-let ι := (ι R : M →ₗ[R] _) in calc ι x * ι y + ι y * ι x
-  = ι x * ι y + ι y * ι y + ι y * ι x :
-    by rw [ι_square_zero, add_zero]
-  ...= ι x * ι y + ι y * ι y + ι y * ι x + ι x * ι x :
-    by rw [ι_square_zero x, add_zero]
-  ...= ι (x + y) * ι y + ι y * ι x + ι x * ι x :
-    by rw ι_add_mul
-  ...= ι (x + y) * ι y + ι (x + y) * ι x :
-    by rw [ι_add_mul x y x, ι_square_zero, zero_add, add_zero]
-  ...= ι (x + y) * ι (x + y) :
-    by rw [ι_mul_add (x + y) x y, add_comm]
-  ...= 0 :
-    by rw ι_square_zero
-
-variables (R M)
-
-/--
-The canonical multilinear map from `fin q → M` into `exterior_algebra R M`.
+/-- If `C` holds for the `algebra_map` of `r : R` into `exterior_algebra R M`, the `ι` of `x : M`,
+and is preserved under addition and muliplication, then it holds for all of `exterior_algebra R M`.
 -/
-def wedge : multilinear_map R (λ i : fin q, M) (exterior_algebra R M) :=
-{ to_fun := λ ν : fin q → M , exterior_algebra.quot R M (tensor_algebra.mk R M ν),
-  map_add' := λ _ _ _ _, by simp,
-  map_smul' := λ _ _ _ _, by simp }
-
-variables {R M}
-
-
-section
-
--- TODO: we should not be relying on these definitions
-local attribute [semireducible] exterior_algebra ι
-
-lemma wedge_split (ν : fin q.succ → M) :
-wedge R M ν = ι R (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
+-- This proof closely follows `tensor_algebra.induction`
+@[elab_as_eliminator]
+lemma induction {C : exterior_algebra R M → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (exterior_algebra R M) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : exterior_algebra R M) :
+  C a :=
 begin
-  change exterior_algebra.quot R M _ = _,
-  rw tensor_algebra.mk_split,
-  simp only [exterior_algebra.quot, alg_hom.map_mul],
-  refl,
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from M
+  let s : subalgebra R (exterior_algebra R M) := {
+    carrier := C,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : { f : M →ₗ[R] s // ∀ m, f m * f m = 0 } :=
+  ⟨(ι R).cod_restrict s.to_submodule h_grade1,
+    λ m, subtype.eq $ ι_square_zero m ⟩,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (exterior_algebra R M) = s.val.comp (lift R of),
+  { ext,
+    simp [of], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  exact alg_hom.congr_fun of_id a,
 end
 
-end
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : exterior_algebra R M →ₐ[R] R :=
+exterior_algebra.lift R ⟨(0 : M →ₗ[R] R), λ m, by simp⟩
 
-/--
-Auxiliary lemma used to prove `wedge_self_adj`.
--/
-lemma wedge_self_adj_aux (ν : fin q.succ → M) {j : fin q.succ} (hj : j.val = 1) (hv : ν 0 = ν j):
-ι R (ν 0) * wedge R M (λ i : fin q, ν i.succ) = 0 :=
-begin
-  induction q with q hq,
-  --Base case (we get a contradiction)
-  exfalso,
-  exact not_lt_of_le (le_of_eq (eq_comm.mp hj)) j.2,
-  --Inductive step
-  rw wedge_split,
-  have hj1 : j = 1, by {ext, exact hj},
-  have fact : ν (0 : fin q.succ).succ = ν 1, by congr,
-  rw hj1 at hv,
-  rw [fact, hv, ←mul_assoc, ι_square_zero, zero_mul],
-end
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ exterior_algebra R M) :=
+λ x, by simp [algebra_map_inv]
 
+/-- The left-inverse of `ι`.
 
-lemma wedge_self_adj (ν : fin q → M) (i j : fin q) (hij : ↑i + 1 = ↑j) (hv : ν i = ν j) :
-wedge R M ν = 0 :=
-begin
-  induction q with q hq,
-  --Base case (there is nothing to show)
-  exfalso, exact nat.not_lt_zero ↑i i.property,
-  --Inductive step
-  rw wedge_split,
-  cases classical.em (i = 0) with hem hem,
-  --case i = 0
-  rw hem at hv,
-  rw hem at hij, norm_num at hij, rw eq_comm at hij,
-  exact wedge_self_adj_aux ν hij hv,
-  --case i ≠ 0
-  have hj : j ≠ 0 :=
-  begin
-    intro cj, rw cj at hij, simp at hij, assumption,
-  end,
-  have hij1 : ↑(i.pred hem) + 1 = ↑(j.pred hj) :=
-    by rw [←fin.coe_succ, fin.succ_pred, fin.coe_pred, ←hij, nat.add_sub_cancel],
-  have hv1 : (ν ∘ fin.succ) (i.pred hem) = (ν ∘ fin.succ) (j.pred hj) := by simp [hv],
-  rw hq (ν ∘ fin.succ) (i.pred hem) (j.pred hj) hij1 hv1,
-  rw mul_zero,
-end
+As an implementation detail, we implement this using `triv_sq_zero_ext` which has a suitable
+algebra structure. -/
+def ι_inv : exterior_algebra R M →ₗ[R] M :=
+(triv_sq_zero_ext.snd_hom R M).comp
+  (lift R ⟨triv_sq_zero_ext.inr_hom R M, λ m, triv_sq_zero_ext.inr_mul_inr R _ m m⟩).to_linear_map
 
+lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → exterior_algebra R M) :=
+λ x, by simp [ι_inv]
 
-
-lemma wedge_add_swap_adj (ν : fin q → M) {i j : fin q} (hij : i.val + 1 = j.val) :
-wedge R M ν + wedge R M (ν ∘ equiv.swap i j) = 0 :=
-begin
-  have hij1 : i ≠ j :=
-  begin
-    intro h,
-    rw h at hij, exact nat.succ_ne_self j.val hij,
-  end,
-  have key : wedge R M (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j)) = 0 :=
-    by rw wedge_self_adj (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j)) i j hij
-    begin
-      rw [function.update_same, function.update_noteq hij1,  function.update_same],
-    end,
-  rw multilinear_map.map_add at key,
-  rw [function.update_comm hij1 (ν i + ν j) (ν i) ν, multilinear_map.map_add] at key,
-  rw wedge_self_adj (function.update (function.update ν j (ν i)) i (ν i)) i j hij
-    begin
-      rw function.update_same,
-      rw function.update_comm (ne_comm.mp hij1) (ν i) (ν i) ν,
-      rw function.update_same,
-    end at key,
-  rw zero_add at key,
-  rw [function.update_comm hij1 (ν i + ν j) (ν j) ν, multilinear_map.map_add] at key,
-  rw wedge_self_adj (function.update (function.update ν j (ν j)) i (ν j)) i j hij
-  begin
-    rw function.update_same,
-    rw function.update_comm (ne_comm.mp hij1) (ν j) (ν j) ν,
-    rw function.update_same,
-  end at key,
-  rw [add_zero, add_comm] at key,
-  convert key,
-  simp,
-  ext x,
-    cases classical.em (x = i) with hx hx,
-    --case x = i
-    rw hx,
-    simp only [equiv.swap_apply_left, function.comp_app],
-    rw function.update_same,
-    --case x ≠ i
-    cases classical.em (x = j) with hx1 hx1,
-    rw hx1,
-    simp only [equiv.swap_apply_left, function.comp_app],
-    rw function.update_noteq (ne_comm.mp hij1),
-    simp,
-    --case x ≠ i, x ≠ j,
-    simp only [hx, hx1, function.comp_app, function.update_noteq, ne.def, not_false_iff],
-    rw equiv.swap_apply_of_ne_of_ne hx hx1,
-end
-
-
-
-lemma wedge_swap_adj (ν : fin q → N) {i j : fin q} (hij : i.val + 1 = j.val) :
-wedge S N (ν ∘ equiv.swap i j) = - wedge S N ν  :=
-begin
-  apply eq_neg_of_add_eq_zero,
-  rw add_comm,
-  exact wedge_add_swap_adj ν hij,
-end
-
-
-lemma wedge_perm (ν : fin q → N) (σ : equiv.perm (fin q)) :
-wedge S N ν = (equiv.perm.sign σ) • wedge S N (ν ∘ σ) :=
-begin
-  apply equiv.perm.swap_adj_induction_on' σ,
-  --Base case
-  rw [equiv.perm.sign_one, one_smul], congr,
-  --Inductive step
-  intros f x y hxy hI,
-  have hxy1 : x ≠ y :=
-  begin
-    intro h, rw h at hxy, exact (nat.succ_ne_self y.val) hxy,
-  end,
-  have assoc : ν ∘ (f * equiv.swap x y : equiv.perm (fin q)) = (ν ∘ f ∘ equiv.swap x y) := rfl,
-  rw [assoc, wedge_swap_adj (ν ∘ f) hxy, ←neg_one_smul ℤ (wedge S N (ν ∘ f))],
-  have h1 : (-1 : ℤ) = equiv.perm.sign (equiv.swap x y) := by simp [hxy1],
-  rw h1,
-  have hack : ∀ z : exterior_algebra S N,
-  (equiv.perm.sign (f * equiv.swap x y) : units ℤ) • z =
-  (equiv.perm.sign (f * equiv.swap x y) : ℤ) • z := λ z, rfl,
-  rw hack,
-  rw [smul_smul, ←units.coe_mul, ←equiv.perm.sign_mul, mul_assoc, equiv.swap_mul_self, mul_one],
-  assumption,
-end
 @[simp]
 lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
 calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]
@@ -407,3 +278,17 @@ lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
   ι_multi R n v = (list.of_fn $ λ i, ι R (v i)).prod := rfl
 
 end exterior_algebra
+
+namespace tensor_algebra
+
+variables {R M}
+
+/-- The canonical image of the `tensor_algebra` in the `exterior_algebra`, which maps
+`tensor_algebra.ι R x` to `exterior_algebra.ι R x`. -/
+def to_exterior : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
+tensor_algebra.lift R (exterior_algebra.ι R)
+
+@[simp] lemma to_exterior_ι (m : M) : (tensor_algebra.ι R m).to_exterior = exterior_algebra.ι R m :=
+by simp [to_exterior]
+
+end tensor_algebra

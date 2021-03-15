@@ -85,10 +85,12 @@ def self [mono f] : mono_factorisation f :=
   m := f,
   e := 𝟙 X }
 
--- I'm not sure we really need this, but the linter says that an inhabited instance ought to exist...
+-- I'm not sure we really need this, but the linter says that an inhabited instance
+-- ought to exist...
 instance [mono f] : inhabited (mono_factorisation f) := ⟨self f⟩
 
-/-- The morphism `m` in a factorisation `f = e ≫ m` through a monomorphism is uniquely determined. -/
+/-- The morphism `m` in a factorisation `f = e ≫ m` through a monomorphism is uniquely
+determined. -/
 @[ext]
 lemma ext
   {F F' : mono_factorisation f} (hI : F.I = F'.I) (hm : F.m = (eq_to_hom hI) ≫ F'.m) : F = F' :=
@@ -172,7 +174,9 @@ variable [has_image f]
 /-- The chosen factorisation of `f` through a monomorphism. -/
 def image.mono_factorisation : mono_factorisation f :=
 (classical.choice (has_image.exists_image)).F
-/-- The witness of the universal property for the chosen factorisation of `f` through a monomorphism. -/
+
+/-- The witness of the universal property for the chosen factorisation of `f` through
+a monomorphism. -/
 def image.is_image : is_image (image.mono_factorisation f) :=
 (classical.choice (has_image.exists_image)).is_image
 
@@ -192,7 +196,9 @@ lemma as_factor_thru_image : (image.mono_factorisation f).e = factor_thru_image 
 lemma image.fac : factor_thru_image f ≫ image.ι f = f := (image.mono_factorisation f).fac'
 
 variable {f}
-/-- Any other factorisation of the morphism `f` through a monomorphism receives a map from the image. -/
+
+/-- Any other factorisation of the morphism `f` through a monomorphism receives a map from the
+image. -/
 def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I := (image.is_image f).lift F'
 @[simp, reassoc]
 lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = image.ι f :=
@@ -249,7 +255,7 @@ begin
 end
 
 -- This is the proof that `factor_thru_image f` is an epimorphism
--- from https://en.wikipedia.org/wiki/Image_(category_theory), which is in turn taken from:
+-- from https://en.wikipedia.org/wiki/Image_%28category_theory%29, which is in turn taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
 @[ext]
 lemma image.ext {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
@@ -656,17 +662,21 @@ If `C` has strong epi mono factorisations, then the image is unique up to isomor
 `f` factors as a strong epi followed by a mono, this factorisation is essentially the image
 factorisation.
 -/
-def image.iso_strong_epi_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+def image.iso_strong_epi_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e]
+  [mono m] :
   I' ≅ image f :=
-is_image.iso_ext {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image (image.is_image f)
+is_image.iso_ext {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image $
+  image.is_image f
 
 @[simp]
-lemma image.iso_strong_epi_mono_hom_comp_ι {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+lemma image.iso_strong_epi_mono_hom_comp_ι {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f)
+  [strong_epi e] [mono m] :
   (image.iso_strong_epi_mono e m comm).hom ≫ image.ι f = m :=
 is_image.lift_fac _ _
 
 @[simp]
-lemma image.iso_strong_epi_mono_inv_comp_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+lemma image.iso_strong_epi_mono_inv_comp_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f)
+  [strong_epi e] [mono m] :
   (image.iso_strong_epi_mono e m comm).inv ≫ m = image.ι f :=
 image.lift_fac _
 

@@ -7,6 +7,13 @@ Authors: Anne Baanen, Devon Tuma
 import ring_theory.polynomial.basic
 import ring_theory.non_zero_divisors
 
+/-!
+# Scaling the roots of a polynomial
+
+This file defines `scale_roots p s` for a polynomial `p` in one variable and a ring element `s` to
+be the polynomial with root `r * s` for each root `r` of `p` and proves some basic results about it.
+-/
+
 section scale_roots
 
 variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ring S]
@@ -18,7 +25,7 @@ open finsupp polynomial
 noncomputable def scale_roots (p : polynomial R) (s : R) : polynomial R :=
 on_finset p.support
   (λ i, coeff p i * s ^ (p.nat_degree - i))
-  (λ i h, mem_support_iff.mpr (left_ne_zero_of_mul h))
+  (λ i h, polynomial.mem_support_iff.mpr (left_ne_zero_of_mul h))
 
 @[simp] lemma coeff_scale_roots (p : polynomial R) (s : R) (i : ℕ) :
   (scale_roots p s).coeff i = coeff p i * s ^ (p.nat_degree - i) :=
@@ -43,18 +50,14 @@ end
 
 lemma support_scale_roots_le (p : polynomial R) (s : R) :
   (scale_roots p s).support ≤ p.support :=
-begin
-  intros i,
-  simp only [mem_support_iff, scale_roots, on_finset_apply],
-  exact left_ne_zero_of_mul
-end
+by { intro, simpa using left_ne_zero_of_mul }
 
 lemma support_scale_roots_eq (p : polynomial R) {s : R} (hs : s ∈ non_zero_divisors R) :
   (scale_roots p s).support = p.support :=
 le_antisymm (support_scale_roots_le p s)
   begin
     intro i,
-    simp only [mem_support_iff, scale_roots, on_finset_apply],
+    simp only [coeff_scale_roots, polynomial.mem_support_iff],
     intros p_ne_zero ps_zero,
     have := ((non_zero_divisors R).pow_mem hs (p.nat_degree - i)) _ ps_zero,
     contradiction
@@ -86,17 +89,19 @@ lemma scale_roots_eval₂_eq_zero {p : polynomial S} (f : S →+* R)
   {r : R} {s : S} (hr : eval₂ f r p = 0) :
   eval₂ f (f s * r) (scale_roots p s) = 0 :=
 calc eval₂ f (f s * r) (scale_roots p s) =
-  (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) : eval₂_eq_sum
+  (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
+  eval₂_eq_sum
 ... = p.support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
   finset.sum_subset (support_scale_roots_le p s)
-  (λ i hi hi', let this : coeff p i * s ^ (p.nat_degree - i) = 0 := by simpa using hi' in by simp [this])
+  (λ i hi hi', let this : coeff p i * s ^ (p.nat_degree - i) = 0 :=
+  by simpa using hi' in by simp [this])
 ... = p.support.sum (λ (i : ℕ), f (p.coeff i) * f s ^ (p.nat_degree - i + i) * r ^ i) :
   finset.sum_congr rfl
   (λ i hi, by simp_rw [f.map_mul, f.map_pow, pow_add, mul_pow, mul_assoc])
 ... = p.support.sum (λ (i : ℕ), f s ^ p.nat_degree * (f (p.coeff i) * r ^ i)) :
   finset.sum_congr rfl
   (λ i hi, by { rw [mul_assoc, mul_left_comm, nat.sub_add_cancel],
-                exact le_nat_degree_of_ne_zero (mem_support_iff.mp hi) })
+                exact le_nat_degree_of_ne_zero (polynomial.mem_support_iff.mp hi) })
 ... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
 ... = f s ^ p.nat_degree * eval₂ f r p : by { rw [eval₂_eq_sum], refl }
 ... = 0 : by rw [hr, _root_.mul_zero]

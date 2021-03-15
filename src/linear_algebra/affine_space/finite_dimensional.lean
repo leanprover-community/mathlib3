@@ -313,7 +313,7 @@ begin
   { rintro ⟨v, hp₀v⟩,
     use v,
     intros w hw,
-    have hs : vector_span k s ≤ submodule.span k ({v} : set V),
+    have hs : vector_span k s ≤ k ∙ v,
     { rw [vector_span_eq_span_vsub_set_right k h, submodule.span_le, set.subset_def],
       intros x hx,
       rw [submodule.mem_coe, submodule.mem_span_singleton],

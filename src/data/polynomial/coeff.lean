@@ -36,14 +36,18 @@ lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + c
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
 
+lemma sum_def [add_comm_monoid S] (f : ℕ → R → S) :
+  p.sum f = ∑ n in p.support, f n (p.coeff n) :=
+rfl
+
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+coeff (r • p) n = r * coeff p n := finsupp.smul_apply _ _ _
 
-lemma mem_support_iff_coeff_ne_zero : n ∈ p.support ↔ p.coeff n ≠ 0 :=
-by { rw mem_support_to_fun, refl }
+@[simp] lemma mem_support_iff : n ∈ p.support ↔ p.coeff n ≠ 0 :=
+by simp [support, coeff]
 
-lemma not_mem_support_iff_coeff_zero : n ∉ p.support ↔ p.coeff n = 0 :=
-by { rw [mem_support_to_fun, not_not], refl, }
+lemma not_mem_support_iff : n ∉ p.support ↔ p.coeff n = 0 :=
+by simp
 
 variable (R)
 /-- The nth coefficient, as a linear map. -/
@@ -57,6 +61,9 @@ variable {R}
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
 (s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
 
+/-- Decomposes the coefficient of the product `p * q` as a sum
+over `nat.antidiagonal`. A version which sums over `range (n + 1)` can be obtained
+by using `finset.nat.sum_antidiagonal_eq_sum_range_succ`. -/
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
@@ -102,6 +109,17 @@ begin
   { exact λ h1, (h1 (nat.mem_antidiagonal.2 rfl)).elim }
 end
 
+lemma coeff_mul_X_pow' (p : polynomial R) (n d : ℕ) :
+  (p * X ^ n).coeff d = ite (n ≤ d) (p.coeff (d - n)) 0 :=
+begin
+  split_ifs,
+  { rw [←@nat.sub_add_cancel d n h, coeff_mul_X_pow, nat.add_sub_cancel] },
+  { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
+    rw [coeff_X_pow, if_neg, mul_zero],
+    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
+      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
+end
+
 @[simp] theorem coeff_mul_X (p : polynomial R) (n : ℕ) :
   coeff (p * X) (n + 1) = coeff p n :=
 by simpa only [pow_one] using coeff_mul_X_pow p 1 n
@@ -139,5 +157,70 @@ begin
 end
 
 end coeff
+
+open submodule polynomial set
+
+variables {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
+
+/--  If the coefficients of a polynomial belong to n ideal contains the submodule span of the
+coefficients of a polynomial. -/
+lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
+  (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
+begin
+  refine bInter_subset_of_mem _,
+  rintros _ ⟨i, rfl⟩,
+  exact (mem_coe _).mpr (cf i),
+end
+
+lemma mem_span_C_coeff :
+  f ∈ span (polynomial R) {g : polynomial R | ∃ i : ℕ, g = (C (coeff f i))} :=
+begin
+  rw [← f.sum_single] {occs := occurrences.pos [1]},
+  refine sum_mem _ (λ i hi, _),
+  change monomial i _ ∈ span _ _,
+  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul],
+  exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
+end
+
+lemma exists_coeff_not_mem_C_inverse :
+  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
+imp_of_not_imp_not _ _
+  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
+
+section cast
+
+@[simp] lemma nat_cast_coeff_zero {n : ℕ} {R : Type*} [semiring R] :
+  (n : polynomial R).coeff 0 = n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [ih], },
+end
+
+@[simp, norm_cast] theorem nat_cast_inj
+  {m n : ℕ} {R : Type*} [semiring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
+begin
+  fsplit,
+  { intro h,
+    apply_fun (λ p, p.coeff 0) at h,
+    simpa using h, },
+  { rintro rfl, refl, },
+end
+
+@[simp] lemma int_cast_coeff_zero {i : ℤ} {R : Type*} [ring R] :
+  (i : polynomial R).coeff 0 = i :=
+by cases i; simp
+
+@[simp, norm_cast] theorem int_cast_inj
+  {m n : ℤ} {R : Type*} [ring R] [char_zero R] : (↑m : polynomial R) = ↑n ↔ m = n :=
+begin
+  fsplit,
+  { intro h,
+    apply_fun (λ p, p.coeff 0) at h,
+    simpa using h, },
+  { rintro rfl, refl, },
+end
+
+end cast
 
 end polynomial

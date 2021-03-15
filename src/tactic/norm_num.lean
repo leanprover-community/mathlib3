@@ -20,6 +20,11 @@ namespace tactic
 meta def refl_conv (e : expr) : tactic (expr × expr) :=
 do p ← mk_eq_refl e, return (e, p)
 
+/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
+proof by reflexivity. -/
+meta def or_refl_conv (tac : expr → tactic (expr × expr))
+  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
+
 /-- Transitivity conversion: given two conversions (which take an
 expression `e` and returns `(e', ⊢ e = e')`), produces another
 conversion that combines them with transitivity, treating failures
@@ -100,6 +105,13 @@ meta def prove_succ : instance_cache → expr → expr → tactic (instance_cach
   | _ := failed
   end
 end
+
+/-- Given `a` natural numeral, returns `(b, ⊢ a + 1 = b)`. -/
+meta def prove_succ' (c : instance_cache) (a : expr) : tactic (instance_cache × expr × expr) :=
+do na ← a.to_nat,
+  (c, b) ← c.of_nat (na + 1),
+  (c, p) ← prove_succ c a b,
+  return (c, b, p)
 
 theorem zero_adc {α} [semiring α] (a b : α) (h : a + 1 = b) : 0 + a + 1 = b := by rwa zero_add
 theorem adc_zero {α} [semiring α] (a b : α) (h : a + 1 = b) : a + 0 + 1 = b := by rwa add_zero
@@ -457,8 +469,9 @@ meta def prove_lt_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
   tactic (instance_cache × expr) :=
 match match_sign a, match_sign b with
 | sum.inl a, sum.inl b := do
-  (ic, p) ← prove_lt_nonneg_rat ic a b (-na) (-nb),
-  ic.mk_app ``neg_lt_neg [a, b, p]
+  -- we have to switch the order of `a` and `b` because `a < b ↔ -b < -a`
+  (ic, p) ← prove_lt_nonneg_rat ic b a (-nb) (-na),
+  ic.mk_app ``neg_lt_neg [b, a, p]
 | sum.inl a, sum.inr ff := do
   (ic, p) ← prove_pos ic a,
   ic.mk_app ``neg_neg_of_pos [a, p]
@@ -906,7 +919,8 @@ meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache 
   end
 
 theorem div_eq {α} [division_ring α] (a b b' c : α)
-  (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c := by rwa ← hb at h
+  (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c :=
+by rwa [ ← hb, ← div_eq_mul_inv] at h
 
 /-- Given `a`,`b` rational numerals, returns `(c, ⊢ a / b = c)`. -/
 meta def prove_div (ic : instance_cache) (a b : expr) (na nb : ℚ) :
@@ -932,7 +946,8 @@ match match_sign a with
 end
 
 theorem sub_pos {α} [add_group α] (a b b' c : α) (hb : -b = b') (h : a + b' = c) : a - b = c :=
-by rwa ← hb at h
+by rwa [← hb, ← sub_eq_add_neg] at h
+
 theorem sub_neg {α} [add_group α] (a b c : α) (h : a + b = c) : a - -b = c :=
 by rwa sub_neg_eq_add
 
@@ -970,15 +985,6 @@ do na ← a.to_nat, nb ← b.to_nat,
     (ic, p) ← prove_add_nat ic a c b,
     return (`(0 : ℕ), `(sub_nat_neg).mk_app [a, b, c, p])
 
-/-- This is needed because when `a` and `b` are numerals lean is more likely to unfold them
-than unfold the instances in order to prove that `add_group_has_sub = int.has_sub`. -/
-theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ add_group_has_sub a b = c) : a - b = c := h
-
-/-- Given `a : ℤ`, `b : ℤ` integral numerals, returns `(c, ⊢ a - b = c)`. -/
-meta def prove_sub_int (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
-do (_, c, p) ← prove_sub ic a b,
-  return (c, `(int_sub_hack).mk_app [a, b, c, p])
-
 /-- Evaluates the basic field operations `+`,`neg`,`-`,`*`,`inv`,`/` on numerals.
 Also handles nat subtraction. Does not do recursive simplification; that is,
 `1 + 1 + 1` will not simplify but `2 + 1` will. This is handled by the top level
@@ -1001,7 +1007,6 @@ meta def eval_field : expr → tactic (expr × expr)
 | `(@has_sub.sub %%α %%inst %%a %%b) := do
   c ← mk_instance_cache α,
   if α = `(nat) then prove_sub_nat c a b
-  else if inst = `(int.has_sub) then prove_sub_int c a b
   else prod.snd <$> prove_sub c a b
 | `(has_inv.inv %%e) := do
   n ← e.to_rat,
@@ -1295,10 +1300,10 @@ the basic builtin set of simplifications. -/
 meta def tactic.norm_num1 (step : expr → tactic (expr × expr))
   (loc : interactive.loc) : tactic unit :=
 do ns ← loc.get_locals,
-   tt ← tactic.replace_at (norm_num.derive' step) ns loc.include_goal
-      | fail "norm_num failed to simplify",
+   success ← tactic.replace_at (norm_num.derive' step) ns loc.include_goal,
    when loc.include_goal $ try tactic.triv,
-   when (¬ ns.empty) $ try tactic.contradiction
+   when (¬ ns.empty) $ try tactic.contradiction,
+   monad.unlessb success $ done <|> fail "norm_num failed to simplify"
 
 /-- Normalize numerical expressions. It uses the provided `step` tactic to simplify the expression;
 use `get_step` to get the default `norm_num` set and `derive.step` for the basic builtin set of
@@ -1307,7 +1312,7 @@ meta def tactic.norm_num (step : expr → tactic (expr × expr))
   (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
 repeat1 $ orelse' (tactic.norm_num1 step l) $
 interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
-  ff (simp_arg_type.except ``one_div :: hs) [] l
+  ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
 
 namespace tactic.interactive
 open norm_num interactive interactive.types

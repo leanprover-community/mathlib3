@@ -129,7 +129,7 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id _) = S :=
 ext (by simp)
 
@@ -331,6 +331,35 @@ S.coe_injective.monoid coe rfl (λ _ _, rfl)
 an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
 S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
+an `ordered_add_comm_monoid`."]
+instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] (S : submonoid M) :
+  ordered_comm_monoid S :=
+S.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
+a `linear_ordered_add_comm_monoid`."]
+instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] (S : submonoid M) :
+  linear_ordered_comm_monoid S :=
+S.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
+@[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
+an `ordered_cancel_add_comm_monoid`."]
+instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] (S : submonoid M) :
+  ordered_cancel_comm_monoid S :=
+S.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+
+/-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
+-/
+@[to_additive "An `add_submonoid` of a `linear_ordered_cancel_add_comm_monoid` is
+a `linear_ordered_cancel_add_comm_monoid`."]
+instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
+  (S : submonoid M) : linear_ordered_cancel_comm_monoid S :=
+S.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
@@ -546,6 +575,9 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
 ext' $ (coe_mrange _).trans $ subtype.range_coe
 
+@[to_additive] lemma eq_top_iff' : S = ⊤ ↔ ∀ x : M, x ∈ S :=
+eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
+
 @[to_additive] lemma eq_bot_iff_forall : S = ⊥ ↔ ∀ x ∈ S, x = (1 : M) :=
 begin
   split,
@@ -557,7 +589,8 @@ begin
     exact ⟨h x, by { rintros rfl, exact S.one_mem }⟩ },
 end
 
-@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) : nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
+@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) :
+  nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
 begin
   split,
   { introI h,

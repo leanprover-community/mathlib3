@@ -50,29 +50,20 @@ section friendship_def
 variables (G : simple_graph V)
 
 /--
-This is the set of all vertices mutually adjacent to a pair of vertices.
--/
-def common_friends [fintype V] (v w : V) : finset V := G.neighbor_finset v ∩ G.neighbor_finset w
-
-/--
 This property of a graph is the hypothesis of the friendship theorem:
 every pair of nonadjacent vertices has exactly one common friend,
 a vertex to which both are adjacent.
 -/
-def friendship [fintype V] : Prop := ∀ ⦃v w : V⦄, v ≠ w → (common_friends G v w).card = 1
+def friendship [fintype V] : Prop := ∀ ⦃v w : V⦄, v ≠ w → fintype.card (G.common_neighbors v w) = 1
 
 /--
 A politician is a vertex that is adjacent to all other vertices.
 -/
 def exists_politician : Prop := ∃ (v : V), ∀ (w : V), v ≠ w → G.adj v w
 
-lemma mem_common_friends [fintype V] {v w : V} {a : V} :
-  a ∈ common_friends G v w ↔ G.adj v a ∧ G.adj w a :=
-by simp [common_friends]
-
 end friendship_def
 
-variables [fintype V] [inhabited V] {G : simple_graph V} {d : ℕ} (hG : friendship G)
+variables [fintype V] {G : simple_graph V} {d : ℕ} (hG : friendship G)
 include hG
 
 namespace friendship
@@ -85,7 +76,8 @@ theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
   rw [pow_two, ← nat.cast_one, ← hG hvw],
-  simp [common_friends, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter],
+  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter,
+    and_comm],
 end
 
 /-- This calculation amounts to counting the number of length 3 walks between nonadjacent vertices.
@@ -99,7 +91,7 @@ begin
   rw [adj_matrix_sq_of_ne _ hG, nat.cast_one],
   rintro ⟨rfl⟩,
   rw mem_neighbor_finset at hx,
-  apply non_adj hx,
+  exact non_adj hx,
 end
 
 variable {R}
@@ -113,42 +105,11 @@ lemma degree_eq_of_not_adj {v w : V} (hvw : ¬ G.adj v w) :
   degree G v = degree G w :=
 begin
   rw [← nat.cast_id (G.degree v), ← nat.cast_id (G.degree w),
-        ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
-        ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
-    conv_lhs {rw ← transpose_adj_matrix},
-    simp only [pow_succ, pow_two, mul_eq_mul, ← transpose_mul, transpose_apply],
-    simp only [← mul_eq_mul, mul_assoc],
-end
-
-/-- If `G` is a friendship graph without a politician (a vertex adjacent to all others), then
-  it is regular. We have shown that nonadjacent vertices of a friendship graph have the same degree,
-  and if there isn't a politician, we can show this for adjacent vertices by finding a vertex
-  neither is adjacent to, and then using transitivity. -/
-theorem is_regular_of_not_exists_politician (hG' : ¬exists_politician G) :
-  ∃ (d : ℕ), G.is_regular_of_degree d :=
-begin
-  have v := arbitrary V,
-  use G.degree v,
-  intro x,
-  by_cases hvx : G.adj v x, swap, { exact eq.symm (degree_eq_of_not_adj hG hvx), },
-  dunfold exists_politician at hG',
-  push_neg at hG',
-  rcases hG' v with ⟨w, hvw', hvw⟩,
-  rcases hG' x with ⟨y, hxy', hxy⟩,
-  by_cases hxw : G.adj x w,
-    swap, { rw degree_eq_of_not_adj hG hvw, apply degree_eq_of_not_adj hG hxw },
-  rw degree_eq_of_not_adj hG hxy,
-  by_cases hvy : G.adj v y,
-    swap, { apply eq.symm (degree_eq_of_not_adj hG hvy) },
-  rw degree_eq_of_not_adj hG hvw,
-  apply degree_eq_of_not_adj hG,
-  intro hcontra,
-  rcases finset.card_eq_one.mp (hG hvw') with ⟨a, h⟩,
-  have hx : x ∈ common_friends G v w := (mem_common_friends G).mpr ⟨hvx, G.sym hxw⟩,
-  have hy : y ∈ common_friends G v w := (mem_common_friends G).mpr ⟨hvy, G.sym hcontra⟩,
-  rw [h, mem_singleton] at hx hy,
-  apply hxy',
-  rw [hy, hx],
+      ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
+      ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
+  conv_lhs {rw ← transpose_adj_matrix},
+  simp only [pow_succ, pow_two, mul_eq_mul, ← transpose_mul, transpose_apply],
+  simp only [← mul_eq_mul, mul_assoc],
 end
 
 /-- Let `A` be the adjacency matrix of a graph `G`.
@@ -163,6 +124,49 @@ begin
   { rw [adj_matrix_sq_of_ne R hG h, if_neg h], },
 end
 
+lemma adj_matrix_sq_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1)
+  (hd : G.is_regular_of_degree d) :
+  (G.adj_matrix (zmod p)) ^ 2 = λ _ _, 1 :=
+by simp [adj_matrix_sq_of_regular hG hd, dmod]
+
+section nonempty
+
+variable [nonempty V]
+
+/-- If `G` is a friendship graph without a politician (a vertex adjacent to all others), then
+  it is regular. We have shown that nonadjacent vertices of a friendship graph have the same degree,
+  and if there isn't a politician, we can show this for adjacent vertices by finding a vertex
+  neither is adjacent to, and then using transitivity. -/
+theorem is_regular_of_not_exists_politician (hG' : ¬exists_politician G) :
+  ∃ (d : ℕ), G.is_regular_of_degree d :=
+begin
+  have v := classical.arbitrary V,
+  use G.degree v,
+  intro x,
+  by_cases hvx : G.adj v x, swap, { exact (degree_eq_of_not_adj hG hvx).symm, },
+  dunfold exists_politician at hG',
+  push_neg at hG',
+  rcases hG' v with ⟨w, hvw', hvw⟩,
+  rcases hG' x with ⟨y, hxy', hxy⟩,
+  by_cases hxw : G.adj x w,
+    swap, { rw degree_eq_of_not_adj hG hvw, exact degree_eq_of_not_adj hG hxw },
+  rw degree_eq_of_not_adj hG hxy,
+  by_cases hvy : G.adj v y,
+    swap, { exact (degree_eq_of_not_adj hG hvy).symm },
+  rw degree_eq_of_not_adj hG hvw,
+  apply degree_eq_of_not_adj hG,
+  intro hcontra,
+  rcases finset.card_eq_one.mp (hG hvw') with ⟨⟨a, ha⟩, h⟩,
+  have key : ∀ {x}, x ∈ G.common_neighbors v w → x = a,
+  { intros x hx,
+    have h' := mem_univ (subtype.mk x hx),
+    rw [h, mem_singleton] at h',
+    injection h', },
+  apply hxy',
+  rw [key ((mem_common_neighbors G).mpr ⟨hvx, G.sym hxw⟩),
+      key ((mem_common_neighbors G).mpr ⟨hvy, G.sym hcontra⟩)],
+end
+
 /-- Let `A` be the adjacency matrix of a `d`-regular friendship graph, and let `v` be a vector
   all of whose components are `1`. Then `v` is an eigenvector of `A ^ 2`, and we can compute
   the eigenvalue to be `d * d`, or as `d + (fintype.card V - 1)`, so those quantities must be equal.
@@ -171,12 +175,12 @@ end
 lemma card_of_regular (hd : G.is_regular_of_degree d) :
   d + (fintype.card V - 1) = d * d :=
 begin
-  let v := arbitrary V,
+  have v := classical.arbitrary V,
   transitivity ((G.adj_matrix ℕ) ^ 2).mul_vec (λ _, 1) v,
   { rw [adj_matrix_sq_of_regular hG hd, mul_vec, dot_product, ← insert_erase (mem_univ v)],
     simp only [sum_insert, mul_one, if_true, nat.cast_id, eq_self_iff_true,
                mem_erase, not_true, ne.def, not_false_iff, add_right_inj, false_and],
-    rw [finset.sum_const_nat, card_erase_of_mem (mem_univ v), mul_one], refl,
+    rw [finset.sum_const_nat, card_erase_of_mem (mem_univ v), mul_one], { refl },
     intros x hx, simp [(ne_of_mem_erase hx).symm], },
   { rw [pow_two, mul_eq_mul, ← mul_vec_mul_vec],
     simp [adj_matrix_mul_vec_const_apply_of_regular hd, neighbor_finset,
@@ -188,18 +192,16 @@ end
 lemma card_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d) :
   (fintype.card V : zmod p) = 1 :=
 begin
-  have hpos : 0 < (fintype.card V),
-  { rw fintype.card_pos_iff, apply_instance, },
+  have hpos : 0 < fintype.card V := fintype.card_pos_iff.mpr infer_instance,
   rw [← nat.succ_pred_eq_of_pos hpos, nat.succ_eq_add_one, nat.pred_eq_sub_one],
   simp only [add_left_eq_self, nat.cast_add, nat.cast_one],
   have h := congr_arg (λ n, (↑n : zmod p)) (card_of_regular hG hd),
   revert h, simp [dmod],
 end
 
-lemma adj_matrix_sq_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1)
-  (hd : G.is_regular_of_degree d) :
-  (G.adj_matrix (zmod p)) ^ 2 = λ _ _, 1 :=
-by simp [adj_matrix_sq_of_regular hG hd, dmod]
+end nonempty
+
+omit hG
 
 lemma adj_matrix_sq_mul_const_one_of_regular (hd : G.is_regular_of_degree d) :
   (G.adj_matrix R) * (λ _ _, 1) = λ _ _, d :=
@@ -208,30 +210,32 @@ by { ext x, simp [← hd x, degree] }
 lemma adj_matrix_mul_const_one_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1)
   (hd : G.is_regular_of_degree d) :
   (G.adj_matrix (zmod p)) * (λ _ _, 1) = λ _ _, 1 :=
-by rw [adj_matrix_sq_mul_const_one_of_regular hG hd, dmod]
+by rw [adj_matrix_sq_mul_const_one_of_regular hd, dmod]
+
+include hG
 
 /-- Modulo a factor of `d-1`, the square and all higher powers of the adjacency matrix
   of a `d`-regular friendship graph reduce to the matrix whose entries are all 1. -/
-lemma adj_matrix_pow_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d)
-{k : ℕ} (hk : 2 ≤ k) :
+lemma adj_matrix_pow_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1)
+  (hd : G.is_regular_of_degree d) {k : ℕ} (hk : 2 ≤ k) :
   (G.adj_matrix (zmod p)) ^ k = λ _ _, 1 :=
 begin
   iterate 2 {cases k with k, { exfalso, linarith, }, },
   induction k with k hind,
-  apply adj_matrix_sq_mod_p_of_regular hG dmod hd,
-  rw pow_succ,
+  { exact adj_matrix_sq_mod_p_of_regular hG dmod hd, },
   have h2 : 2 ≤ k.succ.succ := by omega,
-  rw hind h2,
-  apply adj_matrix_mul_const_one_mod_p_of_regular hG dmod hd,
+  rw [pow_succ, hind h2],
+  exact adj_matrix_mul_const_one_mod_p_of_regular dmod hd,
 end
+
+variable [nonempty V]
 
 /-- This is the main proof. Assuming that `3 ≤ d`, we take `p` to be a prime factor of `d-1`.
   Then the `p`th power of the adjacency matrix of a `d`-regular friendship graph must have trace 1
   mod `p`, but we can also show that the trace must be the `p`th power of the trace of the original
   adjacency matrix, which is 0, a contradiction.
 -/
-lemma false_of_three_le_degree
-  (hd : G.is_regular_of_degree d) (h : 3 ≤ d) : false :=
+lemma false_of_three_le_degree (hd : G.is_regular_of_degree d) (h : 3 ≤ d) : false :=
 begin
   -- get a prime factor of d - 1
   let p : ℕ := (d - 1).min_fac,
@@ -242,20 +246,22 @@ begin
   have hp2 : 2 ≤ p, { apply nat.prime.two_le, assumption },
   have dmod : (d : zmod p) = 1,
   { rw [← nat.succ_pred_eq_of_pos dpos, nat.succ_eq_add_one, nat.pred_eq_sub_one],
-    simp only [add_left_eq_self, nat.cast_add, nat.cast_one], apply p_dvd_d_pred, },
+    simp only [add_left_eq_self, nat.cast_add, nat.cast_one],
+    exact p_dvd_d_pred, },
   have Vmod := card_mod_p_of_regular hG dmod hd,
   -- now we reduce to a trace calculation
   have := zmod.trace_pow_card (G.adj_matrix (zmod p)),
   contrapose! this, clear this,
   -- the trace is 0 mod p when computed one way
   rw [trace_adj_matrix, zero_pow],
+  swap, { apply nat.prime.pos, assumption, },
   -- but the trace is 1 mod p when computed the other way
   rw adj_matrix_pow_mod_p_of_regular hG dmod hd hp2,
-  swap, { apply nat.prime.pos, assumption, },
-  { dunfold fintype.card at Vmod,
-    simp only [matrix.trace, diag_apply, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
-    rw [Vmod, ← nat.cast_one, zmod.nat_coe_zmod_eq_zero_iff_dvd, nat.dvd_one, nat.min_fac_eq_one_iff],
-    linarith, },
+  dunfold fintype.card at Vmod,
+  simp only [matrix.trace, diag_apply, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
+  rw [Vmod, ← nat.cast_one, zmod.nat_coe_zmod_eq_zero_iff_dvd, nat.dvd_one,
+    nat.min_fac_eq_one_iff],
+  linarith,
 end
 
 /-- If `d ≤ 1`, a `d`-regular friendship graph has at most one vertex, which is
@@ -273,8 +279,9 @@ begin
       { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at h,
         linarith },
       subst n, } },
-  use arbitrary V, intros w h,
-  exfalso, apply h,
+  use classical.arbitrary V,
+  intros w h, exfalso,
+  apply h,
   apply fintype.card_le_one_iff.mp this,
 end
 
@@ -287,12 +294,12 @@ begin
   { rw finset.subset_iff,
     intro x,
     rw [mem_neighbor_finset, finset.mem_erase],
-    exact λ h, ⟨ne.symm (G.ne_of_adj h), finset.mem_univ _⟩ },
+    exact λ h, ⟨(G.ne_of_adj h).symm, finset.mem_univ _⟩ },
   convert_to 2 ≤ _,
-  convert_to _ = fintype.card V - 1,
-  { have hfr:= card_of_regular hG hd,
-    linarith },
-  { exact finset.card_erase_of_mem (finset.mem_univ _), },
+  { convert_to _ = fintype.card V - 1,
+    { have hfr:= card_of_regular hG hd,
+      linarith },
+    { exact finset.card_erase_of_mem (finset.mem_univ _), }, },
   { dsimp [is_regular_of_degree, degree] at hd,
     rw hd, }
 end
@@ -300,10 +307,11 @@ end
 lemma exists_politician_of_degree_eq_two (hd : G.is_regular_of_degree 2) :
   exists_politician G :=
 begin
-  have v := arbitrary V,
-  use v, intros w hvw,
+  have v := classical.arbitrary V,
+  use v,
+  intros w hvw,
   rw [← mem_neighbor_finset, neighbor_finset_eq_of_degree_eq_two hG hd v, finset.mem_erase],
-  exact ⟨ne.symm hvw, finset.mem_univ _⟩,
+  exact ⟨hvw.symm, finset.mem_univ _⟩,
 end
 
 lemma exists_politician_of_degree_le_two (hd : G.is_regular_of_degree d) (h : d ≤ 2) :
@@ -322,12 +330,12 @@ end friendship
   and now we do casework on `d`.
   If the degree is at most 2, we observe by casework that it has a politician anyway.
   If the degree is at least 3, the graph cannot exist. -/
-theorem friendship_theorem : exists_politician G :=
+theorem friendship_theorem [nonempty V] : exists_politician G :=
 begin
   by_contradiction npG,
   rcases hG.is_regular_of_not_exists_politician npG with ⟨d, dreg⟩,
   have h : d ≤ 2 ∨ 3 ≤ d := by omega,
   cases h with dle2 dge3,
-  { refine npG (hG.exists_politician_of_degree_le_two dreg dle2) },
+  { exact npG (hG.exists_politician_of_degree_le_two dreg dle2) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end

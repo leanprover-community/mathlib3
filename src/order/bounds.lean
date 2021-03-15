@@ -285,6 +285,15 @@ lemma is_greatest.union [linear_order γ] {a b : γ} {s t : set γ}
 ⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
   (ha.is_lub.union hb.is_lub).1⟩
 
+lemma is_lub.inter_Ici_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_lub s a)
+  (hb : b ∈ s) : is_lub (s ∩ Ici b) a :=
+⟨λ x hx, ha.1 hx.1, λ c hc, have hbc : b ≤ c, from hc ⟨hb, le_rfl⟩,
+  ha.2 $ λ x hx, (le_total x b).elim (λ hxb, hxb.trans hbc) $ λ hbx, hc ⟨hx, hbx⟩⟩
+
+lemma is_glb.inter_Iic_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_glb s a)
+  (hb : b ∈ s) : is_glb (s ∩ Iic b) a :=
+@is_lub.inter_Ici_of_mem (order_dual γ) _ _ _ _ ha hb
+
 /-!
 ### Specific sets
 
@@ -606,6 +615,12 @@ lemma is_lub_lt_iff (ha : is_lub s a) : a < b ↔ ∃ c ∈ upper_bounds s, c < 
 lemma lt_is_glb_iff (ha : is_glb s a) : b < a ↔ ∃ c ∈ lower_bounds s, b < c :=
 @is_lub_lt_iff (order_dual α) _ s _ _ ha
 
+lemma le_of_is_lub_le_is_glb {x y} (ha : is_glb s a) (hb : is_lub s b) (hab : b ≤ a)
+  (hx : x ∈ s) (hy : y ∈ s) : x ≤ y :=
+calc x ≤ b : hb.1 hx
+   ... ≤ a : hab
+   ... ≤ y : ha.1 hy
+
 end preorder
 
 section partial_order
@@ -629,18 +644,46 @@ Ha.unique Hb
 lemma is_glb.unique (Ha : is_glb s a) (Hb : is_glb s b) : a = b :=
 Ha.unique Hb
 
+lemma set.subsingleton_of_is_lub_le_is_glb (Ha : is_glb s a) (Hb : is_lub s b) (hab : b ≤ a) :
+  s.subsingleton :=
+λ x hx y hy, le_antisymm (le_of_is_lub_le_is_glb Ha Hb hab hx hy)
+  (le_of_is_lub_le_is_glb Ha Hb hab hy hx)
+
+lemma is_glb_lt_is_lub_of_ne (Ha : is_glb s a) (Hb : is_lub s b)
+  {x y} (Hx : x ∈ s) (Hy : y ∈ s) (Hxy : x ≠ y) :
+  a < b :=
+lt_iff_le_not_le.2
+  ⟨lower_bounds_le_upper_bounds Ha.1 Hb.1 ⟨x, Hx⟩,
+    λ hab, Hxy $ set.subsingleton_of_is_lub_le_is_glb Ha Hb hab Hx Hy⟩
+
 end partial_order
 
 section linear_order
 variables [linear_order α] {s : set α} {a b : α}
 
 lemma lt_is_lub_iff (h : is_lub s a) : b < a ↔ ∃ c ∈ s, b < c :=
-by haveI := classical.dec;
-   simpa [upper_bounds, not_ball] using
-   not_congr (@is_lub_le_iff _ _ _ _ b h)
+by simp only [← not_le, is_lub_le_iff h, mem_upper_bounds, not_forall]
 
 lemma is_glb_lt_iff (h : is_glb s a) : a < b ↔ ∃ c ∈ s, c < b :=
 @lt_is_lub_iff (order_dual α) _ _ _ _ h
+
+lemma is_lub.exists_between (h : is_lub s a) (hb : b < a) :
+  ∃ c ∈ s, b < c ∧ c ≤ a :=
+let ⟨c, hcs, hbc⟩ := (lt_is_lub_iff h).1 hb in ⟨c, hcs, hbc, h.1 hcs⟩
+
+lemma is_lub.exists_between' (h : is_lub s a) (h' : a ∉ s) (hb : b < a) :
+  ∃ c ∈ s, b < c ∧ c < a :=
+let ⟨c, hcs, hbc, hca⟩ := h.exists_between hb
+in ⟨c, hcs, hbc, hca.lt_of_ne $ λ hac, h' $ hac ▸ hcs⟩
+
+lemma is_glb.exists_between (h : is_glb s a) (hb : a < b) :
+  ∃ c ∈ s, a ≤ c ∧ c < b :=
+let ⟨c, hcs, hbc⟩ := (is_glb_lt_iff h).1 hb in ⟨c, hcs, h.1 hcs, hbc⟩
+
+lemma is_glb.exists_between' (h : is_glb s a) (h' : a ∉ s) (hb : a < b) :
+  ∃ c ∈ s, a < c ∧ c < b :=
+let ⟨c, hcs, hac, hcb⟩ := h.exists_between hb
+in ⟨c, hcs, hac.lt_of_ne $ λ hac, h' $ hac.symm ▸ hcs, hcb⟩
 
 end linear_order
 
@@ -650,52 +693,22 @@ end linear_order
 
 section linear_ordered_add_comm_group
 
-variables [linear_ordered_add_comm_group α] {s : set α} {a ε : α} (h₃ : 0 < ε)
-include h₃
+variables [linear_ordered_add_comm_group α] {s : set α} {a ε : α}
 
-lemma is_glb.exists_between_self_add (h₁ : is_glb s a) : ∃ b, b ∈ s ∧ a ≤ b ∧ b < a + ε :=
-begin
-  have h' : a + ε ∉ lower_bounds s,
-  { set A := a + ε,
-    have : a < A := by { simp [A, h₃] },
-    intros hA,
-    exact lt_irrefl a (lt_of_lt_of_le this (h₁.2 hA)) },
-  obtain ⟨b, hb, hb'⟩ : ∃ b ∈ s, b < a + ε, by simpa [lower_bounds] using h',
-  exact ⟨b, hb, h₁.1 hb, hb'⟩
-end
+lemma is_glb.exists_between_self_add (h : is_glb s a) (hε : 0 < ε) :
+  ∃ b ∈ s, a ≤ b ∧ b < a + ε :=
+h.exists_between $ lt_add_of_pos_right _ hε
 
-lemma is_glb.exists_between_self_add' (h₁ : is_glb s a) (h₂ : a ∉ s) :
-  ∃ b, b ∈ s ∧ a < b ∧ b < a + ε :=
-begin
-  rcases h₁.exists_between_self_add h₃ with ⟨b, b_in, hb₁, hb₂⟩,
-  have h₅ : a ≠ b,
-  { intros contra,
-    apply h₂,
-    rwa ← contra at b_in },
-  exact ⟨b, b_in, lt_of_le_of_ne (h₁.1 b_in) h₅, hb₂⟩
-end
+lemma is_glb.exists_between_self_add' (h : is_glb s a) (h₂ : a ∉ s) (hε : 0 < ε) :
+  ∃ b ∈ s, a < b ∧ b < a + ε :=
+h.exists_between' h₂ $ lt_add_of_pos_right _ hε
 
-lemma is_lub.exists_between_sub_self  (h₁ : is_lub s a) : ∃ b, b ∈ s ∧ a - ε < b ∧ b ≤ a :=
-begin
-  have h' : a - ε ∉ upper_bounds s,
-  { set A := a - ε,
-    have : A < a := sub_lt_self a h₃,
-    intros hA,
-    exact lt_irrefl a (lt_of_le_of_lt (h₁.2 hA) this) },
-  obtain ⟨b, hb, hb'⟩ : ∃ (x : α), x ∈ s ∧ a - ε < x, by simpa [upper_bounds] using h',
-  exact ⟨b, hb, hb', h₁.1 hb⟩
-end
+lemma is_lub.exists_between_sub_self  (h : is_lub s a) (hε : 0 < ε) : ∃ b ∈ s, a - ε < b ∧ b ≤ a :=
+h.exists_between $ sub_lt_self _ hε
 
-lemma is_lub.exists_between_sub_self' (h₁ : is_lub s a) (h₂ : a ∉ s) :
-  ∃ b, b ∈ s ∧ a - ε < b ∧ b < a :=
-begin
-  rcases h₁.exists_between_sub_self h₃ with ⟨b, b_in, hb₁, hb₂⟩,
-  have h₅ : a ≠ b,
-  { intros contra,
-    apply h₂,
-    rwa ← contra at b_in },
-  exact ⟨b, b_in, hb₁, lt_of_le_of_ne (h₁.1 b_in) h₅.symm⟩
-end
+lemma is_lub.exists_between_sub_self' (h : is_lub s a) (h₂ : a ∉ s) (hε : 0 < ε) :
+  ∃ b ∈ s, a - ε < b ∧ b < a :=
+h.exists_between' h₂ $ sub_lt_self _ hε
 
 end linear_ordered_add_comm_group
 

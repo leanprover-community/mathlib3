@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
-import algebra.invertible
+import algebra.char_p.invertible
 import linear_algebra.affine_space.affine_equiv
 
 /-!
@@ -80,6 +80,30 @@ line_map_vadd_line_map _ _ _ _ _
 lemma midpoint_eq_iff {x y z : P} : midpoint R x y = z ↔ point_reflection R z x = y :=
 eq_comm.trans ((injective_point_reflection_left_of_module R x).eq_iff'
   (affine_equiv.point_reflection_midpoint_left x y)).symm
+
+@[simp] lemma midpoint_vsub_left (p₁ p₂ : P) : midpoint R p₁ p₂ -ᵥ p₁ = (⅟2:R) • (p₂ -ᵥ p₁) :=
+line_map_vsub_left _ _ _
+
+@[simp] lemma midpoint_vsub_right (p₁ p₂ : P) : midpoint R p₁ p₂ -ᵥ p₂ = (⅟2:R) • (p₁ -ᵥ p₂) :=
+by rw [midpoint_comm, midpoint_vsub_left]
+
+@[simp] lemma left_vsub_midpoint (p₁ p₂ : P) : p₁ -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p₁ -ᵥ p₂) :=
+left_vsub_line_map _ _ _
+
+@[simp] lemma right_vsub_midpoint (p₁ p₂ : P) : p₂ -ᵥ midpoint R p₁ p₂ = (⅟2:R) • (p₂ -ᵥ p₁) :=
+by rw [midpoint_comm, left_vsub_midpoint]
+
+@[simp] lemma midpoint_sub_left (v₁ v₂ : V) : midpoint R v₁ v₂ - v₁ = (⅟2:R) • (v₂ - v₁) :=
+midpoint_vsub_left v₁ v₂
+
+@[simp] lemma midpoint_sub_right (v₁ v₂ : V) : midpoint R v₁ v₂ - v₂ = (⅟2:R) • (v₁ - v₂) :=
+midpoint_vsub_right v₁ v₂
+
+@[simp] lemma left_sub_midpoint (v₁ v₂ : V) : v₁ - midpoint R v₁ v₂ = (⅟2:R) • (v₁ - v₂) :=
+left_vsub_midpoint v₁ v₂
+
+@[simp] lemma right_sub_midpoint (v₁ v₂ : V) : v₂ - midpoint R v₁ v₂ = (⅟2:R) • (v₂ - v₁) :=
+right_vsub_midpoint v₁ v₂
 
 variable (R)
 

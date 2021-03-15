@@ -79,6 +79,12 @@ instance : has_mul ℤ_[p] :=
 instance : has_neg ℤ_[p] :=
 ⟨λ ⟨x, hx⟩, ⟨-x, by simpa⟩⟩
 
+/-- Subtraction on ℤ_p is inherited from ℚ_p. -/
+instance : has_sub ℤ_[p] :=
+⟨λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x - y,
+  by { rw sub_eq_add_neg, rw ← norm_neg at hy,
+       exact le_trans (padic_norm_e.nonarchimedean _ _) (max_le_iff.2 ⟨hx, hy⟩) }⟩⟩
+
 /-- Zero on ℤ_p is inherited from ℚ_p. -/
 instance : has_zero ℤ_[p] :=
 ⟨⟨0, by norm_num⟩⟩
@@ -102,6 +108,9 @@ instance : has_one ℤ_[p] :=
 @[simp, norm_cast] lemma coe_neg : ∀ (z1 : ℤ_[p]), ((-z1 : ℤ_[p]) : ℚ_[p]) = -z1
 | ⟨_, _⟩ := rfl
 
+@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), ((z1 - z2 : ℤ_[p]) : ℚ_[p]) = z1 - z2
+| ⟨_, _⟩ ⟨_, _⟩ := rfl
+
 @[simp, norm_cast] lemma coe_one : ((1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n
@@ -122,6 +131,8 @@ begin
            neg := has_neg.neg,
            zero := 0,
            one := 1,
+           sub := has_sub.sub,
+           sub_eq_add_neg := _,
            .. };
   intros; ext; simp; ring
 end
@@ -134,10 +145,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_mul' := coe_mul,
   map_add' := coe_add }
 
-@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2 :=
-coe.ring_hom.map_sub
-
-@[simp, norm_cast] lemma coet_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n :=
+@[simp, norm_cast] lemma coe_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n :=
 coe.ring_hom.map_pow x n
 
 @[simp] lemma mk_coe : ∀ (k : ℤ_[p]), (⟨k, k.2⟩ : ℤ_[p]) = k

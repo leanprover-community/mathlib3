@@ -46,22 +46,22 @@ variables [group_with_zero G₀] [topological_space G₀] [has_continuous_mul G�
 
 lemma filter.tendsto.div_const {x y : G₀} (hf : tendsto f l (𝓝 x)) :
   tendsto (λa, f a / y) l (𝓝 (x / y)) :=
-hf.mul tendsto_const_nhds
+by simpa only [div_eq_mul_inv] using hf.mul tendsto_const_nhds
 
 variables [topological_space α]
 
 lemma continuous_at.div_const (hf : continuous f) {y : G₀} : continuous (λ x, f x / y) :=
-hf.mul continuous_const
+by simpa only [div_eq_mul_inv] using hf.mul continuous_const
 
 lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) {y : G₀} :
   continuous_within_at (λ x, f x / y) s a :=
 hf.div_const
 
 lemma continuous_on.div_const (hf : continuous_on f s) {y : G₀} : continuous_on (λ x, f x / y) s :=
-hf.mul continuous_on_const
+by simpa only [div_eq_mul_inv] using hf.mul continuous_on_const
 
 lemma continuous.div_const (hf : continuous f) {y : G₀} : continuous (λ x, f x / y) :=
-hf.mul continuous_const
+by simpa only [div_eq_mul_inv] using hf.mul continuous_const
 
 end div_const
 
@@ -133,7 +133,7 @@ variables [group_with_zero G₀] [topological_space G₀] [has_continuous_inv' G
 lemma filter.tendsto.div {l : filter α} {a b : G₀} (hf : tendsto f l (𝓝 a))
   (hg : tendsto g l (𝓝 b)) (hy : b ≠ 0) :
   tendsto (f / g) l (𝓝 (a / b)) :=
-hf.mul (hg.inv' hy)
+by simpa only [div_eq_mul_inv] using hf.mul (hg.inv' hy)
 
 variables [topological_space α] {s : set α} {a : α}
 
@@ -154,7 +154,7 @@ hf.div hg h₀
 
 lemma continuous.div (hf : continuous f) (hg : continuous g) (h₀ : ∀ x, g x ≠ 0) :
   continuous (f / g) :=
-hf.mul $ hg.inv' h₀
+by simpa only [div_eq_mul_inv] using hf.mul (hg.inv' h₀)
 
 lemma continuous_on_div : continuous_on (λ p : G₀ × G₀, p.1 / p.2) {p | p.2 ≠ 0} :=
 continuous_on_fst.div continuous_on_snd $ λ _, id

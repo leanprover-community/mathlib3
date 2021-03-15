@@ -7,32 +7,46 @@ Theory of topological rings.
 -/
 import topology.algebra.group
 import ring_theory.ideal.basic
+import algebra.ring.prod
 
 open classical set filter topological_space
 open_locale classical
 
 section topological_ring
-universes u v w
-variables (α : Type u) [topological_space α]
+variables (α : Type*)
 
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
-class topological_semiring [semiring α]
+class topological_semiring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 
-variables [ring α]
-
 /-- A topological ring is a ring where the ring operations are continuous. -/
-class topological_ring extends has_continuous_add α, has_continuous_mul α : Prop :=
+class topological_ring [topological_space α] [ring α]
+  extends has_continuous_add α, has_continuous_mul α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 
-variables [t : topological_ring α]
+variables {α}
+
+/-- The product topology on the cartesian product of two topological semirings
+  makes the product into a topological semiring. -/
+instance prod_semiring {β : Type*}
+  [semiring α] [topological_space α] [topological_semiring α]
+  [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
+{}
+
+variables [ring α] [topological_space α] [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
 
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 
-variables {α} [topological_ring α]
+variables [topological_ring α]
+
+/-- The product topology on the cartesian product of two topological rings
+  makes the product into a topological ring. -/
+instance prod_ring {β : Type*}
+  [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
+{ continuous_neg := continuous_neg }
 
 /-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_left_continuous (x : α) : continuous (add_monoid_hom.mul_left x) :=
@@ -55,7 +69,7 @@ def ideal.closure (S : ideal α) : ideal α :=
     map_mem_closure2 continuous_add hx hy $ assume a b, S.add_mem,
   smul_mem'  := assume c x hx,
     have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
-    map_mem_closure this hx $ assume a, S.mul_mem_left }
+    map_mem_closure this hx $ assume a, S.mul_mem_left _ }
 
 @[simp] lemma ideal.coe_closure (S : ideal α) :
   (S.closure : set α) = closure S := rfl

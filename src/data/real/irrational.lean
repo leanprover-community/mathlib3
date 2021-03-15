@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov.
 -/
-import data.real.basic
+import data.real.sqrt
 import data.rat.sqrt
 import ring_theory.int.basic
 import data.polynomial.eval
@@ -146,16 +146,16 @@ protected theorem neg (h : irrational x) : irrational (-x) :=
 of_neg $ by rwa neg_neg
 
 theorem sub_rat (h : irrational x) : irrational (x - q) :=
-by simpa only [cast_neg] using h.add_rat (-q)
+by simpa only [sub_eq_add_neg, cast_neg] using h.add_rat (-q)
 
 theorem rat_sub (h : irrational x) : irrational (q - x) :=
-h.neg.rat_add q
+by simpa only [sub_eq_add_neg] using h.neg.rat_add q
 
 theorem of_sub_rat (h : irrational (x - q)) : irrational x :=
-of_add_rat (-q) $ by simpa only [cast_neg]
+(of_add_rat (-q) $ by simpa only [cast_neg, sub_eq_add_neg] using h)
 
 theorem of_rat_sub (h : irrational (q - x)) : irrational x :=
-(h.of_rat_add _).of_neg
+of_neg (of_rat_add q (by simpa only [sub_eq_add_neg] using h))
 
 theorem mul_cases : irrational (x * y) → irrational x ∨ irrational y :=
 begin

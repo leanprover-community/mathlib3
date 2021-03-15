@@ -26,6 +26,9 @@
   title  : The Impossibility of Trisecting the Angle and Doubling the Cube
 9:
   title  : The Area of a Circle
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/9_area_of_a_circle.lean
+  author : James Arthur, Benjamin Davidson, and Andrew Souther
 10:
   title  : Euler’s Generalization of Fermat’s Little Theorem
   decl   : nat.modeq.pow_totient
@@ -40,8 +43,16 @@
   title  : Polyhedron Formula
 14:
   title  : Euler’s Summation of 1 + (1/2)^2 + (1/3)^2 + ….
+  author : Marc Masdeu
+  links  :
+    result : https://github.com/mmasdeu/euler/blob/main/src/euler.lean#L712
+    website: https://github.com/mmasdeu/euler
 15:
   title  : Fundamental Theorem of Integral Calculus
+  decls  :
+    - interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right
+    - interval_integral.integral_eq_sub_of_has_deriv_right_of_le
+  author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
   title  : Insolvability of General Higher Degree Equations
 17:

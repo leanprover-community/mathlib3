@@ -170,7 +170,7 @@ have F.derivative.eval z * (-z1) = -F.eval z, from calc
 ... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : by simp [subtype.ext_iff_val]
 ... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) : subtype.ext_iff_val.2 $ by simp
 ... = -(F.eval z) : by simp [mul_div_cancel' _ hdzne'],
-have heq : F.eval z' = q * z1^2, by simpa [this, hz'] using hq,
+have heq : F.eval z' = q * z1^2, by simpa [sub_eq_add_neg, this, hz'] using hq,
 ⟨q, heq⟩
 
 private def calc_eval_z'_norm {z z' z1 : ℤ_[p]} {n} (hz : ih n z) {q}

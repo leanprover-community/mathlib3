@@ -64,7 +64,7 @@ def pretopology : pretopology (opens T) :=
   pullbacks := λ X Y f S hS x hx,
   begin
     rcases hS _ (le_of_hom f hx) with ⟨U, g, hg, hU⟩,
-    refine ⟨_, _, ⟨_, _, hg, rfl, rfl⟩, _⟩,
+    refine ⟨_, _, pullback_arrows.mk _ _ hg, _⟩,
     have : U ⊓ Y ≤ pullback g f,
       refine le_of_hom (pullback.lift (hom_of_le inf_le_left) (hom_of_le inf_le_right) rfl),
     apply this ⟨hU, hx⟩,

@@ -20,8 +20,6 @@ variables {γ : Type*} [canonically_linear_ordered_add_monoid γ]
 
 namespace finsupp
 
-lemma le_def [partial_order β] {a b : α →₀ β} : a ≤ b ↔ ∀ (s : α), a s ≤ b s := by refl
-
 instance : order_bot (α →₀ μ) :=
 { bot := 0, bot_le := by simp [finsupp.le_def, ← bot_eq_zero], .. finsupp.partial_order}
 
@@ -70,15 +68,6 @@ instance lattice [lattice β] : lattice (α →₀ β) :=
 instance semilattice_inf_bot : semilattice_inf_bot (α →₀ γ) :=
 { ..finsupp.order_bot, ..finsupp.lattice}
 
-lemma of_multiset_strict_mono : strict_mono (@finsupp.of_multiset α) :=
-begin
-  unfold strict_mono, intros a b hab, rw lt_iff_le_and_ne at *, split,
-  { rw finsupp.le_iff, intros s hs, repeat {rw finsupp.of_multiset_apply},
-    rw multiset.le_iff_count at hab, apply hab.left },
-  { have h := hab.right, contrapose h, simp at *,
-    apply finsupp.equiv_multiset.symm.injective h }
-end
-
 lemma bot_eq_zero : (⊥ : α →₀ γ) = 0 := rfl
 
 lemma disjoint_iff {x y : α →₀ γ} : disjoint x y ↔ disjoint x.support y.support :=
@@ -87,27 +76,13 @@ begin
   rw [finsupp.bot_eq_zero, ← finsupp.support_eq_empty, finsupp.support_inf], refl,
 end
 
-/-- The lattice of `finsupp`s to `ℕ` is order-isomorphic to that of `multiset`s.  -/
-def order_iso_multiset :
-  (α →₀ ℕ) ≃o multiset α :=
-⟨finsupp.equiv_multiset, begin
-  intros a b, unfold finsupp.equiv_multiset, dsimp,
-  rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
-end ⟩
-
-@[simp] lemma order_iso_multiset_apply {f : α →₀ ℕ} : order_iso_multiset f = f.to_multiset := rfl
-
-@[simp] lemma order_iso_multiset_symm_apply {s : multiset α} :
-  order_iso_multiset.symm s = s.to_finsupp :=
-by { conv_rhs { rw ← order_iso_multiset.apply_symm_apply s}, simp }
-
 variable [partial_order β]
 
 /-- The order on `finsupp`s over a partial order embeds into the order on functions -/
 def order_embedding_to_fun :
   (α →₀ β) ↪o (α → β) :=
 ⟨⟨λ (f : α →₀ β) (a : α), f a,  λ f g h, finsupp.ext (λ a, by { dsimp at h, rw h,} )⟩,
-  λ a b, le_def⟩
+  λ a b, (@le_def _ _ _ _ a b).symm⟩
 
 @[simp] lemma order_embedding_to_fun_apply {f : α →₀ β} {a : α} :
   order_embedding_to_fun f a = f a := rfl

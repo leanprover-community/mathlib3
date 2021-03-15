@@ -33,17 +33,20 @@ comes from a polynomial with integer coefficients.
 * `prod_cyclotomic_eq_X_pow_sub_one` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
 * `cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for
   `cyclotomic n R` over an abstract fraction field for `polynomial R`.
+* `cyclotomic.irreducible` : `cyclotomic n ℤ` is irreducible.
 
 ## Implementation details
 
 Our definition of `cyclotomic' n R` makes sense in any integral domain `R`, but the interesting
-results hold if there is a primitive `n`th root of unity in `R`. In particular, our definition is
+results hold if there is a primitive `n`-th root of unity in `R`. In particular, our definition is
 not the standard one unless there is a primitive `n`th root of unity in `R`. For example,
 `cyclotomic' 3 ℤ = 1`, since there are no primitive cube roots of unity in `ℤ`. The main example is
 `R = ℂ`, we decided to work in general since the difficulties are essentially the same.
 To get the standard cyclotomic polynomials, we use `int_coeff_of_cycl`, with `R = ℂ`, to get a
 polynomial with integer coefficients and then we map it to `polynomial R`, for any ring `R`.
-
+To prove `cyclotomic.irreducible`, the irreducibility of `cyclotomic n ℤ`, we show in
+`minpoly_primitive_root_eq_cyclotomic` that `cyclotomic n ℤ` is the minimal polynomial of
+any `n`-th primitive root of unity `μ : K`, where `K` is a field of characteristic `0`.
 -/
 
 open_locale classical big_operators
@@ -142,7 +145,7 @@ begin
   have hmonic : (X ^ n - C (1 : K)).monic := monic_X_pow_sub_C (1 : K) (ne_of_lt hpos).symm,
   symmetry,
   apply prod_multiset_X_sub_C_of_monic_of_roots_card_eq hmonic,
-  rw [@nat_degree_X_pow_sub_C K _ _ n hpos 1, ← nth_roots],
+  rw [@nat_degree_X_pow_sub_C K _ _ n 1, ← nth_roots],
   exact is_primitive_root.card_nth_roots h
 end
 
@@ -162,7 +165,6 @@ begin
   { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] },
   rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
     nat_degree_X_pow_sub_C],
-  exact nat.pos_of_ne_zero hzero
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
@@ -177,8 +179,8 @@ begin
   conv_lhs { apply_congr,
              skip,
              simp [rwcyc, H] },
-  rw ← finset.prod_bind,
-  { simp only [is_primitive_root.nth_roots_one_eq_bind_primitive_roots hpos h] },
+  rw ← finset.prod_bUnion,
+  { simp only [is_primitive_root.nth_roots_one_eq_bUnion_primitive_roots hpos h] },
   intros x hx y hy hdiff,
   simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hx hy,
   refine is_primitive_root.disjoint _ _ hdiff,
@@ -497,6 +499,15 @@ begin
   cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
+/-- Any `n`-th primitive root of unity is a root of `cyclotomic n ℤ`.-/
+lemma is_root_cyclotomic {n : ℕ} {K : Type*} [field K] (hpos : 0 < n) {μ : K}
+  (h : is_primitive_root μ n) : is_root (cyclotomic n K) μ :=
+begin
+  rw [← mem_roots (cyclotomic_ne_zero n K),
+  cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
+  rwa [← mem_primitive_roots hpos] at h,
+end
+
 lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ} (hpos: 0 < n)
   (P : polynomial R) :
   P = cyclotomic n R ↔ P * (∏ i in nat.proper_divisors n, polynomial.cyclotomic i R) = X ^ n - 1 :=
@@ -597,7 +608,7 @@ begin
   suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
   { simp only [eval_X, eval_one, eval_pow, eval_sub, ring_hom.eq_nat_cast] at hpow,
     apply units.coe_eq_one.1,
-    simp only [sub_eq_zero.mp hpow, zmod.cast_unit_of_coprime, units.coe_pow] },
+    simp only [sub_eq_zero.mp hpow, zmod.coe_unit_of_coprime, units.coe_pow] },
   rw [is_root.def] at hroot,
   rw [← prod_cyclotomic_eq_X_pow_sub_one hpos (zmod p),
     nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
@@ -623,7 +634,7 @@ begin
     { exact dvd_trans hdivm (X_pow_sub_one_dvd_prod_cyclotomic (zmod p) hpos
         (order_of_root_cyclotomic_dvd hpos hroot) hdiff) },
     rw [map_sub, map_X, map_nat_cast, ← C_eq_nat_cast, dvd_iff_is_root, is_root.def, eval_sub,
-      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.cast_unit_of_coprime a ha, ← units.coe_pow,
+      eval_pow, eval_one, eval_X, sub_eq_zero, ← zmod.coe_unit_of_coprime a ha, ← units.coe_pow,
       units.coe_eq_one],
     exact pow_order_of_eq_one (zmod.unit_of_coprime a ha) },
   have habs : (map (int.cast_ring_hom (zmod p)) (X - a)) ^ 2 ∣ X ^ n - 1,
@@ -647,3 +658,37 @@ end
 end order
 
 end polynomial
+
+section minpoly
+
+open is_primitive_root polynomial complex
+
+/-- The minimal polynomial of a primitive `n`-th root of unity `μ` divides `cyclotomic n ℤ`. -/
+lemma minpoly_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+  (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
+  minpoly ℤ μ ∣ cyclotomic n ℤ :=
+begin
+  apply minpoly.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
+  simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
+end
+
+/-- `cyclotomic n ℤ` is the minimal polynomial of a primitive `n`-th root of unity `μ`. -/
+lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
+  (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
+  cyclotomic n ℤ = minpoly ℤ μ :=
+begin
+  refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
+    (cyclotomic.monic n ℤ) (minpoly_primitive_root_dvd_cyclotomic h hpos) _,
+  simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h hpos
+end
+
+/-- `cyclotomic n ℤ` is irreducible. -/
+lemma cyclotomic.irreducible {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic n ℤ) :=
+begin
+  have h0 := (ne_of_lt hpos).symm,
+  rw [cyclotomic_eq_minpoly (is_primitive_root_exp n h0) hpos],
+  apply minpoly.irreducible,
+  exact (is_primitive_root_exp n h0).is_integral hpos,
+end
+
+end minpoly

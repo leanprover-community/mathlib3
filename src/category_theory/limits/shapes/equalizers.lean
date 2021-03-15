@@ -125,7 +125,7 @@ end
 
 /-- Every functor indexing a (co)equalizer is naturally isomorphic (actually, equal) to a
     `parallel_pair` -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def diagram_iso_parallel_pair (F : walking_parallel_pair ⥤ C) :
   F ≅ parallel_pair (F.map left) (F.map right) :=
 nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
@@ -772,6 +772,7 @@ Here we build the cone, and show in `split_mono_equalizes` that it is a limit co
 @[simps {rhs_md := semireducible}]
 def cone_of_split_mono : cone (parallel_pair (𝟙 Y) (retraction f ≫ f)) :=
 fork.of_ι f (by simp)
+
 
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.

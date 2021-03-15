@@ -10,13 +10,38 @@ import algebra.algebra.basic
 import tactic.ring
 import linear_algebra.alternating
 
+/-!
+# Determinant of a matrix
+
+This file defines the determinant of a matrix, `matrix.det`, and its essential properties.
+
+## Main definitions
+
+ - `matrix.det`: the determinant of a square matrix, as a sum over permutations
+ - `matrix.det_row_multilinear`: the determinant, as an `alternating_map` in the rows of the matrix
+
+## Main results
+
+ - `det_mul`: the determinant of `A ⬝ B` is the product of determinants
+ - `det_zero_of_row_eq`: the determinant is zero if there is a repeated row
+ - `det_block_diagonal`: the determinant of a block diagonal matrix is a product
+   of the blocks' determinants
+
+## Implementation notes
+
+It is possible to configure `simp` to compute determinants. See the file
+`test/matrix.lean` for some examples.
+
+-/
+
 universes u v w z
 open equiv equiv.perm finset function
 
 namespace matrix
 open_locale matrix big_operators
 
-variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
+variables {m n : Type u} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
@@ -51,6 +76,24 @@ begin
   simp [det, card_eq_zero.mp h, perm_eq],
 end
 
+/-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
+Although `unique` implies `decidable_eq` and `fintype`, the instances might
+not be syntactically equal. Thus, we need to fill in the args explicitly. -/
+@[simp]
+lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix n n R) :
+  det A = A (default n) (default n) :=
+by simp [det, univ_unique]
+
+lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
+  det A = A k k :=
+begin
+  have h1 : (univ : finset (perm n)) = {1},
+  { apply univ_eq_singleton_of_card_one (1 : perm n),
+    simp [card_univ, fintype.card_perm, h] },
+  have h2 := univ_eq_singleton_of_card_one k h,
+  simp [det, h1, h2],
+end
+
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   ∑ σ : perm n, (ε σ) * ∏ x, (M (σ x) (p x) * N (p x) x) = 0 :=
 begin
@@ -61,15 +104,15 @@ begin
   exact sum_involution
     (λ σ _, σ * swap i j)
     (λ σ _,
-      have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
       have ∏ x, M (σ x) (p x) = ∏ x, M ((σ * swap i j) x) (p x),
-        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
+        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _)
+          (by simp [apply_swap_eq_self hpij])
           (λ _ _ _ _ h, (swap i j).injective h)
           (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
-      by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
-    (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
+      by simp [this, sign_swap hij, prod_mul_distrib])
+    (λ σ _ _, (not_congr mul_swap_eq_iff).mpr hij)
     (λ _ _, mem_univ _)
-    (λ _ _, equiv.ext $ by simp)
+    (λ σ _, mul_swap_involutive i j σ)
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
@@ -93,7 +136,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
         by rw ← σ⁻¹.prod_comp; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
-          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
+          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
         ... = ε τ : by simp,
       by rw h; simp [this, mul_comm, mul_assoc, mul_left_comm])
     (λ _ _ _ _, mul_right_cancel) (λ τ _, ⟨τ * σ, by simp⟩))
@@ -189,20 +232,17 @@ variables {M : matrix n n R} {i j : n}
 /-- If a matrix has a repeated row, the determinant will be zero. -/
 theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
-  have : ∀ σ, _root_.disjoint {σ} {swap i j * σ},
-  { intros σ,
-    rw [disjoint_singleton, mem_singleton],
-    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
-
-  apply finset.sum_cancels_of_partition_cancels (mod_swap i j),
-  intros σ _,
-  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
-    sum_union (this σ), sum_singleton, sum_singleton],
+  apply finset.sum_involution
+    (λ σ _, swap i j * σ)
+    (λ σ _, _)
+    (λ σ _ _, (not_congr swap_mul_eq_iff).mpr i_ne_j)
+    (λ σ _, finset.mem_univ _)
+    (λ σ _, swap_mul_involutive i j σ),
   convert add_right_neg (↑↑(sign σ) * ∏ i, M (σ i) i),
-  rw [neg_mul_eq_neg_mul],
+  rw neg_mul_eq_neg_mul,
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [perm.mul_apply, apply_swap_eq_self hij]
+  { ext j, rw [perm.mul_apply, apply_swap_eq_self hij], }
 end
 
 end det_zero
@@ -233,7 +273,8 @@ lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
   det (update_column M j $ s • u) = s * det (update_column M j u) :=
 begin
   simp only [det],
-  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i = s * ∏ i, M.update_column j u (σ i) i,
+  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i =
+    s * ∏ i, M.update_column j u (σ i) i,
   { intros σ,
     simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
                if_true, algebra.id.smul_eq_mul, pi.smul_apply],
@@ -286,12 +327,8 @@ begin
     rintros ⟨k, x⟩,
     simp },
   { intros σ _,
-    rw finset.prod_mul_distrib,
-    congr,
-    { convert congr_arg (λ (x : units ℤ), (↑x : R)) (sign_prod_congr_left (λ k, σ k _)).symm,
-      simp, congr, ext, congr },
-    rw [← finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp },
+    rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
+    simp [sign_prod_congr_left] },
   { intros σ σ' _ _ eq,
     ext x hx k,
     simp only at eq,
@@ -324,6 +361,80 @@ begin
     rw [finset.prod_eq_zero (finset.mem_univ (k, x)), mul_zero],
     rw [← @prod.mk.eta _ _ (σ (k, x)), block_diagonal_apply_ne],
     exact hkx }
+end
+
+/-- The determinant of a 2x2 block matrix with the lower-left block equal to zero is the product of
+the determinants of the diagonal blocks. For the generalization to any number of blocks, see
+`matrix.upper_block_triangular_det`. -/
+lemma upper_two_block_triangular_det (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+  (matrix.from_blocks A B 0 D).det = A.det * D.det :=
+begin
+  unfold det,
+  rw sum_mul_sum,
+  let preserving_A : finset (perm (m ⊕ n)) :=
+    univ.filter (λ σ, ∀ x, ∃ y, sum.inl y = (σ (sum.inl x))),
+  simp_rw univ_product_univ,
+  have mem_preserving_A : ∀ {σ : perm (m ⊕ n)},
+    σ ∈ preserving_A ↔ ∀ x, ∃ y, sum.inl y = σ (sum.inl x) :=
+    λ σ, mem_filter.trans ⟨λ h, h.2, λ h, ⟨mem_univ _, h⟩⟩,
+  rw ← sum_subset (subset_univ preserving_A) _,
+  rw (sum_bij (λ (σ : perm m × perm n) _, equiv.sum_congr σ.fst σ.snd) _ _ _ _).symm,
+  { intros a ha,
+    rw mem_preserving_A,
+    intro x,
+    use a.fst x,
+    simp },
+  { simp only [forall_prop_of_true, prod.forall, mem_univ],
+    intros σ₁ σ₂,
+    rw fintype.prod_sum_type,
+    simp_rw [equiv.sum_congr_apply, sum.map_inr, sum.map_inl, from_blocks_apply₁₁,
+      from_blocks_apply₂₂],
+    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
+    rw hr,
+    congr,
+    norm_cast,
+    rw sign_sum_congr },
+  { intros σ₁ σ₂ h₁ h₂,
+    dsimp only [],
+    intro h,
+    have h2 : ∀ x, perm.sum_congr σ₁.fst σ₁.snd x = perm.sum_congr σ₂.fst σ₂.snd x,
+    { intro x, exact congr_fun (congr_arg to_fun h) x },
+    simp only [sum.map_inr, sum.map_inl, perm.sum_congr_apply, sum.forall] at h2,
+    ext,
+    { exact h2.left x },
+    { exact h2.right x }},
+  { intros σ hσ,
+    have h1 : ∀ (x : m ⊕ n), (∃ (a : m), sum.inl a = x) → (∃ (a : m), sum.inl a = σ x),
+    { rintros x ⟨a, ha⟩,
+      rw ← ha,
+      exact (@mem_preserving_A σ).mp hσ a },
+    have h2 : ∀ (x : m ⊕ n), (∃ (b : n), sum.inr b = x) → (∃ (b : n), sum.inr b = σ x),
+    { rintros x ⟨b, hb⟩,
+      rw ← hb,
+      exact (perm_on_inl_iff_perm_on_inr σ).mp ((@mem_preserving_A σ).mp hσ) b },
+    let σ₁' := subtype_perm_of_fintype σ h1,
+    let σ₂' := subtype_perm_of_fintype σ h2,
+    let σ₁ := perm_congr (equiv.set.range (@sum.inl m n) sum.injective_inl).symm σ₁',
+    let σ₂ := perm_congr (equiv.set.range (@sum.inr m n) sum.injective_inr).symm σ₂',
+    use [⟨σ₁, σ₂⟩, finset.mem_univ _],
+    ext,
+    cases x with a b,
+    { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
+        set.apply_range_symm (@sum.inl m n)],
+      erw subtype_perm_apply,
+      rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] },
+    { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
+        set.apply_range_symm (@sum.inr m n)],
+      erw subtype_perm_apply,
+      rw [set.range_apply, subtype.coe_mk, subtype.coe_mk] }},
+  { intros σ h0 hσ,
+    obtain ⟨a, ha⟩ := not_forall.mp ((not_congr (@mem_preserving_A σ)).mp hσ),
+    generalize hx : σ (sum.inl a) = x,
+    cases x with a2 b,
+    { have hn := (not_exists.mp ha) a2,
+      exact absurd hx.symm hn },
+    { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],
+      rw [hx, from_blocks_apply₂₁], refl }}
 end
 
 end matrix

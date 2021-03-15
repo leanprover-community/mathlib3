@@ -5,8 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
 
-set_option old_structure_cmd true
-
 /-!
 # Ordered groups
 
@@ -19,6 +17,8 @@ may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
 
 -/
+
+set_option old_structure_cmd true
 
 universe u
 variable {α : Type u}
@@ -275,12 +275,36 @@ have (a⁻¹)⁻¹ ≤ b⁻¹ ↔ b ≤ a⁻¹, from inv_le_inv_iff,
 by rwa inv_inv at this
 
 @[to_additive neg_le_iff_add_nonneg]
-lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
+lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ b * a :=
+(mul_le_mul_iff_right a).symm.trans $ by rw inv_mul_self
+
+@[to_additive neg_le_iff_add_nonneg']
+lemma inv_le_iff_one_le_mul' : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
 (mul_le_mul_iff_left a).symm.trans $ by rw mul_inv_self
+
+@[to_additive]
+lemma inv_lt_iff_one_lt_mul : a⁻¹ < b ↔ 1 < b * a :=
+(mul_lt_mul_iff_right a).symm.trans $ by rw inv_mul_self
+
+@[to_additive]
+lemma inv_lt_iff_one_lt_mul' : a⁻¹ < b ↔ 1 < a * b :=
+(mul_lt_mul_iff_left a).symm.trans $ by rw mul_inv_self
 
 @[to_additive]
 lemma le_inv_iff_mul_le_one : a ≤ b⁻¹ ↔ a * b ≤ 1 :=
 (mul_le_mul_iff_right b).symm.trans $ by rw inv_mul_self
+
+@[to_additive]
+lemma le_inv_iff_mul_le_one' : a ≤ b⁻¹ ↔ b * a ≤ 1 :=
+(mul_le_mul_iff_left b).symm.trans $ by rw mul_inv_self
+
+@[to_additive]
+lemma lt_inv_iff_mul_lt_one : a < b⁻¹ ↔ a * b < 1 :=
+(mul_lt_mul_iff_right b).symm.trans $ by rw inv_mul_self
+
+@[to_additive]
+lemma lt_inv_iff_mul_lt_one' : a < b⁻¹ ↔ b * a < 1 :=
+(mul_lt_mul_iff_left b).symm.trans $ by rw mul_inv_self
 
 @[simp, to_additive neg_nonpos]
 lemma inv_le_one' : a⁻¹ ≤ 1 ↔ 1 ≤ a :=
@@ -326,6 +350,10 @@ have (a⁻¹)⁻¹ < b⁻¹ ↔ b < a⁻¹, from inv_lt_inv_iff,
 by rwa inv_inv at this
 
 @[to_additive]
+lemma inv_lt_self (h : 1 < a) : a⁻¹ < a :=
+(inv_lt_one'.2 h).trans h
+
+@[to_additive]
 lemma le_inv_mul_iff_mul_le : b ≤ a⁻¹ * c ↔ a * b ≤ c :=
 have a⁻¹ * (a * b) ≤ a⁻¹ * c ↔ a * b ≤ c, from mul_le_mul_iff_left _,
 by rwa inv_mul_cancel_left at this
@@ -366,265 +394,98 @@ lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
   have := mul_le_mul_right' (mul_le_mul_right' h b) d,
-  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right] at this,
+  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right]
+    at this,
   have := mul_le_mul_right' (mul_le_mul_right' h d⁻¹) b⁻¹,
-  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc, mul_inv_cancel_right] at this,
+  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc,
+    mul_inv_cancel_right] at this,
 end
+
+@[simp, to_additive] lemma div_le_self_iff (a : α) {b : α} : a / b ≤ a ↔ 1 ≤ b :=
+by simp [div_eq_mul_inv]
+
+@[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
+by simp [div_eq_mul_inv]
+
+/-- Pullback an `ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.ordered_add_comm_group
+"Pullback an `ordered_add_comm_group` under an injective map."]
+def function.injective.ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) :
+  ordered_comm_group β :=
+{ ..partial_order.lift f hf,
+  ..hf.ordered_comm_monoid f one mul,
+  ..hf.comm_group_div f one mul inv div }
 
 end ordered_comm_group
 
 section ordered_add_comm_group
 variables [ordered_add_comm_group α] {a b c d : α}
 
-lemma sub_nonneg_of_le (h : b ≤ a) : 0 ≤ a - b :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa add_right_neg at h
-end
-
-lemma le_of_sub_nonneg (h : 0 ≤ a - b) : b ≤ a :=
-begin
-  have h := add_le_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma sub_nonpos_of_le (h : a ≤ b) : a - b ≤ 0 :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa add_right_neg at h
-end
-
-lemma le_of_sub_nonpos (h : a - b ≤ 0) : a ≤ b :=
-begin
-  have h := add_le_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma sub_pos_of_lt (h : b < a) : 0 < a - b :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa add_right_neg at h
-end
-
-lemma lt_of_sub_pos (h : 0 < a - b) : b < a :=
-begin
-  have h := add_lt_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma sub_neg_of_lt (h : a < b) : a - b < 0 :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa add_right_neg at h
-end
-
-lemma lt_of_sub_neg (h : a - b < 0) : a < b :=
-begin
-  have h := add_lt_add_right h b,
-  rwa [sub_add_cancel, zero_add] at h
-end
-
-lemma add_le_of_le_sub_left (h : b ≤ c - a) : a + b ≤ c :=
-begin
-  have h := add_le_add_left h a,
-  rwa [← add_sub_assoc, add_comm a c, add_sub_cancel] at h
-end
-
-lemma le_sub_left_of_add_le (h : a + b ≤ c) : b ≤ c - a :=
-begin
-  have h := add_le_add_right h (-a),
-  rwa [add_comm a b, add_neg_cancel_right] at h
-end
-
-lemma add_le_of_le_sub_right (h : a ≤ c - b) : a + b ≤ c :=
-begin
-  have h := add_le_add_right h b,
-  rwa sub_add_cancel at h
-end
-
-lemma le_sub_right_of_add_le (h : a + b ≤ c) : a ≤ c - b :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa add_neg_cancel_right at h
-end
-
-lemma le_add_of_sub_left_le (h : a - b ≤ c) : a ≤ b + c :=
-begin
-  have h := add_le_add_right h b,
-  rwa [sub_add_cancel, add_comm] at h
-end
-
-lemma sub_left_le_of_le_add (h : a ≤ b + c) : a - b ≤ c :=
-begin
-  have h := add_le_add_right h (-b),
-  rwa [add_comm b c, add_neg_cancel_right] at h
-end
-
-lemma le_add_of_sub_right_le (h : a - c ≤ b) : a ≤ b + c :=
-begin
-  have h := add_le_add_right h c,
-  rwa sub_add_cancel at h
-end
-
-lemma sub_right_le_of_le_add (h : a ≤ b + c) : a - c ≤ b :=
-begin
-  have h := add_le_add_right h (-c),
-  rwa add_neg_cancel_right at h
-end
-
-lemma le_add_of_neg_le_sub_left (h : -a ≤ b - c) : c ≤ a + b :=
-le_add_of_neg_add_le_left (add_le_of_le_sub_right h)
-
-lemma neg_le_sub_left_of_le_add (h : c ≤ a + b) : -a ≤ b - c :=
-begin
-  have h := le_neg_add_of_add_le (sub_left_le_of_le_add h),
-  rwa add_comm at h
-end
-
-lemma le_add_of_neg_le_sub_right (h : -b ≤ a - c) : c ≤ a + b :=
-le_add_of_sub_right_le (add_le_of_le_sub_left h)
-
-lemma neg_le_sub_right_of_le_add (h : c ≤ a + b) : -b ≤ a - c :=
-le_sub_left_of_add_le (sub_right_le_of_le_add h)
-
-lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
-sub_left_le_of_le_add (le_add_of_sub_right_le h)
-
-lemma sub_le_sub_left (h : a ≤ b) (c : α) : c - b ≤ c - a :=
-add_le_add_left (neg_le_neg h) c
-
-lemma sub_le_sub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
-add_le_add_right h (-c)
-
 lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
-add_le_add hab (neg_le_neg hcd)
-
-lemma add_lt_of_lt_sub_left (h : b < c - a) : a + b < c :=
-begin
-  have h := add_lt_add_left h a,
-  rwa [← add_sub_assoc, add_comm a c, add_sub_cancel] at h
-end
-
-lemma lt_sub_left_of_add_lt (h : a + b < c) : b < c - a :=
-begin
-  have h := add_lt_add_right h (-a),
-  rwa [add_comm a b, add_neg_cancel_right] at h
-end
-
-lemma add_lt_of_lt_sub_right (h : a < c - b) : a + b < c :=
-begin
-  have h := add_lt_add_right h b,
-  rwa sub_add_cancel at h
-end
-
-lemma lt_sub_right_of_add_lt (h : a + b < c) : a < c - b :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa add_neg_cancel_right at h
-end
-
-lemma lt_add_of_sub_left_lt (h : a - b < c) : a < b + c :=
-begin
-  have h := add_lt_add_right h b,
-  rwa [sub_add_cancel, add_comm] at h
-end
-
-lemma sub_left_lt_of_lt_add (h : a < b + c) : a - b < c :=
-begin
-  have h := add_lt_add_right h (-b),
-  rwa [add_comm b c, add_neg_cancel_right] at h
-end
-
-lemma lt_add_of_sub_right_lt (h : a - c < b) : a < b + c :=
-begin
-  have h := add_lt_add_right h c,
-  rwa sub_add_cancel at h
-end
-
-lemma sub_right_lt_of_lt_add (h : a < b + c) : a - c < b :=
-begin
-  have h := add_lt_add_right h (-c),
-  rwa add_neg_cancel_right at h
-end
-
-lemma lt_add_of_neg_lt_sub_left (h : -a < b - c) : c < a + b :=
-lt_add_of_neg_add_lt_left (add_lt_of_lt_sub_right h)
-
-lemma neg_lt_sub_left_of_lt_add (h : c < a + b) : -a < b - c :=
-begin
-  have h := lt_neg_add_of_add_lt (sub_left_lt_of_lt_add h),
-  rwa add_comm at h
-end
-
-lemma lt_add_of_neg_lt_sub_right (h : -b < a - c) : c < a + b :=
-lt_add_of_sub_right_lt (add_lt_of_lt_sub_left h)
-
-lemma neg_lt_sub_right_of_lt_add (h : c < a + b) : -b < a - c :=
-lt_sub_left_of_add_lt (sub_right_lt_of_lt_add h)
-
-lemma sub_lt_of_sub_lt (h : a - b < c) : a - c < b :=
-sub_left_lt_of_lt_add (lt_add_of_sub_right_lt h)
-
-lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
-add_lt_add_left (neg_lt_neg h) c
-
-lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
-add_lt_add_right h (-c)
+by simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg hcd)
 
 lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
-add_lt_add hab (neg_lt_neg hcd)
+by simpa only [sub_eq_add_neg] using add_lt_add hab (neg_lt_neg hcd)
 
-lemma sub_lt_sub_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a - d < b - c :=
-add_lt_add_of_le_of_lt hab (neg_lt_neg hcd)
+alias sub_le_self_iff ↔ _ sub_le_self
 
-lemma sub_lt_sub_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a - d < b - c :=
-add_lt_add_of_lt_of_le hab (neg_le_neg hcd)
+alias sub_lt_self_iff ↔ _ sub_lt_self
 
-lemma sub_le_self (a : α) {b : α} (h : 0 ≤ b) : a - b ≤ a :=
-calc
-  a - b = a + -b : rfl
-    ... ≤ a + 0  : add_le_add_left (neg_nonpos_of_nonneg h) _
-    ... = a      : by rw add_zero
-
-lemma sub_lt_self (a : α) {b : α} (h : 0 < b) : a - b < a :=
-calc
-  a - b = a + -b : rfl
-    ... < a + 0  : add_lt_add_left (neg_neg_of_pos h) _
-    ... = a      : by rw add_zero
-
-lemma sub_le_sub_iff : a - b ≤ c - d ↔ a + d ≤ c + b := add_neg_le_add_neg_iff
+lemma sub_le_sub_iff : a - b ≤ c - d ↔ a + d ≤ c + b :=
+by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_iff
 
 @[simp]
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
-(add_le_add_iff_left _).trans neg_le_neg_iff
+by rw [sub_eq_add_neg, sub_eq_add_neg, add_le_add_iff_left, neg_le_neg_iff]
+
+lemma sub_le_sub_left (h : a ≤ b) (c : α) : c - b ≤ c - a :=
+(sub_le_sub_iff_left c).2 h
 
 @[simp]
 lemma sub_le_sub_iff_right (c : α) : a - c ≤ b - c ↔ a ≤ b :=
-add_le_add_iff_right _
+by simpa only [sub_eq_add_neg] using add_le_add_iff_right _
+
+lemma sub_le_sub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
+(sub_le_sub_iff_right c).2 h
 
 @[simp]
 lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
-(add_lt_add_iff_left _).trans neg_lt_neg_iff
+by rw [sub_eq_add_neg, sub_eq_add_neg, add_lt_add_iff_left, neg_lt_neg_iff]
+
+lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
+(sub_lt_sub_iff_left c).2 h
 
 @[simp]
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
-add_lt_add_iff_right _
+by simpa only [sub_eq_add_neg] using add_lt_add_iff_right _
+
+lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
+(sub_lt_sub_iff_right c).2 h
 
 @[simp] lemma sub_nonneg : 0 ≤ a - b ↔ b ≤ a :=
-have a - a ≤ a - b ↔ b ≤ a, from sub_le_sub_iff_left a,
-by rwa sub_self at this
+by rw [← sub_self a, sub_le_sub_iff_left]
+
+alias sub_nonneg ↔ le_of_sub_nonneg sub_nonneg_of_le
 
 @[simp] lemma sub_nonpos : a - b ≤ 0 ↔ a ≤ b :=
-have a - b ≤ b - b ↔ a ≤ b, from sub_le_sub_iff_right b,
-by rwa sub_self at this
+by rw [← sub_self b,  sub_le_sub_iff_right]
+
+alias sub_nonpos ↔ le_of_sub_nonpos sub_nonpos_of_le
 
 @[simp] lemma sub_pos : 0 < a - b ↔ b < a :=
-have a - a < a - b ↔ b < a, from sub_lt_sub_iff_left a,
-by rwa sub_self at this
+by rw [← sub_self a, sub_lt_sub_iff_left]
+
+alias sub_pos ↔ lt_of_sub_pos sub_pos_of_lt
 
 @[simp] lemma sub_lt_zero : a - b < 0 ↔ a < b :=
-have a - b < b - b ↔ a < b, from sub_lt_sub_iff_right b,
-by rwa sub_self at this
+by rw [← sub_self b, sub_lt_sub_iff_right]
+
+alias sub_lt_zero ↔ lt_of_sub_neg sub_neg_of_lt
 
 lemma le_sub_iff_add_le' : b ≤ c - a ↔ a + b ≤ c :=
 by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
@@ -632,8 +493,12 @@ by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
 lemma le_sub_iff_add_le : a ≤ c - b ↔ a + b ≤ c :=
 by rw [le_sub_iff_add_le', add_comm]
 
+alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
+
 lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
+
+alias le_sub_iff_add_le' ↔ add_le_of_le_sub_left le_sub_left_of_add_le
 
 lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
 by rw [sub_le_iff_le_add', add_comm]
@@ -653,14 +518,22 @@ le_sub_iff_add_le'.trans le_sub_iff_add_le.symm
 lemma lt_sub_iff_add_lt' : b < c - a ↔ a + b < c :=
 by rw [sub_eq_add_neg, add_comm, lt_neg_add_iff_add_lt]
 
+alias lt_sub_iff_add_lt' ↔ add_lt_of_lt_sub_left lt_sub_left_of_add_lt
+
 lemma lt_sub_iff_add_lt : a < c - b ↔ a + b < c :=
 by rw [lt_sub_iff_add_lt', add_comm]
+
+alias lt_sub_iff_add_lt ↔ add_lt_of_lt_sub_right lt_sub_right_of_add_lt
 
 lemma sub_lt_iff_lt_add' : a - b < c ↔ a < b + c :=
 by rw [sub_eq_add_neg, add_comm, neg_add_lt_iff_lt_add]
 
+alias sub_lt_iff_lt_add' ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
+
 lemma sub_lt_iff_lt_add : a - c < b ↔ a < b + c :=
 by rw [sub_lt_iff_lt_add', add_comm]
+
+alias sub_lt_iff_lt_add ↔ lt_add_of_sub_right_lt sub_right_lt_of_lt_add
 
 @[simp] lemma neg_lt_sub_iff_lt_add : -b < a - c ↔ c < a + b :=
 lt_sub_iff_add_lt.trans neg_add_lt_iff_lt_add_right
@@ -674,65 +547,140 @@ sub_lt_iff_lt_add'.trans sub_lt_iff_lt_add.symm
 theorem lt_sub : a < b - c ↔ c < b - a :=
 lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
 
-lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
-sub_le_iff_le_add'.trans (le_add_iff_nonneg_left _)
-
-lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
-sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
-
 end ordered_add_comm_group
 
-/-- A decidable linearly ordered additive commutative group is an
-additive commutative group with a decidable linear order in which
-addition is strictly monotone. -/
-@[protect_proj] class linear_ordered_add_comm_group (α : Type u)
-  extends add_comm_group α, linear_order α :=
+/-!
+
+### Linearly ordered commutative groups
+
+-/
+
+/-- A linearly ordered additive commutative group is an
+additive commutative group with a linear order in which
+addition is monotone. -/
+@[protect_proj, ancestor add_comm_group linear_order]
+class linear_ordered_add_comm_group (α : Type u) extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_ordered_add_comm_group (α : Type u)
-  [s : linear_ordered_add_comm_group α] : ordered_add_comm_group α :=
-{ add := s.add, ..s }
+/-- A linearly ordered commutative group is a
+commutative group with a linear order in which
+multiplication is monotone. -/
+@[protect_proj, ancestor comm_group linear_order, to_additive]
+class linear_ordered_comm_group (α : Type u) extends comm_group α, linear_order α :=
+(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
+
+section linear_ordered_comm_group
+variables [linear_ordered_comm_group α] {a b c : α}
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α :=
+{ ..‹linear_ordered_comm_group α› }
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
+  linear_ordered_cancel_comm_monoid α :=
+{ le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
+  mul_left_cancel := λ x y z, mul_left_cancel,
+  mul_right_cancel := λ x y z, mul_right_cancel,
+  ..‹linear_ordered_comm_group α› }
+
+/-- Pullback a `linear_ordered_comm_group` under an injective map. -/
+@[to_additive function.injective.linear_ordered_add_comm_group
+"Pullback a `linear_ordered_add_comm_group` under an injective map."]
+def function.injective.linear_ordered_comm_group {β : Type*}
+  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y)  :
+  linear_ordered_comm_group β :=
+{ ..linear_order.lift f hf,
+  ..hf.ordered_comm_group f one mul inv div }
+
+@[to_additive linear_ordered_add_comm_group.add_lt_add_left]
+lemma linear_ordered_comm_group.mul_lt_mul_left'
+  (a b : α) (h : a < b) (c : α) : c * a < c * b :=
+ordered_comm_group.mul_lt_mul_left' a b h c
+
+@[to_additive min_neg_neg]
+lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
+eq.symm $ @monotone.map_max α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
+
+@[to_additive max_neg_neg]
+lemma max_inv_inv' (a b : α) : max (a⁻¹) (b⁻¹) = (min a b)⁻¹ :=
+eq.symm $ @monotone.map_min α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
+
+@[to_additive min_sub_sub_right]
+lemma min_div_div_right' (a b c : α) : min (a / c) (b / c) = min a b / c :=
+by simpa only [div_eq_mul_inv] using min_mul_mul_right a b (c⁻¹)
+
+@[to_additive max_sub_sub_right]
+lemma max_div_div_right' (a b c : α) : max (a / c) (b / c) = max a b / c :=
+by simpa only [div_eq_mul_inv] using max_mul_mul_right a b (c⁻¹)
+
+@[to_additive min_sub_sub_left]
+lemma min_div_div_left' (a b c : α) : min (a / b) (a / c) = a / max b c :=
+by simp only [div_eq_mul_inv, min_mul_mul_left, min_inv_inv']
+
+@[to_additive max_sub_sub_left]
+lemma max_div_div_left' (a b c : α) : max (a / b) (a / c) = a / min b c :=
+by simp only [div_eq_mul_inv, max_mul_mul_left, max_inv_inv']
+
+@[to_additive max_zero_sub_eq_self]
+lemma max_one_div_eq_self' (a : α) : max a 1 / max (a⁻¹) 1 = a :=
+begin
+  rcases le_total a 1,
+  { rw [max_eq_right h, max_eq_left, one_div, inv_inv], { rwa [le_inv', one_inv] } },
+  { rw [max_eq_left, max_eq_right, div_eq_mul_inv, one_inv, mul_one],
+    { rwa [inv_le', one_inv] }, exact h }
+end
+
+@[to_additive eq_zero_of_neg_eq]
+lemma eq_one_of_inv_eq' (h : a⁻¹ = a) : a = 1 :=
+match lt_trichotomy a 1 with
+| or.inl h₁ :=
+  have 1 < a, from h ▸ one_lt_inv_of_inv h₁,
+  absurd h₁ this.asymm
+| or.inr (or.inl h₁) := h₁
+| or.inr (or.inr h₁) :=
+  have a < 1, from h ▸ inv_inv_of_one_lt h₁,
+  absurd h₁ this.asymm
+end
+
+@[to_additive exists_zero_lt]
+lemma exists_one_lt' [nontrivial α] : ∃ (a:α), 1 < a :=
+begin
+  obtain ⟨y, hy⟩ := exists_ne (1 : α),
+  cases hy.lt_or_lt,
+  { exact ⟨y⁻¹, one_lt_inv'.mpr h⟩ },
+  { exact ⟨y, h⟩ }
+end
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_no_top_order [nontrivial α] :
+  no_top_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
+    exact λ a, ⟨a * y, lt_mul_of_one_lt_right' a hy⟩
+  end ⟩
+
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
+    exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
+  end ⟩
+
+end linear_ordered_comm_group
 
 section linear_ordered_add_comm_group
+
 variables [linear_ordered_add_comm_group α] {a b c : α}
 
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_add_comm_group.to_linear_ordered_cancel_add_comm_monoid :
-  linear_ordered_cancel_add_comm_monoid α :=
-{ le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
-  add_left_cancel := λ x y z, add_left_cancel,
-  add_right_cancel := λ x y z, add_right_cancel,
-  ..‹linear_ordered_add_comm_group α› }
-
-lemma linear_ordered_add_comm_group.add_lt_add_left
-  (a b : α) (h : a < b) (c : α) : c + a < c + b :=
-ordered_add_comm_group.add_lt_add_left a b h c
-
-lemma min_neg_neg (a b : α) : min (-a) (-b) = -max a b :=
-eq.symm $ @monotone.map_max α (order_dual α) _ _ has_neg.neg a b $ λ a b, neg_le_neg
-
-lemma max_neg_neg (a b : α) : max (-a) (-b) = -min a b :=
-eq.symm $ @monotone.map_min α (order_dual α) _ _ has_neg.neg a b $ λ a b, neg_le_neg
-
-lemma min_sub_sub_right (a b c : α) : min (a - c) (b - c) = min a b - c :=
-min_add_add_right a b (-c)
-
-lemma max_sub_sub_right (a b c : α) : max (a - c) (b - c) = max a b - c :=
-max_add_add_right a b (-c)
-
-lemma min_sub_sub_left (a b c : α) : min (a - b) (a - c) = a - max b c :=
-by simp only [sub_eq_add_neg, min_add_add_left, min_neg_neg]
-
-lemma max_sub_sub_left (a b c : α) : max (a - b) (a - c) = a - min b c :=
-by simp only [sub_eq_add_neg, max_add_add_left, max_neg_neg]
-
-lemma max_zero_sub_eq_self (a : α) : max a 0 - max (-a) 0 = a :=
-begin
-  rcases le_total a 0,
-  { rw [max_eq_right h, max_eq_left, zero_sub, neg_neg], { rwa [le_neg, neg_zero] } },
-  { rw [max_eq_left, max_eq_right, sub_zero], { rwa [neg_le, neg_zero] }, exact h }
-end
+lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
+le_of_forall_le_of_dense $ λ c hc,
+calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
+   ... = c           : add_sub_cancel'_right _ _
 
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)
@@ -770,10 +718,16 @@ lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
 by rw [← neg_sub, abs_neg]
 
-theorem abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
+lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
 
-theorem abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
+lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
 by rw [abs_le', and.comm, neg_le]
+
+lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
+
+lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
+
+lemma le_abs : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
 
 lemma le_abs_self (a : α) : a ≤ abs a := le_max_left _ _
 
@@ -791,16 +745,20 @@ not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
-lemma abs_lt {a b : α} : abs a < b ↔ - b < a ∧ a < b :=
+lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
 
-lemma lt_abs {a b : α} : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
+lemma neg_lt_of_abs_lt (h : abs a < b) : -b < a := (abs_lt.mp h).1
+
+lemma lt_of_abs_lt (h : abs a < b) : a < b := (abs_lt.mp h).2
+
+lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
 
 lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=
 begin
   cases le_total a b with ab ba,
   { rw [max_eq_right ab, min_eq_left ab, abs_of_nonpos, neg_sub], rwa sub_nonpos },
-  { rw [max_eq_left ba, min_eq_right ba, abs_of_nonneg], exact sub_nonneg_of_le ba }
+  { rw [max_eq_left ba, min_eq_right ba, abs_of_nonneg], rwa sub_nonneg }
 end
 
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
@@ -816,6 +774,18 @@ by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
 
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
 by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm]
+
+lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
+sub_le.1 $ (abs_sub_le_iff.1 h).2
+
+lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
+sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
+
+lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
+sub_lt.1 $ (abs_sub_lt_iff.1 h).2
+
+lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
+sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
 
 lemma abs_sub_abs_le_abs_sub (a b : α) : abs a - abs b ≤ abs (a - b) :=
 sub_le_iff_le_add.2 $
@@ -849,17 +819,6 @@ begin
     neg_le_abs_self, neg_zero, abs_nonneg, le_abs_self]
 end
 
-lemma eq_zero_of_neg_eq {a : α} (h : -a = a) : a = 0 :=
-match lt_trichotomy a 0 with
-| or.inl h₁ :=
-  have 0 < a, from h ▸ neg_pos_of_neg h₁,
-  absurd h₁ this.asymm
-| or.inr (or.inl h₁) := h₁
-| or.inr (or.inr h₁) :=
-  have a < 0, from h ▸ neg_neg_of_pos h₁,
-  absurd h₁ this.asymm
-end
-
 lemma eq_of_abs_sub_eq_zero {a b : α} (h : abs (a - b) = 0) : a = b :=
 sub_eq_zero.1 $ abs_eq_zero.1 h
 
@@ -880,29 +839,6 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 
 lemma eq_of_abs_sub_nonpos (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
-
-lemma exists_gt_zero [nontrivial α] : ∃ (a:α), 0 < a :=
-begin
-  obtain ⟨y, hy⟩ := exists_ne (0 : α),
-  cases hy.lt_or_lt,
-  { exact ⟨- y, neg_pos.mpr h⟩ },
-  { exact ⟨y, h⟩ }
-end
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
-  no_top_order α :=
-⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
-    exact λ a, ⟨a + y, lt_add_of_pos_right a hy⟩
-  end ⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_add_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
-⟨ begin
-    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
-    exact λ a, ⟨a - y, sub_lt_self a hy⟩
-  end ⟩
 
 end linear_ordered_add_comm_group
 
@@ -973,6 +909,7 @@ namespace order_dual
 
 instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 { add_left_neg := λ a : α, add_left_neg a,
+  sub := λ a b, (a - b : α),
   ..order_dual.ordered_add_comm_monoid,
   ..show add_comm_group α, by apply_instance }
 
@@ -1004,5 +941,13 @@ instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
 instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
 { ..additive.add_comm_group,
   ..additive.ordered_add_comm_monoid }
+
+instance [linear_ordered_add_comm_group α] : linear_ordered_comm_group (multiplicative α) :=
+{ ..multiplicative.linear_order,
+  ..multiplicative.ordered_comm_group }
+
+instance [linear_ordered_comm_group α] : linear_ordered_add_comm_group (additive α) :=
+{ ..additive.linear_order,
+  ..additive.ordered_add_comm_group }
 
 end type_tags

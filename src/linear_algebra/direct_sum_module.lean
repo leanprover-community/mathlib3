@@ -37,6 +37,11 @@ open_locale direct_sum
 variables {R ι M}
 
 instance : semimodule R (⨁ i, M i) := dfinsupp.semimodule
+instance {S : Type*} [semiring S] [Π i, semimodule S (M i)] [Π i, smul_comm_class R S (M i)] :
+  smul_comm_class R S (⨁ i, M i) := dfinsupp.smul_comm_class
+instance {S : Type*} [semiring S] [has_scalar R S] [Π i, semimodule S (M i)]
+  [Π i, is_scalar_tower R S (M i)] :
+  is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
 
 lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
   (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _
@@ -81,7 +86,7 @@ variables (φ : Π i, M i →ₗ[R] N)
 variables (R ι N φ)
 /-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : (⨁ i, M i) →ₗ[R] N :=
-dfinsupp.lsum φ
+dfinsupp.lsum ℕ φ
 
 variables {ι N φ}
 

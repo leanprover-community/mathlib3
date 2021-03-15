@@ -822,7 +822,7 @@ begin
   conv { to_lhs, rw ← zneg_zneg n },
   rw [← zneg_bit1, cast_zneg, cast_bit1],
   have : ((-1 + n + n : ℤ) : α) = (n + n + -1 : ℤ), {simp [add_comm, add_left_comm]},
-  simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
+  simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg, -int.add_neg_one]
 end
 
 theorem add_zero (n : znum) : n + 0 = n := by cases n; refl
@@ -842,6 +842,8 @@ theorem cast_to_znum : ∀ n : pos_num, (n : znum) = znum.pos n
 | 1        := rfl
 | (bit0 p) := (znum.bit0_of_bit0 p).trans $ congr_arg _ (cast_to_znum p)
 | (bit1 p) := (znum.bit1_of_bit1 p).trans $ congr_arg _ (cast_to_znum p)
+
+local attribute [-simp] int.add_neg_one
 
 theorem cast_sub' [add_group α] [has_one α] : ∀ m n : pos_num, (sub' m n : α) = m - n
 | a        1        := by rw [sub'_one, num.cast_to_znum,
@@ -934,10 +936,11 @@ variables {α : Type*}
 | 0       a       := by cases a; exact (_root_.zero_add _).symm
 | b       0       := by cases b; exact (_root_.add_zero _).symm
 | (pos a) (pos b) := pos_num.cast_add _ _
-| (pos a) (neg b) := pos_num.cast_sub' _ _
-| (neg a) (pos b) := (pos_num.cast_sub' _ _).trans $
-  show ↑b + -↑a = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
-    ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm]
+| (pos a) (neg b) := by simpa only [sub_eq_add_neg] using pos_num.cast_sub' _ _
+| (neg a) (pos b) :=
+have (↑b + -↑a : α) = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
+  ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm],
+(pos_num.cast_sub' _ _).trans $ (sub_eq_add_neg _ _).trans this
 | (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by rw [
   pos_num.cast_add, neg_eq_iff_neg_eq, neg_add_rev, neg_neg, neg_neg,
   ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simp [add_comm]

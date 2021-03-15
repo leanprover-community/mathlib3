@@ -7,7 +7,7 @@ import tactic.rcases
 /-!
 # lift tactic
 
-This file defines the lift tactic, allowing the user to lift elements from one type to another
+This file defines the `lift` tactic, allowing the user to lift elements from one type to another
 under a specified condition.
 
 ## Tags
@@ -52,6 +52,23 @@ instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Typ
   cond := λ f, ∀ i, can_lift.cond (β i) (f i),
   prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
+
+instance pi_subtype.can_lift (ι : Type u) (α : Π i : ι, Type v) [ne : Π i, nonempty (α i)]
+  (p : ι → Prop) :
+  can_lift (Π i : subtype p, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  cond := λ _, true,
+  prf :=
+    begin
+      classical,
+      refine λ f _, ⟨λ i, if hi : p i then f ⟨i, hi⟩ else classical.choice (ne i), funext _⟩,
+      rintro ⟨i, hi⟩,
+      exact dif_pos hi
+    end }
+
+instance pi_subtype.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (p : ι → Prop) :
+  can_lift (subtype p → α) (ι → α) :=
+pi_subtype.can_lift ι (λ _, α) p
 
 namespace tactic
 
@@ -121,7 +138,8 @@ do
   dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
   rcases none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
-  /- If the lifted variable is not a local constant, try to rewrite it away using the new equality-/
+  /- If the lifted variable is not a local constant,
+    try to rewrite it away using the new equality. -/
   when (¬ e.is_local_constant) (get_local eq_nm >>=
     λ e, interactive.rw ⟨[⟨⟨0, 0⟩, tt, (pexpr.of_expr e)⟩], none⟩ interactive.loc.wildcard),
   /- If the proof `prf_cond` is a local constant, remove it from the context,
@@ -130,8 +148,6 @@ do
     get_local (option.get h_prf_nm.1) >>= clear else skip
 
 open lean.parser interactive interactive.types
-
-reserve notation `to`
 
 local postfix `?`:9001 := optional
 /-- Parses an optional token "using" followed by a trailing `pexpr`. -/
@@ -142,8 +158,7 @@ meta def to_texpr := (tk "to" *> texpr)
 
 namespace interactive
 
-/-- Lift an expression to another type.
-
+/--
 Lift an expression to another type.
 * Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
 * If `n : ℤ` and `hn : n ≥ 0` then the tactic `lift n to ℕ using hn` creates a new
@@ -173,8 +188,8 @@ Lift an expression to another type.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
 * Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
-  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
-  generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
+  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it
+  automatically generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
 `lift` is in some sense dual to the `zify` tactic. `lift (z : ℤ) to ℕ` will change the type of an
 integer `z` (in the supertype) to `ℕ` (the subtype), given a proof that `z ≥ 0`;

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.specific_limits
-import analysis.asymptotics
+import analysis.asymptotics.asymptotics
 
 /-!
 # The group of units of a complete normed ring
@@ -38,7 +38,7 @@ namespace units
 from `1` is a unit.  Here we construct its `units` structure.  -/
 def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 { val := 1 - t,
-  inv := ∑' (n : ℕ), t ^ n,
+  inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
 
@@ -52,10 +52,10 @@ begin
   nontriviality R using [zero_lt_one],
   have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
   calc ∥-(↑x⁻¹ * t)∥
-      = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }
-  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le x.inv _
+      = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
+  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
   ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
-  ... = 1                           : mul_inv_cancel (ne_of_gt hpos)
+  ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
 end)
 
 @[simp] lemma add_coe (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
@@ -70,20 +70,19 @@ x.add ((y : R) - x) h
   ↑(x.unit_of_nearby y h) = y := by { unfold units.unit_of_nearby, simp }
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
-lemma is_open : is_open {x : R | is_unit x} :=
+protected lemma is_open : is_open {x : R | is_unit x} :=
 begin
   nontriviality R,
   apply metric.is_open_iff.mpr,
-  rintros x' ⟨x, h⟩,
+  rintros x' ⟨x, rfl⟩,
   refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
-  rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
-  use x.unit_of_nearby y hy,
-  simp
+  rw [metric.mem_ball, dist_eq_norm] at hy,
+  exact ⟨x.unit_of_nearby y hy, unit_of_nearby_coe _ _ _⟩
 end
 
-lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets is_open (by { rw [set.mem_set_of_eq], exact is_unit_unit x })
+protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
+mem_nhds_sets units.is_open (is_unit_unit x)
 
 end units
 
@@ -92,10 +91,7 @@ open_locale classical big_operators
 open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
-begin
-  rw ← inverse_unit (units.one_sub t h),
-  refl,
-end
+by rw [← inverse_unit (units.one_sub t h), units.one_sub_coe]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
 lemma inverse_add (x : units R) :
@@ -171,7 +167,7 @@ begin
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
   simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
-  change ∥(∑' (n : ℕ), t ^ n)∥ ≤ _,
+  change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
   { rw ← inv_inv' (2:ℝ),

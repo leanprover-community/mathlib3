@@ -334,6 +334,20 @@ by rw [infi, range_const, cInf_singleton]
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, cSup_singleton]
 
+theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s (default ι) :=
+have ∀ i, s i = s (default ι) := λ i, congr_arg s (unique.eq_default i),
+by simp only [this, cinfi_const]
+
+theorem supr_unique [unique ι] {s : ι → α} : (⨆ i, s i) = s (default ι) :=
+have ∀ i, s i = s (default ι) := λ i, congr_arg s (unique.eq_default i),
+by simp only [this, csupr_const]
+
+@[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
+by { convert infi_unique, apply_instance }
+
+@[simp] theorem supr_unit {f : unit → α} : (⨆ x, f x) = f () :=
+by { convert supr_unique, apply_instance }
+
 /-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
 decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals
 `[f n, g n]`. -/
@@ -468,6 +482,33 @@ end
 
 protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
 by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
+
+lemma nonempty_of_pos_Inf {s : set ℕ} (h : 0 < Inf s) : s.nonempty :=
+begin
+  by_contradiction contra, rw set.not_nonempty_iff_eq_empty at contra,
+  have h' : Inf s ≠ 0, { exact ne_of_gt h, }, apply h',
+  rw nat.Inf_eq_zero, right, assumption,
+end
+
+lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
+nonempty_of_pos_Inf (h.symm ▸ (succ_pos k) : Inf s > 0)
+
+lemma eq_Ici_of_nonempty_of_upward_closed {s : set ℕ} (hs : s.nonempty)
+  (hs' : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) : s = Ici (Inf s) :=
+ext (λ n, ⟨λ H, nat.Inf_le H, λ H, hs' (Inf s) n H (Inf_mem hs)⟩)
+
+lemma Inf_upward_closed_eq_succ_iff {s : set ℕ}
+  (hs : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) (k : ℕ) :
+  Inf s = k + 1 ↔ k + 1 ∈ s ∧ k ∉ s :=
+begin
+  split,
+  { intro H,
+    rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
+    exact ⟨le_refl _, k.not_succ_le_self⟩, },
+  { rintro ⟨H, H'⟩,
+    rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
+    exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
+end
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/

@@ -20,12 +20,12 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H')
-(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-(M' : Type*) [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+(M : Type*) [topological_space M] [charted_space H M]
+(M' : Type*) [topological_space M'] [charted_space H' M']
 {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H'']
 {I'' : model_with_corners 𝕜 E'' H''}
-{M'' : Type*} [topological_space M''] [charted_space H'' M''] [smooth_manifold_with_corners I'' M'']
+{M'' : Type*} [topological_space M''] [charted_space H'' M'']
 (n : with_top ℕ)
 
 /-- Bundled `n` times continuously differentiable maps. -/
@@ -84,8 +84,6 @@ instance [inhabited M'] : inhabited C^n⟮I, M; I', M'⟯ :=
 def const (y : M') : C^n⟮I, M; I', M'⟯ := ⟨λ x, y, times_cont_mdiff_const⟩
 
 end times_cont_mdiff_map
-
-open_locale manifold
 
 instance continuous_linear_map.has_coe_to_times_cont_mdiff_map :
   has_coe (E →L[𝕜] E') C^n⟮𝓘(𝕜, E), E; 𝓘(𝕜, E'), E'⟯ :=

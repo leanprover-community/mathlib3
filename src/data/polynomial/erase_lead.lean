@@ -78,7 +78,7 @@ by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
-  rw [ne.def, ← finsupp.card_support_eq_zero, erase_lead_support],
+  rw [ne.def, ← card_support_eq_zero, erase_lead_support],
   exact (zero_lt_one.trans_le $ (nat.sub_le_sub_right f0 1).trans
     finset.pred_card_le_card_erase).ne.symm
 end
@@ -95,6 +95,19 @@ begin
   rw erase_lead_support,
   exact card_lt_card (erase_ssubset $ nat_degree_mem_support_of_nonzero h)
 end
+
+lemma erase_lead_card_support {c : ℕ} (fc : f.support.card = c) :
+  f.erase_lead.support.card = c - 1 :=
+begin
+  by_cases f0 : f = 0,
+  { rw [← fc, f0, erase_lead_zero, support_zero, card_empty] },
+  { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
+    exact c.pred_eq_sub_one },
+end
+
+lemma erase_lead_card_support' {c : ℕ} (fc : f.support.card = c + 1) :
+  f.erase_lead.support.card = c :=
+erase_lead_card_support fc
 
 @[simp] lemma erase_lead_monomial (i : ℕ) (r : R) :
   erase_lead (monomial i r) = 0 :=
@@ -145,5 +158,31 @@ begin
 end
 
 end erase_lead
+
+/-- An induction lemma for polynomials. It takes a natural number `N` as a parameter, that is
+required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
+results where you want to change each term in a polynomial to something else depending on the
+`nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/
+lemma induction_with_nat_degree_le {R : Type*} [semiring R] {P : polynomial R → Prop} (N : ℕ)
+  (P_0 : P 0)
+  (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
+  (P_C_add : ∀ f g : polynomial R, f.nat_degree ≤ N → g.nat_degree ≤ N → P f → P g → P (f + g)) :
+  ∀ f : polynomial R, f.nat_degree ≤ N → P f :=
+begin
+  intros f df,
+  generalize' hd : card f.support = c,
+  revert f,
+  induction c with c hc,
+  { exact λ f df f0, by rwa (finsupp.support_eq_empty.mp (card_eq_zero.mp f0)) },
+  { intros f df f0,
+    rw ← erase_lead_add_C_mul_X_pow f,
+    refine P_C_add f.erase_lead _ (erase_lead_nat_degree_le.trans df) _ _ _,
+    { exact (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree).trans df },
+    { exact hc _ (erase_lead_nat_degree_le.trans df) (erase_lead_card_support f0) },
+    { refine P_C_mul_pow _ _ _ df,
+      rw [ne.def, leading_coeff_eq_zero],
+      rintro rfl,
+      exact not_le.mpr c.succ_pos f0.ge } }
+end
 
 end polynomial

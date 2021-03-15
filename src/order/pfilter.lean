@@ -49,6 +49,7 @@ structure pfilter (P) [preorder P] :=
 def is_pfilter [preorder P] (F : set P) : Prop :=
 @is_ideal (order_dual P) _ F
 
+/-- Transfer from the predicate is_pfilter to the structure pfilter. -/
 def is_pfilter.to_pfilter [preorder P] {F : set P} (h : is_pfilter F) : pfilter P :=
 ⟨h.to_ideal⟩
 

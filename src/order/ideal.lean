@@ -192,10 +192,8 @@ lemma is_maximal.is_coatom' {I : ideal P} [is_maximal I] : is_coatom I :=
 is_maximal.is_coatom ‹_›
 
 lemma is_maximal.of_is_coatom {I : ideal P} (hI : is_coatom I) : is_maximal I :=
-{
-  maximal_proper := λ _ _, by simp [hI.2 _ ‹_›],
-  ..is_proper.of_is_coatom ‹_›
-}
+{ maximal_proper := λ _ _, by simp [hI.2 _ ‹_›],
+  ..is_proper.of_is_coatom ‹_› }
 
 lemma is_maximal_iff_is_coatom {I : ideal P} : is_maximal I ↔ is_coatom I :=
 ⟨λ h, h.is_coatom, λ h, is_maximal.of_is_coatom h⟩

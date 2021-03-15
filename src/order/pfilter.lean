@@ -45,7 +45,7 @@ variables {P : Type*}
 structure pfilter (P) [preorder P] :=
 (dual : order.ideal (order_dual P))
 
-/-- A predicate to when a subset of `P` is a filter. -/
+/-- A predicate for when a subset of `P` is a filter. -/
 def is_pfilter [preorder P] (F : set P) : Prop :=
 @is_ideal (order_dual P) _ F
 

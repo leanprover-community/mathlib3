@@ -496,6 +496,9 @@ lemma weekday_perm_unsolvable : ¬ is_solvable (equiv.perm weekday) :=
 
 open cardinal
 universes u
+
+lemma weekday_card : (5:cardinal)≤ mk weekday:=sorry
+
 lemma five_le_iff (α: Type u): (5 : cardinal) ≤ mk α ↔ ∃x₀ x₁ x₂ x₃ x₄  : α, x₀ ≠ x₁ ∧ x₀ ≠ x₂ ∧ x₀ ≠ x₃ ∧ x₀ ≠ x₄ ∧
 x₁ ≠ x₂  ∧ x₁ ≠ x₃ ∧ x₁ ≠ x₄ ∧ x₂ ≠ x₃ ∧ x₃ ≠ x₄:=
 begin
@@ -693,8 +696,21 @@ begin
 
 end
 
+
 def equiv.perm.of_embedding {α β : Type*} [fintype α] [decidable_eq β]
-  (e : equiv.perm α) (f : α ↪ β) : equiv.perm β := equiv.perm.subtype_congr (e.of_embedding_subtype f) (equiv.refl _)
+  (e : equiv.perm α) (f : α ↪ β) : equiv.perm β :=
+  begin
+    have u:=f ∘ (equiv.set.image_of_inj_on f (⊤:set α ) (set.inj_on_of_injective f.inj' ⊤ )).inv_fun,
+    have t: ¬ nonempty α  ∨ nonempty α,
+    finish,
+
+    have s:=function.injective.has_left_inverse f.inj' ,
+    apply equiv.perm.of_subtype,
+    -- (set.image f (⊤:set α )),
+
+  end
+  --function.injective.has_left_inverse f.to_fun f.inj'
+  --equiv.perm.of_subtype (set.image f (⊤:set α )),
 
 lemma equiv.perm_of_embedding_injective {α β : Type*} [fintype α] [decidable_eq β]
    (f : α ↪ β) : function.injective (λ e, equiv.perm.of_embedding e f):=sorry

@@ -17,7 +17,7 @@ noncomputable def g : M →ₗ[R] (M →₀ R) := classical.some h
 theorem universal_property {R A B M : Type u} [ring R] [add_comm_group M] [semimodule R M]
   (h : is_projective R M)
 [add_comm_group A] [add_comm_group B]
-  [module R A] [module R B] [add_comm_group M] [semimodule R M] (f : A →ₗ[R] B) (g : M →ₗ[R] B) -- the R-linear maps
+  [module R A] [module R B] (f : A →ₗ[R] B) (g : M →ₗ[R] B) -- the R-linear maps
 (hf : function.surjective f) : ∃ (h : M →ₗ[R] A), f.comp h = g :=
 begin
   /- Maths proof
@@ -25,11 +25,33 @@ begin
   get an R-module map R^M -> B. This lifts to a map R^M → A (in fact we should first just define
   a set-theoretic map M → A using surjectivity of f, then get R^M → A). Now compose with `g`
   -/
-  let f_inv : B → A := λ b, classical.some (hf b),
-  have f_inv_spec : ∀ b : B, f (f_inv b) = b := λ b, classical.some_spec (hf b),
-  let fma : M → A := λ m, f_inv (g m),
+  let fma : M → A := λ m, function.surj_inv hf (g m),
   -- now apply universal property to fma
-  have hmlin : (M →₀ R) →ₗ[R] A := sorry,
+  let hmlin : (M →₀ R) →ₗ[R] A :=
+  { to_fun := λ l, finsupp.sum l (λ m r, r • fma m),
+    map_add' := begin
+      intros,
+      rw finsupp.sum_add_index;
+      simp [add_smul],
+    end,
+    map_smul' := begin
+      intros m f,
+      rw finsupp.sum_smul_index',
+      { rw finsupp.smul_sum,
+        simp_rw smul_assoc },
+      { simp },
+    end },
+  cases h with s hs,
+  use hmlin.comp s,
+  ext m,
+  show f (hmlin (s m)) = _,
+  have : function.injective _ := function.injective_surj_inv hf,
+  apply this,
+  change _ = fma m,
+  have hthing : ∀ (a : A), function.surj_inv hf (f a) = a,
+    sorry,
+  simp,
+
   sorry
 end
 

@@ -78,9 +78,10 @@ by { cases h, refl, }
   (eq_to_hom h).unop = eq_to_hom (congr_arg unop h.symm) :=
 by { cases h, refl, }
 
-instance {X Y : C} (h : X = Y) : is_iso (eq_to_hom h) := { .. eq_to_iso h }
+instance {X Y : C} (h : X = Y) : is_iso (eq_to_hom h) := is_iso.of_iso (eq_to_iso h)
 
-@[simp] lemma inv_eq_to_hom {X Y : C} (h : X = Y) : inv (eq_to_hom h) = eq_to_hom h.symm := rfl
+@[simp] lemma inv_eq_to_hom {X Y : C} (h : X = Y) : inv (eq_to_hom h) = eq_to_hom h.symm :=
+by { ext, simp, }
 
 variables {D : Type u₂} [category.{v₂} D]
 

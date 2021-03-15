@@ -233,6 +233,8 @@ instance to_ring : ring s :=
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
+@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+s.to_submonoid.coe_pow x n
 
 @[simp] lemma coe_eq_zero_iff {x : s} : (x : R) = 0 ↔ x = 0 :=
 ⟨λ h, subtype.ext (trans h s.coe_zero.symm),
@@ -242,12 +244,49 @@ instance to_ring : ring s :=
 instance to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring s}
 
+/-- A subring of a non-trivial ring is non-trivial. -/
+instance {R} [ring R] [nontrivial R] (s : subring R) : nontrivial s :=
+s.to_subsemiring.nontrivial
+
+/-- A subring of a ring with no zero divisors has no zero divisors. -/
+instance {R} [ring R] [no_zero_divisors R] (s : subring R) : no_zero_divisors s :=
+s.to_subsemiring.no_zero_divisors
+
+/-- A subring of an integral domain is an integral domain. -/
+instance {R} [integral_domain R] (s : subring R) : integral_domain s :=
+{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_comm_ring }
+
+/-- A subring of an `ordered_ring` is an `ordered_ring`. -/
+instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
+subtype.coe_injective.ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of an `ordered_comm_ring` is an `ordered_comm_ring`. -/
+instance to_ordered_comm_ring {R} [ordered_comm_ring R] (s : subring R) : ordered_comm_ring s :=
+subtype.coe_injective.ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_ring` is a `linear_ordered_ring`. -/
+instance to_linear_ordered_ring {R} [linear_ordered_ring R] (s : subring R) :
+  linear_ordered_ring s :=
+subtype.coe_injective.linear_ordered_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
+instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] (s : subring R) :
+  linear_ordered_comm_ring s :=
+subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
 { to_fun := coe,
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
+s.subtype.map_nat_cast n
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
+s.subtype.map_int_cast n
 
 /-! # Partial order -/
 
@@ -363,24 +402,6 @@ end ring_hom
 
 namespace subring
 
-variables {cR : Type u} [comm_ring cR]
-
-/-- A subring of a commutative ring is a commutative ring. -/
-def subset_comm_ring (S : subring cR) : comm_ring S :=
-{mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring S}
-
-/-- A subring of a non-trivial ring is non-trivial. -/
-instance {D : Type*} [ring D] [nontrivial D] (S : subring D) : nontrivial S :=
-S.to_subsemiring.nontrivial
-
-/-- A subring of a ring with no zero divisors has no zero divisors. -/
-instance {D : Type*} [ring D] [no_zero_divisors D] (S : subring D) : no_zero_divisors S :=
-S.to_subsemiring.no_zero_divisors
-
-/-- A subring of an integral domain is an integral domain. -/
-instance subring.domain {D : Type*} [integral_domain D] (S : subring D) : integral_domain S :=
-{ .. S.nontrivial, .. S.no_zero_divisors, .. S.subset_comm_ring }
-
 /-! # bot -/
 
 instance : has_bot (subring R) := ⟨(int.cast_ring_hom R).range⟩
@@ -433,6 +454,9 @@ instance : complete_lattice (subring R) :=
   le_inf := λ s t₁ t₂ h₁ h₂ x hx, ⟨h₁ hx, h₂ hx⟩,
   .. complete_lattice_of_Inf (subring R)
     (λ s, is_glb.of_image (λ s t, show (s : set R) ≤ t ↔ s ≤ t, from coe_subset_coe) is_glb_binfi)}
+
+lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
+eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
 
 /-! # subring closure of a subset -/
 

@@ -50,7 +50,8 @@ private lemma convex.smul_integral_mem_of_measurable
   (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hfm : measurable f) :
   (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|⟨y₀, h₀⟩, { refine (hμ _).elim, simpa using hfs },
+  unfreezingI { rcases eq_empty_or_nonempty s with rfl|⟨y₀, h₀⟩ },
+  { refine (hμ _).elim, simpa using hfs },
   rw ← hsc.closure_eq at hfs,
   have hc : integrable (λ _, y₀) μ := integrable_const _,
   set F : ℕ → simple_func α E := simple_func.approx_on f hfm s y₀ h₀,

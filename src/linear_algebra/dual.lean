@@ -6,8 +6,6 @@ Authors: Johan Commelin, Fabian Glöckle
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
 
-noncomputable theory
-
 /-!
 # Dual vector spaces
 
@@ -32,7 +30,12 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 We sometimes use `V'` as local notation for `dual K V`.
 
+## TODO
+
+Erdös-Kaplansky theorem about the dimension of a dual vector space in case of infinite dimension.
 -/
+
+noncomputable theory
 
 namespace module
 
@@ -135,17 +138,10 @@ def to_dual_flip (v : V) : (V →ₗ[K] K) := (h.to_dual B).flip v
 
 variable {B}
 
-omit de h
--- TODO: unify this with `finsupp.lapply`.
-/-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
-def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
-{ to_fun    := λ f, f i,
-  map_add'  := by intros; rw finsupp.add_apply,
-  map_smul' := by intros; rw finsupp.smul_apply }
-include h
+omit de
 
 /-- `h.coord_fun i` sends vectors to their `i`'th coordinate with respect to the basis `h`. -/
-def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := (finsupp.lapply i).comp h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 
@@ -234,7 +230,7 @@ h.to_dual_apply_right i v
   (h.dual_basis_is_basis.to_dual _).comp (h.to_dual B) = eval K V :=
 begin
   refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
-  suffices : @ite _ (classical.prop_decidable _) K 1 0 = @ite _ (de j i) K 1 0,
+  suffices : @ite K _ (classical.prop_decidable _) 1 0 = @ite K _ (de j i) 1 0,
     by simpa [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
   split_ifs; refl
 end
@@ -528,6 +524,15 @@ begin
 end
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
+
+@[simp] lemma dual_findim_eq :
+  findim K (module.dual K V) = findim K V :=
+begin
+  obtain ⟨n, hn, hf⟩ := exists_is_basis_finite K V,
+  refine linear_equiv.findim_eq _,
+  haveI : fintype n := set.finite.fintype hf,
+  refine (hn.to_dual_equiv _).symm,
+end
 
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/
 noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :

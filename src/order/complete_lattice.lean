@@ -62,6 +62,7 @@ instance (α) [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)
 
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
+@[protect_proj]
 class complete_lattice (α : Type*) extends bounded_lattice α, has_Sup α, has_Inf α :=
 (le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
 (Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)
@@ -898,6 +899,14 @@ theorem supr_sum {γ : Type*} {f : β ⊕ γ → α} :
   (⨆ x, f x) = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=
 @infi_sum (order_dual α) _ _ _ _
 
+theorem supr_option (f : option β → α) :
+  (⨆ o, f o) = f none ⊔ ⨆ b, f (option.some b) :=
+eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sup_le_iff, option.forall]
+
+theorem infi_option (f : option β → α) :
+  (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
+@supr_option (order_dual α) _ _ _
+
 /-!
 ### `supr` and `infi` under `ℕ`
 -/
@@ -1036,30 +1045,67 @@ end prod
 section complete_lattice
 variables [complete_lattice α] {a : α} {s : set α}
 
+/-- This is a weaker version of `sup_Inf_eq` -/
 lemma sup_Inf_le_infi_sup :
   a ⊔ Inf s ≤ (⨅ b ∈ s, a ⊔ b) :=
 le_infi $ assume i, le_infi $ assume h, sup_le_sup_left (Inf_le h) _
 
+/-- This is a weaker version of `Inf_sup_eq` -/
+lemma Inf_sup_le_infi_sup :
+  Inf s ⊔ a ≤ (⨅ b ∈ s, b ⊔ a) :=
+le_infi $ assume i, le_infi $ assume h, sup_le_sup_right (Inf_le h) _
+
+/-- This is a weaker version of `inf_Sup_eq` -/
 lemma supr_inf_le_inf_Sup :
   (⨆ b ∈ s, a ⊓ b) ≤ a ⊓ Sup s :=
 supr_le $ assume i, supr_le $ assume h, inf_le_inf_left _ (le_Sup h)
 
+/-- This is a weaker version of `Sup_inf_eq` -/
+lemma supr_inf_le_Sup_inf :
+  (⨆ b ∈ s, b ⊓ a) ≤ Sup s ⊓ a :=
+supr_le $ assume i, supr_le $ assume h, inf_le_inf_right _ (le_Sup h)
+
+lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
+  disjoint i b :=
+(supr_le_iff.mp (supr_le_iff.mp (supr_inf_le_Sup_inf.trans (d : _)) i : _) hi : _)
+
+lemma disjoint_Sup_right {a : set α} {b : α} (d : disjoint b (Sup a)) {i} (hi : i ∈ a) :
+  disjoint b i :=
+(supr_le_iff.mp (supr_le_iff.mp (supr_inf_le_inf_Sup.trans (d : _)) i : _) hi : _)
+
 end complete_lattice
 
-section complete_lattice
+namespace complete_lattice
 variables [complete_lattice α]
 
 /-- An independent set of elements in a complete lattice is one in which every element is disjoint
   from the `Sup` of the rest. -/
-def complete_lattice.independent (s : set α) : Prop := ∀ a ∈ s, disjoint a (Sup (s \ {a}))
+def independent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
+
+variables {s : set α} (hs : independent s)
 
 @[simp]
-lemma complete_lattice.independent_empty : complete_lattice.independent (∅ : set α) :=
+lemma independent_empty : independent (∅ : set α) :=
 λ x hx, (set.not_mem_empty x hx).elim
 
-theorem complete_lattice.independent.mono {s t : set α}
-  (ht : complete_lattice.independent t) (hst : s ⊆ t) :
-  complete_lattice.independent s :=
-λ a ha, (ht a (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
+theorem independent.mono {t : set α} (hst : t ⊆ s) :
+  independent t :=
+λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
+
+/-- If the elements of a set are independent, then any pair within that set is disjoint. -/
+lemma independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
+disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
+
+include hs
+
+/-- If the elements of a set are independent, then any element is disjoint from the `Sup` of some
+subset of the rest. -/
+lemma independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
+  disjoint x (Sup y) :=
+begin
+  have := (hs.mono $ insert_subset.mpr ⟨hx, hy⟩) (mem_insert x _),
+  rw [insert_diff_of_mem _ (mem_singleton _), diff_singleton_eq_self hxy] at this,
+  exact this,
+end
 
 end complete_lattice

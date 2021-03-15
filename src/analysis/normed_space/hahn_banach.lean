@@ -111,7 +111,7 @@ begin
         ≤ ∥g∥ : g.extend_to_𝕜.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
     ... = ∥fr∥ : hnormeq
     ... ≤ ∥re_clm∥ * ∥f∥ : continuous_linear_map.op_norm_comp_le _ _
-    ... = ∥f∥ : by rw [norm_re_clm, one_mul] },
+    ... = ∥f∥ : by rw [re_clm_norm, one_mul] },
   { exact f.op_norm_le_bound g.extend_to_𝕜.op_norm_nonneg (λ x, h x ▸ g.extend_to_𝕜.le_op_norm x) },
 end
 

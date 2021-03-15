@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
+import algebra.invertible
 import algebra.opposites
 import data.list.basic
 import data.int.cast
@@ -49,13 +50,37 @@ theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n •�
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
+instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
+
+lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
+  ⅟(m ^ n) = ⅟m ^ n :=
+@invertible_unique M _ (m ^ n) (m ^ n) rfl ‹_› (invertible_pow m n)
+
+lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
+λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+
+/-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
+def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
+  invertible x :=
+⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
+
+/-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+  invertible x :=
+begin
+  apply invertible_of_pow_succ_eq_one x (n - 1),
+  convert hx,
+  exact nat.sub_add_cancel (nat.succ_le_of_lt hn),
+end
+
 lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
   is_unit x :=
 begin
-  cases n, { exact (nat.not_lt_zero _ hn).elim },
-  refine ⟨⟨x, x ^ n, _, _⟩, rfl⟩,
-  { rwa [pow_succ] at hx },
-  { rwa [pow_succ'] at hx }
+  haveI := invertible_of_pow_eq_one x n hx hn,
+  exact is_unit_of_invertible x
 end
 
 end monoid
@@ -181,6 +206,57 @@ theorem gsmul_lt_gsmul {a : A} {n m : ℤ} (ha : 0 < a) (h : n < m) : n •ℤ a
 calc n •ℤ a = n •ℤ a + 0 : (add_zero _).symm
   ... < n •ℤ a + (m - n) •ℤ a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
   ... = m •ℤ a : by { rw [← add_gsmul], simp }
+
+lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
+  abs (n •ℕ a) = n •ℕ abs a :=
+begin
+  cases le_total a 0 with hneg hpos,
+  { rw [abs_of_nonpos hneg, ← abs_neg, ← neg_nsmul, abs_of_nonneg],
+    exact nsmul_nonneg (neg_nonneg.mpr hneg) n },
+  { rw [abs_of_nonneg hpos, abs_of_nonneg],
+    exact nsmul_nonneg hpos n }
+end
+
+lemma abs_gsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℤ) (a : α) :
+  abs (n •ℤ a) = (abs n) •ℤ abs a :=
+begin
+  by_cases n0 : 0 ≤ n,
+  { lift n to ℕ using n0,
+    simp only [abs_nsmul, coe_nat_abs, gsmul_coe_nat] },
+  { lift (- n) to ℕ using int.le_of_lt (neg_pos.mpr (not_le.mp n0)) with m h,
+    rw [← abs_neg (n •ℤ a), ← neg_gsmul, ← abs_neg n, ← h],
+    convert abs_nsmul m _,
+    simp only [coe_nat_abs, gsmul_coe_nat] },
+end
+
+lemma abs_add_eq_add_abs_le {α : Type*} [linear_ordered_add_comm_group α] {a b : α} (hle : a ≤ b) :
+  abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
+begin
+  by_cases a0 : 0 ≤ a; by_cases b0 : 0 ≤ b,
+  { simp [a0, b0, abs_of_nonneg, add_nonneg a0 b0] },
+  { exact (lt_irrefl (0 : α) (a0.trans_lt (hle.trans_lt (not_le.mp b0)))).elim },
+  any_goals { simp [(not_le.mp a0).le, (not_le.mp b0).le, abs_of_nonpos, add_nonpos, add_comm] },
+  obtain F := (not_le.mp a0),
+  have : (abs (a + b) = -a + b ↔ b ≤ 0) ↔ (abs (a + b) =
+    abs a + abs b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0),
+  { simp [a0, b0, abs_of_neg, abs_of_nonneg, F, F.le] },
+  refine this.mp ⟨λ h, _, λ h, by simp only [le_antisymm h b0, abs_of_neg F, add_zero]⟩,
+  by_cases ba : a + b ≤ 0,
+  { refine le_of_eq (eq_zero_of_neg_eq _),
+    rwa [abs_of_nonpos ba, neg_add_rev, add_comm, add_right_inj] at h },
+  { refine (lt_irrefl (0 : α) _).elim,
+    rw [abs_of_pos (not_le.mp ba), add_left_inj] at h,
+    rwa eq_zero_of_neg_eq h.symm at F }
+end
+
+lemma abs_add_eq_add_abs_iff {α : Type*} [linear_ordered_add_comm_group α] (a b : α) :
+  abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
+begin
+  by_cases ab : a ≤ b,
+  { exact abs_add_eq_add_abs_le ab },
+  { rw [add_comm a, add_comm (abs _), abs_add_eq_add_abs_le ((not_le.mp ab).le), and.comm,
+    @and.comm (b ≤ 0 ) _] }
+end
 
 end ordered_add_comm_group
 
@@ -717,7 +793,7 @@ by induction b; simp [*, mul_add, pow_succ, add_comm]
 @[simp] lemma int.to_add_gpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
 int.induction_on b (by simp)
   (by simp [gpow_add, mul_add] {contextual := tt})
-  (by simp [gpow_add, mul_add, sub_eq_add_neg, -int.add_minus_one] {contextual := tt})
+  (by simp [gpow_add, mul_add, sub_eq_add_neg, -int.add_neg_one] {contextual := tt})
 
 @[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
 (int.to_add_gpow _ _).symm

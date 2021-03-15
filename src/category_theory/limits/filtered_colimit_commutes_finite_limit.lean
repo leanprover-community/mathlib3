@@ -91,7 +91,8 @@ begin
       g j⟩),
   obtain ⟨S, T, W⟩ := is_filtered.sup_exists O H,
 
-  have fH : ∀ j, (⟨kx, k j, kxO, kjO j, f j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
+  have fH :
+    ∀ j, (⟨kx, k j, kxO, kjO j, f j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inl
     begin
       simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
@@ -100,7 +101,8 @@ begin
       simp only [heq_iff_eq],
       exact ⟨rfl, rfl, rfl⟩,
     end)),
-  have gH : ∀ j, (⟨ky, k j, kyO, kjO j, g j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
+  have gH :
+    ∀ j, (⟨ky, k j, kyO, kjO j, g j⟩ : (Σ' (X Y : K) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H :=
     λ j, (finset.mem_union.mpr (or.inr
     begin
       simp only [true_and, finset.mem_univ, eq_self_iff_true, exists_prop_of_true,
@@ -293,10 +295,9 @@ begin
     simp only [bifunctor.map_id_comp, types_comp_apply, bifunctor.map_id, types_id_apply], },
 end
 
-noncomputable
 instance colimit_limit_to_limit_colimit_is_iso :
   is_iso (colimit_limit_to_limit_colimit F) :=
-(is_iso_equiv_bijective _).symm
+(is_iso_iff_bijective _).mpr
   ⟨colimit_limit_to_limit_colimit_injective F, colimit_limit_to_limit_colimit_surjective F⟩
 
 end category_theory.limits

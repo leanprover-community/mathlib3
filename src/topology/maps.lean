@@ -97,6 +97,10 @@ lemma inducing.is_closed_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_closed s ↔ ∃ t, is_closed t ∧ f ⁻¹' t = s :=
 by rw [hf.induced, is_closed_induced_iff]
 
+lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
+  is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=
+by rw [hf.induced, is_open_induced_iff]
+
 end inducing
 
 section embedding
@@ -125,6 +129,11 @@ lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : conti
   (hgf : embedding (g ∘ f)) : embedding f :=
 { induced := (inducing_of_inducing_compose hf hg hgf.to_inducing).induced,
   inj := assume a₁ a₂ h, hgf.inj $ by simp [h, (∘)] }
+
+protected lemma function.left_inverse.embedding {f : α → β} {g : β → α}
+  (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
+  embedding g :=
+embedding_of_embedding_compose hg hf $ h.comp_eq_id.symm ▸ embedding_id
 
 lemma embedding.map_nhds_eq {f : α → β} (hf : embedding f) (a : α) :
   (𝓝 a).map f = 𝓝[range f] (f a) :=
@@ -285,7 +294,7 @@ lemma of_inverse {f : α → β} {f' : β → α}
   is_closed_map f :=
 assume s hs,
 have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
-this ▸ continuous_iff_is_closed.mp h s hs
+this ▸ hs.preimage h
 
 lemma of_nonempty {f : α → β} (h : ∀ s, is_closed s → s.nonempty → is_closed (f '' s)) :
   is_closed_map f :=

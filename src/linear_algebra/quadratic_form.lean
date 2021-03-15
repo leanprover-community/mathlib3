@@ -690,7 +690,7 @@ end quadratic_form
 
 namespace bilin_form
 
-/-- The quadratic form associated with a nondegenerate bilinear form is anisotropic. -/
+/-- A bilinear form is nondegenerate if the quadratic form it is associated with is anisotropic. -/
 lemma nondegenerate_of_anisotropic
   {B : bilin_form R M} (hB : B.to_quadratic_form.anisotropic) : B.nondegenerate :=
 λ x hx, hB _ (hx x)

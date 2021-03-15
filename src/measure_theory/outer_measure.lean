@@ -98,7 +98,7 @@ protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
 rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
 
 /-- If `s : ι → set α` is a sequence of sets, `S = ⋃ n, s n`, and `m (S \ s n)` tends to zero along
-some nontrivial filter (usually `at_top` on `α = ℕ`), then `m S = ⨆ n, s n`. -/
+some nontrivial filter (usually `at_top` on `α = ℕ`), then `m S = ⨆ n, m (s n)`. -/
 lemma Union_of_tendsto_zero {ι} (m : outer_measure α) {s : ι → set α}
   (l : filter ι) [ne_bot l] (h0 : tendsto (λ k, m ((⋃ n, s n) \ s k)) l (𝓝 0)) :
   m (⋃ n, s n) = ⨆ n, m (s n) :=

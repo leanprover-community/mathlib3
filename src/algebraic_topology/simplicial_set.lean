@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import algebraic_topology.simplicial_object
 import category_theory.yoneda
+import category_theory.limits.types
 
 /-!
 A simplicial set is just a simplicial object in `Type`,
@@ -33,7 +34,7 @@ open category_theory
 /-- The category of simplicial sets.
 This is the category of contravariant functors from
 `simplex_category` to `Type u`. -/
-@[derive large_category]
+@[derive [large_category, limits.has_limits, limits.has_colimits]]
 def sSet : Type (u+1) := simplicial_object (Type u)
 
 namespace sSet

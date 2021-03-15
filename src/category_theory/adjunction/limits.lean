@@ -115,6 +115,10 @@ lemma has_colimit_of_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_coli
 (@adjunction.has_colimit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((functor.right_unitor _).symm ≪≫ iso_whisker_left K (E.as_equivalence.unit_iso))
 
+/-- Transport a `has_colimits` instance across an equivalence. -/
+def has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits D] : has_colimits C :=
+⟨λ J hJ, { has_colimit := λ F, by exactI has_colimit_of_comp_equivalence F E }⟩
+
 end preservation_colimits
 
 section preservation_limits
@@ -211,6 +215,10 @@ lemma has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit 
 @has_limit_of_iso _ _ _ _ (K ⋙ E ⋙ inv E) K
 (@adjunction.has_limit_comp_equivalence _ _ _ _ _ _ (K ⋙ E) (inv E) _ _)
 ((iso_whisker_left K E.as_equivalence.unit_iso.symm) ≪≫ (functor.right_unitor _))
+
+/-- Transport a `has_limits` instance across an equivalence. -/
+def has_limits_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits C] : has_limits D :=
+⟨λ J hJ, { has_limit := λ F, by exactI has_limit_of_comp_equivalence F E }⟩
 
 end preservation_limits
 

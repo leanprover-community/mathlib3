@@ -202,7 +202,7 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
           ext,
           simp [hem],
         end,
-      rw [hem1, function.update_same],
+      erw [hem1, function.update_same],
       --case i ≠ j.succ
       rw function.update_noteq (ne_comm.mp hem),
       have hem1 : j ≠ i.pred h :=
@@ -252,7 +252,7 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
             ext, simp [hem],
           end,
         rw hem1,
-        rw function.update_same,
+        erw function.update_same,
         --case i ≠ j.succ
         rw function.update_noteq (ne_comm.mp hem),
         have hem1 : j ≠ i.pred h :=
@@ -298,6 +298,7 @@ begin
   exact alg_hom.congr_fun of_id a,
 end
 
+variables {R M}
 /-- The left-inverse of `algebra_map`. -/
 def algebra_map_inv : tensor_algebra R M →ₐ[R] R :=
 lift R (0 : M →ₗ[R] R)

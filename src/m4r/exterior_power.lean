@@ -6,19 +6,6 @@ variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M
 open exterior_algebra
 open_locale classical
 
-lemma wedge_eq_ι_multi {n : ℕ} (v : fin n → M) :
-  wedge R M v = ι_multi R n v :=
-begin
-  rw ι_multi_apply,
-  show exterior_algebra.quot R M (list.prod _) = _,
-  unfold exterior_algebra.ι,
-  simp only [alg_hom.to_linear_map_apply, linear_map.comp_apply,
-    alg_hom.map_prod', list.map_map],
-  congr,
-  rw list.of_fn_eq_map,
-  refl,
-end
-
 def exists_same (n : ℕ) : set (fin n → M) :=
 { v | ∃ (i j : fin n) (h : v i = v j), i ≠ j }
 

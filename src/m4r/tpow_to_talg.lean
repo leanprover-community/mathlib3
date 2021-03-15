@@ -753,7 +753,7 @@ begin
   induction n with n hn,
   { erw one_eq_mk,
     rw alg_prod_apply,
-    convert list.prod_nil.symm },
+    simp only [list.of_fn_zero, list.prod_nil] },
   { rw [alg_prod_apply, fin.list.of_fn_succ', list.concat_eq_append, list.prod_append,
         list.prod_singleton],
     conv_rhs {rw ←fin.comp_init},
@@ -818,8 +818,7 @@ begin
 end
 
 theorem talg.right_inverse (x : talg R M) :
-  to_talg R M (@talg.lift R _ M _ _ _ _ (tensor_algebra.inst R M)
-    (tensor_algebra.ι R) x) = x :=
+  to_talg R M (talg.lift R M (tensor_algebra.ι R) x) = x :=
 begin
   refine direct_sum.linduction_on R x _ _ _,
   { rw [alg_hom.map_zero, alg_hom.map_zero] },
@@ -905,8 +904,7 @@ end
 variables (R M)
 
 theorem talg.left_inverse (x : tensor_algebra R M) :
-  @talg.lift R _ M _ _ _ _ (tensor_algebra.inst R M)
-    (tensor_algebra.ι R) (to_talg R M x) = x :=
+  talg.lift R M (tensor_algebra.ι R) (to_talg R M x) = x :=
 begin
   refine tensor_algebra.induction_on _ _ _ _ x,
   { intros n f,

@@ -78,7 +78,6 @@ variables {R : Type*} [comm_semiring R] {M : Type*} [add_comm_monoid M] [semimod
   (fin.snoc f x : fin m.succ → M) i :=
 begin
   convert function.update_noteq _ _ _,
-  refl,
   intro h,
   refine nat.lt_irrefl m _,
   convert i.2,
@@ -94,7 +93,6 @@ end
 begin
   conv_rhs {rw ←snoc_mk_apply f x},
   convert function.update_noteq _ _ _,
-  refl,
   intro h,
   refine nat.lt_irrefl m _,
   convert i.2,
@@ -457,7 +455,8 @@ begin
   convert cons_zero _ _,
   refl,
   ext,
-  convert (ext_iff _ _).1 hi,
+  show (i : ℕ) = 0,
+  exact (ext_iff _ _).1 hi,
   rw ←succ_pred _ hi,
   rw cons_succ,
   rw ←succ_pred (i.cast_lt h),
@@ -466,6 +465,7 @@ begin
   congr,
   contrapose! hi,
   ext,
+  show (i : ℕ) = 0,
   convert (ext_iff _ _).1 hi,
   rw append_apply_snd,
   rw ←succ_pred (cast (by rw [ho, nat.succ_add, ←hp]) i)

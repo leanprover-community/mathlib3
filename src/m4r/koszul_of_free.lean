@@ -393,16 +393,21 @@ lemma direct_sum.component.lof_ne {ι : Type v} [dec_ι : decidable_eq ι]
   direct_sum.component R ι M i ((direct_sum.lof R ι M j) b) = 0 :=
 dfinsupp.single_eq_of_ne h
 
-/-lemma direct_sum.lof_congr {ι : Type v} [dec_ι : decidable_eq ι]
-  {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
-  {i j : ι} (h : j = i) (b : M j) :
-  direct_sum.lof R _ M j b = direct_sum.lof R _ M i (eq.rec b h) :=
-begin
-  cases h,
-  refl,
-end-/
-
 open_locale classical
+
+lemma comp_symm_hom (A B : Module R) (F : A ≅ B) :
+  linear_map.comp F.symm.hom F.hom = linear_map.id :=
+begin
+  ext,
+  simp only [category_theory.coe_hom_inv_id, linear_map.id_coe, id.def, category_theory.iso.symm_hom, linear_map.comp_apply],
+end
+
+lemma to_linear_map_comp {M : Type u} {N : Type u} {P : Type u}
+  [add_comm_group M] [add_comm_group N] [add_comm_group P]
+  [module R M] [module R N] [module R P]
+  (f : M ≃ₗ[R] N) (g : N ≃ₗ[R] P) :
+  g.to_linear_map.comp f.to_linear_map = (f.trans g).to_linear_map :=
+linear_map.ext $ λ x, rfl
 
 def free_Koszul_zero {n : ℕ} : Π (x : fin n.succ → R),
   (free_Koszul R n x).X 0 ≅ Module.of R R :=
@@ -416,12 +421,14 @@ nat.rec_on n (λ x, category_theory.iso.refl _) $ λ n fn x,
     (tensor_product.lid R _).symm.to_linear_map.comp (fn _).symm.hom,
   hom_inv_id' :=
   begin
+    show linear_map.comp _ _ = _,
+    rw [linear_map.comp_assoc, linear_map.comp_assoc],
+    conv_lhs {congr, skip, congr, skip, rw [←linear_map.comp_assoc, comp_symm_hom, linear_map.id_comp]},
+    conv_lhs {congr, skip, rw [←linear_map.comp_assoc, to_linear_map_comp]},
+    erw linear_equiv.trans_symm,
+    show (direct_sum.lof R (int_pair 0) _ _).comp (direct_sum.component R (int_pair 0) _ _) = _,
     ext1 i,
     ext1 X Y,
-    simp only [category_theory.coe_hom_inv_id, to_linear_map_apply, dfinsupp.lsingle_apply,
-      function.comp_app, category_theory.iso.symm_hom, -tensor_product.lid_symm_apply,
-      Module.coe_comp, Module.id_apply, linear_map.comp_apply],
-    erw linear_equiv.symm_apply_apply,
     rcases classical.em (i = int_pair_mk 0 0 0 (zero_add _)) with ⟨rfl, h⟩,
     { erw [direct_sum.component.lof_self],
       refl },

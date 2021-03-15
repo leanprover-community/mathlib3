@@ -204,7 +204,8 @@ end
 lemma tensor_d_squared : (tensor_d R F G).comp (@tensor_d R _ F G n) = 0 :=
 begin
   ext i x y j,
-  rw [linear_map.zero_comp, linear_map.zero_apply, linear_map.comp_apply, linear_map.comp_apply],
+  simp only [tensor_product.mk_apply, linear_map.compr₂_apply, dfinsupp.lsingle_apply,
+    linear_map.zero_apply, direct_sum.zero_apply, linear_map.comp_apply],
   erw [direct_sum.to_module_lof, linear_map.add_apply, linear_map.map_add,
     direct_sum.to_module_lof, direct_sum.to_module_lof],
   rw [linear_map.add_apply, linear_map.add_apply],
@@ -268,7 +269,7 @@ def cochain_complex.tensor_product (F G : cochain_complex.{u u+1} (Module.{u u} 
 { X := λ n, Module.of R (direct_sum (int_pair n)
     (λ i, tensor_product R (F.X i.1.1) (G.X i.1.2))),
   d := λ n, tensor_d R F G,
-  d_squared' := by {ext1 n, dsimp, convert tensor_d_squared R F G }}
+  d_squared' := by { ext1 n, dsimp, exact @tensor_d_squared R _ F G n }}
 
 def cochain_complex.tensor_single (F : cochain_complex.{u u+1} (Module.{u u} R))
   (M : Module R) : cochain_complex (Module R) :=

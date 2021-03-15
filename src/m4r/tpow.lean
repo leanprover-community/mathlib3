@@ -250,7 +250,7 @@ begin
   { intros,
     unfold lift,
     ext (x : tpow R M n) y,
-    rw tensor_product.lift.tmul,
+    erw tensor_product.lift.tmul,
     unfreezingI { rw ←hn f.curry_right (tensor_product.lcurry _ (tpow R M n) _ _ g)
      (λ x, begin
       ext z,

@@ -55,9 +55,9 @@ lemma mul_smul_comm (t : R) (a b : A) :
 non_unital_non_assoc_algebra.mul_smul_comm' t a b
 
 /-- The algebra multiplication as a bilinear map. -/
-def mul_as_bilinear {R : Type u₁} {A : Type u₂}
+def lmul {R : Type u₁} {A : Type u₂}
   [comm_semiring R] [non_unital_non_assoc_semiring A] [non_unital_non_assoc_algebra R A] :
-  A →ₗ[R] A →ₗ[R] A :=
+  A →ₗ[R] module.End R A :=
 linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm
 
 /-- If the underlying `non_unital_non_assoc_semiring` is actually a `semiring` we have an
@@ -83,6 +83,13 @@ attribute [nolint doc_blame] non_unital_non_assoc_algebra_hom.to_mul_hom
 namespace non_unital_non_assoc_algebra_hom
 
 variables {R A B C}
+
+instance {R A B} [comm_semiring R] [ring A] [ring B] [algebra R A] [algebra R B] :
+  has_coe (A →ₐ[R] B) (non_unital_non_assoc_algebra_hom R A B) :=
+⟨λ f, { to_fun    := f,
+        map_add'  := f.map_add,
+        map_smul' := f.map_smul,
+        map_mul'  := f.map_mul, }⟩
 
 instance : has_coe (non_unital_non_assoc_algebra_hom R A B) (A →ₗ[R] B) := ⟨to_linear_map⟩
 
@@ -126,7 +133,7 @@ instance : has_zero (non_unital_non_assoc_algebra_hom R A B) :=
 instance : inhabited (non_unital_non_assoc_algebra_hom R A B) := ⟨0⟩
 
 lemma coe_injective :
-  function.injective (λ f : non_unital_non_assoc_algebra_hom R A B, show A → B, from f) :=
+  @function.injective (non_unital_non_assoc_algebra_hom R A B) (A → B) coe_fn :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] lemma ext {f g : non_unital_non_assoc_algebra_hom R A B} (h : ∀ x, f x = g x) : f = g :=

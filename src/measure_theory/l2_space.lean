@@ -8,6 +8,15 @@ import measure_theory.set_integral
 
 /-! # `L^2` space
 
+If `E` is an inner product space over `𝕜` (`ℝ` or `ℂ`), then `Lp E 2 μ` (defined in `lp_space.lean`)
+is also an inner product space, with inner product defined as `inner f g = ∫ a, ⟪f a, g a⟫ ∂μ`.
+
+### Main results
+
+* `mem_L1_inner` : the inner product of `f` and `g` in `Lp E 2 μ` belongs to `Lp 𝕜 1 μ`.
+* `integrable_inner` : the inner product of `f` and `g` in `Lp E 2 μ` is integrable.
+* `L2.inner_product_space` : `Lp E 2 μ` is an inner product space.
+
 -/
 
 noncomputable theory
@@ -15,6 +24,7 @@ open topological_space measure_theory measure_theory.Lp
 open_locale nnreal ennreal
 
 namespace measure_theory
+namespace L2
 
 variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
   [measurable_space E] [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
@@ -122,4 +132,5 @@ instance : inner_product_space 𝕜 (Lp E 2 μ) :=
 
 end inner_product_space
 
+end L2
 end measure_theory

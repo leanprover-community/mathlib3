@@ -491,7 +491,11 @@ lemma of_function_eq_Sup : outer_measure.of_function m m_empty = Sup {μ | ∀ s
 (@is_greatest_of_function α m m_empty).is_lub.Sup_eq.symm
 
 /-- If `m u = ∞` for any set `u` that has nonempty intersection both with `s` and `t`, then
-`μ (s ∪ t) = μ s + μ t`, where `μ = measure_theory.outer_measure.of_function m m_empty`. -/
+`μ (s ∪ t) = μ s + μ t`, where `μ = measure_theory.outer_measure.of_function m m_empty`.
+
+E.g., if `α` is an (e)metric space and `m u = ∞` on any set of diameter `≥ r`, then this lemma
+implies that `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s`
+and `y ∈ t`.  -/
 lemma of_function_union_of_top_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → m u = ∞) :
   outer_measure.of_function m m_empty (s ∪ t) =
@@ -1032,7 +1036,10 @@ lemma le_induced_outer_measure {μ : outer_measure α} :
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 /-- If `P u` is `false` for any set `u` that has nonempty intersection both with `s` and `t`, then
-`μ (s ∪ t) = μ s + μ t`, where `μ = induced_outer_measure m P0 m0`. -/
+`μ (s ∪ t) = μ s + μ t`, where `μ = induced_outer_measure m P0 m0`.
+
+E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that 
+`μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s` and `y ∈ t`. -/
 lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :
   induced_outer_measure m P0 m0 (s ∪ t) =

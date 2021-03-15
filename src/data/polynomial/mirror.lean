@@ -188,73 +188,16 @@ section norm2
 
 variables {R : Type*} [comm_ring R] (p q : polynomial R)
 
-def norm2_fun : polynomial R → R := λ p, p.sum (λ k c, c ^ 2)
-
-lemma norm2_fun_def : p.norm2_fun = p.sum (λ k c, c ^ 2) := rfl
-
-lemma norm2_fun_eq_sum_of_support {s : finset ℕ} (h : p.support ⊆ s) :
-  p.norm2_fun = s.sum (λ k, (p.coeff k) ^ 2) :=
-finset.sum_subset h (λ k h1 h2, by
-{ rw [finsupp.not_mem_support_iff.mp h2], exact zero_pow zero_lt_two })
-
-lemma smul_norm2_fun (a : R) : (a • p).norm2_fun = a * a * p.norm2_fun :=
-begin
-  rw [norm2_fun_def, norm2_fun_def, finsupp.sum_smul_index, finsupp.mul_sum],
-  congr,
-  { exact _root_.funext (λ _, _root_.funext (λ _, by ring)) },
-  { exact λ k, zero_pow zero_lt_two },
-end
-
-lemma polar_norm2_fun {s : finset ℕ} (hp : p.support ⊆ s) (hq : q.support ⊆ s) :
-  quadratic_form.polar norm2_fun p q = s.sum (λ k, 2 * (p.coeff k) * (q.coeff k)) :=
-begin
-  rw [quadratic_form.polar, (p + q).norm2_fun_eq_sum_of_support,
-      p.norm2_fun_eq_sum_of_support hp, q.norm2_fun_eq_sum_of_support hq,
-      sub_eq_iff_eq_add', sub_eq_iff_eq_add', ←finset.sum_add_distrib, ←finset.sum_add_distrib],
-  apply finset.sum_congr rfl,
-  { intros k hk,
-    rw coeff_add,
-    ring },
-  { apply finset.subset.trans finsupp.support_add _,
-    convert (finset.union_subset hp hq) },
-end
-
-/-- the sum of the square of the coefficients of a polynomial -/
 noncomputable def norm2 : quadratic_form R (polynomial R) :=
-quadratic_form.mk_left norm2_fun (λ a p, p.smul_norm2_fun a)
-begin
-  intros p q r,
-  let s := p.support ∪ q.support ∪ r.support,
-  have hpq : p.support ∪ q.support ⊆ s := finset.subset_union_left _ _,
-  have hp : p.support ⊆ s := finset.subset.trans (finset.subset_union_left _ _) hpq,
-  have hq : q.support ⊆ s := finset.subset.trans (finset.subset_union_right _ _) hpq,
-  have hr : r.support ⊆ s := finset.subset_union_right _ _,
-  replace hpq : (p + q).support ⊆ s,
-  { refine finset.subset.trans finsupp.support_add _,
-    convert hpq },
-  rw [(p + q).polar_norm2_fun r hpq hr, p.polar_norm2_fun r hp hr,
-      q.polar_norm2_fun r hq hr, ←finset.sum_add_distrib],
-  apply finset.sum_congr rfl,
-  intros k hk,
-  rw coeff_add,
-  ring,
-end
-begin
-  intros a p q,
-  let s := p.support ∪ q.support,
-  have hp : p.support ⊆ s := finset.subset_union_left _ _,
-  have hq : q.support ⊆ s := finset.subset_union_right _ _,
-  have hap : (a • p).support ⊆ s := finset.subset.trans finsupp.support_smul hp,
-  rw [(a • p).polar_norm2_fun q hap hq, p.polar_norm2_fun q hp hq, finset.mul_sum],
-  apply finset.sum_congr rfl,
-  intros k hk,
-  rw coeff_smul,
-  ring,
-end
+finsupp.norm_sq
+
+lemma norm2_apply : p.norm2 = p.sum (λ k c, c ^ 2) :=
+finsupp.norm_sq_apply p
 
 lemma norm2_eq_sum_of_support {s : finset ℕ}
   (h : p.support ⊆ s) : p.norm2 = s.sum (λ k, (p.coeff k) ^ 2) :=
-p.norm2_fun_eq_sum_of_support h
+p.norm2_apply.trans (finset.sum_subset h (λ k h1 h2, by
+{ rw [finsupp.not_mem_support_iff.mp h2], exact zero_pow zero_lt_two }))
 
 lemma norm2_monomial (k : ℕ) (a : R) : (monomial k a).norm2 = a ^ 2 :=
 by rw [norm2_eq_sum_of_support _ (support_monomial' k a),
@@ -303,34 +246,31 @@ lemma central_coeff_mul_mirror {R : Type*} [integral_domain R] (p : polynomial R
 by rw [nat_degree_mul_mirror, nat_trailing_degree_mul_mirror,  ←mul_add,
   nat.mul_div_cancel_left _ zero_lt_two, norm2_eq_mul_reverse_coeff]
 
-lemma norm2_nonneg {R : Type*} [linear_ordered_comm_ring R] (p : polynomial R) :
-  0 ≤ norm2 p :=
-finset.sum_nonneg (λ n _, pow_two_nonneg (p.coeff n))
-
-lemma norm2.anisotropic {R : Type*} [linear_ordered_comm_ring R] [no_zero_divisors R] :
-  (norm2 : quadratic_form R (polynomial R)).anisotropic :=
+lemma norm2_nonneg {R : Type*} [linear_ordered_comm_ring R] (p : polynomial R) : 0 ≤ norm2 p :=
 begin
-  intros p hp,
-  ext n,
-  by_cases hn : n ∈ p.support,
-  { exact pow_eq_zero ((finset.sum_eq_zero_iff_of_nonneg
-      (λ m _, pow_two_nonneg (p.coeff m))).mp hp n hn) },
-  { rw [not_mem_support_iff_coeff_zero.mp hn, coeff_zero] },
+  rw p.norm2_eq_sum_of_support (le_refl p.support),
+  exact finset.sum_nonneg (λ k hk, pow_two_nonneg (p.coeff k)),
 end
 
-lemma norm2.pos_def {R : Type*} [linear_ordered_comm_ring R] [no_zero_divisors R] :
+lemma norm2_anisotropic {R : Type*} [linear_ordered_comm_ring R] :
+  (norm2 : quadratic_form R (polynomial R)).anisotropic :=
+λ p hp, finsupp.support_eq_empty.mp (finset.eq_empty_of_forall_not_mem
+  (λ k hk, mem_support_iff_coeff_ne_zero.mp hk (pow_eq_zero
+  ((finset.sum_eq_zero_iff_of_nonneg (λ k hk, pow_two_nonneg (p.coeff k))).mp
+  ((p.norm2_eq_sum_of_support (le_refl p.support)).symm.trans hp) k hk))))
+
+lemma norm2_pos_def {R : Type*} [linear_ordered_comm_ring R] :
   (norm2 : quadratic_form R (polynomial R)).pos_def :=
-λ p hp, lt_of_le_of_ne p.norm2_nonneg (ne.symm (mt (norm2.anisotropic p) hp))
+λ p hp, lt_of_le_of_ne p.norm2_nonneg (ne.symm (mt (norm2_anisotropic p) hp))
 
 lemma norm2_eq_zero {R : Type*} [linear_ordered_comm_ring R] {p : polynomial R} :
   p.norm2 = 0 ↔ p = 0 :=
-⟨norm2.anisotropic p, λ h, (congr_arg norm2 h).trans norm2_zero⟩
+⟨norm2_anisotropic p, λ h, (congr_arg norm2 h).trans norm2_zero⟩
 
 lemma coeff_sq_le_norm2 {R : Type*} [linear_ordered_comm_ring R] (p : polynomial R) (k : ℕ) :
   p.coeff k ^ 2 ≤ p.norm2 :=
 begin
-  change _ ≤ finset.sum _ _,
-  rw ← finset.sum_insert_of_eq_zero_if_not_mem,
+  rw [p.norm2_eq_sum_of_support (le_refl p.support), ←finset.sum_insert_of_eq_zero_if_not_mem],
   exact (le_of_eq (finset.sum_singleton.symm)).trans (finset.sum_le_sum_of_subset_of_nonneg
     (finset.singleton_subset_iff.mpr (finset.mem_insert_self k p.support))
     (λ j _ _, pow_two_nonneg (p.coeff j))),
@@ -340,8 +280,8 @@ end
 lemma norm2_eq_card_support (hp : ∀ k, p.coeff k ≠ 0 → p.coeff k ^ 2 = 1) :
   p.norm2 = p.support.card :=
 begin
-  rw [←ring_hom.eq_nat_cast (nat.cast_ring_hom R), finset.card_eq_sum_ones, ring_hom.map_sum],
-  simp only [ring_hom.map_one],
+  rw [←ring_hom.eq_nat_cast (nat.cast_ring_hom R), finset.card_eq_sum_ones, ring_hom.map_sum,
+      ring_hom.map_one, p.norm2_eq_sum_of_support (le_refl p.support)],
   exact finset.sum_congr rfl (λ k hk, hp k (mem_support_iff_coeff_ne_zero.mp hk)),
 end
 

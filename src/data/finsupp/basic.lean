@@ -1750,6 +1750,13 @@ lemma sum_smul_index' [semiring R] [add_comm_monoid M] [semimodule R M] [add_com
   (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
 
+/-- A version of `finsupp.sum_smul_index'` for bundled additive maps. -/
+lemma sum_smul_index_add_monoid_hom
+  [semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M]
+  {g : α →₀ M} {b : R} {h : α → M →+ N} :
+  (b • g).sum (λ a, h a) = g.sum (λ i c, h i (b • c)) :=
+sum_map_range_index (λ i, (h i).map_zero)
+
 instance [semiring R] [add_comm_monoid M] [semimodule R M] {ι : Type*}
   [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=
 ⟨λ c f h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext

@@ -213,7 +213,7 @@ hf.prod_mk_nhds hg
 lemma continuous_at.prod_map {f : α → γ} {g : β → δ} {p : α × β}
   (hf : continuous_at f p.fst) (hg : continuous_at g p.snd) :
   continuous_at (λ p : α × β, (f p.1, g p.2)) p :=
-(hf.comp continuous_fst.continuous_at).prod (hg.comp continuous_snd.continuous_at)
+(hf.comp continuous_at_fst).prod (hg.comp continuous_at_snd)
 
 lemma continuous_at.prod_map' {f : α → γ} {g : β → δ} {x : α} {y : β}
   (hf : continuous_at f x) (hg : continuous_at g y) :
@@ -663,6 +663,11 @@ lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g 
   tendsto f u (𝓝 g) ↔ ∀ x, tendsto (λ i, f i x) u (𝓝 (g x)) :=
 by simp [nhds_pi, filter.tendsto_comap_iff]
 
+lemma continuous_at_pi [∀ i, topological_space (π i)] [topological_space α] {f : α → Π i, π i}
+  {x : α} :
+  continuous_at f x ↔ ∀ i, continuous_at (λ y, f y i) x :=
+tendsto_pi
+
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
@@ -745,7 +750,7 @@ lemma is_open_sigma_iff {s : set (sigma σ)} : is_open s ↔ ∀ i, is_open (sig
 by simp only [is_open_supr_iff, is_open_coinduced]
 
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
-is_open_sigma_iff
+by simp [← is_open_compl_iff, is_open_sigma_iff]
 
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin

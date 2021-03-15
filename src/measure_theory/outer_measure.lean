@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.measurable_space
+import measure_theory.pi_system
 import topology.algebra.infinite_sum
 
 /-!

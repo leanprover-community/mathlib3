@@ -6,15 +6,30 @@ def is_projective
   (R : Type u) [ring R] (M : Type u) [add_comm_group M] [module R M] :
 -- M is the R-module on which `projective` is a predicate
   Prop := -- `projective R M` is a proposition
-∃ i : M →ₗ[R] (M →₀ R), function.injective i ∧
-∃ q : submodule R (M →₀ R), is_compl q i.range
+∃ g : M →ₗ[R] (M →₀ R), ∀ m, (g m).sum (λ m r, r • m) = m
+
+namespace is_projective
+
+variables (R : Type u) [ring R] (M : Type u) [add_comm_group M] [module R M] (h : is_projective R M)
+
+noncomputable def g : M →ₗ[R] (M →₀ R) := classical.some h
 
 theorem universal_property {R A B M : Type u} [ring R] [add_comm_group M] [semimodule R M]
   (h : is_projective R M)
 [add_comm_group A] [add_comm_group B]
-  [module R A] [module R B] [add_comm_group M] [semimodule R M] (f : A →ₗ[R] B) (g : M →ₗ[R] B) : -- the R-linear maps
-function.surjective f → ∃ (h : M →ₗ[R] A), f.comp h = g :=
+  [module R A] [module R B] [add_comm_group M] [semimodule R M] (f : A →ₗ[R] B) (g : M →ₗ[R] B) -- the R-linear maps
+(hf : function.surjective f) : ∃ (h : M →ₗ[R] A), f.comp h = g :=
 begin
+  /- Maths proof
+  M is a direct summand of R^M. The universal property says that to a set map M -> B (e.g. forget g) we
+  get an R-module map R^M -> B. This lifts to a map R^M → A (in fact we should first just define
+  a set-theoretic map M → A using surjectivity of f, then get R^M → A). Now compose with `g`
+  -/
+  let f_inv : B → A := λ b, classical.some (hf b),
+  have f_inv_spec : ∀ b : B, f (f_inv b) = b := λ b, classical.some_spec (hf b),
+  let fma : M → A := λ m, f_inv (g m),
+  -- now apply universal property to fma
+  have hmlin : (M →₀ R) →ₗ[R] A := sorry,
   sorry
 end
 
@@ -66,3 +81,5 @@ def projective_resolution_of_projective (R : Type u) [comm_ring R] (M : Type u)
       sorry }
   end,
   resolution := category_theory.iso.refl _ }
+
+end is_projective

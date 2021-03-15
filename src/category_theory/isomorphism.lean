@@ -200,16 +200,28 @@ instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
   by rw [← category.comp_id g, ← category.comp_id h, ← is_iso.hom_inv_id f, ← category.assoc, w,
     ← category.assoc] }
 
-@[ext] lemma ext {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+@[ext] lemma inv_eq_of_hom_inv_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
   (hom_inv_id : f ≫ g = 𝟙 X) : inv f = g :=
 begin
   apply (cancel_epi f).mp,
   simp [hom_inv_id],
 end
 
-@[ext] lemma ext' {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+lemma inv_eq_of_inv_hom_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+  (inv_hom_id : g ≫ f = 𝟙 Y) : inv f = g :=
+begin
+  apply (cancel_mono f).mp,
+  simp [inv_hom_id],
+end
+
+@[ext] lemma eq_inv_of_hom_inv_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
   (hom_inv_id : f ≫ g = 𝟙 X) : g = inv f :=
-by { symmetry, ext, assumption, }
+(inv_eq_of_hom_inv_id hom_inv_id).symm
+
+lemma eq_inv_of_inv_hom_id {f : X ⟶ Y} [is_iso f] {g : Y ⟶ X}
+  (inv_hom_id : g ≫ f = 𝟙 Y) : g = inv f :=
+(inv_eq_of_inv_hom_id inv_hom_id).symm
+
 
 instance id (X : C) : is_iso (𝟙 X) :=
 ⟨𝟙 X, by simp⟩

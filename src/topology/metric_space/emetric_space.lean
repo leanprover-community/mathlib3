@@ -451,8 +451,8 @@ instance pseudoemetric_space_pi [∀b, pseudoemetric_space (π b)] : pseudoemetr
 lemma pseudoedist_pi_def [Π b, pseudoemetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
-@[simp] lemma pseudoedist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
-finset.sup_const univ_nonempty (edist a b)
+@[simp] lemma pseudoedist_pi_const [nonempty β] (a b : α) :
+  edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
 end pi
 

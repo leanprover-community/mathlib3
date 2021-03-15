@@ -61,7 +61,7 @@ instance {V} [inhabited V] {G : quiver V} [inhabited (G.arrow (default V) (defau
   inhabited G.total :=
 ⟨⟨default V, default V, default _⟩⟩
 
-/-- A `H` subquiver of `G.symmetrify` determines a subquiver of `G`, containing an
+/-- A subquiver `H` of `G.symmetrify` determines a subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
 def subquiver_symmetrify {V} {G : quiver V} :
   subquiver G.symmetrify → subquiver G :=

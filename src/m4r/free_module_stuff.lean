@@ -92,7 +92,8 @@ linear_independent.disjoint_span_image (is_basis.tensor_power (is_basis_single_o
   (le_bot_iff.2 (set.inter_compl_self _))
 
 variables [nontrivial R]
-noncomputable def multiply_repr : Π (i n : ℕ), (fin i → fin n → R) → ((fin i → fin n) →₀ R)
+noncomputable def multiply_repr : Π (i n : ℕ),
+  (fin i → fin n → R) → ((fin i → fin n) →₀ R)
 | 0 n y :=
   { support := {default _},
     to_fun := λ z, 1,
@@ -105,8 +106,23 @@ noncomputable def multiply_repr : Π (i n : ℕ), (fin i → fin n → R) → ((
     mem_support_to_fun := λ x, by simp }
 
 lemma tpow_repr_eq (n i : ℕ) (z : fin i → fin n → R) :
-  (is_basis.tensor_power (is_basis_single_one' R n) i).repr (tpow.mk R (fin n → R) i z) =
-  multiply_repr R i n z := sorry
+  (is_basis.tensor_power (is_basis_single_one' R n) i).repr
+    (tpow.mk R (fin n → R) i z) =
+  multiply_repr R i n z :=
+begin
+  induction i with i hi,
+  { unfold multiply_repr tpow.mk,
+    ext,
+    simp only [finsupp.coe_mk],
+    rw [subsingleton.elim a (default _),
+        @is_basis.repr_eq_single _ _ _ _ _ _ _ _ (default _), finsupp.single_eq_same] },
+  { unfold multiply_repr tpow.mk,
+    have := hi (fin.init z),
+    ext,
+    sorry },
+
+end
+
 
 lemma multiply_repr_of_exists_same2 (n i : ℕ) (z : fin i → fin n → R)
   {j k : fin i} (hz : z j = z k) (hjk : j ≠ k)

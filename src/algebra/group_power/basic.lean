@@ -797,6 +797,30 @@ lemma of_add_gsmul [add_group A] (x : A) (n : ℤ) :
   multiplicative.of_add (n •ℤ x) = (multiplicative.of_add x)^n :=
 by { cases n; simp [gsmul_of_nat, gpow_of_nat, of_add_nsmul] }
 
+lemma to_add_pow [add_monoid A] (x : A) (n : ℕ) :
+  multiplicative.to_add (x ^ n) = n •ℕ (multiplicative.to_add x) :=
+(congr_arg multiplicative.of_add (of_add_nsmul (multiplicative.to_add x) n)).symm
+
+lemma to_add_gpow [add_group A] (x : A) (n : ℤ) :
+  multiplicative.to_add (x ^ n) = n •ℤ (multiplicative.to_add x) :=
+(congr_arg multiplicative.of_add (of_add_gsmul (multiplicative.to_add x) n)).symm
+
+lemma of_mul_pow [monoid A] (x : A) (n : ℕ) :
+  additive.of_mul (x ^ n) = n •ℕ (additive.of_mul x) :=
+(congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
+
+lemma of_mul_gpow [group A] (x : A) (n : ℤ) :
+  additive.of_mul (x ^ n) = n •ℤ (additive.of_mul x) :=
+by { cases n; simp [gsmul_of_nat, gpow_of_nat, of_mul_pow] }
+
+lemma to_mul_pow [monoid A] (x : A) (n : ℕ) :
+  additive.to_mul (n •ℕ x) = (additive.to_mul x ^ n) :=
+(congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n))
+
+lemma to_mul_gpow [group A] (x : A) (n : ℤ) :
+  additive.to_mul (n •ℤ x) = (additive.to_mul x ^ n) :=
+(congr_arg multiplicative.to_add (of_mul_gpow (multiplicative.to_add x) n)).symm
+
 @[simp] lemma semiconj_by.gpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := h.pow_right n

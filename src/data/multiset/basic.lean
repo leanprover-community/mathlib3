@@ -828,6 +828,22 @@ lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_smul n]
 
+lemma to_mul_sum [comm_monoid α] (s : multiset (additive α)) :
+  additive.to_mul (sum s) = (s.map additive.to_mul).prod :=
+multiset.induction (by simp) (by intros; simp *) s
+
+lemma of_mul_prod [comm_monoid α] (s : multiset α) :
+  additive.of_mul (prod s) = (s.map additive.of_mul).sum :=
+multiset.induction (by simp) (by intros; simp *) s
+
+lemma to_add_prod [add_comm_monoid α] (s : multiset (multiplicative α)) :
+  multiplicative.to_add (prod s) = (s.map multiplicative.to_add).sum :=
+multiset.induction (by simp) (by intros; simp *) s
+
+lemma of_add_sum [add_comm_monoid α] (s : multiset α) :
+  multiplicative.of_add (sum s) = (s.map multiplicative.of_add).prod :=
+multiset.induction (by simp) (by intros; simp *) s
+
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] :

@@ -48,6 +48,16 @@ rfl
 
 end finset
 
+@[simp]
+lemma to_mul_sum [comm_monoid β] (s : finset α) (f : α → additive β) :
+  additive.to_mul (s.sum f) = s.prod (additive.to_mul ∘ f) :=
+show additive.to_mul (multiset.sum _) = multiset.prod _, by simp [multiset.to_mul_sum]
+
+@[simp]
+lemma to_add_prod [add_comm_monoid β] (s : finset α) (f : α → multiplicative β) :
+  multiplicative.to_add (s.prod f) = s.sum (multiplicative.to_add ∘ f) :=
+show multiplicative.to_add (multiset.prod _) = multiset.sum _, by simp [multiset.to_add_prod]
+
 /--
 There is no established mathematical convention
 for the operator precedence of big operators like `∏` and `∑`.

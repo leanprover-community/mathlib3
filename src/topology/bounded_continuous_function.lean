@@ -40,6 +40,12 @@ protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y
 @[continuity]
 protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
 
+@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
+by { cases f, cases g, congr, ext, exact H x, }
+
+lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
+⟨λ h, λ x, h ▸ rfl, ext⟩
+
 lemma bounded_range : bounded (range f) :=
 bounded_range_iff.2 f.bounded
 
@@ -69,6 +75,16 @@ def mk_of_discrete [discrete_topology α] (f : α → β)
   mk_of_discrete f C h a = f a :=
 rfl
 
+def forget_boundedness : (α →ᵇ β) → C(α, β) :=
+λ f, f.1
+
+@[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness f : α → β) = f :=
+rfl
+
+@[simps]
+def equiv_continuous_map_of_compact [compact_space α] : (α →ᵇ β) ≃ C(α, β) :=
+⟨forget_boundedness, mk_of_compact, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+
 /-- The uniform distance between two bounded continuous functions -/
 instance : has_dist (α →ᵇ β) :=
 ⟨λf g, Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
@@ -93,12 +109,6 @@ end
 lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
 le_cInf dist_set_exists $ λb hb, hb.2 x
 
-@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
-by { cases f, cases g, congr, ext, exact H x, }
-
-lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨λ h, λ x, h ▸ rfl, ext⟩
-
 /- This lemma will be needed in the proof of the metric space instance, but it will become
 useless afterwards as it will be superseded by the general result that the distance is nonnegative
 in metric spaces. -/
@@ -122,6 +132,14 @@ instance : metric_space (α →ᵇ β) :=
   dist_triangle := λ f g h,
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
+
+
+-- We can't construct `isometry_continuous_map_of_compact` because we can't import `isometry` here.
+instance [compact_space α] : metric_space C(α,β) :=
+metric_space.induced
+  equiv_continuous_map_of_compact.symm
+  equiv_continuous_map_of_compact.symm.injective
+  (by apply_instance)
 
 variable (α)
 
@@ -517,6 +535,20 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
+
+def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
+{ to_fun := forget_boundedness,
+  map_zero' := by { ext, simp, },
+  map_add' := by { intros, ext, simp, }, }
+
+def add_equiv_continuous_map_of_compact [compact_space α] : (α →ᵇ β) ≃+ C(α, β) :=
+{ ..forget_boundedness_add_hom,
+  ..equiv_continuous_map_of_compact, }
+
+-- instance [compact_space α] : normed_group C(α,β) :=
+-- begin
+--   transport using (@equiv_continuous_map_of_compact α β _ _ _),
+-- end
 
 end normed_group
 

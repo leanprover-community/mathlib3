@@ -1,6 +1,7 @@
 import tactic.transport
 import order.bounded_lattice
 import algebra.lie.basic
+import topology.basic
 
 -- We verify that `transport` can move a `semiring` across an equivalence.
 -- Note that we've never even mentioned the idea of addition or multiplication to `transport`.
@@ -18,6 +19,10 @@ begin
   exact (x ≤ y) = (e.symm x ≤ e.symm y),
 end :=
 rfl
+
+-- TODO it would be nice if we could do this, too:
+-- example {X Y : Type} [topological_space X] (e : X ≃ Y) : topological_space Y :=
+-- by transport using e
 
 -- Below we verify in more detail that the transported structure for `semiring`
 -- is definitionally what you would hope for.

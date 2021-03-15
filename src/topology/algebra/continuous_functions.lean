@@ -28,15 +28,22 @@ instance : has_coe_to_fun {f : α → β | continuous f} :=  ⟨_, subtype.val�
 end continuous_functions
 
 namespace continuous_map
+variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 @[to_additive]
-instance has_mul {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
+instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
+@[simp, norm_cast, to_additive]
+lemma mul_coe [has_mul β] [has_continuous_mul β] (f g : C(α, β)) :
+  ((f * g : C(α, β)) : α → β) = (f : α → β) * (g : α → β) := rfl
+
 @[to_additive]
-instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
+instance [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
+
+@[simp, norm_cast, to_additive]
+lemma one_coe [has_one β]  :
+  ((1 : C(α, β)) : α → β) = (1 : α → β) := rfl
 
 end continuous_map
 

@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.equiv_rw
 import control.equiv_functor.instances -- these make equiv_rw more powerful!
+import topology.basic
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
 -- set_option trace.equiv_rw_type true
@@ -265,7 +266,7 @@ lemma semigroup.map_map {α β γ : Type} (e : α ≃ β) (f : β ≃ γ) :
   semigroup.map (e.trans f) = (semigroup.map f) ∘ (semigroup.map e) :=
 by { ext, dsimp [semigroup.map], simp, }
 
--- TODO (after joining the `transport` branch) create a derive handler for this
+-- TODO create a derive handler for this
 instance : equiv_functor semigroup :=
 { map := λ α β e, semigroup.map e,
   map_refl' := semigroup.id_map,
@@ -334,6 +335,30 @@ begin
 end :=
 rfl
 
+-- TODO it would be a nice project to get this working:
+-- def topological_space.map {α β : Type} (e : α ≃ β) (S : topological_space α) : topological_space β :=
+-- begin
+--   refine_struct { .. },
+--   { have is_open := S.is_open, equiv_rw e at is_open, exact is_open, },
+--   { try { unfold_projs },
+--     simp only with transport_simps,
+--     have is_open_univ := S.is_open_univ,
+--     equiv_rw e at is_open_univ,
+--     solve_by_elim, },
+--   { try { unfold_projs },
+--     simp only with transport_simps,
+--     have is_open_inter := S.is_open_inter,
+--     equiv_rw e at is_open_inter,
+--     solve_by_elim, },
+--   { try { unfold_projs },
+--     simp only with transport_simps,
+--     have is_open_sUnion := S.is_open_sUnion,
+--     equiv_rw e at is_open_sUnion,
+--     solve_by_elim, },
+-- end
+
+
+/-! Universe level tests -/
 example
   {α : Type} {β : Type}
   (m : α → α → α)

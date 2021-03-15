@@ -151,9 +151,9 @@ begin
   { rw [h, integral_sin_pow_even],
     refine mul_pos pi_pos (finset.prod_pos (λ n hn, div_pos _ _)),
     norm_cast, linarith, norm_cast, linarith },
-  { rw [h, integral_sin_pow_odd],
-    refine mul_pos (by norm_num) (finset.prod_pos (λ n hn, div_pos _ _)),
-    norm_cast, linarith, norm_cast, linarith }
+  rw [h, integral_sin_pow_odd],
+  refine mul_pos (by norm_num) (finset.prod_pos (λ n hn, div_pos _ _)),
+  norm_cast, linarith, norm_cast, linarith
 end
 
 lemma integral_sin_pow_anti_mono (n : ℕ) :

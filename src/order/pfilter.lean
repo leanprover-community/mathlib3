@@ -65,7 +65,7 @@ instance : has_coe (pfilter P) (set P) := ⟨λ F, F.dual.carrier⟩
 instance : has_mem P (pfilter P) := ⟨λ x F, x ∈ (F : set P)⟩
 
 lemma is_pfilter (F : pfilter P) : is_pfilter (F : set P) :=
-(pfilter.dual F).is_ideal
+F.dual.is_ideal
 
 lemma nonempty : (F : set P).nonempty := F.dual.nonempty
 

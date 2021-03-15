@@ -942,26 +942,13 @@ t.induced coe (λ x y, subtype.ext_iff_val.2)
 metric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
 instance prod.emetric_space_max [emetric_space β] : emetric_space (γ × β) :=
-{ edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
-  edist_self := λ x, by simp,
-  eq_of_edist_eq_zero := λ x y h, begin
+{ eq_of_edist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
     have A : x.fst = y.fst := edist_le_zero.1 h₁,
     have B : x.snd = y.snd := edist_le_zero.1 h₂,
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
-  edist_comm := λ x y, by simp [edist_comm],
-  edist_triangle := λ x y z, max_le
-    (le_trans (edist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
-    (le_trans (edist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
-  uniformity_edist := begin
-    refine uniformity_prod.trans _,
-    simp [pseudo_emetric_space.uniformity_edist, comap_infi],
-    rw ← infi_inf_eq, congr, funext,
-    rw ← infi_inf_eq, congr, funext,
-    simp [inf_principal, ext_iff, max_lt_iff]
-  end,
-  to_uniform_space := prod.uniform_space }
+  ..prod.pseudoemetric_space_max }
 
   lemma prod.edist_eq [emetric_space β] (x y : α × β) :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=

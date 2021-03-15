@@ -1018,7 +1018,7 @@ lemma sdiff_union_distrib (s t₁ t₂ : finset α) : s \ (t₁ ∪ t₂) = (s \
 sdiff_sup
 
 lemma union_sdiff_self (s t : finset α) : (s ∪ t) \ t = s \ t :=
-sup_sdiff_self
+sup_sdiff_right_self
 
 lemma sdiff_singleton_eq_erase (a : α) (s : finset α) : s \ singleton a = erase s a :=
 by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }

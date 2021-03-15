@@ -43,7 +43,7 @@ variables {P : Type*}
   - downward directed
   - upward closed. -/
 structure pfilter (P) [preorder P] :=
-(dual : order.ideal (order_dual P))
+(dual : ideal (order_dual P))
 
 /-- A predicate for when a subset of `P` is a filter. -/
 def is_pfilter [preorder P] (F : set P) : Prop :=
@@ -74,7 +74,7 @@ lemma directed : directed_on (≥) (F : set P) := F.dual.directed
 lemma mem_of_le : x ≤ y → x ∈ F → y ∈ F := λ h, F.dual.mem_of_le h
 
 /-- The smallest filter containing a given element. -/
-def principal (p : P) : pfilter P := ⟨order.ideal.principal p⟩
+def principal (p : P) : pfilter P := ⟨ideal.principal p⟩
 
 instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default _⟩⟩
 
@@ -86,10 +86,10 @@ instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default _⟩⟩
 instance : partial_order (pfilter P) := partial_order.lift coe ext
 
 @[trans] lemma mem_of_mem_of_le : x ∈ F → F ≤ G → x ∈ G :=
-order.ideal.mem_of_mem_of_le
+ideal.mem_of_mem_of_le
 
 @[simp] lemma principal_le_iff : principal x ≤ F ↔ x ∈ F :=
-order.ideal.principal_le_iff
+ideal.principal_le_iff
 
 end preorder
 
@@ -98,7 +98,7 @@ variables [order_top P] {F : pfilter P}
 
 /-- A specific witness of `pfilter.nonempty` when `P` has a top element. -/
 @[simp] lemma top_mem : ⊤ ∈ F :=
-order.ideal.bot_mem
+ideal.bot_mem
 
 /-- There is a bottom filter when `P` has a top element. -/
 instance : order_bot (pfilter P) :=
@@ -119,10 +119,10 @@ variables [semilattice_inf P] {x y : P} {F : pfilter P}
 
 /-- A specific witness of `pfilter.directed` when `P` has meets. -/
 lemma inf_mem (x y ∈ F) : x ⊓ y ∈ F :=
-order.ideal.sup_mem x y ‹x ∈ F› ‹y ∈ F›
+ideal.sup_mem x y ‹x ∈ F› ‹y ∈ F›
 
 @[simp] lemma inf_mem_iff : x ⊓ y ∈ F ↔ x ∈ F ∧ y ∈ F :=
-order.ideal.sup_mem_iff
+ideal.sup_mem_iff
 
 end semilattice_inf
 

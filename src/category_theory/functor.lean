@@ -13,10 +13,12 @@ Introduces notations
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
 import tactic.reassoc_axiom
+import tactic.monotonicity
 
 namespace category_theory
 
-universes v v₁ v₂ v₃ u u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
 /--
 `functor C D` represents a functor between categories `C` and `D`.
@@ -89,6 +91,10 @@ protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 
 end
+
+@[mono] lemma monotone {α β : Type*} [preorder α] [preorder β] (F : α ⥤ β) :
+  monotone F.obj :=
+λ a b h, le_of_hom (F.map (hom_of_le h))
 
 end functor
 

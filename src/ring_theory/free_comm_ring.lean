@@ -18,7 +18,7 @@ in `α`
 ## Main definitions
 
 * `free_comm_ring α`     : the free commutative ring on a type α
-* `lift_hom (f : α → R)` : the ring hom `free_comm_ring α →+* R` induced by functoriality from `f`.
+* `lift (f : α → R)` : the ring hom `free_comm_ring α →+* R` induced by functoriality from `f`.
 * `map (f : α → β)`      : the ring hom `free_comm_ring α →*+ free_comm_ring β` induced by
                            functoriality from f.
 
@@ -28,7 +28,7 @@ in `α`
 In this file we have:
 
 * `of : α → free_comm_ring α`
-* `lift_hom (f : α → R) : free_comm_ring α →+* R`
+* `lift (f : α → R) : free_comm_ring α →+* R`
 * `map (f : α → β) : free_comm_ring α →+* free_comm_ring β`
 
 * `free_comm_ring_equiv_mv_polynomial_int : free_comm_ring α ≃+* mv_polynomial α ℤ` :
@@ -65,7 +65,7 @@ variables {α}
 
 /-- The canonical map from `α` to the free commutative ring on `α`. -/
 def of (x : α) : free_comm_ring α :=
-free_abelian_group.of ([x] : multiset α)
+free_abelian_group.of $ multiplicative.of_add ({x} : multiset α)
 
 lemma of_injective : function.injective (of : α → free_comm_ring α) :=
 free_abelian_group.of_injective.comp (λ x y,
@@ -87,33 +87,28 @@ section lift
 
 variables {R : Type v} [comm_ring R] (f : α → R)
 
+/-- A helper to implement `lift`. This is essentially `free_comm_monoid.lift`, but this does not
+currently exist. -/
+private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →* R) :=
+{ to_fun := λ f,
+  { to_fun := λ s, (s.to_add.map f).prod,
+    map_mul' := λ x y, calc _ = multiset.prod ((multiset.map f x) + (multiset.map f y)) :
+                                    by {congr' 1, exact multiset.map_add _ _ _}
+                          ... = _ : multiset.prod_add _ _,
+    map_one' := rfl},
+  inv_fun := λ F x, F (multiplicative.of_add ({x} : multiset α)),
+  left_inv := λ f, funext $ λ x, show (multiset.map f (x ::ₘ 0)).prod = _, by simp,
+  right_inv := λ F, monoid_hom.ext $ λ x,
+    let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
+    begin
+      rw [←multiset.map_map, ←add_monoid_hom.map_multiset_sum],
+      exact F.congr_arg (multiset.sum_map_singleton x'),
+    end }
+
 /-- Lift a map `α → R` to a additive group homomorphism `free_comm_ring α → R`.
 For a version producing a bundled homomorphism, see `lift_hom`. -/
-def lift : free_comm_ring α →+* R :=
-{ map_one' := free_abelian_group.lift.of _ _,
-  map_mul' := λ x y,
-  begin
-    refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-    { intros s2, conv_lhs { dsimp only [free_abelian_group.mul_def] },
-      simp only [free_abelian_group.lift.of, add_monoid_hom.to_fun_eq_coe],
-      refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
-      { intros s1, iterate 3 { rw free_abelian_group.lift.of },
-        calc _ = multiset.prod ((multiset.map f s1) + (multiset.map f s2)) :
-            by {congr' 1, exact multiset.map_add _ _ _}
-          ... = _ : multiset.prod_add _ _ },
-      { intros s1 ih, iterate 3 { rw (free_abelian_group.lift _).map_neg },
-        rw [ih, neg_mul_eq_neg_mul] },
-      { intros x1 x2 ih1 ih2, iterate 3 { rw (free_abelian_group.lift _).map_add },
-        rw [ih1, ih2, add_mul] } },
-    { intros s2 ih,
-      simp only [add_monoid_hom.to_fun_eq_coe] at ih ⊢,
-      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
-        mul_neg_eq_neg_mul_symm, ih] },
-    { intros y1 y2 ih1 ih2,
-      simp only [add_monoid_hom.to_fun_eq_coe] at ih1 ih2 ⊢,
-      rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
-  end,
-  ..free_abelian_group.lift $ λ s : multiplicative (multiset α), (s.to_add.map f).prod }
+def lift : (α → R) ≃ (free_comm_ring α →+* R) :=
+equiv.trans lift_to_multiset free_abelian_group.lift_monoid
 
 @[simp] lemma lift_of (x : α) : lift f (of x) = f x :=
 (free_abelian_group.lift.of _ _).trans $ mul_one _
@@ -124,6 +119,11 @@ ring_hom.ext $ λ x, free_comm_ring.induction_on x
   (lift_of _)
   (λ x y ihx ihy, by rw [ring_hom.map_add, f.map_add, ihx, ihy])
   (λ x y ihx ihy, by rw [ring_hom.map_mul, f.map_mul, ihx, ihy])
+
+@[ext]
+lemma hom_ext ⦃f g : free_comm_ring α →+* R⦄ (h : ∀ x, f (of x) = g (of x)) :
+  f = g :=
+lift.symm.injective (funext h)
 
 end lift
 
@@ -179,7 +179,7 @@ end is_supported
 /-- The restriction map from `free_comm_ring α` to `free_comm_ring s` where `s : set α`, defined
   by sending all variables not in `s` to zero. -/
 def restriction (s : set α) [decidable_pred s] : free_comm_ring α →+* free_comm_ring s :=
-lift (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
+lift (λ p, if H : p ∈ s then of (⟨p, H⟩ : s) else 0)
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
@@ -322,61 +322,22 @@ end free_ring
     variables in `α` -/
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃+* mv_polynomial α ℤ :=
-{ to_fun  := free_comm_ring.lift $ λ a, mv_polynomial.X a,
-  inv_fun := mv_polynomial.eval₂ (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of,
-  left_inv :=
-  begin
-    intro x,
-    haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      (int.cast_ring_hom _).is_semiring_hom,
-    refine free_abelian_group.induction_on x rfl _ _ _,
-    { intro s,
-      refine multiset.induction_on s _ _,
-      { unfold free_comm_ring.lift,
-        simp only [free_abelian_group.lift.of, ring_hom.coe_mk, add_monoid_hom.to_fun_eq_coe],
-        exact mv_polynomial.eval₂_one _ _ },
-      { intros hd tl ih,
-        show mv_polynomial.eval₂ (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of
-          (free_comm_ring.lift (λ a, mv_polynomial.X a)
-          (free_comm_ring.of hd * free_abelian_group.of tl)) =
-          free_comm_ring.of hd * free_abelian_group.of tl,
-        rw [ring_hom.map_mul, free_comm_ring.lift_of,
-          mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] } },
-    { intros s ih,
-      rw [ring_hom.map_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
-        ← mv_polynomial.C_1, ← mv_polynomial.C_neg, mv_polynomial.eval₂_C,
-        ring_hom.map_neg, ring_hom.map_one, neg_one_mul, ih] },
-    { intros x₁ x₂ ih₁ ih₂, rw [ring_hom.map_add, mv_polynomial.eval₂_add, ih₁, ih₂] }
-  end,
-  right_inv :=
-  begin
-    intro x,
-    haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
-      (int.cast_ring_hom _).is_semiring_hom,
-    have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) (int.cast_ring_hom _ i) =
-      mv_polynomial.C i,
-    { exact λ i, int.induction_on i
-      (by rw [ring_hom.map_zero, ring_hom.map_zero, mv_polynomial.C_0])
-      (λ i ih, by rw [ring_hom.map_add, ring_hom.map_one, ring_hom.map_add,
-        ring_hom.map_one, ih, mv_polynomial.C_add, mv_polynomial.C_1])
-      (λ i ih, by rw [ring_hom.map_sub, ring_hom.map_one, ring_hom.map_sub,
-        ring_hom.map_one, ih, mv_polynomial.C_sub, mv_polynomial.C_1]) },
-    apply mv_polynomial.induction_on x,
-    { intro i, rw [mv_polynomial.eval₂_C, this] },
-    { intros p q ihp ihq, rw [mv_polynomial.eval₂_add, ring_hom.map_add, ihp, ihq] },
-    { intros p a ih,
-      rw [mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X,
-        ring_hom.map_mul, free_comm_ring.lift_of, ih] }
-  end,
-  .. free_comm_ring.lift $ λ a, mv_polynomial.X a }
+ring_equiv.of_hom_inv
+  (free_comm_ring.lift $ λ a, mv_polynomial.X a)
+  (mv_polynomial.eval₂_hom (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of)
+  (by { ext, simp })
+  (by ext; simp )
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)
 
+-- this messes with the next definition
+local attribute [-instance] algebra_int
+
 /-- The free commutative ring on a type with one term is isomorphic to `ℤ[X]`. -/
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃+* polynomial ℤ :=
-ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.punit_ring_equiv _)
+(free_comm_ring_equiv_mv_polynomial_int _).trans (mv_polynomial.punit_alg_equiv ℤ).to_ring_equiv
 
 open free_ring
 

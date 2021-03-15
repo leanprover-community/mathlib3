@@ -222,12 +222,32 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
     max_chain_spec.right $ ⟨insert a max_chain, this, ssubset_insert h⟩,
   hub a this⟩
 
+/--
+If every nonempty chain of a nonempty type has an upper bound, then there is a maximal element.
+(A variant of Zorn's lemma.)
+-/
+theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
+  (h : ∀c, chain c → c.nonempty → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  ∃m, ∀a, m ≺ a → a ≺ m :=
+exists_maximal_of_chains_bounded
+  (λ c hc,
+    (eq_empty_or_nonempty c).elim
+      (λ h, ⟨classical.arbitrary α, λ x hx, (h ▸ hx : x ∈ (∅ : set α)).elim⟩)
+      (h c hc))
+  (λ a b c, trans)
+
 end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, chain (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
+
+theorem zorn_nonempty_partial_order {α : Type u} [partial_order α] [nonempty α]
+  (h : ∀ (c : set α), chain (≤) c → c.nonempty → ∃ub, ∀ a ∈ c, a ≤ ub) :
+  ∃ (m : α), ∀ a, m ≤ a → a = m :=
+let ⟨m, hm⟩ := @exists_maximal_of_nonempty_chains_bounded α (≤) _ h (λ a b c, le_trans) in
+⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
   (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)

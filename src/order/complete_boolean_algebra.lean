@@ -23,17 +23,34 @@ class complete_distrib_lattice α extends complete_lattice α :=
 section complete_distrib_lattice
 variables [complete_distrib_lattice α] {a b : α} {s t : set α}
 
+instance : complete_distrib_lattice (order_dual α) :=
+{ infi_sup_le_sup_Inf := complete_distrib_lattice.inf_Sup_le_supr_inf,
+  inf_Sup_le_supr_inf := complete_distrib_lattice.infi_sup_le_sup_Inf,
+  .. order_dual.complete_lattice α }
+
 theorem sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
 sup_Inf_le_infi_sup.antisymm (complete_distrib_lattice.infi_sup_le_sup_Inf _ _)
 
 theorem Inf_sup_eq : Inf s ⊔ b = (⨅ a ∈ s, a ⊔ b) :=
-by simpa [sup_comm] using @sup_Inf_eq α _ b s
+by simpa only [sup_comm] using @sup_Inf_eq α _ b s
 
 theorem inf_Sup_eq : a ⊓ Sup s = (⨆ b ∈ s, a ⊓ b) :=
 (complete_distrib_lattice.inf_Sup_le_supr_inf _ _).antisymm supr_inf_le_inf_Sup
 
 theorem Sup_inf_eq : Sup s ⊓ b = (⨆ a ∈ s, a ⊓ b) :=
-by simpa [inf_comm] using @inf_Sup_eq α _ b s
+by simpa only [inf_comm] using @inf_Sup_eq α _ b s
+
+theorem supr_inf_eq (f : ι → α) (a : α) : (⨆ i, f i) ⊓ a = ⨆ i, f i ⊓ a :=
+by rw [supr, Sup_inf_eq, supr_range]
+
+theorem inf_supr_eq (a : α) (f : ι → α) : a ⊓ (⨆ i, f i) = ⨆ i, a ⊓ f i :=
+by simpa only [inf_comm] using supr_inf_eq f a
+
+theorem infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i ⊔ a :=
+@supr_inf_eq (order_dual α) _ _ _ _
+
+theorem sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i :=
+@inf_supr_eq (order_dual α) _ _ _ _
 
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) :=
 begin
@@ -58,26 +75,13 @@ begin
 end
 
 theorem Sup_inf_Sup : Sup s ⊓ Sup t = (⨆p ∈ set.prod s t, (p : α × α).1 ⊓ p.2) :=
-begin
-  apply le_antisymm,
-  { have : ∀ a ∈ s, a ⊓ Sup t ≤ (⨆p ∈ set.prod s t, (p : α × α).1 ⊓ p.2),
-    { assume a ha,
-      have : (⨆p ∈ prod.mk a '' t, (p : α × α).1 ⊓ p.2)
-             ≤ (⨆p ∈ set.prod s t, ((p : α × α).1 : α) ⊓ p.2),
-      { apply supr_le_supr_of_subset,
-        rintros ⟨x, y⟩,
-        simp only [and_imp, set.mem_image, prod.mk.inj_iff, set.prod_mk_mem_set_prod_eq,
-                   exists_imp_distrib],
-        assume x' x't ax x'y,
-        rw [← x'y, ← ax],
-        simp [ha, x't] },
-      rw [supr_image] at this,
-      simp only at this,
-      rwa ← inf_Sup_eq at this },
-    calc Sup s ⊓ Sup t = (⨆a∈s, a ⊓ Sup t) : Sup_inf_eq
-      ... ≤ (⨆p ∈ set.prod s t, (p : α × α).1 ⊓ p.2) : by simp; exact this },
-  { finish }
-end
+@Inf_sup_Inf (order_dual α) _ _ _
+
+lemma supr_disjoint_iff {f : ι → α} : disjoint (⨆ i, f i) a ↔ ∀ i, disjoint (f i) a :=
+by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]
+
+lemma disjoint_supr_iff {f : ι → α} : disjoint a (⨆ i, f i) ↔ ∀ i, disjoint a (f i) :=
+by simpa only [disjoint.comm] using @supr_disjoint_iff _ _ _ a f
 
 end complete_distrib_lattice
 

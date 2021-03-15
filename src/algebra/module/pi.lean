@@ -88,7 +88,7 @@ instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π 
 { smul_add := by { intros, ext x, apply smul_add },
   smul_zero := by { intros, ext x, apply smul_zero } }
 
-lemma single_smul {α} {m : monoid α} {n : Π i, add_monoid $ f i}
+lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
   [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :
   single i (r • x) = r • single i x :=
 begin
@@ -97,7 +97,7 @@ begin
   exact smul_zero _,
 end
 
-lemma single_smul' {g : I → Type*} {m : Π i, monoid_with_zero (f i)} {n : Π i, add_monoid (g i)}
+lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
   single i (r • x) = single i r • single i x :=
 begin
@@ -122,5 +122,11 @@ instance semimodule' {g : I → Type*} {r : Π i, semiring (f i)} {m : Π i, add
   semimodule (Π i, f i) (Π i, g i) :=
 { add_smul := by { intros, ext1, apply add_smul },
   zero_smul := by { intros, ext1, apply zero_smul } }
+
+instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
+  [Π i, semimodule α $ f i] [∀ i, no_zero_smul_divisors α $ f i] :
+  no_zero_smul_divisors α (Π i : I, f i) :=
+⟨λ c x h, or_iff_not_imp_left.mpr (λ hc, funext
+  (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩
 
 end pi

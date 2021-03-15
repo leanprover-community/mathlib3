@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.measurable_space
+import measure_theory.pi_system
 import topology.algebra.infinite_sum
 
 /-!
@@ -458,7 +459,8 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
 | (nat.succ n) := begin
   simp [Union_lt_succ, range_succ],
   rw [measure_inter_union m _ (h n), is_caratheodory_sum],
-  intro a, simpa [range_succ] using λ h₁ i hi h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  intro a,
+  simpa [range_succ] using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))

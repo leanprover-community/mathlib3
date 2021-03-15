@@ -23,6 +23,8 @@ respect to some basis.
 Some results are proved about the linear map corresponding to a
 diagonal matrix (`range`, `ker` and `rank`).
 
+Some results are proved for determinants of block triangular matrices.
+
 ## Main definitions
 
 In the list below, and in all this file, `R` is a commutative ring (semiring
@@ -127,7 +129,7 @@ matrix.to_lin'.apply_symm_apply f
 @[simp] lemma linear_map.to_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) (i j) :
   linear_map.to_matrix' f i j = f (λ j', if j' = j then 1 else 0) i :=
 begin
-  simp only [linear_map.to_matrix', linear_equiv.mk_apply],
+  simp only [linear_map.to_matrix', linear_equiv.coe_mk],
   congr,
   ext j',
   split_ifs with h,
@@ -140,7 +142,7 @@ end
 
 @[simp] lemma matrix.to_lin'_one :
   matrix.to_lin' (1 : matrix n n R) = id :=
-by { ext, simp [one_apply, std_basis_apply] }
+by { ext, simp [linear_map.one_apply, std_basis_apply] }
 
 @[simp] lemma linear_map.to_matrix'_id :
   (linear_map.to_matrix' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
@@ -161,6 +163,64 @@ lemma linear_map.to_matrix'_mul [decidable_eq m]
   (f g : (m → R) →ₗ[R] (m → R)) :
   (f * g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
 linear_map.to_matrix'_comp f g
+
+/-- Linear maps `(n → R) →ₗ[R] (n → R)` are algebra equivalent to `matrix n n R`. -/
+def linear_map.to_matrix_alg_equiv' : ((n → R) →ₗ[R] (n → R)) ≃ₐ[R] matrix n n R :=
+alg_equiv.of_linear_equiv linear_map.to_matrix' linear_map.to_matrix'_mul
+  (by simp [module.algebra_map_End_eq_smul_id])
+
+/-- A `matrix n n R` is algebra equivalent to a linear map `(n → R) →ₗ[R] (n → R)`. -/
+def matrix.to_lin_alg_equiv' : matrix n n R ≃ₐ[R] ((n → R) →ₗ[R] (n → R)) :=
+linear_map.to_matrix_alg_equiv'.symm
+
+@[simp] lemma linear_map.to_matrix_alg_equiv'_symm :
+  (linear_map.to_matrix_alg_equiv'.symm : matrix n n R ≃ₐ[R] _) = matrix.to_lin_alg_equiv' :=
+rfl
+
+@[simp] lemma matrix.to_lin_alg_equiv'_symm :
+  (matrix.to_lin_alg_equiv'.symm : ((n → R) →ₗ[R] (n → R)) ≃ₐ[R] _) =
+    linear_map.to_matrix_alg_equiv' :=
+rfl
+
+@[simp] lemma linear_map.to_matrix_alg_equiv'_to_lin_alg_equiv' (M : matrix n n R) :
+  linear_map.to_matrix_alg_equiv' (matrix.to_lin_alg_equiv' M) = M :=
+linear_map.to_matrix_alg_equiv'.apply_symm_apply M
+
+@[simp] lemma matrix.to_lin_alg_equiv'_to_matrix_alg_equiv' (f : (n → R) →ₗ[R] (n → R)) :
+  matrix.to_lin_alg_equiv' (linear_map.to_matrix_alg_equiv' f) = f :=
+matrix.to_lin_alg_equiv'.apply_symm_apply f
+
+@[simp] lemma linear_map.to_matrix_alg_equiv'_apply (f : (n → R) →ₗ[R] (n → R)) (i j) :
+  linear_map.to_matrix_alg_equiv' f i j = f (λ j', if j' = j then 1 else 0) i :=
+by simp [linear_map.to_matrix_alg_equiv']
+
+@[simp] lemma matrix.to_lin_alg_equiv'_apply (M : matrix n n R) (v : n → R) :
+  matrix.to_lin_alg_equiv' M v = M.mul_vec v := rfl
+
+@[simp] lemma matrix.to_lin_alg_equiv'_one :
+  matrix.to_lin_alg_equiv' (1 : matrix n n R) = id :=
+by { ext, simp [matrix.one_apply, std_basis_apply] }
+
+@[simp] lemma linear_map.to_matrix_alg_equiv'_id :
+  (linear_map.to_matrix_alg_equiv' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
+by { ext, rw [matrix.one_apply, linear_map.to_matrix_alg_equiv'_apply, id_apply] }
+
+@[simp] lemma matrix.to_lin_alg_equiv'_mul (M N : matrix n n R) :
+  matrix.to_lin_alg_equiv' (M ⬝ N) =
+    (matrix.to_lin_alg_equiv' M).comp (matrix.to_lin_alg_equiv' N) :=
+by { ext, simp }
+
+lemma linear_map.to_matrix_alg_equiv'_comp (f g : (n → R) →ₗ[R] (n → R)) :
+  (f.comp g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=
+suffices (f.comp g) = (f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv').to_lin_alg_equiv',
+  by rw [this, linear_map.to_matrix_alg_equiv'_to_lin_alg_equiv'],
+by rw [matrix.to_lin_alg_equiv'_mul, matrix.to_lin_alg_equiv'_to_matrix_alg_equiv',
+       matrix.to_lin_alg_equiv'_to_matrix_alg_equiv']
+
+lemma linear_map.to_matrix_alg_equiv'_mul
+  (f g : (n → R) →ₗ[R] (n → R)) :
+  (f * g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=
+linear_map.to_matrix_alg_equiv'_comp f g
 
 end to_matrix'
 
@@ -272,6 +332,91 @@ begin
   rw linear_map.to_matrix_comp hv₁ hv₂ hv₃,
   repeat { rw linear_map.to_matrix_to_lin },
 end
+
+/-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
+equivalence between linear maps `M₁ →ₗ M₁` and square matrices over `R` indexed by the basis. -/
+def linear_map.to_matrix_alg_equiv :
+  (M₁ →ₗ[R] M₁) ≃ₐ[R] matrix n n R :=
+alg_equiv.of_linear_equiv (linear_map.to_matrix hv₁ hv₁) (linear_map.to_matrix_mul hv₁)
+  (by simp [module.algebra_map_End_eq_smul_id, linear_map.to_matrix_id])
+
+/-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
+equivalence between square matrices over `R` indexed by the basis and linear maps `M₁ →ₗ M₁`. -/
+def matrix.to_lin_alg_equiv : matrix n n R ≃ₐ[R] (M₁ →ₗ[R] M₁) :=
+(linear_map.to_matrix_alg_equiv hv₁).symm
+
+@[simp] lemma linear_map.to_matrix_alg_equiv_symm :
+  (linear_map.to_matrix_alg_equiv hv₁).symm = matrix.to_lin_alg_equiv hv₁ :=
+rfl
+
+@[simp] lemma matrix.to_lin_alg_equiv_symm :
+  (matrix.to_lin_alg_equiv hv₁).symm = linear_map.to_matrix_alg_equiv hv₁ :=
+rfl
+
+@[simp] lemma matrix.to_lin_alg_equiv_to_matrix_alg_equiv (f : M₁ →ₗ[R] M₁) :
+  matrix.to_lin_alg_equiv hv₁ (linear_map.to_matrix_alg_equiv hv₁ f) = f :=
+by rw [← matrix.to_lin_alg_equiv_symm, alg_equiv.apply_symm_apply]
+
+@[simp] lemma linear_map.to_matrix_alg_equiv_to_lin_alg_equiv (M : matrix n n R) :
+  linear_map.to_matrix_alg_equiv hv₁ (matrix.to_lin_alg_equiv hv₁ M) = M :=
+by rw [← matrix.to_lin_alg_equiv_symm, alg_equiv.symm_apply_apply]
+
+lemma linear_map.to_matrix_alg_equiv_apply (f : M₁ →ₗ[R] M₁) (i j : n) :
+  linear_map.to_matrix_alg_equiv hv₁ f i j = hv₁.equiv_fun (f (v₁ j)) i :=
+by simp [linear_map.to_matrix_alg_equiv, linear_map.to_matrix_apply]
+
+lemma linear_map.to_matrix_alg_equiv_transpose_apply (f : M₁ →ₗ[R] M₁) (j : n) :
+  (linear_map.to_matrix_alg_equiv hv₁ f)ᵀ j = hv₁.equiv_fun (f (v₁ j)) :=
+funext $ λ i, f.to_matrix_apply _ _ i j
+
+lemma linear_map.to_matrix_alg_equiv_apply' (f : M₁ →ₗ[R] M₁) (i j : n) :
+  linear_map.to_matrix_alg_equiv hv₁ f i j = hv₁.repr (f (v₁ j)) i :=
+linear_map.to_matrix_alg_equiv_apply hv₁ f i j
+
+lemma linear_map.to_matrix_alg_equiv_transpose_apply' (f : M₁ →ₗ[R] M₁) (j : n) :
+  (linear_map.to_matrix_alg_equiv hv₁ f)ᵀ j = hv₁.repr (f (v₁ j)) :=
+linear_map.to_matrix_alg_equiv_transpose_apply hv₁ f j
+
+lemma matrix.to_lin_alg_equiv_apply (M : matrix n n R) (v : M₁) :
+  matrix.to_lin_alg_equiv hv₁ M v = ∑ j, M.mul_vec (hv₁.equiv_fun v) j • v₁ j :=
+show hv₁.equiv_fun.symm (matrix.to_lin_alg_equiv' M (hv₁.equiv_fun v)) = _,
+by rw [matrix.to_lin_alg_equiv'_apply, hv₁.equiv_fun_symm_apply]
+
+@[simp] lemma matrix.to_lin_alg_equiv_self (M : matrix n n R) (i : n) :
+  matrix.to_lin_alg_equiv hv₁ M (v₁ i) = ∑ j, M j i • v₁ j :=
+by simp only [matrix.to_lin_alg_equiv_apply, matrix.mul_vec, dot_product, hv₁.equiv_fun_self,
+  mul_boole, finset.sum_ite_eq, finset.mem_univ, if_true]
+
+lemma linear_map.to_matrix_alg_equiv_id : linear_map.to_matrix_alg_equiv hv₁ id = 1 :=
+by simp_rw [linear_map.to_matrix_alg_equiv, alg_equiv.of_linear_equiv_apply,
+            linear_map.to_matrix_id]
+
+@[simp]
+lemma matrix.to_lin_alg_equiv_one : matrix.to_lin_alg_equiv hv₁ 1 = id :=
+by rw [← linear_map.to_matrix_alg_equiv_id hv₁, matrix.to_lin_alg_equiv_to_matrix_alg_equiv]
+
+theorem linear_map.to_matrix_alg_equiv_range [decidable_eq M₁]
+  (f : M₁ →ₗ[R] M₁) (k i : n) :
+  linear_map.to_matrix_alg_equiv hv₁.range f ⟨v₁ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
+    linear_map.to_matrix_alg_equiv hv₁ f k i :=
+by simp_rw [linear_map.to_matrix_alg_equiv_apply, subtype.coe_mk, is_basis.equiv_fun_apply,
+            hv₁.range_repr]
+
+lemma linear_map.to_matrix_alg_equiv_comp (f g : M₁ →ₗ[R] M₁) :
+  linear_map.to_matrix_alg_equiv hv₁ (f.comp g) =
+  linear_map.to_matrix_alg_equiv hv₁ f ⬝ linear_map.to_matrix_alg_equiv hv₁ g :=
+by simp [linear_map.to_matrix_alg_equiv, linear_map.to_matrix_comp hv₁ hv₁ hv₁ f g]
+
+lemma linear_map.to_matrix_alg_equiv_mul (f g : M₁ →ₗ[R] M₁) :
+  linear_map.to_matrix_alg_equiv hv₁ (f * g) =
+    linear_map.to_matrix_alg_equiv hv₁ f ⬝ linear_map.to_matrix_alg_equiv hv₁ g :=
+by { rw [show (@has_mul.mul (M₁ →ₗ[R] M₁) _) = linear_map.comp, from rfl,
+         linear_map.to_matrix_alg_equiv_comp hv₁ f g] }
+
+lemma matrix.to_lin_alg_equiv_mul (A B : matrix n n R) :
+  matrix.to_lin_alg_equiv hv₁ (A ⬝ B) =
+  (matrix.to_lin_alg_equiv hv₁ A).comp (matrix.to_lin_alg_equiv hv₁ B) :=
+by convert matrix.to_lin_mul hv₁ hv₁ hv₁ A B
 
 end to_matrix
 
@@ -762,7 +907,7 @@ end
 types is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
-{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_apply, mul_eq_mul],
+{ map_mul'  := λ M N, by simp only [reindex_mul, linear_equiv.to_fun_eq_coe, mul_eq_mul],
   commutes' := λ r,
                  by { ext, simp [algebra_map, algebra.to_ring_hom], by_cases h : i = j; simp [h], },
 ..(reindex_linear_equiv e e) }
@@ -1029,3 +1174,212 @@ lemma matrix.dot_product_eq_zero_iff {v : n → R} : (∀ w, matrix.dot_product 
 ⟨λ h, matrix.dot_product_eq_zero v h, λ h w, h.symm ▸ zero_dot_product w⟩
 
 end
+
+namespace matrix
+
+variables {m n : Type*} [decidable_eq n] [fintype n] [decidable_eq m] [fintype m]
+variables {R : Type v} [comm_ring R]
+
+lemma det_to_block (M : matrix m m R) (p : m → Prop) [decidable_pred p] :
+  M.det = (matrix.from_blocks (to_block M p p) (to_block M p (λ j, ¬p j))
+    (to_block M (λ j, ¬p j) p) (to_block M (λ j, ¬p j) (λ j, ¬p j))).det :=
+begin
+  rw ← matrix.det_reindex_self (equiv.sum_compl p).symm M,
+  unfold det,
+  congr, ext σ, congr, ext,
+  generalize hy : σ x = y,
+  cases x; cases y;
+  simp only [matrix.reindex_apply, to_block_apply, equiv.symm_symm,
+    equiv.sum_compl_apply_inr, equiv.sum_compl_apply_inl,
+    from_blocks_apply₁₁, from_blocks_apply₁₂, from_blocks_apply₂₁, from_blocks_apply₂₂],
+end
+
+lemma det_to_square_block (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :
+  (to_square_block M b k).det = (to_square_block_prop M (λ i, b i = k)).det :=
+by simp
+
+lemma det_to_square_block' (M : matrix m m R) (b : m → ℕ) (k : ℕ) :
+  (to_square_block' M b k).det = (to_square_block_prop M (λ i, b i = k)).det :=
+by simp
+
+lemma two_block_triangular_det (M : matrix m m R) (p : m → Prop) [decidable_pred p]
+  (h : ∀ i (h1 : ¬p i) j (h2 : p j), M i j = 0) :
+  M.det = (to_square_block_prop M p).det * (to_square_block_prop M (λ i, ¬p i)).det :=
+begin
+  rw det_to_block M p,
+  convert upper_two_block_triangular_det (to_block M p p) (to_block M p (λ j, ¬p j))
+    (to_block M (λ j, ¬p j) (λ j, ¬p j)),
+  ext,
+  exact h ↑i i.2 ↑j j.2
+end
+
+lemma equiv_block_det (M : matrix m m R) {p q : m → Prop} [decidable_pred p] [decidable_pred q]
+  (e : ∀x, q x ↔ p x) : (to_square_block_prop M p).det = (to_square_block_prop M q).det :=
+by convert matrix.det_reindex_self (equiv.subtype_equiv_right e) (to_square_block_prop M q)
+
+lemma to_square_block_det'' (M : matrix m m R) {n : nat} (b : m → fin n) (k : fin n) :
+  (to_square_block M b k).det = (to_square_block' M (λ i, ↑(b i)) ↑k).det :=
+begin
+  rw [to_square_block_def', to_square_block_def],
+  apply equiv_block_det,
+  intro x,
+  apply (fin.ext_iff _ _).symm
+end
+
+/-- Let `b` map rows and columns of a square matrix `M` to `n` blocks. Then
+  `block_triangular_matrix' M n b` says the matrix is block triangular. -/
+def block_triangular_matrix' {o : Type*} [fintype o] (M : matrix o o R) {n : ℕ}
+  (b : o → fin n) : Prop :=
+∀ i j, b j < b i → M i j = 0
+
+lemma upper_two_block_triangular' {m n : Type*} [fintype m] [fintype n]
+  (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+  block_triangular_matrix' (from_blocks A B 0 D) (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) :=
+begin
+  intros k1 k2 hk12,
+  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 0 → ∃ i, k = sum.inl i,
+  { simp },
+  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, (0 : fin 2)) (λ j, 1) k = 1 → ∃ j, k = sum.inr j,
+  { simp },
+  set mk1 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k1 with hmk1,
+  set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
+  fin_cases mk1; fin_cases mk2; rw [h, h_1] at hk12,
+  { exact absurd hk12 (nat.not_lt_zero 0) },
+  { exact absurd hk12 (nat.not_lt_zero 1) },
+  { rw hmk1 at h,
+    obtain ⟨i, hi⟩ := h1 k1 h,
+    rw hmk2 at h_1,
+    obtain ⟨j, hj⟩ := h0 k2 h_1,
+    rw [hi, hj], simp },
+  { exact absurd hk12 (irrefl 1) }
+end
+
+/-- Let `b` map rows and columns of a square matrix `M` to blocks indexed by `ℕ`s. Then
+  `block_triangular_matrix M n b` says the matrix is block triangular. -/
+def block_triangular_matrix {o : Type*} [fintype o] (M : matrix o o R) (b : o → ℕ) : Prop :=
+∀ i j, b j < b i → M i j = 0
+
+lemma upper_two_block_triangular {m n : Type*} [fintype m] [fintype n]
+  (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
+  block_triangular_matrix (from_blocks A B 0 D) (sum.elim (λ i, 0) (λ j, 1)) :=
+begin
+  intros k1 k2 hk12,
+  have h01 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 ∨ sum.elim (λ i, 0) (λ j, 1) k = 1,
+  { simp },
+  have h0 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 0 → ∃ i, k = sum.inl i, { simp },
+  have h1 : ∀ (k : m ⊕ n), sum.elim (λ i, 0) (λ j, 1) k = 1 → ∃ j, k = sum.inr j, { simp },
+  cases (h01 k1) with hk1 hk1; cases (h01 k2) with hk2 hk2; rw [hk1, hk2] at hk12,
+  { exact absurd hk12 (nat.not_lt_zero 0) },
+  { exact absurd hk12 (nat.not_lt_zero 1) },
+  { obtain ⟨i, hi⟩ := h1 k1 hk1,
+    obtain ⟨j, hj⟩ := h0 k2 hk2,
+    rw [hi, hj], simp },
+  { exact absurd hk12 (irrefl 1) }
+end
+
+lemma det_of_block_triangular_matrix (M : matrix m m R) (b : m → ℕ)
+  (h : block_triangular_matrix M b) :
+  ∀ (n : ℕ) (hn : ∀ i, b i < n), M.det = ∏ k in finset.range n, (to_square_block' M b k).det :=
+begin
+  intros n hn,
+  tactic.unfreeze_local_instances,
+  induction n with n hi generalizing m M b,
+  { rw finset.prod_range_zero,
+    apply det_eq_one_of_card_eq_zero,
+    apply fintype.card_eq_zero_iff.mpr,
+    intro i,
+    exact nat.not_lt_zero (b i) (hn i) },
+  { rw finset.prod_range_succ,
+    have h2 : (M.to_square_block_prop (λ (i : m), b i = n.succ)).det =
+      (M.to_square_block' b n.succ).det,
+    { dunfold to_square_block', dunfold to_square_block_prop, refl },
+    rw two_block_triangular_det M (λ i, ¬(b i = n)),
+    { rw mul_comm,
+      apply congr (congr_arg has_mul.mul _),
+      { let m' := {a // ¬b a = n },
+        let b' := (λ (i : m'), b ↑i),
+        have h' :
+          block_triangular_matrix (M.to_square_block_prop (λ (i : m), ¬b i = n)) b',
+        { intros i j, apply h ↑i ↑j },
+        have hni : ∀ (i : {a // ¬b a = n}), b' i < n,
+          { exact λ i, (ne.le_iff_lt i.property).mp (nat.lt_succ_iff.mp (hn ↑i)) },
+        have h1 := hi (M.to_square_block_prop (λ (i : m), ¬b i = n)) b' h' hni,
+        rw ←fin.prod_univ_eq_prod_range at h1 ⊢,
+        convert h1,
+        ext k,
+        simp only [to_square_block_def', to_square_block_def],
+        let he : {a // b' a = ↑k} ≃ {a // b a = ↑k},
+        { have hc : ∀ (i : m), (λ a, b a = ↑k) i → (λ a, ¬b a = n) i,
+          { intros i hbi, rw hbi, exact ne_of_lt (fin.is_lt k) },
+          exact equiv.subtype_subtype_equiv_subtype hc },
+        exact matrix.det_reindex_self he (λ (i j : {a // b' a = ↑k}), M ↑i ↑j) },
+      { rw det_to_square_block' M b n,
+        have hh : ∀ a, b a = n ↔ ¬(λ (i : m), ¬b i = n) a,
+        { intro i, simp only [not_not] },
+        exact equiv_block_det M hh }},
+    { intros i hi j hj,
+      apply (h i), simp only [not_not] at hi,
+      rw hi,
+      exact (ne.le_iff_lt hj).mp (nat.lt_succ_iff.mp (hn j)) }}
+end
+
+lemma det_of_block_triangular_matrix'' (M : matrix m m R) (b : m → ℕ)
+  (h : block_triangular_matrix M b) :
+  M.det = ∏ k in finset.image b finset.univ, (to_square_block' M b k).det :=
+begin
+  let n : ℕ := (Sup (finset.image b finset.univ : set ℕ)).succ,
+  have hn : ∀ i, b i < n,
+  { have hbi : ∀ i, b i ∈ finset.image b finset.univ, { simp },
+    intro i,
+    dsimp only [n],
+    apply nat.lt_succ_iff.mpr,
+    exact le_cSup (finset.bdd_above _) (hbi i) },
+  rw det_of_block_triangular_matrix M b h n hn,
+  refine (finset.prod_subset _ _).symm,
+  { intros a ha, apply finset.mem_range.mpr,
+    obtain ⟨i, ⟨hi, hbi⟩⟩ := finset.mem_image.mp ha,
+    rw ←hbi,
+    exact hn i },
+  { intros k hk hbk,
+    apply det_eq_one_of_card_eq_zero,
+    apply fintype.card_eq_zero_iff.mpr,
+    simp only [subtype.forall],
+    intros a hba, apply hbk,
+    apply finset.mem_image.mpr,
+    use a,
+    exact ⟨finset.mem_univ a, hba⟩ }
+end
+
+lemma det_of_block_triangular_matrix' (M : matrix m m R) {n : ℕ} (b : m → fin n)
+  (h : block_triangular_matrix' M b) :
+  M.det = ∏ (k : fin n), (to_square_block M b k).det :=
+begin
+  let b2 : m → ℕ := λ i, ↑(b i),
+  simp_rw to_square_block_det'',
+  rw fin.prod_univ_eq_prod_range (λ (k : ℕ), (M.to_square_block' b2 k).det) n,
+  apply det_of_block_triangular_matrix,
+  { intros i j hij, exact h i j (fin.coe_fin_lt.mp hij) },
+  { intro i, exact fin.is_lt (b i) }
+end
+
+lemma det_of_upper_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)
+  (h : ∀ (i j : fin n), j < i → M i j = 0) :
+  M.det = ∏ i : (fin n), M i i :=
+begin
+  convert det_of_block_triangular_matrix' M id h,
+  ext i,
+  have h2 : ∀ (j : {a // id a = i}), j = ⟨i, rfl⟩ :=
+    λ (j : {a // id a = i}), subtype.ext j.property,
+  haveI : unique {a // id a = i} := ⟨⟨⟨i, rfl⟩⟩, h2⟩,
+  simp [h2 (default {a // id a = i})]
+end
+
+lemma det_of_lower_triangular {n : ℕ} (M : matrix (fin n) (fin n) R)
+  (h : ∀ (i j : fin n), i < j → M i j = 0) :
+  M.det = ∏ i : (fin n), M i i :=
+begin
+  rw ← det_transpose,
+  exact det_of_upper_triangular _ (λ (i j : fin n) (hji : j < i), h j i hji)
+end
+
+end matrix

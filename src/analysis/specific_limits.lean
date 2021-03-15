@@ -81,7 +81,8 @@ lemma tendsto_pow_at_top_nhds_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field �
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 h₁.eq_or_lt.elim
-  (assume : 0 = r, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
+  (assume : 0 = r,
+    (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, ← this, tendsto_const_nhds])
   (assume : 0 < r,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto_inv_at_top_zero.comp

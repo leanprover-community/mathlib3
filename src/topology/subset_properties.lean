@@ -148,7 +148,7 @@ end
 
 alias compact_iff_ultrafilter_le_nhds ↔ is_compact.ultrafilter_le_nhds _
 
-/-- For every open directed cover of a compact set, there exists a single element of the 
+/-- For every open directed cover of a compact set, there exists a single element of the
 cover which itself includes the set. -/
 lemma is_compact.elim_directed_cover {ι : Type v} [hι : nonempty ι] (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) (hdU : directed (⊆) U) :
@@ -185,7 +185,7 @@ there exists a finite subfamily whose intersection avoids this compact set. -/
 lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : is_compact s)
   (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
-let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) hZc
+let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_open_compl)
   (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
     exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
     in
@@ -654,6 +654,34 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (compact_range continuous_inl).union (compact_range continuous_inr)
 end⟩
 
+/-- The coproduct of the cocompact filters on two topological spaces is the cocompact filter on
+their product. -/
+lemma filter.coprod_cocompact {β : Type*} [topological_space β]:
+  (filter.cocompact α).coprod (filter.cocompact β) = filter.cocompact (α × β) :=
+begin
+  ext S,
+  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  split,
+  { rintro ⟨⟨A, ⟨t, ht, hAt⟩, hAS⟩, B, ⟨t', ht', hBt'⟩, hBS⟩,
+    refine ⟨t.prod t', ht.prod ht', _⟩,
+    refine subset.trans _ (union_subset hAS hBS),
+    rw compl_subset_comm at ⊢ hAt hBt',
+    refine subset.trans _ (set.prod_mono hAt hBt'),
+    intros x,
+    simp only [compl_union, mem_inter_eq, mem_prod, mem_preimage, mem_compl_eq],
+    tauto },
+  { rintros ⟨t, ht, htS⟩,
+    refine ⟨⟨(prod.fst '' t)ᶜ, _, _⟩, ⟨(prod.snd '' t)ᶜ, _, _⟩⟩,
+    { exact ⟨prod.fst '' t, ht.image continuous_fst, subset.rfl⟩ },
+    { rw preimage_compl,
+      rw compl_subset_comm at ⊢ htS,
+      exact subset.trans htS (subset_preimage_image prod.fst _) },
+    { exact ⟨prod.snd '' t, ht.image continuous_snd, subset.rfl⟩ },
+    { rw preimage_compl,
+      rw compl_subset_comm at ⊢ htS,
+      exact subset.trans htS (subset_preimage_image prod.snd _) } }
+end
+
 section tychonoff
 variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
 
@@ -804,7 +832,8 @@ lemma sigma_compact_space.of_countable (S : set (set α)) (Hc : countable S)
   (Hcomp : ∀ s ∈ S, is_compact s) (HU : ⋃₀ S = univ) : sigma_compact_space α :=
 ⟨(exists_seq_cover_iff_countable ⟨_, compact_empty⟩).2 ⟨S, Hc, Hcomp, HU⟩⟩
 
-lemma sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
   [second_countable_topology α] : sigma_compact_space α :=
 begin
   choose K hKc hxK using λ x : α, exists_compact_mem_nhds x,
@@ -937,7 +966,7 @@ theorem is_clopen_inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : i
 ⟨is_open_univ, is_closed_univ⟩
 
 theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
-⟨hs.2, is_closed_compl_iff.2 hs.1⟩
+⟨hs.2.is_open_compl, is_closed_compl_iff.2 hs.1⟩
 
 @[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen sᶜ ↔ is_clopen s :=
 ⟨λ h, compl_compl s ▸ is_clopen_compl h, is_clopen_compl⟩

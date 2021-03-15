@@ -72,6 +72,10 @@ variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_mono
 section
 variables [semimodule R M] [semimodule R M₂]
 
+/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
+def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
+{ map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
+
 instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 
 initialize_simps_projections linear_map (to_fun → apply)
@@ -127,7 +131,7 @@ variables (f g)
 @[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
 @[simp] lemma map_zero : f 0 = 0 :=
-by rw [← zero_smul R, map_smul f 0 0, zero_smul]
+f.to_distrib_mul_action_hom.map_zero
 
 variables (M M₂)
 /--
@@ -441,6 +445,11 @@ def trans : M ≃ₗ[R] M₃ :=
   .. e₁.to_equiv.trans e₂.to_equiv }
 
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
+
+/-- The two paths coercion can take to an `add_monoid_hom` are equivalent -/
+lemma to_add_monoid_hom_commutes :
+  e.to_linear_map.to_add_monoid_hom = e.to_add_equiv.to_add_monoid_hom :=
+rfl
 
 @[simp] theorem trans_apply (c : M) :
   (e₁.trans e₂) c = e₂ (e₁ c) := rfl

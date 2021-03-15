@@ -519,6 +519,17 @@ def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
 
 variables [group α]
 
+lemma monoid_hom.map_cyclic {G : Type*} [group G] [h : is_cyclic G] (σ : G →* G) :
+  ∃ m : ℤ, ∀ g : G, σ g = g ^ m :=
+begin
+  obtain ⟨h, hG⟩ := is_cyclic.exists_generator G,
+  obtain ⟨m, hm⟩ := hG (σ h),
+  use m,
+  intro g,
+  obtain ⟨n, rfl⟩ := hG g,
+  rw [monoid_hom.map_gpow, ←hm, ←gpow_mul, ←gpow_mul'],
+end
+
 lemma is_cyclic_of_order_of_eq_card [fintype α]  (x : α)
    (hx : order_of x = fintype.card α) : is_cyclic α :=
 begin

@@ -40,7 +40,7 @@ lemma content_dvd_coeff {p : polynomial R} (n : ℕ) : p.content ∣ p.coeff n :
 begin
   by_cases h : n ∈ p.support,
   { apply finset.gcd_dvd h },
-  rw [mem_support_iff_coeff_ne_zero, not_not] at h,
+  rw [mem_support_iff, not_not] at h,
   rw h,
   apply dvd_zero,
 end
@@ -67,7 +67,7 @@ begin
   have h : (X * p).support = p.support.map ⟨nat.succ, nat.succ_injective⟩,
   { ext a,
     simp only [exists_prop, finset.mem_map, function.embedding.coe_fn_mk, ne.def,
-      mem_support_iff_coeff_ne_zero],
+      mem_support_iff],
     cases a,
     { simp [coeff_X_mul_zero, nat.succ_ne_zero] },
     rw [mul_comm, coeff_mul_X],
@@ -100,7 +100,7 @@ lemma content_C_mul (r : R) (p : polynomial R) : (C r * p).content = normalize r
 begin
   by_cases h0 : r = 0, { simp [h0] },
   rw content, rw content, rw ← finset.gcd_mul_left,
-  refine congr (congr rfl _) _; ext; simp [h0, mem_support_iff_coeff_ne_zero]
+  refine congr (congr rfl _) _; ext; simp [h0, mem_support_iff]
 end
 
 @[simp] lemma content_monomial {r : R} {k : ℕ} : content (monomial k r) = normalize r :=
@@ -113,7 +113,7 @@ begin
   { ext n,
     by_cases h0 : n ∈ p.support,
     { rw [h n h0, coeff_zero], },
-    { rw mem_support_iff_coeff_ne_zero at h0,
+    { rw mem_support_iff at h0,
       push_neg at h0,
       simp [h0] } },
   { intros x h0,
@@ -132,7 +132,7 @@ begin
     apply content_dvd_coeff _ },
   { apply finset.gcd_mono,
     intro i,
-    simp only [nat.lt_succ_iff, mem_support_iff_coeff_ne_zero, ne.def, finset.mem_range],
+    simp only [nat.lt_succ_iff, mem_support_iff, ne.def, finset.mem_range],
     contrapose!,
     intro h1,
     apply coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le h h1), }
@@ -147,7 +147,7 @@ lemma content_eq_gcd_leading_coeff_content_erase_lead (p : polynomial R) :
 begin
   by_cases h : p = 0,
   { simp [h] },
-  rw [← leading_coeff_eq_zero, leading_coeff, ← ne.def, ← mem_support_iff_coeff_ne_zero] at h,
+  rw [← leading_coeff_eq_zero, leading_coeff, ← ne.def, ← mem_support_iff] at h,
   rw [content, ← finset.insert_erase h, finset.gcd_insert, leading_coeff, content,
     erase_lead_support],
   refine congr rfl (finset.gcd_congr rfl (λ i hi, _)),

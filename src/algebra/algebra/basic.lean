@@ -394,6 +394,9 @@ instance matrix_algebra (n : Type u) (R : Type v)
   smul_def' := by { intros, simp [matrix.scalar], },
   ..(matrix.scalar n) }
 
+@[simp] lemma matrix.algebra_map_eq_smul (n : Type u) {R : Type v} [decidable_eq n] [fintype n]
+  [comm_semiring R] (r : R) : (algebra_map R (matrix n n R)) r = r • 1 := rfl
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 @[nolint has_inhabited_instance]
@@ -720,6 +723,10 @@ instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂
 @[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
 rfl
 
+/-- The two paths coercion can take to a `ring_hom` are equivalent -/
+lemma coe_ring_hom_commutes : ((e : A₁ →ₐ[R] A₂) : A₁ →+* A₂) = ((e : A₁ ≃+* A₂) : A₁ →+* A₂) :=
+rfl
+
 @[simp] lemma map_pow : ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := e.to_alg_hom.map_pow
 
 lemma injective : function.injective e := e.to_equiv.injective
@@ -908,6 +915,25 @@ instance aut : group (A₁ ≃ₐ[R] A₁) :=
   inv := symm,
   mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
 
+@[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
+
+/-- An algebra isomorphism induces a group isomorphism between automorphism groups -/
+@[simps apply]
+def aut_congr (ϕ : A₁ ≃ₐ[R] A₂) : (A₁ ≃ₐ[R] A₁) ≃* (A₂ ≃ₐ[R] A₂) :=
+{ to_fun := λ ψ, ϕ.symm.trans (ψ.trans ϕ),
+  inv_fun := λ ψ, ϕ.trans (ψ.trans ϕ.symm),
+  left_inv := λ ψ, by { ext, simp_rw [trans_apply, symm_apply_apply] },
+  right_inv := λ ψ, by { ext, simp_rw [trans_apply, apply_symm_apply] },
+  map_mul' := λ ψ χ, by { ext, simp only [mul_apply, trans_apply, symm_apply_apply] } }
+
+@[simp] lemma aut_congr_refl : aut_congr (alg_equiv.refl) = mul_equiv.refl (A₁ ≃ₐ[R] A₁) :=
+by { ext, refl }
+
+@[simp] lemma aut_congr_symm (ϕ : A₁ ≃ₐ[R] A₂) : (aut_congr ϕ).symm = aut_congr ϕ.symm := rfl
+
+@[simp] lemma aut_congr_trans (ϕ : A₁ ≃ₐ[R] A₂) (ψ : A₂ ≃ₐ[R] A₃) :
+  (aut_congr ϕ).trans (aut_congr ψ) = aut_congr (ϕ.trans ψ) := rfl
+
 end semiring
 
 section comm_semiring
@@ -1041,19 +1067,28 @@ theorem to_comap_apply (x) : to_comap R S A x = algebra_map S A x := rfl
 
 end algebra
 
-namespace alg_hom
+section
 
 variables {R : Type u} {S : Type v} {A : Type w} {B : Type u₁}
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
-variables [algebra R S] [algebra S A] [algebra S B] (φ : A →ₐ[S] B)
+variables [algebra R S] [algebra S A] [algebra S B]
 include R
 
-/-- R ⟶ S induces S-Alg ⥤ R-Alg -/
-def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
+/-- R ⟶ S induces S-Alg ⥤ R-Alg.
+
+See `alg_hom.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
+def alg_hom.comap (φ : A →ₐ[S] B) : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
 { commutes' := λ r, φ.commutes (algebra_map R S r)
   ..φ }
 
-end alg_hom
+/-- `alg_hom.comap` for `alg_equiv`.
+
+See `alg_equiv.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
+def alg_equiv.comap (φ : A ≃ₐ[S] B) : algebra.comap R S A ≃ₐ[R] algebra.comap R S B :=
+{ commutes' := λ r, φ.commutes (algebra_map R S r)
+  ..φ }
+
+end
 
 namespace ring_hom
 
@@ -1178,6 +1213,31 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
   zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
 end algebra
+
+section ring
+
+namespace algebra
+
+variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
+
+lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_left R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
+
+lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul_right R x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_left_injective' hx }
+
+lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
+  function.injective (lmul R A x) :=
+by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+     exact mul_right_injective' hx }
+
+end algebra
+
+end ring
 
 section nat
 

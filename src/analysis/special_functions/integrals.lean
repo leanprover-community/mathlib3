@@ -103,14 +103,14 @@ begin
   { funext, ring },
   conv_lhs { rw h },
   rw integral_mul_deriv_eq_deriv_mul hu hv _ _,
-  simp only [neg_mul_eq_neg_mul_symm, sin_zero, sin_pi, zero_mul, pi.neg_apply, sub_zero,
-    add_eq_zero_iff, ne.def, zero_add, not_false_iff, one_ne_zero, integral_neg, and_false,
-    zero_pow', sub_neg_eq_add, this, integral_const_mul (↑n + 1)],
-  simp only [cos_square', sub_mul, mul_sub, one_mul, ← pow_add _ 2 n, add_comm 2 n],
-  rw [integral_sub, mul_sub],
-  exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π,
-  exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π,
-  apply continuous.continuous_on, continuity,
+  { simp only [neg_mul_eq_neg_mul_symm, sin_zero, sin_pi, zero_mul, pi.neg_apply, sub_zero,
+      add_eq_zero_iff, ne.def, zero_add, not_false_iff, one_ne_zero, integral_neg, and_false,
+      zero_pow', sub_neg_eq_add, this, integral_const_mul (↑n + 1)],
+    simp only [cos_square', sub_mul, mul_sub, one_mul, ← pow_add _ 2 n, add_comm 2 n],
+    rw [integral_sub, mul_sub] },
+  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
+  { exact ((continuous_pow (n + 2)).comp continuous_sin).interval_integrable 0 π },
+  { apply continuous.continuous_on, continuity },
   apply continuous.continuous_on, continuity,
 end
 
@@ -148,20 +148,20 @@ end
 lemma integral_sin_pow_pos (n : ℕ) : 0 < ∫ x in 0..π, sin x ^ n :=
 begin
   rcases nat.even_or_odd' n with ⟨k, h, h⟩,
-  rw [h, integral_sin_pow_even],
-  refine mul_pos pi_pos (finset.prod_pos (λ n hn, div_pos _ _)),
-  norm_cast, linarith, norm_cast, linarith,
-  rw [h, integral_sin_pow_odd],
-  refine mul_pos (by norm_num) (finset.prod_pos (λ n hn, div_pos _ _)),
-  norm_cast, linarith, norm_cast, linarith,
+  { rw [h, integral_sin_pow_even],
+    refine mul_pos pi_pos (finset.prod_pos (λ n hn, div_pos _ _)),
+    norm_cast, linarith, norm_cast, linarith },
+  { rw [h, integral_sin_pow_odd],
+    refine mul_pos (by norm_num) (finset.prod_pos (λ n hn, div_pos _ _)),
+    norm_cast, linarith, norm_cast, linarith }
 end
 
 lemma integral_sin_pow_anti_mono (n : ℕ) :
   ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) ≤ ∫ (x : ℝ) in 0..π, sin x ^ n :=
 begin
   refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
-  exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π,
-  exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π,
+  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
+  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
   refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
   rw interval_of_le pi_pos.le at hx,
   exact sin_nonneg_of_mem_Icc hx,

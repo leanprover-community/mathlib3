@@ -38,7 +38,7 @@ let E : (simplex_categoryᵒᵖ ⥤ C) ≌ (ulift.{v} simplex_category)ᵒᵖ �
   ulift.equivalence.op.congr_left in
   adjunction.has_limits_of_shape_of_equivalence E.functor
 
-instance [has_limits C] : has_limits (simplicial_object C) := ⟨by apply_instance⟩
+instance [has_limits C] : has_limits (simplicial_object C) := ⟨infer_instance⟩
 
 instance {J : Type v} [small_category J] [has_colimits_of_shape J C] :
   has_colimits_of_shape J (simplicial_object C) :=
@@ -46,7 +46,7 @@ let E : (simplex_categoryᵒᵖ ⥤ C) ≌ (ulift.{v} simplex_category)ᵒᵖ �
   ulift.equivalence.op.congr_left in
   adjunction.has_colimits_of_shape_of_equivalence E.functor
 
-instance [has_colimits C] : has_colimits (simplicial_object C) := ⟨by apply_instance⟩
+instance [has_colimits C] : has_colimits (simplicial_object C) := ⟨infer_instance⟩
 
 variables {C} (X : simplicial_object C)
 

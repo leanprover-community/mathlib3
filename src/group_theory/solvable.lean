@@ -157,6 +157,55 @@ general_commutator_eq_commutator G
 
 end derived_series
 
+section commutator_map
+
+variables {G} {G' : Type*} [group G'] {f : G →* G'}
+
+lemma map_commutator_eq_commutator_map (H₁ H₂ : subgroup G) :
+  ⁅H₁, H₂⁆.map f = ⁅H₁.map f, H₂.map f⁆ :=
+begin
+  rw [general_commutator, general_commutator, monoid_hom.map_closure],
+  apply le_antisymm; apply closure_mono,
+  { rintros _ ⟨x, ⟨p, hp, q, hq, rfl⟩, rfl⟩,
+    refine ⟨f p, mem_map.mpr ⟨p, hp, rfl⟩, f q, mem_map.mpr ⟨q, hq, rfl⟩, by simp *⟩, },
+  { rintros x ⟨_, ⟨p, hp, rfl⟩, _, ⟨q, hq, rfl⟩, rfl⟩,
+    refine ⟨p * q * p⁻¹ * q⁻¹, ⟨p, hp, q, hq, rfl⟩, by simp *⟩, },
+end
+
+lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgroup G'} (h₁ : K₁ ≤ H₁.map f)
+  (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
+by { rw map_commutator_eq_commutator_map, exact general_commutator_mono h₁ h₂ }
+
+section derived_series_map
+
+variables (f)
+
+lemma map_derived_series_le_derived_series (n : ℕ) :
+  (derived_series G n).map f ≤ derived_series G' n :=
+begin
+  induction n with n ih,
+  { simp only [derived_series_zero, le_top], },
+  { simp only [derived_series_succ, map_commutator_eq_commutator_map, general_commutator_mono, *], }
+end
+
+variables {f}
+
+lemma derived_series_le_map_derived_series (hf : function.surjective f) (n : ℕ) :
+  derived_series G' n ≤ (derived_series G n).map f :=
+begin
+  induction n with n ih,
+  { rwa [derived_series_zero, derived_series_zero, top_le_iff, ← monoid_hom.range_eq_map,
+    ← monoid_hom.range_top_iff_surjective.mpr], },
+  { simp only [*, derived_series_succ, commutator_le_map_commutator], }
+end
+
+lemma map_derived_series_eq (hf : function.surjective f) (n : ℕ) :
+  (derived_series G n).map f = derived_series G' n :=
+le_antisymm (map_derived_series_le_derived_series f n) (derived_series_le_map_derived_series hf n)
+
+end derived_series_map
+end commutator_map
+
 section solvable
 
 variables (G)
@@ -166,13 +215,90 @@ variables (G)
 class is_solvable : Prop :=
 (solvable : ∃ n : ℕ, derived_series G n = ⊥)
 
+lemma is_solvable_def : is_solvable G ↔ ∃ n : ℕ, derived_series G n = ⊥ :=
+⟨λ h, h.solvable, λ h, ⟨h⟩⟩
+
 @[priority 100]
-instance is_solvable_of_comm {G : Type*} [comm_group G] : is_solvable G :=
+instance comm_group.is_solvable {G : Type*} [comm_group G] : is_solvable G :=
 begin
   use 1,
   rw [eq_bot_iff, derived_series_one],
   calc commutator G ≤ (monoid_hom.id G).ker : abelianization.commutator_subset_ker (monoid_hom.id G)
   ... = ⊥ : rfl,
 end
+
+lemma is_solvable_of_comm {G : Type*} [hG : group G]
+  (h : ∀ a b : G, a * b = b * a) : is_solvable G :=
+begin
+  letI hG' : comm_group G := { mul_comm := h .. hG },
+  tactic.unfreeze_local_instances,
+  cases hG,
+  exact comm_group.is_solvable,
+end
+
+lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :=
+⟨⟨0, h⟩⟩
+
+@[priority 100]
+instance is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=
+is_solvable_of_top_eq_bot G (by ext; simp at *)
+
+variables {G} {G' : Type*} [group G'] {f : G →* G'}
+
+lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
+  is_solvable G :=
+begin
+  rw is_solvable_def at *,
+  cases h with n hn,
+  use n,
+  rw ← map_eq_bot_iff_of_injective _ hf,
+  rw eq_bot_iff at *,
+  calc map f (derived_series G n) ≤ derived_series G' n : map_derived_series_le_derived_series f n
+  ... ≤ ⊥ : hn,
+end
+
+instance subgroup_solvable_of_solvable (H : subgroup G) [h : is_solvable G] : is_solvable H :=
+solvable_of_solvable_injective (show function.injective (subtype H), from subtype.val_injective)
+
+lemma solvable_of_surjective (hf : function.surjective f) [h : is_solvable G] :
+  is_solvable G' :=
+begin
+  rw is_solvable_def at *,
+  cases h with n hn,
+  use n,
+  calc derived_series G' n = (derived_series G n).map f : eq.symm (map_derived_series_eq hf n)
+    ... = (⊥ : subgroup G).map f : by rw hn
+    ... = ⊥ : map_bot f,
+end
+
+instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
+  is_solvable (quotient_group.quotient H) :=
+solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
+
+lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
+  (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
+  is_solvable G :=
+begin
+  tactic.unfreeze_local_instances,
+  obtain ⟨n, hn⟩ := hG'',
+  suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
+  { obtain ⟨m, hm⟩ := hG',
+    use n + m,
+    specialize this m,
+    rwa [hm, map_bot, le_bot_iff] at this },
+  intro k,
+  induction k with k hk,
+  { rw [add_zero, derived_series_zero, ←monoid_hom.range_eq_map],
+    refine le_trans _ hfg,
+    rw [←map_eq_bot_iff, eq_bot_iff, ←hn],
+    exact map_derived_series_le_derived_series g n },
+  { rw [nat.add_succ, derived_series_succ, derived_series_succ],
+    exact commutator_le_map_commutator hk hk },
+end
+
+instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :
+  is_solvable (G × G') :=
+solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
+  (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
 
 end solvable

@@ -28,6 +28,10 @@ ordered_semiring.zero_le_one
 lemma zero_le_two : 0 ≤ (2:α) :=
 add_nonneg zero_le_one zero_le_one
 
+lemma one_le_two : 1 ≤ (2:α) :=
+calc (1:α) = 0 + 1 : (zero_add _).symm
+       ... ≤ 1 + 1 : add_le_add_right zero_le_one _
+
 section nontrivial
 
 variables [nontrivial α]
@@ -44,8 +48,6 @@ lemma one_lt_two : 1 < (2:α) :=
 calc (2:α) = 1+1 : one_add_one_eq_two
      ...   > 1+0 : add_lt_add_left zero_lt_one _
      ...   = 1   : add_zero 1
-
-lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
 lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
 
@@ -136,6 +138,38 @@ lemma le_mul_of_one_le_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
+lemma add_le_mul_two_add {a b : α}
+  (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
+calc a + (2 + b) ≤ a + (a + a * b) :
+      add_le_add_left (add_le_add a2 (le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
+             ... ≤ a * (2 + b) : by rw [mul_add, mul_two, add_assoc]
+
+lemma one_le_mul_of_one_le_of_one_le {a b : α} (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
+  (1 : α) ≤ a * b :=
+(mul_one (1 : α)).symm.le.trans (mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
+
+/-- Pullback an `ordered_semiring` under an injective map. -/
+def function.injective.ordered_semiring {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  ordered_semiring β :=
+{ zero_le_one := show f 0 ≤ f 1, by  simp only [zero, one, zero_le_one],
+  mul_lt_mul_of_pos_left := λ  a b c ab c0, show f (c * a) < f (c * b),
+    begin
+      rw [mul, mul],
+      refine mul_lt_mul_of_pos_left ab _,
+      rwa ← zero,
+    end,
+  mul_lt_mul_of_pos_right := λ a b c ab c0, show f (a * c) < f (b * c),
+    begin
+      rw [mul, mul],
+      refine mul_lt_mul_of_pos_right ab _,
+      rwa ← zero,
+    end,
+  ..hf.ordered_cancel_add_comm_monoid f zero add,
+  ..hf.semiring f zero one add mul }
+
 section
 variable [nontrivial α]
 
@@ -196,6 +230,24 @@ calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 ... < 1 : hb
 
 end ordered_semiring
+
+section ordered_comm_semiring
+
+/-- An `ordered_comm_semiring α` is a commutative semiring `α` with a partial order such that
+multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
+
+/-- Pullback an `ordered_comm_semiring` under an injective map. -/
+def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  ordered_comm_semiring β :=
+{ ..hf.comm_semiring f zero one add mul,
+  ..hf.ordered_semiring f zero one add mul }
+
+end ordered_comm_semiring
 
 /--
 A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
@@ -314,6 +366,31 @@ by { convert mul_lt_mul_left h, simp }
 @[simp] lemma zero_lt_mul_right (h : 0 < c) : 0 < b * c ↔ 0 < b :=
 by { convert mul_lt_mul_right h, simp }
 
+lemma add_le_mul_of_left_le_right (a2 : 2 ≤ a) (ab : a ≤ b) : a + b ≤ a * b :=
+have 0 < b, from
+calc 0 < 2 : zero_lt_two
+   ... ≤ a : a2
+   ... ≤ b : ab,
+calc a + b ≤ b + b : add_le_add_right ab b
+       ... = 2 * b : (two_mul b).symm
+       ... ≤ a * b : (mul_le_mul_right this).mpr a2
+
+lemma add_le_mul_of_right_le_left (b2 : 2 ≤ b) (ba : b ≤ a) : a + b ≤ a * b :=
+have 0 < a, from
+calc 0 < 2 : zero_lt_two
+   ... ≤ b : b2
+   ... ≤ a : ba,
+calc a + b ≤ a + a : add_le_add_left ba a
+       ... = a * 2 : (mul_two a).symm
+       ... ≤ a * b : (mul_le_mul_left this).mpr b2
+
+lemma add_le_mul (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ a * b :=
+if hab : a ≤ b then add_le_mul_of_left_le_right a2 hab
+               else add_le_mul_of_right_le_left b2 (le_of_not_le hab)
+
+lemma add_le_mul' (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ b * a :=
+(le_of_eq (add_comm _ _)).trans (add_le_mul b2 a2)
+
 section
 variables [nontrivial α]
 
@@ -397,6 +474,16 @@ lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
+
+/-- Pullback a `linear_ordered_semiring` under an injective map. -/
+def function.injective.linear_ordered_semiring {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [nontrivial β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  linear_ordered_semiring β :=
+{ ..linear_order.lift f hf,
+  ..‹nontrivial β›,
+  ..hf.ordered_semiring f zero one add mul }
 
 end linear_ordered_semiring
 
@@ -559,7 +646,38 @@ lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 have 0 * b < a * b, from mul_lt_mul_of_neg_right ha hb,
 by rwa zero_mul at this
 
+/-- Pullback an `ordered_ring` under an injective map. -/
+def function.injective.ordered_ring {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  ordered_ring β :=
+{ mul_pos := λ a b a0 b0, show f 0 < f (a * b), by { rw [zero, mul], apply mul_pos; rwa ← zero },
+  ..hf.ordered_semiring f zero one add mul,
+  ..hf.ring_sub f zero one add mul neg sub }
+
 end ordered_ring
+
+section ordered_comm_ring
+
+/-- An `ordered_comm_ring α` is a commutative ring `α` with a partial order such that
+multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_ring (α : Type u) extends ordered_ring α, ordered_comm_semiring α, comm_ring α
+
+/-- Pullback an `ordered_comm_ring` under an injective map. -/
+def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  ordered_comm_ring β :=
+{ ..hf.ordered_comm_semiring f zero one add mul,
+  ..hf.ordered_ring f zero one add mul neg sub,
+  ..hf.comm_ring_sub f zero one add mul neg sub }
+
+end ordered_comm_ring
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
@@ -611,10 +729,10 @@ end
 /-- `abs` as a `monoid_with_zero_hom`. -/
 def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
 
-lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
+@[simp] lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
 
-lemma abs_mul_self (a : α) : abs (a * a) = a * a :=
+@[simp] lemma abs_mul_self (a : α) : abs (a * a) = a * a :=
 by rw [abs_mul, abs_mul_abs_self]
 
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
@@ -634,6 +752,26 @@ by rw [← neg_nonneg, neg_mul_eq_mul_neg, mul_nonneg_iff, neg_nonneg, neg_nonpo
 lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
 abs_mul_self a ▸ abs_nonneg _
 
+@[simp] lemma neg_le_self_iff : -a ≤ a ↔ 0 ≤ a :=
+by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
+
+@[simp] lemma neg_lt_self_iff : -a < a ↔ 0 < a :=
+by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
+
+@[simp] lemma le_neg_self_iff : a ≤ -a ↔ a ≤ 0 :=
+calc a ≤ -a ↔ -(-a) ≤ -a : by rw neg_neg
+... ↔ 0 ≤ -a : neg_le_self_iff
+... ↔ a ≤ 0 : neg_nonneg
+
+@[simp] lemma lt_neg_self_iff : a < -a ↔ a < 0 :=
+calc a < -a ↔ -(-a) < -a : by rw neg_neg
+... ↔ 0 < -a : neg_lt_self_iff
+... ↔ a < 0 : neg_pos
+
+@[simp] lemma abs_eq_self : abs a = a ↔ 0 ≤ a := by simp [abs]
+
+@[simp] lemma abs_eq_neg_self : abs a = -a ↔ a ≤ 0 := by simp [abs]
+
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
 have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
 have h2 : -(c * b) < -(c * a), from neg_lt_neg h,
@@ -643,11 +781,7 @@ have h3 : (-c) * b < (-c) * a, from calc
           ... = (-c) * a     : by rewrite neg_mul_eq_neg_mul,
 lt_of_mul_lt_mul_left h3 nhc
 
-lemma neg_one_lt_zero : -1 < (0:α) :=
-begin
-  have this := neg_lt_neg (@zero_lt_one α _ _),
-  rwa neg_zero at this
-end
+lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 
 lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) :
   a ≤ b :=
@@ -736,6 +870,17 @@ end
 lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
 by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
+/-- Pullback a `linear_ordered_ring` under an injective map. -/
+def function.injective.linear_ordered_ring {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  linear_ordered_ring β :=
+{ ..linear_order.lift f hf,
+  ..‹nontrivial β›,
+  ..hf.ordered_ring f zero one add mul neg sub }
+
 end linear_ordered_ring
 
 /-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
@@ -744,9 +889,20 @@ such that multiplication with a positive number and addition are monotone. -/
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α] :
-  comm_ring α :=
-{ ..s }
+instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :
+  ordered_comm_ring α :=
+-- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
+-- achieved the same result here.
+-- Unfortunately with that definition we see mismatched instances in `algebra.star.chsh`.
+let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
+{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
+  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
+  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
+  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
+  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
+  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
+  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
+  ..d }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
@@ -756,6 +912,10 @@ instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ri
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=
+-- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
+-- achieved the same result here.
+-- Unfortunately with that definition we see mismatched `preorder ℝ` instances in
+-- `topology.metric_space.basic`.
 let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
 { zero_mul                   := @linear_ordered_semiring.zero_mul α s,
   mul_zero                   := @linear_ordered_semiring.mul_zero α s,
@@ -785,6 +945,17 @@ begin
   rw abs_mul_abs_self,
   simp [left_distrib, right_distrib, add_assoc, add_comm, add_left_comm, mul_comm, sub_eq_add_neg],
 end
+
+/-- Pullback a `linear_ordered_comm_ring` under an injective map. -/
+def function.injective.linear_ordered_comm_ring {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  linear_ordered_comm_ring β :=
+{ ..linear_order.lift f hf,
+  ..‹nontrivial β›,
+  ..hf.ordered_comm_ring f zero one add mul neg sub }
 
 end linear_ordered_comm_ring
 
@@ -919,7 +1090,7 @@ mul_le_mul h le_rfl
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
-by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
+by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 end canonically_ordered_semiring
 

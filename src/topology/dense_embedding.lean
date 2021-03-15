@@ -94,8 +94,8 @@ variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 g↓     ↓e
  δ -h→ β
 -/
-lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i) (H : tendsto h (𝓝 d) (𝓝 (i a)))
-  (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
+lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i)
+  (H : tendsto h (𝓝 d) (𝓝 (i a))) (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
 begin
   have lim1 : map g (comap g (𝓝 d)) ≤ 𝓝 d := map_comap_le,
   replace lim1 : map h (map g (comap g (𝓝 d))) ≤ map h (𝓝 d) := map_mono lim1,
@@ -227,8 +227,9 @@ lemma to_embedding : embedding e :=
 protected lemma separable_space [separable_space α] : separable_space β :=
 de.to_dense_inducing.separable_space
 
-/-- The product of two dense embeddings is a dense embedding -/
-protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
+/-- The product of two dense embeddings is a dense embedding. -/
+protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁)
+  (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
     by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
@@ -273,7 +274,8 @@ have ∀q:β×β, p q.1 q.2,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
   from is_closed_property (he.prod_map $ he.prod_map he) hp $ λ _, h _ _ _,
@@ -291,7 +293,8 @@ lemma dense_range.induction_on₂ [topological_space β] {e : α → β} {p : β
 
 @[elab_as_eliminator]
 lemma dense_range.induction_on₃ [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
   (b₁ b₂ b₃ : β) : p b₁ b₂ b₃ := is_closed_property3 he hp h _ _ _
 
 section

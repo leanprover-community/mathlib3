@@ -64,14 +64,23 @@ is_compl_top_bot.compl_eq
 @[simp] theorem compl_bot : ⊥ᶜ = (⊤:α) :=
 is_compl_bot_top.compl_eq
 
-@[simp] theorem compl_compl' : xᶜᶜ = x :=
+@[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
 is_compl_compl.symm.compl_eq
 
 theorem compl_injective : function.injective (compl : α → α) :=
-function.involutive.injective $ λ x, compl_compl'
+function.involutive.injective compl_compl
 
 @[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
 compl_injective.eq_iff
+
+theorem is_compl.compl_eq_iff (h : is_compl x y) : zᶜ = y ↔ z = x :=
+h.compl_eq ▸ compl_inj_iff
+
+@[simp] theorem compl_eq_top : xᶜ = ⊤ ↔ x = ⊥ :=
+is_compl_bot_top.compl_eq_iff
+
+@[simp] theorem compl_eq_bot : xᶜ = ⊥ ↔ x = ⊤ :=
+is_compl_top_bot.compl_eq_iff
 
 @[simp] theorem compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
 (is_compl_compl.inf_sup is_compl_compl).compl_eq
@@ -82,18 +91,21 @@ compl_injective.eq_iff
 theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
 is_compl_compl.antimono is_compl_compl h
 
-theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
+@[simp] theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
 ⟨assume h, by have h := compl_le_compl h; simp at h; assumption,
   compl_le_compl⟩
 
 theorem le_compl_of_le_compl (h : y ≤ xᶜ) : x ≤ yᶜ :=
-by simpa only [compl_compl'] using compl_le_compl h
+by simpa only [compl_compl] using compl_le_compl h
 
 theorem compl_le_of_compl_le (h : yᶜ ≤ x) : xᶜ ≤ y :=
-by simpa only [compl_compl'] using compl_le_compl h
+by simpa only [compl_compl] using compl_le_compl h
 
-theorem compl_le_iff_compl_le : y ≤ xᶜ ↔ x ≤ yᶜ :=
+theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
 ⟨le_compl_of_le_compl, le_compl_of_le_compl⟩
+
+theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
+⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
 
 theorem sup_sdiff_same : x ⊔ (y \ x) = x ⊔ y :=
 by simp [sdiff_eq, sup_inf_left]
@@ -106,6 +118,13 @@ by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
 @[simp] lemma sdiff_idem_right : x \ y \ y = x \ y :=
 by rw [sdiff_eq, sdiff_eq, inf_assoc, inf_idem]
+
+namespace boolean_algebra
+
+@[priority 100]
+instance : is_complemented α := ⟨λ x, ⟨xᶜ, is_compl_compl⟩⟩
+
+end boolean_algebra
 
 end boolean_algebra
 

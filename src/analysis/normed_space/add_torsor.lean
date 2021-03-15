@@ -298,6 +298,19 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
 
+/-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/
+lemma affine_map.continuous_linear_iff [normed_space 𝕜 V'] {f : P →ᵃ[𝕜] P'} :
+  continuous f.linear ↔ continuous f :=
+begin
+  inhabit P,
+  have : (f.linear : V → V') =
+    (isometric.vadd_const $ f $ default P).to_homeomorph.symm ∘ f ∘
+      (isometric.vadd_const $ default P).to_homeomorph,
+  { ext v, simp },
+  rw this,
+  simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
+end
+
 @[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
 by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]

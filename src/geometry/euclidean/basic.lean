@@ -172,15 +172,8 @@ by rw [angle_comm, angle_smul_right_of_neg y x hr, angle_comm]
 product of their norms. -/
 lemma cos_angle_mul_norm_mul_norm (x y : V) : real.cos (angle x y) * (∥x∥ * ∥y∥) = inner x y :=
 begin
-  rw cos_angle,
-  by_cases h : (∥x∥ * ∥y∥) = 0,
-  { rw [h, mul_zero],
-    cases eq_zero_or_eq_zero_of_mul_eq_zero h with hx hy,
-    { rw norm_eq_zero at hx,
-      rw [hx, inner_zero_left] },
-    { rw norm_eq_zero at hy,
-      rw [hy, inner_zero_right] } },
-  { exact div_mul_cancel _ h }
+  rw [cos_angle, div_mul_cancel_of_imp],
+  simp [or_imp_distrib] { contextual := tt },
 end
 
 /-- The sine of the angle between two vectors, multiplied by the
@@ -209,36 +202,19 @@ end
 
 /-- The angle between two vectors is zero if and only if they are
 nonzero and one is a positive multiple of the other. -/
-lemma angle_eq_zero_iff (x y : V) : angle x y = 0 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), 0 < r ∧ y = r • x) :=
+lemma angle_eq_zero_iff {x y : V} : angle x y = 0 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), 0 < r ∧ y = r • x) :=
 begin
-  unfold angle,
-  rw [←real_inner_div_norm_mul_norm_eq_one_iff, ←real.arccos_one],
-  split,
-  { intro h,
-    exact real.arccos_inj (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-                          (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
-                          (by norm_num)
-                          (by norm_num)
-                          h },
-  { intro h,
-    rw h }
+  rw [angle, ← real_inner_div_norm_mul_norm_eq_one_iff, real.arccos_eq_zero, has_le.le.le_iff_eq,
+    eq_comm],
+  exact (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
 end
 
 /-- The angle between two vectors is π if and only if they are nonzero
 and one is a negative multiple of the other. -/
-lemma angle_eq_pi_iff (x y : V) : angle x y = π ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r < 0 ∧ y = r • x) :=
+lemma angle_eq_pi_iff {x y : V} : angle x y = π ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r < 0 ∧ y = r • x) :=
 begin
-  unfold angle,
-  rw [←real_inner_div_norm_mul_norm_eq_neg_one_iff, ←real.arccos_neg_one],
-  split,
-  { intro h,
-    exact real.arccos_inj (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-                          (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
-                          (by norm_num)
-                          (by norm_num)
-                          h },
-  { intro h,
-    rw h }
+  rw [angle, ← real_inner_div_norm_mul_norm_eq_neg_one_iff, real.arccos_eq_pi, has_le.le.le_iff_eq],
+  exact (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
 end
 
 /-- If the angle between two vectors is π, the angles between those
@@ -246,37 +222,14 @@ vectors and a third vector add to π. -/
 lemma angle_add_angle_eq_pi_of_angle_eq_pi {x y : V} (z : V) (h : angle x y = π) :
   angle x z + angle y z = π :=
 begin
-  rw angle_eq_pi_iff at h,
-  rcases h with ⟨hx, ⟨r, ⟨hr, hxy⟩⟩⟩,
-  rw [hxy, angle_smul_left_of_neg x z hr, angle_neg_left,
-      add_sub_cancel'_right]
+  rcases angle_eq_pi_iff.1 h with ⟨hx, ⟨r, ⟨hr, rfl⟩⟩⟩,
+  rw [angle_smul_left_of_neg x z hr, angle_neg_left, add_sub_cancel'_right]
 end
 
 /-- Two vectors have inner product 0 if and only if the angle between
 them is π/2. -/
 lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : ⟪x, y⟫ = 0 ↔ angle x y = π / 2 :=
-begin
-  split,
-  { intro h,
-    unfold angle,
-    rw [h, zero_div, real.arccos_zero] },
-  { intro h,
-    unfold angle at h,
-    rw ←real.arccos_zero at h,
-    have h2 : inner x y / (∥x∥ * ∥y∥) = 0 :=
-      real.arccos_inj (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-                      (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
-                      (by norm_num)
-                      (by norm_num)
-                      h,
-    by_cases h : (∥x∥ * ∥y∥) = 0,
-    { cases eq_zero_or_eq_zero_of_mul_eq_zero h with hx hy,
-      { rw norm_eq_zero at hx,
-        rw [hx, inner_zero_left] },
-      { rw norm_eq_zero at hy,
-        rw [hy, inner_zero_right] } },
-    { simpa [h, div_eq_zero_iff] using h2 } },
-end
+iff.symm $ by simp [angle, or_imp_distrib] { contextual := tt }
 
 end inner_product_geometry
 
@@ -358,14 +311,12 @@ end
 lemma angle_eq_angle_of_angle_eq_pi (p1 : P) {p2 p3 p4 : P} (h : ∠ p2 p3 p4 = π) :
   ∠ p1 p2 p3 = ∠ p1 p2 p4 :=
 begin
-  unfold angle at h,
-  rw angle_eq_pi_iff at h,
-  rcases h with ⟨hp2p3, ⟨r, ⟨hr, hpr⟩⟩⟩,
-  unfold angle,
-  symmetry,
-  convert angle_smul_right_of_pos _ _ (add_pos (neg_pos_of_neg hr) zero_lt_one),
-  rw [add_smul, ←neg_vsub_eq_vsub_rev p2 p3, smul_neg],
-  simp [←hpr]
+  unfold angle at *,
+  rcases angle_eq_pi_iff.1 h with ⟨hp2p3, ⟨r, ⟨hr, hpr⟩⟩⟩,
+  rw [eq_comm],
+  convert angle_smul_right_of_pos (p1 -ᵥ p2) (p3 -ᵥ p2) (add_pos (neg_pos_of_neg hr) zero_lt_one),
+  rw [add_smul, ← neg_vsub_eq_vsub_rev p2 p3, smul_neg, neg_smul, ← hpr],
+  simp
 end
 
 /-- If ∠BCD = π, then ∠ACB + ∠ACD = π. -/
@@ -473,14 +424,14 @@ lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ 
   (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
 begin
   have ho : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
-    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (hp₁c₁.trans hp₂c₁.symm) (hp₁c₂.trans hp₂c₂.symm),
   have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
-    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (hp₁c₁.trans hpc₁.symm) (hp₁c₂.trans hpc₂.symm),
   let b : fin 2 → V := ![c₂ -ᵥ c₁, p₂ -ᵥ p₁],
   have hb : linear_independent ℝ b,
   { refine linear_independent_of_ne_zero_of_inner_eq_zero _ _,
     { intro i,
-      fin_cases i; simp [b, hc.symm, hp.symm] },
+      fin_cases i; simp [b, hc.symm, hp.symm], },
     { intros i j hij,
       fin_cases i; fin_cases j; try { exact false.elim (hij rfl) },
       { exact ho },
@@ -854,7 +805,7 @@ rfl
 lemma eq_reflection_of_eq_subspace {s s' : affine_subspace ℝ P} [nonempty s]
   [nonempty s'] [complete_space s.direction] [complete_space s'.direction] (h : s = s') (p : P) :
   (reflection s p : P) = (reflection s' p : P) :=
-by simp [reflection_apply, eq_orthogonal_projection_of_eq_subspace h]
+by unfreezingI { subst h }
 
 /-- Reflection is its own inverse. -/
 @[simp] lemma reflection_symm (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] :

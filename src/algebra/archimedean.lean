@@ -2,11 +2,31 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Archimedean groups and fields.
 -/
+
 import algebra.field_power
 import data.rat
+
+/-!
+# Archimedean groups and fields.
+
+This file defines the archimedean property for ordered groups and proves several results connected
+to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
+number `n` such that `x ≤ n •ℕ y`.
+
+## Main definitions
+
+* `archimedean` is a typeclass for an ordered additive commutative monoid to have the archimedean
+  property.
+* `archimedean.floor_ring` defines a floor function on an archimedean linearly ordered ring making
+  it into a `floor_ring`.
+* `round` defines a function rounding to the nearest integer for a linearly ordered field which is
+  also a floor ring.
+
+## Main statements
+
+* `ℕ`, `ℤ`, and `ℚ` are archimedean.
+-/
 
 variables {α : Type*}
 
@@ -62,11 +82,13 @@ end
 lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archimedean α]
   (x : α) {y : α} (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
+have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
 ⟨n, calc x ≤ n •ℕ y : h
-       ... < 1 + n •ℕ y : lt_one_add _
-       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg (le_of_lt hy) (le_of_lt hy))
-                             (le_of_lt $ lt_trans hy (lt_one_add y)) _
+       ... = n * y : nsmul_eq_mul _ _
+       ... < 1 + n * y : lt_one_add _
+       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg hy.le hy.le) (mul_nonneg this this)
+                             (add_nonneg zero_le_two hy.le) _
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section linear_ordered_ring
@@ -83,7 +105,7 @@ lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
 have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
 by classical; exact let n := nat.find h in
   have hn  : x < y ^ n, from nat.find_spec h,
-  have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
+  have hnp : 0 < n,     from pos_iff_ne_zero.2 (λ hn0,
     by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
   have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
   have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),

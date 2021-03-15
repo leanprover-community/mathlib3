@@ -624,7 +624,7 @@ def min_fac_helper (n k : ℕ) : Prop :=
 0 < k ∧ bit1 k ≤ nat.min_fac (bit1 n)
 
 theorem min_fac_helper.n_pos {n k : ℕ} (h : min_fac_helper n k) : 0 < n :=
-nat.pos_iff_ne_zero.2 $ λ e,
+pos_iff_ne_zero.2 $ λ e,
 by rw e at h; exact not_le_of_lt (nat.bit1_lt h.1) h.2
 
 lemma min_fac_ne_bit0 {n k : ℕ} : nat.min_fac (bit1 n) ≠ bit0 k :=

@@ -59,7 +59,10 @@ ext_iff
 
 @[simp, nolint simp_nf] -- built-in reduction doesn't always work
 theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
-⟨λ H, by injection H, λ H, by congr; assumption⟩
+ext_iff
+
+theorem coe_eq_iff {a : {a // p a}} {b : α} : ↑a = b ↔ ∃ h, a = ⟨b, h⟩ :=
+⟨λ h, h ▸ ⟨a.2, (coe_eta _ _).symm⟩, λ ⟨hb, ha⟩, ha.symm ▸ rfl⟩
 
 theorem coe_injective : injective (coe : subtype p → α) :=
 λ a b, subtype.ext

@@ -29,6 +29,11 @@ The ring of Witt vectors is the projective limit of all the rings of truncated W
   that is compatible with a family of ring homomorphisms to the truncated Witt vectors:
   this realizes the ring of Witt vectors as projective limit of the rings of truncated Witt vectors
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 open function (injective surjective)
@@ -114,8 +119,6 @@ namespace witt_vector
 variables {p} (n)
 
 section
-
-local attribute [semireducible] witt_vector
 
 /-- `truncate_fun n x` uses the first `n` entries of `x` to construct a `truncated_witt_vector`,
 which has the same base `p` as `x`.

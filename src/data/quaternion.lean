@@ -239,7 +239,8 @@ lemma eq_re_iff_mem_range_coe {a : ℍ[R, c₁, c₂]} :
 ⟨λ h, ⟨a.re, h.symm⟩, λ ⟨x, h⟩, eq_re_of_eq_coe h.symm⟩
 
 @[simp]
-lemma conj_fixed {R : Type*} [integral_domain R] [char_zero R] {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
+lemma conj_fixed {R : Type*} [comm_ring R] [no_zero_divisors R] [char_zero R]
+  {c₁ c₂ : R} {a : ℍ[R, c₁, c₂]} :
   conj a = a ↔ a = a.re :=
 by simp [ext_iff, neg_eq_iff_add_eq_zero, add_self_eq_zero]
 
@@ -430,7 +431,7 @@ quaternion_algebra.eq_re_of_eq_coe h
 lemma eq_re_iff_mem_range_coe {a : ℍ[R]} : a = a.re ↔ a ∈ set.range (coe : R → ℍ[R]) :=
 quaternion_algebra.eq_re_iff_mem_range_coe
 
-@[simp] lemma conj_fixed {R : Type*} [integral_domain R] [char_zero R] {a : ℍ[R]} :
+@[simp] lemma conj_fixed {R : Type*} [comm_ring R] [no_zero_divisors R] [char_zero R] {a : ℍ[R]} :
   conj a = a ↔ a = a.re :=
 quaternion_algebra.conj_fixed
 

@@ -18,7 +18,6 @@ For most uses, typically `submodule R M` is more powerful.
 ## Main definitions
 
 * `sub_mul_action.mul_action` - the `mul_action R M` transferred to the subtype.
-* `sub_mul_action.mul_action` - the `mul_action R M` transferred to the subtype.
 * `sub_mul_action.mul_action'` - the `mul_action S M` transferred to the subtype when
   `is_scalar_tower S R M`.
 * `sub_mul_action.is_scalar_tower` - the `is_scalar_tower S R M` transferred to the subtype.
@@ -146,10 +145,7 @@ instance mul_action' : mul_action S p :=
   one_smul := λ x, subtype.ext $ one_smul _ x,
   mul_smul := λ c₁ c₂ x, subtype.ext $ mul_smul c₁ c₂ x }
 
-section
-local attribute [instance] mul_action.regular
 instance : mul_action R p := p.mul_action'
-end
 
 end mul_action
 

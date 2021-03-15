@@ -61,7 +61,7 @@ begin
     obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.min' H :=
       list.mem_iff_nth_le.1 this,
     rw ← hi,
-    exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.zero_le i) },
+    exact (s.sort_sorted (≤)).rel_nth_le_of_le _ _ (nat.zero_le i) },
   { have : l.nth_le 0 h ∈ s := (finset.mem_sort (≤)).1 (list.nth_le_mem l 0 h),
     exact s.min'_le _ this }
 end
@@ -87,7 +87,7 @@ begin
       list.mem_iff_nth_le.1 this,
     rw ← hi,
     have : i ≤ l.length - 1 := nat.le_pred_of_lt i_lt,
-    exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.le_pred_of_lt i_lt) },
+    exact (s.sort_sorted (≤)).rel_nth_le_of_le _ _ (nat.le_pred_of_lt i_lt) },
 end
 
 lemma sorted_last_eq_max' {s : finset α} {h : (s.sort (≤)).length - 1 < (s.sort (≤)).length} :
@@ -127,6 +127,10 @@ rfl
 lemma order_emb_of_fin_apply (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) :
   s.order_emb_of_fin h i = (s.sort (≤)).nth_le i (by { rw [length_sort, h], exact i.2 }) :=
 rfl
+
+@[simp] lemma order_emb_of_fin_mem (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) :
+  s.order_emb_of_fin h i ∈ s :=
+(s.order_iso_of_fin h i).2
 
 @[simp] lemma range_order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   set.range (s.order_emb_of_fin h) = s :=

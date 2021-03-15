@@ -282,7 +282,12 @@ end
 def order_embedding_of_lt_embedding [partial_order α] [partial_order β]
   (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
   α ↪o β :=
-{ map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective] }, .. f }
+{ map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective.eq_iff] }, .. f }
+
+@[simp]
+lemma order_embedding_of_lt_embedding_apply [partial_order α] [partial_order β]
+  {f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)} {x : α} :
+  order_embedding_of_lt_embedding f x = f x := rfl
 
 end rel_embedding
 
@@ -491,23 +496,16 @@ end rel_iso
 
 namespace order_iso
 
+section has_le
+
+variables [has_le α] [has_le β] [has_le γ]
+
 /-- Reinterpret an order isomorphism as an order embedding. -/
-def to_order_embedding [has_le α] [has_le β] (e : α ≃o β) : α ↪o β :=
+def to_order_embedding (e : α ≃o β) : α ↪o β :=
 e.to_rel_embedding
 
-@[simp] lemma coe_to_order_embedding [has_le α] [has_le β] (e : α ≃o β) :
+@[simp] lemma coe_to_order_embedding (e : α ≃o β) :
   ⇑(e.to_order_embedding) = e := rfl
-
-variables [preorder α] [preorder β] [preorder γ]
-
-protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
-
-protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
-
-@[simp] lemma le_iff_le (e : α ≃o β) {x y : α} : e x ≤ e y ↔ x ≤ y := e.map_rel_iff
-
-@[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
-e.to_order_embedding.lt_iff_lt
 
 protected lemma bijective (e : α ≃o β) : bijective e := e.to_equiv.bijective
 protected lemma injective (e : α ≃o β) : injective e := e.to_equiv.injective
@@ -527,6 +525,9 @@ e.to_equiv.apply_symm_apply x
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
 
+lemma apply_eq_iff_eq_symm_apply (e : α ≃o β) (x : α) (y : β) : e x = y ↔ x = e.symm y :=
+e.to_equiv.apply_eq_iff_eq_symm_apply
+
 theorem symm_apply_eq (e : α ≃o β) {x : α} {y : β} : e.symm y = x ↔ y = e x :=
 e.to_equiv.symm_apply_eq
 
@@ -535,6 +536,8 @@ e.to_equiv.symm_apply_eq
 lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
 λ e e' h, by rw [← e.symm_symm, h, e'.symm_symm]
 
+@[simp] lemma to_equiv_symm (e : α ≃o β) : e.to_equiv.symm = e.symm.to_equiv := rfl
+
 /-- Composition of two order isomorphisms is an order isomorphism. -/
 @[trans] def trans (e : α ≃o β) (e' : β ≃o γ) : α ≃o γ := e.trans e'
 
@@ -542,7 +545,20 @@ lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
 
 lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
 
+end has_le
+
 open set
+
+variables [preorder α] [preorder β] [preorder γ]
+
+protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
+
+protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+
+@[simp] lemma le_iff_le (e : α ≃o β) {x y : α} : e x ≤ e y ↔ x ≤ y := e.map_rel_iff
+
+@[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
+e.to_order_embedding.lt_iff_lt
 
 @[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=
 by { ext x, simp [← e.le_iff_le] }
@@ -683,4 +699,43 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 
+/-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
+def order_iso.Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
+
+/-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
+def order_iso.Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
+
+section bounded_lattice
+
+variables [bounded_lattice α]  [bounded_lattice β] (f : α ≃o β)
+include f
+
+lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
+⟨by { rw [← f.map_bot, ← f.map_inf, f.map_rel_iff], exact h.1 },
+  by { rw [← f.map_top, ← f.map_sup, f.map_rel_iff], exact h.2 }⟩
+
+theorem order_iso.is_compl_iff {x y : α} :
+  is_compl x y ↔ is_compl (f x) (f y) :=
+⟨f.is_compl, λ h, begin
+  rw [← f.symm_apply_apply x, ← f.symm_apply_apply y],
+  exact f.symm.is_compl h,
+end⟩
+
+lemma order_iso.is_complemented
+  [is_complemented α] : is_complemented β :=
+⟨λ x, begin
+  obtain ⟨y, hy⟩ := exists_is_compl (f.symm x),
+  rw ← f.symm_apply_apply y at hy,
+  refine ⟨f y, f.symm.is_compl_iff.2 hy⟩,
+end⟩
+
+theorem order_iso.is_complemented_iff :
+  is_complemented α ↔ is_complemented β :=
+⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
+
+end bounded_lattice
 end lattice_isos

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
+import linear_algebra.std_basis
 import set_theory.cardinal_ordinal
 
 /-!
@@ -203,7 +204,7 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq : nonempty (V ≃ₗ[K] V₁) ↔
 
 @[simp] lemma dim_bot : dim K (⊥ : submodule K V) = 0 :=
 by letI := classical.dec_eq V;
-  rw [← cardinal.lift_inj, ← (@is_basis_empty_bot pempty K V _ _ _ not_nonempty_pempty).mk_eq_dim,
+  rw [← cardinal.lift_inj, ← (is_basis_empty (⊥ : submodule K V) not_nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
 
 @[simp] lemma dim_top : dim K (⊤ : submodule K V) = dim K V :=
@@ -287,7 +288,7 @@ by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm
 
 theorem dim_quotient_le (p : submodule K V) :
   dim K p.quotient ≤ dim K V :=
-by { rw ← dim_quotient_add_dim p, exact cardinal.le_add_right _ _ }
+by { rw ← dim_quotient_add_dim p, exact self_le_add_right _ _ }
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) : dim K f.range + dim K f.ker = dim K V :=
@@ -297,7 +298,7 @@ begin
 end
 
 lemma dim_range_le (f : V →ₗ[K] V₁) : dim K f.range ≤ dim K V :=
-by rw ← dim_range_add_dim_ker f; exact le_add_right (le_refl _)
+by { rw ← dim_range_add_dim_ker f, exact self_le_add_right _ _ }
 
 lemma dim_map_le (f : V →ₗ V₁) (p : submodule K V) : dim K (p.map f) ≤ dim K p :=
 begin
@@ -316,13 +317,13 @@ lemma dim_eq_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V =
 by rw [← dim_range_add_dim_ker f, ← dim_range_of_surjective f h]
 
 lemma dim_le_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V₁ ≤ dim K V :=
-by rw [dim_eq_of_surjective f h]; refine le_add_right (le_refl _)
+by { rw [dim_eq_of_surjective f h], refine self_le_add_right _ _ }
 
 lemma dim_eq_of_injective (f : V →ₗ[K] V₁) (h : injective f) : dim K V = dim K f.range :=
 by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 
 lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
-by { rw ← dim_quotient_add_dim s, exact cardinal.le_add_left _ _ }
+by { rw ← dim_quotient_add_dim s, exact self_le_add_left _ _ }
 
 lemma dim_le_of_injective (f : V →ₗ[K] V₁) (h : injective f) :
   dim K V ≤ dim K V₁ :=
@@ -406,7 +407,7 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
 
 lemma dim_add_le_dim_add_dim (s t : submodule K V) :
   dim K (s ⊔ t : submodule K V) ≤ dim K s + dim K t :=
-by rw [← dim_sup_add_dim_inf_eq]; exact le_add_right (le_refl _)
+by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
 end
 
@@ -469,7 +470,7 @@ section rank
 def rank (f : V →ₗ[K] V') : cardinal := dim K f.range
 
 lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ dim K V :=
-by rw [← dim_range_add_dim_ker f]; exact le_add_right (le_refl _)
+by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
 
 lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ dim K V₁ :=
 dim_submodule_le _
@@ -521,6 +522,20 @@ begin
     { ext x, simp [h x] },
     rw [←dim_top, this, dim_bot] }
 end
+
+lemma dim_zero_iff : vector_space.dim K V = 0 ↔ subsingleton V :=
+dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
+
+lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
+  (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
+begin
+  haveI : subsingleton V := dim_zero_iff.1 hV,
+  exact is_basis_empty _ h
+end
+
+lemma is_basis_of_dim_eq_zero'
+  (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+is_basis_of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
 
 lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
 begin

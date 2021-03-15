@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
+import algebra.invertible
 import algebra.opposites
 import data.list.basic
 import data.int.cast
@@ -49,13 +50,33 @@ theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n •�
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
+instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
+
+lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
+λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+
+/-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
+def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
+  invertible x :=
+⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
+
+/-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+  invertible x :=
+begin
+  apply invertible_of_pow_succ_eq_one x (n - 1),
+  convert hx,
+  exact nat.sub_add_cancel (nat.succ_le_of_lt hn),
+end
+
 lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
   is_unit x :=
 begin
-  cases n, { exact (nat.not_lt_zero _ hn).elim },
-  refine ⟨⟨x, x ^ n, _, _⟩, rfl⟩,
-  { rwa [pow_succ] at hx },
-  { rwa [pow_succ'] at hx }
+  haveI := invertible_of_pow_eq_one x n hx hn,
+  exact is_unit_of_invertible x
 end
 
 end monoid
@@ -182,6 +203,57 @@ calc n •ℤ a = n •ℤ a + 0 : (add_zero _).symm
   ... < n •ℤ a + (m - n) •ℤ a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
   ... = m •ℤ a : by { rw [← add_gsmul], simp }
 
+lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
+  abs (n •ℕ a) = n •ℕ abs a :=
+begin
+  cases le_total a 0 with hneg hpos,
+  { rw [abs_of_nonpos hneg, ← abs_neg, ← neg_nsmul, abs_of_nonneg],
+    exact nsmul_nonneg (neg_nonneg.mpr hneg) n },
+  { rw [abs_of_nonneg hpos, abs_of_nonneg],
+    exact nsmul_nonneg hpos n }
+end
+
+lemma abs_gsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℤ) (a : α) :
+  abs (n •ℤ a) = (abs n) •ℤ abs a :=
+begin
+  by_cases n0 : 0 ≤ n,
+  { lift n to ℕ using n0,
+    simp only [abs_nsmul, coe_nat_abs, gsmul_coe_nat] },
+  { lift (- n) to ℕ using int.le_of_lt (neg_pos.mpr (not_le.mp n0)) with m h,
+    rw [← abs_neg (n •ℤ a), ← neg_gsmul, ← abs_neg n, ← h],
+    convert abs_nsmul m _,
+    simp only [coe_nat_abs, gsmul_coe_nat] },
+end
+
+lemma abs_add_eq_add_abs_le {α : Type*} [linear_ordered_add_comm_group α] {a b : α} (hle : a ≤ b) :
+  abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
+begin
+  by_cases a0 : 0 ≤ a; by_cases b0 : 0 ≤ b,
+  { simp [a0, b0, abs_of_nonneg, add_nonneg a0 b0] },
+  { exact (lt_irrefl (0 : α) (a0.trans_lt (hle.trans_lt (not_le.mp b0)))).elim },
+  any_goals { simp [(not_le.mp a0).le, (not_le.mp b0).le, abs_of_nonpos, add_nonpos, add_comm] },
+  obtain F := (not_le.mp a0),
+  have : (abs (a + b) = -a + b ↔ b ≤ 0) ↔ (abs (a + b) =
+    abs a + abs b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0),
+  { simp [a0, b0, abs_of_neg, abs_of_nonneg, F, F.le] },
+  refine this.mp ⟨λ h, _, λ h, by simp only [le_antisymm h b0, abs_of_neg F, add_zero]⟩,
+  by_cases ba : a + b ≤ 0,
+  { refine le_of_eq (eq_zero_of_neg_eq _),
+    rwa [abs_of_nonpos ba, neg_add_rev, add_comm, add_right_inj] at h },
+  { refine (lt_irrefl (0 : α) _).elim,
+    rw [abs_of_pos (not_le.mp ba), add_left_inj] at h,
+    rwa eq_zero_of_neg_eq h.symm at F }
+end
+
+lemma abs_add_eq_add_abs_iff {α : Type*} [linear_ordered_add_comm_group α] (a b : α) :
+  abs (a + b) = abs a + abs b ↔ (0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0) :=
+begin
+  by_cases ab : a ≤ b,
+  { exact abs_add_eq_add_abs_le ab },
+  { rw [add_comm a, add_comm (abs _), abs_add_eq_add_abs_le ((not_le.mp ab).le), and.comm,
+    @and.comm (b ≤ 0 ) _] }
+end
+
 end ordered_add_comm_group
 
 section linear_ordered_add_comm_group
@@ -287,15 +359,23 @@ section ordered_semiring
 variable [ordered_semiring R]
 
 /-- Bernoulli's inequality. This version works for semirings but requires
-an additional hypothesis `0 ≤ a * a`. -/
-theorem one_add_mul_le_pow' {a : R} (Hsqr : 0 ≤ a * a) (H : 0 ≤ 1 + a) :
-  ∀ (n : ℕ), 1 + n •ℕ a ≤ (1 + a) ^ n
-| 0     := le_of_eq $ add_zero _
-| (n+1) :=
-calc 1 + (n + 1) •ℕ a ≤ (1 + a) * (1 + n •ℕ a) :
-  by simpa [succ_nsmul, mul_add, add_mul, mul_nsmul_left, add_comm, add_left_comm]
-    using nsmul_nonneg Hsqr n
-... ≤ (1 + a)^(n+1) : mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) H
+additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
+theorem one_add_mul_le_pow' {a : R} (Hsqr : 0 ≤ a * a) (Hsqr' : 0 ≤ (1 + a) * (1 + a))
+  (H : 0 ≤ 2 + a) :
+  ∀ (n : ℕ), 1 + (n : R) * a ≤ (1 + a) ^ n
+| 0     := by simp
+| 1     := by simp
+| (n+2) :=
+have 0 ≤ (n : R) * (a * a * (2 + a)) + a * a,
+  from add_nonneg (mul_nonneg n.cast_nonneg (mul_nonneg Hsqr H)) Hsqr,
+calc 1 + (↑(n + 2) : R) * a ≤ 1 + ↑(n + 2) * a + (n * (a * a * (2 + a)) + a * a) :
+  (le_add_iff_nonneg_right _).2 this
+... = (1 + a) * (1 + a) * (1 + n * a) :
+  by { simp [add_mul, mul_add, bit0, mul_assoc, (n.cast_commute (_ : R)).left_comm],
+       ac_refl }
+... ≤ (1 + a) * (1 + a) * (1 + a)^n :
+  mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) Hsqr'
+... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
 private lemma pow_lt_pow_of_lt_one_aux {a : R} (h : 0 < a) (ha : a < 1) (i : ℕ) :
   ∀ k : ℕ, a ^ (i + k + 1) < a ^ i
@@ -358,23 +438,41 @@ end linear_ordered_semiring
 
 section linear_ordered_ring
 
-variables [linear_ordered_ring R]
+variables [linear_ordered_ring R] {a : R} {n : ℕ}
 
 @[simp] lemma abs_pow (a : R) (n : ℕ) : abs (a ^ n) = abs a ^ n :=
 abs_hom.to_monoid_hom.map_pow a n
 
-@[simp] theorem pow_bit1_neg_iff {a : R} {n : ℕ} : a ^ bit1 n < 0 ↔ a < 0 :=
+@[simp] theorem pow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ pow_nonneg h' _,
   λ h, mul_neg_of_neg_of_pos h (pow_bit0_pos h.ne _)⟩
 
-@[simp] theorem pow_bit1_nonneg_iff {a : R} {n : ℕ} : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
+@[simp] theorem pow_bit1_nonneg_iff : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
 le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
 
-@[simp] theorem pow_bit1_nonpos_iff {a : R} {n : ℕ} : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
+@[simp] theorem pow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
 by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n))]
 
-@[simp] theorem pow_bit1_pos_iff {a : R} {n : ℕ} : 0 < a ^ bit1 n ↔ 0 < a :=
+@[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
+
+theorem pow_even_nonneg (a : R) (hn : even n) : 0 ≤ a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
+
+theorem pow_even_pos (ha : a ≠ 0) (hn : even n) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
+
+theorem pow_odd_nonneg (ha : 0 ≤ a) (hn : odd n) : 0 ≤ a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonneg_iff.mpr ha
+
+theorem pow_odd_pos (ha : 0 < a) (hn : odd n) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_pos_iff.mpr ha
+
+theorem pow_odd_nonpos (ha : a ≤ 0) (hn : odd n) : a ^ n ≤ 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
+
+theorem pow_odd_neg (ha : a < 0) (hn : odd n) : a ^ n < 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
 
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
 begin
@@ -388,31 +486,29 @@ begin
 end
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
-theorem one_add_mul_le_pow {a : R} (H : -2 ≤ a) : ∀ (n : ℕ), 1 + n •ℕ a ≤ (1 + a) ^ n
-| 0     := le_of_eq $ add_zero _
-| 1     := by simp
-| (n+2) :=
-have H' : 0 ≤ 2 + a,
-  from neg_le_iff_add_nonneg'.1 H,
-have 0 ≤ n •ℕ (a * a * (2 + a)) + a * a,
-  from add_nonneg (nsmul_nonneg (mul_nonneg (mul_self_nonneg a) H') n)
-    (mul_self_nonneg a),
-calc 1 + (n + 2) •ℕ a ≤ 1 + (n + 2) •ℕ a + (n •ℕ (a * a * (2 + a)) + a * a) :
-  (le_add_iff_nonneg_right _).2 this
-... = (1 + a) * (1 + a) * (1 + n •ℕ a) :
-  by { simp only [add_mul, mul_add, mul_two, mul_one, one_mul, succ_nsmul, nsmul_add,
-         mul_nsmul_assoc, (mul_nsmul_left _ _ _).symm],
-       ac_refl }
-... ≤ (1 + a) * (1 + a) * (1 + a)^n :
-  mul_le_mul_of_nonneg_left (one_add_mul_le_pow n) (mul_self_nonneg (1 + a))
-... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
+theorem one_add_mul_le_pow (H : -2 ≤ a) (n : ℕ) : 1 + (n : R) * a ≤ (1 + a) ^ n :=
+one_add_mul_le_pow' (mul_self_nonneg _) (mul_self_nonneg _) (neg_le_iff_add_nonneg'.1 H) _
 
 /-- Bernoulli's inequality reformulated to estimate `a^n`. -/
-theorem one_add_sub_mul_le_pow {a : R} (H : -1 ≤ a) (n : ℕ) : 1 + n •ℕ (a - 1) ≤ a ^ n :=
+theorem one_add_mul_sub_le_pow (H : -1 ≤ a) (n : ℕ) : 1 + (n : R) * (a - 1) ≤ a ^ n :=
 have -2 ≤ a - 1, by rwa [bit0, neg_add, ← sub_eq_add_neg, sub_le_sub_iff_right],
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
 end linear_ordered_ring
+
+/-- Bernoulli's inequality reformulated to estimate `(n : K)`. -/
+theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a)
+  (n : ℕ) :
+  (n : K) ≤ (a ^ n - 1) / (a - 1) :=
+(le_div_iff (sub_pos.2 H)).2 $ le_sub_left_of_add_le $
+  one_add_mul_sub_le_pow ((neg_le_self $ @zero_le_one K _).trans H.le) _
+
+/-- For any `a > 1` and a natural `n` we have `n ≤ a ^ n / (a - 1)`. See also
+`nat.cast_le_pow_sub_div_sub` for a stronger inequality with `a ^ n - 1` in the numerator. -/
+theorem nat.cast_le_pow_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a) (n : ℕ) :
+  (n : K) ≤ a ^ n / (a - 1) :=
+(n.cast_le_pow_sub_div_sub H).trans $ div_le_div_of_le (sub_nonneg.2 H.le)
+  (sub_le_self _ zero_le_one)
 
 namespace int
 
@@ -579,7 +675,8 @@ section
 
 variables [semiring R] {a x y : R}
 
-@[simp] lemma cast_nat_mul_right (h : semiconj_by a x y) (n : ℕ) : semiconj_by a ((n : R) * x) (n * y) :=
+@[simp] lemma cast_nat_mul_right (h : semiconj_by a x y) (n : ℕ) :
+  semiconj_by a ((n : R) * x) (n * y) :=
 semiconj_by.mul_right (nat.commute_cast _ _) h
 
 @[simp] lemma cast_nat_mul_left (h : semiconj_by a x y) (n : ℕ) : semiconj_by ((n : R) * a) x y :=
@@ -692,7 +789,7 @@ by induction b; simp [*, mul_add, pow_succ, add_comm]
 @[simp] lemma int.to_add_gpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
 int.induction_on b (by simp)
   (by simp [gpow_add, mul_add] {contextual := tt})
-  (by simp [gpow_add, mul_add, sub_eq_add_neg] {contextual := tt})
+  (by simp [gpow_add, mul_add, sub_eq_add_neg, -int.add_neg_one] {contextual := tt})
 
 @[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
 (int.to_add_gpow _ _).symm

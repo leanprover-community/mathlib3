@@ -44,9 +44,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 section diffeomorph
 
-variables (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-(M' : Type*) [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
-(N : Type*) [topological_space N] [charted_space G N] [smooth_manifold_with_corners J N]
+variables (M : Type*) [topological_space M] [charted_space H M]
+(M' : Type*) [topological_space M'] [charted_space H' M']
+(N : Type*) [topological_space N] [charted_space G N]
 (n : with_top ℕ)
 
 /--

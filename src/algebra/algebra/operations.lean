@@ -163,7 +163,30 @@ calc map f.to_linear_map (M * N)
       rw f.to_linear_map_apply at fy_eq,
       ext,
       simp [fy_eq] }
-  end
+end
+
+section decidable_eq
+
+open_locale classical
+
+lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A}
+  (hx : x ∈ span R (S * S')) :
+  ∃ (T T' : finset A), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span R (T * T' : set A) :=
+begin
+  obtain ⟨U, h, hU⟩ := mem_span_finite_of_mem_span hx,
+  obtain ⟨T, T', hS, hS', h⟩ := finset.subset_mul h,
+  use [T, T', hS, hS'],
+  have h' : (U : set A) ⊆ T * T', { assumption_mod_cast, },
+  have h'' := span_mono h' hU,
+  assumption,
+end
+
+end decidable_eq
+
+lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
+  ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
+submodule.mem_span_mul_finite_of_mem_span_mul
+  (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
 
 variables {M N P}
 

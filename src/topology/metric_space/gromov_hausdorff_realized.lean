@@ -56,7 +56,7 @@ def candidates : set (prod_space_fun α β) :=
 
 /-- Version of the set of candidates in bounded_continuous_functions, to apply
 Arzela-Ascoli -/
-private def candidates_b : set (Cb α β) := {f : Cb α β | f.val ∈ candidates α β}
+private def candidates_b : set (Cb α β) := {f : Cb α β | f.to_fun ∈ candidates α β}
 
 end definitions --section
 
@@ -72,9 +72,11 @@ private lemma max_var_bound : dist x y ≤ max_var α β := calc
     dist_le_diam_of_mem (bounded_of_compact compact_univ) (mem_univ _) (mem_univ _)
   ... = diam (inl '' (univ : set α) ∪ inr '' (univ : set β)) :
     by apply congr_arg; ext x y z; cases x; simp [mem_univ, mem_range_self]
-  ... ≤ diam (inl '' (univ : set α)) + dist (inl (default α)) (inr (default β)) + diam (inr '' (univ : set β)) :
+  ... ≤ diam (inl '' (univ : set α)) + dist (inl (default α)) (inr (default β)) +
+          diam (inr '' (univ : set β)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
-  ... = diam (univ : set α) + (dist (default α) (default α) + 1 + dist (default β) (default β)) + diam (univ : set β) :
+  ... = diam (univ : set α) + (dist (default α) (default α) + 1 + dist (default β) (default β)) +
+          diam (univ : set β) :
     by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
   ... = 1 * diam (univ : set α) + 1 + 1 * diam (univ : set β) : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
@@ -100,10 +102,12 @@ begin
   by linarith
 end
 
-private lemma candidates_dist_inl (fA : f ∈ candidates α β) (x y: α) : f (inl x, inl y) = dist x y :=
+private lemma candidates_dist_inl (fA : f ∈ candidates α β) (x y: α) :
+  f (inl x, inl y) = dist x y :=
 fA.1.1.1.1.1 x y
 
-private lemma candidates_dist_inr (fA : f ∈ candidates α β) (x y : β) : f (inr x, inr y) = dist x y :=
+private lemma candidates_dist_inr (fA : f ∈ candidates α β) (x y : β) :
+  f (inr x, inr y) = dist x y :=
 fA.1.1.1.1.2 x y
 
 private lemma candidates_le_max_var (fA : f ∈ candidates α β) : f (x, y) ≤ max_var α β :=
@@ -136,7 +140,8 @@ private lemma candidates_dist_bound  (fA : f ∈ candidates α β) :
       mul_le_mul_of_nonneg_right (one_le_max_var α β) dist_nonneg
 
 /-- Technical lemma to prove that candidates are Lipschitz -/
-private lemma candidates_lipschitz_aux (fA : f ∈ candidates α β) : f (x, y) - f (z, t) ≤ 2 * max_var α β * dist (x, y) (z, t) :=
+private lemma candidates_lipschitz_aux (fA : f ∈ candidates α β) :
+  f (x, y) - f (z, t) ≤ 2 * max_var α β * dist (x, y) (z, t) :=
 calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : sub_le_sub_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
@@ -147,8 +152,10 @@ calc
   ... ≤ max_var α β * max (dist x z) (dist t y) + max_var α β * max (dist x z) (dist t y) :
   begin
     apply add_le_add,
-    apply mul_le_mul_of_nonneg_left (le_max_left (dist x z) (dist t y)) (le_trans zero_le_one (one_le_max_var α β)),
-    apply mul_le_mul_of_nonneg_left (le_max_right (dist x z) (dist t y)) (le_trans zero_le_one (one_le_max_var α β)),
+    apply mul_le_mul_of_nonneg_left (le_max_left (dist x z) (dist t y))
+      (zero_le_one.trans (one_le_max_var α β)),
+    apply mul_le_mul_of_nonneg_left (le_max_right (dist x z) (dist t y))
+      (zero_le_one.trans (one_le_max_var α β)),
   end
   ... = 2 * max_var α β * max (dist x z) (dist y t) :
     by { simp [dist_comm], ring }
@@ -168,7 +175,7 @@ end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/
 def candidates_b_of_candidates (f : prod_space_fun α β) (fA : f ∈ candidates α β) : Cb α β :=
-bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).continuous
+bounded_continuous_function.mk_of_compact ⟨f, (candidates_lipschitz fA).continuous⟩
 
 lemma candidates_b_of_candidates_mem (f : prod_space_fun α β) (fA : f ∈ candidates α β) :
   candidates_b_of_candidates f fA ∈ candidates_b α β := fA
@@ -185,7 +192,8 @@ begin
 end
 
 def candidates_b_dist (α : Type u) (β : Type v) [metric_space α] [compact_space α] [inhabited α]
-  [metric_space β] [compact_space β] [inhabited β] : Cb α β := candidates_b_of_candidates _ dist_mem_candidates
+  [metric_space β] [compact_space β] [inhabited β] : Cb α β :=
+candidates_b_of_candidates _ dist_mem_candidates
 
 lemma candidates_b_dist_mem_candidates_b : candidates_b_dist α β ∈ candidates_b α β :=
 candidates_b_of_candidates_mem _ _
@@ -193,8 +201,8 @@ candidates_b_of_candidates_mem _ _
 private lemma candidates_b_nonempty : (candidates_b α β).nonempty :=
 ⟨_,  candidates_b_dist_mem_candidates_b⟩
 
-/-- To apply Arzela-Ascoli, we need to check that the set of candidates is closed and equicontinuous.
-Equicontinuity follows from the Lipschitz control, we check closedness -/
+/-- To apply Arzela-Ascoli, we need to check that the set of candidates is closed and
+equicontinuous. Equicontinuity follows from the Lipschitz control, we check closedness. -/
 private lemma closed_candidates_b : is_closed (candidates_b α β) :=
 begin
   have I1 : ∀x y, is_closed {f : Cb α β | f (inl x, inl y) = dist x y} :=
@@ -228,10 +236,11 @@ begin
        <|> assume x },
 end
 
-/-- Compactness of candidates (in bounded_continuous_functions) follows -/
+/-- Compactness of candidates (in bounded_continuous_functions) follows. -/
 private lemma compact_candidates_b : is_compact (candidates_b α β) :=
 begin
-  refine arzela_ascoli₂ (Icc 0 (max_var α β)) compact_Icc (candidates_b α β) closed_candidates_b _ _,
+  refine arzela_ascoli₂ (Icc 0 (max_var α β)) compact_Icc (candidates_b α β)
+  closed_candidates_b _ _,
   { rintros f ⟨x1, x2⟩ hf,
     simp only [set.mem_Icc],
     exact ⟨candidates_nonneg hf, candidates_le_max_var hf⟩ },
@@ -401,7 +410,8 @@ private definition optimal_GH_dist : Cb α β := classical.some (exists_minimize
 private lemma optimal_GH_dist_mem_candidates_b : optimal_GH_dist α β ∈ candidates_b α β :=
 by cases (classical.some_spec (exists_minimizer α β)); assumption
 
-private lemma HD_optimal_GH_dist_le (g : Cb α β) (hg : g ∈ candidates_b α β) : HD (optimal_GH_dist α β) ≤ HD g :=
+private lemma HD_optimal_GH_dist_le (g : Cb α β) (hg : g ∈ candidates_b α β) :
+  HD (optimal_GH_dist α β) ≤ HD g :=
 let ⟨Z1, Z2⟩ := classical.some_spec (exists_minimizer α β) in Z2 g hg
 
 /-- With the optimal candidate, construct a premetric space structure on α ⊕ β, on which the

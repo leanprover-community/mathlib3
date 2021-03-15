@@ -32,6 +32,8 @@ and composition with linear maps `f`, `Q.comp f x = Q (f x)`.
  * `quadratic_form.associated_right_inverse`: in a commutative ring where 2 has
   an inverse, there is a correspondence between quadratic forms and symmetric
   bilinear forms
+ * `bilin_form.exists_orthogonal_basis`: There exists an orthogonal basis with
+  respect to any nondegenerate, symmetric bilinear form `B`.
 
 ## Notation
 
@@ -40,6 +42,7 @@ In this file, the variable `R` is used when a `ring` structure is sufficient and
 `[module R M]` and `[module R₁ M]` assumptions in the variables without
 confusion between `*` from `ring` and `*` from `comm_ring`.
 
+The variable `S` is used when `R` itself has a `•` action.
 
 ## References
 
@@ -52,8 +55,9 @@ quadratic form, homogeneous polynomial, quadratic polynomial
 -/
 
 universes u v w
-variables {R : Type u} {M : Type v} [add_comm_group M] [ring R]
-variables {R₁ : Type u} [comm_ring R₁]
+variables {S : Type*}
+variables {R : Type*} {M : Type*} [add_comm_group M] [ring R]
+variables {R₁ : Type*} [comm_ring R₁]
 
 namespace quadratic_form
 /-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`.d
@@ -71,11 +75,11 @@ lemma polar_neg (f : M → R) (x y : M) :
   polar (-f) x y = - polar f x y :=
 by { simp only [polar, pi.neg_apply, sub_eq_add_neg, neg_add] }
 
-lemma polar_smul (f : M → R) (s : R) (x y : M) :
-  polar (s • f) x y = s * polar f x y :=
-by { simp only [polar, pi.smul_apply, smul_eq_mul, mul_sub] }
+lemma polar_smul [monoid S] [distrib_mul_action S R] (f : M → R) (s : S) (x y : M) :
+  polar (s • f) x y = s • polar f x y :=
+by { simp only [polar, pi.smul_apply, smul_sub] }
 
-lemma polar_comm (f : M → R₁) (x y : M) : polar f x y = polar f y x :=
+lemma polar_comm (f : M → R) (x y : M) : polar f x y = polar f y x :=
 by rw [polar, polar, add_comm, sub_sub, sub_sub, add_comm (f x) (f y)]
 
 end quadratic_form
@@ -102,6 +106,24 @@ instance : has_coe_to_fun (quadratic_form R M) :=
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_apply : Q.to_fun = ⇑ Q := rfl
 
+lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
+
+lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
+by { rw [←one_smul R x, ←add_smul, map_smul], norm_num }
+
+@[simp] lemma map_zero : Q 0 = 0 :=
+by rw [←@zero_smul R _ _ _ _ (0 : M), map_smul, zero_mul, zero_mul]
+
+@[simp] lemma map_neg (x : M) : Q (-x) = Q x :=
+by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
+
+lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=
+by rw [←neg_sub, map_neg]
+
+@[simp]
+lemma polar_zero_left (y : M) : polar Q 0 y = 0 :=
+by simp [polar]
+
 @[simp]
 lemma polar_add_left (x x' y : M) :
   polar Q (x + x') y = polar Q x y + polar Q x' y :=
@@ -113,6 +135,20 @@ lemma polar_smul_left (a : R) (x y : M) :
 Q.polar_smul_left' a x y
 
 @[simp]
+lemma polar_neg_left (x y : M) :
+  polar Q (-x) y = -polar Q x y :=
+by rw [←neg_one_smul R x, polar_smul_left, neg_one_mul]
+
+@[simp]
+lemma polar_sub_left (x x' y : M) :
+  polar Q (x - x') y = polar Q x y - polar Q x' y :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_left, polar_neg_left]
+
+@[simp]
+lemma polar_zero_right (y : M) : polar Q y 0 = 0 :=
+by simp [polar]
+
+@[simp]
 lemma polar_add_right (x y y' : M) :
   polar Q x (y + y') = polar Q x y + polar Q x y' :=
 Q.polar_add_right' x y y'
@@ -122,19 +158,38 @@ lemma polar_smul_right (a : R) (x y : M) :
   polar Q x (a • y) = a * polar Q x y :=
 Q.polar_smul_right' a x y
 
-lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
+@[simp]
+lemma polar_neg_right (x y : M) :
+  polar Q x (-y) = -polar Q x y :=
+by rw [←neg_one_smul R y, polar_smul_right, neg_one_mul]
 
-lemma map_add_self (x : M) : Q (x + x) = 4 * Q x :=
-by { rw [←one_smul R x, ←add_smul, map_smul], norm_num }
+@[simp]
+lemma polar_sub_right (x y y' : M) :
+  polar Q x (y - y') = polar Q x y - polar Q x y' :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, polar_add_right, polar_neg_right]
 
-lemma map_zero : Q 0 = 0 :=
-by rw [←@zero_smul R _ _ _ _ (0 : M), map_smul, zero_mul, zero_mul]
+@[simp]
+lemma polar_self (x : M) : polar Q x x = 2 * Q x :=
+begin
+  rw [polar, map_add_self, sub_sub, sub_eq_iff_eq_add, ←two_mul, ←two_mul, ←mul_assoc],
+  norm_num
+end
 
-lemma map_neg (x : M) : Q (-x) = Q x :=
-by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
+section of_tower
 
-lemma map_sub (x y : M) : Q (x - y) = Q (y - x) :=
-by rw [←neg_sub, map_neg]
+variables [comm_semiring S] [algebra S R] [semimodule S M] [is_scalar_tower S R M]
+
+@[simp]
+lemma polar_smul_left_of_tower (a : S) (x y : M) :
+  polar Q (a • x) y = a • polar Q x y :=
+by rw [←is_scalar_tower.algebra_map_smul R a x, polar_smul_left, algebra.smul_def]
+
+@[simp]
+lemma polar_smul_right_of_tower (a : S) (x y : M) :
+  polar Q x (a • y) = a • polar Q x y :=
+by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul_def]
+
+end of_tower
 
 variable {Q' : quadratic_form R M}
 @[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' :=
@@ -188,38 +243,57 @@ instance : has_neg (quadratic_form R M) :=
 
 @[simp] lemma neg_apply (Q : quadratic_form R M) (x : M) : (-Q) x = -Q x := rfl
 
-instance : has_scalar R₁ (quadratic_form R₁ M) :=
-⟨ λ a Q,
-  { to_fun := a • Q,
-    to_fun_smul := λ b x, by simp only [pi.smul_apply, map_smul, smul_eq_mul, mul_left_comm],
-    polar_add_left' := λ x x' y, by simp only [polar_smul, polar_add_left, mul_add],
-    polar_smul_left' := λ b x y,
-      by simp only [polar_smul, polar_smul_left, smul_eq_mul, mul_left_comm],
-    polar_add_right' := λ x y y', by simp only [polar_smul, polar_add_right, mul_add],
-    polar_smul_right' := λ b x y,
-      by simp only [polar_smul, polar_smul_right, smul_eq_mul, mul_left_comm] } ⟩
-
-@[simp] lemma coe_fn_smul (a : R₁) (Q : quadratic_form R₁ M) : ⇑(a • Q) = a • Q := rfl
-
-@[simp] lemma smul_apply (a : R₁) (Q : quadratic_form R₁ M) (x : M) : (a • Q) x = a * Q x := rfl
-
 instance : add_comm_group (quadratic_form R M) :=
-{ add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
+{ add := (+),
+  zero := 0,
+  neg := has_neg.neg,
+  add_comm := λ Q Q', by { ext, simp only [add_apply, add_comm] },
   add_assoc := λ Q Q' Q'', by { ext, simp only [add_apply, add_assoc] },
   add_left_neg := λ Q, by { ext, simp only [add_apply, neg_apply, zero_apply, add_left_neg] },
   add_zero := λ Q, by { ext, simp only [zero_apply, add_apply, add_zero] },
-  zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] },
-  ..quadratic_form.has_add,
-  ..quadratic_form.has_neg,
-  ..quadratic_form.has_zero }
+  zero_add := λ Q, by { ext, simp only [zero_apply, add_apply, zero_add] } }
 
-instance : module R₁ (quadratic_form R₁ M) :=
-{ mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_left_comm, mul_assoc]),
+@[simp] lemma coe_fn_sub (Q Q' : quadratic_form R M) : ⇑(Q - Q') = Q - Q' :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
+by simp [sub_eq_add_neg]
+
+section has_scalar
+
+variables [comm_semiring S] [algebra S R]
+
+/-- `quadratic_form R M` inherits the scalar action from any algebra over `R`.
+
+When `R` is commutative, this provides an `R`-action via `algebra.id`. -/
+instance : has_scalar S (quadratic_form R M) :=
+⟨ λ a Q,
+  { to_fun := a • Q,
+    to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, algebra.mul_smul_comm],
+    polar_add_left' := λ x x' y, by simp only [polar_smul, polar_add_left, smul_add],
+    polar_smul_left' := λ b x y, begin
+      simp only [polar_smul, polar_smul_left, ←algebra.mul_smul_comm, smul_eq_mul],
+    end,
+    polar_add_right' := λ x y y', by simp only [polar_smul, polar_add_right, smul_add],
+    polar_smul_right' := λ b x y, begin
+      simp only [polar_smul, polar_smul_right, ←algebra.mul_smul_comm, smul_eq_mul],
+    end } ⟩
+
+@[simp] lemma coe_fn_smul (a : S) (Q : quadratic_form R M) : ⇑(a • Q) = a • Q := rfl
+
+@[simp] lemma smul_apply (a : S) (Q : quadratic_form R M) (x : M) :
+  (a • Q) x = a • Q x := rfl
+
+instance : semimodule S (quadratic_form R M) :=
+{ mul_smul := λ a b Q, ext (λ x, by
+    simp only [smul_apply, mul_left_comm, ←smul_eq_mul, smul_assoc]),
   one_smul := λ Q, ext (λ x, by simp),
-  smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, mul_add] },
-  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, mul_zero] },
-  zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_mul] },
-  add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_mul] } }
+  smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, smul_add] },
+  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, smul_zero] },
+  zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_smul] },
+  add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_smul] } }
+
+end has_scalar
 
 section comp
 
@@ -340,52 +414,106 @@ end bilin_form
 namespace quadratic_form
 open bilin_form sym_bilin_form
 
-section associated
-variables [invertible (2 : R₁)] {B₁ : bilin_form R₁ M}
+section associated_hom
+variables (S) [comm_semiring S] [algebra S R]
+variables [invertible (2 : R)] {B₁ : bilin_form R M}
 
-/-- `associated` is the linear map that sends a quadratic form to its associated
-symmetric bilinear form -/
-def associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
+/-- `associated_hom` is the map that sends a quadratic form on a module `M` over `R` to its
+associated symmetric bilinear form.  As provided here, this has the structure of an `S`-linear map
+where `S` is a commutative subring of `R`.
+
+Over a commutative ring, use `associated`, which gives an `R`-linear map.  Over a general ring with
+no nontrivial distinguished commutative subring, use `associated'`, which gives an additive
+homomorphism (or more precisely a `ℤ`-linear map.) -/
+def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
 { to_fun := λ Q,
   { bilin := λ x y, ⅟2 * polar Q x y,
     bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
-    bilin_smul_left := λ x y z, by rw [← mul_left_comm, polar_smul_left],
+    bilin_smul_left := λ x y z, begin
+      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
+      simp [polar_smul_left, ← mul_assoc, htwo]
+    end,
     bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
-    bilin_smul_right := λ x y z, by rw [← mul_left_comm, polar_smul_right] },
+    bilin_smul_right := λ x y z, begin
+      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
+      simp [polar_smul_left, ← mul_assoc, htwo]
+    end },
   map_add' := λ Q Q', by { ext, simp [bilin_form.add_apply, polar_add, mul_add] },
-  map_smul' := λ a Q, by { ext, simp [bilin_form.smul_apply, polar_smul, mul_left_comm] } }
+  map_smul' := λ s Q, by { ext, simp [polar_smul, algebra.mul_smul_comm] } }
 
-variables {Q : quadratic_form R₁ M}
+variables {Q : quadratic_form R M} {S}
 
 @[simp] lemma associated_apply (x y : M) :
-  associated Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
+  associated_hom S Q x y = ⅟2 * (Q (x + y) - Q x - Q y) := rfl
 
-lemma associated_is_sym : is_sym Q.associated :=
+lemma associated_is_sym : is_sym (associated_hom S Q) :=
 λ x y, by simp only [associated_apply, add_comm, add_left_comm, sub_eq_add_neg]
 
-@[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R₁ N] (f : N →ₗ[R₁] M) :
-  (Q.comp f).associated = Q.associated.comp f f :=
+@[simp] lemma associated_comp {N : Type v} [add_comm_group N] [module R N] (f : N →ₗ[R] M) :
+  associated_hom S (Q.comp f) = (associated_hom S Q).comp f f :=
 by { ext, simp }
+
+lemma associated_to_quadratic_form (B : bilin_form R M) (x y : M) :
+  associated_hom S B.to_quadratic_form x y = ⅟2 * (B x y + B y x) :=
+by simp [associated_apply, ←polar_to_quadratic_form, polar]
+
+lemma associated_left_inverse (h : is_sym B₁) :
+  associated_hom S (B₁.to_quadratic_form) = B₁ :=
+bilin_form.ext $ λ x y,
+by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
+
+lemma associated_right_inverse : (associated_hom S Q).to_quadratic_form = Q :=
+quadratic_form.ext $ λ x,
+  calc (associated_hom S Q).to_quadratic_form x
+      = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
+  ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
+
+lemma associated_eq_self_apply (x : M) : associated_hom S Q x x = Q x :=
+begin
+  rw [associated_apply, map_add_self],
+  suffices : (⅟2) * (2 * Q x) = Q x,
+  { convert this,
+    simp only [bit0, add_mul, one_mul],
+    abel },
+  simp [← mul_assoc],
+end
+
+/-- `associated'` is the `ℤ`-linear map that sends a quadratic form on a module `M` over `R` to its
+associated symmetric bilinear form. -/
+abbreviation associated' : quadratic_form R M →ₗ[ℤ] bilin_form R M :=
+associated_hom ℤ
+
+/-- There exists a non-null vector with respect to any quadratic form `Q` whose associated
+bilinear form is non-degenerate, i.e. there exists `x` such that `Q x ≠ 0`. -/
+lemma exists_quadratic_form_neq_zero [nontrivial M]
+  {Q : quadratic_form R M} (hB₁ : Q.associated'.nondegenerate) :
+  ∃ x, Q x ≠ 0 :=
+begin
+  rw nondegenerate at hB₁,
+  contrapose! hB₁,
+  obtain ⟨x, hx⟩ := exists_ne (0 : M),
+  refine ⟨x, λ y, _, hx⟩,
+  have : Q = 0 := quadratic_form.ext hB₁,
+  simp [this]
+end
+
+end associated_hom
+
+section associated
+variables [invertible (2 : R₁)]
+
+-- Note:  When possible, rather than writing lemmas about `associated`, write a lemma applying to
+-- the more general `associated_hom` and place it in the previous section.
+
+/-- `associated` is the linear map that sends a quadratic form over a commutative ring to its
+associated symmetric bilinear form. -/
+abbreviation associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
+associated_hom R₁
 
 @[simp] lemma associated_lin_mul_lin (f g : M →ₗ[R₁] R₁) :
   (lin_mul_lin f g).associated =
     ⅟(2 : R₁) • (bilin_form.lin_mul_lin f g + bilin_form.lin_mul_lin g f) :=
 by { ext, simp [bilin_form.add_apply, bilin_form.smul_apply], ring }
-
-lemma associated_to_quadratic_form (B : bilin_form R₁ M) (x y : M) :
-  associated B.to_quadratic_form x y = ⅟2 * (B x y + B y x) :=
-by simp [associated_apply, ←polar_to_quadratic_form, polar]
-
-lemma associated_left_inverse (h : is_sym B₁) :
-  B₁.to_quadratic_form.associated = B₁ :=
-bilin_form.ext $ λ x y,
-by rw [associated_to_quadratic_form, sym h x y, ←two_mul, ←mul_assoc, inv_of_mul_self, one_mul]
-
-lemma associated_right_inverse : Q.associated.to_quadratic_form = Q :=
-quadratic_form.ext $ λ x,
-  calc  Q.associated.to_quadratic_form x
-      = ⅟2 * (Q x + Q x) : by simp [map_add_self, bit0, add_mul, add_assoc]
-  ... = Q x : by rw [← two_mul (Q x), ←mul_assoc, inv_of_mul_self, one_mul]
 
 end associated
 
@@ -549,3 +677,99 @@ h'.elim $ h.elim $ λ f g, ⟨f.trans g⟩
 end equivalent
 
 end quadratic_form
+
+namespace bilin_form
+
+/-- There exists a non-null vector with respect to any symmetric, nondegenerate bilinear form `B`
+on a nontrivial module `M` over a ring `R` with invertible `2`, i.e. there exists some
+`x : M` such that `B x x ≠ 0`. -/
+lemma exists_bilin_form_self_neq_zero [htwo : invertible (2 : R)] [nontrivial M]
+  {B : bilin_form R M} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+  ∃ x, ¬ B.is_ortho x x :=
+begin
+  have : B.to_quadratic_form.associated'.nondegenerate,
+  { simpa [quadratic_form.associated_left_inverse hB₂] using hB₁ },
+  obtain ⟨x, hx⟩ := quadratic_form.exists_quadratic_form_neq_zero this,
+  refine ⟨x, λ h, hx (B.to_quadratic_form_apply x ▸ h)⟩,
+end
+
+open finite_dimensional
+
+variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
+variable [finite_dimensional K V]
+
+-- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
+-- there exists a orthogonal basis with respect to any symmetric nondegenerate bilinear form.
+
+lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
+  {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+  ∃ v : fin (findim K V) → V,
+    B.is_Ortho v ∧ is_basis K v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
+begin
+  tactic.unfreeze_local_instances,
+  induction hd : findim K V with d ih generalizing V,
+  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_zero' hd, fin.elim0⟩ },
+  { haveI := findim_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < findim K V),
+    cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
+    { have hd' := hd,
+      rw [← submodule.findim_add_eq_of_is_compl
+            (is_compl_span_singleton_orthogonal hx).symm,
+          findim_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
+      rcases @ih (B.orthogonal $ K ∙ x) _ _ _
+        (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
+        (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
+      refine ⟨λ i, if h : i ≠ 0 then coe (v' (i.pred h)) else x, λ i j hij, _, _, _⟩,
+      { by_cases hi : i = 0,
+        { subst i,
+          simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
+            not_false_iff, dite_not],
+          rw [dif_neg hij.symm, is_ortho, hB₂],
+          exact (v' (j.pred hij.symm)).2 _ (submodule.mem_span_singleton_self x) },
+        by_cases hj : j = 0,
+        { subst j,
+          simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
+            not_false_iff, dite_not],
+          rw dif_neg hi,
+          exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
+        { simp_rw [dif_pos hi, dif_pos hj],
+          rw [is_ortho, hB₂],
+          exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
+      { refine is_basis_of_linear_independent_of_card_eq_findim
+          (@linear_independent_of_is_Ortho _ _ _ _ _ _ B _ _ _)
+          (by rw [hd', fintype.card_fin]),
+        { intros i j hij,
+          by_cases hi : i = 0,
+          { subst hi,
+            simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
+              not_false_iff, dite_not],
+            rw [dif_neg hij.symm, is_ortho, hB₂],
+            exact (v' (j.pred hij.symm)).2 _ (submodule.mem_span_singleton_self x) },
+          by_cases hj : j = 0,
+          { subst j,
+            simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
+              not_false_iff, dite_not],
+            rw dif_neg hi,
+            exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
+          { simp_rw [dif_pos hi, dif_pos hj],
+            rw [is_ortho, hB₂],
+            exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
+        { intro i,
+          by_cases hi : i ≠ 0,
+          { rw dif_pos hi,
+            exact hv₃ (i.pred hi) },
+          { rw dif_neg hi, exact hx } } },
+      { intro i,
+          by_cases hi : i ≠ 0,
+          { rw dif_pos hi,
+            exact hv₃ (i.pred hi) },
+          { rw dif_neg hi, exact hx } } } }
+end .
+
+/-- Given a nondegenerate symmetric bilinear form `B` on some vector space `V` over the
+  field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
+theorem exists_orthogonal_basis [hK : invertible (2 : K)]
+  {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
+  ∃ v : fin (findim K V) → V, B.is_Ortho v ∧ is_basis K v :=
+let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁, hv₂⟩
+
+end bilin_form

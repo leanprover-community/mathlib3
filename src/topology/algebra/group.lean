@@ -54,6 +54,12 @@ protected def homeomorph.mul_left (a : G) : G ≃ₜ G :=
   continuous_inv_fun := continuous_const.mul continuous_id,
   .. equiv.mul_left a }
 
+@[simp, to_additive]
+lemma homeomorph.coe_mul_left (a : G) : ⇑(homeomorph.mul_left a) = (*) a := rfl
+
+@[to_additive]
+lemma homeomorph.mul_left_symm (a : G) : (homeomorph.mul_left a).symm = homeomorph.mul_left a⁻¹ :=
+by { ext, refl }
 
 @[to_additive]
 lemma is_open_map_mul_left (a : G) : is_open_map (λ x, a * x) :=
@@ -87,6 +93,16 @@ by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
 lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
 by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
 
+@[to_additive]
+lemma discrete_topology_of_open_singleton_one (h : is_open ({1} : set G)) : discrete_topology G :=
+begin
+  rw ← singletons_open_iff_discrete,
+  intro g,
+  suffices : {g} = (λ (x : G), g⁻¹ * x) ⁻¹' {1},
+  { rw this, exact (continuous_mul_left (g⁻¹)).is_open_preimage _ h, },
+  simp only [mul_one, set.preimage_mul_left_singleton, eq_self_iff_true,
+    inv_inv, set.singleton_eq_singleton_iff],
+end
 end continuous_mul_group
 
 section topological_group
@@ -176,6 +192,24 @@ protected def homeomorph.inv : G ≃ₜ G :=
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
 ((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds one_inv)
 
+/-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
+@[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
+This is a shear mapping."]
+protected def homeomorph.shear_mul_right : G × G ≃ₜ G × G :=
+{ continuous_to_fun  := continuous_fst.prod_mk continuous_mul,
+  continuous_inv_fun := continuous_fst.prod_mk $ continuous_fst.inv.mul continuous_snd,
+  .. equiv.prod_shear (equiv.refl _) equiv.mul_left }
+
+@[simp, to_additive]
+lemma homeomorph.shear_mul_right_coe :
+  ⇑(homeomorph.shear_mul_right G) = λ z : G × G, (z.1, z.1 * z.2) :=
+rfl
+
+@[simp, to_additive]
+lemma homeomorph.shear_mul_right_symm_coe :
+  ⇑(homeomorph.shear_mul_right G).symm = λ z : G × G, (z.1, z.1⁻¹ * z.2) :=
+rfl
+
 variable {G}
 
 @[to_additive]
@@ -194,12 +228,29 @@ by simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff,
 lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) = 𝓝 x :=
 ((homeomorph.mul_right x⁻¹).comap_nhds_eq 1).trans $ show 𝓝 (1 * x⁻¹⁻¹) = 𝓝 x, by simp
 
+@[simp, to_additive] lemma map_mul_left_nhds (x y : G) : map ((*) x) (𝓝 y) = 𝓝 (x * y) :=
+(homeomorph.mul_left x).map_nhds_eq y
+
+@[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
+
 @[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (tg : @topological_group G t _) (tg' : @topological_group G t' _)
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
 eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
+
+/-- The topological closure of a subgroup as a subgroup. -/
+@[to_additive "The topological closure of an additive subgroup as an additive subgroup."]
+def subgroup.topological_closure (H : subgroup G) : subgroup G :=
+{ carrier := closure H,
+  one_mem' := subset_closure H.one_mem,
+  mul_mem' := λ a b ha hb, H.to_submonoid.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩,
+  inv_mem' := begin
+    change closure (H : set G) ⊆ (λ x : G, x⁻¹) ⁻¹' (closure H),
+    conv_rhs { rw show (H : set G) = (λ x : G, x⁻¹) '' H, by ext ; simp },
+    exact closure_subset_preimage_closure_image (continuous_inv : continuous (λ x : G, _)),
+  end }
 
 @[to_additive]
 lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
@@ -241,7 +292,7 @@ begin
 end
 
 @[to_additive]
-lemma topological_group.of_nhds_one {G : Type*} [group G] [topological_space G]
+lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
   (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
@@ -483,8 +534,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
  begin
    use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
-   apply inf_principal_eq_bot,
-   rw mem_nhds_sets_iff,
+   rw [nhds_within, inf_principal_eq_bot, mem_nhds_sets_iff],
    refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
    rintros x hx ⟨y, z, hy, hz, yz⟩,
    have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
@@ -506,8 +556,8 @@ variables [topological_space G] [group G] [topological_group G]
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `KV ⊆ U`. -/
-@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `0`
-  such that `K + V ⊆ U`."]
+@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
+`0` such that `K + V ⊆ U`."]
 lemma compact_open_separated_mul {K U : set G} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ K * V ⊆ U :=
 begin
@@ -516,8 +566,9 @@ begin
   have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
   choose V hV using λ x : K, exists_open_nhds_one_mul_subset (mem_nhds_sets (h1W x) (h2W x.1 x.2)),
   let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
-  cases hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _ with t ht, swap,
-  { intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
+  obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
+  { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _,
+    intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
     simp only [mul_left_inv, subtype.coe_mk] },
   refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,
   { simp only [mem_Inter], intros x hx, exact (hV x).2.1 },
@@ -534,14 +585,29 @@ end
 lemma compact_covered_by_mul_left_translates {K V : set G} (hK : is_compact K)
   (hV : (interior V).nonempty) : ∃ t : finset G, K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V :=
 begin
-  cases hV with g₀ hg₀,
-  rcases is_compact.elim_finite_subcover hK (λ x : G, interior $ (λ h, x * h) ⁻¹' V) _ _ with ⟨t, ht⟩,
-  { refine ⟨t, subset.trans ht _⟩,
-    apply Union_subset_Union, intro g, apply Union_subset_Union, intro hg, apply interior_subset },
-  { intro g, apply is_open_interior },
-  { intros g hg, rw [mem_Union], use g₀ * g⁻¹,
-    apply preimage_interior_subset_interior_preimage, exact continuous_const.mul continuous_id,
-    rwa [mem_preimage, inv_mul_cancel_right] }
+  obtain ⟨t, ht⟩ : ∃ t : finset G, K ⊆ ⋃ x ∈ t, interior (((*) x) ⁻¹' V),
+  { refine hK.elim_finite_subcover (λ x, interior $ ((*) x) ⁻¹' V) (λ x, is_open_interior) _,
+    cases hV with g₀ hg₀,
+    refine λ g hg, mem_Union.2 ⟨g₀ * g⁻¹, _⟩,
+    refine preimage_interior_subset_interior_preimage (continuous_const.mul continuous_id) _,
+    rwa [mem_preimage, inv_mul_cancel_right] },
+  exact ⟨t, subset.trans ht $ bUnion_subset_bUnion_right $ λ g hg, interior_subset⟩
+end
+
+/-- Every locally compact separable topological group is σ-compact.
+  Note: this is not true if we drop the topological group hypothesis. -/
+@[priority 100] instance separable_locally_compact_group.sigma_compact_space
+  [separable_space G] [locally_compact_space G] : sigma_compact_space G :=
+begin
+  obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
+  refine ⟨⟨λ n, (λ x, x * dense_seq G n) ⁻¹' L, _, _⟩⟩,
+  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr hLc },
+  { refine Union_eq_univ_iff.2 (λ x, _),
+    obtain ⟨_, ⟨n, rfl⟩, hn⟩ : (range (dense_seq G) ∩ (λ y, x * y) ⁻¹' L).nonempty,
+    { rw [← (homeomorph.mul_left x).apply_symm_apply 1] at hL1,
+      exact (dense_range_dense_seq G).inter_nhds_nonempty
+        ((homeomorph.mul_left x).continuous.continuous_at $ hL1) },
+    exact ⟨n, hn⟩ }
 end
 
 end
@@ -578,3 +644,11 @@ lemma nhds_is_mul_hom : is_mul_hom (λx:G, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
 end
 
 end filter_mul
+
+instance additive.topological_add_group {G} [h : topological_space G]
+  [group G] [topological_group G] : @topological_add_group (additive G) h _ :=
+{ continuous_neg := @continuous_inv G _ _ _ }
+
+instance multiplicative.topological_group {G} [h : topological_space G]
+  [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
+{ continuous_inv := @continuous_neg G _ _ _ }

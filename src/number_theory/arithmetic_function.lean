@@ -728,15 +728,23 @@ open unique_factorization_monoid
 @[simp] lemma coe_moebius_mul_coe_zeta [comm_ring R] : (μ * ζ : arithmetic_function R) = 1 :=
 begin
   ext x,
-  cases x, simp,
-  cases x, simp,
+  cases x,
+  { simp only [divisors_zero, sum_empty, ne.def, not_false_iff, coe_mul_zeta_apply,
+      zero_ne_one, one_apply_ne] },
+  cases x,
+  { simp only [moebius_apply_of_squarefree, card_factors_one, squarefree_one, divisors_one,
+      int.cast_one, sum_singleton, coe_mul_zeta_apply, one_one, int_coe_apply, pow_zero] },
   rw [coe_mul_zeta_apply, one_apply_ne (ne_of_gt (succ_lt_succ (nat.succ_pos _)))],
   simp_rw [int_coe_apply],
   rw [← finset.sum_int_cast, ← sum_filter_ne_zero],
   convert int.cast_zero,
   simp only [moebius_ne_zero_iff_squarefree],
-  transitivity,
-  convert (sum_divisors_filter_squarefree (nat.succ_ne_zero _)),
+  suffices :
+    ∑ (y : finset ℕ) in (unique_factorization_monoid.factors x.succ.succ).to_finset.powerset,
+    ite (squarefree y.val.prod) ((-1:ℤ) ^ Ω y.val.prod) 0 = 0,
+  { have h : ∑ i in _, ite (squarefree i) ((-1:ℤ) ^ Ω i) 0 = _ :=
+      (sum_divisors_filter_squarefree (nat.succ_ne_zero _)),
+    exact (eq.trans (by congr') h).trans this },
   apply eq.trans (sum_congr rfl _) (sum_powerset_neg_one_pow_card_of_nonempty _),
   { intros y hy,
     rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hy,
@@ -833,7 +841,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [← module.gsmul_eq_smul, gsmul_eq_mul],
+  rw [←gsmul_eq_smul, gsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/

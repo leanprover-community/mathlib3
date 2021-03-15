@@ -138,38 +138,20 @@ lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
   linear_map.inl 𝕜 E F '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
   rintros _ ⟨v, ⟨c, d, hd, hc, hy⟩, rfl⟩,
-  have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
+  have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ < ((1:ℝ)/2)^n,
   { assume n,
-    have c_pos : 0 < 1 + ∥c n∥ :=
-      add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg _),
-    rcases metric.mem_closure_iff.1 ht ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
-    refine ⟨z - y, _, _⟩,
-    { convert z_pos, abel },
-    { rw [norm_smul, ← dist_eq_norm, dist_comm],
-      calc ∥c n∥ * dist y z ≤ (1 + ∥c n∥) * ((1 + ∥c n∥)⁻¹ * (1/2)^n) :
-      begin
-        apply mul_le_mul _ (le_of_lt hz) dist_nonneg (le_of_lt c_pos),
-        simp only [zero_le_one, le_add_iff_nonneg_left]
-      end
-      ... = (1/2)^n :
-      begin
-        rw [← mul_assoc, mul_inv_cancel, one_mul],
-        exact ne_of_gt c_pos
-      end },
-    { apply mul_pos (inv_pos.2 c_pos) (pow_pos _ _),
-      norm_num } },
+    rcases mem_closure_iff_nhds.1 ht _ (eventually_nhds_norm_smul_sub_lt (c n) y
+      (pow_pos one_half_pos n)) with ⟨z, hz, hzt⟩,
+    exact ⟨z - y, by simpa using hzt, by simpa using hz⟩ },
   choose d' hd' using this,
   refine ⟨c, λn, (d n, d' n), _, hc, _⟩,
   show ∀ᶠ n in at_top, (x, y) + (d n, d' n) ∈ set.prod s t,
-  { apply filter.mem_sets_of_superset hd,
+  { filter_upwards [hd],
     assume n hn,
-    simp at hn,
     simp [hn, (hd' n).1] },
-  { apply hy.prod_mk_nhds,
-    change tendsto (λ (n : ℕ), c n • d' n) at_top (𝓝 0),
-    rw tendsto_zero_iff_norm_tendsto_zero,
-    refine squeeze_zero (λn, norm_nonneg _) (λn, (hd' n).2) _,
-    apply tendsto_pow_at_top_nhds_0_of_lt_1; norm_num }
+  { apply tendsto.prod_mk_nhds hy _,
+    refine squeeze_zero_norm (λn, (hd' n).2.le) _,
+    exact tendsto_pow_at_top_nhds_0_of_lt_1 one_half_pos.le one_half_lt_one }
 end
 
 /-- The tangent cone of a product contains the tangent cone of its right factor. -/
@@ -178,38 +160,44 @@ lemma subset_tangent_cone_prod_right {t : set F} {y : F}
   linear_map.inr 𝕜 E F '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
   rintros _ ⟨w, ⟨c, d, hd, hc, hy⟩, rfl⟩,
-  have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
+  have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ < ((1:ℝ)/2)^n,
   { assume n,
-    have c_pos : 0 < 1 + ∥c n∥ :=
-      add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg _),
-    rcases metric.mem_closure_iff.1 hs ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
-    refine ⟨z - x, _, _⟩,
-    { convert z_pos, abel },
-    { rw [norm_smul, ← dist_eq_norm, dist_comm],
-      calc ∥c n∥ * dist x z ≤ (1 + ∥c n∥) * ((1 + ∥c n∥)⁻¹ * (1/2)^n) :
-      begin
-        apply mul_le_mul _ (le_of_lt hz) dist_nonneg (le_of_lt c_pos),
-        simp only [zero_le_one, le_add_iff_nonneg_left]
-      end
-      ... = (1/2)^n :
-      begin
-        rw [← mul_assoc, mul_inv_cancel, one_mul],
-        exact ne_of_gt c_pos
-      end },
-    { apply mul_pos (inv_pos.2 c_pos) (pow_pos _ _),
-      norm_num } },
+    rcases mem_closure_iff_nhds.1 hs _ (eventually_nhds_norm_smul_sub_lt (c n) x
+      (pow_pos one_half_pos n)) with ⟨z, hz, hzs⟩,
+    exact ⟨z - x, by simpa using hzs, by simpa using hz⟩ },
   choose d' hd' using this,
   refine ⟨c, λn, (d' n, d n), _, hc, _⟩,
   show ∀ᶠ n in at_top, (x, y) + (d' n, d n) ∈ set.prod s t,
-  { apply filter.mem_sets_of_superset hd,
+  { filter_upwards [hd],
     assume n hn,
-    simp at hn,
     simp [hn, (hd' n).1] },
   { apply tendsto.prod_mk_nhds _ hy,
-    change tendsto (λ (n : ℕ), c n • d' n) at_top (𝓝 0),
-    rw tendsto_zero_iff_norm_tendsto_zero,
-    refine squeeze_zero (λn, norm_nonneg _) (λn, (hd' n).2) _,
-    apply tendsto_pow_at_top_nhds_0_of_lt_1; norm_num }
+    refine squeeze_zero_norm (λn, (hd' n).2.le) _,
+    exact tendsto_pow_at_top_nhds_0_of_lt_1 one_half_pos.le one_half_lt_one }
+end
+
+/-- The tangent cone of a product contains the tangent cone of each factor. -/
+lemma maps_to_tangent_cone_pi {ι : Type*} [fintype ι] [decidable_eq ι] {E : ι → Type*}
+  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {s : Π i, set (E i)} {x : Π i, E i} {i : ι} (hi : ∀ j ≠ i, x j ∈ closure (s j)) :
+  maps_to (linear_map.single i : E i →ₗ[𝕜] Π j, E j) (tangent_cone_at 𝕜 (s i) (x i))
+    (tangent_cone_at 𝕜 (set.pi univ s) x) :=
+begin
+  rintros w ⟨c, d, hd, hc, hy⟩,
+  have : ∀ n (j ≠ i), ∃ d', x j + d' ∈ s j ∧ ∥c n • d'∥ < (1 / 2 : ℝ) ^ n,
+  { assume n j hj,
+    rcases mem_closure_iff_nhds.1 (hi j hj) _ (eventually_nhds_norm_smul_sub_lt (c n) (x j)
+      (pow_pos one_half_pos n)) with ⟨z, hz, hzs⟩,
+    exact ⟨z - x j, by simpa using hzs, by simpa using hz⟩ },
+  choose! d' hd's hcd',
+  refine ⟨c, λ n, function.update (d' n) i (d n), hd.mono (λ n hn j hj', _), hc,
+    tendsto_pi.2 $ λ j, _⟩,
+  { rcases em (j = i) with rfl|hj; simp * },
+  { rcases em (j = i) with rfl|hj,
+    { simp [hy] },
+    { suffices : tendsto (λ n, c n • d' n j) at_top (𝓝 0), by simpa [hj],
+      refine squeeze_zero_norm (λ n, (hcd' n j hj).le) _,
+      exact tendsto_pow_at_top_nhds_0_of_lt_1 one_half_pos.le one_half_lt_one } }
 end
 
 /-- If a subset of a real vector space contains a segment, then the direction of this
@@ -247,7 +235,8 @@ section unique_diff
 /-!
 ### Properties of `unique_diff_within_at` and `unique_diff_on`
 
-This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
+This section is devoted to properties of the predicates
+`unique_diff_within_at` and `unique_diff_on`. -/
 
 lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
   unique_diff_within_at 𝕜 s x :=
@@ -296,11 +285,11 @@ lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter' ht).2 hs
 
+lemma unique_diff_within_at_of_mem_nhds (h : s ∈ 𝓝 x) : unique_diff_within_at 𝕜 s x :=
+by simpa only [univ_inter] using unique_diff_within_at_univ.inter h
+
 lemma is_open.unique_diff_within_at (hs : is_open s) (xs : x ∈ s) : unique_diff_within_at 𝕜 s x :=
-begin
-  have := unique_diff_within_at_univ.inter (mem_nhds_sets hs xs),
-  rwa univ_inter at this
-end
+unique_diff_within_at_of_mem_nhds (mem_nhds_sets hs xs)
 
 lemma unique_diff_on.inter (hs : unique_diff_on 𝕜 s) (ht : is_open t) : unique_diff_on 𝕜 (s ∩ t) :=
 λx hx, (hs x hx.1).inter (mem_nhds_sets ht hx.2)
@@ -324,10 +313,52 @@ begin
   exact (hs.1.prod ht.1).mono this
 end
 
+lemma unique_diff_within_at.univ_pi {ι : Type*} [fintype ι] {E : ι → Type*}
+  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {s : Π i, set (E i)} {x : Π i, E i} (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
+  unique_diff_within_at 𝕜 (set.pi univ s) x :=
+begin
+  classical,
+  simp only [unique_diff_within_at, closure_pi_set] at h ⊢,
+  refine ⟨(dense_pi univ (λ i _, (h i).1)).mono _, λ i _, (h i).2⟩,
+  norm_cast,
+  simp only [← submodule.supr_map_single, supr_le_iff, submodule.map_span, submodule.span_le,
+    ← maps_to'],
+  exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
+end
+
+lemma unique_diff_within_at.pi {ι : Type*} [fintype ι] {E : ι → Type*}
+  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {s : Π i, set (E i)} {x : Π i, E i} {I : set ι}
+  (h : ∀ i ∈ I, unique_diff_within_at 𝕜 (s i) (x i)) :
+  unique_diff_within_at 𝕜 (set.pi I s) x :=
+begin
+  classical,
+  rw [← set.univ_pi_piecewise],
+  refine unique_diff_within_at.univ_pi (λ i, _),
+  by_cases hi : i ∈ I; simp [*, unique_diff_within_at_univ],
+end
+
 /-- The product of two sets of unique differentiability is a set of unique differentiability. -/
 lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_diff_on 𝕜 t) :
   unique_diff_on 𝕜 (set.prod s t) :=
 λ ⟨x, y⟩ h, unique_diff_within_at.prod (hs x h.1) (ht y h.2)
+
+/-- The finite product of a family of sets of unique differentiability is a set of unique
+differentiability. -/
+lemma unique_diff_on.pi {ι : Type*} [fintype ι] {E : ι → Type*}
+  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {s : Π i, set (E i)} {I : set ι} (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
+  unique_diff_on 𝕜 (set.pi I s) :=
+λ x hx, unique_diff_within_at.pi $ λ i hi, h i hi (x i) (hx i hi)
+
+/-- The finite product of a family of sets of unique differentiability is a set of unique
+differentiability. -/
+lemma unique_diff_on.univ_pi {ι : Type*} [fintype ι] {E : ι → Type*}
+  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {s : Π i, set (E i)} (h : ∀ i, unique_diff_on 𝕜 (s i)) :
+  unique_diff_on 𝕜 (set.pi univ s) :=
+unique_diff_on.pi $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/

@@ -86,7 +86,8 @@ namespace functor_to_types
 variables {C : Type u} [category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
-@[simp] lemma map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
+@[simp] lemma map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) :
+  (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
 by simp [types_comp]
 
 @[simp] lemma map_id_apply (a : F.obj X) : (F.map (𝟙 X)) a = a :=
@@ -99,7 +100,9 @@ congr_fun (σ.naturality f) x
 
 variables {D : Type u'} [𝒟 : category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
-@[simp] lemma hcomp (x : (I ⋙ F).obj W) : (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) := rfl
+@[simp] lemma hcomp (x : (I ⋙ F).obj W) :
+  (ρ ◫ σ).app W x = (G.map (ρ.app W)) (σ.app (I.obj W) x) :=
+rfl
 
 @[simp] lemma map_inv_map_hom_apply (f : X ≅ Y) (x : F.obj X) : F.map f.inv (F.map f.hom x) = x :=
 congr_fun (F.map_iso f).hom_inv_id x
@@ -281,15 +284,22 @@ end category_theory
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
 -- (In this order the proofs are handled by `obviously`.)
 
-/-- equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms of types -/
+/-- Equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms
+of types. -/
 @[simps] def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_iso,
   inv := λ i, i.to_equiv, }
 
-/-- equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms of types -/
--- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function won't fire without them.
+/-- Equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms
+of types. -/
+-- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function
+-- won't fire without them.
+-- TODO: is it still true?
 def equiv_equiv_iso (X Y : Type u) : (X ≃ Y) ≃ (X ≅ Y) :=
 (equiv_iso_iso).to_equiv
 
-@[simp] lemma equiv_equiv_iso_hom {X Y : Type u} (e : X ≃ Y) : (equiv_equiv_iso X Y) e = e.to_iso := rfl
-@[simp] lemma equiv_equiv_iso_inv {X Y : Type u} (e : X ≅ Y) : (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl
+@[simp] lemma equiv_equiv_iso_hom {X Y : Type u} (e : X ≃ Y) :
+  (equiv_equiv_iso X Y) e = e.to_iso := rfl
+
+@[simp] lemma equiv_equiv_iso_inv {X Y : Type u} (e : X ≅ Y) :
+  (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl

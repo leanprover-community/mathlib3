@@ -287,7 +287,7 @@ section cancel_monoid_with_zero
 variables [cancel_monoid_with_zero M₀] {a b c : M₀}
 
 @[priority 10] -- see Note [lower instance priority]
-instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
+instance cancel_monoid_with_zero.to_no_zero_divisors : no_zero_divisors M₀ :=
 ⟨λ a b ab0, by { by_cases a = 0, { left, exact h }, right,
   apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
 
@@ -411,7 +411,6 @@ calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
 
 @[simp] lemma inv_inv' (a : G₀) : a⁻¹⁻¹ = a :=
 begin
-  classical,
   by_cases h : a = 0, { simp [h] },
   calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
          ... = a                 : by simp [inv_ne_zero h]
@@ -421,7 +420,6 @@ end
 (whether or not `a` is zero). -/
 @[simp] lemma mul_self_mul_inv (a : G₀) : a * a * a⁻¹ = a :=
 begin
-  classical,
   by_cases h : a = 0,
   { rw [h, inv_zero, mul_zero] },
   { rw [mul_assoc, mul_inv_cancel h, mul_one] }
@@ -431,7 +429,6 @@ end
 (whether or not `a` is zero). -/
 @[simp] lemma mul_inv_mul_self (a : G₀) : a * a⁻¹ * a = a :=
 begin
-  classical,
   by_cases h : a = 0,
   { rw [h, inv_zero, mul_zero] },
   { rw [mul_inv_cancel h, one_mul] }
@@ -441,7 +438,6 @@ end
 is zero). -/
 @[simp] lemma inv_mul_mul_self (a : G₀) : a⁻¹ * a * a = a :=
 begin
-  classical,
   by_cases h : a = 0,
   { rw [h, inv_zero, mul_zero] },
   { rw [inv_mul_cancel h, one_mul] }
@@ -525,7 +521,7 @@ units.exists_iff_ne_zero
 instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     begin
-      classical, contrapose! h,
+      contrapose! h,
       exact ((units.mk0 a h.1) * (units.mk0 b h.2)).ne_zero
     end,
   .. (‹_› : group_with_zero G₀) }
@@ -540,7 +536,6 @@ instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ 
 
 lemma mul_inv_rev' (x y : G₀) : (x * y)⁻¹ = y⁻¹ * x⁻¹ :=
 begin
-  classical,
   by_cases hx : x = 0, { simp [hx] },
   by_cases hy : y = 0, { simp [hy] },
   symmetry,
@@ -573,6 +568,10 @@ lemma mul_div_cancel_of_imp {a b : G₀} (h : b = 0 → a = 0) : a * b / b = a :
 classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
 
 local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
+
+@[simp] lemma div_self_mul_self' (a : G₀) : a / (a * a) = a⁻¹ :=
+calc a / (a * a) = a⁻¹⁻¹ * a⁻¹ * a⁻¹ : by simp [mul_inv_rev']
+... = a⁻¹ : inv_mul_mul_self _
 
 lemma div_eq_mul_one_div (a b : G₀) : a / b = a * (1 / b) :=
 by simp
@@ -655,7 +654,6 @@ eq.symm $ div_eq_of_eq_mul hx h.symm
 
 lemma eq_of_div_eq_one (h : a / b = 1) : a = b :=
 begin
-  classical,
   by_cases hb : b = 0,
   { rw [hb, div_zero] at h,
     exact eq_of_zero_eq_one h a b },
@@ -830,10 +828,10 @@ by rw [← mul_assoc, div_mul_cancel _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
 @[field_simps] lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
-by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
+(div_eq_iff_mul_eq hb).trans eq_comm
 
 @[field_simps] lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
-by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
+eq_div_iff_mul_eq hb
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]
@@ -860,7 +858,6 @@ semiconj_by.inv_symm_left_iff'.2 h
 
 lemma inv_right' (h : semiconj_by a x y) : semiconj_by a x⁻¹ y⁻¹ :=
 begin
-  classical,
   by_cases ha : a = 0,
   { simp only [ha, zero_left] },
   by_cases hx : x = 0,
@@ -922,7 +919,7 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 ⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
 
 @[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 :=
-by { classical, exact not_iff_not.1 f.map_ne_zero }
+not_iff_not.1 f.map_ne_zero
 
 end monoid_with_zero
 
@@ -933,7 +930,7 @@ variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
 @[simp] lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
 begin
-  classical, by_cases h : a = 0, by simp [h],
+  by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_left_eq_one,
   rw [← f.map_mul, inv_mul_cancel h, f.map_one]
 end

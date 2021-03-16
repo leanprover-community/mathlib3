@@ -721,6 +721,9 @@ instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
   end,
   ..bounded_continuous_function.algebra }
 
+instance [nonempty α] [compact_space α] : normed_algebra 𝕜 C(α, γ) :=
+{ norm_algebra_map_eq := λ c, (norm_algebra_map_eq (α →ᵇ γ) c : _), }
+
 /-!
 ### Structure as normed module over scalar functions
 

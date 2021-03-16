@@ -51,6 +51,27 @@ by cases f; cases g; cases h; refl
 @[simp] lemma coe_mk (f : α → β) (h : continuous f) :
   ⇑(⟨f, h⟩ : continuous_map α β) = f := rfl
 
+section
+variables (α β)
+/--
+The map forgetting that a continuous function is continuous.
+-/
+def forget_continuity : C(α, β) → (α → β) :=
+λ f, f.1
+
+@[simp] lemma forget_continuity_coe (f : C(α, β)) : (forget_continuity α β f : α → β) = f :=
+rfl
+
+lemma forget_continuity_injective : function.injective (forget_continuity α β) :=
+by tidy
+
+@[simps]
+def equiv_fn_of_discrete [discrete_topology α] : C(α, β) ≃ (α → β) :=
+⟨forget_continuity α β, λ f, ⟨f, continuous_of_discrete_topology⟩,
+  λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+
+end
+
 /-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id⟩
 

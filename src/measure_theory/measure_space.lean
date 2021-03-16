@@ -1394,10 +1394,10 @@ alias absolutely_continuous.ae_le ← ae_mono'
 lemma absolutely_continuous.ae_eq (h : μ ≪ ν) {f g : α → δ} (h' : f =ᵐ[ν] g) : f =ᵐ[μ] g :=
 h.ae_le h'
 
-/-! ### Quasi measure preserving maps -/
+/-! ### Quasi measure preserving maps (a.k.a. non-singular maps) -/
 
-/-- A map `f : α → β` is said to be *quasi measure preserving* w.r.t. measures `μa` and `μb`
-if it is measurable and `μb s = 0` implies `μa (f ⁻¹' s) = 0`. -/
+/-- A map `f : α → β` is said to be *quasi measure preserving* (a.k.a. non-singular) w.r.t. measures
+`μa` and `μb` if it is measurable and `μb s = 0` implies `μa (f ⁻¹' s) = 0`. -/
 @[protect_proj]
 structure quasi_measure_preserving (f : α → β) (μa : measure α . volume_tac)
   (μb : measure β . volume_tac) : Prop :=

@@ -143,10 +143,8 @@ def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t 
   inv_hom_id' := Q.uniq_cone_morphism }
 
 /-- Any cone morphism between limit cones is an isomorphism. -/
-def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : is_iso f :=
-{ inv := P.lift_cone_morphism t,
-  hom_inv_id' := P.uniq_cone_morphism,
-  inv_hom_id' := Q.uniq_cone_morphism, }
+lemma hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : is_iso f :=
+⟨P.lift_cone_morphism t, ⟨P.uniq_cone_morphism, Q.uniq_cone_morphism⟩⟩
 
 /-- Limits of `F` are unique up to isomorphism. -/
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
@@ -558,10 +556,8 @@ def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s 
   inv_hom_id' := Q.uniq_cocone_morphism }
 
 /-- Any cocone morphism between colimit cocones is an isomorphism. -/
-def hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶ t) : is_iso f :=
-{ inv := Q.desc_cocone_morphism s,
-  hom_inv_id' := P.uniq_cocone_morphism,
-  inv_hom_id' := Q.uniq_cocone_morphism, }
+lemma hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶ t) : is_iso f :=
+⟨Q.desc_cocone_morphism s, ⟨P.uniq_cocone_morphism, Q.uniq_cocone_morphism⟩⟩
 
 /-- Colimits of `F` are unique up to isomorphism. -/
 def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) :

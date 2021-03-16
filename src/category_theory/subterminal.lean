@@ -83,10 +83,9 @@ lemma is_subterminal_of_terminal [has_terminal C] : is_subterminal (⊤_ C) :=
 If `A` is subterminal, its diagonal morphism is an isomorphism.
 The converse of `is_subterminal_of_is_iso_diag`.
 -/
-def is_subterminal.is_iso_diag (hA : is_subterminal A) [has_binary_product A A] :
+lemma is_subterminal.is_iso_diag (hA : is_subterminal A) [has_binary_product A A] :
   is_iso (diag A) :=
-{ inv := limits.prod.fst,
-  inv_hom_id' := by { rw is_subterminal.def at hA, tidy } }
+⟨limits.prod.fst, ⟨by simp, by { rw is_subterminal.def at hA, tidy }⟩⟩
 
 /--
 If the diagonal morphism of `A` is an isomorphism, then it is subterminal.

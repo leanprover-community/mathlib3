@@ -311,7 +311,6 @@ def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
       simp,
       dsimp,
       simp only [comp_id],
-      -- sorry,
     }
   end, -- (deterministic) timeout when replace simp with squeeze_simp
   inv_hom_id' := begin
@@ -320,19 +319,16 @@ def rot_comp_inv_rot :𝟭 (triangle C) ≅ (rotate C) ⋙ (inv_rotate C) :=
       simp,
       dsimp,
       refl,
-      -- sorry,
     },
     {
       simp,
       dsimp,
       simp only [comp_id],
-      -- sorry,
     },
     {
       simp,
       dsimp,
       simp only [comp_id],
-      -- sorry,
     }
   end -- (deterministic) timeout when replace simp with squeeze_simp
 }

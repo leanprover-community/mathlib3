@@ -1785,22 +1785,10 @@ def emetric_space.to_metric_space_of_dist {α : Type u} [e : emetric_space α]
   (edist_ne_top : ∀x y: α, edist x y ≠ ⊤)
   (h : ∀x y, dist x y = ennreal.to_real (edist x y)) :
   metric_space α :=
-let m : metric_space α :=
 { dist := dist,
   eq_of_dist_eq_zero := λx y hxy,
     by simpa [h, ennreal.to_real_eq_zero_iff, edist_ne_top x y] using hxy,
-  dist_self          := λx, by simp [h],
-  dist_comm          := λx y, by simp [h, pseudo_emetric_space.edist_comm],
-  dist_triangle      := λx y z, begin
-    simp only [h],
-    rw [← ennreal.to_real_add (edist_ne_top _ _) (edist_ne_top _ _),
-        ennreal.to_real_le_to_real (edist_ne_top _ _)],
-    { exact edist_triangle _ _ _ },
-    { simp [ennreal.add_eq_top, edist_ne_top] }
-  end,
-  edist := λx y, edist x y,
-  edist_dist := λx y, by simp [h, ennreal.of_real_to_real, edist_ne_top] } in
-m.replace_uniformity $ by { rw [uniformity_edist, metric.uniformity_edist], refl }
+  ..pseudo_emetric_space.to_pseudo_metric_space_of_dist dist edist_ne_top h, }
 
 /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the

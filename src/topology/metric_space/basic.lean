@@ -1830,24 +1830,8 @@ emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λ
 ensure that `dist x y = 0` only if `x = y`. -/
 def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   (m : metric_space β) : metric_space γ :=
-{ dist               := λ x y, dist (f x) (f y),
-  dist_self          := λ x, dist_self _,
-  eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
-  dist_comm          := λ x y, dist_comm _ _,
-  dist_triangle      := λ x y z, dist_triangle _ _ _,
-  edist              := λ x y, edist (f x) (f y),
-  edist_dist         := λ x y, edist_dist _ _,
-  to_uniform_space   := uniform_space.comap f m.to_uniform_space,
-  uniformity_dist    := begin
-    apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, dist (f x) (f y)),
-    refine λ s, mem_comap_sets.trans _,
-    split; intro H,
-    { rcases H with ⟨r, ru, rs⟩,
-      rcases mem_uniformity_dist.1 ru with ⟨ε, ε0, hε⟩,
-      refine ⟨ε, ε0, λ a b h, rs (hε _)⟩, exact h },
-    { rcases H with ⟨ε, ε0, hε⟩,
-      exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
-  end }
+{ eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
+  ..pseudo_metric_space.induced f m.to_pseudo_metric_space }
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=

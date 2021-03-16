@@ -24,8 +24,8 @@ submodule, subspace, linear map
 open function
 open_locale big_operators
 
-universes u v w
-variables {R : Type u} {M : Type v} {ι : Type w}
+universes u' u v w
+variables {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
@@ -91,13 +91,15 @@ namespace submodule
 
 section add_comm_monoid
 
-variables [semiring R] [add_comm_monoid M]
+variables [semiring S] [semiring R] [add_comm_monoid M]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
 variables {semimodule_M : semimodule R M}
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
+
+variables [has_scalar S R] [semimodule S M] [is_scalar_tower S R M]
 
 variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
@@ -109,6 +111,8 @@ variables (p)
 lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
+lemma smul_of_tower_mem (r : S) (h : x ∈ p) : r • x ∈ p :=
+p.to_sub_mul_action.smul_of_tower_mem r h
 
 lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
 p.to_add_submonoid.sum_mem
@@ -117,13 +121,13 @@ lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
     (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
 submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
-@[simp] lemma smul_mem_iff' (u : units R) : (u:R) • x ∈ p ↔ x ∈ p :=
+@[simp] lemma smul_mem_iff' (u : units S) : (u:S) • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' u
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance : has_scalar R p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
+instance : has_scalar S p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 
 protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
@@ -135,6 +139,7 @@ variables {p}
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
 @[simp, norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+@[simp, norm_cast] lemma coe_smul_of_tower (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
 
@@ -145,9 +150,14 @@ variables (p)
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
-instance : semimodule R p :=
-by refine {smul := (•), ..p.to_sub_mul_action.mul_action, ..};
+@[priority 900]
+instance semimodule' : semimodule S p :=
+by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
+instance : semimodule R p := p.semimodule'
+
+instance : is_scalar_tower S R p :=
+p.to_sub_mul_action.is_scalar_tower
 
 instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
 ⟨λ c x h,
@@ -253,11 +263,13 @@ end submodule
 
 namespace submodule
 
-variables [division_ring R] [add_comm_group M] [module R M]
-variables (p : submodule R M) {r : R} {x y : M}
+variables [division_ring S] [semiring R] [add_comm_monoid M] [semimodule R M]
+variables [has_scalar S R] [semimodule S M] [is_scalar_tower S R M]
 
-theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
-p.to_sub_mul_action.smul_mem_iff r0
+variables (p : submodule R M) {s : S} {x y : M}
+
+theorem smul_mem_iff (s0 : s ≠ 0) : s • x ∈ p ↔ x ∈ p :=
+p.to_sub_mul_action.smul_mem_iff s0
 
 end submodule
 

@@ -145,17 +145,10 @@ def quaternion_group_zero_equiv_dihedral_zero : quaternion_group 0 ≃* dihedral
 
 /-- Some of the lemmas on `zmod m` require that `m` is positive, as `m = 2 * n` is the case relevant
 in this file but we don't want to write `[fact (0 < 2 * n)]` we make this lemma a local instance. -/
-private lemma two_mul_pos_of_pos [fact (0 < n)] : fact (0 < 2 * n) :=
-begin
-rw ← zero_mul 0,
-          apply mul_lt_mul',
-            { exact zero_le 2 },
-            { assumption },
-            { exact zero_le 0 },
-            { exact nat.zero_lt_succ 1 }
-end
+private lemma succ_mul_pos {m : ℕ} [fact (0 < n)] : fact (0 < (nat.succ m) * n) :=
+mul_pos (by norm_num) (_inst_1)
 
-local attribute [instance] two_mul_pos_of_pos
+local attribute [instance] succ_mul_pos
 
 /--
 If `0 < n`, then `quaternion_group n` is a finite group.
@@ -212,18 +205,16 @@ If `0 < n`, then `xa i` has order 4.
 @[simp] lemma order_of_xa [fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
   change _ = 2^2,
-  apply nat.eq_prime_pow_of_dvd_least_prime_pow nat.prime_two,
-  { rw order_of_dvd_iff_pow_eq_one,
-    intro h,
-    simp at h,
-    injection h with h',
-    apply_fun zmod.val at h',
-    apply_fun ( / n) at h',
-    simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
+  apply order_of_eq_prime_pow nat.prime_two,
+    { intro h,
+      simp at h,
+      injection h with h',
+      apply_fun zmod.val at h',
+      apply_fun ( / n) at h',
+      simp only [zmod.val_nat_cast, zmod.val_zero, nat.zero_div, nat.mod_mul_left_div_self,
                nat.div_self (_inst_1)] at h',
-    norm_num at h' },
-  { rw order_of_dvd_iff_pow_eq_one,
-    norm_num },
+      norm_num at h' },
+    { norm_num }
 end
 
 /-- In the special case `n = 1`, `quaternion 1` is a cyclic group (of order `4`).-/
@@ -239,7 +230,7 @@ If `0 < n`, then `a 1` has order `2 * n`.
 -/
 @[simp] lemma order_of_a_one [fact (0 < n)] : order_of (a 1 : quaternion_group n) = 2 * n :=
 begin
-  cases lt_or_eq_of_le (nat.le_of_dvd (two_mul_pos_of_pos)
+  cases lt_or_eq_of_le (nat.le_of_dvd (succ_mul_pos)
     (order_of_dvd_of_pow_eq_one (@a_one_pow_n n))) with h h,
   { have h1 : (a 1 : quaternion_group n)^(order_of (a 1)) = 1,
     { exact pow_order_of_eq_one _ },

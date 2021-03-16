@@ -13,7 +13,10 @@ import group_theory.dihedral
 # Quaternion Groups
 
 We define the (generalised) quaternion groups `quaternion_group n` of order `4n`, also known as
-dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`.
+dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`. The (generalised) quaternion
+groups can be defined by the presentation `⟨a, x | a²ⁿ = 1, x² = aⁿ, x⁻¹ax=a⁻¹⟩`. We write `a i` for
+`aⁱ` and `xa i` for `xaⁱ`. For `n=2` the quaternion group `quaternion_group 2` is isomorphic to the
+unit integral quaternions `units (quaternion ℤ)`.
 
 ## Main definition
 
@@ -69,7 +72,7 @@ private def one : quaternion_group n := a 0
 instance : inhabited (quaternion_group n) := ⟨one⟩
 
 /--
-The inverse of an element of the dihedral group.
+The inverse of an element of the quaternion group.
 -/
 private def inv : quaternion_group n → quaternion_group n
 | (a i) := a (-i)

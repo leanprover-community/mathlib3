@@ -332,12 +332,14 @@ begin
   exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R sum_fin_sum_equiv).symm
 end
 
+
 /-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is
   finitely presented as `R`-algebra. -/
 lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R A)
   (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
+  -- note that this unfolds `algebra.comap` from the last argument of `is_scalar_tower`
   letI : is_scalar_tower R A I.quotient := is_scalar_tower.comap,
   exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
 end

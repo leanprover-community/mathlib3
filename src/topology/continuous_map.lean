@@ -6,6 +6,7 @@ Author: Nicolò Cavalleri.
 
 import topology.subset_properties
 import topology.tactic
+import topology.algebra.ordered
 
 /-!
 # Continuous bundled map
@@ -51,6 +52,27 @@ by cases f; cases g; cases h; refl
 @[simp] lemma coe_mk (f : α → β) (h : continuous f) :
   ⇑(⟨f, h⟩ : continuous_map α β) = f := rfl
 
+section
+variables (α β)
+/--
+The map forgetting that a continuous function is continuous.
+-/
+def forget_continuity : C(α, β) → (α → β) :=
+λ f, f.1
+
+@[simp] lemma forget_continuity_coe (f : C(α, β)) : (forget_continuity α β f : α → β) = f :=
+rfl
+
+lemma forget_continuity_injective : function.injective (forget_continuity α β) :=
+by tidy
+
+@[simps]
+def equiv_fn_of_discrete [discrete_topology α] : C(α, β) ≃ (α → β) :=
+⟨forget_continuity α β, λ f, ⟨f, continuous_of_discrete_topology⟩,
+  λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+
+end
+
 /-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id⟩
 
@@ -68,5 +90,52 @@ def const (b : β) : C(α, β) := ⟨λ x, b⟩
 
 @[simp] lemma const_coe (b : β) : (const b : α → β) = (λ x, b) := rfl
 lemma const_apply (b : β) (a : α) : const b a = b := rfl
+
+/-!
+We now set up the partial order and lattice structure (given by pointwise min and max)
+on continuous functions.
+-/
+section lattice
+
+instance partial_order [partial_order β] :
+  partial_order C(α, β) :=
+partial_order.lift (forget_continuity α β) (forget_continuity_injective α β)
+
+lemma le_iff [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
+iff.refl _
+
+instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
+{ sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
+
+@[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
+  (f ⊔ g) a = max (f a) (g a) :=
+rfl
+
+instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β) :=
+{ le_sup_left := λ f g, le_iff.mpr (by simp [le_refl]),
+  le_sup_right := λ f g, le_iff.mpr (by simp [le_refl]),
+  sup_le := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
+  ..continuous_map.partial_order,
+  ..continuous_map.has_sup, }
+
+instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
+{ inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
+
+@[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
+  (f ⊓ g) a = min (f a) (g a) :=
+rfl
+
+instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β) :=
+{ inf_le_left := λ f g, le_iff.mpr (by simp [le_refl]),
+  inf_le_right := λ f g, le_iff.mpr (by simp [le_refl]),
+  le_inf := λ f₁ f₂ g w₁ w₂, le_iff.mpr (λ a, by simp [le_iff.mp w₁ a, le_iff.mp w₂ a]),
+  ..continuous_map.partial_order,
+  ..continuous_map.has_inf, }
+
+instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
+{ ..continuous_map.semilattice_inf,
+  ..continuous_map.semilattice_sup }
+
+end lattice
 
 end continuous_map

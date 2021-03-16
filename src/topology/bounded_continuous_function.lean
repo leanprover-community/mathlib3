@@ -568,6 +568,8 @@ def add_equiv_continuous_map_of_compact : (α →ᵇ β) ≃+ C(α, β) :=
 
 end
 
+-- TODO at some point we will need lemmas characterising this norm!
+-- At the moment the only way to reason about it is to transfer `f : C(α,β)` back to `α →ᵇ β`.
 instance : has_norm C(α,β) :=
 { norm := λ x, dist x 0 }
 
@@ -623,7 +625,7 @@ instance [compact_space α] : normed_space 𝕜 C(α,β) :=
   begin
     equiv_rw (equiv_continuous_map_of_compact α β).symm at f,
     exact le_of_eq (norm_smul c f),
-  end}
+  end }
 
 end normed_space
 

@@ -273,18 +273,6 @@ lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
 eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
 
-/-- The topological closure of a subgroup as a subgroup. -/
-@[to_additive "The topological closure of an additive subgroup as an additive subgroup."]
-def subgroup.topological_closure (H : subgroup G) : subgroup G :=
-{ carrier := closure H,
-  one_mem' := subset_closure H.one_mem,
-  mul_mem' := λ a b ha hb, H.to_submonoid.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩,
-  inv_mem' := begin
-    change closure (H : set G) ⊆ (λ x : G, x⁻¹) ⁻¹' (closure H),
-    conv_rhs { rw show (H : set G) = (λ x : G, x⁻¹) '' H, by ext ; simp },
-    exact closure_subset_preimage_closure_image (continuous_inv : continuous (λ x : G, _)),
-  end }
-
 @[to_additive]
 lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
   (hinv : tendsto (λ (x : G), x⁻¹) (𝓝 1) (𝓝 1))

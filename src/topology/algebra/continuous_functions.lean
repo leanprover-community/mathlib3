@@ -217,19 +217,18 @@ instance continuous_semimodule {α : Type*} [topological_space α]
 end subtype
 
 section continuous_map
-
-instance continuous_map_has_scalar {α : Type*} [topological_space α]
+variables {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_monoid M]
+
+instance continuous_map_has_scalar
   [semimodule R M] [topological_semimodule R M] :
   has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, continuous_const.smul f.continuous⟩⟩
 
-instance continuous_map_semimodule {α : Type*} [topological_space α]
-{R : Type*} [semiring R] [topological_space R]
-{M : Type*} [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-[semimodule R M] [topological_semimodule R M] :
-  semimodule R C(α, M) :=
+variables [has_continuous_add M] [semimodule R M] [topological_semimodule R M]
+
+instance continuous_map_semimodule : semimodule R C(α, M) :=
 { smul     := (•),
   smul_add := λ c f g, by { ext, exact smul_add c (f x) (g x) },
   add_smul := λ c₁ c₂ f, by { ext, exact add_smul c₁ c₂ (f x) },
@@ -237,6 +236,8 @@ instance continuous_map_semimodule {α : Type*} [topological_space α]
   one_smul := λ f, by { ext, exact one_smul R (f x) },
   zero_smul := λ f, by { ext, exact zero_smul _ _ },
   smul_zero := λ r, by { ext, exact smul_zero _ } }
+
+@[simp] lemma continuous_map.smul_apply (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) := rfl
 
 end continuous_map
 

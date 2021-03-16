@@ -8,10 +8,13 @@ import topology.bounded_continuous_function
 
 variables {X : Type*} [topological_space X] {Y : Type*} [topological_space Y]
 
-/-- A set of continuous functions "separates points"
+/-- A set of functions "separates points"
 if for each pair of points there is a function taking different values on them. -/
-def separates_points (A : set C(X, Y)) : Prop :=
+def separates_points (A : set (X → Y)) : Prop :=
 ∀ x y : X, ∃ f ∈ A, (f : X → Y) x ≠ (f : X → Y) y
+
+abbreviation subalgebra.separates_points (A : subalgebra R C(X, R)) : Prop :=
+separates_point (coe '' (A : set C(X, R)))
 
 variables [t2_space X] [compact_space X]
 
@@ -22,7 +25,7 @@ noncomputable
 example : topological_space (X →ᵇ ℝ) := by apply_instance
 
 theorem stone_weierstrass (A : subalgebra ℝ C(X, ℝ)) :
-  separates_points (A : set C(X, ℝ)) ↔ A.topological_closure = ⊤ :=
+  A.separates_points ↔ A.topological_closure = ⊤ :=
 sorry
 
 def polynomial_subalgebra (X : set ℝ) : subalgebra ℝ C(X, ℝ) := sorry

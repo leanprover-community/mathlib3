@@ -109,4 +109,6 @@ def truncated (n : ℕ) := simplicial_object.truncated (Type u) n
 /-- The skeleton functor on simplicial sets. -/
 def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
 
+instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ standard_simplex.obj (0 : ℕ)⟩
+
 end sSet

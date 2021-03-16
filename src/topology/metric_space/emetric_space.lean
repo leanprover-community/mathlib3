@@ -106,7 +106,7 @@ namespace, while notions associated to metric spaces are mostly in the root name
 variables [pseudo_emetric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance pseudoe_emetric_space.to_uniform_space' : uniform_space α :=
+instance pseudo_emetric_space.to_uniform_space' : uniform_space α :=
 pseudo_emetric_space.to_uniform_space
 
 export pseudo_emetric_space (edist_self edist_comm edist_triangle)
@@ -362,7 +362,7 @@ This is useful if one wants to construct a pseudoemetric space with a
 specified uniformity. See Note [forgetful inheritance] explaining why having definitionally
 the right uniformity is often important.
 -/
-def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
+def pseudo_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
   (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
   pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
@@ -372,8 +372,7 @@ def pseudoemetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   to_uniform_space    := U,
   uniformity_edist    := H.trans (@pseudo_emetric_space.uniformity_edist α _) }
 
-/-- The extended pseudometric induced by an injective function taking values in a
-pseudoemetric space. -/
+/-- The extended pseudometric induced by a function taking values in a pseudoemetric space. -/
 def pseudo_emetric_space.induced {α β} (f : α → β)
   (m : pseudo_emetric_space β) : pseudo_emetric_space α :=
 { edist               := λ x y, edist (f x) (f y),
@@ -452,11 +451,11 @@ instance pseudoemetric_space_pi [∀b, pseudo_emetric_space (π b)] : pseudo_eme
     simp [set.ext_iff, εpos]
   end }
 
-lemma pseudoedist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
+lemma pseudo_edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
 @[priority 1100]
-lemma pseudoedist_pi_const [nonempty β] (a b : α) :
+lemma pseudo_edist_pi_const [nonempty β] (a b : α) :
   edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
 end pi
@@ -906,6 +905,17 @@ end
 instance to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
+
+/-- If a  `pseudo_emetric_space` is separated, then it is an `emetric_space`. -/
+lemma emetric_space_of_t2_pseudo_emetric_space {α : Type*} [pseudo_emetric_space α]
+  (h : separated_space α) : emetric_space α :=
+{ eq_of_edist_eq_zero := λ x y hdist,
+  begin
+    refine separated_def.1 h x y (λ s hs, _),
+    obtain ⟨ε, hε, H⟩ := mem_uniformity_edist.1 hs,
+    exact H (show edist x y < ε, by rwa [hdist])
+  end
+  ..‹pseudo_emetric_space α› }
 
 /-- Auxiliary function to replace the uniformity on an emetric space with
 a uniformity which is equal to the original one, but maybe not defeq.

@@ -751,7 +751,7 @@ show that the space of bounded continuous functions from `α` to `β` is natural
 module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 @[simps]
-def linear_isometry_equiv_continuous_map_of_compact [compact_space α] :
+def linear_isometry_continuous_map_of_compact [compact_space α] :
   (α →ᵇ 𝕜) ≃ₗᵢ[𝕜] C(α, 𝕜) :=
 { map_smul' := λ c f, by { ext, simp, },
   norm_map' := λ f, rfl,

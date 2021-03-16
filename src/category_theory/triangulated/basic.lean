@@ -74,6 +74,7 @@ A morphism of triangles (X,Y,Z,f,g,h)→(X',Y',Z',f',g',h') in C is a triple of 
 a: X → X', b: Y → Y', c: Z → Z' such that b ≫ f = f' ≫ a, c ≫ g = g' ≫ b,
 and a[1] ≫ h = h' ≫ c.
 In other words, we have a commutative diagram:
+```
      f      g      h
   X  --> Y  --> Z  --> X[1]
   |      |      |       |
@@ -81,7 +82,7 @@ In other words, we have a commutative diagram:
   V      V      V       V
   X' --> Y' --> Z' --> X'[1]
      f'     g'     h'
-
+```
 See https://stacks.math.columbia.edu/tag/0144.
 -/
 @[ext]

@@ -62,6 +62,36 @@ namespace triangle_morphism
 variables {T₁ T₂ T₃ T₄: triangle C}
 /--
 You can also rotate a triangle morphism to get a morphism between the two rotated triangles.
+Given a triangle morphism of the form:
+```
+      f       g       h
+  X  ---> Y  ---> Z  ---> X[1]
+  |       |       |        |
+  |a      |b      |c       |a[1]
+  V       V       V        V
+  X' ---> Y' ---> Z' ---> X'[1]
+      f'      g'      h'
+```
+applying "rotate" gives a triangle morphism of the form:
+```
+      g        h        f[1]
+  Y  ---> Z  --->  X[1] ---> Y[1]
+  |       |         |         |
+  |b      |c        |a[1]     |b[1]
+  V       V         V         V
+  Y' ---> Z' ---> X'[1] ---> Y'[1]
+      g'      h'        f'[1]
+```
+and applying "inv_rotate" gives a triangle morphism of the form:
+```
+        h[-1]     f       g
+  Z[-1]  ---> X  ---> Y  ---> Z
+    |         |       |       |
+    |a        |b      |c      |a[1]
+    V         V       V       V
+  Z'[-1] ---> X' ---> Y' ---> Z'
+        h'[-1]    f'      g'
+```
 -/
 @[simps]
 def rotate (f : triangle_morphism T₁ T₂)

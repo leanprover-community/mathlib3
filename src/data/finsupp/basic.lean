@@ -288,15 +288,15 @@ begin
   simpa [H]
 end
 
-lemma single_support_disjoint (h : b ≠ 0) {i j : α} :
+lemma single_support_disjoint {b'} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b).support ↔ i ≠ j :=
 begin
   split,
   { rintro H rfl,
-    simpa [single_support_ne_bot _ h] using H },
+    simpa [single_support_ne_bot _ hb, single_support_ne_bot _ hb'] using H },
   { intros hne x,
     suffices : i = x → j = x → x ∈ ⊥,
-      { simpa [single_apply, h] },
+      { simpa [single_apply, hb, hb'] },
     rintro rfl rfl,
     simpa using hne }
 end

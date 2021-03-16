@@ -30,13 +30,13 @@ section has_mul
 
 variables (R) [has_mul R]
 
-/--  The predicate `is_square` on `r ∈ R` is the assertion that there exists an element
-`s ∈ R` such that `r = s * s`. -/
+/--  The predicate `is_square` on `r : R` is the assertion that there exists an element
+`s : R` such that `r = s * s`. -/
 def is_square (r : R) : Prop :=
 ∃ s : R, r = s * s
 
 /--  The squares of a Type `R` with `has_mul` is the subtype of the elements of the form `s * s`,
-for some `s ∈ R`. -/
+for some `s : R`. -/
 def squares : Type* := subtype (is_square R)
 
 /--  The sums of squares of an `add_comm_monoid R` is the `ℕ`-submodule spanned by the squares. -/
@@ -104,7 +104,6 @@ variables [monoid_with_zero R]
 instance : has_zero (squares R) := { zero := ⟨0, ⟨0, (zero_mul 0).symm⟩⟩ }
 
 end monoid_with_zero
-
 
 section comm_semigroup
 
@@ -260,3 +259,6 @@ subtype.coe_injective.comm_semiring _ rfl rfl (λ ⟨x, hx⟩ y, rfl) (λ ⟨x, 
 end comm_semiring
 
 end sums_of_squares
+
+
+end is_square

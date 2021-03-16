@@ -57,13 +57,13 @@ lemma mem_range_iff_mem_finset_range_of_mod_eq' [decidable_eq α] {f : ℕ → �
   a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
 begin
   split,
-    { rintros ⟨i, hi⟩,
-      simp only [mem_image, exists_prop, mem_range],
-      exact ⟨i % n, nat.mod_lt i hn, (rfl.congr hi).mp (h i)⟩ },
-    { rintro h,
-      simp only [mem_image, exists_prop, set.mem_range, mem_range] at *,
-      rcases h with ⟨i, hi, ha⟩,
-      use ⟨i, ha⟩ },
+  { rintros ⟨i, hi⟩,
+    simp only [mem_image, exists_prop, mem_range],
+    exact ⟨i % n, nat.mod_lt i hn, (rfl.congr hi).mp (h i)⟩ },
+  { rintro h,
+    simp only [mem_image, exists_prop, set.mem_range, mem_range] at *,
+    rcases h with ⟨i, hi, ha⟩,
+    use ⟨i, ha⟩ },
 end
 
 lemma mem_range_iff_mem_finset_range_of_mod_eq [decidable_eq α] {f : ℤ → α} {a : α} {n : ℕ}
@@ -151,18 +151,18 @@ lemma order_of_eq_zero {a : α} (h : ∀n, 0 < n → a ^ n ≠ 1) : order_of a =
 begin
   rw order_of,
   split_ifs with hx,
-    { exfalso,
-      cases hx with n hn,
-      exact (h n) hn.1 hn.2 },
-    { refl }
+  { exfalso,
+    cases hx with n hn,
+    exact (h n) hn.1 hn.2 },
+  { refl }
 end
 
 lemma order_of_le_of_pow_eq_one' {m : ℕ} (h : m < order_of a) : ¬ (0 < m ∧ a ^ m = 1) :=
 begin
   rw order_of at h,
   split_ifs at h with hfin,
-     { exact nat.find_min hfin h },
-     { exfalso, exact nat.not_lt_zero m h }
+  { exact nat.find_min hfin h },
+  { exfalso, exact nat.not_lt_zero m h }
 end
 
 lemma order_of_le_of_pow_eq_one {n : ℕ} (hn : 0 < n) (h : a ^ n = 1) : order_of a ≤ n :=
@@ -174,8 +174,8 @@ end
 @[simp] lemma order_of_one : order_of (1 : α) = 1 :=
 begin
 apply le_antisymm,
-  { exact order_of_le_of_pow_eq_one (nat.one_pos) (pow_one 1) },
-  { exact nat.succ_le_of_lt ( order_of_pos' ⟨1, ⟨nat.one_pos, pow_one 1⟩⟩) }
+{ exact order_of_le_of_pow_eq_one (nat.one_pos) (pow_one 1) },
+{ exact nat.succ_le_of_lt ( order_of_pos' ⟨1, ⟨nat.one_pos, pow_one 1⟩⟩) }
 end
 
 @[simp] lemma order_of_eq_one_iff : order_of a = 1 ↔ a = 1 :=
@@ -319,23 +319,23 @@ begin
   have h :  ¬ injective (λi:ℕ, a^i),
     from not_injective_infinite_fintype _,
   have h' : ∃(i j : ℕ), a ^ i = a ^ j ∧ i ≠ j,
-    { rw injective at h,
-      simp only [not_forall, exists_prop] at h,
-      exact h },
+  { rw injective at h,
+    simp only [not_forall, exists_prop] at h,
+    exact h },
   rcases h' with ⟨i, j, a_eq, ne⟩,
   wlog h'' : j ≤ i,
   have h''' : a ^ (i - j) = 1,
-    { rw [(nat.add_sub_of_le h'').symm, pow_add, ← mul_one (a ^ j), mul_assoc] at a_eq,
-      convert mul_left_cancel a_eq,
-      rw one_mul },
+  { rw [(nat.add_sub_of_le h'').symm, pow_add, ← mul_one (a ^ j), mul_assoc] at a_eq,
+    convert mul_left_cancel a_eq,
+    rw one_mul },
   use (i - j),
   split,
-    { apply lt_of_le_of_ne (zero_le (i - j)),
-      by_contradiction,
-      rw not_not at h,
-      apply ne,
-      rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
-    { exact h''' },
+  { apply lt_of_le_of_ne (zero_le (i - j)),
+    by_contradiction,
+    rw not_not at h,
+    apply ne,
+    rw [(nat.add_sub_of_le h'').symm, ← h, add_zero] },
+  { exact h''' },
 end
 
 lemma order_of_le_card_univ {a : α}: order_of a ≤ fintype.card α :=
@@ -404,8 +404,8 @@ begin
   rcases exists_pow_eq_one a with ⟨w, hw1, hw2⟩,
   use w,
   split,
-    { exact_mod_cast ne_of_gt hw1 },
-    { exact_mod_cast hw2 }
+  { exact_mod_cast ne_of_gt hw1 },
+  { exact_mod_cast hw2 }
 end
 
 open subgroup

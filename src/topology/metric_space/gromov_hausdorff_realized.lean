@@ -8,6 +8,7 @@ their Hausdorff distance. This construction is instrumental to study the Gromov-
 distance between nonempty compact metric spaces -/
 import topology.metric_space.gluing
 import topology.metric_space.hausdorff_distance
+import topology.bounded_continuous_function
 
 noncomputable theory
 open_locale classical topological_space nnreal
@@ -56,7 +57,7 @@ def candidates : set (prod_space_fun α β) :=
 
 /-- Version of the set of candidates in bounded_continuous_functions, to apply
 Arzela-Ascoli -/
-private def candidates_b : set (Cb α β) := {f : Cb α β | f.val ∈ candidates α β}
+private def candidates_b : set (Cb α β) := {f : Cb α β | f.to_fun ∈ candidates α β}
 
 end definitions --section
 
@@ -175,7 +176,7 @@ end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/
 def candidates_b_of_candidates (f : prod_space_fun α β) (fA : f ∈ candidates α β) : Cb α β :=
-bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).continuous
+bounded_continuous_function.mk_of_compact ⟨f, (candidates_lipschitz fA).continuous⟩
 
 lemma candidates_b_of_candidates_mem (f : prod_space_fun α β) (fA : f ∈ candidates α β) :
   candidates_b_of_candidates f fA ∈ candidates_b α β := fA

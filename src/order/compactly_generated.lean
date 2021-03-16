@@ -93,7 +93,7 @@ begin
       -- certainly every element of t is below something in s, since ↑t ⊆ s.
       have t_below_s : ∀ x ∈ t, ∃ y ∈ s, x ≤ y, from λ x hxt, ⟨x, ht.left hxt, by refl⟩,
       obtain ⟨x, ⟨hxs, hsupx⟩⟩ := finset.sup_le_of_le_directed s hne hdir t t_below_s,
-      exact ⟨x, ⟨hxs, le_trans k (t.sup id) x ht.right hsupx⟩⟩, }, },
+      exact ⟨x, ⟨hxs, le_trans ht.right hsupx⟩⟩, }, },
   { intros hk s hsup,
     -- Consider the set of finite joins of elements of the (plain) set s.
     let S : set α := { x | ∃ t : finset α, ↑t ⊆ s ∧ x = t.sup id },
@@ -118,7 +118,7 @@ begin
       simp only [set.empty_subset, finset.coe_empty, finset.sup_empty,
         eq_self_iff_true, and_self], },
     -- Now apply the defn of compact and finish.
-    obtain ⟨j, ⟨hjS, hjk⟩⟩ := hk S Sne dir_US (le_trans k (Sup s) (Sup S) hsup sup_S),
+    obtain ⟨j, ⟨hjS, hjk⟩⟩ := hk S Sne dir_US (le_trans hsup sup_S),
     obtain ⟨t, ⟨htS, htsup⟩⟩ := hjS,
     use t, exact ⟨htS, by rwa ←htsup⟩, },
 end
@@ -131,7 +131,7 @@ lemma is_compact_element.directed_Sup_lt_of_lt {α : Type*} [complete_lattice α
 begin
   rw is_compact_element_iff_le_of_directed_Sup_le at hk,
   by_contradiction,
-  have sSup : Sup s ≤ k, from Sup_le _ _ (λ s hs, (hbelow s hs).le),
+  have sSup : Sup s ≤ k, from Sup_le (λ s hs, (hbelow s hs).le),
   replace sSup : Sup s = k := eq_iff_le_not_lt.mpr ⟨sSup, h⟩,
   obtain ⟨x, hxs, hkx⟩ := hk s hemp hdir sSup.symm.le,
   obtain hxk := hbelow x hxs,
@@ -150,7 +150,7 @@ begin
   obtain ⟨p, ⟨hps, rfl⟩⟩ := finset.mem_image.mp hx,
   specialize h p hps,
   rw is_compact_element_iff_le_of_directed_Sup_le at h,
-  specialize h d hemp hdir (_root_.le_trans (finset.le_sup hps) hsup),
+  specialize h d hemp hdir (le_trans (finset.le_sup hps) hsup),
   simpa only [exists_prop],
 end
 
@@ -309,7 +309,7 @@ theorem complete_lattice.independent_iff_finite {s : set α} :
   rw [supr_eq_bot, finset.sup_eq_Sup],
   intro ht,
   classical,
-  have h' := (h (insert a t) _ a (t.mem_insert_self a)).eq_bot,
+  have h' := (h (insert a t) _ (t.mem_insert_self a)).eq_bot,
   { rwa [finset.coe_insert, set.insert_diff_self_of_not_mem] at h',
     exact λ con, ((set.mem_diff a).1 (ht con)).2 (set.mem_singleton a) },
   { rw [finset.coe_insert, set.insert_subset],
@@ -328,7 +328,7 @@ begin
     obtain ⟨I, fi, hI⟩ := set.finite_subset_Union t.finite_to_set ht,
     obtain ⟨i, hi⟩ := hs.finset_le fi.to_finset,
     exact (h i).mono (set.subset.trans hI $ set.bUnion_subset $
-      λ j hj, hi j (set.finite.mem_to_finset.2 hj)) },
+      λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { rintros a ⟨_, ⟨i, _⟩, _⟩,
     exfalso, exact hη ⟨i⟩, },
 end
@@ -367,7 +367,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
     exact lt_irrefl _ hck, },
   { intros S SC cC I IS,
     by_cases hS : S.nonempty,
-    { exact ⟨Sup S, h.directed_Sup_lt_of_lt hS cC.directed_on SC, le_Sup _⟩, },
+    { exact ⟨Sup S, h.directed_Sup_lt_of_lt hS cC.directed_on SC, λ _, le_Sup⟩, },
     exact ⟨b, lt_of_le_of_ne hbk htriv, by simp only [set.not_nonempty_iff_eq_empty.mp hS,
       set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩, },
 end⟩
@@ -444,7 +444,7 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
           rw set.mem_singleton_iff,
           exact ne.symm xa },
         rw [h, Sup_union, Sup_singleton],
-        apply (s_ind x (hx.resolve_right xa)).disjoint_sup_right_of_disjoint_sup_left
+        apply (s_ind (hx.resolve_right xa)).disjoint_sup_right_of_disjoint_sup_left
           (a_dis_Sup_s.mono_right _).symm,
         rw [← Sup_insert, set.insert_diff_singleton,
           set.insert_eq_of_mem (hx.resolve_right xa)] } },

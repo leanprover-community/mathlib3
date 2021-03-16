@@ -508,7 +508,8 @@ function.left_inverse.injective (length_repeat a)
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
   l >>= f = l.bind f := rfl
 
-@[simp] theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
+-- TODO: duplicate of a lemma in core
+theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
   (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
 append_bind _ _ _
 
@@ -1600,6 +1601,23 @@ begin
     { simp only [hl, cons_append, nth, eq_self_iff_true, and_self, take] } }
 end
 
+@[simp] lemma take_eq_nil_iff {l : list α} {k : ℕ} :
+  l.take k = [] ↔ l = [] ∨ k = 0 :=
+by { cases l; cases k; simp [nat.succ_ne_zero] }
+
+lemma init_eq_take (l : list α) : l.init = l.take l.length.pred :=
+begin
+  cases l with x l,
+  { simp [init] },
+  { induction l with hd tl hl generalizing x,
+    { simp [init], },
+    { simp [init, hl] } }
+end
+
+lemma init_take {n : ℕ} {l : list α} (h : n < l.length) :
+  (l.take n).init = l.take n.pred :=
+by simp [init_eq_take, min_eq_left_of_lt h, take_take, pred_le]
+
 @[simp] lemma drop_eq_nil_of_le {l : list α} {k : ℕ} (h : l.length ≤ k) :
   l.drop k = [] :=
 by simpa [←length_eq_zero] using nat.sub_eq_zero_of_le h
@@ -1717,6 +1735,15 @@ dropping the first `i` elements. Version designed to rewrite from the small list
 lemma nth_le_drop' (L : list α) {i j : ℕ} (h : j < (L.drop i).length) :
   nth_le (L.drop i) j h = nth_le L (i + j) (nat.add_lt_of_lt_sub_left ((length_drop i L) ▸ h)) :=
 by rw nth_le_drop
+
+lemma nth_drop (L : list α) (i j : ℕ) :
+  nth (L.drop i) j = nth L (i + j) :=
+begin
+  ext,
+  simp only [nth_eq_some, nth_le_drop', option.mem_def],
+  split;
+  exact λ ⟨h, ha⟩, ⟨by simpa [nat.lt_sub_left_iff_add_lt] using h, ha⟩
+end
 
 @[simp] theorem drop_drop (n : ℕ) : ∀ (m) (l : list α), drop n (drop m l) = drop (n + m) l
 | m     []     := by simp
@@ -2144,10 +2171,33 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
 
-theorem prod_ne_zero {R : Type*} [domain R] {L : list R} :
-  (∀ x ∈ L, (x : _) ≠ 0) → L.prod ≠ 0 :=
-list.rec_on L (λ _, one_ne_zero) $ λ hd tl ih H,
-  by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
+/-- If zero is an element of a list `L`, then `list.prod L = 0`. If the domain is a nontrivial
+monoid with zero with no divisors, then this implication becomes an `iff`, see
+`list.prod_eq_zero_iff`. -/
+theorem prod_eq_zero {M₀ : Type*} [monoid_with_zero M₀] {L : list M₀} (h : (0 : M₀) ∈ L) :
+  L.prod = 0 :=
+begin
+  induction L with a L ihL,
+  { exact absurd h (not_mem_nil _) },
+  { rw prod_cons,
+    cases (mem_cons_iff _ _ _).1 h with ha hL,
+    exacts [mul_eq_zero_of_left ha.symm _, mul_eq_zero_of_right _ (ihL hL)] }
+end
+
+/-- Product of elements of a list `L` equals zero if and only if `0 ∈ L`. See also
+`list.prod_eq_zero` for an implication that needs weaker typeclass assumptions. -/
+@[simp] theorem prod_eq_zero_iff {M₀ : Type*} [monoid_with_zero M₀] [nontrivial M₀]
+  [no_zero_divisors M₀] {L : list M₀} :
+  L.prod = 0 ↔ (0 : M₀) ∈ L :=
+begin
+  induction L with a L ihL,
+  { simp },
+  { rw [prod_cons, mul_eq_zero, ihL, mem_cons_iff, eq_comm] }
+end
+
+theorem prod_ne_zero {M₀ : Type*} [monoid_with_zero M₀] [nontrivial M₀] [no_zero_divisors M₀]
+  {L : list M₀} (hL : (0 : M₀) ∉ L) : L.prod ≠ 0 :=
+mt prod_eq_zero_iff.1 hL
 
 @[to_additive]
 theorem prod_eq_foldr : l.prod = foldr (*) 1 l :=
@@ -3135,7 +3185,8 @@ variable (p)
 theorem filter_sublist_filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
 filter_map_eq_filter p ▸ s.filter_map _
 
-theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
+theorem map_filter (f : β → α) (l : list β) :
+  filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
 @[simp] theorem filter_filter (q) [decidable_pred q] : ∀ l,

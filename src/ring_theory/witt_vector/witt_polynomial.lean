@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import algebra.invertible
+import algebra.char_p.invertible
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand

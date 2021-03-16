@@ -15,6 +15,7 @@ which modifies the set of variables.
 ## Main declarations
 
 * `mv_polynomial.rename`
+* `mv_polynomial.rename_equiv`
 
 ## Notation
 
@@ -110,6 +111,31 @@ begin
 end
 
 section
+variables (R)
+
+/-- `mv_polynomial.rename e` is an equivalence when `e` is. -/
+@[simps apply]
+def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
+{ to_fun := rename f,
+  inv_fun := rename f.symm,
+  left_inv := λ p, by rw [rename_rename, f.symm_comp_self, rename_id],
+  right_inv := λ p, by rw [rename_rename, f.self_comp_symm, rename_id],
+  ..rename f}
+
+@[simp] lemma rename_equiv_refl :
+  rename_equiv R (equiv.refl σ) = alg_equiv.refl :=
+alg_equiv.ext rename_id
+
+@[simp] lemma rename_equiv_symm (f : σ ≃ τ) :
+  (rename_equiv R f).symm = rename_equiv R f.symm := rfl
+
+@[simp] lemma rename_equiv_trans (e : σ ≃ τ) (f : τ ≃ α):
+  (rename_equiv R e).trans (rename_equiv R f) = rename_equiv R (e.trans f) :=
+alg_equiv.ext (rename_rename e f)
+
+end
+
+section
 variables (f : R →+* S) (k : σ → τ) (g : τ → S) (p : mv_polynomial σ R)
 
 lemma eval₂_rename : (rename k p).eval₂ f g = p.eval₂ f (g ∘ k) :=
@@ -195,13 +221,13 @@ lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →
   (h : ∀ u : σ →₀ ℕ, u.map_domain f = d → φ.coeff u = 0) :
   (rename f φ).coeff d = 0 :=
 begin
-  rw [rename_eq, coeff, ← not_mem_support_iff],
+  rw [rename_eq, ← not_mem_support_iff],
   intro H,
   replace H := map_domain_support H,
   rw [finset.mem_image] at H,
   obtain ⟨u, hu, rfl⟩ := H,
   specialize h u rfl,
-  simp [mem_support_iff, coeff] at h hu,
+  simp at h hu,
   contradiction
 end
 

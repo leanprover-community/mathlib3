@@ -237,7 +237,7 @@ by rw [← map_coprod_prod, coprod_inl_inr, map_id]
 
 lemma span_inl_union_inr {s : set M} {t : set M₂} :
   span R (inl R M  M₂ '' s ∪ inr R M M₂ '' t) = (span R s).prod (span R t) :=
-by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
+by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]
 
 @[simp] lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   ker (prod f g) = ker f ⊓ ker g :=

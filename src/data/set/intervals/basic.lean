@@ -1138,6 +1138,8 @@ by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_re
 
 end both
 
+lemma Icc_bot_top {α} [bounded_lattice α] : Icc (⊥ : α) ⊤ = univ := by simp
+
 end lattice
 
 section linear_order
@@ -1262,7 +1264,7 @@ lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
   nonempty ↥(Ico x (x + dx) \ Ico y (y + dy)) :=
 begin
   cases lt_or_le x y with h' h',
-  { use x, simp* },
+  { use x, simp [*, not_le.2 h'], },
   { use max x (x + dy), simp [*, le_refl] }
 end
 

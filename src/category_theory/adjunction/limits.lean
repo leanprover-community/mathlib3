@@ -121,7 +121,8 @@ lemma has_colimits_of_shape_of_equivalence (E : C ⥤ D) [is_equivalence E]
 ⟨λ F, by exactI has_colimit_of_comp_equivalence F E⟩
 
 /-- Transport a `has_colimits` instance across an equivalence. -/
-lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits D] : has_colimits C :=
+lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits D] :
+  has_colimits C :=
 ⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence E⟩
 
 end preservation_colimits

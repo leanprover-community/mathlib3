@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import data.finset.basic
+import data.finset.lattice
 
 /-!
 # The powerset of a finset
@@ -115,6 +115,38 @@ begin
       mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
   { rcases mem_bUnion.mp ha with ⟨i, hi, ha⟩,
     exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }
+end
+
+lemma powerset_len_sup [decidable_eq α] (u : finset α) (n : ℕ) (hn : n < u.card) :
+  (powerset_len n.succ u).sup id = u :=
+begin
+  ext x,
+  rw mem_sup,
+  by_cases hx : x ∈ u,
+  { simp only [exists_prop, id.def, iff_true, mem_powerset_len, hx],
+    induction n with n IH,
+    { simp only [hx, nat.nat_zero_eq_zero, iff_true],
+      use ({x} : finset α),
+      simpa using hx },
+    { obtain ⟨s, hs, hm⟩ := IH ((nat.lt_succ_self _).trans hn),
+      obtain ⟨y, hy⟩ : ∃ y : α, y ∈ u \ s,
+        { have hsc : (u \ s).card = u.card - n.succ,
+            { rw [card_sdiff hs.left, hs.right] },
+          have hpos : 0 < (u \ s).card := hsc.symm ▸ nat.sub_pos_of_lt hn,
+          exact card_pos.mp hpos },
+      have hy' : disjoint s {y},
+        { intros i hi,
+          simp only [inf_eq_inter, mem_inter, mem_singleton] at hi,
+          replace hi : y ∈ s := hi.right ▸ hi.left,
+          simpa using not_mem_sdiff_of_mem_right hi hy },
+      use (s ∪ {y}),
+      have hys : {y} ⊆ u,
+        { simp [mem_sdiff.mp hy] },
+      simpa [hy, hm, hs, hy'] using union_subset hs.left hys } },
+  { simp only [hx, not_exists, exists_prop, not_and, id.def, iff_false],
+    intros v hv H,
+    rw mem_powerset_len at hv,
+    exact hx (mem_of_subset hv.left H) }
 end
 
 end powerset_len

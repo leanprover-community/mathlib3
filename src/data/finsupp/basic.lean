@@ -280,6 +280,27 @@ lemma single_left_inj (h : b ≠ 0) :
   and_false, or_false, eq_self_iff_true, and_true] using H,
  λ H, by rw [H]⟩
 
+lemma single_support_ne_bot (i : α) (h : b ≠ 0) :
+  (single i b).support ≠ ⊥ :=
+begin
+  have : i ∈ (single i b).support := by simpa using h,
+  intro H,
+  simpa [H]
+end
+
+lemma single_support_disjoint (h : b ≠ 0) {i j : α} :
+  disjoint (single i b).support (single j b).support ↔ i ≠ j :=
+begin
+  split,
+  { rintro H rfl,
+    simpa [single_support_ne_bot _ h] using H },
+  { intros hne x,
+    suffices : i = x → j = x → x ∈ ⊥,
+      { simpa [single_apply, h] },
+    rintro rfl rfl,
+    simpa using hne }
+end
+
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 by simp [ext_iff, single_eq_indicator]
 
@@ -1064,6 +1085,25 @@ lemma multiset_sum_sum_index
 multiset.induction_on f rfl $ assume a s ih,
 by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index h₀ h₁, ih]
 
+lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [add_comm_monoid M]
+  {g : ι → α →₀ M} (s : finset ι) (h : ∀ i₁ i₂, i₁ ≠ i₂ → disjoint (g i₁).support (g i₂).support) :
+  (∑ i in s, g i).support = s.bUnion (λ i, (g i).support) :=
+begin
+  apply finset.induction_on s,
+  { simp },
+  { intros i s hi,
+    simp only [hi, sum_insert, not_false_iff, bUnion_insert],
+    intro hs,
+    rw [finsupp.support_add_eq, hs],
+    rw [hs],
+    intros x hx,
+    simp only [mem_bUnion, exists_prop, inf_eq_inter, ne.def, mem_inter] at hx,
+    obtain ⟨hxi, j, hj, hxj⟩ := hx,
+    have hn : i ≠ j := λ H, hi (H.symm ▸ hj),
+    apply h _ _ hn,
+    simp [hxi, hxj] }
+end
+
 lemma multiset_map_sum [has_zero M] {f : α →₀ M} {m : β → γ} {h : α → M → multiset β} :
   multiset.map m (f.sum h) = f.sum (λa b, (h a b).map m) :=
 (f.support.sum_hom _).symm
@@ -1464,6 +1504,20 @@ lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n �
 
 @[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n •ℕ {a} :=
 by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
+
+lemma to_multiset_sum {ι : Type*} {f : ι → α →₀ ℕ} (s : finset ι) :
+  finsupp.to_multiset (∑ i in s, f i) = ∑ i in s, finsupp.to_multiset (f i) :=
+begin
+  apply finset.induction_on s,
+  { simp },
+  { intros i s hi,
+    simp [hi] }
+end
+
+lemma to_multiset_sum_single {ι : Type*} (s : finset ι) (n : ℕ) :
+  finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
+by simp_rw [to_multiset_sum, finsupp.to_multiset_single, sum_nsmul, sum_multiset_singleton,
+            nsmul_eq_smul]
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λa, id) :=
 by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]

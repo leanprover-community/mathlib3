@@ -64,6 +64,7 @@ structure ideal (P) [preorder P] :=
 (directed : directed_on (≤) I)
 (mem_of_le : ∀ {x y : P}, x ≤ y → y ∈ I → x ∈ I)
 
+/-- Transfer from the predicate is_ideal to the structure ideal. -/
 def is_ideal.to_ideal [preorder P] {I : set P} (h : is_ideal I) : ideal P :=
 ⟨I, h.1, h.2, h.3⟩
 
